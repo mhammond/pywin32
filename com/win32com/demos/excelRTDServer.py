@@ -223,7 +223,7 @@ class ExcelRTDServer(object):
       
     Will raise NotImplemented if not overridden.
     """
-    raise NotImplemented, 'Subclass must implement'
+    raise NotImplemented('Subclass must implement')
     
   # Overridable class events...  
   def OnConnectData(self, TopicID):
@@ -256,7 +256,7 @@ class RTDTopic(object):
     """Called by the RTD Server. 
     Gives us a chance to check if our topic data needs to be 
     changed (eg. check a file, quiz a database, etc)."""
-    raise NotImplemented, 'subclass must implement'
+    raise NotImplemented('subclass must implement')
     
   def Reset(self):
     """Call when this topic isn't considered "dirty" anymore."""
@@ -367,7 +367,7 @@ class TimeTopic(RTDTopic):
       # We could simply return a "# ERROR" type string as the 
       # topic value, but explosions like this should be able to get handled by 
       # the VBA-side "On Error" stuff. 
-      raise ValueError, "Invalid topic strings: %s" % str(TopicStrings)
+      raise ValueError("Invalid topic strings: %s" % str(TopicStrings))
     
     #self.cmd = str(self.cmd)
     self.delay = float(self.delay)

@@ -150,7 +150,7 @@ def _CheckEngineState(engine, name, state):
   if got != state:
     got_name = state_map.get(got, str(got))
     state_name = state_map.get(state, str(state))
-    raise RuntimeError, "Warning - engine %s has state %s, but expected %s" % (name, got_name, state_name)
+    raise RuntimeError("Warning - engine %s has state %s, but expected %s" % (name, got_name, state_name))
 
 class EngineTester(win32com.test.util.TestCase):
   def _TestEngine(self, engineName, code, expected_exc = None):

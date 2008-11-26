@@ -52,10 +52,10 @@ class ADSIEnumerator:
 	def __call__(self, index):
 		return self.__GetIndex(index)
 	def __GetIndex(self, index):
-		if type(index)!=type(0): raise TypeError, "Only integer indexes are supported for enumerators"
+		if type(index)!=type(0): raise TypeError("Only integer indexes are supported for enumerators")
 		if index != self.index + 1:
 			# Index requested out of sequence.
-			raise ValueError, "You must index this object sequentially"
+			raise ValueError("You must index this object sequentially")
 		self.index = index
 		result = ADsEnumerateNext(self._oleobj_, 1)
 		if len(result):
@@ -63,7 +63,7 @@ class ADSIEnumerator:
 		# Failed - reset for next time around.
 		self.index = -1
 		self._oleobj_ = ADsBuildEnumerator(self._cont_) # a PyIADsEnumVARIANT
-		raise IndexError, "list index out of range"
+		raise IndexError("list index out of range")
 
 class ADSIDispatch(win32com.client.CDispatch):
 	def _wrap_dispatch_(self, ob, userName = None, returnCLSID = None, UnicodeToString = win32com.client.NeedUnicodeConversions):

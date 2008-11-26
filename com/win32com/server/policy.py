@@ -190,7 +190,7 @@ class BasicWrapPolicy:
       classSpec = win32api.RegQueryValue(win32con.HKEY_CLASSES_ROOT,
                                        regSpec % clsid)
     except win32api.error:
-      raise error, "The object is not correctly registered - %s key can not be read" % (regSpec % clsid)
+      raise error("The object is not correctly registered - %s key can not be read" % (regSpec % clsid))
     myob = call_func(classSpec)
     self._wrap_(myob)
     try:
@@ -200,7 +200,7 @@ class BasicWrapPolicy:
       desc = "The object '%r' was created, but does not support the " \
              "interface '%s'(%s): %s" \
              % (myob, IIDToInterfaceName(reqIID), reqIID, desc)
-      raise pythoncom.com_error, (hr, desc, exc, arg)
+      raise pythoncom.com_error(hr, desc, exc, arg)
 
 
   def _wrap_(self, object):
@@ -329,7 +329,7 @@ class BasicWrapPolicy:
        Simply raises an exception.
     """
     # Base classes should override this method (and not call the base)
-    raise error, "This class does not provide _invokeex_ semantics"
+    raise error("This class does not provide _invokeex_ semantics")
 
   def _DeleteMemberByName_(self, name, fdex):
     return self._deletememberbyname_(name, fdex)
@@ -468,7 +468,7 @@ class DesignatedWrapPolicy(MappedWrapPolicy):
       universal_data = []
     MappedWrapPolicy._wrap_(self, ob)
     if not hasattr(ob, '_public_methods_') and not hasattr(ob, "_typelib_guid_"):
-      raise error, "Object does not support DesignatedWrapPolicy, as it does not have either _public_methods_ or _typelib_guid_ attributes."
+      raise error("Object does not support DesignatedWrapPolicy, as it does not have either _public_methods_ or _typelib_guid_ attributes.")
 
     # Copy existing _dispid_to_func_ entries to _name_to_dispid_
     for dispid, name in self._dispid_to_func_.items():
@@ -488,7 +488,7 @@ class DesignatedWrapPolicy(MappedWrapPolicy):
       elif invkind == DISPATCH_PROPERTYGET:
           self._dispid_to_get_[dispid] = name
       else:
-        raise ValueError, "unexpected invkind: %d (%s)" % (invkind,name)
+        raise ValueError("unexpected invkind: %d (%s)" % (invkind,name))
     
     # look for reserved methods
     if hasattr(ob, '_value_'):
@@ -668,7 +668,7 @@ class DynamicPolicy(BasicWrapPolicy):
   def _wrap_(self, object):
     BasicWrapPolicy._wrap_(self, object)
     if not hasattr(self._obj_, '_dynamic_'):
-      raise error, "Object does not support Dynamic COM Policy"
+      raise error("Object does not support Dynamic COM Policy")
     self._next_dynamic_ = self._min_dynamic_ = 1000
     self._dyn_dispid_to_name_ = {DISPID_VALUE:'_value_', DISPID_NEWENUM:'_NewEnum' }
 

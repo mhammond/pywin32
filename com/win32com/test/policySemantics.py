@@ -49,7 +49,7 @@ def DispExTest(ob):
             break
     dispids.sort()
     if dispids <> [pythoncom.DISPID_EVALUATE, pythoncom.DISPID_NEWENUM, 10, 11, 1000]:
-        raise Error, "Got back the wrong dispids: %s" % dispids
+        raise Error("Got back the wrong dispids: %s" % dispids)
 
 def SemanticTest(ob):
     # First just check our object "generally" as expected.
@@ -58,13 +58,13 @@ def SemanticTest(ob):
     ob.Add(3)
     # invoke _value_
     if ob() != (1,2,3):
-        raise Error, "Bad result - got %s" % (`ob()`)
+        raise Error("Bad result - got %s" % (`ob()`))
 
     dispob = ob._oleobj_
 
     rc = dispob.Invoke(pythoncom.DISPID_EVALUATE, 0, pythoncom.DISPATCH_METHOD|pythoncom.DISPATCH_PROPERTYGET, 1)
     if rc != 6:
-        raise Error, "Evaluate returned", rc
+        raise Error("Evaluate returned").with_traceback(rc)
 
 
 class Tester(win32com.test.util.TestCase):

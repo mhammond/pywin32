@@ -76,7 +76,7 @@ class SecurityInformation(win32com.server.policy.DesignatedWrapPolicy):
         if (objecttype is not None) and (objecttype!=IID_NULL):
             ## Should not be true for file objects.  Usually only used with DS objects that support security for
             ## their properties
-            raise NotImplementedError, "Object type is not supported"
+            raise NotImplementedError("Object type is not supported")
         
         if os.path.isdir(self.FileName):
             file_append_data_desc='Create subfolders'

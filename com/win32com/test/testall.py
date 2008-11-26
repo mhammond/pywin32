@@ -195,7 +195,7 @@ if __name__=='__main__':
         try:
             testLevel = int(arg)
             if testLevel < 0 or testLevel > 3:
-                raise ValueError, "Only levels 1-3 are supported"
+                raise ValueError("Only levels 1-3 are supported")
         except ValueError:
             test_names.append(arg)
     if test_names:

@@ -246,7 +246,7 @@ class DispatcherWin32dbg(DispatcherBase):
     #import pywin.debugger, pywin.debugger.dbgcon
     debug = 0
     try:
-      raise typ, val
+      raise typ(val)
     except Exception: # AARG - What is this Exception???
       # Use some inside knowledge to borrow a Debugger option which dictates if we
       # stop at "expected" exceptions.
@@ -274,7 +274,7 @@ def reraise():
   the traceback is not referenced by the traceback itself.
   """
   t, v, tb = exc_info()
-  raise t, v, tb
+  raise t(v).with_traceback(tb)
 
 try:
   import win32trace

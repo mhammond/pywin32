@@ -52,18 +52,18 @@ def Test():
         client = win32com.client.dynamic.Dispatch(iid)
         client.ANewAttr = "Hello"
         if client.ANewAttr != "Hello":
-            raise error, "Could not set dynamic property"
+            raise error("Could not set dynamic property")
 
         v = ["Hello","From","Python",1.4]
         client.TestSequence = v
         if v != list(client.TestSequence):
-            raise error, "Dynamic sequences not working! %r/%r" % (repr(v), repr(client.testSequence))
+            raise error("Dynamic sequences not working! %r/%r" % (repr(v), repr(client.testSequence)))
 
         client.write("This","output","has","come","via","COM")
         # Check our new "_FlagAsMethod" works (kinda!)
         client._FlagAsMethod("NotReallyAMethod")
         if not callable(client.NotReallyAMethod):
-            raise error, "Method I flagged as callable isn't!"
+            raise error("Method I flagged as callable isn't!")
 
 
         client = None

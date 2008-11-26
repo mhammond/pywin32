@@ -11,11 +11,11 @@ def TestExcel():
     class ExcelEvents:
         def OnNewWorkbook(self, wb):
             if type(wb) != types.InstanceType:
-                raise RuntimeError, "The transformer doesnt appear to have translated this for us!"
+                raise RuntimeError("The transformer doesnt appear to have translated this for us!")
             self.seen_events["OnNewWorkbook"] = None
         def OnWindowActivate(self, wb, wn):
             if type(wb) != types.InstanceType or type(wn) != types.InstanceType:
-                raise RuntimeError, "The transformer doesnt appear to have translated this for us!"
+                raise RuntimeError("The transformer doesnt appear to have translated this for us!")
             self.seen_events["OnWindowActivate"] = None
         def OnWindowDeactivate(self, wb, wn):
             self.seen_events["OnWindowDeactivate"] = None

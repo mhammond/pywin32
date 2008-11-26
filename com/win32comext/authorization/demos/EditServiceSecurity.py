@@ -74,7 +74,7 @@ class ServiceSecurity(win32com.server.policy.DesignatedWrapPolicy):
         ## input flags: SI_ADVANCED,SI_EDIT_AUDITS,SI_EDIT_PROPERTIES indicating which property sheet is requesting the rights
         if (objecttype is not None) and (objecttype!=IID_NULL):
             ## Not relevent for services
-            raise NotImplementedError, "Object type is not supported"
+            raise NotImplementedError("Object type is not supported")
         
         ## ???? for some reason, the DACL for a service will not retain ACCESS_SYSTEM_SECURITY in an ACE ????
         ## (IID_NULL, win32con.ACCESS_SYSTEM_SECURITY, 'View/change audit settings', SI_ACCESS_SPECIFIC),

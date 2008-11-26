@@ -19,7 +19,7 @@ def wav_header_unpack(data):
      = struct.unpack('<4sl4s4slhhllhh4sl', data)
 
     if riff != 'RIFF':
-        raise ValueError, 'invalid wav header'
+        raise ValueError('invalid wav header')
     
     if fmtsize != 16 or fmt != 'fmt ' or data != 'data':
         # fmt chuck is not first chunk, directly followed by data chuck

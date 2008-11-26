@@ -54,7 +54,7 @@ class Stream:
         elif origin==pythoncom.STREAM_SEEK_END:
             self.index = len(self.data)+dist
         else:
-            raise ValueError, 'Unknown Seek type: ' +str(origin)
+            raise ValueError('Unknown Seek type: ' +str(origin))
         if self.index < 0:
             self.index = 0
         else:

@@ -23,7 +23,7 @@ try:
 except pythoncom.com_error:
     print "The PyCOMTest module can not be located or generated."
     print importMsg
-    raise RuntimeError, importMsg
+    raise RuntimeError(importMsg)
 
 # We had a bg where RegisterInterfaces would fail if gencache had 
 # already been run - exercise that here
@@ -48,15 +48,15 @@ def TestApplyResult(fn, args, result):
     pref = "function " + fnName
     rc  = apply(fn, args)
     if rc != result:
-        raise error, "%s failed - result not %r but %r" % (pref, result, rc)
+        raise error("%s failed - result not %r but %r" % (pref, result, rc))
 
 def TestConstant(constName, pyConst):
     try: 
         comConst = getattr(constants, constName)
     except:
-        raise error, "Constant %s missing" % (constName,)
+        raise error("Constant %s missing" % (constName,))
     if comConst != pyConst:
-        raise error, "Constant value wrong for %s - got %s, wanted %s" % (constName, comConst, pyConst)
+        raise error("Constant value wrong for %s - got %s, wanted %s" % (constName, comConst, pyConst))
 
 # Simple handler class.  This demo only fires one event.
 class RandomEventHandler:
@@ -99,19 +99,19 @@ def TestDynamic():
     rc = o.TestOptionals()
     if  rc[:-1] != ("def", 0, 1) or abs(rc[-1]-3.14)>.01:
         print rc
-        raise error, "Did not get the optional values correctly"
+        raise error("Did not get the optional values correctly")
     rc = o.TestOptionals("Hi", 2, 3, 1.1)
     if  rc[:-1] != ("Hi", 2, 3) or abs(rc[-1]-1.1)>.01:
         print rc
-        raise error, "Did not get the specified optional values correctly"
+        raise error("Did not get the specified optional values correctly")
     rc = o.TestOptionals2(0)
     if  rc != (0, "", 1):
         print rc
-        raise error, "Did not get the optional2 values correctly"
+        raise error("Did not get the optional2 values correctly")
     rc = o.TestOptionals2(1.1, "Hi", 2)
     if  rc[1:] != ("Hi", 2) or abs(rc[0]-1.1)>.01:
         print rc
-        raise error, "Did not get the specified optional2 values correctly"
+        raise error("Did not get the specified optional2 values correctly")
 
 #       if verbose: print "Testing structs"
     r = o.GetStruct()
@@ -128,28 +128,28 @@ def TestDynamic():
     TestApplyResult(o.CheckVariantSafeArray, ((1,2,3,4,),), 1)
     o.LongProp = 3
     if o.LongProp != 3 or o.IntProp != 3:
-        raise error, "Property value wrong - got %d/%d" % (o.LongProp,o.IntProp)
+        raise error("Property value wrong - got %d/%d" % (o.LongProp,o.IntProp))
     o.LongProp = o.IntProp = -3
     if o.LongProp != -3 or o.IntProp != -3:
-        raise error, "Property value wrong - got %d/%d" % (o.LongProp,o.IntProp)
+        raise error("Property value wrong - got %d/%d" % (o.LongProp,o.IntProp))
     # This number fits in an unsigned long.  Attempting to set it to a normal
     # long will involve overflow, which is to be expected. But we do
     # expect it to work in a property explicitly a VT_UI4.
     check = 3 *10 **9
     o.ULongProp = check
     if o.ULongProp != check:
-        raise error, "Property value wrong - got %d (expected %d)" % (o.ULongProp, check)
+        raise error("Property value wrong - got %d (expected %d)" % (o.ULongProp, check))
     # currency.
     pythoncom.__future_currency__ = 1
     if o.CurrencyProp != 0:
-        raise error, "Expecting 0, got %r" % (o.CurrencyProp,)
+        raise error("Expecting 0, got %r" % (o.CurrencyProp,))
     try:
         import decimal
     except ImportError:
         import win32com.decimal_23 as decimal
     o.CurrencyProp = decimal.Decimal("1234.5678")
     if o.CurrencyProp != decimal.Decimal("1234.5678"):
-        raise error, "got %r" % (o.CurrencyProp,)
+        raise error("got %r" % (o.CurrencyProp,))
     v1 = decimal.Decimal("1234.5678")
     # can't do "DoubleCurrencyByVal" in dynamic files.
     TestApplyResult(o.DoubleCurrency, (v1,), v1*2)
@@ -182,7 +182,7 @@ def TestGenerated():
     i1, i2 = o.GetMultipleInterfaces()
     if type(i1) != types.InstanceType or type(i2) != types.InstanceType:
         # Yay - is now an instance returned!
-        raise error,  "GetMultipleInterfaces did not return instances - got '%s', '%s'" % (i1, i2)
+        raise error("GetMultipleInterfaces did not return instances - got '%s', '%s'" % (i1, i2))
     del i1
     del i2
 
@@ -190,56 +190,56 @@ def TestGenerated():
     rc = o.TestOptionals()
     if  rc[:-1] != ("def", 0, 1) or abs(rc[-1]-3.14)>.01:
         print rc
-        raise error, "Did not get the optional values correctly"
+        raise error("Did not get the optional values correctly")
     rc = o.TestOptionals("Hi", 2, 3, 1.1)
     if  rc[:-1] != ("Hi", 2, 3) or abs(rc[-1]-1.1)>.01:
         print rc
-        raise error, "Did not get the specified optional values correctly"
+        raise error("Did not get the specified optional values correctly")
     rc = o.TestOptionals2(0)
     if  rc != (0, "", 1):
         print rc
-        raise error, "Did not get the optional2 values correctly"
+        raise error("Did not get the optional2 values correctly")
     rc = o.TestOptionals2(1.1, "Hi", 2)
     if  rc[1:] != ("Hi", 2) or abs(rc[0]-1.1)>.01:
         print rc
-        raise error, "Did not get the specified optional2 values correctly"
+        raise error("Did not get the specified optional2 values correctly")
 
     progress("Checking var args")
     o.SetVarArgs("Hi", "There", "From", "Python", 1)
     if o.GetLastVarArgs() != ("Hi", "There", "From", "Python", 1):
-        raise error, "VarArgs failed -" + str(o.GetLastVarArgs())
+        raise error("VarArgs failed -" + str(o.GetLastVarArgs()))
     progress("Checking getting/passing IUnknown")
     if o.GetSetUnknown(o) != o:
-        raise error, "GetSetUnknown failed"
+        raise error("GetSetUnknown failed")
     progress("Checking getting/passing IDispatch")
     if type(o.GetSetDispatch(o)) !=types.InstanceType:
-        raise error, "GetSetDispatch failed"
+        raise error("GetSetDispatch failed")
     progress("Checking getting/passing IDispatch of known type")
     if o.GetSetInterface(o).__class__ != o.__class__:
-        raise error, "GetSetDispatch failed"
+        raise error("GetSetDispatch failed")
     if o.GetSetVariant(4) != 4:
-        raise error, "GetSetVariant (int) failed"
+        raise error("GetSetVariant (int) failed")
     if o.GetSetVariant("foo") != "foo":
-        raise error, "GetSetVariant (str) failed"
+        raise error("GetSetVariant (str) failed")
     if o.GetSetVariant(o) != o:
-        raise error, "GetSetVariant (dispatch) failed"
+        raise error("GetSetVariant (dispatch) failed")
     for l in sys.maxint, sys.maxint+1, 1 << 65L:
         if o.GetSetVariant(l) != l:
-            raise error, "GetSetVariant (long) failed"
+            raise error("GetSetVariant (long) failed")
     if o.TestByRefVariant(2) != 4:
-        raise error, "TestByRefVariant failed"
+        raise error("TestByRefVariant failed")
     if o.TestByRefString("Foo") != "FooFoo":
-        raise error, "TestByRefString failed"
+        raise error("TestByRefString failed")
 
     # Pass some non-sequence objects to our array decoder, and watch it fail.
     try:
         o.SetVariantSafeArray("foo")
-        raise error, "Expected a type error"
+        raise error("Expected a type error")
     except TypeError:
         pass
     try:
         o.SetVariantSafeArray(666)
-        raise error, "Expected a type error"
+        raise error("Expected a type error")
     except TypeError:
         pass
 
@@ -296,21 +296,21 @@ def TestGenerated():
 
     o.LongProp = 3
     if o.LongProp != 3 or o.IntProp != 3:
-        raise error, "Property value wrong - got %d/%d" % (o.LongProp,o.IntProp)
+        raise error("Property value wrong - got %d/%d" % (o.LongProp,o.IntProp))
 
     o.LongProp = o.IntProp = -3
     if o.LongProp != -3 or o.IntProp != -3:
-        raise error, "Property value wrong - got %d/%d" % (o.LongProp,o.IntProp)
+        raise error("Property value wrong - got %d/%d" % (o.LongProp,o.IntProp))
 
     check = 3 *10 **9
     o.ULongProp = check
     if o.ULongProp != check:
-        raise error, "Property value wrong - got %d (expected %d)" % (o.ULongProp, check)
+        raise error("Property value wrong - got %d (expected %d)" % (o.ULongProp, check))
 
     # currency.
     pythoncom.__future_currency__ = 1
     if o.CurrencyProp != 0:
-        raise error, "Expecting 0, got %r" % (o.CurrencyProp,)
+        raise error("Expecting 0, got %r" % (o.CurrencyProp,))
     try:
         import decimal
     except ImportError:
@@ -318,7 +318,7 @@ def TestGenerated():
     for val in ("1234.5678", "1234.56", "1234"):
         o.CurrencyProp = decimal.Decimal(val)
         if o.CurrencyProp != decimal.Decimal(val):
-            raise error, "%s got %r" % (val, o.CurrencyProp)
+            raise error("%s got %r" % (val, o.CurrencyProp))
     v1 = decimal.Decimal("1234.5678")
     TestApplyResult(o.DoubleCurrency, (v1,), v1*2)
     TestApplyResult(o.DoubleCurrencyByVal, (v1,), v1*2)
@@ -327,7 +327,7 @@ def TestGenerated():
 
     o.SetParamProp(0, 1)
     if o.ParamProp(0) != 1:
-        raise RuntimeError, o.paramProp(0)
+        raise RuntimeError(o.paramProp(0))
 
     # Do the connection point thing...
     # Create a connection object.
@@ -357,9 +357,9 @@ def TestCounter(counter, bIsGenerated):
         try:
             ret = counter[num]
             if ret != num+1:
-                raise error, "Random access into element %d failed - return was %s" % (num,`ret`)
+                raise error("Random access into element %d failed - return was %s" % (num,`ret`))
         except IndexError:
-            raise error, "** IndexError accessing collection element %d" % num
+            raise error("** IndexError accessing collection element %d" % num)
 
     num = 0
     if bIsGenerated:
@@ -367,9 +367,9 @@ def TestCounter(counter, bIsGenerated):
         counter.TestProperty = 1 # Note this has a second, default arg.
         counter.SetTestProperty(1,2)
         if counter.TestPropertyWithDef != 0:
-            raise error, "Unexpected property set value!"
+            raise error("Unexpected property set value!")
         if counter.TestPropertyNoDef(1) != 1:
-            raise error, "Unexpected property set value!"
+            raise error("Unexpected property set value!")
     else:
         pass
         # counter.TestProperty = 1
@@ -382,15 +382,15 @@ def TestCounter(counter, bIsGenerated):
     if bIsGenerated:
         bounds = counter.GetBounds()
         if bounds[0]<>1 or bounds[1]<>10:
-            raise error, "** Error - counter did not give the same properties back"
+            raise error("** Error - counter did not give the same properties back")
         counter.SetBounds(bounds[0], bounds[1])
 
     for item in counter:
         num = num + 1
     if num <> len(counter):
-        raise error, "*** Length of counter and loop iterations dont match ***"
+        raise error("*** Length of counter and loop iterations dont match ***")
     if num <> 10:
-        raise error, "*** Unexpected number of loop iterations ***"
+        raise error("*** Unexpected number of loop iterations ***")
 
     counter = counter._enum_.Clone() # Test Clone() and enum directly
     counter.Reset()
@@ -398,7 +398,7 @@ def TestCounter(counter, bIsGenerated):
     for item in counter:
         num = num + 1
     if num <> 10:
-        raise error, "*** Unexpected number of loop iterations - got %d ***" % num
+        raise error("*** Unexpected number of loop iterations - got %d ***" % num)
     progress("Finished testing counter")
 
 def TestLocalVTable(ob):

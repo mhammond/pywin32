@@ -46,7 +46,7 @@ def _remove_key(path, base=win32con.HKEY_CLASSES_ROOT):
     win32api.RegDeleteKey(base, path)
   except win32api.error, (code, fn, msg):
     if code != winerror.ERROR_FILE_NOT_FOUND:
-      raise win32api.error, (code, fn, msg)
+      raise win32api.error(code, fn, msg)
 
 def recurse_delete_key(path, base=win32con.HKEY_CLASSES_ROOT):
   """Recursively delete registry keys.
@@ -57,7 +57,7 @@ def recurse_delete_key(path, base=win32con.HKEY_CLASSES_ROOT):
     h = win32api.RegOpenKey(base, path)
   except win32api.error, (code, fn, msg):
     if code != winerror.ERROR_FILE_NOT_FOUND:
-      raise win32api.error, (code, fn, msg)
+      raise win32api.error(code, fn, msg)
   else:
     # parent key found and opened successfully. do some work, making sure
     # to always close the thing (error or no).
@@ -68,7 +68,7 @@ def recurse_delete_key(path, base=win32con.HKEY_CLASSES_ROOT):
           subkeyname = win32api.RegEnumKey(h, 0)
         except win32api.error, (code, fn, msg):
           if code != winerror.ERROR_NO_MORE_ITEMS:
-            raise win32api.error, (code, fn, msg)
+            raise win32api.error(code, fn, msg)
           break
         recurse_delete_key(path + '\\' + subkeyname, base)
 
@@ -110,7 +110,7 @@ def _find_localserver_exe(mustfind):
       pass
   if not os.path.exists(exeName):
     if mustfind:
-      raise RuntimeError, "Can not locate the program '%s'" % exeBaseName
+      raise RuntimeError("Can not locate the program '%s'" % exeBaseName)
     return None
   return exeName
 
@@ -131,7 +131,7 @@ def _find_localserver_module():
     try:
       os.stat(pyfile)
     except os.error:
-      raise RuntimeError, "Can not locate the Python module 'win32com.server.%s'" % baseName
+      raise RuntimeError("Can not locate the Python module 'win32com.server.%s'" % baseName)
   return pyfile
 
 def RegisterServer(clsid, 
@@ -175,7 +175,7 @@ def RegisterServer(clsid,
   ### backwards-compat check
   ### Certain policies do not require a "class name", just the policy itself.
   if not pythonInstString and not policy:
-    raise TypeError, 'You must specify either the Python Class or Python Policy which implement the COM object.'
+    raise TypeError('You must specify either the Python Class or Python Policy which implement the COM object.')
 
   keyNameRoot = "CLSID\\%s" % str(clsid)
   _set_string(keyNameRoot, desc)
@@ -204,7 +204,7 @@ def RegisterServer(clsid,
       if hasattr(sys, "frozendllhandle"):
         dllName = win32api.GetModuleFileName(sys.frozendllhandle)
       else:
-        raise RuntimeError, "We appear to have a frozen DLL, but I don't know the DLL to use"
+        raise RuntimeError("We appear to have a frozen DLL, but I don't know the DLL to use")
     else:
       # Normal case - running from .py file, so register pythoncom's DLL.
       dllName = os.path.basename(pythoncom.__file__)
@@ -401,7 +401,7 @@ def RegisterClasses(*classes, **flags):
           moduleName = os.path.splitext(win32api.FindFiles(sys.argv[0])[0][8])[0]
         except (IndexError, win32api.error):
           # Can't find the script file - the user must explicitely set the _reg_... attribute.
-          raise TypeError, "Can't locate the script hosting the COM object - please set _reg_class_spec_ in your object"
+          raise TypeError("Can't locate the script hosting the COM object - please set _reg_class_spec_ in your object")
 
       spec = moduleName + "." + cls.__name__
       # Frozen apps don't need their directory on sys.path

@@ -28,14 +28,14 @@ import pythoncom
 
 def TestInterp(interp):
     if interp.Eval("1+1") <> 2:
-        raise ValueError, "The interpreter returned the wrong result."
+        raise ValueError("The interpreter returned the wrong result.")
     try:
         interp.Eval(1+1)
-        raise ValueError, "The interpreter did not raise an exception"
+        raise ValueError("The interpreter did not raise an exception")
     except pythoncom.com_error, details:
         import winerror
         if details[0]!=winerror.DISP_E_TYPEMISMATCH:
-            raise ValueError, "The interpreter exception was not winerror.DISP_E_TYPEMISMATCH."
+            raise ValueError("The interpreter exception was not winerror.DISP_E_TYPEMISMATCH.")
 
 
 def TestInterpInThread(stopEvent, cookie):

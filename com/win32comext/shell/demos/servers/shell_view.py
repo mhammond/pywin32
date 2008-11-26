@@ -133,7 +133,7 @@ class ShellFolderBase:
         elif typ == "object":
             klass = ShellFolderObject
         else:
-            raise RuntimeError, "What is " + repr(typ)
+            raise RuntimeError("What is " + repr(typ))
         ret = wrap(klass(extra), iid, useDispatcher = (debug>0))
         return ret
 
@@ -734,7 +734,7 @@ class ScintillaShellView:
                     win32api.LoadLibrary(fname)
                     break
             else:
-                raise RuntimeError, "Can't find scintilla!"
+                raise RuntimeError("Can't find scintilla!")
 
         style = win32con.WS_CHILD | win32con.WS_VSCROLL | \
                 win32con.WS_HSCROLL | win32con.WS_CLIPCHILDREN | \

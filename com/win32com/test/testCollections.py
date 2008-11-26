@@ -33,11 +33,11 @@ def MakeTestEnum():
 def TestEnumAgainst(o,check):
     for i in range(len(check)):
         if o(i) != check[i]:
-            raise error, "Using default method gave the incorrect value - %s/%s" % (`o(i)`, `check[i]`)
+            raise error("Using default method gave the incorrect value - %s/%s" % (`o(i)`, `check[i]`))
 
     for i in range(len(check)):
         if o.Item(i) != check[i]:
-            raise error, "Using Item method gave the incorrect value - %s/%s" % (`o(i)`, `check[i]`)
+            raise error("Using Item method gave the incorrect value - %s/%s" % (`o(i)`, `check[i]`))
 
     # First try looping.
     cmp = []
@@ -45,11 +45,11 @@ def TestEnumAgainst(o,check):
         cmp.append(s)
 
     if cmp[:len(check)] != check:
-        raise error, "Result after looping isnt correct - %s/%s" % (`cmp[:len(check)]`, `check`)
+        raise error("Result after looping isnt correct - %s/%s" % (`cmp[:len(check)]`, `check`))
 
     for i in range(len(check)):
         if o[i] != check[i]:
-            raise error, "Using indexing gave the incorrect value"
+            raise error("Using indexing gave the incorrect value")
 
 
 def TestEnum(quiet=None):
@@ -90,50 +90,50 @@ def TestEnum(quiet=None):
 
     try:
         o()
-        raise error, "default method with no args worked when it shouldnt have!"
+        raise error("default method with no args worked when it shouldnt have!")
     except pythoncom.com_error, (hr, desc, exc, argErr):
         if hr != winerror.DISP_E_BADPARAMCOUNT:
-            raise error, "Expected DISP_E_BADPARAMCOUNT - got %d (%s)" % (hr, desc)
+            raise error("Expected DISP_E_BADPARAMCOUNT - got %d (%s)" % (hr, desc))
 
     try:
         o.Insert("foo", 2)
-        raise error, "Insert worked when it shouldnt have!"
+        raise error("Insert worked when it shouldnt have!")
     except pythoncom.com_error, (hr, desc, exc, argErr):
         if hr != winerror.DISP_E_TYPEMISMATCH:
-            raise error, "Expected DISP_E_TYPEMISMATCH - got %d (%s)" % (hr, desc)
+            raise error("Expected DISP_E_TYPEMISMATCH - got %d (%s)" % (hr, desc))
 
     # Remove the sublist for this test!
     try:
         o.Remove(o.Count())
-        raise error, "Remove worked when it shouldnt have!"
+        raise error("Remove worked when it shouldnt have!")
     except pythoncom.com_error, (hr, desc, exc, argErr):
         if hr != winerror.DISP_E_BADINDEX:
-            raise error, "Expected DISP_E_BADINDEX - got %d (%s)" % (hr, desc)
+            raise error("Expected DISP_E_BADINDEX - got %d (%s)" % (hr, desc))
 
     # Test an empty collection
     if not quiet: print "Empty collection test"
     o = MakeEmptyEnum()
     for item in o:
-        raise error, "Empty list performed an iteration"
+        raise error("Empty list performed an iteration")
 
     try:
         ob = o[1]
-        raise error, "Empty list could be indexed"
+        raise error("Empty list could be indexed")
     except IndexError:
         pass
 
     try:
         ob = o[0]
-        raise error, "Empty list could be indexed"
+        raise error("Empty list could be indexed")
     except IndexError:
         pass
 
     try:
         ob = o(0)
-        raise error, "Empty list could be indexed"
+        raise error("Empty list could be indexed")
     except pythoncom.com_error, (hr, fn, desc, arg):
         if hr != winerror.DISP_E_BADINDEX:
-            raise error, "Expected DISP_E_BADINDEX - got %d (%s)" % (hr, desc)
+            raise error("Expected DISP_E_BADINDEX - got %d (%s)" % (hr, desc))
 
 class TestCase(win32com.test.util.TestCase):
     def testEnum(self):

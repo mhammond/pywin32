@@ -57,7 +57,7 @@ class ArgFormatter:
 		  return "*"
 		else:
 		  return "?? (%d)" % (dif,)
-		  raise error_not_supported, "Can't indirect this far - please fix me :-)"
+		  raise error_not_supported("Can't indirect this far - please fix me :-)")
 	def GetIndirectedArgName(self, indirectFrom, indirectionTo):
 		#print 'get:',self.arg.name, indirectFrom,self._GetDeclaredIndirection() + self.builtinIndirection, indirectionTo, self.arg.indirectionLevel
 
@@ -585,7 +585,7 @@ def make_arg_converter(arg):
 		if arg.type[0]=="I":
 			return ArgFormatterInterface(arg, 0, 1)
 
-		raise error_not_supported, "The type '%s' (%s) is unknown." % (arg.type, arg.name)
+		raise error_not_supported("The type '%s' (%s) is unknown." % (arg.type, arg.name))
 
 
 #############################################################

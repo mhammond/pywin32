@@ -128,7 +128,7 @@ if logging is not None:
         com_server = wrap(TestServer(), pythoncom.IID_IStream)
         try:
             com_server.Commit(0)
-            raise RuntimeError, "should have failed"
+            raise RuntimeError("should have failed")
         except pythoncom.error:
             pass
         assert handler.num_emits == 1, handler.num_emits
@@ -137,7 +137,7 @@ if logging is not None:
         com_server = Dispatch(wrap(TestServer()))
         try:
             com_server.Commit(0)
-            raise RuntimeError, "should have failed"
+            raise RuntimeError("should have failed")
         except pythoncom.error:
             pass
         assert handler.num_emits == 1, handler.num_emits

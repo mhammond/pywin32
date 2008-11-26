@@ -81,7 +81,7 @@ def RegisterPythonServer(filename, progids=None, verbose=0):
     if rc:
         print "Registration command was:"
         print cmd
-        raise RuntimeError, "Registration of engine '%s' failed" % filename
+        raise RuntimeError("Registration of engine '%s' failed" % filename)
 
 def ExecuteShellCommand(cmd, testcase,
                         expected_output = None, # Set to '' to check for nothing
@@ -94,13 +94,12 @@ def ExecuteShellCommand(cmd, testcase,
     class Failed(Exception): pass
     try:
         if rc:
-            raise Failed, "exit code was " + str(rc)
+            raise Failed("exit code was " + str(rc))
         if expected_output is not None and output != expected_output:
-            raise Failed, \
-                  "Expected output %r (got %r)" % (expected_output, output)
+            raise Failed("Expected output %r (got %r)" % (expected_output, output))
         if not tracebacks_ok and \
            output.find("Traceback (most recent call last)")>=0:
-            raise Failed, "traceback in program output"
+            raise Failed("traceback in program output")
         return output
     except Failed, why:
         print "Failed to exec command '%r'" % cmd
