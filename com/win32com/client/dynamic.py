@@ -15,6 +15,7 @@ Example
  >>> xl.Visible = 1 # The Excel window becomes visible.
 
 """
+import sys
 import traceback
 import types
 
@@ -61,6 +62,13 @@ def debug_attr_print(*args):
 		for arg in args:
 			print arg,
 		print
+
+# A helper to create method objects on the fly
+if sys.version_info > (3,0):
+	def MakeMethod(func, inst, cls):
+		return types.MethodType(func, inst) # class not needed in py3k
+else:
+	MakeMethod = types.MethodType # all args used in py2k.
 
 # get the type objects for IDispatch and IUnknown
 dispatchType = pythoncom.TypeIIDs[pythoncom.IID_IDispatch]
@@ -171,7 +179,7 @@ class CDispatch:
 		raise TypeError("This dispatch object does not define a default method")
 
 	def __nonzero__(self):
-		return 1 # ie "if object:" should always be "true" - without this, __len__ is tried.
+		return True # ie "if object:" should always be "true" - without this, __len__ is tried.
 		# _Possibly_ want to defer to __len__ if available, but Im not sure this is
 		# desirable???
 
@@ -305,7 +313,7 @@ class CDispatch:
 			name = methodName
 			# Save the function in map.
 			fn = self._builtMethods_[name] = tempNameSpace[name]
-			newMeth = types.MethodType(fn, self, self.__class__)
+			newMeth = MakeMethod(fn, self, self.__class__)
 			return newMeth
 		except:
 			debug_print("Error building OLE definition for code ", methodCode)
@@ -439,7 +447,7 @@ class CDispatch:
 			raise AttributeError(attr)
 		# If a known method, create new instance and return.
 		try:
-			return types.MethodType(self._builtMethods_[attr], self, self.__class__)
+			return MakeMethod(self._builtMethods_[attr], self, self.__class__)
 		except KeyError:
 			pass
 		# XXX - Note that we current are case sensitive in the method.
