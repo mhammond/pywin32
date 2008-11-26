@@ -1,8 +1,8 @@
-import string, sys
+import sys
+import pythoncom
 from win32com.axscript.server.error import Exception
 from win32com.axscript import axscript
 from win32com.axscript.server import axsite
-import pythoncom
 from win32com.server import util, connect
 import win32com.server.policy
 from win32com.client.dynamic import Dispatch
@@ -30,7 +30,7 @@ class MySite(axsite.AXSite):
       st = None
     if st is None: st = ""
     text = st + "\n" + (" " * (char-1)) + "^" + "\n" + exc[2]
-    for line in string.split(text,"\n"):
+    for line in text.splitlines():
       print "  >" + line
 
 class MyCollection(util.Collection):
@@ -48,7 +48,7 @@ class Test:
 #    self._connect_server_ = TestConnectServer(self)
 
   def echo(self, *args):
-    self.last = string.join(map(str, args))
+    self.last = "".join([str(s) for s in args])
     if self.verbose:
       for arg in args:
         print arg,
@@ -124,9 +124,12 @@ def testcollection():
    pass
 """
 
+# XXX - needs py3k work!  Throwing a bytes string with an extended char
+# doesn't make much sense, but py2x allows it.  What it gets upset with
+# is a real unicode arg - which is the only thing py3k allows!
 PyScript_Exc = u"""\
 def hello(arg1):
-  raise RuntimeError, "exc with extended \xa9har"
+  raise RuntimeError("exc with extended \xa9har")
 """
 
 ErrScript = """\
