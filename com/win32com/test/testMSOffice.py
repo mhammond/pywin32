@@ -134,34 +134,28 @@ def TextExcel(xl):
     xl.Quit()
 
 def TestAll():
+    TestWord()
+
+    print "Starting Excel for Dynamic test..."
+    xl = win32com.client.dynamic.Dispatch("Excel.Application")
+    TextExcel(xl)
+
     try:
-        TestWord()
-
-        print "Starting Excel for Dynamic test..."
-        xl = win32com.client.dynamic.Dispatch("Excel.Application")
+        print "Starting Excel 8 for generated excel8.py test..."
+        mod = gencache.EnsureModule("{00020813-0000-0000-C000-000000000046}", 0, 1, 2, bForDemand=1)
+        xl = win32com.client.Dispatch("Excel.Application")
         TextExcel(xl)
+    except ImportError:
+        print "Could not import the generated Excel 97 wrapper"
 
-        try:
-            print "Starting Excel 8 for generated excel8.py test..."
-            mod = gencache.EnsureModule("{00020813-0000-0000-C000-000000000046}", 0, 1, 2, bForDemand=1)
-            xl = win32com.client.Dispatch("Excel.Application")
-            TextExcel(xl)
-        except ImportError:
-            print "Could not import the generated Excel 97 wrapper"
-
-        try:
-            import xl5en32
-            mod = gencache.EnsureModule("{00020813-0000-0000-C000-000000000046}", 9, 1, 0)
-            xl = win32com.client.Dispatch("Excel.Application.5")
-            print "Starting Excel 95 for makepy test..."
-            TextExcel(xl)
-        except ImportError:
-            print "Could not import the generated Excel 95 wrapper"
-
-    except KeyboardInterrupt:
-        print "*** Interrupted MSOffice test ***"
-    except:
-        traceback.print_exc()
+    try:
+        import xl5en32
+        mod = gencache.EnsureModule("{00020813-0000-0000-C000-000000000046}", 9, 1, 0)
+        xl = win32com.client.Dispatch("Excel.Application.5")
+        print "Starting Excel 95 for makepy test..."
+        TextExcel(xl)
+    except ImportError:
+        print "Could not import the generated Excel 95 wrapper"
 
 if __name__=='__main__':
     TestAll()

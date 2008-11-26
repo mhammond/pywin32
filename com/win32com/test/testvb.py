@@ -7,24 +7,7 @@ import winerror
 import pythoncom, win32com.client, win32com.client.dynamic, win32com.client.gencache
 from win32com.server.util import NewCollection, wrap
 import string
-import util
-
-importMsg = """\
-**** VB Test harness is not installed ***
-  This test requires a VB test program to be built and installed
-  on this PC.
-"""
-
-### NOTE: VB SUCKS!
-### If you delete the DLL built by VB, then reopen VB
-### to rebuild the DLL, it loses the IID of the object!!!
-### So I will try to avoid this in the future :-)
-
-# Import the type library for the test module.
-try:
-    win32com.client.gencache.EnsureDispatch("PyCOMVBTest.Tester")
-except pythoncom.com_error:
-    raise RuntimeError, importMsg
+from win32com.test import util
 
 import traceback
 
@@ -439,14 +422,20 @@ def DoTestAll():
     TestVB(o,0)
 
 def TestAll():
+    # Import the type library for the test module.  Let the 'invalid clsid'
+    # exception filter up, where the test runner will treat it as 'skipped'
+    win32com.client.gencache.EnsureDispatch("PyCOMVBTest.Tester")
+
     if not __debug__:
         raise RuntimeError, "This must be run in debug mode - we use assert!"
     try:
         DoTestAll()
         print "All tests appear to have worked!"
     except:
+        # ?????
         print "TestAll() failed!!"
         traceback.print_exc()
+        raise
 
 # Make this test run under our test suite to leak tests etc work
 def suite():

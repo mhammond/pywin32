@@ -8,7 +8,6 @@ import traceback
 import pythoncom
 import pywintypes
 import winerror
-L=pywintypes.Unicode
 
 import unittest
 
@@ -24,9 +23,9 @@ def TestDictAgainst(dict,check):
 
 # Ensure we have the correct version registered.
 def Register(quiet):
-    import win32com.server.register
-    from win32com.servers.dictionary import DictionaryPolicy
-    win32com.server.register.RegisterClasses(DictionaryPolicy, quiet=quiet)
+    import win32com.servers.dictionary
+    from win32com.test.util import RegisterPythonServer
+    RegisterPythonServer(win32com.servers.dictionary.__file__, 'Python.Dictionary')
 
 def TestDict(quiet=None):
     if quiet is None:

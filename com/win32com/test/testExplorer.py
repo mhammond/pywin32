@@ -8,10 +8,11 @@ from win32com.client import Dispatch
 import win32api
 import win32gui
 import win32con
+import winerror
 import glob
 import pythoncom
 import time
-from util import CheckClean
+from win32com.test.util import CheckClean
 
 bVisibleEventFired = 0
 
@@ -47,7 +48,7 @@ def TestObjectFromWindow():
     for child_class in ['TabWindowClass', 'Shell DocObject View',
                         'Internet Explorer_Server']:
         hwnd = win32gui.FindWindowEx(hwnd, 0, child_class, None)
-        assert hwnd, "Couldn't find '%s" % (child_class,)
+        assert hwnd, "Couldn't find '%s'" % (child_class,)
     # But here is the point - once you have an 'Internet Explorer_Server',
     # you can send a message and use ObjectFromLresult to get it back.
     msg = win32gui.RegisterWindowMessage("WM_HTML_GETOBJECT")
@@ -73,25 +74,28 @@ def TestExplorer(iexplore):
 
 def TestAll():
     try:
-        iexplore = win32com.client.dynamic.Dispatch("InternetExplorer.Application")
-        TestExplorer(iexplore)
+        try:
+            iexplore = win32com.client.dynamic.Dispatch("InternetExplorer.Application")
+            TestExplorer(iexplore)
 
-        win32api.Sleep(1000)
-        iexplore = None
+            win32api.Sleep(1000)
+            iexplore = None
 
-        # Test IE events.
-        TestExplorerEvents()
-        # Give IE a chance to shutdown, else it can get upset on fast machines.
-        time.sleep(2)
+            # Test IE events.
+            TestExplorerEvents()
+            # Give IE a chance to shutdown, else it can get upset on fast machines.
+            time.sleep(2)
 
-        # Note that the TextExplorerEvents will force makepy - hence
-        # this gencache is really no longer needed.
+            # Note that the TextExplorerEvents will force makepy - hence
+            # this gencache is really no longer needed.
 
-        from win32com.client import gencache
-        gencache.EnsureModule("{EAB22AC0-30C1-11CF-A7EB-0000C05BAE0B}", 0, 1, 1)
-        iexplore = win32com.client.Dispatch("InternetExplorer.Application")
-        TestExplorer(iexplore)
-
+            from win32com.client import gencache
+            gencache.EnsureModule("{EAB22AC0-30C1-11CF-A7EB-0000C05BAE0B}", 0, 1, 1)
+            iexplore = win32com.client.Dispatch("InternetExplorer.Application")
+            TestExplorer(iexplore)
+        except pythoncom.com_error, exc:
+            if exc.hresult!=winerror.RPC_E_DISCONNECTED: # user closed the app!
+                raise
     finally:
         iexplore = None
 

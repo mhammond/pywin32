@@ -22,8 +22,10 @@ class ShellTester(win32com.test.util.TestCase):
         num = 0
         shellLink = pythoncom.CoCreateInstance(shell.CLSID_ShellLink, None, pythoncom.CLSCTX_INPROC_SERVER, shell.IID_IShellLink)
         persistFile = shellLink.QueryInterface(pythoncom.IID_IPersistFile)
-        for base_name in os.listdir(desktop):
-            name = os.path.join(desktop, base_name)
+        names = [os.path.join(desktop, n) for n in os.listdir(desktop)]
+        programs = str(shell.SHGetSpecialFolderPath(0, CSIDL_PROGRAMS))
+        names.extend([os.path.join(programs, n) for n in os.listdir(programs)])
+        for name in names:
             try:
                 persistFile.Load(name,STGM_READ)
             except pythoncom.com_error:
@@ -35,7 +37,7 @@ class ShellTester(win32com.test.util.TestCase):
             num += 1
         if num == 0:
             # This isn't a fatal error, but is unlikely.
-            print "Could not find any links on your desktop, which is unusual"
+            print "Could not find any links on your desktop or programs dir, which is unusual"
 
     def testShellFolder(self):
         sf = shell.SHGetDesktopFolder()

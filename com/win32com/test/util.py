@@ -14,7 +14,10 @@ import logging
 def CheckClean():
     # Ensure no lingering exceptions - Python should have zero outstanding
     # COM objects
-    sys.exc_clear()
+    try:
+        sys.exc_clear()
+    except AttributeError:
+        pass # py3k
     c = _GetInterfaceCount()
     if c:
         print "Warning - %d com interface objects still alive" % c
@@ -38,7 +41,8 @@ def RegisterPythonServer(filename, progids=None, verbose=0):
                 break
             # have a CLSID - open it.
             try:
-                hk = _winreg.OpenKey(_winreg.HKEY_CLASSES_ROOT, "CLSID\\%s" % clsid)
+                HKCR = _winreg.HKEY_CLASSES_ROOT
+                hk = _winreg.OpenKey(HKCR, "CLSID\\%s" % clsid)
                 dll = _winreg.QueryValue(hk, "InprocServer32")
             except WindowsError:
                 # no CLSID or InProcServer32 - not good!
@@ -65,7 +69,9 @@ def RegisterPythonServer(filename, progids=None, verbose=0):
         msg = "%r isn't registered, but I'm not an administrator who can register it." % progids[0]
         if why_not:
             msg += "\n(registration check failed as %s)" % why_not
-        raise RuntimeError(msg)
+        # throw a normal "class not registered" exception - we don't report
+        # them the same way as "real" errors.
+        raise pythoncom.com_error(winerror.CO_E_CLASSSTRING, msg, None, -1)
     # so theoretically we are able to register it.
     cmd = '%s "%s" --unattended > nul 2>&1' % (win32api.GetModuleFileName(0), filename)
     if verbose:
@@ -108,7 +114,7 @@ def assertRaisesCOM_HRESULT(testcase, hresult, func, *args, **kw):
     try:
         func(*args, **kw)
     except pythoncom.com_error, details:
-        if details[0]==hresult:
+        if details.hresult==hresult:
             return
     testcase.fail("Excepected COM exception with HRESULT 0x%x" % hresult)
 
@@ -220,6 +226,36 @@ class TestLoader(unittest.TestLoader):
             print "XXX - what is", test
         return test
 
+class TestResult(unittest._TextTestResult):
+    def __init__(self, *args, **kw):
+        super(TestResult, self).__init__(*args, **kw)
+        self.num_invalid_clsid = 0
+
+    def addError(self, test, err):
+        """Called when an error has occurred. 'err' is a tuple of values as
+        returned by sys.exc_info().
+        """
+        if isinstance(err[1], pythoncom.com_error) and \
+           err[1].hresult==winerror.CO_E_CLASSSTRING:
+            self.num_invalid_clsid += 1
+            if self.showAll:
+                self.stream.writeln("SKIP")
+            elif self.dots:
+                self.stream.write('S')
+                self.stream.flush()
+            return
+        super(TestResult, self).addError(test, err)
+
+    def printErrors(self):
+        super(TestResult, self).printErrors()
+        if self.num_invalid_clsid:
+            self.stream.writeln("SKIPPED: %d tests due to missing COM objects used for testing" %
+                                self.num_invalid_clsid)
+
+class TestRunner(unittest.TextTestRunner):
+    def _makeResult(self):
+        return TestResult(self.stream, self.descriptions, self.verbosity)
+
 # Utilities to set the win32com logger to something what just captures
 # records written and doesn't print them.
 class LogHandler(logging.Handler):
@@ -288,7 +324,9 @@ class ShellTestCase(unittest.TestCase):
 
 def testmain(*args, **kw):
     new_kw = kw.copy()
-    if not new_kw.has_key('testLoader'):
+    if 'testLoader' not in new_kw:
         new_kw['testLoader'] = TestLoader()
+    if 'testRunner' not in new_kw:
+        new_kw['testRunner'] = TestRunner()
     unittest.main(*args, **new_kw)
     CheckClean()

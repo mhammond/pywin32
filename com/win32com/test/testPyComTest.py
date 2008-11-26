@@ -15,7 +15,7 @@ error = Exception
 
 # This test uses a Python implemented COM server - ensure correctly registered.
 RegisterPythonServer(os.path.join(os.path.dirname(__file__), '..', "servers", "test_pycomtest.py"),
-                     "PyCOMTest.PyCOMTest")
+                     "Python.Test.PyCOMTest")
 
 from win32com.client import gencache
 try:

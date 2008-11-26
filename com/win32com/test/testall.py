@@ -1,8 +1,9 @@
 import sys, os, string, re
 import pythoncom
 import win32com.client
-from util import CheckClean, TestCase, CapturingFunctionTestCase, TestLoader
-import win32com.test.util
+from win32com.test.util import (CheckClean, TestCase,
+                                CapturingFunctionTestCase, ShellTestCase,
+                                TestLoader, TestRunner, RegisterPythonServer)
 import traceback
 import getopt
 
@@ -57,6 +58,12 @@ def ExecuteSilentlyIfOK(cmd, testcase):
 class PyCOMTest(TestCase):
     no_leak_tests = True # done by the test itself
     def testit(self):
+        # Check that the item is registered, so we get the correct
+        # 'skipped' behaviour (and recorded as such) rather than either
+        # error or silence due to non-registration.
+        RegisterPythonServer(os.path.join(os.path.dirname(__file__), '..', "servers", "test_pycomtest.py"),
+                             "Python.Test.PyCOMTest")
+
         # Execute testPyComTest in its own process so it can play
         # with the Python thread state
         fname = os.path.join(os.path.dirname(this_file), "testPyComTest.py")
@@ -65,6 +72,10 @@ class PyCOMTest(TestCase):
 
 class PippoTest(TestCase):
     def testit(self):
+        # Check we are registered before spawning the process.
+        from win32com.test import pippo_server
+        RegisterPythonServer(pippo_server.__file__, "Python.Test.Pippo")
+
         python = sys.executable
         fname = os.path.join(os.path.dirname(this_file), "testPippo.py")
         cmd = '%s "%s" 2>&1' % (python, fname)
@@ -122,8 +133,10 @@ def get_test_mod_and_func(test_name, import_failures):
     else:
         mod_name = test_name
         func_name = None
+    fq_mod_name = "win32com.test." + mod_name
     try:
-        mod = __import__(mod_name)
+        __import__(fq_mod_name)
+        mod = sys.modules[fq_mod_name]
     except:
         import_failures.append((mod_name, sys.exc_info()[:2]))
         return None, None
@@ -144,8 +157,7 @@ def make_test_suite(test_level = 1):
             if mod is None:
                 continue
             if func is not None:
-                test = win32com.test.util.CapturingFunctionTestCase(func,
-                                                     description=mod_name)
+                test = CapturingFunctionTestCase(func, description=mod_name)
             else:
                 if hasattr(mod, "suite"):
                     test = mod.suite()
@@ -154,7 +166,7 @@ def make_test_suite(test_level = 1):
             assert test.countTestCases() > 0, "No tests loaded from %r" % mod
             suite.addTest(test)
         for cmd, output in output_checked_programs[i]:
-            suite.addTest(win32com.test.util.ShellTestCase(cmd, output))
+            suite.addTest(ShellTestCase(cmd, output))
 
         for test_class in custom_test_cases[i]:
             suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(test_class))
@@ -201,7 +213,7 @@ if __name__=='__main__':
         if verbosity==1 and suite.countTestCases() < 70:
             # A little row of markers so the dots show how close to finished
             print '|' * suite.countTestCases()
-    testRunner = unittest.TextTestRunner(verbosity=verbosity)
+    testRunner = TestRunner(verbosity=verbosity)
     testResult = testRunner.run(suite)
     if import_failures:
         testResult.stream.writeln("*** The following test modules could not be imported ***")
