@@ -70,9 +70,9 @@ __author__ = "Greg Stein and Mark Hammond"
 
 import win32api
 import winerror
-import string
 import sys
 import types
+import pywintypes
 import win32con, pythoncom
 
 #Import a few important constants to speed lookups.
@@ -84,10 +84,8 @@ from pythoncom import \
 S_OK = 0
 
 # Few more globals to speed things.
-from pywintypes import UnicodeType
 IDispatchType = pythoncom.TypeIIDs[pythoncom.IID_IDispatch]
 IUnknownType = pythoncom.TypeIIDs[pythoncom.IID_IUnknown]
-core_has_unicode = hasattr(__builtins__, "unicode")
 
 from exception import COMException
 error = __name__ + " error"
@@ -96,9 +94,6 @@ regSpec = 'CLSID\\%s\\PythonCOM'
 regPolicy = 'CLSID\\%s\\PythonCOMPolicy'
 regDispatcher = 'CLSID\\%s\\PythonCOMDispatcher'
 regAddnPath = 'CLSID\\%s\\PythonCOMPath'
-
-# exc_info doesnt appear 'till Python 1.5, but we now have other 1.5 deps!
-from sys import exc_info
 
 def CreateInstance(clsid, reqIID):
   """Create a new instance of the specified IID
@@ -113,8 +108,8 @@ def CreateInstance(clsid, reqIID):
   """
   # First see is sys.path should have something on it.
   try:
-    addnPaths = string.split(win32api.RegQueryValue(win32con.HKEY_CLASSES_ROOT,
-                                      regAddnPath % clsid),';')
+    addnPaths = win32api.RegQueryValue(win32con.HKEY_CLASSES_ROOT,
+                                      regAddnPath % clsid).split(';')
     for newPath in addnPaths:
       if newPath not in sys.path:
         sys.path.insert(0, newPath)
@@ -133,9 +128,6 @@ def CreateInstance(clsid, reqIID):
     if dispatcher: dispatcher = resolve_func(dispatcher)
   except win32api.error:
     dispatcher = None
-    
-  # clear exception information
-  sys.exc_type = sys.exc_value = sys.exc_traceback = None # sys.clearexc() appears in 1.5?
 
   if dispatcher:
     retObj = dispatcher(policy, None)
@@ -241,7 +233,7 @@ class BasicWrapPolicy:
       self._com_interfaces_ = []
       # Allow interfaces to be specified by name.
       for i in ob._com_interfaces_:
-        if type(i) != pythoncom.PyIIDType:
+        if type(i) != pywintypes.IIDType:
           # Prolly a string!
           if i[0] != "{":
             i = pythoncom.InterfaceNames[i]
@@ -279,7 +271,7 @@ class BasicWrapPolicy:
     #Translate a possible string dispid to real dispid.
     if type(dispid) == type(""):
       try:
-        dispid = self._name_to_dispid_[string.lower(dispid)]
+        dispid = self._name_to_dispid_[dispid.lower()]
       except KeyError:
         raise COMException(scode = winerror.DISP_E_MEMBERNOTFOUND, desc="Member not found")
     return self._invoke_(dispid, lcid, wFlags, args)
@@ -313,7 +305,7 @@ class BasicWrapPolicy:
   def _getdispid_(self, name, fdex):
     try:
       ### TODO - look at the fdex flags!!!
-      return self._name_to_dispid_[string.lower(str(name))]
+      return self._name_to_dispid_[name.lower()]
     except KeyError:
       raise COMException(scode = winerror.DISP_E_UNKNOWNNAME)
 
@@ -326,7 +318,7 @@ class BasicWrapPolicy:
     #Translate a possible string dispid to real dispid.
     if type(dispid) == type(""):
       try:
-        dispid = self._name_to_dispid_[string.lower(dispid)]
+        dispid = self._name_to_dispid_[dispid.lower()]
       except KeyError:
         raise COMException(scode = winerror.DISP_E_MEMBERNOTFOUND, desc="Member not found")
     return self._invokeex_(dispid, lcid, wFlags, args, kwargs, serviceProvider)
@@ -469,7 +461,7 @@ class DesignatedWrapPolicy(MappedWrapPolicy):
       # typelibs? 
       # Filter out all 'normal' IIDs (ie, IID objects and strings starting with {
       interfaces = [i for i in getattr(ob, '_com_interfaces_', [])
-                    if type(i) != pythoncom.PyIIDType and not i.startswith("{")]
+                    if type(i) != pywintypes.IIDType and not i.startswith("{")]
       universal_data = universal.RegisterInterfaces(tlb_guid, tlb_lcid,
                                        tlb_major, tlb_minor, interfaces)
     else:
@@ -480,15 +472,15 @@ class DesignatedWrapPolicy(MappedWrapPolicy):
 
     # Copy existing _dispid_to_func_ entries to _name_to_dispid_
     for dispid, name in self._dispid_to_func_.items():
-      self._name_to_dispid_[string.lower(name)]=dispid
+      self._name_to_dispid_[name.lower()]=dispid
     for dispid, name in self._dispid_to_get_.items():
-      self._name_to_dispid_[string.lower(name)]=dispid
+      self._name_to_dispid_[name.lower()]=dispid
     for dispid, name in self._dispid_to_put_.items():
-      self._name_to_dispid_[string.lower(name)]=dispid
+      self._name_to_dispid_[name.lower()]=dispid
 
     # Patch up the universal stuff.
     for dispid, invkind, name in universal_data:
-      self._name_to_dispid_[string.lower(name)]=dispid
+      self._name_to_dispid_[name.lower()]=dispid
       if invkind == DISPATCH_METHOD:
           self._dispid_to_func_[dispid] = name
       elif invkind in (DISPATCH_PROPERTYPUT, DISPATCH_PROPERTYPUTREF):
@@ -649,8 +641,6 @@ class EventHandlerPolicy(DesignatedWrapPolicy):
                     arg = win32com.client.Dispatch(arg.QueryInterface(pythoncom.IID_IDispatch))
                 except pythoncom.error:
                     pass # Keep it as IUnknown
-            elif not core_has_unicode and arg_type==UnicodeType:
-                arg = str(arg)
             ret.append(arg)
         return tuple(ret), kwArgs
     def _invokeex_(self, dispid, lcid, wFlags, args, kwArgs, serviceProvider):
@@ -684,8 +674,7 @@ class DynamicPolicy(BasicWrapPolicy):
 
   def _getdispid_(self, name, fdex):
     # TODO - Look at fdex flags.
-    # TODO - Remove str() of Unicode name param.
-    lname = string.lower(str(name))
+    lname = name.lower()
     try:
       return self._name_to_dispid_[lname]
     except KeyError:
@@ -702,9 +691,8 @@ class DynamicPolicy(BasicWrapPolicy):
     ### note: kwargs is being ignored...
     ### note: serviceProvider is being ignored...
     ### there might be assigned DISPID values to properties, too...
-    ### TODO - Remove the str() of the Unicode argument
     try:
-      name = str(self._dyn_dispid_to_name_[dispid])
+      name = self._dyn_dispid_to_name_[dispid]
     except KeyError:
       raise COMException(scode = winerror.DISP_E_MEMBERNOTFOUND, desc="Member not found")
     return self._obj_._dynamic_(name, lcid, wFlags, args)
@@ -719,7 +707,7 @@ def resolve_func(spec):
   (ie, the function itself)
   """
   try:
-    idx = string.rindex(spec, ".")
+    idx = spec.rindex(".")
     mname = spec[:idx]
     fname = spec[idx+1:]
     # Dont attempt to optimize by looking in sys.modules,
