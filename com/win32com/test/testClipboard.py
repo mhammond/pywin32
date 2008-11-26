@@ -45,7 +45,8 @@ class TestDataObject:
            tymed==pythoncom.TYMED_HGLOBAL:
             if cf == win32con.CF_TEXT:
                 ret_stg = pythoncom.STGMEDIUM()
-                ret_stg.set(pythoncom.TYMED_HGLOBAL, self.strval)
+                # ensure always 'bytes' by encoding string.
+                ret_stg.set(pythoncom.TYMED_HGLOBAL, self.strval.encode("ascii"))
             elif cf == win32con.CF_UNICODETEXT:
                 ret_stg = pythoncom.STGMEDIUM()
                 ret_stg.set(pythoncom.TYMED_HGLOBAL, unicode(self.strval))
@@ -109,7 +110,9 @@ class ClipboardTester(unittest.TestCase):
         # Then get it back via the standard win32 clipboard functions.
         win32clipboard.OpenClipboard()
         got = win32clipboard.GetClipboardData(win32con.CF_TEXT)
-        self.assertEqual(got, "Hello from Python")
+        # CF_TEXT gives bytes on py3k - use encode() to ensure that's true.
+        expected = "Hello from Python".encode("ascii")
+        self.assertEqual(got, expected)
         # Now check unicode
         got = win32clipboard.GetClipboardData(win32con.CF_UNICODETEXT)
         self.assertEqual(got, u"Hello from Python")
@@ -117,7 +120,7 @@ class ClipboardTester(unittest.TestCase):
 
     def testWin32ToCom(self):
         # Set the data via the std win32 clipboard functions.
-        val = "Hello again!"
+        val = "Hello again!".encode("ascii") # ensure always bytes, even in py3k
         win32clipboard.OpenClipboard()
         win32clipboard.SetClipboardData(win32con.CF_TEXT, val)
         win32clipboard.CloseClipboard()
@@ -129,7 +132,7 @@ class ClipboardTester(unittest.TestCase):
         # The data we get back has the \0, as our STGMEDIUM has no way of 
         # knowing if it meant to be a string, or a binary buffer, so
         # it must return it too.
-        self.failUnlessEqual(got, val+"\0")
+        self.failUnlessEqual(got, "Hello again!\0".encode("ascii"))
         
     def testDataObjectFlush(self):
         do = TestDataObject("Hello from Python")
@@ -151,5 +154,5 @@ class ClipboardTester(unittest.TestCase):
         self.assertEqual(num_do_objects, 0)
 
 if __name__=='__main__':
-    import util
+    from win32com.test import util
     util.testmain()
