@@ -43,6 +43,23 @@
 %include "typemaps.i"
 %include "pywin32.i"
 
+%{
+// older python version's don't get the PyCObject structure definition
+// exposed, and we need it to cleanly zap our handles (see
+// CloseEncryptedFileRaw below).
+// Fortunately, the PyCObject structure has been identical from versions
+// 2.3->2.6 - and 2.6 is where it is first made public.
+#if (PY_VERSION_HEX < 0x02060000)
+typedef struct {
+    PyObject_HEAD
+    void *cobject;
+    void *desc;
+    void (*destructor)(void *);
+} PyCObject;
+
+#endif
+%}
+
 #define FILE_GENERIC_READ FILE_GENERIC_READ
 #define FILE_GENERIC_WRITE FILE_GENERIC_WRITE
 #define FILE_ALL_ACCESS FILE_ALL_ACCESS
@@ -3874,7 +3891,7 @@ py_ReplaceFile(PyObject *self, PyObject *args)
 }
 
 void encryptedfilecontextdestructor(void *ctxt){
-	if (pfnCloseEncryptedFileRaw)
+	if (pfnCloseEncryptedFileRaw && ctxt)
 		(*pfnCloseEncryptedFileRaw)(ctxt);
 }
 
@@ -4067,15 +4084,24 @@ py_CloseEncryptedFileRaw(PyObject *self, PyObject *args)
 {
 	CHECK_PFN(CloseEncryptedFileRaw);
 	PyObject *obctxt;
-	PVOID ctxt;
 	if (!PyArg_ParseTuple(args, "O:CloseEncryptedFileRaw",
 		&obctxt))	// @pyparm PyCObject|Context||Context object returned from <om win32file.OpenEncryptedFileRaw>
 		return NULL;
-	ctxt=PyCObject_AsVoidPtr(obctxt);
-	if (ctxt==NULL)
-		return NULL;
+	// We must nuke our ctxt in the CObject afer closing, else when the
+	// object destructs and we attempt to close it a second time, Vista x64
+	// crashes.
+	// So must bypass the CObject API for this.
+	if (!PyCObject_Check(obctxt))
+		return PyErr_Format(PyExc_TypeError, "param must be handle to an encrypted file (got type %s)", obctxt->ob_type->tp_name);
+	PyCObject *pcobj = (PyCObject *)obctxt;
+	if (pcobj->destructor != encryptedfilecontextdestructor)
+		return PyErr_Format(PyExc_TypeError, "param must be handle to an encrypted file (got a CObject with invalid destructor)");
+	if (!pcobj->cobject)
+		return PyErr_Format(PyExc_ValueError, "This handle has already been closed");
+	// ok - close it, then nuke it.
 	// function has no return value, make sure to check for memory leaks!
-	(*pfnCloseEncryptedFileRaw)(ctxt);
+	(*pfnCloseEncryptedFileRaw)(pcobj->cobject);
+	pcobj->cobject = 0;
 	Py_INCREF(Py_None);
 	return Py_None;
 }
