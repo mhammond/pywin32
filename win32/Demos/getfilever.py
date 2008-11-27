@@ -7,7 +7,7 @@ ver_strings=('Comments','InternalName','ProductName',
 fname = os.environ["comspec"]
 d=win32api.GetFileVersionInfo(fname, '\\')
 ## backslash as parm returns dictionary of numeric info corresponding to VS_FIXEDFILEINFO struc
-for n, v in d.items():
+for n, v in d.iteritems():
     print n, v
 
 pairs=win32api.GetFileVersionInfo(fname, '\\VarFileInfo\\Translation')
@@ -18,7 +18,7 @@ for lang, codepage in pairs:
     for ver_string in ver_strings:
         str_info=u'\\StringFileInfo\\%04X%04X\\%s' %(lang,codepage,ver_string)
         ## print str_info
-        print ver_string, win32api.GetFileVersionInfo(fname, str_info)
+        print ver_string, repr(win32api.GetFileVersionInfo(fname, str_info))
 
         
     
