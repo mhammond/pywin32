@@ -126,7 +126,7 @@ class DispatcherBase:
       else:
         traceback.print_exc()
     # But still raise it for the framework.
-    reraise()
+    raise
 
   def _trace_(self, *args):
     if self.logger is not None:
@@ -261,20 +261,7 @@ class DispatcherWin32dbg(DispatcherBase):
 
     # But still raise it.
     del tb
-    reraise()
-
-def reraise():
-  """Handy function for re-raising errors.
-
-  Note: storing a traceback in a local variable can introduce reference
-  loops if you aren't careful.  Specifically, that local variable should
-  not be within an execution context contained with the traceback.
-
-  By using a utility function, we ensure that our local variable holding
-  the traceback is not referenced by the traceback itself.
-  """
-  t, v, tb = exc_info()
-  raise t(v).with_traceback(tb)
+    raise
 
 try:
   import win32trace

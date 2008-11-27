@@ -64,7 +64,7 @@ def SemanticTest(ob):
 
     rc = dispob.Invoke(pythoncom.DISPID_EVALUATE, 0, pythoncom.DISPATCH_METHOD|pythoncom.DISPATCH_PROPERTYGET, 1)
     if rc != 6:
-        raise Error("Evaluate returned").with_traceback(rc)
+        raise Error("Evaluate returned %d" % rc)
 
 
 class Tester(win32com.test.util.TestCase):
