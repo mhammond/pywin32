@@ -580,16 +580,16 @@ if __name__=='__main__':
             RCParser.debugEnabled = 1
         print "Dumping all resources in '%s'" % filename
         resources = Parse(filename)
-        for id, ddef in resources.dialogs.items():
+        for id, ddef in resources.dialogs.iteritems():
             print "Dialog %s (%d controls)" % (id, len(ddef))
             pprint.pprint(ddef)
             print
-        for id, sdef in resources.stringTable.items():
+        for id, sdef in resources.stringTable.iteritems():
             print "String %s=%r" % (id, sdef.value)
             print
-        for id, sdef in resources.bitmaps.items():
+        for id, sdef in resources.bitmaps.iteritems():
             print "Bitmap %s=%r" % (id, sdef)
             print
-        for id, sdef in resources.icons.items():
+        for id, sdef in resources.icons.iteritems():
             print "Icon %s=%r" % (id, sdef)
             print

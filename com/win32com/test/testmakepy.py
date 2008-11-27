@@ -41,7 +41,7 @@ def TestBuildAll(verbose = 1):
             # interface manually
             tinfo = (info.clsid, info.lcid, info.major, info.minor)
             mod = gencache.EnsureModule(info.clsid, info.lcid, info.major, info.minor)
-            for name in mod.NamesToIIDMap.keys():
+            for name in mod.NamesToIIDMap.iterkeys():
                 makepy.GenerateChildFromTypeLibSpec(name, tinfo)
     return num
 

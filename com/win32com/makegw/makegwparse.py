@@ -570,7 +570,7 @@ AllConverters = {"const OLECHAR":	(ArgFormatterOLECHAR, 0, 1),
 }
 
 # Auto-add all the simple types
-for key in ConvertSimpleTypes.keys():
+for key in ConvertSimpleTypes.iterkeys():
 	AllConverters[key] = ArgFormatterSimple, 0
 
 def make_arg_converter(arg):

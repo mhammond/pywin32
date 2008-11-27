@@ -83,7 +83,7 @@ class RandomEventHandler:
     def _DumpFireds(self):
         if not self.fireds:
             print "ERROR: Nothing was received!"
-        for firedId, no in self.fireds.items():
+        for firedId, no in self.fireds.iteritems():
             progress("ID %d fired %d times" % (firedId, no))
 
 def TestDynamic():

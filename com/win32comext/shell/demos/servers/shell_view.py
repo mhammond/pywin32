@@ -223,7 +223,7 @@ class ShellFolderFile(ShellFolderBase):
     def EnumObjects(self, hwndOwner, flags):
         objects = get_clbr_for_file(self.path)
         pidls = []
-        for name, ob in objects.items():
+        for name, ob in objects.iteritems():
             pidls.append( ["object\0" + self.path + "\0" + name] )
         return NewEnum(pidls, iid=shell.IID_IEnumIDList,
                        useDispatcher=(debug>0))
@@ -280,7 +280,7 @@ class ShellFolderObject(ShellFolderBase):
         mod_objects = get_clbr_for_file(self.path)
         my_objects = mod_objects[self.class_name]
         pidls = []
-        for func_name, lineno in my_objects.methods.items():
+        for func_name, lineno in my_objects.methods.iteritems():
             pidl = ["object\0" + self.path + "\0" +
                     self.class_name + "." + func_name]
             pidls.append(pidl)

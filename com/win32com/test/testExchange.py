@@ -60,7 +60,7 @@ def DumpFolders(session):
 #
 PropTagsById={}
 if ammodule:
-    for name, val in ammodule.constants.__dict__.items():
+    for name, val in ammodule.constants.__dict__.iteritems():
         PropTagsById[val] = name
 
 

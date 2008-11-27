@@ -289,12 +289,6 @@ def TestArrays(vbtest, bUseGenerated):
         # and one for the byref.
         testData = string.split("Mark was here")
         resultData, byRefParam = vbtest.PassSAFEARRAY(testData)
-        # Un unicode everything (only 1.5.2)
-        try:
-            unicode
-        except NameError : # No builtin named Unicode!
-            resultData = map(str, resultData)
-            byRefParam = map(str, byRefParam)
         if testData != list(resultData):
             raise error("The safe array data was not what we expected - got " + str(resultData))
         if testData != list(byRefParam):

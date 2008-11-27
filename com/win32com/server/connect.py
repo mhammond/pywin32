@@ -53,7 +53,7 @@ class ConnectableServer:
 	def _BroadcastNotify(self, broadcaster, extraArgs):
 		# Broadcasts a notification to all connections.
 		# Ignores clients that fail.
-		for interface in self.connections.values():
+		for interface in self.connections.itervalues():
 			try:
 				broadcaster(*(interface,)+extraArgs)
 			except pythoncom.com_error, details:

@@ -18,7 +18,7 @@ CATID_PythonCOMServer = "{B3EF80D0-68E2-11D0-A689-00C04FD658FF}"
 def _set_subkeys(keyName, valueDict, base=win32con.HKEY_CLASSES_ROOT):
   hkey = win32api.RegCreateKey(base, keyName)
   try:
-    for key, value in valueDict.items():
+    for key, value in valueDict.iteritems():
       win32api.RegSetValueEx(hkey, key, None, win32con.REG_SZ, value)
   finally:
     win32api.RegCloseKey(hkey)
@@ -269,7 +269,7 @@ def RegisterServer(clsid,
 
   # set up any other reg values they might have
   if other:
-    for key, value in other.items():
+    for key, value in other.iteritems():
       _set_string(keyNameRoot + '\\' + key, value)
 
   if progID:

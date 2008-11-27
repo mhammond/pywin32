@@ -73,11 +73,11 @@ else:
 # get the type objects for IDispatch and IUnknown
 dispatchType = pythoncom.TypeIIDs[pythoncom.IID_IDispatch]
 iunkType = pythoncom.TypeIIDs[pythoncom.IID_IUnknown]
-_GoodDispatchType=[str, IIDType, unicode]
+_GoodDispatchTypes=[str, IIDType, unicode]
 _defaultDispatchItem=build.DispatchItem
 
 def _GetGoodDispatch(IDispatch, clsctx = pythoncom.CLSCTX_SERVER):
-	if type(IDispatch) in _GoodDispatchType:
+	if type(IDispatch) in _GoodDispatchTypes:
 		try:
 			IDispatch = pythoncom.connect(IDispatch)
 		except pythoncom.ole_error:

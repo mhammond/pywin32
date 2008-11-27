@@ -445,7 +445,7 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
 				win32ui.SetStatusText("Error attempting to get object attributes - %s" % (repr(sys.exc_info()[0]),))
 
 		# ensure all keys are strings.
-		items = [str(k) for k in items_dict.keys()]
+		items = [str(k) for k in items_dict.iterkeys()]
 		# All names that start with "_" go!
 		items = [k for k in items if not k.startswith('_')]
 
@@ -477,7 +477,7 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
 			if curclass and left=="self":
 				self._UpdateWithClassMethods(unique,curclass)
 
-			items = [word for word in unique.keys() if word[:2]!='__' or word[-2:]!='__']
+			items = [word for word in unique.iterkeys() if word[:2]!='__' or word[-2:]!='__']
 			# Ignore the word currently to the right of the dot - probably a red-herring.
 			try:
 				items.remove(right[1:])

@@ -877,8 +877,7 @@ class Generator:
         print >> stream
 
     if self.generate_type == GEN_FULL:
-      items = oleItems.values()
-      items = [l for l in items if l is not None]
+      items = [l for l in oleItems.itervalues() if l is not None]
       items.sort()
       for oleitem in items:
         self.progress.Tick()
@@ -904,7 +903,7 @@ class Generator:
     # Write out _all_ my generated CLSID's in the map
     if self.generate_type == GEN_FULL:
       print >> stream, 'CLSIDToClassMap = {'
-      for item in oleItems.values():
+      for item in oleItems.itervalues():
           if item is not None and item.bWritten:
               print >> stream, "\t'%s' : %s," % (str(item.clsid), item.python_name)
       print >> stream, '}'
@@ -912,7 +911,7 @@ class Generator:
       print >> stream, 'win32com.client.CLSIDToClass.RegisterCLSIDsFromDict( CLSIDToClassMap )'
       print >> stream, "VTablesToPackageMap = {}"
       print >> stream, "VTablesToClassMap = {"
-      for item in vtableItems.values():
+      for item in vtableItems.itervalues():
         print >> stream, "\t'%s' : '%s'," % (item.clsid,item.python_name)
       print >> stream, '}'
       print >> stream
@@ -920,13 +919,13 @@ class Generator:
     else:
       print >> stream, 'CLSIDToClassMap = {}'
       print >> stream, 'CLSIDToPackageMap = {'
-      for item in oleItems.values():
+      for item in oleItems.itervalues():
         if item is not None:
           print >> stream, "\t'%s' : %s," % (str(item.clsid), repr(item.python_name))
       print >> stream, '}'
       print >> stream, "VTablesToClassMap = {}"
       print >> stream, "VTablesToPackageMap = {"
-      for item in vtableItems.values():
+      for item in vtableItems.itervalues():
         print >> stream, "\t'%s' : '%s'," % (item.clsid,item.python_name)
       print >> stream, '}'
       print >> stream
@@ -934,10 +933,10 @@ class Generator:
     print >> stream
     # Bit of a hack - build a temp map of iteItems + vtableItems - coClasses
     map = {}
-    for item in oleItems.values():
+    for item in oleItems.itervalues():
         if item is not None and not isinstance(item, CoClassItem):
             map[item.python_name] = item.clsid
-    for item in vtableItems.values(): # No nones or CoClasses in this map
+    for item in vtableItems.itervalues(): # No nones or CoClasses in this map
         map[item.python_name] = item.clsid
             
     print >> stream, "NamesToIIDMap = {"
@@ -1010,7 +1009,7 @@ class Generator:
           items[key] = new_val
 
       self.progress.SetDescription("Generating...", len(items))
-      for oleitem, vtableitem in items.values():
+      for oleitem, vtableitem in items.itervalues():
         an_item = oleitem or vtableitem
         assert not self.file, "already have a file?"
         # like makepy.py, we gen to a .temp file so failure doesn't
