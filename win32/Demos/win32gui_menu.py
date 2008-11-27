@@ -314,7 +314,7 @@ class MainWindow:
                 crText = SetTextColor(hDC, GetSysColor(win32con.COLOR_HIGHLIGHTTEXT))
                 crBkgnd = SetBkColor(hDC, GetSysColor(win32con.COLOR_HIGHLIGHT))
     
-            each_pad = self.icon_x_pad / 2
+            each_pad = self.icon_x_pad // 2
             x_icon = left + GetSystemMetrics(win32con.SM_CXMENUCHECK) + each_pad
             x_text = x_icon + self.menu_icon_width + each_pad
     

@@ -58,7 +58,7 @@ class TestSimpleOps(unittest.TestCase):
         self.failUnless(read_data == data, "Read data is not what we wrote!")
     
         # Now truncate the file at 1/2 its existing size.
-        newSize = len(data)/2
+        newSize = len(data)//2
         win32file.SetFilePointer(h, newSize, win32file.FILE_BEGIN)
         win32file.SetEndOfFile(h)
         self.failUnless(win32file.GetFileSize(h) == newSize, "Truncated file does not have the expected size!")

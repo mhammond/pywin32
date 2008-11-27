@@ -43,7 +43,7 @@ class _WIN32MASKEDSTRUCT:
                 full_fmt += "pi"
             else:
                 full_fmt += fmt
-        for name, val in kw.items():
+        for name, val in kw.iteritems():
             if name not in self.__dict__:
                 raise ValueError("LVITEM structures do not have an item '%s'" % (name,))
             self.__dict__[name] = val
@@ -247,8 +247,8 @@ class DemoWindowBase:
         desktop = win32gui.GetDesktopWindow()
         l,t,r,b = win32gui.GetWindowRect(self.hwnd)
         dt_l, dt_t, dt_r, dt_b = win32gui.GetWindowRect(desktop)
-        centre_x, centre_y = win32gui.ClientToScreen( desktop, ( (dt_r-dt_l)/2, (dt_b-dt_t)/2) )
-        win32gui.MoveWindow(hwnd, centre_x-(r/2), centre_y-(b/2), r-l, b-t, 0)
+        centre_x, centre_y = win32gui.ClientToScreen( desktop, ( (dt_r-dt_l)//2, (dt_b-dt_t)//2) )
+        win32gui.MoveWindow(hwnd, centre_x-(r//2), centre_y-(b//2), r-l, b-t, 0)
         self._SetupList()
         l,t,r,b = win32gui.GetClientRect(self.hwnd)
         self._DoSize(r-l,b-t, 1)
