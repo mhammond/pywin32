@@ -70,8 +70,8 @@ def test(verbose=0):
 	client = ConnectableClient()
 	connection.Connect(server, client, IID_IConnectDemoEvents)
 	CheckEvent(server, client, "Hello", verbose)
-	CheckEvent(server, client, "Here is a null>"+chr(0)+"<", verbose)
-	CheckEvent(server, client, u"Here is a null>"+unichr(0)+"<", verbose)
+	CheckEvent(server, client, "Here is a null>\x00<", verbose)
+	CheckEvent(server, client, u"Here is a null>\x00<", verbose)
 	val = u"test-\xe0\xf2" # 2 extended characters.
 	CheckEvent(server, client, val, verbose)
 	if verbose:
