@@ -52,7 +52,7 @@ class dirpath:
 						subdirs = getsubdirs(d)
 						for sd in subdirs:
 							sd = sd.lower()
-							if d not in dirs:
+							if sd not in dirs:
 								dirs[sd] = None
 			elif os.path.isfile(d):
 				pass
