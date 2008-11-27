@@ -19,6 +19,3 @@ for lang, codepage in pairs:
         str_info=u'\\StringFileInfo\\%04X%04X\\%s' %(lang,codepage,ver_string)
         ## print str_info
         print ver_string, repr(win32api.GetFileVersionInfo(fname, str_info))
-
-        
-    
