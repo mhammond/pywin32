@@ -205,7 +205,7 @@ class SourceModuleContainer(SourceCodeContainer):
                 try:
                     self.text = open(fname, "r").read()
                 except IOError, details:
-                    self.text = "# Exception opening file\n# %s" % (`details`)
+                    self.text = "# Exception opening file\n# %s" % (repr(details))
             else:
                 self.text = "# No file available for module '%s'" % (self.module)
             self._buildlines()

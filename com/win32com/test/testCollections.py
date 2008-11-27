@@ -33,11 +33,11 @@ def MakeTestEnum():
 def TestEnumAgainst(o,check):
     for i in range(len(check)):
         if o(i) != check[i]:
-            raise error("Using default method gave the incorrect value - %s/%s" % (`o(i)`, `check[i]`))
+            raise error("Using default method gave the incorrect value - %s/%s" % (repr(o(i)), repr(check[i])))
 
     for i in range(len(check)):
         if o.Item(i) != check[i]:
-            raise error("Using Item method gave the incorrect value - %s/%s" % (`o(i)`, `check[i]`))
+            raise error("Using Item method gave the incorrect value - %s/%s" % (repr(o(i)), repr(check[i])))
 
     # First try looping.
     cmp = []
@@ -45,7 +45,7 @@ def TestEnumAgainst(o,check):
         cmp.append(s)
 
     if cmp[:len(check)] != check:
-        raise error("Result after looping isnt correct - %s/%s" % (`cmp[:len(check)]`, `check`))
+        raise error("Result after looping isnt correct - %s/%s" % (repr(cmp[:len(check)]), repr(check)))
 
     for i in range(len(check)):
         if o[i] != check[i]:

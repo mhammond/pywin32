@@ -233,7 +233,7 @@ class GrepDocument(docview.RichEditDoc):
 		#self.text = []
 		self.GetFirstView().Append('#Search '+self.dirpattern+'\n')
 		if self.verbose:
-			self.GetFirstView().Append('#   ='+`self.dp.dirs`+'\n')
+			self.GetFirstView().Append('#   ='+repr(self.dp.dirs)+'\n')
 		self.GetFirstView().Append('# Files '+self.filpattern+'\n')
 		self.GetFirstView().Append('#   For '+self.greppattern+'\n')
 		self.fplist = self.filpattern.split(';')
@@ -262,7 +262,7 @@ class GrepDocument(docview.RichEditDoc):
 			for i in range(len(lines)):
 				line = lines[i]
 				if self.pat.search(line) != None:
-					self.GetFirstView().Append(f+'('+`i+1` + ') '+line)
+					self.GetFirstView().Append(f+'('+repr(i+1) + ') '+line)
 		else:
 			self.fndx = -1
 			self.fpndx = self.fpndx + 1
@@ -284,7 +284,7 @@ class GrepDocument(docview.RichEditDoc):
 		return 1
 
 	def GetParams(self):
-		return self.dirpattern+'\t'+self.filpattern+'\t'+self.greppattern+'\t'+`self.casesensitive`+'\t'+`self.recurse`+'\t'+`self.verbose`
+		return self.dirpattern+'\t'+self.filpattern+'\t'+self.greppattern+'\t'+repr(self.casesensitive)+'\t'+repr(self.recurse)+'\t'+repr(self.verbose)
 
 	def OnSaveDocument(self, filename):
 #		print 'OnSaveDocument() filename=',filename
@@ -457,7 +457,7 @@ class GrepDialog(dialog.Dialog):
 			if newitems:
 				items = items + newitems
 				for item in items:
-					win32api.WriteProfileVal(section, `i`, item, ini)
+					win32api.WriteProfileVal(section, repr(i), item, ini)
 					i = i + 1
 			self.UpdateData(0)
 

@@ -19,7 +19,7 @@ def MakeTestDictionary():
 def TestDictAgainst(dict,check):
     for key, value in check.items():
         if dict(key) != value:
-            raise error("Indexing for '%s' gave the incorrect value - %s/%s" % (`key`, `dict[key]`, `check[key]`))
+            raise error("Indexing for '%s' gave the incorrect value - %s/%s" % (repr(key), repr(dict[key]), repr(check[key])))
 
 # Ensure we have the correct version registered.
 def Register(quiet):

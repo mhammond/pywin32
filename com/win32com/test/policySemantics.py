@@ -58,7 +58,7 @@ def SemanticTest(ob):
     ob.Add(3)
     # invoke _value_
     if ob() != (1,2,3):
-        raise Error("Bad result - got %s" % (`ob()`))
+        raise Error("Bad result - got %s" % (repr(ob())))
 
     dispob = ob._oleobj_
 

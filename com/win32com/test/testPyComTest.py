@@ -350,14 +350,14 @@ def TestGenerated():
 
 def TestCounter(counter, bIsGenerated):
     # Test random access into container
-    progress("Testing counter", `counter`)
+    progress("Testing counter", repr(counter))
     import random
     for i in xrange(50):
         num = int(random.random() * len(counter))
         try:
             ret = counter[num]
             if ret != num+1:
-                raise error("Random access into element %d failed - return was %s" % (num,`ret`))
+                raise error("Random access into element %d failed - return was %s" % (num,repr(ret)))
         except IndexError:
             raise error("** IndexError accessing collection element %d" % num)
 

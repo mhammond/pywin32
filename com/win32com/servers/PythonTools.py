@@ -17,7 +17,7 @@ class Tools:
     return str(sys.path)
 
   def echo(self, arg):
-    return `arg`
+    return repr(arg)
 
   def sleep(self, t):
     time.sleep(t)

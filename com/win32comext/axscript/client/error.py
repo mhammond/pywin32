@@ -230,8 +230,8 @@ def ProcessAXScriptException(scriptingSite, debugManager, exceptionInstance):
 		result = scriptingSite.OnScriptError(gateway)
 	except pythoncom.com_error, details:
 		print "**OnScriptError failed:", details
-		print "Exception description:'%s'" % (`exceptionInstance.description`)
-		print "Exception text:'%s'" % (`exceptionInstance.linetext`)
+		print "Exception description:'%s'" % (repr(exceptionInstance.description))
+		print "Exception text:'%s'" % (repr(exceptionInstance.linetext))
 		result = winerror.S_FALSE
 
 	if result==winerror.S_OK:

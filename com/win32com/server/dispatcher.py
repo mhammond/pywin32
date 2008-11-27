@@ -143,7 +143,7 @@ class DispatcherTrace(DispatcherBase):
   def _QueryInterface_(self, iid):
     rc = DispatcherBase._QueryInterface_(self, iid)
     if not rc:
-      self._trace_("in %s._QueryInterface_ with unsupported IID %s (%s)" % (`self.policy._obj_`, IIDToInterfaceName(iid),iid))
+      self._trace_("in %s._QueryInterface_ with unsupported IID %s (%s)" % (repr(self.policy._obj_), IIDToInterfaceName(iid),iid))
     return rc
 
   def _GetIDsOfNames_(self, names, lcid):
@@ -204,7 +204,7 @@ class DispatcherWin32trace(DispatcherTrace):
     if self.logger is None:
       # If we have no logger, setup our output.
       import win32traceutil # Sets up everything.
-    self._trace_("Object with win32trace dispatcher created (object=%s)" % `object`)
+    self._trace_("Object with win32trace dispatcher created (object=%s)" % repr(object))
 
 
 class DispatcherOutputDebugString(DispatcherTrace):

@@ -158,7 +158,7 @@ def SetProperties( msg, propDict):
 			elif type_val==TimeType:
 				tagType = mapitags.PT_SYSTIME
 			else:
-				raise ValueError("The type of object %s(%s) can not be written" % (`val`,type_val))
+				raise ValueError("The type of object %s(%s) can not be written" % (repr(val),type_val))
 			key = mapitags.PROP_TAG(tagType, mapitags.PROP_ID(newIds[newIdNo]))
 			newIdNo = newIdNo + 1
 		newProps.append( (key, val) )

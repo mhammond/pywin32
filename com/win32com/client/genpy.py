@@ -830,7 +830,7 @@ class Generator:
 
     print >> self.file, '"""' + docDesc + '"""'
 
-    print >> self.file, 'makepy_version =', `makepy_version`
+    print >> self.file, 'makepy_version =', repr(makepy_version)
     print >> self.file, 'python_version = 0x%x' % (sys.hexversion,)
     print >> self.file
     print >> self.file, 'import win32com.client.CLSIDToClass, pythoncom'
@@ -895,9 +895,9 @@ class Generator:
     print >> stream, 'RecordMap = {'
     for record in recordItems.itervalues():
         if str(record.clsid) == pythoncom.IID_NULL:
-            print >> stream, "\t###%s: %s, # Typedef disabled because it doesn't have a non-null GUID" % (`record.doc[0]`, `str(record.clsid)`)
+            print >> stream, "\t###%s: %s, # Typedef disabled because it doesn't have a non-null GUID" % (repr(record.doc[0]), repr(str(record.clsid)))
         else:
-            print >> stream, "\t%s: %s," % (`record.doc[0]`, `str(record.clsid)`)
+            print >> stream, "\t%s: %s," % (repr(record.doc[0]), repr(str(record.clsid)))
     print >> stream, "}"
     print >> stream
 
@@ -922,7 +922,7 @@ class Generator:
       print >> stream, 'CLSIDToPackageMap = {'
       for item in oleItems.values():
         if item is not None:
-          print >> stream, "\t'%s' : %s," % (str(item.clsid), `item.python_name`)
+          print >> stream, "\t'%s' : %s," % (str(item.clsid), repr(item.python_name))
       print >> stream, '}'
       print >> stream, "VTablesToClassMap = {}"
       print >> stream, "VTablesToPackageMap = {"

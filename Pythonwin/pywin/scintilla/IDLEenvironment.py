@@ -452,7 +452,7 @@ def TestCheck(index, edit, expected=None):
 def TestGet(fr, to, t, expected):
 	got = t.get(fr, to)
 	if got != expected:
-		print "ERROR: get(%s, %s) expected %s, but got %s" % (`fr`, `to`, `expected`, `got`)
+		print "ERROR: get(%s, %s) expected %s, but got %s" % (repr(fr), repr(to), repr(expected), repr(got))
 
 def test():
 	import pywin.framework.editor

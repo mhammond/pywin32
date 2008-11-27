@@ -125,7 +125,7 @@ def make_key_name(scancode, flags):
 
 def _psc(char):
     sc = get_scan_code(char)
-    print "Char %s -> %d -> %s" % (`char`, sc, key_code_to_name.get(sc))
+    print "Char %s -> %d -> %s" % (repr(char), sc, key_code_to_name.get(sc))
 
 def test1():
     for ch in """aA0/?[{}];:'"`~_-+=\\|,<.>/?""":

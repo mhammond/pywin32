@@ -126,7 +126,7 @@ class AutoIndent:
             elif key == 'context_use_ps1':
                 self.context_use_ps1 = value
             else:
-                raise KeyError("bad option name: %s" % `key`)
+                raise KeyError("bad option name: %s" % repr(key))
 
     # If ispythonsource and guess are true, guess a good value for
     # indentwidth based on file content (if possible), and if
@@ -254,7 +254,7 @@ class AutoIndent:
             y = PyParse.Parser(self.indentwidth, self.tabwidth)
             for context in self.num_context_lines:
                 startat = max(lno - context, 1)
-                startatindex = `startat` + ".0"
+                startatindex = repr(startat) + ".0"
                 rawtext = text.get(startatindex, "insert")
                 y.set_str(rawtext)
                 bod = y.find_good_parse_start(
@@ -286,7 +286,7 @@ class AutoIndent:
                     else:
                         self.reindent_to(y.compute_backslash_indent())
                 else:
-                    assert 0, "bogus continuation type " + `c`
+                    assert 0, "bogus continuation type " + repr(c)
                 return "break"
 
             # This line starts a brand new stmt; indent relative to

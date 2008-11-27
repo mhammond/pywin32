@@ -131,10 +131,10 @@ def doTestEngine(engine, echoer):
     print "***** Calling 'hello' failed", exc
     return
   if echoer.last != "Goober":
-    print "***** Function call didnt set value correctly", `echoer.last`
+    print "***** Function call didnt set value correctly", repr(echoer.last)
     
   if str(ob.prop) != "Property Value":
-    print "***** Property Value not correct - ", `ob.prop`
+    print "***** Property Value not correct - ", repr(ob.prop)
 
   ob.testcollection()
 
