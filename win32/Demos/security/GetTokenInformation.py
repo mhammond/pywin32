@@ -47,7 +47,7 @@ def dump_token(th):
         is_elevated=win32security.GetTokenInformation(th, win32security.TokenElevation)
         print 'TokenElevation:', is_elevated
     except pywintypes.error, details:
-        if details[0] != winerror.ERROR_INVALID_PARAMETER:
+        if details.winerror != winerror.ERROR_INVALID_PARAMETER:
             raise
         return None
     print 'TokenHasRestrictions:', win32security.GetTokenInformation(th, win32security.TokenHasRestrictions)
