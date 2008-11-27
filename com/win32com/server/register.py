@@ -360,8 +360,8 @@ def _get(ob, attr, default=None):
   return default
 
 def RegisterClasses(*classes, **flags):
-  quiet = flags.has_key('quiet') and flags['quiet']
-  debugging = flags.has_key('debug') and flags['debug']
+  quiet = 'quiet' in flags and flags['quiet']
+  debugging = 'debug' in flags and flags['debug']
   for cls in classes:
     clsid = cls._reg_clsid_
     progID = _get(cls, '_reg_progid_')
@@ -427,7 +427,7 @@ def RegisterClasses(*classes, **flags):
     extra()
 
 def UnregisterClasses(*classes, **flags):
-  quiet = flags.has_key('quiet') and flags['quiet']
+  quiet = 'quiet' in flags and flags['quiet']
   for cls in classes:
     clsid = cls._reg_clsid_
     progID = _get(cls, '_reg_progid_')

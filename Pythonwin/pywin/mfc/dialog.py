@@ -68,7 +68,7 @@ class Dialog(window.Wnd):
 	def keys(self): return self.data.keys()
 	def items(self): return self.data.items()
 	def values(self): return self.data.values()
-	def has_key(self, key): return self.data.has_key(key)
+	def has_key(self, key): return key in self.data
 
 class PrintDialog(Dialog):
 	" Base class for a print dialog"

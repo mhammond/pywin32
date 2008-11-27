@@ -14,7 +14,7 @@ def TestEnumWindows():
     classes = {}
     win32gui.EnumWindows(_MyCallback, (windows, classes))
     print "Enumerated a total of %d windows with %d classes" % (len(windows),len(classes))
-    if not classes.has_key("tooltips_class32"):
+    if "tooltips_class32" not in classes:
         print "Hrmmmm - I'm very surprised to not find a 'tooltips_class32' class."
 
 

@@ -13,7 +13,7 @@ class Bag:
 
   def Read(self, propName, varType, errorLog):
     print "read: name=", propName, "type=", varType
-    if not self.data.has_key(propName):
+    if propName not in self.data:
       if errorLog:
         hr = 0x80070057
         errorLog.AddError(propName, (0, "Bag.Read", "no such item", None, 0, hr))

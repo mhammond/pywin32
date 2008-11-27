@@ -59,7 +59,7 @@ def walk(arg, dirname, names):
         if base[-2:]=='_d':
           name = base[:-2] + ext
         is_dll = ext.lower() != ".exe"
-        if descriptions.has_key(os.path.normcase(name)):
+        if os.path.normcase(name) in descriptions:
           desc = descriptions[os.path.normcase(name)]
           try:
             verstamp.stamp(vars, pathname, desc, is_dll=is_dll)
@@ -95,13 +95,13 @@ def load_descriptions(fname, vars):
       else:
         descriptions[key] = val
 
-  if not retvars.has_key('product'):
+  if 'product' not in retvars:
     print 'ERROR: description file is missing the product name.'
     sys.exit(1)
-  if not retvars.has_key('major'):
+  if 'major' not in retvars:
     print 'ERROR: description file is missing the major version number.'
     sys.exit(1)
-  if not retvars.has_key('minor'):
+  if 'minor' not in retvars:
     print 'ERROR: description file is missing the minor version number.'
     sys.exit(1)
 

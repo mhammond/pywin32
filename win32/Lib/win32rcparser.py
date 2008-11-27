@@ -213,7 +213,7 @@ class RCParser:
                     n = lex.get_token()
                     i = int(lex.get_token())
                     self.ids[n] = i
-                    if self.names.has_key(i):
+                    if i in self.names:
                         # Dupe ID really isn't a problem - most consumers
                         # want to go from name->id, and this is OK.
                         # It means you can't go from id->name though.

@@ -98,7 +98,7 @@ def _WaitForFinish(ob, timeout):
 def _CheckSeenEvents(o, events):
     rc = 1
     for e in events:
-        if not o.seen_events.has_key(e):
+        if e not in o.seen_events:
             print "ERROR: Expected event did not trigger", e
             rc = 0
     return rc

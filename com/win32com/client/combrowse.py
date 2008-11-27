@@ -519,7 +519,7 @@ class HLIHeadingRegisterdTypeLibs(HLICOM):
 def main():
     from pywin.tools import hierlist
     root = HLIRoot("COM Browser")
-    if sys.modules.has_key("app"):
+    if "app" in sys.modules:
         # do it in a window
         browser.MakeTemplate()
         browser.template.OpenObject(root)

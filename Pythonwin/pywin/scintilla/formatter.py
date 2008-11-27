@@ -100,7 +100,7 @@ class FormatterBase:
 	def RegisterStyle(self, style, stylenum):
 		assert stylenum is not None, "We must have a style number"
 		assert style.stylenum is None, "Style has already been registered"
-		assert not self.styles.has_key(stylenum), "We are reusing a style number!"
+		assert stylenum not in self.styles, "We are reusing a style number!"
 		style.stylenum = stylenum
 		self.styles[style.name] = style
 		self.styles_by_id[stylenum] = style

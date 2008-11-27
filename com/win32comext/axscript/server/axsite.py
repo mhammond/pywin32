@@ -100,7 +100,7 @@ class AXSite:
 
   def GetItemInfo(self, name, returnMask):
 #    name = string.lower(name)
-    if not self.objModel.has_key(name):
+    if name not in self.objModel:
       raise exception.Exception(scode=winerror.TYPE_E_ELEMENTNOTFOUND, desc='item not found')
 
     ### for now, we don't have any type information

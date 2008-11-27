@@ -408,11 +408,11 @@ class MappedWrapPolicy(BasicWrapPolicy):
       self._dispid_to_put_ = { }
 
   def _getmembername_(self, dispid):
-    if self._dispid_to_func_.has_key(dispid):
+    if dispid in self._dispid_to_func_:
       return self._dispid_to_func_[dispid]
-    elif self._dispid_to_get_.has_key(dispid):
+    elif dispid in self._dispid_to_get_:
       return self._dispid_to_get_[dispid]
-    elif self._dispid_to_put_.has_key(dispid):
+    elif dispid in self._dispid_to_put_:
       return self._dispid_to_put_[dispid]
     else:
       raise COMException(scode = winerror.DISP_E_MEMBERNOTFOUND)
@@ -560,9 +560,9 @@ class DesignatedWrapPolicy(MappedWrapPolicy):
   def _allocnextdispid(self, last_dispid):
       while 1:
         last_dispid = last_dispid + 1
-        if not self._dispid_to_func_.has_key(last_dispid) and \
-           not self._dispid_to_get_.has_key(last_dispid) and \
-           not self._dispid_to_put_.has_key(last_dispid):
+        if last_dispid not in self._dispid_to_func_ and \
+           last_dispid not in self._dispid_to_get_ and \
+           last_dispid not in self._dispid_to_put_:
               return last_dispid
 
   def _invokeex_(self, dispid, lcid, wFlags, args, kwArgs, serviceProvider):

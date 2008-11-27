@@ -44,12 +44,12 @@ class _WIN32MASKEDSTRUCT:
             else:
                 full_fmt += fmt
         for name, val in kw.items():
-            if not self.__dict__.has_key(name):
+            if name not in self.__dict__:
                 raise ValueError("LVITEM structures do not have an item '%s'" % (name,))
             self.__dict__[name] = val
 
     def __setattr__(self, attr, val):
-        if not attr.startswith("_") and not self.__dict__.has_key(attr):
+        if not attr.startswith("_") and attr not in self.__dict__:
             raise AttributeError(attr)
         self.__dict__[attr] = val
 

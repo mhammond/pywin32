@@ -155,7 +155,7 @@ class ExcelRTDServer(object):
     """Deletes the given topic."""
     self.OnDisconnectData(TopicID)
     
-    if self.topics.has_key(TopicID):
+    if TopicID in self.topics:
       self.topics[TopicID] = None
       del self.topics[TopicID]
 

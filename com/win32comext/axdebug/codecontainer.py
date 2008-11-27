@@ -123,7 +123,7 @@ class SourceCodeContainer:
         attr = 0
 
         if type==tokenize.NAME:
-            if _keywords.has_key(token):
+            if token in _keywords:
                 attr = axdebug.SOURCETEXT_ATTR_KEYWORD
         elif type==tokenize.STRING:
             attr = axdebug.SOURCETEXT_ATTR_STRING
