@@ -636,7 +636,7 @@ def HandleCommandLine(cls, serviceClassString = None, argv = None, customInstall
         try:
             InstallService(serviceClassString, serviceName, serviceDisplayName, serviceDeps = serviceDeps, startType=startup, bRunInteractive=interactive, userName=userName,password=password, exeName=exeName, perfMonIni=perfMonIni,perfMonDll=perfMonDll,exeArgs=exeArgs,description=description)
             if customOptionHandler:
-                apply( customOptionHandler, (opts,) )
+                customOptionHandler(*(opts,))
             print "Service installed"
         except win32service.error, (hr, fn, msg):
             if hr==winerror.ERROR_SERVICE_EXISTS:
@@ -679,7 +679,7 @@ def HandleCommandLine(cls, serviceClassString = None, argv = None, customInstall
         try:
             ChangeServiceConfig(serviceClassString, serviceName, serviceDeps = serviceDeps, startType=startup, bRunInteractive=interactive, userName=userName,password=password, exeName=exeName, displayName = serviceDisplayName, perfMonIni=perfMonIni,perfMonDll=perfMonDll,exeArgs=exeArgs,description=description)
             if customOptionHandler:
-                apply( customOptionHandler, (opts,) )
+                customOptionHandler(*(opts,))
             print "Service updated"
         except win32service.error, (hr, fn, msg):
             print "Error changing service configuration: %s (%d)" % (msg,hr)

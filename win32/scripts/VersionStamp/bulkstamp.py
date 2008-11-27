@@ -134,4 +134,4 @@ if __name__ == '__main__':
     print "ERROR: incorrect invocation. See script's header comments."
     sys.exit(1)
 
-  apply(scan, tuple(sys.argv[1:]))
+  scan(*tuple(sys.argv[1:]))

@@ -28,7 +28,7 @@ import thread
 
 def ApplyIgnoreError(fn, args):
     try:
-        return apply(fn, args)
+        return fn(*args)
     except error: # Ignore win32api errors.
         return None
 

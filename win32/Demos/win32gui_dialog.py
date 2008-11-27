@@ -80,7 +80,7 @@ class _WIN32MASKEDSTRUCT:
                     val = default
                 vals.append(val)
             full_fmt += fmt
-        return apply(struct.pack, (full_fmt,) + tuple(vals) )
+        return struct.pack(*(full_fmt,) + tuple(vals))
 
 
 # NOTE: See the win32gui_struct module for an alternative way of dealing 
@@ -285,7 +285,7 @@ class DemoWindowBase:
         try:
             while 1:
                 params = self.result_queue.get(0)
-                apply(self.AddListItem, params)
+                self.AddListItem(*params)
         except Queue.Empty:
             pass
 

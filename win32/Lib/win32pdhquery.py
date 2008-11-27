@@ -344,7 +344,7 @@ class Query(BaseQuery):
 		overhead of unpickling the class).
 		'''
 		self.volatilecounters = []
-		apply(BaseQuery.__init__, (self,)+args, namedargs)
+		BaseQuery.__init__(*(self,)+args, **namedargs)
 	def addperfcounter(self, object, counter, machine=None):
 		'''
 		A "Performance Counter" is a stable, known, common counter,
@@ -419,11 +419,11 @@ class Query(BaseQuery):
 		There are currently no arguments to open.
 		'''
 		# do all the normal opening stuff, self._base is now the query object
-		apply(BaseQuery.open,(self,)+args, namedargs)
+		BaseQuery.open(*(self,)+args, **namedargs)
 		# should rewrite getinstpaths to take a single tuple
 		paths = []
 		for tup in self.volatilecounters:
-			paths[len(paths):] = apply(self.getinstpaths, tup)
+			paths[len(paths):] = self.getinstpaths(*tup)
 		for path in paths:
 			try:
 				self.counters.append(win32pdh.AddCounter(self._base, path))

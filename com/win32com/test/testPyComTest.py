@@ -46,7 +46,7 @@ def TestApplyResult(fn, args, result):
         fnName = str(fn)
     progress("Testing ", fnName)
     pref = "function " + fnName
-    rc  = apply(fn, args)
+    rc  = fn(*args)
     if rc != result:
         raise error("%s failed - result not %r but %r" % (pref, result, rc))
 

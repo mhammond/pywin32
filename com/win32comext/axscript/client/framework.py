@@ -45,7 +45,7 @@ def profile(fn, *args):
 	try:
 # roll on 1.6 :-)		
 #		return prof.runcall(fn, *args)
-		return apply(prof.runcall, (fn,) + args)
+		return prof.runcall(*(fn,) + args)
 	finally:
 		import pstats
 		# Damn - really want to send this to Excel!
@@ -840,9 +840,9 @@ class COMScript:
 			if self.debugManager.adb.appDebugger:
 				return self.debugManager.adb.runcall(fn, *args)
 			else:
-				return apply(fn, args)
+				return fn(*args)
 		else:
-			return apply(fn, args)
+			return fn(*args)
 	
 	def ApplyInScriptedSection(self, codeBlock, fn, args):
 		self.BeginScriptedSection()

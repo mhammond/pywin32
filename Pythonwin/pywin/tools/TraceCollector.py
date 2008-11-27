@@ -28,7 +28,7 @@ def CollectorThread(stopEvent, file):
 
 class WindowOutput(winout.WindowOutput):
 	def __init__(self, *args):
-		apply(winout.WindowOutput.__init__, (self,)+args)
+		winout.WindowOutput.__init__(*(self,)+args)
 		self.hStopThread = win32event.CreateEvent(None, 0, 0, None)
 		thread.start_new(CollectorThread, (self.hStopThread, self))
 	def _StopThread(self):

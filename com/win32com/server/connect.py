@@ -55,7 +55,7 @@ class ConnectableServer:
 		# Ignores clients that fail.
 		for interface in self.connections.values():
 			try:
-				apply(broadcaster, (interface,)+extraArgs)
+				broadcaster(*(interface,)+extraArgs)
 			except pythoncom.com_error, details:
 				self._OnNotifyFail(interface, details)
 

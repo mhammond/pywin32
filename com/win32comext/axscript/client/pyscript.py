@@ -29,7 +29,7 @@ debugging_attr = 0
 
 def debug_attr_print(*args):
 	if debugging_attr:
-		apply(trace, args)
+		trace(*args)
 
 def ExpandTabs(text):
 	return re.sub('\t','    ', text)

@@ -39,7 +39,7 @@ def GenerateFromRegistered(fname, *loadArgs):
 def GenerateAll():
     for args in genList:
         try:
-            apply(GenerateFromRegistered, args)
+            GenerateFromRegistered(*args)
         except KeyboardInterrupt:
             print "** Interrupted ***"
             break

@@ -12,7 +12,7 @@ iid = pythoncom.MakeIID("{b48969a0-784b-11d0-ae71-d23f56000000}")
 class VeryPermissive:
     def _dynamic_(self, name, lcid, wFlags, args):
         if wFlags & pythoncom.DISPATCH_METHOD:
-            return apply(getattr(self,name),args)
+            return getattr(self,name)(*args)
 
         if wFlags & pythoncom.DISPATCH_PROPERTYGET:
             try:
