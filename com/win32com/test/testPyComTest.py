@@ -376,20 +376,20 @@ def TestCounter(counter, bIsGenerated):
 
     counter.LBound=1
     counter.UBound=10
-    if counter.LBound <> 1 or counter.UBound<>10:
+    if counter.LBound != 1 or counter.UBound!=10:
         print "** Error - counter did not keep its properties"
 
     if bIsGenerated:
         bounds = counter.GetBounds()
-        if bounds[0]<>1 or bounds[1]<>10:
+        if bounds[0]!=1 or bounds[1]!=10:
             raise error("** Error - counter did not give the same properties back")
         counter.SetBounds(bounds[0], bounds[1])
 
     for item in counter:
         num = num + 1
-    if num <> len(counter):
+    if num != len(counter):
         raise error("*** Length of counter and loop iterations dont match ***")
-    if num <> 10:
+    if num != 10:
         raise error("*** Unexpected number of loop iterations ***")
 
     counter = counter._enum_.Clone() # Test Clone() and enum directly
@@ -397,7 +397,7 @@ def TestCounter(counter, bIsGenerated):
     num = 0
     for item in counter:
         num = num + 1
-    if num <> 10:
+    if num != 10:
         raise error("*** Unexpected number of loop iterations - got %d ***" % num)
     progress("Finished testing counter")
 

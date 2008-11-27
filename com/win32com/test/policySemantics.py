@@ -48,7 +48,7 @@ def DispExTest(ob):
             assert hr==winerror.S_FALSE, "Bad result at end of enum"
             break
     dispids.sort()
-    if dispids <> [pythoncom.DISPID_EVALUATE, pythoncom.DISPID_NEWENUM, 10, 11, 1000]:
+    if dispids != [pythoncom.DISPID_EVALUATE, pythoncom.DISPID_NEWENUM, 10, 11, 1000]:
         raise Error("Got back the wrong dispids: %s" % dispids)
 
 def SemanticTest(ob):

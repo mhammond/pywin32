@@ -76,7 +76,7 @@ if __name__=='__main__':
 	except getopt.error, why:
 		Usage(why)
 	retries = 5
-	if len(args) <> 0:
+	if len(args) != 0:
 		Usage("Invalid argument")
 
 	for opt, val in opts:

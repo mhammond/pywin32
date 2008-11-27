@@ -607,7 +607,7 @@ def HandleCommandLine(cls, serviceClassString = None, argv = None, customInstall
             # debugging here.
             DebugService(cls, args)
 
-    if not knownArg and len(args)<>1:
+    if not knownArg and len(args)!=1:
         usage() # the rest of the cmds don't take addn args
 
     if arg=="install":

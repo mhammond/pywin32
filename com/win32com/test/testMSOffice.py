@@ -103,21 +103,21 @@ def TextExcel(xl):
     for i in xrange(20):
         xl.Cells(i+1,i+1).Value = "Hi %d" % i
 
-    if xl.Range("A1").Value <> "Hi 0":
+    if xl.Range("A1").Value != "Hi 0":
         raise error("Single cell range failed")
 
-    if xl.Range("A1:B1").Value <> ((Unicode("Hi 0"),2),):
+    if xl.Range("A1:B1").Value != ((Unicode("Hi 0"),2),):
         raise error("flat-horizontal cell range failed")
 
-    if xl.Range("A1:A2").Value <> ((Unicode("Hi 0"),),(Unicode("x"),)):
+    if xl.Range("A1:A2").Value != ((Unicode("Hi 0"),),(Unicode("x"),)):
         raise error("flat-vertical cell range failed")
 
-    if xl.Range("A1:C3").Value <> ((Unicode("Hi 0"),2,3),(Unicode("x"),Unicode("Hi 1"),Unicode("z")),(3,2,Unicode("Hi 2"))):
+    if xl.Range("A1:C3").Value != ((Unicode("Hi 0"),2,3),(Unicode("x"),Unicode("Hi 1"),Unicode("z")),(3,2,Unicode("Hi 2"))):
         raise error("square cell range failed")
 
     xl.Range("A1:C3").Value =((3,2,1),("x","y","z"),(1,2,3))
 
-    if xl.Range("A1:C3").Value  <> ((3,2,1),(Unicode("x"),Unicode("y"),Unicode("z")),(1,2,3)):
+    if xl.Range("A1:C3").Value  != ((3,2,1),(Unicode("x"),Unicode("y"),Unicode("z")),(1,2,3)):
         raise error("Range was not what I set it to!")
 
     # test dates out with Excel

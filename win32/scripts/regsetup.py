@@ -167,7 +167,7 @@ def LocateFileName(fileNamesString, searchPaths):
         filter = "Files of requested type (*%s)|*%s||" % (ext,ext)
         dlg = win32ui.CreateFileDialog(1,None,fileName,flags,filter,None)
         dlg.SetOFNTitle("Locate " + fileName)
-        if dlg.DoModal() <> win32con.IDOK:
+        if dlg.DoModal() != win32con.IDOK:
             raise KeyboardInterrupt("User cancelled the process")
         retPath = dlg.GetPathName()
     return os.path.abspath(retPath)
@@ -504,7 +504,7 @@ if __name__=='__main__':
                 for newPath in searchPaths:
                     if newPath not in currentPaths:
                         currentPaths.append(newPath)
-                if len(currentPaths)<>oldLen:
+                if len(currentPaths)!=oldLen:
                     print "Registering %d new core paths" % (len(currentPaths)-oldLen)
                     regutil.RegisterNamedPath(None,string.join(currentPaths,";"))
                 else:

@@ -68,7 +68,7 @@ def Connect(entryName, bUseCallback):
         hras, rc = win32ras.Dial(None, None, (entryName, "", "", dp[ 3 ], dp[ 4 ], ""),theCallback)
     #       hras, rc = win32ras.Dial(None, None, (entryName, ),theCallback)
     #       print hras, rc
-        if not bUseCallback and rc <> 0:
+        if not bUseCallback and rc != 0:
             print "Could not dial the RAS connection:", win32ras.GetErrorString(rc)
             hras = HangUp( hras )
         #       don't wait here if there's no need to....

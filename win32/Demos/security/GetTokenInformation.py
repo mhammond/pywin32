@@ -57,7 +57,7 @@ def dump_token(th):
 
     elevation_type = win32security.GetTokenInformation(th, win32security.TokenElevationType)        
     print 'TokenElevationType:', elevation_type, TOKEN_ELEVATION_TYPE.lookup_name(elevation_type)
-    if elevation_type<>win32security.TokenElevationTypeDefault:
+    if elevation_type!=win32security.TokenElevationTypeDefault:
         lt=win32security.GetTokenInformation(th, win32security.TokenLinkedToken)
         print 'TokenLinkedToken:', lt
     else:

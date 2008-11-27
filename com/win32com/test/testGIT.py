@@ -27,7 +27,7 @@ import win32event, win32api
 import pythoncom
 
 def TestInterp(interp):
-    if interp.Eval("1+1") <> 2:
+    if interp.Eval("1+1") != 2:
         raise ValueError("The interpreter returned the wrong result.")
     try:
         interp.Eval(1+1)
