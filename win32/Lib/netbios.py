@@ -282,4 +282,3 @@ if __name__=='__main__':
         for ch in adapter.adapter_address:
             print "%02x" % (ord(ch),) ,
         print
-    
