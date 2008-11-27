@@ -19,7 +19,7 @@ class Enum:
 
     def lookup_name(self, const_val):
         """Looks up the name of a particular value."""
-        for k,v in self.__dict__.items():
+        for k,v in self.__dict__.iteritems():
             if v==const_val:
                 return k
         raise AttributeError('Value %s not found in enum' %const_val)
@@ -28,7 +28,7 @@ class Enum:
         """Returns the names of all recognized flags in input, and any flags not found in the enum."""
         flag_names=[]
         unknown_flags=flags
-        for k,v in self.__dict__.items():
+        for k,v in self.__dict__.iteritems():
             if flags & v == v:
                 flag_names.append(k)
                 unknown_flags = unknown_flags & ~v

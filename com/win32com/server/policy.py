@@ -471,11 +471,11 @@ class DesignatedWrapPolicy(MappedWrapPolicy):
       raise error("Object does not support DesignatedWrapPolicy, as it does not have either _public_methods_ or _typelib_guid_ attributes.")
 
     # Copy existing _dispid_to_func_ entries to _name_to_dispid_
-    for dispid, name in self._dispid_to_func_.items():
+    for dispid, name in self._dispid_to_func_.iteritems():
       self._name_to_dispid_[name.lower()]=dispid
-    for dispid, name in self._dispid_to_get_.items():
+    for dispid, name in self._dispid_to_get_.iteritems():
       self._name_to_dispid_[name.lower()]=dispid
-    for dispid, name in self._dispid_to_put_.items():
+    for dispid, name in self._dispid_to_put_.iteritems():
       self._name_to_dispid_[name.lower()]=dispid
 
     # Patch up the universal stuff.

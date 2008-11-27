@@ -519,7 +519,7 @@ class DispatchItem(build.DispatchItem, WritableItem):
             print >> stream, '\t\treturn win32com.client.util.WrapEnum(self._oleobj_.InvokeTypes(%d,LCID,%d,(13, 10),()),%s)' % (pythoncom.DISPID_NEWENUM, enumEntry.desc[4], resultCLSID)
             print >> stream, '\tdef __getitem__(self, index):'
             print >> stream, '\t\t"Allow this class to be accessed as a collection"'
-            print >> stream, "\t\tif not self.__dict__.has_key('_enum_'):"
+            print >> stream, "\t\tif not '_enum' in self.__dict__:"
             print >> stream, "\t\t\tself.__dict__['_enum_'] = self._NewEnum()"
             print >> stream, "\t\treturn self._enum_.__getitem__(index)"
         else: # Not an Enumerator, but may be an "Item/Count" based collection
@@ -940,7 +940,7 @@ class Generator:
         map[item.python_name] = item.clsid
             
     print >> stream, "NamesToIIDMap = {"
-    for name, iid in map.items():
+    for name, iid in map.iteritems():
         print >> stream, "\t'%s' : '%s'," % (name, iid)
     print >> stream, '}'
     print >> stream
@@ -998,9 +998,9 @@ class Generator:
       assert found, "Cant find the '%s' interface in the CoClasses, or the interfaces" % (child,)
       # Make a map of iid: dispitem, vtableitem)
       items = {}
-      for key, value in oleItems.items():
+      for key, value in oleItems.iteritems():
           items[key] = (value,None)
-      for key, value in vtableItems.items():
+      for key, value in vtableItems.iteritems():
           existing = items.get(key, None)
           if existing is not None:
               new_val = existing[0], value

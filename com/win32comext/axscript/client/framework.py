@@ -162,7 +162,7 @@ class EventSink:
 		self.myScriptItem = None
 		self.myInvokeMethod = None
 		self.coDispatch = None
-		for event in self.events.values():
+		for event in self.events.itervalues():
 			event.Reset()
 		self.events = {}
 		self.Disconnect()
@@ -270,7 +270,7 @@ class ScriptItem:
 		if self.flags is not None and self.flags & axscript.SCRIPTITEM_CODEONLY:
 			flagDescs.append("CODE ONLY")
 		print " " * level, "Name=", self.name, ", flags=", "/".join(flagDescs), self
-		for subItem in self.subItems.values():
+		for subItem in self.subItems.itervalues():
 			subItem._dump_(level+1)
 
 	def Reset(self):
@@ -278,7 +278,7 @@ class ScriptItem:
 		if self.eventSink:
 			self.eventSink.Reset()
 		self.isRegistered = 0
-		for subItem in self.subItems.values():
+		for subItem in self.subItems.itervalues():
 			subItem.Reset()
 
 	def Close(self):
@@ -288,7 +288,7 @@ class ScriptItem:
 		if self.eventSink:
 			self.eventSink.Close()
 			self.eventSink = None
-		for subItem in self.subItems.values():
+		for subItem in self.subItems.itervalues():
 			subItem.Close()
 		self.subItems = []
 		self.createdConnections = 0
@@ -308,7 +308,7 @@ class ScriptItem:
 #			print "**** Made dispatch"
 		self.isRegistered = 1
 		# Register the sub-items.				
-		for item in self.subItems.values():
+		for item in self.subItems.itervalues():
 			if not item.isRegistered:
 				item.Register()
 
@@ -371,14 +371,14 @@ class ScriptItem:
 		# Connect to the already created connection points.
 		if self.eventSink:
 			self.eventSink.Connect()
-		for subItem in self.subItems.values():
+		for subItem in self.subItems.itervalues():
 			subItem.Connect()
 			
 	def Disconnect(self):
 		# Disconnect from the connection points.
 		if self.eventSink:
 			self.eventSink.Disconnect()
-		for subItem in self.subItems.values():
+		for subItem in self.subItems.itervalues():
 			subItem.Disconnect()
 
 
@@ -639,7 +639,7 @@ class COMScript:
 		if self.scriptState in [axscript.SCRIPTSTATE_UNINITIALIZED, axscript.SCRIPTSTATE_CONNECTED, axscript.SCRIPTSTATE_DISCONNECTED, axscript.SCRIPTSTATE_INITIALIZED, axscript.SCRIPTSTATE_STARTED]:
 			self.ChangeScriptState(axscript.SCRIPTSTATE_CLOSED)
 			# Completely reset all named items (including persistent)
-			for item in self.subItems.values():
+			for item in self.subItems.itervalues():
 				item.Close()
 			self.subItems = {}
 			self.baseThreadId = -1
@@ -741,14 +741,13 @@ class COMScript:
 		return self.DoProcessScriptItemEvent(item, event, lcid, wFlags, args)
 
 	def _DumpNamedItems_(self):
-		for item in self.subItems.values():
+		for item in self.subItems.itervalues():
 			item._dump_(0)
 
 	def ResetNamedItems(self):
 		# Due to the way we work, we re-create persistent ones.
-		si = self.subItems.items()
 		self.subItems = {}
-		for name, item in si:
+		for name, item in self.subItems.iteritems():
 			item.Close()
 			if item.flags & axscript.SCRIPTITEM_ISPERSISTENT:
 				self.AddNamedItem(item.name, item.flags)
@@ -757,13 +756,13 @@ class COMScript:
 		return self.safetyOptions
 	def ProcessNewNamedItemsConnections(self):
 		# Process all sub-items.
-		for item in self.subItems.values():
+		for item in self.subItems.itervalues():
 			if not item.createdConnections: # Fast-track!
 				item.CreateConnections()
 
 	def RegisterNewNamedItems(self):
 		# Register all sub-items.
-		for item in self.subItems.values():
+		for item in self.subItems.itervalues():
 			if not item.isRegistered: # Fast-track!
 				self.RegisterNamedItem(item)
 
@@ -807,13 +806,13 @@ class COMScript:
 
 	def ConnectEventHandlers(self):
 #		trace ("Connecting to event handlers")
-		for item in self.subItems.values():
+		for item in self.subItems.itervalues():
 			item.Connect()
 		self.ChangeScriptState(axscript.SCRIPTSTATE_CONNECTED);
 
 	def DisconnectEventHandlers(self):
 #		trace ("Disconnecting from event handlers")
-		for item in self.subItems.values():
+		for item in self.subItems.itervalues():
 			item.Disconnect()
 
 	def Reset(self):
