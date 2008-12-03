@@ -35,7 +35,7 @@ CRITICAL_SECTION critSec;
 
 // Function pointer typedefs
 typedef PDH_STATUS (WINAPI * FuncPdhEnumObjects)(
-    LPCTSTR szReserved,	// reserved
+    LPCTSTR szReserved,	// DataSource
     LPCTSTR szMachineName,	// machine name
     LPTSTR mszObjectList,	// buffer for objects
     LPDWORD pcchBufferLength,	// size of buffer
@@ -44,7 +44,7 @@ typedef PDH_STATUS (WINAPI * FuncPdhEnumObjects)(
    );
 
 typedef PDH_STATUS (WINAPI * FuncPdhEnumObjectItems)(
-    LPCTSTR szReserved,	// reserved
+    LPCTSTR szReserved,	// DataSource
     LPCTSTR szMachineName,	// machine name
     LPCTSTR szObjectName,	// object name
     LPTSTR mszCounterList,	// buffer for object's counters
@@ -56,8 +56,8 @@ typedef PDH_STATUS (WINAPI * FuncPdhEnumObjectItems)(
    );	
 
 typedef PDH_STATUS (WINAPI * FuncPdhOpenQuery)(
-    LPVOID pReserved,	// reserved
-    DWORD dwUserData,	// a value associated with this query
+    LPCTSTR szDataSource,	// DataSource
+    DWORD_PTR dwUserData,	// a value associated with this query
     HQUERY *phQuery	// pointer to a buffer that will receive the query handle
    ) ;
 
@@ -72,7 +72,7 @@ typedef PDH_STATUS (WINAPI * FuncPdhRemoveCounter)(
 typedef PDH_STATUS (WINAPI * FuncPdhAddCounter)(
     HQUERY hQuery,	// handle to the query
     LPCTSTR szFullCounterPath,	// path of the counter
-    DWORD dwUserData,	// user-defined value
+    DWORD_PTR dwUserData,	// user-defined value
     HCOUNTER *phCounter	// pointer to the counter handle buffer
    );	
 
@@ -107,7 +107,7 @@ typedef PDH_STATUS (WINAPI * FuncPdhValidatePath)(
 
 typedef PDH_STATUS (WINAPI * FuncPdhExpandCounterPath)(
    LPCTSTR szWildCardPath,	// counter path to expand
-   LPSTR mszExpandedPathList,	// names that match
+   LPTSTR mszExpandedPathList,	// names that match
    LPDWORD pcchPathListLength	// size of buffer
    );
 
@@ -124,16 +124,16 @@ typedef PDH_STATUS (WINAPI *FuncPdhSetCounterScaleFactor) (
 );
 
 typedef PDH_STATUS (WINAPI *FuncPdhParseInstanceName) (
-  LPCSTR  szInstanceString,
-  LPSTR   szInstanceName,
+  LPCTSTR  szInstanceString,
+  LPTSTR   szInstanceName,
   LPDWORD pcchInstanceNameLength,
-  LPSTR   szParentName,
+  LPTSTR   szParentName,
   LPDWORD pcchParentNameLength,
   LPDWORD lpIndex
 );
 
 typedef PDH_STATUS (WINAPI *FuncPdhBrowseCounters) (
-  PPDH_BROWSE_DLG_CONFIG_A pBrowseDlgData
+  PPDH_BROWSE_DLG_CONFIG pBrowseDlgData
 );
 
 typedef PDH_STATUS (WINAPI *FuncPdhConnectMachine) (
@@ -183,32 +183,39 @@ FuncPdhLookupPerfNameByIndex pPdhLookupPerfNameByIndex = NULL;
 
 static PyObject *win32pdh_counter_error;
 
+// Select whether to load ansi or unicode API functions
+#ifdef UNICODE
+#define A_OR_W "W"
+#else
+#define A_OR_W "A"
+#endif
+
 BOOL LoadPointers()
 {
-	HMODULE handle = LoadLibrary("pdh.dll");
+	HMODULE handle = LoadLibrary(_T("pdh.dll"));
 	if (handle==NULL) {
 //		PyErr_SetString(PyExc_RuntimeError, "The PDH DLL could not be located");
 		return FALSE;
 	}
-	pPdhEnumObjects = (FuncPdhEnumObjects)GetProcAddress(handle, "PdhEnumObjectsA");
-	pPdhEnumObjectItems = (FuncPdhEnumObjectItems)GetProcAddress(handle, "PdhEnumObjectItemsA");
+	pPdhEnumObjects = (FuncPdhEnumObjects)GetProcAddress(handle, "PdhEnumObjects" A_OR_W);
+	pPdhEnumObjectItems = (FuncPdhEnumObjectItems)GetProcAddress(handle, "PdhEnumObjectItems" A_OR_W);
 	pPdhCloseQuery = (FuncPdhCloseQuery)GetProcAddress(handle, "PdhCloseQuery");
 	pPdhRemoveCounter = (FuncPdhRemoveCounter)GetProcAddress(handle, "PdhRemoveCounter");
-	pPdhOpenQuery = (FuncPdhOpenQuery)GetProcAddress(handle, "PdhOpenQuery");
-	pPdhAddCounter = (FuncPdhAddCounter)GetProcAddress(handle, "PdhAddCounterA");
-	pPdhMakeCounterPath = (FuncPdhMakeCounterPath)GetProcAddress(handle, "PdhMakeCounterPathA");
-	pPdhGetCounterInfo = (FuncPdhGetCounterInfo)GetProcAddress(handle, "PdhGetCounterInfoA");
+	pPdhOpenQuery = (FuncPdhOpenQuery)GetProcAddress(handle, "PdhOpenQuery" A_OR_W);
+	pPdhAddCounter = (FuncPdhAddCounter)GetProcAddress(handle, "PdhAddCounter" A_OR_W);
+	pPdhMakeCounterPath = (FuncPdhMakeCounterPath)GetProcAddress(handle, "PdhMakeCounterPath" A_OR_W);
+	pPdhGetCounterInfo = (FuncPdhGetCounterInfo)GetProcAddress(handle, "PdhGetCounterInfo" A_OR_W);
 	pPdhGetFormattedCounterValue = (FuncPdhGetFormattedCounterValue)GetProcAddress(handle, "PdhGetFormattedCounterValue");
 	pPdhCollectQueryData = (FuncPdhCollectQueryData)GetProcAddress(handle, "PdhCollectQueryData");
-	pPdhValidatePath	= (FuncPdhValidatePath)GetProcAddress(handle, "PdhValidatePathA");
-	pPdhExpandCounterPath	= (FuncPdhExpandCounterPath)GetProcAddress(handle, "PdhExpandCounterPathA");
-	pPdhParseCounterPath = (FuncPdhParseCounterPath)GetProcAddress(handle, "PdhParseCounterPathA");
+	pPdhValidatePath	= (FuncPdhValidatePath)GetProcAddress(handle, "PdhValidatePath" A_OR_W);
+	pPdhExpandCounterPath	= (FuncPdhExpandCounterPath)GetProcAddress(handle, "PdhExpandCounterPath" A_OR_W);
+	pPdhParseCounterPath = (FuncPdhParseCounterPath)GetProcAddress(handle, "PdhParseCounterPath" A_OR_W);
 	pPdhSetCounterScaleFactor = (FuncPdhSetCounterScaleFactor)GetProcAddress(handle, "PdhSetCounterScaleFactor");
-	pPdhParseInstanceName = (FuncPdhParseInstanceName)GetProcAddress(handle, "PdhParseInstanceNameA");
-	pPdhBrowseCounters = (FuncPdhBrowseCounters)GetProcAddress(handle, "PdhBrowseCountersA");
-	pPdhConnectMachine = (FuncPdhConnectMachine)GetProcAddress(handle, "PdhConnectMachineA");
-	pPdhLookupPerfNameByIndex = (FuncPdhLookupPerfNameByIndex)GetProcAddress(handle, "PdhLookupPerfNameByIndexA");
-	pPdhLookupPerfIndexByName = (FuncPdhLookupPerfIndexByName)GetProcAddress(handle, "PdhLookupPerfIndexByName");
+	pPdhParseInstanceName = (FuncPdhParseInstanceName)GetProcAddress(handle, "PdhParseInstanceName" A_OR_W);
+	pPdhBrowseCounters = (FuncPdhBrowseCounters)GetProcAddress(handle, "PdhBrowseCounters" A_OR_W);
+	pPdhConnectMachine = (FuncPdhConnectMachine)GetProcAddress(handle, "PdhConnectMachine" A_OR_W);
+	pPdhLookupPerfNameByIndex = (FuncPdhLookupPerfNameByIndex)GetProcAddress(handle, "PdhLookupPerfNameByIndex" A_OR_W);
+	pPdhLookupPerfIndexByName = (FuncPdhLookupPerfIndexByName)GetProcAddress(handle, "PdhLookupPerfIndexByName" A_OR_W);
 
 	// Pdh error codes are in 2 different ranges
 	PyWin_RegisterErrorMessageModule(PDH_CSTATUS_NO_MACHINE, PDH_CANNOT_SET_DEFAULT_REALTIME_DATASOURCE, handle);
@@ -230,7 +237,7 @@ BOOL CheckCounterStatusOK( DWORD status )
 static PyObject *PyEnumObjectItems(PyObject *self, PyObject *args)
 {
 	DWORD detailLevel, flags = 0;
-	char *reserved;
+	TCHAR *reserved;
 	PyObject *obMachine, *obObject;
 	if (!PyArg_ParseTuple(args, "zOOi|i:EnumObjectItems", 
 	          &reserved, // @pyparm string|reserved||Should be None
@@ -326,29 +333,14 @@ static PyObject *PyEnumObjectItems(PyObject *self, PyObject *args)
 		return PyWin_SetAPIError("EnumObjectItems for data", pdhStatus);
     }
 
-	PyObject *retCounter = PyList_New(0);
-	if (szCounterListBuffer)
-		for (szTemp = szCounterListBuffer;
-			*szTemp != 0;
-			szTemp += lstrlen(szTemp) + 1) {
-				PyObject *obTemp = PyString_FromString(szTemp);
-				PyList_Append(retCounter, obTemp);
-				Py_XDECREF(obTemp);
-		}
-	PyObject *retInstance = PyList_New(0);
+	PyObject *rc = Py_BuildValue("NN",
+		szCounterListBuffer ? PyWinObject_FromMultipleString(szCounterListBuffer) : PyList_New(0),
+		szInstanceListBuffer ? PyWinObject_FromMultipleString(szInstanceListBuffer) : PyList_New(0));
+	
 	if (szInstanceListBuffer)
-		for (szTemp = szInstanceListBuffer;
-			*szTemp != 0;
-			szTemp += lstrlen(szTemp) + 1) {
-				PyObject *obTemp = PyString_FromString(szTemp);
-				PyList_Append(retInstance, obTemp);
-				Py_XDECREF(obTemp);
-		}
-	PyObject *rc = Py_BuildValue("OO", retCounter, retInstance);
-	Py_XDECREF(retCounter);
-	Py_XDECREF(retInstance);
-	free(szInstanceListBuffer);
-	free(szCounterListBuffer);
+		free(szInstanceListBuffer);
+	if (szCounterListBuffer)
+		free(szCounterListBuffer);
 	return rc;
 }
 
@@ -356,7 +348,7 @@ static PyObject *PyEnumObjectItems(PyObject *self, PyObject *args)
 static PyObject *PyEnumObjects(PyObject *self, PyObject *args)
 {
 	DWORD detailLevel, refresh=1;
-	char *reserved;
+	TCHAR *reserved;		// Is now DataSource (name of a performance log file)
 	PyObject *obMachine;
 	if (!PyArg_ParseTuple(args, "zOi|i:EnumObjects", 
 	          &reserved, // @pyparm string|reserved||Should be None
@@ -381,7 +373,7 @@ static PyObject *PyEnumObjects(PyObject *self, PyObject *args)
 	Py_BEGIN_ALLOW_THREADS
 
     pdhStatus = (*pPdhEnumObjects) (
-        reserved,                   // reserved
+        reserved,                   // DataSource
         strMachine,                   // local machine
         szObjectListBuffer,    // pass in NULL buffers
         &dwObjectListSize,     // an 0 length to get
@@ -410,7 +402,7 @@ static PyObject *PyEnumObjects(PyObject *self, PyObject *args)
 
 	Py_BEGIN_ALLOW_THREADS
 	pdhStatus = (*pPdhEnumObjects) (
-	        reserved,                   // reserved
+	        reserved,                   // DataSource
 	        strMachine,                   // local machine
 	        szObjectListBuffer,    // pass in NULL buffers
 	        &dwObjectListSize,     // an 0 length to get
@@ -424,17 +416,9 @@ static PyObject *PyEnumObjects(PyObject *self, PyObject *args)
 		return PyWin_SetAPIError("EnumObjects for data", pdhStatus);
     }
 
-	PyObject *retObject = PyList_New(0);
+	PyObject *retObject = szObjectListBuffer ? PyWinObject_FromMultipleString(szObjectListBuffer) : PyList_New(0);
 	if (szObjectListBuffer)
-		for (szTemp = szObjectListBuffer;
-			*szTemp != 0;
-			szTemp += lstrlen(szTemp) + 1) {
-				PyObject *obTemp = PyString_FromString(szTemp);
-				PyList_Append(retObject, obTemp);
-				Py_XDECREF(obTemp);
-		}
-	free(szObjectListBuffer);
-	Py_INCREF(retObject);
+		free(szObjectListBuffer);
 	return retObject;
 }
 
@@ -444,19 +428,24 @@ static PyObject *PyAddCounter(PyObject *self, PyObject *args)
 	HQUERY hQuery;
 	PyObject *obhQuery;
 	PyObject *obPath;
-	DWORD userData = 0;
-	if (!PyArg_ParseTuple(args, "OO|i:AddCounter", 
+	PyObject *obuserData = Py_None;	// Might make more sense to use actual PyObject for userData
+	DWORD_PTR userData = 0;
+	CHECK_PDH_PTR(pPdhAddCounter);
+	if (!PyArg_ParseTuple(args, "OO|O:AddCounter", 
 	          &obhQuery, // @pyparm int|hQuery||Handle to an open query.
 	          &obPath, // @pyparm string|path||Full path to the performance data
-	          &userData)) // @pyparm int|userData|0|User data associated with the counter.
+	          &obuserData)) // @pyparm int|userData|0|User data associated with the counter.
 		return NULL;
 	if (!PyWinObject_AsHANDLE(obhQuery, &hQuery))
 		return NULL;
+	if (obuserData != Py_None)
+		if (!PyWinLong_AsDWORD_PTR(obuserData, &userData))
+			return NULL;
 	TCHAR *szPath;
 	if (!PyWinObject_AsTCHAR(obPath, &szPath, FALSE))
 		return NULL;
 	HCOUNTER hCounter;
-	CHECK_PDH_PTR(pPdhAddCounter);
+
 	PyW32_BEGIN_ALLOW_THREADS
     PDH_STATUS pdhStatus = (*pPdhAddCounter) (
         hQuery,
@@ -498,23 +487,31 @@ static PyObject *PyRemoveCounter(PyObject *self, PyObject *args)
 // @pymethod int|win32pdh|OpenQuery|Opens a new query
 static PyObject *PyOpenQuery(PyObject *self, PyObject *args)
 {
-	DWORD userData = 0;
-	char *reserved = NULL;
-	if (!PyArg_ParseTuple(args, "|zi:OpenQuery", 
-	          &reserved, // @pyparm object|reserved|None|Must be None
-	          &userData)) // @pyparm int|userData|0|User data associated with the query.
+	DWORD_PTR userData = 0;
+	TCHAR *DataSource = NULL;
+	PyObject *obDataSource = Py_None, *obuserData = Py_None;
+	if (!PyArg_ParseTuple(args, "|OO:OpenQuery", 
+	          &obDataSource, // @pyparm str|DataSource|None|Name of a performaance log file, or None for live data
+	          &obuserData)) // @pyparm int|userData|0|User data associated with the query.
 		return NULL;
 
 	HQUERY hQuery;
 	CHECK_PDH_PTR(pPdhOpenQuery);
 	PDH_STATUS pdhStatus;
+	if (obuserData != Py_None)
+		if (!PyWinLong_AsDWORD_PTR(obuserData, &userData))
+			return NULL;
+	if (!PyWinObject_AsTCHAR(obDataSource, &DataSource, TRUE))
+		return NULL;
+
 	Py_BEGIN_ALLOW_THREADS
     pdhStatus = (*pPdhOpenQuery) (
-        (void *)reserved,
+        DataSource,
 	    userData,
 	    &hQuery);
 	Py_END_ALLOW_THREADS
 
+	PyWinObject_FreeTCHAR(DataSource);
     if (pdhStatus != ERROR_SUCCESS) 
 		return PyWin_SetAPIError("OpenQuery", pdhStatus);
 	return PyWinLong_FromHANDLE(hQuery);
@@ -547,8 +544,8 @@ static PyObject *PyCloseQuery(PyObject *self, PyObject *args)
 static PyObject *PyMakeCounterPath(PyObject *self, PyObject *args)
 {
     PyObject *rc = NULL;
-	char szResult[512];
-	DWORD bufSize = sizeof(szResult);
+	TCHAR szResult[512];
+	DWORD bufSize = sizeof(szResult)/sizeof(TCHAR);
 	DWORD flags = 0;
 	DWORD dwInstanceIndex;
 	PyObject *obMachineName, *obObjectName, *obInstanceName, *obParentInstance, *obCounterName;
@@ -606,7 +603,7 @@ static PyObject *PyMakeCounterPath(PyObject *self, PyObject *args)
     if (pdhStatus != ERROR_SUCCESS)
     	rc = PyWin_SetAPIError("MakeCounterPath for data", pdhStatus);
     else
-    	rc = PyString_FromString(szResult);
+    	rc = PyWinObject_FromTCHAR(szResult);
 done:
 
 //    free(szResult);
@@ -653,28 +650,29 @@ static PyObject *PyGetCounterInfo(PyObject *self, PyObject *args)
 	Py_END_ALLOW_THREADS
     PyObject *rc;
     if (pdhStatus != ERROR_SUCCESS)
-    	rc = PyWin_SetAPIError("GetCounterInfo for data", pdhStatus);
+		rc = PyWin_SetAPIError("GetCounterInfo for data", pdhStatus);
     else {
-    	if (!CheckCounterStatusOK(pInfo->CStatus))
-    		rc = NULL;
-    	else 
-		   	rc = Py_BuildValue("iiiiiiz(zzzziz)z",     
-	                      pInfo->dwType,
-	                      pInfo->CVersion,
-	                      pInfo->lScale,
-	                      pInfo->lDefaultScale,
-	                      pInfo->dwUserData,
-	                      pInfo->dwQueryUserData,
-	                      pInfo->szFullPath,
-	                      
-	                     pInfo->szMachineName,
-		                 pInfo->szObjectName,
-		                 pInfo->szInstanceName,
-		                 pInfo->szParentInstance,
-		                 pInfo->dwInstanceIndex,
-		                 pInfo->szCounterName,
-            
-		                 pInfo->szExplainText);
+		if (!CheckCounterStatusOK(pInfo->CStatus))
+			rc = NULL;
+		else 
+			rc = Py_BuildValue("iiiiNNN(NNNNiN)N",
+				pInfo->dwType,
+				pInfo->CVersion,
+				// ??? CStatus is missing ???
+				pInfo->lScale,
+				pInfo->lDefaultScale,
+				PyWinObject_FromDWORD_PTR(pInfo->dwUserData),
+				PyWinObject_FromDWORD_PTR(pInfo->dwQueryUserData),
+				PyWinObject_FromTCHAR(pInfo->szFullPath),
+						  
+				PyWinObject_FromTCHAR(pInfo->szMachineName),
+				PyWinObject_FromTCHAR(pInfo->szObjectName),
+				PyWinObject_FromTCHAR(pInfo->szInstanceName),
+				PyWinObject_FromTCHAR(pInfo->szParentInstance),
+				pInfo->dwInstanceIndex,
+				PyWinObject_FromTCHAR(pInfo->szCounterName),
+			
+				PyWinObject_FromTCHAR(pInfo->szExplainText));
     }
     free(pInfo);
     return rc;
@@ -711,7 +709,8 @@ static PyObject *PyGetFormattedCounterValue(PyObject *self, PyObject *args)
 		rc = PyFloat_FromDouble(result.doubleValue);
 	else if (format & PDH_FMT_LONG)
 		rc = PyInt_FromLong(result.longValue);
-	// XXX - need long int support
+	else if (format & PDH_FMT_LARGE)
+		rc = PyLong_FromLongLong(result.largeValue);
 	else {
 		PyErr_SetString(PyExc_ValueError, "Dont know how to convert the result");
 		rc = NULL;
@@ -788,19 +787,18 @@ static PyObject *PyExpandCounterPath(PyObject *self, PyObject *args)
     }
 */
 	// @comm The result is limited to 4096 bytes!
-	char *buf = (char *)malloc(dwSize * sizeof(TCHAR));
-    PDH_STATUS pdhStatus = (*pPdhExpandCounterPath) (path, buf, &dwSize);
+	TCHAR *buf = (TCHAR *)malloc(dwSize * sizeof(TCHAR));
+	if (buf==NULL){
+		PyErr_NoMemory();
+		PyWinObject_FreeTCHAR(path);
+		return NULL;
+		}
+	PDH_STATUS pdhStatus = (*pPdhExpandCounterPath) (path, buf, &dwSize);
     PyObject *rc;
     if (pdhStatus != ERROR_SUCCESS) 
 		rc = PyWin_SetAPIError("ExpandCounterPath for data", pdhStatus);
-	else {
-		rc = PyList_New(0);
-		for (char *szTemp = buf;*szTemp != 0;szTemp += lstrlen(szTemp) + 1) {
-			PyObject *obTemp = PyString_FromString(szTemp);
-			PyList_Append(rc, obTemp);
-			Py_XDECREF(obTemp);
-		}
-	}
+	else
+		rc = PyWinObject_FromMultipleString(buf);
 	PyWinObject_FreeTCHAR(path);
 	free(buf);
 	return rc;
@@ -847,13 +845,13 @@ static PyObject *PyParseCounterPath(PyObject *self, PyObject *args)
 	if (pdhStatus != 0) {
 		rc = PyWin_SetAPIError("ParseCounterPath", pdhStatus);
 	} else {
-		rc = Py_BuildValue("zzzziz", 
-			pCPE->szMachineName,
-			pCPE->szObjectName,
-			pCPE->szInstanceName,
-			pCPE->szParentInstance,
+		rc = Py_BuildValue("NNNNkN", 
+			PyWinObject_FromTCHAR(pCPE->szMachineName),
+			PyWinObject_FromTCHAR(pCPE->szObjectName),
+			PyWinObject_FromTCHAR(pCPE->szInstanceName),
+			PyWinObject_FromTCHAR(pCPE->szParentInstance),
 			pCPE->dwInstanceIndex,
-			pCPE->szCounterName);
+			PyWinObject_FromTCHAR(pCPE->szCounterName));
 	}
 	free(pBuf);
 	return rc;
@@ -880,7 +878,10 @@ static PyObject *PyParseInstanceName(PyObject *self, PyObject *args)
 	PyWinObject_FreeTCHAR(iname);
 	if (pdhStatus != 0)
 		return PyWin_SetAPIError("ParseInstanceName", pdhStatus);
-	return Py_BuildValue("ssi", szName, szParent, dwInstance);
+	return Py_BuildValue("NNk",
+		PyWinObject_FromTCHAR(szName),
+		PyWinObject_FromTCHAR(szParent),
+		dwInstance);
 }
 
 // @pymethod |win32pdh|SetCounterScaleFactor|Sets the scale factor that is applied to the calculated value of the specified counter when you request the formatted counter value.
@@ -916,7 +917,10 @@ PDH_STATUS __stdcall PyCounterPathCallback(DWORD_PTR dwArg)
 	MY_DLG_CONFIG *pMy = (MY_DLG_CONFIG *)dwArg;
 	DWORD rc = PDH_INVALID_DATA;
 	CEnterLeavePython _celp;
-	PyObject *args = Py_BuildValue("(s)", pMy->pcfg->szReturnPathBuffer);
+	/* ??? This does the wrong thing when multiple counters are selected.
+		Should use PyWinObject_AsMultipleString, but will break code that expects a single string. ???
+	*/
+	PyObject *args = Py_BuildValue("(N)", PyWinObject_FromTCHAR(pMy->pcfg->szReturnPathBuffer));
 	PyObject *result = PyEval_CallObject(pMy->func, args);
 	Py_XDECREF(args);
 	if (result==NULL) { // What to do with exceptions?
@@ -982,7 +986,7 @@ static PyObject *PyBrowseCounters(PyObject *self, PyObject *args)
 	pcfg->dwCallBackArg = (DWORD_PTR)&myCfg;
 	pcfg->pCallBack = PyCounterPathCallback;
 
-	pcfg->szReturnPathBuffer = (char *)malloc(1024);
+	pcfg->szReturnPathBuffer = (TCHAR *)malloc(1024 * sizeof(TCHAR));
 	pcfg->cchReturnPathLength = 1024;
 
 
@@ -997,7 +1001,7 @@ static PyObject *PyBrowseCounters(PyObject *self, PyObject *args)
 		rc = NULL;
 	}
 	else
-		rc = PyString_FromString(pcfg->szReturnPathBuffer);
+		rc = PyWinObject_FromTCHAR(pcfg->szReturnPathBuffer);
 
 	// Note - myCfg does not own any references
 	free(pcfg->szReturnPathBuffer);
@@ -1111,39 +1115,46 @@ static struct PyMethodDef win32pdh_functions[] = {
 	{NULL}
 };
 
-/* Initialize this module. */
-int AddConstant(PyObject *dict, char *key, long value)
-{
-	PyObject *okey = PyString_FromString(key);
-	PyObject *oval = PyLong_FromLong(value);
-	if (!okey || !oval) {
-		Py_XDECREF(okey);
-		Py_XDECREF(oval);
-		return 1;
-	}
-	int rc = PyDict_SetItem(dict,okey, oval);
-	Py_XDECREF(okey);
-	Py_XDECREF(oval);
-	return rc;
-}
-#define ADD_CONSTANT(tok) AddConstant(dict,#tok, tok)
 
+#define ADD_CONSTANT(tok) PyModule_AddIntConstant(module, #tok, tok)
 
-extern"C" __declspec(dllexport) void
-initwin32pdh(void)
+extern"C" __declspec(dllexport)
+#if (PY_VERSION_HEX < 0x03000000)
+void initwin32pdh(void)
+#else
+PyObject *PyInit_win32pdh(void)
+#endif
 {
 	InitializeCriticalSection(&critSec);
 	PyObject *dict, *module;
+
+#if (PY_VERSION_HEX < 0x03000000)
+#define RETURN_ERROR return;
 	module = Py_InitModule("win32pdh", win32pdh_functions);
-	if (!module) /* Eeek - some serious error! */
-		return;
+#else
+
+#define RETURN_ERROR return NULL;
+	static PyModuleDef win32pdh_def = {
+		PyModuleDef_HEAD_INIT,
+		"win32pdh",
+		"A module, encapsulating the Windows Performance Data Helpers API",
+		-1,
+		win32pdh_functions
+		};
+	module = PyModule_Create(&win32pdh_def);
+#endif
+
+	if (!module)
+		RETURN_ERROR;
 	dict = PyModule_GetDict(module);
-	if (!dict) return;
-	PyWinGlobals_Ensure();
-	Py_INCREF(PyWinExc_ApiError);
+	if (!dict)
+		RETURN_ERROR;
+	if (PyWinGlobals_Ensure() == -1)
+		RETURN_ERROR;
+
 	PyDict_SetItemString(dict, "error", PyWinExc_ApiError);
-	win32pdh_counter_error = PyString_FromString("win32pdh counter status error");
-	PyDict_SetItemString(dict, "counter status error", win32pdh_counter_error);
+	win32pdh_counter_error = PyErr_NewException("win32pdh.counter_status_error", NULL, NULL);
+	PyDict_SetItemString(dict, "counter_status_error", win32pdh_counter_error);
 	LoadPointers(); // Setting an error in this function will cause Python to spew.
   
 	ADD_CONSTANT(PDH_VERSION);
@@ -1166,4 +1177,7 @@ initwin32pdh(void)
 	ADD_CONSTANT(PERF_DETAIL_EXPERT);
 	ADD_CONSTANT(PERF_DETAIL_WIZARD);
 //	ADD_CONSTANT();
+#if (PY_VERSION_HEX >= 0x03000000)
+	return module;
+#endif
 }
