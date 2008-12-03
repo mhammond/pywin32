@@ -17,15 +17,15 @@ PyIExtractIcon::~PyIExtractIcon()
 {
 }
 
-/* static */ IExtractIcon *PyIExtractIcon::GetI(PyObject *self)
+/* static */ IExtractIconA *PyIExtractIcon::GetI(PyObject *self)
 {
-	return (IExtractIcon *)PyIUnknown::GetI(self);
+	return (IExtractIconA *)PyIUnknown::GetI(self);
 }
 
 // @pymethod |PyIExtractIcon|Extract|Description of Extract.
 PyObject *PyIExtractIcon::Extract(PyObject *self, PyObject *args)
 {
-	IExtractIcon *pIEI = GetI(self);
+	IExtractIconA *pIEI = GetI(self);
 	if ( pIEI == NULL )
 		return NULL;
 	// @pyparm <o unicode>|pszFile||Description for pszFile
@@ -34,18 +34,18 @@ PyObject *PyIExtractIcon::Extract(PyObject *self, PyObject *args)
 	HICON hiconLarge;
 	HICON hiconSmall;
 	PyObject *obpszFile;
-	TCHAR *pszFile;
+	char *pszFile;
 	UINT nIconIndex;
 	UINT nIconSize;
 	if ( !PyArg_ParseTuple(args, "Oii:Extract", &obpszFile, &nIconIndex, &nIconSize) )
 		return NULL;
 	BOOL bPythonIsHappy = TRUE;
-	if (!PyWinObject_AsTCHAR(obpszFile, &pszFile)) bPythonIsHappy = FALSE;
+	if (!PyWinObject_AsString(obpszFile, &pszFile)) bPythonIsHappy = FALSE;
 	if (!bPythonIsHappy) return NULL;
 	HRESULT hr;
 	PY_INTERFACE_PRECALL;
 	hr = pIEI->Extract( pszFile, nIconIndex, &hiconLarge, &hiconSmall, nIconSize );
-	PyWinObject_FreeTCHAR(pszFile);
+	PyWinObject_FreeString(pszFile);
 	PY_INTERFACE_POSTCALL;
 	if ( FAILED(hr) )
 		return PyCom_BuildPyException(hr, pIEI, IID_IExtractIcon );
@@ -61,7 +61,7 @@ PyObject *PyIExtractIcon::Extract(PyObject *self, PyObject *args)
 // @pymethod |PyIExtractIcon|GetIconLocation|Description of GetIconLocation.
 PyObject *PyIExtractIcon::GetIconLocation(PyObject *self, PyObject *args)
 {
-	IExtractIcon *pIEI = GetI(self);
+	IExtractIconA *pIEI = GetI(self);
 	if ( pIEI == NULL )
 		return NULL;
 	// @pyparm int|uFlags||Description for uFlags
@@ -70,7 +70,7 @@ PyObject *PyIExtractIcon::GetIconLocation(PyObject *self, PyObject *args)
 	INT cchMax = MAX_PATH + _MAX_FNAME;
 	if ( !PyArg_ParseTuple(args, "i|i:GetIconLocation", &uFlags, &cchMax))
 		return NULL;
-	TCHAR *buf = (TCHAR *)malloc(cchMax * sizeof(TCHAR));
+	char *buf = (char *)malloc(cchMax * sizeof(char));
 	if (!buf)
 		return PyErr_NoMemory();
 	INT iIndex;
@@ -83,7 +83,7 @@ PyObject *PyIExtractIcon::GetIconLocation(PyObject *self, PyObject *args)
 		free(buf);
 		return PyCom_BuildPyException(hr, pIEI, IID_IExtractIcon );
 	}
-	PyObject *retStr = PyWinObject_FromTCHAR(buf);
+	PyObject *retStr = PyString_FromString(buf);
 	free(buf);
 	return Py_BuildValue("iNii", hr, retStr, iIndex, flags);
 }
@@ -105,7 +105,7 @@ PyComTypeObject PyIExtractIcon::type("PyIExtractIcon",
 //
 // Gateway Implementation
 STDMETHODIMP PyGExtractIcon::Extract(
-		/* [unique][in] */ LPCTSTR pszFile,
+		/* [unique][in] */ LPCSTR pszFile,
 		/* [unique][in] */ UINT nIconIndex,
 		/* [out] */ HICON * phiconLarge,
 		/* [out] */ HICON * phiconSmall,
@@ -113,7 +113,7 @@ STDMETHODIMP PyGExtractIcon::Extract(
 {
 	PY_GATEWAY_METHOD;
 	PyObject *obpszFile;
-	obpszFile = PyString_FromString((LPTSTR)pszFile);
+	obpszFile = PyString_FromString(pszFile);
 	PyObject *result;
 	HRESULT hr=InvokeViaPolicy("Extract", &result, "Oii", obpszFile, nIconIndex, nIconSize);
 	Py_XDECREF(obpszFile);
@@ -136,7 +136,7 @@ STDMETHODIMP PyGExtractIcon::Extract(
 
 STDMETHODIMP PyGExtractIcon::GetIconLocation(
 		/* [unique][in] */ UINT uFlags,
-		/* [unique][out] */ LPTSTR szIconFile,
+		/* [unique][out] */ LPSTR szIconFile,
 		/* [unique][in] */ UINT cchMax,
 		/* [unique][out] */ LPINT piIndex,
 		/* [unique][out] */ UINT *pflags)

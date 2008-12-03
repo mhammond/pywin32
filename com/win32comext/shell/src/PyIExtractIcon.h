@@ -8,7 +8,7 @@ class PyIExtractIcon : public PyIUnknown
 {
 public:
 	MAKE_PYCOM_CTOR(PyIExtractIcon);
-	static IExtractIcon *GetI(PyObject *self);
+	static IExtractIconA *GetI(PyObject *self);
 	static PyComTypeObject type;
 
 	// The Python methods
@@ -23,7 +23,7 @@ protected:
 //
 // Gateway Declaration
 
-class PyGExtractIcon : public PyGatewayBase, public IExtractIcon
+class PyGExtractIcon : public PyGatewayBase, public IExtractIconA
 {
 protected:
 	PyGExtractIcon(PyObject *instance) : PyGatewayBase(instance) { ; }
@@ -31,9 +31,9 @@ protected:
 
 
 
-	// IExtractIcon
+	// IExtractIconA
 	STDMETHOD(Extract)(
-		LPCTSTR pszFile,
+		LPCSTR pszFile,
 		UINT nIconIndex,
 		HICON * phiconLarge,
 		HICON * phiconSmall,
@@ -41,7 +41,7 @@ protected:
 
 	STDMETHOD(GetIconLocation)(
 		UINT uFlags,
-		LPTSTR szIconFile,
+		LPSTR szIconFile,
 		UINT cchMax,
 		LPINT piIndex,
 		UINT *pwFlags);
