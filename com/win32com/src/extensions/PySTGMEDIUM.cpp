@@ -105,23 +105,22 @@ static struct PyMethodDef PySTGMEDIUM_methods[] = {
 
 PyTypeObject PySTGMEDIUM::Type =
 {
-	PyObject_HEAD_INIT(&PyType_Type)
-	0,
+	PYWIN_OBJECT_HEAD
 	"PySTGMEDIUM",
 	sizeof(PySTGMEDIUM),
 	0,
 	PySTGMEDIUM::deallocFunc,		/* tp_dealloc */
-	0,		/* tp_print */
+	0,						/* tp_print */
 	PySTGMEDIUM::getattr,				/* tp_getattr */
-	0,				/* tp_setattr */
-	0,	/* tp_compare */
+	0,						/* tp_setattr */
+	0,						/* tp_compare */
 	0,						/* tp_repr */
 	0,						/* tp_as_number */
-	0,	/* tp_as_sequence */
+	0,						/* tp_as_sequence */
 	0,						/* tp_as_mapping */
-	0,
+	0,						/* tp_hash */
 	0,						/* tp_call */
-	0,		/* tp_str */
+	0,						/* tp_str */
 };
 
 #define OFF(e) offsetof(PySTGMEDIUM, e)

@@ -48,23 +48,22 @@ static PySequenceMethods PyTYPEATTR_Sequence =
 
 PyTypeObject PyTYPEATTR::Type =
 {
-	PyObject_HEAD_INIT(&PyType_Type)
-	0,
+	PYWIN_OBJECT_HEAD
 	"PyTYPEATTR",
 	sizeof(PyTYPEATTR),
 	0,
-	PyTYPEATTR::deallocFunc,		/* tp_dealloc */
-	0,		/* tp_print */
+	PyTYPEATTR::deallocFunc,	/* tp_dealloc */
+	0,						/* tp_print */
 	PyTYPEATTR::getattr,				/* tp_getattr */
 	PyTYPEATTR::setattr,				/* tp_setattr */
-	0,	/* tp_compare */
+	0,						/* tp_compare */
 	0,						/* tp_repr */
 	0,						/* tp_as_number */
 	&PyTYPEATTR_Sequence,	/* tp_as_sequence */
 	0,						/* tp_as_mapping */
-	0,
+	0,						/* tp_hash */
 	0,						/* tp_call */
-	0,		/* tp_str */
+	0,						/* tp_str */
 };
 
 #define OFF(e) offsetof(PyTYPEATTR, e)

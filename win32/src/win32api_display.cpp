@@ -1,5 +1,4 @@
 // @doc - This file contains autoduck documentation
-// #define UNICODE
 #include "PyWinTypes.h"
 #include "structmember.h"
 #include "PyWinObjects.h"
@@ -46,8 +45,7 @@ struct PyMemberDef PyDISPLAY_DEVICE::members[] = {
 
 PyTypeObject PyDISPLAY_DEVICEType =
 {
-	PyObject_HEAD_INIT(&PyType_Type)
-	0,
+	PYWIN_OBJECT_HEAD
 	"PyDISPLAY_DEVICE",
 	sizeof(PyDISPLAY_DEVICE),
 	0,
@@ -142,9 +140,10 @@ PyObject *PyDISPLAY_DEVICE::Clear(PyObject *self, PyObject *args)
 PyObject *PyDISPLAY_DEVICE::getattro(PyObject *self, PyObject *obname)
 {
 	PDISPLAY_DEVICE pdisplay_device=&((PyDISPLAY_DEVICE *)self)->display_device;
-	char *name=PyString_AsString(obname);
+	char *name=PYWIN_ATTR_CONVERT(obname);
 	if (name==NULL)
 		return NULL;
+
 	if (strcmp(name,"DeviceName")==0)
 		if (pdisplay_device->DeviceName[31]==0)  // in case DeviceName fills space and has no trailing NULL
 			return PyWinObject_FromTCHAR(pdisplay_device->DeviceName);
@@ -174,12 +173,13 @@ PyObject *PyDISPLAY_DEVICE::getattro(PyObject *self, PyObject *obname)
 
 int PyDISPLAY_DEVICE::setattro(PyObject *self, PyObject *obname, PyObject *obvalue)
 {
-	char *name;
-	TCHAR *value=NULL;
-	DWORD valuelen;
-	name=PyString_AsString(obname);
+	char *name=PYWIN_ATTR_CONVERT(obname);
 	if (name==NULL)
 		return -1;
+
+	TCHAR *value=NULL;
+	DWORD valuelen;
+
 	if (strcmp(name,"DeviceName")==0){
 		PDISPLAY_DEVICE pdisplay_device=&((PyDISPLAY_DEVICE *)self)->display_device;
 		DWORD cch_max=sizeof(pdisplay_device->DeviceName)/sizeof(TCHAR);

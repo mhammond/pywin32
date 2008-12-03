@@ -191,8 +191,7 @@ static PyMemberDef PyTraceObject_members[] = {
 };
 
 static PyTypeObject PyTraceObjectType = {
-    PyObject_HEAD_INIT(&PyType_Type)
-    0,
+    PYWIN_OBJECT_HEAD
     "PyTraceObject",
     sizeof(PyTraceObject),
     0,

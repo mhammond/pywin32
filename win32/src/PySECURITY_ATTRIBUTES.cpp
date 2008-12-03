@@ -65,23 +65,22 @@ static struct PyMethodDef PySECURITY_ATTRIBUTES_methods[] = {
 
 PYWINTYPES_EXPORT PyTypeObject PySECURITY_ATTRIBUTESType =
 {
-	PyObject_HEAD_INIT(&PyType_Type)
-	0,
+	PYWIN_OBJECT_HEAD
 	"PySECURITY_ATTRIBUTES",
 	sizeof(PySECURITY_ATTRIBUTES),
 	0,
 	PySECURITY_ATTRIBUTES::deallocFunc,		/* tp_dealloc */
-	0,		/* tp_print */
+	0,						/* tp_print */
 	PySECURITY_ATTRIBUTES::getattr,				/* tp_getattr */
 	PySECURITY_ATTRIBUTES::setattr,				/* tp_setattr */
-	0,	/* tp_compare */
+	0,						/* tp_compare */
 	0,						/* tp_repr */
 	0,						/* tp_as_number */
-	0,	/* tp_as_sequence */
+	0,						/* tp_as_sequence */
 	0,						/* tp_as_mapping */
-	0,
+	0,						/* tp_hash */
 	0,						/* tp_call */
-	0,		/* tp_str */
+	0,						/* tp_str */
 };
 
 #define OFF(e) offsetof(PySECURITY_ATTRIBUTES, e)
@@ -91,6 +90,9 @@ PYWINTYPES_EXPORT PyTypeObject PySECURITY_ATTRIBUTESType =
 	{"SECURITY_DESCRIPTOR", T_OBJECT, OFF(m_obSD)},        // @prop <o PySECURITY_DESCRIPTOR>|SECURITY_DESCRIPTOR|A PySECURITY_DESCRIPTOR, or None
 	{NULL}
 };
+
+
+
 // @comm On platforms that support security descriptor operations, SECURITY_DESCRIPTOR
 //   defaults to a blank security descriptor with no owner, group, dacl, or sacl.
 // Set to None to use a NULL security descriptor instead.
@@ -107,7 +109,7 @@ PySECURITY_ATTRIBUTES::PySECURITY_ATTRIBUTES(void)
 	m_obSD = new PySECURITY_DESCRIPTOR(SECURITY_DESCRIPTOR_MIN_LENGTH);
 	m_sa.lpSecurityDescriptor=((PySECURITY_DESCRIPTOR *)m_obSD)->GetSD();
 	// On win95/98/me (or any platform that doesn't have NT security) the
-	// initialization of the SECURITY_DESCRIPTOR shoudl fail, leaving the
+	// initialization of the SECURITY_DESCRIPTOR should fail, leaving the
 	// sd NULL.
 	if (m_sa.lpSecurityDescriptor==NULL){
 		Py_DECREF(m_obSD);

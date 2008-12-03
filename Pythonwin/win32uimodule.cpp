@@ -130,19 +130,17 @@ ui_type::ui_type( const char *name, ui_type *pBase, int typeSize, struct PyMetho
 // to guarantee order of static object construction, I went this way.  This is 
 // probably better, as is forces _all_ python objects have the same type sig.
 	static PyTypeObject type_template = {
-		PyObject_HEAD_INIT(&PyType_Type)
-		0,													/*ob_size*/
+		PYWIN_OBJECT_HEAD
 		"template",											/*tp_name*/
 		sizeof(ui_base_class), 								/*tp_size*/
 		0,													/*tp_itemsize*/
-		/* methods */
 		(destructor) ui_base_class::sui_dealloc, 			/*tp_dealloc*/
 		0,													/*tp_print*/
 		(getattrfunc) ui_base_class::sui_getattr, 			/*tp_getattr*/
 		(setattrfunc) ui_base_class::sui_setattr,			/*tp_setattr*/
 		0,													/*tp_compare*/
 		(reprfunc)ui_base_class::sui_repr,					/*tp_repr*/
-    	0,													/*tp_as_number*/
+		0,													/*tp_as_number*/
 	};
 
 	*((PyTypeObject *)this) = type_template;
@@ -2255,16 +2253,19 @@ initwin32ui(void)
   if (!module) /* Eeek - some serious error! */
     return;
   dict = PyModule_GetDict(module);
-  if (!dict) return; /* Another serious error!*/
+  if (!dict)
+    RETURN_ERROR;
+
   ui_module_error = PyErr_NewException("win32ui.error", NULL, NULL);
-  if (!ui_module_error) return; /* Another serious error!*/
-  PyDict_SetItemString(dict, "error", ui_module_error);
+  if ((ui_module_error == NULL) || PyDict_SetItemString(dict, "error", ui_module_error) == -1)
+    RETURN_ERROR;
+
   // drop email addy - too many ppl use it for support requests for other
   // tools that simply embed Pythonwin...
-	PyObject *copyright = PyWinCoreString_FromString("Copyright 1994-2008 Mark Hammond");
-	if ((copyright == NULL) || PyDict_SetItemString(dict, "copyright", copyright) == -1)
-		RETURN_ERROR;
-	Py_XDECREF(copyright);
+  PyObject *copyright = PyWinCoreString_FromString("Copyright 1994-2008 Mark Hammond");
+  if ((copyright == NULL) || PyDict_SetItemString(dict, "copyright", copyright) == -1)
+    RETURN_ERROR;
+  Py_XDECREF(copyright);
 
   PyObject *dllhandle = PyWinLong_FromHANDLE(hWin32uiDll);
   PyDict_SetItemString(dict, "dllhandle", dllhandle);
@@ -2279,7 +2280,8 @@ initwin32ui(void)
   Py_XDECREF(obPathName);
 
   HookWindowsMessages();	// need to be notified of certain events...
-  AddConstants(module);
+  if (AddConstants(module) == -1)
+      RETURN_ERROR;
 
   // Add all the types.
   PyObject *typeDict = PyDict_New();

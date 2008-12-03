@@ -42,8 +42,7 @@ static struct PyMethodDef PyWAVEFORMATEX_methods[] = {
 
 PYWINTYPES_EXPORT PyTypeObject PyWAVEFORMATEXType =
 {
-	PyObject_HEAD_INIT(&PyType_Type)
-	0,
+	PYWIN_OBJECT_HEAD
 	"PyWAVEFORMATEX",
 	sizeof(PyWAVEFORMATEX),
 	0,

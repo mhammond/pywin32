@@ -297,13 +297,12 @@ PyRecord::~PyRecord()
 
 PyTypeObject PyRecord::Type =
 {
-	PyObject_HEAD_INIT(&PyType_Type)
-	0,
+	PYWIN_OBJECT_HEAD
 	"com_record",
 	sizeof(PyRecord),
 	0,
-	PyRecord::tp_dealloc,		/* tp_dealloc */
-	0,		/* tp_print */
+	PyRecord::tp_dealloc,				/* tp_dealloc */
+	0,						/* tp_print */
 	PyRecord::tp_getattr,				/* tp_getattr */
 	PyRecord::tp_setattr,				/* tp_setattr */
 	PyRecord::tp_compare,				/* tp_compare */
@@ -311,9 +310,9 @@ PyTypeObject PyRecord::Type =
 	0,						/* tp_as_number */
 	0,						/* tp_as_sequence */
 	0,						/* tp_as_mapping */
-	0,
+	0,						/* tp_hash */
 	0,						/* tp_call */
-	0,		/* tp_str */
+	0,						/* tp_str */
 };
 
 static PyObject *PyRecord_reduce(PyObject *self, PyObject *args)
@@ -419,7 +418,6 @@ PyObject *PyRecord::tp_repr(PyObject *self)
 {
 	ULONG i;
 	PyRecord *pyrec = (PyRecord *)self;
-
 	ULONG num_names;
 	PyObject *s = PyString_FromString("com_struct{");
 
@@ -452,7 +450,6 @@ PyObject *PyRecord::tp_getattr(PyObject *self, char *name)
 {
 	PyObject *res;
 	PyRecord *pyrec = (PyRecord *)self;
-
 	if (strcmp(name, "__members__")==0) {
 		ULONG cnames = 0;
 		HRESULT hr = pyrec->pri->GetFieldNames(&cnames, NULL);
@@ -466,22 +463,23 @@ PyObject *PyRecord::tp_getattr(PyObject *self, char *name)
 			free(strs);
 			return PyCom_BuildPyException(hr, pyrec->pri, g_IID_IRecordInfo);
 		}
-		PyObject *ret = PyList_New(cnames);
-		for (ULONG i=0;i<cnames && ret != NULL;i++) {
+		res = PyList_New(cnames);
+		for (ULONG i=0;i<cnames && res != NULL;i++) {
 			PyObject *item = PyString_FromUnicode(strs[i]);
 			SysFreeString(strs[i]);
 			if (item==NULL) {
-				Py_DECREF(ret);
-				ret = NULL;
+				Py_DECREF(res);
+				res = NULL;
 			} else
-				PyList_SET_ITEM(ret, i, item); // ref count swallowed.
+				PyList_SET_ITEM(res, i, item); // ref count swallowed.
 		}
 		free(strs);
-		return ret;
+		return res;
 	}
 	res = Py_FindMethod(PyRecord_methods, self, name);
 	if (res != NULL)
 		return res;
+
 	PyErr_Clear();
 	WCHAR *wname;
 	if (!PyWin_String_AsWCHAR(name, (DWORD)-1, &wname))

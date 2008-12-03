@@ -64,23 +64,22 @@ static struct PyMethodDef PyPERF_OBJECT_TYPE_methods[] = {
 
 PyTypeObject PyPERF_OBJECT_TYPE::type =
 {
-	PyObject_HEAD_INIT(&PyType_Type)
-	0,
+	PYWIN_OBJECT_HEAD
 	"PyPERF_OBJECT_TYPE",
 	sizeof(PyPERF_OBJECT_TYPE),
 	0,
-	PyPERF_OBJECT_TYPE::deallocFunc,		/* tp_dealloc */
-	0,		/* tp_print */
+	PyPERF_OBJECT_TYPE::deallocFunc,	/* tp_dealloc */
+	0,						/* tp_print */
 	PyPERF_OBJECT_TYPE::getattr,				/* tp_getattr */
 	PyPERF_OBJECT_TYPE::setattr,				/* tp_setattr */
-	0,	/* tp_compare */
+	0,						/* tp_compare */
 	0,						/* tp_repr */
 	0,						/* tp_as_number */
-	0,	/* tp_as_sequence */
+	0,						/* tp_as_sequence */
 	0,						/* tp_as_mapping */
-	0,
+	0,						/* tp_hash */
 	0,						/* tp_call */
-	0,		/* tp_str */
+	0,						/* tp_str */
 };
 
 #define OFF(e) offsetof(PyPERF_OBJECT_TYPE, e)
@@ -90,7 +89,7 @@ PyTypeObject PyPERF_OBJECT_TYPE::type =
 	{"ObjectNameTitleIndex",  T_LONG,  OFF(m_ObjectNameTitleIndex)}, // @prop integer|ObjectNameTitleIndex|
 	{"ObjectHelpTitleIndex",  T_LONG,  OFF(m_ObjectHelpTitleIndex)}, // @prop integer|ObjectHelpTitleIndex|
 	{"DefaultCounterIndex",        T_LONG,  OFF(m_DefaultCounter)}, // @prop integer|DefaultCounterIndex|
-	{NULL}	/* Sentinel */
+	{NULL}
 };
 
 PyPERF_OBJECT_TYPE::PyPERF_OBJECT_TYPE(void)

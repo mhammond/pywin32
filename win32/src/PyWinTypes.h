@@ -20,6 +20,23 @@
 #include "Python.h"
 #include "windows.h"
 
+// Helpers for our types.
+#if (PY_VERSION_HEX < 0x03000000)
+#define PYWIN_OBJECT_HEAD PyObject_HEAD_INIT(&PyType_Type) 0,
+#define PYWIN_ATTR_CONVERT PyString_AsString
+
+#else	// Py3k definitions
+// Macro to handle PyObject layout changes in Py3k
+#define PYWIN_OBJECT_HEAD PyVarObject_HEAD_INIT(NULL, 0)
+
+/* Attribute names are passed as Unicode in Py3k, so use a macro to
+	switch between string and unicode conversion.  This function is not
+	documented, but is used extensively in the Python codebase itself,
+	so it's reasonable to assume it won't disappear anytime soon.
+*/
+#define PYWIN_ATTR_CONVERT _PyUnicode_AsString
+#endif // PY_VERSION_HEX
+
 // See PEP-353 - this is the "official" test...
 #if PY_VERSION_HEX < 0x02050000 && !defined(PY_SSIZE_T_MIN)
 // 2.3 and before have no Py_ssize_t

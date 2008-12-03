@@ -138,8 +138,7 @@ static PyNumberMethods PyHANDLE_NumberMethods =
 
 PYWINTYPES_EXPORT PyTypeObject PyHANDLEType =
 {
-	PyObject_HEAD_INIT(&PyType_Type)
-	0,
+	PYWIN_OBJECT_HEAD
 	"PyHANDLE",
 	sizeof(PyHANDLE),
 	0,
@@ -149,16 +148,16 @@ PYWINTYPES_EXPORT PyTypeObject PyHANDLEType =
 	PyHANDLE::getattr,				/* tp_getattr */
 	0, // PyHANDLE::setattr,				/* tp_setattr */
 	// @pymeth __cmp__|Used when HANDLE objects are compared.
-	PyHANDLE::compareFunc,	/* tp_compare */
-	PyHANDLE::strFunc,		/* tp_repr */
+	PyHANDLE::compareFunc,		/* tp_compare */
+	PyHANDLE::strFunc,			/* tp_repr */
 	&PyHANDLE_NumberMethods,	/* tp_as_number */
-	0,	/* tp_as_sequence */
-	0,						/* tp_as_mapping */
+	0,							/* tp_as_sequence */
+	0,							/* tp_as_mapping */
 	// @pymeth __hash__|Used when the hash value of an object is required
-	PyHANDLE::hashFunc,		/* tp_hash */
-	0,						/* tp_call */
+	PyHANDLE::hashFunc,			/* tp_hash */
+	0,							/* tp_call */
 	// @pymeth __str__|Used when a string representation is required
-	PyHANDLE::strFunc,		/* tp_str */
+	PyHANDLE::strFunc,			/* tp_str */
 };
 
 #define OFF(e) offsetof(PyHANDLE, e)
@@ -308,9 +307,9 @@ int PyHANDLE::print(FILE *fp, int flags)
 
 PyObject * PyHANDLE::asStr(void)
 {
-	TCHAR resBuf[160];
-	wsprintf(resBuf, _T("<%s:%Id>"), GetTypeName(), m_handle);
-	return PyString_FromTCHAR(resBuf);
+	WCHAR resBuf[160];
+	_snwprintf(resBuf, 160, L"<%hs:%Id>", GetTypeName(), m_handle);
+	return PyWinCoreString_FromString(resBuf);
 }
 
 PyObject *PyHANDLE::getattr(PyObject *self, char *name)

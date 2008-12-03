@@ -95,23 +95,22 @@ static PySequenceMethods PyVARDESC_Sequence =
 
 PyTypeObject PyVARDESC::Type =
 {
-	PyObject_HEAD_INIT(&PyType_Type)
-	0,
+	PYWIN_OBJECT_HEAD
 	"PyVARDESC",
 	sizeof(PyVARDESC),
 	0,
 	PyVARDESC::deallocFunc,		/* tp_dealloc */
-	0,		/* tp_print */
+	0,						/* tp_print */
 	PyVARDESC::getattr,				/* tp_getattr */
 	PyVARDESC::setattr,				/* tp_setattr */
-	0,	/* tp_compare */
+	0,						/* tp_compare */
 	0,						/* tp_repr */
 	0,						/* tp_as_number */
 	&PyVARDESC_Sequence,	/* tp_as_sequence */
 	0,						/* tp_as_mapping */
-	0,
+	0,						/* tp_hash */
 	0,						/* tp_call */
-	0,		/* tp_str */
+	0,						/* tp_str */
 };
 
 #define OFF(e) offsetof(PyVARDESC, e)

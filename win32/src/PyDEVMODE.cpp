@@ -112,8 +112,7 @@ struct PyMemberDef PyDEVMODE::members[] = {
 
 PYWINTYPES_EXPORT PyTypeObject PyDEVMODEType =
 {
-	PyObject_HEAD_INIT(&PyType_Type)
-	0,
+	PYWIN_OBJECT_HEAD
 	"PyDEVMODE",
 	sizeof(PyDEVMODE),
 	0,
@@ -492,8 +491,7 @@ struct PyMemberDef PyDEVMODEW::members[] = {
 
 PYWINTYPES_EXPORT PyTypeObject PyDEVMODEWType =
 {
-	PyObject_HEAD_INIT(&PyType_Type)
-	0,
+	PYWIN_OBJECT_HEAD
 	"PyDEVMODEW",
 	sizeof(PyDEVMODEW),
 	0,

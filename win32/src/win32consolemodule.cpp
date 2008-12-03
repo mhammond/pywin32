@@ -148,8 +148,7 @@ struct PyMemberDef PySMALL_RECT::members[] = {
 
 static PyTypeObject PySMALL_RECTType =
 {
-	PyObject_HEAD_INIT(&PyType_Type)
-	0,
+	PYWIN_OBJECT_HEAD
 	"PySMALL_RECT",
 	sizeof(PySMALL_RECT),
 	0,
@@ -168,7 +167,7 @@ static PyTypeObject PySMALL_RECTType =
 	PyObject_GenericGetAttr,	// tp_getattro
 	PyObject_GenericSetAttr,	// tp_setattro
 	0,			// tp_as_buffer;
-	0,			// tp_flags;
+	Py_TPFLAGS_DEFAULT,			// tp_flags;
 	"Wrapper for a SMALL_RECT struct. Create using PySMALL_RECTType(Left, Top, Right, Bottom)",	// tp_doc
 	0,			// traverseproc tp_traverse;
 	0,			// tp_clear;
@@ -298,8 +297,7 @@ struct PyMemberDef PyCOORD::members[] = {
 
 static PyTypeObject PyCOORDType =
 {
-	PyObject_HEAD_INIT(&PyType_Type)
-	0,
+	PYWIN_OBJECT_HEAD
 	"PyCOORD",
 	sizeof(PyCOORD),
 	0,
@@ -318,7 +316,7 @@ static PyTypeObject PyCOORDType =
 	PyObject_GenericGetAttr,	// tp_getattro
 	PyObject_GenericSetAttr,	// tp_setattro
 	0,			// tp_as_buffer;
-	0,			// tp_flags;
+	Py_TPFLAGS_DEFAULT,			// tp_flags;
 	"Wrapper for a COORD struct. Create using PyCOORDType(X,Y)",	// tp_doc
 	0,			// traverseproc tp_traverse;
 	0,			// tp_clear;
@@ -485,7 +483,7 @@ struct PyMemberDef PyINPUT_RECORD::members[] = {
 PyObject *PyINPUT_RECORD::tp_getattro(PyObject *self, PyObject *obname)
 {
 	INPUT_RECORD *pir=&((PyINPUT_RECORD *)self)->input_record;
-	char *name=PyString_AsString(obname);
+	char *name=PYWIN_ATTR_CONVERT(obname);
 	if (name==NULL)
 		return NULL;
 	if (strcmp(name,"ControlKeyState")==0){
@@ -534,7 +532,7 @@ int PyINPUT_RECORD::tp_setattro(PyObject *self, PyObject *obname, PyObject *obva
 {
 	INPUT_RECORD *pir=&((PyINPUT_RECORD *)self)->input_record;
 	char *name;
-	name=PyString_AsString(obname);
+	name=PYWIN_ATTR_CONVERT(obname);
 	if (name==NULL)
 		return -1;
 	if (obvalue==NULL){
@@ -554,6 +552,7 @@ int PyINPUT_RECORD::tp_setattro(PyObject *self, PyObject *obname, PyObject *obva
 			PyErr_SetString(PyExc_AttributeError,"'ConrolKeyState' is only valid for KEY_EVENT or MOUSE_EVENT");
 			return -1;
 			}
+
 #if (PY_VERSION_HEX < 0x02030000)
 		*dest_ptr=PyLong_AsUnsignedLong(obvalue);
 #else
@@ -607,8 +606,7 @@ int PyINPUT_RECORD::tp_setattro(PyObject *self, PyObject *obname, PyObject *obva
 
 static PyTypeObject PyINPUT_RECORDType =
 {
-	PyObject_HEAD_INIT(&PyType_Type)
-	0,
+	PYWIN_OBJECT_HEAD
 	"PyINPUT_RECORD",
 	sizeof(PyINPUT_RECORD),
 	0,
@@ -627,7 +625,7 @@ static PyTypeObject PyINPUT_RECORDType =
 	PyINPUT_RECORD::tp_getattro,	// tp_getattro
 	PyINPUT_RECORD::tp_setattro,	// tp_setattro
 	0,			// tp_as_buffer;
-	0,			// tp_flags;
+	Py_TPFLAGS_DEFAULT,	// tp_flags;
 	"Wrapper for a INPUT_RECORD struct. Create using PyINPUT_RECORDType(EventType)",	// tp_doc
 	0,			// traverseproc tp_traverse;
 	0,			// tp_clear;
@@ -1515,8 +1513,7 @@ PyObject *PyConsoleScreenBuffer::PyGetNumberOfConsoleInputEvents(PyObject *self,
 
 PyTypeObject PyConsoleScreenBufferType =
 {
-	PyObject_HEAD_INIT(&PyType_Type)
-	0,
+	PYWIN_OBJECT_HEAD
 	"PyConsoleScreenBuffer",
 	sizeof(PyConsoleScreenBuffer),
 	0,
@@ -1535,7 +1532,7 @@ PyTypeObject PyConsoleScreenBufferType =
 	PyObject_GenericGetAttr,		// tp_getattro
 	PyObject_GenericSetAttr,		// tp_setattro
 	0,								// tp_as_buffer
-	0,								// tp_flags
+	Py_TPFLAGS_DEFAULT,				// tp_flags
 	"Handle to a console screen buffer.\nCreate using CreateConsoleScreenBuffer or PyConsoleScreenBufferType(Handle)", // tp_doc
 	0,								// tp_traverse
 	0,								// tp_clear

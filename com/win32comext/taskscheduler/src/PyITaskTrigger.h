@@ -9,6 +9,8 @@
 #include "structmember.h"
 BOOL PyTASK_TRIGGER_check(PyObject *ob);
 
+extern __declspec(dllexport) PyTypeObject PyTASK_TRIGGERType;
+
 class PyITaskTrigger : public PyIUnknown
 {
 public:

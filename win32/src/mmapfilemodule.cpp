@@ -474,8 +474,7 @@ mmapfile_object_getattr(mmapfile_object * self, char * name)
 }
 
 static PyTypeObject mmapfile_object_type = {
-  PyObject_HEAD_INIT(&PyType_Type)
-  0,									// ob_size
+	PYWIN_OBJECT_HEAD
   "mmapfile",							// tp_name
   sizeof(mmapfile_object),				// tp_size
   0,									// tp_itemsize

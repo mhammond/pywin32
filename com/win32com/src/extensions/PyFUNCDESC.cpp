@@ -121,23 +121,22 @@ static PySequenceMethods PyFUNCDESC_Sequence =
 
 PyTypeObject PyFUNCDESC::Type =
 {
-	PyObject_HEAD_INIT(&PyType_Type)
-	0,
+	PYWIN_OBJECT_HEAD
 	"PyFUNCDESC",
 	sizeof(PyFUNCDESC),
 	0,
 	PyFUNCDESC::deallocFunc,		/* tp_dealloc */
-	0,		/* tp_print */
+	0,						/* tp_print */
 	PyFUNCDESC::getattr,				/* tp_getattr */
 	PyFUNCDESC::setattr,				/* tp_setattr */
-	0,	/* tp_compare */
+	0,						/* tp_compare */
 	0,						/* tp_repr */
 	0,						/* tp_as_number */
 	&PyFUNCDESC_Sequence,	/* tp_as_sequence */
 	0,						/* tp_as_mapping */
-	0,
+	0,						/* tp_hash */
 	0,						/* tp_call */
-	0,		/* tp_str */
+	0,						/* tp_str */
 };
 
 #define OFF(e) offsetof(PyFUNCDESC, e)

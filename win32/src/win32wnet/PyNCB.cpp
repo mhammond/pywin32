@@ -29,7 +29,7 @@
 
 #endif
 
-
+#include "Pywintypes.h"
 #include <windows.h>
 #include "python.h"
 #include "PyNCB.h"
@@ -39,23 +39,22 @@
 
 __declspec(dllexport)PyTypeObject PyNCBType =
 {
-	PyObject_HEAD_INIT(&PyType_Type)
-	0,
+	PYWIN_OBJECT_HEAD
 	"PyNCB",
 	sizeof(PyNCB),
 	0,
-	PyNCB::deallocFunc,			/* tp_dealloc */
-	0,							/* tp_print */
+	PyNCB::deallocFunc,		/* tp_dealloc */
+	0,						/* tp_print */
 	PyNCB::getattr,				/* tp_getattr */
 	PyNCB::setattr,				/* tp_setattr */
 //	PyNCB::compareFunc,			/* tp_compare */
-	0,							/* tp_repr */
-	0,							/* tp_as_number */
-	0,							/* tp_as_sequence */
-	0,							/* tp_as_mapping */
-	0,							/* hash? */
-	0,							/* tp_call */
-	0,							/* tp_str */
+	0,						/* tp_repr */
+	0,						/* tp_as_number */
+	0,						/* tp_as_sequence */
+	0,						/* tp_as_mapping */
+	0,						/* tp_hash */
+	0,						/* tp_call */
+	0,						/* tp_str */
 };
 
 static PyObject *PyNCB_Reset(PyObject *self, PyObject *args)
@@ -186,7 +185,6 @@ PyObject *PyWinMethod_NewNCB(PyObject *self, PyObject *args)
 PyObject *PyNCB::getattr(PyObject *self, char *name)
 {
 	PyNCB *This = (PyNCB *)self;
-
 	if (strcmp(name, "Callname") == 0)	// these "strings" are not null terminated so build
 										// a local representation of them and return
 										// the Pythonized version

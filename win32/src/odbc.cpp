@@ -110,8 +110,7 @@ PyMemberDef cursorMembers[];
 
 static PyTypeObject Cursor_Type =
 {
-	PyObject_HEAD_INIT (&PyType_Type)
-	0,						/*ob_size */
+	PYWIN_OBJECT_HEAD
 	"odbccur",				/*tp_name */
 	sizeof(cursorObject),	/*tp_basicsize */
 	0,						/*tp_itemsize */
@@ -157,8 +156,7 @@ PyMethodDef connectionMethods[];
 PyMemberDef connectionMembers[];
 static PyTypeObject Connection_Type =
 {
-	PyObject_HEAD_INIT (&PyType_Type)
-	0,						/*ob_size */
+	PYWIN_OBJECT_HEAD
 	"odbcconn",				/*tp_name */
 	sizeof (connectionObject),	/*tp_basicsize */
 	0,						/*tp_itemsize */

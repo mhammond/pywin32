@@ -103,24 +103,24 @@ PyObject *PyWinObject_FromDCB(const DCB *pDCB)
 
 PyTypeObject PyDCB::type =
 {
-	PyObject_HEAD_INIT(&PyType_Type)
-	0,
+	PYWIN_OBJECT_HEAD
 	"PyDCB",
 	sizeof(PyDCB),
 	0,
 	PyDCB::deallocFunc,		/* tp_dealloc */
-	0,		/* tp_print */
+	0,						/* tp_print */
 	PyDCB::getattr,				/* tp_getattr */
 	PyDCB::setattr,				/* tp_setattr */
-	0,	/* tp_compare */
+	0,						/* tp_compare */
 	0,						/* tp_repr */
 	0,						/* tp_as_number */
-	0,	/* tp_as_sequence */
+	0,						/* tp_as_sequence */
 	0,						/* tp_as_mapping */
-	0,
 	0,						/* tp_call */
-	0,		/* tp_str */
+	0,						/* tp_call */
+	0,						/* tp_str */
 };
+
 
 #define OFF(e) offsetof(PyDCB, e)
 
@@ -313,23 +313,22 @@ PyObject *PyWinObject_FromCOMSTAT(const COMSTAT *pCOMSTAT)
 
 PyTypeObject PyCOMSTAT::type =
 {
-	PyObject_HEAD_INIT(&PyType_Type)
-	0,
+	PYWIN_OBJECT_HEAD
 	"PyCOMSTAT",
 	sizeof(PyCOMSTAT),
 	0,
-	PyCOMSTAT::deallocFunc,		/* tp_dealloc */
-	0,		/* tp_print */
+	PyCOMSTAT::deallocFunc,	/* tp_dealloc */
+	0,						/* tp_print */
 	PyCOMSTAT::getattr,				/* tp_getattr */
 	PyCOMSTAT::setattr,				/* tp_setattr */
-	0,	/* tp_compare */
+	0,						/* tp_compare */
 	0,						/* tp_repr */
 	0,						/* tp_as_number */
-	0,	/* tp_as_sequence */
+	0,						/* tp_as_sequence */
 	0,						/* tp_as_mapping */
-	0,
+	0,						/* tp_hash */
 	0,						/* tp_call */
-	0,		/* tp_str */
+	0,						/* tp_str */
 };
 
 #undef OFF

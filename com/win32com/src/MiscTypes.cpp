@@ -10,8 +10,7 @@
 // ###         provide a nice way to see what interface is being exposed by
 // ###         an object).
 static PyTypeObject PyInterfaceType_Type = {
-	PyObject_HEAD_INIT(&PyType_Type)
-	0,			/* Number of items for varobject */
+	PYWIN_OBJECT_HEAD
 	"interface-type",			/* Name of this type */
 	sizeof(PyTypeObject),	/* Basic object size */
 	0,			/* Item size for varobject */
@@ -37,7 +36,7 @@ static PyTypeObject PyInterfaceType_Type = {
 PyComTypeObject::PyComTypeObject( const char *name, PyComTypeObject *pBase, int typeSize, struct PyMethodDef* methodList, PyIUnknown * (* thector)(IUnknown *))
 {
 // originally, this copied the typeobject of the parent, but as it is impossible
-// to gurantee order of static object construction, I went this way.  This is 
+// to guarantee order of static object construction, I went this way.  This is 
 // probably better, as is forces _all_ python objects have the same type sig.
 	static const PyTypeObject type_template = {
 #ifdef OLD_PYTHON_TYPES
@@ -52,7 +51,7 @@ PyComTypeObject::PyComTypeObject( const char *name, PyComTypeObject *pBase, int 
 		/* methods */
 		(destructor) PyIBase::dealloc, 						/*tp_dealloc*/
 		0,													/*tp_print*/
-		0, 					/*tp_getattr*/
+		0, 													/*tp_getattr*/
 		(setattrfunc) PyIBase::setattr,						/*tp_setattr*/
 		PyIBase::cmp,										/*tp_compare*/
 		(reprfunc)PyIBase::repr,							/*tp_repr*/
@@ -62,10 +61,10 @@ PyComTypeObject::PyComTypeObject( const char *name, PyComTypeObject *pBase, int 
 		0,			/*tp_hash*/
 		0,			/*tp_call*/
 		0,			/*tp_str*/
-		PyIBase::getattro, /* tp_getattro */
+		PyIBase::getattro,		/* tp_getattro */
 		0,			/*tp_setattro */
 		0,			/* tp_as_buffer */
-		0,			/* tp_flags */
+		Py_TPFLAGS_DEFAULT,			/* tp_flags */
 		0,          /* tp_doc */
 		0,    /* tp_traverse */
 		0,                              /* tp_clear */
@@ -95,6 +94,7 @@ PyComTypeObject::PyComTypeObject( const char *name, PyComTypeObject *pBase, int 
 	tp_name = (char *)name;
 	tp_basicsize = typeSize;
 }
+
 PyComTypeObject::~PyComTypeObject()
 {
 }
@@ -216,8 +216,7 @@ static void empty_dealloc(PyOleEmpty *o)
 
 PyTypeObject PyOleEmptyType =
 {
-	PyObject_HEAD_INIT(&PyType_Type)
-	0,
+	PYWIN_OBJECT_HEAD
 	"PyOleEmpty",
 	sizeof(PyOleEmpty),
 	0,
@@ -247,8 +246,7 @@ static void missing_dealloc(PyOleMissing *o)
 
 PYCOM_EXPORT PyTypeObject PyOleMissingType =
 {
-	PyObject_HEAD_INIT(&PyType_Type)
-	0,
+	PYWIN_OBJECT_HEAD
 	"PyOleMissing",
 	sizeof(PyOleMissing),
 	0,
@@ -277,8 +275,7 @@ static void notfound_dealloc(PyOleArgNotFound *o)
 
 PyTypeObject PyOleArgNotFoundType =
 {
-	PyObject_HEAD_INIT(&PyType_Type)
-	0,
+	PYWIN_OBJECT_HEAD
 	"ArgNotFound",
 	sizeof(PyOleArgNotFound),
 	0,

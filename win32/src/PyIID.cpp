@@ -147,8 +147,7 @@ static PyBufferProcs PyIID_as_buffer = {
 // as a param will accept either a string object, or a native PyIID object.
 PYWINTYPES_EXPORT PyTypeObject PyIIDType =
 {
-	PyObject_HEAD_INIT(&PyType_Type)
-	0,
+	PYWIN_OBJECT_HEAD
 	"PyIID",
 	sizeof(PyIID),
 	0,
@@ -168,10 +167,10 @@ PYWINTYPES_EXPORT PyTypeObject PyIIDType =
 	0,						/* tp_call */
 	// @pymeth __str__|Used whenever a string representation of the IID is required.
 	PyIID::strFunc,			/* tp_str */
-	0,		/*tp_getattro*/
-	0,		/*tp_setattro*/
+	0,						/*tp_getattro*/
+	0,						/*tp_setattro*/
 	// @comm Note that IID objects support the buffer interface.  Thus buffer(iid) can be used to obtain the raw bytes.
-	&PyIID_as_buffer,	/*tp_as_buffer*/
+	&PyIID_as_buffer,		/*tp_as_buffer*/
 };
 
 PyIID::PyIID(REFIID riid)

@@ -865,23 +865,22 @@ public:
 // The object can then be passed to any function which takes an WNDCLASS object
 PyTypeObject PyWNDCLASSType =
 {
-	PyObject_HEAD_INIT(&PyType_Type)
-	0,
+	PYWIN_OBJECT_HEAD
 	"PyWNDCLASS",
 	sizeof(PyWNDCLASS),
 	0,
 	PyWNDCLASS::deallocFunc,		/* tp_dealloc */
-	0,		/* tp_print */
+	0,						/* tp_print */
 	PyWNDCLASS::getattr,				/* tp_getattr */
 	PyWNDCLASS::setattr,				/* tp_setattr */
 	0,						/* tp_compare */
 	0,						/* tp_repr */
 	0,						/* tp_as_number */
-	0,	/* tp_as_sequence */
+	0,						/* tp_as_sequence */
 	0,						/* tp_as_mapping */
-	0,
+	0,						/* tp_hash */
 	0,						/* tp_call */
-	0,		/* tp_str */
+	0,						/* tp_str */
 };
 
 #define OFF(e) offsetof(PyWNDCLASS, e)
@@ -1084,23 +1083,22 @@ public:
 // The object can then be passed to any function which takes an BITMAP object
 PyTypeObject PyBITMAPType =
 {
-	PyObject_HEAD_INIT(&PyType_Type)
-	0,
+	PYWIN_OBJECT_HEAD
 	"PyBITMAP",
 	sizeof(PyBITMAP),
 	0,
-	PyBITMAP::deallocFunc,		/* tp_dealloc */
-	0,		/* tp_print */
+	PyBITMAP::deallocFunc,	/* tp_dealloc */
+	0,						/* tp_print */
 	PyBITMAP::getattr,				/* tp_getattr */
 	PyBITMAP::setattr,				/* tp_setattr */
 	0,						/* tp_compare */
 	0,						/* tp_repr */
 	0,						/* tp_as_number */
-	0,	/* tp_as_sequence */
+	0,						/* tp_as_sequence */
 	0,						/* tp_as_mapping */
-	0,
+	0,						/* tp_hash */
 	0,						/* tp_call */
-	0,		/* tp_str */
+	0,						/* tp_str */
 };
 #undef OFF
 #define OFF(e) offsetof(PyBITMAP, e)
@@ -1192,23 +1190,22 @@ public:
 // The object can then be passed to any function which takes an LOGFONT object
 PyTypeObject PyLOGFONTType =
 {
-	PyObject_HEAD_INIT(&PyType_Type)
-	0,
+	PYWIN_OBJECT_HEAD
 	"PyLOGFONT",
 	sizeof(PyLOGFONT),
 	0,
-	PyLOGFONT::deallocFunc,		/* tp_dealloc */
-	0,		/* tp_print */
+	PyLOGFONT::deallocFunc,	/* tp_dealloc */
+	0,						/* tp_print */
 	PyLOGFONT::getattr,				/* tp_getattr */
 	PyLOGFONT::setattr,				/* tp_setattr */
 	0,						/* tp_compare */
 	0,						/* tp_repr */
 	0,						/* tp_as_number */
-	0,	/* tp_as_sequence */
+	0,						/* tp_as_sequence */
 	0,						/* tp_as_mapping */
-	0,
+	0,						/* tp_hash */
 	0,						/* tp_call */
-	0,		/* tp_str */
+	0,						/* tp_str */
 };
 #undef OFF
 #define OFF(e) offsetof(PyLOGFONT, e)

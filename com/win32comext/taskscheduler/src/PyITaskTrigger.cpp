@@ -142,10 +142,9 @@ static struct PyMemberDef PyTASK_TRIGGER_members[] = {
 };
 
 // @object PyTASK_TRIGGER|Python object representing a TASK_TRIGGER structure via the structmember Api
-static PyTypeObject PyTASK_TRIGGERType =
+PyTypeObject PyTASK_TRIGGERType =
 {
-	PyObject_HEAD_INIT(&PyType_Type)
-	0,
+	PYWIN_OBJECT_HEAD
 	"PyTASK_TRIGGER",
 	sizeof(PyTASK_TRIGGER),
 	0,
@@ -164,7 +163,7 @@ static PyTypeObject PyTASK_TRIGGERType =
 	PyObject_GenericGetAttr, // PyTASK_TRIGGER::getattro,
 	PyObject_GenericSetAttr, // PyTASK_TRIGGER::setattro,
 	0,		// tp_as_buffer;
-	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,		// tp_flags;
+	Py_TPFLAGS_DEFAULT,		// tp_flags;
 	0,		// tp_doc; /* Documentation string */
 	0,		// traverseproc tp_traverse;
 	0,		// tp_clear;

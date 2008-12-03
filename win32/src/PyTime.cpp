@@ -362,19 +362,18 @@ static PyNumberMethods PyTime_NumberMethods =
 
 PYWINTYPES_EXPORT PyTypeObject PyTimeType =
 {
-	PyObject_HEAD_INIT(&PyType_Type)
-	0,
+	PYWIN_OBJECT_HEAD
 	"time",
 	sizeof(PyTime),
 	0,
-	PyTime::deallocFunc,		/* tp_dealloc */
-	NULL,		/* tp_print */
+	PyTime::deallocFunc,	/* tp_dealloc */
+	NULL,					/* tp_print */
 	PyTime::getattrFunc,	/* tp_getattr */
 	0,						/* tp_setattr */
 	// @pymeth __cmp__|Used when time objects are compared.
 	PyTime::compareFunc,	/* tp_compare */
 	// @pymeth __repr__|Used for repr(ob)
-	PyTime::reprFunc, 	/* tp_repr */
+	PyTime::reprFunc, 		/* tp_repr */
 	&PyTime_NumberMethods,	/* tp_as_number */
 	0,						/* tp_as_sequence */
 	0,						/* tp_as_mapping */

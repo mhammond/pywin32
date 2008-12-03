@@ -705,23 +705,22 @@ static PyBufferProcs PySECURITY_DESCRIPTOR_as_buffer = {
 
 PYWINTYPES_EXPORT PyTypeObject PySECURITY_DESCRIPTORType =
 {
-	PyObject_HEAD_INIT(&PyType_Type)
-	0,
+	PYWIN_OBJECT_HEAD
 	"PySECURITY_DESCRIPTOR",
 	sizeof(PySECURITY_DESCRIPTOR),
 	0,
 	PySECURITY_DESCRIPTOR::deallocFunc,		/* tp_dealloc */
-	0,		/* tp_print */
+	0,						/* tp_print */
 	PySECURITY_DESCRIPTOR::getattr,				/* tp_getattr */
 	PySECURITY_DESCRIPTOR::setattr,				/* tp_setattr */
-	0,	/* tp_compare */
+	0,						/* tp_compare */
 	0,						/* tp_repr */
 	0,						/* tp_as_number */
-	0,	/* tp_as_sequence */
+	0,						/* tp_as_sequence */
 	0,						/* tp_as_mapping */
-	0,
+	0,						/* tp_hash */
 	0,						/* tp_call */
-	0,		/* tp_str */
+	0,						/* tp_str */
 	0,		/*tp_getattro*/
 	0,		/*tp_setattro*/
 	// @comm Note the PySECURITY_DESCRIPTOR object supports the buffer interface.  Thus buffer(sd) can be used to obtain the raw bytes.

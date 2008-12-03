@@ -37,7 +37,7 @@
 
 /* Main PYTHON entry point for creating a new reference.  Registered by win32wnet module */
 
-// @pymethod <o NETRESOURCE>|win32wnet|NETRESOURCE|Creates a new <o NETRESOURCE> object.
+// @pymethod <o PyNETRESOURCE>|win32wnet|NETRESOURCE|Creates a new <o NETRESOURCE> object.
 
 PyObject *PyWinMethod_NewNETRESOURCE(PyObject *self, PyObject *args)
 {
@@ -80,12 +80,11 @@ PyObject *PyWinObject_FromNETRESOURCE(const NETRESOURCE *pNetresource)
 }
 
 
-// @object NETRESOURCE|A Python object that encapsulates a Win32 NETRESOURCE structure.
+// @object PyNETRESOURCE|A Python object that encapsulates a Win32 NETRESOURCE structure.
 __declspec(dllexport)
 PyTypeObject PyNETRESOURCEType =
 {
-	PyObject_HEAD_INIT(&PyType_Type)
-	0,
+	PYWIN_OBJECT_HEAD
 	"PyNETRESOURCE",
 	sizeof(PyNETRESOURCE),
 	0,
@@ -103,15 +102,15 @@ PyTypeObject PyNETRESOURCEType =
 	0,										/* tp_str */
 };
 
-
 #define OFF(e) offsetof(PyNETRESOURCE, e)
 
 struct memberlist PyNETRESOURCE::memberlist[] =
 {
-	{"dwScope",		T_LONG,	OFF(m_nr.dwScope),	0}, // @prop integer|dwScope|
-	{"dwType",		T_LONG,	OFF(m_nr.dwType),	0}, // @prop integer|dwType|
-	{"dwDisplayType", T_LONG,OFF(m_nr.dwDisplayType),	0}, // @prop integer|dwDisplayType|
-	{"dwUsage",		T_LONG,	OFF(m_nr.dwUsage),	0}, // @prop integer|dwUsage|
+	{"dwScope",		T_ULONG,	OFF(m_nr.dwScope),	0}, // @prop integer|dwScope|
+	{"dwType",		T_ULONG,	OFF(m_nr.dwType),	0}, // @prop integer|dwType|
+	{"dwDisplayType", T_ULONG,OFF(m_nr.dwDisplayType),	0}, // @prop integer|dwDisplayType|
+	{"dwUsage",		T_ULONG,	OFF(m_nr.dwUsage),	0}, // @prop integer|dwUsage|
+
 	{"lpLocalName",	T_STRING, OFF(m_nr.lpLocalName),	0}, // @prop string|localName|
 	{"lpRemoteName",T_STRING, OFF(m_nr.lpRemoteName),	0},// @prop string|remoteName|
 	{"lpComment",	T_STRING, OFF(m_nr.lpComment),	0},// @prop string|comment|
@@ -194,7 +193,7 @@ PyObject *PyNETRESOURCE::getattr(PyObject *self, char *name)
 #ifdef UNICODE
 	PyNETRESOURCE *This = (PyNETRESOURCE *)self;
 
-	if (strcmp(name, "lpProvider") == 0)
+	if (strcmp(name, "lpProvider")==0)
 		return PyWinObject_FromWCHAR(This->m_nr.lpProvider);
 	else if
 		(strcmp(name, "lpRemoteName") == 0)
@@ -214,12 +213,11 @@ PyObject *PyNETRESOURCE::getattr(PyObject *self, char *name)
 
 int PyNETRESOURCE::setattr(PyObject *self, char *name, PyObject *v)
 {
-	PyNETRESOURCE *This = (PyNETRESOURCE *)self;
-
 	if (v == NULL) {
 		PyErr_SetString(PyExc_AttributeError, "can't delete NETRESOURCE attributes");
 		return -1;
 	}
+	PyNETRESOURCE *This = (PyNETRESOURCE *)self;
 
 // the following specific string attributes can be set, all others generate an error.
 
@@ -267,7 +265,6 @@ int PyNETRESOURCE::setattr(PyObject *self, char *name, PyObject *v)
 
 	return PyMember_Set((char *)self, memberlist, name, v);
 }
-
 
 
 void PyNETRESOURCE::deallocFunc(PyObject *ob)

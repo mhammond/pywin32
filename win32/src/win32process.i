@@ -102,23 +102,22 @@ protected:
 // The object can then be passed to any function which takes an STARTUPINFO object.
 PyTypeObject PySTARTUPINFOType =
 {
-	PyObject_HEAD_INIT(&PyType_Type)
-	0,
+	PYWIN_OBJECT_HEAD
 	"PySTARTUPINFO",
 	sizeof(PySTARTUPINFO),
 	0,
 	PySTARTUPINFO::deallocFunc,		/* tp_dealloc */
-	0,		/* tp_print */
+	0,						/* tp_print */
 	PySTARTUPINFO::getattr,				/* tp_getattr */
 	PySTARTUPINFO::setattr,				/* tp_setattr */
 	0,						/* tp_compare */
 	0,						/* tp_repr */
 	0,						/* tp_as_number */
-	0,	/* tp_as_sequence */
+	0,						/* tp_as_sequence */
 	0,						/* tp_as_mapping */
-	0,
+	0,						/* tp_hash */
 	0,						/* tp_call */
-	0,		/* tp_str */
+	0,						/* tp_str */
 };
 
 #define OFF(e) offsetof(PySTARTUPINFO, e)

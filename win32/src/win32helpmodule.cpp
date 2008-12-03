@@ -143,8 +143,7 @@ protected:
 //<c HH_KEYWORD_LOOKUP><nl>
 
 PyTypeObject PyHH_AKLINKType = {
-  PyObject_HEAD_INIT(&PyType_Type)
-  0,
+  PYWIN_OBJECT_HEAD
   "PyHH_AKLINK",              /* tp_name */
   sizeof(PyHH_AKLINK),        /* tp_basicsize */
   0,                          /* tp_itemsize */
@@ -164,7 +163,7 @@ PyTypeObject PyHH_AKLINKType = {
   0,                          /* tp_setattro */
   0,                          /* tp_as_buffer */
   0,                          /* tp_flags */
-  0,                          /* tp_doc */
+  "A Python object, representing an HH_AKLINK structure",   /* tp_doc */
 };
 
 #undef OFF
@@ -445,8 +444,7 @@ protected:
 //Use this structure for full-text search.
 
 PyTypeObject PyHH_FTS_QUERYType = {
-  PyObject_HEAD_INIT(&PyType_Type)
-  0,
+  PYWIN_OBJECT_HEAD
   "PyHH_FTS_QUERY",            /* tp_name */
   sizeof(PyHH_FTS_QUERY),      /* tp_basicsize */
   0,                           /* tp_itemsize */
@@ -466,7 +464,7 @@ PyTypeObject PyHH_FTS_QUERYType = {
   0,                           /* tp_setattro */
   0,                           /* tp_as_buffer */
   0,                           /* tp_flags */
-  0,                           /* tp_doc */
+  "A Python object, representing an HH_FTS_QUERY struct",   /* tp_doc */
 };
 
 #undef OFF
@@ -533,20 +531,20 @@ PyHH_FTS_QUERY::~PyHH_FTS_QUERY(void)
 {
   Py_XDECREF(m_pszSearchQuery);
 }
-  
+
 PyObject *PyHH_FTS_QUERY::getattr(PyObject *self, char *name)
 {
   PyHH_FTS_QUERY *pO = (PyHH_FTS_QUERY *)self;
-      
+
   if (strcmp("searchQuery", name)==0) {
     PyObject *rc = pO->m_pszSearchQuery ? pO->m_pszSearchQuery : Py_None;
     Py_INCREF(rc);
     return rc;
-  }
+    }
 
   return PyMember_Get((char *)self, memberlist, name);
 }
-  
+
 int PyHH_FTS_QUERY::setattr(PyObject *self, char *name, PyObject *v)
 {
   if (v == NULL) {
@@ -589,7 +587,7 @@ BOOL PyWinObject_AsHH_FTS_QUERY(PyObject *ob, HH_FTS_QUERY **ppFTS_QUERY,
   }
   return TRUE;
 }
-  
+
 PyObject *PyWinObject_FromHH_FTS_QUERY(const HH_FTS_QUERY *pFTS_QUERY)
 {
   if (pFTS_QUERY==NULL) {
@@ -662,8 +660,7 @@ protected:
 //<c HH_DISPLAY_TEXT_POPUP><nl>
 
 PyTypeObject PyHH_POPUPType = {
-  PyObject_HEAD_INIT(&PyType_Type)
-  0,
+  PYWIN_OBJECT_HEAD
   "PyHH_POPUP",               /* tp_name */
   sizeof(PyHH_POPUP),         /* tp_basicsize */
   0,                          /* tp_itemsize */
@@ -683,7 +680,7 @@ PyTypeObject PyHH_POPUPType = {
   0,                          /* tp_setattro */
   0,                          /* tp_as_buffer */
   0,                          /* tp_flags */
-  0,                          /* tp_doc */
+  "A Python object, representing an HH_POPUP structure",    /* tp_doc */
 };
 
 #undef OFF
@@ -790,11 +787,11 @@ PyHH_POPUP::~PyHH_POPUP(void)
   Py_XDECREF(m_rcMargins);
   Py_XDECREF(m_pszFont);
 }
-  
+
 PyObject *PyHH_POPUP::getattr(PyObject *self, char *name)
 {
   PyHH_POPUP *pO = (PyHH_POPUP *)self;
-      
+
   if (strcmp("text", name)==0) {
     PyObject *rc = pO->m_pszText ? pO->m_pszText : Py_None;
     Py_INCREF(rc);
@@ -818,7 +815,7 @@ PyObject *PyHH_POPUP::getattr(PyObject *self, char *name)
 
   return PyMember_Get((char *)self, memberlist, name);
 }
-  
+
 int PyHH_POPUP::setattr(PyObject *self, char *name, PyObject *v)
 {
   if (v == NULL) {
@@ -826,7 +823,6 @@ int PyHH_POPUP::setattr(PyObject *self, char *name, PyObject *v)
                     "can't delete HH_POPUP attributes");
     return -1;
   }
-
   PyHH_POPUP *pO = (PyHH_POPUP *)self;
 
   if (strcmp("text", name)==0) {
@@ -876,7 +872,7 @@ int PyHH_POPUP::setattr(PyObject *self, char *name, PyObject *v)
   }
   return PyMember_Set((char *)self, memberlist, name, v);
 }
-  
+
 /*static*/ void PyHH_POPUP::deallocFunc(PyObject *ob)
 {
   delete (PyHH_POPUP *)ob;
@@ -968,9 +964,8 @@ protected:
 //<c HH_SET_WIN_TYPE><nl>
 //<c HH_GET_WIN_TYPE><nl>
 
-PyTypeObject PyHH_WINTYPEType = {
-  PyObject_HEAD_INIT(&PyType_Type)
-  0,
+PyTypeObject PyHH_WINTYPEType =	{
+  PYWIN_OBJECT_HEAD
   "PyHH_WINTYPE",             /* tp_name */
   sizeof(PyHH_WINTYPE),       /* tp_basicsize */
   0,                          /* tp_itemsize */
@@ -990,7 +985,7 @@ PyTypeObject PyHH_WINTYPEType = {
   0,                          /* tp_setattro */
   0,                          /* tp_as_buffer */
   0,                          /* tp_flags */
-  0,                          /* tp_doc */
+  "A Python object, representing an HH_WINTYPE structure",  /* tp_doc */
 };
 
 #undef OFF
@@ -1248,7 +1243,6 @@ int PyHH_WINTYPE::setattr(PyObject *self, char *name, PyObject *v)
 		PyErr_SetString(PyExc_AttributeError, "can't delete HH_WINTYPE attributes");
 		return -1;
 		}
-
 	PyHH_WINTYPE *pO = (PyHH_WINTYPE *)self;
 
 	TCHAR *tchar_val;
@@ -1444,8 +1438,7 @@ protected:
 //Contains information about a notification message.
 
 PyTypeObject PyNMHDRType = {
-  PyObject_HEAD_INIT(&PyType_Type)
-  0,
+  PYWIN_OBJECT_HEAD
   "PyNMHDR",                   /* tp_name */
   sizeof(PyNMHDR),             /* tp_basicsize */
   0,                           /* tp_itemsize */
@@ -1465,7 +1458,7 @@ PyTypeObject PyNMHDRType = {
   0,                           /* tp_setattro */
   0,                           /* tp_as_buffer */
   0,                           /* tp_flags */
-  0,                           /* tp_doc */
+  "A Python object, representing an NMHDR structure",  /* tp_doc */
 };
 
 #undef OFF
@@ -1619,8 +1612,7 @@ protected:
 //<c HHN_WINDOW_CREATE><nl>
 
 PyTypeObject PyHHN_NOTIFYType = {
-  PyObject_HEAD_INIT(&PyType_Type)
-  0,
+  PYWIN_OBJECT_HEAD
   "PyHHN_NOTIFY",              /* tp_name */
   sizeof(PyHHN_NOTIFY),        /* tp_basicsize */
   0,                           /* tp_itemsize */
@@ -1640,7 +1632,7 @@ PyTypeObject PyHHN_NOTIFYType = {
   0,                           /* tp_setattro */
   0,                           /* tp_as_buffer */
   0,                           /* tp_flags */
-  0,                           /* tp_doc */
+  "A Python object, representing an HHN_NOTIFY structure", /* tp_doc */
 };
 
 #undef OFF
@@ -1720,7 +1712,6 @@ int PyHHN_NOTIFY::setattr(PyObject *self, char *name, PyObject *v)
                     "can't delete HHN_NOTIFY attributes");
     return -1;
   }
-
   PyHHN_NOTIFY *pO = (PyHHN_NOTIFY *)self;
 
   if (strcmp("hdr", name)==0) {
@@ -1834,8 +1825,7 @@ protected:
 //<c HHN_TRACK><nl>
 
 PyTypeObject PyHHNTRACKType = {
-  PyObject_HEAD_INIT(&PyType_Type)
-  0,
+  PYWIN_OBJECT_HEAD
   "PyHHNTRACK",                /* tp_name */
   sizeof(PyHHNTRACK),          /* tp_basicsize */
   0,                           /* tp_itemsize */
@@ -1855,7 +1845,7 @@ PyTypeObject PyHHNTRACKType = {
   0,                           /* tp_setattro */
   0,                           /* tp_as_buffer */
   0,                           /* tp_flags */
-  0,                           /* tp_doc */
+  "A Python object, representing an HHNTRACK structure.", /* tp_doc */
 };
 
 #undef OFF
@@ -1927,7 +1917,6 @@ PyHHNTRACK::~PyHHNTRACK(void)
 PyObject *PyHHNTRACK::getattr(PyObject *self, char *name)
 {
   PyHHNTRACK *pO = (PyHHNTRACK *)self;
-      
   if (strcmp("hdr", name)==0) {
     PyObject *rc = pO->m_hdr ? pO->m_hdr : Py_None;
     Py_INCREF(rc);
@@ -1954,7 +1943,6 @@ int PyHHNTRACK::setattr(PyObject *self, char *name, PyObject *v)
                     "can't delete HHNTRACK attributes");
     return -1;
   }
-
   PyHHNTRACK *pO = (PyHHNTRACK *)self;
 
   if (strcmp("hdr", name)==0) {

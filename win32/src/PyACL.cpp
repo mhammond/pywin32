@@ -1133,23 +1133,22 @@ static struct PyMethodDef PyACL_methods[] = {
 
 PYWINTYPES_EXPORT PyTypeObject PyACLType =
 {
-	PyObject_HEAD_INIT(&PyType_Type)
-	0,
+	PYWIN_OBJECT_HEAD
 	"PyACL",
 	sizeof(PyACL),
 	0,
 	PyACL::deallocFunc,		/* tp_dealloc */
-	0,		/* tp_print */
+	0,						/* tp_print */
 	PyACL::getattr,				/* tp_getattr */
-	0,				/* tp_setattr */
-	0,
+	0,						/* tp_setattr */
+	0,						/* tp_compare */
 	0,						/* tp_repr */
 	0,						/* tp_as_number */
-	0,	/* tp_as_sequence */
+	0,						/* tp_as_sequence */
 	0,						/* tp_as_mapping */
-	0,
+	0,						/* tp_hash */
 	0,						/* tp_call */
-	0,		/* tp_str */
+	0,						/* tp_str */
 };
 
 

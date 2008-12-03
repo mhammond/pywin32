@@ -120,8 +120,7 @@ PyObject *PyHWINSTA::PyHWINSTA_new(PyTypeObject *tp, PyObject *args, PyObject *k
 
 PyTypeObject PyHWINSTAType =
 {
-	PyObject_HEAD_INIT(&PyType_Type)
-	0,
+	PYWIN_OBJECT_HEAD
 	"PyHWINSTA",
 	sizeof(PyHWINSTA),
 	0,
@@ -224,8 +223,7 @@ PyObject *PyHDESK::PyHDESK_new(PyTypeObject *tp, PyObject *args, PyObject *kwarg
 
 PyTypeObject PyHDESKType =
 {
-	PyObject_HEAD_INIT(&PyType_Type)
-	0,
+	PYWIN_OBJECT_HEAD
 	"PyHDESK",
 	sizeof(PyHDESK),
 	0,
@@ -238,7 +236,7 @@ PyTypeObject PyHDESKType =
 	PyHANDLEType.tp_as_number,	/* tp_as_number */
 	0,							/* tp_as_sequence */
 	0,							/* tp_as_mapping */
-	0,
+	0,							/* tp_hash */
 	0,							/* tp_call */
 	0,							/* tp_str */
 	PyObject_GenericGetAttr,

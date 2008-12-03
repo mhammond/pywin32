@@ -87,8 +87,7 @@ struct PyMemberDef PySecBufferDesc::members[] = {
 
 PyTypeObject PySecBufferDescType =
 {
-	PyObject_HEAD_INIT(&PyType_Type)
-	0,
+	PYWIN_OBJECT_HEAD
 	"PySecBufferDesc",
 	sizeof(PySecBufferDesc),
 	0,
@@ -313,8 +312,7 @@ struct PyMemberDef PySecBuffer::members[] = {
 
 PyTypeObject PySecBufferType =
 {
-	PyObject_HEAD_INIT(&PyType_Type)
-	0,
+	PYWIN_OBJECT_HEAD
 	"PySecBuffer",
 	sizeof(PySecBuffer),
 	0,
@@ -411,7 +409,7 @@ PSecBuffer PySecBuffer::GetSecBuffer(void)
 PyObject *PySecBuffer::getattro(PyObject *self, PyObject *obname)
 {
 	PSecBuffer psecbuffer=((PySecBuffer *)self)->GetSecBuffer();
-	char *name=PyString_AsString(obname);
+	char *name=PYWIN_ATTR_CONVERT(obname);
 	if (name==NULL)
 		return NULL;
 	if (strcmp(name,"Buffer")==0)
@@ -425,7 +423,7 @@ int PySecBuffer::setattro(PyObject *self, PyObject *obname, PyObject *obvalue)
 	char *name;
 	void *value;
 	DWORD valuelen;
-	name=PyString_AsString(obname);
+	name=PYWIN_ATTR_CONVERT(obname);
 	if (name==NULL)
 		return -1;
 	if (strcmp(name,"Buffer")==0){
@@ -507,8 +505,7 @@ struct PyMethodDef PyCtxtHandle::methods[] = {
 
 PyTypeObject PyCtxtHandleType =
 {
-	PyObject_HEAD_INIT(&PyType_Type)
-	0,
+	PYWIN_OBJECT_HEAD
 	"PyCtxtHandle",
 	sizeof(PyCtxtHandle),
 	0,
@@ -1063,8 +1060,7 @@ struct PyMethodDef PyCredHandle::methods[] = {
 
 PyTypeObject PyCredHandleType =
 {
-	PyObject_HEAD_INIT(&PyType_Type)
-	0,
+	PYWIN_OBJECT_HEAD
 	"PyCredHandle",
 	sizeof(PyCredHandle),
 	0,

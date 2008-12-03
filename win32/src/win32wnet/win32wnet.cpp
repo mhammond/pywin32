@@ -60,7 +60,6 @@
 #include "pyncb.h"
 
 
-
 /****************************************************************************
 		HELPER FUNCTIONS
 
@@ -185,18 +184,20 @@ static
 PyObject *
 PyWNetCancelConnection2 (PyObject *self, PyObject *args)
 {
-	LPSTR	lpName; // @pyparm string|name||Name of existing connection to be closed
+	LPTSTR	lpName; // @pyparm string|name||Name of existing connection to be closed
 	DWORD	dwFlags; // @pyparm int|flags||Currently determines if the persisent connection information will be updated as a result of this call.
 	DWORD	bForce; // @pyparm int|force||indicates if the close operation should be forced. (i.e. ignore open files and connections)
 	DWORD	ErrorNo;
 
-	if(!PyArg_ParseTuple(args, "sii",&lpName, &dwFlags, &bForce))
+	PyObject *obName;
+	if(!PyArg_ParseTuple(args, "Okk", &obName, &dwFlags, &bForce))
 		return NULL;
-
+	if (!PyWinObject_AsTCHAR(obName, &lpName, FALSE))
+		return NULL;
 	Py_BEGIN_ALLOW_THREADS
 		ErrorNo = WNetCancelConnection2(lpName, dwFlags, (BOOL)bForce);
 	Py_END_ALLOW_THREADS
-
+	PyWinObject_FreeTCHAR(lpName);
 	if (ErrorNo != NO_ERROR)
 	{
 		return ReturnNetError("WNetCancelConnection2", ErrorNo);
@@ -219,15 +220,12 @@ PyWNetOpenEnum(PyObject *self, PyObject *args)
 	// @pyparm int|scope||Specifies the scope of the enumeration.
 	// @pyparm int|type||Specifies the resource types to enumerate.
 	// @pyparm int|usage||Specifies the resource usage to be enumerated.
-	// @pyparm <o NETRESOURCE>|resource||Python NETRESOURCE object.
+	// @pyparm <o PyNETRESOURCE>|resource||Python NETRESOURCE object.
 
 	if (!PyArg_ParseTuple(args, "iiiO", &dwScope,&dwType,&dwUsage,&ob_nr))
 		return NULL;
-	if (ob_nr == Py_None)
-		p_nr = NULL;
-	else if
-		(!PyWinObject_AsNETRESOURCE(ob_nr, &p_nr, FALSE))
-			return(ReturnError("failed converting NetResource Object","WNetOpenEnum"));
+	if (!PyWinObject_AsNETRESOURCE(ob_nr, &p_nr, TRUE))
+		return NULL;
 
 	Py_BEGIN_ALLOW_THREADS
 	Errno = WNetOpenEnum(dwScope, dwType, dwUsage, p_nr, &hEnum);
@@ -262,7 +260,7 @@ PyWNetCloseEnum(PyObject *self, PyObject *args)
 	return Py_None;
 };
 
-// @pymethod [<o NETRESOURCE>, ...]|win32wnet|WNetEnumResource|Enumerates a list of resources
+// @pymethod [<o PyNETRESOURCE>, ...]|win32wnet|WNetEnumResource|Enumerates a list of resources
 static
 PyObject *
 PyWNetEnumResource(PyObject *self, PyObject *args)
@@ -477,7 +475,7 @@ done:
 	return ret;
 }
 
-// @pymethod (<o NETRESOURCE>, str)|win32wnet|WNetGetResourceInformation|Finds the type and provider of a network resource
+// @pymethod (<o PyNETRESOURCE>, str)|win32wnet|WNetGetResourceInformation|Finds the type and provider of a network resource
 // @rdesc Returns a NETRESOURCE and a string containing the trailing part of the remote path
 PyObject *
 PyWNetGetResourceInformation(PyObject *self, PyObject *args)
@@ -493,7 +491,7 @@ PyWNetGetResourceInformation(PyObject *self, PyObject *args)
 #endif
 
 	if (!PyArg_ParseTuple(args, "O!", &PyNETRESOURCEType, 
-		&NRT))	// @pyparm <o NETRESOURCE>|NetResource||Describes a network resource.  lpRemoteName is required, dwType and lpProvider can be supplied if known
+		&NRT))	// @pyparm <o PyNETRESOURCE>|NetResource||Describes a network resource.  lpRemoteName is required, dwType and lpProvider can be supplied if known
 		return NULL;
 
 	if (!PyWinObject_AsNETRESOURCE(NRT, &nrin, FALSE))
@@ -562,14 +560,14 @@ PyObject *PyWNetGetLastError(PyObject *self, PyObject *args)
 	DWORD err, extendederr;
 	TCHAR errstr[1024], provider[256];
 	Py_BEGIN_ALLOW_THREADS
-	err=WNetGetLastError(&extendederr, errstr, sizeof(errstr), provider, sizeof(provider));
+	err=WNetGetLastError(&extendederr, errstr, sizeof(errstr)/sizeof(TCHAR), provider, sizeof(provider)/sizeof(TCHAR));
 	Py_END_ALLOW_THREADS
 	if (err==NO_ERROR)
 		return Py_BuildValue("kNN", extendederr, PyWinObject_FromTCHAR(errstr), PyWinObject_FromTCHAR(provider));
 	return ReturnNetError("WNetGetLastError", err);
 }
 
-// @pymethod <o NETRESOURCE>|win32wnet|WNetGetResourceParent|Finds the parent resource of a network resource
+// @pymethod <o PyNETRESOURCE>|win32wnet|WNetGetResourceParent|Finds the parent resource of a network resource
 PyObject *PyWNetGetResourceParent(PyObject *self, PyObject *args)
 {
 	NETRESOURCE *nr, *parentnr=NULL;
@@ -579,7 +577,7 @@ PyObject *PyWNetGetResourceParent(PyObject *self, PyObject *args)
 #endif
 	PyObject *obnr, *ret=NULL;
 	if (!PyArg_ParseTuple(args, "O:WNetGetResourceParent", 
-		&obnr))		// @pyparm <o NETRESOURCE>|NetResource||Describes a network resource.  lpRemoteName and lpProvider are required, dwType is recommended for efficiency
+		&obnr))		// @pyparm <o PyNETRESOURCE>|NetResource||Describes a network resource.  lpRemoteName and lpProvider are required, dwType is recommended for efficiency
 		return NULL;
 	if (!PyWinObject_AsNETRESOURCE(obnr, &nr, FALSE))
 		return NULL;
@@ -620,7 +618,7 @@ static PyMethodDef win32wnet_functions[] = {
 	// @pymeth Netbios|Executes a Netbios call.
 	{"Netbios",					PyWinMethod_Netbios,			1,	"Calls the windows Netbios function"},
 	// @pymeth WNetAddConnection2|Creates a connection to a network resource.
-	{"WNetAddConnection2",		PyWNetAddConnection2,		1,	"type,localname,remotename,provider,username,password (does not use NETRESOURCE)"},
+	{"WNetAddConnection2",		(PyCFunction)PyWNetAddConnection2,	METH_KEYWORDS|METH_VARARGS,	"WNetAddConnection2(NetResource, Password, UserName, Flags)"},
 	// @pymeth WNetCancelConnection2|Closes network connections made by WNetAddConnection2 or 3
 	{"WNetCancelConnection2",	PyWNetCancelConnection2,	1,	"localname,dwflags,bforce"},
 	// @pymeth WNetOpenEnum|Opens an Enumeration Handle for Enumerating Resources with <om win32wnet.WNetEnumResource>
@@ -659,4 +657,3 @@ initwin32wnet(void)
 
   Py_INCREF(PyWinExc_ApiError);
 }
-

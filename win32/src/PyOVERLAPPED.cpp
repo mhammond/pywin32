@@ -63,24 +63,23 @@ PYWINTYPES_EXPORT PyObject *PyWinObject_FromOVERLAPPED(const OVERLAPPED *pOverla
 
 PYWINTYPES_EXPORT PyTypeObject PyOVERLAPPEDType =
 {
-	PyObject_HEAD_INIT(&PyType_Type)
-	0,
+	PYWIN_OBJECT_HEAD
 	"PyOVERLAPPED",
 	sizeof(PyOVERLAPPED),
 	0,
 	PyOVERLAPPED::deallocFunc,		/* tp_dealloc */
-	0,		/* tp_print */
+	0,						/* tp_print */
 	PyOVERLAPPED::getattr,				/* tp_getattr */
 	PyOVERLAPPED::setattr,				/* tp_setattr */
 	// @pymeth __cmp__|Used when OVERLAPPED objects are compared.
-	PyOVERLAPPED::compareFunc,	/* tp_compare */
+	PyOVERLAPPED::compareFunc,		/* tp_compare */
 	0,						/* tp_repr */
 	0,						/* tp_as_number */
-	0,	/* tp_as_sequence */
+	0,						/* tp_as_sequence */
 	0,						/* tp_as_mapping */
-	PyOVERLAPPED::hashFunc,				/* tp_hash */
+	PyOVERLAPPED::hashFunc,	/* tp_hash */
 	0,						/* tp_call */
-	0,		/* tp_str */
+	0,						/* tp_str */
 };
 
 #define OFF(e) offsetof(PyOVERLAPPED, e)
