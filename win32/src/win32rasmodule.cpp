@@ -550,7 +550,7 @@ PyRasEnumConnections( PyObject *self, PyObject *args )
 	} else {
 		pCon = &tc;
 	}
-	PyObject *ret = PyTuple_New(noConns);
+	PyObject *ret = PyList_New(noConns);
 	if (ret==NULL)
 		return NULL;
 
@@ -565,7 +565,7 @@ PyRasEnumConnections( PyObject *self, PyObject *args )
 			ret=NULL;
 			break;
 			}
-		PyTuple_SET_ITEM(ret, i, item);
+		PyList_SET_ITEM(ret, i, item);
 		}
 	// @rdesc Each tuple is of format (handle, entryName, deviceType, deviceName)
 	if (pCon && pCon != &tc)
