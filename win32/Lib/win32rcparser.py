@@ -31,6 +31,11 @@ _controlMap = {"DEFPUSHBUTTON":0x80,
                "RICHEDIT":"RichEdit20A"
                }
 
+# These are "default styles" for certain controls - ie, Visual Studio assumes
+# the styles will be applied, and emits a "NOT {STYLE_NAME}" if it is to be
+# disabled.  These defaults have been determined by experimentation, so may
+# not be completely accurate (most notably, some styles and/or control-types
+# may be missing.
 _addDefaults = {"EDITTEXT":win32con.WS_BORDER | win32con.WS_TABSTOP,
                 "GROUPBOX":win32con.BS_GROUPBOX,
                 "LTEXT":win32con.SS_LEFT,
@@ -38,7 +43,9 @@ _addDefaults = {"EDITTEXT":win32con.WS_BORDER | win32con.WS_TABSTOP,
                 "PUSHBUTTON": win32con.WS_TABSTOP,
                 "CTEXT":win32con.SS_CENTER,
                 "RTEXT":win32con.SS_RIGHT,
-                "ICON":win32con.SS_ICON}
+                "ICON":win32con.SS_ICON,
+                "LISTBOX":win32con.LBS_NOTIFY,
+                }
 
 defaultControlStyle = win32con.WS_CHILD | win32con.WS_VISIBLE
 defaultControlStyleEx = 0
