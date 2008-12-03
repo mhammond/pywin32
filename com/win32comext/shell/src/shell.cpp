@@ -1747,7 +1747,7 @@ static PyObject *PyDragQueryFile(PyObject *self, PyObject *args)
 	if (sz==NULL)
 		return PyErr_NoMemory();
 	nchars = ::DragQueryFile(hglobal, index, sz, nchars);
-	PyObject *ret = PyString_FromStringAndSize(sz, nchars);
+	PyObject *ret = PyWinObject_FromTCHAR(sz, nchars);
 	free(sz);
 	return ret;
 }
@@ -1946,7 +1946,11 @@ static PyObject *PyFILEGROUPDESCRIPTORAsString(PyObject *self, PyObject *args)
 	// <nl>In general, you can omit dwFlags - it will be set correctly based
 	// on what other attributes exist.
 	// @pyparm bool|make_unicode|False|If true, a FILEDESCRIPTORW object is created
+#ifdef UNICODE
+	int make_unicode = TRUE;
+#else
 	int make_unicode = FALSE;
+#endif
 	if (!PyArg_ParseTuple(args, "O|i", &ob, &make_unicode))
 		return NULL;
 	if (!PySequence_Check(ob))
@@ -2067,7 +2071,12 @@ static PyObject *PyFILEGROUPDESCRIPTORAsString(PyObject *self, PyObject *args)
 		if (attr==NULL) PyErr_Clear();
 		if (attr && attr != Py_None) {
 			fd->dwFlags |= FD_FILESIZE;
-			ok = PyLong_AsTwoI32(attr, (int *)&fd->nFileSizeHigh, (unsigned *)&fd->nFileSizeLow);
+			ULARGE_INTEGER fsize;
+			ok=PyWinObject_AsULARGE_INTEGER(attr, &fsize);
+			if (ok){
+				fd->nFileSizeHigh=fsize.HighPart;
+				fd->nFileSizeLow=fsize.LowPart;
+			}
 		}
 		Py_XDECREF(attr);
 		if (!ok) goto loop_failed;
@@ -2217,7 +2226,10 @@ static PyObject *PyStringAsFILEGROUPDESCRIPTOR(PyObject *self, PyObject *args)
 		}
 
 		if (fd->dwFlags & FD_FILESIZE) {
-			val = PyLong_FromTwoInts(fd->nFileSizeHigh, fd->nFileSizeLow);
+			ULARGE_INTEGER fsize;
+			fsize.LowPart=fd->nFileSizeLow;
+			fsize.HighPart=fd->nFileSizeHigh;
+			val = PyWinObject_FromULARGE_INTEGER(fsize);
 			if (val) PyDict_SetItemString(sub, "nFileSize", val);
 			Py_XDECREF(val);
 		}
@@ -3168,7 +3180,7 @@ done:
 
 
 /* List of module functions */
-// @module shell|A module, encapsulating the ActiveX Control interfaces
+// @module shell|A module wrapping Windows Shell functions and interfaces
 static struct PyMethodDef shell_methods[]=
 {
     { "AssocCreate",    PyAssocCreate, 1 }, // @pymeth AssocCreate|Creates a <o PyIQueryAssociations> object
@@ -3310,6 +3322,7 @@ static int AddIID(PyObject *dict, const char *key, REFGUID guid)
 
 #define ADD_CONSTANT(tok) AddConstant(dict, #tok, tok)
 #define ADD_IID(tok) AddIID(dict, #tok, tok)
+
 
 /* Module initialisation */
 extern "C" __declspec(dllexport) void initshell()
