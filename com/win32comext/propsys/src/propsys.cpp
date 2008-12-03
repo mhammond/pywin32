@@ -59,7 +59,7 @@ static PyObject *PyPSUnregisterPropertySchema(PyObject *self, PyObject *args)
 }
 
 /* List of module functions */
-// @module propsys|A module, encapsulating the Vista propsys interfaces
+// @module propsys|A module, encapsulating the Vista Property System interfaces
 static struct PyMethodDef propsys_methods[]=
 {
 	{ "PSRegisterPropertySchema", PyPSRegisterPropertySchema, 1 }, // @pymeth PyPSRegisterPropertySchema|
