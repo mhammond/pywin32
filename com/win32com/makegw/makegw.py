@@ -47,7 +47,6 @@
 """
 
 import re
-import string
 import makegwparse
 
 def make_framework_support(header_file_name, interface_name, bMakeInterface = 1, bMakeGateway = 1):
@@ -352,11 +351,11 @@ STDMETHODIMP %s::%s(
 
     if method.args:
       for arg in method.args[:-1]:
-        inoutstr = string.join(arg.inout, '][')
+        inoutstr = ']['.join(arg.inout)
         f.write("\t\t/* [%s] */ %s,\n" % (inoutstr, arg.GetRawDeclaration()))
         
       arg = method.args[-1]
-      inoutstr = string.join(arg.inout, '][')
+      inoutstr = ']['.join(arg.inout)
       f.write("\t\t/* [%s] */ %s)\n" % (inoutstr, arg.GetRawDeclaration()))
     else:
       f.write('\t\tvoid)\n')

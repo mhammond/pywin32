@@ -13,7 +13,6 @@
 """
 import re
 import traceback
-import string
 
 class error_not_found(Exception):
 	def __init__(self, msg="The requested item could not be found"):
