@@ -574,7 +574,7 @@ PyObject *PyTime::repr()
 
 	TCHAR resBuf[160];
 	wsprintf(resBuf, _T("<PyTime:%s %s>"), dateBuf, timeBuf);
-	return PyString_FromTCHAR(resBuf);
+	return PyWinCoreString_FromString(resBuf);
 }
 
 PyObject *PyTime::getattr(char *name)

@@ -270,11 +270,13 @@ PyObject *PyWin_SetAPIError(char *fnName, long err /*= 0*/)
 	else
 		if (end>0 && (buf[end]==_T('\n') || buf[end]==_T('\r')))
 			buf[end]=_T('\0');
-	PyObject *obBuf = PyString_FromTCHAR(buf);
+
+	PyObject *v = Py_BuildValue("(iNN)",
+		errorCode,
+		PyWinCoreString_FromString(fnName),
+		PyWinObject_FromTCHAR(buf));
 	if (free_buf && buf)
-		LocalFree(buf);
-	PyObject *v = Py_BuildValue("(isO)", errorCode, fnName, obBuf);
-	Py_XDECREF(obBuf);
+		LocalFree(buf);		
 	if (v != NULL) {
 		PyErr_SetObject(PyWinExc_ApiError, v);
 		Py_DECREF(v);

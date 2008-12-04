@@ -294,7 +294,7 @@ int PyHANDLE::print(FILE *fp, int flags)
 	//
 	// ### - Double Ack - Always use the hack!
 //#ifdef _DEBUG
-	PyObject *ob = PyString_FromTCHAR(resBuf);
+	PyObject *ob = PyWinCoreString_FromString(resBuf);
 	PyObject_Print(ob, fp, flags|Py_PRINT_RAW);
 	Py_DECREF(ob);
 /***

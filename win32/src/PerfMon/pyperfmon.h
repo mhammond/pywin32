@@ -120,10 +120,8 @@ public:
 
 	static PyObject *Close(PyObject *self, PyObject *args);
 
-// #pragma warning( disable : 4251 )
 	static struct memberlist memberlist[];
 	static PyTypeObject type;
-#pragma warning( default : 4251 )
 
 protected:
 	PERF_OBJECT_TYPE *m_pPOT;

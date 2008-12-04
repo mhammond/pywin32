@@ -11,7 +11,6 @@ generates Windows .hlp files.
 @doc
 
 ******************************************************************/
-// #define UNICODE
 #include "PyWinTypes.h"
 #include "PyWinObjects.h"
 #include "win32api_display.h"

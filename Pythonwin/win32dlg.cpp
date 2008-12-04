@@ -86,13 +86,6 @@ PyObject *ui_get_dialog_resource( PyObject *, PyObject *args )
 		RETURN_API_ERR("FindResourceEx");
 	if (hGlob==NULL)
 		RETURN_API_ERR("LoadResource");
-
-	CDialog *pDlg = new CPythonDlg();
-	PyCDialog *ret = (PyCDialog *)ui_assoc_object::make( PyCDialog::type, pDlg, TRUE);
-	if (ret) {
-		ret->hTemplate = hGlob;
-		ret->hInstance = hMod;
-	}
 	return MakeDlgListFromResource(hGlob);
 }
 
@@ -509,7 +502,7 @@ PyObject *PyCDialog::create( PyObject *self, PyObject *args )
 PyObject *PyCDialog::createIndirect( PyObject *, PyObject *args )
 {
 	PyObject *obList = NULL;
-	// @pyparm list|obList||A list of [<o Dialog Header Tuple>, <o Dialog Item Tuple>, ...], which describe the dialog to be created.
+	// @pyparm list|obList||A list of [<o PyDLGTEMPLATE>, <o PyDLGITEMTEMPLATE>, ...], which describe the dialog to be created.
 	if (!PyArg_ParseTuple(args, "O:CreateDialogIndirect", &obList))
 		return NULL;
 	

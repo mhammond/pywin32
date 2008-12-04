@@ -263,7 +263,6 @@ inline PyObject *PyWinObject_FromTCHAR(const char *str, Py_ssize_t len=(Py_ssize
     return PyUnicodeObject_FromString(str, len);
 #endif
 }
-#define PyString_FromTCHAR PyString_FromString
 #endif
 
 // String support for buffers allocated via CoTaskMemAlloc and CoTaskMemFree

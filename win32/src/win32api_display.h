@@ -42,14 +42,8 @@ extern PyObject *PyWinObject_FromDISPLAY_DEVICE(PDISPLAY_DEVICE);
 class PyDISPLAY_DEVICE : public PyObject
 {
 public:
-#ifdef _MSC_VER
-#pragma warning( disable : 4251 )
-#endif // _MSC_VER
 	static struct PyMemberDef members[];
 	static struct PyMethodDef methods[];
-#ifdef _MSC_VER
-#pragma warning( default : 4251 )
-#endif // _MSC_VER
 
 	static void deallocFunc(PyObject *ob);
 	PyDISPLAY_DEVICE(PDISPLAY_DEVICE);
