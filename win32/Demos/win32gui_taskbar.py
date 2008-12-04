@@ -1,13 +1,12 @@
 # Creates a task-bar icon.  Run from Python.exe to see the
 # messages printed.
-from win32api import *
-from win32gui import *
-import win32con
+import win32api, win32gui
+import win32con, winerror
 import sys, os
 
 class MainWindow:
     def __init__(self):
-        msg_TaskbarRestart = RegisterWindowMessage("TaskbarCreated");
+        msg_TaskbarRestart = win32gui.RegisterWindowMessage("TaskbarCreated");
         message_map = {
                 msg_TaskbarRestart: self.OnRestart,
                 win32con.WM_DESTROY: self.OnDestroy,
@@ -15,11 +14,11 @@ class MainWindow:
                 win32con.WM_USER+20 : self.OnTaskbarNotify,
         }
         # Register the Window class.
-        wc = WNDCLASS()
-        hinst = wc.hInstance = GetModuleHandle(None)
+        wc = win32gui.WNDCLASS()
+        hinst = wc.hInstance = win32api.GetModuleHandle(None)
         wc.lpszClassName = "PythonTaskbarDemo"
         wc.style = win32con.CS_VREDRAW | win32con.CS_HREDRAW;
-        wc.hCursor = LoadCursor( 0, win32con.IDC_ARROW )
+        wc.hCursor = win32api.LoadCursor( 0, win32con.IDC_ARROW )
         wc.hbrBackground = win32con.COLOR_WINDOW
         wc.lpfnWndProc = message_map # could also specify a wndproc.
 
@@ -32,14 +31,14 @@ class MainWindow:
 
         # Create the Window.
         style = win32con.WS_OVERLAPPED | win32con.WS_SYSMENU
-        self.hwnd = CreateWindow( classAtom, "Taskbar Demo", style, \
+        self.hwnd = win32gui.CreateWindow( wc.lpszClassName, "Taskbar Demo", style, \
                 0, 0, win32con.CW_USEDEFAULT, win32con.CW_USEDEFAULT, \
                 0, 0, hinst, None)
-        UpdateWindow(self.hwnd)
+        win32gui.UpdateWindow(self.hwnd)
         self._DoCreateIcons()
     def _DoCreateIcons(self):
         # Try and find a custom icon
-        hinst =  GetModuleHandle(None)
+        hinst =  win32api.GetModuleHandle(None)
         iconPathName = os.path.abspath(os.path.join( os.path.split(sys.executable)[0], "pyc.ico" ))
         if not os.path.isfile(iconPathName):
             # Look in DLLs dir, a-la py 2.5
@@ -49,16 +48,16 @@ class MainWindow:
             iconPathName = os.path.abspath(os.path.join( os.path.split(sys.executable)[0], "..\\PC\\pyc.ico" ))
         if os.path.isfile(iconPathName):
             icon_flags = win32con.LR_LOADFROMFILE | win32con.LR_DEFAULTSIZE
-            hicon = LoadImage(hinst, iconPathName, win32con.IMAGE_ICON, 0, 0, icon_flags)
+            hicon = win32gui.LoadImage(hinst, iconPathName, win32con.IMAGE_ICON, 0, 0, icon_flags)
         else:
             print "Can't find a Python icon file - using default"
-            hicon = LoadIcon(0, win32con.IDI_APPLICATION)
+            hicon = win32gui.LoadIcon(0, win32con.IDI_APPLICATION)
 
-        flags = NIF_ICON | NIF_MESSAGE | NIF_TIP
+        flags = win32gui.NIF_ICON | win32gui.NIF_MESSAGE | win32gui.NIF_TIP
         nid = (self.hwnd, 0, flags, win32con.WM_USER+20, hicon, "Python Demo")
         try:
-            Shell_NotifyIcon(NIM_ADD, nid)
-        except error:
+            win32gui.Shell_NotifyIcon(win32gui.NIM_ADD, nid)
+        except win32gui.error:
             # This is common when windows is starting, and this code is hit
             # before the taskbar has been created.
             print "Failed to add the taskbar icon - is explorer running?"
@@ -70,30 +69,30 @@ class MainWindow:
 
     def OnDestroy(self, hwnd, msg, wparam, lparam):
         nid = (self.hwnd, 0)
-        Shell_NotifyIcon(NIM_DELETE, nid)
-        PostQuitMessage(0) # Terminate the app.
+        win32gui.Shell_NotifyIcon(win32gui.NIM_DELETE, nid)
+        win32gui.PostQuitMessage(0) # Terminate the app.
 
     def OnTaskbarNotify(self, hwnd, msg, wparam, lparam):
         if lparam==win32con.WM_LBUTTONUP:
             print "You clicked me."
         elif lparam==win32con.WM_LBUTTONDBLCLK:
             print "You double-clicked me - goodbye"
-            DestroyWindow(self.hwnd)
+            win32gui.DestroyWindow(self.hwnd)
         elif lparam==win32con.WM_RBUTTONUP:
             print "You right clicked me."
-            menu = CreatePopupMenu()
-            AppendMenu( menu, win32con.MF_STRING, 1023, "Display Dialog")
-            AppendMenu( menu, win32con.MF_STRING, 1024, "Say Hello")
-            AppendMenu( menu, win32con.MF_STRING, 1025, "Exit program" )
-            pos = GetCursorPos()
+            menu = win32gui.CreatePopupMenu()
+            win32gui.AppendMenu( menu, win32con.MF_STRING, 1023, "Display Dialog")
+            win32gui.AppendMenu( menu, win32con.MF_STRING, 1024, "Say Hello")
+            win32gui.AppendMenu( menu, win32con.MF_STRING, 1025, "Exit program" )
+            pos = win32gui.GetCursorPos()
             # See http://msdn.microsoft.com/library/default.asp?url=/library/en-us/winui/menus_0hdi.asp
-            SetForegroundWindow(self.hwnd)
-            TrackPopupMenu(menu, win32con.TPM_LEFTALIGN, pos[0], pos[1], 0, self.hwnd, None)
-            PostMessage(self.hwnd, win32con.WM_NULL, 0, 0)
+            win32gui.SetForegroundWindow(self.hwnd)
+            win32gui.TrackPopupMenu(menu, win32con.TPM_LEFTALIGN, pos[0], pos[1], 0, self.hwnd, None)
+            win32gui.PostMessage(self.hwnd, win32con.WM_NULL, 0, 0)
         return 1
 
     def OnCommand(self, hwnd, msg, wparam, lparam):
-        id = LOWORD(wparam)
+        id = win32api.LOWORD(wparam)
         if id == 1023:
             import win32gui_dialog
             win32gui_dialog.DemoModal()
@@ -101,13 +100,13 @@ class MainWindow:
             print "Hello"
         elif id == 1025:
             print "Goodbye"
-            DestroyWindow(self.hwnd)
+            win32gui.DestroyWindow(self.hwnd)
         else:
             print "Unknown command -", id
 
 def main():
     w=MainWindow()
-    PumpMessages()
+    win32gui.PumpMessages()
 
 if __name__=='__main__':
     main()

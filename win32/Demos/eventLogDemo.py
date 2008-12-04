@@ -1,8 +1,8 @@
-import win32evtlog, traceback
-import win32api, win32con
+import win32evtlog
+import win32api
 import win32security # To translate NT Sids to account names.
 
-from win32evtlogutil import *
+import win32evtlogutil
 
 def ReadLog(computer, logType="Application", dumpEachRecord = 0):
     # read the entire log back.
@@ -17,7 +17,7 @@ def ReadLog(computer, logType="Application", dumpEachRecord = 0):
             break
         for object in objects:
             # get it for testing purposes, but dont print it.
-            msg = SafeFormatMessage(object, logType).encode("mbcs")
+            msg = win32evtlogutil.SafeFormatMessage(object, logType)
             if object.Sid is not None:
                 try:
                     domain, user, typ = win32security.LookupAccountSid(computer, object.Sid)
@@ -40,7 +40,7 @@ def ReadLog(computer, logType="Application", dumpEachRecord = 0):
         print "(Note that some other app may have written records while we were running!)"
     win32evtlog.CloseEventLog(h)
 
-def Usage():
+def usage():
     print "Writes an event to the event log."
     print "-w : Dont write any test records."
     print "-r : Dont read the event log"
@@ -73,7 +73,7 @@ def test():
         if opt == '-c':
             computer = val
         if opt in ['-h', '-?']:
-            Usage()
+            usage()
             return
         if opt=='-r':
             do_read = 0
@@ -82,9 +82,9 @@ def test():
         if opt=='-v':
             verbose = verbose + 1
     if do_write:
-        ReportEvent(logType, 2, strings=["The message text for event 2"], data = "Raw\0Data")
-        ReportEvent(logType, 1, eventType=win32evtlog.EVENTLOG_WARNING_TYPE, strings=["A warning"], data = "Raw\0Data")
-        ReportEvent(logType, 1, eventType=win32evtlog.EVENTLOG_INFORMATION_TYPE, strings=["An info"], data = "Raw\0Data")
+        win32evtlogutil.ReportEvent(logType, 2, strings=["The message text for event 2"], data = "Raw\0Data")
+        win32evtlogutil.ReportEvent(logType, 1, eventType=win32evtlog.EVENTLOG_WARNING_TYPE, strings=["A warning"], data = "Raw\0Data")
+        win32evtlogutil.ReportEvent(logType, 1, eventType=win32evtlog.EVENTLOG_INFORMATION_TYPE, strings=["An info"], data = "Raw\0Data")
         print "Successfully wrote 3 records to the log"
 
     if do_read:
