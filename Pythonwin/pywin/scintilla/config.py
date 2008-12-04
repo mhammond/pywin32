@@ -58,7 +58,9 @@ def find_config_file(f):
     return os.path.join(pywin.__path__[0], f + ".cfg")
 
 def find_config_files():
-    return map( lambda x: os.path.split(x)[1], map( lambda x: os.path.splitext(x)[0], glob.glob(os.path.join(pywin.__path__[0], "*.cfg"))))
+    return [os.path.split(x)[1]
+            for x in [os.path.splitext(x)[0] for x in glob.glob(os.path.join(pywin.__path__[0], "*.cfg"))]
+            ]
 
 class ConfigManager:
     def __init__(self, f):

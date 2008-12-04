@@ -30,7 +30,7 @@ _better_names = [
 ]
 def _fillmap():
     # Pull the VK_names from win32con
-    names = filter(lambda entry: entry[:3]=="VK_", win32con.__dict__.keys())
+    names = [entry for entry in win32con.__dict__ if entry.startswith("VK_")]
     for name in names:
         n = name[3:].lower()
         val = getattr(win32con, name)
