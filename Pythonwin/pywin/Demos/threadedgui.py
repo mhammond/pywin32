@@ -8,6 +8,7 @@ import win32api
 import timer
 
 from pywin.mfc import window, docview, thread
+from pywin.mfc.thread import WinThread
 
 
 WM_USER_PREPARE_TO_CLOSE = win32con.WM_USER + 32
@@ -103,11 +104,11 @@ class FontFrame(window.MDIChildWnd):
 		self.child.Create("FontDemo", win32con.WS_CHILD | win32con.WS_VISIBLE, rect, self)
 
 
-class TestThread(thread.WinThread):
+class TestThread(WinThread):
 	def __init__(self, parentWindow):
 		self.parentWindow = parentWindow
 		self.child = None
-		thread.WinThread.__init__(self)
+		WinThread.__init__(self)
 	def InitInstance(self):
 		rect = self.parentWindow.GetClientRect()
 		rect = (0,0,rect[2]-rect[0], rect[3]-rect[1])
@@ -115,7 +116,7 @@ class TestThread(thread.WinThread):
 		self.child = FontWindow()
 		self.child.Create("FontDemo", win32con.WS_CHILD | win32con.WS_VISIBLE, rect, self.parentWindow)
 		self.SetMainFrame(self.child)
-		return thread.WinThread.InitInstance(self)
+		return WinThread.InitInstance(self)
 
 	def ExitInstance(self):
 		return 0
