@@ -6,7 +6,6 @@
 import winerror
 import pythoncom, win32com.client, win32com.client.dynamic, win32com.client.gencache
 from win32com.server.util import NewCollection, wrap
-import string
 from win32com.test import util
 
 import traceback
@@ -241,7 +240,7 @@ def TestArrays(vbtest, bUseGenerated):
     # Floats
     _DoTestArray(vbtest, (1.0, 2.0, 3.0))
     # Strings.
-    _DoTestArray(vbtest, tuple(string.split("Hello from Python")))
+    _DoTestArray(vbtest, tuple("Hello from Python".split()))
     # Date and Time?
     # COM objects.
     _DoTestArray(vbtest, (vbtest, vbtest))
@@ -287,7 +286,7 @@ def TestArrays(vbtest, bUseGenerated):
         # The function itself also _returns_ the arram param.
         # Therefore, Python sees _2_ result values - one for the result,
         # and one for the byref.
-        testData = string.split("Mark was here")
+        testData = "Mark was here".split()
         resultData, byRefParam = vbtest.PassSAFEARRAY(testData)
         if testData != list(resultData):
             raise error("The safe array data was not what we expected - got " + str(resultData))

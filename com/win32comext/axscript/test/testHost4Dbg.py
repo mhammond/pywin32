@@ -1,4 +1,4 @@
-import string, os, sys, traceback
+import os, sys, traceback
 from win32com.axscript import axscript
 from win32com.axscript.server import axsite
 from win32com.axscript.server.error import Exception
@@ -23,9 +23,9 @@ class MySite(axsite.AXSite):
 class ObjectModel:
   _public_methods_ = [ 'echo', 'msgbox' ]
   def echo(self, *args):
-    print string.join(map(str, args))
+    print ''.join(map(str, args))
   def msgbox(self, *args):
-    msg = string.join(map(str, args))
+    msg = ''.join(map(str, args))
     win32ui.MessageBox(msg)
 
 def TestEngine():

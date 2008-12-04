@@ -1,6 +1,5 @@
 # A demo of using the RAS API from Python
 import sys
-import string
 import win32ras
 
 # The error raised if we can not
@@ -18,7 +17,7 @@ def Connect(rasEntryName, numRetries = 5):
 	"""
 	assert numRetries > 0
 	for info in win32ras.EnumConnections():
-		if string.lower(info[1])==string.lower(rasEntryName):
+		if info[1].lower()==rasEntryName.lower():
 			print "Already connected to", rasEntryName
 			return 0, info[0]
 
@@ -46,7 +45,7 @@ def Connect(rasEntryName, numRetries = 5):
 def Disconnect(handle):
 	if type(handle)==type(''): # have they passed a connection name?
 		for info in win32ras.EnumConnections():
-			if string.lower(info[1])==string.lower(handle):
+			if info[1].lower()==handle.lower():
 				handle = info[0]
 				break
 		else:

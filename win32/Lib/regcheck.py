@@ -20,8 +20,7 @@ def CheckRegisteredExe(exename):
 		print "Registration of %s - Not registered correctly" % exename
 
 def CheckPathString(pathString):
-	import string
-	for path in string.split(pathString, ";"):
+	for path in pathString.split(";"):
 		if not os.path.isdir(path):
 			return "'%s' is not a valid directory!" % path
 	return None

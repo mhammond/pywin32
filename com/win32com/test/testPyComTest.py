@@ -40,8 +40,7 @@ def progress(*args):
 
 def TestApplyResult(fn, args, result):
     try:
-        import string
-        fnName = string.split(str(fn))[1]
+        fnName = str(fn).split()[1]
     except:
         fnName = str(fn)
     progress("Testing ", fnName)

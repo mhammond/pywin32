@@ -2,7 +2,6 @@
 # Much of the code here contributed by Jethro Wright.
 
 import sys
-import string
 import os
 import win32ras
 
@@ -87,9 +86,9 @@ def Connect(entryName, bUseCallback):
 
 def Disconnect( rasEntry ):
     # Need to find the entry
-    name = string.lower( rasEntry )
+    name = rasEntry.lower()
     for hcon, entryName, devName, devType in win32ras.EnumConnections():
-        if string.lower( entryName ) == name:
+        if entryName.lower() == name:
             win32ras.HangUp( hcon )
             print "Disconnected from", rasEntry
             break

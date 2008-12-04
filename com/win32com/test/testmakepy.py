@@ -5,7 +5,6 @@ import win32api
 import traceback
 import glob
 import os
-import string
 import traceback
 
 import win32com.test.util

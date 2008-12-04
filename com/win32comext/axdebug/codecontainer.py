@@ -4,7 +4,7 @@ A code container is a class which holds source code for a debugger.  It knows ho
 to color the text, and also how to translate lines into offsets, and back.
 """
 
-import string, sys
+import sys
 from win32com.axdebug import axdebug
 import tokenize
 from util import RaiseNotImpl, _wrap
@@ -14,11 +14,11 @@ import win32api, winerror
 import contexts
 
 _keywords = {}                          # set of Python keywords
-for name in string.split("""
+for name in """
  and assert break class continue def del elif else except exec
  finally for from global if import in is lambda not
  or pass print raise return try while
- """):
+ """.split():
     _keywords[name] = 1
 
 class SourceCodeContainer:
@@ -88,7 +88,7 @@ class SourceCodeContainer:
         return len(self.lines)
 
     def _buildline(self, pos):
-        i = string.find(self.text, '\n', pos)
+        i = self.text.find('\n', pos)
         if i < 0:
             newpos = len(self.text)
         else:
@@ -220,7 +220,7 @@ class SourceModuleContainer(SourceCodeContainer):
         except AttributeError:
             fname = name
         if dnt==axdebug.DOCUMENTNAMETYPE_APPNODE:
-            return string.split(name, ".")[-1]
+            return name.split(".")[-1]
         elif dnt==axdebug.DOCUMENTNAMETYPE_TITLE:
             return fname
         elif dnt==axdebug.DOCUMENTNAMETYPE_FILE_TAIL:

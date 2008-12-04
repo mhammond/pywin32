@@ -34,7 +34,6 @@ import sys
 import os
 import verstamp
 import fnmatch
-import string
 import win32api
 
 numStamped = 0
@@ -78,10 +77,10 @@ def load_descriptions(fname, vars):
   lines = open(fname, 'r').readlines()
 
   for i in range(len(lines)):
-    line = string.strip(lines[i])
+    line = lines[i].strip()
     if line != '' and line[0] != '#':
-      idx1 = string.find(line, ' ')
-      idx2 = string.find(line, '\t')
+      idx1 = line.find(' ')
+      idx2 = line.find('\t')
       if idx1 == -1 or idx2 < idx1:
         idx1 = idx2
       if idx1 == -1:
@@ -89,7 +88,7 @@ def load_descriptions(fname, vars):
         sys.exit(1)
 
       key = line[:idx1]
-      val = string.strip(line[idx1:])
+      val = line[idx1:].strip()
       if key in vars:
         retvars[key] = val
       else:
@@ -111,7 +110,7 @@ def scan(build, root, desc, **custom_vars ):
   global numStamped
   numStamped = 0
   try:
-    build = string.atoi(build)
+    build = int(build)
   except ValueError:
     print 'ERROR: build number is not a number: %s' % build
     sys.exit(1)

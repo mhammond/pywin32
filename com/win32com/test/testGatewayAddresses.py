@@ -36,15 +36,14 @@
 
 from win32com.server.util import wrap
 import pythoncom
-import string
 from util import CheckClean
 
 numErrors = 0
 
 # Check that the 2 objects both have identical COM pointers.
 def CheckSameCOMObject(ob1, ob2):
-    addr1 = string.split(repr(ob1))[6][:-1]
-    addr2 = string.split(repr(ob2))[6][:-1]
+    addr1 = repr(ob1).split()[6][:-1]
+    addr2 = repr(ob2).split()[6][:-1]
     return addr1==addr2
 
 # Check that the objects conform to COM identity rules.

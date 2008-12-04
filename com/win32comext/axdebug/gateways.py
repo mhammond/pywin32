@@ -7,7 +7,6 @@ from win32com.axdebug.util import RaiseNotImpl, _wrap
 import pythoncom
 import win32com.server.connect
 import winerror
-import string
 
 class EnumDebugCodeContexts(ListEnumeratorGateway):
     """A class to expose a Python sequence as an EnumDebugCodeContexts
@@ -70,8 +69,8 @@ class DebugDocumentProvider(DebugDocumentInfo):
 class DebugApplicationNode(DebugDocumentProvider):
     """Provides the functionality of IDebugDocumentProvider, plus a context within a project tree.
     """
-    _public_methods_ = string.split("""EnumChildren GetParent SetDocumentProvider
-                    Close Attach Detach""") + \
+    _public_methods_ = """EnumChildren GetParent SetDocumentProvider
+                    Close Attach Detach""".split() + \
             DebugDocumentProvider._public_methods_
     _com_interfaces_ = [axdebug.IID_IDebugDocumentProvider] + \
             DebugDocumentProvider._com_interfaces_
@@ -99,7 +98,7 @@ class DebugApplicationNode(DebugDocumentProvider):
 class DebugApplicationNodeEvents:
     """Event interface for DebugApplicationNode object.
     """
-    _public_methods_ = string.split("onAddChild onRemoveChild onDetach")
+    _public_methods_ = "onAddChild onRemoveChild onDetach".split()
     _com_interfaces_ = [axdebug.IID_IDebugApplicationNodeEvents]
     def __init__(self):
         pass
@@ -203,8 +202,9 @@ class DebugDocumentTextExternalAuthor:
 
 
 class DebugDocumentTextEvents:
-    _public_methods_ = string.split("""onDestroy onInsertText onRemoveText
-              onReplaceText onUpdateTextAttributes onUpdateDocumentAttributes""")
+    _public_methods_ = """onDestroy onInsertText onRemoveText
+              onReplaceText onUpdateTextAttributes
+              onUpdateDocumentAttributes""".split()
     _com_interfaces_ = [ axdebug.IID_IDebugDocumentTextEvents ]
     def __init__(self):
         pass

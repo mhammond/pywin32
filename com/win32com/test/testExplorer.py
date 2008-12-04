@@ -1,6 +1,5 @@
 # testExplorer -
 
-import string
 import sys
 import os
 import win32com.client.dynamic

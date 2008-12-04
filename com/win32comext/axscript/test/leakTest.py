@@ -1,4 +1,4 @@
-import string, sys
+import sys
 from win32com.axscript.server.error import Exception
 from win32com.axscript import axscript
 from win32com.axscript.server import axsite
@@ -18,7 +18,7 @@ class MySite(axsite.AXSite):
       st = None
     if st is None: st = ""
     text = st + "\n" + (" " * (char-1)) + "^" + "\n" + exc[2]
-    for line in string.split(text,"\n"):
+    for line in text.splitlines():
       print "  >" + line
 
 class MyCollection(util.Collection):
@@ -36,7 +36,7 @@ class Test:
 #    self._connect_server_ = TestConnectServer(self)
 
   def echo(self, *args):
-    self.last = string.join(map(str, args))
+    self.last = ''.join(map(str, args))
     if self.verbose:
       for arg in args:
         print arg,
