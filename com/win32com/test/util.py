@@ -1,15 +1,20 @@
 import sys, os
-import _winreg
 import win32api
 import tempfile
 import unittest
 import gc
 import pythoncom
 import winerror
-import cStringIO as StringIO
 from pythoncom import _GetInterfaceCount, _GetGatewayCount
 import win32com
 import logging
+try: # try py2x imports first
+    import _winreg
+    import cStringIO as StringIO
+except ImportError:
+    # py3k imports
+    import winreg as _winreg
+    import io as StringIO
 
 def CheckClean():
     # Ensure no lingering exceptions - Python should have zero outstanding
