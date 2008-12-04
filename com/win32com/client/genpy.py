@@ -512,7 +512,7 @@ class DispatchItem(build.DispatchItem, WritableItem):
             print >> stream, '\t\treturn win32com.client.util.WrapEnum(self._oleobj_.InvokeTypes(%d,LCID,%d,(13, 10),()),%s)' % (pythoncom.DISPID_NEWENUM, enumEntry.desc[4], resultCLSID)
             print >> stream, '\tdef __getitem__(self, index):'
             print >> stream, '\t\t"Allow this class to be accessed as a collection"'
-            print >> stream, "\t\tif not '_enum' in self.__dict__:"
+            print >> stream, "\t\tif '_enum' not in self.__dict__:"
             print >> stream, "\t\t\tself.__dict__['_enum_'] = self._NewEnum()"
             print >> stream, "\t\treturn self._enum_.__getitem__(index)"
         else: # Not an Enumerator, but may be an "Item/Count" based collection
