@@ -249,7 +249,11 @@ class MainWindow:
                 # "group", and the ID in the group that is to be selected.
                 rc = CheckMenuRadioItem(self.sub_menu, 1004, 1005, id,
                                         win32con.MF_BYCOMMAND)
-            # Now get the info via GetMenuItemInfo and check the new state
+            # Get and check the new state - first the simple way...
+            new_state = GetMenuState(self.sub_menu, id, win32con.MF_BYCOMMAND)
+            if new_state & win32con.MF_CHECKED != check_flags:
+                raise RuntimeError("The new item didn't get the new checked state!")
+            # Now the long-winded way via GetMenuItemInfo...
             buf, extras = EmptyMENUITEMINFO()
             win32gui.GetMenuItemInfo(self.sub_menu, id, False, buf)
             fType, fState, wID, hSubMenu, hbmpChecked, hbmpUnchecked, \
