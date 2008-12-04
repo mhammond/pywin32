@@ -22,18 +22,11 @@ import pythoncom
 import build
 
 error = "makepy.error"
-makepy_version = "0.4.98" # Written to generated file.
+makepy_version = "0.5.00" # Written to generated file.
 
 GEN_FULL="full"
 GEN_DEMAND_BASE = "demand(base)"
 GEN_DEMAND_CHILD = "demand(child)"
-
-try:
-    TrueRepr = repr(True)
-    FalseRepr = repr(False)
-except NameError:
-    TrueRepr = "1"
-    FalseRepr = "0"
 
 # This map is used purely for the users benefit -it shows the
 # raw, underlying type of Alias/Enums, etc.  The COM implementation
@@ -542,7 +535,7 @@ class DispatchItem(build.DispatchItem, WritableItem):
             # Also include a __nonzero__
             print >> stream, "\t#This class has a __len__ - this is needed so 'if object:' always returns TRUE."
             print >> stream, "\tdef __nonzero__(self):"
-            print >> stream, "\t\treturn %s" % (TrueRepr,)
+            print >> stream, "\t\treturn True"
 
 class CoClassItem(build.OleItem, WritableItem):
   order = 5
@@ -641,14 +634,14 @@ class GeneratorProgress:
         pass
 
 class Generator:
-  def __init__(self, typelib, sourceFilename, progressObject, bBuildHidden=1, bUnicodeToString=0):
+  def __init__(self, typelib, sourceFilename, progressObject, bBuildHidden=1, bUnicodeToString=None):
+    assert bUnicodeToString is None, "this is deprecated and will go away"
     self.bHaveWrittenDispatchBaseClass = 0
     self.bHaveWrittenCoClassBaseClass = 0
     self.bHaveWrittenEventBaseClass = 0
     self.typelib = typelib
     self.sourceFilename = sourceFilename
     self.bBuildHidden = bBuildHidden
-    self.bUnicodeToString = bUnicodeToString
     self.progress = progressObject
     # These 2 are later additions and most of the code still 'print's...
     self.file = None

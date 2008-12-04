@@ -20,10 +20,9 @@ import sys
 import string
 import types
 from keyword import iskeyword
-from win32com.client import NeedUnicodeConversions
 
 import pythoncom
-from pywintypes import UnicodeType, TimeType
+from pywintypes import TimeType
 import winerror
 
 # A string ending with a quote can not be safely triple-quoted.
@@ -351,15 +350,11 @@ class DispatchItem(OleItem):
 					s = s + "%s\t\t\tret = ret.QueryInterface(pythoncom.IID_IDispatch)\n" % (linePrefix,)
 					s = s + "%s\t\texcept pythoncom.error:\n" % (linePrefix,)
 					s = s + "%s\t\t\treturn ret\n" % (linePrefix,)
-				s = s + '%s\t\tret = Dispatch(ret, %s, %s, UnicodeToString=%d)\n' % (linePrefix,repr(name), resclsid, NeedUnicodeConversions) 
+				s = s + '%s\t\tret = Dispatch(ret, %s, %s)\n' % (linePrefix,repr(name), resclsid) 
 				s = s + '%s\treturn ret' % (linePrefix)
 			elif rd == pythoncom.VT_BSTR:
-				if NeedUnicodeConversions:
-					s = "%s\t# Result is a Unicode object - perform automatic string conversion\n" % (linePrefix,)
-					s = s + '%s\treturn str(self._oleobj_.InvokeTypes(%d, LCID, %s, %s, %s%s))' % (linePrefix, id, fdesc[4], retDesc, repr(argsDesc), _BuildArgList(fdesc, names))
-				else:
-					s = "%s\t# Result is a Unicode object - return as-is for this version of Python\n" % (linePrefix,)
-					s = s + '%s\treturn self._oleobj_.InvokeTypes(%d, LCID, %s, %s, %s%s)' % (linePrefix, id, fdesc[4], retDesc, repr(argsDesc), _BuildArgList(fdesc, names))
+				s = "%s\t# Result is a Unicode object\n" % (linePrefix,)
+				s = s + '%s\treturn self._oleobj_.InvokeTypes(%d, LCID, %s, %s, %s%s)' % (linePrefix, id, fdesc[4], retDesc, repr(argsDesc), _BuildArgList(fdesc, names))
 			# else s remains None
 		if s is None:
 			s = '%s\treturn self._ApplyTypes_(%d, %s, %s, %s, %s, %s%s)' % (linePrefix, id, fdesc[4], retDesc, argsDesc, repr(name), resclsid, _BuildArgList(fdesc, names))
@@ -556,9 +551,7 @@ def MakeDefaultArgRepr(defArgVal):
   if inOut & pythoncom.PARAMFLAG_FHASDEFAULT:
     # hack for Unicode until it repr's better.
     val = defArgVal[2]
-    if type(val) is UnicodeType:
-      return repr(str(val))
-    elif type(val) is TimeType:
+    if type(val) is TimeType:
       year=val.year; month=val.month; day=val.day; hour=val.hour; minute=val.minute; second=val.second; msec=val.msec
       return "pythoncom.MakeTime((%(year)d, %(month)d, %(day)d, %(hour)d, %(minute)d, %(second)d,0,0,0,%(msec)d))" % locals()
     else:

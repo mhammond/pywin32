@@ -6,9 +6,6 @@
 # dispatch object, the known class will be used.  This contrasts
 # with dynamic.Dispatch behaviour, where dynamic objects are always used.
 
-# This can go away
-NeedUnicodeConversions = False
-
 import pythoncom
 import dynamic
 import gencache
@@ -19,12 +16,13 @@ _PyIDispatchType = pythoncom.TypeIIDs[pythoncom.IID_IDispatch]
 
 
 def __WrapDispatch(dispatch, userName = None, resultCLSID = None, typeinfo = None, \
-                  UnicodeToString = NeedUnicodeConversions, clsctx = pythoncom.CLSCTX_SERVER,
+                  UnicodeToString=None, clsctx = pythoncom.CLSCTX_SERVER,
                   WrapperClass = None):
   """
     Helper function to return a makepy generated class for a CLSID if it exists,
     otherwise cope by using CDispatch.
   """
+  assert UnicodeToString is None, "this is deprecated and will go away"
   if resultCLSID is None:
     try:
       typeinfo = dispatch.GetTypeInfo()
@@ -42,7 +40,7 @@ def __WrapDispatch(dispatch, userName = None, resultCLSID = None, typeinfo = Non
 
   # Return a "dynamic" object - best we can do!
   if WrapperClass is None: WrapperClass = CDispatch
-  return dynamic.Dispatch(dispatch, userName, WrapperClass, typeinfo, UnicodeToString=UnicodeToString,clsctx=clsctx)
+  return dynamic.Dispatch(dispatch, userName, WrapperClass, typeinfo, clsctx=clsctx)
 
 
 def GetObject(Pathname = None, Class = None, clsctx = None):
@@ -88,17 +86,19 @@ def Moniker(Pathname, clsctx = pythoncom.CLSCTX_ALL):
   """
   moniker, i, bindCtx = pythoncom.MkParseDisplayName(Pathname)
   dispatch = moniker.BindToObject(bindCtx, None, pythoncom.IID_IDispatch)
-  return __WrapDispatch(dispatch, Pathname, clsctx = clsctx)
+  return __WrapDispatch(dispatch, Pathname, clsctx=clsctx)
   
-def Dispatch(dispatch, userName = None, resultCLSID = None, typeinfo = None, UnicodeToString=NeedUnicodeConversions, clsctx = pythoncom.CLSCTX_SERVER):
+def Dispatch(dispatch, userName = None, resultCLSID = None, typeinfo = None, UnicodeToString=None, clsctx = pythoncom.CLSCTX_SERVER):
   """Creates a Dispatch based COM object.
   """
+  assert UnicodeToString is None, "this is deprecated and will go away"
   dispatch, userName = dynamic._GetGoodDispatchAndUserName(dispatch,userName,clsctx)
-  return __WrapDispatch(dispatch, userName, resultCLSID, typeinfo, UnicodeToString, clsctx)
+  return __WrapDispatch(dispatch, userName, resultCLSID, typeinfo, clsctx=clsctx)
 
-def DispatchEx(clsid, machine=None, userName = None, resultCLSID = None, typeinfo = None, UnicodeToString=NeedUnicodeConversions, clsctx = None):
+def DispatchEx(clsid, machine=None, userName = None, resultCLSID = None, typeinfo = None, UnicodeToString=None, clsctx = None):
   """Creates a Dispatch based COM object on a specific machine.
   """
+  assert UnicodeToString is None, "this is deprecated and will go away"
   # If InProc is registered, DCOM will use it regardless of the machine name 
   # (and regardless of the DCOM config for the object.)  So unless the user
   # specifies otherwise, we exclude inproc apps when a remote machine is used.
@@ -111,7 +111,7 @@ def DispatchEx(clsid, machine=None, userName = None, resultCLSID = None, typeinf
     serverInfo = (machine,)          
   if userName is None: userName = clsid
   dispatch = pythoncom.CoCreateInstanceEx(clsid, None, clsctx, serverInfo, (pythoncom.IID_IDispatch,))[0]
-  return Dispatch(dispatch, userName, resultCLSID, typeinfo, UnicodeToString=UnicodeToString, clsctx=clsctx)
+  return Dispatch(dispatch, userName, resultCLSID, typeinfo, clsctx=clsctx)
 
 class CDispatch(dynamic.CDispatch):
   """
@@ -120,8 +120,9 @@ class CDispatch(dynamic.CDispatch):
     of using the makepy generated wrapper Python class instead of dynamic.CDispatch
     if/when possible.
   """
-  def _wrap_dispatch_(self, ob, userName = None, returnCLSID = None, UnicodeToString = NeedUnicodeConversions):
-    return Dispatch(ob, userName, returnCLSID,None,UnicodeToString)
+  def _wrap_dispatch_(self, ob, userName = None, returnCLSID = None, UnicodeToString=None):
+    assert UnicodeToString is None, "this is deprecated and will go away"
+    return Dispatch(ob, userName, returnCLSID,None)
 
 def CastTo(ob, target):
     """'Cast' a COM object to another interface"""
@@ -472,7 +473,7 @@ class DispatchBaseClass:
 # XXX - These should be consolidated with dynamic.py versions.
 def _get_good_single_object_(obj, obUserName=None, resultCLSID=None):
 	if _PyIDispatchType==type(obj):
-		return Dispatch(obj, obUserName, resultCLSID, UnicodeToString=NeedUnicodeConversions)
+		return Dispatch(obj, obUserName, resultCLSID)
 	return obj
 
 def _get_good_object_(obj, obUserName=None, resultCLSID=None):

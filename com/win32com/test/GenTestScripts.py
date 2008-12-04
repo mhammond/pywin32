@@ -26,7 +26,7 @@ def GenerateFromRegistered(fname, *loadArgs):
     open(os.path.join(genPath, "__init__.py"), "w").close()
     print fname, ": generating -",
     f = open(os.path.join(genPath, fname + ".py"), "w")
-    win32com.client.makepy.GenerateFromTypeLibSpec(loadArgs, f, bQuiet = 1, bGUIProgress = 1, bUnicodeToString=NeedUnicodeConversions)
+    win32com.client.makepy.GenerateFromTypeLibSpec(loadArgs, f, bQuiet = 1, bGUIProgress = 1)
     f.close()
     print "compiling -",
     fullModName = "win32com.test.%s.%s" % (genDir, fname)

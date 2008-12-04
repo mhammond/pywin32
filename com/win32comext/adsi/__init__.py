@@ -66,11 +66,12 @@ class ADSIEnumerator:
 		raise IndexError("list index out of range")
 
 class ADSIDispatch(win32com.client.CDispatch):
-	def _wrap_dispatch_(self, ob, userName = None, returnCLSID = None, UnicodeToString = win32com.client.NeedUnicodeConversions):
+	def _wrap_dispatch_(self, ob, userName = None, returnCLSID = None, UnicodeToString=None):
+		assert UnicodeToString is None, "this is deprectated and will be removed"
 		if not userName:
 			userName = "ADSI-object"
 		olerepr = win32com.client.dynamic.MakeOleRepr(ob, None, None)
-		return ADSIDispatch(ob, olerepr, userName, UnicodeToString = UnicodeToString)
+		return ADSIDispatch(ob, olerepr, userName)
 
 	def _NewEnum(self):
 		try:

@@ -31,7 +31,6 @@ the dictionary's keys. This allows for the following type of VB code:
     next
 """
 
-import string
 import pythoncom
 from win32com.server import util, policy
 from win32com.server.exception import COMException
@@ -41,10 +40,6 @@ import pywintypes
 
 from pythoncom import DISPATCH_METHOD, DISPATCH_PROPERTYGET
 from winerror import S_OK
-
-UnicodeType = pywintypes.UnicodeType
-StringType = types.StringType
-
 
 class DictionaryPolicy(policy.BasicWrapPolicy):
   ### BasicWrapPolicy looks for this
@@ -78,10 +73,10 @@ class DictionaryPolicy(policy.BasicWrapPolicy):
         raise COMException(desc="not enough parameters", scode=winerror.DISP_E_BADPARAMCOUNT)
 
       key = args[0]
-      if type(key) == UnicodeType:
+      if type(key) == unicode:
         pass
-      elif type(key) == StringType:
-        key = pywintypes.Unicode(key)
+      elif type(key) == str:
+        key = unicode(key)
       else:
         ### the nArgErr thing should be 0-based, not reversed... sigh
         raise COMException(desc="Key must be a string", scode=winerror.DISP_E_TYPEMISMATCH)
@@ -123,8 +118,7 @@ class DictionaryPolicy(policy.BasicWrapPolicy):
   def _getidsofnames_(self, names, lcid):
     ### this is a copy of MappedWrapPolicy._getidsofnames_ ...
 
-    # Note: these names will always be StringType
-    name = string.lower(names[0])
+    name = names[0].lower()
     try:
       return (self._name_to_dispid_[name],)
     except KeyError:

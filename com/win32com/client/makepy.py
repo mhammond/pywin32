@@ -68,7 +68,7 @@ Examples:
 
 import sys, os, pythoncom
 from win32com.client import genpy, selecttlb, gencache
-from win32com.client import NeedUnicodeConversions, Dispatch
+from win32com.client import Dispatch
 
 bForDemandDefault = 0 # Default value of bForDemand - toggle this to change the world - see also gencache.py
 
@@ -210,7 +210,8 @@ def GetTypeLibsForSpec(arg):
 		tb = None # Storing tb in a local is a cycle!
 		sys.exit(1)
 
-def GenerateFromTypeLibSpec(typelibInfo, file = None, verboseLevel = None, progressInstance = None, bUnicodeToString=NeedUnicodeConversions, bForDemand = bForDemandDefault, bBuildHidden = 1):
+def GenerateFromTypeLibSpec(typelibInfo, file = None, verboseLevel = None, progressInstance = None, bUnicodeToString=None, bForDemand = bForDemandDefault, bBuildHidden = 1):
+	assert bUnicodeToString is None, "this is deprecated and will go away"
 	if verboseLevel is None:
 		verboseLevel = 0 # By default, we use no gui and no verbose level!
 
@@ -251,7 +252,7 @@ def GenerateFromTypeLibSpec(typelibInfo, file = None, verboseLevel = None, progr
 	bToGenDir = (file is None)
 
 	for typelib, info in typelibs:
-		gen = genpy.Generator(typelib, info.dll, progress, bUnicodeToString=bUnicodeToString, bBuildHidden=bBuildHidden)
+		gen = genpy.Generator(typelib, info.dll, progress, bBuildHidden=bBuildHidden)
 
 		if file is None:
 			this_name = gencache.GetGeneratedFileName(info.clsid, info.lcid, info.major, info.minor)
@@ -286,7 +287,8 @@ def GenerateFromTypeLibSpec(typelibInfo, file = None, verboseLevel = None, progr
 
 	progress.Close()
 
-def GenerateChildFromTypeLibSpec(child, typelibInfo, verboseLevel = None, progressInstance = None, bUnicodeToString=NeedUnicodeConversions):
+def GenerateChildFromTypeLibSpec(child, typelibInfo, verboseLevel = None, progressInstance = None, bUnicodeToString=None):
+	assert bUnicodeToString is None, "this is deprecated and will go away"
 	if verboseLevel is None:
 		verboseLevel = 0 # By default, we use no gui, and no verbose level for the children.
 	if type(typelibInfo)==type(()):
@@ -312,7 +314,7 @@ def GenerateChildFromTypeLibSpec(child, typelibInfo, verboseLevel = None, progre
 		dir_path_name = os.path.join(gencache.GetGeneratePath(), dir_name)
 		progress.LogBeginGenerate(dir_path_name)
 
-		gen = genpy.Generator(typelib, info.dll, progress, bUnicodeToString=bUnicodeToString)
+		gen = genpy.Generator(typelib, info.dll, progress)
 		gen.generate_child(child, dir_path_name)
 		progress.SetDescription("Importing module")
 		__import__("win32com.gen_py." + dir_name + "." + child)
@@ -321,7 +323,6 @@ def GenerateChildFromTypeLibSpec(child, typelibInfo, verboseLevel = None, progre
 def main():
 	import getopt
 	hiddenSpec = 1
-	bUnicodeToString = NeedUnicodeConversions
 	outputName = None
 	verboseLevel = 1
 	doit = 1
@@ -331,8 +332,6 @@ def main():
 		for o,v in opts:
 			if o=='-h':
 				hiddenSpec = 0
-			elif o=='-u':
-				bUnicodeToString = not NeedUnicodeConversions
 			elif o=='-o':
 				outputName = v
 			elif o=='-v':
