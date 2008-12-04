@@ -3,15 +3,14 @@
 TupleType=tuple
 ListType=list
 IntType=int
-StringType=str
-from pywintypes import UnicodeType, TimeType
+from pywintypes import TimeType
 import pythoncom
 import mapi, mapitags
 
 prTable = {}
 def GetPropTagName(pt):
 	if not prTable:
-		for name, value in mapitags.__dict__.items():
+		for name, value in mapitags.__dict__.iteritems():
 			if name[:3] == 'PR_':
 				# Store both the full ID (including type) and just the ID.
 				# This is so PR_FOO_A and PR_FOO_W are still differentiated,
@@ -37,7 +36,7 @@ def GetPropTagName(pt):
 mapiErrorTable = {}
 def GetScodeString(hr):
 	if not mapiErrorTable:
-		for name, value in mapi.__dict__.items():
+		for name, value in mapi.__dict__.iteritems():
 			if name[:7] in ['MAPI_E_', 'MAPI_W_']:
 				mapiErrorTable[value] = name
 	return mapiErrorTable.get(hr, pythoncom.GetScodeString(hr))
@@ -47,7 +46,7 @@ ptTable = {}
 def GetMapiTypeName(propType):
 	"""Given a mapi type flag, return a string description of the type"""
 	if not ptTable:
-		for name, value in mapitags.__dict__.items():
+		for name, value in mapitags.__dict__.iteritems():
 			if name[:3] == 'PT_':
 				ptTable[value] = name
 
@@ -141,17 +140,17 @@ def SetProperties( msg, propDict):
 
 	newProps = []
 	# First pass over the properties we should get IDs for.
-	for key, val in propDict.items():
-		if type(key) in [StringType, UnicodeType]:
+	for key, val in propDict.iteritems():
+		if type(key) in [str, unicode]:
 			newProps.append((mapi.PS_PUBLIC_STRINGS, key))
 	# Query for the new IDs
 	if newProps: newIds = msg.GetIDsFromNames(newProps, mapi.MAPI_CREATE)
 	newIdNo = 0
 	newProps = []
-	for key, val in propDict.items():
-		if type(key) in [StringType, UnicodeType]:
+	for key, val in propDict.iteritems():
+		if type(key) in [str, unicode]:
 			type_val=type(val)
-			if type_val in [StringType, pywintypes.UnicodeType]:
+			if type_val in [str, unicode]:
 				tagType = mapitags.PT_UNICODE
 			elif type_val==IntType:
 				tagType = mapitags.PT_I4
