@@ -171,6 +171,11 @@ class BindingsManager:
 		# Special hacks for the dead-char key on non-US keyboards.
 		# (XXX - which do not work :-(
 		event = self.keymap.get( keyinfo )
+		#Enable autoexpand an autocompletion on French keyborads
+		if keyinfo == (190, 16):
+			event = "KeyDot"
+		elif keyinfo == (222, 0):
+			event = "<<expand-word>>"
 		if event is None:
 ##			if key == 220: # Dead key
 ##				return 1
