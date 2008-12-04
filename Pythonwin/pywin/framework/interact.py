@@ -442,6 +442,12 @@ class InteractiveCore:
 	# Enter key handler
 	#
 	def ProcessEnterEvent(self, event ):
+		#If autocompletion has been triggered, complete and do not process event
+		if self.SCIAutoCActive():
+			self.SCIAutoCComplete()
+			self.SCICancel()
+			return
+		
 		self.SCICancel()
 		# First, check for an error message
 		haveGrabbedOutput = 0

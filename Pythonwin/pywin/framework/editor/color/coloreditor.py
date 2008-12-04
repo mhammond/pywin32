@@ -334,6 +334,7 @@ class SyntEditView(SyntEditViewParent):
 		"""
 		# Handle auto-complete first.
 		if self.SCIAutoCActive():
+			self.SCIAutoCComplete()
 			self.SCIAutoCCancel()
 		# Call the IDLE event.
 		return self.bindings.fire("<<newline-and-indent>>", event)
