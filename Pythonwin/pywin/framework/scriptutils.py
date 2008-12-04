@@ -453,10 +453,7 @@ def CheckFile():
 	win32ui.DoWaitCursor(0)
 
 def RunTabNanny(filename):
-	try:
-		import cStringIO as io
-	except ImportError:
-		import io
+	import cStringIO as io
 	tabnanny = FindTabNanny()
 	if tabnanny is None:
 		win32ui.MessageBox("The TabNanny is not around, so the children can run amok!" )

@@ -48,10 +48,7 @@ is_readonly = hasattr(win32com, "__loader__")
 # Keyed by usual clsid, lcid, major, minor
 demandGeneratedTypeLibraries = {}
 
-try:
-	import cPickle as pickle
-except ImportError:
-	import pickle
+import cPickle as pickle
 
 def __init__():
 	# Initialize the module.  Called once explicitly at module import below.
@@ -76,10 +73,7 @@ def _SaveDicts():
 def _LoadDicts():
 	# Load the dictionary from a .zip file if that is where we live.
 	if hasattr(win32com, "__loader__"):
-		try:
-			import cStringIO as io
-		except ImportError:
-			import io
+		import cStringIO as io
 		loader = win32com.__loader__
 		arc_path = loader.archive
 		dicts_path = os.path.join(win32com.__gen_path__, "dicts.dat")

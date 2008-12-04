@@ -3,10 +3,7 @@
 # copies PyWinTypesxx.dll and PythonCOMxx.dll into the system directory,
 # and creates a pth file
 import os, sys, glob, shutil, time
-try:
-    import _winreg as winreg
-except ImportError:
-    import winreg
+import _winreg as winreg
 
 # Send output somewhere so it can be found if necessary...
 import tempfile

@@ -8,13 +8,8 @@ import winerror
 from pythoncom import _GetInterfaceCount, _GetGatewayCount
 import win32com
 import logging
-try: # try py2x imports first
-    import _winreg
-    import cStringIO as StringIO
-except ImportError:
-    # py3k imports
-    import winreg as _winreg
-    import io as StringIO
+import _winreg
+import cStringIO as StringIO
 
 def CheckClean():
     # Ensure no lingering exceptions - Python should have zero outstanding
