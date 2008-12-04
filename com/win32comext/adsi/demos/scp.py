@@ -42,7 +42,6 @@ import ntsecuritycon as dscon
 import win32security
 import optparse, textwrap
 import traceback
-import types
 
 verbose = 1
 g_createdSCP = None
@@ -197,7 +196,7 @@ def SpnRegister(
         spns,             # List of SPNs to register
         operation,         # Add, replace, or delete SPNs
            ):
-    assert spns not in types.StringTypes and hasattr(spns, "__iter__"), \
+    assert type(spns) not in [str, unicode] and hasattr(spns, "__iter__"), \
            "spns must be a sequence of strings (got %r)" % spns
     # Bind to a domain controller. 
     # Get the domain for the current user.
