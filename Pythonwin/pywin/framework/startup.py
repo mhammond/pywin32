@@ -33,7 +33,7 @@ pywin.framework.__path__[0] = win32ui.FullPath(pywin.framework.__path__[0])
 # make a few wierd sys values.  This is so later we can clobber sys.argv to trick
 # scripts when running under a GUI environment.
 
-moduleName = "intpyapp"
+moduleName = "pywin.framework.intpyapp"
 sys.appargvoffset = 0
 sys.appargv = sys.argv[:]
 # Must check for /app param here.
@@ -44,8 +44,9 @@ if len(sys.argv)>=2 and sys.argv[0].lower()=='/app':
 	newargv=sys.argv[sys.appargvoffset:]
 #	newargv.insert(0, sys.argv[0])
 	sys.argv = newargv
-	
-exec "import %s\n" % moduleName
+
+# Import the application module.
+__import__(moduleName)
 
 try:
 	win32ui.GetApp()._obj_

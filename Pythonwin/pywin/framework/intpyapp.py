@@ -277,12 +277,12 @@ class InteractivePythonApp(app.CApp):
 
 
 	def LoadSystemModules(self):
-		self.DoLoadModules("editor,stdin")
+		self.DoLoadModules("pywin.framework.editor,pywin.framework.stdin")
 
 	def LoadUserModules(self, moduleNames = None):
 		# Load the users modules.
 		if moduleNames is None:
-			default = "sgrepmdi,mdi_pychecker"
+			default = "pywin.framework.sgrepmdi,pywin.framework.mdi_pychecker"
 			moduleNames=win32ui.GetProfileVal('Python','Startup Modules',default)
 		self.DoLoadModules(moduleNames)
 
@@ -291,7 +291,7 @@ class InteractivePythonApp(app.CApp):
 		modules = moduleNames.split(",")
 		for module in modules:
 			try:
-				exec "import "+module
+				__import__(module)
 			except: # Catch em all, else the app itself dies! 'ImportError:
 				traceback.print_exc()
 				msg = 'Startup import of user module "%s" failed' % module
