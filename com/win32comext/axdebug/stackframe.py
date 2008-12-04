@@ -7,7 +7,6 @@ from util import _wrap, RaiseNotImpl
 import expressions, gateways, axdebug, winerror
 import pythoncom
 from win32com.server.exception import COMException
-import repr, string
 
 from util import trace
 #def trace(*args):
