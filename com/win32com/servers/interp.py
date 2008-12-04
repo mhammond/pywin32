@@ -12,7 +12,6 @@
 """
 
 from win32com.server.exception import Exception
-from pywintypes import UnicodeType
 import winerror
 
 # Expose the Python interpreter.
@@ -33,14 +32,14 @@ class Interpreter:
     def Eval(self, exp):
         """Evaluate an expression.
         """
-        if type(exp) not in [type(''),UnicodeType]:
+        if type(exp) not in [str, unicode]:
             raise Exception(desc="Must be a string",scode=winerror.DISP_E_TYPEMISMATCH)
 
         return eval(str(exp), self.dict)
     def Exec(self, exp):
         """Execute a statement.
         """
-        if type(exp) not in [type(''), UnicodeType]:
+        if type(exp) not in [str, unicode]:
             raise Exception(desc="Must be a string",scode=winerror.DISP_E_TYPEMISMATCH)
         exec str(exp) in self.dict
 
