@@ -63,7 +63,7 @@ class AXSite:
   def __init__(self, objModel={}, engine = None, lcid=0):
     self.lcid = lcid
     self.objModel = { }
-    for name, object in objModel.items():
+    for name, object in objModel.iteritems():
       # Gregs code did string.lower this - I think that is callers job if he wants!
       self.objModel[name] = object
 

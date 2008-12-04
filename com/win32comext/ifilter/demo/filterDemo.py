@@ -239,7 +239,7 @@ if __name__ == "__main__":
             print ch.encode('iso8859-1','ignore')
 
     print "Properties"
-    for propName, propValue in propMap.items():            
+    for propName, propValue in propMap.iteritems():            
         print propName,":",
         if propName == 'body':
             print "<%s length: %d>" % (propName, reduce(operator.add, [len(p) for p in propValue]),)

@@ -3,11 +3,11 @@ from win32com.bits import bits
 import pythoncom
 
 states = dict([(val, (name[13:]))
-               for name, val in vars(bits).items()
+               for name, val in vars(bits).iteritems()
                if name.startswith('BG_JOB_STATE_')])
 
 job_types = dict([(val, (name[12:]))
-               for name, val in vars(bits).items()
+               for name, val in vars(bits).iteritems()
                if name.startswith('BG_JOB_TYPE_')])
 
 bcm = pythoncom.CoCreateInstance(bits.CLSID_BackgroundCopyManager, 

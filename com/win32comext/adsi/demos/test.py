@@ -123,7 +123,7 @@ def DumpAllObjects():
 
 # Fill a map with VT_ datatypes, to give us better names:
 vt_map = {}
-for name, val in pythoncom.__dict__.items():
+for name, val in pythoncom.__dict__.iteritems():
 	if name[:3] == "VT_":
 		vt_map[val] = name
 
@@ -205,7 +205,7 @@ def usage(tests):
 def main():
 	import getopt, traceback
 	tests = []
-	for ob in globals().values():
+	for ob in globals().itervalues():
 		if type(ob)==type(main) and ob.__doc__:
 			tests.append(ob)
 	opts, args = getopt.getopt(sys.argv[1:], "s:hv")

@@ -52,7 +52,7 @@ def _wrap_remove(object, iid = None):
 def _dump_wrapped():
     from win32com.server.util import unwrap
     print "Wrapped items:"
-    for key, items in all_wrapped.items():
+    for key, items in all_wrapped.iteritems():
         print key,
         try:
             ob = unwrap(key)

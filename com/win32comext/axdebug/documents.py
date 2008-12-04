@@ -112,7 +112,7 @@ class CodeContainerProvider:
         return cc
 
     def Close(self):
-        for cc, node in self.ccsAndNodes.values():
+        for cc, node in self.ccsAndNodes.itervalues():
             try:
                 # Must close the node before closing the provider
                 # as node may make calls on provider (eg Reset breakpoints etc)

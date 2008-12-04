@@ -10,7 +10,7 @@ ADsTypeNameMap = {}
 def getADsTypeName(type_val):
     # convert integer type to the 'typename' as known in the headerfiles.
     if not ADsTypeNameMap:
-        for n, v in adsicon.__dict__.items():
+        for n, v in adsicon.__dict__.iteritems():
             if n.startswith("ADSTYPE_"):
                 ADsTypeNameMap[v] = n
     return ADsTypeNameMap.get(type_val, hex(type_val))
