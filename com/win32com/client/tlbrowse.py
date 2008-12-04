@@ -1,7 +1,6 @@
 import win32ui
 import win32con
 import win32api
-import string
 import commctrl
 import pythoncom
 from pywin.mfc import dialog
