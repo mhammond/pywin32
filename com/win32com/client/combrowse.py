@@ -498,7 +498,7 @@ class HLIHeadingRegisterdTypeLibs(HLICOM):
                         except win32api.error:
                             break
                         try:
-                            versionFlt = int(versionStr)
+                            versionFlt = float(versionStr)
                         except ValueError:
                             versionFlt = 0 # ????
                         if versionFlt > bestVersion:
