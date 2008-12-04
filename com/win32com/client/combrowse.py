@@ -170,7 +170,7 @@ class HLIRegisteredTypeLibrary(HLICOM):
                     flags = value
                 else:
                     try:
-                        lcid = string.atof(subKey)
+                        lcid = int(subKey)
                         lcidkey = win32api.RegOpenKey(key, subKey)
                         # Enumerate the platforms
                         lcidnum = 0
@@ -206,7 +206,7 @@ class HLIRegisteredTypeLibrary(HLICOM):
             if lcid:
                 extraDescs.append("locale=%s"%lcid)
             extraDesc = ""
-            if extraDescs: extraDesc = " (%s)" % string.join(extraDescs, ", ")
+            if extraDescs: extraDesc = " (%s)" % ", ".join(extraDescs)
             ret.append(HLITypeLib(fname, "Type Library" + extraDesc))
         ret.sort()
         return ret
@@ -439,7 +439,7 @@ class HLITypeLibFunction(HLICOM):
             if flag & fd[9]:
                 flagDescs.append(desc)
         if flagDescs:
-            ret.append(browser.MakeHLI(string.join(flagDescs, ", "), "Function Flags"))
+            ret.append(browser.MakeHLI(", ".join(flagDescs), "Function Flags"))
         return ret
 
 HLITypeKinds = {
@@ -498,7 +498,7 @@ class HLIHeadingRegisterdTypeLibs(HLICOM):
                         except win32api.error:
                             break
                         try:
-                            versionFlt = string.atof(versionStr)
+                            versionFlt = int(versionStr)
                         except ValueError:
                             versionFlt = 0 # ????
                         if versionFlt > bestVersion:
