@@ -98,7 +98,7 @@ except NameError:
             if maybe == path_name:
                 csidl = getattr(shellcon, maybe)
                 return shell.SHGetSpecialFolderPath(0, csidl, False)
-        raise ValueError, "%s is an unknown path ID" % (path_name,)
+        raise ValueError("%s is an unknown path ID" % (path_name,))
 
 def CopyTo(desc, src, dest):
     import win32api, win32con
