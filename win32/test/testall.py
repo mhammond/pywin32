@@ -71,7 +71,7 @@ def import_all():
            not is_debug and not base.endswith("_d")):
             try:
                 __import__(base)
-            except ImportError:
+            except:
                 print "FAILED to import", name
                 raise
             num += 1
