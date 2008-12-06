@@ -845,6 +845,24 @@ static int ibindNull(cursorObject*cur, int column)
   return 1;
 }
 
+// Class to hold a temporary reference that decrements itself
+class TmpPyObject
+{
+public:
+	PyObject *tmp;
+	TmpPyObject() { tmp=NULL; }
+	TmpPyObject(PyObject *ob) { tmp=ob; }
+	PyObject * operator= (PyObject *ob){
+		Py_XDECREF(tmp);
+		tmp=ob;
+		return tmp;
+		}
+
+	boolean operator== (PyObject *ob) { return tmp==ob; }
+	operator PyObject *() { return tmp; }
+	~TmpPyObject() { Py_XDECREF(tmp); }
+};
+
 static int ibindDate(cursorObject*cur, int column, PyObject *item) 
 {
 	/* Sql server apparently determines the precision and type of date based
