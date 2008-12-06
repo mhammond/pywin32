@@ -116,7 +116,7 @@ class AutoIndent:
         self.text = editwin.text
 
     def config(self, **options):
-        for key, value in options.items():
+        for key, value in options.iteritems():
             if key == 'usetabs':
                 self.usetabs = value
             elif key == 'indentwidth':
@@ -492,7 +492,7 @@ def classifyws(s, tabwidth):
             effective = effective + 1
         elif ch == '\t':
             raw = raw + 1
-            effective = (effective / tabwidth + 1) * tabwidth
+            effective = (effective // tabwidth + 1) * tabwidth
         else:
             break
     return raw, effective
