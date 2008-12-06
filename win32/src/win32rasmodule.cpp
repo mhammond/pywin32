@@ -845,5 +845,5 @@ initwin32ras(void)
   Py_INCREF(module_error);
 //  module_error = PyString_FromString("win32ras error");
   PyDict_SetItemString(dict, "error", module_error);
-  AddConstants(dict);
+  AddConstants(module);
 }
