@@ -177,13 +177,13 @@ void CDDEItem::Create(const TCHAR* pszName)
     m_strName = pszName;
 }
 
-BOOL CDDEItem::Request(UINT wFmt, void** ppData, DWORD* pdwSize)
+BOOL CDDEItem::Request(UINT wFmt, CDDEAllocator &allocr)
 {
     return FALSE;
 }
 
 //CT BEGIN
-BOOL CDDEItem::NSRequest(const TCHAR* szItem, void** ppData, DWORD* pdwSize)
+BOOL CDDEItem::NSRequest(const TCHAR* szItem, CDDEAllocator &allocr)
 {
     return FALSE;
 }
@@ -239,13 +239,10 @@ WORD* CDDEStringItem::GetFormatList()
     return SysFormatList; // CF_TEXT
 }
 
-BOOL CDDEStringItem::Request(UINT wFmt, void** ppData, DWORD* pdwSize)
+BOOL CDDEStringItem::Request(UINT wFmt, CDDEAllocator &allocr)
 {
     ASSERT(wFmt == CF_TEXT);
-    ASSERT(ppData);
-    *ppData = (void*)(const TCHAR*)m_strData;
-    *pdwSize = m_strData.GetLength() + 1; // allow for the null
-    return TRUE;
+    return allocr.Alloc(m_strData);
 }
 
 BOOL CDDEStringItem::Poke(UINT wFmt, void* pData, DWORD dwSize)
@@ -319,7 +316,7 @@ BOOL CDDETopic::AddItem(CDDEItem* pNewItem)
 }
 
 BOOL CDDETopic::Request(UINT wFmt, const TCHAR* pszItem,
-                            void** ppData, DWORD* pdwSize)
+                        CDDEAllocator &allocr)
 {
     //
     // See if we have this item
@@ -330,15 +327,15 @@ BOOL CDDETopic::Request(UINT wFmt, const TCHAR* pszItem,
 
 //CT BEGIN
 	if (pItem->m_strName == "") {
-		BOOL ret = NSRequest(pszItem, ppData, pdwSize);
+		BOOL ret = NSRequest(pszItem, allocr);
 		return ret ;
 	}
 //CT END
-    return pItem->Request(wFmt, ppData, pdwSize);
+    return pItem->Request(wFmt, allocr);
 }
 
 //CT BEGIN
-BOOL CDDETopic::NSRequest(const TCHAR * szItem, void** ppData, DWORD* dwsize)
+BOOL CDDETopic::NSRequest(const TCHAR *szItem, CDDEAllocator &allocr)
 {
 	return FALSE ;
 }
@@ -541,42 +538,42 @@ BOOL CDDEConv::AdviseData(UINT wFmt, const TCHAR* pszTopic, const TCHAR* pszItem
     return FALSE;
 }
 
-BOOL CDDEConv::Request(const TCHAR* pszItem, void** ppData, DWORD* pdwSize)
+BOOL CDDEConv::Request(const TCHAR* pszItem, CString &ret)
 {
     ASSERT(m_pServer);
     ASSERT(pszItem);
-    ASSERT(ppData);
-    ASSERT(pdwSize);
 
     CHSZ hszItem (m_pServer, pszItem);
     HDDEDATA hData = ::DdeClientTransaction(NULL,
                                             0,
                                             m_hConv,
                                             hszItem,
+#if defined(UNICODE)
+                                            CF_UNICODETEXT,
+#else
                                             CF_TEXT,
+#endif
                                             XTYP_REQUEST,
                                             DDE_TIMEOUT,
                                             NULL);
 
     if (!hData) {
-
-        // Failed
-        *pdwSize = 0;
-        *ppData = NULL;
         return FALSE;
     }
 
     //
     // Copy the result data
     //
-
-    BYTE* pData = ::DdeAccessData(hData, pdwSize);
-    ASSERT(*pdwSize);
-    *ppData = new char[*pdwSize];
-    ASSERT(*ppData);
-    memcpy(*ppData, pData, *pdwSize);
+    DWORD dwSize;
+    BYTE* pData = ::DdeAccessData(hData, &dwSize);
+    DWORD nChars = (dwSize / sizeof(TCHAR))-1;
+    ret = CString((TCHAR *)pData, nChars);
     ::DdeUnaccessData(hData);
-
+    // MSDN sez 'When an application has finished using the data handle
+    // returned by DdeClientTransaction, the application should free the
+    // handle by calling the DdeFreeDataHandle function.' - which would
+    // be about now!
+    ::DdeFreeDataHandle(hData);
     return TRUE;
 }
 
@@ -692,7 +689,7 @@ WORD* CDDESystemItem::GetFormatList()
 
 IMPLEMENT_DYNCREATE(CDDESystemItem_TopicList, CDDESystemItem);
 
-BOOL CDDESystemItem_TopicList::Request(UINT wFmt, void** ppData, DWORD* pdwSize)
+BOOL CDDESystemItem_TopicList::Request(UINT wFmt, CDDEAllocator &allocr)
 {
     // 
     // Return the list of topics for this service
@@ -727,15 +724,12 @@ BOOL CDDESystemItem_TopicList::Request(UINT wFmt, void** ppData, DWORD* pdwSize)
     //
     // Set up the return info
     //
-
-    *ppData = (void*)(const TCHAR*)strTopics;
-    *pdwSize = strTopics.GetLength() + 1; // include room for the NULL
-    return TRUE;
+    return allocr.Alloc(strTopics);
 }
 
 IMPLEMENT_DYNCREATE(CDDESystemItem_ItemList, CDDESystemItem);
 
-BOOL CDDESystemItem_ItemList::Request(UINT wFmt, void** ppData, DWORD* pdwSize)
+BOOL CDDESystemItem_ItemList::Request(UINT wFmt, CDDEAllocator &allocr)
 {
     // 
     // Return the list of items in this topic
@@ -768,15 +762,12 @@ BOOL CDDESystemItem_ItemList::Request(UINT wFmt, void** ppData, DWORD* pdwSize)
     //
     // Set up the return info
     //
-
-    *ppData = (void*)(const TCHAR*)strItems;
-    *pdwSize = strItems.GetLength() + 1; // include room for the NULL
-    return TRUE;
+    return allocr.Alloc(strItems);
 }
 
 IMPLEMENT_DYNCREATE(CDDESystemItem_FormatList, CDDESystemItem);
 
-BOOL CDDESystemItem_FormatList::Request(UINT wFmt, void** ppData, DWORD* pdwSize)
+BOOL CDDESystemItem_FormatList::Request(UINT wFmt, CDDEAllocator &allocr)
 {
     // 
     // Return the list of formats in this topic
@@ -849,19 +840,16 @@ BOOL CDDESystemItem_FormatList::Request(UINT wFmt, void** ppData, DWORD* pdwSize
     //
     // Set up the return info
     //
-
-    *ppData = (void*)(const TCHAR*)strFormats;
-    *pdwSize = strFormats.GetLength() + 1; // include romm for the NULL
-    return TRUE;
+    return allocr.Alloc(strFormats);
 }
 
 IMPLEMENT_DYNCREATE(CDDEServerSystemTopic, CDDETopic);
 
 BOOL CDDEServerSystemTopic::Request(UINT wFmt, const TCHAR* pszItem,
-                                    void** ppData, DWORD* pdwSize)
+                                    CDDEAllocator &allocr)
 {
     m_pServer->Status(_T("System topic request: %s"), pszItem);
-    return CDDETopic::Request(wFmt, pszItem, ppData, pdwSize);
+    return CDDETopic::Request(wFmt, pszItem, allocr);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
@@ -1693,11 +1681,12 @@ BOOL CDDEServer::DoCallback(WORD wType,
         // See if we have a request function for this item or
         // a generic one for the topic
         //
+        { // scope for locals.
 
+        CDDEAllocator allocr(m_dwDDEInstance, hszItem, wFmt, phReturnData);
         Status(_T("Request %s|%s"), (const TCHAR*)strTopic, (const TCHAR*)strItem); 
         dwLength = 0;
-        if (!Request(wFmt, strTopic, strItem, &pData, &dwLength)) {
-
+        if (!Request(wFmt, strTopic, strItem, allocr)) {
             // 
             // Nobody accepted the request
             // Maybe unsupported topic/item or bad format
@@ -1709,18 +1698,8 @@ BOOL CDDEServer::DoCallback(WORD wType,
 
         }
 
-        // 
-        // There is some data so build a DDE data object to return
-        //
-
-        *phReturnData = ::DdeCreateDataHandle(m_dwDDEInstance,
-                                              (unsigned char*)pData,
-                                              dwLength,
-                                              0,
-                                              hszItem,
-                                              wFmt,
-                                              0);
- 
+        } // end locals scope
+        // Data already setup via 'allocr' param, so we are done.
         break;
 
     default:
@@ -1804,7 +1783,7 @@ CString CDDEServer::StringFromHsz(HSZ hsz)
 }
 
 BOOL CDDEServer::Request(UINT wFmt, const TCHAR* pszTopic, const TCHAR* pszItem,
-                         void** ppData, DWORD* pdwSize)
+                         CDDEAllocator &allocr)
 {
     //
     // See if we have a topic that matches
@@ -1813,7 +1792,7 @@ BOOL CDDEServer::Request(UINT wFmt, const TCHAR* pszTopic, const TCHAR* pszItem,
     CDDETopic* pTopic = FindTopic(pszTopic);
     if (!pTopic) return FALSE;
 
-    return pTopic->Request(wFmt, pszItem, ppData, pdwSize);
+    return pTopic->Request(wFmt, pszItem, allocr);
 }
 
 BOOL CDDEServer::Poke(UINT wFmt, const TCHAR* pszTopic, const TCHAR* pszItem,

@@ -42,6 +42,36 @@
 
 static CString GetFormatName(WORD wFmt);
 
+// A class used for memory allocation; designed to be created on the stack,
+// then passed around.
+class CDDEAllocator
+{
+public:
+    CDDEAllocator(DWORD instance, HSZ hszItem, UINT wFmt, HDDEDATA *hret) :
+            m_instance(instance), m_hszItem(hszItem), m_wFmt(wFmt), m_hret(hret) {;}
+    BOOL Alloc(CString &cs) {
+        // XXX - should we check wFmt is CF_TEXT vs CF_UNICODETEXT??
+        return Alloc((LPBYTE)(const TCHAR *)cs, (cs.GetLength() + 1) * sizeof(TCHAR));
+    }
+    BOOL Alloc(LPBYTE p, DWORD cb) {
+        // XXX - should we check wFmt is CF_TEXT vs CF_UNICODETEXT??
+        *m_hret = ::DdeCreateDataHandle(m_instance,
+                                        p,
+                                        cb,
+                                        0,
+                                        m_hszItem,
+                                        m_wFmt,
+                                        0);
+        return TRUE;
+    }
+protected:
+    UINT m_wFmt;
+    DWORD m_instance;
+    HSZ m_hszItem;
+    HDDEDATA *m_hret;
+
+};
+
 //
 // Generic counted object class
 //
@@ -96,13 +126,13 @@ public:
     virtual ~CDDEItem();
     void Create(const TCHAR* pszName);
     void PostAdvise();
-    virtual BOOL Request(UINT wFmt, void** ppData, DWORD* pdwSize);
+    virtual BOOL Request(UINT wFmt, CDDEAllocator &allocr);
 //CT BEGIN
-	virtual BOOL NSRequest(const TCHAR* szItem, void** ppData, DWORD* pdwSize);
-	virtual BOOL NSPoke(const TCHAR* szItem, void* pData, DWORD dwSize);
-	virtual BOOL Poke(void* pData, DWORD dwSize);
+    virtual BOOL NSRequest(const TCHAR* szItem, CDDEAllocator &allocr);
+    virtual BOOL NSPoke(const TCHAR* szItem, void* pData, DWORD dwSize);
+    virtual BOOL Poke(void* pData, DWORD dwSize);
 //CT END
-	virtual BOOL Poke(UINT wFmt, void* pData, DWORD dwSize);
+    virtual BOOL Poke(UINT wFmt, void* pData, DWORD dwSize);
     virtual BOOL IsSupportedFormat(WORD wFormat);
     virtual WORD* GetFormatList()
         {return NULL;}
@@ -130,7 +160,7 @@ public:
         {return (const TCHAR*)m_strData;}
 
 protected:
-    virtual BOOL Request(UINT wFmt, void** ppData, DWORD* pdwSize);
+    virtual BOOL Request(UINT wFmt, CDDEAllocator &allocr);
     virtual BOOL Poke(UINT wFmt, void* pData, DWORD dwSize);
     virtual WORD* GetFormatList();
 
@@ -166,11 +196,12 @@ public:
     virtual ~CDDETopic();
     void Create(const TCHAR* pszName);
     BOOL AddItem(CDDEItem* pItem);
-    virtual BOOL Request(UINT wFmt, const TCHAR* pszItem,
-                         void** ppData, DWORD* pdwSize);
+    virtual BOOL Request(UINT wFmt, const TCHAR* pszItem, CDDEAllocator &allocr);
 //CT BEGIN
-	virtual BOOL NSRequest(const TCHAR * szItem, void** ppData, DWORD* pdwSize);
-	virtual BOOL NSPoke(const TCHAR * szItem, void* pData, DWORD dwSize);
+    virtual BOOL NSRequest(const TCHAR *szItem, CDDEAllocator &allocr);
+    // Note: If poke ever needs to return data, it should do like NSRequest,
+    // otherwise memory management becomes impossible.
+    virtual BOOL NSPoke(const TCHAR * szItem, void* pData, DWORD dwSize);
     virtual BOOL Poke(const TCHAR* pszItem,
                       void* pData, DWORD dwSize);
 //CT END
@@ -216,13 +247,13 @@ public:
     CDDEConv();
     CDDEConv(CDDEServer* pServer);
     CDDEConv(CDDEServer* pServer, HCONV hConv, HSZ hszTopic);
-	BOOL Connected() {return (m_hConv != NULL);}
+    BOOL Connected() {return (m_hConv != NULL);}
     virtual ~CDDEConv();
     virtual BOOL ConnectTo(const TCHAR* pszService, const TCHAR* pszTopic);
     virtual BOOL Terminate();
     virtual BOOL AdviseData(UINT wFmt, const TCHAR* pszTopic, const TCHAR* pszItem,
                             void* pData, DWORD dwSize);
-    virtual BOOL Request(const TCHAR* pszItem, void** ppData, DWORD* pdwSize);
+    virtual BOOL Request(const TCHAR* pszItem, CString &ret);
     virtual BOOL Advise(const TCHAR* pszItem);
     virtual BOOL Exec(const TCHAR* pszCmd);
     virtual BOOL Poke(UINT wFmt, const TCHAR* pszItem, void* pData, DWORD dwSize);
@@ -268,21 +299,21 @@ class CDDESystemItem_TopicList : public CDDESystemItem
 {
     DECLARE_DYNCREATE(CDDESystemItem_TopicList);
 protected:
-    virtual BOOL Request(UINT wFmt, void** ppData, DWORD* pdwSize);
+    virtual BOOL Request(UINT wFmt, CDDEAllocator &allocr);
 };
 
 class CDDESystemItem_ItemList : public CDDESystemItem
 {
     DECLARE_DYNCREATE(CDDESystemItem_ItemList);
 protected:
-    virtual BOOL Request(UINT wFmt, void** ppData, DWORD* pdwSize);
+    virtual BOOL Request(UINT wFmt, CDDEAllocator &allocr);
 };
 
 class CDDESystemItem_FormatList : public CDDESystemItem
 {
     DECLARE_DYNCREATE(CDDESystemItem_FormatList);
 protected:
-    virtual BOOL Request(UINT wFmt, void** ppData, DWORD* pdwSize);
+    virtual BOOL Request(UINT wFmt, CDDEAllocator &allocr);
 };
 
 class CDDEServerSystemTopic : public CDDETopic
@@ -290,7 +321,7 @@ class CDDEServerSystemTopic : public CDDETopic
     DECLARE_DYNCREATE(CDDEServerSystemTopic);
 protected:
     virtual BOOL Request(UINT wFmt, const TCHAR* pszItem,
-                         void** ppData, DWORD* pdwSize);
+                         CDDEAllocator &allocr);
 
 };
 
@@ -326,7 +357,7 @@ public:
         {return NULL;}
 
     virtual BOOL Request(UINT wFmt, const TCHAR* pszTopic, const TCHAR* pszItem,
-                         void** ppData, DWORD* pdwSize);
+                         CDDEAllocator &allocr);
     virtual BOOL Poke(UINT wFmt, const TCHAR* pszTopic, const TCHAR* pszItem,
                       void* pData, DWORD dwSize);
     virtual BOOL AdviseData(UINT wFmt, HCONV hConv, const TCHAR* pszTopic, const TCHAR* pszItem,

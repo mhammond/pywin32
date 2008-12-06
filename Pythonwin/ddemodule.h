@@ -23,7 +23,6 @@ public:
 	MAKE_PY_CTOR(PyDDEServer);
 };
 
-
 template <class T>
 class PythonDDETopicFramework : public T
 {
@@ -38,19 +37,17 @@ public:
 			helper.retval(rc);
 		return !rc;
 	}
-    virtual BOOL NSRequest(const TCHAR * szItem, void** ppData, DWORD* dwSize)
+    virtual BOOL NSRequest(const TCHAR *szItem, CDDEAllocator &allocr)
 	{
 		PyObject *args = Py_BuildValue("(N)", PyWinObject_FromTCHAR(szItem));
 		BOOL rc = TRUE;
 		CVirtualHelper helper("Request", this);
 		if (helper.call_args(args) ) {
-			TCHAR * strret ;
+			CString strret;
 			if (helper.retval(strret)) {
-				PyObject * look ;
-				helper.retval(look) ;
-				*dwSize = PyObject_Length(look)+1 ; 
-				*ppData = (void*)strret ;
-				return TRUE ;
+				// seems strange we can't use DdeCreateStringHandle, but that is
+				// a different handle type
+				return allocr.Alloc(strret);
 			}
 		}
 		return !rc;

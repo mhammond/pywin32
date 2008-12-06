@@ -81,16 +81,14 @@ PyObject *PyDDEConv_Request(PyObject *self, PyObject *args)
 		return NULL;
 	if (!PyWinObject_AsTCHAR(obCmd, &szCmd, FALSE))
 		return NULL;
+	CString ret;
 	GUI_BGN_SAVE;
-	void *ppData ;
-	DWORD pdwSize ;
-	BOOL ok = pConv->Request(szCmd, &ppData, &pdwSize);
+	BOOL ok = pConv->Request(szCmd, ret);
 	GUI_END_SAVE;
 	PyWinObject_FreeTCHAR(szCmd);
 	if (!ok)
 		RETURN_DDE_ERR("Request failed");
-	PyObject * result = PyWinObject_FromTCHAR((TCHAR *)ppData);
-	free(ppData) ;
+	PyObject * result = PyWinObject_FromTCHAR((const TCHAR *)ret);
 	return result ;
 }
 
