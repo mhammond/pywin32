@@ -81,7 +81,7 @@ def GetProperties(obj, propList):
 		data = None
 		return None
 	if bRetList:
-		return map( lambda(v): v[1], data )
+		return [v[1] for v in data]
 	else:
 		return data[0][1]
 
