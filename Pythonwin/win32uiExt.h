@@ -827,9 +827,7 @@ protected:
 		// @pyparm int|id||The command ID to retrieve the string for.
 		// @xref <om PyCMDIChildWnd.GetMessageString>
 		if (helper.call((int &)nID)) {
-			char *ret;
-			if (helper.retval(ret))
-				rMessage = ret;
+			helper.retval(rMessage);
 		}
 		else
 			T::GetMessageString(nID, rMessage);
