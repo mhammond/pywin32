@@ -24,7 +24,7 @@
 """
 import win32con
 import win32api, win32ui
-import string, sys
+import sys
 import pythoncom
 from win32com.client import util
 from pywin.tools import browser
