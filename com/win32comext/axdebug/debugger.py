@@ -83,7 +83,7 @@ class CodeContainerProvider(documents.CodeContainerProvider):
         documents.CodeContainerProvider.Close(self)
         self.axdebugger = None
         print "Closing %d nodes" % (len(self.nodes))
-        for node in self.nodes.values():
+        for node in self.nodes.itervalues():
             node.Close()
         self.nodes = {}
 
