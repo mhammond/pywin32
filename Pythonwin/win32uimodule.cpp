@@ -804,6 +804,22 @@ ui_python_print_traceback( PyObject *self, PyObject *args )
 	RETURN_NONE;
 }
 
+// @pymethod |win32ui|DisplayTraceback|Displays a traceback in a dialog box.
+static PyObject *
+ui_python_display_traceback( PyObject *self, PyObject *args )
+{
+	PyObject *obTitle = Py_None;
+	PyObject *t, *v, *tb;
+	if (!PyArg_ParseTuple(args, "(OOO)|O:DisplayTraceback", &t, &v, &tb, &obTitle))
+		return NULL;
+	TCHAR *title;
+	if (!PyWinObject_AsTCHAR(obTitle, &title, TRUE))
+		return NULL;
+	DisplayPythonTraceback(t, v, tb, title);
+	PyWinObject_FreeTCHAR(title);
+	RETURN_NONE;
+}
+
 // @pymethod |win32ui|OutputDebugString|Sends a string to the Windows debugging device.
 static PyObject *
 ui_output_debug(PyObject *self, PyObject *args)
@@ -1914,6 +1930,7 @@ static struct PyMethodDef ui_functions[] = {
 	{"CreateWnd",				ui_window_create, 1},		// @pymeth CreateWnd|Create a new unitialized <o PyCWnd> object
 	{"DestroyDebuggerThread",   ui_destroy_debugger_thread, 1}, // @pymeth DestroyDebuggerThread|Cleans up the debugger thread.
 	{"DoWaitCursor",			ui_do_wait_cursor,	1}, // @pymeth DoWaitCursor|Changes the cursor to/from a wait cursor.
+	{"DisplayTraceback", 			ui_python_display_traceback,	1}, // @pymeth DisplayTraceback|Displays a traceback in a dialog box.
 	{"Enable3dControls",		ui_enable_3d_controls, 1 }, // @pymeth Enable3dControls|Enables 3d controls for the application.
 	{"FindWindow",				PyCWnd::FindWindow,	1}, // @pymeth FindWindow|Searches for the specified top-level window
 	{"FindWindowEx",			PyCWnd::FindWindowEx,	1}, // @pymeth FindWindowEx|Searches for the specified top-level or child window
