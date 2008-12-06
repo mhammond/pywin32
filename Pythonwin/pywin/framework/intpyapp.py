@@ -157,8 +157,9 @@ class InteractivePythonApp(app.CApp):
 					if self.ProcessArgs(sys.argv, connection) is None:
 						return 1
 			except:
-				win32ui.MessageBox("There was an error in the DDE conversation with Pythonwin")
-				traceback.print_exc()
+				# It is too early to 'print' an exception - we
+				# don't have stdout setup yet!
+				win32ui.DisplayTraceback(sys.exc_info(), " - error in DDE conversation with Pythonwin")
 
 	def InitInstance(self):
 		# Allow "/nodde" and "/newinstance to optimize this!
@@ -247,13 +248,13 @@ class InteractivePythonApp(app.CApp):
 					win32ui.GetApp().OpenDocumentFile(args[argStart])
 			elif argType=="/rundlg":
 				if dde:
-					dde.Exec("import scriptutils;scriptutils.RunScript('%s', '%s', 1)" % (args[argStart], ' '.join(args[argStart+1:])))
+					dde.Exec("from pywin.framework import scriptutils;scriptutils.RunScript('%s', '%s', 1)" % (args[argStart], ' '.join(args[argStart+1:])))
 				else:
 					import scriptutils
 					scriptutils.RunScript(args[argStart], ' '.join(args[argStart+1:]))
 			elif argType=="/run":
 				if dde:
-					dde.Exec("import scriptutils;scriptutils.RunScript('%s', '%s', 0)" % (args[argStart], ' '.join(args[argStart+1:])))
+					dde.Exec("from pywin.framework import scriptutils;scriptutils.RunScript('%s', '%s', 0)" % (args[argStart], ' '.join(args[argStart+1:])))
 				else:
 					import scriptutils
 					scriptutils.RunScript(args[argStart], ' '.join(args[argStart+1:]), 0)
@@ -269,11 +270,8 @@ class InteractivePythonApp(app.CApp):
 			else:
 				raise TypeError("Command line arguments not recognised")
 		except:
-			typ, val, tb = sys.exc_info()
-			print "There was an error processing the command line args"
-			traceback.print_exception(typ, val, tb, None, sys.stdout)
-			win32ui.OutputDebug("There was a problem with the command line args - %s: %s" % (repr(typ),repr(val)))
-			tb = None # Prevent a cycle
+			# too early for print anything.
+			win32ui.DisplayTraceback(sys.exc_info(), " - error processing command line args")
 
 
 	def LoadSystemModules(self):
