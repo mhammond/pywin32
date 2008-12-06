@@ -282,10 +282,10 @@ class ConfigManager:
             c = compile("".join(lines), self.filename, "exec")
             self._save_data("extension code", c)
         except SyntaxError, details:
-            msg = details[0]
-            errlineno = details[1][1] + start_lineno
+            errlineno = details.lineno + start_lineno
             # Should handle syntax errors better here, and offset the lineno.
-            self.report_error("Compiling extension code failed: Line %d: %s" % (errlineno, msg))
+            self.report_error("Compiling extension code failed:\r\nFile: %s\r\nLine %d\r\n%s" \
+                              % (details.filename, errlineno, details.msg))
         return line, lineno
 
     def _load_idle_extensions(self, sub_section, fp, lineno):
