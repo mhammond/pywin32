@@ -34,7 +34,7 @@ class RedBoxWithPie (RedBox):
 	def DoPaint (self, dc):
 		RedBox.DoPaint(self, dc)
 		r = self.GetClientRect()
-		dc.Pie(r[0], r[1], r[2], r[3], 0,0,r[2], r[3]/2)
+		dc.Pie(r[0], r[1], r[2], r[3], 0,0,r[2], r[3]//2)
 
 def MakeDlgTemplate():
     style = (win32con.DS_MODALFRAME |
@@ -96,4 +96,3 @@ def demo(modal=0):
 if __name__=='__main__':
 	demo(1)
 
-# II Cor. 12:9 $Header$
