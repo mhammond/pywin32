@@ -22,7 +22,6 @@
 //		<nl>RemoveDirectory / RemoveDirectoryTransacted
 
 %{
-//#define UNICODE
 #ifndef MS_WINCE
 //#define FAR
 #ifndef _WIN32_WINNT
