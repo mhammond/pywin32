@@ -230,6 +230,8 @@ class TestOverlapped(unittest.TestCase):
         win32file.CreateIoCompletionPort(handle, port, 1, 0)
 
         thread = threading.Thread(target=self._IOCPServerThread, args=(handle,port, test_overlapped_death))
+        # hrmph - markh is seeing failures here on x64 - and a hang!
+        thread.setDaemon(True) # avoid hanging entire test suite on failure.
         thread.start()
         try:
             time.sleep(0.1) # let thread do its thing.
@@ -241,7 +243,8 @@ class TestOverlapped(unittest.TestCase):
                     raise
         finally:
             handle.Close()
-            thread.join()
+            thread.join(3)
+            self.failIf(thread.isAlive(), "thread didn't finish")
 
     def testCompletionPortsNonQueuedBadReference(self):
         self.testCompletionPortsNonQueued(True)
