@@ -313,8 +313,9 @@ public:
 	BOOL retval( long &ret );
 	BOOL retval( PyObject* &ret );
 	BOOL retval( CREATESTRUCT &cs );
-	BOOL retval( char * &ret );
-	BOOL retval( WCHAR *&ret );
+	// Note the lack of 'char *' or 'WCHAR *' support - this makes it
+	// too hard for memory management when converting between strings and
+	// unicode. Use the CString one instead.
 	BOOL retval( CString &ret );
 	BOOL retval( MSG *msg);
 	BOOL retval( HANDLE &ret );

@@ -544,38 +544,6 @@ BOOL CVirtualHelper::retval( HANDLE &ret )
 	return TRUE;
 }
 
-BOOL CVirtualHelper::retval( char *&ret )
-{
-	ASSERT(retVal);
-	if (!retVal)
-		return FALSE;	// failed - assume didnt work in non debug
-	if (retVal==Py_None) {
-		ret = NULL;
-		return TRUE;
-	}
-	CEnterLeavePython _celp;
-	ret = PyString_AsString(retVal);
-	if (ret == NULL) {
-		gui_print_error();
-		return FALSE;
-	}
-	return TRUE;
-}
-
-BOOL CVirtualHelper::retval(WCHAR *&ret )
-{
-	ASSERT(retVal);
-	if (!retVal)
-		return FALSE;	// failed - assume didnt work in non debug
-	CEnterLeavePython _celp;
-	// ??? This leaks memory, but this overload is not actually used anywhere ???
-	if (!PyWinObject_AsWCHAR(retVal, &ret, TRUE)){
-		gui_print_error();
-		return FALSE;
-	}
-	return TRUE;
-}
-
 BOOL CVirtualHelper::retval( CString &ret )
 {
 	ASSERT(retVal);
