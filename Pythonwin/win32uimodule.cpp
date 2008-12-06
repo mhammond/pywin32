@@ -151,6 +151,7 @@ ui_type::ui_type( const char *name, ui_type *pBase, int typeSize, struct PyMetho
 	base = pBase;
 	ctor = thector;
 }
+
 ui_type::~ui_type()
 {
 }
@@ -220,6 +221,8 @@ ui_base_class *ui_base_class::make( ui_type &makeTypeRef)
 #endif
 	return pNew;
 }
+
+
 /*static*/ BOOL ui_base_class::is_uiobject(PyObject *&o, ui_type *which)
 {
 	ui_base_class *ob = (ui_base_class *)o;
@@ -261,6 +264,7 @@ ui_base_class *ui_base_class::make( ui_type &makeTypeRef)
 	}
 	return FALSE;
 }
+
 BOOL ui_base_class::is_uiobject(ui_type *which)
 {
 	PyObject *cpy = this;
@@ -306,6 +310,7 @@ int ui_base_class::setattr(char *name, PyObject *v)
 	PyErr_SetString(PyExc_TypeError, buf);
 	return -1;
 }
+
 /*static*/ PyObject *
 ui_base_class::sui_repr( PyObject *op )
 {
