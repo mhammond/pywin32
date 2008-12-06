@@ -86,6 +86,3 @@ def demo(modal = 0):
 
 if __name__=='__main__':
 	demo(1)
-
-# $Header$
-
