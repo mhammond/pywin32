@@ -1550,8 +1550,16 @@ static PyObject *PyGetNamedSecurityInfo(PyObject *self, PyObject *args)
 		return NULL;
 
 	err=GetNamedSecurityInfoW(ObjectName, object_type, required_info, NULL, NULL, NULL, NULL, &pSD);
-	if (err==ERROR_SUCCESS)
-		ret=new PySECURITY_DESCRIPTOR(pSD);
+	if (err==ERROR_SUCCESS){
+		// When retrieving security for an administrative share (C$, D$, etc) the returned security descriptor
+		//	may be NULL even though the return code indicates success.
+		if (pSD)
+			ret=new PySECURITY_DESCRIPTOR(pSD);
+		else{
+			Py_INCREF(Py_None);
+			ret = Py_None;
+			}
+		}
 	else
 		PyWin_SetAPIError("GetNamedSecurityInfo",err);
 	PyWinObject_FreeWCHAR(ObjectName);
