@@ -9,18 +9,23 @@
 #include "windows.h"
 #include "winhttp.h"
 #include "pywintypes.h"
-
-extern PyObject *PyObject_FromHINTERNET(HINTERNET hi);
+#include "pywinobjects.h"
 
 // @doc
 typedef BOOL (WINAPI *funcWinHttpGetIEProxyConfigForCurrentUser)(WINHTTP_CURRENT_USER_IE_PROXY_CONFIG *);
 static funcWinHttpGetIEProxyConfigForCurrentUser pfnWinHttpGetIEProxyConfigForCurrentUser=NULL;
+
+typedef BOOL (WINAPI *funcWinHttpGetDefaultProxyConfiguration)(WINHTTP_PROXY_INFO *);
+static funcWinHttpGetDefaultProxyConfiguration pfnWinHttpGetDefaultProxyConfiguration=NULL;
 
 typedef BOOL (WINAPI *funcWinHttpGetProxyForUrl)(HINTERNET, LPCWSTR, WINHTTP_AUTOPROXY_OPTIONS*, WINHTTP_PROXY_INFO *);
 static funcWinHttpGetProxyForUrl pfnWinHttpGetProxyForUrl=NULL;
 
 typedef HINTERNET (WINAPI *funcWinHttpOpen)(LPCWSTR, DWORD, LPCWSTR, LPCWSTR, DWORD);
 static funcWinHttpOpen pfnWinHttpOpen=NULL;
+
+typedef BOOL (WINAPI *funcWinHttpCloseHandle)(HINTERNET);
+static funcWinHttpCloseHandle pfnWinHttpCloseHandle=NULL;
 
 #define CHECK_PFN(fname) \
   if (pfn##fname==NULL) \
@@ -45,6 +50,48 @@ void init_win32inetstuff()
     LOAD_PFN(WinHttpGetIEProxyConfigForCurrentUser);
     LOAD_PFN(WinHttpGetProxyForUrl);
     LOAD_PFN(WinHttpOpen);
+    LOAD_PFN(WinHttpCloseHandle);
+    LOAD_PFN(WinHttpGetDefaultProxyConfiguration);
+    // winhttp.dll also provides the string resources for its errors.
+    PyWin_RegisterErrorMessageModule(WINHTTP_ERROR_BASE, WINHTTP_ERROR_LAST, hmod);
+}
+
+// A handle used by WinHttpOpen; even though it is documented as a HINTERNET,
+// our standard HINTERNET isn't suitable as (a) the callbacks fail and (b)
+// the handle must be closed via WinHttpCloseHandle.
+class PyHWINHTTP : public PyHANDLE
+{
+public:
+	PyHWINHTTP(HINTERNET hInit) : PyHANDLE((HANDLE)hInit) {;}
+
+	virtual BOOL Close(void) {
+		BOOL ret=TRUE;
+		// We've already checked we have the function-pointer - but
+		// it can't hurt to check again!
+		if (m_handle && pfnWinHttpCloseHandle){
+			HINTERNET h=m_handle;
+			m_handle = 0; // don't try again!
+			ret=(*pfnWinHttpCloseHandle)(h);
+			if (!ret)
+				PyWin_SetAPIError("WinHttpCloseHandle");
+			}
+		return ret;
+	}
+	virtual const char *GetTypeName() {return "PyHWINHTTP";}
+};
+
+PyObject *PyObject_FromWinHttpHandle(HINTERNET hi)
+{
+	// Don't allow handles to be created if we can't close them!
+	CHECK_PFN(WinHttpCloseHandle);
+	PyHWINHTTP *ret=new PyHWINHTTP(hi);
+	if (ret==NULL)
+		return PyErr_NoMemory();
+	if (PyErr_Occurred()){
+		Py_DECREF(ret);
+		ret = NULL;
+		}
+	return ret;
 }
 
 // @pymethod tuple|win32inet|WinHttpGetIEProxyConfigForCurrentUser|Obtains
@@ -74,7 +121,20 @@ PyObject *PyWinHttpGetIEProxyConfigForCurrentUser(PyObject *self, PyObject *args
     return ret;
 }
 
-// @object WINHTTP_AUTOPROXY_OPTIONS|Used by <om win32inet.WinHTTPGetProxyForUrl>
+// @object PyWINHTTP_PROXY_INFO|A tuple representing a WINHTTP_PROXY_INFO structure.
+
+PyObject *PyObject_FromWINHTTP_PROXY_INFO(WINHTTP_PROXY_INFO *i, BOOL bFreeStrings=TRUE)
+{
+    PyObject *ret = Py_BuildValue("kuu",
+                        i->dwAccessType, // @tupleitem 0|int|dwAccessType|
+                        i->lpszProxy, // @tupleitem 2|string|lpszProxy|
+                        i->lpszProxyBypass); // @tupleitem 3|string|lpszProxy
+    if (i->lpszProxy) GlobalFree(i->lpszProxy);
+    if (i->lpszProxyBypass) GlobalFree(i->lpszProxyBypass);
+    return ret;
+}
+
+// @object PyWINHTTP_AUTOPROXY_OPTIONS|Used by <om win32inet.WinHTTPGetProxyForUrl>
 BOOL PyObject_AsWINHTTP_AUTOPROXY_OPTIONS(PyObject *ob, WINHTTP_AUTOPROXY_OPTIONS *out)
 {
     int autoLogin = 1;
@@ -104,8 +164,28 @@ void PyObject_CleanupWINHTTP_AUTOPROXY_OPTIONS(WINHTTP_AUTOPROXY_OPTIONS *out)
         PyWinObject_FreeWCHAR((WCHAR *)out->lpszAutoConfigUrl);
 }
 
-// @pymethod tuple|win32inet|WinHttpGetIEProxyConfigForCurrentUser|Obtains
-// the Internet Explorer proxy configuration for the current user.
+// @pymethod <o PyWINHTTP_PROXY_INFO>|win32inet|WinHttpGetDefaultProxyConfiguration|
+// Retrieves the default WinHTTP proxy configuration from the registry.
+PyObject *PyWinHttpGetDefaultProxyConfiguration(PyObject *self, PyObject *args)
+{
+    CHECK_PFN(WinHttpGetDefaultProxyConfiguration);
+    if (!PyArg_ParseTuple(args, ":WinHttpGetDefaultProxyConfiguration"))
+        return NULL;
+    WINHTTP_PROXY_INFO info;
+    memset(&info, 0, sizeof(info));
+    BOOL ok;
+    Py_BEGIN_ALLOW_THREADS
+    ok = (*pfnWinHttpGetDefaultProxyConfiguration)(&info);
+    Py_END_ALLOW_THREADS
+    if (!ok) {
+        PyWin_SetAPIError("WinHttpGetDefaultProxyConfiguration");
+        return NULL;
+    }
+    return PyObject_FromWINHTTP_PROXY_INFO(&info);
+}
+
+// @pymethod <o PyWINHTTP_PROXY_INFO>|win32inet|WinHttpGetProxyForUrl|Obtains
+// the Internet Explorer proxy configuration for the specified URL.
 PyObject *PyWinHttpGetProxyForUrl(PyObject *self, PyObject *args)
 {
     CHECK_PFN(WinHttpGetProxyForUrl);
@@ -113,7 +193,7 @@ PyObject *PyWinHttpGetProxyForUrl(PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "OOO:WinHttpGetProxyForUrl",
               &obHandle, // @pyparm <o HANDLE>/int|handle||
               &obURL, // @pyparm unicode/string|url||
-              &obOptions // @pyparm tuple|options||
+              &obOptions // @pyparm <o PyWINHTTP_AUTOPROXY_OPTIONS>|options||
               ))
         return NULL;
 
@@ -142,17 +222,7 @@ PyObject *PyWinHttpGetProxyForUrl(PyObject *self, PyObject *args)
         PyWin_SetAPIError("WinHttpGetProxyForUrl");
         goto done;
     }
-    // @rdesc The result is a windows WINHTTP_PROXY_INFO
-    // structure; a tuple of an int (bool) and 2 unicode strings
-    // (dwAccessType, lpszProxy, lpszProxyBypass).
-    // @pyseeapi WinHttpGetProxyForUrl
-    // @pyseeapi WINHTTP_PROXY_INFO
-    ret = Py_BuildValue("kuu",
-                        info.dwAccessType,
-                        info.lpszProxy,
-                        info.lpszProxyBypass);
-    if (info.lpszProxy) GlobalFree(info.lpszProxy);
-    if (info.lpszProxyBypass) GlobalFree(info.lpszProxyBypass);
+    ret = PyObject_FromWINHTTP_PROXY_INFO(&info);
 done:
     if (url)
         PyWinObject_FreeWCHAR(url);
@@ -197,7 +267,7 @@ PyObject *PyWinHttpOpen(PyObject *self, PyObject *args)
         goto done;
     }
     // @pyseeapi WinHttpOpen
-    ret = PyObject_FromHINTERNET(hi);
+    ret = PyObject_FromWinHttpHandle(hi);
 done:
     if (ua)
         PyWinObject_FreeWCHAR(ua);
