@@ -65,6 +65,10 @@ class PyCallbackContext{
 		}
 };
 
+// NOTE: The PyHINTERNET class is only suitable for HINTERNET's returned
+// from the win32inet functions.  The WinHttp functions should use a
+// HWINHTTP.
+
 // @object PyHINTERNET|An object that wraps a HINTERNET handle.  When the
 // handle object is destroyed, it is automatically closed.
 // See the <o PyHANDLE> object for more details.
@@ -1923,11 +1927,13 @@ BOOLAPI DeleteUrlCacheEntry(TCHAR *lpszUrlName);
 %{
 extern void init_win32inetstuff();
 extern PyObject *PyWinHttpGetIEProxyConfigForCurrentUser(PyObject *, PyObject *);
+extern PyObject *PyWinHttpGetDefaultProxyConfiguration(PyObject *, PyObject *);
 extern PyObject *PyWinHttpGetProxyForUrl(PyObject *, PyObject *);
 extern PyObject *PyWinHttpOpen(PyObject *, PyObject *);
 %}
 
 %native(WinHttpGetIEProxyConfigForCurrentUser) PyWinHttpGetIEProxyConfigForCurrentUser;
+%native(WinHttpGetDefaultProxyConfiguration) PyWinHttpGetDefaultProxyConfiguration;
 %native(WinHttpGetProxyForUrl) PyWinHttpGetProxyForUrl;
 %native(WinHttpOpen) PyWinHttpOpen;
 
