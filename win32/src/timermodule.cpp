@@ -147,21 +147,20 @@ static struct PyMethodDef timer_functions[] = {
 	{NULL,			NULL}
 };
 
-extern"C" __declspec(dllexport) void
-inittimer(void)
+
+PYWIN_MODULE_INIT_FUNC(timer)
 {
-	PyWinGlobals_Ensure();
+	PYWIN_MODULE_INIT_PREPARE(timer, timer_functions,
+				  "Extension that wraps Win32 Timer functions");
+
 	timer_id_callback_map = PyDict_New();
 	if (!timer_id_callback_map)
-		return;
-	PyObject *dict, *module;
-	module = Py_InitModule("timer", timer_functions);
-	if (!module) /* Eeek - some serious error! */
-		return;
-	dict = PyModule_GetDict(module);
-	if (!dict)
-		return; /* Another serious error!*/
-	Py_INCREF(PyWinExc_ApiError);
-	PyDict_SetItemString(dict, "error", PyWinExc_ApiError);
-	PyDict_SetItemString(dict, "__version__", PyString_FromString("0.2"));
+		PYWIN_MODULE_INIT_RETURN_ERROR
+
+	if (PyDict_SetItemString(dict, "error", PyWinExc_ApiError) == -1)
+		PYWIN_MODULE_INIT_RETURN_ERROR;
+	if (PyDict_SetItemString(dict, "__version__", PyString_FromString("0.2")) == -1)
+		PYWIN_MODULE_INIT_RETURN_ERROR;
+
+	PYWIN_MODULE_INIT_RETURN_SUCCESS;
 }

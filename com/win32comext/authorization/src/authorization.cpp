@@ -46,16 +46,11 @@ static struct PyMethodDef authorization_methods[]=
 	{NULL}
 };
 
-extern "C" __declspec(dllexport) void initauthorization()
+
+PYWIN_MODULE_INIT_FUNC(authorization)
 {
-	PyObject *module, *module_dict;
-	module = Py_InitModule("authorization", authorization_methods);
-	if(module==NULL)
-		return;
-
-	module_dict = PyModule_GetDict(module);
-	if (module_dict==NULL)
-		return;
-	PyCom_RegisterExtensionSupport(module_dict, interface_info, sizeof(interface_info)/sizeof(PyCom_InterfaceSupportInfo));
-
+	PYWIN_MODULE_INIT_PREPARE(authorization, authorization_methods,
+	                          "Module containing support for authorization COM interfaces.");
+	PyCom_RegisterExtensionSupport(dict, interface_info, sizeof(interface_info)/sizeof(PyCom_InterfaceSupportInfo));
+	PYWIN_MODULE_INIT_RETURN_SUCCESS;
 }

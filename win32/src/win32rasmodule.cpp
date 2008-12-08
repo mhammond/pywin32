@@ -831,19 +831,18 @@ static int AddConstants(PyObject *module)
     return 0;
 }
 
-extern "C" __declspec(dllexport) void
-initwin32ras(void)
+PYWIN_MODULE_INIT_FUNC(win32ras)
 {
-  PyWinGlobals_Ensure();
-  PyObject *dict, *module;
-  module = Py_InitModule("win32ras", win32ras_functions);
-  if (!module) /* Eeek - some serious error! */
-    return;
-  dict = PyModule_GetDict(module);
-  if (!dict) return;
-  module_error = PyWinExc_ApiError;
-  Py_INCREF(module_error);
-//  module_error = PyString_FromString("win32ras error");
-  PyDict_SetItemString(dict, "error", module_error);
-  AddConstants(module);
+	PYWIN_MODULE_INIT_PREPARE(win32ras, win32ras_functions,
+				  "A module encapsulating the Windows Remote Access Service (RAS) API.");
+
+	module_error = PyWinExc_ApiError;
+	Py_INCREF(module_error);
+	PyDict_SetItemString(dict, "error", module_error);
+	if (PyType_Ready(&PyRASDIALEXTENSIONS::type) == -1)
+		PYWIN_MODULE_INIT_RETURN_ERROR;
+	if (AddConstants(module) != 0)
+		PYWIN_MODULE_INIT_RETURN_ERROR;
+
+	PYWIN_MODULE_INIT_RETURN_SUCCESS;
 }

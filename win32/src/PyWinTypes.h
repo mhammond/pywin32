@@ -20,6 +20,63 @@
 #include "Python.h"
 #include "windows.h"
 
+
+// Helpers for our modules.
+// Some macros to help the pywin32 modules co-exist in py2x and py3k.
+// Creates and initializes local variables called 'module' and 'dict'.
+
+#if (PY_VERSION_HEX < 0x03000000)
+
+// Use to define the function itself (ie, its name, linkage, params)
+#define PYWIN_MODULE_INIT_FUNC(module_name) \
+	extern "C" __declspec(dllexport) void init##module_name(void)
+
+// If the module needs to early-exit on an error condition.
+#define PYWIN_MODULE_INIT_RETURN_ERROR return;
+
+// When the module has successfully initialized.
+#define PYWIN_MODULE_INIT_RETURN_SUCCESS return;
+
+// To setup the module object itself and the module's dictionary.
+#define PYWIN_MODULE_INIT_PREPARE(module_name, functions, docstring) \
+	PyObject *dict, *module; \
+	if (PyWinGlobals_Ensure()==-1) \
+		return; \
+	if (!(module = Py_InitModule(#module_name, functions))) \
+		return; \
+	if (!(dict = PyModule_GetDict(module))) \
+		return;
+
+#else
+// py3k module helpers.
+// Use to define the function itself (ie, its name, linkage, params)
+#define PYWIN_MODULE_INIT_FUNC(module_name) \
+	extern "C" __declspec(dllexport) PyObject *PyInit_##module_name(void)
+
+// If the module needs to early-exit on an error condition.
+#define PYWIN_MODULE_INIT_RETURN_ERROR return NULL;
+
+// When the module has successfully initialized.
+#define PYWIN_MODULE_INIT_RETURN_SUCCESS return module;
+
+// To setup the module object itself and the module's dictionary.
+#define PYWIN_MODULE_INIT_PREPARE(module_name, functions, docstring) \
+	PyObject *dict, *module; \
+	static PyModuleDef module_name##_def = { \
+		PyModuleDef_HEAD_INIT, \
+		#module_name, \
+		docstring , \
+		-1, \
+		functions }; \
+	if (PyWinGlobals_Ensure()==-1) \
+		return NULL; \
+	if (!(module = PyModule_Create(&module_name##_def))) \
+		return NULL; \
+	if (!(dict = PyModule_GetDict(module))) \
+		return NULL;
+#endif // PY_VERSION_HEX
+
+
 // Helpers for our types.
 #if (PY_VERSION_HEX < 0x03000000)
 #define PYWIN_OBJECT_HEAD PyObject_HEAD_INIT(&PyType_Type) 0,

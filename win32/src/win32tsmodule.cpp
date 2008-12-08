@@ -688,104 +688,101 @@ static struct PyMethodDef win32ts_functions[] = {
 };
 
 
-extern "C" __declspec(dllexport) void
-initwin32ts(void)
+PYWIN_MODULE_INIT_FUNC(win32ts)
 {
-	PyObject *dict, *mod;
-	PyWinGlobals_Ensure();
-	mod = Py_InitModule("win32ts", win32ts_functions);
-	dict = PyModule_GetDict(mod);
+	PYWIN_MODULE_INIT_PREPARE(win32ts, win32ts_functions,
+	                          "Interface to the Terminal Services Api.");
 
 	// WTS_CONNECTSTATE_CLASS
-	PyModule_AddIntConstant(mod, "WTSActive", WTSActive);
-	PyModule_AddIntConstant(mod, "WTSConnected", WTSConnected);
-	PyModule_AddIntConstant(mod, "WTSConnectQuery", WTSConnectQuery);
-	PyModule_AddIntConstant(mod, "WTSShadow", WTSShadow);
-	PyModule_AddIntConstant(mod, "WTSDisconnected", WTSDisconnected);
-	PyModule_AddIntConstant(mod, "WTSIdle", WTSIdle);
-	PyModule_AddIntConstant(mod, "WTSListen", WTSListen);
-	PyModule_AddIntConstant(mod, "WTSReset", WTSReset);
-	PyModule_AddIntConstant(mod, "WTSDown", WTSDown);
-	PyModule_AddIntConstant(mod, "WTSInit", WTSInit);
+	PyModule_AddIntConstant(module, "WTSActive", WTSActive);
+	PyModule_AddIntConstant(module, "WTSConnected", WTSConnected);
+	PyModule_AddIntConstant(module, "WTSConnectQuery", WTSConnectQuery);
+	PyModule_AddIntConstant(module, "WTSShadow", WTSShadow);
+	PyModule_AddIntConstant(module, "WTSDisconnected", WTSDisconnected);
+	PyModule_AddIntConstant(module, "WTSIdle", WTSIdle);
+	PyModule_AddIntConstant(module, "WTSListen", WTSListen);
+	PyModule_AddIntConstant(module, "WTSReset", WTSReset);
+	PyModule_AddIntConstant(module, "WTSDown", WTSDown);
+	PyModule_AddIntConstant(module, "WTSInit", WTSInit);
 
 	// WTS_INFO_CLASS
-	PyModule_AddIntConstant(mod, "WTSInitialProgram", WTSInitialProgram);
-	PyModule_AddIntConstant(mod, "WTSApplicationName", WTSApplicationName);
-	PyModule_AddIntConstant(mod, "WTSWorkingDirectory", WTSWorkingDirectory);
-	PyModule_AddIntConstant(mod, "WTSOEMId", WTSOEMId);
-	PyModule_AddIntConstant(mod, "WTSSessionId", WTSSessionId);
-	PyModule_AddIntConstant(mod, "WTSUserName", WTSUserName);
-	PyModule_AddIntConstant(mod, "WTSWinStationName", WTSWinStationName);
-	PyModule_AddIntConstant(mod, "WTSDomainName", WTSDomainName);
-	PyModule_AddIntConstant(mod, "WTSConnectState", WTSConnectState);
-	PyModule_AddIntConstant(mod, "WTSClientBuildNumber", WTSClientBuildNumber);
-	PyModule_AddIntConstant(mod, "WTSClientName", WTSClientName);
-	PyModule_AddIntConstant(mod, "WTSClientDirectory", WTSClientDirectory);
-	PyModule_AddIntConstant(mod, "WTSClientProductId", WTSClientProductId);
-	PyModule_AddIntConstant(mod, "WTSClientHardwareId", WTSClientHardwareId);
-	PyModule_AddIntConstant(mod, "WTSClientAddress", WTSClientAddress);
-	PyModule_AddIntConstant(mod, "WTSClientDisplay", WTSClientDisplay);
-	PyModule_AddIntConstant(mod, "WTSClientProtocolType", WTSClientProtocolType);
+	PyModule_AddIntConstant(module, "WTSInitialProgram", WTSInitialProgram);
+	PyModule_AddIntConstant(module, "WTSApplicationName", WTSApplicationName);
+	PyModule_AddIntConstant(module, "WTSWorkingDirectory", WTSWorkingDirectory);
+	PyModule_AddIntConstant(module, "WTSOEMId", WTSOEMId);
+	PyModule_AddIntConstant(module, "WTSSessionId", WTSSessionId);
+	PyModule_AddIntConstant(module, "WTSUserName", WTSUserName);
+	PyModule_AddIntConstant(module, "WTSWinStationName", WTSWinStationName);
+	PyModule_AddIntConstant(module, "WTSDomainName", WTSDomainName);
+	PyModule_AddIntConstant(module, "WTSConnectState", WTSConnectState);
+	PyModule_AddIntConstant(module, "WTSClientBuildNumber", WTSClientBuildNumber);
+	PyModule_AddIntConstant(module, "WTSClientName", WTSClientName);
+	PyModule_AddIntConstant(module, "WTSClientDirectory", WTSClientDirectory);
+	PyModule_AddIntConstant(module, "WTSClientProductId", WTSClientProductId);
+	PyModule_AddIntConstant(module, "WTSClientHardwareId", WTSClientHardwareId);
+	PyModule_AddIntConstant(module, "WTSClientAddress", WTSClientAddress);
+	PyModule_AddIntConstant(module, "WTSClientDisplay", WTSClientDisplay);
+	PyModule_AddIntConstant(module, "WTSClientProtocolType", WTSClientProtocolType);
 
 	// WTS_CONFIG_CLASS
-	PyModule_AddIntConstant(mod, "WTSUserConfigInitialProgram", WTSUserConfigInitialProgram);
-	PyModule_AddIntConstant(mod, "WTSUserConfigWorkingDirectory", WTSUserConfigWorkingDirectory);
-	PyModule_AddIntConstant(mod, "WTSUserConfigfInheritInitialProgram", WTSUserConfigfInheritInitialProgram);
-	PyModule_AddIntConstant(mod, "WTSUserConfigfAllowLogonTerminalServer", WTSUserConfigfAllowLogonTerminalServer);
-	PyModule_AddIntConstant(mod, "WTSUserConfigTimeoutSettingsConnections", WTSUserConfigTimeoutSettingsConnections);
-	PyModule_AddIntConstant(mod, "WTSUserConfigTimeoutSettingsDisconnections", WTSUserConfigTimeoutSettingsDisconnections);
-	PyModule_AddIntConstant(mod, "WTSUserConfigTimeoutSettingsIdle", WTSUserConfigTimeoutSettingsIdle);
-	PyModule_AddIntConstant(mod, "WTSUserConfigfDeviceClientDrives", WTSUserConfigfDeviceClientDrives);
-	PyModule_AddIntConstant(mod, "WTSUserConfigfDeviceClientPrinters", WTSUserConfigfDeviceClientPrinters);
-	PyModule_AddIntConstant(mod, "WTSUserConfigfDeviceClientDefaultPrinter", WTSUserConfigfDeviceClientDefaultPrinter);
-	PyModule_AddIntConstant(mod, "WTSUserConfigBrokenTimeoutSettings", WTSUserConfigBrokenTimeoutSettings);
-	PyModule_AddIntConstant(mod, "WTSUserConfigReconnectSettings", WTSUserConfigReconnectSettings);
-	PyModule_AddIntConstant(mod, "WTSUserConfigModemCallbackSettings", WTSUserConfigModemCallbackSettings);
-	PyModule_AddIntConstant(mod, "WTSUserConfigModemCallbackPhoneNumber", WTSUserConfigModemCallbackPhoneNumber);
-	PyModule_AddIntConstant(mod, "WTSUserConfigShadowingSettings", WTSUserConfigShadowingSettings);
-	PyModule_AddIntConstant(mod, "WTSUserConfigTerminalServerProfilePath", WTSUserConfigTerminalServerProfilePath);
-	PyModule_AddIntConstant(mod, "WTSUserConfigTerminalServerHomeDir", WTSUserConfigTerminalServerHomeDir);
-	PyModule_AddIntConstant(mod, "WTSUserConfigTerminalServerHomeDirDrive", WTSUserConfigTerminalServerHomeDirDrive);
-	PyModule_AddIntConstant(mod, "WTSUserConfigfTerminalServerRemoteHomeDir", WTSUserConfigfTerminalServerRemoteHomeDir);
+	PyModule_AddIntConstant(module, "WTSUserConfigInitialProgram", WTSUserConfigInitialProgram);
+	PyModule_AddIntConstant(module, "WTSUserConfigWorkingDirectory", WTSUserConfigWorkingDirectory);
+	PyModule_AddIntConstant(module, "WTSUserConfigfInheritInitialProgram", WTSUserConfigfInheritInitialProgram);
+	PyModule_AddIntConstant(module, "WTSUserConfigfAllowLogonTerminalServer", WTSUserConfigfAllowLogonTerminalServer);
+	PyModule_AddIntConstant(module, "WTSUserConfigTimeoutSettingsConnections", WTSUserConfigTimeoutSettingsConnections);
+	PyModule_AddIntConstant(module, "WTSUserConfigTimeoutSettingsDisconnections", WTSUserConfigTimeoutSettingsDisconnections);
+	PyModule_AddIntConstant(module, "WTSUserConfigTimeoutSettingsIdle", WTSUserConfigTimeoutSettingsIdle);
+	PyModule_AddIntConstant(module, "WTSUserConfigfDeviceClientDrives", WTSUserConfigfDeviceClientDrives);
+	PyModule_AddIntConstant(module, "WTSUserConfigfDeviceClientPrinters", WTSUserConfigfDeviceClientPrinters);
+	PyModule_AddIntConstant(module, "WTSUserConfigfDeviceClientDefaultPrinter", WTSUserConfigfDeviceClientDefaultPrinter);
+	PyModule_AddIntConstant(module, "WTSUserConfigBrokenTimeoutSettings", WTSUserConfigBrokenTimeoutSettings);
+	PyModule_AddIntConstant(module, "WTSUserConfigReconnectSettings", WTSUserConfigReconnectSettings);
+	PyModule_AddIntConstant(module, "WTSUserConfigModemCallbackSettings", WTSUserConfigModemCallbackSettings);
+	PyModule_AddIntConstant(module, "WTSUserConfigModemCallbackPhoneNumber", WTSUserConfigModemCallbackPhoneNumber);
+	PyModule_AddIntConstant(module, "WTSUserConfigShadowingSettings", WTSUserConfigShadowingSettings);
+	PyModule_AddIntConstant(module, "WTSUserConfigTerminalServerProfilePath", WTSUserConfigTerminalServerProfilePath);
+	PyModule_AddIntConstant(module, "WTSUserConfigTerminalServerHomeDir", WTSUserConfigTerminalServerHomeDir);
+	PyModule_AddIntConstant(module, "WTSUserConfigTerminalServerHomeDirDrive", WTSUserConfigTerminalServerHomeDirDrive);
+	PyModule_AddIntConstant(module, "WTSUserConfigfTerminalServerRemoteHomeDir", WTSUserConfigfTerminalServerRemoteHomeDir);
 
-	PyModule_AddIntConstant(mod, "WTS_EVENT_NONE", WTS_EVENT_NONE);
-	PyModule_AddIntConstant(mod, "WTS_EVENT_CREATE", WTS_EVENT_CREATE);
-	PyModule_AddIntConstant(mod, "WTS_EVENT_DELETE", WTS_EVENT_DELETE);
-	PyModule_AddIntConstant(mod, "WTS_EVENT_RENAME", WTS_EVENT_RENAME);
-	PyModule_AddIntConstant(mod, "WTS_EVENT_CONNECT", WTS_EVENT_CONNECT);
-	PyModule_AddIntConstant(mod, "WTS_EVENT_DISCONNECT", WTS_EVENT_DISCONNECT);
-	PyModule_AddIntConstant(mod, "WTS_EVENT_LOGON", WTS_EVENT_LOGON);
-	PyModule_AddIntConstant(mod, "WTS_EVENT_LOGOFF", WTS_EVENT_LOGOFF);
-	PyModule_AddIntConstant(mod, "WTS_EVENT_STATECHANGE", WTS_EVENT_STATECHANGE);
-	PyModule_AddIntConstant(mod, "WTS_EVENT_LICENSE", WTS_EVENT_LICENSE);
-	PyModule_AddIntConstant(mod, "WTS_EVENT_ALL", WTS_EVENT_ALL);
-	PyModule_AddIntConstant(mod, "WTS_EVENT_FLUSH", WTS_EVENT_FLUSH);
+	PyModule_AddIntConstant(module, "WTS_EVENT_NONE", WTS_EVENT_NONE);
+	PyModule_AddIntConstant(module, "WTS_EVENT_CREATE", WTS_EVENT_CREATE);
+	PyModule_AddIntConstant(module, "WTS_EVENT_DELETE", WTS_EVENT_DELETE);
+	PyModule_AddIntConstant(module, "WTS_EVENT_RENAME", WTS_EVENT_RENAME);
+	PyModule_AddIntConstant(module, "WTS_EVENT_CONNECT", WTS_EVENT_CONNECT);
+	PyModule_AddIntConstant(module, "WTS_EVENT_DISCONNECT", WTS_EVENT_DISCONNECT);
+	PyModule_AddIntConstant(module, "WTS_EVENT_LOGON", WTS_EVENT_LOGON);
+	PyModule_AddIntConstant(module, "WTS_EVENT_LOGOFF", WTS_EVENT_LOGOFF);
+	PyModule_AddIntConstant(module, "WTS_EVENT_STATECHANGE", WTS_EVENT_STATECHANGE);
+	PyModule_AddIntConstant(module, "WTS_EVENT_LICENSE", WTS_EVENT_LICENSE);
+	PyModule_AddIntConstant(module, "WTS_EVENT_ALL", WTS_EVENT_ALL);
+	PyModule_AddIntConstant(module, "WTS_EVENT_FLUSH", WTS_EVENT_FLUSH);
 
 	// WTS_VIRTUAL_CLASS
-	PyModule_AddIntConstant(mod, "WTSVirtualClientData", WTSVirtualClientData);
-	PyModule_AddIntConstant(mod, "WTSVirtualFileHandle", WTSVirtualFileHandle);
+	PyModule_AddIntConstant(module, "WTSVirtualClientData", WTSVirtualClientData);
+	PyModule_AddIntConstant(module, "WTSVirtualFileHandle", WTSVirtualFileHandle);
 
-	PyModule_AddIntConstant(mod, "WTS_PROTOCOL_TYPE_CONSOLE", WTS_PROTOCOL_TYPE_CONSOLE);
-	PyModule_AddIntConstant(mod, "WTS_PROTOCOL_TYPE_ICA", WTS_PROTOCOL_TYPE_ICA);
-	PyModule_AddIntConstant(mod, "WTS_PROTOCOL_TYPE_RDP", WTS_PROTOCOL_TYPE_RDP);
+	PyModule_AddIntConstant(module, "WTS_PROTOCOL_TYPE_CONSOLE", WTS_PROTOCOL_TYPE_CONSOLE);
+	PyModule_AddIntConstant(module, "WTS_PROTOCOL_TYPE_ICA", WTS_PROTOCOL_TYPE_ICA);
+	PyModule_AddIntConstant(module, "WTS_PROTOCOL_TYPE_RDP", WTS_PROTOCOL_TYPE_RDP);
 
 	// Flags used with WTSShutdownSystem
-	PyModule_AddIntConstant(mod, "WTS_WSD_LOGOFF", WTS_WSD_LOGOFF);
-	PyModule_AddIntConstant(mod, "WTS_WSD_SHUTDOWN", WTS_WSD_SHUTDOWN);
-	PyModule_AddIntConstant(mod, "WTS_WSD_REBOOT", WTS_WSD_REBOOT);
-	PyModule_AddIntConstant(mod, "WTS_WSD_POWEROFF", WTS_WSD_POWEROFF);
-	PyModule_AddIntConstant(mod, "WTS_WSD_FASTREBOOT", WTS_WSD_FASTREBOOT);
+	PyModule_AddIntConstant(module, "WTS_WSD_LOGOFF", WTS_WSD_LOGOFF);
+	PyModule_AddIntConstant(module, "WTS_WSD_SHUTDOWN", WTS_WSD_SHUTDOWN);
+	PyModule_AddIntConstant(module, "WTS_WSD_REBOOT", WTS_WSD_REBOOT);
+	PyModule_AddIntConstant(module, "WTS_WSD_POWEROFF", WTS_WSD_POWEROFF);
+	PyModule_AddIntConstant(module, "WTS_WSD_FASTREBOOT", WTS_WSD_FASTREBOOT);
 
 	// pseudo handles for current server and session
-	PyModule_AddIntConstant(mod, "WTS_CURRENT_SERVER", 0);
-	PyModule_AddIntConstant(mod, "WTS_CURRENT_SERVER_HANDLE", 0);
-	PyModule_AddIntConstant(mod, "WTS_CURRENT_SESSION", WTS_CURRENT_SESSION);
+	PyModule_AddIntConstant(module, "WTS_CURRENT_SERVER", 0);
+	PyModule_AddIntConstant(module, "WTS_CURRENT_SERVER_HANDLE", 0);
+	PyModule_AddIntConstant(module, "WTS_CURRENT_SESSION", WTS_CURRENT_SESSION);
 	Py_INCREF(Py_None);	// WTS_CURRENT_SERVER_NAME is defined as NULL
-	PyModule_AddObject(mod, "WTS_CURRENT_SERVER_NAME", Py_None);
+	PyModule_AddObject(module, "WTS_CURRENT_SERVER_NAME", Py_None);
 
 	// Session notification constants
-	PyModule_AddIntConstant(mod, "NOTIFY_FOR_THIS_SESSION", NOTIFY_FOR_THIS_SESSION);
-	PyModule_AddIntConstant(mod, "NOTIFY_FOR_ALL_SESSIONS", NOTIFY_FOR_ALL_SESSIONS);
+	PyModule_AddIntConstant(module, "NOTIFY_FOR_THIS_SESSION", NOTIFY_FOR_THIS_SESSION);
+	PyModule_AddIntConstant(module, "NOTIFY_FOR_ALL_SESSIONS", NOTIFY_FOR_ALL_SESSIONS);
 
 	HMODULE h=GetModuleHandle(L"wtsapi32.dll");
 	if (h==NULL)
@@ -803,4 +800,6 @@ initwin32ts(void)
 		pfnProcessIdToSessionId=(ProcessIdToSessionIdfunc)GetProcAddress(h, "ProcessIdToSessionId");
 		pfnWTSGetActiveConsoleSessionId=(WTSGetActiveConsoleSessionIdfunc)GetProcAddress(h, "WTSGetActiveConsoleSessionId");
 	}
+
+	PYWIN_MODULE_INIT_RETURN_SUCCESS;
 }

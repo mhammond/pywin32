@@ -182,18 +182,16 @@ static int AddConstants(PyObject *module)
 	return 0;
 }
 
-extern "C" __declspec(dllexport) void
-initwin2kras(void)
+PYWIN_MODULE_INIT_FUNC(win2kras)
 {
-	PyWinGlobals_Ensure();
-	PyObject *dict, *module;
-#define RETURN_ERROR return // towards py3k
-	module = Py_InitModule("win2kras", win2kras_functions);
-	if (!module) /* Eeek - some serious error! */
-		return;
-	dict = PyModule_GetDict(module);
-	if (!dict) return; /* Another serious error!*/
-	AddConstants(module);
+	PYWIN_MODULE_INIT_PREPARE(win2kras, win2kras_functions,
+				  "A module encapsulating the Windows 2000 extensions to the Remote Access Service (RAS) API.");
+
+	if (PyType_Ready(&PyRASEAPUSERIDENTITY::type) == -1)
+		PYWIN_MODULE_INIT_RETURN_ERROR;
+	if (AddConstants(module) != 0)
+		PYWIN_MODULE_INIT_RETURN_ERROR;
+
 #ifdef _DEBUG
 	const TCHAR *modName = _T("win32ras_d.pyd");
 #else
@@ -209,12 +207,14 @@ initwin2kras(void)
 	}
 	if (hmod==NULL) {
 		PyErr_SetString(PyExc_RuntimeError, "You must import 'win32ras' before importing this module");
-		RETURN_ERROR;
+		PYWIN_MODULE_INIT_RETURN_ERROR;
 	}
 	FARPROC fp = GetProcAddress(hmod, "ReturnRasError");
 	if (fp==NULL) {
 		PyErr_SetString(PyExc_RuntimeError, "Could not locate 'ReturnRasError' in 'win32ras'");
-		RETURN_ERROR;
+		PYWIN_MODULE_INIT_RETURN_ERROR;
 	}
 	pfnReturnRasError = (PFNReturnRasError)fp;
+
+	PYWIN_MODULE_INIT_RETURN_SUCCESS;
 }

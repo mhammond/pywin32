@@ -105,19 +105,14 @@ static const PyCom_InterfaceSupportInfo register_data[] =
 
 };
 
-extern "C" __declspec(dllexport) void initbits()
+PYWIN_MODULE_INIT_FUNC(bits)
 {
-	PyObject *module;
-	module = Py_InitModule("bits", bits_methods);
-	if (module==NULL)
-		return;
-	PyObject *dict = PyModule_GetDict(module);
-	if (dict==NULL)
-		return;
+	PYWIN_MODULE_INIT_PREPARE(bits, bits_methods,
+                                  "A module, encapsulating the Background Intelligent Transfer Service (bits)");
 
 	// Register all of our interfaces, gateways and IIDs.
 	PyCom_RegisterExtensionSupport(dict, register_data, sizeof(register_data)/sizeof(PyCom_InterfaceSupportInfo));
-	
+
 	// auth scheme
 	PyModule_AddIntConstant(module, "BG_AUTH_SCHEME_BASIC", BG_AUTH_SCHEME_BASIC);
 	PyModule_AddIntConstant(module, "BG_AUTH_SCHEME_DIGEST", BG_AUTH_SCHEME_DIGEST);
@@ -129,16 +124,15 @@ extern "C" __declspec(dllexport) void initbits()
 	PyModule_AddIntConstant(module, "BG_AUTH_TARGET_SERVER", BG_AUTH_TARGET_SERVER);
 	PyModule_AddIntConstant(module, "BG_AUTH_TARGET_PROXY", BG_AUTH_TARGET_PROXY);
 
-//  Requires Vista
 // 	// cert store location
-// 	PyModule_AddIntConstant(module, "BG_CERT_STORE_LOCATION_CURRENT_USER", BG_CERT_STORE_LOCATION_CURRENT_USER);
-// 	PyModule_AddIntConstant(module, "BG_CERT_STORE_LOCATION_LOCAL_MACHINE", BG_CERT_STORE_LOCATION_LOCAL_MACHINE);
-// 	PyModule_AddIntConstant(module, "BG_CERT_STORE_LOCATION_CURRENT_SERVICE", BG_CERT_STORE_LOCATION_CURRENT_SERVICE);
-// 	PyModule_AddIntConstant(module, "BG_CERT_STORE_LOCATION_SERVICES", BG_CERT_STORE_LOCATION_SERVICES);
-// 	PyModule_AddIntConstant(module, "BG_CERT_STORE_LOCATION_USERS", BG_CERT_STORE_LOCATION_USERS);
-// 	PyModule_AddIntConstant(module, "BG_CERT_STORE_LOCATION_CURRENT_USER_GROUP_POLICY", BG_CERT_STORE_LOCATION_CURRENT_USER_GROUP_POLICY);
-// 	PyModule_AddIntConstant(module, "BG_CERT_STORE_LOCATION_LOCAL_MACHINE_GROUP_POLICY", BG_CERT_STORE_LOCATION_LOCAL_MACHINE_GROUP_POLICY);
-// 	PyModule_AddIntConstant(module, "BG_CERT_STORE_LOCATION_LOCAL_MACHINE_ENTERPRISE", BG_CERT_STORE_LOCATION_LOCAL_MACHINE_ENTERPRISE);
+ 	PyModule_AddIntConstant(module, "BG_CERT_STORE_LOCATION_CURRENT_USER", BG_CERT_STORE_LOCATION_CURRENT_USER);
+ 	PyModule_AddIntConstant(module, "BG_CERT_STORE_LOCATION_LOCAL_MACHINE", BG_CERT_STORE_LOCATION_LOCAL_MACHINE);
+ 	PyModule_AddIntConstant(module, "BG_CERT_STORE_LOCATION_CURRENT_SERVICE", BG_CERT_STORE_LOCATION_CURRENT_SERVICE);
+ 	PyModule_AddIntConstant(module, "BG_CERT_STORE_LOCATION_SERVICES", BG_CERT_STORE_LOCATION_SERVICES);
+ 	PyModule_AddIntConstant(module, "BG_CERT_STORE_LOCATION_USERS", BG_CERT_STORE_LOCATION_USERS);
+ 	PyModule_AddIntConstant(module, "BG_CERT_STORE_LOCATION_CURRENT_USER_GROUP_POLICY", BG_CERT_STORE_LOCATION_CURRENT_USER_GROUP_POLICY);
+ 	PyModule_AddIntConstant(module, "BG_CERT_STORE_LOCATION_LOCAL_MACHINE_GROUP_POLICY", BG_CERT_STORE_LOCATION_LOCAL_MACHINE_GROUP_POLICY);
+ 	PyModule_AddIntConstant(module, "BG_CERT_STORE_LOCATION_LOCAL_MACHINE_ENTERPRISE", BG_CERT_STORE_LOCATION_LOCAL_MACHINE_ENTERPRISE);
 
 	// error context
 	PyModule_AddIntConstant(module, "BG_ERROR_CONTEXT_NONE", BG_ERROR_CONTEXT_NONE);
@@ -185,5 +179,6 @@ extern "C" __declspec(dllexport) void initbits()
 	PyModule_AddIntConstant(module, "BG_NOTIFY_JOB_MODIFICATION", BG_NOTIFY_JOB_MODIFICATION);
 	// PyModule_AddIntConstant(module, "BG_NOTIFY_FILE_TRANSFERRED", BG_NOTIFY_FILE_TRANSFERRED);
 
-        PyModule_AddIntConstant(module, "BG_JOB_ENUM_ALL_USERS", BG_JOB_ENUM_ALL_USERS);
+	PyModule_AddIntConstant(module, "BG_JOB_ENUM_ALL_USERS", BG_JOB_ENUM_ALL_USERS);
+	PYWIN_MODULE_INIT_RETURN_SUCCESS;
 }

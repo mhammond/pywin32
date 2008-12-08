@@ -1118,39 +1118,11 @@ static struct PyMethodDef win32pdh_functions[] = {
 
 #define ADD_CONSTANT(tok) PyModule_AddIntConstant(module, #tok, tok)
 
-extern"C" __declspec(dllexport)
-#if (PY_VERSION_HEX < 0x03000000)
-void initwin32pdh(void)
-#else
-PyObject *PyInit_win32pdh(void)
-#endif
+PYWIN_MODULE_INIT_FUNC(win32pdh)
 {
+	PYWIN_MODULE_INIT_PREPARE(win32pdh, win32pdh_functions,
+	                          "A module, encapsulating the Windows Performance Data Helpers API");
 	InitializeCriticalSection(&critSec);
-	PyObject *dict, *module;
-
-#if (PY_VERSION_HEX < 0x03000000)
-#define RETURN_ERROR return;
-	module = Py_InitModule("win32pdh", win32pdh_functions);
-#else
-
-#define RETURN_ERROR return NULL;
-	static PyModuleDef win32pdh_def = {
-		PyModuleDef_HEAD_INIT,
-		"win32pdh",
-		"A module, encapsulating the Windows Performance Data Helpers API",
-		-1,
-		win32pdh_functions
-		};
-	module = PyModule_Create(&win32pdh_def);
-#endif
-
-	if (!module)
-		RETURN_ERROR;
-	dict = PyModule_GetDict(module);
-	if (!dict)
-		RETURN_ERROR;
-	if (PyWinGlobals_Ensure() == -1)
-		RETURN_ERROR;
 
 	PyDict_SetItemString(dict, "error", PyWinExc_ApiError);
 	win32pdh_counter_error = PyErr_NewException("win32pdh.counter_status_error", NULL, NULL);
@@ -1177,7 +1149,5 @@ PyObject *PyInit_win32pdh(void)
 	ADD_CONSTANT(PERF_DETAIL_EXPERT);
 	ADD_CONSTANT(PERF_DETAIL_WIZARD);
 //	ADD_CONSTANT();
-#if (PY_VERSION_HEX >= 0x03000000)
-	return module;
-#endif
+	PYWIN_MODULE_INIT_RETURN_SUCCESS;
 }

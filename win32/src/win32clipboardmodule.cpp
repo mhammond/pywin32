@@ -1181,18 +1181,22 @@ static int AddConstants(PyObject *module)
 	return 0;
 }
 
-
-extern "C" __declspec(dllexport) void
-initwin32clipboard(void)
+PYWIN_MODULE_INIT_FUNC(win32clipboard)
 {
-  PyObject *dict, *module;
-  module = Py_InitModule("win32clipboard", clipboard_functions);
-  if (!module) /* Eeek - some serious error! */
-    return;
-  dict = PyModule_GetDict(module);
-  if (!dict) return; /* Another serious error!*/
-  PyWinGlobals_Ensure();
-  AddConstants(module);
-  Py_INCREF(PyWinExc_ApiError);
-  PyDict_SetItemString(dict, "error", PyWinExc_ApiError);
+	PYWIN_MODULE_INIT_PREPARE(win32clipboard, clipboard_functions,
+				  "A module which supports the Windows Clipboard API.");
+
+	if (AddConstants(module) != 0)
+		PYWIN_MODULE_INIT_RETURN_ERROR;
+	if (PyDict_SetItemString(dict, "error", PyWinExc_ApiError)==-1)
+		PYWIN_MODULE_INIT_RETURN_ERROR;
+	if (PyDict_SetItemString(dict,"UNICODE",
+#ifdef UNICODE
+			Py_True
+#else
+			Py_False
+#endif
+	)==-1)
+		PYWIN_MODULE_INIT_RETURN_ERROR;
+	PYWIN_MODULE_INIT_RETURN_SUCCESS;
 }

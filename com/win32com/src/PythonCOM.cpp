@@ -1972,10 +1972,8 @@ static char *modName = "pythoncom";
 extern BOOL initunivgw(PyObject *parentDict);
 
 /* Module initialisation */
-extern "C" __declspec(dllexport) void initpythoncom()
+PYWIN_MODULE_INIT_FUNC(pythoncom)
 {
-	PyObject *oModule;
-
 	// The DLL Load inited the module.
 	// All we do here is init COM itself.  Done here
 	// so other clients get a chance to beat us to it!
@@ -1997,22 +1995,21 @@ extern "C" __declspec(dllexport) void initpythoncom()
 	// If HR fails, we really dont care - the import should work.  User can
 	// manually CoInit() to see!
 
+	PYWIN_MODULE_INIT_PREPARE(pythoncom, pythoncom_methods,
+		"A module, encapsulating the OLE automation API");
+
 	// ensure the framework has valid state to work with.
-	PyWinGlobals_Ensure();
+	// XXX - more error checking?
 	PyCom_RegisterCoreSupport();
-
-	// Create the module and add the functions
-	oModule = Py_InitModule(modName, pythoncom_methods);
-	if (!oModule) /* Eeek - some serious error! */
-		return;
-
-	PyObject *dict = PyModule_GetDict(oModule);
-	if (!dict) return; /* Another serious error!*/
 
 	PyDict_SetItemString(dict, "TypeIIDs", g_obPyCom_MapIIDToType);
 	PyDict_SetItemString(dict, "ServerInterfaces", g_obPyCom_MapGatewayIIDToName);
 	PyDict_SetItemString(dict, "InterfaceNames", g_obPyCom_MapInterfaceNameToIID);
 
+	if (PyType_Ready(&PyOleEmptyType) == -1
+		||PyType_Ready(&PyOleMissingType) == -1
+		||PyType_Ready(&PyOleArgNotFoundType) == -1)
+		PYWIN_MODULE_INIT_RETURN_ERROR;
 	g_obEmpty = new PyOleEmpty;
 	PyDict_SetItemString(dict, "Empty", g_obEmpty);
 
@@ -2024,44 +2021,40 @@ extern "C" __declspec(dllexport) void initpythoncom()
 
 	// Add some symbolic constants to the module   
 	// pycom_Error = PyString_FromString("pythoncom.error");
-	PyObject *pycom_Error = PyWinExc_COMError;
-	if (pycom_Error == NULL || PyDict_SetItemString(dict, "error", pycom_Error) != 0)
+	if (PyWinExc_COMError==NULL)
 	{
-		PyErr_SetString(PyExc_MemoryError, "can't define error");
-		return;
-	}
-	if (PyWinExc_COMError==NULL || PyDict_SetItemString(dict, "ole_error", PyWinExc_COMError) != 0)
-	{
+		// This is created by PyWin_Globals_Ensure
 		PyErr_SetString(PyExc_MemoryError, "can't define ole_error");
-		return;
+		PYWIN_MODULE_INIT_RETURN_ERROR;
 	}
+	PyObject *pycom_Error = PyWinExc_COMError;
+	if (PyDict_SetItemString(dict, "ole_error", PyWinExc_COMError) != 0)
+		PYWIN_MODULE_INIT_RETURN_ERROR;
+	if (PyDict_SetItemString(dict, "error", pycom_Error) != 0)
+		PYWIN_MODULE_INIT_RETURN_ERROR;
+
 	// Add the same constant, but with a "new name"
 	if (PyDict_SetItemString(dict, "com_error", PyWinExc_COMError) != 0)
-	{
-		PyErr_SetString(PyExc_MemoryError, "can't define com_error");
-		return;
-	}
+		PYWIN_MODULE_INIT_RETURN_ERROR;
+
 	PyCom_InternalError = PyErr_NewException("pythoncom.internal_error", NULL, NULL);
 	if (PyDict_SetItemString(dict, "internal_error", PyCom_InternalError) != 0)
-	{
-		PyErr_SetString(PyExc_MemoryError, "can't define internal_error");
-		return;
-	}
+		PYWIN_MODULE_INIT_RETURN_ERROR;
 
 	// Add the IIDs
 	if (PyCom_RegisterCoreIIDs(dict) != 0)
-		return;
+		PYWIN_MODULE_INIT_RETURN_ERROR;
+
+	// Initialize various non-interface types
+	if (PyType_Ready(&PyFUNCDESC::Type) == -1 ||
+		PyType_Ready(&PySTGMEDIUM::Type) == -1 ||
+		PyType_Ready(&PyTYPEATTR::Type) == -1 ||
+		PyType_Ready(&PyVARDESC::Type) == -1)
+		PYWIN_MODULE_INIT_RETURN_ERROR;
 
 	// Setup our sub-modules
 	if (!initunivgw(dict))
-		return;
-
-	// Add a few types.
-	// NOTE - We do not autoduck these types, as they are for b/w compat only
-	// New code should use the functions in pywintypes.
-	PyDict_SetItemString(dict, "PyTimeType", (PyObject *)&PyTimeType);
-	PyDict_SetItemString(dict, "PyIIDType", (PyObject *)&PyIIDType);
-	PyDict_SetItemString(dict, "PyUnicodeType", (PyObject *)&PyUnicode_Type);
+		PYWIN_MODULE_INIT_RETURN_ERROR;
 
 	// Load function pointers.
 	HMODULE hModOle32 = GetModuleHandle(_T("ole32.dll"));
@@ -2412,5 +2405,6 @@ extern "C" __declspec(dllexport) void initpythoncom()
 	// ### ALL THE @PROPERTY TAGS MUST COME AFTER THE LAST @PROP TAG!!
 	// @property int|pythoncom|frozen|1 if the host is a frozen program, else 0
 	// @property int|pythoncom|dcom|1 if the system is DCOM aware, else 0.  Only Win95 without DCOM extensions should return 0
-}
 
+	PYWIN_MODULE_INIT_RETURN_SUCCESS;
+}

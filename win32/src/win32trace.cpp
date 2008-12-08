@@ -603,18 +603,15 @@ static struct PyMethodDef win32trace_functions[] = {
     {NULL,			NULL}
 };
 
-extern "C" __declspec(dllexport) void
-initwin32trace(void)
+PYWIN_MODULE_INIT_FUNC(win32trace)
 {
-    PyWinGlobals_Ensure();
-    PyObject *dict;
-    PyObject* pModMe = Py_InitModule("win32trace", win32trace_functions);
-#define RETURN_ERROR return // towards py3k
-    if (!pModMe) return;
-    dict = PyModule_GetDict(pModMe);
-    if (!dict) return;
+	PYWIN_MODULE_INIT_PREPARE(win32trace, win32trace_functions,
+	                          "Interface to the Windows Console functions for dealing with character-mode applications.");
 
-    PyDict_SetItemString(dict, "error", PyWinExc_ApiError);
+	if (PyType_Ready(&PyTraceObjectType) == -1)
+		PYWIN_MODULE_INIT_RETURN_ERROR;
+	if (PyDict_SetItemString(dict, "error", PyWinExc_ApiError) == -1)
+		PYWIN_MODULE_INIT_RETURN_ERROR;
 
     // Allocate memory for the security descriptor.
 
@@ -669,18 +666,19 @@ initwin32trace(void)
     hMutex = CreateMutex(&sa, FALSE, FixupObjectName(MUTEX_OBJECT_NAME));
     if (hMutex==NULL) {
         PyWin_SetAPIError("CreateMutex");
-        RETURN_ERROR ;
+        PYWIN_MODULE_INIT_RETURN_ERROR;
     }
     assert (hEvent==NULL);
     hEvent = CreateEvent(&sa, FALSE, FALSE, FixupObjectName(EVENT_OBJECT_NAME));
     if (hEvent==NULL) {
         PyWin_SetAPIError("CreateEvent");
-        RETURN_ERROR;
+        PYWIN_MODULE_INIT_RETURN_ERROR;
     }
     assert (hEventEmpty==NULL);
     hEventEmpty = CreateEvent(&sa, FALSE, FALSE, FixupObjectName(EVENT_EMPTY_OBJECT_NAME));
     if (hEventEmpty==NULL) {
         PyWin_SetAPIError("CreateEvent");
-        RETURN_ERROR ;
+        PYWIN_MODULE_INIT_RETURN_ERROR;
     }
+    PYWIN_MODULE_INIT_RETURN_SUCCESS;
 }

@@ -282,18 +282,12 @@ static const PyCom_InterfaceSupportInfo g_interfaceSupportData[] =
 #define ADD_CONSTANT(tok) if (PyModule_AddIntConstant(module, #tok, tok) == -1) RETURN_ERROR;
 
 /* Module initialisation */
-extern "C" __declspec(dllexport) void initaxdebug()
+PYWIN_MODULE_INIT_FUNC(axdebug)
 {
-	char *modName = "axdebug";
-	PyObject *oModule;
-	// We need to be thread friendly!
+	PYWIN_MODULE_INIT_PREPARE(axdebug, axdebug_methods,
+	                          "A module, encapsulating the ActiveX Debugging interfaces");
+
 	PyEval_InitThreads();
-	// Create the module and add the functions
-	oModule = Py_InitModule(modName, axdebug_methods);
-	if (!oModule) /* Eeek - some serious error! */
-		return;
-	PyObject *dict = PyModule_GetDict(oModule);
-	if (!dict) return; /* Another serious error!*/
 
 	// Add some symbolic constants to the module
 	axdebug_Error = PyErr_NewException("axdebug.error", NULL, NULL);
@@ -384,4 +378,5 @@ extern "C" __declspec(dllexport) void initaxdebug()
 
 	ADD_CONSTANT(TEXT_DOC_ATTR_READONLY); // @const axdebug|TEXT_DOC_ATTR_READONLY|Indicates that the document is read-only.
 
+	PYWIN_MODULE_INIT_RETURN_SUCCESS;
 }

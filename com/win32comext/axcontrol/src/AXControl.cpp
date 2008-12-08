@@ -401,7 +401,7 @@ static struct PyMethodDef axcontrol_methods[]=
 };
 
 
-#define ADD_CONSTANT(tok) if (PyModule_AddIntConstant(module, #tok, tok) == -1) RETURN_ERROR;
+#define ADD_CONSTANT(tok) if (PyModule_AddIntConstant(module, #tok, tok) == -1) PYWIN_MODULE_INIT_RETURN_ERROR;
 
 static const PyCom_InterfaceSupportInfo g_interfaceSupportData[] =
 {
@@ -425,17 +425,10 @@ static const PyCom_InterfaceSupportInfo g_interfaceSupportData[] =
 };
 
 /* Module initialisation */
-extern "C" __declspec(dllexport) void initaxcontrol()
+PYWIN_MODULE_INIT_FUNC(axcontrol)
 {
-	char *modName = "axcontrol";
-	PyObject *module;
-	// Create the module and add the functions
-	module = Py_InitModule(modName, axcontrol_methods);
-#define RETURN_ERROR return // towards py3k
-	if (!module) /* Eeek - some serious error! */
-		return;
-	PyObject *dict = PyModule_GetDict(module);
-	if (!dict) return; /* Another serious error!*/
+	PYWIN_MODULE_INIT_PREPARE(axcontrol, axcontrol_methods,
+	                          "A module, encapsulating the ActiveX Control interfaces.");
 
 	// Register all of our interfaces, gateways and IIDs.
 	PyCom_RegisterExtensionSupport(dict, g_interfaceSupportData, sizeof(g_interfaceSupportData)/sizeof(PyCom_InterfaceSupportInfo));
@@ -465,4 +458,6 @@ extern "C" __declspec(dllexport) void initaxcontrol()
 	ADD_CONSTANT(EMBDHLP_CREATENOW); // @const axcontrol|EMBDHLP_CREATENOW|
 	ADD_CONSTANT(EMBDHLP_DELAYCREATE); // @const axcontrol|EMBDHLP_DELAYCREATE|
 	ADD_CONSTANT(OLECREATE_LEAVERUNNING); // @const axcontrol|OLECREATE_LEAVERUNNING|
+
+	PYWIN_MODULE_INIT_RETURN_SUCCESS;
 }

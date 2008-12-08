@@ -140,16 +140,10 @@ static const PyCom_InterfaceSupportInfo g_interfaceSupportData[] =
 };
 
 /* Module initialisation */
-extern "C" __declspec(dllexport) void initaxscript()
+PYWIN_MODULE_INIT_FUNC(axscript)
 {
-	char *modName = "axscript";
-	PyObject *oModule;
-	// Create the module and add the functions
-	oModule = Py_InitModule(modName, axcom_methods);
-	if (!oModule) /* Eeek - some serious error! */
-		return;
-	PyObject *dict = PyModule_GetDict(oModule);
-	if (!dict) return; /* Another serious error!*/
+	PYWIN_MODULE_INIT_PREPARE(axscript, axcom_methods,
+	                          "A module, encapsulating the ActiveX Scripting interfaces.");
 
 	// Register all of our interfaces, gateways and IIDs.
 	PyCom_RegisterExtensionSupport(dict, g_interfaceSupportData, sizeof(g_interfaceSupportData)/sizeof(PyCom_InterfaceSupportInfo));
@@ -210,4 +204,6 @@ extern "C" __declspec(dllexport) void initaxscript()
 	ADD_CONSTANT(INTERFACE_USES_DISPEX);	// Object knows to use IDispatchEx
 	ADD_CONSTANT(INTERFACE_USES_SECURITY_MANAGER);	// Object knows to use IInternetHostSecurityManager
 #endif
+
+	PYWIN_MODULE_INIT_RETURN_SUCCESS;
 }

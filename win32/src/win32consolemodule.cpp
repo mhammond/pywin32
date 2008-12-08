@@ -2052,12 +2052,12 @@ static struct PyMethodDef win32console_functions[] = {
 };
 
 
-extern "C" __declspec(dllexport) void
-initwin32console(void)
+PYWIN_MODULE_INIT_FUNC(win32console)
 {
-	PyObject *dict, *mod;
-	PyWinGlobals_Ensure();
-	mod = Py_InitModule("win32console", win32console_functions);
+	PYWIN_MODULE_INIT_PREPARE(win32console, win32console_functions,
+		"Interface to the Windows Console functions for dealing with character-mode applications.");
+
+	PyDict_SetItemString(dict, "error", PyWinExc_ApiError);
 
 	// load function pointers
 	kernel32_dll=GetModuleHandle(L"kernel32.dll");
@@ -2081,70 +2081,86 @@ initwin32console(void)
 		pfnSetConsoleFont=(SetConsoleFontfunc)GetProcAddress(kernel32_dll, "SetConsoleFont");
 		}
 
-	dict = PyModule_GetDict(mod);
-	Py_INCREF(PyWinExc_ApiError);
-	PyDict_SetItemString(dict, "error", PyWinExc_ApiError);
-	PyDict_SetItemString(dict, "PyConsoleScreenBufferType", (PyObject *)&PyConsoleScreenBufferType);
-	PyDict_SetItemString(dict, "PySMALL_RECTType", (PyObject *)&PySMALL_RECTType);
-	PyDict_SetItemString(dict, "PyCOORDType", (PyObject *)&PyCOORDType);
-	PyDict_SetItemString(dict, "PyINPUT_RECORDType", (PyObject *)&PyINPUT_RECORDType);
 
-	PyModule_AddIntConstant(mod, "CONSOLE_TEXTMODE_BUFFER", CONSOLE_TEXTMODE_BUFFER);
-	PyModule_AddIntConstant(mod, "CONSOLE_FULLSCREEN", CONSOLE_FULLSCREEN);
-	PyModule_AddIntConstant(mod, "CONSOLE_FULLSCREEN_HARDWARE", CONSOLE_FULLSCREEN_HARDWARE);
-	PyModule_AddIntConstant(mod, "ATTACH_PARENT_PROCESS", ATTACH_PARENT_PROCESS);
 
-	PyModule_AddIntConstant(mod, "ENABLE_LINE_INPUT", ENABLE_LINE_INPUT);
-	PyModule_AddIntConstant(mod, "ENABLE_ECHO_INPUT", ENABLE_ECHO_INPUT);
-	PyModule_AddIntConstant(mod, "ENABLE_PROCESSED_INPUT", ENABLE_PROCESSED_INPUT);
-	PyModule_AddIntConstant(mod, "ENABLE_WINDOW_INPUT", ENABLE_WINDOW_INPUT);
-	PyModule_AddIntConstant(mod, "ENABLE_MOUSE_INPUT", ENABLE_MOUSE_INPUT);
-	PyModule_AddIntConstant(mod, "ENABLE_PROCESSED_OUTPUT", ENABLE_PROCESSED_OUTPUT);
-	PyModule_AddIntConstant(mod, "ENABLE_WRAP_AT_EOL_OUTPUT", ENABLE_WRAP_AT_EOL_OUTPUT);
+	if (PyType_Ready(&PyConsoleScreenBufferType)==-1)
+		PYWIN_MODULE_INIT_RETURN_ERROR;
+	if (PyDict_SetItemString(dict, "PyConsoleScreenBufferType", (PyObject *)&PyConsoleScreenBufferType) == -1)
+		PYWIN_MODULE_INIT_RETURN_ERROR;
+
+	if (PyType_Ready(&PySMALL_RECTType)==-1)
+		PYWIN_MODULE_INIT_RETURN_ERROR;
+	if (PyDict_SetItemString(dict, "PySMALL_RECTType", (PyObject *)&PySMALL_RECTType) == -1)
+		PYWIN_MODULE_INIT_RETURN_ERROR;
+
+	if (PyType_Ready(&PyCOORDType)==-1)
+		PYWIN_MODULE_INIT_RETURN_ERROR;
+	if (PyDict_SetItemString(dict, "PyCOORDType", (PyObject *)&PyCOORDType) == -1)
+		PYWIN_MODULE_INIT_RETURN_ERROR;
+
+	if (PyType_Ready(&PyINPUT_RECORDType)==-1)
+		PYWIN_MODULE_INIT_RETURN_ERROR;
+	if (PyDict_SetItemString(dict, "PyINPUT_RECORDType", (PyObject *)&PyINPUT_RECORDType) == -1)
+		PYWIN_MODULE_INIT_RETURN_ERROR;
+
+	PyModule_AddIntConstant(module, "CONSOLE_TEXTMODE_BUFFER", CONSOLE_TEXTMODE_BUFFER);
+	PyModule_AddIntConstant(module, "CONSOLE_FULLSCREEN", CONSOLE_FULLSCREEN);
+	PyModule_AddIntConstant(module, "CONSOLE_FULLSCREEN_HARDWARE", CONSOLE_FULLSCREEN_HARDWARE);
+	PyModule_AddIntConstant(module, "ATTACH_PARENT_PROCESS", ATTACH_PARENT_PROCESS);
+
+	PyModule_AddIntConstant(module, "ENABLE_LINE_INPUT", ENABLE_LINE_INPUT);
+	PyModule_AddIntConstant(module, "ENABLE_ECHO_INPUT", ENABLE_ECHO_INPUT);
+	PyModule_AddIntConstant(module, "ENABLE_PROCESSED_INPUT", ENABLE_PROCESSED_INPUT);
+	PyModule_AddIntConstant(module, "ENABLE_WINDOW_INPUT", ENABLE_WINDOW_INPUT);
+	PyModule_AddIntConstant(module, "ENABLE_MOUSE_INPUT", ENABLE_MOUSE_INPUT);
+	PyModule_AddIntConstant(module, "ENABLE_PROCESSED_OUTPUT", ENABLE_PROCESSED_OUTPUT);
+	PyModule_AddIntConstant(module, "ENABLE_WRAP_AT_EOL_OUTPUT", ENABLE_WRAP_AT_EOL_OUTPUT);
 
 	// text attribute flags - ?????? COMMON_* flags don't seem to do anything ??????
-	PyModule_AddIntConstant(mod, "FOREGROUND_BLUE", FOREGROUND_BLUE);
-	PyModule_AddIntConstant(mod, "FOREGROUND_GREEN", FOREGROUND_GREEN);
-	PyModule_AddIntConstant(mod, "FOREGROUND_RED", FOREGROUND_RED);
-	PyModule_AddIntConstant(mod, "FOREGROUND_INTENSITY", FOREGROUND_INTENSITY);
-	PyModule_AddIntConstant(mod, "BACKGROUND_BLUE", BACKGROUND_BLUE);
-	PyModule_AddIntConstant(mod, "BACKGROUND_GREEN", BACKGROUND_GREEN);
-	PyModule_AddIntConstant(mod, "BACKGROUND_RED", BACKGROUND_RED);
-	PyModule_AddIntConstant(mod, "BACKGROUND_INTENSITY", BACKGROUND_INTENSITY);
-	PyModule_AddIntConstant(mod, "COMMON_LVB_LEADING_BYTE", COMMON_LVB_LEADING_BYTE);
-	PyModule_AddIntConstant(mod, "COMMON_LVB_TRAILING_BYTE", COMMON_LVB_TRAILING_BYTE);
-	PyModule_AddIntConstant(mod, "COMMON_LVB_GRID_HORIZONTAL", COMMON_LVB_GRID_HORIZONTAL);
-	PyModule_AddIntConstant(mod, "COMMON_LVB_GRID_LVERTICAL", COMMON_LVB_GRID_LVERTICAL);
-	PyModule_AddIntConstant(mod, "COMMON_LVB_GRID_RVERTICAL", COMMON_LVB_GRID_RVERTICAL);
-	PyModule_AddIntConstant(mod, "COMMON_LVB_REVERSE_VIDEO", COMMON_LVB_REVERSE_VIDEO);
-	PyModule_AddIntConstant(mod, "COMMON_LVB_UNDERSCORE", COMMON_LVB_UNDERSCORE);
+	PyModule_AddIntConstant(module, "FOREGROUND_BLUE", FOREGROUND_BLUE);
+	PyModule_AddIntConstant(module, "FOREGROUND_GREEN", FOREGROUND_GREEN);
+	PyModule_AddIntConstant(module, "FOREGROUND_RED", FOREGROUND_RED);
+	PyModule_AddIntConstant(module, "FOREGROUND_INTENSITY", FOREGROUND_INTENSITY);
+	PyModule_AddIntConstant(module, "BACKGROUND_BLUE", BACKGROUND_BLUE);
+	PyModule_AddIntConstant(module, "BACKGROUND_GREEN", BACKGROUND_GREEN);
+	PyModule_AddIntConstant(module, "BACKGROUND_RED", BACKGROUND_RED);
+	PyModule_AddIntConstant(module, "BACKGROUND_INTENSITY", BACKGROUND_INTENSITY);
+	PyModule_AddIntConstant(module, "COMMON_LVB_LEADING_BYTE", COMMON_LVB_LEADING_BYTE);
+	PyModule_AddIntConstant(module, "COMMON_LVB_TRAILING_BYTE", COMMON_LVB_TRAILING_BYTE);
+	PyModule_AddIntConstant(module, "COMMON_LVB_GRID_HORIZONTAL", COMMON_LVB_GRID_HORIZONTAL);
+	PyModule_AddIntConstant(module, "COMMON_LVB_GRID_LVERTICAL", COMMON_LVB_GRID_LVERTICAL);
+	PyModule_AddIntConstant(module, "COMMON_LVB_GRID_RVERTICAL", COMMON_LVB_GRID_RVERTICAL);
+	PyModule_AddIntConstant(module, "COMMON_LVB_REVERSE_VIDEO", COMMON_LVB_REVERSE_VIDEO);
+	PyModule_AddIntConstant(module, "COMMON_LVB_UNDERSCORE", COMMON_LVB_UNDERSCORE);
 
 	// selection flags for GetConsoleSelectionInfo
-	PyModule_AddIntConstant(mod, "CONSOLE_NO_SELECTION", CONSOLE_NO_SELECTION);
-	PyModule_AddIntConstant(mod, "CONSOLE_SELECTION_IN_PROGRESS", CONSOLE_SELECTION_IN_PROGRESS);
-	PyModule_AddIntConstant(mod, "CONSOLE_SELECTION_NOT_EMPTY", CONSOLE_SELECTION_NOT_EMPTY);
-	PyModule_AddIntConstant(mod, "CONSOLE_MOUSE_SELECTION", CONSOLE_MOUSE_SELECTION);
-	PyModule_AddIntConstant(mod, "CONSOLE_MOUSE_DOWN", CONSOLE_MOUSE_DOWN);
-	PyModule_AddIntConstant(mod, "LOCALE_USER_DEFAULT", LOCALE_USER_DEFAULT);
+	PyModule_AddIntConstant(module, "CONSOLE_NO_SELECTION", CONSOLE_NO_SELECTION);
+	PyModule_AddIntConstant(module, "CONSOLE_SELECTION_IN_PROGRESS", CONSOLE_SELECTION_IN_PROGRESS);
+	PyModule_AddIntConstant(module, "CONSOLE_SELECTION_NOT_EMPTY", CONSOLE_SELECTION_NOT_EMPTY);
+	PyModule_AddIntConstant(module, "CONSOLE_MOUSE_SELECTION", CONSOLE_MOUSE_SELECTION);
+	PyModule_AddIntConstant(module, "CONSOLE_MOUSE_DOWN", CONSOLE_MOUSE_DOWN);
+	PyModule_AddIntConstant(module, "LOCALE_USER_DEFAULT", LOCALE_USER_DEFAULT);
 
 	// event types for INPUT_RECORD
-	PyModule_AddIntConstant(mod, "KEY_EVENT", KEY_EVENT);
-	PyModule_AddIntConstant(mod, "MOUSE_EVENT", MOUSE_EVENT);
-	PyModule_AddIntConstant(mod, "WINDOW_BUFFER_SIZE_EVENT", WINDOW_BUFFER_SIZE_EVENT);
-	PyModule_AddIntConstant(mod, "MENU_EVENT", MENU_EVENT);
-	PyModule_AddIntConstant(mod, "FOCUS_EVENT", FOCUS_EVENT);
+	PyModule_AddIntConstant(module, "KEY_EVENT", KEY_EVENT);
+	PyModule_AddIntConstant(module, "MOUSE_EVENT", MOUSE_EVENT);
+	PyModule_AddIntConstant(module, "WINDOW_BUFFER_SIZE_EVENT", WINDOW_BUFFER_SIZE_EVENT);
+	PyModule_AddIntConstant(module, "MENU_EVENT", MENU_EVENT);
+	PyModule_AddIntConstant(module, "FOCUS_EVENT", FOCUS_EVENT);
 
 	// Control events for GenerateConsoleCtrlEvent
-	PyModule_AddIntConstant(mod, "CTRL_C_EVENT", CTRL_C_EVENT);
-	PyModule_AddIntConstant(mod, "CTRL_BREAK_EVENT", CTRL_BREAK_EVENT);
+	PyModule_AddIntConstant(module, "CTRL_C_EVENT", CTRL_C_EVENT);
+	PyModule_AddIntConstant(module, "CTRL_BREAK_EVENT", CTRL_BREAK_EVENT);
 
 	// std handles
-	PyModule_AddIntConstant(mod, "STD_INPUT_HANDLE", STD_INPUT_HANDLE);
-	PyModule_AddIntConstant(mod, "STD_OUTPUT_HANDLE", STD_OUTPUT_HANDLE);
-	PyModule_AddIntConstant(mod, "STD_ERROR_HANDLE", STD_ERROR_HANDLE);
+	PyModule_AddIntConstant(module, "STD_INPUT_HANDLE", STD_INPUT_HANDLE);
+	PyModule_AddIntConstant(module, "STD_OUTPUT_HANDLE", STD_OUTPUT_HANDLE);
+	PyModule_AddIntConstant(module, "STD_ERROR_HANDLE", STD_ERROR_HANDLE);
 
 	// flags used with SetConsoleDisplayMode
 	// ?????? these aren't in my SDK headers
-	PyModule_AddIntConstant(mod, "CONSOLE_FULLSCREEN_MODE", 1);
-	PyModule_AddIntConstant(mod, "CONSOLE_WINDOWED_MODE", 2);
+	PyModule_AddIntConstant(module, "CONSOLE_FULLSCREEN_MODE", 1);
+	PyModule_AddIntConstant(module, "CONSOLE_WINDOWED_MODE", 2);
+
+	PYWIN_MODULE_INIT_RETURN_SUCCESS;
 }

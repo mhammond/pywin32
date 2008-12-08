@@ -912,60 +912,53 @@ void PyWin_ReleaseGlobalLock(void)
 }
 
 
-#define ADD_CONSTANT(tok) if (PyModule_AddIntConstant(module, #tok, tok) == -1) RETURN_ERROR;
+#define ADD_CONSTANT(tok) if (PyModule_AddIntConstant(module, #tok, tok) == -1) PYWIN_MODULE_INIT_RETURN_ERROR;
 
 #define ADD_TYPE(type_name)	\
 	if (PyType_Ready(&Py##type_name)==-1		\
 		|| PyDict_SetItemString(dict, #type_name, (PyObject *)&Py##type_name) == -1)	\
-		RETURN_ERROR;
+		PYWIN_MODULE_INIT_RETURN_ERROR;
 
-extern "C" __declspec(dllexport)
-void initpywintypes(void)
+PYWIN_MODULE_INIT_FUNC(pywintypes)
 {
-  // ensure the framework has a valid thread state to work with.
-  PyWinGlobals_Ensure();
+	PYWIN_MODULE_INIT_PREPARE(pywintypes, pywintypes_functions,
+				  "Module containing common objects and functions used by various Pywin32 modules");
 
-  // Note we assume the Python global lock has been acquired for us already.
-  PyObject *dict, *module;
+	if (PyWinExc_ApiError == NULL || PyWinExc_COMError == NULL) {
+		PyErr_SetString(PyExc_MemoryError, "Could not initialise the error objects");
+		PYWIN_MODULE_INIT_RETURN_ERROR;
+		}
 
-#define RETURN_ERROR return; // path to py3k...
-
-  module = Py_InitModule("pywintypes", pywintypes_functions);
-  if (!module) /* Eeek - some serious error! */
-    return;
-  dict = PyModule_GetDict(module);
-  if (!dict) return; /* Another serious error!*/
-  if (PyWinExc_ApiError == NULL || PyWinExc_COMError == NULL) {
-	  PyErr_SetString(PyExc_MemoryError, "Could not initialise the error objects");
-	  return;
-  }
-
-  PyDict_SetItemString(dict, "error", PyWinExc_ApiError);
-  PyDict_SetItemString(dict, "com_error", PyWinExc_COMError);
-
-  PyDict_SetItemString(dict, "TRUE", Py_True);
-  PyDict_SetItemString(dict, "FALSE", Py_False);
-  ADD_CONSTANT(WAVE_FORMAT_PCM);
+	if (PyDict_SetItemString(dict, "error", PyWinExc_ApiError) == -1
+		|| PyDict_SetItemString(dict, "com_error", PyWinExc_COMError) == -1
+		|| PyDict_SetItemString(dict, "TRUE", Py_True) == -1
+		|| PyDict_SetItemString(dict, "FALSE", Py_False) == -1)
+		PYWIN_MODULE_INIT_RETURN_ERROR;
+	ADD_CONSTANT(WAVE_FORMAT_PCM);
 
   // Add a few types.
+	if (PyDict_SetItemString(dict, "UnicodeType", (PyObject *)&PyUnicode_Type) == -1)
+		PYWIN_MODULE_INIT_RETURN_ERROR;
+
 #ifndef NO_PYWINTYPES_TIME
-  PyDict_SetItemString(dict, "TimeType", (PyObject *)&PyTimeType);
+	ADD_TYPE(TimeType);
 #endif // NO_PYWINTYPES_TIME
 #ifndef NO_PYWINTYPES_IID
-  PyDict_SetItemString(dict, "IIDType", (PyObject *)&PyIIDType);
+	ADD_TYPE(IIDType);
 #endif // NO_PYWINTYPES_IID
-  PyDict_SetItemString(dict, "UnicodeType", (PyObject *)&PyUnicode_Type);
 #ifndef NO_PYWINTYPES_SECURITY
-  PyDict_SetItemString(dict, "SECURITY_ATTRIBUTESType", (PyObject *)&PySECURITY_ATTRIBUTESType);
-  PyDict_SetItemString(dict, "SIDType", (PyObject *)&PySIDType);
-  PyDict_SetItemString(dict, "ACLType", (PyObject *)&PyACLType);
+	ADD_TYPE(SECURITY_DESCRIPTORType);
+	ADD_TYPE(SECURITY_ATTRIBUTESType);
+	ADD_TYPE(SIDType);
+	ADD_TYPE(ACLType);
 #endif
-  PyDict_SetItemString(dict, "HANDLEType", (PyObject *)&PyHANDLEType);
-  PyDict_SetItemString(dict, "OVERLAPPEDType", (PyObject *)&PyOVERLAPPEDType);
-  PyDict_SetItemString(dict, "DEVMODEType", (PyObject *)&PyDEVMODEType);
-  PyDict_SetItemString(dict, "DEVMODEWType", (PyObject *)&PyDEVMODEWType);
-  PyDict_SetItemString(dict, "WAVEFORMATEXType", (PyObject *)&PyWAVEFORMATEXType);
+	ADD_TYPE(HANDLEType);
+	ADD_TYPE(OVERLAPPEDType);
+	ADD_TYPE(DEVMODEType);
+	ADD_TYPE(DEVMODEWType);
+	ADD_TYPE(WAVEFORMATEXType);
 
+	PYWIN_MODULE_INIT_RETURN_SUCCESS;
 }
 
 #ifndef MS_WINCE

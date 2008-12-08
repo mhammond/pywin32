@@ -256,16 +256,10 @@ static const PyCom_InterfaceSupportInfo g_interfaceSupportData[] =
 };
 
 /* Module initialisation */
-extern "C" __declspec(dllexport) void initinternet()
+PYWIN_MODULE_INIT_FUNC(internet)
 {
-	char *modName = "internet";
-	PyObject *oModule;
-	// Create the module and add the functions
-	oModule = Py_InitModule(modName, internet_methods);
-	if (!oModule) /* Eeek - some serious error! */
-		return;
-	PyObject *dict = PyModule_GetDict(oModule);
-	if (!dict) return; /* Another serious error!*/
+	PYWIN_MODULE_INIT_PREPARE(internet, internet_methods,
+	                          "A module, encapsulating the ActiveX Internet interfaces");
 
 	// Register all of our interfaces, gateways and IIDs.
 	PyCom_RegisterExtensionSupport(dict, g_interfaceSupportData, sizeof(g_interfaceSupportData)/sizeof(PyCom_InterfaceSupportInfo));
@@ -316,4 +310,6 @@ extern "C" __declspec(dllexport) void initinternet()
 	ADD_CONSTANT(GET_FEATURE_FROM_THREAD_RESTRICTED ); // @const internet|GET_FEATURE_FROM_THREAD_RESTRICTED|
 
 //	ADD_CONSTANT(); // @const internet||
+
+	PYWIN_MODULE_INIT_RETURN_SUCCESS;
 }

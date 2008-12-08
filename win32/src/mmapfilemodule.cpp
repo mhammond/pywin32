@@ -633,17 +633,15 @@ static struct PyMethodDef mmapfile_functions[] = {
 	{NULL,			NULL}		 // Sentinel
 };
 
-extern"C" __declspec(dllexport) void
-initmmapfile(void)
+PYWIN_MODULE_INIT_FUNC(mmapfile)
 {
-	PyObject *dict, *module;
-	PyWinGlobals_Ensure();
-	module = Py_InitModule ("mmapfile", mmapfile_functions);
-	if (!module) /* Eeek - some serious error! */
-		return;
-	dict = PyModule_GetDict (module);
-	if (!dict) return; /* Another serious error!*/
+	PYWIN_MODULE_INIT_PREPARE(mmapfile, mmapfile_functions,
+				  "Compiled extension module that provides access to the memory mapped file API");
 
-	Py_INCREF(PyWinExc_ApiError);
-	PyDict_SetItemString(dict, "error", PyWinExc_ApiError);
+	if (PyDict_SetItemString(dict, "error", PyWinExc_ApiError) == -1)
+		PYWIN_MODULE_INIT_RETURN_ERROR;
+	if (PyType_Ready(&mmapfile_object_type) == -1)
+		PYWIN_MODULE_INIT_RETURN_ERROR;
+
+	PYWIN_MODULE_INIT_RETURN_SUCCESS;
 }

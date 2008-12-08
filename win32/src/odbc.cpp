@@ -2001,53 +2001,26 @@ static PyMethodDef globalMethods[] = {
 };
 
 
-#define ADD_CONSTANT(tok) if (PyModule_AddIntConstant(module, #tok, tok) == -1) RETURN_ERROR;
+#define ADD_CONSTANT(tok) if (PyModule_AddIntConstant(module, #tok, tok) == -1) PYWIN_MODULE_INIT_RETURN_ERROR;
 
-extern "C" __declspec(dllexport)
-#if (PY_VERSION_HEX < 0x03000000)
-void initodbc(void)
-#else
-PyObject *PyInit_odbc(void)
-#endif
+PYWIN_MODULE_INIT_FUNC(odbc)
 {
-	PyObject *dict, *module;
-	PyWinGlobals_Ensure();
-
-#if (PY_VERSION_HEX < 0x03000000)
-#define RETURN_ERROR return;
-	module = Py_InitModule("odbc", globalMethods);
-
-#else
-#define RETURN_ERROR return NULL;
-	static PyModuleDef odbc_def = {
-		PyModuleDef_HEAD_INIT,
-		"odbc",
-		"A Python wrapper around the ODBC API.",
-		-1,
-		globalMethods
-		};
-	module = PyModule_Create(&odbc_def);
-#endif
-
-	if (!module)
-		RETURN_ERROR;
-	dict = PyModule_GetDict(module);
-	if (!dict)
-		RETURN_ERROR;
+	PYWIN_MODULE_INIT_PREPARE(odbc, globalMethods,
+				  "A Python wrapper around the ODBC API.");
 
 	// Sql dates are now returned as python's datetime object.
 	//	C Api for datetime didn't exist in 2.3, stick to dynamic semantics for now.
 	datetime_module=PyImport_ImportModule("datetime");
 	if (datetime_module == NULL)
-		RETURN_ERROR;
+		PYWIN_MODULE_INIT_RETURN_ERROR;
 	datetime_class = PyObject_GetAttrString(datetime_module, "datetime");
 	if (datetime_class == NULL)
-		RETURN_ERROR;
+		PYWIN_MODULE_INIT_RETURN_ERROR;
 
     if (unsuccessful(SQLAllocEnv(&Env)))
 	{
 		odbcPrintError(SQL_NULL_HENV, 0, SQL_NULL_HSTMT, _T("INIT"));
-		RETURN_ERROR;
+		PYWIN_MODULE_INIT_RETURN_ERROR;
     }
 
 	/* Names of various sql datatypes.
@@ -2064,7 +2037,7 @@ PyObject *PyInit_odbc(void)
 			szDbiDate);
 	// Steals a ref to obtypes, so it doesn't need to be DECREF'ed.
 	if (obtypes==NULL || PyModule_AddObject(module, "TYPES", obtypes) == -1)
-		RETURN_ERROR;
+		PYWIN_MODULE_INIT_RETURN_ERROR;
 	DbiString = PyTuple_GET_ITEM(obtypes, 0);
 	DbiRaw = PyTuple_GET_ITEM(obtypes, 1);
 	DbiNumber = PyTuple_GET_ITEM(obtypes, 2);
@@ -2076,30 +2049,30 @@ PyObject *PyInit_odbc(void)
 		||PyDict_SetItem(dict, DbiRaw, DbiRaw) == -1
 		||PyDict_SetItem(dict, DbiNumber, DbiNumber) == -1
 		||PyDict_SetItem(dict, DbiDate, DbiDate) == -1)
-		RETURN_ERROR;
+		PYWIN_MODULE_INIT_RETURN_ERROR;
 
 	// Initialize various exception types
 	odbcError = PyErr_NewException("odbc.odbcError", NULL, NULL);
 	if (odbcError == NULL || PyDict_SetItemString(dict, "error", odbcError) == -1)
-		RETURN_ERROR;
+		PYWIN_MODULE_INIT_RETURN_ERROR;
 	DbiNoError = PyErr_NewException("dbi.noError", NULL, NULL);
 	if (DbiNoError == NULL || PyDict_SetItemString(dict, "noError", DbiNoError) == -1)
-		RETURN_ERROR;
+		PYWIN_MODULE_INIT_RETURN_ERROR;
 	DbiOpError = PyErr_NewException("dbi.opError", NULL, NULL);
 	if (DbiOpError == NULL || PyDict_SetItemString(dict, "opError", DbiOpError) == -1)
-		RETURN_ERROR;
+		PYWIN_MODULE_INIT_RETURN_ERROR;
 	DbiProgError = PyErr_NewException("dbi.progError", NULL, NULL);
 	if (DbiProgError == NULL || PyDict_SetItemString(dict, "progError", DbiProgError) == -1)
-		RETURN_ERROR;
+		PYWIN_MODULE_INIT_RETURN_ERROR;
 	DbiIntegrityError = PyErr_NewException("dbi.integrityError", NULL, NULL);
 	if (DbiIntegrityError == NULL || PyDict_SetItemString(dict, "integrityError", DbiIntegrityError) == -1)
-		RETURN_ERROR;
+		PYWIN_MODULE_INIT_RETURN_ERROR;
 	DbiDataError = PyErr_NewException("dbi.dataError", NULL, NULL);
 	if (DbiDataError == NULL || PyDict_SetItemString(dict, "dataError", DbiDataError) == -1)
-		RETURN_ERROR;
+		PYWIN_MODULE_INIT_RETURN_ERROR;
 	DbiInternalError = PyErr_NewException("dbi.internalError", NULL, NULL);
 	if (DbiInternalError == NULL || PyDict_SetItemString(dict, "internalError", DbiInternalError) == -1)
-		RETURN_ERROR;
+		PYWIN_MODULE_INIT_RETURN_ERROR;
 	/* The indices go to indices in the ODBC error table */
 	dbiErrors[0] = DbiNoError;
 	dbiErrors[1] = DbiOpError;
@@ -2117,9 +2090,7 @@ PyObject *PyInit_odbc(void)
 	ADD_CONSTANT(SQL_FETCH_FIRST_USER);
 	ADD_CONSTANT(SQL_FETCH_FIRST_SYSTEM);
 
-#if (PY_VERSION_HEX >= 0x03000000)
-	return module;
-#endif
+	PYWIN_MODULE_INIT_RETURN_SUCCESS;
 }
 
 static odbcErrorDesc errorTable[] = {

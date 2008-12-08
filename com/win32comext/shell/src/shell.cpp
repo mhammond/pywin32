@@ -3325,16 +3325,10 @@ static int AddIID(PyObject *dict, const char *key, REFGUID guid)
 
 
 /* Module initialisation */
-extern "C" __declspec(dllexport) void initshell()
+PYWIN_MODULE_INIT_FUNC(shell)
 {
-	char *modName = "shell";
-	PyObject *oModule;
-	// Create the module and add the functions
-	oModule = Py_InitModule(modName, shell_methods);
-	if (!oModule) /* Eeek - some serious error! */
-		return;
-	PyObject *dict = PyModule_GetDict(oModule);
-	if (!dict) return; /* Another serious error!*/
+	PYWIN_MODULE_INIT_PREPARE(shell, shell_methods,
+	                          "A module wrapping Windows Shell functions and interfaces");
 
 	PyDict_SetItemString(dict, "error", PyWinExc_COMError);
 	// Register all of our interfaces, gateways and IIDs.
@@ -3497,4 +3491,6 @@ extern "C" __declspec(dllexport) void initshell()
 #else
 #	pragma message("Please update your SDK headers - IE5 features missing!")
 #endif
+
+	PYWIN_MODULE_INIT_RETURN_SUCCESS;
 }

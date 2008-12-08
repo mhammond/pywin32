@@ -3122,17 +3122,23 @@ static struct PyMethodDef win32help_functions[] = {
 
 // Module initialization:
 
-extern "C" __declspec(dllexport) void
-initwin32help(void)
+PYWIN_MODULE_INIT_FUNC(win32help)
 {
-  PyObject *dict, *module;
-  module = Py_InitModule("win32help", win32help_functions);
-  if (!module) /* Eeek - some serious error! */
-    return;
-  dict = PyModule_GetDict(module);
-  if (!dict) return; /* Another serious error!*/
-  AddConstants(module);
-  PyDict_SetItemString(dict, "__version__", 
+	PYWIN_MODULE_INIT_PREPARE(win32help, win32help_functions,
+				  "A module, encapsulating the Win32 help API's.");
+	if (AddConstants(module) != 0)
+		PYWIN_MODULE_INIT_RETURN_ERROR;
+	PyDict_SetItemString(dict, "__version__",
                        PyString_FromString("$Revision$"));
-}
 
+	if (PyType_Ready(&PyHH_AKLINKType) == -1
+		||PyType_Ready(&PyHH_FTS_QUERYType) == -1
+		||PyType_Ready(&PyHH_POPUPType) == -1
+		||PyType_Ready(&PyHH_WINTYPEType) == -1
+		||PyType_Ready(&PyNMHDRType) == -1
+		||PyType_Ready(&PyHHN_NOTIFYType) == -1
+		||PyType_Ready(&PyHHNTRACKType) == -1)
+		PYWIN_MODULE_INIT_RETURN_ERROR;
+
+	PYWIN_MODULE_INIT_RETURN_SUCCESS;
+}
