@@ -1,4 +1,4 @@
-"""adodbapi v2.2.2 -  A python DB API 2.0 interface to Microsoft ADO
+"""adodbapi v2.2.4 -  A python DB API 2.0 interface to Microsoft ADO
     
     Copyright (C) 2002  Henrik Ekelund
     Email: <http://sourceforge.net/sendmessage.php?touser=618411>
@@ -43,24 +43,41 @@ except ImportError:  #perhaps running Cpython 2.3
 
 try:
     import win32com.client
-    def Dispatch(dispatch):
-        return win32com.client.Dispatch(dispatch)
-    win32 = True
-    DBNull = types.NoneType
-    DateTime = types.NotImplementedType #impossible value
+    onIronPython = False
 except ImportError:  # implies running on IronPython
+    onIronPython = True
+
+# --- define objects to smooth out IronPython <-> CPython differences    
+if onIronPython: 
     from System import Activator, Type, DBNull, DateTime, Array, Byte
     from System import Decimal as SystemDecimal
     from clr import Reference
     def Dispatch(dispatch):
         type = Type.GetTypeFromProgID(dispatch)
         return Activator.CreateInstance(type)
-    win32 = False    #implies IronPython
-    
-if win32:
+    def getIndexedValue(obj,index):
+        return obj.Item[index]
+else: #pywin32
     import pythoncom
     pythoncom.__future_currency__ = True
+    def Dispatch(dispatch):
+        return win32com.client.Dispatch(dispatch)
+    def getIndexedValue(obj,index):
+        return obj(index) 
+    DBNull = type(None)
+    DateTime = type(NotImplemented) #impossible value
 
+# --- define objects to smooth out Python3000 <-> Python 2.x differences
+unicodeType = unicode  #this line will be altered by 2to3.py to '= str'
+longType = long        #thil line will be altered by 2to3.py to '= int'
+memoryViewType = types.BufferType #will be altered to '= memoryview'
+if sys.version[0] == '3':
+    StringTypes = [str]
+else:
+    memoryview = buffer 
+    bytes = str
+    StringTypes = types.StringTypes    # will be messed up by 2to3 but never used
+ 
 def standardErrorHandler(connection,cursor,errorclass,errorvalue):
     err=(errorclass,errorvalue)
     connection.messages.append(err)
@@ -73,7 +90,7 @@ class TimeConverter(object):
         self._ordinal_1899_12_31=datetime.date(1899,12,31).toordinal()-1
         #Use self.types to compare if an input parameter is a datetime 
         self.types = (type(self.Date(2000,1,1)),
-                      type(self.Time(12,01,1)),
+                      type(self.Time(12,1,1)),
                       type(self.Timestamp(2000,1,1,12,1,1)))
     def COMDate(self,obj):
         'Returns a ComDate from a datetime in inputformat'
@@ -179,13 +196,7 @@ class pythonDateTimeConverter(TimeConverter): # datetime module is available in 
 class pythonTimeConverter(TimeConverter):
     def __init__(self):
         TimeConverter.__init__(self)
-    if win32:
-        def COMDate(self,timeobj):
-            return float(pythoncom.MakeTime(time.mktime(timeobj)))
-        def COMDateFromTuple(self,YMDHMSmsTuple):
-            t=pythoncom.MakeTime(YMDHMSmsTuple)
-            return float(t)
-    else: #iron Python
+    if onIronPython:
         def COMDate(self,timeobj):
             return self.COMDateFromTuple(timeobj)
         def COMDateFromTuple(self,t):
@@ -194,6 +205,12 @@ class pythonTimeConverter(TimeConverter):
             sec = (t[3]*60 + t[4])*60 + t[5]
             fractPart = sec / 86400.0
             return integerPart + fractPart
+    else: #pywin32
+        def COMDate(self,timeobj):
+            return float(pythoncom.MakeTime(time.mktime(timeobj)))
+        def COMDateFromTuple(self,YMDHMSmsTuple):
+            t=pythoncom.MakeTime(YMDHMSmsTuple)
+            return float(t)
        
     def DateObjectFromCOMDate(self,comDate):
         'Returns ticks since 1970'
@@ -203,7 +220,6 @@ class pythonTimeConverter(TimeConverter):
             fcomDate = float(comDate)
         secondsperday=86400 # 24*60*60
         #ComDate is number of days since 1899-12-31, gmtime epoch is 1970-1-1 = 25569 days
-        ##if not win32: fcomDate += (2.0/24) # fudge an error in iron python gmtime
         t=time.gmtime(secondsperday*(fcomDate-25569.0))
         return t  #year,month,day,hour,minute,second,weekday,julianday,daylightsaving=t
 
@@ -224,7 +240,12 @@ class pythonTimeConverter(TimeConverter):
         return s
 
 class Error(exceptions.StandardError):
-    pass
+    pass   #Exception that is the base class of all other error
+           #exceptions. You can use this to catch all errors with one
+           #single 'except' statement. Warnings are not considered
+           #errors and thus should not use this class as base. It must
+           #be a subclass of the Python StandardError (defined in the
+           #module exceptions).
 
 class Warning(exceptions.StandardError):
     pass
@@ -260,7 +281,7 @@ version = __doc__.split('-',2)[0] #v2.1 Cole
 def connect(connstr, timeout=30):               #v2.1 Simons
     "Connection string as in the ADO documentation, SQL timeout in seconds"
     try:
-        if win32:
+        if not onIronPython:
             pythoncom.CoInitialize()             #v2.1 Paj
         conn=Dispatch('ADODB.Connection') #connect _after_ CoIninialize v2.1.1 adamvan
     except:
@@ -326,19 +347,12 @@ class Connection(object):
     def __init__(self,adoConn):       
         self.adoConn=adoConn
         self.supportsTransactions=False
-        if win32:
-            for indx in range(adoConn.Properties.Count):
-                if adoConn.Properties[indx].Name == 'Transaction DDL':
-                    if adoConn.Properties[indx].Value != 0:        #v2.1 Albrecht
-                        self.supportsTransactions=True
-                    break
-        else: # Iron Python
-            for indx in range(adoConn.Properties.Count):
-                name = adoConn.Properties.Item[indx].Name
-                if name == 'Transaction DDL':
-                    if adoConn.Properties.Item[indx].Value != 0:        #v2.1 Albrecht
-                        self.supportsTransactions=True
-                    break
+        for indx in range(adoConn.Properties.Count):
+            name = getIndexedValue(adoConn.Properties,indx).Name
+            if name == 'Transaction DDL':
+                if getIndexedValue(adoConn.Properties,indx).Value != 0:        #v2.1 Albrecht
+                    self.supportsTransactions=True
+                break
         self.adoConn.CursorLocation = defaultCursorLocation #v2.1 Rose
         if self.supportsTransactions:
             self.adoConn.IsolationLevel=defaultIsolationLevel
@@ -376,7 +390,7 @@ class Connection(object):
             self._closeAdoConnection()                      #v2.1 Rose
         except (Exception), e:
             self._raiseConnectionError(InternalError,e)
-        if win32:
+        if not onIronPython:
             pythoncom.CoUninitialize()                             #v2.1 Paj
 
     def commit(self):
@@ -516,10 +530,7 @@ class Cursor(object):
     def _returnADOCommandParameters(self,adoCommand):
         retLst=[]
         for i in range(adoCommand.Parameters.Count):
-            if win32:
-                p=adoCommand.Parameters[i]
-            else:
-                p=adoCommand.Parameters.Item[i]
+            p=getIndexedValue(adoCommand.Parameters,i)
             if verbose > 2:
                 print 'return', p.Name, p.Type, p.Direction, repr(p.Value)
             type_code=p.Type 
@@ -546,10 +557,7 @@ class Cursor(object):
             nOfFields=rs.Fields.Count
             self.description=[]
             for i in range(nOfFields):
-                if win32:
-                    f = rs.Fields[i]
-                else: # Iron Python
-                    f=rs.Fields.Item[i]
+                f=getIndexedValue(rs.Fields,i)
                 name=f.Name
                 type_code=f.Type 
                 if not(rs.EOF or rs.BOF):
@@ -636,12 +644,9 @@ class Cursor(object):
                             print 'adodbapi parameter attributes=', P.Name, P.Type, P.Direction, P.Size
                 if isStoredProcedureCall:
                     cnt=self.cmd.Parameters.Count
-                    if cnt<>len(parameters):
+                    if cnt!=len(parameters):
                         for i in range(cnt):
-                            if win32:
-                                dir = self.cmd.Parameters[i].Direction
-                            else:
-                                dir = self.cmd.Parameters.Item[i].Direction   
+                            dir = getIndexedValue(self.cmd.Parameters,i).Direction   
                             if dir == adParamReturnValue:
                                 returnValueIndex=i
                                 break
@@ -649,10 +654,7 @@ class Cursor(object):
                     parmIndx+=1
                     if parmIndx == returnValueIndex:
                         parmIndx+=1
-                    if win32:
-                        p=self.cmd.Parameters[parmIndx]
-                    else: # Iron Python
-                        p=self.cmd.Parameters.Item[parmIndx]   
+                    p=getIndexedValue(self.cmd.Parameters,parmIndx)   
                     if verbose > 2:
                         print 'Parameter %d ADOtype %d, python %s' % (parmIndx,p.Type,type(elem))
                     if p.Direction in [adParamInput,adParamInputOutput,adParamUnknown]:
@@ -667,7 +669,7 @@ class Cursor(object):
                                 s = dateconverter.DateObjectToIsoFormatString(elem)
                                 p.Value = s
                                 p.Size = len(s)
-                        elif tp in types.StringTypes:            #v2.1 Jevon
+                        elif tp in StringTypes:            #v2.1 Jevon
                             L = len(elem)
                             if defaultParameterList:
                                 p.Value = elem
@@ -679,14 +681,14 @@ class Cursor(object):
                                     p.Value = elem    # dont limit if db column is numeric
                             if L>0:   #v2.1 Cole something does not like p.Size as Zero
                                 p.Size = L           #v2.1 Jevon
-                        elif tp == types.BufferType: #v2.1 Cole -- ADO BINARY
+                        elif tp == memoryViewType: #v2.1 Cole -- ADO BINARY
                             p.AppendChunk(elem)
                         elif isinstance(elem,decimal.Decimal): #v2.2 Cole
                             s = str(elem)
                             p.Value = s
                             p.Size = len(s)
-                        elif isinstance(elem, long) and not win32: # Iron Python Long
-                            s = SystemDecimal(elem)
+                        elif isinstance(elem, longType) and onIronPython: # Iron Python Long
+                            s = SystemDecimal(elem)  # feature workaround for IPy 2.0
                             p.Value = s
                         else:
                             p.Value=elem
@@ -695,23 +697,20 @@ class Cursor(object):
             parmIndx = -2 # kludge to prevent exception handler picking out one parameter
 
             # ----- the actual SQL is executed here ---
-            if win32:
-                adoRetVal=self.cmd.Execute()
-            else:  #Iron Python
+            if onIronPython:
                 ra = Reference[int]()
                 rs = self.cmd.Execute(ra)
                 adoRetVal=(rs,ra.Value) #return a tuple like win32 does
+            else: #pywin32
+                adoRetVal=self.cmd.Execute()
             # ----- ------------------------------- ---
         except Exception, e:
             tbk = u'\n--ADODBAPI\n'
             if parmIndx >= 0:
                 tbk += u'-- Trying parameter %d = %s\n' \
                     %(parmIndx, repr(parameters[parmIndx]))
-            tblist=(traceback.format_exception(sys.exc_type,
-                                              sys.exc_value,
-                                              sys.exc_traceback,
-                                              8))
-            tb=string.join(tblist)
+            tblist=traceback.format_exception(sys.exc_type,sys.exc_value,sys.exc_traceback,8)
+            tb=''.join(tblist)
             tracebackhistory = tbk + tb + u'-- on command: "%s"\n-- with parameters: %s' \
                                %(operation,parameters)
             self._raiseCursorError(DatabaseError,tracebackhistory)
@@ -804,14 +803,7 @@ class Cursor(object):
             d=self.description
             returnList=[]
             i=0
-            if win32:
-                for descTuple in d:
-                    # Desctuple =(name, type_code, display_size, internal_size, precision, scale, null_ok).
-                    type_code=descTuple[1]
-                    returnList.append([convertVariantToPython(r,type_code) for r in ado_results[i]])
-                    i+=1
-                return tuple(zip(*returnList))
-            else: #Iron Python
+            if onIronPython:
                 type_codes = [descTuple[1] for descTuple in d]
                 for j in range(len(ado_results)/len(d)):
                     L = []
@@ -819,6 +811,13 @@ class Cursor(object):
                         L.append(convertVariantToPython(ado_results[i,j],type_codes[i]))
                     returnList.append(tuple(L))
                 return tuple(returnList)    
+            else: #pywin32
+                for descTuple in d:
+                    # Desctuple =(name, type_code, display_size, internal_size, precision, scale, null_ok).
+                    type_code=descTuple[1]
+                    returnList.append([convertVariantToPython(r,type_code) for r in ado_results[i]])
+                    i+=1
+                return tuple(zip(*returnList))
 
     def fetchone(self):
         """ Fetch the next row of a query result set, returning a single sequence,
@@ -885,19 +884,19 @@ class Cursor(object):
             self._raiseCursorError(Error,None)
             return
         else:
-            if win32:
+            if onIronPython:
+               try:
+                    rs = self.rs.NextRecordset()
+               except TypeError:
+                    rs = None
+               except Error, exc:
+                    self._raiseCursorError(NotSupportedError, exc.args)
+            else: #pywin32
                 try:                                               #[begin 2.1 ekelund]
                     rsTuple=self.rs.NextRecordset()                # 
                 except pywintypes.com_error, exc:                  # return appropriate error
                     self._raiseCursorError(NotSupportedError, exc.args)#[end 2.1 ekelund]
                 rs=rsTuple[0]
-            else: # iron
-                try:
-                    rs = self.rs.NextRecordset()
-                except TypeError:
-                    rs = None
-                except Error, exc:
-                    self._raiseCursorError(NotSupportedError, exc.args)
             self._makeDescriptionFromRS(rs)
             if rs:
                 return True
@@ -941,22 +940,22 @@ def Timestamp(year,month,day,hour,minute,second):
 def DateFromTicks(ticks):
     """This function constructs an object holding a date value from the given ticks value
     (number of seconds since the epoch; see the documentation of the standard Python time module for details). """
-    return apply(Date,time.gmtime(ticks)[:3])
+    return Date(*time.gmtime(ticks)[:3])
 
 def TimeFromTicks(ticks):
     """This function constructs an object holding a time value from the given ticks value
     (number of seconds since the epoch; see the documentation of the standard Python time module for details). """
-    return apply(Time,time.gmtime(ticks)[3:6])
+    return Time(*time.gmtime(ticks)[3:6])
 
 def TimestampFromTicks(ticks):
     """This function constructs an object holding a time stamp value from the given
     ticks value (number of seconds since the epoch;
     see the documentation of the standard Python time module for details). """
-    return apply(Timestamp,time.gmtime(ticks)[:6])
+    return Timestamp(*time.gmtime(ticks)[:6])
 
 def Binary(aString):
     """This function constructs an object capable of holding a binary (long) string value. """
-    return buffer(aString)
+    return memoryview(aString)
 
 #v2.1 Cole comment out: BinaryType = Binary('a')
 
@@ -1147,11 +1146,8 @@ class DBAPITypeObject(object):
 
   def __cmp__(self,other):
     if other in self.values:
-      return 0
-    if other < self.values:
-      return 1
-    else:
-      return -1
+        return 0
+    return 1
 
 adoIntegerTypes=(adInteger,adSmallInt,adTinyInt,adUnsignedInt,
                  adUnsignedSmallInt,adUnsignedTinyInt,
@@ -1184,17 +1180,20 @@ DATETIME = DBAPITypeObject(adoDateTimeTypes)
 """This type object is used to describe the "Row ID" column in a database. """
 ROWID    = DBAPITypeObject(adoRowIdTypes)
 
-typeMap= { 
-           types.BufferType: adBinary,
-           types.FloatType: adNumeric,
-           types.IntType: adInteger,
-           types.LongType: adBigInt,
-           types.StringType: adBSTR,
-           types.NoneType: adEmpty,
-           types.UnicodeType: adBSTR,
-           types.BooleanType:adBoolean          #v2.1 Cole
+typeMap= { memoryViewType: adBinary,
+           float: adNumeric,
+           type(None): adEmpty,
+           unicode: adBSTR, # this line will be altered by 2to3 to 'str:'
+           bool:adBoolean          #v2.1 Cole
            }
-
+if longType != int: #not Python 3
+    typeMap[longType] = adBigInt  #works in python 2.x
+    typeMap[int] = adInteger
+    typeMap[bytes] = adBSTR,  # 2.x string type
+else:             #python 3.0 integrated integers
+   ## Should this differentiote between an int that fits ion an long and one that requires 64 bit datatype?
+    typeMap[int] = adBigInt
+    
 try: # If mx extensions are installed, use mxDateTime
     import mx.DateTime
     dateconverter=mxDateTimeConverter()
@@ -1210,7 +1209,7 @@ def variantConvertDate(v):
 # functions to convert database values to Python objects
 
 def cvtString(variant):  # use to get old action of adodbapi v1 if desired
-    if not win32: # iron python
+    if onIronPython:
         try: 
             return variant.ToString()
         except:
@@ -1218,7 +1217,7 @@ def cvtString(variant):  # use to get old action of adodbapi v1 if desired
     return str(variant)
 
 def cvtNumeric(variant):     #all v2.1 Cole
-    if not win32: # iron python
+    if onIronPython:
         try: 
             return decimal.Decimal(variant.ToString())
         except:
@@ -1247,16 +1246,16 @@ def cvtFloat(variant):
         raise
 
 def cvtBuffer(variant):
-    return buffer(variant)
+    return memoryview(variant)
 
 def cvtUnicode(variant):
-    return unicode(variant) 
+    return unicode(variant) # will be altered by 2to3 to 'str(variant)'
 
 def identity(x): return x
 
 class VariantConversionMap(dict):
     def __init__(self, aDict):
-        for k, v in aDict.iteritems():
+        for k, v in aDict.items():
             self[k] = v # we must call __setitem__
 
     def __setitem__(self, adoType, cvtFn):
@@ -1288,7 +1287,7 @@ variantConversions = VariantConversionMap( {
     adoApproximateNumericTypes: cvtFloat,
     adCurrency: cvtNumeric,
     adoExactNumericTypes: cvtNumeric, # use cvtNumeric to force decimal rather than unicode
-    adoLongTypes : long,
+    adoLongTypes : long,  # will by altered by 2to3 to ': int'
     adoIntegerTypes: int,
     adoRowIdTypes: int,
     adoStringTypes: identity,

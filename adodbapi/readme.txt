@@ -3,7 +3,8 @@ Project
 adodbapi
 
 A Python DB-API 2.0 module that makes it easy to use Microsoft ADO 
-for connecting with databases and other data sources.
+for connecting with databases and other data sources
+using either CPython or IronPython.
 
 Home page: <http://sourceforge.net/projects/adodbapi>
 
@@ -31,6 +32,11 @@ or:
 or:
 	adodbapi.variantConversions[adodbapi.adNumeric] = my_convertion_function
 ............
+Whats new in version 2.2.4
+1. Ready for Python3? -- refactored so that 2to3 will inject very few errors, seems to be almost runnable in Pyk3.
+
+What happened to version 2.2.3?
+   It was an attempt to be Python3 ready, but done wrong, so killed off.
 
 whats new in version 2.2.2
 1. Works with Iron Python 2.0RC1 (passes all tests except BINARY columns and old python time date conversion.)

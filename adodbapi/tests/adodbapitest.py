@@ -1,4 +1,4 @@
-""" Unit tests for adodbapi version 2.2.2"""
+""" Unit tests for adodbapi version 2.2.4"""
 """
     adodbapi - A python DB API 2.0 interface to Microsoft ADO
     
@@ -52,7 +52,7 @@ class CommonDBTests(unittest.TestCase):
         return self.engine
     
     def getConnection(self):
-        raise "This method must be overriden by a subclass"  
+        raise NotImplementedError #"This method must be overriden by a subclass"  
 
     def getCursor(self):
         return self.getConnection().cursor()
@@ -178,17 +178,17 @@ class CommonDBTests(unittest.TestCase):
         assert descTuple[0] == 'fldData'
 
         if DBAPIDataTypeString=='STRING':
-            assert descTuple[1] == adodbapi.STRING, 'was "%s"'%descTuple[1]
+            assert descTuple[1] == adodbapi.STRING, 'was "%s" expected "%s"'%(descTuple[1],adodbapi.STRING.values)
         elif DBAPIDataTypeString == 'NUMBER':
-            assert descTuple[1] == adodbapi.NUMBER, 'was "%s"'%descTuple[1]
+            assert descTuple[1] == adodbapi.NUMBER, 'was "%s" expected "%s"'%(descTuple[1],adodbapi.NUMBER.values)
         elif DBAPIDataTypeString == 'BINARY':
-            assert descTuple[1] == adodbapi.BINARY, 'was "%s"'%descTuple[1]
+            assert descTuple[1] == adodbapi.BINARY, 'was "%s" expected "%s"'%(descTuple[1],adodbapi.BINARY.values)
         elif DBAPIDataTypeString == 'DATETIME':
-            assert descTuple[1] == adodbapi.DATETIME, 'was "%s"'%descTuple[1]
+            assert descTuple[1] == adodbapi.DATETIME, 'was "%s" expected "%s"'%(descTuple[1],adodbapi.DATETIME.values)
         elif DBAPIDataTypeString == 'ROWID':
-            assert descTuple[1] == adodbapi.ROWID, 'was "%s"'%descTuple[1]
+            assert descTuple[1] == adodbapi.ROWID, 'was "%s" expected "%s"'%(descTuple[1],adodbapi.ROWID.values)
         else:
-            raise "DBAPIDataTypeString not provided"
+            raise NotImplementedError #"DBAPIDataTypeString not provided"
 
         #Test data binding
         inputs=[pyData]
@@ -267,7 +267,7 @@ class CommonDBTests(unittest.TestCase):
         self.helpTestDataType("datetime",'DATETIME',adodbapi.Date(2002,10,28),compareAlmostEqual=True)
         if self.getEngine() != 'MySQL':
             self.helpTestDataType("smalldatetime",'DATETIME',adodbapi.Date(2002,10,28),compareAlmostEqual=True)
-        self.helpTestDataType("datetime",'DATETIME',adodbapi.Timestamp(2002,10,28,12,15,01),compareAlmostEqual=True)
+        self.helpTestDataType("datetime",'DATETIME',adodbapi.Timestamp(2002,10,28,12,15,1),compareAlmostEqual=True)
 
     def testDataTypeBinary(self):
         if self.getEngine() == 'MySQL':
@@ -607,7 +607,7 @@ class TimeConverterInterfaceTest(unittest.TestCase):
         correct=34653.5
         self.assertEquals( comDate ,correct)
         
-        d=self.tc.Timestamp(2003,05,06,14,15,17)
+        d=self.tc.Timestamp(2003,5,6,14,15,17)
         comDate=self.tc.COMDate(d)
         correct=37747.593946759262
         self.assertEquals( comDate ,correct)
@@ -628,14 +628,14 @@ class TestMXDateTimeConverter(TimeConverterInterfaceTest):
         self.tc=adodbapi.mxDateTimeConverter()
   
     def testCOMDate(self):       
-        t=mx.DateTime.DateTime(2002,06,28,18,15,02)       
+        t=mx.DateTime.DateTime(2002,6,28,18,15,2)       
         cmd=self.tc.COMDate(t)       
         assert cmd == t.COMDate()
     
     def testDateObjectFromCOMDate(self):
         cmd=self.tc.DateObjectFromCOMDate(37435.7604282)
-        t=mx.DateTime.DateTime(2002,06,28,18,15,00)
-        t2=mx.DateTime.DateTime(2002,06,28,18,15,02)
+        t=mx.DateTime.DateTime(2002,6,28,18,15,0)
+        t2=mx.DateTime.DateTime(2002,6,28,18,15,2)
         assert t2>cmd>t
     
     def testDate(self):
@@ -645,8 +645,8 @@ class TestMXDateTimeConverter(TimeConverterInterfaceTest):
         assert mx.DateTime.Time(13,11,4)==self.tc.Time(13,11,4)
 
     def testTimestamp(self):
-        t=mx.DateTime.DateTime(2002,6,28,18,15,01)   
-        obj=self.tc.Timestamp(2002,6,28,18,15,01)
+        t=mx.DateTime.DateTime(2002,6,28,18,15,1)   
+        obj=self.tc.Timestamp(2002,6,28,18,15,1)
         assert t == obj
 
 import time
@@ -655,7 +655,7 @@ class TestPythonTimeConverter(TimeConverterInterfaceTest):
         self.tc=adodbapi.pythonTimeConverter()
     
     def testCOMDate(self):
-        mk = time.mktime((2002,6,28,18,15,01, 4,31+28+31+30+31+28,-1))
+        mk = time.mktime((2002,6,28,18,15,1, 4,31+28+31+30+31+28,-1))
         t=time.localtime(mk)
         # Fri, 28 Jun 2002 18:15:01 +0000
         cmd=self.tc.COMDate(t)
@@ -663,13 +663,13 @@ class TestPythonTimeConverter(TimeConverterInterfaceTest):
 
     def testDateObjectFromCOMDate(self):
         cmd=self.tc.DateObjectFromCOMDate(37435.7604282)
-        t1=time.gmtime(time.mktime((2002,6,28,12,14,01, 4,31+28+31+30+31+28,-1)))
-        t2=time.gmtime(time.mktime((2002,6,28,12,16,01, 4,31+28+31+30+31+28,-1)))
+        t1=time.gmtime(time.mktime((2002,6,28,12,14,1, 4,31+28+31+30+31+28,-1)))
+        t2=time.gmtime(time.mktime((2002,6,28,12,16,1, 4,31+28+31+30+31+28,-1)))
         assert t1<cmd<t2, '"%s" should be about 2002-6-28 12:15:01'%repr(cmd)
     
     def testDate(self):
-        t1=time.mktime((2002,6,28,18,15,01, 4,31+28+31+30+31+30,0))
-        t2=time.mktime((2002,6,30,18,15,01, 4,31+28+31+30+31+28,0))
+        t1=time.mktime((2002,6,28,18,15,1, 4,31+28+31+30+31+30,0))
+        t2=time.mktime((2002,6,30,18,15,1, 4,31+28+31+30+31+28,0))
         obj=self.tc.Date(2002,6,29)
         assert t1< time.mktime(obj)<t2,obj
 
@@ -677,9 +677,9 @@ class TestPythonTimeConverter(TimeConverterInterfaceTest):
         self.assertEquals( self.tc.Time(18,15,2),time.gmtime(18*60*60+15*60+2))
 
     def testTimestamp(self):
-        t1=time.localtime(time.mktime((2002,6,28,18,14,01, 4,31+28+31+30+31+28,-1)))
-        t2=time.localtime(time.mktime((2002,6,28,18,16,01, 4,31+28+31+30+31+28,-1)))
-        obj=self.tc.Timestamp(2002,6,28,18,15,02)
+        t1=time.localtime(time.mktime((2002,6,28,18,14,1, 4,31+28+31+30+31+28,-1)))
+        t2=time.localtime(time.mktime((2002,6,28,18,16,1, 4,31+28+31+30+31+28,-1)))
+        obj=self.tc.Timestamp(2002,6,28,18,15,2)
         assert t1< obj <t2,obj
 
 if adodbapitestconfig.doDateTimeTest:
@@ -689,15 +689,15 @@ class TestPythonDateTimeConverter(TimeConverterInterfaceTest):
         self.tc=adodbapi.pythonDateTimeConverter()
     
     def testCOMDate(self):
-        t=datetime.datetime( 2002,6,28,18,15,01)
+        t=datetime.datetime( 2002,6,28,18,15,1)
         # Fri, 28 Jun 2002 18:15:01 +0000
         cmd=self.tc.COMDate(t)
         assert abs(cmd - 37435.7604282) < 1.0/24,"more than an hour wrong"
         
     def testDateObjectFromCOMDate(self):
         cmd=self.tc.DateObjectFromCOMDate(37435.7604282)
-        t1=datetime.datetime(2002,6,28,18,14,01)
-        t2=datetime.datetime(2002,6,28,18,16,01)
+        t1=datetime.datetime(2002,6,28,18,14,1)
+        t2=datetime.datetime(2002,6,28,18,16,1)
         assert t1<cmd<t2,cmd
     
     def testDate(self):
@@ -710,9 +710,9 @@ class TestPythonDateTimeConverter(TimeConverterInterfaceTest):
         self.assertEquals( self.tc.Time(18,15,2).isoformat()[:8],'18:15:02')
 
     def testTimestamp(self):
-        t1=datetime.datetime(2002,6,28,18,14,01)
-        t2=datetime.datetime(2002,6,28,18,16,01)
-        obj=self.tc.Timestamp(2002,6,28,18,15,02)
+        t1=datetime.datetime(2002,6,28,18,14,1)
+        t2=datetime.datetime(2002,6,28,18,16,1)
+        obj=self.tc.Timestamp(2002,6,28,18,15,2)
         assert t1< obj <t2,obj
 
         

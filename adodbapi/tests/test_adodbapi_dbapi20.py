@@ -4,7 +4,6 @@ print "(see db-sig mailing list history for info)"
 import dbapi20
 print "Tested with dbapi20 %s" % dbapi20.__version__
 import unittest
-import popen2
 
 import adodbapitestconfig
 import adodbapi
