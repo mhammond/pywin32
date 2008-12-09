@@ -11,7 +11,7 @@ class Object:
 		self.close()
 	def __getattr__(self, attr):	# Make this object look like the underlying win32ui one.
 		# During cleanup __dict__ is not available, causing recursive death.
-		if attr != '__dict__':
+		if not attr.startswith('__'):
 			try:
 				o = self.__dict__['_obj_']
 				if o is not None:
