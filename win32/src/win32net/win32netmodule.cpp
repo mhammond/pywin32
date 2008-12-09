@@ -1158,15 +1158,11 @@ static void AddConstant(PyObject *dict, char *name, long val)
   Py_XDECREF(nv);
 }
 
-extern "C" __declspec(dllexport) void
-initwin32net(void)
+PYWIN_MODULE_INIT_FUNC(win32net)
 {
-  PyObject *dict, *module;
-  module = Py_InitModule("win32net", win32net_functions);
-  if (!module) return;
-  dict = PyModule_GetDict(module);
-  if (!dict) return;
-  PyWinGlobals_Ensure();
+  PYWIN_MODULE_INIT_PREPARE(win32net, win32net_functions,
+                            "A module encapsulating the Windows Network API.");
+
   PyDict_SetItemString(dict, "error", PyWinExc_ApiError);
   PyDict_SetItemString(dict, "SERVICE_SERVER", PyUnicode_FromWideChar(SERVICE_SERVER,wcslen(SERVICE_SERVER)));
   PyDict_SetItemString(dict, "SERVICE_WORKSTATION", PyUnicode_FromWideChar(SERVICE_WORKSTATION,wcslen(SERVICE_WORKSTATION)));
@@ -1190,4 +1186,5 @@ initwin32net(void)
 	  pfnNetValidatePasswordPolicyFree=(NetValidatePasswordPolicyFreefunc)GetProcAddress(hmodule, "NetValidatePasswordPolicyFree");
   }
 #endif
+  PYWIN_MODULE_INIT_RETURN_SUCCESS;
 }

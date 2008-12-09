@@ -24,19 +24,17 @@ static const PyCom_InterfaceSupportInfo register_data[] =
 	PYCOM_INTERFACE_CLIENT_ONLY( ProvideTaskPage )
 };
 
-extern "C" __declspec(dllexport) void inittaskscheduler()
+PYWIN_MODULE_INIT_FUNC(taskscheduler)
 {
-	PyObject *module;
-	module = Py_InitModule("taskscheduler", taskscheduler_methods);
-	if (module==NULL)
-		return;
-	PyObject *dict = PyModule_GetDict(module);
-	if (dict==NULL)
-		return;
+	PYWIN_MODULE_INIT_PREPARE(taskscheduler, taskscheduler_methods,
+	                          "Supports the Scheduled Tasks COM interfaces");
+
+	if (PyType_Ready(&PyTASK_TRIGGERType) == -1)
+		PYWIN_MODULE_INIT_RETURN_ERROR;
 
 	// Register all of our interfaces, gateways and IIDs.
 	PyCom_RegisterExtensionSupport(dict, register_data, sizeof(register_data)/sizeof(PyCom_InterfaceSupportInfo));
-	
+
 	// trigger types
 	PyModule_AddIntConstant(module,"TASK_TIME_TRIGGER_ONCE", TASK_TIME_TRIGGER_ONCE);
 	PyModule_AddIntConstant(module,"TASK_TIME_TRIGGER_DAILY", TASK_TIME_TRIGGER_DAILY);
@@ -132,4 +130,5 @@ extern "C" __declspec(dllexport) void inittaskscheduler()
 	PyModule_AddIntConstant(module,"TASKPAGE_SCHEDULE", TASKPAGE_SCHEDULE);
 	PyModule_AddIntConstant(module,"TASKPAGE_SETTINGS", TASKPAGE_SETTINGS);
 
+	PYWIN_MODULE_INIT_RETURN_SUCCESS;
 }

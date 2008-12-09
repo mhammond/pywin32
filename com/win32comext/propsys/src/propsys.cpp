@@ -73,18 +73,16 @@ static struct PyMethodDef propsys_methods[]=
 //};
 
 /* Module initialisation */
-extern "C" __declspec(dllexport) void initpropsys()
+PYWIN_MODULE_INIT_FUNC(propsys)
 {
-	char *modName = "propsys";
-	PyObject *oModule;
-	// Create the module and add the functions
-	oModule = Py_InitModule(modName, propsys_methods);
-	if (!oModule) /* Eeek - some serious error! */
-		return;
-	PyObject *dict = PyModule_GetDict(oModule);
-	if (!dict) return; /* Another serious error!*/
+	PYWIN_MODULE_INIT_PREPARE(propsys, propsys_methods,
+	                          "A module, encapsulating the Vista Property System interfaces");
 
-	PyDict_SetItemString(dict, "error", PyWinExc_COMError);
+	if (PyDict_SetItemString(dict, "error", PyWinExc_COMError) == -1)
+		PYWIN_MODULE_INIT_RETURN_ERROR;
+
 	// Register all of our interfaces, gateways and IIDs.
 	//PyCom_RegisterExtensionSupport(dict, g_interfaceSupportData, sizeof(g_interfaceSupportData)/sizeof(PyCom_InterfaceSupportInfo));
+
+	PYWIN_MODULE_INIT_RETURN_SUCCESS;
 }

@@ -2638,15 +2638,11 @@ static void AddConstant(PyObject *dict, char *name, long val)
 }
 
 
-extern "C" __declspec(dllexport) void
-initwin32print(void)
+PYWIN_MODULE_INIT_FUNC(win32print)
 {
-  PyObject *module, *dict;
-  PyWinGlobals_Ensure();
-  module = Py_InitModule("win32print", win32print_functions);
-  if (!module) return;
-  dict = PyModule_GetDict(module);
-  if (!dict) return;
+  PYWIN_MODULE_INIT_PREPARE(win32print, win32print_functions,
+                            "A module encapsulating the Windows printing API.")
+
   AddConstant(dict, "PRINTER_INFO_1", 1);
   AddConstant(dict, "PRINTER_ENUM_LOCAL", PRINTER_ENUM_LOCAL);
   AddConstant(dict, "PRINTER_ENUM_NAME", PRINTER_ENUM_NAME);
@@ -2828,4 +2824,6 @@ initwin32print(void)
 	pfnSetDefaultPrinter=(SetDefaultPrinterfunc)GetProcAddress(hmodule, "SetDefaultPrinterW");
   }
   dummy_tuple=PyTuple_New(0);
+
+  PYWIN_MODULE_INIT_RETURN_SUCCESS;
 }

@@ -640,20 +640,20 @@ static PyMethodDef win32wnet_functions[] = {
 	{NULL,			NULL}
 };
 
-extern "C" __declspec(dllexport) 
-void
-initwin32wnet(void)
-
+PYWIN_MODULE_INIT_FUNC(win32wnet)
 {
-  PyObject *dict, *module;
-  module = Py_InitModule("win32wnet", win32wnet_functions);
-  if (!module) return;
-  dict = PyModule_GetDict(module);
-  if (!dict) return;
-  PyWinGlobals_Ensure();
-  PyDict_SetItemString(dict, "error", PyWinExc_ApiError);
-  PyDict_SetItemString(dict, "NETRESOURCEType", (PyObject *)&PyNETRESOURCEType);
-  PyDict_SetItemString(dict, "NCBType", (PyObject *)&PyNCBType);
+	PYWIN_MODULE_INIT_PREPARE(win32wnet, win32wnet_functions,
+	                          "A module that exposes the Windows Networking API.");
 
-  Py_INCREF(PyWinExc_ApiError);
+
+	PyDict_SetItemString(dict, "error", PyWinExc_ApiError);
+
+	if ((PyType_Ready(&PyNETRESOURCEType) == -1) ||
+		(PyType_Ready(&PyNCBType) == -1))
+		PYWIN_MODULE_INIT_RETURN_ERROR;
+
+	PyDict_SetItemString(dict, "NETRESOURCEType", (PyObject *)&PyNETRESOURCEType);
+	PyDict_SetItemString(dict, "NCBType", (PyObject *)&PyNCBType);
+
+	PYWIN_MODULE_INIT_RETURN_SUCCESS;
 }

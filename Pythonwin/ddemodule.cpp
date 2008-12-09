@@ -160,53 +160,16 @@ static struct PyMethodDef dde_functions[] =
 };
 
 
-#if (PY_VERSION_HEX < 0x03000000)
-#define ADD_CONSTANT(tok) if (PyModule_AddIntConstant(module, #tok, tok)) return;
-#else
-#define ADD_CONSTANT(tok) if (PyModule_AddIntConstant(module, #tok, tok)) return NULL;
-#endif
+#define ADD_CONSTANT(tok) if (PyModule_AddIntConstant(module, #tok, tok)) PYWIN_MODULE_INIT_RETURN_ERROR;
 
-extern "C" __declspec(dllexport)
-#if (PY_VERSION_HEX < 0x03000000)
-void initdde(void)
-#else
-PyObject *PyInit_dde(void)
-#endif
+PYWIN_MODULE_INIT_FUNC(dde)
 {
 	if (AfxGetApp()==NULL) {
 		PyErr_SetString(PyExc_ImportError, "This must be an MFC application - try loading win32ui first");
-#if (PY_VERSION_HEX < 0x03000000)
-		return;
-#else
-		return NULL;
-#endif
+		PYWIN_MODULE_INIT_RETURN_ERROR;
 	}
-
-	PyObject *dict, *module;
-	PyWinGlobals_Ensure();
-
-#if (PY_VERSION_HEX < 0x03000000)
-	module = Py_InitModule("dde", dde_functions);
-	if (!module)
-		return;
-	dict = PyModule_GetDict(module);
-	if (!dict)
-		return;
-#else
-	static PyModuleDef dde_def = {
-		PyModuleDef_HEAD_INIT,
-		"dde",
-		"A module for Dynamic Data Exchange support",
-		-1,
-		dde_functions
-		};
-	module = PyModule_Create(&dde_def);
-	if (!module)
-		return NULL;
-	dict = PyModule_GetDict(module);
-	if (!dict)
-		return NULL;
-#endif
+	PYWIN_MODULE_INIT_PREPARE(dde, dde_functions,
+	                          "A module for Dynamic Data Exchange support");
 
 	dde_module_error = PyErr_NewException("dde.error", NULL, NULL);
 	PyDict_SetItemString(dict, "error", dde_module_error);
@@ -235,7 +198,5 @@ PyObject *PyInit_dde(void)
 	ADD_CONSTANT(MF_POSTMSGS); // Notifies the callback function whenever the system or an application posts a DDE message. 
 	ADD_CONSTANT(MF_SENDMSGS); // Notifies the callback function whenever the system or an application sends a DDE message. 
 
-#if (PY_VERSION_HEX >= 0x03000000)
-	return module;
-#endif
+	PYWIN_MODULE_INIT_RETURN_SUCCESS;
 }

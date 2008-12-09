@@ -16,7 +16,7 @@ PyObject *PyObject_FromNOTIFICATION(NOTIFICATION *n)
 	PyObject *ret = NULL;
 	switch (n->ulEventType) {
 		case fnevCriticalError: {
-			ERROR_NOTIFICATION &err = n->info.err;
+			ERROR_NOTIFICATION &err(n->info.err);
 			ret = Py_BuildValue("k(s#iiN)",
 					    n->ulEventType,
 					    err.lpEntryID, err.cbEntryID,

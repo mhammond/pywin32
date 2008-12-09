@@ -279,8 +279,8 @@ static int AddIID(PyObject *dict, const char *key, REFGUID guid)
 	return rc;
 }
 
-#define ADD_CONSTANT(tok) AddConstant(dict, #tok, tok)
-#define ADD_IID(tok) AddIID(dict, #tok, tok)
+#define ADD_CONSTANT(tok) if (0 != AddConstant(dict, #tok, tok)) PYWIN_MODULE_INIT_RETURN_ERROR
+#define ADD_IID(tok) if (0 != AddIID(dict, #tok, tok)) PYWIN_MODULE_INIT_RETURN_ERROR
 
 // @object PyIFilter|Wraps the interfaces used with Indexing Service filtering
 static struct PyMethodDef PyIFilter_methods[] =
@@ -299,7 +299,7 @@ PyComTypeObject PyIFilter::type("PyIFilter",
 		GET_PYCOM_CTOR(PyIFilter));
 
 
-static struct PyMethodDef g_methods[] =
+static struct PyMethodDef ifilter_functions[] =
 {
 	{ "LoadIFilter", pyLoadIFilter, 1 }, // @pymeth Init|Description of Init
 	{ "BindIFilterFromStorage", pyBindIFilterFromStorage, 1 }, // @pymeth BindIFilterFromStorage|
@@ -314,19 +314,10 @@ static const PyCom_InterfaceSupportInfo g_interfaceSupportData[] =
 };
 
 /* Module initialisation */
-extern "C" __declspec(dllexport) void initifilter()
+PYWIN_MODULE_INIT_FUNC(ifilter)
 {
-	char *modName = "ifilter";
-	PyObject *oModule;
-
-	PyWinGlobals_Ensure();
-
-	// Create the module and add the functions
-	oModule = Py_InitModule(modName, g_methods);
-	if (!oModule) /* Eeek - some serious error! */
-		return;
-	PyObject *dict = PyModule_GetDict(oModule);
-	if (!dict) return; /* Another serious error!*/
+	PYWIN_MODULE_INIT_PREPARE(ifilter, ifilter_functions,
+	                          "Wraps the interfaces used with Indexing Service filtering");
 
 	// Register all of our interfaces, gateways and IIDs.
 	PyCom_RegisterExtensionSupport(dict, g_interfaceSupportData, sizeof(g_interfaceSupportData)/sizeof(PyCom_InterfaceSupportInfo));
@@ -379,4 +370,6 @@ extern "C" __declspec(dllexport) void initifilter()
 	ADD_CONSTANT(FILTER_E_NO_MORE_TEXT);
 	ADD_CONSTANT(FILTER_S_LAST_TEXT); 
 	// NOTE: New constants should go in ifiltercon.py
+
+	PYWIN_MODULE_INIT_RETURN_SUCCESS;
 }

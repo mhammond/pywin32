@@ -46,8 +46,6 @@ generates Windows .hlp files.
 extern "C" __declspec(dllimport) int PyCallable_Check(PyObject *);	// python - object.c
 extern DWORD DebuggerThreadFunc( LPDWORD lpdwWhatever );
 
-static char BASED_CODE uiModName[] = "win32ui";
-
 // We can't init exceptionHandler in initwin32ui because the application using
 // us could have called SetExceptionHandler earlier. We do a forward declaration
 // of DefaultExceptionHandler here and assign it to exceptionHandler.
@@ -2247,47 +2245,63 @@ int AddConstants(PyObject *module)
 	return 0;
 }
 
+
+/* PyType_Ready assures that the type's tp_base is ready, but it does *not* call
+	itself for entries in tp_bases, leading to a crash or indecipherable errors
+	if one of multiple bases is not itself ready.
+	This should probably be reported as a bug.
+*/
+int PyWinType_Ready(PyTypeObject *pT)
+{
+	if (pT->tp_flags & Py_TPFLAGS_READY)
+		return 0;
+	if (pT->tp_bases == NULL)
+		return 0;
+	Py_ssize_t base_cnt=PyTuple_GET_SIZE(pT->tp_bases);
+	for (Py_ssize_t b=0; b<base_cnt; b++){
+		PyTypeObject *base_type = (PyTypeObject *)PyTuple_GET_ITEM(pT->tp_bases, b);
+		if (PyWinType_Ready(base_type) == -1)
+			return -1;
+		if (PyType_Ready(base_type) == -1)
+			return -1;
+		}
+	return 0;
+}
+
 extern bool CheckGoodWinApp();
 extern HINSTANCE hWin32uiDll; // Handle to this DLL, from dllmain.cpp
 
 /* Initialize this module. */
-extern "C" __declspec(dllexport) void
-initwin32ui(void)
+PYWIN_MODULE_INIT_FUNC(win32ui)
 {
-  // XXX - hack alert!
-  // Win9x manages to wind up in here twice when used from a console - 
-  // CheckGoodWinApp() winds up re-initializing - so when we return
-  // we see if we already did init, and get out.
-  // Would be nice to solve this properly, but Win9x is a bitch to debug :(
-  static bool bInitialized = false;
-  if (!CheckGoodWinApp()) {
-	  PyErr_SetString(PyExc_RuntimeError, "The win32ui module could not initialize the application object.");
-	  return;
-  }
-  if (bInitialized)
-    return;
-  PyWinGlobals_Ensure();
-  PyObject *dict, *module;
+	// For various hysterical reasons, Win32uiApplicationInit also calls
+	// initwin32ui, meaning we need to deal with being called multiple
+	// times.
+	static PyObject *existing_module = NULL;
+	if (!CheckGoodWinApp()) {
+		PyErr_SetString(PyExc_RuntimeError, "The win32ui module could not initialize the application object.");
+		PYWIN_MODULE_INIT_RETURN_ERROR;
+	}
+	if (existing_module)
+#if (PY_VERSION_HEX < 0x03000000)
+		return;
+#else
+		return existing_module;
+#endif
 
-#define RETURN_ERROR return; // path to py3k...
+	PYWIN_MODULE_INIT_PREPARE(win32ui, ui_functions,
+	                    "A module, encapsulating the Microsoft Foundation Classes.");
 
-  module = Py_InitModule(uiModName, ui_functions);
-  if (!module) /* Eeek - some serious error! */
-    return;
-  dict = PyModule_GetDict(module);
-  if (!dict)
-    RETURN_ERROR;
+	ui_module_error = PyErr_NewException("win32ui.error", NULL, NULL);
+	if ((ui_module_error == NULL) || PyDict_SetItemString(dict, "error", ui_module_error) == -1)
+		PYWIN_MODULE_INIT_RETURN_ERROR;
 
-  ui_module_error = PyErr_NewException("win32ui.error", NULL, NULL);
-  if ((ui_module_error == NULL) || PyDict_SetItemString(dict, "error", ui_module_error) == -1)
-    RETURN_ERROR;
-
-  // drop email addy - too many ppl use it for support requests for other
-  // tools that simply embed Pythonwin...
-  PyObject *copyright = PyWinCoreString_FromString("Copyright 1994-2008 Mark Hammond");
-  if ((copyright == NULL) || PyDict_SetItemString(dict, "copyright", copyright) == -1)
-    RETURN_ERROR;
-  Py_XDECREF(copyright);
+	// drop email addy - too many ppl use it for support requests for other
+	// tools that simply embed Pythonwin...
+	PyObject *copyright = PyWinCoreString_FromString("Copyright 1994-2008 Mark Hammond");
+	if ((copyright == NULL) || PyDict_SetItemString(dict, "copyright", copyright) == -1)
+		PYWIN_MODULE_INIT_RETURN_ERROR;
+	Py_XDECREF(copyright);
 
   PyObject *dllhandle = PyWinLong_FromHANDLE(hWin32uiDll);
   PyDict_SetItemString(dict, "dllhandle", dllhandle);
@@ -2303,7 +2317,7 @@ initwin32ui(void)
 
   HookWindowsMessages();	// need to be notified of certain events...
   if (AddConstants(module) == -1)
-      RETURN_ERROR;
+      PYWIN_MODULE_INIT_RETURN_ERROR;
 
   // Add all the types.
   PyObject *typeDict = PyDict_New();
@@ -2312,14 +2326,21 @@ initwin32ui(void)
 	  CRuntimeClass *pRT;
 	  ui_type_CObject *pT;
 	  ui_type_CObject::typemap->GetNextAssoc(pos, pRT, pT);
-	  PyObject *typeName = PyString_FromString(pT->tp_name);
-	  PyDict_SetItem(typeDict, typeName, (PyObject *)pT);
-	  Py_XDECREF(typeName);
+
+		PyObject *typeName = PyWinCoreString_FromString(pT->tp_name);
+		// PyType_Ready sets tp_mro for inheritance to work, so it *must* be called on the type objects now.
+		if ((typeName==NULL)
+			||(PyWinType_Ready(pT)==-1)
+			||(PyDict_SetItem(typeDict, typeName, (PyObject *)pT)==-1))
+			PYWIN_MODULE_INIT_RETURN_ERROR;
+		Py_XDECREF(typeName);
   }
 
   PyDict_SetItemString(dict, "types", typeDict);
   Py_XDECREF(typeDict);
-  bInitialized = true;
+  existing_module = module;
+
+  PYWIN_MODULE_INIT_RETURN_SUCCESS;
 }
 
 // Utilities for glue support.
@@ -2422,12 +2443,23 @@ extern "C" PYW_EXPORT BOOL Win32uiApplicationInit(Win32uiHostGlue *pGlue, TCHAR 
 	// win32ui is attached to Python - otherwise there is
 	// a risk that when Python does "import win32ui", it
 	// will locate a different one, causing obvious grief!
-	initwin32ui();
-
-	// Set sys.argv if not already done!
 	PyObject *argv = PySys_GetObject("argv");
-	if (argv==NULL && __argv!=NULL && __argc > 0)
-		PySys_SetArgv(__argc-1, __argv+1);
+#if (PY_VERSION_HEX < 0x03000000)
+	initwin32ui();
+	// Set sys.argv if not already done!
+	if (argv==NULL && __targv!=NULL && __argc > 0)
+		PySys_SetArgv(__argc-1, __targv+1);
+#else
+	PyInit_win32ui();
+	if (argv==NULL) {
+		int myargc;
+		LPWSTR *myargv = CommandLineToArgvW(GetCommandLineW(), &myargc);
+		if (myargv) {
+			PySys_SetArgv(myargc-1, myargv+1);
+			LocalFree(myargv);
+		}
+	}
+#endif
 	// If the versions of the .h file are not in synch, then we are in trouble!
 	if (pGlue->versionNo != WIN32UIHOSTGLUE_VERSION) {
 		MessageBox(0, _T("There is a mismatch between version of the application and win32ui.pyd.\n\nIt is likely the application needs to be rebuilt."), _T("Error"), MB_OK);

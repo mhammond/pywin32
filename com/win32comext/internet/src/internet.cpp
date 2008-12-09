@@ -220,7 +220,7 @@ static PyObject *PyCoInternetCreateSecurityManager(PyObject *self, PyObject *arg
 
 /* List of module functions */
 // @module internet|A module, encapsulating the ActiveX Internet interfaces
-static struct PyMethodDef internet_methods[]=
+static struct PyMethodDef internet_functions[]=
 {
 	{ "CoInternetCreateSecurityManager", PyCoInternetCreateSecurityManager}, // @pymeth CoInternetCreateSecurityManager|
 	{ "CoInternetIsFeatureEnabled", PyCoInternetIsFeatureEnabled}, // @pymeth CoInternetIsFeatureEnabled|
@@ -258,7 +258,7 @@ static const PyCom_InterfaceSupportInfo g_interfaceSupportData[] =
 /* Module initialisation */
 PYWIN_MODULE_INIT_FUNC(internet)
 {
-	PYWIN_MODULE_INIT_PREPARE(internet, internet_methods,
+	PYWIN_MODULE_INIT_PREPARE(internet, internet_functions,
 	                          "A module, encapsulating the ActiveX Internet interfaces");
 
 	// Register all of our interfaces, gateways and IIDs.

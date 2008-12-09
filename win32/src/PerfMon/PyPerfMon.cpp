@@ -96,14 +96,14 @@ static struct PyMethodDef perfmon_functions[] = {
 };
 
 
-
-extern "C" __declspec(dllexport) void
-initperfmon(void)
+PYWIN_MODULE_INIT_FUNC(perfmon)
 {
-  PyObject *dict, *module;
-  module = Py_InitModule("perfmon", perfmon_functions);
-  if (!module) return;
-  dict = PyModule_GetDict(module);
+	PYWIN_MODULE_INIT_PREPARE(perfmon, perfmon_functions,
+	                          "Contains functions and objects wrapping the Performance Monitor APIs");
+	if (PyType_Ready(&PyPerfMonManager::type) == -1
+		|| PyType_Ready(&PyPERF_COUNTER_DEFINITION::type) == -1
+		|| PyType_Ready(&PyPERF_OBJECT_TYPE::type) == -1)
+		PYWIN_MODULE_INIT_RETURN_ERROR;
+	PYWIN_MODULE_INIT_RETURN_SUCCESS;
 }
-
 

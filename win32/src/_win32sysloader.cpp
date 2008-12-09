@@ -75,8 +75,24 @@ static struct PyMethodDef functions[] = {
     { NULL }
 };
 
-extern "C" __declspec(dllexport) void
-init_win32sysloader(void)
+extern "C" __declspec(dllexport)
+#if (PY_VERSION_HEX < 0x03000000)
+void init_win32sysloader(void)
 {
-    Py_InitModule("_win32sysloader", functions);
+	PyObject *module=Py_InitModule("_win32sysloader", functions);
 }
+#else
+PyObject *PyInit__win32sysloader(void)
+{
+	static PyModuleDef _win32sysloader_def = {
+		PyModuleDef_HEAD_INIT,
+		"_win32sysloader",
+		"Exists only to load Pywin32 system modules",
+		-1,
+		functions
+		};
+	PyObject *module=PyModule_Create(&_win32sysloader_def);
+	return module;
+}
+#endif
+

@@ -236,19 +236,8 @@ static struct PyMethodDef directsound_methods[]=
 	{ NULL, NULL },
 };
 
-static int AddConstant(PyObject *dict, const char *key, long value)
-{
-	PyObject *oval = PyInt_FromLong(value);
-	if (!oval)
-	{
-		return 1;
-	}
-	int rc = PyDict_SetItemString(dict, (char*)key, oval);
-	Py_DECREF(oval);
-	return rc;
-}
 
-#define ADD_CONSTANT(tok) AddConstant(dict, #tok, tok)
+#define ADD_CONSTANT(tok) if (PyModule_AddIntConstant(module, #tok, tok) == -1) PYWIN_MODULE_INIT_RETURN_ERROR;
 
 static const PyCom_InterfaceSupportInfo g_interfaceSupportData[] =
 {
@@ -260,16 +249,11 @@ static const PyCom_InterfaceSupportInfo g_interfaceSupportData[] =
 };
 
 /* Module initialisation */
-extern "C" __declspec(dllexport) void initdirectsound()
+PYWIN_MODULE_INIT_FUNC(directsound)
 {
-	char *modName = "directsound";
-	PyObject *oModule;
-	// Create the module and add the functions
-	oModule = Py_InitModule(modName, directsound_methods);
-	if (!oModule) /* Eeek - some serious error! */
-		return;
-	PyObject *dict = PyModule_GetDict(oModule);
-	if (!dict) return; /* Another serious error!*/
+	PYWIN_MODULE_INIT_PREPARE(directsound, directsound_methods,
+	                          "A module encapsulating the DirectSound interfaces.");
+
 
 	// Register all of our interfaces, gateways and IIDs.
 	PyCom_RegisterExtensionSupport(dict, g_interfaceSupportData, sizeof(g_interfaceSupportData)/sizeof(g_interfaceSupportData[0]));
@@ -394,12 +378,21 @@ extern "C" __declspec(dllexport) void initdirectsound()
 	ADD_CONSTANT(DSCBSTART_LOOPING);
 	ADD_CONSTANT(DSBPN_OFFSETSTOP);
 
-	PyDict_SetItemString(dict, "DSCAPSType", (PyObject *)&PyDSCAPSType);
-	PyDict_SetItemString(dict, "DSBCAPSType", (PyObject *)&PyDSBCAPSType);
-	PyDict_SetItemString(dict, "DSBUFFERDESCType", (PyObject *)&PyDSBUFFERDESCType);
-	PyDict_SetItemString(dict, "DSCCAPSType", (PyObject *)&PyDSCCAPSType);
-	PyDict_SetItemString(dict, "DSCBCAPSType", (PyObject *)&PyDSCBCAPSType);
-	PyDict_SetItemString(dict, "DSCBUFFERDESCType", (PyObject *)&PyDSCBUFFERDESCType);
+	if (PyType_Ready(&PyDSCAPSType) == -1
+		||PyType_Ready(&PyDSBCAPSType) == -1
+		||PyType_Ready(&PyDSBUFFERDESCType) == -1
+		||PyType_Ready(&PyDSCCAPSType) == -1
+		||PyType_Ready(&PyDSCBCAPSType) == -1
+		||PyType_Ready(&PyDSCBUFFERDESCType) == -1
+		||PyDict_SetItemString(dict, "DSCAPSType", (PyObject *)&PyDSCAPSType) == -1
+		||PyDict_SetItemString(dict, "DSBCAPSType", (PyObject *)&PyDSBCAPSType) == -1
+		||PyDict_SetItemString(dict, "DSBUFFERDESCType", (PyObject *)&PyDSBUFFERDESCType) == -1
+		||PyDict_SetItemString(dict, "DSCCAPSType", (PyObject *)&PyDSCCAPSType) == -1
+		||PyDict_SetItemString(dict, "DSCBCAPSType", (PyObject *)&PyDSCBCAPSType) == -1
+		||PyDict_SetItemString(dict, "DSCBUFFERDESCType", (PyObject *)&PyDSCBUFFERDESCType) == -1)
+		PYWIN_MODULE_INIT_RETURN_ERROR;
+
+	PYWIN_MODULE_INIT_RETURN_SUCCESS;
 }
 
 /* @topic DirectSound examples|

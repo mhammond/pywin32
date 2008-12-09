@@ -187,13 +187,20 @@ int AddConstants(PyObject *module)
   return 0;
 }
 
-extern "C" __declspec(dllexport) void
-initwin32uiole(void)
+PYWIN_MODULE_INIT_FUNC(win32uiole)
 {
-  PyObject *module = Py_InitModule("win32uiole", win32uiole_functions);
-  if (!module) /* Eeek - some serious error! */
-    return;
-  PyObject *dict = PyModule_GetDict(module);
-  if (!dict) return; /* Another serious error!*/
-  AddConstants(module);
+	PYWIN_MODULE_INIT_PREPARE(win32uiole, win32uiole_functions,
+	                          "A module, encapsulating the Microsoft Foundation Classes OLE functionality.");
+
+	if (AddConstants(module))
+		PYWIN_MODULE_INIT_RETURN_ERROR;
+
+	if (PyType_Ready(&PyCCommonDialog::type) == - 1 ||
+		PyType_Ready(&PyCOleDialog::type) == -1 ||
+		PyType_Ready(&PyCOleInsertDialog::type) == -1 ||
+		PyType_Ready(&PyCOleDocument::type) == -1 ||
+		PyType_Ready(&PyCOleClientItem::type) == -1)
+		PYWIN_MODULE_INIT_RETURN_ERROR;
+
+	PYWIN_MODULE_INIT_RETURN_SUCCESS;
 }
