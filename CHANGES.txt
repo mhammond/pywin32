@@ -8,6 +8,15 @@ However contributors are encouraged to add their own entries for their work.
 Since build 212:
 ----------------
 
+* "Modernization" changes, instigated by py3k:
+
+  - Many older modules now accept unicode arguments where previously they
+    only accepted strings - notably, win32ui, win32wnet ...
+
+  - win32wnet: NCB and NETRESOURCE attributes are now types rather than
+    methods.  NETRESOURCE string attributes may return None if the win32
+    structure has a NULL pointer (previously an empty string was returned)
+
 * Added win32inet.WinHttpGetDefaultProxyConfiguration()
 
 * Pythonwin updates from Rémi Paucher; enter completes auto-complete in

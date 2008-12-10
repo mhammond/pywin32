@@ -36,6 +36,17 @@
 
 #include <crtdbg.h>
 
+/***************************************************************************
+** Create a new NCB Object
+***************************************************************************/
+static PyObject *NCB_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
+{
+	static char *kwlist[] = {0};
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, ":NCB", kwlist))	// no arguments
+		return NULL;
+	return new PyNCB();	// call the C++ constructor
+}
+
 
 __declspec(dllexport)PyTypeObject PyNCBType =
 {
@@ -45,9 +56,9 @@ __declspec(dllexport)PyTypeObject PyNCBType =
 	0,
 	PyNCB::deallocFunc,		/* tp_dealloc */
 	0,						/* tp_print */
-	PyNCB::getattr,				/* tp_getattr */
-	PyNCB::setattr,				/* tp_setattr */
-//	PyNCB::compareFunc,			/* tp_compare */
+	0,						/* tp_getattr */
+	0,						/* tp_setattr */
+	0,						/* tp_compare */
 	0,						/* tp_repr */
 	0,						/* tp_as_number */
 	0,						/* tp_as_sequence */
@@ -55,6 +66,28 @@ __declspec(dllexport)PyTypeObject PyNCBType =
 	0,						/* tp_hash */
 	0,						/* tp_call */
 	0,						/* tp_str */
+	PyNCB::getattro,		/* tp_getattro */
+	PyNCB::setattro,		/* tp_setattro */
+	0,						/* tp_as_buffer */
+	Py_TPFLAGS_DEFAULT,		/* tp_flags */
+	0,						/* tp_doc */
+	0,						/* tp_traverse */
+	0,						/* tp_clear */
+	0,						/* tp_richcompare */
+	0,						/* tp_weaklistoffset */
+	0,						/* tp_iter */
+	0,						/* tp_iternext */
+	PyNCB::methods,			/* tp_methods */
+	PyNCB::members,			/* tp_members */
+	0,						/* tp_getset */
+	0,						/* tp_base */
+	0,						/* tp_dict */
+	0,						/* tp_descr_get */
+	0,						/* tp_descr_set */
+	0,						/* tp_dictoffset */
+	0,						/* tp_init */
+	0,						/* tp_alloc */
+	NCB_new,					/* tp_new */
 };
 
 static PyObject *PyNCB_Reset(PyObject *self, PyObject *args)
@@ -67,14 +100,14 @@ static PyObject *PyNCB_Reset(PyObject *self, PyObject *args)
 	return Py_None;
 }
 
-static struct PyMethodDef PyUnicode_methods[] = {
+struct PyMethodDef PyNCB::methods[] = {
 	{ "Reset",	PyNCB_Reset,	METH_VARARGS },
 	{ NULL },
 };
 
 // @object NCB|A Python object that encapsulates a Win32 NCB structure.
 #define OFF(e) offsetof(PyNCB, e)
-struct memberlist PyNCB::memberlist[] =
+struct PyMemberDef PyNCB::members[] =
 {
 	{"Command",	T_UBYTE,	OFF(m_ncb.ncb_command),	0}, // @prop int|Command|
 	{"Retcode",	T_UBYTE,	OFF(m_ncb.ncb_retcode),	0},  // @prop int|Retcode|
@@ -170,37 +203,33 @@ void PyNCB::deallocFunc(PyObject *ob)
 	delete (PyNCB *)ob;
 };
 
-/***************************************************************************
-** Create a new NCB Object
-***************************************************************************/
-// @pymethod <o NCB>|win32wnet|NCB|Creates a new <o NCB> object.
-PyObject *PyWinMethod_NewNCB(PyObject *self, PyObject *args)
-{
-	if (!PyArg_ParseTuple(args, ":NCB"))	// no arguments
-		return NULL;
-	return new PyNCB();	// call the C++ constructor
-}
-
 /*********************************************************************/
-PyObject *PyNCB::getattr(PyObject *self, char *name)
+PyObject *PyNCB::getattro(PyObject *self, PyObject *obname)
 {
 	PyNCB *This = (PyNCB *)self;
+	char *name=PYWIN_ATTR_CONVERT(obname);
+	if (name==NULL)
+		return NULL;
+	// Our string attributes still need special handling as the NCB isn't
+	// unicode aware.
+	// These 2 string attributes are logically "strings" rather than "bytes"
 	if (strcmp(name, "Callname") == 0)	// these "strings" are not null terminated so build
 										// a local representation of them and return
 										// the Pythonized version
 	{
 		char TempString[17];
 		TempString[16] = '\0';
-		return(PyString_FromString(strncpy((char *)TempString,(char *)This->m_ncb.ncb_callname,NCBNAMSZ)));
+		return(PyWinCoreString_FromString(strncpy((char *)TempString,(char *)This->m_ncb.ncb_callname,NCBNAMSZ)));
 	}
 	else if(strcmp(name, "Name") == 0)
 	{
 		char TempString[17];
 		TempString[16] = '\0';
-		return(PyString_FromString(strncpy((char *)TempString,(char *)This->m_ncb.ncb_name,NCBNAMSZ)));
+		return(PyWinCoreString_FromString(strncpy((char *)TempString,(char *)This->m_ncb.ncb_name,NCBNAMSZ)));
 	}
 	else if(strcmp(name, "Buffer") == 0)
 	{
+		// This is logically bytes
 		if (This->m_obuserbuffer != NULL) {
 			Py_INCREF(This->m_obuserbuffer);
 			return This->m_obuserbuffer;
@@ -211,99 +240,85 @@ PyObject *PyNCB::getattr(PyObject *self, char *name)
 		}
 		return PyBuffer_FromMemory(This->m_ncb.ncb_buffer, This->m_ncb.ncb_length);
 	}
-	else {
-		PyObject *ret = PyMember_Get((char *)self, memberlist, name);
-		if (ret==NULL) {
-			PyErr_Clear();
-			ret = Py_FindMethod(PyUnicode_methods, self, name);
-		}
-		return ret;
-	}
+	return PyObject_GenericGetAttr(self, obname);
 };
 
 /********************************************************************/
-int PyNCB::setattr(PyObject *self, char *name, PyObject *v)
+int PyNCB::setattro(PyObject *self, PyObject *obname, PyObject *v)
 {
 	if (v == NULL) {
 		PyErr_SetString(PyExc_AttributeError, "can't delete NCB attributes");
 		return -1;
 	}
+	char *name=PYWIN_ATTR_CONVERT(obname);
+	if (name==NULL)
+		return NULL;
+	PyNCB *This = (PyNCB *)self;
 
-// the following specific string attributes can be set
-	if (PyString_Check(v))
-	{
-		PyNCB *This = (PyNCB *)self;
+	if (strcmp(name, "Callname") == 0){
+		char *value;
+		DWORD valuelen;
 
-		if (strcmp(name, "Callname") == 0)
-		{
-			int srclen = lstrlenA(PyString_AsString(v));
-			if (srclen > NCBNAMSZ)	// cap string length at NCBNAMSZ(16)
-				srclen = NCBNAMSZ;
+		if (!PyWinObject_AsString(v, &value, FALSE, &valuelen))
+			return -1;
+		if (valuelen > NCBNAMSZ)	// cap string length at NCBNAMSZ(16)
+			valuelen = NCBNAMSZ;
 
-			memset (This->m_ncb.ncb_callname, ' ', NCBNAMSZ);	// make sure that the name is space padded
-			strncpy ((char *)This->m_ncb.ncb_callname, PyString_AsString(v), srclen);
-			if (srclen == 0)	// source was null string
-				This->m_ncb.ncb_callname[0] = '\0';
-
-			return 0;
-		}
-		else
-		if (strcmp(name, "Name") == 0)
-		{
-			int srclen = lstrlenA(PyString_AsString(v));
-			if (srclen > NCBNAMSZ)
-				srclen = NCBNAMSZ;
-
-			memset (This->m_ncb.ncb_name, ' ', NCBNAMSZ);
-			strncpy ((char *)This->m_ncb.ncb_name, PyString_AsString(v), srclen);
-			if (srclen == 0)	// source was null string
-				This->m_ncb.ncb_callname[0] = '\0';
-
-			return 0;
+		memset (This->m_ncb.ncb_callname, ' ', NCBNAMSZ);	// make sure that the name is space padded
+		strncpy ((char *)This->m_ncb.ncb_callname, value, valuelen);
+		if (valuelen == 0)	// source was null string
+			This->m_ncb.ncb_callname[0] = '\0';
+		PyWinObject_FreeString(value);
+		return 0;
 		}
 
-	} // PyString_Check
+	if (strcmp(name, "Name") == 0){
+		char *value;
+		DWORD valuelen;
+		if (!PyWinObject_AsString(v, &value, FALSE, &valuelen))
+			return -1;
+		if (valuelen > NCBNAMSZ)	// cap string length at NCBNAMSZ(16)
+			valuelen = NCBNAMSZ;
+
+		memset (This->m_ncb.ncb_name, ' ', NCBNAMSZ);
+		strncpy ((char *)This->m_ncb.ncb_name, value, valuelen);
+		if (valuelen == 0)	// source was null string
+			This->m_ncb.ncb_callname[0] = '\0';
+		PyWinObject_FreeString(value);
+		return 0;
+		}
+
 	if (strcmp(name, "Buffer") == 0)
 	{
 		PyNCB *This = (PyNCB *)self;
-		PyObject *ob_buf = v;
-		if (PyInstance_Check(v)) {
-			ob_buf = PyObject_GetAttrString(v, "_buffer_");
-			if (ob_buf==NULL) {
-				PyErr_Clear();
-				PyErr_SetString(PyExc_TypeError, "The instance must have a _buffer_ attribute");
-				return -1;
+		PyObject *ob_buf = PyObject_GetAttrString(v, "_buffer_");
+		if (ob_buf==NULL){
+			PyErr_Clear();
+			ob_buf=v;
+			Py_INCREF(ob_buf);
 			}
-		}
-		PyBufferProcs *pb = ob_buf->ob_type->tp_as_buffer;
-		if ( pb == NULL || pb->bf_getwritebuffer == NULL ||
-			pb->bf_getsegcount == NULL ) {
-				PyErr_SetString(PyExc_TypeError, "The object must support the write-buffer interface");
-				return -1;
-		}
-		if ( (*pb->bf_getsegcount)(ob_buf, NULL) != 1 ) {
-			PyErr_SetString(PyExc_TypeError, "The object must be a single-segment write-buffer");
+
+		void *buf;
+		DWORD buflen;
+		if (!PyWinObject_AsWriteBuffer(ob_buf, &buf, &buflen)){
+			Py_DECREF(ob_buf);
 			return -1;
-		}
-		This->m_ncb.ncb_length = pb->bf_getwritebuffer(ob_buf, 0, (void **)&This->m_ncb.ncb_buffer);
-		if (This->m_ncb.ncb_length==-1) {
-			This->m_ncb.ncb_length = 0;
+			}
+		if (buflen > USHRT_MAX){
+			Py_DECREF(ob_buf);
+			PyErr_Format(PyExc_ValueError, "Buffer can be at most %d bytes", USHRT_MAX);
 			return -1;
-		}
+			}
 		Py_XDECREF(This->m_obbuffer);
+		This->m_obbuffer=ob_buf;
 		Py_XDECREF(This->m_obuserbuffer);
-		This->m_obbuffer = ob_buf;
-		Py_INCREF(ob_buf);
-		This->m_obuserbuffer = v;
 		Py_INCREF(v);
-		if (ob_buf != v)
-			Py_DECREF(ob_buf); // for the temp refcount from the GetAttrString
+		This->m_obuserbuffer=v;
+		This->m_ncb.ncb_length = (WORD)buflen;
+		This->m_ncb.ncb_buffer = (PUCHAR)buf;
 		return 0;
 	}
-
-
-
-	return PyMember_Set((char *)self, memberlist, name, v);
+	return PyObject_GenericSetAttr(self, obname, v);
 }
 
 #endif

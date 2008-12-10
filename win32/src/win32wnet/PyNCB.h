@@ -32,15 +32,11 @@ public:
 	void Reset();
 
 	static void	deallocFunc(PyObject *ob);
-	static PyObject *getattr(PyObject *self, char *name);
-	static int	setattr(PyObject *self, char *name, PyObject *v);
+	static PyObject *getattro(PyObject *self, PyObject *obname);
+	static int	setattro(PyObject *self, PyObject *obname, PyObject *v);
+	static struct PyMemberDef members[];
+	static struct PyMethodDef methods[];
 
-
-#pragma warning( disable : 4251 )
-	static struct memberlist memberlist[];
-#pragma warning( default : 4251 )
-
-	
 	NCB	m_ncb;
 	DWORD dwStatus;		// status of this object (used during copy construct)
 	PyObject *m_obuserbuffer;   // The object the user gave us for the buffer
@@ -49,8 +45,5 @@ public:
 
 extern __declspec(dllexport) PyTypeObject PyNCBType;
 #define PyNCB_Check(ob)	((ob)->ob_type == &PyNCBType)
-
-__declspec(dllexport) PyObject *PyWinMethod_NewNCB(PyObject *self, PyObject *args);
-
 
 #endif // end of _WIN32_WCE exclude

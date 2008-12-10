@@ -1,3 +1,4 @@
+import win32api
 import win32wnet
 import sys
 from winnetwk import *
@@ -38,11 +39,28 @@ def TestOpenEnum():
 		handle.Close()
 	print "Finished dumping all resources."
 
+def findUnusedDriveLetter():
+	existing = [x[0].lower() for x in win32api.GetLogicalDriveStrings().split('\0') if x]
+	handle = win32wnet.WNetOpenEnum(RESOURCE_REMEMBERED,RESOURCETYPE_DISK,0,None)
+	try:
+		while 1:
+			items = win32wnet.WNetEnumResource(handle, 0)
+			if len(items)==0:
+				break
+			xtra = [i.lpLocalName[0].lower() for i in items if i.lpLocalName]
+			existing.extend(xtra)
+	finally:
+		handle.Close()
+	for maybe in 'defghijklmnopqrstuvwxyz':
+		if maybe not in existing:
+			return maybe
+	raise RuntimeError("All drive mappings are taken?")
+
 def TestConnection():
 	if len(possible_shares)==0:
 		print "Couldn't find any potential shares to connect to"
 		return
-	localName = "Z:" # need better way!
+	localName = findUnusedDriveLetter() + ':'
 	for share in possible_shares:
 		print "Attempting connection of", localName, "to", share.lpRemoteName
 		try:
@@ -60,8 +78,17 @@ def TestConnection():
 			print "User name for this connection is", win32wnet.WNetGetUser(localName)
 		finally:
 			win32wnet.WNetCancelConnection2(localName, 0, 0)
-			# Only do the first share that succeeds.
-			break
+		# and do it again, but this time by using the more modern
+		# NETRESOURCE way.
+		nr = win32wnet.NETRESOURCE()
+		nr.dwType = share.dwType
+		nr.lpLocalName = localName
+		nr.lpRemoteName = share.lpRemoteName
+		win32wnet.WNetAddConnection2(nr)
+		win32wnet.WNetCancelConnection2(localName, 0, 0)
+
+		# Only do the first share that succeeds.
+		break
 
 def TestGetUser():
 	u = win32wnet.WNetGetUser()

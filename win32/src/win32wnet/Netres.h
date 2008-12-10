@@ -29,10 +29,6 @@ class __declspec(dllexport) PyNETRESOURCE: public PyObject
 {
 public:
 	NETRESOURCE *GetNetresource() {return &m_nr;}
-	LPTSTR GetComment() {return szComment;}
-	LPTSTR GetLName() {return szLName;}
-	LPTSTR GetRName() {return szRName;}
-	LPTSTR GetProvider() {return szProv;}
 
 	PyNETRESOURCE(void);
 	PyNETRESOURCE(const NETRESOURCE *);
@@ -42,32 +38,20 @@ public:
 	int compare(PyObject *ob);
 
 	static void		deallocFunc(PyObject *ob);
-	static PyObject *getattr(PyObject *self, char *name);
-	static int		setattr(PyObject *self, char *name, PyObject *v);
+	static PyObject *getattro(PyObject *self, PyObject *obname);
+	static int		setattro(PyObject *self, PyObject *obname, PyObject *v);
 	static int		compareFunc(PyObject *ob1, PyObject *ob2);
-
-
-#pragma warning( disable : 4251 )
-	static struct memberlist memberlist[];
-#pragma warning( default : 4251 )
+	static struct PyMemberDef members[];
 
 protected:
-/* NETRESOURCE contains pointer to strings (LPTSTR) to four items. we are 
-copying the values to strings local to each NETRESOURCE instance, thereby keeping
-each NETRESOURCE object self contained.  Note that the NETRESOURCE Object's
-strings are not Python Strings!*/
-
-	NETRESOURCE m_nr;			 
-	TCHAR szLName[MAX_NAME];	// length??
-	TCHAR szRName[MAX_NAME];	// probably overkill
-	TCHAR szProv[MAX_NAME];
-	TCHAR szComment[MAX_COMMENT];
+/* NETRESOURCE contains pointer to strings (LPTSTR) to four items.
+	These are allocated and released by PyWinObject_AsWCHAR and PyWinObject_FreeWCHAR
+*/
+	NETRESOURCE m_nr;
 };
 
 extern __declspec(dllexport) PyTypeObject PyNETRESOURCEType;
 #define PyNETRESOURCE_Check(ob)	((ob)->ob_type == &PyNETRESOURCEType)
 
-__declspec(dllexport) PyObject *PyWinMethod_NewNETRESOURCE(PyObject *self, PyObject *args);
 __declspec(dllexport) BOOL PyWinObject_AsNETRESOURCE(PyObject *ob, NETRESOURCE **ppNetresource, BOOL bNoneOK = TRUE);
 __declspec(dllexport) PyObject *PyWinObject_FromNETRESOURCE(const NETRESOURCE *pNetresource);
-

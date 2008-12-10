@@ -35,13 +35,10 @@
 #include "netres.h"			// C++ header file for NETRESOURCE object
 
 
-/* Main PYTHON entry point for creating a new reference.  Registered by win32wnet module */
-
-// @pymethod <o PyNETRESOURCE>|win32wnet|NETRESOURCE|Creates a new <o NETRESOURCE> object.
-
-PyObject *PyWinMethod_NewNETRESOURCE(PyObject *self, PyObject *args)
+static PyObject *NETRESOURCE_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 {
-	if (!PyArg_ParseTuple(args, ":NETRESOURCE"))	// no arguments
+	static char *kwlist[] = {0};
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, ":NETRESOURCE", kwlist))	// no arguments
 		return NULL;
 	return new PyNETRESOURCE();	// call the C++ constructor
 }
@@ -90,8 +87,8 @@ PyTypeObject PyNETRESOURCEType =
 	0,
 	PyNETRESOURCE::deallocFunc,			/* tp_dealloc */
 	0,									/* tp_print */
-	PyNETRESOURCE::getattr,				/* tp_getattr */
-	PyNETRESOURCE::setattr,				/* tp_setattr */
+	0,									/* tp_getattr */
+	0,									/* tp_setattr */
 	PyNETRESOURCE::compareFunc,			/* tp_compare */
 	0,										/* tp_repr */
 	0,										/* tp_as_number */
@@ -100,22 +97,49 @@ PyTypeObject PyNETRESOURCEType =
 	0,										/* hash? */
 	0,										/* tp_call */
 	0,										/* tp_str */
+	PyNETRESOURCE::getattro,				/* tp_getattro */
+	PyNETRESOURCE::setattro,				/* tp_setattro */
+	0,						/* tp_as_buffer */
+	Py_TPFLAGS_DEFAULT,		/* tp_flags */
+	0,						/* tp_doc */
+	0,						/* tp_traverse */
+	0,						/* tp_clear */
+	0,						/* tp_richcompare */
+	0,						/* tp_weaklistoffset */
+	0,						/* tp_iter */
+	0,						/* tp_iternext */
+	0,						/* tp_methods */
+	PyNETRESOURCE::members,	/* tp_members */
+	0,						/* tp_getset */
+	0,						/* tp_base */
+	0,						/* tp_dict */
+	0,						/* tp_descr_get */
+	0,						/* tp_descr_set */
+	0,						/* tp_dictoffset */
+	0,						/* tp_init */
+	0,						/* tp_alloc */
+	NETRESOURCE_new,				/* tp_new */
 };
 
 #define OFF(e) offsetof(PyNETRESOURCE, e)
 
-struct memberlist PyNETRESOURCE::memberlist[] =
+struct PyMemberDef PyNETRESOURCE::members[] =
 {
 	{"dwScope",		T_ULONG,	OFF(m_nr.dwScope),	0}, // @prop integer|dwScope|
 	{"dwType",		T_ULONG,	OFF(m_nr.dwType),	0}, // @prop integer|dwType|
 	{"dwDisplayType", T_ULONG,OFF(m_nr.dwDisplayType),	0}, // @prop integer|dwDisplayType|
 	{"dwUsage",		T_ULONG,	OFF(m_nr.dwUsage),	0}, // @prop integer|dwUsage|
 
+	// These are handled by getattro/setattro
 	{"lpLocalName",	T_STRING, OFF(m_nr.lpLocalName),	0}, // @prop string|localName|
 	{"lpRemoteName",T_STRING, OFF(m_nr.lpRemoteName),	0},// @prop string|remoteName|
 	{"lpComment",	T_STRING, OFF(m_nr.lpComment),	0},// @prop string|comment|
 	{"lpProvider",	T_STRING, OFF(m_nr.lpProvider),	0},// @prop string|provider|
 	{NULL}
+	// @comm Note that in pywin32-212 and earlier, the string attributes
+	// were always strings, but empty strings when the underlying Windows
+	// structure had NULL.  On later pywin32 builds, these string attributes will
+	// return None in such cases.
 };
 
 PyNETRESOURCE::PyNETRESOURCE(void)
@@ -123,147 +147,94 @@ PyNETRESOURCE::PyNETRESOURCE(void)
 	ob_type = &PyNETRESOURCEType;
 	_Py_NewReference(this);
 	memset(&m_nr, 0, sizeof(m_nr));
-	m_nr.lpLocalName = szLName;
-	m_nr.lpRemoteName = szRName;
-	m_nr.lpProvider = szProv;
-	m_nr.lpComment = szComment;
-	szLName[0] = _T('\0');
-	szRName[0] = _T('\0');
-	szProv[0] = _T('\0');
-	szComment[0] = _T('\0');
 }
 
-PyNETRESOURCE::PyNETRESOURCE(const NETRESOURCE *pO)
+PyNETRESOURCE::PyNETRESOURCE(const NETRESOURCE *p_nr)
 {
 	ob_type = &PyNETRESOURCEType;
 	_Py_NewReference(this);
-	m_nr.dwScope = pO->dwScope;
-	m_nr.dwType = pO->dwType;
-	m_nr.dwDisplayType = pO->dwDisplayType;
-	m_nr.dwUsage = pO->dwUsage;
-	m_nr.lpLocalName = szLName;
-	m_nr.lpRemoteName = szRName;
-	m_nr.lpProvider = szProv;
-	m_nr.lpComment = szComment;
+	m_nr=*p_nr;
 
-	if (pO->lpLocalName == NULL)
-		szLName[0] = _T('\0');
-	else
-	{
-		_tcsncpy(szLName, pO->lpLocalName, MAX_NAME);
-		szLName[MAX_NAME-1] = _T('\0');		// explicit termination!
-	}
-
-
-	if (pO->lpRemoteName == NULL)
-		szRName[0] = _T('\0');
-	else
-	{
-		_tcsncpy(szRName, pO->lpRemoteName, MAX_NAME);
-		szRName[MAX_NAME-1] = _T('\0');		// explicit termination!
-	}
-
-
-	if (pO->lpProvider == NULL)
-		szProv[0] = _T('\0');
-	else
-	{
-		_tcsncpy(szProv, pO->lpProvider, MAX_NAME);
-		szProv[MAX_NAME-1] = _T('\0');		// explicit termination!
-	}
-
-	if (pO->lpComment == NULL)
-		szComment[0] = _T('\0');
-	else
-	{
-		_tcsncpy(szComment, pO->lpComment, MAX_COMMENT);
-		szComment[MAX_COMMENT-1] = _T('\0');
-	}
-
+	// Copy strings so they can be freed in same way as when set via setattro
+	// No error checking here, no way to return an error from a constructor anyway
+	if (p_nr->lpProvider)
+		m_nr.lpProvider=PyWin_CopyString(p_nr->lpProvider);
+	if (p_nr->lpRemoteName)
+		m_nr.lpRemoteName=PyWin_CopyString(p_nr->lpRemoteName);
+	if (p_nr->lpLocalName)
+		m_nr.lpLocalName=PyWin_CopyString(p_nr->lpLocalName);
+	if (p_nr->lpComment)
+		m_nr.lpComment=PyWin_CopyString(p_nr->lpComment);
 }
 
 PyNETRESOURCE::~PyNETRESOURCE(void)
 {
-
+	PyWinObject_FreeTCHAR(m_nr.lpProvider);
+	PyWinObject_FreeTCHAR(m_nr.lpRemoteName);
+	PyWinObject_FreeTCHAR(m_nr.lpLocalName);
+	PyWinObject_FreeTCHAR(m_nr.lpComment);
 }
 
 
-PyObject *PyNETRESOURCE::getattr(PyObject *self, char *name)
+PyObject *PyNETRESOURCE::getattro(PyObject *self, PyObject *obname)
 {
-#ifdef UNICODE
+	char *name=PYWIN_ATTR_CONVERT(obname);
+	if (name==NULL)
+		return NULL;
 	PyNETRESOURCE *This = (PyNETRESOURCE *)self;
 
 	if (strcmp(name, "lpProvider")==0)
-		return PyWinObject_FromWCHAR(This->m_nr.lpProvider);
-	else if
-		(strcmp(name, "lpRemoteName") == 0)
-		return PyWinObject_FromWCHAR(This->m_nr.lpRemoteName);
-	else if
-		(strcmp(name, "lpLocalName") == 0)
-		return PyWinObject_FromWCHAR(This->m_nr.lpLocalName);
-	else if
-		(strcmp(name, "lpComment") == 0)
-		return PyWinObject_FromWCHAR(This->m_nr.lpComment);
-	else
-#endif
-	return PyMember_Get((char *)self, memberlist, name);
+		return PyWinObject_FromTCHAR(This->m_nr.lpProvider);
+	if (strcmp(name, "lpRemoteName")==0)
+		return PyWinObject_FromTCHAR(This->m_nr.lpRemoteName);
+	if (strcmp(name, "lpLocalName")==0)
+		return PyWinObject_FromTCHAR(This->m_nr.lpLocalName);
+	if (strcmp(name, "lpComment")==0)
+		return PyWinObject_FromTCHAR(This->m_nr.lpComment);
+	return PyObject_GenericGetAttr(self, obname);
 }
 
-
-
-int PyNETRESOURCE::setattr(PyObject *self, char *name, PyObject *v)
+int PyNETRESOURCE::setattro(PyObject *self, PyObject *obname, PyObject *v)
 {
 	if (v == NULL) {
 		PyErr_SetString(PyExc_AttributeError, "can't delete NETRESOURCE attributes");
 		return -1;
 	}
+	char *name=PYWIN_ATTR_CONVERT(obname);
+	if (name==NULL)
+		return NULL;
 	PyNETRESOURCE *This = (PyNETRESOURCE *)self;
 
-// the following specific string attributes can be set, all others generate an error.
-
-	if (PyString_Check(v))
-	{
-		int ret;
-		TCHAR *value;
-		if (!PyWinObject_AsTCHAR(v, &value, FALSE))
+	TCHAR *value;
+	if (strcmp(name, "lpProvider")==0){
+		if (!PyWinObject_AsTCHAR(v, &value, TRUE))
 			return -1;
-		if (strcmp (name, "lpProvider") == 0)
-		{
-			_tcsncpy(This->szProv, value, MAX_NAME);	// no overflow allowed!
-			This->szProv[MAX_NAME-1] = _T('\0');				// make sure NULL terminated!
-			ret = 0;
+		PyWinObject_FreeTCHAR(This->m_nr.lpProvider);
+		This->m_nr.lpProvider=value;
+		return 0;
 		}
-		else
-		if (strcmp(name, "lpRemoteName") == 0)
-		{
-			_tcsncpy(This->szRName, value, MAX_NAME);
-			This->szRName[MAX_NAME-1] = _T('\0');
-			ret = 0;
+	if (strcmp(name, "lpRemoteName")==0){
+		if (!PyWinObject_AsTCHAR(v, &value, TRUE))
+			return -1;
+		PyWinObject_FreeTCHAR(This->m_nr.lpRemoteName);
+		This->m_nr.lpRemoteName=value;
+		return 0;
 		}
-		else
-		if (strcmp(name, "lpLocalName") == 0)
-		{
-			_tcsncpy(This->szLName, value, MAX_NAME);
-			This->szLName[MAX_NAME-1] = _T('\0');
-			ret = 0;
+	if (strcmp(name, "lpLocalName")==0){
+		if (!PyWinObject_AsTCHAR(v, &value, TRUE))
+			return -1;
+		PyWinObject_FreeTCHAR(This->m_nr.lpLocalName);
+		This->m_nr.lpLocalName=value;
+		return 0;
 		}
-		else
-		if (strcmp(name, "lpComment") == 0)
-		{
-			_tcsncpy(This->szComment, value, MAX_COMMENT);
-			This->szComment[MAX_COMMENT-1] = _T('\0');
-			ret = 0;
+	if (strcmp(name, "lpComment")==0){
+		if (!PyWinObject_AsTCHAR(v, &value, TRUE))
+			return -1;
+		PyWinObject_FreeTCHAR(This->m_nr.lpComment);
+		This->m_nr.lpComment=value;
+		return 0;
 		}
-		else
-		{
-			PyErr_SetString(PyExc_AttributeError, "The attribute is not a PyNETRESOURCE string");
-			ret = -1;
-		}
-		PyWinObject_FreeTCHAR(value);
-		return ret;
-	} // PyString_Check
-
-	return PyMember_Set((char *)self, memberlist, name, v);
+	return PyObject_GenericSetAttr(self, obname, v);
 }
 
 
@@ -277,21 +248,43 @@ int PyNETRESOURCE::compare(PyObject *ob)  // only returns 0 or 1  (1 means equal
 	NETRESOURCE * p_nr;
 
 	if (!PyWinObject_AsNETRESOURCE(ob, &p_nr, FALSE))	// sets error exception
-		return NULL;
+		return -1;
 	// do integer tests first
-	if ((m_nr.dwType != p_nr->dwType) ||
-		(m_nr.dwScope != p_nr->dwScope) ||
-		(m_nr.dwUsage != p_nr->dwUsage) ||
-		(m_nr.dwDisplayType != p_nr->dwDisplayType))
-		return (0);
-		
-	if ((_tcscmp(szComment, GetComment())) ||
-		(_tcscmp(szLName, GetLName())) ||
-		(_tcscmp(szProv, GetProvider())) ||
-		(_tcscmp(szRName, GetRName())))
-		return 0;
+	if (m_nr.dwType != p_nr->dwType ||
+		m_nr.dwScope != p_nr->dwScope ||
+		m_nr.dwUsage != p_nr->dwUsage ||
+		m_nr.dwDisplayType != p_nr->dwDisplayType)
+		return 1;
 
-	return 1;
+	if (m_nr.lpComment && p_nr->lpComment){
+		if (_tcscmp(m_nr.lpComment, p_nr->lpComment) != 0)
+			return 1;
+		}
+	else if (m_nr.lpComment || p_nr->lpComment)
+		return 1;
+
+	if (m_nr.lpLocalName && p_nr->lpLocalName){
+		if (_tcscmp(m_nr.lpLocalName, p_nr->lpLocalName) != 0)
+			return 1;
+		}
+	else if (m_nr.lpLocalName || p_nr->lpLocalName)
+		return 1;
+
+	if (m_nr.lpProvider && p_nr->lpProvider){
+		if (_tcscmp(m_nr.lpProvider, p_nr->lpProvider) != 0)
+			return 1;
+		}
+	else if (m_nr.lpProvider || p_nr->lpProvider)
+		return 1;
+
+	if (m_nr.lpRemoteName && p_nr->lpRemoteName){
+		if (_tcscmp(m_nr.lpRemoteName, p_nr->lpRemoteName) != 0)
+			return 1;
+		}
+	else if (m_nr.lpRemoteName || p_nr->lpRemoteName)
+		return 1;
+
+	return 0;
 };
 
 int PyNETRESOURCE::compareFunc(PyObject *ob1, PyObject *ob2)
