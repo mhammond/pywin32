@@ -125,10 +125,12 @@ PyTypeObject PyNETRESOURCEType =
 
 struct PyMemberDef PyNETRESOURCE::members[] =
 {
-	{"dwScope",		T_ULONG,	OFF(m_nr.dwScope),	0}, // @prop integer|dwScope|
-	{"dwType",		T_ULONG,	OFF(m_nr.dwType),	0}, // @prop integer|dwType|
-	{"dwDisplayType", T_ULONG,OFF(m_nr.dwDisplayType),	0}, // @prop integer|dwDisplayType|
-	{"dwUsage",		T_ULONG,	OFF(m_nr.dwUsage),	0}, // @prop integer|dwUsage|
+	// Note we avoid the use of 'U'nsigned types as they always force
+	// a long to be returned.
+	{"dwScope",		T_INT,		OFF(m_nr.dwScope),	0}, // @prop integer|dwScope|
+	{"dwType",		T_INT,		OFF(m_nr.dwType),	0}, // @prop integer|dwType|
+	{"dwDisplayType",	T_INT,		OFF(m_nr.dwDisplayType),	0}, // @prop integer|dwDisplayType|
+	{"dwUsage",		T_INT,		OFF(m_nr.dwUsage),	0}, // @prop integer|dwUsage|
 
 	// These are handled by getattro/setattro
 	{"lpLocalName",	T_STRING, OFF(m_nr.lpLocalName),	0}, // @prop string|localName|

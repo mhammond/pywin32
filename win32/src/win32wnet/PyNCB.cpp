@@ -109,17 +109,19 @@ struct PyMethodDef PyNCB::methods[] = {
 #define OFF(e) offsetof(PyNCB, e)
 struct PyMemberDef PyNCB::members[] =
 {
-	{"Command",	T_UBYTE,	OFF(m_ncb.ncb_command),	0}, // @prop int|Command|
-	{"Retcode",	T_UBYTE,	OFF(m_ncb.ncb_retcode),	0},  // @prop int|Retcode|
-	{"Lsn",		T_UBYTE,	OFF(m_ncb.ncb_lsn),		0}, // @prop int|Lsn|
-	{"Num",		T_UBYTE,	OFF(m_ncb.ncb_num),		0}, // @prop int|Num|
-	{"Bufflen",	T_USHORT,	OFF(m_ncb.ncb_length),	1},	 // @prop int|Bufflen|read-only
+	// Note we avoid the use of 'U'nsigned types as they always force
+	// a long to be returned.
+	{"Command",	T_BYTE,	OFF(m_ncb.ncb_command),	0}, // @prop int|Command|
+	{"Retcode",	T_BYTE,	OFF(m_ncb.ncb_retcode),	0},  // @prop int|Retcode|
+	{"Lsn",		T_BYTE,	OFF(m_ncb.ncb_lsn),		0}, // @prop int|Lsn|
+	{"Num",		T_BYTE,	OFF(m_ncb.ncb_num),		0}, // @prop int|Num|
+	{"Bufflen",	T_SHORT,	OFF(m_ncb.ncb_length),	1},	 // @prop int|Bufflen|read-only
 	{"Callname",T_STRING,	OFF(m_ncb.ncb_callname),0},	 // @prop string|Callname| - The strings need to be space padded to 16 chars exactly
 	{"Name",	T_STRING,	OFF(m_ncb.ncb_name),	0}, // @prop string|Name| - The strings need to be space padded to 16 chars exactly
-	{"Rto",		T_UBYTE,	OFF(m_ncb.ncb_rto),		0},// @prop string|Rto| - The strings need to be space padded to 16 chars exactly
-	{"Sto",		T_UBYTE,	OFF(m_ncb.ncb_sto),		0},// @prop string|Sto| - The strings need to be space padded to 16 chars exactly
-	{"Lana_num",T_UBYTE,	OFF(m_ncb.ncb_lana_num),0},// @prop int|Lana_num|
-	{"Cmd_cplt",T_UBYTE,	OFF(m_ncb.ncb_cmd_cplt),0},// @prop int|Cmd_cplt|
+	{"Rto",		T_BYTE,	OFF(m_ncb.ncb_rto),		0},// @prop string|Rto| - The strings need to be space padded to 16 chars exactly
+	{"Sto",		T_BYTE,	OFF(m_ncb.ncb_sto),		0},// @prop string|Sto| - The strings need to be space padded to 16 chars exactly
+	{"Lana_num",T_BYTE,	OFF(m_ncb.ncb_lana_num),0},// @prop int|Lana_num|
+	{"Cmd_cplt",T_BYTE,	OFF(m_ncb.ncb_cmd_cplt),0},// @prop int|Cmd_cplt|
 	{"Event",	T_LONG,	OFF(m_ncb.ncb_event),	0},// @prop int|Event|
 	{"Post",	T_LONG,	OFF(m_ncb.ncb_post),	0},// @prop int|Post|
 	{NULL}
