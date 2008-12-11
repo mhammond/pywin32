@@ -2,7 +2,8 @@
 
 import win32api, win32con, win32gui, win32service, win32process
 import pywintypes
-import traceback, thread, time, cStringIO
+import traceback, thread, time
+import cStringIO
 
 ## "Shell_TrayWnd" is class of system tray window, broadcasts "TaskbarCreated" when initialized
 
