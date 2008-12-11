@@ -84,11 +84,9 @@ public:
 
 	static void deallocFunc(PyObject *ob);
 
-	static PyObject *getattr(PyObject *self, char *name);
-	static int setattr(PyObject *self, char *name, PyObject *v);
-#pragma warning( disable : 4251 )
-	static struct memberlist memberlist[];
-#pragma warning( default : 4251 )
+	static PyObject *getattro(PyObject *self, PyObject *obname);
+	static int setattro(PyObject *self, PyObject *obname, PyObject *v);
+	static struct PyMemberDef members[];
 
 protected:
 	STARTUPINFO m_startupinfo;
@@ -108,8 +106,8 @@ PyTypeObject PySTARTUPINFOType =
 	0,
 	PySTARTUPINFO::deallocFunc,		/* tp_dealloc */
 	0,						/* tp_print */
-	PySTARTUPINFO::getattr,				/* tp_getattr */
-	PySTARTUPINFO::setattr,				/* tp_setattr */
+	0,						/* tp_getattr */
+	0,						/* tp_setattr */
 	0,						/* tp_compare */
 	0,						/* tp_repr */
 	0,						/* tp_as_number */
@@ -118,11 +116,33 @@ PyTypeObject PySTARTUPINFOType =
 	0,						/* tp_hash */
 	0,						/* tp_call */
 	0,						/* tp_str */
+	PySTARTUPINFO::getattro,		/* tp_getattr */
+	PySTARTUPINFO::setattro,		/* tp_setattr */
+	0,						/*tp_as_buffer*/
+	Py_TPFLAGS_DEFAULT,		/* tp_flags */
+	"A Python object, representing a STARTUPINFO structure",		/* tp_doc */
+	0,						/* tp_traverse */
+	0,						/* tp_clear */
+	0,						/* tp_richcompare */
+	0,						/* tp_weaklistoffset */
+	0,						/* tp_iter */
+	0,						/* tp_iternext */
+	0,						/* tp_methods */
+	PySTARTUPINFO::members,		/* tp_members */
+	0,						/* tp_getset */
+	0,						/* tp_base */
+	0,						/* tp_dict */
+	0,						/* tp_descr_get */
+	0,						/* tp_descr_set */
+	0,						/* tp_dictoffset */
+	0,						/* tp_init */
+	0,						/* tp_alloc */
+	0,						/* tp_new */
 };
 
 #define OFF(e) offsetof(PySTARTUPINFO, e)
 
-/*static*/ struct memberlist PySTARTUPINFO::memberlist[] = {
+/*static*/ struct PyMemberDef PySTARTUPINFO::members[] = {
 	{"dwX",              T_INT,  OFF(m_startupinfo.dwX)}, // @prop integer|dwX|Specifies the x offset, in pixels, of the upper left corner of a window if a new window is created. The offset is from the upper left corner of the screen.
 	{"dwY",              T_INT,  OFF(m_startupinfo.dwY)}, // @prop integer|dwY|Specifies the y offset, in pixels, of the upper left corner of a window if a new window is created. The offset is from the upper left corner of the screen. 
 	{"dwXSize",          T_INT,  OFF(m_startupinfo.dwXSize)}, // @prop integer|dwXSize|Specifies the width, in pixels, of the window if a new window is created.
@@ -176,9 +196,12 @@ PyObject *gethandle(PyObject *obHandle, HANDLE h)
 	return PyWinLong_FromHANDLE(h);
 }
 
-PyObject *PySTARTUPINFO::getattr(PyObject *self, char *name)
+PyObject *PySTARTUPINFO::getattro(PyObject *self, PyObject *obname)
 {
 	PySTARTUPINFO *pO = (PySTARTUPINFO *)self;
+	char *name=PYWIN_ATTR_CONVERT(obname);
+	if (name == NULL)
+		return NULL;
 	// @prop integer/<o PyHANDLE>|hStdInput|
 	// @prop integer/<o PyHANDLE>|hStdOutput|
 	// @prop integer/<o PyHANDLE>|hStdError|
@@ -194,7 +217,7 @@ PyObject *PySTARTUPINFO::getattr(PyObject *self, char *name)
 	// @prop string/None|lpTitle|
 	if (strcmp("lpTitle", name)==0)
 		return PyWinObject_FromTCHAR(pO->m_startupinfo.lpTitle);
-	return PyMember_Get((char *)self, memberlist, name);
+	return PyObject_GenericGetAttr(self, obname);
 }
 
 int sethandle(PyObject **pobHandle, HANDLE *ph, PyObject *v)
@@ -213,13 +236,16 @@ int sethandle(PyObject **pobHandle, HANDLE *ph, PyObject *v)
 	return 0;
 }
 
-int PySTARTUPINFO::setattr(PyObject *self, char *name, PyObject *v)
+int PySTARTUPINFO::setattro(PyObject *self, PyObject *obname, PyObject *v)
 {
 	if (v == NULL) {
 		PyErr_SetString(PyExc_AttributeError, "can't delete STARTUPINFO attributes");
 		return -1;
 	}
 	PySTARTUPINFO *pO = (PySTARTUPINFO *)self;
+	char *name=PYWIN_ATTR_CONVERT(obname);
+	if (name == NULL)
+		return -1;
 	if (strcmp("hStdInput", name)==0)
 		return sethandle( &pO->m_obStdIn, &pO->m_startupinfo.hStdInput, v);
 
@@ -246,7 +272,7 @@ int PySTARTUPINFO::setattr(PyObject *self, char *name, PyObject *v)
 		pO->m_startupinfo.lpTitle=val;
 		return 0;
 		}
-	return PyMember_Set((char *)self, memberlist, name, v);
+	return PyObject_GenericSetAttr(self, obname, v);
 }
 
 /*static*/ void PySTARTUPINFO::deallocFunc(PyObject *ob)
@@ -1525,17 +1551,23 @@ PyObject *PyIsWow64Process(PyObject *self, PyObject *args)
 #endif	// MS_WINCE
 
 %init %{
+
+#if (PY_VERSION_HEX >= 0x03000000)
+	if (PyType_Ready(&PySTARTUPINFOType) == -1)
+		return NULL;
+#endif
+
 	FARPROC fp=NULL;
 	HMODULE hmodule=NULL;
 	hmodule=GetModuleHandle(_T("Psapi.dll"));
 	if (hmodule==NULL)
 		hmodule=LoadLibrary(_T("Psapi.dll"));
 	if (hmodule!=NULL){
-		pfnEnumProcesses = (EnumProcessesfunc)GetProcAddress(hmodule, _T("EnumProcesses"));
-		pfnEnumProcessModules = (EnumProcessModulesfunc)GetProcAddress(hmodule, _T("EnumProcessModules"));
-		pfnGetModuleFileNameEx = (GetModuleFileNameExfunc)GetProcAddress(hmodule, _T("GetModuleFileNameExW"));
+		pfnEnumProcesses = (EnumProcessesfunc)GetProcAddress(hmodule, "EnumProcesses");
+		pfnEnumProcessModules = (EnumProcessModulesfunc)GetProcAddress(hmodule, "EnumProcessModules");
+		pfnGetModuleFileNameEx = (GetModuleFileNameExfunc)GetProcAddress(hmodule, "GetModuleFileNameExW");
 #ifndef MS_WINCE
-		pfnGetProcessMemoryInfo = (GetProcessMemoryInfofunc)GetProcAddress(hmodule, _T("GetProcessMemoryInfo"));
+		pfnGetProcessMemoryInfo = (GetProcessMemoryInfofunc)GetProcAddress(hmodule, "GetProcessMemoryInfo");
 #endif
 		}
 

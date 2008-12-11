@@ -18,6 +18,7 @@ public:
 
 	/* Python support */
 	int compare(PyObject *ob);
+	PyObject *richcompare(PyObject *other, int op);
 	long hash(void);
 	PyObject *str(void);
 	PyObject *repr(void);
@@ -25,6 +26,7 @@ public:
 	static void deallocFunc(PyObject *ob);
 	static int printFunc(PyObject *ob, FILE *fp, int flags);
 	static int compareFunc(PyObject *ob1, PyObject *ob2);
+	static PyObject *richcompareFunc(PyObject *self, PyObject *other, int op);
 	static long hashFunc(PyObject *ob);
 	static PyObject * strFunc(PyObject *ob);
 	static PyObject * reprFunc(PyObject *ob);
@@ -52,8 +54,9 @@ public:
 	PyObject *str();
 	PyObject *repr();
 	int compare(PyObject *ob);
+	PyObject *PyTime::richcompare(PyObject *other, int op);
+
 	int print(FILE *fp, int flags);
-	PyObject *getattr(char *name);
 	long hash(void);
 	//PyObject *str(void);
 	long asLong(void);
@@ -63,8 +66,9 @@ public:
 	static PyObject * ternaryFailureFunc(PyObject *ob1, PyObject *ob2, PyObject *ob3);
 	static void deallocFunc(PyObject *ob);
 	static int printFunc(PyObject *ob, FILE *fp, int flags);
-	static PyObject *getattrFunc(PyObject *ob, char *attr);
+	static PyObject *getattro(PyObject *self, PyObject *obname);
 	static int compareFunc(PyObject *ob1, PyObject *ob2);
+	static PyObject *richcompareFunc(PyObject *self, PyObject *other, int op);
 	static long hashFunc(PyObject *ob);
 	//static PyObject * strFunc(PyObject *ob);
 	static int nonzeroFunc(PyObject *ob);
@@ -72,6 +76,7 @@ public:
 	static PyObject * floatFunc(PyObject *ob);
 	static PyObject * strFunc(PyObject *ob);
 	static PyObject * reprFunc(PyObject *ob);
+	static struct PyMethodDef methods[];
 	// Methods
 	static PyObject *Format(PyObject *self, PyObject *args);
 };
@@ -104,18 +109,21 @@ public:
 	static void deallocFunc(PyObject *ob);
 	static int compareFunc(PyObject *ob1, PyObject *ob2);
 
-	static PyObject *getattr(PyObject *self, char *name);
-	static int setattr(PyObject *self, char *name, PyObject *v);
+	static PyObject *getattro(PyObject *self, PyObject *obname);
+	static int setattro(PyObject *self, PyObject *obname, PyObject *v);
 	static long hashFunc(PyObject *self);
-#ifdef _MSC_VER
-#pragma warning( disable : 4251 )
-#endif // _MSC_VER
-	static struct memberlist memberlist[];
-#ifdef _MSC_VER
-#pragma warning( default : 4251 )
-#endif // _MSC_VER
+	static struct PYWINTYPES_EXPORT PyMemberDef members[];
+
+	static PyObject *get_hEvent(PyObject *self, void *unused);
+	static int set_hEvent(PyObject *self, PyObject *v, void *unused);
+	static PyObject *get_Internal(PyObject *self, void *unused);
+	static int set_Internal(PyObject *self, PyObject *v, void *unused);
+	static PyObject *get_InternalHigh(PyObject *self, void *unused);
+	static int set_InternalHigh(PyObject *self, PyObject *v, void *unused);
+	static PyGetSetDef getset[];
+
 	sMyOverlapped m_overlapped;
-	PyObject *m_obHandle;
+	PyObject *m_obhEvent;
 };
 
 class PYWINTYPES_EXPORT PyHANDLE : public PyObject
@@ -148,18 +156,12 @@ public:
 	static PyObject * binaryFailureFunc(PyObject *ob1, PyObject *ob2);
 	static PyObject * ternaryFailureFunc(PyObject *ob1, PyObject *ob2, PyObject *ob3);
 
+	static PyObject *get_handle(PyObject *self, void *unused);
+	static PyGetSetDef getset[];
+
 	static PyObject *Close(PyObject *self, PyObject *args);
 	static PyObject *Detach(PyObject *self, PyObject *args);
-
-	static PyObject *getattr(PyObject *self, char *name);
-	static int setattr(PyObject *self, char *name, PyObject *v);
-#ifdef _MSC_VER
-#pragma warning( disable : 4251 )
-#endif // _MSC_VER
-	static struct memberlist memberlist[];
-#ifdef _MSC_VER
-#pragma warning( default : 4251 )
-#endif // _MSC_VER
+	static struct PyMethodDef methods[];
 
 protected:
 	HANDLE m_handle;

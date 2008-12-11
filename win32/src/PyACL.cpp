@@ -1106,7 +1106,7 @@ PyObject *PyACL::PyGetAuditedPermissionsFromAcl(PyObject *self, PyObject *args)
 }
 
 // @object PyACL|A Python object, representing a ACL structure
-static struct PyMethodDef PyACL_methods[] = {
+struct PyMethodDef PyACL::methods[] = {
 	{"Initialize",     PyACL::Initialize, 1}, 	// @pymeth Initialize|Initialize the ACL.
 	{"IsValid",     PyACL::IsValid, 1}, 	// @pymeth IsValid|Validate the ACL.
 	{"AddAccessAllowedAce",     PyACL::AddAccessAllowedAce, 1}, 	// @pymeth AddAccessAllowedAce|Adds an access-allowed ACE to an ACL object.
@@ -1139,7 +1139,7 @@ PYWINTYPES_EXPORT PyTypeObject PyACLType =
 	0,
 	PyACL::deallocFunc,		/* tp_dealloc */
 	0,						/* tp_print */
-	PyACL::getattr,				/* tp_getattr */
+	0,						/* tp_getattr */
 	0,						/* tp_setattr */
 	0,						/* tp_compare */
 	0,						/* tp_repr */
@@ -1149,6 +1149,28 @@ PYWINTYPES_EXPORT PyTypeObject PyACLType =
 	0,						/* tp_hash */
 	0,						/* tp_call */
 	0,						/* tp_str */
+	PyObject_GenericGetAttr,		/* tp_getattro */
+	0,						/* tp_setattro */
+	0,						/*tp_as_buffer*/
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,	/* tp_flags */
+	0,						/* tp_doc */
+	0,						/* tp_traverse */
+	0,						/* tp_clear */
+	0,						/* tp_richcompare */
+	0,						/* tp_weaklistoffset */
+	0,						/* tp_iter */
+	0,						/* tp_iternext */
+	PyACL::methods,			/* tp_methods */
+	0,						/* tp_members */
+	0,						/* tp_getset */
+	0,						/* tp_base */
+	0,						/* tp_dict */
+	0,						/* tp_descr_get */
+	0,						/* tp_descr_set */
+	0,						/* tp_dictoffset */
+	0,						/* tp_init */
+	0,						/* tp_alloc */
+	0,						/* tp_new */
 };
 
 
@@ -1172,11 +1194,6 @@ PyACL::PyACL(PACL pacl)
 PyACL::~PyACL()
 {
 	free(buf);
-}
-
-PyObject *PyACL::getattr(PyObject *self, char *name)
-{
-	return Py_FindMethod(PyACL_methods, self, name);
 }
 
 /*static*/ void PyACL::deallocFunc(PyObject *ob)

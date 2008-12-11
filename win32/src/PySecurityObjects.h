@@ -33,21 +33,16 @@ public:
 
 	/* Python support */
 	int compare(PyObject *ob);
-
 	static void deallocFunc(PyObject *ob);
+	static PyObject *getattro(PyObject *self, PyObject *obname);
+	static int setattro(PyObject *self, PyObject *obname, PyObject *v);
+	static struct PYWINTYPES_EXPORT PyMemberDef members[];
+	static struct PyMethodDef methods[];
 
-	static PyObject *getattr(PyObject *self, char *name);
-	static int setattr(PyObject *self, char *name, PyObject *v);
-
+	static PyObject *get_SECURITY_DESCRIPTOR(PyObject *self, void *unused);
+	static int set_SECURITY_DESCRIPTOR(PyObject *self, PyObject *obsd, void *unused);
+	static PyGetSetDef getset[];
 	PyObject *m_obSD;
-
-#ifdef _MSC_VER
-#pragma warning( disable : 4251 )
-#endif // _MSC_VER
-	static struct memberlist memberlist[];
-#ifdef _MSC_VER
-#pragma warning( default : 4251 )
-#endif // _MSC_VER
 
 protected:
 	SECURITY_ATTRIBUTES m_sa;
@@ -66,13 +61,14 @@ public:
 
 	/* Python support */
 	int compare(PyObject *ob);
-
 	static void deallocFunc(PyObject *ob);
 
-	static PyObject *getattr(PyObject *self, char *name);
-	static int setattr(PyObject *self, char *name, PyObject *v);
+#if (PY_VERSION_HEX < 0x03000000)
 	static Py_ssize_t getreadbuf(PyObject *self, Py_ssize_t index, void **ptr);
 	static Py_ssize_t getsegcount(PyObject *self, Py_ssize_t *lenp);
+#else
+	static int getbufferinfo(PyObject *self, Py_buffer *view, int flags);
+#endif
 
 	static PyObject *Initialize(PyObject *self, PyObject *args);
 	static PyObject *GetSecurityDescriptorOwner(PyObject *self, PyObject *args);
@@ -88,14 +84,7 @@ public:
 	static PyObject *GetSecurityDescriptorControl(PyObject *self, PyObject *args);
 	static PyObject *SetSecurityDescriptorControl(PyObject *self, PyObject *args);
 	static PyObject *IsSelfRelative(PyObject *self, PyObject *args);
-
-#ifdef _MSC_VER
-#pragma warning( disable : 4251 )
-#endif // _MSC_VER
-	static struct memberlist memberlist[];
-#ifdef _MSC_VER
-#pragma warning( default : 4251 )
-#endif // _MSC_VER
+	static struct PyMethodDef methods[];
 
 protected:
 	PSECURITY_DESCRIPTOR m_psd;
@@ -117,10 +106,13 @@ public:
 	static int compareFunc(PyObject *ob1, PyObject *ob2);
 	static PyObject *strFunc(PyObject *ob);
 
-	static PyObject *getattr(PyObject *self, char *name);
-	static int setattr(PyObject *self, char *name, PyObject *v);
+	// Buffer interface changed in 3.0
+#if (PY_VERSION_HEX < 0x03000000)
 	static Py_ssize_t getreadbuf(PyObject *self, Py_ssize_t index, void **ptr);
 	static Py_ssize_t getsegcount(PyObject *self, Py_ssize_t *lenp);
+#else
+	static int getbufferinfo(PyObject *self, Py_buffer *view, int flags);
+#endif
 
 	static PyObject *Initialize(PyObject *self, PyObject *args);
 	static PyObject *IsValid(PyObject *self, PyObject *args);
@@ -129,18 +121,10 @@ public:
 	static PyObject *GetSubAuthorityCount(PyObject *self, PyObject *args);
 	static PyObject *GetSubAuthority(PyObject *self, PyObject *args);
 	static PyObject *GetSidIdentifierAuthority(PyObject *self, PyObject *args);
-
-#ifdef _MSC_VER
-#pragma warning( disable : 4251 )
-#endif // _MSC_VER
-	static struct memberlist memberlist[];
-#ifdef _MSC_VER
-#pragma warning( default : 4251 )
-#endif // _MSC_VER
+	static struct PyMethodDef PySID::methods[];
 
 protected:
 	PSID m_psid;
-	bool m_bFreeWithFreeSid;
 };
 
 class PYWINTYPES_EXPORT PyACL : public PyObject
@@ -172,14 +156,10 @@ public:
 
 	~PyACL();
 
-
 	/* Python support */
 	int compare(PyObject *ob);
-
 	static void deallocFunc(PyObject *ob);
-
-	static PyObject *getattr(PyObject *self, char *name);
-	static int setattr(PyObject *self, char *name, PyObject *v);
+	static struct PyMethodDef PyACL::methods[];
 
 	static PyObject *Initialize(PyObject *self, PyObject *args);
 	static PyObject *IsValid(PyObject *self, PyObject *args);
@@ -202,14 +182,6 @@ public:
 	static PyObject *PySetEntriesInAcl(PyObject *self, PyObject *args);
 	static PyObject *PyGetEffectiveRightsFromAcl(PyObject *self, PyObject *args);
 	static PyObject *PyGetAuditedPermissionsFromAcl(PyObject *self, PyObject *args);
-
-#ifdef _MSC_VER
-#pragma warning( disable : 4251 )
-#endif // _MSC_VER
-	static struct memberlist memberlist[];
-#ifdef _MSC_VER
-#pragma warning( default : 4251 )
-#endif // _MSC_VER
 
 protected:
 	void *buf;

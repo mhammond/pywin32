@@ -44,7 +44,6 @@ class PyDISPLAY_DEVICE : public PyObject
 public:
 	static struct PyMemberDef members[];
 	static struct PyMethodDef methods[];
-
 	static void deallocFunc(PyObject *ob);
 	PyDISPLAY_DEVICE(PDISPLAY_DEVICE);
 	PyDISPLAY_DEVICE(void);

@@ -58,7 +58,7 @@ BOOL PyWinObject_AsSECURITY_ATTRIBUTES(PyObject *ob, SECURITY_ATTRIBUTES **ppSEC
 
 
 // @object PySECURITY_ATTRIBUTES|A Python object, representing a SECURITY_ATTRIBUTES structure
-static struct PyMethodDef PySECURITY_ATTRIBUTES_methods[] = {
+struct PyMethodDef PySECURITY_ATTRIBUTES::methods[] = {
 	{NULL}
 };
 
@@ -71,8 +71,8 @@ PYWINTYPES_EXPORT PyTypeObject PySECURITY_ATTRIBUTESType =
 	0,
 	PySECURITY_ATTRIBUTES::deallocFunc,		/* tp_dealloc */
 	0,						/* tp_print */
-	PySECURITY_ATTRIBUTES::getattr,				/* tp_getattr */
-	PySECURITY_ATTRIBUTES::setattr,				/* tp_setattr */
+	0,						/* tp_getattr */
+	0,						/* tp_setattr */
 	0,						/* tp_compare */
 	0,						/* tp_repr */
 	0,						/* tp_as_number */
@@ -81,12 +81,34 @@ PYWINTYPES_EXPORT PyTypeObject PySECURITY_ATTRIBUTESType =
 	0,						/* tp_hash */
 	0,						/* tp_call */
 	0,						/* tp_str */
+	PySECURITY_ATTRIBUTES::getattro,	/* tp_getattro */
+	PySECURITY_ATTRIBUTES::setattro,	/* tp_setattro */
+	0,						/* tp_as_buffer */
+	Py_TPFLAGS_DEFAULT,		/* tp_flags */
+	"A Python object, representing a SECURITY_ATTRIBUTES structure",	/* tp_doc */
+	0,						/* tp_traverse */
+	0,						/* tp_clear */
+	0,						/* tp_richcompare */
+	0,						/* tp_weaklistoffset */
+	0,						/* tp_iter */
+	0,						/* tp_iternext */
+	PySECURITY_ATTRIBUTES::methods,		/* tp_methods */
+	PySECURITY_ATTRIBUTES::members,		/* tp_members */
+	0,						/* tp_getset */
+	0,						/* tp_base */
+	0,						/* tp_dict */
+	0,						/* tp_descr_get */
+	0,						/* tp_descr_set */
+	0,						/* tp_dictoffset */
+	0,						/* tp_init */
+	0,						/* tp_alloc */
+	0,						/* tp_new */
 };
 
 #define OFF(e) offsetof(PySECURITY_ATTRIBUTES, e)
 
-/*static*/ struct memberlist PySECURITY_ATTRIBUTES::memberlist[] = {
-	{"bInheritHandle",  T_INT,  OFF(m_sa.bInheritHandle)}, // @prop integer|bInheritHandle|Specifies whether the returned handle is inherited when a new process is created. If this member is TRUE, the new process inherits the handle.
+/*static*/ struct PYWINTYPES_EXPORT PyMemberDef PySECURITY_ATTRIBUTES::members[] = {
+	{"bInheritHandle",  T_INT,  OFF(m_sa.bInheritHandle)}, // @prop boolean|bInheritHandle|Specifies whether the returned handle is inherited when a new process is created. If this member is TRUE, the new process inherits the handle.
 	{"SECURITY_DESCRIPTOR", T_OBJECT, OFF(m_obSD)},        // @prop <o PySECURITY_DESCRIPTOR>|SECURITY_DESCRIPTOR|A PySECURITY_DESCRIPTOR, or None
 	{NULL}
 };
@@ -141,45 +163,42 @@ PySECURITY_ATTRIBUTES::~PySECURITY_ATTRIBUTES()
 	Py_XDECREF( m_obSD );
 }
 
-PyObject *PySECURITY_ATTRIBUTES::getattr(PyObject *self, char *name)
+PyObject *PySECURITY_ATTRIBUTES::getattro(PyObject *self, PyObject *obname)
 {
-	PyObject *res;
-
-	res = Py_FindMethod(PySECURITY_ATTRIBUTES_methods, self, name);
+	PyObject *res = PyObject_GenericGetAttr(self, obname);
 	if (res != NULL)
 		return res;
-	PyErr_Clear();
 
-	res = PyMember_Get((char *)self, memberlist, name);
-	if (res != NULL)
-		return res;
 	// let it inherit methods from PySECURITY_DESCRIPTOR for backward compatibility
 	PySECURITY_ATTRIBUTES *This = (PySECURITY_ATTRIBUTES *)self;
 	if (This->m_obSD!=Py_None){
 		PyErr_Clear();
-		res=((PySECURITY_DESCRIPTOR *)(This->m_obSD))->getattr(This->m_obSD, name);
+		res=PyObject_GenericGetAttr(This->m_obSD, obname);
 		}
 	return res;
 }
 
-int PySECURITY_ATTRIBUTES::setattr(PyObject *self, char *name, PyObject *v)
+int PySECURITY_ATTRIBUTES::setattro(PyObject *self, PyObject *obname, PyObject *v)
 {
 	if (v == NULL) {
 		PyErr_SetString(PyExc_AttributeError, "can't delete SECURITY_ATTRIBUTES attributes");
 		return -1;
 	}
+	char *name=PYWIN_ATTR_CONVERT(obname);
+	if (name==NULL)
+		return -1;
 	if (strcmp(name, "SECURITY_DESCRIPTOR")==0){
 		PySECURITY_ATTRIBUTES *This=(PySECURITY_ATTRIBUTES *)self;
-		if (v==Py_None)
-			This->m_sa.lpSecurityDescriptor=NULL;
-		else if (PySECURITY_DESCRIPTOR_Check(v))
-			This->m_sa.lpSecurityDescriptor=((PySECURITY_DESCRIPTOR *)This->m_obSD)->GetSD();
-		else{
-			PyErr_SetString(PyExc_TypeError, "SECURITY_DESCRIPTOR must be a PySECURITY_DESCRIPTOR, or None");
+		PSECURITY_DESCRIPTOR psd;
+		if (!PyWinObject_AsSECURITY_DESCRIPTOR(v, &psd, TRUE))
 			return -1;
-			}
+		Py_XDECREF(This->m_obSD);
+		Py_INCREF(v);
+		This->m_obSD = v;
+		This->m_sa.lpSecurityDescriptor = psd;
+		return 0;
 		}
-	return PyMember_Set((char *)self, memberlist, name, v);
+	return PyObject_GenericSetAttr(self, obname, v);
 }
 
 /*static*/ void PySECURITY_ATTRIBUTES::deallocFunc(PyObject *ob)

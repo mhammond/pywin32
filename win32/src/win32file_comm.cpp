@@ -8,6 +8,7 @@
 #include "structmember.h"
 #include "PyWinTypes.h"
 #include "PyWinObjects.h"
+#include "win32file_comm.h"
 
 // Small enough we can use a tuple!
 // @object COMMTIMEOUTS|A tuple representing a COMMTIMEOUTS structure.
@@ -37,32 +38,6 @@ BOOL PyWinObject_AsCOMMTIMEOUTS( PyObject *ob, COMMTIMEOUTS *p)
 }
 
 static const char *szNeedIntAttr = "Attribute '%s' must be an integer";
-
-class PyDCB : public PyObject
-{
-public:
-	DCB *GetDCB() {return &m_DCB;}
-
-	PyDCB(void);
-	PyDCB(const DCB &);
-	~PyDCB();
-
-	/* Python support */
-	int compare(PyObject *ob);
-
-	static void deallocFunc(PyObject *ob);
-	static int compareFunc(PyObject *ob1, PyObject *ob2);
-
-	static PyObject *getattr(PyObject *self, char *name);
-	static int setattr(PyObject *self, char *name, PyObject *v);
-	static struct memberlist memberlist[];
-	static PyTypeObject type;
-
-protected:
-	DCB m_DCB;
-};
-
-#define PyDCB_Check(x) ((x)->ob_type==&PyDCB::type)
 
 // @pymethod <o PyDCB>|win32file|DCB|Creates a new DCB object
 PyObject *PyWinMethod_NewDCB(PyObject *self, PyObject *args)
@@ -109,8 +84,8 @@ PyTypeObject PyDCB::type =
 	0,
 	PyDCB::deallocFunc,		/* tp_dealloc */
 	0,						/* tp_print */
-	PyDCB::getattr,				/* tp_getattr */
-	PyDCB::setattr,				/* tp_setattr */
+	0,						/* tp_getattr */
+	0,						/* tp_setattr */
 	0,						/* tp_compare */
 	0,						/* tp_repr */
 	0,						/* tp_as_number */
@@ -119,6 +94,28 @@ PyTypeObject PyDCB::type =
 	0,						/* tp_call */
 	0,						/* tp_call */
 	0,						/* tp_str */
+	PyDCB::getattro,		/* tp_getattro */
+	PyDCB::setattro,		/* tp_setattro */
+	0,						/*tp_as_buffer*/
+	Py_TPFLAGS_DEFAULT,		/* tp_flags */
+	"Wraps a DCB struct",	/* tp_doc */
+	0,						/* tp_traverse */
+	0,						/* tp_clear */
+	0,						/* tp_richcompare */
+	0,						/* tp_weaklistoffset */
+	0,						/* tp_iter */
+	0,						/* tp_iternext */
+	0,						/* tp_methods */
+	PyDCB::members,			/* tp_members */
+	0,						/* tp_getset */
+	0,						/* tp_base */
+	0,						/* tp_dict */
+	0,						/* tp_descr_get */
+	0,						/* tp_descr_set */
+	0,						/* tp_dictoffset */
+	0,						/* tp_init */
+	0,						/* tp_alloc */
+	0,						/* tp_new */
 };
 
 
@@ -127,7 +124,7 @@ PyTypeObject PyDCB::type =
 #define T_DWORD T_UINT
 #define T_WORD T_USHORT
 
-/*static*/ struct memberlist PyDCB::memberlist[] = {
+/*static*/ struct PyMemberDef PyDCB::members[] = {
 // NOTE - bitfields missing.
   {"BaudRate", T_DWORD, OFF(m_DCB.BaudRate)},            // @prop integer|BaudRate|current baud rate 
   {"wReserved", T_WORD, OFF(m_DCB.wReserved)},          // @prop integer|wReserved|not currently used 
@@ -184,9 +181,13 @@ PyDCB::~PyDCB(void)
 		return PyInt_FromLong(pydcb->m_DCB.##bitfield_name); \
 	} \
 
-PyObject *PyDCB::getattr(PyObject *self, char *name)
+PyObject *PyDCB::getattro(PyObject *self, PyObject *obname)
 {
 	PyDCB *pydcb = (PyDCB *)self;
+	char *name=PYWIN_ATTR_CONVERT(obname);
+	if (!name)
+		return NULL;
+
 	if (0) // boot up our macro magic (the macro starts with an 'else')
 		;
 	GET_BITFIELD_ENTRY(fBinary)
@@ -203,7 +204,7 @@ PyObject *PyDCB::getattr(PyObject *self, char *name)
 	GET_BITFIELD_ENTRY(fRtsControl)
 	GET_BITFIELD_ENTRY(fAbortOnError)
 	GET_BITFIELD_ENTRY(fDummy2)
-	return PyMember_Get((char *)self, memberlist, name);
+	return PyObject_GenericGetAttr(self, obname);
 }
 
 #define SET_BITFIELD_ENTRY(bitfield_name) \
@@ -216,13 +217,16 @@ PyObject *PyDCB::getattr(PyObject *self, char *name)
 		return 0; \
 	} \
 
-int PyDCB::setattr(PyObject *self, char *name, PyObject *v)
+int PyDCB::setattro(PyObject *self, PyObject *obname, PyObject *v)
 {
 	PyDCB *pydcb = (PyDCB *)self;
 	if (v == NULL) {
 		PyErr_SetString(PyExc_AttributeError, "can't delete DCB attributes");
 		return -1;
 	}
+	char *name=PYWIN_ATTR_CONVERT(obname);
+	if (!name)
+		return -1;
 	SET_BITFIELD_ENTRY(fBinary)
 	SET_BITFIELD_ENTRY(fParity)
 	SET_BITFIELD_ENTRY(fOutxCtsFlow)
@@ -237,7 +241,7 @@ int PyDCB::setattr(PyObject *self, char *name, PyObject *v)
 	SET_BITFIELD_ENTRY(fRtsControl)
 	SET_BITFIELD_ENTRY(fAbortOnError)
 	SET_BITFIELD_ENTRY(fDummy2)
-	return PyMember_Set((char *)self, memberlist, name, v);
+	return PyObject_GenericSetAttr(self, obname, v);
 }
 
 /*static*/ void PyDCB::deallocFunc(PyObject *ob)
@@ -250,32 +254,6 @@ int PyDCB::setattr(PyObject *self, char *name, PyObject *v)
 // COMSTAT object.
 //
 ////////////////////////////////////////////////////////////////
-class PyCOMSTAT : public PyObject
-{
-public:
-	COMSTAT *GetCOMSTAT() {return &m_COMSTAT;}
-
-	PyCOMSTAT(void);
-	PyCOMSTAT(const COMSTAT &);
-	~PyCOMSTAT();
-
-	/* Python support */
-	int compare(PyObject *ob);
-
-	static void deallocFunc(PyObject *ob);
-	static int compareFunc(PyObject *ob1, PyObject *ob2);
-
-	static PyObject *getattr(PyObject *self, char *name);
-	static int setattr(PyObject *self, char *name, PyObject *v);
-	static struct memberlist memberlist[];
-	static PyTypeObject type;
-
-protected:
-	COMSTAT m_COMSTAT;
-};
-
-#define PyCOMSTAT_Check(x) ((x)->ob_type==&PyCOMSTAT::type)
-
 // @pymethod <o PyCOMSTAT>|win32file|COMSTAT|Creates a new COMSTAT object
 PyObject *PyWinMethod_NewCOMSTAT(PyObject *self, PyObject *args)
 {
@@ -319,8 +297,8 @@ PyTypeObject PyCOMSTAT::type =
 	0,
 	PyCOMSTAT::deallocFunc,	/* tp_dealloc */
 	0,						/* tp_print */
-	PyCOMSTAT::getattr,				/* tp_getattr */
-	PyCOMSTAT::setattr,				/* tp_setattr */
+	0,						/* tp_getattr */
+	0,						/* tp_setattr */
 	0,						/* tp_compare */
 	0,						/* tp_repr */
 	0,						/* tp_as_number */
@@ -329,13 +307,35 @@ PyTypeObject PyCOMSTAT::type =
 	0,						/* tp_hash */
 	0,						/* tp_call */
 	0,						/* tp_str */
+	PyCOMSTAT::getattro,	/* tp_getattr */
+	PyCOMSTAT::setattro,	/* tp_setattr */
+	0,						/*tp_as_buffer*/
+	Py_TPFLAGS_DEFAULT,		/* tp_flags */
+	"Wraps a COMMSTAT struct",	/* tp_doc */
+	0,						/* tp_traverse */
+	0,						/* tp_clear */
+	0,						/* tp_richcompare */
+	0,						/* tp_weaklistoffset */
+	0,						/* tp_iter */
+	0,						/* tp_iternext */
+	0,						/* tp_methods */
+	PyCOMSTAT::members,		/* tp_members */
+	0,						/* tp_getset */
+	0,						/* tp_base */
+	0,						/* tp_dict */
+	0,						/* tp_descr_get */
+	0,						/* tp_descr_set */
+	0,						/* tp_dictoffset */
+	0,						/* tp_init */
+	0,						/* tp_alloc */
+	0,						/* tp_new */
 };
 
 #undef OFF
 #define OFF(e) offsetof(PyCOMSTAT, e)
 
 
-/*static*/ struct memberlist PyCOMSTAT::memberlist[] = {
+/*static*/ struct PyMemberDef PyCOMSTAT::members[] = {
 // NOTE - bitfields missing.
   {"cbInQue", T_DWORD, OFF(m_COMSTAT.cbInQue)},            // @prop integer|cbInQue|Specifies the number of bytes received by the serial provider but not yet read by a <om win32file.ReadFile> operation
   {"cbOutQue", T_WORD, OFF(m_COMSTAT.cbOutQue)},          // @prop integer|cbOutQue|Specifies the number of bytes of user data remaining to be transmitted for all write operations. This value will be zero for a nonoverlapped write. 
@@ -375,9 +375,12 @@ PyCOMSTAT::~PyCOMSTAT(void)
 		return PyInt_FromLong(pyCOMSTAT->m_COMSTAT.##bitfield_name); \
 	} \
 
-PyObject *PyCOMSTAT::getattr(PyObject *self, char *name)
+PyObject *PyCOMSTAT::getattro(PyObject *self, PyObject *obname)
 {
 	PyCOMSTAT *pyCOMSTAT = (PyCOMSTAT *)self;
+	char *name=PYWIN_ATTR_CONVERT(obname);
+	if (!name)
+		return NULL;
 	if (0) // boot up our macro magic (the macro starts with an 'else')
 		;
 	GET_BITFIELD_ENTRY(fCtsHold )
@@ -388,7 +391,7 @@ PyObject *PyCOMSTAT::getattr(PyObject *self, char *name)
 	GET_BITFIELD_ENTRY(fEof)
 	GET_BITFIELD_ENTRY(fTxim)
 	GET_BITFIELD_ENTRY(fReserved)
-	return PyMember_Get((char *)self, memberlist, name);
+	return PyObject_GenericGetAttr(self, obname);
 }
 
 #undef SET_BITFIELD_ENTRY
@@ -402,13 +405,16 @@ PyObject *PyCOMSTAT::getattr(PyObject *self, char *name)
 		return 0; \
 	} \
 
-int PyCOMSTAT::setattr(PyObject *self, char *name, PyObject *v)
+int PyCOMSTAT::setattro(PyObject *self, PyObject *obname, PyObject *v)
 {
 	PyCOMSTAT *pyCOMSTAT = (PyCOMSTAT *)self;
 	if (v == NULL) {
 		PyErr_SetString(PyExc_AttributeError, "can't delete COMSTAT attributes");
 		return -1;
 	}
+	char *name=PYWIN_ATTR_CONVERT(obname);
+	if (!name)
+		return -1;
 	SET_BITFIELD_ENTRY(fCtsHold )
 	SET_BITFIELD_ENTRY(fDsrHold)
 	SET_BITFIELD_ENTRY(fRlsdHold)
@@ -417,7 +423,7 @@ int PyCOMSTAT::setattr(PyObject *self, char *name, PyObject *v)
 	SET_BITFIELD_ENTRY(fEof)
 	SET_BITFIELD_ENTRY(fTxim)
 	SET_BITFIELD_ENTRY(fReserved)
-	return PyMember_Set((char *)self, memberlist, name, v);
+	return PyObject_GenericSetAttr(self, obname, v);
 }
 
 /*static*/ void PyCOMSTAT::deallocFunc(PyObject *ob)

@@ -42,7 +42,7 @@ public:
 	/* Python support */
 	static void deallocFunc(PyObject *ob);
 
-	static PyObject *getattr(PyObject *self, char *name);
+	static PyObject *getattro(PyObject *self, PyObject *name);
 	static PyTypeObject type;
 	RASEAPUSERIDENTITY *m_identity;
 };
@@ -79,7 +79,7 @@ PyTypeObject PyRASEAPUSERIDENTITY::type =
 	0,
 	PyRASEAPUSERIDENTITY::deallocFunc,		/* tp_dealloc */
 	0,						/* tp_print */
-	PyRASEAPUSERIDENTITY::getattr,				/* tp_getattr */
+	0,						/* tp_getattr */
 	0,						/* tp_setattr */
 	0,						/* tp_compare */
 	0,						/* tp_repr */
@@ -89,9 +89,28 @@ PyTypeObject PyRASEAPUSERIDENTITY::type =
 	0,						/* tp_hash */
 	0,						/* tp_call */
 	0,						/* tp_str */
-	0,		/*tp_getattro*/
+	PyRASEAPUSERIDENTITY::getattro,		/*tp_getattro*/
 	0,						/*tp_setattro*/
 	0,						/*tp_as_buffer*/
+	Py_TPFLAGS_DEFAULT,		// tp_flags;
+	"An object that describes a Win32 RASDIALEXTENSIONS structure",		// tp_doc
+	0,						// tp_traverse;
+	0,						// tp_clear
+	0,						// tp_richcompare;
+	0,						// tp_weaklistoffset;
+	0,						// tp_iter
+	0,						// iternextfunc tp_iternext
+	0,						// tp_methods
+	0,						// tp_members
+	0,						// tp_getset;
+	0,						// tp_base;
+	0,						// tp_dict;
+	0,						// tp_descr_get;
+	0,						// tp_descr_set;
+	0,						// tp_dictoffset;
+	0,						// tp_init;
+	0,						// tp_alloc;
+	0,						// newfunc tp_new;
 };
 
 PyRASEAPUSERIDENTITY::PyRASEAPUSERIDENTITY(RASEAPUSERIDENTITY *identity)
@@ -109,14 +128,17 @@ PyRASEAPUSERIDENTITY::~PyRASEAPUSERIDENTITY()
 	}
 }
 
-PyObject *PyRASEAPUSERIDENTITY::getattr(PyObject *self, char *name)
+PyObject *PyRASEAPUSERIDENTITY::getattro(PyObject *self, PyObject *obname)
 {
+	char *name=PYWIN_ATTR_CONVERT(obname);
+	if (name==NULL)
+		return NULL;
 	PyRASEAPUSERIDENTITY *py = (PyRASEAPUSERIDENTITY *)self;
 	if (strcmp(name, "szUserName")==0 || strcmp(name, "userName")==0)
-		return PyString_FromString( py->m_identity->szUserName);
-	else if (strcmp(name, "pbEapInfo")==0 || strcmp(name, "eapInfo")==0)
+		return PyWinObject_FromTCHAR( py->m_identity->szUserName);
+	if (strcmp(name, "pbEapInfo")==0 || strcmp(name, "eapInfo")==0)
 		return PyBuffer_FromMemory( py->m_identity->pbEapInfo, py->m_identity->dwSizeofEapInfo );
-	return PyErr_Format(PyExc_AttributeError, "RASEAPUSERIDENTITY objects have no attribute '%s'", name);
+	return PyObject_GenericGetAttr(self, obname);
 }
 
 /*static*/ void PyRASEAPUSERIDENTITY::deallocFunc(PyObject *ob)

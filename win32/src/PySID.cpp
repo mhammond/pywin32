@@ -178,7 +178,7 @@ PyObject *PySID::GetSidIdentifierAuthority (PyObject *self, PyObject *args)
 }
 
 // @object PySID|A Python object, representing a SID structure
-static struct PyMethodDef PySID_methods[] = {
+struct PyMethodDef PySID::methods[] = {
 	{"Initialize",     PySID::Initialize, 1}, 	// @pymeth Initialize|Initialize the SID.
 	{"IsValid",        PySID::IsValid, 1}, 	// @pymeth IsValid|Determines if the SID is valid.
 	{"SetSubAuthority",PySID::SetSubAuthority, 1}, 	// @pymeth SetSubAuthority|Sets a SID SubAuthority
@@ -189,6 +189,28 @@ static struct PyMethodDef PySID_methods[] = {
 	{NULL}
 };
 
+
+
+#if (PY_VERSION_HEX < 0x03000000)
+/*static*/ Py_ssize_t PySID::getreadbuf(PyObject *self, Py_ssize_t index, void **ptr)
+{
+	if ( index != 0 ) {
+		PyErr_SetString(PyExc_SystemError,
+				"accessing non-existent SID segment");
+		return -1;
+	}
+	PySID *pysid = (PySID *)self;
+	*ptr = pysid->m_psid;
+	return GetLengthSid(pysid->m_psid);
+}
+
+/*static*/ Py_ssize_t PySID::getsegcount(PyObject *self, Py_ssize_t *lenp)
+{
+	if ( lenp )
+		*lenp = GetLengthSid(((PySID *)self)->m_psid);
+	return 1;
+}
+
 static PyBufferProcs PySID_as_buffer = {
 	PySID::getreadbuf,
 	0,
@@ -196,6 +218,20 @@ static PyBufferProcs PySID_as_buffer = {
 	0,
 };
 
+#else	// New buffer interface in Py3k
+
+/*static*/ int PySID::getbufferinfo(PyObject *self, Py_buffer *view, int flags)
+{
+	PySID *pysid = (PySID *)self;
+	return PyBuffer_FillInfo(view, self, pysid->m_psid, GetLengthSid(pysid->m_psid), 1, flags);
+}
+
+static PyBufferProcs PySID_as_buffer = {
+	PySID::getbufferinfo,
+	NULL,	// Does not have any allocated mem in Py_buffer struct 
+};
+
+#endif	// PY_VERSION_HEX < 0x03000000
 
 PYWINTYPES_EXPORT PyTypeObject PySIDType =
 {
@@ -205,7 +241,7 @@ PYWINTYPES_EXPORT PyTypeObject PySIDType =
 	0,
 	PySID::deallocFunc,		/* tp_dealloc */
 	0,						/* tp_print */
-	PySID::getattr,				/* tp_getattr */
+	0,						/* tp_getattr */
 	0,						/* tp_setattr */
 	// @pymeth __cmp__|Used when objects are compared.
 	PySID::compareFunc,		/* tp_compare */
@@ -216,10 +252,29 @@ PYWINTYPES_EXPORT PyTypeObject PySIDType =
 	0,
 	0,						/* tp_call */
 	PySID::strFunc,			/* tp_str */
-	0,		/*tp_getattro*/
-	0,		/*tp_setattro*/
+	PyObject_GenericGetAttr,	/*tp_getattro*/
+	0,						/*tp_setattro*/
 	// @comm Note the PySID object supports the buffer interface.  Thus buffer(sid) can be used to obtain the raw bytes.
 	&PySID_as_buffer,		/*tp_as_buffer*/
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,	/* tp_flags */
+	0,						/* tp_doc */
+	0,						/* tp_traverse */
+	0,						/* tp_clear */
+	0,						/* tp_richcompare */
+	0,						/* tp_weaklistoffset */
+	0,						/* tp_iter */
+	0,						/* tp_iternext */
+	PySID::methods,			/* tp_methods */
+	0,						/* tp_members */
+	0,						/* tp_getset */
+	0,						/* tp_base */
+	0,						/* tp_dict */
+	0,						/* tp_descr_get */
+	0,						/* tp_descr_set */
+	0,						/* tp_dictoffset */
+	0,						/* tp_init */
+	0,						/* tp_alloc */
+	0,						/* tp_new */
 };
 
 
@@ -250,17 +305,12 @@ PySID::~PySID()
 		free(m_psid);
 }
 
-PyObject *PySID::getattr(PyObject *self, char *name)
-{
-	return Py_FindMethod(PySID_methods, self, name);
-}
-
 int PySID::compare(PyObject *ob)
 {
-	PSID p1 = NULL, p2 = NULL;
-	PyWinObject_AsSID(this, &p1);
-	PyWinObject_AsSID(ob, &p2);
-	return EqualSid(p1, p2)==FALSE;
+	PSID p2;
+	if (!PyWinObject_AsSID(ob, &p2, FALSE))
+		return -2;
+	return EqualSid(this->GetSID(), p2)==FALSE;
 }
 
 
@@ -275,26 +325,6 @@ int PySID::compareFunc(PyObject *ob1, PyObject *ob2)
 {
 	delete (PySID *)ob;
 }
-
-/*static*/ Py_ssize_t PySID::getreadbuf(PyObject *self, Py_ssize_t index, void **ptr)
-{
-	if ( index != 0 ) {
-		PyErr_SetString(PyExc_SystemError,
-				"accessing non-existent SID segment");
-		return -1;
-	}
-	PySID *pysid = (PySID *)self;
-	*ptr = pysid->m_psid;
-	return GetLengthSid(pysid->m_psid);
-}
-
-/*static*/ Py_ssize_t PySID::getsegcount(PyObject *self, Py_ssize_t *lenp)
-{
-	if ( lenp )
-		*lenp = GetLengthSid(((PySID *)self)->m_psid);
-	return 1;
-}
-
 
 // NOTE:  This function taken from KB Q131320.
 BOOL GetTextualSid( 

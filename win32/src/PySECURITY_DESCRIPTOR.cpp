@@ -677,7 +677,7 @@ PyObject *PySECURITY_DESCRIPTOR::GetLength(PyObject *self, PyObject *args)
 }
 
 // @object PySECURITY_DESCRIPTOR|A Python object, representing a SECURITY_DESCRIPTOR structure
-static struct PyMethodDef PySECURITY_DESCRIPTOR_methods[] = {
+struct PyMethodDef PySECURITY_DESCRIPTOR::methods[] = {
 	{"Initialize",     PySECURITY_DESCRIPTOR::Initialize, 1}, 	// @pymeth Initialize|Initializes the object.
 	{"GetSecurityDescriptorOwner", PySECURITY_DESCRIPTOR::GetSecurityDescriptorOwner, 1}, // @pymeth GetSecurityDescriptorOwner|Return the owner of the security descriptor. SID is returned.	
 	{"GetSecurityDescriptorGroup", PySECURITY_DESCRIPTOR::GetSecurityDescriptorGroup, 1}, // @pymeth GetSecurityDescriptorOwner|Return the group owning the security descriptor. SID is returned.
@@ -696,12 +696,47 @@ static struct PyMethodDef PySECURITY_DESCRIPTOR_methods[] = {
 	{NULL}
 };
 
+// Buffer interface in Python 3.0 has changed
+#if (PY_VERSION_HEX < 0x03000000)
+/*static*/ Py_ssize_t PySECURITY_DESCRIPTOR::getreadbuf(PyObject *self, Py_ssize_t index, void **ptr)
+{
+	if ( index != 0 ) {
+		PyErr_SetString(PyExc_SystemError,
+				"accessing non-existent SID segment");
+		return -1;
+	}
+	PySECURITY_DESCRIPTOR *pysd = (PySECURITY_DESCRIPTOR *)self;
+	*ptr = pysd->m_psd;
+	return GetSecurityDescriptorLength(pysd->m_psd);
+}
+
+/*static*/ Py_ssize_t PySECURITY_DESCRIPTOR::getsegcount(PyObject *self, Py_ssize_t *lenp)
+{
+	if ( lenp )
+		*lenp = GetSecurityDescriptorLength(((PySECURITY_DESCRIPTOR *)self)->m_psd);
+	return 1;
+}
+
 static PyBufferProcs PySECURITY_DESCRIPTOR_as_buffer = {
 	PySECURITY_DESCRIPTOR::getreadbuf,
 	0,
 	PySECURITY_DESCRIPTOR::getsegcount,
 	0,
 };
+
+#else	// New buffer interface for Python 3.0
+/*static*/ int PySECURITY_DESCRIPTOR::getbufferinfo(PyObject *self, Py_buffer *view, int flags)
+{
+	PySECURITY_DESCRIPTOR *pysd = (PySECURITY_DESCRIPTOR *)self;
+	return PyBuffer_FillInfo(view, self, pysd->m_psd,
+		GetSecurityDescriptorLength(pysd->m_psd), 1, flags);
+}
+
+static PyBufferProcs PySECURITY_DESCRIPTOR_as_buffer = {
+	PySECURITY_DESCRIPTOR::getbufferinfo,
+	NULL	// Don't need to release any memory from Py_buffer struct
+};
+#endif	// PY_VERSION_HEX < 0x03000000
 
 PYWINTYPES_EXPORT PyTypeObject PySECURITY_DESCRIPTORType =
 {
@@ -711,8 +746,8 @@ PYWINTYPES_EXPORT PyTypeObject PySECURITY_DESCRIPTORType =
 	0,
 	PySECURITY_DESCRIPTOR::deallocFunc,		/* tp_dealloc */
 	0,						/* tp_print */
-	PySECURITY_DESCRIPTOR::getattr,				/* tp_getattr */
-	PySECURITY_DESCRIPTOR::setattr,				/* tp_setattr */
+	0,						/* tp_getattr */
+	0,						/* tp_setattr */
 	0,						/* tp_compare */
 	0,						/* tp_repr */
 	0,						/* tp_as_number */
@@ -721,17 +756,31 @@ PYWINTYPES_EXPORT PyTypeObject PySECURITY_DESCRIPTORType =
 	0,						/* tp_hash */
 	0,						/* tp_call */
 	0,						/* tp_str */
-	0,		/*tp_getattro*/
-	0,		/*tp_setattro*/
+	PyObject_GenericGetAttr,	/* tp_getattro */
+	PyObject_GenericSetAttr,	/* tp_setattro */
 	// @comm Note the PySECURITY_DESCRIPTOR object supports the buffer interface.  Thus buffer(sd) can be used to obtain the raw bytes.
 	&PySECURITY_DESCRIPTOR_as_buffer,	/*tp_as_buffer*/
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,	/* tp_flags */
+	0,						/* tp_doc */
+	0,						/* tp_traverse */
+	0,						/* tp_clear */
+	0,						/* tp_richcompare */
+	0,						/* tp_weaklistoffset */
+	0,						/* tp_iter */
+	0,						/* tp_iternext */
+	PySECURITY_DESCRIPTOR::methods,		/* tp_methods */
+	0,						/* tp_members */
+	0,						/* tp_getset */
+	0,						/* tp_base */
+	0,						/* tp_dict */
+	0,						/* tp_descr_get */
+	0,						/* tp_descr_set */
+	0,						/* tp_dictoffset */
+	0,						/* tp_init */
+	0,						/* tp_alloc */
+	0,						/* tp_new */
 };
 
-#define OFF(e) offsetof(PySECURITY_DESCRIPTOR, e)
-
-/*static*/ struct memberlist PySECURITY_DESCRIPTOR::memberlist[] = {
-	{NULL}	/* Sentinel */
-};
 
 PySECURITY_DESCRIPTOR::PySECURITY_DESCRIPTOR(Py_ssize_t cb /*= 0*/)
 {
@@ -758,50 +807,10 @@ PySECURITY_DESCRIPTOR::~PySECURITY_DESCRIPTOR(void)
 	if (m_psd) free(m_psd);
 }
 
-PyObject *PySECURITY_DESCRIPTOR::getattr(PyObject *self, char *name)
-{
-	PyObject *res;
-
-	res = Py_FindMethod(PySECURITY_DESCRIPTOR_methods, self, name);
-	if (res != NULL)
-		return res;
-	PyErr_Clear();
-	return PyMember_Get((char *)self, memberlist, name);
-}
-
-int PySECURITY_DESCRIPTOR::setattr(PyObject *self, char *name, PyObject *v)
-{
-	if (v == NULL) {
-		PyErr_SetString(PyExc_AttributeError, "can't delete SECURITY_DESCRIPTOR attributes");
-		return -1;
-	}
-	return PyMember_Set((char *)self, memberlist, name, v);
-}
-
 /*static*/ void PySECURITY_DESCRIPTOR::deallocFunc(PyObject *ob)
 {
 	delete (PySECURITY_DESCRIPTOR *)ob;
 }
-
-/*static*/ Py_ssize_t PySECURITY_DESCRIPTOR::getreadbuf(PyObject *self, Py_ssize_t index, void **ptr)
-{
-	if ( index != 0 ) {
-		PyErr_SetString(PyExc_SystemError,
-				"accessing non-existent SID segment");
-		return -1;
-	}
-	PySECURITY_DESCRIPTOR *pysd = (PySECURITY_DESCRIPTOR *)self;
-	*ptr = pysd->m_psd;
-	return GetSecurityDescriptorLength(pysd->m_psd);
-}
-
-/*static*/ Py_ssize_t PySECURITY_DESCRIPTOR::getsegcount(PyObject *self, Py_ssize_t *lenp)
-{
-	if ( lenp )
-		*lenp = GetSecurityDescriptorLength(((PySECURITY_DESCRIPTOR *)self)->m_psd);
-	return 1;
-}
-
 #else /* NO_PYWINTYPES_SECURITY */
 
 BOOL PyWinObject_AsSECURITY_DESCRIPTOR(PyObject *ob, PSECURITY_DESCRIPTOR *ppSECURITY_DESCRIPTOR, BOOL bNoneOK /*= TRUE*/)

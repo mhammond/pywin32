@@ -18,12 +18,7 @@ public:
 	~PyEventLogRecord(void);
 
 	static void deallocFunc(PyObject *ob);
-
-	static PyObject *getattr(PyObject *self, char *name);
-	static int setattr(PyObject *self, char *name, PyObject *v);
-//#pragma warning( disable : 4251 )
-	static struct memberlist memberlist[];
-//#pragma warning( default : 4251 )
+	static struct PyMemberDef members[];
 
 protected:
 	DWORD Reserved;
@@ -53,28 +48,49 @@ PyObject *PyWinMethod_NewEventLogRecord(PyObject *self, PyObject *args)
 
 PyTypeObject PyEventLogRecordType =
 {
-	PyObject_HEAD_INIT(&PyType_Type)
-	0,
+	PYWIN_OBJECT_HEAD
 	"PyEventLogRecord",
 	sizeof(PyEventLogRecord),
 	0,
 	PyEventLogRecord::deallocFunc,		/* tp_dealloc */
-	0,		/* tp_print */
-	PyEventLogRecord::getattr,				/* tp_getattr */
-	PyEventLogRecord::setattr,				/* tp_setattr */
-	0,	/* tp_compare */
+	0,						/* tp_print */
+	0,						/* tp_getattr */
+	0,						/* tp_setattr */
+	0,						/* tp_compare */
 	0,						/* tp_repr */
 	0,						/* tp_as_number */
-	0,	/* tp_as_sequence */
+	0,						/* tp_as_sequence */
 	0,						/* tp_as_mapping */
-	0,
+	0,						/* tp_hash */
 	0,						/* tp_call */
-	0,		/* tp_str */
+	0,						/* tp_str */
+	PyObject_GenericGetAttr,	/* tp_getattro */
+	PyObject_GenericSetAttr,	/* tp_setattro */
+	0,						/*tp_as_buffer*/
+	Py_TPFLAGS_DEFAULT,		/* tp_flags */
+	0,						/* tp_doc */
+	0,						/* tp_traverse */
+	0,						/* tp_clear */
+	0,						/* tp_richcompare */
+	0,						/* tp_weaklistoffset */
+	0,						/* tp_iter */
+	0,						/* tp_iternext */
+	0,						/* tp_methods */
+	PyEventLogRecord::members,	/* tp_members */
+	0,						/* tp_getset */
+	0,						/* tp_base */
+	0,						/* tp_dict */
+	0,						/* tp_descr_get */
+	0,						/* tp_descr_set */
+	0,						/* tp_dictoffset */
+	0,						/* tp_init */
+	0,						/* tp_alloc */
+	0,						/* tp_new */
 };
 
 #define OFF(e) offsetof(PyEventLogRecord, e)
 
-/*static*/ struct memberlist PyEventLogRecord::memberlist[] = {
+/*static*/ struct PyMemberDef PyEventLogRecord::members[] = {
 	{"Reserved",           T_INT,     OFF(Reserved)}, // @prop integer|Reserved|
 	{"RecordNumber",       T_INT,	  OFF(RecordNumber)}, // @prop integer|RecordNumber|
 	{"TimeGenerated",      T_OBJECT,  OFF(TimeGenerated)}, // @prop <o PyTime>|TimeGenerated|
@@ -151,20 +167,6 @@ PyEventLogRecord::~PyEventLogRecord(void)
 	Py_XDECREF(Sids);
 	Py_XDECREF(Data);
 	Py_XDECREF(ComputerName);
-}
-
-PyObject *PyEventLogRecord::getattr(PyObject *self, char *name)
-{
-	return PyMember_Get((char *)self, memberlist, name);
-}
-
-int PyEventLogRecord::setattr(PyObject *self, char *name, PyObject *v)
-{
-	if (v == NULL) {
-		PyErr_SetString(PyExc_AttributeError, "can't delete EventLogRecord attributes");
-		return -1;
-	}
-	return PyMember_Set((char *)self, memberlist, name, v);
 }
 
 /*static*/ void PyEventLogRecord::deallocFunc(PyObject *ob)

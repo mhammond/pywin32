@@ -323,7 +323,7 @@ PyObject *PyTime::Format(PyObject *self, PyObject *args)
 // @xref <om pywintypes.Time>
 
 #endif /* MS_WINCE */
-static struct PyMethodDef PyTime_methods[] = {
+struct PyMethodDef PyTime::methods[] = {
 #ifndef MS_WINCE
 	{"Format",     PyTime::Format, 1}, 	// @pymeth Format|Formats the time value
 #endif
@@ -335,7 +335,9 @@ static PyNumberMethods PyTime_NumberMethods =
 	PyTime::binaryFailureFunc,	/* nb_add */
 	PyTime::binaryFailureFunc,	/* nb_subtract */
 	PyTime::binaryFailureFunc,	/* nb_multiply */
-	PyTime::binaryFailureFunc,	/* nb_divide */
+#if (PY_VERSION_HEX < 0x03000000)
+	PyTime::binaryFailureFunc,	/* nb_divide - removed in Py3k */
+#endif
 	PyTime::binaryFailureFunc,	/* nb_remainder */
 	PyTime::binaryFailureFunc,	/* nb_divmod */
 	PyTime::ternaryFailureFunc,	/* nb_power */
@@ -349,12 +351,16 @@ static PyNumberMethods PyTime_NumberMethods =
 	PyTime::binaryFailureFunc,	/* nb_and */
 	PyTime::binaryFailureFunc,	/* nb_xor */
 	PyTime::binaryFailureFunc,	/* nb_or */
+#if (PY_VERSION_HEX < 0x03000000)
 	0,							/* nb_coerce (allowed to be zero) */
+#endif
 	PyTime::intFunc,			/* nb_int */
 	PyTime::unaryFailureFunc,	/* nb_long */
 	PyTime::floatFunc,			/* nb_float */
+#if (PY_VERSION_HEX < 0x03000000)
 	PyTime::unaryFailureFunc,	/* nb_oct */
 	PyTime::unaryFailureFunc,	/* nb_hex */
+#endif
 };
 // @pymeth __int__|Used when an integer representation of the time object is required.
 // @pymeth __float__|Used when a floating point representation of the time object is required.
@@ -368,7 +374,7 @@ PYWINTYPES_EXPORT PyTypeObject PyTimeType =
 	0,
 	PyTime::deallocFunc,	/* tp_dealloc */
 	NULL,					/* tp_print */
-	PyTime::getattrFunc,	/* tp_getattr */
+	0,						/* tp_getattr */
 	0,						/* tp_setattr */
 	// @pymeth __cmp__|Used when time objects are compared.
 	PyTime::compareFunc,	/* tp_compare */
@@ -382,6 +388,28 @@ PYWINTYPES_EXPORT PyTypeObject PyTimeType =
 	0,						/* tp_call */
 	// @pymeth __str__|Used for str(ob)
 	PyTime::strFunc,		/* tp_str */
+	PyTime::getattro,		/* tp_getattro */
+	0,						/* tp_setattro */
+	0,						/*tp_as_buffer*/
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,	/* tp_flags */
+	0,						/* tp_doc */
+	0,						/* tp_traverse */
+	0,						/* tp_clear */
+	PyTime::richcompareFunc,	/* tp_richcompare */
+	0,						/* tp_weaklistoffset */
+	0,						/* tp_iter */
+	0,						/* tp_iternext */
+	PyTime::methods,		/* tp_methods */
+	0,						/* tp_members */
+	0,						/* tp_getset */
+	0,						/* tp_base */
+	0,						/* tp_dict */
+	0,						/* tp_descr_get */
+	0,						/* tp_descr_set */
+	0,						/* tp_dictoffset */
+	0,						/* tp_init */
+	0,						/* tp_alloc */
+	0,						/* tp_new */
 };
 
 PyTime::PyTime(DATE t)
@@ -498,6 +526,43 @@ int PyTime::compare(PyObject *ob)
 	return 0;
 }
 
+// Py3k requires that objects implement richcompare to be used as dict keys
+PyObject *PyTime::richcompare(PyObject *other, int op)
+{
+	if (!PyTime_Check(other)){
+		PyErr_SetString(PyExc_TypeError, "PyTime cannot be compared to other types");
+		return NULL;
+		}
+	DATE other_time = ((PyTime *)other)->m_time;
+	PyObject *ret;
+
+	switch (op){
+		case Py_EQ:
+			ret = (m_time == other_time) ? Py_True : Py_False;
+			break;
+		case Py_NE:
+			ret = (m_time != other_time) ? Py_True : Py_False;
+			break;
+		case Py_LT:
+			ret = (m_time < other_time) ? Py_True : Py_False;
+			break;
+		case Py_GT:
+			ret = (m_time > other_time) ? Py_True : Py_False;
+			break;
+		case Py_LE:
+			ret = (m_time <= other_time) ? Py_True : Py_False;
+			break;
+		case Py_GE:
+			ret = (m_time >= other_time) ? Py_True : Py_False;
+			break;
+		default:
+			ret=NULL;
+			PyErr_SetString(PyExc_SystemError, "Invalid richcompare operation");
+		}
+	Py_XINCREF(ret);
+	return ret;
+}
+
 long PyTime::hash(void)
 {
 	/* arbitrarily use seconds as the hash value */
@@ -577,19 +642,24 @@ PyObject *PyTime::repr()
 	return PyWinCoreString_FromString(resBuf);
 }
 
-PyObject *PyTime::getattr(char *name)
+PyObject *PyTime::getattro(PyObject *self, PyObject *obname)
 {
 	PyObject *res;
 
-	res = Py_FindMethod(PyTime_methods, this, name);
+	res = PyObject_GenericGetAttr(self, obname);
 	if (res != NULL)
 		return res;
 	PyErr_Clear();
 	SYSTEMTIME st;
-	if (!VariantTimeToSystemTime(m_time, &st)) {
+	PyTime *This=(PyTime *)self;
+	if (!VariantTimeToSystemTime(This->m_time, &st)) {
 		PyWin_SetAPIError("VariantTimeToSystemTime");
 		return NULL;
 	}
+	char *name=PYWIN_ATTR_CONVERT(obname);
+	if (name==NULL)
+		return NULL;
+
 	// @prop int|year|
 	if ( !strcmp(name, "year") )
 	{
@@ -667,6 +737,11 @@ int PyTime::compareFunc(PyObject *ob1, PyObject *ob2)
 	return ((PyTime *)ob1)->compare(ob2);
 }
 
+PyObject *PyTime::richcompareFunc(PyObject *self, PyObject *other, int op)
+{
+	return ((PyTime *)self)->richcompare(other, op);
+}
+
 // @pymethod int|PyTime|__hash__|Used when the hash value of an time object is required
 long PyTime::hashFunc(PyObject *ob)
 {
@@ -704,12 +779,6 @@ long PyTime::hashFunc(PyObject *ob)
 PyObject *PyTime::reprFunc(PyObject *ob)
 {
 	return ((PyTime *)ob)->repr();
-}
-
-// @pymethod |PyTime|__getattr__|Used to get an attribute of the object.
-/*static*/ PyObject *PyTime::getattrFunc(PyObject *ob, char *attr)
-{
-	return ((PyTime *)ob)->getattr(attr);
 }
 
 #else // NO_PYWINTYPES_TIME

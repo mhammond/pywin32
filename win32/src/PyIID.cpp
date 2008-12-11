@@ -115,6 +115,7 @@ PyObject *PyWinCoreString_FromIID(const IID &riid)
 }
 
 
+#if (PY_VERSION_HEX < 0x03000000)
 static Py_ssize_t getreadbuf(PyObject *self, Py_ssize_t index, void **ptr)
 {
 	if ( index != 0 ) {
@@ -140,6 +141,19 @@ static PyBufferProcs PyIID_as_buffer = {
 	getsegcount,
 	0,
 };
+
+#else	// Revised buffer interface for Py3k
+static int getbufferinfo(PyObject *self, Py_buffer *view, int flags)
+{
+	PyIID *pyiid = (PyIID *)self;
+	return PyBuffer_FillInfo(view, self, &pyiid->m_iid, sizeof(IID), 1, flags);
+}
+
+static PyBufferProcs PyIID_as_buffer = {
+	getbufferinfo,
+	NULL	// Don't need to release any memory from Py_buffer struct
+};
+#endif
 
 // @object PyIID|A Python object, representing an IID/CLSID.
 // <nl>All pythoncom functions that return a CLSID/IID will return one of these
@@ -171,6 +185,25 @@ PYWINTYPES_EXPORT PyTypeObject PyIIDType =
 	0,						/*tp_setattro*/
 	// @comm Note that IID objects support the buffer interface.  Thus buffer(iid) can be used to obtain the raw bytes.
 	&PyIID_as_buffer,		/*tp_as_buffer*/
+	Py_TPFLAGS_DEFAULT,		/* tp_flags */
+	0,						/* tp_doc */
+	0,						/* tp_traverse */
+	0,						/* tp_clear */
+	PyIID::richcompareFunc,	/* tp_richcompare */
+	0,						/* tp_weaklistoffset */
+	0,						/* tp_iter */
+	0,						/* tp_iternext */
+	0,						/* tp_methods */
+	0,						/* tp_members */
+	0,						/* tp_getset */
+	0,						/* tp_base */
+	0,						/* tp_dict */
+	0,						/* tp_descr_get */
+	0,						/* tp_descr_set */
+	0,						/* tp_dictoffset */
+	0,						/* tp_init */
+	0,						/* tp_alloc */
+	0,						/* tp_new */
 };
 
 PyIID::PyIID(REFIID riid)
@@ -200,6 +233,39 @@ int PyIID::IsEqual(PyIID &iid)
 int PyIID::compare(PyObject *ob)
 {
 	return memcmp(&m_iid, &((PyIID *)ob)->m_iid, sizeof(m_iid));
+}
+
+// Py3k requires that objects implement richcompare to be used as dict keys
+PyObject *PyIID::richcompare(PyObject *other, int op)
+{
+	BOOL e;
+	if (PyIID_Check(other))
+		e=IsEqualIID(m_iid, ((PyIID *)other)->m_iid);
+	else
+		e=FALSE;
+
+	if (op==Py_EQ){
+		if (e){
+			Py_INCREF(Py_True);
+			return Py_True;
+			}
+		else{
+			Py_INCREF(Py_False);
+			return Py_False;
+			}
+		}
+	if (op==Py_NE){
+		if (!e){
+			Py_INCREF(Py_True);
+			return Py_True;
+			}
+		else{
+			Py_INCREF(Py_False);
+			return Py_False;
+			}
+		}
+	PyErr_SetString(PyExc_TypeError, "IIDs only compare equal or not equal");
+	return NULL;
 }
 
 long PyIID::hash(void)
@@ -237,6 +303,13 @@ int PyIID::compareFunc(PyObject *ob1, PyObject *ob2)
 {
 	return ((PyIID *)ob1)->compare(ob2);
 }
+
+// Py3k requires that objects implement richcompare to be used as dict keys
+PyObject *PyIID::richcompareFunc(PyObject *self, PyObject *other, int op)
+{
+	return ((PyIID *)self)->richcompare(other, op);
+}
+
 // @pymethod int|PyIID|__hash__|Used when the hash value of an IID object is required
 long PyIID::hashFunc(PyObject *ob)
 {

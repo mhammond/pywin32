@@ -99,10 +99,8 @@ public:
   /* Python support */
 
   static void deallocFunc(PyObject *ob);
-
-  static PyObject *getattr(PyObject *self, char *name);
-  static int setattr(PyObject *self, char *name, PyObject *v);
-  static struct memberlist memberlist[];
+  static int setattro(PyObject *self, PyObject *obname, PyObject *v);
+  static struct PyMemberDef members[];
 
 protected:
   HH_AKLINK m_HH_AKLINK;
@@ -143,33 +141,50 @@ protected:
 //<c HH_KEYWORD_LOOKUP><nl>
 
 PyTypeObject PyHH_AKLINKType = {
-  PYWIN_OBJECT_HEAD
-  "PyHH_AKLINK",              /* tp_name */
-  sizeof(PyHH_AKLINK),        /* tp_basicsize */
-  0,                          /* tp_itemsize */
-  PyHH_AKLINK::deallocFunc,   /* tp_dealloc */
-  0,                          /* tp_print */
-  PyHH_AKLINK::getattr,       /* tp_getattr */
-  PyHH_AKLINK::setattr,       /* tp_setattr */
-  0,                          /* tp_compare */
-  0,                          /* tp_repr */
-  0,                          /* tp_as_number */
-  0,                          /* tp_as_sequence */
-  0,                          /* tp_as_mapping */
-  0,                          /* tp_hash */
-  0,                          /* tp_call */
-  0,                          /* tp_str */
-  0,                          /* tp_getattro */
-  0,                          /* tp_setattro */
-  0,                          /* tp_as_buffer */
-  0,                          /* tp_flags */
-  "A Python object, representing an HH_AKLINK structure",   /* tp_doc */
+	PYWIN_OBJECT_HEAD
+	"PyHH_AKLINK",			/* tp_name */
+	sizeof(PyHH_AKLINK),	/* tp_basicsize */
+	0,						/* tp_itemsize */
+	PyHH_AKLINK::deallocFunc,	/* tp_dealloc */
+	0,						/* tp_print */
+	0,						/* tp_getattr */
+	0,						/* tp_setattr */
+	0,						/* tp_compare */
+	0,						/* tp_repr */
+	0,						/* tp_as_number */
+	0,						/* tp_as_sequence */
+	0,						/* tp_as_mapping */
+	0,						/* tp_hash */
+	0,						/* tp_call */
+	0,						/* tp_str */
+	PyObject_GenericGetAttr,	/* tp_getattro */
+	PyHH_AKLINK::setattro,	/* tp_setattro */
+	0,						/* tp_as_buffer */
+	0,						/* tp_flags */
+	"A Python object, representing an HH_AKLINK structure",		/* tp_doc */
+	0,						/* tp_traverse */
+	0,						/* tp_clear	*/
+	0,						/* tp_richcompare */
+	0,						/* tp_weaklistoffset */
+	0,						/* tp_iter */
+	0,						/* tp_iternext */
+	0,						/* tp_methods */
+	PyHH_AKLINK::members,	/* tp_members */
+	0,						/* tp_getset */
+	0,						/* tp_base */
+	0,						/* tp_dict */
+	0,						/* tp_descr_get	*/
+	0,						/* tp_descr_set	*/
+	0,						/* tp_dictoffset */
+	0,						/* tp_init */
+	0,						/* tp_alloc	*/
+	0,						/* tp_new */
 };
 
 #undef OFF
 #define OFF(e) offsetof(PyHH_AKLINK, e)
 
-/*static*/ struct memberlist PyHH_AKLINK::memberlist[] = {
+/*static*/ struct PyMemberDef PyHH_AKLINK::members[] = {
 
   // BOOL       fIndexOnFail; 
   // @prop int|indexOnFail|Specifies whether to display the keyword in the
@@ -267,47 +282,11 @@ PyHH_AKLINK::~PyHH_AKLINK(void)
   Py_XDECREF(m_pszWindow);
 }
 
-PyObject *PyHH_AKLINK::getattr(PyObject *self, char *name)
+int PyHH_AKLINK::setattro(PyObject *self, PyObject *obname, PyObject *v)
 {
-  PyHH_AKLINK *pO = (PyHH_AKLINK *)self;
-      
-  if (strcmp("keywords", name)==0) {
-    PyObject *rc = pO->m_pszKeywords ? pO->m_pszKeywords : Py_None;
-    Py_INCREF(rc);
-    return rc;
-  }
-  if (strcmp("url", name)==0) {
-    PyObject *rc = pO->m_pszUrl ? pO->m_pszUrl : Py_None;
-    Py_INCREF(rc);
-    return rc;
-  }
-  if (strcmp("msgText", name)==0) {
-    PyObject *rc = pO->m_pszMsgText ? pO->m_pszMsgText : Py_None;
-    Py_INCREF(rc);
-    return rc;
-  }
-  if (strcmp("msgTitle", name)==0) {
-    PyObject *rc = pO->m_pszMsgTitle ? pO->m_pszMsgTitle : Py_None;
-    Py_INCREF(rc);
-    return rc;
-  }
-  if (strcmp("window", name)==0) {
-    PyObject *rc = pO->m_pszWindow ? pO->m_pszWindow : Py_None;
-    Py_INCREF(rc);
-    return rc;
-  }
-
-  return PyMember_Get((char *)self, memberlist, name);
-}
-  
-int PyHH_AKLINK::setattr(PyObject *self, char *name, PyObject *v)
-{
-  if (v == NULL) {
-    PyErr_SetString(PyExc_AttributeError, 
-                    "can't delete HH_AKLINK attributes");
-    return -1;
-  }
-
+  char *name=PYWIN_ATTR_CONVERT(obname);
+  if (name==NULL)
+	  return -1;
   PyHH_AKLINK *pO = (PyHH_AKLINK *)self;
 
   if (strcmp("keywords", name)==0) {
@@ -355,7 +334,7 @@ int PyHH_AKLINK::setattr(PyObject *self, char *name, PyObject *v)
     } else
       return -1;
   }
-  return PyMember_Set((char *)self, memberlist, name, v);
+  return PyObject_GenericSetAttr(self, obname, v);
 }
   
 /*static*/ void PyHH_AKLINK::deallocFunc(PyObject *ob)
@@ -423,9 +402,9 @@ public:
 
   static void deallocFunc(PyObject *ob);
 
-  static PyObject *getattr(PyObject *self, char *name);
-  static int setattr(PyObject *self, char *name, PyObject *v);
-  static struct memberlist memberlist[];
+  static PyObject *getattro(PyObject *self, PyObject *obname);
+  static int setattro(PyObject *self, PyObject *obname, PyObject *v);
+  static struct PyMemberDef members[];
 
 protected:
   HH_FTS_QUERY m_HH_FTS_QUERY;
@@ -443,34 +422,51 @@ protected:
 //<nl>
 //Use this structure for full-text search.
 
-PyTypeObject PyHH_FTS_QUERYType = {
-  PYWIN_OBJECT_HEAD
-  "PyHH_FTS_QUERY",            /* tp_name */
-  sizeof(PyHH_FTS_QUERY),      /* tp_basicsize */
-  0,                           /* tp_itemsize */
-  PyHH_FTS_QUERY::deallocFunc, /* tp_dealloc */
-  0,                           /* tp_print */
-  PyHH_FTS_QUERY::getattr,     /* tp_getattr */
-  PyHH_FTS_QUERY::setattr,     /* tp_setattr */
-  0,                           /* tp_compare */
-  0,                           /* tp_repr */
-  0,                           /* tp_as_number */
-  0,                           /* tp_as_sequence */
-  0,                           /* tp_as_mapping */
-  0,                           /* tp_hash */
-  0,                           /* tp_call */
-  0,                           /* tp_str */
-  0,                           /* tp_getattro */
-  0,                           /* tp_setattro */
-  0,                           /* tp_as_buffer */
-  0,                           /* tp_flags */
-  "A Python object, representing an HH_FTS_QUERY struct",   /* tp_doc */
+PyTypeObject PyHH_FTS_QUERYType	= {
+	PYWIN_OBJECT_HEAD
+	"PyHH_FTS_QUERY",		/* tp_name	*/
+	sizeof(PyHH_FTS_QUERY),	/* tp_basicsize */
+	0,						/* tp_itemsize	*/
+	PyHH_FTS_QUERY::deallocFunc,	/* tp_dealloc */
+	0,						/* tp_print */
+	0,						/* tp_getattr */
+	0,						/* tp_setattr */
+	0,						/* tp_compare */
+	0,						/* tp_repr	*/
+	0,						/* tp_as_number */
+	0,						/* tp_as_sequence */
+	0,						/* tp_as_mapping */
+	0,						/* tp_hash	*/
+	0,						/* tp_call	*/
+	0,						/* tp_str */
+	PyHH_FTS_QUERY::getattro,	/* tp_getattro	*/
+	PyHH_FTS_QUERY::setattro,	/* tp_setattro	*/
+	0,						/* tp_as_buffer */
+	0,						/* tp_flags */
+	"A Python object, representing an HH_FTS_QUERY struct",		/* tp_doc */
+	0,						/* tp_traverse */
+	0,						/* tp_clear	*/
+	0,						/* tp_richcompare */
+	0,						/* tp_weaklistoffset */
+	0,						/* tp_iter */
+	0,						/* tp_iternext */
+	0,						/* tp_methods */
+	PyHH_FTS_QUERY::members,	/* tp_members */
+	0,						/* tp_getset */
+	0,						/* tp_base */
+	0,						/* tp_dict */
+	0,						/* tp_descr_get	*/
+	0,						/* tp_descr_set	*/
+	0,						/* tp_dictoffset */
+	0,						/* tp_init */
+	0,						/* tp_alloc	*/
+	0,						/* tp_new */
 };
 
 #undef OFF
 #define OFF(e) offsetof(PyHH_FTS_QUERY, e)
 
-/*static*/ struct memberlist PyHH_FTS_QUERY::memberlist[] = {
+/*static*/ struct PyMemberDef PyHH_FTS_QUERY::members[] = {
     
   // BOOL     fUniCodeStrings;
   // @prop int|uniCodeStrings|TRUE if all strings are Unicode.
@@ -531,27 +527,33 @@ PyHH_FTS_QUERY::~PyHH_FTS_QUERY(void)
 {
   Py_XDECREF(m_pszSearchQuery);
 }
-
-PyObject *PyHH_FTS_QUERY::getattr(PyObject *self, char *name)
+  
+PyObject *PyHH_FTS_QUERY::getattro(PyObject *self, PyObject *obname)
 {
-  PyHH_FTS_QUERY *pO = (PyHH_FTS_QUERY *)self;
+	char *name=PYWIN_ATTR_CONVERT(obname);
+	if (name==NULL)
+		return NULL;
+	PyHH_FTS_QUERY *pO = (PyHH_FTS_QUERY *)self;
+      
+	if (strcmp("searchQuery", name)==0) {
+		PyObject *rc = pO->m_pszSearchQuery ? pO->m_pszSearchQuery : Py_None;
+		Py_INCREF(rc);
+		return rc;
+		}
 
-  if (strcmp("searchQuery", name)==0) {
-    PyObject *rc = pO->m_pszSearchQuery ? pO->m_pszSearchQuery : Py_None;
-    Py_INCREF(rc);
-    return rc;
-    }
-
-  return PyMember_Get((char *)self, memberlist, name);
+	return PyObject_GenericGetAttr(self, obname);
 }
-
-int PyHH_FTS_QUERY::setattr(PyObject *self, char *name, PyObject *v)
+  
+int PyHH_FTS_QUERY::setattro(PyObject *self, PyObject *obname, PyObject *v)
 {
   if (v == NULL) {
     PyErr_SetString(PyExc_AttributeError, 
                     "can't delete HH_FTS_QUERY attributes");
     return -1;
   }
+	char *name=PYWIN_ATTR_CONVERT(obname);
+	if (name==NULL)
+		return -1;
 
   PyHH_FTS_QUERY *pO = (PyHH_FTS_QUERY *)self;
 
@@ -564,7 +566,7 @@ int PyHH_FTS_QUERY::setattr(PyObject *self, char *name, PyObject *v)
     } else
       return -1;
   }
-  return PyMember_Set((char *)self, memberlist, name, v);
+  return PyObject_GenericSetAttr(self, obname, v);
 }
   
 /*static*/ void PyHH_FTS_QUERY::deallocFunc(PyObject *ob)
@@ -587,7 +589,7 @@ BOOL PyWinObject_AsHH_FTS_QUERY(PyObject *ob, HH_FTS_QUERY **ppFTS_QUERY,
   }
   return TRUE;
 }
-
+  
 PyObject *PyWinObject_FromHH_FTS_QUERY(const HH_FTS_QUERY *pFTS_QUERY)
 {
   if (pFTS_QUERY==NULL) {
@@ -633,9 +635,9 @@ public:
 
   static void deallocFunc(PyObject *ob);
 
-  static PyObject *getattr(PyObject *self, char *name);
-  static int setattr(PyObject *self, char *name, PyObject *v);
-  static struct memberlist memberlist[];
+  static PyObject *getattro(PyObject *self, PyObject *obname);
+  static int setattro(PyObject *self, PyObject *obname, PyObject *v);
+  static struct PyMemberDef members[];
 
 protected:
   HH_POPUP m_HH_POPUP;
@@ -660,33 +662,50 @@ protected:
 //<c HH_DISPLAY_TEXT_POPUP><nl>
 
 PyTypeObject PyHH_POPUPType = {
-  PYWIN_OBJECT_HEAD
-  "PyHH_POPUP",               /* tp_name */
-  sizeof(PyHH_POPUP),         /* tp_basicsize */
-  0,                          /* tp_itemsize */
-  PyHH_POPUP::deallocFunc,    /* tp_dealloc */
-  0,                          /* tp_print */
-  PyHH_POPUP::getattr,        /* tp_getattr */
-  PyHH_POPUP::setattr,        /* tp_setattr */
-  0,                          /* tp_compare */
-  0,                          /* tp_repr */
-  0,                          /* tp_as_number */
-  0,                          /* tp_as_sequence */
-  0,                          /* tp_as_mapping */
-  0,                          /* tp_hash */
-  0,                          /* tp_call */
-  0,                          /* tp_str */
-  0,                          /* tp_getattro */
-  0,                          /* tp_setattro */
-  0,                          /* tp_as_buffer */
-  0,                          /* tp_flags */
-  "A Python object, representing an HH_POPUP structure",    /* tp_doc */
+	PYWIN_OBJECT_HEAD
+	"PyHH_POPUP",               /* tp_name */
+	sizeof(PyHH_POPUP),         /* tp_basicsize */
+	0,                          /* tp_itemsize */
+	PyHH_POPUP::deallocFunc,    /* tp_dealloc */
+	0,                          /* tp_print */
+	0,					      /* tp_getattr */
+	0,							/* tp_setattr */
+	0,                          /* tp_compare */
+	0,                          /* tp_repr */
+	0,                          /* tp_as_number */
+	0,                          /* tp_as_sequence */
+	0,                          /* tp_as_mapping */
+	0,                          /* tp_hash */
+	0,                          /* tp_call */
+	0,                          /* tp_str */
+	PyHH_POPUP::getattro,       /* tp_getattro */
+	PyHH_POPUP::setattro,       /* tp_setattro */
+	0,						/* tp_as_buffer */
+	0,						/* tp_flags */
+	"A Python object, representing an HH_POPUP structure",		/* tp_doc */
+	0,						/* tp_traverse */
+	0,						/* tp_clear	*/
+	0,						/* tp_richcompare */
+	0,						/* tp_weaklistoffset */
+	0,						/* tp_iter */
+	0,						/* tp_iternext */
+	0,						/* tp_methods */
+	PyHH_POPUP::members,	/* tp_members */
+	0,						/* tp_getset */
+	0,						/* tp_base */
+	0,						/* tp_dict */
+	0,						/* tp_descr_get	*/
+	0,						/* tp_descr_set	*/
+	0,						/* tp_dictoffset */
+	0,						/* tp_init */
+	0,						/* tp_alloc	*/
+	0,						/* tp_new */
 };
 
 #undef OFF
 #define OFF(e) offsetof(PyHH_POPUP, e)
 
-/*static*/ struct memberlist PyHH_POPUP::memberlist[] = {
+/*static*/ struct PyMemberDef PyHH_POPUP::members[] = {
 
   // HINSTANCE   hinst;  
   // @prop long|hinst|Instance handle of the program or DLL to retrieve the
@@ -787,11 +806,15 @@ PyHH_POPUP::~PyHH_POPUP(void)
   Py_XDECREF(m_rcMargins);
   Py_XDECREF(m_pszFont);
 }
-
-PyObject *PyHH_POPUP::getattr(PyObject *self, char *name)
+  
+PyObject *PyHH_POPUP::getattro(PyObject *self, PyObject *obname)
 {
-  PyHH_POPUP *pO = (PyHH_POPUP *)self;
+	char *name=PYWIN_ATTR_CONVERT(obname);
+	if (name==NULL)
+		return NULL;
 
+  PyHH_POPUP *pO = (PyHH_POPUP *)self;
+      
   if (strcmp("text", name)==0) {
     PyObject *rc = pO->m_pszText ? pO->m_pszText : Py_None;
     Py_INCREF(rc);
@@ -813,16 +836,20 @@ PyObject *PyHH_POPUP::getattr(PyObject *self, char *name)
     return rc;
   }
 
-  return PyMember_Get((char *)self, memberlist, name);
+  return PyObject_GenericGetAttr(self, obname);
 }
-
-int PyHH_POPUP::setattr(PyObject *self, char *name, PyObject *v)
+  
+int PyHH_POPUP::setattro(PyObject *self, PyObject *obname, PyObject *v)
 {
   if (v == NULL) {
     PyErr_SetString(PyExc_AttributeError, 
                     "can't delete HH_POPUP attributes");
     return -1;
   }
+	char *name=PYWIN_ATTR_CONVERT(obname);
+	if (name==NULL)
+		return -1;
+
   PyHH_POPUP *pO = (PyHH_POPUP *)self;
 
   if (strcmp("text", name)==0) {
@@ -870,9 +897,9 @@ int PyHH_POPUP::setattr(PyObject *self, char *name, PyObject *v)
     } else
       return -1;
   }
-  return PyMember_Set((char *)self, memberlist, name, v);
+  return PyObject_GenericSetAttr(self, obname, v);
 }
-
+  
 /*static*/ void PyHH_POPUP::deallocFunc(PyObject *ob)
 {
   delete (PyHH_POPUP *)ob;
@@ -934,9 +961,9 @@ public:
 
   static void deallocFunc(PyObject *ob);
 
-  static PyObject *getattr(PyObject *self, char *name);
-  static int setattr(PyObject *self, char *name, PyObject *v);
-  static struct memberlist memberlist[];
+  static PyObject *getattro(PyObject *self, PyObject *obname);
+  static int setattro(PyObject *self, PyObject *obname, PyObject *v);
+  static struct PyMemberDef members[];
 
 protected:
   HH_WINTYPE m_HH_WINTYPE;
@@ -965,33 +992,50 @@ protected:
 //<c HH_GET_WIN_TYPE><nl>
 
 PyTypeObject PyHH_WINTYPEType =	{
-  PYWIN_OBJECT_HEAD
-  "PyHH_WINTYPE",             /* tp_name */
-  sizeof(PyHH_WINTYPE),       /* tp_basicsize */
-  0,                          /* tp_itemsize */
-  PyHH_WINTYPE::deallocFunc,  /* tp_dealloc */
-  0,                          /* tp_print */
-  PyHH_WINTYPE::getattr,      /* tp_getattr */
-  PyHH_WINTYPE::setattr,      /* tp_setattr */
-  0,                          /* tp_compare */
-  0,                          /* tp_repr */
-  0,                          /* tp_as_number */
-  0,                          /* tp_as_sequence */
-  0,                          /* tp_as_mapping */
-  0,                          /* tp_hash */
-  0,                          /* tp_call */
-  0,                          /* tp_str */
-  0,                          /* tp_getattro */
-  0,                          /* tp_setattro */
-  0,                          /* tp_as_buffer */
-  0,                          /* tp_flags */
-  "A Python object, representing an HH_WINTYPE structure",  /* tp_doc */
+	PYWIN_OBJECT_HEAD
+	"PyHH_WINTYPE",			/* tp_name */
+	sizeof(PyHH_WINTYPE),	/* tp_basicsize */
+	0,						/* tp_itemsize */
+	PyHH_WINTYPE::deallocFunc,	/* tp_dealloc	*/
+	0,						/* tp_print */
+	0,						/* tp_getattr	*/
+	0,						/* tp_setattr	*/
+	0,						/* tp_compare	*/
+	0,						/* tp_repr */
+	0,						/* tp_as_number */
+	0,						/* tp_as_sequence	*/
+	0,						/* tp_as_mapping */
+	0,						/* tp_hash */
+	0,						/* tp_call */
+	0,						/* tp_str	*/
+	PyHH_WINTYPE::getattro,	/* tp_getattro */
+	PyHH_WINTYPE::setattro,	/* tp_setattro */
+	0,						/* tp_as_buffer */
+	0,						/* tp_flags */
+	"A Python	object,	representing an	HH_WINTYPE structure",	/* tp_doc */
+	0,						/* tp_traverse */
+	0,						/* tp_clear	*/
+	0,						/* tp_richcompare */
+	0,						/* tp_weaklistoffset */
+	0,						/* tp_iter */
+	0,						/* tp_iternext */
+	0,						/* tp_methods */
+	PyHH_WINTYPE::members,	/* tp_members */
+	0,						/* tp_getset */
+	0,						/* tp_base */
+	0,						/* tp_dict */
+	0,						/* tp_descr_get	*/
+	0,						/* tp_descr_set	*/
+	0,						/* tp_dictoffset */
+	0,						/* tp_init */
+	0,						/* tp_alloc	*/
+	0,						/* tp_new */
 };
 
 #undef OFF
 #define OFF(e) offsetof(PyHH_WINTYPE, e)
 
-/*static*/ struct memberlist PyHH_WINTYPE::memberlist[] = {
+/*static*/ struct PyMemberDef PyHH_WINTYPE::members[] = {
 
   // BOOL   fUniCodeStrings; 
   // @prop int|uniCodeStrings|Specifies whether the strings used in this
@@ -1194,8 +1238,11 @@ PyHH_WINTYPE::~PyHH_WINTYPE(void)
 	PyWinObject_FreeTCHAR((TCHAR *)m_HH_WINTYPE.pszUrlJump2);
 }
   
-PyObject *PyHH_WINTYPE::getattr(PyObject *self, char *name)
+PyObject *PyHH_WINTYPE::getattro(PyObject *self, PyObject *obname)
 {
+	char *name=PYWIN_ATTR_CONVERT(obname);
+	if (name==NULL)
+		return NULL;
 	PyHH_WINTYPE *pO = (PyHH_WINTYPE *)self;
 
 	if (strcmp("typeName", name)==0)
@@ -1234,15 +1281,18 @@ PyObject *PyHH_WINTYPE::getattr(PyObject *self, char *name)
 		return PyWinLong_FromHANDLE(pO->m_HH_WINTYPE.hwndNavigation);
 	if (strcmp("hwndHTML", name)==0)
 		return PyWinLong_FromHANDLE(pO->m_HH_WINTYPE.hwndHTML);
-  return PyMember_Get((char *)self, memberlist, name);
+	return PyObject_GenericGetAttr(self, obname);
 }
 
-int PyHH_WINTYPE::setattr(PyObject *self, char *name, PyObject *v)
+int PyHH_WINTYPE::setattro(PyObject *self, PyObject *obname, PyObject *v)
 {
 	if (v == NULL) {
 		PyErr_SetString(PyExc_AttributeError, "can't delete HH_WINTYPE attributes");
 		return -1;
 		}
+	char *name=PYWIN_ATTR_CONVERT(obname);
+	if (name==NULL)
+		return -1;
 	PyHH_WINTYPE *pO = (PyHH_WINTYPE *)self;
 
 	TCHAR *tchar_val;
@@ -1352,7 +1402,7 @@ int PyHH_WINTYPE::setattr(PyObject *self, char *name, PyObject *v)
 		pO->m_HH_WINTYPE.hwndHTML=(HWND)hwnd_val;
 		return 0;
 		}
-  return PyMember_Set((char *)self, memberlist, name, v);
+	return PyObject_GenericSetAttr(self, obname, v);
 }
   
 /*static*/ void PyHH_WINTYPE::deallocFunc(PyObject *ob)
@@ -1417,10 +1467,7 @@ public:
   /* Python support */
 
   static void deallocFunc(PyObject *ob);
-
-  static PyObject *getattr(PyObject *self, char *name);
-  static int setattr(PyObject *self, char *name, PyObject *v);
-  static struct memberlist memberlist[];
+  static struct PyMemberDef members[];
 
 protected:
   NMHDR m_NMHDR;
@@ -1444,8 +1491,8 @@ PyTypeObject PyNMHDRType = {
   0,                           /* tp_itemsize */
   PyNMHDR::deallocFunc,        /* tp_dealloc */
   0,                           /* tp_print */
-  PyNMHDR::getattr,            /* tp_getattr */
-  PyNMHDR::setattr,            /* tp_setattr */
+  0,                           /* tp_getattr */
+  0,                           /* tp_setattr */
   0,                           /* tp_compare */
   0,                           /* tp_repr */
   0,                           /* tp_as_number */
@@ -1454,17 +1501,34 @@ PyTypeObject PyNMHDRType = {
   0,                           /* tp_hash */
   0,                           /* tp_call */
   0,                           /* tp_str */
-  0,                           /* tp_getattro */
-  0,                           /* tp_setattro */
+  PyObject_GenericGetAttr,     /* tp_getattro */
+  PyObject_GenericSetAttr,     /* tp_setattro */
   0,                           /* tp_as_buffer */
   0,                           /* tp_flags */
   "A Python object, representing an NMHDR structure",  /* tp_doc */
+  0,						/* tp_traverse */
+  0,						/* tp_clear */
+  0,						/* tp_richcompare */
+  0,						/* tp_weaklistoffset */
+  0,						/* tp_iter */
+  0,						/* tp_iternext */
+  0,						/* tp_methods */
+  PyNMHDR::members,			/* tp_members */
+  0,						/* tp_getset */
+  0,						/* tp_base */
+  0,						/* tp_dict */
+  0,						/* tp_descr_get */
+  0,						/* tp_descr_set */
+  0,						/* tp_dictoffset */
+  0,						/* tp_init */
+  0,						/* tp_alloc */
+  0,						/* tp_new */
 };
 
 #undef OFF
 #define OFF(e) offsetof(PyNMHDR, e)
 
-/*static*/ struct memberlist PyNMHDR::memberlist[] = {
+/*static*/ struct PyMemberDef PyNMHDR::members[] = {
 
   // HWND hwndFrom; 
   // @prop int|hwndFrom|Window handle to the control sending a message.
@@ -1507,21 +1571,7 @@ PyNMHDR::PyNMHDR(const NMHDR *pNMHDR)
 }
 
 PyNMHDR::~PyNMHDR(void)
-{}
-  
-PyObject *PyNMHDR::getattr(PyObject *self, char *name)
-{
-  return PyMember_Get((char *)self, memberlist, name);
-}
-  
-int PyNMHDR::setattr(PyObject *self, char *name, PyObject *v)
-{
-  if (v == NULL) {
-    PyErr_SetString(PyExc_AttributeError, "can't delete NMHDR attributes");
-    return -1;
-  }
-  return PyMember_Set((char *)self, memberlist, name, v);
-}
+{};
   
 /*static*/ void PyNMHDR::deallocFunc(PyObject *ob)
 {
@@ -1584,9 +1634,9 @@ public:
 
   static void deallocFunc(PyObject *ob);
 
-  static PyObject *getattr(PyObject *self, char *name);
-  static int setattr(PyObject *self, char *name, PyObject *v);
-  static struct memberlist memberlist[];
+  static PyObject *getattro(PyObject *self, PyObject *obname);
+  static int setattro(PyObject *self, PyObject *obname, PyObject *v);
+  static struct PyMemberDef members[];
 
 protected:
   HHN_NOTIFY m_HHN_NOTIFY;
@@ -1618,8 +1668,8 @@ PyTypeObject PyHHN_NOTIFYType = {
   0,                           /* tp_itemsize */
   PyHHN_NOTIFY::deallocFunc,   /* tp_dealloc */
   0,                           /* tp_print */
-  PyHHN_NOTIFY::getattr,       /* tp_getattr */
-  PyHHN_NOTIFY::setattr,       /* tp_setattr */
+  0,                           /* tp_getattr */
+  0,                           /* tp_setattr */
   0,                           /* tp_compare */
   0,                           /* tp_repr */
   0,                           /* tp_as_number */
@@ -1628,17 +1678,34 @@ PyTypeObject PyHHN_NOTIFYType = {
   0,                           /* tp_hash */
   0,                           /* tp_call */
   0,                           /* tp_str */
-  0,                           /* tp_getattro */
-  0,                           /* tp_setattro */
+  PyHHN_NOTIFY::getattro,      /* tp_getattro */
+  PyHHN_NOTIFY::setattro,      /* tp_setattro */
   0,                           /* tp_as_buffer */
   0,                           /* tp_flags */
-  "A Python object, representing an HHN_NOTIFY structure", /* tp_doc */
+  "A Python object, representing an HHN_NOTIFY structure",	/* tp_doc */
+  0,						/* tp_traverse */
+  0,						/* tp_clear */
+  0,						/* tp_richcompare */
+  0,						/* tp_weaklistoffset */
+  0,						/* tp_iter */
+  0,						/* tp_iternext */
+  0,						/* tp_methods */
+  PyHHN_NOTIFY::members,			/* tp_members */
+  0,						/* tp_getset */
+  0,						/* tp_base */
+  0,						/* tp_dict */
+  0,						/* tp_descr_get */
+  0,						/* tp_descr_set */
+  0,						/* tp_dictoffset */
+  0,						/* tp_init */
+  0,						/* tp_alloc */
+  0,						/* tp_new */
 };
 
 #undef OFF
 #define OFF(e) offsetof(PyHHN_NOTIFY, e)
 
-/*static*/ struct memberlist PyHHN_NOTIFY::memberlist[] = {
+/*static*/ struct PyMemberDef PyHHN_NOTIFY::members[] = {
     
   //**************************************************************************
   //**************************************************************************
@@ -1687,8 +1754,11 @@ PyHHN_NOTIFY::~PyHHN_NOTIFY(void)
   Py_XDECREF(m_pszUrl);
 }
   
-PyObject *PyHHN_NOTIFY::getattr(PyObject *self, char *name)
+PyObject *PyHHN_NOTIFY::getattro(PyObject *self, PyObject *obname)
 {
+	char *name=PYWIN_ATTR_CONVERT(obname);
+	if (name==NULL)
+		return NULL;
   PyHHN_NOTIFY *pO = (PyHHN_NOTIFY *)self;
       
   if (strcmp("hdr", name)==0) {
@@ -1702,16 +1772,20 @@ PyObject *PyHHN_NOTIFY::getattr(PyObject *self, char *name)
     return rc;
   }
 
-  return PyMember_Get((char *)self, memberlist, name);
+  return PyObject_GenericGetAttr(self, obname);
 }
 
-int PyHHN_NOTIFY::setattr(PyObject *self, char *name, PyObject *v)
+int PyHHN_NOTIFY::setattro(PyObject *self, PyObject *obname, PyObject *v)
 {
   if (v == NULL) {
     PyErr_SetString(PyExc_AttributeError, 
                     "can't delete HHN_NOTIFY attributes");
     return -1;
   }
+	char *name=PYWIN_ATTR_CONVERT(obname);
+	if (name==NULL)
+		return -1;
+
   PyHHN_NOTIFY *pO = (PyHHN_NOTIFY *)self;
 
   if (strcmp("hdr", name)==0) {
@@ -1732,7 +1806,7 @@ int PyHHN_NOTIFY::setattr(PyObject *self, char *name, PyObject *v)
     } else
       return -1;
   }
-  return PyMember_Set((char *)self, memberlist, name, v);
+  return PyObject_GenericSetAttr(self, obname, v);
 }
 
 /*static*/ void PyHHN_NOTIFY::deallocFunc(PyObject *ob)
@@ -1797,9 +1871,9 @@ public:
 
   static void deallocFunc(PyObject *ob);
 
-  static PyObject *getattr(PyObject *self, char *name);
-  static int setattr(PyObject *self, char *name, PyObject *v);
-  static struct memberlist memberlist[];
+  static PyObject *getattro(PyObject *self, PyObject *obname);
+  static int setattro(PyObject *self, PyObject *obname, PyObject *v);
+  static struct PyMemberDef members[];
 
 protected:
   HHNTRACK m_HHNTRACK;
@@ -1831,8 +1905,8 @@ PyTypeObject PyHHNTRACKType = {
   0,                           /* tp_itemsize */
   PyHHNTRACK::deallocFunc,     /* tp_dealloc */
   0,                           /* tp_print */
-  PyHHNTRACK::getattr,         /* tp_getattr */
-  PyHHNTRACK::setattr,         /* tp_setattr */
+  0,                           /* tp_getattr */
+  0,                           /* tp_setattr */
   0,                           /* tp_compare */
   0,                           /* tp_repr */
   0,                           /* tp_as_number */
@@ -1841,17 +1915,34 @@ PyTypeObject PyHHNTRACKType = {
   0,                           /* tp_hash */
   0,                           /* tp_call */
   0,                           /* tp_str */
-  0,                           /* tp_getattro */
-  0,                           /* tp_setattro */
+  PyHHNTRACK::getattro,        /* tp_getattro */
+  PyHHNTRACK::setattro,        /* tp_setattro */
   0,                           /* tp_as_buffer */
   0,                           /* tp_flags */
   "A Python object, representing an HHNTRACK structure.", /* tp_doc */
+  0,						/* tp_traverse */
+  0,						/* tp_clear */
+  0,						/* tp_richcompare */
+  0,						/* tp_weaklistoffset */
+  0,						/* tp_iter */
+  0,						/* tp_iternext */
+  0,						/* tp_methods */
+  PyHHNTRACK::members,		/* tp_members */
+  0,						/* tp_getset */
+  0,						/* tp_base */
+  0,						/* tp_dict */
+  0,						/* tp_descr_get */
+  0,						/* tp_descr_set */
+  0,						/* tp_dictoffset */
+  0,						/* tp_init */
+  0,						/* tp_alloc */
+  0,						/* tp_new */
 };
 
 #undef OFF
 #define OFF(e) offsetof(PyHHNTRACK, e)
 
-/*static*/ struct memberlist PyHHNTRACK::memberlist[] = {
+/*static*/ struct PyMemberDef PyHHNTRACK::members[] = {
  
   // int         idAction;
   // @prop int|action|Specifies the action the user is about to take. This
@@ -1914,9 +2005,14 @@ PyHHNTRACK::~PyHHNTRACK(void)
   Py_XDECREF(m_phhWinType);
 }
   
-PyObject *PyHHNTRACK::getattr(PyObject *self, char *name)
+PyObject *PyHHNTRACK::getattro(PyObject *self, PyObject *obname)
 {
-  PyHHNTRACK *pO = (PyHHNTRACK *)self;
+	char *name=PYWIN_ATTR_CONVERT(obname);
+	if (name==NULL)
+		return NULL;
+
+	PyHHNTRACK *pO = (PyHHNTRACK *)self;
+      
   if (strcmp("hdr", name)==0) {
     PyObject *rc = pO->m_hdr ? pO->m_hdr : Py_None;
     Py_INCREF(rc);
@@ -1933,17 +2029,20 @@ PyObject *PyHHNTRACK::getattr(PyObject *self, char *name)
     return rc;
   }
 
-  return PyMember_Get((char *)self, memberlist, name);
+  return PyObject_GenericGetAttr(self, obname);
 }
 
-int PyHHNTRACK::setattr(PyObject *self, char *name, PyObject *v)
+int PyHHNTRACK::setattro(PyObject *self, PyObject *obname, PyObject *v)
 {
   if (v == NULL) {
     PyErr_SetString(PyExc_AttributeError, 
                     "can't delete HHNTRACK attributes");
     return -1;
   }
-  PyHHNTRACK *pO = (PyHHNTRACK *)self;
+	char *name=PYWIN_ATTR_CONVERT(obname);
+	if (name==NULL)
+		return -1;
+	PyHHNTRACK *pO = (PyHHNTRACK *)self;
 
   if (strcmp("hdr", name)==0) {
     if (PyWinObject_AsNMHDR(v, (NMHDR**)&pO->m_HHNTRACK.hdr, 0)) {
@@ -1973,7 +2072,7 @@ int PyHHNTRACK::setattr(PyObject *self, char *name, PyObject *v)
     } else
       return -1;
   }
-  return PyMember_Set((char *)self, memberlist, name, v);
+  return PyObject_GenericSetAttr(self, obname, v);
 }
 
 /*static*/ void PyHHNTRACK::deallocFunc(PyObject *ob)

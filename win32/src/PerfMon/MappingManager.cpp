@@ -178,7 +178,7 @@ PyObject *PyPerfMonManager::Close(PyObject *self, PyObject *args)
 }
 
 // @object PyPerfMonManager|A Python object
-static struct PyMethodDef PyPerfMonManager_methods[] = {
+struct PyMethodDef PyPerfMonManager::methods[] = {
 	{"Close",          PyPerfMonManager::Close, 1}, // @pymeth Close|Closes all counters.
 	{NULL}
 };
@@ -191,8 +191,8 @@ PyTypeObject PyPerfMonManager::type =
 	0,
 	PyPerfMonManager::deallocFunc,		/* tp_dealloc */
 	0,						/* tp_print */
-	PyPerfMonManager::getattr,				/* tp_getattr */
-	PyPerfMonManager::setattr,				/* tp_setattr */
+	0,						/* tp_getattr */
+	0,						/* tp_setattr */
 	0,						/* tp_compare */
 	0,						/* tp_repr */
 	0,						/* tp_as_number */
@@ -201,12 +201,34 @@ PyTypeObject PyPerfMonManager::type =
 	0,						/* tp_hash */
 	0,						/* tp_call */
 	0,						/* tp_str */
+	PyObject_GenericGetAttr,	/* tp_getattro */
+	PyObject_GenericSetAttr,	/* tp_setattro */
+	0,						/* tp_as_buffer */
+	Py_TPFLAGS_DEFAULT,		/* tp_flags */
+	0,						/* tp_doc */
+	0,						/* tp_traverse */
+	0,						/* tp_clear */
+	0,						/* tp_richcompare */
+	0,						/* tp_weaklistoffset */
+	0,						/* tp_iter */
+	0,						/* tp_iternext */
+	PyPerfMonManager::methods,		/* tp_methods */
+	PyPerfMonManager::members,		/* tp_members */
+	0,						/* tp_getset */
+	0,						/* tp_base */
+	0,						/* tp_dict */
+	0,						/* tp_descr_get */
+	0,						/* tp_descr_set */
+	0,						/* tp_dictoffset */
+	0,						/* tp_init */
+	0,						/* tp_alloc */
+	0,						/* tp_new */
 };
 
 #define OFF(e) offsetof(PyPerfMonManager, e)
 
 
-/*static*/ struct memberlist PyPerfMonManager::memberlist[] = {
+/*static*/ struct PyMemberDef PyPerfMonManager::members[] = {
 	{NULL}	/* Sentinel */
 };
 
@@ -265,26 +287,6 @@ BOOL PyPerfMonManager::Init( MappingManager *pmm, PyObject *obPerfObTypes)
 	m_obPerfObTypes = obPerfObTypes;
 	Py_INCREF(m_obPerfObTypes);
 	return ok;
-}
-
-PyObject *PyPerfMonManager::getattr(PyObject *self, char *name)
-{
-	PyObject *res;
-
-	res = Py_FindMethod(PyPerfMonManager_methods, self, name);
-	if (res != NULL)
-		return res;
-	PyErr_Clear();
-	return PyMember_Get((char *)self, memberlist, name);
-}
-
-int PyPerfMonManager::setattr(PyObject *self, char *name, PyObject *v)
-{
-	if (v == NULL) {
-		PyErr_SetString(PyExc_AttributeError, "can't delete PERF_OBJECT_TYPE attributes");
-		return -1;
-	}
-	return PyMember_Set((char *)self, memberlist, name, v);
 }
 
 /*static*/ void PyPerfMonManager::deallocFunc(PyObject *ob)

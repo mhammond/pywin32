@@ -96,7 +96,7 @@ PyObject *PyPERF_COUNTER_DEFINITION::Get(PyObject *self, PyObject *args)
 // if the counter does not appear in a block.  This is so the application can avoid
 // excessive tests for lack of performance monitor functionality.
 // However, the method <om PyPERF_COUNTER_DEFINITION.Get> will raise a ValueError exception in this case.
-static struct PyMethodDef PyPERF_COUNTER_DEFINITION_methods[] = {
+struct PyMethodDef PyPERF_COUNTER_DEFINITION::methods[] = {
 	{"Increment",      PyPERF_COUNTER_DEFINITION::Increment, 1}, 	// @pymeth Increment|Increments the value of the performance counter
 	{"Decrement",      PyPERF_COUNTER_DEFINITION::Decrement, 1}, 	// @pymeth Decrement|Decrements the value of the performance counter
 	{"Set",            PyPERF_COUNTER_DEFINITION::Set, 1}, 	// @pymeth Set|Sets the counter to a specific value
@@ -113,8 +113,8 @@ PyTypeObject PyPERF_COUNTER_DEFINITION::type =
 	0,
 	PyPERF_COUNTER_DEFINITION::deallocFunc,		/* tp_dealloc */
 	0,						/* tp_print */
-	PyPERF_COUNTER_DEFINITION::getattr,				/* tp_getattr */
-	PyPERF_COUNTER_DEFINITION::setattr,				/* tp_setattr */
+	0,						/* tp_getattr */
+	0,						/* tp_setattr */
 	0,						/* tp_compare */
 	0,						/* tp_repr */
 	0,						/* tp_as_number */
@@ -123,12 +123,34 @@ PyTypeObject PyPERF_COUNTER_DEFINITION::type =
 	0,						/* tp_hash */
 	0,						/* tp_call */
 	0,						/* tp_str */
+	PyObject_GenericGetAttr,	/* tp_getattro */
+	PyObject_GenericSetAttr,	/* tp_setattro */
+	0,						/* tp_as_buffer */
+	Py_TPFLAGS_DEFAULT,		/* tp_flags */
+	0,						/* tp_doc */
+	0,						/* tp_traverse */
+	0,						/* tp_clear */
+	0,						/* tp_richcompare */
+	0,						/* tp_weaklistoffset */
+	0,						/* tp_iter */
+	0,						/* tp_iternext */
+	PyPERF_COUNTER_DEFINITION::methods,		/* tp_methods */
+	PyPERF_COUNTER_DEFINITION::members,		/* tp_members */
+	0,						/* tp_getset */
+	0,						/* tp_base */
+	0,						/* tp_dict */
+	0,						/* tp_descr_get */
+	0,						/* tp_descr_set */
+	0,						/* tp_dictoffset */
+	0,						/* tp_init */
+	0,						/* tp_alloc */
+	0,						/* tp_new */
 };
 
 #define OFF(e) offsetof(PyPERF_COUNTER_DEFINITION, e)
 
 
-/*static*/ struct memberlist PyPERF_COUNTER_DEFINITION::memberlist[] = {
+/*static*/ struct PyMemberDef PyPERF_COUNTER_DEFINITION::members[] = {
 	{"DefaultScale",  T_LONG,  OFF(m_DefaultScale)}, // @prop integer|DefaultScale|The default scale of the counter.
 	{"DetailLevel",  T_LONG,  OFF(m_DetailLevel)}, // @prop integer|DetailLevel|The detail level of the counter.
 	{"CounterType",  T_LONG,  OFF(m_CounterType)}, // @prop integer|CounterType|The counter type.
@@ -186,26 +208,6 @@ void PyPERF_COUNTER_DEFINITION::AcceptRawCounterBuffer( void *pBuffer, DWORD off
 	m_pCounterValue = pBuffer;
 	// Initialise the buffer to zero.
 	memset( pBuffer, 0, m_CounterSize );
-}
-
-PyObject *PyPERF_COUNTER_DEFINITION::getattr(PyObject *self, char *name)
-{
-	PyObject *res;
-
-	res = Py_FindMethod(PyPERF_COUNTER_DEFINITION_methods, self, name);
-	if (res != NULL)
-		return res;
-	PyErr_Clear();
-	return PyMember_Get((char *)self, memberlist, name);
-}
-
-int PyPERF_COUNTER_DEFINITION::setattr(PyObject *self, char *name, PyObject *v)
-{
-	if (v == NULL) {
-		PyErr_SetString(PyExc_AttributeError, "can't delete PERF_COUNTER_DEFINITION attributes");
-		return -1;
-	}
-	return PyMember_Set((char *)self, memberlist, name, v);
 }
 
 /*static*/ void PyPERF_COUNTER_DEFINITION::deallocFunc(PyObject *ob)

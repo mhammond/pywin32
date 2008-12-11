@@ -56,7 +56,7 @@ PyObject *PyPERF_OBJECT_TYPE::Close(PyObject *self, PyObject *args)
 }
 
 // @object PyPERF_OBJECT_TYPE|A Python object, representing a PERF_OBJECT_TYPE structure
-static struct PyMethodDef PyPERF_OBJECT_TYPE_methods[] = {
+struct PyMethodDef PyPERF_OBJECT_TYPE::methods[] = {
 	{"Close",          PyPERF_OBJECT_TYPE::Close, 1}, // @pymeth Close|Closes all counters.
 	{NULL}
 };
@@ -70,8 +70,8 @@ PyTypeObject PyPERF_OBJECT_TYPE::type =
 	0,
 	PyPERF_OBJECT_TYPE::deallocFunc,	/* tp_dealloc */
 	0,						/* tp_print */
-	PyPERF_OBJECT_TYPE::getattr,				/* tp_getattr */
-	PyPERF_OBJECT_TYPE::setattr,				/* tp_setattr */
+	0,						/* tp_getattr */
+	0,						/* tp_setattr */
 	0,						/* tp_compare */
 	0,						/* tp_repr */
 	0,						/* tp_as_number */
@@ -80,12 +80,34 @@ PyTypeObject PyPERF_OBJECT_TYPE::type =
 	0,						/* tp_hash */
 	0,						/* tp_call */
 	0,						/* tp_str */
+	PyObject_GenericGetAttr,	/* tp_getattro */
+	PyObject_GenericSetAttr,	/* tp_setattro */
+	0,						/* tp_as_buffer */
+	Py_TPFLAGS_DEFAULT,		/* tp_flags */
+	0,						/* tp_doc */
+	0,						/* tp_traverse */
+	0,						/* tp_clear */
+	0,						/* tp_richcompare */
+	0,						/* tp_weaklistoffset */
+	0,						/* tp_iter */
+	0,						/* tp_iternext */
+	PyPERF_OBJECT_TYPE::methods,		/* tp_methods */
+	PyPERF_OBJECT_TYPE::members,		/* tp_members */
+	0,						/* tp_getset */
+	0,						/* tp_base */
+	0,						/* tp_dict */
+	0,						/* tp_descr_get */
+	0,						/* tp_descr_set */
+	0,						/* tp_dictoffset */
+	0,						/* tp_init */
+	0,						/* tp_alloc */
+	0,						/* tp_new */
 };
 
 #define OFF(e) offsetof(PyPERF_OBJECT_TYPE, e)
 
 
-/*static*/ struct memberlist PyPERF_OBJECT_TYPE::memberlist[] = {
+/*static*/ struct PyMemberDef PyPERF_OBJECT_TYPE::members[] = {
 	{"ObjectNameTitleIndex",  T_LONG,  OFF(m_ObjectNameTitleIndex)}, // @prop integer|ObjectNameTitleIndex|
 	{"ObjectHelpTitleIndex",  T_LONG,  OFF(m_ObjectHelpTitleIndex)}, // @prop integer|ObjectHelpTitleIndex|
 	{"DefaultCounterIndex",        T_LONG,  OFF(m_DefaultCounter)}, // @prop integer|DefaultCounterIndex|
@@ -237,26 +259,6 @@ BOOL PyPERF_OBJECT_TYPE::InitMemoryLayout( MappingManager *pmm, PyPerfMonManager
 done:
 	Py_XDECREF(obCounter);
 	return ok;
-}
-
-PyObject *PyPERF_OBJECT_TYPE::getattr(PyObject *self, char *name)
-{
-	PyObject *res;
-
-	res = Py_FindMethod(PyPERF_OBJECT_TYPE_methods, self, name);
-	if (res != NULL)
-		return res;
-	PyErr_Clear();
-	return PyMember_Get((char *)self, memberlist, name);
-}
-
-int PyPERF_OBJECT_TYPE::setattr(PyObject *self, char *name, PyObject *v)
-{
-	if (v == NULL) {
-		PyErr_SetString(PyExc_AttributeError, "can't delete PERF_OBJECT_TYPE attributes");
-		return -1;
-	}
-	return PyMember_Set((char *)self, memberlist, name, v);
 }
 
 /*static*/ void PyPERF_OBJECT_TYPE::deallocFunc(PyObject *ob)

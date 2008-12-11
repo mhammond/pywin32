@@ -139,6 +139,13 @@ typedef int Py_ssize_t;
 #	endif // BUILD_PYWINTYPES
 #endif // FREEZE_PYWINTYPES
 
+#if (PY_VERSION_HEX >= 0x03000000)
+// Py3k uses memoryview object in place of buffer
+extern PYWINTYPES_EXPORT PyObject *PyBuffer_New(Py_ssize_t size);
+extern PYWINTYPES_EXPORT PyObject *PyBuffer_FromReadWriteMemory(void *buf, Py_ssize_t size);
+extern PYWINTYPES_EXPORT PyObject *PyBuffer_FromMemory(void *buf, Py_ssize_t size);
+#endif
+
 // Formats a python traceback into a character string - result must be free()ed
 PYWINTYPES_EXPORT char *GetPythonTraceback(PyObject *exc_type, PyObject *exc_value, PyObject *exc_tb);
 
@@ -346,14 +353,6 @@ PYWINTYPES_EXPORT PyObject *PyWinLong_FromVoidPtr(const void *ptr);
 /*
 ** LARGE_INTEGER objects
 */
-// These need to be renamed.  For now, the old names still appear in the DLL.
-PYWINTYPES_EXPORT BOOL PyLong_AsTwoInts(PyObject *ob, int *hiint, unsigned *loint);
-PYWINTYPES_EXPORT PyObject *PyLong_FromTwoInts(int hidword, unsigned lodword);
-
-// These seem (to MH anyway :) to be better names than using "int".
-inline BOOL PyLong_AsTwoI32(PyObject *ob, int *hiint, unsigned *loint) {return PyLong_AsTwoInts(ob, hiint, loint);}
-inline PyObject *PyLong_FromTwoI32(int hidword, unsigned lodword) {return PyLong_FromTwoInts(hidword, lodword);}
-
 //AsLARGE_INTEGER takes either int or long
 PYWINTYPES_EXPORT BOOL PyWinObject_AsLARGE_INTEGER(PyObject *ob, LARGE_INTEGER *pResult);
 PYWINTYPES_EXPORT BOOL PyWinObject_AsULARGE_INTEGER(PyObject *ob, ULARGE_INTEGER *pResult);
@@ -367,9 +366,6 @@ PYWINTYPES_EXPORT PyObject *PyWinObject_FromULARGE_INTEGER(ULARGE_INTEGER &val);
 #define PyWinObject_AsUPY_LONG_LONG(ob, pResult) PyWinObject_AsULARGE_INTEGER((ob), (ULARGE_INTEGER *)(pResult))
 #define PyWinObject_FromPY_LONG_LONG(val) PyWinObject_FromLARGE_INTEGER((LARGE_INTEGER)val)
 #define PyWinObject_FromUPY_LONG_LONG(val) PyWinObject_FromULARGE_INTEGER((ULARGE_INTEGER)val)
-
-PyObject *PyLong_FromI64(__int64 ival);
-BOOL PyLong_AsI64(PyObject *val, __int64 *lval);
 
 // A DWORD_PTR and ULONG_PTR appear to mean "integer long enough to hold a pointer"
 // It is *not* actually a pointer (but is the same size as a pointer)

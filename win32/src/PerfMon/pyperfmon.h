@@ -39,9 +39,8 @@ public:
 	static PyObject *Close(PyObject *self, PyObject *args);
 	static void deallocFunc(PyObject *ob);
 
-	static PyObject *getattr(PyObject *self, char *name);
-	static int setattr(PyObject *self, char *name, PyObject *v);
-	static struct memberlist memberlist[];
+	static struct PyMemberDef members[];
+	static struct PyMethodDef methods[];
 	static PyTypeObject type;
 protected:
 	MappingManager *m_pmm;
@@ -68,18 +67,17 @@ public:
 	/* Python support */
 	static void deallocFunc(PyObject *ob);
 
-	static PyObject *getattr(PyObject *self, char *name);
-	static int setattr(PyObject *self, char *name, PyObject *v);
+	static PyObject *getattro(PyObject *self, PyObject *obname);
+	static int setattro(PyObject *self, PyObject *obname, PyObject *v);
 
 	static PyObject *Increment(PyObject *self, PyObject *args);
 	static PyObject *Decrement(PyObject *self, PyObject *args);
 	static PyObject *Set(PyObject *self, PyObject *args);
 	static PyObject *Get(PyObject *self, PyObject *args);
 
-// #pragma warning( disable : 4251 )
-	static struct memberlist memberlist[];
+	static struct PyMemberDef members[];
+	static struct PyMethodDef methods[];
 	static PyTypeObject type;
-#pragma warning( default : 4251 )
 
 protected:
 	PERF_COUNTER_DEFINITION *m_pPCD;
@@ -114,13 +112,9 @@ public:
 
 	/* Python support */
 	static void deallocFunc(PyObject *ob);
-
-	static PyObject *getattr(PyObject *self, char *name);
-	static int setattr(PyObject *self, char *name, PyObject *v);
-
 	static PyObject *Close(PyObject *self, PyObject *args);
-
-	static struct memberlist memberlist[];
+	static struct PyMemberDef members[];
+	static struct PyMethodDef methods[];
 	static PyTypeObject type;
 
 protected:

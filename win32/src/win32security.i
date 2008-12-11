@@ -829,7 +829,19 @@ void PyWinObject_FreeTOKEN_PRIVILEGES(TOKEN_PRIVILEGES *pPriv)
 
 	pfnDsFreeNameResult=(DsFreeNameResultfunc)loadapifunc("DsFreeNameResultW", ntdsapi_dll);
 	pfnDsGetDcName=(DsGetDcNamefunc)loadapifunc("DsGetDcNameW", netapi32_dll);
-	
+
+	// Py3k requires that *all* types have to be initialized
+#if (PY_VERSION_HEX >= 0x03000000)
+	if (PyType_Ready(&PySecBufferType) == -1)
+		return NULL;
+	if (PyType_Ready(&PySecBufferDescType) == -1)
+		return NULL;
+	if (PyType_Ready(&PyCtxtHandleType) == -1)
+		return NULL;
+	if (PyType_Ready(&PyCredHandleType) == -1)
+		return NULL;
+#endif
+
 	// old names, these should not be used
 	PyDict_SetItemString(d, "SecBufferType", (PyObject *)&PySecBufferType);
 	PyDict_SetItemString(d, "SecBufferDescType", (PyObject *)&PySecBufferDescType);

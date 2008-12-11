@@ -3792,7 +3792,6 @@ PyRegQueryInfoKey( PyObject *self, PyObject *args)
   long rc;
   DWORD nSubKeys, nValues;
   FILETIME ft;
-  PyObject *l;
 
   // @pyparm <o PyHKEY>/int|key||An already open key, or or any one of the following win32con
   // constants:<nl>HKEY_CLASSES_ROOT<nl>HKEY_CURRENT_USER<nl>HKEY_LOCAL_MACHINE<nl>HKEY_USERS
@@ -3808,10 +3807,11 @@ PyRegQueryInfoKey( PyObject *self, PyObject *args)
     &ft)
        )!=ERROR_SUCCESS)
     return ReturnAPIError("RegQueryInfoKey", rc);
-  if (!(l=PyLong_FromTwoInts(ft.dwHighDateTime, ft.dwLowDateTime)))
-      return NULL;
-  PyObject *ret = Py_BuildValue("iiO",nSubKeys,nValues,l);
-  Py_DECREF(l);
+  ULARGE_INTEGER l;
+  l.LowPart = ft.dwLowDateTime;
+  l.HighPart = ft.dwHighDateTime;
+  PyObject *ret = Py_BuildValue("iiN",nSubKeys,nValues,
+                                PyWinObject_FromULARGE_INTEGER(l));
   return ret;
 }
 

@@ -23,6 +23,13 @@ QueryServiceConfig2func fpQueryServiceConfig2=NULL;
 %}
 
 %init %{
+
+#if (PY_VERSION_HEX >= 0x03000000)
+	if (PyType_Ready(&PyHWINSTAType) == -1 ||
+		PyType_Ready(&PyHDESKType) == -1)
+		return NULL;
+#endif
+
 	// All errors raised by this module are of this type.
 	PyDict_SetItemString(d, "error", PyWinExc_ApiError);
 	PyDict_SetItemString(d, "HWINSTAType", (PyObject *)&PyHWINSTAType);

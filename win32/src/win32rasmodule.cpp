@@ -123,8 +123,8 @@ public:
 	/* Python support */
 	static void deallocFunc(PyObject *ob);
 
-	static PyObject *getattr(PyObject *self, char *name);
-	static int setattr(PyObject *self, char *name, PyObject *v);
+	static PyObject *getattro(PyObject *self, PyObject *obname);
+	static int setattro(PyObject *self, PyObject *obname, PyObject *v);
 	static PyTypeObject type;
 	RASDIALEXTENSIONS m_ext;
 	PyObject *m_pyeap;
@@ -161,8 +161,8 @@ PyTypeObject PyRASDIALEXTENSIONS::type =
 	0,
 	PyRASDIALEXTENSIONS::deallocFunc,		/* tp_dealloc */
 	0,						/* tp_print */
-	PyRASDIALEXTENSIONS::getattr,				/* tp_getattr */
-	PyRASDIALEXTENSIONS::setattr,				/* tp_setattr */
+	0,						/* tp_getattr */
+	0,						/* tp_setattr */
 	0,						/* tp_compare */
 	0,						/* tp_repr */
 	0,						/* tp_as_number */
@@ -171,9 +171,28 @@ PyTypeObject PyRASDIALEXTENSIONS::type =
 	0,						/* tp_hahs */
 	0,						/* tp_call */
 	0,						/* tp_str */
-	0,		/*tp_getattro*/
-	0,		/*tp_setattro*/
+	PyRASDIALEXTENSIONS::getattro,				/* tp_getattro */
+	PyRASDIALEXTENSIONS::setattro,				/* tp_setattro */
 	0,						/*tp_as_buffer*/
+	Py_TPFLAGS_DEFAULT,		// tp_flags;
+	"An object that describes a Win32 RASDIALEXTENSIONS structure",		// tp_doc
+	0,						// tp_traverse;
+	0,						// tp_clear
+	0,						// tp_richcompare;
+	0,						// tp_weaklistoffset;
+	0,						// tp_iter
+	0,						// iternextfunc tp_iternext
+	0,						// tp_methods
+	0,						// tp_members
+	0,						// tp_getset;
+	0,						// tp_base;
+	0,						// tp_dict;
+	0,						// tp_descr_get;
+	0,						// tp_descr_set;
+	0,						// tp_dictoffset;
+	0,						// tp_init;
+	0,						// tp_alloc;
+	0,						// newfunc tp_new;
 };
 
 
@@ -191,8 +210,11 @@ PyRASDIALEXTENSIONS::~PyRASDIALEXTENSIONS()
 	Py_DECREF(m_pyeap);
 }
 
-PyObject *PyRASDIALEXTENSIONS::getattr(PyObject *self, char *name)
+PyObject *PyRASDIALEXTENSIONS::getattro(PyObject *self, PyObject *obname)
 {
+	char *name=PYWIN_ATTR_CONVERT(obname);
+	if (name==NULL)
+		return NULL;
 	PyRASDIALEXTENSIONS *py = (PyRASDIALEXTENSIONS *)self;
 	// @prop integer|dwfOptions|(fOptions may also be used)
 	if (strcmp(name, "dwfOptions")==0 || strcmp(name, "fOptions")==0)
@@ -213,36 +235,47 @@ PyObject *PyRASDIALEXTENSIONS::getattr(PyObject *self, char *name)
 		return py->m_pyeap;
 	}
 #endif
-	return PyErr_Format(PyExc_AttributeError, "RASDIALEXTENSIONS objects have no attribute '%s'", name);
+	return PyObject_GenericGetAttr(self, obname);
 }
 
-int PyRASDIALEXTENSIONS::setattr(PyObject *self, char *name, PyObject *val)
+int PyRASDIALEXTENSIONS::setattro(PyObject *self, PyObject *obname, PyObject *val)
 {
 	if (val == NULL) {
 		PyErr_SetString(PyExc_AttributeError, "can't delete OVERLAPPED attributes");
 		return -1;
 	}
+	char *name=PYWIN_ATTR_CONVERT(obname);
+	if (name==NULL)
+		return -1;
 	PyRASDIALEXTENSIONS *py = (PyRASDIALEXTENSIONS *)self;
 	if (strcmp(name, "dwfOptions")==0 || strcmp(name, "fOptions")==0) {
-		if (!PyInt_Check(val)) {
-			PyErr_SetString(PyExc_ValueError, "options must be an integer");
+		int i=PyInt_AsLong(val);
+		if (i==-1 && PyErr_Occurred())
 			return -1;
+		py->m_ext.dwfOptions = i;
+		return 0;
 		}
-		py->m_ext.dwfOptions = PyInt_AsLong(val);
-	} else if (strcmp(name, "hwndParent")==0) {
-		void *v = PyLong_AsVoidPtr( val );
-		if (PyErr_Occurred()) return -1;
-		py->m_ext.hwndParent = (HWND)v;
-	} else if (strcmp(name, "reserved")==0) {
+	if (strcmp(name, "hwndParent")==0) {
+		HANDLE h;
+		if (!PyWinObject_AsHANDLE(val, &h))
+			return -1;
+		py->m_ext.hwndParent = (HWND)h;
+		return 0;
+		}
+	if (strcmp(name, "reserved")==0) {
 		long v = PyInt_AsLong( val );
-		if (PyErr_Occurred()) return -1;
+		if (v==-1 && PyErr_Occurred())
+			return -1;
 		py->m_ext.reserved = v;
-	}
+		return 0;
+		}
 #if (WINVER >= 0x500)
 	if (strcmp(name, "reserved1")==0) {
 		long v = PyLong_AsLong( val );
-		if (PyErr_Occurred()) return -1;
+		if (v==-1 && PyErr_Occurred())
+			return -1;
 		py->m_ext.reserved1 = v;
+		return 0;
 		}
 	if (strcmp(name, "RasEapInfo")==0) {
 		RASEAPUSERIDENTITY *temp;
@@ -253,13 +286,10 @@ int PyRASDIALEXTENSIONS::setattr(PyObject *self, char *name, PyObject *val)
 		Py_DECREF(py->m_pyeap);
 		py->m_pyeap = val;
 		Py_INCREF(val);
+		return 0;
 		}
 #endif
-	else {
-		PyErr_Format(PyExc_AttributeError, "RASDIALEXTENSIONS objects have no attribute '%s'", name);
-		return -1;
-	}
-	return 0;
+	return PyObject_GenericSetAttr(self, obname, val);
 }
 
 /*static*/ void PyRASDIALEXTENSIONS::deallocFunc(PyObject *ob)
@@ -289,21 +319,17 @@ int PyRASDIALEXTENSIONS::setattr(PyObject *self, char *name, PyObject *val)
 BOOL PyObjectToRasDialParams( PyObject *ob, RASDIALPARAMS *p )
 {
 	char *fnName = "<RasDialParams conversion>";
+	ZeroMemory(p, sizeof(*p));
 	p->dwSize = sizeof(RASDIALPARAMS);
-	p->szEntryName[0] = 0;
-	p->szPhoneNumber[0] = 0;
-	p->szCallbackNumber[0] = 0;
-	p->szUserName[0] = 0;
-	p->szPassword[0] = 0;
-	p->szDomain[0] = 0;
-	if (!PySequence_Check(ob)) {
-		SetError("The RasDialParams item must be a sequence", fnName);
-		return FALSE;
-	}
-	char *dest;
-	size_t size = PyObject_Length(ob);
-	int dest_size;
-	for (size_t num=0;num<size;num++) {
+	PyObject *t=PySequence_Tuple(ob);
+	if (t==NULL)
+		return NULL;
+
+	TCHAR *dest, *src;
+	Py_ssize_t size = PyTuple_GET_SIZE(ob);
+	DWORD dest_size, src_size;
+	BOOL ret=TRUE;
+	for (Py_ssize_t num=0;num<size;num++) {
 		switch (num) {
 #define GET_BUF_AND_SIZE(name) dest=p->name;dest_size=sizeof(p->name)/sizeof(p->name[0])
 		case 0: GET_BUF_AND_SIZE(szEntryName); break;
@@ -316,24 +342,24 @@ BOOL PyObjectToRasDialParams( PyObject *ob, RASDIALPARAMS *p )
 			SetError("The RasDialParams sequence length must be less than 6", fnName);
 			return FALSE;
 		}
-		PyObject *sub = PySequence_GetItem(ob, num);
-		if (!sub) return FALSE;
-		if (!PyString_Check(sub)) {
-			SetError("The RasDialParams sequence is invalid - must be a tuple of strings.", fnName);
-			Py_DECREF(sub);
-			return FALSE;
-		}
+		PyObject *sub = PyTuple_GET_ITEM(t, num);
+		ret=PyWinObject_AsTCHAR(sub, &src, FALSE, &src_size);
+		if (!ret)
+			break;
 		// check it fits in the dest buffer.
-		if (PyString_Size(sub) >= dest_size) {
-			SetError("The string is too large for the RASDIALPARAMS structure", fnName);
-			Py_DECREF(sub);
-			return FALSE;
+		if (src_size >= dest_size) {
+			PyErr_Format(PyExc_ValueError, "%s: String size (%d) greater than acceptable size (%d)",
+				fnName, src_size, dest_size-1);
+			ret = FALSE;
 		}
-		// we know it fits - blindly copy.
-		strcpy(dest, PyString_AS_STRING(sub));
-		Py_DECREF(sub);
+		else
+			_tcsncpy(dest, src, src_size);
+		PyWinObject_FreeTCHAR(src);
+		if (!ret)
+			break;
 	}
-	return TRUE;
+	Py_DECREF(t);
+	return ret;
 }
 
 /////////////////////////////////////////////////////////////////////
