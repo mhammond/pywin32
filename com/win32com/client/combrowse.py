@@ -49,7 +49,7 @@ class HLICLSID(HLICOM):
             myobject = pythoncom.MakeIID(myobject)
         if name is None:
             try:
-                name = pythoncom.ProgIDFromCLSID(myobject).encode('mbcs')
+                name = pythoncom.ProgIDFromCLSID(myobject)
             except pythoncom.com_error:
                 name = str(myobject)
             name = "IID: " + name
@@ -262,7 +262,7 @@ class HLITypeLibEnum(HLITypeLibEntry):
         typelib, index = myitem
         typeinfo = typelib.GetTypeInfo(index)
         self.id = typeinfo.GetVarDesc(index)[0]
-        name = typeinfo.GetNames(self.id)[0].encode('mbcs')
+        name = typeinfo.GetNames(self.id)[0]
         HLITypeLibEntry.__init__(self, myitem, name)
     def GetText(self):
         return self.name + " - Enum/Module"
@@ -273,7 +273,7 @@ class HLITypeLibEnum(HLITypeLibEntry):
         attr = typeinfo.GetTypeAttr()
         for j in range(attr[7]):
             vdesc = typeinfo.GetVarDesc(j)
-            name = typeinfo.GetNames(vdesc[0])[0].encode('mbcs')
+            name = typeinfo.GetNames(vdesc[0])[0]
             ret.append(browser.MakeHLI(vdesc[1], name))
         return ret
 
@@ -281,7 +281,7 @@ class HLITypeLibProperty(HLICOM):
     def __init__(self, myitem):
         typeinfo, index = myitem
         self.id = typeinfo.GetVarDesc(index)[0]
-        name = typeinfo.GetNames(self.id)[0].encode('mbcs')
+        name = typeinfo.GetNames(self.id)[0]
         HLICOM.__init__(self, myitem, name)
     def GetText(self):
         return self.name + " - Property"
@@ -371,7 +371,7 @@ class HLITypeLibFunction(HLICOM):
     def __init__(self, myitem):
         typeinfo, index = myitem
         self.id = typeinfo.GetFuncDesc(index)[0]
-        name = typeinfo.GetNames(self.id)[0].encode('mbcs')
+        name = typeinfo.GetNames(self.id)[0]
         HLICOM.__init__(self, myitem, name)
     def GetText(self):
         return self.name + " - Function"
@@ -401,7 +401,7 @@ class HLITypeLibFunction(HLICOM):
         names = typeinfo.GetNames(self.id)
         ret.append(browser.MakeHLI(self.id, "Dispatch ID"))
         if len(names)>1:
-            ret.append(browser.MakeHLI(", ".join(names[1:]).encode('mbcs'), "Named Params"))
+            ret.append(browser.MakeHLI(", ".join(names[1:]), "Named Params"))
         fd = typeinfo.GetFuncDesc(index)
         if fd[1]:
             ret.append(browser.MakeHLI(fd[1], "Possible result values"))
