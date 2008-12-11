@@ -61,12 +61,12 @@ class TestSimpleOps(unittest.TestCase):
         newSize = len(data)//2
         win32file.SetFilePointer(h, newSize, win32file.FILE_BEGIN)
         win32file.SetEndOfFile(h)
-        self.failUnless(win32file.GetFileSize(h) == newSize, "Truncated file does not have the expected size!")
+        self.failUnless(win32file.GetFileSize(h) == newSize,
+            "Truncated file does not have the expected size! (%s)" %newSize)
     
         # GetFileAttributesEx/GetFileAttributesExW tests.
-        self.failUnless(win32file.GetFileAttributesEx(testName) == win32file.GetFileAttributesExW(testName),
-                        "ERROR: Expected GetFileAttributesEx and GetFileAttributesExW to return the same data")
-    
+        self.failUnlessEqual(win32file.GetFileAttributesEx(testName), win32file.GetFileAttributesExW(testName))    
+
         attr, ct, at, wt, size = win32file.GetFileAttributesEx(testName)
         self.failUnless(size==newSize, 
                         "Expected GetFileAttributesEx to return the same size as GetFileSize()")
