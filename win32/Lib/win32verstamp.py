@@ -71,7 +71,7 @@ def StringTable(key, data):
   key = nullterm(key)
   result = struct.pack('hh', 0, 1)	# wValueLength, wType
   result = result + key
-  for k, v in data.items():
+  for k, v in data.iteritems():
     result = result + String(k, v)
     result = pad32(result)
   return addlen(result)
@@ -93,7 +93,7 @@ def VarFileInfo(data):
   result = struct.pack('hh', 0, 1)	# wValueLength, wType
   result = result + nullterm('VarFileInfo')
   result = pad32(result)
-  for k, v in data.items():
+  for k, v in data.iteritems():
     result = result + Var(k, v)
   return addlen(result)
 
