@@ -7,7 +7,8 @@ for pname in(
     "SPI_GETFOREGROUNDFLASHCOUNT", "SPI_GETFOREGROUNDLOCKTIMEOUT", 
     ## Set actions all take an unsigned int in uiParam
     "SPI_GETWHEELSCROLLLINES", "SPI_GETKEYBOARDDELAY",
-    "SPI_GETKEYBOARDSPEED", "SPI_GETMOUSEHOVERHEIGHT", "SPI_GETMOUSEHOVERWIDTH",
+    "SPI_GETKEYBOARDSPEED",
+    "SPI_GETMOUSEHOVERHEIGHT", "SPI_GETMOUSEHOVERWIDTH",
     "SPI_GETMOUSEHOVERTIME", "SPI_GETSCREENSAVETIMEOUT", "SPI_GETMENUSHOWDELAY",
     "SPI_GETLOWPOWERTIMEOUT", "SPI_GETPOWEROFFTIMEOUT",  "SPI_GETBORDER",
     ## below are winxp only:
@@ -21,7 +22,11 @@ for pname in(
     win32gui.SystemParametersInfo(cset, orig_value+1)
     new_value=win32gui.SystemParametersInfo(cget)
     print '\tnew value:',new_value
-    assert new_value==orig_value+1
+    # On Vista, some of these values seem to be ignored.  So only "fail" if
+    # the new value isn't what we set or the original
+    if new_value!=orig_value+1:
+        assert new_value == orig_value
+        print "Strange - setting %s seems to have been ignored" % (pname,)
     win32gui.SystemParametersInfo(cset, orig_value)
     assert win32gui.SystemParametersInfo(cget)==orig_value
 
