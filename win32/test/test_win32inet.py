@@ -39,7 +39,9 @@ class TestNetwork(unittest.TestCase):
         assert data.find("Python")>0, repr(data) # This must appear somewhere on the main page!
 
     def testFtpCommand(self):
-        hcon = InternetConnect(self.hi, "ftp.python.org", INTERNET_INVALID_PORT_NUMBER,
+        # ftp.python.org doesn't exist.  ftp.gnu.org is what Python's urllib
+        # test code uses.
+        hcon = InternetConnect(self.hi, "ftp.gnu.org", INTERNET_INVALID_PORT_NUMBER,
                                None, None, # username/password
                                INTERNET_SERVICE_FTP, 0, 0)
         try:
