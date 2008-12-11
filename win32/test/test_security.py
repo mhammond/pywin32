@@ -12,6 +12,16 @@ class SecurityTests(unittest.TestCase):
     def tearDown(self):
         pass
 
+    def testEqual(self):
+        self.failUnlessEqual(win32security.LookupAccountName('','Administrator')[0],
+                             win32security.LookupAccountName('','Administrator')[0])
+
+    def testBuffer(self):
+        # hrm - what about py3k - intent is to check the buffer slots return
+        # something sane.
+        self.failUnlessEqual(buffer(win32security.LookupAccountName('','Administrator')[0]),
+                             buffer(win32security.LookupAccountName('','Administrator')[0]))
+
     def testMemory(self):
         pwr_sid = self.pwr_sid
         admin_sid = self.admin_sid

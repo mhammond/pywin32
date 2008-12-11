@@ -21,6 +21,19 @@ class TestCase(unittest.TestCase):
         except ValueError:
             return
 
+    def testPyTimeCompare(self):
+        t1 = pywintypes.Time(100)
+        t1_2 = pywintypes.Time(100)
+        t2 = pywintypes.Time(101)
+
+        self.failUnlessEqual(t1, t1_2)
+        self.failUnless(t1 <= t1_2)
+        self.failUnless(t1_2 >= t1)
+
+        self.failIfEqual(t1, t2)
+        self.failUnless(t1 < t2)
+        self.failUnless(t2 > t1 )
+
     def testGUID(self):
         s = "{00020400-0000-0000-C000-000000000046}"
         iid = pywintypes.IID(s)
