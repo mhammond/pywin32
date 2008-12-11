@@ -21,7 +21,7 @@ Since build 212:
 
 * Pythonwin updates from Rémi Paucher; enter completes auto-complete in
   the editor and interactive windows, auto-complete should now work on French
-  keyboards.
+  keyboards.  (XXX - some of this was reverted - update!)
 
 * Lots of work to better support unicode, py3k and 64bits from Roger.
   Most of these changes will be invisible, and those that are not
