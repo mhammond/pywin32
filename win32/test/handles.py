@@ -87,7 +87,11 @@ class PyHandleTestCase(unittest.TestCase):
         # may well return them. eg:
         # >>> struct.unpack("P", struct.pack("P", -1))
         # (4294967295L,)
-        pywintypes.HANDLE(sys.maxint+1)
+        try:
+            big = sys.maxsize
+        except AttributeError:
+            big = sys.maxint
+        pywintypes.HANDLE(big+1)
 
     def testGC(self):
         # This used to provoke:
