@@ -1610,7 +1610,7 @@ static PyObject *PyGetString(PyObject *self, PyObject *args)
 		return PyString_FromStringAndSize(addr, len);
 	}
 	// This should probably be in a __try just in case.
-	if (IsBadStringPtr(addr, (DWORD_PTR)-1)) {
+	if (IsBadStringPtrA(addr, (DWORD_PTR)-1)) {
 		PyErr_SetString(PyExc_ValueError, "The value is not a valid null-terminated string");
 		return NULL;
 	}
