@@ -25,12 +25,20 @@ class TestRunner:
     def __init__(self, argv):
         self.argv = argv
     def __call__(self):
-        # subprocess failed in strange ways for me??
-        fin, fout, ferr = os.popen3(" ".join(self.argv))
-        fin.close()
-        output = fout.read() + ferr.read()
-        fout.close()
-        rc = ferr.close()
+        try:
+            import subprocess
+            p = subprocess.Popen(self.argv,
+                                 stdout=subprocess.PIPE,
+                                 stderr=subprocess.STDOUT)
+            output, _ = p.communicate()
+            rc = p.returncode
+        except ImportError:
+            # py2.3?
+            fin, fout, ferr = os.popen3(" ".join(self.argv))
+            fin.close()
+            output = fout.read() + ferr.read()
+            fout.close()
+            rc = ferr.close()
         if rc:
             base = os.path.basename(self.argv[1])
             raise AssertionError("%s failed with exit code %s.  Output is:\n%s" % (base, rc, output))
