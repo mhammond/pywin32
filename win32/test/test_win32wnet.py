@@ -56,13 +56,13 @@ class TestCase(unittest.TestCase):
         for attr, typ in attrs:
             val = getattr(item, attr)
             if typ is int:
-                self.failUnless(type(val) in (int, int),
+                self.failUnless(type(val) in (int,),
                                 "Attr %r has value %r" % (attr, val))
                 new_val = val + 1
             elif typ is str:
                 if val is not None:
                     # on py2k, must be string or unicode.  py3k must be string or bytes.
-                    self.failUnless(type(val) in (str, str),
+                    self.failUnless(type(val) in (str, unicode),
                                     "Attr %r has value %r" % (attr, val))
                     new_val = val + " new value"
                 else:
