@@ -1,5 +1,6 @@
 import win32evtlog
 import win32api
+import win32con
 import win32security # To translate NT Sids to account names.
 
 import win32evtlogutil
@@ -82,10 +83,20 @@ def test():
         if opt=='-v':
             verbose = verbose + 1
     if do_write:
-        win32evtlogutil.ReportEvent(logType, 2, strings=["The message text for event 2"], data = "Raw\0Data")
-        win32evtlogutil.ReportEvent(logType, 1, eventType=win32evtlog.EVENTLOG_WARNING_TYPE, strings=["A warning"], data = "Raw\0Data")
-        win32evtlogutil.ReportEvent(logType, 1, eventType=win32evtlog.EVENTLOG_INFORMATION_TYPE, strings=["An info"], data = "Raw\0Data")
-        print "Successfully wrote 3 records to the log"
+        ph=win32api.GetCurrentProcess()
+        th = win32security.OpenProcessToken(ph,win32con.TOKEN_READ)
+        my_sid = win32security.GetTokenInformation(th,win32security.TokenUser)[0]
+
+        win32evtlogutil.ReportEvent(logType, 2,
+            strings=["The message text for event 2","Another insert"],
+            data = "Raw\0Data", sid = my_sid)
+        win32evtlogutil.ReportEvent(logType, 1, eventType=win32evtlog.EVENTLOG_WARNING_TYPE,
+            strings=["A warning","An even more dire warning"],
+            data = "Raw\0Data", sid = my_sid)
+        win32evtlogutil.ReportEvent(logType, 1, eventType=win32evtlog.EVENTLOG_INFORMATION_TYPE,
+            strings=["An info","Too much info"],
+            data = "Raw\0Data", sid = my_sid)
+        print("Successfully wrote 3 records to the log")
 
     if do_read:
         ReadLog(computer, logType, verbose > 0)
