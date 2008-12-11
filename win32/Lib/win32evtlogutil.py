@@ -59,8 +59,8 @@ def RemoveSourceFromRegistry(appName, eventLogType = "Application"):
     try:
         win32api.RegDeleteKey(win32con.HKEY_LOCAL_MACHINE, \
                      "SYSTEM\\CurrentControlSet\\Services\\EventLog\\%s\\%s" % (eventLogType, appName))
-    except win32api.error, (hr, fn, desc):
-        if hr != winerror.ERROR_FILE_NOT_FOUND:
+    except win32api.error, exc:
+        if exc.winerror != winerror.ERROR_FILE_NOT_FOUND:
             raise
 
 

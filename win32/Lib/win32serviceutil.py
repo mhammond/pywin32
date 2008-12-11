@@ -353,9 +353,9 @@ def WaitForServiceStatus(serviceName, status, waitSecs, machine=None):
 def __StopServiceWithTimeout(hs, waitSecs = 30):
     try:
         status = win32service.ControlService(hs, win32service.SERVICE_CONTROL_STOP)
-    except pywintypes.error, (hr, name, msg):
-        if hr!=winerror.ERROR_SERVICE_NOT_ACTIVE:
-            raise win32service.error(hr, name, msg)
+    except pywintypes.error, exc:
+        if exc.winerror!=winerror.ERROR_SERVICE_NOT_ACTIVE:
+            raise
     for i in range(waitSecs):
         status = win32service.QueryServiceStatus(hs)
         if status[1] == win32service.SERVICE_STOPPED:
@@ -406,17 +406,17 @@ def RestartService(serviceName, args = None, waitSeconds = 30, machine = None):
     "Stop the service, and then start it again (with some tolerance for allowing it to stop.)"
     try:
         StopService(serviceName, machine)
-    except pywintypes.error, (hr, name, msg):
+    except pywintypes.error, exc:
         # Allow only "service not running" error
-        if hr!=winerror.ERROR_SERVICE_NOT_ACTIVE:
-            raise win32service.error(hr, name, msg)
+        if exc.winerror!=winerror.ERROR_SERVICE_NOT_ACTIVE:
+            raise
     # Give it a few goes, as the service may take time to stop
     for i in range(waitSeconds):
         try:
             StartService(serviceName, args, machine)
             break
-        except pywintypes.error, (hr, name, msg):
-            if hr!=winerror.ERROR_SERVICE_ALREADY_RUNNING:
+        except pywintypes.error, exc:
+            if exc.winerror!=winerror.ERROR_SERVICE_ALREADY_RUNNING:
                 raise
             win32api.Sleep(1000)
     else:
@@ -572,8 +572,8 @@ def HandleCommandLine(cls, serviceClassString = None, argv = None, customInstall
             StartService(serviceName, args[1:])
             if waitSecs:
                 WaitForServiceStatus(serviceName, win32service.SERVICE_RUNNING, waitSecs)
-        except win32service.error, (hr, fn, msg):
-            print "Error starting service: %s" % msg
+        except win32service.error, exc:
+            print "Error starting service: %s" % exc.strerror
 
     elif arg=="restart":
         knownArg = 1
@@ -638,11 +638,11 @@ def HandleCommandLine(cls, serviceClassString = None, argv = None, customInstall
             if customOptionHandler:
                 customOptionHandler(*(opts,))
             print "Service installed"
-        except win32service.error, (hr, fn, msg):
-            if hr==winerror.ERROR_SERVICE_EXISTS:
+        except win32service.error, exc:
+            if exc.winerror==winerror.ERROR_SERVICE_EXISTS:
                 arg = "update" # Fall through to the "update" param!
             else:
-                print "Error installing service: %s (%d)" % (msg, hr)
+                print "Error installing service: %s (%d)" % (exc.strerror, exc.winerror)
                 err = hr
         except ValueError, msg: # Can be raised by custom option handler.
             print "Error installing service: %s" % str(msg)
@@ -681,8 +681,8 @@ def HandleCommandLine(cls, serviceClassString = None, argv = None, customInstall
             if customOptionHandler:
                 customOptionHandler(*(opts,))
             print "Service updated"
-        except win32service.error, (hr, fn, msg):
-            print "Error changing service configuration: %s (%d)" % (msg,hr)
+        except win32service.error, exc:
+            print "Error changing service configuration: %s (%d)" % (exc.strerror,exc.winerror)
             err = hr
 
     elif arg=="remove":
@@ -691,8 +691,8 @@ def HandleCommandLine(cls, serviceClassString = None, argv = None, customInstall
         try:
             RemoveService(serviceName)
             print "Service removed"
-        except win32service.error, (hr, fn, msg):
-            print "Error removing service: %s (%d)" % (msg,hr)
+        except win32service.error, exc:
+            print "Error removing service: %s (%d)" % (exc.strerror,exc.winerror)
             err = hr
     elif arg=="stop":
         knownArg = 1
@@ -702,8 +702,8 @@ def HandleCommandLine(cls, serviceClassString = None, argv = None, customInstall
                 StopServiceWithDeps(serviceName, waitSecs = waitSecs)
             else:
                 StopService(serviceName)
-        except win32service.error, (hr, fn, msg):
-            print "Error stopping service: %s (%d)" % (msg,hr)
+        except win32service.error, exc:
+            print "Error stopping service: %s (%d)" % (exc.strerror,exc.winerror)
             err = hr
     if not knownArg:
         err = -1
