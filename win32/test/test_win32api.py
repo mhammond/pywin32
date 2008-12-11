@@ -4,6 +4,7 @@ import unittest
 
 import win32api, win32con, win32event, winerror
 import sys, os
+import tempfile
 
 class CurrentUserTestCase(unittest.TestCase):
     def testGetCurrentUser(self):
@@ -137,10 +138,14 @@ class FileNames(unittest.TestCase):
 
     def testLongLongPathNames(self):
         # We need filename where the FQN is > 256 - simplest way is to create a
-        # 250 character directory in the cwd.
+        # 250 character directory in the cwd (except - cwd may be on a drive
+        # not supporting \\\\?\\ (eg, network share) - so use temp.
         import win32file
         basename = "a" * 250
-        fname = "\\\\?\\" + os.path.join(os.getcwd(), basename)
+        # but we need to ensure we use the 'long' version of the
+        # temp dir for later comparison.
+        long_temp_dir = win32api.GetLongPathNameW(tempfile.gettempdir())
+        fname = "\\\\?\\" + os.path.join(long_temp_dir, basename)
         try:
             win32file.CreateDirectoryW(fname, None)
         except win32api.error, details:
