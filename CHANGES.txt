@@ -62,7 +62,7 @@ Since build 212:
 
 * win32com.shell gets support for IContextMenu2 and IContextMenu3
 
-* add win32api.GetNativeSystemInfo()
+* add win32api.GetNativeSystemInfo(), win32api.GetKeyboardLayout()
 
 Since build 211:
 ----------------

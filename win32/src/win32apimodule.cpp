@@ -5837,6 +5837,18 @@ PyObject *PySetConsoleCtrlHandler(PyObject *self, PyObject *args)
 	return Py_None;
 }
 
+// @pymethod int|win32api|GetKeyboardLayout|retrieves the active input locale identifier (formerly called the keyboard layout) for the specified thread.
+// @comm If the idThread parameter is zero, the input locale identifier for the active thread is returned.
+PyObject *PyGetKeyboardLayout(PyObject *self, PyObject *args)
+{
+	int tid = 0;
+	// @pyparm int|threadId|0|
+	if (!PyArg_ParseTuple(args,"|i:GetKeyboardLayout", &tid))
+		return NULL;
+	HKL hkl = ::GetKeyboardLayout((DWORD)tid);
+	return PyWinLong_FromVoidPtr(hkl);
+}
+
 // @pymethod (int,..)|win32api|GetKeyboardLayoutList|Returns a sequence of all locale ids currently loaded
 PyObject *PyGetKeyboardLayoutList(PyObject *self, PyObject *args)
 {
@@ -5851,7 +5863,7 @@ PyObject *PyGetKeyboardLayoutList(PyObject *self, PyObject *args)
 		return PyErr_Format(PyExc_MemoryError, "Unable to allocate %d bytes", buflen*sizeof(HKL));
 	buflen=GetKeyboardLayoutList(buflen, buf);
 	if (buflen==0)
-		PyWin_SetAPIError("GetKeyboardLayout");
+		PyWin_SetAPIError("GetKeyboardLayoutList");
 	else{
 		ret=PyTuple_New(buflen);
 		if (ret!=NULL){
@@ -6035,6 +6047,7 @@ static struct PyMethodDef win32api_functions[] = {
 	{"GetFocus",            PyGetFocus,         1}, // @pymeth GetFocus|Retrieves the handle of the keyboard focus window associated with the thread that called the method. 
 	{"GetFullPathName",     PyGetFullPathName,1},   // @pymeth GetFullPathName|Returns the full path of a (possibly relative) path
 	{"GetHandleInformation",     PyGetHandleInformation,1},   // @pymeth GetHandleInformation|Retrieves a handle's flags.
+	{"GetKeyboardLayout",   PyGetKeyboardLayout, 1}, // @pymeth GetKeyboardLayout|Retrieves the active input locale identifier 
 	{"GetKeyboardLayoutList", PyGetKeyboardLayoutList, 1}, // @pymeth GetKeyboardLayoutList|Returns a sequence of all locale ids in the system
 	{"GetKeyboardState", PyGetKeyboardState, 1}, // @pymeth GetKeyboardState|Retrieves the status of the 256 virtual keys on the keyboard.
 	{"GetKeyState",			PyGetKeyState,      1}, // @pymeth GetKeyState|Retrives the last known key state for a key.
