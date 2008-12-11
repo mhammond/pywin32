@@ -104,8 +104,8 @@ def GetAllProperties(obj, make_tag_names = True):
 _MapiTypeMap = {
     type(0.0): mapitags.PT_DOUBLE,
     type(0): mapitags.PT_I4,
-    type(''): mapitags.PT_STRING8,
-    type(u''): mapitags.PT_UNICODE,
+    type(''.encode('ascii')): mapitags.PT_STRING8, # str in py2x, bytes in 3x
+    type(u''): mapitags.PT_UNICODE, # unicode in py2x, str in 3x
     type(None): mapitags.PT_UNSPECIFIED,
     # In Python 2.2.2, bool isn't a distinct type (type(1==1) is type(0)).
 }
