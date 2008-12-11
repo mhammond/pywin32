@@ -23,11 +23,10 @@ class HLIPythonObject(hierlist.HierListItem):
 		self.myobject = myobject
 		self.knownExpandable = None
 		if name:
-			assert type(name)==str, repr(name) # encode to mbcs if necessary
 			self.name=name
 		else:
 			try:
-				self.name=str(myobject.__name__)
+				self.name=myobject.__name__
 			except (AttributeError, TypeError):
 				try:
 					r = repr(myobject)
