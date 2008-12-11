@@ -462,18 +462,10 @@ static struct PyMethodDef win32profile_functions[] = {
 };
 
 
-
-extern "C" __declspec(dllexport) void
-initwin32profile(void)
+PYWIN_MODULE_INIT_FUNC(win32profile)
 {
-	PyObject *dict, *module;
-	PyWinGlobals_Ensure();
-	module = Py_InitModule("win32profile", win32profile_functions);
-	if (module==NULL)
-		return;
-	dict = PyModule_GetDict(module);
-	if (dict==NULL)
-		return;
+	PYWIN_MODULE_INIT_PREPARE(win32profile, win32profile_functions,
+				  "Interface to the User Profile Api.");
 
 	// PROFILEINFO flags
 	PyModule_AddIntConstant(module, "PI_NOUI",PI_NOUI);
@@ -487,7 +479,7 @@ initwin32profile(void)
 	HMODULE hmodule;
 	hmodule=GetModuleHandle(L"Userenv.dll");
 	if (hmodule==NULL)
-	hmodule = LoadLibrary(L"Userenv.dll");
+		hmodule = LoadLibrary(L"Userenv.dll");
 	if (hmodule!=NULL){
 		pfnDeleteProfile=(DeleteProfilefunc)GetProcAddress(hmodule,"DeleteProfileW");
 		pfnExpandEnvironmentStringsForUser=(ExpandEnvironmentStringsForUserfunc)GetProcAddress(hmodule, "ExpandEnvironmentStringsForUserW");
@@ -499,5 +491,6 @@ initwin32profile(void)
 		pfnLoadUserProfile=(LoadUserProfilefunc)GetProcAddress(hmodule,"LoadUserProfileW");
 		pfnUnloadUserProfile=(UnloadUserProfilefunc)GetProcAddress(hmodule,"UnloadUserProfile");
 		}
-}  
-  
+	PYWIN_MODULE_INIT_RETURN_SUCCESS;
+}
+
