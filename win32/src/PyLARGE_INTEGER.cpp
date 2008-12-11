@@ -21,14 +21,55 @@
 
 BOOL PyWinObject_AsLARGE_INTEGER(PyObject *ob, LARGE_INTEGER *pResult)
 {
-	pResult->QuadPart=PyLong_AsLongLong(ob);
-	return !(pResult->QuadPart == -1 && PyErr_Occurred());
+	if (PyInt_Check(ob)) {
+		// 32 bit integer value.
+		int x = PyInt_AS_LONG(ob);
+		if (x==(int)-1 && PyErr_Occurred())
+			return FALSE;
+		LISet32(*pResult, x);
+		return TRUE;
+	} else if (PyLong_Check(ob)) {
+		pResult->QuadPart=PyLong_AsLongLong(ob);
+		return !(pResult->QuadPart == -1 && PyErr_Occurred());
+	} else {
+		PyErr_Warn(PyExc_PendingDeprecationWarning, "Support for passing 2 integers to create a 64bit value is deprecated - pass a long instead");
+		long hiVal, loVal;
+		if (!PyArg_ParseTuple(ob, "ll", &hiVal, &loVal)) {
+			PyErr_SetString(PyExc_TypeError, "LARGE_INTEGER must be 'int', or '(int, int)'");
+			return FALSE;
+		}
+		// ### what to do about a "negative" loVal?!
+		pResult->QuadPart = (((__int64)hiVal) << 32) | loVal;
+		return TRUE;
+	}
+	assert(0); // not reached.
 }
 
 BOOL PyWinObject_AsULARGE_INTEGER(PyObject *ob, ULARGE_INTEGER *pResult)
 {
-	pResult->QuadPart=PyLong_AsUnsignedLongLong(ob);
-	return !(pResult->QuadPart == (ULONGLONG) -1 && PyErr_Occurred());
+	if (PyInt_Check(ob)) {
+		// 32 bit integer value.
+		int x = PyInt_AS_LONG(ob);
+		if (x==(int)-1 && PyErr_Occurred())
+			return FALSE;
+		// ### what to do with "negative" integers?  Nothing - they
+		// get treated as unsigned!
+		ULISet32(*pResult, x);
+		return TRUE;
+	} else if (PyLong_Check(ob)) {
+		pResult->QuadPart=PyLong_AsUnsignedLongLong(ob);
+		return !(pResult->QuadPart == (ULONGLONG) -1 && PyErr_Occurred());
+	} else {
+		PyErr_Warn(PyExc_PendingDeprecationWarning, "Support for passing 2 integers to create a 64bit value is deprecated - pass a long instead");
+		long hiVal, loVal;
+		if (!PyArg_ParseTuple(ob, "ll", &hiVal, &loVal)) {
+			PyErr_SetString(PyExc_TypeError, "ULARGE_INTEGER must be 'int', or '(int, int)'");
+			return FALSE;
+		}
+		pResult->QuadPart = (((__int64)hiVal) << 32) | loVal;
+		return TRUE;
+	}
+	assert(0); // not reached.
 }
 
 PyObject *PyWinObject_FromLARGE_INTEGER(LARGE_INTEGER &val)
