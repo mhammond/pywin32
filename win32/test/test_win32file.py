@@ -296,7 +296,8 @@ class TestSocketExtensions(unittest.TestCase):
         running.wait(2)
         if not running.isSet():
             self.fail("AcceptEx Worker thread failed to start")
-        s = socket.create_connection(('127.0.0.1', port), 10)
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.connect(('127.0.0.1', port))
         win32file.WSASend(s, "hello", None)
         overlapped = pywintypes.OVERLAPPED()
         overlapped.hEvent = win32event.CreateEvent(None, 0, 0, None)
