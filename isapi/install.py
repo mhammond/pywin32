@@ -3,6 +3,7 @@
 # this code adapted from "Tomcat JK2 ISAPI redirector", part of Apache
 # Created July 2004, Mark Hammond.
 import sys, os, imp, shutil, stat
+import operator
 from win32com.client import GetObject, Dispatch
 from win32com.client.gencache import EnsureModule, EnsureDispatch
 import pythoncom
@@ -33,11 +34,8 @@ _DEFAULT_CONTENT_INDEXED = False
 _DEFAULT_ENABLE_DIR_BROWSING = False
 _DEFAULT_ENABLE_DEFAULT_DOC = False
 
-is_debug_build = False
-for imp_ext, _, _ in imp.get_suffixes():
-    if imp_ext == "_d.pyd":
-        is_debug_build = True
-        break
+_extensions = [ext for ext, _, _ in imp.get_suffixes()]
+is_debug_build = '_d.pyd' in _extensions
 
 this_dir = os.path.abspath(os.path.dirname(__file__))
 
@@ -90,6 +88,15 @@ class ScriptMapParams:
     AddExtensionFile_Description = None # defaults to Description.
     def __init__(self, **kw):
         self.__dict__.update(kw)
+    
+    def __str__(self):
+        "Format this parameter suitable for IIS"
+        items = [self.Extension, self.Module, self.Flags]
+        # IIS gets upset if there is a trailing verb comma, but no verbs
+        if self.Verbs:
+            items.append(self.Verbs)
+        items = [str(item) for item in items]
+        return ','.join(items)
 
 class ISAPIParameters:
     ServerName     = _DEFAULT_SERVER_NAME
@@ -126,42 +133,67 @@ def FindPath(options, server, name):
             name = "/"+name
         return FindWebServer(options, server)+"/ROOT"+name
 
-def FindWebServer(options, server_desc):
-    # command-line options get first go, and are assumed in 'mbcs' encoding
-    # (well, assumed MBCS by the time they got to sys.argv...)
-    if options.server:
-        server_desc = options.server
-        # but someone may have explicitly already set unicode...
-        if type(server_desc) != unicode:
-            server_desc = server_desc.decode("mbcs")
-    # If the config passed by the caller doesn't specify one, use the default
-    if not server_desc:
-        server = _IIS_OBJECT+"/1"
-    else:
-        # Assume the user has passed either the instance_id or "server
-        # description" - loop over all objects until we find it.
-        ob = GetObject(_IIS_OBJECT)
-        look = server_desc.lower().strip()
-        for sub in ob:
-            # ID is generally a number, but no need to assume that.
-            this_id = getattr(sub, "Name", "").lower().strip()
-            this_comment = getattr(sub, "ServerComment", "").lower().strip()
-            if this_id == look or this_comment == look:
-                server = sub.AdsPath
-                break
-        else:
-            raise ItemNotFound(
-                  "No web sites match the description '%s'" % (server_desc,))
-    # Check it is good.
+def LocateWebServerPath(description):
+    """
+    Find an IIS web server whose name or comment matches the provided
+    description (case-insensitive).
+    
+    >>> LocateWebServer('Default Web Site') # doctest: +SKIP
+    
+    or
+    
+    >>> LocateWebServer('1') #doctest: +SKIP
+    """
+    assert len(description) >= 1, "Server name or comment is required"
+    iis = GetObject(_IIS_OBJECT)
+    description = description.lower().strip()
+    for site in iis:
+        # Name is generally a number, but no need to assume that.
+        site_attributes = [getattr(site, attr, "").lower().strip()
+			for attr in ("Name", "ServerComment")]
+        if description in site_attributes:
+            return site.AdsPath
+    msg = "No web sites match the description '%s'" % description
+    raise ItemNotFound(msg)
+    
+def GetWebServer(description = None):
+    """
+    Load the web server instance (COM object) for a given instance
+    or description.
+    If None is specified, the default website is retrieved (indicated
+    by the identifier 1.
+    """
+    description = description or "1"
+    path = LocateWebServerPath(description)
+    server = LoadWebServer(path)
+    return server
+
+def LoadWebServer(path):
     try:
-        GetObject(server)
+        server = GetObject(path)
     except pythoncom.com_error, details:
         hr, msg, exc, arg_err = details
         if exc and exc[2]:
             msg = exc[2]
-        raise ItemNotFound(
-              "WebServer %s: %s" % (server, msg))
+        msg = "WebServer %s: %s" % (path, msg)
+        raise ItemNotFound(msg)
     return server
+    
+def FindWebServer(options, server_desc):
+    """
+    Legacy function to allow options to define a .server property
+    to override the other parameter.  Use GetWebServer instead.
+    """
+    # options takes precedence
+    server_desc = options.server or server_desc
+    # make sure server_desc is unicode (could be mbcs if passed in
+    #  sys.argv).
+    if server_desc and not isinstance(server_desc, unicode):
+        server_desc = server_desc.decode('mbcs')
+    
+    # get the server (if server_desc is None, the default site is acquired)
+    server = GetWebServer(server_desc)
+    return server.adsPath
 
 def CreateDirectory(params, options):
     _CallHook(params, "PreInstall", options)
@@ -219,30 +251,46 @@ def CreateDirectory(params, options):
     if params.DefaultDoc is not None:
         newDir.DefaultDoc = params.DefaultDoc
     newDir.SetInfo()
-    smp_items = []
-    for smp in params.ScriptMaps:
-        item = "%s,%s,%s" % (smp.Extension, smp.Module, smp.Flags)
-        # IIS gets upset if there is a trailing verb comma, but no verbs
-        if smp.Verbs:
-            item += "," + smp.Verbs
-        smp_items.append(item)
-    if params.ScriptMapUpdate == "replace":
-        newDir.ScriptMaps = smp_items
-    elif params.ScriptMapUpdate == "end":
-        for item in smp_items:
-            if item not in newDir.ScriptMaps:
-                newDir.ScriptMaps = newDir.ScriptMaps + (item,)
-    elif params.ScriptMapUpdate == "start":
-        for item in smp_items:
-            if item not in newDir.ScriptMaps:
-                newDir.ScriptMaps = (item,) + newDir.ScriptMaps
-    else:
-        raise ConfigurationError(
-              "Unknown ScriptMapUpdate option '%s'" % (params.ScriptMapUpdate,))
-    newDir.SetInfo()
+
+    AssignScriptMaps(params.ScriptMaps, newDir, params.ScriptMapUpdate)
+    
     _CallHook(params, "PostInstall", options, newDir)
     log(1, "Configured Virtual Directory: %s" % (params.Name,))
     return newDir
+
+def AssignScriptMaps(script_maps, target, update='replace'):
+    """
+    @param script_maps ScriptMapParameter[]
+    @param target An IIS Virtual Directory to assign the script maps
+    @param update How to update the maps ('start', 'end', or 'replace')
+    """
+    # determine which function to use to assign script maps
+    script_map_func = '_AssignScriptMaps' + update.capitalize()
+    try:
+        script_map_func = eval(script_map_func)
+    except NameError:
+        msg = "Unknown ScriptMapUpdate option '%s'" % update
+        raise ConfigurationError(msg)
+    # use the str method to format the script maps for IIS
+    script_maps = [str(s) for s in script_maps]
+    # call the correct function
+    script_map_func(target, script_maps)
+    target.SetInfo()
+
+def get_unique_items(sequence, reference):
+    "Return items in sequence that can't be found in reference."
+    return [item for item in sequence if item not in reference]
+
+def _AssignScriptMapsReplace(target, script_maps):
+    target.ScriptMaps = script_maps
+    
+def _AssignScriptMapsEnd(target, script_maps):
+    unique_new_maps = get_unique_items(script_maps, target.ScriptMaps)
+    target.ScriptMaps = target.ScriptMaps + unique_new_maps
+
+def _AssignScriptMapsStart(target, script_maps):
+    unique_new_maps = get_unique_items(script_maps, target.ScriptMaps)
+    target.ScriptMaps = unique_new_maps + target.ScriptMaps
 
 def CreateISAPIFilter(filterParams, options):
     server = FindWebServer(options, filterParams.Server)

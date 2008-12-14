@@ -8,6 +8,9 @@ However contributors are encouraged to add their own entries for their work.
 Since build 212:
 ----------------
 
+* Refactored isapi.install to expose some of the previously-encapsulated
+  functionality in FindWebServer and CreateDirectory.
+
 * "Modernization" changes, instigated by py3k:
 
   - Many older modules now accept unicode arguments where previously they
