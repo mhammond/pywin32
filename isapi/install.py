@@ -60,6 +60,7 @@ class VirtualDirParameters:
     AppProtection = _DEFAULT_PROTECTION
     Headers       = _DEFAULT_HEADERS
     Path          = None # defaults to WWW root.
+    Type          = _IIS_WEBVIRTUALDIR
     AccessExecute  = _DEFAULT_ACCESS_EXECUTE
     AccessRead     = _DEFAULT_ACCESS_READ
     AccessWrite    = _DEFAULT_ACCESS_WRITE
@@ -138,11 +139,11 @@ def LocateWebServerPath(description):
     Find an IIS web server whose name or comment matches the provided
     description (case-insensitive).
     
-    >>> LocateWebServer('Default Web Site') # doctest: +SKIP
+    >>> LocateWebServerPath('Default Web Site') # doctest: +SKIP
     
     or
     
-    >>> LocateWebServer('1') #doctest: +SKIP
+    >>> LocateWebServerPath('1') #doctest: +SKIP
     """
     assert len(description) >= 1, "Server name or comment is required"
     iis = GetObject(_IIS_OBJECT)
@@ -150,7 +151,7 @@ def LocateWebServerPath(description):
     for site in iis:
         # Name is generally a number, but no need to assume that.
         site_attributes = [getattr(site, attr, "").lower().strip()
-			for attr in ("Name", "ServerComment")]
+            for attr in ("Name", "ServerComment")]
         if description in site_attributes:
             return site.AdsPath
     msg = "No web sites match the description '%s'" % description
@@ -195,24 +196,42 @@ def FindWebServer(options, server_desc):
     server = GetWebServer(server_desc)
     return server.adsPath
 
-def CreateDirectory(params, options):
-    _CallHook(params, "PreInstall", options)
-    if not params.Name:
-        raise ConfigurationError("No Name param")
-    slash = params.Name.rfind("/")
+def old_split_path(path):
+    slash = path.rfind("/")
     if slash >= 0:
-        parent = params.Name[:slash]
-        name = params.Name[slash+1:]
+        parent = path[:slash]
+        name = path[slash+1:]
     else:
         parent = ""
-        name = params.Name
-    webDir = GetObject(FindPath(options, params.Server, parent))
-    if parent:
-        # Note that the directory won't be visible in the IIS UI
-        # unless the directory exists on the filesystem.
-        keyType = _IIS_WEBDIR
-    else:
-        keyType = _IIS_WEBVIRTUALDIR
+        name = path
+    return parent, name
+
+def split_path(path):
+    """
+    Get the parent path and basename
+    >>> old_split_path('/') == split_path('/')
+    True
+    
+    >>> old_split_path('') == split_path('')
+    True
+    
+    >>> old_split_path('foo') == split_path('foo')
+    True
+    
+    >>> old_split_path('/foo') == split_path('/foo')
+    True
+    
+    >>> old_split_path('/foo/bar') == split_path('/foo/bar')
+    True
+    
+    >>> old_split_path('foo/bar') == split_path('foo/bar')
+    False
+    """
+    
+    if not path.startswith('/'): path = '/' + path
+    return tuple(path.rsplit('/', 1))
+
+def ReallyCreateDirectory(iis_dir, name, params):
     # We used to go to lengths to keep an existing virtual directory
     # in place.  However, in some cases the existing directories got
     # into a bad state, and an update failed to get them working.
@@ -221,21 +240,24 @@ def CreateDirectory(params, options):
     try:
         # Also seen the Class change to a generic IISObject - so nuke
         # *any* existing object, regardless of Class
-        existing = GetObject(FindPath(options, params.Server, params.Name))
-        webDir.Delete(existing.Class, existing.Name)
-        log(2, "Deleted old directory '%s'" % (params.Name,))
+        existing = iis_dir.Delete('', name)
+        log(2, "Deleted old directory '%s'" % (name,))
     except pythoncom.com_error:
         pass
 
-    newDir = webDir.Create(keyType, name)
-    log(2, "Creating new directory '%s'..." % (params.Name,))
+    newDir = iis_dir.Create(params.Type, name)
+    log(2, "Creating new directory '%s' in %s..." % (name,iis_dir.Name))
     
     friendly = params.Description or params.Name
     newDir.AppFriendlyName = friendly
+
+    # Note that the new directory won't be visible in the IIS UI
+    # unless the directory exists on the filesystem.
     try:
         path = params.Path or webDir.Path
         newDir.Path = path
     except AttributeError:
+        # If params.Type is IIS_WEBDIRECTORY, an exception is thrown
         pass
     newDir.AppCreate2(params.AppProtection)
     newDir.HttpCustomHeaders = params.Headers
@@ -251,12 +273,26 @@ def CreateDirectory(params, options):
     if params.DefaultDoc is not None:
         newDir.DefaultDoc = params.DefaultDoc
     newDir.SetInfo()
-
-    AssignScriptMaps(params.ScriptMaps, newDir, params.ScriptMapUpdate)
-    
-    _CallHook(params, "PostInstall", options, newDir)
-    log(1, "Configured Virtual Directory: %s" % (params.Name,))
     return newDir
+
+
+def CreateDirectory(params, options):
+    _CallHook(params, "PreInstall", options)
+    if not params.Name:
+        raise ConfigurationError("No Name param")
+    parent, name = split_path(params.Name)
+    webDir = GetObject(FindPath(options, params.Server, parent))
+
+    # if '/' or '' was passed, we must be installing to the root.
+    # In this case, name is blank.
+    if name:
+        webDir = ReallyCreateDirectory(webDir, name, params)
+
+    AssignScriptMaps(params.ScriptMaps, webDir, params.ScriptMapUpdate)
+    
+    _CallHook(params, "PostInstall", options, webDir)
+    log(1, "Configured Virtual Directory: %s" % (params.Name,))
+    return webDir
 
 def AssignScriptMaps(script_maps, target, update='replace'):
     """
@@ -279,7 +315,7 @@ def AssignScriptMaps(script_maps, target, update='replace'):
 
 def get_unique_items(sequence, reference):
     "Return items in sequence that can't be found in reference."
-    return [item for item in sequence if item not in reference]
+    return tuple([item for item in sequence if item not in reference])
 
 def _AssignScriptMapsReplace(target, script_maps):
     target.ScriptMaps = script_maps
