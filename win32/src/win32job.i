@@ -4,7 +4,6 @@
 // available in Windows 2000 and later.
 
 %{
-#define UNICODE
 #ifndef _WIN32_WINNT
 #define _WIN32_WINNT 0x500
 #endif
