@@ -279,7 +279,7 @@ static const PyCom_InterfaceSupportInfo g_interfaceSupportData[] =
 	PYCOM_INTERFACE_CLSID_ONLY (DefaultDebugSessionProvider), // @const axdebug|CLSID_DefaultDebugSessionProvider|An IID object
 };
 
-#define ADD_CONSTANT(tok) if (PyModule_AddIntConstant(module, #tok, tok) == -1) RETURN_ERROR;
+#define ADD_CONSTANT(tok) if (PyModule_AddIntConstant(module, #tok, tok) == -1) PYWIN_MODULE_INIT_RETURN_ERROR;
 
 /* Module initialisation */
 PYWIN_MODULE_INIT_FUNC(axdebug)
@@ -292,7 +292,7 @@ PYWIN_MODULE_INIT_FUNC(axdebug)
 	// Add some symbolic constants to the module
 	axdebug_Error = PyErr_NewException("axdebug.error", NULL, NULL);
 	if (axdebug_Error == NULL || PyDict_SetItemString(dict, "error", axdebug_Error) != 0)
-		RETURN_ERROR;
+		PYWIN_MODULE_INIT_RETURN_ERROR;
 
 	// AX-Debugging interface registration
 	PyCom_RegisterExtensionSupport(dict, g_interfaceSupportData, sizeof(g_interfaceSupportData)/sizeof(PyCom_InterfaceSupportInfo));
