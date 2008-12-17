@@ -65,7 +65,7 @@ class TestSimpleOps(unittest.TestCase):
             "Truncated file does not have the expected size! (%s)" %newSize)
     
         # GetFileAttributesEx/GetFileAttributesExW tests.
-        self.failUnlessEqual(win32file.GetFileAttributesEx(testName), win32file.GetFileAttributesExW(testName))    
+        self.failUnlessEqual(win32file.GetFileAttributesEx(testName), win32file.GetFileAttributesExW(testName))
 
         attr, ct, at, wt, size = win32file.GetFileAttributesEx(testName)
         self.failUnless(size==newSize, 
