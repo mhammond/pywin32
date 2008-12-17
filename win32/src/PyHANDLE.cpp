@@ -183,7 +183,7 @@ PYWINTYPES_EXPORT PyTypeObject PyHANDLEType =
 	0,							/* tp_doc */
 	0,							/* tp_traverse */
 	0,							/* tp_clear */
-	0,							/* tp_richcompare */
+	PyHANDLE::richcompareFunc,				/* tp_richcompare */
 	0,							/* tp_weaklistoffset */
 	0,							/* tp_iter */
 	0,							/* tp_iternext */
@@ -273,6 +273,26 @@ int PyHANDLE::compare(PyObject *ob)
 		(m_handle < ((PyHANDLE *)ob)->m_handle ? -1 : 1);
 }
 
+PyObject *PyHANDLE::richcompare(PyObject *other, int op)
+{
+	BOOL e;
+	if (PyHANDLE_Check(other))
+		e=compare((PyHANDLE *)other)==0;
+	else
+		e=FALSE;
+	PyObject *ret;
+	if (op==Py_EQ)
+		ret = e ? Py_True : Py_False;
+	else if (op==Py_NE)
+		ret = !e ? Py_True : Py_False;
+	else {
+		PyErr_SetString(PyExc_TypeError, "HANDLEs only compare equal or not equal");
+		ret = NULL;
+	}
+	Py_XINCREF(ret);
+	return ret;
+}
+
 // @pymethod |PyHANDLE|__int__|Used when the handle as an integer is required.
 // @comm To get the underling win32 handle from a PyHANDLE object, use int(handleObject)
 PyObject * PyHANDLE::intFunc(PyObject *ob)
@@ -304,6 +324,11 @@ int PyHANDLE::printFunc(PyObject *ob, FILE *fp, int flags)
 int PyHANDLE::compareFunc(PyObject *ob1, PyObject *ob2)
 {
 	return ((PyHANDLE *)ob1)->compare(ob2);
+}
+
+PyObject *PyHANDLE::richcompareFunc(PyObject *ob, PyObject *other, int op)
+{
+	return ((PyHANDLE *)ob)->richcompare(other, op);
 }
 
 // @pymethod int|PyHANDLE|__hash__|Used when the hash value of a HANDLE object is required
