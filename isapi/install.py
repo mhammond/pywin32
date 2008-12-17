@@ -89,7 +89,7 @@ class ScriptMapParams:
     AddExtensionFile_Description = None # defaults to Description.
     def __init__(self, **kw):
         self.__dict__.update(kw)
-    
+
     def __str__(self):
         "Format this parameter suitable for IIS"
         items = [self.Extension, self.Module, self.Flags]
@@ -179,7 +179,7 @@ def LoadWebServer(path):
         msg = "WebServer %s: %s" % (path, msg)
         raise ItemNotFound(msg)
     return server
-    
+
 def FindWebServer(options, server_desc):
     """
     Legacy function to allow options to define a .server property
@@ -240,7 +240,7 @@ def ReallyCreateDirectory(iis_dir, name, params):
     try:
         # Also seen the Class change to a generic IISObject - so nuke
         # *any* existing object, regardless of Class
-        existing = iis_dir.Delete('', name)
+        iis_dir.Delete('', name)
         log(2, "Deleted old directory '%s'" % (name,))
     except pythoncom.com_error:
         pass
@@ -567,7 +567,13 @@ def GetLoaderModuleName(mod_name, check_module = None):
         CheckLoaderModule(dll_name)
     return dll_name
 
-def InstallModule(conf_module_name, params, options, log):
+# Note the 'log' params to these 'builtin' args - old versions of pywin32
+# didn't log at all in this function (by intent; anyone calling this was
+# responsible). So existing code that calls this function with the old
+# signature (ie, without a 'log' param) still gets the same behaviour as
+# before...
+
+def InstallModule(conf_module_name, params, options, log=lambda *args:None):
     "Install the extension"
     if not hasattr(sys, "frozen"):
         conf_module_name = os.path.abspath(conf_module_name)
@@ -579,14 +585,14 @@ def InstallModule(conf_module_name, params, options, log):
     Install(params, options)
     log(1, "Installation complete.")
 
-def UninstallModule(conf_module_name, params, options, log):
+def UninstallModule(conf_module_name, params, options, log=lambda *args:None):
     "Remove the extension"
     loader_dll = GetLoaderModuleName(conf_module_name, False)
     _PatchParamsModule(params, loader_dll, False)
     Uninstall(params, options)
     log(1, "Uninstallation complete.")
 
-standard_arg_handlers = {
+standard_arguments = {
     "install" : InstallModule,
     "remove"  : UninstallModule,
 }
@@ -648,7 +654,7 @@ def HandleCommandLine(params, argv=None, conf_module_name = None,
 
     # build a usage string if we don't have one.
     if not parser.get_usage():
-        all_handlers = standard_arg_handlers.copy()
+        all_handlers = standard_arguments.copy()
         all_handlers.update(custom_arg_handlers)
         parser.set_usage(build_usage(all_handlers))
     
@@ -679,5 +685,5 @@ def HandleCommandLine(params, argv=None, conf_module_name = None,
         if options.verbose > 1:
             traceback.print_exc()
         print "%s: %s" % (details.__class__.__name__, details)
-    except KeyError, e:
+    except KeyError:
         parser.error("Invalid arg '%s'" % arg)
