@@ -141,44 +141,44 @@ protected:
 //<c HH_KEYWORD_LOOKUP><nl>
 
 PyTypeObject PyHH_AKLINKType = {
-	PYWIN_OBJECT_HEAD
-	"PyHH_AKLINK",			/* tp_name */
-	sizeof(PyHH_AKLINK),	/* tp_basicsize */
-	0,						/* tp_itemsize */
-	PyHH_AKLINK::deallocFunc,	/* tp_dealloc */
-	0,						/* tp_print */
-	0,						/* tp_getattr */
-	0,						/* tp_setattr */
-	0,						/* tp_compare */
-	0,						/* tp_repr */
-	0,						/* tp_as_number */
-	0,						/* tp_as_sequence */
-	0,						/* tp_as_mapping */
-	0,						/* tp_hash */
-	0,						/* tp_call */
-	0,						/* tp_str */
-	PyObject_GenericGetAttr,	/* tp_getattro */
-	PyHH_AKLINK::setattro,	/* tp_setattro */
-	0,						/* tp_as_buffer */
-	0,						/* tp_flags */
-	"A Python object, representing an HH_AKLINK structure",		/* tp_doc */
-	0,						/* tp_traverse */
-	0,						/* tp_clear	*/
-	0,						/* tp_richcompare */
-	0,						/* tp_weaklistoffset */
-	0,						/* tp_iter */
-	0,						/* tp_iternext */
-	0,						/* tp_methods */
-	PyHH_AKLINK::members,	/* tp_members */
-	0,						/* tp_getset */
-	0,						/* tp_base */
-	0,						/* tp_dict */
-	0,						/* tp_descr_get	*/
-	0,						/* tp_descr_set	*/
-	0,						/* tp_dictoffset */
-	0,						/* tp_init */
-	0,						/* tp_alloc	*/
-	0,						/* tp_new */
+  PYWIN_OBJECT_HEAD
+  "PyHH_AKLINK",              /* tp_name */
+  sizeof(PyHH_AKLINK),        /* tp_basicsize */
+  0,                          /* tp_itemsize */
+  PyHH_AKLINK::deallocFunc,   /* tp_dealloc */
+  0,                          /* tp_print */
+  0,                          /* tp_getattr */
+  0,                          /* tp_setattr */
+  0,                          /* tp_compare */
+  0,                          /* tp_repr */
+  0,                          /* tp_as_number */
+  0,                          /* tp_as_sequence */
+  0,                          /* tp_as_mapping */
+  0,                          /* tp_hash */
+  0,                          /* tp_call */
+  0,                          /* tp_str */
+  PyObject_GenericGetAttr,    /* tp_getattro */
+  PyHH_AKLINK::setattro,      /* tp_setattro */
+  0,                          /* tp_as_buffer */
+  0,                          /* tp_flags */
+  "A Python object, representing an HH_AKLINK structure",   /* tp_doc */
+  0,                          /* tp_traverse */
+  0,                          /* tp_clear */
+  0,                          /* tp_richcompare */
+  0,                          /* tp_weaklistoffset */
+  0,                          /* tp_iter */
+  0,                          /* tp_iternext */
+  0,                          /* tp_methods */
+  PyHH_AKLINK::members, /* tp_members */
+  0,                          /* tp_getset */
+  0,                          /* tp_base */
+  0,                          /* tp_dict */
+  0,                          /* tp_descr_get */
+  0,                          /* tp_descr_set */
+  0,                          /* tp_dictoffset */
+  0,                          /* tp_init */
+  0,                          /* tp_alloc */
+  0,                          /* tp_new */
 };
 
 #undef OFF
@@ -286,7 +286,7 @@ int PyHH_AKLINK::setattro(PyObject *self, PyObject *obname, PyObject *v)
 {
   char *name=PYWIN_ATTR_CONVERT(obname);
   if (name==NULL)
-	  return -1;
+    return -1;
   PyHH_AKLINK *pO = (PyHH_AKLINK *)self;
 
   if (strcmp("keywords", name)==0) {
@@ -422,45 +422,45 @@ protected:
 //<nl>
 //Use this structure for full-text search.
 
-PyTypeObject PyHH_FTS_QUERYType	= {
-	PYWIN_OBJECT_HEAD
-	"PyHH_FTS_QUERY",		/* tp_name	*/
-	sizeof(PyHH_FTS_QUERY),	/* tp_basicsize */
-	0,						/* tp_itemsize	*/
-	PyHH_FTS_QUERY::deallocFunc,	/* tp_dealloc */
-	0,						/* tp_print */
-	0,						/* tp_getattr */
-	0,						/* tp_setattr */
-	0,						/* tp_compare */
-	0,						/* tp_repr	*/
-	0,						/* tp_as_number */
-	0,						/* tp_as_sequence */
-	0,						/* tp_as_mapping */
-	0,						/* tp_hash	*/
-	0,						/* tp_call	*/
-	0,						/* tp_str */
-	PyHH_FTS_QUERY::getattro,	/* tp_getattro	*/
-	PyHH_FTS_QUERY::setattro,	/* tp_setattro	*/
-	0,						/* tp_as_buffer */
-	0,						/* tp_flags */
-	"A Python object, representing an HH_FTS_QUERY struct",		/* tp_doc */
-	0,						/* tp_traverse */
-	0,						/* tp_clear	*/
-	0,						/* tp_richcompare */
-	0,						/* tp_weaklistoffset */
-	0,						/* tp_iter */
-	0,						/* tp_iternext */
-	0,						/* tp_methods */
-	PyHH_FTS_QUERY::members,	/* tp_members */
-	0,						/* tp_getset */
-	0,						/* tp_base */
-	0,						/* tp_dict */
-	0,						/* tp_descr_get	*/
-	0,						/* tp_descr_set	*/
-	0,						/* tp_dictoffset */
-	0,						/* tp_init */
-	0,						/* tp_alloc	*/
-	0,						/* tp_new */
+PyTypeObject PyHH_FTS_QUERYType = {
+  PYWIN_OBJECT_HEAD
+  "PyHH_FTS_QUERY",            /* tp_name */
+  sizeof(PyHH_FTS_QUERY),      /* tp_basicsize */
+  0,                           /* tp_itemsize */
+  PyHH_FTS_QUERY::deallocFunc, /* tp_dealloc */
+  0,                           /* tp_print */
+  0,                           /* tp_getattr */
+  0,                           /* tp_setattr */
+  0,                           /* tp_compare */
+  0,                           /* tp_repr */
+  0,                           /* tp_as_number */
+  0,                           /* tp_as_sequence */
+  0,                           /* tp_as_mapping */
+  0,                           /* tp_hash */
+  0,                           /* tp_call */
+  0,                           /* tp_str */
+  PyHH_FTS_QUERY::getattro,    /* tp_getattro */
+  PyHH_FTS_QUERY::setattro,    /* tp_setattro */
+  0,                           /* tp_as_buffer */
+  0,                           /* tp_flags */
+  "A Python object, representing an HH_FTS_QUERY struct",   /* tp_doc */
+  0,                           /* tp_traverse */
+  0,                           /* tp_clear */
+  0,                           /* tp_richcompare */
+  0,                           /* tp_weaklistoffset */
+  0,                           /* tp_iter */
+  0,                           /* tp_iternext */
+  0,                           /* tp_methods */
+  PyHH_FTS_QUERY::members,     /* tp_members */
+  0,                           /* tp_getset */
+  0,                           /* tp_base */
+  0,                           /* tp_dict */
+  0,                           /* tp_descr_get */
+  0,                           /* tp_descr_set */
+  0,                           /* tp_dictoffset */
+  0,                           /* tp_init */
+  0,                           /* tp_alloc */
+  0,                           /* tp_new */
 };
 
 #undef OFF
@@ -527,23 +527,23 @@ PyHH_FTS_QUERY::~PyHH_FTS_QUERY(void)
 {
   Py_XDECREF(m_pszSearchQuery);
 }
-  
+
 PyObject *PyHH_FTS_QUERY::getattro(PyObject *self, PyObject *obname)
 {
 	char *name=PYWIN_ATTR_CONVERT(obname);
 	if (name==NULL)
 		return NULL;
-	PyHH_FTS_QUERY *pO = (PyHH_FTS_QUERY *)self;
-      
-	if (strcmp("searchQuery", name)==0) {
-		PyObject *rc = pO->m_pszSearchQuery ? pO->m_pszSearchQuery : Py_None;
-		Py_INCREF(rc);
-		return rc;
-		}
+  PyHH_FTS_QUERY *pO = (PyHH_FTS_QUERY *)self;
+
+  if (strcmp("searchQuery", name)==0) {
+    PyObject *rc = pO->m_pszSearchQuery ? pO->m_pszSearchQuery : Py_None;
+    Py_INCREF(rc);
+    return rc;
+    }
 
 	return PyObject_GenericGetAttr(self, obname);
 }
-  
+
 int PyHH_FTS_QUERY::setattro(PyObject *self, PyObject *obname, PyObject *v)
 {
   if (v == NULL) {
@@ -589,7 +589,7 @@ BOOL PyWinObject_AsHH_FTS_QUERY(PyObject *ob, HH_FTS_QUERY **ppFTS_QUERY,
   }
   return TRUE;
 }
-  
+
 PyObject *PyWinObject_FromHH_FTS_QUERY(const HH_FTS_QUERY *pFTS_QUERY)
 {
   if (pFTS_QUERY==NULL) {
@@ -662,44 +662,44 @@ protected:
 //<c HH_DISPLAY_TEXT_POPUP><nl>
 
 PyTypeObject PyHH_POPUPType = {
-	PYWIN_OBJECT_HEAD
-	"PyHH_POPUP",               /* tp_name */
-	sizeof(PyHH_POPUP),         /* tp_basicsize */
-	0,                          /* tp_itemsize */
-	PyHH_POPUP::deallocFunc,    /* tp_dealloc */
-	0,                          /* tp_print */
-	0,					      /* tp_getattr */
-	0,							/* tp_setattr */
-	0,                          /* tp_compare */
-	0,                          /* tp_repr */
-	0,                          /* tp_as_number */
-	0,                          /* tp_as_sequence */
-	0,                          /* tp_as_mapping */
-	0,                          /* tp_hash */
-	0,                          /* tp_call */
-	0,                          /* tp_str */
-	PyHH_POPUP::getattro,       /* tp_getattro */
-	PyHH_POPUP::setattro,       /* tp_setattro */
-	0,						/* tp_as_buffer */
-	0,						/* tp_flags */
-	"A Python object, representing an HH_POPUP structure",		/* tp_doc */
-	0,						/* tp_traverse */
-	0,						/* tp_clear	*/
-	0,						/* tp_richcompare */
-	0,						/* tp_weaklistoffset */
-	0,						/* tp_iter */
-	0,						/* tp_iternext */
-	0,						/* tp_methods */
-	PyHH_POPUP::members,	/* tp_members */
-	0,						/* tp_getset */
-	0,						/* tp_base */
-	0,						/* tp_dict */
-	0,						/* tp_descr_get	*/
-	0,						/* tp_descr_set	*/
-	0,						/* tp_dictoffset */
-	0,						/* tp_init */
-	0,						/* tp_alloc	*/
-	0,						/* tp_new */
+  PYWIN_OBJECT_HEAD
+  "PyHH_POPUP",               /* tp_name */
+  sizeof(PyHH_POPUP),         /* tp_basicsize */
+  0,                          /* tp_itemsize */
+  PyHH_POPUP::deallocFunc,    /* tp_dealloc */
+  0,                          /* tp_print */
+  0,                          /* tp_getattr */
+  0,                          /* tp_setattr */
+  0,                          /* tp_compare */
+  0,                          /* tp_repr */
+  0,                          /* tp_as_number */
+  0,                          /* tp_as_sequence */
+  0,                          /* tp_as_mapping */
+  0,                          /* tp_hash */
+  0,                          /* tp_call */
+  0,                          /* tp_str */
+  PyHH_POPUP::getattro,       /* tp_getattro */
+  PyHH_POPUP::setattro,       /* tp_setattro */
+  0,                          /* tp_as_buffer */
+  0,                          /* tp_flags */
+  "A Python object, representing an HH_POPUP structure",    /* tp_doc */
+  0,                          /* tp_traverse */
+  0,                          /* tp_clear */
+  0,                          /* tp_richcompare */
+  0,                          /* tp_weaklistoffset */
+  0,                          /* tp_iter */
+  0,                          /* tp_iternext */
+  0,                          /* tp_methods */
+  PyHH_POPUP::members,        /* tp_members */
+  0,                          /* tp_getset */
+  0,                          /* tp_base */
+  0,                          /* tp_dict */
+  0,                          /* tp_descr_get */
+  0,                          /* tp_descr_set */
+  0,                          /* tp_dictoffset */
+  0,                          /* tp_init */
+  0,                          /* tp_alloc */
+  0,                          /* tp_new */
 };
 
 #undef OFF
@@ -806,7 +806,7 @@ PyHH_POPUP::~PyHH_POPUP(void)
   Py_XDECREF(m_rcMargins);
   Py_XDECREF(m_pszFont);
 }
-  
+
 PyObject *PyHH_POPUP::getattro(PyObject *self, PyObject *obname)
 {
 	char *name=PYWIN_ATTR_CONVERT(obname);
@@ -814,7 +814,7 @@ PyObject *PyHH_POPUP::getattro(PyObject *self, PyObject *obname)
 		return NULL;
 
   PyHH_POPUP *pO = (PyHH_POPUP *)self;
-      
+
   if (strcmp("text", name)==0) {
     PyObject *rc = pO->m_pszText ? pO->m_pszText : Py_None;
     Py_INCREF(rc);
@@ -838,7 +838,7 @@ PyObject *PyHH_POPUP::getattro(PyObject *self, PyObject *obname)
 
   return PyObject_GenericGetAttr(self, obname);
 }
-  
+
 int PyHH_POPUP::setattro(PyObject *self, PyObject *obname, PyObject *v)
 {
   if (v == NULL) {
@@ -899,7 +899,7 @@ int PyHH_POPUP::setattro(PyObject *self, PyObject *obname, PyObject *v)
   }
   return PyObject_GenericSetAttr(self, obname, v);
 }
-  
+
 /*static*/ void PyHH_POPUP::deallocFunc(PyObject *ob)
 {
   delete (PyHH_POPUP *)ob;
@@ -992,44 +992,44 @@ protected:
 //<c HH_GET_WIN_TYPE><nl>
 
 PyTypeObject PyHH_WINTYPEType =	{
-	PYWIN_OBJECT_HEAD
-	"PyHH_WINTYPE",			/* tp_name */
-	sizeof(PyHH_WINTYPE),	/* tp_basicsize */
-	0,						/* tp_itemsize */
-	PyHH_WINTYPE::deallocFunc,	/* tp_dealloc	*/
-	0,						/* tp_print */
-	0,						/* tp_getattr	*/
-	0,						/* tp_setattr	*/
-	0,						/* tp_compare	*/
-	0,						/* tp_repr */
-	0,						/* tp_as_number */
-	0,						/* tp_as_sequence	*/
-	0,						/* tp_as_mapping */
-	0,						/* tp_hash */
-	0,						/* tp_call */
-	0,						/* tp_str	*/
-	PyHH_WINTYPE::getattro,	/* tp_getattro */
-	PyHH_WINTYPE::setattro,	/* tp_setattro */
-	0,						/* tp_as_buffer */
-	0,						/* tp_flags */
-	"A Python	object,	representing an	HH_WINTYPE structure",	/* tp_doc */
-	0,						/* tp_traverse */
-	0,						/* tp_clear	*/
-	0,						/* tp_richcompare */
-	0,						/* tp_weaklistoffset */
-	0,						/* tp_iter */
-	0,						/* tp_iternext */
-	0,						/* tp_methods */
-	PyHH_WINTYPE::members,	/* tp_members */
-	0,						/* tp_getset */
-	0,						/* tp_base */
-	0,						/* tp_dict */
-	0,						/* tp_descr_get	*/
-	0,						/* tp_descr_set	*/
-	0,						/* tp_dictoffset */
-	0,						/* tp_init */
-	0,						/* tp_alloc	*/
-	0,						/* tp_new */
+  PYWIN_OBJECT_HEAD
+  "PyHH_WINTYPE",             /* tp_name */
+  sizeof(PyHH_WINTYPE),       /* tp_basicsize */
+  0,                          /* tp_itemsize */
+  PyHH_WINTYPE::deallocFunc,  /* tp_dealloc */
+  0,                          /* tp_print */
+  0,                          /* tp_getattr */
+  0,                          /* tp_setattr */
+  0,                          /* tp_compare */
+  0,                          /* tp_repr */
+  0,                          /* tp_as_number */
+  0,                          /* tp_as_sequence */
+  0,                          /* tp_as_mapping */
+  0,                          /* tp_hash */
+  0,                          /* tp_call */
+  0,                          /* tp_str */
+  PyHH_WINTYPE::getattro,     /* tp_getattro */
+  PyHH_WINTYPE::setattro,     /* tp_setattro */
+  0,                          /* tp_as_buffer */
+  0,                          /* tp_flags */
+  "A Python object, representing an HH_WINTYPE structure",  /* tp_doc */
+  0,                          /* tp_traverse */
+  0,                          /* tp_clear */
+  0,                          /* tp_richcompare */
+  0,                          /* tp_weaklistoffset */
+  0,                          /* tp_iter */
+  0,                          /* tp_iternext */
+  0,                          /* tp_methods */
+  PyHH_WINTYPE::members,      /* tp_members */
+  0,                          /* tp_getset */
+  0,                          /* tp_base */
+  0,                          /* tp_dict */
+  0,                          /* tp_descr_get */
+  0,                          /* tp_descr_set */
+  0,                          /* tp_dictoffset */
+  0,                          /* tp_init */
+  0,                          /* tp_alloc */
+  0,                          /* tp_new */
 };
 
 #undef OFF
@@ -1506,23 +1506,23 @@ PyTypeObject PyNMHDRType = {
   0,                           /* tp_as_buffer */
   0,                           /* tp_flags */
   "A Python object, representing an NMHDR structure",  /* tp_doc */
-  0,						/* tp_traverse */
-  0,						/* tp_clear */
-  0,						/* tp_richcompare */
-  0,						/* tp_weaklistoffset */
-  0,						/* tp_iter */
-  0,						/* tp_iternext */
-  0,						/* tp_methods */
-  PyNMHDR::members,			/* tp_members */
-  0,						/* tp_getset */
-  0,						/* tp_base */
-  0,						/* tp_dict */
-  0,						/* tp_descr_get */
-  0,						/* tp_descr_set */
-  0,						/* tp_dictoffset */
-  0,						/* tp_init */
-  0,						/* tp_alloc */
-  0,						/* tp_new */
+  0,                           /* tp_traverse */
+  0,                           /* tp_clear */
+  0,                           /* tp_richcompare */
+  0,                           /* tp_weaklistoffset */
+  0,                           /* tp_iter */
+  0,                           /* tp_iternext */
+  0,                           /* tp_methods */
+  PyNMHDR::members,            /* tp_members */
+  0,                           /* tp_getset */
+  0,                           /* tp_base */
+  0,                           /* tp_dict */
+  0,                           /* tp_descr_get */
+  0,                           /* tp_descr_set */
+  0,                           /* tp_dictoffset */
+  0,                           /* tp_init */
+  0,                           /* tp_alloc */
+  0,                           /* tp_new */
 };
 
 #undef OFF
@@ -1682,24 +1682,24 @@ PyTypeObject PyHHN_NOTIFYType = {
   PyHHN_NOTIFY::setattro,      /* tp_setattro */
   0,                           /* tp_as_buffer */
   0,                           /* tp_flags */
-  "A Python object, representing an HHN_NOTIFY structure",	/* tp_doc */
-  0,						/* tp_traverse */
-  0,						/* tp_clear */
-  0,						/* tp_richcompare */
-  0,						/* tp_weaklistoffset */
-  0,						/* tp_iter */
-  0,						/* tp_iternext */
-  0,						/* tp_methods */
-  PyHHN_NOTIFY::members,			/* tp_members */
-  0,						/* tp_getset */
-  0,						/* tp_base */
-  0,						/* tp_dict */
-  0,						/* tp_descr_get */
-  0,						/* tp_descr_set */
-  0,						/* tp_dictoffset */
-  0,						/* tp_init */
-  0,						/* tp_alloc */
-  0,						/* tp_new */
+  "A Python object, representing an HHN_NOTIFY structure", /* tp_doc */
+  0,                           /* tp_traverse */
+  0,                           /* tp_clear */
+  0,                           /* tp_richcompare */
+  0,                           /* tp_weaklistoffset */
+  0,                           /* tp_iter */
+  0,                           /* tp_iternext */
+  0,                           /* tp_methods */
+  PyHHN_NOTIFY::members,       /* tp_members */
+  0,                           /* tp_getset */
+  0,                           /* tp_base */
+  0,                           /* tp_dict */
+  0,                           /* tp_descr_get */
+  0,                           /* tp_descr_set */
+  0,                           /* tp_dictoffset */
+  0,                           /* tp_init */
+  0,                           /* tp_alloc */
+  0,                           /* tp_new */
 };
 
 #undef OFF
@@ -1920,23 +1920,23 @@ PyTypeObject PyHHNTRACKType = {
   0,                           /* tp_as_buffer */
   0,                           /* tp_flags */
   "A Python object, representing an HHNTRACK structure.", /* tp_doc */
-  0,						/* tp_traverse */
-  0,						/* tp_clear */
-  0,						/* tp_richcompare */
-  0,						/* tp_weaklistoffset */
-  0,						/* tp_iter */
-  0,						/* tp_iternext */
-  0,						/* tp_methods */
-  PyHHNTRACK::members,		/* tp_members */
-  0,						/* tp_getset */
-  0,						/* tp_base */
-  0,						/* tp_dict */
-  0,						/* tp_descr_get */
-  0,						/* tp_descr_set */
-  0,						/* tp_dictoffset */
-  0,						/* tp_init */
-  0,						/* tp_alloc */
-  0,						/* tp_new */
+  0,                           /* tp_traverse */
+  0,                           /* tp_clear */
+  0,                           /* tp_richcompare */
+  0,                           /* tp_weaklistoffset */
+  0,                           /* tp_iter */
+  0,                           /* tp_iternext */
+  0,                           /* tp_methods */
+  PyHHNTRACK::members,         /* tp_members */
+  0,                           /* tp_getset */
+  0,                           /* tp_base */
+  0,                           /* tp_dict */
+  0,                           /* tp_descr_get */
+  0,                           /* tp_descr_set */
+  0,                           /* tp_dictoffset */
+  0,                           /* tp_init */
+  0,                           /* tp_alloc */
+  0,                           /* tp_new */
 };
 
 #undef OFF
@@ -2011,8 +2011,7 @@ PyObject *PyHHNTRACK::getattro(PyObject *self, PyObject *obname)
 	if (name==NULL)
 		return NULL;
 
-	PyHHNTRACK *pO = (PyHHNTRACK *)self;
-      
+  PyHHNTRACK *pO = (PyHHNTRACK *)self;
   if (strcmp("hdr", name)==0) {
     PyObject *rc = pO->m_hdr ? pO->m_hdr : Py_None;
     Py_INCREF(rc);
@@ -2042,7 +2041,7 @@ int PyHHNTRACK::setattro(PyObject *self, PyObject *obname, PyObject *v)
 	char *name=PYWIN_ATTR_CONVERT(obname);
 	if (name==NULL)
 		return -1;
-	PyHHNTRACK *pO = (PyHHNTRACK *)self;
+  PyHHNTRACK *pO = (PyHHNTRACK *)self;
 
   if (strcmp("hdr", name)==0) {
     if (PyWinObject_AsNMHDR(v, (NMHDR**)&pO->m_HHNTRACK.hdr, 0)) {
