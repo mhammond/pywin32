@@ -44,7 +44,7 @@ static FARPROC loadwinhttpfunc(char *funcname, HMODULE hmodule)
 
 void init_win32inetstuff()
 {
-    HMODULE hmod = LoadLibrary("Winhttp.dll");
+    HMODULE hmod = LoadLibrary(_T("Winhttp.dll"));
     if (!hmod)
         return; // nothing else to do!
     LOAD_PFN(WinHttpGetIEProxyConfigForCurrentUser);
