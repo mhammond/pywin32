@@ -47,8 +47,7 @@ static struct PyMethodDef PyDSCBUFFERDESC_methods[] = {
 
 PyTypeObject PyDSCBUFFERDESCType =
 {
-	PyObject_HEAD_INIT(&PyType_Type)
-	0,
+	PYWIN_OBJECT_HEAD
 	"PyDSCBUFFERDESC",
 	sizeof(PyDSCBUFFERDESC),
 	0,
@@ -141,7 +140,7 @@ PyDSCBUFFERDESC::~PyDSCBUFFERDESC()
 int PyDSCBUFFERDESC::setattro(PyObject *self, PyObject *obname, PyObject *obvalue)
 {
 	PyDSCBUFFERDESC *obself = (PyDSCBUFFERDESC*)self;
-	char *name=PyString_AsString(obname);
+	char *name=PYWIN_ATTR_CONVERT(obname);
 
 	if (name==NULL)
 		return -1;

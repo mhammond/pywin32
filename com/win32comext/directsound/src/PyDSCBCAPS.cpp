@@ -42,8 +42,7 @@ static struct PyMethodDef PyDSCBCAPS_methods[] = {
 
 PyTypeObject PyDSCBCAPSType =
 {
-	PyObject_HEAD_INIT(&PyType_Type)
-	0,
+	PYWIN_OBJECT_HEAD
 	"PyDSCBCAPSType",
 	sizeof(PyDSCBCAPSType),
 	0,
