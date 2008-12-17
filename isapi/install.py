@@ -196,40 +196,31 @@ def FindWebServer(options, server_desc):
     server = GetWebServer(server_desc)
     return server.adsPath
 
-def old_split_path(path):
-    slash = path.rfind("/")
-    if slash >= 0:
-        parent = path[:slash]
-        name = path[slash+1:]
-    else:
-        parent = ""
-        name = path
-    return parent, name
-
 def split_path(path):
     """
-    Get the parent path and basename
-    >>> old_split_path('/') == split_path('/')
-    True
+    Get the parent path and basename.
     
-    >>> old_split_path('') == split_path('')
-    True
+    >>> split_path('/')
+    ['', '']
     
-    >>> old_split_path('foo') == split_path('foo')
-    True
+    >>> split_path('')
+    ['', '']
     
-    >>> old_split_path('/foo') == split_path('/foo')
-    True
+    >>> split_path('foo')
+    ['', 'foo']
     
-    >>> old_split_path('/foo/bar') == split_path('/foo/bar')
-    True
+    >>> split_path('/foo')
+    ['', 'foo']
     
-    >>> old_split_path('foo/bar') == split_path('foo/bar')
-    False
+    >>> split_path('/foo/bar')
+    ['/foo', 'bar']
+    
+    >>> split_path('foo/bar')
+    ['/foo', 'bar']
     """
     
     if not path.startswith('/'): path = '/' + path
-    return tuple(path.rsplit('/', 1))
+    return path.rsplit('/', 1)
 
 def ReallyCreateDirectory(iis_dir, name, params):
     # We used to go to lengths to keep an existing virtual directory
