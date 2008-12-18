@@ -321,11 +321,15 @@ class ShellTestCase(unittest.TestCase):
             cmd_repr = self.__cmd
         return "exec: " + cmd_repr
 
+class TestProgram(unittest.TestProgram):
+    def runTests(self):
+        if self.testRunner is None:
+            self.testRunner = TestRunner(verbosity=self.verbosity)
+        unittest.TestProgram(self)
+    
 def testmain(*args, **kw):
     new_kw = kw.copy()
     if 'testLoader' not in new_kw:
         new_kw['testLoader'] = TestLoader()
-    if 'testRunner' not in new_kw:
-        new_kw['testRunner'] = TestRunner()
     unittest.main(*args, **new_kw)
     CheckClean()
