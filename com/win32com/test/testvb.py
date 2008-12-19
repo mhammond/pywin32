@@ -3,12 +3,19 @@
 # This requires the PythonCOM VB Test Harness.
 #
 
+import sys
 import winerror
 import pythoncom, win32com.client, win32com.client.dynamic, win32com.client.gencache
 from win32com.server.util import NewCollection, wrap
 from win32com.test import util
 
 import traceback
+
+def string_to_buffer(s):
+    if sys.version_info < (3,0):
+        return buffer(s)
+    else:
+        return memoryview(s.encode("ascii"))
 
 # for debugging
 useDispatcher = None
@@ -66,8 +73,8 @@ def TestVB( vbtest, bUseGenerated ):
     vbtest.VariantProperty = 10
     if vbtest.VariantProperty != 10:
         raise error("Could not set the variant integer property correctly.")
-    vbtest.VariantProperty = buffer('raw\0data')
-    if vbtest.VariantProperty != buffer('raw\0data'):
+    vbtest.VariantProperty = string_to_buffer('raw\0data')
+    if vbtest.VariantProperty != string_to_buffer('raw\0data'):
         raise error("Could not set the variant buffer property correctly.")
     vbtest.StringProperty = "Hello from Python"
     if vbtest.StringProperty != "Hello from Python":
@@ -278,8 +285,8 @@ def TestArrays(vbtest, bUseGenerated):
     print "** Expecting a 'ValueError' exception to be printed next:"
     try:
         vbtest.DoCallbackSafeArraySizeFail(callback_ob)
-    except pythoncom.com_error, (hr, msg, exc, arg):
-        assert exc[1] == "Python COM Server Internal Error", "Didnt get the correct exception - '%s'" % (exc,)
+    except pythoncom.com_error, exc:
+        assert exc.excepinfo[1] == "Python COM Server Internal Error", "Didnt get the correct exception - '%s'" % (exc,)
         
     if bUseGenerated:
         # This one is a bit strange!  The array param is "ByRef", as VB insists.
@@ -312,8 +319,8 @@ def TestStructs(vbtest):
     try:
         vbtest.IntProperty = "One"
         raise error("Should have failed by now")
-    except pythoncom.com_error, (hr, desc, exc, argErr):
-        if hr != winerror.DISP_E_TYPEMISMATCH:
+    except pythoncom.com_error, exc:
+        if exc.hresult != winerror.DISP_E_TYPEMISMATCH:
             raise error("Expected DISP_E_TYPEMISMATCH")
 
     s = vbtest.StructProperty
@@ -394,9 +401,22 @@ def TestStructs(vbtest):
     except AttributeError:
         pass
     m = s.__members__
-    assert m[0]=="int_val" and m[1]=="str_val" and m[2]=="ob_val" and m[3]=="sub_val"
+    assert m[0]=="int_val" and m[1]=="str_val" and m[2]=="ob_val" and m[3]=="sub_val", m
 
-    # NOTE - a COM error is _not_ acceptable here!
+    # Test attribute errors.
+    try:
+        s.foo
+        raise RuntimeError("Expected attribute error")
+    except AttributeError, exc:
+        assert "foo" in str(exc), exc
+
+    # test repr - it uses repr() of the sub-objects, so check it matches.
+    expected = "com_struct(int_val=%r, str_val=%r, ob_val=%r, sub_val=%r)" % (s.int_val, s.str_val, s.ob_val, s.sub_val)
+    if repr(s) != expected:
+        print "Expected repr:", expected
+        print "Actual repr  :", repr(s)
+        raise RuntimeError("repr() of record object failed")
+    
     print "Struct/Record tests passed"
 
 def TestVBInterface(ob):
@@ -407,11 +427,36 @@ def TestVBInterface(ob):
     if t.getn() != 3:
         raise error("New value wrong")
 
+def TestObjectSemantics(ob):
+    # a convenient place to test some of our equality semantics
+    assert ob==ob._oleobj_
+    assert not ob!=ob._oleobj_
+    # same test again, but lhs and rhs reversed.
+    assert ob._oleobj_==ob
+    assert not ob._oleobj_!=ob
+    # same tests but against different pointers.  COM identity rules should
+    # still ensure all works
+    assert ob._oleobj_==ob._oleobj_.QueryInterface(pythoncom.IID_IUnknown)
+    assert not ob._oleobj_!=ob._oleobj_.QueryInterface(pythoncom.IID_IUnknown)
+
+    assert ob._oleobj_.QueryInterface(pythoncom.IID_IUnknown)==ob._oleobj_
+    assert not ob._oleobj_.QueryInterface(pythoncom.IID_IUnknown)!=ob._oleobj_
+
+    assert ob._oleobj_==ob._oleobj_.QueryInterface(pythoncom.IID_IDispatch)
+    assert not ob._oleobj_!=ob._oleobj_.QueryInterface(pythoncom.IID_IDispatch)
+
+    assert ob._oleobj_.QueryInterface(pythoncom.IID_IDispatch)==ob._oleobj_
+    assert not ob._oleobj_.QueryInterface(pythoncom.IID_IDispatch)!=ob._oleobj_
+
+    print "Object semantic tests passed"
+
 def DoTestAll():
     o = win32com.client.Dispatch("PyCOMVBTest.Tester")
+    TestObjectSemantics(o)
     TestVB(o,1)
 
     o = win32com.client.dynamic.DumbDispatch("PyCOMVBTest.Tester")
+    TestObjectSemantics(o)
     TestVB(o,0)
 
 def TestAll():
