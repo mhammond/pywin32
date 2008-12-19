@@ -16,9 +16,6 @@ struct PyMethodDef PyDEVMODE::methods[] = {
 
 #define OFF(e) offsetof(PyDEVMODE, e)
 struct PyMemberDef PyDEVMODE::members[] = {
-	// DeviceName is a dummy so it will show up in property list, get and set handle manually
-	// @prop str|DeviceName|String of at most 32 chars
-	{"DeviceName",		T_OBJECT, OFF(obdummy), 0, "String of at most 32 chars"},
 	// @prop int|SpecVersion|Should always be set to DM_SPECVERSION
 	{"SpecVersion", 	T_USHORT, OFF(devmode.dmSpecVersion), 0, "Should always be set to DM_SPECVERSION"},
 	// @prop int|DriverVersion|Version nbr assigned to printer driver by vendor
@@ -66,8 +63,6 @@ struct PyMemberDef PyDEVMODE::members[] = {
 	{"TTOption", 		T_SHORT,  OFF(devmode.dmTTOption), 0, "TrueType options: DMTT_BITMAP, DMTT_DOWNLOAD, DMTT_DOWNLOAD_OUTLINE, DMTT_SUBDEV"},
 	// @prop int|Collate|DMCOLLATE_TRUE or DMCOLLATE_FALSE
 	{"Collate", 		T_SHORT,   OFF(devmode.dmCollate), 0, "DMCOLLATE_TRUE or DMCOLLATE_FALSE"},
-	// @prop str|FormName|Name of form as returned by <om win32print.EnumForms>, at most 32 chars
-	{"FormName",		T_OBJECT,  OFF(obdummy), 0, "Name of form as returned by EnumForms, at most 32 chars"},
 	// @prop int|LogPixels|Pixels per inch (only for display devices
 	{"LogPixels", 		T_USHORT,  OFF(devmode.dmLogPixels), 0, "Pixels per inch (only for display devices)"},
 	// @prop int|BitsPerPel|Color resolution in bits per pixel
@@ -96,8 +91,6 @@ struct PyMemberDef PyDEVMODE::members[] = {
 	{"Reserved1",		T_ULONG,   OFF(devmode.dmReserved1), 0, "Reserved, use only 0"},
 	// @prop int|Reserved2|Reserved, use only 0
 	{"Reserved2",		T_ULONG,   OFF(devmode.dmReserved2), 0, "Reserved, use only 0"},
-	// @prop str|DriverData|Driver data appended to end of structure
-	{"DriverData",		T_OBJECT,  OFF(obdummy), 0, "Driver data appended to end of structure"},
 #if WINVER >= 0x0500
 	// @prop int|Nup|Controls printing of multiple logical pages per physical page, DMNUP_SYSTEM or DMNUP_ONEUP
 	{"Nup",				T_ULONG,   OFF(devmode.dmNup), 0, "Controls printing of multiple logical pages per physical page, DMNUP_SYSTEM or DMNUP_ONEUP"},
@@ -109,6 +102,116 @@ struct PyMemberDef PyDEVMODE::members[] = {
 #endif	// !MS_WINCE
 	{NULL}
 };
+
+
+// @prop str|DeviceName|String of at most 32 chars
+PyObject *PyDEVMODE::get_DeviceName(PyObject *self, void *unused)
+{
+	PDEVMODE pdevmode=((PyDEVMODE *)self)->pdevmode;
+	if (pdevmode->dmDeviceName[CCHDEVICENAME-1]==0)  // in case DeviceName fills space and has no trailing NULL
+		return PyString_FromString((char *)&pdevmode->dmDeviceName);
+	else
+		return PyString_FromStringAndSize((char *)&pdevmode->dmDeviceName, CCHDEVICENAME);
+}
+
+int PyDEVMODE::set_DeviceName(PyObject *self, PyObject *v, void *unused)
+{
+	if(v==NULL){
+		PyErr_SetString(PyExc_AttributeError, "Attributes of PyDEVMODE can't be deleted");
+		return -1;
+		}
+	char *value;
+	Py_ssize_t valuelen;
+	if (PyString_AsStringAndSize(v, &value, &valuelen)==-1)
+		return -1;
+	if (valuelen > CCHDEVICENAME){
+		PyErr_Format(PyExc_ValueError,"DeviceName must be a string of length %d or less", CCHDEVICENAME);
+		return -1;
+		}
+	PDEVMODE pdevmode=&((PyDEVMODE *)self)->devmode;
+	ZeroMemory(&pdevmode->dmDeviceName, CCHDEVICENAME);
+	memcpy(&pdevmode->dmDeviceName, value, valuelen);
+	// update variable length DEVMODE with same value
+	memcpy(((PyDEVMODE *)self)->pdevmode, pdevmode, pdevmode->dmSize);
+	return 0;
+}
+
+// @prop str|FormName|Name of form as returned by <om win32print.EnumForms>, at most 32 chars
+PyObject *PyDEVMODE::get_FormName(PyObject *self, void *unused)
+{
+	PDEVMODE pdevmode=((PyDEVMODE *)self)->pdevmode;
+	if (pdevmode->dmFormName[CCHFORMNAME-1]==0)  // If dmFormName occupies whole 32 chars, trailing NULL not present
+		return PyString_FromString((char *)&pdevmode->dmFormName);
+	else
+		return PyString_FromStringAndSize((char *)&pdevmode->dmFormName, CCHFORMNAME);
+
+}
+
+int PyDEVMODE::set_FormName(PyObject *self, PyObject *v, void *unused)
+{
+	if(v==NULL){
+		PyErr_SetString(PyExc_AttributeError, "Attributes of PyDEVMODE can't be deleted");
+		return -1;
+		}
+	char *value;
+	Py_ssize_t valuelen;
+	if (PyString_AsStringAndSize(v, &value, &valuelen)==-1)
+		return -1;
+	if (valuelen > CCHFORMNAME){
+		PyErr_Format(PyExc_ValueError,"FormName must be a string of length %d or less", CCHFORMNAME);
+		return -1;
+		}
+	PDEVMODE pdevmode=&((PyDEVMODE *)self)->devmode;
+	ZeroMemory(&pdevmode->dmFormName, CCHFORMNAME);
+	memcpy(&pdevmode->dmFormName, value, valuelen);
+	// update variable length PDEVMODE with same value
+	memcpy(((PyDEVMODE *)self)->pdevmode, pdevmode, pdevmode->dmSize);
+	return 0;
+}
+
+// @prop str|DriverData|Driver data appended to end of structure
+PyObject *PyDEVMODE::get_DriverData(PyObject *self, void *unused)
+{
+	PDEVMODE pdevmode=((PyDEVMODE *)self)->pdevmode;
+	if (pdevmode->dmDriverExtra==0){  // No extra space allocated
+		Py_INCREF(Py_None);
+		return Py_None;
+		}
+	return PyString_FromStringAndSize((char *)((ULONG_PTR)pdevmode + pdevmode->dmSize), pdevmode->dmDriverExtra);
+}
+
+int PyDEVMODE::set_DriverData(PyObject *self, PyObject *v, void *unused)
+{
+	if(v==NULL){
+		PyErr_SetString(PyExc_AttributeError, "Attributes of PyDEVMODE can't be deleted");
+		return -1;
+		}
+	char *value;
+	Py_ssize_t valuelen;
+	if (PyString_AsStringAndSize(v, &value, &valuelen)==-1)
+		return -1;
+	PDEVMODE pdevmode=((PyDEVMODE *)self)->pdevmode;
+	if (valuelen > pdevmode->dmDriverExtra){
+		PyErr_Format(PyExc_ValueError,"Length of DriverData cannot be longer that DriverExtra (%d bytes)", pdevmode->dmDriverExtra);
+		return -1;
+		}
+	// This is not a real struct member, calculate address after end of fixed part of structure
+	char *driverdata=(char *)((ULONG_PTR)pdevmode + pdevmode->dmSize); 
+	ZeroMemory(driverdata, pdevmode->dmDriverExtra);
+	memcpy(driverdata, value, valuelen);
+	return 0;
+}
+
+PyGetSetDef PyDEVMODE::getset[] = {
+    {"DeviceName", PyDEVMODE::get_DeviceName, PyDEVMODE::set_DeviceName,
+		"String of at most 32 chars"},
+    {"FormName", PyDEVMODE::get_FormName, PyDEVMODE::set_FormName,
+		"Name of form as returned by EnumForms, at most 32 chars"},
+    {"DriverData", PyDEVMODE::get_DriverData, PyDEVMODE::set_DriverData,
+		"Driver data appended to end of structure"},
+    {NULL}
+};
+
 
 PYWINTYPES_EXPORT PyTypeObject PyDEVMODEType =
 {
@@ -125,12 +228,12 @@ PYWINTYPES_EXPORT PyTypeObject PyDEVMODEType =
 	0,			// tp_as_number
 	0,			// tp_as_sequence
 	0,			// tp_as_mapping
-	0,
-	0,						/* tp_call */
-	0,		/* tp_str */
-	PyDEVMODE::getattro,	// PyObject_GenericGetAttr
-	PyDEVMODE::setattro,	// PyObject_GenericSetAttr
-	0,			// tp_as_buffer;
+	0,			// tp_hash
+	0,			// tp_call
+	0,			// tp_str
+	0,			// tp_getattro
+	0,			// tp_setattro
+	0,			// tp_as_buffer
 	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,	// tp_flags;
 	0,			// tp_doc; /* Documentation string */
 	0,			// traverseproc tp_traverse;
@@ -141,7 +244,7 @@ PYWINTYPES_EXPORT PyTypeObject PyDEVMODEType =
 	0,			// iternextfunc tp_iternext
 	PyDEVMODE::methods,
 	PyDEVMODE::members,
-	0,			// tp_getset;
+	PyDEVMODE::getset,		// tp_getset;
 	0,			// tp_base;
 	0,			// tp_dict;
 	0,			// tp_descr_get;
@@ -162,7 +265,6 @@ PyDEVMODE::PyDEVMODE(PDEVMODE pdm)
 		pdm->dmSize + pdm->dmDriverExtra);
 	else
 		memcpy(pdevmode, pdm, pdm->dmSize + pdm->dmDriverExtra);
-	obdummy=NULL;
 	_Py_NewReference(this);
 }
 
@@ -177,7 +279,6 @@ PyDEVMODE::PyDEVMODE(void)
 	ZeroMemory(&devmode,dmSize);
 	devmode.dmSize=dmSize;
 	devmode.dmSpecVersion=DM_SPECVERSION;
-	obdummy=NULL;
 	_Py_NewReference(this);
 }
 
@@ -194,7 +295,6 @@ PyDEVMODE::PyDEVMODE(USHORT dmDriverExtra)
 	devmode.dmSize=dmSize;
 	devmode.dmSpecVersion=DM_SPECVERSION;
 	devmode.dmDriverExtra=dmDriverExtra;
-	obdummy=NULL;
 	_Py_NewReference(this);
 }
 
@@ -244,94 +344,6 @@ PyObject *PyDEVMODE::Clear(PyObject *self, PyObject *args)
 	return Py_None;
 }
 
-PyObject *PyDEVMODE::getattro(PyObject *self, PyObject *obname)
-{
-	PDEVMODE pdevmode=((PyDEVMODE *)self)->pdevmode;
-	char *name=PyString_AsString(obname);
-	if (name==NULL)
-		return NULL;
-	if (strcmp(name,"DeviceName")==0)
-		if (pdevmode->dmDeviceName[CCHDEVICENAME-1]==0)  // in case DeviceName fills space and has no trailing NULL
-			return PyString_FromString((char *)&pdevmode->dmDeviceName);
-		else
-			return PyString_FromStringAndSize((char *)&pdevmode->dmDeviceName, CCHDEVICENAME);
-
-	if (strcmp(name,"FormName")==0)
-		if (pdevmode->dmFormName[CCHFORMNAME-1]==0)  // If dmFormName occupies whole 32 chars, trailing NULL not present
-			return PyString_FromString((char *)&pdevmode->dmFormName);
-		else
-			return PyString_FromStringAndSize((char *)&pdevmode->dmFormName, CCHFORMNAME);
-	
-	if (strcmp(name,"DriverData")==0)
-		if (pdevmode->dmDriverExtra==0){  // No extra space allocated
-			Py_INCREF(Py_None);
-			return Py_None;
-			}
-		else
-			return PyString_FromStringAndSize((char *)((ULONG_PTR)pdevmode + pdevmode->dmSize), pdevmode->dmDriverExtra);
-
-	return PyObject_GenericGetAttr(self,obname);
-}
-
-int PyDEVMODE::setattro(PyObject *self, PyObject *obname, PyObject *obvalue)
-{
-	char *name, *value;
-	Py_ssize_t valuelen;
-	name=PyString_AsString(obname);
-	if (name==NULL)
-		return -1;
-	if (strcmp(name,"DeviceName")==0){
-		if (PyString_AsStringAndSize(obvalue, &value, &valuelen)==-1)
-			return -1;
-		if (valuelen > CCHDEVICENAME){
-			PyErr_Format(PyExc_ValueError,"DeviceName must be a string of length %d or less", CCHDEVICENAME);
-			return -1;
-			}
-		PDEVMODE pdevmode=&((PyDEVMODE *)self)->devmode;
-		ZeroMemory(&pdevmode->dmDeviceName, CCHDEVICENAME);
-		memcpy(&pdevmode->dmDeviceName, value, valuelen);
-		// update variable length DEVMODE with same value
-		memcpy(((PyDEVMODE *)self)->pdevmode, pdevmode, pdevmode->dmSize);
-		return 0;
-		}
-
-	if (strcmp(name,"FormName")==0){
-		if (PyString_AsStringAndSize(obvalue, &value, &valuelen)==-1)
-			return -1;
-		if (valuelen > CCHFORMNAME){
-			PyErr_Format(PyExc_ValueError,"FormName must be a string of length %d or less", CCHFORMNAME);
-			return -1;
-			}
-		PDEVMODE pdevmode=&((PyDEVMODE *)self)->devmode;
-		ZeroMemory(&pdevmode->dmFormName, CCHFORMNAME);
-		memcpy(&pdevmode->dmFormName, value, valuelen);
-		// update variable length PDEVMODE with same value
-		memcpy(((PyDEVMODE *)self)->pdevmode, pdevmode, pdevmode->dmSize);
-		return 0;
-		}
-
-	if (strcmp(name,"DriverData")==0){
-		if (PyString_AsStringAndSize(obvalue, &value, &valuelen)==-1)
-			return -1;
-		PDEVMODE pdevmode=((PyDEVMODE *)self)->pdevmode;
-		if (valuelen > pdevmode->dmDriverExtra){
-			PyErr_Format(PyExc_ValueError,"Length of DriverData cannot be longer that DriverExtra (%d bytes)", pdevmode->dmDriverExtra);
-			return -1;
-			}
-		// This is not a real struct member, calculate address after end of fixed part of structure
-		char *driverdata=(char *)((ULONG_PTR)pdevmode + pdevmode->dmSize); 
-		ZeroMemory(driverdata, pdevmode->dmDriverExtra);
-		memcpy(driverdata, value, valuelen);
-		return 0;
-		}
-
-	int ret=PyObject_GenericSetAttr(self, obname, obvalue);
-	// Propagate changes to the externally usable structure
-	if (ret==0)
-		memcpy(((PyDEVMODE *)self)->pdevmode, &((PyDEVMODE *)self)->devmode, ((PyDEVMODE *)self)->devmode.dmSize);
-	return ret;
-}
-
 PyObject *PyDEVMODE::tp_new(PyTypeObject *typ, PyObject *args, PyObject *kwargs)
 {
 	USHORT DriverExtra=0;
@@ -341,6 +353,9 @@ PyObject *PyDEVMODE::tp_new(PyTypeObject *typ, PyObject *args, PyObject *kwargs)
 	return new PyDEVMODE(DriverExtra);
 }
 
+// If pywintypes is compiled with UNICODE defined, all modules that use these
+//	objects will also need to be UNICODE
+#ifndef UNICODE
 BOOL PyWinObject_AsDEVMODE(PyObject *ob, PDEVMODE *ppDEVMODE, BOOL bNoneOk)
 {
 	if (ob==Py_None)
@@ -379,6 +394,7 @@ PyObject *PyWinObject_FromDEVMODE(PDEVMODE pDEVMODE)
 		}
 	return ret;
 }
+#endif
 
 
 // DEVMODEW support
@@ -395,9 +411,6 @@ struct PyMethodDef PyDEVMODEW::methods[] = {
 
 #define OFFW(e) offsetof(PyDEVMODEW, e)
 struct PyMemberDef PyDEVMODEW::members[] = {
-	// DeviceName is a dummy so it will show up in property list, get and set handle manually
-	// @prop <o PyUnicode>|DeviceName|String of at most 32 chars
-	{"DeviceName",		T_OBJECT, OFFW(obdummy), 0, "String of at most 32 chars"},
 	// @prop int|SpecVersion|Should always be set to DM_SPECVERSION
 	{"SpecVersion", 	T_USHORT, OFFW(devmode.dmSpecVersion), 0, "Should always be set to DM_SPECVERSION"},
 	// @prop int|DriverVersion|Version nbr assigned to printer driver by vendor
@@ -445,8 +458,6 @@ struct PyMemberDef PyDEVMODEW::members[] = {
 	{"TTOption", 		T_SHORT,  OFFW(devmode.dmTTOption), 0, "TrueType options: DMTT_BITMAP, DMTT_DOWNLOAD, DMTT_DOWNLOAD_OUTLINE, DMTT_SUBDEV"},
 	// @prop int|Collate|DMCOLLATE_TRUE or DMCOLLATE_FALSE
 	{"Collate", 		T_SHORT,  OFFW(devmode.dmCollate), 0, "DMCOLLATE_TRUE or DMCOLLATE_FALSE"},
-	// @prop <o PyUnicode>|FormName|Name of form as returned by <om win32print.EnumForms>, at most 32 chars
-	{"FormName",		T_OBJECT, OFFW(obdummy), 0, "Name of form as returned by EnumForms, at most 32 chars"},
 	// @prop int|LogPixels|Pixels per inch (only for display devices
 	{"LogPixels", 		T_USHORT, OFFW(devmode.dmLogPixels), 0, "Pixels per inch (only for display devices)"},
 	// @prop int|BitsPerPel|Color resolution in bits per pixel
@@ -475,8 +486,6 @@ struct PyMemberDef PyDEVMODEW::members[] = {
 	{"Reserved1",		T_ULONG,  OFFW(devmode.dmReserved1), 0, "Reserved, use only 0"},
 	// @prop int|Reserved2|Reserved, use only 0
 	{"Reserved2",		T_ULONG,  OFFW(devmode.dmReserved2), 0, "Reserved, use only 0"},
-	// @prop str|DriverData|Driver data appended to end of structure
-	{"DriverData",		T_OBJECT, OFFW(obdummy), 0, "Driver data appended to end of structure"},
 #if WINVER >= 0x0500
 	// @prop int|Nup|Controls printing of multiple logical pages per physical page, DMNUP_SYSTEM or DMNUP_ONEUP
 	{"Nup",				T_ULONG,  OFFW(devmode.dmNup), 0, "Controls printing of multiple logical pages per physical page, DMNUP_SYSTEM or DMNUP_ONEUP"},
@@ -487,6 +496,115 @@ struct PyMemberDef PyDEVMODEW::members[] = {
 #endif	// WINVER >= 0x0500
 #endif	// !MS_WINCE
 	{NULL}
+};
+
+// @prop <o PyUnicode>|DeviceName|String of at most 32 chars
+PyObject *PyDEVMODEW::get_DeviceName(PyObject *self, void *unused)
+{
+	PDEVMODEW pdevmode=((PyDEVMODEW *)self)->pdevmode;
+	if (pdevmode->dmDeviceName[CCHDEVICENAME-1]==0)  // in case DeviceName fills space and has no trailing NULL
+		return PyWinObject_FromWCHAR(pdevmode->dmDeviceName);
+	return PyWinObject_FromWCHAR(pdevmode->dmDeviceName, CCHDEVICENAME);
+}
+
+int PyDEVMODEW::set_DeviceName(PyObject *self, PyObject *v, void *unused)
+{
+	if(v==NULL){
+		PyErr_SetString(PyExc_AttributeError, "Attributes of PyDEVMODEW can't be deleted");
+		return -1;
+		}
+	WCHAR *devicename;
+	DWORD cch;
+	if (!PyWinObject_AsWCHAR(v, &devicename, FALSE, &cch))
+		return -1;
+	if (cch > CCHDEVICENAME){
+		PyErr_Format(PyExc_ValueError,"DeviceName must be a string of length %d or less", CCHDEVICENAME);
+		PyWinObject_FreeWCHAR(devicename);
+		return -1;
+		}
+	PDEVMODEW pdevmode=&((PyDEVMODEW *)self)->devmode;
+	ZeroMemory(&pdevmode->dmDeviceName, sizeof(pdevmode->dmDeviceName));
+	memcpy(&pdevmode->dmDeviceName, devicename, cch * sizeof(WCHAR));
+	// update variable length DEVMODE with same value
+	memcpy(((PyDEVMODEW *)self)->pdevmode, pdevmode, pdevmode->dmSize);
+	PyWinObject_FreeWCHAR(devicename);
+	return 0;
+}
+
+// @prop str|FormName|Name of form as returned by <om win32print.EnumForms>, at most 32 chars
+PyObject *PyDEVMODEW::get_FormName(PyObject *self, void *unused)
+{
+	PDEVMODEW pdevmode=((PyDEVMODEW *)self)->pdevmode;
+	if (pdevmode->dmFormName[CCHFORMNAME-1]==0)  // If dmFormName occupies whole 32 chars, trailing NULL not present
+		return PyWinObject_FromWCHAR(pdevmode->dmFormName);
+	return PyWinObject_FromWCHAR(pdevmode->dmFormName, CCHFORMNAME);
+}
+
+int PyDEVMODEW::set_FormName(PyObject *self, PyObject *v, void *unused)
+{
+	if(v==NULL){
+		PyErr_SetString(PyExc_AttributeError, "Attributes of PyDEVMODEW can't be deleted");
+		return -1;
+		}
+	WCHAR *formname;
+	DWORD cch;
+	if (!PyWinObject_AsWCHAR(v, &formname, FALSE, &cch))
+		return -1;
+	if (cch > CCHFORMNAME){
+		PyErr_Format(PyExc_ValueError,"FormName must be a string of length %d or less", CCHFORMNAME);
+		PyWinObject_FreeWCHAR(formname);
+		return -1;
+		}
+	PDEVMODEW pdevmode=&((PyDEVMODEW *)self)->devmode;
+	ZeroMemory(&pdevmode->dmFormName, sizeof(pdevmode->dmFormName));
+	memcpy(&pdevmode->dmFormName, formname, cch * sizeof(WCHAR));
+	// update variable length PDEVMODE with same value
+	memcpy(((PyDEVMODEW *)self)->pdevmode, pdevmode, pdevmode->dmSize);
+	PyWinObject_FreeWCHAR(formname);
+	return 0;
+}
+
+// @prop str|DriverData|Driver data appended to end of structure
+PyObject *PyDEVMODEW::get_DriverData(PyObject *self, void *unused)
+{
+	PDEVMODEW pdevmode=((PyDEVMODEW *)self)->pdevmode;
+	if (pdevmode->dmDriverExtra==0){  // No extra space allocated
+		Py_INCREF(Py_None);
+		return Py_None;
+		}
+	return PyString_FromStringAndSize((char *)((ULONG_PTR)pdevmode + pdevmode->dmSize), pdevmode->dmDriverExtra);
+}
+
+int PyDEVMODEW::set_DriverData(PyObject *self, PyObject *v, void *unused)
+{
+	if(v==NULL){
+		PyErr_SetString(PyExc_AttributeError, "Attributes of PyDEVMODEW can't be deleted");
+		return -1;
+		}
+	char *value;
+	Py_ssize_t valuelen;
+	if (PyString_AsStringAndSize(v, &value, &valuelen)==-1)
+		return -1;
+	PDEVMODEW pdevmode=((PyDEVMODEW *)self)->pdevmode;
+	if (valuelen > pdevmode->dmDriverExtra){
+		PyErr_Format(PyExc_ValueError,"Length of DriverData cannot be longer that DriverExtra (%d bytes)", pdevmode->dmDriverExtra);
+		return -1;
+		}
+	// This is not a real struct member, calculate address after end of fixed part of structure
+	char *driverdata=(char *)((ULONG_PTR)pdevmode + pdevmode->dmSize); 
+	ZeroMemory(driverdata, pdevmode->dmDriverExtra);
+	memcpy(driverdata, value, valuelen);
+	return 0;
+}
+
+PyGetSetDef PyDEVMODEW::getset[] = {
+    {"DeviceName", PyDEVMODEW::get_DeviceName, PyDEVMODEW::set_DeviceName,
+		"String of at most 32 chars"},
+    {"FormName", PyDEVMODEW::get_FormName, PyDEVMODEW::set_FormName,
+		"Name of form as returned by EnumForms, at most 32 chars"},
+    {"DriverData", PyDEVMODEW::get_DriverData, PyDEVMODEW::set_DriverData,
+		"Driver data appended to end of structure"},
+    {NULL}
 };
 
 PYWINTYPES_EXPORT PyTypeObject PyDEVMODEWType =
@@ -504,14 +622,14 @@ PYWINTYPES_EXPORT PyTypeObject PyDEVMODEWType =
 	0,			// tp_as_number
 	0,			// tp_as_sequence
 	0,			// tp_as_mapping
-	0,
-	0,						/* tp_call */
-	0,		/* tp_str */
-	PyDEVMODEW::getattro,	// PyObject_GenericGetAttr
-	PyDEVMODEW::setattro,	// PyObject_GenericSetAttr
-	0,			// tp_as_buffer;
+	0,			// tp_hash
+	0,			// tp_call
+	0,			// tp_str
+	0,			// tp_getattro
+	0,			// tp_setattro
+	0,			// tp_as_buffer
 	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,	// tp_flags;
-	0,			// tp_doc; /* Documentation string */
+	0,			// tp_doc
 	0,			// traverseproc tp_traverse;
 	0,			// tp_clear;
 	0,			// tp_richcompare;
@@ -520,7 +638,7 @@ PYWINTYPES_EXPORT PyTypeObject PyDEVMODEWType =
 	0,			// iternextfunc tp_iternext
 	PyDEVMODEW::methods,
 	PyDEVMODEW::members,
-	0,			// tp_getset;
+	PyDEVMODEW::getset,		// tp_getset;
 	0,			// tp_base;
 	0,			// tp_dict;
 	0,			// tp_descr_get;
@@ -541,7 +659,6 @@ PyDEVMODEW::PyDEVMODEW(PDEVMODEW pdm)
 			pdm->dmSize + pdm->dmDriverExtra);
 	else
 		memcpy(pdevmode, pdm, pdm->dmSize + pdm->dmDriverExtra);
-	obdummy=NULL;
 	_Py_NewReference(this);
 }
 
@@ -556,7 +673,6 @@ PyDEVMODEW::PyDEVMODEW(void)
 	ZeroMemory(&devmode,dmSize);
 	devmode.dmSize=dmSize;
 	devmode.dmSpecVersion=DM_SPECVERSION;
-	obdummy=NULL;
 	_Py_NewReference(this);
 }
 
@@ -573,7 +689,6 @@ PyDEVMODEW::PyDEVMODEW(USHORT dmDriverExtra)
 	devmode.dmSize=dmSize;
 	devmode.dmSpecVersion=DM_SPECVERSION;
 	devmode.dmDriverExtra=dmDriverExtra;
-	obdummy=NULL;
 	_Py_NewReference(this);
 }
 
@@ -621,103 +736,6 @@ PyObject *PyDEVMODEW::Clear(PyObject *self, PyObject *args)
 	pdevmode->dmSpecVersion=DM_SPECVERSION;
 	Py_INCREF(Py_None);
 	return Py_None;
-}
-
-PyObject *PyDEVMODEW::getattro(PyObject *self, PyObject *obname)
-{
-	PDEVMODEW pdevmode=((PyDEVMODEW *)self)->pdevmode;
-	char *name=PyString_AsString(obname);
-	if (name==NULL)
-		return NULL;
-	if (strcmp(name,"DeviceName")==0)
-		if (pdevmode->dmDeviceName[CCHDEVICENAME-1]==0)  // in case DeviceName fills space and has no trailing NULL
-			return PyWinObject_FromWCHAR(pdevmode->dmDeviceName);
-		else
-			return PyWinObject_FromWCHAR(pdevmode->dmDeviceName, CCHDEVICENAME);
-
-	if (strcmp(name,"FormName")==0)
-		if (pdevmode->dmFormName[CCHFORMNAME-1]==0)  // If dmFormName occupies whole 32 chars, trailing NULL not present
-			return PyWinObject_FromWCHAR(pdevmode->dmFormName);
-		else
-			return PyWinObject_FromWCHAR(pdevmode->dmFormName, CCHFORMNAME);
-	
-	if (strcmp(name,"DriverData")==0)
-		if (pdevmode->dmDriverExtra==0){  // No extra space allocated
-			Py_INCREF(Py_None);
-			return Py_None;
-			}
-		else
-			return PyString_FromStringAndSize((char *)((ULONG_PTR)pdevmode + pdevmode->dmSize), pdevmode->dmDriverExtra);
-
-	return PyObject_GenericGetAttr(self,obname);
-}
-
-int PyDEVMODEW::setattro(PyObject *self, PyObject *obname, PyObject *obvalue)
-{
-	char *name;
-	name=PyString_AsString(obname);
-	if (name==NULL)
-		return -1;
-	if (strcmp(name,"DeviceName")==0){
-		WCHAR *devicename;
-		DWORD cch;
-		if (!PyWinObject_AsWCHAR(obvalue, &devicename, FALSE, &cch))
-			return -1;
-		if (cch > CCHDEVICENAME){
-			PyErr_Format(PyExc_ValueError,"DeviceName must be a string of length %d or less", CCHDEVICENAME);
-			PyWinObject_FreeWCHAR(devicename);
-			return -1;
-			}
-		PDEVMODEW pdevmode=&((PyDEVMODEW *)self)->devmode;
-		ZeroMemory(&pdevmode->dmDeviceName, sizeof(pdevmode->dmDeviceName));
-		memcpy(&pdevmode->dmDeviceName, devicename, cch * sizeof(WCHAR));
-		// update variable length DEVMODE with same value
-		memcpy(((PyDEVMODEW *)self)->pdevmode, pdevmode, pdevmode->dmSize);
-		PyWinObject_FreeWCHAR(devicename);
-		return 0;
-		}
-
-	if (strcmp(name,"FormName")==0){
-		WCHAR *formname;
-		DWORD cch;
-		if (!PyWinObject_AsWCHAR(obvalue, &formname, FALSE, &cch))
-			return -1;
-		if (cch > CCHFORMNAME){
-			PyErr_Format(PyExc_ValueError,"FormName must be a string of length %d or less", CCHFORMNAME);
-			PyWinObject_FreeWCHAR(formname);
-			return -1;
-			}
-		PDEVMODEW pdevmode=&((PyDEVMODEW *)self)->devmode;
-		ZeroMemory(&pdevmode->dmFormName, sizeof(pdevmode->dmFormName));
-		memcpy(&pdevmode->dmFormName, formname, cch * sizeof(WCHAR));
-		// update variable length PDEVMODE with same value
-		memcpy(((PyDEVMODEW *)self)->pdevmode, pdevmode, pdevmode->dmSize);
-		PyWinObject_FreeWCHAR(formname);
-		return 0;
-		}
-
-	if (strcmp(name,"DriverData")==0){
-		char *value;
-		Py_ssize_t valuelen;
-		if (PyString_AsStringAndSize(obvalue, &value, &valuelen)==-1)
-			return -1;
-		PDEVMODEW pdevmode=((PyDEVMODEW *)self)->pdevmode;
-		if (valuelen > pdevmode->dmDriverExtra){
-			PyErr_Format(PyExc_ValueError,"Length of DriverData cannot be longer that DriverExtra (%d bytes)", pdevmode->dmDriverExtra);
-			return -1;
-			}
-		// This is not a real struct member, calculate address after end of fixed part of structure
-		char *driverdata=(char *)((ULONG_PTR)pdevmode + pdevmode->dmSize); 
-		ZeroMemory(driverdata, pdevmode->dmDriverExtra);
-		memcpy(driverdata, value, valuelen);
-		return 0;
-		}
-
-	int ret=PyObject_GenericSetAttr(self, obname, obvalue);
-	// Propagate changes to the externally usable structure
-	if (ret==0)
-		memcpy(((PyDEVMODEW *)self)->pdevmode, &((PyDEVMODEW *)self)->devmode, ((PyDEVMODEW *)self)->devmode.dmSize);
-	return ret;
 }
 
 PyObject *PyDEVMODEW::tp_new(PyTypeObject *typ, PyObject *args, PyObject *kwargs)

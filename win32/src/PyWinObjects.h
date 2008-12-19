@@ -182,28 +182,27 @@ public:
 class PYWINTYPES_EXPORT PyDEVMODE : public PyObject
 {
 public:
-#ifdef _MSC_VER
-#pragma warning( disable : 4251 )
-#endif // _MSC_VER
 	static struct PyMemberDef members[];
 	static struct PyMethodDef methods[];
-#ifdef _MSC_VER
-#pragma warning( default : 4251 )
-#endif // _MSC_VER
+
+	static PyObject *get_DeviceName(PyObject *self, void *unused);
+	static int set_DeviceName(PyObject *self, PyObject *obsd, void *unused);
+	static PyObject *get_FormName(PyObject *self, void *unused);
+	static int set_FormName(PyObject *self, PyObject *obsd, void *unused);
+	static PyObject *get_DriverData(PyObject *self, void *unused);
+	static int set_DriverData(PyObject *self, PyObject *obsd, void *unused);
+	static PyGetSetDef getset[];
 
 	static void deallocFunc(PyObject *ob);
 	PyDEVMODE(PDEVMODE);
 	PyDEVMODE(void);
 	PyDEVMODE(USHORT);
-	static PyObject *getattro(PyObject *self, PyObject *name);
-	static int setattro(PyObject *self, PyObject *obname, PyObject *obvalue);
 	static PyObject *Clear(PyObject *self, PyObject *args);
 	static PyObject *tp_new(PyTypeObject *, PyObject *, PyObject *);
 	// use this where a function modifies a passed-in PyDEVMODE to make changes visible to Python
 	void modify_in_place(void)
 		{memcpy(&devmode, pdevmode, pdevmode->dmSize);}
 	PDEVMODE GetDEVMODE(void);
-	PyObject *obdummy;
 protected:
 	// Pointer to variable length DEVMODE with dmDriverExtra bytes allocated at end, always use this externally
 	PDEVMODE pdevmode;
@@ -216,28 +215,27 @@ protected:
 class PYWINTYPES_EXPORT PyDEVMODEW : public PyObject
 {
 public:
-#ifdef _MSC_VER
-#pragma warning( disable : 4251 )
-#endif // _MSC_VER
 	static struct PyMemberDef members[];
 	static struct PyMethodDef methods[];
-#ifdef _MSC_VER
-#pragma warning( default : 4251 )
-#endif // _MSC_VER
+
+	static PyObject *get_DeviceName(PyObject *self, void *unused);
+	static int set_DeviceName(PyObject *self, PyObject *obsd, void *unused);
+	static PyObject *get_FormName(PyObject *self, void *unused);
+	static int set_FormName(PyObject *self, PyObject *obsd, void *unused);
+	static PyObject *get_DriverData(PyObject *self, void *unused);
+	static int set_DriverData(PyObject *self, PyObject *obsd, void *unused);
+	static PyGetSetDef getset[];
 
 	static void deallocFunc(PyObject *ob);
 	PyDEVMODEW(PDEVMODEW);
 	PyDEVMODEW(void);
 	PyDEVMODEW(USHORT);
-	static PyObject *getattro(PyObject *self, PyObject *name);
-	static int setattro(PyObject *self, PyObject *obname, PyObject *obvalue);
 	static PyObject *Clear(PyObject *self, PyObject *args);
 	static PyObject *tp_new(PyTypeObject *, PyObject *, PyObject *);
 	// use this where a function modifies a passed-in PyDEVMODE to make changes visible to Python
 	void modify_in_place(void)
 		{memcpy(&devmode, pdevmode, pdevmode->dmSize);}
 	PDEVMODEW GetDEVMODE(void);
-	PyObject *obdummy;
 protected:
 	// Pointer to variable length DEVMODE with dmDriverExtra bytes allocated at end, always use this externally
 	PDEVMODEW pdevmode;
