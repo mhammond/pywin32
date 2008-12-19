@@ -186,7 +186,8 @@ class LeakTestCase(unittest.TestCase):
                 break
         del i # created after we remembered the refcount!
         # int division here means one or 2 stray references won't force 
-        # failure, but one per loop 
+        # failure, but one per loop
+        gc.collect()
         lost = (gtrc() - trc) // self.num_leak_iters
         if lost < 0:
             msg = "LeakTest: %s appeared to gain %d references!!" % (self.real_test, -lost)
@@ -264,14 +265,22 @@ class LogHandler(logging.Handler):
     def emit(self, record):
         self.emitted.append(record)
 
+_win32com_logger = None
 def setup_test_logger():
         old_log = getattr(win32com, "logger", None)
-        win32com.logger = logging.Logger('test')
-        handler = LogHandler()
-        win32com.logger.addHandler(handler)
+        global _win32com_logger
+        if _win32com_logger is None:
+            _win32com_logger = logging.Logger('test')
+            handler = LogHandler()
+            _win32com_logger.addHandler(handler)
+
+        win32com.logger = _win32com_logger
+        handler = _win32com_logger.handlers[0]
+        handler.emitted = []
         return handler.emitted, old_log
 
 def restore_test_logger(prev_logger):
+    assert prev_logger is None, "who needs this?"
     if prev_logger is None:
         del win32com.logger
     else:
