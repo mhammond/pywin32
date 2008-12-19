@@ -7,7 +7,7 @@
 # registry etc.
 
 import win32service, win32api, win32con, winerror
-import sys, string, pywintypes, os
+import sys, pywintypes, os
 
 error = RuntimeError
 
@@ -75,8 +75,8 @@ def SmartOpenService(hscm, name, access):
     try:
         return win32service.OpenService(hscm, name, access)
     except win32api.error, details:
-        if details[0] not in [winerror.ERROR_SERVICE_DOES_NOT_EXIST,
-                              winerror.ERROR_INVALID_NAME]:
+        if details.winerror not in [winerror.ERROR_SERVICE_DOES_NOT_EXIST,
+                                    winerror.ERROR_INVALID_NAME]:
             raise
     name = win32service.GetServiceKeyName(hscm, name)
     return win32service.OpenService(hscm, name, access)
@@ -323,7 +323,7 @@ def __FindSvcDeps(findName):
         except win32api.error:
             deps = ()
         for dep in deps:
-            dep = string.lower(dep)
+            dep = dep.lower()
             dep_on = dict.get(dep, [])
             dep_on.append(svc)
             dict[dep]=dep_on
@@ -332,7 +332,7 @@ def __FindSvcDeps(findName):
 
 
 def __ResolveDeps(findName, dict):
-    items = dict.get(string.lower(findName), [])
+    items = dict.get(findName.lower(), [])
     retList = []
     for svc in items:
         retList.insert(0, svc)
@@ -455,7 +455,7 @@ def DebugService(cls, argv = []):
 def GetServiceClassString(cls, argv = None):
     if argv is None:
         argv = sys.argv
-    import pickle, os
+    import pickle
     modName = pickle.whichmodule(cls, cls.__name__)
     if modName == '__main__':
         try:
@@ -552,7 +552,7 @@ def HandleCommandLine(cls, serviceClassString = None, argv = None, customInstall
         elif opt=='--startup':
             map = {"manual": win32service.SERVICE_DEMAND_START, "auto" : win32service.SERVICE_AUTO_START, "disabled": win32service.SERVICE_DISABLED}
             try:
-                startup = map[string.lower(val)]
+                startup = map[val.lower()]
             except KeyError:
                 print "'%s' is not a valid startup option" % val
         elif opt=='--wait':
@@ -587,7 +587,7 @@ def HandleCommandLine(cls, serviceClassString = None, argv = None, customInstall
         if not hasattr(sys, "frozen"):
             # non-frozen services use pythonservice.exe which handles a
             # -debug option
-            svcArgs = string.join(args[1:])
+            svcArgs = " ".join(args[1:])
             try:
                 exeName = LocateSpecificServiceExe(serviceName)
             except win32api.error, exc:
@@ -643,7 +643,7 @@ def HandleCommandLine(cls, serviceClassString = None, argv = None, customInstall
                 arg = "update" # Fall through to the "update" param!
             else:
                 print "Error installing service: %s (%d)" % (exc.strerror, exc.winerror)
-                err = hr
+                err = exc.winerror
         except ValueError, msg: # Can be raised by custom option handler.
             print "Error installing service: %s" % str(msg)
             err = -1
@@ -683,7 +683,7 @@ def HandleCommandLine(cls, serviceClassString = None, argv = None, customInstall
             print "Service updated"
         except win32service.error, exc:
             print "Error changing service configuration: %s (%d)" % (exc.strerror,exc.winerror)
-            err = hr
+            err = exc.winerror
 
     elif arg=="remove":
         knownArg = 1
@@ -693,7 +693,7 @@ def HandleCommandLine(cls, serviceClassString = None, argv = None, customInstall
             print "Service removed"
         except win32service.error, exc:
             print "Error removing service: %s (%d)" % (exc.strerror,exc.winerror)
-            err = hr
+            err = exc.winerror
     elif arg=="stop":
         knownArg = 1
         print "Stopping service %s" % (serviceName)
@@ -704,7 +704,7 @@ def HandleCommandLine(cls, serviceClassString = None, argv = None, customInstall
                 StopService(serviceName)
         except win32service.error, exc:
             print "Error stopping service: %s (%d)" % (exc.strerror,exc.winerror)
-            err = hr
+            err = exc.winerror
     if not knownArg:
         err = -1
         print "Unknown command - '%s'" % arg
