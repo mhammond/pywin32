@@ -67,7 +67,7 @@ done:
 	return ret;
 }
 
-BOOL CALLBACK dsEnumCallback(LPGUID guid, LPCSTR desc, LPCSTR module, LPVOID context)
+BOOL CALLBACK dsEnumCallback(LPGUID guid, LPCTSTR desc, LPCTSTR module, LPVOID context)
 {
 	PyObject *list = (PyObject*)context;
 	PyObject *item = PyTuple_New(3);
@@ -92,10 +92,10 @@ BOOL CALLBACK dsEnumCallback(LPGUID guid, LPCSTR desc, LPCSTR module, LPVOID con
 	if (PyTuple_SetItem(item, 0, oguid))
 		return FALSE;
 
-	if (PyTuple_SetItem(item, 1, desc ? PyString_FromString(desc) : PyString_FromString("")))
+	if (PyTuple_SetItem(item, 1, PyWinObject_FromTCHAR(desc)))
 		return FALSE;
 
-	if (PyTuple_SetItem(item, 2, module ? PyString_FromString(module) : PyString_FromString("")))
+	if (PyTuple_SetItem(item, 2, PyWinObject_FromTCHAR(module)))
 		return FALSE;
 
 	if (PyList_Append(list, item))
