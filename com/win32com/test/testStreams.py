@@ -9,7 +9,7 @@ class Persists:
                          'GetSizeMax', 'InitNew' ]
     _com_interfaces_ = [ pythoncom.IID_IPersistStreamInit ]
     def __init__(self):
-        self.data = "abcdefg"
+        self.data = "abcdefg".encode("ascii")
         self.dirty = 1
     def GetClassID(self):
         return pythoncom.IID_NULL
@@ -66,7 +66,7 @@ class BadStream(Stream):
         returned more data than requested.
     """
     def Read(self, amount):
-        return 'x'*(amount+1)
+        return 'x'.encode('ascii')*(amount+1)
 
 class StreamTest(win32com.test.util.TestCase):
     def _readWrite(self, data, write_stream, read_stream = None):
@@ -80,7 +80,7 @@ class StreamTest(win32com.test.util.TestCase):
         self.assertEqual(data[1:-1], got)
 
     def testit(self):
-        mydata = 'abcdefghijklmnopqrstuvwxyz'
+        mydata = 'abcdefghijklmnopqrstuvwxyz'.encode('ascii')
     
         # First test the objects just as Python objects...
         s = Stream(mydata)
@@ -89,7 +89,7 @@ class StreamTest(win32com.test.util.TestCase):
         p.Load(s)
         p.Save(s, 0)
         self.assertEqual(s.data, mydata)
-    
+
         # Wrap the Python objects as COM objects, and make the calls as if
         # they were non-Python COM objects.
         s2 = win32com.server.util.wrap(s, pythoncom.IID_IStream)
@@ -100,13 +100,14 @@ class StreamTest(win32com.test.util.TestCase):
         self._readWrite(mydata, s2, s)
         self._readWrite(mydata, s2, s2)
 
-        self._readWrite("string with\0a NULL", s2, s2)
+        self._readWrite("string with\0a NULL".encode('ascii'), s2, s2)
         # reset the stream
         s.Write(mydata)
         p2.Load(s2)
         p2.Save(s2, 0)
         self.assertEqual(s.data, mydata)
 
+    def testerrors(self):
         # setup a test logger to capture tracebacks etc.
         records, old_log = win32com.test.util.setup_test_logger()
         ## check for buffer overflow in Read method
