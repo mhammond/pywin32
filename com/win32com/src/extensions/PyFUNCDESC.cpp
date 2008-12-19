@@ -99,7 +99,7 @@ void PyObject_FreeFUNCDESC(FUNCDESC *pFuncDesc)
 }
 
 // The object itself.
-static struct PyMethodDef PyFUNCDESC_methods[] = {
+struct PyMethodDef PyFUNCDESC::methods[] = {
 	{NULL}
 };
 
@@ -127,8 +127,8 @@ PyTypeObject PyFUNCDESC::Type =
 	0,
 	PyFUNCDESC::deallocFunc,		/* tp_dealloc */
 	0,						/* tp_print */
-	PyFUNCDESC::getattr,				/* tp_getattr */
-	PyFUNCDESC::setattr,				/* tp_setattr */
+	0,						/* tp_getattr */
+	0,						/* tp_setattr */
 	0,						/* tp_compare */
 	0,						/* tp_repr */
 	0,						/* tp_as_number */
@@ -137,11 +137,33 @@ PyTypeObject PyFUNCDESC::Type =
 	0,						/* tp_hash */
 	0,						/* tp_call */
 	0,						/* tp_str */
+	PyObject_GenericGetAttr,	/* tp_getattro */
+	PyObject_GenericSetAttr,	/* tp_setattro */
+	0,						/* tp_as_buffer */
+	Py_TPFLAGS_DEFAULT,		/* tp_flags */
+	0,						/* tp_doc */
+	0,						/* tp_traverse */
+	0,						/* tp_clear */
+	0,						/* tp_richcompare */
+	0,						/* tp_weaklistoffset */
+	0,						/* tp_iter */
+	0,						/* tp_iternext */
+	PyFUNCDESC::methods,	/* tp_methods */
+	PyFUNCDESC::members,	/* tp_members */
+	0,						/* tp_getset */
+	0,						/* tp_base */
+	0,						/* tp_dict */
+	0,						/* tp_descr_get */
+	0,						/* tp_descr_set */
+	0,						/* tp_dictoffset */
+	0,						/* tp_init */
+	0,						/* tp_alloc */
+	0,						/* tp_new */
 };
 
 #define OFF(e) offsetof(PyFUNCDESC, e)
 
-/*static*/ struct memberlist PyFUNCDESC::memberlist[] = {
+/*static*/ struct PyMemberDef PyFUNCDESC::members[] = {
 	{"memid",          T_INT,   OFF(memid)}, // @prop integer|memid|
 	{"scodeArray",     T_OBJECT,OFF(scodeArray)}, // @prop (int, ...)|scodeArray|
 	{"args",           T_OBJECT,OFF(args)}, // @prop (<o ELEMDESC>, ...)|args|
@@ -190,26 +212,6 @@ PyFUNCDESC::~PyFUNCDESC()
 	Py_XDECREF(scodeArray);
 	Py_XDECREF(args);
 	Py_XDECREF(rettype);
-}
-
-PyObject *PyFUNCDESC::getattr(PyObject *self, char *name)
-{
-	PyObject *res;
-
-	res = Py_FindMethod(PyFUNCDESC_methods, self, name);
-	if (res != NULL)
-		return res;
-	PyErr_Clear();
-	return PyMember_Get((char *)self, memberlist, name);
-}
-
-int PyFUNCDESC::setattr(PyObject *self, char *name, PyObject *v)
-{
-	if (v == NULL) {
-		PyErr_SetString(PyExc_AttributeError, "can't delete PyFUNCDESC attributes");
-		return -1;
-	}
-	return PyMember_Set((char *)self, memberlist, name, v);
 }
 
 /*static*/ void PyFUNCDESC::deallocFunc(PyObject *ob)

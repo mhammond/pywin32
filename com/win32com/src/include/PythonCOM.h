@@ -157,11 +157,9 @@ public:
 	~PyComTypeObject();
 
 	// is the given object an interface type object? (e.g. PyIUnknown)
-	static BOOL is_interface_type(const PyObject *ob);
+	static BOOL is_interface_type(PyObject *ob);
 
 public:
-	PyMethodChain chain;
-	PyComTypeObject *baseType;
 	PyIUnknown * (* ctor)(IUnknown *);
 };
 
@@ -209,19 +207,20 @@ public:
 	// use the implementation in the type
 	virtual PyObject *iter() {return NULL;}
 	virtual PyObject *iternext() {return NULL;}
-	static struct PyMethodDef PyIBase::empty_methods[];
 protected:
 	PyIBase();
 	virtual ~PyIBase();
 
 public:
-	static BOOL is_object( const PyObject *, PyComTypeObject *which);
+	static BOOL is_object(PyObject *, PyComTypeObject *which);
 	BOOL is_object(PyComTypeObject *which);
 	static void dealloc(PyObject *ob);
 	static PyObject *repr(PyObject *ob);
 	static PyObject *getattro(PyObject *self, PyObject *name);
-	static int setattr(PyObject *op, char *name, PyObject *v);
+	static int setattro(PyObject *op, PyObject *obname, PyObject *v);
 	static int cmp(PyObject *ob1, PyObject *ob2);
+	static PyObject *richcmp(PyObject *ob1, PyObject *ob2, int op);
+
 };
 
 /* Special Type objects */

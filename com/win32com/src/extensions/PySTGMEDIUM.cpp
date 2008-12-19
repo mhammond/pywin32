@@ -98,7 +98,7 @@ PyObject *PySet(PyObject *self, PyObject *args)
 }
 
 // @object PySTGMEDIUM|A STGMEDIUM object represents a COM STGMEDIUM structure.
-static struct PyMethodDef PySTGMEDIUM_methods[] = {
+struct PyMethodDef PySTGMEDIUM::methods[] = {
 	{"set", PySet, 1}, // @pymeth set|Sets the type and data of the object
 	{NULL}
 };
@@ -111,7 +111,7 @@ PyTypeObject PySTGMEDIUM::Type =
 	0,
 	PySTGMEDIUM::deallocFunc,		/* tp_dealloc */
 	0,						/* tp_print */
-	PySTGMEDIUM::getattr,				/* tp_getattr */
+	0,						/* tp_getattr */
 	0,						/* tp_setattr */
 	0,						/* tp_compare */
 	0,						/* tp_repr */
@@ -121,6 +121,28 @@ PyTypeObject PySTGMEDIUM::Type =
 	0,						/* tp_hash */
 	0,						/* tp_call */
 	0,						/* tp_str */
+	PySTGMEDIUM::getattro,	/* tp_getattro */
+	0,						/* tp_setattro */
+	0,						/* tp_as_buffer */
+	Py_TPFLAGS_DEFAULT,		/* tp_flags */
+	0,						/* tp_doc */
+	0,						/* tp_traverse */
+	0,						/* tp_clear */
+	0,						/* tp_richcompare */
+	0,						/* tp_weaklistoffset */
+	0,						/* tp_iter */
+	0,						/* tp_iternext */
+	PySTGMEDIUM::methods,	/* tp_methods */
+	0,						/* tp_members */
+	0,						/* tp_getset */
+	0,						/* tp_base */
+	0,						/* tp_dict */
+	0,						/* tp_descr_get */
+	0,						/* tp_descr_set */
+	0,						/* tp_dictoffset */
+	0,						/* tp_init */
+	0,						/* tp_alloc */
+	0,						/* tp_new */
 };
 
 #define OFF(e) offsetof(PySTGMEDIUM, e)
@@ -208,14 +230,13 @@ void PySTGMEDIUM::Close()
 	}
 }
 
-PyObject *PySTGMEDIUM::getattr(PyObject *self, char *name)
+PyObject *PySTGMEDIUM::getattro(PyObject *self, PyObject *obname)
 {
-	PyObject *res;
+	char *name=PYWIN_ATTR_CONVERT(obname);
+	if (name==NULL)
+		return NULL;
+
 	PySTGMEDIUM *ps = (PySTGMEDIUM *)self;
-	res = Py_FindMethod(PySTGMEDIUM_methods, self, name);
-	if (res != NULL)
-		return res;
-	PyErr_Clear();
 	// @prop int|tymed|An integer indicating the type of data in the stgmedium
 	if (strcmp(name, "tymed")==0)
 		return PyInt_FromLong(ps->medium.tymed);
@@ -292,7 +313,7 @@ PyObject *PySTGMEDIUM::getattr(PyObject *self, char *name)
 				return NULL;
 		}
 	}
-	return PyErr_Format(PyExc_AttributeError, "STGMEDIUM objects have no attribute '%s'", name);
+	return PyObject_GenericGetAttr(self, obname);
 }
 
 /*static*/ void PySTGMEDIUM::deallocFunc(PyObject *ob)

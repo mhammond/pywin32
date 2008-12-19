@@ -31,16 +31,12 @@ public:
 	~PyFUNCDESC();
 
 	static void deallocFunc(PyObject *ob);
-
 	static PyObject *getitem(PyObject *self, Py_ssize_t index);
 	static Py_ssize_t getlength(PyObject *self);
-	static PyObject *getattr(PyObject *self, char *name);
-	static int setattr(PyObject *self, char *name, PyObject *v);
 
-#pragma warning( disable : 4251 )
-	static struct memberlist memberlist[];
+	static struct PyMemberDef members[];
+	static struct PyMethodDef methods[];
 	static PyTypeObject Type;
-#pragma warning( default : 4251 )
 
 	int memid;
 	PyObject *scodeArray;
@@ -65,13 +61,10 @@ public:
 
 	static PyObject *getitem(PyObject *self, Py_ssize_t index);
 	static Py_ssize_t getlength(PyObject *self);
-	static PyObject *getattr(PyObject *self, char *name);
-	static int setattr(PyObject *self, char *name, PyObject *v);
 
-#pragma warning( disable : 4251 )
-	static struct memberlist memberlist[];
+	static struct PyMemberDef members[];
+	static struct PyMethodDef methods[];
 	static PyTypeObject Type;
-#pragma warning( default : 4251 )
 
 protected:
 	PyObject *iid;
@@ -104,13 +97,9 @@ public:
 
 	static PyObject *getitem(PyObject *self, Py_ssize_t index);
 	static Py_ssize_t getlength(PyObject *self);
-	static PyObject *getattr(PyObject *self, char *name);
-	static int setattr(PyObject *self, char *name, PyObject *v);
-
-#pragma warning( disable : 4251 )
-	static struct memberlist memberlist[];
+	static struct PyMemberDef members[];
+	static struct PyMethodDef methods[];
 	static PyTypeObject Type;
-#pragma warning( default : 4251 )
 
 	int memid;
 	PyObject *value;
@@ -129,12 +118,10 @@ public:
 	void Close(void);
 	BOOL CopyTo(STGMEDIUM *pDest);
 	static void deallocFunc(PyObject *ob);
-	static PyObject *getattr(PyObject *self, char *name);
+	static PyObject *getattro(PyObject *self, PyObject *obname);
 	STGMEDIUM medium;
-#pragma warning( disable : 4251 )
-	static struct memberlist memberlist[];
+	static struct PyMethodDef methods[];
 	static PyTypeObject Type;
-#pragma warning( default : 4251 )
 };
 
 PYCOM_EXPORT PySTGMEDIUM *PyObject_FromSTGMEDIUM(STGMEDIUM *desc = NULL);

@@ -167,7 +167,9 @@ int PyIUnknown::compare(PyObject *other)
 	IUnknown *pUnkThis;
 	if (!PyCom_InterfaceFromPyObject(this, IID_IUnknown, (void **)&pUnkThis, FALSE))
 		return -1;
-	if (!PyCom_InterfaceFromPyObject(other, IID_IUnknown, (void **)&pUnkOther, FALSE)) {
+	// in a nod to rich comparisons, which end up calling this, we allow
+	// 'other' to be an instance.
+	if (!PyCom_InterfaceFromPyInstanceOrObject(other, IID_IUnknown, (void **)&pUnkOther, FALSE)) {
 		pUnkThis->Release();
 		return -1;
 	}

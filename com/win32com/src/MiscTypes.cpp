@@ -39,12 +39,7 @@ PyComTypeObject::PyComTypeObject( const char *name, PyComTypeObject *pBase, int 
 // to guarantee order of static object construction, I went this way.  This is 
 // probably better, as is forces _all_ python objects have the same type sig.
 	static const PyTypeObject type_template = {
-#ifdef OLD_PYTHON_TYPES
-		PyObject_HEAD_INIT(&PyInterfaceType_Type)
-#else
-		PyObject_HEAD_INIT(&PyType_Type)
-#endif
-		0,													/*ob_size*/
+		PYWIN_OBJECT_HEAD
 		"PythonComTypeTemplate",							/*tp_name*/
 		sizeof(PyIBase), 									/*tp_basicsize*/
 		0,													/*tp_itemsize*/
@@ -52,8 +47,13 @@ PyComTypeObject::PyComTypeObject( const char *name, PyComTypeObject *pBase, int 
 		(destructor) PyIBase::dealloc, 						/*tp_dealloc*/
 		0,													/*tp_print*/
 		0, 													/*tp_getattr*/
-		(setattrfunc) PyIBase::setattr,						/*tp_setattr*/
+		0,													/*tp_setattr*/
+// For b/w compat, we still allow 'cmp()' to work with Py2k, but for Py3k only rich compare is supported.
+#if (PY_VERSION_HEX < 0x03000000)
 		PyIBase::cmp,										/*tp_compare*/
+#else
+		0,
+#endif
 		(reprfunc)PyIBase::repr,							/*tp_repr*/
     	0,													/*tp_as_number*/
 		0,			/*tp_as_sequence*/
@@ -62,51 +62,45 @@ PyComTypeObject::PyComTypeObject( const char *name, PyComTypeObject *pBase, int 
 		0,			/*tp_call*/
 		0,			/*tp_str*/
 		PyIBase::getattro,		/* tp_getattro */
-		0,			/*tp_setattro */
+		PyIBase::setattro,			/*tp_setattro */
 		0,			/* tp_as_buffer */
 		Py_TPFLAGS_DEFAULT,			/* tp_flags */
 		0,          /* tp_doc */
 		0,    /* tp_traverse */
 		0,                              /* tp_clear */
-		0,                              /* tp_richcompare */
+		PyIBase::richcmp,               /* tp_richcompare */
 		0,                              /* tp_weaklistoffset */
 		0,					/* tp_iter */
 		0,					/* tp_iternext */
 		0,					/* tp_methods */	
 		0,					/* tp_members */
 		0,					/* tp_getset */
-#ifdef OLD_PYTHON_TYPES
-		0,					/* tp_base */
-#else
-		&PyInterfaceType_Type,
-#endif
+		0, // setup to a real value below.	/* tp_base */
 	};
 
 	*((PyTypeObject *)this) = type_template;
-
-	chain.methods = methodList;
-	chain.link = pBase ? &pBase->chain : NULL;
-
-	baseType = pBase;
 	ctor = thector;
 
 	// cast away const, as Python doesnt use it.
 	tp_name = (char *)name;
 	tp_basicsize = typeSize;
+	((PyObject *)this)->ob_type=&PyType_Type;
+	tp_methods=methodList;
+
+	// All interfaces are based on PyInterfaceType, so this type will inherit from it thru pBase
+	if (pBase)
+		tp_base=pBase;
+	else
+		tp_base=&PyInterfaceType_Type;
 }
 
 PyComTypeObject::~PyComTypeObject()
 {
 }
 
-/* static */ BOOL PyComTypeObject::is_interface_type(const PyObject *ob)
+/* static */ BOOL PyComTypeObject::is_interface_type(PyObject *ob)
 {
-#ifdef OLD_PYTHON_TYPES
-	return ob->ob_type == &PyInterfaceType_Type;
-#else
-	return ob->ob_type == &PyType_Type && 
-	       ((PyTypeObject *)ob)->tp_base == &PyInterfaceType_Type;
-#endif
+	return PyObject_IsSubclass(ob, (PyObject *)&PyInterfaceType_Type);
 }
 
 // Our type for IEnum* interfaces
@@ -115,7 +109,10 @@ PyComEnumTypeObject::PyComEnumTypeObject( const char *name, PyComTypeObject *pBa
 {
 	tp_iter = iter;
 	tp_iternext = iternext;
+	// Py3k does not have this flag, and depends just on presence of tp_iter
+#if (PY_VERSION_HEX < 0x03000000)
 	tp_flags |= Py_TPFLAGS_HAVE_ITER;
+#endif
 }
 
 // PyIEnum iter methods - generic for any "standard" COM IEnum interface, but
@@ -167,7 +164,9 @@ PyComEnumProviderTypeObject::PyComEnumProviderTypeObject(
 {
 	tp_iter = iter;
 	// tp_iternext remains NULL
+#if (PY_VERSION_HEX < 0x03000000)
 	tp_flags |= Py_TPFLAGS_HAVE_ITER;
+#endif
 }
 
 // PyIEnumProvider iter methods - generic for COM object that can provide an IEnum*

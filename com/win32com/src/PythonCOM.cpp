@@ -14,6 +14,7 @@ generates Windows .hlp files.
 #include "PythonCOM.h"
 #include "PythonCOMServer.h"
 #include "PyFactory.h"
+#include "PyRecord.h"
 #include "PyComTypeObjects.h"
 #include "OleAcc.h" // for ObjectFromLresult proto...
 
@@ -2049,7 +2050,8 @@ PYWIN_MODULE_INIT_FUNC(pythoncom)
 	if (PyType_Ready(&PyFUNCDESC::Type) == -1 ||
 		PyType_Ready(&PySTGMEDIUM::Type) == -1 ||
 		PyType_Ready(&PyTYPEATTR::Type) == -1 ||
-		PyType_Ready(&PyVARDESC::Type) == -1)
+		PyType_Ready(&PyVARDESC::Type) == -1 ||
+		PyType_Ready(&PyRecord::Type) == -1)
 		PYWIN_MODULE_INIT_RETURN_ERROR;
 
 	// Setup our sub-modules

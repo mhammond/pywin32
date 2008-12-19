@@ -687,7 +687,20 @@ BOOL initunivgw(PyObject *parentDict)
 {
 //	HRESULT hr;
 
-	PyObject *module = Py_InitModule("pythoncom.__univgw", univgw_functions);
+	PyObject *module;
+	
+#if (PY_VERSION_HEX < 0x03000000)
+	module = Py_InitModule("pythoncom.__univgw", univgw_functions);
+#else
+	static PyModuleDef univgw_def = {
+		PyModuleDef_HEAD_INIT,
+		"pythoncom.__univgw",
+		"Univeral gateway",
+		-1,
+		univgw_functions
+		};
+	module = PyModule_Create(&univgw_def);
+#endif
 	if (!module) /* Eeek - some serious error! */
 		return FALSE;
 

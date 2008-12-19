@@ -160,19 +160,25 @@ PyObject *PyCom_PyObjectFromIUnknown(IUnknown *punk, REFIID riid, BOOL bAddRef /
 
 BOOL PyCom_InterfaceFromPyInstanceOrObject(PyObject *ob, REFIID iid, LPVOID *ppv, BOOL bNoneOK /* = TRUE */)
 {
-	if (ob && PyInstance_Check(ob)) {
-		// Get the _oleobj_ attribute
-		ob = PyObject_GetAttrString(ob, "_oleobj_");
-		if (ob==NULL) {
-			PyErr_Clear();
-			PyErr_SetString(PyExc_TypeError, "The Python instance can not be converted to a COM object");
-			return FALSE;
+	if (ob == Py_None){
+		*ppv = NULL;
+		if (bNoneOK)
+			return TRUE;
+		PyErr_SetString(PyExc_TypeError, "None is not a valid interface object in this context");
+		return FALSE;
 		}
-	} else {
-		Py_XINCREF(ob);
-	}
+
+	if (PyObject_IsInstance(ob, (PyObject *)&PyIUnknown::type))
+		return PyCom_InterfaceFromPyObject(ob, iid, ppv, bNoneOK );
+
+	ob = PyObject_GetAttrString(ob, "_oleobj_");
+	if (ob==NULL) {
+		PyErr_Clear();
+		PyErr_SetString(PyExc_TypeError, "The Python instance can not be converted to a COM object");
+		return FALSE;
+		}
 	BOOL rc = PyCom_InterfaceFromPyObject(ob, iid, ppv, bNoneOK );
-	Py_XDECREF(ob);
+	Py_DECREF(ob);
 	return rc;
 }
 

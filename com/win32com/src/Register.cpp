@@ -130,11 +130,34 @@ HRESULT PyCom_RegisterGatewayObject(REFIID iid, pfnPyGatewayConstructor ctor, co
 	return S_OK;
 }
 
+/* PyType_Ready assures that the type's tp_base is ready, but it does *not* call
+	itself for entries in tp_bases, leading to a crash or indecipherable errors
+	if one of multiple bases is not itself ready.
+	http://bugs.python.org:80/issue3453
+	This code is also in win32uimodule.cpp, should move into pywintypes.
+*/
+int PyWinType_Ready(PyTypeObject *pT)
+{
+	if (pT->tp_flags & Py_TPFLAGS_READY)
+		return 0;
+	if (pT->tp_bases){
+		for (Py_ssize_t b=0; b<PyTuple_GET_SIZE(pT->tp_bases); b++){
+			PyTypeObject *base_type = (PyTypeObject *)PyTuple_GET_ITEM(pT->tp_bases, b);
+			if (PyWinType_Ready(base_type) == -1)
+				return -1;
+			}
+		}
+	return PyType_Ready(pT);
+}
+
 int PyCom_RegisterSupportedInterfaces( const PyCom_InterfaceSupportInfo *pInterfaces, int numEntries)
 {
 	// Register all interfaces, IID's, etc
 	int i;
 	for ( i = numEntries; i--; ) {
+		if (pInterfaces[i].pTypeOb)
+			if (PyWinType_Ready(pInterfaces[i].pTypeOb) == -1)
+				return -1;
 		if ( pInterfaces[i].pTypeOb && PyCom_RegisterClientType(pInterfaces[i].pTypeOb, pInterfaces[i].pGUID) != 0 )
 			return -1;
 		if ( pInterfaces[i].ctor != NULL ) {
