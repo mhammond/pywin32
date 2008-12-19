@@ -139,7 +139,7 @@ public:
 
 	/* Python support */
 	int compare(PyObject *ob);
-        PyObject *richcompare(PyObject *other, int op);
+	PyObject *richcompare(PyObject *other, int op);
 
 	int print(FILE *fp, int flags);
 	PyObject *asStr(void);
@@ -148,7 +148,7 @@ public:
 	static void deallocFunc(PyObject *ob);
 	static int printFunc(PyObject *ob, FILE *fp, int flags);
 	static int compareFunc(PyObject *ob1, PyObject *ob2);
-        static PyObject *richcompareFunc(PyObject *ob, PyObject *other, int op);
+	static PyObject *richcompareFunc(PyObject *ob, PyObject *other, int op);
 	static int nonzeroFunc(PyObject *ob);
 	static long hashFunc(PyObject *ob);
 
