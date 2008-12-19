@@ -1,5 +1,6 @@
 import sys, os
 import unittest
+import traceback
 
 # A list of demos that depend on user-interface of *any* kind.  Tests listed
 # here are not suitable for unattended testing.
@@ -99,9 +100,9 @@ def suite():
         if ext=='.py' and os.path.basename(me) != file:
             try:
                 mod = __import__(base)
-            except ImportError, why:
-                print "FAILED to import test module"
-                print why
+            except:
+                print "FAILED to import test module %r" % base
+                traceback.print_exc()
                 continue
             if hasattr(mod, "suite"):
                 test = mod.suite()
