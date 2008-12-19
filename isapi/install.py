@@ -75,6 +75,14 @@ class VirtualDirParameters:
 
     def __init__(self, **kw):
         self.__dict__.update(kw)
+    
+    def is_root(self):
+        "This virtual directory is a root directory if parent and name are blank"
+        parent, name = self.split_path()
+        return not parent and not name
+    
+    def split_path(self):
+        return split_path(self.Name)
 
 class ScriptMapParams:
     Extension = None
@@ -222,7 +230,7 @@ def split_path(path):
     if not path.startswith('/'): path = '/' + path
     return path.rsplit('/', 1)
 
-def ReallyCreateDirectory(iis_dir, name, params):
+def _CreateDirectory(iis_dir, name, params):
     # We used to go to lengths to keep an existing virtual directory
     # in place.  However, in some cases the existing directories got
     # into a bad state, and an update failed to get them working.
@@ -271,19 +279,17 @@ def CreateDirectory(params, options):
     _CallHook(params, "PreInstall", options)
     if not params.Name:
         raise ConfigurationError("No Name param")
-    parent, name = split_path(params.Name)
-    webDir = GetObject(FindPath(options, params.Server, parent))
+    parent, name = params.split_path()
+    target_dir = GetObject(FindPath(options, params.Server, parent))
 
-    # if '/' or '' was passed, we must be installing to the root.
-    # In this case, name is blank.
-    if name:
-        webDir = ReallyCreateDirectory(webDir, name, params)
+    if not params.is_root():
+        target_dir = _CreateDirectory(target_dir, name, params)
 
-    AssignScriptMaps(params.ScriptMaps, webDir, params.ScriptMapUpdate)
+    AssignScriptMaps(params.ScriptMaps, target_dir, params.ScriptMapUpdate)
     
-    _CallHook(params, "PostInstall", options, webDir)
+    _CallHook(params, "PostInstall", options, target_dir)
     log(1, "Configured Virtual Directory: %s" % (params.Name,))
-    return webDir
+    return target_dir
 
 def AssignScriptMaps(script_maps, target, update='replace'):
     """
@@ -482,6 +488,44 @@ def Install(params, options):
 
     _CallHook(params, "PostInstall", options)
 
+def RemoveDirectory(params, options):
+    if params.is_root():
+        return
+    try:
+        directory = GetObject(FindPath(options, params.Server, params.Name))
+    except pythoncom.com_error, details:
+        rc = _GetWin32ErrorCode(details)
+        if rc != winerror.ERROR_PATH_NOT_FOUND:
+            raise
+        log(2, "VirtualDirectory '%s' did not exist" % params.Name)
+        directory = None
+    if directory is not None:
+        # Be robust should IIS get upset about unloading.
+        try:
+            directory.AppUnLoad()
+        except:
+            exc_val = sys.exc_info()[1]
+            log(2, "AppUnLoad() for %s failed: %s" % (params.Name, exc_val))
+        # Continue trying to delete it.
+        try:
+            parent = GetObject(directory.Parent)
+            parent.Delete(directory.Class, directory.Name)
+            log (1, "Deleted Virtual Directory: %s" % (params.Name,))
+        except:
+            exc_val = sys.exc_info()[1]
+            log(1, "Failed to remove directory %s: %s" % (params.Name, exc_val))
+
+def RemoveScriptMaps(vd_params, options):
+    "Remove script maps from the already installed virtual directory"
+    parent, name = vd_params.split_path()
+    target_dir = GetObject(FindPath(options, vd_params.Server, parent))
+    installed_maps = list(target_dir.ScriptMaps)
+    for _map in map(str, vd_params.ScriptMaps):
+        if _map in installed_maps:
+            installed_maps.remove(_map)
+    target_dir.ScriptMaps = installed_maps
+    target_dir.SetInfo()
+
 def Uninstall(params, options):
     _CallHook(params, "PreRemove", options)
     
@@ -489,29 +533,12 @@ def Uninstall(params, options):
     
     for vd in params.VirtualDirs:
         _CallHook(vd, "PreRemove", options)
-        try:
-            directory = GetObject(FindPath(options, vd.Server, vd.Name))
-        except pythoncom.com_error, details:
-            rc = _GetWin32ErrorCode(details)
-            if rc != winerror.ERROR_PATH_NOT_FOUND:
-                raise
-            log(2, "VirtualDirectory '%s' did not exist" % vd.Name)
-            directory = None
-        if directory is not None:
-            # Be robust should IIS get upset about unloading.
-            try:
-                directory.AppUnLoad()
-            except:
-                exc_val = sys.exc_info()[1]
-                log(2, "AppUnLoad() for %s failed: %s" % (vd.Name, exc_val))
-            # Continue trying to delete it.
-            try:
-                parent = GetObject(directory.Parent)
-                parent.Delete(directory.Class, directory.Name)
-                log (1, "Deleted Virtual Directory: %s" % (vd.Name,))
-            except:
-                exc_val = sys.exc_info()[1]
-                log(1, "Failed to remove directory %s: %s" % (vd.Name, exc_val))
+        
+        RemoveDirectory(vd, options)
+        if vd.is_root():
+            # if this is installed to the root virtual directory, we can't delete it
+            #  so remove the script maps.
+            RemoveScriptMaps(vd, options)
 
         _CallHook(vd, "PostRemove", options)
 
