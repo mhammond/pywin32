@@ -37,7 +37,6 @@ STDMETHODIMP PyGContextMenu2::HandleMenuMsg(
                 LPARAM lParam)
 {
 	PY_GATEWAY_METHOD;
-	PyObject *ret;
 	HRESULT hr=InvokeViaPolicy("HandleMenuMsg", NULL, "INN", uMsg,
 				   PyWinObject_FromPARAM(wParam),
 				   PyWinObject_FromPARAM(lParam));
