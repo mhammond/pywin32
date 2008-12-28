@@ -46,6 +46,7 @@ void CAssocManager::cleanup(void)
 	ui_assoc_object *ob;
 	void *assoc;
 	ASSERT_VALID(&map);
+	TRACE("CAssocManager cleaning up %d objects\n", map.GetCount());
 	m_critsec.Lock();
 	for(pos=map.GetStartPosition();pos;) {
 		map.GetNextAssoc(pos, (void *&)assoc, (void *&)ob);
