@@ -541,23 +541,16 @@ static struct PyMethodDef servicemanager_functions[] = {
 };
 
 
-#define ADD_CONSTANT(tok) if (PyModule_AddIntConstant(module, #tok, tok) == -1) RETURN_ERROR;
+#define ADD_CONSTANT(tok) if (PyModule_AddIntConstant(module, #tok, tok) == -1) PYWIN_MODULE_INIT_RETURN_ERROR;
 
-extern "C" __declspec(dllexport) void
-initservicemanager(void)
+PYWIN_MODULE_INIT_FUNC(servicemanager)
 {
+  PYWIN_MODULE_INIT_PREPARE(servicemanager, servicemanager_functions,
+        "A module that interfaces with the Windows Service Control Manager.");
   HMODULE advapi32_module;
-  PyObject *dict, *module;
-  module = Py_InitModule("servicemanager", servicemanager_functions);
-#define RETURN_ERROR return // towards py3k
-  if (!module) /* Eeek - some serious error! */
-    return;
-  dict = PyModule_GetDict(module);
-  if (!dict) return; /* Another serious error!*/
-
   servicemanager_startup_error = PyErr_NewException("servicemanager.startup_error", NULL, NULL);
   if (servicemanager_startup_error == NULL)
-	  RETURN_ERROR;
+    PYWIN_MODULE_INIT_RETURN_ERROR;
 
   PyDict_SetItemString(dict, "startup_error", servicemanager_startup_error);
 
@@ -576,7 +569,6 @@ initservicemanager(void)
   ADD_CONSTANT(EVENTLOG_WARNING_TYPE);
   ADD_CONSTANT(EVENTLOG_AUDIT_SUCCESS);
   ADD_CONSTANT(EVENTLOG_AUDIT_FAILURE);
-  PyWinGlobals_Ensure();
 
   // Check if we can use the newer control handler registration function
   // which permits us to support multiple services.  This should be available
@@ -593,6 +585,8 @@ initservicemanager(void)
           g_maxServices = MAX_SERVICES;
       }
   }
+
+  PYWIN_MODULE_INIT_RETURN_SUCCESS;
 }
 
 // Couple of helpers for the service manager
@@ -607,7 +601,16 @@ static void PyService_InitPython()
 	// than "c:\path\to\ExeName.exe"
 	// This, however, shouldnt be a problem, as Python itself
 	// knows how to get the .EXE name when it needs.
-	Py_SetProgramName(__argv[0]);
+	int pyargc;
+#if (PY_VERSION_HEX < 0x03000000)
+	pyargc = __argc;
+	char **pyargv = __argv;
+#else
+	WCHAR **pyargv;
+	pyargv = CommandLineToArgvW(GetCommandLineW(), &pyargc);
+#endif
+	Py_SetProgramName(pyargv[0]);
+
 #ifdef BUILD_FREEZE
 	PyInitFrozenExtensions();
 #endif
@@ -617,9 +620,13 @@ static void PyService_InitPython()
 #endif
 	// Ensure we are set for threading.
 	PyEval_InitThreads();
-	PySys_SetArgv(__argc, __argv);
-
+	PySys_SetArgv(pyargc, pyargv);
+#if (PY_VERSION_HEX < 0x03000000)
 	initservicemanager();
+#else
+	PyInit_servicemanager();
+	LocalFree(pyargv);
+#endif
 }
 
 /*************************************************************************
