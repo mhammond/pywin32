@@ -26,50 +26,13 @@
 #ifndef WIN32DLGDYN_H
 #define WIN32DLGDYN_H
 
-#ifndef WIN32
-
-#pragma pack(1)
-struct DLGTEMPLATE
-{
-	DWORD style;
-	BYTE cdit;
-	WORD x, y;
-	WORD cx, cy;
-	// char menu[]
-	// char class[]
-	// char caption[]
-	// WORD points; (only if DS_SETFONT)
-	// char fontname[]; (only if DS_SETFONT)
-};
-
-struct DLGITEMTEMPLATE
-{
-	WORD x, y;
-	WORD cx, cy;
-	WORD id;
-	DWORD style;
-	// union
-	// {
-	//	BYTE idClass;
-	//	char szClass[2];
-	// };
-	// char text[]
-	// BYTE datalen;
-	// char data[datalen]
-};
-#pragma pack()
-
-#endif
-
 typedef DLGTEMPLATE *LPDLGTEMPLATE;
 typedef DLGITEMTEMPLATE *LPDLGITEMTEMPLATE;
 
 inline void SetDlgTemplate(DLGTEMPLATE *t, DWORD s, WORD x, WORD y, WORD w, WORD h)
 {
 	t->style = s;
-#ifdef WIN32
 	t->dwExtendedStyle = 0;
-#endif
 	t->cdit = 0;
 	t->x = x;
 	t->y = y;
@@ -81,9 +44,7 @@ inline void SetDlgItemTemplate(DLGITEMTEMPLATE *t, DWORD s, WORD x, WORD y,
 	WORD w, WORD h, WORD id)
 {
 	t->style = s;
-#ifdef WIN32
 	t->dwExtendedStyle = 0;
-#endif
 	t->x = x;
 	t->y = y;
 	t->cx = w;
@@ -103,55 +64,21 @@ class CPythonDialogTemplate
 protected:
 	HGLOBAL m_h;
 	size_t m_alloc, m_len;
-#ifdef WIN32
 	DLGTEMPLATE *m_ptr;
-#endif
 
 public:
-	CPythonDialogTemplate(LPCSTR capt, DLGTEMPLATE *tmpl, WORD fontsize = 8,
-		LPCSTR font = NULL, LPCSTR menu = NULL, LPCSTR wclass = NULL);
+	CPythonDialogTemplate(LPCWSTR capt, DLGTEMPLATE *tmpl, WORD fontsize = 8,
+		LPCWSTR font = NULL, LPCWSTR menu = NULL, LPCWSTR wclass = NULL);
 	~CPythonDialogTemplate();
-	BOOL Add(LPCSTR wclass, DLGITEMTEMPLATE *tmpl, LPCSTR txt = NULL,
+	BOOL Add(LPCWSTR wclass, DLGITEMTEMPLATE *tmpl, LPCWSTR txt = NULL,
 		int datalen = 0, BYTE *data = NULL);
-	BOOL Add(BYTE wclass, DLGITEMTEMPLATE *tmpl, LPCSTR txt = NULL);
+	BOOL Add(WORD wclass, DLGITEMTEMPLATE *tmpl, LPCWSTR txt = NULL);
 	void Get(DLGTEMPLATE *tmpl);
 	void Set(DLGTEMPLATE *tmpl);
-#ifndef WIN32
-	HGLOBAL GetTemplate() { return m_h; }
-#else
 	HGLOBAL GetTemplate() { return (HGLOBAL)m_ptr; }
-#endif
 	HGLOBAL ClaimTemplate();
 };
 
-#ifdef WIN32
-
-#define _RES(x) L ## x
-#define RESCHAR WCHAR
-#define RESSTR LPWSTR
-#define RESCSTR LPCWSTR
-#define MAKERESSTR(x) MakeResStr(x)
-#define FREERESSTR(x) FreeResStr(x)
-#define strcpyR wcscpy
-#define strlenR wcslen
-#define alloclenR 2*wcslen
-
 void DwordAlign(PCHAR *ptr);
-RESSTR MakeResStr(LPCSTR x);
-void FreeResStr(RESCSTR x);
-
-#else
-
-#define _RES(x) x
-#define RESCHAR char
-#define RESSTR LPSTR
-#define RESCSTR LPCSTR
-#define MAKERESSTR(x) x
-#define FREERESSTR(x) NULL
-#define strcpyR strcpy
-#define strlenR strlen
-#define alloclenR strlen
-
-#endif
 
 #endif
