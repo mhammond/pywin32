@@ -111,3 +111,10 @@ HSE_IO_NODELAY =                 0x00001000   # turn off nagling
 # These two are only used by VectorSend
 HSE_IO_FINAL_SEND =              0x00000010
 HSE_IO_CACHE_RESPONSE =          0x00000020
+
+HSE_EXEC_URL_NO_HEADERS =                    0x02
+HSE_EXEC_URL_IGNORE_CURRENT_INTERCEPTOR =    0x04
+HSE_EXEC_URL_IGNORE_VALIDATION_AND_RANGE =   0x10
+HSE_EXEC_URL_DISABLE_CUSTOM_ERROR =          0x20
+HSE_EXEC_URL_SSI_CMD =                       0x40
+HSE_EXEC_URL_HTTP_CACHE_ELIGIBLE =           0x80
