@@ -1,5 +1,4 @@
-# This is a sample configuration file for an ISAPI filter and extension
-# written in Python.
+# This is a sample ISAPI extension written in Python.
 #
 # Please see README.txt in this directory, and specifically the
 # information about the "loader" DLL - installing this sample will create
@@ -9,26 +8,15 @@
 # into your web server. As the server executes, the PyISAPI framework will load
 # this module and create your Extension and Filter objects.
 
-# This sample provides a very simple redirector.
-# It is implemented by a filter and an extension.
-# * The filter is installed globally, as all filters are.
-# * A Virtual Directory named "python" is setup.  This dir has our ISAPI
-#   extension as the only application, mapped to file-extension '*'.  Thus, our
-#   extension handles *all* requests in this directory.
-# The basic process is that the filter does URL rewriting, redirecting every
-# URL to our Virtual Directory.  Our extension then handles this request,
-# forwarding the data from the proxied site.
-# So, the process is:
-# * URL of "index.html" comes in.
-# * Filter rewrites this to "/python/index.html"
-# * Our extension sees the full "/python/index.html", removes the leading
-#   portion, and opens and forwards the remote URL.
-
-# This sample is very small - it avoid most error handling, etc.  It is for
-# demonstration purposes only.
+# This is the simplest possible redirector (or proxy) we can write.  The
+# extension installs with a mask of '*' in the root of the site.
+# As an added bonus though, we optionally show how, on IIS6 and later, we
+# can use HSE_ERQ_EXEC_URL to ignore certain requests - in IIS5 and earlier
+# we can only do this with an ISAPI filter - see redirector_with_filter for
+# an example.  If this sample is run on IIS5 or earlier it simply ignores
+# any excludes.
 
 from isapi import isapicon, threaded_extension
-from isapi.simple import SimpleFilter
 import sys
 import traceback
 import urllib
@@ -40,11 +28,18 @@ if hasattr(sys, "isapidllhandle"):
 
 # The site we are proxying.
 proxy = "http://www.python.org"
-# The name of the virtual directory we install in, and redirect from.
-virtualdir = "/python"
 
-# The ISAPI extension - handles requests in our virtual dir, and sends the
-# response to the client.
+# Urls we exclude (ie, allow IIS to handle itself) - all are lowered,
+# and these entries exist by default on Vista...
+excludes = ["/iisstart.htm", "/welcome.png"]
+
+def io_callback(ecb, arg, cbIO, errcode):
+    # called when our aynch request completes - there is nothing
+    # more for us to do...
+    print "IO callback", ecb, arg, cbIO, errcode
+    ecb.DoneWithSession()
+
+# The ISAPI extension - handles all requests in the site.
 class Extension(threaded_extension.ThreadPoolExtension):
     "Python sample Extension"
     def Dispatch(self, ecb):
@@ -53,71 +48,27 @@ class Extension(threaded_extension.ThreadPoolExtension):
         # That is perfect for this sample, so we don't catch our own.
         #print 'IIS dispatching "%s"' % (ecb.GetServerVariable("URL"),)
         url = ecb.GetServerVariable("URL")
-        if url.startswith(virtualdir):
-            new_url = proxy + url[len(virtualdir):]
-            print "Opening", new_url
-            fp = urllib.urlopen(new_url)
-            headers = fp.info()
-            ecb.SendResponseHeaders("200 OK", str(headers) + "\r\n", False)
-            ecb.WriteClient(fp.read())
-            ecb.DoneWithSession()
-            print "Returned data from '%s'!" % (new_url,)
+        if ecb.Version < 0x60000:
+            print "IIS5 or earlier - can't do 'excludes'"
         else:
-            # this should never happen - we should only see requests that
-            # start with our virtual directory name.
-            print "Not proxying '%s'" % (url,)
+            for exclude in excludes:
+                if url.lower().startswith(exclude):
+                    print "excluding %s" % url
+                    ecb.ReqIOCompletion(io_callback)
+                    ecb.ExecURL(None, None, None, None, None, isapicon.HSE_EXEC_URL_IGNORE_CURRENT_INTERCEPTOR)
+                    return isapicon.HSE_STATUS_PENDING
 
-
-# The ISAPI filter.
-class Filter(SimpleFilter):
-    "Sample Python Redirector"
-    filter_flags = isapicon.SF_NOTIFY_PREPROC_HEADERS | \
-                   isapicon.SF_NOTIFY_ORDER_DEFAULT
-
-    def HttpFilterProc(self, fc):
-        #print "Filter Dispatch"
-        nt = fc.NotificationType
-        if nt != isapicon.SF_NOTIFY_PREPROC_HEADERS:
-            return isapicon.SF_STATUS_REQ_NEXT_NOTIFICATION
-
-        pp = fc.GetData()
-        url = pp.GetHeader("url")
-        #print "URL is '%s'" % (url,)
-        prefix = virtualdir
-        if not url.startswith(prefix):
-            new_url = prefix + url
-            print "New proxied URL is '%s'" % (new_url,)
-            pp.SetHeader("url", new_url)
-            # For the sake of demonstration, show how the FilterContext
-            # attribute is used.  It always starts out life as None, and
-            # any assignments made are automatically decref'd by the
-            # framework during a SF_NOTIFY_END_OF_NET_SESSION notification.
-            if fc.FilterContext is None:
-                fc.FilterContext = 0
-            fc.FilterContext += 1
-            print "This is request number", fc.FilterContext, "on this connection"
-            return isapicon.SF_STATUS_REQ_HANDLED_NOTIFICATION
-        else:
-            print "Filter ignoring URL '%s'" % (url,)
-            
-            # Some older code that handled SF_NOTIFY_URL_MAP.
-            #~ print "Have URL_MAP notify"
-            #~ urlmap = fc.GetData()
-            #~ print "URI is", urlmap.URL
-            #~ print "Path is", urlmap.PhysicalPath
-            #~ if urlmap.URL.startswith("/UC/"):
-                #~ # Find the /UC/ in the physical path, and nuke it (except 
-                #~ # as the path is physical, it is \)
-                #~ p = urlmap.PhysicalPath
-                #~ pos = p.index("\\UC\\")
-                #~ p = p[:pos] + p[pos+3:]
-                #~ p = r"E:\src\pyisapi\webroot\PyTest\formTest.htm"
-                #~ print "New path is", p
-                #~ urlmap.PhysicalPath = p
+        new_url = proxy + url
+        print "Opening %s" % new_url
+        fp = urllib.urlopen(new_url)
+        headers = fp.info()
+        ecb.SendResponseHeaders("200 OK", str(headers) + "\r\n", False)
+        ecb.WriteClient(fp.read())
+        ecb.DoneWithSession()
+        print "Returned data from '%s'!" % (new_url,)
+        return isapicon.HSE_STATUS_SUCCESS
 
 # The entry points for the ISAPI extension.
-def __FilterFactory__():
-    return Filter()
 def __ExtensionFactory__():
     return Extension()
 
@@ -125,11 +76,6 @@ if __name__=='__main__':
     # If run from the command-line, install ourselves.
     from isapi.install import *
     params = ISAPIParameters()
-    # Setup all filters - these are global to the site.
-    params.Filters = [
-        FilterParameters(Name="PythonRedirector",
-                         Description=Filter.__doc__),
-    ]
     # Setup the virtual directories - this is a list of directories our
     # extension uses - in this case only 1.
     # Each extension has a "script map" - this is the mapping of ISAPI
@@ -137,7 +83,7 @@ if __name__=='__main__':
     sm = [
         ScriptMapParams(Extension="*", Flags=0)
     ]
-    vd = VirtualDirParameters(Name=virtualdir[1:],
+    vd = VirtualDirParameters(Name="/",
                               Description = Extension.__doc__,
                               ScriptMaps = sm,
                               ScriptMapUpdate = "replace"
