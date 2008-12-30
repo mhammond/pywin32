@@ -27,7 +27,12 @@
 
 #include "ControlBlock.h"
 
+#ifdef WRITE_RESTRICTED
+#undef WRITE_RESTRICTED
+#endif
 #include "structmember.h"
+// avoid anyone accidently using the wrong WRITE_RESTRICTED...
+#undef WRITE_RESTRICTED
 #include "tupleobject.h"
 
 class PyVERSION_INFO :public PyObject
@@ -100,7 +105,8 @@ public:
 	static PyObject * MapURLToPath(PyObject *self, PyObject * args); // HSE_REQ_MAP_URL_TO_PATH
 	static PyObject * IsKeepConn(PyObject *self, PyObject * args); // HSE_REQ_IS_KEEP_CONN
 	static PyObject * SetFlushFlag(PyObject *self, PyObject * args); // HSE_REQ_SET_FLUSH_FLAG
-	static PyObject * ExecURLInfo(PyObject *self, PyObject * args); // HSE_REQ_EXEC_URL
+	static PyObject * ExecURL(PyObject *self, PyObject * args); // HSE_REQ_EXEC_URL
+	static PyObject * ReqIOCompletion(PyObject *self, PyObject * args); // HSE_REQ_IO_COMPLETION
 
 	static PyObject * IsSessionActive(PyObject *self, PyObject * args);
 protected:

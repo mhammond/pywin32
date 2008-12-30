@@ -28,6 +28,102 @@
 #include "PyExtensionObjects.h"
 #include "PythonEng.h"
 
+// Asynch IO callbacks are a little tricky, as we never know how many
+// callbacks a single connection might make (often each callback will trigger
+// another IO request.) So we keep the Python objects used by the callback
+// mechanism in a map, keyed by connection ID, of asynch callback handlers.
+// Each element is a tuple of (callback, user_args). This is done rather than
+// using the 'pContext' param of the callback to ensure lifetimes of the
+// callback and the 'user arg' are maintained correctly. The item is removed
+// as the HSE_REQ_DONE_WITH_SESSION callback is made, or of the callback
+// raises an exception.
+static PyObject *g_callbackMap = NULL;
+
+BOOL SetupIOCallback(EXTENSION_CONTROL_BLOCK *ecb, PyObject *ob)
+{
+	if (!g_callbackMap) {
+		if (!(g_callbackMap = PyDict_New()))
+			return FALSE;
+	}
+	PyObject *key = PyLong_FromVoidPtr(ecb->ConnID);
+	if (!key)
+		return FALSE;
+	if (0!=PyDict_SetItem(g_callbackMap, key, ob)) {
+		Py_DECREF(key);
+		return FALSE;
+	}
+	Py_DECREF(key);
+	return TRUE;
+}
+
+void CleanupIOCallback(EXTENSION_CONTROL_BLOCK *ecb)
+{
+	if (!g_callbackMap)
+		return;
+	PyObject *key = PyLong_FromVoidPtr(ecb->ConnID);
+	if (!key)
+		return; // ack - not much more we can do.
+	if (!PyDict_DelItem(g_callbackMap, key))
+		PyErr_Clear();
+	Py_DECREF(key);
+	return;
+}
+
+#define CALLBACK_ERROR(msg) {ExtensionError(NULL, msg);goto done;}
+
+extern "C" void WINAPI DoIOCallback(EXTENSION_CONTROL_BLOCK *ecb, PVOID pContext, DWORD cbIO, DWORD dwError)
+{
+	CEnterLeavePython _celp;
+	CControlBlock * pcb = NULL;
+	PyECB *pyECB = NULL;
+	BOOL worked = FALSE;
+	if (!g_callbackMap)
+		CALLBACK_ERROR("Callback when no callback map exists");
+
+	PyObject *key = PyLong_FromVoidPtr(ecb->ConnID);
+	if (!key)
+		CALLBACK_ERROR("Failed to create map key from connection ID");
+	PyObject *ob = PyDict_GetItem(g_callbackMap, key);
+	if (!ob)
+		CALLBACK_ERROR("Failed to locate map entry for this commID");
+	// get the Python ECB object...
+	pcb = new CControlBlock(ecb);
+	pyECB = new PyECB(pcb);
+	if (!pyECB || !pcb)
+		CALLBACK_ERROR("Failed to create Python oject for ECB");
+
+	// this should be impossible...
+	if (!PyTuple_Check(ob) || (PyTuple_Size(ob)!=1 && PyTuple_Size(ob)!=2))
+		CALLBACK_ERROR("Object in callback map not a tuple of correct size?");
+
+	PyObject *callback = PyTuple_GET_ITEM(ob, 0);
+	PyObject *user_arg = PyTuple_Size(ob)==2 ? PyTuple_GET_ITEM(ob, 1) : Py_None;
+	PyObject *args = Py_BuildValue("(OOkk)", pyECB, user_arg, cbIO, dwError);
+	if (!args)
+		CALLBACK_ERROR("Failed to build callback args");
+	PyObject *result = PyObject_Call(callback, args, NULL);
+	Py_DECREF(args);
+	if (!result)
+		CALLBACK_ERROR("Callback failed");
+	Py_DECREF(result);
+	worked = TRUE;
+done:
+	// If the callback failed, then its likely this request will end
+	// up hanging.  So on error we nuke ourselves from the map then
+	// call DoneWithSession.  We still hold the GIL, so we should be
+	// safe from races...
+	Py_XDECREF(pyECB);
+	if (!worked) {
+		// free the item from the map.
+		CleanupIOCallback(ecb);
+		// clobber the callback.
+		ecb->ServerSupportFunction(ecb->ConnID, HSE_REQ_IO_COMPLETION, NULL, NULL,NULL);
+		// and tell IIS there we are done with an error.
+		DWORD status = HSE_STATUS_ERROR;
+		ecb->ServerSupportFunction(ecb->ConnID, HSE_REQ_DONE_WITH_SESSION, &status, NULL, 0);
+	}
+}
+
 // @doc
 // @object HSE_VERSION_INFO|An object used by ISAPI GetExtensionVersion
 PyTypeObject PyVERSION_INFOType =
@@ -123,7 +219,8 @@ void PyVERSION_INFO::deallocFunc(PyObject *ob)
 // @object EXTENSION_CONTROL_BLOCK|A python representation of an ISAPI
 // EXTENSION_CONTROL_BLOCK.
 struct memberlist PyECB::PyECB_memberlist[] = {
-	{"Version",			T_INT,	   ECBOFF(m_version), READONLY}, 
+	{"Version",			T_INT,	   ECBOFF(m_version), READONLY},
+	// XXX - ConnID 64bit issue?
 	{"ConnID",			T_INT,	   ECBOFF(m_connID), READONLY}, 
 
 	{"Method",			T_OBJECT,  ECBOFF(m_method), READONLY}, 
@@ -157,7 +254,8 @@ static struct PyMethodDef PyECB_methods[] = {
 	{"IsKeepAlive",				PyECB::IsKeepAlive,1},           // @pymeth IsKeepAlive|
 	{"GetImpersonationToken",   PyECB::GetImpersonationToken, 1}, // @pymeth GetImpersonationToken|
 	{"IsKeepConn",              PyECB::IsKeepConn, 1}, // @pymeth IsKeepConn|Calls ServerSupportFunction with HSE_REQ_IS_KEEP_CONN
-	{"ExecURLInfo",             PyECB::ExecURLInfo, 1}, // @pymeth ExecURLInfo|Calls ServerSupportFunction with HSE_REQ_EXEC_URL
+	{"ExecURL",                 PyECB::ExecURL, 1}, // @pymeth ExecURL|Calls ServerSupportFunction with HSE_REQ_EXEC_URL
+	{"ReqIOCompletion",         PyECB::ReqIOCompletion, 1}, // @pymeth ReqIOCompletion|Calls ServerSupportFunction with HSE_REQ_IO_COMPLETION
 	{NULL}
 };
 
@@ -575,12 +673,14 @@ PyObject * PyECB::IsKeepConn(PyObject *self, PyObject *args)
 	return PyBool_FromLong(bIs);
 }
 
-// @pymethod int|EXTENSION_CONTROL_BLOCK|ExecURLInfo|Calls ServerSupportFunction with HSE_REQ_EXEC_URL
-PyObject * PyECB::ExecURLInfo(PyObject *self, PyObject *args)
+// @pymethod int|EXTENSION_CONTROL_BLOCK|ExecURL|Calls ServerSupportFunction with HSE_REQ_EXEC_URL
+// @comm This function is only available in IIS6 and later.
+PyObject * PyECB::ExecURL(PyObject *self, PyObject *args)
 {
 	PyObject *obInfo, *obEntity;
 	HSE_EXEC_URL_INFO i;
-	if (!PyArg_ParseTuple(args, "zzzOOi:ExecURLInfo",
+	memset(&i, 0, sizeof(i));  // to be sure, to be sure...
+	if (!PyArg_ParseTuple(args, "zzzOOi:ExecURL",
 			      &i.pszUrl, // @pyparm string|url||
 			      &i.pszMethod, // @pyparm string|method||
 			      &i.pszChildHeaders, // @pyparm string|clientHeaders||
@@ -597,15 +697,49 @@ PyObject * PyECB::ExecURLInfo(PyObject *self, PyObject *args)
 	PyECB * pecb = (PyECB *) self;
 	EXTENSION_CONTROL_BLOCK *ecb = pecb->m_pcb->GetECB();
 	if (!pecb || !pecb->Check()) return NULL;
-	BOOL bRes, bIs;
+	BOOL bRes;
 	Py_BEGIN_ALLOW_THREADS
 	bRes = ecb->ServerSupportFunction(ecb->ConnID, HSE_REQ_EXEC_URL, &i, NULL,NULL);
 	Py_END_ALLOW_THREADS
 	if (!bRes)
-			return SetPyECBError("ServerSupportFunction(HSE_REQ_EXEC_URL)");
-	return PyBool_FromLong(bIs);
+		return SetPyECBError("ServerSupportFunction(HSE_REQ_EXEC_URL)");
+	Py_RETURN_NONE;
 }
 
+// @pymethod int|EXTENSION_CONTROL_BLOCK|ReqIOCompletion|Set a callback that will be used for handling asynchronous I/O operations.
+// @comm If you call this multiple times, the previous callback will be discarded.
+// @comm A reference to the callback and args are held until <om
+// EXTENSION_CONTROL_BLOCK.DoneWithSession> is called. If the callback
+// function fails, DoneWithSession(HSE_STATUS_ERROR) will automatically be
+// called and no further callbacks for the ECB will be made.
+PyObject * PyECB::ReqIOCompletion(PyObject *self, PyObject *args)
+{
+	PyECB * pecb = (PyECB *) self;
+	if (!pecb || !pecb->Check()) return NULL;
+	EXTENSION_CONTROL_BLOCK *ecb = pecb->m_pcb->GetECB();
+
+	PyObject *obCallback;
+	PyObject *obArg = NULL;
+	if (!PyArg_ParseTuple(args, "O|O:ReqIOCompletion",
+	                      &obCallback, // @pyparm callable|func||The function to call.
+	                      &obArg))
+		return NULL;
+
+	if (!PyCallable_Check(obCallback))
+		return PyErr_Format(PyExc_TypeError, "first param must be callable");
+	// now we have checked the params just ignore them!  Stick args itself
+	// in our map.
+	if (!SetupIOCallback(ecb, args))
+		return NULL;
+
+	BOOL bRes;
+	Py_BEGIN_ALLOW_THREADS
+	bRes = ecb->ServerSupportFunction(ecb->ConnID, HSE_REQ_IO_COMPLETION, DoIOCallback, NULL, NULL);
+	Py_END_ALLOW_THREADS
+	if (!bRes)
+		return SetPyECBError("ServerSupportFunction(HSE_REQ_IO_COMPLETION)");
+	Py_RETURN_NONE;
+}
 
 class PyTFD {
 public:
@@ -759,6 +893,10 @@ PyObject * PyECB::DoneWithSession(PyObject *self, PyObject * args)
 	// HSE_STATUS_SUCCESS_AND_KEEP_CONN is supported by IIS to keep the connection alive.
 	if (!PyArg_ParseTuple(args, "|i:DoneWithSession", &status))
 		return NULL;
+
+	// Free any resources we've allocated on behalf of this ECB - this
+	// currently means just the io-completion callback.
+	CleanupIOCallback(pecb->m_pcb->GetECB());
 
 	Py_BEGIN_ALLOW_THREADS
 	pecb->m_pcb->DoneWithSession(status);
