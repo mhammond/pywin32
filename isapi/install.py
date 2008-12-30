@@ -239,6 +239,7 @@ def _CreateDirectory(iis_dir, name, params):
     try:
         # Also seen the Class change to a generic IISObject - so nuke
         # *any* existing object, regardless of Class
+        assert name.strip("/"), "mustn't delete the root!"
         iis_dir.Delete('', name)
         log(2, "Deleted old directory '%s'" % (name,))
     except pythoncom.com_error:
@@ -342,6 +343,7 @@ def CreateISAPIFilter(filterParams, options):
         filters.SetInfo()
 
     # As for VirtualDir, delete an existing one.
+    assert filterParams.Name.strip("/"), "mustn't delete the root!"
     try:
         filters.Delete(_IIS_FILTER, filterParams.Name)
         log(2, "Deleted old filter '%s'" % (filterParams.Name,))
@@ -374,6 +376,7 @@ def DeleteISAPIFilter(filterParams, options):
         log(2, "ISAPI filter path '%s' did not exist." % (ob_path,))
         return
     try:
+        assert filterParams.Name.strip("/"), "mustn't delete the root!"
         filters.Delete(_IIS_FILTER, filterParams.Name)
         log(2, "Deleted ISAPI filter '%s'" % (filterParams.Name,))
     except pythoncom.com_error, details:
