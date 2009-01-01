@@ -4,6 +4,14 @@
 # * Reloading your Python module without shutting down IIS (eg, when your
 #   .py implementation file changes.)
 # * Custom command-line handling - both additional options and commands.
+# * Using a query string - any part of the URL after a '?' is assumed to
+#   be "variable names" separated by '&' - we will print the values of
+#   these server variables.
+# * If the tail portion of the URL is "ReportUnhealthy", IIS will be
+#   notified we are unhealthy via a HSE_REQ_REPORT_UNHEALTHY request.
+#   Whether this is acted upon depends on if the IIS health-checking
+#   tools are installed, but you should always see the reason written
+#   to the Windows event log - see the IIS documentation for more.
 
 from isapi import isapicon
 from isapi.simple import SimpleExtension
@@ -106,8 +114,21 @@ class Extension(SimpleExtension):
             print "Doing reload"
             raise InternalReloadException
 
+        url = ecb.GetServerVariable("URL")
+        if url.endswith("ReportUnhealthy"):
+            ecb.ReportUnhealthy("I'm a little sick")
+
         ecb.SendResponseHeaders("200 OK", "Content-Type: text/html\r\n\r\n", 0)
         print >> ecb, "<HTML><BODY>"
+
+        queries = ecb.GetServerVariable("QUERY_STRING").split("&")
+        if queries:
+            print >> ecb, "<PRE>"
+            for q in queries:
+                val = ecb.GetServerVariable(q)
+                print >> ecb, "%s=%r" % (q, val)
+            print >> ecb, "</PRE><P/>"
+
         print >> ecb, "This module has been imported"
         print >> ecb, "%d times" % (reload_counter,)
         print >> ecb, "</BODY></HTML>"
