@@ -101,12 +101,15 @@ public:
 	static PyObject * IsKeepAlive(PyObject *self, PyObject * args); // Keep alive flag set
 	static PyObject * DoneWithSession(PyObject *self, PyObject * args);     //HSE_REQ_DONE_WITH_SESSION
 	static PyObject * GetImpersonationToken(PyObject *self, PyObject * args); // HSE_REQ_GET_IMPERSONATION_TOKEN
+	static PyObject * GetAnonymousToken(PyObject *self, PyObject * args); // HSE_REQ_GET_ANONYMOUS_TOKEN
 	static PyObject * TransmitFile(PyObject *self, PyObject * args); // HSE_REQ_TRANSMIT_FILE
 	static PyObject * MapURLToPath(PyObject *self, PyObject * args); // HSE_REQ_MAP_URL_TO_PATH
 	static PyObject * IsKeepConn(PyObject *self, PyObject * args); // HSE_REQ_IS_KEEP_CONN
 	static PyObject * SetFlushFlag(PyObject *self, PyObject * args); // HSE_REQ_SET_FLUSH_FLAG
 	static PyObject * ExecURL(PyObject *self, PyObject * args); // HSE_REQ_EXEC_URL
-	static PyObject * ReqIOCompletion(PyObject *self, PyObject * args); // HSE_REQ_IO_COMPLETION
+	static PyObject * GetExecURLStatus(PyObject *self, PyObject * args); // HSE_REQ_GET_EXEC_URL_STATUS
+	static PyObject * IOCompletion(PyObject *self, PyObject * args); // HSE_REQ_IO_COMPLETION
+	static PyObject * ReportUnhealthy(PyObject *self, PyObject * args); // HSE_REQ_REPORT_UNHEALTHY
 
 	static PyObject * IsSessionActive(PyObject *self, PyObject * args);
 protected:

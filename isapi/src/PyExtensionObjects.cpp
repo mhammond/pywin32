@@ -252,10 +252,13 @@ static struct PyMethodDef PyECB_methods[] = {
 	{"close",                   PyECB::DoneWithSession, 1},      // @pymeth close|A synonym for DoneWithSession.
 	{"Redirect",				PyECB::Redirect,1},              // @pymeth Redirect|
 	{"IsKeepAlive",				PyECB::IsKeepAlive,1},           // @pymeth IsKeepAlive|
+	{"GetAnonymousToken",       PyECB::GetAnonymousToken, 1}, // @pymeth GetAnonymousToken|Calls ServerSupportFunction with HSE_REQ_GET_ANONYMOUS_TOKEN or HSE_REQ_GET_UNICODE_ANONYMOUS_TOKEN 
 	{"GetImpersonationToken",   PyECB::GetImpersonationToken, 1}, // @pymeth GetImpersonationToken|
 	{"IsKeepConn",              PyECB::IsKeepConn, 1}, // @pymeth IsKeepConn|Calls ServerSupportFunction with HSE_REQ_IS_KEEP_CONN
 	{"ExecURL",                 PyECB::ExecURL, 1}, // @pymeth ExecURL|Calls ServerSupportFunction with HSE_REQ_EXEC_URL
-	{"ReqIOCompletion",         PyECB::ReqIOCompletion, 1}, // @pymeth ReqIOCompletion|Calls ServerSupportFunction with HSE_REQ_IO_COMPLETION
+	{"GetExecURLStatus",        PyECB::GetExecURLStatus, 1}, // @pymeth GetExecURLStatus|Calls ServerSupportFunction with HSE_REQ_GET_EXEC_URL_STATUS
+	{"IOCompletion",            PyECB::IOCompletion, 1}, // @pymeth IOCompletion|Calls ServerSupportFunction with HSE_REQ_IO_COMPLETION
+	{"ReportUnhealthy",         PyECB::ReportUnhealthy, 1}, // @pymeth ReportUnhealthy|Calls ServerSupportFunction with HSE_REQ_REPORT_UNHEALTHY
 	{NULL}
 };
 
@@ -656,6 +659,38 @@ PyObject * PyECB::GetImpersonationToken(PyObject *self, PyObject *args)
 	return PyLong_FromVoidPtr(handle);
 }
 
+// @pymethod int|EXTENSION_CONTROL_BLOCK|GetAnonymousToken|Calls ServerSupportFunction with HSE_REQ_GET_ANONYMOUS_TOKEN or HSE_REQ_GET_UNICODE_ANONYMOUS_TOKEN
+PyObject * PyECB::GetAnonymousToken(PyObject *self, PyObject *args)
+{
+	PyECB * pecb = (PyECB *) self;
+	if (!pecb || !pecb->Check()) return NULL;
+	EXTENSION_CONTROL_BLOCK *ecb = pecb->m_pcb->GetECB();
+
+	PyObject *obStr;
+	// @pyparm string/unicode|metabase_path||
+	if (!PyArg_ParseTuple(args, "O:GetImpersonationToken", &obStr))
+		return NULL;
+	HANDLE handle;
+	BOOL bRes;
+	if (PyString_Check(obStr)) {
+		Py_BEGIN_ALLOW_THREADS
+		bRes = ecb->ServerSupportFunction(ecb->ConnID, HSE_REQ_GET_ANONYMOUS_TOKEN,
+						  PyString_AS_STRING(obStr),
+						  (DWORD *)&handle,NULL);
+		Py_END_ALLOW_THREADS
+	} else if (PyUnicode_Check(obStr)) {
+		Py_BEGIN_ALLOW_THREADS
+		bRes = ecb->ServerSupportFunction(ecb->ConnID, HSE_REQ_GET_UNICODE_ANONYMOUS_TOKEN,
+						  PyUnicode_AS_UNICODE(obStr),
+						  (DWORD *)&handle,NULL);
+		Py_END_ALLOW_THREADS
+	} else
+		return PyErr_Format(PyExc_TypeError, "must pass a string or unicode object (got %s)", obStr->ob_type->tp_name);
+	if (!bRes)
+			return SetPyECBError("ServerSupportFunction(HSE_REQ_GET_IMPERSONATION_TOKEN)");
+	return PyLong_FromVoidPtr(handle);
+}
+
 // @pymethod int|EXTENSION_CONTROL_BLOCK|IsKeepConn|Calls ServerSupportFunction with HSE_REQ_IS_KEEP_CONN
 PyObject * PyECB::IsKeepConn(PyObject *self, PyObject *args)
 {
@@ -706,13 +741,34 @@ PyObject * PyECB::ExecURL(PyObject *self, PyObject *args)
 	Py_RETURN_NONE;
 }
 
-// @pymethod int|EXTENSION_CONTROL_BLOCK|ReqIOCompletion|Set a callback that will be used for handling asynchronous I/O operations.
+// @pymethod int|EXTENSION_CONTROL_BLOCK|GetExecURLStatus|Calls ServerSupportFunction with HSE_REQ_GET_EXEC_URL_STATUS
+PyObject * PyECB::GetExecURLStatus(PyObject *self, PyObject *args)
+{
+	if (!PyArg_ParseTuple(args, ":GetExecURLStatus"))
+		return NULL;
+
+	PyECB * pecb = (PyECB *) self;
+	EXTENSION_CONTROL_BLOCK *ecb = pecb->m_pcb->GetECB();
+	if (!pecb || !pecb->Check()) return NULL;
+	BOOL bRes;
+	HSE_EXEC_URL_STATUS status;
+	Py_BEGIN_ALLOW_THREADS
+	bRes = ecb->ServerSupportFunction(ecb->ConnID, HSE_REQ_GET_EXEC_URL_STATUS, &status, NULL,NULL);
+	Py_END_ALLOW_THREADS
+	if (!bRes)
+		return SetPyECBError("ServerSupportFunction(HSE_REQ_GET_EXEC_URL_STATUS)");
+	// @rdesc The result of a tuple of 3 integers - (uHttpStatusCode, uHttpSubStatus, dwWin32Error)
+	// @seeapi HSE_EXEC_URL_STATUS
+	return Py_BuildValue("HHk", status.uHttpStatusCode, status.uHttpSubStatus, status.dwWin32Error);
+}
+
+// @pymethod int|EXTENSION_CONTROL_BLOCK|IOCompletion|Set a callback that will be used for handling asynchronous I/O operations.
 // @comm If you call this multiple times, the previous callback will be discarded.
 // @comm A reference to the callback and args are held until <om
 // EXTENSION_CONTROL_BLOCK.DoneWithSession> is called. If the callback
 // function fails, DoneWithSession(HSE_STATUS_ERROR) will automatically be
 // called and no further callbacks for the ECB will be made.
-PyObject * PyECB::ReqIOCompletion(PyObject *self, PyObject *args)
+PyObject * PyECB::IOCompletion(PyObject *self, PyObject *args)
 {
 	PyECB * pecb = (PyECB *) self;
 	if (!pecb || !pecb->Check()) return NULL;
@@ -720,7 +776,7 @@ PyObject * PyECB::ReqIOCompletion(PyObject *self, PyObject *args)
 
 	PyObject *obCallback;
 	PyObject *obArg = NULL;
-	if (!PyArg_ParseTuple(args, "O|O:ReqIOCompletion",
+	if (!PyArg_ParseTuple(args, "O|O:IOCompletion",
 	                      &obCallback, // @pyparm callable|func||The function to call.
 	                      &obArg))
 		return NULL;
@@ -738,6 +794,26 @@ PyObject * PyECB::ReqIOCompletion(PyObject *self, PyObject *args)
 	Py_END_ALLOW_THREADS
 	if (!bRes)
 		return SetPyECBError("ServerSupportFunction(HSE_REQ_IO_COMPLETION)");
+	Py_RETURN_NONE;
+}
+
+// @pymethod int|EXTENSION_CONTROL_BLOCK|ReportUnhealthy|Calls ServerSupportFunction with HSE_REQ_REPORT_UNHEALTHY
+PyObject * PyECB::ReportUnhealthy(PyObject *self, PyObject *args)
+{
+	char *reason = NULL;
+	if (!PyArg_ParseTuple(args, "|z:ReportUnhealthy",
+			      &reason)) // @pyparm string|reason|None|An optional reason to be written to the log.
+		return NULL;
+
+	PyECB * pecb = (PyECB *) self;
+	EXTENSION_CONTROL_BLOCK *ecb = pecb->m_pcb->GetECB();
+	if (!pecb || !pecb->Check()) return NULL;
+	BOOL bRes;
+	Py_BEGIN_ALLOW_THREADS
+	bRes = ecb->ServerSupportFunction(ecb->ConnID, HSE_REQ_REPORT_UNHEALTHY, reason, NULL,NULL);
+	Py_END_ALLOW_THREADS
+	if (!bRes)
+		return SetPyECBError("ServerSupportFunction(HSE_REQ_REPORT_UNHEALTHY)");
 	Py_RETURN_NONE;
 }
 
