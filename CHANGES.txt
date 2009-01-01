@@ -8,8 +8,13 @@ However contributors are encouraged to add their own entries for their work.
 Since build 212:
 ----------------
 
-* Refactored isapi.install to expose some of the previously-encapsulated
-  functionality in FindWebServer and CreateDirectory.
+* isapi:
+  * Refactored isapi.install primarily to support installing extensions into 
+    the root of a site (Jason R. Coombs)
+  * New IIS6-only functionality HSE_REQ_EXEC_URL which avoids the need to use
+    a filter in most cases, including new demos for this.
+  * Other misc support functions (HSE_REQ_REPORT_UNHEALTHY, 
+    HSE_REQ_GET_ANONYMOUS_TOKEN, etc)
 
 * "Modernization" changes, instigated by py3k:
 
