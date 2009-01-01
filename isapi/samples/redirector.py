@@ -20,6 +20,7 @@ from isapi import isapicon, threaded_extension
 import sys
 import traceback
 import urllib
+import win32api
 
 # sys.isapidllhandle will exist when we are loaded by the IIS framework.
 # In this case we redirect our output to the win32traceutil collector.
@@ -33,10 +34,13 @@ proxy = "http://www.python.org"
 # and these entries exist by default on Vista...
 excludes = ["/iisstart.htm", "/welcome.png"]
 
-def io_callback(ecb, arg, cbIO, errcode):
-    # called when our aynch request completes - there is nothing
-    # more for us to do...
-    print "IO callback", ecb, arg, cbIO, errcode
+# An "io completion" function, called when ecb.ExecURL completes...
+def io_callback(ecb, url, cbIO, errcode):
+    # Get the status of our ExecURL
+    httpstatus, substatus, win32 = ecb.GetExecURLStatus()
+    print "ExecURL of %r finished with http status %d.%d, win32 status %d (%s)" % (
+           url, httpstatus, substatus, win32, win32api.FormatMessage(win32).strip())
+    # nothing more to do!
     ecb.DoneWithSession()
 
 # The ISAPI extension - handles all requests in the site.
@@ -54,7 +58,7 @@ class Extension(threaded_extension.ThreadPoolExtension):
             for exclude in excludes:
                 if url.lower().startswith(exclude):
                     print "excluding %s" % url
-                    ecb.ReqIOCompletion(io_callback)
+                    ecb.IOCompletion(io_callback, url)
                     ecb.ExecURL(None, None, None, None, None, isapicon.HSE_EXEC_URL_IGNORE_CURRENT_INTERCEPTOR)
                     return isapicon.HSE_STATUS_PENDING
 
