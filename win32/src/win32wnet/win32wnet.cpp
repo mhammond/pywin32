@@ -195,6 +195,53 @@ done:
 	return ret;
 };
 
+// @pymethod |win32wnet|WNetAddConnection3|Creates a connection to a network resource.
+// @comm Accepts keyword arguments.
+// @pyseeapi WNetAddConnection3
+static PyObject *PyWNetAddConnection3 (PyObject *self, PyObject *args, PyObject *kwargs)
+{
+	LPTSTR	Username = NULL;
+	LPTSTR	Password = NULL;
+	DWORD	ErrorNo;		// holds the returned error number, if any
+	DWORD	flags = 0;
+	NETRESOURCE  *pNetResource;
+	PyObject *obPassword=Py_None, *obUsername=Py_None, *ret=NULL;
+	PyObject *obhwnd, *obnr;
+
+	static char *keywords[] = {"HwndOwner", "NetResource","Password","UserName","Flags", NULL};
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OO|OOk", keywords,
+		&obhwnd,		// @pyparm int|hwnd||Handle to a parent window.
+		&obnr,			// @pyparm <o PyNETRESOURCE>|NetResource||Describes the network resource for the connection.
+		&obPassword,	// @pyparm str|Password|None|The password to use.  Use None for default credentials.
+		&obUsername,	// @pyparm str|UserName|None|The user name to connect as.  Use None for default credentials.
+		&flags))		// @pyparm int|Flags|0|Combination win32netcon.CONNECT_* flags
+		return NULL;
+
+	HWND hwnd;
+	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)hwnd))
+		return NULL;
+	if (!PyWinObject_AsNETRESOURCE(obnr, &pNetResource, FALSE))
+		return NULL;
+
+	if (!PyWinObject_AsTCHAR(obPassword, &Password, TRUE)
+	    || !PyWinObject_AsTCHAR(obUsername, &Username, TRUE))
+		goto done;
+
+	Py_BEGIN_ALLOW_THREADS
+	ErrorNo = WNetAddConnection3(hwnd, pNetResource, Password, Username, flags);
+	Py_END_ALLOW_THREADS
+	if (ErrorNo != NO_ERROR)
+		ReturnNetError("WNetAddConnection3", ErrorNo);
+	else{
+		Py_INCREF(Py_None);
+		ret = Py_None;
+	}
+done:
+	PyWinObject_FreeTCHAR(Password);
+	PyWinObject_FreeTCHAR(Username);
+	return ret;
+};
+
 // @pymethod |win32wnet|WNetCancelConnection2|Closes network connections made by WNetAddConnection2 or 3
 static
 PyObject *
@@ -633,6 +680,8 @@ static PyMethodDef win32wnet_functions[] = {
 	{"Netbios",					PyWinMethod_Netbios,			1,	"Calls the windows Netbios function"},
 	// @pymeth WNetAddConnection2|Creates a connection to a network resource.
 	{"WNetAddConnection2",		(PyCFunction)PyWNetAddConnection2,	METH_KEYWORDS|METH_VARARGS,	"WNetAddConnection2(NetResource, Password, UserName, Flags)"},
+	// @pymeth WNetAddConnection3|Creates a connection to a network resource.
+	{"WNetAddConnection3",		(PyCFunction)PyWNetAddConnection3,	METH_KEYWORDS|METH_VARARGS,	"WNetAddConnection3(HwndParent, NetResource, Password, UserName, Flags)"},
 	// @pymeth WNetCancelConnection2|Closes network connections made by WNetAddConnection2 or 3
 	{"WNetCancelConnection2",	PyWNetCancelConnection2,	1,	"localname,dwflags,bforce"},
 	// @pymeth WNetOpenEnum|Opens an Enumeration Handle for Enumerating Resources with <om win32wnet.WNetEnumResource>

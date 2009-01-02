@@ -105,10 +105,7 @@ workstation 4.0 SP3.</p>
             <dd>The <strong>WNetAddConnection2</strong> function
                 makes a connection to a network resource. The
                 function can redirect a local device to the
-                network resource. This function was written
-                before the PyNETRESOURCE object was created and
-                thus does not use PyNETRESOURCE in this release
-                (this will be updated at a later date). The first
+                network resource. The first
                 four parameters correspond to the NETRESOURCE
                 object that is being constructed for the Win32API
                 call. UserName and Password are obvious. Passing
@@ -120,6 +117,12 @@ workstation 4.0 SP3.</p>
                 it functionally equivalent to WNetAddConnection2.
                 WNetAddConnection3 is the only interface
                 supported by Windows CE.</dd>
+            <dd>Note that this function has since been updated to optionally
+                accept a NETRESOURCE object making its signature almost 
+                identical to the win32 version - see the pywin32 help for
+                more information.  Also note that WNetAddConnection3
+                is also implemented, which is similar to this function but
+                accepts a HWND as the first (or named) param.
         </dl>
     </dd>
 </dl>

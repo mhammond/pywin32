@@ -87,6 +87,10 @@ def TestConnection():
 		win32wnet.WNetAddConnection2(nr)
 		win32wnet.WNetCancelConnection2(localName, 0, 0)
 
+		# and one more time using WNetAddConnection3
+		win32wnet.WNetAddConnection3(0, nr)
+		win32wnet.WNetCancelConnection2(localName, 0, 0)
+
 		# Only do the first share that succeeds.
 		break
 
