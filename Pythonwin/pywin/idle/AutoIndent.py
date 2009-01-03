@@ -1,41 +1,18 @@
-#from Tkinter import TclError
-#import tkMessageBox
-#import tkSimpleDialog
-
-###$ event <<newline-and-indent>>
-###$ win <Key-Return>
-###$ win <KP_Enter>
-###$ unix <Key-Return>
-###$ unix <KP_Enter>
-
-###$ event <<indent-region>>
-###$ win <Control-bracketright>
-###$ unix <Alt-bracketright>
-###$ unix <Control-bracketright>
-
-###$ event <<dedent-region>>
-###$ win <Control-bracketleft>
-###$ unix <Alt-bracketleft>
-###$ unix <Control-bracketleft>
-
-###$ event <<comment-region>>
-###$ win <Alt-Key-3>
-###$ unix <Alt-Key-3>
-
-###$ event <<uncomment-region>>
-###$ win <Alt-Key-4>
-###$ unix <Alt-Key-4>
-
-###$ event <<tabify-region>>
-###$ win <Alt-Key-5>
-###$ unix <Alt-Key-5>
-
-###$ event <<untabify-region>>
-###$ win <Alt-Key-6>
-###$ unix <Alt-Key-6>
-
+import sys
+import string, tokenize
 import PyParse
+from pywin import default_scintilla_encoding
 
+if sys.version_info < (3,):
+    # in py2k, tokenize() takes a 'token eater' callback, while
+    # generate_tokens is a generator that works with str objects.
+    token_generator = tokenize.generate_tokens
+else:
+    # in py3k tokenize() is the generator working with 'byte' objects, and
+    # token_generator is the 'undocumented b/w compat' function that
+    # theoretically works with str objects - but actually seems to fail)
+    token_generator = tokenize.tokenize
+    
 class AutoIndent:
 
     menudefs = [
@@ -497,10 +474,6 @@ def classifyws(s, tabwidth):
             break
     return raw, effective
 
-import tokenize
-_tokenize = tokenize
-del tokenize
-
 class IndentSearcher:
 
     # .run() chews over the Text widget, looking for a block opener
@@ -524,30 +497,32 @@ class IndentSearcher:
                 val = ""
             else:
                 val = self.text.get(mark, mark + " lineend+1c")
+        # hrm - not sure this is correct in py3k - the source code may have
+        # an encoding declared, but the data will *always* be in
+        # default_scintilla_encoding - so if anyone looks at the encoding decl
+        # in the source they will be wrong.  I think.  Maybe.  Or something...
         return val.encode(default_scintilla_encoding)
 
-    def tokeneater(self, type, token, start, end, line,
-                   INDENT=_tokenize.INDENT,
-                   NAME=_tokenize.NAME,
-                   OPENERS=('class', 'def', 'for', 'if', 'try', 'while')):
-        if self.finished:
-            pass
-        elif type == NAME and token in OPENERS:
-            self.blkopenline = line
-        elif type == INDENT and self.blkopenline:
-            self.indentedline = line
-            self.finished = 1
-
     def run(self):
-        save_tabsize = _tokenize.tabsize
-        _tokenize.tabsize = self.tabwidth
+        OPENERS=('class', 'def', 'for', 'if', 'try', 'while')
+        INDENT=tokenize.INDENT
+        NAME=tokenize.NAME
+                   
+        save_tabsize = tokenize.tabsize
+        tokenize.tabsize = self.tabwidth
         try:
             try:
-                _tokenize.tokenize(self.readline, self.tokeneater)
-            except (_tokenize.TokenError, IndentationError):
+                for (typ, token, start, end, line) in token_generator(self.readline):
+                    if typ == NAME and token in OPENERS:
+                        self.blkopenline = line
+                    elif type == INDENT and self.blkopenline:
+                        self.indentedline = line
+                        break
+
+            except (tokenize.TokenError, IndentationError):
                 # since we cut off the tokenizer early, we can trigger
                 # spurious errors
                 pass
         finally:
-            _tokenize.tabsize = save_tabsize
+            tokenize.tabsize = save_tabsize
         return self.blkopenline, self.indentedline
