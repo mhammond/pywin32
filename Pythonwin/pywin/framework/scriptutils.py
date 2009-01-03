@@ -575,7 +575,7 @@ def LocatePythonFile( fileName, bBrowseIfDir = 1 ):
 		# Go looking!
 		baseName = fileName
 		for path in sys.path:
-			fileName = os.path.join(path, baseName)
+			fileName = os.path.abspath(os.path.join(path, baseName))
 			if os.path.isdir(fileName):
 				if bBrowseIfDir:
 					d=win32ui.CreateFileDialog(1, "*.py", None, 0, "Python Files (*.py)|*.py|All files|*.*")
