@@ -353,23 +353,20 @@ class InteractivePythonApp(app.CApp):
 		import os
 		global lastLocateFileName # save the new version away for next time...
 
-		# Loop until a good name, or cancel
-		while 1:
-			name = dialog.GetSimpleInput('File name', lastLocateFileName, 'Locate Python File')
-			if name is None: # Cancelled.
-				break
-			lastLocateFileName = name
-			# if ".py" supplied, rip it off!
-			# should also check for .pys and .pyw
-			if lastLocateFileName[-3:].lower()=='.py':
-				lastLocateFileName = lastLocateFileName[:-3]
-			lastLocateFileName = lastLocateFileName.replace(".","\\")
-			newName = scriptutils.LocatePythonFile(lastLocateFileName)
-			if newName is None:
-				win32ui.MessageBox("The file '%s' can not be located" % lastLocateFileName)
-			else:
-				win32ui.GetApp().OpenDocumentFile(newName)
-				break
+		name = dialog.GetSimpleInput('File name', lastLocateFileName, 'Locate Python File')
+		if name is None: # Cancelled.
+			return
+		lastLocateFileName = name
+		# if ".py" supplied, rip it off!
+		# should also check for .pys and .pyw
+		if lastLocateFileName[-3:].lower()=='.py':
+			lastLocateFileName = lastLocateFileName[:-3]
+		lastLocateFileName = lastLocateFileName.replace(".","\\")
+		newName = scriptutils.LocatePythonFile(lastLocateFileName)
+		if newName is None:
+			win32ui.MessageBox("The file '%s' can not be located" % lastLocateFileName)
+		else:
+			win32ui.GetApp().OpenDocumentFile(newName)
 
 	# Display all the "options" proprety pages we can find
 	def OnViewOptions(self, id, code):
