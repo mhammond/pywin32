@@ -122,10 +122,10 @@ def log(level, what):
 
 # Convert an ADSI COM exception to the Win32 error code embedded in it.
 def _GetWin32ErrorCode(com_exc):
-    hr, msg, exc, narg = com_exc
-    # If we have more details in the 'exc' struct, use it.
-    if exc:
-        hr = exc[-1]
+    hr = com_exc.hresult
+    # If we have more details in the 'excepinfo' struct, use it.
+    if com_exc.excepinfo:
+        hr = com_exc.excepinfo[-1]
     if winerror.HRESULT_FACILITY(hr) != winerror.FACILITY_WIN32:
         raise
     return winerror.SCODE_CODE(hr)
@@ -181,9 +181,9 @@ def LoadWebServer(path):
     try:
         server = GetObject(path)
     except pythoncom.com_error, details:
-        hr, msg, exc, arg_err = details
-        if exc and exc[2]:
-            msg = exc[2]
+        msg = details.strerror
+        if exc.excepinfo and exc.excepinfo[2]:
+            msg = exc.excepinfo[2]
         msg = "WebServer %s: %s" % (path, msg)
         raise ItemNotFound(msg)
     return server
@@ -331,11 +331,11 @@ def CreateISAPIFilter(filterParams, options):
     _CallHook(filterParams, "PreInstall", options)
     try:
         filters = GetObject(server+"/Filters")
-    except pythoncom.com_error, (hr, msg, exc, arg):
+    except pythoncom.com_error, exc:
         # Brand new sites don't have the '/Filters' collection - create it.
         # Any errors other than 'not found' we shouldn't ignore.
-        if winerror.HRESULT_FACILITY(hr) != winerror.FACILITY_WIN32 or \
-           winerror.HRESULT_CODE(hr) != winerror.ERROR_PATH_NOT_FOUND:
+        if winerror.HRESULT_FACILITY(exc.hresult) != winerror.FACILITY_WIN32 or \
+           winerror.HRESULT_CODE(exc.hresult) != winerror.ERROR_PATH_NOT_FOUND:
             raise
         server_ob = GetObject(server)
         filters = server_ob.Create(_IIS_FILTERS, "Filters")
@@ -619,12 +619,12 @@ standard_arguments = {
 }
 
 def build_usage(handler_map):
-    docstrings = [handler.__doc__ for handler in handler_map.values()]
-    all_args = dict(zip(handler_map.keys(), docstrings))
-    arg_names = "|".join(all_args.keys())
+    docstrings = [handler.__doc__ for handler in handler_map.itervalues()]
+    all_args = dict(zip(handler_map.iterkeys(), docstrings))
+    arg_names = "|".join(all_args.iterkeys())
     usage_string = "%prog [options] [" + arg_names + "]\n"
     usage_string += "commands:\n"
-    for arg, desc in all_args.items():
+    for arg, desc in all_args.iteritems():
         usage_string += " %-10s: %s" % (arg, desc) + "\n"
     return usage_string[:-1]
 
