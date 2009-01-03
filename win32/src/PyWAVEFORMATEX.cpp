@@ -1,7 +1,6 @@
 //
 // @doc
 
-#include "Python.h"
 #include "PyWinTypes.h"
 #include "PyWinObjects.h"
 #include "PySoundObjects.h"
