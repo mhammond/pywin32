@@ -3,10 +3,8 @@
 // Groups related code for the win32net module.
 //
 // @doc
-#include "windows.h"
-#include "lm.h"
-#include "Python.h"
 #include "PyWinTypes.h"
+#include "lm.h"
 #include "win32net.h"
 #include "stddef.h"
 

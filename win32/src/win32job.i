@@ -8,7 +8,6 @@
 #define _WIN32_WINNT 0x500
 #endif
 
-#include "windows.h"
 #include "PyWinTypes.h"
 
 #define CHECK_PFN(fname)if (pfn##fname==NULL) return PyErr_Format(PyExc_NotImplementedError,"%s is not available on this platform", #fname);

@@ -2,12 +2,9 @@
 // Implemented and contributed by Roger Upole.
 #include "stdio.h"
 #include "assert.h"
-#include "windows.h" 
-#include "lm.h"
-#include "windows.h"
-#include "Python.h"
-#include "WinUser.h"
 #include "PyWinTypes.h"
+#include "lm.h"
+#include "WinUser.h"
 #include "win32net.h"
 
 

@@ -15,12 +15,9 @@ generates Windows .hlp files.
 #define WINVER 0x500
 #endif
 
-#include "windows.h"
+#include "pywintypes.h"
 #include "ras.h"
 #include "raserror.h"
-
-#include "Python.h"
-#include "pywintypes.h"
 
 typedef PyObject* (*PFNReturnRasError)(char *fnName, long err);
 

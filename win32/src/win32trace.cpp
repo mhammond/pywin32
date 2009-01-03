@@ -30,9 +30,6 @@ See - I told you the implementation was simple :-)
 
 */
 
-#include "windows.h"
-#include "Python.h"
-#include "structmember.h"
 #include "PyWinTypes.h"
 #include "PyWinObjects.h"
 

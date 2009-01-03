@@ -29,7 +29,7 @@
 #endif
 #include "winsock2.h"
 #include "mswsock.h"
-#include "windows.h"
+#include "pywintypes.h"
 #include "winbase.h"
 #include "assert.h"
 #include <stddef.h>

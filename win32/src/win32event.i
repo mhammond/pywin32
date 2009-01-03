@@ -6,11 +6,6 @@
 %{
 //#define UNICODE
 #define _WIN32_WINNT 0x0501
-#ifndef MS_WINCE
-#include "windows.h"
-//#include "winsock2.h"
-//#include "mswsock.h"
-#endif
 %}
 
 %include "typemaps.i"

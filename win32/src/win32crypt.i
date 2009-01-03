@@ -3,9 +3,8 @@
 %module win32crypt // An interface to the win32 Cryptography API
 
 %{
-#include "windows.h"
-#include "wincrypt.h"
 #include "PyWinTypes.h"
+#include "wincrypt.h"
 #include "malloc.h"
 #include "abstract.h" // for PyObject_AsReadBuffer
 %}

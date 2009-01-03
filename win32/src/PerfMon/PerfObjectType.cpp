@@ -2,9 +2,6 @@
 //
 // @doc
 
-#include "windows.h"
-#include "Python.h"
-#include "structmember.h"
 #include "PyWinTypes.h"
 #include "winperf.h"
 #include "pyperfmon.h"

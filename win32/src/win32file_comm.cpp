@@ -3,9 +3,6 @@
 //
 // @doc
 
-#include "windows.h"
-#include "Python.h"
-#include "structmember.h"
 #include "PyWinTypes.h"
 #include "PyWinObjects.h"
 #include "win32file_comm.h"

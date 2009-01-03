@@ -29,11 +29,9 @@ conversion is required.
 #error This project requires a Unicode build.
 #endif
 
-#include "windows.h"
+#include "PyWinTypes.h"
 #include "lm.h"
 #include "lmuseflg.h"
-#include "Python.h"
-#include "PyWinTypes.h"
 #include "win32net.h"
 
 #include "assert.h"

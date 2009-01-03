@@ -3,11 +3,9 @@
 // NetUse functions
 //
 // @doc
-#include "windows.h"
+#include "PyWinTypes.h"
 #include "lm.h"
 #include "lmuseflg.h"
-#include "Python.h"
-#include "PyWinTypes.h"
 #include "win32net.h"
 #include "stddef.h"
 

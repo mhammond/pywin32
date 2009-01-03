@@ -17,10 +17,6 @@
 
 #define PY_SSIZE_T_CLEAN // this should be Py_ssize_t clean!
 
-// #define UNICODE
-// #define _UNICODE // CRT function (_tcs*) switch based on this
-#include "windows.h"
-#include "Python.h"
 #include "pywintypes.h"
 
 

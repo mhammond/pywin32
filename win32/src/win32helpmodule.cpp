@@ -15,11 +15,8 @@ generates Windows .hlp files.
 ******************************************************************************/
 
 
-#include "windows.h"
-#include "htmlhelp.h"
-#include "Python.h"
-#include "structmember.h"
 #include "PyWinTypes.h"
+#include "htmlhelp.h"
 
 #define DllExport _declspec(dllexport)
 

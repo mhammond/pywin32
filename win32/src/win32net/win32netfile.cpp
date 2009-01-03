@@ -1,13 +1,10 @@
 // @doc
 // Implemented and contributed by Roger Upole.
+#include "PyWinTypes.h"
 #include "stdio.h"
 #include "assert.h"
-#include "windows.h" 
 #include "lm.h"
-#include "windows.h"
-#include "Python.h"
 #include "WinUser.h"
-#include "PyWinTypes.h"
 #include "win32net.h"
 
 // @pymethod (dict,...)|win32net|NetFileEnum|Lists remotely opened resources on a server
