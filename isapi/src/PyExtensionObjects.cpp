@@ -77,13 +77,20 @@ extern "C" void WINAPI DoIOCallback(EXTENSION_CONTROL_BLOCK *ecb, PVOID pContext
 	CControlBlock * pcb = NULL;
 	PyECB *pyECB = NULL;
 	BOOL worked = FALSE;
+	PyObject *callback = NULL;
+	PyObject *user_arg = NULL;
+	PyObject *args = NULL;
+	PyObject *key = NULL;
+	PyObject *ob = NULL;
+	PyObject *result = NULL;
+
 	if (!g_callbackMap)
 		CALLBACK_ERROR("Callback when no callback map exists");
 
-	PyObject *key = PyLong_FromVoidPtr(ecb->ConnID);
+	key = PyLong_FromVoidPtr(ecb->ConnID);
 	if (!key)
 		CALLBACK_ERROR("Failed to create map key from connection ID");
-	PyObject *ob = PyDict_GetItem(g_callbackMap, key);
+	ob = PyDict_GetItem(g_callbackMap, key);
 	if (!ob)
 		CALLBACK_ERROR("Failed to locate map entry for this commID");
 	// get the Python ECB object...
@@ -96,12 +103,12 @@ extern "C" void WINAPI DoIOCallback(EXTENSION_CONTROL_BLOCK *ecb, PVOID pContext
 	if (!PyTuple_Check(ob) || (PyTuple_Size(ob)!=1 && PyTuple_Size(ob)!=2))
 		CALLBACK_ERROR("Object in callback map not a tuple of correct size?");
 
-	PyObject *callback = PyTuple_GET_ITEM(ob, 0);
-	PyObject *user_arg = PyTuple_Size(ob)==2 ? PyTuple_GET_ITEM(ob, 1) : Py_None;
-	PyObject *args = Py_BuildValue("(OOkk)", pyECB, user_arg, cbIO, dwError);
+	callback = PyTuple_GET_ITEM(ob, 0);
+	user_arg = PyTuple_Size(ob)==2 ? PyTuple_GET_ITEM(ob, 1) : Py_None;
+	args = Py_BuildValue("(OOkk)", pyECB, user_arg, cbIO, dwError);
 	if (!args)
 		CALLBACK_ERROR("Failed to build callback args");
-	PyObject *result = PyObject_Call(callback, args, NULL);
+	result = PyObject_Call(callback, args, NULL);
 	Py_DECREF(args);
 	if (!result)
 		CALLBACK_ERROR("Callback failed");

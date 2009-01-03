@@ -34,6 +34,20 @@
 
 #include "Python.h"
 
+// No Py_RETURN_NONE in py23
+#if (PY_VERSION_HEX < 0x02040000)
+/* Macro for returning Py_None from a function */
+#define Py_RETURN_NONE return Py_INCREF(Py_None), Py_None
+#endif
+
+// include structmember here to deal with warnings related to WRITE_RESTRICTED
+#ifdef WRITE_RESTRICTED
+#undef WRITE_RESTRICTED
+#endif
+#include "structmember.h"
+// avoid anyone accidently using the wrong WRITE_RESTRICTED...
+#undef WRITE_RESTRICTED
+
 //{{AFX_INSERT_LOCATION}}
 // Microsoft Visual C++ will insert additional declarations immediately before the previous line.
 #endif // !defined(AFX_STDAFX_H__E2A54271_C650_437E_999F_A5E3E2F41ACC__INCLUDED)

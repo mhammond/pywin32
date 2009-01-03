@@ -26,13 +26,6 @@
 #define __PyExtensionObjects_H__
 
 #include "ControlBlock.h"
-
-#ifdef WRITE_RESTRICTED
-#undef WRITE_RESTRICTED
-#endif
-#include "structmember.h"
-// avoid anyone accidently using the wrong WRITE_RESTRICTED...
-#undef WRITE_RESTRICTED
 #include "tupleobject.h"
 
 class PyVERSION_INFO :public PyObject

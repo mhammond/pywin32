@@ -26,13 +26,6 @@
 #define __PyHFC_H
 
 #include "FilterContext.h"
-
-#ifdef WRITE_RESTRICTED
-#undef WRITE_RESTRICTED
-#endif
-#include "structmember.h"
-// avoid anyone accidently using the wrong WRITE_RESTRICTED...
-#undef WRITE_RESTRICTED
 #include "tupleobject.h"
 
 
