@@ -650,7 +650,6 @@ PYWIN_MODULE_INIT_FUNC(win32trace)
         if (GetLastError() != ERROR_ALREADY_EXISTS) {
             // no local one exists - see if we can create it globally - if
             // we can, we go global, else we stick with local.
-            use_global_namespace = TRUE;
             HANDLE h2 = CreateFileMapping((HANDLE)-1, &sa, PAGE_READWRITE,
                                           0, BUFFER_SIZE,
                                           FixupObjectName(MAP_OBJECT_NAME));
