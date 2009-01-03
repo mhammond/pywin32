@@ -86,7 +86,7 @@ def stressTestClient(server, numThreads, numMessages):
     WaitForMultipleObjects(thread_waits, 1, INFINITE)
 
 def main():
-    import sys, getopt, string
+    import sys, getopt
     server = "."
     thread_count = 0
     msg_count = 500
@@ -96,15 +96,15 @@ def main():
             if o=='-s':
                 server = a
             if o=='-m':
-                msg_count = string.atoi(a)
+                msg_count = int(a)
             if o=='-t':
-                thread_count = string.atoi(a)
+                thread_count = int(a)
             if o=='-v':
                 global verbose
                 verbose = 1
             if o=='-l':
                 testLargeMessage(server)
-        msg = string.join(args)
+        msg = " ".join(args).encode("mbcs")
     except getopt.error, msg:
         print msg
         my_name = os.path.split(sys.argv[0])[1]
