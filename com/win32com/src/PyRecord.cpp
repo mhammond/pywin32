@@ -464,6 +464,7 @@ PyObject *PyRecord::tp_repr(PyObject *self)
 		if (obattrname==NULL)
 			goto done;
 		// must exit on error via loop_error from here...
+		PyObject *sub_object = NULL;
 		if (i > 0){
 			PyWinCoreString_Concat(&obrepr, comma);
 			if (!obrepr)
@@ -475,7 +476,7 @@ PyObject *PyRecord::tp_repr(PyObject *self)
 		PyWinCoreString_Concat(&obrepr, equals);
 		if (!obrepr)
 			goto loop_error;
-		PyObject *sub_object = PyRecord::getattro(self, obattrname);
+		sub_object = PyRecord::getattro(self, obattrname);
 		if (!sub_object)
 			goto loop_error;
 		PyWinCoreString_ConcatAndDel(&obrepr, PyObject_Repr(sub_object));
