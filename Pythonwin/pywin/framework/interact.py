@@ -228,7 +228,7 @@ class InteractiveFormatter(FormatterParent):
 		else:
 			styleStart = STYLE_INTERACTIVE_BANNER
 		self.scintilla.SCIStartStyling(start, 31)
-		self.style_buffer = array.array("c", chr(0)*len(stringVal))
+		self.style_buffer = array.array("b", (0,)*len(stringVal))
 		self.ColorizeInteractiveCode(stringVal, styleStart, stylePyStart)
 		self.scintilla.SCISetStylingEx(self.style_buffer)
 		self.style_buffer = None

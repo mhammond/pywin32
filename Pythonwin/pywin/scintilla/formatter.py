@@ -224,7 +224,7 @@ class Formatter(FormatterBase):
 #		assert end-start>=0, "Can't have negative styling"
 		stylenum = self.styles[styleName].stylenum
 		while start<end:
-			self.style_buffer[start]=chr(stylenum)
+			self.style_buffer[start]=stylenum
 			start = start+1
 		#self.scintilla.SCISetStyling(end - start + 1, stylenum)
 
@@ -247,7 +247,7 @@ class Formatter(FormatterBase):
 			styleStart = None
 #		trace("Coloring", start, end, end-start, len(stringVal), styleStart, self.scintilla.SCIGetCharAt(start))
 		scintilla.SCIStartStyling(start, 31)
-		self.style_buffer = array.array("c", chr(0)*len(stringVal))
+		self.style_buffer = array.array("b", (0,)*len(stringVal))
 		self.ColorizeString(stringVal, styleStart)
 		scintilla.SCISetStylingEx(self.style_buffer)
 		self.style_buffer = None
