@@ -218,7 +218,7 @@ static PyObject *PyWNetAddConnection3 (PyObject *self, PyObject *args, PyObject 
 		return NULL;
 
 	HWND hwnd;
-	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)hwnd))
+	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd))
 		return NULL;
 	if (!PyWinObject_AsNETRESOURCE(obnr, &pNetResource, FALSE))
 		return NULL;
