@@ -18,7 +18,7 @@ demos = [ \
 	('Various Dialog demos', 'import dlgtest;dlgtest.demo()'),
 	('OCX Control Demo', 'from ocx import ocxtest;ocxtest.demo()'),
 	('OCX Serial Port Demo', 'from ocx import ocxserialtest;	ocxserialtest.test()'),
-	('IE4 Control Demo', 'from ocx import webbrowser; webbrowser.Demo()'),
+	('IE4 Control Demo', 'from ocx import webbrowser; webbrowser.Demo("http://www.python.org")'),
 ]
 
 def demo():

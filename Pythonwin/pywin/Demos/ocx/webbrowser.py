@@ -21,6 +21,8 @@ class BrowserFrame(window.MDIChildWnd):
 	def __init__(self, url = None):
 		if url is None:
 			self.url = regutil.GetRegisteredHelpFile("Main Python Documentation")
+			if self.url is None:
+				self.url = "http://www.python.org"
 		else:
 			self.url = url
 		pass # Dont call base class doc/view version...
@@ -43,9 +45,8 @@ class BrowserFrame(window.MDIChildWnd):
 		title = "Web Browser - %s" % (url,)
 		self.SetWindowText(title)
 
-def Demo():
-	url = None
-	if len(sys.argv)>1:
+def Demo(url=None):
+	if url is None and len(sys.argv)>1:
 		url = win32api.GetFullPathName(sys.argv[1])
 	f = BrowserFrame(url)
 	f.Create("Web Browser")
