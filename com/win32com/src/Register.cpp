@@ -112,7 +112,7 @@ HRESULT PyCom_RegisterGatewayObject(REFIID iid, pfnPyGatewayConstructor ctor, co
 	}
 	// And finally in the map of names to gateway IIDs.
 	if (g_obPyCom_MapInterfaceNameToIID) {
-		valueObject = PyString_FromString((char *)interfaceName);
+		valueObject = PyWinCoreString_FromString(interfaceName);
 		if (!valueObject) {
 			Py_DECREF(keyObject);
 			return E_FAIL;
