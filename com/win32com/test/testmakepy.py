@@ -25,7 +25,7 @@ def TestBuildAll(verbose = 1):
         except pythoncom.com_error, details:
             # Ignore these 2 errors, as the are very common and can obscure
             # useful warnings.
-            if details[0] not in [winerror.TYPE_E_CANTLOADLIBRARY,
+            if details.hresult not in [winerror.TYPE_E_CANTLOADLIBRARY,
                               winerror.TYPE_E_LIBNOTREGISTERED]:
                 print "** COM error on", info.desc
                 print details
