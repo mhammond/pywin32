@@ -521,11 +521,17 @@ def MakePublicAttributeName(className, is_global = False):
 	if className[:2]=='__':
 		return demunge_leading_underscores(className)
 	elif className == 'None':
-		# assign to None is evil (and SyntaxError in 2.4) - note
-		# that if it was a global it would get picked up below
+		# assign to None is evil (and SyntaxError in 2.4, even though
+		# iskeyword says False there) - note that if it was a global
+		# it would get picked up below
 		className = 'NONE'
-	elif iskeyword(className): # all keywords are lower case
-		return className.capitalize()
+	elif iskeyword(className):
+		# most keywords are lower case (except True, False etc in py3k)
+		ret = className.capitalize()
+		# but those which aren't get forced upper.
+		if ret == className:
+			ret = ret.upper()
+		return ret
 	elif is_global and hasattr(__builtins__, className):
 		# builtins may be mixed case.  If capitalizing it doesn't change it,
 		# force to all uppercase (eg, "None", "True" become "NONE", "TRUE"
