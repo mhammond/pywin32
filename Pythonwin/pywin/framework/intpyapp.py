@@ -59,7 +59,6 @@ class MainFrame(app.MainFrame):
 				try:
 					pywin.debugger.currentDebugger.close(1)
 				except:
-					import traceback
 					traceback.print_exc()
 				return
 		except win32ui.error:
