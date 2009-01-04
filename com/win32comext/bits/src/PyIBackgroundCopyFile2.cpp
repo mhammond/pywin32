@@ -31,26 +31,18 @@ PyObject *PyIBackgroundCopyFile2::GetFileRanges(PyObject *self, PyObject *args)
 	IBackgroundCopyFile2 *pIBCF2 = GetI(self);
 	if ( pIBCF2 == NULL )
 		return NULL;
-	DWORD * RangeCount;
-	PyObject *obRangeCount;
-	BG_FILE_RANGE ** Ranges;
-	PyObject *obRanges;
+	DWORD RangeCount;
+	BG_FILE_RANGE *Ranges;
 	if ( !PyArg_ParseTuple(args, ":GetFileRanges") )
 		return NULL;
 	HRESULT hr;
 	PY_INTERFACE_PRECALL;
-	hr = pIBCF2->GetFileRanges( RangeCount, Ranges );
-	// PyObject_FreeDWORD(RangeCount);
-	// PyObject_FreeBG_FILE_RANGE_LIST(Ranges);
+	hr = pIBCF2->GetFileRanges( &RangeCount, &Ranges );
 
 	PY_INTERFACE_POSTCALL;
 
 	if ( FAILED(hr) )
 		return PyCom_BuildPyException(hr, pIBCF2, IID_IBackgroundCopyFile2 );
-// *** The output argument RangeCount of type "DWORD *" was not processed ***
-//     The type 'DWORD *' (RangeCount) is unknown.
-// *** The output argument Ranges of type "BG_FILE_RANGE **" was not processed ***
-//     The type 'BG_FILE_RANGE **' (Ranges) is unknown.
 	Py_INCREF(Py_None);
 	return Py_None;
 
