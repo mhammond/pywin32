@@ -447,6 +447,10 @@ class DispatchBaseClass:
 		other = getattr(other, "_oleobj_", other)
 		return cmp(self._oleobj_, other)
 
+	def __eq__(self, other):
+		other = getattr(other, "_oleobj_", other)
+		return self._oleobj_ == other
+
 	def _ApplyTypes_(self, dispid, wFlags, retType, argTypes, user, resultCLSID, *args):
 		return self._get_good_object_(
 			self._oleobj_.InvokeTypes(dispid, 0, wFlags, retType, argTypes, *args),

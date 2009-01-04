@@ -203,6 +203,10 @@ class CDispatch:
 		other = getattr(other, "_oleobj_", other)
 		return cmp(self._oleobj_, other)
 
+	def __eq__(self, other):
+		other = getattr(other, "_oleobj_", other)
+		return self._oleobj_ == other
+
 	def __int__(self):
 		return int(self.__call__())
 
