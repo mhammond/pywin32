@@ -147,10 +147,6 @@ class BindingsManager:
 				else:
 					rc = 1
 		except:
-			# ??? - hrm - py3k might want:
-			# traceback.print_exc(chain=False)
-			# but why?  We do a normal print_exc() below (and py2k
-			# doesn't have that param.
 			message = "Firing event '%s' failed." % event
 			print message
 			traceback.print_exc()
