@@ -12,7 +12,7 @@ verbose = "-v" in sys.argv
 class AXScript(win32com.test.util.TestCase):
     def setUp(self):
         file = win32api.GetFullPathName(os.path.join(win32com.axscript.client.__path__[0], "pyscript.py"))
-        from util import RegisterPythonServer
+        from win32com.test.util import RegisterPythonServer
         self.verbose = verbose
         RegisterPythonServer(file, 'python', verbose=self.verbose)
 
