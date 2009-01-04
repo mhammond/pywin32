@@ -163,23 +163,20 @@ class AXScriptException(win32com.server.exception.COMException):
 		else:
 			bits.extend(traceback.format_exception_only(exc_type, value))
 
-		# XXX - this block appears completely bogus???  The UTF8
-		# comment below is from well before py3k, so utf8 doesn't have
-		# any special status in py2k.  Most likely is that this was
-		# simply an artifact of an invalid test (which remains - it
-		# raises a RuntimeError with a *string* with extended
-		# characters.)
-		# Sadly, the test still fails in the same way if you raise a
-		# Unicode string with an extended char.  This block keeps the
-		# tests passing, so it remains.
-		# XXX - todo - read the above, and fix below!
-
-		# all items in the list are utf8 courtesy of Python magically
-		# converting unicode to utf8 before compilation.
-		for i in xrange(len(bits)):
-			if type(bits[i]) is str:
-			#assert type(bits[i]) is str, type(bits[i])
-				bits[i] = bits[i].decode('utf8')
+		# XXX - this utf8 encoding seems bogus.  From well before py3k,
+		# we had the comment:
+		# > all items in the list are utf8 courtesy of Python magically
+		# > converting unicode to utf8 before compilation.
+		# but that is likely just confusion from early unicode days;
+		# Python isn't doing it, pywin32 probably was, so 'mbcs' would
+		# be the default encoding.  We should never hit this these days
+		# anyway, but on py3k, we *never* will, and str objects there
+		# don't have a decode method...
+		if sys.version_info < (3,):
+			for i in xrange(len(bits)):
+				if type(bits[i]) is str:
+				#assert type(bits[i]) is str, type(bits[i])
+					bits[i] = bits[i].decode('utf8')
 
 		self.description = ExpandTabs(u''.join(bits))
 		# Clear tracebacks etc.
