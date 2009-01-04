@@ -2,10 +2,10 @@
 # gateway count doesnt hit zero.  Hence the print statements!
 
 import sys; sys.coinit_flags=0 # Must be free-threaded!
-import win32api, types, pythoncom, time
+import win32api, pythoncom, time
 import sys, os, win32com, win32com.client.connect
 from win32com.test.util import CheckClean
-from win32com.client import constants
+from win32com.client import constants, DispatchBaseClass
 import win32com
 from win32com.test.util import RegisterPythonServer
 
@@ -31,6 +31,15 @@ from win32com import universal
 universal.RegisterInterfaces('{6BCDCB60-5605-11D0-AE5F-CADD4C000000}', 0, 1, 1)
 
 verbose = 0
+
+# convert a normal int to a long int - used to avoid, eg, '1L' for py3k
+# friendliness
+def ensure_long(int_val):
+    if sys.version_info > (3,):
+        # py3k - no such thing as a 'long'
+        return int_val
+    # on py2x, we just use an expression that results in a long
+    return 0x100000000-0x100000000+int_val
 
 def progress(*args):
     if verbose:
@@ -179,7 +188,7 @@ def TestGenerated():
     TestCounter(counter, 1)
 
     i1, i2 = o.GetMultipleInterfaces()
-    if type(i1) != types.InstanceType or type(i2) != types.InstanceType:
+    if not isinstance(i1, DispatchBaseClass) or not isinstance(i2, DispatchBaseClass):
         # Yay - is now an instance returned!
         raise error("GetMultipleInterfaces did not return instances - got '%s', '%s'" % (i1, i2))
     del i1
@@ -211,7 +220,7 @@ def TestGenerated():
     if o.GetSetUnknown(o) != o:
         raise error("GetSetUnknown failed")
     progress("Checking getting/passing IDispatch")
-    if type(o.GetSetDispatch(o)) !=types.InstanceType:
+    if not isinstance(o.GetSetDispatch(o), DispatchBaseClass):
         raise error("GetSetDispatch failed")
     progress("Checking getting/passing IDispatch of known type")
     if o.GetSetInterface(o).__class__ != o.__class__:
@@ -222,7 +231,10 @@ def TestGenerated():
         raise error("GetSetVariant (str) failed")
     if o.GetSetVariant(o) != o:
         raise error("GetSetVariant (dispatch) failed")
-    for l in sys.maxint, sys.maxint+1, 1 << 65L:
+    # We want to explicitly test > 32 bits.  py3k has no 'maxint' and
+    # 'maxsize+1' is no good on 64bit platforms as its 65 bits!
+    big = 2147483647 # sys.maxint on py2k
+    for l in big, big+1, 1 << 65:
         if o.GetSetVariant(l) != l:
             raise error("GetSetVariant (long) failed")
     if o.TestByRefVariant(2) != 4:
@@ -270,10 +282,10 @@ def TestGenerated():
     TestApplyResult(o.Test6, (constants.WideAttr4,), constants.WideAttr4)
     TestApplyResult(o.Test6, (constants.WideAttr5,), constants.WideAttr5)
 
-    TestConstant("ULongTest1", 0xFFFFFFFFL)
-    TestConstant("ULongTest2", 0x7FFFFFFFL)
-    TestConstant("LongTest1", -0x7FFFFFFFL)
-    TestConstant("LongTest2", 0x7FFFFFFFL)
+    TestConstant("ULongTest1", ensure_long(0xFFFFFFFF))
+    TestConstant("ULongTest2", ensure_long(0x7FFFFFFF))
+    TestConstant("LongTest1", ensure_long(-0x7FFFFFFF))
+    TestConstant("LongTest2", ensure_long(0x7FFFFFFF))
     TestConstant("UCharTest", 255)
     TestConstant("CharTest", -1)
     # 'Hello Loraine', but the 'r' is the "Registered" sign (\xae)
