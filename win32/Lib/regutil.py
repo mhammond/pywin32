@@ -30,14 +30,13 @@ def GetRegistryDefaultValue(subkey, rootkey = None):
 def SetRegistryDefaultValue(subKey, value, rootkey = None):
 	"""A helper to set the default value for a key in the registry
         """
-	import types
 	if rootkey is None: rootkey = GetRootKey()
-	if type(value)==types.StringType:
+	if type(value)==str:
 		typeId = win32con.REG_SZ
-	elif type(value)==types.IntType:
+	elif type(value)==int:
 		typeId = win32con.REG_DWORD
 	else:
-		raise TypeError("Value must be string or integer - was passed " + str(value))
+		raise TypeError("Value must be string or integer - was passed " + repr(value))
 
 	win32api.RegSetValue(rootkey, subKey, typeId ,value)
 	
