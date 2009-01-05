@@ -1,7 +1,13 @@
 """Support for ActiveX control hosting in Pythonwin.
 """
-import win32ui, win32uiole, window
-import new
+import win32ui, win32uiole
+import window
+# XXX - we are still "classic style" classes in py2x, so we need can't yet
+# use 'type()' everywhere - revisit soon, as py2x will move to new-style too...
+try:
+	from types import ClassType as new_type
+except ImportError:
+	new_type = type # py3k
 
 class Control(window.Wnd):
 	"""An ActiveX control base class.  A new class must be derived from both
@@ -61,7 +67,7 @@ def MakeControlClass( controlClass, name = None ):
 	"""
 	if name is None:
 		name = controlClass.__name__
-	return new.classobj("OCX" + name, (Control, controlClass), {})
+	return new_type("OCX" + name, (Control, controlClass), {})
 
 def MakeControlInstance( controlClass, name = None ):
 	"""As for MakeControlClass(), but returns an instance of the class.
