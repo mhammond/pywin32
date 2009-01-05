@@ -12,7 +12,6 @@ from pywin.mfc import dialog
 import hierlist
 from types import *
 
-            
 special_names = [ '__doc__', '__name__', '__self__' ]
 
 #
@@ -57,7 +56,11 @@ class HLIPythonObject(hierlist.HierListItem):
 			ob = self.myobject.__doc__
 		except (AttributeError, TypeError):
 			pass
-		if ob:
+		# I don't quite grok descriptors enough to know how to
+		# best hook them up. Eg:
+		# >>> object.__getattribute__.__class__.__doc__
+		# <attribute '__doc__' of 'wrapper_descriptor' objects>
+		if ob and isinstance(ob, str):
 			lst.insert(0, HLIDocString( ob, "Doc" ))
 
 	def GetSubList(self):
@@ -253,21 +256,20 @@ class HLIString(HLIPythonObject):
     def IsExpandable(self):
         return 0
 
-TypeMap = { ClassType : HLIClass, 
+TypeMap = { type : HLIClass, 
             FunctionType: HLIFunction,
-            TupleType: HLITuple,
-            DictType: HLIDict,
-            ListType: HLIList,
+            tuple: HLITuple,
+            dict: HLIDict,
+            list: HLIList,
             ModuleType: HLIModule,
-            InstanceType : HLIInstance,
             CodeType : HLICode,
             BuiltinFunctionType : HLIBuiltinFunction,
             FrameType : HLIFrame,
             TracebackType : HLITraceback,
-            StringType : HLIString,
-            IntType: HLIPythonObject,
-            LongType: HLIPythonObject,
-            FloatType: HLIPythonObject,
+            str : HLIString,
+            int: HLIPythonObject,
+            ## LongType: HLIPythonObject, - hrm - fixme for py2k
+            float: HLIPythonObject,
            }
 try:
     TypeMap[UnicodeType] = HLIString
