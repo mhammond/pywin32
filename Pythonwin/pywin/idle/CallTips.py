@@ -3,7 +3,8 @@
 
 import string
 import sys
-import types
+import inspect
+import traceback
 
 class CallTips:
 
@@ -100,7 +101,10 @@ def _find_constructor(class_ob):
     # Given a class object, return a function object used for the
     # constructor (ie, __init__() ) or None if we can't find one.
     try:
-        return class_ob.__init__.im_func
+        if sys.version_info < (3,):
+            return class_ob.__init__.im_func
+        else:
+            return class_ob.__init__.__func__
     except AttributeError:
         for base in class_ob.__bases__:
             rc = _find_constructor(base)
@@ -112,36 +116,21 @@ def get_arg_text(ob):
     argText = ""
     if ob is not None:
         argOffset = 0
-        if type(ob)==types.ClassType:
+        if inspect.isclass(ob):
             # Look for the highest __init__ in the class chain.
             fob = _find_constructor(ob)
             if fob is None:
                 fob = lambda: None
-            else:
-                argOffset = 1
-        elif type(ob)==types.MethodType:
-            # bit of a hack for methods - turn it into a function
-            # but we drop the "self" param.
-            fob = ob.im_func
-            argOffset = 1
         else:
             fob = ob
-        # Try and build one for Python defined functions
-        if type(fob) in [types.FunctionType, types.LambdaType]:
+        if inspect.isfunction(fob) or inspect.ismethod(fob):
             try:
-                realArgs = fob.func_code.co_varnames[argOffset:fob.func_code.co_argcount]
-                defaults = fob.func_defaults or []
-                defaults = list(map(lambda name: "=%s" % name, defaults))
-                defaults = [""] * (len(realArgs)-len(defaults)) + defaults
-                items = map(lambda arg, dflt: arg+dflt, realArgs, defaults)
-                if fob.func_code.co_flags & 0x4:
-                    items.append("...")
-                if fob.func_code.co_flags & 0x8:
-                    items.append("***")
-                argText = ", ".join(items)
-                argText = "(%s)" % argText
+                # py3k has a 'getfullargspec' which can handle py3k specific things.
+                arg_getter = getattr(inspect, "getfullargspec", inspect.getargspec)
+                argText = inspect.formatargspec(*arg_getter(fob))
             except:
-                pass
+                print "Failed to format the args"
+                traceback.print_exc()
         # See if we can use the docstring
         if hasattr(ob, "__doc__"):
             doc=ob.__doc__
@@ -166,20 +155,20 @@ if __name__=='__main__':
 
     def t1(): "()"
     def t2(a, b=None): "(a, b=None)"
-    def t3(a, *args): "(a, ...)"
-    def t4(*args): "(...)"
-    def t5(a, *args): "(a, ...)"
-    def t6(a, b=None, *args, **kw): "(a, b=None, ..., ***)"
+    def t3(a, *args): "(a, *args)"
+    def t4(*args): "(*args)"
+    def t5(a, *args): "(a, *args)"
+    def t6(a, b=None, *args, **kw): "(a, b=None, *args, **kw)"
 
     class TC:
-        "(a=None, ...)"
-        def __init__(self, a=None, *b): "(a=None, ...)"
-        def t1(self): "()"
-        def t2(self, a, b=None): "(a, b=None)"
-        def t3(self, a, *args): "(a, ...)"
-        def t4(self, *args): "(...)"
-        def t5(self, a, *args): "(a, ...)"
-        def t6(self, a, b=None, *args, **kw): "(a, b=None, ..., ***)"
+        "(self, a=None, *b)"
+        def __init__(self, a=None, *b): "(self, a=None, *b)"
+        def t1(self): "(self)"
+        def t2(self, a, b=None): "(self, a, b=None)"
+        def t3(self, a, *args): "(self, a, *args)"
+        def t4(self, *args): "(self, *args)"
+        def t5(self, a, *args): "(self, a, *args)"
+        def t6(self, a, b=None, *args, **kw): "(self, a, b=None, *args, **kw)"
 
     def test( tests ):
         failed=[]
@@ -195,3 +184,4 @@ if __name__=='__main__':
             TC, tc.t1, tc.t2, tc.t3, tc.t4, tc.t5, tc.t6
 
     test(tests)
+
