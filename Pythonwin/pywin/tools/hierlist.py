@@ -312,3 +312,20 @@ class HierListItem:
 		return None	# indicate he should do it.
 	def GetSelectedBitmapColumn(self):
 		return None	# same as other
+	# for py3k/rich-comp sorting compatibility.
+	def __cmp__(self):
+		# this is always overridden, but to be sure...
+		return cmp(id(self), id(other))
+	def __lt__(self, other):
+		try:
+			return self.__cmp__(self, other) < 0
+		except TypeError:
+			# we want unrelated items to be sortable...
+			return id(self) < id(other)
+	# for py3k/rich-comp equality compatibility.
+	def __eq__(self, other):
+		try:
+			return __cmp__(self, other) == 0
+		except TypeError:
+			# unrelated items compare false
+			return 0

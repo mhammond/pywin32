@@ -36,8 +36,6 @@ class HLIRoot(browser.HLIPythonObject):
         return [HLIHeadingCategory(), HLI_IEnumMoniker(pythoncom.GetRunningObjectTable().EnumRunning(), "Running Objects"), HLIHeadingRegisterdTypeLibs()]
     def __cmp__(self, other):
         return cmp(self.name, other.name)
-    def __eq__(self, other):
-        return self.name==other.name
 
 class HLICOM(browser.HLIPythonObject):
     def GetText(self):
