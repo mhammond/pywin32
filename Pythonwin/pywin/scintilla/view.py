@@ -386,12 +386,14 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
 
 	def SaveTextFile(self, filename):
 		doc = self.GetDocument()
-		s = self.GetTextRange()
-		# Save in binary mode so line endings are not translated.
-		# Edit control uses '\r\n', and universal newlines mode replaces ALL '\r' with '\r\n'.
-		f  = open(filename, 'wb')
-		f.write(s.encode('mbcs'))
-		f.close()
+		# Open in binary mode as scintilla itself ensures the
+		# line endings are already appropriate, and our doc save
+		# method handles encoding, BOMs, etc.
+		f = open(filename, 'wb')
+		try:
+			doc._SaveTextToFile(self, f)
+		finally:
+			f.close()
 		doc.SetModifiedFlag(0)
 		return 1
 

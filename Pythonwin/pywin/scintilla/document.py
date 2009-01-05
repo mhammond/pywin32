@@ -1,14 +1,25 @@
 import win32ui
 from pywin.mfc import docview
-from pywin import is_platform_unicode, default_platform_encoding, default_scintilla_encoding
+from pywin import default_scintilla_encoding
 import scintillacon
 import win32con
 import string
-import array
+import os
+import codecs
+
+crlf_bytes = "\r\n".encode("ascii")
+lf_bytes = "\n".encode("ascii")
 
 ParentScintillaDocument=docview.Document
 class CScintillaDocument(ParentScintillaDocument):
 	"A SyntEdit document. "
+	def __init__(self, *args):
+		self.bom = None # the BOM, if any, read from the file.
+		# the encoding we detected from the source.  Might have
+		# detected via the BOM or an encoding decl.
+		self.source_encoding = None
+		ParentScintillaDocument.__init__(self, *args)
+
 	def DeleteContents(self):
 		pass
 
@@ -17,27 +28,17 @@ class CScintillaDocument(ParentScintillaDocument):
 		#print "Opening", filename
 		self.SetPathName(filename) # Must set this early!
 		try:
-			if is_platform_unicode:
-				# Scintilla in UTF-8 mode - translate accordingly.
-				import codecs
-				f = codecs.open(filename, 'rb', default_platform_encoding)
-			else:
-				f = open(filename, 'rb')
+			# load the text as binary we can get smart
+			# about detecting any existing EOL conventions.
+			f = open(filename, 'rb')
 			try:
-				text = f.read()
+				self._LoadTextFromFile(f)
 			finally:
 				f.close()
-			if is_platform_unicode:
-				# Translate from locale-specific (MCBS) encoding to UTF-8 for Scintilla
-				text = text.encode(default_scintilla_encoding)
 		except IOError:
 			win32ui.MessageBox("Could not load the file from %s" % filename)
 			return 0
 
-		self._SetLoadedText(text)
-##		if self.GetFirstView():
-##			self.GetFirstView()._SetLoadedText(text)
-##		self.SetModifiedFlag(0) # No longer dirty
 		return 1
 
 	def SaveFile(self, fileName):
@@ -53,19 +54,83 @@ class CScintillaDocument(ParentScintillaDocument):
 	# #####################
 	# File related functions
 	# Helper to transfer text from the MFC document to the control.
-	def _SetLoadedText(self, text):
+	def _LoadTextFromFile(self, f):
+		# detect EOL mode - we don't support \r only - so find the
+		# first '\n' and guess based on the char before.
+		l = f.readline()
+		# If line ends with \r\n or has no line ending, use CRLF.
+		if l.endswith(crlf_bytes) or not l.endswith(lf_bytes):
+			eol_mode = scintillacon.SC_EOL_CRLF
+		else:
+			eol_mode = scintillacon.SC_EOL_LF
+
+		# Detect the encoding.
+		# XXX - todo - support pep263 encoding declarations as well as
+		# the BOM detection here (but note that unlike our BOM, the
+		# encoding declaration could change between loading and saving
+		# - particularly with a new file - so it also needs to be
+		# implemented at save time.)
+		for bom, encoding in (
+			(codecs.BOM_UTF8, "utf8"),
+			(codecs.BOM_UTF16_LE, "utf_16_le"),
+			(codecs.BOM_UTF16_BE, "utf_16_be"),
+			):
+			if l.startswith(bom):
+				self.bom = bom
+				self.source_encoding = encoding
+				l = l[len(bom):] # remove it.
+				break
+
+		# reading by lines would be too slow?  Maybe we can use the
+		# incremental encoders? For now just stick with loading the
+		# entire file in memory.
+		text = l + f.read()
+
+		# Translate from source encoding to UTF-8 bytes for Scintilla
+		source_encoding = self.source_encoding
+		# This latin1 sucks until we get pep263 support; if we don't
+		# know an encoding we just write as binary (maybe we should
+		# try ascii to let the 'decoding failed' handling below to
+		# provide a nice warning that the file is non-ascii)
+		if source_encoding is None:
+			source_encoding = 'latin1'
+		# we could optimize this by avoiding utf8 to-ing and from-ing,
+		# but then we would lose the ability to handle invalid utf8
+		# (and even then, the use of encoding aliases makes this tricky)
+		# To create an invalid utf8 file:
+		# >>> open(filename, "wb").write(codecs.BOM_UTF8+"bad \xa9har\r\n")
+		try:
+			dec = text.decode(source_encoding)
+		except UnicodeError:
+			print "WARNING: Failed to decode bytes from %r encoding - treating as latin1" % source_encoding
+			dec = text.decode('latin1')
+		# and put it back as utf8 - this shouldn't fail.
+		text = dec.encode(default_scintilla_encoding)
+
 		view = self.GetFirstView()
 		if view.IsWindow():
 			# Turn off undo collection while loading 
 			view.SendScintilla(scintillacon.SCI_SETUNDOCOLLECTION, 0, 0)
 			# Make sure the control isnt read-only
 			view.SetReadOnly(0)
-
-			doc = self
 			view.SendScintilla(scintillacon.SCI_CLEARALL)
-			view.SendMessage(scintillacon.SCI_ADDTEXT, buffer(text))
+			view.SendMessage(scintillacon.SCI_ADDTEXT, text)
 			view.SendScintilla(scintillacon.SCI_SETUNDOCOLLECTION, 1, 0)
 			view.SendScintilla(win32con.EM_EMPTYUNDOBUFFER, 0, 0)
+			# set EOL mode
+			view.SendScintilla(scintillacon.SCI_SETEOLMODE, eol_mode)
+
+	def _SaveTextToFile(self, view, f):
+		s = view.GetTextRange() # already decoded from scintilla's encoding
+		if self.bom:
+			f.write(self.bom)
+		source_encoding = self.source_encoding
+		if source_encoding is None:
+			source_encoding = 'latin1'
+
+		f.write(s.encode(source_encoding))
+		self.SetModifiedFlag(0)
+
 
 	def FinalizeViewCreation(self, view):
 		pass

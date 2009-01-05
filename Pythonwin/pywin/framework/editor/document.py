@@ -35,8 +35,7 @@ class EditorDocumentBase(ParentEditorDocument):
 		# Should I try and use VSS integration?
 		self.scModuleName=GetEditorOption("Source Control Module", "")
 		self.scModule = None # Loaded when first used.
-		# Skip the direct parent
-		object.CmdTarget.__init__(self, template.CreateWin32uiDocument())
+		ParentEditorDocument.__init__(self, template, template.CreateWin32uiDocument())
 
 	def OnCloseDocument(self ):
 		self.watcherThread.SignalStop()
