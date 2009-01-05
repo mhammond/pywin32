@@ -1,4 +1,5 @@
-import hierlist, string, regutil, os
+import regutil, os
+import hierlist
 import win32con, win32ui, win32api
 import commctrl
 from pywin.mfc import dialog
