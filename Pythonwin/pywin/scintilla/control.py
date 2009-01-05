@@ -13,7 +13,6 @@ import array
 import struct
 import string
 import os
-import sys
 import scintillacon
 
 # Load Scintilla.dll to get access to the control.
@@ -32,6 +31,9 @@ if dllid is None:
 if dllid is None:
 	# Still not there - lets see if Windows can find it by searching?
 	dllid = win32api.LoadLibrary("Scintilla.DLL")
+
+# null_byte is str in py2k, bytes on py3k
+null_byte = "\0".encode('ascii')
 
 ## These are from Richedit.h - need to add to win32con or commctrl
 EM_GETTEXTRANGE = 1099
@@ -198,14 +200,8 @@ class ScintillaControlInterface:
 	# Call tips
 	def SCICallTipShow(self, text, pos=-1):
 		if pos==-1: pos = self.GetSel()[0]
-		if isinstance(text, unicode):
-			# I'm really not sure what the correct encoding
-			# to use is - but it has gotta be better than total
-			# failure due to the array module
-			text = text.encode("mbcs")
-		buff = array.array('c', text + "\0")
-		addressBuffer = buff.buffer_info()[0]
-		self.SendScintilla(scintillacon.SCI_CALLTIPSHOW, pos, addressBuffer)
+		buff = (text + "\0").encode(default_scintilla_encoding)
+		self.SendScintilla(scintillacon.SCI_CALLTIPSHOW, pos, buff)
 	def SCICallTipCancel(self):
 		self.SendScintilla(scintillacon.SCI_CALLTIPCANCEL)
 	def SCICallTipActive(self):
@@ -219,8 +215,8 @@ class ScintillaControlInterface:
 		buff = (keywords+"\0").encode(default_scintilla_encoding)
 		self.SendScintilla(scintillacon.SCI_SETKEYWORDS, kw_list_no, buff)
 	def SCISetProperty(self, name, value):
-		name_buff = array.array('c', name + "\0")
-		val_buff = array.array("c", str(value) + "\0")
+		name_buff = array.array('b',  (name + '\0').encode(default_scintilla_encoding))
+		val_buff = array.array("b", (str(value)+'\0').encode(default_scintilla_encoding))
 		address_name_buffer = name_buff.buffer_info()[0]
 		address_val_buffer = val_buff.buffer_info()[0]
 		self.SendScintilla(scintillacon.SCI_SETPROPERTY, address_name_buffer, address_val_buffer)
@@ -296,10 +292,18 @@ class CScintillaEditInterface(ScintillaControlInterface):
 
 	def GetSelText(self):
 		start, end = self.GetSel()
-		txtBuf = array.array('c', " " * ((end-start)+1))
+		txtBuf = array.array('b', null_byte * (end-start+1))
 		addressTxtBuf = txtBuf.buffer_info()[0]
+		# EM_GETSELTEXT is documented as returning the number of chars
+		# not including the NULL, but scintilla includes the NULL.  A
+		# quick glance at the scintilla impl doesn't make this
+		# obvious - the NULL is included in the 'selection' object
+		# and reflected in the length of that 'selection' object.
+		# I expect that is a bug in scintilla and may be fixed by now,
+		# but we just blindly assume that the last char is \0 and
+		# strip it.
 		self.SendScintilla(EM_GETSELTEXT, 0, addressTxtBuf)
-		return txtBuf.tostring().decode(default_scintilla_encoding)
+		return txtBuf.tostring()[:-1].decode(default_scintilla_encoding)
 
 	def SetSel(self, start=0, end=None):
 		if type(start)==type(()):
@@ -312,7 +316,7 @@ class CScintillaEditInterface(ScintillaControlInterface):
 		assert start <= self.GetTextLength(), "The start postion is invalid (%d/%d)" % (start, self.GetTextLength())
 		assert end <= self.GetTextLength(), "The end postion is invalid (%d/%d)" % (end, self.GetTextLength())
 		cr = struct.pack('ll', start, end)
-		crBuff = array.array('c', cr)
+		crBuff = array.array('b', cr)
 		addressCrBuff = crBuff.buffer_info()[0]
 		rc = self.SendScintilla(EM_EXSETSEL, 0, addressCrBuff)
 
@@ -343,15 +347,11 @@ class CScintillaEditInterface(ScintillaControlInterface):
 		assert end>=start, "Negative index requested (%d/%d)" % (start, end)
 		assert start >= 0 and start <= self.GetTextLength(), "The start postion is invalid"
 		assert end >= 0 and end <= self.GetTextLength(), "The end postion is invalid"
-		initer = ("=" * (end - start + 1)).encode("ascii") # ensure bytes in both 2x and 3k
-		if sys.version_info >= (3,):
-			byte_format = 'b'
-		else:
-			byte_format = 'c'
-		buff = array.array(byte_format, initer)
+		initer = null_byte * (end - start + 1)
+		buff = array.array('b', initer)
 		addressBuffer = buff.buffer_info()[0]
 		tr = struct.pack('llP', start, end, addressBuffer)
-		trBuff = array.array(byte_format, tr)
+		trBuff = array.array('b', tr)
 		addressTrBuff = trBuff.buffer_info()[0]
 		numChars = self.SendScintilla(EM_GETTEXTRANGE, 0, addressTrBuff)
 		return buff.tostring()[:numChars].decode(default_scintilla_encoding)
