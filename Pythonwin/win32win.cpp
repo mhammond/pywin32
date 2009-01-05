@@ -3204,7 +3204,7 @@ PyObject* ui_window_set_icon(PyObject* self, PyObject *args)
 	GUI_BGN_SAVE;
 	HICON hiconRetVal = pWnd->SetIcon(hiconPrevIcon, bBigIcon);
 	GUI_END_SAVE;
-	return Py_BuildValue("i", hiconRetVal);
+	return PyWinLong_FromHANDLE(hiconRetVal);
 }
 
 ///////////////////////////////////////
@@ -3706,10 +3706,10 @@ PyCFrameWnd_LoadBarState(PyObject *self, PyObject *args)
 	if (!PyWinObject_AsTCHAR(obprofileName, &profileName, FALSE))
 		return NULL;
 	GUI_BGN_SAVE;
-	try {
+	PYWINTYPES_TRY {
 		pFrame->LoadBarState(profileName); // @pyseemfc CFrameWnd|LoadBarState
 	}
-	catch (...) {
+	PYWINTYPES_EXCEPT {
 		GUI_BLOCK_THREADS;
 		PyWinObject_FreeTCHAR(profileName);
 		RETURN_ERR("LoadBarState failed (with win32 exception!)");
