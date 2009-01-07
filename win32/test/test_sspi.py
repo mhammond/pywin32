@@ -2,7 +2,20 @@
 # Stolen from Roger's original test_sspi.c, a version of which is in "Demos"
 # See also the other SSPI demos.
 import win32security, sspi, sspicon, win32api
+from pywin32_testutil import TestSkipped, testmain, str2bytes
 import unittest
+
+# It is quite likely that the Kerberos tests will fail due to not being
+# installed.  The NTLM tests do *not* get the same behaviour as they should
+# always be there.
+def applyHandlingSkips(func, *args):
+    try:
+        return func(*args)
+    except win32api.error, exc:
+        if exc.winerror == sspicon.SEC_E_NO_CREDENTIALS:
+            raise TestSkipped(exc)
+        raise
+
 
 class TestSSPI(unittest.TestCase):
 
@@ -31,7 +44,7 @@ class TestSSPI(unittest.TestCase):
         sspiserver.ctxt.RevertSecurityContext()
 
     def testImpersonateKerberos(self):
-        self._doTestImpersonate("Kerberos")
+        applyHandlingSkips(self._doTestImpersonate, "Kerberos")
 
     def testImpersonateNTLM(self):
         self._doTestImpersonate("NTLM")
@@ -41,7 +54,7 @@ class TestSSPI(unittest.TestCase):
         sspiclient, sspiserver = self._doAuth(pkg_name)
 
         pkg_size_info=sspiclient.ctxt.QueryContextAttributes(sspicon.SECPKG_ATTR_SIZES)
-        msg='some data to be encrypted ......'
+        msg=str2bytes('some data to be encrypted ......')
 
         trailersize=pkg_size_info['SecurityTrailer']
         encbuf=win32security.PySecBufferDescType()
@@ -52,24 +65,25 @@ class TestSSPI(unittest.TestCase):
         sspiserver.ctxt.DecryptMessage(encbuf,1)
         self.failUnlessEqual(msg, encbuf[0].Buffer)
         # and test the higher-level functions
-        data, sig = sspiclient.encrypt("hello")
-        self.assertEqual(sspiserver.decrypt(data, sig), "hello")
+        data_in = str2bytes("hello")
+        data, sig = sspiclient.encrypt(data_in)
+        self.assertEqual(sspiserver.decrypt(data, sig), data_in)
 
-        data, sig = sspiserver.encrypt("hello")
-        self.assertEqual(sspiclient.decrypt(data, sig), "hello")
+        data, sig = sspiserver.encrypt(data_in)
+        self.assertEqual(sspiclient.decrypt(data, sig), data_in)
 
     def testEncryptNTLM(self):
         self._doTestEncrypt("NTLM")
     
     def testEncryptKerberos(self):
-        self._doTestEncrypt("Kerberos")
+        applyHandlingSkips(self._doTestEncrypt, "Kerberos")
 
     def _doTestSign(self, pkg_name):
 
         sspiclient, sspiserver = self._doAuth(pkg_name)
 
         pkg_size_info=sspiclient.ctxt.QueryContextAttributes(sspicon.SECPKG_ATTR_SIZES)
-        msg='some data to be encrypted ......'
+        msg=str2bytes('some data to be encrypted ......')
         
         sigsize=pkg_size_info['MaxSignature']
         sigbuf=win32security.PySecBufferDescType()
@@ -81,26 +95,27 @@ class TestSSPI(unittest.TestCase):
         # and test the higher-level functions
         sspiclient.next_seq_num = 1
         sspiserver.next_seq_num = 1
-        key = sspiclient.sign("hello")
-        sspiserver.verify("hello", key)
-        key = sspiclient.sign("hello")
+        data = str2bytes("hello")
+        key = sspiclient.sign(data)
+        sspiserver.verify(data, key)
+        key = sspiclient.sign(data)
         self.assertRaisesHRESULT(sspicon.SEC_E_MESSAGE_ALTERED,
-                                 sspiserver.verify, "hellox", key)
+                                 sspiserver.verify, data + data, key)
 
         # and the other way
-        key = sspiserver.sign("hello")
-        sspiclient.verify("hello", key)
-        key = sspiserver.sign("hello")
+        key = sspiserver.sign(data)
+        sspiclient.verify(data, key)
+        key = sspiserver.sign(data)
         self.assertRaisesHRESULT(sspicon.SEC_E_MESSAGE_ALTERED,
-                                 sspiclient.verify, "hellox", key)
+                                 sspiclient.verify, data + data, key)
 
     def testSignNTLM(self):
         self._doTestSign("NTLM")
     
     def testSignKerberos(self):
-        self._doTestSign("Kerberos")
+        applyHandlingSkips(self._doTestSign, "Kerberos")
 
-    def testSequenceSign(self):
+    def _testSequenceSign(self):
         # Only Kerberos supports sequence detection.
         sspiclient, sspiserver = self._doAuth("Kerberos")
         key = sspiclient.sign("hello")
@@ -108,7 +123,10 @@ class TestSSPI(unittest.TestCase):
         self.assertRaisesHRESULT(sspicon.SEC_E_OUT_OF_SEQUENCE,
                                  sspiserver.verify, 'hello', key)
 
-    def testSequenceEncrypt(self):
+    def testSequenceSign(self):
+        applyHandlingSkips(self._testSequenceSign)
+
+    def _testSequenceEncrypt(self):
         # Only Kerberos supports sequence detection.
         sspiclient, sspiserver = self._doAuth("Kerberos")
         blob, key = sspiclient.encrypt("hello",)
@@ -116,5 +134,8 @@ class TestSSPI(unittest.TestCase):
         self.assertRaisesHRESULT(sspicon.SEC_E_OUT_OF_SEQUENCE,
                                  sspiserver.decrypt, blob, key)
 
+    def testSequenceEncrypt(self):
+        applyHandlingSkips(self._testSequenceEncrypt)
+
 if __name__=='__main__':
-    unittest.main()
+    testmain()

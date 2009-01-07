@@ -3,13 +3,14 @@ import win32com.server.util
 import win32com.test.util
 
 import unittest
+from pywin32_testutil import str2bytes
 
 class Persists:
     _public_methods_ = [ 'GetClassID', 'IsDirty', 'Load', 'Save',
                          'GetSizeMax', 'InitNew' ]
     _com_interfaces_ = [ pythoncom.IID_IPersistStreamInit ]
     def __init__(self):
-        self.data = "abcdefg".encode("ascii")
+        self.data = str2bytes("abcdefg")
         self.dirty = 1
     def GetClassID(self):
         return pythoncom.IID_NULL
@@ -66,7 +67,7 @@ class BadStream(Stream):
         returned more data than requested.
     """
     def Read(self, amount):
-        return 'x'.encode('ascii')*(amount+1)
+        return str2bytes('x')*(amount+1)
 
 class StreamTest(win32com.test.util.TestCase):
     def _readWrite(self, data, write_stream, read_stream = None):
@@ -80,7 +81,7 @@ class StreamTest(win32com.test.util.TestCase):
         self.assertEqual(data[1:-1], got)
 
     def testit(self):
-        mydata = 'abcdefghijklmnopqrstuvwxyz'.encode('ascii')
+        mydata = str2bytes('abcdefghijklmnopqrstuvwxyz')
     
         # First test the objects just as Python objects...
         s = Stream(mydata)
@@ -100,7 +101,7 @@ class StreamTest(win32com.test.util.TestCase):
         self._readWrite(mydata, s2, s)
         self._readWrite(mydata, s2, s2)
 
-        self._readWrite("string with\0a NULL".encode('ascii'), s2, s2)
+        self._readWrite(str2bytes("string with\0a NULL"), s2, s2)
         # reset the stream
         s.Write(mydata)
         p2.Load(s2)

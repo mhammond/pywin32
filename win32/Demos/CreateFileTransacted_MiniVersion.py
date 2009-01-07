@@ -7,6 +7,8 @@ miniversion (effectively a savepoint within a transaction).
 import win32file, win32api, win32transaction
 import win32con, winioctlcon
 import struct
+import os
+from pywin32_testutil import str2bytes # py3k-friendly helper
 
 """
 Definition of buffer used with FSCTL_TXFS_CREATE_MINIVERSION:
@@ -21,7 +23,7 @@ buf_size=struct.calcsize(buf_fmt)
 
 tempdir=win32api.GetTempPath()
 tempfile=win32api.GetTempFileName(tempdir,'cft')[0]
-print tempfile
+print "Demonstrating transactions on tempfile", tempfile
 f=open(tempfile,'w')
 f.write('This is original file.\n')
 f.close()
@@ -31,13 +33,13 @@ hfile=win32file.CreateFileW(tempfile, win32con.GENERIC_READ|win32con.GENERIC_WRI
     win32con.FILE_SHARE_READ|win32con.FILE_SHARE_WRITE,
     None, win32con.OPEN_EXISTING, 0 , None, Transaction=trans)
 
-win32file.WriteFile(hfile, 'This is first miniversion.\n')
-buf=win32file.DeviceIoControl(hfile, winioctlcon.FSCTL_TXFS_CREATE_MINIVERSION,'',buf_size,None)
+win32file.WriteFile(hfile, str2bytes('This is first miniversion.\n'))
+buf=win32file.DeviceIoControl(hfile, winioctlcon.FSCTL_TXFS_CREATE_MINIVERSION,None,buf_size,None)
 struct_ver, struct_len, base_ver, ver_1=struct.unpack(buf_fmt, buf)
 
 win32file.SetFilePointer(hfile, 0, win32con.FILE_BEGIN)
-win32file.WriteFile(hfile, 'This is second miniversion!\n')
-buf=win32file.DeviceIoControl(hfile, winioctlcon.FSCTL_TXFS_CREATE_MINIVERSION,'',buf_size,None)
+win32file.WriteFile(hfile, str2bytes('This is second miniversion!\n'))
+buf=win32file.DeviceIoControl(hfile, winioctlcon.FSCTL_TXFS_CREATE_MINIVERSION,None,buf_size,None)
 struct_ver, struct_len, base_ver, ver_2=struct.unpack(buf_fmt, buf)
 hfile.Close()
 
@@ -62,3 +64,5 @@ hfile_2.Close()
 
 ## MiniVersions are destroyed when transaction is committed or rolled back
 win32transaction.CommitTransaction(trans)
+
+os.unlink(tempfile)

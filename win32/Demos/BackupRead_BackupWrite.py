@@ -4,6 +4,7 @@ import win32file, win32api, win32con, win32security, ntsecuritycon
 from win32com import storagecon
 import pythoncom, pywintypes
 import struct, traceback
+from pywin32_testutil import str2bytes, ob2memory
 
 all_sd_info=win32security.DACL_SECURITY_INFORMATION|win32security.DACL_SECURITY_INFORMATION|   \
             win32security.OWNER_SECURITY_INFORMATION|win32security.GROUP_SECURITY_INFORMATION
@@ -68,13 +69,13 @@ while 1:
     bytes_written, outctxt=win32file.BackupWrite(outh, bytes_read, buf, False, True, outctxt)
     print 'Written:',bytes_written,'Context:',outctxt
 win32file.BackupRead(h, 0, buf, True, True, ctxt)
-win32file.BackupWrite(outh, 0, '', True, True, outctxt)
+win32file.BackupWrite(outh, 0, str2bytes(''), True, True, outctxt)
 win32file.CloseHandle(h)
 win32file.CloseHandle(outh)
 
 assert open(tempfile).read()==open(outfile).read(),"File contents differ !"
 assert open(tempfile+':streamdata').read()==open(outfile+':streamdata').read(),"streamdata contents differ !"
 assert open(tempfile+':anotherstream').read()==open(outfile+':anotherstream').read(),"anotherstream contents differ !"
-assert buffer(win32security.GetFileSecurity(tempfile,all_sd_info))[:]== \
-       buffer(win32security.GetFileSecurity(outfile, all_sd_info))[:], "Security descriptors are different !"
+assert ob2memory(win32security.GetFileSecurity(tempfile,all_sd_info))[:]== \
+       ob2memory(win32security.GetFileSecurity(outfile, all_sd_info))[:], "Security descriptors are different !"
 ## also should check Summary Info programatically

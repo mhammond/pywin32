@@ -2,6 +2,7 @@
 #
 # Demo/test of the win32clipboard module.
 from win32clipboard import *
+from pywin32_testutil import str2bytes # py3k-friendly helper
 import win32con
 import types
 
@@ -27,27 +28,29 @@ def TestText():
     OpenClipboard()
     try:
         text = "Hello from Python"
+        text_bytes = str2bytes(text)
         SetClipboardText(text)
         got = GetClipboardData(win32con.CF_TEXT)
-        assert  got == text, "Didnt get the correct result back - '%r'." % (got,)
-        # Win32 documentation says I can get the result back as CF_UNICODE  or CF_OEMTEXT.
-        # But it appears I need to close the clipboard for this to kick-in.
-        # but if I attempt to, it fails!
+        # CF_TEXT always gives us 'bytes' back .
+        assert  got == text_bytes, "Didnt get the correct result back - '%r'." % (got,)
     finally:
         CloseClipboard()
 
     OpenClipboard()
     try:
+        # CF_UNICODE text always gives unicode objects back.
         got = GetClipboardData(win32con.CF_UNICODETEXT)
         assert  got == text, "Didnt get the correct result back - '%r'." % (got,)
         assert type(got)==types.UnicodeType, "Didnt get the correct result back - '%r'." % (got,)
 
+        # CF_OEMTEXT is a bytes-based format.
         got = GetClipboardData(win32con.CF_OEMTEXT)
-        assert  got == text, "Didnt get the correct result back - '%r'." % (got,)
+        assert  got == text_bytes, "Didnt get the correct result back - '%r'." % (got,)
 
         # Unicode tests
         EmptyClipboard()
         text = u"Hello from Python unicode"
+        text_bytes = str2bytes(text)
         # Now set the Unicode value
         SetClipboardData(win32con.CF_UNICODETEXT, text)
         # Get it in Unicode.
@@ -62,14 +65,14 @@ def TestText():
     OpenClipboard()
     try:
 
-        # Make sure I can still get the text.
+        # Make sure I can still get the text as bytes
         got = GetClipboardData(win32con.CF_TEXT)
-        assert  got == text, "Didnt get the correct result back - '%r'." % (got,)
+        assert  got == text_bytes, "Didnt get the correct result back - '%r'." % (got,)
         # Make sure we get back the correct types.
         got = GetClipboardData(win32con.CF_UNICODETEXT)
         assert type(got)==types.UnicodeType, "Didnt get the correct result back - '%r'." % (got,)
         got = GetClipboardData(win32con.CF_OEMTEXT)
-        assert  got == text, "Didnt get the correct result back - '%r'." % (got,)
+        assert  got == text_bytes, "Didnt get the correct result back - '%r'." % (got,)
         print "Clipboard text tests worked correctly"
     finally:
         CloseClipboard()
@@ -101,6 +104,8 @@ class Foo:
         self.__dict__.update(kw)
     def __cmp__(self, other):
         return cmp(self.__dict__, other.__dict__)
+    def __eq__(self, other):
+        return self.__dict__==other.__dict__
 
 def TestCustomFormat():
     OpenClipboard()

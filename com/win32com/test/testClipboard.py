@@ -5,6 +5,8 @@ import win32con
 import winerror
 import win32clipboard
 
+from pywin32_testutil import str2bytes
+
 from win32com.server.util import NewEnum, wrap
 from win32com.server.exception import COMException
 
@@ -46,7 +48,7 @@ class TestDataObject:
             if cf == win32con.CF_TEXT:
                 ret_stg = pythoncom.STGMEDIUM()
                 # ensure always 'bytes' by encoding string.
-                ret_stg.set(pythoncom.TYMED_HGLOBAL, self.strval.encode("ascii"))
+                ret_stg.set(pythoncom.TYMED_HGLOBAL, str2bytes(self.strval))
             elif cf == win32con.CF_UNICODETEXT:
                 ret_stg = pythoncom.STGMEDIUM()
                 ret_stg.set(pythoncom.TYMED_HGLOBAL, unicode(self.strval))
@@ -110,8 +112,8 @@ class ClipboardTester(unittest.TestCase):
         # Then get it back via the standard win32 clipboard functions.
         win32clipboard.OpenClipboard()
         got = win32clipboard.GetClipboardData(win32con.CF_TEXT)
-        # CF_TEXT gives bytes on py3k - use encode() to ensure that's true.
-        expected = "Hello from Python".encode("ascii")
+        # CF_TEXT gives bytes on py3k - use str2bytes() to ensure that's true.
+        expected = str2bytes("Hello from Python")
         self.assertEqual(got, expected)
         # Now check unicode
         got = win32clipboard.GetClipboardData(win32con.CF_UNICODETEXT)
@@ -120,7 +122,7 @@ class ClipboardTester(unittest.TestCase):
 
     def testWin32ToCom(self):
         # Set the data via the std win32 clipboard functions.
-        val = "Hello again!".encode("ascii") # ensure always bytes, even in py3k
+        val = str2bytes("Hello again!") # ensure always bytes, even in py3k
         win32clipboard.OpenClipboard()
         win32clipboard.SetClipboardData(win32con.CF_TEXT, val)
         win32clipboard.CloseClipboard()
@@ -132,7 +134,7 @@ class ClipboardTester(unittest.TestCase):
         # The data we get back has the \0, as our STGMEDIUM has no way of 
         # knowing if it meant to be a string, or a binary buffer, so
         # it must return it too.
-        self.failUnlessEqual(got, "Hello again!\0".encode("ascii"))
+        self.failUnlessEqual(got, str2bytes("Hello again!\0"))
         
     def testDataObjectFlush(self):
         do = TestDataObject("Hello from Python")

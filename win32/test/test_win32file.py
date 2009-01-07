@@ -1,4 +1,5 @@
 import unittest
+from pywin32_testutil import str2bytes
 import win32api, win32file, win32pipe, pywintypes, winerror, win32event
 import win32con, ntsecuritycon
 import sys
@@ -19,7 +20,7 @@ class TestSimpleOps(unittest.TestCase):
         os.close(fd)
         os.unlink(filename)
         handle = win32file.CreateFile(filename, win32file.GENERIC_WRITE, 0, None, win32con.CREATE_NEW, 0, None)
-        test_data = "Hello\0there"
+        test_data = str2bytes("Hello\0there")
         try:
             win32file.WriteFile(handle, test_data)
             handle.Close()
@@ -44,7 +45,7 @@ class TestSimpleOps(unittest.TestCase):
         h = win32file.CreateFile( testName, desiredAccess, win32file.FILE_SHARE_READ, None, win32file.CREATE_ALWAYS, fileFlags, 0)
     
         # Write a known number of bytes to the file.
-        data = "z" * 1025
+        data = str2bytes("z") * 1025
     
         win32file.WriteFile(h, data)
     
@@ -92,7 +93,7 @@ class TestSimpleOps(unittest.TestCase):
                                 0)
         try:
             #Write some data
-            data = 'Some data'
+            data = str2bytes('Some data')
             (res, written) = win32file.WriteFile(f, data)
             
             self.failIf(res)
@@ -126,7 +127,7 @@ class TestOverlapped(unittest.TestCase):
         overlapped.hEvent = evt
         # Create the file and write shit-loads of data to it.
         h = win32file.CreateFile( testName, desiredAccess, 0, None, win32file.CREATE_ALWAYS, 0, 0)
-        chunk_data = "z" * 0x8000
+        chunk_data = str2bytes("z") * 0x8000
         num_loops = 512
         expected_size = num_loops * len(chunk_data)
         for i in range(num_loops):
@@ -236,7 +237,7 @@ class TestOverlapped(unittest.TestCase):
         try:
             time.sleep(0.1) # let thread do its thing.
             try:
-                win32pipe.CallNamedPipe(r"\\.\pipe\pywin32_test_pipe", "Hello there", BUFSIZE, 0)
+                win32pipe.CallNamedPipe(r"\\.\pipe\pywin32_test_pipe", str2bytes("Hello there"), BUFSIZE, 0)
             except win32pipe.error:
                 # Testing for overlapped death causes this
                 if not test_overlapped_death:
@@ -298,7 +299,7 @@ class TestSocketExtensions(unittest.TestCase):
             self.fail("AcceptEx Worker thread failed to start")
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.connect(('127.0.0.1', port))
-        win32file.WSASend(s, "hello", None)
+        win32file.WSASend(s, str2bytes("hello"), None)
         overlapped = pywintypes.OVERLAPPED()
         overlapped.hEvent = win32event.CreateEvent(None, 0, 0, None)
         # Like above - WSARecv used to allow strings as the receive buffer!!
@@ -309,7 +310,7 @@ class TestSocketExtensions(unittest.TestCase):
         win32file.WSARecv(s, buffer, overlapped)
         nbytes = win32file.GetOverlappedResult(s.fileno(), overlapped, True)
         got = buffer[:nbytes]
-        self.failUnlessEqual(got, "hello")
+        self.failUnlessEqual(got, str2bytes("hello"))
         # thread should have stopped
         stopped.wait(2)
         if not stopped.isSet():
@@ -485,7 +486,7 @@ class TestEncrypt(unittest.TestCase):
     def testEncrypt(self):
         fname = tempfile.mktemp("win32file_test")
         f = open(fname, "wb")
-        f.write("hello")
+        f.write(str2bytes("hello"))
         f.close()
         f = None
         try:

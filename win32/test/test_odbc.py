@@ -5,6 +5,8 @@ import unittest
 import odbc
 import tempfile
 
+from pywin32_testutil import str2bytes, str2memory, TestSkipped
+
 # We use the DAO ODBC driver
 from win32com.client.gencache import EnsureDispatch
 from win32com.client import constants
@@ -30,7 +32,7 @@ class TestStuff(unittest.TestCase):
                 except pythoncom.com_error:
                     pass
             else:
-                raise RuntimeError("Can't find a DB engine")
+                raise TestSkipped("Can't find a DB engine")
     
             workspace = dbe.Workspaces(0)
     
@@ -103,8 +105,8 @@ class TestStuff(unittest.TestCase):
             where username = ?" %self.tablename, [username.lower()]),0)
 
     def test_insert_select_unicode_ext(self):
-        userid = unicode("t-\xe0\xf2", "mbcs")
-        username = unicode("test-\xe0\xf2 name", "mbcs")
+        userid = u"t-\xe0\xf2"
+        username = u"test-\xe0\xf2 name"
         self.test_insert_select_unicode(userid, username)
 
     def _test_val(self, fieldName, value):
@@ -142,11 +144,11 @@ class TestStuff(unittest.TestCase):
 
     def testLongBinary(self):
         """ Test a long raw field in excess of internal cursor data size (65536)"""
-        self._test_val('longbinaryfield', buffer('\0\1\2' * 70000))
+        self._test_val('longbinaryfield', str2memory('\0\1\2' * 70000))
 
     def testRaw(self):
         ## Test binary data
-        self._test_val('rawfield', buffer('\1\2\3\4\0\5\6\7\8'))
+        self._test_val('rawfield', str2memory('\1\2\3\4\0\5\6\7\8'))
 
     def test_widechar(self):
         """Test a unicode character that would be mangled if bound as plain character.
@@ -172,7 +174,7 @@ class TestStuff(unittest.TestCase):
 
     def test_set_zero_length(self):
         self.assertEqual(self.cur.execute("insert into %s (userid,username) "
-            "values (?,?)" %self.tablename, ['Frank', '']),1)
+            "values (?,?)" %self.tablename, [str2bytes('Frank'), '']),1)
         self.assertEqual(self.cur.execute("select * from %s" %self.tablename), 0)
         self.assertEqual(len(self.cur.fetchone()[1]),0)
 

@@ -1,6 +1,7 @@
 # General test module for win32api - please add some :)
 
 import unittest
+from pywin32_testutil import str2bytes
 
 import win32api, win32con, win32event, winerror
 import sys, os
@@ -67,7 +68,7 @@ class Registry(unittest.TestCase):
             ## REG_MULTI_SZ value needs to be a list since strings are returned as a list
             ('REG_MULTI_SZ', win32con.REG_MULTI_SZ, ['string 1','string 2','string 3','string 4']),
             ('REG_DWORD', win32con.REG_DWORD, 666),
-            ('REG_BINARY', win32con.REG_BINARY, '\x00\x01\x02\x03\x04\x05\x06\x07\x08\x01\x00'),
+            ('REG_BINARY', win32con.REG_BINARY, str2bytes('\x00\x01\x02\x03\x04\x05\x06\x07\x08\x01\x00')),
             )
 
         hkey = win32api.RegCreateKey(win32con.HKEY_CURRENT_USER, key_name)
@@ -164,7 +165,7 @@ class FileNames(unittest.TestCase):
             self.failUnless(attr & win32con.FILE_ATTRIBUTE_DIRECTORY, attr)
 
             long_name = win32api.GetLongPathNameW(fname)
-            self.failUnlessEqual(long_name, fname)
+            self.failUnlessEqual(long_name.lower(), fname.lower())
         finally:
             win32file.RemoveDirectory(fname)
 

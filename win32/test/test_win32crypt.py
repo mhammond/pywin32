@@ -1,11 +1,13 @@
-# Test module for win32timezone
+# Test module for win32crypt
 
 import unittest
 import win32crypt
+from pywin32_testutil import str2bytes # py3k-friendly helper
+
 
 class Crypt(unittest.TestCase):
     def testSimple(self):
-        data = "My test data"
+        data = str2bytes("My test data")
         entropy = None
         desc = "My description"
         flags = 0
@@ -16,8 +18,8 @@ class Crypt(unittest.TestCase):
         self.failUnlessEqual(desc, got_desc)
 
     def testEntropy(self):
-        data = "My test data"
-        entropy = "My test entropy"
+        data = str2bytes("My test data")
+        entropy = str2bytes("My test entropy")
         desc = "My description"
         flags = 0
         ps = None

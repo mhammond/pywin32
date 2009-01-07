@@ -1,6 +1,8 @@
 # Tests for the win32security module.
 import sys, os
 import unittest
+import winerror
+from pywin32_testutil import testmain, TestSkipped, ob2memory
 
 import win32api, win32con, win32security, ntsecuritycon
 
@@ -17,10 +19,8 @@ class SecurityTests(unittest.TestCase):
                              win32security.LookupAccountName('','Administrator')[0])
 
     def testBuffer(self):
-        # hrm - what about py3k - intent is to check the buffer slots return
-        # something sane.
-        self.failUnlessEqual(buffer(win32security.LookupAccountName('','Administrator')[0]),
-                             buffer(win32security.LookupAccountName('','Administrator')[0]))
+        self.failUnlessEqual(ob2memory(win32security.LookupAccountName('','Administrator')[0]),
+                             ob2memory(win32security.LookupAccountName('','Administrator')[0]))
 
     def testMemory(self):
         pwr_sid = self.pwr_sid
@@ -41,7 +41,22 @@ class SecurityTests(unittest.TestCase):
             sd3.SetSecurityDescriptorDacl(1,dacl,0)
             sd4.SetSecurityDescriptorSacl(1,sacl,0)
 
-class TestDS(unittest.TestCase):
+class DomainTests(unittest.TestCase):
+    def setUp(self):
+        self.ds_handle = None
+        try:
+            # saving the handle means the other test itself should bind faster.
+            self.ds_handle = win32security.DsBind()
+        except win32security.error, exc:
+            if exc.winerror != winerror.ERROR_NO_SUCH_DOMAIN:
+                raise
+            raise TestSkipped(exc)
+
+    def tearDown(self):
+        if self.ds_handle is not None:
+            self.ds_handle.close()
+    
+class TestDS(DomainTests):
     def testDsGetDcName(self):
         # Not sure what we can actually test here!  At least calling it
         # does something :)
@@ -74,7 +89,7 @@ class TestDS(unittest.TestCase):
                                             (name,))
         self.failUnlessEqual(expected, result[0][2])
 
-class TestTranslate(unittest.TestCase):
+class TestTranslate(DomainTests):
     def _testTranslate(self, fmt_from, fmt_to):
         name = win32api.GetUserNameEx(fmt_from)
         expected = win32api.GetUserNameEx(fmt_to)
@@ -94,4 +109,4 @@ class TestTranslate(unittest.TestCase):
         self._testTranslate(win32api.NameUniqueId, win32api.NameFullyQualifiedDN)
 
 if __name__=='__main__':
-    unittest.main()
+    testmain()

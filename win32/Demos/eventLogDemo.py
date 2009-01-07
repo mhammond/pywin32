@@ -89,13 +89,13 @@ def test():
 
         win32evtlogutil.ReportEvent(logType, 2,
             strings=["The message text for event 2","Another insert"],
-            data = "Raw\0Data", sid = my_sid)
+            data = "Raw\0Data".encode("ascii"), sid = my_sid)
         win32evtlogutil.ReportEvent(logType, 1, eventType=win32evtlog.EVENTLOG_WARNING_TYPE,
             strings=["A warning","An even more dire warning"],
-            data = "Raw\0Data", sid = my_sid)
+            data = "Raw\0Data".encode("ascii"), sid = my_sid)
         win32evtlogutil.ReportEvent(logType, 1, eventType=win32evtlog.EVENTLOG_INFORMATION_TYPE,
             strings=["An info","Too much info"],
-            data = "Raw\0Data", sid = my_sid)
+            data = "Raw\0Data".encode("ascii"), sid = my_sid)
         print("Successfully wrote 3 records to the log")
 
     if do_read:

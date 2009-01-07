@@ -8,14 +8,9 @@ import winerror
 import pythoncom, win32com.client, win32com.client.dynamic, win32com.client.gencache
 from win32com.server.util import NewCollection, wrap
 from win32com.test import util
+from pywin32_testutil import str2memory
 
 import traceback
-
-def string_to_buffer(s):
-    if sys.version_info < (3,0):
-        return buffer(s)
-    else:
-        return memoryview(s.encode("ascii"))
 
 # for debugging
 useDispatcher = None
@@ -73,8 +68,8 @@ def TestVB( vbtest, bUseGenerated ):
     vbtest.VariantProperty = 10
     if vbtest.VariantProperty != 10:
         raise error("Could not set the variant integer property correctly.")
-    vbtest.VariantProperty = string_to_buffer('raw\0data')
-    if vbtest.VariantProperty != string_to_buffer('raw\0data'):
+    vbtest.VariantProperty = str2memory('raw\0data')
+    if vbtest.VariantProperty != str2memory('raw\0data'):
         raise error("Could not set the variant buffer property correctly.")
     vbtest.StringProperty = "Hello from Python"
     if vbtest.StringProperty != "Hello from Python":

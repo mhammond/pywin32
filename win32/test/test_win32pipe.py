@@ -1,6 +1,7 @@
 import unittest
 import time
 import threading
+from pywin32_testutil import str2bytes # py3k-friendly helper
 
 
 import win32pipe
@@ -18,9 +19,9 @@ class PipeTests(unittest.TestCase):
         hr = win32pipe.ConnectNamedPipe(pipe_handle)
         self.failUnless(hr in (0, winerror.ERROR_PIPE_CONNECTED), "Got error code 0x%x" % (hr,))
         hr, got = win32file.ReadFile(pipe_handle, 100)
-        self.failUnless(got == "foo\0bar")
+        self.failUnlessEqual(got, str2bytes("foo\0bar"))
         time.sleep(wait_time)
-        win32file.WriteFile(pipe_handle, "bar\0foo")
+        win32file.WriteFile(pipe_handle, str2bytes("bar\0foo"))
         pipe_handle.Close()
         event.set()
 
@@ -47,8 +48,8 @@ class PipeTests(unittest.TestCase):
         event = threading.Event()
         self.startPipeServer(event)
 
-        got = win32pipe.CallNamedPipe(self.pipename,"foo\0bar", 1024, win32pipe.NMPWAIT_WAIT_FOREVER)
-        self.failUnlessEqual(got, "bar\0foo")
+        got = win32pipe.CallNamedPipe(self.pipename,str2bytes("foo\0bar"), 1024, win32pipe.NMPWAIT_WAIT_FOREVER)
+        self.failUnlessEqual(got, str2bytes("bar\0foo"))
         event.wait(5)
         self.failUnless(event.isSet(), "Pipe server thread didn't terminate")
 
@@ -69,8 +70,8 @@ class PipeTests(unittest.TestCase):
         win32pipe.SetNamedPipeHandleState(
                         hpipe, win32pipe.PIPE_READMODE_MESSAGE, None, None)
 
-        hr, got = win32pipe.TransactNamedPipe(hpipe, "foo\0bar", 1024, None)
-        self.failUnlessEqual(got, "bar\0foo")
+        hr, got = win32pipe.TransactNamedPipe(hpipe, str2bytes("foo\0bar"), 1024, None)
+        self.failUnlessEqual(got, str2bytes("bar\0foo"))
         event.wait(5)
         self.failUnless(event.isSet(), "Pipe server thread didn't terminate")
 
@@ -94,8 +95,8 @@ class PipeTests(unittest.TestCase):
                         hpipe, win32pipe.PIPE_READMODE_MESSAGE, None, None)
 
         buffer = win32file.AllocateReadBuffer(1024)
-        hr, got = win32pipe.TransactNamedPipe(hpipe, "foo\0bar", buffer, None)
-        self.failUnlessEqual(got, "bar\0foo")
+        hr, got = win32pipe.TransactNamedPipe(hpipe, str2bytes("foo\0bar"), buffer, None)
+        self.failUnlessEqual(got, str2bytes("bar\0foo"))
         event.wait(5)
         self.failUnless(event.isSet(), "Pipe server thread didn't terminate")
 
@@ -119,11 +120,11 @@ class PipeTests(unittest.TestCase):
                         hpipe, win32pipe.PIPE_READMODE_MESSAGE, None, None)
 
         buffer = win32file.AllocateReadBuffer(1024)
-        hr, got = win32pipe.TransactNamedPipe(hpipe, "foo\0bar", buffer, overlapped)
+        hr, got = win32pipe.TransactNamedPipe(hpipe, str2bytes("foo\0bar"), buffer, overlapped)
         self.failUnlessEqual(hr, winerror.ERROR_IO_PENDING)
         nbytes = win32file.GetOverlappedResult(hpipe, overlapped, True)
         got = buffer[:nbytes]
-        self.failUnlessEqual(got, "bar\0foo")
+        self.failUnlessEqual(got, str2bytes("bar\0foo"))
         event.wait(5)
         self.failUnless(event.isSet(), "Pipe server thread didn't terminate")
 

@@ -1,5 +1,6 @@
 from win32inet import *
 from win32inetcon import *
+from pywin32_testutil import str2bytes # py3k-friendly helper
 
 import unittest
 
@@ -35,8 +36,8 @@ class TestNetwork(unittest.TestCase):
             if not chunk:
                 break
             chunks.append(chunk)
-        data = ''.join(chunks)
-        assert data.find("Python")>0, repr(data) # This must appear somewhere on the main page!
+        data = str2bytes('').join(chunks)
+        assert data.find(str2bytes("Python"))>0, repr(data) # This must appear somewhere on the main page!
 
     def testFtpCommand(self):
         # ftp.python.org doesn't exist.  ftp.gnu.org is what Python's urllib

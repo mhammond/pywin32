@@ -3,6 +3,8 @@ import win32wnet
 import win32api
 import netbios
 
+from pywin32_testutil import str2bytes
+
 RESOURCE_CONNECTED = 0x00000001
 RESOURCE_GLOBALNET = 0x00000002
 RESOURCE_REMEMBERED = 0x00000003
@@ -110,7 +112,7 @@ class TestCase(unittest.TestCase):
             ncb.Reset()
             ncb.Command = netbios.NCBASTAT
             ncb.Lana_num = byte_to_int(la_enum.lana[i])
-            ncb.Callname = "*               ".encode("ascii") # ensure bytes on py2x and 3k
+            ncb.Callname = str2bytes("*               ") # ensure bytes on py2x and 3k
             adapter = netbios.ADAPTER_STATUS()
             ncb.Buffer = adapter
             Netbios(ncb)

@@ -15,6 +15,7 @@ from win32com.shell.shellcon import *
 from win32com.storagecon import *
 
 import win32com.test.util
+from pywin32_testutil import str2bytes
 
 class ShellTester(win32com.test.util.TestCase):
     def testShellLink(self):
@@ -74,22 +75,22 @@ class PIDLTester(win32com.test.util.TestCase):
 
     def testPIDL(self):
         # A PIDL of "\1" is:   cb    pidl   cb
-        expect =            "\03\00" "\1"  "\0\0"
-        self.assertEqual(shell.PIDLAsString(["\1"]), expect)
-        self._rtPIDL(["\0"])
-        self._rtPIDL(["\1", "\2", "\3"])
-        self._rtPIDL(["\0" * 2048] * 2048)
+        expect =            str2bytes("\03\00"  "\1"  "\0\0")
+        self.assertEqual(shell.PIDLAsString([str2bytes("\1")]), expect)
+        self._rtPIDL([str2bytes("\0")])
+        self._rtPIDL([str2bytes("\1"), str2bytes("\2"), str2bytes("\3")])
+        self._rtPIDL([str2bytes("\0") * 2048] * 2048)
         # PIDL must be a list
         self.assertRaises(TypeError, shell.PIDLAsString, "foo")
 
     def testCIDA(self):
-        self._rtCIDA(["\0"], [ ["\0"] ])
-        self._rtCIDA(["\1"], [ ["\2"] ])
-        self._rtCIDA(["\0"], [ ["\0"], ["\1"], ["\2"] ])
+        self._rtCIDA([str2bytes("\0")], [ [str2bytes("\0")] ])
+        self._rtCIDA([str2bytes("\1")], [ [str2bytes("\2")] ])
+        self._rtCIDA([str2bytes("\0")], [ [str2bytes("\0")], [str2bytes("\1")], [str2bytes("\2")] ])
 
     def testBadShortPIDL(self):
         # A too-short child element:   cb    pidl   cb
-        pidl =                       "\01\00" "\1"
+        pidl =                       str2bytes("\01\00"  "\1")
         self.assertRaises(ValueError, shell.StringAsPIDL, pidl)
 
         # ack - tried to test too long PIDLs, but a len of 0xFFFF may not
@@ -181,8 +182,8 @@ class FileOperationTester(win32com.test.util.TestCase):
         import tempfile
         self.src_name = os.path.join(tempfile.gettempdir(), "pywin32_testshell")
         self.dest_name = os.path.join(tempfile.gettempdir(), "pywin32_testshell_dest")
-        self.test_data = "Hello from\0Python"
-        f=file(self.src_name, "wb")
+        self.test_data = str2bytes("Hello from\0Python")
+        f=open(self.src_name, "wb")
         f.write(self.test_data)
         f.close()
         try:
