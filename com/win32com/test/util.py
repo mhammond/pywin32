@@ -11,6 +11,9 @@ import logging
 import _winreg
 import cStringIO as StringIO
 
+import pywin32_testutil
+from pywin32_testutil import TestLoader, TestResult, TestRunner, LeakTestCase
+
 def CheckClean():
     # Ensure no lingering exceptions - Python should have zero outstanding
     # COM objects
@@ -142,119 +145,6 @@ class CaptureWriter:
     def get_num_lines_captured(self):
         return len("".join(self.captured).split("\n"))
 
-class LeakTestCase(unittest.TestCase):
-    def __init__(self, real_test):
-        unittest.TestCase.__init__(self)
-        self.real_test = real_test
-        self.num_test_cases = 1
-        self.num_leak_iters = 2 # seems to be enough!
-        if hasattr(sys, "gettotalrefcount"):
-            self.num_test_cases = self.num_test_cases + self.num_leak_iters
-    def countTestCases(self):
-        return self.num_test_cases
-    def runTest(self):
-        assert 0, "not used"
-    def __call__(self, result = None):
-        # Always ensure we don't leak gateways/interfaces
-        gc.collect()
-        ni = _GetInterfaceCount()
-        ng = _GetGatewayCount()
-        self.real_test(result)
-        # Failed - no point checking anything else
-        if result.shouldStop or not result.wasSuccessful():
-            return
-        self._do_leak_tests(result)
-        gc.collect()
-        lost_i = _GetInterfaceCount() - ni
-        lost_g = _GetGatewayCount() - ng
-        if lost_i or lost_g:
-            msg = "%d interface objects and %d gateway objects leaked" \
-                                                        % (lost_i, lost_g)
-            result.addFailure(self.real_test, (AssertionError, msg, None))
-    def _do_leak_tests(self, result = None):
-        try:
-            gtrc = sys.gettotalrefcount
-        except AttributeError:
-            return # can't do leak tests in this build
-            def gtrc():
-                return 0
-        # Assume already called once, to prime any caches etc
-        trc = gtrc()
-        for i in range(self.num_leak_iters):
-            self.real_test(result)
-            if result.shouldStop:
-                break
-        del i # created after we remembered the refcount!
-        # int division here means one or 2 stray references won't force 
-        # failure, but one per loop
-        gc.collect()
-        lost = (gtrc() - trc) // self.num_leak_iters
-        if lost < 0:
-            msg = "LeakTest: %s appeared to gain %d references!!" % (self.real_test, -lost)
-            result.addFailure(self.real_test, (AssertionError, msg, None))
-        if lost > 0:
-            msg = "LeakTest: %s lost %d references" % (self.real_test, lost)
-            result.addFailure(self.real_test, (AssertionError, msg, None))
-
-class TestLoader(unittest.TestLoader):
-    def loadTestsFromTestCase(self, testCaseClass):
-        """Return a suite of all tests cases contained in testCaseClass"""
-        leak_tests = []
-        for name in self.getTestCaseNames(testCaseClass):
-            real_test = testCaseClass(name)
-            leak_test = self._getTestWrapper(real_test)
-            leak_tests.append(leak_test)
-        return self.suiteClass(leak_tests)
-    def _getTestWrapper(self, test):
-        no_leak_tests = getattr(test, "no_leak_tests", False)
-        if no_leak_tests:
-            print "Test says it doesn't want leak tests!"
-            return test
-        return LeakTestCase(test)
-    def loadTestsFromModule(self, mod):
-        if hasattr(mod, "suite"):
-            return mod.suite()
-        else:
-            return unittest.TestLoader.loadTestsFromModule(self, mod)
-    def loadTestsFromName(self, name, module=None):
-        test = unittest.TestLoader.loadTestsFromName(self, name, module)
-        if isinstance(test, unittest.TestSuite):
-            pass # hmmm? print "Don't wrap suites yet!", test._tests
-        elif isinstance(test, unittest.TestCase):
-            test = self._getTestWrapper(test)
-        else:
-            print "XXX - what is", test
-        return test
-
-class TestResult(unittest._TextTestResult):
-    def __init__(self, *args, **kw):
-        super(TestResult, self).__init__(*args, **kw)
-        self.num_invalid_clsid = 0
-
-    def addError(self, test, err):
-        """Called when an error has occurred. 'err' is a tuple of values as
-        returned by sys.exc_info().
-        """
-        if isinstance(err[1], pythoncom.com_error) and \
-           err[1].hresult==winerror.CO_E_CLASSSTRING:
-            self.num_invalid_clsid += 1
-            if self.showAll:
-                self.stream.writeln("SKIP")
-            elif self.dots:
-                self.stream.write('S')
-                self.stream.flush()
-            return
-        super(TestResult, self).addError(test, err)
-
-    def printErrors(self):
-        super(TestResult, self).printErrors()
-        if self.num_invalid_clsid:
-            self.stream.writeln("SKIPPED: %d tests due to missing COM objects used for testing" %
-                                self.num_invalid_clsid)
-
-class TestRunner(unittest.TextTestRunner):
-    def _makeResult(self):
-        return TestResult(self.stream, self.descriptions, self.verbosity)
 
 # Utilities to set the win32com logger to something what just captures
 # records written and doesn't print them.
@@ -330,15 +220,7 @@ class ShellTestCase(unittest.TestCase):
             cmd_repr = self.__cmd
         return "exec: " + cmd_repr
 
-class TestProgram(unittest.TestProgram):
-    def runTests(self):
-        if self.testRunner is None:
-            self.testRunner = TestRunner(verbosity=self.verbosity)
-        unittest.TestProgram(self)
-    
+
 def testmain(*args, **kw):
-    new_kw = kw.copy()
-    if 'testLoader' not in new_kw:
-        new_kw['testLoader'] = TestLoader()
-    unittest.main(*args, **new_kw)
+    pywin32_testutil.testmain(*args, **new_kw)
     CheckClean()

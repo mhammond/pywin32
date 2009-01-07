@@ -1,6 +1,8 @@
 import sys, os
+import re
 import unittest
 import traceback
+import pywin32_testutil
 
 # A list of demos that depend on user-interface of *any* kind.  Tests listed
 # here are not suitable for unattended testing.
@@ -18,9 +20,54 @@ argvs = {
     "rastest": ("-l",),
 }
 
-ok_exceptions = {
-    "RegCreateKeyTransacted": ("NotImplementedError"),
-}
+# re to pull apart an exception line into the exception type and the args.
+re_exception = re.compile("([a-zA-Z0-9_.]*): (.*)$")
+def find_exception_in_output(data):
+    have_traceback = False
+    for line in data.splitlines():
+        line = line.decode('ascii') # not sure what the correct encoding is...
+        if line.startswith("Traceback ("):
+            have_traceback = True
+            continue
+        if line.startswith(" "):
+            continue
+        if have_traceback:
+            # first line not starting with a space since the traceback.
+            # must be the exception!
+            m = re_exception.match(line)
+            if m:
+                exc_type, args = m.groups()
+                # get hacky - get the *real* exception object from the name.
+                bits = exc_type.split(".", 1)
+                if len(bits) > 1:
+                    mod = __import__(bits[0])
+                    exc = getattr(mod, bits[1])
+                else:
+                    # probably builtin
+                    exc = eval(bits[0])
+            else:
+                # hrm - probably just an exception with no args
+                try:
+                    exc = eval(line.strip())
+                    args = "()"
+                except:
+                    return None
+            # try and turn the args into real args.
+            try:
+                args = eval(args)
+            except:
+                pass
+            if not isinstance(args, tuple):
+                args = (args,)
+            # try and instantiate the exception.
+            try:
+                ret = exc(*args)
+            except:
+                ret = None
+            return ret
+        # apparently not - keep looking...
+        have_traceback = False
+
 
 class TestRunner:
     def __init__(self, argv):
@@ -42,6 +89,10 @@ class TestRunner:
             rc = ferr.close()
         if rc:
             base = os.path.basename(self.argv[1])
+            # See if we can detect and reconstruct an exception in the output.
+            reconstituted = find_exception_in_output(output)
+            if reconstituted is not None:
+                raise reconstituted
             raise AssertionError("%s failed with exit code %s.  Output is:\n%s" % (base, rc, output))
 
 def get_demo_tests():
@@ -52,9 +103,6 @@ def get_demo_tests():
     for name in os.listdir(demo_dir):
         base, ext = os.path.splitext(name)
         if ext != ".py" or base in ui_demos or base in bad_demos:
-            continue
-        if base in ok_exceptions:
-            print "Ack - can't handle test %s - can't catch specific exceptions" % (base,)
             continue
         argv = (sys.executable, os.path.join(demo_dir, base+".py")) + \
                argvs.get(base, ())
@@ -113,9 +161,9 @@ def suite():
         suite.addTest(test)
     return suite
 
-class CustomLoader(unittest.TestLoader):
+class CustomLoader(pywin32_testutil.TestLoader):
     def loadTestsFromModule(self, module):
-        return suite()
+        return self.fixupTestsForLeakTests(suite())
 
 if __name__=='__main__':
-    unittest.TestProgram(testLoader=CustomLoader())(argv=sys.argv)
+    pywin32_testutil.testmain(testLoader=CustomLoader())
