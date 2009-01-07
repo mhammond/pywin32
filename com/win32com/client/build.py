@@ -18,7 +18,6 @@ dynamically, or possibly even generate .html documentation for objects.
 
 import sys
 import string
-import types
 from keyword import iskeyword
 
 import pythoncom
