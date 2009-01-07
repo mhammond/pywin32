@@ -31,6 +31,8 @@ class TypelibSpec:
 		if rc==0:
 			rc = cmp(self.major, other.minor)
 		return rc
+	def __lt__(self, other): # rich-cmp/py3k-friendly version
+		return self.__cmp__(other) < 0
 
 	def Resolve(self):
 		if self.dll is None:
