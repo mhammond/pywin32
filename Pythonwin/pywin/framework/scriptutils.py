@@ -412,9 +412,11 @@ def ImportFile():
 	try:
 		exec codeObj in __main__.__dict__
 		if bNeedReload:
+			try:
+				from imp import reload # py3k
+			except ImportError:
+				pass # reload a builtin in py2k
 			reload(sys.modules[modName])
-#			codeObj = compile('reload('+modName+')','<auto import>','eval')
-#			exec codeObj in __main__.__dict__
 		win32ui.SetStatusText('Successfully ' + what + "ed module '"+modName+"'")
 	except:
 		_HandlePythonFailure(what)
