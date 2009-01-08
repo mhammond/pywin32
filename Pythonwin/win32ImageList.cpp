@@ -275,6 +275,7 @@ static struct PyMethodDef PyCImageList_methods[] = {
 ui_type_CObject PyCImageList::type("PyCImageList", 
 								   &ui_assoc_CObject::type, 
 								   RUNTIME_CLASS(CImageList), 
-								   sizeof(PyCImageList), 
+								   sizeof(PyCImageList),
+								   PYOBJ_OFFSET(PyCImageList),
 								   PyCImageList_methods, 
 								   GET_PY_CTOR(PyCImageList));
