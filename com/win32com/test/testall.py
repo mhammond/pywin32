@@ -81,6 +81,8 @@ class PippoTest(TestCase):
         cmd = '%s "%s" 2>&1' % (python, fname)
         ExecuteSilentlyIfOK(cmd, self)
 
+# This is a list of "win32com.test.???" module names, optionally with a
+# function in that module if the module isn't unitest based...
 unittest_modules = [
         # Level 1 tests.
         """testIterators testvbscript_regexp testStorage 
@@ -97,6 +99,19 @@ unittest_modules = [
         """testmakepy.TestAll
         """.split()
 ]
+
+# A list of other unittest modules we use - these are fully qualified module
+# names and the module is assumed to be unittest based.
+unittest_other_modules = [
+        # Level 1 tests.
+        """win32com.directsound.test.ds_test
+        """.split(),
+        # Level 2 tests.
+        [],
+        # Level 3 tests.
+        []
+]
+
 
 output_checked_programs = [
         # Level 1 tests.
@@ -170,6 +185,23 @@ def make_test_suite(test_level = 1):
 
         for test_class in custom_test_cases[i]:
             suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(test_class))
+    # other "normal" unittest modules.
+    for i in range(testLevel):
+        for mod_name in unittest_other_modules[i]:
+            try:
+                __import__(mod_name)
+            except:
+                import_failures.append((mod_name, sys.exc_info()[:2]))
+                continue
+            
+            mod = sys.modules[mod_name]
+            if hasattr(mod, "suite"):
+                test = mod.suite()
+            else:
+                test = loader.loadTestsFromModule(mod)
+            assert test.countTestCases() > 0, "No tests loaded from %r" % mod
+            suite.addTest(test)
+
     return suite, import_failures
 
 def usage(why):

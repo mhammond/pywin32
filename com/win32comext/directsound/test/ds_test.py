@@ -5,7 +5,7 @@ import os
 import pywintypes
 import win32event, win32api
 import os
-from pywin32_testutil import str2bytes
+from pywin32_testutil import str2bytes, TestSkipped
 import win32com.directsound.directsound as ds
 # next two lines are for for debugging:
 # import win32com
@@ -262,7 +262,22 @@ class DirectSoundTest(unittest.TestCase):
 
     def testPlay(self):
         '''Mesdames et Messieurs, la cour de Devin Dazzle'''
-        fname=os.path.join(os.path.dirname(__file__), "01-Intro.wav")
+        # look for the test file in various places
+        candidates = [
+            os.path.dirname(__file__),
+            os.path.dirname(sys.argv[0]),
+            # relative to 'testall.py' in the win32com test suite.
+            os.path.join(os.path.dirname(sys.argv[0]),
+                         '../../win32comext/directsound/test'),
+            '.',
+        ]
+        for candidate in candidates:
+            fname=os.path.join(candidate, "01-Intro.wav")
+            if os.path.isfile(fname):
+                break
+        else:
+            raise TestSkipped("Can't find test .wav file to play")
+
         f = open(fname, 'rb')
         hdr = f.read(WAV_HEADER_SIZE)
         wfx, size = wav_header_unpack(hdr)

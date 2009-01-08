@@ -1821,6 +1821,7 @@ packages=['win32com',
           'win32comext.axcontrol',
           'win32comext.taskscheduler',
           'win32comext.directsound',
+          'win32comext.directsound.test',
           'win32comext.authorization',
           'win32comext.bits',
           
