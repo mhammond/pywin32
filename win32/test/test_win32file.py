@@ -67,8 +67,7 @@ class TestSimpleOps(unittest.TestCase):
         newSize = len(data)//2
         win32file.SetFilePointer(h, newSize, win32file.FILE_BEGIN)
         win32file.SetEndOfFile(h)
-        self.failUnless(win32file.GetFileSize(h) == newSize,
-            "Truncated file does not have the expected size! (%s)" %newSize)
+        self.failUnlessEqual(win32file.GetFileSize(h), newSize)
     
         # GetFileAttributesEx/GetFileAttributesExW tests.
         self.failUnlessEqual(win32file.GetFileAttributesEx(testName), win32file.GetFileAttributesExW(testName))
@@ -78,7 +77,7 @@ class TestSimpleOps(unittest.TestCase):
                         "Expected GetFileAttributesEx to return the same size as GetFileSize()")
         self.failUnless(attr==win32file.GetFileAttributes(testName), 
                         "Expected GetFileAttributesEx to return the same attributes as GetFileAttributes")
-    
+
         h = None # Close the file by removing the last reference to the handle!
 
         self.failUnless(not os.path.isfile(testName), "After closing the file, it still exists!")
