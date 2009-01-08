@@ -4,7 +4,6 @@ protected:
   ui_prinfo_object() : m_deletePrInfo (FALSE) { }
   ~ui_prinfo_object();
   virtual void SetAssocInvalid();
-  virtual void DoKillAssoc( BOOL bDestructing = FALSE );
   virtual void *GetGoodCppObject(ui_type *ui_type_check=NULL) const;
 
 public:

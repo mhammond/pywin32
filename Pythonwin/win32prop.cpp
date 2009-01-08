@@ -105,19 +105,6 @@ PyCPropertySheet::PyCPropertySheet()
 PyCPropertySheet::~PyCPropertySheet()
 {
 }
-/********
-	TRACE("PropSheet object destructing\n");
-	CPythonPropertySheet *pSheet = GetPythonPropSheet(this);
-	ASSERT(pSheet);
-	PyCWnd::DoKillAssoc(TRUE);
-	ui_assoc_object::SetAssocInvalid();	// must call this explicitely, as I ignore SetAssocInvalid
-}
-
-void PyCPropertySheet::DoKillAssoc(BOOL bDestructing )
-{
-	return;
-}
-*************/
 // @pymethod <o PyCPropertySheet>|win32ui|CreatePropertySheet|Creates a property sheet object.
 PyObject *PyCPropertySheet::create( PyObject *self, PyObject *args )
 {
@@ -580,6 +567,7 @@ ui_type_CObject PyCPropertySheet::type("PyCPropertySheet",
 										  &PyCWnd::type, 
 										  RUNTIME_CLASS(CPropertySheet), 
 										  sizeof(PyCPropertySheet), 
+										  PYOBJ_OFFSET(PyCPropertySheet), 
 										  ui_propsheet_methods, 
 										  GET_PY_CTOR(PyCPropertySheet));
 
@@ -861,6 +849,7 @@ ui_type_CObject PyCPropertyPage::type("PyCPropertyPage",
 										 &PyCDialog::type, 
 										 RUNTIME_CLASS(CPropertyPage), 
 										 sizeof(PyCPropertyPage), 
+										 PYOBJ_OFFSET(PyCPropertyPage), 
 										 ui_proppage_methods, 
 										 GET_PY_CTOR(PyCPropertyPage));
 
@@ -937,5 +926,6 @@ ui_type_CObject ui_tabctrl_object::type("PyCTabCtrl",
 										&PyCWnd::type, 
 										RUNTIME_CLASS(CTabCtrl), 
 										sizeof(ui_tabctrl_object), 
+										PYOBJ_OFFSET(ui_tabctrl_object), 
 										ui_tabctrl_methods, 
 										GET_PY_CTOR(ui_tabctrl_object));

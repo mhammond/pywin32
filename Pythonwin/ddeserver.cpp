@@ -141,5 +141,6 @@ ui_type_CObject PyDDEServer::type("PyDDEServer",
 								   &ui_assoc_CObject::type, 
 								   RUNTIME_CLASS(CDDEServer), 
 								   sizeof(PyDDEServer), 
+								   PYOBJ_OFFSET(PyDDEServer), 
 								   PyDDEServer_methods,
       							   GET_PY_CTOR(PyDDEServer));

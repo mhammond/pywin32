@@ -199,5 +199,6 @@ ui_type_CObject PyCToolTipCtrl::type("PyCToolTipCtrl",
 				       &ui_control_object::type, 
 				       RUNTIME_CLASS(CToolTipCtrl), 
 				       sizeof(PyCToolTipCtrl), 
+				       PYOBJ_OFFSET(PyCToolTipCtrl), 
 				       PyCToolTipCtrl_methods, 
 				       GET_PY_CTOR(PyCToolTipCtrl));

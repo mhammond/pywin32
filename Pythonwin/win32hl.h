@@ -12,7 +12,6 @@ public:
 	static PyObject *create(PyObject *self, PyObject *args);
 	CPythonHierControl *GetListObject();
 	static CPythonHierControl *GetListObject(PyObject *self);
-	virtual void DoKillAssoc( BOOL bDestructing = FALSE );
 
 	static ui_type_CObject type;
 	MAKE_PY_CTOR(ui_hierlist_object)

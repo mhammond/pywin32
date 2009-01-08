@@ -22,15 +22,17 @@ class CAssocManager
 public:
 	CAssocManager();
 	~CAssocManager();
-	void Assoc(void *assoc, ui_assoc_object *PyObject, void *oldAssoc=NULL);
-	ui_assoc_object *GetAssocObject(const void * handle);
+	void Assoc(void *assoc, ui_assoc_object *PyObject);
+	ui_assoc_object *GetAssocObject(void * handle);
 
 	void cleanup(void);	// only to be called at the _very_ end
 private:
+	void RemoveAssoc(void *handle);
+	// A "map" of weak-references to Python objects.  Now we use weakrefs
+	// this really should be a regular Python dict...
 	CMapPtrToPtr map;
 	const void *lastLookup;
-	ui_assoc_object *lastObject;
-	CCriticalSection m_critsec;
+	PyObject *lastObjectWeakRef;
 #ifdef _DEBUG
 	int cacheLookups;
 	int cacheHits;
@@ -46,16 +48,15 @@ public:	// some probably shouldnt be, but...
 	static ui_assoc_object *make( ui_type &makeType, void * search, bool skipLookup=false );
 
 	// Given a C++ object, return a PyObject associated (map lookup)
-	static ui_assoc_object *GetPyObject(void *search);
+	static ui_assoc_object *GetAssocObject(void *search) {
+		return ui_assoc_object::handleMgr.GetAssocObject(search);
+	}
 
 	// Return the C++ object associated with this Python object.
 	// Do as much type checking as possible.
 	// Static version may have "self" pointer changed if it does
 	// auto conversion from Instance to Object.
 	static void *GetGoodCppObject(PyObject *&self, ui_type *ui_type_check);
-
-	// Call this when the C++ object dies, or otherwise becomes invalid.
-	void KillAssoc();	// maps to a virtual with some protection wrapping.
 
 	// virtuals for Python support
 	virtual CString repr();
@@ -73,12 +74,7 @@ public:	// some probably shouldnt be, but...
 protected:
 	void *GetGoodCppObject(ui_type *ui_type_check=NULL) const;
 	virtual bool CheckCppObject(ui_type *ui_type_check) const {return true;}
-	// Does the actual killing.
-	virtual void DoKillAssoc( BOOL bDestructing = FALSE ); // does the actual work.
-	// Called during KillAssoc - normally zeroes association.
-	// Override to keep handle after destruction (eg, the association
-	// with a dialog is valid after the Window's window has closed).
-	virtual void SetAssocInvalid() { assoc = 0; }
+	virtual void SetAssocInvalid() { assoc = 0; } // XXX - bogus - called during destruction???
 
 	ui_assoc_object(); // ctor/dtor
 	virtual ~ui_assoc_object();

@@ -179,5 +179,6 @@ ui_type_CObject PyCRgn::type ("PyCRgn",
 							 &PyCGdiObject::type,
 							 RUNTIME_CLASS(CRgn),
 							 sizeof(PyCRgn),
+							 PYOBJ_OFFSET(PyCRgn),
 							 PyCRgn_methods,
 							 GET_PY_CTOR(PyCRgn));

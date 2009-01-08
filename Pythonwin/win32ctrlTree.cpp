@@ -856,5 +856,6 @@ ui_type_CObject PyCTreeCtrl::type("PyCTreeCtrl",
 									 &PyCWnd::type, 
 									 RUNTIME_CLASS(CTreeCtrl), 
 									 sizeof(PyCTreeCtrl), 
+									 PYOBJ_OFFSET(PyCTreeCtrl), 
 									 PyCTreeCtrl_methods, 
 									 GET_PY_CTOR(PyCTreeCtrl));

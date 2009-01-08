@@ -245,6 +245,7 @@ ui_type_CObject PyCSplitterWnd::type("PyCSplitterWnd",
 									 &PyCWnd::type, 
 									 RUNTIME_CLASS(CSplitterWnd),
 									 sizeof(PyCSplitterWnd), 
+									 PYOBJ_OFFSET(PyCSplitterWnd), 
 									 ui_splitter_window_methods, 
 									 GET_PY_CTOR(PyCSplitterWnd));
 

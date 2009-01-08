@@ -18,19 +18,22 @@
 
 extern BOOL bInFatalShutdown;
 
-CVirtualHelper::CVirtualHelper(const char *iname, const void *iassoc, EnumVirtualErrorHandling veh/* = VEH_PRINT_ERROR */)
+CVirtualHelper::CVirtualHelper(const char *iname, void *iassoc, EnumVirtualErrorHandling veh/* = VEH_PRINT_ERROR */)
 {
 	handler=NULL;
 	py_ob = NULL;
 	retVal=NULL;
 	csHandlerName = iname;
 	vehErrorHandling = veh;
-	ui_assoc_object *py_bob = ui_assoc_object::handleMgr.GetAssocObject( iassoc );
-	if (bInFatalShutdown || py_bob==NULL)
+	if (bInFatalShutdown)
 		return;
 	CEnterLeavePython _celp;
+	ui_assoc_object *py_bob = ui_assoc_object::handleMgr.GetAssocObject( iassoc );
+	if (py_bob==NULL)
+		return;
 	if (!py_bob->is_uiobject( &ui_assoc_object::type)) {
 		TRACE("CVirtualHelper::CVirtualHelper Error: Call object is not of required type\n");
+		Py_DECREF(py_bob);
 		return;
 	}
 	// ok - have the python data type - now see if it has an override.
@@ -52,8 +55,9 @@ CVirtualHelper::CVirtualHelper(const char *iname, const void *iassoc, EnumVirtua
 		PyErr_Restore(t,v,tb);
 	}
 	py_ob = py_bob;
-	Py_INCREF(py_ob);
+	// reference on 'py_bob' now owned by 'py_ob'
 }
+
 CVirtualHelper::~CVirtualHelper()
 {
 	// This is called for each window message, so should be as fast

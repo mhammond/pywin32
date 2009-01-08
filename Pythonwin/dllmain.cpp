@@ -211,7 +211,6 @@ extern "C" __declspec(dllexport) int __stdcall DllMainwin32ui(HINSTANCE hInstanc
 			// not have possibly called back to Python, as the Python app object
 			// could not have been created.  Let the Python code manage if it wants!
 			Win32uiFinalize();
-			Python_delete_assoc(pCreatedApp); // so Python wont try and use it.
 			AfxWinTerm();
 			afxCurrentWinApp = NULL; // So AfxGetApp fails from here.
 			delete pCreatedApp;

@@ -216,6 +216,7 @@ ui_type_CObject PyCOleInsertDialog::type("PyCOleInsertDialog",
 							 &PyCOleDialog::type, 
 							 RUNTIME_CLASS(COleInsertDialog), 
 							 sizeof(PyCOleInsertDialog), 
+							 PYOBJ_OFFSET(PyCOleInsertDialog), 
 							 PyCOleInsertDialog_methods, 
 							 GET_PY_CTOR(PyCOleInsertDialog) );
 

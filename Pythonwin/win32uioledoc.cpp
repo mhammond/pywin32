@@ -151,5 +151,6 @@ ui_type_CObject PyCOleDocument::type("PyCOleDocument",
 								  &PyCDocument::type, 
 								  RUNTIME_CLASS(COleDocument), 
 								  sizeof(PyCOleDocument), 
+								  PYOBJ_OFFSET(PyCOleDocument), 
 								  PyCOleDocument_methods, 
 								  GET_PY_CTOR(PyCOleDocument) );

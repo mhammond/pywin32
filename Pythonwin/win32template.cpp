@@ -42,8 +42,6 @@ PyCDocTemplate::~PyCDocTemplate()
 	if (pTemp==NULL)
 		return;	// no more to do.
 	RemoveDocTemplateFromApp(pTemp);
-	delete pTemp;
-	SetAssocInvalid();
 }
 
 void PyCDocTemplate::cleanup()
@@ -412,6 +410,7 @@ ui_type_CObject PyCDocTemplate::type("PyCDocTemplate",
 									 &PyCCmdTarget::type, 
 									 RUNTIME_CLASS(CDocTemplate), 
 									 sizeof(PyCDocTemplate), 
+									 PYOBJ_OFFSET(PyCDocTemplate), 
 									 PyCDocTemplate_methods, 
 									 GET_PY_CTOR(PyCDocTemplate) );
 

@@ -71,7 +71,7 @@ void ui_prinfo_object::SetAssocInvalid()
   return; // do nothing.  Dont call base as dont want my handle wiped.
 }
 
-void ui_prinfo_object::DoKillAssoc( BOOL bDestructing /*= FALSE*/ )
+ui_prinfo_object::~ui_prinfo_object()
 {
   if (m_deletePrInfo) {
     CPrintInfo *pPrInfo = GetPrintInfo(this);
@@ -86,12 +86,6 @@ void ui_prinfo_object::DoKillAssoc( BOOL bDestructing /*= FALSE*/ )
       }
     };
   }
-  ui_assoc_object::DoKillAssoc(bDestructing);
-}
-
-ui_prinfo_object::~ui_prinfo_object()
-{
-  DoKillAssoc(TRUE);
 }
 
 // CPrintInfo member access
@@ -856,6 +850,7 @@ ui_type ui_prinfo_object::type(
                                "PyCPrintInfo", 
                                &ui_assoc_object::type, 
                                sizeof(ui_prinfo_object), 
+                               PYOBJ_OFFSET(ui_prinfo_object), 
                                ui_prinfo_methods, 
                                GET_PY_CTOR(ui_prinfo_object));
 

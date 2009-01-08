@@ -15,9 +15,6 @@ public:
 protected:
 	PyCPropertySheet();
 	virtual ~PyCPropertySheet();
-
-//	virtual void DoKillAssoc( BOOL bDestructing=FALSE);
-//	virtual void SetAssocInvalid() {return;	}//ignore
 };
 
 class PyCPropertyPage : public PyCDialog {

@@ -865,21 +865,11 @@ PyCRichEditCtrl_get_sel_text(PyObject *self, PyObject *args)
 	if (!pEdit)
 		return NULL;
 	CHECK_NO_ARGS2(args,GetSelText);
-	long start=0, end=0;
+	CString str;
 	GUI_BGN_SAVE;
-	pEdit->GetSel(start, end);
+	str = pEdit->GetSelText();
 	GUI_END_SAVE;
-	PyObject *ret;
-	if (end-start) {
-		ret = PyString_FromStringAndSize(NULL, end-start);
-		char *buf = PyString_AsString(ret);
-		GUI_BGN_SAVE;
-		pEdit->GetSelText(buf);
-		GUI_END_SAVE;
-	}
-	else
-		ret = PyString_FromStringAndSize("", 0);
-	return ret;
+	return PyWinObject_FromTCHAR(str);
 }
 
 // @object PyCRichEditCtrl|A windows Rich Text edit control.  Encapsulates an MFC <c CRichEditCtrl> class.  Derived from a <o PyCControl> object.
@@ -923,5 +913,12 @@ static struct PyMethodDef PyCRichEditCtrl_methods[] = {
 	{NULL,			NULL}
 };
 
-PyCCtrlView_Type PyCRichEditCtrl::type("PyCRichEditCtrl",&ui_control_object::type, &PyCRichEditCtrl::type, RUNTIME_CLASS(CRichEditCtrl), sizeof(PyCRichEditCtrl), PyCRichEditCtrl_methods, GET_PY_CTOR(PyCRichEditCtrl));
+PyCCtrlView_Type PyCRichEditCtrl::type("PyCRichEditCtrl",
+				       &ui_control_object::type,
+				       &PyCRichEditCtrl::type,
+				       RUNTIME_CLASS(CRichEditCtrl),
+				       sizeof(PyCRichEditCtrl),
+				       PYOBJ_OFFSET(PyCRichEditCtrl),
+				       PyCRichEditCtrl_methods,
+				       GET_PY_CTOR(PyCRichEditCtrl));
 

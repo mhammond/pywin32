@@ -369,5 +369,6 @@ ui_type_CObject PyCOleClientItem::type("PyCOleClientItem",
 								  &PyCCmdTarget::type, // should be CDocItem when we support it.
 								  RUNTIME_CLASS(COleClientItem), 
 								  sizeof(PyCOleClientItem), 
+								  PYOBJ_OFFSET(PyCOleClientItem), 
 								  PyCOleClientItem_methods, 
 								  GET_PY_CTOR(PyCOleClientItem) );

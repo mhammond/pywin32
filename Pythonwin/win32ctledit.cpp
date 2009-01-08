@@ -423,5 +423,6 @@ ui_type_CObject PyCEdit::type("PyCEdit",
 							  &ui_control_object::type, 
 							  RUNTIME_CLASS(CEdit), 
 							  sizeof(PyCEdit), 
+							  PYOBJ_OFFSET(PyCEdit), 
 							  PyCEdit_methods, 
 							  GET_PY_CTOR(PyCEdit));

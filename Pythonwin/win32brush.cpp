@@ -25,8 +25,8 @@ CBrush *PyCBrush::GetBrush(PyObject *self)
 // @pymethod <o PyCBrush>|win32ui|GetHalftoneBrush|Creates a new halftone brush object.
 PyObject *ui_get_halftone_brush(PyObject *self, PyObject *args)
 {
-	PyCBrush *pb = (PyCBrush *)ui_assoc_object::make (PyCBrush::type, CDC::GetHalftoneBrush());
-	pb->m_deleteObject = FALSE; // this is a temp object
+	PyCBrush *pb = (PyCBrush *)ui_assoc_object::make (PyCBrush::type, CDC::GetHalftoneBrush(), true);
+	pb->bManualDelete = FALSE; // this is a temp object
 	return pb;
 }
 
@@ -38,10 +38,12 @@ PyCBrush::create (PyObject *self, PyObject *args)
   int n_hatch;
   long cr_color;
   LOGBRUSH lp;
-  // Quick exist to make a empty brush
+  // Quick exit to make a empty brush
   if (PyArg_ParseTuple(args, "")) {
 	  // @comm If called with no arguments, an uninitialized brush is created.
-	  return ui_assoc_object::make (PyCBrush::type, new CBrush);
+	  PyCBrush *ret = (PyCBrush *)ui_assoc_object::make (PyCBrush::type, new CBrush);
+	  ret->bManualDelete = TRUE;
+	  return ret;
   }
   PyErr_Clear();
   if (!PyArg_ParseTuple (args, "iil",
@@ -58,7 +60,9 @@ PyCBrush::create (PyObject *self, PyObject *args)
   if (!pBrush->CreateBrushIndirect (&lp)) {
 	RETURN_ERR ("CreateBrushIndirect call failed");
   }
-  return ui_assoc_object::make (PyCBrush::type, pBrush);
+  PyCBrush *ret = (PyCBrush *)ui_assoc_object::make (PyCBrush::type, pBrush);
+  ret->bManualDelete = TRUE;
+  return ret;
 }
 
 // @pymethod |PyCBrush|CreateSolidBrush|Initializes a brush with a specified solid color.
@@ -94,5 +98,6 @@ ui_type_CObject PyCBrush::type ("PyCBrush",
 							 &PyCGdiObject::type,
 							 RUNTIME_CLASS(CBrush),
 							 sizeof(PyCBrush),
+							 PYOBJ_OFFSET(PyCBrush),
 							 PyCBrush_methods,
 							 GET_PY_CTOR(PyCBrush));

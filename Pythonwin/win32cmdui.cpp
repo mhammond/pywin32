@@ -66,31 +66,37 @@ Python_OnCmdMsg (CCmdTarget *obj, UINT nID, int nCode,
 			// everything's fine
 
 			CWnd *control = ((CWnd *)obj)->GetDlgItem(nID);
-			PyCCmdTarget *pObj = (PyCCmdTarget *) ui_assoc_CObject::GetPyObject(control);
+			CEnterLeavePython _celp;
+			PyCCmdTarget *pObj = (PyCCmdTarget *) ui_assoc_CObject::GetAssocObject(control);
 			if (pObj && pObj->pOleEventHookList && 
 				pObj->pOleEventHookList->Lookup ((unsigned short)pEvent->m_dispid, (void *&)method)) {
-					CEnterLeavePython _celp;
 					if (pfnMakeOlePythonCall==NULL) {
 						pfnMakeOlePythonCall = (BOOL (*)(PyObject *, DISPPARAMS FAR* , VARIANT FAR* ,EXCEPINFO FAR* , UINT FAR*, PyObject * ))
 								GetPythonOleProcAddress("PyCom_MakeOlePythonCall");
 
 						ASSERT(pfnMakeOlePythonCall);
 					}
-					if (pfnMakeOlePythonCall==NULL) 
+					if (pfnMakeOlePythonCall==NULL) {
+						Py_DECREF(pObj);
 						return FALSE;
+					}
 					VARIANT result;
 					VariantInit(&result);
 					(*pfnMakeOlePythonCall)(method, pEvent->m_pDispParams, &result, pEvent->m_pExcepInfo, pEvent->m_puArgError, NULL);
 					VariantClear(&result);
 					if (PyErr_Occurred())	// if any Python exception, pretend it was OK
 						gui_print_error();
+					Py_DECREF(pObj);
 					return TRUE;
 			}
+			Py_XDECREF(pObj);
 		}
 	}
 #endif // !_AFX_NO_OCC_SUPPORT
 
-	PyCCmdTarget *pObj = (PyCCmdTarget *) ui_assoc_CObject::GetPyObject(obj);
+	CEnterLeavePython _celp;
+	PyCCmdTarget *pObj = (PyCCmdTarget *) ui_assoc_CObject::GetAssocObject(obj);
+	// Must exit via 'exit' from here...
 	BOOL rc = FALSE; // default not handled.
 	// Give Python code the chance to handle other stuff.
 	if (pObj != NULL &&
@@ -106,10 +112,9 @@ Python_OnCmdMsg (CCmdTarget *obj, UINT nID, int nCode,
 				PyObject *ob = ui_assoc_object::make( PyCCmdUI::type, pUI );
 				if (ob==NULL) {
 					OutputDebugString(_T("Could not make object for CCmdUI handler"));
-					return FALSE;
+					goto done;
 				}
 				{
-					CEnterLeavePython _celp;
 					Python_callback (method, ob);
 					if (PyErr_Occurred())	// if any Python exception, pretend it was OK
 						// XXX - Python_callback always calls
@@ -139,7 +144,6 @@ Python_OnCmdMsg (CCmdTarget *obj, UINT nID, int nCode,
 			}
 			if (method) {
 					// perform the callback.
-				CEnterLeavePython _celp;
 				rc = Python_callback (method, nID, nCode);
 				// This is dodgy - we have to rely on -1 and can't check PyErr_Occurred(),
 				// as Python_callback will have called gui_print_error() which clears
@@ -156,6 +160,8 @@ Python_OnCmdMsg (CCmdTarget *obj, UINT nID, int nCode,
 			}
 		}
 	}
+done:
+	Py_XDECREF(pObj);
 	return rc;
 }
 
@@ -269,8 +275,9 @@ static struct PyMethodDef PyCCmdUI_methods[] = {
 };
 
 PyObject *
-PyCCmdUI::getattr(char *name)
+PyCCmdUI::getattro(PyObject *obname)
 {
+	char *name=PYWIN_ATTR_CONVERT(obname);
 	if (strcmp(name, "m_nIndex")==0) { // @prop int|m_nIndex|
 		CCmdUI *pCU = PyCCmdUI::GetCCmdUIPtr(this);
 		if (!pCU)
@@ -298,13 +305,14 @@ PyCCmdUI::getattr(char *name)
 		Py_INCREF(Py_None);
 		return Py_None;
 	}
-	return ui_assoc_object::getattr(name);
+	return ui_assoc_object::getattro(obname);
 }
 
 
 ui_type PyCCmdUI::type("PyCCmdUI", 
 					   &ui_assoc_object::type, 
 					   sizeof(PyCCmdUI), 
+					   PYOBJ_OFFSET(PyCCmdUI), 
 					   PyCCmdUI_methods, 
 					   GET_PY_CTOR(PyCCmdUI));
 

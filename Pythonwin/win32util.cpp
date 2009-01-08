@@ -37,7 +37,7 @@ generates Windows .hlp files.
 
 class PyCRectType : public ui_type {
 public:
-	PyCRectType( const char *name, ui_type *pBaseType, int typeSize, struct PyMethodDef* methodList, ui_base_class * (* thector)() );
+	PyCRectType( const char *name, ui_type *pBaseType, int typeSize, int pyobjOffset, struct PyMethodDef* methodList, ui_base_class * (* thector)() );
 };
 // @object PyCRect|A Python interface the the MFC CRect class.
 class PyCRect : public ui_base_class
@@ -60,8 +60,8 @@ public:
 		_Py_NewReference(this);
 	}
 	~PyCRect() {if (m_owned) delete m_pRect;}
-	virtual PyObject *getattr(char *name);
-	virtual int setattr(char *name, PyObject *v);
+	virtual PyObject *getattro(PyObject *obname);
+	virtual int setattro(PyObject *obname, PyObject *v);
 	static PyObject *getitem(PyObject *self, Py_ssize_t index);
 	static Py_ssize_t getlength(PyObject *self);
 	CString repr();
@@ -90,8 +90,11 @@ static PySequenceMethods PyCRect_Sequence =
 	NULL, // sq_ass_slice;
 };
 
-PyObject *PyCRect::getattr(char *name)
+PyObject *PyCRect::getattro(PyObject *obname)
 {
+	char *name=PYWIN_ATTR_CONVERT(obname);
+	if (name==NULL)
+		return NULL;
 	if (strcmp(name, "left")==0)
 		return PyInt_FromLong(m_pRect->left);
 	if (strcmp(name, "right")==0)
@@ -100,7 +103,7 @@ PyObject *PyCRect::getattr(char *name)
 		return PyInt_FromLong(m_pRect->top);
 	if (strcmp(name, "bottom")==0)
 		return PyInt_FromLong(m_pRect->bottom);
-	return ui_base_class::getattr(name);
+	return PyObject_GenericGetAttr(this, obname);
 }
 
 CString PyCRect::repr()
@@ -134,27 +137,31 @@ CString PyCRect::repr()
 	return NULL;
 }
 
-int PyCRect::setattr(char *name, PyObject *v)
+int PyCRect::setattro(PyObject *obname, PyObject *v)
 {
-	if (!PyInt_Check(v))
-		RETURN_TYPE_ERR("PyCRect objects only have integer properties");
+	char *name=PYWIN_ATTR_CONVERT(obname);
+	if (name==NULL)
+		return -1;
+	int intval=PyInt_AsLong(v);
+	if (intval==-1 && PyErr_Occurred())
+		return -1;
 	if (strcmp(name, "left")==0) {
-		m_pRect->left = PyInt_AsLong(v);
+		m_pRect->left = intval;
 		return 0;
 	}
 	if (strcmp(name, "right")==0) {
-		m_pRect->right = PyInt_AsLong(v);
+		m_pRect->right = intval;
 		return 0;
 	}
 	if (strcmp(name, "top")==0) {
-		m_pRect->top = PyInt_AsLong(v);
+		m_pRect->top = intval;
 		return 0;
 	}
 	if (strcmp(name, "bottom")==0) {
-		m_pRect->bottom = PyInt_AsLong(v);
+		m_pRect->bottom = intval;
 		return 0;
 	}
-	return ui_base_class::setattr(name, v);
+	return PyObject_GenericSetAttr(this, obname, v);
 }
 
 static struct PyMethodDef 
@@ -163,8 +170,8 @@ PyCRect_methods[] =
 	{ NULL,			NULL }
 };
 
-PyCRectType::PyCRectType( const char *name, ui_type *pBaseType, int typeSize, struct PyMethodDef* methodList, ui_base_class * (* thector)() ) :
-	  ui_type(name, pBaseType, typeSize, methodList, thector)
+PyCRectType::PyCRectType( const char *name, ui_type *pBaseType, int typeSize, int pyobjOffset, struct PyMethodDef* methodList, ui_base_class * (* thector)() ) :
+	  ui_type(name, pBaseType, typeSize, pyobjOffset, methodList, thector)
 {
 		  tp_as_sequence = &PyCRect_Sequence;
 }
@@ -172,6 +179,7 @@ PyCRectType::PyCRectType( const char *name, ui_type *pBaseType, int typeSize, st
 PyCRectType PyCRect::type("PyCRect",
 							 &ui_base_class::type,
 							 sizeof(PyCRect),
+							 PYOBJ_OFFSET(PyCRect),
 							 PyCRect_methods,
 							 NULL);
 

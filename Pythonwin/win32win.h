@@ -16,7 +16,6 @@ public:	// probably shouldnt be, but...
 protected:
 	PyCWnd();
 	~PyCWnd();
-	virtual void DoKillAssoc( BOOL bDestructing = FALSE );
 public:
 	static CWnd *GetPythonGenericWnd(PyObject *self, ui_type_CObject *pType = &type);
 	static PyObject *get_window(PyObject *self, PyObject *args);

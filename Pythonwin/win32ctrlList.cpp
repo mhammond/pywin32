@@ -834,5 +834,6 @@ ui_type_CObject PyCListCtrl::type("PyCListCtrl",
 									 &PyCWnd::type, 
 									 RUNTIME_CLASS(CListCtrl), 
 									 sizeof(PyCListCtrl), 
+									 PYOBJ_OFFSET(PyCListCtrl), 
 									 PyCListCtrl_methods, 
 									 GET_PY_CTOR(PyCListCtrl));

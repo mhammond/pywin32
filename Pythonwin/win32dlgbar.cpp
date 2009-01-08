@@ -84,5 +84,6 @@ ui_type_CObject PyCDialogBar::type ("PyCDialogBar",
 					&PyCControlBar::type, 
 					RUNTIME_CLASS(CDialogBar),
 					sizeof(PyCDialogBar),
+					PYOBJ_OFFSET(PyCDialogBar),
 					PyCDialogBar_methods,
 					GET_PY_CTOR(PyCDialogBar));

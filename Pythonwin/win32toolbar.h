@@ -6,8 +6,8 @@ public:
   MAKE_PY_CTOR(PyCControlBar)
   static ui_type_CObject type;
   static CControlBar *GetControlBar (PyObject *self);
-  virtual PyObject *getattr(char *name);
-  virtual int setattr(char *name, PyObject *v);
+  virtual PyObject *getattro(PyObject *obname);
+  virtual int setattro(PyObject *obname, PyObject *v);
   static PyObject *create (PyObject *self, PyObject *args);
 
 protected:

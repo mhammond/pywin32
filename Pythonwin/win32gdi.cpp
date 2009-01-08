@@ -36,25 +36,8 @@ CGdiObject *PyCGdiObject::GetGdiObject (PyObject *self, DWORD gtype)
 	return pGdi;
 }
 
-void PyCGdiObject::DoKillAssoc( BOOL bDestructing /*= FALSE*/ )
-{
-  CGdiObject *pGDI;
-  if (m_deleteObject && (pGDI = ((CGdiObject *)assoc))) // Cant use GetGdiOb as ob_type is NULL!
-	{
-	  m_deleteObject = FALSE;
-	  delete pGDI;
-	}
-  ui_assoc_object::DoKillAssoc(bDestructing);
-}
-
 PyCGdiObject::~PyCGdiObject()
 {
-  DoKillAssoc(TRUE);
-}
-
-CString PyCGdiObject::repr()
-{
-	return ui_assoc_object::repr() + CString(m_deleteObject ? ", delObject=1" : ", delObject=0");
 }
 
 // @object PyCGdiObject|A class which encapsulates an MFC CGdiObject.
@@ -66,5 +49,6 @@ ui_type_CObject PyCGdiObject::type("gdi object",
 								   &ui_assoc_CObject::type, 
 								   RUNTIME_CLASS(CGdiObject), 
 								   sizeof(PyCGdiObject), 
+								   PYOBJ_OFFSET(PyCGdiObject), 
 								   ui_gdi_methods, 
 								   NULL);

@@ -673,5 +673,6 @@ ui_type_CObject ui_bitmap::type("PyCBitmap",
 								&PyCGdiObject::type, 
 								RUNTIME_CLASS(CBitmap),
 								sizeof(ui_bitmap), 
+								PYOBJ_OFFSET(ui_bitmap), 
 								ui_bitmap_methods, 
 								GET_PY_CTOR(ui_bitmap));

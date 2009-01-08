@@ -442,5 +442,6 @@ ui_type_CObject PyCDocument::type("PyCDocument",
 								  &PyCCmdTarget::type, // @base PyCDocument|PyCCmdTarget
 								  RUNTIME_CLASS(CDocument), 
 								  sizeof(PyCDocument), 
+								  PYOBJ_OFFSET(PyCDocument), 
 								  ui_doc_methods, 
 								  GET_PY_CTOR(PyCDocument) );

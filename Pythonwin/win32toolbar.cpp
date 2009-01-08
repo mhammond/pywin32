@@ -34,8 +34,8 @@ public:
 	PyCDockContext() {;}
 	static CDockContext *GetDockContext(PyObject *);
 	MAKE_PY_CTOR(PyCDockContext);
-	virtual PyObject *getattr(char *name);
-	virtual int setattr(char *name, PyObject *v);
+	virtual PyObject *getattro(PyObject *obname);
+	virtual int setattro(PyObject *obname, PyObject *v);
 protected:
 	virtual ~PyCDockContext() {;}
 };
@@ -162,8 +162,11 @@ struct MyMemberList dcmembers[] = {
 	{NULL}	/* Sentinel */
 };
 
-PyObject *PyCDockContext::getattr(char *name)
+PyObject *PyCDockContext::getattro(PyObject *obname)
 {
+	char *name=PYWIN_ATTR_CONVERT(obname);
+	if (name==NULL)
+		return NULL;
 	CDockContext *pC = GetDockContext(this);
 	if (!pC) return NULL;
 
@@ -191,11 +194,14 @@ PyObject *PyCDockContext::getattr(char *name)
 			}
 		}
 	}
-	return ui_assoc_object::getattr(name);
+	return ui_assoc_object::getattro(obname);
 }
 
-int PyCDockContext::setattr(char *name, PyObject *value)
+int PyCDockContext::setattro(PyObject *obname, PyObject *value)
 {
+	char *name=PYWIN_ATTR_CONVERT(obname);
+	if (name==NULL)
+		return -1;
 	CDockContext *pC = GetDockContext(this);
 	if (!pC) return NULL;
 
@@ -229,13 +235,14 @@ int PyCDockContext::setattr(char *name, PyObject *value)
 			}
 		}
 	}
-	return ui_assoc_object::setattr(name, value);
+	return ui_assoc_object::setattro(obname, value);
 }
 
 
 ui_type PyCDockContext::type("PyCDockContext",
 							 &ui_assoc_object::type,
 							 sizeof(PyCDockContext),
+							 PYOBJ_OFFSET(PyCDockContext),
 							 PyCDockContext_methods,
 							 GET_PY_CTOR(PyCDockContext));
 
@@ -420,8 +427,11 @@ PyCControlBar_methods[] =
   { NULL,			NULL }
 };
 
-PyObject *PyCControlBar::getattr(char *name)
+PyObject *PyCControlBar::getattro(PyObject *obname)
 {
+	char *name=PYWIN_ATTR_CONVERT(obname);
+	if (name==NULL)
+		return NULL;
 	CControlBar *pCtlBar = PyCControlBar::GetControlBar(this);
 	if (!pCtlBar) return NULL;
 	if (strcmp(name, "dockSite")==0) { // @prop <o PyCFrameWnd>|dockSite|Current dock site, if dockable
@@ -444,32 +454,38 @@ PyObject *PyCControlBar::getattr(char *name)
 	if (strcmp(name, "dwDockStyle")==0) // @prop int|dwDockStyle|indicates how bar can be docked
 		return PyInt_FromLong(pCtlBar->m_dwStyle);
 
-	return PyCWnd::getattr(name);
+	return PyObject_GenericGetAttr(this, obname);
 }
 
-int PyCControlBar::setattr(char *name, PyObject *v)
+int PyCControlBar::setattro(PyObject *obname, PyObject *v)
 {
+	char *name=PYWIN_ATTR_CONVERT(obname);
+	if (name==NULL)
+		return -1;
+
 	CControlBar *pCtlBar = PyCControlBar::GetControlBar(this);
-	if (!pCtlBar) return NULL;
+	if (!pCtlBar)
+		return -1;
 	if (strcmp(name, "dwStyle")==0) {
-		if (!PyInt_Check(v))
-			RETURN_TYPE_ERR("dwStyle must be an integer");
 		pCtlBar->m_dwStyle = PyInt_AsLong(v);
+		if (pCtlBar->m_dwStyle == -1 && PyErr_Occurred())
+			return -1;
 		return 0;
 	}
 	if (strcmp(name, "dwDockStyle")==0) {
-		if (!PyInt_Check(v))
-			RETURN_TYPE_ERR("dwDockStyle must be an integer");
 		pCtlBar->m_dwDockStyle = PyInt_AsLong(v);
+		if (pCtlBar->m_dwDockStyle == -1 && PyErr_Occurred())
+			return -1;
 		return 0;
 	}
-	return PyCWnd::setattr(name, v);
+	return PyObject_GenericSetAttr(this, obname, v);
 }
 
 ui_type_CObject PyCControlBar::type ("PyCControlBar",
 					&PyCWnd::type, 
 					RUNTIME_CLASS(CControlBar),
 					sizeof(PyCControlBar),
+					PYOBJ_OFFSET(PyCControlBar),
 					PyCControlBar_methods,
 					GET_PY_CTOR(PyCControlBar));
 
@@ -863,6 +879,7 @@ ui_type_CObject PyCToolBar::type ("PyCToolBar",
 					&PyCControlBar::type, 
 					RUNTIME_CLASS(CToolBar),
 					sizeof(PyCToolBar),
+					PYOBJ_OFFSET(PyCToolBar),
 					PyCToolBar_methods,
 					GET_PY_CTOR(PyCToolBar));
 
@@ -1435,6 +1452,7 @@ ui_type_CObject PyCToolBarCtrl::type ("PyCToolBarCtrl",
 				      &PyCWnd::type,
 				      RUNTIME_CLASS(CToolBarCtrl),
 				      sizeof(PyCToolBarCtrl),
+				      PYOBJ_OFFSET(PyCToolBarCtrl),
 				      PyCToolBarCtrl_methods,
 				      GET_PY_CTOR(PyCToolBarCtrl));
 
@@ -1605,6 +1623,7 @@ ui_type_CObject PyCStatusBar::type ("PyCStatusBar",
 					&PyCControlBar::type, 
 					RUNTIME_CLASS(CStatusBar),
 					sizeof(PyCStatusBar),
+					PYOBJ_OFFSET(PyCStatusBar),
 					PyCStatusBar_methods,
 					GET_PY_CTOR(PyCStatusBar));
 

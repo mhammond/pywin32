@@ -14,7 +14,6 @@ public:
 protected:
   dll_object();
   ~dll_object();
-  virtual void DoKillAssoc( BOOL bDestructing = FALSE );
   virtual CString repr();
 private:
   BOOL bDidLoadLibrary;

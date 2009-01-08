@@ -54,6 +54,7 @@ ui_type_CObject PyDDETopic::type("PyDDETopic",
 							   &ui_assoc_CObject::type, 
 							   RUNTIME_CLASS(CDDETopic), 
 							   sizeof(PyDDETopic), 
+							   PYOBJ_OFFSET(PyDDETopic), 
 							   PyDDETopic_methods,
    							   GET_PY_CTOR(PyDDETopic));
 
@@ -72,5 +73,6 @@ ui_type_CObject PyDDEServerSystemTopic::type("PyDDEServerSystemTopic",
 							   &PyDDETopic::type, 
 							   RUNTIME_CLASS(CDDEServerSystemTopic), 
 							   sizeof(PyDDEServerSystemTopic), 
+							   PYOBJ_OFFSET(PyDDEServerSystemTopic), 
 							   PyDDEServerSystemTopic_methods,
    							   GET_PY_CTOR(PyDDEServerSystemTopic));

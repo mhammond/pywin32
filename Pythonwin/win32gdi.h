@@ -15,16 +15,16 @@ public:
   CBrush *GetBrush() { return GetBrush (this); }
   static CBitmap *GetBitmap (PyObject *self) { return (CBitmap *)GetGdiObject(self, OBJ_BITMAP); }
   CBitmap *GetBitmap() { return GetBitmap (this); }
-  BOOL m_deleteObject;
 
 protected:
   PyCGdiObject()
-	: m_deleteObject(TRUE)
 	{ }
   ~PyCGdiObject();
-  virtual void DoKillAssoc( BOOL bDestructing = FALSE );
   virtual bool CheckCppObject(ui_type *ui_type_check) const;
 
-  // virtuals for the Python interface.
-  virtual CString repr();
+  // XXX - PyCGDIObject used to have an 'm_deleteObject' attribute - but all
+  // it did was cause a normal 'delete' of the object - ie, identical to the
+  // base-class bManualDelete.  Its likely the original intent was for the new
+  // attribute to determine if ::DeleteObject() should have been called, but
+  // that apparently has never happened...
 };

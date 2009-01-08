@@ -239,21 +239,23 @@ void PyNotifyParseExtraTuple( NMHDR *ptr, PyObject *args,  char *fmt)
 BOOL 
 Python_OnNotify (CWnd *pFrom, WPARAM, LPARAM lParam, LRESULT *pResult)
 {
-	CEnterLeavePython _celp;
-	PyCCmdTarget *pPyWnd = (PyCCmdTarget *) ui_assoc_CObject::GetPyObject(pFrom);
 	NMHDR *pHdr = (NMHDR *)lParam;
-
 	if (pHdr==NULL)
 		return FALSE; // bad data passed?
 	UINT code = pHdr->code;
+	CEnterLeavePython _celp;
+	PyCCmdTarget *pPyWnd = (PyCCmdTarget *) ui_assoc_CObject::GetAssocObject(pFrom);
 
 	if (pPyWnd==NULL) return FALSE; // no object.
 	if (!pPyWnd->is_uiobject (&PyCWnd::type)) return FALSE; // unexpected object type.
 	PyObject *method;
 
 	if (!pPyWnd->pNotifyHookList || 
-		!pPyWnd->pNotifyHookList->Lookup (code, (void *&)method))
+		!pPyWnd->pNotifyHookList->Lookup (code, (void *&)method)) {
+		Py_DECREF(pPyWnd);
 		return FALSE; // no hook installed.
+	}
+	Py_DECREF(pPyWnd);
 
 	// have method to call.  Build arguments.
 	PyObject *ob1 = Py_BuildValue("Nii",

@@ -134,21 +134,23 @@ class ui_base_class;
 // helper typeobject class.
 class PYW_EXPORT ui_type : public PyTypeObject {
 public:
-	ui_type( const char *name, ui_type *pBaseType, int typeSize, struct PyMethodDef* methodList, ui_base_class * (* thector)() );
+	ui_type( const char *name, ui_type *pBaseType, int typeSize, int pyobjOffset, struct PyMethodDef* methodList, ui_base_class * (* thector)() );
 	~ui_type();
 public:
-	ui_type *base;
 	struct PyMethodDef* methods;
 	ui_base_class * (* ctor)();
 };
 
+// a helper to calculate the offset from a ui_base_class child with a PyObject.
+// Use a pointer value of 1 - can't use zero as casting NULL always ends up NULL.
+#define PYOBJ_OFFSET(klass) ((BYTE *)(PyObject *)(klass *)1 - (BYTE *)(klass *)1)
+
 // helper typeCObject class.
 class PYW_EXPORT ui_type_CObject : public ui_type {
 public:
-	ui_type_CObject( const char *name, ui_type *pBaseType, CRuntimeClass *pRT, int typeSize, struct PyMethodDef* methodList, ui_base_class * (* thector)() );
+	ui_type_CObject( const char *name, ui_type *pBaseType, CRuntimeClass *pRT, int typeSize, int pyobjOffset, struct PyMethodDef* methodList, ui_base_class * (* thector)() );
 	~ui_type_CObject();
 public:
-	ui_type *base;
 	CRuntimeClass *pCObjectClass;
 	// A map of CRuntimeClass to these objects.  Populated by the ctor.
 	// Allows us to convert from an arbitary CObject to the best Python type.
@@ -202,11 +204,10 @@ public:
 
 	// virtuals for Python support
 	virtual CString repr();
-	virtual PyObject *getattr(char *name);
-	virtual int setattr(char *name, PyObject *v);
+	virtual PyObject *getattro(PyObject *obname);
+	virtual int setattro(PyObject *obname, PyObject *v);
 	virtual void cleanup();
 
-	static struct PyMethodDef ui_base_class::empty_methods[];
 	static ui_type type;							// my type.
 protected:
 	ui_base_class();
@@ -214,17 +215,16 @@ protected:
 
 public:
 	static BOOL is_uiobject( PyObject *&, ui_type *which);
-	static BOOL ui_base_class::is_nativeuiobject(PyObject *ob, ui_type *which);
-
 	BOOL is_uiobject(ui_type *which);
 	static void sui_dealloc(PyObject *ob);
 	static PyObject *sui_repr(PyObject *ob);
-	static PyObject *sui_getattr(PyObject *self, char *name);
-	static int sui_setattr(PyObject *op, char *name, PyObject *v);
+	static PyObject *sui_getattro(PyObject *self, PyObject *obname);
+	static int sui_setattro(PyObject *op, PyObject *obname, PyObject *v);
 #ifdef _DEBUG
 	DECLARE_DYNAMIC(ui_base_class)
 	virtual void Dump( CDumpContext &dc ) const;
 #endif
+	PyObject *weakreflist; /* List of weak references */
 private:
 	char sig[sizeof(SIG)];
 };
@@ -272,7 +272,7 @@ enum EnumVirtualErrorHandling {
 class PYW_EXPORT CVirtualHelper
 {
 public:
-	CVirtualHelper(const char *iname, const void *iassoc, EnumVirtualErrorHandling veh = VEH_PRINT_ERROR);
+	CVirtualHelper(const char *iname, void *iassoc, EnumVirtualErrorHandling veh = VEH_PRINT_ERROR);
 	~CVirtualHelper();
 
 	BOOL HaveHandler() {return handler!=NULL;}

@@ -112,19 +112,14 @@ void ui_dc_object::SetAssocInvalid()
 {
 	return;	// do nothing.  Dont call base as dont want my handle wiped.
 }
-void ui_dc_object::DoKillAssoc( BOOL bDestructing /*= FALSE*/ )
+
+ui_dc_object::~ui_dc_object()
 {
   if (m_deleteDC) {
     CDC *pDC = GetDC(this);
 	if (pDC)
 	  ::DeleteDC (pDC->m_hDC);
   }
-  ui_assoc_object::DoKillAssoc(bDestructing);
-}
-
-ui_dc_object::~ui_dc_object()
-{
-  DoKillAssoc(TRUE);
 }
 
 // @pymethod |win32ui|CreateDC|Creates an uninitialised device context.
@@ -134,7 +129,9 @@ PyObject *ui_dc_object::create_dc( PyObject *self, PyObject *args )
 	// create Python device context
 	CDC *pDC = new CDC;
     ui_dc_object *dc =
-      (ui_dc_object *) ui_assoc_object::make (ui_dc_object::type, pDC)->GetGoodRet();
+      (ui_dc_object *) ui_assoc_object::make (ui_dc_object::type, pDC, true)->GetGoodRet();
+    if (dc)
+      dc->bManualDelete= true;
     return dc;
 }
 
@@ -1339,10 +1336,7 @@ ui_dc_select_object (PyObject *self, PyObject *args)
     if (cFont == NULL)
       RETURN_ERR ("Select font object failed");
     else {
-      PyCFont *ret = (PyCFont *)ui_assoc_object::make (PyCFont::type, cFont );
-      if (ret && ret->ob_refcnt == 1) // only set m_delete if new object
-	ret->m_deleteObject = FALSE;
-      return ret;
+      return ui_assoc_object::make (PyCFont::type, cFont);
     }
   } else if (ui_base_class::is_uiobject (v, &ui_bitmap::type)) {
     ui_bitmap *new_bitmap = (ui_bitmap *) v;
@@ -1352,10 +1346,7 @@ ui_dc_select_object (PyObject *self, PyObject *args)
     if (pbm == NULL)
       RETURN_ERR ("Select bitmap object failed");
     else {
-      ui_bitmap *ret = (ui_bitmap *)ui_assoc_object::make (ui_bitmap::type, pbm );
-      if (ret && ret->ob_refcnt == 1) // only set m_delete if new object
-	ret->m_deleteObject = FALSE;
-      return ret;
+      return ui_assoc_object::make (ui_bitmap::type, pbm);
     }
   } else if (ui_base_class::is_uiobject (v, &PyCBrush::type)) {
     PyCBrush *new_brush = (PyCBrush *) v;
@@ -1365,10 +1356,7 @@ ui_dc_select_object (PyObject *self, PyObject *args)
     if (pbm == NULL)
       RETURN_ERR ("Select brush object failed");
     else {
-      PyCBrush *ret = (PyCBrush *)ui_assoc_object::make (PyCBrush::type, pbm );
-      if (ret && ret->ob_refcnt == 1) // only set m_delete if new object
-	ret->m_deleteObject = FALSE;
-      return ret;
+      return ui_assoc_object::make (PyCBrush::type, pbm);
     }
   } else if (ui_base_class::is_uiobject (v, &ui_pen_object::type)) {
     ui_pen_object * new_pen = (ui_pen_object *) v;
@@ -1378,11 +1366,7 @@ ui_dc_select_object (PyObject *self, PyObject *args)
     if (cPen == NULL) {
       RETURN_ERR ("Select pen object failed");
       } else {
-	ui_pen_object *ret = (ui_pen_object *)ui_assoc_object::make (ui_pen_object::type, cPen );
-	if (ret) {
-	  ret->m_deleteObject = FALSE;
-	}
-	return ret;
+        return ui_assoc_object::make (ui_pen_object::type, cPen);
       }
   }
   RETURN_ERR ("Attempt to select unsupported object type.");
@@ -2413,9 +2397,11 @@ static struct PyMethodDef ui_dc_methods[] = {
 	{NULL,			NULL}
 };
 
-ui_type ui_dc_object::type("PyCDC", 
-						   &ui_assoc_object::type, 
+ui_type_CObject ui_dc_object::type("PyCDC", 
+						   &ui_assoc_object::type,
+						   RUNTIME_CLASS(CDC),
 						   sizeof(ui_dc_object), 
+						   PYOBJ_OFFSET(ui_dc_object), 
 						   ui_dc_methods, 
 						   GET_PY_CTOR(ui_dc_object));
 

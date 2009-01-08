@@ -7,14 +7,12 @@
 // Command target 
 //
 class PYW_EXPORT PyCCmdTarget : public ui_assoc_CObject{
-friend CVirtualHelper::CVirtualHelper(const char *iname, const void *iassoc, EnumVirtualErrorHandling veh);
+friend CVirtualHelper::CVirtualHelper(const char *iname, void *iassoc, EnumVirtualErrorHandling veh);
 public:	// some probably shouldnt be, but...
 	CMapWordToPtr *pNotifyHookList;
 	CMapWordToPtr *pCommandHookList;
 	CMapWordToPtr *pOleEventHookList;
 	CMapWordToPtr *pCommandUpdateHookList;
-
-	virtual void DoKillAssoc( BOOL bDestructing = FALSE );
 
 	// virtuals for Python support
 	virtual CString repr();

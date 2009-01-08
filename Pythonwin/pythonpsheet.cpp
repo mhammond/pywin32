@@ -202,16 +202,18 @@ void CPythonPropertySheet::BuildPropPageArray()
 	CPropertySheet::BuildPropPageArray();
 
         m_customizeFont = FALSE;
-
+	if (bInFatalShutdown)
+		return;
+	CEnterLeavePython _celp;
 	ui_assoc_object *py_bob = ui_assoc_object::handleMgr.GetAssocObject(this);
-	if (bInFatalShutdown || py_bob==NULL)
+	if (py_bob==NULL)
 		return;
 	if (!py_bob->is_uiobject(&ui_assoc_object::type)) {
 		TRACE("CVirtualHelper::CVirtualHelper Error: Call object is not of required type\n");
+		Py_DECREF(py_bob);
 		return;
 	}
 	if (py_bob->virtualInst) {
-		CEnterLeavePython _celp;
 		PyObject *t, *v, *tb;
 		PyErr_Fetch(&t,&v,&tb);
 		PyObject *attr = PyObject_GetAttrString(py_bob->virtualInst, "customizeFont");
@@ -222,6 +224,7 @@ void CPythonPropertySheet::BuildPropPageArray()
 		}
 		PyErr_Restore(t,v,tb);
 	}
+	Py_DECREF(py_bob);
 
         if (!m_customizeFont) {
           return;

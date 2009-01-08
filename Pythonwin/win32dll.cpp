@@ -21,9 +21,18 @@ dll_object::dll_object()
 }
 dll_object::~dll_object()
 {
-	if (bDidLoadLibrary)
-		dll_object::DoKillAssoc(TRUE);	// must explicitly call, as virtuals dont work in dtors!
+	if (bDidLoadLibrary = TRUE) {
+		::FreeLibrary (GetDll());
+		TRACE("Python object freeing DLL reference\n");
+	}
+	if (pMFCExt) {
+		AfxTermExtensionModule(*pMFCExt); // this deletes the DLL.
+		delete pMFCExt;
+		pMFCExt = NULL;
+		pCDLL = NULL;
+	}
 }
+
 // @pymethod <o PyDLL>|win32ui|LoadLibrary|Creates a DLL object, and loads a Windows DLL into the object.
 PyObject *
 dll_object::create (PyObject *self, PyObject *args)
@@ -60,20 +69,6 @@ dll_object::create (PyObject *self, PyObject *args)
 	if (bDidLoadLib)
 		ret->bDidLoadLibrary = TRUE;
 	return ret;
-}
-void dll_object::DoKillAssoc( BOOL bDestructing /*= FALSE*/ )
-{
-  if (bDidLoadLibrary = TRUE) {
-    ::FreeLibrary (GetDll());
-	TRACE("Python object freeing DLL reference\n");
-    ui_assoc_object::DoKillAssoc(bDestructing);
-  }
-  if (pMFCExt) {
-  	AfxTermExtensionModule(*pMFCExt); // this deletes the DLL.
-	delete pMFCExt;
-	pMFCExt = NULL;
-	pCDLL = NULL;
-  }
 }
 // @pymethod |PyDLL|AttachToMFC|Attaches the DLL object to the MFC list of DLL's.
 // @comm After calling this method, MFC will search this DLL when looking for resources.
@@ -150,5 +145,6 @@ static struct PyMethodDef dll_methods[] =
 ui_type dll_object::type ("PyDLL", 
 						  &ui_assoc_object::type, 
 						  sizeof(dll_object), 
+						  PYOBJ_OFFSET(dll_object), 
 						  dll_methods, 
 						  GET_PY_CTOR(dll_object));

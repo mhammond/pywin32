@@ -8,6 +8,6 @@ public:
 protected:
 	PyCCmdUI();
 	virtual ~PyCCmdUI();
-	virtual PyObject *getattr(char *name);
+	virtual PyObject *getattro(PyObject *obname);
 
 };

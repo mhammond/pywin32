@@ -415,6 +415,7 @@ ui_type_CObject PyCWinApp::type("PyCWinApp",
 								&PyCWinThread::type,
 								RUNTIME_CLASS(CWinApp), 
 								sizeof(PyCWinApp), 
+								PYOBJ_OFFSET(PyCWinApp), 
 								PyCWinApp_methods, 
 								GET_PY_CTOR(PyCWinApp) );
 

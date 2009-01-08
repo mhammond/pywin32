@@ -330,6 +330,7 @@ ui_type_CObject PyCWinThread::type("PyCWinThread",
 								&PyCCmdTarget::type,
 								RUNTIME_CLASS(CWinThread), 
 								sizeof(PyCWinThread), 
+								PYOBJ_OFFSET(PyCWinThread), 
 								PyCWinThread_methods, 
 								GET_PY_CTOR(PyCWinThread) );
 

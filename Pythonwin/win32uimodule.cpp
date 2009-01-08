@@ -122,7 +122,9 @@ BOOL HookWindowsMessages()
 // ui_type object
 //
 //////////////////////////////////////////////////////////////////////
-ui_type::ui_type( const char *name, ui_type *pBase, int typeSize, struct PyMethodDef* methodList, ui_base_class * (* thector)() )
+ui_type::ui_type( const char *name, ui_type *pBase, int typeSize,
+		 int pyobjOffset, // number of bytes difference between a (PyObject *) and a (ui_base_class *)
+		 struct PyMethodDef* methodList, ui_base_class * (* thector)() )
 {
 // originally, this copied the typeobject of the parent, but as it is impossible
 // to guarantee order of static object construction, I went this way.  This is 
@@ -134,19 +136,54 @@ ui_type::ui_type( const char *name, ui_type *pBase, int typeSize, struct PyMetho
 		0,													/*tp_itemsize*/
 		(destructor) ui_base_class::sui_dealloc, 			/*tp_dealloc*/
 		0,													/*tp_print*/
-		(getattrfunc) ui_base_class::sui_getattr, 			/*tp_getattr*/
-		(setattrfunc) ui_base_class::sui_setattr,			/*tp_setattr*/
+		0,													/*tp_getattr*/
+		0,													/*tp_setattr*/
 		0,													/*tp_compare*/
 		(reprfunc)ui_base_class::sui_repr,					/*tp_repr*/
 		0,													/*tp_as_number*/
+		0,						/* tp_as_sequence */
+		0,						/* tp_as_mapping */
+		0,						/* tp_hash */
+		0,						/* tp_call */
+		0,						/* tp_str */
+		ui_base_class::sui_getattro,	/* tp_getattro */
+		ui_base_class::sui_setattro,	/* tp_setattro */
+		0,						/* tp_as_buffer */
+		Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /* tp_flags */
+		0,						/* tp_doc */
+		0,						/* tp_traverse */
+		0,						/* tp_clear */
+		0,						/* tp_richcompare */
+		offsetof(ui_base_class, weakreflist),/* tp_weaklistoffset */
+		0,						/* tp_iter */
+		0,						/* tp_iternext */
+		0,						/* tp_methods */
+		0,						/* tp_members */
+		0,						/* tp_getset */
+		0,						/* tp_base */
+		0,						/* tp_dict */
+		0,						/* tp_descr_get */
+		0,						/* tp_descr_set */
+		0,						/* tp_dictoffset */
+		0,						/* tp_init */
+		0,						/* tp_alloc */
+		0,						/* tp_new */
 	};
 
 	*((PyTypeObject *)this) = type_template;
-	methods = methodList;
+	((PyObject *)this)->ob_type=&PyType_Type;
+	tp_methods = methodList;
+	//#define funky_offsetof_weakreflist ((size_t) &((PyObject *)(ui_base_class *)0)->weakreflist)
+
+#if (PY_VERSION_HEX < 0x03000000)
+	tp_flags |= Py_TPFLAGS_HAVE_WEAKREFS; // flag doesn't exist in py3k
+#endif
+
+	tp_weaklistoffset -= pyobjOffset;
 	// cast away const, as Python doesnt use it.
 	tp_name = (char *)name;
 	tp_basicsize = typeSize;
-	base = pBase;
+	tp_base = pBase;
 	ctor = thector;
 }
 
@@ -159,8 +196,8 @@ ui_type::~ui_type()
 // ui_type_CObject
 ui_type_CObject::CRuntimeClassTypeMap *ui_type_CObject::typemap = NULL;
 
-ui_type_CObject::ui_type_CObject( const char *name, ui_type *pBaseType, CRuntimeClass *pRT, int typeSize, struct PyMethodDef* methodList, ui_base_class * (* thector)() ):
-	  ui_type(name, pBaseType, typeSize, methodList, thector )
+ui_type_CObject::ui_type_CObject( const char *name, ui_type *pBaseType, CRuntimeClass *pRT, int typeSize, int pyobjOffset, struct PyMethodDef* methodList, ui_base_class * (* thector)() )
+	: ui_type(name, pBaseType, typeSize, pyobjOffset, methodList, thector )
 {
 	pCObjectClass = pRT;
 	if (pRT) {
@@ -192,6 +229,7 @@ IMPLEMENT_DYNAMIC(ui_base_class, CObject);
 ui_base_class::ui_base_class()
 {
 	strcpy(sig, SIG);
+	weakreflist = NULL;
 }
 ui_base_class::~ui_base_class()
 {
@@ -223,44 +261,51 @@ ui_base_class *ui_base_class::make( ui_type &makeTypeRef)
 
 /*static*/ BOOL ui_base_class::is_uiobject(PyObject *&o, ui_type *which)
 {
-	ui_base_class *ob = (ui_base_class *)o;
-	if (ob==NULL || ob==Py_None)
+	if (o==NULL || o==Py_None)
 		return FALSE;
-	// quick fasttrack.
-	if ((ui_type *)ob->ob_type==which)
-		return TRUE;
-	// if Python instance, my be able to derive the paired Python type.
-	if (PyInstance_Check(ob)) {
-		PyObject *obattr= PyObject_GetAttrString(ob, "_obj_");
-		if (obattr==NULL) {
-			PyErr_Clear();
-			TRACE("is_uiobject fails due to object being an instance without an _obj_ attribute!\n");
-			return FALSE;
-		}
-		if (obattr==Py_None) {
-			TRACE("is_uiobject fails due to object being an instance with _obj_==None\n");
-			return FALSE;
-		}
-		o = obattr;
-		ob = (ui_base_class *)o;
-	}
-	if (memcmp(ob->sig, SIG, sizeof(SIG))) {
-		TRACE("is_uiobject fails due to sig failure!\n");
-		return FALSE;
-	}
-	return is_nativeuiobject(ob, which);
-}
 
-/*static*/BOOL ui_base_class::is_nativeuiobject(PyObject *ob, ui_type *which)
-{
-	// check for inheritance.
-	ui_type *thisType = (ui_type *)ob->ob_type;
+	/* Make sure GIL is held; we are called from several places where it's not */
+	CEnterLeavePython _celp;
+	// Sadly this function is regularly called as objects are destructing
+	// (ie, their ob_refcnt==0.) PyObject_IsInstance dies in this case, so
+	// we walk tp_bases manually. This also allows us to maintain the old
+	// semantics of "only look for '_obj_' when not some base of ours" as
+	// a nice side-effect.
+	bool is_native = false;
+	PyTypeObject *thisType = o->ob_type;
 	while (thisType) {
+		if (thisType==&ui_base_class::type)
+			is_native = true; // is a c++ impl object.
 		if (which==thisType)
 			return TRUE;
-		thisType = thisType->base;
+		thisType = thisType->tp_base;
 	}
-	return FALSE;
+
+	assert (!PyErr_Occurred());
+	if (is_native)
+		// not python implemented...
+		return FALSE;
+	PyObject *obattr= PyObject_GetAttrString(o, "_obj_");
+	if (obattr==NULL){
+		PyErr_Clear();
+		TRACE("is_uiobject fails due to object being an instance without an _obj_ attribute!\n");
+		return FALSE;
+	}
+
+	// ack - this sucks - the silly "*&" signature means the object can
+	// be changed 'underneath' the caller (to the _obj_ attribute) - but
+	// none of the callers hold a reference to 'o', so will not DECREF
+	// the result.
+	// As we expect the '_obj_' attribute to be a real held reference
+	// (rather than a temp or dynamic one), we simply check the refcount
+	// is 'safe' for us to decrement before returning.
+	if (obattr->ob_refcnt < 2) {
+		PyErr_SetString(PyExc_TypeError, "The _obj_ attribute is a temp object so can't be used");
+		return NULL;
+	}
+	Py_DECREF(obattr);
+	o = obattr;
+	return is_uiobject(o, which);
 }
 
 BOOL ui_base_class::is_uiobject(ui_type *which)
@@ -274,34 +319,25 @@ BOOL ui_base_class::is_uiobject(ui_type *which)
 }
 
 PyObject *
-ui_base_class::sui_getattr(PyObject *self, char *name)
+ui_base_class::sui_getattro(PyObject *self, PyObject *obname)
 {
-	return ((ui_base_class *)self)->getattr(name);
+	return ((ui_base_class *)self)->getattro(obname);
 }
 
 PyObject *
-ui_base_class::getattr(char *name)
+ui_base_class::getattro(PyObject *obname)
 {
-	// implement inheritance.
-	PyObject *retMethod = NULL;
-	ui_type *thisType = (ui_type *)ob_type;
-	while (thisType) {
-		retMethod = Py_FindMethod(thisType->methods, (PyObject *)this, name);
-		if (retMethod)
-			break;
-		thisType = thisType->base;
-		if (thisType)
-			PyErr_Clear();
-	}
-	return retMethod;
+	// Use python's inheritance to find method in subclass
+	return PyObject_GenericGetAttr(this, obname);
 }
-int
-ui_base_class::sui_setattr(PyObject *op, char *name, PyObject *v)
+
+int ui_base_class::sui_setattro(PyObject *op, PyObject *obname, PyObject *v)
 {
 	ui_base_class* bc = (ui_base_class *)op;
-	return bc->setattr(name,v);
+	return bc->setattro(obname, v);
 }
-int ui_base_class::setattr(char *name, PyObject *v)
+
+int ui_base_class::setattro(PyObject *obname, PyObject *v)
 {
 	char buf[128];
 	sprintf(buf, "%s has read-only attributes", ob_type->tp_name );
@@ -334,52 +370,22 @@ void ui_base_class::cleanup()
 	TRACE("cleanup detected type %s, refcount = %d\n",szTyp,ob_refcnt);
 }
 
-/*static*/ void ui_base_class::sui_dealloc(PyObject *window)
+/*static*/ void ui_base_class::sui_dealloc(PyObject *ob)
 {
-	delete (ui_base_class *)window;
+	ui_base_class *b = (ui_base_class *)ob;
+	if (b->weakreflist != NULL)
+		PyObject_ClearWeakRefs(ob);
+	delete b;
 }
-
-// @pymethod |PyAssocObject|GetMethodByType|Given a method name and a type object, return the attribute.
-static PyObject *
-ui_base_class_GetMethodByType(PyObject *self, PyObject *args)
-{
-	// @comm This function allows you to obtain attributes for base types.
-	// For example, calling appObject.GetAttributeByType("Run", threadType) will return
-	// the built-in Run method for the CWinThread object rather than the CWinApp object.
-	PyObject *obType;
-	char *attr;
-	ui_base_class *pAssoc = (ui_base_class *)self;
-	if (pAssoc==NULL) return NULL;
-	if (!PyArg_ParseTuple(args, "sO:GetAttributeByType", &attr, &obType ))
-		return NULL;
-
-	// check it is one of ours.
-	PyObject *retMethod = NULL;
-	ui_type *thisType = (ui_type *)pAssoc->ob_type;
-	while (thisType) {
-		if ((PyObject *)thisType==obType)
-			break;
-		thisType = thisType->base;
-	}
-	if (thisType==NULL)
-		RETURN_TYPE_ERR("The object is not of that type");
-
-	return Py_FindMethod(thisType->methods, self, attr);
-}
-
-
-struct PyMethodDef ui_base_class::empty_methods[] = {
-	{NULL,	NULL}
-};
 
 struct PyMethodDef ui_base_class_methods[] = {
-	{"GetMethodByType", ui_base_class_GetMethodByType, 1},
 	{NULL,	NULL}
 };
 
 ui_type ui_base_class::type( "PyCBase", 
 							NULL, 
 							sizeof(ui_base_class), 
+							PYOBJ_OFFSET(ui_base_class), 
 							ui_base_class_methods, 
 							NULL);
 
@@ -399,6 +405,7 @@ void DumpAssocPyObject( CDumpContext &dc , void *object )
 		if (AfxIsValidAddress(py_bob, sizeof(ui_assoc_object))) {
 			dc << py_bob << " with refcounf " << 
 			py_bob->ob_refcnt;
+			Py_XDECREF(py_bob);
 		} else
 			dc  << "<at invalid address!>";
 	}
@@ -552,16 +559,18 @@ BOOL DisplayPythonTraceback(PyObject *exc_type, PyObject *exc_val, PyObject *exc
 // Requires the Python thread state be NOT acquired.
 void Python_delete_assoc( void *ob )
 {
-	// Notify Python object of my attached object removal.
+	if (bInFatalShutdown) {
+		TRACE("Not destroying assoc - in fatal shutdown!\n");
+		return;
+	}
 	{
+	// Notify Python object of my attached object removal.
 	CVirtualHelper helper ("OnAttachedObjectDeath", ob);
 	helper.call();
 	}
-	ui_assoc_object *pObj;
-	if ((pObj=ui_assoc_object::GetPyObject(ob)) && !bInFatalShutdown) {
-		CEnterLeavePython _celp; // KillAssoc requires it is held!
-		pObj->KillAssoc();
-	}
+	// and remove the object from the map
+	CEnterLeavePython _celp;
+	ui_assoc_object::handleMgr.Assoc(ob, NULL);
 }
 
 int Python_run_command_with_log(const char *command)
@@ -655,7 +664,14 @@ void DefaultExceptionHandler(int action, const TCHAR *context, const TCHAR *extr
 		// PyErr_Print will terminate then and there!  This is
 		// not good (and not what we want!?
 		PyErr_NormalizeException(&type, &value, &traceback);
-
+#ifdef DEBUG
+                // dump it to the debugger in debug builds.
+		char *msg = GetPythonTraceback(type, value, traceback);
+                if (msg) {
+                        OutputDebugStringA(msg);
+                        free(msg);
+                }
+#endif
 		if (type && PyErr_GivenExceptionMatches(type, PyExc_SystemExit)) {
 			// Replace it with a RuntimeError.
 			TRACE("WARNING!!  win32ui had a SystemError - Replacing with RuntimeError!!\n");
@@ -1441,7 +1457,7 @@ ui_is_object(PyObject *self, PyObject *args)
   // @pyparm object|o||The object to check.
   if (!PyArg_ParseTuple(args, "O:IsObject", &obj))
     return NULL;
-  return Py_BuildValue("i", ui_base_class::is_nativeuiobject(obj,&ui_base_class::type) ? 1 : 0 );
+  return PyBool_FromLong(PyObject_IsInstance(obj, (PyObject *)&ui_base_class::type));
 }
 
 // @pymethod <o PyDLL>|win32ui|GetResource|Retrieve the object associated with the applications resources.
@@ -2378,6 +2394,8 @@ void Win32uiFinalize()
 {
 	// These are primarily here as a debugging aid.  Destroy what I created
 	// to help MFC detect useful memory leak reports
+	if (bInFatalShutdown)
+		return;
 	ui_assoc_object::handleMgr.cleanup();
 
 	if (threadStateSave)

@@ -82,6 +82,7 @@ ui_type_CObject PyCRichEditDoc::type("PyCRichEditDoc",
 									 &PyCDocument::type, 
 									 RUNTIME_CLASS(CRichEditDoc),
 									 sizeof(PyCRichEditDoc), 
+									 PYOBJ_OFFSET(PyCRichEditDoc), 
 									 PyCRichEditDoc_methods, 
 									 GET_PY_CTOR(PyCRichEditDoc) );
 
@@ -226,5 +227,12 @@ static struct PyMethodDef PyCRichEditView_methods[] = {
 	{NULL, NULL}
 };
 
-PyCCtrlView_Type PyCRichEditView::type("PyCRichEditView", &PyCCtrlView::type, &PyCRichEditCtrl::type, RUNTIME_CLASS(CRichEditView), sizeof(PyCRichEditView), PyCRichEditView_methods, GET_PY_CTOR(PyCRichEditView));
+PyCCtrlView_Type PyCRichEditView::type("PyCRichEditView",
+				       &PyCCtrlView::type,
+				       &PyCRichEditCtrl::type,
+				       RUNTIME_CLASS(CRichEditView),
+				       sizeof(PyCRichEditView),
+				       PYOBJ_OFFSET(PyCRichEditView),
+				       PyCRichEditView_methods,
+				       GET_PY_CTOR(PyCRichEditView));
 

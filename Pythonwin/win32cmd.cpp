@@ -160,6 +160,7 @@ ui_type_CObject PyCCmdTarget::type("PyCCmdTarget",
 								   &ui_assoc_CObject::type, 
 								   RUNTIME_CLASS(CCmdTarget), 
 								   sizeof(PyCCmdTarget), 
+								   PYOBJ_OFFSET(PyCCmdTarget), 
 								   PyCCmdTarget_methods, 
 								   NULL);
 PyCCmdTarget::PyCCmdTarget()
@@ -172,16 +173,10 @@ PyCCmdTarget::PyCCmdTarget()
 }
 PyCCmdTarget::~PyCCmdTarget()
 {
-}
-
-// handle is invalid - therefore release all refs I am holding for it.
-void PyCCmdTarget::DoKillAssoc( BOOL bDestructing /*= FALSE*/ )
-{
 	free_hook_list(this,&pNotifyHookList);
 	free_hook_list(this,&pOleEventHookList);
 	free_hook_list(this,&pCommandHookList);
 	free_hook_list(this,&pCommandUpdateHookList);
-	ui_assoc_object::DoKillAssoc(bDestructing);
 }
 
 CString PyCCmdTarget::repr()

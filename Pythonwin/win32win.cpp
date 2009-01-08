@@ -69,14 +69,14 @@ public:
 
 BOOL Python_check_message(const MSG *msg)	// TRUE if fully processed.
 {
-
-	ui_assoc_object *pObj;
+	BOOL ret;
+	ui_assoc_object *pObj = NULL;
 	PyObject *method;
 	CWnd *pWnd = bInFatalShutdown ? NULL : CWnd::FromHandlePermanent(msg->hwnd);
 	// is_uiobjects calls python methods, must already hold lock
 	CEnterLeavePython _celp;
 	if (pWnd &&
-		(pObj=ui_assoc_object::GetPyObject(pWnd)) && 
+		(pObj=ui_assoc_object::GetAssocObject(pWnd)) && 
 		pObj->is_uiobject( &PyCWnd::type ) &&
 		((PyCWnd *)pObj)->pMessageHookList && 
 		((PyCWnd *)pObj)->pMessageHookList->Lookup(msg->message,(void *&)method)) {
@@ -86,20 +86,23 @@ BOOL Python_check_message(const MSG *msg)	// TRUE if fully processed.
 #endif
 		// Our Python convention is TRUE means "pass it on"
 		// CEnterLeavePython _celp;
-		return Python_callback(method, msg)==0;
-	}
-	return FALSE;	// dont want it.
+		ret = Python_callback(method, msg)==0;
+	} else
+		ret = FALSE;	// dont want it.
+	Py_XDECREF(pObj);
+	return ret;
 }
 
 BOOL Python_check_key_message(const MSG *msg)
 {
 	CEnterLeavePython _celp;
-	ui_assoc_object *pObj;
+	ui_assoc_object *pObj = NULL;
 	BOOL bPassOn = TRUE;
 	CWnd *pWnd = msg->hwnd ? CWnd::FromHandlePermanent(msg->hwnd) : NULL;
-	if (pWnd && (pObj=ui_assoc_object::GetPyObject(pWnd)) &&
+	if (pWnd && (pObj=ui_assoc_object::GetAssocObject(pWnd)) &&
 		 pObj->is_uiobject( &PyCWnd::type ))
 		bPassOn = ((PyCWnd*)pObj)->check_key_stroke(msg->wParam);
+	Py_XDECREF(pObj);
 	return !bPassOn;
 }
 
@@ -597,7 +600,27 @@ PyCWnd::PyCWnd()
 }
 PyCWnd::~PyCWnd()
 {
-	DoKillAssoc(TRUE);
+	free_hook_list(this,&pMessageHookList);
+	free_hook_list(this,&pKeyHookList);
+	Py_XDECREF(obKeyStrokeHandler);
+	obKeyStrokeHandler = NULL;
+	if (bManualDelete || bDidSubclass) {
+		// Can't use GetWndPtr(this) as ob_type has been nuked.
+		CWnd *pWnd = (CWnd *)this->assoc; // get pointer before killing it.
+		if (pWnd) {
+			if (bDidSubclass) {
+				pWnd->UnsubclassWindow();
+				bDidSubclass = FALSE;
+			}
+			if (bManualDelete) {
+				// Release the lock while we destroy the object.
+				GUI_BGN_SAVE;
+				delete pWnd;
+				GUI_END_SAVE;
+				bManualDelete = FALSE;
+			}
+		}
+	}
 }
 
 BOOL PyCWnd::check_key_stroke(WPARAM ch)
@@ -619,37 +642,6 @@ CWnd *PyCWnd::GetPythonGenericWnd(PyObject *self, ui_type_CObject *pType)
 	return (CWnd *)GetGoodCppObject( self, &type );
 }
 
-void PyCWnd::DoKillAssoc( BOOL bDestructing /*= FALSE*/ )
-{
-	free_hook_list(this,&pMessageHookList);
-	free_hook_list(this,&pKeyHookList);
-	Py_XDECREF(obKeyStrokeHandler);
-	obKeyStrokeHandler = NULL;
-	PyCCmdTarget::DoKillAssoc(bDestructing);
-	if (bManualDelete || bDidSubclass) {
-		// Can't use GetWndPtr(this) as ob_type has been nuked.
-		CWnd *pWnd = (CWnd *)this->assoc; // get pointer before killing it.
-		if (pWnd) {
-			if (bDidSubclass) {
-	//			pWnd->Detach();
-				pWnd->UnsubclassWindow();
-				bDidSubclass = FALSE;
-			}
-	// DONT detach - bDidSubclass is only logic needed.
-	//		if (pWnd->GetSafeHwnd()) {
-	//			TRACE("Warning - DoKillAssoc detaching from existing window\n");
-	//			pWnd->Detach();
-	//		}
-			if (bManualDelete) {
-				// Release the lock while we destroy the object.
-				GUI_BGN_SAVE;
-				delete pWnd;
-				GUI_END_SAVE;
-				bManualDelete = FALSE;
-			}
-		}
-	}
-}
 /*static*/ PyCWnd *PyCWnd::make( ui_type_CObject &makeType, CWnd *pSearch, HWND wnd /*=NULL*/ )
 {
 	BOOL bManualDelete = FALSE;
@@ -2718,8 +2710,8 @@ PyObject *ui_window_begin_paint(PyObject *self, PyObject *args)
 	if (pTemp==NULL)
 		RETURN_ERR("BeginPaint failed");
 	PyObject *obDC = ui_assoc_object::make (ui_dc_object::type, pTemp)->GetGoodRet();
-	PyObject *obRet = Py_BuildValue("O(ii(iiii)iiN)", obDC,
-		ps.hdc,
+	PyObject *obRet = Py_BuildValue("O(Ni(iiii)iiN)", obDC,
+		PyWinLong_FromHANDLE(ps.hdc),
 		ps.fErase,
 		ps.rcPaint.left, ps.rcPaint.top, ps.rcPaint.right, ps.rcPaint.bottom,
 		ps.fRestore,
@@ -3194,15 +3186,18 @@ ui_window_on_query_new_palette(PyObject *self, PyObject *args)
 // @pymethod HICON|PyCWnd|SetIcon|Calls the underlying MFC SetIcon method.
 PyObject* ui_window_set_icon(PyObject* self, PyObject *args)
 {
-	HICON hiconPrevIcon;
+	PyObject *obiconprev;
 	BOOL  bBigIcon = TRUE;
-	if (!PyArg_ParseTuple(args, "ii:SetIcon", &hiconPrevIcon, &bBigIcon))
+	if (!PyArg_ParseTuple(args, "Oi:SetIcon", &obiconprev, &bBigIcon))
+		return NULL;
+	HICON hiconprev;
+	if (!PyWinObject_AsHANDLE(obiconprev, (HANDLE *)&hiconprev))
 		return NULL;
 	CWnd *pWnd = GetWndPtr(self);
 	if (!pWnd)
 		return NULL;
 	GUI_BGN_SAVE;
-	HICON hiconRetVal = pWnd->SetIcon(hiconPrevIcon, bBigIcon);
+	HICON hiconRetVal = pWnd->SetIcon(hiconprev, bBigIcon);
 	GUI_END_SAVE;
 	return PyWinLong_FromHANDLE(hiconRetVal);
 }
@@ -3346,6 +3341,7 @@ ui_type_CObject PyCWnd::type("PyCWnd",
 							 &PyCCmdTarget::type, // @base PyCWnd|PyCCmdTarget
 							 RUNTIME_CLASS(CWnd), 
 							 sizeof(PyCWnd), 
+							 PYOBJ_OFFSET(PyCWnd), 
 							 PyCWnd_methods, 
 							 GET_PY_CTOR(PyCWnd) );
 
@@ -3951,6 +3947,7 @@ ui_type_CObject PyCFrameWnd::type("PyCFrameWnd",
 								  &PyCWnd::type, // @base PyCFrameWnd|PyCWnd
 								  RUNTIME_CLASS(CFrameWnd),
 								  sizeof(PyCFrameWnd), 
+								  PYOBJ_OFFSET(PyCFrameWnd), 
 								  PyCFrameWnd_methods, 
 								  GET_PY_CTOR(PyCFrameWnd));
 
@@ -4123,6 +4120,7 @@ ui_type_CObject PyCMDIFrameWnd::type("PyCMDIFrameWnd",
 									 &PyCFrameWnd::type, // @base PyCMDIFrameWnd|PyCFrameWnd
 									 RUNTIME_CLASS(CMDIFrameWnd), 
 									 sizeof(PyCMDIFrameWnd), 
+									 PYOBJ_OFFSET(PyCMDIFrameWnd), 
 									 PyCMDIFrameWnd_methods, 
 									 GET_PY_CTOR(PyCMDIFrameWnd));
 
@@ -4309,6 +4307,7 @@ ui_type_CObject PyCMDIChildWnd::type("PyCMDIChildWnd",
 									 &PyCFrameWnd::type, // @base PyCMDIChildWnd|PyCFrameWnd
 									 RUNTIME_CLASS(CMDIChildWnd), 
 									 sizeof(PyCMDIChildWnd), 
+									 PYOBJ_OFFSET(PyCMDIChildWnd), 
 									 PyCMDIChildWnd_methods, 
 									 GET_PY_CTOR(PyCMDIChildWnd));
 

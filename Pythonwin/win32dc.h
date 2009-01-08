@@ -1,14 +1,13 @@
 // device context class
-class PYW_EXPORT ui_dc_object : public ui_assoc_object {
+class PYW_EXPORT ui_dc_object : public ui_assoc_CObject {
 protected:
 	ui_dc_object()
 	  : m_deleteDC (FALSE)
 	  { }
     ~ui_dc_object();
 	virtual void SetAssocInvalid();
-	virtual void DoKillAssoc( BOOL bDestructing = FALSE );
 public:
-	static ui_type type;
+	static ui_type_CObject type;
 	MAKE_PY_CTOR(ui_dc_object)
 	static CDC *GetDC(PyObject *self);
 

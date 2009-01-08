@@ -14,12 +14,18 @@ generates Windows .hlp files.
 */
 #include "stdafx.h"
 
+#ifdef DEBUG
+#define ASSERT_GIL_HELD {PyGILState_STATE s=PyGILState_Ensure();ASSERT(s==PyGILState_LOCKED);PyGILState_Release(s);}
+#else
+#define ASSERT_GIL_HELD
+#endif
+
 CAssocManager ui_assoc_object::handleMgr;
 
 CAssocManager::CAssocManager()
 {
 	lastLookup = NULL;
-	lastObject = NULL;
+	lastObjectWeakRef = NULL;
 #ifdef _DEBUG
 	cacheLookups = cacheHits = 0;
 #endif
@@ -47,57 +53,106 @@ void CAssocManager::cleanup(void)
 	void *assoc;
 	ASSERT_VALID(&map);
 	TRACE("CAssocManager cleaning up %d objects\n", map.GetCount());
-	m_critsec.Lock();
+	CEnterLeavePython _celp;
 	for(pos=map.GetStartPosition();pos;) {
 		map.GetNextAssoc(pos, (void *&)assoc, (void *&)ob);
-		ob->cleanup();
-		// not sure if I should do this!!
-		//PyMem_DEL(ob);
+		RemoveAssoc(assoc);
 	}
-	m_critsec.Unlock();
 }
-void CAssocManager::Assoc(void *handle, ui_assoc_object *object, void *oldHandle)
+
+void CAssocManager::RemoveAssoc(void *handle)
 {
-	m_critsec.Lock();
-	if (oldHandle) {
-		// if window previously closed, this may fail when the Python object
-		// destructs - but this is not a problem.
-		map.RemoveKey(oldHandle);
-		if (oldHandle==lastLookup)
-			lastLookup = 0;	// set cache invalid.
+	// nuke any existing items.
+	PyObject *weakref;
+	if (map.Lookup(handle, (void *&)weakref)) {
+		PyObject *ob = PyWeakref_GetObject(weakref);
+		map.RemoveKey(handle);
+		if (ob != Py_None)
+			// The object isn't necessarily dead (ie, its refcount may
+			// not be about to hit zero), but its 'dead' from our POV, so
+			// let it free any MFC etc resources the object owns.
+			// XXX - this kinda sucks - just relying on the object
+			// destructor *should* be OK...
+			((ui_assoc_object *)ob)->cleanup();
+		Py_DECREF(weakref);
 	}
-	if (handle)
-		map.SetAt(handle, object);
-	if (handle==lastLookup)
-		lastObject = object;
-	m_critsec.Unlock();
+	lastObjectWeakRef = 0;
+	lastLookup = 0;	// set cache invalid.
+}
+
+void CAssocManager::Assoc(void *handle, ui_assoc_object *object)
+{
+	ASSERT_GIL_HELD;  // we rely on the GIL to serialize access to our map...
+	ASSERT(handle);
+#ifdef DEBUG
+	// overwriting an existing entry probably means we are failing to
+	// detect the death of the old object and its address has been reused.
+	if (object) { // might just be nuking ours, so we expect to find outself!
+		PyObject *existing_weakref;
+		if (map.Lookup(handle, (void *&)existing_weakref)) {
+			TRACE("CAssocManager::Assoc overwriting existing assoc\n");
+			DebugBreak();
+		}
+	}
+#endif
+	RemoveAssoc(handle);
+	if (object) {
+		PyObject *weakref = PyWeakref_NewRef(object, NULL);
+		if (weakref)
+			// reference owned by the map.
+			map.SetAt(handle, weakref);
+		else {
+			TRACE("Failed to create weakref\n");
+			gui_print_error();
+			DebugBreak();
+		}
+	}
 }
 
 //
 // CAssocManager::GetAssocObject
-//
-ui_assoc_object *CAssocManager::GetAssocObject(const void * handle)
+// Returns an object *with a new reference*.  NULL is not an error return - it just means "no object"
+ui_assoc_object *CAssocManager::GetAssocObject(void * handle)
 {
 	if (handle==NULL) return NULL; // no possible association for NULL!
-	ui_assoc_object *ret;
-	m_critsec.Lock();
+	ASSERT_GIL_HELD; // we rely on the GIL to serialize access to our map...
+	PyObject *weakref;
 #ifdef _DEBUG
 	cacheLookups++;
 #endif
 	// implement a basic 1 item cache.
 	if (lastLookup==handle) {
-		ret = lastObject;
+		weakref = lastObjectWeakRef;
 #ifdef _DEBUG
 		++cacheHits;
 #endif
 	}
 	else {
-		if (!map.Lookup((void *)handle, (void *&)ret))
-			ret = NULL;
+		if (!map.Lookup((void *)handle, (void *&)weakref))
+			weakref = NULL;
 		lastLookup = handle;
-		lastObject = ret;
+		lastObjectWeakRef = weakref;
 	}
-	m_critsec.Unlock();
+	if (weakref==NULL)
+		return NULL;
+	// convert the weakref object into a real object.
+	PyObject *ob = PyWeakref_GetObject(weakref);
+	if (ob == NULL) {
+		// an error - but a NULL return from us just means "no assoc"
+		// so print the error and ignore it, treating it as if the 
+		// weak-ref target has died.
+		gui_print_error();
+		ob = Py_None;
+	}
+	ui_assoc_object *ret;
+	if (ob == Py_None) {
+		// weak-ref target has died.  Remove it from the map.
+		Assoc(handle, NULL);
+		ret = NULL;
+	} else {
+		ret = (ui_assoc_object *)ob;
+		Py_INCREF(ret);
+	}
 	return ret;
 }
 
@@ -190,6 +245,7 @@ static struct PyMethodDef PyAssocObject_methods[] = {
 ui_type ui_assoc_object::type("(abstract) PyAssocObject", 
 							  &ui_base_class::type, 
 							  sizeof(ui_assoc_object), 
+							  PYOBJ_OFFSET(ui_assoc_object), 
 							  PyAssocObject_methods, 
 							  NULL);
 
@@ -200,50 +256,17 @@ ui_assoc_object::ui_assoc_object()
 }
 ui_assoc_object::~ui_assoc_object()
 {
-	KillAssoc();
-}
-
-// handle is invalid - therefore release all refs I am holding for it.
-// ASSUMES WE HOLD THE PYTHON LOCK as for all Python object destruction.
-void ui_assoc_object::KillAssoc()
-{
 #ifdef TRACE_ASSOC
 	CString rep = repr();
 	const char *szRep = rep;
 	TRACE("Destroying association with %p and %s",this,szRep);
 #endif
-	// note that _any_ of these may cause this to be deleted, as the reference
-	// count may drop to zero.  If any one dies, and later ones will fail.  Therefore
-	// I incref first, and decref at the end.
-	// Note that this _always_ recurses when this happens as the destructor also
-	// calls us to cleanup.  Forcing an INCREF/DODECREF in that situation causes death
-	// by recursion, as each dec back to zero causes a delete.
-	BOOL bDestructing = ob_refcnt==0;
-	if (!bDestructing)
-		Py_INCREF(this);
-	DoKillAssoc(bDestructing);	// kill all map entries, etc.
-	SetAssocInvalid();			// let child do whatever to detect
-	if (!bDestructing)
-		DODECREF(this);
-}
-// the virtual version...
-// ASSUMES WE HOLD THE PYTHON LOCK as for all Python object destruction.
-void ui_assoc_object::DoKillAssoc( BOOL bDestructing /*= FALSE*/ )
-{
-	// In Python debug builds, this can get recursive -
-	// Python temporarily increments the refcount of the dieing
-	// object - this object death will attempt to use the dieing object.
-	PyObject *vi = virtualInst;
-	virtualInst = NULL;
-	Py_XDECREF(vi);
+	Py_CLEAR(virtualInst);
 //	virtuals.DeleteAll();
-	handleMgr.Assoc(0,this,assoc);
-}
-
-// return an object, given an association, if we have one.
-/* static */ ui_assoc_object *ui_assoc_object::GetPyObject(void *search)
-{
-	return (ui_assoc_object *)handleMgr.GetAssocObject(search);
+	if (assoc) {
+		handleMgr.Assoc(assoc, 0);
+		SetAssocInvalid();			// let child do whatever to detect
+	}
 }
 
 PyObject *ui_assoc_object::GetGoodRet()
@@ -261,6 +284,7 @@ PyObject *ui_assoc_object::GetGoodRet()
 /*static*/ ui_assoc_object *ui_assoc_object::make( ui_type &makeType, void *search, bool skipLookup )
 {
 	ASSERT(search); // really only a C++ problem.
+	CEnterLeavePython _celp;
 	ui_assoc_object* ret=NULL;
 	if (!skipLookup)
 		ret = (ui_assoc_object*) handleMgr.GetAssocObject(search);
@@ -271,7 +295,6 @@ PyObject *ui_assoc_object::GetGoodRet()
 			             ret->ob_type->tp_name, makeType.tp_name);
 			return NULL;
 		}
-		DOINCREF( ret );
 		return ret;
 	}
 	ret = (ui_assoc_object*) ui_base_class::make( makeType );	// may fail if unknown class.
@@ -282,8 +305,7 @@ PyObject *ui_assoc_object::GetGoodRet()
 #ifdef TRACE_ASSOC
 		TRACE_ASSOC ("  Associating 0x%x with 0x%x", search, ret);
 #endif
-		// if I have an existing handle, remove it.
-		handleMgr.Assoc(search, ret,NULL);
+		handleMgr.Assoc(search, ret);
 		ret->assoc = search;
 	}
 	return ret;
@@ -337,6 +359,7 @@ ui_type_CObject ui_assoc_CObject::type("PyAssocCObject",
 									   &ui_assoc_object::type, 
 									   RUNTIME_CLASS(CObject), 
 									   sizeof(ui_assoc_CObject), 
+									   PYOBJ_OFFSET(ui_assoc_CObject), 
 									   PyAssocCObject_methods, 
 									   NULL);
 
@@ -350,7 +373,7 @@ ui_assoc_CObject::~ui_assoc_CObject()
 	if (bManualDelete) {
 		bManualDelete = FALSE;
 		CObject *pO = (CObject *)GetGoodCppObject(&type);	// get pointer before killing it.
-		KillAssoc(); // stop recursion - disassociate now.
+		ASSERT(!PyErr_Occurred()); // PyErr_Clear() is bogus?????
 		if (!pO)
 			PyErr_Clear();
 		else

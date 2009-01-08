@@ -350,6 +350,7 @@ static struct PyMethodDef ui_menu_methods[] = {
 ui_type PyCMenu::type("PyCMenu", 
 					  &ui_assoc_object::type, 
 					  sizeof(PyCMenu), 
+					  PYOBJ_OFFSET(PyCMenu), 
 					  ui_menu_methods, 
 					  GET_PY_CTOR(PyCMenu));
 

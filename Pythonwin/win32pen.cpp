@@ -52,5 +52,6 @@ ui_type_CObject ui_pen_object::type ("PyCPen",
 							 &PyCGdiObject::type,
 							 RUNTIME_CLASS(CPen),
 							 sizeof(ui_pen_object),
+							 PYOBJ_OFFSET(ui_pen_object),
 							 ui_pen_methods,
 							 GET_PY_CTOR(ui_pen_object));

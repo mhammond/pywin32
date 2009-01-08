@@ -58,6 +58,7 @@ ui_type_CObject ui_control_object::type("PyCControl",
 										&PyCWnd::type, 
 										RUNTIME_CLASS(CObject), 
 										sizeof(ui_control_object), 
+										PYOBJ_OFFSET(ui_control_object), 
 										ui_control_object_methods, 
 										NULL);
 
@@ -264,6 +265,7 @@ ui_type_CObject PyCButton::type("PyCButton",
 								&ui_control_object::type, 
 								RUNTIME_CLASS(CButton), 
 								sizeof(PyCButton), 
+								PYOBJ_OFFSET(PyCButton), 
 								PyCButton_methods, 
 								GET_PY_CTOR(PyCButton));
 
@@ -878,6 +880,7 @@ ui_type_CObject PyCListBox::type("PyCListBox",
 								 &ui_control_object::type, 
 								 RUNTIME_CLASS(CListBox), 
 								 sizeof(PyCListBox), 
+								 PYOBJ_OFFSET(PyCListBox), 
 								 PyCListBox_methods, 
 								 GET_PY_CTOR(PyCListBox));
 
@@ -1316,6 +1319,7 @@ ui_type_CObject PyCComboBox::type("PyCComboBox",
 								  &ui_control_object::type, 
 								  RUNTIME_CLASS(CComboBox), 
 								  sizeof(PyCComboBox), 
+								  PYOBJ_OFFSET(PyCComboBox), 
 								  PyCComboBox_methods, 
 								  GET_PY_CTOR(PyCComboBox));
 
@@ -1475,6 +1479,7 @@ ui_type_CObject PyCProgressCtrl::type("PyCProgressCtrl",
 								&ui_control_object::type, 
 								RUNTIME_CLASS(CProgressCtrl), 
 								sizeof(PyCProgressCtrl), 
+								PYOBJ_OFFSET(PyCProgressCtrl), 
 								PyCProgressCtrl_methods, 
 								GET_PY_CTOR(PyCProgressCtrl));
 
@@ -1990,6 +1995,7 @@ ui_type_CObject PyCSliderCtrl::type("PyCSliderCtrl",
 								&ui_control_object::type, 
 								RUNTIME_CLASS(CSliderCtrl), 
 								sizeof(PyCSliderCtrl), 
+								PYOBJ_OFFSET(PyCSliderCtrl), 
 								PyCSliderCtrl_methods, 
 								GET_PY_CTOR(PyCSliderCtrl));
 
@@ -2437,6 +2443,7 @@ ui_type_CObject PyCStatusBarCtrl::type("PyCStatusBarCtrl",
 				       &ui_control_object::type, 
 				       RUNTIME_CLASS(CStatusBarCtrl), 
 				       sizeof(PyCStatusBarCtrl), 
+				       PYOBJ_OFFSET(PyCStatusBarCtrl), 
 				       PyCStatusBarCtrl_methods, 
 				       GET_PY_CTOR(PyCStatusBarCtrl));
 
@@ -2525,5 +2532,6 @@ ui_type_CObject PyCSpinButtonCtrl::type("PyCSpinButtonCtrl",
 				       &ui_control_object::type, 
 				       RUNTIME_CLASS(CSpinButtonCtrl), 
 				       sizeof(PyCSpinButtonCtrl), 
+				       PYOBJ_OFFSET(PyCSpinButtonCtrl), 
 				       PyCSpinButtonCtrl_methods, 
 				       GET_PY_CTOR(PyCSpinButtonCtrl));

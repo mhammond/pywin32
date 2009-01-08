@@ -61,7 +61,10 @@ PyCFont::create (PyObject *self, PyObject *args)
       RETURN_ERR ("CreatePointFontIndirect call failed");
     }
   }
-  return ui_assoc_object::make (PyCFont::type, pFont);
+  PyCFont *ret = (PyCFont *)ui_assoc_object::make (PyCFont::type, pFont, TRUE);
+  if (ret)
+    ret->bManualDelete = TRUE;
+  return ret;
 }
 
 // @pymethod int|PyCFont|GetSafeHandle|Retrieves the HFONT for the font as an integer
@@ -86,6 +89,7 @@ ui_type_CObject PyCFont::type("PyCFont",
          &PyCGdiObject::type, 
          RUNTIME_CLASS(CFont), 
          sizeof(PyCFont), 
+         PYOBJ_OFFSET(PyCFont), 
          ui_font_methods, 
          GET_PY_CTOR(PyCFont));
 
