@@ -470,10 +470,14 @@ def GetLocalTimeZone():
 def __TimeZoneKeyNameWorkaround(name):
 	"""It may be a bug in Vista, but in standard Windows Vista install
 	(both 32-bit and 64-bit), it appears the TimeZoneKeyName returns a
-	string with extraneous characters."""
+	string with extraneous characters.
+	>>> __TimeZoneKeyNameWorkaround("foo\\0xxx")
+	'foo'
+	>>> __TimeZoneKeyNameWorkaround("foo")
+	'foo'
+	"""
 	# remove anything after and including the first null character.
-	value, garbage = name.split('\x00',1)
-	return value
+	return name.split('\x00',1)[0]
 
 def GetTZCapabilities():
 	"""Run a few known tests to determine the capabilities of the time zone database
