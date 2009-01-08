@@ -741,19 +741,16 @@ static PyObject *pythoncom_WrapObject(PyObject *self, PyObject *args)
 	return result;
 }
 
-// @pymethod <o PyIID>|pythoncom|MakeIID|Creates a new IID object.
 static PyObject *pythoncom_MakeIID(PyObject *self, PyObject *args)
 {
-	// @comm This is simply an alias for <om pywintypes.IID>.  Please see that method
-	// for details.
+	PyErr_WarnEx(PyExc_PendingDeprecationWarning, "MakeIID is deprecated - please use pywintypes.IID() instead.", 1);
 	return PyWinMethod_NewIID(self, args);
 }
 
-// @pymethod <o PyTime>|pythoncom|MakeTime|Creates a new time object.
+// no autoduct - this is deprecated.
 static PyObject *pythoncom_MakeTime(PyObject *self, PyObject *args)
 {
-	// @comm This is simply an alias for <om pywintypes.Time>.  Please see that method
-	// for details.
+	PyErr_WarnEx(PyExc_PendingDeprecationWarning, "MakeTime is deprecated - please use pywintypes.Time() instead.", 1);
 	return PyWinMethod_NewTime(self, args);
 }
 
@@ -1897,8 +1894,8 @@ static struct PyMethodDef pythoncom_methods[]=
 	{ "IsGatewayRegistered", pythoncom_IsGatewayRegistered, 1}, // @pymeth IsGatewayRegistered|Returns 1 if the given IID has a registered gateway object.
 	{ "LoadRegTypeLib",      pythoncom_loadregtypelib, 1 },		 // @pymeth LoadRegTypeLib|Loads a registered type library by CLSID
 	{ "LoadTypeLib",         pythoncom_loadtypelib, 1 },		 // @pymeth LoadTypeLib|Loads a type library by name
-	{ "MakeIID",             pythoncom_MakeIID, 1 },             // @pymeth MakeIID|Makes an IID object from a string.
-	{ "MakeTime",			pythoncom_MakeTime, 1 },			// @pymeth MakeTime|Makes a time object from the argument.  Argument can be an integer/float or a tuple (as returned by time module functions).
+	{ "MakeIID",             pythoncom_MakeIID, 1 },
+	{ "MakeTime",            pythoncom_MakeTime, 1 },
 	{ "MakePyFactory",       pythoncom_MakePyFactory, 1 },      // @pymeth MakePyFactory|Creates a new <o PyIClassFactory> object wrapping a PythonCOM Class Factory object.
 #ifndef MS_WINCE
 	{ "MkParseDisplayName",	pythoncom_MkParseDisplayName, 1 },	// @pymeth MkParseDisplayName|Parses a moniker display name into a moniker object. The inverse of IMoniker::GetDisplayName.
