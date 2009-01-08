@@ -3,8 +3,13 @@
 //		are changed infrequently
 //
 
-//#define HIER_LIST Yay - no more - tree control now used!
 #define WIN32_LEAN_AND_MEAN
+
+#ifndef WINVER
+// we don't need this, but vs2009 makes noise without it set to something -
+// and this is what we currently use...
+#define WINVER 0x0600
+#endif
 
 #include <afxwin.h>			// MFC core and standard components
 
