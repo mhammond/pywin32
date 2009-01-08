@@ -17,6 +17,8 @@ generates Windows .hlp files.
 #include "PyRecord.h"
 #include "PyComTypeObjects.h"
 #include "OleAcc.h" // for ObjectFromLresult proto...
+#include "pyerrors.h" // for PyErr_Warn in 2.5 and earlier...
+
 
 extern int PyCom_RegisterCoreIIDs(PyObject *dict);
 
@@ -743,14 +745,14 @@ static PyObject *pythoncom_WrapObject(PyObject *self, PyObject *args)
 
 static PyObject *pythoncom_MakeIID(PyObject *self, PyObject *args)
 {
-	PyErr_WarnEx(PyExc_PendingDeprecationWarning, "MakeIID is deprecated - please use pywintypes.IID() instead.", 1);
+	PyErr_Warn(PyExc_PendingDeprecationWarning, "MakeIID is deprecated - please use pywintypes.IID() instead.");
 	return PyWinMethod_NewIID(self, args);
 }
 
 // no autoduct - this is deprecated.
 static PyObject *pythoncom_MakeTime(PyObject *self, PyObject *args)
 {
-	PyErr_WarnEx(PyExc_PendingDeprecationWarning, "MakeTime is deprecated - please use pywintypes.Time() instead.", 1);
+	PyErr_Warn(PyExc_PendingDeprecationWarning, "MakeTime is deprecated - please use pywintypes.Time() instead.");
 	return PyWinMethod_NewTime(self, args);
 }
 
