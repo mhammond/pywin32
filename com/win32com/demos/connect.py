@@ -9,6 +9,7 @@ import pythoncom
 import win32com.server.util
 import win32com.server.connect
 from win32com.server.exception import Exception
+from pywin32_testutil import str2bytes
 
 # This is the IID of the Events interface both Client and Server support.
 IID_IConnectDemoEvents = pythoncom.MakeIID("{A4988850-49C3-11d0-AE5D-52342E000000}")
@@ -70,7 +71,7 @@ def test(verbose=0):
 	client = ConnectableClient()
 	connection.Connect(server, client, IID_IConnectDemoEvents)
 	CheckEvent(server, client, "Hello", verbose)
-	CheckEvent(server, client, "Here is a null>\x00<", verbose)
+	CheckEvent(server, client, str2bytes("Here is a null>\x00<"), verbose)
 	CheckEvent(server, client, u"Here is a null>\x00<", verbose)
 	val = u"test-\xe0\xf2" # 2 extended characters.
 	CheckEvent(server, client, val, verbose)
