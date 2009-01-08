@@ -5,6 +5,7 @@ import os
 import pywintypes
 import win32event, win32api
 import os
+from pywin32_testutil import str2bytes
 import win32com.directsound.directsound as ds
 # next two lines are for for debugging:
 # import win32com
@@ -18,10 +19,10 @@ def wav_header_unpack(data):
      datarate, blockalign, bitspersample, data, datalength) \
      = struct.unpack('<4sl4s4slhhllhh4sl', data)
 
-    if riff != 'RIFF':
+    if riff != str2bytes('RIFF'):
         raise ValueError('invalid wav header')
     
-    if fmtsize != 16 or fmt != 'fmt ' or data != 'data':
+    if fmtsize != 16 or fmt != str2bytes('fmt ') or str2bytes(data) != 'data':
         # fmt chuck is not first chunk, directly followed by data chuck
         # It is nowhere required that they are, it is just very common
         raise ValueError('cannot understand wav header')
