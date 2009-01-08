@@ -159,7 +159,7 @@ BOOL PyCom_VariantFromPyObject(PyObject *obj, VARIANT *var)
 		V_VT(var) = VT_ERROR;
 		V_ERROR(var) = DISP_E_PARAMNOTFOUND;
 	}
-	else if (PyTime_Check(obj) || PyObject_HasAttrString(obj, "timetuple"))
+	else if (PyWinTime_Check(obj))
 	{
 		V_VT(var) = VT_DATE;
 		if (!PyWinObject_AsDATE(obj, &(V_DATE(var))))
@@ -1301,7 +1301,7 @@ BOOL PythonOleArgHelper::MakeObjToVariant(PyObject *obj, VARIANT *var, PyObject 
 		if (bCreateBuffers)
 			V_DATEREF(var) = &m_dateBuf;
 		if (!VALID_BYREF_MISSING(obj)) {
-			if ( !PyTime_Check(obj) ) BREAK_FALSE;
+			if ( !PyWinTime_Check(obj) ) BREAK_FALSE;
 			if ( !PyWinObject_AsDATE(obj, V_DATEREF(var) ) ) BREAK_FALSE;
 		} else
 			*V_DATEREF(var) = 0;

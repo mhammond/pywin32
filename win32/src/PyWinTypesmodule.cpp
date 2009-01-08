@@ -22,6 +22,9 @@ PyObject * PyWinExc_COMError = NULL;
 
 extern PyObject *PyWinMethod_NewHKEY(PyObject *self, PyObject *args);
 
+extern BOOL _PyWinDateTime_Init();
+extern BOOL _PyWinDateTime_PrepareModuleDict(PyObject *dict);
+
 #ifdef MS_WINCE
 // Where is this supposed to come from on CE???
 const GUID GUID_NULL \
@@ -759,9 +762,7 @@ static struct PyMethodDef pywintypes_functions[] = {
 #ifndef NO_PYWINTYPES_IID
 	{"IID",			PyWinMethod_NewIID, 1 },         // @pymeth IID|Makes an <o PyIID> object from a string.
 #endif
-#ifndef NO_PYWINTYPES_TIME
-	{"Time",		PyWinMethod_NewTime, 1 },		// @pymeth Time|Makes a <o PyTime> object from the argument.  Argument can be an integer/float or a tuple (as returned by time module functions).
-#endif
+	{"Time",		PyWinMethod_NewTime, 1 },		// @pymeth Time|Makes a <o PyTime> object from the argument.
 #ifndef MS_WINCE
 	{"CreateGuid",  PyWin_CreateGuid, 1 },      // @pymeth CreateGuid|Creates a new, unique GUIID.
 #endif // MS_WINCE
@@ -940,9 +941,8 @@ PYWIN_MODULE_INIT_FUNC(pywintypes)
 	if (PyDict_SetItemString(dict, "UnicodeType", (PyObject *)&PyUnicode_Type) == -1)
 		PYWIN_MODULE_INIT_RETURN_ERROR;
 
-#ifndef NO_PYWINTYPES_TIME
-	ADD_TYPE(TimeType);
-#endif // NO_PYWINTYPES_TIME
+	if (!_PyWinDateTime_PrepareModuleDict(dict))
+		PYWIN_MODULE_INIT_RETURN_ERROR;
 #ifndef NO_PYWINTYPES_IID
 	ADD_TYPE(IIDType);
 #endif // NO_PYWINTYPES_IID

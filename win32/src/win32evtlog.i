@@ -140,8 +140,8 @@ PyEventLogRecord::PyEventLogRecord(EVENTLOGRECORD *pEvt)
 		}
 	}
 
-	TimeGenerated = PyWinTimeObject_FromLong(pEvt->TimeGenerated);
-	TimeWritten = PyWinTimeObject_FromLong(pEvt->TimeWritten);
+	TimeGenerated = PyWinTimeObject_Fromtime_t((time_t)pEvt->TimeGenerated);
+	TimeWritten = PyWinTimeObject_Fromtime_t((time_t)pEvt->TimeWritten);
 
 	if (pEvt->UserSidLength==0) {
 		Sids = Py_None; // No SID in this record.

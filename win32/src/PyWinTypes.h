@@ -469,6 +469,9 @@ PYWINTYPES_EXPORT PyObject *PyWinMethod_NewIID( PyObject *self, PyObject *args);
 /*
 ** TIME support
 */
+// The NO_PYWINTYPES_TIME define was initially used for CE builds.  We now
+// use that symbol to mean "do we include our old, crap, custom time object?"
+// This is currently always true on the trunk - but not for long :)
 PYWINTYPES_EXPORT PyObject *PyWinObject_FromSYSTEMTIME(const SYSTEMTIME &t);
 PYWINTYPES_EXPORT PyObject *PyWinObject_FromFILETIME(const FILETIME &t);
 
@@ -477,26 +480,25 @@ PYWINTYPES_EXPORT PyObject *PyWinObject_FromFILETIME(const FILETIME &t);
 // accept Windows security "TimeStamp" objects directly - however, we use a
 // LARGE_INTEGER prototype to avoid pulling in the windows security headers.
 PYWINTYPES_EXPORT PyObject *PyWinObject_FromTimeStamp(const LARGE_INTEGER &t);
+PYWINTYPES_EXPORT PyObject *PyWinTimeObject_Fromtime_t(time_t t);
+PYWINTYPES_EXPORT PyObject *PyWinObject_FromDATE(DATE t);
 
 PYWINTYPES_EXPORT BOOL PyWinObject_AsDATE(PyObject *ob, DATE *pDate);
-PYWINTYPES_EXPORT BOOL PyWinObject_AsFILETIME(PyObject *ob,	FILETIME *pDate);
+PYWINTYPES_EXPORT BOOL PyWinObject_AsFILETIME(PyObject *ob, FILETIME *pDate);
 PYWINTYPES_EXPORT BOOL PyWinObject_AsSYSTEMTIME(PyObject *ob, SYSTEMTIME *pDate);
-
-#ifndef NO_PYWINTYPES_TIME
-
-extern PYWINTYPES_EXPORT PyTypeObject PyTimeType;		// the Type for PyTime
-#define PyTime_Check(ob)		((ob)->ob_type == &PyTimeType)
-
-PYWINTYPES_EXPORT PyObject *PyWinObject_FromDATE(DATE t);
-PYWINTYPES_EXPORT PyObject *PyWinTimeObject_FromLong(long t);
 
 // A global function that can work as a module method for making a time object.
 PYWINTYPES_EXPORT PyObject *PyWinMethod_NewTime( PyObject *self, PyObject *args);
 
-#endif // NO_PYWINTYPES_TIME
+PYWINTYPES_EXPORT BOOL PyWinTime_Check(PyObject *ob);
 
-// Convert a time object to a time_t value.
-PYWINTYPES_EXPORT BOOL PyWinObject_Astime_t(PyObject *ob, time_t *t);
+
+#ifndef NO_PYWINTYPES_TIME
+
+extern PYWINTYPES_EXPORT PyTypeObject PyTimeType;		// the Type for PyTime
+#define PyWinTime_CHECK(ob)		((ob)->ob_type == &PyTimeType)
+
+#endif // NO_PYWINTYPES_TIME
 
 // functions to return WIN32_FIND_DATA tuples, used in shell, win32api, and win32file
 PYWINTYPES_EXPORT PyObject *PyObject_FromWIN32_FIND_DATAA(WIN32_FIND_DATAA *pData);

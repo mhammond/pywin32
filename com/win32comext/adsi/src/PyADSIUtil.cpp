@@ -211,7 +211,7 @@ BOOL PyADSIObject_AsADSVALUE(PyObject *ob, ADSVALUE &v)
 			dwType = ADSTYPE_BOOLEAN;
 		else if (PyInt_Check(val))
 			dwType = ADSTYPE_INTEGER;
-		else if (PyTime_Check(val))
+		else if (PyWinTime_Check(val))
 			dwType = ADSTYPE_UTC_TIME;
 		else {
 			PyErr_SetString(PyExc_ValueError, "No type given, and can't deduce it!");

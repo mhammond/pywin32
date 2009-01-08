@@ -329,15 +329,15 @@ BOOL PyCom_PyObjectAsSTATSTG(PyObject *ob, STATSTG *pStat, DWORD flags /* = 0 */
 	// When fixed, should honour the STATFLAG_NONAME
 	if (!PyWinObject_AsULARGE_INTEGER(obSize, &pStat->cbSize))
 		return FALSE;
-	if (!PyTime_Check(obmtime) || !PyTime_Check(obctime) || !PyTime_Check(obatime)) {
+	if (!PyWinTime_Check(obmtime) || !PyWinTime_Check(obctime) || !PyWinTime_Check(obatime)) {
 		PyErr_SetString(PyExc_TypeError, "The time entries in a STATSTG tuple must be PyTime objects");
 		return FALSE;
 	}
-	if (!((PyTime *)obmtime)->GetTime(&pStat->mtime))
+	if (!PyWinObject_AsFILETIME(obmtime, &pStat->mtime))
 		return FALSE;
-	if (!((PyTime *)obctime)->GetTime(&pStat->ctime))
+	if (!PyWinObject_AsFILETIME(obctime, &pStat->ctime))
 		return FALSE;
-	if (!((PyTime *)obatime)->GetTime(&pStat->atime))
+	if (!PyWinObject_AsFILETIME(obatime, &pStat->atime))
 		return FALSE;
 	if (!PyWinObject_AsIID(obCLSID, &pStat->clsid))
 		return FALSE;

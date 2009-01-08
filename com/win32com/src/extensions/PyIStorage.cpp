@@ -405,28 +405,19 @@ PyObject *PyIStorage::SetElementTimes(PyObject *self, PyObject *args)
 	FILETIME *patime=NULL, atime;
 	FILETIME *pmtime=NULL, mtime;
 	if (obpctime!=Py_None) {
-		pctime = &ctime;
-		if (!PyTime_Check(obpctime)) {
-			PyErr_SetString(PyExc_TypeError, "The argument must be a PyTime object");
+		if (!PyWinObject_AsFILETIME(obpctime, &ctime))
 			return NULL;
-		}
-		if (!((PyTime *)obpctime)->GetTime(pctime)) return NULL;
+		pctime = &ctime;
 	}
 	if (obpatime != Py_None) {
-		patime = &atime;
-		if (!PyTime_Check(obpatime)) {
-			PyErr_SetString(PyExc_TypeError, "The argument must be a PyTime object");
+		if (!PyWinObject_AsFILETIME(obpatime, &atime))
 			return NULL;
-		}
-		if (!((PyTime *)obpatime)->GetTime(patime)) return NULL;
+		patime = &atime;
 	}
 	if (obpmtime != Py_None) {
-		pmtime = &mtime;
-		if (!PyTime_Check(obpmtime)) {
-			PyErr_SetString(PyExc_TypeError, "The argument must be a PyTime object");
+		if (!PyWinObject_AsFILETIME(obpmtime, &mtime))
 			return NULL;
-		}
-		if (!((PyTime *)obpmtime)->GetTime(pmtime)) return NULL;
+		pmtime = &mtime;
 	}
 	BSTR bstrName;
 	if (!PyWinObject_AsBstr(obName, &bstrName))

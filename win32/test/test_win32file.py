@@ -5,11 +5,16 @@ import win32con, ntsecuritycon
 import sys
 import os
 import tempfile
-import sets
 import threading
 import time
 import shutil
 import socket
+import datetime
+
+try:
+    set
+except NameError:
+    from sets import Set as set
 
 class TestSimpleOps(unittest.TestCase):
     def testSimpleFiles(self):
@@ -116,6 +121,49 @@ class TestSimpleOps(unittest.TestCase):
             f.Close()
             os.unlink(filename)
 
+    def testFileTimes(self):
+        if issubclass(pywintypes.TimeType, datetime.datetime):
+            from win32timezone import GetLocalTimeZone
+            now = datetime.datetime.now(tz=GetLocalTimeZone())
+            ok_delta = datetime.timedelta(seconds=1)
+            later = now + datetime.timedelta(seconds=120)
+        else:
+            tick = int(time.time())
+            now = pywintypes.Time(tick)
+            ok_delta = 1
+            later = pywintypes.Time(tick+120)
+
+        filename = tempfile.mktemp("-testFileTimes")
+        # Windows docs the 'last time' isn't valid until the last write
+        # handle is closed - so create the file, then re-open it to check.
+        open(filename,"w").close()
+        f = win32file.CreateFile(filename, win32file.GENERIC_READ|win32file.GENERIC_WRITE,
+                                 0, None,
+                                 win32con.OPEN_EXISTING, 0, None)
+        # *sob* - before we had tz aware datetime objects, we are faced
+        # with FILETIME objects being +GST out from now().  So just skip
+        # this...
+        if not issubclass(pywintypes.TimeType, datetime.datetime):
+            return
+        try:
+            ct, at, wt = win32file.GetFileTime(f)
+            self.failUnless(ct >= now, "File was created in the past - now=%s, created=%s" % (now, ct))
+            self.failUnless( now <= ct <= now + ok_delta, (now, ct))
+            self.failUnless(wt >= now, "File was written-to in the past now=%s, written=%s" % (now,wt))
+            self.failUnless( now <= wt <= now + ok_delta, (now, wt))
+
+            # Now set the times.
+            win32file.SetFileTime(f, later, later, later)
+            # Get them back.
+            ct, at, wt = win32file.GetFileTime(f)
+            self.failUnlessEqual(ct, later)
+            self.failUnlessEqual(at, later)
+            self.failUnlessEqual(wt, later)
+
+        finally:
+            f.Close()
+            os.unlink(filename)
+
 class TestOverlapped(unittest.TestCase):
     def testSimpleOverlapped(self):
         # Create a file in the %TEMP% directory.
@@ -198,9 +246,13 @@ class TestOverlapped(unittest.TestCase):
             # GetQueuedCompletionStatus will still find it.  Our check of
             # reference counting should catch that error.
             overlapped = None
-            self.failUnlessRaises(RuntimeError,
-                                  win32file.GetQueuedCompletionStatus, port, -1)
-            handle.Close()
+            # even if we fail, be sure to close the handle; prevents hangs
+            # on Vista 64...
+            try:
+                self.failUnlessRaises(RuntimeError,
+                                      win32file.GetQueuedCompletionStatus, port, -1)
+            finally:
+                handle.Close()
             return
 
         result = win32file.GetQueuedCompletionStatus(port, -1)
@@ -231,7 +283,6 @@ class TestOverlapped(unittest.TestCase):
         win32file.CreateIoCompletionPort(handle, port, 1, 0)
 
         t = threading.Thread(target=self._IOCPServerThread, args=(handle,port, test_overlapped_death))
-        # hrmph - markh is seeing failures here on x64 - and a hang!
         t.setDaemon(True) # avoid hanging entire test suite on failure.
         t.start()
         try:
@@ -320,9 +371,9 @@ class TestFindFiles(unittest.TestCase):
     def testIter(self):
         dir = os.path.join(os.getcwd(), "*")
         files = win32file.FindFilesW(dir)
-        set1 = sets.Set()
+        set1 = set()
         set1.update(files)
-        set2 = sets.Set()
+        set2 = set()
         for file in win32file.FindFilesIterator(dir):
             set2.add(file)
         assert len(set2) > 5, "This directory has less than 5 files!?"

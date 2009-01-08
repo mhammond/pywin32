@@ -4,28 +4,8 @@
 // @doc
 #include "PyWinTypes.h"
 #include "PyWinObjects.h"
-#ifndef MS_WINCE
 #include "time.h"
-#endif
 #include "tchar.h"
-
-#ifndef NO_PYWINTYPES_TIME
-
-#ifdef MS_WINCE
-#include <oleauto.h> // Time conversion functions on CE.
-// The Python helpers.
-BOOL PyCE_UnixTimeToFileTime(time_t t, LPFILETIME pft);
-BOOL PyCE_UnixTimeToSystemTime(time_t t, LPSYSTEMTIME pst);
-BOOL PyCE_FileTimeToUnixTime(FILETIME *pft, time_t *pt);
-BOOL PyCE_SystemTimeToUnixTime(SYSTEMTIME *pst, time_t *pt);
-void PyCE_TimeStructToSystemTime(struct tm *ptm, SYSTEMTIME *pst);
-#endif
-
-#if _MSC_VER < 1100
-// MSVC < 5.0 headers dont have these
-WINOLEAUTAPI_(INT) SystemTimeToVariantTime(LPSYSTEMTIME lpSystemTime, DOUBLE* pvtime);
-WINOLEAUTAPI_(INT) VariantTimeToSystemTime(DOUBLE vtime, LPSYSTEMTIME lpSystemTime);
-#endif
 
 static WORD SequenceIndexAsWORD(PyObject *seq, int index)
 {
@@ -35,8 +15,23 @@ static WORD SequenceIndexAsWORD(PyObject *seq, int index)
 	return (WORD)ret;
 }
 
+BOOL PyWinTime_Check(PyObject *ob)
+{
+	return 0 ||
+#ifndef NO_PYWINTYPES_TIME
+		PyWinTime_CHECK(ob) ||
+#endif
+		PyObject_HasAttrString(ob, "timetuple");
+}
+
 PyObject *PyWin_NewTime(PyObject *timeOb)
 {
+	// If it already a datetime object, just return it as-is.
+	if (PyWinTime_CHECK(timeOb)) {
+		Py_INCREF(timeOb);
+		return timeOb;
+	}
+
 	PyObject *result = NULL;
 /*****	  Commented out temporarily
 	if ( PyFloat_Check(timeOb) )
@@ -128,9 +123,9 @@ PyObject *PyWinObject_FromDATE(DATE t)
 {
 	return new PyTime(t);
 }
-PyObject *PyWinTimeObject_FromLong(long t)
+PyObject *PyWinTimeObject_Fromtime_t(time_t t)
 {
-	return new PyTime((time_t)t);
+	return new PyTime(t);
 }
 
 // Converts a TimeStamp, which is in 100 nanosecond units like a FILETIME
@@ -147,7 +142,7 @@ BOOL PyWinObject_AsDATE(PyObject *ob, DATE *pDate)
 {
 	PyObject *newref = NULL;
 	BOOL rc;
-	if (!PyTime_Check(ob)) {
+	if (!PyWinTime_Check(ob)) {
 		if (!(ob = PyWin_NewTime(ob)))
 			return FALSE;
 		newref = ob;
@@ -161,7 +156,7 @@ BOOL PyWinObject_AsFILETIME(PyObject *ob,	FILETIME *pDate)
 {
 	PyObject *newref = NULL;
 	BOOL rc;
-	if (!PyTime_Check(ob)) {
+	if (!PyWinTime_Check(ob)) {
 		if (!(ob = PyWin_NewTime(ob)))
 			return FALSE;
 		newref = ob;
@@ -174,7 +169,7 @@ BOOL PyWinObject_AsSYSTEMTIME(PyObject *ob, SYSTEMTIME *pDate)
 {
 	PyObject *newref = NULL;
 	BOOL rc;
-	if (!PyTime_Check(ob)) {
+	if (!PyWinTime_Check(ob)) {
 		if (!(ob = PyWin_NewTime(ob)))
 			return FALSE;
 		newref = ob;
@@ -322,11 +317,8 @@ PyObject *PyTime::Format(PyObject *self, PyObject *args)
 // @ex To return a string formatted as the long date in control panel|time.strftime("%#c", time.localtime(int(timeObject)))
 // @xref <om pywintypes.Time>
 
-#endif /* MS_WINCE */
 struct PyMethodDef PyTime::methods[] = {
-#ifndef MS_WINCE
 	{"Format",     PyTime::Format, 1}, 	// @pymeth Format|Formats the time value
-#endif
 	{NULL}
 };
 
@@ -423,20 +415,6 @@ PyTime::PyTime(time_t t)
 {
 	ob_type = &PyTimeType;
 	_Py_NewReference(this);
-
-#ifdef MS_WINCE
-	/* WinCE makes life harder than it should be! */
-	FILETIME ftLocal, ftUTC;
-	PyCE_UnixTimeToFileTime( (time_t)t, &ftUTC);
-	FileTimeToLocalFileTime(&ftUTC, &ftLocal);
-
-	time_t temp_t;
-
-	PyCE_FileTimeToUnixTime(&ftLocal, &temp_t);
-	m_time = (double)temp_t;
-
-#else
-	/* "Normal" Win32 handling */
 	m_time = 0;
 	struct tm *ptm = localtime(&t);
 	if (ptm != NULL) { // otherwise an invalid integer
@@ -453,7 +431,6 @@ PyTime::PyTime(time_t t)
 		};
 		(void)SystemTimeToVariantTime(&st, &m_time);
 	}
-#endif /* MS_WINCE */
 }
 
 PyTime::PyTime(const SYSTEMTIME &t)
@@ -529,7 +506,7 @@ int PyTime::compare(PyObject *ob)
 // Py3k requires that objects implement richcompare to be used as dict keys
 PyObject *PyTime::richcompare(PyObject *other, int op)
 {
-	if (!PyTime_Check(other)){
+	if (!PyWinTime_Check(other)){
 		PyErr_SetString(PyExc_TypeError, "PyTime cannot be compared to other types");
 		return NULL;
 		}
@@ -587,18 +564,6 @@ long PyTime::asLong(void)
 	tm.tm_mon = st.wMonth - 1;
 	tm.tm_year = st.wYear - 1900;
 	tm.tm_isdst = -1;	/* have the library figure it out */
-
-#ifdef MS_WINCE
-	/* Windows CE hacks! */
-	FILETIME ft;
-	long t;
-	PyCE_TimeStructToSystemTime(&tm, &st);	
-	SystemTimeToFileTime(&st, &ft);
-	PyCE_FileTimeToUnixTime(&ft, &t);
-
-	return t;
-#else
-	/* Normal win32 code */
 	long result = (long)mktime(&tm);
 	if ( result == -1 )
 	{
@@ -606,7 +571,6 @@ long PyTime::asLong(void)
 		return -1;
 	}
 	return result;
-#endif
 }
 
 PyObject *PyTime::repr()
@@ -781,98 +745,20 @@ PyObject *PyTime::reprFunc(PyObject *ob)
 	return ((PyTime *)ob)->repr();
 }
 
-#else // NO_PYWINTYPES_TIME
-// We dont have a decent time implementation, but
-// we need _some_ implementation of these functions!
-
-double PyCE_SystemTimeToCTime(SYSTEMTIME* pstTime)
-{
-	SYSTEMTIME stBase;
-	FILETIME   ftTime;
-	FILETIME   ftBase; 
-	__int64    iTime;
-	__int64    iBase;
-
-	SystemTimeToFileTime(pstTime, &ftTime);
-
-	stBase.wYear         = 1970;
-	stBase.wMonth        = 1;
-	stBase.wDayOfWeek    = 1;
-	stBase.wDay          = 1;
-	stBase.wHour         = 0;
-	stBase.wMinute       = 0;
-	stBase.wSecond       = 0;
-	stBase.wMilliseconds = 0;
-	SystemTimeToFileTime(&stBase, &ftBase);
-
-	iTime=ftTime.dwHighDateTime;	
-	iTime=iTime << 32;				
-	iTime |= ftTime.dwLowDateTime;
-
-	iBase=ftBase.dwHighDateTime;
-	iBase=iBase << 32;
-	iBase |= ftBase.dwLowDateTime;
-
-	return (double)((iTime - iBase) / 10000000L);
-}
-
-BOOL PyCE_UnixTimeToFileTime(time_t t, LPFILETIME pft)
-{
-	// Note that LONGLONG is a 64-bit value
-	LONGLONG ll;
-	ll = ((__int64)t * 10000000) + 116444736000000000;
-//	ll = Int32x32To64(t, 10000000) + 116444736000000000;
-	pft->dwLowDateTime = (DWORD)ll;
-	pft->dwHighDateTime = (DWORD)(ll >> 32);
-	return TRUE;
-}
-
-// We expose some time functions, but just return
-// standard Python floats.  We need a better solution!
-
-PYWINTYPES_EXPORT PyObject *PyWinObject_FromSYSTEMTIME(const SYSTEMTIME &st)
-{
-	return PyFloat_FromDouble(PyCE_SystemTimeToCTime((SYSTEMTIME *)&st));
-}
-
-PYWINTYPES_EXPORT PyObject *PyWinObject_FromFILETIME(const FILETIME &t)
-{
-	SYSTEMTIME st;
-	if (!FileTimeToSystemTime(&t, &st))
-		return PyInt_FromLong(-1);
-	return PyFloat_FromDouble(PyCE_SystemTimeToCTime(&st));
-}
-//PYWINTYPES_EXPORT BOOL PyWinObject_AsDATE(PyObject *ob, DATE *pDate)
-//{
-//}
-PYWINTYPES_EXPORT BOOL PyWinObject_AsFILETIME(PyObject *ob,	FILETIME *ft)
-{
-	PyObject *intOb = PyNumber_Int(ob);
-	if (intOb==NULL) return FALSE;
-	time_t t = (time_t)PyInt_AsLong(intOb);
-	BOOL rc = PyCE_UnixTimeToFileTime(t, ft);
-	Py_DECREF(intOb);
-	return rc;
-}
-PYWINTYPES_EXPORT BOOL PyWinObject_AsSYSTEMTIME(PyObject *ob, SYSTEMTIME *st)
-{
-	FILETIME ft;
-	if (!PyWinObject_AsFILETIME(ob, &ft))
-		return FALSE;
-	if (!FileTimeToSystemTime(&ft, st)) {
-		PyErr_SetString(PyExc_TypeError, "The value is out of range for a SYSTEMTIME");
-		return FALSE;
-	}
-	return TRUE;
-}
-
 #endif // NO_PYWINTYPES_TIME
 
-PYWINTYPES_EXPORT BOOL PyWinObject_Astime_t(PyObject *ob, time_t *t)
+// A couple of public functions used by the module init
+BOOL _PyWinDateTime_Init()
 {
-	// We need to get smarter about 64bit time_t values...
-	*t = (time_t)PyInt_AsLong(ob);
-	if (*t == -1 && PyErr_Occurred())
+	return TRUE;
+}
+
+BOOL _PyWinDateTime_PrepareModuleDict(PyObject *dict)
+{
+#ifndef NO_PYWINTYPES_TIME
+	if (PyType_Ready(&PyTimeType)==-1
+		|| PyDict_SetItemString(dict, "TimeType", (PyObject *)&PyTimeType) == -1)
 		return FALSE;
+#endif
 	return TRUE;
 }
