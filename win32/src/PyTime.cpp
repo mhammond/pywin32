@@ -142,7 +142,7 @@ BOOL PyWinObject_AsDATE(PyObject *ob, DATE *pDate)
 {
 	PyObject *newref = NULL;
 	BOOL rc;
-	if (!PyWinTime_Check(ob)) {
+	if (!PyWinTime_CHECK(ob)) {
 		if (!(ob = PyWin_NewTime(ob)))
 			return FALSE;
 		newref = ob;
@@ -156,7 +156,7 @@ BOOL PyWinObject_AsFILETIME(PyObject *ob,	FILETIME *pDate)
 {
 	PyObject *newref = NULL;
 	BOOL rc;
-	if (!PyWinTime_Check(ob)) {
+	if (!PyWinTime_CHECK(ob)) {
 		if (!(ob = PyWin_NewTime(ob)))
 			return FALSE;
 		newref = ob;
@@ -169,7 +169,7 @@ BOOL PyWinObject_AsSYSTEMTIME(PyObject *ob, SYSTEMTIME *pDate)
 {
 	PyObject *newref = NULL;
 	BOOL rc;
-	if (!PyWinTime_Check(ob)) {
+	if (!PyWinTime_CHECK(ob)) {
 		if (!(ob = PyWin_NewTime(ob)))
 			return FALSE;
 		newref = ob;
@@ -506,7 +506,7 @@ int PyTime::compare(PyObject *ob)
 // Py3k requires that objects implement richcompare to be used as dict keys
 PyObject *PyTime::richcompare(PyObject *other, int op)
 {
-	if (!PyWinTime_Check(other)){
+	if (!PyWinTime_CHECK(other)){
 		PyErr_SetString(PyExc_TypeError, "PyTime cannot be compared to other types");
 		return NULL;
 		}
