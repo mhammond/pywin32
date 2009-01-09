@@ -826,7 +826,7 @@ class Generator:
     print >> self.file, 'makepy_version =', repr(makepy_version)
     print >> self.file, 'python_version = 0x%x' % (sys.hexversion,)
     print >> self.file
-    print >> self.file, 'import win32com.client.CLSIDToClass, pythoncom'
+    print >> self.file, 'import win32com.client.CLSIDToClass, pythoncom, pywintypes'
     print >> self.file, 'import win32com.client.util'
     print >> self.file, 'from pywintypes import IID'
     print >> self.file, 'from win32com.client import Dispatch'

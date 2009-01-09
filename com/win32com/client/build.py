@@ -558,7 +558,7 @@ def MakeDefaultArgRepr(defArgVal):
     val = defArgVal[2]
     if type(val) is TimeType:
       year=val.year; month=val.month; day=val.day; hour=val.hour; minute=val.minute; second=val.second; msec=val.msec
-      return "pythoncom.MakeTime((%(year)d, %(month)d, %(day)d, %(hour)d, %(minute)d, %(second)d,0,0,0,%(msec)d))" % locals()
+      return "pywintypes.Time((%(year)d, %(month)d, %(day)d, %(hour)d, %(minute)d, %(second)d,0,0,0,%(msec)d))" % locals()
     else:
       return repr(val)
   return None
