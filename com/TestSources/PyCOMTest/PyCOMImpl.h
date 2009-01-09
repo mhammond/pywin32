@@ -70,6 +70,7 @@ END_COM_MAP()
 	STDMETHOD(TestByRefString)(BSTR *v);
 	STDMETHOD(TakeByRefTypedDispatch)(IPyCOMTest **inout);
 	STDMETHOD(TakeByRefDispatch)(IDispatch **inout);
+	STDMETHOD(SetBinSafeArray)(SAFEARRAY* buf, int *retSize);
 	STDMETHOD(SetIntSafeArray)(SAFEARRAY* ints, int *retSize);
 	STDMETHOD(SetVariantSafeArray)(SAFEARRAY* vars, int *retSize);
 	STDMETHOD(GetSafeArrays)(SAFEARRAY** attrs,

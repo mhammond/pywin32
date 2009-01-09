@@ -76,6 +76,9 @@ class PyCOMTest:
 	def SetIntSafeArray(self, ints):
 		return len(ints)
 
+	def SetBinSafeArray(self, buf):
+		return len(buf)
+
 	def SetVarArgs(self, *args):
 		raise COMException(hresult=winerror.E_NOTIMPL)
 

@@ -234,6 +234,22 @@ STDMETHODIMP CPyCOMTest::TakeByRefDispatch(IDispatch **inout)
 	return S_OK;
 }
 
+STDMETHODIMP CPyCOMTest::SetBinSafeArray(SAFEARRAY* buf, int *resultSize)
+{
+	UINT cDims = SafeArrayGetDim(buf);
+	*resultSize = 0;
+	long ub=0, lb=0;
+	if (cDims) {
+		SafeArrayGetUBound(buf, 1, &ub);
+		SafeArrayGetLBound(buf, 1, &lb);
+		*resultSize = ub - lb + 1;
+	}
+	TCHAR dbgbuf[256];
+	wsprintf(dbgbuf, _T("Have binary SafeArray with %d dims and size %d\n"), cDims, *resultSize);
+	OutputDebugString(dbgbuf);
+	return S_OK;
+}
+
 STDMETHODIMP CPyCOMTest::SetIntSafeArray(SAFEARRAY* ints, int *resultSize)
 {
 	TCHAR buf[256];

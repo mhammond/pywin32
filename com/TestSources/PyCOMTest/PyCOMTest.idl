@@ -204,6 +204,7 @@ library PyCOMTestLib
 		HRESULT TakeByRefDispatch([in, out] IDispatch **inout);
 
 		// Test Safe arrays - simple, then alias, enum
+		HRESULT SetBinSafeArray([in] SAFEARRAY(unsigned char) buf, [out, retval]int *resultSize);
 		HRESULT SetIntSafeArray([in] SAFEARRAY(int) ints, [out, retval]int *resultSize);
 		HRESULT SetVariantSafeArray([in] SAFEARRAY(VARIANT) vars, [out, retval]int *resultSize);
 		HRESULT GetSimpleSafeArray([out] SAFEARRAY(int)* ints);

@@ -8,6 +8,7 @@ from win32com.test.util import CheckClean
 from win32com.client import constants, DispatchBaseClass
 import win32com
 from win32com.test.util import RegisterPythonServer
+from pywin32_testutil import str2memory
 
 importMsg = "**** PyCOMTest is not installed ***\n  PyCOMTest is a Python test specific COM client and server.\n  It is likely this server is not installed on this machine\n  To install the server, you must get the win32com sources\n  and build it using MS Visual C++"
 
@@ -262,6 +263,11 @@ def TestGenerated():
     l=[1,2,3,4]
     TestApplyResult(o.SetVariantSafeArray, (l,), len(l))
     TestApplyResult(o.SetIntSafeArray, (l,), len(l))
+    # check we can pass ints as a VT_UI1
+    TestApplyResult(o.SetBinSafeArray, (l,), len(l))
+    # and binary
+    TestApplyResult(o.SetBinSafeArray, (str2memory('foo\0bar'),), 7)
+
     l=[]
     TestApplyResult(o.SetVariantSafeArray, (l,), len(l))
     TestApplyResult(o.SetIntSafeArray, (l,), len(l))
