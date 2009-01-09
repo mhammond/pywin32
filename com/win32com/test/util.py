@@ -222,5 +222,5 @@ class ShellTestCase(unittest.TestCase):
 
 
 def testmain(*args, **kw):
-    pywin32_testutil.testmain(*args, **new_kw)
+    pywin32_testutil.testmain(*args, **kw)
     CheckClean()
