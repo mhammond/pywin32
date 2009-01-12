@@ -5,8 +5,6 @@
 #include "stdafx.h"
 #include "PythonCOM.h"
 
-extern void PyCom_LogF(const TCHAR *fmt, ...);
-
 extern PyObject *PyObject_FromRecordInfo(IRecordInfo *, void *, ULONG);
 extern PyObject *PyObject_FromSAFEARRAYRecordInfo(SAFEARRAY *psa);
 extern BOOL PyObject_AsVARIANTRecordInfo(PyObject *ob, VARIANT *pv);
@@ -17,29 +15,23 @@ extern BOOL PyRecord_Check(PyObject *ob);
 // new array (old behaviour)
 #define BYREF_ARRAY_USE_EXISTING_ARRAY
 
-// A little helper just for this file
-static PyObject* OleSetTypeError(char *msg)
-{
-	PyErr_SetString(PyExc_TypeError, msg);
-	return NULL;
-}
+// Need to put this in pywintypes.h with rest of compatibility macros
+#if (PY_VERSION_HEX < 0x03000000)
+#define PYWIN_BUFFER_CHECK PyBuffer_Check
+#else
+#define PYWIN_BUFFER_CHECK PyObject_CheckBuffer
+#endif
 
-#ifdef UNICODE
-// In a Unicode environment, we provide a helper that
-// converts the argument to a string before raising the error.
-static PyObject* OleSetTypeErrorW(TCHAR *msg)
+// A little helper just for this file
+static PyObject* OleSetTypeError(TCHAR *msg)
 {
-	PyObject *obMsg = PyString_FromUnicode(msg);
+	PyObject *obMsg = PyWinObject_FromTCHAR(msg);
 	if (obMsg) {
 		PyErr_SetObject(PyExc_TypeError, obMsg);
 		Py_DECREF(obMsg);
 	}
 	return NULL;
 }
-#define OleSetTypeErrorT OleSetTypeErrorW
-#else
-#define OleSetTypeErrorT OleSetTypeError
-#endif
 
 ///////////////////////////////////////////////////////////
 //
@@ -115,7 +107,7 @@ BOOL PyCom_VariantFromPyObject(PyObject *obj, VARIANT *var)
 		V_VT(var) = VT_I4;
 		V_I4(var) = PyInt_AsLong(obj);
 	}
-	else if (PyInstance_Check(obj) && PyObject_HasAttrString(obj, "_oleobj_"))
+	else if (PyObject_HasAttrString(obj, "_oleobj_"))
 	{
 		if (PyCom_InterfaceFromPyInstanceOrObject(obj, IID_IDispatch, (void **)&V_DISPATCH(var), FALSE))
 				V_VT(var) = VT_DISPATCH;
@@ -165,7 +157,7 @@ BOOL PyCom_VariantFromPyObject(PyObject *obj, VARIANT *var)
 		if (!PyWinObject_AsDATE(obj, &(V_DATE(var))))
 			return FALSE;
 	}
-	else if (PyBuffer_Check(obj)) {
+	else if (PYWIN_BUFFER_CHECK(obj)) {
 		// We have a buffer object - convert to safe array of VT_UI1
 		if (!PyCom_SAFEARRAYFromPyObject(obj, &V_ARRAY(var), VT_UI1))
 			return FALSE;
@@ -193,16 +185,12 @@ BOOL PyCom_VariantFromPyObject(PyObject *obj, VARIANT *var)
 			return FALSE;
 		V_VT(var) = VT_CY;
 	}
-	/*
-	else if (obj->ob_type == &AutomatedType)
-	{
-	}
-	*/
+
 	if (V_VT(var) == VT_EMPTY && !bGoodEmpty) {
 		// Must ensure we have a Python error set if we fail!
 		if (!PyErr_Occurred()) {
 			char *extraMessage = "";
-			if (obj->ob_type->tp_as_buffer && obj->ob_type->tp_as_buffer->bf_getreadbuffer)
+			if (obj->ob_type->tp_as_buffer)
 				extraMessage = " (but obtaining the buffer() of this object could)";
 			PyErr_Format(PyExc_TypeError, "Objects of type '%s' can not be converted to a COM VARIANT%s", obj->ob_type->tp_name, extraMessage);
 		}
@@ -231,7 +219,7 @@ PyObject *PyCom_PyObjectFromVariant(const VARIANT *var)
 
 	/* ### note: we shouldn't see this, it is illegal in a VARIANT */
 	if (V_ISVECTOR(var)) {
-		return OleSetTypeError("Cant convert vectors!");
+		return OleSetTypeError(_T("Cant convert vectors!"));
 	}
 
 	if (V_ISARRAY(var)) {
@@ -269,12 +257,12 @@ PyObject *PyCom_PyObjectFromVariant(const VARIANT *var)
 			{
 				TCHAR buf[200];
 				wsprintf(buf, _T("Error converting integer variant (%08lx)"), hr);
-				OleSetTypeErrorT(buf);
+				OleSetTypeError(buf);
 				break;
 			}
 			// The result may be too large for a simple "long".  If so,
 			// we must return a long.
-			if (V_UI4(&varValue) <= (unsigned)PyInt_GetMax())
+			if (V_UI4(&varValue) <= INT_MAX)
 				result = PyInt_FromLong(V_UI4(&varValue));
 			else
 				result = PyLong_FromUnsignedLong(V_UI4(&varValue));
@@ -289,7 +277,7 @@ PyObject *PyCom_PyObjectFromVariant(const VARIANT *var)
 			{
 				TCHAR buf[200];
 				wsprintf(buf, _T("Error converting integer variant (%08lx)"), hr);
-				OleSetTypeErrorT(buf);
+				OleSetTypeError(buf);
 				break;
 			}
 			result = PyInt_FromLong(V_I4(&varValue));
@@ -307,7 +295,7 @@ PyObject *PyCom_PyObjectFromVariant(const VARIANT *var)
 			{
 				TCHAR buf[200];
 				wsprintf(buf, _T("Error converting floating point variant (%08lx)"), hr);
-				OleSetTypeErrorT(buf);
+				OleSetTypeError(buf);
 				break;
 			}
 			result = PyFloat_FromDouble(V_R8(&varValue));
@@ -370,7 +358,7 @@ PyObject *PyCom_PyObjectFromVariant(const VARIANT *var)
 				if (FAILED(hr)) {
 					TCHAR buf[200];
 					wsprintf(buf, _T("The Variant type (0x%x) is not supported, and it can not be converted to a string"), V_VT(var));
-					OleSetTypeErrorT(buf);
+					OleSetTypeError(buf);
 					break;
 				}
 				result = PyWinObject_FromBstr(V_BSTR(&varValue));
@@ -391,38 +379,36 @@ PyObject *PyCom_PyObjectFromVariant(const VARIANT *var)
 static BOOL PyCom_SAFEARRAYFromPyObjectBuildDimension(PyObject *obj, SAFEARRAY *pSA, VARENUM vt, UINT dimNo, UINT nDims, SAFEARRAYBOUND *pBounds, LONG *pIndices)
 {
 	LONG numElements = pBounds[dimNo-1].cElements;
-	if ((LONG)PySequence_Length(obj)!=numElements) {
-		OleSetTypeError("All dimensions must be a sequence of the same size");
+	if ((LONG)PyObject_Length(obj)!=numElements) {
+		OleSetTypeError(_T("All dimensions must be a sequence of the same size"));
 		return FALSE;
 	}
 	// See if we can take a short-cut for byte arrays - if
 	// so, we can copy the entire dimension in one hit
 	// (only support single segment buffers for now)
 	if (dimNo==nDims && vt==VT_UI1 && obj->ob_type->tp_as_buffer) {
-		PyBufferProcs *pb = obj->ob_type->tp_as_buffer;
-		Py_ssize_t bufSize;
-		if (pb->bf_getreadbuffer && 
-			pb->bf_getsegcount &&
-			(*pb->bf_getsegcount)(obj, &bufSize)==1) 
-		{
-			if (PyWin_SAFE_DOWNCAST(bufSize, Py_ssize_t, LONG) != numElements) {
-				OleSetTypeError("Internal error - the buffer length is not the sequence length!");
-				return FALSE;
+		DWORD bufSize;
+		void *ob_buf, *sa_buf;
+		if (!PyWinObject_AsReadBuffer(obj, &ob_buf, &bufSize))
+			return FALSE;
+
+		if (bufSize != numElements) {
+			OleSetTypeError(_T("Internal error - the buffer length is not the sequence length!"));
+			return FALSE;
 			}
-			void *ob_buf, *sa_buf;
-			HRESULT hr = SafeArrayAccessData(pSA,&sa_buf);
-			if (FAILED(hr)) {
-				PyCom_BuildPyException(hr);
-				return FALSE;
+
+		HRESULT hr = SafeArrayAccessData(pSA,&sa_buf);
+		if (FAILED(hr)) {
+			PyCom_BuildPyException(hr);
+			return FALSE;
 			}
-			pb->bf_getreadbuffer(obj, 0, &ob_buf);
-			memcpy(sa_buf, ob_buf, bufSize);
-			SafeArrayUnaccessData(pSA);
-			// All done without a single loop :-)
-			return TRUE;
+		memcpy(sa_buf, ob_buf, bufSize);
+		SafeArrayUnaccessData(pSA);
+		// All done without a single loop :-)
+		return TRUE;
 		}
 		// Otherwise just fall through into the standard mechanisms
-	}
+
 	BOOL ok = TRUE;
 	for (int index=0;index<(int)numElements && ok;index++) {
 		pIndices[dimNo-1] = index;
@@ -438,7 +424,7 @@ static BOOL PyCom_SAFEARRAYFromPyObjectBuildDimension(PyObject *obj, SAFEARRAY *
 			} else {
 				// Complex conversion.
 				if (vt & VT_ARRAY || vt & VT_BYREF) {
-					OleSetTypeError("Internal error - unexpected argument - only simple VARIANTTYPE expected");
+					OleSetTypeError(_T("Internal error - unexpected argument - only simple VARIANTTYPE expected"));
 					ok = FALSE;
 				} else {
 					PythonOleArgHelper helper;
@@ -483,94 +469,94 @@ static BOOL PyCom_SAFEARRAYFromPyObjectBuildDimension(PyObject *obj, SAFEARRAY *
 // Arbitrary-sized array dimensions contributed by Stefan Schukat Feb-2004
 static long PyCom_CalculatePyObjectDimension(PyObject *obItemCheck, long lDimension, PyObject* ppyobDimensionDictionary)
 {
-	long      lReturnDimension  = lDimension;
-	// Allow arbitrary sequences, but not strings or Unicode objects.
-	if(obItemCheck && 
-		PySequence_Check(obItemCheck) && 
-		!PyString_Check(obItemCheck) && 
-		!PyUnicode_Check(obItemCheck)) 
-	{
-		PyObject* ppyobDimension;
-		PyObject* ppyobSize;
-		PyObject* ppyobDimensionSize;
-		PyObject* ppyobItem;
-		Py_ssize_t lIndex;
-		long      lMinimalDimension = -1;
-		long      lActualDimension  = -1;
-		Py_ssize_t lObjectSize;
+	// Buffers are a special case - they define 1 new dimension.
+	// Buffers supported sequence semantics in 2.x, but for some reason memoryview objects
+	//	in py3k do not, so check separately
+	if (PYWIN_BUFFER_CHECK(obItemCheck))
+		return lDimension+1;
 
-		if (PyBuffer_Check(obItemCheck))
-			// buffers are a special case - they define 1 new dimension.
+	// Allow arbitrary sequences, but not strings or Unicode objects.
+	if (PyString_Check(obItemCheck) || PyUnicode_Check(obItemCheck)
+		||!PySequence_Check(obItemCheck)) 
+		return lDimension;
+
+	long      lReturnDimension  = lDimension;
+	PyObject* ppyobDimension;
+	PyObject* ppyobSize;
+	PyObject* ppyobDimensionSize;
+	PyObject* ppyobItem;
+	Py_ssize_t lIndex;
+	long      lMinimalDimension = -1;
+	long      lActualDimension  = -1;
+	Py_ssize_t lObjectSize;
+
+	// Retrieve the size of the object
+	lObjectSize = PySequence_Length(obItemCheck);
+	if (lObjectSize == -1) {
+		/* has a __len__, but it failed.  Treat as not a sequence */
+		assert(PyErr_Occurred()); // can't *really* have -1 elems! */
+		PyErr_Clear();
+	}
+	if (lObjectSize != -1) { // A real sequence of size zero should be OK though.
+		ppyobSize   = PyInt_FromSsize_t(lObjectSize);
+
+		// Retrieve the stored size in this dimension 
+		ppyobDimension = PyInt_FromLong(lDimension);
+		// Note: No ref added by PyDict_GetItem
+		ppyobDimensionSize = PyDict_GetItem(ppyobDimensionDictionary, ppyobDimension);
+		if (NULL == ppyobDimensionSize) {
+			// Not found so first element defines the size in this dimension
+			PyErr_Clear();
+			PyDict_SetItem(ppyobDimensionDictionary, ppyobDimension, ppyobSize);
+		} else {
+			// Check if stored size in this dimension equals the size of the element to check
+			Py_ssize_t lStoredSize = PyInt_AsSsize_t(ppyobDimensionSize);
+			if (lStoredSize != lObjectSize) 
+			{
+				// if not the same size => no new dimension
+				Py_XDECREF(ppyobSize);
+				Py_XDECREF(ppyobDimension);
+				return lReturnDimension;
+			}
+		}
+		Py_XDECREF(ppyobSize);
+		Py_XDECREF(ppyobDimension);
+
+		// A special case for a zero-length sequence - we accept this as
+		// a new dimension, but no children to check.
+		// ie an empty list has 1 dimension.
+		if (lObjectSize==0)
 			return lReturnDimension+1;
 
-		// Retrieve the size of the object
-		lObjectSize = PySequence_Length(obItemCheck);
-		if (lObjectSize == -1) {
-			/* has a __len__, but it failed.  Treat as not a sequence */
-			assert(PyErr_Occurred()); // can't *really* have -1 elems! */
-			PyErr_Clear();
-		}
-		if (lObjectSize != -1) { // A real sequence of size zero should be OK though.
-			ppyobSize   = PyInt_FromSsize_t(lObjectSize);
-
-			// Retrieve the stored size in this dimension 
-			ppyobDimension = PyInt_FromLong(lDimension);
-			// Note: No ref added by PyDict_GetItem
-			ppyobDimensionSize = PyDict_GetItem(ppyobDimensionDictionary, ppyobDimension);
-			if (NULL == ppyobDimensionSize) {
-				// Not found so first element defines the size in this dimension
+		// Now check for all elements in this list for their dimensionality
+		// Their size is compared to the size stored in the dimension dictionary
+		for(lIndex = 0; lIndex < lObjectSize; lIndex++) {
+			ppyobItem = PySequence_GetItem(obItemCheck, lIndex);
+			if (ppyobItem == NULL) {
+				// Says it is a sequence, but getting the item failed.
+				// (eg, may be a COM instance that has __getitem__, but fails when attempting)
+				// Ignore the error, and pretend it is not a sequence.
 				PyErr_Clear();
-				PyDict_SetItem(ppyobDimensionDictionary, ppyobDimension, ppyobSize);
+				break;
+			}
+			// Call method recursively
+			lActualDimension = PyCom_CalculatePyObjectDimension(ppyobItem, lDimension + 1, ppyobDimensionDictionary);
+			if (-1 == lMinimalDimension) {
+				// First call so store it
+				lMinimalDimension = lActualDimension;
+				lReturnDimension  = lActualDimension;
 			} else {
-				// Check if stored size in this dimension equals the size of the element to check
-				Py_ssize_t lStoredSize = PyInt_AsSsize_t(ppyobDimensionSize);
-				if (lStoredSize != lObjectSize) 
-				{
-					// if not the same size => no new dimension
-					Py_XDECREF(ppyobSize);
-					Py_XDECREF(ppyobDimension);
-					return lReturnDimension;
-				}
-			}
-			Py_XDECREF(ppyobSize);
-			Py_XDECREF(ppyobDimension);
-
-			// A special case for a zero-length sequence - we accept this as
-			// a new dimension, but no children to check.
-			// ie an empty list has 1 dimension.
-			if (lObjectSize==0)
-				return lReturnDimension+1;
-
-			// Now check for all elements in this list for their dimensionality
-			// Their size is compared to the size stored in the dimension dictionary
-			for(lIndex = 0; lIndex < lObjectSize; lIndex++) {
-				ppyobItem = PySequence_GetItem(obItemCheck, lIndex);
-				if (ppyobItem == NULL) {
-					// Says it is a sequence, but getting the item failed.
-					// (eg, may be a COM instance that has __getitem__, but fails when attempting)
-					// Ignore the error, and pretend it is not a sequence.
-					PyErr_Clear();
-					break;
-				}
-				// Call method recursively
-				lActualDimension = PyCom_CalculatePyObjectDimension(ppyobItem, lDimension + 1, ppyobDimensionDictionary);
-				if (-1 == lMinimalDimension) {
-					// First call so store it
+				// Get the smallest dimension
+				if (lActualDimension < lMinimalDimension) {
 					lMinimalDimension = lActualDimension;
-					lReturnDimension  = lActualDimension;
-				} else {
-					// Get the smallest dimension
-					if (lActualDimension < lMinimalDimension) {
-						lMinimalDimension = lActualDimension;
-					}
-					// Check if all dimensions of the sublist are equal
-					if (lReturnDimension != lActualDimension) {
-						// if not set the minimal dimension
-						lReturnDimension = lMinimalDimension;
-					} 
 				}
-				Py_XDECREF(ppyobItem);
+				// Check if all dimensions of the sublist are equal
+				if (lReturnDimension != lActualDimension) {
+					// if not set the minimal dimension
+					lReturnDimension = lMinimalDimension;
+				} 
 			}
+			Py_XDECREF(ppyobItem);
 		}
 	}
 	return lReturnDimension;
@@ -599,7 +585,7 @@ static BOOL PyCom_SAFEARRAYFromPyObjectEx(PyObject *obj, SAFEARRAY **ppSA, bool 
 	Py_DECREF(ppyobDimensionDictionary);
 
 	if (cDims==0) {
-		OleSetTypeError("Objects for SAFEARRAYS must be sequences (of sequences), or a buffer object.");
+		OleSetTypeError(_T("Objects for SAFEARRAYS must be sequences (of sequences), or a buffer object."));
 		return FALSE;
 	}
 	if (!bAllocNewArray) {
@@ -616,7 +602,8 @@ static BOOL PyCom_SAFEARRAYFromPyObjectEx(PyObject *obj, SAFEARRAY **ppSA, bool 
 	Py_INCREF(obItemCheck);
 	for (LONG dimLook = 1;dimLook <= cDims;dimLook++) {
 		pBounds[dimLook-1].lLbound = 0; // always!
-		pBounds[dimLook-1].cElements = PySequence_Length(obItemCheck);
+		// Don't use PySequence_Length due to memoryview not supporting sequence protocol
+		pBounds[dimLook-1].cElements = PyObject_Length(obItemCheck);
 		if (!bAllocNewArray) {
 			LONG exist_lbound, exist_ubound;
 			SafeArrayGetLBound(*ppSA, dimLook, &exist_lbound);
@@ -628,14 +615,16 @@ static BOOL PyCom_SAFEARRAYFromPyObjectEx(PyObject *obj, SAFEARRAY **ppSA, bool 
 				return FALSE;
 			}
 		}
-		PyObject *obSave = obItemCheck;
-		if (pBounds[dimLook-1].cElements) {
-			obItemCheck = PySequence_GetItem(obItemCheck,0);
-			Py_DECREF(obSave);
-			if (obItemCheck==NULL) {
-				Py_XDECREF(obItemCheck);
-				delete [] pBounds;
-				return FALSE;
+		// Don't need to do this check if buffer is last dim
+		if (!PYWIN_BUFFER_CHECK(obItemCheck)){
+			PyObject *obSave = obItemCheck;
+			if (pBounds[dimLook-1].cElements) {
+				obItemCheck = PySequence_GetItem(obItemCheck,0);
+				Py_DECREF(obSave);
+				if (obItemCheck==NULL) {
+					delete [] pBounds;
+					return FALSE;
+				}
 			}
 		}
 	}
@@ -806,7 +795,7 @@ static PyObject *PyCom_PyObjectFromSAFEARRAYDimensionItem(SAFEARRAY *psa, VARENU
 		default: {
 			TCHAR buf[200];
 			wsprintf(buf, _T("The VARIANT type 0x%x is not supported for SAFEARRAYS"), vt);
-			OleSetTypeErrorT(buf);
+			OleSetTypeError(buf);
 		}
 	}
 	if (FAILED(hres)) {
@@ -841,16 +830,12 @@ PyObject *PyCom_PyObjectFromSAFEARRAYBuildDimension(SAFEARRAY *psa, VARENUM vt, 
 		PyObject *ret = PyBuffer_New(dataSize);
 		if (ret!=NULL) {
 			// Access the buffer object using the buffer interfaces.
-			PyBufferProcs *pb = ret->ob_type->tp_as_buffer;
-			if (!pb->bf_getwritebuffer ||
-			    !pb->bf_getsegcount ||
-			    (*pb->bf_getsegcount)(ret, NULL)!=1) {
-				PyErr_SetString(PyExc_RuntimeError, "New buffer has no buffer interfaces!!");
+			DWORD count;
+			if (!PyWinObject_AsWriteBuffer(ret, &ob_buf, &count)){
 				SafeArrayUnaccessData(psa);
 				Py_DECREF(ret);
 				return NULL;
 			}
-			long count = pb->bf_getwritebuffer(ret, 0, &ob_buf);
 			if (count != cElems) {
 				PyErr_SetString(PyExc_RuntimeError, "buffer size is not what we created!");
 				SafeArrayUnaccessData(psa);
@@ -899,7 +884,7 @@ PyObject *PyCom_PyObjectFromSAFEARRAY(SAFEARRAY *psa, VARENUM vt /* = VT_VARIANT
 {
 	// Our caller must has resolved all byref and array references.
 	if (vt & VT_ARRAY || vt & VT_BYREF) {
-		OleSetTypeError("Internal error - unexpected argument - only simple VARIANTTYPE expected");
+		OleSetTypeError(_T("Internal error - unexpected argument - only simple VARIANTTYPE expected"));
 		return FALSE;
 	}
 	UINT nDim = SafeArrayGetDim(psa);
@@ -1059,7 +1044,7 @@ BOOL PythonOleArgHelper::MakeObjToVariant(PyObject *obj, VARIANT *var, PyObject 
 		return TRUE; // All done with array!
 	}
 	if (m_reqdType & VT_VECTOR) { // we have been asked for an array.
-		OleSetTypeError("Sorry - cant support VT_VECTOR arguments");
+		OleSetTypeError(_T("Sorry - cant support VT_VECTOR arguments"));
 		return FALSE;
 	}
 	BOOL rc = TRUE;
@@ -1346,7 +1331,7 @@ BOOL PythonOleArgHelper::MakeObjToVariant(PyObject *obj, VARIANT *var, PyObject 
 		// beef up the VARIANT support, rather than default.
 		TCHAR buf[200];
 		wsprintf(buf, _T("The VARIANT type is unknown (0x%08lx)"), m_reqdType);
-		OleSetTypeErrorT(buf);
+		OleSetTypeError(buf);
 		rc = FALSE;
 		break;
 	}
