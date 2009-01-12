@@ -28,9 +28,19 @@ the correct libraries.
 
 The 'exchange' extensions require headers that are no longer in any current
 SDKs, so these fail to build, but the 'mapi' extension should still build.
-Also, 'axdebug' once worked with recent Platform SDKs, with no
-additional software was needed - but currently this extension is known to not
-build.
+
+To build the axdebug extension for 32bit Python, follow these instructions:
+
+* Download the "Internet Explorer 4.01 Refresh of the Internet Client SDK"
+  from http://support.microsoft.com/kb/q177877/.
+* The download is a self-extracting archive - execute it and unzip the
+  contents to a 'temp' directory.
+* From that directory, copy 'include/axdebug.h' and 'lib/msdbg.lib' to
+  somewhere the build process will find them - the 'include' and 'lib'
+  directories of your SDK installation works.
+
+Note that no equivalent SDK for 64bit operating systems appears available,
+so this extension does not build on 64bit versions.
 
 Building:
 ---------
@@ -800,7 +810,8 @@ class my_build_ext(build_ext):
         self._build_scintilla()
         # Copy cpp lib files needed to create Python COM extensions
         clib_files = (['win32', 'pywintypes%s.lib'],
-                      ['win32com', 'pythoncom%s.lib'])
+                      ['win32com', 'pythoncom%s.lib'],
+                      ['axscript', 'axscript%s.lib'])
         for clib_file in clib_files:
             target_dir = os.path.join(self.build_lib, clib_file[0], "libs")
             if not os.path.exists(target_dir):
@@ -1458,6 +1469,7 @@ dirs = {
     'propsys' : 'com/win32comext/propsys/src',
     'shell' : 'com/win32comext/shell/src',
     'axcontrol' : 'com/win32comext/axcontrol/src',
+    'axdebug' : 'com/win32comext/axdebug/src',
     'mapi' : 'com/win32comext/mapi/src',
     'authorization' : 'com/win32comext/authorization/src',
     'taskscheduler' : 'com/win32comext/taskscheduler/src',
@@ -1507,15 +1519,61 @@ com_extensions += [
     WinExt_win32com('axscript',
             dsp_file=r"com\Active Scripting.dsp",
             extra_compile_args = ['-DPY_BUILD_AXSCRIPT'],
+            implib_name="axscript.lib",
             pch_header = "stdafx.h"
     ),
     # ActiveDebugging is a mess.  See the comments in the docstring of this
     # module for details on getting it built.
     WinExt_win32com('axdebug',
-            dsp_file=r"com\Active Debugging.dsp",
-            libraries="axscript",
-            pch_header = "stdafx.h",
-            optional_headers = ["activdbg.h"],
+            libraries="axscript msdbg",
+            pch_header="stdafx.h",
+            optional_headers=["activdbg.h"],
+            sources=("""
+                    %(axdebug)s/AXDebug.cpp
+                    %(axdebug)s/PyIActiveScriptDebug.cpp
+                    %(axdebug)s/PyIActiveScriptErrorDebug.cpp
+                    %(axdebug)s/PyIActiveScriptSiteDebug.cpp
+                    %(axdebug)s/PyIApplicationDebugger.cpp
+                    %(axdebug)s/PyIDebugApplication.cpp
+                    %(axdebug)s/PyIDebugApplicationNode.cpp
+                    %(axdebug)s/PyIDebugApplicationNodeEvents.cpp
+                    %(axdebug)s/PyIDebugApplicationThread.cpp
+                    %(axdebug)s/PyIDebugCodeContext.cpp
+                    %(axdebug)s/PyIDebugDocument.cpp
+                    %(axdebug)s/PyIDebugDocumentContext.cpp
+                    %(axdebug)s/PyIDebugDocumentHelper.cpp
+                    %(axdebug)s/PyIDebugDocumentHost.cpp
+                    %(axdebug)s/PyIDebugDocumentInfo.cpp
+                    %(axdebug)s/PyIDebugDocumentProvider.cpp
+                    %(axdebug)s/PyIDebugDocumentText.cpp
+                    %(axdebug)s/PyIDebugDocumentTextAuthor.cpp
+                    %(axdebug)s/PyIDebugDocumentTextEvents.cpp
+                    %(axdebug)s/PyIDebugDocumentTextExternalAuthor.cpp
+                    %(axdebug)s/PyIDebugExpression.cpp
+                    %(axdebug)s/PyIDebugExpressionCallBack.cpp
+                    %(axdebug)s/PyIDebugExpressionContext.cpp
+                    %(axdebug)s/PyIDebugProperties.cpp
+                    %(axdebug)s/PyIDebugSessionProvider.cpp
+                    %(axdebug)s/PyIDebugStackFrame.cpp
+                    %(axdebug)s/PyIDebugStackFrameSniffer.cpp
+                    %(axdebug)s/PyIDebugStackFrameSnifferEx.cpp
+                    %(axdebug)s/PyIDebugSyncOperation.cpp
+                    %(axdebug)s/PyIEnumDebugApplicationNodes.cpp
+                    %(axdebug)s/PyIEnumDebugCodeContexts.cpp
+                    %(axdebug)s/PyIEnumDebugExpressionContexts.cpp
+                    %(axdebug)s/PyIEnumDebugPropertyInfo.cpp
+                    %(axdebug)s/PyIEnumDebugStackFrames.cpp
+                    %(axdebug)s/PyIEnumRemoteDebugApplications.cpp
+                    %(axdebug)s/PyIEnumRemoteDebugApplicationThreads.cpp
+                    %(axdebug)s/PyIMachineDebugManager.cpp
+                    %(axdebug)s/PyIMachineDebugManagerEvents.cpp
+                    %(axdebug)s/PyIProcessDebugManager.cpp
+                    %(axdebug)s/PyIProvideExpressionContexts.cpp
+                    %(axdebug)s/PyIRemoteDebugApplication.cpp
+                    %(axdebug)s/PyIRemoteDebugApplicationEvents.cpp
+                    %(axdebug)s/PyIRemoteDebugApplicationThread.cpp
+                    %(axdebug)s/stdafx.cpp
+                     """ % dirs).split(),
     ),
     WinExt_win32com('internet'),
     WinExt_win32com('mapi', libraries="mapi32", pch_header="PythonCOM.h",
