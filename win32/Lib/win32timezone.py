@@ -461,30 +461,15 @@ def GetLocalTimeZone():
 	>>> (nowUTC - nowLoc) < datetime.timedelta(seconds = 5)
 	True
 	"""
-	tzRegKey = r'SYSTEM\CurrentControlSet\Control\TimeZoneInformation'
-	local = _RegKeyDict.open(_winreg.HKEY_LOCAL_MACHINE, tzRegKey)
-	# if the user has not checked "Automatically adjust clock for daylight
-	# saving changes" in the Date and Time Properties control, the standard
-	# and daylight values will be the same.  If this is the case, create a
-	# timezone object fixed to standard time.
-	fixStandardTime = local['StandardName'] == local['DaylightName'] and \
-					local['StandardBias'] == local['DaylightBias']
-	keyName = ['StandardName', 'TimeZoneKeyName'][sys.getwindowsversion() >= (6,)]
-	standardName = local[keyName]
-	standardName = __TimeZoneKeyNameWorkaround(standardName)
+	code, result = win32api.GetTimeZoneInformation()
+	bias, standardName, standardTimeBegin, standardBias, daylightName, daylightBegin, daylightBias = result
+	# code is 0 if daylight savings is disabled or not defined
+	#  code is 1 or 2 if daylight savings is enabled, 2 if currently active
+	fixStandardTime = not code
+	# note that although the given information is sufficient to construct a WinTZI object, it's
+	#  not sufficient to represent the time zone in which the current user is operating due
+	#  to dynamic time zones.
 	return TimeZoneInfo(standardName, fixStandardTime)
-
-def __TimeZoneKeyNameWorkaround(name):
-	"""It may be a bug in Vista, but in standard Windows Vista install
-	(both 32-bit and 64-bit), it appears the TimeZoneKeyName returns a
-	string with extraneous characters.
-	>>> __TimeZoneKeyNameWorkaround("foo\\0xxx")
-	'foo'
-	>>> __TimeZoneKeyNameWorkaround("foo")
-	'foo'
-	"""
-	# remove anything after and including the first null character.
-	return name.split('\x00',1)[0]
 
 def GetTZCapabilities():
 	"""Run a few known tests to determine the capabilities of the time zone database
