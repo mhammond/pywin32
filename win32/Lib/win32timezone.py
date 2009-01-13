@@ -136,6 +136,7 @@ import re
 import sys
 import operator
 import warnings
+from itertools import count
 
 import logging
 log = logging.getLogger(__file__)
@@ -143,17 +144,8 @@ log = logging.getLogger(__file__)
 class WinTZI(object):
 	format = '3l8h8h'
 
-	def __init__(self, key, name = None):
-		if(not name and len(key) == struct.calcsize(self.format)):
-			self.__init_from_bytes__(key)
-		else:
-			self.__init_from_reg_key__(key, name)
-		
-	def __init_from_reg_key__(self, key, name = None):
-		if not name:
-			key, name = os.path.split(key)
-		value, type = _winreg.QueryValueEx(key, name) 
-		self.__init_from_bytes__(value)
+	def __init__(self, bytes):
+		self.__init_from_bytes__(bytes)
 		
 	def __init_from_bytes__(self, bytes):
 		components = struct.unpack(self.format, bytes)
@@ -217,8 +209,7 @@ class TimeZoneInfo(datetime.tzinfo):
 		
 	def __init__(self, timeZoneName, fixedStandardTime=False):
 		self.timeZoneName = timeZoneName
-		key = self._FindTimeZoneKey()
-		self._LoadInfoFromKey(key)
+		self._LoadInfoFromKey()
 		self.fixedStandardTime = fixedStandardTime
 
 	def _FindTimeZoneKey(self):
@@ -229,31 +220,31 @@ class TimeZoneInfo(datetime.tzinfo):
 		# Also match the time zone key name itself, to be compatible with
 		# English-based hard-coded time zones.
 		timeZoneName = zoneNames.get(self.timeZoneName, self.timeZoneName)
-		tzRegKeyPath = os.path.join(self.tzRegKey, timeZoneName)
+		key = _RegKeyDict.open(_winreg.HKEY_LOCAL_MACHINE, self.tzRegKey)
 		try:
-			key = _winreg.OpenKeyEx(_winreg.HKEY_LOCAL_MACHINE, tzRegKeyPath)
+			result = key.subkey(timeZoneName)
 		except:
 			raise ValueError('Timezone Name %s not found.' % timeZoneName)
-		return key
+		return result
 
 	def __getinitargs__(self):
 		return (self.timeZoneName,)
 
-	def _LoadInfoFromKey(self, key):
+	def _LoadInfoFromKey(self):
 		"""Loads the information from an opened time zone registry key
 		into relevant fields of this TZI object"""
-		self.displayName = _winreg.QueryValueEx(key, "Display")[0]
-		self.standardName = _winreg.QueryValueEx(key, "Std")[0]
-		self.daylightName = _winreg.QueryValueEx(key, "Dlt")[0]
-		self.staticInfo = WinTZI(key, "TZI")
+		key = self._FindTimeZoneKey()
+		self.displayName = key['Display']
+		self.standardName = key['Std']
+		self.daylightName = key['Dlt']
+		self.staticInfo = WinTZI(key['TZI'])
 		self._LoadDynamicInfoFromKey(key)
 
 	def _LoadDynamicInfoFromKey(self, key):
 		try:
-			dkey = _winreg.OpenKeyEx(key, 'Dynamic DST')
+			info = key.subkey('Dynamic DST')
 		except WindowsError:
 			return
-		info = _RegKeyDict(dkey)
 		del info['FirstEntry']
 		del info['LastEntry']
 		years = map(int, info.keys())
@@ -344,43 +335,43 @@ class TimeZoneInfo(datetime.tzinfo):
 		return cmp(self.__dict__, other.__dict__)
 
 	# helper methods for accessing the timezone info from the registry
+	@staticmethod
 	def _get_time_zone_key(subkey=None):
 		"Return the registry key that stores time zone details"
-		key = _winreg.OpenKeyEx(_winreg.HKEY_LOCAL_MACHINE, TimeZoneInfo.tzRegKey)
+		key = _RegKeyDict.open(_winreg.HKEY_LOCAL_MACHINE, TimeZoneInfo.tzRegKey)
 		if subkey:
-			key = _winreg.OpenKeyEx(key, subkey)
+			key = key.subkey(subkey)
 		return key
-	_get_time_zone_key = staticmethod(_get_time_zone_key)
 
+	@staticmethod
 	def _get_time_zone_key_names():
 		"Returns the names of the (registry keys of the) time zones"
-		return _RegKeyEnumerator(TimeZoneInfo._get_time_zone_key())
-	_get_time_zone_key_names = staticmethod(_get_time_zone_key_names)
-
+		return TimeZoneInfo._get_time_zone_key().subkeys()
+	
+	@staticmethod
 	def _get_indexed_time_zone_keys(index_key='Index'):
 		"""
 		Get the names of the registry keys indexed by a value in that key.
 		"""
-		key_names = tuple(TimeZoneInfo._get_time_zone_key_names())
+		key_names = TimeZoneInfo._get_time_zone_key_names()
 		def get_index_value(key_name):
 			key = TimeZoneInfo._get_time_zone_key(key_name)
-			value, type = _winreg.QueryValueEx(key, index_key)
-			return value
+			return key[index_key]
 		values = map(get_index_value, key_names)
 		return zip(values, key_names)
-	_get_indexed_time_zone_keys = staticmethod(_get_indexed_time_zone_keys)
 
+	@staticmethod
 	def get_sorted_time_zone_names():
 		"Return a list of time zone names that can be used to initialize TimeZoneInfo instances"
 		tzs = TimeZoneInfo.get_sorted_time_zones()
 		get_standard_name = lambda tzi: tzi.standardName
 		return map(get_standard_name, tzs)
-	get_sorted_time_zone_names = staticmethod(get_sorted_time_zone_names)
 
+	@staticmethod
 	def get_all_time_zones():
 		return map(TimeZoneInfo, TimeZoneInfo._get_time_zone_key_names())
-	get_all_time_zones = staticmethod(get_all_time_zones)
 
+	@staticmethod
 	def get_sorted_time_zones(key=None):
 		"""
 		Return the time zones sorted by some key.
@@ -393,28 +384,45 @@ class TimeZoneInfo(datetime.tzinfo):
 		zones = TimeZoneInfo.get_all_time_zones()
 		zones.sort(key=key)
 		return zones
-	get_sorted_time_zones = staticmethod(get_sorted_time_zones)
 
-def _RegKeyEnumerator(key):
-	return _RegEnumerator(key, _winreg.EnumKey)
-
-def _RegValueEnumerator(key):
-	return _RegEnumerator(key, _winreg.EnumValue)
-
-def _RegEnumerator(key, func):
-	"Enumerates an open registry key as an iterable generator"
-	index = 0
-	try:
-		while 1:
-			yield func(key, index)
-			index += 1
-	except WindowsError: pass
+class _RegKeyDict(dict):
+	def __init__(self, key):
+		dict.__init__(self)
+		self.key = key
+		self.__load_values()
 	
-def _RegKeyDict(key):
-	values = _RegValueEnumerator(key)
-	values = tuple(values)
-	return dict(map(lambda (name,value,type): (name,value), values))
+	@classmethod
+	def open(cls, *args, **kargs):
+		return _RegKeyDict(_winreg.OpenKeyEx(*args, **kargs))
+		
+	def subkey(self, name):
+		return _RegKeyDict(_winreg.OpenKeyEx(self.key, name))
+	
+	def __load_values(self):
+		get_name_value = lambda (name, value, type): (name, value)
+		pairs = map(get_name_value, self._enumerate_reg_values(self.key))
+		self.update(pairs)
+	
+	def subkeys(self):
+		return self._enumerate_reg_keys(self.key)
 
+	@staticmethod
+	def _enumerate_reg_values(key):
+		return _RegKeyDict._enumerate_reg(key, _winreg.EnumValue)
+
+	@staticmethod
+	def _enumerate_reg_keys(key):
+		return _RegKeyDict._enumerate_reg(key, _winreg.EnumKey)
+		
+	@staticmethod
+	def _enumerate_reg(key, func):
+		"Enumerates an open registry key as an iterable generator"
+		try:
+			for index in count():
+				yield func(key, index)
+		except WindowsError: pass
+		
+		
 # for backward compatibility
 def deprecated(func, name='Unknown'):
 	"""This is a decorator which can be used to mark functions
@@ -454,8 +462,7 @@ def GetLocalTimeZone():
 	True
 	"""
 	tzRegKey = r'SYSTEM\CurrentControlSet\Control\TimeZoneInformation'
-	key = _winreg.OpenKeyEx(_winreg.HKEY_LOCAL_MACHINE, tzRegKey)
-	local = _RegKeyDict(key)
+	local = _RegKeyDict.open(_winreg.HKEY_LOCAL_MACHINE, tzRegKey)
 	# if the user has not checked "Automatically adjust clock for daylight
 	# saving changes" in the Date and Time Properties control, the standard
 	# and daylight values will be the same.  If this is the case, create a
