@@ -272,6 +272,14 @@ PyDict_SetItemString(d, "g_HWNDMap", g_HWNDMap);
 PyDict_SetItemString(d, "g_DLGMap", g_DLGMap);
 #endif
 
+PyDict_SetItemString(d, "UNICODE",
+#ifdef UNICODE
+					Py_True
+#else
+					Py_False
+#endif
+						);
+
 // hack borrowed from win32security since version of SWIG we use doesn't do keyword arguments
 #ifdef WINXPGUI
 for (PyMethodDef *pmd = winxpguiMethods; pmd->ml_name; pmd++)
@@ -1583,10 +1591,11 @@ static PyObject *PyMakeBuffer(PyObject *self, PyObject *args)
 %native (PyMakeBuffer) PyMakeBuffer;
 
 %{
-// @pyswig bytes|PyGetString|Returns bytes from an address.
+// @pyswig string|PyGetString|Returns a string from an address.
+// @rdesc If win32gui.UNICODE is True, this will return a unicode object.
 static PyObject *PyGetString(PyObject *self, PyObject *args)
 {
-	char *addr = 0;
+	TCHAR *addr = 0;
 	size_t len = -1;
 #ifdef _WIN64
 	static char *input_fmt="L|L:PyGetString";
@@ -1607,14 +1616,14 @@ static PyObject *PyGetString(PyObject *self, PyObject *args)
 			PyErr_SetString(PyExc_ValueError, "The value is not a valid address for reading");
 			return NULL;
 			}
-		return PyString_FromStringAndSize(addr, len);
+		return PyWinObject_FromTCHAR(addr, len);
 	}
 	// This should probably be in a __try just in case.
-	if (IsBadStringPtrA(addr, (DWORD_PTR)-1)) {
+	if (IsBadStringPtr(addr, (DWORD_PTR)-1)) {
 		PyErr_SetString(PyExc_ValueError, "The value is not a valid null-terminated string");
 		return NULL;
 	}
-	return PyString_FromString(addr);
+	return PyWinObject_FromTCHAR(addr);
 }
 %}
 %native (PyGetString) PyGetString;

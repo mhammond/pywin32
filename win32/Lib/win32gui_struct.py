@@ -34,6 +34,29 @@ import array
 import commctrl
 import pywintypes
 
+# Encode a string suitable for passing in a win32gui related structure
+# If win32gui is built with UNICODE defined (ie, py3k), then functions
+# like InsertMenuItem are actually calling InsertMenuItemW etc, so all
+# strings will need to be unicode.
+if win32gui.UNICODE:
+    def _make_text_buffer(text):
+        # XXX - at this stage win32gui.UNICODE is only True in py3k,
+        # and in py3k is makes sense to reject bytes.
+        if not isinstance(text, unicode):
+            raise TypeError('MENUITEMINFO text must be unicode')
+        data = (text+'\0').encode("unicode-internal")
+        return array.array("b", data)
+
+else:
+    def _make_text_buffer(text):
+        if isinstance(text, unicode):
+            text = text.encode("mbcs")
+        return array.array("b", text+'\0')
+
+# make an 'empty' buffer, ready for filling with cch characters.
+def _make_empty_text_buffer(cch):
+    return _make_text_buffer("\0" * cch)
+
 # Generic WM_NOTIFY unpacking
 def UnpackWMNOTIFY(lparam):
     format = "iii"
@@ -47,7 +70,7 @@ def UnpackWMNOTIFY(lparam):
 # structures.  We also have special handling for the 'fMask' item in that
 # structure to avoid the caller needing to explicitly check validity
 # (None is used if the mask excludes/should exclude the value)
-menuitem_fmt = '5i5PiP'
+_menuiteminfo_fmt = '5i5PiP'
 
 def PackMENUITEMINFO(fType=None, fState=None, wID=None, hSubMenu=None,
                      hbmpChecked=None, hbmpUnchecked=None, dwItemData=None,
@@ -88,10 +111,8 @@ def PackMENUITEMINFO(fType=None, fState=None, wID=None, hSubMenu=None,
     else: fMask |= win32con.MIIM_BITMAP
     if text is not None:
         fMask |= win32con.MIIM_STRING
-        if isinstance(text, unicode):
-            text = text.encode("mbcs")
-        str_buf = array.array("c", text+'\0')
-        cch = len(str_buf)
+        str_buf = _make_text_buffer(text)
+        cch = len(text)
         # We are taking address of strbuf - it must not die until windows
         # has finished with our structure.
         lptext = str_buf.buffer_info()[0]
@@ -102,8 +123,8 @@ def PackMENUITEMINFO(fType=None, fState=None, wID=None, hSubMenu=None,
     # Create the struct.
     # 'P' format does not accept PyHANDLE's !
     item = struct.pack(
-                menuitem_fmt,
-                struct.calcsize(menuitem_fmt), # cbSize
+                _menuiteminfo_fmt,
+                struct.calcsize(_menuiteminfo_fmt), # cbSize
                 fMask,
                 fType,
                 fState,
@@ -118,7 +139,7 @@ def PackMENUITEMINFO(fType=None, fState=None, wID=None, hSubMenu=None,
                 )
     # Now copy the string to a writable buffer, so that the result
     # could be passed to a 'Get' function
-    return array.array("c", item), extras
+    return array.array("b", item), extras
 
 def UnpackMENUITEMINFO(s):
     (cb,
@@ -132,7 +153,7 @@ def UnpackMENUITEMINFO(s):
     dwItemData,
     lptext,
     cch,
-    hbmpItem) = struct.unpack(menuitem_fmt, s)
+    hbmpItem) = struct.unpack(_menuiteminfo_fmt, s)
     assert cb==len(s)
     if fMask & win32con.MIIM_FTYPE==0: fType = None
     if fMask & win32con.MIIM_STATE==0: fState = None
@@ -149,6 +170,7 @@ def UnpackMENUITEMINFO(s):
            dwItemData, text, hbmpItem
 
 def EmptyMENUITEMINFO(mask = None, text_buf_size=512):
+    # text_buf_size is number of *characters* - not necessarily no of bytes.
     extra = []
     if mask is None:
         mask = win32con.MIIM_BITMAP | win32con.MIIM_CHECKMARKS | \
@@ -158,15 +180,17 @@ def EmptyMENUITEMINFO(mask = None, text_buf_size=512):
                # Note: No MIIM_TYPE - this screws win2k/98.
  
     if mask & win32con.MIIM_STRING:
-        text_buffer = array.array("c", "\0" * text_buf_size)
+        text_buffer = _make_empty_text_buffer(text_buf_size)
         extra.append(text_buffer)
-        text_addr, text_len = text_buffer.buffer_info()
+        text_addr, _ = text_buffer.buffer_info()
     else:
-        text_addr = text_len = 0
+        text_addr = text_buf_size = 0
 
+    # Now copy the string to a writable buffer, so that the result
+    # could be passed to a 'Get' function
     buf = struct.pack(
-                menuitem_fmt,
-                struct.calcsize(menuitem_fmt), # cbSize
+                _menuiteminfo_fmt,
+                struct.calcsize(_menuiteminfo_fmt), # cbSize
                 mask,
                 0, #fType,
                 0, #fState,
@@ -176,13 +200,13 @@ def EmptyMENUITEMINFO(mask = None, text_buf_size=512):
                 0, #hbmpUnchecked,
                 0, #dwItemData,
                 text_addr,
-                text_len,
+                text_buf_size,
                 0, #hbmpItem
                 )
-    return array.array("c", buf), extra
+    return array.array("b", buf), extra
 
 # MENUINFO struct
-menuinfo_fmt = '7i'
+_menuinfo_fmt = 'iiiiPiP'
 
 def PackMENUINFO(dwStyle = None, cyMax = None,
                  hbrBack = None, dwContextHelpID = None, dwMenuData = None,
@@ -199,15 +223,15 @@ def PackMENUINFO(dwStyle = None, cyMax = None,
     else: fMask |= win32con.MIM_MENUDATA
     # Create the struct.
     item = struct.pack(
-                menuinfo_fmt,
-                struct.calcsize(menuinfo_fmt), # cbSize
+                _menuinfo_fmt,
+                struct.calcsize(_menuinfo_fmt), # cbSize
                 fMask,
                 dwStyle,
                 cyMax,
                 hbrBack,
                 dwContextHelpID,
                 dwMenuData)
-    return array.array("c", item)
+    return array.array("b", item)
 
 def UnpackMENUINFO(s):
     (cb,
@@ -216,7 +240,7 @@ def UnpackMENUINFO(s):
     cyMax,
     hbrBack,
     dwContextHelpID,
-    dwMenuData) = struct.unpack(menuinfo_fmt, s)
+    dwMenuData) = struct.unpack(_menuinfo_fmt, s)
     assert cb==len(s)
     if fMask & win32con.MIM_STYLE==0: dwStyle = None
     if fMask & win32con.MIM_MAXHEIGHT==0: cyMax = None
@@ -232,8 +256,8 @@ def EmptyMENUINFO(mask = None):
                win32con.MIM_MENUDATA
  
     buf = struct.pack(
-                menuinfo_fmt,
-                struct.calcsize(menuinfo_fmt), # cbSize
+                _menuinfo_fmt,
+                struct.calcsize(_menuinfo_fmt), # cbSize
                 mask,
                 0, #dwStyle
                 0, #cyMax
@@ -241,7 +265,7 @@ def EmptyMENUINFO(mask = None):
                 0, #dwContextHelpID,
                 0, #dwMenuData,
                 )
-    return array.array("c", buf)
+    return array.array("b", buf)
 
 ##########################################################################
 #
@@ -287,11 +311,10 @@ def PackTVITEM(hitem, state, stateMask, text, image, selimage, citems, param):
     if text is None:
         text_addr = text_len = 0
     else:
-        if isinstance(text, unicode):
-            text = text.encode("mbcs")
-        text_buffer = array.array("c", text+"\0")
+        text_buffer = _make_text_buffer(text)
+        text_len = len(text)
         extra.append(text_buffer)
-        text_addr, text_len = text_buffer.buffer_info()
+        text_addr, _ = text_buffer.buffer_info()
     format = "iiiiiiiiii"
     buf = struct.pack(format,
                       mask, hitem,
@@ -299,7 +322,7 @@ def PackTVITEM(hitem, state, stateMask, text, image, selimage, citems, param):
                       text_addr, text_len, # text
                       image, selimage,
                       citems, param)
-    return array.array("c", buf), extra
+    return array.array("b", buf), extra
 
 # Make a new buffer suitable for querying hitem's attributes.
 def EmptyTVITEM(hitem, mask = None, text_buf_size=512):
@@ -309,19 +332,19 @@ def EmptyTVITEM(hitem, mask = None, text_buf_size=512):
                commctrl.TVIF_IMAGE | commctrl.TVIF_SELECTEDIMAGE | \
                commctrl.TVIF_CHILDREN | commctrl.TVIF_PARAM
     if mask & commctrl.TVIF_TEXT:
-        text_buffer = array.array("c", "\0" * text_buf_size)
+        text_buffer = _make_empty_text_buffer(text_buf_size)
         extra.append(text_buffer)
-        text_addr, text_len = text_buffer.buffer_info()
+        text_addr, _ = text_buffer.buffer_info()
     else:
-        text_addr = text_len = 0
+        text_addr = text_buf_size = 0
     format = "iiiiiiiiii"
     buf = struct.pack(format,
                       mask, hitem,
                       0, 0,
-                      text_addr, text_len, # text
+                      text_addr, text_buf_size, # text
                       0, 0,
                       0, 0)
-    return array.array("c", buf), extra
+    return array.array("b", buf), extra
     
 def UnpackTVITEM(buffer):
     item_mask, item_hItem, item_state, item_stateMask, \
@@ -388,18 +411,17 @@ def PackLVITEM(item=None, subItem=None, state=None, stateMask=None, text=None, i
         text_addr = text_len = 0
     else:
         mask |= commctrl.LVIF_TEXT
-        if isinstance(text, unicode):
-            text = text.encode("mbcs")
-        text_buffer = array.array("c", text+"\0")
+        text_buffer = _make_text_buffer(text)
+        text_len = len(text)
         extra.append(text_buffer)
-        text_addr, text_len = text_buffer.buffer_info()
+        text_addr, _ = text_buffer.buffer_info()
     format = "iiiiiiiiii"
     buf = struct.pack(format,
                       mask, item, subItem,
                       state, stateMask,
                       text_addr, text_len, # text
                       image, param, indent)
-    return array.array("c", buf), extra
+    return array.array("b", buf), extra
 
 def UnpackLVITEM(buffer):
     item_mask, item_item, item_subItem, \
@@ -444,18 +466,18 @@ def EmptyLVITEM(item, subitem, mask = None, text_buf_size=512):
         mask = commctrl.LVIF_IMAGE | commctrl.LVIF_INDENT | commctrl.LVIF_TEXT | \
                commctrl.LVIF_PARAM | commctrl.LVIF_STATE
     if mask & commctrl.LVIF_TEXT:
-        text_buffer = array.array("c", "\0" * text_buf_size)
+        text_buffer = _make_empty_text_buffer(text_buf_size)
         extra.append(text_buffer)
-        text_addr, text_len = text_buffer.buffer_info()
+        text_addr, _ = text_buffer.buffer_info()
     else:
-        text_addr = text_len = 0
+        text_addr = text_buf_size = 0
     format = "iiiiiiiiii"
     buf = struct.pack(format,
                       mask, item, subitem, 
                       0, 0,
-                      text_addr, text_len, # text
+                      text_addr, text_buf_size, # text
                       0, 0, 0)
-    return array.array("c", buf), extra
+    return array.array("b", buf), extra
 
 
 # List view column structure
@@ -471,17 +493,16 @@ def PackLVCOLUMN(fmt=None, cx=None, text=None, subItem=None, image=None, order=N
     if text is None:
         text_addr = text_len = 0
     else:
-        if isinstance(text, unicode):
-            text = text.encode("mbcs")
-        text_buffer = array.array("c", text+"\0")
+        text_buffer = _make_text_buffer(text)
         extra.append(text_buffer)
-        text_addr, text_len = text_buffer.buffer_info()
+        text_addr, _ = text_buffer.buffer_info()
+        text_len = len(text)
     format = "iiiiiiii"
     buf = struct.pack(format,
                       mask, fmt, cx,
                       text_addr, text_len, # text
                       subItem, image, order)
-    return array.array("c", buf), extra
+    return array.array("b", buf), extra
 
 def UnpackLVCOLUMN(lparam):
     format = "iiiiiiii"
@@ -508,17 +529,17 @@ def EmptyLVCOLUMN(mask = None, text_buf_size=512):
         mask = commctrl.LVCF_FMT | commctrl.LVCF_WIDTH | commctrl.LVCF_TEXT | \
                commctrl.LVCF_SUBITEM | commctrl.LVCF_IMAGE | commctrl.LVCF_ORDER
     if mask & commctrl.LVCF_TEXT:
-        text_buffer = array.array("c", "\0" * text_buf_size)
+        text_buffer = _make_empty_text_buffer(text_buf_size)
         extra.append(text_buffer)
-        text_addr, text_len = text_buffer.buffer_info()
+        text_addr, _ = text_buffer.buffer_info()
     else:
-        text_addr = text_len = 0
+        text_addr = text_buf_size = 0
     format = "iiiiiiii"
     buf = struct.pack(format,
                       mask, 0, 0,
-                      text_addr, text_len, # text
+                      text_addr, text_buf_size, # text
                       0, 0, 0)
-    return array.array("c", buf), extra
+    return array.array("b", buf), extra
 
 # List view hit-test.
 def PackLVHITTEST(pt):
@@ -526,7 +547,7 @@ def PackLVHITTEST(pt):
     buf = struct.pack(format,
                       pt[0], pt[1],
                       0, 0, 0)
-    return array.array("c", buf), None
+    return array.array("b", buf), None
 
 def UnpackLVHITTEST(buf):
     format = "iiiii"
@@ -548,17 +569,16 @@ def PackHDITEM(cxy = None, text = None, hbm = None, fmt = None,
     if text is None:
         text_addr = text_len = 0
     else:
-        if isinstance(text, unicode):
-            text = text.encode("mbcs")
-        text_buffer = array.array("c", text+"\0")
+        text_buffer = _make_text_buffer(text)
         extra.append(text_buffer)
-        text_addr, text_len = text_buffer.buffer_info()
+        text_addr, _ = text_buffer.buffer_info()
+        text_len = len(text)
 
     format = "iiiiiiiiiii"
     buf = struct.pack(format,
                       mask, cxy, text_addr, hbm, text_len,
                       fmt, param, image, order, 0, 0)
-    return array.array("c", buf), extra
+    return array.array("b", buf), extra
 
 # Device notification stuff
 
