@@ -442,6 +442,70 @@ GetIndexedTimeZoneNames = deprecated(TimeZoneInfo._get_indexed_time_zone_keys, '
 GetSortedTimeZoneNames = deprecated(TimeZoneInfo.get_sorted_time_zone_names, 'GetSortedTimeZoneNames')
 # end backward compatibility
 
+# A timezone info for utc - pywintypes uses a single instance of this class
+# to return SYSTEMTIME instances.
+# Lifted from Gustavo Niemeyer's PSF-licensed dateutil package.
+class TimeZoneUTC(datetime.tzinfo):
+	"""A UTC Time Zone instance that is compatible with TimeZoneInfo, but
+	avoids access to the registry.
+	>>> TimeZoneUTC() == GetUTCTimeZone()
+	True
+	"""
+	def __new__(cls):
+		# no need to make more than one of these
+		try:
+			return cls._instance
+		except AttributeError:
+			cls._instance = datetime.tzinfo.__new__(cls)
+			return cls._instance
+
+	ZERO = datetime.timedelta(0)
+	def utcoffset(self, dt):
+		return self.ZERO
+
+	def dst(self, dt):
+		return self.ZERO
+
+	def tzname(self, dt):
+		return "UTC"
+
+	def __eq__(self, other):
+		# Instance of this exact class?
+		if isinstance(other, TimeZoneUTC):
+			return True
+		# allow comparisons against the regular TimeZoneInfo object.
+		if not isinstance(other, TimeZoneInfo):
+			return False
+		# The following uses the staticInfo directly (ignoring any
+		#  dynamic info).  This should compare the time zones using
+		#  the most current info.  The two are equal if there is
+		#  no bias, no standard time bias, and no bias during dst.
+		si = other.staticInfo
+		same_bias = si.bias==self.ZERO
+		same_standard_bias = si.standardBiasOffset==self.ZERO
+		no_dst = other.fixedStandardTime == True
+		same_daylight_bias = no_dst or si.daylightBiasOffset==self.ZERO
+		return same_bias and same_standard_bias and same_daylight_bias
+
+	def __ne__(self, other):
+		return not self.__eq__(other)
+
+	def __repr__(self):
+		return "%s()" % self.__class__.__name__
+
+def GetUTCTimeZone():
+	"""Returns a time-zone representing UTC.
+
+	Same as TimeZoneInfo('GMT Standard Time', True) but caches the result
+	for performance.
+	
+	>>> isinstance(GetUTCTimeZone(), TimeZoneInfo)
+	True
+	"""
+	if not '_tzutc' in globals():
+		globals().update(_tzutc = TimeZoneInfo('GMT Standard Time', True))
+	return _tzutc
+
 def GetLocalTimeZone():
 	"""Returns the local time zone as defined by the operating system in the
 	registry.
