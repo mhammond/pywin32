@@ -71,7 +71,14 @@ class _WIN32MASKEDSTRUCT:
                     vals.append(0)
                     vals.append(0)
                 else:
-                    str_buf = array.array("c", val+'\0')
+                    # Note this demo still works with byte strings.  An
+                    # alternate strategy would be to use unicode natively
+                    # and use the 'W' version of the messages - eg,
+                    # LVM_SETITEMW etc.
+                    val = val + "\0"
+                    if isinstance(val, unicode):
+                        val = val.encode("mbcs")
+                    str_buf = array.array("b", val)
                     vals.append(str_buf.buffer_info()[0])
                     vals.append(len(val))
                     self._buffs.append(str_buf) # keep alive during the call.
@@ -293,16 +300,10 @@ class DemoWindowBase:
         print "OnSearchFinished"
 
     def OnNotify(self, hwnd, msg, wparam, lparam):
-        format = "iiiiiiiiiii"
+        format = "PPiiiiiiiiP"
         buf = win32gui.PyMakeBuffer(struct.calcsize(format), lparam)
         hwndFrom, idFrom, code, iItem, iSubItem, uNewState, uOldState, uChanged, actionx, actiony, lParam \
                   = struct.unpack(format, buf)
-        # *sigh* - work around a problem with old commctrl modules, which had a
-        # bad value for PY_OU, which therefore cause most "control notification"
-        # messages to be wrong.
-        # Code that needs to work with both pre and post pywin32-204 must do
-        # this too.
-        code += commctrl.PY_0U
         if code == commctrl.NM_DBLCLK:
             print "Double click on item", iItem+1
         return 1
