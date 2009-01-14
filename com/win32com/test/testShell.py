@@ -113,17 +113,23 @@ class FILEGROUPDESCRIPTORTester(win32com.test.util.TestCase):
 
         self.assertEqual(fd, fd2)
 
-    def testSimple(self):
-        fgd = shell.FILEGROUPDESCRIPTORAsString([])
+    def _testSimple(self, make_unicode):
+        fgd = shell.FILEGROUPDESCRIPTORAsString([], make_unicode)
         header = struct.pack("i", 0)
         self.assertEqual(header, fgd[:len(header)])
         self._testRT(dict())
         d = dict()
-        fgd = shell.FILEGROUPDESCRIPTORAsString([d])
+        fgd = shell.FILEGROUPDESCRIPTORAsString([d], make_unicode)
         header = struct.pack("i", 1)
         self.assertEqual(header, fgd[:len(header)])
         self._testRT(d)
-    
+
+    def testSimpleBytes(self):
+        self._testSimple(False)
+
+    def testSimpleUnicode(self):
+        self._testSimple(True)
+
     def testComplex(self):
         if sys.hexversion < 0x2030000:
             # no kw-args to dict in 2.2 - not worth converting!
