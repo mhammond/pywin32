@@ -205,8 +205,15 @@ class HLIFunction(HLIPythonObject):
 			ret.append( MakeHLI( self.myobject.func_argdefs, "Arg Defs" ))
 		except AttributeError:
 			pass
-		ret.append( MakeHLI( self.myobject.func_code, "Code" ))
-		ret.append( MakeHLI( self.myobject.func_globals, "Globals" ))
+		try:
+			code = self.myobject.__code__
+			globs = self.myobject.__globals__
+		except AttributeError:
+			# must be py2.5 or earlier...
+			code = self.myobject.func_code
+			globs = self.myobject.func_globals
+		ret.append(MakeHLI(code, "Code" ))
+		ret.append(MakeHLI(globs, "Globals" ))
 		self.InsertDocString(ret)
 		return ret
 
