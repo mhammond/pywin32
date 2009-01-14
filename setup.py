@@ -1528,6 +1528,7 @@ com_extensions += [
             libraries="axscript msdbg",
             pch_header="stdafx.h",
             optional_headers=["activdbg.h"],
+            platforms=['win32'],
             sources=("""
                     %(axdebug)s/AXDebug.cpp
                     %(axdebug)s/PyIActiveScriptDebug.cpp
