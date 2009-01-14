@@ -16,6 +16,7 @@ This code is free for any purpose, with no warranty of any kind.
 
 import win32api, win32process, win32security
 import win32event, win32con, msvcrt, win32gui
+import os
 
 
 def logonUser(loginString):
@@ -177,19 +178,29 @@ if __name__ == '__main__':
     timeoutSeconds = 15
     cmdString = """\
 REM      Test of winprocess.py piping commands to a shell.\r
-REM      This window will close in %d seconds.\r
+REM      This 'notepad' process will terminate in %d seconds.\r
 vol\r
 net user\r
 _this_is_a_test_of_stderr_\r
 """ % timeoutSeconds
 
-    cmd, out = tempfile.TemporaryFile(), tempfile.TemporaryFile()
-    cmd.write(cmdString)
-    cmd.seek(0)
-    print 'CMD.EXE exit code:', run('cmd.exe', show=0, stdin=cmd,
-                                    stdout=out, stderr=out)
-    cmd.close()
-    print 'NOTEPAD exit code:', run('notepad.exe %s' % out.file.name,
-                                    show=win32con.SW_MAXIMIZE,
-                                    mSec=timeoutSeconds*1000)
-    out.close()
+    cmd_name = tempfile.mktemp()
+    out_name = cmd_name + '.txt'
+    try:
+        cmd = open(cmd_name, "w+b")
+        out = open(out_name, "w+b")
+        cmd.write(cmdString.encode('mbcs'))
+        cmd.seek(0)
+        print 'CMD.EXE exit code:', run('cmd.exe', show=0, stdin=cmd,
+                                        stdout=out, stderr=out)
+        cmd.close()
+        print 'NOTEPAD exit code:', run('notepad.exe %s' % out.name,
+                                        show=win32con.SW_MAXIMIZE,
+                                        mSec=timeoutSeconds*1000)
+        out.close()
+    finally:
+        for n in (cmd_name, out_name):
+            try:
+                os.unlink(cmd_name)
+            except os.error:
+                pass
