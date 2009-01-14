@@ -124,13 +124,18 @@ class TestSimpleOps(unittest.TestCase):
         if issubclass(pywintypes.TimeType, datetime.datetime):
             from win32timezone import GetLocalTimeZone
             now = datetime.datetime.now(tz=GetLocalTimeZone())
-            ok_delta = datetime.timedelta(seconds=1)
+            nowish = now + datetime.timedelta(seconds=1)
             later = now + datetime.timedelta(seconds=120)
         else:
+            rc, tzi = win32api.GetTimeZoneInformation()
+            bias = tzi[0]
+            if rc==2: # daylight-savings is in effect.
+                bias += tzi[-1]
+            bias *= 60 # minutes to seconds...
             tick = int(time.time())
-            now = pywintypes.Time(tick)
-            ok_delta = 1
-            later = pywintypes.Time(tick+120)
+            now = pywintypes.Time(tick+bias)
+            nowish = pywintypes.Time(tick+bias+1)
+            later = pywintypes.Time(tick+bias+120)
 
         filename = tempfile.mktemp("-testFileTimes")
         # Windows docs the 'last time' isn't valid until the last write
@@ -139,25 +144,23 @@ class TestSimpleOps(unittest.TestCase):
         f = win32file.CreateFile(filename, win32file.GENERIC_READ|win32file.GENERIC_WRITE,
                                  0, None,
                                  win32con.OPEN_EXISTING, 0, None)
-        # *sob* - before we had tz aware datetime objects, we are faced
-        # with FILETIME objects being +GST out from now().  So just skip
-        # this...
-        if not issubclass(pywintypes.TimeType, datetime.datetime):
-            return
         try:
             ct, at, wt = win32file.GetFileTime(f)
             self.failUnless(ct >= now, "File was created in the past - now=%s, created=%s" % (now, ct))
-            self.failUnless( now <= ct <= now + ok_delta, (now, ct))
+            self.failUnless( now <= ct <= nowish, (now, ct))
             self.failUnless(wt >= now, "File was written-to in the past now=%s, written=%s" % (now,wt))
-            self.failUnless( now <= wt <= now + ok_delta, (now, wt))
+            self.failUnless( now <= wt <= nowish, (now, wt))
 
             # Now set the times.
             win32file.SetFileTime(f, later, later, later)
             # Get them back.
             ct, at, wt = win32file.GetFileTime(f)
-            self.failUnlessEqual(ct, later)
-            self.failUnlessEqual(at, later)
-            self.failUnlessEqual(wt, later)
+            # XXX - the builtin PyTime type appears to be out by a dst offset.
+            # just ignore that type here...
+            if issubclass(pywintypes.TimeType, datetime.datetime):
+                self.failUnlessEqual(ct, later)
+                self.failUnlessEqual(at, later)
+                self.failUnlessEqual(wt, later)
 
         finally:
             f.Close()
