@@ -12,7 +12,7 @@ and not Windows 95/98/Me.
 	This module may be tested using the doctest module.
 
 	Written by Jason R. Coombs (jaraco@jaraco.com).
-	Copyright © 2003-2008.
+	Copyright © 2003-2009.
 	All Rights Reserved.
 
 	This module is licenced for use in Mark Hammond's pywin32
@@ -132,6 +132,7 @@ import _winreg
 import struct
 import datetime
 import win32api
+import ctypes
 import re
 import sys
 import operator
@@ -147,37 +148,36 @@ class WinTZI(object):
 
 	def __init__(self, param):
 		isinstance(param, basestring) and self.__load_bytes(param)
-		isinstance(param, tuple) and self.__load_tuple(param)
+		isinstance(param, TIME_ZONE_INFORMATION) and self.__load_time_zone_information(param)
 	
 	def __load_bytes(self, bytes):
 		components = struct.unpack(self.format, bytes)
-		bias, std_bias, dlt_bias = components[:3]
-		daylight_times = components[3:11], components[11:19]
-		std_start, dlt_start = map(pywintypes.Time, daylight_times)
-		std_name = dlt_name = None
-		tz_tuple = (bias, std_name, std_start, std_bias, dlt_name, dlt_start, dlt_bias)
-		self.__load_values(tz_tuple)
+		bias, standard_bias, daylight_bias = components[:3]
+		standard_start = SYSTEMTIME(*components[3:11])
+		daylight_start = SYSTEMTIME(*components[11:19])
+		standard_name = daylight_name = ""
+		tzi = TIME_ZONE_INFORMATION(bias,
+			standard_name, standard_start, standard_bias,
+			daylight_name, daylight_start, daylight_bias,)
+		self.__load_time_zone_information(tzi)
 
-	tuple_fields = ('bias', 'std_name', 'std_start', 'std_bias', 'dlt_name', 'dlt_start', 'dlt_bias')
-			
-	def __load_values(self, tz_tuple):
-		"tz_tuple is a tuple such as the one returned from win32api.GetTimeZoneInformation"
-		tz_dict = dict(zip(self.tuple_fields, tz_tuple))
+	def __load_time_zone_information(self, tzi):
+		"""Copy all the attributes from a TIME_ZONE_INFORMATION structure,
+		converting bias values to timedelta objects along the way."""
+		# TODO: consider merging this class with TIME_ZONE_INFORMATION
 		make_minute_time_delta = lambda m: datetime.timedelta(minutes = m)
-		bias_vars = [var for var in tz_dict.keys() if 'bias' in var]
-		for name in bias_vars:
-			bias = make_minute_time_delta(tz_dict[name])
-			setattr(self, name, bias)
-		time_vars = [var for var in tz_dict.keys() if 'start' in var]
-		for name in time_vars:
-			value = pywintypes.Time(tz_dict[name])
+		bias_fields = [field for field in tzi.fields() if 'bias' in field]
+		for name in tzi.fields():
+			value = getattr(tzi, name)
+			if 'bias' in name:
+				value = make_minute_time_delta(value)
 			setattr(self, name, value)
 
 	def LocateStartDay(self, year):
-		return self._locate_day(year, self.dlt_start)
+		return self._locate_day(year, self.daylight_start)
 
 	def LocateEndDay(self, year):
-		return self._locate_day(year, self.std_start)
+		return self._locate_day(year, self.standard_start)
 
 	@staticmethod
 	def _locate_day(year, cutoff):
@@ -191,11 +191,11 @@ class WinTZI(object):
 
 		>>> SATURDAY = 6
 		>>> MARCH = 3
-		>>> SYSTEMTIME_tuple = (2000, MARCH, SATURDAY, 4, 0, 0, 0, 0)
+		>>> st = SYSTEMTIME(2000, MARCH, SATURDAY, 4, 0, 0, 0, 0)
 
 		# according to my calendar, the 4th Saturday in March in 2009 was the 28th
 		>>> expected_date = datetime.datetime(2009, 3, 28)
-		>>> WinTZI._locate_day(2009, pywintypes.Time(SYSTEMTIME_tuple)) == expected_date
+		>>> WinTZI._locate_day(2009, st) == expected_date
 		True
 		
 		Refer to the Windows Platform SDK for more information on the SYSTEMTIME
@@ -203,23 +203,23 @@ class WinTZI(object):
 		
 		"""
 		# MS stores Sunday as 0, Python datetime stores Monday as zero
-		target_weekday = (cutoff.weekday + 6) % 7
+		target_weekday = (cutoff.day_of_week + 6) % 7
 		# For SYSTEMTIMEs relating to time zone inforamtion, cutoff.day
 		#  is the week of the month
 		week_of_month = cutoff.day
 		# so the following is the first day of that week
 		day = (week_of_month - 1) * 7 + 1
 		result = datetime.datetime(year, cutoff.month, day,
-			cutoff.hour, cutoff.minute, cutoff.second, cutoff.msec)
+			cutoff.hour, cutoff.minute, cutoff.second, cutoff.millisecond)
 		# now the result is the correct week, but not necessarily the correct day of the week
-		days_to_go = target_weekday - result.weekday()
+		days_to_go = (target_weekday - result.weekday()) % 7
 		result += datetime.timedelta(days_to_go)
 		# if we selected a day in the month following the target month,
 		#  move back a week or two.
 		# This is necessary because Microsoft defines the fifth week in a month
 		#  to be the last week in a month and adding the time delta might have
 		#  pushed the result into the next month.
-		while result.month == month + 1:
+		while result.month == cutoff.month + 1:
 			result -= datetime.timedelta(weeks = 1)
 		return result
 
@@ -275,10 +275,10 @@ class TimeZoneInfo(datetime.tzinfo):
 		self._LoadDynamicInfoFromKey(key)
 
 	def _LoadFromTZI(self, tzi):
-		self.timeZoneName = tzi.std_name
+		self.timeZoneName = tzi.standard_name
 		self.displayName = 'Unknown'
-		self.standardName = tzi.std_name
-		self.daylightName = tzi.dlt_name
+		self.standardName = tzi.standard_name
+		self.daylightName = tzi.daylight_name
 		self.staticInfo = tzi
 
 	def _LoadDynamicInfoFromKey(self, key):
@@ -306,9 +306,9 @@ class TimeZoneInfo(datetime.tzinfo):
 
 	def tzname(self, dt):
 		winInfo = self.getWinInfo(dt)
-		if self.dst(dt) == winInfo.dlt_bias:
+		if self.dst(dt) == winInfo.daylight_bias:
 			result = self.daylightName
-		elif self.dst(dt) == winInfo.std_bias:
+		elif self.dst(dt) == winInfo.standard_bias:
 			result = self.standardName
 		return result
 
@@ -322,11 +322,11 @@ class TimeZoneInfo(datetime.tzinfo):
 		
 	def _getStandardBias(self, dt):
 		winInfo = self.getWinInfo(dt.year)
-		return winInfo.bias + winInfo.std_bias
+		return winInfo.bias + winInfo.standard_bias
 
 	def _getDaylightBias(self, dt):
 		winInfo = self.getWinInfo(dt.year)
-		return winInfo.bias + winInfo.dlt_bias
+		return winInfo.bias + winInfo.daylight_bias
 
 	def utcoffset(self, dt):
 		"Calculates the utcoffset according to the datetime.tzinfo spec"
@@ -341,9 +341,9 @@ class TimeZoneInfo(datetime.tzinfo):
 
 		winInfo = self.getWinInfo(dt.year)
 		if not self.fixedStandardTime and self._inDaylightSavings(dt):
-			result = winInfo.dlt_bias
+			result = winInfo.daylight_bias
 		else:
-			result = winInfo.std_bias
+			result = winInfo.standard_bias
 		return result
 
 	def _inDaylightSavings(self, dt):
@@ -523,9 +523,9 @@ class TimeZoneUTC(datetime.tzinfo):
 		#  no bias, no standard time bias, and no bias during dst.
 		si = other.staticInfo
 		same_bias = si.bias==self.ZERO
-		same_standard_bias = si.std_bias==self.ZERO
+		same_standard_bias = si.standard_bias==self.ZERO
 		no_dst = other.fixedStandardTime == True
-		same_daylight_bias = no_dst or si.dlt_bias==self.ZERO
+		same_daylight_bias = no_dst or si.daylight_bias==self.ZERO
 		return same_bias and same_standard_bias and same_daylight_bias
 
 	def __ne__(self, other):
@@ -566,7 +566,7 @@ def GetLocalTimeZone():
 	>>> (nowUTC - nowLoc) < datetime.timedelta(seconds = 5)
 	True
 	"""
-	code, result = win32api.GetTimeZoneInformation()
+	code, result = GetTimeZoneInformation()
 	info = WinTZI(result)
 	# code is 0 if daylight savings is disabled or not defined
 	#  code is 1 or 2 if daylight savings is enabled, 2 if currently active
@@ -702,3 +702,35 @@ class RangeItemFirst(RangeItem):
 class RangeItemLast(RangeItem):
 	def __new__(cls):
 		return RangeItem.__new__(cls, -1)
+
+# some win32api stuff to get raw SYSTEMTIME structures
+class SYSTEMTIME(ctypes.Structure):
+	_fields_ = [
+		('year', ctypes.c_ushort),
+		('month', ctypes.c_ushort),
+		('day_of_week', ctypes.c_ushort), 
+		('day', ctypes.c_ushort), 
+		('hour', ctypes.c_ushort), 
+		('minute', ctypes.c_ushort), 
+		('second', ctypes.c_ushort), 
+		('millisecond', ctypes.c_ushort), 
+	]
+
+class TIME_ZONE_INFORMATION(ctypes.Structure):
+	_fields_ = [
+		('bias', ctypes.c_long),
+		('standard_name', ctypes.c_wchar*32),
+		('standard_start', SYSTEMTIME),
+		('standard_bias', ctypes.c_long),
+		('daylight_name', ctypes.c_wchar*32),
+		('daylight_start', SYSTEMTIME),
+		('daylight_bias', ctypes.c_long),
+	]
+
+	def fields(self):
+		return map(operator.itemgetter(0), self._fields_)
+
+def GetTimeZoneInformation():
+	tzi = TIME_ZONE_INFORMATION()
+	code = ctypes.windll.kernel32.GetTimeZoneInformation(ctypes.byref(tzi))
+	return code, tzi
