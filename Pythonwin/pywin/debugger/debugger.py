@@ -27,6 +27,10 @@ import commctrl
 import traceback
 
 #import win32traceutil
+if win32ui.UNICODE:
+	LVN_ENDLABELEDIT = commctrl.LVN_ENDLABELEDITW
+else:
+	LVN_ENDLABELEDIT = commctrl.LVN_ENDLABELEDITA
 
 from dbgcon import *
 
@@ -237,7 +241,7 @@ class DebuggerListViewWindow(DebuggerWindow):
 			col = col + 1
 			itemDetails = (commctrl.LVCFMT_LEFT, width, title, 0)
 			list.InsertColumn(col, itemDetails)
-		parent.HookNotify( self.OnListEndLabelEdit, commctrl.LVN_ENDLABELEDIT)
+		parent.HookNotify(self.OnListEndLabelEdit, LVN_ENDLABELEDIT)
 		parent.HookNotify(self.OnItemRightClick, commctrl.NM_RCLICK)
 		parent.HookNotify(self.OnItemDoubleClick, commctrl.NM_DBLCLK)
 
@@ -248,8 +252,9 @@ class DebuggerListViewWindow(DebuggerWindow):
 		pass
 
 	def EditSelected(self):
-		sel = self.GetNextItem(-1, commctrl.LVNI_SELECTED)
-		if sel == -1:
+		try:
+			sel = self.GetNextItem(-1, commctrl.LVNI_SELECTED)
+		except win32ui.error:
 			return
 		self.EditLabel(sel)
 

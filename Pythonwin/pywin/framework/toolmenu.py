@@ -122,6 +122,11 @@ def HandleToolCommand(cmd, code):
 import commctrl
 from pywin.mfc import dialog
 
+if win32ui.UNICODE:
+	LVN_ENDLABELEDIT = commctrl.LVN_ENDLABELEDITW
+else:
+	LVN_ENDLABELEDIT = commctrl.LVN_ENDLABELEDITA
+
 class ToolMenuPropPage(dialog.PropertyPage):
 	def __init__(self):
 		self.bImChangingEditControls = 0 # Am I programatically changing the controls?

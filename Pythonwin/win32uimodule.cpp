@@ -2023,6 +2023,13 @@ int AddConstants(PyObject *module)
 	int debug = 0;
 #endif
 	ADD_CONSTANT(debug); // @const win32ui|debug|1 if we are current using a _DEBUG build of win32ui, else 0.
+        if (PyModule_AddIntConstant(module, "UNICODE",
+#ifdef UNICODE
+                                                        1
+#else
+                                                        0
+#endif
+                                                         ) == -1) return -1;
 	ADD_CONSTANT(AFX_IDW_PANE_FIRST); // @const win32ui|AFX_IDW_PANE_FIRST|Id of the first splitter pane
 	ADD_CONSTANT(AFX_IDW_PANE_LAST);  // @const win32ui|AFX_IDW_PANE_LAST|Id of the last splitter pane
 	ADD_CONSTANT(AFX_WS_DEFAULT_VIEW); // @const win32ui|AFX_WS_DEFAULT_VIEW|
