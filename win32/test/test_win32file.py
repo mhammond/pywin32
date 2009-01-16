@@ -122,8 +122,8 @@ class TestSimpleOps(unittest.TestCase):
 
     def testFileTimes(self):
         if issubclass(pywintypes.TimeType, datetime.datetime):
-            from win32timezone import GetLocalTimeZone
-            now = datetime.datetime.now(tz=GetLocalTimeZone())
+            from win32timezone import TimeZoneInfo
+            now = datetime.datetime.now(tz=TimeZoneInfo.local())
             nowish = now + datetime.timedelta(seconds=1)
             later = now + datetime.timedelta(seconds=120)
         else:
