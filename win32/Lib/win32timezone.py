@@ -77,6 +77,12 @@ TimeZoneInfo now supports being pickled and comparison
 >>> tz == pickle.loads(pickle.dumps(tz))
 True
 
+It's possible to construct a TimeZoneInfo from a TimeZoneDescription
+including the currently-defined zone.
+>>> tz = win32timezone.TimeZoneInfo(TimeZoneDefinition.current())
+>>> tz == pickle.loads(pickle.dumps(tz))
+True
+
 >>> aest = win32timezone.TimeZoneInfo('AUS Eastern Standard Time')
 >>> est = win32timezone.TimeZoneInfo('E. Australia Standard Time')
 >>> dt = datetime.datetime(2006, 11, 11, 1, 0, 0, tzinfo = aest)
@@ -153,6 +159,7 @@ import struct
 import datetime
 import win32api
 import ctypes
+import ctypes.wintypes
 import re
 import sys
 import operator
@@ -192,6 +199,12 @@ class TIME_ZONE_INFORMATION(ctypes.Structure):
 		('daylight_bias', ctypes.c_long),
 	]
 
+class DYNAMIC_TIME_ZONE_INFORMATION(ctypes.Structure):
+	_fields_ = TIME_ZONE_INFORMATION._fields_ + [
+		('key_name', ctypes.c_wchar*128),
+		('dynamic_daylight_time_disabled', ctypes.wintypes.BOOL),
+	]
+ 
 # define a couple of functions to enable ctypes.Structure pickling
 def __construct_structure(type_, buffer):
 	"Construct a ctypes.Structure subclass from a buffer"
@@ -350,7 +363,7 @@ class TimeZoneInfo(datetime.tzinfo):
 	# this key works for WinNT+, but not for the Win95 line.
 	tzRegKey = r'SOFTWARE\Microsoft\Windows NT\CurrentVersion\Time Zones'
 		
-	def __init__(self, param, fix_standard_time=False):
+	def __init__(self, param=None, fix_standard_time=False):
 		if isinstance(param, TimeZoneDefinition):
 			self._LoadFromTZI(param)
 		if isinstance(param, basestring):
@@ -372,9 +385,6 @@ class TimeZoneInfo(datetime.tzinfo):
 		except:
 			raise ValueError('Timezone Name %s not found.' % timeZoneName)
 		return result
-
-	def __getinitargs__(self):
-		return (self.timeZoneName,)
 
 	def _LoadInfoFromKey(self):
 		"""Loads the information from an opened time zone registry key
