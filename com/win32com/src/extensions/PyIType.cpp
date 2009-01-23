@@ -43,7 +43,9 @@ PyObject *PyITypeInfo::GetContainingTypeLib()
 
 	ITypeLib *ptlib;
 	unsigned index;
+	PY_INTERFACE_PRECALL;
 	SCODE sc = pMyTypeInfo->GetContainingTypeLib(&ptlib, &index);
+	PY_INTERFACE_POSTCALL;
 	if (FAILED(sc))
 		return PyCom_BuildPyException(sc, pMyTypeInfo, IID_ITypeInfo);
 
