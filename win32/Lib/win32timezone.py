@@ -199,12 +199,47 @@ class TIME_ZONE_INFORMATION(ctypes.Structure):
 		('daylight_bias', ctypes.c_long),
 	]
 
-class DYNAMIC_TIME_ZONE_INFORMATION(ctypes.Structure):
-	_fields_ = TIME_ZONE_INFORMATION._fields_ + [
+class DYNAMIC_TIME_ZONE_INFORMATION(TIME_ZONE_INFORMATION):
+	"""
+	Because the structure of the DYNAMIC_TIME_ZONE_INFORMATION extends
+	the structure of the TIME_ZONE_INFORMATION, this structure
+	can be used as a drop-in replacement for calls where the
+	structure is passed by reference.
+	
+	For example,
+	dynamic_tzi = DYNAMIC_TIME_ZONE_INFORMATION()
+	ctypes.windll.kernel32.GetTimeZoneInformation(ctypes.byref(dynamic_tzi))
+	
+	(although the key_name and dynamic_daylight_time_disabled flags will be
+	set to the default (null)).
+
+	>>> isinstance(DYNAMIC_TIME_ZONE_INFORMATION(), TIME_ZONE_INFORMATION)
+	True
+
+
+	"""
+	_fields_ = [
+		# ctypes automatically includes the fields from the parent
 		('key_name', ctypes.c_wchar*128),
 		('dynamic_daylight_time_disabled', ctypes.wintypes.BOOL),
 	]
- 
+	
+	def __init__(self, *args, **kwargs):
+		"""Allow initialization from args from both this class and
+		its superclass.  Default ctypes implementation seems to
+		assume that this class is only initialized with its own
+		_fields_ (for non-keyword-args)."""
+		super_self = super(DYNAMIC_TIME_ZONE_INFORMATION, self)
+		super_fields = super_self._fields_
+		super_args = args[:len(super_fields)]
+		self_args = args[len(super_fields):]
+		# convert the super args to keyword args so they're also handled
+		for field, arg in zip(super_fields, super_args):
+			field_name, spec = field
+			kwargs[field_name] = arg
+		super(DYNAMIC_TIME_ZONE_INFORMATION, self).__init__(*self_args, **kwargs)
+
+	
 # define a couple of functions to enable ctypes.Structure pickling
 def __construct_structure(type_, buffer):
 	"Construct a ctypes.Structure subclass from a buffer"
@@ -224,10 +259,10 @@ def __reduce(self):
 ctypes.Structure.__reduce__ = __reduce
 
 
-class TimeZoneDefinition(TIME_ZONE_INFORMATION):
+class TimeZoneDefinition(DYNAMIC_TIME_ZONE_INFORMATION):
 	"""
-	A time zone definition class based on the win32 TIME_ZONE_INFORMATION
-	structure.
+	A time zone definition class based on the win32
+	DYNAMIC_TIME_ZONE_INFORMATION structure.
 	
 	Describes a bias against UTC (bias), and two dates at which a separate
 	additional bias applies (standard_bias and daylight_bias).
@@ -239,12 +274,12 @@ class TimeZoneDefinition(TIME_ZONE_INFORMATION):
 	def __init__(self, *args, **kwargs):
 		"""
 		Try to construct a TimeZoneDefinition from
-		a) TIME_ZONE_INFORMATION args
+		a) [DYNAMIC_]TIME_ZONE_INFORMATION args
 		b) another TimeZoneDefinition
 		c) a byte structure (using _from_bytes)
 		"""
 		try:
-			TIME_ZONE_INFORMATION.__init__(self, *args, **kwargs)
+			super(TimeZoneDefinition, self).__init__(*args, **kwargs)
 			return
 		except TypeError:
 			pass
@@ -263,28 +298,30 @@ class TimeZoneDefinition(TIME_ZONE_INFORMATION):
 			
 		raise TypeError("Invalid arguments for %s" % self.__class__)
 
-	def __init_from_bytes(self, bytes, standard_name='', daylight_name=''):
+	def __init_from_bytes(self, bytes, standard_name='', daylight_name='', key_name='', daylight_disabled=False):
 		format = '3l8h8h'
 		components = struct.unpack(format, bytes)
 		bias, standard_bias, daylight_bias = components[:3]
 		standard_start = SYSTEMTIME(*components[3:11])
 		daylight_start = SYSTEMTIME(*components[11:19])
-		TIME_ZONE_INFORMATION.__init__(self, bias,
+		super(TimeZoneDefinition, self).__init__(bias,
 			standard_name, standard_start, standard_bias,
-			daylight_name, daylight_start, daylight_bias,)
+			daylight_name, daylight_start, daylight_bias,
+			key_name, daylight_disabled,)
 
 	def __init_from_other(self, other):
 		if not isinstance(other, TIME_ZONE_INFORMATION):
 			raise TypeError, "Not a TIME_ZONE_INFORMATION"
-		for name in self.field_names():
+		for name in other.field_names():
 			# explicitly get the value from the underlying structure
-			value = TIME_ZONE_INFORMATION.__getattribute__(other, name)
+			value = super(TimeZoneDefinition, other).__getattribute__(other, name)
 			setattr(self, name, value)
-		# consider
-		# 
+		# consider instead of the loop above just copying the memory directly
+		#size = max(ctypes.sizeof(DYNAMIC_TIME_ZONE_INFO), ctypes.sizeof(other))
+		#ctypes.memmove(ctypes.addressof(self), other, size)
 
 	def __getattribute__(self, attr):
-		value = TIME_ZONE_INFORMATION.__getattribute__(self, attr)
+		value = super(TimeZoneDefinition, self).__getattribute__(attr)
 		make_minute_timedelta = lambda m: datetime.timedelta(minutes = m)
 		if 'bias' in attr:
 			value = make_minute_timedelta(value)
@@ -294,11 +331,17 @@ class TimeZoneDefinition(TIME_ZONE_INFORMATION):
 	def current(class_):
 		"Windows Platform SDK GetTimeZoneInformation"
 		tzi = class_()
-		code = ctypes.windll.kernel32.GetTimeZoneInformation(ctypes.byref(tzi))
+		kernel32 = ctypes.windll.kernel32
+		getter = kernel32.GetTimeZoneInformation
+		getter = getattr(kernel32, 'GetDynamicTimeZoneInformation', getter)
+		code = getter(ctypes.byref(tzi))
 		return code, tzi
 
 	def set(self):
-		return ctypes.windll.kernel32.SetTimeZoneInformation(ctypes.byref(self))
+		kernel32 = ctypes.windll.kernel32
+		setter = kernel32.SetTimeZoneInformation
+		setter = getattr(kernel32, 'SetDynamicTimeZoneInformation', setter)
+		return setter(ctypes.byref(self))
 
 	def copy(self):
 		return self.__class__(self)
