@@ -2,6 +2,7 @@ import sys
 import unittest
 import pywintypes
 import win32api
+from pywin32_testutil import int2long
 
 # A class that will never die vie refcounting, but will die via GC.
 class Cycle:
@@ -107,7 +108,7 @@ class PyHandleTestCase(unittest.TestCase):
         self.assertRaises(TypeError, pywintypes.HANDLE, "foo")
         self.assertRaises(TypeError, pywintypes.HANDLE, ())
         # should be able to get a long!
-        pywintypes.HANDLE(0L)
+        pywintypes.HANDLE(int2long(0))
 
 if __name__ == '__main__':
     unittest.main()
