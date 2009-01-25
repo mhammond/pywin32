@@ -170,13 +170,35 @@ from itertools import count
 import logging
 log = logging.getLogger(__file__)
 
-# define a couple of Structure comparison methods (these have to appear before the
-#  definitions of subclasses or they won't be used in the type construction.
-ctypes.Structure.__eq__ = lambda self, other: str(buffer(self)) == str(buffer(other))
-ctypes.Structure.__ne__ = lambda self, other: str(buffer(self)) != str(buffer(other))
+# define a constructor to enable Extended structure pickling
+def __construct_structure__(type_, buffer):
+	"Construct a ctypes.Structure subclass from a buffer"
+	assert issubclass(type_, ctypes.Structure)
+	obj = type_.__new__(type_)
+	# TODO, what if buffer is larger that the sizeof obj?
+	ctypes.memmove(ctypes.addressof(obj), buffer, len(buffer))
+	return obj
 
+class Extended(object):
+	"Used to add extended capability to structures"
+	def __eq__(self, other):
+		return str(buffer(self)) == str(buffer(other))
+	def __ne__(self, other):
+		return str(buffer(self)) != str(buffer(other))
+
+	# this method wouldn't be necessary in ctypes 1.1 except
+	#  for the bug described http://bugs.python.org/issue5049
+	def __reduce__(self):
+		"""
+		A method to make ctypes.Structures pickleable
+		from http://osdir.com/ml/python.ctypes/2006-03/msg00009.html
+		"""
+		args = (self.__class__, str(buffer(self)))
+		return (globals()['__construct_structure__'], args)
+
+		
 # A couple of C-type structures for working with the Windows Platform SDK
-class SYSTEMTIME(ctypes.Structure):
+class SYSTEMTIME(Extended, ctypes.Structure):
 	_fields_ = [
 		('year', ctypes.c_ushort),
 		('month', ctypes.c_ushort),
@@ -188,7 +210,7 @@ class SYSTEMTIME(ctypes.Structure):
 		('millisecond', ctypes.c_ushort), 
 	]
 
-class TIME_ZONE_INFORMATION(ctypes.Structure):
+class TIME_ZONE_INFORMATION(Extended, ctypes.Structure):
 	_fields_ = [
 		('bias', ctypes.c_long),
 		('standard_name', ctypes.c_wchar*32),
@@ -238,25 +260,6 @@ class DYNAMIC_TIME_ZONE_INFORMATION(TIME_ZONE_INFORMATION):
 			field_name, spec = field
 			kwargs[field_name] = arg
 		super(DYNAMIC_TIME_ZONE_INFORMATION, self).__init__(*self_args, **kwargs)
-
-	
-# define a couple of functions to enable ctypes.Structure pickling
-def __construct_structure(type_, buffer):
-	"Construct a ctypes.Structure subclass from a buffer"
-	assert issubclass(type_, ctypes.Structure)
-	obj = type_.__new__(type_)
-	# TODO, what if buffer is larger that the sizeof obj?
-	ctypes.memmove(ctypes.addressof(obj), buffer, len(buffer))
-	return obj
-
-def __reduce(self):
-	"""
-	A method to make ctypes.Structures pickleable
-	from http://osdir.com/ml/python.ctypes/2006-03/msg00009.html
-	"""
-	args = (self.__class__, str(buffer(self)))
-	return (__construct_structure, args)
-ctypes.Structure.__reduce__ = __reduce
 
 
 class TimeZoneDefinition(DYNAMIC_TIME_ZONE_INFORMATION):
@@ -311,7 +314,7 @@ class TimeZoneDefinition(DYNAMIC_TIME_ZONE_INFORMATION):
 
 	def __init_from_other(self, other):
 		if not isinstance(other, TIME_ZONE_INFORMATION):
-			raise TypeError, "Not a TIME_ZONE_INFORMATION"
+			raise TypeError("Not a TIME_ZONE_INFORMATION")
 		for name in other.field_names():
 			# explicitly get the value from the underlying structure
 			value = super(TimeZoneDefinition, other).__getattribute__(other, name)
