@@ -8,6 +8,10 @@ import winerror
 ## General purpose utilities for the test suite.
 ##
 
+def int2long(val):
+    """return a long on py2k"""
+    return val + 0x100000000 - 0x100000000
+
 # The test suite has lots of string constants containing binary data, but
 # the strings are used in various "bytes" contexts.
 def str2bytes(sval):
@@ -81,7 +85,8 @@ class LeakTestCase(unittest.TestCase):
         if lost_i or lost_g:
             msg = "%d interface objects and %d gateway objects leaked" \
                                                         % (lost_i, lost_g)
-            result.addFailure(self.real_test, (AssertionError, msg, None))
+            exc = AssertionError(msg)
+            result.addFailure(self.real_test, (exc.__class__, exc, None))
 
     def runTest(self):
         assert 0, "not used"
@@ -108,7 +113,8 @@ class LeakTestCase(unittest.TestCase):
             result.addFailure(self.real_test, (AssertionError, msg, None))
         if lost > 0:
             msg = "LeakTest: %s lost %d references" % (self.real_test, lost)
-            result.addFailure(self.real_test, (AssertionError, msg, None))
+            exc = AssertionError(msg)
+            result.addFailure(self.real_test, (exc.__class__, exc, None))
 
 
 class TestLoader(unittest.TestLoader):
