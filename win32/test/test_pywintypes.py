@@ -9,7 +9,9 @@ class TestCase(unittest.TestCase):
         struct_current = time.localtime()
         pytime_current = pywintypes.Time(struct_current)
         # try and test all the standard parts of the format
-        format_strings = "%a %A %b %B %c %d %H %I %j %m %M %p %S %U %w %W %x %X %y %Y %Z"
+        # Note we used to include '%Z' testing, but that was pretty useless as
+        # it always returned the local timezone.
+        format_strings = "%a %A %b %B %c %d %H %I %j %m %M %p %S %U %w %W %x %X %y %Y"
         for fmt in format_strings.split():
             v1 = pytime_current.Format(fmt)
             v2 = time.strftime(fmt, struct_current)
