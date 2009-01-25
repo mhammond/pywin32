@@ -260,7 +260,7 @@ PYWINTYPES_EXPORT PyTypeObject PySIDType =
 	0,						/* tp_doc */
 	0,						/* tp_traverse */
 	0,						/* tp_clear */
-	0,						/* tp_richcompare */
+	PySID::richcompareFunc,				/* tp_richcompare */
 	0,						/* tp_weaklistoffset */
 	0,						/* tp_iter */
 	0,						/* tp_iternext */
@@ -313,12 +313,36 @@ int PySID::compare(PyObject *ob)
 	return EqualSid(this->GetSID(), p2)==FALSE;
 }
 
+PyObject *PySID::richcompare(PyObject *other, int op)
+{
+	BOOL e;
+	if (PySID_Check(other))
+		e=compare((PyHANDLE *)other)==0;
+	else
+		e=FALSE;
+	PyObject *ret;
+	if (op==Py_EQ)
+		ret = e ? Py_True : Py_False;
+	else if (op==Py_NE)
+		ret = !e ? Py_True : Py_False;
+	else {
+		PyErr_SetString(PyExc_TypeError, "SIDs only compare equal or not equal");
+		ret = NULL;
+	}
+	Py_XINCREF(ret);
+	return ret;
+}
 
 // @pymethod int|PySID|__cmp__|Used when objects are compared.
 // @comm This method calls the Win32 API function EqualSid
 int PySID::compareFunc(PyObject *ob1, PyObject *ob2)
 {
 	return ((PySID *)ob1)->compare(ob2);
+}
+
+PyObject *PySID::richcompareFunc(PyObject *ob1, PyObject *ob2, int op)
+{
+	return ((PySID *)ob1)->richcompare(ob2, op);
 }
 
 /*static*/ void PySID::deallocFunc(PyObject *ob)

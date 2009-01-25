@@ -101,9 +101,11 @@ public:
 
 	/* Python support */
 	int compare(PyObject *ob);
+	PyObject *richcompare(PyObject *other, int op);
 
 	static void deallocFunc(PyObject *ob);
 	static int compareFunc(PyObject *ob1, PyObject *ob2);
+	static PyObject *richcompareFunc(PyObject *ob1, PyObject *ob2, int op);
 	static PyObject *strFunc(PyObject *ob);
 
 	// Buffer interface changed in 3.0
