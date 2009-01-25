@@ -5,12 +5,13 @@
 # >>> browser.Browse()
 # or
 # >>> browser.Browse(your_module)
+import sys
+import types
 import __main__
 import win32ui
 from pywin.mfc import dialog
 
 import hierlist
-from types import *
 
 special_names = [ '__doc__', '__name__', '__self__' ]
 
@@ -264,29 +265,30 @@ class HLIString(HLIPythonObject):
         return 0
 
 TypeMap = { type : HLIClass, 
-            FunctionType: HLIFunction,
+            types.FunctionType: HLIFunction,
             tuple: HLITuple,
             dict: HLIDict,
             list: HLIList,
-            ModuleType: HLIModule,
-            CodeType : HLICode,
-            BuiltinFunctionType : HLIBuiltinFunction,
-            FrameType : HLIFrame,
-            TracebackType : HLITraceback,
+            types.ModuleType: HLIModule,
+            types.CodeType : HLICode,
+            types.BuiltinFunctionType : HLIBuiltinFunction,
+            types.FrameType : HLIFrame,
+            types.TracebackType : HLITraceback,
             str : HLIString,
+            unicode : HLIString,
             int: HLIPythonObject,
-            ## LongType: HLIPythonObject, - hrm - fixme for py2k
+            long: HLIPythonObject,
+            bool: HLIPythonObject,
             float: HLIPythonObject,
            }
-try:
-    TypeMap[UnicodeType] = HLIString
-except NameError:
-    pass # Python 1.5 - no Unicode - no problem!
 
 def MakeHLI( ob, name=None ):
 	try:
 		cls = TypeMap[type(ob)]
 	except KeyError:
+		# hrmph - this check gets more and more bogus as Python
+		# improves.  Its possible we should just *always* use
+		# HLIInstance?
 		if hasattr(ob, '__class__'): # 'new style' class
 			cls = HLIInstance
 		else:
