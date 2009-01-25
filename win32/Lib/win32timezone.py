@@ -58,12 +58,12 @@ calling the displayName member will return the display name as set in the
 registry.
 
 >>> est = win32timezone.TimeZoneInfo('Eastern Standard Time')
->>> est.displayName
-u'(GMT-05:00) Eastern Time (US & Canada)'
+>>> str(est.displayName)
+'(GMT-05:00) Eastern Time (US & Canada)'
 
 >>> gmt = win32timezone.TimeZoneInfo('GMT Standard Time', True)
->>> gmt.displayName
-u'(GMT) Greenwich Mean Time : Dublin, Edinburgh, Lisbon, London'
+>>> str(gmt.displayName)
+'(GMT) Greenwich Mean Time : Dublin, Edinburgh, Lisbon, London'
 
 To get the complete list of available time zone keys,
 >>> zones = win32timezone.TimeZoneInfo.get_all_time_zones()
@@ -128,9 +128,9 @@ zone data.
 >>> caps = GetTZCapabilities()
 >>> isinstance(caps, dict)
 True
->>> caps.has_key('MissingTZPatch')
+>>> 'MissingTZPatch' in caps
 True
->>> caps.has_key('DynamicTZSupport')
+>>> 'DynamicTZSupport' in caps
 True
 
 >>> both_dates_correct = (pre_response == old_response and post_response == new_response)
@@ -158,8 +158,6 @@ import _winreg
 import struct
 import datetime
 import win32api
-import ctypes
-import ctypes.wintypes
 import re
 import sys
 import operator
@@ -170,96 +168,74 @@ from itertools import count
 import logging
 log = logging.getLogger(__file__)
 
-# define a constructor to enable Extended structure pickling
-def __construct_structure__(type_, buffer):
-	"Construct a ctypes.Structure subclass from a buffer"
-	assert issubclass(type_, ctypes.Structure)
-	obj = type_.__new__(type_)
-	# TODO, what if buffer is larger that the sizeof obj?
-	ctypes.memmove(ctypes.addressof(obj), buffer, len(buffer))
-	return obj
+# A couple of objects for working with objects as if they were native C-type
+# structures.
+class _SimpleStruct(object):
+	_fields_ = None # must be overridden by subclasses
+	def __init__(self, *args, **kw):
+		for i, (name, typ) in enumerate(self._fields_):
+			def_arg = None
+			if i < len(args):
+				def_arg = args[i]
+			if name in kw:
+				def_arg = kw[name]
+			if def_arg is not None:
+				if not isinstance(def_arg, tuple):
+					def_arg = (def_arg,)
+			else:
+				def_arg = ()
+			if len(def_arg)==1 and isinstance(def_arg[0], typ):
+				# already an object of this type.
+				# XXX - should copy.copy???
+				def_val = def_arg[0]
+			else:
+				def_val = typ(*def_arg)
+			setattr(self, name, def_val)
 
-class Extended(object):
-	"Used to add extended capability to structures"
+	def field_names(self):
+		return [f[0] for f in fields]
+
 	def __eq__(self, other):
-		return str(buffer(self)) == str(buffer(other))
+		if not hasattr(other, "_fields_"):
+			return False
+		if self._fields_ != other._fields_:
+			return False
+		for name, _ in self._fields_:
+			if getattr(self, name) != getattr(other, name):
+				return False
+		return True
+
 	def __ne__(self, other):
-		return str(buffer(self)) != str(buffer(other))
+		return not self.__eq__(other)
 
-	# this method wouldn't be necessary in ctypes 1.1 except
-	#  for the bug described http://bugs.python.org/issue5049
-	def __reduce__(self):
-		"""
-		A method to make ctypes.Structures pickleable
-		from http://osdir.com/ml/python.ctypes/2006-03/msg00009.html
-		"""
-		args = (self.__class__, str(buffer(self)))
-		return (globals()['__construct_structure__'], args)
-
-		
-# A couple of C-type structures for working with the Windows Platform SDK
-class SYSTEMTIME(Extended, ctypes.Structure):
+class SYSTEMTIME(_SimpleStruct):
 	_fields_ = [
-		('year', ctypes.c_ushort),
-		('month', ctypes.c_ushort),
-		('day_of_week', ctypes.c_ushort), 
-		('day', ctypes.c_ushort), 
-		('hour', ctypes.c_ushort), 
-		('minute', ctypes.c_ushort), 
-		('second', ctypes.c_ushort), 
-		('millisecond', ctypes.c_ushort), 
+		('year', int),
+		('month', int),
+		('day_of_week', int), 
+		('day', int), 
+		('hour', int), 
+		('minute', int), 
+		('second', int), 
+		('millisecond', int), 
 	]
 
-class TIME_ZONE_INFORMATION(Extended, ctypes.Structure):
+class TIME_ZONE_INFORMATION(_SimpleStruct):
 	_fields_ = [
-		('bias', ctypes.c_long),
-		('standard_name', ctypes.c_wchar*32),
+		('bias', int),
+		('standard_name', str),
 		('standard_start', SYSTEMTIME),
-		('standard_bias', ctypes.c_long),
-		('daylight_name', ctypes.c_wchar*32),
+		('standard_bias', int),
+		('daylight_name', str),
 		('daylight_start', SYSTEMTIME),
-		('daylight_bias', ctypes.c_long),
+		('daylight_bias', int),
 	]
 
-class DYNAMIC_TIME_ZONE_INFORMATION(TIME_ZONE_INFORMATION):
-	"""
-	Because the structure of the DYNAMIC_TIME_ZONE_INFORMATION extends
-	the structure of the TIME_ZONE_INFORMATION, this structure
-	can be used as a drop-in replacement for calls where the
-	structure is passed by reference.
-	
-	For example,
-	dynamic_tzi = DYNAMIC_TIME_ZONE_INFORMATION()
-	ctypes.windll.kernel32.GetTimeZoneInformation(ctypes.byref(dynamic_tzi))
-	
-	(although the key_name and dynamic_daylight_time_disabled flags will be
-	set to the default (null)).
-
-	>>> isinstance(DYNAMIC_TIME_ZONE_INFORMATION(), TIME_ZONE_INFORMATION)
-	True
-
-
-	"""
-	_fields_ = [
-		# ctypes automatically includes the fields from the parent
-		('key_name', ctypes.c_wchar*128),
-		('dynamic_daylight_time_disabled', ctypes.wintypes.BOOL),
+class DYNAMIC_TIME_ZONE_INFORMATION(_SimpleStruct):
+	_fields_ = TIME_ZONE_INFORMATION._fields_ + [
+		('key_name', str),
+		('dynamic_daylight_time_disabled', bool),
 	]
-	
-	def __init__(self, *args, **kwargs):
-		"""Allow initialization from args from both this class and
-		its superclass.  Default ctypes implementation seems to
-		assume that this class is only initialized with its own
-		_fields_ (for non-keyword-args)."""
-		super_self = super(DYNAMIC_TIME_ZONE_INFORMATION, self)
-		super_fields = super_self._fields_
-		super_args = args[:len(super_fields)]
-		self_args = args[len(super_fields):]
-		# convert the super args to keyword args so they're also handled
-		for field, arg in zip(super_fields, super_args):
-			field_name, spec = field
-			kwargs[field_name] = arg
-		super(DYNAMIC_TIME_ZONE_INFORMATION, self).__init__(*self_args, **kwargs)
 
 
 class TimeZoneDefinition(DYNAMIC_TIME_ZONE_INFORMATION):
@@ -271,9 +247,6 @@ class TimeZoneDefinition(DYNAMIC_TIME_ZONE_INFORMATION):
 	additional bias applies (standard_bias and daylight_bias).
 	"""
 
-	def field_names(self):
-		return map(operator.itemgetter(0), self._fields_)
-	
 	def __init__(self, *args, **kwargs):
 		"""
 		Try to construct a TimeZoneDefinition from
@@ -284,9 +257,9 @@ class TimeZoneDefinition(DYNAMIC_TIME_ZONE_INFORMATION):
 		try:
 			super(TimeZoneDefinition, self).__init__(*args, **kwargs)
 			return
-		except TypeError:
+		except (TypeError, ValueError):
 			pass
-		
+
 		try:
 			self.__init_from_other(*args, **kwargs)
 			return
@@ -325,28 +298,23 @@ class TimeZoneDefinition(DYNAMIC_TIME_ZONE_INFORMATION):
 
 	def __getattribute__(self, attr):
 		value = super(TimeZoneDefinition, self).__getattribute__(attr)
-		make_minute_timedelta = lambda m: datetime.timedelta(minutes = m)
 		if 'bias' in attr:
+			make_minute_timedelta = lambda m: datetime.timedelta(minutes = m)
 			value = make_minute_timedelta(value)
 		return value
 
 	@classmethod
 	def current(class_):
 		"Windows Platform SDK GetTimeZoneInformation"
-		tzi = class_()
-		kernel32 = ctypes.windll.kernel32
-		getter = kernel32.GetTimeZoneInformation
-		getter = getattr(kernel32, 'GetDynamicTimeZoneInformation', getter)
-		code = getter(ctypes.byref(tzi))
-		return code, tzi
+		code, tzi = win32api.GetTimeZoneInformation(True)
+		return code, class_(*tzi)
 
 	def set(self):
-		kernel32 = ctypes.windll.kernel32
-		setter = kernel32.SetTimeZoneInformation
-		setter = getattr(kernel32, 'SetDynamicTimeZoneInformation', setter)
-		return setter(ctypes.byref(self))
+		tzi = tuple(getattr(self, n) for n, t in self._fields_)
+		win32api.SetTimeZoneInformation(tzi)
 
 	def copy(self):
+		# XXX - this is no longer a copy!
 		return self.__class__(self)
 
 	def locate_daylight_start(self, year):
@@ -408,7 +376,7 @@ class TimeZoneInfo(datetime.tzinfo):
 
 	# this key works for WinNT+, but not for the Win95 line.
 	tzRegKey = r'SOFTWARE\Microsoft\Windows NT\CurrentVersion\Time Zones'
-		
+
 	def __init__(self, param=None, fix_standard_time=False):
 		if isinstance(param, TimeZoneDefinition):
 			self._LoadFromTZI(param)
@@ -543,6 +511,12 @@ class TimeZoneInfo(datetime.tzinfo):
 	def __cmp__(self, other):
 		return cmp(self.__dict__, other.__dict__)
 
+	def __eq__(self, other):
+		return self.__dict__==other.__dict__
+
+	def __ne__(self, other):
+		return self.__dict__!=other.__dict__
+
 	@classmethod
 	def local(class_):
 		"""Returns the local time zone as defined by the operating system in the
@@ -603,7 +577,7 @@ class TimeZoneInfo(datetime.tzinfo):
 		"""
 		Get the names of the registry keys indexed by a value in that key.
 		"""
-		key_names = TimeZoneInfo._get_time_zone_key_names()
+		key_names = list(TimeZoneInfo._get_time_zone_key_names())
 		def get_index_value(key_name):
 			key = TimeZoneInfo._get_time_zone_key(key_name)
 			return key[index_key]
@@ -615,11 +589,11 @@ class TimeZoneInfo(datetime.tzinfo):
 		"Return a list of time zone names that can be used to initialize TimeZoneInfo instances"
 		tzs = TimeZoneInfo.get_sorted_time_zones()
 		get_standard_name = lambda tzi: tzi.standardName
-		return map(get_standard_name, tzs)
+		return [get_standard_name(tz) for tz in tzs]
 
 	@staticmethod
 	def get_all_time_zones():
-		return map(TimeZoneInfo, TimeZoneInfo._get_time_zone_key_names())
+		return [TimeZoneInfo(n) for n in TimeZoneInfo._get_time_zone_key_names()]
 
 	@staticmethod
 	def get_sorted_time_zones(key=None):
@@ -649,8 +623,7 @@ class _RegKeyDict(dict):
 		return _RegKeyDict(_winreg.OpenKeyEx(self.key, name))
 	
 	def __load_values(self):
-		get_name_value = lambda (name, value, type): (name, value)
-		pairs = map(get_name_value, self._enumerate_reg_values(self.key))
+		pairs = [(n, v) for (n, v, t) in self._enumerate_reg_values(self.key)]
 		self.update(pairs)
 	
 	def subkeys(self):
@@ -710,32 +683,6 @@ def now():
 	"""
 	return datetime.datetime.now(TimeZoneInfo.local())
 
-# A timezone info for utc - pywintypes uses a single instance of this class
-# to return SYSTEMTIME instances.
-class TimeZoneUTC(TimeZoneInfo):
-	"""A UTC Time Zone instance that initializes statically (without
-	accessing the registry or apis).
-	"""
-	def __new__(cls):
-		# no need to make more than one of these
-		try:
-			return cls._instance
-		except AttributeError:
-			cls._instance = cls.__create_instance()
-			return cls._instance
-
-	def __init__(self):
-		pass
-
-	@classmethod
-	def __create_instance(cls):
-		tzi = TimeZoneDefinition(standardname='Universal Coordinated Time')
-		cls._instance = TimeZoneInfo.__new__(cls, tzi)
-		
-
-	def __repr__(self):
-		return "%s()" % self.__class__.__name__
-
 def GetTZCapabilities():
 	"""Run a few known tests to determine the capabilities of the time zone database
 	on this machine.
@@ -760,6 +707,10 @@ DLLCache = DLLHandleCache()
 
 def resolveMUITimeZone(spec):
 	"""Resolve a multilingual user interface resource for the time zone name
+	>>> #some pre-amble for the doc-tests to be py2k and py3k aware)
+	>>> try: unicode and None
+	... except NameError: unicode=str
+	...
 	>>> result = resolveMUITimeZone('@tzres.dll,-110')
 	>>> expectedResultType = [type(None),unicode][sys.getwindowsversion() >= (6,)]
 	>>> type(result) is expectedResultType
@@ -828,9 +779,14 @@ class RangeMap(dict):
 		self.sort = keySortComparator
 		self.match = keyMatchComparator
 
-	def __getitem__(self, item):
+	def _get_sorted_keys(self):
 		sortedKeys = self.keys()
-		sortedKeys.sort(self.sort)
+		reverse = self.match != operator.le
+		sortedKeys.sort(reverse=reverse)
+		return sortedKeys
+
+	def __getitem__(self, item):
+		sortedKeys = self._get_sorted_keys()
 		if isinstance(item, RangeItem):
 			result = self.__getitem__(sortedKeys[item])
 		else:
@@ -842,14 +798,13 @@ class RangeMap(dict):
 	def _find_first_match_(self, keys, item):
 		is_match = lambda k: self.match(item, k)
 		# use of ifilter here would be more efficent
-		matches = filter(is_match, keys)
+		matches = [k for k in keys if is_match(k)]
 		if matches:
 			return matches[0]
 		raise KeyError(item)
 
 	def bounds(self):
-		sortedKeys = self.keys()
-		sortedKeys.sort(self.sort)
+		sortedKeys = self._get_sorted_keys()
 		return sortedKeys[RangeItemFirst()], sortedKeys[RangeItemLast()]
 
 class RangeValueUndefined(object): pass
