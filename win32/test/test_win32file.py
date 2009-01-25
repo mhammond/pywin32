@@ -296,7 +296,8 @@ class TestOverlapped(unittest.TestCase):
                 if not test_overlapped_death:
                     raise
         finally:
-            handle.Close()
+            if not test_overlapped_death:
+                handle.Close()
             t.join(3)
             self.failIf(t.isAlive(), "thread didn't finish")
 
