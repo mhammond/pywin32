@@ -20,6 +20,7 @@ generates Windows .hlp files.
 
 #define SECURITY_WIN32 // required by below
 #include "security.h"  // for GetUserNameEx
+#include "PowrProf.h"
 
 // Identical to PyW32_BEGIN_ALLOW_THREADS except no script "{" !!!
 // means variables can be declared between the blocks
@@ -6056,6 +6057,58 @@ PyObject *PySetSystemPowerState(PyObject *self, PyObject *args)
 	return Py_None;
 }
 
+PyObject *PyWinObject_FromBATTERY_REPORTING_SCALE(PBATTERY_REPORTING_SCALE pbrs)
+{
+	return Py_BuildValue("{s:N, s:N}",
+		"Granularity", PyLong_FromUnsignedLong(pbrs->Granularity),
+		"Capacity", PyLong_FromUnsignedLong(pbrs->Capacity));
+}
+
+// @pymethod dict|win32api|GetPwrCapabilities|Retrieves system's power capabilities
+// @pyseeapi GetPwrCapabilities
+// @comm Requires Win2k or later.
+// @rdesc Returns a dict representing a SYSTEM_POWER_CAPABILITIES struct
+PyObject *PyGetPwrCapabilities(PyObject *self, PyObject *args)
+{
+	SYSTEM_POWER_CAPABILITIES spc;
+	if (!GetPwrCapabilities(&spc))
+		return PyWin_SetAPIError("GetPwrCapabilities");
+	return Py_BuildValue(
+		"{s:N, s:N, s:N, s:N, s:N, s:N, s:N, s:N, s:N, s:N, s:N, s:N, s:N, s:N, s:N,"
+		" s:N, s:N, s:N, s:O, s:N, s:O, s:N, s:N, s:O, s:N, s:N, s:N, s:N, s:N}",
+		"PowerButtonPresent", PyBool_FromLong(spc.PowerButtonPresent),
+		"SleepButtonPresent", PyBool_FromLong(spc.SleepButtonPresent),
+		"LidPresent", PyBool_FromLong(spc.LidPresent),
+		"SystemS1", PyBool_FromLong(spc.SystemS1),
+		"SystemS2", PyBool_FromLong(spc.SystemS2),
+		"SystemS3", PyBool_FromLong(spc.SystemS3),
+		"SystemS4", PyBool_FromLong(spc.SystemS4),
+		"SystemS5", PyBool_FromLong(spc.SystemS5),
+		"HiberFilePresent", PyBool_FromLong(spc.HiberFilePresent),
+		"FullWake", PyBool_FromLong(spc.FullWake),
+		"VideoDimPresent", PyBool_FromLong(spc.VideoDimPresent),
+		"ApmPresent", PyBool_FromLong(spc.ApmPresent),
+		"UpsPresent", PyBool_FromLong(spc.UpsPresent),
+		"ThermalControl", PyBool_FromLong(spc.ThermalControl),
+		"ProcessorThrottle", PyBool_FromLong(spc.ProcessorThrottle),
+		"ProcessorMinThrottle", PyInt_FromLong(spc.ProcessorMinThrottle),
+		"ProcessorMaxThrottle", PyInt_FromLong(spc.ProcessorMaxThrottle),
+		"FastSystemS4", PyBool_FromLong(spc.FastSystemS4),
+		"spare2", Py_None,	// reserved
+		"DiskSpinDown", PyBool_FromLong(spc.DiskSpinDown),
+		"spare3", Py_None,	// reserved
+		"SystemBatteriesPresent", PyBool_FromLong(spc.SystemBatteriesPresent),
+		"BatteriesAreShortTerm", PyBool_FromLong(spc.BatteriesAreShortTerm),
+		"BatteryScale", Py_BuildValue("NNN",
+			PyWinObject_FromBATTERY_REPORTING_SCALE(&spc.BatteryScale[0]),
+			PyWinObject_FromBATTERY_REPORTING_SCALE(&spc.BatteryScale[1]),
+			PyWinObject_FromBATTERY_REPORTING_SCALE(&spc.BatteryScale[2])),
+		"AcOnLineWake", PyInt_FromLong(spc.AcOnLineWake),
+		"SoftLidWake", PyInt_FromLong(spc.SoftLidWake),
+		"RtcWake", PyInt_FromLong(spc.RtcWake),
+		"MinDeviceWakeState", PyInt_FromLong(spc.MinDeviceWakeState),
+		"DefaultLowLatencyWake", PyInt_FromLong(spc.DefaultLowLatencyWake));
+}
 
 /* List of functions exported by this module */
 // @module win32api|A module, encapsulating the Windows Win32 API.
@@ -6155,6 +6208,7 @@ static struct PyMethodDef win32api_functions[] = {
 #endif
 	{"GetModuleFileNameW",	PyGetModuleFileNameW,1}, // @pymeth GetModuleFileNameW|Retrieves the unicode filename of the specified module.
 	{"GetModuleHandle",     PyGetModuleHandle,1},   // @pymeth GetModuleHandle|Returns the handle of an already loaded DLL.
+	{"GetPwrCapabilities",	PyGetPwrCapabilities, METH_NOARGS},	// @pymeth GetPwrCapabilities|Retrieves system's power capabilities
 	{"GetProfileSection",	PyGetProfileSection,1}, // @pymeth GetProfileSection|Returns a list of entries in an INI file.
 	{"GetProcAddress",      PyGetProcAddress,1},    // @pymeth GetProcAddress|Returns the address of the specified exported dynamic-link library (DLL) function.
 	{"GetProfileVal",		PyGetProfileVal,    1}, // @pymeth GetProfileVal|Returns a value from an INI file.

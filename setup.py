@@ -262,12 +262,15 @@ class WinExt (Extension):
                   platforms=None, # none means 'all platforms'
                   unicode_mode=None, # 'none'==default or specifically true/false.
                   implib_name=None,
+                  delay_load_libraries="",
                  ):
         assert dsp_file or sources, "Either dsp_file or sources must be specified"
         libary_dirs = library_dirs,
         include_dirs = ['com/win32com/src/include',
                         'win32/src'] + include_dirs
         libraries=libraries.split()
+        self.delay_load_libraries=delay_load_libraries.split()
+        libraries.extend(self.delay_load_libraries)
 
         if export_symbol_file:
             export_symbols = export_symbols or []
@@ -395,6 +398,11 @@ class WinExt (Extension):
             # enable unwind semantics - some stuff needs it and I can't see 
             # it hurting
             self.extra_compile_args.append("/EHsc")
+
+            if self.delay_load_libraries:
+                self.libraries.append("delayimp")
+                for delay_lib in self.delay_load_libraries:
+                    self.extra_link_args.append("/delayload:%s.lib" % delay_lib)
 
             # If someone needs a specially named implib created, handle that
             if self.implib_name:
@@ -1357,7 +1365,6 @@ for info in (
         ("perfmon", "", True),
         ("timer", "user32", None),
         ("win2kras", "rasapi32", None, 0x0500),
-        ("win32api", "user32 advapi32 shell32 version", None, 0x0500, 'win32/src/win32apimodule.cpp win32/src/win32api_display.cpp'),
         ("win32cred", "AdvAPI32 credui", True, 0x0501, 'win32/src/win32credmodule.cpp'),
         ("win32crypt", "Crypt32", None, 0x0500, 'win32/src/win32crypt.i'),
         ("win32file", "oleaut32", None, 0x0500),
@@ -1416,6 +1423,14 @@ for info in (
 
 # The few that need slightly special treatment
 win32_extensions += [
+    WinExt_win32("win32api",
+           sources = """
+                win32/src/win32apimodule.cpp win32/src/win32api_display.cpp
+                """.split(),
+           libraries="user32 advapi32 shell32 version",
+           delay_load_libraries="powrprof",
+           windows_h_version=0x0500,
+        ),
     WinExt_win32("win32gui", 
            sources = """
                 win32/src/win32dynamicdialog.cpp
