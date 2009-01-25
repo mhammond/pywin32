@@ -114,17 +114,21 @@ static void PyTraceObject_dealloc(PyObject* self)
     PyObject_Del(self);
 }
 
+// In an attempt to allow py2k and py3k readers and writers to work together,
+// we assume a 'latin1' encoding for the bytes on the wire.  When pulling the
+// bytes off the wire, in py2k we return a string while in py3k we return
+// a latin-1 decoded unicode object.
 static PyObject *PyTraceObject_write(PyObject *self, PyObject *args)
 {
     int len;
-    char *data;
-    if (!PyArg_ParseTuple(args, "s#:write", &data, &len))
+    char *data = NULL;
+    if (!PyArg_ParseTuple(args, "et#:write", "latin-1", &data, &len))
         return NULL;
     BOOL ok = static_cast<PyTraceObject*>(self)->WriteData(data, len);
+    PyMem_Free(data);
     if (!ok)
         return NULL;
-    Py_INCREF(Py_None);
-    return Py_None;
+    Py_RETURN_NONE;
 }
 
 static PyObject *PyTraceObject_read(PyObject *self, PyObject *args)
@@ -136,7 +140,11 @@ static PyObject *PyTraceObject_read(PyObject *self, PyObject *args)
     BOOL ok = static_cast<PyTraceObject*>(self)->ReadData(&data, &len, 0);
     if (!ok)
         return NULL;
+#if (PY_VERSION_HEX < 0x03000000)
     PyObject *result = PyString_FromStringAndSize(data, len);
+#else
+    PyObject *result = PyUnicode_DecodeLatin1(data, len, "replace");
+#endif
     free(data);
     return result;
 }
@@ -151,7 +159,11 @@ static PyObject *PyTraceObject_blockingread(PyObject *self, PyObject *args)
     BOOL ok = static_cast<PyTraceObject*>(self)->ReadData(&data, &len, milliSeconds);
     if (!ok)
         return NULL;
+#if (PY_VERSION_HEX < 0x03000000)
     PyObject *result = PyString_FromStringAndSize(data, len);
+#else
+    PyObject *result = PyUnicode_DecodeLatin1(data, len, "replace");
+#endif
     free(data);
     return result;
 }
@@ -647,6 +659,7 @@ PYWIN_MODULE_INIT_FUNC(win32trace)
         if (GetLastError() != ERROR_ALREADY_EXISTS) {
             // no local one exists - see if we can create it globally - if
             // we can, we go global, else we stick with local.
+            use_global_namespace = TRUE;
             HANDLE h2 = CreateFileMapping((HANDLE)-1, &sa, PAGE_READWRITE,
                                           0, BUFFER_SIZE,
                                           FixupObjectName(MAP_OBJECT_NAME));

@@ -14,7 +14,7 @@ def CheckNoOtherReaders():
     win32trace.write("Hi")
     time.sleep(0.05)
     if win32trace.read() != "Hi":
-        # Reset everything so following tests still fail with this error!S
+        # Reset everything so following tests still fail with this error!
         win32trace.TermRead()
         win32trace.TermWrite()
         raise RuntimeError("An existing win32trace reader appears to be " \
@@ -101,9 +101,22 @@ class TestModuleOps(BasicSetupTearDown):
         syverEnstad = win32trace.read()
         self.assertEquals('Syver Enstad', syverEnstad)
 
+    def testRoundTripUnicode(self):
+        win32trace.write(u'\xa9opyright Syver Enstad')
+        syverEnstad = win32trace.read()
+        # str objects are always returned in py2k (latin-1 encoding was used
+        # on unicode objects)
+        self.assertEquals('\xa9opyright Syver Enstad', syverEnstad)
+
     def testBlockingRead(self):
         win32trace.write('Syver Enstad')
         self.assertEquals('Syver Enstad', win32trace.blockingread())
+
+    def testBlockingReadUnicode(self):
+        win32trace.write(u'\xa9opyright Syver Enstad')
+        # str objects are always returned in py2k (latin-1 encoding was used
+        # on unicode objects)
+        self.assertEquals('\xa9opyright Syver Enstad', win32trace.blockingread())
 
     def testFlush(self):
         win32trace.flush()
