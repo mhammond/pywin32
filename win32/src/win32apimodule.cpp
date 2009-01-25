@@ -103,6 +103,33 @@ PyObject *ReturnAPIError(char *fnName, long err = 0)
 {
 	return PyWin_SetAPIError(fnName, err);
 }
+
+PyObject *PyTuple_FromSYSTEMTIME(SYSTEMTIME &st)
+{
+	return Py_BuildValue("iiiiiiii",
+			     st.wYear,
+			     st.wMonth,
+			     st.wDayOfWeek,
+			     st.wDay,
+			     st.wHour,
+			     st.wMinute,
+			     st.wSecond,
+			     st.wMilliseconds);
+}
+
+BOOL PyTuple_AsSYSTEMTIME(PyObject *ob, SYSTEMTIME &st)
+{
+	return PyArg_ParseTuple(ob, "iiiiiiii",
+				&st.wYear,
+				&st.wMonth,
+				&st.wDayOfWeek,
+				&st.wDay,
+				&st.wHour,
+				&st.wMinute,
+				&st.wSecond,
+				&st.wMilliseconds);
+}
+
 // @pymethod |win32api|Beep|Generates simple tones on the speaker.
 static PyObject *
 PyBeep( PyObject *self, PyObject *args )
@@ -2343,7 +2370,9 @@ PyGetTempFileName(PyObject * self, PyObject * args)
 static PyObject *
 PyGetTimeZoneInformation(PyObject * self, PyObject * args)
 {
-	if (!PyArg_ParseTuple (args, ":GetTimeZoneInformation"))
+	int bTimesAsTuples = 0;
+	// @pyparm bool|times_as_tuples|False|If true, the SYSTEMTIME elements are returned as tuples instead of a time object.
+	if (!PyArg_ParseTuple (args, "|i:GetTimeZoneInformation", &bTimesAsTuples))
 		return NULL;
 	TIME_ZONE_INFORMATION tzinfo;
 	DWORD rc;
@@ -2368,10 +2397,14 @@ PyGetTimeZoneInformation(PyObject * self, PyObject * args)
 				  rc,
 				  tzinfo.Bias,
 				  PyWinObject_FromWCHAR(tzinfo.StandardName),
-				  PyWinObject_FromSYSTEMTIME(tzinfo.StandardDate),
+				  bTimesAsTuples ?
+					PyTuple_FromSYSTEMTIME(tzinfo.StandardDate) :
+					PyWinObject_FromSYSTEMTIME(tzinfo.StandardDate),
 				  tzinfo.StandardBias,
 				  PyWinObject_FromWCHAR(tzinfo.DaylightName),
-				  PyWinObject_FromSYSTEMTIME(tzinfo.DaylightDate),
+				  bTimesAsTuples ?
+					PyTuple_FromSYSTEMTIME(tzinfo.DaylightDate) :
+					PyWinObject_FromSYSTEMTIME(tzinfo.DaylightDate),
 				  tzinfo.DaylightBias );
 	
 	// @rdesc The return value is a tuple of (rc, tzinfo), where rc is
@@ -2383,14 +2416,66 @@ PyGetTimeZoneInformation(PyObject * self, PyObject * args)
 	// @rdesc tzinfo is a tuple of:
 	// @tupleitem 0|int|bias|Specifies the current bias, in minutes, for local time translation on this computer. The bias is the difference, in minutes, between Coordinated Universal Time (UTC) and local time. All translations between UTC and local time are based on the following formula:<nl><nl>UTC = local time + bias <nl><nl>
 	// @tupleitem 1|unicode|standardName|Specifies a string associated with standard time on this operating system. For example, this member could contain "EST" to indicate Eastern Standard Time. This string is not used by the operating system, so anything stored there using the SetTimeZoneInformation function is returned unchanged by the GetTimeZoneInformation function. This string can be empty.
-	// @tupleitem 2|<o PyTime>|standardTime|Specifies a SYSTEMTIME object that contains a date and local time when the transition from daylight saving time to standard time occurs on this operating system. If this date is not specified, the wMonth member in the SYSTEMTIME structure must be zero. If this date is specified, the DaylightDate value in the TIME_ZONE_INFORMATION structure must also be specified. 
+	// @tupleitem 2|<o PyTime>/tuple|standardTime|Specifies a SYSTEMTIME object that contains a date and local time when the transition from daylight saving time to standard time occurs on this operating system. If this date is not specified, the wMonth member in the SYSTEMTIME structure must be zero. If this date is specified, the DaylightDate value in the TIME_ZONE_INFORMATION structure must also be specified. 
 	// <nl>To select the correct day in the month, set the wYear member to zero, the wDayOfWeek member to an appropriate weekday, and the wDay member to a value in the range 1 through 5. Using this notation, the first Sunday in April can be specified, as can the last Thursday in October (5 is equal to "the last"). 
 	// @tupleitem 3|int|standardBias|Specifies a bias value to be used during local time translations that occur during standard time. This member is ignored if a value for the StandardDate member is not supplied. <nl>This value is added to the value of the Bias member to form the bias used during standard time. In most time zones, the value of this member is zero. 
 	// @tupleitem 4|unicode|daylightName|
-	// @tupleitem 5|<o PyTime>|daylightTime|
+	// @tupleitem 5|<o PyTime>/tuple|daylightTime|
 	// @tupleitem 6|int|daylightBias|Specifies a bias value to be used during local time translations that occur during daylight saving time. This member is ignored if a value for the DaylightDate member is not supplied. 
 	// <nl>This value is added to the value of the Bias member to form the bias used during daylight saving time. In most time zones, the value of this member is – 60. 
 	
+}
+
+// @pymethod tuple|win32api|SetTimeZoneInformation|Sets the system time-zone information.
+static PyObject *
+PySetTimeZoneInformation(PyObject * self, PyObject * args)
+{
+	// @pyparm tuple|tzi||A tuple with the timezone info
+	// @desc The tuple is of form.
+	TIME_ZONE_INFORMATION tzi;
+	PyObject *obStdName, *obStdDate;
+	PyObject *obDaylightName, *obDaylightDate;
+	if (!PyArg_ParseTuple (args, "(iOOiOOi):SetTimeZoneInformation",
+			       &tzi.Bias, // @tupleitem 0|int|Bias|
+			       &obStdName, // @tupleitem 1|string|StandardName
+			       &obStdDate, // @tupleitem 2|SYSTEMTIME tuple|StandardDate
+			       &tzi.StandardBias, // @tupleitem 3|int|StandardBias
+			       &obDaylightName, // @tupleitem 4|string|DaylightName
+			       &obDaylightDate, // @tupleitem 5|SYSTEMTIME tuple|DaylightDate
+			       &tzi.DaylightBias))// @tupleitem 6|int|DaylightBias
+		return NULL;
+	WCHAR *temp;
+	if (!PyWinObject_AsWCHAR(obStdName, &temp))
+		return NULL;
+	if (wcslen(temp)>31) {
+		PyWinObject_FreeWCHAR(temp);
+		return PyErr_Format(PyExc_ValueError, "Time zone names must be < 32 chars long");
+	}
+	wcscpy(tzi.StandardName, temp);
+	PyWinObject_FreeWCHAR(temp);
+	// second string...
+	if (!PyWinObject_AsWCHAR(obDaylightName, &temp))
+		return NULL;
+	if (wcslen(temp)>31) {
+		PyWinObject_FreeWCHAR(temp);
+		return PyErr_Format(PyExc_ValueError, "Time zone names must be < 32 chars long");
+	}
+	wcscpy(tzi.DaylightName, temp);
+	PyWinObject_FreeWCHAR(temp);
+
+	// tuples with a SYSTEMTIME
+	if (!PyTuple_AsSYSTEMTIME(obStdDate, tzi.StandardDate))
+		return NULL;
+	if (!PyTuple_AsSYSTEMTIME(obDaylightDate, tzi.DaylightDate))
+		return NULL;
+
+	BOOL rc;
+	PyW32_BEGIN_ALLOW_THREADS
+	rc = ::SetTimeZoneInformation(&tzi);
+	PyW32_END_ALLOW_THREADS
+	if(!rc)
+		return ReturnAPIError("SetTimeZoneInformation");
+	Py_RETURN_NONE;
 }
 
 // @pymethod string|win32api|GetDateFormat|Formats a date as a date string for a specified locale. The function formats either a specified date or the local system date.
@@ -5459,7 +5544,7 @@ int PyApplyExceptionFilter(
 		if (PyInt_Check(obRet)) {
 			ret = PyInt_AsLong(obRet);
 		// Exception instance to be raised.
-		} else if (PyInstance_Check(obRet)) {
+		} else if (PyObject_IsSubclass(obRet, PyExc_Exception)) {
 			*ppExcType = obRet;
 			Py_INCREF(obRet);
 			*ppExcValue = NULL;
@@ -5515,13 +5600,13 @@ static PyObject *PyApply(PyObject *self, PyObject *args)
 		PyThreadState *stateCur = PyThreadState_Swap(NULL);
 		if (stateCur == NULL) stateCur = stateSave;
 		PyThreadState_Swap(stateCur);
-		if (PyInstance_Check(exc_type)) {
+		if (PyObject_IsSubclass(exc_type, PyExc_Exception)) {
 			if (exc_value != NULL)
 				PyErr_SetString(PyExc_TypeError, "instance exception returned from exception handler may not have a separate value");
 			else {
 				// Normalize to class, instance
 				exc_value = exc_type;
-				exc_type = (PyObject*) ((PyInstanceObject*)exc_type)->in_class;
+				exc_type = (PyObject *)exc_value->ob_type;
 				Py_INCREF(exc_type);
 				PyErr_SetObject(exc_type, exc_value);
 			}
@@ -6181,6 +6266,7 @@ static struct PyMethodDef win32api_functions[] = {
 	{"SetStdHandle",	PySetStdHandle,	1}, // @pymeth SetStdHandle|Sets a handle for the standard input, standard output, or standard error device
 	{"SetSystemPowerState",	PySetSystemPowerState,	1}, // @pymeth SetSystemPowerState|Powers machine down to a suspended state
 	{"SetThreadLocale",     PySetThreadLocale, 1}, // @pymeth SetThreadLocale|Sets the current thread's locale.
+	{"SetTimeZoneInformation",PySetTimeZoneInformation,1}, // @pymeth SetTimeZoneInformation|Sets the system time-zone information.
 	{"SetWindowLong",       PySetWindowLong,1}, // @pymeth SetWindowLong|Places a long value at the specified offset into the extra window memory of the given window.
 	{"ShellExecute",		PyShellExecute,		1}, // @pymeth ShellExecute|Executes an application.
 	{"ShowCursor",			PyShowCursor,		1}, // @pymeth ShowCursor|The ShowCursor method displays or hides the cursor. 
