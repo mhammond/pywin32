@@ -47,7 +47,12 @@ BOOL PyCom_VariantFromPyObject(PyObject *obj, VARIANT *var)
 {
 	BOOL bGoodEmpty = FALSE; // Set if VT_EMPTY should really be used.
 	V_VT(var) = VT_EMPTY;
-	if ( PyString_Check(obj) || PyUnicode_Check(obj) )
+	if (
+// In py3k we don't convert PyString_Check objects (ie, bytes) to BSTR...
+#if (PY_VERSION_HEX < 0x03000000)
+	    PyString_Check(obj) ||
+#endif
+	    PyUnicode_Check(obj) )
 	{
 		if ( !PyWinObject_AsBstr(obj, &V_BSTR(var)) ) {
 			PyErr_SetString(PyExc_MemoryError, "Making BSTR for variant");
