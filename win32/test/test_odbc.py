@@ -129,7 +129,11 @@ class TestStuff(unittest.TestCase):
     def testInt(self):
         self._test_val('intfield', 1)
         self._test_val('intfield', 0)
-        self._test_val('intfield', sys.maxint)
+        try:
+            big = sys.maxsize
+        except AttributeError:
+            big = sys.maxint
+        self._test_val('intfield', big)
         
     def testFloat(self):
         self._test_val('floatfield', 1.01)
