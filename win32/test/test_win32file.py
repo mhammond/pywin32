@@ -10,6 +10,7 @@ import time
 import shutil
 import socket
 import datetime
+import random
 
 try:
     set
@@ -555,6 +556,119 @@ class TestEncrypt(unittest.TestCase):
             if f is not None:
                 f.close()
             os.unlink(fname)
+
+class TestConnect(unittest.TestCase):
+    def test_connect_with_payload(self):
+        def runner():
+            s1 = socket.socket()
+            self.addr = ('localhost', random.randint(10000,64000))
+            s1.bind(self.addr)
+            s1.listen(1)
+            cli, addr = s1.accept()
+            self.request = cli.recv(1024)
+            cli.send('some expected response')
+        t = threading.Thread(target=runner)
+        t.start()
+        time.sleep(0.1)
+        s2 = socket.socket()
+        ol = pywintypes.OVERLAPPED()
+        s2.bind(('0.0.0.0', 0)) # connectex requires the socket be bound beforehand
+        win32file.ConnectEx(s2, self.addr, ol, "some expected request")
+        win32file.GetOverlappedResult(s2.fileno(), ol, 1)
+        ol = pywintypes.OVERLAPPED()
+        buff = win32file.AllocateReadBuffer(1024)
+        win32file.WSARecv(s2, buff, ol, 0)
+        length = win32file.GetOverlappedResult(s2.fileno(), ol, 1)
+        self.response = buff[:length]
+        self.assertEqual(self.response, 'some expected response')
+        self.assertEqual(self.request, 'some expected request')
+        t.join(5)
+        self.failIf(t.isAlive(), "worker thread didn't terminate")
+
+    def test_connect_without_payload(self):
+        def runner():
+            s1 = socket.socket()
+            self.addr = ('localhost', random.randint(10000,64000))
+            s1.bind(self.addr)
+            s1.listen(1)
+            cli, addr = s1.accept()
+            cli.send('some expected response')
+        t = threading.Thread(target=runner)
+        t.start()
+        time.sleep(0.1)
+        s2 = socket.socket()
+        ol = pywintypes.OVERLAPPED()
+        s2.bind(('0.0.0.0', 0)) # connectex requires the socket be bound beforehand
+        win32file.ConnectEx(s2, self.addr, ol)
+        win32file.GetOverlappedResult(s2.fileno(), ol, 1)
+        ol = pywintypes.OVERLAPPED()
+        buff = win32file.AllocateReadBuffer(1024)
+        win32file.WSARecv(s2, buff, ol, 0)
+        length = win32file.GetOverlappedResult(s2.fileno(), ol, 1)
+        self.response = buff[:length]
+        self.assertEqual(self.response, 'some expected response')
+        t.join(5)
+        self.failIf(t.isAlive(), "worker thread didn't terminate")
+
+class TestTransmit(unittest.TestCase):
+    def test_transmit(self):
+        import binascii
+        val = binascii.hexlify(os.urandom(1024*1024))
+        val_length = len(val)
+        f = tempfile.TemporaryFile()
+        f.write(val)
+
+        def runner():
+            s1 = socket.socket()
+            self.addr = ('localhost', random.randint(10000,64000))
+            s1.bind(self.addr)
+            s1.listen(1)
+            cli, addr = s1.accept()
+            buf = 1
+            self.request = []
+            while buf:
+                buf = cli.recv(1024*100)
+                self.request.append(buf)
+
+        th = threading.Thread(target=runner)
+        th.start()
+        time.sleep(0.5)
+        s2 = socket.socket()
+        s2.connect(self.addr)
+        
+        length = 0
+        
+        ol = pywintypes.OVERLAPPED()
+        f.seek(0)
+        win32file.TransmitFile(s2, win32file._get_osfhandle(f.fileno()), val_length, 0, ol, 0)
+        length += win32file.GetOverlappedResult(s2.fileno(), ol, 1)
+        
+        ol = pywintypes.OVERLAPPED()
+        f.seek(0)
+        win32file.TransmitFile(s2, win32file._get_osfhandle(f.fileno()), val_length, 0, ol, 0, "[AAA]", "[BBB]")
+        length += win32file.GetOverlappedResult(s2.fileno(), ol, 1)
+        
+        ol = pywintypes.OVERLAPPED()
+        f.seek(0)
+        win32file.TransmitFile(s2, win32file._get_osfhandle(f.fileno()), val_length, 0, ol, 0, "", "")
+        length += win32file.GetOverlappedResult(s2.fileno(), ol, 1)
+        
+        ol = pywintypes.OVERLAPPED()
+        f.seek(0)
+        win32file.TransmitFile(s2, win32file._get_osfhandle(f.fileno()), val_length, 0, ol, 0, None, "[CCC]")
+        length += win32file.GetOverlappedResult(s2.fileno(), ol, 1)
+        
+        ol = pywintypes.OVERLAPPED()
+        f.seek(0)
+        win32file.TransmitFile(s2, win32file._get_osfhandle(f.fileno()), val_length, 0, ol, 0, "[DDD]")
+        length += win32file.GetOverlappedResult(s2.fileno(), ol, 1)
+        
+        s2.close()
+        th.join()
+        buf = ''.join(self.request)
+        self.assertEqual(length, len(buf))
+        self.assert_(("%s[AAA]%s[BBB]%s%s[CCC][DDD]%s" % (val,val,val,val,val)) == buf)
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -34,6 +34,12 @@
 #include "assert.h"
 #include <stddef.h>
 #include "sfc.h"
+
+// pyconfig.h defines socklen_t, which conflicts with below header
+#ifdef socklen_t
+#	undef socklen_t
+#endif
+#include "Ws2tcpip.h"
 #endif
 
 #define NEED_PYWINOBJECTS_H
@@ -382,8 +388,10 @@ PyObject *py_DeviceIoControl(PyObject *self, PyObject *args, PyObject *kwargs)
 			ret=PyBuffer_New(OutBufferSize);
 			if (ret==NULL)
 				return NULL;
-			(*ret->ob_type->tp_as_buffer->bf_getwritebuffer)(ret, 0, &OutBuffer);
-			bBuffer=TRUE;
+			if (!PyWinObject_AsWriteBuffer(ret, &OutBuffer, &OutBufferSize)){
+				Py_DECREF(ret);
+				return NULL;
+				}
 			}
 		else{
 			ret = PyString_FromStringAndSize(NULL, OutBufferSize);
@@ -434,7 +442,12 @@ PyObject *py_DeviceIoControl(PyObject *self, PyObject *args, PyObject *kwargs)
 	if (numRead < OutBufferSize){
 		if (bBuffer){
 			// Create a view of existing buffer with actual output size
-			PyObject *resized=PyBuffer_FromReadWriteObject(ret, 0, numRead);
+			// Memoryview object in py3k supports slicing
+			#if (PY_VERSION_HEX >= 0x03000000)
+				PyObject *resized=PySequence_GetSlice(ret, 0, numRead);
+			#else
+				PyObject *resized=PyBuffer_FromReadWriteObject(ret, 0, numRead);
+			#endif
 			Py_DECREF(ret);
 			ret=resized;
 			}
@@ -445,9 +458,11 @@ PyObject *py_DeviceIoControl(PyObject *self, PyObject *args, PyObject *kwargs)
 }
 PyCFunction pfnpy_DeviceIoControl=(PyCFunction)py_DeviceIoControl;
 %}
+%native(DeviceIoControl) pfnpy_DeviceIoControl;
+
 
 %native (OVERLAPPED) PyWinMethod_NewOVERLAPPED;
-%native(DeviceIoControl) pfnpy_DeviceIoControl;
+
 
 
 //FileIOCompletionRoutine	
@@ -1628,6 +1643,191 @@ int _getmaxstdio( void );
 #pragma comment(lib,"ws2_32.lib")
 %}
 
+
+%{
+// @pyswig |TransmitFile|Transmits a file over a socket
+// TransmitFile(sock, filehandle, bytes_to_write, bytes_per_send, overlap, flags [, (prepend_buf, postpend_buf)])
+// @rdesc Returns 0 on completion, or ERROR_IO_PENDING if an overlapped operation has been queued
+static PyObject *py_TransmitFile( PyObject *self, PyObject *args, PyObject *kwargs ) {
+	PyObject *obhFile;
+	HANDLE hFile;
+	SOCKET s;
+	PyObject *obOverlapped = NULL;
+	PyObject *obSocket;
+	PyObject *obHead=Py_None, *obTail=Py_None;
+	DWORD flags, bytes_to_write, bytes_per_send;
+	OVERLAPPED *pOverlapped;
+	int error, rc;
+
+	static char *keywords[]={"Socket","File","NumberOfBytesToWrite", "NumberOfBytesPerSend",
+		"Overlapped","Flags","Head","Tail", NULL};
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OOiiOi|OO:TransmitFile", keywords,
+		&obSocket, // @pyparm <o PySocket>/int|Socket||Socket that will be used to send the file
+		&obhFile, // @pyparm <o PyHANDLE>/int|File||Handle to the file
+		&bytes_to_write, // @pyparm int|NumberOfBytesToWrite||The number of bytes in the file to transmit, use 0 for entire file.
+		&bytes_per_send, // @pyparm int|NumberOfBytesPerSend||The size, in bytes, of each block of data sent in each send operation.
+		&obOverlapped, // @pyparm <o PyOVERLAPPED>|Overlapped||An overlapped structure, can be None.
+		&flags, // @pyparm int|Flags||A set of flags used to modify the behavior of the TransmitFile function call. (win32file.TF_*)
+		&obHead, // @pyparm buffer|Head|None|Buffer to send on the socket before the file
+		&obTail))	// @pyparm buffer|Tail|None|Buffer to send on the socket after the file
+		return NULL;
+
+	if (!PySocket_AsSOCKET(obSocket, &s)) {
+		return NULL;
+	}
+	GUID guid = WSAID_TRANSMITFILE;
+	DWORD dwBytes;
+	LPFN_TRANSMITFILE lpfnTransmitFile = NULL;
+
+	error = WSAIoctl(s, SIO_GET_EXTENSION_FUNCTION_POINTER, &guid, sizeof(GUID),
+				   &lpfnTransmitFile, sizeof(lpfnTransmitFile), &dwBytes, NULL, NULL);
+	if (error == SOCKET_ERROR) {
+		rc = WSAGetLastError();
+		PyWin_SetAPIError("WSAIoctl", rc);
+		return NULL;
+	}
+	if (!PyWinObject_AsOVERLAPPED(obOverlapped, &pOverlapped, TRUE))
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obhFile, &hFile)) {
+		return NULL;
+	}
+	TRANSMIT_FILE_BUFFERS tf_buffers;
+	TRANSMIT_FILE_BUFFERS *ptf_buffers;
+	if (!PyWinObject_AsReadBuffer(obHead, &tf_buffers.Head, &tf_buffers.HeadLength, TRUE))
+		return NULL;
+	if (!PyWinObject_AsReadBuffer(obTail, &tf_buffers.Tail, &tf_buffers.TailLength, TRUE))
+		return NULL;
+
+	if (tf_buffers.Head || tf_buffers.Tail)
+		ptf_buffers = &tf_buffers;
+	else
+		ptf_buffers = NULL;
+
+	rc=0;
+	Py_BEGIN_ALLOW_THREADS;
+	if (!lpfnTransmitFile(s, hFile, bytes_to_write, bytes_per_send, pOverlapped, ptf_buffers, flags))
+		rc = WSAGetLastError();
+	Py_END_ALLOW_THREADS;
+
+	if (rc == 0 || rc == ERROR_IO_PENDING || rc == WSA_IO_PENDING)
+		return PyInt_FromLong(rc);
+	return PyWin_SetAPIError("TransmitFile", rc);
+}
+PyCFunction pfnpy_TransmitFile=(PyCFunction)py_TransmitFile;
+%}
+%native(TransmitFile) pfnpy_TransmitFile;
+
+////////////////////////////////////////////////////////////////////////////////    
+%{
+// @pyswig (int, int)|ConnectEx|Version of connect that uses Overlapped I/O
+// ConnectEx(sock, (addr, port), buf, overlap)
+// @rdesc Returns the completion code and number of bytes sent.
+//	The error code will be 0 for a completed operation, or ERROR_IO_PENDING for a pending overlapped operation.
+static PyObject *py_ConnectEx( PyObject *self, PyObject *args, PyObject *kwargs ) {
+	OVERLAPPED *pOverlapped = NULL;
+	SOCKET sConnecting;
+	PyObject *obOverlapped = NULL;
+	PyObject *obConnecting = NULL;
+	PyObject *obBuf = Py_None;
+	PyObject *addro;
+	void *buffer=NULL;
+	DWORD buffer_len=0; 
+	int rc, error;
+	DWORD sent=0;
+	static char *keywords[]={"s","name","Overlapped","SendBuffer", NULL};
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OOO|O:ConnectEx", keywords,
+		&obConnecting, // @pyparm <o PySocket>/int|s||A bound, unconnected socket that will be used to connect
+		&addro, // @pyparm tuple|name||Address to connect to (host, port)
+		&obOverlapped, // @pyparm <o PyOVERLAPPED>|Overlapped||An overlapped structure
+		&obBuf)) // @pyparm buffer|SendBuffer|None|Buffer to send on the socket after connect
+		return NULL;
+		
+	if (!PySocket_AsSOCKET(obConnecting, &sConnecting)) {
+		return NULL;
+	}
+	if (!PyWinObject_AsReadBuffer(obBuf, &buffer, &buffer_len, TRUE))
+		return NULL;
+
+	GUID guid = WSAID_CONNECTEX;
+	DWORD dwBytes;
+	LPFN_CONNECTEX lpfnConnectEx = NULL;
+
+	error = WSAIoctl(sConnecting, SIO_GET_EXTENSION_FUNCTION_POINTER, &guid, sizeof(GUID),
+				   &lpfnConnectEx, sizeof(lpfnConnectEx), &dwBytes, NULL, NULL);
+	if (error == SOCKET_ERROR) {
+		rc = WSAGetLastError();
+		PyWin_SetAPIError("WSAIoctl", rc);
+		return NULL;
+	}
+	// convert the address
+	//
+	char pbuf[30];
+	char *hptr, *pptr;
+	PyObject *hobj = NULL;
+	PyObject *pobj = (PyObject *)NULL;
+	PyObject *idna = NULL;
+
+	struct addrinfo hints, *res;
+	if (!PyArg_ParseTuple(addro, "OO:getaddrinfo", &hobj, &pobj)) {
+		return NULL;
+	}
+	if (hobj == Py_None) {
+		hptr = NULL;
+	} else if (PyUnicode_Check(hobj)) {
+		idna = PyObject_CallMethod(hobj, "encode", "s", "idna");
+		if (!idna)
+			return NULL;
+		hptr = PyString_AsString(idna);
+	} else if (PyString_Check(hobj)) {
+		hptr = PyString_AsString(hobj);
+	} else {
+		PyErr_SetString(PyExc_TypeError,
+				"getaddrinfo() argument 1 must be string or None");
+		return NULL;
+	}
+	if (PyInt_Check(pobj)) {
+		PyOS_snprintf(pbuf, sizeof(pbuf), "%ld", PyInt_AsLong(pobj));
+		pptr = pbuf;
+	} else if (PyString_Check(pobj)) {
+		pptr = PyString_AsString(pobj);
+	} else if (pobj == Py_None) {
+		pptr = (char *)NULL;
+	} else {
+		PyErr_SetString(PyExc_TypeError, "Int or String expected");
+		return NULL;
+	}
+
+	memset(&hints, 0, sizeof(hints));
+	hints.ai_family = AF_INET;
+	hints.ai_socktype = SOCK_STREAM;
+	hints.ai_protocol = IPPROTO_TCP;
+	error = getaddrinfo(hptr, pptr, &hints, &res);
+	if (error)
+	{
+		PyWin_SetAPIError("getaddrinfo", WSAGetLastError());
+		return NULL;
+	}
+	// done screwing with the address
+
+	if (!PyWinObject_AsOVERLAPPED(obOverlapped, &pOverlapped))
+	{
+		return NULL;
+	}
+
+	rc=0;
+	Py_BEGIN_ALLOW_THREADS;
+	if (!lpfnConnectEx(sConnecting, res->ai_addr, res->ai_addrlen, buffer, buffer_len, &sent, pOverlapped))
+		rc=WSAGetLastError();
+	Py_END_ALLOW_THREADS;
+	if (rc==0 || rc == ERROR_IO_PENDING)
+		return Py_BuildValue("ii", rc, sent);
+	return PyWin_SetAPIError("ConnectEx", rc);
+}
+PyCFunction pfnpy_ConnectEx=(PyCFunction)py_ConnectEx;
+%}
+%native(ConnectEx) pfnpy_ConnectEx;
+
+////////////////////////////////////////////////////////////////////////////////    
 %native(AcceptEx) MyAcceptEx;
 
 %native(GetAcceptExSockaddrs) MyGetAcceptExSockaddrs;
@@ -5066,6 +5266,8 @@ PyCFunction pfnpy_GetFullPathName=(PyCFunction)py_GetFullPathName;
 			||(strcmp(pmd->ml_name, "GetFullPathName")==0)
 			||(strcmp(pmd->ml_name, "GetFileInformationByHandleEx")==0)	// not impl yet
 			||(strcmp(pmd->ml_name, "DeviceIoControl")==0)
+			||(strcmp(pmd->ml_name, "TransmitFile")==0)
+			||(strcmp(pmd->ml_name, "ConnectEx")==0)
 			)
 			pmd->ml_flags = METH_VARARGS | METH_KEYWORDS;
 
