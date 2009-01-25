@@ -85,7 +85,7 @@ is_py3k = sys.version_info > (3,) # get this out of the way early on...
 # We have special handling for _winreg so our setup3.py script can avoid
 # using the 'imports' fixer and therefore start much faster...
 if is_py3k:
-    import winreg as winreg
+    import winreg as _winreg
 else:
     import _winreg
 
@@ -399,7 +399,11 @@ class WinExt (Extension):
             # If someone needs a specially named implib created, handle that
             if self.implib_name:
                 implib = os.path.join(build_ext.build_temp, self.implib_name)
-                self.extra_link_args.append("/IMPLIB:%s" % implib)
+                if build_ext.debug:
+                    suffix = "_d"
+                else:
+                    suffix = ""
+                self.extra_link_args.append("/IMPLIB:%s%s.lib" % (implib, suffix))
             # Try and find the MFC source code, so we can reach inside for
             # some of the ActiveX support we need.  We need to do this late, so
             # the environment is setup correctly.
@@ -1519,7 +1523,7 @@ com_extensions += [
     WinExt_win32com('axscript',
             dsp_file=r"com\Active Scripting.dsp",
             extra_compile_args = ['-DPY_BUILD_AXSCRIPT'],
-            implib_name="axscript.lib",
+            implib_name="axscript",
             pch_header = "stdafx.h"
     ),
     # ActiveDebugging is a mess.  See the comments in the docstring of this
@@ -1664,7 +1668,7 @@ com_extensions += [
                     sources=("""
                         %(propsys)s/propsys.cpp
                         """ % dirs).split(),
-                    implib_name="pypropsys.lib",
+                    implib_name="pypropsys",
                     ),
 
 
