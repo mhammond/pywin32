@@ -1,6 +1,5 @@
 # Magic utility that "redirects" to pywintypesxx.dll
 import imp, sys, os
-sys.modules['pywintypes_loader']=sys.modules['pywintypes']
 def __import_pywin32_system_module__(modname, globs):
     # This has been through a number of iterations.  The problem: how to 
     # locate pywintypesXX.dll when it may be in a number of places, and how
@@ -31,6 +30,8 @@ def __import_pywin32_system_module__(modname, globs):
                         mod = imp.load_module(modname, None, look,
                                               (ext, mode, ext_type))
                         # and fill our namespace with it.
+                        # XXX - if this ever moves to py3k, this will probably
+                        # need similar adjustments as below...
                         globs.update(mod.__dict__)
                         return
         raise ImportError("No dynamic module " + modname)
@@ -95,10 +96,29 @@ def __import_pywin32_system_module__(modname, globs):
         if found is None:
             # give up in disgust.
             raise ImportError("No system module '%s' (%s)" % (modname, filename))
+    # py2k and py3k differences:
+    # On py2k, after doing "imp.load_module('pywintypes')", sys.modules
+    # is unchanged - ie, sys.modules['pywintypes'] still refers to *this*
+    # .py module - but the module's __dict__ has *already* need updated
+    # with the new module's contents.
+    # However, on py3k, sys.modules *is* changed - sys.modules['pywintypes']
+    # will be changed to the new module object.
+    # SO: * on py2k don't need to update any globals.
+    #     * on py3k we update our module dict with the new module's dict and
+    #       copy its globals to ours.
+    old_mod = sys.modules[modname]
     # Python can load the module
-    mod = imp.load_module(modname, None, found, 
-                          ('.dll', 'rb', imp.C_EXTENSION))
-    # and fill our namespace with it.
-    globs.update(mod.__dict__)
+    mod = imp.load_dynamic(modname, found)
+    # Check the sys.modules[] behaviour we describe above is true...
+    if sys.version_info < (3,0):
+        assert sys.modules[modname] is old_mod
+        assert mod is old_mod
+    else:
+        assert sys.modules[modname] is not old_mod
+        assert sys.modules[modname] is mod
+        # as above - re-reset to the *old* module object then update globs.
+        sys.modules[modname] = old_mod
+        globs.update(mod.__dict__)
+
 
 __import_pywin32_system_module__("pywintypes", globals())
