@@ -389,12 +389,15 @@ class VTableItem(DispatchItem):
 		DispatchItem.Build(self, typeinfo, attr, bForUser)
 		assert typeinfo is not None, "Cant build vtables without type info!"
 
-		def cmp_vtable_off(m1, m2):
-			return cmp(m1.desc[7], m2.desc[7])
-
 		meth_list = list(self.mapFuncs.values()) + list(self.propMapGet.values()) + list(self.propMapPut.values())
 
-		meth_list.sort( cmp_vtable_off )
+		if sys.version_info < (2,4):
+			def cmp_vtable_off(m1, m2):
+				return cmp(m1.desc[7], m2.desc[7])
+			meth_list.sort(cmp_vtable_off)
+		else:
+			meth_list.sort(key=lambda m: m.desc[7])
+
 		# Now turn this list into the run-time representation
 		# (ready for immediate use or writing to gencache)
 		self.vtableFuncs = []
