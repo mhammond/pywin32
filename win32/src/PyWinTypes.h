@@ -130,7 +130,29 @@
 	so it's reasonable to assume it won't disappear anytime soon.
 */
 #define PYWIN_ATTR_CONVERT _PyUnicode_AsString
-#endif // PY_VERSION_HEX
+
+/* Some API functions changed/removed in python 3.0
+	Definitions for the string functions are in stringobject.h,
+	but comments indicate that this header is likely to go away in 3.1.
+*/
+#define PyString_Check PyBytes_Check
+#define PyString_Size PyBytes_Size
+#define PyString_AsString PyBytes_AsString
+#define PyString_AsStringAndSize PyBytes_AsStringAndSize
+#define PyString_FromString PyBytes_FromString
+#define PyString_FromStringAndSize PyBytes_FromStringAndSize
+#define _PyString_Resize _PyBytes_Resize
+#define PyString_AS_STRING PyBytes_AS_STRING
+#define PyString_GET_SIZE PyBytes_GET_SIZE
+#define PyString_Concat PyBytes_Concat
+#define PyInt_Check PyLong_Check
+#define PyInt_FromLong PyLong_FromLong
+#define PyInt_AsLong PyLong_AsLong
+#define PyInt_AS_LONG PyLong_AS_LONG
+#define PyInt_FromSsize_t PyLong_FromSsize_t
+#define PyInt_AsSsize_t PyLong_AsSsize_t
+#define PyInt_AsUnsignedLongMask PyLong_AsUnsignedLongMask
+#endif	// (PY_VERSION_HEX < 0x03000000)
 
 // See PEP-353 - this is the "official" test...
 #if PY_VERSION_HEX < 0x02050000 && !defined(PY_SSIZE_T_MIN)

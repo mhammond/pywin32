@@ -31,6 +31,58 @@ const GUID GUID_NULL \
                 = { 0, 0, 0, { 0, 0,  0,  0,  0,  0,  0,  0 } };
 #endif
 
+
+#if (PY_VERSION_HEX >= 0x03000000)
+// For py3k, a function that returns new memoryview object instead of buffer.
+// ??? Byte array object is mutable, maybe just use that directly as a substitute ???
+// Docs do not specify that you can pass NULL buffer to PyByteArray_FromStringAndSize, but it works
+PyObject *PyBuffer_New(Py_ssize_t size){
+	PyObject *bah = PyByteArray_FromStringAndSize(NULL, size);
+	if (bah==NULL)
+		return NULL;
+	PyObject *ret = PyMemoryView_FromObject(bah);
+	Py_DECREF(bah);	// Memory view keeps its own ref to base object
+	return ret;
+}
+
+PyObject *PyBuffer_FromReadWriteMemory(void *buf, Py_ssize_t size){
+	// buf is not freed by returned object !!!!!!!
+	Py_buffer info={
+		buf,
+		NULL,			// obj added in 3.0b3
+		size,
+		FALSE,			// readonly
+		NULL,			// format
+		0,				// ndim
+		NULL,			// shape
+		NULL,			// strided
+		NULL,			// suboffsets
+		0,				// itemsize
+		NULL,			// internal
+		};
+	return PyMemoryView_FromBuffer(&info);
+}
+
+PyObject *PyBuffer_FromMemory(void *buf, Py_ssize_t size){
+	// buf is not freed by returned object !!!!!!!
+	Py_buffer info={
+		buf,
+		NULL,			// obj added in 3.0b3
+		size,
+		TRUE,			// readonly
+		NULL,			// format
+		0,				// ndim
+		NULL,			// shape
+		NULL,			// strided
+		NULL,			// suboffsets
+		0,				// itemsize
+		NULL,			// internal
+		};
+	return PyMemoryView_FromBuffer(&info);
+}
+#endif
+
+
 // See comments in pywintypes.h for why we need this!
 void PyWin_MakePendingCalls()
 {
@@ -877,6 +929,34 @@ int PyWinGlobals_Ensure()
 		// @tupleitem 2|None/tuple|excepinfo|An optional EXCEPINFO tuple.
 		// @tupleitem 3|None/int|argerror|The index of the argument in error, or (usually) None or -1
 	}
+
+	/* PyType_Ready needs to be called anytime pywintypesxx.dll is loaded, since
+		other extension modules can use types defined here without pywintypes itself
+		having been imported.
+		??? All extension modules that call this need to be changed to check the exit code ???
+	*/
+	if (PyType_Ready(&PyHANDLEType) == -1
+		||PyType_Ready(&PyOVERLAPPEDType) == -1
+		||PyType_Ready(&PyDEVMODEType) == -1
+		||PyType_Ready(&PyDEVMODEWType) == -1
+		||PyType_Ready(&PyWAVEFORMATEXType) == -1
+#ifndef NO_PYWINTYPES_TIME
+		||PyType_Ready(&PyTimeType) == -1
+#endif // NO_PYWINTYPES_TIME
+#ifndef NO_PYWINTYPES_IID
+		||PyType_Ready(&PyIIDType) == -1
+#endif // NO_PYWINTYPES_IID
+#ifndef NO_PYWINTYPES_SECURITY
+		||PyType_Ready(&PySECURITY_DESCRIPTORType) == -1
+		||PyType_Ready(&PySECURITY_ATTRIBUTESType) == -1
+		||PyType_Ready(&PySIDType) == -1
+		||PyType_Ready(&PyACLType) == -1
+#endif
+		)
+		return -1;
+
+	if (!_PyWinDateTime_Init())
+		return -1;
 	return 0;
 }
 
