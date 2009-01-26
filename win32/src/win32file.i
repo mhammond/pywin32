@@ -50,6 +50,11 @@
 %include "pywin32.i"
 
 %{
+
+#ifdef PYWIN_HAVE_DATETIME_CAPI
+#include "datetime.h" // python's datetime header.
+#endif
+
 // older python version's don't get the PyCObject structure definition
 // exposed, and we need it to cleanly zap our handles (see
 // CloseEncryptedFileRaw below).
@@ -674,6 +679,16 @@ BOOLAPI GetFileTime(
 
 
 %{
+// Helper for SetFileTime - see comments below.
+static BOOL PyWinTime_DateTimeCheck(PyObject *ob)
+{
+	return FALSE
+#ifdef PYWIN_HAVE_DATETIME_CAPI
+		|| (PyDateTimeAPI && PyDateTime_Check(ob))
+#endif
+		;
+}
+
 // @pyswig None|SetFileTime|Sets the date and time that a file was created, last accessed, or last modified.
 static PyObject *PySetFileTime (PyObject *self, PyObject *args)
 {
@@ -699,7 +714,13 @@ static PyObject *PySetFileTime (PyObject *self, PyObject *args)
 	{
 		if (!PyWinObject_AsFILETIME(obTimeCreated, &LocalFileTime))
 			return NULL;
-		LocalFileTimeToFileTime(&LocalFileTime, &TimeCreated);
+		// This sucks!  This code is the only code in pywin32 that
+		// blindly converted the result of AsFILETIME to a localtime.
+		// That doesn't make sense in a tz-aware datetime world...
+		if (PyWinTime_DateTimeCheck(obTimeCreated))
+			TimeCreated = LocalFileTime;
+		else
+			LocalFileTimeToFileTime(&LocalFileTime, &TimeCreated);
 		lpTimeCreated= &TimeCreated;
 	}
 	if (obTimeAccessed == Py_None)
@@ -708,7 +729,10 @@ static PyObject *PySetFileTime (PyObject *self, PyObject *args)
 	{
 		if (!PyWinObject_AsFILETIME(obTimeAccessed, &LocalFileTime))
 			return NULL;
-		LocalFileTimeToFileTime(&LocalFileTime, &TimeAccessed);
+		if (PyWinTime_DateTimeCheck(obTimeAccessed))
+			TimeAccessed = LocalFileTime;
+		else
+			LocalFileTimeToFileTime(&LocalFileTime, &TimeAccessed);
 		lpTimeAccessed= &TimeAccessed;
 	}
 	if (obTimeWritten == Py_None)
@@ -717,7 +741,10 @@ static PyObject *PySetFileTime (PyObject *self, PyObject *args)
 	{
 		if (!PyWinObject_AsFILETIME(obTimeWritten, &LocalFileTime))
 			return NULL;
-		LocalFileTimeToFileTime(&LocalFileTime, &TimeWritten);
+		if (PyWinTime_DateTimeCheck(obTimeWritten))
+			TimeWritten = LocalFileTime;
+		else
+			LocalFileTimeToFileTime(&LocalFileTime, &TimeWritten);
 		lpTimeWritten= &TimeWritten;
 	}
 	if (!::SetFileTime(hHandle, lpTimeCreated, lpTimeAccessed, lpTimeWritten))
@@ -5238,6 +5265,10 @@ PyCFunction pfnpy_GetFullPathName=(PyCFunction)py_GetFullPathName;
 		PYWIN_MODULE_INIT_RETURN_ERROR;
 	if (PyDict_SetItemString(d, "INVALID_HANDLE_VALUE", PyWinLong_FromHANDLE(INVALID_HANDLE_VALUE)) == -1)
 		PYWIN_MODULE_INIT_RETURN_ERROR;
+
+#ifdef PYWIN_HAVE_DATETIME_CAPI
+	PyDateTime_IMPORT;
+#endif
 
 	for (PyMethodDef *pmd = win32fileMethods;pmd->ml_name;pmd++)
 		if   ((strcmp(pmd->ml_name, "CreateFileW")==0)

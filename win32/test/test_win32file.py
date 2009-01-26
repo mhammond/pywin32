@@ -2,6 +2,7 @@ import unittest
 from pywin32_testutil import str2bytes
 import win32api, win32file, win32pipe, pywintypes, winerror, win32event
 import win32con, ntsecuritycon
+import win32timezone
 import sys
 import os
 import tempfile
@@ -119,6 +120,33 @@ class TestSimpleOps(unittest.TestCase):
             self.failUnlessEqual(s, data)
         finally:
             f.Close()
+            os.unlink(filename)
+
+    def testFileTimesTimezones(self):
+        if not issubclass(pywintypes.TimeType, datetime.datetime):
+            # maybe should report 'skipped', but that's not quite right as
+            # there is nothing you can do to avoid it being skipped!
+            return
+        filename = tempfile.mktemp("-testFileTimes")
+        now_utc = win32timezone.utcnow()
+        now_local = now_utc.astimezone(win32timezone.TimeZoneInfo.local())
+        h = win32file.CreateFile(filename,
+                                 win32file.GENERIC_READ|win32file.GENERIC_WRITE,
+                                 0, None, win32file.CREATE_ALWAYS, 0, 0)
+        try:
+            win32file.SetFileTime(h, now_utc, now_utc, now_utc)
+            ct, at, wt = win32file.GetFileTime(h)
+            self.failUnlessEqual(now_local, ct)
+            self.failUnlessEqual(now_local, at)
+            self.failUnlessEqual(now_local, wt)
+            # and the reverse - set local, check against utc
+            win32file.SetFileTime(h, now_local, now_local, now_local)
+            ct, at, wt = win32file.GetFileTime(h)
+            self.failUnlessEqual(now_utc, ct)
+            self.failUnlessEqual(now_utc, at)
+            self.failUnlessEqual(now_utc, wt)
+        finally:
+            h.close()
             os.unlink(filename)
 
     def testFileTimes(self):

@@ -23,6 +23,7 @@ from keyword import iskeyword
 import pythoncom
 from pywintypes import TimeType
 import winerror
+import datetime
 
 # A string ending with a quote can not be safely triple-quoted.
 def _safeQuotedString(s):
@@ -557,13 +558,17 @@ def MakeDefaultArgRepr(defArgVal):
     inOut = pythoncom.PARAMFLAG_FIN
 
   if inOut & pythoncom.PARAMFLAG_FHASDEFAULT:
-    # hack for Unicode until it repr's better.
+    # times need special handling...
     val = defArgVal[2]
+    if isinstance(val, datetime.datetime):
+      # VARIANT <-> SYSTEMTIME conversions always lose any sub-second
+      # resolution, so just use a 'timetuple' here.
+      return repr(tuple(val.utctimetuple()))
     if type(val) is TimeType:
+      # must be the 'old' pywintypes time object...
       year=val.year; month=val.month; day=val.day; hour=val.hour; minute=val.minute; second=val.second; msec=val.msec
       return "pywintypes.Time((%(year)d, %(month)d, %(day)d, %(hour)d, %(minute)d, %(second)d,0,0,0,%(msec)d))" % locals()
-    else:
-      return repr(val)
+    return repr(val)
   return None
 
 def BuildCallList(fdesc, names, defNamedOptArg, defNamedNotOptArg, defUnnamedArg, defOutArg, is_comment = False):

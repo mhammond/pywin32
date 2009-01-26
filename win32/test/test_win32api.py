@@ -6,6 +6,7 @@ from pywin32_testutil import str2bytes
 import win32api, win32con, win32event, winerror
 import sys, os
 import tempfile
+import datetime
 
 class CurrentUserTestCase(unittest.TestCase):
     def testGetCurrentUser(self):
@@ -24,7 +25,8 @@ class TestTime(unittest.TestCase):
             tz_time = tzinfo[2]
         # for the sake of code exercise but don't output
         tz_str.encode()
-        tz_time.Format()
+        if not isinstance(tz_time, datetime.datetime):
+            tz_time.Format()
     def TestDateFormat(self):
         DATE_LONGDATE = 2
         date_flags = DATE_LONGDATE

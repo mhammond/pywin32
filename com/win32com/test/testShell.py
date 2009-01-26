@@ -2,6 +2,8 @@ import sys, os
 import struct
 import unittest
 import copy
+import datetime
+import win32timezone
 
 try:
     sys_maxsize = sys.maxsize # 2.6 and later - maxsize != maxint on 64bits
@@ -10,6 +12,7 @@ except AttributeError:
 
 import win32con
 import pythoncom
+import pywintypes
 from win32com.shell import shell
 from win32com.shell.shellcon import *
 from win32com.storagecon import *
@@ -97,6 +100,17 @@ class PIDLTester(win32com.test.util.TestCase):
         # always fail.
 
 class FILEGROUPDESCRIPTORTester(win32com.test.util.TestCase):
+    def _getTestTimes(self):
+        if issubclass(pywintypes.TimeType, datetime.datetime):
+            ctime = win32timezone.now()
+            atime = ctime + datetime.timedelta(seconds=1)
+            wtime = atime + datetime.timedelta(seconds=1)
+        else:
+            ctime = pywintypes.Time(11)
+            atime = pywintypes.Time(12)
+            wtime = pywintypes.Time(13)
+        return ctime, atime, wtime
+
     def _testRT(self, fd):
         fgd_string = shell.FILEGROUPDESCRIPTORAsString([fd])
         fd2 = shell.StringAsFILEGROUPDESCRIPTOR(fgd_string)[0]
@@ -135,14 +149,15 @@ class FILEGROUPDESCRIPTORTester(win32com.test.util.TestCase):
             # no kw-args to dict in 2.2 - not worth converting!
             return
         clsid = pythoncom.MakeIID("{CD637886-DB8B-4b04-98B5-25731E1495BE}")
+        ctime, atime, wtime = self._getTestTimes()
         d = dict(cFileName="foo.txt",
                  clsid=clsid,
                  sizel=(1,2),
                  pointl=(3,4),
                  dwFileAttributes = win32con.FILE_ATTRIBUTE_NORMAL,
-                 ftCreationTime=pythoncom.MakeTime(10),
-                 ftLastAccessTime=pythoncom.MakeTime(11),
-                 ftLastWriteTime=pythoncom.MakeTime(12),
+                 ftCreationTime=ctime,
+                 ftLastAccessTime=atime,
+                 ftLastWriteTime=wtime,
                  nFileSize=sys_maxsize + 1)
         self._testRT(d)
 
@@ -151,29 +166,31 @@ class FILEGROUPDESCRIPTORTester(win32com.test.util.TestCase):
         if sys.hexversion < 0x2030000:
             # no kw-args to dict in 2.2 - not worth converting!
             return
+
+        ctime, atime, wtime = self._getTestTimes()
         d = [dict(cFileName="foo.txt",
                  sizel=(1,2),
                  pointl=(3,4),
                  dwFileAttributes = win32con.FILE_ATTRIBUTE_NORMAL,
-                 ftCreationTime=pythoncom.MakeTime(10),
-                 ftLastAccessTime=pythoncom.MakeTime(11),
-                 ftLastWriteTime=pythoncom.MakeTime(12),
+                 ftCreationTime=ctime,
+                 ftLastAccessTime=atime,
+                 ftLastWriteTime=wtime,
                  nFileSize=sys_maxsize + 1),
             dict(cFileName="foo2.txt",
                  sizel=(1,2),
                  pointl=(3,4),
                  dwFileAttributes = win32con.FILE_ATTRIBUTE_NORMAL,
-                 ftCreationTime=pythoncom.MakeTime(10),
-                 ftLastAccessTime=pythoncom.MakeTime(11),
-                 ftLastWriteTime=pythoncom.MakeTime(12),
+                 ftCreationTime=ctime,
+                 ftLastAccessTime=atime,
+                 ftLastWriteTime=wtime,
                  nFileSize=sys_maxsize + 1),
             dict(cFileName=u"foo\xa9.txt",
                  sizel=(1,2),
                  pointl=(3,4),
                  dwFileAttributes = win32con.FILE_ATTRIBUTE_NORMAL,
-                 ftCreationTime=pythoncom.MakeTime(10),
-                 ftLastAccessTime=pythoncom.MakeTime(11),
-                 ftLastWriteTime=pythoncom.MakeTime(12),
+                 ftCreationTime=ctime,
+                 ftLastAccessTime=atime,
+                 ftLastWriteTime=wtime,
                  nFileSize=sys_maxsize + 1),
             ]
         s = shell.FILEGROUPDESCRIPTORAsString(d, 1)

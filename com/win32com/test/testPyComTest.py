@@ -3,12 +3,15 @@
 
 import sys; sys.coinit_flags=0 # Must be free-threaded!
 import win32api, pythoncom, time
-import sys, os, win32com, win32com.client.connect
+import pywintypes
+import os, win32com, win32com.client.connect
 from win32com.test.util import CheckClean
 from win32com.client import constants, DispatchBaseClass
 import win32com
 from win32com.test.util import RegisterPythonServer
 from pywin32_testutil import str2memory
+import datetime
+import win32timezone
 
 importMsg = "**** PyCOMTest is not installed ***\n  PyCOMTest is a Python test specific COM client and server.\n  It is likely this server is not installed on this machine\n  To install the server, you must get the win32com sources\n  and build it using MS Visual C++"
 
@@ -170,13 +173,23 @@ def TestDynamic():
     # if o.ParamProp(0) != 1:
     #    raise RuntimeError, o.paramProp(0)
 
-    try:
-        import datetime
+    if issubclass(pywintypes.TimeType, datetime.datetime):
+        # For now *all* times passed must be tz-aware.
+        now = win32timezone.now()
+        # but conversion to and from a VARIANT loses sub-second...
+        now = now.replace(microsecond=0)
+        later = now + datetime.timedelta(seconds=1)
+        TestApplyResult(o.EarliestDate, (now, later), now)
+    else:
+        # old PyTime object
+        now = pythoncom.MakeTime(time.gmtime(time.time()))
+        later = pythoncom.MakeTime(time.gmtime(time.time()+1))
+        TestApplyResult(o.EarliestDate, (now, later), now)
+        # But it can still *accept* tz-naive datetime objects...
         now = datetime.datetime.now()
         expect = pythoncom.MakeTime(now)
         TestApplyResult(o.EarliestDate, (now, now), expect)
-    except ImportError:
-        pass # py 2.2 - no datetime
+
 
 def TestGenerated():
     # Create an instance of the server.
@@ -297,16 +310,22 @@ def TestGenerated():
     # 'Hello Loraine', but the 'r' is the "Registered" sign (\xae)
     TestConstant("StringTest", u"Hello Lo\xaeaine") 
 
-    now = pythoncom.MakeTime(time.gmtime(time.time()))
-    later = pythoncom.MakeTime(time.gmtime(time.time()+1))
-    TestApplyResult(o.EarliestDate, (now, later), now)
-    try:
-        import datetime
+    if issubclass(pywintypes.TimeType, datetime.datetime):
+        # For now *all* times passed must be tz-aware.
+        now = win32timezone.now()
+        # but conversion to and from a VARIANT loses sub-second...
+        now = now.replace(microsecond=0)
+        later = now + datetime.timedelta(seconds=1)
+        TestApplyResult(o.EarliestDate, (now, later), now)
+    else:
+        # old PyTime object
+        now = pythoncom.MakeTime(time.gmtime(time.time()))
+        later = pythoncom.MakeTime(time.gmtime(time.time()+1))
+        TestApplyResult(o.EarliestDate, (now, later), now)
+        # But it can still *accept* tz-naive datetime objects...
         now = datetime.datetime.now()
         expect = pythoncom.MakeTime(now)
         TestApplyResult(o.EarliestDate, (now, now), expect)
-    except ImportError:
-        pass # py 2.2 - no datetime
 
     assert o.DoubleString("foo") == "foofoo"
     assert o.DoubleInOutString("foo") == "foofoo"
