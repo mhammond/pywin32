@@ -3,15 +3,16 @@
 // @doc
 
 #include "Python.h"
+
+// Not used in py3k
+#if (PY_VERSION_HEX < 0x03000000)
+
 #include "malloc.h"
 #include "io.h"
 #include "fcntl.h"
 #include "PyWinTypes.h"
 
 #define DllExport   _declspec(dllexport)
-
-extern bool g_fUsingWin9x;
-extern CHAR g_szModulePath[];	
 
 // These tell _PyPopen() wether to return 1, 2, or 3 file objects.
 #define POPEN_1 1
@@ -177,32 +178,10 @@ static int _PyPopenCreateProcess(char *cmdstring,
 		s1 = (char *)_alloca(i);
 		if (!(x = GetEnvironmentVariable("COMSPEC", s1, i)))
 			return FALSE;
-		if (!g_fUsingWin9x)
-		{
-			x = i + strlen(s3) + strlen(cmdstring) + 1;
-			s2 = (char *)_alloca(x);
-			ZeroMemory(s2, x);
-			sprintf(s2, "%s%s%s", s1, s3, cmdstring);
-		}
-		else
-		{
-			//
-			// Oh gag, we're on Win9x. Use the workaround listed in
-			// KB: Q150956
-			//
-			x = i + strlen(s3) + strlen(cmdstring) + 1 + strlen(g_szModulePath) + 
-				strlen(szConsoleSpawn) + 1;
-			s2 = (char *)_alloca(x);
-			ZeroMemory(s2, x);
-			sprintf(
-				s2,
-				"%s%s%s%s%s\"",
-				g_szModulePath,
-				szConsoleSpawn,
-				s1,
-				s3,
-				cmdstring);
-		}
+		x = i + strlen(s3) + strlen(cmdstring) + 1;
+		s2 = (char *)_alloca(x);
+		ZeroMemory(s2, x);
+		sprintf(s2, "%s%s%s", s1, s3, cmdstring);
     }
 	// Could be an else here to try cmd.exe / command.com in the path
 	// Now we'll just error out..
@@ -644,3 +623,5 @@ static int _PyPclose(FILE *file)
 
 	return result;
 }
+
+#endif // PY_VERSION_HEX < 0x03000000
