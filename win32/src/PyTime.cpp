@@ -201,7 +201,7 @@ PyObject *PyTime::Format(PyObject *self, PyObject *args)
 
 	if (!_tcsftime(szBuffer, 256/*_countof()*/, fmt, &tm))
 		szBuffer[0] = '\0'; // Better error?
-	PyObject *rc = PyWinObject_FromTCHAR(szBuffer);
+	PyObject *rc = PyWinCoreString_FromString(szBuffer);
 	if (bFreeString) PyWinObject_FreeTCHAR(fmt);
 	return rc;
 	// @comm The following format characters are supported.
