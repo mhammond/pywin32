@@ -68,6 +68,7 @@ class Dialog(window.Wnd):
 	def keys(self): return self.data.keys()
 	def items(self): return self.data.items()
 	def values(self): return self.data.values()
+	# XXX - needs py3k work!
 	def has_key(self, key): return key in self.data
 
 class PrintDialog(Dialog):
