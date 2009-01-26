@@ -594,22 +594,22 @@ class TestConnect(unittest.TestCase):
             s1.listen(1)
             cli, addr = s1.accept()
             self.request = cli.recv(1024)
-            cli.send('some expected response')
+            cli.send(str2bytes('some expected response'))
         t = threading.Thread(target=runner)
         t.start()
         time.sleep(0.1)
         s2 = socket.socket()
         ol = pywintypes.OVERLAPPED()
         s2.bind(('0.0.0.0', 0)) # connectex requires the socket be bound beforehand
-        win32file.ConnectEx(s2, self.addr, ol, "some expected request")
+        win32file.ConnectEx(s2, self.addr, ol, str2bytes("some expected request"))
         win32file.GetOverlappedResult(s2.fileno(), ol, 1)
         ol = pywintypes.OVERLAPPED()
         buff = win32file.AllocateReadBuffer(1024)
         win32file.WSARecv(s2, buff, ol, 0)
         length = win32file.GetOverlappedResult(s2.fileno(), ol, 1)
         self.response = buff[:length]
-        self.assertEqual(self.response, 'some expected response')
-        self.assertEqual(self.request, 'some expected request')
+        self.assertEqual(self.response, str2bytes('some expected response'))
+        self.assertEqual(self.request, str2bytes('some expected request'))
         t.join(5)
         self.failIf(t.isAlive(), "worker thread didn't terminate")
 
@@ -620,7 +620,7 @@ class TestConnect(unittest.TestCase):
             s1.bind(self.addr)
             s1.listen(1)
             cli, addr = s1.accept()
-            cli.send('some expected response')
+            cli.send(str2bytes('some expected response'))
         t = threading.Thread(target=runner)
         t.start()
         time.sleep(0.1)
@@ -634,7 +634,7 @@ class TestConnect(unittest.TestCase):
         win32file.WSARecv(s2, buff, ol, 0)
         length = win32file.GetOverlappedResult(s2.fileno(), ol, 1)
         self.response = buff[:length]
-        self.assertEqual(self.response, 'some expected response')
+        self.assertEqual(self.response, str2bytes('some expected response'))
         t.join(5)
         self.failIf(t.isAlive(), "worker thread didn't terminate")
 
@@ -665,7 +665,11 @@ class TestTransmit(unittest.TestCase):
         s2.connect(self.addr)
         
         length = 0
-        
+        aaa = str2bytes("[AAA]")
+        bbb = str2bytes("[BBB]")
+        ccc = str2bytes("[CCC]")
+        ddd = str2bytes("[DDD]")
+        empty = str2bytes("")
         ol = pywintypes.OVERLAPPED()
         f.seek(0)
         win32file.TransmitFile(s2, win32file._get_osfhandle(f.fileno()), val_length, 0, ol, 0)
@@ -673,29 +677,31 @@ class TestTransmit(unittest.TestCase):
         
         ol = pywintypes.OVERLAPPED()
         f.seek(0)
-        win32file.TransmitFile(s2, win32file._get_osfhandle(f.fileno()), val_length, 0, ol, 0, "[AAA]", "[BBB]")
+        win32file.TransmitFile(s2, win32file._get_osfhandle(f.fileno()), val_length, 0, ol, 0, aaa, bbb)
         length += win32file.GetOverlappedResult(s2.fileno(), ol, 1)
         
         ol = pywintypes.OVERLAPPED()
         f.seek(0)
-        win32file.TransmitFile(s2, win32file._get_osfhandle(f.fileno()), val_length, 0, ol, 0, "", "")
+        win32file.TransmitFile(s2, win32file._get_osfhandle(f.fileno()), val_length, 0, ol, 0, empty, empty)
         length += win32file.GetOverlappedResult(s2.fileno(), ol, 1)
         
         ol = pywintypes.OVERLAPPED()
         f.seek(0)
-        win32file.TransmitFile(s2, win32file._get_osfhandle(f.fileno()), val_length, 0, ol, 0, None, "[CCC]")
+        win32file.TransmitFile(s2, win32file._get_osfhandle(f.fileno()), val_length, 0, ol, 0, None, ccc)
         length += win32file.GetOverlappedResult(s2.fileno(), ol, 1)
         
         ol = pywintypes.OVERLAPPED()
         f.seek(0)
-        win32file.TransmitFile(s2, win32file._get_osfhandle(f.fileno()), val_length, 0, ol, 0, "[DDD]")
+        win32file.TransmitFile(s2, win32file._get_osfhandle(f.fileno()), val_length, 0, ol, 0, ddd)
         length += win32file.GetOverlappedResult(s2.fileno(), ol, 1)
         
         s2.close()
         th.join()
-        buf = ''.join(self.request)
+        buf = str2bytes('').join(self.request)
         self.assertEqual(length, len(buf))
-        self.assert_(("%s[AAA]%s[BBB]%s%s[CCC][DDD]%s" % (val,val,val,val,val)) == buf)
+        expected = val + aaa + val + bbb + val + val + ccc + ddd + val
+        self.assertEqual(type(expected), type(buf))
+        self.assert_(expected == buf)
 
 
 if __name__ == '__main__':
