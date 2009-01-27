@@ -128,7 +128,7 @@ PyObject *PyObject_FromWINHTTP_PROXY_INFO(WINHTTP_PROXY_INFO *i, BOOL bFreeStrin
     PyObject *ret = Py_BuildValue("kuu",
                         i->dwAccessType, // @tupleitem 0|int|dwAccessType|
                         i->lpszProxy, // @tupleitem 2|string|lpszProxy|
-                        i->lpszProxyBypass); // @tupleitem 3|string|lpszProxy
+                        i->lpszProxyBypass); // @tupleitem 3|string|lpszProxy|
     if (i->lpszProxy) GlobalFree(i->lpszProxy);
     if (i->lpszProxyBypass) GlobalFree(i->lpszProxyBypass);
     return ret;

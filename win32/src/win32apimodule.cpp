@@ -2432,18 +2432,18 @@ static PyObject *
 PySetTimeZoneInformation(PyObject * self, PyObject * args)
 {
 	// @pyparm tuple|tzi||A tuple with the timezone info
-	// @desc The tuple is of form.
+	// @comm The tuple is of form:
 	TIME_ZONE_INFORMATION tzi;
 	PyObject *obStdName, *obStdDate;
 	PyObject *obDaylightName, *obDaylightDate;
 	if (!PyArg_ParseTuple (args, "(iOOiOOi):SetTimeZoneInformation",
 			       &tzi.Bias, // @tupleitem 0|int|Bias|
-			       &obStdName, // @tupleitem 1|string|StandardName
-			       &obStdDate, // @tupleitem 2|SYSTEMTIME tuple|StandardDate
-			       &tzi.StandardBias, // @tupleitem 3|int|StandardBias
-			       &obDaylightName, // @tupleitem 4|string|DaylightName
-			       &obDaylightDate, // @tupleitem 5|SYSTEMTIME tuple|DaylightDate
-			       &tzi.DaylightBias))// @tupleitem 6|int|DaylightBias
+			       &obStdName, // @tupleitem 1|string|StandardName|
+			       &obStdDate, // @tupleitem 2|SYSTEMTIME tuple|StandardDate|
+			       &tzi.StandardBias, // @tupleitem 3|int|StandardBias|
+			       &obDaylightName, // @tupleitem 4|string|DaylightName|
+			       &obDaylightDate, // @tupleitem 5|SYSTEMTIME tuple|DaylightDate|
+			       &tzi.DaylightBias))// @tupleitem 6|int|DaylightBias|
 		return NULL;
 	WCHAR *temp;
 	if (!PyWinObject_AsWCHAR(obStdName, &temp))

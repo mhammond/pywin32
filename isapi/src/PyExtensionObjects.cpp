@@ -765,7 +765,7 @@ PyObject * PyECB::GetExecURLStatus(PyObject *self, PyObject *args)
 	if (!bRes)
 		return SetPyECBError("ServerSupportFunction(HSE_REQ_GET_EXEC_URL_STATUS)");
 	// @rdesc The result of a tuple of 3 integers - (uHttpStatusCode, uHttpSubStatus, dwWin32Error)
-	// @seeapi HSE_EXEC_URL_STATUS
+	// @pyseeapi HSE_EXEC_URL_STATUS
 	return Py_BuildValue("HHk", status.uHttpStatusCode, status.uHttpSubStatus, status.dwWin32Error);
 }
 
