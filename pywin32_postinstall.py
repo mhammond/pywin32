@@ -367,7 +367,7 @@ def install():
         try:
             RegisterCOMObjects()
         except win32api.error, details:
-            if details[0]!=5: # ERROR_ACCESS_DENIED
+            if details.winerror!=5: # ERROR_ACCESS_DENIED
                 raise
             print "You do not have the permissions to install COM objects."
             print "The sample COM objects were not registered."
