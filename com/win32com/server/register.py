@@ -99,7 +99,10 @@ def _find_localserver_exe(mustfind):
     exeName = os.path.join( sys.prefix, exeBaseName )
   if not os.path.exists(exeName):
     # See if in our sys.prefix/pcbuild directory (for developers)
-    exeName = os.path.join( sys.prefix, "PCbuild",  exeBaseName )
+    if "64 bit" in sys.version:
+      exeName = os.path.join( sys.prefix, "PCbuild",  "amd64", exeBaseName )
+    else:
+      exeName = os.path.join( sys.prefix, "PCbuild",  exeBaseName )
   if not os.path.exists(exeName):
     # See if the registry has some info.
     try:

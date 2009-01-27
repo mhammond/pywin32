@@ -290,7 +290,10 @@ class TheDocument(docview.RichEditDoc):
             # Step1 - get python.exe
             py = os.path.join(sys.prefix, 'python.exe')
             if not os.path.isfile(py):
-                py = os.path.join(sys.prefix, 'PCBuild', 'python.exe')
+                if "64 bit" in sys.version:
+                    py = os.path.join(sys.prefix, 'PCBuild', 'amd64', 'python.exe')
+                else:
+                    py = os.path.join(sys.prefix, 'PCBuild', 'python.exe')
             try:
                 py = win32api.GetShortPathName(py)
             except win32api.error:

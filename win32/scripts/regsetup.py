@@ -112,7 +112,10 @@ def FindPythonExe(exeAlias, possibleRealNames, searchPaths):
     # Look first in Python's home.
     found = os.path.join(sys.prefix,  possibleRealNames)
     if not FileExists(found): # for developers
-        found = os.path.join(sys.prefix,  "PCBuild", possibleRealNames)
+        if "64 bit" in sys.version:
+            found = os.path.join(sys.prefix,  "PCBuild", "amd64", possibleRealNames)
+        else:
+            found = os.path.join(sys.prefix,  "PCBuild", possibleRealNames)
     if not FileExists(found):
         found = LocateFileName(possibleRealNames, searchPaths)
 
@@ -341,6 +344,8 @@ def SetupCore(searchPaths):
     # an EXE not in the Python dir is hosting us - so we add it as a named
     # value
     check = os.path.join(sys.prefix, "PCBuild")
+    if "64 bit" in sys.version:
+        check = os.path.join(check, "amd64")
     if os.path.isdir(check):
         regutil.RegisterNamedPath("PCBuild",check)
 
@@ -457,7 +462,10 @@ if __name__=='__main__':
         # also search somewhere\lib, ..\build, and ..\..\build
         searchPath.append("..\\..\\lib")
         searchPath.append("..\\build")
-        searchPath.append("..\\..\\pcbuild")
+        if "64 bit" in sys.version:
+            searchPath.append("..\\..\\pcbuild\\amd64")
+        else:
+            searchPath.append("..\\..\\pcbuild")
 
         print "Attempting to setup/repair the Python core"
 
