@@ -13,12 +13,7 @@ generates Windows .hlp files.
 
 #ifndef WINVER
 // hrm - the RASEAPUSERIDENTITY structures on the Vista SDK now want
-// a WINVER > 0x500.
-# ifdef _WIN64
-#  define WINVER 0x501
-# else
-#  define WINVER 0x400
-# endif
+#define WINVER 0x501
 #endif
 
 #include "windows.h"
@@ -90,9 +85,9 @@ BOOL myPyWinObject_AsRASEAPUSERIDENTITY( PyObject *ob, RASEAPUSERIDENTITY **pp)
 	static PFNPyWinObject_AsRASEAPUSERIDENTITY pfnPyWinObject_AsRASEAPUSERIDENTITY = NULL;
 	if (pfnPyWinObject_AsRASEAPUSERIDENTITY == NULL) {
 #ifdef _DEBUG
-		HMODULE hmod = GetModuleHandle("win2kras_d.pyd");
+		HMODULE hmod = GetModuleHandle(_T("win2kras_d.pyd"));
 #else
-		HMODULE hmod = GetModuleHandle("win2kras.pyd");
+		HMODULE hmod = GetModuleHandle(_T("win2kras.pyd"));
 #endif
 		if (hmod==NULL) {
 			// _should_ have been imported to get the RASEAPUSERIDENTITY in the first place!
