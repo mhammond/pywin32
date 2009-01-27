@@ -96,6 +96,9 @@ from distutils.command.install_lib import install_lib
 from distutils.command.build_ext import build_ext
 from distutils.command.build import build
 from distutils.command.install_data import install_data
+from distutils.command.build_py import build_py
+from distutils.command.build_scripts import build_scripts
+
 try:
     from distutils.command.bdist_msi import bdist_msi
 except ImportError:
@@ -526,6 +529,81 @@ class WinExt_system32(WinExt):
         return "pywin32_system32"
 
 ################################################################
+# Extensions to the distutils commands.
+
+# Start with 2to3 related stuff for py3k.
+do_2to3 = is_py3k
+if do_2to3:
+    def refactor_filenames(filenames):
+        from lib2to3.refactor import RefactoringTool
+        # we only need some fixers.
+        fixers = """basestring exec except dict import imports next nonzero
+                    print raw_input long standarderror types unicode urllib
+                    xrange""".split()
+        fqfixers = ['lib2to3.fixes.fix_' + f for f in fixers]
+
+        options = dict(doctests_only=False, fix=[], list_fixes=[], 
+                       print_function=False, verbose=False,
+                       write=True)
+        r = RefactoringTool(fqfixers, options)
+        for updated_file in filenames:
+            if os.path.splitext(updated_file)[1] not in ['.py', '.pys']:
+                continue
+            log.info("Refactoring %s" % updated_file)
+            try:
+                r.refactor_file(updated_file, write=True, doctests_only=False)
+                if os.path.exists(updated_file + ".bak"):
+                    os.unlink(updated_file + ".bak")
+            except Exception:
+                log.warn("WARNING: Failed to 2to3 %s: %s" % (updated_file, sys.exc_info()[1]))
+else:
+    # py2k - nothing to do.
+    def refactor_filenames(filenames):
+        pass
+
+# 'build_py' command
+if do_2to3:
+    # Force 2to3 to be run for py3k versions.
+    class my_build_py(build_py):
+        def run(self):
+            self.updated_files = []
+    
+            # Base class code
+            if self.py_modules:
+                self.build_modules()
+            if self.packages:
+                self.build_packages()
+                self.build_package_data()
+    
+            # 2to3
+            refactor_filenames(self.updated_files)
+    
+            # Remaining base class code
+            self.byte_compile(self.get_outputs(include_bytecode=0))
+    
+        def build_module(self, module, module_file, package):
+            res = build_py.build_module(self, module, module_file, package)
+            if res[1]:
+                # file was copied
+                self.updated_files.append(res[0])
+            return res
+else:
+    my_build_py = build_py # default version.
+
+# 'build_scripts' command
+if do_2to3:
+    class my_build_scripts(build_scripts):
+        def copy_file(self, src, dest):
+            dest, copied = build_scripts.copy_file(self, src, dest)
+            # 2to3
+            if not self.dry_run and copied:
+                refactor_filenames([dest])
+            return dest, copied
+
+else:
+    my_build_scripts = build_scripts
+
+# 'build' command
 class my_build(build):
     def run(self):
         build.run(self)
@@ -1339,6 +1417,13 @@ class my_install_data(install_data):
         print 'Installing data files to %s' % self.install_dir
         install_data.finalize_options(self)
 
+    def copy_file(self, src, dest):
+        dest, copied = install_data.copy_file(self, src, dest)
+        # 2to3
+        if not self.dry_run and copied:
+            refactor_filenames([dest])
+        return dest, copied
+
 ################################################################
 
 pywintypes = WinExt_system32('pywintypes',
@@ -1929,6 +2014,11 @@ else:
 ext_modules = win32_extensions + com_extensions + pythonwin_extensions + \
                     other_extensions
 
+if is_py3k:
+    py3k_skip_modules = \
+        """adsi mapi isapi PyISAPI_loader""".split()
+    ext_modules = [e for e in ext_modules if e.name not in py3k_skip_modules]
+
 # Build a map of DLL base addresses.  According to Python's PC\dllbase_nt.txt,
 # we start at 0x1e200000 and go up in 0x00020000 increments.  A couple of
 # our modules just go over this limit, so we use 30000.  We also do it sorted
@@ -1947,6 +2037,8 @@ cmdclass = { 'install': my_install,
              'build': my_build,
              'build_ext': my_build_ext,
              'install_data': my_install_data,
+             'build_py' : my_build_py,
+             'build_scripts' : my_build_scripts,
            }
 
 dist = setup(name="pywin32",
