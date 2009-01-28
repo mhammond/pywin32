@@ -259,6 +259,13 @@ $(def1)$2&nbsp;$(par)
 .if=exists($object.1)
 .post=$(deflist_e)
 
+.tag=pyclass, html, 2, 2
+.pre=$(rmh)Classes$(rmhe)$(par)$(deflist)
+.format=$(term1)<A HREF="#module.1.#1.html">$1</A>$(line)
+$(def1)$2&nbsp;$(par)
+.post=$(deflist_e)
+.if=exists($module.1)
+
 .tag=pymeth, html, 2, 2
 .pre=$(rmh)Methods$(rmhe)$(par)$(deflist)
 .format=$(term1)<A HREF="#module.1__#1_meth.html">$1</A>$(line)
@@ -520,8 +527,8 @@ $(ex)$2
 $(exe)
 
 .tag=iex, html, 1, 8, 1
-.format=$(ex)$1$(par)
-$(ex)$(par)
+.pre=$(ex)
+.format=$1$(par)
 
 .post=$(exe)
 
