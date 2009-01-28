@@ -72,11 +72,12 @@ else:
 # get the type objects for IDispatch and IUnknown
 dispatchType = pythoncom.TypeIIDs[pythoncom.IID_IDispatch]
 iunkType = pythoncom.TypeIIDs[pythoncom.IID_IUnknown]
-_GoodDispatchTypes=[str, IIDType, unicode]
+
+_GoodDispatchTypes=(str, IIDType, unicode)
 _defaultDispatchItem=build.DispatchItem
 
 def _GetGoodDispatch(IDispatch, clsctx = pythoncom.CLSCTX_SERVER):
-	if type(IDispatch) in _GoodDispatchTypes:
+	if isinstance(IDispatch, _GoodDispatchTypes):
 		try:
 			IDispatch = pythoncom.connect(IDispatch)
 		except pythoncom.ole_error:
@@ -286,8 +287,7 @@ class CDispatch:
 		if dispatchType==type(ob):
 			# make a new instance of (probably this) class.
 			return self._wrap_dispatch_(ob, userName, ReturnCLSID)
-		else:
-			return ob
+		return ob
 		
 	def _get_good_object_(self,ob,userName = None, ReturnCLSID=None):
 		"""Given an object (usually the retval from a method), make it a good object to return.
@@ -295,7 +295,7 @@ class CDispatch:
 		   Also handles the fact that a retval may be a tuple of retvals"""
 		if ob is None: # Quick exit!
 			return None
-		elif type(ob)==tuple:
+		elif isinstance(ob, tuple):
 			return tuple(map(lambda o, s=self, oun=userName, rc=ReturnCLSID: s._get_good_single_object_(o, oun, rc),  ob))
 		else:
 			return self._get_good_single_object_(ob)
