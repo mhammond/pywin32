@@ -1,0 +1,41 @@
+<html>
+<head>
+    <TITLE>Python 3.x support</TITLE>
+</head>
+<body>
+    <h1>Introduction</h1>
+    <p>
+        pywin32 now supports Python 3.x. Note that the Python source code is
+        maintained in Python 2.x syntax and automatically converted to Python
+        3.x syntax using the 2to3 tool. Please don't submit patches etc using
+        Python 3.x syntax.
+    </p>
+
+    <h1>Unicode everywhere</h1>
+    <p>
+        In general, pywin32 on Python 2.x will accept both str and unicode
+        objects and convert as appropriate.  In Python 3.x byte() objects
+        are generally not accepted; strings must be unicode.
+    </p>
+    <p>
+        Most pywin32 modules for py3k are built with UNICODE defined, and
+        thus will call the Unicode versions of the Windows API.
+    </p>
+    <h1>datetime objects</h1>
+    <p>
+        Python 3.x builds use a subclass of datetime.datetime objects as the
+        "native" datetime object; a subclass is used to provive a backwards 
+        compatible <a href="PyDateTime__Format_meth.html">PyDateTime.Format</a>
+        method, but otherwise the datetime object is identical to the base
+        class. All time objects returned by pywin32 will have a UTC timezone
+        (via the win32timezone module), and times with any timezone will be
+        accepted when passed to pywin32 - but "time zone naive" objects are
+        *not* supported.
+    </p>
+    <p>
+        The <a href="win32timezone__now_meth.html">win32timezone.now</a> and
+        <a href="win32timezone__utcnow_meth.html">win32timezone.utcnow</a> methods
+        may be useful when working with datetime objects.
+    </p>
+</body>
+</html>
