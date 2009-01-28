@@ -8,6 +8,19 @@ However contributors are encouraged to add their own entries for their work.
 Since build 212:
 ----------------
 
+* py3k work - see the notes in the main documentation index for details,
+  but this entailed a huge overhaul of almost all the pywin32 sources.
+  Many things have been modernized for the first time in over a decade,
+  and may new tests have been added.  As a result, build 213 will not
+  be recommended for production work and should be treated as beta quality.
+
+  Huge thanks to:
+  - Roger Upole: for starting the py3k work, and without whom the py3k work
+    would literally not yet have started.
+  - Jason R. Coombs: for help porting win32timezone to py3k and for helping
+    with the new datetime object support.
+  - Vernon Cole: for help with porting adodbapi to py3k.
+
 * Added win32wnet.WNetAddConnection3 allowing a HWND to be specified for
   authentication.
 
