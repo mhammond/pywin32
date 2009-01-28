@@ -95,7 +95,7 @@ PYTHONWIN_SOURCE = \
 ISAPI_SOURCE = \
     $(ISAPI_SOURCE_DIR)\*.cpp $(ISAPI_SOURCE_DIR)\*.h $(GENDIR)\isapi_modules.d
 
-GENERATED_D = $(GENDIR)\sspi.d
+GENERATED_D = $(GENDIR)\sspi.d $(GENDIR)\win32timezone.d
 
 SOURCE=$(WIN32_SOURCE) $(WIN32COM_SOURCE) $(PYTHONWIN_SOURCE) $(ISAPI_SOURCE) $(GENERATED_D)
 
@@ -119,6 +119,9 @@ $(GENDIR)\isapi_modules.d: py2d.py pseudo
 
 $(GENDIR)\sspi.d: py2d.py pseudo
     $(PYTHON) py2d.py sspi > $(GENDIR)\sspi.d
+
+$(GENDIR)\win32timezone.d: py2d.py pseudo
+    $(PYTHON) py2d.py win32timezone > $(GENDIR)\win32timezone.d
 
 "$(GENDIR)\$(TARGET).hhc" : $(SOURCE) Dump2HHC.py $(DOCUMENT_FILE) 
     rem Run autoduck over each category so we can create a nested TOC.
