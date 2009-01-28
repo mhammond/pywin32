@@ -293,10 +293,14 @@ def CreateDirectory(params, options):
     return target_dir
 
 def AssignScriptMaps(script_maps, target, update='replace'):
-    """
-    @param script_maps ScriptMapParameter[]
-    @param target An IIS Virtual Directory to assign the script maps
-    @param update How to update the maps ('start', 'end', or 'replace')
+    """Updates IIS with the supplied script map information.
+
+    script_maps is a list of ScriptMapParameter objects
+
+    target is an IIS Virtual Directory to assign the script maps to
+
+    update is a string indicating how to update the maps, one of  ('start',
+    'end', or 'replace')
     """
     # determine which function to use to assign script maps
     script_map_func = '_AssignScriptMaps' + update.capitalize()
