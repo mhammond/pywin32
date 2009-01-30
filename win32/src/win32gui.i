@@ -2371,7 +2371,7 @@ static PyObject *PyGetDlgItemText(PyObject *self, PyObject *args)
 		if (buf==NULL)
 			return PyErr_Format(PyExc_MemoryError, "Unable to allocate %d bytes", bufsize);
 		chars_returned=GetDlgItemText(hwnd, dlgitem, buf, chars_allocated);
-		if (chars_returned==0){
+		if (chars_returned==0 && GetLastError()!=0){
 			PyWin_SetAPIError("GetDlgItemText");
 			break;
 			}
