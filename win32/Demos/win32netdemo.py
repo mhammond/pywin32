@@ -182,6 +182,7 @@ def usage(tests):
     print "Usage: %s [-s server ] [-v] [Test ...]" % os.path.basename(sys.argv[0])
     print "  -v : Verbose - print more information"
     print "  -s : server - execute the tests against the named server"
+    print "  -c : include the CreateUser test by default"
     print "where Test is one of:"
     for t in tests:
         print t.__name__,":", t.__doc__
@@ -194,7 +195,8 @@ def main():
     for ob in globals().values():
         if type(ob)==type(main) and ob.__doc__:
             tests.append(ob)
-    opts, args = getopt.getopt(sys.argv[1:], "s:hv")
+    opts, args = getopt.getopt(sys.argv[1:], "s:hvc")
+    create_user = False
     for opt, val in opts:
         if opt=="-s":
             global server
@@ -204,10 +206,14 @@ def main():
         if opt=="-v":
             global verbose_level
             verbose_level = verbose_level + 1
+        if opt=="-c":
+            create_user = True
 
     if len(args)==0:
         print "Running all tests - use '-h' to see command-line options..."
         dotests = tests
+        if not create_user:
+            dotests.remove(CreateUser)
     else:
         dotests = []
         for arg in args:
