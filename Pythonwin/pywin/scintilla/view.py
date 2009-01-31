@@ -195,6 +195,8 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
 
 		# Enable Unicode
 		self.SendScintilla(scintillacon.SCI_SETCODEPAGE, scintillacon.SC_CP_UTF8, 0)
+		self.SendScintilla(scintillacon.SCI_SETKEYSUNICODE, 1, 0)
+
 		# Create margins
 		self.SendScintilla(scintillacon.SCI_SETMARGINTYPEN, 1, scintillacon.SC_MARGIN_SYMBOL);
 		self.SendScintilla(scintillacon.SCI_SETMARGINMASKN, 1, 0xF);
