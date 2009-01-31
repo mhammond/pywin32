@@ -404,7 +404,7 @@ PyWNetEnumResource(PyObject *self, PyObject *args)
 				if (listerr)	// or bail
 				{
 					Py_DECREF(pRetlist);
-					VirtualFree(lpBuffer, dwRefsize, MEM_DECOMMIT);
+					VirtualFree(lpBuffer, 0, MEM_RELEASE);
 					return(ReturnError("Unable to create return list","WNetEnumResource"));
 				}
 
@@ -416,7 +416,7 @@ PyWNetEnumResource(PyObject *self, PyObject *args)
 		dwCount = dwMaxCount;	// reset to how many left
 	}
 		
-	VirtualFree(lpBuffer, dwRefsize, MEM_DECOMMIT);	// free the working buffer
+	VirtualFree(lpBuffer, 0, MEM_RELEASE);	// free the working buffer
 
 	}while ((Errno == NO_ERROR) && (dwMaxCount != 0));	// No more because EnumResource returned "ERROR_NO_MORE_DATA"
 														// or we have enumerated all that was asked for.

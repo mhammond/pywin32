@@ -21,6 +21,8 @@ Since build 212:
     with the new datetime object support.
   - Vernon Cole: for help with porting adodbapi to py3k.
 
+* Fixed memory leak in win32wnet.WNetEnumResource.
+
 * Added win32wnet.WNetAddConnection3 allowing a HWND to be specified for
   authentication.
 
