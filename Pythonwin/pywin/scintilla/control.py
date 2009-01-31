@@ -76,7 +76,6 @@ class ScintillaControlInterface:
 		# the caller must ensure it is encoded correctly.
 		if isinstance(text, unicode):
 			text = text.encode(default_scintilla_encoding)
-		win32api.OutputDebugString("SCI: %r\n" % text)
 		self.SendScintilla(scintillacon.SCI_INSERTTEXT, pos, text + null_byte)
 	def SCISetSavePoint(self):
 		self.SendScintilla(scintillacon.SCI_SETSAVEPOINT)
