@@ -6,9 +6,14 @@ import win32con
 import string
 import os
 import codecs
+import re
 
 crlf_bytes = "\r\n".encode("ascii")
 lf_bytes = "\n".encode("ascii")
+
+# re from pep263 - but we use it both on bytes and strings.
+re_encoding_bytes = re.compile("coding[:=]\s*([-\w.]+)".encode("ascii"))
+re_encoding_text = re.compile("coding[:=]\s*([-\w.]+)")
 
 ParentScintillaDocument=docview.Document
 class CScintillaDocument(ParentScintillaDocument):
@@ -16,7 +21,10 @@ class CScintillaDocument(ParentScintillaDocument):
 	def __init__(self, *args):
 		self.bom = None # the BOM, if any, read from the file.
 		# the encoding we detected from the source.  Might have
-		# detected via the BOM or an encoding decl.
+		# detected via the BOM or an encoding decl.  Note that in
+		# the latter case (ie, while self.bom is None), it can't be
+		# trusted - the user may have edited the encoding decl between
+		# open and save.
 		self.source_encoding = None
 		ParentScintillaDocument.__init__(self, *args)
 
@@ -58,18 +66,15 @@ class CScintillaDocument(ParentScintillaDocument):
 		# detect EOL mode - we don't support \r only - so find the
 		# first '\n' and guess based on the char before.
 		l = f.readline()
+		l2 = f.readline()
 		# If line ends with \r\n or has no line ending, use CRLF.
 		if l.endswith(crlf_bytes) or not l.endswith(lf_bytes):
 			eol_mode = scintillacon.SC_EOL_CRLF
 		else:
 			eol_mode = scintillacon.SC_EOL_LF
 
-		# Detect the encoding.
-		# XXX - todo - support pep263 encoding declarations as well as
-		# the BOM detection here (but note that unlike our BOM, the
-		# encoding declaration could change between loading and saving
-		# - particularly with a new file - so it also needs to be
-		# implemented at save time.)
+		# Detect the encoding - first look for a BOM, and if not found,
+		# look for a pep263 encoding declaration.
 		for bom, encoding in (
 			(codecs.BOM_UTF8, "utf8"),
 			(codecs.BOM_UTF16_LE, "utf_16_le"),
@@ -80,18 +85,26 @@ class CScintillaDocument(ParentScintillaDocument):
 				self.source_encoding = encoding
 				l = l[len(bom):] # remove it.
 				break
+		else:
+			# no bom detected - look for pep263 encoding decl.
+			for look in (l, l2):
+				# Note we are looking at raw bytes here: so
+				# both the re itself uses bytes and the result
+				# is bytes - but we need the result as a string.
+				match = re_encoding_bytes.search(look)
+				if match is not None:
+					self.source_encoding = match.group(1).decode("ascii")
+					break
 
 		# reading by lines would be too slow?  Maybe we can use the
 		# incremental encoders? For now just stick with loading the
 		# entire file in memory.
-		text = l + f.read()
+		text = l + l2 + f.read()
 
 		# Translate from source encoding to UTF-8 bytes for Scintilla
 		source_encoding = self.source_encoding
-		# This latin1 sucks until we get pep263 support; if we don't
-		# know an encoding we just write as binary (maybe we should
-		# try ascii to let the 'decoding failed' handling below to
-		# provide a nice warning that the file is non-ascii)
+		# If we don't know an encoding, just use latin-1 to treat
+		# it as bytes...
 		if source_encoding is None:
 			source_encoding = 'latin1'
 		# we could optimize this by avoiding utf8 to-ing and from-ing,
@@ -122,9 +135,20 @@ class CScintillaDocument(ParentScintillaDocument):
 
 	def _SaveTextToFile(self, view, f):
 		s = view.GetTextRange() # already decoded from scintilla's encoding
+		source_encoding = None
 		if self.bom:
 			f.write(self.bom)
-		source_encoding = self.source_encoding
+			source_encoding = self.source_encoding
+		else:
+			# no BOM - look for an encoding.
+			bits = re.split("[\r\n]*", s, 3)
+			for look in bits[:-1]:
+				match = re_encoding_text.search(look)
+				if match is not None:
+					source_encoding = match.group(1)
+					self.source_encoding = source_encoding
+					break
+
 		if source_encoding is None:
 			source_encoding = 'latin1'
 
