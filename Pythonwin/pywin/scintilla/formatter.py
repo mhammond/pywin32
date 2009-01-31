@@ -239,7 +239,11 @@ class Formatter(FormatterBase):
 
 	def Colorize(self, start=0, end=-1):
 		scintilla = self.scintilla
-		stringVal = scintilla.GetTextRange(start, end)
+		# scintilla's formatting is all done in terms of utf, so
+		# we work with utf8 bytes instead of unicode.  This magically
+		# works as any extended chars found in the utf8 don't change
+		# the semantics.
+		stringVal = scintilla.GetTextRange(start, end, decode=False)
 		if start > 0:
 			stylenum = scintilla.SCIGetStyleAt(start - 1)
 			styleStart = self.GetStyleByNum(stylenum).name
@@ -358,13 +362,13 @@ class PythonSourceFormatter(Formatter):
 			self.RegisterStyle( Style(name, format, bg), sc_id )
 
 	def ClassifyWord(self, cdoc, start, end, prevWord):
-		word = cdoc[start:end+1]
+		word = cdoc[start:end+1].decode('latin-1')
 		attr = STYLE_IDENTIFIER
 		if prevWord == "class":
 			attr = STYLE_CLASS
 		elif prevWord == "def":
 			attr = STYLE_METHOD
-		elif cdoc[start] in string.digits:
+		elif word[0] in string.digits:
 			attr = STYLE_NUMBER
 		elif iskeyword(word):
 			attr = STYLE_KEYWORD
@@ -382,15 +386,14 @@ class PythonSourceFormatter(Formatter):
 		prevWord = ""
 		state = styleStart
 		chPrev = chPrev2 = chPrev3 = ' '
-		chNext = cdoc[charStart]
-		chNext2 = cdoc[charStart]
+		chNext2 = chNext = cdoc[charStart:charStart+1].decode('latin-1')
 		startSeg = i = charStart
 		while i < lengthDoc:
 			ch = chNext
 			chNext = ' '
-			if i+1 < lengthDoc: chNext = cdoc[i+1]
+			if i+1 < lengthDoc: chNext = cdoc[i+1:i+2].decode('latin-1')
 			chNext2 = ' '
-			if i+2 < lengthDoc: chNext2 = cdoc[i+2]
+			if i+2 < lengthDoc: chNext2 = cdoc[i+2:i+3].decode('latin-1')
 			if state == STYLE_DEFAULT:
 				if ch in wordstarts:
 					self.ColorSeg(startSeg, i - 1, STYLE_DEFAULT)

@@ -115,13 +115,17 @@ class InteractiveFormatter(FormatterParent):
 		lengthDoc = len(cdoc)
 		if lengthDoc == 0: return
 		state = styleStart
-		chNext = cdoc[0]
+		# As per comments in Colorize(), we work with the raw utf8
+		# bytes. To avoid too muych py3k pain, we treat each utf8 byte
+		# as a latin-1 unicode character - we only use it to compare
+		# against ascii chars anyway...
+		chNext = cdoc[0:1].decode('latin-1')
 		startSeg = 0
 		i = 0
 		lastState=state # debug only
 		while i < lengthDoc:
 			ch = chNext
-			chNext = cdoc[i+1:i+2]
+			chNext = cdoc[i+1:i+2].decode('latin-1')
 			
 #			trace("ch=%r, i=%d, next=%r, state=%s" % (ch, i, chNext, state))
 			if state == STYLE_INTERACTIVE_EOL:
@@ -175,7 +179,7 @@ class InteractiveFormatter(FormatterParent):
 				# It is a PythonColorizer state - seek past the end of the line
 				# and ask the Python colorizer to color that.
 				end = startSeg
-				while end < lengthDoc and cdoc[end] not in '\r\n':
+				while end < lengthDoc and cdoc[end] not in '\r\n'.encode('ascii'):
 					end = end + 1
 				self.ColorizePythonCode( cdoc[:end], startSeg, state)
 				stylePyStart = self.GetStringStyle(end-1)
@@ -185,7 +189,7 @@ class InteractiveFormatter(FormatterParent):
 					stylePyStart = stylePyStart.name
 				startSeg =end
 				i = end - 1 # ready for increment.
-				chNext = cdoc[end:end+1]
+				chNext = cdoc[end:end+1].decode('latin-1')
 				state = STYLE_INTERACTIVE_EOL
 			if lastState != state:
 				lastState = state
@@ -195,7 +199,11 @@ class InteractiveFormatter(FormatterParent):
 			self.ColorSeg(startSeg, i-1, state)
 
 	def Colorize(self, start=0, end=-1):
-		stringVal = self.scintilla.GetTextRange(start, end)
+		# scintilla's formatting is all done in terms of utf, so
+		# we work with utf8 bytes instead of unicode.  This magically
+		# works as any extended chars found in the utf8 don't change
+		# the semantics.
+		stringVal = self.scintilla.GetTextRange(start, end, decode=False)
 		styleStart = None
 		stylePyStart = None
 		if start > 1:
@@ -302,15 +310,6 @@ class InteractiveCore:
 	def DoGetLine(self, line=-1):
 		if line==-1: line = self.LineFromChar()
 		line = self.GetLine(line)
-		if pywin.is_platform_unicode:
-			try:
-				line = unicode(line, pywin.default_scintilla_encoding).encode(pywin.default_platform_encoding)
-			except:
-				# We should fix the underlying problem rather than always masking errors
-				# so make it complain.
-				print "Unicode error converting", repr(line)
-				line = unicode(line, pywin.default_scintilla_encoding, "ignore").encode(pywin.default_platform_encoding)
-
 		while line and line[-1] in ['\r', '\n']:
 			line = line[:-1]
 		return line
