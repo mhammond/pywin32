@@ -26,6 +26,10 @@ Step-through in the debugger
 Run in the debugger
 Post-Mortem of unhandled exceptions""".split("\n")
 
+byte_cr = "\r".encode("ascii")
+byte_lf = "\n".encode("ascii")
+byte_crlf = "\r\n".encode("ascii")
+
 # A dialog box for the "Run Script" command.
 class DlgRunScript(dialog.Dialog):
 	"A class for the 'run script' dialog"
@@ -260,11 +264,21 @@ def RunScript(defName=None, defArgs=None, bShowDialog = 1, debuggingType=None):
 		path = win32ui.FullPath(path)
 		if not IsOnPythonPath(path): sys.path.append(path)
 
+	# py3k fun: If we use text mode to open the file, we get \r\n
+	# translated so Python allows the syntax (good!), but we get back
+	# text already decoded from the default encoding (bad!) and Python
+	# ignores any encoding decls (bad!).  If we use binary mode we get
+	# the raw bytes and Python looks at the encoding (good!) but \r\n
+	# chars stay in place so Python throws a syntax error (bad!).
+	# So: so the binary thing and manually normalize \r\n.
 	try:
-		f = open(script)
+		f = open(script, 'rb')
 	except IOError, exc:
 		win32ui.MessageBox("The file could not be opened - %s (%d)" % (exc.strerror, exc.errno))
 		return
+
+	# Get the source-code - as above, normalize \r\n
+	code = f.read().replace(byte_crlf, byte_lf).replace(byte_cr, byte_lf) + byte_lf
 
 	# Remember and hack sys.argv for the script.
 	oldArgv = sys.argv
@@ -295,7 +309,7 @@ def RunScript(defName=None, defArgs=None, bShowDialog = 1, debuggingType=None):
 	# Get a code object - ignore the debugger for this, as it is probably a syntax error
 	# at this point
 	try:
-		codeObject = compile(f.read()+"\n", script, "exec")
+		codeObject = compile(code, script, "exec")
 	except:
 		# Almost certainly a syntax error!
 		_HandlePythonFailure("run script", script)
