@@ -172,12 +172,15 @@ class FindReplaceDialog(dialog.Dialog):
 
 		self.editFindText.SetWindowText(defaultSearch.findText)
 		control = _GetControl()
-		# If we have a selection, default to that.
-		sel = control.GetSelText()
-		if (len(sel) != 0):
-			self.editFindText.SetWindowText(sel)
-			if (defaultSearch.remember):
-				defaultSearch.findText = sel
+		# _GetControl only gets normal MDI windows; if the interactive
+		# window is docked and no document open, we get None.
+		if control:
+			# If we have a selection, default to that.
+			sel = control.GetSelText()
+			if (len(sel) != 0):
+				self.editFindText.SetWindowText(sel)
+				if (defaultSearch.remember):
+					defaultSearch.findText = sel
 
 		self.editFindText.SetSel(0, -2)
 		self.editFindText.SetFocus()
