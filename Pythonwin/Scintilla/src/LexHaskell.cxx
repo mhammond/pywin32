@@ -179,6 +179,9 @@ static void ColorizeHaskellDoc(unsigned int startPos, int length, int initStyle,
          // Digit
          if (IsADigit(sc.ch) || (sc.ch == '.' && IsADigit(sc.chNext))) {
             sc.SetState(SCE_HA_NUMBER);
+            if (sc.ch == '0' && (sc.chNext == 'X' || sc.chNext == 'x')) { // Match anything starting with "0x" or "0X", too
+               sc.Forward(1);
+            }
          }
          // Comment line
          else if (sc.Match("--")) {

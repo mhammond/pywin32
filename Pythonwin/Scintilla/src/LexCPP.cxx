@@ -63,7 +63,7 @@ static void ColouriseCppDoc(unsigned int startPos, int length, int initStyle, Wo
 	CharacterSet setOKBeforeRE(CharacterSet::setNone, "([{=,:;!%^&*|?~+-");
 	CharacterSet setCouldBePostOp(CharacterSet::setNone, "+-");
 
-	CharacterSet setDoxygen(CharacterSet::setLower, "$@\\&<>#{}[]");
+	CharacterSet setDoxygen(CharacterSet::setAlpha, "$@\\&<>#{}[]");
 
 	CharacterSet setWordStart(CharacterSet::setAlpha, "_", 0x80, true);
 	CharacterSet setWord(CharacterSet::setAlphaNum, "._", 0x80, true);
@@ -444,9 +444,6 @@ static void FoldCppDoc(unsigned int startPos, int length, int initStyle,
 			levelMinCurrent = levelCurrent;
 			visibleChars = 0;
 		}
-	}
-	if ((unsigned)styler.Length() == endPos) {
-		styler.SetLevel(lineCurrent, levelCurrent);
 	}
 }
 
