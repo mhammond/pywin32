@@ -19,8 +19,6 @@ import struct
 import re
 import os
 
-from pywin import is_platform_unicode
-
 PRINTDLGORD = 1538
 IDC_PRINT_MAG_EDIT = 1010
 EM_FORMATRANGE = win32con.WM_USER+57
