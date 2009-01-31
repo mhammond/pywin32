@@ -72,8 +72,12 @@ class ScintillaControlInterface:
 			text = ''.join(text)
 		self.SendMessage(scintillacon.SCI_ADDSTYLEDTEXT, text.encode(default_scintilla_encoding))
 	def SCIInsertText(self, text, pos=-1):
-		buff=(text+'\0').encode(default_scintilla_encoding)
-		self.SendScintilla(scintillacon.SCI_INSERTTEXT, pos, buff)
+		# SCIInsertText allows unicode or bytes - but if they are bytes,
+		# the caller must ensure it is encoded correctly.
+		if isinstance(text, unicode):
+			text = text.encode(default_scintilla_encoding)
+		win32api.OutputDebugString("SCI: %r\n" % text)
+		self.SendScintilla(scintillacon.SCI_INSERTTEXT, pos, text + null_byte)
 	def SCISetSavePoint(self):
 		self.SendScintilla(scintillacon.SCI_SETSAVEPOINT)
 	def SCISetUndoCollection(self, collectFlag):
@@ -342,7 +346,7 @@ class CScintillaEditInterface(ScintillaControlInterface):
 	def GetTextLength(self):
 		return self.SendScintilla(win32con.WM_GETTEXTLENGTH)
 
-	def GetTextRange(self, start = 0, end = -1):
+	def GetTextRange(self, start = 0, end = -1, decode = True):
 		if end == -1: end = self.SendScintilla(win32con.WM_GETTEXTLENGTH)
 		assert end>=start, "Negative index requested (%d/%d)" % (start, end)
 		assert start >= 0 and start <= self.GetTextLength(), "The start postion is invalid"
@@ -353,8 +357,11 @@ class CScintillaEditInterface(ScintillaControlInterface):
 		tr = struct.pack('llP', start, end, addressBuffer)
 		trBuff = array.array('b', tr)
 		addressTrBuff = trBuff.buffer_info()[0]
-		numChars = self.SendScintilla(EM_GETTEXTRANGE, 0, addressTrBuff)
-		return buff.tostring()[:numChars].decode(default_scintilla_encoding)
+		num_bytes = self.SendScintilla(EM_GETTEXTRANGE, 0, addressTrBuff)
+		ret = buff.tostring()[:num_bytes]
+		if decode:
+			ret = ret.decode(default_scintilla_encoding)
+		return ret
 
 	def ReplaceSel(self, str):
 		buff = (str + "\0").encode(default_scintilla_encoding)
