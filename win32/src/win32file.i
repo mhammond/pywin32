@@ -1824,10 +1824,20 @@ static PyObject *py_ConnectEx( PyObject *self, PyObject *args, PyObject *kwargs 
 		return NULL;
 	}
 
+	WSAPROTOCOL_INFO prot_info;
+	int prot_info_len = sizeof(WSAPROTOCOL_INFO);
+	error = getsockopt(sConnecting, SOL_SOCKET, SO_PROTOCOL_INFO, 
+						(char*)&prot_info, &prot_info_len);
+	if (error)
+	{
+		PyWin_SetAPIError("getsockopt", WSAGetLastError());
+		return NULL;
+	}
+	
 	memset(&hints, 0, sizeof(hints));
-	hints.ai_family = AF_INET;
-	hints.ai_socktype = SOCK_STREAM;
-	hints.ai_protocol = IPPROTO_TCP;
+	hints.ai_family = prot_info.iAddressFamily;
+	hints.ai_socktype = prot_info.iSocketType;
+	hints.ai_protocol = prot_info.iProtocol;
 	error = getaddrinfo(hptr, pptr, &hints, &res);
 	if (error)
 	{
