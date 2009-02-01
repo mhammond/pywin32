@@ -1792,7 +1792,7 @@ static PyObject *py_ConnectEx( PyObject *self, PyObject *args, PyObject *kwargs 
 	char *hptr, *pptr;
 	PyObject *hobj = NULL;
 	PyObject *pobj = (PyObject *)NULL;
-	PyObject *idna = NULL;
+	TmpPyObject host_idna;
 
 	struct addrinfo hints, *res;
 	if (!PyArg_ParseTuple(addro, "OO:getaddrinfo", &hobj, &pobj)) {
@@ -1801,10 +1801,10 @@ static PyObject *py_ConnectEx( PyObject *self, PyObject *args, PyObject *kwargs 
 	if (hobj == Py_None) {
 		hptr = NULL;
 	} else if (PyUnicode_Check(hobj)) {
-		idna = PyObject_CallMethod(hobj, "encode", "s", "idna");
-		if (!idna)
+		host_idna = PyObject_CallMethod(hobj, "encode", "s", "idna");
+		if (!host_idna)
 			return NULL;
-		hptr = PyString_AsString(idna);
+		hptr = PyString_AsString(host_idna);
 	} else if (PyString_Check(hobj)) {
 		hptr = PyString_AsString(hobj);
 	} else {
