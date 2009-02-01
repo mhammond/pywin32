@@ -1848,6 +1848,7 @@ static PyObject *py_ConnectEx( PyObject *self, PyObject *args, PyObject *kwargs 
 
 	if (!PyWinObject_AsOVERLAPPED(obOverlapped, &pOverlapped))
 	{
+		freeaddrinfo(res);
 		return NULL;
 	}
 
@@ -1856,6 +1857,7 @@ static PyObject *py_ConnectEx( PyObject *self, PyObject *args, PyObject *kwargs 
 	if (!lpfnConnectEx(sConnecting, res->ai_addr, res->ai_addrlen, buffer, buffer_len, &sent, pOverlapped))
 		rc=WSAGetLastError();
 	Py_END_ALLOW_THREADS;
+	freeaddrinfo(res);
 	if (rc==0 || rc == ERROR_IO_PENDING)
 		return Py_BuildValue("ii", rc, sent);
 	return PyWin_SetAPIError("ConnectEx", rc);
