@@ -343,10 +343,10 @@ class CScintillaEditInterface(ScintillaControlInterface):
 		return self.LineFromChar(self.SCIGetCurrentPos())
 		
 	def GetTextLength(self):
-		return self.SendScintilla(win32con.WM_GETTEXTLENGTH)
+		return self.SendScintilla(scintillacon.SCI_GETTEXTLENGTH)
 
 	def GetTextRange(self, start = 0, end = -1, decode = True):
-		if end == -1: end = self.SendScintilla(win32con.WM_GETTEXTLENGTH)
+		if end == -1: end = self.SendScintilla(scintillacon.SCI_GETTEXTLENGTH)
 		assert end>=start, "Negative index requested (%d/%d)" % (start, end)
 		assert start >= 0 and start <= self.GetTextLength(), "The start postion is invalid"
 		assert end >= 0 and end <= self.GetTextLength(), "The end postion is invalid"
