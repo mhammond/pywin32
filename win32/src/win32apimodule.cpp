@@ -89,6 +89,10 @@ static RegOpenCurrentUserfunc pfnRegOpenCurrentUser = NULL;
 typedef LONG (WINAPI *RegOverridePredefKeyfunc)(HKEY,HKEY);
 static RegOverridePredefKeyfunc pfnRegOverridePredefKey = NULL;
 
+// from user32.dll
+typedef BOOL (WINAPI *GetLastInputInfofunc)(PLASTINPUTINFO);
+static GetLastInputInfofunc pfnGetLastInputInfo = NULL;
+
 /* error helper */
 PyObject *ReturnError(char *msg, char *fnName = NULL)
 {
@@ -1531,6 +1535,18 @@ PySetLastError(PyObject * self, PyObject * args)
 	::SetLastError(errVal);
 	Py_INCREF(Py_None);
 	return Py_None;
+}
+
+// @pymethod int|win32api|GetLastInputInfo|Returns time of last input event in tick count
+// @pyseeapi GetLastInputInfo
+static PyObject *PyGetLastInputInfo(PyObject * self, PyObject * args)
+{
+	CHECK_PFN(GetLastInputInfo);
+	LASTINPUTINFO lii;
+	lii.cbSize = sizeof(lii);
+	if (!(*pfnGetLastInputInfo)(&lii))
+		return PyWin_SetAPIError("GetLastInputInfo");
+	return PyLong_FromUnsignedLong(lii.dwTime);
 }
 
 // @pymethod string|win32api|GetLogicalDriveStrings|Returns a string with all logical drives currently mapped.
@@ -6190,6 +6206,7 @@ static struct PyMethodDef win32api_functions[] = {
 	{"GetKeyboardState", PyGetKeyboardState, 1}, // @pymeth GetKeyboardState|Retrieves the status of the 256 virtual keys on the keyboard.
 	{"GetKeyState",			PyGetKeyState,      1}, // @pymeth GetKeyState|Retrives the last known key state for a key.
 	{"GetLastError",		PyGetLastError,     1}, // @pymeth GetLastError|Retrieves the last error code known by the system.
+	{"GetLastInputInfo",		PyGetLastInputInfo,	METH_NOARGS}, // @pymeth GetLastInputInfo|Returns time of last input event in tick count
 	{"GetLocalTime",         PyGetLocalTime,      1},  // @pymeth GetLocalTime|Returns the current local time.
 	// @pymeth GetLongPathName|Converts the specified path to its long form.
 #ifdef UNICODE
@@ -6449,6 +6466,7 @@ PYWIN_MODULE_INIT_FUNC(win32api)
 	pfnMonitorFromPoint=(MonitorFromPointfunc)GetProcAddress(hmodule,"MonitorFromPoint");
 	pfnGetMonitorInfo=(GetMonitorInfofunc)GetProcAddress(hmodule, "GetMonitorInfo" A_OR_W);
 	pfnEnumDisplaySettingsEx=(EnumDisplaySettingsExfunc)GetProcAddress(hmodule, "EnumDisplaySettingsEx" A_OR_W);
+	pfnGetLastInputInfo=(GetLastInputInfofunc)GetProcAddress(hmodule, "GetLastInputInfo");
   }
 
   hmodule = GetModuleHandle(TEXT("Advapi32.dll"));
