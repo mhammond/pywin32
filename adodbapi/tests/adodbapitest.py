@@ -1,4 +1,4 @@
-""" Unit tests for adodbapi version 2.2.4"""
+""" Unit tests for adodbapi version 2.2.6"""
 """
     adodbapi - A python DB API 2.0 interface to Microsoft ADO
     
@@ -24,6 +24,7 @@
 """
 
 import unittest
+import sys
 
 try:
     import win32com.client
@@ -273,9 +274,11 @@ class CommonDBTests(unittest.TestCase):
         if self.getEngine() == 'MySQL':
             pass #self.helpTestDataType("BLOB",'BINARY',adodbapi.Binary('\x00\x01\xE2\x40'))
         else:
-            self.helpTestDataType("binary(4)",'BINARY',adodbapi.Binary('\x00\x01\xE2\x40'))
-            self.helpTestDataType("varbinary(100)",'BINARY',adodbapi.Binary('\x00\x01\xE2\x40'))
-            self.helpTestDataType("image",'BINARY',adodbapi.Binary('\x00\x01\xE2\x40'))
+        # python 3.0 syntax -> binfld = b'\x00\x01\xE2\x40'
+            binfld = '\x00\x01\xE2\x40'
+            self.helpTestDataType("binary(4)",'BINARY',adodbapi.Binary(binfld))
+            self.helpTestDataType("varbinary(100)",'BINARY',adodbapi.Binary(binfld))
+            self.helpTestDataType("image",'BINARY',adodbapi.Binary(binfld))
 
     def helpRollbackTblTemp(self):
         try:

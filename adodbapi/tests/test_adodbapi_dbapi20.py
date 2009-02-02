@@ -2,17 +2,36 @@ print "This module depends on the dbapi20 compliance tests created by Stuart Bis
 print "(see db-sig mailing list history for info)"
 
 import dbapi20
-print "Tested with dbapi20 %s" % dbapi20.__version__
 import unittest
+import os, sys, string
 
-import adodbapitestconfig
+#attempt to find adodbapi in this directory's parent
+cwd = os.getcwd()
+adoPath = os.path.normpath(cwd + '/../adodbapi.py')
+if os.path.exists(adoPath):
+    if adoPath not in sys.path:
+        sys.path.insert(1,os.path.dirname(adoPath))
 import adodbapi
 
-import string
+print adodbapi.version
+print "Tested with dbapi20 %s" % dbapi20.__version__
+
+_computername=".\SQLEXPRESS" #or name of computer with SQL Server
+_databasename="Northwind" #or something else
+connStr = r"Provider=SQLOLEDB.1; Integrated Security=SSPI; Initial Catalog=%s;Data Source=%s" %(_databasename, _computername)
+#connStr = r"Provider=SQLOLEDB.1; User ID=%s; Password=%s; Initial Catalog=%s;Data Source=%s" %(_username,_password,_databasename, _computername)
+
+print '    ...Testing MS-SQL login...'
+try:
+        s = adodbapi.connect(connStr) #connect to server
+        s.close()
+except adodbapi.DatabaseError, inst:
+        print inst.args[0]    # should be the error message
+        sys.exit(1)
 
 class test_adodbapi(dbapi20.DatabaseAPI20Test):
     driver = adodbapi
-    connect_args =  (adodbapitestconfig.connStrSQLServer,)
+    connect_args =  (connStr,)
     connect_kw_args = {}
 
     def __init__(self,arg):

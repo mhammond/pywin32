@@ -1,4 +1,4 @@
-"""adodbapi v2.2.4 -  A python DB API 2.0 interface to Microsoft ADO
+"""adodbapi v2.2.6 -  A python DB API 2.0 interface to Microsoft ADO
     
     Copyright (C) 2002  Henrik Ekelund
     Email: <http://sourceforge.net/sendmessage.php?touser=618411>
@@ -28,13 +28,18 @@
 #adodbapi.variantConversions[adodbapi.adoExactNumericTypes]=adodbapi.cvtString # get currency as strings
 
 import string
-import exceptions
 import time
 import calendar
 import types
 import sys
 import traceback
 import datetime
+
+try:
+    from exceptions import StandardError as _BaseException
+except ImportError:
+    # py3k
+    _BaseException = Exception
 
 try:
     import decimal
@@ -59,13 +64,14 @@ if onIronPython:
         return obj.Item[index]
 else: #pywin32
     import pythoncom
+    import pywintypes
     pythoncom.__future_currency__ = True
     def Dispatch(dispatch):
         return win32com.client.Dispatch(dispatch)
     def getIndexedValue(obj,index):
         return obj(index) 
     DBNull = type(None)
-    DateTime = type(NotImplemented) #impossible value
+    DateTime = type(NotImplemented) #impossible value 
 
 # --- define objects to smooth out Python3000 <-> Python 2.x differences
 unicodeType = unicode  #this line will be altered by 2to3.py to '= str'
@@ -73,8 +79,9 @@ longType = long        #thil line will be altered by 2to3.py to '= int'
 memoryViewType = types.BufferType #will be altered to '= memoryview'
 if sys.version[0] == '3':
     StringTypes = [str]
+    makeByteBuffer = bytes
 else:
-    memoryview = buffer 
+    makeByteBuffer = buffer 
     bytes = str
     StringTypes = types.StringTypes    # will be messed up by 2to3 but never used
  
@@ -151,7 +158,9 @@ class pythonDateTimeConverter(TimeConverter): # datetime module is available in 
 
     def DateObjectFromCOMDate(self,comDate):
         #ComDate is number of days since 1899-12-31
-        if isinstance(comDate,DateTime):
+        if isinstance(comDate,datetime.datetime):
+            return comDate.replace(tzinfo=None) # make non aware
+        elif isinstance(comDate,DateTime):
             fComDate = comDate.ToOADate()
         else:
             fComDate=float(comDate)
@@ -186,6 +195,8 @@ class pythonDateTimeConverter(TimeConverter): # datetime module is available in 
     def DateObjectToIsoFormatString(self,obj):
         if isinstance(obj,datetime.datetime):
             s = obj.strftime('%Y-%m-%d %H:%M:%S')
+        elif isinstance(obj,datetime.date): #exact midnight
+            s = obj.strftime('%Y-%m-%d 00:00:00')
         else:
             try:  #usually datetime.datetime
                 s = obj.isoformat()
@@ -196,25 +207,20 @@ class pythonDateTimeConverter(TimeConverter): # datetime module is available in 
 class pythonTimeConverter(TimeConverter):
     def __init__(self):
         TimeConverter.__init__(self)
-    if onIronPython:
-        def COMDate(self,timeobj):
-            return self.COMDateFromTuple(timeobj)
-        def COMDateFromTuple(self,t):
+    def COMDate(self,timeobj):
+        return self.COMDateFromTuple(timeobj)
+    def COMDateFromTuple(self,t):
             d = datetime.date(t[0],t[1],t[2])
             integerPart = d.toordinal() - self._ordinal_1899_12_31
             sec = (t[3]*60 + t[4])*60 + t[5]
             fractPart = sec / 86400.0
             return integerPart + fractPart
-    else: #pywin32
-        def COMDate(self,timeobj):
-            return float(pythoncom.MakeTime(time.mktime(timeobj)))
-        def COMDateFromTuple(self,YMDHMSmsTuple):
-            t=pythoncom.MakeTime(YMDHMSmsTuple)
-            return float(t)
-       
+           
     def DateObjectFromCOMDate(self,comDate):
         'Returns ticks since 1970'
-        if isinstance(comDate,DateTime):
+        if isinstance(comDate,datetime.datetime):
+            return comDate.timetuple()
+        elif isinstance(comDate,DateTime):
             fcomDate = comDate.ToOADate()
         else:
             fcomDate = float(comDate)
@@ -239,7 +245,7 @@ class pythonTimeConverter(TimeConverter):
             s = obj.strftime('%Y-%m-%d')
         return s
 
-class Error(exceptions.StandardError):
+class Error(_BaseException):
     pass   #Exception that is the base class of all other error
            #exceptions. You can use this to catch all errors with one
            #single 'except' statement. Warnings are not considered
@@ -247,7 +253,7 @@ class Error(exceptions.StandardError):
            #be a subclass of the Python StandardError (defined in the
            #module exceptions).
 
-class Warning(exceptions.StandardError):
+class Warning(_BaseException):
     pass
 
 class InterfaceError(Error):
@@ -341,9 +347,18 @@ defaultCursorLocation=adUseServer                       #v2.1 Rose
 #   It may be one of the above
 
 class Connection(object):
-    from adodbapi import Warning, Error, InterfaceError, DataError, \
-     DatabaseError, OperationalError, IntegrityError, InternalError, \
-     NotSupportedError, ProgrammingError #required by api definition
+    # include connection attributes required by api definition.
+    Warning = Warning
+    Error = Error
+    InterfaceError = InterfaceError
+    DataError = DataError
+    DatabaseError = DatabaseError
+    OperationalError = OperationalError
+    IntegrityError = IntegrityError
+    InternalError = InternalError
+    NotSupportedError = NotSupportedError
+    ProgrammingError = ProgrammingError
+
     def __init__(self,adoConn):       
         self.adoConn=adoConn
         self.supportsTransactions=False
@@ -486,7 +501,6 @@ class Cursor(object):
 ##    (for DQL statements like select) or affected (for DML statements like update or insert). 
 ##    The attribute is -1 in case no executeXXX() has been performed on the cursor or
 ##    the rowcount of the last operation is not determinable by the interface.[7] 
-##    N.O.T.E. -- adodbapi returns "-1" by default for all select statements
     
     arraysize=1
 ##    This read/write attribute specifies the number of rows to fetch at a time with fetchmany().
@@ -543,9 +557,10 @@ class Cursor(object):
 
     def _makeDescriptionFromRS(self,rs):
         self.rs = rs        #v2.1.1 bkline
-        if (rs == None) or (rs.State == adStateClosed): 
-            ##self.rs=None  #removed v2.1.1 bkline
-            self.description=None
+        if not rs:
+            self.description = None
+        elif rs.State == adStateClosed: 
+            self.description = None
         else:
             # Since the current implementation has a forward-only cursor, RecordCount will always return -1
             # The ADO documentation hints that obtaining the recordcount may be timeconsuming
@@ -700,9 +715,9 @@ class Cursor(object):
             if onIronPython:
                 ra = Reference[int]()
                 rs = self.cmd.Execute(ra)
-                adoRetVal=(rs,ra.Value) #return a tuple like win32 does
+                count = ra.Value 
             else: #pywin32
-                adoRetVal=self.cmd.Execute()
+                rs, count = self.cmd.Execute()
             # ----- ------------------------------- ---
         except Exception, e:
             tbk = u'\n--ADODBAPI\n'
@@ -716,11 +731,10 @@ class Cursor(object):
             self._raiseCursorError(DatabaseError,tracebackhistory)
             return
 
-        rs=adoRetVal[0]
         try:
             self.rowcount = rs.RecordCount
         except:
-            self.rowcount = adoRetVal[1]
+            self.rowcount = count
       
         self._makeDescriptionFromRS(rs)
 
@@ -787,7 +801,7 @@ class Cursor(object):
         if self.conn == None:
             self._raiseCursorError(Error,None)
             return
-        if rs == None or rs.State == adStateClosed: #v2.1.1 bkline
+        if not rs or rs.State == adStateClosed: #v2.1.1 bkline
             self._raiseCursorError(Error,None)
             return
         else:
@@ -877,10 +891,10 @@ class Cursor(object):
             did not produce any result set or no call was issued yet.
         """
         self.messages=[]                
-        if self.conn == None:
+        if not self.conn:
             self._raiseCursorError(Error,None)
             return
-        if self.rs == None:
+        if not self.rs:
             self._raiseCursorError(Error,None)
             return
         else:
@@ -955,7 +969,7 @@ def TimestampFromTicks(ticks):
 
 def Binary(aString):
     """This function constructs an object capable of holding a binary (long) string value. """
-    return memoryview(aString)
+    return makeByteBuffer(aString)
 
 #v2.1 Cole comment out: BinaryType = Binary('a')
 
@@ -1144,10 +1158,8 @@ class DBAPITypeObject(object):
   def __init__(self,valuesTuple):
     self.values = valuesTuple
 
-  def __cmp__(self,other):
-    if other in self.values:
-        return 0
-    return 1
+  def __eq__(self,other):
+    return other in self.values
 
 adoIntegerTypes=(adInteger,adSmallInt,adTinyInt,adUnsignedInt,
                  adUnsignedSmallInt,adUnsignedTinyInt,
@@ -1191,7 +1203,7 @@ if longType != int: #not Python 3
     typeMap[int] = adInteger
     typeMap[bytes] = adBSTR,  # 2.x string type
 else:             #python 3.0 integrated integers
-   ## Should this differentiote between an int that fits ion an long and one that requires 64 bit datatype?
+   ## Should this differentiote between an int that fits in a long and one that requires 64 bit datatype?
     typeMap[int] = adBigInt
     
 try: # If mx extensions are installed, use mxDateTime
@@ -1246,7 +1258,7 @@ def cvtFloat(variant):
         raise
 
 def cvtBuffer(variant):
-    return memoryview(variant)
+    return makeByteBuffer(variant)
 
 def cvtUnicode(variant):
     return unicode(variant) # will be altered by 2to3 to 'str(variant)'

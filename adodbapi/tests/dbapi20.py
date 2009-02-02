@@ -17,8 +17,13 @@ __author__ = 'Stuart Bishop <zen@shangri-la.dropbear.id.au>'
 
 import unittest
 import time
+import sys
 
 # $Log$
+# Revision 1.1.1.1.2.1  2008/09/20 19:54:59  rupole
+# Include latest changes from main branch
+# Updates for py3k
+#
 # Revision 1.1.1.1  2008/01/04 18:49:10  kf7xm
 # Import of the adodbapi package into pywin32.
 # Documentation is in readme.txt and the tests directory.
@@ -178,13 +183,16 @@ class DatabaseAPI20Test(unittest.TestCase):
     def test_Exceptions(self):
         # Make sure required exceptions exist, and are in the
         # defined heirarchy.
-        self.failUnless(issubclass(self.driver.Warning,StandardError))
-        self.failUnless(issubclass(self.driver.Error,StandardError))
+        if sys.version[0] == '3': #under Python 3 StardardError no longer exists
+            self.failUnless(issubclass(self.driver.Warning,Exception))
+            self.failUnless(issubclass(self.driver.Error,Exception))
+        else:
+            self.failUnless(issubclass(self.driver.Warning,StandardError))
+            self.failUnless(issubclass(self.driver.Error,StandardError))
+
         self.failUnless(
-            issubclass(self.driver.InterfaceError,self.driver.Error)
-            )
-        self.failUnless(
-            issubclass(self.driver.DatabaseError,self.driver.Error)
+            issubclass(self.driver.InterfaceError,self.driver.Error))
+        self.failUnless(            issubclass(self.driver.DatabaseError,self.driver.Error)
             )
         self.failUnless(
             issubclass(self.driver.OperationalError,self.driver.Error)
@@ -705,7 +713,7 @@ class DatabaseAPI20Test(unittest.TestCase):
     def help_nextset_setUp(self,cur):
         ''' Should create a procedure called deleteme
             that returns two result sets, first the 
-	    number of rows in booze then "name from booze"
+        number of rows in booze then "name from booze"
         '''
         raise NotImplementedError('Helper not implemented')
         #sql="""
@@ -787,7 +795,7 @@ class DatabaseAPI20Test(unittest.TestCase):
 
     def test_setoutputsize(self):
         # Real test for setoutputsize is driver dependant
-        raise NotImplementedError('Driver need to override this test')
+        raise NotImplementedError('Driver needed to override this test')
 
     def test_None(self):
         con = self._connect()
@@ -851,4 +859,3 @@ class DatabaseAPI20Test(unittest.TestCase):
         self.failUnless(hasattr(self.driver,'ROWID'),
             'module.ROWID must be defined.'
             )
-

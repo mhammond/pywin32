@@ -30,10 +30,23 @@ Try:
 or:
         adodbapi.variantConversions[adodbapi.adNumeric] = adodbapi.cvtFloat
 or:
-	adodbapi.variantConversions[adodbapi.adNumeric] = my_convertion_function
+	adodbapi.variantConversions[adodbapi.adNumeric] = write_your_own_convertion_function
 ............
+Whats new in version 2.2.6
+1. Actually works in Python 3.0 (using pywin32 212.6) after running thru 2to3
+2. (Produces an error in dbapi20 test when trying adodbapi.Buffer('This is a string') in Python 3.0)
+3. When a value with an exact midnight time is retrieved from a DATETIME column, return a datetime.datetime,
+   not a datetime.date.
+
+Whats new in version 2.2.5
+1. Exception definition cleanups for for Python 3.0 readiness [Mark Hammond]
+2. Remove depreciated pythoncom.MakeTime calls (now uses pywintypes.Time)
+3. Change tests to default to local SQL server. 
+4. Add an access-type database file for demo use.
+
 Whats new in version 2.2.4
 1. Ready for Python3? -- refactored so that 2to3 will inject very few errors, seems to be almost runnable in Pyk3.
+2. Use new function getIndexedValue() to hide differences between IronPython and pywin32.
 
 What happened to version 2.2.3?
    It was an attempt to be Python3 ready, but done wrong, so killed off.
@@ -121,7 +134,9 @@ pywin32 lists.
 
 Relase history
 --------------
-2.2.2   Iron Python support complete.
+2.2.4   Ready for 2to3 convertion. Refactor to be more readable. Added function getIndexedValue() for IPy 2.0.
+2.2.3   (withdrawn)
+2.2.2   Iron Python support complete. 
 2.2.1   Bugfix for string truncation
 2.2     Code cleanup. added feature: "adodbapi.variantConversions[adodbapi.adNumeric] = adodbapi.cvtString"
 2.1.1	Bugfix to CoIninialize() and nextset()
