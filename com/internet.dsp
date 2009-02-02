@@ -128,7 +128,7 @@ SOURCE=.\win32comext\internet\src\PyIInternetProtocolRoot.cpp
 
 SOURCE=.\win32comext\internet\src\PyIInternetProtocolSink.cpp
 # End Source File
-# End Group
+# Begin Source File
 
 SOURCE=.\win32comext\internet\src\PyIInternetSecurityManager.cpp
 # End Source File
