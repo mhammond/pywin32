@@ -1587,7 +1587,7 @@ dirs = {
 # The COM modules.
 pythoncom = WinExt_system32('pythoncom',
                    dsp_file=r"com\win32com.dsp",
-                   libraries = "oleaut32 ole32 user32",
+                   libraries = "oleaut32 ole32 user32 urlmon",
                    export_symbol_file = 'com/win32com/src/PythonCOM.def',
                    extra_compile_args = ['-DBUILD_PYTHONCOM'],
                    pch_header = "stdafx.h",
