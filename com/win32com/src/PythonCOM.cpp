@@ -919,6 +919,38 @@ static PyObject *pythoncom_CreateItemMoniker(PyObject *self, PyObject *args)
 	return PyCom_PyObjectFromIUnknown(pmk, IID_IMoniker, FALSE);
 }
 
+// @pymethod <o PyIMoniker>|pythoncom|CreateURLMonikerEx|Create a URL moniker from a full url or partial url and base moniker
+// @pyseeapi CreateURLMonikerEx
+static PyObject *pythoncom_CreateURLMonikerEx(PyObject *self, PyObject *args)
+{
+	WCHAR *url = NULL;
+	PyObject *obbase, *oburl, *ret = NULL;
+	IMoniker *base_moniker = NULL, *output_moniker = NULL;
+	HRESULT hr;
+	DWORD flags = URL_MK_UNIFORM;
+	if (!PyArg_ParseTuple(args, "OO|k:CreateURLMonikerEx",
+		&obbase,	// @pyparm <o PyIMoniker>|Context||An IMoniker interface to be used as a base with a partial URL, can be None
+		&oburl,		// @pyparm <o PyUNICODE>|URL||Full or partial url for which to create a moniker
+		&flags))	// @pyparm int|Flags|URL_MK_UNIFORM|URL_MK_UNIFORM or URL_MK_LEGACY
+		return NULL;
+
+	if (!PyWinObject_AsWCHAR(oburl, &url, FALSE))
+		return NULL;
+	if (PyCom_InterfaceFromPyObject(obbase, IID_IMoniker, (LPVOID*)&base_moniker, TRUE)){
+		PY_INTERFACE_PRECALL;
+		hr = CreateURLMonikerEx(base_moniker, url, &output_moniker, flags);
+		if (base_moniker)
+			base_moniker->Release();
+		PY_INTERFACE_POSTCALL;
+		if (FAILED(hr))
+			PyCom_BuildPyException(hr);
+		else
+			ret=PyCom_PyObjectFromIUnknown(output_moniker, IID_IMoniker, FALSE);
+		}
+	PyWinObject_FreeWCHAR(url);
+	return ret;
+}
+
 // @pymethod <o PyIID>|pythoncom|GetClassFile|Supplies the CLSID associated with the given filename.
 static PyObject *pythoncom_GetClassFile(PyObject *self, PyObject *args)
 {
@@ -1872,6 +1904,9 @@ static struct PyMethodDef pythoncom_methods[]=
 	{ "CreateFileMoniker",   pythoncom_CreateFileMoniker, 1 }, // @pymeth CreateFileMoniker|Creates a file moniker given a file name.
 	{ "CreateItemMoniker",   pythoncom_CreateItemMoniker, 1 }, // @pymeth CreateItemMoniker|Creates an item moniker that identifies an object within a containing object (typically a compound document).
 	{ "CreatePointerMoniker", pythoncom_CreatePointerMoniker, 1 }, // @pymeth CreatePointerMoniker|Creates a pointer moniker based on a pointer to an object.
+
+	{ "CreateURLMonikerEx",   pythoncom_CreateURLMonikerEx, 1 }, // @pymeth CreateURLMoniker|Create a URL moniker from a full url or partial url and base moniker
+
 	{ "CreateTypeLib",       pythoncom_CreateTypeLib, 1}, // @pymeth CreateTypeLib|Provides access to a new object instance that supports the ICreateTypeLib interface.
 	{ "CreateTypeLib2",       pythoncom_CreateTypeLib2, 1}, // @pymeth CreateTypeLib2|Provides access to a new object instance that supports the ICreateTypeLib2 interface.
 #endif // MS_WINCE
@@ -2342,6 +2377,10 @@ PYWIN_MODULE_INIT_FUNC(pythoncom)
 	ADD_CONSTANT(MSHLFLAGS_TABLESTRONG);
 	ADD_CONSTANT(MSHLFLAGS_TABLEWEAK);
 	ADD_CONSTANT(MSHLFLAGS_NOPING);
+
+	// Flags for CreateUrlMoniker
+	ADD_CONSTANT(URL_MK_UNIFORM);
+	ADD_CONSTANT(URL_MK_LEGACY);
 
 #ifndef NO_PYCOM_IDISPATCHEX
 	ADD_CONSTANT(fdexNameCaseSensitive);  // Request that the name lookup be done in a case-sensitive manner. May be ignored by object that does not support case-sensitive lookup.  
