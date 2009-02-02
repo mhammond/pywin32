@@ -1792,7 +1792,7 @@ static PyObject *py_ConnectEx( PyObject *self, PyObject *args, PyObject *kwargs 
 	char *hptr, *pptr;
 	PyObject *hobj = NULL;
 	PyObject *pobj = (PyObject *)NULL;
-	TmpPyObject host_idna;
+	TmpPyObject host_idna, port_idna;
 
 	struct addrinfo hints, *res;
 	if (!PyArg_ParseTuple(addro, "OO:getaddrinfo", &hobj, &pobj)) {
@@ -1812,15 +1812,21 @@ static PyObject *py_ConnectEx( PyObject *self, PyObject *args, PyObject *kwargs 
 				"getaddrinfo() argument 1 must be string or None");
 		return NULL;
 	}
-	if (PyInt_Check(pobj)) {
-		PyOS_snprintf(pbuf, sizeof(pbuf), "%ld", PyInt_AsLong(pobj));
-		pptr = pbuf;
+	
+	if (pobj == Py_None) {
+		pptr = NULL;
+	} else if (PyUnicode_Check(pobj)) {
+		port_idna = PyObject_CallMethod(pobj, "encode", "s", "idna");
+		if (!port_idna)
+			return NULL;
+		pptr = PyString_AsString(port_idna);
 	} else if (PyString_Check(pobj)) {
 		pptr = PyString_AsString(pobj);
-	} else if (pobj == Py_None) {
-		pptr = (char *)NULL;
+	} else if (PyInt_Check(pobj)) {
+		PyOS_snprintf(pbuf, sizeof(pbuf), "%ld", PyInt_AsLong(pobj));
+		pptr = pbuf;
 	} else {
-		PyErr_SetString(PyExc_TypeError, "Int or String expected");
+		PyErr_SetString(PyExc_TypeError, "Port must be int, string, or None");
 		return NULL;
 	}
 
