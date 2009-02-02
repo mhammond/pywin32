@@ -1,4 +1,4 @@
-build_id="212.6" # may optionally include a ".{patchno}" suffix.
+build_id="212.7" # may optionally include a ".{patchno}" suffix.
 # Putting buildno at the top prevents automatic __doc__ assignment, and
 # I *want* the build number at the top :)
 __doc__="""This is a distutils setup-script for the pywin32 extensions
@@ -2088,18 +2088,31 @@ dist = setup(name="pywin32",
                 'pythonwin/pywin/Demos/ocx/*.py',
                 'pythonwin/license.txt',
                 'win32/license.txt',
-                'win32/scripts/*',
-                'win32/test/*',
-                'win32/Demos/*',
+                'win32/scripts/*.py',
+                'win32/test/*.py',
+                'win32/Demos/*.py',
                 'com/win32com/readme.htm',
                 # win32com test utility files.
-                'com/win32com/test/*',
+                'com/win32com/test/*.idl',
+                'com/win32com/test/*.js',
+                'com/win32com/test/*.sct',
+                'com/win32com/test/*.tlb',
+                'com/win32com/test/*.txt',
+                'com/win32com/test/*.vbs',
+                'com/win32com/test/*.xsl',
                 # win32com docs
-                'com/win32com/HTML/*',
-                'com/win32comext/adsi/demos/*',
+                'com/win32com/HTML/*.html',
+                'com/win32com/HTML/image/*.gif',
+                'com/win32comext/adsi/demos/*.py',
                 # Active Scripting test and demos.
-                'com/win32comext/axscript/test/*',
-                'com/win32comext/axscript/Demos/*',
+                'com/win32comext/axscript/test/*.html',
+                'com/win32comext/axscript/test/*.py',
+                'com/win32comext/axscript/test/*.pys',
+                'com/win32comext/axscript/test/*.vbs',
+                'com/win32comext/axscript/Demos/*.pys',
+                'com/win32comext/axscript/Demos/*.htm*',
+                'com/win32comext/axscript/Demos/*.gif',
+                'com/win32comext/axscript/Demos/*.asp',
                 'com/win32comext/mapi/demos/*.py',
                 'com/win32comext/propsys/test/*.py',
                 'com/win32comext/shell/test/*.py',
