@@ -420,13 +420,13 @@ def AddExtensionFiles(params, options):
     added = {}
     for vd in params.VirtualDirs:
         for smp in vd.ScriptMaps:
-            if not added.has_key(smp.Module) and smp.AddExtensionFile:
+            if smp.Module not in added and smp.AddExtensionFile:
                 _AddExtensionFile(smp.Module, vd.Name, vd.Description, smp,
                                   options)
                 added[smp.Module] = True
 
     for fd in params.Filters:
-        if not added.has_key(fd.Path) and fd.AddExtensionFile:
+        if fd.Path not in added and fd.AddExtensionFile:
             _AddExtensionFile(fd.Path, fd.Name, fd.Description, fd, options)
             added[fd.Path] = True
 
@@ -442,12 +442,12 @@ def DeleteExtensionFileRecords(params, options):
     deleted = {} # only remove each .dll once.
     for vd in params.VirtualDirs:
         for smp in vd.ScriptMaps:
-            if not deleted.has_key(smp.Module) and smp.AddExtensionFile:
+            if smp.Module not in deleted and smp.AddExtensionFile:
                 _DeleteExtensionFileRecord(smp.Module, options)
                 deleted[smp.Module] = True
 
     for filter_def in params.Filters:
-        if not deleted.has_key(filter_def.Path) and filter_def.AddExtensionFile:
+        if filter_def.Path not in deleted and filter_def.AddExtensionFile:
             _DeleteExtensionFileRecord(filter_def.Path, options)
             deleted[filter_def.Path] = True
 
