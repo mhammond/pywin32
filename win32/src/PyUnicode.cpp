@@ -210,34 +210,6 @@ void PyWinObject_FreeString(WCHAR *str)
 	PyMem_Free(str);
 }
 
-// Convert a "char *" to a BSTR - free via ::SysFreeString()
-BSTR PyWin_String_AsBstr(const char *value)
-{
-	if (value==NULL || *value=='\0')
-		return SysAllocStringLen(L"", 0);
-	/* use MultiByteToWideChar() as a "good" strlen() */
-	/* NOTE: this will include the null-term in the length */
-	int cchWideChar = MultiByteToWideChar(CP_ACP, 0, value, -1, NULL, 0);
-
-	/* alloc a temporary conversion buffer, but dont use alloca, as super
-	   large strings will blow our stack */
-	LPWSTR wstr = (LPWSTR)malloc(cchWideChar * sizeof(WCHAR));
-	if (wstr==NULL) {
-		PyErr_SetString(PyExc_MemoryError, "Not enough memory to allocate wide string buffer.");
-		return NULL;
-	}
-
-	/* convert the input into the temporary buffer */
-   	MultiByteToWideChar(CP_ACP, 0, value, -1, wstr, cchWideChar);
-
-	/* don't place the null-term into the BSTR */
-	BSTR ret = SysAllocStringLen(wstr, cchWideChar - 1);
-	if (ret==NULL)
-		PyErr_SetString(PyExc_MemoryError, "allocating BSTR");
-	free(wstr);
-	return ret;
-}
-
 // Size info is available (eg, a fn returns a string and also fills in a size variable)
 PyObject *PyWinObject_FromOLECHAR(const OLECHAR * str, int numChars)
 {
