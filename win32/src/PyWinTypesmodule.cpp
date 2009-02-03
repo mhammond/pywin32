@@ -378,13 +378,16 @@ PYWINTYPES_EXPORT PyObject *PyWin_NewUnicode(PyObject *self, PyObject *args)
 // @pymethod <o PyUnicode>|pywintypes|UnicodeFromRaw|Creates a new Unicode object from raw binary data
 static PyObject *PyWin_NewUnicodeFromRaw(PyObject *self, PyObject *args)
 {
-	const char * value;
-	unsigned int numBytes;
+        PyObject *ob;
 
-	// @pyparm string|str||The string containing the binary data.
-	if (!PyArg_ParseTuple(args, "s#", &value, &numBytes))
+	// @pyparm string/buffer|str||The string containing the binary data.
+	if (!PyArg_ParseTuple(args, "O", &ob))
 		return NULL;
-	return PyWinObject_FromOLECHAR( (OLECHAR *)value, numBytes/sizeof(OLECHAR) );
+	void *buf;
+        DWORD nbytes;
+        if (!PyWinObject_AsReadBuffer(ob, &buf, &nbytes, FALSE))
+                return NULL;
+	return PyWinObject_FromWCHAR((WCHAR *)buf, nbytes/sizeof(OLECHAR) );
 }
 
 #ifndef MS_WINCE /* This code is not available on Windows CE */
