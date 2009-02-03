@@ -93,7 +93,7 @@ class Filter(SimpleFilter):
         url = pp.GetHeader("url")
         #print "URL is '%s'" % (url,)
         prefix = virtualdir
-        if not url.startswith(exclude) and not url.startswith(prefix):
+        if not url.startswith(prefix):
             new_url = prefix + url
             print "New proxied URL is '%s'" % (new_url,)
             pp.SetHeader("url", new_url)
