@@ -21,10 +21,11 @@
 
     <h1>Unicode everywhere</h1>
     <p>
-        In general, pywin32 on both Python 2.x and 3.x will accept both str
-        and unicode objects and convert as appropriate. In py3k, bytes objects
-        which need to be converted to str (unicode) are still decoded as
-        'mbcs' rather than the python default encoding.
+        In general, pywin32 on Python 2.x will accept both str and unicode
+        objects and convert as appropriate.   However, in py3k, bytes objects
+        will generally not be accepted when a 'string' is required - the
+        intent is to restrict usage of bytes objects in py3k to where bytes
+        truly are meant.
     </p>
     <p>
         Most pywin32 modules for py3k are built with UNICODE defined, and

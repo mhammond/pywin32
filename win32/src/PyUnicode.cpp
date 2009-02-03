@@ -295,6 +295,8 @@ BOOL PyWinObject_AsWCHAR(PyObject *stringObject, WCHAR **pResult, BOOL bNoneOK /
 {
 	BOOL rc = TRUE;
 	int resultLen = 0;
+#if (PY_VERSION_HEX < 0x03000000)
+	# Do NOT accept 'bytes' object when a plain 'WCHAR' is needed on py3k.
 	if (PyString_Check(stringObject)) {
 		int size=PyString_Size(stringObject);
 		const char *buf = PyString_AsString(stringObject);
@@ -315,7 +317,9 @@ BOOL PyWinObject_AsWCHAR(PyObject *stringObject, WCHAR **pResult, BOOL bNoneOK /
 		/* terminate the string */
 		(*pResult)[resultLen] = L'\0';
 	}
-	else if (PyUnicode_Check(stringObject))
+	else
+#endif // py3k
+	if (PyUnicode_Check(stringObject))
 	{
 		resultLen = PyUnicode_GET_SIZE(stringObject);
 		size_t cb = sizeof(WCHAR) * (resultLen+1);
