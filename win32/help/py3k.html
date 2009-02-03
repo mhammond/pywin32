@@ -11,16 +11,48 @@
         Python 3.x syntax.
     </p>
 
+    <p>
+        <strong>Important:</strong> This py3k support is experimental and
+        things are subject to change.  In particular, we may occasionally
+        accept 'insane' args, such as accepting bytes when only a unicode
+        string object makes sense etc.  We reserve the right to cleanup any
+        such issues that may arise in a backwards incompatible manner.
+    </p>
+
     <h1>Unicode everywhere</h1>
     <p>
-        In general, pywin32 on Python 2.x will accept both str and unicode
-        objects and convert as appropriate.  In Python 3.x byte() objects
-        are generally not accepted; strings must be unicode.
+        In general, pywin32 on both Python 2.x and 3.x will accept both str
+        and unicode objects and convert as appropriate. In py3k, bytes objects
+        which need to be converted to str (unicode) are still decoded as
+        'mbcs' rather than the python default encoding.
     </p>
     <p>
         Most pywin32 modules for py3k are built with UNICODE defined, and
         thus will call the Unicode versions of the Windows API.
     </p>
+    <h1>Specific module notes</h1>
+    <h2>isapi</h2>
+    <p>
+        The isapi package supports py3k, but note that currently only the
+        <code>redirector.py</code> sample has been converted to work in
+        both environments - in particular, subtle urllib changes will
+        probably require attention - see the redirector sample for details.
+    </p>
+    <p>
+        Note that ISAPI itself is a narrow-character based API.  As a result,
+        functions such as
+        <a href="EXTENSION_CONTROL_BLOCK__GetServerVariable_meth.html">GetServerVariable()</a>
+        etc all return bytes objects - it is up to the application to 
+        interpret those bytes.  pywin32 detects server variables starting 
+        with UNICODE_ and does return unicode objects in that case - see 
+        the IIS documentation for more details.
+    </p>
+    <p>If you pass a unicode object to the ISAPI functions, it will be 
+       automatically encoded using the default encoding rather than the
+       'mbcs' encoding used by the rest of pywin32.  In general this should
+       be avoided as IIS doesn't define an encoding.
+    </p>
+
     <h1>datetime objects</h1>
     <p>
         Python 3.x builds use a subclass of datetime.datetime objects as the
@@ -31,6 +63,14 @@
         (via the <a href="win32timezone.TimeZoneInfo__utc_meth.html">win32timezone.TimeZoneInfo.utc() method</a>),
         and times with any timezone will be accepted when passed to pywin32 -
         but "time zone naive" objects are *not* supported.
+    </p>
+    <p>
+        Note that it is possible we will support "time zone naive" objects
+        in the future, as supporting such objects in the future will be fully
+        backwards compatible.  However, it is not yet clear that supporting
+        such objects is helpful due to the ambiguities that may arise, and
+        attempting to remove such support in the future would cause more
+        problems than enabling it.
     </p>
     <p>
         The <a href="win32timezone__now_meth.html">win32timezone.now</a> and
