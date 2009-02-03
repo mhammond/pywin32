@@ -20,10 +20,10 @@ BOOL CATIDsFromPyObject( PyObject *obCatIds, CATID **ppCatIds, UINT *pNumIds)
 		PyErr_SetString(PyExc_TypeError, "Object must be a sequence of CATIDs");
 		return FALSE;
 	}
-	int len = PyObject_Length(obCatIds);
+	Py_ssize_t len = PyObject_Length(obCatIds);
 	CATID *ids = new CATID[len];
 	BOOL rc = TRUE;
-	for (int i=0;rc && i<len;i++) {
+	for (Py_ssize_t i=0;rc && i<len;i++) {
 		PyObject *obThis = PySequence_GetItem(obCatIds, i);
 		if (obThis==NULL) {
 			rc = FALSE;
@@ -37,7 +37,7 @@ BOOL CATIDsFromPyObject( PyObject *obCatIds, CATID **ppCatIds, UINT *pNumIds)
 	}
 	if (rc) {
 		*ppCatIds = ids;
-		*pNumIds = len;
+		*pNumIds = PyWin_SAFE_DOWNCAST(len, Py_ssize_t, UINT);
 	} else {
 		delete [] ids;
 	}
@@ -79,42 +79,42 @@ PyObject *PyICatRegister::RegisterCategories(PyObject *self, PyObject *args)
 		PyErr_SetString(PyExc_TypeError, "Argument must be a list of CATEGORYINFO tuples");
 		return NULL;
 	}
-	int noInfos = PyObject_Length(obCatList);
+	Py_ssize_t noInfos = PyObject_Length(obCatList);
 	CATEGORYINFO *infos = new CATEGORYINFO [noInfos];
 	if (infos==NULL) {
 		PyErr_SetString(PyExc_MemoryError, "Allocating CATEGORYINFO array");
 		return NULL;
 	}
-	for (int i=0;i<noInfos;i++) {
+	for (Py_ssize_t i=0;i<noInfos;i++) {
 		PyObject *obCatId;
-		char *desc;
 		PyObject *obThis = PySequence_GetItem(obCatList, i);
 		if (obThis==NULL) return NULL;
 		BOOL ok = TRUE;
-		int descLen;
-		if (!PyArg_ParseTuple(obThis, "Ols#", &obCatId, (long *)&infos[i].lcid, &desc, &descLen)) {
+		PyObject *obDesc;
+		if (!PyArg_ParseTuple(obThis, "OlO", &obCatId, (long *)&infos[i].lcid, &obDesc)) {
 			Py_DECREF(obThis);
 			PyErr_SetString(PyExc_TypeError, "Category infos must be CATID, lcid, description");
 			delete [] infos;
 			return NULL;
 		}
+		Py_DECREF(obThis);
 		if (!PyWinObject_AsIID(obCatId, &infos[i].catid)) {
-			Py_DECREF(obThis);
-			PyErr_SetString(PyExc_TypeError, "CATID is not valid");
 			delete [] infos;
 			return NULL;
 		}
-		Py_DECREF(obThis);
 		OLECHAR *oc;
-		if (PyWin_String_AsWCHAR(desc, (DWORD)-1, &oc)) {
-			wcsncpy(infos[i].szDescription, oc, 
-                    sizeof(infos->szDescription)/sizeof(infos->szDescription[0]));
-			PyWinObject_FreeString(oc);
+		if (!PyWinObject_AsWCHAR(obDesc, &oc, FALSE)) {
+			delete [] infos;
+			return NULL;
 		}
+		wcsncpy(infos[i].szDescription, oc,
+			sizeof(infos->szDescription)/sizeof(infos->szDescription[0]));
+		PyWinObject_FreeWCHAR(oc);
 	}
 
 	PY_INTERFACE_PRECALL;
-	HRESULT hr = pICR->RegisterCategories(noInfos, infos);
+	HRESULT hr = pICR->RegisterCategories(PyWin_SAFE_DOWNCAST(noInfos, Py_ssize_t, ULONG),
+					      infos);
 	PY_INTERFACE_POSTCALL;
 	delete [] infos;
 	if ( FAILED(hr) )
