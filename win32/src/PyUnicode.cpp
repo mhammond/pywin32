@@ -121,27 +121,6 @@ PyObject *PyWinCoreString_FromString(const WCHAR *str, Py_ssize_t len /*=(Py_ssi
 #endif
 }
 
-// Convert a WCHAR string to "char *"
-//  If len is known, pass it, else -1
-// NOTE - string must be freed with PyWinObject_FreeString
-BOOL PyWin_WCHAR_AsString(WCHAR *input, DWORD inLen, char **pResult)
-{
-	if (inLen==-1)
-		inLen = wcslen(input);
-	// convert from string len to include terminator.
-	inLen++;
-	char *buf = (char *)PyMem_Malloc(inLen);
-
-	DWORD len = WideCharToMultiByte(CP_ACP, 0, input, inLen, buf, inLen, NULL, NULL);
-	if (len==0) {
-		PyMem_Free(buf);
-		PyWin_SetAPIError("WideCharToMultiByte");
-		return FALSE;
-	}
-	*pResult = buf;
-	return TRUE;
-}
-
 // Convert a Python object to a "char *" - allow embedded NULLs, None, etc.
 BOOL PyWinObject_AsString(PyObject *stringObject, char **pResult, BOOL bNoneOK /*= FALSE*/, DWORD *pResultLen /* = NULL */)
 {

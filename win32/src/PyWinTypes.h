@@ -355,9 +355,6 @@ PYWINTYPES_EXPORT PyObject *PyWinObject_FromTCHAR(const char *str, Py_ssize_t le
 // String support for buffers allocated via CoTaskMemAlloc and CoTaskMemFree
 PYWINTYPES_EXPORT BOOL PyWinObject_AsTaskAllocatedWCHAR(PyObject *stringObject, WCHAR **ppResult, BOOL bNoneOK /*= FALSE*/,DWORD *pResultLen /*= NULL*/);
 PYWINTYPES_EXPORT void PyWinObject_FreeTaskAllocatedWCHAR(WCHAR * str);
-// String conversion - These must also be freed with PyWinObject_FreeString
-PYWINTYPES_EXPORT BOOL PyWin_WCHAR_AsString(WCHAR *input, DWORD inLen, char **pResult);
-PYWINTYPES_EXPORT BOOL PyWin_Bstr_AsString(BSTR input, char **pResult);
 
 PYWINTYPES_EXPORT void PyWinObject_FreeString(char *str);
 PYWINTYPES_EXPORT void PyWinObject_FreeString(WCHAR *str);
