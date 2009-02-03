@@ -302,28 +302,8 @@ inline BOOL PyWinObject_AsReadBuffer(PyObject *ob, void **buf, int *buf_len, BOO
 // Python doesn't *insist* the result be this type, consider using a function
 // that always returns a unicode object (ie, most of the "PyWinObject_From*CHAR"
 // functions)
-// XXX - move these from being inlines...
-inline PyObject *PyWinCoreString_FromString(const char *str, Py_ssize_t len=(Py_ssize_t)-1)
-{
-    if (len==(Py_ssize_t)-1)
-        len = strlen(str);
-#if (PY_VERSION_HEX < 0x03000000)
-    return PyString_FromStringAndSize(str, len);
-#else
-    return PyUnicode_DecodeMBCS(str, len, "ignore");
-#endif
-}
-
-inline PyObject *PyWinCoreString_FromString(const WCHAR *str, Py_ssize_t len=(Py_ssize_t)-1)
-{
-    if (len==(Py_ssize_t)-1)
-        len = wcslen(str);
-#if (PY_VERSION_HEX < 0x03000000)
-    return PyUnicode_EncodeMBCS(str, len, "ignore");
-#else
-    return PyUnicode_FromWideChar(str, len);
-#endif
-}
+PYWINTYPES_EXPORT PyObject *PyWinCoreString_FromString(const char *str, Py_ssize_t len=(Py_ssize_t)-1);
+PYWINTYPES_EXPORT PyObject *PyWinCoreString_FromString(const WCHAR *str, Py_ssize_t len=(Py_ssize_t)-1);
 
 #define PyWinObject_FromWCHAR PyWinObject_FromOLECHAR
 
@@ -348,7 +328,6 @@ PYWINTYPES_EXPORT BOOL PyWinObject_AsWCHARArray(PyObject *str_seq, LPWSTR **wcha
 PYWINTYPES_EXPORT void PyWinObject_FreeCharArray(char **pchars, DWORD str_cnt);
 PYWINTYPES_EXPORT BOOL PyWinObject_AsCharArray(PyObject *str_seq, char ***pchars, DWORD *str_cnt, BOOL bNoneOK = FALSE);
 
-PYWINTYPES_EXPORT PyObject *PyUnicodeObject_FromString(const char *string, Py_ssize_t len=(Py_ssize_t)-1);
 PYWINTYPES_EXPORT PyObject *PyWinObject_FromOLECHAR(const OLECHAR * str);
 PYWINTYPES_EXPORT PyObject *PyWinObject_FromOLECHAR(const OLECHAR * str, int numChars);
 
@@ -369,25 +348,12 @@ PYWINTYPES_EXPORT BOOL PyWinObject_AsPfnAllocatedWCHAR(PyObject *stringObject,
 #define PyWinObject_AsTCHAR PyWinObject_AsString
 #define PyWinObject_FreeTCHAR PyWinObject_FreeString
 
-inline PyObject *PyWinObject_FromTCHAR(const char *str, Py_ssize_t len=(Py_ssize_t)-1)
-{
-    if (str==NULL) {
-        Py_INCREF(Py_None);
-        return Py_None;
-    }
 // PyWinObject_FromTCHAR in a non-unicode build still depends on py3k or not:
 // py2x a string object is returned (no conversions).  py3x a unicode object
 // is returned (ie, the string is decoded)
-#if (PY_VERSION_HEX < 0x03000000)
-    if (len==(Py_ssize_t)-1)
-        return PyString_FromString(str);
-    else
-        return PyString_FromStringAndSize(str, len);
-#else   
-    return PyUnicodeObject_FromString(str, len);
-#endif
-}
-#endif
+PYWINTYPES_EXPORT PyObject *PyWinObject_FromTCHAR(const char *str, Py_ssize_t len=(Py_ssize_t)-1);
+
+#endif // UNICODE
 
 // String support for buffers allocated via CoTaskMemAlloc and CoTaskMemFree
 PYWINTYPES_EXPORT BOOL PyWinObject_AsTaskAllocatedWCHAR(PyObject *stringObject, WCHAR **ppResult, BOOL bNoneOK /*= FALSE*/,DWORD *pResultLen /*= NULL*/);

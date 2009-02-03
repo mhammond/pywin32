@@ -80,15 +80,45 @@ void PyWinObject_FreeTaskAllocatedWCHAR(WCHAR * str)
 }
 
 /* Implement our Windows Unicode API using the Python widestring object */
-PyObject *PyUnicodeObject_FromString(const char *string, Py_ssize_t len /* = -1 */)
+
+// non-unicode version of PyWinObject_FromTCHAR; returned object depends on
+// if we are running py3k or not.
+PyObject *PyWinObject_FromTCHAR(const char *str, Py_ssize_t len /*=(Py_ssize_t)-1*/)
 {
-	if (string==NULL) {
+	if (str==NULL) {
 		Py_INCREF(Py_None);
 		return Py_None;
 	}
 	if (len==(Py_ssize_t)-1)
-		len = strlen(string);
-	return (PyObject *)PyUnicode_DecodeMBCS(string, len, NULL);
+		len = strlen(str);
+#if (PY_VERSION_HEX < 0x03000000)
+	return PyString_FromStringAndSize(str, len);
+#else
+	// py3k - decode char * via mbcs encoding.
+	return (PyObject *)PyUnicode_DecodeMBCS(str, len, NULL);
+#endif
+}
+
+PyObject *PyWinCoreString_FromString(const char *str, Py_ssize_t len /*=(Py_ssize_t)-1*/)
+{
+	if (len==(Py_ssize_t)-1)
+		len = strlen(str);
+#if (PY_VERSION_HEX < 0x03000000)
+	return PyString_FromStringAndSize(str, len);
+#else
+	return PyUnicode_DecodeMBCS(str, len, "ignore");
+#endif
+}
+
+PyObject *PyWinCoreString_FromString(const WCHAR *str, Py_ssize_t len /*=(Py_ssize_t)-1*/)
+{
+	if (len==(Py_ssize_t)-1)
+		len = wcslen(str);
+#if (PY_VERSION_HEX < 0x03000000)
+	return PyUnicode_EncodeMBCS(str, len, "ignore");
+#else
+	return PyUnicode_FromWideChar(str, len);
+#endif
 }
 
 // Convert a WCHAR string to "char *"
