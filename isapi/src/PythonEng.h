@@ -29,19 +29,6 @@
 #include "ControlBlock.h"
 #include "FilterContext.h"
 
-/////////////////////////////////////////////////////
-// Engine exception
-////////////////////////////////////////////////////
-
-class CPythonEngineException
-{
-public:
-	CPythonEngineException(LPCTSTR errMsg = "") {m_errStr = strdup(errMsg);}
-	~CPythonEngineException(){free(m_errStr);}
-public:
-	char *m_errStr;
-};
-
 class CPythonEngine
 {
 public:
@@ -91,8 +78,8 @@ protected:
 };
 // general error handler
 
-void ExtensionError(CControlBlock *pcb, LPCTSTR errmsg);
-void FilterError(CFilterContext *pfc,  LPCTSTR errmsg);
+void ExtensionError(CControlBlock *pcb, const char *errmsg);
+void FilterError(CFilterContext *pfc,  const char *errmsg);
 
 class CEnterLeavePython {
 public:

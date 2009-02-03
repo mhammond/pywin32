@@ -1,6 +1,7 @@
 #ifndef __FILTER_CONTEXT_H__
 #define __FILTER_CONTEXT_H__
 
+// This class should slowly die - its indirection offers no value...
 class CFilterContext
 {
 public:
@@ -36,22 +37,15 @@ public:
 		if (ppData) *ppData = m_data;
 	}
 
-	DWORD WriteClient(LPCTSTR buffer, const int buffLen, const int reserved=0)
-	{
-		DWORD dwBufLen = buffLen;
-		m_pHFC->WriteClient(m_pHFC, (void *) buffer, &dwBufLen, reserved);
-		return dwBufLen;
-	}
-
 	BOOL AddResponseHeaders(LPSTR headers, const int reserved=0)
 	{
 		return m_pHFC->AddResponseHeaders(m_pHFC, headers, reserved);
 	}
 
 
-	bool GetServerVariable(LPCTSTR varName, LPSTR lpBuff, DWORD *pBuffSize)
+	bool GetServerVariable(char *varName, LPSTR lpBuff, DWORD *pBuffSize)
 	{
-		BOOL bOK = m_pHFC->GetServerVariable(m_pHFC,(LPSTR) varName,lpBuff,pBuffSize);
+		BOOL bOK = m_pHFC->GetServerVariable(m_pHFC, varName, lpBuff, pBuffSize);
 		if (!bOK)
 			*pBuffSize = 0;
 
@@ -63,8 +57,8 @@ public:
 	{
 		return m_pHFC->ServerSupportFunction(m_pHFC,sfReq, pData, ul1, ul2);
 	}
-private:
 	HTTP_FILTER_CONTEXT* m_pHFC;		// IIS filter context block
+private:
 	DWORD m_notificationType;
 	void *m_data;
 private:

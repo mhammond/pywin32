@@ -135,15 +135,14 @@ done:
 // @object HSE_VERSION_INFO|An object used by ISAPI GetExtensionVersion
 PyTypeObject PyVERSION_INFOType =
 {
-	PyObject_HEAD_INIT(&PyType_Type)
-	0,
+	PYISAPI_OBJECT_HEAD
 	"HSE_VERSION_INFO",
 	sizeof(PyVERSION_INFO),
 	0,
 	PyVERSION_INFO::deallocFunc,	/* tp_dealloc */
 	0,					/* tp_print */
-	PyVERSION_INFO::getattr,		/* tp_getattr */
-	PyVERSION_INFO::setattr,		/* tp_setattr */
+	0,					/* tp_getattr */
+	0,					/* tp_setattr */
 	0,
 	0,					/* tp_repr */
 	0,					/* tp_as_number */
@@ -152,8 +151,11 @@ PyTypeObject PyVERSION_INFOType =
 	0,
 	0,					/* tp_call */
 	0,					/* tp_str */
+	PyVERSION_INFO::getattro,		/* tp_getattro */
+	PyVERSION_INFO::setattro,		/* tp_setattro */
+	0,					/*tp_as_buffer*/
+	Py_TPFLAGS_DEFAULT,			/* tp_flags */
 };
-
 
 PyVERSION_INFO::PyVERSION_INFO(HSE_VERSION_INFO  *pvi)
 {
@@ -166,20 +168,22 @@ PyVERSION_INFO::~PyVERSION_INFO()
 {
 }
 
-PyObject *PyVERSION_INFO::getattr(PyObject *self, char *name)
+PyObject *PyVERSION_INFO::getattro(PyObject *self, PyObject *obname)
 {
 	PyVERSION_INFO *me = (PyVERSION_INFO *)self;
 	if (!me->m_pvi)
 		return PyErr_Format(PyExc_RuntimeError, "VERSION_INFO structure no longer exists");
-	if (strcmp(name, "ExtensionDesc")==0) {
+	TCHAR *name=PYISAPI_ATTR_CONVERT(obname);
+	if (_tcscmp(name, _T("ExtensionDesc"))==0) {
 		return PyString_FromString(me->m_pvi->lpszExtensionDesc);
 	}
-	return PyErr_Format(PyExc_AttributeError, "PyVERSION_INFO has no attribute '%s'", name);
+	return PyObject_GenericGetAttr(self, obname);
 }
 
-int PyVERSION_INFO::setattr(PyObject *self, char *name, PyObject *v)
+int PyVERSION_INFO::setattro(PyObject *self, PyObject *obname, PyObject *v)
 {
 	PyVERSION_INFO *me = (PyVERSION_INFO *)self;
+	TCHAR *name=PYISAPI_ATTR_CONVERT(obname);
 	if (!me->m_pvi) {
 		PyErr_Format(PyExc_RuntimeError, "VERSION_INFO structure no longer exists");
 		return -1;
@@ -189,19 +193,19 @@ int PyVERSION_INFO::setattr(PyObject *self, char *name, PyObject *v)
 		return -1;
 	}
 	// @prop string|ExtensionDesc|The description of the extension.
-	else if (strcmp(name, "ExtensionDesc")==0) {
-		if (!PyString_Check(v)) {
-			PyErr_Format(PyExc_ValueError, "FilterDesc must be a string (got %s)", v->ob_type->tp_name);
+	else if (_tcscmp(name, _T("ExtensionDesc"))==0) {
+		DWORD size;
+		const char *bytes = PyISAPIString_AsBytes(v, &size);
+		if (!bytes)
 			return -1;
-		}
-		if (PyString_Size(v) > HSE_MAX_EXT_DLL_NAME_LEN) {
+		if (size > HSE_MAX_EXT_DLL_NAME_LEN) {
 			PyErr_Format(PyExc_ValueError, "String is too long - max of %d chars", HSE_MAX_EXT_DLL_NAME_LEN);
 			return -1;
 		}
-		strcpy(me->m_pvi->lpszExtensionDesc, PyString_AsString(v));
+		strcpy(me->m_pvi->lpszExtensionDesc, bytes);
+		return 0;
 	} else {
-		PyErr_SetString(PyExc_AttributeError, "can't modify read only VERSION_INFO attributes.");
-		return -1;
+		return PyObject_GenericSetAttr(self, obname, v);
 	}
 	return 0;
 }
@@ -225,23 +229,11 @@ void PyVERSION_INFO::deallocFunc(PyObject *ob)
 
 // @object EXTENSION_CONTROL_BLOCK|A python representation of an ISAPI
 // EXTENSION_CONTROL_BLOCK.
-struct memberlist PyECB::PyECB_memberlist[] = {
+struct PyMemberDef PyECB::members[] = {
 	{"Version",			T_INT,	   ECBOFF(m_version), READONLY},
-	// XXX - ConnID 64bit issue?
-	{"ConnID",			T_INT,	   ECBOFF(m_connID), READONLY}, 
-
-	{"Method",			T_OBJECT,  ECBOFF(m_method), READONLY}, 
-	{"QueryString",		T_OBJECT,  ECBOFF(m_queryString), READONLY}, 
-	{"PathInfo",		T_OBJECT,  ECBOFF(m_pathInfo), READONLY}, 
-	{"PathTranslated",	T_OBJECT,  ECBOFF(m_pathTranslated), READONLY}, 
-
 	{"TotalBytes",		T_INT,	   ECBOFF(m_totalBytes), READONLY}, 
 	{"AvailableBytes",	T_INT,	   ECBOFF(m_available), READONLY}, 
-	{"AvailableData",	T_OBJECT,  ECBOFF(m_data), READONLY}, 
-	{"ContentType",		T_OBJECT,  ECBOFF(m_contentType), READONLY}, 
-	
 	{"HttpStatusCode",	T_INT,  ECBOFF(m_HttpStatusCode)},  
-	{"LogData",			T_OBJECT,  ECBOFF(m_logData)},
 	{NULL}
 };
 
@@ -271,15 +263,14 @@ static struct PyMethodDef PyECB_methods[] = {
 
 PyTypeObject PyECBType =
 {
-	PyObject_HEAD_INIT(&PyType_Type)
-	0,
+	PYISAPI_OBJECT_HEAD
 	"EXTENSION_CONTROL_BLOCK",
 	sizeof(PyECB),
 	0,
 	PyECB::deallocFunc,	/* tp_dealloc */
 	0,					/* tp_print */
-	PyECB::getattr,		/* tp_getattr */
-	PyECB::setattr,		/* tp_setattr */
+	0,					/* tp_getattr */
+	0,					/* tp_setattr */
 	0,
 	0,					/* tp_repr */
 	0,					/* tp_as_number */
@@ -288,26 +279,47 @@ PyTypeObject PyECBType =
 	0,
 	0,					/* tp_call */
 	0,					/* tp_str */
+	PyECB::getattro,			/* tp_getattro */
+	PyECB::setattro,			/* tp_setattro */
+	0,					/*tp_as_buffer*/
+	Py_TPFLAGS_DEFAULT,			/* tp_flags */
+	0,					/* tp_doc */
+	0,					/* tp_traverse */
+	0,					/* tp_clear */
+	0,					/* tp_richcompare */
+	0,					/* tp_weaklistoffset */
+	0,					/* tp_iter */
+	0,					/* tp_iternext */
+	PyECB_methods,				/* tp_methods */
+	PyECB::members,				/* tp_members */
+	0,					/* tp_getset */
+	0,					/* tp_base */
+	0,					/* tp_dict */
+	0,					/* tp_descr_get */
+	0,					/* tp_descr_set */
+	0,					/* tp_dictoffset */
+	0,					/* tp_init */
+	0,					/* tp_alloc */
+	0,					/* tp_new */
 };
 
 
 PyECB::PyECB(CControlBlock * pcb):
-		
+
 	m_version(0),          // @prop integer|Version|Version info of this spec (read-only)
-	m_connID(0),           // @prop integer|ConnID|Context number (read-only)
-
-	m_method(NULL),         // @prop string|Method|REQUEST_METHOD
-	m_queryString(NULL),    // @prop string|QueryString|QUERY_STRING
-	m_pathInfo(NULL),       // @prop string|PathInfo|PATH_INFO
-	m_pathTranslated(NULL), // @prop string|PathTranslated|PATH_TRANSLATED
-
 	m_totalBytes(0),       // @prop int|TotalBytes|Total bytes indicated from client
 	m_available(0),        // @prop int|AvailableBytes|Available number of bytes
-	m_data(NULL),          // @prop string|AvailableData|Pointer to cbAvailable bytes
-	m_contentType(NULL),   // @prop string|ContentType|Content type of client data
+	m_HttpStatusCode(0)   // @prop int|HttpStatusCode|The status of the current transaction when the request is completed.
 
-	m_HttpStatusCode(0),   // @prop int|HttpStatusCode|The status of the current transaction when the request is completed. 
-	m_logData(NULL)       // @prop string|LogData|log data string
+	// <keep a blank line above this for autoduck!> these props are managed manually...
+	// @prop bytes|Method|REQUEST_METHOD
+	// @prop long|ConnID|Context number (read-only)
+	// @prop bytes|QueryString|QUERY_STRING
+	// @prop bytes|PathInfo|PATH_INFO
+	// @prop bytes|PathTranslated|PATH_TRANSLATED
+	// @prop bytes|AvailableData|Pointer to cbAvailable bytes
+	// @prop bytes|ContentType|Content type of client data
+	// @prop bytes|LogData|log data string
 {
 	ob_type = &PyECBType;
 	_Py_NewReference(this);
@@ -316,91 +328,86 @@ PyECB::PyECB(CControlBlock * pcb):
 
 	EXTENSION_CONTROL_BLOCK * pecb = pcb->GetECB();
 
-	m_version = pecb->dwVersion; 
-		
-	m_connID		 = pecb->ConnID; 
+	m_version = pecb->dwVersion;
+	// load up the simple integers etc into members so we can use normal
+	// python structmember T_ macros.
 	m_HttpStatusCode = pecb->dwHttpStatusCode; 
-	m_logData		 = PyString_FromString("");
-	m_method		 = PyString_FromString(pecb->lpszMethod); 
-	m_queryString	 = PyString_FromString(pecb->lpszQueryString); 
-	m_pathInfo       = PyString_FromString(pecb->lpszPathInfo); 
-	m_pathTranslated = PyString_FromString(pecb->lpszPathTranslated);
 	m_totalBytes	 = pecb->cbTotalBytes; 
 	m_available		 = pecb->cbAvailable;
-	m_data			 = PyString_FromStringAndSize((const char *) pecb->lpbData, pecb->cbAvailable); 
-	m_contentType    = PyString_FromString(pecb->lpszContentType); 
 }
 
 PyECB::~PyECB()
 {
-	Py_XDECREF(m_logData);
-	Py_XDECREF(m_method); 
-	Py_XDECREF(m_queryString); 
-	Py_XDECREF(m_pathInfo); 
-	Py_XDECREF(m_pathTranslated);
-	Py_XDECREF(m_data); 
-	Py_XDECREF(m_contentType); 
-
 	if (m_pcb)
 		delete m_pcb;
 }	
 
 
-PyObject *PyECB::getattr(PyObject *self, char *name)
+PyObject *PyECB::getattro(PyObject *self, PyObject *obname)
 {
-	// see if its a member variable
-	for (int i=0; i<ARRAYSIZE(PyECB::PyECB_memberlist); i++){
-		if (PyECB::PyECB_memberlist[i].name && _tcsicmp(name, PyECB::PyECB_memberlist[i].name) == 0)
-			return PyMember_Get((char *)self, PyECB::PyECB_memberlist, name);
-	}
-
-	// see if its the special members attribute
-	if (_tcscmp(name, _T("__members__"))==0)
-		return PyMember_Get((char *)self, PyECB::PyECB_memberlist, name);
+	TCHAR *name=PYISAPI_ATTR_CONVERT(obname);
 
 	if (_tcscmp(name, _T("softspace"))==0) // help 'print' semantics.
 		return PyInt_FromLong(1);
 
-	// must be a method
-	return Py_FindMethod(PyECB_methods, self, name);
+	EXTENSION_CONTROL_BLOCK * pecb = ((PyECB *)self)->m_pcb->GetECB();
+
+	if (_tcscmp(name, _T("Method"))==0)
+		return PyString_FromString(pecb->lpszMethod); 
+
+	if (_tcscmp(name, _T("QueryString"))==0)
+		return PyString_FromString(pecb->lpszQueryString); 
+
+	if (_tcscmp(name, _T("PathInfo"))==0)
+		return PyString_FromString(pecb->lpszPathInfo); 
+
+	if (_tcscmp(name, _T("PathTranslated"))==0)
+		return PyString_FromString(pecb->lpszPathTranslated); 
+
+	if (_tcscmp(name, _T("AvailableData"))==0)
+		return PyString_FromStringAndSize((const char *) pecb->lpbData, pecb->cbAvailable); 
+
+	if (_tcscmp(name, _T("ContentType"))==0)
+		return PyString_FromString(pecb->lpszContentType);
+
+	if (_tcscmp(name, _T("LogData"))==0)
+		return PyErr_Format(PyExc_AttributeError, "LogData attribute can only be set");
+
+	if (_tcscmp(name, _T("ConnID"))==0)
+		return PyLong_FromVoidPtr(pecb->ConnID);
+
+	return PyObject_GenericGetAttr(self, obname);
 }
 
-int PyECB::setattr(PyObject *self, char *name, PyObject *v)
+int PyECB::setattro(PyObject *self, PyObject *obname, PyObject *v)
 {
 	if (v == NULL) {
 		PyErr_SetString(PyExc_AttributeError, "can't delete ECB attributes");
 		return -1;
 	}
+	TCHAR *name=PYISAPI_ATTR_CONVERT(obname);
 
-	if (_tcscmp(name, _T("HttpStatusCode"))==0){
-		int res = PyMember_Set((char *)self, PyECB::PyECB_memberlist, name, v);
-		if (res == 0){
-			DWORD status = PyInt_AsLong(v);
-			PyECB * pecb = (PyECB *) self;
-			if (pecb->m_pcb)
-				pecb->m_pcb->SetStatus(status);
-				
-		}
-
-		return res;
+	if (_tcscmp(name, _T("HttpStatusCode"))==0) {
+		PyECB * pecb = (PyECB *) self;
+		DWORD status = PyInt_AsLong(v);
+		pecb->m_HttpStatusCode = status;
+		if (pecb->m_pcb)
+			pecb->m_pcb->SetStatus(status);
+		return 0;
 	}
-	
-	if ( _tcscmp(name, _T("LogData"))==0){
-		int res = PyMember_Set((char *)self, PyECB::PyECB_memberlist, name, v);
-		if (res == 0){
-			char * logMsg = PyString_AsString(v);
-			PyECB * pecb = (PyECB *) self;
-			if (pecb->m_pcb)
-				pecb->m_pcb->SetLogMessage(logMsg);
-	
-		}
 
-		return res;
+	if ( _tcscmp(name, _T("LogData"))==0) {
+		const char *logMsg = PyISAPIString_AsBytes(v);
+		if (!logMsg)
+			return -1;
+		PyECB * pecb = (PyECB *) self;
+		if (pecb->m_pcb)
+			pecb->m_pcb->SetLogMessage(logMsg);
+		return 0;
 	}
 
 	PyErr_SetString(PyExc_AttributeError, "can't modify read only ECB attributes only HTTPStatusCode and LogData can be changed.");
 	return -1;
-
 }
 
 
@@ -414,25 +421,27 @@ void PyECB::deallocFunc(PyObject *ob)
 PyObject * PyECB::WriteClient(PyObject *self, PyObject *args)
 {
 	BOOL bRes = FALSE;
-	TCHAR * buffer = NULL;
-	DWORD buffLen = 0;
+	char *buffer = NULL;
+	Py_ssize_t buffLenIn = 0;
+	DWORD buffLenOut = 0;
 	int reserved = 0;
 
 	PyECB * pecb = (PyECB *) self;
 	// @pyparm string/buffer|data||The data to write
 	// @pyparm int|reserved|0|
-	if (!PyArg_ParseTuple(args, "s#|l:WriteClient", &buffer, &buffLen, &reserved))
+	if (!PyArg_ParseTuple(args, "s#|l:WriteClient", &buffer, &buffLenIn, &reserved))
 		return NULL;
 
 	DWORD bytesWritten = 0;
+	buffLenOut = Py_SAFE_DOWNCAST(buffLenIn, Py_ssize_t, DWORD);
 	if (pecb->m_pcb){
 		Py_BEGIN_ALLOW_THREADS
-		bRes = pecb->m_pcb->WriteClient(buffer, &buffLen, reserved);
+		bRes = pecb->m_pcb->WriteClient(buffer, &buffLenOut, reserved);
 		Py_END_ALLOW_THREADS
 		if (!bRes)
 			return SetPyECBError("WriteClient");
 	}
-	return PyInt_FromLong(buffLen);
+	return PyInt_FromLong(buffLenOut);
 	// @rdesc the result is the number of bytes written.
 }
 
@@ -443,7 +452,7 @@ PyObject * PyECB::WriteClient(PyObject *self, PyObject *args)
 PyObject * PyECB::GetServerVariable(PyObject *self, PyObject *args)
 {
 	BOOL bRes = FALSE;
-	TCHAR * variable = NULL;
+	char *variable = NULL;
 	PyObject *def = NULL;
 
 	PyECB * pecb = (PyECB *) self;
@@ -543,9 +552,9 @@ PyObject * PyECB::ReadClient(PyObject *self, PyObject *args)
 
 	PyObject * pyRes = NULL;
 	if (nSize>0)
-		pyRes =PyString_FromStringAndSize((LPCTSTR) pBuff, nSize);
+		pyRes =PyString_FromStringAndSize((const char *)pBuff, nSize);
 	else
-		pyRes = PyString_FromString("");
+		pyRes = PyString_FromStringAndSize("", 0);
 
 	delete [] pBuff;
 
@@ -557,9 +566,10 @@ PyObject * PyECB::ReadClient(PyObject *self, PyObject *args)
 PyObject * PyECB::SendResponseHeaders(PyObject *self, PyObject * args)
 {
 	BOOL bRes = FALSE;
-	TCHAR * reply = NULL;
-	TCHAR * headers = NULL;
+	char *reply = NULL;
+	char *headers = NULL;
 	int bKeepAlive = 0;
+	Py_ssize_t cchStatus, cchHeader;
 
 	PyECB * pecb = (PyECB *) self;
 	if (!pecb || !pecb->Check()) return NULL;
@@ -569,11 +579,13 @@ PyObject * PyECB::SendResponseHeaders(PyObject *self, PyObject * args)
 	// @pyparm string|headers||
 	// @pyparm bool|keepAlive|False|
 	if (!PyArg_ParseTuple(args, "s#s#|i:SendResponseHeaders",
-			            &SendHeaderExInfo.pszStatus, &SendHeaderExInfo.cchStatus,
-				    &SendHeaderExInfo.pszHeader, &SendHeaderExInfo.cchHeader,
+			            &SendHeaderExInfo.pszStatus, &cchStatus,
+				    &SendHeaderExInfo.pszHeader, &cchHeader,
 				    &bKeepAlive))
 		return NULL;
 
+	SendHeaderExInfo.cchStatus = Py_SAFE_DOWNCAST(cchStatus, Py_ssize_t, DWORD);
+	SendHeaderExInfo.cchHeader = Py_SAFE_DOWNCAST(cchHeader, Py_ssize_t, DWORD);
 	SendHeaderExInfo.fKeepConn = (bKeepAlive) ? TRUE:FALSE;
 	if (pecb->m_pcb){
 		Py_BEGIN_ALLOW_THREADS
@@ -627,7 +639,7 @@ PyObject * PyECB::SetFlushFlag(PyObject *self, PyObject * args)
 PyObject * PyECB::Redirect(PyObject *self, PyObject * args)
 {
 	BOOL bRes = FALSE;
-	TCHAR * url = NULL;
+	char *url = NULL;
 
 	PyECB * pecb = (PyECB *) self;
 	if (!pecb || !pecb->Check()) return NULL;
@@ -1009,4 +1021,10 @@ PyObject * SetPyECBError(char *fnName, long err /*= 0*/)
 		Py_DECREF(v);
 	}
 	return NULL;
+}
+
+void InitExtensionTypes()
+{
+	PyType_Ready(&PyVERSION_INFOType);
+	PyType_Ready(&PyECBType);
 }

@@ -32,9 +32,30 @@ static bool g_bRegisteredEventSource = false;
 
 static WCHAR *source_name = L"ISAPI Filter or Extension";
 
+// some py3k-friendly type conversions.
+const char *PyISAPIString_AsBytes(PyObject *ob, DWORD *psize /* = NULL */)
+{
+#if (PY_VERSION_HEX >= 0x03000000)
+	// py3k - check for unicode object and use default encoding.
+	if (PyUnicode_Check(ob)) {
+		ob = _PyUnicode_AsDefaultEncodedString(ob, NULL);
+		if (ob == NULL)
+			return NULL;
+	}
+#endif
+	// These 'PyString_' calls are all mapped to the bytes API in py3k...
+	if (!PyString_Check(ob)) {
+		PyErr_Format(PyExc_ValueError, "Expected a string object (got %s)", ob->ob_type->tp_name);
+		return NULL;
+	}
+	if (psize)
+		*psize = PyString_Size(ob);
+	return PyString_AsString(ob);
+}
+
 // returns the pathname of this module
 
-char *GetModulePath(void)
+TCHAR *GetModulePath(void)
 {
 	// directory values
 	TCHAR szFilePath[_MAX_PATH];
@@ -44,15 +65,15 @@ char *GetModulePath(void)
 	// find out where the exe lives
 	// NOTE: the long file name does not get returned (don't know why)
 	::GetModuleFileName(g_hInstance, szFilePath, sizeof(szFilePath));
-	::_splitpath( szFilePath, szDrive, szDir, NULL, NULL );
-	int dir_len = strlen(szDir);
-	if (dir_len && szDir[dir_len-1] == '\\')
-		szDir[dir_len-1] = '\0';
+	::_tsplitpath( szFilePath, szDrive, szDir, NULL, NULL );
+	int dir_len = _tcslen(szDir);
+	if (dir_len && szDir[dir_len-1] == _T('\\'))
+		szDir[dir_len-1] = _T('\0');
 
-	char *result = (char *)malloc(strlen(szDrive)+strlen(szDir)+1);
+	TCHAR *result = (TCHAR *)malloc((_tcslen(szDrive)+_tcslen(szDir)+1)*sizeof(TCHAR));
 	if (result) {
-		strcpy(result, szDrive);
-		strcat(result, szDir);
+		_tcscpy(result, szDrive);
+		_tcscat(result, szDir);
 	}
 	return result;
 }
@@ -65,7 +86,7 @@ char *FormatSysError(const DWORD nErrNo)
 	char *result = (char *)malloc(1024);
 	if (!result) return NULL;
 	result[0] = '\0';
-	int nLen =FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM,
+	int nLen =FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM,
 				  NULL,
 				  nErrNo,
 				  MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
@@ -82,7 +103,7 @@ char *FormatSysError(const DWORD nErrNo)
 }
 
 // format an error 
-char *HTMLErrorResp(LPCTSTR msg)
+char *HTMLErrorResp(const char *msg)
 {
 	const char *htmlBody =  "<html><head><title>Python ISAPI Error</title></head>"
 				"<body><h2>An Error occured while processing your request</h2>"
@@ -105,7 +126,7 @@ static void CheckRegisterEventSourceFile()
 	GetModuleFileNameW(g_hInstance, mod_name,
 			  sizeof mod_name/sizeof WCHAR);
 	if (!mod_name[0]) {
-		OutputDebugString("GetModuleFileNameW failed!");
+		OutputDebugString(_T("GetModuleFileNameW failed!"));
 		return;
 	}
 
@@ -146,7 +167,7 @@ BOOL WriteEventLogMessage(WORD eventType, DWORD eventID, WORD num_inserts,
 
 	hEventSource = RegisterEventSourceW(NULL, source_name);
 	if (hEventSource) {
-		ReportEvent(hEventSource, // handle of event source
+		ReportEventA(hEventSource, // handle of event source
 		            eventType,  // event type
 		            0,                    // event category
 		            eventID,                 // event ID

@@ -38,29 +38,17 @@ public:
 	void Reset() {m_pvi = NULL;}
 	// Python support 
 	static void deallocFunc(PyObject *ob);
-	static PyObject *getattr(PyObject *self, char *name);
-	static int setattr(PyObject *self, char *name, PyObject *v);
+	static PyObject *getattro(PyObject *self, PyObject *name);
+	static int setattro(PyObject *self, PyObject *name, PyObject *v);
 };
 
 class PyECB :public PyObject
 {
 	CControlBlock * m_pcb;
-
 	DWORD      m_version;            // Version info of this spec
-	HCONN      m_connID;             // Context number not to be modified!
-
-	PyObject * m_method;             // REQUEST_METHOD
-	PyObject * m_queryString;        // QUERY_STRING
-	PyObject * m_pathInfo;           // PATH_INFO
-	PyObject * m_pathTranslated;     // PATH_TRANSLATED
-
 	DWORD      m_totalBytes;         // Total bytes indicated from client
 	DWORD      m_available;          // Available number of bytes
-	PyObject * m_data;               // Pointer to cbAvailable bytes
-	PyObject * m_contentType;        // Content type of client data
-
 	DWORD	   m_HttpStatusCode;     // The status of the current transaction when the request is completed. 
-	PyObject * m_logData;            // log data string 
 
 public:
 	PyECB(CControlBlock * pcb = NULL);
@@ -76,8 +64,8 @@ public:
 	}
 	// Python support 
 	static void deallocFunc(PyObject *ob);
-	static PyObject *getattr(PyObject *self, char *name);
-	static int setattr(PyObject *self, char *name, PyObject *v);
+	static PyObject *getattro(PyObject *self, PyObject *obname);
+	static int setattro(PyObject *self, PyObject *obname, PyObject *v);
 
 	// class methods
 	static PyObject * WriteClient(PyObject *self, PyObject *args); 
@@ -105,10 +93,7 @@ public:
 	static PyObject * ReportUnhealthy(PyObject *self, PyObject * args); // HSE_REQ_REPORT_UNHEALTHY
 
 	static PyObject * IsSessionActive(PyObject *self, PyObject * args);
-protected:
-#pragma warning( disable : 4251 )
-	static struct memberlist PyECB_memberlist[];
-#pragma warning( default : 4251 )
+	static struct PyMemberDef members[];
 };
 
 // error handling

@@ -49,13 +49,13 @@ static CPythonHandler extensionHandler;
 bool g_IsFrozen = false;
 char g_CallbackModuleName[_MAX_PATH + _MAX_FNAME] = "";
 
-#define TRACE OutputDebugString
+#define TRACE(x) OutputDebugString(_T(x))
 
 // This is an entry point for py2exe.
 void WINAPI PyISAPISetOptions(const char *modname, BOOL is_frozen)
 {
 	strncpy(g_CallbackModuleName, modname,
-			sizeof(g_CallbackModuleName)/sizeof(g_CallbackModuleName[0]));
+	         sizeof(g_CallbackModuleName)/sizeof(g_CallbackModuleName[0]));
 	// cast BOOL->bool without compiler warning!
 	g_IsFrozen = is_frozen ? TRUE : FALSE;
 }

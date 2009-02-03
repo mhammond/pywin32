@@ -37,6 +37,9 @@ extern HINSTANCE g_hInstance;
 extern bool g_IsFrozen;
 extern char g_CallbackModuleName[_MAX_PATH + _MAX_FNAME];
 
+extern void InitExtensionTypes();
+extern void InitFilterTypes();
+
 /////////////////////////////////////////////////////////////////////
 // Python  Engine
 /////////////////////////////////////////////////////////////////////
@@ -70,7 +73,7 @@ bool CPythonEngine::InitMainInterp(void)
 		PyEval_InitThreads();
 	
 		if (!g_IsFrozen) {
-			char *dll_path = GetModulePath();
+			TCHAR *dll_path = GetModulePath();
 			AddToPythonPath(dll_path);
 			free(dll_path);
 			PyErr_Clear();
@@ -87,6 +90,11 @@ bool CPythonEngine::InitMainInterp(void)
 			m_reload_exception = PyObject_GetAttrString(isapi_package,
 			                             "InternalReloadException");
 		Py_XDECREF(isapi_package);
+
+		// ready our types.
+		InitExtensionTypes();
+		InitFilterTypes();
+
 		PyGILState_Release(old_state);
 		FindModuleName();
 		m_haveInit = true;
@@ -96,9 +104,9 @@ bool CPythonEngine::InitMainInterp(void)
 
 void CPythonEngine::FindModuleName()
 {
-	TCHAR szFilePath[_MAX_PATH];
-	TCHAR szBase[_MAX_FNAME];
-	TCHAR *module_name;
+	char szFilePath[_MAX_PATH];
+	char szBase[_MAX_FNAME];
+	char *module_name;
 
 	// If a name for the module has been magically setup (eg, via a frozen
 	// app), then use it.  Otherwise, assume it is the DLL name without the
@@ -108,7 +116,7 @@ void CPythonEngine::FindModuleName()
 	else {
 		// find out where our DLL/EXE module lives
 		// NOTE: the long file name does not get returned (don't know why)
-		::GetModuleFileName(g_hInstance, szFilePath, sizeof(szFilePath));
+		::GetModuleFileNameA(g_hInstance, szFilePath, sizeof(szFilePath));
 		::_splitpath( szFilePath, NULL, NULL, szBase, NULL);
 		module_name = szBase + 1; // skip first char.
 	}
@@ -117,7 +125,7 @@ void CPythonEngine::FindModuleName()
 
 bool CPythonEngine::AddToPythonPath(LPCTSTR pPathName)
 {
-	PyObject *obPathList = PySys_GetObject(_T("path"));
+	PyObject *obPathList = PySys_GetObject("path");
 	if (obPathList==NULL) {
 		return false;
 	}
@@ -128,12 +136,16 @@ bool CPythonEngine::AddToPythonPath(LPCTSTR pPathName)
 	// path was specified by IIS when loading the DLL.
 	// Current Python versions handle neither this, nor Unicode on
 	// sys.path, so correct this here.
-	size_t len = strlen(pPathName);
-	if (len > 4 && strncmp(pPathName, "\\\\?\\", 4)==0) {
+	size_t len = _tcslen(pPathName);
+	if (len > 4 && _tcsncmp(pPathName, _T("\\\\?\\"), 4)==0) {
 		pPathName += 4;
 		len -= 4;
 	}
+#if (PY_VERSION_HEX < 0x03000000)
 	PyObject *obNew = PyString_FromStringAndSize(pPathName, len);
+#else
+	PyObject *obNew = PyUnicode_FromWideChar(pPathName, len);
+#endif
 	if (obNew==NULL) {
 		return false;
 	}
@@ -348,7 +360,7 @@ void CPythonHandler::Term(void)
 //////////////////////////////////////////////////////////////////////////////
 // general error handler
 
-void ExtensionError(CControlBlock *pcb, LPCTSTR errmsg)
+void ExtensionError(CControlBlock *pcb, const char *errmsg)
 {
 	char *windows_error = ::GetLastError() ?
 	                          ::FormatSysError(::GetLastError()) : NULL;
@@ -389,7 +401,7 @@ void ExtensionError(CControlBlock *pcb, LPCTSTR errmsg)
 		free(windows_error);
 }
 
-void FilterError(CFilterContext *pfc,  LPCTSTR errmsg)
+void FilterError(CFilterContext *pfc, const char *errmsg)
 {
 	char *windows_error = ::GetLastError() ?
 	                          ::FormatSysError(::GetLastError()) : NULL;

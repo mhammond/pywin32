@@ -39,8 +39,8 @@ public:
 	void Reset() {m_pfv = NULL;}
 	// Python support 
 	static void deallocFunc(PyObject *ob);
-	static PyObject *getattr(PyObject *self, char *name);
-	static int setattr(PyObject *self, char *name, PyObject *v);
+	static PyObject *getattro(PyObject *self, PyObject *ob);
+	static int setattro(PyObject *self, PyObject *obname, PyObject *v);
 };
 
 class PyHFC :public PyObject
@@ -55,8 +55,8 @@ public:
 public:	
 	// Python support 
 	static void deallocFunc(PyObject *ob);
-	static PyObject *getattr(PyObject *self, char *name);
-	static int setattr(PyObject *self, char *name, PyObject *v);
+	static PyObject *getattro(PyObject *self, PyObject *obname);
+	static int setattro(PyObject *self, PyObject *obname, PyObject *v);
 
 	// class methods
 	static PyObject * GetData(PyObject *self, PyObject *args); 
@@ -66,12 +66,9 @@ public:
 	// ServerSupportFunction implemented functions.
 	static PyObject * SendResponseHeader(PyObject *self, PyObject *args);
 	static PyObject * DisableNotifications(PyObject *self, PyObject *args);
+	static struct PyMemberDef members[];
 
 protected:
-
-#pragma warning( disable : 4251 )
-	static struct memberlist PyHFC_memberlist[];
-#pragma warning( default : 4251 )
 
 	DWORD m_notificationType;
 	DWORD m_revision;
@@ -89,8 +86,8 @@ public:
 public:	
 	// Python support 
 	static void deallocFunc(PyObject *ob);
-	static PyObject *getattr(PyObject *self, char *name);
-	static int setattr(PyObject *self, char *name, PyObject *v);
+	static PyObject *getattro(PyObject *self, PyObject *obname);
+	static int setattro(PyObject *self, PyObject *obname, PyObject *v);
 };
 
 class PyPREPROC_HEADERS :public PyObject
@@ -105,8 +102,6 @@ public:
 public:	
 	// Python support 
 	static void deallocFunc(PyObject *ob);
-	static PyObject *getattr(PyObject *self, char *name);
-	static int setattr(PyObject *self, char *name, PyObject *v);
 };
 
 class PyRAW_DATA:public PyObject
@@ -121,8 +116,8 @@ public:
 public:	
 	// Python support 
 	static void deallocFunc(PyObject *ob);
-	static PyObject *getattr(PyObject *self, char *name);
-	static int setattr(PyObject *self, char *name, PyObject *v);
+	static PyObject *getattro(PyObject *self, PyObject *obname);
+	static int setattro(PyObject *self, PyObject *obname, PyObject *v);
 };
 
 class PyAUTHENT :public PyObject
@@ -137,8 +132,8 @@ public:
 public:	
 	// Python support 
 	static void deallocFunc(PyObject *ob);
-	static PyObject *getattr(PyObject *self, char *name);
-	static int setattr(PyObject *self, char *name, PyObject *v);
+	static PyObject *getattro(PyObject *self, PyObject *obname);
+	static int setattro(PyObject *self, PyObject *obname, PyObject *v);
 };
 
 class PyFILTER_LOG:public PyObject
@@ -152,8 +147,8 @@ public:
 public:	
 	// Python support 
 	static void deallocFunc(PyObject *ob);
-	static PyObject *getattr(PyObject *self, char *name);
-	static int setattr(PyObject *self, char *name, PyObject *v);
+	static PyObject *getattro(PyObject *self, PyObject *obname);
+	static int setattro(PyObject *self, PyObject *obname, PyObject *v);
 };
 
 

@@ -33,15 +33,14 @@
 // structure.
 PyTypeObject PyFILTER_VERSIONType =
 {
-	PyObject_HEAD_INIT(&PyType_Type)
-	0,
+	PYISAPI_OBJECT_HEAD
 	"HTTP_FILTER_VERSION",
 	sizeof(PyFILTER_VERSION),
 	0,
 	PyFILTER_VERSION::deallocFunc,	/* tp_dealloc */
 	0,					/* tp_print */
-	PyFILTER_VERSION::getattr,		/* tp_getattr */
-	PyFILTER_VERSION::setattr,		/* tp_setattr */
+	0,					/* tp_getattr */
+	0,					/* tp_setattr */
 	0,
 	0,					/* tp_repr */
 	0,					/* tp_as_number */
@@ -50,6 +49,10 @@ PyTypeObject PyFILTER_VERSIONType =
 	0,
 	0,					/* tp_call */
 	0,					/* tp_str */
+	PyFILTER_VERSION::getattro,		/* tp_getattro */
+	PyFILTER_VERSION::setattro,		/* tp_setattro */
+	0,					/*tp_as_buffer*/
+	Py_TPFLAGS_DEFAULT,			/* tp_flags */
 };
 
 
@@ -64,31 +67,32 @@ PyFILTER_VERSION::~PyFILTER_VERSION()
 {
 }
 
-PyObject *PyFILTER_VERSION::getattr(PyObject *self, char *name)
+PyObject *PyFILTER_VERSION::getattro(PyObject *self, PyObject *obname)
 {
 	PyFILTER_VERSION *me = (PyFILTER_VERSION *)self;
 	if (!me->m_pfv)
 		return PyErr_Format(PyExc_RuntimeError, "FILTER_VERSION structure no longer exists");
+	TCHAR *name=PYISAPI_ATTR_CONVERT(obname);
 	// @prop int|ServerFilterVersion|(read-only)
-	if (strcmp(name, "ServerFilterVersion")==0) {
+	if (_tcscmp(name, _T("ServerFilterVersion"))==0) {
 		return PyInt_FromLong(me->m_pfv->dwServerFilterVersion);
 	}
 	// @prop int|FilterVersion|
-	if (strcmp(name, "FilterVersion")==0) {
+	if (_tcscmp(name, _T("FilterVersion"))==0) {
 		return PyInt_FromLong(me->m_pfv->dwFilterVersion);
 	}
 	// @prop int|Flags|
-	if (strcmp(name, "Flags")==0) {
+	if (_tcscmp(name, _T("Flags"))==0) {
 		return PyInt_FromLong(me->m_pfv->dwFlags);
 	}
 	// @prop string|FilterDesc|
-	if (strcmp(name, "FilterDesc")==0) {
+	if (_tcscmp(name, _T("FilterDesc"))==0) {
 		return PyString_FromString(me->m_pfv->lpszFilterDesc);
 	}
 	return PyErr_Format(PyExc_AttributeError, "PyFILTER_VERSION has no attribute '%s'", name);
 }
 
-int PyFILTER_VERSION::setattr(PyObject *self, char *name, PyObject *v)
+int PyFILTER_VERSION::setattro(PyObject *self, PyObject *obname, PyObject *v)
 {
 	PyFILTER_VERSION *me = (PyFILTER_VERSION *)self;
 	if (!me->m_pfv) {
@@ -99,33 +103,33 @@ int PyFILTER_VERSION::setattr(PyObject *self, char *name, PyObject *v)
 		PyErr_SetString(PyExc_AttributeError, "can't delete FILTER_VERSION attributes");
 		return -1;
 	}
-	if (strcmp(name, "FilterVersion")==0) {
+	TCHAR *name=PYISAPI_ATTR_CONVERT(obname);
+	if (_tcscmp(name, _T("FilterVersion"))==0) {
 		if (!PyInt_Check(v)) {
 			PyErr_Format(PyExc_ValueError, "FilterVersion must be an int (got %s)", v->ob_type->tp_name);
 			return -1;
 		}
 		me->m_pfv->dwFilterVersion = PyInt_AsLong(v);
 	}
-	else if (strcmp(name, "Flags")==0) {
+	else if (_tcscmp(name, _T("Flags"))==0) {
 		if (!PyInt_Check(v)) {
 			PyErr_Format(PyExc_ValueError, "Flags must be an int (got %s)", v->ob_type->tp_name);
 			return -1;
 		}
 		me->m_pfv->dwFlags = PyInt_AsLong(v);
 	}
-	else if (strcmp(name, "FilterDesc")==0) {
-		if (!PyString_Check(v)) {
-			PyErr_Format(PyExc_ValueError, "FilterDesc must be a string (got %s)", v->ob_type->tp_name);
+	else if (_tcscmp(name, _T("FilterDesc"))==0) {
+		DWORD size;
+		const char *bytes = PyISAPIString_AsBytes(v, &size);
+		if (!bytes)
 			return -1;
-		}
-		if (PyString_Size(v) > SF_MAX_FILTER_DESC_LEN) {
+		if (size > SF_MAX_FILTER_DESC_LEN) {
 			PyErr_Format(PyExc_ValueError, "String is too long - max of %d chars", SF_MAX_FILTER_DESC_LEN);
 			return -1;
 		}
-		strcpy(me->m_pfv->lpszFilterDesc, PyString_AsString(v));
+		strcpy(me->m_pfv->lpszFilterDesc, bytes);
 	} else {
-		PyErr_SetString(PyExc_AttributeError, "can't modify read only FILTER_VERSION attributes.");
-		return -1;
+		return PyObject_GenericSetAttr(self, obname, v);
 	}
 	return 0;
 }
@@ -189,8 +193,8 @@ PyObject * PyHFC::GetData(PyObject *self, PyObject *args)
 PyObject * PyHFC::WriteClient(PyObject *self, PyObject *args)
 {
 	BOOL bRes = FALSE;
-	TCHAR * buffer = NULL;
-	int buffLen = 0;
+	char *buffer = NULL;
+	Py_ssize_t buffLen = 0;
 	int reserved = 0;
 
 	PyHFC * phfc = (PyHFC *) self;
@@ -200,8 +204,10 @@ PyObject * PyHFC::WriteClient(PyObject *self, PyObject *args)
 		return NULL;
 
 	if (phfc->m_pfc){
+		HTTP_FILTER_CONTEXT *fc = phfc->m_pfc->m_pHFC;
 		Py_BEGIN_ALLOW_THREADS
-		bRes = phfc->m_pfc->WriteClient(buffer, buffLen, reserved);
+		DWORD dwBufLen = Py_SAFE_DOWNCAST(buffLen, Py_ssize_t, DWORD);
+		bRes = fc->WriteClient(fc, (void *)buffer, &dwBufLen, reserved);
 		Py_END_ALLOW_THREADS
 		if (!bRes)
 			return SetPyHFCError("WriteClient");
@@ -243,7 +249,7 @@ PyObject * PyHFC::AddResponseHeaders(PyObject *self, PyObject *args)
 PyObject * PyHFC::GetServerVariable(PyObject *self, PyObject *args)
 {
 	BOOL bRes = FALSE;
-	TCHAR * variable = NULL;
+	char *variable = NULL;
 	PyObject *def = NULL;
 
 	PyHFC * phfc = (PyHFC *) self;
@@ -361,7 +367,7 @@ static struct PyMethodDef PyHFC_methods[] = {
 };
 
 
-struct memberlist PyHFC::PyHFC_memberlist[] = {
+struct PyMemberDef PyHFC::members[] = {
 	// @prop int|Revision|(read-only)
 	{"Revision",			T_INT,ECBOFF(m_revision), READONLY}, 
 	// @prop bool|fIsSecurePort|(read-only)
@@ -373,15 +379,14 @@ struct memberlist PyHFC::PyHFC_memberlist[] = {
 
 PyTypeObject PyHFCType =
 {
-	PyObject_HEAD_INIT(&PyType_Type)
-	0,
+	PYISAPI_OBJECT_HEAD
 	"HTTP_FILTER_CONTEXT",
 	sizeof(PyHFC),
 	0,
 	PyHFC::deallocFunc,	/* tp_dealloc */
 	0,					/* tp_print */
-	PyHFC::getattr,		/* tp_getattr */
-	PyHFC::setattr,		/* tp_setattr */
+	0,					/* tp_getattr */
+	0,					/* tp_setattr */
 	0,
 	0,					/* tp_repr */
 	0,					/* tp_as_number */
@@ -390,6 +395,28 @@ PyTypeObject PyHFCType =
 	0,
 	0,					/* tp_call */
 	0,					/* tp_str */
+	PyHFC::getattro,			/* tp_getattro */
+	PyHFC::setattro,			/* tp_setattro */
+	0,					/*tp_as_buffer*/
+	Py_TPFLAGS_DEFAULT,			/* tp_flags */
+	0,					/* tp_doc */
+	0,					/* tp_traverse */
+	0,					/* tp_clear */
+	0,					/* tp_richcompare */
+	0,					/* tp_weaklistoffset */
+	0,					/* tp_iter */
+	0,					/* tp_iternext */
+	PyHFC_methods,				/* tp_methods */
+	PyHFC::members,				/* tp_members */
+	0,					/* tp_getset */
+	0,					/* tp_base */
+	0,					/* tp_dict */
+	0,					/* tp_descr_get */
+	0,					/* tp_descr_set */
+	0,					/* tp_dictoffset */
+	0,					/* tp_init */
+	0,					/* tp_alloc */
+	0,					/* tp_new */
 };
 
 
@@ -415,17 +442,9 @@ PyHFC::~PyHFC()
 }
 
 
-PyObject *PyHFC::getattr(PyObject *self, char *name)
+PyObject *PyHFC::getattro(PyObject *self, PyObject *obname)
 {
-	// see if its a member variable
-	for (int i=0; i<ARRAYSIZE(PyHFC::PyHFC_memberlist); i++){
-		if (PyHFC::PyHFC_memberlist[i].name && _tcsicmp(name, PyHFC::PyHFC_memberlist[i].name) == 0)
-			return PyMember_Get((char *)self, PyHFC::PyHFC_memberlist, name);
-	}
-
-	// see if its the special members attribute
-	if (_tcscmp(name, _T("__members__"))==0)
-		return PyMember_Get((char *)self, PyHFC::PyHFC_memberlist, name);
+	TCHAR *name=PYISAPI_ATTR_CONVERT(obname);
 
 	// other manual attributes.
 	if (_tcscmp(name, _T("FilterContext"))==0) {
@@ -439,13 +458,12 @@ PyObject *PyHFC::getattr(PyObject *self, char *name)
 		Py_INCREF(ret);
 		return ret;
 	}
-
-	// must be a method
-	return Py_FindMethod(PyHFC_methods, self, name);
+	return PyObject_GenericGetAttr(self, obname);
 }
 
-int PyHFC::setattr(PyObject *self, char *name, PyObject *v)
+int PyHFC::setattro(PyObject *self, PyObject *obname, PyObject *v)
 {
+	TCHAR *name=PYISAPI_ATTR_CONVERT(obname);
 	if (v == NULL) {
 		PyErr_SetString(PyExc_AttributeError, "can't delete ECB attributes");
 		return -1;
@@ -468,9 +486,7 @@ int PyHFC::setattr(PyObject *self, char *name, PyObject *v)
 		}
 		return 0;
 	}
-
-	PyErr_SetString(PyExc_AttributeError, "can't modify read only ECB attributes.");
-	return -1;
+	return PyObject_GenericSetAttr(self, obname, v);
 }
 
 
@@ -507,15 +523,14 @@ PyObject * SetPyHFCError(char *fnName, long err /*= 0*/)
 // HTTP_FILTER_URL_MAP structure.
 PyTypeObject PyURL_MAPType =
 {
-	PyObject_HEAD_INIT(&PyType_Type)
-	0,
+	PYISAPI_OBJECT_HEAD
 	"HTTP_FILTER_URL_MAP",
 	sizeof(PyURL_MAP),
 	0,
 	PyURL_MAP::deallocFunc,	/* tp_dealloc */
 	0,					/* tp_print */
-	PyURL_MAP::getattr,		/* tp_getattr */
-	PyURL_MAP::setattr,		/* tp_setattr */
+	0,					/* tp_getattr */
+	0,					/* tp_setattr */
 	0,
 	0,					/* tp_repr */
 	0,					/* tp_as_number */
@@ -524,6 +539,10 @@ PyTypeObject PyURL_MAPType =
 	0,
 	0,					/* tp_call */
 	0,					/* tp_str */
+	PyURL_MAP::getattro,			/* tp_getattro */
+	PyURL_MAP::setattro,			/* tp_setattro */
+	0,					/*tp_as_buffer*/
+	Py_TPFLAGS_DEFAULT,			/* tp_flags */
 };
 
 
@@ -552,29 +571,30 @@ HTTP_FILTER_URL_MAP *PyURL_MAP::GetURLMap()
 
 }
 
-PyObject *PyURL_MAP::getattr(PyObject *self, char *name)
+PyObject *PyURL_MAP::getattro(PyObject *self, PyObject *obname)
 {
 	HTTP_FILTER_URL_MAP *pMap = ((PyURL_MAP *)self)->GetURLMap();
 	if (!pMap)
 		return NULL;
 	// @prop string|URL|
-	if (strcmp(name, "URL")==0) {
+	TCHAR *name=PYISAPI_ATTR_CONVERT(obname);
+	if (_tcscmp(name, _T("URL"))==0) {
 		return PyString_FromString(pMap->pszURL);
 	}
 	// @prop string|PhysicalPath|
-	if (strcmp(name, "PhysicalPath")==0) {
+	if (_tcscmp(name, _T("PhysicalPath"))==0) {
 		return PyString_FromString(pMap->pszPhysicalPath);
 	}
-	PyErr_Format(PyExc_AttributeError, "PyURL_MAP objects have no attribute '%s'", name);
-	return NULL;
+	return PyObject_GenericGetAttr(self, obname);
 }
 
-int PyURL_MAP::setattr(PyObject *self, char *name, PyObject *v)
+int PyURL_MAP::setattro(PyObject *self, PyObject *obname, PyObject *v)
 {
 	HTTP_FILTER_URL_MAP *pMap = ((PyURL_MAP *)self)->GetURLMap();
 	if (!pMap)
 		return NULL;
-	if (strcmp(name, "PhysicalPath")==0) {
+	TCHAR *name=PYISAPI_ATTR_CONVERT(obname);
+	if (_tcscmp(name, _T("PhysicalPath"))==0) {
 		if (!PyString_Check(v)) {
 			PyErr_Format(PyExc_TypeError, "PhysicalPath must be a string");
 			return -1;
@@ -584,11 +604,10 @@ int PyURL_MAP::setattr(PyObject *self, char *name, PyObject *v)
 			PyErr_Format(PyExc_ValueError, "The string is too long - got %d chars, but max is %d", cc, pMap->cbPathBuff-1);
 			return -1;
 		}
-		_tcscpy(pMap->pszPhysicalPath, PyString_AS_STRING(v));
+		strcpy(pMap->pszPhysicalPath, PyString_AS_STRING(v));
 		return 0;
 	}
-	PyErr_SetString(PyExc_AttributeError, "can't modify read only PyURL_MAP attributes.");
-	return -1;
+	return PyObject_GenericSetAttr(self, obname, v);
 }
 
 
@@ -603,8 +622,8 @@ void PyURL_MAP::deallocFunc(PyObject *ob)
 // @pymethod string|HTTP_FILTER_PREPROC_HEADERS|GetHeader|
 PyObject * PyPREPROC_HEADERS_GetHeader(PyObject *self, PyObject *args)
 {
-	TCHAR buffer[8192];
-	DWORD bufSize = sizeof(buffer) / sizeof(TCHAR);
+	char buffer[8192];
+	DWORD bufSize = sizeof(buffer) / sizeof(buffer[0]);
 	char *name;
 	PyObject *def = NULL;
 	// @pyparm string|header||
@@ -681,15 +700,14 @@ static struct PyMethodDef PyPREPROC_HEADERS_methods[] = {
 
 PyTypeObject PyPREPROC_HEADERSType =
 {
-	PyObject_HEAD_INIT(&PyType_Type)
-	0,
+	PYISAPI_OBJECT_HEAD
 	"HTTP_FILTER_PREPROC_HEADERS",
 	sizeof(PyPREPROC_HEADERS),
 	0,
 	PyPREPROC_HEADERS::deallocFunc,	/* tp_dealloc */
 	0,					/* tp_print */
-	PyPREPROC_HEADERS::getattr,		/* tp_getattr */
-	0,		/* tp_setattr */
+	0,					/* tp_getattr */
+	0,					/* tp_setattr */
 	0,
 	0,					/* tp_repr */
 	0,					/* tp_as_number */
@@ -698,6 +716,28 @@ PyTypeObject PyPREPROC_HEADERSType =
 	0,
 	0,					/* tp_call */
 	0,					/* tp_str */
+	PyObject_GenericGetAttr,		/* tp_getattro */
+	0,					/* tp_setattro */
+	0,					/*tp_as_buffer*/
+	Py_TPFLAGS_DEFAULT,			/* tp_flags */
+	0,					/* tp_doc */
+	0,					/* tp_traverse */
+	0,					/* tp_clear */
+	0,					/* tp_richcompare */
+	0,					/* tp_weaklistoffset */
+	0,					/* tp_iter */
+	0,					/* tp_iternext */
+	PyPREPROC_HEADERS_methods,		/* tp_methods */
+	0,					/* tp_members */
+	0,					/* tp_getset */
+	0,					/* tp_base */
+	0,					/* tp_dict */
+	0,					/* tp_descr_get */
+	0,					/* tp_descr_set */
+	0,					/* tp_dictoffset */
+	0,					/* tp_init */
+	0,					/* tp_alloc */
+	0,					/* tp_new */
 };
 
 PyPREPROC_HEADERS::PyPREPROC_HEADERS(PyHFC *pParent)
@@ -731,11 +771,6 @@ HTTP_FILTER_PREPROC_HEADERS *PyPREPROC_HEADERS::GetPREPROC_HEADERS()
 	return (HTTP_FILTER_PREPROC_HEADERS *)vdata;
 }
 
-PyObject *PyPREPROC_HEADERS::getattr(PyObject *self, char *name)
-{
-	return Py_FindMethod(PyPREPROC_HEADERS_methods, self, name);
-}
-
 
 void PyPREPROC_HEADERS::deallocFunc(PyObject *ob)
 {
@@ -748,21 +783,17 @@ void PyPREPROC_HEADERS::deallocFunc(PyObject *ob)
 
 // @object HTTP_FILTER_RAW_DATA|A Python representation of an ISAPI
 // HTTP_FILTER_RAW_DATA structure.
-static struct PyMethodDef PyRAW_DATA_methods[] = {
-	{NULL}
-};
 
 PyTypeObject PyRAW_DATAType =
 {
-	PyObject_HEAD_INIT(&PyType_Type)
-	0,
+	PYISAPI_OBJECT_HEAD
 	"HTTP_FILTER_RAW_DATA",
 	sizeof(PyRAW_DATA),
 	0,
 	PyRAW_DATA::deallocFunc,	/* tp_dealloc */
 	0,					/* tp_print */
-	PyRAW_DATA::getattr,		/* tp_getattr */
-	PyRAW_DATA::setattr,		/* tp_setattr */
+	0,					/* tp_getattr */
+	0,					/* tp_setattr */
 	0,
 	0,					/* tp_repr */
 	0,					/* tp_as_number */
@@ -771,6 +802,10 @@ PyTypeObject PyRAW_DATAType =
 	0,
 	0,					/* tp_call */
 	0,					/* tp_str */
+	PyRAW_DATA::getattro,			/* tp_getattro */
+	PyRAW_DATA::setattro,			/* tp_setattro */
+	0,					/*tp_as_buffer*/
+	Py_TPFLAGS_DEFAULT,			/* tp_flags */
 };
 
 PyRAW_DATA::PyRAW_DATA(PyHFC *pParent)
@@ -804,13 +839,14 @@ HTTP_FILTER_RAW_DATA *PyRAW_DATA::GetRAW_DATA()
 	return (HTTP_FILTER_RAW_DATA *)vdata;
 }
 
-PyObject *PyRAW_DATA::getattr(PyObject *self, char *name)
+PyObject *PyRAW_DATA::getattro(PyObject *self, PyObject *obname)
 {
 	HTTP_FILTER_RAW_DATA *pRD = ((PyRAW_DATA*)self)->GetRAW_DATA();
 	if (!pRD)
 		return NULL;
 	// @prop string|InData|
-	if (strcmp(name, "InData")==0) {
+	TCHAR *name=PYISAPI_ATTR_CONVERT(obname);
+	if (_tcscmp(name, _T("InData"))==0) {
 		if (pRD->pvInData==NULL) {
 			Py_INCREF(Py_None);
 			return Py_None;
@@ -818,11 +854,11 @@ PyObject *PyRAW_DATA::getattr(PyObject *self, char *name)
 		return PyString_FromStringAndSize((const char *)pRD->pvInData,
 						  pRD->cbInData);
 	}
-	PyErr_Format(PyExc_AttributeError, "HTTP_FILTER_RAW_DATA objects have no attribute '%s'", name);
-	return NULL;
+	
+	return PyObject_GenericGetAttr(self, obname);
 }
 
-int PyRAW_DATA::setattr(PyObject *self, char *name, PyObject *v)
+int PyRAW_DATA::setattro(PyObject *self, PyObject *obname, PyObject *v)
 {
 	HTTP_FILTER_RAW_DATA *pRD = ((PyRAW_DATA*)self)->GetRAW_DATA();
 	HTTP_FILTER_CONTEXT *pFC = NULL;
@@ -830,7 +866,8 @@ int PyRAW_DATA::setattr(PyObject *self, char *name, PyObject *v)
 	if (!pRD || !pFC)
 		return NULL;
 
-	if (strcmp(name, "InData")==0) {
+	TCHAR *name=PYISAPI_ATTR_CONVERT(obname);
+	if (_tcscmp(name, _T("InData"))==0) {
 		if (!PyString_Check(v)) {
 			PyErr_Format(PyExc_TypeError,
 			             "InData must be a string (got %s)", v->ob_type->tp_name);
@@ -848,8 +885,7 @@ int PyRAW_DATA::setattr(PyObject *self, char *name, PyObject *v)
 		}
 		return 0;
 	}
-	PyErr_Format(PyExc_AttributeError, "HTTP_FILTER_RAW_DATA objects have no attribute '%s'", name);
-	return -1;
+	return PyObject_GenericSetAttr(self, obname, v);
 }
 
 void PyRAW_DATA::deallocFunc(PyObject *ob)
@@ -863,21 +899,17 @@ void PyRAW_DATA::deallocFunc(PyObject *ob)
 
 // @object HTTP_FILTER_AUTHENT|A Python representation of an ISAPI
 // HTTP_FILTER_AUTHENT structure.
-static struct PyMethodDef PyAUTHENT_methods[] = {
-	{NULL}
-};
 
 PyTypeObject PyAUTHENTType =
 {
-	PyObject_HEAD_INIT(&PyType_Type)
-	0,
+	PYISAPI_OBJECT_HEAD
 	"HTTP_FILTER_AUTHENT",
 	sizeof(PyAUTHENT),
 	0,
 	PyAUTHENT::deallocFunc,	/* tp_dealloc */
 	0,					/* tp_print */
-	PyAUTHENT::getattr,		/* tp_getattr */
-	PyAUTHENT::setattr,		/* tp_setattr */
+	0,					/* tp_getattr */
+	0,					/* tp_setattr */
 	0,
 	0,					/* tp_repr */
 	0,					/* tp_as_number */
@@ -886,6 +918,10 @@ PyTypeObject PyAUTHENTType =
 	0,
 	0,					/* tp_call */
 	0,					/* tp_str */
+	PyAUTHENT::getattro,			/* tp_getattro */
+	PyAUTHENT::setattro,			/* tp_setattro */
+	0,					/*tp_as_buffer*/
+	Py_TPFLAGS_DEFAULT,			/* tp_flags */
 };
 
 PyAUTHENT::PyAUTHENT(PyHFC *pParent)
@@ -919,13 +955,14 @@ HTTP_FILTER_AUTHENT *PyAUTHENT::GetAUTHENT()
 	return (HTTP_FILTER_AUTHENT *)vdata;
 }
 
-PyObject *PyAUTHENT::getattr(PyObject *self, char *name)
+PyObject *PyAUTHENT::getattro(PyObject *self, PyObject *obname)
 {
 	HTTP_FILTER_AUTHENT *pAE = ((PyAUTHENT*)self)->GetAUTHENT();
 	if (!pAE)
 		return NULL;
+	TCHAR *name=PYISAPI_ATTR_CONVERT(obname);
 	// @prop string|User|
-	if (strcmp(name, "User")==0) {
+	if (_tcscmp(name, _T("User"))==0) {
 		if (pAE->pszUser==NULL) {
 			Py_INCREF(Py_None);
 			return Py_None;
@@ -933,18 +970,17 @@ PyObject *PyAUTHENT::getattr(PyObject *self, char *name)
 		return PyString_FromString((const char *)pAE->pszUser);
 	}
 	// @prop string|Password|
-	if (strcmp(name, "Password")==0) {
+	if (_tcscmp(name, _T("Password"))==0) {
 		if (pAE->pszPassword==NULL) {
 			Py_INCREF(Py_None);
 			return Py_None;
 		}
 		return PyString_FromString((const char *)pAE->pszPassword);
 	}
-	PyErr_Format(PyExc_AttributeError, "HTTP_FILTER_AUTHENT objects have no attribute '%s'", name);
-	return NULL;
+	return PyObject_GenericGetAttr(self, obname);
 }
 
-int PyAUTHENT::setattr(PyObject *self, char *name, PyObject *v)
+int PyAUTHENT::setattro(PyObject *self, PyObject *obname, PyObject *v)
 {
 	HTTP_FILTER_AUTHENT *pAE = ((PyAUTHENT*)self)->GetAUTHENT();
 	HTTP_FILTER_CONTEXT *pFC = NULL;
@@ -952,7 +988,8 @@ int PyAUTHENT::setattr(PyObject *self, char *name, PyObject *v)
 	if (!pAE || !pFC)
 		return NULL;
 
-	if (strcmp(name, "User")==0) {
+	TCHAR *name=PYISAPI_ATTR_CONVERT(obname);
+	if (_tcscmp(name, _T("User"))==0) {
 		if (!PyString_Check(v)) {
 			PyErr_Format(PyExc_TypeError,
 			             "User must be a string (got %s)", v->ob_type->tp_name);
@@ -966,7 +1003,7 @@ int PyAUTHENT::setattr(PyObject *self, char *name, PyObject *v)
 		strcpy(pAE->pszUser, PyString_AS_STRING(v));
 		return 0;
 	}
-	if (strcmp(name, "Password")==0) {
+	if (_tcscmp(name, _T("Password"))==0) {
 		if (!PyString_Check(v)) {
 			PyErr_Format(PyExc_TypeError,
 			             "Password must be a string (got %s)", v->ob_type->tp_name);
@@ -980,8 +1017,7 @@ int PyAUTHENT::setattr(PyObject *self, char *name, PyObject *v)
 		strcpy(pAE->pszPassword, PyString_AS_STRING(v));
 		return 0;
 	}
-	PyErr_Format(PyExc_AttributeError, "HTTP_FILTER_AUTHENT objects have no attribute '%s'", name);
-	return -1;
+	return PyObject_GenericSetAttr(self, obname, v);
 }
 
 void PyAUTHENT::deallocFunc(PyObject *ob)
@@ -996,15 +1032,14 @@ void PyAUTHENT::deallocFunc(PyObject *ob)
 // HTTP_FILTER_LOG structure.
 PyTypeObject PyFILTER_LOGType =
 {
-	PyObject_HEAD_INIT(&PyType_Type)
-	0,
+	PYISAPI_OBJECT_HEAD
 	"HTTP_FILTER_LOG",
 	sizeof(PyFILTER_LOG),
 	0,
 	PyFILTER_LOG::deallocFunc,	/* tp_dealloc */
 	0,					/* tp_print */
-	PyFILTER_LOG::getattr,		/* tp_getattr */
-	PyFILTER_LOG::setattr,		/* tp_setattr */
+	0,					/* tp_getattr */
+	0,					/* tp_setattr */
 	0,
 	0,					/* tp_repr */
 	0,					/* tp_as_number */
@@ -1013,6 +1048,10 @@ PyTypeObject PyFILTER_LOGType =
 	0,
 	0,					/* tp_call */
 	0,					/* tp_str */
+	PyFILTER_LOG::getattro,			/* tp_getattro */
+	PyFILTER_LOG::setattro,			/* tp_setattro */
+	0,					/*tp_as_buffer*/
+	Py_TPFLAGS_DEFAULT,			/* tp_flags */
 };
 
 
@@ -1041,44 +1080,44 @@ HTTP_FILTER_LOG *PyFILTER_LOG::GetFilterLog()
 
 }
 
-PyObject *PyFILTER_LOG::getattr(PyObject *self, char *name)
+PyObject *PyFILTER_LOG::getattro(PyObject *self, PyObject *obname)
 {
 	HTTP_FILTER_LOG *pLog = ((PyFILTER_LOG *)self)->GetFilterLog();
 	if (!pLog)
 		return NULL;
+	TCHAR *name=PYISAPI_ATTR_CONVERT(obname);
 	// @prop string|ClientHostName|
-	if (strcmp(name, "ClientHostName")==0)
+	if (_tcscmp(name, _T("ClientHostName"))==0)
 		return PyString_FromString(pLog->pszClientHostName);
 	// @prop string|ClientUserName|
-	if (strcmp(name, "ClientUserName")==0)
+	if (_tcscmp(name, _T("ClientUserName"))==0)
 		return PyString_FromString(pLog->pszClientUserName);
 	// @prop string|ServerName|
-	if (strcmp(name, "ServerName")==0)
+	if (_tcscmp(name, _T("ServerName"))==0)
 		return PyString_FromString(pLog->pszServerName);
 	// @prop string|Operation|
-	if (strcmp(name, "Operation")==0)
+	if (_tcscmp(name, _T("Operation"))==0)
 		return PyString_FromString(pLog->pszOperation);
 	// @prop string|Target|
-	if (strcmp(name, "Target")==0)
+	if (_tcscmp(name, _T("Target"))==0)
 		return PyString_FromString(pLog->pszTarget);
 	// @prop string|Parameters|
-	if (strcmp(name, "Parameters")==0)
+	if (_tcscmp(name, _T("Parameters"))==0)
 		return PyString_FromString(pLog->pszParameters);
 	// @prop int|HttpStatus|
-	if (strcmp(name, "HttpStatus")==0)
+	if (_tcscmp(name, _T("HttpStatus"))==0)
 		return PyInt_FromLong(pLog->dwHttpStatus);
 	// @prop int|HttpStatus|
-	if (strcmp(name, "Win32Status")==0)
+	if (_tcscmp(name, _T("Win32Status"))==0)
 		return PyInt_FromLong(pLog->dwWin32Status);
-	PyErr_Format(PyExc_AttributeError, "PyFILTER_LOG objects have no attribute '%s'", name);
-	return NULL;
+	return PyObject_GenericGetAttr(self, obname);
 }
 
 // Note that to set the strings, we use the AllocMem function - this allows
 // IIS to automatically free the memory once the request has completed.
 
 #define CHECK_SET_FILTER_LOG_STRING(struct_elem) \
-	if (strcmp(name, #struct_elem)==0) { \
+	if (_tcscmp(name, _T(#struct_elem))==0) { \
 		if (!PyString_Check(v)) { \
 			PyErr_Format(PyExc_TypeError, #struct_elem " must be a string"); \
 			return -1; \
@@ -1089,13 +1128,13 @@ PyObject *PyFILTER_LOG::getattr(PyObject *self, char *name)
 			PyErr_NoMemory(); \
 			return -1; \
 		} \
-		_tcsncpy(buf, PyString_AS_STRING(v), cc); \
+		strncpy(buf, PyString_AS_STRING(v), cc); \
 		pLog->psz##struct_elem = buf; \
 		return 0; \
 	}
 
 #define CHECK_SET_FILTER_LOG_LONG(struct_elem) \
-	if (strcmp(name, #struct_elem)==0) { \
+	if (_tcscmp(name, _T(#struct_elem))==0) { \
 		if (!PyInt_Check(v)) { \
 			PyErr_Format(PyExc_TypeError, #struct_elem " must be an integer"); \
 			return -1; \
@@ -1104,13 +1143,14 @@ PyObject *PyFILTER_LOG::getattr(PyObject *self, char *name)
 		return 0; \
 	}
 
-int PyFILTER_LOG::setattr(PyObject *self, char *name, PyObject *v)
+int PyFILTER_LOG::setattro(PyObject *self, PyObject *obname, PyObject *v)
 {
 	HTTP_FILTER_CONTEXT *pFC;
     ((PyFILTER_LOG *)self)->m_parent->GetFilterContext()->GetFilterData(&pFC, NULL, NULL);
 	HTTP_FILTER_LOG *pLog = ((PyFILTER_LOG *)self)->GetFilterLog();
 	if (!pLog || !pFC)
 		return NULL;
+	TCHAR *name=PYISAPI_ATTR_CONVERT(obname);
 	CHECK_SET_FILTER_LOG_STRING(ClientHostName)
 	CHECK_SET_FILTER_LOG_STRING(ClientUserName)
 	CHECK_SET_FILTER_LOG_STRING(ServerName)
@@ -1119,11 +1159,21 @@ int PyFILTER_LOG::setattr(PyObject *self, char *name, PyObject *v)
 	CHECK_SET_FILTER_LOG_STRING(Parameters)
 	CHECK_SET_FILTER_LOG_LONG(HttpStatus);
 	CHECK_SET_FILTER_LOG_LONG(Win32Status);
-	PyErr_Format(PyExc_AttributeError, "PyFILTER_LOG object has no attribute '%s'", name);
-	return -1;
+	return PyObject_GenericSetAttr(self, obname, v);
 }
 
 void PyFILTER_LOG::deallocFunc(PyObject *ob)
 {
 	delete (PyFILTER_LOG *)ob;
+}
+
+void InitFilterTypes()
+{
+	PyType_Ready(&PyFILTER_VERSIONType);
+	PyType_Ready(&PyHFCType);
+	PyType_Ready(&PyURL_MAPType);
+	PyType_Ready(&PyPREPROC_HEADERSType);
+	PyType_Ready(&PyRAW_DATAType);
+	PyType_Ready(&PyAUTHENTType);
+	PyType_Ready(&PyFILTER_LOGType);
 }

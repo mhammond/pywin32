@@ -52,10 +52,10 @@ private:
 char *FormatSysError(const DWORD nErrNo);
 
 // Dump out an HTML error response page
-char *HTMLErrorResp(LPCTSTR msg);
+char *HTMLErrorResp(const char *msg);
 
 // returns the pathname of this module
-char *GetModulePath(void);
+TCHAR *GetModulePath(void);
 
 // Write entry to the event log
 BOOL WriteEventLogMessage(WORD eventType, DWORD eventID, WORD num_inserts,

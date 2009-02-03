@@ -33,18 +33,18 @@ public:
 	}
 
 
-	void SetLogMessage(LPCTSTR msg)
+	void SetLogMessage(const char *msg)
 	{
 		strncpy(m_pECB->lpszLogData, msg, HSE_LOG_BUFFER_LEN);
 	}
 
-	DWORD WriteStream(LPCTSTR buffer, const int buffLen, const int reserved=0)
+	DWORD WriteStream(char *buffer, const int buffLen, const int reserved=0)
 	{
 		DWORD dwBufLen = buffLen;	
 		m_pECB->WriteClient(m_pECB->ConnID, (void *) buffer, &dwBufLen, reserved);
 		return dwBufLen;
 	}
-	BOOL WriteClient(LPCTSTR buffer, DWORD *buffLen, const int reserved = 0)
+	BOOL WriteClient(char *buffer, DWORD *buffLen, const int reserved = 0)
 	{
 		return m_pECB->WriteClient(m_pECB->ConnID, (void *) buffer, buffLen, reserved);
 	}
@@ -62,9 +62,9 @@ public:
 		m_pECB->ServerSupportFunction(m_pECB->ConnID, HSE_REQ_DONE_WITH_SESSION, &dwState, NULL, 0);
 	}
 
-	bool GetServerVariable(LPCTSTR varName, LPSTR lpBuff, DWORD *pBuffSize)
+	bool GetServerVariable(char *varName, LPSTR lpBuff, DWORD *pBuffSize)
 	{
-		BOOL bOK = m_pECB->GetServerVariable(m_pECB->ConnID,(LPSTR) varName,lpBuff,pBuffSize);
+		BOOL bOK = m_pECB->GetServerVariable(m_pECB->ConnID, varName, lpBuff, pBuffSize);
 		if (!bOK)
 			*pBuffSize = 0;
 
@@ -85,14 +85,14 @@ public:
 			true : false;
 	}
 
-	BOOL Redirect(LPCTSTR url)
+	BOOL Redirect(char *url)
 	{
-		DWORD buffSize = strlen(url);
-		BOOL bOK = (m_pECB->ServerSupportFunction)( m_pECB->ConnID,   HSE_REQ_SEND_URL_REDIRECT_RESP, (LPSTR) url, &buffSize,0);
+		DWORD buffSize = (DWORD)strlen(url);
+		BOOL bOK = (m_pECB->ServerSupportFunction)( m_pECB->ConnID,   HSE_REQ_SEND_URL_REDIRECT_RESP, url, &buffSize,0);
 		return bOK;
 	}
 
-	BOOL MapURLToPath(LPCTSTR buffer, LPDWORD pSizeofBuffer)
+	BOOL MapURLToPath(char *buffer, LPDWORD pSizeofBuffer)
 	{
 		BOOL bOK = (m_pECB->ServerSupportFunction)(m_pECB->ConnID,
 							   HSE_REQ_MAP_URL_TO_PATH,
@@ -114,7 +114,7 @@ public:
 		char buf[256];
 		DWORD bufsize = sizeof(buf)/sizeof(buf[0]);
 		if (GetServerVariable("HTTP_CONNECTION",buf, &bufsize)){
-			bKeepAlive = strcmpi(buf, "keep-alive")==0;
+			bKeepAlive = _strcmpi(buf, "keep-alive")==0;
 		}
 		return bKeepAlive;
 	}
