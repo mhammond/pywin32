@@ -175,32 +175,6 @@ BOOL PyWinObject_AsString(PyObject *stringObject, char **pResult, BOOL bNoneOK /
 	return (*pResult != NULL);
 }
 
-// Convert a "char *" string to "WCHAR *"
-//  If len is known, pass it, else -1
-// NOTE - string must be freed with PyWinObject_FreeString
-BOOL PyWin_String_AsWCHAR(char *input, DWORD inLen, WCHAR **pResult)
-{
-	if (inLen==(DWORD)-1)
-		inLen = strlen(input);
-	inLen += 1; // include NULL term in all ops
-	/* use MultiByteToWideChar() to see how much we need. */
-	/* NOTE: this will include the null-term in the length */
-	DWORD cchWideChar = MultiByteToWideChar(CP_ACP, 0, input, inLen, NULL, 0);
-	// alloc the buffer
-	*pResult = (WCHAR *)PyMem_Malloc(cchWideChar * sizeof(WCHAR));
-	if (*pResult==NULL) {
-		PyErr_SetString(PyExc_MemoryError, "Not enough memory to allocate wide string buffer.");
-		return FALSE;
-	}
-	/* do the conversion */
-   	if (0==MultiByteToWideChar(CP_ACP, 0, input, inLen, *pResult, cchWideChar)) {
-		PyMem_Free(*pResult);
-		PyWin_SetAPIError("MultiByteToWideChar");
-		return FALSE;
-	}
-	return TRUE;
-}
-
 void PyWinObject_FreeString(char *str)
 {
 	PyMem_Free(str);

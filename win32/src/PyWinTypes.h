@@ -358,7 +358,6 @@ PYWINTYPES_EXPORT void PyWinObject_FreeTaskAllocatedWCHAR(WCHAR * str);
 // String conversion - These must also be freed with PyWinObject_FreeString
 PYWINTYPES_EXPORT BOOL PyWin_WCHAR_AsString(WCHAR *input, DWORD inLen, char **pResult);
 PYWINTYPES_EXPORT BOOL PyWin_Bstr_AsString(BSTR input, char **pResult);
-PYWINTYPES_EXPORT BOOL PyWin_String_AsWCHAR(char *input, DWORD inLen, WCHAR **pResult);
 
 PYWINTYPES_EXPORT void PyWinObject_FreeString(char *str);
 PYWINTYPES_EXPORT void PyWinObject_FreeString(WCHAR *str);
