@@ -348,16 +348,15 @@ static PyObject *PyNetShareEnum1(WCHAR *szServerName)
 PyObject *
 PyNetShareEnum(PyObject *self, PyObject *args)
 {
-	LPSTR szServerName;
+	PyObject *obServerName;
 	// @pyparmalt1 string|serverName||The name of the server on which the call should execute, or None for the local computer.
 	// @comm If the old style is used, the result is a list of [(shareName, type, remarks), ...]
-	if (PyArg_ParseTuple(args, "z:NetShareEnum",&szServerName)) {
-		WCHAR *wServerName = NULL;
-		if (szServerName && !PyWin_String_AsWCHAR(szServerName, -1, &wServerName))
+	if (PyArg_ParseTuple(args, "O:NetShareEnum",&obServerName)) {
+		WCHAR *wServerName;
+		if (!PyWinObject_AsWCHAR(obServerName, &wServerName, TRUE))
 			return NULL;
 		PyObject *ret = PyNetShareEnum1(wServerName);
-		if (wServerName)
-			PyWinObject_FreeString(wServerName);
+		PyWinObject_FreeWCHAR(wServerName);
 		return ret;
 	}
 	PyErr_Clear();
