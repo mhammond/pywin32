@@ -96,25 +96,18 @@ BOOL PyObject_AsNET_STRUCT( PyObject *ob, PyNET_STRUCT *pI, BYTE **ppRet )
 		PyErr_SetString(PyExc_TypeError, "The object must be a mapping");
 		return FALSE;
 	}
-	char *szAttrName = NULL;
 	// allocate the structure, and wipe it to zero.
 	BYTE *buf = (BYTE *)malloc(pI->structsize);
 	memset(buf, 0, pI->structsize);
 	PyNET_STRUCT_ITEM *pItem;
 	for( pItem=pI->entries;pItem->attrname != NULL;pItem++) {
-		if (szAttrName) {
-			PyWinObject_FreeString(szAttrName);
-			szAttrName = NULL;
-		}
-		if (!PyWin_WCHAR_AsString(pItem->attrname, -1, &szAttrName))
-			goto done;
-		PyObject *subob = PyMapping_GetItemString(ob, szAttrName);
+		PyObject *subob = PyMapping_GetItemString(ob, pItem->attrname);
 
 		if (subob==NULL) {
 			PyErr_Clear();
 			// See if it is OK.
 			if (pItem->reqd) {
-				PyErr_Format(PyExc_ValueError, "The mapping does not have the required attribute '%s'", szAttrName);
+				PyErr_Format(PyExc_ValueError, "The mapping does not have the required attribute '%s'", pItem->attrname);
 				goto done;
 			}
 		} else {
@@ -129,7 +122,7 @@ BOOL PyObject_AsNET_STRUCT( PyObject *ob, PyNET_STRUCT *pI, BYTE **ppRet )
 					break;
 				case NSI_DWORD:
 					if (!PyInt_Check(subob)) {
-						PyErr_Format(PyExc_TypeError, "The mapping attribute '%s' must be an integer", szAttrName);
+						PyErr_Format(PyExc_TypeError, "The mapping attribute '%s' must be an integer", pItem->attrname);
 						Py_DECREF(subob);
 						goto done;
 					}
@@ -137,7 +130,7 @@ BOOL PyObject_AsNET_STRUCT( PyObject *ob, PyNET_STRUCT *pI, BYTE **ppRet )
 					break;
 				case NSI_LONG:
 					if (!PyInt_Check(subob)) {
-						PyErr_Format(PyExc_TypeError, "The mapping attribute '%s' must be an integer", szAttrName);
+						PyErr_Format(PyExc_TypeError, "The mapping attribute '%s' must be an integer", pItem->attrname);
 						Py_DECREF(subob);
 						goto done;
 					}
@@ -145,7 +138,7 @@ BOOL PyObject_AsNET_STRUCT( PyObject *ob, PyNET_STRUCT *pI, BYTE **ppRet )
 					break;
 				case NSI_BOOL:
 					if (!PyInt_Check(subob)) {
-						PyErr_Format(PyExc_TypeError, "The mapping attribute '%s' must be an integer", szAttrName);
+						PyErr_Format(PyExc_TypeError, "The mapping attribute '%s' must be an integer", pItem->attrname);
 						Py_DECREF(subob);
 						goto done;
 					}
@@ -154,7 +147,7 @@ BOOL PyObject_AsNET_STRUCT( PyObject *ob, PyNET_STRUCT *pI, BYTE **ppRet )
 				case NSI_HOURS:
 					if (subob != Py_None) {
 						if (!PyString_Check(subob) || PyString_Size(subob)!=21) {
-							PyErr_Format(PyExc_TypeError, "The mapping attribute '%s' must be a string of exactly length 21", szAttrName);
+							PyErr_Format(PyExc_TypeError, "The mapping attribute '%s' must be a string of exactly length 21", pItem->attrname);
 							Py_DECREF(subob);
 							goto done;
 						}
@@ -201,7 +194,6 @@ BOOL PyObject_AsNET_STRUCT( PyObject *ob, PyNET_STRUCT *pI, BYTE **ppRet )
 	}
 	ok = TRUE;
 done:
-	if (szAttrName) PyWinObject_FreeString(szAttrName);
 	if (!ok ) {
 		PyObject_FreeNET_STRUCT(pI, buf);
 		return FALSE;
@@ -254,14 +246,8 @@ PyObject *PyObject_FromNET_STRUCT(PyNET_STRUCT *pI, BYTE *buf)
 			Py_DECREF(ret);
 			return NULL;
 		}
-		char *szAttrName;
-		if (!PyWin_WCHAR_AsString(pItem->attrname, -1, &szAttrName)) {
-			Py_DECREF(ret);
-			return NULL;
-		}
-		PyMapping_SetItemString(ret, szAttrName, newObj);
+		PyMapping_SetItemString(ret, pItem->attrname, newObj);
 		Py_DECREF(newObj);
-		PyWinObject_FreeString(szAttrName);
 	}
 	return ret;
 }

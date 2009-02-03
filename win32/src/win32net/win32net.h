@@ -13,7 +13,7 @@ enum NSI_TYPE {
 	NSI_SECURITY_DESCRIPTOR,
 };
 struct PyNET_STRUCT_ITEM {
-	TCHAR *attrname;
+	char *attrname;
 	NSI_TYPE type;
 	size_t off;
 	BOOL reqd;
