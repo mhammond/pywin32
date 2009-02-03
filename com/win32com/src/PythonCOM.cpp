@@ -749,23 +749,11 @@ static PyObject *pythoncom_MakeIID(PyObject *self, PyObject *args)
 	return PyWinMethod_NewIID(self, args);
 }
 
-// no autoduct - this is deprecated.
+// no autoduck - this is deprecated.
 static PyObject *pythoncom_MakeTime(PyObject *self, PyObject *args)
 {
 	PyErr_Warn(PyExc_PendingDeprecationWarning, "MakeTime is deprecated - please use pywintypes.Time() instead.");
 	return PyWinMethod_NewTime(self, args);
-}
-
-// @pymethod <o PyUnicode>|pythoncom|Unicode|Converts a string into a <o PyUnicode> object.
-static PyObject *pythoncom_Unicode(PyObject *self, PyObject *args)
-{
-	const char *s;
-
-	// @pyparm string|s||The string to convert into a Unicode object
-    if ( !PyArg_ParseTuple(args, "s:Unicode", &s))
-       return NULL;
-	return PyUnicodeObject_FromString(s);
-	// @comm As Python itself becomes Unicode aware, this function will not be necessary.
 }
 
 #ifndef MS_WINCE
@@ -1982,7 +1970,6 @@ static struct PyMethodDef pythoncom_methods[]=
 	{ "WriteClassStg",       pythoncom_WriteClassStg, 1}, // @pymeth WriteClassStg|Stores a CLSID from a storage object
 	{ "WriteClassStm",       pythoncom_WriteClassStm, 1}, // @pymeth WriteClassStm|Sets the CLSID of a stream
 	{ "UnwrapObject",        pythoncom_UnwrapObject, 1 }, // @pymeth UnwrapObject|Unwraps a Python instance in a gateway object.
-	{ "Unicode",			pythoncom_Unicode, 1 }, // @pymeth Unicode|Converts a string into a <o PyUnicode> object.
 	{ "FmtIdToPropStgName",	pythoncom_FmtIdToPropStgName, 1}, //@pymeth FmtIdToPropStgName|Convert a FMTID to its stream name
 	{ "PropStgNameToFmtId",	pythoncom_PropStgNameToFmtId, 1}, //@pymeth PropStgNameToFmtId|Convert property set name to FMTID
 	{ NULL, NULL }

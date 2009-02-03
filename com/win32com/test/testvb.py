@@ -304,7 +304,7 @@ def TestArrays(vbtest, bUseGenerated):
         assert testData == list(resultData), "Expected '%s', got '%s'" % (testData, list(resultData))
         # This time, instead of an explicit str() for 1.5, we just
         # pass Unicode, so the result should compare equal
-        testData = [1, 2.0, pythoncom.Unicode("3")]
+        testData = [1, 2.0, u"3"]
         resultData, byRefParam = vbtest.PassSAFEARRAYVariant(testData)
         assert testData == list(byRefParam)
         assert testData == list(resultData)
