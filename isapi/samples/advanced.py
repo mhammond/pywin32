@@ -121,11 +121,12 @@ class Extension(SimpleExtension):
         ecb.SendResponseHeaders("200 OK", "Content-Type: text/html\r\n\r\n", 0)
         print >> ecb, "<HTML><BODY>"
 
-        queries = ecb.GetServerVariable("QUERY_STRING").split("&")
-        if queries:
+        qs = ecb.GetServerVariable("QUERY_STRING")
+        if qs:
+            queries = qs.split("&")
             print >> ecb, "<PRE>"
             for q in queries:
-                val = ecb.GetServerVariable(q)
+                val = ecb.GetServerVariable(q, '&lt;no such variable&gt;')
                 print >> ecb, "%s=%r" % (q, val)
             print >> ecb, "</PRE><P/>"
 
