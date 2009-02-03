@@ -49,6 +49,12 @@
 // avoid anyone accidently using the wrong WRITE_RESTRICTED...
 #undef WRITE_RESTRICTED
 
+// See PEP-353 - this is the "official" test...
+#if PY_VERSION_HEX < 0x02050000 && !defined(PY_SSIZE_T_MIN)
+// 2.3 and before have no Py_ssize_t
+typedef int Py_ssize_t;
+#endif
+
 // ***** py3k support *****
 // Note that when built for py3k, 'UNICODE' is defined, which conveniently
 // means TCHAR is the same size as the native unicode object in all versions.
