@@ -78,8 +78,16 @@ PyObject * PyIBase::repr()
 	// no additional checks are needed.
 	int c = cmp(ob1, ob2);
 	// BUT - it doesn't propogate exceptions correctly.
-	if (c==-1 && PyErr_Occurred())
+	if (c==-1 && PyErr_Occurred()) {
+		// if the error related to the type of the object,
+		// rich-compare wants Py_NotImplemented returned.
+		if (PyErr_ExceptionMatches(PyExc_TypeError)) {
+			PyErr_Clear();
+			Py_INCREF(Py_NotImplemented);
+			return Py_NotImplemented;
+		}
 		return NULL;
+	}
 	assert(!PyErr_Occurred()); // should always have returned -1 on error.
 	BOOL ret;
 	if (op==Py_EQ)
@@ -87,8 +95,8 @@ PyObject * PyIBase::repr()
 	else if (op==Py_NE)
 		ret = c != 0;
 	else {
-		PyErr_SetString(PyExc_TypeError, "Interface pointers only compare equal or not equal");
-		return NULL;
+		Py_INCREF(Py_NotImplemented);
+		return Py_NotImplemented;
 	}
 	return PyBool_FromLong(ret);
 }

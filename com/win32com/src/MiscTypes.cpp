@@ -48,12 +48,7 @@ PyComTypeObject::PyComTypeObject( const char *name, PyComTypeObject *pBase, int 
 		0,													/*tp_print*/
 		0, 													/*tp_getattr*/
 		0,													/*tp_setattr*/
-// For b/w compat, we still allow 'cmp()' to work with Py2k, but for Py3k only rich compare is supported.
-#if (PY_VERSION_HEX < 0x03000000)
-		PyIBase::cmp,										/*tp_compare*/
-#else
-		0,
-#endif
+		0,										/*tp_compare*/
 		(reprfunc)PyIBase::repr,							/*tp_repr*/
     	0,													/*tp_as_number*/
 		0,			/*tp_as_sequence*/

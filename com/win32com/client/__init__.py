@@ -443,13 +443,13 @@ class DispatchBaseClass:
 		  mod_name = "win32com.gen_py.unknown"
 		return "<%s.%s instance at 0x%s>" % (mod_name, self.__class__.__name__, id(self))
 	# Delegate comparison to the oleobjs, as they know how to do identity.
-	def __cmp__(self, other):
-		other = getattr(other, "_oleobj_", other)
-		return cmp(self._oleobj_, other)
-
 	def __eq__(self, other):
 		other = getattr(other, "_oleobj_", other)
 		return self._oleobj_ == other
+
+	def __ne__(self, other):
+		other = getattr(other, "_oleobj_", other)
+		return self._oleobj_ != other
 
 	def _ApplyTypes_(self, dispid, wFlags, retType, argTypes, user, resultCLSID, *args):
 		return self._get_good_object_(

@@ -200,13 +200,13 @@ class CDispatch:
 			return self.__repr__()
 
 	# Delegate comparison to the oleobjs, as they know how to do identity.
-	def __cmp__(self, other):
-		other = getattr(other, "_oleobj_", other)
-		return cmp(self._oleobj_, other)
-
 	def __eq__(self, other):
 		other = getattr(other, "_oleobj_", other)
 		return self._oleobj_ == other
+
+	def __ne__(self, other):
+		other = getattr(other, "_oleobj_", other)
+		return self._oleobj_ != other
 
 	def __int__(self):
 		return int(self.__call__())
