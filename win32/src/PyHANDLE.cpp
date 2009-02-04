@@ -267,12 +267,17 @@ BOOL PyHANDLE::Close(void)
 
 PyObject *PyHANDLE::richcompare(PyObject *other, int op)
 {
-	if (!PyHANDLE_Check(other)) {
+	HANDLE hother;
+	if (PyHANDLE_Check(other)) {
+		hother = ((PyHANDLE *)other)->m_handle;
+	} else if (PyInt_Check(other) || PyLong_Check(other)) {
+		if (!PyWinLong_AsVoidPtr(other, &hother))
+			return NULL;
+	} else {
 		Py_INCREF(Py_NotImplemented);
 		return Py_NotImplemented;
 	}
-
-	BOOL e = m_handle == ((PyHANDLE *)other)->m_handle;
+	BOOL e = m_handle == hother;
 	PyObject *ret;
 	if (op==Py_EQ)
 		ret = e ? Py_True : Py_False;

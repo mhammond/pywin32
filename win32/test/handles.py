@@ -86,10 +86,32 @@ class PyHandleTestCase(unittest.TestCase):
         d = dict(foo=h)
         self.failUnlessEqual(d['foo'], h)
 
+    def testHandleInDictThenInt(self):
+        h=pywintypes.HANDLE(1)
+        d = dict(foo=h)
+        self.failUnlessEqual(d['foo'], 1)
+
     def testHandleCompareNone(self):
         h=pywintypes.HANDLE(1)
         self.failIfEqual(h, None)
         self.failIfEqual(None, h)
+        # ensure we use both __eq__ and __ne__ ops
+        self.failIf(h==None)
+        self.failUnless(h!=None)
+
+    def testHandleCompareInt(self):
+        h=pywintypes.HANDLE(1)
+        self.failIfEqual(h, 0)
+        self.failUnlessEqual(h, 1)
+        # ensure we use both __eq__ and __ne__ ops
+        self.failUnless(h==1)
+        self.failUnless(1==h)
+        self.failIf(h!=1)
+        self.failIf(1!=h)
+        self.failIf(h==0)
+        self.failIf(0==h)
+        self.failUnless(h!=0)
+        self.failUnless(0!=h)
 
     def testHandleNonZero(self):
         h=pywintypes.HANDLE(0)
