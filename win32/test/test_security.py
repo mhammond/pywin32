@@ -18,6 +18,21 @@ class SecurityTests(unittest.TestCase):
         self.failUnlessEqual(win32security.LookupAccountName('','Administrator')[0],
                              win32security.LookupAccountName('','Administrator')[0])
 
+    def testNESID(self):
+        self.failUnless(self.pwr_sid==self.pwr_sid)
+        self.failUnless(self.pwr_sid!=self.admin_sid)
+
+    def testNEOther(self):
+        self.failUnless(self.pwr_sid!=None)
+        self.failUnless(None!=self.pwr_sid)
+        self.failIf(self.pwr_sid==None)
+        self.failIf(None==self.pwr_sid)
+        self.failIfEqual(None, self.pwr_sid)
+
+    def testSIDInDict(self):
+        d = dict(foo=self.pwr_sid)
+        self.failUnlessEqual(d['foo'], self.pwr_sid)
+
     def testBuffer(self):
         self.failUnlessEqual(ob2memory(win32security.LookupAccountName('','Administrator')[0]),
                              ob2memory(win32security.LookupAccountName('','Administrator')[0]))
