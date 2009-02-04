@@ -165,8 +165,7 @@ PYWINTYPES_EXPORT PyTypeObject PyHANDLEType =
 	PyHANDLE::printFunc,		/* tp_print */
 	0,							/* tp_getattr */
 	0,							/* tp_setattr */
-	// @pymeth __cmp__|Used when HANDLE objects are compared.
-	PyHANDLE::compareFunc,		/* tp_compare */
+	0,							/* tp_compare */
 	PyHANDLE::strFunc,			/* tp_repr */
 	&PyHANDLE_NumberMethods,	/* tp_as_number */
 	0,							/* tp_as_sequence */
@@ -266,30 +265,22 @@ BOOL PyHANDLE::Close(void)
 	return ((PyHANDLE *)ob)->m_handle != 0;
 }
 
-int PyHANDLE::compare(PyObject *ob)
-{
-	
-	return  m_handle == ((PyHANDLE *)ob)->m_handle ? 0 :
-		(m_handle < ((PyHANDLE *)ob)->m_handle ? -1 : 1);
-}
-
 PyObject *PyHANDLE::richcompare(PyObject *other, int op)
 {
-	BOOL e;
-	if (PyHANDLE_Check(other))
-		e=compare((PyHANDLE *)other)==0;
-	else
-		e=FALSE;
+	if (!PyHANDLE_Check(other)) {
+		Py_INCREF(Py_NotImplemented);
+		return Py_NotImplemented;
+	}
+
+	BOOL e = m_handle == ((PyHANDLE *)other)->m_handle;
 	PyObject *ret;
 	if (op==Py_EQ)
 		ret = e ? Py_True : Py_False;
 	else if (op==Py_NE)
 		ret = !e ? Py_True : Py_False;
-	else {
-		PyErr_SetString(PyExc_TypeError, "HANDLEs only compare equal or not equal");
-		ret = NULL;
-	}
-	Py_XINCREF(ret);
+	else
+		ret = Py_NotImplemented;
+	Py_INCREF(ret);
 	return ret;
 }
 
@@ -319,12 +310,6 @@ int PyHANDLE::printFunc(PyObject *ob, FILE *fp, int flags)
 	return ((PyHANDLE *)ob)->asStr();
 }
 
-
-// @pymethod int|PyHANDLE|__cmp__|Used when objects are compared.
-int PyHANDLE::compareFunc(PyObject *ob1, PyObject *ob2)
-{
-	return ((PyHANDLE *)ob1)->compare(ob2);
-}
 
 PyObject *PyHANDLE::richcompareFunc(PyObject *ob, PyObject *other, int op)
 {

@@ -1,8 +1,10 @@
+import sys
 import unittest
 import pywintypes
 import time
 from pywin32_testutil import str2bytes, ob2memory
 import datetime
+import operator
 
 class TestCase(unittest.TestCase):
     def testPyTimeFormat(self):
@@ -73,6 +75,25 @@ class TestCase(unittest.TestCase):
         self.assertEquals(iid, iid2)
         self.assertRaises(ValueError, pywintypes.IID, str2bytes('00'), True) # too short
         self.assertRaises(TypeError, pywintypes.IID, 0, True) # no buffer
+
+    def testGUIDRichCmp(self):
+        s = "{00020400-0000-0000-C000-000000000046}"
+        iid = pywintypes.IID(s)
+        self.failIf(s==None)
+        self.failIf(None==s)
+        self.failUnless(s!=None)
+        self.failUnless(None!=s)
+        if sys.version_info > (3,0):
+            self.assertRaises(TypeError, operator.gt, None, s)
+            self.assertRaises(TypeError, operator.gt, s, None)
+            self.assertRaises(TypeError, operator.lt, None, s)
+            self.assertRaises(TypeError, operator.lt, s, None)
+
+    def testGUIDInDict(self):
+        s = "{00020400-0000-0000-C000-000000000046}"
+        iid = pywintypes.IID(s)
+        d = dict(item=iid)
+        self.failUnlessEqual(d['item'], iid)
 
 if __name__ == '__main__':
     unittest.main()

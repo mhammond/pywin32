@@ -17,7 +17,6 @@ public:
 	int IsEqual(PyIID &iid);
 
 	/* Python support */
-	int compare(PyObject *ob);
 	PyObject *richcompare(PyObject *other, int op);
 	long hash(void);
 	PyObject *str(void);
@@ -25,7 +24,6 @@ public:
 
 	static void deallocFunc(PyObject *ob);
 	static int printFunc(PyObject *ob, FILE *fp, int flags);
-	static int compareFunc(PyObject *ob1, PyObject *ob2);
 	static PyObject *richcompareFunc(PyObject *self, PyObject *other, int op);
 	static long hashFunc(PyObject *ob);
 	static PyObject * strFunc(PyObject *ob);
@@ -138,7 +136,6 @@ public:
 	virtual const char *GetTypeName() {return "PyHANDLE";}
 
 	/* Python support */
-	int compare(PyObject *ob);
 	PyObject *richcompare(PyObject *other, int op);
 
 	int print(FILE *fp, int flags);
@@ -147,7 +144,6 @@ public:
 
 	static void deallocFunc(PyObject *ob);
 	static int printFunc(PyObject *ob, FILE *fp, int flags);
-	static int compareFunc(PyObject *ob1, PyObject *ob2);
 	static PyObject *richcompareFunc(PyObject *ob, PyObject *other, int op);
 	static int nonzeroFunc(PyObject *ob);
 	static long hashFunc(PyObject *ob);

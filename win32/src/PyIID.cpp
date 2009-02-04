@@ -169,8 +169,7 @@ PYWINTYPES_EXPORT PyTypeObject PyIIDType =
 	0,				/* tp_print */
 	0,						/* tp_getattr */
 	0,						/* tp_setattr */
-	// @pymeth __cmp__|Used when IID objects are compared.
-	PyIID::compareFunc,		/* tp_compare */
+	0,						/* tp_compare */
 	// @pymeth __repr__|Used whenever a repr() is called for the object
 	PyIID::reprFunc,				/* tp_repr */
 	0,						/* tp_as_number */
@@ -230,42 +229,24 @@ int PyIID::IsEqual(PyIID &iid)
 	return IsEqualIID(m_iid, iid.m_iid);
 }
 
-int PyIID::compare(PyObject *ob)
-{
-	return memcmp(&m_iid, &((PyIID *)ob)->m_iid, sizeof(m_iid));
-}
-
 // Py3k requires that objects implement richcompare to be used as dict keys
 PyObject *PyIID::richcompare(PyObject *other, int op)
 {
-	BOOL e;
-	if (PyIID_Check(other))
-		e=IsEqualIID(m_iid, ((PyIID *)other)->m_iid);
-	else
-		e=FALSE;
-
+	if (!PyIID_Check(other)) {
+		Py_INCREF(Py_NotImplemented);
+		return Py_NotImplemented;
+	}
+	BOOL e = IsEqualIID(m_iid, ((PyIID *)other)->m_iid);
+	PyObject *ret;
 	if (op==Py_EQ){
-		if (e){
-			Py_INCREF(Py_True);
-			return Py_True;
-			}
-		else{
-			Py_INCREF(Py_False);
-			return Py_False;
-			}
-		}
-	if (op==Py_NE){
-		if (!e){
-			Py_INCREF(Py_True);
-			return Py_True;
-			}
-		else{
-			Py_INCREF(Py_False);
-			return Py_False;
-			}
-		}
-	PyErr_SetString(PyExc_TypeError, "IIDs only compare equal or not equal");
-	return NULL;
+		ret = e ? Py_True : Py_False;
+	}
+	else if (op==Py_NE) {
+		ret = e ? Py_False : Py_True;
+	} else
+		ret = Py_NotImplemented;
+	Py_INCREF(ret);
+	return ret;
 }
 
 long PyIID::hash(void)
@@ -296,12 +277,6 @@ PyObject *PyIID::repr(void)
 /*static*/ void PyIID::deallocFunc(PyObject *ob)
 {
 	delete (PyIID *)ob;
-}
-
-// @pymethod int|PyIID|__cmp__|Used when IID objects are compared.
-int PyIID::compareFunc(PyObject *ob1, PyObject *ob2)
-{
-	return ((PyIID *)ob1)->compare(ob2);
 }
 
 // Py3k requires that objects implement richcompare to be used as dict keys
