@@ -644,18 +644,21 @@ PyObject *PyRecord::tp_richcompare(PyObject *self, PyObject *other, int op)
 {
 	PyObject *ret = NULL;
 	if (op != Py_EQ && op != Py_NE) {
-		PyErr_SetString(PyExc_TypeError, "IIDs only compare equal or not equal");
-		return NULL;
+		Py_INCREF(Py_NotImplemented);
+		return Py_NotImplemented;
 	}
 	int success = op == Py_EQ ? TRUE : FALSE;
 
-	if (self->ob_type != other->ob_type)
-		return PyBool_FromLong(!success);
+	if (self->ob_type != other->ob_type) {
+		Py_INCREF(Py_NotImplemented);
+		return Py_NotImplemented;
+	}
 	PyRecord *pyself = (PyRecord *)self;
 	PyRecord *pyother = (PyRecord *)other;
 	if (!pyself->pri->IsMatchingType(pyother->pri)) {
-		// Not matching types, so must compare False.
-		return PyBool_FromLong(!success);
+		// Not matching types, so can't compare.
+		Py_INCREF(Py_NotImplemented);
+		return Py_NotImplemented;
 	}
 	// Need to do a recursive compare, as some elements may be pointers
 	// (eg, strings, objects)
