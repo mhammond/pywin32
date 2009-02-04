@@ -214,12 +214,25 @@ static pfnGWMethod make_method(DWORD index, UINT argsize)
 	};
 
 	// make a copy of code and plug in the appropriate values.
-	// NOTE: the call address is relative
-	code = (unsigned char *)malloc(sizeof(func_template));
+	// NOTE: the call address is relative, and that the memory we allocate
+	// must be marked as 'executable' or DEP will kill us.  To be good
+	// citizens we leave the final page 'executable' but read-only.
+	code = (unsigned char *)VirtualAlloc(NULL, sizeof(func_template), MEM_COMMIT, PAGE_READWRITE);
+	if (code==NULL) {
+		PyErr_NoMemory();
+		return NULL; // caller sets memory error
+	}
 	memcpy(code, func_template, sizeof(func_template));
 	*(long *)&code[19] = index;
 	*(long *)&code[24] = (long)&univgw_dispatch - (long)&code[28];
 	*(short *)&code[35] = argsize;
+
+	DWORD oldprotect;
+	if (!VirtualProtect(code, sizeof(func_template), PAGE_EXECUTE, &oldprotect)) {
+		VirtualFree(code, 0, MEM_RELEASE);
+		PyErr_SetString(PyExc_RuntimeError, "failed to set memory attributes to executable");
+		return NULL;
+	}
 
 #else	// _M_IX86
    /* The MAINWIN toolkit allows us to build this on Linux!!! */
@@ -309,8 +322,8 @@ static void __cdecl free_vtbl(void * cobject)
 	// free the methods. 0..2 are the constant IUnknown methods
 	for ( int i = vtbl->cMethod; i-- > (int)vtbl->cReservedMethods; )
 		if ( vtbl->methods[i] != NULL )
-			free((void *)vtbl->methods[i]);
-	free(vtbl);
+			VirtualFree((void *)vtbl->methods[i], 0, MEM_RELEASE);
+	VirtualFree(vtbl, 0, MEM_RELEASE);
 }
 
 static PyObject * univgw_CreateVTable(PyObject *self, PyObject *args)
@@ -364,14 +377,17 @@ static PyObject * univgw_CreateVTable(PyObject *self, PyObject *args)
 
 	// compute the size of the structure plus the method pointers
 	size_t size = sizeof(gw_vtbl) + count * sizeof(pfnGWMethod);
-	gw_vtbl * vtbl = (gw_vtbl *)malloc(size);
+	// NOTE: we are allocating a function pointer, so the memory we
+	// allocate must be marked as 'executable' or DEP will kill us. To be
+	// good citizens we leave the final page 'executable' but read-only.
+	gw_vtbl * vtbl = (gw_vtbl *)VirtualAlloc(NULL, size, MEM_COMMIT, PAGE_READWRITE);
 	if ( vtbl == NULL )
 	{
 		Py_DECREF(methods);
 		PyErr_NoMemory();
 		return NULL;
 	}
-	memset(vtbl, 0, size);
+	// memset(vtbl, 0, size); - reset by VirtualAlloc
 
 	vtbl->magic = GW_VTBL_MAGIC;
 	vtbl->iid = iid;
@@ -410,14 +426,17 @@ static PyObject * univgw_CreateVTable(PyObject *self, PyObject *args)
 		// size; reserve additional space for the _this argument.
 		pfnGWMethod meth = make_method(i, argSize + sizeof(gw_object *));
 		if ( meth == NULL )
-		{
-			(void)PyErr_NoMemory();
 			goto error;
-		}
 
 		vtbl->methods[i + numReservedVtables] = meth;
 	}
 	Py_DECREF(methods);
+	DWORD oldprotect;
+	if (!VirtualProtect(vtbl, size, PAGE_EXECUTE, &oldprotect)) {
+		free_vtbl(vtbl);
+		PyErr_SetString(PyExc_RuntimeError, "failed to set memory attributes to executable");
+		goto error;
+	}
 
 	PyObject *result;
 	result = PyCObject_FromVoidPtr(vtbl, free_vtbl);

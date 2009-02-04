@@ -21,6 +21,11 @@ Since build 212:
     with the new datetime object support.
   - Vernon Cole: for help with porting adodbapi to py3k.
 
+* pythoncom servers which implemented 'universal' vtable interfaces from a
+  typelib could cause Data Execution Protection (DEP) to be triggered if
+  enabled.  This has been resolved and such servers now work correctly with
+  DEP enabled.
+  
 * Fixed memory leak in win32wnet.WNetEnumResource.
 
 * Added win32wnet.WNetAddConnection3 allowing a HWND to be specified for
