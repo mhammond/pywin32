@@ -358,6 +358,18 @@ def TestStructs(vbtest):
 
     # Now do some object equality tests.
     assert s==s
+    assert s!=None
+    if sys.version_info > (3,0):
+        try:
+            s < None
+            raise error("Expected type error")
+        except TypeError:
+            pass
+        try:
+            None < s
+            raise error("Expected type error")
+        except TypeError:
+            pass
     assert s != s.sub_val
     import copy
     s2 = copy.copy(s)
@@ -433,6 +445,22 @@ def TestObjectSemantics(ob):
     # still ensure all works
     assert ob._oleobj_==ob._oleobj_.QueryInterface(pythoncom.IID_IUnknown)
     assert not ob._oleobj_!=ob._oleobj_.QueryInterface(pythoncom.IID_IUnknown)
+
+    assert ob._oleobj_!=None
+    assert None!=ob._oleobj_
+    assert ob!=None
+    assert None!=ob
+    if sys.version_info > (3,0):
+        try:
+            ob < None
+            raise error("Expected type error")
+        except TypeError:
+            pass
+        try:
+            None < ob
+            raise error("Expected type error")
+        except TypeError:
+            pass
 
     assert ob._oleobj_.QueryInterface(pythoncom.IID_IUnknown)==ob._oleobj_
     assert not ob._oleobj_.QueryInterface(pythoncom.IID_IUnknown)!=ob._oleobj_
