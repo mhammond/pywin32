@@ -81,6 +81,23 @@ class PyHandleTestCase(unittest.TestCase):
         # at that ordinal
         win32api.GetProcAddress(sys.dllhandle, h)
 
+    def testHandleInDict(self):
+        h=pywintypes.HANDLE(1)
+        d = dict(foo=h)
+        self.failUnlessEqual(d['foo'], h)
+
+    def testHandleCompareNone(self):
+        h=pywintypes.HANDLE(1)
+        self.failIfEqual(h, None)
+        self.failIfEqual(None, h)
+
+    def testHandleNonZero(self):
+        h=pywintypes.HANDLE(0)
+        self.failIf(h)
+
+        h=pywintypes.HANDLE(1)
+        self.failUnless(h)
+
     def testLong(self):
         # sys.maxint+1 should always be a 'valid' handle, treated as an
         # unsigned int, even though it is a long. Although pywin32 should not
