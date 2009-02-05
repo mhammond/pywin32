@@ -94,6 +94,7 @@ def ExecuteShellCommand(cmd, testcase,
     cmd = cmd + ' > "%s" 2>&1' % output_name
     rc = os.system(cmd)
     output = open(output_name, "r").read().strip()
+    os.remove(output_name)
     class Failed(Exception): pass
     try:
         if rc:
