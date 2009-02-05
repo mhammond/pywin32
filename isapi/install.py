@@ -6,6 +6,7 @@ import sys, os, imp, shutil, stat
 import operator
 from win32com.client import GetObject, Dispatch
 from win32com.client.gencache import EnsureModule, EnsureDispatch
+import win32api
 import pythoncom
 import winerror
 import traceback
@@ -668,7 +669,18 @@ def HandleCommandLine(params, argv=None, conf_module_name = None,
     from optparse import OptionParser
 
     argv = argv or sys.argv
-    conf_module_name = conf_module_name or sys.argv[0]
+    if not conf_module_name:
+        conf_module_name = sys.argv[0]
+        # convert to a long name so that if we were somehow registered with
+        # the "short" version but unregistered with the "long" version we
+        # still work (that will depend on exactly how the installer was
+        # started)
+        try:
+            conf_module_name = win32api.GetLongPathName(conf_module_name)
+        except win32api.error, exc:
+            log(2, "Couldn't determine the long name for %r: %s" %
+                (conf_module_name, exc))
+
     if opt_parser is None:
         # Build our own parser.
         parser = OptionParser(usage='')
