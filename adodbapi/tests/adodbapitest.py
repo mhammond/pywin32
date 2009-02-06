@@ -43,6 +43,11 @@ try:
 except ImportError:
     import win32com.decimal_23 as decimal
 
+def str2bytes(sval):
+    if sys.version_info < (3,0) and isinstance(sval, str):
+        sval = sval.decode("latin1")
+    return sval.encode("latin1")
+
 class CommonDBTests(unittest.TestCase):
     "Self contained super-simple tests in easy syntax, should work on everything between mySQL and Oracle"
 
@@ -248,7 +253,7 @@ class CommonDBTests(unittest.TestCase):
                               pyDataInputAlternatives='2137483647')
         if self.getEngine() != 'ACCESS':
             self.helpTestDataType("bit",'NUMBER',1) #Does not work correctly with access        
-            self.helpTestDataType("bigint",'NUMBER',3000000000L) 
+            self.helpTestDataType("bigint",'NUMBER',3000000000) 
 
     def testDataTypeChar(self):
         for sqlDataType in ("char(6)","nchar(6)"):
@@ -274,8 +279,7 @@ class CommonDBTests(unittest.TestCase):
         if self.getEngine() == 'MySQL':
             pass #self.helpTestDataType("BLOB",'BINARY',adodbapi.Binary('\x00\x01\xE2\x40'))
         else:
-        # python 3.0 syntax -> binfld = b'\x00\x01\xE2\x40'
-            binfld = '\x00\x01\xE2\x40'
+            binfld = str2bytes('\x00\x01\xE2\x40')
             self.helpTestDataType("binary(4)",'BINARY',adodbapi.Binary(binfld))
             self.helpTestDataType("varbinary(100)",'BINARY',adodbapi.Binary(binfld))
             self.helpTestDataType("image",'BINARY',adodbapi.Binary(binfld))

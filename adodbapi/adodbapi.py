@@ -226,7 +226,7 @@ class pythonTimeConverter(TimeConverter):
             fcomDate = float(comDate)
         secondsperday=86400 # 24*60*60
         #ComDate is number of days since 1899-12-31, gmtime epoch is 1970-1-1 = 25569 days
-        t=time.gmtime(secondsperday*(fcomDate-25569.0))
+        t=time.localtime(secondsperday*(fcomDate-25569.0))
         return t  #year,month,day,hour,minute,second,weekday,julianday,daylightsaving=t
 
     def Date(self,year,month,day):
@@ -724,7 +724,8 @@ class Cursor(object):
             if parmIndx >= 0:
                 tbk += u'-- Trying parameter %d = %s\n' \
                     %(parmIndx, repr(parameters[parmIndx]))
-            tblist=traceback.format_exception(sys.exc_type,sys.exc_value,sys.exc_traceback,8)
+            exc_type,exc_value,exc_traceback = sys.exc_info()
+            tblist=traceback.format_exception(exc_type,exc_value,exc_traceback,8)
             tb=''.join(tblist)
             tracebackhistory = tbk + tb + u'-- on command: "%s"\n-- with parameters: %s' \
                                %(operation,parameters)

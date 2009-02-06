@@ -3,7 +3,7 @@ print "(see db-sig mailing list history for info)"
 
 import dbapi20
 import unittest
-import os, sys, string
+import os, sys
 
 #attempt to find adodbapi in this directory's parent
 cwd = os.getcwd()
@@ -38,7 +38,7 @@ class test_adodbapi(dbapi20.DatabaseAPI20Test):
         dbapi20.DatabaseAPI20Test.__init__(self,arg)
 
     def testMethodName(self):
-        return string.split(self.id(),'.')[-1]
+        return self.id().split('.')[-1]
 
     def setUp(self):
         # Call superclass setUp In case this does something in the

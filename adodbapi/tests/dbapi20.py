@@ -11,7 +11,6 @@
     -- Ian Bicking
 '''
 
-__rcs_id__  = '$Id$'
 __version__ = '$Revision$'[11:-2]
 __author__ = 'Stuart Bishop <zen@shangri-la.dropbear.id.au>'
 
@@ -19,6 +18,9 @@ import unittest
 import time
 import sys
 
+# Revision 3.0 2009/2/4 kf7xm
+# Updates to make Python 3.0 compatible
+#
 # $Log$
 # Revision 1.1.1.1.2.1  2008/09/20 19:54:59  rupole
 # Include latest changes from main branch
@@ -69,6 +71,10 @@ import sys
 #   nothing
 # - Fix bugs in test_setoutputsize_basic and test_setinputsizes
 #
+def str2bytes(sval):
+    if sys.version_info < (3,0) and isinstance(sval, str):
+        sval = sval.decode("latin1")
+    return sval.encode("latin1")
 
 class DatabaseAPI20Test(unittest.TestCase):
     ''' Test a database self.driver for DB API 2.0 compatibility.
@@ -832,8 +838,8 @@ class DatabaseAPI20Test(unittest.TestCase):
         # self.assertEqual(str(t1),str(t2))
 
     def test_Binary(self):
-        b = self.driver.Binary('Something')
-        b = self.driver.Binary('')
+        b = self.driver.Binary(str2bytes('Something'))
+        b = self.driver.Binary(str2bytes(''))
 
     def test_STRING(self):
         self.failUnless(hasattr(self.driver,'STRING'),

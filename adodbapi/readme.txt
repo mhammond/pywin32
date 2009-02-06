@@ -34,9 +34,11 @@ or:
 ............
 Whats new in version 2.2.6
 1. Actually works in Python 3.0 (using pywin32 212.6) after running thru 2to3
-2. (Produces an error in dbapi20 test when trying adodbapi.Buffer('This is a string') in Python 3.0)
-3. When a value with an exact midnight time is retrieved from a DATETIME column, return a datetime.datetime,
-   not a datetime.date.
+2. RESTRICTION: Python Time (as opposed to datetime.datetime, which is the default) may return
+     incorrect results. We believe this happens when used with Southern Hemisphere time zones.
+     To avoid this problem, do not use adodbapi.pythonTimeConverter. 
+3. Several improvements in the test routines, including alteration of dbapi20 for Python 3.0 compatibility.
+   (Some requirements of PEP249 are incompatible with Python 3.0)
 
 Whats new in version 2.2.5
 1. Exception definition cleanups for for Python 3.0 readiness [Mark Hammond]
