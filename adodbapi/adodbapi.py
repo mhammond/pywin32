@@ -226,7 +226,7 @@ class pythonTimeConverter(TimeConverter):
             fcomDate = float(comDate)
         secondsperday=86400 # 24*60*60
         #ComDate is number of days since 1899-12-31, gmtime epoch is 1970-1-1 = 25569 days
-        t=time.localtime(secondsperday*(fcomDate-25569.0))
+        t=time.gmtime(secondsperday*(fcomDate-25569.0))
         return t  #year,month,day,hour,minute,second,weekday,julianday,daylightsaving=t
 
     def Date(self,year,month,day):
