@@ -68,7 +68,7 @@ class TestPipeService(win32serviceutil.ServiceFramework):
             try:
                 # Create a loop, reading large data.  If we knew the data stream was
                 # was small, a simple ReadFile would do.
-                d = ''
+                d = ''.encode('ascii') # ensure bytes on py2k and py3k...
                 hr = winerror.ERROR_MORE_DATA
                 while hr==winerror.ERROR_MORE_DATA:
                     hr, thisd = ReadFile(pipeHandle, 256)
@@ -82,7 +82,9 @@ class TestPipeService(win32serviceutil.ServiceFramework):
             # A secure service would handle (and ignore!) errors writing to the
             # pipe, but for the sake of this demo we dont (if only to see what errors
             # we can get when our clients break at strange times :-)
-            if ok: WriteFile(pipeHandle,"%s (on thread %d) sent me %s" % (GetNamedPipeHandleState(pipeHandle)[4],tid, d))
+            if ok:
+                msg = ("%s (on thread %d) sent me %s" % (GetNamedPipeHandleState(pipeHandle)[4],tid, d)).encode('ascii')
+                WriteFile(pipeHandle, msg)
         finally:
             ApplyIgnoreError( DisconnectNamedPipe, (pipeHandle,) )
             ApplyIgnoreError( CloseHandle, (pipeHandle,) )
