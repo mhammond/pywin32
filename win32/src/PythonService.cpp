@@ -589,6 +589,15 @@ PYWIN_MODULE_INIT_FUNC(servicemanager)
   PYWIN_MODULE_INIT_RETURN_SUCCESS;
 }
 
+static char *NarrowString(WCHAR *s)
+{
+	int cchNarrow = WideCharToMultiByte(CP_ACP, 0, s, -1, NULL, 0, NULL, NULL);
+	char *ret = (char *)malloc(cchNarrow);
+	if (ret)
+		WideCharToMultiByte(CP_ACP, 0, s, -1, ret, cchNarrow, NULL, NULL);
+	return ret;
+}
+
 // Couple of helpers for the service manager
 static void PyService_InitPython()
 {
@@ -603,13 +612,21 @@ static void PyService_InitPython()
 	// knows how to get the .EXE name when it needs.
 	int pyargc;
 #if (PY_VERSION_HEX < 0x03000000)
-	pyargc = __argc;
-	char **pyargv = __argv;
+	pyargc = 0;
+	char **pyargv = (char **)malloc(sizeof(char *) * __argc);
+	if (pyargv) {
+		for (;pyargc<__argc;pyargc++) {
+			pyargv[pyargc] = NarrowString(__wargv[pyargc]);
+			if (!pyargv[pyargc]) {
+				break;
+			}
+		}
+	}
 #else
-	WCHAR **pyargv;
-	pyargv = CommandLineToArgvW(GetCommandLineW(), &pyargc);
+	WCHAR **pyargv = CommandLineToArgvW(GetCommandLineW(), &pyargc);
 #endif
-	Py_SetProgramName(pyargv[0]);
+	if (pyargv)
+		Py_SetProgramName(pyargv[0]);
 
 #ifdef BUILD_FREEZE
 	PyInitFrozenExtensions();
@@ -620,9 +637,19 @@ static void PyService_InitPython()
 #endif
 	// Ensure we are set for threading.
 	PyEval_InitThreads();
-	PySys_SetArgv(pyargc, pyargv);
+	// Notes about argv: When debugging a service, the argv is currently
+	// the *full* args, including the "-debug servicename" args.  This
+	// isn't ideal, but has been this way for a few builds, and a good
+	// fix isn't clear - should 'servicename' be presented in argv, even
+	// though it never is when running as a real service?
+	if (pyargv)
+		PySys_SetArgv(pyargc, pyargv);
 #if (PY_VERSION_HEX < 0x03000000)
 	initservicemanager();
+	// free the argv we created above
+	for (int i=0;i<pyargc;i++)
+		free(pyargv[i]);
+	free(pyargv);
 #else
 	PyInit_servicemanager();
 	LocalFree(pyargv);
