@@ -215,6 +215,9 @@ static struct PyMethodDef axdebug_methods[]=
 	{ NULL, NULL }
 };
 
+// special case so we use __uuidof, to avoid needing a .lib we don't have!
+#undef PYCOM_INTERFACE_FULL
+#define PYCOM_INTERFACE_FULL PYCOM_INTERFACE_FULL_UUIDOF
 
 // The list of interfaces and gateways we support.
 static const PyCom_InterfaceSupportInfo g_interfaceSupportData[] =

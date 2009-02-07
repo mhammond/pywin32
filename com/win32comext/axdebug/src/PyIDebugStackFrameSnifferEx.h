@@ -30,7 +30,13 @@ protected:
 		{return PyGDebugStackFrameSniffer::EnumStackFrames(ppedsf);}
 
 	// IDebugStackFrameSnifferEx
+#ifdef _WIN64
+	STDMETHOD(EnumStackFramesEx64)(
+		DWORDLONG dwSpMin,
+		IEnumDebugStackFrames64 __RPC_FAR *__RPC_FAR * ppedsf);
+#else
 	STDMETHOD(EnumStackFramesEx)(
 		DWORD dwSpMin,
 		IEnumDebugStackFrames __RPC_FAR *__RPC_FAR * ppedsf);
+#endif
 };

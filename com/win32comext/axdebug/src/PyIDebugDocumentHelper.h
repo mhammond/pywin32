@@ -76,7 +76,11 @@ protected:
 		ULONG cChars,
 		IActiveScript __RPC_FAR * pas,
 		BOOL fScriptlet,
+#ifdef _WIN64
+		DWORDLONG __RPC_FAR * pdwSourceContext);
+#else
 		DWORD __RPC_FAR * pdwSourceContext);
+#endif
 
 	STDMETHOD(SetDefaultTextAttr)(
 		SOURCE_TEXT_ATTR staTextAttr);
@@ -99,7 +103,11 @@ protected:
 		IDebugApplicationNode __RPC_FAR *__RPC_FAR * ppdan);
 
 	STDMETHOD(GetScriptBlockInfo)(
+#ifdef _WIN64
+		DWORDLONG dwSourceContext,
+#else
 		DWORD dwSourceContext,
+#endif
 		IActiveScript __RPC_FAR *__RPC_FAR * ppasd,
 		ULONG __RPC_FAR * piCharPos,
 		ULONG __RPC_FAR * pcChars);

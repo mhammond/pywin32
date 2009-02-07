@@ -46,7 +46,11 @@ protected:
 		SOURCE_TEXT_ATTR __RPC_FAR * pattr);
 
 	STDMETHOD(EnumCodeContextsOfPosition)(
+#ifdef _WIN64
+		DWORDLONG dwSourceContext,
+#else
 		DWORD dwSourceContext,
+#endif
 		ULONG uCharacterOffset,
 		ULONG uNumChars,
 		IEnumDebugCodeContexts __RPC_FAR *__RPC_FAR * ppescc);

@@ -31,7 +31,11 @@ PyObject *PyIDebugStackFrameSnifferEx::EnumStackFramesEx(PyObject *self, PyObjec
 	IDebugStackFrameSnifferEx *pIDSFS = GetI(self);
 	if ( pIDSFS == NULL )
 		return NULL;
+#ifdef _WIN64
+	IEnumDebugStackFrames64 *ppedsf;
+#else
 	IEnumDebugStackFrames *ppedsf;
+#endif
 	DWORD spMin;
 	if ( !PyArg_ParseTuple(args, "l:EnumStackFramesEx", &spMin) )
 		return NULL;
@@ -64,9 +68,15 @@ PyComTypeObject PyIDebugStackFrameSnifferEx::type("PyIDebugStackFrameSnifferEx",
 //
 // Gateway Implementation
 
+#ifdef _WIN64
+STDMETHODIMP PyGDebugStackFrameSnifferEx::EnumStackFramesEx64(
+		/* [in]  */ DWORDLONG dwSpMin,
+		/* [out] */ IEnumDebugStackFrames64 __RPC_FAR *__RPC_FAR * ppedsf)
+#else
 STDMETHODIMP PyGDebugStackFrameSnifferEx::EnumStackFramesEx(
 		/* [in]  */ DWORD dwSpMin,
 		/* [out] */ IEnumDebugStackFrames __RPC_FAR *__RPC_FAR * ppedsf)
+#endif
 {
 	PY_GATEWAY_METHOD;
 	if (ppedsf==NULL) return E_POINTER;

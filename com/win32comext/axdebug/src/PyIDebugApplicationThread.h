@@ -63,8 +63,8 @@ protected:
 		DWORD __RPC_FAR * pdwCount);
 
 	// IDebugApplicationThread
-	STDMETHOD(SynchronousCallIntoThread)(
-		IDebugThreadCall __RPC_FAR * pstcb,
+	STDMETHOD(SynchronousCallIntoThread32)(
+		IDebugThreadCall32 __RPC_FAR * pstcb,
 		DWORD dwParam1,
 		DWORD dwParam2,
 		DWORD dwParam3);

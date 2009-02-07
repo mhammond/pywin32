@@ -39,7 +39,7 @@ PyObject *PyIDebugApplicationThread::SynchronousCallIntoThread(PyObject *self, P
 	// @pyparm int|dwParam2||Description for dwParam2
 	// @pyparm int|dwParam3||Description for dwParam3
 	PyObject *obpstcb;
-	IDebugThreadCall *pstcb;
+	IDebugThreadCall32 *pstcb;
 	DWORD dwParam1;
 	DWORD dwParam2;
 	DWORD dwParam3;
@@ -50,7 +50,7 @@ PyObject *PyIDebugApplicationThread::SynchronousCallIntoThread(PyObject *self, P
 		 bPythonIsHappy = FALSE;
 	if (!bPythonIsHappy) return NULL;
 	PY_INTERFACE_PRECALL;
-	HRESULT hr = pIDAT->SynchronousCallIntoThread( pstcb, dwParam1, dwParam2, dwParam3 );
+	HRESULT hr = pIDAT->SynchronousCallIntoThread32( pstcb, dwParam1, dwParam2, dwParam3 );
 	pstcb->Release();
 	PY_INTERFACE_POSTCALL;
 	if ( FAILED(hr) )
@@ -192,8 +192,8 @@ STDMETHODIMP PyGDebugApplicationThread::GetSuspendCount(
 {return PyGRemoteDebugApplicationThread::GetSuspendCount(pdwCount);}
 
 
-STDMETHODIMP PyGDebugApplicationThread::SynchronousCallIntoThread(
-		/* [in] */ IDebugThreadCall __RPC_FAR * pstcb,
+STDMETHODIMP PyGDebugApplicationThread::SynchronousCallIntoThread32(
+		/* [in] */ IDebugThreadCall32 __RPC_FAR * pstcb,
 		/* [in] */ DWORD dwParam1,
 		/* [in] */ DWORD dwParam2,
 		/* [in] */ DWORD dwParam3)

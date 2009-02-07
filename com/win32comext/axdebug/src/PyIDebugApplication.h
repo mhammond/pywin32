@@ -129,9 +129,15 @@ protected:
 
 	STDMETHOD(SynchronousCallInDebuggerThread)(
 		IDebugThreadCall __RPC_FAR * pptc,
+#ifdef _WIN64
+		DWORDLONG dwParam1,
+		DWORDLONG dwParam2,
+		DWORDLONG dwParam3);
+#else
 		DWORD dwParam1,
 		DWORD dwParam2,
 		DWORD dwParam3);
+#endif
 
 	STDMETHOD(CreateApplicationNode)(
 		IDebugApplicationNode __RPC_FAR * __RPC_FAR *ppdanNew);  
@@ -155,9 +161,17 @@ protected:
 
 	STDMETHOD(AddGlobalExpressionContextProvider)(
 		IProvideExpressionContexts __RPC_FAR * pdsfs,
+#ifdef _WIN64
+		DWORDLONG __RPC_FAR * pdwCookie);
+#else
 		DWORD __RPC_FAR * pdwCookie);
+#endif
 
 	STDMETHOD(RemoveGlobalExpressionContextProvider)(
+#ifdef _WIN64
+		DWORDLONG dwCookie);
+#else
 		DWORD dwCookie);
+#endif
 
 };

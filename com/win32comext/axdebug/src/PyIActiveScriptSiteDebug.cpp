@@ -141,7 +141,11 @@ PyComTypeObject PyIActiveScriptSiteDebug::type("PyIActiveScriptSiteDebug",
 // Gateway Implementation
 
 STDMETHODIMP PyGActiveScriptSiteDebug::GetDocumentContextFromPosition(
+#ifdef _WIN64
+		/* [in] */ DWORDLONG dwSourceContext,
+#else
 		/* [in] */ DWORD dwSourceContext,
+#endif
 		/* [in] */ ULONG uCharacterOffset,
 		/* [in] */ ULONG uNumChars,
 		/* [out] */ IDebugDocumentContext __RPC_FAR *__RPC_FAR * ppsc)

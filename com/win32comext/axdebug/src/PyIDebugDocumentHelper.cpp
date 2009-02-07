@@ -224,7 +224,11 @@ PyObject *PyIDebugDocumentHelper::DefineScriptBlock(PyObject *self, PyObject *ar
 	ULONG cChars;
 	IActiveScript *pas;
 	BOOL fScriptlet;
+#ifdef _WIN64
+	DWORDLONG pdwSourceContext;
+#else
 	DWORD pdwSourceContext;
+#endif
 	if ( !PyArg_ParseTuple(args, "iiOi:DefineScriptBlock", &ulCharOffset, &cChars, &obpas, &fScriptlet) )
 		return NULL;
 	BOOL bPythonIsHappy = TRUE;
@@ -610,7 +614,11 @@ STDMETHODIMP PyGDebugDocumentHelper::DefineScriptBlock(
 		/* [in] */ ULONG cChars,
 		/* [in] */ IActiveScript __RPC_FAR * pas,
 		/* [in] */ BOOL fScriptlet,
+#ifdef _WIN64
+		/* [out] */ DWORDLONG __RPC_FAR * pdwSourceContext)
+#else
 		/* [out] */ DWORD __RPC_FAR * pdwSourceContext)
+#endif
 {
 	PY_GATEWAY_METHOD;
 	PyObject *obpas;
@@ -695,7 +703,11 @@ STDMETHODIMP PyGDebugDocumentHelper::GetDebugApplicationNode(
 }
 
 STDMETHODIMP PyGDebugDocumentHelper::GetScriptBlockInfo(
+#ifdef _WIN64
+		/* [in] */ DWORDLONG dwSourceContext,
+#else
 		/* [in] */ DWORD dwSourceContext,
+#endif
 		/* [out] */ IActiveScript __RPC_FAR *__RPC_FAR * ppasd,
 		/* [out] */ ULONG __RPC_FAR * piCharPos,
 		/* [out] */ ULONG __RPC_FAR * pcChars)

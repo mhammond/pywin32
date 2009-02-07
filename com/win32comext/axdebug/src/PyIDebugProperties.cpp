@@ -61,7 +61,7 @@ BOOL PyObject_AsDebugPropertyInfo(PyObject *ob, DebugPropertyInfo *p)
 		PyErr_SetString(PyExc_TypeError, "DebugProperty object must be a sequence");
 		return FALSE;
 	}
-	int len = PySequence_Length(ob);
+	Py_ssize_t len = PySequence_Length(ob);
 	if (len<1) {
 		PyErr_SetString(PyExc_ValueError, "DebugProperty sequence must be at least 1");
 		return FALSE;

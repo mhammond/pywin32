@@ -184,7 +184,11 @@ STDMETHODIMP PyGActiveScriptDebug::GetScriptletTextAttributes(
 }
 
 STDMETHODIMP PyGActiveScriptDebug::EnumCodeContextsOfPosition(
+#ifdef _WIN64
+		/* [in] */ DWORDLONG dwSourceContext,
+#else
 		/* [in] */ DWORD dwSourceContext,
+#endif
 		/* [in] */ ULONG uCharacterOffset,
 		/* [in] */ ULONG uNumChars,
 		/* [out] */ IEnumDebugCodeContexts __RPC_FAR *__RPC_FAR * ppescc)

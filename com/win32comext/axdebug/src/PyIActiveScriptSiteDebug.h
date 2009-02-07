@@ -33,7 +33,11 @@ protected:
 
 	// IActiveScriptSiteDebug
 	STDMETHOD(GetDocumentContextFromPosition)(
+#ifdef _WIN64
+		DWORDLONG dwSourceContext,
+#else
 		DWORD dwSourceContext,
+#endif
 		ULONG uCharacterOffset,
 		ULONG uNumChars,
 		IDebugDocumentContext __RPC_FAR *__RPC_FAR * ppsc);

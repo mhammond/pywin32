@@ -498,7 +498,11 @@ PyObject *PyIDebugApplication::AddGlobalExpressionContextProvider(PyObject *self
 	// @pyparm <o PyIProvideExpressionContexts>|pdsfs||Description for pdsfs
 	PyObject *obpdsfs;
 	IProvideExpressionContexts * pdsfs;
+#ifdef _WIN64
+	DWORDLONG pdwCookie;
+#else
 	DWORD pdwCookie;
+#endif
 	if ( !PyArg_ParseTuple(args, "O:AddGlobalExpressionContextProvider", &obpdsfs) )
 		return NULL;
 	BOOL bPythonIsHappy = TRUE;
@@ -746,9 +750,15 @@ STDMETHODIMP PyGDebugApplication::QueryCurrentThreadIsDebuggerThread(
 
 STDMETHODIMP PyGDebugApplication::SynchronousCallInDebuggerThread(
 		/* [in] */ IDebugThreadCall __RPC_FAR * pptc,
+#ifdef _WIN64
+		/* [in] */ DWORDLONG dwParam1,
+		/* [in] */ DWORDLONG dwParam2,
+		/* [in] */ DWORDLONG dwParam3)
+#else
 		/* [in] */ DWORD dwParam1,
 		/* [in] */ DWORD dwParam2,
 		/* [in] */ DWORD dwParam3)
+#endif
 {
 	PY_GATEWAY_METHOD;
 	PyObject *obpptc;
@@ -834,7 +844,11 @@ BOOL STDMETHODCALLTYPE PyGDebugApplication::FIsAutoJitDebugEnabled(
 
 STDMETHODIMP PyGDebugApplication::AddGlobalExpressionContextProvider(
 		/* [in] */ IProvideExpressionContexts __RPC_FAR * pdsfs,
+#ifdef _WIN64
+		/* [out] */ DWORDLONG __RPC_FAR * pdwCookie)
+#else
 		/* [out] */ DWORD __RPC_FAR * pdwCookie)
+#endif
 {
 	PY_GATEWAY_METHOD;
 	PyObject *obpdsfs;
@@ -850,7 +864,11 @@ STDMETHODIMP PyGDebugApplication::AddGlobalExpressionContextProvider(
 }
 
 STDMETHODIMP PyGDebugApplication::RemoveGlobalExpressionContextProvider(
+#ifdef _WIN64
+		/* [in] */ DWORDLONG dwCookie)
+#else
 		/* [in] */ DWORD dwCookie)
+#endif
 {
 	PY_GATEWAY_METHOD;
 	HRESULT hr=InvokeViaPolicy("RemoveGlobalExpressionContextProvider", NULL, "i", dwCookie);

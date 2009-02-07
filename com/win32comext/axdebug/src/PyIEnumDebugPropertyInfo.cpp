@@ -190,23 +190,23 @@ STDMETHODIMP PyGEnumDebugPropertyInfo::Next(
 {
 	PY_GATEWAY_METHOD;
 	PyObject *result;
+	Py_ssize_t len;
 	HRESULT hr = InvokeViaPolicy("Next", &result, "i", celt);
 	if ( FAILED(hr) )
 		return hr;
 
 	if ( !PySequence_Check(result) )
 		goto error;
-	int len;
 	len = PyObject_Length(result);
 	if ( len == -1 )
 		goto error;
-	if ( len > (int)celt)
+	if ( len > (Py_ssize_t)celt)
 		len = celt;
 
 	if ( pCeltFetched )
-		*pCeltFetched = len;
+		*pCeltFetched = PyWin_SAFE_DOWNCAST(len, Py_ssize_t, ULONG);
 
-	int i;
+	Py_ssize_t i;
 	for ( i = 0; i < len; ++i )
 	{
 		PyObject *ob = PySequence_GetItem(result, i);
@@ -222,7 +222,7 @@ STDMETHODIMP PyGEnumDebugPropertyInfo::Next(
 
 	Py_DECREF(result);
 
-	return len < (int)celt ? S_FALSE : S_OK;
+	return len < (Py_ssize_t)celt ? S_FALSE : S_OK;
 
   error:
 	PyErr_Clear();	// just in case

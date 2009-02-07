@@ -30,7 +30,7 @@ class PyGProcessDebugManager : public PyGatewayBase, public IProcessDebugManager
 {
 protected:
 	PyGProcessDebugManager(PyObject *instance) : PyGatewayBase(instance) { ; }
-	PYGATEWAY_MAKE_SUPPORT(PyGProcessDebugManager, IProcessDebugManager, IID_IProcessDebugManager)
+	PYGATEWAY_MAKE_SUPPORT(PyGProcessDebugManager, IProcessDebugManager, __uuidof(IProcessDebugManager))
 
 	// IProcessDebugManager
 	STDMETHOD(CreateApplication)(
