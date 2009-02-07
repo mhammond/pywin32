@@ -473,8 +473,6 @@ class TimeZoneInfo(datetime.tzinfo):
 	def dst(self, dt):
 		"Calculates the daylight savings offset according to the datetime.tzinfo spec"
 		if dt is None: return
-		assert dt.tzinfo is self
-
 		winInfo = self.getWinInfo(dt.year)
 		if not self.fixedStandardTime and self._inDaylightSavings(dt):
 			result = winInfo.daylight_bias
