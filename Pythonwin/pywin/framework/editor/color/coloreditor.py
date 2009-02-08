@@ -119,7 +119,7 @@ class SyntEditView(SyntEditViewParent):
 
 		width = GetEditorOption("Marker Margin Width", 16)
 		self.SCISetMarginWidthN(1, width)
-		width = GetEditorOption("Folding Margin Width", 12)
+		width = GetEditorOption("Fold Margin Width", 12)
 		self.SCISetMarginWidthN(2, width)
 		width = GetEditorOption("Line Number Margin Width", 0)
 		self.SCISetMarginWidthN(0, width)
