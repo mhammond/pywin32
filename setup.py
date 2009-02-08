@@ -1436,6 +1436,7 @@ win32_extensions.append(
     )
 
 for info in (
+        # (name, libraries, UNICODE, WINVER, sources)
         ("mmapfile", "", None),
         ("odbc", "odbc32 odbccp32", None),
         ("perfmon", "", True),
@@ -1443,7 +1444,10 @@ for info in (
         ("win2kras", "rasapi32", None, 0x0500),
         ("win32cred", "AdvAPI32 credui", True, 0x0501, 'win32/src/win32credmodule.cpp'),
         ("win32crypt", "Crypt32", None, 0x0500, 'win32/src/win32crypt.i'),
-        ("win32file", "oleaut32", None, 0x0500),
+        ("win32file", "", None, 0x0500, """
+              win32/src/win32file.i
+              win32/src/win32file_comm.cpp
+              """),
         ("win32event", "user32", None),
         ("win32clipboard", "gdi32 user32 shell32", None),
         ("win32evtlog", "advapi32 oleaut32", None),
