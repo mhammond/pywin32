@@ -175,7 +175,7 @@ public:
 };
 #endif /* __PYWINTYPES_H__ */
 
-class PYWINTYPES_EXPORT PyDEVMODE : public PyObject
+class PYWINTYPES_EXPORT PyDEVMODEA : public PyObject
 {
 public:
 	static struct PyMemberDef members[];
@@ -190,21 +190,21 @@ public:
 	static PyGetSetDef getset[];
 
 	static void deallocFunc(PyObject *ob);
-	PyDEVMODE(PDEVMODE);
-	PyDEVMODE(void);
-	PyDEVMODE(USHORT);
+	PyDEVMODEA(PDEVMODEA);
+	PyDEVMODEA(void);
+	PyDEVMODEA(USHORT);
 	static PyObject *Clear(PyObject *self, PyObject *args);
 	static PyObject *tp_new(PyTypeObject *, PyObject *, PyObject *);
 	// use this where a function modifies a passed-in PyDEVMODE to make changes visible to Python
 	void modify_in_place(void)
 		{memcpy(&devmode, pdevmode, pdevmode->dmSize);}
-	PDEVMODE GetDEVMODE(void);
+	PDEVMODEA GetDEVMODE(void);
 protected:
 	// Pointer to variable length DEVMODE with dmDriverExtra bytes allocated at end, always use this externally
-	PDEVMODE pdevmode;
+	PDEVMODEA pdevmode;
 	// copy of fixed portion of DEVMODE for structmember api to access
-	DEVMODE  devmode;   
-	~PyDEVMODE();
+	DEVMODEA  devmode;   
+	~PyDEVMODEA();
 };
 
 // Unicode version of DEVMODE
@@ -239,3 +239,9 @@ protected:
 	DEVMODEW devmode;   
 	~PyDEVMODEW();
 };
+
+#ifdef UNICODE
+#define PyDEVMODE PyDEVMODEW
+#else
+#define PyDEVMODE PyDEVMODEA
+#endif
