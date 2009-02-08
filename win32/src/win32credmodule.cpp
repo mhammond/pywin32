@@ -100,13 +100,15 @@ BOOL PyWinObject_AsCREDENTIAL_ATTRIBUTEArray(PyObject *obattrs, PCREDENTIAL_ATTR
 			PyErr_Format(PyExc_MemoryError, "Unable to allocate %d bytes", *attr_cnt * sizeof(CREDENTIAL_ATTRIBUTE));
 			ret=FALSE;
 			}
-		else
+		else {
+			memset(*attrs, 0, *attr_cnt * sizeof(CREDENTIAL_ATTRIBUTE));
 			for (attr_ind=0; attr_ind<*attr_cnt; attr_ind++){
 				ret=PyWinObject_AsCREDENTIAL_ATTRIBUTE(PyTuple_GET_ITEM(attr_tuple, attr_ind), &(*attrs)[attr_ind]);
 				if (!ret)
 					break;
 				}
 		}
+	}
 	if (!ret)
 		PyWinObject_FreeCREDENTIAL_ATTRIBUTEArray(attrs, *attr_cnt);
 	Py_DECREF(attr_tuple);
