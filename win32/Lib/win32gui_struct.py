@@ -27,6 +27,7 @@
 # win32gui (ie, the Pack* functions) - but doesn't make as much sense for
 # the Unpack* functions, where the aim is user convenience.
 
+import sys
 import win32gui
 import win32con
 import struct
@@ -57,10 +58,23 @@ else:
 def _make_empty_text_buffer(cch):
     return _make_text_buffer("\0" * cch)
 
+if sys.version_info < (3,0):
+    def _make_memory(ob):
+        return str(buffer(ob))
+
+    def _make_bytes(sval):
+        return sval
+else:
+    def _make_memory(ob):
+        return bytes(memoryview(ob))
+
+    def _make_bytes(sval):
+        return sval.encode('ascii')
+
 # Generic WM_NOTIFY unpacking
 def UnpackWMNOTIFY(lparam):
     format = "iii"
-    buf = win32gui.PyMakeBuffer(struct.calcsize(format), lparam)
+    buf = win32gui.PyGetMemory(lparam, struct.calcsize(format))
     hwndFrom, idFrom, code = struct.unpack(format, buf)
     return hwndFrom, idFrom, code
     
@@ -371,7 +385,7 @@ def UnpackTVITEM(buffer):
 # Unpack the lparm from a "TVNOTIFY" message
 def UnpackTVNOTIFY(lparam):
     format = "iiii40s40s"
-    buf = win32gui.PyMakeBuffer(struct.calcsize(format), lparam)
+    buf = win32gui.PyGetMemory(lparam, struct.calcsize(format))
     hwndFrom, id, code, action, buf_old, buf_new \
           = struct.unpack(format, buf)
     item_old = UnpackTVITEM(buf_old)
@@ -380,7 +394,7 @@ def UnpackTVNOTIFY(lparam):
 
 def UnpackTVDISPINFO(lparam):
     format = "iii40s"
-    buf = win32gui.PyMakeBuffer(struct.calcsize(format), lparam)
+    buf = win32gui.PyGetMemory(lparam, struct.calcsize(format))
     hwndFrom, id, code, buf_item = struct.unpack(format, buf)
     item = UnpackTVITEM(buf_item)
     return hwndFrom, id, code, item
@@ -445,14 +459,14 @@ def UnpackLVITEM(buffer):
 # Unpack an "LVNOTIFY" message
 def UnpackLVDISPINFO(lparam):
     format = "iii40s"
-    buf = win32gui.PyMakeBuffer(struct.calcsize(format), lparam)
+    buf = win32gui.PyGetMemory(lparam, struct.calcsize(format))
     hwndFrom, id, code, buf_item = struct.unpack(format, buf)
     item = UnpackLVITEM(buf_item)
     return hwndFrom, id, code, item
 
 def UnpackLVNOTIFY(lparam):
     format = "3i8i"
-    buf = win32gui.PyMakeBuffer(struct.calcsize(format), lparam)
+    buf = win32gui.PyGetMemory(lparam, struct.calcsize(format))
     hwndFrom, id, code, item, subitem, newstate, oldstate, \
         changed, pt_x, pt_y, lparam = struct.unpack(format, buf)
     return hwndFrom, id, code, item, subitem, newstate, oldstate, \
@@ -584,25 +598,40 @@ def PackHDITEM(cxy = None, text = None, hbm = None, fmt = None,
 
 # Generic function for packing a DEV_BROADCAST_* structure - generally used
 # by the other PackDEV_BROADCAST_* functions in this module.
-def PackDEV_BROADCAST(devicetype, rest_fmt, rest_data, extra_data=''):
+def PackDEV_BROADCAST(devicetype, rest_fmt, rest_data, extra_data=_make_bytes('')):
     # It seems a requirement is 4 byte alignment, even for the 'BYTE data[1]'
     # field (eg, that would make DEV_BROADCAST_HANDLE 41 bytes, but we must
     # be 44.
-    extra_data += '\0' * (4-len(extra_data)%4)
+    extra_data += _make_bytes('\0' * (4-len(extra_data)%4))
     format = "iii" + rest_fmt
     full_size = struct.calcsize(format) + len(extra_data)
     data = (full_size, devicetype, 0) + rest_data
     return struct.pack(format, *data) + extra_data
 
-def PackDEV_BROADCAST_HANDLE(handle, hdevnotify=0, guid="\0"*16, name_offset=0, data="\0"):
+def PackDEV_BROADCAST_HANDLE(handle, hdevnotify=0, guid=_make_bytes("\0"*16), name_offset=0, data=_make_bytes("\0")):
     return PackDEV_BROADCAST(win32con.DBT_DEVTYP_HANDLE, "PP16sl",
-                             (long(handle), long(hdevnotify), str(buffer(guid)), name_offset),
+                             (long(handle), long(hdevnotify), _make_memory(guid), name_offset),
                              data)
 
+def PackDEV_BROADCAST_VOLUME(unitmask, flags):
+    return PackDEV_BROADCAST(win32con.DBT_DEVTYP_VOLUME, "II",
+                             (unitmask, flags))
+
 def PackDEV_BROADCAST_DEVICEINTERFACE(classguid, name=""):
+    if win32gui.UNICODE:
+        # This really means "is py3k?" - so not accepting bytes is OK
+        if not isinstance(name, unicode):
+            raise TypeError("Must provide unicode for the name")
+        name = name.encode('unicode-internal')
+    else:
+        # py2k was passed a unicode object - encode as mbcs.
+        if isinstance(name, unicode):
+            name = name.encode('mbcs')
+
+    # 16 bytes for the IID followed by \0 term'd string.
     rest_fmt = "16s%ds" % len(name)
-    # str(buffer(iid)) hoops necessary to get the raw IID bytes.
-    rest_data = (str(buffer(pywintypes.IID(classguid))), name)
+    # _make_memory(iid) hoops necessary to get the raw IID bytes.
+    rest_data = (_make_memory(pywintypes.IID(classguid)), name)
     return PackDEV_BROADCAST(win32con.DBT_DEVTYP_DEVICEINTERFACE, rest_fmt, rest_data)
 
 # An object returned by UnpackDEV_BROADCAST.
@@ -615,31 +644,33 @@ class DEV_BROADCAST_INFO:
 
 # Support for unpacking the 'lparam'    
 def UnpackDEV_BROADCAST(lparam):
-    # guard for 0 here, otherwise PyMakeBuffer will create a new buffer.
     if lparam == 0:
         return None
-    hdr_size = struct.calcsize("iii")
-    hdr_buf = win32gui.PyMakeBuffer(hdr_size, lparam)
+    hdr_format = "iii"
+    hdr_size = struct.calcsize(hdr_format)
+    hdr_buf = win32gui.PyGetMemory(lparam, hdr_size)
     size, devtype, reserved = struct.unpack("iii", hdr_buf)
-    rest = win32gui.PyMakeBuffer(size-hdr_size, lparam+hdr_size)
+    # Due to x64 alignment issues, we need to use the full format string over
+    # the entire buffer.  ie, on x64:
+    # calcsize('iiiP') != calcsize('iii')+calcsize('P')
+    buf = win32gui.PyGetMemory(lparam, size)
 
     extra = x = {}
     if devtype == win32con.DBT_DEVTYP_HANDLE:
         # 2 handles, a GUID, a LONG and possibly an array following...
-        fmt = "PP16sl"
-        x['handle'], x['hdevnotify'], guid_bytes, x['nameoffset'] = \
-            struct.unpack(fmt, rest[:struct.calcsize(fmt)])
+        fmt = hdr_format + "PP16sl"
+        _, _, _, x['handle'], x['hdevnotify'], guid_bytes, x['nameoffset'] = \
+            struct.unpack(fmt, buf[:struct.calcsize(fmt)])
         x['eventguid'] = pywintypes.IID(guid_bytes, True)
     elif devtype == win32con.DBT_DEVTYP_DEVICEINTERFACE:
-        # guid, null-terminated name
-        x['classguid'] = pywintypes.IID(rest[:16], 1)
-        name = rest[16:]
-        if '\0' in name:
-            name = name.split('\0', 1)[0]
-        x['name'] = name
+        fmt = hdr_format + "16s"
+        _, _, _, guid_bytes = struct.unpack(fmt, buf[:struct.calcsize(fmt)])
+        x['classguid'] = pywintypes.IID(guid_bytes, True)
+        x['name'] = win32gui.PyGetString(lparam + struct.calcsize(fmt))
     elif devtype == win32con.DBT_DEVTYP_VOLUME:
         # int mask and flags
-        x['unitmask'], x['flags'] = struct.unpack("II", rest[:struct.calcsize("II")])
+        fmt = hdr_format + "II"
+        _, _, _, x['unitmask'], x['flags'] = struct.unpack(fmt, buf[:struct.calcsize(fmt)])
     else:
         raise NotImplementedError("unknown device type %d" % (devtype,))
     return DEV_BROADCAST_INFO(devtype, **extra)
