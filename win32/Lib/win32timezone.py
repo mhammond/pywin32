@@ -730,9 +730,9 @@ def resolveMUITimeZone(spec):
 
 # the following code implements a RangeMap and its support classes
 
-ascending = cmp
+ascending = lambda a, b: b < a
 def descending(a, b):
-	return -ascending(a, b)
+	return not ascending(a, b)
 
 class RangeMap(dict):
 	"""A dictionary-like object that uses the keys as bounds for a range.
