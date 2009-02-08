@@ -306,6 +306,8 @@ STYLE_IDENTIFIER = "Identifier"
 STYLE_BRACE = "Brace/Paren - matching"
 STYLE_BRACEBAD = "Brace/Paren - unmatched"
 STYLE_STRINGEOL = "String with no terminator"
+STYLE_LINENUMBER = "Line numbers"
+STYLE_INDENTGUIDE = "Indent guide"
 
 STRING_STYLES = [STYLE_STRING, STYLE_SQSTRING, STYLE_TQSSTRING, STYLE_TQDSTRING, STYLE_STRINGEOL]
 
@@ -327,6 +329,8 @@ PYTHON_STYLES = [
 		(STYLE_METHOD,       (0, 1, 200, 0, 0x808000), None,     scintillacon.SCE_P_DEFNAME),
 		(STYLE_OPERATOR,     (0, 0, 200, 0, 0x000000), None,     scintillacon.SCE_P_OPERATOR),
 		(STYLE_IDENTIFIER,   (0, 0, 200, 0, 0x000000), None,     scintillacon.SCE_P_IDENTIFIER ),
+		(STYLE_LINENUMBER,   (0, 0, 200, 0, 0x000000), None,     scintillacon.STYLE_LINENUMBER),
+		(STYLE_INDENTGUIDE,  (0, 0, 200, 0, 0x000000), None,     scintillacon.STYLE_INDENTGUIDE),
 ]
 
 # These styles _always_ have this specific style number, regardless of
