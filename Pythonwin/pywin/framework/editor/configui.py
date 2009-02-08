@@ -31,7 +31,7 @@ class EditorPropertyPage(dialog.PropertyPage):
 		self["Marker Margin Width"] = GetEditorOption("Marker Margin Width", 16)
 
 		# Folding		
-		self._AddEditorOption(win32ui.IDC_MARGIN_FOLD, "i", "Fold Margin Width", 20)
+		self._AddEditorOption(win32ui.IDC_MARGIN_FOLD, "i", "Fold Margin Width", 12)
 		self._AddEditorOption(win32ui.IDC_FOLD_ENABLE, "i", "Enable Folding", 1)
 		self._AddEditorOption(win32ui.IDC_FOLD_ON_OPEN, "i", "Fold On Open", 0)
 		self._AddEditorOption(win32ui.IDC_FOLD_SHOW_LINES, "i", "Fold Lines", 1)
