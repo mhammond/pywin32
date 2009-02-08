@@ -9,13 +9,13 @@
 #endif
 
 // @object PyDEVMODE|Python object wrapping a DEVMODE structure
-struct PyMethodDef PyDEVMODE::methods[] = {
-	{"Clear",     PyDEVMODE::Clear, 1}, 	// @pymeth Clear|Resets all members of the structure
+struct PyMethodDef PyDEVMODEA::methods[] = {
+	{"Clear",     PyDEVMODEA::Clear, 1}, 	// @pymeth Clear|Resets all members of the structure
 	{NULL}
 };
 
-#define OFF(e) offsetof(PyDEVMODE, e)
-struct PyMemberDef PyDEVMODE::members[] = {
+#define OFF(e) offsetof(PyDEVMODEA, e)
+struct PyMemberDef PyDEVMODEA::members[] = {
 	// @prop int|SpecVersion|Should always be set to DM_SPECVERSION
 	{"SpecVersion", 	T_USHORT, OFF(devmode.dmSpecVersion), 0, "Should always be set to DM_SPECVERSION"},
 	// @prop int|DriverVersion|Version nbr assigned to printer driver by vendor
@@ -105,16 +105,16 @@ struct PyMemberDef PyDEVMODE::members[] = {
 
 
 // @prop str|DeviceName|String of at most 32 chars
-PyObject *PyDEVMODE::get_DeviceName(PyObject *self, void *unused)
+PyObject *PyDEVMODEA::get_DeviceName(PyObject *self, void *unused)
 {
-	PDEVMODE pdevmode=((PyDEVMODE *)self)->pdevmode;
+	PDEVMODEA pdevmode=((PyDEVMODEA *)self)->pdevmode;
 	if (pdevmode->dmDeviceName[CCHDEVICENAME-1]==0)  // in case DeviceName fills space and has no trailing NULL
 		return PyString_FromString((char *)&pdevmode->dmDeviceName);
 	else
 		return PyString_FromStringAndSize((char *)&pdevmode->dmDeviceName, CCHDEVICENAME);
 }
 
-int PyDEVMODE::set_DeviceName(PyObject *self, PyObject *v, void *unused)
+int PyDEVMODEA::set_DeviceName(PyObject *self, PyObject *v, void *unused)
 {
 	if(v==NULL){
 		PyErr_SetString(PyExc_AttributeError, "Attributes of PyDEVMODE can't be deleted");
@@ -128,18 +128,18 @@ int PyDEVMODE::set_DeviceName(PyObject *self, PyObject *v, void *unused)
 		PyErr_Format(PyExc_ValueError,"DeviceName must be a string of length %d or less", CCHDEVICENAME);
 		return -1;
 		}
-	PDEVMODE pdevmode=&((PyDEVMODE *)self)->devmode;
+	PDEVMODEA pdevmode=&((PyDEVMODEA *)self)->devmode;
 	ZeroMemory(&pdevmode->dmDeviceName, CCHDEVICENAME);
 	memcpy(&pdevmode->dmDeviceName, value, valuelen);
 	// update variable length DEVMODE with same value
-	memcpy(((PyDEVMODE *)self)->pdevmode, pdevmode, pdevmode->dmSize);
+	memcpy(((PyDEVMODEA *)self)->pdevmode, pdevmode, pdevmode->dmSize);
 	return 0;
 }
 
 // @prop str|FormName|Name of form as returned by <om win32print.EnumForms>, at most 32 chars
-PyObject *PyDEVMODE::get_FormName(PyObject *self, void *unused)
+PyObject *PyDEVMODEA::get_FormName(PyObject *self, void *unused)
 {
-	PDEVMODE pdevmode=((PyDEVMODE *)self)->pdevmode;
+	PDEVMODEA pdevmode=((PyDEVMODEA *)self)->pdevmode;
 	if (pdevmode->dmFormName[CCHFORMNAME-1]==0)  // If dmFormName occupies whole 32 chars, trailing NULL not present
 		return PyString_FromString((char *)&pdevmode->dmFormName);
 	else
@@ -147,7 +147,7 @@ PyObject *PyDEVMODE::get_FormName(PyObject *self, void *unused)
 
 }
 
-int PyDEVMODE::set_FormName(PyObject *self, PyObject *v, void *unused)
+int PyDEVMODEA::set_FormName(PyObject *self, PyObject *v, void *unused)
 {
 	if(v==NULL){
 		PyErr_SetString(PyExc_AttributeError, "Attributes of PyDEVMODE can't be deleted");
@@ -161,18 +161,18 @@ int PyDEVMODE::set_FormName(PyObject *self, PyObject *v, void *unused)
 		PyErr_Format(PyExc_ValueError,"FormName must be a string of length %d or less", CCHFORMNAME);
 		return -1;
 		}
-	PDEVMODE pdevmode=&((PyDEVMODE *)self)->devmode;
+	PDEVMODEA pdevmode=&((PyDEVMODEA *)self)->devmode;
 	ZeroMemory(&pdevmode->dmFormName, CCHFORMNAME);
 	memcpy(&pdevmode->dmFormName, value, valuelen);
 	// update variable length PDEVMODE with same value
-	memcpy(((PyDEVMODE *)self)->pdevmode, pdevmode, pdevmode->dmSize);
+	memcpy(((PyDEVMODEA *)self)->pdevmode, pdevmode, pdevmode->dmSize);
 	return 0;
 }
 
 // @prop str|DriverData|Driver data appended to end of structure
-PyObject *PyDEVMODE::get_DriverData(PyObject *self, void *unused)
+PyObject *PyDEVMODEA::get_DriverData(PyObject *self, void *unused)
 {
-	PDEVMODE pdevmode=((PyDEVMODE *)self)->pdevmode;
+	PDEVMODEA pdevmode=((PyDEVMODEA *)self)->pdevmode;
 	if (pdevmode->dmDriverExtra==0){  // No extra space allocated
 		Py_INCREF(Py_None);
 		return Py_None;
@@ -180,7 +180,7 @@ PyObject *PyDEVMODE::get_DriverData(PyObject *self, void *unused)
 	return PyString_FromStringAndSize((char *)((ULONG_PTR)pdevmode + pdevmode->dmSize), pdevmode->dmDriverExtra);
 }
 
-int PyDEVMODE::set_DriverData(PyObject *self, PyObject *v, void *unused)
+int PyDEVMODEA::set_DriverData(PyObject *self, PyObject *v, void *unused)
 {
 	if(v==NULL){
 		PyErr_SetString(PyExc_AttributeError, "Attributes of PyDEVMODE can't be deleted");
@@ -190,7 +190,7 @@ int PyDEVMODE::set_DriverData(PyObject *self, PyObject *v, void *unused)
 	Py_ssize_t valuelen;
 	if (PyString_AsStringAndSize(v, &value, &valuelen)==-1)
 		return -1;
-	PDEVMODE pdevmode=((PyDEVMODE *)self)->pdevmode;
+	PDEVMODEA pdevmode=((PyDEVMODEA *)self)->pdevmode;
 	if (valuelen > pdevmode->dmDriverExtra){
 		PyErr_Format(PyExc_ValueError,"Length of DriverData cannot be longer that DriverExtra (%d bytes)", pdevmode->dmDriverExtra);
 		return -1;
@@ -202,24 +202,24 @@ int PyDEVMODE::set_DriverData(PyObject *self, PyObject *v, void *unused)
 	return 0;
 }
 
-PyGetSetDef PyDEVMODE::getset[] = {
-    {"DeviceName", PyDEVMODE::get_DeviceName, PyDEVMODE::set_DeviceName,
+PyGetSetDef PyDEVMODEA::getset[] = {
+    {"DeviceName", PyDEVMODEA::get_DeviceName, PyDEVMODEA::set_DeviceName,
 		"String of at most 32 chars"},
-    {"FormName", PyDEVMODE::get_FormName, PyDEVMODE::set_FormName,
+    {"FormName", PyDEVMODEA::get_FormName, PyDEVMODEA::set_FormName,
 		"Name of form as returned by EnumForms, at most 32 chars"},
-    {"DriverData", PyDEVMODE::get_DriverData, PyDEVMODE::set_DriverData,
+    {"DriverData", PyDEVMODEA::get_DriverData, PyDEVMODEA::set_DriverData,
 		"Driver data appended to end of structure"},
     {NULL}
 };
 
 
-PYWINTYPES_EXPORT PyTypeObject PyDEVMODEType =
+PYWINTYPES_EXPORT PyTypeObject PyDEVMODEAType =
 {
 	PYWIN_OBJECT_HEAD
-	"PyDEVMODE",
-	sizeof(PyDEVMODE),
+	"PyDEVMODEA",
+	sizeof(PyDEVMODEA),
 	0,
-	PyDEVMODE::deallocFunc,
+	PyDEVMODEA::deallocFunc,
 	0,			// tp_print;
 	0,			// tp_getattr
 	0,			// tp_setattr
@@ -242,9 +242,9 @@ PYWINTYPES_EXPORT PyTypeObject PyDEVMODEType =
 	0,			// tp_weaklistoffset;
 	0,			// tp_iter
 	0,			// iternextfunc tp_iternext
-	PyDEVMODE::methods,
-	PyDEVMODE::members,
-	PyDEVMODE::getset,		// tp_getset;
+	PyDEVMODEA::methods,
+	PyDEVMODEA::members,
+	PyDEVMODEA::getset,		// tp_getset;
 	0,			// tp_base;
 	0,			// tp_dict;
 	0,			// tp_descr_get;
@@ -252,27 +252,27 @@ PYWINTYPES_EXPORT PyTypeObject PyDEVMODEType =
 	0,			// tp_dictoffset;
 	0,			// tp_init;
 	0,			// tp_alloc;
-	PyDEVMODE::tp_new	// newfunc tp_new;
+	PyDEVMODEA::tp_new	// newfunc tp_new;
 };
 
-PyDEVMODE::PyDEVMODE(PDEVMODE pdm)
+PyDEVMODEA::PyDEVMODEA(PDEVMODEA pdm)
 {
-	ob_type = &PyDEVMODEType;
+	ob_type = &PyDEVMODEAType;
 	memcpy(&devmode, pdm, pdm->dmSize);
-	pdevmode=(PDEVMODE)malloc(pdm->dmSize + pdm->dmDriverExtra);
+	pdevmode=(PDEVMODEA)malloc(pdm->dmSize + pdm->dmDriverExtra);
 	if (pdevmode==NULL)
-		PyErr_Format(PyExc_MemoryError, "PyDEVMODE::PyDEVMODE - Unable to allocate DEVMODE of size %d",
+		PyErr_Format(PyExc_MemoryError, "PyDEVMODEA::PyDEVMODE - Unable to allocate DEVMODE of size %d",
 		pdm->dmSize + pdm->dmDriverExtra);
 	else
 		memcpy(pdevmode, pdm, pdm->dmSize + pdm->dmDriverExtra);
 	_Py_NewReference(this);
 }
 
-PyDEVMODE::PyDEVMODE(void)
+PyDEVMODEA::PyDEVMODEA(void)
 {
-	ob_type = &PyDEVMODEType;
-	static WORD dmSize=sizeof(DEVMODE);
-	pdevmode=(PDEVMODE)malloc(dmSize);
+	ob_type = &PyDEVMODEAType;
+	static WORD dmSize=sizeof(DEVMODEA);
+	pdevmode=(PDEVMODEA)malloc(dmSize);
 	ZeroMemory(pdevmode,dmSize);
 	pdevmode->dmSize=dmSize;
 	pdevmode->dmSpecVersion=DM_SPECVERSION;
@@ -282,11 +282,11 @@ PyDEVMODE::PyDEVMODE(void)
 	_Py_NewReference(this);
 }
 
-PyDEVMODE::PyDEVMODE(USHORT dmDriverExtra)
+PyDEVMODEA::PyDEVMODEA(USHORT dmDriverExtra)
 {
-	ob_type = &PyDEVMODEType;
-	static WORD dmSize=sizeof(DEVMODE);
-	pdevmode=(PDEVMODE)malloc(dmSize+dmDriverExtra);
+	ob_type = &PyDEVMODEAType;
+	static WORD dmSize=sizeof(DEVMODEA);
+	pdevmode=(PDEVMODEA)malloc(dmSize+dmDriverExtra);
 	ZeroMemory(pdevmode,dmSize+dmDriverExtra);
 	pdevmode->dmSize=dmSize;
 	pdevmode->dmSpecVersion=DM_SPECVERSION;
@@ -298,7 +298,7 @@ PyDEVMODE::PyDEVMODE(USHORT dmDriverExtra)
 	_Py_NewReference(this);
 }
 
-PyDEVMODE::~PyDEVMODE()
+PyDEVMODEA::~PyDEVMODEA()
 {
 	if (pdevmode!=NULL)
 		free(pdevmode);
@@ -306,27 +306,27 @@ PyDEVMODE::~PyDEVMODE()
 
 BOOL PyDEVMODE_Check(PyObject *ob)
 {
-	if (ob->ob_type!=&PyDEVMODEType){
+	if (ob->ob_type!=&PyDEVMODEAType){
 		PyErr_SetString(PyExc_TypeError,"Object must be a PyDEVMODE");	
 		return FALSE;
 		}
 	return TRUE;
 }
 
-void PyDEVMODE::deallocFunc(PyObject *ob)
+void PyDEVMODEA::deallocFunc(PyObject *ob)
 {
-	delete (PyDEVMODE *)ob;
+	delete (PyDEVMODEA *)ob;
 }
 
-PDEVMODE PyDEVMODE::GetDEVMODE(void)
+PDEVMODEA PyDEVMODEA::GetDEVMODE(void)
 {
 	return pdevmode;
 }
 
 // @pymethod |PyDEVMODE|Clear|Resets all members of the structure
-PyObject *PyDEVMODE::Clear(PyObject *self, PyObject *args)
+PyObject *PyDEVMODEA::Clear(PyObject *self, PyObject *args)
 {
-	PDEVMODE pdevmode=((PyDEVMODE *)self)->pdevmode;
+	PDEVMODEA pdevmode=((PyDEVMODEA *)self)->pdevmode;
 	USHORT dmDriverExtra=pdevmode->dmDriverExtra;
 	WORD dmSize=pdevmode->dmSize;
 	DWORD totalsize=dmSize + dmDriverExtra;
@@ -335,7 +335,7 @@ PyObject *PyDEVMODE::Clear(PyObject *self, PyObject *args)
 	pdevmode->dmSize=dmSize;
 	pdevmode->dmSpecVersion=DM_SPECVERSION;
 
-	pdevmode=&((PyDEVMODE *)self)->devmode;
+	pdevmode=&((PyDEVMODEA *)self)->devmode;
 	ZeroMemory(pdevmode, dmSize);
 	pdevmode->dmDriverExtra=dmDriverExtra;
 	pdevmode->dmSize=dmSize;
@@ -344,13 +344,13 @@ PyObject *PyDEVMODE::Clear(PyObject *self, PyObject *args)
 	return Py_None;
 }
 
-PyObject *PyDEVMODE::tp_new(PyTypeObject *typ, PyObject *args, PyObject *kwargs)
+PyObject *PyDEVMODEA::tp_new(PyTypeObject *typ, PyObject *args, PyObject *kwargs)
 {
 	USHORT DriverExtra=0;
 	static char *keywords[]={"DriverExtra", NULL};
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|H", keywords, &DriverExtra))
 		return NULL;
-	return new PyDEVMODE(DriverExtra);
+	return new PyDEVMODEA(DriverExtra);
 }
 
 // If pywintypes is compiled with UNICODE defined, all modules that use these
@@ -369,26 +369,26 @@ BOOL PyWinObject_AsDEVMODE(PyObject *ob, PDEVMODE *ppDEVMODE, BOOL bNoneOk)
 			}
 	if (!PyDEVMODE_Check(ob))
 		return FALSE;
-	*ppDEVMODE=((PyDEVMODE *)ob)->GetDEVMODE();
+	*ppDEVMODE=((PyDEVMODEA *)ob)->GetDEVMODE();
 	return TRUE;
 }
 
-PyObject *PyWinObject_FromDEVMODE(PDEVMODE pDEVMODE)
+PyObject *PyWinObject_FromDEVMODE(PDEVMODEA pdevmode)
 {
 	static WORD dmSize=sizeof(DEVMODE);
-	if (pDEVMODE==NULL){
+	if (pdevmode==NULL){
 		Py_INCREF(Py_None);
 		return Py_None;
 		}
 
 	// make sure we can't overflow the fixed size DEVMODE in PyDEVMODE
-	if (pDEVMODE->dmSize>dmSize){
-		PyErr_Format(PyExc_WindowsError,"DEVMODE structure of size %d greater than supported size of %d", pDEVMODE->dmSize, dmSize);
+	if (pdevmode->dmSize>dmSize){
+		PyErr_Format(PyExc_WindowsError,"DEVMODE structure of size %d greater than supported size of %d", pdevmode->dmSize, dmSize);
 		return NULL;
 		}
-	PyObject *ret=new PyDEVMODE(pDEVMODE);
+	PyObject *ret=new PyDEVMODEA(pdevmode);
 	// check that variable sized pdevmode is allocated
-	if (((PyDEVMODE *)ret)->GetDEVMODE()==NULL){
+	if (((PyDEVMODEA *)ret)->GetDEVMODE()==NULL){
 		Py_DECREF(ret);
 		ret=NULL;
 		}
@@ -655,7 +655,7 @@ PyDEVMODEW::PyDEVMODEW(PDEVMODEW pdm)
 	memcpy(&devmode, pdm, pdm->dmSize);
 	pdevmode=(PDEVMODEW)malloc(pdm->dmSize + pdm->dmDriverExtra);
 	if (pdevmode==NULL)
-		PyErr_Format(PyExc_MemoryError, "PyDEVMODE::PyDEVMODE - Unable to allocate DEVMODE of size %d",
+		PyErr_Format(PyExc_MemoryError, "PyDEVMODEA::PyDEVMODE - Unable to allocate DEVMODE of size %d",
 			pdm->dmSize + pdm->dmDriverExtra);
 	else
 		memcpy(pdevmode, pdm, pdm->dmSize + pdm->dmDriverExtra);

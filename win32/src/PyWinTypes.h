@@ -555,7 +555,7 @@ PYWINTYPES_EXPORT PyObject *PyWinObject_FromRECT(LPRECT prect);
 */
 extern PYWINTYPES_EXPORT PyTypeObject PySECURITY_ATTRIBUTESType;
 #define PySECURITY_ATTRIBUTES_Check(ob)		((ob)->ob_type == &PySECURITY_ATTRIBUTESType)
-extern PYWINTYPES_EXPORT PyTypeObject PyDEVMODEType;
+extern PYWINTYPES_EXPORT PyTypeObject PyDEVMODEAType;
 extern PYWINTYPES_EXPORT PyTypeObject PyDEVMODEWType;
 
 PYWINTYPES_EXPORT PyObject *PyWinMethod_NewSECURITY_ATTRIBUTES(PyObject *self, PyObject *args);
