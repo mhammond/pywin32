@@ -915,6 +915,32 @@ int PyWinGlobals_Ensure()
 		// @tupleitem 2|None/tuple|excepinfo|An optional EXCEPINFO tuple.
 		// @tupleitem 3|None/int|argerror|The index of the argument in error, or (usually) None or -1
 	}
+
+	/* PyType_Ready *needs* to be called anytime pywintypesxx.dll is loaded, since
+		other extension modules can use types defined here without pywintypes itself
+		having been imported.
+		??? All extension modules that call this need to be changed to check the exit code ???
+	*/
+	if (PyType_Ready(&PyHANDLEType) == -1
+		||PyType_Ready(&PyOVERLAPPEDType) == -1
+		||PyType_Ready(&PyDEVMODEAType) == -1
+		||PyType_Ready(&PyDEVMODEWType) == -1
+		||PyType_Ready(&PyWAVEFORMATEXType) == -1
+#ifndef NO_PYWINTYPES_TIME
+		||PyType_Ready(&PyTimeType) == -1
+#endif // NO_PYWINTYPES_TIME
+#ifndef NO_PYWINTYPES_IID
+		||PyType_Ready(&PyIIDType) == -1
+#endif // NO_PYWINTYPES_IID
+#ifndef NO_PYWINTYPES_SECURITY
+		||PyType_Ready(&PySECURITY_DESCRIPTORType) == -1
+		||PyType_Ready(&PySECURITY_ATTRIBUTESType) == -1
+		||PyType_Ready(&PySIDType) == -1
+		||PyType_Ready(&PyACLType) == -1
+#endif
+		)
+		return -1;
+
 	if (!_PyWinDateTime_Init())
 		return -1;
 	return 0;
