@@ -9,8 +9,8 @@ for k,v in win32con.__dict__.items():
 free_console=True
 try:
     win32console.AllocConsole()
-except win32console.error, err_tuple:
-    if err_tuple[0]!=5:
+except win32console.error, exc:
+    if exc.winerror!=5:
         raise
     ## only free console if one was created successfully
     free_console=False
