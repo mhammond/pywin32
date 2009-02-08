@@ -365,8 +365,9 @@ static PyObject *PyBuffer_FromReadWriteMemory(void *buf, Py_ssize_t size){
 		NULL,			// internal
 		};
 	return PyMemoryView_FromBuffer(&info);
-#endif
 }
+#endif
+
 
 
 // @pyswig str/buffer|DeviceIoControl|Sends a control code to a device or file system driver
