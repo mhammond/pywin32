@@ -45,37 +45,20 @@ PyObject *PyBuffer_New(Py_ssize_t size){
 	return ret;
 }
 
-PyObject *PyBuffer_FromReadWriteMemory(void *buf, Py_ssize_t size){
-	// buf is not freed by returned object !!!!!!!
-	Py_buffer info={
-		buf,
-		NULL,			// obj added in 3.0b3
-		size,
-		FALSE,			// readonly
-		NULL,			// format
-		0,				// ndim
-		NULL,			// shape
-		NULL,			// strided
-		NULL,			// suboffsets
-		0,				// itemsize
-		NULL,			// internal
-		};
-	return PyMemoryView_FromBuffer(&info);
-}
-
 PyObject *PyBuffer_FromMemory(void *buf, Py_ssize_t size){
 	// buf is not freed by returned object !!!!!!!
+	Py_ssize_t shape0 = size;
 	Py_buffer info={
 		buf,
 		NULL,			// obj added in 3.0b3
-		size,
+		size,			// len
+		1,			// itemsize
 		TRUE,			// readonly
+		1,			// ndim
 		NULL,			// format
-		0,				// ndim
-		NULL,			// shape
-		NULL,			// strided
+		&shape0,		// shape
+		NULL,			// strides
 		NULL,			// suboffsets
-		0,				// itemsize
 		NULL,			// internal
 		};
 	return PyMemoryView_FromBuffer(&info);

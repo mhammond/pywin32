@@ -347,6 +347,28 @@ BOOLAPI DeleteFile(TCHAR *fileName);
 // @pyparm <o PyUnicode>|fileName||The filename to delete
 
 %{
+#if (PY_VERSION_HEX >= 0x03000000)
+// theoretically this could be in pywintypes, but this is the only place
+// it is called...
+static PyObject *PyBuffer_FromReadWriteMemory(void *buf, Py_ssize_t size){
+	Py_buffer info={
+		buf,
+		NULL,			// obj added in 3.0b3
+		size,
+		FALSE,			// readonly
+		0,				// ndim
+		NULL,			// format
+		NULL,			// shape
+		NULL,			// strides
+		NULL,			// suboffsets
+		0,				// itemsize
+		NULL,			// internal
+		};
+	return PyMemoryView_FromBuffer(&info);
+#endif
+}
+
+
 // @pyswig str/buffer|DeviceIoControl|Sends a control code to a device or file system driver
 // @comm Accepts keyword args
 // @rdesc If a preallocated output buffer is passed in, the returned object

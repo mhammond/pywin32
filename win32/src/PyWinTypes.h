@@ -202,7 +202,6 @@ typedef int Py_ssize_t;
 #if (PY_VERSION_HEX >= 0x03000000)
 // Py3k uses memoryview object in place of buffer
 extern PYWINTYPES_EXPORT PyObject *PyBuffer_New(Py_ssize_t size);
-extern PYWINTYPES_EXPORT PyObject *PyBuffer_FromReadWriteMemory(void *buf, Py_ssize_t size);
 extern PYWINTYPES_EXPORT PyObject *PyBuffer_FromMemory(void *buf, Py_ssize_t size);
 #endif
 
