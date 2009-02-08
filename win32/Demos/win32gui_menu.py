@@ -298,7 +298,7 @@ class MainWindow:
     def OnDrawItem(self, hwnd, msg, wparam, lparam):
         ## lparam is a DRAWITEMSTRUCT
         fmt = "5i2P4iP"
-        data = struct.unpack(fmt, PyGetString(lparam, struct.calcsize(fmt)))
+        data = struct.unpack(fmt, PyGetMemory(lparam, struct.calcsize(fmt)))
         ctlType, ctlID, itemID, itemAction, itemState, hwndItem, \
                 hDC, left, top, right, bot, itemData = data
 
