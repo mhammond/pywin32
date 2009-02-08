@@ -1557,9 +1557,13 @@ static PyObject *PyGetObjectType(PyObject *self, PyObject *args)
 %native (GetObjectType) PyGetObjectType;
 
 %{
-// @pyswig object|PyMakeBuffer|Returns a buffer object from addr,len or just len
+// NOTE: PyMakeBuffer() is a dumb name for lots of reasons, including that
+// it implies the memory is "new" and "owned" by the caller.  The "natural"
+// order of the params is wrong too.  So it's deprecated!
+
 static PyObject *PyMakeBuffer(PyObject *self, PyObject *args)
 {
+	PyErr_Warn(PyExc_PendingDeprecationWarning, "PyMakeBuffer is deprecated; use PyGetMemory instead");
 	size_t len;
 	void *addr=NULL;
 #ifdef _WIN64
@@ -1567,12 +1571,6 @@ static PyObject *PyMakeBuffer(PyObject *self, PyObject *args)
 #else
 	static char *input_fmt="l|l:PyMakeBuffer";
 #endif
-	// @pyparm int|len||length of the buffer object
-	// @pyparm int|addr||Address of the memory to reference.  If zero or not
-	// specified, a new buffer object is created with the specified size.
-	// @todo We should consider deprecating and dropping the behaviour when
-	// the address is zero - it leads to unexpected bugs, as passing NULL
-	// appears to return a reference to what was valid memory.
 	if (!PyArg_ParseTuple(args, input_fmt, &len,&addr))
 		return NULL;
 
@@ -1581,7 +1579,7 @@ static PyObject *PyMakeBuffer(PyObject *self, PyObject *args)
 	else {
 		if (IsBadReadPtr(addr, len)) {
 			PyErr_SetString(PyExc_ValueError,
-							"The value is not a valid address for reading");
+			                "The value is not a valid address for reading");
 			return NULL;
 		}
 		return PyBuffer_FromMemory(addr, len);
@@ -1589,6 +1587,32 @@ static PyObject *PyMakeBuffer(PyObject *self, PyObject *args)
 }
 %}
 %native (PyMakeBuffer) PyMakeBuffer;
+
+%{
+// @pyswig object|PyGetMemory|Returns a buffer object from and address and length
+static PyObject *PyGetMemory(PyObject *self, PyObject *args)
+{
+	void *addr;
+	size_t len;
+#ifdef _WIN64
+	static char *input_fmt="LL:PyGetMemory";
+#else
+	static char *input_fmt="ll:PyGetMemory";
+#endif
+	// @pyparm int|addr||Address of the memory to reference.
+	// @pyparm int|len||Number of bytes to return.
+	// @comm If zero is passed a ValueError will be raised.
+	if (!PyArg_ParseTuple(args, input_fmt, &addr, &len))
+		return NULL;
+	if (IsBadReadPtr(addr, len)) {
+		PyErr_SetString(PyExc_ValueError,
+		                "The value is not a valid address for reading");
+		return NULL;
+	}
+	return PyBuffer_FromMemory(addr, len);
+}
+%}
+%native (PyGetMemory) PyGetMemory;
 
 %{
 // @pyswig string|PyGetString|Returns a string from an address.
