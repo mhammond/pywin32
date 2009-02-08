@@ -14,7 +14,7 @@ def OnDeviceChange(hwnd, msg, wp, lp):
     # Unpack the 'lp' into the appropriate DEV_BROADCAST_* structure,
     # using the self-identifying data inside the DEV_BROADCAST_HDR.
     info = win32gui_struct.UnpackDEV_BROADCAST(lp)
-    print "Device change notification:", wp, info
+    print "Device change notification:", wp, str(info)
     if wp==win32con.DBT_DEVICEQUERYREMOVE and info.devicetype==win32con.DBT_DEVTYP_HANDLE:
         # Our handle is stored away in the structure - just close it
         print "Device being removed - closing handle"
