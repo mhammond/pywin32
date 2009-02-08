@@ -2,6 +2,8 @@ import unittest
 import win32gui
 import win32gui_struct
 import win32con
+import array
+import pythoncom
 
 class TestBase(unittest.TestCase):
     def assertDictEquals(self, d, **kw):
@@ -182,6 +184,40 @@ class TestLVColumn(TestBase):
         self.failUnlessEqual(image, 0)
         self.failUnlessEqual(order, 0)
 
+
+class TestDEV_BROADCAST_HANDLE(TestBase):
+    def testPackUnpack(self):
+        s = win32gui_struct.PackDEV_BROADCAST_HANDLE(123)
+        c = array.array("b", s)
+        got = win32gui_struct.UnpackDEV_BROADCAST(c.buffer_info()[0])
+        self.failUnlessEqual(got.handle, 123)
+
+    def testGUID(self):
+        s = win32gui_struct.PackDEV_BROADCAST_HANDLE(123,
+                                                     guid=pythoncom.IID_IUnknown)
+        c = array.array("b", s)
+        got = win32gui_struct.UnpackDEV_BROADCAST(c.buffer_info()[0])
+        self.failUnlessEqual(got.handle, 123)
+        self.failUnlessEqual(got.eventguid, pythoncom.IID_IUnknown)
+
+
+class TestDEV_BROADCAST_DEVICEINTERFACE(TestBase):
+    def testPackUnpack(self):
+        s = win32gui_struct.PackDEV_BROADCAST_DEVICEINTERFACE(pythoncom.IID_IUnknown,
+                                                              "hello")
+        c = array.array("b", s)
+        got = win32gui_struct.UnpackDEV_BROADCAST(c.buffer_info()[0])
+        self.failUnlessEqual(got.classguid, pythoncom.IID_IUnknown)
+        self.failUnlessEqual(got.name, "hello")
+
+
+class TestDEV_BROADCAST_VOLUME(TestBase):
+    def testPackUnpack(self):
+        s = win32gui_struct.PackDEV_BROADCAST_VOLUME(123, 456)
+        c = array.array("b", s)
+        got = win32gui_struct.UnpackDEV_BROADCAST(c.buffer_info()[0])
+        self.failUnlessEqual(got.unitmask, 123)
+        self.failUnlessEqual(got.flags, 456)
 
 if __name__=='__main__':
     unittest.main()
