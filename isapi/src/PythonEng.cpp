@@ -153,7 +153,7 @@ bool CPythonEngine::AddToPythonPath(LPCTSTR pPathName)
 	bool bFnd=false;
 	for (int i=0; i<PyList_Size(obPathList); i++){
 		PyObject * obItem = PyList_GetItem(obPathList, i);
-		if(PyObject_Compare(obNew, obItem) == 0){
+		if(PyObject_RichCompare(obNew, obItem, Py_EQ) == Py_True){
 			bFnd = true;
 			break;
 		}
