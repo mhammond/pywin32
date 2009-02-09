@@ -6,6 +6,9 @@ import copy
 import string
 import scintillacon
 
+# Used to indicate that style should use default color
+from win32con import CLR_INVALID
+
 ######################################################
 # Property Page for syntax formatting options
     
@@ -162,7 +165,7 @@ class ScintillaFormatPropertyPage(dialog.PropertyPage):
 		if code==win32con.BN_CLICKED:
 			style = self.GetSelectedStyle()
 			bg = win32api.RGB(0xff, 0xff, 0xff)
-			if style.background is not None:
+			if style.background != CLR_INVALID:
 				bg = style.background
 			d=win32ui.CreateColorDialog(bg, 0, self)
 			if d.DoModal()==win32con.IDOK:
@@ -176,7 +179,7 @@ class ScintillaFormatPropertyPage(dialog.PropertyPage):
 			self.GetDlgItem(win32ui.IDC_BUTTON4).EnableWindow(not isDef)
 			if isDef: # Being reset to the default color
 				style = self.GetSelectedStyle()
-				style.background = None
+				style.background = CLR_INVALID
 				self.UpdateUIForStyle(style)
 				self.scintilla.ApplyFormattingStyles(0)
 			else:
@@ -205,8 +208,8 @@ class ScintillaFormatPropertyPage(dialog.PropertyPage):
 		self.butIsDefault.SetCheck(style.IsBasedOnDefault())
 		self.GetDlgItem(win32ui.IDC_BUTTON3).EnableWindow(not style.IsBasedOnDefault())
 
-		self.butIsDefaultBackground.SetCheck(style.background is None)
-		self.GetDlgItem(win32ui.IDC_BUTTON4).EnableWindow(style.background is not None)
+		self.butIsDefaultBackground.SetCheck(style.background == CLR_INVALID)
+		self.GetDlgItem(win32ui.IDC_BUTTON4).EnableWindow(style.background != CLR_INVALID)
 		
 		bold = format[1] & win32con.CFE_BOLD != 0; italic = format[1] & win32con.CFE_ITALIC != 0
 		self.cboBoldItalic.SetCurSel( bold*2 + italic )

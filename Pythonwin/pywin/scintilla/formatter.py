@@ -9,6 +9,9 @@ import scintillacon
 
 WM_KICKIDLE = 0x036A
 
+# Used to indicate that style should use default color
+from win32con import CLR_INVALID
+
 debugging = 0
 if debugging:
 	# Output must go to another process else the result of
@@ -22,9 +25,11 @@ else:
 class Style:
 	"""Represents a single format
 	"""
-	def __init__(self, name, format, background = None):
+	def __init__(self, name, format, background = CLR_INVALID):
 		self.name = name # Name the format representes eg, "String", "Class"
-		self.background = background
+		# Default background for each style is only used when there are no
+		# saved settings (generally on first startup)
+		self.background = self.default_background = background
 		if type(format)==type(''):
 			self.aliased = format
 			self.format = None
@@ -65,23 +70,7 @@ class FormatterBase:
 		self.bUseFixed = 1
 		self.styles = {} # Indexed by name
 		self.styles_by_id = {} # Indexed by allocated ID.
-		# Default Background
-		self.default_background = None
-		self._LoadBackground()
-
 		self.SetStyles()
-	
-
-	def _LoadBackground( self ):
-		#load default background
-		bg = int( self.LoadPreference( "Default Background", -1 ) )
-		if bg != -1:
-			self.default_background = bg
-		if self.default_background is None:
-			self.default_background = win32api.GetSysColor(win32con.COLOR_WINDOW)
-
-	def GetDefaultBackground( self ):
-		return self.default_background
 
 	def HookFormatter(self, parent = None):
 		raise NotImplementedError()
@@ -136,11 +125,18 @@ class FormatterBase:
 		if f[1] & 2: scintilla.SCIStyleSetItalic(stylenum, 1)
 		else: scintilla.SCIStyleSetItalic(stylenum, 0)
 		scintilla.SCIStyleSetSize(stylenum, int(baseFormat[2]/20))
-		if style.background is not None:
-			scintilla.SCIStyleSetBack(stylenum, style.background)
-		else:
-			scintilla.SCIStyleSetBack(stylenum, self.GetDefaultBackground() )
 		scintilla.SCIStyleSetEOLFilled(stylenum, 1) # Only needed for unclosed strings.
+
+		## Default style background to whitespace background if set,
+		##	otherwise use system window color
+		bg = style.background
+		if bg == CLR_INVALID:
+			bg = self.styles[STYLE_DEFAULT].background
+		if bg == CLR_INVALID:
+			bg = win32api.GetSysColor(win32con.COLOR_WINDOW)
+		scintilla.SCIStyleSetBack(stylenum, bg)
+		
+		
 
 	def GetStyleByNum(self, stylenum):
 		return self.styles_by_id[stylenum]
@@ -169,14 +165,10 @@ class FormatterBase:
 			new = self.LoadPreference(style.name, str(style.format))
 			try:
 				style.format = eval(new)
-				bg = int(self.LoadPreference(style.name + " background", -1))
-				if bg != -1:
-					style.background = bg
-				if style.background == self.default_background:
-					style.background = None
-					
 			except:
 				print "Error loading style data for", style.name
+			# Use "vanilla" background hardcoded in PYTHON_STYLES if no settings in registry
+			style.background = int(self.LoadPreference(style.name + " background", style.default_background))
 
 	def LoadPreference(self, name, default):
 		return win32ui.GetProfileVal("Format", name, default)
@@ -189,12 +181,9 @@ class FormatterBase:
 			if style.aliased is None:
 				self.SavePreference(style.name, str(style.format))
 				bg_name = style.name + " background"
-				self.SavePreference(bg_name, style.background) # May be None
+				self.SavePreference(bg_name, style.background)
 					
 	def SavePreference(self, name, value):
-		## LoadPreference uses -1 to indicate default
-		if value is None:
-			value=-1
 		win32ui.WriteProfileVal("Format", name, value)
 
 # An abstract formatter
@@ -314,23 +303,22 @@ STRING_STYLES = [STYLE_STRING, STYLE_SQSTRING, STYLE_TQSSTRING, STYLE_TQDSTRING,
 # These styles can have any ID - they are not special to scintilla itself.
 # However, if we use the built-in lexer, then we must use its style numbers
 # so in that case, they _are_ special.
+# (name, format, background, scintilla id)
 PYTHON_STYLES = [
-		(STYLE_DEFAULT,      (0, 0, 200, 0, 0x808080), None,     scintillacon.SCE_P_DEFAULT ),
-		(STYLE_COMMENT,      (0, 2, 200, 0, 0x008000), None,     scintillacon.SCE_P_COMMENTLINE ),
-		(STYLE_COMMENT_BLOCK,(0, 2, 200, 0, 0x808080), None,     scintillacon.SCE_P_COMMENTBLOCK ),
-		(STYLE_NUMBER,       (0, 0, 200, 0, 0x808000), None,     scintillacon.SCE_P_NUMBER ),
-		(STYLE_STRING,       (0, 0, 200, 0, 0x008080), None,     scintillacon.SCE_P_STRING ),
-		(STYLE_SQSTRING,     STYLE_STRING,             None,     scintillacon.SCE_P_CHARACTER ),
-		(STYLE_TQSSTRING,    STYLE_STRING,             None,     scintillacon.SCE_P_TRIPLE ),
-		(STYLE_TQDSTRING,    STYLE_STRING,             None,     scintillacon.SCE_P_TRIPLEDOUBLE),
+		(STYLE_DEFAULT,      (0, 0, 200, 0, 0x808080), CLR_INVALID,     scintillacon.SCE_P_DEFAULT ),
+		(STYLE_COMMENT,      (0, 2, 200, 0, 0x008000), CLR_INVALID,     scintillacon.SCE_P_COMMENTLINE ),
+		(STYLE_COMMENT_BLOCK,(0, 2, 200, 0, 0x808080), CLR_INVALID,     scintillacon.SCE_P_COMMENTBLOCK ),
+		(STYLE_NUMBER,       (0, 0, 200, 0, 0x808000), CLR_INVALID,     scintillacon.SCE_P_NUMBER ),
+		(STYLE_STRING,       (0, 0, 200, 0, 0x008080), CLR_INVALID,     scintillacon.SCE_P_STRING ),
+		(STYLE_SQSTRING,     STYLE_STRING,             CLR_INVALID,     scintillacon.SCE_P_CHARACTER ),
+		(STYLE_TQSSTRING,    STYLE_STRING,             CLR_INVALID,     scintillacon.SCE_P_TRIPLE ),
+		(STYLE_TQDSTRING,    STYLE_STRING,             CLR_INVALID,     scintillacon.SCE_P_TRIPLEDOUBLE),
 		(STYLE_STRINGEOL,    (0, 0, 200, 0, 0x000000), 0x008080, scintillacon.SCE_P_STRINGEOL),
-		(STYLE_KEYWORD,      (0, 1, 200, 0, 0x800000), None,     scintillacon.SCE_P_WORD),
-		(STYLE_CLASS,        (0, 1, 200, 0, 0xFF0000), None,     scintillacon.SCE_P_CLASSNAME ),
-		(STYLE_METHOD,       (0, 1, 200, 0, 0x808000), None,     scintillacon.SCE_P_DEFNAME),
-		(STYLE_OPERATOR,     (0, 0, 200, 0, 0x000000), None,     scintillacon.SCE_P_OPERATOR),
-		(STYLE_IDENTIFIER,   (0, 0, 200, 0, 0x000000), None,     scintillacon.SCE_P_IDENTIFIER ),
-		(STYLE_LINENUMBER,   (0, 0, 200, 0, 0x000000), None,     scintillacon.STYLE_LINENUMBER),
-		(STYLE_INDENTGUIDE,  (0, 0, 200, 0, 0x000000), None,     scintillacon.STYLE_INDENTGUIDE),
+		(STYLE_KEYWORD,      (0, 1, 200, 0, 0x800000), CLR_INVALID,     scintillacon.SCE_P_WORD),
+		(STYLE_CLASS,        (0, 1, 200, 0, 0xFF0000), CLR_INVALID,     scintillacon.SCE_P_CLASSNAME ),
+		(STYLE_METHOD,       (0, 1, 200, 0, 0x808000), CLR_INVALID,     scintillacon.SCE_P_DEFNAME),
+		(STYLE_OPERATOR,     (0, 0, 200, 0, 0x000000), CLR_INVALID,     scintillacon.SCE_P_OPERATOR),
+		(STYLE_IDENTIFIER,   (0, 0, 200, 0, 0x000000), CLR_INVALID,     scintillacon.SCE_P_IDENTIFIER ),
 ]
 
 # These styles _always_ have this specific style number, regardless of
@@ -338,6 +326,8 @@ PYTHON_STYLES = [
 SPECIAL_STYLES = [
 		(STYLE_BRACE,        (0, 0, 200, 0, 0x000000), 0xffff80, scintillacon.STYLE_BRACELIGHT),
 		(STYLE_BRACEBAD,     (0, 0, 200, 0, 0x000000), 0x8ea5f2, scintillacon.STYLE_BRACEBAD),
+		(STYLE_LINENUMBER,   (0, 0, 200, 0, 0x000000), win32api.GetSysColor(win32con.COLOR_3DFACE), scintillacon.STYLE_LINENUMBER),
+		(STYLE_INDENTGUIDE,  (0, 0, 200, 0, 0x000000), CLR_INVALID, scintillacon.STYLE_INDENTGUIDE),
 ]
 
 PythonSampleCode = """\
