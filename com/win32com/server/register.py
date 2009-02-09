@@ -565,7 +565,7 @@ def UseCommandLine(*classes, **flags):
     # If we are on xp+ and have "access denied", retry using
     # ShellExecuteEx with 'runas' verb to force elevation (vista) and/or
     # admin login dialog (vista/xp)
-    if flags['unattended'] or exc[0] != winerror.ERROR_ACCESS_DENIED \
+    if flags['unattended'] or exc.winerror != winerror.ERROR_ACCESS_DENIED \
        or sys.getwindowsversion()[0] < 5:
       raise
     ReExecuteElevated(flags)
