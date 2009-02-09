@@ -32,7 +32,7 @@ import optparse
 from pprint import pprint
 
 def main():
-    parser = optparse.OptionParser("%prog [options] add|change ...",
+    parser = optparse.OptionParser("%prog [options] auth|change ...",
                                    description="A win32net.NetValidatePasswordPolicy demo.")
 
     parser.add_option("-u", "--username",
@@ -62,7 +62,7 @@ def main():
     options, args = parser.parse_args()
 
     if not args:
-        parser.error("You must supply an arg")
+        args = ["auth"]
 
     for arg in args:
         if arg == "auth":
