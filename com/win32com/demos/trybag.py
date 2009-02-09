@@ -16,7 +16,8 @@ class Bag:
     if propName not in self.data:
       if errorLog:
         hr = 0x80070057
-        errorLog.AddError(propName, (0, "Bag.Read", "no such item", None, 0, hr))
+        exc = pythoncom.com_error(0, "Bag.Read", "no such item", None, 0, hr)
+        errorLog.AddError(propName, exc)
       raise exception.Exception(scode=hr)
     return self.data[propName]
 
