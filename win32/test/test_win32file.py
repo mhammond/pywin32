@@ -18,6 +18,23 @@ try:
 except NameError:
     from sets import Set as set
 
+class TestReadBuffer(unittest.TestCase):
+    def testLen(self):
+        buffer = win32file.AllocateReadBuffer(1)
+        self.failUnlessEqual(len(buffer), 1)
+
+    def testSimpleIndex(self):
+        val = str2bytes('\xFF')
+        buffer = win32file.AllocateReadBuffer(1)
+        buffer[0] = val
+        self.failUnlessEqual(buffer[0], val)
+
+    def testSimpleSlice(self):
+        buffer = win32file.AllocateReadBuffer(2)
+        val = str2bytes('\0\0')
+        buffer[:2] = val
+        self.failUnlessEqual(buffer[0:2], val)
+
 class TestSimpleOps(unittest.TestCase):
     def testSimpleFiles(self):
         try:
