@@ -4,6 +4,7 @@ import win32gui
 import pywin32_testutil
 import operator
 import array
+import sys
 
 # theoretically should be in pywin32_testutil, but this is the only place
 # that currently needs such a function...
@@ -38,6 +39,14 @@ class TestPyGetMemory(unittest.TestCase):
         addr, buflen = c.buffer_info()
         got = win32gui.PyGetMemory(addr, buflen)
         self.failUnlessEqual(got[0], pywin32_testutil.str2bytes('\0'))
+
+    def test_memory_slice(self):
+        # Check we can slice the buffer object returned by PyGetMemory
+        test_data = pywin32_testutil.str2bytes("\0\1\2\3\4\5\6")
+        c = array.array("b", test_data)
+        addr, buflen = c.buffer_info()
+        got = win32gui.PyGetMemory(addr, buflen)
+        self.failUnlessEqual(got[0:3], pywin32_testutil.str2bytes('\0\1\2'))
     
     def test_real_view(self):
         # Do the PyGetMemory, then change the original memory, then ensure
