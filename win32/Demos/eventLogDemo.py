@@ -29,9 +29,15 @@ def ReadLog(computer, logType="Application", dumpEachRecord = 0):
             else:
                 user_desc = None
             if dumpEachRecord:
+                print "Event record from %r generated at %s" % (object.SourceName, object.TimeGenerated.Format())
                 if user_desc:
                     print user_desc
-                print msg
+                try:
+                    print msg
+                except UnicodeError:
+                    print "(unicode error printing message: repr() follows...)"
+                    print repr(msg)
+
         num = num + len(objects)
 
     if numRecords == num:
