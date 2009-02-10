@@ -448,7 +448,7 @@ class CDispatch:
 					return win32com.client.util.Iterator(self.ob)
 			return Factory(enum)
 			
-		if attr[0]=='_' and attr[-1]=='_': # Fast-track.
+		if attr.startswith('_') and attr.endswith('_'): # Fast-track.
 			raise AttributeError(attr)
 		# If a known method, create new instance and return.
 		try:
