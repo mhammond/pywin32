@@ -21,6 +21,9 @@ Since build 212:
     with the new datetime object support.
   - Vernon Cole: for help with porting adodbapi to py3k.
 
+* win32eventlog.OpenEventLog and OpenBackupEventLog now return a PyHANDLE
+  object which auto-closes on destruction.
+
 * pythoncom servers which implemented 'universal' vtable interfaces from a
   typelib could cause Data Execution Protection (DEP) to be triggered if
   enabled.  This has been resolved and such servers now work correctly with

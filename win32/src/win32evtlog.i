@@ -10,6 +10,59 @@
 
 #include <structmember.h>
 
+#undef PyHANDLE
+#include "PyWinObjects.h"
+
+// @object PyEVTLOG_HANDLE|Object representing a handle to the windows event log.
+//   Identical to <o PyHANDLE>, but calls CloseEventLog() on destruction
+class PyEVTLOG_HANDLE: public PyHANDLE
+{
+public:
+	PyEVTLOG_HANDLE(HANDLE hInit) : PyHANDLE(hInit) {}
+	virtual BOOL Close(void) {
+		BOOL ok = m_handle ? CloseEventLog(m_handle) : TRUE;
+		m_handle = 0;
+		if (!ok)
+			PyWin_SetAPIError("CloseEventLog");
+		return ok;
+	}
+	virtual const char *GetTypeName() {
+		return "PyEVTLOG_HANDLE";
+	}
+};
+#define PyHANDLE HANDLE
+
+PyObject *PyWinObject_FromEVTLOG_HANDLE(HANDLE h)
+{
+	PyObject *ret = new PyEVTLOG_HANDLE(h);
+	if (!ret)
+		PyErr_NoMemory();
+	return ret;
+}
+
+%}
+
+%typemap(python,except) PyEVTLOG_HANDLE {
+  Py_BEGIN_ALLOW_THREADS
+  $function
+  Py_END_ALLOW_THREADS
+  if ($source==0 || $source==INVALID_HANDLE_VALUE)  {
+    $cleanup
+    return PyWin_SetAPIError("$name");
+  }
+}
+
+%typemap(python,out) PyEVTLOG_HANDLE {
+  $target = PyWinObject_FromEVTLOG_HANDLE($source);
+}
+
+typedef HANDLE PyEVTLOG_HANDLE;
+%{
+#define PyEVTLOG_HANDLE HANDLE
+%}
+
+%{
+
 // @object PyEventLogRecord|An object containing the data in an EVENTLOGRECORD.
 class PyEventLogRecord : public PyObject
 {
@@ -342,8 +395,8 @@ GetOldestEventLogRecord (
     unsigned long *OUTPUT
     );
 
-// @pyswig int|OpenEventLog|Opens an event log.
-%name (OpenEventLog) HANDLE OpenEventLogW (
+// @pyswig <o PyEVTLOG_HANDLE>|OpenEventLog|Opens an event log.
+%name (OpenEventLog) PyEVTLOG_HANDLE OpenEventLogW (
     WCHAR *INPUT_NULLOK, // @pyparm <o PyUnicode>|serverName||The server name, or None
     WCHAR *sourceName    // @pyparm <o PyUnicode>|sourceName||specifies the name of the source that the returned handle will reference. The source name must be a subkey of a logfile entry under the EventLog key in the registry. 
     );
@@ -356,7 +409,7 @@ RegisterEventSourceW (
     );
 
 
-// @pyswig int|OpenBackupEventLog|Opens a previously saved event log.
+// @pyswig <o PyEVTLOG_HANDLE>|OpenBackupEventLog|Opens a previously saved event log.
 %name (OpenBackupEventLog) HANDLE OpenBackupEventLogW (
     WCHAR *INPUT_NULLOK, // @pyparm <o PyUnicode>|serverName||The server name, or None
     WCHAR *fileName      // @pyparm <o PyUnicode>|fileName||The filename to open
