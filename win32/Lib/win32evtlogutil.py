@@ -1,7 +1,7 @@
 """Event Log Utilities - helper for win32evtlog.pyd
 """
 
-import win32api, win32con, winerror, win32evtlog, string
+import win32api, win32con, winerror, win32evtlog
 
 error = win32api.error # The error the evtlog module raises.
 
@@ -109,7 +109,7 @@ def FormatMessage( eventLogRecord, logType="Application" ):
                 # in case any are there.
                 dllName = win32api.ExpandEnvironmentStrings(dllName)
 
-                dllHandle = win32api.LoadLibraryEx(dllName, 0, win32con.DONT_RESOLVE_DLL_REFERENCES)
+                dllHandle = win32api.LoadLibraryEx(dllName, 0, win32con.LOAD_LIBRARY_AS_DATAFILE)
                 try:
                     data = win32api.FormatMessageW(win32con.FORMAT_MESSAGE_FROM_HMODULE,
                                     dllHandle, eventLogRecord.EventID, langid, eventLogRecord.StringInserts)
