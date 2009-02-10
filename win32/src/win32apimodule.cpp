@@ -111,7 +111,7 @@ PyObject *ReturnAPIError(char *fnName, long err = 0)
 
 PyObject *PyTuple_FromSYSTEMTIME(SYSTEMTIME &st)
 {
-	return Py_BuildValue("iiiiiiii",
+	return Py_BuildValue("hhhhhhhh",
 			     st.wYear,
 			     st.wMonth,
 			     st.wDayOfWeek,
@@ -124,7 +124,7 @@ PyObject *PyTuple_FromSYSTEMTIME(SYSTEMTIME &st)
 
 BOOL PyTuple_AsSYSTEMTIME(PyObject *ob, SYSTEMTIME &st)
 {
-	return PyArg_ParseTuple(ob, "iiiiiiii",
+	return PyArg_ParseTuple(ob, "hhhhhhhh",
 				&st.wYear,
 				&st.wMonth,
 				&st.wDayOfWeek,
@@ -5028,7 +5028,7 @@ PyGetSystemTime (PyObject * self, PyObject * args)
  PyW32_BEGIN_ALLOW_THREADS
  GetSystemTime(&t);
  PyW32_END_ALLOW_THREADS;
- return Py_BuildValue ("(iiiiiiii)",
+ return Py_BuildValue ("(hhhhhhhh)",
         t.wYear,
         t.wMonth,
         t.wDayOfWeek,
@@ -5051,7 +5051,7 @@ PyGetLocalTime (PyObject * self, PyObject * args)
   } else {
  // GetLocalTime is a void function
  GetLocalTime(&t);
- return Py_BuildValue ("(iiiiiiii)",
+ return Py_BuildValue ("(hhhhhhhh)",
         t.wYear,
         t.wMonth,
         t.wDayOfWeek,
