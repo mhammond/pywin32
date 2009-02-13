@@ -32,7 +32,7 @@ class TestBitmap(unittest.TestCase):
             this_file = __file__
         except NameError:
             this_file = sys.argv[0]
-        this_dir = os.path.dirname(__file__)
+        this_dir = os.path.dirname(this_file)
         self.bmp_name = os.path.join(os.path.abspath(this_dir),
                                      "..", "Demos", "images", "smiley.bmp")
         self.failUnless(os.path.isfile(self.bmp_name), self.bmp_name)
