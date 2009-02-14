@@ -1,5 +1,5 @@
 # Configure this in order to run the testcases.
-"adodbapitestconfig.py v 2.2.5"
+"adodbapitestconfig.py v 2.2.6"
 
 import os
 import sys
@@ -35,7 +35,6 @@ iterateOverTimeTests=True
 if doAccessTest:
     _accessdatasource = None  #set to None for automatic creation
     #r"C:\Program Files\Microsoft Office\Office\Samples\northwind.mdb;"
-                #Typically C:\Program Files
     if _accessdatasource == None:
         # following setup code borrowed from pywin32 odbc test suite
         # kindly contributed by Frank Millman.
@@ -79,7 +78,7 @@ if doAccessTest:
     # connStrAccess = "Driver={Microsoft Access Driver (*.mdb)};db=%s;Uid=;Pwd=;" + _accessdatasource
 
 if doSqlServerTest:
-    _computername=".\SQLEXPRESS" #or name of computer with SQL Server
+    _computername=r".\SQLEXPRESS" #or name of computer with SQL Server
     _databasename="Northwind" #or something else
     #_username="guest"
     #_password="12345678"

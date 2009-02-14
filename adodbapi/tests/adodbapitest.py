@@ -1,4 +1,4 @@
-""" Unit tests for adodbapi version 2.2.6"""
+""" Unit tests for adodbapi version 2.2.6 (d)"""
 """
     adodbapi - A python DB API 2.0 interface to Microsoft ADO
     
@@ -670,8 +670,9 @@ class TestPythonTimeConverter(TimeConverterInterfaceTest):
 
     def testDateObjectFromCOMDate(self):
         cmd=self.tc.DateObjectFromCOMDate(37435.7604282)
-        t1=time.gmtime(time.mktime((2002,6,28,12,14,1, 4,31+28+31+30+31+28,-1)))
-        t2=time.gmtime(time.mktime((2002,6,28,12,16,1, 4,31+28+31+30+31+28,-1)))
+        t1=time.gmtime(time.mktime((2002,6,28,0,14,1, 4,31+28+31+30+31+28,-1)))
+        #there are errors in the implementation of gmtime which we ignore
+        t2=time.gmtime(time.mktime((2002,6,29,12,14,2, 4,31+28+31+30+31+28,-1)))
         assert t1<cmd<t2, '"%s" should be about 2002-6-28 12:15:01'%repr(cmd)
     
     def testDate(self):
