@@ -5,9 +5,6 @@
 
 include MANIFEST.in
 include pywin32.pth
-# while we have setup.py and setup_win32all.py, distutils will miss whatever
-# one was not used!
-include setup_win32all.py
 include setup.py
 include pywin32_postinstall.py
 # don't know how to include "Python and Extensions.dsw" - spaces upset things
@@ -22,7 +19,6 @@ include win32/Demos/security/sspi/*.py
 include win32/src/*.h
 include win32/src/*.manifest
 include win32/src/PerfMon/perfmondata.def
-include win32/src/dbi.def
 include win32/*.dsp
 include win32/License.txt
 # COM
@@ -32,6 +28,14 @@ include com/win32com/src/PythonCOM.def
 include com/win32com/readme.htm
 include com/win32com/HTML/*.html
 include com/win32com/HTML/image/*.gif
+include com/win32com/test/*.idl
+include com/win32com/test/*.js
+include com/win32com/test/*.sct
+include com/win32com/test/*.tlb
+include com/win32com/test/*.txt
+include com/win32com/test/*.vbs
+include com/win32com/test/*.xsl
+
 include com/License.txt
 include com/*.dsp
 include com/win32comext/axscript/src/*.h
