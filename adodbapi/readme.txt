@@ -26,18 +26,18 @@ NOTE: ...........
 If you do not like the new default operation of returning Numeric columns as decimal.Decimal,
 you can select other options by the user defined convertion feature. 
 Try:
-        adodbapi.variantConversions[adodbapi.adNumeric] = adodbapi.cvtString
+        adodbapi.adodbapi.variantConversions[adodbapi.adNumeric] = adodbapi.adodbapi.cvtString
 or:
-        adodbapi.variantConversions[adodbapi.adNumeric] = adodbapi.cvtFloat
+        adodbapi.adodbapi.variantConversions[adodbapi.adNumeric] = adodbapi.adodbapi.cvtFloat
 or:
-	adodbapi.variantConversions[adodbapi.adNumeric] = write_your_own_convertion_function
+	adodbapi.adodbapi.variantConversions[adodbapi.adNumeric] = write_your_own_convertion_function
 ............
 Whats new in version 2.2.6
 1. Actually works in Python 3.0 (using pywin32 212.6) after running thru 2to3
 2. RESTRICTION: Python Time (as opposed to datetime.datetime, which is the default) may return
-     incorrect results. We believe this happens when used with Southern Hemisphere time zones.
-     To avoid this problem, do not use adodbapi.pythonTimeConverter. 
-3. Several improvements in the test routines, including alteration of dbapi20 for Python 3.0 compatibility.
+     incorrect results. To avoid this problem, do not use adodbapi.pythonTimeConverter. 
+3. The python time converter test has been loosened so that it will pass in any time zone.
+4. Several improvements in the test routines, including alteration of dbapi20 for Python 3.0 compatibility.
    (Some requirements of PEP249 are incompatible with Python 3.0)
 
 Whats new in version 2.2.5
