@@ -152,6 +152,7 @@
 #define PyInt_FromSsize_t PyLong_FromSsize_t
 #define PyInt_AsSsize_t PyLong_AsSsize_t
 #define PyInt_AsUnsignedLongMask PyLong_AsUnsignedLongMask
+#define PyNumber_Int PyNumber_Long
 #endif	// (PY_VERSION_HEX < 0x03000000)
 
 // See PEP-353 - this is the "official" test...
