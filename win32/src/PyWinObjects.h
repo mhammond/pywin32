@@ -102,10 +102,8 @@ public:
 	~PyOVERLAPPED();
 
 	/* Python support */
-	int compare(PyObject *ob);
-
 	static void deallocFunc(PyObject *ob);
-	static int compareFunc(PyObject *ob1, PyObject *ob2);
+	static PyObject *richcompareFunc(PyObject *ob, PyObject *other, int op);
 
 	static PyObject *getattro(PyObject *self, PyObject *obname);
 	static int setattro(PyObject *self, PyObject *obname, PyObject *v);

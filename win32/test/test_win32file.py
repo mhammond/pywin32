@@ -354,6 +354,29 @@ class TestOverlapped(unittest.TestCase):
         overlapped = pywintypes.OVERLAPPED()
         d = {}
         d[overlapped] = "hello"
+        self.failUnlessEqual(d[overlapped], "hello")
+
+    def testComparable(self):
+        overlapped = pywintypes.OVERLAPPED()
+        self.failUnlessEqual(overlapped, overlapped)
+        # ensure we explicitly test the operators.
+        self.failUnless(overlapped == overlapped)
+        self.failIf(overlapped != overlapped)
+
+    def testComparable2(self):
+        # 2 overlapped objects compare equal if their contents are the same.
+        overlapped1 = pywintypes.OVERLAPPED()
+        overlapped2 = pywintypes.OVERLAPPED()
+        self.failUnlessEqual(overlapped1, overlapped2)
+        # ensure we explicitly test the operators.
+        self.failUnless(overlapped1 == overlapped2)
+        self.failIf(overlapped1 != overlapped2)
+        # now change something in one of them - should no longer be equal.
+        overlapped1.hEvent = 1
+        self.failIfEqual(overlapped1, overlapped2)
+        # ensure we explicitly test the operators.
+        self.failIf(overlapped1 == overlapped2)
+        self.failUnless(overlapped1 != overlapped2)
 
 class TestSocketExtensions(unittest.TestCase):
     def acceptWorker(self, port, running_event, stopped_event):

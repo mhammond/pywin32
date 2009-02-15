@@ -71,8 +71,7 @@ PYWINTYPES_EXPORT PyTypeObject PyOVERLAPPEDType =
 	0,						/* tp_print */
 	0,						/* tp_getattr */
 	0,						/* tp_setattr */
-	// @pymeth __cmp__|Used when OVERLAPPED objects are compared.
-	PyOVERLAPPED::compareFunc,		/* tp_compare */
+	0,						/* tp_compare */
 	0,						/* tp_repr */
 	0,						/* tp_as_number */
 	0,						/* tp_as_sequence */
@@ -87,7 +86,7 @@ PYWINTYPES_EXPORT PyTypeObject PyOVERLAPPEDType =
 	0,						/* tp_doc */
 	0,						/* tp_traverse */
 	0,						/* tp_clear */
-	0,						/* tp_richcompare */
+	PyOVERLAPPED::richcompareFunc,			/* tp_richcompare */
 	0,						/* tp_weaklistoffset */
 	0,						/* tp_iter */
 	0,						/* tp_iternext */
@@ -146,15 +145,26 @@ PyOVERLAPPED::~PyOVERLAPPED(void)
 	memset(this, 0, sizeof(PyOVERLAPPED));
 }
 
-int PyOVERLAPPED::compare(PyObject *ob)
+PyObject *PyOVERLAPPED::richcompareFunc(PyObject *ob, PyObject *other, int op)
 {
-	return memcmp(&m_overlapped, &((PyOVERLAPPED *)ob)->m_overlapped, sizeof(m_overlapped));
-}
-
-// @pymethod int|PyOVERLAPPED|__cmp__|Used when objects are compared.
-int PyOVERLAPPED::compareFunc(PyObject *ob1, PyObject *ob2)
-{
-	return ((PyOVERLAPPED *)ob1)->compare(ob2);
+	PyOVERLAPPED::sMyOverlapped *mine = &((PyOVERLAPPED *)ob)->m_overlapped;
+	PyOVERLAPPED::sMyOverlapped *oother;
+	if (PyOVERLAPPED_Check(other)) {
+		oother = &((PyOVERLAPPED *)other)->m_overlapped;
+	} else {
+		Py_INCREF(Py_NotImplemented);
+		return Py_NotImplemented;
+	}
+	BOOL e = memcmp(mine, oother, sizeof(*mine))==0;
+	PyObject *ret;
+	if (op==Py_EQ)
+		ret = e ? Py_True : Py_False;
+	else if (op==Py_NE)
+		ret = !e ? Py_True : Py_False;
+	else
+		ret = Py_NotImplemented;
+	Py_INCREF(ret);
+	return ret;
 }
 
 PyObject *PyOVERLAPPED::getattro(PyObject *self, PyObject *obname)
