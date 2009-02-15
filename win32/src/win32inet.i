@@ -370,7 +370,7 @@ PyObject *PyInternetGetCookie(PyObject *self, PyObject *args)
     PyObject *obUrl, *obCookieName;
     PyObject *ret = NULL;
     BOOL ok = FALSE;
-    DWORD cb = 0;
+    DWORD cch, cchallocated = 0;
     TCHAR *buf=NULL, *szUrl = NULL, *szCookieName = NULL;
     if (!PyArg_ParseTuple(args, "OO:InternetGetCookie",
 		&obUrl,		// @pyparm string|Url||Site for which to retrieve cookie
@@ -380,26 +380,43 @@ PyObject *PyInternetGetCookie(PyObject *self, PyObject *args)
         goto done;
     if (!PyWinObject_AsTCHAR(obCookieName, &szCookieName, TRUE))
         goto done;
-    InternetGetCookie(szUrl, szCookieName, NULL, &cb);
-    if (!cb) { // assume this means some other failure.
+    InternetGetCookie(szUrl, szCookieName, NULL, &cchallocated);
+    if (!cchallocated) { // assume this means some other failure.
         PyWin_SetAPIError("InternetGetCookie");
         goto done;
     }
-    // cb includes the NULL - Python adds one for the null.
-    buf = (TCHAR *)malloc(cb * sizeof(TCHAR));
+    // Note: the docs for InternetGetCookie appear to lie: when NULL is passed
+    // you get back the number of *bytes* needed, not TCHARs - however, if
+    // NULL is not passed, you do get TCHARs back.  In other words, if UNICODE
+    // is defined, 'cchallocated' is double the value we get back for 'cch' in
+    // our next call which actually gets the data. However - we don't rely on
+    // this behaviour - it just means we actually end up allocating double the
+    // buffer we need.
+    // The number of chars theoretically includes the \0 - but see below.
+    buf = (TCHAR *)malloc(cchallocated * sizeof(TCHAR));
     if (buf==NULL){
 		PyErr_NoMemory();
 		goto done;
 		}
+    cch = cchallocated;
     Py_BEGIN_ALLOW_THREADS
-    ok = InternetGetCookie(szUrl, szCookieName, buf, &cb);
+    ok = InternetGetCookie(szUrl, szCookieName, buf, &cch);
     Py_END_ALLOW_THREADS
     if (!ok)
         PyWin_SetAPIError("InternetGetCookie");
-    else
-		ret=PyWinObject_FromTCHAR(buf, cb-1);
+    else {
+        // Note that on win2k only, and only when UNICODE is defined, we
+        // see 'cch' be one less than we expect - ie, it is the number of
+        // chars *not* including the NULL.
+#ifdef UNICODE
+        if (LOBYTE(LOWORD(GetVersion())) <= 5 && cch && cch < cchallocated &&
+            buf[cch-1] != _T('\0'))
+            cch += 1;
+#endif
+        ret=PyWinObject_FromTCHAR(buf, cch-1);
+    }
 done:
-	if (buf) free(buf);
+    if (buf) free(buf);
     if (szUrl) PyWinObject_FreeTCHAR(szUrl);
     if (szCookieName) PyWinObject_FreeTCHAR(szCookieName);
     return ret;

@@ -1,5 +1,6 @@
 from win32inet import *
 from win32inetcon import *
+import winerror
 from pywin32_testutil import str2bytes # py3k-friendly helper
 
 import unittest
@@ -10,6 +11,13 @@ class CookieTests(unittest.TestCase):
         InternetSetCookie("http://www.python.org", None, data)
         got = InternetGetCookie("http://www.python.org", None)
         self.assertEqual(got, data)
+
+    def testCookiesEmpty(self):
+        try:
+            InternetGetCookie("http://site-with-no-cookie.python.org", None)
+            self.fail("expected win32 exception")
+        except error, exc:
+            self.failUnlessEqual(exc.winerror, winerror.ERROR_NO_MORE_ITEMS)
 
 class UrlTests(unittest.TestCase):
     def testSimpleCanonicalize(self):
