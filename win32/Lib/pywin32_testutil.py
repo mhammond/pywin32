@@ -176,9 +176,12 @@ def check_is_admin():
     global _is_admin
     if _is_admin is None:
         from win32com.shell.shell import IsUserAnAdmin
+        import pythoncom
         try:
             _is_admin = IsUserAnAdmin()
-        except NotImplementedError:
+        except pythoncom.com_error, exc:
+            if exc.hresult != winerror.E_NOTIMPL:
+                raise
             # not impl on this platform - must be old - assume is admin
             _is_admin = True
     return _is_admin
@@ -194,7 +197,7 @@ class TestSkipped(Exception):
 class TestResult(unittest._TextTestResult):
     def __init__(self, *args, **kw):
         super(TestResult, self).__init__(*args, **kw)
-        self.num_skipped = 0
+        self.skips = {} # count of skips for each reason.
 
     def addError(self, test, err):
         """Called when an error has occurred. 'err' is a tuple of values as
@@ -221,9 +224,16 @@ class TestResult(unittest._TextTestResult):
             exc_val = TestSkipped(NotImplementedError)
 
         if isinstance(exc_val, TestSkipped):
-            self.num_skipped += 1
+            reason = exc_val.args[0]
+            # if the reason itself is another exception, get its args.
+            try:
+                reason = tuple(reason.args)
+            except (AttributeError, TypeError):
+                pass
+            self.skips.setdefault(reason, 0)
+            self.skips[reason] += 1
             if self.showAll:
-                self.stream.writeln("SKIP")
+                self.stream.writeln("SKIP (%s)" % (reason,))
             elif self.dots:
                 self.stream.write('S')
                 self.stream.flush()
@@ -232,8 +242,8 @@ class TestResult(unittest._TextTestResult):
 
     def printErrors(self):
         super(TestResult, self).printErrors()
-        if self.num_skipped:
-            self.stream.writeln("SKIPPED: %d tests" % self.num_skipped)
+        for reason, num_skipped in self.skips.iteritems():
+            self.stream.writeln("SKIPPED: %d tests - %s" % (num_skipped, reason))
 
 # TestRunner subclass necessary just to get our TestResult hooked up.
 class TestRunner(unittest.TextTestRunner):
