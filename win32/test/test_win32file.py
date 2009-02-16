@@ -1,8 +1,7 @@
 import unittest
-from pywin32_testutil import str2bytes
+from pywin32_testutil import str2bytes, TestSkipped, testmain
 import win32api, win32file, win32pipe, pywintypes, winerror, win32event
 import win32con, ntsecuritycon
-import win32timezone
 import sys
 import os
 import tempfile
@@ -12,6 +11,12 @@ import shutil
 import socket
 import datetime
 import random
+
+try:
+    import win32timezone
+except SyntaxError:
+    # win32timezone uses decorators and isn't compatible with py2.3
+    assert sys.version_info < (2,4)
 
 try:
     set
@@ -626,22 +631,60 @@ class TestEncrypt(unittest.TestCase):
             os.unlink(fname)
 
 class TestConnect(unittest.TestCase):
+    def connect_thread_runner(self, expect_payload, giveup_event):
+        # As Windows 2000 doesn't do ConnectEx, we need to use a non-blocking
+        # accept, as our test connection may never come.  May as well use
+        # AcceptEx for this...
+        listener = socket.socket()
+        self.addr = ('localhost', random.randint(10000,64000))
+        listener.bind(self.addr)
+        listener.listen(1)
+
+        # create accept socket
+        accepter = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        # An overlapped
+        overlapped = pywintypes.OVERLAPPED()
+        overlapped.hEvent = win32event.CreateEvent(None, 0, 0, None)
+        # accept the connection.
+        if expect_payload:
+            buf_size = 1024
+        else:
+            # when we don't expect data we must be careful to only pass the
+            # exact number of bytes for the endpoint data...
+            buf_size = win32file.CalculateSocketEndPointSize(listener)
+
+        buffer = win32file.AllocateReadBuffer(buf_size)
+        win32file.AcceptEx(listener, accepter, buffer, overlapped)
+        # wait for the connection or our test to fail.
+        events = giveup_event, overlapped.hEvent
+        rc = win32event.WaitForMultipleObjects(events, False, 2000)
+        if rc == win32event.WAIT_TIMEOUT:
+            self.fail("timed out waiting for a connection")
+        if rc == win32event.WAIT_OBJECT_0:
+            # Our main thread running the test failed and will never connect.
+            return
+        # must be a connection.
+        nbytes = win32file.GetOverlappedResult(listener.fileno(), overlapped, False)
+        if expect_payload:
+            self.request = buffer[:nbytes]
+        accepter.send(str2bytes('some expected response'))
+
     def test_connect_with_payload(self):
-        def runner():
-            s1 = socket.socket()
-            self.addr = ('localhost', random.randint(10000,64000))
-            s1.bind(self.addr)
-            s1.listen(1)
-            cli, addr = s1.accept()
-            self.request = cli.recv(1024)
-            cli.send(str2bytes('some expected response'))
-        t = threading.Thread(target=runner)
+        giveup_event = win32event.CreateEvent(None, 0, 0, None)
+        t = threading.Thread(target=self.connect_thread_runner,
+                             args=(True, giveup_event))
         t.start()
         time.sleep(0.1)
         s2 = socket.socket()
         ol = pywintypes.OVERLAPPED()
         s2.bind(('0.0.0.0', 0)) # connectex requires the socket be bound beforehand
-        win32file.ConnectEx(s2, self.addr, ol, str2bytes("some expected request"))
+        try:
+            win32file.ConnectEx(s2, self.addr, ol, str2bytes("some expected request"))
+        except win32file.error, exc:
+            win32event.SetEvent(giveup_event)
+            if exc.winerror == 10022: # WSAEINVAL
+                raise TestSkipped("ConnectEx is not available on this platform")
+            raise # some error error we don't expect.
         win32file.GetOverlappedResult(s2.fileno(), ol, 1)
         ol = pywintypes.OVERLAPPED()
         buff = win32file.AllocateReadBuffer(1024)
@@ -654,20 +697,21 @@ class TestConnect(unittest.TestCase):
         self.failIf(t.isAlive(), "worker thread didn't terminate")
 
     def test_connect_without_payload(self):
-        def runner():
-            s1 = socket.socket()
-            self.addr = ('localhost', random.randint(10000,64000))
-            s1.bind(self.addr)
-            s1.listen(1)
-            cli, addr = s1.accept()
-            cli.send(str2bytes('some expected response'))
-        t = threading.Thread(target=runner)
+        giveup_event = win32event.CreateEvent(None, 0, 0, None)
+        t = threading.Thread(target=self.connect_thread_runner,
+                             args=(False, giveup_event))
         t.start()
         time.sleep(0.1)
         s2 = socket.socket()
         ol = pywintypes.OVERLAPPED()
         s2.bind(('0.0.0.0', 0)) # connectex requires the socket be bound beforehand
-        win32file.ConnectEx(s2, self.addr, ol)
+        try:
+            win32file.ConnectEx(s2, self.addr, ol)
+        except win32file.error, exc:
+            win32event.SetEvent(giveup_event)
+            if exc.winerror == 10022: # WSAEINVAL
+                raise TestSkipped("ConnectEx is not available on this platform")
+            raise # some error error we don't expect.
         win32file.GetOverlappedResult(s2.fileno(), ol, 1)
         ol = pywintypes.OVERLAPPED()
         buff = win32file.AllocateReadBuffer(1024)
@@ -681,7 +725,12 @@ class TestConnect(unittest.TestCase):
 class TestTransmit(unittest.TestCase):
     def test_transmit(self):
         import binascii
-        val = binascii.hexlify(os.urandom(1024*1024))
+        try:
+            bytes = os.urandom(1024*1024)
+        except AttributeError:
+            # must be py2.3...
+            bytes = ''.join([chr(random.randint(0,255)) for _ in range(5)])
+        val = binascii.hexlify(bytes)
         val_length = len(val)
         f = tempfile.TemporaryFile()
         f.write(val)
@@ -745,4 +794,4 @@ class TestTransmit(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    unittest.main()
+    testmain()
