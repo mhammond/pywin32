@@ -277,6 +277,7 @@ def fixup_dbi():
                 else:
                     os.rename(this_pyd, this_dest)
                     print "renamed '%s'->'%s.old'" % (this_pyd, this_pyd)
+                    file_created(this_pyd+".old")
             except os.error, exc:
                 print "FAILED to rename '%s': %s" % (this_pyd, exc)
 
