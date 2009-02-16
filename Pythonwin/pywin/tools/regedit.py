@@ -25,8 +25,8 @@ class SplitterFrame(window.MDIChildWnd):
 		doc = context.doc
 		frame_rect = self.GetWindowRect()
 		size = ((frame_rect[2] - frame_rect[0]),
-		        (frame_rect[3] - frame_rect[1])/2)
-		sub_size = (size[0]/3, size[1])
+		        (frame_rect[3] - frame_rect[1])//2)
+		sub_size = (size[0]//3, size[1])
 		splitter.CreateStatic (self, 1, 2)
 		# CTreeControl view
 		self.keysview = RegistryTreeView(doc)
@@ -282,13 +282,12 @@ class HLIRegistryKey(hierlist.HierListItem):
 		self.keyName = keyName
 		self.userName = userName
 		hierlist.HierListItem.__init__(self)
-	def __cmp__(self, other):
-		rc = cmp(self.keyRoot, other.keyRoot)
-		if rc==0:
-			rc = cmp(self.keyName, other.keyName)
-		if rc==0:
-			rc = cmp(self.userName, other.userName)
-		return rc
+	def __lt__(self, other):
+		return self.name < other.name
+	def __eq__(self, other):
+		return self.keyRoot==other.keyRoot and \
+		       self.keyName == other.keyName and \
+		       self.userName == other.userName
 	def __repr__(self):
 		return "<%s with root=%s, key=%s>" % (self.__class__.__name__, self.keyRoot, self.keyName)
 	def GetText(self):
