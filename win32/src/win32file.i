@@ -40,6 +40,10 @@
 #	undef socklen_t
 #endif
 #include "Ws2tcpip.h"
+// *sob* - msvc6 can't handle the _WSPIAPI_COUNTOF in later SDKs...
+#if _MSC_VER < 1300
+#define _WSPIAPI_COUNTOF(_Array) (sizeof(_Array) / sizeof(_Array[0]))
+#endif
 #include "Wspiapi.h" // for WspiapiGetAddrInfo/WspiapiFreeAddrInfo
 #endif
 
@@ -1773,7 +1777,10 @@ PyCFunction pfnpy_TransmitFile=(PyCFunction)py_TransmitFile;
 // @pyswig (int, int)|ConnectEx|Version of connect that uses Overlapped I/O
 // ConnectEx(sock, (addr, port), buf, overlap)
 // @rdesc Returns the completion code and number of bytes sent.
-//	The error code will be 0 for a completed operation, or ERROR_IO_PENDING for a pending overlapped operation.
+//	The completion code will be 0 for a completed operation, or ERROR_IO_PENDING for a pending overlapped operation.
+// @rdesc If the platform does not support ConnectEx (eg, Windows 2000), an
+// exception will be thrown indicating the WSAIoctl function (which is used to
+// fetch the function pointer) failed with error code WSAEINVAL (10022).
 static PyObject *py_ConnectEx( PyObject *self, PyObject *args, PyObject *kwargs ) {
 	OVERLAPPED *pOverlapped = NULL;
 	SOCKET sConnecting;
@@ -1942,9 +1949,11 @@ static PyObject *MyAcceptEx
 
 	// @comm In order to make sure the connection has been accepted, either use the hEvent in PyOVERLAPPED, GetOverlappedResult, or GetQueuedCompletionStatus.
 	// @comm To use this with I/O completion ports, don't forget to attach sAccepting to your completion port.
-	// @comm To have sAccepting inherit the properties of sListening, you need to do the following after a connection is successfully accepted:
-	// @comm import struct
-	// @comm sAccepting.setsockopt(socket.SOL_SOCKET, win32file.SO_UPDATE_ACCEPT_CONTEXT, struct.pack("I", sListening.fileno()))
+	// @ex To have sAccepting inherit the properties of sListening, you need to do the following after a connection is successfully accepted|
+	// import struct
+	// sAccepting.setsockopt(socket.SOL_SOCKET, win32file.SO_UPDATE_ACCEPT_CONTEXT, struct.pack("I", sListening.fileno()))
+	// @comm Pass a buffer of exactly the size returned by <om win32file.CalculateSocketEndPointSize>
+	// to have AcceptEx return without reading any bytes from the remote connection.
 
 	if (!PySocket_AsSOCKET(obListening, &sListening))
 	{
@@ -2056,8 +2065,44 @@ MyMakeSockaddr(SOCKADDR *addr, INT cbAddr)
 	}
 }
 
+// @pyswig int|CalculateSocketEndPointSize|Calculate how many bytes are needed for the connection endpoints data for a socket.
+PyObject *MyCalculateSocketEndPointSize(PyObject *self, PyObject *args)
+{
+	// @comm This function allows you to determine the minumum buffer size
+	// which can be passed to <om win32file.AcceptEx>
+	PyObject *obs;
+	// @pyparm <o PySocket>/int|socket||The socket for which to determine the size.
+	if (!PyArg_ParseTuple(args, "O", &obs))
+		return NULL;
+	SOCKET s;
+	if (!PySocket_AsSOCKET(obs, &s))
+		return NULL;
 
+	WSAPROTOCOL_INFO wsProtInfo;
+	UINT cbSize = sizeof(wsProtInfo);
+	int rc;
 
+	// Grab the protocol information for the socket
+	Py_BEGIN_ALLOW_THREADS
+	rc = getsockopt(
+		s,
+		SOL_SOCKET,
+		SO_PROTOCOL_INFO,
+		(char *)&wsProtInfo,
+		(int *)&cbSize);
+	Py_END_ALLOW_THREADS
+	if (rc == SOCKET_ERROR)
+	{
+		PyWin_SetAPIError("getsockopt", WSAGetLastError());
+		return NULL;
+	}
+	return PyInt_FromLong((wsProtInfo.iMaxSockAddr + 16) * 2);
+}
+%}
+
+%native(CalculateSocketEndPointSize) MyCalculateSocketEndPointSize;
+
+%{
 // @pyswig (iFamily, <o LocalSockAddr>, <o RemoteSockAddr>)|GetAcceptExSockaddrs|Parses the connection endpoints from the buffer passed into AcceptEx
 PyObject *MyGetAcceptExSockaddrs
 (
