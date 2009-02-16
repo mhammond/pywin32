@@ -110,13 +110,13 @@ class FileNames(unittest.TestCase):
             me = __file__
         except NameError:
             me = sys.argv[0]
-        fname = os.path.abspath(me)
-        short_name = win32api.GetShortPathName(fname)
-        long_name = win32api.GetLongPathName(short_name)
+        fname = os.path.abspath(me).lower()
+        short_name = win32api.GetShortPathName(fname).lower()
+        long_name = win32api.GetLongPathName(short_name).lower()
         self.failUnless(long_name==fname, \
                         "Expected long name ('%s') to be original name ('%s')" % (long_name, fname))
-        self.failUnlessEqual(long_name, win32api.GetLongPathNameW(short_name))
-        long_name = win32api.GetLongPathNameW(short_name)
+        self.failUnlessEqual(long_name, win32api.GetLongPathNameW(short_name).lower())
+        long_name = win32api.GetLongPathNameW(short_name).lower()
         self.failUnless(type(long_name)==unicode, "GetLongPathNameW returned type '%s'" % (type(long_name),))
         self.failUnless(long_name==fname, \
                         "Expected long name ('%s') to be original name ('%s')" % (long_name, fname))
@@ -126,15 +126,15 @@ class FileNames(unittest.TestCase):
             me = __file__
         except NameError:
             me = sys.argv[0]
-        fname = os.path.abspath(me)
+        fname = os.path.abspath(me).lower()
         # passing unicode should cause GetShortPathNameW to be called.
-        short_name = win32api.GetShortPathName(unicode(fname))
+        short_name = win32api.GetShortPathName(unicode(fname)).lower()
         self.failUnless(isinstance(short_name, unicode))
-        long_name = win32api.GetLongPathName(short_name)
+        long_name = win32api.GetLongPathName(short_name).lower()
         self.failUnless(long_name==fname, \
                         "Expected long name ('%s') to be original name ('%s')" % (long_name, fname))
-        self.failUnlessEqual(long_name, win32api.GetLongPathNameW(short_name))
-        long_name = win32api.GetLongPathNameW(short_name)
+        self.failUnlessEqual(long_name, win32api.GetLongPathNameW(short_name).lower())
+        long_name = win32api.GetLongPathNameW(short_name).lower()
         self.failUnless(type(long_name)==unicode, "GetLongPathNameW returned type '%s'" % (type(long_name),))
         self.failUnless(long_name==fname, \
                         "Expected long name ('%s') to be original name ('%s')" % (long_name, fname))
