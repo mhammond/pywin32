@@ -1465,7 +1465,7 @@ for info in (
         ("win32print", "winspool user32 gdi32", None, 0x0500),
         ("win32process", "advapi32 user32", None, 0x0500),
         ("win32profile", "Userenv", True, None, 'win32/src/win32profilemodule.cpp'),
-        ("win32ras", "rasapi32 user32", None),
+        ("win32ras", "rasapi32 user32", None, 0x0500),
         ("win32security", "advapi32 user32 netapi32", True, 0x0500, """
             win32/src/win32security.i
             win32/src/win32security_sspi.cpp win32/src/win32security_ds.cpp
@@ -2079,7 +2079,12 @@ dist = setup(name="pywin32",
                 'win32/license.txt',
                 'win32/scripts/*.py',
                 'win32/test/*.py',
+                'win32/test/win32rcparser/test.rc',
+                'win32/test/win32rcparser/test.h',
+                'win32/test/win32rcparser/python.ico',
+                'win32/test/win32rcparser/python.bmp',
                 'win32/Demos/*.py',
+                'win32/Demos/images/*.bmp',
                 'com/win32com/readme.htm',
                 # win32com test utility files.
                 'com/win32com/test/*.idl',

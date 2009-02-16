@@ -12,8 +12,7 @@ generates Windows .hlp files.
 ******************************************************************/
 
 #ifndef WINVER
-// hrm - the RASEAPUSERIDENTITY structures on the Vista SDK now want
-#define WINVER 0x501
+#define WINVER 0x500
 #endif
 
 #include "windows.h"
