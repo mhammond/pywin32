@@ -35,11 +35,10 @@ class HLIPythonObject(hierlist.HierListItem):
 					self.name=r
 				except (AttributeError, TypeError):
 					self.name="???"
-	def __cmp__(self, other):
-		rc = cmp(self.name, other.name)
-		if rc==0:
-			rc = cmp(self.myobject, other.myobject)
-		return rc
+	def __lt__(self, other):
+		return self.name < other.name
+	def __eq__(self, other):
+		return self.name == other.name
 	def __repr__(self):
 		try:
 			type = self.GetHLIType()

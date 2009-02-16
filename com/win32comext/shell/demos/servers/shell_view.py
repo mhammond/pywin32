@@ -147,7 +147,11 @@ class ShellFolderFileSystem(ShellFolderBase):
         return GetFolderAndPIDLForPath(name)
     # Interface methods
     def CompareIDs(self, param, id1, id2):
-        return cmp(id1, id2)
+        if id1 < id2:
+            return -1
+        if id1 == id2:
+            return 0
+        return 1
     def GetUIObjectOf(self, hwndOwner, pidls, iid, inout):
         # delegate to the shell.
         assert len(pidls)==1, "oops - arent expecting more than one!"

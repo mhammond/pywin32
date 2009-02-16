@@ -22,17 +22,17 @@ class TypelibSpec:
 		if item==0:
 			return self.ver_desc
 		raise IndexError("Cant index me!")
-	def __cmp__(self, other):
-		rc = cmp((self.ver_desc or "").lower(), (other.ver_desc or "").lower())
-		if rc==0:
-			rc = cmp(self.desc.lower(), other.desc.lower())
-		if rc==0:
-			rc = cmp(self.major, other.major)
-		if rc==0:
-			rc = cmp(self.major, other.minor)
-		return rc
+
 	def __lt__(self, other): # rich-cmp/py3k-friendly version
-		return self.__cmp__(other) < 0
+		me = (self.ver_desc or "").lower(), (self.desc or "").lower(), self.major, self.minor
+		them = (other.ver_desc or "").lower(), (other.desc or "").lower(), other.major, other.minor
+		return me < them
+
+	def __eq__(self, other): # rich-cmp/py3k-friendly version
+		return ((self.ver_desc or "").lower() == (other.ver_desc or "").lower() and
+			(self.desc or "").lower() == (other.desc or "").lower() and
+			self.major == other.major and
+			self.minor == other.minor)
 
 	def Resolve(self):
 		if self.dll is None:

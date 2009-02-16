@@ -34,8 +34,10 @@ class HierListCLBRItem(hierlist.HierListItem):
         self.file = file
         self.lineno = lineno
         self.suffix = suffix
-    def __cmp__(self, other):
-        return cmp(self.name, other.name)
+    def __lt__(self, other):
+        return self.name < other.name
+    def __eq__(self, other):
+        return self.name == other.name
     def GetText(self):
         return self.name + self.suffix
     def TakeDefaultAction(self):
@@ -63,13 +65,6 @@ class HierListCLBRClass(HierListCLBRItem):
             file = lineno = None
             self.super = []; self.methods = {}
         HierListCLBRItem.__init__(self, name, file, lineno, suffix)
-    def __cmp__(self,other):
-        ret = cmp(self.name,other.name)
-        if ret==0 and (self is not other) and self.file==other.file:
-            self.methods = other.methods
-            self.super = other.super
-            self.lineno = other.lineno
-        return ret
     def GetSubList(self):
         r1 = []
         for c in self.super:

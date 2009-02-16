@@ -24,8 +24,10 @@ class HLICLBRItem(hierlist.HierListItem):
 		self.file = file
 		self.lineno = lineno
 		self.suffix = suffix
-	def __cmp__(self, other):
-		return cmp(self.name, other.name)
+	def __lt__(self, other):
+		return self.name < other.name
+	def __eq__(self, other):
+		return self.name == other.name
 	def GetText(self):
 		return self.name + self.suffix
 	def TakeDefaultAction(self):
