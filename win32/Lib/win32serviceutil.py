@@ -574,6 +574,7 @@ def HandleCommandLine(cls, serviceClassString = None, argv = None, customInstall
                 WaitForServiceStatus(serviceName, win32service.SERVICE_RUNNING, waitSecs)
         except win32service.error, exc:
             print "Error starting service: %s" % exc.strerror
+            err = exc.winerror
 
     elif arg=="restart":
         knownArg = 1
