@@ -380,7 +380,7 @@ try:
 except NameError:
 	# must be py3k
 	import code
-	code.InteractiveConsole.input=Win32Input
+	sys.modules['builtins'].input=Win32RawInput
 
 def HaveGoodGUI():
 	"""Returns true if we currently have a good gui available.
