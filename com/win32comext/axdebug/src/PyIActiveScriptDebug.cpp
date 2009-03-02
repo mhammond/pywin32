@@ -36,15 +36,15 @@ PyObject *PyIActiveScriptDebug::GetScriptTextAttributes(PyObject *self, PyObject
 	// @pyparm string|pstrCode||The script block text.
 	// @pyparm string|pstrDelimiter||See <om PyIActiveScriptParse::ParseScriptText> for a description of this argument.
 	// @pyparm int|dwFlags||See <om PyIActiveScriptParse::ParseScriptText> for a description of this argument.
-	USES_CONVERSION;
-	char *szpstrDelimiter;
 	DWORD dwFlags;
 	PyObject *obCode;
-	if ( !PyArg_ParseTuple(args, "Osi:GetScriptTextAttributes", &obCode, &szpstrDelimiter, &dwFlags) )
+	PyObject *obDelim;
+	if ( !PyArg_ParseTuple(args, "OOi:GetScriptTextAttributes", &obCode, &obDelim, &dwFlags) )
 		return NULL;
 	BOOL bPythonIsHappy = TRUE;
-	const OLECHAR *pstrDelimiter = A2COLE(szpstrDelimiter);
+	WCHAR *pstrDelimiter;
 	BSTR bstr;
+	if (!PyWinObject_AsWCHAR(obDelim, &pstrDelimiter)) bPythonIsHappy = FALSE;
 	if (!PyCom_BstrFromPyObject(obCode, &bstr)) bPythonIsHappy = FALSE;
 	if (!bPythonIsHappy) return NULL;
 	ULONG uNumCodeChars = SysStringLen(bstr);
@@ -53,6 +53,7 @@ PyObject *PyIActiveScriptDebug::GetScriptTextAttributes(PyObject *self, PyObject
 	HRESULT hr = pIASD->GetScriptTextAttributes( bstr, uNumCodeChars, pstrDelimiter, dwFlags, pattr );
 	PY_INTERFACE_POSTCALL;
 	SysFreeString(bstr);
+	PyWinObject_FreeWCHAR(pstrDelimiter);
 	if ( FAILED(hr) ) {
 		delete [] pattr;
 		return SetPythonCOMError(self,hr);
@@ -70,15 +71,14 @@ PyObject *PyIActiveScriptDebug::GetScriptletTextAttributes(PyObject *self, PyObj
 	// @pyparm string|pstrCode||The script block text.
 	// @pyparm string|pstrDelimiter||See <om PyIActiveScriptParse::ParseScriptText> for a description of this argument.
 	// @pyparm int|dwFlags||See <om PyIActiveScriptParse::ParseScriptText> for a description of this argument.
-	USES_CONVERSION;
-	char *szpstrDelimiter;
 	DWORD dwFlags;
-	PyObject *obCode;
-	if ( !PyArg_ParseTuple(args, "Osi:GetScriptletTextAttributes", &obCode, &szpstrDelimiter, &dwFlags) )
+	PyObject *obCode, *obDelim;
+	if ( !PyArg_ParseTuple(args, "OOi:GetScriptletTextAttributes", &obCode, &obDelim, &dwFlags) )
 		return NULL;
 	BOOL bPythonIsHappy = TRUE;
-	const OLECHAR *pstrDelimiter = A2COLE(szpstrDelimiter);
+	WCHAR *pstrDelimiter;
 	BSTR bstr;
+	if (!PyWinObject_AsWCHAR(obDelim, &pstrDelimiter)) bPythonIsHappy = FALSE;
 	if (!PyCom_BstrFromPyObject(obCode, &bstr)) bPythonIsHappy = FALSE;
 	if (!bPythonIsHappy) return NULL;
 	ULONG uNumCodeChars = SysStringLen(bstr);
@@ -87,6 +87,7 @@ PyObject *PyIActiveScriptDebug::GetScriptletTextAttributes(PyObject *self, PyObj
 	HRESULT hr = pIASD->GetScriptletTextAttributes( bstr, uNumCodeChars, pstrDelimiter, dwFlags, pattr );
 	PY_INTERFACE_POSTCALL;
 	SysFreeString(bstr);
+	PyWinObject_FreeWCHAR(pstrDelimiter);
 	if ( FAILED(hr) )
 		return SetPythonCOMError(self,hr);
 

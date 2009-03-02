@@ -160,7 +160,7 @@ static PyObject *GetStackAddress(PyObject *, PyObject *)
 
 static PyObject *GetThreadStateHandle(PyObject *self, PyObject *args)
 {
-	_ASSERTE(sizeof(void *) <= sizeof(long)); // can we hack ptrs into longs?
+	assert(sizeof(void *) <= sizeof(long)); // can we hack ptrs into longs?
 	// We _must_ have the thread-lock to be called!
 	PyThreadState *myState = PyThreadState_Swap(NULL);
 	PyThreadState_Swap(myState);

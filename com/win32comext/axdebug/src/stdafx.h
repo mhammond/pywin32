@@ -8,9 +8,6 @@
 #include <Python.h>
 #include <modsupport.h>
 
-// Must come after Python headers.
-#include <atlbase.h>
-
 #include "PythonCOM.h"
 #include "PythonCOMServer.h"
 
