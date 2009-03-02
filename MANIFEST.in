@@ -36,7 +36,6 @@ include com/win32com/HTML/image/*.gif
 include com/win32com/test/*.idl
 include com/win32com/test/*.js
 include com/win32com/test/*.sct
-include com/win32com/test/*.tlb
 include com/win32com/test/*.txt
 include com/win32com/test/*.vbs
 include com/win32com/test/*.xsl
