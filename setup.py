@@ -1804,12 +1804,15 @@ com_extensions += [
 pythonwin_extensions = [
     WinExt_pythonwin("win32ui", extra_compile_args = ['-DBUILD_PYW'],
                      pch_header="stdafx.h", base_address=dll_base_address,
-                     depends=["Pythonwin/stdafx.h", "Pythonwin/win32uiExt.h"]),
+                     depends=["Pythonwin/stdafx.h", "Pythonwin/win32uiExt.h"],
+                     optional_headers=['afxres.h']),
     WinExt_pythonwin("win32uiole", pch_header="stdafxole.h",
-                     windows_h_version = 0x500),
+                     windows_h_version = 0x500,
+                     optional_headers=['afxres.h']),
     WinExt_pythonwin("dde", pch_header="stdafxdde.h",
                      depends=["win32/src/stddde.h", "pythonwin/ddemodule.h"],
-                     platforms=['win32']),
+                     platforms=['win32'],
+                     optional_headers=['afxres.h']),
     ]
 # win32ui is large, so we reserve more bytes than normal
 dll_base_address += 0x100000
@@ -1850,7 +1853,8 @@ W32_exe_files = [
                  unicode_mode = True,
                  extra_link_args=["/SUBSYSTEM:CONSOLE"],
                  libraries = "user32 advapi32 ole32 shell32"),
-        WinExt_pythonwin("Pythonwin", extra_link_args=["/SUBSYSTEM:WINDOWS"]),
+        WinExt_pythonwin("Pythonwin", extra_link_args=["/SUBSYSTEM:WINDOWS"],
+                         optional_headers=['afxres.h']),
 ]
 
 # Special definitions for SWIG.
