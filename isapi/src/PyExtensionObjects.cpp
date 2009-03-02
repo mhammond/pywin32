@@ -260,6 +260,7 @@ static struct PyMethodDef PyECB_methods[] = {
 	{"ReportUnhealthy",         PyECB::ReportUnhealthy, 1}, // @pymeth ReportUnhealthy|Calls ServerSupportFunction with HSE_REQ_REPORT_UNHEALTHY
 	{NULL}
 };
+// @pymeth IOCallback|A placeholder for a user-supplied callback function.
 
 PyTypeObject PyECBType =
 {
@@ -781,6 +782,18 @@ PyObject * PyECB::GetExecURLStatus(PyObject *self, PyObject *args)
 	return Py_BuildValue("HHk", status.uHttpStatusCode, status.uHttpSubStatus, status.dwWin32Error);
 }
 
+// *sob* - these autoduck comments should be closer to the actual callback impl,
+// but autoduck makes life harder than it should be...
+// @pymethod None|EXTENSION_CONTROL_BLOCK|IOCallback|A placeholder for a user-supplied callback function.
+// @comm This is not a function you can call, it describes the signature of
+// the callback function supplied to the <om EXTENSION_CONTROL_BLOCK.IOCompletion>
+// function.
+// @pyparm <o EXTENSION_CONTROL_BLOCK>|ecb||The extension control block that is associated with the current, active request.
+// @pyparm object|arg||The user-supplied argument supplied to the <om EXTENSION_CONTROL_BLOCK.IOCompletion> function.
+// @pyparm int|cbIO||An integer that contains the number of bytes of I/O in the last call.
+// @pyparm int|dwError||The error code returned.
+// @rdesc The result of this function is ignored.
+
 // @pymethod int|EXTENSION_CONTROL_BLOCK|IOCompletion|Set a callback that will be used for handling asynchronous I/O operations.
 // @comm If you call this multiple times, the previous callback will be discarded.
 // @comm A reference to the callback and args are held until <om
@@ -796,8 +809,8 @@ PyObject * PyECB::IOCompletion(PyObject *self, PyObject *args)
 	PyObject *obCallback;
 	PyObject *obArg = NULL;
 	if (!PyArg_ParseTuple(args, "O|O:IOCompletion",
-	                      &obCallback, // @pyparm callable|func||The function to call.
-	                      &obArg))
+	                      &obCallback, // @pyparm callable|func||The function to call, as described by the <om EXTENSION_CONTROL_BLOCK.IOCallback> method.
+	                      &obArg)) // @pyparm object|arg|None|Any object which will be supplied as an argument to the callback function.
 		return NULL;
 
 	if (!PyCallable_Check(obCallback))
