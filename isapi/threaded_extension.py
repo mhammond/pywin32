@@ -2,6 +2,7 @@
 # $Id$
 
 import sys
+import time
 from isapi import isapicon, ExtensionError
 import isapi.simple
 from win32file import GetQueuedCompletionStatus, CreateIoCompletionPort, \
@@ -31,6 +32,9 @@ class WorkerThread(threading.Thread):
         self.io_req_port = io_req_port
         self.extension = extension
         threading.Thread.__init__(self)
+        # We wait 15 seconds for a thread to terminate, but if it fails to,
+        # we don't want the process to hang at exit waiting for it...
+        self.setDaemon(True)
 
     def run(self):
         self.running = True
@@ -57,7 +61,7 @@ class WorkerThread(threading.Thread):
 class ThreadPoolExtension(isapi.simple.SimpleExtension):
     "Base class for an ISAPI extension based around a thread-pool"
     max_workers = 20
-    worker_shutdown_wait = 15000 # 15 seconds for workers to quit. XXX - per thread!!! Fix me!
+    worker_shutdown_wait = 15000 # 15 seconds for workers to quit...
     def __init__(self):
         self.workers = []
         # extensible dispatch map, for sub-classes that need to post their
@@ -92,8 +96,16 @@ class ThreadPoolExtension(isapi.simple.SimpleExtension):
             worker.running = False
         for worker in self.workers:
             PostQueuedCompletionStatus(self.io_req_port, 0, ISAPI_SHUTDOWN, None)
-        for worker in self.workers:
-            worker.join(self.worker_shutdown_wait)
+        # wait for them to terminate - pity we aren't using 'native' threads
+        # as then we could do a smart wait - but now we need to poll....
+        end_time = time.time() + self.worker_shutdown_wait/1000
+        alive = self.workers
+        while alive:
+            if time.time() > end_time:
+                # xxx - might be nice to log something here.
+                break
+            time.sleep(0.2)
+            alive = [w for w in alive if w.isAlive()]
         self.dispatch_map = {} # break circles
         CloseHandle(self.io_req_port)
 
