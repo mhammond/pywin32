@@ -63,6 +63,7 @@ public:	// some probably shouldnt be, but...
 
 	// methods
 	static PyObject *AttachObject(PyObject *self, PyObject *args);
+	static PyObject *GetAttachedObject(PyObject *self, PyObject *args);
 
 	PyObject *virtualInst;
 

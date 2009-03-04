@@ -236,9 +236,25 @@ ui_assoc_object::AttachObject(PyObject *self, PyObject *args)
 	RETURN_NONE;
 }
 
+// @pymethod object|PyAssocObject|GetAttachedObject|Returned the attached Python object, or None.
+PyObject *
+ui_assoc_object::GetAttachedObject(PyObject *self, PyObject *args)
+{
+	ui_assoc_object *pAssoc = (ui_assoc_object *)self;
+	if (pAssoc==NULL) return NULL;
+	if (!PyArg_ParseTuple(args, ":GetAttachedObject"))
+		return NULL;
+	PyObject *ob = pAssoc->virtualInst;
+	if (!ob)
+		ob = Py_None;
+	Py_INCREF(ob);
+	return ob;
+}
+
 // @object PyAssocObject|An internal class.
 static struct PyMethodDef PyAssocObject_methods[] = {
 	{"AttachObject",    ui_assoc_object::AttachObject, 1 }, // @pymeth AttachObject|Attaches a Python object for lookup of "virtual" functions.
+	{"GetAttachedObject", ui_assoc_object::GetAttachedObject, 1 }, // @pymeth GetAttachedObject|Returned the attached Python object, or None.
 	{NULL, NULL}
 };
 
