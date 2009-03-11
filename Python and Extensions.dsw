@@ -177,9 +177,6 @@ Package=<5>
 Package=<4>
 {{{
     Begin Project Dependency
-    Project_Dep_Name dbi
-    End Project Dependency
-    Begin Project Dependency
     Project_Dep_Name mmapfile
     End Project Dependency
     Begin Project Dependency
@@ -193,15 +190,6 @@ Package=<4>
     End Project Dependency
     Begin Project Dependency
     Project_Dep_Name timer
-    End Project Dependency
-    Begin Project Dependency
-    Project_Dep_Name win32event
-    End Project Dependency
-    Begin Project Dependency
-    Project_Dep_Name win32evtlog
-    End Project Dependency
-    Begin Project Dependency
-    Project_Dep_Name win32file
     End Project Dependency
     Begin Project Dependency
     Project_Dep_Name win32lz
@@ -219,13 +207,7 @@ Package=<4>
     Project_Dep_Name win32ras
     End Project Dependency
     Begin Project Dependency
-    Project_Dep_Name win32service
-    End Project Dependency
-    Begin Project Dependency
     Project_Dep_Name win32trace
-    End Project Dependency
-    Begin Project Dependency
-    Project_Dep_Name win32security
     End Project Dependency
     Begin Project Dependency
     Project_Dep_Name win32api
@@ -238,12 +220,6 @@ Package=<4>
     End Project Dependency
     Begin Project Dependency
     Project_Dep_Name win32print
-    End Project Dependency
-    Begin Project Dependency
-    Project_Dep_Name win32process
-    End Project Dependency
-    Begin Project Dependency
-    Project_Dep_Name win32gui
     End Project Dependency
     Begin Project Dependency
     Project_Dep_Name win32wnet
@@ -275,18 +251,6 @@ Package=<4>
     Begin Project Dependency
     Project_Dep_Name win32com
     End Project Dependency
-}}}
-
-###############################################################################
-
-Project: "dbi"=.\win32\dbi.dsp - Package Owner=<4>
-
-Package=<5>
-{{{
-}}}
-
-Package=<4>
-{{{
 }}}
 
 ###############################################################################
@@ -549,66 +513,6 @@ Package=<4>
 
 ###############################################################################
 
-Project: "win32event"=.\win32\win32event.dsp - Package Owner=<4>
-
-Package=<5>
-{{{
-}}}
-
-Package=<4>
-{{{
-    Begin Project Dependency
-    Project_Dep_Name PyWinTypes
-    End Project Dependency
-}}}
-
-###############################################################################
-
-Project: "win32evtlog"=.\win32\win32evtlog.dsp - Package Owner=<4>
-
-Package=<5>
-{{{
-}}}
-
-Package=<4>
-{{{
-    Begin Project Dependency
-    Project_Dep_Name PyWinTypes
-    End Project Dependency
-}}}
-
-###############################################################################
-
-Project: "win32file"=.\win32\win32file.dsp - Package Owner=<4>
-
-Package=<5>
-{{{
-}}}
-
-Package=<4>
-{{{
-    Begin Project Dependency
-    Project_Dep_Name PyWinTypes
-    End Project Dependency
-}}}
-
-###############################################################################
-
-Project: "win32gui"=.\win32\win32gui.dsp - Package Owner=<4>
-
-Package=<5>
-{{{
-}}}
-
-Package=<4>
-{{{
-    Begin Project Dependency
-    Project_Dep_Name PyWinTypes
-    End Project Dependency
-}}}
-
-###############################################################################
-
 Project: "win32help"=.\win32\win32help.dsp - Package Owner=<4>
 
 Package=<5>
@@ -620,18 +524,6 @@ Package=<4>
     Begin Project Dependency
     Project_Dep_Name PyWinTypes
     End Project Dependency
-}}}
-
-###############################################################################
-
-Project: "win32inet"=.\win32\win32inet.dsp - Package Owner=<4>
-
-Package=<5>
-{{{
-}}}
-
-Package=<4>
-{{{
 }}}
 
 ###############################################################################
@@ -723,52 +615,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "win32process"=.\win32\win32process.dsp - Package Owner=<4>
-
-Package=<5>
-{{{
-}}}
-
-Package=<4>
-{{{
-    Begin Project Dependency
-    Project_Dep_Name PyWinTypes
-    End Project Dependency
-}}}
-
-###############################################################################
-
 Project: "win32ras"=.\win32\win32ras.dsp - Package Owner=<4>
-
-Package=<5>
-{{{
-}}}
-
-Package=<4>
-{{{
-    Begin Project Dependency
-    Project_Dep_Name PyWinTypes
-    End Project Dependency
-}}}
-
-###############################################################################
-
-Project: "win32security"=.\win32\win32security.dsp - Package Owner=<4>
-
-Package=<5>
-{{{
-}}}
-
-Package=<4>
-{{{
-    Begin Project Dependency
-    Project_Dep_Name PyWinTypes
-    End Project Dependency
-}}}
-
-###############################################################################
-
-Project: "win32service"=.\win32\win32service.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
