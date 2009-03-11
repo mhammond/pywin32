@@ -1448,9 +1448,12 @@ for info in (
               win32/src/win32file.i
               win32/src/win32file_comm.cpp
               """),
-        ("win32event", "user32", None),
+        ("win32event", "user32", None, None, "win32/src/win32event.i"),
         ("win32clipboard", "gdi32 user32 shell32", None),
-        ("win32evtlog", "advapi32 oleaut32", None),
+        ("win32evtlog", "advapi32 oleaut32", None, None, """
+            win32\\src\\win32evtlog_messages.mc
+            win32\\src\\win32evtlog.i
+            """),
         # win32gui handled below
         ("win32job", "user32", True, 0x0500, 'win32/src/win32job.i'),
         ("win32lz", "lz32", None),
@@ -1463,14 +1466,17 @@ for info in (
         ("win32pdh", "", None),
         ("win32pipe", "", None, None, 'win32/src/win32pipe.i win32/src/win32popen.cpp'),
         ("win32print", "winspool user32 gdi32", None, 0x0500),
-        ("win32process", "advapi32 user32", None, 0x0500),
+        ("win32process", "advapi32 user32", None, 0x0500, "win32/src/win32process.i"),
         ("win32profile", "Userenv", True, None, 'win32/src/win32profilemodule.cpp'),
         ("win32ras", "rasapi32 user32", None, 0x0500),
         ("win32security", "advapi32 user32 netapi32", True, 0x0500, """
             win32/src/win32security.i
             win32/src/win32security_sspi.cpp win32/src/win32security_ds.cpp
             """),
-        ("win32service", "advapi32 oleaut32 user32", True, 0x0501),
+        ("win32service", "advapi32 oleaut32 user32", True, 0x0501, """
+            win32/src/win32service_messages.mc
+            win32/src/win32service.i
+            """),
         ("win32trace", "advapi32", None),
         ("win32wnet", "netapi32 mpr", None),
         ("win32inet", "wininet", None, 0x500, """
@@ -1514,7 +1520,7 @@ win32_extensions += [
     WinExt_win32("win32gui", 
            sources = """
                 win32/src/win32dynamicdialog.cpp
-                win32/src/win32gui.i win32/src/win32guimodule.cpp
+                win32/src/win32gui.i
                """.split(),
            windows_h_version=0x0500,
            libraries="gdi32 user32 comdlg32 comctl32 shell32",
@@ -1525,7 +1531,7 @@ win32_extensions += [
     WinExt_win32("winxpgui",
            sources = """
                 win32/src/winxpgui.rc win32/src/win32dynamicdialog.cpp
-                win32/src/win32gui.i win32/src/win32guimodule.cpp
+                win32/src/win32gui.i
                """.split(),
            libraries="gdi32 user32 comdlg32 comctl32 shell32",
            windows_h_version=0x0500,
