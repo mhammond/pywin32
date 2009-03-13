@@ -261,7 +261,11 @@ def _CreateDirectory(iis_dir, name, params):
         # If params.Type is IIS_WEBDIRECTORY, an exception is thrown
         pass
     newDir.AppCreate2(params.AppProtection)
-    newDir.HttpCustomHeaders = params.Headers
+    # XXX - note that these Headers only work in IIS6 and earlier.  IIS7
+    # only supports them on the w3svc node - not even on individial sites,
+    # let alone individual extensions in the site!
+    if params.Headers:
+        newDir.HttpCustomHeaders = params.Headers
 
     log(2, "Setting directory options...")
     newDir.AccessExecute  = params.AccessExecute
