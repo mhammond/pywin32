@@ -48,6 +48,11 @@ class TestCase(unittest.TestCase):
         self.failUnless(t1 < t2)
         self.failUnless(t2 > t1 )
 
+    def testPyTimeCompareOther(self):
+        t1 = pywintypes.Time(100)
+        t2 = None
+        self.failIfEqual(t1, t2)
+
     def testTimeTuple(self):
         now = datetime.datetime.now() # has usec...
         # timetuple() lost usec - pt must be <=...

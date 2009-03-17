@@ -436,9 +436,9 @@ int PyTime::compare(PyObject *ob)
 PyObject *PyTime::richcompare(PyObject *other, int op)
 {
 	if (!PyWinTime_CHECK(other)){
-		PyErr_SetString(PyExc_TypeError, "PyTime cannot be compared to other types");
-		return NULL;
-		}
+		Py_INCREF(Py_NotImplemented);
+		return Py_NotImplemented;
+	}
 	DATE other_time = ((PyTime *)other)->m_time;
 	PyObject *ret;
 
