@@ -5,6 +5,12 @@ Generally created by hand after running:
    {py_dir}\Tools\scripts\logmerge.py -t < log.out > log2.out
 However contributors are encouraged to add their own entries for their work.
 
+Since build 213:
+----------------
+
+* Fixed a regression which would cause an error if you compared a PyTime 
+  object to any other type, including None
+
 Since build 212:
 ----------------
 
