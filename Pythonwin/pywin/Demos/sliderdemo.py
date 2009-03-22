@@ -36,7 +36,12 @@ class MyDialog(dialog.Dialog):
                                   (0,0,100,30),
                                   self._obj_,
                                   self.IDC_SLIDER)
+		self.HookMessage(self.OnSliderMove, win32con.WM_HSCROLL)
 		return rc
+
+	def OnSliderMove(self, params):
+		print "Slider moved"
+
 	def OnCancel(self):
 		print "The slider control is at position", self.slider.GetPos()
 		self._obj_.OnCancel()
