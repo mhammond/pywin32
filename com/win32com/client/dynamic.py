@@ -116,12 +116,13 @@ def Dispatch(IDispatch, userName = None, createClass = None, typeinfo = None, Un
 	try:
 		if typeinfo is None:
 			typeinfo = IDispatch.GetTypeInfo()
-		try:
-			#try for a typecomp
-			typecomp = typeinfo.GetTypeComp()
-			lazydata = typeinfo, typecomp
-		except pythoncom.com_error:
-			pass
+		if typeinfo is not None:
+			try:
+				#try for a typecomp
+				typecomp = typeinfo.GetTypeComp()
+				lazydata = typeinfo, typecomp
+			except pythoncom.com_error:
+				pass
 	except pythoncom.com_error:
 		typeinfo = None
 	olerepr = MakeOleRepr(IDispatch, typeinfo, lazydata)
