@@ -145,6 +145,10 @@ True
 
 >>> (not caps['DynamicTZSupport'] and not caps['MissingTZPatch']) == old_dates_wrong
 True
+
+This test helps ensure language support for unicode characters
+>>> x = TIME_ZONE_INFORMATION(0, 'fran\xc3\xa7ais'.decode('utf-8'))
+
 """
 from __future__ import generators
 
@@ -162,7 +166,6 @@ import re
 import sys
 import operator
 import warnings
-import pywintypes
 from itertools import count
 
 import logging
@@ -223,17 +226,17 @@ class SYSTEMTIME(_SimpleStruct):
 class TIME_ZONE_INFORMATION(_SimpleStruct):
 	_fields_ = [
 		('bias', int),
-		('standard_name', str),
+		('standard_name', unicode),
 		('standard_start', SYSTEMTIME),
 		('standard_bias', int),
-		('daylight_name', str),
+		('daylight_name', unicode),
 		('daylight_start', SYSTEMTIME),
 		('daylight_bias', int),
 	]
 
 class DYNAMIC_TIME_ZONE_INFORMATION(_SimpleStruct):
 	_fields_ = TIME_ZONE_INFORMATION._fields_ + [
-		('key_name', str),
+		('key_name', unicode),
 		('dynamic_daylight_time_disabled', bool),
 	]
 
