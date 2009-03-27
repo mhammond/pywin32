@@ -777,7 +777,7 @@ class Generator:
       ret = open(filename, "wt", encoding=encoding)
     else:
       import codecs # not available in py3k.
-      ret = codecs.open(filename, "wt", encoding)
+      ret = codecs.open(filename, "w", encoding)
     return ret
 
   def finish_writer(self, filename, f, worked):
