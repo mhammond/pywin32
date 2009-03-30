@@ -302,7 +302,13 @@ class TkText:
 		return TkIndexToOffset(index, self.edit, self.marks)
 	def _getindex(self, off):
 		return TkOffsetToIndex(off, self.edit)
-	def _fix_eol_indexes(self, start, end):
+	def _fix_indexes(self, start, end):
+		# first some magic to handle skipping over utf8 extended chars.
+		while start > 0 and ord(self.edit.SCIGetCharAt(start)) & 0xC0 == 0x80:
+			start -= 1
+		while end < self.edit.GetTextLength() and ord(self.edit.SCIGetCharAt(end)) & 0xC0 == 0x80:
+			end += 1
+		# now handling fixing \r\n->\n disparities...
 		if start>0 and self.edit.SCIGetCharAt(start)=='\n' and self.edit.SCIGetCharAt(start-1)=='\r':
 			start = start - 1
 		if end < self.edit.GetTextLength() and self.edit.SCIGetCharAt(end-1)=='\r' and self.edit.SCIGetCharAt(end)=='\n':
@@ -339,7 +345,7 @@ class TkText:
 		if end > max:
 			end = max
 			checkEnd = 1
-		start, end = self._fix_eol_indexes(start, end)
+		start, end = self._fix_indexes(start, end)
 		ret = self.edit.GetTextRange(start, end)
 		# pretend a trailing '\n' exists if necessary.
 		if checkEnd and (not ret or ret[-1] != '\n'): ret = ret + '\n'
@@ -379,8 +385,8 @@ class TkText:
 			if end<start: return
 		if start==self.edit.GetTextLength(): return # Nothing to delete.
 		old = self.edit.GetSel()[0] # Lose a selection
-		# Hack for partial '\r\n' removal
-		start, end = self._fix_eol_indexes(start, end)
+		# Hack for partial '\r\n' and UTF-8 char removal
+		start, end = self._fix_indexes(start, end)
 		self.edit.SetSel((start, end))
 		self.edit.Clear()
 		if old>=start and old<end:
@@ -519,3 +525,4 @@ def IDLETest(extension):
 
 if __name__=='__main__':
 	test()
+ 	  	 

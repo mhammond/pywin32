@@ -8,6 +8,9 @@ However contributors are encouraged to add their own entries for their work.
 Since build 213:
 ----------------
 
+* Fix Pythonwin when backspacing over an extended character (from markt
+ (metolone), via bug 2618277)
+
 * Fixed a regression which would cause an error if you compared a PyTime 
   object to any other type, including None
 
