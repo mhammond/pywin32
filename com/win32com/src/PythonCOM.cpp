@@ -85,12 +85,18 @@ extern LONG _PyCom_GetInterfaceCount(void);
 extern LONG _PyCom_GetGatewayCount(void);
 
 // Function pointers we load at runtime.
-HRESULT (STDAPICALLTYPE *pfnCoWaitForMultipleHandles)(DWORD dwFlags,
+#define CHECK_PFN(fname) if (pfn##fname==NULL) return PyCom_BuildPyException(E_NOTIMPL);
+
+typedef HRESULT (STDAPICALLTYPE *CoWaitForMultipleHandlesfunc)(DWORD dwFlags,
   DWORD dwTimeout,
   ULONG cHandles,
   LPHANDLE pHandles,
   LPDWORD  lpdwindex
-) = NULL;
+);
+static CoWaitForMultipleHandlesfunc pfnCoWaitForMultipleHandles = NULL;
+
+typedef HRESULT (STDAPICALLTYPE *CreateURLMonikerExfunc)(LPMONIKER,LPCWSTR,LPMONIKER *,DWORD);
+static CreateURLMonikerExfunc pfnCreateURLMonikerEx = NULL;
 
 // typedefs for the function pointers are in OleAcc.h
 LPFNOBJECTFROMLRESULT pfnObjectFromLresult = NULL;
@@ -916,6 +922,8 @@ static PyObject *pythoncom_CreateURLMonikerEx(PyObject *self, PyObject *args)
 	IMoniker *base_moniker = NULL, *output_moniker = NULL;
 	HRESULT hr;
 	DWORD flags = URL_MK_UNIFORM;
+	CHECK_PFN(CreateURLMonikerEx);
+
 	if (!PyArg_ParseTuple(args, "OO|k:CreateURLMonikerEx",
 		&obbase,	// @pyparm <o PyIMoniker>|Context||An IMoniker interface to be used as a base with a partial URL, can be None
 		&oburl,		// @pyparm <o PyUNICODE>|URL||Full or partial url for which to create a moniker
@@ -926,7 +934,7 @@ static PyObject *pythoncom_CreateURLMonikerEx(PyObject *self, PyObject *args)
 		return NULL;
 	if (PyCom_InterfaceFromPyObject(obbase, IID_IMoniker, (LPVOID*)&base_moniker, TRUE)){
 		PY_INTERFACE_PRECALL;
-		hr = CreateURLMonikerEx(base_moniker, url, &output_moniker, flags);
+		hr = (*pfnCreateURLMonikerEx)(base_moniker, url, &output_moniker, flags);
 		if (base_moniker)
 			base_moniker->Release();
 		PY_INTERFACE_POSTCALL;
@@ -1552,15 +1560,12 @@ static PyObject *pythoncom_CoWaitForMultipleHandles(PyObject *self, PyObject *ar
 	PyObject *obHandles;
 	DWORD numItems;
 	HANDLE *pItems = NULL;
-	if (!pfnCoWaitForMultipleHandles) {
-		return PyCom_BuildPyException(E_NOTIMPL);
-		return NULL;
-	}
+	CHECK_PFN(CoWaitForMultipleHandles);
 
 	if (!PyArg_ParseTuple(args, "iiO:CoWaitForMultipleHandles",
-						  &flags, // @pyparm int|flags||
-						  &timeout, // @pyparm int|timeout||
-						  &obHandles)) // @pyparm [<o PyHANDLE>, ...]|handles||
+						  &flags, // @pyparm int|Flags||Combination of pythoncom.COWAIT_* values
+						  &timeout, // @pyparm int|Timeout||Timeout in milliseconds
+						  &obHandles)) // @pyparm [<o PyHANDLE>, ...]|Handles||Sequence of handles
 		return NULL;
 	if (!MakeHandleList(obHandles, &pItems, &numItems))
 		return NULL;
@@ -2081,9 +2086,14 @@ PYWIN_MODULE_INIT_FUNC(pythoncom)
 
 	// Load function pointers.
 	HMODULE hModOle32 = GetModuleHandle(_T("ole32.dll"));
-	pfnCoWaitForMultipleHandles = \
-	   (HRESULT (STDAPICALLTYPE *)(DWORD, DWORD, ULONG, LPHANDLE, LPDWORD)) \
-	   GetProcAddress(hModOle32, "CoWaitForMultipleHandles");
+	if (hModOle32)
+		pfnCoWaitForMultipleHandles = (CoWaitForMultipleHandlesfunc)GetProcAddress(hModOle32, "CoWaitForMultipleHandles");
+
+	HMODULE hModurlmon = GetModuleHandle(_T("urlmon.dll"));
+	if (hModurlmon == NULL)
+		hModurlmon = LoadLibrary(_T("urlmon.dll"));
+	if (hModurlmon)
+		pfnCreateURLMonikerEx = (CreateURLMonikerExfunc)GetProcAddress(hModurlmon, "CreateURLMonikerEx");
 
 	// Symbolic constants.
 	ADD_CONSTANT(ACTIVEOBJECT_STRONG);
@@ -2368,6 +2378,10 @@ PYWIN_MODULE_INIT_FUNC(pythoncom)
 	// Flags for CreateUrlMoniker
 	ADD_CONSTANT(URL_MK_UNIFORM);
 	ADD_CONSTANT(URL_MK_LEGACY);
+
+	// Flags for CoWaitForMultipleHandles
+	ADD_CONSTANT(COWAIT_WAITALL);
+	ADD_CONSTANT(COWAIT_ALERTABLE);
 
 #ifndef NO_PYCOM_IDISPATCHEX
 	ADD_CONSTANT(fdexNameCaseSensitive);  // Request that the name lookup be done in a case-sensitive manner. May be ignored by object that does not support case-sensitive lookup.  
