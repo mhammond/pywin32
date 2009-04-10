@@ -4574,6 +4574,7 @@ static PyObject *PyGradientFill(PyObject *self, PyObject *args)
 
 // @pyswig int|GetOpenFileName|Creates an Open dialog box that lets the user specify the drive, directory, and the name of a file or set of files to open.
 // @rdesc If the user presses OK, the function returns TRUE.  Otherwise, use CommDlgExtendedError for error details.
+// @param string/bytes|OPENFILENAME||A string packed into an OPENFILENAME structure, probably via the struct module.
 
 BOOL GetOpenFileName(OPENFILENAME *INPUT);
 
