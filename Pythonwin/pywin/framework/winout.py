@@ -49,6 +49,16 @@ class WindowOutputDocument(WindowOutputDocumentParent):
 	def SaveModified(self):
 		return 1	# say it is OK to destroy my document
 
+	def OnSaveDocument( self, fileName ):
+		win32ui.SetStatusText("Saving file...",1)
+		try:
+			self.SaveFile(fileName)
+		except IOError, details:
+			win32ui.MessageBox("Error - could not save file\r\n\r\n%s"%details)
+			return 0
+		win32ui.SetStatusText("Ready")
+		return 1
+
 class WindowOutputFrame(window.MDIChildWnd):
 	def __init__(self, wnd = None):
 		window.MDIChildWnd.__init__(self, wnd)
@@ -298,7 +308,7 @@ class WindowOutput(docview.DocTemplate):
 		if makeView is None: makeView = WindowOutputViewScintilla
 		docview.DocTemplate.__init__(self, win32ui.IDR_PYTHONTYPE, \
 		    makeDoc, makeFrame, makeView)
-		self.SetDocStrings("\nOutput\n\n\n\n\n\n")
+		self.SetDocStrings("\nOutput\n\nText Documents (*.txt)\n.txt\n\n\n")
 		win32ui.GetApp().AddDocTemplate(self)
 		self.writeQueueing = queueing
 		self.errorCantRecreate = 0
