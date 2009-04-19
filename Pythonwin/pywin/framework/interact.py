@@ -44,7 +44,7 @@ _is_block_closer = re.compile(r"""
     \b
 """, re.VERBOSE).match
 
-tracebackHeader = "Traceback ("
+tracebackHeader = "Traceback (".encode("ascii")
 
 sectionProfile = "Interactive Window"
 valueFormatTitle = "FormatTitle"
