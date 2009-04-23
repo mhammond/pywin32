@@ -63,7 +63,7 @@ void CleanupIOCallback(EXTENSION_CONTROL_BLOCK *ecb)
 	PyObject *key = PyLong_FromVoidPtr(ecb->ConnID);
 	if (!key)
 		return; // ack - not much more we can do.
-	if (!PyDict_DelItem(g_callbackMap, key))
+	if (0!=PyDict_DelItem(g_callbackMap, key))
 		PyErr_Clear();
 	Py_DECREF(key);
 	return;
