@@ -8,6 +8,9 @@ However contributors are encouraged to add their own entries for their work.
 Since build 213:
 ----------------
 
+* pythoncom may fail to import on Windows 2000 installs with a default IE
+  (Roger)
+
 * Fix Pythonwin when backspacing over an extended character (from markt
  (metolone), via bug 2618277)
 
