@@ -277,6 +277,9 @@ def TestGenerated():
     l=[1,2,3,4]
     TestApplyResult(o.SetVariantSafeArray, (l,), len(l))
     TestApplyResult(o.SetIntSafeArray, (l,), len(l))
+    ll=[1,2,3,0x100000000]
+    TestApplyResult(o.SetLongLongSafeArray, (ll,), len(ll))
+    TestApplyResult(o.SetULongLongSafeArray, (ll,), len(ll))
     # check we can pass ints as a VT_UI1
     TestApplyResult(o.SetBinSafeArray, (l,), len(l))
     # and binary

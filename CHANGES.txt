@@ -8,6 +8,8 @@ However contributors are encouraged to add their own entries for their work.
 Since build 213:
 ----------------
 
+* pythoncom gets better support for 64bit integers, including in arrays.
+
 * pythoncom may fail to import on Windows 2000 installs with a default IE
   (Roger)
 

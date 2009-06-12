@@ -691,6 +691,13 @@ static PyObject *PyCom_PyObjectFromSAFEARRAYDimensionItem(SAFEARRAY *psa, VARENU
 			subitem = PyInt_FromLong(ln);
 			break;
 			}
+		case VT_I8: {
+			LARGE_INTEGER ll;
+			hres = SafeArrayGetElement(psa, arrayIndices, &ll);
+			if (FAILED(hres)) break;
+			subitem = PyWinObject_FromPY_LONG_LONG(ll);
+			break;
+			}
 		case VT_R4: {
 			float fl;
 			hres = SafeArrayGetElement(psa, arrayIndices, &fl);
@@ -782,6 +789,13 @@ static PyObject *PyCom_PyObjectFromSAFEARRAYDimensionItem(SAFEARRAY *psa, VARENU
 			subitem = PyLong_FromUnsignedLong(l1);
 			break;
 		}
+		case VT_UI8: {
+			ULARGE_INTEGER ll;
+			hres = SafeArrayGetElement(psa, arrayIndices, &ll);
+			if (FAILED(hres)) break;
+			subitem = PyWinObject_FromUPY_LONG_LONG(ll);
+			break;
+			}
 		case VT_INT: {
 			int i1;
 			hres = SafeArrayGetElement(psa, arrayIndices, &i1);
@@ -1109,6 +1123,34 @@ BOOL PythonOleArgHelper::MakeObjToVariant(PyObject *obj, VARIANT *var, PyObject 
 				if ( !PyWinObject_AsBstr(obUse, V_BSTRREF(var)) ) BREAK_FALSE
 			}
 		}
+		break;
+	case VT_I8:
+		if (!PyWinObject_AsPY_LONG_LONG(obj, &V_I8(var)))
+			BREAK_FALSE;
+		break;
+	case VT_I8 | VT_BYREF:
+		if (bCreateBuffers)
+			V_I8REF(var) = &m_llBuf;
+
+		if (!VALID_BYREF_MISSING(obj)) {
+			if (!PyWinObject_AsPY_LONG_LONG(obj, V_I8REF(var)))
+				BREAK_FALSE;
+		} else
+			*V_I8REF(var) = 0;
+		break;
+	case VT_UI8:
+		if (!PyWinObject_AsUPY_LONG_LONG(obj, &V_UI8(var)))
+			BREAK_FALSE;
+		break;
+	case VT_UI8 | VT_BYREF:
+		if (bCreateBuffers)
+			V_UI8REF(var) = (unsigned long long *)&m_llBuf;
+
+		if (!VALID_BYREF_MISSING(obj)) {
+			if (!PyWinObject_AsUPY_LONG_LONG(obj, V_UI8REF(var)))
+				BREAK_FALSE;
+		} else
+			*V_UI8REF(var) = 0;
 		break;
 	case VT_I4:
 		if ((obUse=PyNumber_Int(obj))==NULL) BREAK_FALSE

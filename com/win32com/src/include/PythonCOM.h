@@ -704,6 +704,7 @@ public:
 		void *m_pValueHolder;
 		short m_sBuf;
 		long m_lBuf;
+		long long m_llBuf;
 		VARIANT_BOOL m_boolBuf;
 		double m_dBuf;
 		float m_fBuf;

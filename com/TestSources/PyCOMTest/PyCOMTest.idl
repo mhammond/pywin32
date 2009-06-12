@@ -206,6 +206,8 @@ library PyCOMTestLib
 		// Test Safe arrays - simple, then alias, enum
 		HRESULT SetBinSafeArray([in] SAFEARRAY(unsigned char) buf, [out, retval]int *resultSize);
 		HRESULT SetIntSafeArray([in] SAFEARRAY(int) ints, [out, retval]int *resultSize);
+		HRESULT SetLongLongSafeArray([in] SAFEARRAY(long long) ints, [out, retval]int *resultSize);
+		HRESULT SetULongLongSafeArray([in] SAFEARRAY(unsigned long long) ints, [out, retval]int *resultSize);
 		HRESULT SetVariantSafeArray([in] SAFEARRAY(VARIANT) vars, [out, retval]int *resultSize);
 		HRESULT GetSimpleSafeArray([out] SAFEARRAY(int)* ints);
 		HRESULT GetSafeArrays([out] SAFEARRAY(QsAttribute)* attrs,
@@ -227,6 +229,13 @@ library PyCOMTestLib
 							   [optional, defaultvalue("")] BSTR strval, 
 							   [optional, defaultvalue(1)] short sval,
 							   [out,retval] SAFEARRAY(VARIANT) *pret );
+		// Trying (but failing) to find a bug related to SourceSafe's VSSItem's IDL defn.  Note
+		// the lack of 'optional' even though a default is specified (which doesn't seem to
+		// have any effect, but seeing we are here...)
+		HRESULT TestOptionals3( 
+							   [in]double dval, 
+							   [in, defaultvalue(1)] short sval,
+							   [out, retval] IPyCOMTest **ppout );
 		HRESULT GetStruct([out, retval]TestStruct1 *ret);
 		HRESULT DoubleString([in] BSTR inStr, [out, retval] BSTR *outStr);
 		HRESULT DoubleInOutString([in,out] BSTR *str);

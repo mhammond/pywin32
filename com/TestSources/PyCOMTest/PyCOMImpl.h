@@ -72,6 +72,8 @@ END_COM_MAP()
 	STDMETHOD(TakeByRefDispatch)(IDispatch **inout);
 	STDMETHOD(SetBinSafeArray)(SAFEARRAY* buf, int *retSize);
 	STDMETHOD(SetIntSafeArray)(SAFEARRAY* ints, int *retSize);
+	STDMETHOD(SetLongLongSafeArray)(SAFEARRAY* ints, int *retSize);
+	STDMETHOD(SetULongLongSafeArray)(SAFEARRAY* ints, int *retSize);
 	STDMETHOD(SetVariantSafeArray)(SAFEARRAY* vars, int *retSize);
 	STDMETHOD(GetSafeArrays)(SAFEARRAY** attrs,
                                       SAFEARRAY**attrs2,
@@ -91,6 +93,7 @@ END_COM_MAP()
 	STDMETHOD(FireWithNamedParams)(long nID, QsBoolean b, int *outVal1, int *outVal2);
 	STDMETHOD(TestOptionals)(BSTR strArg, short sarg, long larg, double darg, SAFEARRAY **pRet);
 	STDMETHOD(TestOptionals2)(double dval, BSTR strval, short sval, SAFEARRAY **pRet);
+	STDMETHOD(TestOptionals3)(double dval, short sval, IPyCOMTest **outinterface2);
 	STDMETHOD(GetStruct)(TestStruct1 *ret);
 	STDMETHOD(DoubleString)(BSTR inStr, BSTR *outStr);
 	STDMETHOD(DoubleInOutString)(BSTR *str);

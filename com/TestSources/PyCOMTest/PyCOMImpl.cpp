@@ -266,6 +266,32 @@ STDMETHODIMP CPyCOMTest::SetIntSafeArray(SAFEARRAY* ints, int *resultSize)
 	return S_OK;
 }
 
+STDMETHODIMP CPyCOMTest::SetLongLongSafeArray(SAFEARRAY* ints, int *resultSize)
+{
+	UINT cDims = SafeArrayGetDim(ints);
+	*resultSize = 0;
+	long ub=0, lb=0;
+	if (cDims) {
+		SafeArrayGetUBound(ints, 1, &ub);
+		SafeArrayGetLBound(ints, 1, &lb);
+		*resultSize = ub - lb + 1;
+	}
+	return S_OK;
+}
+
+STDMETHODIMP CPyCOMTest::SetULongLongSafeArray(SAFEARRAY* ints, int *resultSize)
+{
+	UINT cDims = SafeArrayGetDim(ints);
+	*resultSize = 0;
+	long ub=0, lb=0;
+	if (cDims) {
+		SafeArrayGetUBound(ints, 1, &ub);
+		SafeArrayGetLBound(ints, 1, &lb);
+		*resultSize = ub - lb + 1;
+	}
+	return S_OK;
+}
+
 STDMETHODIMP CPyCOMTest::SetVariantSafeArray(SAFEARRAY* vars, int *resultSize)
 {
 	TCHAR buf[256];
@@ -287,7 +313,7 @@ static HRESULT MakeFillIntArray(SAFEARRAY **ppRes, int len, VARENUM vt)
 	HRESULT hr = S_OK;
 	SAFEARRAY *psa;
 	SAFEARRAYBOUND rgsabound[1] = { len, 0 };
-	psa = SafeArrayCreate(VT_I4, 1, rgsabound);
+	psa = SafeArrayCreate(vt, 1, rgsabound);
 	if (psa==NULL)
 		return E_OUTOFMEMORY;
 	long i;
@@ -552,6 +578,11 @@ HRESULT CPyCOMTest::TestOptionals2(double dval, BSTR strval, short sval, SAFEARR
 	return hr;
 }
 
+HRESULT CPyCOMTest::TestOptionals3(double dval, short sval, IPyCOMTest **outinterface2)
+{
+	return S_OK;
+}
+
 HRESULT CPyCOMTest::GetStruct(TestStruct1 *ret)
 {
 	TestStruct1 r;
@@ -668,6 +699,18 @@ HRESULT CPyCOMTest::TestMyInterface( IUnknown *unktester)
 
 	CHECK_HR(tester->SetIntSafeArray(array, &result));
 
+	SafeArrayDestroy(array);
+
+	CHECK_HR(MakeFillIntArray(&array, 5, VT_I8));
+	CHECK_HR(tester->CheckVariantSafeArray(&array, &result));
+	CHECK_TRUE(result==1);
+	CHECK_HR(tester->SetLongLongSafeArray(array, &result));
+	SafeArrayDestroy(array);
+
+	CHECK_HR(MakeFillIntArray(&array, 5, VT_UI8));
+	CHECK_HR(tester->CheckVariantSafeArray(&array, &result));
+	CHECK_TRUE(result==1);
+	CHECK_HR(tester->SetULongLongSafeArray(array, &result));
 	SafeArrayDestroy(array);
 
 	long lresult;

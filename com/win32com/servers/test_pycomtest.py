@@ -76,6 +76,12 @@ class PyCOMTest:
 	def SetIntSafeArray(self, ints):
 		return len(ints)
 
+	def SetLongLongSafeArray(self, ints):
+		return len(ints)
+
+	def SetULongLongSafeArray(self, ints):
+		return len(ints)
+
 	def SetBinSafeArray(self, buf):
 		return len(buf)
 
