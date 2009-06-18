@@ -32,6 +32,13 @@
 #include "EDKCFG.H"
 #include "EDKUTILS.H"
 
+#define INITGUID
+#define USES_IID_IExchangeManageStore
+#include <edkguid.h>
+
+#include "PyIExchangeManageStore.h"
+
+
 // What is the correct story here??  The Exchange SDK story sucks - it seems
 // certain functions in the stand-alone version are simply commented out.
 #if defined(EXCHANGE_RE)
@@ -46,6 +53,23 @@
 #	include "MBLOGON.H"
 #endif
 
+static int AddIID(PyObject *dict, const char *key, REFGUID guid)
+{
+	PyObject *obiid = PyWinObject_FromIID(guid);
+	if (!obiid) return 1;
+	int rc = PyDict_SetItemString(dict, (char*)key, obiid);
+	Py_DECREF(obiid);
+	return rc;
+}
+
+
+#define ADD_IID(tok) AddIID(d, #tok, tok)
+
+%}
+
+%init %{
+	if ( PyCom_RegisterClientType(&PyIExchangeManageStore::type, &IID_IExchangeManageStore) != 0 ) return;
+	ADD_IID(IID_IExchangeManageStore);
 %}
 
 // @pyswig int, int|HrGetExchangeStatus|Obtains the current state of the server on a computer.

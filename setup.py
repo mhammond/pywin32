@@ -1703,11 +1703,12 @@ com_extensions += [
                         %(mapi)s/mapiutil.cpp
                         %(mapi)s/mapiguids.cpp
                         """ % dirs).split()),
-    WinExt_win32com_mapi('exchange', libraries="version",
+    WinExt_win32com_mapi('exchange', libraries="version user32 advapi32",
                          sources=("""
                                   %(mapi)s/exchange.i         %(mapi)s/exchange.cpp
+				  %(mapi)s/PyIExchangeManageStore.i	%(mapi)s/PyIExchangeManageStore.cpp
                                   """ % dirs).split()),
-    WinExt_win32com_mapi('exchdapi',
+    WinExt_win32com_mapi('exchdapi', libraries="advapi32",
                          sources=("""
                                   %(mapi)s/exchdapi.i         %(mapi)s/exchdapi.cpp
                                   """ % dirs).split()),
@@ -1887,6 +1888,7 @@ swig_interface_parents = {
     # exchange and exchdapi
     'exchange':             None,
     'exchdapi':             None,
+    'PyIExchangeManageStore': '',
     # ADSI
     'adsi':                 None, # module
     'PyIADsContainer':      'IDispatch',
