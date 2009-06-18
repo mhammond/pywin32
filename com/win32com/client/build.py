@@ -489,9 +489,12 @@ def _BuildArgList(fdesc, names):
     numArgs = max(fdesc[6], len(fdesc[2]))
     names = list(names)
     while None in names:
-    	i = names.index(None)
-    	names[i] = "arg%d" % (i,)
-    names = list(map(MakePublicAttributeName, names[1:]))
+        i = names.index(None)
+        names[i] = "arg%d" % (i,)
+    # We've seen 'source safe' libraries offer the name of 'ret' params in
+    # 'names' - although we can't reproduce this, it would be insane to offer
+    # more args than we have arg infos for - hence the upper limit on names...
+    names = list(map(MakePublicAttributeName, names[1:(numArgs + 1)]))
     name_num = 0
     while len(names) < numArgs:
         names.append("arg%d" % (len(names),))
