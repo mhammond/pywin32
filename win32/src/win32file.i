@@ -2836,9 +2836,9 @@ typedef BOOL (WINAPI *CreateHardLinkfunc)(LPWSTR, LPWSTR, LPSECURITY_ATTRIBUTES)
 static CreateHardLinkfunc pfnCreateHardLink=NULL;
 typedef BOOL (WINAPI *CreateHardLinkTransactedfunc)(LPWSTR, LPWSTR, LPSECURITY_ATTRIBUTES, HANDLE);
 static CreateHardLinkTransactedfunc pfnCreateHardLinkTransacted=NULL;
-typedef BOOL (WINAPI *CreateSymbolicLinkfunc)(LPWSTR,LPWSTR,DWORD);
+typedef BOOLEAN (WINAPI *CreateSymbolicLinkfunc)(LPWSTR,LPWSTR,DWORD);
 static CreateSymbolicLinkfunc pfnCreateSymbolicLink=NULL;
-typedef BOOL (WINAPI *CreateSymbolicLinkTransactedfunc)(LPCWSTR,LPCWSTR,DWORD,HANDLE);
+typedef BOOLEAN (WINAPI *CreateSymbolicLinkTransactedfunc)(LPCWSTR,LPCWSTR,DWORD,HANDLE);
 static CreateSymbolicLinkTransactedfunc pfnCreateSymbolicLinkTransacted=NULL;
 
 typedef BOOL (WINAPI *BackupReadfunc)(HANDLE, LPBYTE, DWORD, LPDWORD, BOOL, BOOL, LPVOID*);
@@ -3186,7 +3186,7 @@ static PyObject *py_CreateSymbolicLink(PyObject *self, PyObject *args, PyObject 
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OO|kO:CreateSymbolicLink", keywords,
 		&oblinkname,	// @pyparm <o PyUnicode>|SymlinkFileName||Path of the symbolic link to be created
 		&obtargetname,	// @pyparm <o PyUnicode>|TargetFileName||The name of file to which link will point
-		&flags,			// @pyparm int|Flags|0|SYMLINK_FLAG_DIRECTORY is only defined flag
+		&flags,			// @pyparm int|Flags|0|SYMBOLIC_LINK_FLAG_DIRECTORY is only defined flag
 		&obtrans))		// @pyparm <o PyHANDLE>|Transaction|None|Handle to a transaction, as returned by <om win32transaction.CreateTransaction>
 		return NULL;
 	if (!PyWinObject_AsHANDLE(obtrans, &htrans))
@@ -3199,7 +3199,7 @@ static PyObject *py_CreateSymbolicLink(PyObject *self, PyObject *args, PyObject 
 		}
 
 	if (PyWinObject_AsWCHAR(oblinkname, &linkname, FALSE) && PyWinObject_AsWCHAR(obtargetname, &targetname, FALSE)){
-		BOOL bsuccess;
+		BOOLEAN bsuccess;
 		if (htrans)
 			bsuccess=(*pfnCreateSymbolicLinkTransacted)(linkname, targetname, flags, htrans);
 		else
@@ -5565,3 +5565,6 @@ PyCFunction pfnpy_GetFullPathName=(PyCFunction)py_GetFullPathName;
 
 // Info level for GetFileAttributesEx and GetFileAttributesTransacted (GET_FILEEX_INFO_LEVELS enum)
 #define GetFileExInfoStandard 1
+
+// Flags for CreateSymbolicLink/CreateSymbolicLinkTransacted
+#define SYMBOLIC_LINK_FLAG_DIRECTORY 1
