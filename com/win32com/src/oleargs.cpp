@@ -1144,7 +1144,7 @@ BOOL PythonOleArgHelper::MakeObjToVariant(PyObject *obj, VARIANT *var, PyObject 
 		break;
 	case VT_UI8 | VT_BYREF:
 		if (bCreateBuffers)
-			V_UI8REF(var) = (unsigned long long *)&m_llBuf;
+			V_UI8REF(var) = (ULONGLONG *)&m_llBuf;
 
 		if (!VALID_BYREF_MISSING(obj)) {
 			if (!PyWinObject_AsUPY_LONG_LONG(obj, V_UI8REF(var)))
