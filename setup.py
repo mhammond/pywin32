@@ -1,4 +1,4 @@
-build_id="213.1" # may optionally include a ".{patchno}" suffix.
+build_id="214" # may optionally include a ".{patchno}" suffix.
 # Putting buildno at the top prevents automatic __doc__ assignment, and
 # I *want* the build number at the top :)
 __doc__="""This is a distutils setup-script for the pywin32 extensions
@@ -1120,10 +1120,23 @@ class my_build_ext(build_ext):
         # The pywintypes and pythoncom extensions have special names
         extra_dll = self.debug and "_d.dll" or ".dll"
         extra_exe = self.debug and "_d.exe" or ".exe"
+        # *sob* - python fixed this bug in python 3.1 (bug 6403)
+        # So in the fixed versions we only get the base name, and if the
+        # output name is simply 'dir\name' we need to nothing.
+
+        # The pre 3.1 pywintypes
         if name == "pywin32_system32.pywintypes":
             return r"pywin32_system32\pywintypes%d%d%s" % (sys.version_info[0], sys.version_info[1], extra_dll)
+        # 3.1+ pywintypes
+        elif name == "pywintypes":
+            return r"pywintypes%d%d%s" % (sys.version_info[0], sys.version_info[1], extra_dll)
+        # pre 3.1 pythoncom
         elif name == "pywin32_system32.pythoncom":
             return r"pywin32_system32\pythoncom%d%d%s" % (sys.version_info[0], sys.version_info[1], extra_dll)
+        # 3.1+ pythoncom
+        elif name == "pythoncom":
+            return r"pythoncom%d%d%s" % (sys.version_info[0], sys.version_info[1], extra_dll)
+        # Pre 3.1 rest.
         elif name.endswith("win32.perfmondata"):
             return r"win32\perfmondata" + extra_dll
         elif name.endswith("win32.pythonservice"):
@@ -1132,6 +1145,12 @@ class my_build_ext(build_ext):
             return r"pythonwin\Pythonwin" + extra_exe
         elif name.endswith("isapi.PyISAPI_loader"):
             return r"isapi\PyISAPI_loader" + extra_dll
+        # The post 3.1 rest
+        elif name in ['perfmondata', 'PyISAPI_loader']:
+            return name + extra_dll
+        elif name in ['pythonservice', 'Pythonwin']:
+            return name + extra_exe
+
         return build_ext.get_ext_filename(self, name)
 
     def get_export_symbols(self, ext):
