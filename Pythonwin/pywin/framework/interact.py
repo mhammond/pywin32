@@ -258,7 +258,7 @@ class PythonwinInteractiveInterpreter(code.InteractiveInterpreter):
 		self.globals = globals
 		code.InteractiveInterpreter.__init__(self, locals)
 	def showsyntaxerror(self, filename=None):
-		sys.stderr.write(tracebackHeader) # So the color syntaxer recognises it.
+		sys.stderr.write(tracebackHeader.decode('ascii')) # So the color syntaxer recognises it.
 		code.InteractiveInterpreter.showsyntaxerror(self, filename)
 	def runcode(self, code):
 		try:
