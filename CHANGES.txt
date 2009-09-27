@@ -5,6 +5,15 @@ Generally created by hand after running:
    {py_dir}\Tools\scripts\logmerge.py -t < log.out > log2.out
 However contributors are encouraged to add their own entries for their work.
 
+Since build 214:
+----------------
+
+* mapiutil.py functions GetMapiTypeName and GetPropTagName have been modified
+  to better distinguish between PT_UNICODE and PT_STRING8 type names
+  during reverse lookups. (Nick Czeczulin)
+
+* Fix encoding problem in makepy (Massa, Harald Armin)
+
 Since build 213:
 ----------------
 

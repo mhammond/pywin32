@@ -17,6 +17,18 @@ def GetPropTagName(pt):
 				# but should we get a PT_FOO with PT_ERROR set, we fallback
 				# to the ID.
 				prTable[value] = name
+
+				# String types should have 3 definitions in mapitags.py
+				# PR_BODY	= PROP_TAG( PT_TSTRING,	4096)
+				# PR_BODY_W	= PROP_TAG( PT_UNICODE, 4096)
+				# PR_BODY_A	= PROP_TAG( PT_STRING8, 4096)
+				# The following change ensures a lookup using only the the
+				# property id returns the conditional default.
+
+				if (mapitags.PROP_TYPE(value) == mapitags.PT_UNICODE or \
+					mapitags.PROP_TYPE(value) == mapitags.PT_STRING8) and \
+					(name[-2:] == '_A' or name[-2:] == '_W'):
+					continue
 				prTable[mapitags.PROP_ID(value)] = name
 	try:
 		try:
@@ -48,6 +60,11 @@ def GetMapiTypeName(propType):
 	if not ptTable:
 		for name, value in mapitags.__dict__.iteritems():
 			if name[:3] == 'PT_':
+				# PT_TSTRING is a conditional assignment
+				# for either PT_UNICODE or PT_STRING8 and
+				# should not be returned during a lookup.
+				if name == 'PT_TSTRING':
+					continue
 				ptTable[value] = name
 
 	rawType = propType & ~mapitags.MV_FLAG
