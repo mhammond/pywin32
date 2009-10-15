@@ -8,6 +8,8 @@ However contributors are encouraged to add their own entries for their work.
 Since build 214:
 ----------------
 
+* Fix problem causing ASP pages to fail when reloaded.
+
 * mapiutil.py functions GetMapiTypeName and GetPropTagName have been modified
   to better distinguish between PT_UNICODE and PT_STRING8 type names
   during reverse lookups. (Nick Czeczulin)
