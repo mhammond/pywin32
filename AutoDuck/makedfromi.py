@@ -6,21 +6,21 @@ g_com_parent = ""
 
 def GetComments(line, lineNo, lines):
 	# Get the comment from this and continuous lines, if they exist.
-	data = string.split(line, "//", 2)
+	data = line.split("//", 2)
 	doc = ""
-	if len(data)==2: doc=string.strip(data[1])
+	if len(data)==2: doc=data[1].strip()
 	lineNo = lineNo + 1
 	while lineNo < len(lines):
 		line = lines[lineNo]
-		data = string.split(line, "//", 2)
+		data = line.split("//", 2)
 		if len(data)!=2:
 			break
-		if string.strip(data[0]):
+		if data[0].strip():
 			break # Not a continutation!
 		if data[1].strip().startswith("@"):
 			# new command
 			break
-		doc = doc + "\n// " + string.strip(data[1])
+		doc = doc + "\n// " + data[1].strip()
 		lineNo = lineNo + 1
 	# This line doesnt match - step back
 	lineNo = lineNo - 1
@@ -44,13 +44,13 @@ def make_doc_summary(inFile, outFile):
 			bInRawBlock = 1
 		try:
 			if line[:7]=="%module":
-				extra = string.split(line, "//")
+				extra = line.split("//")
 				if len(extra)>1:
-					modName = string.strip(extra[0][7:])
+					modName = extra[0][7:].strip()
 					modDoc, lineNo = GetComments(line, lineNo, lines)
 				lineNo += 1
 			elif line[:7]=="#define" and not bInRawBlock:
-				cname = string.split(line)[1]
+				cname = line.split()[1]
 				doc, lineNo = GetComments(line, lineNo, lines)
 				constants.append((cname, doc))
 			else:
@@ -79,7 +79,8 @@ def make_doc_summary(inFile, outFile):
 							else:
 								extra_tags.append("// " + doc + '\n')
 		except:
-			print "Line %d is badly formed - %s" % (lineNo, str(sys.exc_value))
+			_, msg, _ = sys.exc_info()
+			print("Line %d is badly formed - %s" % (lineNo, msg))
 			
 		lineNo = lineNo + 1
 
@@ -106,9 +107,9 @@ def make_doc_summary(inFile, outFile):
 
 		outFile.write("\n")
 		for (meth, extras) in these_methods:
-			fields = string.split(meth,'|')
-			if len(fields)<>3:
-				print "**Error - %s does not have enough fields" % meth
+			fields = meth.split('|')
+			if len(fields)!=3:
+				print("**Error - %s does not have enough fields" % meth)
 			else:
 				outFile.write("// @pymethod %s|%s|%s|%s\n" % (fields[0],thisModName,fields[1], fields[2]))
 			for extra in extras:
@@ -119,7 +120,7 @@ def make_doc_summary(inFile, outFile):
 		else:
 			outFile.write("\n// @module %s|%s\n" % (thisModName,modDoc))
 		for (meth, extras) in these_methods:
-			fields = string.split(meth,'|')
+			fields = meth.split('|')
 			outFile.write("// @pymeth %s|%s\n" % (fields[1], fields[2]))
 		chunk_number += 1
 		method_num += max_methods
@@ -141,10 +142,11 @@ def doit():
 				g_com_parent = a
 			elif o=='-o':
 				outName = a
-		msg = string.join(args)
-	except getopt.error, msg:
-		print msg
-		print "Usage: %s [-o output_name] [-p com_parent] filename" % sys.argv[0]
+		msg = ' '.join(args)
+	except getopt.error:
+		_, msg, _ = sys.exc_info()
+		print(msg)
+		print("Usage: %s [-o output_name] [-p com_parent] filename" % sys.argv[0])
 		return
 
 	inName = args[0]

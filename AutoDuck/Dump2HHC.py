@@ -1,5 +1,4 @@
 import os
-import string
 import sys
 import pprint
 import copy
@@ -31,7 +30,7 @@ class category:
             top.name = oi.name
             top.context = "html/" + oi.href
             top.type = "topic"
-            assert not d.has_key(top.name) and not self.overviewTopics.has_key(top.name), \
+            assert not top.name in d and not top.name in self.overviewTopics, \
                "Duplicate named topic detected: " + top.name
             d[top.name] = top
 
@@ -57,6 +56,8 @@ def TopicCmp(a, b):
             return 1
         else:
             return -1
+def TopicKey(a):
+    return a.name
 
 def parseCategories():
     # Sucks in an external category file.
@@ -87,7 +88,7 @@ def parseTopics(cat, input):
         return
     # chop
     line = line[:-1]
-    fields = string.split(line, "\t")
+    fields = line.split("\t")
     while len(fields) > 0:
         assert len(fields) == 3, fields
         top = topic()
@@ -95,10 +96,10 @@ def parseTopics(cat, input):
         top.context = fields[1] + ".html"
         line = input.readline()
         if line == '':
-            raise ValueError, "incomplete topic!"
+            raise ValueError("incomplete topic!")
         # chop
         line = line[:-1]
-        fields = string.split(line, "\t")
+        fields = line.split("\t")
         assert len(fields) == 2
         assert len(fields[0]) == 0
         top.type = fields[1]
@@ -106,10 +107,10 @@ def parseTopics(cat, input):
             # Skip the property fields line for module/object
             line = input.readline()
             line = line[:-1]
-            fields = string.split(line, "\t")
+            fields = line.split("\t")
             assert len(fields[0]) == 0 and len(fields[1]) == 0
             if line == '':
-                raise ValueError, "incomplete topic!"
+                raise ValueError("incomplete topic!")
             # Loop over the rest of the properties,
             # and add them appropriately. :)
             line = input.readline()
@@ -117,7 +118,7 @@ def parseTopics(cat, input):
                 return
             # chop
             line = line[:-1]
-            fields = string.split(line, "\t")
+            fields = line.split("\t")
             while len(fields) > 0:
                 if len(fields[0]) > 0:
                     break
@@ -127,7 +128,7 @@ def parseTopics(cat, input):
                     return
                 # chop
                 line = line[:-1]
-                fields = string.split(line, "\t")
+                fields = line.split("\t")
         else:
             # add to modules or object
             if top.type == "module":
@@ -139,18 +140,18 @@ def parseTopics(cat, input):
             elif top.type == "const":
               d = cat.constants
             else:
-                raise RuntimeError, "What is '%s'" % (top.type,)
+                raise RuntimeError("What is '%s'" % (top.type,))
 
-            if d.has_key(top.name):
-                print "Duplicate named %s detected: %s" % (top.type, top.name)
+            if top.name in d:
+                print("Duplicate named %s detected: %s" % (top.type, top.name))
 
             # Skip the property fields line for module/object
             line = input.readline()
             line = line[:-1]
-            fields = string.split(line, "\t")
+            fields = line.split("\t")
             assert len(fields[0]) == 0 and len(fields[1]) == 0, "%s, %s" %(fields, top.name)
             if line == '':
-                raise ValueError, "incomplete topic!"
+                raise ValueError("incomplete topic!")
 
             # Loop over the rest of the properties,
             # and add them appropriately. :)
@@ -159,7 +160,7 @@ def parseTopics(cat, input):
                 return
             # chop
             line = line[:-1]
-            fields = string.split(line, "\t")
+            fields = line.split("\t")
             while len(fields) > 0:
                 if len(fields[0]) > 0:
                     break
@@ -172,9 +173,9 @@ def parseTopics(cat, input):
                 # Read the property fields line
                 line = input.readline()
                 if line == '':
-                    raise ValueError, "incomplete topic!"
+                    raise ValueError("incomplete topic!")
                 line = line[:-1]
-                fields = string.split(line, "\t")
+                fields = line.split("\t")
                 assert len(fields[0]) == 0 and len(fields[1]) == 0, fields
                 if top2.type == "pymeth":
                     top2.name = fields[2]
@@ -189,7 +190,7 @@ def parseTopics(cat, input):
                         return
                     # chop
                     line = line[:-1]
-                    fields = string.split(line, "\t")
+                    fields = line.split("\t")
                     continue
                 # Add top2 into top
                 top.contains.append(top2)
@@ -200,7 +201,7 @@ def parseTopics(cat, input):
                     return
                 # chop
                 line = line[:-1]
-                fields = string.split(line, "\t")
+                fields = line.split("\t")
             d[top.name] = top
 
 def _urlescape(name):
@@ -215,7 +216,7 @@ def _urlescape(name):
     return name
 
 def _genCategoryHTMLFromDict(dict, output):
-    keys = dict.keys()
+    keys = list(dict.keys())
     keys.sort()
     for key in keys:
         topic = dict[key]
@@ -254,7 +255,7 @@ def genCategoryHTML(output_dir, cats):
 
 def _genItemsFromDict(dict, cat, output, target, do_children = 1):
     CHM = "mk:@MSITStore:%s.chm::/" % target
-    keys = dict.keys()
+    keys = list(dict.keys())
     keys.sort()
     for k in keys:
       context = dict[k].context
@@ -271,7 +272,7 @@ def _genItemsFromDict(dict, cat, output, target, do_children = 1):
       if len(dict[k].contains) > 0:
         output.write("<UL>")
       containees = copy.copy(dict[k].contains)
-      containees.sort(TopicCmp)
+      containees.sort(key=TopicKey)
       for m in containees:
         output.write('''
         <LI><OBJECT type="text/sitemap">

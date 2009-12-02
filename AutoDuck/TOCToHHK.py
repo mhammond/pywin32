@@ -1,7 +1,6 @@
 import os
 import os.path
 import sys
-import string
 
 """
 TOCToHHK.py
@@ -27,14 +26,14 @@ def main():
     while line != "":
         # chop line
         line = line[:-1]
-        fields = string.split(line, "\t")
+        fields = line.split("\t")
         if "." in fields[1]:
-            keyword = string.split(fields[1], ".")[-1]
+            keyword = fields[1].split(".")[-1]
         else:
             keyword = fields[1]
         context = fields[0]
         if " " in context:
-            context = string.replace(context, " ", "_")
+            context = context.replace(" ", "_")
         out.write("""    <LI><OBJECT type="text/sitemap">
         <param name="Keyword" value="%s">
         <param name="Name" value="%s">

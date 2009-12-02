@@ -67,14 +67,14 @@ def GetDocument(fname="pywin32-document.xml"):
 
 if __name__=='__main__':
     doc = GetDocument()
-    print "Important Notes"
+    print("Important Notes")
     for link in doc.important:
-        print " ", link.name, link.href
+        print(" ", link.name, link.href)
     
-    print "Doc links"
+    print("Doc links")
     for link in doc.links:
-        print " ", link.name, link.href
+        print(" ", link.name, link.href)
 
-    print "Doc categories"
+    print("Doc categories")
     for c in doc:
-        print " ", c.id, c.label
+        print(" ", c.id, c.label)
