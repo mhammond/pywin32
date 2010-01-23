@@ -60,6 +60,17 @@ BOOL PyCom_VariantFromPyObject(PyObject *obj, VARIANT *var)
 		}
 		V_VT(var) = VT_BSTR;
 	}
+	// For 3.x, bool checks need to be above PyLong_Check, which now succeeds for booleans.
+	else if (obj == Py_True)
+	{
+		V_VT(var) = VT_BOOL;
+		V_BOOL(var) = VARIANT_TRUE;
+	}
+	else if (obj == Py_False)
+	{
+		V_VT(var) = VT_BOOL;
+		V_BOOL(var) = VARIANT_FALSE;
+	}
 	else if (PyLong_Check(obj))
 	{
 		__int64 lval = PyLong_AsLongLong(obj);
@@ -97,21 +108,14 @@ BOOL PyCom_VariantFromPyObject(PyObject *obj, VARIANT *var)
 	{
 		V_VT(var) = VT_NULL;
 	}
-	else if (obj == Py_True)
-	{
-		V_VT(var) = VT_BOOL;
-		V_BOOL(var) = VARIANT_TRUE;
-	}
-	else if (obj == Py_False)
-	{
-		V_VT(var) = VT_BOOL;
-		V_BOOL(var) = VARIANT_FALSE;
-	}
+#if (PY_VERSION_HEX < 0x03000000)
+	// This is redundant in 3.x, since PyInt_Check is #defined to PyLong_Check
 	else if (PyInt_Check(obj))
 	{
 		V_VT(var) = VT_I4;
 		V_I4(var) = PyInt_AsLong(obj);
 	}
+#endif
 	else if (PyObject_HasAttrString(obj, "_oleobj_"))
 	{
 		if (PyCom_InterfaceFromPyInstanceOrObject(obj, IID_IDispatch, (void **)&V_DISPATCH(var), FALSE))
