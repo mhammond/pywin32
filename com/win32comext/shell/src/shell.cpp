@@ -1417,13 +1417,18 @@ static PyObject *PySHGetFolderLocation(PyObject *self, PyObject *args)
 }
 
 // @pymethod |shell|SHAddToRecentDocs|Adds a document to the shell's list of recently used documents or clears all documents from the list. The user gains access to the list through the Start menu of the Windows taskbar.
+// @pyseeapi SHAddToRecentDocs
+// @comm The underlying API function has no return value, and therefore no way to indicate failure.
 static PyObject *PySHAddToRecentDocs(PyObject *self, PyObject *args)
 {
 	int flags;
 	void *whatever;
-	if(!PyArg_ParseTuple(args, "iz:SHAddToRecentDocs",
-			&flags, // @pyparm int|flags||Flag that indicates the meaning of the whatever parameter
-			&whatever)) // @pyparm string|whatever||A path or <o PyIDL>
+	Py_ssize_t cb;  // not used, but must accept strings containing NULL bytes
+	if(!PyArg_ParseTuple(args, "iz#:SHAddToRecentDocs",
+			&flags, // @pyparm int|flags||Value from SHARD enum indicating type of data passed in second arg
+			&whatever,	// @pyparm string/buffer|data||A file system path or PIDL (see <om shell.PIDLAsString>) identifying a shell object.
+			&cb))		//	In Windows 7, some flags require a buffer containing one of various structs.
+						//	Pass None to clear list of recent documents.
 		return NULL;
 
 	PY_INTERFACE_PRECALL;
