@@ -63,7 +63,8 @@ def debug_attr_print(*args):
 		print
 
 # A helper to create method objects on the fly
-if sys.version_info > (3,0):
+py3k = sys.version_info > (3,0)
+if py3k:
 	def MakeMethod(func, inst, cls):
 		return types.MethodType(func, inst) # class not needed in py3k
 else:
@@ -91,13 +92,16 @@ def _GetGoodDispatchAndUserName(IDispatch, userName, clsctx):
 	# Get a dispatch object, and a 'user name' (ie, the name as
 	# displayed to the user in repr() etc.
 	if userName is None:
+		# Displayed name should be a plain string in py2k, and unicode in py3k
 		if isinstance(IDispatch, str):
 			userName = IDispatch
-		elif isinstance(IDispatch, unicode):
-			# We always want the displayed name to be a real string
+		elif not py3k and isinstance(IDispatch, unicode):
+			# 2to3 converts the above 'unicode' to 'str', but this will never be executed in py3k
 			userName = IDispatch.encode("ascii", "replace")
-	elif type(userName) == unicode:
-		# As above - always a string...
+		## ??? else userName remains None ???
+	elif not py3k and isinstance(userName, unicode):
+		# 2to3 converts the above 'unicode' to 'str', but this will never be executed in py3k
+		# As above - always a plain string in py2k
 		userName = userName.encode("ascii", "replace")
 	else:
 		userName = str(userName)
