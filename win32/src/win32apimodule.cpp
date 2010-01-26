@@ -204,6 +204,9 @@ static PyObject *PyCloseHandle(PyObject *self, PyObject *args)
 }
 
 // @pymethod <o PyHANDLE>|win32api|DuplicateHandle|Duplicates a handle.
+// @comm When duplicating a handle for a different process, you should either keep a
+//	reference to the returned PyHANDLE, or call .Detach() on it to prevent it
+//	from being closed prematurely.
 static PyObject *PyDuplicateHandle(PyObject *self, PyObject *args)
 {
 	HANDLE hSourceProcess, hSource, hTarget, hResult;
