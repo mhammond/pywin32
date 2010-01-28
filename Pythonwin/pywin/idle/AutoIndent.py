@@ -515,7 +515,7 @@ class IndentSearcher:
                 for (typ, token, start, end, line) in token_generator(self.readline):
                     if typ == NAME and token in OPENERS:
                         self.blkopenline = line
-                    elif type == INDENT and self.blkopenline:
+                    elif typ == INDENT and self.blkopenline:
                         self.indentedline = line
                         break
 
