@@ -670,6 +670,54 @@ PyObject *PyWNetGetResourceParent(PyObject *self, PyObject *args)
 }
 
 
+// @pymethod string|win32wnet|WNetGetConnection|Retrieves the name of the network resource associated with a local device.
+static
+PyObject *
+PyWNetGetConnection(PyObject *self, PyObject *args)
+{
+	PyObject *ret = NULL;
+	PyObject *obConnection = Py_None;
+	DWORD length = 0;
+	DWORD errcode;
+	TCHAR *szConnection = NULL;
+	TCHAR *buf = NULL;
+
+	// @pyparm string|connection|None|A string that is a drive-based path for a network resource. 
+	// For example, if drive H has been mapped to a network drive share, and the network resource of interest is a file named Sample.doc in the directory \Win32\Examples on that share, the drive-based path is H:\Win32\Examples\Sample.doc.
+	if (!PyArg_ParseTuple(args, "|O", &obConnection))
+		return NULL;
+	if (!PyWinObject_AsTCHAR(obConnection, &szConnection, TRUE))
+		goto done;
+	// get the buffer size
+	{
+		Py_BEGIN_ALLOW_THREADS
+			errcode=WNetGetConnection(szConnection, NULL, &length);
+		Py_END_ALLOW_THREADS
+	}
+	if (length==0) {
+		ReturnNetError("WNetGetConnection", errcode);
+		goto done;
+	}
+	buf = (TCHAR *)malloc( sizeof( TCHAR) * length);
+	if (buf == NULL){
+		PyErr_Format(PyExc_MemoryError, "Unable to allocate %d bytes", sizeof(TCHAR)*length);
+		goto done;
+	}
+	Py_BEGIN_ALLOW_THREADS
+		errcode = WNetGetConnection(szConnection, buf, &length);
+	Py_END_ALLOW_THREADS
+		if (0 != errcode) {
+			ReturnNetError("WNetGetConnection", errcode);
+			goto done;
+		}
+		// length includes the NULL - drop it (safely!)
+		ret = PyWinObject_FromTCHAR(buf, (length > 0) ? length-1 : 0);
+done:
+		PyWinObject_FreeTCHAR(szConnection);
+		if (buf) free(buf);
+		return ret;
+}
+
 // @module win32wnet|A module that exposes the Windows Networking API.
 static PyMethodDef win32wnet_functions[] = {
 	// @pymeth NETRESOURCE|The <o PyNETRESOURCE> type - can be used to create a new <o PyNETRESOURCE> object.
@@ -700,6 +748,10 @@ static PyMethodDef win32wnet_functions[] = {
 	{"WNetGetLastError", PyWNetGetLastError, 1, "Retrieves extended error information set by a network provider when one of the WNet* functions fails"},
 	// @pymeth WNetGetResourceParent|Finds the parent resource of a network resource
 	{"WNetGetResourceParent", PyWNetGetResourceParent, 1, "Finds the parent resource of a network resource"},
+	// @pymeth WNetGetConnection|Retrieves the name of the network resource associated with a local device.
+	{"WNetGetConnection",    PyWNetGetConnection,     1,  "Retrieves the name of the network resource associated with a local device"},
+
+
 	{NULL,			NULL}
 };
 
