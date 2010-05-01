@@ -320,6 +320,9 @@ void PyDEVMODEA::deallocFunc(PyObject *ob)
 
 PDEVMODEA PyDEVMODEA::GetDEVMODE(void)
 {
+	// Propagate any changes made by python attribute logic from the fixed length DEVMODE
+	// to the externally visible variable length DEVMODE before handing it off to anyone else
+	memcpy(pdevmode, &devmode, devmode.dmSize);
 	return pdevmode;
 }
 
@@ -714,6 +717,9 @@ void PyDEVMODEW::deallocFunc(PyObject *ob)
 
 PDEVMODEW PyDEVMODEW::GetDEVMODE(void)
 {
+	// Propagate any changes made by python attribute logic from the fixed length DEVMODE
+	// to the externally visible variable length DEVMODE before handing it off to anyone else
+	memcpy(pdevmode, &devmode, devmode.dmSize);
 	return pdevmode;
 }
 
