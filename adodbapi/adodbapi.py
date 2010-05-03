@@ -431,10 +431,9 @@ class Connection(object):
         self.adoConn=adoConn
         self.paramstyle = paramstyle
         self.supportsTransactions=False
-        for indx in range(adoConn.Properties.Count):
-            name = getIndexedValue(adoConn.Properties,indx).Name
-            if name == 'Transaction DDL':
-                if getIndexedValue(adoConn.Properties,indx).Value != 0:        #v2.1 Albrecht
+        for property in adoConn.Properties:  #Rod Mancisidor ( mancisidor ) 
+            if property.Name == 'Transaction DDL':
+                if property.Value != 0:        #v2.1 Albrecht
                     self.supportsTransactions=True
                 break
         self.adoConn.CursorLocation = defaultCursorLocation #v2.1 Rose
@@ -1185,11 +1184,11 @@ def cvtFloat(variant):
 def _convertNumberWithCulture(variant, f):
     try:
         return f(variant)
-    except (ValueError,TypeError):
+    except (ValueError,TypeError,decimal.InvalidOperation):
         try:
             europeVsUS = str(variant).replace(",",".")
             return f(europeVsUS)
-        except (ValueError,TypeError): pass
+        except (ValueError,TypeError,decimal.InvalidOperation): pass
 
 
 def cvtInt(variant):

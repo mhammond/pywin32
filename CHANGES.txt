@@ -7,7 +7,14 @@ However contributors are encouraged to add their own entries for their work.
 
 Since build 214:
 ----------------
-
+* Update adodbapi to version 2.3.0 -- this is includes major refactoring and
+   specifically adds features for django support, including the ability for the
+   programmer to change ado's SQL "paramstyle" at run time to select between
+   'qmark', 'format' and 'named' methods of passing SQL parameters.
+** also, in response to user requests, adodbapi will now use client-side
+   cursors by default.  This will make rowcount and stored procedure return 
+   parameter values more readily available.
+ 
 * Fix problem causing ASP pages to fail when reloaded.
 
 * mapiutil.py functions GetMapiTypeName and GetPropTagName have been modified
