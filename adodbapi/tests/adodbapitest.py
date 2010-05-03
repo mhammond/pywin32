@@ -1,9 +1,8 @@
-""" Unit tests for adodbapi version 2.2.6 (d)"""
+""" Unit tests for adodbapi version 2.3.0"""
 """
     adodbapi - A python DB API 2.0 interface to Microsoft ADO
     
     Copyright (C) 2002  Henrik Ekelund
-    Email: <http://sourceforge.net/sendmessage.php?touser=618411>
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -19,8 +18,7 @@
     License along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-    Updated for decimal data and version 2.1 by Vernon Cole
-    AS400 tests removed v 2.1.1 - Vernon Cole
+    Updates by Vernon Cole
 """
 
 import unittest
@@ -32,8 +30,9 @@ try:
 except ImportError:
     win32 = False
 
-import adodbapitestconfig #will find (parent?) adodbpai
+import adodbapitestconfig #will find (parent?) adodbapi
 import adodbapi
+import ado_consts
 
 #adodbapi.adodbapi.verbose = 3
 
@@ -130,31 +129,30 @@ class CommonDBTests(unittest.TestCase):
 
 
     def testUserDefinedConversions(self):
-        
         oldconverter=adodbapi.variantConversions[adodbapi.adoStringTypes]
-        try:
-            duplicatingConverter=lambda aStringField: aStringField*2
-            assert duplicatingConverter(u'gabba') == u'gabbagabba'
+#try:
+        duplicatingConverter=lambda aStringField: aStringField*2
+        assert duplicatingConverter(u'gabba') == u'gabbagabba'
 
-            adodbapi.variantConversions[adodbapi.adoStringTypes]=duplicatingConverter
+        adodbapi.variantConversions[adodbapi.adoStringTypes]=duplicatingConverter
 
-            self.helpForceDropOnTblTemp()
-            conn=self.getConnection()
+        self.helpForceDropOnTblTemp()
+        conn=self.getConnection()
 
-            crsr=conn.cursor()
-            tabdef = "CREATE TABLE tblTemp (fldData VARCHAR(100) NOT NULL)"
-            crsr.execute(tabdef)
-            crsr.execute("INSERT INTO tblTemp(fldData) VALUES('gabba')")
-            crsr.execute("INSERT INTO tblTemp(fldData) VALUES('hey')")
-            crsr.execute("SELECT fldData FROM tblTemp ORDER BY fldData")
-            row=crsr.fetchone()
-            self.assertEquals(row[0],'gabbagabba')
-            row=crsr.fetchone()
-            self.assertEquals(row[0],'heyhey')                     
-        finally:
-            adodbapi.variantConversions[adodbapi.adoStringTypes]=oldconverter #Restore
-            self.helpRollbackTblTemp()
-    
+        crsr=conn.cursor()
+        tabdef = "CREATE TABLE tblTemp (fldData VARCHAR(100) NOT NULL)"
+        crsr.execute(tabdef)
+        crsr.execute("INSERT INTO tblTemp(fldData) VALUES('gabba')")
+        crsr.execute("INSERT INTO tblTemp(fldData) VALUES('hey')")
+        crsr.execute("SELECT fldData FROM tblTemp ORDER BY fldData")
+        row=crsr.fetchone()
+        self.assertEquals(row[0],'gabbagabba')
+        row=crsr.fetchone()
+        self.assertEquals(row[0],'heyhey')                     
+#finally:
+        adodbapi.variantConversions[adodbapi.adoStringTypes]=oldconverter #Restore
+        self.helpRollbackTblTemp()
+
     def helpTestDataType(self,sqlDataTypeString,
                          DBAPIDataTypeString,
                          pyData,
@@ -225,7 +223,7 @@ class CommonDBTests(unittest.TestCase):
                 self.assertEquals(iso1 , iso2)
             elif compareAlmostEqual:
                 assert abs(rs[0]-pyData)/pyData<0.00001, \
-                    "Values not almost equal rs[0]=%s, oyDta=%f" %(rs[0],pyData)
+                    "Values not almost equal rs[0]=%s, pyData=%f" %(rs[0],pyData)
             else:
                 if allowedReturnValues:
                     ok=0
@@ -234,12 +232,12 @@ class CommonDBTests(unittest.TestCase):
                             ok=1
                     assert ok
                 else:                
-                    self.assertEquals(rs[0] , pyData)
-        self.helpRollbackTblTemp()
-          
+                    self.assertEquals(rs[0] , pyData, \
+                        'Values are not equal rs[0]="%s", pyData="%s"' %(rs[0],pyData))
+
     def testDataTypeFloat(self):       
-        self.helpTestDataType("real",'NUMBER',3.45,compareAlmostEqual=1)
-        self.helpTestDataType("float",'NUMBER',1.79e37,compareAlmostEqual=1)
+        self.helpTestDataType("real",'NUMBER',3.45,compareAlmostEqual=True)
+        self.helpTestDataType("float",'NUMBER',1.79e37,compareAlmostEqual=True)
 
     def testDataTypeMoney(self):    #v2.1 Cole -- use decimal for money
         if self.getEngine() != 'MySQL':
@@ -276,10 +274,10 @@ class CommonDBTests(unittest.TestCase):
         self.helpTestDataType("datetime",'DATETIME',adodbapi.Timestamp(2002,10,28,12,15,1),compareAlmostEqual=True)
 
     def testDataTypeBinary(self):
+        binfld = str2bytes('\x00\x01\xE2\x40')
         if self.getEngine() == 'MySQL':
-            pass #self.helpTestDataType("BLOB",'BINARY',adodbapi.Binary('\x00\x01\xE2\x40'))
+            pass # self.helpTestDataType("BLOB(4)",'BINARY',adodbapi.Binary(binfld))
         else:
-            binfld = str2bytes('\x00\x01\xE2\x40')
             self.helpTestDataType("binary(4)",'BINARY',adodbapi.Binary(binfld))
             self.helpTestDataType("varbinary(100)",'BINARY',adodbapi.Binary(binfld))
             self.helpTestDataType("image",'BINARY',adodbapi.Binary(binfld))
@@ -293,23 +291,27 @@ class CommonDBTests(unittest.TestCase):
         
     def helpForceDropOnTblTemp(self):
         conn=self.getConnection()
-        crsr=conn.cursor()       
+        crsr=conn.cursor()
         try:
             crsr.execute("DELETE FROM tblTemp")
             crsr.execute("DROP TABLE tblTemp")
             conn.commit()
         except:
             pass
+        #finally:
+        crsr.close()
 
     def helpCreateAndPopulateTableTemp(self,crsr):
+        self.helpForceDropOnTblTemp()
         tabdef= """
             CREATE TABLE tblTemp (
                 fldData INTEGER
             )
             """
         crsr.execute(tabdef)
-        for i in range(9):
+        for i in range(9): # note: this poor SQL code, but a valid test
             crsr.execute("INSERT INTO tblTemp (fldData) VALUES (%i)" %(i,))
+            # better to use ("INSERT INTO tblTemp (fldData) VALUES (?)",(i,))
             
     def testFetchAll(self):      
         crsr=self.getCursor()
@@ -319,6 +321,14 @@ class CommonDBTests(unittest.TestCase):
         assert len(rs)==9
         self.helpRollbackTblTemp()
 
+    def testIterator(self):      
+        crsr=self.getCursor()
+        self.helpCreateAndPopulateTableTemp(crsr)
+        crsr.execute("SELECT fldData FROM tblTemp")
+        for i,row in enumerate(crsr):
+            assert row[0]==i
+        self.helpRollbackTblTemp()
+        
     def testExecuteMany(self):
         crsr=self.getCursor()
         self.helpCreateAndPopulateTableTemp(crsr)
@@ -399,6 +409,7 @@ class CommonDBTests(unittest.TestCase):
 
         conn=self.getConnection()
         crsr=conn.cursor()
+        self.helpForceDropOnTblTemp()
         crsr.execute(tabdef)
         for multiplier in (1,decimal.Decimal('2.5'),78,9999,99999,7007):
             crsr.execute("DELETE FROM tblTemp")
@@ -413,8 +424,66 @@ class CommonDBTests(unittest.TestCase):
             self.assertEquals( fldcurr,correct)
         
     def testErrorConnect(self):
-         self.assertRaises(adodbapi.DatabaseError,adodbapi.connect,'not a valid connect string')
+        self.assertRaises(adodbapi.DatabaseError,adodbapi.connect,'not a valid connect string')
 
+    def testFormatParamstyle(self):
+        self.helpForceDropOnTblTemp()
+        conn=self.getConnection()
+        conn.paramstyle = 'format'  #test nonstandard use of paramstyle
+        crsr=conn.cursor()
+        tabdef= """
+            CREATE TABLE tblTemp (
+                fldId integer NOT NULL,
+                fldData varchar(10))
+                """
+        crsr.execute(tabdef)
+
+        inputs = [u'one',u'two',u'three']
+        fldId=2
+        for inParam in inputs:
+            fldId+=1
+            try:
+                crsr.execute("INSERT INTO tblTemp (fldId,fldData) VALUES (%s,%s)", (fldId,inParam))
+            except:
+                conn.printADOerrors()
+                raise
+            crsr.execute("SELECT fldData FROM tblTemp WHERE %s=fldID", [fldId])
+            rec = crsr.fetchone()
+            assert rec[0]==inParam, 'returned value:"%s" != test value:"%s"'%(rec[0],inParam)
+        crsr.execute("insert into tblTemp (fldId,fldData) VALUES (%s,'four%sfive')",(20,))
+        crsr.execute("SELECT fldData FROM tblTemp WHERE fldID=20")
+        rec = crsr.fetchone()
+        assert rec[0]=='four%sfive'
+
+    def testNamedParamstyle(self):
+        self.helpForceDropOnTblTemp()
+        conn=self.getConnection()
+        crsr=conn.cursor()
+        crsr.paramstyle = 'named'  #test nonstandard use of paramstyle
+        tabdef= """
+            CREATE TABLE tblTemp (
+                fldId integer NOT NULL,
+                fldData varchar(10))
+                """
+        crsr.execute(tabdef)
+
+        inputs = [u'four',u'five',u'six']
+        fldId=3
+        for inParam in inputs:
+            fldId+=1
+            try:
+                crsr.execute("INSERT INTO tblTemp (fldId,fldData) VALUES (:Id,:f_Val)", {"f_Val":inParam,'Id':fldId})
+            except:
+                conn.printADOerrors()
+                raise
+            crsr.execute("SELECT fldData FROM tblTemp WHERE :Id=fldID", {'Id':fldId})
+            rec = crsr.fetchone()
+            assert rec[0]==inParam, 'returned value:"%s" != test value:"%s"'%(rec[0],inParam)
+        crsr.execute("insert into tblTemp (fldId,fldData) VALUES (:xyz,'six:five')",{'xyz':30})
+        crsr.execute("SELECT fldData FROM tblTemp WHERE fldID=30")
+        rec = crsr.fetchone()
+        assert rec[0]=='six:five'
+                     
 class TestADOwithSQLServer(CommonDBTests):
     def setUp(self):
         self.conn=adodbapi.connect(adodbapitestconfig.connStrSQLServer)
@@ -443,25 +512,25 @@ class TestADOwithSQLServer(CommonDBTests):
     def testUserDefinedConversionForExactNumericTypes(self):
         # variantConversions is a dictionary of convertion functions
         # held internally in adodbapi
+
+        oldconverter = adodbapi.variantConversions[ado_consts.adNumeric] #keep old function to restore later
         
-        # By default decimal and numbers are returned as decimals.
-        # Instead, make them return as  floats
+        # By default decimal and "numbers" are returned as decimals.
+        # Instead, make numbers return as  floats
 
-        oldconverter = adodbapi.variantConversions[adodbapi.adNumeric] #keep old function to restore later
-
-        adodbapi.variantConversions[adodbapi.adNumeric] = adodbapi.cvtFloat
+        adodbapi.variantConversions[ado_consts.adNumeric] = adodbapi.cvtFloat
         self.helpTestDataType("decimal(18,2)",'NUMBER',3.45,compareAlmostEqual=1)
         self.helpTestDataType("numeric(18,2)",'NUMBER',3.45,compareAlmostEqual=1)        
         # now return strings
-        adodbapi.variantConversions[adodbapi.adNumeric] = adodbapi.cvtString
+        adodbapi.variantConversions[ado_consts.adNumeric] = adodbapi.cvtString
         self.helpTestDataType("numeric(18,2)",'NUMBER','3.45')
         # now a completly weird user defined convertion
-        adodbapi.variantConversions[adodbapi.adNumeric] = lambda x: u'!!This function returns a funny unicode string %s!!'%x
+        adodbapi.variantConversions[ado_consts.adNumeric] = lambda x: u'!!This function returns a funny unicode string %s!!'%x
         self.helpTestDataType("numeric(18,2)",'NUMBER','3.45',
                               allowedReturnValues=[u'!!This function returns a funny unicode string 3.45!!'])
 
         # now reset the converter to its original function
-        adodbapi.variantConversions[adodbapi.adNumeric]=oldconverter #Restore the original convertion function
+        adodbapi.variantConversions[ado_consts.adNumeric]=oldconverter #Restore the original convertion function
         self.helpTestDataType("numeric(18,2)",'NUMBER',decimal.Decimal('3.45'))
 
     def testVariableReturningStoredProcedure(self):
@@ -483,12 +552,11 @@ class TestADOwithSQLServer(CommonDBTests):
 
         retvalues=crsr.callproc('sp_DeleteMeOnlyForTesting',('Dodsworth','Anne','              '))
 
-        assert retvalues[0]=='Dodsworth'
-        assert retvalues[1]=='Anne'
-        assert retvalues[2]=='DodsworthAnne'
+        assert retvalues[0]=='Dodsworth', '%s is not "Dodsworth"'%repr(retvalues[0])
+        assert retvalues[1]=='Anne','%s is not "Anne"'%repr(retvalues[1])
+        assert retvalues[2]=='DodsworthAnne','%s is not "DodsworthAnne"'%repr(retvalues[2])
         self.conn.rollback()
-
-        
+       
     def testMultipleSetReturn(self):
         crsr=self.getCursor()
         self.helpCreateAndPopulateTableTemp(crsr)
@@ -585,7 +653,30 @@ class TestADOwithMySql(CommonDBTests):
     def testOkConnect(self):
         c=adodbapi.connect(adodbapitestconfig.connStrMySql)
         assert c != None
-        
+
+class TestADOwithPostgres(CommonDBTests):
+    def setUp(self):
+        self.conn = adodbapi.connect(adodbapitestconfig.connStrPostgres)
+        self.engine = 'PostgreSQL'
+
+    def tearDown(self):
+        try:
+            self.conn.rollback()
+        except:
+            pass
+        try:
+            self.conn.close()
+        except:
+            pass
+        self.conn=None
+
+    def getConnection(self):
+        return self.conn
+
+    def testOkConnect(self):
+        c=adodbapi.connect(adodbapitestconfig.connStrPostgres)
+        assert c != None
+                
 class TimeConverterInterfaceTest(unittest.TestCase):
     def testIDate(self):
         assert self.tc.Date(1990,2,2)
@@ -737,7 +828,9 @@ if adodbapitestconfig.doSqlServerTest:
     suites.append( unittest.makeSuite(TestADOwithSQLServer,'test'))
 if adodbapitestconfig.doMySqlTest:
     suites.append( unittest.makeSuite(TestADOwithMySql,'test'))
-
+if adodbapitestconfig.doPostgresTest:
+    suites.append( unittest.makeSuite(TestADOwithPostgres,'test'))
+    
 suite=unittest.TestSuite(suites)
 if __name__ == '__main__':       
     defaultDateConverter=adodbapi.dateconverter
@@ -755,4 +848,3 @@ if __name__ == '__main__':
                 print "Changed dateconverter to "
                 print adodbapi.dateconverter
                 unittest.TextTestRunner().run(suite)
-                

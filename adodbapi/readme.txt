@@ -10,17 +10,18 @@ Home page: <http://sourceforge.net/projects/adodbapi>
 
 Features:
 * 100% DB-API 2.0 compliant. 
-* Includes pyunit testcases that describes how to use the module.  
-* Fully implemented in Python. 
+* Includes pyunit testcases that describe how to use the module.  
+* Fully implemented in Python. -- runs in Python 2.3+ Python 3.0+ and IronPython 2.6+
 * Licensed under the LGPL license, which means that it can be used freely even in commercial programs subject to certain restrictions. 
 * Supports eGenix mxDateTime, Python 2.3 datetime module and Python time module.
+* Supports multiple paramstyles: 'qmark' 'named' 'format'
 
 Prerequisites:
 * C Python 2.3 or higher
  and pywin32 (Mark Hammond's python for windows extensions.)
  Note: as of 2.1.1, adodbapi is included in pywin32 versions 211 and later. 
 or
- Iron Python 2.0 or higher. 
+ Iron Python 2.6 or higher.  (works in IPy2.0 for all data types except BUFFER)
 
 NOTE: ...........
 If you do not like the new default operation of returning Numeric columns as decimal.Decimal,
@@ -30,12 +31,54 @@ Try:
 or:
         adodbapi.adodbapi.variantConversions[adodbapi.adNumeric] = adodbapi.adodbapi.cvtFloat
 or:
-	adodbapi.adodbapi.variantConversions[adodbapi.adNumeric] = write_your_own_convertion_function
+       adodbapi.adodbapi.variantConversions[adodbapi.adNumeric] = write_your_own_convertion_function
 ............
+Whats new in version 2.3.0    # note: breaking changes and default changes!
+  This version is all about django support.  There are two targets:
+    A) MS SQL database connections for mainstream django.
+    B) running django on IronPython
+   Someday, far in the future, this may result in:
+    C) MS SQL connections from django running on IronPython on Mono on Linux.  (dreams sometimes come true.)
+   Thanks to Adam Vandenberg for the django modifications. 
+   The changes are:
+
+1. the ado constants are moved into their own module: ado_consts
+      This may break some old code, but Adam did it on his version and I like the improvement in readability.
+      Also, you get better documentation of some results, like convertion of MS data type codes to strings:
+       >>> ado_consts.adTypeNames[202]
+       'adVarWChar'
+       >>> ado_consts.adTypeNames[cursr.description[0][1]]
+       'adWChar'
+  ** deprecation warning: access to these constants as adodbapi.ad* will be removed in the future **
+
+2. will now default to client-side cursors. To get the old default, use something like:
+      adodbapi.adodbapi.defaultCursorLocation = ado_consts.adUseServer  
+  ** change in default warning **
+
+3. Added ability to change paramstyle on the connection or the cursor:  (An extension to the db api)
+    Possible values for paramstyle are: 'qmark', 'named', 'format'. The default remains 'qmark'.
+    (SQL language in '%s' format or ':namedParameter' format will be converted to '?' internally.)
+    when 'named' format is used, the parameters must be in a dict, rather than a sequence.
+       >>>c = adodbapi.connect('someConnectionString',timeout=30)
+       >>>c.paramstyle = 'spam'
+           <<<will result in: adodbapi.NotSupportedError: paramstyle="spam" not in:('qmark', 'named', 'format')>>>
+  ** new extension feature **
+
+4. Added abality to change the default paramstyle for adodbapi: (for django)
+    >>> import adodbapi as Database
+    >>> Database.paramstyle = 'format'
+ ** new extension feature **
+  
+Whats new in version 2.2.7
+1. Does not automagically change to mx.DateTime when mx package is installed. (This by popular demand.)
+   to get results in  mx.DateTime format, use:
+      adodbapi.adodbapi.dateconverter =  adodbapi.adodbapi.mxDateTimeConverter
+2. implements cursor.next()
+
 Whats new in version 2.2.6
 1. Actually works in Python 3.0 (using pywin32 212.6) after running thru 2to3
 2. RESTRICTION: Python Time (as opposed to datetime.datetime, which is the default) may return
-     incorrect results. To avoid this problem, do not use adodbapi.pythonTimeConverter. 
+     incorrect results due to daylight time bugs. To avoid this problem, do not use adodbapi.pythonTimeConverter. 
 3. The python time converter test has been loosened so that it will pass in any time zone.
 4. Several improvements in the test routines, including alteration of dbapi20 for Python 3.0 compatibility.
    (Some requirements of PEP249 are incompatible with Python 3.0)

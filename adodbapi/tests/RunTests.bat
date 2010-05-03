@@ -1,3 +1,6 @@
+if "%1"=="" goto skip_arg
+set PYTHON=%1
+:skip_arg
 if not "%PYTHON%"=="" goto skip_python
 set PYTHON=python
 :skip_python

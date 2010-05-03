@@ -1,5 +1,5 @@
 # Configure this in order to run the testcases.
-"adodbapitestconfig.py v 2.2.6"
+"adodbapitestconfig.py v 2.3.0"
 
 import os
 import sys
@@ -19,9 +19,11 @@ except:
     print '"adodbapi.version" not present or not working.'
 print __doc__
 
-doAccessTest = True
-doSqlServerTest = True
-doMySqlTest = True
+doAllTests = True
+doAccessTest = True or doAllTests
+doSqlServerTest = False or doAllTests
+doMySqlTest = False or doAllTests
+doPostgresTest = False # or doAllTests
 
 try: #If mx extensions are installed, use mxDateTime
     import mx.DateTime
@@ -30,11 +32,12 @@ except:
     doMxDateTimeTest=False #Requires eGenixMXExtensions
 doDateTimeTest=True #Requires Python 2.3 Alpha2
     
-iterateOverTimeTests=True
+iterateOverTimeTests = False or doAllTests
 
 if doAccessTest:
-    _accessdatasource = None  #set to None for automatic creation
-    #r"C:\Program Files\Microsoft Office\Office\Samples\northwind.mdb;"
+    _accessdatasource = "test.mdb"  #set to None for automatic creation
+    if not os.access(_accessdatasource,os.F_OK):
+        _accessdatasource = None
     if _accessdatasource == None:
         # following setup code borrowed from pywin32 odbc test suite
         # kindly contributed by Frank Millman.
@@ -46,7 +49,7 @@ if doAccessTest:
             win32 = True
         except ImportError: #perhaps we are running IronPython
             win32 = False
-        if not win32:
+        if not win32: #iron Python
             from System import Activator, Type
         _accessdatasource = os.path.join(tempfile.gettempdir(), "test_odbc.mdb")
         if os.path.isfile(_accessdatasource):
@@ -93,7 +96,11 @@ if doSqlServerTest:
         doSqlServerTest = False
 
 if doMySqlTest:
-    _computername='192.168.1.1'
+    import socket
+    try:
+        _computername = socket.gethostbyname('kf7xm.ham-radio-op.net')
+    except:
+        _computername = '127.0.0.1'
     _databasename='test'
     _username = 'Test'
     _password = '12345678'
@@ -107,3 +114,23 @@ if doMySqlTest:
     except adodbapi.DatabaseError,  inst:
         print inst.args[0]    # should be the error message
         doMySqlTest = False
+
+if doPostgresTest:
+    import socket
+    try:
+        _computername = socket.gethostbyname('kf7xm.ham-radio-op.net')
+    except:
+        _computername = '127.0.0.1'
+    _databasename='test'
+    _username = 'Test'
+    _password = '12345678'
+    _driver="PostgreSQL Unicode"
+    connStrPostgres = 'Driver={%s};Server=%s;Database=%s;user=%s;password=%s;' % \
+                   (_driver,_computername,_databasename,_username,_password)
+    print '    ...Testing PostgreSQL login...'
+    try:
+        s = adodbapi.connect(connStrPostgres) #connect to server
+        s.close()
+    except adodbapi.DatabaseError,  inst:
+        print inst.args[0]    # should be the error message
+        doPostgresTest = False
