@@ -78,6 +78,12 @@ class EditorDocumentBase(ParentEditorDocument):
 		except IOError, details:
 			win32ui.MessageBox("Error - could not save file\r\n\r\n%s"%details)
 			return 0
+		except UnicodeEncodeError, details:
+			win32ui.MessageBox("Encoding failed: \r\n%s"%details +
+					'\r\nPlease add desired source encoding as first line of file, eg \r\n' +
+					'# -*- coding: mbcs -*-',
+					"File save failed")
+			return 0
 		self.SetModifiedFlag(0) # No longer dirty
 		self.bDeclinedReload = 0 # They probably want to know if it changes again!
 		win32ui.AddToRecentFileList(fileName)

@@ -386,14 +386,7 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
 
 	def SaveTextFile(self, filename):
 		doc = self.GetDocument()
-		# Open in binary mode as scintilla itself ensures the
-		# line endings are already appropriate, and our doc save
-		# method handles encoding, BOMs, etc.
-		f = open(filename, 'wb')
-		try:
-			doc._SaveTextToFile(self, f)
-		finally:
-			f.close()
+		doc._SaveTextToFile(self, filename)
 		doc.SetModifiedFlag(0)
 		return 1
 

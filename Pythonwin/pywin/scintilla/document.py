@@ -133,11 +133,10 @@ class CScintillaDocument(ParentScintillaDocument):
 			# set EOL mode
 			view.SendScintilla(scintillacon.SCI_SETEOLMODE, eol_mode)
 
-	def _SaveTextToFile(self, view, f):
+	def _SaveTextToFile(self, view, filename):
 		s = view.GetTextRange() # already decoded from scintilla's encoding
 		source_encoding = None
 		if self.bom:
-			f.write(self.bom)
 			source_encoding = self.source_encoding
 		else:
 			# no BOM - look for an encoding.
@@ -152,9 +151,18 @@ class CScintillaDocument(ParentScintillaDocument):
 		if source_encoding is None:
 			source_encoding = 'latin1'
 
-		f.write(s.encode(source_encoding))
+		## encode data before opening file so script is not lost if encoding fails
+		file_contents = s.encode(source_encoding)
+		# Open in binary mode as scintilla itself ensures the
+		# line endings are already appropriate
+		f = open(filename, 'wb')
+		try:
+			if self.bom:
+				f.write(self.bom)
+			f.write(file_contents)
+		finally:
+			f.close()
 		self.SetModifiedFlag(0)
-
 
 	def FinalizeViewCreation(self, view):
 		pass
