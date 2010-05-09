@@ -52,7 +52,7 @@ class HierListItem(browser.HLIPythonObject):
 
 class HierFrameItem(HierListItem):
 	def __init__(self, frame, debugger):
-		HierListItem.__init__(self, frame, None)
+		HierListItem.__init__(self, frame, repr(frame))
 		self.debugger = debugger
 	def GetText(self):
 		name = self.myobject.f_code.co_name
