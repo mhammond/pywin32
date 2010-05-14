@@ -1482,7 +1482,7 @@ for info in (
               win32/src/win32net/win32netsession.cpp win32/src/win32net/win32netuse.cpp
               win32/src/win32net/win32netuser.cpp
               """),
-        ("win32pdh", "", None),
+        ("win32pdh", "", True),
         ("win32pipe", "", None, None, 'win32/src/win32pipe.i win32/src/win32popen.cpp'),
         ("win32print", "winspool user32 gdi32", None, 0x0500),
         ("win32process", "advapi32 user32", None, 0x0500, "win32/src/win32process.i"),
