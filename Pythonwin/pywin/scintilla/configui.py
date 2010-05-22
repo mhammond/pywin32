@@ -179,7 +179,7 @@ class ScintillaFormatPropertyPage(dialog.PropertyPage):
 			self.GetDlgItem(win32ui.IDC_BUTTON4).EnableWindow(not isDef)
 			if isDef: # Being reset to the default color
 				style = self.GetSelectedStyle()
-				style.background = CLR_INVALID
+				style.background = style.default_background
 				self.UpdateUIForStyle(style)
 				self.scintilla.ApplyFormattingStyles(0)
 			else:
@@ -208,8 +208,8 @@ class ScintillaFormatPropertyPage(dialog.PropertyPage):
 		self.butIsDefault.SetCheck(style.IsBasedOnDefault())
 		self.GetDlgItem(win32ui.IDC_BUTTON3).EnableWindow(not style.IsBasedOnDefault())
 
-		self.butIsDefaultBackground.SetCheck(style.background == CLR_INVALID)
-		self.GetDlgItem(win32ui.IDC_BUTTON4).EnableWindow(style.background != CLR_INVALID)
+		self.butIsDefaultBackground.SetCheck(style.background == style.default_background)
+		self.GetDlgItem(win32ui.IDC_BUTTON4).EnableWindow(style.background != style.default_background)
 		
 		bold = format[1] & win32con.CFE_BOLD != 0; italic = format[1] & win32con.CFE_ITALIC != 0
 		self.cboBoldItalic.SetCurSel( bold*2 + italic )
