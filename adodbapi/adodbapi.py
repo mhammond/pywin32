@@ -643,7 +643,7 @@ class Cursor(object):
 
     def _namedToQmark(self,op,parms):  #convert from 'named' paramstyle to ADO required '?'mark parameters
         if type(parms) != type({}):
-            raise (ProgrammingError), "paramstyle 'named' requires dict parameters"
+            raise ProgrammingError("paramstyle 'named' requires dict parameters")
         outOp = ''
         outparms=[]
         chunks = op.split("'")   #quote all literals -- odd numbered list results are literals.
@@ -1100,7 +1100,7 @@ def pyTypeToADOType(d):
             return adc.adDate
         if isinstance(d,decimal.Decimal):
             return adc.adDecimal
-    raise (DataError), 'cannot convert "%s" (type=%s) to ADO'%(repr(d),tp)
+    raise DataError('cannot convert "%s" (type=%s) to ADO'%(repr(d),tp))
 
 class DBAPITypeObject(object):
     def __init__(self,valuesTuple):
