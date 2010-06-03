@@ -490,7 +490,10 @@ class DispatchItem(build.DispatchItem, WritableItem):
             print >> stream, "\t\texcept pythoncom.com_error:"
             print >> stream, "\t\t\treturn repr(self)"
             print >> stream, "\tdef __str__(self, *args):"
-            print >> stream, "\t\treturn str(self.__unicode__(*args))"
+            if sys.version_info > (3,0):
+                print >> stream, "\t\treturn str(self.__call__(*args))"
+            else:
+                print >> stream, "\t\treturn str(self.__unicode__(*args))"
             print >> stream, "\tdef __int__(self, *args):"
             print >> stream, "\t\treturn int(self.__call__(*args))"
             
