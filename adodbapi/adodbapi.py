@@ -715,7 +715,7 @@ class Cursor(object):
             else:
                 display_size=None
             null_ok= bool(f.Attributes & adc.adFldMayBeNull)          #v2.1 Cole 
-            desc.append((f.Name, f.Type, display_size, f.Definedsize, f.Precision, f.NumericScale, null_ok))
+            desc.append((f.Name, f.Type, display_size, f.DefinedSize, f.Precision, f.NumericScale, null_ok))
         self.description = desc
 
     def close(self):        
