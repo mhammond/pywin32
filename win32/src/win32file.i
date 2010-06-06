@@ -5290,6 +5290,35 @@ static PyObject *py_GetFullPathName(PyObject *self, PyObject *args, PyObject *kw
 	return ret;
 }
 PyCFunction pfnpy_GetFullPathName=(PyCFunction)py_GetFullPathName;
+
+// @pyswig int|Wow64DisableWow64FsRedirection|Disables file system redirection for 32-bit processes running on a 64-bit system
+// @rdesc Returns a state value to be passed to <om win32file.Wow64RevertWow64FsRedirection>
+// @comm Requires 64-bit XP or later
+static PyObject *py_Wow64DisableWow64FsRedirection(PyObject *self, PyObject *args)
+{
+	VOID *state;
+	CHECK_PFN(Wow64DisableWow64FsRedirection);
+	if (!PyArg_ParseTuple(args, ":Wow64DisableWow64FsRedirection"))
+		return NULL;	
+	if (!(*pfnWow64DisableWow64FsRedirection)(&state))
+		return PyWin_SetAPIError("Wow64DisableWow64FsRedirection");
+	return PyWinLong_FromVoidPtr(state);
+}
+
+// @pyswig |Wow64RevertWow64FsRedirection|Reenables file system redirection for 32-bit processes running on a 64-bit system
+// @comm Requires 64-bit XP or later
+static PyObject *py_Wow64RevertWow64FsRedirection(PyObject *self, PyObject *args)
+{
+	VOID *state;
+	CHECK_PFN(Wow64RevertWow64FsRedirection);
+	// @pyparm int|OldValue||State returned from Wow64DisableWow64FsRedirection
+	if (!PyArg_ParseTuple(args, "O&:Wow64RevertWow64FsRedirection", PyWinLong_AsVoidPtr, &state))
+		return NULL;
+	if (!(*pfnWow64RevertWow64FsRedirection)(state))
+		return PyWin_SetAPIError("Wow64RevertWow64FsRedirection");
+	Py_INCREF(Py_None);
+	return Py_None;
+}
 %}
 
 %native (SetVolumeMountPoint) pfnpy_SetVolumeMountPoint;
@@ -5340,6 +5369,9 @@ PyCFunction pfnpy_GetFullPathName=(PyCFunction)py_GetFullPathName;
 
 %native (SfcGetNextProtectedFile) py_SfcGetNextProtectedFile;
 %native (SfcIsFileProtected) py_SfcIsFileProtected;
+
+%native (Wow64DisableWow64FsRedirection) py_Wow64DisableWow64FsRedirection;
+%native (Wow64RevertWow64FsRedirection) py_Wow64RevertWow64FsRedirection;
 
 %init %{
 
