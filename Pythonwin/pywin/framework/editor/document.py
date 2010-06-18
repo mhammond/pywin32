@@ -317,3 +317,5 @@ class FileWatchingThread(pywin.mfc.thread.WinThread):
 
 		# close a circular reference
 		self.doc = None
+		if self.watchEvent:
+			win32api.FindCloseChangeNotification(self.watchEvent)
