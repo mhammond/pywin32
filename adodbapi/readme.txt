@@ -15,11 +15,15 @@ Features:
 * Licensed under the LGPL license, which means that it can be used freely even in commercial programs subject to certain restrictions. 
 * Supports eGenix mxDateTime, Python 2.3 datetime module and Python time module.
 * Supports multiple paramstyles: 'qmark' 'named' 'format'
+* Supports data retrieval by column name e.g.:
+  for row in myCurser.execute("select name,age from students"):
+     print "Student", row.name, "is", row.age, "years old"
+* Supports user-definable system-to-Python data convertion functions (selected by ADO data type, or by column)
 
 Prerequisites:
 * C Python 2.3 or higher
  and pywin32 (Mark Hammond's python for windows extensions.)
- Note: as of 2.1.1, adodbapi is included in pywin32 versions 211 and later. 
+ Note: adodbapi is included in pywin32 versions 211 and later. 
 or
  Iron Python 2.6 or higher.  (works in IPy2.0 for all data types except BUFFER)
 
@@ -33,18 +37,49 @@ or:
 or:
        adodbapi.adodbapi.variantConversions[adodbapi.adNumeric] = write_your_own_convertion_function
 ............
-Whats new in version 2.3.0    # note: breaking changes and default changes!
-  This version is all about django support.  There are two targets:
-    A) MS SQL database connections for mainstream django.
-    B) running django on IronPython
-   Someday, far in the future, this may result in:
-    C) MS SQL connections from django running on IronPython on Mono on Linux.  (dreams sometimes come true.)
-   Thanks to Adam Vandenberg for the django modifications. 
-   The changes are:
+Whats new in version 2.4.0
+1. The result of fetchall() and fetchmany() will be an object which emulates a sequence of sequences.
+  The result of fetchone() will be an object which emulates a sequence.
+  [This eliminates creating a tuple of return values.] 
+  Also the data are not fetched and converted to Python data types untill actually referred to, therefore...
+2. Data can be retrieved from the result sets using the column name (as well as the number).
+   >>> cs = someConnection.cursor()
+   >>> cs.execute('select name, rank, serialNumber from soldiers')
+   >>> rows = cs.fetchall()
+   >>> for soldier in rows:
+   >>>    print soldier.name, soldier['rank'], soldier[2]
+   Fred Flintstone private 333-33-3333
+   Barny Rubble sergeant 123-45-6789
+3. User defined conversions can be applied at the column level from the 'fetch' object:
+        (continuing the above example)...
+   >>> upcaseConverter=lambda aStringField: aStringField.upper()
+   >>> # now use a single column converter
+   >>> rows.converters[0] = upcaseConverter  # convert first column as upper case
+   >>> for soldier in rows:
+   >>>        print soldier.name, soldier.rank
+   FRED FLINTSTONE private
+   BARNY RUBBLE sergeant
+4. Data may be retrieved by a TWO DIMENSIONAL "extended slicing":
+   >>> cs.execute('select name, rank, serialNumber from soldiers')
+   >>> rows = cs.fetchall()
+   >>> print rows[1,2]
+   123-45-6789
+   >>> print rows[0,'name']
+   Fred Flintstone
 
+Whats new in version 2.3.0    # note: breaking changes and default changes!
+  This version is all about django support.  There are two hoped-for targets:
+    ... A) MS SQL database connections for mainstream django.
+    ... B) running django on IronPython
+   Someday, far in the future, this may result in:
+    ... C) MS SQL connections from django running on IronPython on Mono on Linux.  (dreams sometimes come true.)
+   Thanks to Adam Vandenberg for the django modifications. 
+
+   The changes are:
 1. the ado constants are moved into their own module: ado_consts
       This may break some old code, but Adam did it on his version and I like the improvement in readability.
       Also, you get better documentation of some results, like convertion of MS data type codes to strings:
+       >>> import adodbapi.ado_consts as ado_consts
        >>> ado_consts.adTypeNames[202]
        'adVarWChar'
        >>> ado_consts.adTypeNames[cursr.description[0][1]]
@@ -60,8 +95,9 @@ Whats new in version 2.3.0    # note: breaking changes and default changes!
     (SQL language in '%s' format or ':namedParameter' format will be converted to '?' internally.)
     when 'named' format is used, the parameters must be in a dict, rather than a sequence.
        >>>c = adodbapi.connect('someConnectionString',timeout=30)
-       >>>c.paramstyle = 'spam'
-           <<<will result in: adodbapi.NotSupportedError: paramstyle="spam" not in:('qmark', 'named', 'format')>>>
+       >>>c.paramstyle = 'named'
+       >>>cs = c.cursor()
+       >>>cs.execute('select * from sometable where firstname = :aname and age = :hisage' , {'aname':'Fred','hisage':35})
   ** new extension feature **
 
 4. Added abality to change the default paramstyle for adodbapi: (for django)
@@ -148,7 +184,9 @@ Whats new in version 2.0?
 
 Installation
 ------------
-This version will be installed as part of the win32 package.
+For CPython, this version will be installed as part of the win32 package.
+For IronPython (or to update a CPython version early), use "setup.py install"
+while using the Python version upon which you want the package installed.
 
 Authors (up to version 2.0.1)
 -------
@@ -174,18 +212,4 @@ and look at the test cases in adodbapi/test directory.
 Mailing lists
 -------------
 The adodbapi mailing lists have been deactivated. Submit comments to the 
-pywin32 lists.
-
-
-Relase history
---------------
-2.2.4   Ready for 2to3 convertion. Refactor to be more readable. Added function getIndexedValue() for IPy 2.0.
-2.2.3   (withdrawn)
-2.2.2   Iron Python support complete. 
-2.2.1   Bugfix for string truncation
-2.2     Code cleanup. added feature: "adodbapi.variantConversions[adodbapi.adNumeric] = adodbapi.cvtString"
-2.1.1	Bugfix to CoIninialize() and nextset()
-2.1	Python 2.4 version
-2.0     See what's new above.
-1.0.1   Bug fix: Null values for numeric fields. Thanks to Tim Golden. 
-1.0     the first release
+pywin32 or IronPython mailing lists.

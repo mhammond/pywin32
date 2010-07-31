@@ -5,12 +5,13 @@ import dbapi20
 import unittest
 import os, sys
 
-#attempt to find adodbapi in this directory's parent
-cwd = os.getcwd()
-adoPath = os.path.normpath(cwd + '/../adodbapi.py')
-if os.path.exists(adoPath):
-    if adoPath not in sys.path:
-        sys.path.insert(1,os.path.dirname(adoPath))
+if sys.version[0] < '3':
+    # attempt to find adodbapi in this directory's parent
+    cwd = os.getcwd()
+    adoPath = os.path.normpath(cwd + '/../adodbapi.py')
+    if os.path.exists(adoPath):
+        if adoPath not in sys.path:
+            sys.path.insert(1,os.path.dirname(adoPath))
 import adodbapi
 
 print adodbapi.version

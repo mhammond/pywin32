@@ -26,7 +26,7 @@ This module source should run correctly in CPython versions 2.3 and later,
 or IronPython version 2.6 and later,
 or, after running through 2to3.py, CPython 3.0 or later.
 """
-__version__ = '2.3.0'
+__version__ = '2.4.0'
 version = 'adodbapi v' + __version__
 # N.O.T.E.:...
 # if you have been using an older version of adodbapi and are getting errors because
@@ -46,11 +46,13 @@ except ImportError:  #perhaps running Cpython 2.3
     import win32com.decimal_23 as decimal
 # or # from django.utils import _decimal as decimal
 
-if sys.platform != 'cli':
-    import win32com.client
-    onIronPython = False
-else:  # implies running on IronPython
-    onIronPython = True
+onIronPython = sys.platform == 'cli'
+if not onIronPython:
+    try:
+        import win32com.client
+    except ImportError:
+        import warnings
+        warnings.warn("pywin32 package required but not found.",ImportWarning)
 
 # --- define objects to smooth out IronPython <-> CPython differences    
 if onIronPython: 
@@ -63,11 +65,14 @@ if onIronPython:
     def getIndexedValue(obj,index):
         return obj.Item[index]
 else: #pywin32
-    import pythoncom
-    import pywintypes
-    pythoncom.__future_currency__ = True
-    def Dispatch(dispatch):
-        return win32com.client.Dispatch(dispatch)
+    try:
+        import pythoncom
+        import pywintypes
+        pythoncom.__future_currency__ = True
+        def Dispatch(dispatch):
+            return win32com.client.Dispatch(dispatch)
+    except:
+        pass #warning already given above
     def getIndexedValue(obj,index):
         return obj(index) 
     DBNull = type(None)
@@ -142,6 +147,8 @@ if mxDateTime:
             return obj.COMDate()
         def DateObjectFromCOMDate(self,comDate):
             return mx.DateTime.DateTimeFromCOMDate(comDate)
+        def DateObjectFromCOMDate(self,comDate):
+            return mx.DateTime.DateTimeFromCOMDate(comDate)
         def Date(self,year,month,day):
             return mx.DateTime.Date(year,month,day)
         def Time(self,hour,minute,second):
@@ -166,20 +173,19 @@ class pythonDateTimeConverter(TimeConverter): # standard since Python 2.3
         YMDHMSmsTuple=tuple(tt[:6] + (ms,))
         return self.COMDateFromTuple(YMDHMSmsTuple)
     def DateObjectFromCOMDate(self,comDate):
-        #ComDate is number of days since 1899-12-31
         if isinstance(comDate,datetime.datetime):
             return comDate.replace(tzinfo=None) # make non aware
         elif isinstance(comDate,DateTime):
-            fComDate = comDate.ToOADate()
+            fComDate = comDate.ToOADate() # ironPython clr Date/Time
         else:
-            fComDate=float(comDate)
-        millisecondsperday=86400000 # 24*60*60*1000
+            fComDate=float(comDate) #ComDate is number of days since 1899-12-31
         integerPart = int(fComDate)
         floatpart=fComDate-integerPart
-        if floatpart == 0.0:
-            return datetime.date.fromordinal(integerPart + self._ordinal_1899_12_31)
+        ##if floatpart == 0.0:
+        ##    return datetime.date.fromordinal(integerPart + self._ordinal_1899_12_31)
         dte=datetime.datetime.fromordinal(integerPart + self._ordinal_1899_12_31) \
-           + datetime.timedelta(milliseconds=floatpart*millisecondsperday)
+           + datetime.timedelta(milliseconds=floatpart*86400000)
+               # millisecondsperday=86400000 # 24*60*60*1000
         return dte
     def Date(self,year,month,day):
         return datetime.date(year,month,day)
@@ -223,7 +229,7 @@ class pythonTimeConverter(TimeConverter): # the old, ?nix type date and time
         'Returns ticks since 1970'
         if isinstance(comDate,datetime.datetime):
             return comDate.timetuple()
-        elif isinstance(comDate,DateTime):
+        elif isinstance(comDate,DateTime): # ironPython clr date/time
             fcomDate = comDate.ToOADate()
         else:
             fcomDate = float(comDate)
@@ -336,7 +342,7 @@ defaultIsolationLevel = adc.adXactReadCommitted
 #  Set defaultIsolationLevel on module level before creating the connection.
 #   For example:
 #   import adodbapi, ado_consts
-#   adodbapi.adodbapi.defaultIsolationLevel=adc.adXactBrowse"
+#   adodbapi.adodbapi.defaultIsolationLevel=ado_consts.adXactBrowse"
 #
 #  Set defaultCursorLocation on module level before creating the connection.
 # It may be one of the "adUse..." consts.
@@ -345,7 +351,6 @@ defaultCursorLocation = adc.adUseClient   # changed from adUseServer as of v 2.3
 # ----- handy constansts --------
 # Used for COM to Python date conversions.
 _ordinal_1899_12_31 = datetime.date(1899,12,31).toordinal()-1
-_milliseconds_per_day = 24*60*60*1000
 
 def format_parameters(parameters, show_value=False):
     """Format a collection of ADO Command Parameters.
@@ -393,14 +398,14 @@ def _configure_parameter(p, value, settings_known):
         s = str(value)
         p.Value = s
         p.Size = len(s)
-        
+
     elif type(value) in dateconverter.types:
         if settings_known and p.Type in adoDateTimeTypes:
             p.Value=dateconverter.COMDate(value)
         else: #probably a string
-              #Known problem with JET Provider. Date can not be specified as a COM date.
-              # See for example..http://support.microsoft.com/default.aspx?scid=kb%3ben-us%3b284843
-              # One workaround is to provide the date as a string in the format 'YYYY-MM-dd'
+                #Known problem with JET Provider. Date can not be specified as a COM date.
+                # See for example..http://support.microsoft.com/default.aspx?scid=kb%3ben-us%3b284843
+                # One workaround is to provide the date as a string in the format 'YYYY-MM-dd'
             s = dateconverter.DateObjectToIsoFormatString(value)
             p.Value = s
             p.Size = len(s)
@@ -558,7 +563,6 @@ class Connection(object):
                 state = str(e.SQLState)
                 if state.startswith('23') or state=='40002':
                     return IntegrityError
-
         return DatabaseError
 
     def __del__(self):
@@ -575,37 +579,138 @@ class Connection(object):
                                            'paramstyle="'+value+'" not in:'+repr(_accepted_paramstyles))
         object.__setattr__(self, name, value)
 
+# # # # # classes to emulate the result of cursor.fetchxxx() as a sequence of sequences # # # # #
+class _SQLrow(object): # a single database row
+    # class to emulate a sequence, so that a column may be retrieved by either number or name
+    def __init__(self,rows,index): # "rows" is an _SQLrows object, index is which row
+        # note: self.__setattr__ is disabled to prevent users from trying to store in a row 
+        object.__setattr__(self,'rows',rows) # parent 'fetch' container object
+        object.__setattr__(self,'index',index) # row number within parent
+    def __getattr__(self,name): # used for row.columnName type of value access
+        return self._getValue(self.rows.columnNames[name])
+    def __setattr__(self,name,value):
+        raise NotSupportedError('Cannot assign value to SQL record column')
+    def _getValue(self,key):  # key must be an integer
+        if onIronPython: # retrieve from two-dimensional array
+            v = self.rows.ado_results[key,self.index]
+        else: # pywin32 - retrieve from tuple of tuples
+            v = self.rows.ado_results[key][self.index]
+        return _convert_to_python(v,self.rows.converters[key])
+    def __len__(self):
+        return len(self.rows.converters)
+    def __getitem__(self,key):       # used for row[key] type of value access
+        if isinstance(key,int):       # normal row[1] designation
+            try:
+                return self._getValue(key)
+            except IndexError:
+                raise
+        if isinstance(key, slice):
+            indices = key.indices(len(self.rows.converters))
+            vl = [self._getValue(i) for i in range(*indices)]
+            return tuple(vl)
+        try:
+            return self._getValue(self.rows.columnNames[key])  # extension row[columnName] designation
+        except (KeyError,TypeError):
+            er, st, tr = sys.exc_info()
+            raise er,'No such key as "%s" in %s'%(repr(key),self.__repr__())
+    def __iter__(self):
+        return iter(self.__next__())
+    def __next__(self):
+        for n in range(len(self.rows.converters)):
+             yield self._getValue(n)
+    def __repr__(self): # create a human readable representation
+        try: #python 2.4 and later
+            taglist = sorted(self.rows.columnNames.items(),key=lambda x:x[1])
+        except NameError: # no such function as "sorted" on 2.3
+            taglist = list(self.rows.columnNames.iteritems())
+            taglist.sort(lambda x, y: cmp(x[1], y[1])) #deprecated on 3.0
+        s = "<SQLrow={"
+        for name, i in taglist:
+            s += name + ':' + repr(self._getValue(i)) + ', '
+        return s[:-2] + '}>'
+    def __str__(self): # create a pretty human readable representation
+        return str(tuple([str(self._getValue(i)) for i in range(len(self.rows.converters))]))
+# # # #
+class _SQLrows(object):
+    # class to emulate a sequence for multiple rows using a container object
+    def __init__(self,ado_results,numberOfRows,cursor):
+        self.ado_results = ado_results # raw result of SQL get
+        self.numberOfRows = numberOfRows
+        self.converters = []  # convertion function for each column
+        self.columnNames = {} # names of columns {name:number,...}
+        for i,desc in enumerate(cursor.description):
+            self.columnNames[desc[0]] = i
+            self.converters.append(variantConversions[desc[1]]) # default convertion function
+    def __len__(self):
+         return self.numberOfRows
+    def __getitem__(self,item):     # used for row or row,column access
+        if isinstance(item, slice): # will return a tuple of row objects 
+            indices = item.indices(self.numberOfRows)
+            l = [_SQLrow(self,k) for k in range(*indices)]
+            return tuple(l) #no generator expressions in Python 2.3
+        elif isinstance(item, tuple) and len(item)==2:
+            # d = some_rowsObject[i,j] will return a datum from a two-dimension address
+            i,j = item
+            if not isinstance(j,int):
+                try:
+                    j = self.columnNames[j] # convert named column to numeric
+                except KeyError:
+                    raise KeyError, 'adodbapi: no such column name as "%s"'%repr(j)
+            if onIronPython: # retrieve from two-dimensional array
+                v = self.ado_results[j,i]
+            else: # pywin32 - retrieve from tuple of tuples
+                v = self.ado_results[j][i]
+            return _convert_to_python(v,self.converters[j])
+        else:
+            row = _SQLrow(self,item) # new row descriptor
+            return row
+    def __iter__(self):
+        return iter(self.__next__())
+    def __next__(self):
+        for n in range(self.numberOfRows):
+            row = _SQLrow(self,n)
+            yield row
+# # # # #
+def _convert_to_python(variant, function): # convert DB value into Python value
+    if isinstance(variant,DBNull):
+        return None
+    return function(variant)
 # # # # # ----- the Class that defines a cursor ----- # # # # #
 class Cursor(object):
+## ** api required attributes:
+## description...
 ##    This read-only attribute is a sequence of 7-item sequences.
 ##    Each of these sequences contains information describing one result column:
 ##        (name, type_code, display_size, internal_size, precision, scale, null_ok).
 ##    This attribute will be None for operations that do not return rows or if the
 ##    cursor has not had an operation invoked via the executeXXX() method yet.
 ##    The type_code can be interpreted by comparing it to the Type Objects specified in the section below.
-    description = None
-
+## rowcount...
 ##    This read-only attribute specifies the number of rows that the last executeXXX() produced
 ##    (for DQL statements like select) or affected (for DML statements like update or insert). 
 ##    The attribute is -1 in case no executeXXX() has been performed on the cursor or
 ##    the rowcount of the last operation is not determinable by the interface.[7]
 ##    NOTE: -- adodbapi returns "-1" by default for all select statements
-    rowcount = -1
-
+## arraysize...
 ##    This read/write attribute specifies the number of rows to fetch at a time with fetchmany().
 ##    It defaults to 1 meaning to fetch a single row at a time. 
 ##    Implementations must observe this value with respect to the fetchmany() method,
 ##    but are free to interact with the database a single row at a time.
 ##    It may also be used in the implementation of executemany(). 
-    arraysize=1
-
+## ** extension attributes:
+## paramstyle...
+##   allows the programmer to override the connection's default paramstyle
+## errorhandler...
+##   allows the programmer to override the connection's default error handler
+    
     def __init__(self,connection):
         self.messages=[]        
         self.connection = connection
-        self.paramstyle = connection.paramstyle
-        self.rs = None
+        self.paramstyle = connection.paramstyle  # used for overriding the paramstyle
+        self.rs = None  # the ADO recordset for this cursor
         self.description = None
         self.errorhandler = connection.errorhandler
+        self.arraysize = 1
         if verbose:
             print 'adodbapi New cursor at %X on conn %X' % (id(self),id(self.connection))
 
@@ -633,12 +738,12 @@ class Cursor(object):
         eh(self.connection,self,errorclass,errorvalue)
 
     def format_description(self,d):
-        """Format db_api description tuple."""
+        """Format db_api description tuple for printing."""
         if isinstance(d,int):
             d = self.description[d]
         desc = "Name= %s, Type= %s, DispSize= %s, IntSize= %s, Precision= %s, Scale= %s NullOK=%s" %\
-                (d[0], adc.adTypeNames.get(d[1], str(d[1])+' (unknown type)'),
-                 d[2], d[3], d[4], d[5], d[6])
+             (d[0], adc.adTypeNames.get(d[1], str(d[1])+' (unknown type)'),
+              d[2], d[3], d[4], d[5], d[6])
         return desc
 
     def _namedToQmark(self,op,parms):  #convert from 'named' paramstyle to ADO required '?'mark parameters
@@ -752,7 +857,7 @@ class Cursor(object):
             print 'Executing command="%s"'%self.cmd.CommandText 
             print 'with parameters=',format_parameters(self.cmd.Parameters, True)
         try:
-           # ----- the actual SQL is executed here ---
+            # ----- the actual SQL is executed here ---
             if onIronPython:
                 ra = Reference[int]()
                 recordset = self.cmd.Execute(ra)
@@ -794,7 +899,7 @@ class Cursor(object):
             for p in tuple(self.cmd.Parameters):
                 if verbose > 2:
                     print 'returning=', p.Name, p.Type, p.Direction, repr(p.Value)
-                pyObject=_convert_to_python(p.Value,p.Type)
+                pyObject=_convert_to_python(p.Value,variantConversions[p.Type])
                 if p.Direction == adc.adParamReturnValue:
                     self.returnValue=pyObject
                 else:
@@ -828,20 +933,20 @@ class Cursor(object):
                     ##    p.Direction=adParamUnknown
                     self.cmd.Parameters.Append(p)  
                 if verbose > 2:
-                   for i in range(self.cmd.Parameters.Count):
+                    for i in range(self.cmd.Parameters.Count):
                         P = self.cmd.Parameters[i]
                         print 'adodbapi parameter attributes=', P.Name, P.Type, P.Direction, P.Size
 
             ##parameter_replacements = list()
             i = 0
             for value in parameters:
-              ##if value is None:
-              ##    parameter_replacements.append('NULL')
-              ##    continue
-              ##if isinstance(value, basestring) and value == "":
-              ##    parameter_replacements.append("''")
-              ##    continue
-              ##parameter_replacements.append('?')
+                ##if value is None:
+                ##    parameter_replacements.append('NULL')
+                ##    continue
+                ##if isinstance(value, basestring) and value == "":
+                ##    parameter_replacements.append("''")
+                ##    continue
+                ##parameter_replacements.append('?')
                 p=getIndexedValue(self.cmd.Parameters,i)
                 if p.Direction == adc.adParamReturnValue:
                     i += 1
@@ -850,7 +955,7 @@ class Cursor(object):
                     _configure_parameter(p, value, self.parameters_known)
                 except (Exception), e:
                     _message = u'Converting Parameter %s: %s, %s <- %s\n' %\
-                        (p.Name, adc.ado_type_name(p.Type), p.Value, repr(value))
+                             (p.Name, adc.ado_type_name(p.Type), p.Value, repr(value))
                     self._raiseCursorError(DataError, _message+'->'+repr(e.args))
                 i += 1
         ## # Replace params with ? or NULL
@@ -911,44 +1016,29 @@ class Cursor(object):
 
         self.rowcount = total_recordcount
 
-    def _fetch(self, rows=None):
+    def _fetch(self, limit=None):
         """Fetch rows from the current recordset.
 
-        rows -- Number of rows to fetch, or None (default) to fetch all rows.
+        limit -- Number of rows to fetch, or None (default) to fetch all rows.
         """
         if self.connection is None or self.rs is None:
             self._raiseCursorError(Error, None)
             return
 
         if self.rs.State == adc.adStateClosed or self.rs.BOF or self.rs.EOF:
-            if rows == 1: # fetchone returns None
-                return None
-            else: # fetchall and fetchmany return empty lists
-                return list()
+            return list()
 
-        if rows:
-            ado_results = self.rs.GetRows(rows)
-        else:
+        if limit: # limit number of rows retrieved
+            ado_results = self.rs.GetRows(limit)
+        else:    # get all rows
             ado_results = self.rs.GetRows()
-
-        d=self.description
-        returnList=[]
-        i=0
-        if onIronPython:
-            type_codes = [descTuple[1] for descTuple in d]
-            for j in range(len(ado_results)/len(d)):
-                L = []
-                for i in range(len(d)):
-                    L.append(_convert_to_python(ado_results[i,j],type_codes[i]))
-                returnList.append(tuple(L))
-            return tuple(returnList)    
+        if onIronPython:  # result of GetRows is a two-dimension array
+            length = len(ado_results)//len(self.description) # length of first dimension
+            fetchObject = _SQLrows(ado_results,length,self) # new object to hold the results of the fetch
         else: #pywin32
-            for descTuple in d:
-                # Desctuple =(name, type_code, display_size, internal_size, precision, scale, null_ok).
-                type_code=descTuple[1]
-                returnList.append([_convert_to_python(r,type_code) for r in ado_results[i]])
-                i+=1
-            return tuple(zip(*returnList))
+            length = len(ado_results[0]) #result of GetRows is tuples in a tuple
+            fetchObject = _SQLrows(ado_results,length,self) # new object to hold the results of the fetch
+        return fetchObject
 
     def fetchone(self):
         """ Fetch the next row of a query result set, returning a single sequence,
@@ -1084,8 +1174,6 @@ def Binary(aString):
     """This function constructs an object capable of holding a binary (long) string value. """
     return makeByteBuffer(aString)
 
-#v2.1 Cole comment out: BinaryType = Binary('a')
-
 #SQL NULL values are represented by the Python None singleton on input and output. 
 
 #Note: Usage of Unix ticks for database interfacing can cause troubles because of the limited date range they cover. 
@@ -1096,6 +1184,10 @@ def pyTypeToADOType(d):
     try:
         return typeMap[tp]
     except KeyError:
+        if isinstance(d,datetime.datetime):
+            return adc.adDBTimeStamp
+        if isinstance(d,datetime.time):
+            return adc.adDBTime
         if tp in dateconverter.types:
             return adc.adDate
         if isinstance(d,decimal.Decimal):
@@ -1176,7 +1268,7 @@ def cvtString(variant):  # use to get old action of adodbapi v1 if desired
 def cvtDecimal(variant): #better name
     return _convertNumberWithCulture(variant, decimal.Decimal)
 def cvtNumeric(variant): #older name - don't break old code
-	return cvtDecimal(variant)
+    return cvtDecimal(variant)
 
 def cvtFloat(variant):
     return _convertNumberWithCulture(variant, float)
@@ -1189,7 +1281,6 @@ def _convertNumberWithCulture(variant, f):
             europeVsUS = str(variant).replace(",",".")
             return f(europeVsUS)
         except (ValueError,TypeError,decimal.InvalidOperation): pass
-
 
 def cvtInt(variant):
     return int(variant)
@@ -1206,11 +1297,10 @@ def cvtUnicode(variant):
 def identity(x): return x
 
 class VariantConversionMap(dict): #builds a dictionary from {[list,of,keys]function}
-    #useful for difining conversion functions for groups of similar data types.
+    #useful for defining conversion functions for groups of similar data types.
     def __init__(self, aDict):
         for k, v in aDict.items():
             self[k] = v # we must call __setitem__
-
     def __setitem__(self, adoType, cvtFn):
         "don't make adoType a string :-)"
         try: # user passed us a tuple, set them individually
@@ -1218,23 +1308,23 @@ class VariantConversionMap(dict): #builds a dictionary from {[list,of,keys]funct
                 dict.__setitem__(self, type, cvtFn)
         except TypeError: # single value
             dict.__setitem__(self, adoType, cvtFn)
-
     def __getitem__(self, fromType):
         try:
             return dict.__getitem__(self, fromType)
         except KeyError:
             return identity
 
-def _convert_to_python(variant, adType):
-    if verbose > 3:
-        print 'Converting type_code=%s, val=%s'%(adType,repr(variant))
-        print 'conversion function=',repr(variantConversions[adType])
-        print '                     output=%s'%repr(variantConversions[adType](variant))
-    if isinstance(variant,DBNull):
-        return None
-    return variantConversions[adType](variant)
+##def _convert_to_python(variant, adType):
+##    if verbose > 3:
+##        print 'Converting type_code=%s, val=%s'%(adType,repr(variant))
+##        print 'conversion function=',repr(variantConversions[adType])
+##        print '                     output=%s'%repr(variantConversions[adType](variant))
+##    if isinstance(variant,DBNull):
+##        return None
+##    return variantConversions[adType](variant)
 
 #initialize variantConversions dictionary used to convert SQL to Python
+# this is the dictionary of default convertion functions, built by the class above.
 variantConversions = VariantConversionMap( {
     adoDateTimeTypes : variantConvertDate,
     adoApproximateNumericTypes: cvtFloat,
