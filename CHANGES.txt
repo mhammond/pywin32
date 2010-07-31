@@ -7,6 +7,23 @@ However contributors are encouraged to add their own entries for their work.
 
 Since build 214:
 ----------------
+* Update adodbapi to version 2.4.0 -- in this version,
+   "fetchall()" and "fetchmany()" return an SQLrows object 
+   ...which emulates a sequence of SQLrow objects.
+   "fetchone()" or the cursor's "next()" method return an SQLrow object.
+   An SQLrow object emulates a tuple of data fields.
+   An SQLrow object also appears to have an attribute for each column of data.
+   therefore...
+   >>> import adodbapi
+   >>> myConnection = adodbapi.connection('someDSN')
+   >>> cur = myConnection.cursor()
+   >>> cur.execute("select name, rank, serialNumber from soldiers")
+   >>> row = cur.fetchone()
+   >>> assert row[0] == row['name']
+   >>> assert row[1] == row.rank
+   >>> rows = cur.fecthall()
+   >>> assert rows[4,'serialNumber'] == rows[4][2]
+
 * Update adodbapi to version 2.3.0 -- this is includes major refactoring and
    specifically adds features for django support, including the ability for the
    programmer to change ado's SQL "paramstyle" at run time to select between
