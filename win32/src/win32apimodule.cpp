@@ -941,6 +941,7 @@ static PyObject *PyGetConsoleTitle(PyObject *self, PyObject *args)
 		title=(TCHAR *)malloc(chars_allocated*sizeof(TCHAR));
 		if (title==NULL)
 			return PyErr_Format(PyExc_MemoryError, "GetConsoleTitle: unable to allocate %d bytes", chars_allocated*sizeof(TCHAR));
+        title[0] = 0;
 		chars_returned=GetConsoleTitle(title, chars_allocated);
 		if (chars_returned==0 && GetLastError() != ERROR_SUCCESS){
 			PyWin_SetAPIError("GetConsoleTitle");
