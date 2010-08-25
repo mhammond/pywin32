@@ -279,7 +279,9 @@ class ConfigManager:
             if bBreak: break
             lines.append(line)
         try:
-            c = compile("".join(lines), self.filename, "exec")
+            c = compile(
+                "\n" * start_lineno +        # produces correct tracebacks
+                "".join(lines), self.filename, "exec")
             self._save_data("extension code", c)
         except SyntaxError, details:
             errlineno = details.lineno + start_lineno
