@@ -42,6 +42,9 @@ Since build 214:
 
 * Pythonwin: trim leading and trailing whitespace in calltip text (kxroberto)
 
+* Pythonwin: fix reload of package modules and support for 'pyw' and 'pyx' 
+  extensions (kxroberto)
+
 Since build 213:
 ----------------
 

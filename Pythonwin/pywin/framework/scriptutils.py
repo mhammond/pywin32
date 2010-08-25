@@ -101,9 +101,9 @@ def GetPackageModuleName(fileName):
 			modBits.append(modBit)
 			# If on path, _and_ existing package of that name loaded.
 			if IsOnPythonPath(path) and modBit in sys.modules and \
-				( os.path.exists(os.path.join(path, '__init__.py')) or \
-				os.path.exists(os.path.join(path, '__init__.pyc')) or \
-				os.path.exists(os.path.join(path, '__init__.pyo')) \
+				(os.path.exists(os.path.join(path, modBit, '__init__.py')) or \
+				 os.path.exists(os.path.join(path, modBit, '__init__.pyc')) or \
+				 os.path.exists(os.path.join(path, modBit, '__init__.pyo')) \
 				):
 				modBits.reverse()
 				return ".".join(modBits) + "." + fname, newPathReturn
@@ -375,12 +375,12 @@ def ImportFile():
 		pathName = None
 
 	if pathName is not None:
-		if os.path.splitext(pathName)[1].lower() != ".py":
+		if os.path.splitext(pathName)[1].lower() not in ('.py','.pyw','.pyx'):
 			pathName = None
 
 	if pathName is None:
 		openFlags = win32con.OFN_OVERWRITEPROMPT|win32con.OFN_FILEMUSTEXIST
-		dlg = win32ui.CreateFileDialog(1,None,None,openFlags, "Python Scripts (*.py)|*.py||")
+		dlg = win32ui.CreateFileDialog(1,None,None,openFlags, "Python Scripts (*.py;*.pyw)|*.py;*.pyw;*.pyx||")
 		dlg.SetOFNTitle("Import Script")
 		if dlg.DoModal()!=win32con.IDOK:
 			return 0
@@ -425,6 +425,7 @@ def ImportFile():
 		return
 	try:
 		exec codeObj in __main__.__dict__
+		mod = sys.modules.get(modName)
 		if bNeedReload:
 			try:
 				## The interpreter sees this import as a local assignment, so Python 2.x throws
@@ -433,8 +434,8 @@ def ImportFile():
 				from imp import reload as my_reload # py3k
 			except ImportError:
 				my_reload = reload # reload a builtin in py2k
-			my_reload(sys.modules[modName])
-		win32ui.SetStatusText('Successfully ' + what + "ed module '"+modName+"'")
+			mod = my_reload(sys.modules[modName])
+		win32ui.SetStatusText('Successfully ' + what + "ed module '"+modName+"': %s" % getattr(mod,'__file__',"<unkown file>"))
 	except:
 		_HandlePythonFailure(what)
 	win32ui.DoWaitCursor(0)
@@ -514,8 +515,9 @@ def JumpToDocument(fileName, lineno=0, col = 1, nChars = 0, bScrollToTop = 0):
 	# if bScrollToTop, the specified line will be moved to the top of the window
 	#  (eg, bScrollToTop should be false when jumping to an error line to retain the
 	#  context, but true when jumping to a method defn, where we want the full body.
+	# Return the view which is editing the file, or None on error.
 	doc = win32ui.GetApp().OpenDocumentFile(fileName)
-	if doc is None: return 0
+	if doc is None: return None
 	frame = doc.GetFirstView().GetParentFrame()
 	try:
 		view = frame.GetEditorView()
@@ -538,7 +540,7 @@ def JumpToDocument(fileName, lineno=0, col = 1, nChars = 0, bScrollToTop = 0):
 		nScroll = (lineno-1) - curTop
 		view.LineScroll(nScroll, 0)
 	view.SetFocus()
-	return 1
+	return view
 
 def _HandlePythonFailure(what, syntaxErrorPathName = None):
 	typ, details, tb = sys.exc_info()
