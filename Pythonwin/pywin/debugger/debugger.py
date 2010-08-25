@@ -629,7 +629,7 @@ class Debugger(debugger_parent):
 		return debugger_parent.stop_here(self, frame)
 
 	def run(self, cmd,globals=None, locals=None, start_stepping = 1):
-		if type(cmd) not in [types.StringType, types.CodeType]:
+		if not isinstance(cmd, (basestring, types.CodeType)):
 			raise TypeError("Only strings can be run")
 		self.last_cmd_debugged = cmd
 		if start_stepping:
