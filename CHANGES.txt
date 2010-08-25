@@ -40,6 +40,8 @@ Since build 214:
 
 * Fix encoding problem in makepy (Massa, Harald Armin)
 
+* Pythonwin: trim leading and trailing whitespace in calltip text (kxroberto)
+
 Since build 213:
 ----------------
 

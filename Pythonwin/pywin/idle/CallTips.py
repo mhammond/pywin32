@@ -135,6 +135,7 @@ def get_arg_text(ob):
         if hasattr(ob, "__doc__"):
             doc=ob.__doc__
             try:
+                doc = doc.strip()
                 pos = doc.find("\n")
             except AttributeError:
                 ## New style classes may have __doc__ slot without actually
