@@ -288,6 +288,14 @@ class InteractiveCore:
 				sys.stderr.write("Portions %s - see 'Help/About PythonWin' for further copyright information.\n" % (win32ui.copyright,) )
 			else:
 				sys.stderr.write(banner)
+		rcfile = os.environ.get('PYTHONSTARTUP')
+		if rcfile:
+			import __main__
+			try:
+				execfile(rcfile, __main__.__dict__, __main__.__dict__)
+			except:
+				sys.stderr.write(">>> \nError executing PYTHONSTARTUP script %r\n" % (rcfile))
+				traceback.print_exc(file=sys.stderr)
 		self.AppendToPrompt([])
 
 	def SetContext(self, globals, locals, name = "Dbg"):

@@ -45,6 +45,9 @@ Since build 214:
 * Pythonwin: fix reload of package modules and support for 'pyw' and 'pyx' 
   extensions (kxroberto)
 
+* Pythonwin: PYTHONSTARTUP is honoured, just like when using python.exe
+  (kxroberto)
+
 Since build 213:
 ----------------
 
