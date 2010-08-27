@@ -52,6 +52,9 @@ Since build 214:
 
 * Add win32file.WSAEnumNetworkEvents (Ziga Seilnacht via patch 3022832)
 
+* Get vtable interfaces working on 64bit windows (Nikolay Igotti via patch 
+  3002383)
+
 Since build 213:
 ----------------
 

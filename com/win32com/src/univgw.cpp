@@ -168,7 +168,7 @@ STDMETHODIMP mockup(gw_object * _this)
 #endif // COMPILE_MOCKUP
 
 
-static pfnGWMethod make_method(DWORD index, UINT argsize)
+static pfnGWMethod make_method(DWORD index, UINT argsize, UINT argc)
 {
 	unsigned char * code;
 
@@ -233,8 +233,47 @@ static pfnGWMethod make_method(DWORD index, UINT argsize)
 		PyErr_SetString(PyExc_RuntimeError, "failed to set memory attributes to executable");
 		return NULL;
 	}
+#elif _M_X64
+	static const unsigned char wrapper[] = {
+	 0x48, 0x89, 0x54, 0x24, 0x10, /* mov [rsp + 16], rdx */
+	 0x4c, 0x89, 0x44, 0x24, 0x18, /* mov [rsp + 24], r8  */
+	 0x4c, 0x89, 0x4c, 0x24, 0x20, /* mov [rsp + 32], r9 */
 
-#else	// _M_IX86
+	 0x48, 0x89, 0xca, /* mov rdx, rcx */
+	 0x4c, 0x8d, 0x44, 0x24, 0x10, /* lea r8, [rsp + 16] */
+	 0x48, 0x83, 0xec, 0x28, /* sub rsp, 40 - we have to keep stack 16-byte aligned */
+	 0x48, 0xc7, 0xc1, 0x00, 0x00, 0x00, 0x00, /* mov rcx, imm32 */
+	 0x48, 0xb8, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, /* mov rax, imm64, target address */
+	 0xff, 0xd0, /* call rax */ 
+	 0x48, 0x83, 0xc4, 0x28, /* add rsp, 40 */
+	 0xc3 /* ret */
+	};
+
+	code = (unsigned char *)VirtualAlloc(NULL, sizeof(wrapper), MEM_COMMIT, PAGE_READWRITE);
+	if (code==NULL) {
+		PyErr_NoMemory();
+		return NULL; // caller sets memory error
+	}
+	memcpy(code, &wrapper[0], sizeof(wrapper));
+
+	for (int i=0; i < 3; i++)
+	{
+		if (i < argc) 
+			continue;
+		for (int j = 0; j < 5; j++) 
+			code[i*5+j] = 0x90;
+	}
+	
+	*(int*)(code+30) = index;
+	*(void**)(code+36) = &univgw_dispatch;
+
+	DWORD oldprotect;
+	if (!VirtualProtect(code, sizeof(wrapper), PAGE_EXECUTE, &oldprotect)) {
+		VirtualFree(code, 0, MEM_RELEASE);
+		PyErr_SetString(PyExc_RuntimeError, "failed to set memory attributes to executable");
+		return NULL;
+	}
+#else	// other arches
    /* The MAINWIN toolkit allows us to build this on Linux!!! */
 #  pragma message("XXXXXXXXX - win32com.universal wont work on this platform - need make_method")
 #endif
@@ -368,6 +407,10 @@ static PyObject * univgw_CreateVTable(PyObject *self, PyObject *args)
 		Py_DECREF(methods);
 		return NULL;
 	}
+        PyObject * methodsArgc = PyObject_CallMethod(obDef, "vtbl_argcounts", NULL);
+	if ( methodsArgc == NULL )
+		return NULL;
+
 	int numReservedVtables = 3;	// the methods list should not specify IUnknown methods
 	
 	if (isDispatch) // or IDispatch if this interface uses it.
@@ -417,20 +460,30 @@ static PyObject * univgw_CreateVTable(PyObject *self, PyObject *args)
 		if ( obArgSize == NULL )
 			goto error;
 
+		PyObject * obArgCount = PySequence_GetItem(methodsArgc, i);
+		if ( obArgCount == NULL )
+			goto error;
+
 		int argSize = PyInt_AsLong(obArgSize);
 		Py_DECREF(obArgSize);
 		if ( argSize == -1 && PyErr_Occurred() )
 			goto error;
 
+		int argCount = PyInt_AsLong(obArgCount);
+		Py_DECREF(obArgCount);
+		if ( argCount == -1 && PyErr_Occurred() )
+			goto error;
 		// dynamically construct a function with the provided argument
 		// size; reserve additional space for the _this argument.
-		pfnGWMethod meth = make_method(i, argSize + sizeof(gw_object *));
+		pfnGWMethod meth = make_method(i, argSize + sizeof(void*), argCount + 1);
 		if ( meth == NULL )
 			goto error;
 
 		vtbl->methods[i + numReservedVtables] = meth;
 	}
 	Py_DECREF(methods);
+	Py_DECREF(methodsArgc);
+	
 	DWORD oldprotect;
 	if (!VirtualProtect(vtbl, size, PAGE_EXECUTE, &oldprotect)) {
 		free_vtbl(vtbl);

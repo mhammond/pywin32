@@ -162,6 +162,8 @@ class Definition:
         return self._iid
     def vtbl_argsizes(self):
         return [m.cbArgs for m in self._methods]
+    def vtbl_argcounts(self):
+        return [len(m.args) for m in self._methods]
     def dispatch(self, ob, index, argPtr,
                  ReadFromInTuple=_univgw.ReadFromInTuple,
                  WriteFromOutTuple=_univgw.WriteFromOutTuple):
