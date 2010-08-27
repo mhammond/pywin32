@@ -55,6 +55,9 @@ Since build 214:
 * Get vtable interfaces working on 64bit windows (Nikolay Igotti via patch 
   3002383)
 
+* Pythonwin: if the interactive window is cleared, avoid the blue color and 
+  large font on the new line (markt via patch 2813056)
+
 Since build 213:
 ----------------
 

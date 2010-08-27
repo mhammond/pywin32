@@ -94,6 +94,7 @@ FormatterParent = pywin.scintilla.formatter.PythonSourceFormatter
 class InteractiveFormatter(FormatterParent):
 	def __init__(self, scintilla):
 		FormatterParent.__init__(self, scintilla)
+		self.bannerDisplayed = False
 
 	def SetStyles(self):
 		FormatterParent.SetStyles(self)
@@ -233,8 +234,11 @@ class InteractiveFormatter(FormatterParent):
 		if start > 0:
 			stylenum = self.scintilla.SCIGetStyleAt(start - 1)
 			styleStart = self.GetStyleByNum(stylenum).name
+		elif self.bannerDisplayed:
+			styleStart = STYLE_INTERACTIVE_EOL
 		else:
 			styleStart = STYLE_INTERACTIVE_BANNER
+			self.bannerDisplayed = True
 		self.scintilla.SCIStartStyling(start, 31)
 		self.style_buffer = array.array("b", (0,)*len(stringVal))
 		self.ColorizeInteractiveCode(stringVal, styleStart, stylePyStart)
