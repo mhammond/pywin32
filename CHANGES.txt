@@ -48,6 +48,8 @@ Since build 214:
 * Pythonwin: PYTHONSTARTUP is honoured, just like when using python.exe
   (kxroberto)
 
+* New win32api functions GetKeyboardLayoutName, MapVirtualKey and ToAsciiEx
+
 Since build 213:
 ----------------
 

@@ -5955,6 +5955,17 @@ PyObject *PyGetKeyboardLayout(PyObject *self, PyObject *args)
 	return PyWinLong_FromVoidPtr(hkl);
 }
 
+// @pymethod int|win32api|GetKeyboardLayoutName|Retrieves the name of the active input locale identifier (formerly called the keyboard layout). 
+PyObject *PyGetKeyboardLayoutName(PyObject *self, PyObject *args)
+{
+	if (!PyArg_ParseTuple(args,":GetKeyboardLayoutName"))
+		return NULL;
+	WCHAR buf[KL_NAMELENGTH+1];
+	if (!::GetKeyboardLayoutNameW(buf))
+		return PyWin_SetAPIError("GetKeyboardLayoutNameW");
+	return PyWinObject_FromWCHAR(buf);
+}
+
 // @pymethod (int,..)|win32api|GetKeyboardLayoutList|Returns a sequence of all locale ids currently loaded
 PyObject *PyGetKeyboardLayoutList(PyObject *self, PyObject *args)
 {
@@ -6006,6 +6017,59 @@ PyObject *PyLoadKeyboardLayout(PyObject *self, PyObject *args)
 	if (lcid==NULL)
 		return PyWin_SetAPIError("LoadKeyboardLayout");
 	return PyWinLong_FromHANDLE(lcid);
+}
+
+// @pymethod bytes|win32api|ToAsciiEx|Translates the specified virtual-key code and keyboard state to the corresponding character or characters.
+PyObject *PyToAsciiEx(PyObject *self, PyObject *args)
+{
+	UINT vk, sc, flags=0;
+	const char *state;
+	int statesize;
+	PyObject *obhlayout = NULL;
+	HKL layout = 0;
+	// @pyparm int|vk||The virtual key code.
+	// @pyparm int|scancode||The scan code.
+	// @pyparm bytes|keyboardstate||A string of exactly 256 characters.
+	// @pyparm int|flags|0|
+	// @pyparm handle|hlayout|None|The keyboard layout to use
+	if (!PyArg_ParseTuple(args, "iis#|iO", &vk, &sc, &state, &statesize, &flags, obhlayout))
+		return NULL;
+	if (statesize!=256)
+		return PyErr_Format(PyExc_ValueError, "keyboard state string must be exactly 256 characters");
+	if (obhlayout && !PyWinObject_AsHANDLE(obhlayout, (HANDLE *)&layout))
+		return NULL;
+	char result[2];
+	int nc = ToAsciiEx(vk,sc,(BYTE *)state,(unsigned short *)result,flags,layout);
+	if (nc < 0) { // a dead char.
+		Py_INCREF(Py_None);
+		return Py_None;
+	}
+	return PyString_FromStringAndSize(result, nc);
+}
+
+// @pymethod int|win32api|MapVirtualKey|Translates (maps) a virtual-key code into a scan code or character value, or translates a scan code into a virtual-key code.
+// @comm implemented by calling the unicode versions of the API (MapVirtualKeyW/MapVirtualKeyExW)
+PyObject *PyMapVirtualKey(PyObject *self, PyObject *args)
+{
+	UINT vk, typ;
+	PyObject *obhlayout = NULL;
+	HKL layout = 0;
+	// @pyparm int|vk||The virtual key code.
+	// @pyparm int|type||The type of conversion to make - see the API
+	// @pyparm handle|hlayout|None|The keyboard layout to use.  If not
+	// specified, the API function MapVirtualKey will be called.  If it
+	// is specified MapVirtualKeyEx will be called.
+	if (!PyArg_ParseTuple(args, "ii|O", &vk, &typ, obhlayout))
+		return NULL;
+	int rc;
+	if (obhlayout==NULL) {
+		rc = MapVirtualKeyW(vk, typ);
+	} else{
+		if (!PyWinObject_AsHANDLE(obhlayout, (HANDLE *)&layout))
+			return NULL;
+		rc = MapVirtualKeyExW(vk, typ, layout);
+	}
+	return PyInt_FromLong(rc);
 }
 
 // @pymethod dict|win32api|GlobalMemoryStatus|Returns systemwide memory usage
@@ -6207,6 +6271,7 @@ static struct PyMethodDef win32api_functions[] = {
 	{"GetHandleInformation",     PyGetHandleInformation,1},   // @pymeth GetHandleInformation|Retrieves a handle's flags.
 	{"GetKeyboardLayout",   PyGetKeyboardLayout, 1}, // @pymeth GetKeyboardLayout|Retrieves the active input locale identifier 
 	{"GetKeyboardLayoutList", PyGetKeyboardLayoutList, 1}, // @pymeth GetKeyboardLayoutList|Returns a sequence of all locale ids in the system
+	{"GetKeyboardLayoutName", PyGetKeyboardLayoutName, 1}, // @pymeth GetKeyboardLayoutName|Retrieves the name of the active input locale identifier (formerly called the keyboard layout). 
 	{"GetKeyboardState", PyGetKeyboardState, 1}, // @pymeth GetKeyboardState|Retrieves the status of the 256 virtual keys on the keyboard.
 	{"GetKeyState",			PyGetKeyState,      1}, // @pymeth GetKeyState|Retrives the last known key state for a key.
 	{"GetLastError",		PyGetLastError,     1}, // @pymeth GetLastError|Retrieves the last error code known by the system.
@@ -6268,6 +6333,7 @@ static struct PyMethodDef win32api_functions[] = {
 	{"LoadLibraryEx",	    PyLoadLibraryEx,1}, // @pymeth LoadLibraryEx|Loads the specified DLL, and returns the handle.
 	{"LoadResource",	    PyLoadResource,1}, // @pymeth LoadResource|Finds and loads a resource from a PE file.
 	{"LoadString",	        PyLoadString,1}, // @pymeth LoadString|Loads a string from a resource file.
+	{"MapVirtualKey",       PyMapVirtualKey,1}, // @pymeth MapVirtualKeyEx|Translates (maps) a virtual-key code into a scan code or character value, or translates a scan code into a virtual-key code. 
 	{"MessageBeep",         PyMessageBeep,1}, // @pymeth MessageBeep|Plays a predefined waveform sound.
 	{"MessageBoxEx",        PyMessageBox, 1},
 	{"MessageBox",          PyMessageBox, 1}, // @pymeth MessageBox|Display a message box.
@@ -6348,6 +6414,7 @@ static struct PyMethodDef win32api_functions[] = {
 	{"Sleep",				PySleep,			1}, 
 	{"SleepEx",				PySleep,			1}, // @pymeth Sleep|Suspends current application execution
 	{"TerminateProcess",	PyTerminateProcess,	1}, // @pymeth TerminateProcess|Terminates a process.
+	{"ToAsciiEx",		PyToAsciiEx,              1},	// @pymeth ToAsciiEx|Translates the specified virtual-key code and keyboard state to the corresponding character or characters.
 	{"Unicode",             PyWin_NewUnicode,         1},	// @pymeth Unicode|Creates a new <o PyUnicode> object
 	{"UpdateResource",     PyUpdateResource, 1 },  // @pymeth UpdateResource|Updates a resource in a PE file.
 	{"VkKeyScan",           PyVkKeyScan,     1}, // @pymeth VkKeyScan|Translates a character to the corresponding virtual-key code and shift state. 
