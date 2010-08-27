@@ -2263,6 +2263,96 @@ PyObject* MyWSAEventSelect
 	PyHANDLE hEvent, // @pyparm <o PyHandle>|hEvent||Event handle for the socket to become attached to.
 	LONG lNetworkEvents // @pyparm int|networkEvents||A bitmask of network events that will cause hEvent to be signaled. e.g. (FD_CLOSE \| FD_READ)
 );
+
+%native(WSAEnumNetworkEvents) MyWSAEnumNetworkEvents;
+
+%{
+static int
+MyCopyEvent(PyObject *dict, WSANETWORKEVENTS *events, long event, int eventbit)
+{
+	int res = 0;
+
+	if (events->lNetworkEvents & event)
+	{
+		PyObject *key, *value;
+
+		key = PyInt_FromLong(event);
+		if (key == NULL)
+		{
+			return -1;
+		}
+		value = PyInt_FromLong(events->iErrorCode[eventbit]);
+		if (value == NULL)
+		{
+			Py_DECREF(key);
+			return -1;
+		}
+		res = PyDict_SetItem(dict, key, value);
+		Py_DECREF(key);
+		Py_DECREF(value);
+	}
+	return res;
+}
+
+// @pyswig dict|WSAEnumNetworkEvents|Return network events that caused the event associated with the socket to be signaled.
+// @rdesc A dictionary mapping network events that occured for the specified socket since the last call to this function (e.g. FD_READ, FD_WRITE) to their associated error code, or 0 if the event occured without an error. The events returned are a subset of events previously registered for this socket with WSAEventSelect.
+static PyObject*
+MyWSAEnumNetworkEvents(PyObject *self, PyObject *args)
+{
+	PyObject *socket, *event = NULL;
+	// @pyparm <o PySocket>|s||Socket to check for netork events, previously registered for network event notification with WSAEventSelect.
+	SOCKET s;
+	// @pyparm <o PyHANDLE>|hEvent||Optional handle to the event associated with socket s in the last call to WSAEventSelect. If specified, the event will be reset.
+	HANDLE hEvent = NULL;
+	WSANETWORKEVENTS wsaevents;
+	int rc;
+	PyObject *events;
+ 
+	if (!PyArg_ParseTuple(args, "O|O:WSAEnumNetworkEvents", &socket, &event))
+	{
+		return NULL;
+	}
+	if (!PySocket_AsSOCKET(socket, &s))
+	{
+		return NULL;
+	}
+	if (event != NULL && !PyWinObject_AsHANDLE(event, &hEvent))
+	{
+		return NULL;
+	}
+
+	Py_BEGIN_ALLOW_THREADS;
+	rc = WSAEnumNetworkEvents(s, hEvent, &wsaevents);
+	Py_END_ALLOW_THREADS;
+	if (rc == SOCKET_ERROR)
+	{
+		PyWin_SetAPIError("WSAEnumNetworkEvents", WSAGetLastError());
+		return NULL;
+	}
+
+	events = PyDict_New();
+	if (events == NULL)
+	{
+		return NULL;
+	}
+	if (MyCopyEvent(events, &wsaevents, FD_READ, FD_READ_BIT) ||
+	    MyCopyEvent(events, &wsaevents, FD_WRITE, FD_WRITE_BIT) ||
+	    MyCopyEvent(events, &wsaevents, FD_OOB, FD_OOB_BIT) ||
+	    MyCopyEvent(events, &wsaevents, FD_ACCEPT, FD_ACCEPT_BIT) ||
+	    MyCopyEvent(events, &wsaevents, FD_CONNECT, FD_CONNECT_BIT) ||
+	    MyCopyEvent(events, &wsaevents, FD_CLOSE, FD_CLOSE_BIT) ||
+	    MyCopyEvent(events, &wsaevents, FD_QOS, FD_QOS_BIT) ||
+	    MyCopyEvent(events, &wsaevents, FD_GROUP_QOS, FD_GROUP_QOS_BIT) ||
+	    MyCopyEvent(events, &wsaevents, FD_ROUTING_INTERFACE_CHANGE, FD_ROUTING_INTERFACE_CHANGE_BIT) ||
+	    MyCopyEvent(events, &wsaevents, FD_ADDRESS_LIST_CHANGE, FD_ADDRESS_LIST_CHANGE_BIT))
+	{
+		Py_DECREF(events);
+		return NULL;
+	}
+	return events;
+}
+%}
+
 %{
 
 PyObject* MyWSAAsyncSelect
@@ -2514,6 +2604,7 @@ Error:
 #define WSAEINVAL WSAEINVAL
 #define WSAECONNABORTED WSAECONNABORTED
 #define WSAECONNRESET WSAECONNRESET
+#define WSAENOBUFS WSAENOBUFS
 #define WSAEDISCON WSAEDISCON
 #define WSA_IO_PENDING WSA_IO_PENDING
 #define WSA_OPERATION_ABORTED WSA_OPERATION_ABORTED

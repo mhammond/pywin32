@@ -50,6 +50,8 @@ Since build 214:
 
 * New win32api functions GetKeyboardLayoutName, MapVirtualKey and ToAsciiEx
 
+* Add win32file.WSAEnumNetworkEvents (Ziga Seilnacht via patch 3022832)
+
 Since build 213:
 ----------------
 
