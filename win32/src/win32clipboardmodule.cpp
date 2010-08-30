@@ -341,6 +341,8 @@ py_get_clipboard_data(PyObject* self, PyObject* args)
   size_t size;
   DWORD dwordsize;
   switch (format) {
+    case CF_BITMAP:
+      break;
     case CF_HDROP:
 		hdrop = (HDROP)GlobalLock(handle);
         break;
@@ -392,6 +394,9 @@ py_get_clipboard_data(PyObject* self, PyObject* args)
       break;
   }
   switch (format) {
+    case CF_BITMAP:
+        ret = PyWinLong_FromHANDLE(handle);
+        break;
     case CF_HDROP:
         filecnt = DragQueryFileW(hdrop, 0xFFFFFFFF, NULL, NULL);
         ret = PyTuple_New(filecnt);
@@ -459,6 +464,7 @@ py_get_clipboard_data(PyObject* self, PyObject* args)
   // @flag CF_TEXT|A string object.
   // @flag CF_ENHMETAFILE|A string with binary data obtained from GetEnhMetaFileBits
   // @flag CF_METAFILEPICT|A string with binary data obtained from GetMetaFileBitsEx (currently broken)
+  // @flag CF_BITMAP|An integer handle to the bitmap.
   // @flag All other formats|A string with binary data obtained directly from the 
   // global memory referenced by the handle.
 }
