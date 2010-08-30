@@ -194,6 +194,7 @@ class EnumerationItem(build.OleItem, WritableItem):
 ##    WriteAliasesForItem(self, aliasItems)
     
   def WriteEnumerationItems(self, stream):
+    num = 0
     enumName = self.doc[0]
     # Write in name alpha order
     names = list(self.mapVars.keys())
@@ -215,6 +216,8 @@ class EnumerationItem(build.OleItem, WritableItem):
           use = repr(val)
         print >> stream, "\t%-30s=%-10s # from enum %s" % \
                       (build.MakePublicAttributeName(name, True), use, enumName)
+        num += 1
+    return num
 
 class VTableItem(build.VTableItem, WritableItem):
     order = 4
@@ -868,9 +871,12 @@ class Generator:
         print >> stream, "class constants:"
         items = enumItems.values()
         items.sort()
+        num_written = 0
         for oleitem in items:
-            oleitem.WriteEnumerationItems(stream)
+            num_written += oleitem.WriteEnumerationItems(stream)
             self.progress.Tick()
+        if not num_written:
+            print >> stream, "\tpass"
         print >> stream
 
     if self.generate_type == GEN_FULL:
