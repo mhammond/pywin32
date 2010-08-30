@@ -208,7 +208,8 @@ class AutoIndent:
                 i = i+1
             if i == n:
                 # the cursor is in or at leading indentation; just inject
-                # an empty line at the start
+                # an empty line at the start and strip space from current line
+                text.delete("insert - %d chars" % i, "insert")
                 text.insert("insert linestart", '\n')
                 return "break"
             indent = line[:i]
