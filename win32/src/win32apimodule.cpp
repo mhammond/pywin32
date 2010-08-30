@@ -2791,6 +2791,7 @@ PyGetVolumeInformation(PyObject * self, PyObject * args)
 }
 
 // @pymethod string|win32api|GetFullPathName|Returns the full path of a (possibly relative) path
+// @comm Please use <om win32file.GetFullPathName> instead - it has better Unicode semantics.
 static PyObject *
 PyGetFullPathName (PyObject *self, PyObject *args)
 {
