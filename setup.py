@@ -1837,7 +1837,6 @@ pythonwin_extensions = [
                      optional_headers=['afxres.h']),
     WinExt_pythonwin("dde", pch_header="stdafxdde.h",
                      depends=["win32/src/stddde.h", "pythonwin/ddemodule.h"],
-                     platforms=['win32'],
                      optional_headers=['afxres.h']),
     ]
 # win32ui is large, so we reserve more bytes than normal
