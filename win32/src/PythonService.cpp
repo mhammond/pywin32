@@ -960,10 +960,15 @@ DWORD WINAPI dispatchServiceCtrl(DWORD dwCtrlCode, DWORD dwEventType,
 				sub = PyWinObject_FromPARAM((LPARAM)eventData);
 				break;
 			case SERVICE_CONTROL_POWEREVENT: {
-				POWERBROADCAST_SETTING *pbs = (POWERBROADCAST_SETTING *)eventData;
-				sub = Py_BuildValue("NN",
-						    PyWinObject_FromIID(pbs->PowerSetting),
-						    PyString_FromStringAndSize((char *)pbs->Data, pbs->DataLength));
+				if (dwEventType == PBT_POWERSETTINGCHANGE) {
+					POWERBROADCAST_SETTING *pbs = (POWERBROADCAST_SETTING *)eventData;
+					sub = Py_BuildValue("NN",
+							    PyWinObject_FromIID(pbs->PowerSetting),
+							    PyString_FromStringAndSize((char *)pbs->Data, pbs->DataLength));
+				} else {
+					sub = Py_None;
+					Py_INCREF(Py_None);
+				}
 				break;
 			}
 			case SERVICE_CONTROL_SESSIONCHANGE: {
