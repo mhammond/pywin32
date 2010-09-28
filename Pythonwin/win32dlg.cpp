@@ -812,7 +812,7 @@ PyObject *PyCFileDialog::ui_file_dialog_create( PyObject * /*self*/, PyObject *a
 	PyCFileDialog *newObj=NULL;
 	if (PyWinObject_AsTCHAR(obDefExt, &szDefExt, TRUE)
 		&&PyWinObject_AsTCHAR(obFileName, &szFileName, TRUE)
-		&&PyWinObject_AsTCHAR(obFilter, &szFilter)){
+		&&PyWinObject_AsTCHAR(obFilter, &szFilter, TRUE)){
 		pDlg = new CFileDialog( bFileOpen, szDefExt, szFileName, flags, szFilter, pParent );
 		if (!pDlg){
 			PyErr_SetString(ui_module_error, "Creating CFileDialog failed"); // pyseemfc CFileCialog|CFileDialog
