@@ -29,7 +29,11 @@ def DumpClipboard():
             except pythoncom.com_error:
                 print "Eeek - QGD indicated failure for tymed", t_this
             # now actually get it.
-            medium = do.GetData(fetc_query)
+            try:
+                medium = do.GetData(fetc_query)
+            except pythoncom.com_error, exc:
+                print "Failed to get the clipboard data:", exc
+                continue
             if medium.tymed==pythoncom.TYMED_GDI:
                 data = "GDI handle %d" % medium.data
             elif medium.tymed==pythoncom.TYMED_MFPICT:
