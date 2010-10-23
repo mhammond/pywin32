@@ -61,6 +61,8 @@ Since build 214:
 * Fix Python reference leak when calling MAPI/Exchange functions which
   take an SRowSet param.
 
+* Fix Pythonwin's Edit/Replace dialog in Python 2.3 (bug 2962078)
+
 Since build 213:
 ----------------
 

@@ -538,7 +538,12 @@ static CPythonDialogTemplate *ParseDlgHdrList(PyObject *tmpl)
 	if (!PyWinObject_AsResourceIdW(obwclass, &wclass, TRUE))
 		goto cleanup;
 	if (obexstyle != Py_None) {
+#if (PY_VERSION_HEX < 0x02040000)
+		// py2.3 dies if PyLong_AsUnsignedLong is passed an int object.
+		tpl.dwExtendedStyle = (unsigned long)PyInt_AsLong(obexstyle);
+#else
 		tpl.dwExtendedStyle = PyLong_AsUnsignedLong(obexstyle);
+#endif
 		if (tpl.dwExtendedStyle==-1 && PyErr_Occurred())
 			goto cleanup;
 	}
