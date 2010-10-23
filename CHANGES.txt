@@ -58,6 +58,9 @@ Since build 214:
 * Pythonwin: if the interactive window is cleared, avoid the blue color and 
   large font on the new line (markt via patch 2813056)
 
+* Fix Python reference leak when calling MAPI/Exchange functions which
+  take an SRowSet param.
+
 Since build 213:
 ----------------
 

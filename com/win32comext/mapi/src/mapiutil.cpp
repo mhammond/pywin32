@@ -631,6 +631,7 @@ BOOL PyMAPIObject_AsSRowSet(PyObject *obSeq, SRowSet **ppResult, BOOL bNoneOK)
 				propObject = NULL; // important for cleanup
 			}
 		}
+        Py_DECREF(rowObject);
 		rowObject = NULL; // important for cleanup
 	}
 	rc = TRUE;
