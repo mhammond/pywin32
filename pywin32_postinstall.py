@@ -14,6 +14,9 @@ class Tee:
     def write(self, what):
         self.f.write(what)
         tee_f.write(what)
+    def flush(self):
+        self.f.flush()
+        tee_f.flush()
 
 sys.stderr = Tee(sys.stderr)
 sys.stdout = Tee(sys.stdout)
