@@ -2293,13 +2293,13 @@ static PyObject *PyShellExecuteEx(PyObject *self, PyObject *args, PyObject *kw)
 		goto done;
 	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&info.hwnd))
 		goto done;
-	if (obVerb && !PyWinObject_AsString(obVerb, (char **)&info.lpVerb))
+	if (obVerb && !PyWinObject_AsTCHAR(obVerb, (TCHAR **)&info.lpVerb))
 		goto done;
-	if (obFile && !PyWinObject_AsString(obFile, (char **)&info.lpFile))
+	if (obFile && !PyWinObject_AsTCHAR(obFile, (TCHAR **)&info.lpFile))
 		goto done;
-	if (obParams && !PyWinObject_AsString(obParams, (char **)&info.lpParameters))
+	if (obParams && !PyWinObject_AsTCHAR(obParams, (TCHAR **)&info.lpParameters))
 		goto done;
-	if (obDirectory && !PyWinObject_AsString(obDirectory, (char **)&info.lpDirectory))
+	if (obDirectory && !PyWinObject_AsTCHAR(obDirectory, (TCHAR **)&info.lpDirectory))
 		goto done;
 	if (obIDList) {
 		info.fMask |= SEE_MASK_IDLIST;
@@ -2308,7 +2308,7 @@ static PyObject *PyShellExecuteEx(PyObject *self, PyObject *args, PyObject *kw)
 	}
 	if (obClass) {
 		info.fMask |= SEE_MASK_CLASSNAME;
-		if (!PyWinObject_AsString(obClass, (char **)&info.lpClass))
+		if (!PyWinObject_AsTCHAR(obClass, (TCHAR **)&info.lpClass))
 			goto done;
 	}
 	if (obhkeyClass) {
