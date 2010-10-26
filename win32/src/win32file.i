@@ -355,20 +355,17 @@ BOOLAPI DeleteFile(TCHAR *fileName);
 #if (PY_VERSION_HEX >= 0x03000000)
 // theoretically this could be in pywintypes, but this is the only place
 // it is called...
+
 static PyObject *PyBuffer_FromReadWriteMemory(void *buf, Py_ssize_t size){
-	Py_buffer info={
-		buf,
-		NULL,			// obj added in 3.0b3
-		size,
-		FALSE,			// readonly
-		0,				// ndim
-		NULL,			// format
-		NULL,			// shape
-		NULL,			// strides
-		NULL,			// suboffsets
-		0,				// itemsize
-		NULL,			// internal
-		};
+	Py_buffer info;
+	/* PyBUF_CONTIG contains PyBUF_ND, so that Py_buffer.shape is filled in.
+		Apparently the shape is now required for even simple contiguous byte
+		buffers. (see get_shape0 in memoryobject.c)
+		Since PyBuffer_FillInfo is specifically for this case, it should probably
+		set the shape unconditionally.
+	*/
+	if (PyBuffer_FillInfo(&info, NULL, buf, size, 0, PyBUF_CONTIG) == -1)
+		return NULL;
 	return PyMemoryView_FromBuffer(&info);
 }
 #endif
@@ -1016,7 +1013,6 @@ PyObject *MyWriteFile(PyObject *self, PyObject *args)
 	DWORD writeSize;
 	PyObject *obWriteData;
 	PyObject *obOverlapped = NULL;
-	PyBufferProcs *pb = NULL;
 
 	if (!PyArg_ParseTuple(args, "OO|O:WriteFile", 
 		&obhFile, // @pyparm <o PyHANDLE>/int|hFile||Handle to the file
@@ -1934,7 +1930,6 @@ static PyObject *MyAcceptEx
 	int iMinBufferSize = (sizeof(SOCKADDR_IN) + 16) * 2;
 	WSAPROTOCOL_INFO wsProtInfo;
 	UINT cbSize = sizeof(wsProtInfo);
-	PyBufferProcs *pb = NULL;
 
 	if (!PyArg_ParseTuple(
 		args,
@@ -2127,7 +2122,6 @@ PyObject *MyGetAcceptExSockaddrs
 	PyObject *obTemp = NULL;
 	int rc;
 	DWORD dwBufSize;
-	PyBufferProcs *pb = NULL;
 
 	if (!PyArg_ParseTuple(
 		args,
@@ -2409,7 +2403,6 @@ PyObject *MyWSASend
 	PyObject *obBuf = NULL;
 	PyObject *obOverlapped = NULL;
 	DWORD dwFlags = 0;
-	PyBufferProcs *pb = NULL;
 
 	if (!PyArg_ParseTuple(
 		args,
@@ -2505,7 +2498,6 @@ PyObject *MyWSARecv
 	PyObject *obBuf = NULL;
 	PyObject *obOverlapped = NULL;
 	DWORD dwFlags = 0;
-	PyBufferProcs *pb = NULL;
 
 	if (!PyArg_ParseTuple(
 		args,
@@ -4227,10 +4219,26 @@ py_ReplaceFile(PyObject *self, PyObject *args)
 	return ret;
 }
 
+#if PY_VERSION_HEX > 0x03010000
+// Capsule API replaced PyCObject in 3.2.
+void encryptedfilecontextdestructor(PyObject *obctxt){
+	if (!PyCapsule_IsValid(obctxt, NULL))
+		return;	// should not happen, but maybe print a warning just in case ?
+	// Check if context has already been explicitely destroyed
+	// The capsule's context is set to this value in CloseEncryptedFileRaw
+	if (PyCapsule_GetContext(obctxt) == INVALID_HANDLE_VALUE)
+		return;
+	void *ctxt = PyCapsule_GetPointer(obctxt, NULL);
+	if (pfnCloseEncryptedFileRaw)
+		(*pfnCloseEncryptedFileRaw)(ctxt);
+}
+#else
 void encryptedfilecontextdestructor(void *ctxt){
 	if (pfnCloseEncryptedFileRaw && ctxt)
 		(*pfnCloseEncryptedFileRaw)(ctxt);
 }
+#endif
+
 
 // @pyswig PyCObject|OpenEncryptedFileRaw|Initiates a backup or restore operation on an encrypted file
 // @rdesc Returns a PyCObject containing an operation context that can be passed to 
@@ -4258,7 +4266,11 @@ py_OpenEncryptedFileRaw(PyObject *self, PyObject *args)
 	if (err!=ERROR_SUCCESS)
 		PyWin_SetAPIError("OpenEncryptedFileRaw", err);
 	else{
+#if PY_VERSION_HEX > 0x03010000
+		ret=PyCapsule_New(ctxt, NULL, encryptedfilecontextdestructor);
+#else
 		ret=PyCObject_FromVoidPtr(ctxt, encryptedfilecontextdestructor); 
+#endif
 		if (ret==NULL)
 			(*pfnCloseEncryptedFileRaw)(ctxt);
 		}
@@ -4314,7 +4326,11 @@ py_ReadEncryptedFileRaw(PyObject *self, PyObject *args)
 		&obcallback_data,	// @pyparm object|CallbackContext||Arbitrary Python object to be passed to callback function
 		&obctxt))			// @pyparm PyCObject|Context||Context object returned from <om win32file.OpenEncryptedFileRaw>
 		return NULL;
+#if PY_VERSION_HEX > 0x03010000
+	ctxt=PyCapsule_GetPointer(obctxt, NULL);
+#else
 	ctxt=PyCObject_AsVoidPtr(obctxt);
+#endif
 	if (ctxt==NULL)
 		return NULL;
 	if (!PyCallable_Check(obcallback)){
@@ -4391,7 +4407,11 @@ py_WriteEncryptedFileRaw(PyObject *self, PyObject *args)
 		&obcallback_data,	// @pyparm object|CallbackContext||Arbitrary Python object to be passed to callback function
 		&obctxt))			// @pyparm PyCObject|Context||Context object returned from <om win32file.OpenEncryptedFileRaw>
 		return NULL;
+#if PY_VERSION_HEX > 0x03010000
+	ctxt=PyCapsule_GetPointer(obctxt, NULL);
+#else
 	ctxt=PyCObject_AsVoidPtr(obctxt);
+#endif
 	if (ctxt==NULL)
 		return NULL;
 	if (!PyCallable_Check(obcallback)){
@@ -4428,6 +4448,21 @@ py_CloseEncryptedFileRaw(PyObject *self, PyObject *args)
 	// object destructs and we attempt to close it a second time, Vista x64
 	// crashes.
 	// So must bypass the CObject API for this.
+#if PY_VERSION_HEX > 0x03010000
+	if (!PyCapsule_IsValid(obctxt, NULL))
+		return PyErr_Format(PyExc_TypeError, "param must be handle to an encrypted file (got type %s)", obctxt->ob_type->tp_name);
+	if (PyCapsule_GetDestructor(obctxt) != encryptedfilecontextdestructor)
+		return PyErr_Format(PyExc_TypeError, "param must be handle to an encrypted file (got a CObject with invalid destructor)");
+	/* PyCapsule will *not* allow you to set the pointer to NULL, so use its extra context pointer
+		to signal that we have already destroyed our context.
+		??? Maybe just set the pointer itself to INVALID_HANDLE_VALUE ???
+	*/
+	if (PyCapsule_GetContext(obctxt) == INVALID_HANDLE_VALUE)
+		return PyErr_Format(PyExc_ValueError, "This handle has already been closed");
+	void *ctxt = PyCapsule_GetPointer(obctxt, NULL);
+	(*pfnCloseEncryptedFileRaw)(ctxt);
+	PyCapsule_SetContext(obctxt, INVALID_HANDLE_VALUE);
+#else
 	if (!PyCObject_Check(obctxt))
 		return PyErr_Format(PyExc_TypeError, "param must be handle to an encrypted file (got type %s)", obctxt->ob_type->tp_name);
 	PyCObject *pcobj = (PyCObject *)obctxt;
@@ -4439,6 +4474,7 @@ py_CloseEncryptedFileRaw(PyObject *self, PyObject *args)
 	// function has no return value, make sure to check for memory leaks!
 	(*pfnCloseEncryptedFileRaw)(pcobj->cobject);
 	pcobj->cobject = 0;
+#endif
 	Py_INCREF(Py_None);
 	return Py_None;
 }
