@@ -330,7 +330,7 @@ class DebuggerBreakpointsWindow(DebuggerListViewWindow):
 			num = self.GetNextItem(-1, commctrl.LVNI_SELECTED)
 			item_id = self.GetItem(num)[6]
 			from bdb import Breakpoint
-			for bplist in Breakpoint.bplist.itervalues():
+			for bplist in Breakpoint.bplist.values():
 				for bp in bplist:
 					if id(bp)==item_id:
 						self.debugger.clear_break(bp.file, bp.line)
