@@ -44,9 +44,19 @@ class CScintillaDocument(ParentScintillaDocument):
 			finally:
 				f.close()
 		except IOError:
-			win32ui.MessageBox("Could not load the file from %s" % filename)
-			return 0
-
+			rc = win32ui.MessageBox("Could not load the file from %s\n\nDo you want to create a new file?" % filename,
+									"Pythonwin", win32con.MB_YESNO | win32con.MB_ICONWARNING)
+			if rc == win32con.IDNO:
+				return 0
+			assert rc == win32con.IDYES, rc
+			try:
+				f = open(filename, 'wb+')
+				try:
+					self._LoadTextFromFile(f)
+				finally:
+					f.close()
+			except IOError, e:
+				rc = win32ui.MessageBox("Cannot create the file %s" % filename)
 		return 1
 
 	def SaveFile(self, fileName):
