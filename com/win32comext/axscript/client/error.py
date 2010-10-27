@@ -90,7 +90,8 @@ class AXScriptException(win32com.server.exception.COMException):
 			# re-raise.
 			raise
 
-	def _BuildFromSyntaxError(self, site, value, tb):
+	def _BuildFromSyntaxError(self, site, exc, tb):
+		value = exc.args
 		# All syntax errors should have a message as element 0
 		try:
 			msg = value[0]

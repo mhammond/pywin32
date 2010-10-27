@@ -77,8 +77,11 @@ sub testcollection
    next
 end sub
 """
-PyScript = """\
-print "PyScript is being parsed..."
+if sys.version_info < (3,):
+    PyScript = """print "PyScript is being parsed..."\n"""
+else:
+    PyScript = """print("PyScript is being parsed...")\n"""
+PyScript += """\
 prop = "Property Value"
 def hello(arg1):
    test.echo(arg1)
