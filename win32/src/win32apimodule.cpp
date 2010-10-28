@@ -1483,19 +1483,40 @@ PyGetKeyboardState(PyObject * self, PyObject * args)
 	// documentation for more details.
 }
 
-// @pymethod int|win32api|VkKeyScan|Translates a character to the corresponding virtual-key code and shift state. 
+// @pymethod int|win32api|VkKeyScan|Translates a character to the corresponding virtual-key code and shift state.
+// @pyparm string or unicode|char||A byte or unicode string of length 1.  If a byte string is passed
+// VkKeyScanA will be called, otherwise VkKeyScanW will be called.
 static PyObject *
 PyVkKeyScan(PyObject * self, PyObject * args)
 {
-	char key;
+	PyObject *obkey;
 	// @pyparm chr|char||Specifies a character
-	if (!PyArg_ParseTuple(args, "c:VkKeyScan", &key))
+	if (!PyArg_ParseTuple(args, "O:VkKeyScan", &obkey))
 		return (NULL);
+
 	int ret;
-	PyW32_BEGIN_ALLOW_THREADS
-	// @pyseeapi VkKeyScan
-	ret = VkKeyScan(key);
-	PyW32_END_ALLOW_THREADS
+	if (PyString_Check(obkey)) {
+		if (PyString_GET_SIZE(obkey) != 1) {
+			PyErr_SetString(PyExc_TypeError, "must be a byte string of length 1");
+			return NULL;
+		}
+		PyW32_BEGIN_ALLOW_THREADS
+		// @pyseeapi VkKeyScanA
+		ret = VkKeyScanA(PyString_AS_STRING(obkey)[0]);
+		PyW32_END_ALLOW_THREADS
+	} else if (PyUnicode_Check(obkey)) {
+		if (PyUnicode_GET_SIZE(obkey) != 1) {
+			PyErr_SetString(PyExc_TypeError, "must be a unicode string of length 1");
+			return NULL;
+		}
+		PyW32_BEGIN_ALLOW_THREADS
+		// @pyseeapi VkKeyScanW
+		ret = VkKeyScanW(PyUnicode_AS_UNICODE(obkey)[0]);
+		PyW32_END_ALLOW_THREADS
+	} else {
+		PyErr_SetString(PyExc_TypeError, "must be a unicode or byte string of length 1");
+		return NULL;
+	}
 	return PyInt_FromLong(ret);
 }
 
@@ -1503,20 +1524,40 @@ PyVkKeyScan(PyObject * self, PyObject * args)
 static PyObject *
 PyVkKeyScanEx(PyObject * self, PyObject * args)
 {
-	char key;
+	PyObject *obkey;
 	HKL hkl;
 	PyObject *obhkl;	
-	if (!PyArg_ParseTuple(args, "cO:VkKeyScanEx", 
-		&key,	// @pyparm chr|char||Specifies a character
+	if (!PyArg_ParseTuple(args, "OO:VkKeyScanEx",
+		&obkey,	// @pyparm string or unicode|char||A byte or unicode string of length 1.  If a byte string is passed
+			// VkKeyScanExA will be called, otherwise VkKeyScanExW will be called.
 		&obhkl))	// @pyparm <o PyHANDLE>|hkl||Handle to a keyboard layout at returned by <om win32api.LoadKeyboardLayout>
 		return (NULL);
 	if (!PyWinObject_AsHANDLE(obhkl, (HANDLE *)&hkl))
 		return NULL;
+
 	int ret;
-	PyW32_BEGIN_ALLOW_THREADS
-	// @pyseeapi VkKeyScanEx
-	ret = VkKeyScanEx(key, hkl);
-	PyW32_END_ALLOW_THREADS
+	if (PyString_Check(obkey)) {
+		if (PyString_GET_SIZE(obkey) != 1) {
+			PyErr_SetString(PyExc_TypeError, "must be a byte string of length 1");
+			return NULL;
+		}
+		PyW32_BEGIN_ALLOW_THREADS
+		// @pyseeapi VkKeyScanExA
+		ret = VkKeyScanExA(PyString_AS_STRING(obkey)[0], hkl);
+		PyW32_END_ALLOW_THREADS
+	} else if (PyUnicode_Check(obkey)) {
+		if (PyUnicode_GET_SIZE(obkey) != 1) {
+			PyErr_SetString(PyExc_TypeError, "must be a unicode string of length 1");
+			return NULL;
+		}
+		PyW32_BEGIN_ALLOW_THREADS
+		// @pyseeapi VkKeyScanExW
+		ret = VkKeyScanExW(PyUnicode_AS_UNICODE(obkey)[0], hkl);
+		PyW32_END_ALLOW_THREADS
+	} else {
+		PyErr_SetString(PyExc_TypeError, "must be a unicode or byte string of length 1");
+		return NULL;
+	}
 	return PyInt_FromLong(ret);
 }
 
