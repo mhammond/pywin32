@@ -63,6 +63,11 @@ Since build 214:
 
 * Fix Pythonwin's Edit/Replace dialog in Python 2.3 (bug 2962078)
 
+* Fix a few axscript issues with py3k.
+
+* Pythonwin now offers to create the file when attempting to open a file
+  that doesn't exist (ghazel via bug 1409321)
+
 Since build 213:
 ----------------
 
