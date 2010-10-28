@@ -168,19 +168,5 @@ class BindingsManager:
 		# (XXX - which do not work :-(
 		event = self.keymap.get( keyinfo )
 		if event is None:
-##			if key == 220: # Dead key
-##				return 1
-##			# Translate the raw scancode into an Ascii character.
-##			print "translating", key, "(with state)", keyState,
-##			key = win32ui.TranslateVirtualKey(key)
-##			print "Got back key", `key`,
-####			if key is None:
-####				return 1 # Dead-key - don't handle at all!!!
-##			if key:
-##				# Then back to a "normalized" scan-code.
-##				key = keycodes.get_scan_code(key[0])
-##				keyinfo = key, keyState
-##				event = self.keymap.get( keyinfo )
-##			if event is None:
 				return 1
 		return self.fire(event, None)

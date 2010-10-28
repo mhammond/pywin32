@@ -1,55 +1,53 @@
 import string
 import win32con
+import win32api
+import win32ui
 
-char_ranges = [
-    (string.ascii_lowercase, -32),
-    (string.digits, 0),
-    ("?><:[]\\", 128),
-    (";", 127),
-    ("=", 126),
-    ("/.,", 144),
-    ("`{}|", 96),
-    ("_", 94),
-    ("-+", 144),
-    ("'", 183),
-    ('"', 188),
-    ("~", 66),
-    ("!",16),
-    ("#$%&", 18),
-    ("()", 17),
-]
+MAPVK_VK_TO_CHAR = 2
 
-key_name_to_code = {}
+key_name_to_vk = {}
 key_code_to_name = {}
 
-_better_names = [
-    ("esc", win32con.VK_ESCAPE),
-    ("enter", win32con.VK_RETURN),
-    ("pgup", win32con.VK_BACK),
-    ("pgdn", win32con.VK_NEXT),
-]
-def _fillmap():
+_better_names = {
+    "escape": "esc",
+    "return": "enter",
+    "back": "pgup",
+    "next": "pgdn",
+}
+
+def _fillvkmap():
     # Pull the VK_names from win32con
     names = [entry for entry in win32con.__dict__ if entry.startswith("VK_")]
     for name in names:
+        code = getattr(win32con, name)
         n = name[3:].lower()
-        val = getattr(win32con, name)
-        key_name_to_code[n] = val
-        key_code_to_name[val] = n
-    # Some better named we know about
-    for name, code in _better_names:
-        key_name_to_code[name] = code
-        key_code_to_name[code] = name
-    # And the char_ranges map above
-    for chars, offset in char_ranges:
-        for char in chars:
-            key_name_to_code[char] = ord(char)+offset
-            key_code_to_name[ord(char)+offset] = char
+        key_name_to_vk[n] = code
+        if n in _better_names:
+            n = _better_names[n]
+            key_name_to_vk[n] = code
+        key_code_to_name[code] = n
 
-_fillmap()
 
-def get_scan_code(chardesc):
-    return key_name_to_code.get(chardesc.lower())
+_fillvkmap()
+
+def get_vk(chardesc):
+    if len(chardesc)==1:
+        # it is a character.
+        info = win32api.VkKeyScan(chardesc)
+        if info==-1:
+            return None, None
+        vk = win32api.LOBYTE(info)
+        state = win32api.HIBYTE(info)
+        modifiers = 0
+        if state & 0x1:
+            modifiers |= win32con.SHIFT_PRESSED
+        if state & 0x2:
+            modifiers |= win32con.LEFT_CTRL_PRESSED | win32con.RIGHT_CTRL_PRESSED
+        if state & 0x4:
+            modifiers |= win32con.LEFT_ALT_PRESSED | win32con.RIGHT_ALT_PRESSED
+        return vk, modifiers
+    # must be a 'key name'
+    return key_name_to_vk.get(chardesc.lower()), 0
 
 modifiers = {
     "alt" : win32con.LEFT_ALT_PRESSED | win32con.RIGHT_ALT_PRESSED, 
@@ -70,21 +68,23 @@ def parse_key_name(name):
     name = name + "-" # Add a sentinal
     start = pos = 0
     max = len(name)
-    flags = 0
-    scancode = None
+    toks = []
     while pos<max:
         if name[pos] in "+-":
-            tok = name[start:pos].lower()
-            mod = modifiers.get(tok)
-            if mod is None:
-                # Its a key name
-                scancode = get_scan_code(tok)
-            else:
-                flags = flags | mod
-            pos = pos + 1 # skip the sep
+            tok = name[start:pos]
+            toks.append(tok)
+            pos += 1 # skip the sep
             start = pos
-        pos = pos + 1
-    return scancode, flags
+        pos += 1
+    flags = 0
+    # do the modifiers
+    for tok in toks[:-1]:
+        mod = modifiers.get(tok.lower())
+        if mod is not None:
+            flags |= mod
+    # the key name
+    vk, this_flags = get_vk(toks[-1])
+    return vk, flags | this_flags
 
 _checks = [
     [ # Shift
@@ -102,7 +102,7 @@ _checks = [
     ],
 ]
 
-def make_key_name(scancode, flags):
+def make_key_name(vk, flags):
     # Check alt keys.
     flags_done = 0
     parts = []
@@ -115,16 +115,22 @@ def make_key_name(scancode, flags):
     if flags_done & flags:
         parts.append(hex( flags & ~flags_done ) )
     # Now the key name.
-    try:
-        parts.append(key_code_to_name[scancode])
-    except KeyError:
-        parts.append( "<Unknown scan code %s>" % scancode )
+    if vk is None:
+        parts.append("<Unknown scan code>")
+    else:
+        try:
+            parts.append(key_code_to_name[vk])
+        except KeyError:
+            # Not in our virtual key map - ask Windows what character this
+            # key corresponds to.
+            scancode = win32api.MapVirtualKey(vk, MAPVK_VK_TO_CHAR)
+            parts.append(unichr(scancode))
     sep = "+"
     if sep in parts: sep = "-"
     return sep.join([p.capitalize() for p in parts])
 
 def _psc(char):
-    sc = get_scan_code(char)
+    sc, mods = get_vk(char)
     print "Char %s -> %d -> %s" % (repr(char), sc, key_code_to_name.get(sc))
 
 def test1():
@@ -134,8 +140,8 @@ def test1():
         _psc(code)
 
 def _pkn(n):
-    scancode, flags = parse_key_name(n)
-    print "%s -> %s,%s -> %s" % (n, scancode, flags, make_key_name(scancode, flags))
+    vk, flags = parse_key_name(n)
+    print "%s -> %s,%s -> %s" % (n, vk, flags, make_key_name(vk, flags))
 
 def test2():
     _pkn("ctrl+alt-shift+x")
@@ -151,10 +157,14 @@ def test2():
     _pkn("Alt+/")
     _pkn("Alt+BadKeyName")
     _pkn("A")
+    _pkn("a")
     _pkn("(")
     _pkn("Ctrl+(")
+    _pkn("Ctrl+Shift-8")
+    _pkn("Ctrl+*")
     _pkn("{")
     _pkn("!")
+    _pkn(".")
 
 if __name__=='__main__':
     test2()

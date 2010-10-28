@@ -20,6 +20,8 @@ import pywin
 import glob
 import imp
 
+import win32api
+
 debugging = 0
 if debugging:
     import win32traceutil # Some trace statements fire before the interactive window is open.
@@ -28,7 +30,7 @@ if debugging:
 else:
     trace = lambda *args: None
 
-compiled_config_version = 2
+compiled_config_version = 3
 
 def split_line(line, lineno):
     comment_pos = line.find("#")
@@ -88,10 +90,12 @@ class ConfigManager:
                     ver = marshal.load(cf)
                     ok = compiled_config_version == ver
                     if ok:
+                        kblayoutname = marshal.load(cf)
                         magic = marshal.load(cf)
                         size = marshal.load(cf)
                         mtime = marshal.load(cf)
                         if magic == imp.get_magic() and \
+                           win32api.GetKeyboardLayoutName() == kblayoutname and \
                            src_stat[stat.ST_MTIME] == mtime and \
                            src_stat[stat.ST_SIZE] == size:
                             self.cache = marshal.load(cf)
@@ -134,6 +138,7 @@ class ConfigManager:
             try:
                 cf = open(compiled_name, "wb")
                 marshal.dump(compiled_config_version, cf)
+                marshal.dump(win32api.GetKeyboardLayoutName(), cf)
                 marshal.dump(imp.get_magic(), cf)
                 marshal.dump(src_stat[stat.ST_SIZE], cf)
                 marshal.dump(src_stat[stat.ST_MTIME], cf)

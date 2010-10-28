@@ -48,6 +48,9 @@ Since build 214:
 * Pythonwin: PYTHONSTARTUP is honoured, just like when using python.exe
   (kxroberto)
 
+* Pythonwin: Better support for international keyboards.  (Bug 896502 and
+  help from kxroberto)
+
 * New win32api functions GetKeyboardLayoutName, MapVirtualKey and ToAsciiEx
 
 * Add win32file.WSAEnumNetworkEvents (Ziga Seilnacht via patch 3022832)
