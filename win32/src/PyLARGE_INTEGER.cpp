@@ -21,6 +21,7 @@
 
 BOOL PyWinObject_AsLARGE_INTEGER(PyObject *ob, LARGE_INTEGER *pResult)
 {
+#if (PY_VERSION_HEX < 0x03000000)
 	if (PyInt_Check(ob)) {
 		// 32 bit integer value.
 		int x = PyInt_AS_LONG(ob);
@@ -28,7 +29,9 @@ BOOL PyWinObject_AsLARGE_INTEGER(PyObject *ob, LARGE_INTEGER *pResult)
 			return FALSE;
 		LISet32(*pResult, x);
 		return TRUE;
-	} else if (PyLong_Check(ob)) {
+	} else 
+#endif
+	if (PyLong_Check(ob)) {
 		pResult->QuadPart=PyLong_AsLongLong(ob);
 		return !(pResult->QuadPart == -1 && PyErr_Occurred());
 	} else {

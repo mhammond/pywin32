@@ -108,6 +108,12 @@ class StreamTest(win32com.test.util.TestCase):
         p2.Save(s2, 0)
         self.assertEqual(s.data, mydata)
 
+    def testseek(self):
+        s = Stream(str2bytes('yo'))
+        s = win32com.server.util.wrap(s, pythoncom.IID_IStream)
+        # we used to die in py3k passing a value > 32bits
+        s.Seek(0x100000000, pythoncom.STREAM_SEEK_SET)
+
     def testerrors(self):
         # setup a test logger to capture tracebacks etc.
         records, old_log = win32com.test.util.setup_test_logger()
