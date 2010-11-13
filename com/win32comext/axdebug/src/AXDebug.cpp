@@ -155,24 +155,25 @@ PyObject *PyAXDebug_PyObject_FromSOURCE_TEXT_ATTR( const SOURCE_TEXT_ATTR *pstaT
 static PyObject *GetStackAddress(PyObject *, PyObject *)
 {
 	int i;
-	return PyInt_FromLong((long)&i);
+	return PyWinLong_FromVoidPtr(&i);
 }
 
 static PyObject *GetThreadStateHandle(PyObject *self, PyObject *args)
 {
-	assert(sizeof(void *) <= sizeof(long)); // can we hack ptrs into longs?
 	// We _must_ have the thread-lock to be called!
 	PyThreadState *myState = PyThreadState_Swap(NULL);
 	PyThreadState_Swap(myState);
-	return PyInt_FromLong( (long)myState);
+	return PyWinLong_FromVoidPtr(myState);
 }
 static PyObject *SetThreadStateTrace(PyObject *self, PyObject *args)
 {
-	long handle;
+	PyObject *obhandle;
 	PyObject *func;
-	if (!PyArg_ParseTuple(args, "lO", &handle, &func))
+	if (!PyArg_ParseTuple(args, "OO", &obhandle, &func))
 		return NULL;
-	PyThreadState *state = (PyThreadState *)handle;
+	PyThreadState *state;
+	if (!PyWinLong_AsVoidPtr(obhandle, (void **)&state))
+		return NULL;
 #if (PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION >= 2) || PY_MAJOR_VERSION > 2
 #pragma message("XXXXXXXXX - upgrade this for new tracing features.")
 /***
