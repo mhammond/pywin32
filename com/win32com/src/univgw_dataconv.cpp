@@ -83,9 +83,8 @@ PyObject * dataconv_interface(PyObject *self, PyObject *args)
 }
 
 
-static inline void SizeOfVT(VARTYPE vt, int *pitem_size, int *pstack_size)
+static inline bool SizeOfVT(VARTYPE vt, int *pitem_size, int *pstack_size)
 {
-	int stack_size = -1;
 	int item_size;
 	if (vt & VT_BYREF)
 	{
@@ -151,14 +150,24 @@ static inline void SizeOfVT(VARTYPE vt, int *pitem_size, int *pstack_size)
 			break;
 		default:
 			assert(FALSE);
-			item_size = 0;
+			PyErr_SetString(PyExc_NotImplementedError, "unknown variant type");
+			return FALSE;
 		}
 	}
-	if (stack_size == -1) stack_size = item_size;
-	if (item_size < 4 && item_size > 0)
-		stack_size = 4; // everything widened on x86
+#ifdef _M_IX86
+	int stack_size = (item_size < 4) ? 4 : item_size;
+#elif _M_X64
+	// params > 64bits passed by address, and only VT_VARIANT is > 64bits.
+	assert ((item_size <= 8) || ((vt & VT_TYPEMASK) == VT_VARIANT));
+	if (item_size > 8) item_size = 8;
+	// stack always 64 bits.
+	int stack_size = 8;
+#else
+#error Unknown platform
+#endif
 	if (pitem_size) *pitem_size = item_size;
 	if (pstack_size) *pstack_size = stack_size;
+	return TRUE;
 }	
 
 PyObject *dataconv_SizeOfVT(PyObject *self, PyObject *args)
@@ -169,7 +178,8 @@ PyObject *dataconv_SizeOfVT(PyObject *self, PyObject *args)
 
 	int item_size = 0;
 	int stack_size = 0;
-	SizeOfVT((VARTYPE)vt, &item_size, &stack_size);
+	if (!SizeOfVT((VARTYPE)vt, &item_size, &stack_size))
+		return NULL;
 	if (item_size <= 0) {
 		PyErr_Format(PyExc_ValueError, "The value %d (0x%x) is an invalid variant type", vt, vt);
 		return NULL;
@@ -660,8 +670,15 @@ PyObject * dataconv_ReadFromInTuple(PyObject *self, PyObject *args)
 		// Position pb to point to the current argument.
 		pb = pbArg + PyInt_AS_LONG(PyTuple_GET_ITEM(PyTuple_GET_ITEM(obArgTypes, i), 1));
 		vtArgType = (VARTYPE)PyInt_AS_LONG(obArgType);
+#ifdef _M_IX86
 		bIsByRef = vtArgType & VT_BYREF;
-		
+#elif _M_X64
+		// params > 64bits always passed by address - and the only
+		// arg we support > 64 bits is a VARIANT structure.
+		bIsByRef = (vtArgType==VT_VARIANT) || (vtArgType & VT_BYREF);
+#else
+#error Unknown platform
+#endif
 		VARTYPE vtConversionType = vtArgType & VT_TYPEMASK;
 		if (vtArgType & VT_ARRAY) {
 			SAFEARRAY FAR *psa = *((SAFEARRAY **)pb);
@@ -713,7 +730,8 @@ PyObject * dataconv_ReadFromInTuple(PyObject *self, PyObject *args)
 				}
 				V_VT(&var) = vtArgType;
 				// Copy the data into the variant...
-				SizeOfVT(V_VT(&var), (int *)&cb, NULL);
+				if (!SizeOfVT(V_VT(&var), (int *)&cb, NULL))
+					goto Error;
 				memcpy(&V_I4(&var), pb, cb);
 				// Convert it into a PyObject:
 				obArg = PyCom_PyObjectFromVariant(&var);
