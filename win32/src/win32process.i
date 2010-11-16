@@ -1604,6 +1604,14 @@ PyObject *PyIsWow64Process(PyObject *self, PyObject *args)
 		}
 #endif	// MS_WINCE
 
+// *sob* - these symbols don't exist in the platform sdk needed to build
+// using Python 2.3
+#ifndef THREAD_MODE_BACKGROUND_BEGIN
+#define THREAD_MODE_BACKGROUND_BEGIN 0x00010000
+#endif
+#ifndef THREAD_MODE_BACKGROUND_END
+#define THREAD_MODE_BACKGROUND_END 0x00020000
+#endif
 %}
 
 #define CREATE_SUSPENDED CREATE_SUSPENDED 
