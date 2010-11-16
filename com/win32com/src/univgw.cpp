@@ -352,9 +352,11 @@ static STDMETHODIMP univgw_Invoke( gw_object *_this, DISPID dispIdMember, REFIID
 /* End of IDispatch delegation */
 
 /* free the gw_vtbl object. also works on a partially constructed gw_vtbl. */
-static void __cdecl free_vtbl(void * cobject)
+static void free_vtbl(gw_vtbl * vtbl)
 {
-	gw_vtbl * vtbl = (gw_vtbl *)cobject;
+	assert(vtbl);
+	if (!vtbl)
+		return;
 	assert(vtbl->magic == GW_VTBL_MAGIC);
 	Py_XDECREF(vtbl->dispatcher);
 
@@ -364,6 +366,51 @@ static void __cdecl free_vtbl(void * cobject)
 			VirtualFree((void *)vtbl->methods[i], 0, MEM_RELEASE);
 	VirtualFree(vtbl, 0, MEM_RELEASE);
 }
+
+#if PY_VERSION_HEX > 0x03010000
+// Use the new capsule API
+const char *capsule_name = "win32com universal gateway";
+
+static void __cdecl do_free_vtbl(PyObject *ob) {
+	free_vtbl((gw_vtbl *)PyCapsule_GetPointer(ob, capsule_name));
+}
+
+static PyObject *PyVTable_Create(void *vtbl)
+{
+	return PyCapsule_New(vtbl, capsule_name, do_free_vtbl);
+}
+static gw_vtbl *PyVTable_Get(PyObject *ob)
+{
+	return (gw_vtbl *)PyCapsule_GetPointer(ob, capsule_name);
+}
+
+static bool PyVTable_Check(PyObject *ob)
+{
+	return PyCapsule_IsValid(ob, capsule_name) != 0;
+}
+#else
+// Use the old CObject API.
+static void __cdecl do_free_vtbl(void * cobject)
+{
+	gw_vtbl * vtbl = (gw_vtbl *)cobject;
+	free_vtbl(vtbl);
+}
+
+static PyObject *PyVTable_Create(void *vtbl)
+{
+	return PyCObject_FromVoidPtr(vtbl, do_free_vtbl);
+}
+
+static gw_vtbl *PyVTable_Get(PyObject *ob)
+{
+	return (gw_vtbl *)PyCObject_AsVoidPtr(ob);
+}
+
+static bool PyVTable_Check(PyObject *ob)
+{
+	return PyCObject_Check(ob) != 0;
+}
+#endif
 
 static PyObject * univgw_CreateVTable(PyObject *self, PyObject *args)
 {
@@ -492,7 +539,7 @@ static PyObject * univgw_CreateVTable(PyObject *self, PyObject *args)
 	}
 
 	PyObject *result;
-	result = PyCObject_FromVoidPtr(vtbl, free_vtbl);
+	result = PyVTable_Create(vtbl);
 	if ( result == NULL )
 	{
 		free_vtbl(vtbl);
@@ -515,7 +562,9 @@ static IUnknown *CreateTearOff
 	PyObject *obVTable
 )
 {
-	gw_vtbl * vtbl = (gw_vtbl *)PyCObject_AsVoidPtr(obVTable);
+	gw_vtbl * vtbl = PyVTable_Get(obVTable);
+	if (!vtbl)
+		return NULL;
 
 	if ( vtbl->magic != GW_VTBL_MAGIC )
 	{
@@ -555,7 +604,7 @@ static PyObject * univgw_CreateTearOff(PyObject *self, PyObject *args)
 			return NULL;
 
 	// obVTable must be a CObject containing our vtbl ptr
-	if ( !PyCObject_Check(obVTable) )
+	if ( !PyVTable_Check(obVTable) )
 	{
 		PyErr_SetString(PyExc_ValueError, "argument is not a CObject/vtable");
 		return NULL;
@@ -614,7 +663,7 @@ static HRESULT CreateRegisteredTearOff(PyObject *pPyInstance, PyGatewayBase *bas
 	}
 
 	// obVTable must be a CObject containing our vtbl ptr
-	if ( !PyCObject_Check(obVTable) )
+	if ( !PyVTable_Check(obVTable) )
 	{
 		assert(FALSE);
 		return E_NOINTERFACE;
@@ -658,7 +707,7 @@ static PyObject * univgw_RegisterVTable(PyObject *self, PyObject *args)
 		return NULL;
 
 	// obVTable must be a CObject containing our vtbl ptr
-	if ( !PyCObject_Check(obVTable) )
+	if ( !PyVTable_Check(obVTable) )
 	{
 		PyErr_SetString(PyExc_ValueError, "argument is not a CObject/vtable");
 		return NULL;
