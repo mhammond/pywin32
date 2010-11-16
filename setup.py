@@ -13,21 +13,23 @@ These extensions require a number of libraries to build, some of which may
 require you to install special SDKs or toolkits.  This script will attempt
 to build as many as it can, and at the end of the build will report any 
 extension modules that could not be built and why.
-Currently, the Vista SDK and DirectX SDK are required to successfully build
-all extension modules - note that using the Vista SDK doesn't force you to
-use Vista as your build environment.  Please use google to find the SDK -
-links to microsoft.com seem to only stay current for a short time.  Also note
-that the SDK that comes with VS2008 is not good enough to compile earlier
-versions.  If you installed VS2008 after the Vista SDK, try doing a 'repair'
-on your SDK install.
 
-Early versions of certain Windows headers/SDK versions will also cause
-certain modules to be skipped. If you don't use the extensions that fail to
-build, you can ignore these warnings; if you do use them, you must install
-the correct libraries.
+This has got complicated due to the various different versions of
+Visual Studio used - some VS versions are not compatible with some SDK
+versions.  Below are the Windows SDK versions required (and the URL - although
+these are subject to being changed by MS at any time:)
 
-The 'exchange' extensions require headers that are no longer in any current
-SDKs, so these fail to build, but the 'mapi' extension should still build.
+Python 2.3->2.5:
+  Microsoft Windows Software Development Kit Update for Windows Vista (version 6.0)
+  http://www.microsoft.com/downloads/en/details.aspx?FamilyID=4377f86d-c913-4b5c-b87e-ef72e5b4e065
+Python 2.6+:
+  Microsoft Windows SDK for Windows 7 and .NET Framework 4 (version 7.1)
+  http://www.microsoft.com/downloads/en/details.aspx?FamilyID=6b6c21d2-2006-4afa-9702-529fa782d63b
+
+If you multiple SDK versions on a single machine, set the MSSDK environment
+variable to point at the one you want to use.  Note that using the SDK for
+a particular platform (eg, Windows 7) doesn't force you to use that OS as your
+build environment.  If the links above don't work, use google to find them.
 
 Building:
 ---------
@@ -2039,7 +2041,7 @@ ext_modules = win32_extensions + com_extensions + pythonwin_extensions + \
 
 if is_py3k:
     py3k_skip_modules = \
-        """adsi mapi""".split()
+        """adsi mapi exchange exchdapi""".split()
     ext_modules = [e for e in ext_modules if e.name not in py3k_skip_modules]
 
 # Build a map of DLL base addresses.  According to Python's PC\dllbase_nt.txt,
