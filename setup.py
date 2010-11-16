@@ -22,6 +22,10 @@ these are subject to being changed by MS at any time:)
 Python 2.3->2.5:
   Microsoft Windows Software Development Kit Update for Windows Vista (version 6.0)
   http://www.microsoft.com/downloads/en/details.aspx?FamilyID=4377f86d-c913-4b5c-b87e-ef72e5b4e065
+  ** If you want to build Python 2.3, be sure to install the SDK compilers
+     too - although we don't use them, this setup option installs some .lib
+     files we do need.
+  **
 Python 2.6+:
   Microsoft Windows SDK for Windows 7 and .NET Framework 4 (version 7.1)
   http://www.microsoft.com/downloads/en/details.aspx?FamilyID=6b6c21d2-2006-4afa-9702-529fa782d63b
