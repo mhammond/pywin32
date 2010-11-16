@@ -18,14 +18,14 @@ public:
 
 	/* Python support */
 	PyObject *richcompare(PyObject *other, int op);
-	long hash(void);
+	Py_hash_t hash(void);
 	PyObject *str(void);
 	PyObject *repr(void);
 
 	static void deallocFunc(PyObject *ob);
 	static int printFunc(PyObject *ob, FILE *fp, int flags);
 	static PyObject *richcompareFunc(PyObject *self, PyObject *other, int op);
-	static long hashFunc(PyObject *ob);
+	static Py_hash_t hashFunc(PyObject *ob);
 	static PyObject * strFunc(PyObject *ob);
 	static PyObject * reprFunc(PyObject *ob);
 };
@@ -55,7 +55,7 @@ public:
 	PyObject *PyTime::richcompare(PyObject *other, int op);
 
 	int print(FILE *fp, int flags);
-	long hash(void);
+	Py_hash_t hash(void);
 	//PyObject *str(void);
 	long asLong(void);
 
@@ -67,7 +67,7 @@ public:
 	static PyObject *getattro(PyObject *self, PyObject *obname);
 	static int compareFunc(PyObject *ob1, PyObject *ob2);
 	static PyObject *richcompareFunc(PyObject *self, PyObject *other, int op);
-	static long hashFunc(PyObject *ob);
+	static Py_hash_t hashFunc(PyObject *ob);
 	//static PyObject * strFunc(PyObject *ob);
 	static int nonzeroFunc(PyObject *ob);
 	static PyObject * intFunc(PyObject *ob);
@@ -107,7 +107,7 @@ public:
 
 	static PyObject *getattro(PyObject *self, PyObject *obname);
 	static int setattro(PyObject *self, PyObject *obname, PyObject *v);
-	static long hashFunc(PyObject *self);
+	static Py_hash_t hashFunc(PyObject *self);
 	static struct PYWINTYPES_EXPORT PyMemberDef members[];
 
 	static PyObject *get_hEvent(PyObject *self, void *unused);
@@ -138,13 +138,13 @@ public:
 
 	int print(FILE *fp, int flags);
 	PyObject *asStr(void);
-	long hash(void);
+	Py_hash_t hash(void);
 
 	static void deallocFunc(PyObject *ob);
 	static int printFunc(PyObject *ob, FILE *fp, int flags);
 	static PyObject *richcompareFunc(PyObject *ob, PyObject *other, int op);
 	static int nonzeroFunc(PyObject *ob);
-	static long hashFunc(PyObject *ob);
+	static Py_hash_t hashFunc(PyObject *ob);
 
 	static PyObject * strFunc(PyObject *ob);
 	static PyObject * intFunc(PyObject *ob);

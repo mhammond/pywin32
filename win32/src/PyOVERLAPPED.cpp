@@ -235,7 +235,7 @@ int PyOVERLAPPED::setattro(PyObject *self, PyObject *obname, PyObject *v)
 	return PyObject_GenericSetAttr(self, obname, v);
 }
 
-/*static*/ long PyOVERLAPPED::hashFunc(PyObject *ob)
+/*static*/ Py_hash_t PyOVERLAPPED::hashFunc(PyObject *ob)
 {
 	// Just use the address.
 	return _Py_HashPointer(ob);

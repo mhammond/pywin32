@@ -165,6 +165,14 @@ typedef int Py_ssize_t;
 #define PY_SSIZE_T_MIN INT_MIN
 #endif
 
+// Py_hash_t was introduced as the size of a pointer in python 3.2 - it
+// was a simple long before that.
+#if PY_VERSION_HEX < 0x03020000
+typedef long Py_hash_t;
+#else
+typedef Py_ssize_t Py_hash_t;
+#endif
+
 #if PY_VERSION_HEX < 0x02030000
 #define PyLong_AsUnsignedLongMask PyLong_AsUnsignedLong
 #endif

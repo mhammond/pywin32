@@ -322,13 +322,13 @@ PyObject *PyHANDLE::richcompareFunc(PyObject *ob, PyObject *other, int op)
 }
 
 // @pymethod int|PyHANDLE|__hash__|Used when the hash value of a HANDLE object is required
-long PyHANDLE::hashFunc(PyObject *ob)
+Py_hash_t PyHANDLE::hashFunc(PyObject *ob)
 {
 	return ((PyHANDLE *)ob)->hash();
 }
 
 
-long PyHANDLE::hash(void)
+Py_hash_t PyHANDLE::hash(void)
 {
 	// Just use the address.
 	return _Py_HashPointer(this);

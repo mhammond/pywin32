@@ -249,7 +249,7 @@ PyObject *PyIID::richcompare(PyObject *other, int op)
 	return ret;
 }
 
-long PyIID::hash(void)
+Py_hash_t PyIID::hash(void)
 {
 	DWORD n[4];
 
@@ -286,7 +286,7 @@ PyObject *PyIID::richcompareFunc(PyObject *self, PyObject *other, int op)
 }
 
 // @pymethod int|PyIID|__hash__|Used when the hash value of an IID object is required
-long PyIID::hashFunc(PyObject *ob)
+Py_hash_t PyIID::hashFunc(PyObject *ob)
 {
 	return ((PyIID *)ob)->hash();
 }

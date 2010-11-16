@@ -469,10 +469,10 @@ PyObject *PyTime::richcompare(PyObject *other, int op)
 	return ret;
 }
 
-long PyTime::hash(void)
+Py_hash_t PyTime::hash(void)
 {
 	/* arbitrarily use seconds as the hash value */
-	return (long)(m_time * SECS_PER_DAY);
+	return (Py_hash_t)(m_time * SECS_PER_DAY);
 }
 
 long PyTime::asLong(void)
@@ -636,7 +636,7 @@ PyObject *PyTime::richcompareFunc(PyObject *self, PyObject *other, int op)
 }
 
 // @pymethod int|PyTime|__hash__|Used when the hash value of an time object is required
-long PyTime::hashFunc(PyObject *ob)
+Py_hash_t PyTime::hashFunc(PyObject *ob)
 {
 	return ((PyTime *)ob)->hash();
 }
