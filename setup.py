@@ -516,6 +516,14 @@ class WinExt_win32com_mapi(WinExt_win32com):
     # ones with this special requirement
         return "win32comext/mapi"
 
+class WinExt_win32com_axdebug(WinExt_win32com):
+    def __init__ (self, name, **kw):
+        # Later SDK versions again ship with activdbg.h, but if we attempt
+        # to use our own copy of that file with that SDK, we fail to link.
+        if os.path.isfile(os.path.join(sdk_dir, "include", "activdbg.h")):
+            kw.setdefault('extra_compile_args', []).append("/DHAVE_SDK_ACTIVDBG")
+        WinExt_win32com.__init__(self, name, **kw)
+
 # A hacky extension class for pywintypesXX.dll and pythoncomXX.dll
 class WinExt_system32(WinExt):
     def get_pywin32_dir(self):
@@ -1654,7 +1662,7 @@ com_extensions += [
     ),
     # ActiveDebugging is a mess.  See the comments in the docstring of this
     # module for details on getting it built.
-    WinExt_win32com('axdebug',
+    WinExt_win32com_axdebug('axdebug',
             libraries="axscript",
             pch_header="stdafx.h",
             sources=("""

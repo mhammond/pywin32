@@ -20,7 +20,11 @@ typedef VARIANT UserVARIANT;
 typedef BSTR UserBSTR;
 #endif
 
+#ifdef HAVE_SDK_ACTIVDBG
+#include <activdbg.h>
+#else
 #include "activdbg.h"
+#endif
 
 #if defined(__REQUIRED_RPCNDR_H_VERSION__)
 // for some strange reason, these no longer exist in dbgprop.h !?!?
