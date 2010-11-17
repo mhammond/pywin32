@@ -422,7 +422,7 @@ PyObject *PyINameSpaceTreeControl::GetNextItem(PyObject *self, PyObject *args)
 	// @pyparm int|nstcgi||Description for nstcgi
 	PyObject *obpsi;
 	IShellItem * psi;
-	DWORD nstcgi;
+	long nstcgi;
 	IShellItem * ppsiNext;
 	if ( !PyArg_ParseTuple(args, "Ol:GetNextItem", &obpsi, &nstcgi) )
 		return NULL;
@@ -430,7 +430,7 @@ PyObject *PyINameSpaceTreeControl::GetNextItem(PyObject *self, PyObject *args)
 		return NULL;
 	HRESULT hr;
 	PY_INTERFACE_PRECALL;
-	hr = pINSTC->GetNextItem( psi, nstcgi, &ppsiNext );
+	hr = pINSTC->GetNextItem( psi, (NSTCGNI)nstcgi, &ppsiNext );
 	if (psi) psi->Release();
 	PY_INTERFACE_POSTCALL;
 	if ( FAILED(hr) )
