@@ -964,7 +964,7 @@ error:
 
 BOOL PyObject_AsEXPLORER_BROWSER_OPTIONS(PyObject *ob, EXPLORER_BROWSER_OPTIONS *ret)
 {
-	*ret = PyLong_AsUnsignedLongMask(ob);
+	*ret = (EXPLORER_BROWSER_OPTIONS)PyLong_AsUnsignedLongMask(ob);
 	return *ret != -1 || !PyErr_Occurred();
 }
 
@@ -975,7 +975,7 @@ PyObject *PyObject_FromEXPLORER_BROWSER_OPTIONS(EXPLORER_BROWSER_OPTIONS val)
 
 BOOL PyObject_AsEXPLORER_BROWSER_FILL_FLAGS(PyObject *ob, EXPLORER_BROWSER_FILL_FLAGS *ret)
 {
-	*ret = PyLong_AsUnsignedLongMask(ob);
+	*ret = (EXPLORER_BROWSER_FILL_FLAGS)PyLong_AsUnsignedLongMask(ob);
 	return *ret != -1 || !PyErr_Occurred();
 }
 PyObject *PyObject_FromEXPLORER_BROWSER_FILL_FLAGS(EXPLORER_BROWSER_FILL_FLAGS val)
