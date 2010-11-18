@@ -62,7 +62,7 @@ def addlen(s):
 def String(key, value):
   key = nullterm(key)
   value = nullterm(value)
-  result = struct.pack('hh', len(value)/2, 1)	# wValueLength, wType
+  result = struct.pack('hh', len(value)//2, 1)	# wValueLength, wType
   result = result + key
   result = pad32(result) + value
   return addlen(result)
