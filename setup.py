@@ -740,6 +740,10 @@ class my_build_ext(build_ext):
 
     def _why_cant_build_extension(self, ext):
         # Return None, or a reason it can't be built.
+        # This kinda sucks, but I'm giving up on exchange support in 64bit
+        # builds.
+        if self.plat_name == 'win-amd64' and ext.name in ['exchange', 'exchdapi']:
+            return "Can't get exchange support working in 64bit builds"
         include_dirs = self.compiler.include_dirs + \
                        os.environ.get("INCLUDE", "").split(os.pathsep)
         if self.windows_h_version is None:
@@ -1739,7 +1743,7 @@ com_extensions += [
     WinExt_win32com_mapi('exchange', libraries="version user32 advapi32",
                          sources=("""
                                   %(mapi)s/exchange.i         %(mapi)s/exchange.cpp
-				  %(mapi)s/PyIExchangeManageStore.i	%(mapi)s/PyIExchangeManageStore.cpp
+                                  %(mapi)s/PyIExchangeManageStore.i %(mapi)s/PyIExchangeManageStore.cpp
                                   """ % dirs).split()),
     WinExt_win32com_mapi('exchdapi', libraries="advapi32",
                          sources=("""
