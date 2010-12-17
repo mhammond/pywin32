@@ -125,7 +125,12 @@ class CScintillaDocument(ParentScintillaDocument):
 		try:
 			dec = text.decode(source_encoding)
 		except UnicodeError:
-			print "WARNING: Failed to decode bytes from %r encoding - treating as latin1" % source_encoding
+			print "WARNING: Failed to decode bytes from '%s' encoding - treating as latin1" % source_encoding
+			print "WARNING: Do not modify this file - you will not be able to save it."
+			dec = text.decode('latin1')
+		except LookupError:
+			print "WARNING: Invalid encoding '%s' specified - treating as latin1" % source_encoding
+			print "WARNING: Do not modify this file - you will not be able to save it."
 			dec = text.decode('latin1')
 		# and put it back as utf8 - this shouldn't fail.
 		text = dec.encode(default_scintilla_encoding)
