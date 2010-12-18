@@ -71,6 +71,9 @@ Since build 214:
 * Pythonwin now offers to create the file when attempting to open a file
   that doesn't exist (ghazel via bug 1409321)
 
+* Many functions in win32event would swallow exceptions due to things like
+  invalid handles etc (Ziga Seilnacht via issue 3136751)
+
 Since build 213:
 ----------------
 

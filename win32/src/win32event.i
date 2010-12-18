@@ -34,13 +34,6 @@
 
 // We can get better perf from some of these functions that don't block
 // by not releasing the Python lock as part of the call.
-%typedef BOOL BOOLAPI_NL
-
-%typemap(python,out) BOOLAPI_NL {
-	$target = Py_None;
-	Py_INCREF(Py_None);
-}
-
 %typemap(python,except) BOOLAPI {
       $function
       if (!$source)  {
@@ -283,7 +276,7 @@ BOOLAPI PulseEvent(
    );	
 
 // @pyswig |ReleaseMutex|Releases a mutex.
-BOOLAPI_NL ReleaseMutex(
+BOOLAPI ReleaseMutex(
     PyHANDLE hMutex 	// @pyparm <o PyHANDLE>|hEvent||handle of mutex object  
    );
 
@@ -298,18 +291,18 @@ BOOLAPI ReleaseSemaphore(
 #endif // MS_WINCE
 
 // @pyswig |ResetEvent|Resets an event
-BOOLAPI_NL ResetEvent(
+BOOLAPI ResetEvent(
     PyHANDLE hEvent 	// @pyparm <o PyHANDLE>|hEvent||handle of event object 
    );	
 
 // @pyswig |SetEvent|Sets an event
-BOOLAPI_NL SetEvent(
+BOOLAPI SetEvent(
     PyHANDLE hEvent 	// @pyparm <o PyHANDLE>|hEvent||handle of event object 
    );	
  
 #ifndef MS_WINCE
 // @pyswig |SetWaitableTimer|Sets a waitable timer.
-BOOLAPI_NL SetWaitableTimer(
+BOOLAPI SetWaitableTimer(
   PyHANDLE hTimer,                          // @pyparm int|handle||handle to timer
   LARGE_INTEGER *INPUT,          // @pyparm long|dueTime||timer due time
   long lPeriod,                           // @pyparm int|period||timer interval
