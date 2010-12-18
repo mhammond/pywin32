@@ -255,13 +255,21 @@ BOOL PyWinObject_AsBstr(PyObject *stringObject, BSTR *pResult, BOOL bNoneOK /*= 
 		int nchars = PyUnicode_GET_SIZE(stringObject);
 		*pResult = SysAllocStringLen(NULL, nchars);
 		if (*pResult) {
-			PyUnicode_AsWideChar((PyUnicodeObject *)stringObject, *pResult, nchars);
-			// The SysAllocStringLen docs indicate that nchars+1 bytes are allocated,
-			// and that normally a \0 is appened by the function.  It also states 
-			// the \0 is not necessary!  While it seems to work fine without it,
-			// we do copy it, as the previous code, which used SysAllocStringLen
-			// with a non-NULL arg is documented clearly as appending the \0.
-			(*pResult)[nchars] = 0;
+#if (PY_VERSION_HEX < 0x03020000)
+#define PUAWC_TYPE PyUnicodeObject *
+#else
+#define PUAWC_TYPE PyObject *
+#endif
+			if (PyUnicode_AsWideChar((PUAWC_TYPE)stringObject, *pResult, nchars)==-1) {
+				rc = FALSE;
+			} else {
+				// The SysAllocStringLen docs indicate that nchars+1 bytes are allocated,
+				// and that normally a \0 is appened by the function.  It also states 
+				// the \0 is not necessary!  While it seems to work fine without it,
+				// we do copy it, as the previous code, which used SysAllocStringLen
+				// with a non-NULL arg is documented clearly as appending the \0.
+				(*pResult)[nchars] = 0;
+			}
 		}
 	}
 	else if (stringObject == Py_None) {
