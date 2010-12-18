@@ -207,7 +207,7 @@ class TheDocument(docview.RichEditDoc):
             params = params + [0]*(6-len(params))
         self.dirpattern = params[0]
         self.filpattern = params[1]
-        self.greppattern = params[2] or '-#1000'
+        self.greppattern = params[2] or '-#1000 --only'
         self.casesensitive = int(params[3])
         self.recurse = int(params[4])
         self.verbose = int(params[5])
