@@ -67,6 +67,7 @@ include com/win32comext/axcontrol/src/*.h
 include com/win32comext/bits/src/*.h
 include com/win32comext/bits/test/*.py
 include com/win32comext/internet/src/*.h
+include com/win32comext/mapi/src/mapilib.i
 include com/win32comext/mapi/src/*.h
 include com/win32comext/mapi/demos/*.py
 include com/win32comext/propsys/test/*.py
