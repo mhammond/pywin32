@@ -73,6 +73,7 @@ To build 64bit versions of this:
 import os, string, sys
 import types, glob
 import re
+from tempfile import gettempdir
 
 is_py3k = sys.version_info > (3,) # get this out of the way early on...
 # We have special handling for _winreg so our setup3.py script can avoid
@@ -609,7 +610,7 @@ class my_build(build):
     def run(self):
         build.run(self)
         # write a pywin32.version.txt.
-        ver_fname = os.path.join(os.environ['temp'], "pywin32.version.txt")
+        ver_fname = os.path.join(gettempdir(), "pywin32.version.txt")
         try:
             f = open(ver_fname, "w")
             f.write("%s\n" % build_id)
@@ -2114,7 +2115,7 @@ dist = setup(name="pywin32",
       packages = packages,
       py_modules = py_modules,
 
-      data_files=[('', (os.path.join(os.environ['temp'],'pywin32.version.txt'),))] + 
+      data_files=[('', (os.path.join(gettempdir(),'pywin32.version.txt'),))] + 
         convert_optional_data_files([
                 'PyWin32.chm',
                 ]) + 
