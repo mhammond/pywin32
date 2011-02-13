@@ -6,6 +6,7 @@
 include MANIFEST.in
 include pywin32.pth
 include setup.py
+include setup3.py
 include pywin32_postinstall.py
 # don't know how to include "Python and Extensions.dsw" - spaces upset things
 # Core win32 stuff
@@ -132,6 +133,7 @@ include adodbapi/tests/*.bat
 
 # Other tools
 include SWIG/swig.exe
+include SWIG/swig_py3k.exe
 include SWIG/readme.txt
 include SWIG/swig_lib/*.i
 include SWIG/swig_lib/*.swg
