@@ -72,7 +72,11 @@ def parse_key_name(name):
     while pos<max:
         if name[pos] in "+-":
             tok = name[start:pos]
-            toks.append(tok)
+            # use the ascii lower() version of tok, so ascii chars require
+            # an explicit shift modifier - ie 'Ctrl+G' should be treated as
+            # 'ctrl+g' - 'ctrl+shift+g' would be needed if desired.
+            # This is mainly to avoid changing all the old keystroke defs
+            toks.append(tok.lower())
             pos += 1 # skip the sep
             start = pos
         pos += 1
@@ -156,7 +160,10 @@ def test2():
     _pkn("alt+return")
     _pkn("Alt+/")
     _pkn("Alt+BadKeyName")
-    _pkn("A")
+    _pkn("A") # an ascii char - should be seen as 'a'
+    _pkn("a")
+    _pkn("Shift-A")
+    _pkn("Shift-a")
     _pkn("a")
     _pkn("(")
     _pkn("Ctrl+(")
