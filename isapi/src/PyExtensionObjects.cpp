@@ -468,7 +468,6 @@ PyObject * PyECB::GetServerVariable(PyObject *self, PyObject *args)
 	char *bufUse = buf;
 
 	if (pecb->m_pcb){
-		Py_BEGIN_ALLOW_THREADS
 		bRes = pecb->m_pcb->GetServerVariable(variable, buf, &bufsize);
 		if (!bRes && GetLastError() == ERROR_INSUFFICIENT_BUFFER) {
 			// Although the IIS docs say it should be good, IIS5
@@ -488,7 +487,6 @@ PyObject * PyECB::GetServerVariable(PyObject *self, PyObject *args)
 					break;
 			}
 		}
-		Py_END_ALLOW_THREADS
 		if (!bufUse)
 			return PyErr_NoMemory();
 		if (!bRes) {
