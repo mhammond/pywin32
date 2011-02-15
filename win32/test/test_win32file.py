@@ -867,7 +867,7 @@ class TestWSAEnumNetworkEvents(unittest.TestCase):
         self.assertEquals(events, {win32file.FD_CONNECT: 0,
                                    win32file.FD_WRITE: 0})
         sent = 0
-        data = "x" * 16 * 1024
+        data = str2bytes("x") * 16 * 1024
         while sent < 16 * 1024 * 1024:
             try:
                 sent += client.send(data)
