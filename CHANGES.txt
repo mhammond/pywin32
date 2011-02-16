@@ -7,6 +7,15 @@ However contributors are encouraged to add their own entries for their work.
 
 Since build 214:
 ----------------
+* Update adodbapi to version 2.4,2 -- in this version,
+  1. The cursor has a new .query attribute.  It returns the (possibly converted) query sent to ADO. [Thanks to William Dode.]
+     This may be useful for testing paramstyle 'format' and 'named' queries.  .query is an extension borrowed from psycopg2.
+  2. Added .command and .parameters attributes, which are copies of the original command and parameters sent the the cursor.
+  3. Added tests using a PostgreSQL server.  Tests are now run for ACCESS, MS SQL, MySQL and PostgreSQL.
+  4. Column name data access is now case insignificant (since PostgreSQL returns lower case column names).
+      so (if a row object 'r' contains a first column 'spam') r[0], r.Spam, r.spam and r['SPAM'] are all equivalent.
+  5. The connection has new attributes .dbms_name and .dbms_version to display the underlying database engine. (like mxODBC)
+
 * Update adodbapi to version 2.4.0 -- in this version,
    "fetchall()" and "fetchmany()" return an SQLrows object 
    ...which emulates a sequence of SQLrow objects.

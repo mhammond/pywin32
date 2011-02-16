@@ -37,10 +37,23 @@ or:
 or:
        adodbapi.adodbapi.variantConversions[adodbapi.adNumeric] = write_your_own_convertion_function
 ............
+Whats new in version 2.4.2
+1. The cursor has a new .query attribute.  It returns the (possibly converted) query sent to ADO. [Thanks to William Dode.]
+   This may be useful for testing paramstyle 'format' and 'named' queries.  .query is an extension borrowed from psycopg2.
+2. Added .command and .parameters attributes, which are copies of the original command and parameters sent the the cursor.
+3. Added tests using a PostgreSQL server.  Tests are now run for ACCESS, MS SQL, MySQL and PostgreSQL.
+4. Column name data access is now case insignificant (since PostgreSQL returns lower case column names).
+     so (if a row object 'r' contains a first column 'spam') r[0], r.Spam, r.spam and r['SPAM'] are all equivalent.
+5. The connection has new attributes .dbms_name and .dbms_version to display the underlying database engine. (like mxODBC)
+
+A note about 2.4.1 and the branch tags.
+  I tried to use ADO.NET calls in IronPython.  The result worked, after a fashion, but was very dissapointing, so will be abandoned.
+  It exists under the "ADO.NET" tag in Mercurial on sourceforge. The main branch is now called "main" and is version 2.4.0.1
+
 Whats new in version 2.4.0
 1. The result of fetchall() and fetchmany() will be an object which emulates a sequence of sequences.
   The result of fetchone() will be an object which emulates a sequence.
-  [This eliminates creating a tuple of return values.] 
+  [This eliminates creating a tuple of return values. To duplicate the old functionality, use tuple(fecthone())]
   Also the data are not fetched and converted to Python data types untill actually referred to, therefore...
 2. Data can be retrieved from the result sets using the column name (as well as the number).
    >>> cs = someConnection.cursor()
@@ -71,8 +84,6 @@ Whats new in version 2.3.0    # note: breaking changes and default changes!
   This version is all about django support.  There are two hoped-for targets:
     ... A) MS SQL database connections for mainstream django.
     ... B) running django on IronPython
-   Someday, far in the future, this may result in:
-    ... C) MS SQL connections from django running on IronPython on Mono on Linux.  (dreams sometimes come true.)
    Thanks to Adam Vandenberg for the django modifications. 
 
    The changes are:
