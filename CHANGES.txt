@@ -41,6 +41,9 @@ Since build 214:
    cursors by default.  This will make rowcount and stored procedure return 
    parameter values more readily available.
  
+* Remove manifest for Python 2.6 and later binaries which should make things
+  work much better when the VS2008 redist components aren't installed.
+
 * Fix problem causing ASP pages to fail when reloaded.
 
 * mapiutil.py functions GetMapiTypeName and GetPropTagName have been modified

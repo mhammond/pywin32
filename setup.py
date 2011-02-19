@@ -227,6 +227,43 @@ def find_platform_sdk_dir():
         if os.path.isfile(os.path.join(sdkdir, landmark)):
             return sdkdir
 
+
+# Some nasty hacks to prevent most of our extensions using a manifest, as
+# the manifest - even without a reference to the CRT assembly - is enough
+# to prevent the extension from loading.  For more details, see
+# http://bugs.python.org/issue7833 - that issue has a patch, but it is
+# languishing and will probably never be fixed for Python 2.6...
+if sys.version_info > (2,6):
+    from distutils.spawn import spawn
+    from distutils.msvc9compiler import MSVCCompiler
+    MSVCCompiler._orig_spawn = MSVCCompiler.spawn
+    MSVCCompiler._orig_link = MSVCCompiler.link
+    def monkeypatched_spawn(self, cmd):
+        _want_assembly_hack = getattr(self, '_want_assembly_hack', False)
+        if _want_assembly_hack and cmd[0].endswith("mt.exe"):
+            # We don't want mt.exe run...
+            return
+        if _want_assembly_hack and cmd[0].endswith("link.exe"):
+            # remove /MANIFESTFILE:... and add MANIFEST:NO
+            for i in range(len(cmd)):
+                if cmd[i].startswith("/MANIFESTFILE:"):
+                    cmd[i] = "/MANIFEST:NO"
+                    break
+        self._orig_spawn(cmd)
+
+    def monkeypatched_link(self, target_desc, objects, output_filename, *args, **kw):
+        self._want_assembly_hack = not(target_desc==self.EXECUTABLE or
+                                       os.path.basename(output_filename).startswith("winxpgui") or
+                                       os.path.basename(output_filename).startswith("_winxptheme") or
+                                       os.path.basename(output_filename).startswith("win32ui"))
+        try:
+            return self._orig_link(target_desc, objects, output_filename, *args, **kw)
+        finally:
+            delattr(self, '_want_assembly_hack')
+    MSVCCompiler.spawn = monkeypatched_spawn
+    MSVCCompiler.link = monkeypatched_link
+
+
 sdk_dir = find_platform_sdk_dir()
 
 class WinExt (Extension):
@@ -366,6 +403,7 @@ class WinExt (Extension):
                 self.extra_link_args.append("/MACHINE:x86")
             else:
                 self.extra_link_args.append("/MACHINE:%s" % build_ext.plat_name[4:])
+
             # Old vs2003 needs this defined (Python itself uses it)
             if get_build_version() < 9.0 and build_ext.plat_name=="win-amd64":
                 self.extra_compile_args.append('/D_M_X64')
@@ -911,7 +949,7 @@ class my_build_ext(build_ext):
         # Copy cpp lib files needed to create Python COM extensions
         clib_files = (['win32', 'pywintypes%s.lib'],
                       ['win32com', 'pythoncom%s.lib'],
-                      ['axscript', 'axscript%s.lib'])
+                      ['win32com', 'axscript%s.lib'])
         for clib_file in clib_files:
             target_dir = os.path.join(self.build_lib, clib_file[0], "libs")
             if not os.path.exists(target_dir):
