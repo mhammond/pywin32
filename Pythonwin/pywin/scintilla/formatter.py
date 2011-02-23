@@ -107,6 +107,21 @@ class FormatterBase:
 
 	# Update the control with the new style format.
 	def _ReformatStyle(self, style):
+		## Selection (background only for now)
+		## Passing False for WPARAM to SCI_SETSELBACK is documented as resetting to scintilla default,
+		## but does not work - selection background is not visible at all.
+		## Default value in SPECIAL_STYLES taken from scintilla source.
+		if style.name == STYLE_SELECTION:
+			clr = style.background
+			self.scintilla.SendScintilla(scintillacon.SCI_SETSELBACK, True, clr)
+
+			## Can't change font for selection, but could set color
+			## However, the font color dropbox has no option for default, and thus would
+			## always override syntax coloring
+			## clr = style.format[4]
+			## self.scintilla.SendScintilla(scintillacon.SCI_SETSELFORE, clr != CLR_INVALID, clr)
+			return			
+			
 		assert style.stylenum is not None, "Unregistered style."
 		#print "Reformat style", style.name, style.stylenum
 		scintilla=self.scintilla
@@ -297,6 +312,7 @@ STYLE_BRACEBAD = "Brace/Paren - unmatched"
 STYLE_STRINGEOL = "String with no terminator"
 STYLE_LINENUMBER = "Line numbers"
 STYLE_INDENTGUIDE = "Indent guide"
+STYLE_SELECTION = "Selection"
 
 STRING_STYLES = [STYLE_STRING, STYLE_SQSTRING, STYLE_TQSSTRING, STYLE_TQDSTRING, STYLE_STRINGEOL]
 
@@ -328,6 +344,8 @@ SPECIAL_STYLES = [
 		(STYLE_BRACEBAD,     (0, 0, 200, 0, 0x000000), 0x8ea5f2, scintillacon.STYLE_BRACEBAD),
 		(STYLE_LINENUMBER,   (0, 0, 200, 0, 0x000000), win32api.GetSysColor(win32con.COLOR_3DFACE), scintillacon.STYLE_LINENUMBER),
 		(STYLE_INDENTGUIDE,  (0, 0, 200, 0, 0x000000), CLR_INVALID, scintillacon.STYLE_INDENTGUIDE),
+		## Not actually a style; requires special handling to send appropriate messages to scintilla
+		(STYLE_SELECTION,    (0, 0, 200, 0, CLR_INVALID), win32api.RGB(0xc0, 0xc0, 0xc0), 999999),
 ]
 
 PythonSampleCode = """\

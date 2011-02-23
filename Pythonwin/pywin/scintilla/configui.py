@@ -13,18 +13,35 @@ from win32con import CLR_INVALID
 # Property Page for syntax formatting options
     
 # The standard 16 color VGA palette should always be possible    
-paletteVGA = ( ("Black",0,0,0), ("Navy",0,0,128), ("Green",0,128,0), ("Cyan",0,128,128), 
-	("Maroon",128,0,0), ("Purple",128,0,128), ("Olive",128,128,0), ("Gray",128,128,128), 
-	("Silver",192,192,192), ("Blue",0,0,255), ("Lime",0,255,0), ("Aqua",0,255,255), 
-	("Red",255,0,0), ("Fuchsia",255,0,255), ("Yellow",255,255,0), ("White",255,255,255),
+paletteVGA = (
+	("Black", win32api.RGB(0,0,0)),
+	("Navy", win32api.RGB(0,0,128)),
+	("Green", win32api.RGB(0,128,0)),
+	("Cyan", win32api.RGB(0,128,128)),
+	("Maroon", win32api.RGB(128,0,0)),
+	("Purple", win32api.RGB(128,0,128)),
+	("Olive", win32api.RGB(128,128,0)),
+	("Gray", win32api.RGB(128,128,128)), 
+	("Silver", win32api.RGB(192,192,192)),
+	("Blue", win32api.RGB(0,0,255)),
+	("Lime", win32api.RGB(0,255,0)),
+	("Aqua", win32api.RGB(0,255,255)), 
+	("Red", win32api.RGB(255,0,0)),
+	("Fuchsia", win32api.RGB(255,0,255)),
+	("Yellow", win32api.RGB(255,255,0)),
+	("White", win32api.RGB(255,255,255)),
 # and a few others will generally be possible.
-	("DarkGrey", 64,64,64 ), ("PurpleBlue",64,64,192), ("DarkGreen",0,96,0),
-	("DarkOlive",128,128,64), ("MediumBlue",0,0,192), ("DarkNavy",0,0,96),
-	("Magenta",96,0,96), ("OffWhite", 255,255,220 ), ("LightPurple",220,220,255),
+	("DarkGrey", win32api.RGB(64,64,64)),
+	("PurpleBlue", win32api.RGB(64,64,192)),
+	("DarkGreen", win32api.RGB(0,96,0)),
+	("DarkOlive", win32api.RGB(128,128,64)),
+	("MediumBlue", win32api.RGB(0,0,192)),
+	("DarkNavy", win32api.RGB(0,0,96)),
+	("Magenta", win32api.RGB(96,0,96)),
+	("OffWhite", win32api.RGB(255,255,220)),
+	("LightPurple", win32api.RGB(220,220,255)),
+	("<Default>", win32con.CLR_INVALID)
 )
-
-def BGR(b,g,r):		# Colors in font definitions are integers made up of Blue, Green, and Red bytes
-    return b*256*256 + g*256 + r
 
 class ScintillaFormatPropertyPage(dialog.PropertyPage):
 	def __init__(self, scintillaClass = None, caption = 0):
@@ -198,7 +215,7 @@ class ScintillaFormatPropertyPage(dialog.PropertyPage):
 		format = style.format
 		sel = 0
 		for c in paletteVGA:
-			if format[4] == BGR(c[3], c[2], c[1]):
+			if format[4] == c[1]:
 #				print "Style", style.name, "is", c[0]
 				break
 			sel = sel + 1
@@ -236,7 +253,7 @@ class ScintillaFormatPropertyPage(dialog.PropertyPage):
 		else:
 			effect = win32con.CFE_BOLD | win32con.CFE_ITALIC
 		maskFlags=format[0]|win32con.CFM_COLOR|win32con.CFM_BOLD|win32con.CFM_ITALIC
-		style.format = (maskFlags, effect, style.format[2], style.format[3], BGR(color[3], color[2], color[1])) + style.format[5:]
+		style.format = (maskFlags, effect, style.format[2], style.format[3], color[1]) + style.format[5:]
 
 	def OnOK(self):
 		self.scintilla._GetColorizer().SavePreferences()
