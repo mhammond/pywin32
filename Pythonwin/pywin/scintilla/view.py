@@ -613,7 +613,7 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
 		metrics = dc.GetTextMetrics()
 		left, top, right, bottom = pInfo.GetDraw()
 		# Leave space at the top for the header.
-		rc = (left, top + (9*metrics['tmHeight'])/2, right, bottom)
+		rc = (left, top + int((9*metrics['tmHeight'])/2), right, bottom)
 		pageStart = 0
 		maxPage = 0
 		textLen = self.GetTextLength()
@@ -665,7 +665,7 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
 		dc.SetTextAlign(win32con.TA_RIGHT)
 		dc.TextOut(right, 2*cyChar, pagenum_str)
 		dc.SetTextAlign(win32con.TA_LEFT)
-		top = top + (7*cyChar)/2
+		top = top + int((7*cyChar)/2)
 		dc.MoveTo(left, top)
 		dc.LineTo(right, top)
 		top = top + cyChar
