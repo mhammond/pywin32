@@ -30,7 +30,10 @@ try:
 except ImportError:
     win32 = False
 
-import testADOdbapiConfig as config #will find (parent?) adodbapi
+try:
+    import adodbapitestconfig as config #will find (parent?) adodbapi
+except ImportError:
+    import testADOdbapiConfig as config #alternate version
 import adodbapi
 try:
     import adodbapi.ado_consts as ado_consts

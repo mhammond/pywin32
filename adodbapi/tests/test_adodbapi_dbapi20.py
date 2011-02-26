@@ -17,7 +17,7 @@ import adodbapi
 print adodbapi.version
 print "Tested with dbapi20 %s" % dbapi20.__version__
 
-_computername=".\SQLEXPRESS" #or name of computer with SQL Server
+_computername="(local)" #or name of computer with SQL Server
 _databasename="Northwind" #or something else
 connStr = r"Provider=SQLOLEDB.1; Integrated Security=SSPI; Initial Catalog=%s;Data Source=%s" %(_databasename, _computername)
 #connStr = r"Provider=SQLOLEDB.1; User ID=%s; Password=%s; Initial Catalog=%s;Data Source=%s" %(_username,_password,_databasename, _computername)

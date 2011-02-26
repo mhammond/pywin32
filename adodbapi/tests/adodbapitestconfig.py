@@ -1,5 +1,5 @@
 # Configure this in order to run the testcases.
-"testADOdbapiConfig.py v 2.4.0"
+"testADOdbapiConfig.py v 2.4.2"
 
 import os
 import sys
@@ -22,7 +22,7 @@ except:
     print '"adodbapi.version" not present or not working.'
 print __doc__
 
-doAllTests = True
+doAllTests = False   # switch to True for intensive testing
 doAccessTest = True or doAllTests
 doSqlServerTest = False or doAllTests
 doMySqlTest = False or doAllTests
