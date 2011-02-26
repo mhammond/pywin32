@@ -5,6 +5,14 @@ Generally created by hand after running:
    {py_dir}\Tools\scripts\logmerge.py -t < log.out > log2.out
 However contributors are encouraged to add their own entries for their work.
 
+Since build 215:
+----------------
+
+* Fix printing on pythonwin on 3.x
+
+* Pythonwin gets an option to set the background color of the selected text.
+
+
 Since build 214:
 ----------------
 * Update adodbapi to version 2.4,2 -- in this version,
