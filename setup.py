@@ -2187,7 +2187,7 @@ dist = setup(name="pywin32",
                     },
                 },
 
-      scripts = ["pywin32_postinstall.py"],
+      scripts = ["pywin32_postinstall.py", "pywin32_testall.py"],
 
       ext_modules = ext_modules,
 

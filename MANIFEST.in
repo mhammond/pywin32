@@ -8,6 +8,7 @@ include pywin32.pth
 include setup.py
 include setup3.py
 include pywin32_postinstall.py
+include pywin32_testall.py
 # don't know how to include "Python and Extensions.dsw" - spaces upset things
 # Core win32 stuff
 include win32/src/*.rc
