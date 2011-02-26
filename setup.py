@@ -74,6 +74,7 @@ import os, string, sys
 import types, glob
 import re
 from tempfile import gettempdir
+import shutil
 
 is_py3k = sys.version_info > (3,) # get this out of the way early on...
 # We have special handling for _winreg so our setup3.py script can avoid
@@ -239,20 +240,37 @@ if sys.version_info > (2,6):
     MSVCCompiler._orig_spawn = MSVCCompiler.spawn
     MSVCCompiler._orig_link = MSVCCompiler.link
     def monkeypatched_spawn(self, cmd):
+        is_link = cmd[0].endswith("link.exe") or cmd[0].endswith('"link.exe"')
         _want_assembly_hack = getattr(self, '_want_assembly_hack', False)
+        _want_assembly_with_crt = getattr(self, '_want_assembly_with_crt', False)
         if _want_assembly_hack and cmd[0].endswith("mt.exe"):
             # We don't want mt.exe run...
             return
-        if _want_assembly_hack and cmd[0].endswith("link.exe"):
+        if _want_assembly_hack and is_link:
             # remove /MANIFESTFILE:... and add MANIFEST:NO
             for i in range(len(cmd)):
                 if cmd[i].startswith("/MANIFESTFILE:"):
                     cmd[i] = "/MANIFEST:NO"
                     break
+        if _want_assembly_with_crt and cmd[0].endswith("mt.exe"):
+            # We want mt.exe run with the original manifest
+            for i in range(len(cmd)):
+                if cmd[i] == "-manifest":
+                    cmd[i+1] = cmd[i+1] + ".orig"
+                    break
         self._orig_spawn(cmd)
+        if _want_assembly_with_crt and is_link:
+            # We want a copy of the original manifest so we can use it later.
+            for i in range(len(cmd)):
+                if cmd[i].startswith("/MANIFESTFILE:"):
+                    mfname = cmd[i][14:]
+                    shutil.copyfile(mfname, mfname + ".orig")
+                    break
 
     def monkeypatched_link(self, target_desc, objects, output_filename, *args, **kw):
-        self._want_assembly_hack = not(target_desc==self.EXECUTABLE or
+        self._want_assembly_with_crt = os.path.basename(output_filename).startswith("PyISAPI_loader.dll") or \
+                                       os.path.basename(output_filename).startswith("perfmondata.dll")
+        self._want_assembly_hack = not(target_desc==self.EXECUTABLE or self._want_assembly_with_crt or
                                        os.path.basename(output_filename).startswith("winxpgui") or
                                        os.path.basename(output_filename).startswith("_winxptheme") or
                                        os.path.basename(output_filename).startswith("win32ui"))
@@ -260,6 +278,7 @@ if sys.version_info > (2,6):
             return self._orig_link(target_desc, objects, output_filename, *args, **kw)
         finally:
             delattr(self, '_want_assembly_hack')
+            delattr(self, '_want_assembly_with_crt')
     MSVCCompiler.spawn = monkeypatched_spawn
     MSVCCompiler.link = monkeypatched_link
 
