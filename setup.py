@@ -578,8 +578,8 @@ if do_2to3:
         from lib2to3.refactor import RefactoringTool
         # we only need some fixers.
         fixers = """basestring exec except dict import imports next nonzero
-                    print raw_input long standarderror types unicode urllib
-                    xrange""".split()
+                    print raise raw_input long standarderror types unicode
+                    urllib xrange""".split()
         fqfixers = ['lib2to3.fixes.fix_' + f for f in fixers]
 
         options = dict(doctests_only=False, fix=[], list_fixes=[], 
