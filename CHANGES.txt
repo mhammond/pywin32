@@ -7,6 +7,13 @@ However contributors are encouraged to add their own entries for their work.
 
 Since build 215:
 ----------------
+* New loader module for COM objects to avoid some CRT manifest issues.
+  pythoncomloaderxx.dll will be copied to your System32 directory and used as
+  the entry-point for COM objects instead of pythoncomxx.dll.  This DLL
+  is very small - includes a manifest referencing the C runtime library and
+  simply loads pythoncomxx.dll and deletes the COM object creation back to it.
+  You will need to re-register any COM objects you have to take advantage of
+  this.
 
 * Fix printing on pythonwin on 3.x
 

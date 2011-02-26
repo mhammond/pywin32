@@ -210,7 +210,19 @@ def RegisterServer(clsid,
         raise RuntimeError("We appear to have a frozen DLL, but I don't know the DLL to use")
     else:
       # Normal case - running from .py file, so register pythoncom's DLL.
-      dllName = os.path.basename(pythoncom.__file__)
+      # Although now we prefer a 'loader' DLL if it exists to avoid some
+      # manifest issues (the 'loader' DLL has a manifest, but pythoncom does not)
+      pythoncom_dir = os.path.dirname(pythoncom.__file__)
+      if pythoncom.__file__.find("_d") < 0:
+        suffix = ""
+      else:
+        suffix = "_d"
+      loadername = "pythoncomloader%d%d%s.dll" % (sys.version_info[0], sys.version_info[1], suffix)
+      if os.path.isfile(os.path.join(pythoncom_dir, loadername)):
+        dllName = loadername
+      else:
+        # just use pythoncom.
+        dllName = os.path.basename(pythoncom.__file__)
 
     _set_subkeys(keyNameRoot + "\\InprocServer32",
                  { None : dllName,

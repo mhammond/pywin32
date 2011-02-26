@@ -33,6 +33,7 @@ include win32/License.txt
 include com/pythoncom.py
 include com/win32com/src/*.h
 include com/win32com/src/PythonCOM.def
+include com/win32com/src/PythonCOMLoader.def
 include com/win32com/readme.htm
 include com/win32com/HTML/*.html
 include com/win32com/HTML/image/*.gif

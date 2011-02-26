@@ -50,7 +50,9 @@ def RegisterPythonServer(filename, progids=None, verbose=0):
             except WindowsError:
                 # no CLSID or InProcServer32 - not good!
                 break
-            if os.path.basename(dll) != os.path.basename(pythoncom.__file__):
+            ok_files = [os.path.basename(pythoncom.__file__),
+                        'pythoncomloader%d%d.dll' % (sys.version_info[0], sys.version_info[1])]
+            if os.path.basename(dll) not in ok_files:
                 why_not = "%r is registered against a different Python version (%s)" % (progid, dll)
                 break
         else:
