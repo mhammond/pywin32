@@ -68,7 +68,7 @@ public:
 		if (!bOK)
 			*pBuffSize = 0;
 
-		if (lpBuff[(*pBuffSize)-1]=='\0')
+		if ((int)(*pBuffSize)>0 && lpBuff[(*pBuffSize)-1]=='\0')
 			(*pBuffSize)--;
 		return (bOK) ? true : false;
 	}
