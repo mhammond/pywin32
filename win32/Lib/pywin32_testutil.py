@@ -216,7 +216,9 @@ class TestResult(unittest._TextTestResult):
         # suite will attempt to catch this and handle it itself if the user
         # is admin)
         elif isinstance(exc_val, pywintypes.com_error) and \
-           exc_val.hresult in [winerror.CO_E_CLASSSTRING, winerror.REGDB_E_CLASSNOTREG]:
+           exc_val.hresult in [winerror.CO_E_CLASSSTRING,
+                               winerror.REGDB_E_CLASSNOTREG,
+                               winerror.TYPE_E_LIBNOTREGISTERED]:
             exc_val = TestSkipped(exc_val)
         # NotImplemented generally means the platform doesn't support the
         # functionality.
