@@ -166,10 +166,12 @@ PyObject *PyTime::Format(PyObject *self, PyObject *args)
 	TCHAR szBuffer[256];
 	PyTime *pTime = (PyTime *)self;
 
+	// _tcsftime tries to be "helpful" by dieing with a too early date in
+	// some CRT implementations (eg, vs2008 64bit - and probably others)
 	SYSTEMTIME	st;
-	if ( !VariantTimeToSystemTime(pTime->m_time, &st) )
+	if ( !VariantTimeToSystemTime(pTime->m_time, &st) || st.wYear < 1900 )
 	{
-		PyErr_SetString(PyExc_ValueError, "illegal internal value");
+		PyErr_SetString(PyExc_ValueError, "can't format dates this early");
 		return NULL;
 	}
 
