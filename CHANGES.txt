@@ -15,6 +15,11 @@ Since build 215:
   You will need to re-register any COM objects you have to take advantage of
   this.
 
+* Performance Monitor and ISAPI DLLs now include a manifest to fix potential
+  CRT related issues using those features.
+
+* Fix potential crash in ISAPI GetServerVariable functions.
+
 * Fix printing on pythonwin on 3.x
 
 * Pythonwin gets an option to set the background color of the selected text.
