@@ -8,10 +8,10 @@ See CHANGES.txt for recent changes.
 or
 % setup.py --help
 
-As for Python itself, these extensions require MSVC7 for Python 2.4 and
-later, otherwise MSVC6.  Some extensions require a recent "Platform SDK" 
-from Microsoft, and in general, the latest service packs should be 
-installed, but run 'setup.py' without any arguments to see 
+These extensions require the same version of MSVC as used for the 
+corresponding version of Python itself.  Some extensions require a recent 
+"Platform SDK"  from Microsoft, and in general, the latest service packs 
+should be  installed, but run 'setup.py' without any arguments to see 
 specific information about dependencies.  A vanilla MSVC installation should 
 be able to build most extensions and list any extensions that could not be 
 built due to missing libraries - if the build actually fails with your 
