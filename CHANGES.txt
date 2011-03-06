@@ -7,7 +7,7 @@ However contributors are encouraged to add their own entries for their work.
 Since build 216:
 ----------------
 
-* Source-code management move from CVS to Mercurual.
+* Source-code management moved from CVS to Mercurual.
 
 Since build 215:
 ----------------
