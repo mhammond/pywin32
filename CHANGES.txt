@@ -1,9 +1,13 @@
 A changelog for recent builds as pasted into the sourceforge page.
 
 Generally created by hand after running:
-   cvs -z5 log -rb2xx: > log.out
-   {py_dir}\Tools\scripts\logmerge.py -t < log.out > log2.out
+   hg log -rb2xx: > log.out
 However contributors are encouraged to add their own entries for their work.
+
+Since build 216:
+----------------
+
+* Source-code management move from CVS to Mercurual.
 
 Since build 215:
 ----------------
