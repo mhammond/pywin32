@@ -1,0 +1,32 @@
+# use glob syntax.
+syntax: glob
+
+MANIFEST
+build
+dist
+*.exe
+*.zip
+*.dbg
+*.exp
+*.ncb
+*.opt
+*.plg
+*.chm
+*.chw
+Pythonwin/Scintilla/win32/*.pdb
+PyWin32.kpf
+
+# SWIG generated files.
+com/win32comext/adsi/src/*.cpp
+com/win32comext/adsi/src/*.h
+com/win32comext/mapi/src/*.cpp
+com/win32comext/mapi/src/*.h
+win32/src/*_py2_swig.cpp
+
+
+# Generated from message files
+win32/src/PerfMon/PyPerfMsgs.h
+win32/src/PythonServiceMessages.h
+win32/src/win32service_messages.h
+win32/src/win32evtlog_messages.h
+isapi/src/pyISAPI_messages.h

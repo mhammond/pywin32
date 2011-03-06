@@ -1,0 +1,5 @@
+[patterns]
+**.dsp = CRLF
+**.dsw = CRLF
+**.vbp = CRLF
+** = native
