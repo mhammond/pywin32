@@ -158,20 +158,19 @@ CMDIFrameWnd *GetMDIFrame(PyObject *self)
 	return (CMDIFrameWnd *)PyCWnd::GetPythonGenericWnd(self, &PyCMDIFrameWnd::type);
 }
 
-// @pymethod |PyCWnd|SCROLLINFO tuple|Describes a SCROLLINFO tuple
-// @pyparm int|addnMask||Additional mask information.  Python automatically fills the mask for valid items, so currently the only valid values are zero, and win32con.SIF_DISABLENOSCROLL.
-// @pyparm int|min||The minimum scrolling position.  Both min and max, or neither, must be provided.
-// @pyparm int|max||The maximum scrolling position.  Both min and max, or neither, must be provided.
-// @pyparm int|page||Specifies the page size. A scroll bar uses this value to determine the appropriate size of the proportional scroll box.
-// @pyparm int|pos||Specifies the position of the scroll box.
-// @pyparm int|trackPos||Specifies the immediate position of a scroll box that the user 
+// @object SCROLLINFO tuple|Tuple representing a SCROLLINFO struct
+// @tupleitem 0|int|addnMask|Additional mask information.  Python automatically fills the mask for valid items, so currently the only valid values are zero, and win32con.SIF_DISABLENOSCROLL.
+// @tupleitem 1|int|min|The minimum scrolling position.  Both min and max, or neither, must be provided.
+// @tupleitem 2|int|max|The maximum scrolling position.  Both min and max, or neither, must be provided.
+// @tupleitem 3|int|page|Specifies the page size. A scroll bar uses this value to determine the appropriate size of the proportional scroll box.
+// @tupleitem 4|int|pos|Specifies the position of the scroll box.
+// @tupleitem 5|int|trackPos|Specifies the immediate position of a scroll box that the user 
 // is dragging. An application can retrieve this value while processing 
 // the SB_THUMBTRACK notification message. An application cannot set 
 // the immediate scroll position; the <om PyCWnd.SetScrollInfo> function ignores 
 // this member.
-// @comm When passed to Python, will always be a tuple of size 6, and items may be None if not available.
-// @comm When passed from Python, it must have the addn mask attribute, but all other items may be None, or not exist.
-// <nl>userob is any Python object at all, but no reference count is kept, so you must ensure the object remains referenced throught the lists life.
+// @comm When returned from a method, will always be a tuple of size 6, and items may be None if not available.
+// @comm When passed as an arg, it must have the addn mask attribute, but all other items may be None, or not exist.
 BOOL ParseSCROLLINFOTuple( PyObject *args, SCROLLINFO *pInfo)
 {
 	PyObject *ob;
@@ -1336,7 +1335,7 @@ ui_window_get_safe_hwnd(PyObject *self, PyObject *args)
 	return PyWinLong_FromHANDLE(hwnd);
 }
 
-// @pymethod int|PyCWnd|GetScrollInfo|Returns information about a scroll bar
+// @pymethod <o SCROLLINFO tuple>|PyCWnd|GetScrollInfo|Returns information about a scroll bar
 static PyObject *
 ui_window_get_scroll_info (PyObject *self, PyObject *args)
 {
@@ -2138,6 +2137,7 @@ ui_window_set_scroll_info (PyObject *self, PyObject *args)
 	BOOL bRedraw = TRUE;
 	PyObject *obInfo;
 	// @pyparm int|nBar||The scroll bar to examine.  Can be one of win32con.SB_BOTH, win32con.SB_VERT or win32con.SB_HORZ
+	// @pyparm <o SCROLLINFO tuple>|ScrollInfo||The information to set
 	// @pyparm int|redraw|1|A flag indicating if the scrollbar should be re-drawn.
 	if (!PyArg_ParseTuple(args, "iO|i:SetScrollInfo", &nBar, &obInfo, &bRedraw))
 		return NULL;
