@@ -629,7 +629,6 @@ if do_2to3:
             self.force = True
 
         def run(self):
-            print "RUNNING", self.force
             self.updated_files = []
     
             # Base class code
