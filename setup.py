@@ -622,7 +622,14 @@ else:
 if do_2to3:
     # Force 2to3 to be run for py3k versions.
     class my_build_py(build_py):
+        def finalize_options(self):
+            build_py.finalize_options(self)
+            # must force as the 2to3 conversion happens in place so an
+            # interrupted build can cause py2 syntax files in a py3k build.
+            self.force = True
+
         def run(self):
+            print "RUNNING", self.force
             self.updated_files = []
     
             # Base class code
@@ -1765,7 +1772,7 @@ pythoncom = WinExt_system32('pythoncom',
                         %(win32com)s/extensions/PyIType.cpp                 %(win32com)s/extensions/PyITypeObjects.cpp
                         %(win32com)s/extensions/PyTYPEATTR.cpp              %(win32com)s/extensions/PyVARDESC.cpp
                         """ % dirs).split(),
-                   depends=("""
+                   depends=(r"""
                         %(win32com)s/include\propbag.h          %(win32com)s/include\PyComTypeObjects.h
                         %(win32com)s/include\PyFactory.h        %(win32com)s/include\PyGConnectionPoint.h
                         %(win32com)s/include\PyGConnectionPointContainer.h
