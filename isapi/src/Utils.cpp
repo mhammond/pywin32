@@ -38,7 +38,16 @@ const char *PyISAPIString_AsBytes(PyObject *ob, DWORD *psize /* = NULL */)
 #if (PY_VERSION_HEX >= 0x03000000)
 	// py3k - check for unicode object and use default encoding.
 	if (PyUnicode_Check(ob)) {
+		// NOTE: we are using an internal API and it may go away later.
+		// The implementation in py3k is simply "encode as utf-8" - but using
+		// this makes our life a little simpler (the value is cached and we
+		// don't need to manage reference counts) so we stick with it.
+		// Sadly this changed in 3.3 though...
+#if (PY_VERSION_HEX >= 0x03030000)
+		ob = _PyUnicode_AsDefaultEncodedString(ob);
+#else
 		ob = _PyUnicode_AsDefaultEncodedString(ob, NULL);
+#endif
 		if (ob == NULL)
 			return NULL;
 	}
