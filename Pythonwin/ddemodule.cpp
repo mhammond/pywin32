@@ -165,7 +165,7 @@ static struct PyMethodDef dde_functions[] =
 PYWIN_MODULE_INIT_FUNC(dde)
 {
 	if (AfxGetApp()==NULL) {
-		PyErr_SetString(PyExc_ImportError, "This must be an MFC application - try loading win32ui first");
+		PyErr_SetString(PyExc_ImportError, "This must be an MFC application - try 'import win32ui' first");
 		PYWIN_MODULE_INIT_RETURN_ERROR;
 	}
 	PYWIN_MODULE_INIT_PREPARE(dde, dde_functions,
