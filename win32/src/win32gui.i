@@ -4573,7 +4573,9 @@ static PyObject *PyGradientFill(PyObject *self, PyObject *args)
 
 
 // @pyswig int|GetOpenFileName|Creates an Open dialog box that lets the user specify the drive, directory, and the name of a file or set of files to open.
-// @rdesc If the user presses OK, the function returns TRUE.  Otherwise, use CommDlgExtendedError for error details.
+// @comm The <om win32gui.GetOpenFileNameW> function is far more convenient to use.
+// @rdesc If the user presses OK, the function returns TRUE.  Otherwise, use CommDlgExtendedError for error details
+// (ie, a win32gui.error is raised).  If the user cancels the dialog, the winerror attribute of the exception will be zero.
 // @pyparm string/bytes|OPENFILENAME||A string packed into an OPENFILENAME structure, probably via the struct module.
 
 BOOL GetOpenFileName(OPENFILENAME *INPUT);
@@ -6224,12 +6226,16 @@ BOOL PyParse_OPENFILENAMEW_Args(PyObject *args, PyObject *kwargs, OPENFILENAMEW 
 PyObject *PyReturn_OPENFILENAMEW_Output(OPENFILENAMEW *pofn)
 {
 	DWORD filechars, filterchars;
-	// there is no returned length, and lpstrFile can contain NULL's if multiple files are selected
-	// Walk the string backwards until a non-NULL is found
-	for (filechars=pofn->nMaxFile; filechars>0; filechars--)
-		if (pofn->lpstrFile[filechars-1]!=0)
-			break;
-
+	// If OFN_ALLOWMULTISELECT is set, the terminator is 2 NULLs,
+	// otherwise a single NULL.
+	if (pofn->Flags & OFN_ALLOWMULTISELECT) {
+		for (filechars=0;
+		     filechars < pofn->nMaxFile-1 && !(pofn->lpstrFile[filechars]==0 && pofn->lpstrFile[filechars+1]==0);
+		     filechars++)
+		     ;
+	} else {
+		filechars = wcslen(pofn->lpstrFile);
+	}
 	if (pofn->lpstrCustomFilter==NULL)
 		return Py_BuildValue("NOk",
 			PyWinObject_FromWCHAR(pofn->lpstrFile, filechars),
@@ -6256,9 +6262,14 @@ PyObject *PyReturn_OPENFILENAMEW_Output(OPENFILENAMEW *pofn)
 // @comm Accepts keyword arguments, all arguments optional
 // @rdesc Returns a tuple of 3 values (<o PyUNICODE>, <o PyUNICODE>, int):<nl>
 // First is the selected file(s). If multiple files are selected, returned string will be the directory followed by files names
-// separated by nulls, otherwise it will be the full path.<nl>
+// separated by nulls, otherwise it will be the full path.  In other words, if you use the OFN_ALLOWMULTISELECT flag
+// you should split this value on \0 characters and if the length of the result list is 1, it will be
+// the full path, otherwise element 0 will be the directory and the rest of the elements will be filenames in
+// this directory.<nl>
 // Second is a unicode string containing user-selected filter, will be None if CustomFilter was not specified<nl>
 // Third item contains flags pertaining to users input, such as OFN_READONLY and OFN_EXTENSIONDIFFERENT
+// <nl>If the user presses cancel or an error occurs, a
+// win32gui.error is raised.  If the user pressed cancel, the error number (ie, the winerror attribute of the exception) will be zero.
 // @pyparm <o PyHANDLE>|hwndOwner|None|Handle to window that owns dialog
 // @pyparm <o PyHANDLE>|hInstance|None|Handle to module that contains dialog template
 // @pyparm <o PyUNICODE>|Filter|None|Contains pairs of descriptions and filespecs separated by NULLS, with a final trailing NULL.
@@ -6296,9 +6307,6 @@ static PyObject *PyGetSaveFileNameW(PyObject *self, PyObject *args, PyObject *kw
 // @pyswig (<o PyUNICODE>,<o PyUNICODE>, int)|GetOpenFileNameW|Creates a dialog to allow user to select file(s) to open
 // @comm Accepts keyword arguments, all arguments optional
 // Input parameters and return values are identical to <om win32gui.GetSaveFileNameW>
-// @rdesc The result is a tuple of (filename, filter, flags), where the first 2 elements are
-// unicode strings, and the last an integer.  If the user presses cancel or an error occurs, a
-// win32gui.error is raised (and if the user pressed cancel, the error number will be zero)
 static PyObject *PyGetOpenFileNameW(PyObject *self, PyObject *args, PyObject *kwargs)
 {	
 	PyObject *ret=NULL;

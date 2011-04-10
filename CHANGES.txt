@@ -7,6 +7,10 @@ However contributors are encouraged to add their own entries for their work.
 Since build 216:
 ----------------
 
+* Fixed that in some cases win32file.GetOpenFileName and GetSaveFileName 
+  could have returned trailing garbage after an embedded NULL character.
+  (bug 3277647)
+
 * Source-code management moved from CVS to Mercurual.
 
 Since build 215:
