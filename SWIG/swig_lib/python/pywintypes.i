@@ -44,6 +44,16 @@ typedef unsigned long ULONG;
 #include "tchar.h"
 %}
 
+// DWORDs can use longs so long as they fit in 32 unsigned bits
+%typemap(python,in) DWORD {
+	// PyLong_AsUnsignedLongMask isn't ideal - no overflow checking - but
+	// this is what the 'k' format specifier in PyArg_ParseTuple uses, and
+	// that is what much of pywin32 uses for DWORDS, so we use it here too
+	$target = PyLong_AsUnsignedLongMask($source);
+	if ($target==(DWORD)-1 && PyErr_Occurred())
+		return NULL;
+}
+
 // Override the SWIG default for this.
 %typemap(python,out) PyObject *{
 	if ($source==NULL) return NULL; // get out now!

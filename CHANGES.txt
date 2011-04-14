@@ -11,6 +11,9 @@ Since build 216:
   could have returned trailing garbage after an embedded NULL character.
   (bug 3277647)
 
+* Some functions which accepted a DWORD did not accept long integers which
+  fit in 32bits with the most signficant bit set (eg, 0x80000000).
+
 * Source-code management moved from CVS to Mercurual.
 
 Since build 215:
