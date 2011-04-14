@@ -1196,6 +1196,17 @@ class my_build_ext(build_ext):
 
         ext.finalize_options(self)
 
+        # ensure the SWIG .i files are treated as dependencies.
+        for source in ext.sources:
+            if source.endswith(".i"):
+                self.find_swig() # for the side-effect of the environment value.
+                # Find the swig_lib .i files we care about for dependency tracking.
+                ext.swig_deps = glob.glob(os.path.join(os.environ["SWIG_LIB"], "python", "*.i"))
+                ext.depends.extend(ext.swig_deps)
+                break
+        else:
+            ext.swig_deps = None
+
         # some source files are compiled for different extensions
         # with special defines. So we cannot use a shared
         # directory for objects, we must use a special one for each extension.
@@ -1311,8 +1322,8 @@ class my_build_ext(build_ext):
         # to the temp dir...
         target_ext = '.cpp'
         for source in sources:
-            (base, ext) = os.path.splitext(source)
-            if ext == ".i":             # SWIG interface file
+            (base, sext) = os.path.splitext(source)
+            if sext == ".i":             # SWIG interface file
                 if os.path.split(base)[1] in swig_include_files:
                     continue
                 swig_sources.append(source)
@@ -1340,7 +1351,6 @@ class my_build_ext(build_ext):
             return new_sources
 
         swig = self.find_swig()
-
         for source in swig_sources:
             swig_cmd = [swig, "-python", "-c++"]
             swig_cmd.append("-dnone",) # we never use the .doc files.
@@ -1372,7 +1382,7 @@ class my_build_ext(build_ext):
             # This could probably go once we generate .cpp into the temp dir.
             fqsource = os.path.abspath(source)
             fqtarget = os.path.abspath(target)
-            rebuild = self.force or newer(fqsource, fqtarget)
+            rebuild = self.force or newer_group(ext.swig_deps + [fqsource], fqtarget)
             log.debug("should swig %s->%s=%s", source, target, rebuild)
             if rebuild:
                 swig_cmd.extend(["-o", fqtarget, fqsource])
