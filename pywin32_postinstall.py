@@ -12,10 +12,18 @@ class Tee:
     def __init__(self, file):
         self.f = file
     def write(self, what):
-        self.f.write(what)
+        if self.f is not None:
+            try:
+                self.f.write(what)
+            except IOError:
+                pass
         tee_f.write(what)
     def flush(self):
-        self.f.flush()
+        if self.f is not None:
+            try:
+                self.f.flush()
+            except IOError:
+                pass
         tee_f.flush()
 
 sys.stderr = Tee(sys.stderr)
