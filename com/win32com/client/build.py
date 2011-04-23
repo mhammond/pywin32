@@ -416,7 +416,7 @@ class LazyDispatchItem(DispatchItem):
 
 typeSubstMap = {
 	pythoncom.VT_INT: pythoncom.VT_I4,
-	pythoncom.VT_UINT: pythoncom.VT_I4,
+	pythoncom.VT_UINT: pythoncom.VT_UI4,
 	pythoncom.VT_HRESULT: pythoncom.VT_I4,
 }
 
