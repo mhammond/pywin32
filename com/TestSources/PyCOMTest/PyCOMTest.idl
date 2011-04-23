@@ -169,13 +169,16 @@ library PyCOMTestLib
 		object,
 		uuid(a0d9ceb0-5605-11d0-ae5f-cadd4c000000),
 		dual,
-		helpstring("PyCOMTest Interface"),
+		helpstring("PyCOMTest Interface - with some fancy \tbackslash\chars\\"),
 		pointer_default(unique)
 	]
 	interface IPyCOMTest : IDispatch
 	{
 		import "oaidl.idl";
 		// Test simple alias. HCON is long.
+		[
+			helpstring("docstring for Start - with some fancy \tslash chars\\")
+		]
 		HRESULT Start([out, retval] HCON * pnID);
 		// Nested alaas - CONNECTID is HCON.
 		HRESULT Stop([in] CONNECTID nID);

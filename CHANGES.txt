@@ -13,6 +13,9 @@ Since build 216:
   raised) and unsigned integers now allow for values with the high-bit set to 
   be passed correctly.
 
+* makepy may have generated syntax errors if 'helpstring' elements in typelibs
+  had strange quoting or slashes (bug 3199631)
+
 * Fixed that in some cases win32file.GetOpenFileName and GetSaveFileName 
   could have returned trailing garbage after an embedded NULL character.
   (bug 3277647)

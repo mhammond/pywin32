@@ -25,10 +25,11 @@ from pywintypes import TimeType
 import winerror
 import datetime
 
-# A string ending with a quote can not be safely triple-quoted.
-def _safeQuotedString(s):
-	if s[-1]=='"': s = s[:-1]+'\\"'
-	return '"""%s"""' % s
+# A string ending with a quote can not be safely triple-quoted. (Indeed, we
+# consider all things suspect (eg, \n chars, \t chars etc) - so just use
+# repr!
+def _makeDocString(s, encoding="mbcs"):
+	return repr(s.encode("mbcs"))
 
 error = "PythonCOM.Client.Build error"
 class NotSupportedException(Exception): pass # Raised when we cant support a param type.
@@ -318,7 +319,7 @@ class DispatchItem(OleItem):
 		s = linePrefix + 'def ' + name + '(self' + BuildCallList(fdesc, names, defNamedOptArg, defNamedNotOptArg, defUnnamedArg, defOutArg) + '):'
 		ret.append(s)
 		if doc and doc[1]:
-			ret.append(linePrefix + '\t' + _safeQuotedString(doc[1]))
+			ret.append(linePrefix + '\t' + _makeDocString(doc[1]))
 
 #		print "fdesc is ", fdesc
 
@@ -374,7 +375,7 @@ class DispatchItem(OleItem):
 		else:
 			linePrefix = ""
 		ret.append(linePrefix + 'def ' + name + '(' + argPrefix + ', *args):')
-		if doc and doc[1]: ret.append(linePrefix + '\t' + _safeQuotedString(doc[1]))
+		if doc and doc[1]: ret.append(linePrefix + '\t' + _makeDocString(doc[1]))
 		if fdesc:
 			invoketype = fdesc[4]
 		else:

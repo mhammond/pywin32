@@ -288,7 +288,7 @@ class DispatchItem(build.DispatchItem, WritableItem):
         doc = self.doc
         stream = generator.file
         print >> stream, 'class ' + self.python_name + '(DispatchBaseClass):'
-        if doc[1]: print >> stream, '\t' + build._safeQuotedString(doc[1])
+        if doc[1]: print >> stream, '\t' + build._makeDocString(doc[1])
         try:
             progId = pythoncom.ProgIDFromCLSID(self.clsid)
             print >> stream, "\t# This class is creatable by the name '%s'" % (progId)
@@ -307,7 +307,7 @@ class DispatchItem(build.DispatchItem, WritableItem):
         doc = self.doc
         stream = generator.file
         print >> stream, 'class ' + self.python_name + ':'
-        if doc[1]: print >> stream, '\t' + build._safeQuotedString(doc[1])
+        if doc[1]: print >> stream, '\t' + build._makeDocString(doc[1])
         try:
             progId = pythoncom.ProgIDFromCLSID(self.clsid)
             print >> stream, "\t# This class is creatable by the name '%s'" % (progId)
@@ -355,7 +355,7 @@ class DispatchItem(build.DispatchItem, WritableItem):
             methName = MakeEventMethodName(entry.names[0])
             print >> stream, '#\tdef ' + methName + '(self' + build.BuildCallList(fdesc, entry.names, "defaultNamedOptArg", "defaultNamedNotOptArg","defaultUnnamedArg", "pythoncom.Missing", is_comment = True) + '):'
             if entry.doc and entry.doc[1]:
-                print >> stream, '#\t\t' + build._safeQuotedString(entry.doc[1])
+                print >> stream, '#\t\t' + build._makeDocString(entry.doc[1])
         print >> stream
         self.bWritten = 1
 
@@ -828,7 +828,7 @@ class Generator:
         print >> self.file, "# From type library '%s'" % (os.path.split(self.sourceFilename)[1],)
     print >> self.file, '# On %s' % time.ctime(time.time())
 
-    print >> self.file, '"""' + docDesc + '"""'
+    print >> self.file, build._makeDocString(docDesc)
 
     print >> self.file, 'makepy_version =', repr(makepy_version)
     print >> self.file, 'python_version = 0x%x' % (sys.hexversion,)
