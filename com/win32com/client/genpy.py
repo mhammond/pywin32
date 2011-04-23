@@ -22,7 +22,7 @@ import pythoncom
 import build
 
 error = "makepy.error"
-makepy_version = "0.5.00" # Written to generated file.
+makepy_version = "0.5.01" # Written to generated file.
 
 GEN_FULL="full"
 GEN_DEMAND_BASE = "demand(base)"
