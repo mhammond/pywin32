@@ -198,6 +198,10 @@ library PyCOMTestLib
 		HRESULT GetSetDispatch([in] IDispatch *indisp, [out, retval] IDispatch **outdisp);
 		HRESULT GetSetUnknown([in] IUnknown *inunk, [out, retval] IUnknown **outunk);
 		HRESULT GetSetVariant([in] VARIANT vin, [out, retval] VARIANT *vout);
+		HRESULT GetSetInt([in] int invar, [out, retval] int *outunk);
+		HRESULT GetSetUnsignedInt([in] unsigned int invar, [out, retval] unsigned int *outunk);
+		HRESULT GetSetLong([in] long invar, [out, retval] long *outunk);
+		HRESULT GetSetUnsignedLong([in] unsigned long invar, [out, retval] unsigned long *outunk);
 		HRESULT TestByRefVariant([in, out] VARIANT *v);
 		HRESULT TestByRefString([in, out] BSTR *v);
 		HRESULT TakeByRefTypedDispatch([in, out] IPyCOMTest **inout);

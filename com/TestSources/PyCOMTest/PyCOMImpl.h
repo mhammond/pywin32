@@ -66,6 +66,10 @@ END_COM_MAP()
 	STDMETHOD(GetSetDispatch)(IDispatch *indisp, IDispatch **outdisp);
 	STDMETHOD(GetSetUnknown)(IUnknown *inunk, IUnknown **outunk);
 	STDMETHOD(GetSetVariant)(VARIANT vin, VARIANT *vout);
+	STDMETHOD(GetSetInt)(int invar, int *outvar);
+	STDMETHOD(GetSetUnsignedInt)(unsigned int invar, unsigned int *outvar);
+	STDMETHOD(GetSetLong)(long invar, long *outvar);
+	STDMETHOD(GetSetUnsignedLong)(unsigned long invar, unsigned long *outvar);
 	STDMETHOD(TestByRefVariant)(VARIANT *v);
 	STDMETHOD(TestByRefString)(BSTR *v);
 	STDMETHOD(TakeByRefTypedDispatch)(IPyCOMTest **inout);
