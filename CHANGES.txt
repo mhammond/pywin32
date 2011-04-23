@@ -7,6 +7,12 @@ However contributors are encouraged to add their own entries for their work.
 Since build 216:
 ----------------
 
+* When passing integers/unsigned integers to COM objects which did not fit 
+  into 32bits, OverflowErrors were silently discarded and -1 was silently 
+  passed.  This has been fixed for signed integers (an OverflowError is now 
+  raised) and unsigned integers now allow for values with the high-bit set to 
+  be passed correctly.
+
 * Fixed that in some cases win32file.GetOpenFileName and GetSaveFileName 
   could have returned trailing garbage after an embedded NULL character.
   (bug 3277647)

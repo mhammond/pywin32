@@ -46,6 +46,19 @@ def ensure_long(int_val):
     # on py2x, we just use an expression that results in a long
     return 0x100000000-0x100000000+int_val
 
+def check_get_set(func, arg):
+    got = func(arg)
+    if got != arg:
+        raise error("%s failed - expected %r, got %r" % (func, arg, got))
+
+def check_get_set_raises(exc, func, arg):
+    try:
+        got = func(arg)
+    except exc, e:
+        pass # what we expect!
+    else:
+        raise error("%s with arg %r didn't raise %s - returned %r" % (func, arg, exc, got))
+
 def progress(*args):
     if verbose:
         for arg in args:
@@ -232,26 +245,49 @@ def TestGenerated():
     if o.GetLastVarArgs() != ("Hi", "There", "From", "Python", 1):
         raise error("VarArgs failed -" + str(o.GetLastVarArgs()))
     progress("Checking getting/passing IUnknown")
-    if o.GetSetUnknown(o) != o:
-        raise error("GetSetUnknown failed")
+    check_get_set(o.GetSetUnknown, o)
     progress("Checking getting/passing IDispatch")
     if not isinstance(o.GetSetDispatch(o), DispatchBaseClass):
         raise error("GetSetDispatch failed")
     progress("Checking getting/passing IDispatch of known type")
     if o.GetSetInterface(o).__class__ != o.__class__:
         raise error("GetSetDispatch failed")
-    if o.GetSetVariant(4) != 4:
-        raise error("GetSetVariant (int) failed")
-    if o.GetSetVariant("foo") != "foo":
-        raise error("GetSetVariant (str) failed")
-    if o.GetSetVariant(o) != o:
-        raise error("GetSetVariant (dispatch) failed")
+    check_get_set(o.GetSetVariant, 4)
+    check_get_set(o.GetSetVariant, "foo")
+    check_get_set(o.GetSetVariant, o)
+    # signed/unsigned.
+    check_get_set(o.GetSetInt, 0)
+    check_get_set(o.GetSetInt, -1)
+    check_get_set(o.GetSetInt, 1)
+    check_get_set_raises(OverflowError, o.GetSetInt, 0x80000000)
+    check_get_set_raises(ValueError, o.GetSetInt, "foo")
+
+    check_get_set(o.GetSetUnsignedInt, 0)
+    check_get_set(o.GetSetUnsignedInt, 1)
+    check_get_set(o.GetSetUnsignedInt, 0x80000000)
+    if o.GetSetUnsignedInt(-1) != 0xFFFFFFFF:
+    # -1 is a special case - we accept a negative int (silently converting to
+    # unsigned) but when getting it back we convert it to a long.
+        raise error("unsigned -1 failed")
+
+    check_get_set(o.GetSetLong, 0)
+    check_get_set(o.GetSetLong, -1)
+    check_get_set(o.GetSetLong, 1)
+    check_get_set_raises(OverflowError, o.GetSetLong, 0x80000000)
+    check_get_set_raises(ValueError, o.GetSetLong, "foo")
+
+    check_get_set(o.GetSetUnsignedLong, 0)
+    check_get_set(o.GetSetUnsignedLong, 1)
+    check_get_set(o.GetSetUnsignedLong, 0x80000000)
+    # -1 is a special case - see above.
+    if o.GetSetUnsignedLong(-1) != 0xFFFFFFFF:
+        raise error("unsigned -1 failed")
+
     # We want to explicitly test > 32 bits.  py3k has no 'maxint' and
     # 'maxsize+1' is no good on 64bit platforms as its 65 bits!
     big = 2147483647 # sys.maxint on py2k
     for l in big, big+1, 1 << 65:
-        if o.GetSetVariant(l) != l:
-            raise error("GetSetVariant (long) failed")
+        check_get_set(o.GetSetVariant, l)
     if o.TestByRefVariant(2) != 4:
         raise error("TestByRefVariant failed")
     if o.TestByRefString("Foo") != "FooFoo":

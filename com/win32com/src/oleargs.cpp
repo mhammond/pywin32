@@ -1159,6 +1159,7 @@ BOOL PythonOleArgHelper::MakeObjToVariant(PyObject *obj, VARIANT *var, PyObject 
 	case VT_I4:
 		if ((obUse=PyNumber_Int(obj))==NULL) BREAK_FALSE
 		V_I4(var) = PyInt_AsLong(obUse);
+		if (V_I4(var)==-1 && PyErr_Occurred()) BREAK_FALSE;
 		break;
 	case VT_I4 | VT_BYREF:
 		if (bCreateBuffers)
@@ -1167,12 +1168,14 @@ BOOL PythonOleArgHelper::MakeObjToVariant(PyObject *obj, VARIANT *var, PyObject 
 		if (!VALID_BYREF_MISSING(obj)) {
 			if ((obUse=PyNumber_Int(obj))==NULL) BREAK_FALSE
 			*V_I4REF(var) = PyInt_AsLong(obUse);
+			if (*V_I4REF(var)==-1 && PyErr_Occurred()) BREAK_FALSE;
 		} else
 			*V_I4REF(var) = 0;
 		break;
 	case VT_UI4:
 		if ((obUse=PyNumber_Int(obj))==NULL) BREAK_FALSE
-		V_UI4(var) = PyInt_AsLong(obUse);
+		V_UI4(var) = PyLong_AsUnsignedLongMask(obUse);
+		if (V_UI4(var)==(unsigned long)-1 && PyErr_Occurred()) BREAK_FALSE;
 		break;
 	case VT_UI4 | VT_BYREF:
 		if (bCreateBuffers)
@@ -1180,7 +1183,8 @@ BOOL PythonOleArgHelper::MakeObjToVariant(PyObject *obj, VARIANT *var, PyObject 
 
 		if (!VALID_BYREF_MISSING(obj)) {
 			if ((obUse=PyNumber_Int(obj))==NULL) BREAK_FALSE
-			*V_UI4REF(var) = PyInt_AsLong(obUse);
+			*V_UI4REF(var) = PyLong_AsUnsignedLongMask(obUse);
+			if (*V_UI4REF(var)==(unsigned long)-1 && PyErr_Occurred()) BREAK_FALSE;
 		} else
 			*V_UI4REF(var) = 0;
 		break;
@@ -1200,7 +1204,7 @@ BOOL PythonOleArgHelper::MakeObjToVariant(PyObject *obj, VARIANT *var, PyObject 
 		break;
 	case VT_UI2:
 		if ((obUse=PyNumber_Int(obj))==NULL) BREAK_FALSE
-		V_UI2(var) = (short)PyInt_AsLong(obUse);
+		V_UI2(var) = (short)PyLong_AsUnsignedLongMask(obUse);
 		break;
 	case VT_UI2  | VT_BYREF:
 		if (bCreateBuffers)
@@ -1208,7 +1212,7 @@ BOOL PythonOleArgHelper::MakeObjToVariant(PyObject *obj, VARIANT *var, PyObject 
 
 		if (!VALID_BYREF_MISSING(obj)) {
 			if ((obUse=PyNumber_Int(obj))==NULL) BREAK_FALSE
-			*V_UI2REF(var) = (short)PyInt_AsLong(obUse);
+			*V_UI2REF(var) = (unsigned short)PyLong_AsUnsignedLongMask(obUse);
 		} else
 			*V_UI2REF(var) = 0;
 		break;
