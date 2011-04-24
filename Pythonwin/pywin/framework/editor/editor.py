@@ -109,10 +109,10 @@ class EditorDocument(ParentEditorDocument):
 		else:
 			return data
 		
-	def SaveFile(self, fileName):
+	def SaveFile(self, fileName, encoding=None):
 		if isRichText:
 			view = self.GetFirstView()
-			view.SaveTextFile(fileName)
+			view.SaveTextFile(fileName, encoding=encoding)
 		else: # Old style edit view window.
 			self.GetFirstView().SaveFile(fileName)
 		try:

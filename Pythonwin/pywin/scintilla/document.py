@@ -59,9 +59,9 @@ class CScintillaDocument(ParentScintillaDocument):
 				rc = win32ui.MessageBox("Cannot create the file %s" % filename)
 		return 1
 
-	def SaveFile(self, fileName):
+	def SaveFile(self, fileName, encoding=None):
 		view = self.GetFirstView()
-		ok = view.SaveTextFile(fileName)
+		ok = view.SaveTextFile(fileName, encoding=encoding)
 		if ok:
 			view.SCISetSavePoint()
 		return ok
@@ -126,11 +126,9 @@ class CScintillaDocument(ParentScintillaDocument):
 			dec = text.decode(source_encoding)
 		except UnicodeError:
 			print "WARNING: Failed to decode bytes from '%s' encoding - treating as latin1" % source_encoding
-			print "WARNING: Do not modify this file - you will not be able to save it."
 			dec = text.decode('latin1')
 		except LookupError:
 			print "WARNING: Invalid encoding '%s' specified - treating as latin1" % source_encoding
-			print "WARNING: Do not modify this file - you will not be able to save it."
 			dec = text.decode('latin1')
 		# and put it back as utf8 - this shouldn't fail.
 		text = dec.encode(default_scintilla_encoding)
@@ -148,23 +146,24 @@ class CScintillaDocument(ParentScintillaDocument):
 			# set EOL mode
 			view.SendScintilla(scintillacon.SCI_SETEOLMODE, eol_mode)
 
-	def _SaveTextToFile(self, view, filename):
+	def _SaveTextToFile(self, view, filename, encoding=None):
 		s = view.GetTextRange() # already decoded from scintilla's encoding
-		source_encoding = None
-		if self.bom:
-			source_encoding = self.source_encoding
-		else:
-			# no BOM - look for an encoding.
-			bits = re.split("[\r\n]*", s, 3)
-			for look in bits[:-1]:
-				match = re_encoding_text.search(look)
-				if match is not None:
-					source_encoding = match.group(1)
-					self.source_encoding = source_encoding
-					break
-
+		source_encoding = encoding
 		if source_encoding is None:
-			source_encoding = 'latin1'
+			if self.bom:
+				source_encoding = self.source_encoding
+			else:
+				# no BOM - look for an encoding.
+				bits = re.split("[\r\n]*", s, 3)
+				for look in bits[:-1]:
+					match = re_encoding_text.search(look)
+					if match is not None:
+						source_encoding = match.group(1)
+						self.source_encoding = source_encoding
+						break
+	
+			if source_encoding is None:
+				source_encoding = 'latin1'
 
 		## encode data before opening file so script is not lost if encoding fails
 		file_contents = s.encode(source_encoding)

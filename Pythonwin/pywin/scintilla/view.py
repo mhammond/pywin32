@@ -384,9 +384,9 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
 		self.SCIGotoLine(lineNo)
 		return 0
 
-	def SaveTextFile(self, filename):
+	def SaveTextFile(self, filename, encoding=None):
 		doc = self.GetDocument()
-		doc._SaveTextToFile(self, filename)
+		doc._SaveTextToFile(self, filename, encoding=encoding)
 		doc.SetModifiedFlag(0)
 		return 1
 

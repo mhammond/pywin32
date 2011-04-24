@@ -7,6 +7,11 @@ However contributors are encouraged to add their own entries for their work.
 Since build 216:
 ----------------
 
+* Pythonwin now warns, but allows you to continue, when saving a file with
+  an invalid encoding line (bug 3139486)
+
+* Fix win32com.client.WithEvents on py3k (bug bug 3199843)
+
 * When passing integers/unsigned integers to COM objects which did not fit 
   into 32bits, OverflowErrors were silently discarded and -1 was silently 
   passed.  This has been fixed for signed integers (an OverflowError is now 
