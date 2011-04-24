@@ -25,11 +25,11 @@ from pywintypes import TimeType
 import winerror
 import datetime
 
-# A string ending with a quote can not be safely triple-quoted. (Indeed, we
-# consider all things suspect (eg, \n chars, \t chars etc) - so just use
-# repr!
+# It isn't really clear what the quoting rules are in a C/IDL string and
+# literals like a quote char and backslashes makes life a little painful to
+# always render the string perfectly - so just punt and fall-back to a repr()
 def _makeDocString(s, encoding="mbcs"):
-	return repr(s.encode("mbcs"))
+	return repr(s.encode(encoding))
 
 error = "PythonCOM.Client.Build error"
 class NotSupportedException(Exception): pass # Raised when we cant support a param type.
