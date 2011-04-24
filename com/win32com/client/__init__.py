@@ -317,11 +317,14 @@ def WithEvents(disp, user_event_class):
   clsid = disp_class.CLSID
   # Create a new class that derives from 2 classes - the event sink
   # class and the user class.
-  import new
+  try:
+    from types import ClassType as new_type
+  except ImportError:
+    new_type = type # py3k
   events_class = getevents(clsid)
   if events_class is None:
     raise ValueError("This COM object does not support events.")
-  result_class = new.classobj("COMEventClass", (events_class, user_event_class), {})
+  result_class = new_type("COMEventClass", (events_class, user_event_class), {})
   instance = result_class(disp) # This only calls the first base class __init__.
   if hasattr(user_event_class, "__init__"):
     user_event_class.__init__(instance)

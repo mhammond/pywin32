@@ -205,6 +205,22 @@ def TestDynamic():
         TestApplyResult(o.EarliestDate, (now, now), expect)
 
 
+def TestEvents(o, handler):
+    sessions = []
+    handler._Init()
+    try:
+        for i in range(3):
+            session = o.Start()
+            sessions.append(session)
+        time.sleep(.5)
+    finally:
+        # Stop the servers
+        for session in sessions:
+            o.Stop(session)
+        handler._DumpFireds()
+        handler.close()
+
+
 def TestGenerated():
     # Create an instance of the server.
     from win32com.client.gencache import EnsureDispatch
@@ -408,20 +424,11 @@ def TestGenerated():
     # Do the connection point thing...
     # Create a connection object.
     progress("Testing connection points")
-    sessions = []
-    o = win32com.client.DispatchWithEvents( o, RandomEventHandler)
-    o._Init()
-
-    try:
-        for i in range(3):
-            session = o.Start()
-            sessions.append(session)
-        time.sleep(.5)
-    finally:
-        # Stop the servers
-        for session in sessions:
-            o.Stop(session)
-        o._DumpFireds()
+    o2 = win32com.client.DispatchWithEvents(o, RandomEventHandler)
+    TestEvents(o2, o2)
+    # and a plain "WithEvents".
+    handler = win32com.client.WithEvents(o, RandomEventHandler)
+    TestEvents(o, handler)
     progress("Finished generated .py test.")
 
 def TestCounter(counter, bIsGenerated):
