@@ -26,7 +26,7 @@ This module source should run correctly in CPython versions 2.3 and later,
 or IronPython version 2.6 and later,
 or, after running through 2to3.py, CPython 3.0 or later.
 """
-__version__ = '2.4.2.0'
+__version__ = '2.4.2.2'
 version = 'adodbapi v' + __version__
 # N.O.T.E.:...
 # if you have been using an older version of adodbapi and are getting errors because
@@ -395,10 +395,12 @@ def _configure_parameter(p, value, settings_known):
         p.AppendChunk(value)
 
     elif isinstance(value, decimal.Decimal):
-        ##s = str(value)
-        ##p.Value = s
-        ##p.Size = len(s)
-        p.Value = value
+        if onIronPython:
+            s = str(value)
+            p.Value = s
+            p.Size = len(s)
+        else:
+            p.Value = value
         exponent = value.as_tuple()[2]
         digit_count = len(value.as_tuple()[1])
         p.Precision =  digit_count
@@ -496,8 +498,7 @@ class Connection(object):
             self._closeAdoConnection()                      #v2.1 Rose
         except (Exception), e:
             self._raiseConnectionError(InternalError,e)
-        if not onIronPython:
-            pythoncom.CoUninitialize()                             #v2.1 Paj
+        self.adoConn = None                             #v2.4.2.2 fix subtle timeout bug
 
     def commit(self):
         """Commit any pending transaction to the database.
