@@ -2267,11 +2267,6 @@ else:
 ext_modules = win32_extensions + com_extensions + pythonwin_extensions + \
                     other_extensions
 
-if is_py3k:
-    py3k_skip_modules = \
-        """mapi exchange exchdapi""".split()
-    ext_modules = [e for e in ext_modules if e.name not in py3k_skip_modules]
-
 # Build a map of DLL base addresses.  According to Python's PC\dllbase_nt.txt,
 # we start at 0x1e200000 and go up in 0x00020000 increments.  A couple of
 # our modules just go over this limit, so we use 30000.  We also do it sorted

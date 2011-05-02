@@ -68,14 +68,14 @@ static int AddIID(PyObject *dict, const char *key, REFGUID guid)
 %}
 
 %init %{
-	if ( PyCom_RegisterClientType(&PyIExchangeManageStore::type, &IID_IExchangeManageStore) != 0 ) return;
+	if ( PyCom_RegisterClientType(&PyIExchangeManageStore::type, &IID_IExchangeManageStore) != 0 ) return MODINIT_ERROR_RETURN;
 	ADD_IID(IID_IExchangeManageStore);
 %}
 
 // @pyswig int, int|HrGetExchangeStatus|Obtains the current state of the server on a computer.
 // @rdesc The result is a tuple of serviceState, serverState
 HRESULT HrGetExchangeStatus( 
-	TCHAR *server, // @pyparm string/<o PyUnicode>|server||The name of the server to query.
+	char *server, // @pyparm string/<o PyUnicode>|server||The name of the server to query.
 	unsigned long *OUTPUT,
 	unsigned long *OUTPUT
 );
@@ -83,13 +83,13 @@ HRESULT HrGetExchangeStatus(
 // @pyswig string|HrGetMailboxDN|Retrieves the distinguished name (DN) for a mailbox
 HRESULT HrGetMailboxDN(
 	IMAPISession *INPUT, // @pyparm <o IMAPISession>|session||The root folder.
-	TCHAR **OUTPUT_MAPI // mailboxDN
+	char **OUTPUT_MAPI // mailboxDN
 );
 
 // @pyswig string|HrGetServerDN|Retrieves the distinguished name (DN) for a server
 HRESULT HrGetServerDN(
 	IMAPISession *INPUT, // @pyparm <o IMAPISession>|session||The root folder.
-	TCHAR **OUTPUT_MAPI // mailboxDN
+	char **OUTPUT_MAPI // mailboxDN
 );
 
 %native(HrMAPIFindDefaultMsgStore) PyHrMAPIFindDefaultMsgStore;
@@ -324,25 +324,24 @@ done:
 
 %native (HrCreateProfileName) PyHrCreateProfileName;
 %{
-// @pyswig <o PyUnicode>|HrCreateProfileName|Creates a profile with the specified name
+// @pyswig string|HrCreateProfileName|Creates a profile with the specified name
 static PyObject *PyHrCreateProfileName(PyObject *self, PyObject *args) 
 {
     HRESULT  _result;
 	PyObject *obPrefix;
-	TCHAR *prefix;
+	char *prefix;
 	// @pyparm string/<o PyUnicode>|profPrefix||A prefix for the new profile.
 	if (!PyArg_ParseTuple(args, "O:HrCreateProfileName", &obPrefix))
 		return NULL;
-	if (!PyWinObject_AsTCHAR(obPrefix, &prefix))
+	if (!PyWinObject_AsString(obPrefix, &prefix))
 		return NULL;
 	const int bufSize = MAX_PATH + 1;
-	TCHAR buf[bufSize];
+	char buf[bufSize];
 	_result = HrCreateProfileName(prefix, bufSize, buf);
+	PyWinObject_FreeString(prefix);
 	if (FAILED(_result))
 		return OleSetOleError(_result);
-	PyObject *rc = PyWinObject_FromTCHAR(buf);
-	PyWinObject_FreeTCHAR(prefix);
-	return rc;
+	return PyWinCoreString_FromString(buf);
 }
 %}
 
@@ -354,7 +353,7 @@ PyObject *PyHrCreateDirEntryIdEx(PyObject *self, PyObject *args)
 	PyObject *ret = NULL;
 	IAddrBook *pAddrBook;
 	PyObject *obAddrBook, *obDN;
-	TCHAR *szdn = NULL;
+	char *szdn = NULL;
 	LPENTRYID entryId;
 	HRESULT hr;
 	ULONG cbEntryId;
@@ -363,7 +362,7 @@ PyObject *PyHrCreateDirEntryIdEx(PyObject *self, PyObject *args)
 		&obDN))		 // @pyparm string|distinguishedName||The dn of the object to obtain the entry ID for.
 		return NULL;
 
-	if (!PyWinObject_AsString(obDN, (TCHAR **)&szdn, FALSE))
+	if (!PyWinObject_AsString(obDN, &szdn, FALSE))
         goto done;
 
 	if (!PyCom_InterfaceFromPyInstanceOrObject(obAddrBook, IID_IAddrBook, (void **)&pAddrBook, /*BOOL bNoneOK=*/FALSE))
@@ -375,7 +374,7 @@ PyObject *PyHrCreateDirEntryIdEx(PyObject *self, PyObject *args)
 
 	ret = PyString_FromStringAndSize((char *)entryId, cbEntryId);
 done:
-	PyWinObject_FreeTCHAR(szdn);
+	PyWinObject_FreeString(szdn);
 	if (pAddrBook) pAddrBook->Release();
 	return ret;
 }
@@ -433,8 +432,8 @@ HRESULT MyHrMailboxLogon(
 %name(HrMailboxLogon) HRESULT MyHrMailboxLogon(
 	IMAPISession *INPUT, // @pyparm <o PyIMAPISession>|session||The session object
 	IMsgStore *INPUT, // @pyparm <o PyIMsgStore>|msgStore||
-	TCHAR *INPUT, // @pyparm string/<o PyUnicode>|msgStoreDN||
-	TCHAR *INPUT, // @pyparm string/<o PyUnicode>|mailboxDN||
+	char *INPUT, // @pyparm string/<o PyUnicode>|msgStoreDN||
+	char *INPUT, // @pyparm string/<o PyUnicode>|mailboxDN||
 	IMsgStore **OUTPUT
 );
 

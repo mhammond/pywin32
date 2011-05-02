@@ -107,14 +107,14 @@ HRESULT MyHrInstallMailboxAgent(
 
 // @pyswig |HrCreateMailboxAgentProfile|
 HRESULT HrCreateMailboxAgentProfile(
-	TCHAR *INPUT, // @pyparm string|serviceName||The name of the service.
-	TCHAR *INPUT // @pyparm string|profile||The profile.
+	char *INPUT, // @pyparm string|serviceName||The name of the service.
+	char *INPUT // @pyparm string|profile||The profile.
 );
 
 // @pyswig |HrCreateGatewayProfile|
 HRESULT HrCreateGatewayProfile(
-	TCHAR *INPUT, // @pyparm string|serviceName||The name of the service.
-	TCHAR *INPUT // @pyparm string|profile||The profile.
+	char *INPUT, // @pyparm string|serviceName||The name of the service.
+	char *INPUT // @pyparm string|profile||The profile.
 );
 
 
@@ -168,7 +168,7 @@ HRESULT MyHrRemoveMailboxAgent(
 
 // @pyswig |HrRemoveProfile|Removes a profile
 HRESULT HrRemoveProfile(
-	TCHAR *INPUT // @pyparm string|profile||The profile to delete.
+	char *INPUT // @pyparm string|profile||The profile to delete.
 );
 
 // @pyswig [string, ...]|HrEnumOrganizations|Lists the names of the organizations on the server.
@@ -259,6 +259,6 @@ HRESULT MyHrEnumSiteAdmins(
 
 // @pyswig string|HrGetServiceAccountName|Obtains the account name for a service.
 HRESULT HrGetServiceAccountName(
-	TCHAR *INPUT, // @pyparm string|serviceName||The name of the service
-	TCHAR **OUTPUT_MAPI // @pyparm string|serviceName||The name of the service
+	char *INPUT, // @pyparm string|serviceName||The name of the service
+	char **OUTPUT_MAPI // @pyparm string|serviceName||The name of the service
 );

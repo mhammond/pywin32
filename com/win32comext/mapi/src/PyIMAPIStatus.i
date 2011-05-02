@@ -35,7 +35,7 @@ PyIMAPIStatus::~PyIMAPIStatus()
 // @pyparm unicode|oldPassword||
 // @pyparm unicode|newPassword||
 // @pyparm int|ulFlags||
-HRESULT ChangePassword(char *old, char *newPassword, ULONG ulFlags);
+HRESULT ChangePassword(TCHAR *old, TCHAR *newPassword, ULONG ulFlags);
 
 // @pyswig |SettingsDialog|
 // @pyparm int|ulUIParam||

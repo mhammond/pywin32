@@ -579,17 +579,17 @@ typedef unsigned long BOOKMARK;
 	MAPIFreeBuffer($source);
 }
 
-%typemap(python,ignore) TCHAR **OUTPUT_MAPI(TCHAR *temp)
+%typemap(python,ignore) char **OUTPUT_MAPI(char *temp)
 {
   $target = &temp;
 }
 
-%typemap(python,argout) TCHAR **OUTPUT_MAPI {
+%typemap(python,argout) char **OUTPUT_MAPI {
 	if (*$source==NULL) {
 		$target = Py_None;
 		Py_INCREF(Py_None);
 	} else {
-		$target = PyWinObject_FromTCHAR(*$source);
+		$target = PyWinCoreString_FromString(*$source);
 		MAPIFreeBuffer(*$source);
 	}
 }
