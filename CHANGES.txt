@@ -7,6 +7,11 @@ However contributors are encouraged to add their own entries for their work.
 Since build 216:
 ----------------
 
+* The win32com.adsi and win32com.mapi packages have been upgraded to work on
+  Python 3.x and as a result, there is a slight risk that regressions to
+  these packages have been introduced in the Python 2.x versions.  Please
+  file a bug if any problems are found.
+
 * Pythonwin now warns, but allows you to continue, when saving a file with
   an invalid encoding line (bug 3139486)
 
