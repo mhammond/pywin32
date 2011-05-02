@@ -1,0 +1,242 @@
+This is a patch to create the customized version of SWIG used for pywin32.
+
+The patch is against SWIG-1.1p5 which can be found at:
+
+  https://sourceforge.net/projects/swig/files/swig/1.1p5/
+
+or
+
+  http://starship.python.net/crew/mhammond/downloads/swig1.1p5.tar.gz
+
+To build the version of SWIG:
+
+* Unpack the swig tarball
+* Apply this patch.
+* Change to the "Win" directory
+* Execute 'nmake -f makefile.vc
+* Copy the newly created swig.exe from the swig tree to the pywin32 tree.
+
+
+Huge thanks to Amaury Forgeot d'Arc and Roger Upole for rescuing this!
+
+
+--- SWIG1.1p5-orig\Modules\python.cxx	1998-01-03 17:17:40.000000000 +1100
++++ SWIG1.1p5\Modules\python.cxx	2011-04-29 23:28:30.860296500 +1000
+@@ -61,6 +61,8 @@
+ 
+ static   int          doc_index = 0;
+ static   DocString   *doc_strings = 0;
++static   int          PythonCom = 0;                   // Generate PyWin32 header files
++static   char        *PythonCom_Parent = "IUnknown";
+ 
+ static char *usage = "\
+ Python Options (available with -python)\n\
+@@ -113,6 +115,14 @@
+           } else if (strcmp(argv[i],"-docstring") == 0) {
+ 	    docstring = 1;
+ 	    mark_arg(i);
++          } else if (strcmp(argv[i],"-pythoncom") == 0) {
++	    PythonCom = 1;
++	    mark_arg(i);
++          } else if (strcmp(argv[i],"-com_interface_parent") == 0) {
++	    mark_arg(i);
++	    PythonCom_Parent = copy_string(argv[i+1]);
++	    mark_arg(i+1);
++            i++;
+ 	  } else if (strcmp(argv[i],"-help") == 0) {
+ 	    fputs(usage,stderr);
+ 	  }
+@@ -258,6 +268,47 @@
+   }
+   fprintf(f_wrappers,"\t { NULL, NULL }\n");
+   fprintf(f_wrappers,"};\n");
++  if (PythonCom) {
++    fprintf(f_wrappers,"PyComTypeObject Py%s::type(\"Py%s\",", module, module);
++    fprintf(f_wrappers,"\t&Py%s::type,\n", PythonCom_Parent);
++    fprintf(f_wrappers,"\tsizeof(Py%s),\n", module);
++    fprintf(f_wrappers,"\t%sMethods,\n", module);
++    fprintf(f_wrappers,"\tGET_PYCOM_CTOR(Py%s));", module);
++  }
++}
++
++// ---------------------------------------------------------------------
++// PYTHON::print_com_header()
++//
++// Prints out the COM header file
++// ---------------------------------------------------------------------
++
++void PYTHON::print_com_header() {
++  char fn_header[256];
++  sprintf(fn_header, "Py%s.h", module);
++  FILE *f_header = fopen(fn_header, "w");
++ 
++  if (!f_header) {
++    fprintf(stderr, "Unable to open %s\n", fn_header);
++    SWIG_exit(1);
++  }
++
++  fprintf(f_header, "class Py%s : public Py%s\n", module, PythonCom_Parent);
++  fprintf(f_header, "{\npublic:\nMAKE_PYCOM_CTOR(Py%s);\n", module);
++  fprintf(f_header, "static PyComTypeObject type;\nstatic %s *GetI(PyObject *self);\n", module);
++
++  Method *n = head;
++
++  n = head;
++  while (n) {
++    fprintf(f_header, "\tstatic PyObject *%s(PyObject *self, PyObject *args);\n", n->name);
++    n = n->next;
++  }
++
++  fprintf(f_header, "protected:\n\tPy%s(IUnknown *);\n\t~Py%s();\n", module, module);
++  fprintf(f_header, "};\n\n");
++
++  fclose(f_header);
+ }
+ 
+ // ---------------------------------------------------------------------
+@@ -376,6 +427,8 @@
+ void PYTHON::initialize_cmodule(void)
+ {
+   int i;
++  if (PythonCom)
++    return;
+   fprintf(f_header,"#define SWIG_init    init%s\n\n", module);
+   fprintf(f_header,"#define SWIG_name    \"%s\"\n", module);	
+ 
+@@ -389,7 +442,13 @@
+   fprintf(f_init,"extern \"C\" \n");
+   fprintf(f_init,"#endif\n");
+ 
++  fprintf(f_init, "#if (PY_VERSION_HEX < 0x03000000)\n");
++  fprintf(f_init, "#define MODINIT_ERROR_RETURN\n");
+   fprintf(f_init,"SWIGEXPORT(void,init%s)() {\n",module);
++  fprintf(f_init, "#else\n");
++  fprintf(f_init, "#define MODINIT_ERROR_RETURN NULL\n");
++  fprintf(f_init,"SWIGEXPORT(PyObject*,  PyInit_%s)(void) {\n",module);
++  fprintf(f_init, "#endif\n");
+   fprintf(f_init,"\t PyObject *m, *d;\n");
+ 
+   if (InitNames) {
+@@ -400,8 +459,26 @@
+     }
+   }
+   fprintf(f_init,"\t SWIG_globals = SWIG_newvarlink();\n");
++  fprintf(f_init, "#if (PY_VERSION_HEX < 0x03000000)\n");
+   fprintf(f_init,"\t m = Py_InitModule(\"%s\", %sMethods);\n", module, module);
+   fprintf(f_init,"\t d = PyModule_GetDict(m);\n");
++  fprintf(f_init, "#else\n");
++  fprintf(f_init,
++    "  static PyModuleDef %s_def = {\n"
++    "    PyModuleDef_HEAD_INIT,\n"
++    "      \"%s\",\n"
++    "      \"\",\n"
++    "      -1,\n"
++    "      %sMethods,\n"
++    "      };\n"
++    "  m = PyModule_Create(&%s_def);\n"
++    "  if (!m)\n"
++    "    return NULL;\n"
++    "  d = PyModule_GetDict(m);\n"
++    "  if (!d)\n"
++    "    return NULL;\n",
++    module, module, module, module);
++  fprintf(f_init, "#endif\n");
+ }
+ 
+ 
+@@ -417,6 +494,9 @@
+ 
+   print_methods();
+   close_cmodule();
++  if (PythonCom) {
++    print_com_header();
++  }
+   if ((doc_entry) && (module)){
+     String temp;
+     temp << "Python Module : ";
+@@ -469,7 +549,13 @@
+ // --------------------------------------------------------------------
+ void PYTHON::close_cmodule(void)
+ {
+-  emit_ptr_equivalence(f_init);
++  if (PythonCom)
++    return;
++// pywin32 doesn't need the pointer type-equivalency mappings. 
++//  emit_ptr_equivalence(f_init);
++  fprintf(f_init, "#if (PY_VERSION_HEX > 0x03000000)\n");
++  fprintf(f_init,"\treturn m;\n");
++  fprintf(f_init, "#endif\n");
+   fprintf(f_init,"}\n");
+ }
+ 
+@@ -598,9 +684,12 @@
+ // ----------------------------------------------------------------------
+ void PYTHON::emit_function_header(WrapperFunction &emit_to, char *wname)
+ {
+-  emit_to.def << "static PyObject *" << wname
++  if (!PythonCom)
++    emit_to.def << "static ";
++  emit_to.def << "PyObject *" << wname
+ 	      << "(PyObject *self, PyObject *args) {";
+-  emit_to.code << tab4 << "self = self;\n";
++  if (!PythonCom)
++    emit_to.code << tab4 << "self = self;\n";
+ }
+ 
+ // ----------------------------------------------------------------------
+@@ -612,8 +701,13 @@
+ //
+ // Returns the name of the variable to use as the self pointer
+ // ----------------------------------------------------------------------
+-char *PYTHON::convert_self(WrapperFunction &)
++char *PYTHON::convert_self(WrapperFunction &f)
+ {
++  if (PythonCom) {
++    f.code << "\t" << module << " *_swig_self;\n";
++    f.code << "\t" << "if ((_swig_self=GetI(self))==NULL) return NULL;\n";
++    return "_swig_self->";
++  }
+   // Default behaviour is no translation
+   return "";
+ }
+@@ -625,7 +719,14 @@
+ // ----------------------------------------------------------------------
+ char *PYTHON::make_funcname_wrapper(char *fnName)
+ {
+-  return name_wrapper(fnName,"");
++  if (PythonCom) {
++    String wrapper;
++    wrapper << "Py" << module << "::" << fnName;
++    return wrapper;
++  }
++  else {
++    return name_wrapper(fnName,"");
++  }
+ }
+ 
+ // ----------------------------------------------------------------------
+@@ -1629,7 +1730,13 @@
+ // -----------------------------------------------------------------------
+ 
+ void PYTHON::add_native(char *name, char *funcname) {
+-  add_method(name, funcname);
++  if (PythonCom) {
++    String method;
++    method << "Py" << module << "::" << funcname;
++    add_method(name, method);
++  } else {
++    add_method(name, funcname);
++  }
+   if (shadow) {
+     func << name << " = " << module << "." << name << "\n\n";
+   }
+--- SWIG1.1p5-orig\Modules\python.h	1997-07-25 15:18:50.000000000 +1000
++++ SWIG1.1p5\Modules\python.h	2011-04-22 10:53:17.287056400 +1000
+@@ -140,6 +140,7 @@
+   // Add for Python-COM support
+   virtual void initialize_cmodule();
+   virtual void close_cmodule();
++  virtual void print_com_header();
+   virtual void emit_function_header(WrapperFunction &emit_to, char *wname);
+   virtual char *convert_self(WrapperFunction &f);
+   virtual char *make_funcname_wrapper(char *fnName);

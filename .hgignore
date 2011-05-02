@@ -21,7 +21,7 @@ com/win32comext/adsi/src/*.cpp
 com/win32comext/adsi/src/*.h
 com/win32comext/mapi/src/*.cpp
 com/win32comext/mapi/src/*.h
-win32/src/*_py2_swig.cpp
+win32/src/*_swig.cpp
 
 
 # Generated from message files

@@ -1294,18 +1294,11 @@ class my_build_ext(build_ext):
         return build_ext.get_export_symbols(self, ext)
 
     def find_swig(self):
-        if is_py3k and "SWIG_PY3" in os.environ:
-            swig = os.environ["SWIG_PY3"]
-        elif not is_py3k and "SWIG_PY2" in os.environ:
-            swig = os.environ["SWIG_PY2"]
-        elif "SWIG" in os.environ:
+        if "SWIG" in os.environ:
             swig = os.environ["SWIG"]
         else:
             # We know where our swig is
-            if is_py3k:
-                swig = os.path.abspath(r"swig\swig_py3k.exe")
-            else:
-                swig = os.path.abspath(r"swig\swig.exe")
+            swig = os.path.abspath(r"swig\swig.exe")
         lib = os.path.join(os.path.dirname(swig), "swig_lib")
         os.environ["SWIG_LIB"] = lib
         return swig
@@ -1334,14 +1327,12 @@ class my_build_ext(build_ext):
                      os.path.basename(base)=="win32gui":
                     # More vile hacks.  winxpmodule is built from win32gui.i -
                     # just different #defines are setup for windows.h.
-                    pyver = sys.version_info[0] # 2 or 3!
                     new_target = os.path.join(os.path.dirname(base),
-                                              "winxpgui_py%d_swig%s" % (pyver, target_ext))
+                                              "winxpgui_swig%s" % (target_ext,))
                     swig_targets[source] = new_target
                     new_sources.append(new_target)
                 else:
-                    pyver = sys.version_info[0] # 2 or 3!
-                    new_target = '%s_py%d_swig%s' % (base, pyver, target_ext)
+                    new_target = '%s_swig%s' % (base, target_ext)
                     new_sources.append(new_target)
                     swig_targets[source] = new_target
             else:
@@ -1355,9 +1346,7 @@ class my_build_ext(build_ext):
             swig_cmd = [swig, "-python", "-c++"]
             swig_cmd.append("-dnone",) # we never use the .doc files.
             swig_cmd.extend(self.current_extension.extra_swig_commands)
-            if is_py3k:
-                swig_cmd.append("-DSWIG_PY3K")
-            else:
+            if not is_py3k:
                 swig_cmd.append("-DSWIG_PY2K")
             target = swig_targets[source]
             try:
