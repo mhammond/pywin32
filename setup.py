@@ -2269,7 +2269,7 @@ ext_modules = win32_extensions + com_extensions + pythonwin_extensions + \
 
 if is_py3k:
     py3k_skip_modules = \
-        """adsi mapi exchange exchdapi""".split()
+        """mapi exchange exchdapi""".split()
     ext_modules = [e for e in ext_modules if e.name not in py3k_skip_modules]
 
 # Build a map of DLL base addresses.  According to Python's PC\dllbase_nt.txt,

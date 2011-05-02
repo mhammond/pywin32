@@ -111,9 +111,14 @@ PyObject *PyADSIObject_FromADSVALUE(ADSVALUE &v)
 		case ADSTYPE_OCTET_STRING:
 			{
 			void *buf;
-			ob = PyBuffer_New(v.OctetString.dwLength);
-			ob->ob_type->tp_as_buffer->bf_getwritebuffer(ob, 0, &buf);
-			memcpy(buf, v.OctetString.lpValue, v.OctetString.dwLength);
+			DWORD bufSize = v.OctetString.dwLength;
+			if (!(ob=PyBuffer_New(bufSize)))
+				return NULL;
+			if (!PyWinObject_AsWriteBuffer(ob, &buf, &bufSize)){
+				Py_DECREF(ob);
+				return NULL;
+				}
+			memcpy(buf, v.OctetString.lpValue, bufSize);
 			}
 			break;
 		case ADSTYPE_UTC_TIME:
@@ -128,11 +133,16 @@ PyObject *PyADSIObject_FromADSVALUE(ADSVALUE &v)
 		case ADSTYPE_PROV_SPECIFIC:
 			{
 			void *buf;
-			ob = PyBuffer_New(v.ProviderSpecific.dwLength);
-			ob->ob_type->tp_as_buffer->bf_getwritebuffer(ob, 0, &buf);
-			memcpy(buf, v.ProviderSpecific.lpValue, v.ProviderSpecific.dwLength);
+			DWORD bufSize = v.ProviderSpecific.dwLength;
+			if (!(ob=PyBuffer_New(bufSize)))
+				return NULL;
+			if (!PyWinObject_AsWriteBuffer(ob, &buf, &bufSize)){
+				Py_DECREF(ob);
+				return NULL;
 			}
+			memcpy(buf, v.ProviderSpecific.lpValue, bufSize);
 			break;
+			}
 		case ADSTYPE_NT_SECURITY_DESCRIPTOR:
 			{
 			// Get a pointer to the security descriptor.
@@ -148,7 +158,7 @@ PyObject *PyADSIObject_FromADSVALUE(ADSVALUE &v)
 		default:
 			{
 			char msg[100];
-			wsprintf(msg, "Unknown ADS type code 0x%x - None will be returned", v.dwType);
+			sprintf(msg, "Unknown ADS type code 0x%x - None will be returned", v.dwType);
 			PyErr_Warn(PyExc_RuntimeWarning, msg);
 			ob = Py_None;
 			Py_INCREF(ob);
@@ -315,23 +325,7 @@ public:
 		delete (PyADS_OBJECT_INFO *)ob;
 	}
 
-	static int setattr(PyObject *self, char *name, PyObject *v) {
-		if (v == NULL) {
-			PyErr_SetString(PyExc_AttributeError, "can't delete these attributes");
-			return -1;
-		}
-		if (!PyString_Check(v) || !PyUnicode_Check(v)) {
-			PyErr_SetString(PyExc_TypeError, "The attribute must be a string, or None");
-			return -1;
-		}
-		return PyMember_Set((char *)self, memberlist, name, v);
-	}
-
-	static PyObject *getattr(PyObject *self, char *name) {
-		return PyMember_Get((char *)self, memberlist, name);
-	}
-
-	static struct memberlist memberlist[];
+	static struct PyMemberDef memberlist[];
 	static PyTypeObject PyADS_OBJECT_INFO::Type;
 protected:
 	PyObject *obRDN, *obObjectDN, *obParentDN, *obClassName;
@@ -340,15 +334,14 @@ protected:
 
 PyTypeObject PyADS_OBJECT_INFO::Type =
 {
-	PyObject_HEAD_INIT(&PyType_Type)
-	0,
+	PYWIN_OBJECT_HEAD
 	"PyADS_OBJECT_INFO",
 	sizeof(PyADS_OBJECT_INFO),
 	0,
 	PyADS_OBJECT_INFO::deallocFunc,		/* tp_dealloc */
 	0,		/* tp_print */
-	PyADS_OBJECT_INFO::getattr,				/* tp_getattr */
-	PyADS_OBJECT_INFO::setattr,				/* tp_setattr */
+	0,						/* tp_getattr */
+	0,						/* tp_setattr */
 	0,	/* tp_compare */
 	0,						/* tp_repr */
 	0,						/* tp_as_number */
@@ -357,11 +350,13 @@ PyTypeObject PyADS_OBJECT_INFO::Type =
 	0,
 	0,						/* tp_call */
 	0,		/* tp_str */
+	PyObject_GenericGetAttr,			/* tp_getattro */
+	PyObject_GenericSetAttr,			/* tp_setattro */
 };
 
 #define OFF(e) offsetof(PyADS_OBJECT_INFO, e)
 
-/*static*/ struct memberlist PyADS_OBJECT_INFO::memberlist[] = {
+/*static*/ struct PyMemberDef PyADS_OBJECT_INFO::memberlist[] = {
 	{"RDN",        T_OBJECT,   OFF(obRDN)}, // @prop unicode|RDN|The name
 	{"ObjectDN",   T_OBJECT,   OFF(obObjectDN)}, // @prop unicode|ObjectDN|
 	{"ParentDN",   T_OBJECT,   OFF(obParentDN)}, // @prop unicode|ParentDN|
@@ -466,15 +461,10 @@ public:
 		delete (PyADS_ATTR_INFO *)ob;
 	}
 
-	static int setattr(PyObject *self, char *name, PyObject *v) {
-		if (v == NULL) {
-			PyErr_SetString(PyExc_AttributeError, "can't delete these attributes");
-			return -1;
-		}
-		return PyMember_Set((char *)self, memberlist, name, v);
-	}
-
-	static PyObject *getattr(PyObject *self, char *name) {
+	static PyObject *getattro(PyObject *self, PyObject *obname) {
+		char *name=PYWIN_ATTR_CONVERT(obname);
+		if (name==NULL)
+			return NULL;
 		if (strcmp(name, "__members__")==0) {
 			PyObject *ret = PyList_New(4);
 			if (ret) {
@@ -492,12 +482,11 @@ public:
 			Py_INCREF(ret);
 			return ret;
 		}
-
-		return PyMember_Get((char *)self, memberlist, name);
+		return PyObject_GenericGetAttr(self, obname);
 	}
 
 //#pragma warning( disable : 4251 )
-	static struct memberlist memberlist[];
+	static struct PyMemberDef memberlist[];
 //#pragma warning( default : 4251 )
 	static PyTypeObject PyADS_ATTR_INFO::Type;
 protected:
@@ -513,15 +502,14 @@ protected:
 
 PyTypeObject PyADS_ATTR_INFO::Type =
 {
-	PyObject_HEAD_INIT(&PyType_Type)
-	0,
+	PYWIN_OBJECT_HEAD
 	"PyADS_ATTR_INFO",
 	sizeof(PyADS_ATTR_INFO),
 	0,
 	PyADS_ATTR_INFO::deallocFunc,		/* tp_dealloc */
 	0,		/* tp_print */
-	PyADS_ATTR_INFO::getattr,				/* tp_getattr */
-	PyADS_ATTR_INFO::setattr,				/* tp_setattr */
+	0,						/* tp_getattr */
+	0,						/* tp_setattr */
 	0,	/* tp_compare */
 	0,						/* tp_repr */
 	0,						/* tp_as_number */
@@ -530,12 +518,14 @@ PyTypeObject PyADS_ATTR_INFO::Type =
 	0,
 	0,						/* tp_call */
 	0,		/* tp_str */
+	PyADS_ATTR_INFO::getattro,			/* tp_getattro */
+	PyObject_GenericSetAttr,			/* tp_setattro */
 };
 
 #undef OFF
 #define OFF(e) offsetof(PyADS_ATTR_INFO, e)
 
-/*static*/ struct memberlist PyADS_ATTR_INFO::memberlist[] = {
+/*static*/ struct PyMemberDef PyADS_ATTR_INFO::memberlist[] = {
 	{"AttrName",        T_OBJECT,   OFF(obName)}, // @prop unicode|AttrName|The name
 	{"ControlCode",     T_INT,      OFF(dwControlCode)}, // @prop integer|ControlCode|
 	{"ADsType",         T_INT,      OFF(dwADsType)}, // @prop integer|ADsType|

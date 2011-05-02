@@ -1,7 +1,9 @@
 // Directory Service Object Picker objects.
 // @doc
+#ifndef UNICODE
 #define UNICODE
 #define _UNICODE
+#endif
 #include "PyWinTypes.h"
 #include "PythonCOM.h"
 #include "Objsel.h"
@@ -148,8 +150,7 @@ PySequenceMethods PyDSOP_SCOPE_INIT_INFOs_sequencemethods=
 
 PyTypeObject PyDSOP_SCOPE_INIT_INFOsType =
 {
-	PyObject_HEAD_INIT(&PyType_Type)
-	0,
+	PYWIN_OBJECT_HEAD
 	"PyDSOP_SCOPE_INIT_INFOs",
 	sizeof(PyDSOP_SCOPE_INIT_INFOs),
 	0,
@@ -245,8 +246,7 @@ BOOL PyObject_AsDSOP_SCOPE_INIT_INFOs(PyObject *ob, DSOP_SCOPE_INIT_INFO**p, ULO
 // <nl>These objects can only be accessed by indexing a <o PyDSOP_SCOPE_INIT_INFOs> object.
 PyTypeObject PyDSOP_SCOPE_INIT_INFOType =
 {
-	PyObject_HEAD_INIT(&PyType_Type)
-	0,
+	PYWIN_OBJECT_HEAD
 	"PyDSOP_SCOPE_INIT_INFO",
 	sizeof(PyDSOP_SCOPE_INIT_INFO),
 	0,
@@ -368,8 +368,7 @@ void PyDSOP_SCOPE_INIT_INFO::deallocFunc(PyObject *ob)
 // <nl>These objects can only be accessed via a <o PyDSOP_SCOPE_INIT_INFO> object.
 PyTypeObject PyDSOP_FILTER_FLAGSType =
 {
-	PyObject_HEAD_INIT(&PyType_Type)
-	0,
+	PYWIN_OBJECT_HEAD
 	"PyDSOP_FILTER_FLAGS",
 	sizeof(PyDSOP_FILTER_FLAGS),
 	0,
@@ -469,8 +468,7 @@ void PyDSOP_FILTER_FLAGS::deallocFunc(PyObject *ob)
 // <nl>These objects can only be accessed via a <o PyDSOP_FILTER_FLAGS> object.
 PyTypeObject PyDSOP_UPLEVEL_FILTER_FLAGSType =
 {
-	PyObject_HEAD_INIT(&PyType_Type)
-	0,
+	PYWIN_OBJECT_HEAD
 	"PyDSOP_UPLEVEL_FILTER_FLAGS",
 	sizeof(PyDSOP_UPLEVEL_FILTER_FLAGS),
 	0,
