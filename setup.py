@@ -456,7 +456,7 @@ class WinExt (Extension):
             if self.delay_load_libraries:
                 self.libraries.append("delayimp")
                 for delay_lib in self.delay_load_libraries:
-                    self.extra_link_args.append("/delayload:%s.lib" % delay_lib)
+                    self.extra_link_args.append("/delayload:%s.dll" % delay_lib)
 
             # If someone needs a specially named implib created, handle that
             if self.implib_name:
