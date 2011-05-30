@@ -12,6 +12,7 @@
 
 #undef PyHANDLE
 #include "PyWinObjects.h"
+#include "WinEvt.h"
 
 // @object PyEVTLOG_HANDLE|Object representing a handle to the windows event log.
 //   Identical to <o PyHANDLE>, but calls CloseEventLog() on destruction
@@ -30,6 +31,26 @@ public:
 		return "PyEVTLOG_HANDLE";
 	}
 };
+
+// @object PyEVT_HANDLE|Handle to an event log, session, query, or any other object used with
+//	the Evt* event log functions on Vista and later.
+//	When the object is destroyed, EvtClose is called.
+class PyEVT_HANDLE: public PyHANDLE
+{
+public:
+	PyEVT_HANDLE(HANDLE hInit) : PyHANDLE(hInit) {}
+	virtual BOOL Close(void){
+		BOOL ret=EvtClose(m_handle);
+		if (!ret)
+			PyWin_SetAPIError("EvtClose");
+		m_handle = 0;
+		return ret;
+		}
+	virtual const char *GetTypeName(){
+		return "PyEVT_HANDLE";
+		}
+};
+
 #define PyHANDLE HANDLE
 
 PyObject *PyWinObject_FromEVTLOG_HANDLE(HANDLE h)
@@ -40,6 +61,15 @@ PyObject *PyWinObject_FromEVTLOG_HANDLE(HANDLE h)
 	return ret;
 }
 
+PyObject *PyWinObject_FromEVT_HANDLE(HANDLE h)
+{
+	PyObject *ret=new PyEVT_HANDLE(h);
+	if (ret==NULL){
+		EvtClose(h);
+		PyErr_NoMemory();
+		}
+	return ret;
+}
 %}
 
 %typemap(python,except) PyEVTLOG_HANDLE {
@@ -435,4 +465,135 @@ RegisterEventSourceW (
      PyObject   *obRawData	// @pyparm str|RawData||Binary data for event, can be None
     );
 
+%{
 
+
+// New event log functions available on Vista and later
+// @pyswig <o PyEVT_HANDLE>|EvtOpenChannelEnum|Begins an enumeration of event channels
+static PyObject *PyEvtOpenChannelEnum(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+	static char *keywords[]={"Session", "Flags", NULL};
+	EVT_HANDLE session=NULL, enum_handle;
+	DWORD flags=0;
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|O&k:EvtOpenChannelEnum", keywords,
+		PyWinObject_AsHANDLE, &session,	// @pyparm <o PyEVT_HANDLE>|Session|None|Handle to a remote session (see <om win32evtlog.EvtOpenSession>), or None for local machine.
+		&flags))						// @pyparm int|Flags|0|Reserved, use only 0
+		return NULL;
+	enum_handle=EvtOpenChannelEnum(session, flags);
+	if (enum_handle==NULL)
+		return PyWin_SetAPIError("EvtOpenChannelEnum");
+	return PyWinObject_FromEVT_HANDLE(enum_handle);
+}
+PyCFunction pfnPyEvtOpenChannelEnum = (PyCFunction) PyEvtOpenChannelEnum;
+
+// @pyswig str|EvtNextChannelPath|Retrieves a channel path from an enumeration
+// @rdesc Returns None at end of enumeration
+static PyObject *PyEvtNextChannelPath(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+	static char *keywords[]={"ChannelEnum", NULL};
+	EVT_HANDLE enum_handle;
+	DWORD allocated_size=256, returned_size, err;
+	WCHAR *buf=NULL;
+	PyObject *ret=NULL;
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O&:EvtNextChannelPath", keywords,
+		PyWinObject_AsHANDLE, &enum_handle))	// @pyparm <o PyEVT_HANDLE>|ChannelEnum||Handle to an enumeration as returned by <om win32evtlog.EvtOpenChannelEnum>
+		return NULL;
+	while (true){
+		if (buf)
+			free(buf);
+		// MSDN docs say sized are in bytes, but it doesn't seem to be so ???
+		WCHAR *buf=(WCHAR *)malloc(allocated_size * sizeof(WCHAR));
+		if (!buf)
+			return NULL;
+		if (EvtNextChannelPath(enum_handle, allocated_size, buf, &returned_size)){
+			ret=PyWinObject_FromWCHAR(buf);
+			break;
+			}
+		err=GetLastError();
+		if (err==ERROR_INSUFFICIENT_BUFFER){
+			allocated_size=returned_size;
+			continue;
+			}
+		if (err==ERROR_NO_MORE_ITEMS){
+			Py_INCREF(Py_None);
+			ret=Py_None;
+			break;
+			}
+		PyWin_SetAPIError("EvtNextChannelPath", err);
+		break;
+	}
+	if (buf)
+		free(buf);
+	return ret;
+}
+PyCFunction pfnPyEvtNextChannelPath = (PyCFunction) PyEvtNextChannelPath;
+
+// @pyswig <o PyEVT_HANDLE>|EvtOpenLog|Opens an event log or exported log archive
+static PyObject *PyEvtOpenLog(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+	static char *keywords[]={"Path", "Flags", "Session", NULL};
+	EVT_HANDLE session=NULL, log_handle;
+	DWORD flags=0;
+	WCHAR *path;
+	PyObject *obpath;
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "Ok|O&:EvtOpenLog", keywords,
+		&obpath,						// @pyparm str|Path||Event log name or Path of an export file
+		&flags,						// @pyparm int|Flags||EvtOpenChannelPath (1) or EvtOpenFilePath (2)
+		PyWinObject_AsHANDLE, &session))	// @pyparm <o PyEVT_HANDLE>|Session|None|Handle to a remote session (see <om win32evtlog.EvtOpenSession>), or None for local machine.
+		return NULL;
+	if (!PyWinObject_AsWCHAR(obpath, &path, FALSE))
+		return NULL;
+	log_handle=EvtOpenLog(session, path, flags);
+	PyWinObject_FreeWCHAR(path);
+	if (log_handle==NULL)
+		return PyWin_SetAPIError("EvtOpenLog");
+	return PyWinObject_FromEVT_HANDLE(log_handle);
+}
+PyCFunction pfnPyEvtOpenLog = (PyCFunction) PyEvtOpenLog;
+
+// @pyswig |EvtClearLog|Clears an event log and optionally exports events to an archive
+static PyObject *PyEvtClearLog(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+	static char *keywords[]={"ChannelPath", "TargetFilePath", "Session", "Flags", NULL};
+	EVT_HANDLE session=NULL;
+	DWORD flags=0;
+	WCHAR *path=NULL, *export_path=NULL;
+	PyObject *obpath, *obexport_path=Py_None, *ret=NULL;
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O|OO&k:EvtClearLog", keywords,
+		&obpath,	// @pyparm str|ChannelPath||Name of event log to be cleared
+		&obexport_path, // @pyparm str|TargetFilePath|None|Name of file in which cleared events will be archived, or None
+		PyWinObject_AsHANDLE, &session,	// @pyparm <o PyEVT_HANDLE>|Session|None|Handle to a remote session (see <om win32evtlog.EvtOpenSession>), or None for local machine.
+		&flags))		// @pyparm int|Flags|0|Reserved, use only 0
+		return NULL;
+	if (PyWinObject_AsWCHAR(obpath, &path, FALSE)
+		&&PyWinObject_AsWCHAR(obexport_path, &export_path, TRUE)){
+		if (EvtClearLog(session, path, export_path, flags)){
+			Py_INCREF(Py_None);
+			ret=Py_None;
+			}
+		else
+			PyWin_SetAPIError("EvtClearLog");
+		}
+	PyWinObject_FreeWCHAR(path);
+	PyWinObject_FreeWCHAR(export_path);
+	return ret;
+}
+PyCFunction pfnPyEvtClearLog = (PyCFunction) PyEvtClearLog;
+%}
+
+%native (EvtOpenChannelEnum) pfnPyEvtOpenChannelEnum;
+%native (EvtNextChannelPath) pfnPyEvtNextChannelPath;
+%native (EvtOpenLog) pfnPyEvtOpenLog;
+%native (EvtClearLog) pfnPyEvtClearLog;
+
+%init %{
+    for (PyMethodDef *pmd = win32evtlogMethods;pmd->ml_name;pmd++)
+        if   ((strcmp(pmd->ml_name, "EvtOpenChannelEnum")==0)
+			||(strcmp(pmd->ml_name, "EvtNextChannelPath")==0) 
+			||(strcmp(pmd->ml_name, "EvtOpenLog")==0)
+			||(strcmp(pmd->ml_name, "EvtClearLog")==0)
+			||(strcmp(pmd->ml_name, "EvtOpenSession")==0)
+			){
+			pmd->ml_flags = METH_VARARGS | METH_KEYWORDS;
+			}
+%}

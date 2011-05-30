@@ -1592,10 +1592,7 @@ for info in (
               """),
         ("win32event", "user32", None, None, "win32/src/win32event.i"),
         ("win32clipboard", "gdi32 user32 shell32", None),
-        ("win32evtlog", "advapi32 oleaut32", None, None, """
-            win32\\src\\win32evtlog_messages.mc
-            win32\\src\\win32evtlog.i
-            """),
+
         # win32gui handled below
         ("win32job", "user32", True, 0x0500, 'win32/src/win32job.i'),
         ("win32lz", "lz32", None),
@@ -1651,6 +1648,14 @@ for info in (
 
 # The few that need slightly special treatment
 win32_extensions += [
+    WinExt_win32("win32evtlog",
+            sources = """
+                win32\\src\\win32evtlog_messages.mc win32\\src\\win32evtlog.i
+                """.split(),
+                libraries="advapi32 oleaut32",
+                delay_load_libraries="wevtapi",
+                windows_h_version=0x0600
+        ),
     WinExt_win32("win32api",
            sources = """
                 win32/src/win32apimodule.cpp win32/src/win32api_display.cpp
