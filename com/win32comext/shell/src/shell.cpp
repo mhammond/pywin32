@@ -156,6 +156,9 @@ static PFNSHCreateItemWithParent pfnSHCreateItemWithParent = NULL;
 typedef HRESULT (WINAPI *PFNSHGetIDListFromObject)(IUnknown *, PIDLIST_ABSOLUTE *);
 static PFNSHGetIDListFromObject pfnSHGetIDListFromObject = NULL;
 
+typedef HRESULT (WINAPI *PFNSHCreateShellItem)(PCIDLIST_ABSOLUTE, IShellFolder *, PCUITEMID_CHILD, IShellItem **);
+static PFNSHCreateShellItem pfnSHCreateShellItem = NULL;
+
 
 void PyShell_FreeMem(void *p)
 {
@@ -3184,6 +3187,60 @@ done:
 }
 
 
+
+
+// @pymethod <o PyIShellItem>|shell|SHCreateShellItem|Creates an IShellItem interface from a PIDL
+static PyObject *PySHCreateShellItem(PyObject *self, PyObject *args)
+{
+	// @comm This function is only available on XP and later; a
+	// COM exception with E_NOTIMPL will be thrown if the function can't be located.
+	if (pfnSHCreateShellItem==NULL)
+		return PyCom_BuildPyException(E_NOTIMPL);
+
+	PyObject *ret = NULL;
+	PyObject *obparent_pidl, *obparent_folder, *obitem;
+	// @pyparm <o PyIDL>|pidlParent||PIDL of parent folder, can be None
+	// @pyparm <o PyIShellFolder>|sfParent||IShellFolder interface of parent folder, can be None
+	// @pyparm <o PyIDL>|Child||PIDL identifying desired item.  Must be an absolute PIDL if parent is not specified.
+	if(!PyArg_ParseTuple(args, "OOO:SHCreateShellItem", &obparent_pidl, &obparent_folder, &obitem))
+		return NULL;
+
+	PIDLIST_ABSOLUTE parent_pidl=NULL;
+	IShellFolder *parent_folder=NULL;
+	PUITEMID_CHILD item=NULL;
+	IShellItem *isi=NULL;
+	HRESULT hr;
+	if (!PyObject_AsPIDL(obparent_pidl, &parent_pidl, TRUE))
+		goto done;
+	if (!PyCom_InterfaceFromPyInstanceOrObject(obparent_folder, IID_IShellFolder, (void **)&parent_folder, TRUE))
+		goto done;
+	if (!PyObject_AsPIDL(obitem, &item, FALSE))
+		goto done;
+
+	PY_INTERFACE_PRECALL;
+	hr = (*pfnSHCreateShellItem)(parent_pidl, parent_folder, item, &isi);
+	PY_INTERFACE_POSTCALL;
+
+	if (FAILED(hr)) {
+		PyCom_BuildPyException(hr);
+		goto done;
+	}
+	ret = PyCom_PyObjectFromIUnknown((IUnknown *)isi, IID_IShellItem, FALSE);
+done:
+	if (parent_folder) {
+		PY_INTERFACE_PRECALL;
+		parent_folder->Release();
+		PY_INTERFACE_POSTCALL;
+	}
+	if (parent_pidl)
+		PyObject_FreePIDL(parent_pidl);
+	if (item)
+		PyObject_FreePIDL(item);
+
+	return ret;
+}
+
+
 /* List of module functions */
 // @module shell|A module wrapping Windows Shell functions and interfaces
 static struct PyMethodDef shell_methods[]=
@@ -3240,6 +3297,7 @@ static struct PyMethodDef shell_methods[]=
 	{ "ShellExecuteEx", (PyCFunction)PyShellExecuteEx, METH_VARARGS|METH_KEYWORDS}, // @pymeth ShellExecuteEx|Performs an action on a file.
 	{ "SHGetViewStatePropertyBag", PySHGetViewStatePropertyBag, METH_VARARGS}, // @pymeth SHGetViewStatePropertyBag|Retrieves an interface for a folder's view state
 	{ "SHILCreateFromPath", PySHILCreateFromPath, METH_VARARGS}, // @pymeth SHILCreateFromPath|Returns the PIDL and attributes of a path
+	{ "SHCreateShellItem", PySHCreateShellItem, METH_VARARGS}, // @pymeth SHCreateShellItem|Creates an IShellItem interface from a PIDL
 	{ NULL, NULL },
 };
 
@@ -3297,6 +3355,7 @@ static const PyCom_InterfaceSupportInfo g_interfaceSupportData[] =
 	PYCOM_INTERFACE_IID_ONLY(ShellCopyHookW),
 	PYCOM_INTERFACE_IID_ONLY(ShellCopyHook),
 	PYCOM_INTERFACE_FULL(ShellItem),
+	PYCOM_INTERFACE_CLSID_ONLY(ShellItem),
 	PYCOM_INTERFACE_FULL(ShellItemArray),
 	PYCOM_INTERFACE_CLIENT_ONLY(ShellLinkDataList),
 	PYCOM_INTERFACE_CLIENT_ONLY(UniformResourceLocator),
@@ -3371,7 +3430,7 @@ PYWIN_MODULE_INIT_FUNC(shell)
 		pfnSHCreateItemInKnownFolder =(PFNSHCreateItemInKnownFolder)GetProcAddress(shell32, "SHCreateItemInKnownFolder");
 		pfnSHCreateItemWithParent =(PFNSHCreateItemWithParent)GetProcAddress(shell32, "SHCreateItemWithParent");
 		pfnSHGetIDListFromObject =(PFNSHGetIDListFromObject)GetProcAddress(shell32, "SHGetIDListFromObject");
-
+		pfnSHCreateShellItem =(PFNSHCreateShellItem)GetProcAddress(shell32, "SHCreateShellItem");
 	}
 	// SHGetFolderPath comes from shfolder.dll on older systems
 	if (pfnSHGetFolderPath==NULL){
