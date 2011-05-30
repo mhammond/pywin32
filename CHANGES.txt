@@ -37,6 +37,10 @@ Since build 216:
 
 * Source-code management moved from CVS to Mercurual.
 
+* win32com.shell - Added SHCreateShellItem
+
+* win32evtlog - Added some of the new event log functions introduced in Vista/Windows 7
+
 Since build 215:
 ----------------
 * New loader module for COM objects to avoid some CRT manifest issues.
