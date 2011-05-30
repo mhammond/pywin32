@@ -126,8 +126,36 @@ PyObject *PyObject_FromPROPVARIANT( PROPVARIANT *pVar )
 				return Py_None;
 			}
 			return PyString_FromString(pVar->pszVal);
+		case VT_LPSTR|VT_VECTOR:
+			{
+				PyObject *ret = PyList_New(pVar->calpstr.cElems);
+				if (ret==NULL) return NULL;
+				for (ULONG i=0; i<pVar->calpstr.cElems;i++){
+					PyObject *elem=PyString_FromString(pVar->calpstr.pElems[i]);
+					if (elem==NULL){
+						Py_DECREF(ret);
+						return NULL;
+						}
+					PyList_SET_ITEM(ret, i, elem);
+					}
+				return ret;
+			}
 		case VT_LPWSTR:
 			return PyWinObject_FromOLECHAR(pVar->pwszVal);
+		case VT_LPWSTR|VT_VECTOR:
+			{
+				PyObject *ret = PyList_New(pVar->calpwstr.cElems);
+				if (ret==NULL) return NULL;
+				for (ULONG i=0; i<pVar->calpwstr.cElems;i++){
+					PyObject *elem=PyWinObject_FromWCHAR(pVar->calpwstr.pElems[i]);
+					if (elem==NULL){
+						Py_DECREF(ret);
+						return NULL;
+						}
+					PyList_SET_ITEM(ret, i, elem);
+					}
+				return ret;
+			}
 		case VT_CLSID:
 			return PyWinObject_FromIID(*pVar->puuid);
 		case VT_STREAM:
@@ -136,6 +164,9 @@ PyObject *PyObject_FromPROPVARIANT( PROPVARIANT *pVar )
 		case VT_STORAGE:
 		case VT_STORED_OBJECT:
 			return PyCom_PyObjectFromIUnknown(pVar->pStorage, IID_IStorage, TRUE);
+		case VT_VECTOR | VT_VARIANT:
+			return PyObject_FromPROPVARIANTs(pVar->capropvar.pElems, pVar->capropvar.cElems);
+
 //		case VT_UNKNOWN:
 //			return PyCom_PyObjectFromIUnknown(pVar->punkVal, IID_IUnknown, TRUE);
 //		case VT_DISPATCH:
