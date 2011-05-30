@@ -60,6 +60,7 @@ WIN32COM_SOURCE = \
 	  $(WIN32COMEXT_DIR)\authorization\src\*.cpp \
 	  $(WIN32COMEXT_DIR)\authorization\src\*.h \
 	  $(WIN32COMEXT_DIR)\directsound\src\*.cpp \
+	  $(WIN32COMEXT_DIR)\propsys\src\*.cpp \
 	  $(WIN32COM_DIR)\src\include\*.h \
 	  $(MAPI_DIR)\src\*.cpp \
 	  $(GENDIR)\mapi.d \
