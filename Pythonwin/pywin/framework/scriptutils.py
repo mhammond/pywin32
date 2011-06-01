@@ -315,6 +315,7 @@ def RunScript(defName=None, defArgs=None, bShowDialog = 1, debuggingType=None):
 		_HandlePythonFailure("run script", script)
 		# No code object which to run/debug.
 		return
+	__main__.__file__=script
 	try:
 		if debuggingType == RS_DEBUGGER_STEP:
 			debugger.run(codeObject, __main__.__dict__, start_stepping=1)
@@ -349,6 +350,7 @@ def RunScript(defName=None, defArgs=None, bShowDialog = 1, debuggingType=None):
 			interact.edit.currentView.AppendToPrompt([])
 		if debuggingType == RS_DEBUGGER_PM:
 			debugger.pm()
+	del __main__.__file__
 	sys.argv = oldArgv
 	if insertedPath0:
 		del sys.path[0]
