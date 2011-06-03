@@ -125,13 +125,13 @@ PyObject *PyObject_FromPROPVARIANT( PROPVARIANT *pVar )
 				Py_INCREF(Py_None);
 				return Py_None;
 			}
-			return PyString_FromString(pVar->pszVal);
+			return PyWinCoreString_FromString(pVar->pszVal);
 		case VT_LPSTR|VT_VECTOR:
 			{
 				PyObject *ret = PyList_New(pVar->calpstr.cElems);
 				if (ret==NULL) return NULL;
 				for (ULONG i=0; i<pVar->calpstr.cElems;i++){
-					PyObject *elem=PyString_FromString(pVar->calpstr.pElems[i]);
+					PyObject *elem=PyWinCoreString_FromString(pVar->calpstr.pElems[i]);
 					if (elem==NULL){
 						Py_DECREF(ret);
 						return NULL;
