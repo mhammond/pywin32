@@ -1,7 +1,8 @@
 /* File : win32evtlog.i */
 
 %module win32evtlog // A module, encapsulating the Windows Win32 event log API.
-
+// <nl>The Evt* functions are only available on Vista and later.  Attempting to call
+//	them on XP will result in the process exiting, rather than a python exception.
 
 %include "typemaps.i"
 %include "pywin32.i"
@@ -13,6 +14,24 @@
 #undef PyHANDLE
 #include "PyWinObjects.h"
 #include "WinEvt.h"
+
+// Automatically freed WCHAR that can be used anywhere WCHAR * is required
+class TmpWCHAR
+{
+public:
+	WCHAR *tmp;
+	TmpWCHAR() { tmp=NULL; }
+	TmpWCHAR(WCHAR *t) { tmp=t; }
+	WCHAR * operator= (WCHAR *t){
+		PyWinObject_FreeWCHAR(tmp);
+		tmp=t;
+		return t;
+		}
+	WCHAR ** operator& () {return &tmp;}
+	boolean operator== (WCHAR *t) { return tmp==t; }
+	operator WCHAR *() { return tmp; }
+	~TmpWCHAR() { PyWinObject_FreeWCHAR(tmp); }
+};
 
 // @object PyEVTLOG_HANDLE|Object representing a handle to the windows event log.
 //   Identical to <o PyHANDLE>, but calls CloseEventLog() on destruction
@@ -470,6 +489,7 @@ RegisterEventSourceW (
 
 // New event log functions available on Vista and later
 // @pyswig <o PyEVT_HANDLE>|EvtOpenChannelEnum|Begins an enumeration of event channels
+// @comm Accepts keyword args
 static PyObject *PyEvtOpenChannelEnum(PyObject *self, PyObject *args, PyObject *kwargs)
 {
 	static char *keywords[]={"Session", "Flags", NULL};
@@ -488,6 +508,7 @@ PyCFunction pfnPyEvtOpenChannelEnum = (PyCFunction) PyEvtOpenChannelEnum;
 
 // @pyswig str|EvtNextChannelPath|Retrieves a channel path from an enumeration
 // @rdesc Returns None at end of enumeration
+// @comm Accepts keyword args
 static PyObject *PyEvtNextChannelPath(PyObject *self, PyObject *args, PyObject *kwargs)
 {
 	static char *keywords[]={"ChannelEnum", NULL};
@@ -501,7 +522,7 @@ static PyObject *PyEvtNextChannelPath(PyObject *self, PyObject *args, PyObject *
 	while (true){
 		if (buf)
 			free(buf);
-		// MSDN docs say sized are in bytes, but it doesn't seem to be so ???
+		// MSDN docs say sizes are in bytes, but it doesn't seem to be so ???
 		WCHAR *buf=(WCHAR *)malloc(allocated_size * sizeof(WCHAR));
 		if (!buf)
 			return NULL;
@@ -529,6 +550,7 @@ static PyObject *PyEvtNextChannelPath(PyObject *self, PyObject *args, PyObject *
 PyCFunction pfnPyEvtNextChannelPath = (PyCFunction) PyEvtNextChannelPath;
 
 // @pyswig <o PyEVT_HANDLE>|EvtOpenLog|Opens an event log or exported log archive
+// @comm Accepts keyword args
 static PyObject *PyEvtOpenLog(PyObject *self, PyObject *args, PyObject *kwargs)
 {
 	static char *keywords[]={"Path", "Flags", "Session", NULL};
@@ -552,39 +574,128 @@ static PyObject *PyEvtOpenLog(PyObject *self, PyObject *args, PyObject *kwargs)
 PyCFunction pfnPyEvtOpenLog = (PyCFunction) PyEvtOpenLog;
 
 // @pyswig |EvtClearLog|Clears an event log and optionally exports events to an archive
+// @comm Accepts keyword args
 static PyObject *PyEvtClearLog(PyObject *self, PyObject *args, PyObject *kwargs)
 {
 	static char *keywords[]={"ChannelPath", "TargetFilePath", "Session", "Flags", NULL};
 	EVT_HANDLE session=NULL;
 	DWORD flags=0;
-	WCHAR *path=NULL, *export_path=NULL;
-	PyObject *obpath, *obexport_path=Py_None, *ret=NULL;
+	TmpWCHAR path, export_path;
+	PyObject *obpath, *obexport_path=Py_None;
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O|OO&k:EvtClearLog", keywords,
 		&obpath,	// @pyparm str|ChannelPath||Name of event log to be cleared
 		&obexport_path, // @pyparm str|TargetFilePath|None|Name of file in which cleared events will be archived, or None
 		PyWinObject_AsHANDLE, &session,	// @pyparm <o PyEVT_HANDLE>|Session|None|Handle to a remote session (see <om win32evtlog.EvtOpenSession>), or None for local machine.
 		&flags))		// @pyparm int|Flags|0|Reserved, use only 0
 		return NULL;
-	if (PyWinObject_AsWCHAR(obpath, &path, FALSE)
-		&&PyWinObject_AsWCHAR(obexport_path, &export_path, TRUE)){
-		if (EvtClearLog(session, path, export_path, flags)){
-			Py_INCREF(Py_None);
-			ret=Py_None;
-			}
-		else
-			PyWin_SetAPIError("EvtClearLog");
+	if (!PyWinObject_AsWCHAR(obpath, &path, FALSE))
+		return NULL;
+	if (!PyWinObject_AsWCHAR(obexport_path, &export_path, TRUE))
+		return NULL;
+	if (EvtClearLog(session, path, export_path, flags)){
+		Py_INCREF(Py_None);
+		return Py_None;
 		}
-	PyWinObject_FreeWCHAR(path);
-	PyWinObject_FreeWCHAR(export_path);
-	return ret;
+	return PyWin_SetAPIError("EvtClearLog");
 }
 PyCFunction pfnPyEvtClearLog = (PyCFunction) PyEvtClearLog;
+
+// @pyswig |EvtExportLog|Exports events from a channel or log file
+// @comm Accepts keyword args
+static PyObject *PyEvtExportLog(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+	static char *keywords[]={"Path", "TargetFilePath", "Flags", "Query", "Session", NULL};
+	EVT_HANDLE session=NULL;
+	DWORD flags=0;
+	TmpWCHAR path, query, export_path;
+	PyObject *obpath, *obexport_path, *obquery=Py_None;
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OOk|OO&:EvtExportLog", keywords,
+		&obpath,	// @pyparm str|Path||Path of a live event log channel or exported log file
+		&obexport_path, // @pyparm str|TargetFilePath|None|Name of file in which cleared events will be archived, or None
+		&flags,	// @pyparm int|Flags||Combination of EvtExportLog* flags specifying the type of path
+		&obquery,	// @pyparm str|Query|None|Selects specific events to export
+		PyWinObject_AsHANDLE, &session))	// @pyparm <o PyEVT_HANDLE>|Session|None|Handle to a remote session (see <om win32evtlog.EvtOpenSession>), or None for local machine.
+		return NULL;
+	if (!PyWinObject_AsWCHAR(obpath, &path, FALSE))
+		return NULL;
+	if (!PyWinObject_AsWCHAR(obexport_path, &export_path, FALSE))
+		return NULL;
+	if (!PyWinObject_AsWCHAR(obquery, &query, TRUE))
+		return NULL;
+	if (EvtExportLog(session, path, query, export_path, flags)){
+		Py_INCREF(Py_None);
+		return Py_None;
+		}
+	return PyWin_SetAPIError("EvtExportLog");
+}
+PyCFunction pfnPyEvtExportLog = (PyCFunction) PyEvtExportLog;
+
+// @pyswig |EvtArchiveExportedLog|Localizes an exported event log file
+// @comm Accepts keyword args
+static PyObject *PyEvtArchiveExportedLog(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+	static char *keywords[]={"LogFilePath", "Locale", "Session", "Flags", NULL};
+	EVT_HANDLE session=NULL;
+	DWORD flags=0;
+	TmpWCHAR path;
+	LCID lcid;
+	PyObject *obpath;
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "Ol|O&k:EvtArchiveExportedLog", keywords,
+		&obpath,	// @pyparm str|LogFilePath||Filename of an exported log file
+		&lcid,	// @pyparm int|Locale||Locale id
+		PyWinObject_AsHANDLE, &session,	// @pyparm <o PyEVT_HANDLE>|Session|None|Handle to a remote session (see <om win32evtlog.EvtOpenSession>), or None for local machine.
+		&flags))	// @pyparm int|Flags|0|Reserved
+		return NULL;
+	if (!PyWinObject_AsWCHAR(obpath, &path, FALSE))
+		return NULL;
+	if (EvtArchiveExportedLog(session, path, lcid, flags)){
+		Py_INCREF(Py_None);
+		return Py_None;
+		}
+	return PyWin_SetAPIError("EvtArchiveExportedLog");
+}
+PyCFunction pfnPyEvtArchiveExportedLog = (PyCFunction) PyEvtArchiveExportedLog;
+
+// @pyswig str|EvtGetExtendedStatus|Returns additional error info from last Evt* call
+static PyObject *PyEvtGetExtendedStatus(PyObject *self, PyObject *args)
+{
+	DWORD buflen=0, bufneeded=1024;
+	WCHAR *msg=NULL;
+	PyObject *ret=NULL;
+	if (!PyArg_ParseTuple(args, ":EvtGetExtendedStatus"))
+		return NULL;
+	while (1){
+		if (msg)
+			free(msg);
+		buflen=bufneeded;
+		msg=(WCHAR *)malloc(buflen * sizeof(WCHAR));
+		if (msg==NULL){
+			PyErr_NoMemory();
+			return NULL;
+			}
+		if (EvtGetExtendedStatus(buflen, msg, &bufneeded)){
+			ret=PyWinObject_FromWCHAR(msg, bufneeded);
+			break;
+			}
+		if (bufneeded <= buflen){
+			PyWin_SetAPIError("EvtGetExtendedStatus");
+			break;
+			}
+		}
+	if (msg)
+		free(msg);
+	return ret;
+}
 %}
 
 %native (EvtOpenChannelEnum) pfnPyEvtOpenChannelEnum;
 %native (EvtNextChannelPath) pfnPyEvtNextChannelPath;
 %native (EvtOpenLog) pfnPyEvtOpenLog;
 %native (EvtClearLog) pfnPyEvtClearLog;
+%native (EvtExportLog) pfnPyEvtExportLog;
+%native (EvtArchiveExportedLog) pfnPyEvtArchiveExportedLog;
+%native (EvtGetExtendedStatus) PyEvtGetExtendedStatus;
+
 
 %init %{
     for (PyMethodDef *pmd = win32evtlogMethods;pmd->ml_name;pmd++)
@@ -593,7 +704,19 @@ PyCFunction pfnPyEvtClearLog = (PyCFunction) PyEvtClearLog;
 			||(strcmp(pmd->ml_name, "EvtOpenLog")==0)
 			||(strcmp(pmd->ml_name, "EvtClearLog")==0)
 			||(strcmp(pmd->ml_name, "EvtOpenSession")==0)
+			||(strcmp(pmd->ml_name, "EvtExportLog")==0)
+			||(strcmp(pmd->ml_name, "EvtArchiveExportedLog")==0)
 			){
 			pmd->ml_flags = METH_VARARGS | METH_KEYWORDS;
 			}
 %}
+
+// Used with EvtOpenLog
+#define EvtOpenChannelPath EvtOpenChannelPath
+#define EvtOpenFilePath EvtOpenFilePath
+
+// EVT_EXPORTLOG_FLAGS, used with EvtExportLog
+#define EvtExportLogChannelPath EvtExportLogChannelPath
+#define EvtExportLogFilePath EvtExportLogFilePath
+#define EvtExportLogTolerateQueryErrors EvtExportLogTolerateQueryErrors
+
