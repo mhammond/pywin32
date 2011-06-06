@@ -57,17 +57,25 @@ public:
 class PyEVT_HANDLE: public PyHANDLE
 {
 public:
-	PyEVT_HANDLE(HANDLE hInit) : PyHANDLE(hInit) {}
+	PyEVT_HANDLE(HANDLE hInit, PyObject *context) : PyHANDLE(hInit){
+		callback_objects = context;
+		Py_XINCREF(callback_objects);
+		}
 	virtual BOOL Close(void){
 		BOOL ret=EvtClose(m_handle);
 		if (!ret)
 			PyWin_SetAPIError("EvtClose");
 		m_handle = 0;
+		Py_XDECREF(callback_objects);
+		callback_objects=NULL;
 		return ret;
 		}
 	virtual const char *GetTypeName(){
 		return "PyEVT_HANDLE";
 		}
+	// Only used with push subscription handles.  Will be a 2-tuple
+	// that keeps references to the callback function and context object
+	PyObject *callback_objects;
 };
 
 #define PyHANDLE HANDLE
@@ -80,9 +88,9 @@ PyObject *PyWinObject_FromEVTLOG_HANDLE(HANDLE h)
 	return ret;
 }
 
-PyObject *PyWinObject_FromEVT_HANDLE(HANDLE h)
+PyObject *PyWinObject_FromEVT_HANDLE(HANDLE h, PyObject *context=NULL)
 {
-	PyObject *ret=new PyEVT_HANDLE(h);
+	PyObject *ret=new PyEVT_HANDLE(h, context);
 	if (ret==NULL){
 		EvtClose(h);
 		PyErr_NoMemory();
@@ -686,6 +694,240 @@ static PyObject *PyEvtGetExtendedStatus(PyObject *self, PyObject *args)
 		free(msg);
 	return ret;
 }
+
+// @pyswig <o PyEVT_HANDLE>|EvtQuery|Opens a query over a log channel or exported log file
+// @comm Accepts keyword args
+static PyObject *PyEvtQuery(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+	static char *keywords[]={"Path", "Flags", "Query", "Session", NULL};
+	EVT_HANDLE ret, session=NULL;
+	DWORD flags;
+	TmpWCHAR path, query;
+	PyObject *obpath, *obquery=Py_None;
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "Ol|OO&:EvtQuery", keywords,
+		&obpath,	// @pyparm str|Path||Log channel or exported log file, depending on Flags
+		&flags,		// @pyparm int|Flags||Combination of EVT_QUERY_FLAGS (EvtQuery*)
+		&obquery,	// @pyparm str|Query|None|Selects events to return, None or '*' for all events
+		PyWinObject_AsHANDLE, &session))	// @pyparm <o PyEVT_HANDLE>|Session|None|Handle to a remote session (see <om win32evtlog.EvtOpenSession>), or None for local machine.
+		return NULL;
+	if (!PyWinObject_AsWCHAR(obpath, &path, FALSE))
+		return NULL;
+	if (!PyWinObject_AsWCHAR(obquery, &query, TRUE))
+		return NULL;
+
+	ret = EvtQuery(session, path, query, flags);
+	if (ret == NULL)
+		return PyWin_SetAPIError("EvtQuery");
+	return PyWinObject_FromEVT_HANDLE(ret);
+}
+PyCFunction pfnPyEvtQuery = (PyCFunction) PyEvtQuery;
+
+// @pyswig (<o PyEVT_HANDLE>,...)|EvtNext|Returns events from a query
+// @rdesc Returns a tuple of handles to events.  If no items are available, returns
+//	an empty tuple instead of raising an exception.
+// @comm Accepts keyword args
+static PyObject *PyEvtNext(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+	static char *keywords[]={"ResultSet", "Count", "Timeout", "Flags", NULL};
+	EVT_HANDLE query;
+	EVT_HANDLE *events =NULL;
+	DWORD nbr_requested, nbr_returned, flags=0, timeout=(DWORD)-1;
+
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O&k|kk:EvtNext", keywords,
+		PyWinObject_AsHANDLE, &query,	// @pyparm <o PyEVT_HANDLE>|ResultSet||Handle to event query or subscription
+		&nbr_requested,		// @pyparm int|Count||Number of events to return
+		&timeout,	// @pyparm int|Timeout|-1|Time to wait in milliseconds, use -1 for infinite
+		&flags))	// @pyparm int|Flags|0|Reserved, use only 0
+		return NULL;
+	events = (EVT_HANDLE *)malloc(nbr_requested * sizeof(EVT_HANDLE *));
+	if (events==NULL){
+		PyErr_NoMemory();
+		return NULL;
+		}
+
+	if (!EvtNext(query, nbr_requested, events, timeout, flags, &nbr_returned)){
+		free(events);
+		DWORD err=GetLastError();
+		if (err == ERROR_NO_MORE_ITEMS)
+			return PyTuple_New(0);
+		return PyWin_SetAPIError("EvtNext", err);
+		}
+
+	// If tuple construction fails, any handle not yet wrapped in a PyEVT_HANDLE
+	// will be orphaned and remain open.  Should be a rare occurence, though.
+	PyObject *ret=PyTuple_New(nbr_returned);
+	if (ret){
+		for (DWORD i=0;i<nbr_returned;i++){
+			PyObject *obevt=PyWinObject_FromEVT_HANDLE(events[i]);
+			if (obevt==NULL){
+				Py_DECREF(ret);
+				ret=NULL;
+				break;
+				}
+			PyTuple_SET_ITEM(ret, i, obevt);
+			}
+		}
+	free(events);
+	return ret;
+}
+PyCFunction pfnPyEvtNext = (PyCFunction) PyEvtNext;
+
+// @pyswig |EvtSeek|Changes the current position in a result set
+// @comm Accepts keyword args
+static PyObject *PyEvtSeek(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+	static char *keywords[]={"ResultSet", "Position", "Flags", "Bookmark", "Timeout", NULL};
+	EVT_HANDLE query, bookmark=NULL;
+	DWORD flags, timeout=0;
+	LONGLONG position;
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O&Lk|O&k:EvtSeek", keywords,
+		PyWinObject_AsHANDLE, &query,	// @pyparm <o PyEVT_HANDLE>|ResultSet||Handle to event query or subscription
+		&position,	// @pyparm int|Position||Offset (base from which to seek is specified by Flags)
+		&flags,	// @pyparm int|Flags||EvtSeekRelative* flag indicating seek origin
+		PyWinObject_AsHANDLE, &bookmark,	// @pyparm <o PyEVT_HANDLE>|Bookmark|None|Used as seek origin only if Flags contains EvtSeekRelativeToBookmark
+		&timeout))	// @pyparm int|Timeout|0|Reserved, use only 0
+		return NULL;
+	if (!EvtSeek(query, position, bookmark, timeout, flags))
+		return PyWin_SetAPIError("EvtSeek");
+	Py_INCREF(Py_None);
+	return Py_None;;
+}
+PyCFunction pfnPyEvtSeek = (PyCFunction) PyEvtSeek;
+
+// @pyswig str|EvtRender|Formats an event into XML text
+// @comm Accepts keyword args
+// @comm Rendering event values (Flags=EvtRenderEventValues) is not currently supported
+static PyObject *PyEvtRender(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+	static char *keywords[]={"Event", "Flags", NULL};
+	EVT_HANDLE event;
+	void *buf=NULL;
+	DWORD flags, bufsize=2048, bufneeded, propcount;
+	PyObject *ret=NULL;
+	
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O&k:EvtRender", keywords,
+		PyWinObject_AsHANDLE, &event,	// @pyparm <o PyEVT_HANDLE>|Event||Handle to an event or bookmark
+		&flags))	// @pyparm int|Flags||EvtRenderEventXml or EvtRenderBookmark indicating type of handle
+		return NULL;
+	if (flags==EvtRenderEventValues){
+		// Requires yet another type of VARIANT
+		PyErr_Format(PyExc_NotImplementedError,"Rendering values is not yet supported");
+		return NULL;
+		}
+	while(1){
+		if (buf)
+			free(buf);
+		buf=malloc(bufsize);
+		if (buf==NULL){
+			PyErr_NoMemory();
+			return NULL;
+			}
+		if (EvtRender(NULL, event, flags, bufsize, buf, &bufneeded, &propcount)){
+			ret=PyWinObject_FromWCHAR((WCHAR *)buf);
+			break;
+			}
+		DWORD err=GetLastError();
+		if (err==ERROR_INSUFFICIENT_BUFFER)
+			bufsize=bufneeded;
+		else{
+			PyWin_SetAPIError("EvtRender", err);
+			break;
+			}
+		}
+	free(buf);
+	return ret;
+}
+PyCFunction pfnPyEvtRender = (PyCFunction) PyEvtRender;
+
+
+DWORD CALLBACK PyEvtSubscribe_callback(
+	EVT_SUBSCRIBE_NOTIFY_ACTION action,
+	void *context, 
+	EVT_HANDLE event)
+{
+	CEnterLeavePython celp;
+	DWORD err=0;
+	PyObject *func = PyTuple_GET_ITEM((PyObject *)context, 0);
+	PyObject *obcontext = PyTuple_GET_ITEM((PyObject *)context, 1);
+	PyObject *args=Py_BuildValue("kOO", action, obcontext, PyWinLong_FromHANDLE(event));
+	if (args==NULL){
+		// ??? Docs don't specify what happens when you return an error from callback
+		// Need to check if subscription handle is closed ???
+		PyErr_Print();
+		return ERROR_OUTOFMEMORY;
+		}
+	PyObject *ret=PyObject_Call(func, args, NULL);
+	if (ret==NULL){
+		// Nothing to be done about an exception raised by the python callback
+		PyErr_Print();
+		err = ERROR_OUTOFMEMORY;
+		}
+	else if (ret!=Py_None){
+		// Allow the callback to return an error
+		err=PyLong_AsUnsignedLong(ret);
+		if (err==(DWORD)-1 && PyErr_Occurred()){
+			PyErr_Print();
+			err = 0;
+			}
+		}
+		
+	Py_DECREF(args);
+	Py_XDECREF(ret);
+	return err;
+}
+
+// @pyswig <o PyEVT_HANDLE>|EvtSubscribe|Requests notification for events
+// @comm Accepts keyword args
+// @comm The method used to receive events is determined by the parameters passed in.
+//	To create a push subscription, define a callback function that will be called with each event.
+//	The function will receive 3 args:
+//		First is an integer specifying why the function was called (EvtSubscribeActionError or EvtSubscribeActionDeliver)
+//		Second is the context object passed to EvtSubscribe.
+//		Third is the handle to an event log record (if not called due to an error)
+//	If an event handle is passed in, a pull subscription is created.  The event handle will be
+//	signalled when events are available, and the subscription handle can be
+//	passed to <om win32evtlog.EvtNext> to obtain the events.
+
+static PyObject *PyEvtSubscribe(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+	static char *keywords[]={"ChannelPath", "Flags", "SignalEvent", "Callback", "Context",
+		"Query", "Session", "Bookmark", NULL};
+	EVT_HANDLE session=NULL, bookmark=NULL, ret;
+	HANDLE signalevent=NULL;
+	TmpWCHAR path, query;
+	PyObject *obpath, *obcallback=Py_None, *obquery=Py_None, *obcontext=Py_None;
+	TmpPyObject obuserdata;	// actual context passed to C++ callback - tuple of (function, context object)
+	DWORD flags;
+	EVT_SUBSCRIBE_CALLBACK pfncallback=NULL;
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "Ok|O&OOOO&O&:EvtSubscribe", keywords,
+		&obpath,	// @pyparm str|ChannelPath||Name of an event log channel
+		&flags,		// @pyparm int|Flags||Combination of EvtSubscribe* flags determining how subscription is initiated 
+		PyWinObject_AsHANDLE, &signalevent,	// @pyparm <o Py_HANDLE>|SignalEvent|None|An event handle to be set when events are available (see <om win32event.CreateEvent>)
+		&obcallback,	// @pyparm function|Callback|None|Python function to be called with each event
+		&obcontext,		// @pyparm object|Context|None|Arbitrary object to be passed to the callback function
+		&obquery,		// @pyparm str|Query|None|XML query used to select specific events, use None or '*' for all events
+		PyWinObject_AsHANDLE, &session,		// @pyparm <o PyEVT_HANDLE>|Session|None|Handle to a session on another machine, or None for local
+		PyWinObject_AsHANDLE, &bookmark))	// @pyparm <o PyEVT_HANDLE>|Bookmark|None|If Flags contains EvtSubscribeStartAfterBookmark, used as starting point
+		return NULL;
+
+	if (!PyWinObject_AsWCHAR(obpath, &path, FALSE))
+		return NULL;
+	if (!PyWinObject_AsWCHAR(obquery, &query, TRUE))
+		return NULL;
+	if (obcallback != Py_None){
+		pfncallback=PyEvtSubscribe_callback;
+		obuserdata = Py_BuildValue("OO", obcallback, obcontext);
+		if (obuserdata==NULL)
+			return NULL;
+		}
+	ret = EvtSubscribe(session, signalevent, path, query, bookmark,
+		(void *)obuserdata, pfncallback, flags);
+	if (ret==NULL)
+		return PyWin_SetAPIError("EvtSubscribe");
+	return PyWinObject_FromEVT_HANDLE(ret, obuserdata);
+}
+PyCFunction pfnPyEvtSubscribe = (PyCFunction) PyEvtSubscribe;
+
 %}
 
 %native (EvtOpenChannelEnum) pfnPyEvtOpenChannelEnum;
@@ -695,7 +937,11 @@ static PyObject *PyEvtGetExtendedStatus(PyObject *self, PyObject *args)
 %native (EvtExportLog) pfnPyEvtExportLog;
 %native (EvtArchiveExportedLog) pfnPyEvtArchiveExportedLog;
 %native (EvtGetExtendedStatus) PyEvtGetExtendedStatus;
-
+%native (EvtQuery) pfnPyEvtQuery;
+%native (EvtNext) pfnPyEvtNext;
+%native (EvtSeek) pfnPyEvtSeek;
+%native (EvtRender) pfnPyEvtRender;
+%native (EvtSubscribe) pfnPyEvtSubscribe;
 
 %init %{
     for (PyMethodDef *pmd = win32evtlogMethods;pmd->ml_name;pmd++)
@@ -706,6 +952,11 @@ static PyObject *PyEvtGetExtendedStatus(PyObject *self, PyObject *args)
 			||(strcmp(pmd->ml_name, "EvtOpenSession")==0)
 			||(strcmp(pmd->ml_name, "EvtExportLog")==0)
 			||(strcmp(pmd->ml_name, "EvtArchiveExportedLog")==0)
+			||(strcmp(pmd->ml_name, "EvtQuery")==0)
+			||(strcmp(pmd->ml_name, "EvtNext")==0)
+			||(strcmp(pmd->ml_name, "EvtSeek")==0)
+			||(strcmp(pmd->ml_name, "EvtRender")==0)
+			||(strcmp(pmd->ml_name, "EvtSubscribe")==0)
 			){
 			pmd->ml_flags = METH_VARARGS | METH_KEYWORDS;
 			}
@@ -720,3 +971,34 @@ static PyObject *PyEvtGetExtendedStatus(PyObject *self, PyObject *args)
 #define EvtExportLogFilePath EvtExportLogFilePath
 #define EvtExportLogTolerateQueryErrors EvtExportLogTolerateQueryErrors
 
+// EVT_QUERY_FLAGS used with EvtQuery
+#define EvtQueryChannelPath EvtQueryChannelPath
+#define EvtQueryFilePath EvtQueryFilePath
+#define EvtQueryForwardDirection EvtQueryForwardDirection
+#define EvtQueryReverseDirection EvtQueryReverseDirection
+#define EvtQueryTolerateQueryErrors EvtQueryTolerateQueryErrors
+
+// EVT_SEEK_FLAGS used with EvtSeek
+#define EvtSeekRelativeToFirst EvtSeekRelativeToFirst
+#define EvtSeekRelativeToLast EvtSeekRelativeToLast
+#define EvtSeekRelativeToCurrent EvtSeekRelativeToCurrent
+#define EvtSeekRelativeToBookmark EvtSeekRelativeToBookmark
+#define EvtSeekOriginMask EvtSeekOriginMask
+#define EvtSeekStrict EvtSeekStrict
+
+// EVT_RENDER_FLAGS
+#define EvtRenderEventValues EvtRenderEventValues
+#define EvtRenderEventXml EvtRenderEventXml
+#define EvtRenderBookmark EvtRenderBookmark
+
+// EvtSubscribe flags
+#define EvtSubscribeToFutureEvents EvtSubscribeToFutureEvents
+#define EvtSubscribeStartAtOldestRecord EvtSubscribeStartAtOldestRecord
+#define EvtSubscribeStartAfterBookmark EvtSubscribeStartAfterBookmark
+#define EvtSubscribeOriginMask EvtSubscribeOriginMask
+#define EvtSubscribeTolerateQueryErrors EvtSubscribeTolerateQueryErrors
+#define EvtSubscribeStrict EvtSubscribeStrict
+
+// EVT_SUBSCRIBE_NOTIFY_ACTION - passed as first parm to EvtSubscribe callback
+#define EvtSubscribeActionError EvtSubscribeActionError
+#define EvtSubscribeActionDeliver EvtSubscribeActionDeliver
