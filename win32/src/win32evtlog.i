@@ -619,7 +619,7 @@ static PyObject *PyEvtExportLog(PyObject *self, PyObject *args, PyObject *kwargs
 	PyObject *obpath, *obexport_path, *obquery=Py_None;
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OOk|OO&:EvtExportLog", keywords,
 		&obpath,	// @pyparm str|Path||Path of a live event log channel or exported log file
-		&obexport_path, // @pyparm str|TargetFilePath|None|Name of file in which cleared events will be archived, or None
+		&obexport_path, // @pyparm str|TargetFilePath||File to create, cannot already exist
 		&flags,	// @pyparm int|Flags||Combination of EvtExportLog* flags specifying the type of path
 		&obquery,	// @pyparm str|Query|None|Selects specific events to export
 		PyWinObject_AsHANDLE, &session))	// @pyparm <o PyEVT_HANDLE>|Session|None|Handle to a remote session (see <om win32evtlog.EvtOpenSession>), or None for local machine.
@@ -928,6 +928,45 @@ static PyObject *PyEvtSubscribe(PyObject *self, PyObject *args, PyObject *kwargs
 }
 PyCFunction pfnPyEvtSubscribe = (PyCFunction) PyEvtSubscribe;
 
+// @pyswig <o PyEVT_HANDLE>|EvtCreateBookmark|Creates a bookmark
+// @comm Accepts keyword args
+static PyObject *PyEvtCreateBookmark(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+	static char *keywords[]={"BookmarkXML", NULL};
+	EVT_HANDLE ret;
+	TmpWCHAR xml;
+	PyObject *obxml=Py_None;
+	// @pyparm str|BookmarkXML|None|XML representation of a bookmark as returned by <om win32evtlog.EvtRender>, or None for a new bookmark
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|O:EvtCreateBookmark", keywords,
+		&obxml))
+		return NULL;
+	if (!PyWinObject_AsWCHAR(obxml, &xml, TRUE))
+		return NULL;
+	ret = EvtCreateBookmark(xml);
+	if (ret == NULL)
+		return PyWin_SetAPIError("EvtCreateBookmark");
+	return PyWinObject_FromEVT_HANDLE(ret);
+}
+PyCFunction pfnPyEvtCreateBookmark = (PyCFunction) PyEvtCreateBookmark;
+
+// @pyswig <o PyEVT_HANDLE>|EvtUpdateBookmark|Repositions a bookmark to an event
+// @comm Accepts keyword args
+static PyObject *PyEvtUpdateBookmark(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+	static char *keywords[]={"Bookmark", "Event", NULL};
+	EVT_HANDLE bookmark, evt;
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O&O&:EvtUpdateBookmark", keywords,
+		PyWinObject_AsHANDLE, &bookmark,	// @pyparm <o PyEVT_HANDLE>|Bookmark||Handle to a bookmark
+		PyWinObject_AsHANDLE, &evt))	// @pyparm <o PyEVT_HANDLE>|Event||Handle to an event
+		return NULL;
+
+	if (!EvtUpdateBookmark(bookmark, evt))
+		return PyWin_SetAPIError("EvtUpdateBookmark");
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+PyCFunction pfnPyEvtUpdateBookmark = (PyCFunction) PyEvtUpdateBookmark;
+
 %}
 
 %native (EvtOpenChannelEnum) pfnPyEvtOpenChannelEnum;
@@ -942,6 +981,8 @@ PyCFunction pfnPyEvtSubscribe = (PyCFunction) PyEvtSubscribe;
 %native (EvtSeek) pfnPyEvtSeek;
 %native (EvtRender) pfnPyEvtRender;
 %native (EvtSubscribe) pfnPyEvtSubscribe;
+%native (EvtCreateBookmark) pfnPyEvtCreateBookmark;
+%native (EvtUpdateBookmark) pfnPyEvtUpdateBookmark;
 
 %init %{
     for (PyMethodDef *pmd = win32evtlogMethods;pmd->ml_name;pmd++)
@@ -957,6 +998,8 @@ PyCFunction pfnPyEvtSubscribe = (PyCFunction) PyEvtSubscribe;
 			||(strcmp(pmd->ml_name, "EvtSeek")==0)
 			||(strcmp(pmd->ml_name, "EvtRender")==0)
 			||(strcmp(pmd->ml_name, "EvtSubscribe")==0)
+			||(strcmp(pmd->ml_name, "EvtCreateBookmark")==0)
+			||(strcmp(pmd->ml_name, "EvtUpdateBookmark")==0)
 			){
 			pmd->ml_flags = METH_VARARGS | METH_KEYWORDS;
 			}
