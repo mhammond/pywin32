@@ -73,9 +73,59 @@ void PyObject_FreePROPSPECs(PROPSPEC *pFree, ULONG /*cFree*/)
 		free(pFree);
 }
 
+// Generic conversion from VT_VECTOR arrays to list.
+template <typename arraytype>
+PyObject* VectorToSeq(arraytype *A, ULONG count, PyObject * (*converter)(arraytype)){
+	PyObject *ret = PyList_New(count);
+	if (ret==NULL)
+		return NULL;
+	for (ULONG i=0; i<count; i++){
+		PyObject *subitem=(*converter)(A[i]);
+		if (subitem == NULL){
+			Py_DECREF(ret);
+			return NULL;
+			}
+		PyList_SET_ITEM(ret, i, subitem);
+		}
+	return ret;
+}
+
+// Some converters take a reference, eg PyWinObject_FromLARGE_INTEGER
+template <typename arraytype>
+PyObject* VectorToSeq(arraytype *A, ULONG count, PyObject * (*converter)(arraytype&)){
+	PyObject *ret = PyList_New(count);
+	if (ret==NULL)
+		return NULL;
+	for (ULONG i=0; i<count; i++){
+		PyObject *subitem=(*converter)(A[i]);
+		if (subitem == NULL){
+			Py_DECREF(ret);
+			return NULL;
+			}
+		PyList_SET_ITEM(ret, i, subitem);
+		}
+	return ret;
+}
+
+// ... and some take a const reference, eg PyWinObject_FromIID
+template <typename arraytype>
+PyObject* VectorToSeq(arraytype *A, ULONG count, PyObject * (*converter)(const arraytype&)){
+	PyObject *ret = PyList_New(count);
+	if (ret==NULL)
+		return NULL;
+	for (ULONG i=0; i<count; i++){
+		PyObject *subitem=(*converter)(A[i]);
+		if (subitem == NULL){
+			Py_DECREF(ret);
+			return NULL;
+			}
+		PyList_SET_ITEM(ret, i, subitem);
+		}
+	return ret;
+}
+
 PyObject *PyObject_FromPROPVARIANT( PROPVARIANT *pVar )
 {
-	PyObject *ob;
 	switch (pVar->vt) {
 		case VT_EMPTY:
 		case VT_NULL:
@@ -83,7 +133,7 @@ PyObject *PyObject_FromPROPVARIANT( PROPVARIANT *pVar )
 			Py_INCREF(Py_None);
 			return Py_None;
 		case VT_I1:
-			return PyInt_FromLong(pVar->bVal);
+			return PyInt_FromLong(pVar->cVal);
 		case VT_UI1:
 			return PyInt_FromLong(pVar->bVal);
 		case VT_I2:
@@ -92,34 +142,57 @@ PyObject *PyObject_FromPROPVARIANT( PROPVARIANT *pVar )
 			return PyInt_FromLong(pVar->uiVal);
 		case VT_I4:
 			return PyInt_FromLong(pVar->lVal);
-//		case VT_INT:
-//			return PyInt_FromLong(pVar->intVal);
+		case VT_I4|VT_VECTOR:
+			return VectorToSeq(pVar->cal.pElems, pVar->cal.cElems, PyInt_FromLong);
+		case VT_INT:
+			return PyInt_FromLong(pVar->intVal);
 		case VT_UI4:
-			return PyInt_FromLong(pVar->ulVal);
-//		case VT_UINT:
-//			return PyInt_FromLong(pVar->uintVal);
+			return PyLong_FromUnsignedLong(pVar->ulVal);
+		case VT_UI4|VT_VECTOR:
+			return VectorToSeq(pVar->caul.pElems, pVar->caul.cElems, PyLong_FromUnsignedLong);
+		case VT_UINT:
+			return PyLong_FromUnsignedLong(pVar->uintVal);
 		case VT_I8:
 			return PyWinObject_FromLARGE_INTEGER(pVar->hVal);
+		case VT_I8|VT_VECTOR:
+			return VectorToSeq<LARGE_INTEGER>(pVar->cah.pElems, pVar->cah.cElems, PyWinObject_FromLARGE_INTEGER);
 		case VT_UI8:
 			return PyWinObject_FromULARGE_INTEGER(pVar->uhVal);
+		case VT_UI8|VT_VECTOR:
+			return VectorToSeq<ULARGE_INTEGER>(pVar->cauh.pElems, pVar->cauh.cElems, PyWinObject_FromULARGE_INTEGER);
 		case VT_R4:
 			return PyFloat_FromDouble(pVar->fltVal);
+		// Template parameter must match exactly, need to create an intermediate function.
+		// case VT_R4|VT_VECTOR:
+		//	return VectorToSeq(pVar->caflt.pElems, pVar->caflt.cElems, PyFloat_FromDouble);
 		case VT_R8:
 			return PyFloat_FromDouble(pVar->dblVal);
+		case VT_R8|VT_VECTOR:
+			return VectorToSeq(pVar->cadbl.pElems, pVar->cadbl.cElems, PyFloat_FromDouble);
 		case VT_CY:
 			return PyObject_FromCurrency(pVar->cyVal);
+		case VT_CY|VT_VECTOR:
+			return VectorToSeq<CY>(pVar->cacy.pElems, pVar->cacy.cElems, PyObject_FromCurrency);
 		case VT_DATE:
 			return PyWinObject_FromDATE(pVar->date);
+		case VT_DATE|VT_VECTOR:
+			return VectorToSeq(pVar->cadate.pElems, pVar->cadate.cElems, PyWinObject_FromDATE);
 		case VT_BSTR:
 			return PyWinObject_FromBstr(pVar->bstrVal);
-		case VT_BOOL:
+		case VT_BOOL:{
+			PyObject *ob;
 			ob = pVar->boolVal ? Py_True : Py_False;
 			Py_INCREF(ob);
 			return ob;
+			}
 		case VT_ERROR:
 			return PyInt_FromLong(pVar->scode);
+		case VT_ERROR|VT_VECTOR:
+			return VectorToSeq(pVar->cascode.pElems, pVar->cascode.cElems, PyInt_FromLong);
 		case VT_FILETIME:
 			return PyWinObject_FromFILETIME(pVar->filetime);
+		case VT_FILETIME|VT_VECTOR:
+			return VectorToSeq<FILETIME>(pVar->cafiletime.pElems, pVar->cafiletime.cElems, PyWinObject_FromFILETIME);
 		case VT_LPSTR:
 			if (pVar->pszVal == NULL) {
 				Py_INCREF(Py_None);
@@ -158,6 +231,8 @@ PyObject *PyObject_FromPROPVARIANT( PROPVARIANT *pVar )
 			}
 		case VT_CLSID:
 			return PyWinObject_FromIID(*pVar->puuid);
+		case VT_CLSID|VT_VECTOR:
+			return VectorToSeq<CLSID>(pVar->cauuid.pElems, pVar->cauuid.cElems, PyWinObject_FromIID);
 		case VT_STREAM:
 		case VT_STREAMED_OBJECT:
 			return PyCom_PyObjectFromIUnknown(pVar->pStream, IID_IStream, TRUE);
