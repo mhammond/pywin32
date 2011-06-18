@@ -3216,11 +3216,11 @@ static PyObject *PySHCreateShellItem(PyObject *self, PyObject *args)
 		goto done;
 	if (!PyObject_AsPIDL(obitem, &item, FALSE))
 		goto done;
-
+	{
 	PY_INTERFACE_PRECALL;
 	hr = (*pfnSHCreateShellItem)(parent_pidl, parent_folder, item, &isi);
 	PY_INTERFACE_POSTCALL;
-
+	}
 	if (FAILED(hr)) {
 		PyCom_BuildPyException(hr);
 		goto done;
