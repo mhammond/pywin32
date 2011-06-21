@@ -124,6 +124,45 @@ PyObject* VectorToSeq(arraytype *A, ULONG count, PyObject * (*converter)(const a
 	return ret;
 }
 
+// Some helper functions for the Vector conversion template
+PyObject *PyWinObject_FromCHAR(CHAR c){
+	return PyInt_FromLong(c);
+}
+
+PyObject *PyWinObject_FromUCHAR(UCHAR uc){
+	return PyInt_FromLong(uc);
+}
+
+PyObject *PyWinObject_FromSHORT(SHORT s){
+	return PyInt_FromLong(s);
+}
+
+PyObject *PyWinObject_FromUSHORT(USHORT us){
+	return PyInt_FromLong(us);
+}
+
+PyObject *PyWinObject_FromFLOAT(FLOAT f){
+	return PyFloat_FromDouble(f);
+}
+
+PyObject *PyWinObject_FromVT_BSTR(BSTR b){
+	return PyWinObject_FromBstr(b, FALSE);
+}
+
+PyObject *PyWinObject_FromVARIANT_BOOL(VARIANT_BOOL b){
+	PyObject *ret;
+	if (b == VARIANT_TRUE)
+		ret = Py_True;
+	else if (b == VARIANT_FALSE)
+		ret = Py_False;
+	else{
+		ret = NULL;
+		PyErr_Format(PyExc_ValueError, "Invalid value for VARIANT_BOOL");
+		}
+	Py_XINCREF(ret);
+	return ret;
+}
+
 PyObject *PyObject_FromPROPVARIANT( PROPVARIANT *pVar )
 {
 	switch (pVar->vt) {
@@ -134,12 +173,20 @@ PyObject *PyObject_FromPROPVARIANT( PROPVARIANT *pVar )
 			return Py_None;
 		case VT_I1:
 			return PyInt_FromLong(pVar->cVal);
+		case VT_I1|VT_VECTOR:
+			return VectorToSeq(pVar->cac.pElems, pVar->cac.cElems, PyWinObject_FromCHAR);
 		case VT_UI1:
 			return PyInt_FromLong(pVar->bVal);
+		case VT_UI1|VT_VECTOR:
+			return VectorToSeq(pVar->caub.pElems, pVar->caub.cElems, PyWinObject_FromUCHAR);
 		case VT_I2:
 			return PyInt_FromLong(pVar->iVal);
+		case VT_I2|VT_VECTOR:
+			return VectorToSeq(pVar->cai.pElems, pVar->cai.cElems, PyWinObject_FromSHORT);
 		case VT_UI2:
 			return PyInt_FromLong(pVar->uiVal);
+		case VT_UI2|VT_VECTOR:
+			return VectorToSeq(pVar->caui.pElems, pVar->caui.cElems, PyWinObject_FromUSHORT);
 		case VT_I4:
 			return PyInt_FromLong(pVar->lVal);
 		case VT_I4|VT_VECTOR:
@@ -162,9 +209,8 @@ PyObject *PyObject_FromPROPVARIANT( PROPVARIANT *pVar )
 			return VectorToSeq<ULARGE_INTEGER>(pVar->cauh.pElems, pVar->cauh.cElems, PyWinObject_FromULARGE_INTEGER);
 		case VT_R4:
 			return PyFloat_FromDouble(pVar->fltVal);
-		// Template parameter must match exactly, need to create an intermediate function.
-		// case VT_R4|VT_VECTOR:
-		//	return VectorToSeq(pVar->caflt.pElems, pVar->caflt.cElems, PyFloat_FromDouble);
+		case VT_R4|VT_VECTOR:
+			return VectorToSeq(pVar->caflt.pElems, pVar->caflt.cElems, PyWinObject_FromFLOAT);
 		case VT_R8:
 			return PyFloat_FromDouble(pVar->dblVal);
 		case VT_R8|VT_VECTOR:
@@ -179,12 +225,12 @@ PyObject *PyObject_FromPROPVARIANT( PROPVARIANT *pVar )
 			return VectorToSeq(pVar->cadate.pElems, pVar->cadate.cElems, PyWinObject_FromDATE);
 		case VT_BSTR:
 			return PyWinObject_FromBstr(pVar->bstrVal);
-		case VT_BOOL:{
-			PyObject *ob;
-			ob = pVar->boolVal ? Py_True : Py_False;
-			Py_INCREF(ob);
-			return ob;
-			}
+		case VT_BSTR|VT_VECTOR:
+			return VectorToSeq(pVar->cabstr.pElems, pVar->cabstr.cElems, PyWinObject_FromVT_BSTR);
+		case VT_BOOL:
+			return PyWinObject_FromVARIANT_BOOL(pVar->boolVal);
+		case VT_BOOL|VT_VECTOR:
+			return VectorToSeq(pVar->cabool.pElems, pVar->cabool.cElems, PyWinObject_FromVARIANT_BOOL);
 		case VT_ERROR:
 			return PyInt_FromLong(pVar->scode);
 		case VT_ERROR|VT_VECTOR:
@@ -241,7 +287,10 @@ PyObject *PyObject_FromPROPVARIANT( PROPVARIANT *pVar )
 			return PyCom_PyObjectFromIUnknown(pVar->pStorage, IID_IStorage, TRUE);
 		case VT_VECTOR | VT_VARIANT:
 			return PyObject_FromPROPVARIANTs(pVar->capropvar.pElems, pVar->capropvar.cElems);
-
+		case VT_BLOB:
+		case VT_BLOB_OBJECT:
+			return PyString_FromStringAndSize((const char *)pVar->blob.pBlobData,
+			                                  pVar->blob.cbSize);
 //		case VT_UNKNOWN:
 //			return PyCom_PyObjectFromIUnknown(pVar->punkVal, IID_IUnknown, TRUE);
 //		case VT_DISPATCH:
@@ -260,13 +309,6 @@ PyObject *PyObject_FromPROPVARIANT( PROPVARIANT *pVar )
 			                     pVar->pclipdata->pClipData,
 			                     (int)cb);
 			}
-		case VT_BLOB:
-			// DWORD count of bytes, followed by that many bytes of data.
-			// The byte count does not include the four bytes for the
-			// length of the count itself; an empty blob member would
-			// have a count of zero, followed by zero bytes.
-			return PyString_FromStringAndSize((const char *)pVar->blob.pBlobData,
-			                                  pVar->blob.cbSize);
 */
 		default:
 			PyErr_Format(PyExc_TypeError, "Unsupported property type 0x%x", pVar->vt);
