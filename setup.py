@@ -1579,10 +1579,10 @@ win32_extensions.append(
 
 for info in (
         # (name, libraries, UNICODE, WINVER, sources)
-        ("mmapfile", "", None),
-        ("odbc", "odbc32 odbccp32", None),
+        ("mmapfile", "", None, None, "win32/src/mmapfilemodule.cpp"),
+        ("odbc", "odbc32 odbccp32", None, None, "win32/src/odbc.cpp"),
         ("perfmon", "", True),
-        ("timer", "user32", None),
+        ("timer", "user32", None, None, "win32/src/timermodule.cpp"),
         ("win2kras", "rasapi32", None, 0x0500),
         ("win32cred", "AdvAPI32 credui", True, 0x0501, 'win32/src/win32credmodule.cpp'),
         ("win32crypt", "Crypt32", None, 0x0500, 'win32/src/win32crypt.i'),
@@ -1591,7 +1591,7 @@ for info in (
               win32/src/win32file_comm.cpp
               """),
         ("win32event", "user32", None, None, "win32/src/win32event.i"),
-        ("win32clipboard", "gdi32 user32 shell32", None),
+        ("win32clipboard", "gdi32 user32 shell32", None, None, "win32/src/win32clipboardmodule.cpp"),
 
         # win32gui handled below
         ("win32job", "user32", True, 0x0500, 'win32/src/win32job.i'),
