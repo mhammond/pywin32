@@ -1168,7 +1168,7 @@ static int bindInput
 			PyObject *sitem = PyObject_Str(item);
 			if (sitem==NULL)
 				rv = 0;
-			else if PyString_Check(sitem)
+			else if (PyString_Check(sitem))
 				rv = ibindString(cur, iCol, sitem);
 			else if PyUnicode_Check(sitem)
 				rv = ibindUnicode(cur, iCol, sitem);
@@ -1595,51 +1595,46 @@ static PyObject *processOutput(cursorObject *cur)
 		return NULL;
 
 	while (ob) {
-		SQLLEN cbRequired;
-		RETCODE rc;
-		SQLLEN cbRead = 0;
-        /* Use SQLGetData to retrieve data for blob (or long varchar) type columns. */
-        if (ob->bGetData)
-        {
-            /* Initialize memory (offsets, etc.)
-	       (use bind_area for buffer, and dynamically allocate in the loop below) */
-            cbRequired = ob->vsize;
-            ob->rcode = 0;
-            cbRead = 0;      /* Count of bytes read (running total and offset into buffer). */
-
-            /* Loop until SQLGetData tells us that there are no more chunks
-	       of the blob to retrieve. */
-            do
-            {
-                /* Check to see if bind_area is big enough
-                      if cbRequired > vsize
-                         re-allocate bind_area to cbRequired
-                         set ob->vsize = cbRequired */
-                if (cbRequired > ob->vsize)
-                {
-                    void *pTemp = ob->bind_area;
+		if (ob->bGetData)
+		{
+			/* Use SQLGetData to retrieve data for blob (or long varchar) type columns.
+				Loop until return code indicates all remaining data fit into buffer.
+			*/
+			RETCODE rc;
+			SQLLEN cbRead = 0;
+			ob->rcode = 0;
+			do
+			{
+				/* Increase buffer size by cursor chunk size on second and subsequent calls
+					If not for the SQL Anywhere 5.0 problem (driver version
+					5.05.041867), we could probably grow by 50% each time
+					or the remaining size (as determined by ob->rcode).
+					Regarding above note, caller can now use cursor.setoutputsize
+					to work around any such bug in a driver */
+				if (ob->rcode){
+					void *pTemp = ob->bind_area;
+					ob->vsize += cur->max_width;
 					/* Some BLOBs can be huge, be paranoid about allowing
 					   other threads to run. */
 					Py_BEGIN_ALLOW_THREADS
-                    ob->bind_area = realloc (ob->bind_area, cbRequired);
+					ob->bind_area = realloc (ob->bind_area, ob->vsize);
 					Py_END_ALLOW_THREADS
 					if (ob->bind_area == NULL){
 						PyErr_NoMemory();
+						ob->vsize -= cur->max_width;
 						ob->bind_area = pTemp;
 						Py_DECREF(row);
 						return NULL;
 						}
-                    ob->vsize = cbRequired;
                 }
 
-                /* rc = GetData( ... , bind_area + offset, vsize - offset, &rcode ) */
 				Py_BEGIN_ALLOW_THREADS
-                rc = SQLGetData(cur->hstmt,
-                                       ob->pos,
-                                       ob->vtype,
-                                       (char *)ob->bind_area + cbRead,
-                                       ob->vsize - cbRead,
-                                       &ob->rcode);
+				rc = SQLGetData(cur->hstmt,
+								ob->pos,
+								ob->vtype,
+								(char *)ob->bind_area + cbRead,
+								ob->vsize - cbRead,
+								&ob->rcode);
 				Py_END_ALLOW_THREADS
 				if (unsuccessful(rc))
 				{
@@ -1647,35 +1642,31 @@ static PyObject *processOutput(cursorObject *cur)
 	 				cursorError(cur, _T("SQLGetData"));
 					return NULL;
 				}
-				/* Returned length is total length remaining including current read.
-					If length is not known, returns SQL_NO_TOTAL */
-                if ((ob->rcode != SQL_NO_TOTAL) && (ob->rcode <= cur->max_width))
+				/* Return code can be a negative status code:
+					SQL_NO_TOTAL if length is not known, SQL_NULL_DATA if nothing to retreive
+					Otherwise will be total bytes remaining including current read.
+				*/
+                if (ob->rcode >= 0 && ob->rcode <= ob->vsize - cbRead)
                 {
-                    /* If we get here, then this should be the last iteration through the loop. */
-                    cbRead += ob->rcode;
+					/* If we get here, then this should be the last iteration through the loop. */
+					ob->rcode += cbRead;
                 }
                 else
                 {
-                    /* Grow buffer by cursor chunk size for each read.
-			       If not for the SQL Anywhere 5.0 problem (driver version
-			       5.05.041867), we could probably grow by 50% each time
-				   or the remaining size (as determined by ob->rcode).
-					Regarding above note, caller can now use cursor.setoutputsize
-					to work around any such bug in a driver */
-                    cbRequired += cur->max_width;
+					cbRead = ob->vsize;
 					/* We want to ignore the intermediate
 						  NULL characters SQLGetData() gives us.
 						   (silly, silly) */
 					if (ob->vtype == SQL_C_CHAR)
-						cbRead = ob->vsize - 1;
+						cbRead--;
 					else if (ob->vtype == SQL_C_WCHAR)
-						cbRead = ob->vsize - sizeof(WCHAR);
-					else
-						cbRead = ob->vsize;
-                }
+						/* Buffer is not guaranteed to be an exact multiple of sizeof(WCHAR),
+							leaving an extra byte and throwing the next get off by 1. */
+						cbRead -= sizeof(WCHAR) + ob->vsize%sizeof(WCHAR);
+				}
 
-            } while (rc == SQL_SUCCESS_WITH_INFO); 
-        }
+			} while (rc == SQL_SUCCESS_WITH_INFO); 
+		}
 		
 		PyObject *v;
 		if (ob->rcode == SQL_NULL_DATA)
@@ -1696,7 +1687,7 @@ static PyObject *processOutput(cursorObject *cur)
 			{
 				v = ob->copy_fcn(
 					ob->bind_area,
-					cbRead);
+					ob->rcode);
 			}
 			if (!v)
 			{
@@ -1749,7 +1740,11 @@ static PyObject *fetchN(cursorObject *cur, long n_rows)
 			}
 			else
 			{
-				PyList_Append(list, entry);
+				if (PyList_Append(list, entry) == -1){
+					Py_DECREF(list);
+					Py_DECREF(entry);
+					return NULL;
+					}
 				Py_DECREF(entry);
 			}
 		}
@@ -1994,6 +1989,11 @@ PYWIN_MODULE_INIT_FUNC(odbc)
 {
 	PYWIN_MODULE_INIT_PREPARE(odbc, globalMethods,
 				  "A Python wrapper around the ODBC API.");
+
+	if (PyType_Ready(&Cursor_Type) == -1)
+		PYWIN_MODULE_INIT_RETURN_ERROR;
+	if (PyType_Ready(&Connection_Type) == -1)
+		PYWIN_MODULE_INIT_RETURN_ERROR;
 
 	// Sql dates are now returned as python's datetime object.
 	//	C Api for datetime didn't exist in 2.3, stick to dynamic semantics for now.
