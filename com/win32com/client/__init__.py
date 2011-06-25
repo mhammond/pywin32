@@ -421,7 +421,7 @@ class DispatchBaseClass:
 	def __init__(self, oobj=None):
 		if oobj is None:
 			oobj = pythoncom.new(self.CLSID)
-		elif type(self) == type(oobj): # An instance
+		elif isinstance(oobj, DispatchBaseClass):
 			try:
 				oobj = oobj._oleobj_.QueryInterface(self.CLSID, pythoncom.IID_IDispatch) # Must be a valid COM instance
 			except pythoncom.com_error, details:
