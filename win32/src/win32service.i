@@ -17,9 +17,30 @@ typedef BOOL (WINAPI *ChangeServiceConfig2func)(SC_HANDLE,DWORD,LPVOID);
 ChangeServiceConfig2func fpChangeServiceConfig2=NULL;
 typedef BOOL (WINAPI *QueryServiceConfig2func)(SC_HANDLE,DWORD,LPBYTE,DWORD,LPDWORD);
 QueryServiceConfig2func fpQueryServiceConfig2=NULL;
+typedef BOOL (WINAPI *EnumServicesStatusExfunc)(SC_HANDLE,SC_ENUM_TYPE,DWORD,DWORD,
+	LPBYTE,DWORD,LPDWORD,LPDWORD,LPDWORD,LPCTSTR);
+EnumServicesStatusExfunc fpEnumServicesStatusEx=NULL;
 
 // according to msdn, 256 is limit for service names and service display names
 #define MAX_SERVICE_NAME_LEN 256   
+
+// Automatically freed WCHAR that can be used anywhere WCHAR * is required
+class TmpWCHAR
+{
+public:
+	WCHAR *tmp;
+	TmpWCHAR() { tmp=NULL; }
+	TmpWCHAR(WCHAR *t) { tmp=t; }
+	WCHAR * operator= (WCHAR *t){
+		PyWinObject_FreeWCHAR(tmp);
+		tmp=t;
+		return t;
+		}
+	WCHAR ** operator& () {return &tmp;}
+	boolean operator== (WCHAR *t) { return tmp==t; }
+	operator WCHAR *() { return tmp; }
+	~TmpWCHAR() { PyWinObject_FreeWCHAR(tmp); }
+};
 %}
 
 %init %{
@@ -49,6 +70,9 @@ QueryServiceConfig2func fpQueryServiceConfig2=NULL;
 		fp=GetProcAddress(hmod,"QueryServiceConfig2W");
 		if (fp!=NULL)
 			fpQueryServiceConfig2=(QueryServiceConfig2func)fp;
+		fp=GetProcAddress(hmod,"EnumServicesStatusExW");
+		if (fp!=NULL)
+			fpEnumServicesStatusEx=(EnumServicesStatusExfunc)fp;
 		}
 %}
 
@@ -884,6 +908,102 @@ static PyObject *MyEnumServicesStatus(PyObject *self, PyObject *args)
 
 	delete buffer;
 	return retval;
+}
+%}
+
+// @pyswig (dict,...)|EnumServicesStatusEx|Lists the status of services that meet the specified criteria
+// @rdesc Returns a sequence of dicts, whose contents depend on information level requested.
+// Currently, only information level supported is SC_ENUM_PROCESS_INFO (returns ENUM_SERVICE_STATUS_PROCESS).
+// @pyseeapi EnumServicesStatusEx
+%native (EnumServicesStatusEx) MyEnumServicesStatusEx;
+%{
+static PyObject *MyEnumServicesStatusEx(PyObject *self, PyObject *args)
+{
+	// @pyparm <o PySC_HANDLE>|SCManager||Handle to service control manager as returned by <om win32service.OpenSCManager>
+	// @pyparm int|ServiceType|SERVICE_WIN32|Types of services to enumerate (SERVICE_DRIVER and/or SERVICE_WIN32)
+	// @pyparm int|ServiceState|SERVICE_STATE_ALL|Limits to services in specified state
+	// @pyparm str|GroupName|None|Name of group - use None for all, or '' for services that don't belong to a group
+	// @pyparm int|InfoLevel|SC_ENUM_PROCESS_INFO|Currently SC_ENUM_PROCESS_INFO is only level defined
+	SC_HANDLE hscm;
+	PyObject *obgrp = Py_None, *ret = NULL;
+	DWORD service_type = SERVICE_WIN32, service_state = SERVICE_STATE_ALL;
+	TmpWCHAR grp;
+	DWORD lvl = SC_ENUM_PROCESS_INFO;
+	BYTE *buf=NULL;
+	DWORD buf_size=0, buf_needed, nbr_returned;
+	DWORD resume_handle =0, err=0;
+	BOOL bsuccess;
+	
+	if (fpEnumServicesStatusEx == NULL){
+		PyErr_SetString(PyExc_NotImplementedError, "EnumServicesStatusEx does not exist on this platform");
+		return NULL;
+		}
+	if (!PyArg_ParseTuple(args, "O&|kkOk:EnumServicesStatusEx",
+		PyWinObject_AsHANDLE, &hscm,
+		&service_type, &service_state,
+		&obgrp, &lvl))
+		return NULL;
+	if (lvl != SC_ENUM_PROCESS_INFO){
+		PyErr_SetString(PyExc_NotImplementedError, "Unsupported information level");
+		return NULL;
+		}
+	if (!PyWinObject_AsWCHAR(obgrp, &grp, TRUE))
+		return NULL;
+	ret = PyList_New(0);
+	if (ret==NULL)
+		return NULL;
+	while (true){
+		Py_BEGIN_ALLOW_THREADS
+		bsuccess = (*fpEnumServicesStatusEx)(hscm, (SC_ENUM_TYPE)lvl, service_type, service_state,
+			buf, buf_size, &buf_needed, &nbr_returned, &resume_handle, grp);
+		Py_END_ALLOW_THREADS
+		if (!bsuccess){
+			err=GetLastError();
+			if (err != ERROR_MORE_DATA){
+				PyWin_SetAPIError("EnumServicesStatusEx", err);
+				Py_DECREF(ret);
+				ret = NULL;
+				break;
+				}
+			}
+		// Function can return false with ERROR_MORE_DATA after retrieving some statuses
+		for (DWORD i=0; i<nbr_returned; i++){
+			ENUM_SERVICE_STATUS_PROCESS *essp = (ENUM_SERVICE_STATUS_PROCESS *)buf;
+			TmpPyObject stat = Py_BuildValue("{s:N, s:N, s:k, s:k, s:k, s:k, s:k, s:k, s:k, s:k, s:k}",
+				"ServiceName", PyWinObject_FromTCHAR(essp[i].lpServiceName),
+				"DisplayName", PyWinObject_FromTCHAR(essp[i].lpDisplayName),
+				"ServiceType", essp[i].ServiceStatusProcess.dwServiceType,
+				"CurrentState", essp[i].ServiceStatusProcess.dwCurrentState,
+				"ControlsAccepted", essp[i].ServiceStatusProcess.dwControlsAccepted,
+				"Win32ExitCode", essp[i].ServiceStatusProcess.dwWin32ExitCode,
+				"ServiceSpecificExitCode", essp[i].ServiceStatusProcess.dwServiceSpecificExitCode,
+				"CheckPoint", essp[i].ServiceStatusProcess.dwCheckPoint,
+				"WaitHint", essp[i].ServiceStatusProcess.dwWaitHint,
+				"ProcessId", essp[i].ServiceStatusProcess.dwProcessId,
+				"ServiceFlags", essp[i].ServiceStatusProcess.dwServiceFlags);
+			if (stat == NULL || PyList_Append(ret, stat) == -1){
+				Py_DECREF(ret);
+				ret=NULL;
+				break;
+				}
+			}
+		if (bsuccess || ret == NULL)
+			break;
+		if (buf)
+			free(buf);
+		buf=(BYTE *)malloc(buf_needed);
+		if (buf == NULL){
+			PyErr_NoMemory();
+			Py_DECREF(ret);
+			ret = NULL;
+			break;
+			}
+		buf_size = buf_needed;
+		}
+
+	if (buf)
+		free(buf);
+	return ret;
 }
 %}
 
@@ -1848,6 +1968,9 @@ PyObject *PyQueryServiceConfig2(PyObject *self, PyObject *args)
 #define SERVICE_CONFIG_PRESHUTDOWN_INFO SERVICE_CONFIG_PRESHUTDOWN_INFO
 #define SERVICE_CONFIG_REQUIRED_PRIVILEGES_INFO SERVICE_CONFIG_REQUIRED_PRIVILEGES_INFO
 #define SERVICE_CONFIG_SERVICE_SID_INFO SERVICE_CONFIG_SERVICE_SID_INFO
+
+// Info level for EnumServicesStatusEx
+#define SC_ENUM_PROCESS_INFO SC_ENUM_PROCESS_INFO
 
 // Used with SERVICE_CONFIG_SERVICE_SID_INFO
 #define SERVICE_SID_TYPE_NONE SERVICE_SID_TYPE_NONE 
