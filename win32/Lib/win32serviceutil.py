@@ -7,8 +7,7 @@
 # registry etc.
 
 import win32service, win32api, win32con, winerror
-import sys, pywintypes, os
-
+import sys, pywintypes, os, warnings
 error = RuntimeError
 
 def LocatePythonServiceExe(exeName = None):
@@ -141,7 +140,8 @@ def _GetCommandLine(exeName, exeArgs):
     else:
         return exeName
 
-def InstallService(pythonClassString, serviceName, displayName, startType = None, errorControl = None, bRunInteractive = 0, serviceDeps = None, userName = None, password = None, exeName = None, perfMonIni = None, perfMonDll = None, exeArgs = None, description = None):
+def InstallService(pythonClassString, serviceName, displayName, startType = None, errorControl = None, bRunInteractive = 0, serviceDeps = None, userName = None, password = None, exeName = None, perfMonIni = None, perfMonDll = None, exeArgs = None,
+                   description = None, delayedstart = None):
     # Handle the default arguments.
     if startType is None:
         startType = win32service.SERVICE_DEMAND_START
@@ -173,6 +173,13 @@ def InstallService(pythonClassString, serviceName, displayName, startType = None
                 win32service.ChangeServiceConfig2(hs,win32service.SERVICE_CONFIG_DESCRIPTION,description)
             except NotImplementedError:
                 pass    ## ChangeServiceConfig2 and description do not exist on NT
+        if delayedstart is not None:
+            try:
+                win32service.ChangeServiceConfig2(hs,win32service.SERVICE_CONFIG_DELAYED_AUTO_START_INFO, delayedstart)
+            except (win32service.error, NotImplementedError):
+                ## delayed start only exists on Vista and later - warn only when trying to set delayed to True
+                if delayedstart:
+                    warnings.warn('Delayed Start not available on this system')
         win32service.CloseServiceHandle(hs)
     finally:
         win32service.CloseServiceHandle(hscm)
@@ -181,7 +188,10 @@ def InstallService(pythonClassString, serviceName, displayName, startType = None
     if perfMonIni is not None:
         InstallPerfmonForService(serviceName, perfMonIni, perfMonDll)
 
-def ChangeServiceConfig(pythonClassString, serviceName, startType = None, errorControl = None, bRunInteractive = 0, serviceDeps = None, userName = None, password = None, exeName = None, displayName = None, perfMonIni = None, perfMonDll = None, exeArgs = None, description = None):
+def ChangeServiceConfig(pythonClassString, serviceName, startType = None, errorControl = None, bRunInteractive = 0,
+                        serviceDeps = None, userName = None, password = None,
+                        exeName = None, displayName = None, perfMonIni = None, perfMonDll = None,
+                        exeArgs = None, description = None, delayedstart = None):
     # Before doing anything, remove any perfmon counters.
     try:
         import perfmon
@@ -221,7 +231,15 @@ def ChangeServiceConfig(pythonClassString, serviceName, startType = None, errorC
                     win32service.ChangeServiceConfig2(hs,win32service.SERVICE_CONFIG_DESCRIPTION,description)
                 except NotImplementedError:
                     pass    ## ChangeServiceConfig2 and description do not exist on NT
-
+            if delayedstart is not None:
+                try:
+                    win32service.ChangeServiceConfig2(hs,win32service.SERVICE_CONFIG_DELAYED_AUTO_START_INFO, delayedstart)
+                except (win32service.error, NotImplementedError):
+                    ## Delayed start only exists on Vista and later.  On Nt, will raise NotImplementedError since ChangeServiceConfig2
+                    ## doensn't exist.  On Win2k and XP, will fail with ERROR_INVALID_LEVEL
+                    ## Warn only if trying to set delayed to True
+                    if delayedstart:
+                        warnings.warn('Delayed Start not available on this system')
         finally:
             win32service.CloseServiceHandle(hs)
     finally:
@@ -492,7 +510,7 @@ def usage():
     print "Options for 'install' and 'update' commands only:"
     print " --username domain\\username : The Username the service is to run under"
     print " --password password : The password for the username"
-    print " --startup [manual|auto|disabled] : How the service starts, default = manual"
+    print " --startup [manual|auto|disabled|delayed] : How the service starts, default = manual"
     print " --interactive : Allow the service to interact with the desktop."
     print " --perfmonini file: .ini file to use for registering performance monitor data"
     print " --perfmondll file: .dll file to use when querying the service for"
@@ -536,6 +554,7 @@ def HandleCommandLine(cls, serviceClassString = None, argv = None, customInstall
     password = None
     perfMonIni = perfMonDll = None
     startup = None
+    delayedstart = None
     interactive = None
     waitSecs = 0
     for opt, val in opts:
@@ -550,11 +569,19 @@ def HandleCommandLine(cls, serviceClassString = None, argv = None, customInstall
         elif opt=='--interactive':
             interactive = 1
         elif opt=='--startup':
-            map = {"manual": win32service.SERVICE_DEMAND_START, "auto" : win32service.SERVICE_AUTO_START, "disabled": win32service.SERVICE_DISABLED}
+            map = {"manual": win32service.SERVICE_DEMAND_START,
+                   "auto" : win32service.SERVICE_AUTO_START,
+                   "delayed": win32service.SERVICE_AUTO_START, ## ChangeServiceConfig2 called later
+                   "disabled": win32service.SERVICE_DISABLED}
             try:
                 startup = map[val.lower()]
             except KeyError:
                 print "'%s' is not a valid startup option" % val
+            if val.lower() == "delayed":
+                delayedstart = True
+            elif val.lower() == "auto":
+                delayedstart = False
+            ## else no change
         elif opt=='--wait':
             try:
                 waitSecs = int(val)
@@ -635,7 +662,8 @@ def HandleCommandLine(cls, serviceClassString = None, argv = None, customInstall
         # but is unlikely to work, as the Python code controlling it failed.  Therefore
         # we remove the service if the first bit works, but the second doesnt!
         try:
-            InstallService(serviceClassString, serviceName, serviceDisplayName, serviceDeps = serviceDeps, startType=startup, bRunInteractive=interactive, userName=userName,password=password, exeName=exeName, perfMonIni=perfMonIni,perfMonDll=perfMonDll,exeArgs=exeArgs,description=description)
+            InstallService(serviceClassString, serviceName, serviceDisplayName, serviceDeps = serviceDeps, startType=startup, bRunInteractive=interactive, userName=userName,password=password, exeName=exeName, perfMonIni=perfMonIni,perfMonDll=perfMonDll,exeArgs=exeArgs,
+                           description=description, delayedstart=delayedstart)
             if customOptionHandler:
                 customOptionHandler(*(opts,))
             print "Service installed"
@@ -678,7 +706,8 @@ def HandleCommandLine(cls, serviceClassString = None, argv = None, customInstall
             description=None
         print "Changing service configuration"
         try:
-            ChangeServiceConfig(serviceClassString, serviceName, serviceDeps = serviceDeps, startType=startup, bRunInteractive=interactive, userName=userName,password=password, exeName=exeName, displayName = serviceDisplayName, perfMonIni=perfMonIni,perfMonDll=perfMonDll,exeArgs=exeArgs,description=description)
+            ChangeServiceConfig(serviceClassString, serviceName, serviceDeps = serviceDeps, startType=startup, bRunInteractive=interactive, userName=userName,password=password, exeName=exeName, displayName = serviceDisplayName, perfMonIni=perfMonIni,perfMonDll=perfMonDll,exeArgs=exeArgs,
+                                description=description, delayedstart=delayedstart)
             if customOptionHandler:
                 customOptionHandler(*(opts,))
             print "Service updated"
