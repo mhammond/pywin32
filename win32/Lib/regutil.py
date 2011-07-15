@@ -12,14 +12,25 @@ CLSIDPyFile = "{b51df050-06ae-11cf-ad3b-524153480001}"
 RegistryIDPyFile = "Python.File" # The registry "file type" of a .py file
 RegistryIDPycFile = "Python.CompiledFile" # The registry "file type" of a .pyc file
 
+def BuildDefaultPythonKey():
+	"""Builds a string containing the path to the current registry key.
+
+	   The Python registry key contains the Python version.  This function
+	   uses the version of the DLL used by the current process to get the
+	   registry key currently in use.
+        """
+	return "Software\\Python\\PythonCore\\" + sys.winver
+
 def GetRootKey():
 	"""Retrieves the Registry root in use by Python.
 	"""
-# Win32s no longer supported/released.
-#	if win32ui.IsWin32s():
-#		return win32con.HKEY_CLASSES_ROOT
-#	else:
-	return win32con.HKEY_LOCAL_MACHINE
+	keyname = BuildDefaultPythonKey()
+	try:
+		k = win32api.RegOpenKey(win32con.HKEY_CURRENT_USER, keyname)
+		k.close()
+		return win32con.HKEY_CURRENT_USER
+	except win32api.error:
+		return win32con.HKEY_LOCAL_MACHINE
 
 def GetRegistryDefaultValue(subkey, rootkey = None):
 	"""A helper to return the default value for a key in the registry.
@@ -39,16 +50,6 @@ def SetRegistryDefaultValue(subKey, value, rootkey = None):
 		raise TypeError("Value must be string or integer - was passed " + repr(value))
 
 	win32api.RegSetValue(rootkey, subKey, typeId ,value)
-	
-def BuildDefaultPythonKey():
-	"""Builds a string containing the path to the current registry key.
-
-	   The Python registry key contains the Python version.  This function
-	   uses the version of the DLL used by the current process to get the
-	   registry key currently in use.
-        """
-
-	return "Software\\Python\\PythonCore\\" + sys.winver
 
 def GetAppPathsKey():
 	return "Software\\Microsoft\\Windows\\CurrentVersion\\App Paths"
