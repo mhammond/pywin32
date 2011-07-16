@@ -158,7 +158,7 @@ def find_platform_sdk_dir():
     sdkdir = os.environ.get("MSSdk")
     if sdkdir:
         if DEBUG:
-            print "PSDK: try %MSSdk%: '%s'" % sdkdir
+            print "PSDK: try %%MSSdk%%: '%s'" % sdkdir
         if os.path.isfile(os.path.join(sdkdir, landmark)):
             return sdkdir
     # 2. The "Install Dir" value in the
