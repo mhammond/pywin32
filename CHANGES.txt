@@ -41,6 +41,11 @@ Since build 216:
 
 * win32evtlog - Added some of the new event log functions introduced in Vista/Windows 7
 
+* win32service - Added EnumServicesStatusEx, and support startup type "delayed"
+	for Python services
+
+* win32net - Fix a problem with NetFileEnum on 64-bit (bug #3376041)
+
 Since build 215:
 ----------------
 * New loader module for COM objects to avoid some CRT manifest issues.
