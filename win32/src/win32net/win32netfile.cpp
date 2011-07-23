@@ -34,7 +34,7 @@ PyNetFileEnum(PyObject *self, PyObject *args)
 	DWORD buff_len = 0xFFFFFFFF;
 	DWORD  dwEntriesRead= 0;
 	DWORD dwTotalEntries = 0;
-	DWORD_PTR resumeHandle;
+	DWORD_PTR resumeHandle = 0;
 	DWORD i;
 
 	NET_API_STATUS nStatus;
