@@ -6,7 +6,8 @@
 import win32ui, win32con
 import scriptutils
 import warnings
-			
+from pywin.scintilla.control import CScintillaEditInterface
+
 IdToBarNames = {
 	win32ui.IDC_DBG_STACK : ("Stack",0),
 	win32ui.IDC_DBG_BREAKPOINTS : ("Breakpoints",0),
@@ -137,7 +138,7 @@ class DebuggerCommandHandler:
 
 	def OnUpdateAddBreakpoints(self, cmdui):
 		doc, view = scriptutils.GetActiveEditorDocument()
-		if doc is None:
+		if doc is None or not isinstance(view, CScintillaEditInterface):
 			enabled = 0
 		else:
 			enabled = 1
