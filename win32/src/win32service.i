@@ -1584,7 +1584,7 @@ void PyWinObject_FreeSERVICE_FAILURE_ACTIONS(LPSERVICE_FAILURE_ACTIONSW psfa)
 BOOL PyWinObject_AsSERVICE_FAILURE_ACTIONS(PyObject *obinfo, LPSERVICE_FAILURE_ACTIONSW psfa)
 {
 	static char *sfa_keys[]={"ResetPeriod","RebootMsg","Command","Actions",0};
-	static char *err="SERVICE_FAILURE_ACTIONS must be a dictionary containing {'ResetPeriod':int,'RebootMsg':unicode,'lpCommand':unicode,'Actions':sequence of 2 tuples(int,int)";
+	static char *err="SERVICE_FAILURE_ACTIONS must be a dictionary containing {'ResetPeriod':int,'RebootMsg':unicode,'Command':unicode,'Actions':sequence of 2 tuples(int,int)";
 	PyObject *dummy_tuple, *obActions, *obRebootMsg, *obCommand;
 	BOOL ret;
 	ZeroMemory(psfa, sizeof(SERVICE_FAILURE_ACTIONSW));
