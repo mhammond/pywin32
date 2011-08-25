@@ -159,6 +159,8 @@ static PFNSHGetIDListFromObject pfnSHGetIDListFromObject = NULL;
 typedef HRESULT (WINAPI *PFNSHCreateShellItem)(PCIDLIST_ABSOLUTE, IShellFolder *, PCUITEMID_CHILD, IShellItem **);
 static PFNSHCreateShellItem pfnSHCreateShellItem = NULL;
 
+typedef HRESULT (WINAPI *PFNSHOpenFolderAndSelectItems)(PCIDLIST_ABSOLUTE,UINT,PCUITEMID_CHILD_ARRAY,DWORD);
+static PFNSHOpenFolderAndSelectItems pfnSHOpenFolderAndSelectItems = NULL;
 
 void PyShell_FreeMem(void *p)
 {
@@ -323,6 +325,7 @@ BOOL PyObject_AsPIDLArray(PyObject *obSeq, UINT *pcidl, LPCITEMIDLIST **ret)
 		PyErr_NoMemory();
 		return FALSE;
 	}
+	ZeroMemory(ppidl, n * sizeof(ITEMIDLIST *));
 	for (int i=0;i<n;i++) {
 		PyObject *ob = PySequence_GetItem(obSeq, i);
 		if (!ob || !PyObject_AsPIDL(ob, (ITEMIDLIST **)&ppidl[i], FALSE )) {
@@ -3186,9 +3189,6 @@ done:
 	return ret;
 }
 
-
-
-
 // @pymethod <o PyIShellItem>|shell|SHCreateShellItem|Creates an IShellItem interface from a PIDL
 static PyObject *PySHCreateShellItem(PyObject *self, PyObject *args)
 {
@@ -3237,6 +3237,47 @@ done:
 	if (item)
 		PyObject_FreePIDL(item);
 
+	return ret;
+}
+
+// @pymethod |shell|SHOpenFolderAndSelectItems|Displays a shell folder with items pre-selected
+static PyObject *PySHOpenFolderAndSelectItems(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+	// @comm This function is only available on XP and later.
+	// COM exception with E_NOTIMPL will be thrown if the function can't be located.
+	if (pfnSHOpenFolderAndSelectItems==NULL)
+		return PyCom_BuildPyException(E_NOTIMPL);
+	static char *keywords[] = {"Folder", "Items", "Flags", NULL};
+	DWORD flags;
+	PyObject *obfolder, *obitems, *ret=NULL;
+	// @pyparm <o PyIDL>|Folder||An absolute item id list identifying a shell folder
+	// @pyparm (<o PyIDL>,...)|Items||A sequence of relative item ids identifying items in the folder
+	// @pyparm int|Flags|0|Combination of OFASI_* flags (not used on XP)
+
+	if(!PyArg_ParseTupleAndKeywords(args, kwargs, "OO|k:SHOpenFolderAndSelectItems", keywords,
+		&obfolder, &obitems, &flags))
+		return NULL;
+	ITEMIDLIST *folder = NULL;
+	const ITEMIDLIST **items = NULL;
+	UINT item_cnt;
+	HRESULT hr;
+	if (PyObject_AsPIDL(obfolder, &folder, FALSE)
+		&&PyObject_AsPIDLArray(obitems, &item_cnt, &items)){
+		PY_INTERFACE_PRECALL;
+		hr = (*pfnSHOpenFolderAndSelectItems)(folder, item_cnt, items, flags);
+		PY_INTERFACE_POSTCALL;
+		if (FAILED(hr))
+			PyCom_BuildPyException(hr);
+		else{
+			Py_INCREF(Py_None);
+			ret=Py_None;
+			}
+		}
+
+	if (folder)
+		PyObject_FreePIDL(folder);
+	if (items)
+		PyObject_FreePIDLArray(item_cnt, items);
 	return ret;
 }
 
@@ -3298,6 +3339,7 @@ static struct PyMethodDef shell_methods[]=
 	{ "SHGetViewStatePropertyBag", PySHGetViewStatePropertyBag, METH_VARARGS}, // @pymeth SHGetViewStatePropertyBag|Retrieves an interface for a folder's view state
 	{ "SHILCreateFromPath", PySHILCreateFromPath, METH_VARARGS}, // @pymeth SHILCreateFromPath|Returns the PIDL and attributes of a path
 	{ "SHCreateShellItem", PySHCreateShellItem, METH_VARARGS}, // @pymeth SHCreateShellItem|Creates an IShellItem interface from a PIDL
+	{ "SHOpenFolderAndSelectItems", (PyCFunction)PySHOpenFolderAndSelectItems, METH_VARARGS|METH_KEYWORDS}, // @pymeth SHOpenFolderAndSelectItems|Displays a shell folder with items pre-selected
 	{ NULL, NULL },
 };
 
@@ -3431,6 +3473,7 @@ PYWIN_MODULE_INIT_FUNC(shell)
 		pfnSHCreateItemWithParent =(PFNSHCreateItemWithParent)GetProcAddress(shell32, "SHCreateItemWithParent");
 		pfnSHGetIDListFromObject =(PFNSHGetIDListFromObject)GetProcAddress(shell32, "SHGetIDListFromObject");
 		pfnSHCreateShellItem =(PFNSHCreateShellItem)GetProcAddress(shell32, "SHCreateShellItem");
+		pfnSHOpenFolderAndSelectItems = (PFNSHOpenFolderAndSelectItems)GetProcAddress(shell32, "SHOpenFolderAndSelectItems");
 	}
 	// SHGetFolderPath comes from shfolder.dll on older systems
 	if (pfnSHGetFolderPath==NULL){
