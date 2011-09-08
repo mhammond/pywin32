@@ -428,7 +428,7 @@ STDMETHODIMP PyGShellView::AddPropertySheetPages(
 	PyObject *obpfn = Py_None;
 	Py_INCREF(Py_None);
 	if (obpfn==NULL) return MAKE_PYCOM_GATEWAY_FAILURE_CODE("AddPropertySheetPages");
-	HRESULT hr=InvokeViaPolicy("AddPropertySheetPages", NULL, "lOl", dwReserved, obpfn, lparam);
+	HRESULT hr=InvokeViaPolicy("AddPropertySheetPages", NULL, "lON", dwReserved, obpfn, PyWinObject_FromPARAM(lparam));
 	Py_DECREF(obpfn);
 	return hr;
 }

@@ -519,9 +519,9 @@ STDMETHODIMP PyGShellBrowser::SendControlMsg(
 {
 	PY_GATEWAY_METHOD;
 	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("SendControlMsg", &result, "iiil", id, uMsg, wParam, lParam);
+	HRESULT hr=InvokeViaPolicy("SendControlMsg", &result, "iiNN", id, uMsg, PyWinObject_FromPARAM(wParam), PyWinObject_FromPARAM(lParam));
 	if (PyInt_Check(result) || PyLong_Check(result))
-		*pret = PyInt_AsLong(result);
+		PyWinLong_AsULONG_PTR(result, (ULONG_PTR *)pret);
 	Py_DECREF(result);
 	return hr;
 }
