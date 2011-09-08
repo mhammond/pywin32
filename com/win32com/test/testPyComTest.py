@@ -4,10 +4,11 @@
 import sys; sys.coinit_flags=0 # Must be free-threaded!
 import win32api, pythoncom, time
 import pywintypes
-import os, win32com, win32com.client.connect
-from win32com.test.util import CheckClean
-from win32com.client import constants, DispatchBaseClass
+import os
 import win32com
+import win32com.client.connect
+from win32com.test.util import CheckClean
+from win32com.client import constants, DispatchBaseClass, CastTo
 from win32com.test.util import RegisterPythonServer
 from pywin32_testutil import str2memory
 import datetime
@@ -420,6 +421,11 @@ def TestGenerated():
     o.SetParamProp(0, 1)
     if o.ParamProp(0) != 1:
         raise RuntimeError(o.paramProp(0))
+
+    # Make sure CastTo works - even though it is only casting it to itself!
+    o2 = CastTo(o, "IPyCOMTest")
+    if o != o2:
+        raise error("CastTo should have returned the same object")
 
     # Do the connection point thing...
     # Create a connection object.
