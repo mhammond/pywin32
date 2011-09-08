@@ -19,6 +19,7 @@ if "--noxp" in sys.argv:
     import win32gui
 else:
     import winxpgui as win32gui
+import win32gui_struct
 import win32api
 import win32con, winerror
 import struct, array
@@ -300,12 +301,9 @@ class DemoWindowBase:
         print "OnSearchFinished"
 
     def OnNotify(self, hwnd, msg, wparam, lparam):
-        format = "PPiiiiiiiiP"
-        buf = win32gui.PyMakeBuffer(struct.calcsize(format), lparam)
-        hwndFrom, idFrom, code, iItem, iSubItem, uNewState, uOldState, uChanged, actionx, actiony, lParam \
-                  = struct.unpack(format, buf)
-        if code == commctrl.NM_DBLCLK:
-            print "Double click on item", iItem+1
+        info = win32gui_struct.UnpackNMITEMACTIVATE(lparam)
+        if info.code == commctrl.NM_DBLCLK:
+            print "Double click on item", info.iItem+1
         return 1
 
     def OnCommand(self, hwnd, msg, wparam, lparam):

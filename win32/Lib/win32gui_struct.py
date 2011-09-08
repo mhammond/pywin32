@@ -35,6 +35,19 @@ import array
 import commctrl
 import pywintypes
 
+is64bit = "64 bit" in sys.version
+
+try:
+    from collections import namedtuple
+    def _MakeResult(names_str, values):
+        names = names_str.split()
+        nt = namedtuple(names[0], names[1:])
+        return nt(*values)
+except ImportError:
+    # no namedtuple support - just return the values as a normal tuple.
+    def _MakeResult(names_str, values):
+        return values
+
 # Encode a string suitable for passing in a win32gui related structure
 # If win32gui is built with UNICODE defined (ie, py3k), then functions
 # like InsertMenuItem are actually calling InsertMenuItemW etc, so all
@@ -73,11 +86,21 @@ else:
 
 # Generic WM_NOTIFY unpacking
 def UnpackWMNOTIFY(lparam):
-    format = "iii"
+    format = "PPi"
     buf = win32gui.PyGetMemory(lparam, struct.calcsize(format))
-    hwndFrom, idFrom, code = struct.unpack(format, buf)
-    return hwndFrom, idFrom, code
-    
+    return _MakeResult("WMNOTIFY hwndFrom idFrom code", struct.unpack(format, buf))
+
+def UnpackNMITEMACTIVATE(lparam):
+    if is64bit:
+        # the struct module doesn't handle this correctly as some of the items
+        # are actually structs in structs, which get individually aligned.
+        format = "PPixxxxiiiiiiixxxxP"
+    else:
+        format = "PPiiiiiiiiP"
+    buf = win32gui.PyMakeBuffer(struct.calcsize(format), lparam)
+    return _MakeResult("NMITEMACTIVATE hwndFrom idFrom code iItem iSubItem uNewState uOldState uChanged actionx actiony lParam",
+                       struct.unpack(format, buf))
+
 # MENUITEMINFO struct
 # http://msdn.microsoft.com/library/default.asp?url=/library/en-us/winui/WinUI/WindowsUserInterface/Resources/Menus/MenuReference/MenuStructures/MENUITEMINFO.asp
 # We use the struct module to pack and unpack strings as MENUITEMINFO
@@ -180,8 +203,10 @@ def UnpackMENUITEMINFO(s):
         text = win32gui.PyGetString(lptext, cch)
     else:
         text = None
-    return fType, fState, wID, hSubMenu, hbmpChecked, hbmpUnchecked, \
-           dwItemData, text, hbmpItem
+    return _MakeResult("MENUITEMINFO fType fState wID hSubMenu hbmpChecked "
+                       "hbmpUnchecked dwItemData text hbmpItem",
+                       (fType, fState, wID, hSubMenu, hbmpChecked, hbmpUnchecked, \
+                        dwItemData, text, hbmpItem))
 
 def EmptyMENUITEMINFO(mask = None, text_buf_size=512):
     # text_buf_size is number of *characters* - not necessarily no of bytes.
@@ -261,7 +286,8 @@ def UnpackMENUINFO(s):
     if fMask & win32con.MIM_BACKGROUND==0: hbrBack = None
     if fMask & win32con.MIM_HELPID==0: dwContextHelpID = None
     if fMask & win32con.MIM_MENUDATA==0: dwMenuData = None
-    return dwStyle, cyMax, hbrBack, dwContextHelpID, dwMenuData
+    return _MakeResult("MENUINFO dwStyle cyMax hbrBack dwContextHelpID dwMenuData",
+                       (dwStyle, cyMax, hbrBack, dwContextHelpID, dwMenuData))
 
 def EmptyMENUINFO(mask = None):
     if mask is None:
@@ -291,6 +317,7 @@ def EmptyMENUINFO(mask = None):
 # XXX - from the SpamBayes project.  It may not quite work correctly yet - I
 # XXX - intend checking them later - but having them is better than not at all!
 
+_tvitem_fmt = "iPiiPiiiiP"
 # Helpers for the ugly win32 structure packing/unpacking
 # XXX - Note that functions using _GetMaskAndVal run 3x faster if they are
 # 'inlined' into the function - see PackLVITEM.  If the profiler points at
@@ -307,7 +334,7 @@ def _GetMaskAndVal(val, default, mask, flag):
 def PackTVINSERTSTRUCT(parent, insertAfter, tvitem):
     tvitem_buf, extra = PackTVITEM(*tvitem)
     tvitem_buf = tvitem_buf.tostring()
-    format = "ii%ds" % len(tvitem_buf)
+    format = "PP%ds" % len(tvitem_buf)
     return struct.pack(format, parent, insertAfter, tvitem_buf), extra
 
 def PackTVITEM(hitem, state, stateMask, text, image, selimage, citems, param):
@@ -329,8 +356,7 @@ def PackTVITEM(hitem, state, stateMask, text, image, selimage, citems, param):
         text_len = len(text)
         extra.append(text_buffer)
         text_addr, _ = text_buffer.buffer_info()
-    format = "iiiiiiiiii"
-    buf = struct.pack(format,
+    buf = struct.pack(_tvitem_fmt,
                       mask, hitem,
                       state, stateMask,
                       text_addr, text_len, # text
@@ -351,8 +377,7 @@ def EmptyTVITEM(hitem, mask = None, text_buf_size=512):
         text_addr, _ = text_buffer.buffer_info()
     else:
         text_addr = text_buf_size = 0
-    format = "iiiiiiiiii"
-    buf = struct.pack(format,
+    buf = struct.pack(_tvitem_fmt,
                       mask, hitem,
                       0, 0,
                       text_addr, text_buf_size, # text
@@ -363,7 +388,7 @@ def EmptyTVITEM(hitem, mask = None, text_buf_size=512):
 def UnpackTVITEM(buffer):
     item_mask, item_hItem, item_state, item_stateMask, \
         item_textptr, item_cchText, item_image, item_selimage, \
-        item_cChildren, item_param = struct.unpack("10i", buffer)
+        item_cChildren, item_param = struct.unpack(_tvitem_fmt, buffer)
     # ensure only items listed by the mask are valid (except we assume the
     # handle is always valid - some notifications (eg, TVN_ENDLABELEDIT) set a
     # mask that doesn't include the handle, but the docs explicity say it is.)
@@ -378,29 +403,34 @@ def UnpackTVITEM(buffer):
         text = win32gui.PyGetString(item_textptr)
     else:
         text = None
-    return item_hItem, item_state, item_stateMask, \
-        text, item_image, item_selimage, \
-        item_cChildren, item_param
+    return _MakeResult("TVITEM item_hItem item_state item_stateMask "
+                       "text item_image item_selimage item_cChildren item_param",
+                       (item_hItem, item_state, item_stateMask, text,
+                        item_image, item_selimage, item_cChildren, item_param))
 
 # Unpack the lparm from a "TVNOTIFY" message
 def UnpackTVNOTIFY(lparam):
-    format = "iiii40s40s"
+    format = "Piii40s40s"
     buf = win32gui.PyGetMemory(lparam, struct.calcsize(format))
     hwndFrom, id, code, action, buf_old, buf_new \
           = struct.unpack(format, buf)
     item_old = UnpackTVITEM(buf_old)
     item_new = UnpackTVITEM(buf_new)
-    return hwndFrom, id, code, action, item_old, item_new
+    return _MakeResult("TVNOTIFY hwndFrom id code action item_old item_new",
+                       (hwndFrom, id, code, action, item_old, item_new))
 
 def UnpackTVDISPINFO(lparam):
-    format = "iii40s"
+    format = "Pii40s"
     buf = win32gui.PyGetMemory(lparam, struct.calcsize(format))
     hwndFrom, id, code, buf_item = struct.unpack(format, buf)
     item = UnpackTVITEM(buf_item)
-    return hwndFrom, id, code, item
+    return _MakeResult("TVDISPINFO hwndFrom id code item",
+                       (hwndFrom, id, code, item))
 
 #
 # List view items
+_lvitem_fmt = "iiiiiPiiPi"
+
 def PackLVITEM(item=None, subItem=None, state=None, stateMask=None, text=None, image=None, param=None, indent=None):
     extra = [] # objects we must keep references to
     mask = 0
@@ -429,8 +459,7 @@ def PackLVITEM(item=None, subItem=None, state=None, stateMask=None, text=None, i
         text_len = len(text)
         extra.append(text_buffer)
         text_addr, _ = text_buffer.buffer_info()
-    format = "iiiiiiiiii"
-    buf = struct.pack(format,
+    buf = struct.pack(_lvitem_fmt,
                       mask, item, subItem,
                       state, stateMask,
                       text_addr, text_len, # text
@@ -441,7 +470,7 @@ def UnpackLVITEM(buffer):
     item_mask, item_item, item_subItem, \
         item_state, item_stateMask, \
         item_textptr, item_cchText, item_image, \
-        item_param, item_indent = struct.unpack("10i", buffer)
+        item_param, item_indent = struct.unpack(_lvitem_fmt, buffer)
     # ensure only items listed by the mask are valid
     if not (item_mask & commctrl.LVIF_TEXT): item_textptr = item_cchText = None
     if not (item_mask & commctrl.LVIF_IMAGE): item_image = None
@@ -453,24 +482,29 @@ def UnpackLVITEM(buffer):
         text = win32gui.PyGetString(item_textptr)
     else:
         text = None
-    return item_item, item_subItem, item_state, item_stateMask, \
-        text, item_image, item_param, item_indent
+    return _MakeResult("LVITEM item_item item_subItem item_state "
+                       "item_stateMask text item_image item_param item_indent",
+                       (item_item, item_subItem, item_state, item_stateMask,
+                        text, item_image, item_param, item_indent))
 
 # Unpack an "LVNOTIFY" message
 def UnpackLVDISPINFO(lparam):
-    format = "iii40s"
+    format = "Pii40s"
     buf = win32gui.PyGetMemory(lparam, struct.calcsize(format))
     hwndFrom, id, code, buf_item = struct.unpack(format, buf)
     item = UnpackLVITEM(buf_item)
-    return hwndFrom, id, code, item
+    return _MakeResult("LVDISPINFO hwndFrom id code item",
+                       (hwndFrom, id, code, item))
 
 def UnpackLVNOTIFY(lparam):
-    format = "3i8i"
+    format = "Pii7iP"
     buf = win32gui.PyGetMemory(lparam, struct.calcsize(format))
     hwndFrom, id, code, item, subitem, newstate, oldstate, \
         changed, pt_x, pt_y, lparam = struct.unpack(format, buf)
-    return hwndFrom, id, code, item, subitem, newstate, oldstate, \
-        changed, (pt_x, pt_y), lparam
+    return _MakeResult("UnpackLVNOTIFY hwndFrom id code item subitem "
+                       "newstate oldstate changed pt lparam",
+                       (hwndFrom, id, code, item, subitem, newstate, oldstate,
+                        changed, (pt_x, pt_y), lparam))
 
 
 # Make a new buffer suitable for querying an items attributes.
@@ -485,8 +519,7 @@ def EmptyLVITEM(item, subitem, mask = None, text_buf_size=512):
         text_addr, _ = text_buffer.buffer_info()
     else:
         text_addr = text_buf_size = 0
-    format = "iiiiiiiiii"
-    buf = struct.pack(format,
+    buf = struct.pack(_lvitem_fmt,
                       mask, item, subitem, 
                       0, 0,
                       text_addr, text_buf_size, # text
@@ -495,6 +528,7 @@ def EmptyLVITEM(item, subitem, mask = None, text_buf_size=512):
 
 
 # List view column structure
+_lvcolumn_fmt = "iiiPiiii"
 def PackLVCOLUMN(fmt=None, cx=None, text=None, subItem=None, image=None, order=None):
     extra = [] # objects we must keep references to
     mask = 0
@@ -511,17 +545,15 @@ def PackLVCOLUMN(fmt=None, cx=None, text=None, subItem=None, image=None, order=N
         extra.append(text_buffer)
         text_addr, _ = text_buffer.buffer_info()
         text_len = len(text)
-    format = "iiiiiiii"
-    buf = struct.pack(format,
+    buf = struct.pack(_lvcolumn_fmt,
                       mask, fmt, cx,
                       text_addr, text_len, # text
                       subItem, image, order)
     return array.array("b", buf), extra
 
 def UnpackLVCOLUMN(lparam):
-    format = "iiiiiiii"
     mask, fmt, cx, text_addr, text_size, subItem, image, order = \
-            struct.unpack(format, lparam)
+            struct.unpack(_lvcolumn_fmt, lparam)
     # ensure only items listed by the mask are valid
     if not (mask & commctrl.LVCF_FMT): fmt = None
     if not (mask & commctrl.LVCF_WIDTH): cx = None
@@ -533,7 +565,8 @@ def UnpackLVCOLUMN(lparam):
         text = win32gui.PyGetString(text_addr)
     else:
         text = None
-    return fmt, cx, text, subItem, image, order
+    return _MakeResult("LVCOLUMN fmt cx text subItem image order",
+                       (fmt, cx, text, subItem, image, order))
 
 
 # Make a new buffer suitable for querying an items attributes.
@@ -548,8 +581,7 @@ def EmptyLVCOLUMN(mask = None, text_buf_size=512):
         text_addr, _ = text_buffer.buffer_info()
     else:
         text_addr = text_buf_size = 0
-    format = "iiiiiiii"
-    buf = struct.pack(format,
+    buf = struct.pack(_lvcolumn_fmt,
                       mask, 0, 0,
                       text_addr, text_buf_size, # text
                       0, 0, 0)
@@ -566,7 +598,8 @@ def PackLVHITTEST(pt):
 def UnpackLVHITTEST(buf):
     format = "iiiii"
     x, y, flags, item, subitem = struct.unpack(format, buf)
-    return (x,y), flags, item, subitem
+    return _MakeResult("LVHITTEST pt flags item subitem",
+                       ((x,y), flags, item, subitem))
 
 def PackHDITEM(cxy = None, text = None, hbm = None, fmt = None,
                param = None, image = None, order = None):
@@ -588,7 +621,7 @@ def PackHDITEM(cxy = None, text = None, hbm = None, fmt = None,
         text_addr, _ = text_buffer.buffer_info()
         text_len = len(text)
 
-    format = "iiiiiiiiiii"
+    format = "iiPPiiiiiii"
     buf = struct.pack(format,
                       mask, cxy, text_addr, hbm, text_len,
                       fmt, param, image, order, 0, 0)
