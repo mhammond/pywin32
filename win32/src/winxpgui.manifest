@@ -3,7 +3,7 @@
 manifestVersion="1.0">
 <assemblyIdentity
     version="0.64.1.0"
-    processorArchitecture="x86"
+    processorArchitecture="*"
     name="Controls"
     type="win32"
 />
@@ -14,7 +14,7 @@ manifestVersion="1.0">
             type="win32"
             name="Microsoft.Windows.Common-Controls"
             version="6.0.0.0"
-            processorArchitecture="X86"
+            processorArchitecture="*"
             publicKeyToken="6595b64144ccf1df"
             language="*"
         />
