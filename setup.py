@@ -116,6 +116,10 @@ except ImportError:
             print msg % args
     log = Log()
 
+# some modules need a static CRT to avoid problems caused by them having a
+# manifest.
+static_crt_modules = ["winxpgui"]
+
 
 from distutils.dep_util import newer_group, newer
 from distutils import dir_util, file_util
@@ -248,6 +252,9 @@ if sys.version_info > (2,6):
             return
         if _want_assembly_hack and is_link:
             # remove /MANIFESTFILE:... and add MANIFEST:NO
+            # (but note that for winxpgui, which specifies a manifest via a
+            # .rc file, this is ignored by the linker - the manifest specified
+            # in the .rc file is still added)
             for i in range(len(cmd)):
                 if cmd[i].startswith("/MANIFESTFILE:"):
                     cmd[i] = "/MANIFEST:NO"
@@ -271,9 +278,7 @@ if sys.version_info > (2,6):
         self._want_assembly_with_crt = os.path.basename(output_filename).startswith("PyISAPI_loader.dll") or \
                                        os.path.basename(output_filename).startswith("perfmondata.dll")
         self._want_assembly_hack = not(target_desc==self.EXECUTABLE or self._want_assembly_with_crt or
-                                       os.path.basename(output_filename).startswith("winxpgui") or
-                                       os.path.basename(output_filename).startswith("_winxptheme") or
-                                       os.path.basename(output_filename).startswith("win32ui"))
+                                       os.path.splitext(os.path.basename(output_filename))[0]=="win32ui")
         try:
             return self._orig_link(target_desc, objects, output_filename, *args, **kw)
         finally:
@@ -1214,6 +1219,12 @@ class my_build_ext(build_ext):
         if sys.version_info < (2,3):
             # 2.3+ - Wrong dir, numbered name
             self.build_temp = os.path.join(self.build_temp, ext.name)
+        want_static_crt = sys.version_info > (2,6) and ext.name in static_crt_modules
+        if want_static_crt:
+            self.compiler.compile_options.remove('/MD')
+            self.compiler.compile_options.append('/MT')
+            self.compiler.compile_options_debug.remove('/MDd')
+            self.compiler.compile_options_debug.append('/MTd')
 
         try:
             build_ext.build_extension(self, ext)
@@ -1250,6 +1261,11 @@ class my_build_ext(build_ext):
                     self.copy_file(src, dst)#, update=1)
         finally:
             self.build_temp = old_build_temp
+            if want_static_crt:
+                self.compiler.compile_options.remove('/MT')
+                self.compiler.compile_options.append('/MD')
+                self.compiler.compile_options_debug.remove('/MTd')
+                self.compiler.compile_options_debug.append('/MDd')
 
     def get_ext_filename(self, name):
         # The pywintypes and pythoncom extensions have special names
