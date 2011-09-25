@@ -13,8 +13,20 @@ dist
 *.plg
 *.chm
 *.chw
+*.pyc
+*.pyo
 Pythonwin/Scintilla/win32/*.pdb
 PyWin32.kpf
+
+# COM test bits
+com\TestSources\Build
+com\TestSources\PyCOMTest\PyCOMTest.h
+com\TestSources\PyCOMTest\PyCOMTest.sln
+com\TestSources\PyCOMTest\PyCOMTest.suo
+com\TestSources\PyCOMTest\PyCOMTest.tlb
+com\TestSources\PyCOMTest\PyCOMTest.vcproj*
+com\TestSources\PyCOMTest\PyCOMTest_i.c
+
 
 # SWIG generated files.
 com/win32comext/adsi/src/*.cpp
