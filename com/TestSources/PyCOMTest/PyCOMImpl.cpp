@@ -211,6 +211,7 @@ STDMETHODIMP CPyCOMTest::GetSetInt(int invar, int *outvar)
 	if (!outvar)
 		return E_POINTER;
 	*outvar = invar;
+	return S_OK;
 }
 
 STDMETHODIMP CPyCOMTest::GetSetUnsignedInt(unsigned int invar, unsigned int *outvar)
@@ -218,6 +219,7 @@ STDMETHODIMP CPyCOMTest::GetSetUnsignedInt(unsigned int invar, unsigned int *out
 	if (!outvar)
 		return E_POINTER;
 	*outvar = invar;
+	return S_OK;
 }
 
 STDMETHODIMP CPyCOMTest::GetSetLong(long invar, long *outvar)
@@ -225,6 +227,7 @@ STDMETHODIMP CPyCOMTest::GetSetLong(long invar, long *outvar)
 	if (!outvar)
 		return E_POINTER;
 	*outvar = invar;
+	return S_OK;
 }
 
 STDMETHODIMP CPyCOMTest::GetSetUnsignedLong(unsigned long invar, unsigned long *outvar)
@@ -232,6 +235,16 @@ STDMETHODIMP CPyCOMTest::GetSetUnsignedLong(unsigned long invar, unsigned long *
 	if (!outvar)
 		return E_POINTER;
 	*outvar = invar;
+	return S_OK;
+}
+
+STDMETHODIMP CPyCOMTest::GetVariantAndType(VARIANT var, unsigned short *vt, VARIANT *vout)
+{
+	if (!vt || !vout)
+		return E_POINTER;
+	VariantClear(vout);
+	*vt = V_VT(&var);
+	return VariantCopy(vout, &var);
 }
 
 STDMETHODIMP CPyCOMTest::TestByRefVariant(VARIANT *v)

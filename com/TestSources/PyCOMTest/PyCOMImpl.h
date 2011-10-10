@@ -70,6 +70,7 @@ END_COM_MAP()
 	STDMETHOD(GetSetUnsignedInt)(unsigned int invar, unsigned int *outvar);
 	STDMETHOD(GetSetLong)(long invar, long *outvar);
 	STDMETHOD(GetSetUnsignedLong)(unsigned long invar, unsigned long *outvar);
+	STDMETHOD(GetVariantAndType)(VARIANT vin, unsigned short *vt, VARIANT *vout);
 	STDMETHOD(TestByRefVariant)(VARIANT *v);
 	STDMETHOD(TestByRefString)(BSTR *v);
 	STDMETHOD(TakeByRefTypedDispatch)(IPyCOMTest **inout);
