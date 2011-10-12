@@ -5,6 +5,7 @@ import sys; sys.coinit_flags=0 # Must be free-threaded!
 import win32api, pythoncom, time
 import pywintypes
 import os
+import winerror
 import win32com
 import win32com.client.connect
 from win32com.test.util import CheckClean
@@ -12,6 +13,10 @@ from win32com.client import constants, DispatchBaseClass, CastTo
 from win32com.test.util import RegisterPythonServer
 from pywin32_testutil import str2memory
 import datetime
+try:
+    import decimal
+except ImportError:
+    import win32com.decimal_23 as decimal
 if sys.version_info > (2,4):
     import win32timezone # win32timezone doesn't import on 2.3...
 
@@ -113,14 +118,12 @@ class RandomEventHandler:
         for firedId, no in self.fireds.iteritems():
             progress("ID %d fired %d times" % (firedId, no))
 
-def TestDynamic():
-    progress("Testing Dynamic")
-    import win32com.client.dynamic
-    o = win32com.client.dynamic.DumbDispatch("PyCOMTest.PyCOMTest")
-
+# Test everything which can be tested using both the "dynamic" and "generated"
+# COM objects (or when there are very subtle differences)
+def TestCommon(o, is_generated):
     progress("Getting counter")
     counter = o.GetSimpleCounter()
-    TestCounter(counter, 0)
+    TestCounter(counter, is_generated)
 
     progress("Checking default args")
     rc = o.TestOptionals()
@@ -140,19 +143,71 @@ def TestDynamic():
         print rc
         raise error("Did not get the specified optional2 values correctly")
 
-#       if verbose: print "Testing structs"
+    progress("Checking getting/passing IUnknown")
+    check_get_set(o.GetSetUnknown, o)
+    progress("Checking getting/passing IDispatch")
+    if not isinstance(o.GetSetDispatch(o), o.__class__):
+        raise error("GetSetDispatch failed: %r" % (o.GetSetDispatch(o),))
+    progress("Checking getting/passing IDispatch of known type")
+    if o.GetSetInterface(o).__class__ != o.__class__:
+        raise error("GetSetDispatch failed")
+
+    progress("Checking misc args")
+    check_get_set(o.GetSetVariant, 4)
+    check_get_set(o.GetSetVariant, "foo")
+    check_get_set(o.GetSetVariant, o)
+
+    # signed/unsigned.
+    check_get_set(o.GetSetInt, 0)
+    check_get_set(o.GetSetInt, -1)
+    check_get_set(o.GetSetInt, 1)
+
+    check_get_set(o.GetSetUnsignedInt, 0)
+    check_get_set(o.GetSetUnsignedInt, 1)
+    check_get_set(o.GetSetUnsignedInt, 0x80000000)
+    if o.GetSetUnsignedInt(-1) != 0xFFFFFFFF:
+    # -1 is a special case - we accept a negative int (silently converting to
+    # unsigned) but when getting it back we convert it to a long.
+        raise error("unsigned -1 failed")
+
+    check_get_set(o.GetSetLong, 0)
+    check_get_set(o.GetSetLong, -1)
+    check_get_set(o.GetSetLong, 1)
+
+    check_get_set(o.GetSetUnsignedLong, 0)
+    check_get_set(o.GetSetUnsignedLong, 1)
+    check_get_set(o.GetSetUnsignedLong, 0x80000000)
+    # -1 is a special case - see above.
+    if o.GetSetUnsignedLong(-1) != 0xFFFFFFFF:
+        raise error("unsigned -1 failed")
+
+    # We want to explicitly test > 32 bits.  py3k has no 'maxint' and
+    # 'maxsize+1' is no good on 64bit platforms as its 65 bits!
+    big = 2147483647 # sys.maxint on py2k
+    for l in big, big+1, 1 << 65:
+        check_get_set(o.GetSetVariant, l)
+
+    progress("Checking structs")
     r = o.GetStruct()
     assert r.int_value == 99 and str(r.str_value)=="Hello from C++"
-    counter = win32com.client.dynamic.DumbDispatch("PyCOMTest.SimpleCounter")
-    TestCounter(counter, 0)
     assert o.DoubleString("foo") == "foofoo"
 
+    progress("Checking var args")
+    o.SetVarArgs("Hi", "There", "From", "Python", 1)
+    if o.GetLastVarArgs() != ("Hi", "There", "From", "Python", 1):
+        raise error("VarArgs failed -" + str(o.GetLastVarArgs()))
+
+    progress("Checking arrays")
     l=[]
     TestApplyResult(o.SetVariantSafeArray, (l,), len(l))
     l=[1,2,3,4]
     TestApplyResult(o.SetVariantSafeArray, (l,), len(l))
-#       TestApplyResult(o.SetIntSafeArray, (l,), len(l))       Still fails, and probably always will.
     TestApplyResult(o.CheckVariantSafeArray, ((1,2,3,4,),), 1)
+
+    # and binary
+    TestApplyResult(o.SetBinSafeArray, (str2memory('foo\0bar'),), 7)
+
+    progress("Checking properties")
     o.LongProp = 3
     if o.LongProp != 3 or o.IntProp != 3:
         raise error("Property value wrong - got %d/%d" % (o.LongProp,o.IntProp))
@@ -166,28 +221,25 @@ def TestDynamic():
     o.ULongProp = check
     if o.ULongProp != check:
         raise error("Property value wrong - got %d (expected %d)" % (o.ULongProp, check))
-    # currency.
-    pythoncom.__future_currency__ = 1
-    if o.CurrencyProp != 0:
-        raise error("Expecting 0, got %r" % (o.CurrencyProp,))
-    try:
-        import decimal
-    except ImportError:
-        import win32com.decimal_23 as decimal
-    o.CurrencyProp = decimal.Decimal("1234.5678")
-    if o.CurrencyProp != decimal.Decimal("1234.5678"):
-        raise error("got %r" % (o.CurrencyProp,))
-    v1 = decimal.Decimal("1234.5678")
-    # can't do "DoubleCurrencyByVal" in dynamic files.
-    TestApplyResult(o.DoubleCurrency, (v1,), v1*2)
-    v2 = decimal.Decimal("9012.3456")
-    TestApplyResult(o.AddCurrencies, (v1, v2), v1+v2)
 
-    # damn - props with params don't work for dynamic objects :(
-    # o.SetParamProp(0, 1)
-    # if o.ParamProp(0) != 1:
-    #    raise RuntimeError, o.paramProp(0)
+    TestApplyResult(o.Test, ("Unused", 99), 1) # A bool function
+    TestApplyResult(o.Test, ("Unused", -1), 1) # A bool function
+    TestApplyResult(o.Test, ("Unused", 1==1), 1) # A bool function
+    TestApplyResult(o.Test, ("Unused", 0), 0)
+    TestApplyResult(o.Test, ("Unused", 1==0), 0)
 
+    assert o.DoubleString("foo") == "foofoo"
+
+    TestConstant("ULongTest1", ensure_long(0xFFFFFFFF))
+    TestConstant("ULongTest2", ensure_long(0x7FFFFFFF))
+    TestConstant("LongTest1", ensure_long(-0x7FFFFFFF))
+    TestConstant("LongTest2", ensure_long(0x7FFFFFFF))
+    TestConstant("UCharTest", 255)
+    TestConstant("CharTest", -1)
+    # 'Hello Loraine', but the 'r' is the "Registered" sign (\xae)
+    TestConstant("StringTest", u"Hello Lo\xaeaine") 
+
+    progress("Checking dates and times")
     if issubclass(pywintypes.TimeType, datetime.datetime):
         # For now *all* times passed must be tz-aware.
         now = win32timezone.now()
@@ -205,32 +257,54 @@ def TestDynamic():
         expect = pythoncom.MakeTime(now)
         TestApplyResult(o.EarliestDate, (now, now), expect)
 
+    progress("Checking currency")
+    # currency.
+    pythoncom.__future_currency__ = 1
+    if o.CurrencyProp != 0:
+        raise error("Expecting 0, got %r" % (o.CurrencyProp,))
+    for val in ("1234.5678", "1234.56", "1234"):
+        o.CurrencyProp = decimal.Decimal(val)
+        if o.CurrencyProp != decimal.Decimal(val):
+            raise error("%s got %r" % (val, o.CurrencyProp))
+    v1 = decimal.Decimal("1234.5678")
+    TestApplyResult(o.DoubleCurrency, (v1,), v1*2)
 
-def TestEvents(o, handler):
-    sessions = []
-    handler._Init()
+    v2 = decimal.Decimal("9012.3456")
+    TestApplyResult(o.AddCurrencies, (v1, v2), v1+v2)
+
+
+def TestDynamic():
+    progress("Testing Dynamic")
+    import win32com.client.dynamic
+    o = win32com.client.dynamic.DumbDispatch("PyCOMTest.PyCOMTest")
+    TestCommon(o, False)
+
+    counter = win32com.client.dynamic.DumbDispatch("PyCOMTest.SimpleCounter")
+    TestCounter(counter, False)
+
+    # Dynamic doesn't know this should be an int, so we get a COM
+    # TypeMismatch error.
     try:
-        for i in range(3):
-            session = o.Start()
-            sessions.append(session)
-        time.sleep(.5)
-    finally:
-        # Stop the servers
-        for session in sessions:
-            o.Stop(session)
-        handler._DumpFireds()
-        handler.close()
+        check_get_set_raises(ValueError, o.GetSetInt, "foo")
+        raise error("no exception raised")
+    except pythoncom.com_error, exc:
+        if exc.hresult != winerror.DISP_E_TYPEMISMATCH:
+            raise
+
+    # damn - props with params don't work for dynamic objects :(
+    # o.SetParamProp(0, 1)
+    # if o.ParamProp(0) != 1:
+    #    raise RuntimeError, o.paramProp(0)
 
 
 def TestGenerated():
     # Create an instance of the server.
     from win32com.client.gencache import EnsureDispatch
     o = EnsureDispatch("PyCOMTest.PyCOMTest")
-    counter = o.GetSimpleCounter()
-    TestCounter(counter, 1)
+    TestCommon(o, True)
 
     counter = EnsureDispatch("PyCOMTest.SimpleCounter")
-    TestCounter(counter, 1)
+    TestCounter(counter, True)
 
     i1, i2 = o.GetMultipleInterfaces()
     if not isinstance(i1, DispatchBaseClass) or not isinstance(i2, DispatchBaseClass):
@@ -239,72 +313,14 @@ def TestGenerated():
     del i1
     del i2
 
-    progress("Checking default args")
-    rc = o.TestOptionals()
-    if  rc[:-1] != ("def", 0, 1) or abs(rc[-1]-3.14)>.01:
-        print rc
-        raise error("Did not get the optional values correctly")
-    rc = o.TestOptionals("Hi", 2, 3, 1.1)
-    if  rc[:-1] != ("Hi", 2, 3) or abs(rc[-1]-1.1)>.01:
-        print rc
-        raise error("Did not get the specified optional values correctly")
-    rc = o.TestOptionals2(0)
-    if  rc != (0, "", 1):
-        print rc
-        raise error("Did not get the optional2 values correctly")
-    rc = o.TestOptionals2(1.1, "Hi", 2)
-    if  rc[1:] != ("Hi", 2) or abs(rc[0]-1.1)>.01:
-        print rc
-        raise error("Did not get the specified optional2 values correctly")
-
-    progress("Checking var args")
-    o.SetVarArgs("Hi", "There", "From", "Python", 1)
-    if o.GetLastVarArgs() != ("Hi", "There", "From", "Python", 1):
-        raise error("VarArgs failed -" + str(o.GetLastVarArgs()))
-    progress("Checking getting/passing IUnknown")
-    check_get_set(o.GetSetUnknown, o)
-    progress("Checking getting/passing IDispatch")
-    if not isinstance(o.GetSetDispatch(o), DispatchBaseClass):
-        raise error("GetSetDispatch failed")
-    progress("Checking getting/passing IDispatch of known type")
-    if o.GetSetInterface(o).__class__ != o.__class__:
-        raise error("GetSetDispatch failed")
-    check_get_set(o.GetSetVariant, 4)
-    check_get_set(o.GetSetVariant, "foo")
-    check_get_set(o.GetSetVariant, o)
-    # signed/unsigned.
-    check_get_set(o.GetSetInt, 0)
-    check_get_set(o.GetSetInt, -1)
-    check_get_set(o.GetSetInt, 1)
+    # Generated knows to only pass a 32bit int, so should fail.
     check_get_set_raises(OverflowError, o.GetSetInt, 0x80000000)
-    check_get_set_raises(ValueError, o.GetSetInt, "foo")
-
-    check_get_set(o.GetSetUnsignedInt, 0)
-    check_get_set(o.GetSetUnsignedInt, 1)
-    check_get_set(o.GetSetUnsignedInt, 0x80000000)
-    if o.GetSetUnsignedInt(-1) != 0xFFFFFFFF:
-    # -1 is a special case - we accept a negative int (silently converting to
-    # unsigned) but when getting it back we convert it to a long.
-        raise error("unsigned -1 failed")
-
-    check_get_set(o.GetSetLong, 0)
-    check_get_set(o.GetSetLong, -1)
-    check_get_set(o.GetSetLong, 1)
     check_get_set_raises(OverflowError, o.GetSetLong, 0x80000000)
+
+    # Generated knows this should be an int, so raises ValueError
+    check_get_set_raises(ValueError, o.GetSetInt, "foo")
     check_get_set_raises(ValueError, o.GetSetLong, "foo")
 
-    check_get_set(o.GetSetUnsignedLong, 0)
-    check_get_set(o.GetSetUnsignedLong, 1)
-    check_get_set(o.GetSetUnsignedLong, 0x80000000)
-    # -1 is a special case - see above.
-    if o.GetSetUnsignedLong(-1) != 0xFFFFFFFF:
-        raise error("unsigned -1 failed")
-
-    # We want to explicitly test > 32 bits.  py3k has no 'maxint' and
-    # 'maxsize+1' is no good on 64bit platforms as its 65 bits!
-    big = 2147483647 # sys.maxint on py2k
-    for l in big, big+1, 1 << 65:
-        check_get_set(o.GetSetVariant, l)
     if o.TestByRefVariant(2) != 4:
         raise error("TestByRefVariant failed")
     if o.TestByRefString("Foo") != "FooFoo":
@@ -327,26 +343,17 @@ def TestGenerated():
     resultCheck = tuple(range(5)), tuple(range(10)), tuple(range(20))
     TestApplyResult(o.GetSafeArrays, (None, None, None), resultCheck)
 
+    l=[]
+    TestApplyResult(o.SetIntSafeArray, (l,), len(l))
     l=[1,2,3,4]
-    TestApplyResult(o.SetVariantSafeArray, (l,), len(l))
     TestApplyResult(o.SetIntSafeArray, (l,), len(l))
     ll=[1,2,3,0x100000000]
     TestApplyResult(o.SetLongLongSafeArray, (ll,), len(ll))
     TestApplyResult(o.SetULongLongSafeArray, (ll,), len(ll))
     # check we can pass ints as a VT_UI1
     TestApplyResult(o.SetBinSafeArray, (l,), len(l))
-    # and binary
-    TestApplyResult(o.SetBinSafeArray, (str2memory('foo\0bar'),), 7)
 
-    l=[]
-    TestApplyResult(o.SetVariantSafeArray, (l,), len(l))
-    TestApplyResult(o.SetIntSafeArray, (l,), len(l))
     # Tell the server to do what it does!
-    TestApplyResult(o.Test, ("Unused", 99), 1) # A bool function
-    TestApplyResult(o.Test, ("Unused", -1), 1) # A bool function
-    TestApplyResult(o.Test, ("Unused", 1==1), 1) # A bool function
-    TestApplyResult(o.Test, ("Unused", 0), 0)
-    TestApplyResult(o.Test, ("Unused", 1==0), 0)
     TestApplyResult(o.Test2, (constants.Attr2,), constants.Attr2)
     TestApplyResult(o.Test3, (constants.Attr2,), constants.Attr2)
     TestApplyResult(o.Test4, (constants.Attr2,), constants.Attr2)
@@ -358,65 +365,9 @@ def TestGenerated():
     TestApplyResult(o.Test6, (constants.WideAttr4,), constants.WideAttr4)
     TestApplyResult(o.Test6, (constants.WideAttr5,), constants.WideAttr5)
 
-    TestConstant("ULongTest1", ensure_long(0xFFFFFFFF))
-    TestConstant("ULongTest2", ensure_long(0x7FFFFFFF))
-    TestConstant("LongTest1", ensure_long(-0x7FFFFFFF))
-    TestConstant("LongTest2", ensure_long(0x7FFFFFFF))
-    TestConstant("UCharTest", 255)
-    TestConstant("CharTest", -1)
-    # 'Hello Loraine', but the 'r' is the "Registered" sign (\xae)
-    TestConstant("StringTest", u"Hello Lo\xaeaine") 
-
-    if issubclass(pywintypes.TimeType, datetime.datetime):
-        # For now *all* times passed must be tz-aware.
-        now = win32timezone.now()
-        # but conversion to and from a VARIANT loses sub-second...
-        now = now.replace(microsecond=0)
-        later = now + datetime.timedelta(seconds=1)
-        TestApplyResult(o.EarliestDate, (now, later), now)
-    else:
-        # old PyTime object
-        now = pythoncom.MakeTime(time.gmtime(time.time()))
-        later = pythoncom.MakeTime(time.gmtime(time.time()+1))
-        TestApplyResult(o.EarliestDate, (now, later), now)
-        # But it can still *accept* tz-naive datetime objects...
-        now = datetime.datetime.now()
-        expect = pythoncom.MakeTime(now)
-        TestApplyResult(o.EarliestDate, (now, now), expect)
-
-    assert o.DoubleString("foo") == "foofoo"
     assert o.DoubleInOutString("foo") == "foofoo"
-
-    o.LongProp = 3
-    if o.LongProp != 3 or o.IntProp != 3:
-        raise error("Property value wrong - got %d/%d" % (o.LongProp,o.IntProp))
-
-    o.LongProp = o.IntProp = -3
-    if o.LongProp != -3 or o.IntProp != -3:
-        raise error("Property value wrong - got %d/%d" % (o.LongProp,o.IntProp))
-
-    check = 3 *10 **9
-    o.ULongProp = check
-    if o.ULongProp != check:
-        raise error("Property value wrong - got %d (expected %d)" % (o.ULongProp, check))
-
-    # currency.
-    pythoncom.__future_currency__ = 1
-    if o.CurrencyProp != 0:
-        raise error("Expecting 0, got %r" % (o.CurrencyProp,))
-    try:
-        import decimal
-    except ImportError:
-        import win32com.decimal_23 as decimal
-    for val in ("1234.5678", "1234.56", "1234"):
-        o.CurrencyProp = decimal.Decimal(val)
-        if o.CurrencyProp != decimal.Decimal(val):
-            raise error("%s got %r" % (val, o.CurrencyProp))
     v1 = decimal.Decimal("1234.5678")
-    TestApplyResult(o.DoubleCurrency, (v1,), v1*2)
     TestApplyResult(o.DoubleCurrencyByVal, (v1,), v1*2)
-    v2 = decimal.Decimal("9012.3456")
-    TestApplyResult(o.AddCurrencies, (v1, v2), v1+v2)
 
     o.SetParamProp(0, 1)
     if o.ParamProp(0) != 1:
@@ -436,6 +387,23 @@ def TestGenerated():
     handler = win32com.client.WithEvents(o, RandomEventHandler)
     TestEvents(o, handler)
     progress("Finished generated .py test.")
+
+
+def TestEvents(o, handler):
+    sessions = []
+    handler._Init()
+    try:
+        for i in range(3):
+            session = o.Start()
+            sessions.append(session)
+        time.sleep(.5)
+    finally:
+        # Stop the servers
+        for session in sessions:
+            o.Stop(session)
+        handler._DumpFireds()
+        handler.close()
+
 
 def TestCounter(counter, bIsGenerated):
     # Test random access into container
