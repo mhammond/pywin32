@@ -36,27 +36,35 @@ static GetNamedPipeClientProcessIdfunc pfnGetNamedPipeServerSessionId = NULL;
 		}
 %}
 
-%ifdef SWIG_PY2K
 %{
+#if (PY_VERSION_HEX < 0x03000000)
 extern PyObject *PyPopen(PyObject *self, PyObject  *args);
 extern PyObject *PyPopen2(PyObject *self, PyObject  *args);
 extern PyObject *PyPopen3(PyObject *self, PyObject  *args);
 extern PyObject *PyPopen4(PyObject *self, PyObject  *args);
+#else
+PyObject *PyPopen(PyObject *self, PyObject  *args) {PyErr_SetString(PyExc_NotImplementedError, "not available in py3k"); return NULL;};
+PyObject *PyPopen2(PyObject *self, PyObject  *args) {PyErr_SetString(PyExc_NotImplementedError, "not available in py3k"); return NULL;};
+PyObject *PyPopen3(PyObject *self, PyObject  *args) {PyErr_SetString(PyExc_NotImplementedError, "not available in py3k"); return NULL;};
+PyObject *PyPopen4(PyObject *self, PyObject  *args) {PyErr_SetString(PyExc_NotImplementedError, "not available in py3k"); return NULL;};
+#endif // PY_VERSION_HEX
 
 %}
 // @pymeth popen|Version of popen that works in a GUI
+// @comm Not implemented in py3k.
 %native(popen) PyPopen;
 
 // @pymeth popen2|Variation on popen - returns 2 pipes
+// @comm Not implemented in py3k.
 %native(popen2) PyPopen2;
 
 // @pymeth popen3|Variation on popen - returns 3 pipes
+// @comm Not implemented in py3k.
 %native(popen3) PyPopen3;
 
 // @pymeth popen4|Like popen2, but stdout/err are combined.
+// @comm Not implemented in py3k.
 %native(popen4) PyPopen4;
-
-%endif // SWIG_PY2K
 
 %native(GetNamedPipeHandleState) MyGetNamedPipeHandleState;
 
