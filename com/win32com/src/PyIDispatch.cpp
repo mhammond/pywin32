@@ -140,7 +140,7 @@ PyObject *PyIDispatch::GetIDsOfNames(PyObject *self, PyObject *args)
 // Convert a PyTuple object into a DISPPARAM structure.
 // numArgs specifies which of the LAST args in the tuple are valid.
 // To convert all args, pass len(args)
-static BOOL PyCom_MakeUntypedDISPPARAMS( PyObject *args, int numArgs, WORD wFlags, DISPPARAMS *pParm)
+static BOOL PyCom_MakeUntypedDISPPARAMS( PyObject *args, int numArgs, WORD wFlags, DISPPARAMS *pParm, PythonOleArgHelper **ppHelpers)
 {
 	int argc = PyObject_Length(args);
 	DISPID dispidNamed = DISPID_PROPERTYPUT;
@@ -152,16 +152,19 @@ static BOOL PyCom_MakeUntypedDISPPARAMS( PyObject *args, int numArgs, WORD wFlag
 	if ( pParm->cArgs )
 	{
 		pParm->rgvarg = new VARIANTARG[pParm->cArgs];
+		PythonOleArgHelper *pHelpers = *ppHelpers = new PythonOleArgHelper[pParm->cArgs];
 		for ( UINT i = 0; i < pParm->cArgs; ++i )
 		{
 			VariantInit(&pParm->rgvarg[i]);
 			// args in reverse order.
-			if ( !PyCom_VariantFromPyObject(PyTuple_GET_ITEM(args, argc-i-1), &pParm->rgvarg[i]) )
+			if (!pHelpers[i].MakeObjToVariant(PyTuple_GET_ITEM(args, argc-i-1), &pParm->rgvarg[i], NULL) )
 			{
 				if ( !PyErr_Occurred() )
 					PyErr_Format(PyExc_TypeError, "Bad argument");
 				while ( i-- > 0 )
 					VariantClear(&pParm->rgvarg[i]);
+				delete [] pParm->rgvarg;
+				delete [] pHelpers;
 				return FALSE;
 			}
 		}
@@ -173,12 +176,29 @@ static BOOL PyCom_MakeUntypedDISPPARAMS( PyObject *args, int numArgs, WORD wFlag
 			pParm->rgdispidNamedArgs[0] = DISPID_PROPERTYPUT;
 			pParm->cNamedArgs = 1;
 		}
+	} else {
+		*ppHelpers = NULL;
 	}
 	return TRUE;
 }
 
-static void PyCom_FreeUntypedDISPPARAMS( DISPPARAMS *pParm )
+static BOOL PyCom_FinishUntypedDISPPARAMS( DISPPARAMS *pParm, PythonOleArgHelper *pHelpers )
 {
+	BOOL ok = TRUE;
+	if (pHelpers) {
+		for ( UINT i = 0; i < pParm->cArgs; ++i ) {
+			// Do magic so PyVariant objects get updated if appropriate.
+			if (pHelpers[i].m_bIsOut && pHelpers[i].m_pyVariant) {
+				PyObject *tmp = pHelpers[i].MakeVariantToObj(pParm->rgvarg+(pParm->cArgs-i-1));
+				if (!tmp) {
+					ok = FALSE;
+					break;
+				}
+				Py_DECREF(tmp);
+			}
+		}
+		delete [] pHelpers;
+	}
 	if ( pParm->rgvarg )
 	{
 		for ( UINT i = pParm->cArgs; i--; )
@@ -186,6 +206,7 @@ static void PyCom_FreeUntypedDISPPARAMS( DISPPARAMS *pParm )
 		delete [] pParm->rgvarg;
 	}
 	delete [] pParm->rgdispidNamedArgs;
+	return ok;
 }
 
 // @pymethod object|PyIDispatch|Invoke|Invokes a DISPID, using the passed arguments.
@@ -227,7 +248,8 @@ PyObject * PyIDispatch::Invoke(PyObject *self, PyObject *args)
 		return NULL;
 
 	DISPPARAMS dispparams;
-	if (!PyCom_MakeUntypedDISPPARAMS(args, argc-4, wFlags, &dispparams ))
+	PythonOleArgHelper *helpers;
+	if (!PyCom_MakeUntypedDISPPARAMS(args, argc-4, wFlags, &dispparams, &helpers ))
 		return NULL;
 
 	VARIANT varResult;
@@ -247,10 +269,8 @@ PyObject * PyIDispatch::Invoke(PyObject *self, PyObject *args)
 	HRESULT hr = pMyDispatch->Invoke(dispid, IID_NULL, lcid, wFlags, &dispparams, pVarResultUse, &excepInfo, &nArgErr);
 	PY_INTERFACE_POSTCALL;
 
-	PyCom_FreeUntypedDISPPARAMS(&dispparams);
-
-	if ( HandledDispatchFailure(hr, &excepInfo, nArgErr, dispparams.cArgs) )
-	{
+	if (!PyCom_FinishUntypedDISPPARAMS(&dispparams, helpers) ||
+	    HandledDispatchFailure(hr, &excepInfo, nArgErr, dispparams.cArgs) )	{
 		if ( pVarResultUse )
 			VariantClear(pVarResultUse);
 		return NULL;
@@ -616,7 +636,8 @@ PyObject *PyIDispatchEx::InvokeEx(PyObject *self, PyObject *args)
 		return NULL;
 
 	DISPPARAMS dispparams;
-	if (!PyCom_MakeUntypedDISPPARAMS(invokeArgs, PyObject_Length(invokeArgs), flags, &dispparams ))
+	PythonOleArgHelper *helpers;
+	if (!PyCom_MakeUntypedDISPPARAMS(invokeArgs, PyObject_Length(invokeArgs), flags, &dispparams, &helpers ))
 		return NULL;
 
 	VARIANT varResult;
@@ -635,10 +656,8 @@ PyObject *PyIDispatchEx::InvokeEx(PyObject *self, PyObject *args)
 	HRESULT hr = pMyDispatch->InvokeEx((DISPID)dispid, (LCID)lcid, (WORD)flags, &dispparams, pVarResultUse, &excepInfo, NULL);
 	PY_INTERFACE_POSTCALL;
 
-	PyCom_FreeUntypedDISPPARAMS(&dispparams);
-
-	if ( HandledDispatchFailure(hr, &excepInfo, (UINT)-1, dispparams.cArgs) )
-	{
+	if (!PyCom_FinishUntypedDISPPARAMS(&dispparams, helpers) ||
+	    HandledDispatchFailure(hr, &excepInfo, (UINT)-1, dispparams.cArgs) ) {
 		if ( pVarResultUse )
 			VariantClear(pVarResultUse);
 		return NULL;

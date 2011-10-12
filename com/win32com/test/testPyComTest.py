@@ -9,7 +9,7 @@ import winerror
 import win32com
 import win32com.client.connect
 from win32com.test.util import CheckClean
-from win32com.client import constants, DispatchBaseClass, CastTo
+from win32com.client import constants, DispatchBaseClass, CastTo, VARIANT
 from win32com.test.util import RegisterPythonServer
 from pywin32_testutil import str2memory
 import datetime
@@ -272,6 +272,56 @@ def TestCommon(o, is_generated):
     v2 = decimal.Decimal("9012.3456")
     TestApplyResult(o.AddCurrencies, (v1, v2), v1+v2)
 
+    TestTrickyTypesWithVariants(o, is_generated)
+    progress("Checking win32com.client.VARIANT")
+    TestPyVariant(o, is_generated)
+
+
+def TestTrickyTypesWithVariants(o, is_generated):
+    # Test tricky stuff with type handling and generally only works with
+    # "generated" support but can be worked around using VARIANT.
+    if is_generated:
+        got = o.TestByRefVariant(2)
+    else:
+        v = VARIANT(pythoncom.VT_BYREF | pythoncom.VT_VARIANT, 2)
+        o.TestByRefVariant(v)
+        got = v.value
+    if got != 4:
+        raise error("TestByRefVariant failed")
+
+    if is_generated:
+        got = o.TestByRefString("Foo")
+    else:
+        v = VARIANT(pythoncom.VT_BYREF | pythoncom.VT_BSTR, "Foo")
+        o.TestByRefString(v)
+        got = v.value
+    if got != "FooFoo":
+        raise error("TestByRefString failed")
+
+    # check we can pass ints as a VT_UI1
+    vals=[1,2,3,4]
+    if is_generated:
+        arg = vals
+    else:
+        arg = VARIANT(pythoncom.VT_ARRAY | pythoncom.VT_UI1, vals)
+    TestApplyResult(o.SetBinSafeArray, (arg,), len(vals))
+
+    if is_generated:
+        got = o.DoubleInOutString("foo")
+    else:
+        v = VARIANT(pythoncom.VT_BYREF | pythoncom.VT_BSTR, "foo")
+        o.DoubleInOutString(v)
+        got = v.value
+    assert got == "foofoo", got
+
+    val = decimal.Decimal("1234.5678")
+    if is_generated:
+        got = o.DoubleCurrencyByVal(val)
+    else:
+        v = VARIANT(pythoncom.VT_BYREF | pythoncom.VT_CY, val)
+        o.DoubleCurrencyByVal(v)
+        got = v.value
+    assert got == val * 2
 
 def TestDynamic():
     progress("Testing Dynamic")
@@ -306,6 +356,7 @@ def TestGenerated():
     counter = EnsureDispatch("PyCOMTest.SimpleCounter")
     TestCounter(counter, True)
 
+    # XXX - this is failing in dynamic tests, but should work fine.
     i1, i2 = o.GetMultipleInterfaces()
     if not isinstance(i1, DispatchBaseClass) or not isinstance(i2, DispatchBaseClass):
         # Yay - is now an instance returned!
@@ -320,11 +371,6 @@ def TestGenerated():
     # Generated knows this should be an int, so raises ValueError
     check_get_set_raises(ValueError, o.GetSetInt, "foo")
     check_get_set_raises(ValueError, o.GetSetLong, "foo")
-
-    if o.TestByRefVariant(2) != 4:
-        raise error("TestByRefVariant failed")
-    if o.TestByRefString("Foo") != "FooFoo":
-        raise error("TestByRefString failed")
 
     # Pass some non-sequence objects to our array decoder, and watch it fail.
     try:
@@ -350,8 +396,6 @@ def TestGenerated():
     ll=[1,2,3,0x100000000]
     TestApplyResult(o.SetLongLongSafeArray, (ll,), len(ll))
     TestApplyResult(o.SetULongLongSafeArray, (ll,), len(ll))
-    # check we can pass ints as a VT_UI1
-    TestApplyResult(o.SetBinSafeArray, (l,), len(l))
 
     # Tell the server to do what it does!
     TestApplyResult(o.Test2, (constants.Attr2,), constants.Attr2)
@@ -364,10 +408,6 @@ def TestGenerated():
     TestApplyResult(o.Test6, (constants.WideAttr3,), constants.WideAttr3)
     TestApplyResult(o.Test6, (constants.WideAttr4,), constants.WideAttr4)
     TestApplyResult(o.Test6, (constants.WideAttr5,), constants.WideAttr5)
-
-    assert o.DoubleInOutString("foo") == "foofoo"
-    v1 = decimal.Decimal("1234.5678")
-    TestApplyResult(o.DoubleCurrencyByVal, (v1,), v1*2)
 
     o.SetParamProp(0, 1)
     if o.ParamProp(0) != 1:
@@ -403,6 +443,62 @@ def TestEvents(o, handler):
             o.Stop(session)
         handler._DumpFireds()
         handler.close()
+
+
+def _TestPyVariant(o, is_generated, val, checker = None):
+    if is_generated:
+        vt, got = o.GetVariantAndType(val)
+    else:
+        # Gotta supply all 3 args with the last 2 being explicit variants to
+        # get the byref behaviour.
+        var_vt = VARIANT(pythoncom.VT_UI2 | pythoncom.VT_BYREF, 0)
+        var_result = VARIANT(pythoncom.VT_VARIANT | pythoncom.VT_BYREF, 0)
+        o.GetVariantAndType(val, var_vt, var_result)
+        vt = var_vt.value
+        got = var_result.value
+    if checker is not None:
+        checker(got)
+        return
+    # default checking.
+    assert vt == val.varianttype, (vt, val.varianttype)
+    # Handle our safe-array test - if the passed value is a list of variants,
+    # compare against the actual values.
+    if type(val.value) in (tuple, list):
+        check = [v.value if isinstance(v, VARIANT) else v for v in val.value]
+        # pythoncom always returns arrays as tuples.
+        got = list(got)
+    else:
+        check = val.value
+    assert type(check) == type(got), (type(check), type(got))
+    assert check == got, (check, got)
+
+def _TestPyVariantFails(o, is_generated, val, exc):
+    try:
+        _TestPyVariant(o, is_generated, val)
+        raise error("Setting %r didn't raise %s" % (val, exc))
+    except exc:
+        pass
+
+def TestPyVariant(o, is_generated):
+    _TestPyVariant(o, is_generated, VARIANT(pythoncom.VT_UI1, 1))
+    _TestPyVariant(o, is_generated, VARIANT(pythoncom.VT_ARRAY | pythoncom.VT_UI4, [1,2,3]))
+    _TestPyVariant(o, is_generated, VARIANT(pythoncom.VT_BSTR, u"hello"))
+    _TestPyVariant(o, is_generated, VARIANT(pythoncom.VT_ARRAY | pythoncom.VT_BSTR, [u"hello", u"there"]))
+    def check_dispatch(got):
+        assert isinstance(got._oleobj_, pythoncom.TypeIIDs[pythoncom.IID_IDispatch])
+    _TestPyVariant(o, is_generated, VARIANT(pythoncom.VT_DISPATCH, o), check_dispatch)
+    _TestPyVariant(o, is_generated, VARIANT(pythoncom.VT_ARRAY | pythoncom.VT_DISPATCH, [o]))
+    # an array of variants each with a specific type.
+    v = VARIANT(pythoncom.VT_ARRAY | pythoncom.VT_VARIANT,
+                [VARIANT(pythoncom.VT_UI4, 1),
+                 VARIANT(pythoncom.VT_UI4, 2),
+                 VARIANT(pythoncom.VT_UI4, 3)
+                 ]
+                )
+    _TestPyVariant(o, is_generated, v)
+
+    # and failures
+    _TestPyVariantFails(o, is_generated, VARIANT(pythoncom.VT_UI1, "foo"), ValueError)
 
 
 def TestCounter(counter, bIsGenerated):

@@ -6,6 +6,9 @@ However contributors are encouraged to add their own entries for their work.
 
 Since build 216:
 ----------------
+* A new win32com.client.VARIANT object can be used for advanced control over
+  the parameter types passed to some COM methods.  See the documentation in
+  win32com/HTML/variant.html (also included in the help file)
 
 * The win32com.adsi and win32com.mapi packages have been upgraded to work on
   Python 3.x and as a result, there is a slight risk that regressions to

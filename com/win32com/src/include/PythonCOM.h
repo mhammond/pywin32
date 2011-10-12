@@ -700,6 +700,7 @@ public:
 	BOOL m_bParsedTypeInfo;
 	BOOL m_bIsOut;
 	POAH_CONVERT_DIRECTION m_convertDirection;
+	PyObject *m_pyVariant; // if non-null, a win32com.client.VARIANT
 	union {
 		void *m_pValueHolder;
 		short m_sBuf;

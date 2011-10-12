@@ -10,6 +10,9 @@ extern PyObject *PyObject_FromSAFEARRAYRecordInfo(SAFEARRAY *psa);
 extern BOOL PyObject_AsVARIANTRecordInfo(PyObject *ob, VARIANT *pv);
 extern BOOL PyRecord_Check(PyObject *ob);
 
+// Pointer to class defined in .py file.
+static PyObject *PyVariant_Type;
+
 // Do BYREF array's get the existing array backfilled with new elements
 // (new behaviour that VB seems to want), or allocate a completely
 // new array (old behaviour)
@@ -33,6 +36,69 @@ static PyObject* OleSetTypeError(TCHAR *msg)
 	return NULL;
 }
 
+BOOL MaybeExtractPyVariant(PyObject *obj, VARTYPE *vt, PyObject **pObjValue, BOOL *pConverted)
+{
+	// rely on the GIL to ensure there are no races.
+	if (PyVariant_Type == NULL) {
+		PyObject *mod = PyImport_ImportModule("win32com.client");
+		if (mod) {
+			PyVariant_Type = PyObject_GetAttrString(mod, "VARIANT");
+			Py_DECREF(mod);
+		}
+		if (!PyVariant_Type) // WTF?
+			return FALSE;
+	}
+	int check = PyObject_IsInstance(obj, PyVariant_Type);
+	if (check == -1) return FALSE;
+	if (check != 1) {
+		// Not that type, so all good but not converted.
+		*pConverted = FALSE;
+		return TRUE;
+	}
+	PyObject *obvt = PyObject_GetAttrString(obj, "varianttype");
+	if (!obvt) return FALSE;
+	*vt = (VARTYPE)PyInt_AsUnsignedLongMask(obvt);
+	if (*vt==(VARTYPE)-1 && PyErr_Occurred()) {
+		Py_DECREF(obvt);
+		return FALSE;
+	}
+	Py_DECREF(obvt);
+	PyObject *obValue = PyObject_GetAttrString(obj, "value");
+	if (!obValue) return FALSE;
+	// The result is a borrowed ref, but we can still be sure it
+	// lives as long as obj itself.
+	Py_DECREF(obValue);
+	*pObjValue = obValue;
+	*pConverted = TRUE;
+	return TRUE;
+}
+
+// Returns FALSE on error.  If returns TRUE, pConverted may be TRUE or FALSE.
+BOOL ConvertPyVariant(PyObject *obj, VARIANT *pResult, BOOL *pConverted)
+{
+	VARTYPE vt;
+	PyObject *obUse;
+	if (!MaybeExtractPyVariant(obj, &vt, &obUse, pConverted))
+		return FALSE;
+	if (!*pConverted)
+		return TRUE;
+	PythonOleArgHelper helper = PythonOleArgHelper();
+	helper.m_reqdType = vt;
+	// Here we can't handle BYREF as our 'helper', which holds the buffers,
+	// doesn't live long enough to keep those buffers valid.
+	if ((helper.m_reqdType & VT_BYREF) != 0) {
+		// XXX - this message sucks :)
+		PyErr_SetString(PyExc_ValueError, "win32com.client.VARIANT can't do VT_BYREF in this context");
+		return FALSE;
+	}
+	helper.m_bParsedTypeInfo = TRUE;
+	helper.m_convertDirection = POAH_CONVERT_UNKNOWN;
+	BOOL ok = helper.MakeObjToVariant(obUse, pResult, NULL);
+	if (ok)
+		*pConverted = TRUE;
+	return ok;
+}
+
 ///////////////////////////////////////////////////////////
 //
 // Generic Python objects - to/from VARIANTS and Python objects.
@@ -45,6 +111,12 @@ static PyObject* OleSetTypeError(TCHAR *msg)
 // you need to use the complicated ArgHelpers class for that!
 BOOL PyCom_VariantFromPyObject(PyObject *obj, VARIANT *var)
 {
+	// First see if a special Python VARIANT object.
+	BOOL didPyVariant;
+	if (!ConvertPyVariant(obj, var, &didPyVariant))
+		return FALSE;
+	if (didPyVariant)
+		return TRUE;
 	BOOL bGoodEmpty = FALSE; // Set if VT_EMPTY should really be used.
 	V_VT(var) = VT_EMPTY;
 	if (
@@ -933,6 +1005,7 @@ PythonOleArgHelper::PythonOleArgHelper()
 }
 PythonOleArgHelper::~PythonOleArgHelper() 
 {
+	Py_XDECREF(m_pyVariant);
 	// First check we actually have ownership of any buffers.
 	if (m_convertDirection==POAH_CONVERT_UNKNOWN || m_convertDirection==POAH_CONVERT_FROM_VARIANT)
 		return;
@@ -1017,6 +1090,26 @@ BOOL PythonOleArgHelper::MakeObjToVariant(PyObject *obj, VARIANT *var, PyObject 
 	assert(m_convertDirection==POAH_CONVERT_UNKNOWN || m_convertDirection==POAH_CONVERT_FROM_VARIANT);
 	// If this is the "driving" conversion, then we allocate buffers.
 	// Otherwise, we are simply filling in the buffers as provided by the caller.
+	if (reqdObjectTuple) {
+		if (!ParseTypeInformation(reqdObjectTuple))
+			return FALSE;
+	}
+	if (m_convertDirection==POAH_CONVERT_UNKNOWN && m_reqdType == VT_VARIANT) {
+		BOOL converted;
+		PyObject *newObj;
+		VARTYPE newType;
+		if (!MaybeExtractPyVariant(obj, &newType, &newObj, &converted))
+			return FALSE;
+		if (converted) {
+			m_reqdType = newType;
+			m_bIsOut = (m_reqdType & VT_BYREF) != 0;
+			assert(!m_pyVariant);
+			m_pyVariant = obj;
+			Py_INCREF(m_pyVariant);
+			obj = newObj;
+			
+		}
+	}
 	BOOL bCreateBuffers = (m_convertDirection==POAH_CONVERT_UNKNOWN);
 	if (m_convertDirection==POAH_CONVERT_UNKNOWN)
 		m_convertDirection = POAH_CONVERT_FROM_PYOBJECT;
@@ -1027,10 +1120,6 @@ BOOL PythonOleArgHelper::MakeObjToVariant(PyObject *obj, VARIANT *var, PyObject 
 		V_VT(var) = VT_ERROR;
 		V_ERROR(var) = DISP_E_PARAMNOTFOUND;
 		return TRUE;
-	}
-	if (reqdObjectTuple) {
-		if (!ParseTypeInformation(reqdObjectTuple))
-			return FALSE;
 	}
 	if (m_reqdType & VT_ARRAY) {
 		VARENUM rawVT = (VARENUM)(m_reqdType & VT_TYPEMASK);
@@ -1413,7 +1502,15 @@ PyObject *PythonOleArgHelper::MakeVariantToObj(VARIANT *var)
 		m_reqdType = V_VT(var);
 	}
 
-	return PyCom_PyObjectFromVariant(var);
+	PyObject *ret = PyCom_PyObjectFromVariant(var);
+	// If this helper is for a Python Variant, update it.
+	if (ret && m_pyVariant) {
+		if (PyObject_SetAttrString(m_pyVariant, "value", ret)==-1) {
+			Py_DECREF(ret);
+			return NULL;
+		}
+	}
+	return ret;
 }
 
 BOOL MakePythonArgumentTuples(PyObject **ppArgs, PythonOleArgHelper **ppHelpers, 
