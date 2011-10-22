@@ -48,6 +48,14 @@ except ImportError:
     def _MakeResult(names_str, values):
         return values
 
+_nmhdr_fmt = "PPi"
+if is64bit:
+    # When the item past the NMHDR gets aligned (eg, when it is a struct) 
+    # we need this many bytes padding.
+    _nmhdr_align_padding = "xxxx"
+else:
+    _nmhdr_align_padding = ""
+
 # Encode a string suitable for passing in a win32gui related structure
 # If win32gui is built with UNICODE defined (ie, py3k), then functions
 # like InsertMenuItem are actually calling InsertMenuItemW etc, so all
@@ -91,12 +99,13 @@ def UnpackWMNOTIFY(lparam):
     return _MakeResult("WMNOTIFY hwndFrom idFrom code", struct.unpack(format, buf))
 
 def UnpackNMITEMACTIVATE(lparam):
+    format = _nmhdr_fmt + _nmhdr_align_padding
     if is64bit:
         # the struct module doesn't handle this correctly as some of the items
         # are actually structs in structs, which get individually aligned.
-        format = "PPixxxxiiiiiiixxxxP"
+        format = format + "iiiiiiixxxxP"
     else:
-        format = "PPiiiiiiiiP"
+        format = format + "iiiiiiiP"
     buf = win32gui.PyMakeBuffer(struct.calcsize(format), lparam)
     return _MakeResult("NMITEMACTIVATE hwndFrom idFrom code iItem iSubItem uNewState uOldState uChanged actionx actiony lParam",
                        struct.unpack(format, buf))
@@ -410,7 +419,13 @@ def UnpackTVITEM(buffer):
 
 # Unpack the lparm from a "TVNOTIFY" message
 def UnpackTVNOTIFY(lparam):
-    format = "Piii40s40s"
+    item_size = struct.calcsize(_tvitem_fmt)
+    format = _nmhdr_fmt + _nmhdr_align_padding
+    if is64bit:
+        format = format + "ixxxx"
+    else:
+        format = format + "i"
+    format = format + "%ds%ds" % (item_size, item_size)
     buf = win32gui.PyGetMemory(lparam, struct.calcsize(format))
     hwndFrom, id, code, action, buf_old, buf_new \
           = struct.unpack(format, buf)
@@ -420,7 +435,8 @@ def UnpackTVNOTIFY(lparam):
                        (hwndFrom, id, code, action, item_old, item_new))
 
 def UnpackTVDISPINFO(lparam):
-    format = "Pii40s"
+    item_size = struct.calcsize(_tvitem_fmt)
+    format = "PPi%ds" % (item_size,)
     buf = win32gui.PyGetMemory(lparam, struct.calcsize(format))
     hwndFrom, id, code, buf_item = struct.unpack(format, buf)
     item = UnpackTVITEM(buf_item)
@@ -489,7 +505,8 @@ def UnpackLVITEM(buffer):
 
 # Unpack an "LVNOTIFY" message
 def UnpackLVDISPINFO(lparam):
-    format = "Pii40s"
+    item_size = struct.calcsize(_lvitem_fmt)
+    format = _nmhdr_fmt + _nmhdr_align_padding + ("%ds" % (item_size,))
     buf = win32gui.PyGetMemory(lparam, struct.calcsize(format))
     hwndFrom, id, code, buf_item = struct.unpack(format, buf)
     item = UnpackLVITEM(buf_item)
@@ -497,7 +514,10 @@ def UnpackLVDISPINFO(lparam):
                        (hwndFrom, id, code, item))
 
 def UnpackLVNOTIFY(lparam):
-    format = "Pii7iP"
+    format = _nmhdr_fmt + _nmhdr_align_padding + "7i"
+    if is64bit:
+        format = format + "xxxx" # point needs padding.
+    format = format + "P"
     buf = win32gui.PyGetMemory(lparam, struct.calcsize(format))
     hwndFrom, id, code, item, subitem, newstate, oldstate, \
         changed, pt_x, pt_y, lparam = struct.unpack(format, buf)
@@ -621,7 +641,7 @@ def PackHDITEM(cxy = None, text = None, hbm = None, fmt = None,
         text_addr, _ = text_buffer.buffer_info()
         text_len = len(text)
 
-    format = "iiPPiiiiiii"
+    format = "iiPPiiPiiii"
     buf = struct.pack(format,
                       mask, cxy, text_addr, hbm, text_len,
                       fmt, param, image, order, 0, 0)
