@@ -69,14 +69,8 @@ class DocTemplate(object.CmdTarget):
 		self.MakeFrame=MakeFrame
 		self.MakeView=MakeView
 		self._SetupSharedMenu_()
-# todo - _SetupSharedMenu should be moved to a framework class.
 	def _SetupSharedMenu_(self):
-		sharedMenu = self.GetSharedMenu()
-		from pywin.framework import toolmenu
-		toolmenu.SetToolsMenu(sharedMenu)
-		from pywin.framework import help
-		help.SetHelpMenuOtherHelp(sharedMenu)
-
+		pass # to be overridden by each "app"
 	def _CreateDocTemplate(self, resourceId):
 		return win32ui.CreateDocTemplate(resourceId)
 	def __del__(self):
