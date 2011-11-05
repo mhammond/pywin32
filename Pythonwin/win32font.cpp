@@ -27,14 +27,20 @@ PyCFont::create (PyObject *self, PyObject *args)
   PyObject *font_props; 
   PyObject *pydc = NULL; // @pyparm dict|properties||A dictionary containing the font
                   // properties.  Valid dictionary keys are:<nl> 
-                  // name<nl> 
-                  // width<nl> 
-                  // height<nl> 
-                  // weight<nl> 
-                  // italic<nl> 
+                  // height<nl>
+                  // width<nl>
+                  // escapement<nl>
+                  // orientation<nl>
+                  // weight<nl>
+                  // italic<nl>
                   // underline<nl>
+                  // strike out<nl>
+                  // charset<nl>
+                  // out precision<nl>
+                  // clip precision<nl>
+                  // quality<nl>
                   // pitch and family<nl>
-                  // charset
+                  // name
   if (!PyArg_ParseTuple (args, "O|O",
                  &font_props, &pydc) ||
       !PyDict_Check (font_props))

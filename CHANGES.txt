@@ -6,6 +6,10 @@ However contributors are encouraged to add their own entries for their work.
 
 Since build 216:
 ----------------
+* The LOGFONT struct implementation (win32util) was extended to support the
+  full LOGFONT struct as published by Microsoft.  This includes changes to
+  win32util.LogFontToDict and win32util.DictToLogFont.  (Feature request
+  3433757 by Kris Hardy)
 
 * Remove some duplicated menu code from pythonwin which should avoid
   having py2exe pulling in most of the pythonwin framework in some cases

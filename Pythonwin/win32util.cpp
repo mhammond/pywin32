@@ -240,38 +240,48 @@ BOOL CreateStructFromPyObject(LPCREATESTRUCT lpcs, PyObject *ob, const char *fnN
 // Font conversion utilities
 //
 //
-static char *szFontQuality = "quality";
-static char *szFontName = "name";
-static char *szFontWeight = "weight";
-static char *szFontWidth = "width";
 static char *szFontHeight = "height";
+static char *szFontWidth = "width";
+static char *szFontEscapement = "escapement";
+static char *szFontOrientation = "orientation";
+static char *szFontWeight = "weight";
 static char *szFontItalic = "italic";
 static char *szFontUnderline = "underline";
-static char *szFontPitch = "pitch and family";
+static char *szFontStrikeOut = "strike out";
 static char *szFontCharSet = "charset";
+static char *szFontOutPrecision = "out precision";
+static char *szFontClipPrecision = "clip precision";
+static char *szFontQuality = "quality";
+static char *szFontPitch = "pitch and family";
+static char *szFontName = "name";
 
 PyObject *LogFontToDict(const LOGFONT &lf)
 {
-	// ??? This is missing a lot of members ???
-	return Py_BuildValue("{s:N, s:N, s:N, s:N, s:N, s:N, s:N, s:N, s:N}",
-		szFontQuality, PyInt_FromLong(lf.lfQuality),
-		szFontName, PyWinObject_FromTCHAR(lf.lfFaceName),
+	return Py_BuildValue("{s:N, s:N, s:N, s:N, s:N, s:N, s:N, s:N, s:N, s:N, s:N, s:N, s:N, s:N}",
 		szFontHeight, PyInt_FromLong(lf.lfHeight),
 		szFontWidth, PyInt_FromLong(lf.lfWidth),
+		szFontEscapement, PyInt_FromLong(lf.lfEscapement),
+		szFontOrientation, PyInt_FromLong(lf.lfOrientation),
 		szFontWeight, PyInt_FromLong(lf.lfWeight),
-		szFontPitch, PyInt_FromLong(lf.lfPitchAndFamily),
-		szFontCharSet, PyInt_FromLong(lf.lfCharSet),
+		szFontItalic, PyBool_FromLong(lf.lfItalic),
 		szFontUnderline, PyBool_FromLong(lf.lfUnderline),
-		szFontItalic, PyBool_FromLong(lf.lfItalic));
+		szFontStrikeOut, PyBool_FromLong(lf.lfStrikeOut),
+		szFontCharSet, PyInt_FromLong(lf.lfCharSet),
+		szFontOutPrecision, PyInt_FromLong(lf.lfOutPrecision),
+		szFontClipPrecision, PyInt_FromLong(lf.lfClipPrecision),
+		szFontQuality, PyInt_FromLong(lf.lfQuality),
+		szFontPitch, PyInt_FromLong(lf.lfPitchAndFamily),
+		szFontName, PyWinObject_FromTCHAR(lf.lfFaceName));
 }
 
 BOOL DictToLogFont(PyObject *font_props, LOGFONT *pLF)
 {
 	ZeroMemory (pLF, sizeof(LOGFONT));
 	static char *keywords[]={
-		szFontQuality, szFontName, szFontHeight, szFontWidth, szFontWeight, 
-		szFontPitch, szFontCharSet, szFontUnderline, szFontItalic, NULL
-		};
+		szFontHeight, szFontWidth, szFontEscapement, szFontOrientation,
+		szFontWeight, szFontItalic, szFontUnderline, szFontStrikeOut,
+		szFontCharSet, szFontOutPrecision, szFontClipPrecision,
+		szFontQuality, szFontPitch, szFontName, NULL};
 
 	// font default values
 	pLF->lfCharSet = DEFAULT_CHARSET; // dont use ANSI_CHARSET to support Japanese charset.
@@ -288,9 +298,12 @@ BOOL DictToLogFont(PyObject *font_props, LOGFONT *pLF)
 	if (!dummy_tuple)
 		return FALSE;
 
-	if (!PyArg_ParseTupleAndKeywords(dummy_tuple, font_props, "|bOlllbbbb:LOGFONT", keywords,
-		&pLF->lfQuality, &obFontName, &pLF->lfHeight, &pLF->lfWidth, &pLF->lfWeight,
-		&pLF->lfPitchAndFamily, &pLF->lfCharSet, &pLF->lfUnderline, &pLF->lfItalic)){
+	if (!PyArg_ParseTupleAndKeywords(dummy_tuple, font_props,
+		"|lllllbbbbbbbbO:LOGFONT", keywords, &pLF->lfHeight, &pLF->lfWidth,
+		&pLF->lfEscapement, &pLF->lfOrientation, &pLF->lfWeight,
+		&pLF->lfItalic, &pLF->lfUnderline, &pLF->lfStrikeOut,
+		&pLF->lfCharSet, &pLF->lfOutPrecision, &pLF->lfClipPrecision,
+		&pLF->lfQuality, &pLF->lfPitchAndFamily, &obFontName)){
 		Py_DECREF(dummy_tuple);
 		return FALSE;
 		}
