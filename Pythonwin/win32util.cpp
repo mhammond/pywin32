@@ -642,7 +642,7 @@ BOOL PyWinObject_AsTV_ITEM( PyObject *args, TV_ITEM *pItem)
 	ob=PyTuple_GET_ITEM(args, 0);
 	if (ob != Py_None) {
 		// @tupleitem 0|int|hItem|Item handle
-		if (!PyWinObject_AsHANDLE(ob, (HANDLE *)pItem->hItem))
+		if (!PyWinObject_AsHANDLE(ob, (HANDLE *)&pItem->hItem))
 			return FALSE;
 		pItem->mask |= TVIF_HANDLE;
 	}
