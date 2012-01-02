@@ -406,6 +406,14 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
 		items_dict = {}
 		if ob is not None:
 			try: # Catch unexpected errors when fetching attribute names from the object
+				# extra attributes of win32ui objects
+				if hasattr(ob, "_obj_"):
+					try:
+						items_dict.update(list2dict(dir(ob._obj_)))
+					except AttributeError:
+						pass # object has no __dict__
+				
+				# normal attributes
 				try:
 					items_dict.update(list2dict(dir(ob)))
 				except AttributeError:
