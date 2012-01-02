@@ -1068,7 +1068,7 @@ MyLockFileEx(PyObject *self, PyObject *args)
 	PyObject *obOverlapped = NULL;
     DWORD dwFlags, nbytesLow, nbytesHigh;
 
-	if (!PyArg_ParseTuple(args, "OiiiO:LockFileEx", 
+	if (!PyArg_ParseTuple(args, "OkkkO:LockFileEx", 
 		&obhFile, // @pyparm <o PyHANDLE>/int|hFile||Handle to the file
         &dwFlags, // @pyparm dwFlags|int||Flags that specify exclusive/shared and blocking/non-blocking mode
         &nbytesLow, // @pyparm nbytesLow|int||low-order part of number of bytes to lock
