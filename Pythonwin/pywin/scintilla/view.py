@@ -436,12 +436,7 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
 					try:
 						for iTI in xrange(0,ob._oleobj_.GetTypeInfoCount()):
 							typeInfo = ob._oleobj_.GetTypeInfo(iTI)
-							typeAttr = typeInfo.GetTypeAttr()
-							for iFun in xrange(0,typeAttr.cFuncs):
-								funDesc = typeInfo.GetFuncDesc(iFun)
-								funName = typeInfo.GetNames(funDesc.memid)[0]
-								if funName not in items_dict:
-									items_dict[funName] = None
+							self._UpdateWithITypeInfo (items_dict, typeInfo)
 					except:
 						pass
 			except:
@@ -490,6 +485,31 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
 			items.sort()
 			self.SCIAutoCSetAutoHide(0)
 			self.SCIAutoCShow(items)
+
+	def _UpdateWithITypeInfo (self, items_dict, typeInfo):
+		import pythoncom
+		typeInfos = [typeInfo]
+		# suppress IDispatch and IUnknown methods
+		inspectedIIDs = {pythoncom.IID_IDispatch:None}
+
+		while len(typeInfos)>0:
+			typeInfo = typeInfos.pop()
+			typeAttr = typeInfo.GetTypeAttr()
+
+			if typeAttr.iid not in inspectedIIDs:
+				inspectedIIDs[typeAttr.iid] = None
+				for iFun in xrange(0,typeAttr.cFuncs):
+					funDesc = typeInfo.GetFuncDesc(iFun)
+					funName = typeInfo.GetNames(funDesc.memid)[0]
+					if funName not in items_dict:
+						items_dict[funName] = None
+
+				# Inspect the type info of all implemented types
+				# E.g. IShellDispatch5 implements IShellDispatch4 which implements IShellDispatch3 ...
+				for iImplType in xrange(0,typeAttr.cImplTypes):
+					iRefType = typeInfo.GetRefTypeOfImplType(iImplType)
+					refTypeInfo = typeInfo.GetRefTypeInfo(iRefType)
+					typeInfos.append(refTypeInfo)
 
 	# TODO: This is kinda slow. Probably need some kind of cache 
 	# here that is flushed upon file save

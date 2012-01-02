@@ -6,6 +6,9 @@ However contributors are encouraged to add their own entries for their work.
 
 Since build 216:
 ----------------
+* Various Pythonwin autocomplete enhancements (kxroberto via #3468282 and
+  Oliver Tengler via #3433953)
+
 * The Pythonwin editor now remembers previous searches made in this session.
   (patch #3468280 from kxroberto).
   
