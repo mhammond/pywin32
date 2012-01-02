@@ -208,8 +208,10 @@ PyObject *add_hook_list(PyObject *hookedObject, PyObject *args, CMapWordToPtr **
 		RETURN_ERR("The parameter must be a callable object or None");
 
 	void *oldMethod = NULL;
-	// note I maybe decref, then maybe incref.  I assume object wont be destroyed
-	// (ie, ref go to zero) between the 2 calls!)
+	// note I maybe decref, then maybe incref.  To ensure the object will
+	// not be destroyed (ie, ref go to zero) between the 2 calls), I
+	// add a temporary reference first.
+	DOINCREF(hookedObject);
 	if (pList->Lookup(message, oldMethod)) {
 		pList->RemoveKey(message);
 		// oldMethod is returned - don't drop its reference.
@@ -220,6 +222,7 @@ PyObject *add_hook_list(PyObject *hookedObject, PyObject *args, CMapWordToPtr **
 		pList->SetAt(message,method);
 		Py_INCREF(hookedObject);
 	}
+	DODECREF(hookedObject); // remove temp reference added above.
 	if (oldMethod)
 		return (PyObject *)oldMethod;
 	else

@@ -225,14 +225,16 @@ ui_assoc_object::AttachObject(PyObject *self, PyObject *args)
 	// decref of the instance may trigger instance delete,
 	// which may trigger AttachObject(None), which will
 	// attempt to decref etc.  
-	// So set the instance to NULL _before_ we decref it!
+	// So set the instance to NULL _before_ we decref it, and only
+	// do the decref after we've incref'd the new object - if it is the
+	// same object we may otherwise transition it via a refcount of 0.
 	PyObject *old = pAssoc->virtualInst;
 	pAssoc->virtualInst = NULL;
-	XDODECREF(old);
 	if (ob!=Py_None) {
 		pAssoc->virtualInst = ob;
 		DOINCREF(ob);
 	}
+	XDODECREF(old);
 	RETURN_NONE;
 }
 
