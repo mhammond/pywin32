@@ -11,7 +11,7 @@ generates Windows .hlp files.
 
 ******************************************************************/
 
-#include "windows.h"
+#include "PyWinTypes.h"
 #include "pdh.h"
 #include "pdhmsg.h"
 
@@ -180,10 +180,6 @@ FuncPdhBrowseCounters pPdhBrowseCounters = NULL;
 FuncPdhConnectMachine pPdhConnectMachine = NULL;
 FuncPdhLookupPerfIndexByName pPdhLookupPerfIndexByName = NULL;
 FuncPdhLookupPerfNameByIndex pPdhLookupPerfNameByIndex = NULL;
-
-#include "Python.h"
-#include "malloc.h"
-#include "PyWinTypes.h"
 
 // TCHAR that frees itself
 class TmpTCHAR

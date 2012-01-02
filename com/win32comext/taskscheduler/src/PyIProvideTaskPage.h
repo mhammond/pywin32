@@ -4,8 +4,8 @@
 //
 // Interface Declaration
 
-#include "mstask.h"
 #include "PythonCOM.h"
+#include "mstask.h"
 
 class PyIProvideTaskPage : public PyIUnknown
 {

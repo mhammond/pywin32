@@ -9,6 +9,11 @@ See pywintypes.py for more information.
 
 ********************************************************************/
 #include "windows.h"
+// Windows rpc.h defines "small" as "char" and Python 3.x's accu.h uses
+// "small" as a structure element causing compilation errors :(
+#ifdef small
+#undef small
+#endif
 #include "Python.h"
 
 // GetModuleHandle and GetModuleFilename rolled into 1

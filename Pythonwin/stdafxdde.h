@@ -4,6 +4,9 @@
 
 #include <limits.h>
 #include <basetyps.h>
+
+// windows defines "small" as "char" which breaks Python's accu.h
+#undef small
 #include <Python.h>
 
 // The Pythonwin stuff

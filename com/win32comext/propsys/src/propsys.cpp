@@ -12,9 +12,9 @@
 // Any python API functions that use 's#' format must use Py_ssize_t for length
 #define PY_SSIZE_T_CLEAN
 
-#include "propsys.h"
 #include "PythonCOM.h"
 #include "PythonCOMRegister.h"
+#include "propsys.h"
 
 // @pymethod |propsys|PSRegisterPropertySchema|
 static PyObject *PyPSRegisterPropertySchema(PyObject *self, PyObject *args)

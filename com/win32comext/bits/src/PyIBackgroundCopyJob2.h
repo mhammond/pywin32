@@ -4,7 +4,6 @@
 //
 // Interface Declaration
 
-#include "Bits.h"
 #include "PyIBackgroundCopyJob.h"
 
 class PyIBackgroundCopyJob2 : public PyIBackgroundCopyJob

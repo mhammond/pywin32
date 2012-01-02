@@ -33,6 +33,8 @@
 #include "Utils.h"
 
 #define PY_SSIZE_T_CLEAN
+// windows defines "small" as "char" which breaks Python's accu.h
+#undef small
 #include "Python.h"
 
 // No Py_RETURN_NONE in py23

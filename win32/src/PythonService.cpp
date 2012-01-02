@@ -14,11 +14,9 @@
 // We use DCOM constants and possible CoInitializeEx.
 #define _WIN32_DCOM
 
-#include "windows.h"
-#include "objbase.h"
-#include "Python.h"
-#include "tchar.h"
 #include "PyWinTypes.h"
+#include "objbase.h"
+#include "tchar.h"
 
 #ifdef PYSERVICE_BUILD_DLL
 #define PYSERVICE_EXPORT extern "C" __declspec(dllexport)

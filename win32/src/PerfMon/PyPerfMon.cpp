@@ -12,10 +12,6 @@ generates Windows .hlp files.
 
 ******************************************************************/
 
-#include "windows.h"
-#include "malloc.h"
-
-#include "Python.h"
 #include "PyWinTypes.h"
 #include "Pyperfmon.h"
 #include "tchar.h"

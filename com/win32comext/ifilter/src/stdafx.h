@@ -8,7 +8,8 @@
 //
 #define _WIN32_DCOM
 
-// PyWinTypes.h pulls in Python.h and windows.h.
+// PythonCOM.h pulls in Python.h and windows.h.
+#include <PythonCOM.h>
 #include <Filter.h>
 #include <Filterr.h>
 
@@ -33,9 +34,5 @@ STDAPI BindIFilterFromStream(__in IStream * pStm,
 #include <ntquery.h>
 #endif
 
-#include <windows.h>
 #include <oleauto.h>
 #include <ocidl.h> // Used to be <multinfo.h>
-
-#include <Python.h>
-#include <PythonCOM.h>

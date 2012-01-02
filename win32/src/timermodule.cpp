@@ -8,8 +8,6 @@
 
 // @doc - Contains autoduck comments for documentation
 
-#include "windows.h"
-#include "Python.h"
 #include "pywintypes.h"
 //#include "abstract.h"
 

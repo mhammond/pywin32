@@ -1,5 +1,3 @@
-#include "windows.h"
-
 // @doc
 
 #include "Python.h"

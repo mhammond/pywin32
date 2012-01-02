@@ -6,10 +6,9 @@
 // The intent is to only wrap stuff which isn't otherwise doable from
 // Python, such as the proxy stuff.
 
-#include "windows.h"
-#include "winhttp.h"
 #include "pywintypes.h"
 #include "pywinobjects.h"
+#include "winhttp.h"
 
 // @doc
 typedef BOOL (WINAPI *funcWinHttpGetIEProxyConfigForCurrentUser)(WINHTTP_CURRENT_USER_IE_PROXY_CONFIG *);

@@ -34,6 +34,8 @@
 programmers who forget to use the new names. */
 #undef INCREF
 #undef DECREF
+// windows defines "small" as "char" which breaks Python's accu.h
+#undef small
 #include "Python.h"
 #include "modsupport.h"
 #include "traceback.h"

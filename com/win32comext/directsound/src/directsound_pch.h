@@ -1,7 +1,5 @@
 // directsound_pch.h : header file for PCH generation for the directsound COM extension
 
-#include <windows.h>
-#include <Python.h>
 #include <PythonCOM.h>
 #include <dsound.h>
 

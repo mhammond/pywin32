@@ -52,8 +52,6 @@
 
 #endif
 
-#include "windows.h"
-#include "Python.h"
 #include "PyWinTypes.h"
 #include "PyWinObjects.h" // for the PyHANDLE impl.
 #include "netres.h"			// NETRESOURCE Type

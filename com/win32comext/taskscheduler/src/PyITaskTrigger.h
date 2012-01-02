@@ -4,8 +4,8 @@
 //
 // Interface Declaration
 
-#include "mstask.h"
 #include "PythonCOM.h"
+#include "mstask.h"
 #include "structmember.h"
 BOOL PyTASK_TRIGGER_check(PyObject *ob);
 

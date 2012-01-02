@@ -4,9 +4,6 @@
 //
 // Interface Declaration
 
-#include "Bits.h"
-#include "PythonCOM.h"
-
 class PyIBackgroundCopyFile : public PyIUnknown
 {
 public:

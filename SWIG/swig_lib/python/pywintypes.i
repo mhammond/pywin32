@@ -35,8 +35,6 @@ typedef unsigned long ULONG;
 
 
 %{
-#include "windows.h"
-#include "winbase.h"
 #include "PyWinTypes.h"
 #ifdef NEED_PYWINOBJECTS_H
 #include "PyWinObjects.h"

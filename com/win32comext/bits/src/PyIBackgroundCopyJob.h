@@ -6,9 +6,6 @@
 
 #pragma once
 
-#include "Bits.h"
-#include "PythonCOM.h"
-
 class PyIBackgroundCopyJob : public PyIUnknown
 {
 public:

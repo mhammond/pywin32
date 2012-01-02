@@ -23,6 +23,11 @@
 #pragma warning( disable:4035 )
 #endif
 
+// windows rpc.h defines "small" as "char" which breaks Python's accu.h,
+// so we undefine it before including python.
+#ifdef small
+#undef small
+#endif
 
 #include "Python.h"
 // many many files need python's structmember.h, and its possible people

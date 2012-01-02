@@ -29,8 +29,6 @@
 
 #endif
 
-#include <windows.h>
-#include "Python.h"
 #include "PyWinTypes.h"
 #include "netres.h"			// C++ header file for NETRESOURCE object
 
