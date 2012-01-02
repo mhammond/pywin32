@@ -31,6 +31,7 @@ class SearchParams:
 
 curDialog = None
 lastSearch = defaultSearch = SearchParams()
+searchHistory = []
 
 def ShowFindDialog():
 	_ShowDialog(FindDialog)
@@ -143,6 +144,17 @@ def _FindIt(control, searchParams):
 
 	if lastSearch.remember:
 		defaultSearch = lastSearch
+
+		# track search history
+		try:
+			ix = searchHistory.index(searchParams.findText)
+		except ValueError:
+			if len(searchHistory) > 50:
+				searchHistory[50:] = []
+		else:
+			del searchHistory[ix]
+		searchHistory.insert(0, searchParams.findText)
+		
 	return rc
 
 def _ReplaceIt(control):
@@ -181,8 +193,13 @@ class FindReplaceDialog(dialog.Dialog):
 				self.editFindText.SetWindowText(sel)
 				if (defaultSearch.remember):
 					defaultSearch.findText = sel
+		for hist in searchHistory:
+			self.editFindText.AddString(hist)
 
-		self.editFindText.SetSel(0, -2)
+		if hasattr(self.editFindText, 'SetEditSel'):
+			self.editFindText.SetEditSel(0, -2)
+		else:
+			self.editFindText.SetSel(0, -2)
 		self.editFindText.SetFocus()
 		self.butMatchWords.SetCheck(defaultSearch.matchWords)
 		self.butMatchCase.SetCheck(defaultSearch.matchCase)
@@ -209,8 +226,9 @@ class FindReplaceDialog(dialog.Dialog):
 		if not self.editFindText.GetWindowText():
 			win32api.MessageBeep()
 			return
-		if self.DoFindNext() != FOUND_NOTHING and not self.butKeepDialogOpen.GetCheck():
-			self.DestroyWindow()
+		if self.DoFindNext() != FOUND_NOTHING:
+			if not self.butKeepDialogOpen.GetCheck():
+				self.DestroyWindow()
 
 class FindDialog(FindReplaceDialog):
 	def _GetDialogTemplate(self):
@@ -219,7 +237,8 @@ class FindDialog(FindReplaceDialog):
 		dt = [
 			["Find", (0, 2, 240, 75), style, None, (8, "MS Sans Serif")],
 			["Static", "Fi&nd What:", 101, (5, 8, 40, 10), visible],
-			["Edit", "", 102, (50, 7, 120, 12), visible | win32con.WS_BORDER | win32con.WS_TABSTOP | win32con.ES_AUTOHSCROLL],
+			["ComboBox", "", 102, (50, 7, 120, 120), visible | win32con.WS_BORDER | win32con.WS_TABSTOP |
+						win32con.WS_VSCROLL |win32con.CBS_DROPDOWN |win32con.CBS_AUTOHSCROLL],
 			["Button", "Match &whole word only", 105, (5, 23, 100, 10), visible | win32con.BS_AUTOCHECKBOX | win32con.WS_TABSTOP],
 			["Button", "Match &case", 107, (5, 33, 100, 10), visible | win32con.BS_AUTOCHECKBOX | win32con.WS_TABSTOP],
 			["Button", "Keep &dialog open", 115, (5, 43, 100, 10), visible | win32con.BS_AUTOCHECKBOX | win32con.WS_TABSTOP],
@@ -237,9 +256,11 @@ class ReplaceDialog(FindReplaceDialog):
 		dt = [
 			["Replace", (0, 2, 240, 95), style, 0, (8, "MS Sans Serif")],
 			["Static", "Fi&nd What:", 101, (5, 8, 40, 10), visible],
-			["Edit", "", 102, (60, 7, 110, 12), visible | win32con.WS_BORDER | win32con.WS_TABSTOP | win32con.ES_AUTOHSCROLL],
+			["ComboBox", "", 102, (60, 7, 110, 120), visible | win32con.WS_BORDER | win32con.WS_TABSTOP |
+						 win32con.WS_VSCROLL |win32con.CBS_DROPDOWN |win32con.CBS_AUTOHSCROLL],
 			["Static", "Re&place with:", 103, (5, 25, 50, 10), visible],
-			["Edit", "", 104, (60, 24, 110, 12), visible | win32con.WS_BORDER | win32con.WS_TABSTOP | win32con.ES_AUTOHSCROLL],
+			["ComboBox", "", 104, (60, 24, 110, 120), visible | win32con.WS_BORDER | win32con.WS_TABSTOP |
+						 win32con.WS_VSCROLL |win32con.CBS_DROPDOWN |win32con.CBS_AUTOHSCROLL],
 			["Button", "Match &whole word only", 105, (5, 42, 100, 10), visible | win32con.BS_AUTOCHECKBOX | win32con.WS_TABSTOP],
 			["Button", "Match &case", 107, (5, 52, 100, 10), visible | win32con.BS_AUTOCHECKBOX | win32con.WS_TABSTOP],
 			["Button", "Keep &dialog open", 115, (5, 62, 100, 10), visible | win32con.BS_AUTOCHECKBOX | win32con.WS_TABSTOP],
@@ -261,7 +282,10 @@ class ReplaceDialog(FindReplaceDialog):
 		self.HookMessage(self.OnActivate, win32con.WM_ACTIVATE)
 		self.editReplaceText = self.GetDlgItem(104)
 		self.editReplaceText.SetWindowText(lastSearch.replaceText)
-		self.editReplaceText.SetSel(0, -2)
+		if hasattr(self.editReplaceText, 'SetEditSel'):
+			self.editReplaceText.SetEditSel(0, -2)
+		else:
+			self.editReplaceText.SetSel(0, -2)
 		self.butReplace = self.GetDlgItem(110)
 		self.butReplaceAll = self.GetDlgItem(111)
 		self.CheckButtonStates()
