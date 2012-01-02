@@ -1201,7 +1201,9 @@ PyObject *LoadPythonServiceClass(TCHAR *svcInitString)
 			ReportPythonError(PYS_E_NO_MEMORY_FOR_SYS_PATH);
 			return NULL;
 		}
-		PyList_Append(obPath, obNew);
+		// Insert the Path at the beginning to avoid locating a
+		// different module of the same name earlier on the path.
+		PyList_Insert(obPath, 0, obNew);
 		Py_DECREF(obNew);
 	} else {
 		fname = valueBuf;

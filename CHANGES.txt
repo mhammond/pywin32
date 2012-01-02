@@ -6,6 +6,10 @@ However contributors are encouraged to add their own entries for their work.
 
 Since build 216:
 ----------------
+* Python service module will now have their directory added to the start
+  of sys.path rather than the end to avoid cryptic error messages if a
+  module of the same name is already on the path (rvolpe via #3194663)
+
 * Various Pythonwin autocomplete enhancements (kxroberto via #3468282 and
   Oliver Tengler via #3433953)
 
