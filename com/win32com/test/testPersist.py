@@ -15,15 +15,23 @@ import pywintypes
 import win32ui
 import win32api, os
 
+from pywin32_testutil import str2bytes
+
 S_OK = 0
+
+import datetime
+if issubclass(pywintypes.TimeType, datetime.datetime):
+    import win32timezone
+    now = win32timezone.now()
+else:
+    now = pywintypes.Time(time.time())
 
 class LockBytes:
     _public_methods_ = [ 'ReadAt', 'WriteAt', 'Flush', 'SetSize', 'LockRegion', 'UnlockRegion', 'Stat' ]
     _com_interfaces_ = [ pythoncom.IID_ILockBytes ]
 
     def __init__(self, data = ""):
-        self.data = data
-        now = pywintypes.Time(time.time())
+        self.data = str2bytes(data)
         self.ctime = now
         self.mtime = now
         self.atime = now
@@ -56,7 +64,7 @@ class LockBytes:
     def SetSize(self, size):
         print "Set Size" + str(size)
         if size > len(self.data):
-            self.data = self.data +  "\000" * (size - len(self.data))
+            self.data = self.data +  str2bytes("\000" * (size - len(self.data)))
         else:
             self.data = self.data[0:size]
         return S_OK
