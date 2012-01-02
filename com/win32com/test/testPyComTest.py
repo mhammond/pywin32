@@ -306,6 +306,30 @@ def TestTrickyTypesWithVariants(o, is_generated):
         arg = VARIANT(pythoncom.VT_ARRAY | pythoncom.VT_UI1, vals)
     TestApplyResult(o.SetBinSafeArray, (arg,), len(vals))
 
+    # safearrays of doubles and floats
+    vals = [0, 1.1, 2.2, 3.3]
+    if is_generated:
+        arg = vals
+    else:
+        arg = VARIANT(pythoncom.VT_ARRAY | pythoncom.VT_R8, vals)
+    TestApplyResult(o.SetDoubleSafeArray, (arg,), len(vals))
+
+    if is_generated:
+        arg = vals
+    else:
+        arg = VARIANT(pythoncom.VT_ARRAY | pythoncom.VT_R4, vals)
+    TestApplyResult(o.SetFloatSafeArray, (arg,), len(vals))
+
+    vals=[1.1, 2.2, 3.3, 4.4]
+    expected = (1.1*2, 2.2*2, 3.3*2, 4.4*2)
+    if is_generated:
+        TestApplyResult(o.ChangeDoubleSafeArray, (vals,), expected)
+    else:
+        arg = VARIANT(pythoncom.VT_BYREF | pythoncom.VT_ARRAY | pythoncom.VT_R8, vals)
+        o.ChangeDoubleSafeArray(arg)
+        if arg.value != expected:
+            raise error("ChangeDoubleSafeArray got the wrong value")
+
     if is_generated:
         got = o.DoubleInOutString("foo")
     else:

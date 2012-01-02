@@ -80,10 +80,13 @@ END_COM_MAP()
 	STDMETHOD(SetLongLongSafeArray)(SAFEARRAY* ints, int *retSize);
 	STDMETHOD(SetULongLongSafeArray)(SAFEARRAY* ints, int *retSize);
 	STDMETHOD(SetVariantSafeArray)(SAFEARRAY* vars, int *retSize);
+	STDMETHOD(SetDoubleSafeArray)(SAFEARRAY* vars, int *retSize);
+	STDMETHOD(SetFloatSafeArray)(SAFEARRAY* vars, int *retSize);
 	STDMETHOD(GetSafeArrays)(SAFEARRAY** attrs,
                                       SAFEARRAY**attrs2,
                                       SAFEARRAY** ints);
 	STDMETHOD(GetSimpleSafeArray)(SAFEARRAY** ints);
+	STDMETHOD(ChangeDoubleSafeArray)(SAFEARRAY **vals);
 	STDMETHOD(GetSimpleCounter)(ISimpleCounter** counter);
 	STDMETHOD(CheckVariantSafeArray)(SAFEARRAY **vals, int *result);
 

@@ -217,10 +217,13 @@ library PyCOMTestLib
 		HRESULT SetLongLongSafeArray([in] SAFEARRAY(long long) ints, [out, retval]int *resultSize);
 		HRESULT SetULongLongSafeArray([in] SAFEARRAY(unsigned long long) ints, [out, retval]int *resultSize);
 		HRESULT SetVariantSafeArray([in] SAFEARRAY(VARIANT) vars, [out, retval]int *resultSize);
+		HRESULT SetDoubleSafeArray([in] SAFEARRAY(double) vals, [out, retval]int *resultSize);
+		HRESULT SetFloatSafeArray([in] SAFEARRAY(float) vals, [out, retval]int *resultSize);
 		HRESULT GetSimpleSafeArray([out] SAFEARRAY(int)* ints);
 		HRESULT GetSafeArrays([out] SAFEARRAY(QsAttribute)* attrs,
                                       [out] SAFEARRAY(enum tagQsAttribute)*attrs2,
                                       [out] SAFEARRAY(int)*ints);
+		HRESULT ChangeDoubleSafeArray([in, out]SAFEARRAY(double)*vals);
 		HRESULT GetSimpleCounter([out, retval] ISimpleCounter** counter);
 		HRESULT CheckVariantSafeArray([in] SAFEARRAY(VARIANT)* data, [out, retval]int *sum);
 

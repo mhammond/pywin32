@@ -275,77 +275,82 @@ STDMETHODIMP CPyCOMTest::TakeByRefDispatch(IDispatch **inout)
 	return S_OK;
 }
 
-STDMETHODIMP CPyCOMTest::SetBinSafeArray(SAFEARRAY* buf, int *resultSize)
+HRESULT _SetArrayHelper(VARTYPE expectedType, SAFEARRAY *vals, int *resultSize)
 {
-	UINT cDims = SafeArrayGetDim(buf);
+	VARTYPE gotType;
+	HRESULT hr = SafeArrayGetVartype(vals, &gotType);
+	if (FAILED(hr)) {
+		return hr;
+	}
+	if (gotType != expectedType) {
+		return E_UNEXPECTED;
+	}
+	UINT cDims = SafeArrayGetDim(vals);
 	*resultSize = 0;
 	long ub=0, lb=0;
 	if (cDims) {
-		SafeArrayGetUBound(buf, 1, &ub);
-		SafeArrayGetLBound(buf, 1, &lb);
+		SafeArrayGetUBound(vals, 1, &ub);
+		SafeArrayGetLBound(vals, 1, &lb);
 		*resultSize = ub - lb + 1;
 	}
-	TCHAR dbgbuf[256];
-	wsprintf(dbgbuf, _T("Have binary SafeArray with %d dims and size %d\n"), cDims, *resultSize);
-	OutputDebugString(dbgbuf);
 	return S_OK;
+}
+
+STDMETHODIMP CPyCOMTest::SetBinSafeArray(SAFEARRAY* buf, int *resultSize)
+{
+	return _SetArrayHelper(VT_UI1, buf, resultSize);
 }
 
 STDMETHODIMP CPyCOMTest::SetIntSafeArray(SAFEARRAY* ints, int *resultSize)
 {
-	TCHAR buf[256];
-	UINT cDims = SafeArrayGetDim(ints);
-	*resultSize = 0;
-	long ub=0, lb=0;
-	if (cDims) {
-		SafeArrayGetUBound(ints, 1, &ub);
-		SafeArrayGetLBound(ints, 1, &lb);
-		*resultSize = ub - lb + 1;
-	}
-	wsprintf(buf, _T("Have VARIANT SafeArray with %d dims and size %d\n"), cDims, *resultSize);
-	OutputDebugString(buf);
-	return S_OK;
+	return _SetArrayHelper(VT_I4, ints, resultSize);
 }
 
 STDMETHODIMP CPyCOMTest::SetLongLongSafeArray(SAFEARRAY* ints, int *resultSize)
 {
-	UINT cDims = SafeArrayGetDim(ints);
-	*resultSize = 0;
-	long ub=0, lb=0;
-	if (cDims) {
-		SafeArrayGetUBound(ints, 1, &ub);
-		SafeArrayGetLBound(ints, 1, &lb);
-		*resultSize = ub - lb + 1;
-	}
-	return S_OK;
+	return _SetArrayHelper(VT_I8, ints, resultSize);
 }
 
 STDMETHODIMP CPyCOMTest::SetULongLongSafeArray(SAFEARRAY* ints, int *resultSize)
 {
-	UINT cDims = SafeArrayGetDim(ints);
-	*resultSize = 0;
-	long ub=0, lb=0;
-	if (cDims) {
-		SafeArrayGetUBound(ints, 1, &ub);
-		SafeArrayGetLBound(ints, 1, &lb);
-		*resultSize = ub - lb + 1;
-	}
-	return S_OK;
+	return _SetArrayHelper(VT_UI8, ints, resultSize);
 }
 
 STDMETHODIMP CPyCOMTest::SetVariantSafeArray(SAFEARRAY* vars, int *resultSize)
 {
-	TCHAR buf[256];
-	UINT cDims = SafeArrayGetDim(vars);
-	*resultSize = 0;
-	long ub=0, lb=0;
-	if (cDims) {
-		SafeArrayGetUBound(vars, 1, &ub);
-		SafeArrayGetLBound(vars, 1, &lb);
-		*resultSize = ub - lb + 1;
+	return _SetArrayHelper(VT_VARIANT, vars, resultSize);
+}
+
+STDMETHODIMP CPyCOMTest::SetDoubleSafeArray(SAFEARRAY* vals, int *resultSize)
+{
+	return _SetArrayHelper(VT_R8, vals, resultSize);
+}
+
+STDMETHODIMP CPyCOMTest::SetFloatSafeArray(SAFEARRAY* vals, int *resultSize)
+{
+	return _SetArrayHelper(VT_R4, vals, resultSize);
+}
+
+STDMETHODIMP CPyCOMTest::ChangeDoubleSafeArray(SAFEARRAY** vals)
+{
+	UINT cDims = SafeArrayGetDim(*vals);
+	if (cDims != 1) {
+		return E_UNEXPECTED;
 	}
-	wsprintf(buf, _T("Have VARIANT SafeArray with %d dims and size %d\n"), cDims, *resultSize);
-	OutputDebugString(buf);
+	HRESULT hr;
+	long ub=0, lb=0;
+	SafeArrayGetUBound(*vals, 1, &ub);
+	SafeArrayGetLBound(*vals, 1, &lb);
+	for (long i=lb; i <= ub; i++) {
+		double val;
+		hr = SafeArrayGetElement(*vals, &i, &val);
+		if (FAILED(hr))
+			return hr;
+		val *= 2;
+		hr = SafeArrayPutElement(*vals, &i, &val);
+		if (FAILED(hr))
+			return hr;
+	}
 	return S_OK;
 }
 
