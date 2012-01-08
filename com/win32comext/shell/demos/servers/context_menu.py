@@ -36,7 +36,7 @@ class ShellExtension:
             fname = shell.DragQueryFile(sm.data_handle, 0)
             msg = "&Hello from Python (with '%s' selected)" % fname
         idCmd = idCmdFirst
-        items = []
+        items = ['First Python content menu item']
         if (uFlags & 0x000F) == shellcon.CMF_NORMAL: # Check == here, since CMF_NORMAL=0
             print "CMF_NORMAL..."
             items.append(msg)
@@ -72,7 +72,11 @@ class ShellExtension:
         win32gui.MessageBox(hwnd, "Hello", "Wow", win32con.MB_OK)
 
     def GetCommandString(self, cmd, typ):
-        return "Hello from Python!!"
+        # If GetCommandString returns the same string for all items then
+        # the shell seems to ignore all but one.  This is even true in
+        # Win7 etc where there is no status bar (and hence this string seems
+        # ignored)
+        return "Hello from Python (cmd=%d)!!" % (cmd,)
 
 def DllRegisterServer():
     import _winreg
