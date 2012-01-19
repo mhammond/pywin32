@@ -393,7 +393,11 @@ def ImportFile():
 	path, modName = os.path.split(pathName)
 	modName, modExt = os.path.splitext(modName)
 	newPath = None
-	for key, mod in sys.modules.iteritems():
+	# note that some packages (*cough* email *cough*) use "lazy importers"
+	# meaning sys.modules can change as a side-effect of looking at
+	# module.__file__ - so we must take a copy (ie, items() in py2k,
+	# list(items()) in py3k)
+	for key, mod in sys.modules.items():
 		if hasattr(mod, '__file__'):
 			fname = mod.__file__
 			base, ext = os.path.splitext(fname)
