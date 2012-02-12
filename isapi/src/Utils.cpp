@@ -35,19 +35,11 @@ static WCHAR *source_name = L"ISAPI Filter or Extension";
 // some py3k-friendly type conversions.
 const char *PyISAPIString_AsBytes(PyObject *ob, DWORD *psize /* = NULL */)
 {
+	PyObject *obNew = NULL;
 #if (PY_VERSION_HEX >= 0x03000000)
-	// py3k - check for unicode object and use default encoding.
+	// py3k - check for unicode object and use utf-8 encoding.
 	if (PyUnicode_Check(ob)) {
-		// NOTE: we are using an internal API and it may go away later.
-		// The implementation in py3k is simply "encode as utf-8" - but using
-		// this makes our life a little simpler (the value is cached and we
-		// don't need to manage reference counts) so we stick with it.
-		// Sadly this changed in 3.3 though...
-#if (PY_VERSION_HEX >= 0x03030000)
-		ob = _PyUnicode_AsDefaultEncodedString(ob);
-#else
-		ob = _PyUnicode_AsDefaultEncodedString(ob, NULL);
-#endif
+		obNew = ob = PyUnicode_AsUTF8String(ob);
 		if (ob == NULL)
 			return NULL;
 	}
@@ -59,7 +51,9 @@ const char *PyISAPIString_AsBytes(PyObject *ob, DWORD *psize /* = NULL */)
 	}
 	if (psize)
 		*psize = PyString_Size(ob);
-	return PyString_AsString(ob);
+	const char *result = PyString_AsString(ob);
+	Py_XDECREF(obNew);
+	return result;
 }
 
 // returns the pathname of this module
