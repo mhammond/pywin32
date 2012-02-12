@@ -85,7 +85,7 @@ class ReloadWatcherThread(threading.Thread):
                 win32file.FindNextChangeNotification(self.handle)
             except win32event.error, details:
                 # handle closed - thread should terminate.
-                if details[0] != winerror.ERROR_INVALID_HANDLE:
+                if details.winerror != winerror.ERROR_INVALID_HANDLE:
                     raise
                 break
             this_time = os.stat(self.filename)[stat.ST_MTIME]
@@ -114,7 +114,7 @@ class Extension(SimpleExtension):
             print "Doing reload"
             raise InternalReloadException
 
-        url = ecb.GetServerVariable("URL")
+        url = ecb.GetServerVariable("UNICODE_URL")
         if url.endswith("ReportUnhealthy"):
             ecb.ReportUnhealthy("I'm a little sick")
 
