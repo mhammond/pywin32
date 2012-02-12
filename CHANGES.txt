@@ -6,6 +6,8 @@ However contributors are encouraged to add their own entries for their work.
 
 Since build 216:
 ----------------
+* ISAPI extension works with Python 3.x
+
 * Python service module will now have their directory added to the start
   of sys.path rather than the end to avoid cryptic error messages if a
   module of the same name is already on the path (rvolpe via #3194663)
@@ -59,12 +61,13 @@ Since build 216:
 
 * Source-code management moved from CVS to Mercurual.
 
-* win32com.shell - Added SHCreateShellItem
+* win32com.shell - Added SHCreateShellItem and fixed some 64bit issues.
 
-* win32evtlog - Added some of the new event log functions introduced in Vista/Windows 7
+* win32evtlog - Added some of the new event log functions introduced in 
+  Vista/Windows 7
 
-* win32service - Added EnumServicesStatusEx, and support startup type "delayed"
-	for Python services
+* win32service - Added EnumServicesStatusEx, and support startup type 
+  "delayed" for Python services
 
 * win32net - Fix a problem with NetFileEnum on 64-bit (bug #3376041)
 
