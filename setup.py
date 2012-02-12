@@ -1,4 +1,4 @@
-build_id="216.2" # may optionally include a ".{patchno}" suffix.
+build_id="217" # may optionally include a ".{patchno}" suffix.
 # Putting buildno at the top prevents automatic __doc__ assignment, and
 # I *want* the build number at the top :)
 __doc__="""This is a distutils setup-script for the pywin32 extensions
@@ -243,14 +243,34 @@ if sys.version_info > (2,6):
     from distutils.msvc9compiler import MSVCCompiler
     MSVCCompiler._orig_spawn = MSVCCompiler.spawn
     MSVCCompiler._orig_link = MSVCCompiler.link
+
+    # We need to override this method for versions where issue7833 *has* landed
+    # (ie, 2.7 and 3.2+)
+    def manifest_get_embed_info(self, target_desc, ld_args):
+        _want_assembly_kept = getattr(self, '_want_assembly_kept', False)
+        if not _want_assembly_kept:
+            return None
+        for arg in ld_args:
+            if arg.startswith("/MANIFESTFILE:"):
+                orig_manifest = arg.split(":", 1)[1]
+                if target_desc==self.EXECUTABLE:
+                    rid = 1
+                else:
+                    rid = 2
+                return orig_manifest, rid
+        return None
+    # always monkeypatch it in even though it will only be called in 2.7
+    # and 3.2+.
+    MSVCCompiler.manifest_get_embed_info = manifest_get_embed_info
+        
     def monkeypatched_spawn(self, cmd):
         is_link = cmd[0].endswith("link.exe") or cmd[0].endswith('"link.exe"')
-        _want_assembly_hack = getattr(self, '_want_assembly_hack', False)
-        _want_assembly_with_crt = getattr(self, '_want_assembly_with_crt', False)
-        if _want_assembly_hack and cmd[0].endswith("mt.exe"):
+        is_mt = cmd[0].endswith("mt.exe") or cmd[0].endswith('"mt.exe"')
+        _want_assembly_kept = getattr(self, '_want_assembly_kept', False)
+        if not _want_assembly_kept and is_mt:
             # We don't want mt.exe run...
             return
-        if _want_assembly_hack and is_link:
+        if not _want_assembly_kept and is_link:
             # remove /MANIFESTFILE:... and add MANIFEST:NO
             # (but note that for winxpgui, which specifies a manifest via a
             # .rc file, this is ignored by the linker - the manifest specified
@@ -259,14 +279,14 @@ if sys.version_info > (2,6):
                 if cmd[i].startswith("/MANIFESTFILE:"):
                     cmd[i] = "/MANIFEST:NO"
                     break
-        if _want_assembly_with_crt and cmd[0].endswith("mt.exe"):
+        if _want_assembly_kept and is_mt:
             # We want mt.exe run with the original manifest
             for i in range(len(cmd)):
                 if cmd[i] == "-manifest":
                     cmd[i+1] = cmd[i+1] + ".orig"
                     break
         self._orig_spawn(cmd)
-        if _want_assembly_with_crt and is_link:
+        if _want_assembly_kept and is_link:
             # We want a copy of the original manifest so we can use it later.
             for i in range(len(cmd)):
                 if cmd[i].startswith("/MANIFESTFILE:"):
@@ -275,15 +295,14 @@ if sys.version_info > (2,6):
                     break
 
     def monkeypatched_link(self, target_desc, objects, output_filename, *args, **kw):
-        self._want_assembly_with_crt = os.path.basename(output_filename).startswith("PyISAPI_loader.dll") or \
-                                       os.path.basename(output_filename).startswith("perfmondata.dll")
-        self._want_assembly_hack = not(target_desc==self.EXECUTABLE or self._want_assembly_with_crt or
-                                       os.path.splitext(os.path.basename(output_filename))[0]=="win32ui")
+        self._want_assembly_kept = os.path.basename(output_filename).startswith("PyISAPI_loader.dll") or \
+                                   os.path.basename(output_filename).startswith("perfmondata.dll") or \
+                                   os.path.basename(output_filename).startswith("win32ui.pyd") or \
+                                   target_desc==self.EXECUTABLE
         try:
             return self._orig_link(target_desc, objects, output_filename, *args, **kw)
         finally:
-            delattr(self, '_want_assembly_hack')
-            delattr(self, '_want_assembly_with_crt')
+            delattr(self, '_want_assembly_kept')
     MSVCCompiler.spawn = monkeypatched_spawn
     MSVCCompiler.link = monkeypatched_link
 
@@ -1387,7 +1406,7 @@ class my_build_ext(build_ext):
             # This could probably go once we generate .cpp into the temp dir.
             fqsource = os.path.abspath(source)
             fqtarget = os.path.abspath(target)
-            rebuild = self.force or newer_group(ext.swig_deps + [fqsource], fqtarget)
+            rebuild = self.force or (ext and newer_group(ext.swig_deps + [fqsource], fqtarget))
             log.debug("should swig %s->%s=%s", source, target, rebuild)
             if rebuild:
                 swig_cmd.extend(["-o", fqtarget, fqsource])
