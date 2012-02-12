@@ -14,7 +14,7 @@ class Tee:
     def write(self, what):
         if self.f is not None:
             try:
-                self.f.write(what)
+                self.f.write(what.replace("\n", "\r\n"))
             except IOError:
                 pass
         tee_f.write(what)
