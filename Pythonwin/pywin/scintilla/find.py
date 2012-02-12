@@ -321,6 +321,7 @@ class ReplaceDialog(FindReplaceDialog):
 			control.SetSel(0)
 			num = 0
 			if self.DoFindNext() == FOUND_NORMAL:
+				num = 1
 				lastSearch.replaceText = self.editReplaceText.GetWindowText()
 				while _ReplaceIt(control) == FOUND_NORMAL:
 					num = num + 1
