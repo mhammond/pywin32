@@ -59,7 +59,7 @@ class HierList(object.Object):
 		try:
 			return getattr(self.listControl, attr)
 		except AttributeError:
-			return getattr(self, attr)
+			return object.Object.__getattr__(self, attr)
 
 	def ItemFromHandle(self, handle):
 		return self.itemHandleMap[handle]
