@@ -4,66 +4,7 @@
 
 // @doc
 
-// A refugee from pywintypes and should die
-PyObject *PyString_FromUnicode( const OLECHAR *str )
-{
-	if (str==NULL) {
-		Py_INCREF(Py_None);
-		return Py_None;
-	}
-	PyObject *uo = PyWinObject_FromOLECHAR(str);
-	if (uo==NULL) return NULL;
-	PyObject *ret = PyUnicode_EncodeMBCS(PyUnicode_AS_UNICODE(uo), PyUnicode_GET_SIZE(uo), NULL);
-	Py_DECREF(uo);
-	return ret;
-}
 
-#ifdef LINK_AGAINST_RECORDINFO
-// Helpers to avoid linking directly to these newer functions
-static const IID g_IID_IRecordInfo = IID_IRecordInfo;
-HRESULT PySafeArrayGetRecordInfo( SAFEARRAY *  psa, IRecordInfo **  prinfo )
-{
-	return SafeArrayGetRecordInfo(psa, prinfo);
-}
-HRESULT PyGetRecordInfoFromGuids( REFGUID g, ULONG major, ULONG minor, LCID lcid, REFGUID gti, IRecordInfo **ppr)
-{
-	return GetRecordInfoFromGuids( g, major, minor, lcid, gti, ppr);
-}
-#else
-
-// IID_IRecordInfo = {0000002F-0000-0000-C000-000000000046}
-EXTERN_C const GUID g_IID_IRecordInfo \
-                = { 0x2f, 0, 0, { 0xC0,0,0,0,0,0,0,0x46 } };
-
-HRESULT PySafeArrayGetRecordInfo( SAFEARRAY *  psa, IRecordInfo **  prinfo )
-{
-	static HRESULT (STDAPICALLTYPE *pfnSAGRI)(SAFEARRAY *, IRecordInfo **) = NULL;
-	if (pfnSAGRI==NULL) {
-		HMODULE hmod = GetModuleHandle(_T("oleaut32.dll"));
-		if (hmod==NULL)
-			return E_NOTIMPL;
-		pfnSAGRI = (HRESULT (STDAPICALLTYPE *)(SAFEARRAY *, IRecordInfo **))
-			GetProcAddress(hmod, "SafeArrayGetRecordInfo");
-		if (pfnSAGRI==NULL)
-			return E_NOTIMPL;
-	}
-	return (*pfnSAGRI)(psa, prinfo);
-}
-HRESULT PyGetRecordInfoFromGuids( REFGUID g, ULONG major, ULONG minor, LCID lcid, REFGUID gti, IRecordInfo **ppr)
-{
-	static HRESULT (STDAPICALLTYPE *pfnGRIFG)(REFGUID, ULONG, ULONG, LCID, REFGUID, IRecordInfo **) = NULL;
-	if (pfnGRIFG==NULL) {
-		HMODULE hmod = GetModuleHandle(_T("oleaut32.dll"));
-		if (hmod==NULL)
-			return E_NOTIMPL;
-		pfnGRIFG = (HRESULT (STDAPICALLTYPE *)(REFGUID, ULONG, ULONG, LCID, REFGUID, IRecordInfo **))
-			GetProcAddress(hmod, "GetRecordInfoFromGuids");
-		if (pfnGRIFG==NULL)
-			return E_NOTIMPL;
-	}
-	return (*pfnGRIFG)(g, major, minor, lcid, gti, ppr);
-}
-#endif // LINK_AGAINST_RECORDINFO
 
 // The owner of the record buffer - many records may point here!
 class PyRecordBuffer
@@ -78,14 +19,7 @@ public:
 	}
 	~PyRecordBuffer()
 	{
-		if (data) PyMem_Free(
-#ifdef ANY // Python lost ANY in 2.2, but fails to build with "void *" in 1.5 :(
-				(ANY *)
-#else
-				(void *)
-#endif
-					data);
-
+		if (data) PyMem_Free(data);
 	}
 	void AddRef() {
 		ref++;
@@ -111,7 +45,7 @@ BOOL PyObject_AsVARIANTRecordInfo(PyObject *ob, VARIANT *pv)
 	PyRecord *pyrec = (PyRecord *)ob;
 	HRESULT hr = pyrec->pri->RecordCreateCopy(pyrec->pdata, &V_RECORD(pv));
 	if (FAILED(hr)) {
-		PyCom_BuildPyException(hr, pyrec->pri, g_IID_IRecordInfo);
+		PyCom_BuildPyException(hr, pyrec->pri, IID_IRecordInfo);
 		return FALSE;
 	}
 	V_RECORDINFO(pv) = pyrec->pri;
@@ -127,7 +61,7 @@ PyObject *PyObject_FromSAFEARRAYRecordInfo(SAFEARRAY *psa)
 	long lbound, ubound, nelems, i;
 	ULONG cb_elem;
 	PyRecordBuffer *owner = NULL;
-	HRESULT hr = PySafeArrayGetRecordInfo(psa, &info);
+	HRESULT hr = SafeArrayGetRecordInfo(psa, &info);
 	if (FAILED(hr)) goto exit;
 	hr = SafeArrayAccessData(psa, (void **)&source_data);
 	if (FAILED(hr)) goto exit;
@@ -160,7 +94,7 @@ PyObject *PyObject_FromSAFEARRAYRecordInfo(SAFEARRAY *psa)
 exit:
 	if (FAILED(hr)) {
 		if (info)
-			PyCom_BuildPyException(hr, info, g_IID_IRecordInfo);
+			PyCom_BuildPyException(hr, info, IID_IRecordInfo);
 		else
 			PyCom_BuildPyException(hr);
 		Py_XDECREF(ret);
@@ -180,7 +114,7 @@ PyObject *PyObject_FromRecordInfo(IRecordInfo *ri, void *data, ULONG cbData)
 	ULONG cb;
 	HRESULT hr = ri->GetSize(&cb);
 	if (FAILED(hr))
-		return PyCom_BuildPyException(hr, ri, g_IID_IRecordInfo);
+		return PyCom_BuildPyException(hr, ri, IID_IRecordInfo);
 	if (cbData != 0 && cbData != cb)
 		return PyErr_Format(PyExc_ValueError, "Expecting a string of %d bytes (got %d)", cb, cbData);
 	PyRecordBuffer *owner = new PyRecordBuffer(cb);
@@ -191,12 +125,12 @@ PyObject *PyObject_FromRecordInfo(IRecordInfo *ri, void *data, ULONG cbData)
 	hr = ri->RecordInit(owner->data);
 	if (FAILED(hr)) {
 		delete owner;
-		return PyCom_BuildPyException(hr, ri, g_IID_IRecordInfo);
+		return PyCom_BuildPyException(hr, ri, IID_IRecordInfo);
 	}
 	hr = data==NULL ? 0 : ri->RecordCopy(data, owner->data);
 	if (FAILED(hr)) {
 		delete owner;
-		return PyCom_BuildPyException(hr, ri, g_IID_IRecordInfo);
+		return PyCom_BuildPyException(hr, ri, IID_IRecordInfo);
 	}
 	return new PyRecord(ri, owner->data, owner);
 }
@@ -224,7 +158,7 @@ PyObject *pythoncom_GetRecordFromGuids(PyObject *self, PyObject *args)
 	if (!PyWinObject_AsIID(obInfoGuid, &infoGuid))
 		return NULL;
 	IRecordInfo *i = NULL;
-	HRESULT hr = PyGetRecordInfoFromGuids(guid, major, minor, lcid, infoGuid, &i);
+	HRESULT hr = GetRecordInfoFromGuids(guid, major, minor, lcid, infoGuid, &i);
 	if (FAILED(hr))
 		return PyCom_BuildPyException(hr);
 	PyObject *ret = PyObject_FromRecordInfo(i, data, cb);
@@ -390,7 +324,7 @@ static BSTR *_GetFieldNames(IRecordInfo *pri, ULONG *pnum)
 	ULONG num_names;
 	HRESULT hr = pri->GetFieldNames(&num_names, NULL);
 	if (FAILED(hr)) {
-		PyCom_BuildPyException(hr, pri, g_IID_IRecordInfo);
+		PyCom_BuildPyException(hr, pri, IID_IRecordInfo);
 		return NULL;
 	}
 	BSTR *strings = new BSTR [num_names];
@@ -403,7 +337,7 @@ static BSTR *_GetFieldNames(IRecordInfo *pri, ULONG *pnum)
 
 	hr = pri->GetFieldNames(&num_names, strings);
 	if (FAILED(hr)) {
-		PyCom_BuildPyException(hr, pri, g_IID_IRecordInfo);
+		PyCom_BuildPyException(hr, pri, IID_IRecordInfo);
 		return NULL;
 	}
 	*pnum = num_names;
@@ -515,14 +449,14 @@ PyObject *PyRecord::getattro(PyObject *self, PyObject *obname)
 		ULONG cnames = 0;
 		HRESULT hr = pyrec->pri->GetFieldNames(&cnames, NULL);
 		if (FAILED(hr))
-			return PyCom_BuildPyException(hr, pyrec->pri, g_IID_IRecordInfo);
+			return PyCom_BuildPyException(hr, pyrec->pri, IID_IRecordInfo);
 		BSTR *strs = (BSTR *)malloc(sizeof(BSTR) * cnames);
 		if (strs==NULL)
 			return PyErr_NoMemory();
 		hr = pyrec->pri->GetFieldNames(&cnames, strs);
 		if (FAILED(hr)) {
 			free(strs);
-			return PyCom_BuildPyException(hr, pyrec->pri, g_IID_IRecordInfo);
+			return PyCom_BuildPyException(hr, pyrec->pri, IID_IRecordInfo);
 		}
 		res = PyList_New(cnames);
 		for (ULONG i=0;i<cnames && res != NULL;i++) {
@@ -565,7 +499,7 @@ PyObject *PyRecord::getattro(PyObject *self, PyObject *obname)
 			PyErr_SetObject(PyExc_AttributeError, obname);
 			return NULL;
 			}
-		return PyCom_BuildPyException(hr, pyrec->pri, g_IID_IRecordInfo);
+		return PyCom_BuildPyException(hr, pyrec->pri, IID_IRecordInfo);
 	}
 
 	// Short-circuit sub-structs and arrays here, so we dont allocate a new chunk
@@ -589,7 +523,7 @@ PyObject *PyRecord::getattro(PyObject *self, PyObject *obname)
 		if (FAILED(hr)) goto array_end;
 		hr = SafeArrayGetLBound(psa, 1, &lbound);
 		if (FAILED(hr)) goto array_end;
-		hr = PySafeArrayGetRecordInfo(psa, &sub);
+		hr = SafeArrayGetRecordInfo(psa, &sub);
 		if (FAILED(hr)) goto array_end;
 		hr = sub->GetSize(&element_size);
 		if (FAILED(hr)) goto array_end;
@@ -605,13 +539,17 @@ array_end:
 		if (sub)
 			sub->Release();
 		if (FAILED(hr)) 
-			return PyCom_BuildPyException(hr, pyrec->pri, g_IID_IRecordInfo);
+			return PyCom_BuildPyException(hr, pyrec->pri, IID_IRecordInfo);
 		return ret_tuple;
 	}
 
-	// The rest of the object as passed as "BYREF VT_INT, or BYREF VT_STRING"
 	// This default conversion we use is a little slow (but it will do!)
+	// For arrays, the pparray->pvData member is *not* set, since the actual data
+	// pointer from the record is returned in sub_data, so set it here.
+	if (V_ISARRAY(&vret) && V_ISBYREF(&vret))
+		(*V_ARRAYREF(&vret))->pvData = sub_data;
 	PyObject *ret = PyCom_PyObjectFromVariant(&vret);
+
 //	VariantClear(&vret);
 	return ret;
 }
@@ -619,6 +557,7 @@ array_end:
 int PyRecord::setattro(PyObject *self, PyObject *obname, PyObject *v)
 {
 	VARIANT val;
+	VariantInit(&val);
 	PyRecord *pyrec = (PyRecord *)self;
 
 	if (!PyCom_VariantFromPyObject(v, &val))
@@ -634,7 +573,7 @@ int PyRecord::setattro(PyObject *self, PyObject *obname, PyObject *v)
 	PyWinObject_FreeWCHAR(wname);
 	VariantClear(&val);
 	if (FAILED(hr)) {
-		PyCom_BuildPyException(hr, pyrec->pri, g_IID_IRecordInfo);
+		PyCom_BuildPyException(hr, pyrec->pri, IID_IRecordInfo);
 		return -1;
 	}
 	return 0;
