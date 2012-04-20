@@ -5996,7 +5996,7 @@ PyGetClassName(PyObject *self, PyObject *args)
 	// dont bother with lock - no callback possible.
 	int nchars = GetClassName(hwnd, buf, sizeof buf/sizeof buf[0]);
 	if (nchars==0)
-		PyWin_SetAPIError("GetClassName");
+		return PyWin_SetAPIError("GetClassName");
 	return PyWinObject_FromTCHAR(buf, nchars);
 }
 %}
