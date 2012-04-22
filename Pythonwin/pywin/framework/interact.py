@@ -631,6 +631,8 @@ class InteractiveView(InteractiveCore, winout.WindowOutputView):
 	def __init__(self,  doc):
 		InteractiveCore.__init__(self)
 		winout.WindowOutputView.__init__(self, doc)
+		self.encoding = pywin.default_scintilla_encoding
+		
 	def _MakeColorizer(self):
 		return InteractiveFormatter(self)
 	def OnInitialUpdate(self):
