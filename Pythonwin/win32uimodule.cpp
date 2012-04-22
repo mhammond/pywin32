@@ -735,20 +735,65 @@ PyObject *Python_do_callback(PyObject *themeth, PyObject *thearglst)
 	return result;
 }
 
+// Copied from PyRecord.cpp, should move into pywintypes.h
+#if (PY_VERSION_HEX < 0x03000000)
+#define PyWinCoreString_ConcatAndDel PyString_ConcatAndDel
+#define PyWinCoreString_Concat PyString_Concat
+#else
+// Unicode versions of '_Concat' etc have different sigs.  Make them the
+// same here...
+void PyWinCoreString_Concat(register PyObject **pv, register PyObject *w)
+{
+	if (!w) { // hrm - string version doesn't do this, but I saw PyObject_Repr() return NULL...
+		Py_XDECREF(*pv);
+		*pv = NULL;
+		return;
+	}
+	PyObject *tmp = PyUnicode_Concat(*pv, w);
+	Py_DECREF(*pv);
+	*pv = tmp;
+}
+
+void PyWinCoreString_ConcatAndDel(register PyObject **pv, register PyObject *w)
+{
+	PyWinCoreString_Concat(pv, w);
+	Py_XDECREF(w);
+}
+
+#endif
+
 int Python_do_int_callback(PyObject *themeth, PyObject *thearglst)
 {
-	int retVal=UINT_MAX;	// an identifiable, but unlikely genuine value.
-	BOOL isError = FALSE;
+	int retVal=INT_MAX;	// an identifiable, but unlikely genuine value
+	// Was formerly UINT_MAX, which is actually -1 when placed in a signed int
 	PyObject *result = Python_do_callback(themeth, thearglst);
 	if (result==NULL)
 		return retVal;
 	if (result==Py_None)	// allow for None==0
 		retVal = 0;
-	else if (result != Py_None && (!PyArg_Parse(result,"i",&retVal))) {
-		TRACE("Python_do_int_callback: callback had bad return type\n");
-		PyErr_SetString(ui_module_error, "Callback must return an integer, or None");
-		gui_print_error();
-	}
+	else{
+		retVal = PyInt_AsLong(result);
+		if (retVal == -1 && PyErr_Occurred()){
+			gui_print_error();
+			TRACE("Python_do_int_callback: callback had bad return type\n");
+			// Include the method in the error msg so the bad callback can actually be found
+			PyObject *meth_name=NULL, *err_static=NULL;
+			meth_name = PyObject_Repr(themeth);
+			if (meth_name == NULL)
+				gui_print_error();	// not much else we can do
+			err_static = PyWinCoreString_FromString(" - Callback must return an integer, or None");
+			if (err_static == NULL)
+				gui_print_error();
+			if (meth_name && err_static){
+				PyWinCoreString_Concat(&meth_name, err_static);
+				if (meth_name)
+					PyErr_SetObject(ui_module_error, meth_name);
+				gui_print_error();
+				}
+			Py_XDECREF(meth_name);
+			Py_XDECREF(err_static);
+			}
+		}
 #ifdef _DEBUG_HEAP	// perform some diagnostics.  May help trap reference errors.
 	if (_heapchk()!=_HEAPOK)
 		TRACE("**** Warning-heap corrupt after application callback ****\n");
