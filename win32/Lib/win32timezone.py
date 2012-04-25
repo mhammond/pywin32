@@ -147,23 +147,18 @@ True
 True
 
 This test helps ensure language support for unicode characters
->>> x = TIME_ZONE_INFORMATION(0, 'français')
+>>> x = TIME_ZONE_INFORMATION(0, u'français')
 
 """
 from __future__ import generators
 
 __author__ = 'Jason R. Coombs <jaraco@jaraco.com>'
-__version__ = '$Revision$'[11:-2]
-__sccauthor__ = '$Author$'[9:-2]
-__date__ = '$Date$'[10:-2]
 
-import os
 import _winreg
 import struct
 import datetime
 import win32api
 import re
-import sys
 import operator
 import warnings
 from itertools import count
@@ -196,7 +191,7 @@ class _SimpleStruct(object):
 			setattr(self, name, def_val)
 
 	def field_names(self):
-		return [f[0] for f in fields]
+		return [f[0] for f in self._fields_]
 
 	def __eq__(self, other):
 		if not hasattr(other, "_fields_"):
@@ -373,8 +368,7 @@ class TimeZoneInfo(datetime.tzinfo):
 		TimeZoneInfo(<Time Zone Standard Name>, [<Fix Standard Time>])
 
 	If <Fix Standard Time> evaluates to True, daylight savings time is
-	 calculated in the same
-	 way as standard time.
+	calculated in the same way as standard time.
 	"""
 
 	# this key works for WinNT+, but not for the Win95 line.
@@ -527,7 +521,7 @@ class TimeZoneInfo(datetime.tzinfo):
 		>>> now_UTC = datetime.datetime.utcnow()
 		>>> (now_UTC - now_local) < datetime.timedelta(seconds = 5)
 		Traceback (most recent call last):
-		  ...
+		...
 		TypeError: can't subtract offset-naive and offset-aware datetimes
 
 		>>> now_UTC = now_UTC.replace(tzinfo = TimeZoneInfo('GMT Standard Time', True))
@@ -601,7 +595,7 @@ class TimeZoneInfo(datetime.tzinfo):
 		"""
 		Return the time zones sorted by some key.
 		key must be a function that takes a TimeZoneInfo object and returns
-		 a value suitable for sorting on.
+		a value suitable for sorting on.
 		The key defaults to the bias (descending), as is done in Windows
 		(see http://blogs.msdn.com/michkap/archive/2006/12/22/1350684.aspx)
 		"""
@@ -654,7 +648,7 @@ def deprecated(func, name='Unknown'):
 	when the function is used."""
 	def newFunc(*args, **kwargs):
 		warnings.warn("Call to deprecated function %s." % name,
-					  category=DeprecationWarning)
+			category=DeprecationWarning)
 		return func(*args, **kwargs)
 	newFunc.__name__ = func.__name__
 	newFunc.__doc__ = func.__doc__
@@ -712,6 +706,7 @@ def resolveMUITimeZone(spec):
 	>>> try: unicode and None
 	... except NameError: unicode=str
 	...
+	>>> import sys
 	>>> result = resolveMUITimeZone('@tzres.dll,-110')
 	>>> expectedResultType = [type(None),unicode][sys.getwindowsversion() >= (6,)]
 	>>> type(result) is expectedResultType
@@ -727,7 +722,7 @@ def resolveMUITimeZone(spec):
 	try:
 		handle = DLLCache[matcher.groupdict()['dllname']]
 		result = win32api.LoadString(handle, int(matcher.groupdict()['index']))
-	except win32api.error, e:
+	except win32api.error:
 		result = None
 	return result
 
@@ -760,7 +755,7 @@ class RangeMap(dict):
 	>>> r = RangeMap({0: RangeValueUndefined(), 3: 'a', 6: 'b'})
 	>>> r[0]
 	Traceback (most recent call last):
-	  ...
+	...
 	KeyError: 0
 
 	One can get the first or last elements in the range by using RangeItem
