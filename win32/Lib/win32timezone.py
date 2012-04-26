@@ -12,7 +12,7 @@ and not Windows 95/98/Me.
 	This module may be tested using the doctest module.
 
 	Written by Jason R. Coombs (jaraco@jaraco.com).
-	Copyright © 2003-2009.
+	Copyright © 2003-2012.
 	All Rights Reserved.
 
 	This module is licenced for use in Mark Hammond's pywin32
