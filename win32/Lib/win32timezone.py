@@ -369,6 +369,18 @@ class TimeZoneInfo(datetime.tzinfo):
 
 	If <Fix Standard Time> evaluates to True, daylight savings time is
 	calculated in the same way as standard time.
+
+	>>> tzi = TimeZoneInfo('Pacific Standard Time')
+	>>> march31 = datetime.datetime(2000,3,31)
+
+	We know that time zone definitions haven't changed from 2007
+	to 2012, so regardless of whether dynamic info is available,
+	there should be consistent results for these years.
+	>>> subsequent_years = [march31.replace(year=year)
+	...     for year in range(2007, 2013)]
+	>>> offsets = set(tzi.utcoffset(year) for year in subsequent_years)
+	>>> len(offsets)
+	1
 	"""
 
 	# this key works for WinNT+, but not for the Win95 line.
@@ -446,6 +458,10 @@ class TimeZoneInfo(datetime.tzinfo):
 		return result
 
 	def getWinInfo(self, targetYear):
+		"""
+		Return the most relevant "info" for this time zone
+		in the target year.
+		"""
 		if not hasattr(self, 'dynamicInfo') or not self.dynamicInfo:
 			return self.staticInfo
 		# Find the greatest year entry in self.dynamicInfo which is for
