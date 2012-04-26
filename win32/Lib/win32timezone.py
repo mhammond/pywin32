@@ -427,6 +427,38 @@ class TimeZoneInfo(datetime.tzinfo):
 		self.staticInfo = tzi
 
 	def _LoadDynamicInfoFromKey(self, key):
+		"""
+		>>> tzi = TimeZoneInfo('Central Standard Time')
+
+		Here's how the RangeMap is supposed to work:
+		>>> m = RangeMap(zip([2006,2007], 'BC'), descending, operator.ge)
+		>>> m.get(2000, 'A')
+		'A'
+		>>> m[2006]
+		'B'
+		>>> m[2007]
+		'C'
+		>>> m[2008]
+		'C'
+
+		>>> m[RangeItemLast()]
+		'B'
+
+		>>> m.get(2008, m[RangeItemLast()])
+		'C'
+
+
+		Now test the dynamic info (but fallback to our simple RangeMap
+		on systems that don't have dynamicInfo).
+
+		>>> dinfo = getattr(tzi, 'dynamicInfo', m)
+		>>> 2007 in dinfo
+		True
+		>>> 2008 in dinfo
+		False
+		>>> dinfo[2007] == dinfo[2008] == dinfo[2012]
+		True
+		"""
 		try:
 			info = key.subkey('Dynamic DST')
 		except WindowsError:
@@ -467,7 +499,8 @@ class TimeZoneInfo(datetime.tzinfo):
 		# Find the greatest year entry in self.dynamicInfo which is for
 		#  a year greater than or equal to our targetYear. If not found,
 		#  default to the earliest year.
-		return self.dynamicInfo.get(targetYear, self.dynamicInfo[RangeItemLast()])
+		return self.dynamicInfo.get(targetYear,
+			self.dynamicInfo[RangeItemLast()])
 
 	def _getStandardBias(self, dt):
 		winInfo = self.getWinInfo(dt.year)
