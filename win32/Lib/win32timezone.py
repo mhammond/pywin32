@@ -6,9 +6,6 @@ win32timezone:
 registry for time zone information.  The time zone names are dependent
 on the registry entries defined by the operating system.
 
-	Currently, this module only supports the Windows NT line of products
-and not Windows 95/98/Me.
-
 	This module may be tested using the doctest module.
 
 	Written by Jason R. Coombs (jaraco@jaraco.com).
@@ -149,6 +146,83 @@ True
 This test helps ensure language support for unicode characters
 >>> x = TIME_ZONE_INFORMATION(0, u'français')
 
+
+Test conversion from one time zone to another at a DST boundary
+===============================================================
+
+>>> tz_hi = TimeZoneInfo('Hawaiian Standard Time')
+>>> tz_pac = TimeZoneInfo('Pacific Standard Time')
+>>> time_before = datetime.datetime(2011, 11, 5, 15, 59, 59, tzinfo=tz_hi)
+>>> tz_hi.utcoffset(time_before)
+datetime.timedelta(-1, 50400)
+>>> tz_hi.dst(time_before)
+datetime.timedelta(0)
+
+Hawaii doesn't need dynamic TZ info
+>>> getattr(tz_hi, 'dynamicInfo', None)
+
+Here's a time that gave some trouble as reported in #3523104
+because one minute later, the equivalent UTC time changes from DST
+in the U.S.
+>>> dt_hi = datetime.datetime(2011, 11, 5, 15, 59, 59, 0, tzinfo=tz_hi)
+>>> dt_hi.timetuple()
+time.struct_time(tm_year=2011, tm_mon=11, tm_mday=5, tm_hour=15, tm_min=59, tm_sec=59, tm_wday=5, tm_yday=309, tm_isdst=0)
+>>> dt_hi.utctimetuple()
+time.struct_time(tm_year=2011, tm_mon=11, tm_mday=6, tm_hour=1, tm_min=59, tm_sec=59, tm_wday=6, tm_yday=310, tm_isdst=0)
+
+Convert the time to pacific time.
+>>> dt_pac = dt_hi.astimezone(tz_pac)
+>>> dt_pac.timetuple()
+time.struct_time(tm_year=2011, tm_mon=11, tm_mday=5, tm_hour=18, tm_min=59, tm_sec=59, tm_wday=5, tm_yday=309, tm_isdst=1)
+
+Notice that the UTC time is almost 2am.
+>>> dt_pac.utctimetuple()
+time.struct_time(tm_year=2011, tm_mon=11, tm_mday=6, tm_hour=1, tm_min=59, tm_sec=59, tm_wday=6, tm_yday=310, tm_isdst=0)
+
+Now do the same tests one minute later in Hawaii.
+>>> time_after = datetime.datetime(2011, 11, 5, 16, 0, 0, 0, tzinfo=tz_hi)
+>>> tz_hi.utcoffset(time_after)
+datetime.timedelta(-1, 50400)
+>>> tz_hi.dst(time_before)
+datetime.timedelta(0)
+
+>>> dt_hi = datetime.datetime(2011, 11, 5, 16, 0, 0, 0, tzinfo=tz_hi)
+>>> print dt_hi.timetuple()
+time.struct_time(tm_year=2011, tm_mon=11, tm_mday=5, tm_hour=16, tm_min=0, tm_sec=0, tm_wday=5, tm_yday=309, tm_isdst=0)
+>>> print dt_hi.utctimetuple()
+time.struct_time(tm_year=2011, tm_mon=11, tm_mday=6, tm_hour=2, tm_min=0, tm_sec=0, tm_wday=6, tm_yday=310, tm_isdst=0)
+
+According to the docs, this is what astimezone does.
+>>> utc = (dt_hi - dt_hi.utcoffset()).replace(tzinfo=tz_pac)
+>>> utc
+datetime.datetime(2011, 11, 6, 2, 0, tzinfo=TimeZoneInfo('Pacific Standard Time'))
+>>> tz_pac.fromutc(utc) == dt_hi.astimezone(tz_pac)
+True
+>>> tz_pac.fromutc(utc)
+datetime.datetime(2011, 11, 5, 19, 0, tzinfo=TimeZoneInfo('Pacific Standard Time'))
+
+Make sure the converted time is correct.
+>>> dt_pac = dt_hi.astimezone(tz_pac)
+>>> dt_pac.timetuple()
+time.struct_time(tm_year=2011, tm_mon=11, tm_mday=5, tm_hour=19, tm_min=0, tm_sec=0, tm_wday=5, tm_yday=309, tm_isdst=1)
+>>> dt_pac.utctimetuple()
+time.struct_time(tm_year=2011, tm_mon=11, tm_mday=6, tm_hour=2, tm_min=0, tm_sec=0, tm_wday=6, tm_yday=310, tm_isdst=0)
+
+Check some internal methods
+>>> tz_pac._getStandardBias(datetime.datetime(2011, 1, 1))
+datetime.timedelta(0, 28800)
+>>> tz_pac._getDaylightBias(datetime.datetime(2011, 1, 1))
+datetime.timedelta(0, 25200)
+
+Test the offsets
+>>> offset = tz_pac.utcoffset(datetime.datetime(2011, 11, 6, 2, 0))
+>>> offset == datetime.timedelta(hours=-8)
+True
+>>> dst_offset = tz_pac.dst(datetime.datetime(2011, 11, 6, 2, 0) + offset)
+>>> dst_offset == datetime.timedelta(hours=1)
+True
+>>> (offset + dst_offset) == datetime.timedelta(hours=-7)
+True
 """
 from __future__ import generators
 
@@ -518,7 +592,7 @@ class TimeZoneInfo(datetime.tzinfo):
 		"Calculates the utcoffset according to the datetime.tzinfo spec"
 		if dt is None: return
 		winInfo = self.getWinInfo(dt.year)
-		return -(winInfo.bias + self.dst(dt))
+		return -winInfo.bias + self.dst(dt)
 
 	def dst(self, dt):
 		"Calculates the daylight savings offset according to the datetime.tzinfo spec"
@@ -528,7 +602,7 @@ class TimeZoneInfo(datetime.tzinfo):
 			result = winInfo.daylight_bias
 		else:
 			result = winInfo.standard_bias
-		return result
+		return -result
 
 	def _inDaylightSavings(self, dt):
 		try:
