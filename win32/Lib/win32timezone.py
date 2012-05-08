@@ -223,6 +223,12 @@ True
 True
 >>> (offset + dst_offset) == datetime.timedelta(hours=-7)
 True
+
+
+Test offsets that occur right at the DST changeover
+>>> datetime.datetime.utcfromtimestamp(1320570000).replace(
+...     tzinfo=TimeZoneInfo.utc()).astimezone(tz_pac)
+datetime.datetime(2011, 11, 6, 1, 0, tzinfo=TimeZoneInfo('Pacific Standard Time'))
 """
 from __future__ import generators
 
