@@ -229,6 +229,7 @@ Test offsets that occur right at the DST changeover
 >>> datetime.datetime.utcfromtimestamp(1320570000).replace(
 ...     tzinfo=TimeZoneInfo.utc()).astimezone(tz_pac)
 datetime.datetime(2011, 11, 6, 1, 0, tzinfo=TimeZoneInfo('Pacific Standard Time'))
+
 """
 from __future__ import generators
 
@@ -611,22 +612,33 @@ class TimeZoneInfo(datetime.tzinfo):
 		return -result
 
 	def _inDaylightSavings(self, dt):
+		dt = dt.replace(tzinfo=None)
+		winInfo = self.getWinInfo(dt.year)
 		try:
 			dstStart = self.GetDSTStartTime(dt.year)
 			dstEnd = self.GetDSTEndTime(dt.year)
 
+			# at the end of DST, when clocks are moved back, there's a period
+			#  of daylight_bias where it's ambiguous whether we're in DST or
+			#  not.
+			dstEndAdj = dstEnd + winInfo.daylight_bias
+
+			# the same thing could theoretically happen at the start of DST
+			#  if there's a standard_bias (which I suspect is always 0).
+			dstStartAdj = dstStart + winInfo.standard_bias
+
 			if dstStart < dstEnd:
-				inDaylightSavings = dstStart <= dt.replace(tzinfo=None) < dstEnd
+				in_dst = dstStartAdj <= dt < dstEndAdj
 			else:
 				# in the southern hemisphere, daylight savings time
 				#  typically ends before it begins in a given year.
-				inDaylightSavings = not (dstEnd < dt.replace(tzinfo=None) <= dstStart)
+				in_dst = not (dstEndAdj < dt <= dstStartAdj)
 		except ValueError:
 			# there was an error parsing the time zone, which is normal when a
 			#  start and end time are not specified.
-			inDaylightSavings = False
+			in_dst = False
 
-		return inDaylightSavings
+		return in_dst
 
 	def GetDSTStartTime(self, year):
 		"Given a year, determines the time when daylight savings time starts"
