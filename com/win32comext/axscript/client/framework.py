@@ -99,7 +99,7 @@ def RaiseAssert(scode, desc):
 	"""
 	print "**************** ASSERTION FAILED *******************"
 	print desc
-	raise Exception(scode, desc)
+	raise Exception(desc, scode)
 
 class AXScriptCodeBlock:
 	"""An object which represents a chunk of code in an AX Script
@@ -966,11 +966,11 @@ class COMScript:
 
 	def BeginScriptedSection(self):
 		if self.scriptSite is None:
-			raise Exception(E_UNEXPECTED)
+			raise Exception(scode=winerror.E_UNEXPECTED)
 		self.scriptSite.OnEnterScript()
 	def EndScriptedSection(self):
 		if self.scriptSite is None:
-			raise Exception(E_UNEXPECTED)
+			raise Exception(scode=winerror.E_UNEXPECTED)
 		self.scriptSite.OnLeaveScript()
 	
 	def DisableInterrupts(self):
