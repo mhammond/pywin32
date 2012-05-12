@@ -156,8 +156,7 @@ def LoadSystemModule(lib_dir, modname):
     filename = "%s%d%d%s.dll" % \
                (modname, sys.version_info[0], sys.version_info[1], suffix)
     filename = os.path.join(lib_dir, "pywin32_system32", filename)
-    mod = imp.load_module(modname, None, filename, 
-                          ('.dll', 'rb', imp.C_EXTENSION))
+    mod = imp.load_dynamic(modname, filename)
 
 
 def SetPyKeyVal(key_name, value_name, value):
