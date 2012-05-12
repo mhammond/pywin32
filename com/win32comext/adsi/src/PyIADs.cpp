@@ -257,7 +257,7 @@ static struct PyMethodDef PyIADs_methods[] =
 
 PyObject* PyIADs_getattro(PyObject *ob, PyObject *obname)
 {
-	char *name = PyString_AsString(obname);
+	char *name = PYWIN_ATTR_CONVERT(obname);
 	if (!name) return NULL;
 
 	IADs *p = PyIADs::GetI(ob);
