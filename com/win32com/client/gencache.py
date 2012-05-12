@@ -42,7 +42,7 @@ versionRedirectMap = {}
 # a "__loader__" attribute, so we use that.
 # (Later, it may become necessary to check if the __loader__ can update files,
 # as a .zip loader potentially could - but punt all that until a need arises)
-is_readonly = hasattr(win32com, "__loader__")
+is_readonly = hasattr(win32com, "__loader__") and hasattr(win32com.__loader__, "archive")
 
 # A dictionary of ITypeLibrary objects for demand generation explicitly handed to us
 # Keyed by usual clsid, lcid, major, minor
