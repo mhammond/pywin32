@@ -2196,7 +2196,7 @@ swig_include_files = "mapilib adsilib".split()
 def expand_modules(module_dir):
     flist = FileList()
     flist.findall(module_dir)
-    flist.include_pattern("*.py")
+    flist.include_pattern("*.py", anchor=0)
     return [os.path.splitext(name)[0] for name in flist.files]
 
 # NOTE: somewhat counter-intuitively, a result list a-la:
