@@ -157,7 +157,7 @@ typedef PDH_STATUS (WINAPI *FuncPdhLookupPerfNameByIndex) (
   LPDWORD pcchBuffer
 );
 
-#define CHECK_PDH_PTR(ptr) if((ptr)==NULL) { PyErr_SetString(PyExc_RuntimeError, "The pdh.dll entry point functions could not be loaded."); return NULL;}
+#define CHECK_PDH_PTR(ptr) if((ptr)==NULL) { PyErr_Format(PyExc_RuntimeError, "The pdh.dll entry point function %s could not be loaded.", #ptr); return NULL;}
 
 // The function pointers
 FuncPdhEnumObjects pPdhEnumObjects = NULL;
@@ -166,6 +166,7 @@ FuncPdhOpenQuery pPdhOpenQuery = NULL;
 FuncPdhCloseQuery pPdhCloseQuery = NULL;
 FuncPdhRemoveCounter pPdhRemoveCounter = NULL;
 FuncPdhAddCounter pPdhAddCounter = NULL;
+FuncPdhAddCounter pPdhAddEnglishCounter = NULL;
 FuncPdhMakeCounterPath pPdhMakeCounterPath = NULL;
 FuncPdhGetCounterInfo pPdhGetCounterInfo = NULL;
 FuncPdhGetFormattedCounterValue pPdhGetFormattedCounterValue = NULL;
@@ -222,6 +223,7 @@ BOOL LoadPointers()
 	pPdhRemoveCounter = (FuncPdhRemoveCounter)GetProcAddress(handle, "PdhRemoveCounter");
 	pPdhOpenQuery = (FuncPdhOpenQuery)GetProcAddress(handle, "PdhOpenQuery" A_OR_W);
 	pPdhAddCounter = (FuncPdhAddCounter)GetProcAddress(handle, "PdhAddCounter" A_OR_W);
+	pPdhAddEnglishCounter = (FuncPdhAddCounter)GetProcAddress(handle, "PdhAddEnglishCounter" A_OR_W);
 	pPdhMakeCounterPath = (FuncPdhMakeCounterPath)GetProcAddress(handle, "PdhMakeCounterPath" A_OR_W);
 	pPdhGetCounterInfo = (FuncPdhGetCounterInfo)GetProcAddress(handle, "PdhGetCounterInfo" A_OR_W);
 	pPdhGetFormattedCounterValue = (FuncPdhGetFormattedCounterValue)GetProcAddress(handle, "PdhGetFormattedCounterValue");
@@ -449,6 +451,48 @@ static PyObject *PyAddCounter(PyObject *self, PyObject *args)
 	PyWinObject_FreeTCHAR(szPath);
 	if (pdhStatus != ERROR_SUCCESS) 
 		return PyWin_SetAPIError("AddCounter", pdhStatus);
+	// @comm See also <om win32pdh.RemoveCounter>
+	return PyWinLong_FromHANDLE(hCounter);
+}
+
+// @pymethod int|win32pdh|AddEnglishCounter|Adds a counter to a query by its English name
+// @comm Available on Vista and later
+// @rdesc Returns a handle to the counter
+static PyObject *PyAddEnglishCounter(PyObject *self, PyObject *args)
+{
+	HQUERY hQuery;
+	PyObject *obhQuery;
+	PyObject *obPath;
+	PyObject *obuserData = Py_None;	// Might make more sense to use actual PyObject for userData
+	DWORD_PTR userData = 0;
+	CHECK_PDH_PTR(pPdhAddEnglishCounter);
+	PDH_STATUS pdhStatus;
+	if (!PyArg_ParseTuple(args, "OO|O:AddEnglishCounter", 
+	          &obhQuery, // @pyparm int|hQuery||Handle to an open query.
+	          &obPath, // @pyparm string|path||Full counter path with standard English names.
+	          &obuserData)) // @pyparm int|userData|0|User data associated with the counter.
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obhQuery, &hQuery))
+		return NULL;
+	if (obuserData != Py_None)
+		if (!PyWinLong_AsDWORD_PTR(obuserData, &userData))
+			return NULL;
+	TCHAR *szPath;
+	if (!PyWinObject_AsTCHAR(obPath, &szPath, FALSE))
+		return NULL;
+	HCOUNTER hCounter;
+
+	Py_BEGIN_ALLOW_THREADS
+	pdhStatus = (*pPdhAddEnglishCounter) (
+        hQuery,
+        szPath,
+	    userData,
+	    &hCounter);
+
+	Py_END_ALLOW_THREADS;
+	PyWinObject_FreeTCHAR(szPath);
+	if (pdhStatus != ERROR_SUCCESS) 
+		return PyWin_SetAPIError("AddEnglishCounter", pdhStatus);
 	// @comm See also <om win32pdh.RemoveCounter>
 	return PyWinLong_FromHANDLE(hCounter);
 }
@@ -1185,6 +1229,7 @@ static PyObject *PyLookupPerfNameByIndex(PyObject *self, PyObject *args)
 // @module win32pdh|A module, encapsulating the Windows Performance Data Helpers API
 static struct PyMethodDef win32pdh_functions[] = {
 	{"AddCounter",               PyAddCounter,           1}, // @pymeth AddCounter|Adds a new counter
+	{"AddEnglishCounter",        PyAddEnglishCounter,    1}, // @pymeth AddEnglishCounter|Adds a counter to a query by its English name
 	{"RemoveCounter",            PyRemoveCounter,        1}, // @pymeth RemoveCounter|Removes an open counter.
 	{"EnumObjectItems",          PyEnumObjectItems,      1}, // @pymeth EnumObjectItems|Enumerates an object's items
  	{"EnumObjects",		         PyEnumObjects,          1}, // @pymeth EnumObjects|Enumerates objects
