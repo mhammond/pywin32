@@ -3613,7 +3613,8 @@ PyWinObject_FromRegistryValue(BYTE *retDataBuf, DWORD retDataSize, DWORD typ)
 			}
 		case REG_MULTI_SZ:{
 			obData = PyList_New(0);
-			if ((obData==NULL) || (retDataSize==0))
+			if ((obData==NULL) || (retDataSize==0) ||
+				(retDataSize == sizeof(TCHAR) && *(TCHAR *)retDataBuf == 0))
 				break;
 			TCHAR *curr_str, *curr_char, *end_char;
 			curr_str=(TCHAR *)retDataBuf;

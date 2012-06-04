@@ -69,6 +69,7 @@ class Registry(unittest.TestCase):
             ('REG_EXPAND_SZ', win32con.REG_EXPAND_SZ, '%systemdir%'),
             ## REG_MULTI_SZ value needs to be a list since strings are returned as a list
             ('REG_MULTI_SZ', win32con.REG_MULTI_SZ, ['string 1','string 2','string 3','string 4']),
+            ('REG_MULTI_SZ_empty', win32con.REG_MULTI_SZ, []),
             ('REG_DWORD', win32con.REG_DWORD, 666),
             ('REG_BINARY', win32con.REG_BINARY, str2bytes('\x00\x01\x02\x03\x04\x05\x06\x07\x08\x01\x00')),
             )
