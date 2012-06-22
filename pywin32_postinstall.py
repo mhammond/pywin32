@@ -63,7 +63,7 @@ except NameError:
     def get_root_hkey():
         try:
             winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE,
-                           root_key_name, winreg.KEY_CREATE_SUB_KEY)
+                           root_key_name, 0, winreg.KEY_CREATE_SUB_KEY)
             return winreg.HKEY_LOCAL_MACHINE
         except OSError, details:
             # Either not exist, or no permissions to create subkey means
