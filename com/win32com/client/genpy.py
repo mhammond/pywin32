@@ -896,8 +896,8 @@ class Generator:
 
     print >> stream, 'RecordMap = {'
     for record in recordItems.itervalues():
-        if str(record.clsid) == pythoncom.IID_NULL:
-            print >> stream, "\t###%s: %s, # Typedef disabled because it doesn't have a non-null GUID" % (repr(record.doc[0]), repr(str(record.clsid)))
+        if record.clsid == pythoncom.IID_NULL:
+            print >> stream, "\t###%s: %s, # Record disabled because it doesn't have a non-null GUID" % (repr(record.doc[0]), repr(str(record.clsid)))
         else:
             print >> stream, "\t%s: %s," % (repr(record.doc[0]), repr(str(record.clsid)))
     print >> stream, "}"
