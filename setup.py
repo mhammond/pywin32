@@ -1,4 +1,4 @@
-build_id="217" # may optionally include a ".{patchno}" suffix.
+build_id="217.1" # may optionally include a ".{patchno}" suffix.
 # Putting buildno at the top prevents automatic __doc__ assignment, and
 # I *want* the build number at the top :)
 __doc__="""This is a distutils setup-script for the pywin32 extensions
@@ -295,10 +295,12 @@ if sys.version_info > (2,6):
                     break
 
     def monkeypatched_link(self, target_desc, objects, output_filename, *args, **kw):
-        self._want_assembly_kept = os.path.basename(output_filename).startswith("PyISAPI_loader.dll") or \
-                                   os.path.basename(output_filename).startswith("perfmondata.dll") or \
-                                   os.path.basename(output_filename).startswith("win32ui.pyd") or \
-                                   target_desc==self.EXECUTABLE
+        # no manifests for 3.3+ 
+        self._want_assembly_kept = sys.version_info < (3,3) and \
+                                   (os.path.basename(output_filename).startswith("PyISAPI_loader.dll") or \
+                                    os.path.basename(output_filename).startswith("perfmondata.dll") or \
+                                    os.path.basename(output_filename).startswith("win32ui.pyd") or \
+                                    target_desc==self.EXECUTABLE)
         try:
             return self._orig_link(target_desc, objects, output_filename, *args, **kw)
         finally:
@@ -985,9 +987,10 @@ class my_build_ext(build_ext):
             largs.append("/IMPLIB:" + os.path.join(build_temp, "PythonCOMLoader"+suffix+".lib"))
             largs.append(obj)
             self.spawn(largs)
-            # and the manifest
-            out_arg = '-outputresource:%s;2' % (dll,)
-            self.spawn(['mt.exe', '-nologo', '-manifest', temp_manifest, out_arg])
+            # and the manifest if one exists.
+            if os.path.isfile(temp_manifest):
+                out_arg = '-outputresource:%s;2' % (dll,)
+                self.spawn(['mt.exe', '-nologo', '-manifest', temp_manifest, out_arg])
 
     def build_extensions(self):
         # First, sanity-check the 'extensions' list
@@ -1033,7 +1036,7 @@ class my_build_ext(build_ext):
 
         # Not sure how to make this completely generic, and there is no
         # need at this stage.
-        if sys.version_info > (2,6):
+        if sys.version_info > (2,6) and sys.version_info < (3, 3):
             # only stuff built with msvc9 needs this loader.
             self._build_pycom_loader()
         self._build_scintilla()
@@ -1066,25 +1069,35 @@ class my_build_ext(build_ext):
                     raise RuntimeError("Can't find %r" % (src,))
                 self.copy_file(src, target_dir)
             else:
+                # vs2008 or vs2010
+                if sys.hexversion < 0x3030000:
+                    product_key = r"SOFTWARE\Microsoft\VisualStudio\9.0\Setup\VC"
+                    plat_dir_64 = "amd64"
+                    mfc_dir = "Microsoft.VC90.MFC"
+                    mfc_files = "mfc90.dll mfc90u.dll mfcm90.dll mfcm90u.dll Microsoft.VC90.MFC.manifest".split()
+                else:
+                    product_key = r"SOFTWARE\Microsoft\VisualStudio\10.0\Setup\VC"
+                    plat_dir_64 = "x64"
+                    mfc_dir = "Microsoft.VC100.MFC"
+                    mfc_files = ["mfc100u.dll", "mfcm100u.dll"]
+
                 # On a 64bit host, the value we are looking for is actually in
                 # SysWow64Node - but that is only available on xp and later.
                 access = _winreg.KEY_READ
                 if sys.getwindowsversion()[0] >= 5:
                     access = access | 512 # KEY_WOW64_32KEY
                 if self.plat_name == 'win-amd64':
-                    plat_dir = "amd64"
+                    plat_dir = plat_dir_64
                 else:
                     plat_dir = "x86"
                 # Find the redist directory.
-                vckey = _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE,
-                                        r"SOFTWARE\Microsoft\VisualStudio\9.0\Setup\VC",
+                vckey = _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE, product_key,
                                         0, access)
                 val, val_typ = _winreg.QueryValueEx(vckey, "ProductDir")
-                mfc_dir = os.path.join(val, "redist", plat_dir, "Microsoft.VC90.MFC")
+                mfc_dir = os.path.join(val, "redist", plat_dir, mfc_dir)
                 if not os.path.isdir(mfc_dir):
                     raise RuntimeError("Can't find the redist dir at %r" % (mfc_dir))
-                files = "mfc90.dll mfc90u.dll mfcm90.dll mfcm90u.dll Microsoft.VC90.MFC.manifest".split()
-                for f in files:
+                for f in mfc_files:
                     self.copy_file(
                             os.path.join(mfc_dir, f), target_dir)
         except (EnvironmentError, RuntimeError), exc:
@@ -2144,7 +2157,8 @@ if sys.hexversion >= 0x2030000:
 
 W32_exe_files = [
     WinExt_win32("pythonservice",
-                 dsp_file = "win32/PythonService EXE.dsp",
+                 sources=[os.path.join("win32", "src", s) for s in
+                          "PythonService.cpp PythonService.rc".split()],
                  unicode_mode = True,
                  extra_link_args=["/SUBSYSTEM:CONSOLE"],
                  libraries = "user32 advapi32 ole32 shell32"),

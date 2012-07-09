@@ -455,8 +455,12 @@ def install():
         mfc_dll = "mfc42.dll"
     elif sys.hexversion < 0x2060000:
         mfc_dll = "mfc71.dll"
-    else:
+    elif sys.hexversion < 0x2070000:
         mfc_dll = "mfc90.dll"
+    elif sys.hexversion < 0x3000000:
+        mfc_dll = "mfc90u.dll"
+    else:
+        mfc_dll = "mfc100u.dll"
     try:
         # It might be next to pythonwin itself (which is where setup.py
         # currently arranges for it to be installed...)
