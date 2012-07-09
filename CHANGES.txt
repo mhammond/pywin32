@@ -4,6 +4,32 @@ Generally created by hand after running:
    hg log -rb2xx: > log.out
 However contributors are encouraged to add their own entries for their work.
 
+Since build 217:
+----------------
+* Fix the count of replaced terms in Pythonwin's search/replace (rupole).
+
+* Fix obscure issues in the Pythonwin code browser and other uses of the 
+  "hierlist" widget (rupole).
+
+* Fix a crash using a COM "record" that holds an array (rupole).
+
+* Fix error return in win32gui.GetClassName (rupole).
+
+* Some misc fixed to win32timezone (Jason R. Coombs).
+
+* Some fixes to win32com gencache for Python 3.x (Tim Golden)
+
+* Fix ActiveScript exception hresults.
+
+* RegQueryValueEx now return an empty list for blank REG_MULTI_SZ
+  (rupole via bug #3531456)
+
+* Add win32pdh.AddEnglishCounter (rupole via feature request #3529527)
+
+* Fix post_install script use of the registry (rupole via bug #3536122)
+
+* Python 3.3 version is built with VS2010.
+
 Since build 216:
 ----------------
 * ISAPI extension works with Python 3.x
