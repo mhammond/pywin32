@@ -84,6 +84,11 @@ library PyCOMTestLib
 		int int_value;
 		BSTR str_value;
 	} TestStruct1;
+	typedef [version(1.0)]
+	struct tagStructWithoutUUID {
+		int int_value;
+		BSTR str_value;
+	} StructWithoutUUID;
 
 	// Test enumerators.
    [
