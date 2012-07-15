@@ -60,6 +60,7 @@ generates Windows .hlp files.
 #include "PyIExplorerCommandProvider.h"
 #include "PyIExplorerPaneVisibility.h"
 #include "PyIShellItem.h"
+#include "PyIShellItem2.h"
 #include "PyIShellItemArray.h"
 #include "PyINameSpaceTreeControl.h"
 
@@ -2672,7 +2673,7 @@ done:
 	return ret;
 }
 
-// @pymethod unicode|shell|SHGetNameFromIDList|Retrieves the display name of an item from an ID list.
+// @pymethod str|shell|SHGetNameFromIDList|Retrieves the display name of an item from an ID list.
 static PyObject *PySHGetNameFromIDList(PyObject *self, PyObject *args)
 {
 	// @comm This function is only available on Vista and later; a
@@ -2763,7 +2764,8 @@ done:
 	return ret;
 }
 
-// @pymethod <o PyIUnknown>|shell|SHCreateShellItemArray|
+// @pymethod <o PyIShellItemArray>|shell|SHCreateShellItemArrayFromDataObject|Creates a shell item array from an IDataObject
+//   interface that contains a list of items (eg CF_HDROP)
 static PyObject *PySHCreateShellItemArrayFromDataObject(PyObject *self, PyObject *args)
 {
 	// @comm This function is only available on Vista and later; a
@@ -2779,10 +2781,10 @@ static PyObject *PySHCreateShellItemArrayFromDataObject(PyObject *self, PyObject
 	void *iret = NULL;
 	if(!PyArg_ParseTuple(args, "O|O:SHCreateShellItemArrayFromDataObject", &obdo, &obiid))
 		return NULL;
-	// @pyparm <o PyIDataObject>|do||
-	if (!PyCom_InterfaceFromPyInstanceOrObject(obdo, IID_IDataObject, (void **)&ido, FALSE/* bNoneOK */))
+	// @pyparm <o PyIDataObject>|do||A data object that can be rendered as a list of items
+	if (!PyCom_InterfaceFromPyInstanceOrObject(obdo, IID_IDataObject, (void **)&ido, FALSE))
 		goto done;
-	// @pyparm <o PyIID>|iid|IID_IDataObject|The IID to query for
+	// @pyparm <o PyIID>|iid|IID_IShellItemArray|The interface to create
 	if (obiid != Py_None && !PyWinObject_AsIID(obiid, &iid))
 		goto done;
 	HRESULT hr;
@@ -2806,7 +2808,7 @@ done:
 	return ret;
 }
 
-// @pymethod <o PyIShellItemArray>|shell|SHCreateShellItemArrayFromIDLists|
+// @pymethod <o PyIShellItemArray>|shell|SHCreateShellItemArrayFromIDLists|Creates a shell item array from a number of item identifiers
 static PyObject *PySHCreateShellItemArrayFromIDLists(PyObject *self, PyObject *args)
 {
 	// @comm This function is only available on Vista and later; a
@@ -2821,7 +2823,7 @@ static PyObject *PySHCreateShellItemArrayFromIDLists(PyObject *self, PyObject *a
 	UINT npidls;
 	if(!PyArg_ParseTuple(args, "O:SHCreateShellItemArray", &obpidls))
 		return NULL;
-	// @pyparm [PIDL, ...]|pidls||
+	// @pyparm [<o PyIDL>, ...]|pidls||A sequence of absolute IDLs.
 	if (!PyObject_AsPIDLArray(obpidls, &npidls, &pidls))
 		goto done;
 	HRESULT hr;
@@ -2859,10 +2861,10 @@ static PyObject *PySHCreateShellItemArrayFromShellItem(PyObject *self, PyObject 
 	void *iret = NULL;
 	if(!PyArg_ParseTuple(args, "O|O:SHCreateShellItemArrayFromShellItem", &obsi, &obiid))
 		return NULL;
-	// @pyparm <o PyIDataObject>|do||
+	// @pyparm <o PyIShellItem>|si||A shell item
 	if (!PyCom_InterfaceFromPyInstanceOrObject(obsi, IID_IShellItem, (void **)&isi, FALSE/* bNoneOK */))
 		goto done;
-	// @pyparm <o PyIID>|iid|IID_IShellItem|The IID to query for
+	// @pyparm <o PyIID>|iid|IID_IShellItemArray|The IID to query for
 	if (obiid != Py_None && !PyWinObject_AsIID(obiid, &iid))
 		goto done;
 	HRESULT hr;
@@ -2886,8 +2888,8 @@ done:
 	return ret;
 }
 
-// @pymethod |shell|SHCreateItemFromIDList|Creates and initializes a Shell item
-// object from a PIDL. The resulting shell item object supports the IShellItem interface.
+// @pymethod <o PyIShellItem>|shell|SHCreateItemFromIDList|Creates and initializes a Shell item
+// object from a PIDL.  Can also create <o PyIShellItem2> objects.
 static PyObject *PySHCreateItemFromIDList(PyObject *self, PyObject *args)
 {
 	// @comm This function is only available on Vista and later; a
@@ -2895,18 +2897,16 @@ static PyObject *PySHCreateItemFromIDList(PyObject *self, PyObject *args)
 	if (pfnSHCreateItemFromIDList==NULL)
 		return PyCom_BuildPyException(E_NOTIMPL);
 	PyObject *ret = NULL;
-	PyObject *obiid;
 	PyObject *obpidl;
-	if(!PyArg_ParseTuple(args, "OO:SHCreateItemFromIDList", &obpidl, &obiid))
+	IID iid = IID_IShellItem;
+	// @pyparm <o PyIDL>|pidl||An absolute item identifier list
+	// @pyparm <o PyIID>|iid|IID_IShellItem|The interface to create
+	if(!PyArg_ParseTuple(args, "O|O&:SHCreateItemFromIDList", &obpidl, PyWinObject_AsIID, &iid))
 		return NULL;
 	PIDLIST_ABSOLUTE pidl;
-	IID iid;
-	// @pyparm PIDL|parent||
 	if (!PyObject_AsPIDL(obpidl, &pidl))
-		goto done;
-	// @pyparm <o PyIID>|iid||
-	if (!PyWinObject_AsIID(obiid, &iid))
-		goto done;
+		return NULL;
+
 	HRESULT hr;
 	void *out;
 	{
@@ -2914,18 +2914,16 @@ static PyObject *PySHCreateItemFromIDList(PyObject *self, PyObject *args)
 	hr = (*pfnSHCreateItemFromIDList)(pidl, iid, &out);
 	PY_INTERFACE_POSTCALL;
 	}
-	if (FAILED(hr)) {
+	if (FAILED(hr))
 		PyCom_BuildPyException(hr);
-		goto done;
-	}
-	ret = PyCom_PyObjectFromIUnknown((IUnknown *)out, iid, FALSE);
-done:
+	else
+		ret = PyCom_PyObjectFromIUnknown((IUnknown *)out, iid, FALSE);
 	if (pidl)
 		PyObject_FreePIDL(pidl);
 	return ret;
 }
 
-// @pymethod |shell|SHCreateItemFromParsingName|Creates and initializes a Shell item object from a parsing name.
+// @pymethod <o PyIShellItem>|shell|SHCreateItemFromParsingName|Creates and initializes a Shell item object from a parsing name.
 static PyObject *PySHCreateItemFromParsingName(PyObject *self, PyObject *args)
 {
 	// @comm This function is only available on Vista and later; a
@@ -2935,9 +2933,9 @@ static PyObject *PySHCreateItemFromParsingName(PyObject *self, PyObject *args)
 
 	PyObject *ret = NULL;
 	PyObject *obname, *obctx, *obiid;
-	// @pyparm unicode|name||
-	// @pyparm <o PyIBindCtx>|ctx||
-	// @pyparm <o PyIID>|iid||
+	// @pyparm str|name||The display name of the item to create, eg a file path
+	// @pyparm <o PyIBindCtx>|ctx||Bind context, can be None
+	// @pyparm <o PyIID>|iid||The interface to create, IID_IShellItem or IID_IShellItem2
 
 	if(!PyArg_ParseTuple(args, "OOO:SHCreateItemFromParsingName", &obname, &obctx, &obiid))
 		return NULL;
@@ -2980,7 +2978,7 @@ done:
 	return ret;
 }
 
-// @pymethod |shell|SHCreateItemFromRelativeName|Creates and initializes a Shell item object from a relative parsing name.
+// @pymethod <o PyIShellItem>|shell|SHCreateItemFromRelativeName|Creates and initializes a Shell item object from a relative parsing name.
 static PyObject *PySHCreateItemFromRelativeName(PyObject *self, PyObject *args)
 {
 	// @comm This function is only available on Vista and later; a
@@ -3148,7 +3146,7 @@ done:
 	return ret;
 }
 
-// @pymethod |shell|SHGetIDListFromObject|Retrieves the PIDL of an object.
+// @pymethod <o PyIDL>|shell|SHGetIDListFromObject|Retrieves the PIDL of an object.
 static PyObject *PySHGetIDListFromObject(PyObject *self, PyObject *args)
 {
 	// @comm This function is only available on Vista and later; a
@@ -3297,13 +3295,13 @@ static struct PyMethodDef shell_methods[]=
     { "SHCreateDefaultExtractIcon", PySHCreateDefaultExtractIcon, 1}, // @pymeth SHCreateDefaultExtractIcon|Creates a standard icon extractor, whose defaults can be further configured via the IDefaultExtractIconInit interface.
     { "SHCreateShellFolderView", PySHCreateShellFolderView, 1}, // @pymeth SHCreateShellFolderView|Creates a new instance of the default Shell folder view object.
     { "SHCreateShellItemArray", PySHCreateShellItemArray, 1}, // @pymeth SHCreateShellItemArray|Creates a Shell item array object.
-    { "SHCreateShellItemArrayFromDataObject", PySHCreateShellItemArrayFromDataObject, 1}, // @pymeth SHCreateShellItemArrayFromDataObject|
-    { "SHCreateShellItemArrayFromIDLists", PySHCreateShellItemArrayFromIDLists, 1}, // @pymeth SHCreateShellItemArrayFromIDLists|
-    { "SHCreateShellItemArrayFromShellItem", PySHCreateShellItemArrayFromIDLists, 1}, // @pymeth SHCreateShellItemArrayFromIDLists|
+    { "SHCreateShellItemArrayFromDataObject", PySHCreateShellItemArrayFromDataObject, 1}, // @pymeth SHCreateShellItemArrayFromDataObject|Creates a shell item array from an IDataObject interface
+    { "SHCreateShellItemArrayFromIDLists", PySHCreateShellItemArrayFromIDLists, 1}, // @pymeth SHCreateShellItemArrayFromIDLists|Creates a shell item array from a number of item identifiers
+    { "SHCreateShellItemArrayFromShellItem", PySHCreateShellItemArrayFromShellItem, 1}, // @pymeth SHCreateShellItemArrayFromShellItem|
     { "SHGetPathFromIDList",    PySHGetPathFromIDList, 1 }, // @pymeth SHGetPathFromIDList|Converts an <o PyIDL> to a path.
     { "SHGetPathFromIDListW",   PySHGetPathFromIDListW, 1 }, // @pymeth SHGetPathFromIDListW|Converts an <o PyIDL> to a unicode path.
     { "SHBrowseForFolder",    PySHBrowseForFolder, 1 }, // @pymeth SHBrowseForFolder|Displays a dialog box that enables the user to select a shell folder.
-	{ "SHGetFileInfo",        PySHGetFileInfo, 1}, // @pymeth SHGetFileInfo|Retrieves information about an object in the file system, such as a file, a folder, a directory, or a drive root.
+    { "SHGetFileInfo",        PySHGetFileInfo, 1}, // @pymeth SHGetFileInfo|Retrieves information about an object in the file system, such as a file, a folder, a directory, or a drive root.
     { "SHGetFolderPath", PySHGetFolderPath, 1 }, // @pymeth SHGetFolderPath|Retrieves the path of a folder.
     { "SHSetFolderPath", PySHSetFolderPath, 1 }, // @pymeth SHSetFolderPath|Sets the location of a special folder
 	{ "SHGetFolderLocation", PySHGetFolderLocation, 1 }, // @pymeth SHGetFolderLocation|Retrieves the <o PyIDL> of a folder.
@@ -3398,6 +3396,7 @@ static const PyCom_InterfaceSupportInfo g_interfaceSupportData[] =
 	PYCOM_INTERFACE_IID_ONLY(ShellCopyHook),
 	PYCOM_INTERFACE_FULL(ShellItem),
 	PYCOM_INTERFACE_CLSID_ONLY(ShellItem),
+	PYCOM_INTERFACE_FULL(ShellItem2),
 	PYCOM_INTERFACE_FULL(ShellItemArray),
 	PYCOM_INTERFACE_CLIENT_ONLY(ShellLinkDataList),
 	PYCOM_INTERFACE_CLIENT_ONLY(UniformResourceLocator),

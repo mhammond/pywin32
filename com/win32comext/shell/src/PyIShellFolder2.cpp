@@ -25,7 +25,7 @@ PyIShellFolder2::~PyIShellFolder2()
 	return (IShellFolder2 *)PyIShellFolder::GetI(self);
 }
 
-// @pymethod |PyIShellFolder2|GetDefaultSearchGUID|Description of GetDefaultSearchGUID.
+// @pymethod <o PyIID>|PyIShellFolder2|GetDefaultSearchGUID|Retrieves the default search for the folder
 PyObject *PyIShellFolder2::GetDefaultSearchGUID(PyObject *self, PyObject *args)
 {
 	IShellFolder2 *pISF2 = GetI(self);
@@ -45,7 +45,8 @@ PyObject *PyIShellFolder2::GetDefaultSearchGUID(PyObject *self, PyObject *args)
 	return PyWinObject_FromIID(guid);
 }
 
-// @pymethod |PyIShellFolder2|EnumSearches|Description of EnumSearches.
+// @pymethod <o PyIEnumExtraSearch>|PyIShellFolder2|EnumSearches|Returns an interface that lists searches defined for the folder
+// @comm IEnumExtraSearch is not yet wrapped by Pywin32
 PyObject *PyIShellFolder2::EnumSearches(PyObject *self, PyObject *args)
 {
 	IShellFolder2 *pISF2 = GetI(self);
@@ -64,7 +65,7 @@ PyObject *PyIShellFolder2::EnumSearches(PyObject *self, PyObject *args)
 	return PyCom_PyObjectFromIUnknown(penum, IID_IEnumExtraSearch, FALSE);
 }
 
-// @pymethod |PyIShellFolder2|GetDefaultColumn|Description of GetDefaultColumn.
+// @pymethod (int, int)|PyIShellFolder2|GetDefaultColumn|Returns the columns used for sorting and display
 PyObject *PyIShellFolder2::GetDefaultColumn(PyObject *self, PyObject *args)
 {
 	IShellFolder2 *pISF2 = GetI(self);
@@ -84,15 +85,16 @@ PyObject *PyIShellFolder2::GetDefaultColumn(PyObject *self, PyObject *args)
 	return Py_BuildValue("ii", sort, display);
 }
 
-// @pymethod |PyIShellFolder2|GetDefaultColumnState|Description of GetDefaultColumnState.
+// @pymethod int|PyIShellFolder2|GetDefaultColumnState|Returns flags indicating the default behaviour of the column
+// @rdesc Returns a combination of shellcon.SHCOLSTATE_* flags
 PyObject *PyIShellFolder2::GetDefaultColumnState(PyObject *self, PyObject *args)
 {
 	IShellFolder2 *pISF2 = GetI(self);
 	if ( pISF2 == NULL )
 		return NULL;
-	// @pyparm int|iColumn||Description for iColumn
+	// @pyparm int|iColumn||Zero-based index of the column
 	UINT iColumn;
-	if ( !PyArg_ParseTuple(args, "i:GetDefaultColumnState", &iColumn) )
+	if ( !PyArg_ParseTuple(args, "k:GetDefaultColumnState", &iColumn) )
 		return NULL;
 	SHCOLSTATEF flags;
 	HRESULT hr;
@@ -104,24 +106,22 @@ PyObject *PyIShellFolder2::GetDefaultColumnState(PyObject *self, PyObject *args)
 	return PyLong_FromUnsignedLong(flags);
 }
 
-// @pymethod |PyIShellFolder2|GetDetailsEx|Description of GetDetailsEx.
+// @pymethod object|PyIShellFolder2|GetDetailsEx|Returns the details of an item by Column ID
+// @rdesc The type of returned object is determined by the variant type of the requested column
 PyObject *PyIShellFolder2::GetDetailsEx(PyObject *self, PyObject *args)
 {
 	IShellFolder2 *pISF2 = GetI(self);
 	if ( pISF2 == NULL )
 		return NULL;
-	// @pyparm <o PyIDL>|pidl||Description for pidl
+	// @pyparm <o PyIDL>|pidl||Relative id list of an item in the folder
+	// @pyparm <o SHCOLUMNID>|pscid||The Column id/property key of a column in the folder's Details view
 	SHCOLUMNID scid;
-	PyObject *obpscid;
-	// @pyparm <o SHCOLUMNID>|pscid||Description for pscid
 	PyObject *obpidl;
 	LPITEMIDLIST pidl;
-	if ( !PyArg_ParseTuple(args, "OO:GetDetailsEx", &obpidl, &obpscid) )
+	if (!PyArg_ParseTuple(args, "OO&:GetDetailsEx", &obpidl, PyObject_AsSHCOLUMNID, &scid))
 		return NULL;
-	BOOL bPythonIsHappy = TRUE;
-	if (bPythonIsHappy && !PyObject_AsPIDL(obpidl, &pidl)) bPythonIsHappy = FALSE;
-	if (bPythonIsHappy && !PyObject_AsSHCOLUMNID(obpscid, &scid )) bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) return NULL;
+	if (!PyObject_AsPIDL(obpidl, &pidl))
+		return NULL;
 	HRESULT hr;
 	VARIANT var;
 	PY_INTERFACE_PRECALL;
@@ -136,23 +136,23 @@ PyObject *PyIShellFolder2::GetDetailsEx(PyObject *self, PyObject *args)
 	return obRet;
 }
 
-// @pymethod |PyIShellFolder2|GetDetailsOf|Description of GetDetailsOf.
+// @pymethod (int, int, str)|PyIShellFolder2|GetDetailsOf|Returns the value or title of a column in the folder's Details view.
+// @rdesc Returns a tuple representing a SHELLDETAILS struct, containing the formst (LVCFMT_*), column width in characters,
+//   and string representation of the requested value
 PyObject *PyIShellFolder2::GetDetailsOf(PyObject *self, PyObject *args)
 {
 	IShellFolder2 *pISF2 = GetI(self);
 	if ( pISF2 == NULL )
 		return NULL;
-	// @pyparm <o PyIDL>|pidl||Description for pidl
-	// @pyparm int|iColumn||Description for iColumn
+	// @pyparm <o PyIDL>|pidl||The relative idl of an item in the folder.  Use None to retrieve column title.
+	// @pyparm int|iColumn||Zero based index of column
 	SHELLDETAILS sd;
-	// @pyparm <o PySHELLDETAILS>|psd||Description for psd
 	PyObject *obpidl;
 	LPITEMIDLIST pidl;
 	UINT iColumn;
-	if ( !PyArg_ParseTuple(args, "Oi:GetDetailsOf", &obpidl, &iColumn) )
+	if (!PyArg_ParseTuple(args, "Oi:GetDetailsOf", &obpidl, &iColumn))
 		return NULL;
-	BOOL bPythonIsHappy = TRUE;
-	if (!PyObject_AsPIDL(obpidl, &pidl))
+	if (!PyObject_AsPIDL(obpidl, &pidl, TRUE))
 		return NULL;
 	HRESULT hr;
 	PY_INTERFACE_PRECALL;
@@ -161,16 +161,18 @@ PyObject *PyIShellFolder2::GetDetailsOf(PyObject *self, PyObject *args)
 	PY_INTERFACE_POSTCALL;
 	if ( FAILED(hr) )
 		return PyCom_BuildPyException(hr, pISF2, IID_IShellFolder2 );
-	return Py_BuildValue("((iiN))", sd.fmt, sd.cxChar, PyObject_FromSTRRET(&sd.str, pidl, TRUE));
+	return Py_BuildValue("(iiN)", sd.fmt, sd.cxChar, PyObject_FromSTRRET(&sd.str, pidl, TRUE));
 }
 
-// @pymethod |PyIShellFolder2|MapColumnToSCID|Description of MapColumnToSCID.
+// @pymethod <o SHCOLUMNID>|PyIShellFolder2|MapColumnToSCID|Returns the unique identifier (FMTID, pid) of a column
+// @rdesc On XP and earlier, this is the Column Id as provided by <o PyIColumnProvider>.
+//	For Vista and later, this is the Property Key used with the property system interfaces.
 PyObject *PyIShellFolder2::MapColumnToSCID(PyObject *self, PyObject *args)
 {
 	IShellFolder2 *pISF2 = GetI(self);
 	if ( pISF2 == NULL )
 		return NULL;
-	// @pyparm int|iColumn||Description for iColumn
+	// @pyparm int|Column||The zero-based index of the column as presented by the folder's Details view
 	SHCOLUMNID scid;
 	UINT iColumn;
 	if ( !PyArg_ParseTuple(args, "i:MapColumnToSCID", &iColumn) )
@@ -184,24 +186,27 @@ PyObject *PyIShellFolder2::MapColumnToSCID(PyObject *self, PyObject *args)
 	return PyObject_FromSHCOLUMNID(&scid);
 }
 
-// @object PyIShellFolder2|Description of the interface
+// @object PyIShellFolder2|Represents an explorer folder, giving access to details of items in the folder.
+//	Inherits all methods of <o PyIShellFolder>.
 static struct PyMethodDef PyIShellFolder2_methods[] =
 {
-	{ "GetDefaultSearchGUID", PyIShellFolder2::GetDefaultSearchGUID, 1 }, // @pymeth GetDefaultSearchGUID|Description of GetDefaultSearchGUID
-	{ "EnumSearches", PyIShellFolder2::EnumSearches, 1 }, // @pymeth EnumSearches|Description of EnumSearches
-	{ "GetDefaultColumn", PyIShellFolder2::GetDefaultColumn, 1 }, // @pymeth GetDefaultColumn|Description of GetDefaultColumn
-	{ "GetDefaultColumnState", PyIShellFolder2::GetDefaultColumnState, 1 }, // @pymeth GetDefaultColumnState|Description of GetDefaultColumnState
-	{ "GetDetailsEx", PyIShellFolder2::GetDetailsEx, 1 }, // @pymeth GetDetailsEx|Description of GetDetailsEx
-	{ "GetDetailsOf", PyIShellFolder2::GetDetailsOf, 1 }, // @pymeth GetDetailsOf|Description of GetDetailsOf
-	{ "MapColumnToSCID", PyIShellFolder2::MapColumnToSCID, 1 }, // @pymeth MapColumnToSCID|Description of MapColumnToSCID
+	{ "GetDefaultSearchGUID", PyIShellFolder2::GetDefaultSearchGUID, 1 }, // @pymeth GetDefaultSearchGUID|Retrieves the default search for the folder
+	{ "EnumSearches", PyIShellFolder2::EnumSearches, 1 }, // @pymeth EnumSearches|Returns an interface that lists searches defined for the folder
+	{ "GetDefaultColumn", PyIShellFolder2::GetDefaultColumn, 1 }, // @pymeth GetDefaultColumn|Returns the columns used for sorting and display
+	{ "GetDefaultColumnState", PyIShellFolder2::GetDefaultColumnState, 1 }, // @pymeth GetDefaultColumnState|Returns flags indicating the default behaviour of the column
+	{ "GetDetailsEx", PyIShellFolder2::GetDetailsEx, 1 }, // @pymeth GetDetailsEx|Returns the details of an item by Column ID
+	{ "GetDetailsOf", PyIShellFolder2::GetDetailsOf, 1 }, // @pymeth GetDetailsOf|Returns the value or title of a column in the folder's Details view.
+	{ "MapColumnToSCID", PyIShellFolder2::MapColumnToSCID, 1 }, // @pymeth MapColumnToSCID|Returns the unique identifier (FMTID, pid) of a column
 	{ NULL }
 };
 
-PyComTypeObject PyIShellFolder2::type("PyIShellFolder2",
+// @pymeth __iter__|Enumerates all objects in this folder.
+PyComEnumProviderTypeObject PyIShellFolder2::type("PyIShellFolder2",
 		&PyIShellFolder::type,
 		sizeof(PyIShellFolder2),
 		PyIShellFolder2_methods,
-		GET_PYCOM_CTOR(PyIShellFolder2));
+		GET_PYCOM_CTOR(PyIShellFolder2),
+		"EnumObjects");
 // ---------------------------------------------------
 //
 // Gateway Implementation

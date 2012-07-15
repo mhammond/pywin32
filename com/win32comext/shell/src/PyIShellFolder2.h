@@ -9,7 +9,7 @@ class PyIShellFolder2 : public PyIShellFolder
 public:
 	MAKE_PYCOM_CTOR(PyIShellFolder2);
 	static IShellFolder2 *GetI(PyObject *self);
-	static PyComTypeObject type;
+	static PyComEnumProviderTypeObject type;
 
 	// The Python methods
 	static PyObject *GetDefaultSearchGUID(PyObject *self, PyObject *args);

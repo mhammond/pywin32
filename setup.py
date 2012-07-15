@@ -2040,6 +2040,7 @@ com_extensions += [
                         %(shell)s/PyIShellIconOverlayIdentifier.cpp
                         %(shell)s/PyIShellIconOverlayManager.cpp
                         %(shell)s/PyIShellItem.cpp
+                        %(shell)s/PyIShellItem2.cpp
                         %(shell)s/PyIShellItemArray.cpp
                         %(shell)s/PyIShellLink.cpp
                         %(shell)s/PyIShellLinkDataList.cpp

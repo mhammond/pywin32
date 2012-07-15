@@ -1233,3 +1233,14 @@ IShellFolder2_Methods = IShellFolder_Methods + \
                         ["GetDefaultSearchGUID", "EnumSearches",
                          "GetDefaultColumn", "GetDefaultColumnState",
                          "GetDetailsEx", "GetDetailsOf", "MapColumnToSCID"]
+
+## enum GETPROPERTYSTOREFLAGS, used with IShellItem2 methods
+GPS_DEFAULT	= 0
+GPS_HANDLERPROPERTIESONLY = 0x1
+GPS_READWRITE = 0x2
+GPS_TEMPORARY = 0x4
+GPS_FASTPROPERTIESONLY = 0x8
+GPS_OPENSLOWITEM = 0x10
+GPS_DELAYCREATION = 0x20
+GPS_BESTEFFORT = 0x40
+GPS_MASK_VALID = 0x7f
