@@ -33,7 +33,7 @@ PyObject *PyIShellItem2::GetPropertyStore(PyObject *self, PyObject *args)
 		return NULL;
 
 	void *ret;
-	GETPROPERTYSTOREFLAGS flags;
+	GETPROPERTYSTOREFLAGS flags = GPS_DEFAULT;
 	IID riid = IID_IPropertyStore;
 	// @pyparm int|Flags|GPS_DEFAULT|Combination of GETPROPERTYSTOREFLAGS values (shellcon.GPS_*)
 	// @pyparm <o PyIID>|riid|IID_IPropertyStore|The interface to return
@@ -82,7 +82,27 @@ PyObject *PyIShellItem2::GetPropertyStoreWithCreateObject(PyObject *self, PyObje
 	return PyCom_PyObjectFromIUnknown((IUnknown *)ret, riid);
 }
 
-/*
+
+// ??? Also in PyPROPVARIANT.cpp, should move into a header somewhere ???
+// Generic conversion from python sequence to VT_VECTOR array
+template <typename arraytype>
+BOOL SeqToVector(PyObject *ob, arraytype **pA, ULONG *pcount, BOOL (*converter)(PyObject *, arraytype *)){
+	TmpPyObject seq = PyWinSequence_Tuple(ob, pcount);
+	if (seq == NULL)
+		return FALSE;
+	*pA = (arraytype *)CoTaskMemAlloc(*pcount * sizeof(arraytype));
+	if (*pA == NULL){
+		PyErr_NoMemory();
+		return FALSE;
+		}
+	for (ULONG i=0; i<*pcount; i++){
+		PyObject *item = PyTuple_GET_ITEM((PyObject *)seq, i);
+		if (!(*converter)(item, &(*pA)[i]))
+			return FALSE;
+		}
+	return TRUE;
+}
+
 // @pymethod <o PyIPropertyStore>|PyIShellItem2|GetPropertyStoreForKeys|Creates a property store containing just the specified properties of the item
 PyObject *PyIShellItem2::GetPropertyStoreForKeys(PyObject *self, PyObject *args)
 {
@@ -90,33 +110,29 @@ PyObject *PyIShellItem2::GetPropertyStoreForKeys(PyObject *self, PyObject *args)
 	if ( pISI2 == NULL )
 		return NULL;
 
-	IUnknown *ret;
+	void *ret;
 	PROPERTYKEY *pkeys;
-	UINT ckeys;
-	PyObject *obkeys;
+	ULONG ckeys;
 	GETPROPERTYSTOREFLAGS flags = GPS_DEFAULT;
 	IID riid = IID_IPropertyStore;
 	PyObject *obkeys;
 	// @pyparm (<o SHCOLUMNID>,...))|Keys||A sequence of property identifiers
 	// @pyparm int|Flags|GPS_DEFAULT|Combination of GETPROPERTYSTOREFLAGS values (shellcon.GPS_*)
 	// @pyparm <o PyIID>|riid|IID_IPropertyStore|The interface to return
-	UINT cKeys;
 	if (!PyArg_ParseTuple(args, "O|kO&:GetPropertyStoreForKeys", &obkeys, &flags, PyWinObject_AsIID, &riid))
 		return NULL;
-	// ??? no conversion function yet ... ???
-	if (!PyWinObject_AsSHCOLUMNIDArray(obkeys, &pkeys, &ckeys))
+	if (!SeqToVector(obkeys, &pkeys, &ckeys, PyObject_AsSHCOLUMNID))
 		return NULL;
 	HRESULT hr;
 	PY_INTERFACE_PRECALL;
-	hr = pISI2->GetPropertyStoreForKeys(pkeys, ckeys, flags, riid, *ret);
+	hr = pISI2->GetPropertyStoreForKeys(pkeys, ckeys, flags, riid, &ret);
 	PY_INTERFACE_POSTCALL;
-	PyWinObject_FreeSHCOLUMNIDArray(pkeys);
+	CoTaskMemFree(pkeys);
 
 	if ( FAILED(hr) )
 		return PyCom_BuildPyException(hr, pISI2, IID_IShellItem2 );
-	return PyCom_PyObjectFromIUnknown(ret, riid);
+	return PyCom_PyObjectFromIUnknown((IUnknown *)ret, riid);
 }
-*/
 
 // @pymethod <o PyIPropertyDescriptionList>|PyIShellItem2|GetPropertyDescriptionList|Retrieves descriptions of properties in a particular group
 PyObject *PyIShellItem2::GetPropertyDescriptionList(PyObject *self, PyObject *args)
@@ -353,8 +369,8 @@ PyObject *PyIShellItem2::GetBool(PyObject *self, PyObject *args)
 // @object PyIShellItem2|Extends the IShellItem interface, giving access to an item's properties
 static struct PyMethodDef PyIShellItem2_methods[] =
 {
-	// { "GetPropertyStoreForKeys", PyIShellItem2::GetPropertyStoreForKeys, 1 }, // @pymeth GetPropertyStoreForKeys|Creates a property store containing just the specified properties of the item
 	{ "GetPropertyStore", PyIShellItem2::GetPropertyStore, 1 }, // @pymeth GetPropertyStore|Returns a collection of the item's properties
+	{ "GetPropertyStoreForKeys", PyIShellItem2::GetPropertyStoreForKeys, 1 }, // @pymeth GetPropertyStoreForKeys|Creates a property store containing just the specified properties of the item
 	{ "GetPropertyStoreWithCreateObject", PyIShellItem2::GetPropertyStoreWithCreateObject, 1 }, // @pymeth GetPropertyStoreWithCreateObject|Returns the property store for the item, with alternate handler instantiation
 	{ "GetPropertyDescriptionList", PyIShellItem2::GetPropertyDescriptionList, 1 }, // @pymeth GetPropertyDescriptionList|Retrieves descriptions of properties in a particular group
 	{ "Update", PyIShellItem2::Update, 1 }, // @pymeth Update|Refreshes properties that have been modified since interface was created
@@ -410,6 +426,7 @@ STDMETHODIMP PyGShellItem2::GetPropertyStoreWithCreateObject(
 	return hr;
 }
 
+// ??? Should be able to use VectorToSeq for this ???
 PyObject* PyWinObject_FromSHCOLUMNIDArray(const PROPERTYKEY *keys, UINT count)
 {
 	PyObject *ret = PyList_New(count);
