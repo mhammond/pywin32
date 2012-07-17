@@ -2050,9 +2050,23 @@ com_extensions += [
 
                         """ % dirs).split()),
 
-    WinExt_win32com('propsys', libraries='propsys',
+    WinExt_win32com('propsys', libraries='propsys', delay_load_libraries='shell32',
                     sources=("""
                         %(propsys)s/propsys.cpp
+                        %(propsys)s/PyIInitializeWithFile.cpp
+                        %(propsys)s/PyIInitializeWithStream.cpp
+                        %(propsys)s/PyINamedPropertyStore.cpp
+                        %(propsys)s/PyIPropertyDescription.cpp
+                        %(propsys)s/PyIPropertyDescriptionAliasInfo.cpp
+                        %(propsys)s/PyIPropertyDescriptionList.cpp
+                        %(propsys)s/PyIPropertyDescriptionSearchInfo.cpp
+                        %(propsys)s/PyIPropertyEnumType.cpp
+                        %(propsys)s/PyIPropertyEnumTypeList.cpp
+                        %(propsys)s/PyIPropertyStore.cpp
+                        %(propsys)s/PyIPropertyStoreCache.cpp
+                        %(propsys)s/PyIPropertyStoreCapabilities.cpp
+                        %(propsys)s/PyIPropertySystem.cpp
+                        %(propsys)s/PyPROPVARIANT.cpp
                         """ % dirs).split(),
                     implib_name="pypropsys",
                     ),

@@ -30,6 +30,10 @@ Since build 217:
 
 * Python 3.3 version is built with VS2010.
 
+* win32com.shell - IShellItem2 added 
+
+* win32com.propsys - Many Property System interfaces and functions added
+
 Since build 216:
 ----------------
 * ISAPI extension works with Python 3.x
