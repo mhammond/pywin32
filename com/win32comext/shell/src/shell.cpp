@@ -3598,5 +3598,20 @@ PYWIN_MODULE_INIT_FUNC(shell)
 #	pragma message("Please update your SDK headers - IE5 features missing!")
 #endif
 
+	ADD_IID(BHID_SFObject);
+	ADD_IID(BHID_SFUIObject);
+	ADD_IID(BHID_SFViewObject);	
+	ADD_IID(BHID_Storage);
+	ADD_IID(BHID_Stream);
+	ADD_IID(BHID_LinkTargetItem);
+	ADD_IID(BHID_StorageEnum);
+	ADD_IID(BHID_Transfer);
+	ADD_IID(BHID_PropertyStore);
+	ADD_IID(BHID_ThumbnailHandler);
+	ADD_IID(BHID_EnumItems);
+	ADD_IID(BHID_DataObject);
+	ADD_IID(BHID_AssociationArray);
+	ADD_IID(BHID_Filter);
+
 	PYWIN_MODULE_INIT_RETURN_SUCCESS;
 }

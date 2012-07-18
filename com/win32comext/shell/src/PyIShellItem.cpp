@@ -24,15 +24,15 @@ PyIShellItem::~PyIShellItem()
 	return (IShellItem *)PyIUnknown::GetI(self);
 }
 
-// @pymethod |PyIShellItem|BindToHandler|Description of BindToHandler.
+// @pymethod interface|PyIShellItem|BindToHandler|Creates an instance of one of the item's handlers
 PyObject *PyIShellItem::BindToHandler(PyObject *self, PyObject *args)
 {
 	IShellItem *pISI = GetI(self);
 	if ( pISI == NULL )
 		return NULL;
-	// @pyparm <o PyIBindCtx>|pbc||Description for pbc
-	// @pyparm <o PyIID>|bhid||Description for bhid
-	// @pyparm <o PyIID>|riid||Description for riid
+	// @pyparm <o PyIBindCtx>|pbc||Used to pass parameters that influence the binding operation, can be None
+	// @pyparm <o PyIID>|bhid||GUID that identifies a handler (shell.BHID_*)
+	// @pyparm <o PyIID>|riid||The interface to return
 	PyObject *obpbc;
 	PyObject *obbhid;
 	PyObject *obriid;
@@ -42,12 +42,12 @@ PyObject *PyIShellItem::BindToHandler(PyObject *self, PyObject *args)
 	void *pv;
 	if ( !PyArg_ParseTuple(args, "OOO:BindToHandler", &obpbc, &obbhid, &obriid) )
 		return NULL;
-	BOOL bPythonIsHappy = TRUE;
-	if (bPythonIsHappy && !PyCom_InterfaceFromPyInstanceOrObject(obpbc, IID_IBindCtx, (void **)&pbc, TRUE /* bNoneOK */))
-		 bPythonIsHappy = FALSE;
-	if (!PyWinObject_AsIID(obbhid, &bhid)) bPythonIsHappy = FALSE;
-	if (!PyWinObject_AsIID(obriid, &riid)) bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) return NULL;
+	if (!PyWinObject_AsIID(obbhid, &bhid))
+		return NULL;
+	if (!PyWinObject_AsIID(obriid, &riid))
+		return NULL;
+	if (!PyCom_InterfaceFromPyInstanceOrObject(obpbc, IID_IBindCtx, (void **)&pbc, TRUE /* bNoneOK */))
+		return NULL;
 	HRESULT hr;
 	PY_INTERFACE_PRECALL;
 	hr = pISI->BindToHandler( pbc, bhid, riid, &pv );
@@ -60,7 +60,7 @@ PyObject *PyIShellItem::BindToHandler(PyObject *self, PyObject *args)
 	return PyCom_PyObjectFromIUnknown((IUnknown *)pv, riid, FALSE);
 }
 
-// @pymethod |PyIShellItem|GetParent|Description of GetParent.
+// @pymethod <o PyIShellItem>|PyIShellItem|GetParent|Retrieves the parent of this item
 PyObject *PyIShellItem::GetParent(PyObject *self, PyObject *args)
 {
 	IShellItem *pISI = GetI(self);
@@ -80,14 +80,14 @@ PyObject *PyIShellItem::GetParent(PyObject *self, PyObject *args)
 	return PyCom_PyObjectFromIUnknown(psi, IID_IShellItem, FALSE);
 }
 
-// @pymethod |PyIShellItem|GetDisplayName|Description of GetDisplayName.
+// @pymethod str|PyIShellItem|GetDisplayName|Returns the display name of the item in the specified format
 PyObject *PyIShellItem::GetDisplayName(PyObject *self, PyObject *args)
 {
 	IShellItem *pISI = GetI(self);
 	if ( pISI == NULL )
 		return NULL;
 	SIGDN sigdnName;
-	// @pyparm int|sigdnName||Description for sigdnName
+	// @pyparm int|sigdnName||Format of name to return, shellcon.SIGDN_*
 	if ( !PyArg_ParseTuple(args, "k:GetDisplayName", &sigdnName) )
 		return NULL;
 	HRESULT hr;
@@ -103,7 +103,8 @@ PyObject *PyIShellItem::GetDisplayName(PyObject *self, PyObject *args)
 	return ret;
 }
 
-// @pymethod |PyIShellItem|GetAttributes|Description of GetAttributes.
+// @pymethod int|PyIShellItem|GetAttributes|Returns shell attributes of the item
+// @rdesc Returns a combination of shellcon.SFGAO_* values
 PyObject *PyIShellItem::GetAttributes(PyObject *self, PyObject *args)
 {
 	IShellItem *pISI = GetI(self);
@@ -111,7 +112,7 @@ PyObject *PyIShellItem::GetAttributes(PyObject *self, PyObject *args)
 		return NULL;
 	SFGAOF sfgaoMask;
 	SFGAOF ret;
-	// @pyparm <o PySFGAOF>|sfgaoMask||Description for sfgaoMask
+	// @pyparm int|Mask||Combination of shellcon.SFGAO_* values indicating the flags to return
 	if ( !PyArg_ParseTuple(args, "k:GetAttributes", &sfgaoMask) )
 		return NULL;
 	HRESULT hr;
@@ -124,28 +125,27 @@ PyObject *PyIShellItem::GetAttributes(PyObject *self, PyObject *args)
 	return PyLong_FromUnsignedLong(ret);
 }
 
-// @pymethod |PyIShellItem|Compare|Description of Compare.
+// @pymethod int|PyIShellItem|Compare|Compares another shell item with this item
+// @rdesc Returns 0 if items compare as equal, nonzero otherwise
 PyObject *PyIShellItem::Compare(PyObject *self, PyObject *args)
 {
 	IShellItem *pISI = GetI(self);
 	if ( pISI == NULL )
 		return NULL;
-	// @pyparm <o PyIShellItem>|psi||Description for psi
+	// @pyparm <o PyIShellItem>|psi||A shell item to be compared with this item
 	SICHINTF hint;
-	// @pyparm int|hint||Description for hint
+	// @pyparm int|hint||shellcon.SICHINT_* value indicating how the comparison is to be performed
 	PyObject *obpsi;
 	IShellItem *psi;
 	if ( !PyArg_ParseTuple(args, "Oi:Compare", &obpsi, &hint) )
 		return NULL;
-	BOOL bPythonIsHappy = TRUE;
-	if (bPythonIsHappy && !PyCom_InterfaceFromPyInstanceOrObject(obpsi, IID_IShellItem, (void **)&psi, TRUE /* bNoneOK */))
-		 bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) return NULL;
+	if (!PyCom_InterfaceFromPyInstanceOrObject(obpsi, IID_IShellItem, (void **)&psi, FALSE))
+		return NULL;
 	HRESULT hr;
 	int iOrder;
 	PY_INTERFACE_PRECALL;
 	hr = pISI->Compare( psi, hint, &iOrder );
-	if (psi) psi->Release();
+	psi->Release();
 	PY_INTERFACE_POSTCALL;
 
 	if ( FAILED(hr) )
@@ -153,14 +153,14 @@ PyObject *PyIShellItem::Compare(PyObject *self, PyObject *args)
 	return PyInt_FromLong(iOrder);
 }
 
-// @object PyIShellItem|Description of the interface
+// @object PyIShellItem|Interface that represents an item in the Explorer shell
 static struct PyMethodDef PyIShellItem_methods[] =
 {
-	{ "BindToHandler", PyIShellItem::BindToHandler, 1 }, // @pymeth BindToHandler|Description of BindToHandler
-	{ "GetParent", PyIShellItem::GetParent, 1 }, // @pymeth GetParent|Description of GetParent
-	{ "GetDisplayName", PyIShellItem::GetDisplayName, 1 }, // @pymeth GetDisplayName|Description of GetDisplayName
-	{ "GetAttributes", PyIShellItem::GetAttributes, 1 }, // @pymeth GetAttributes|Description of GetAttributes
-	{ "Compare", PyIShellItem::Compare, 1 }, // @pymeth Compare|Description of Compare
+	{ "BindToHandler", PyIShellItem::BindToHandler, 1 }, // @pymeth BindToHandler|Creates an instance of one of the item's handlers
+	{ "GetParent", PyIShellItem::GetParent, 1 }, // @pymeth GetParent|Retrieves the parent of this item
+	{ "GetDisplayName", PyIShellItem::GetDisplayName, 1 }, // @pymeth GetDisplayName|Returns the display name of the item in the specified format
+	{ "GetAttributes", PyIShellItem::GetAttributes, 1 }, // @pymeth GetAttributes|Returns shell attributes of the item
+	{ "Compare", PyIShellItem::Compare, 1 }, // @pymeth Compare|Compares another shell item with this item
 	{ NULL }
 };
 
