@@ -418,11 +418,11 @@ PyObject *PyIPropertyDescription::FormatForDisplay(PyObject *self, PyObject *arg
 	if ( pIPD == NULL )
 		return NULL;
 	PROPVARIANT *val;
-	PROPDESC_FORMAT_FLAGS flags = 0;
+	PROPDESC_FORMAT_FLAGS flags = PDFF_DEFAULT;
 	WCHAR *display=NULL;
 	PyObject *obval;
 	// @pyparm PROPVARIANT|Value||The value to be formatted
-	// @pyparm int|Flags|0|Combination of PROPDESC_FORMAT_FLAGS (PDFF_*)
+	// @pyparm int|Flags|PDFF_DEFAULT|Combination of PROPDESC_FORMAT_FLAGS (PDFF_*)
 	if (!PyArg_ParseTuple(args, "O|i:FormatForDisplay", &obval, &flags))
 		return NULL;
 	if (!PyWinObject_AsPROPVARIANT(obval, &val))
