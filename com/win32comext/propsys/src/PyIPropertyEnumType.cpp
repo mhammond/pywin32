@@ -109,7 +109,7 @@ PyObject *PyIPropertyEnumType::GetDisplayText(PyObject *self, PyObject *args)
 	return ret;
 }
 
-// @object PyIPropertyEnumType|Description of the interface
+// @object PyIPropertyEnumType|Contains information about an allowable value or range for a property
 static struct PyMethodDef PyIPropertyEnumType_methods[] =
 {
 	{ "GetEnumType", PyIPropertyEnumType::GetEnumType, METH_NOARGS }, // @pymeth GetEnumType|Retrieves the type (PROPENUMTYPE)

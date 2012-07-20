@@ -191,7 +191,7 @@ static PyObject *PySHGetPropertyStoreFromParsingName(PyObject *self, PyObject *a
 		PyWinObject_AsIID, &riid))
 		return NULL;
 	if (!PyWinObject_AsWCHAR(obpath, &path, FALSE))
-		return FALSE;
+		return NULL;
 	if (!PyCom_InterfaceFromPyInstanceOrObject(obbindctx, IID_IBindCtx, (void **)&bindctx))
 		return NULL;
 
@@ -273,7 +273,6 @@ static PyObject *PyPSGetItemPropertyHandler(PyObject *self, PyObject *args)
 // @pymethod bytes|propsys|StgSerializePropVariant|Serializes a <o PyPROPVARIANT>
 static PyObject *PyStgSerializePropVariant(PyObject *self, PyObject *args)
 {
-	int tmp = sizeof(PROPDESC_DISPLAYTYPE);
 	PROPVARIANT *pv;
 	SERIALIZEDPROPERTYVALUE *pspv=NULL;
 	ULONG bufsize;

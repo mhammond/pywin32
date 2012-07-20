@@ -264,6 +264,8 @@ PyObject *PyIPropertyDescription::GetRelativeDescription(PyObject *self, PyObjec
 	PROPVARIANT *v1, *v2;
 	PyObject *obv1, *obv2;
 	WCHAR *desc1=NULL, *desc2=NULL;
+	// @pyparm <o PyPROPVARIANT>|var1||The first value
+	// @pyparm <o PyPROPVARIANT>|var2||The second value
 	if ( !PyArg_ParseTuple(args, "OO:GetRelativeDescription", &obv1, &obv2))
 		return NULL;
 	if (!PyWinObject_AsPROPVARIANT(obv1, &v1))
@@ -365,7 +367,6 @@ PyObject *PyIPropertyDescription::GetConditionType(PyObject *self, PyObject *arg
 }
 
 // @pymethod <o PyIPropertyEnumTypeList>|PyIPropertyDescription|GetEnumTypeList|Returns an interface used for querying valid property range
-// @comm IPropertyEnumTypeList is not supported yet
 PyObject *PyIPropertyDescription::GetEnumTypeList(PyObject *self, PyObject *args)
 {
 	IPropertyDescription *pIPD = GetI(self);
@@ -421,7 +422,7 @@ PyObject *PyIPropertyDescription::FormatForDisplay(PyObject *self, PyObject *arg
 	PROPDESC_FORMAT_FLAGS flags = PDFF_DEFAULT;
 	WCHAR *display=NULL;
 	PyObject *obval;
-	// @pyparm PROPVARIANT|Value||The value to be formatted
+	// @pyparm <o PyPROPVARIANT>|Value||The value to be formatted
 	// @pyparm int|Flags|PDFF_DEFAULT|Combination of PROPDESC_FORMAT_FLAGS (PDFF_*)
 	if (!PyArg_ParseTuple(args, "O|i:FormatForDisplay", &obval, &flags))
 		return NULL;
