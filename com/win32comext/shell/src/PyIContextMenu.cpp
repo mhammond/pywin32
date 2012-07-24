@@ -24,7 +24,7 @@ PyIContextMenu::~PyIContextMenu()
 	return (IContextMenu *)PyIUnknown::GetI(self);
 }
 
-// @pymethod |PyIContextMenu|QueryContextMenu|Adds options to a context menu
+// @pymethod int|PyIContextMenu|QueryContextMenu|Adds options to a context menu
 PyObject *PyIContextMenu::QueryContextMenu(PyObject *self, PyObject *args)
 {
 	IContextMenu *pICM = GetI(self);
@@ -83,7 +83,7 @@ PyObject *PyIContextMenu::InvokeCommand(PyObject *self, PyObject *args)
 
 }
 
-// @pymethod |PyIContextMenu|GetCommandString|Retrieves verb or help text for a context menu option
+// @pymethod str|PyIContextMenu|GetCommandString|Retrieves verb or help text for a context menu option
 PyObject *PyIContextMenu::GetCommandString(PyObject *self, PyObject *args)
 {
 	IContextMenu *pICM = GetI(self);
@@ -97,7 +97,8 @@ PyObject *PyIContextMenu::GetCommandString(PyObject *self, PyObject *args)
 	UINT cchMax = 2048;
 	if ( !PyArg_ParseTuple(args, "OI|I:GetCommandString", &obCmd, &uType, &cchMax) )
 		return NULL;
-
+	if (uType & GCS_UNICODE)
+		cchMax *= sizeof(WCHAR); // buffer size is in characters
 	UINT_PTR idCmd;
 	if (!PyWinLong_AsULONG_PTR(obCmd, (ULONG_PTR *)&idCmd))
 		return NULL;
@@ -114,7 +115,11 @@ PyObject *PyIContextMenu::GetCommandString(PyObject *self, PyObject *args)
 		free(buf);
 		return PyCom_BuildPyException(hr, pICM, IID_IContextMenu );
 	}
-	PyObject *ret = PyString_FromString(buf);
+	PyObject *ret;
+	if (uType & GCS_UNICODE)
+		ret = PyWinObject_FromWCHAR((WCHAR *)buf);
+	else
+		ret = PyString_FromString(buf);
 	free(buf);
 	return ret;
 

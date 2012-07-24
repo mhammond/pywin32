@@ -34,6 +34,11 @@
 #include "propvarutil.h"
 #include "Shobjidl.h"
 
+#define CHECK_PFN(fname)if (pfn##fname==NULL) return PyErr_Format(PyExc_NotImplementedError,"%s is not available on this platform", #fname);
+// Not available on Vista or earlier
+typedef HRESULT (WINAPI *PFNSHGetPropertyStoreForWindow)(HWND, REFIID, void **);
+static PFNSHGetPropertyStoreForWindow pfnSHGetPropertyStoreForWindow = NULL;
+
 // @object PyPROPERTYKEY|A tuple of a fmtid and property id (IID, int) that uniquely identifies a property
 BOOL PyWinObject_AsPROPERTYKEY(PyObject *obkey, PROPERTYKEY *pkey)
 {
@@ -280,7 +285,9 @@ static PyObject *PyStgSerializePropVariant(PyObject *self, PyObject *args)
 	// @pyparm <o PyPROPVARIANT>|propvar||The value to serialize
 	if (!PyArg_ParseTuple(args, "O&:StgSerializePropVariant", PyWinObject_AsPROPVARIANT, &pv))
 		return NULL;
+	PY_INTERFACE_PRECALL;
 	hr = StgSerializePropVariant(pv, &pspv, &bufsize);
+	PY_INTERFACE_POSTCALL;
 	if (FAILED(hr))
 		return PyCom_BuildPyException(hr);
 	PyObject *ret = PyString_FromStringAndSize((char *)pspv, bufsize);
@@ -301,7 +308,9 @@ static PyObject *PyStgDeserializePropVariant(PyObject *self, PyObject *args)
 	// @pyparm bytes|prop||Buffer or bytes object (or str in Python 2) containing a serialized value
 	if (!PyWinObject_AsReadBuffer(ob, (void **)&pspv, &bufsize))
 		return NULL;
+	PY_INTERFACE_PRECALL;
 	hr = StgDeserializePropVariant(pspv, bufsize, &pv);
+	PY_INTERFACE_POSTCALL;
 	if (FAILED(hr))
 		return PyCom_BuildPyException(hr);
 	return PyWinObject_FromPROPVARIANT(&pv);
@@ -316,7 +325,89 @@ static PyObject *PyPSCreateMemoryPropertyStore(PyObject *self, PyObject *args)
 	// @pyparm <o PyIID>|riid|IID_IPropertyStore|The interface to create
 	if (!PyArg_ParseTuple(args, "|O&:PSCreateMemoryPropertyStore", PyWinObject_AsIID, &riid))
 		return NULL;
-	HRESULT hr = PSCreateMemoryPropertyStore(riid, &ret);
+	HRESULT hr;
+	PY_INTERFACE_PRECALL;
+	hr = PSCreateMemoryPropertyStore(riid, &ret);
+	PY_INTERFACE_POSTCALL;
+	if (FAILED(hr))
+		return PyCom_BuildPyException(hr);
+	return PyCom_PyObjectFromIUnknown((IUnknown *) ret, riid);
+};
+
+// @pymethod <o PyIPropertyStore>|propsys|PSCreatePropertyStoreFromPropertySetStorage|Wraps a <o PyIPropertySetStorage> interface in a <o PyIPropertyStore> object
+// @comm This function does not work for the NTFS property storage implementation based on
+//  alternate data streams.
+static PyObject *PyPSCreatePropertyStoreFromPropertySetStorage(PyObject *self, PyObject *args)
+{
+	PyObject *obpss;
+	IPropertySetStorage *pipss;
+	DWORD mode;
+	IID riid = IID_IPropertyStore;
+	void *ret;
+	// @pyparm <o PyIPropertySetStorage>||Property container to be adapted
+	// @pyparm int|Mode||Read or write mode, shellcon.STGM_*.  Must match mode used to open input interface. 
+	// @pyparm <o PyIID>|riid|IID_IPropertyStore|The interface to create
+	if (!PyArg_ParseTuple(args, "Ok|O&:PSCreatePropertyStoreFromPropertySetStorage",
+		&obpss, &mode,
+		PyWinObject_AsIID, &riid))
+		return NULL;
+	if (!PyCom_InterfaceFromPyInstanceOrObject(obpss, IID_IPropertySetStorage, (void **)&pipss, FALSE))
+		return NULL;
+
+	HRESULT hr;
+	PY_INTERFACE_PRECALL;
+	hr = PSCreateMemoryPropertyStore(riid, &ret);
+	pipss->Release();
+	PY_INTERFACE_POSTCALL;
+	if (FAILED(hr))
+		return PyCom_BuildPyException(hr);
+	return PyCom_PyObjectFromIUnknown((IUnknown *) ret, riid);
+};
+
+// @pymethod <o PyIID>|propsys|PSLookupPropertyHandlerCLSID|Returns the GUID of the property handler for a file
+// @comm If no handler is found, the returned error code can be deceptive as it seems to indicate
+//   that the file itself was not found
+static PyObject *PyPSLookupPropertyHandlerCLSID(PyObject *self, PyObject *args)
+{
+	PyObject *obfname;
+	TmpWCHAR fname;
+	// @pyparm str|FilePath||Name of file
+	IID iid;
+	if (!PyArg_ParseTuple(args, "O:PSLookupPropertyHandlerCLSID", &obfname))
+		return NULL;
+	if (!PyWinObject_AsWCHAR(obfname, &fname, FALSE))
+		return NULL;
+
+	HRESULT hr;
+	PY_INTERFACE_PRECALL;
+	hr = PSLookupPropertyHandlerCLSID(fname, &iid);
+	PY_INTERFACE_POSTCALL;
+	if (FAILED(hr))
+		return PyCom_BuildPyException(hr);
+	return PyWinObject_FromIID(iid);
+};
+
+// @pymethod <o PyIPropertyStore>|propsys|SHGetPropertyStoreForWindow|Retrieves a collection of a window's properties
+// @comm Requires Windows 7 or later.
+// @rdesc The returned store can be used to set the System.AppUserModel.ID property that determines how windows
+//	are grouped on the taskbar
+static PyObject *PySHGetPropertyStoreForWindow(PyObject *self, PyObject *args)
+{
+	CHECK_PFN(SHGetPropertyStoreForWindow);
+	HWND hwnd;
+	IID riid = IID_IPropertyStore;
+	void *ret;
+	// @pyparm <o PyHANDLE>||Handle to a window
+	// @pyparm <o PyIID>|riid|IID_IPropertyStore|The interface to create
+	if (!PyArg_ParseTuple(args, "O&|O&:SHGetPropertyStoreForWindow",
+		PyWinObject_AsHANDLE, &hwnd,
+		PyWinObject_AsIID, &riid))
+		return NULL;
+
+	HRESULT hr;
+	PY_INTERFACE_PRECALL;
+	hr = (*pfnSHGetPropertyStoreForWindow)(hwnd, riid, &ret);
+	PY_INTERFACE_POSTCALL;
 	if (FAILED(hr))
 		return PyCom_BuildPyException(hr);
 	return PyCom_PyObjectFromIUnknown((IUnknown *) ret, riid);
@@ -339,6 +430,9 @@ static struct PyMethodDef propsys_methods[]=
 	{ "StgSerializePropVariant", PyStgSerializePropVariant, 1 }, // @pymeth StgSerializePropVariant|Serializes a <o PyPROPVARIANT>
 	{ "StgDeserializePropVariant", PyStgDeserializePropVariant, 1 }, // @pymeth StgDeserializePropVariant|Creates a <o PyPROPVARIANT> from a serialized buffer
 	{ "PSCreateMemoryPropertyStore", PyPSCreateMemoryPropertyStore, 1 }, // @pymeth PSCreateMemoryPropertyStore|Creates a temporary property store that is not connected to any backing storage
+	{ "PSCreatePropertyStoreFromPropertySetStorage", PyPSCreatePropertyStoreFromPropertySetStorage, 1 }, // @pymeth PSCreatePropertyStoreFromPropertySetStorage|Wraps a <o PyIPropertySetStorage> interface in a <o PyIPropertyStore> object
+	{ "PSLookupPropertyHandlerCLSID", PyPSLookupPropertyHandlerCLSID, 1 }, // @pymeth PSLookupPropertyHandlerCLSID|Returns the GUID of the property handler for a file
+	{ "SHGetPropertyStoreForWindow", PySHGetPropertyStoreForWindow, 1 }, // @pymeth SHGetPropertyStoreForWindow|Retrieves a collection of a window's properties
 	{ NULL, NULL },
 };
 
@@ -380,5 +474,10 @@ PYWIN_MODULE_INIT_FUNC(propsys)
 	if (PyCom_RegisterExtensionSupport(dict, g_interfaceSupportData,
 		sizeof(g_interfaceSupportData)/sizeof(PyCom_InterfaceSupportInfo)) != 0)
 		PYWIN_MODULE_INIT_RETURN_ERROR;
+
+	HMODULE hmod = GetModuleHandle(L"shell32.dll");
+	if (hmod)
+		pfnSHGetPropertyStoreForWindow = (PFNSHGetPropertyStoreForWindow)GetProcAddress(hmod, "SHGetPropertyStoreForWindow");
+
 	PYWIN_MODULE_INIT_RETURN_SUCCESS;
 }
