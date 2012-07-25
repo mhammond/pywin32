@@ -517,6 +517,18 @@ def ReExecuteElevated(flags):
   tempbase = tempfile.mktemp("pycomserverreg")
   outfile = tempbase + ".out"
   batfile = tempbase + ".bat"
+
+  # If registering from pythonwin, need to run python console instead since
+  #  pythonwin will just open script for editting
+  current_exe = os.path.split(sys.executable)[1].lower()
+  exe_to_run = None
+  if current_exe == 'pythonwin.exe':
+    exe_to_run = os.path.join(sys.prefix, 'python.exe')
+  elif current_exe == 'pythonwin_d.exe':
+    exe_to_run = os.path.join(sys.prefix, 'python_d.exe')
+  if not exe_to_run or not os.path.exists(exe_to_run):
+    exe_to_run = sys.executable
+    
   try:
     batf = open(batfile, "w")
     try:
@@ -528,7 +540,7 @@ def ReExecuteElevated(flags):
       # may be on a different drive - select that before attempting to CD.
       print >> batf, os.path.splitdrive(cwd)[0]
       print >> batf, 'cd "%s"' % os.getcwd()
-      print >> batf, '%s %s > "%s" 2>&1' % (win32api.GetShortPathName(sys.executable), new_params, outfile)
+      print >> batf, '%s %s > "%s" 2>&1' % (win32api.GetShortPathName(exe_to_run), new_params, outfile)
     finally:
       batf.close()
     executable = os.environ.get('COMSPEC', 'cmd.exe')
