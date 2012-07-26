@@ -2051,6 +2051,7 @@ com_extensions += [
                         """ % dirs).split()),
 
     WinExt_win32com('propsys', libraries='propsys', delay_load_libraries='shell32',
+                    unicode_mode=True,
                     sources=("""
                         %(propsys)s/propsys.cpp
                         %(propsys)s/PyIInitializeWithFile.cpp
@@ -2067,6 +2068,7 @@ com_extensions += [
                         %(propsys)s/PyIPropertyStoreCapabilities.cpp
                         %(propsys)s/PyIPropertySystem.cpp
                         %(propsys)s/PyPROPVARIANT.cpp
+                        %(propsys)s/PyIPersistSerializedPropStorage.cpp
                         """ % dirs).split(),
                     implib_name="pypropsys",
                     ),

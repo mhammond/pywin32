@@ -138,6 +138,9 @@ COP_WORD_EQUAL = 12
 COP_WORD_STARTSWITH = 13
 COP_APPLICATION_SPECIFIC = 14
 
+## PERSIST_SPROPSTORE_FLAGS, used with IPersistSerializedPropStorage
+FPSPS_READONLY	= 1
+
 PKEY_PIDSTR_MAX = 10 # will take care of any long integer value
 #define GUIDSTRING_MAX      (1 + 8 + 1 + 4 + 1 + 4 + 1 + 4 + 1 + 12 + 1 + 1)  // "{12345678-1234-1234-1234-123456789012}"
 GUIDSTRING_MAX = (1 + 8 + 1 + 4 + 1 + 4 + 1 + 4 + 1 + 12 + 1 + 1) # hrm ???

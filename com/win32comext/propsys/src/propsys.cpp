@@ -29,6 +29,7 @@
 #include "PyIPropertyDescriptionAliasInfo.h"
 #include "PyIPropertyEnumType.h"
 #include "PyIPropertyEnumTypeList.h"
+#include "PyIPersistSerializedPropStorage.h"
 
 #include "delayimp.h"
 #include "propvarutil.h"
@@ -344,7 +345,7 @@ static PyObject *PyPSCreatePropertyStoreFromPropertySetStorage(PyObject *self, P
 	DWORD mode;
 	IID riid = IID_IPropertyStore;
 	void *ret;
-	// @pyparm <o PyIPropertySetStorage>||Property container to be adapted
+	// @pyparm <o PyIPropertySetStorage>|pss||Property container to be adapted
 	// @pyparm int|Mode||Read or write mode, shellcon.STGM_*.  Must match mode used to open input interface. 
 	// @pyparm <o PyIID>|riid|IID_IPropertyStore|The interface to create
 	if (!PyArg_ParseTuple(args, "Ok|O&:PSCreatePropertyStoreFromPropertySetStorage",
@@ -397,7 +398,7 @@ static PyObject *PySHGetPropertyStoreForWindow(PyObject *self, PyObject *args)
 	HWND hwnd;
 	IID riid = IID_IPropertyStore;
 	void *ret;
-	// @pyparm <o PyHANDLE>||Handle to a window
+	// @pyparm <o PyHANDLE>|hwnd||Handle to a window
 	// @pyparm <o PyIID>|riid|IID_IPropertyStore|The interface to create
 	if (!PyArg_ParseTuple(args, "O&|O&:SHGetPropertyStoreForWindow",
 		PyWinObject_AsHANDLE, &hwnd,
@@ -412,6 +413,60 @@ static PyObject *PySHGetPropertyStoreForWindow(PyObject *self, PyObject *args)
 		return PyCom_BuildPyException(hr);
 	return PyCom_PyObjectFromIUnknown((IUnknown *) ret, riid);
 };
+
+
+// @pymethod <o PyPROPVARIANT>|propsys|PSGetPropertyFromPropertyStorage|Extracts a property value from a serialized buffer by key
+static PyObject *PyPSGetPropertyFromPropertyStorage(PyObject *self, PyObject *args)
+{
+	PROPERTYKEY key;
+	void *buf;
+	DWORD bufsize;
+	PROPVARIANT val;
+	PyObject *obbuf;
+	// @pyparm buffer|ps||Bytes or buffer (or str in python 2) containing a serialized property set (see <om PyIPersistSerializedPropStorage.GetPropertyStorage>)
+	// @pyparm <o PyPROPERTYKEY>|key||Property to return
+	if (!PyArg_ParseTuple(args, "OO&:PSGetPropertyFromPropertyStorage",
+		&obbuf, PyWinObject_AsPROPERTYKEY, &key))
+		return NULL;
+	if (!PyWinObject_AsReadBuffer(obbuf, &buf, &bufsize, FALSE))
+		return NULL;
+
+	HRESULT hr;
+	PY_INTERFACE_PRECALL;
+	// PCUSERIALIZEDPROPSTORAGE psps,    // IPersistSerializedPropStorage::GetPropertyStorage
+	hr = PSGetPropertyFromPropertyStorage((PCUSERIALIZEDPROPSTORAGE)buf, bufsize, key, &val);
+	PY_INTERFACE_POSTCALL;
+	if (FAILED(hr))
+		return PyCom_BuildPyException(hr);
+	return PyWinObject_FromPROPVARIANT(val);
+}
+
+// @pymethod <o PyPROPVARIANT>|propsys|PSGetNamedPropertyFromPropertyStorage|Extracts a property value from a serialized buffer by name
+static PyObject *PyPSGetNamedPropertyFromPropertyStorage(PyObject *self, PyObject *args)
+{
+	TmpWCHAR name;
+	void *buf;
+	DWORD bufsize;
+	PROPVARIANT val;
+	PyObject *obname, *obbuf;
+	// @pyparm buffer|ps||Bytes or buffer (or str in python 2) containing a serialized property set (see <om PyIPersistSerializedPropStorage.GetPropertyStorage>)
+	// @pyparm str|name||Property to return
+	if (!PyArg_ParseTuple(args, "OO:PSGetNamedPropertyFromPropertyStorage",
+		&obbuf, &obname))
+		return NULL;
+	if (!PyWinObject_AsReadBuffer(obbuf, &buf, &bufsize, FALSE))
+		return NULL;
+	if (!PyWinObject_AsWCHAR(obname, &name, FALSE))
+		return NULL;
+
+	HRESULT hr;
+	PY_INTERFACE_PRECALL;
+	hr = PSGetNamedPropertyFromPropertyStorage((PCUSERIALIZEDPROPSTORAGE)buf, bufsize, name, &val);
+	PY_INTERFACE_POSTCALL;
+	if (FAILED(hr))
+		return PyCom_BuildPyException(hr);
+	return PyWinObject_FromPROPVARIANT(val);
+}
 
 
 /* List of module functions */
@@ -433,6 +488,8 @@ static struct PyMethodDef propsys_methods[]=
 	{ "PSCreatePropertyStoreFromPropertySetStorage", PyPSCreatePropertyStoreFromPropertySetStorage, 1 }, // @pymeth PSCreatePropertyStoreFromPropertySetStorage|Wraps a <o PyIPropertySetStorage> interface in a <o PyIPropertyStore> object
 	{ "PSLookupPropertyHandlerCLSID", PyPSLookupPropertyHandlerCLSID, 1 }, // @pymeth PSLookupPropertyHandlerCLSID|Returns the GUID of the property handler for a file
 	{ "SHGetPropertyStoreForWindow", PySHGetPropertyStoreForWindow, 1 }, // @pymeth SHGetPropertyStoreForWindow|Retrieves a collection of a window's properties
+	{ "PSGetPropertyFromPropertyStorage", PyPSGetPropertyFromPropertyStorage, 1 }, // @pymeth PSGetPropertyFromPropertyStorage|Extracts a property from a serialized buffer by key
+	{ "PSGetNamedPropertyFromPropertyStorage", PyPSGetNamedPropertyFromPropertyStorage, 1 }, // @pymeth PSGetNamedPropertyFromPropertyStorage|Extracts a property from a serialized buffer by name
 	{ NULL, NULL },
 };
 
@@ -452,6 +509,7 @@ static const PyCom_InterfaceSupportInfo g_interfaceSupportData[] =
 	PYCOM_INTERFACE_CLIENT_ONLY (PropertySystem),
 	PYCOM_INTERFACE_CLIENT_ONLY (PropertyEnumType),
 	PYCOM_INTERFACE_CLIENT_ONLY (PropertyEnumTypeList),
+	PYCOM_INTERFACE_CLIENT_ONLY (PersistSerializedPropStorage),
 };
 
 /* Module initialisation */
