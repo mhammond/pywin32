@@ -55,8 +55,6 @@ PyObject *PyObject_FromSHCOLUMNDATA(LPCSHCOLUMNDATA);
 PyObject *PyObject_FromFOLDERSETTINGS( const FOLDERSETTINGS *pf);
 BOOL PyObject_AsFOLDERSETTINGS( PyObject *ob, FOLDERSETTINGS *pf);
 
-extern void *PyShell_AllocMem(ULONG cb);
-
 // Vista has new spellings for PIDL.
 inline BOOL PyObject_AsPCUIDLIST_RELATIVE(PyObject *ob, PCUIDLIST_RELATIVE *ppidl, BOOL bNoneOK = FALSE, UINT *pcb = NULL)
 {

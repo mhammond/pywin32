@@ -404,7 +404,7 @@ STDMETHODIMP PyGShellFolder2::GetDetailsOf(
 		hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("GetDetailsOf");
 	else {
 		psd->str.uType = STRRET_WSTR;
-		if (!PyWinObject_AsPfnAllocatedWCHAR(obstr, PyShell_AllocMem, &psd->str.pOleStr))
+		if (!PyWinObject_AsTaskAllocatedWCHAR(obstr, &psd->str.pOleStr))
 			hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("GetDetailsOf");
 	}
 	Py_DECREF(result);

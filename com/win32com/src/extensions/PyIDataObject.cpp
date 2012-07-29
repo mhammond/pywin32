@@ -299,11 +299,13 @@ PyObject *PyIDataObject::EnumDAdvise(PyObject *self, PyObject *args)
 	return PyCom_PyObjectFromIUnknown(ppenumAdvise, IID_IEnumSTATDATA, FALSE);
 }
 
-// @object PyIDataObject|Description of the interface
+// @object PyIDataObject|Used to transfer data in various formats throughout the shell
+// @comm Can be enumerated to return a series of <o PyFORMATETC> describing the formats
+//   that the object can render.
 static struct PyMethodDef PyIDataObject_methods[] =
 {
 	{ "GetData", PyIDataObject::GetData, 1 }, // @pymeth GetData|Retrieves data from the object in specified format
-	{ "GetDataHere", PyIDataObject::GetDataHere, 1 }, // @pymeth GetDataHere|Retunrs a copy of the object's data in specified format
+	{ "GetDataHere", PyIDataObject::GetDataHere, 1 }, // @pymeth GetDataHere|Returns a copy of the object's data in specified format
 	{ "QueryGetData", PyIDataObject::QueryGetData, 1 }, // @pymeth QueryGetData|Checks if the object supports returning data in a particular format
 	{ "GetCanonicalFormatEtc", PyIDataObject::GetCanonicalFormatEtc, 1 }, // @pymeth GetCanonicalFormatEtc|Transforms a FORMATECT data description into a general format that the object supports
 	{ "SetData", PyIDataObject::SetData, 1 }, // @pymeth SetData|Sets the data that the object will return.
@@ -314,11 +316,12 @@ static struct PyMethodDef PyIDataObject_methods[] =
 	{ NULL }
 };
 
-PyComTypeObject PyIDataObject::type("PyIDataObject",
+PyComEnumProviderTypeObject PyIDataObject::type("PyIDataObject",
 		&PyIUnknown::type,
 		sizeof(PyIDataObject),
 		PyIDataObject_methods,
-		GET_PYCOM_CTOR(PyIDataObject));
+		GET_PYCOM_CTOR(PyIDataObject),
+		"EnumFormatEtc");
 // ---------------------------------------------------
 //
 // Gateway Implementation

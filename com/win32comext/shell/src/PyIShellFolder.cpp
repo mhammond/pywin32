@@ -4,8 +4,6 @@
 #include "shell_pch.h"
 #include "PyIShellFolder.h"
 
-extern void *PyShell_AllocMem(ULONG cb);
-
 // @doc - This file contains autoduck documentation
 // ---------------------------------------------------
 //
@@ -674,7 +672,7 @@ STDMETHODIMP PyGShellFolder::GetDisplayNameOf(
 	if (FAILED(hr)) return hr;
 	// Process the Python results, and convert back to the real params
 	out->uType = STRRET_WSTR;
-	if (!PyWinObject_AsPfnAllocatedWCHAR(result, PyShell_AllocMem, &out->pOleStr))
+	if (!PyWinObject_AsTaskAllocatedWCHAR(result, &out->pOleStr))
 		hr = PyCom_SetAndLogCOMErrorFromPyException(szMethodName, IID_IShellFolder);
 	Py_DECREF(result);
 	return hr;

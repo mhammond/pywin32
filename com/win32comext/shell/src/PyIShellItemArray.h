@@ -9,7 +9,7 @@ class PyIShellItemArray : public PyIUnknown
 public:
 	MAKE_PYCOM_CTOR(PyIShellItemArray);
 	static IShellItemArray *GetI(PyObject *self);
-	static PyComTypeObject type;
+	static PyComEnumProviderTypeObject type;
 
 	// The Python methods
 	static PyObject *BindToHandler(PyObject *self, PyObject *args);

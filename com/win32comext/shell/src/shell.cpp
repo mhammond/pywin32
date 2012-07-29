@@ -63,7 +63,7 @@ generates Windows .hlp files.
 #include "PyIShellItem2.h"
 #include "PyIShellItemArray.h"
 #include "PyINameSpaceTreeControl.h"
-
+#include "PyIEnumShellItems.h"
 #include "PythonCOMRegister.h" // For simpler registration of IIDs etc.
 
 // We should not be using this!
@@ -163,18 +163,6 @@ static PFNSHCreateShellItem pfnSHCreateShellItem = NULL;
 typedef HRESULT (WINAPI *PFNSHOpenFolderAndSelectItems)(PCIDLIST_ABSOLUTE,UINT,PCUITEMID_CHILD_ARRAY,DWORD);
 static PFNSHOpenFolderAndSelectItems pfnSHOpenFolderAndSelectItems = NULL;
 
-void PyShell_FreeMem(void *p)
-{
-	// NOTE: CoTaskMemFree documents NULL is an OK param - so we no
-	// longer check for that - and given the new 'propsys' module, these
-	// are screaming to become macros (and/or die!)
-	CoTaskMemFree(p);
-}
-
-void *PyShell_AllocMem(ULONG cb)
-{
-	return CoTaskMemAlloc(cb);
-}
 
 // Some magic hackery macros :-)
 #define _ILSkip(pidl, cb)       ((LPITEMIDLIST)(((BYTE*)(pidl))+cb))
@@ -244,11 +232,11 @@ PyObject *PyObject_FromPIDL(LPCITEMIDLIST pidl, BOOL bFreeSystemPIDL)
 		ret = NULL;
 	}
 	if (bFreeSystemPIDL)
-		PyShell_FreeMem( (void *)pidl_free);
+		CoTaskMemFree( (void *)pidl_free);
 	return ret;
 }
 
-// @object PyIDL|A Python representation of an IDL.  Implemented as list of Python strings.
+// @object PyIDL|A Python representation of an IDL.  Implemented as a sequence of Python strings.
 BOOL PyObject_AsPIDL(PyObject *ob, LPITEMIDLIST *ppidl, BOOL bNoneOK /*= FALSE*/, UINT *pcb /* = NULL */)
 {
 	if (ob==Py_None) {
@@ -257,16 +245,21 @@ BOOL PyObject_AsPIDL(PyObject *ob, LPITEMIDLIST *ppidl, BOOL bNoneOK /*= FALSE*/
 			return FALSE;
 		}
 		*ppidl = NULL;
+		if (pcb)
+			*pcb = 0;
 		return TRUE;
 	}
 	if (!PySequence_Check(ob) || PyString_Check(ob)) {
 		PyErr_Format(PyExc_TypeError, "Only sequences (but not strings) are valid ITEMIDLIST objects (got %s).", ob->ob_type->tp_name);
 		return FALSE;
 	}
-	UINT num_items = (unsigned)PySequence_Length(ob);
+	Py_ssize_t num_items = PySequence_Length(ob);
+	// SHITEMID.cb is a ushort, and includes its own size - make sure size of python string doesn't overflow it
+	Py_ssize_t cbMax = USHRT_MAX - sizeof((*ppidl)->mkid.cb);
+
 	// first pass over the sequence to determine number of bytes.
-	UINT cbTotal = sizeof((*ppidl)->mkid.cb);	// Null terminator
-	UINT i;
+	size_t cbTotal = sizeof((*ppidl)->mkid.cb);	// Null terminator
+	Py_ssize_t i;
 	for (i=0;i<num_items;i++) {
 		PyObject *sub = PySequence_GetItem(ob, i);
 		if (!sub)
@@ -276,11 +269,16 @@ BOOL PyObject_AsPIDL(PyObject *ob, LPITEMIDLIST *ppidl, BOOL bNoneOK /*= FALSE*/
 			Py_DECREF(sub);
 			return FALSE;
 		}
+		if (PyString_GET_SIZE(sub) > cbMax){
+			PyErr_Format(PyExc_ValueError, "Python string exceeds maximum size for a PIDL item");
+			Py_DECREF(sub);
+			return FALSE;
+		}
 		cbTotal += sizeof((*ppidl)->mkid.cb) + PyString_GET_SIZE(sub);
 		Py_DECREF(sub);
 	}
 	// Now again, filling our buffer.
-	void *buf = PyShell_AllocMem( cbTotal );
+	void *buf = CoTaskMemAlloc( cbTotal );
 	if (!buf) {
 		PyErr_NoMemory();
 		return FALSE;
@@ -290,25 +288,28 @@ BOOL PyObject_AsPIDL(PyObject *ob, LPITEMIDLIST *ppidl, BOOL bNoneOK /*= FALSE*/
 		PyObject *sub = PySequence_GetItem(ob, i);
 		if (!sub)
 			return FALSE;
+		/* Don't need to check this again, called holding GIL so nothing can modify the sequence
 		if (!PyString_Check(sub)) {
 			PyErr_Format(PyExc_TypeError, "ITEMIDLIST sub-items must be strings (got %s)", sub->ob_type->tp_name);
 			Py_DECREF(sub);
 			return FALSE;
 		}
-		pidl->mkid.cb = PyString_GET_SIZE(sub) + sizeof(pidl->mkid.cb);
+		*/
+		pidl->mkid.cb = (USHORT)PyString_GET_SIZE(sub) + sizeof(pidl->mkid.cb);
 		memcpy(pidl->mkid.abID, PyString_AS_STRING(sub), PyString_GET_SIZE(sub));
 		Py_DECREF(sub);
 		pidl = _ILNext(pidl);
 	}
 	pidl->mkid.cb = 0;
 	*ppidl = (LPITEMIDLIST)buf;
-	if (pcb) *pcb = cbTotal;
+	// ??? Should change pcb to a size_t, only place it's used is CIDA conversion ???
+	if (pcb) *pcb = (UINT)cbTotal;
 	return TRUE;
 }
 
 void PyObject_FreePIDL( LPCITEMIDLIST pidl )
 {
-	PyShell_FreeMem( (void *)pidl);
+	CoTaskMemFree( (void *)pidl);
 }
 
 BOOL PyObject_AsPIDLArray(PyObject *obSeq, UINT *pcidl, LPCITEMIDLIST **ret)
@@ -627,7 +628,7 @@ BOOL PyObject_AsSTRRET( PyObject *ob, STRRET &out )
 void PyObject_FreeSTRRET(STRRET &s)
 {
 	if (s.uType==STRRET_WSTR) {
-		PyShell_FreeMem(s.pOleStr);
+		CoTaskMemFree(s.pOleStr);
 		s.pOleStr = NULL;
 	}
 }
@@ -1839,7 +1840,7 @@ static PyObject *PyPIDLAsString(PyObject *self, PyObject *args)
 	if (!PyObject_AsPIDL(obPIDL, &ppidls, FALSE, &cb))
 		return NULL;
 	PyObject *ret = PyString_FromStringAndSize((char *)ppidls, cb);
-	PyShell_FreeMem(ppidls);
+	CoTaskMemFree(ppidls);
 	return ret;
 }
 
@@ -3403,6 +3404,7 @@ static const PyCom_InterfaceSupportInfo g_interfaceSupportData[] =
 	PYCOM_INTERFACE_CLIENT_ONLY (ActiveDesktop),
 	PYCOM_INTERFACE_CLIENT_ONLY (ActiveDesktopP),
 	PYCOM_INTERFACE_CLIENT_ONLY (ADesktopP2),
+	PYCOM_INTERFACE_FULL (EnumShellItems),
 };
 
 static int AddConstant(PyObject *dict, const char *key, long value)

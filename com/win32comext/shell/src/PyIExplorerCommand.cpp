@@ -265,7 +265,7 @@ STDMETHODIMP PyGExplorerCommand::GetTitle(
 	Py_XDECREF(obpsiItemArray);
 	if (FAILED(hr)) return hr;
 	// Process the Python results, and convert back to the real params
-	if (!PyWinObject_AsPfnAllocatedWCHAR(result, PyShell_AllocMem, ppszName))
+	if (!PyWinObject_AsTaskAllocatedWCHAR(result, ppszName))
 		hr = PyCom_SetAndLogCOMErrorFromPyException("GetTitle", IID_IExplorerCommand);
 	Py_DECREF(result);
 	return hr;
@@ -283,7 +283,7 @@ STDMETHODIMP PyGExplorerCommand::GetIcon(
 	Py_XDECREF(obpsiItemArray);
 	if (FAILED(hr)) return hr;
 	// Process the Python results, and convert back to the real params
-	if (!PyWinObject_AsPfnAllocatedWCHAR(result, PyShell_AllocMem, ppszIcon))
+	if (!PyWinObject_AsTaskAllocatedWCHAR(result, ppszIcon))
 		hr = PyCom_SetAndLogCOMErrorFromPyException("GetIcon", IID_IExplorerCommand);
 	Py_DECREF(result);
 	return hr;
@@ -301,7 +301,7 @@ STDMETHODIMP PyGExplorerCommand::GetToolTip(
 	Py_XDECREF(obpsiItemArray);
 	if (FAILED(hr)) return hr;
 	// Process the Python results, and convert back to the real params
-	if (!PyWinObject_AsPfnAllocatedWCHAR(result, PyShell_AllocMem, ppszInfotip))
+	if (!PyWinObject_AsTaskAllocatedWCHAR(result, ppszInfotip))
 		hr = PyCom_SetAndLogCOMErrorFromPyException("GetToolTip", IID_IExplorerCommand);
 	Py_DECREF(result);
 	return hr;

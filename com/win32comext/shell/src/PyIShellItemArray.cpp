@@ -24,15 +24,15 @@ PyIShellItemArray::~PyIShellItemArray()
 	return (IShellItemArray *)PyIUnknown::GetI(self);
 }
 
-// @pymethod |PyIShellItemArray|BindToHandler|Description of BindToHandler.
+// @pymethod interface|PyIShellItemArray|BindToHandler|Creates an instance of a handler for the items in the container
 PyObject *PyIShellItemArray::BindToHandler(PyObject *self, PyObject *args)
 {
 	IShellItemArray *pISIA = GetI(self);
 	if ( pISIA == NULL )
 		return NULL;
-	// @pyparm <o PyIBindCtx>|pbc||Description for pbc
-	// @pyparm <o PyIID>|rbhid||Description for rbhid
-	// @pyparm <o PyIID>|riid||Description for riid
+	// @pyparm <o PyIBindCtx>|pbc||Bind context, can be None
+	// @pyparm <o PyIID>|rbhid||Bind handler GUID (shell.BHID_*)
+	// @pyparm <o PyIID>|riid||The interface to return
 	PyObject *obpbc;
 	PyObject *obrbhid;
 	PyObject *obriid;
@@ -42,12 +42,13 @@ PyObject *PyIShellItemArray::BindToHandler(PyObject *self, PyObject *args)
 	void *pvOut;
 	if ( !PyArg_ParseTuple(args, "OOO:BindToHandler", &obpbc, &obrbhid, &obriid) )
 		return NULL;
-	BOOL bPythonIsHappy = TRUE;
-	if (bPythonIsHappy && !PyCom_InterfaceFromPyInstanceOrObject(obpbc, IID_IBindCtx, (void **)&pbc, TRUE /* bNoneOK */))
-		 bPythonIsHappy = FALSE;
-	if (!PyWinObject_AsIID(obrbhid, &rbhid)) bPythonIsHappy = FALSE;
-	if (!PyWinObject_AsIID(obriid, &riid)) bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) return NULL;
+	if (!PyWinObject_AsIID(obrbhid, &rbhid))
+		return NULL;
+	if (!PyWinObject_AsIID(obriid, &riid))
+		return NULL;
+	if (!PyCom_InterfaceFromPyInstanceOrObject(obpbc, IID_IBindCtx, (void **)&pbc, TRUE /* bNoneOK */))
+		return NULL;
+
 	HRESULT hr;
 	PY_INTERFACE_PRECALL;
 	hr = pISIA->BindToHandler( pbc, rbhid, riid, &pvOut );
@@ -60,21 +61,19 @@ PyObject *PyIShellItemArray::BindToHandler(PyObject *self, PyObject *args)
 	return PyCom_PyObjectFromIUnknown((IUnknown *)pvOut, riid, FALSE);
 }
 
-// @pymethod |PyIShellItemArray|GetPropertyStore|Description of GetPropertyStore.
+// @pymethod <o PyIPropertyStore>|PyIShellItemArray|GetPropertyStore|Retrieves a store containing consolidated properties of items in container
 PyObject *PyIShellItemArray::GetPropertyStore(PyObject *self, PyObject *args)
 {
 	IShellItemArray *pISIA = GetI(self);
 	if ( pISIA == NULL )
 		return NULL;
-	GETPROPERTYSTOREFLAGS flags;
-	// @pyparm int|flags||Description for flags
-	// @pyparm <o PyIID>|riid||Description for riid
-	PyObject *obriid;
-	IID riid;
+	GETPROPERTYSTOREFLAGS flags = GPS_DEFAULT;
+	// @pyparm int|flags|GPS_DEFAULT|Flags indicating how the properties are retrieved (shellcon.GPS_*)
+	// @pyparm <o PyIID>|riid|IID__IPropertyStore|The interface to return, IID_IPropertyStore or related interface
+	IID riid = IID_IPropertyStore;
 	void *pv;
-	if ( !PyArg_ParseTuple(args, "kO:GetPropertyStore", &flags, &obriid) )
-		return NULL;
-	if (!PyWinObject_AsIID(obriid, &riid))
+	if ( !PyArg_ParseTuple(args, "|kO&:GetPropertyStore", &flags, 
+		PyWinObject_AsIID, &riid))
 		return NULL;
 	HRESULT hr;
 	PY_INTERFACE_PRECALL;
@@ -85,44 +84,41 @@ PyObject *PyIShellItemArray::GetPropertyStore(PyObject *self, PyObject *args)
 	return PyCom_PyObjectFromIUnknown((IUnknown *)pv, riid, FALSE);
 }
 
-// @pymethod |PyIShellItemArray|GetPropertyDescriptionList|Description of GetPropertyDescriptionList.
+// @pymethod <o PyIPropertyDescriptionList>|PyIShellItemArray|GetPropertyDescriptionList|Retrieves descriptions for a defined group of properties
 PyObject *PyIShellItemArray::GetPropertyDescriptionList(PyObject *self, PyObject *args)
 {
 	IShellItemArray *pISIA = GetI(self);
 	if ( pISIA == NULL )
 		return NULL;
-	PROPERTYKEY keyType;
-	PyObject *obkeyType;
-	// @pyparm <o PyREFPROPERTYKEY>|keyType||Description for keyType
-	// @pyparm <o PyIID>|riid||Description for riid
-	PyObject *obriid;
-	IID riid;
+	PROPERTYKEY key;
+	// @pyparm <o PyPROPERTYKEY>|Type||Property list identifier (pscon.PKEY_PropList_*)
+	// @pyparm <o PyIID>|riid|IID_IPropertyDescriptionList|The interface to return
+	IID riid = IID_IPropertyDescriptionList;
 	void *pv;
-	if ( !PyArg_ParseTuple(args, "OO:GetPropertyDescriptionList", &obkeyType, &obriid) )
+	if ( !PyArg_ParseTuple(args, "O&|O&:GetPropertyDescriptionList",
+		PyObject_AsSHCOLUMNID, &key,
+		PyWinObject_AsIID, &riid))
 		return NULL;
-	BOOL bPythonIsHappy = TRUE;
-	if (bPythonIsHappy && !PyObject_AsSHCOLUMNID(obkeyType, &keyType)) bPythonIsHappy = FALSE;
-	if (bPythonIsHappy && !PyWinObject_AsIID(obriid, &riid)) bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) return NULL;
+
 	HRESULT hr;
 	PY_INTERFACE_PRECALL;
-	hr = pISIA->GetPropertyDescriptionList( keyType, riid, &pv );
+	hr = pISIA->GetPropertyDescriptionList(key, riid, &pv );
 	PY_INTERFACE_POSTCALL;
 	if ( FAILED(hr) )
 		return PyCom_BuildPyException(hr, pISIA, IID_IShellItemArray );
 	return PyCom_PyObjectFromIUnknown((IUnknown *)pv, riid, FALSE);
 }
 
-// @pymethod |PyIShellItemArray|GetAttributes|Description of GetAttributes.
+// @pymethod int|PyIShellItemArray|GetAttributes|Retrieves shell attributes of contained items
 PyObject *PyIShellItemArray::GetAttributes(PyObject *self, PyObject *args)
 {
 	IShellItemArray *pISIA = GetI(self);
 	if ( pISIA == NULL )
 		return NULL;
 	SIATTRIBFLAGS dwAttribFlags;
-	// @pyparm int|dwAttribFlags||Description for dwAttribFlags
+	// @pyparm int|AttribFlags||SIATTRIBFLAGS value (shellcon.SIATTRIBFLAGS_*) specifying how to combine attributes of multiple items
 	SFGAOF sfgaoMask;
-	// @pyparm int|sfgaoMask||Description for sfgaoMask
+	// @pyparm int|Mask||Combination of SFGAOF flags (shellcon.SFGAO_*) specifying which attributes to return
 	if ( !PyArg_ParseTuple(args, "kk:GetAttributes", &dwAttribFlags, &sfgaoMask) )
 		return NULL;
 	SFGAOF result;
@@ -136,7 +132,7 @@ PyObject *PyIShellItemArray::GetAttributes(PyObject *self, PyObject *args)
 	return PyLong_FromUnsignedLong(result);
 }
 
-// @pymethod |PyIShellItemArray|GetCount|Description of GetCount.
+// @pymethod int|PyIShellItemArray|GetCount|Returns the number of items in the container
 PyObject *PyIShellItemArray::GetCount(PyObject *self, PyObject *args)
 {
 	IShellItemArray *pISIA = GetI(self);
@@ -155,13 +151,13 @@ PyObject *PyIShellItemArray::GetCount(PyObject *self, PyObject *args)
 	return PyInt_FromLong(dwNumItems);
 }
 
-// @pymethod |PyIShellItemArray|GetItemAt|Description of GetItemAt.
+// @pymethod <o PyIShellItem>|PyIShellItemArray|GetItemAt|Retrieves an item by index
 PyObject *PyIShellItemArray::GetItemAt(PyObject *self, PyObject *args)
 {
 	IShellItemArray *pISIA = GetI(self);
 	if ( pISIA == NULL )
 		return NULL;
-	// @pyparm int|dwIndex||Description for dwIndex
+	// @pyparm int|dwIndex||Zero-based index of item to retrieve
 	DWORD dwIndex;
 	IShellItem *psi;
 	if ( !PyArg_ParseTuple(args, "l:GetItemAt", &dwIndex) )
@@ -175,7 +171,7 @@ PyObject *PyIShellItemArray::GetItemAt(PyObject *self, PyObject *args)
 	return PyCom_PyObjectFromIUnknown(psi, IID_IShellItem, FALSE);
 }
 
-// @pymethod |PyIShellItemArray|EnumItems|Description of EnumItems.
+// @pymethod <o PyIEnumShellItems>|PyIShellItemArray|EnumItems|Returns an enumeration interface to list contained items
 PyObject *PyIShellItemArray::EnumItems(PyObject *self, PyObject *args)
 {
 	IShellItemArray *pISIA = GetI(self);
@@ -195,24 +191,26 @@ PyObject *PyIShellItemArray::EnumItems(PyObject *self, PyObject *args)
 	return PyCom_PyObjectFromIUnknown(penumShellItems, IID_IEnumShellItems, FALSE);
 }
 
-// @object PyIShellItemArray|Description of the interface
+// @object PyIShellItemArray|Container for a number of shell items
+// @comm Can be used as an iterator to enumerate the contained items
 static struct PyMethodDef PyIShellItemArray_methods[] =
 {
-	{ "BindToHandler", PyIShellItemArray::BindToHandler, 1 }, // @pymeth BindToHandler|Description of BindToHandler
-	{ "GetPropertyStore", PyIShellItemArray::GetPropertyStore, 1 }, // @pymeth GetPropertyStore|Description of GetPropertyStore
-	{ "GetPropertyDescriptionList", PyIShellItemArray::GetPropertyDescriptionList, 1 }, // @pymeth GetPropertyDescriptionList|Description of GetPropertyDescriptionList
-	{ "GetAttributes", PyIShellItemArray::GetAttributes, 1 }, // @pymeth GetAttributes|Description of GetAttributes
-	{ "GetCount", PyIShellItemArray::GetCount, 1 }, // @pymeth GetCount|Description of GetCount
-	{ "GetItemAt", PyIShellItemArray::GetItemAt, 1 }, // @pymeth GetItemAt|Description of GetItemAt
-	{ "EnumItems", PyIShellItemArray::EnumItems, 1 }, // @pymeth EnumItems|Description of EnumItems
+	{ "BindToHandler", PyIShellItemArray::BindToHandler, 1 }, // @pymeth BindToHandler|Creates an instance of a handler for the items in the container
+	{ "GetPropertyStore", PyIShellItemArray::GetPropertyStore, 1 }, // @pymeth GetPropertyStore|Retrieves a store containing consolidated properties of items in container
+	{ "GetPropertyDescriptionList", PyIShellItemArray::GetPropertyDescriptionList, 1 }, // @pymeth GetPropertyDescriptionList|Retrieves descriptions for a defined group of properties
+	{ "GetAttributes", PyIShellItemArray::GetAttributes, 1 }, // @pymeth GetAttributes|Retrieves shell attributes of contained items
+	{ "GetCount", PyIShellItemArray::GetCount, 1 }, // @pymeth GetCount|Returns the number of items in the container
+	{ "GetItemAt", PyIShellItemArray::GetItemAt, 1 }, // @pymeth GetItemAt|Retrieves an item by index
+	{ "EnumItems", PyIShellItemArray::EnumItems, 1 }, // @pymeth EnumItems|Returns an enumeration interface to list contained items
 	{ NULL }
 };
 
-PyComTypeObject PyIShellItemArray::type("PyIShellItemArray",
+PyComEnumProviderTypeObject PyIShellItemArray::type("PyIShellItemArray",
 		&PyIUnknown::type,
 		sizeof(PyIShellItemArray),
 		PyIShellItemArray_methods,
-		GET_PYCOM_CTOR(PyIShellItemArray));
+		GET_PYCOM_CTOR(PyIShellItemArray),
+		"EnumItems");
 // ---------------------------------------------------
 //
 // Gateway Implementation

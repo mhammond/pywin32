@@ -9,7 +9,7 @@ class PyIDataObject : public PyIUnknown
 public:
 	MAKE_PYCOM_CTOR(PyIDataObject);
 	static IDataObject *GetI(PyObject *self);
-	static PyComTypeObject type;
+	static PyComEnumProviderTypeObject type;
 
 	// The Python methods
 	static PyObject *GetData(PyObject *self, PyObject *args);

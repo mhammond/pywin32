@@ -266,7 +266,9 @@ PYWINTYPES_EXPORT void PyWinObject_FreeWCHAR(WCHAR *pResult);
 // Its not clear how to resolve this, but while VS2003 is the default
 // compiler, that is what must work.
 // py2.5 on x64 also needs it, and that is min x64 we support
-#if (PY_VERSION_HEX >= 0x02060000) || defined(_WIN64)
+// The main difference seems to be whether the compiler has /Zc:wchar_t (Treat wchar_t as a builtin type)
+// on by default, and according to MSDN, _NATIVE_WCHAR_T_DEFINED is the way to check for it
+#ifdef _NATIVE_WCHAR_T_DEFINED
 inline BOOL PyWinObject_AsWCHAR(PyObject *stringObject, unsigned short **pResult, BOOL bNoneOK = FALSE, DWORD *pResultLen = NULL)
 {
     return PyWinObject_AsWCHAR(stringObject, (WCHAR **)pResult, bNoneOK, pResultLen);
@@ -366,7 +368,7 @@ PYWINTYPES_EXPORT PyObject *PyWinObject_FromTCHAR(const char *str, Py_ssize_t le
 #endif // UNICODE
 
 // String support for buffers allocated via CoTaskMemAlloc and CoTaskMemFree
-PYWINTYPES_EXPORT BOOL PyWinObject_AsTaskAllocatedWCHAR(PyObject *stringObject, WCHAR **ppResult, BOOL bNoneOK /*= FALSE*/,DWORD *pResultLen /*= NULL*/);
+PYWINTYPES_EXPORT BOOL PyWinObject_AsTaskAllocatedWCHAR(PyObject *stringObject, WCHAR **ppResult, BOOL bNoneOK = FALSE, DWORD *pResultLen = NULL);
 PYWINTYPES_EXPORT void PyWinObject_FreeTaskAllocatedWCHAR(WCHAR * str);
 
 PYWINTYPES_EXPORT void PyWinObject_FreeString(char *str);

@@ -2016,6 +2016,7 @@ com_extensions += [
                         %(shell)s/PyIDropTargetHelper.cpp
                         %(shell)s/PyIEnumExplorerCommand.cpp
                         %(shell)s/PyIEnumIDList.cpp
+                        %(shell)s/PyIEnumShellItems.cpp
                         %(shell)s/PyIEmptyVolumeCache.cpp
                         %(shell)s/PyIEmptyVolumeCacheCallBack.cpp
                         %(shell)s/PyIExplorerBrowser.cpp

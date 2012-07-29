@@ -231,7 +231,7 @@ STDMETHODIMP PyGShellItem::GetDisplayName(
 	HRESULT hr=InvokeViaPolicy("GetDisplayName", &result, "k", sigdnName);
 	if (FAILED(hr)) return hr;
 	// Process the Python results, and convert back to the real params
-	if (!PyWinObject_AsPfnAllocatedWCHAR(result, PyShell_AllocMem, ppszName))
+	if (!PyWinObject_AsTaskAllocatedWCHAR(result, ppszName))
 		hr = PyCom_SetAndLogCOMErrorFromPyException("GetDisplayName", IID_IShellItem);
 	Py_DECREF(result);
 	return hr;
