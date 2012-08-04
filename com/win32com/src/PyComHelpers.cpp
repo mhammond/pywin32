@@ -122,8 +122,10 @@ PyObject *PyCom_PyObjectFromIUnknown(IUnknown *punk, REFIID riid, BOOL bAddRef /
 
 	// Look up the map, and create the object.
 	PyObject *obiid = PyWinObject_FromIID(riid);
-	if (!obiid) return NULL;
-
+	if (!obiid){
+		POFIU_RELEASE_ON_FAILURE
+		return NULL;
+	}
 	PyObject *createType = PyDict_GetItem(g_obPyCom_MapIIDToType, obiid);
 	Py_DECREF(obiid);
 	if (createType==NULL) {
@@ -153,7 +155,7 @@ PyObject *PyCom_PyObjectFromIUnknown(IUnknown *punk, REFIID riid, BOOL bAddRef /
 	PyCom_LogF("Object %s created at 0x%0xld, IUnknown at 0x%0xld",
 		 myCreateType->tp_name, ret, ret->m_obj);
 #endif
-	if (ret && bAddRef && punk) punk->AddRef();
+	if (ret && bAddRef) punk->AddRef();
 	return ret;
 }
 
