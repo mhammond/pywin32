@@ -64,6 +64,9 @@ PyObject *PyIEnumShellItems::Next(PyObject *self, PyObject *args)
 		for ( i = celtFetched; i--; )
 		{
 			PyObject *ob = PyCom_PyObjectFromIUnknown(rgVar[i], IID_IShellItem, FALSE);
+			// PyCom_PyObjectFromIUnknown always consumes the COM reference, so set the
+			// pointer to NULL allowing any remaining interfaces to be released on error.
+			rgVar[i] = NULL;
 			if ( ob == NULL )
 			{
 				Py_DECREF(result);
@@ -73,14 +76,15 @@ PyObject *PyIEnumShellItems::Next(PyObject *self, PyObject *args)
 			PyTuple_SET_ITEM(result, i, ob);
 		}
 	}
-	/* ??? Could leak some of the returned interfaces if conversion fails, but how to tell
-		which ones have already been released when result is DECREF'd ?
-		Maybe always AddRef and always Release when done ???
-	*/
-	if (result == NULL)
+
+	// Release any remaining interfaces if conversion fails
+	if (result == NULL){
+		PY_INTERFACE_PRECALL;
 		for ( i = celtFetched; i--; )
-			rgVar[1]->Release();
-	
+			if (rgVar[i])
+				rgVar[i]->Release();
+		PY_INTERFACE_POSTCALL;
+		}
 	delete [] rgVar;
 	return result;
 }
