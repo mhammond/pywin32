@@ -734,19 +734,8 @@ static PyObject *pythoncom_WrapObject(PyObject *self, PyObject *args)
 	PY_INTERFACE_POSTCALL;
 	if ( FAILED(hr) )
 		return PyCom_BuildPyException(hr);
-
-	/* pass the pDispatch reference into this thing */
-	/* ### this guy should always AddRef() ... */
-	PyObject *result = PyCom_PyObjectFromIUnknown(pDispatch, iidInterface, FALSE);
-	if ( !result )
-	{
-		PY_INTERFACE_PRECALL;
-		pDispatch->Release();
-		PY_INTERFACE_POSTCALL;
-		return NULL;
-	}
-
-	return result;
+	/* return a PyObject wrapping it */
+	return PyCom_PyObjectFromIUnknown(pDispatch, iidInterface, FALSE);
 }
 
 static PyObject *pythoncom_MakeIID(PyObject *self, PyObject *args)
