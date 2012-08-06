@@ -786,7 +786,10 @@ static PyObject *pythoncom_MkParseDisplayName(PyObject *self, PyObject *args)
 		}
 
 		/* pass the pBC ref into obBindCtx */
-		obBindCtx = PyCom_PyObjectFromIUnknown(pBC, IID_IBindCtx, FALSE);
+		if (!(obBindCtx = PyCom_PyObjectFromIUnknown(pBC, IID_IBindCtx, FALSE))) {
+			PyWinObject_FreeWCHAR(displayName);
+			return NULL;
+		}
 	}
 	else
 	{
@@ -799,7 +802,10 @@ static PyObject *pythoncom_MkParseDisplayName(PyObject *self, PyObject *args)
 		Py_INCREF(obBindCtx);
 		pBC->Release();
 	}
-	/* at this point: we own a ref to obBindCtx, but not pBC */
+	/* at this point: we own a ref to obBindCtx, but not a direct one on pBC
+	   (obBindCtx itself has an indirect reference to pBC though, so it is still
+	   safe to use ...)
+	*/
 	ULONG chEaten;
 	IMoniker *pmk;
 	PY_INTERFACE_PRECALL;
@@ -927,7 +933,7 @@ static PyObject *pythoncom_CreateURLMonikerEx(PyObject *self, PyObject *args)
 			PyCom_BuildPyException(hr);
 		else
 			ret=PyCom_PyObjectFromIUnknown(output_moniker, IID_IMoniker, FALSE);
-		}
+	}
 	PyWinObject_FreeWCHAR(url);
 	return ret;
 }
@@ -1244,7 +1250,7 @@ static PyObject *pythoncom_CoUnmarshalInterface(PyObject *self, PyObject*args)
 			PyCom_BuildPyException(hr);
 		else
 			ret=PyCom_PyObjectFromIUnknown(pIUnknown, riid, FALSE);
-		}
+	}
 	return ret;
 }
 

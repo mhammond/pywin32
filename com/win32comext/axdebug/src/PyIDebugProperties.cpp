@@ -43,13 +43,17 @@ PyObject *PyObject_FromDebugPropertyInfo(const DebugPropertyInfo *p)
 		SET_INC_NONE(ob);
 	PyTuple_SET_ITEM(obRet, 4, ob);
 	if (p->m_dwValidFields & DBGPROP_INFO_DEBUGPROP) {
-		ob = PyCom_PyObjectFromIUnknown(p->m_pDebugProp, IID_IDebugProperty, /* bAddRef = */ FALSE);
+		ob = PyCom_PyObjectFromIUnknown(p->m_pDebugProp, IID_IDebugProperty);
 		if (ob==NULL) goto error;
+		PYCOM_RELEASE(p->m_pDebugProp);
 	} else
 		SET_INC_NONE(ob);
 	PyTuple_SET_ITEM(obRet, 5, ob);
 	return obRet;
 error:
+	if ((p->m_dwValidFields & DBGPROP_INFO_DEBUGPROP)) {
+		PYCOM_RELEASE(p->m_pDebugProp);
+	}
 	Py_XDECREF(obRet);
 	return NULL;
 }
