@@ -247,6 +247,18 @@ PYCOM_EXPORT BOOL PyCom_InterfaceFromPyInstanceOrObject(
 	BOOL bNoneOK=TRUE
 	);
 
+// Release an arbitary COM pointer.
+// NOTE: the PRECALL/POSTCALL stuff is probably not strictly necessary
+// since the PyGILSTATE stuff has been in place (and even then, it only
+// mattered when it was the last Release() on a Python implemented object)
+#define PYCOM_RELEASE(pUnk) { \
+	if (pUnk) { \
+		PY_INTERFACE_PRECALL; \
+		(pUnk)->Release(); \
+		PY_INTERFACE_POSTCALL; \
+	} \
+}
+
 // Given an IUnknown and an Interface ID, create and return an object
 // of the appropriate type. eg IID_Unknown->PyIUnknown,
 // IID_IDispatch->PyIDispatch, etc.

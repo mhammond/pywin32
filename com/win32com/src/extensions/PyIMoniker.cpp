@@ -53,13 +53,12 @@ PyObject *PyIEnumMoniker::Next(PyObject *self, PyObject *args)
 	}
 
 	PyObject *result = PyTuple_New(celtFetched);
-	if ( result != NULL )
-	{
+	if (result) {
 		for ( i = celtFetched; i--; )
 		{
 			PyObject *ob = PyCom_PyObjectFromIUnknown(rgVar[i], IID_IMoniker, FALSE);
-			if ( ob == NULL )
-			{
+			rgVar[i] = NULL;
+			if ( ob == NULL ) {
 				Py_DECREF(result);
 				result = NULL;
 				break;
@@ -67,6 +66,7 @@ PyObject *PyIEnumMoniker::Next(PyObject *self, PyObject *args)
 			PyTuple_SET_ITEM(result, i, ob);
 		}
 	}
+	for ( i = celtFetched; i--; ) PYCOM_RELEASE(rgVar[i]);
 	delete [] rgVar;
 	return result;
 	// @rdesc The result is a tuple of <o PyIID> objects, 

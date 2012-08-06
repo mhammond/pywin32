@@ -66,6 +66,7 @@ PyObject *PyIEnumRemoteDebugApplicationThreads::Next(PyObject *self, PyObject *a
 		for ( i = celtFetched; i--; )
 		{
 			PyObject *ob = PyCom_PyObjectFromIUnknown(rgVar[i], IID_IRemoteDebugApplicationThread, FALSE);
+			rgVar[i] = NULL;
 			if ( ob == NULL )
 			{
 				Py_DECREF(result);
@@ -75,10 +76,7 @@ PyObject *PyIEnumRemoteDebugApplicationThreads::Next(PyObject *self, PyObject *a
 			PyTuple_SET_ITEM(result, i, ob);
 		}
 	}
-
-/*	for ( i = celtFetched; i--; )
-		// *** possibly cleanup each structure element???
-*/
+	for ( i = celtFetched; i--; ) PYCOM_RELEASE(rgVar[i]);
 	delete [] rgVar;
 	return result;
 }

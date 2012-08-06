@@ -56,21 +56,20 @@ PyObject *PyIEnumConnections::Next(PyObject *self, PyObject *args)
 	}
 
 	PyObject *result = PyTuple_New(celtFetched);
-	if ( result != NULL )
-	{
+	if (result) {
 		for ( i = celtFetched; i--; )
 		{
 			PyObject *ob = PyCom_PyObjectFromIUnknown(rgVar[i].pUnk, IID_IUnknown, FALSE);
-			if ( ob == NULL )
-			{
+			rgVar[i].pUnk = NULL;
+			if ( ob == NULL ) {
 				Py_DECREF(result);
 				result = NULL;
 				break;
 			}
-			PyTuple_SET_ITEM(result, i, Py_BuildValue("Ol",ob, rgVar[i].dwCookie));
-			Py_DECREF(ob);
+			PyTuple_SET_ITEM(result, i, Py_BuildValue("Nl",ob, rgVar[i].dwCookie));
 		}
 	}
+	for ( i = celtFetched; i--; ) PYCOM_RELEASE(rgVar[i].pUnk);
 	delete [] rgVar;
 	return result;
 }

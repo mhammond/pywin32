@@ -269,6 +269,12 @@ static PyObject *pythoncom_CoCreateInstanceEx(PyObject *self, PyObject *args)
 		PyObject *obNew;
 		if (mqi[i].hr==0)
 			obNew = PyCom_PyObjectFromIUnknown(mqi[i].pItf, *mqi[i].pIID, FALSE);
+			mqi[i].pItf = NULL;
+			if (!obNew) {
+				Py_DECREF(result);
+				result = NULL;
+				goto done;
+			}
 		else {
 			obNew = Py_None;
 			Py_INCREF(Py_None);
@@ -276,14 +282,11 @@ static PyObject *pythoncom_CoCreateInstanceEx(PyObject *self, PyObject *args)
 		PyTuple_SET_ITEM(result, i, obNew);
 	}
 done:
-	if (punk) {
-		PY_INTERFACE_PRECALL;
-		punk->Release();
-		PY_INTERFACE_POSTCALL;
-	}
+	PYCOM_RELEASE(punk);
 	if (serverInfo.pwszName)
 		PyWinObject_FreeWCHAR(serverInfo.pwszName);
 
+	for (i=0;i<numIIDs;i++) PYCOM_RELEASE(mqi[i].pItf)
 	delete [] iids;
 	delete [] mqi;
 	return result;

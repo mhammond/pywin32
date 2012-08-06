@@ -67,10 +67,10 @@ PyObject *PyIEnumDebugStackFrames::Next(PyObject *self, PyObject *args)
 		{
 			// Make a result tuple.
 			PyObject *obFrame = PyCom_PyObjectFromIUnknown(rgVar[i].pdsf, IID_IDebugStackFrame, FALSE);
+			rgVar[i].pdsf = NULL;
 			if ( obFrame == NULL)
 			{
 				Py_DECREF(result);
-				Py_XDECREF(obFrame);
 				result = NULL;
 				break;
 			}
@@ -80,10 +80,7 @@ PyObject *PyIEnumDebugStackFrames::Next(PyObject *self, PyObject *args)
 			Py_XDECREF(obUnkFinal);
 		}
 	}
-
-/*	for ( i = celtFetched; i--; )
-		// *** possibly cleanup each structure element???
-*/
+	for ( i = celtFetched; i--; ) PYCOM_RELEASE(rgVar[i].pdsf);
 	delete [] rgVar;
 	return result;
 }
