@@ -267,7 +267,7 @@ static PyObject *pythoncom_CoCreateInstanceEx(PyObject *self, PyObject *args)
 	if (result==NULL) goto done;
 	for (i=0;i<numIIDs;i++) {
 		PyObject *obNew;
-		if (mqi[i].hr==0)
+		if (mqi[i].hr==0){
 			obNew = PyCom_PyObjectFromIUnknown(mqi[i].pItf, *mqi[i].pIID, FALSE);
 			mqi[i].pItf = NULL;
 			if (!obNew) {
@@ -275,6 +275,7 @@ static PyObject *pythoncom_CoCreateInstanceEx(PyObject *self, PyObject *args)
 				result = NULL;
 				goto done;
 			}
+		}
 		else {
 			obNew = Py_None;
 			Py_INCREF(Py_None);
