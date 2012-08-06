@@ -64,12 +64,7 @@ PyObject *PyIOleClientSite::GetMoniker(PyObject *self, PyObject *args)
 
 	if ( FAILED(hr) )
 		return OleSetOleError(hr);
-	PyObject *obppmk;
-
-	obppmk = PyCom_PyObjectFromIUnknown(ppmk, IID_IMoniker, FALSE);
-	PyObject *pyretval = Py_BuildValue("O", obppmk);
-	Py_XDECREF(obppmk);
-	return pyretval;
+	return PyCom_PyObjectFromIUnknown(ppmk, IID_IMoniker, FALSE);
 }
 
 // @pymethod |PyIOleClientSite|GetContainer|Description of GetContainer.
@@ -88,12 +83,7 @@ PyObject *PyIOleClientSite::GetContainer(PyObject *self, PyObject *args)
 
 	if ( FAILED(hr) )
 		return OleSetOleError(hr);
-	PyObject *obppContainer;
-
-	obppContainer = PyCom_PyObjectFromIUnknown(ppContainer, IID_IOleContainer, FALSE);
-	PyObject *pyretval = Py_BuildValue("O", obppContainer);
-	Py_XDECREF(obppContainer);
-	return pyretval;
+	return PyCom_PyObjectFromIUnknown(ppContainer, IID_IOleContainer, FALSE);
 }
 
 // @pymethod |PyIOleClientSite|ShowObject|Description of ShowObject.

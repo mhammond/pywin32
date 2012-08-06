@@ -38,12 +38,7 @@ PyObject *PyIActiveScriptErrorDebug::GetDocumentContext(PyObject *self, PyObject
 	HRESULT hr = pIASED->GetDocumentContext( &ppssc );
 	if ( FAILED(hr) )
 		return OleSetOleError(hr);
-	PyObject *obppssc;
-
-	obppssc = PyCom_PyObjectFromIUnknown(ppssc, IID_IDebugDocumentContext, FALSE);
-	PyObject *pyretval = Py_BuildValue("O", obppssc);
-	Py_XDECREF(obppssc);
-	return pyretval;
+	return PyCom_PyObjectFromIUnknown(ppssc, IID_IDebugDocumentContext, FALSE);
 }
 
 // @pymethod |PyIActiveScriptErrorDebug|GetStackFrame|Description of GetStackFrame.
@@ -58,12 +53,7 @@ PyObject *PyIActiveScriptErrorDebug::GetStackFrame(PyObject *self, PyObject *arg
 	HRESULT hr = pIASED->GetStackFrame( &ppdsf );
 	if ( FAILED(hr) )
 		return OleSetOleError(hr);
-	PyObject *obppdsf;
-
-	obppdsf = PyCom_PyObjectFromIUnknown(ppdsf, IID_IDebugStackFrame, FALSE);
-	PyObject *pyretval = Py_BuildValue("O", obppdsf);
-	Py_XDECREF(obppdsf);
-	return pyretval;
+	return PyCom_PyObjectFromIUnknown(ppdsf, IID_IDebugStackFrame, FALSE);
 }
 
 // @object PyIActiveScriptErrorDebug|Description of the interface

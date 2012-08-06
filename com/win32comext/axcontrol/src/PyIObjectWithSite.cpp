@@ -75,12 +75,7 @@ PyObject *PyIObjectWithSite::GetSite(PyObject *self, PyObject *args)
 
 	if ( FAILED(hr) )
 		return PyCom_BuildPyException(hr, pIOWS, IID_IObjectWithSite );
-	PyObject *obppvSite;
-
-	obppvSite = PyCom_PyObjectFromIUnknown((IUnknown *)ppvSite, riid, FALSE);
-	PyObject *pyretval = Py_BuildValue("O", obppvSite);
-	Py_XDECREF(obppvSite);
-	return pyretval;
+	return PyCom_PyObjectFromIUnknown((IUnknown *)ppvSite, riid, FALSE);
 }
 
 // @object PyIObjectWithSite|Description of the interface

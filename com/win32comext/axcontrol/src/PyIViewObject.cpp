@@ -217,12 +217,8 @@ PyObject *PyIViewObject::GetAdvise(PyObject *self, PyObject *args)
 
 	if ( FAILED(hr) )
 		return OleSetOleError(hr);
-	PyObject *obppAdvSink;
-
-	obppAdvSink = PyCom_PyObjectFromIUnknown(ppAdvSink, IID_IAdviseSink, FALSE);
-	PyObject *pyretval = Py_BuildValue("iiO", pAspects, pAdvf, obppAdvSink);
-	Py_XDECREF(obppAdvSink);
-	return pyretval;
+	PyObject *obppAdvSink = PyCom_PyObjectFromIUnknown(ppAdvSink, IID_IAdviseSink, FALSE);
+	return Py_BuildValue("iiN", pAspects, pAdvf, obppAdvSink);
 }
 
 // @object PyIViewObject|Description of the interface

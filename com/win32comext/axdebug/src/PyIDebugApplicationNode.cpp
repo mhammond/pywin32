@@ -43,12 +43,7 @@ PyObject *PyIDebugApplicationNode::EnumChildren(PyObject *self, PyObject *args)
 	PY_INTERFACE_POSTCALL;
 	if ( FAILED(hr) )
 		return OleSetOleError(hr);
-	PyObject *obpperddp;
-
-	obpperddp = PyCom_PyObjectFromIUnknown(pperddp, IID_IEnumDebugApplicationNodes, FALSE);
-	PyObject *pyretval = Py_BuildValue("O", obpperddp);
-	Py_XDECREF(obpperddp);
-	return pyretval;
+	return PyCom_PyObjectFromIUnknown(pperddp, IID_IEnumDebugApplicationNodes, FALSE);
 }
 
 // @pymethod <o PyIDebugApplicationNode>|PyIDebugApplicationNode|GetParent|Returns the parent node.
@@ -66,12 +61,7 @@ PyObject *PyIDebugApplicationNode::GetParent(PyObject *self, PyObject *args)
 	PY_INTERFACE_POSTCALL;
 	if ( FAILED(hr) )
 		return OleSetOleError(hr);
-	PyObject *obpprddp;
-
-	obpprddp = PyCom_PyObjectFromIUnknown(pprddp, IID_IDebugApplicationNode, FALSE);
-	PyObject *pyretval = Py_BuildValue("O", obpprddp);
-	Py_XDECREF(obpprddp);
-	return pyretval;
+	return PyCom_PyObjectFromIUnknown(pprddp, IID_IDebugApplicationNode, FALSE);
 }
 
 // @pymethod |PyIDebugApplicationNode|SetDocumentProvider|Description of SetDocumentProvider.

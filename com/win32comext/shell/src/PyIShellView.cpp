@@ -289,11 +289,7 @@ PyObject *PyIShellView::GetItemObject(PyObject *self, PyObject *args)
 	PY_INTERFACE_POSTCALL;
 	if ( FAILED(hr) )
 		return PyCom_BuildPyException(hr, pISV, IID_IShellView );
-	PyObject *obppv;
-	obppv = PyCom_PyObjectFromIUnknown(ppv, riid, FALSE);
-	PyObject *pyretval = Py_BuildValue("O", obppv);
-	Py_XDECREF(obppv);
-	return pyretval;
+	return PyCom_PyObjectFromIUnknown(ppv, riid, FALSE);
 }
 
 // @object PyIShellView|Description of the interface

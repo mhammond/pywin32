@@ -110,18 +110,12 @@ PyObject *PyIOleInPlaceSite::GetWindowContext(PyObject *self, PyObject *args)
 	if ( FAILED(hr) )
 		return OleSetOleError(hr);
 
-	PyObject *obppFrame;
-	PyObject *obppDoc;
-
-	obppFrame = PyCom_PyObjectFromIUnknown(ppFrame, IID_IOleInPlaceFrame, FALSE);
-	obppDoc = PyCom_PyObjectFromIUnknown(ppDoc, IID_IOleInPlaceUIWindow, FALSE);
-	PyObject *pyretval = Py_BuildValue("OO(llll)(llll)N", obppFrame, obppDoc,
+	return Py_BuildValue("NN(llll)(llll)N",
+		PyCom_PyObjectFromIUnknown(ppFrame, IID_IOleInPlaceFrame, FALSE),
+		PyCom_PyObjectFromIUnknown(ppDoc, IID_IOleInPlaceUIWindow, FALSE),
 		posRect.left, posRect.top, posRect.right, posRect.bottom,
 		clipRect.left, clipRect.top, clipRect.right, clipRect.bottom,
 		PyObject_FromOLEINPLACEFRAMEINFO(&fi));
-	Py_XDECREF(obppFrame);
-	Py_XDECREF(obppDoc);
-	return pyretval;
 }
 
 // @pymethod |PyIOleInPlaceSite|Scroll|Description of Scroll.

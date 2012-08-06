@@ -51,12 +51,7 @@ PyObject *PyIBackgroundCopyManager::CreateJob(PyObject *self, PyObject *args)
 
 	if ( FAILED(hr) )
 		return PyCom_BuildPyException(hr, pIBCM, IID_IBackgroundCopyManager );
-
-	PyObject *obppJob;
-	obppJob = PyCom_PyObjectFromIUnknown(ppJob, IID_IBackgroundCopyJob, FALSE);
-	PyObject *pyretval = Py_BuildValue("O", obppJob);
-	Py_XDECREF(obppJob);
-	return pyretval;
+	return PyCom_PyObjectFromIUnknown(ppJob, IID_IBackgroundCopyJob, FALSE);
 }
 
 // @pymethod |PyIBackgroundCopyManager|GetJob|Description of GetJob.
@@ -82,12 +77,7 @@ PyObject *PyIBackgroundCopyManager::GetJob(PyObject *self, PyObject *args)
 
 	if ( FAILED(hr) )
 		return PyCom_BuildPyException(hr, pIBCM, IID_IBackgroundCopyManager );
-	PyObject *obppJob;
-
-	obppJob = PyCom_PyObjectFromIUnknown(ppJob, IID_IBackgroundCopyJob, FALSE);
-	PyObject *pyretval = Py_BuildValue("O", obppJob);
-	Py_XDECREF(obppJob);
-	return pyretval;
+	return PyCom_PyObjectFromIUnknown(ppJob, IID_IBackgroundCopyJob, FALSE);
 }
 
 // @pymethod |PyIBackgroundCopyManager|EnumJobs|Description of EnumJobs.
@@ -109,12 +99,7 @@ PyObject *PyIBackgroundCopyManager::EnumJobs(PyObject *self, PyObject *args)
 
 	if ( FAILED(hr) )
 		return PyCom_BuildPyException(hr, pIBCM, IID_IBackgroundCopyManager );
-	PyObject *obppEnum;
-
-	obppEnum = PyCom_PyObjectFromIUnknown(ppEnum, IID_IEnumBackgroundCopyJobs, FALSE);
-	PyObject *pyretval = Py_BuildValue("O", obppEnum);
-	Py_XDECREF(obppEnum);
-	return pyretval;
+	return PyCom_PyObjectFromIUnknown(ppEnum, IID_IEnumBackgroundCopyJobs, FALSE);
 }
 
 // @pymethod |PyIBackgroundCopyManager|GetErrorDescription|Description of GetErrorDescription.

@@ -41,10 +41,7 @@ PyObject *PyIDebugDocumentProvider::GetDocument(PyObject *self, PyObject *args)
 	if ( FAILED(hr) )
 		return SetPythonCOMError(self,hr);
 
-	PyObject *obppssd = PyCom_PyObjectFromIUnknown(ppssd, IID_IDebugDocument, FALSE);
-	PyObject *pyretval = Py_BuildValue("O", obppssd);
-	Py_XDECREF(obppssd);
-	return pyretval;
+	return PyCom_PyObjectFromIUnknown(ppssd, IID_IDebugDocument, FALSE);
 }
 
 // @object PyIDebugDocumentProvider|Provides the means for instanciating a document on demand.  Derived from <o PyIDebugDocumentInfo>.

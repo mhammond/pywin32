@@ -45,12 +45,7 @@ PyObject *PyIActiveScriptSiteDebug::GetDocumentContextFromPosition(PyObject *sel
 	PY_INTERFACE_POSTCALL;
 	if ( FAILED(hr) )
 		return SetPythonCOMError(self,hr);
-	PyObject *obppsc;
-
-	obppsc = PyCom_PyObjectFromIUnknown(ppsc, IID_IDebugDocumentContext, FALSE);
-	PyObject *pyretval = Py_BuildValue("O", obppsc);
-	Py_XDECREF(obppsc);
-	return pyretval;
+	return PyCom_PyObjectFromIUnknown(ppsc, IID_IDebugDocumentContext, FALSE);
 }
 
 // @pymethod |PyIActiveScriptSiteDebug|GetApplication|Description of GetApplication.
@@ -68,12 +63,7 @@ PyObject *PyIActiveScriptSiteDebug::GetApplication(PyObject *self, PyObject *arg
 	PY_INTERFACE_POSTCALL;
 	if ( FAILED(hr) )
 		return SetPythonCOMError(self,hr);
-	PyObject *obppda;
-
-	obppda = PyCom_PyObjectFromIUnknown(ppda, IID_IDebugApplication, FALSE);
-	PyObject *pyretval = Py_BuildValue("O", obppda);
-	Py_XDECREF(obppda);
-	return pyretval;
+	return PyCom_PyObjectFromIUnknown(ppda, IID_IDebugApplication, FALSE);
 }
 
 // @pymethod |PyIActiveScriptSiteDebug|GetRootApplicationNode|Description of GetRootApplicationNode.
@@ -91,10 +81,7 @@ PyObject *PyIActiveScriptSiteDebug::GetRootApplicationNode(PyObject *self, PyObj
 	PY_INTERFACE_POSTCALL;
 	if ( FAILED(hr) )
 		return SetPythonCOMError(self,hr);
-	PyObject *obppdan = PyCom_PyObjectFromIUnknown(ppdan, IID_IDebugApplicationNode, FALSE);
-	PyObject *pyretval = Py_BuildValue("O", obppdan);
-	Py_XDECREF(obppdan);
-	return pyretval;
+	return PyCom_PyObjectFromIUnknown(ppdan, IID_IDebugApplicationNode, FALSE);
 }
 
 // @pymethod int, int|PyIActiveScriptSiteDebug|OnScriptErrorDebug|Allows a smart host to control the handling of runtime errors

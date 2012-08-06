@@ -116,10 +116,7 @@ PyObject *PyIActiveScriptDebug::EnumCodeContextsOfPosition(PyObject *self, PyObj
 	if ( FAILED(hr) )
 		return SetPythonCOMError(self,hr);
 
-	PyObject *obppescc = PyCom_PyObjectFromIUnknown(ppescc, IID_IEnumDebugCodeContexts, FALSE);
-	PyObject *pyretval = Py_BuildValue("O", obppescc);
-	Py_XDECREF(obppescc);
-	return pyretval;
+	return PyCom_PyObjectFromIUnknown(ppescc, IID_IEnumDebugCodeContexts, FALSE);
 }
 
 

@@ -58,12 +58,7 @@ PyObject *PyIDebugExpressionContext::ParseLanguageText(PyObject *self, PyObject 
 
 	if ( FAILED(hr) )
 		return OleSetOleError(hr);
-	PyObject *obppe;
-
-	obppe = PyCom_PyObjectFromIUnknown(ppe, IID_IDebugExpression, FALSE);
-	PyObject *pyretval = Py_BuildValue("O", obppe);
-	Py_XDECREF(obppe);
-	return pyretval;
+	return PyCom_PyObjectFromIUnknown(ppe, IID_IDebugExpression, FALSE);
 }
 
 // @pymethod |PyIDebugExpressionContext|GetLanguageInfo|Description of GetLanguageInfo.

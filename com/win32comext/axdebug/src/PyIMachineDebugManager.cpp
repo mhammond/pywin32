@@ -87,10 +87,7 @@ PyObject *PyIMachineDebugManager::EnumApplications(PyObject *self, PyObject *arg
 	if ( FAILED(hr) )
 		return SetPythonCOMError(self,hr);
 
-	PyObject *obppeda = PyCom_PyObjectFromIUnknown(ppeda, IID_IEnumRemoteDebugApplications, FALSE);
-	PyObject *pyretval = Py_BuildValue("O", obppeda);
-	Py_XDECREF(obppeda);
-	return pyretval;
+	return PyCom_PyObjectFromIUnknown(ppeda, IID_IEnumRemoteDebugApplications, FALSE);
 }
 
 // @object PyIMachineDebugManager|Description of the interface

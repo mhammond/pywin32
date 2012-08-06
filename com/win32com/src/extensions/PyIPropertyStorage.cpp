@@ -740,12 +740,7 @@ PyObject *PyIPropertyStorage::Enum(PyObject *self, PyObject *args)
 
 	if ( FAILED(hr) )
 		return PyCom_BuildPyException(hr, pIPS, IID_IPropertyStorage);
-	PyObject *obppenum;
-
-	obppenum = PyCom_PyObjectFromIUnknown(ppenum, IID_IEnumSTATPROPSTG, FALSE);
-	PyObject *pyretval = Py_BuildValue("O", obppenum);
-	Py_XDECREF(obppenum);
-	return pyretval;
+	return PyCom_PyObjectFromIUnknown(ppenum, IID_IEnumSTATPROPSTG, FALSE);
 }
 
 // @pymethod |PyIPropertyStorage|SetTimes|Sets the creation, last access, and modification time

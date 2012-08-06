@@ -193,12 +193,7 @@ PyObject *PyIDebugDocumentText::GetContextOfPosition(PyObject *self, PyObject *a
 	PY_INTERFACE_POSTCALL;
 	if ( FAILED(hr) )
 		return SetPythonCOMError(self,hr);
-	PyObject *obppsc;
-
-	obppsc = PyCom_PyObjectFromIUnknown(ppsc, IID_IDebugDocumentContext, FALSE);
-	PyObject *pyretval = Py_BuildValue("O", obppsc);
-	Py_XDECREF(obppsc);
-	return pyretval;
+	return PyCom_PyObjectFromIUnknown(ppsc, IID_IDebugDocumentContext, FALSE);
 }
 
 // @object PyIDebugDocumentText|The interface to a text only debug document. Derived from <o PyIDebugDocument>

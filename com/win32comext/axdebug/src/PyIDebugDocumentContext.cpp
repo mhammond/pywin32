@@ -41,12 +41,7 @@ PyObject *PyIDebugDocumentContext::GetDocument(PyObject *self, PyObject *args)
 	PY_INTERFACE_POSTCALL;
 	if ( FAILED(hr) )
 		return SetPythonCOMError(self,hr);
-	PyObject *obppsd;
-
-	obppsd = PyCom_PyObjectFromIUnknown(ppsd, IID_IDebugDocument, FALSE);
-	PyObject *pyretval = Py_BuildValue("O", obppsd);
-	Py_XDECREF(obppsd);
-	return pyretval;
+	return PyCom_PyObjectFromIUnknown(ppsd, IID_IDebugDocument, FALSE);
 }
 
 // @pymethod |PyIDebugDocumentContext|EnumCodeContexts|Description of EnumCodeContexts.
@@ -64,12 +59,7 @@ PyObject *PyIDebugDocumentContext::EnumCodeContexts(PyObject *self, PyObject *ar
 	PY_INTERFACE_POSTCALL;
 	if ( FAILED(hr) )
 		return SetPythonCOMError(self,hr);
-	PyObject *obppescc;
-
-	obppescc = PyCom_PyObjectFromIUnknown(ppescc, IID_IEnumDebugCodeContexts, FALSE);
-	PyObject *pyretval = Py_BuildValue("O", obppescc);
-	Py_XDECREF(obppescc);
-	return pyretval;
+	return PyCom_PyObjectFromIUnknown(ppescc, IID_IEnumDebugCodeContexts, FALSE);
 }
 
 // @object PyIDebugDocumentContext|Description of the interface

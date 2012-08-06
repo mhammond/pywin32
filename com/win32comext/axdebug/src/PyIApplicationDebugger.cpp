@@ -78,12 +78,7 @@ PyObject *PyIApplicationDebugger::CreateInstanceAtDebugger(PyObject *self, PyObj
 	PY_INTERFACE_POSTCALL;
 	if ( FAILED(hr) )
 		return SetPythonCOMError(self,hr);
-	PyObject *obppvObject;
-
-	obppvObject = PyCom_PyObjectFromIUnknown(ppvObject, IID_IUnknown, FALSE);
-	PyObject *pyretval = Py_BuildValue("O", obppvObject);
-	Py_XDECREF(obppvObject);
-	return pyretval;
+	return PyCom_PyObjectFromIUnknown(ppvObject, IID_IUnknown, FALSE);
 }
 
 // @pymethod |PyIApplicationDebugger|onDebugOutput|Called when <om PyIDebugApplication.DebugOutput> is called.

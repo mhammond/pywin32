@@ -40,12 +40,7 @@ PyObject *PyIDebugSyncOperation::GetTargetThread(PyObject *self, PyObject *args)
 	PY_INTERFACE_POSTCALL;
 	if ( FAILED(hr) )
 		return OleSetOleError(hr);
-	PyObject *obppatTarget;
-
-	obppatTarget = PyCom_PyObjectFromIUnknown(ppatTarget, IID_IDebugApplicationThread, FALSE);
-	PyObject *pyretval = Py_BuildValue("O", obppatTarget);
-	Py_XDECREF(obppatTarget);
-	return pyretval;
+	return PyCom_PyObjectFromIUnknown(ppatTarget, IID_IDebugApplicationThread, FALSE);
 }
 
 // @pymethod |PyIDebugSyncOperation|Execute|Description of Execute.
@@ -62,12 +57,7 @@ PyObject *PyIDebugSyncOperation::Execute(PyObject *self, PyObject *args)
 	PY_INTERFACE_POSTCALL;
 	if ( FAILED(hr) )
 		return OleSetOleError(hr);
-	PyObject *obppunkResult;
-
-	obppunkResult = PyCom_PyObjectFromIUnknown(ppunkResult, IID_IUnknown, FALSE);
-	PyObject *pyretval = Py_BuildValue("O", obppunkResult);
-	Py_XDECREF(obppunkResult);
-	return pyretval;
+	return PyCom_PyObjectFromIUnknown(ppunkResult, IID_IUnknown, FALSE);
 }
 
 // @pymethod |PyIDebugSyncOperation|InProgressAbort|Description of InProgressAbort.

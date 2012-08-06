@@ -39,12 +39,7 @@ PyObject *PyIDebugCodeContext::GetDocumentContext(PyObject *self, PyObject *args
 	PY_INTERFACE_POSTCALL;
 	if ( FAILED(hr) )
 		return SetPythonCOMError(self,hr);
-	PyObject *obppsc;
-
-	obppsc = PyCom_PyObjectFromIUnknown(ppsc, IID_IDebugDocumentContext, FALSE);
-	PyObject *pyretval = Py_BuildValue("O", obppsc);
-	Py_XDECREF(obppsc);
-	return pyretval;
+	return PyCom_PyObjectFromIUnknown(ppsc, IID_IDebugDocumentContext, FALSE);
 }
 
 // @pymethod |PyIDebugCodeContext|SetBreakPoint|Description of SetBreakPoint.

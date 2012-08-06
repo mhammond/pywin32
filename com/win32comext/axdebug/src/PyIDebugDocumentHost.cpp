@@ -109,12 +109,7 @@ PyObject *PyIDebugDocumentHost::OnCreateDocumentContext(PyObject *self, PyObject
 	PY_INTERFACE_POSTCALL;
 	if ( FAILED(hr) )
 		return OleSetOleError(hr);
-	PyObject *obppunkOuter;
-
-	obppunkOuter = PyCom_PyObjectFromIUnknown(ppunkOuter, IID_IUnknown, FALSE);
-	PyObject *pyretval = Py_BuildValue("O", obppunkOuter);
-	Py_XDECREF(obppunkOuter);
-	return pyretval;
+	return PyCom_PyObjectFromIUnknown(ppunkOuter, IID_IUnknown, FALSE);
 }
 
 // @pymethod |PyIDebugDocumentHost|GetPathName|Description of GetPathName.

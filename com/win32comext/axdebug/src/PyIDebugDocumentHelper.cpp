@@ -390,12 +390,7 @@ PyObject *PyIDebugDocumentHelper::GetDebugApplicationNode(PyObject *self, PyObje
 	PY_INTERFACE_POSTCALL;
 	if ( FAILED(hr) )
 		return OleSetOleError(hr);
-	PyObject *obppdan;
-
-	obppdan = PyCom_PyObjectFromIUnknown(ppdan, IID_IDebugApplicationNode, FALSE);
-	PyObject *pyretval = Py_BuildValue("O", obppdan);
-	Py_XDECREF(obppdan);
-	return pyretval;
+	return PyCom_PyObjectFromIUnknown(ppdan, IID_IDebugApplicationNode, FALSE);
 }
 
 // @pymethod |PyIDebugDocumentHelper|GetScriptBlockInfo|Description of GetScriptBlockInfo.
@@ -417,12 +412,8 @@ PyObject *PyIDebugDocumentHelper::GetScriptBlockInfo(PyObject *self, PyObject *a
 	PY_INTERFACE_POSTCALL;
 	if ( FAILED(hr) )
 		return OleSetOleError(hr);
-	PyObject *obppasd;
-
-	obppasd = PyCom_PyObjectFromIUnknown(ppasd, IID_IActiveScript, FALSE);
-	PyObject *pyretval = Py_BuildValue("Oii", obppasd, piCharPos, pcChars);
-	Py_XDECREF(obppasd);
-	return pyretval;
+	PyObject *obppasd = PyCom_PyObjectFromIUnknown(ppasd, IID_IActiveScript, FALSE);
+	return Py_BuildValue("Nii", obppasd, piCharPos, pcChars);
 }
 
 // @pymethod |PyIDebugDocumentHelper|CreateDebugDocumentContext|Description of CreateDebugDocumentContext.
@@ -444,12 +435,7 @@ PyObject *PyIDebugDocumentHelper::CreateDebugDocumentContext(PyObject *self, PyO
 	PY_INTERFACE_POSTCALL;
 	if ( FAILED(hr) )
 		return OleSetOleError(hr);
-	PyObject *obppddc;
-
-	obppddc = PyCom_PyObjectFromIUnknown(ppddc, IID_IDebugDocumentContext, FALSE);
-	PyObject *pyretval = Py_BuildValue("O", obppddc);
-	Py_XDECREF(obppddc);
-	return pyretval;
+	return PyCom_PyObjectFromIUnknown(ppddc, IID_IDebugDocumentContext, FALSE);
 }
 
 // @pymethod |PyIDebugDocumentHelper|BringDocumentToTop|Description of BringDocumentToTop.

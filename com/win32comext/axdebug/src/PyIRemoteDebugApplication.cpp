@@ -133,11 +133,7 @@ PyObject *PyIRemoteDebugApplication::GetDebugger(PyObject *self, PyObject *args)
 	PY_INTERFACE_POSTCALL;
 	if ( FAILED(hr) )
 		return SetPythonCOMError(self,hr);
-
-	PyObject *obpad = PyCom_PyObjectFromIUnknown(pad, IID_IApplicationDebugger, FALSE);
-	PyObject *pyretval = Py_BuildValue("O", obpad);
-	Py_XDECREF(obpad);
-	return pyretval;
+	return PyCom_PyObjectFromIUnknown(pad, IID_IApplicationDebugger, FALSE);
 }
 
 // @pymethod <o PyIUnknown>|PyIRemoteDebugApplication|CreateInstanceAtApplication|Create objects in the application process address space.
@@ -177,10 +173,7 @@ PyObject *PyIRemoteDebugApplication::CreateInstanceAtApplication(PyObject *self,
 	if ( FAILED(hr) )
 		return SetPythonCOMError(self,hr);
 
-	PyObject *obppvObject = PyCom_PyObjectFromIUnknown(ppvObject, IID_IUnknown, FALSE);
-	PyObject *pyretval = Py_BuildValue("O", obppvObject);
-	Py_XDECREF(obppvObject);
-	return pyretval;
+	return PyCom_PyObjectFromIUnknown(ppvObject, IID_IUnknown, FALSE);
 }
 
 // @pymethod |PyIRemoteDebugApplication|QueryAlive|Returns True if alive, else False.

@@ -128,11 +128,7 @@ PyObject *PyIDebugExpression::GetResultAsDebugProperty(PyObject *self, PyObject 
 	if ( FAILED(hr) )
 		return SetPythonCOMError(self,hr);
 	PyObject *obDebugProperties = PyCom_PyObjectFromIUnknown(pdp, IID_IDebugProperty, FALSE /* AddRef? */);
-	if (obDebugProperties==NULL)
-		return NULL;
-	PyObject *pyretval = Py_BuildValue("iO", phrResult, obDebugProperties);
-	Py_DECREF(obDebugProperties);
-	return pyretval;
+	return Py_BuildValue("iN", phrResult, obDebugProperties);
 }
 
 // @object PyIDebugExpression|Description of the interface

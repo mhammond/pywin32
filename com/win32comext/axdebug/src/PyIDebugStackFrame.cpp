@@ -38,12 +38,7 @@ PyObject *PyIDebugStackFrame::GetCodeContext(PyObject *self, PyObject *args)
 	PY_INTERFACE_POSTCALL;
 	if ( FAILED(hr) )
 		return SetPythonCOMError(self,hr);
-	PyObject *obppcc;
-
-	obppcc = PyCom_PyObjectFromIUnknown(ppcc, IID_IDebugCodeContext, FALSE);
-	PyObject *pyretval = Py_BuildValue("O", obppcc);
-	Py_XDECREF(obppcc);
-	return pyretval;
+	return PyCom_PyObjectFromIUnknown(ppcc, IID_IDebugCodeContext, FALSE);
 }
 
 // @pymethod <o unicode>|PyIDebugStackFrame|GetDescriptionString|Returns a short or long textual description of the stack frame.
@@ -107,12 +102,7 @@ PyObject *PyIDebugStackFrame::GetThread(PyObject *self, PyObject *args)
 	PY_INTERFACE_POSTCALL;
 	if ( FAILED(hr) )
 		return SetPythonCOMError(self,hr);
-	PyObject *obppat;
-
-	obppat = PyCom_PyObjectFromIUnknown(ppat, IID_IDebugApplicationThread, FALSE);
-	PyObject *pyretval = Py_BuildValue("O", obppat);
-	Py_XDECREF(obppat);
-	return pyretval;
+	return PyCom_PyObjectFromIUnknown(ppat, IID_IDebugApplicationThread, FALSE);
 }
 
 // @pymethod <o PyIDebugProperty>|PyIDebugStackFrame|GetDebugProperty|Returns the debug property.
@@ -129,12 +119,7 @@ PyObject *PyIDebugStackFrame::GetDebugProperty(PyObject *self, PyObject *args)
 	PY_INTERFACE_POSTCALL;
 	if ( FAILED(hr) )
 		return SetPythonCOMError(self,hr);
-	PyObject *obppat;
-
-	obppat = PyCom_PyObjectFromIUnknown(ppdp, IID_IDebugProperty, FALSE);
-	PyObject *pyretval = Py_BuildValue("O", obppat);
-	Py_XDECREF(obppat);
-	return pyretval;
+	return PyCom_PyObjectFromIUnknown(ppdp, IID_IDebugProperty, FALSE);
 }
 
 // @object PyIDebugStackFrame|Description of the interface

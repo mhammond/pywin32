@@ -808,18 +808,11 @@ static PyObject *pythoncom_MkParseDisplayName(PyObject *self, PyObject *args)
 		Py_DECREF(obBindCtx);
 		return PyCom_BuildPyException(hr);
 	}
-
-	/* pass ownership of the moniker into the result */
-	PyObject *obMoniker = PyCom_PyObjectFromIUnknown(pmk, IID_IMoniker, FALSE);
-
 	/* build the result */
-	PyObject *result = Py_BuildValue("OiO", obMoniker, chEaten, obBindCtx);
-
-	/* done with these obs */
-	Py_XDECREF(obMoniker);
-	Py_DECREF(obBindCtx);
-
-	return result;
+	return Py_BuildValue("NiN",
+			     PyCom_PyObjectFromIUnknown(pmk, IID_IMoniker, FALSE),
+			     chEaten,
+			     obBindCtx);
 }
 
 // @pymethod <o PyIMoniker>|pythoncom|CreatePointerMoniker|Creates a new <o PyIMoniker> object.

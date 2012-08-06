@@ -38,12 +38,7 @@ PyObject *PyIProcessDebugManager::CreateApplication(PyObject *self, PyObject *ar
 	PY_INTERFACE_POSTCALL;
 	if ( FAILED(hr) )
 		return SetPythonCOMError(self,hr);
-	PyObject *obppda;
-
-	obppda = PyCom_PyObjectFromIUnknown(ppda, IID_IDebugApplication, FALSE);
-	PyObject *pyretval = Py_BuildValue("O", obppda);
-	Py_XDECREF(obppda);
-	return pyretval;
+	return PyCom_PyObjectFromIUnknown(ppda, IID_IDebugApplication, FALSE);
 }
 
 // @pymethod |PyIProcessDebugManager|GetDefaultApplication|Description of GetDefaultApplication.
@@ -60,12 +55,7 @@ PyObject *PyIProcessDebugManager::GetDefaultApplication(PyObject *self, PyObject
 	PY_INTERFACE_POSTCALL;
 	if ( FAILED(hr) )
 		return SetPythonCOMError(self,hr);
-	PyObject *obppda;
-
-	obppda = PyCom_PyObjectFromIUnknown(ppda, IID_IDebugApplication, FALSE);
-	PyObject *pyretval = Py_BuildValue("O", obppda);
-	Py_XDECREF(obppda);
-	return pyretval;
+	return PyCom_PyObjectFromIUnknown(ppda, IID_IDebugApplication, FALSE);
 }
 
 // @pymethod |PyIProcessDebugManager|AddApplication|Description of AddApplication.

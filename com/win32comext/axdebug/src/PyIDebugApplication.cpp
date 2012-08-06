@@ -209,12 +209,7 @@ PyObject *PyIDebugApplication::GetCurrentThread(PyObject *self, PyObject *args)
 	PY_INTERFACE_POSTCALL;
 	if ( FAILED(hr) )
 		return SetPythonCOMError(self,hr);
-	PyObject *obpat;
-
-	obpat = PyCom_PyObjectFromIUnknown(pat, IID_IDebugApplicationThread, FALSE);
-	PyObject *pyretval = Py_BuildValue("O", obpat);
-	Py_XDECREF(obpat);
-	return pyretval;
+	return PyCom_PyObjectFromIUnknown(pat, IID_IDebugApplicationThread, FALSE);
 }
 
 // @pymethod |PyIDebugApplication|CreateAsyncDebugOperation|Creates an IDebugAsyncOperation object to wrap a provided <o PyIDebugSyncOperation> object.
@@ -244,12 +239,7 @@ PyObject *PyIDebugApplication::CreateAsyncDebugOperation(PyObject *self, PyObjec
 	PY_INTERFACE_POSTCALL;
 	if ( FAILED(hr) )
 		return SetPythonCOMError(self,hr);
-	PyObject *obppado;
-
-	obppado = PyCom_PyObjectFromIUnknown(ppado, IID_IDebugAsyncOperation, FALSE);
-	PyObject *pyretval = Py_BuildValue("O", obppado);
-	Py_XDECREF(obppado);
-	return pyretval;
+	return PyCom_PyObjectFromIUnknown(ppado, IID_IDebugAsyncOperation, FALSE);
 }
 
 // @pymethod int|PyIDebugApplication|AddStackFrameSniffer|Adds a stack frame sniffer to this application.
@@ -375,10 +365,7 @@ PyObject *PyIDebugApplication::CreateApplicationNode(PyObject *self, PyObject *a
 	PY_INTERFACE_POSTCALL;
 	if ( FAILED(hr) )
 		return SetPythonCOMError(self,hr);
-	PyObject *obnode = PyCom_PyObjectFromIUnknown(pnode, IID_IDebugApplicationNode, FALSE);
-	PyObject *pyretval = Py_BuildValue("O", obnode);
-	Py_XDECREF(obnode);
-	return pyretval;
+	return PyCom_PyObjectFromIUnknown(pnode, IID_IDebugApplicationNode, FALSE);
 }
 
 // @pymethod |PyIDebugApplication|FireDebuggerEvent|Fire a generic event to the IApplicationDebugger (if any)

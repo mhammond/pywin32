@@ -262,12 +262,7 @@ PyObject *PyIDebugProperty::EnumMembers(PyObject *self, PyObject *args)
 
 	if ( FAILED(hr) )
 		return OleSetOleError(hr);
-	PyObject *obppepi;
-
-	obppepi = PyCom_PyObjectFromIUnknown(ppepi, IID_IEnumDebugPropertyInfo, FALSE);
-	PyObject *pyretval = Py_BuildValue("O", obppepi);
-	Py_XDECREF(obppepi);
-	return pyretval;
+	return PyCom_PyObjectFromIUnknown(ppepi, IID_IEnumDebugPropertyInfo, FALSE);
 }
 
 // @pymethod |PyIDebugProperty|GetParent|Description of GetParent.
@@ -286,12 +281,7 @@ PyObject *PyIDebugProperty::GetParent(PyObject *self, PyObject *args)
 
 	if ( FAILED(hr) )
 		return OleSetOleError(hr);
-	PyObject *obppDebugProp;
-
-	obppDebugProp = PyCom_PyObjectFromIUnknown(ppDebugProp, IID_IDebugProperty, FALSE);
-	PyObject *pyretval = Py_BuildValue("O", obppDebugProp);
-	Py_XDECREF(obppDebugProp);
-	return pyretval;
+	return PyCom_PyObjectFromIUnknown(ppDebugProp, IID_IDebugProperty, FALSE);
 }
 
 // @object PyIDebugProperty|Description of the interface

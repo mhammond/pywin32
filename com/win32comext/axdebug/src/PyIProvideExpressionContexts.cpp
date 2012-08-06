@@ -43,12 +43,7 @@ PyObject *PyIProvideExpressionContexts::EnumExpressionContexts(PyObject *self, P
 
 	if ( FAILED(hr) )
 		return OleSetOleError(hr);
-	PyObject *obppedsf;
-
-	obppedsf = PyCom_PyObjectFromIUnknown(ppedsf, IID_IEnumDebugExpressionContexts, FALSE);
-	PyObject *pyretval = Py_BuildValue("O", obppedsf);
-	Py_XDECREF(obppedsf);
-	return pyretval;
+	return PyCom_PyObjectFromIUnknown(ppedsf, IID_IEnumDebugExpressionContexts, FALSE);
 }
 
 

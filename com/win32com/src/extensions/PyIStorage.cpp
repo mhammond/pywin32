@@ -325,10 +325,7 @@ PyObject *PyIStorage::EnumElements(PyObject *self, PyObject *args)
 	if ( FAILED(hr) )
 		return PyCom_BuildPyException(hr, pIS, IID_IStorage);
 
-	PyObject *obppenum = PyCom_PyObjectFromIUnknown(ppenum, IID_IEnumSTATSTG, FALSE);
-	PyObject *pyretval = Py_BuildValue("O", obppenum);
-	Py_XDECREF(obppenum);
-	return pyretval;
+	return PyCom_PyObjectFromIUnknown(ppenum, IID_IEnumSTATSTG, FALSE);
 }
 
 // @pymethod |PyIStorage|DestroyElement|Removes the specified storage or stream from this storage object.

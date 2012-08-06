@@ -71,12 +71,7 @@ PyObject *PyIOleObject::GetClientSite(PyObject *self, PyObject *args)
 
 	if ( FAILED(hr) )
 		return OleSetOleError(hr);
-	PyObject *obppClientSite;
-
-	obppClientSite = PyCom_PyObjectFromIUnknown(ppClientSite, IID_IOleClientSite, FALSE);
-	PyObject *pyretval = Py_BuildValue("O", obppClientSite);
-	Py_XDECREF(obppClientSite);
-	return pyretval;
+	return PyCom_PyObjectFromIUnknown(ppClientSite, IID_IOleClientSite, FALSE);
 }
 
 // @pymethod |PyIOleObject|SetHostNames|Description of SetHostNames.
@@ -183,12 +178,7 @@ PyObject *PyIOleObject::GetMoniker(PyObject *self, PyObject *args)
 
 	if ( FAILED(hr) )
 		return OleSetOleError(hr);
-	PyObject *obppmk;
-
-	obppmk = PyCom_PyObjectFromIUnknown(ppmk, IID_IMoniker, FALSE);
-	PyObject *pyretval = Py_BuildValue("O", obppmk);
-	Py_XDECREF(obppmk);
-	return pyretval;
+	return PyCom_PyObjectFromIUnknown(ppmk, IID_IMoniker, FALSE);
 }
 
 // @pymethod |PyIOleObject|InitFromData|Description of InitFromData.
@@ -241,12 +231,7 @@ PyObject *PyIOleObject::GetClipboardData(PyObject *self, PyObject *args)
 
 	if ( FAILED(hr) )
 		return OleSetOleError(hr);
-	PyObject *obppDataObject;
-
-	obppDataObject = PyCom_PyObjectFromIUnknown(ppDataObject, IID_IDataObject, FALSE);
-	PyObject *pyretval = Py_BuildValue("O", obppDataObject);
-	Py_XDECREF(obppDataObject);
-	return pyretval;
+	return PyCom_PyObjectFromIUnknown(ppDataObject, IID_IDataObject, FALSE);
 }
 
 // @pymethod |PyIOleObject|DoVerb|Description of DoVerb.
@@ -313,12 +298,7 @@ PyObject *PyIOleObject::EnumVerbs(PyObject *self, PyObject *args)
 
 	if ( FAILED(hr) )
 		return OleSetOleError(hr);
-	PyObject *obppEnumOleVerb;
-
-	obppEnumOleVerb = PyCom_PyObjectFromIUnknown(ppEnumOleVerb, IID_IEnumOLEVERB, FALSE);
-	PyObject *pyretval = Py_BuildValue("O", obppEnumOleVerb);
-	Py_XDECREF(obppEnumOleVerb);
-	return pyretval;
+	return PyCom_PyObjectFromIUnknown(ppEnumOleVerb, IID_IEnumOLEVERB, FALSE);
 }
 
 // @pymethod |PyIOleObject|Update|Description of Update.
@@ -529,12 +509,7 @@ PyObject *PyIOleObject::EnumAdvise(PyObject *self, PyObject *args)
 
 	if ( FAILED(hr) )
 		return OleSetOleError(hr);
-	PyObject *obppenumAdvise;
-
-	obppenumAdvise = PyCom_PyObjectFromIUnknown(ppenumAdvise, IID_IEnumSTATDATA, FALSE);
-	PyObject *pyretval = Py_BuildValue("O", obppenumAdvise);
-	Py_XDECREF(obppenumAdvise);
-	return pyretval;
+	return PyCom_PyObjectFromIUnknown(ppenumAdvise, IID_IEnumSTATDATA, FALSE);
 }
 
 // @pymethod |PyIOleObject|GetMiscStatus|Description of GetMiscStatus.

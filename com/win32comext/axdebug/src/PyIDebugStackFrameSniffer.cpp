@@ -38,12 +38,7 @@ PyObject *PyIDebugStackFrameSniffer::EnumStackFrames(PyObject *self, PyObject *a
 	PY_INTERFACE_POSTCALL;
 	if ( FAILED(hr) )
 		return SetPythonCOMError(self,hr);
-	PyObject *obppedsf;
-
-	obppedsf = PyCom_PyObjectFromIUnknown(ppedsf, IID_IEnumDebugStackFrames, FALSE);
-	PyObject *pyretval = Py_BuildValue("O", obppedsf);
-	Py_XDECREF(obppedsf);
-	return pyretval;
+	return PyCom_PyObjectFromIUnknown(ppedsf, IID_IEnumDebugStackFrames, FALSE);
 }
 
 // @object PyIDebugStackFrameSniffer|Description of the interface
