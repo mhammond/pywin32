@@ -1032,18 +1032,10 @@ PythonOleArgHelper::~PythonOleArgHelper()
 					SysFreeString((BSTR)m_pValueHolder);
 				break;
 			case VT_DISPATCH | VT_BYREF:
-				if (m_dispBuf) {
-					PY_INTERFACE_PRECALL;
-					m_dispBuf->Release();
-					PY_INTERFACE_POSTCALL;
-				}
+				PYCOM_RELEASE(m_dispBuf);
 				break;
 			case VT_UNKNOWN | VT_BYREF:
-				if (m_unkBuf) {
-					PY_INTERFACE_PRECALL;
-					m_unkBuf->Release();
-					PY_INTERFACE_POSTCALL;
-				}
+				PYCOM_RELEASE(m_unkBuf);
 				break;
 			case VT_VARIANT | VT_BYREF:
 				if (m_varBuf) {

@@ -104,11 +104,7 @@ PYCOM_EXPORT BOOL PyObject_AsCurrency(PyObject *ob, CURRENCY *pcy)
 // caller is asking us to take ownership of the COM reference.  If we
 // fail to create a Python object, we must release the reference.
 #define POFIU_RELEASE_ON_FAILURE \
-	if (!bAddRef) { \
-			PY_INTERFACE_PRECALL; \
-			punk->Release(); \
-			PY_INTERFACE_POSTCALL; \
-		}
+	if (!bAddRef) PYCOM_RELEASE(punk)
 
 
 // Interface conversions

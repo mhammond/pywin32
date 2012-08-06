@@ -830,11 +830,7 @@ PyObject *pythoncom_registertypelib(PyObject *self, PyObject *args)
 done:
 	if (bstrPath) SysFreeString(bstrPath);
 	if (bstrHelpDir) SysFreeString(bstrHelpDir);
-	if (pLib) {
-		PY_INTERFACE_PRECALL;
-		pLib->Release();
-		PY_INTERFACE_POSTCALL;
-	}
+	PYCOM_RELEASE(pLib);
 	return result;
 	// @comm This function can be used during application initialization to register the application's type 
 	// library correctly. When RegisterTypeLib is called to register a type library, 

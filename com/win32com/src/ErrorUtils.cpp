@@ -596,9 +596,7 @@ PyObject *PyCom_BuildPyException(HRESULT errorhr, IUnknown *pUnk /* = NULL */, R
 			Py_END_ALLOW_THREADS
 			if (hr==S_OK) {
 				obEI = PyCom_PyObjectFromIErrorInfo(pEI, errorhr);
-				Py_BEGIN_ALLOW_THREADS
-				pEI->Release();
-				Py_END_ALLOW_THREADS
+				PYCOM_RELEASE(pEI);
 			}
 		}
 	}

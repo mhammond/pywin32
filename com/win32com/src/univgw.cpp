@@ -624,11 +624,7 @@ static PyObject * univgw_CreateTearOff(PyObject *self, PyObject *args)
 
 	// Do all of the grunt work.
 	punk = CreateTearOff(obInstance, base, obVTable);
-	if (base) {
-		PY_INTERFACE_PRECALL;
-		base->Release();
-		PY_INTERFACE_POSTCALL;
-	}
+	PYCOM_RELEASE(base)
 	if (!punk)
 		return NULL;
 
@@ -686,9 +682,7 @@ static HRESULT CreateRegisteredTearOff(PyObject *pPyInstance, PyGatewayBase *bas
 	// Do all of the grunt work.
 	*ppResult = CreateTearOff(pPyInstance, base, obVTable);
 	if (bCreatedBase) {
-		PY_INTERFACE_PRECALL;
-		base->Release();
-		PY_INTERFACE_POSTCALL;
+		PYCOM_RELEASE(base);
 	}
 	if (*ppResult == NULL)
 		return E_FAIL;

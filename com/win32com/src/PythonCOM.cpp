@@ -1393,9 +1393,7 @@ static PyObject *pythoncom_OleSaveToStream(PyObject *self, PyObject*args)
 	IStream *pStream;
 	if (!PyCom_InterfaceFromPyObject(obStream, IID_IStream, (void **)&pStream, FALSE))
 	{
-		PY_INTERFACE_PRECALL;
-		if(pPersist) pPersist->Release();
-		PY_INTERFACE_POSTCALL;
+		PYCOM_RELEASE(pPersist);
 		return NULL;
 	}
 

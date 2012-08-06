@@ -2628,11 +2628,7 @@ done:
 		PyObject_FreePIDL(parent);
 	if (children)
 		PyObject_FreePIDLArray(nchildren, children);
-	if (do_inner) {
-		PY_INTERFACE_PRECALL;
-		do_inner->Release();
-		PY_INTERFACE_POSTCALL;
-	}
+	PYCOM_RELEASE(do_inner);
 	return ret;
 }
 
@@ -2757,11 +2753,7 @@ done:
 		PyObject_FreePIDL(parent);
 	if (children)
 		PyObject_FreePIDLArray(nchildren, children);
-	if (sf) {
-		PY_INTERFACE_PRECALL;
-		sf->Release();
-		PY_INTERFACE_POSTCALL;
-	}
+	PYCOM_RELEASE(sf);
 	return ret;
 }
 
@@ -2801,11 +2793,7 @@ static PyObject *PySHCreateShellItemArrayFromDataObject(PyObject *self, PyObject
 	// ref on view consumed by ret object.
 	ret = PyCom_PyObjectFromIUnknown((IUnknown *)iret, iid, FALSE);
 done:
-	if (ido) {
-		PY_INTERFACE_PRECALL;
-		ido->Release();
-		PY_INTERFACE_POSTCALL;
-	}
+	PYCOM_RELEASE(ido);
 	return ret;
 }
 
@@ -2881,11 +2869,7 @@ static PyObject *PySHCreateShellItemArrayFromShellItem(PyObject *self, PyObject 
 	// ref on view consumed by ret object.
 	ret = PyCom_PyObjectFromIUnknown((IUnknown *)iret, iid, FALSE);
 done:
-	if (isi) {
-		PY_INTERFACE_PRECALL;
-		isi->Release();
-		PY_INTERFACE_POSTCALL;
-	}
+	PYCOM_RELEASE(isi);
 	return ret;
 }
 
@@ -2968,11 +2952,7 @@ static PyObject *PySHCreateItemFromParsingName(PyObject *self, PyObject *args)
 	ret = PyCom_PyObjectFromIUnknown((IUnknown *)out, iid, FALSE);
 
 done:
-	if (ctx) {
-		PY_INTERFACE_PRECALL;
-		ctx->Release();
-		PY_INTERFACE_POSTCALL;
-	}
+	PYCOM_RELEASE(ctx);
 	if (name)
 		PyWinObject_FreeWCHAR(name);
 
@@ -3138,12 +3118,7 @@ done:
 		PyObject_FreePIDL(parentpidl);
 	if (pidl)
 		PyObject_FreePIDL(pidl);
-	if (sfparent) {
-		PY_INTERFACE_PRECALL;
-		sfparent->Release();
-		PY_INTERFACE_POSTCALL;
-	}
-
+	PYCOM_RELEASE(sfparent);
 	return ret;
 }
 
@@ -3180,11 +3155,7 @@ static PyObject *PySHGetIDListFromObject(PyObject *self, PyObject *args)
 	}
 	ret = PyObject_FromPIDL(pidl, TRUE);
 done:
-	if (unk) {
-		PY_INTERFACE_PRECALL;
-		unk->Release();
-		PY_INTERFACE_POSTCALL;
-	}
+	PYCOM_RELEASE(unk);
 	return ret;
 }
 
@@ -3226,11 +3197,7 @@ static PyObject *PySHCreateShellItem(PyObject *self, PyObject *args)
 	}
 	ret = PyCom_PyObjectFromIUnknown((IUnknown *)isi, IID_IShellItem, FALSE);
 done:
-	if (parent_folder) {
-		PY_INTERFACE_PRECALL;
-		parent_folder->Release();
-		PY_INTERFACE_POSTCALL;
-	}
+	PYCOM_RELEASE(parent_folder);
 	if (parent_pidl)
 		PyObject_FreePIDL(parent_pidl);
 	if (item)

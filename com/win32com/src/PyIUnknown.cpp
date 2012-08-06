@@ -245,11 +245,7 @@ PyObject *PyIUnknown::QueryInterface(PyObject *self, PyObject *args)
 		PyErr_Clear();
 		rc = PyCom_PyObjectFromIUnknown(punk, useIID, TRUE);
 	}
-	{
-	PY_INTERFACE_PRECALL;
-	punk->Release();
-	PY_INTERFACE_POSTCALL;
-	}
+	PYCOM_RELEASE(punk);
 	return rc;
 }
 

@@ -132,13 +132,7 @@ PyObject *PyITaskScheduler::Enum(PyObject *self, PyObject *args)
         CoTaskMemFree(task_names);
 	} while(hr==S_OK);
 
-	if(pIEnumWorkItems){
-		PY_INTERFACE_PRECALL;
-		pIEnumWorkItems->Release();
-		PY_INTERFACE_POSTCALL;
-		pIEnumWorkItems = NULL;
-		}
-
+	PYCOM_RELEASE(pIEnumWorkItems);
 	return ret_list;
 }
 
