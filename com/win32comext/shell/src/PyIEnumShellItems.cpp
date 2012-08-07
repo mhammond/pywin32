@@ -25,7 +25,7 @@ PyIEnumShellItems::~PyIEnumShellItems()
 	return (IEnumShellItems *)PyIUnknown::GetI(self);
 }
 
-// @pymethod (o <PyIShellItem>,...)|PyIEnumShellItems|Next|Retrieves a specified number of items in the enumeration sequence.
+// @pymethod (<o PyIShellItem>,...)|PyIEnumShellItems|Next|Retrieves a specified number of items in the enumeration sequence.
 PyObject *PyIEnumShellItems::Next(PyObject *self, PyObject *args)
 {
 	long celt = 1;
