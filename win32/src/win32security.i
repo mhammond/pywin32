@@ -2851,7 +2851,7 @@ static PyObject *PyLsaEnumerateAccountRights(PyObject *self, PyObject *args)
 }
 %}
 
-// @pyswig |LsaEnumerateAccountsWithUserRight|Return SIDs that hold specified priv
+// @pyswig (<o PySID>,...)|LsaEnumerateAccountsWithUserRight|Return SIDs that hold specified priv
 %native(LsaEnumerateAccountsWithUserRight) PyLsaEnumerateAccountsWithUserRight;
 %{
 static PyObject *PyLsaEnumerateAccountsWithUserRight(PyObject *self, PyObject *args)
@@ -3931,7 +3931,7 @@ static PyObject *PyLsaCallAuthenticationPackage(PyObject *self, PyObject *args)
 }
 %}
 
-// @pyswig |TranslateName|Converts a directory service object name from one format to another.
+// @pyswig <o PyUnicode>|TranslateName|Converts a directory service object name from one format to another.
 %native(TranslateName) PyTranslateName;
 %{
 static PyObject *PyTranslateName(PyObject *self, PyObject *args)
@@ -3971,7 +3971,7 @@ static PyObject *PyTranslateName(PyObject *self, PyObject *args)
 }
 %}
 
-// @pyswig |CreateWellKnownSid|Returns one of the predefined well known sids
+// @pyswig <o PySID>|CreateWellKnownSid|Returns one of the predefined well known sids
 %native(CreateWellKnownSid) PyCreateWellKnownSid;
 %{
 static PyObject *PyCreateWellKnownSid(PyObject *self, PyObject *args)
