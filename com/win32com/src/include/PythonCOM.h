@@ -755,4 +755,24 @@ PYCOM_EXPORT PyObject *MakeOLECHARToObj(const OLECHAR * str);
 
 PYCOM_EXPORT void PyCom_LogF(const char *fmt, ...);
 
+// Generic conversion from python sequence to VT_VECTOR array
+// Resulting array must be freed with CoTaskMemFree
+template <typename arraytype>
+BOOL SeqToVector(PyObject *ob, arraytype **pA, ULONG *pcount, BOOL (*converter)(PyObject *, arraytype *)){
+	TmpPyObject seq = PyWinSequence_Tuple(ob, pcount);
+	if (seq == NULL)
+		return FALSE;
+	*pA = (arraytype *)CoTaskMemAlloc(*pcount * sizeof(arraytype));
+	if (*pA == NULL){
+		PyErr_NoMemory();
+		return FALSE;
+		}
+	for (ULONG i=0; i<*pcount; i++){
+		PyObject *item = PyTuple_GET_ITEM((PyObject *)seq, i);
+		if (!(*converter)(item, &(*pA)[i]))
+			return FALSE;
+		}
+	return TRUE;
+}
+
 #endif // __PYTHONCOM_H__

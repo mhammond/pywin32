@@ -82,27 +82,6 @@ PyObject *PyIShellItem2::GetPropertyStoreWithCreateObject(PyObject *self, PyObje
 	return PyCom_PyObjectFromIUnknown((IUnknown *)ret, riid);
 }
 
-
-// ??? Also in PyPROPVARIANT.cpp, should move into a header somewhere ???
-// Generic conversion from python sequence to VT_VECTOR array
-template <typename arraytype>
-BOOL SeqToVector(PyObject *ob, arraytype **pA, ULONG *pcount, BOOL (*converter)(PyObject *, arraytype *)){
-	TmpPyObject seq = PyWinSequence_Tuple(ob, pcount);
-	if (seq == NULL)
-		return FALSE;
-	*pA = (arraytype *)CoTaskMemAlloc(*pcount * sizeof(arraytype));
-	if (*pA == NULL){
-		PyErr_NoMemory();
-		return FALSE;
-		}
-	for (ULONG i=0; i<*pcount; i++){
-		PyObject *item = PyTuple_GET_ITEM((PyObject *)seq, i);
-		if (!(*converter)(item, &(*pA)[i]))
-			return FALSE;
-		}
-	return TRUE;
-}
-
 // @pymethod <o PyIPropertyStore>|PyIShellItem2|GetPropertyStoreForKeys|Creates a property store containing just the specified properties of the item
 PyObject *PyIShellItem2::GetPropertyStoreForKeys(PyObject *self, PyObject *args)
 {

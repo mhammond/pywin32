@@ -163,27 +163,6 @@ PyObject *PyPROPVARIANT::tp_new(PyTypeObject *tp, PyObject *args, PyObject *kwar
 	return PyWinObject_FromPROPVARIANT(&pv);
 }
 
-
-// Generic conversion from python sequence to VT_VECTOR array
-template <typename arraytype>
-BOOL SeqToVector(PyObject *ob, arraytype **pA, ULONG *pcount, BOOL (*converter)(PyObject *, arraytype *)){
-	TmpPyObject seq = PyWinSequence_Tuple(ob, pcount);
-	if (seq == NULL)
-		return FALSE;
-	*pA = (arraytype *)CoTaskMemAlloc(*pcount * sizeof(arraytype));
-	if (*pA == NULL){
-		PyErr_NoMemory();
-		return FALSE;
-		}
-	for (ULONG i=0; i<*pcount; i++){
-		PyObject *item = PyTuple_GET_ITEM((PyObject *)seq, i);
-		if (!(*converter)(item, &(*pA)[i]))
-			return FALSE;
-		}
-	return TRUE;
-}
-
-
 // @pymethod object|PyPROPVARIANT|GetValue|Returns an object representing the variant value
 PyObject* PyPROPVARIANT::GetValue(PyObject *self, PyObject *args)
 {
