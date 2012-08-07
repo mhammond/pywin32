@@ -571,7 +571,7 @@ PyIDispatchEx::~PyIDispatchEx()
 	return (IDispatchEx *)PyIDispatch::GetI(self);
 }
 
-// @method int|PyIDispatchEx|GetDispID|
+// @pymethod int|PyIDispatchEx|GetDispID|Returns the member id for a name
 PyObject *PyIDispatchEx::GetDispID(PyObject *self, PyObject *args)
 {
 	long fdex;
@@ -593,7 +593,7 @@ PyObject *PyIDispatchEx::GetDispID(PyObject *self, PyObject *args)
 	return PyInt_FromLong(dispid);
 }
 
-// @method object|PyIDispatchEx|InvokeEx|Provides access to properties and methods exposed by a <o PyIDispatchEx> object. 
+// @pymethod object|PyIDispatchEx|InvokeEx|Provides access to properties and methods exposed by a <o PyIDispatchEx> object. 
 PyObject *PyIDispatchEx::InvokeEx(PyObject *self, PyObject *args)
 {
 	long dispid;
@@ -673,7 +673,7 @@ PyObject *PyIDispatchEx::InvokeEx(PyObject *self, PyObject *args)
 	}
 	return result;
 }
-// @method |PyIDispatchEx|DeleteMemberByName|
+// @pymethod |PyIDispatchEx|DeleteMemberByName|
 PyObject *PyIDispatchEx::DeleteMemberByName(PyObject *self, PyObject *args)
 {
 	long fdex;
@@ -694,7 +694,7 @@ PyObject *PyIDispatchEx::DeleteMemberByName(PyObject *self, PyObject *args)
 	Py_INCREF(Py_None);
 	return Py_None;
 }
-// @method |PyIDispatchEx|DeleteMemberByDispID|
+// @pymethod |PyIDispatchEx|DeleteMemberByDispID|
 PyObject *PyIDispatchEx::DeleteMemberByDispID(PyObject *self, PyObject *args)
 {
 	long dispid;
@@ -710,14 +710,14 @@ PyObject *PyIDispatchEx::DeleteMemberByDispID(PyObject *self, PyObject *args)
 	Py_INCREF(Py_None);
 	return Py_None;
 }
-// @method int|PyIDispatchEx|GetMemberProperties|
+// @pymethod int|PyIDispatchEx|GetMemberProperties|Returns mask of fdex* flags describing a member
 PyObject *PyIDispatchEx::GetMemberProperties(PyObject *self, PyObject *args)
 {
 	long fdex;
 	long dispid;
 	if (!PyArg_ParseTuple(args, "ll:GetMemberProperties",
-		&dispid, // @pyparm int|dispid||
-		&fdex)) // @pyparm int|fdex||Determines the options
+		&dispid, // @pyparm int|dispid||The member id
+		&fdex)) // @pyparm int|fdex||fdex* flags specifying which properties to return
 		return NULL;
 	IDispatchEx *pMyDispatchEx = GetI(self);
 	if (pMyDispatchEx==NULL) return NULL;
@@ -728,33 +728,32 @@ PyObject *PyIDispatchEx::GetMemberProperties(PyObject *self, PyObject *args)
 	if (FAILED(hr)) return SetPythonCOMError(self, hr);
 	return PyInt_FromLong(props);
 }
-// @method int|PyIDispatchEx|GetMemberName|
+// @pymethod str|PyIDispatchEx|GetMemberName|Returns the name associated with a member id
 PyObject *PyIDispatchEx::GetMemberName(PyObject *self, PyObject *args)
 {
-	long fdex;
 	long dispid;
-	if (!PyArg_ParseTuple(args, "ll:GetMemberName",
-		&dispid, // @pyparm int|dispid||
-		&fdex)) // @pyparm int|fdex||Determines the options
+	BSTR name;
+	if (!PyArg_ParseTuple(args, "l:GetMemberName",
+		&dispid)) // @pyparm int|dispid||The member id
 		return NULL;
 	IDispatchEx *pMyDispatchEx = GetI(self);
 	if (pMyDispatchEx==NULL) return NULL;
-	DWORD props;
+
 	PY_INTERFACE_PRECALL;
-	HRESULT hr = pMyDispatchEx->GetMemberProperties((DISPID)dispid, (DWORD)fdex, &props);
+	HRESULT hr = pMyDispatchEx->GetMemberName(dispid, &name);
 	PY_INTERFACE_POSTCALL;
 	if (FAILED(hr)) return SetPythonCOMError(self, hr);
-	return PyInt_FromLong(props);
+	return PyWinObject_FromBstr(name, TRUE);
 }
 
-// @method int|PyIDispatchEx|GetNextDispID|
+// @pymethod int|PyIDispatchEx|GetNextDispID|Enumerates member ids.
 PyObject *PyIDispatchEx::GetNextDispID(PyObject *self, PyObject *args)
 {
 	long fdex;
 	long dispid;
 	if (!PyArg_ParseTuple(args, "ll:GetNextDispID",
 		&fdex, // @pyparm int|fdex||Determines the options
-		&dispid)) // @pyparm int|dispid||Identifies the current member. GetNextDispID will retrieve the item in the enumeration after this one. 
+		&dispid)) // @pyparm int|dispid||Current member, or DISPID_STARTENUM to begin enumeration. GetNextDispID will retrieve the item in the enumeration after this one. 
 		return NULL;
 	IDispatchEx *pMyDispatchEx = GetI(self);
 	if (pMyDispatchEx==NULL) return NULL;
@@ -774,8 +773,8 @@ static struct PyMethodDef PyIDispatchEx_methods[] =
 	{"DeleteMemberByName",  PyIDispatchEx::DeleteMemberByName, 1 }, // @pymeth DeleteMemberByName|
 	{"DeleteMemberByDispID",PyIDispatchEx::DeleteMemberByDispID, 1 }, // @pymeth DeleteMemberByDispID|
 	{"GetMemberProperties", PyIDispatchEx::GetMemberProperties, 1 }, // @pymeth GetMemberProperties|
-	{"GetMemberName",       PyIDispatchEx::GetMemberName, 1 }, // @pymeth GetMemberName|
-	{"GetNextDispID",       PyIDispatchEx::GetNextDispID, 1 }, // @pymeth GetNextDispID|
+	{"GetMemberName",       PyIDispatchEx::GetMemberName, 1 }, // @pymeth GetMemberName|Returns the name associated with a member id
+	{"GetNextDispID",       PyIDispatchEx::GetNextDispID, 1 }, // @pymeth GetNextDispID|Enumerates member ids.
 	{NULL,  NULL}        
 };
 
