@@ -214,6 +214,16 @@ class EnumerationItem(build.OleItem, WritableItem):
             use = hex(val)
         else:
           use = repr(val)
+          # Make sure the repr of the value is valid python syntax
+          # still could cause an error on import if it contains a module or type name
+          # not available in the global namespace
+          try:
+            compile(use, '<makepy>', 'eval')
+          except SyntaxError:
+            # At least add the repr as a string, so it can be investigated further
+            # Sanitize it, in case the repr contains its own quotes.  (??? line breaks too ???)
+            use = use.replace('"',"'")
+            use = '"' + use + '"' + ' # This VARIANT type cannot be converted automatically'
         print >> stream, "\t%-30s=%-10s # from enum %s" % \
                       (build.MakePublicAttributeName(name, True), use, enumName)
         num += 1
