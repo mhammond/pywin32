@@ -71,13 +71,19 @@ else:
 	MakeMethod = types.MethodType # all args used in py2k.
 
 # get the type objects for IDispatch and IUnknown
-dispatchType = pythoncom.TypeIIDs[pythoncom.IID_IDispatch]
-iunkType = pythoncom.TypeIIDs[pythoncom.IID_IUnknown]
+PyIDispatchType = pythoncom.TypeIIDs[pythoncom.IID_IDispatch]
+PyIUnknownType = pythoncom.TypeIIDs[pythoncom.IID_IUnknown]
 
-_GoodDispatchTypes=(str, IIDType, unicode)
+if py3k:
+	_GoodDispatchTypes=(str, IIDType)
+else:
+	_GoodDispatchTypes=(str, IIDType, unicode)
 _defaultDispatchItem=build.DispatchItem
 
 def _GetGoodDispatch(IDispatch, clsctx = pythoncom.CLSCTX_SERVER):
+	# quick return for most common case
+	if isinstance(IDispatch, PyIDispatchType):
+		return IDispatch
 	if isinstance(IDispatch, _GoodDispatchTypes):
 		try:
 			IDispatch = pythoncom.connect(IDispatch)
@@ -282,15 +288,15 @@ class CDispatch:
 		return Dispatch(ob, userName)
 
 	def _get_good_single_object_(self,ob,userName = None, ReturnCLSID=None):
-		if iunkType==type(ob):
+		if isinstance(ob, PyIDispatchType):
+			# make a new instance of (probably this) class.
+			return self._wrap_dispatch_(ob, userName, ReturnCLSID)
+		if isinstance(ob, PyIUnknownType):
 			try:
 				ob = ob.QueryInterface(pythoncom.IID_IDispatch)
-				# If this works, we then enter the "is dispatch" test below.
 			except pythoncom.com_error:
 				# It is an IUnknown, but not an IDispatch, so just let it through.
-				pass
-		if dispatchType==type(ob):
-			# make a new instance of (probably this) class.
+				return ob
 			return self._wrap_dispatch_(ob, userName, ReturnCLSID)
 		return ob
 		
