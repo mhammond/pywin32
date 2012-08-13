@@ -510,34 +510,41 @@ class DispatchItem(build.DispatchItem, WritableItem):
             print >> stream, "\tdef __int__(self, *args):"
             print >> stream, "\t\treturn int(self.__call__(*args))"
             
-
+        # _NewEnum (DISPID_NEWENUM) does not appear in typelib for many office objects,
+        # but it can still be retrieved at runtime, so  always create __iter__.
+        # Also, some of those same objects use 1-based indexing, causing the old-style
+        # __getitem__ iteration to fail for index 0 where the dynamic iteration succeeds.
         if specialItems["_newenum"]:
             enumEntry, invoketype, propArgs = specialItems["_newenum"]
+            invkind = enumEntry.desc[4]
+            # ??? Wouldn't this be the resultCLSID for the iterator itself, rather than the resultCLSID
+            #  for the result of each Next() call, which is what it's used for ???
             resultCLSID = enumEntry.GetResultCLSIDStr()
-            # If we dont have a good CLSID for the enum result, assume it is the same as the Item() method.
-            if resultCLSID == "None" and "Item" in self.mapFuncs:
-                resultCLSID = self.mapFuncs["Item"].GetResultCLSIDStr()
-            # "Native" Python iterator support
-            print >> stream, '\tdef __iter__(self):'
-            print >> stream, '\t\t"Return a Python iterator for this object"'
-            print >> stream, '\t\tob = self._oleobj_.InvokeTypes(%d,LCID,%d,(13, 10),())' % (pythoncom.DISPID_NEWENUM, enumEntry.desc[4])
-            print >> stream, '\t\treturn win32com.client.util.Iterator(ob, %s)' % resultCLSID
-            # And 'old style' iterator support - magically used to simulate iterators
-            # before Python grew them
-            print >> stream, '\tdef _NewEnum(self):'
-            print >> stream, '\t\t"Create an enumerator from this object"'
-            print >> stream, '\t\treturn win32com.client.util.WrapEnum(self._oleobj_.InvokeTypes(%d,LCID,%d,(13, 10),()),%s)' % (pythoncom.DISPID_NEWENUM, enumEntry.desc[4], resultCLSID)
-            print >> stream, '\tdef __getitem__(self, index):'
-            print >> stream, '\t\t"Allow this class to be accessed as a collection"'
-            print >> stream, "\t\tif '_enum_' not in self.__dict__:"
-            print >> stream, "\t\t\tself.__dict__['_enum_'] = self._NewEnum()"
-            print >> stream, "\t\treturn self._enum_.__getitem__(index)"
-        else: # Not an Enumerator, but may be an "Item/Count" based collection
-            if specialItems["item"]:
-                entry, invoketype, propArgs = specialItems["item"]
-                print >> stream, '\t#This class has Item property/method which may take args - allow indexed access'
-                print >> stream, '\tdef __getitem__(self, item):'
-                print >> stream, '\t\treturn self._get_good_object_(self._oleobj_.Invoke(*(%d, LCID, %d, 1, item)), "Item")' % (entry.desc[0], invoketype)
+        else:
+            invkind = pythoncom.DISPATCH_METHOD | pythoncom.DISPATCH_PROPERTYGET
+            resultCLSID = "None"
+        # If we dont have a good CLSID for the enum result, assume it is the same as the Item() method.
+        if resultCLSID == "None" and "Item" in self.mapFuncs:
+            resultCLSID = self.mapFuncs["Item"].GetResultCLSIDStr()
+        print >> stream, '\tdef __iter__(self):'
+        print >> stream, '\t\t"Return a Python iterator for this object"'
+        print >> stream, '\t\ttry:'
+        print >> stream, '\t\t\tob = self._oleobj_.InvokeTypes(%d,LCID,%d,(13, 10),())' % (pythoncom.DISPID_NEWENUM, invkind)
+        print >> stream, '\t\texcept pythoncom.error:'
+        print >> stream, '\t\t\traise TypeError("This object does not support enumeration")'
+        # Iterator is wrapped as PyIEnumVariant, and each result of __next__ is Dispatch'ed if necessary
+        print >> stream, '\t\treturn win32com.client.util.Iterator(ob, %s)' %resultCLSID
+        
+        if specialItems["item"]:
+            entry, invoketype, propArgs = specialItems["item"]
+            resultCLSID = entry.GetResultCLSIDStr()
+            print >> stream, '\t#This class has Item property/method which allows indexed access with the object[key] syntax.'
+            print >> stream, '\t#Some objects will accept a string or other type of key in addition to integers.'
+            print >> stream, '\t#Note that many Office objects do not use zero-based indexing.'
+            print >> stream, '\tdef __getitem__(self, key):'
+            print >> stream, '\t\treturn self._get_good_object_(self._oleobj_.Invoke(*(%d, LCID, %d, 1, key)), "Item", %s)' \
+                    % (entry.desc[0], invoketype, resultCLSID)
+
         if specialItems["count"]:
             entry, invoketype, propArgs = specialItems["count"]
             if propArgs is None:
