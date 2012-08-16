@@ -24,23 +24,6 @@ EnumServicesStatusExfunc fpEnumServicesStatusEx=NULL;
 // according to msdn, 256 is limit for service names and service display names
 #define MAX_SERVICE_NAME_LEN 256   
 
-// Automatically freed WCHAR that can be used anywhere WCHAR * is required
-class TmpWCHAR
-{
-public:
-	WCHAR *tmp;
-	TmpWCHAR() { tmp=NULL; }
-	TmpWCHAR(WCHAR *t) { tmp=t; }
-	WCHAR * operator= (WCHAR *t){
-		PyWinObject_FreeWCHAR(tmp);
-		tmp=t;
-		return t;
-		}
-	WCHAR ** operator& () {return &tmp;}
-	boolean operator== (WCHAR *t) { return tmp==t; }
-	operator WCHAR *() { return tmp; }
-	~TmpWCHAR() { PyWinObject_FreeWCHAR(tmp); }
-};
 %}
 
 %init %{

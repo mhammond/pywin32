@@ -287,6 +287,25 @@ PYWINTYPES_EXPORT BOOL PyWinObject_AsString(PyObject *stringObject, char **pResu
 PYWINTYPES_EXPORT void PyWinObject_FreeString(char *pResult);
 PYWINTYPES_EXPORT void PyWinObject_FreeString(WCHAR *pResult);
 
+// Automatically freed WCHAR that can be used anywhere WCHAR * is required
+class TmpWCHAR
+{
+public:
+	WCHAR *tmp;
+	TmpWCHAR() { tmp=NULL; }
+	TmpWCHAR(WCHAR *t) { tmp=t; }
+	WCHAR * operator= (WCHAR *t){
+		PyWinObject_FreeWCHAR(tmp);
+		tmp=t;
+		return t;
+		}
+	WCHAR ** operator& () {return &tmp;}
+	boolean operator== (WCHAR *t) { return tmp==t; }
+	operator WCHAR *() { return tmp; }
+	~TmpWCHAR() { PyWinObject_FreeWCHAR(tmp); }
+};
+
+
 // Buffer functions that can be used in place of 's#' input format or PyString_AsStringAndSize
 // for 64-bit compatibility and API consistency
 PYWINTYPES_EXPORT BOOL PyWinObject_AsReadBuffer(PyObject *ob, void **buf, DWORD *buf_len, BOOL bNoneOk=FALSE);
