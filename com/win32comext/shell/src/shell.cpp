@@ -163,6 +163,8 @@ static PFNSHCreateShellItem pfnSHCreateShellItem = NULL;
 typedef HRESULT (WINAPI *PFNSHOpenFolderAndSelectItems)(PCIDLIST_ABSOLUTE,UINT,PCUITEMID_CHILD_ARRAY,DWORD);
 static PFNSHOpenFolderAndSelectItems pfnSHOpenFolderAndSelectItems = NULL;
 
+typedef HRESULT (WINAPI *PFNSHCreateStreamOnFileEx)(LPCWSTR, DWORD, DWORD, BOOL, IStream *, IStream **);
+static PFNSHCreateStreamOnFileEx pfnSHCreateStreamOnFileEx = NULL;
 
 // Some magic hackery macros :-)
 #define _ILSkip(pidl, cb)       ((LPITEMIDLIST)(((BYTE*)(pidl))+cb))
@@ -3247,6 +3249,45 @@ static PyObject *PySHOpenFolderAndSelectItems(PyObject *self, PyObject *args, Py
 	return ret;
 }
 
+// @pymethod <o PyIStream>|shell|SHCreateStreamOnFileEx|Creates an IStream interface that reads and writes to a file
+static PyObject *PySHCreateStreamOnFileEx(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+	// @comm Accepts keyword args.
+	// @comm This function is only available on WinXP and later.
+	// COM exception with E_NOTIMPL will be thrown if the function can't be located.
+	if (pfnSHCreateStreamOnFileEx==NULL)
+		return PyCom_BuildPyException(E_NOTIMPL);
+	static char *keywords[] = {"File", "Mode", "Attributes", "Create", "Template", NULL};
+	PyObject *obfname, *obtemplate = Py_None;
+	TmpWCHAR fname;
+	DWORD mode, attributes;
+	BOOL create;
+	IStream *ret;
+	// @pyparm str|File||Name of file to be connected to the stream
+	// @pyparm int|Mode||Combination of storagecon.STGM_* flags specifying the access mode
+	// @pyparm int|Attributes||Combination of win32con.FILE_ATTRIBUTE_* flags
+	// @pyparm bool|Create||Determines if function should fail when file exists (see MSDN docs for full explanation)
+	// @pyparm None|Template|None|Reserved, use only None
+
+	if(!PyArg_ParseTupleAndKeywords(args, kwargs, "Okkl|O:SHCreateStreamOnFileEx", keywords,
+		&obfname, &mode, &attributes, &create, &obtemplate))
+		return NULL;
+	if (obtemplate != Py_None){
+		PyErr_SetString(PyExc_ValueError, "Template is reserved and must be None");
+		return NULL;
+		}
+	if (!PyWinObject_AsWCHAR(obfname, &fname, FALSE))
+		return NULL;
+
+	HRESULT hr;
+	PY_INTERFACE_PRECALL;
+	hr = (*pfnSHCreateStreamOnFileEx)(fname, mode, attributes, create, NULL, &ret);
+	PY_INTERFACE_POSTCALL;
+	if (FAILED(hr))
+		return PyCom_BuildPyException(hr);
+	return PyCom_PyObjectFromIUnknown(ret, IID_IStream, FALSE);
+}
+
 
 /* List of module functions */
 // @module shell|A module wrapping Windows Shell functions and interfaces
@@ -3306,6 +3347,7 @@ static struct PyMethodDef shell_methods[]=
 	{ "SHILCreateFromPath", PySHILCreateFromPath, METH_VARARGS}, // @pymeth SHILCreateFromPath|Returns the PIDL and attributes of a path
 	{ "SHCreateShellItem", PySHCreateShellItem, METH_VARARGS}, // @pymeth SHCreateShellItem|Creates an IShellItem interface from a PIDL
 	{ "SHOpenFolderAndSelectItems", (PyCFunction)PySHOpenFolderAndSelectItems, METH_VARARGS|METH_KEYWORDS}, // @pymeth SHOpenFolderAndSelectItems|Displays a shell folder with items pre-selected
+	{ "SHCreateStreamOnFileEx", (PyCFunction)PySHCreateStreamOnFileEx, METH_VARARGS|METH_KEYWORDS},	// @pymeth SHCreateStreamOnFileEx|Creates a <o PyIStream> that reads and writes to a file
 	{ NULL, NULL },
 };
 
@@ -3458,6 +3500,7 @@ PYWIN_MODULE_INIT_FUNC(shell)
 	if (shlwapi!=NULL){
 		pfnSHGetViewStatePropertyBag=(PFNSHGetViewStatePropertyBag)GetProcAddress(shlwapi, "SHGetViewStatePropertyBag");
 		pfnAssocCreate=(PFNAssocCreate)GetProcAddress(shlwapi, "AssocCreate");
+		pfnSHCreateStreamOnFileEx = (PFNSHCreateStreamOnFileEx)GetProcAddress(shlwapi, "SHCreateStreamOnFileEx");
 	}
 
 	ADD_CONSTANT(SLR_NO_UI);
