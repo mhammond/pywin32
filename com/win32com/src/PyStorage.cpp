@@ -244,7 +244,9 @@ PyObject *pythoncom_StgOpenStorage(PyObject *self, PyObject *args)
 }
 
 // @pymethod <o PyIStorage>|pythoncom|StgOpenStorageEx|Advanced version of StgOpenStorage, win2k or better
-PyObject *pythoncom_StgOpenStorageEx(PyObject *self, PyObject *args)
+// @comm Requires Win2k or later
+// @comm Accepts keyword args
+PyObject *pythoncom_StgOpenStorageEx(PyObject *self, PyObject *args, PyObject *kwargs)
 {
 #ifndef NO_PYCOM_STGOPENSTORAGEEX
 	typedef HRESULT (WINAPI *PFNStgOpenStorageEx)(WCHAR *, DWORD, DWORD, DWORD, 
@@ -262,42 +264,99 @@ PyObject *pythoncom_StgOpenStorageEx(PyObject *self, PyObject *args)
 	}
 	if (myStgOpenStorageEx == (PFNStgOpenStorageEx)-1)
 		return PyErr_Format(PyExc_NotImplementedError,"StgOpenStorageEx not supported by this version of Windows");
-	PyObject *obfname=NULL, *obriid=NULL, *obstgoptions=NULL;
-	WCHAR *fname;
-	DWORD mode=0, attrs=0;
+	PyObject *obfname, *obstgoptions=Py_None;
+	TmpWCHAR fname;
+	DWORD mode, attrs, stgfmt;
 	VOID *reserved=NULL;
-	DWORD stgfmt;
 	IID riid;
 	STGOPTIONS *pstgoptions=NULL;
-	HRESULT err;
-	void *intptr;
-	if (!PyArg_ParseTuple(args, "OiiiO|O:StgOpenStorageEx",
-		&obfname, //@pyparm string|name||Name of the stream or file to open
-		&mode, // @pyparm int|grfmode||open flags
+	HRESULT hr;
+	void *ret;
+
+	static char *keywords[] = {"Name", "Mode", "stgfmt", "Attrs", "riid", "StgOptions", NULL};
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OiiiO&|O:StgOpenStorageEx", keywords,
+		&obfname, //@pyparm string|Name||Name of the stream or file to open
+		&mode, // @pyparm int|Mode||Access mode, combination of storagecon.STGM_* flags
 		&stgfmt, // @pyparm int|stgfmt||Storage format (STGFMT_STORAGE,STGFMT_FILE,STGFMT_ANY, or STGFMT_DOCFILE)
-		&attrs, // @pyparm int|grfAttrs||Reserved, must be 0
-		&obriid, // @pyparm IID|riid||Interface id to return, IStorage or IPropertySetStorage
-		&obstgoptions)) //@pyparm <o dict>|pStgOptions||Dictionary representing STGOPTIONS struct (only used with STGFMT_DOCFILE)
+		&attrs, // @pyparm int|Attrs||File flags and attributes, only used with STGFMT_DOCFILE
+		PyWinObject_AsIID, &riid, // @pyparm <o PyIID>|riid||Interface id to return, IStorage or IPropertySetStorage
+		&obstgoptions)) //@pyparm dict|StgOptions|None|Dictionary representing STGOPTIONS struct (only used with STGFMT_DOCFILE)
 		return NULL;
-	if (!PyWinObject_AsIID(obriid, &riid))
+	if (!PyWinObject_AsWCHAR(obfname, &fname))
 		return NULL;
 	if(!PyCom_PyObjectAsSTGOPTIONS(obstgoptions, &pstgoptions))
 		return NULL;
-	if (!PyWinObject_AsWCHAR(obfname,&fname))
-		return NULL;
 
 	PY_INTERFACE_PRECALL;
-	err = (*myStgOpenStorageEx)(fname, mode, stgfmt, attrs, NULL, reserved, riid, &intptr);
+	hr = (*myStgOpenStorageEx)(fname, mode, stgfmt, attrs, pstgoptions, reserved, riid, &ret);
 	PY_INTERFACE_POSTCALL;
 	if (pstgoptions)
 		delete(pstgoptions);
-	PyWinObject_FreeWCHAR(fname);
-	if (FAILED(err))
-		return PyCom_BuildPyException(err);
-	return PyCom_PyObjectFromIUnknown((IUnknown *)intptr, riid, FALSE);
+	if (FAILED(hr))
+		return PyCom_BuildPyException(hr);
+	return PyCom_PyObjectFromIUnknown((IUnknown *)ret, riid, FALSE);
 #else
 	return PyErr_Format(PyExc_NotImplementedError,"StgOpenStorageEx not supported by this version of Windows");
 #endif // NO_PYCOM_STGOPENSTORAGEEX	
+}
+
+// @pymethod <o PyIStorage>|pythoncom|StgCreateStorageEx|Creates a new structured storage file or property set
+// @comm Requires Win2k or later
+// @comm Accepts keyword args
+PyObject *pythoncom_StgCreateStorageEx(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+	// MSDN mistakenly shows the security descriptor as PSECURITY_DESCRIPTOR *
+	typedef HRESULT (WINAPI *PFNStgCreateStorageEx)(WCHAR *, DWORD, DWORD, DWORD,
+		STGOPTIONS *, PSECURITY_DESCRIPTOR, REFIID, void **);
+	static PFNStgCreateStorageEx myStgCreateStorageEx = NULL;
+	if (myStgCreateStorageEx==NULL) { // Haven't tried to fetch it yet.
+		myStgCreateStorageEx = (PFNStgCreateStorageEx)-1;
+		if (ole32==NULL)
+			ole32=GetModuleHandle(_T("Ole32.dll"));
+		if (ole32!=NULL){
+			FARPROC fp = GetProcAddress(ole32,"StgCreateStorageEx");
+			if (fp!=NULL)
+				myStgCreateStorageEx=(PFNStgCreateStorageEx)fp;
+		}
+	}
+	if (myStgCreateStorageEx == (PFNStgCreateStorageEx)-1)
+		return PyErr_Format(PyExc_NotImplementedError,"StgCreateStorageEx not supported by this version of Windows");
+
+	PyObject *obfname, *obstgoptions=Py_None, *obsd=Py_None;
+	TmpWCHAR fname;
+	DWORD mode, attrs, stgfmt;
+	IID riid;
+	STGOPTIONS *pstgoptions=NULL;
+	PSECURITY_DESCRIPTOR psd=NULL;
+	HRESULT hr;
+	void *ret;
+	static char *keywords[] = {"Name", "Mode", "stgfmt", "Attrs", "riid", "StgOptions", "SecurityDescriptor", NULL};
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OiiiO&|OO:StgCreateStorageEx", keywords,
+		&obfname, //@pyparm string|Name||Name of the stream or file to open
+		&mode, // @pyparm int|Mode||Access mode, combination of storagecon.STGM_* flags
+		&stgfmt, // @pyparm int|stgfmt||Storage format, storagecon.STGFMT_*
+		&attrs, // @pyparm int|Attrs||File flags and attributes, only used with STGFMT_DOCFILE
+		PyWinObject_AsIID, &riid, // @pyparm <o PyIID>|riid||Interface id to return, IStorage or IPropertySetStorage
+		&obstgoptions, //@pyparm dict|StgOptions|None|Dictionary representing STGOPTIONS struct (only used with STGFMT_DOCFILE)
+		&obsd))		// @pyparm <o PySECURITY_DESCRIPTOR>|SecurityDescriptor|None|Specifies security for the new file.  Must be None on Windows XP.
+		return NULL;
+
+	if (!PyWinObject_AsSECURITY_DESCRIPTOR(obsd, &psd, TRUE))
+		return NULL;
+	if (!PyWinObject_AsWCHAR(obfname, &fname, TRUE))
+		return NULL;
+	if(!PyCom_PyObjectAsSTGOPTIONS(obstgoptions, &pstgoptions))
+		return NULL;
+
+	PY_INTERFACE_PRECALL;
+	hr = (*myStgCreateStorageEx)(fname, mode, stgfmt, attrs, pstgoptions, psd, riid, &ret);
+	// hr = StgCreateStorageEx(fname, mode, stgfmt, attrs, pstgoptions, psd, riid, &ret);
+	PY_INTERFACE_POSTCALL;
+	if (pstgoptions)
+		delete(pstgoptions);
+	if (FAILED(hr))
+		return PyCom_BuildPyException(hr);
+	return PyCom_PyObjectFromIUnknown((IUnknown *)ret, riid, FALSE);
 }
 
 // @pymethod <o PyUNICODE>|pythoncom|FmtIdToPropStgName|Converts a FMTID to its stream name

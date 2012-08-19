@@ -38,7 +38,8 @@ PyObject *PyCom_InternalError = NULL;
 
 // Storage related functions.
 extern PyObject *pythoncom_StgOpenStorage(PyObject *self, PyObject *args);
-extern PyObject *pythoncom_StgOpenStorageEx(PyObject *self, PyObject *args);
+extern PyObject *pythoncom_StgOpenStorageEx(PyObject *self, PyObject *args, PyObject *kwargs);
+extern PyObject *pythoncom_StgCreateStorageEx(PyObject *self, PyObject *args, PyObject *kwargs);
 extern PyObject *pythoncom_FmtIdToPropStgName(PyObject *self, PyObject *args);
 extern PyObject *pythoncom_PropStgNameToFmtId(PyObject *self, PyObject *args);
 
@@ -1958,7 +1959,8 @@ static struct PyMethodDef pythoncom_methods[]=
 #endif // MS_WINCE
 	{ "STGMEDIUM",           Py_NewSTGMEDIUM, 1}, // @pymeth STGMEDIUM|Creates a new <o PySTGMEDIUM> object suitable for the <o PyIDataObject> interface.
 	{ "StgOpenStorage",      pythoncom_StgOpenStorage, 1 },       // @pymeth StgOpenStorage|Opens an existing root storage object in the file system.
-	{ "StgOpenStorageEx",    pythoncom_StgOpenStorageEx, 1 },       // @pymeth StgOpenStorageEx|Access IStorage and IPropertySetStorage interfaces for normal files
+	{ "StgOpenStorageEx",    (PyCFunction)pythoncom_StgOpenStorageEx, METH_KEYWORDS|METH_VARARGS},   // @pymeth StgOpenStorageEx|Access IStorage and IPropertySetStorage interfaces for normal files
+	{ "StgCreateStorageEx",  (PyCFunction)pythoncom_StgCreateStorageEx, METH_KEYWORDS|METH_VARARGS}, // @pymeth StgCreateStorageEx|Creates a new structured storage file or property set
 	{ "TYPEATTR",            Py_NewTYPEATTR, 1}, // @pymeth TYPEATTR|Returns a new <o TYPEATTR> object.
 	{ "VARDESC",             Py_NewVARDESC, 1}, // @pymeth VARDESC|Returns a new <o VARDESC> object.
 	{ "WrapObject",          pythoncom_WrapObject, 1 }, // @pymeth WrapObject|Wraps an object in a gateway.
