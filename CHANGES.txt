@@ -30,9 +30,16 @@ Since build 217:
 
 * Python 3.3 version is built with VS2010.
 
-* win32com.shell - IShellItem2 added 
+* win32com.shell - added function SHCreateStreamOnFileEx and
+	interfaces IShellItem2, IEnumShellItems 
 
 * win32com.propsys - Many Property System interfaces and functions added
+
+* pythoncom - added StgCreateStorageEx
+
+* win32com.client - 
+	Fix iteration of objects that don't declare an enumerator in their typelib
+	Validate syntax of constants written to makepy generated files
 
 Since build 216:
 ----------------
