@@ -113,26 +113,22 @@ PyObject *PyIExplorerBrowser::SetPropertyBag(PyObject *self, PyObject *args)
 	IExplorerBrowser *pIEB = GetI(self);
 	if ( pIEB == NULL )
 		return NULL;
-	// @pyparm <o unicode>|pszPropertyBag||Description for pszPropertyBag
-	PyObject *obpszPropertyBag;
-	LPWSTR pszPropertyBag;
-	if ( !PyArg_ParseTuple(args, "O:SetPropertyBag", &obpszPropertyBag) )
+	// @pyparm str|PropertyBag||Description for pszPropertyBag
+	PyObject *obPropertyBag;
+	TmpWCHAR PropertyBag;
+	if ( !PyArg_ParseTuple(args, "O:SetPropertyBag", &obPropertyBag) )
 		return NULL;
-	BOOL bPythonIsHappy = TRUE;
-	if (bPythonIsHappy && !PyWinObject_AsBstr(obpszPropertyBag, &pszPropertyBag)) bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) return NULL;
+	if (!PyWinObject_AsWCHAR(obPropertyBag, &PropertyBag))
+		return NULL;
 	HRESULT hr;
 	PY_INTERFACE_PRECALL;
-	hr = pIEB->SetPropertyBag( pszPropertyBag );
-	SysFreeString(pszPropertyBag);
-
+	hr = pIEB->SetPropertyBag(PropertyBag );
 	PY_INTERFACE_POSTCALL;
 
 	if ( FAILED(hr) )
 		return PyCom_BuildPyException(hr, pIEB, IID_IExplorerBrowser );
 	Py_INCREF(Py_None);
 	return Py_None;
-
 }
 
 // @pymethod |PyIExplorerBrowser|SetEmptyText|Description of SetEmptyText.
@@ -141,26 +137,23 @@ PyObject *PyIExplorerBrowser::SetEmptyText(PyObject *self, PyObject *args)
 	IExplorerBrowser *pIEB = GetI(self);
 	if ( pIEB == NULL )
 		return NULL;
-	// @pyparm <o unicode>|pszEmptyText||Description for pszEmptyText
-	PyObject *obpszEmptyText;
-	LPWSTR pszEmptyText;
-	if ( !PyArg_ParseTuple(args, "O:SetEmptyText", &obpszEmptyText) )
+	// @pyparm str|EmptyText||Description for pszEmptyText
+	PyObject *obEmptyText;
+	TmpWCHAR EmptyText;
+	if ( !PyArg_ParseTuple(args, "O:SetEmptyText", &obEmptyText) )
 		return NULL;
-	BOOL bPythonIsHappy = TRUE;
-	if (bPythonIsHappy && !PyWinObject_AsBstr(obpszEmptyText, &pszEmptyText)) bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) return NULL;
+
+	if (!PyWinObject_AsWCHAR(obEmptyText, &EmptyText))
+		return NULL;
 	HRESULT hr;
 	PY_INTERFACE_PRECALL;
-	hr = pIEB->SetEmptyText( pszEmptyText );
-	SysFreeString(pszEmptyText);
-
+	hr = pIEB->SetEmptyText(EmptyText );
 	PY_INTERFACE_POSTCALL;
 
 	if ( FAILED(hr) )
 		return PyCom_BuildPyException(hr, pIEB, IID_IExplorerBrowser );
 	Py_INCREF(Py_None);
 	return Py_None;
-
 }
 
 // @pymethod |PyIExplorerBrowser|SetFolderSettings|Description of SetFolderSettings.
