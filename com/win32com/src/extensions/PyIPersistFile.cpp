@@ -52,27 +52,24 @@ PyObject *PyIPersistFile::Load(PyObject *self, PyObject *args)
 	IPersistFile *pIPF = GetI(self);
 	if ( pIPF == NULL )
 		return NULL;
-	// @pyparm <o unicode>|pszFileName||Absolute path of the file to open
-	// @pyparm int|dwMode|STGM_READ|Specifies the access mode from the STGM enumeration.
-	PyObject *obpszFileName;
-	LPOLESTR pszFileName;
+	// @pyparm str|FileName||Absolute path of the file to open
+	// @pyparm int|Mode|STGM_READ|Specifies the access mode from the STGM enumeration.
+	PyObject *obFileName;
+	TmpWCHAR FileName;
 	DWORD dwMode = STGM_READ;
-	if ( !PyArg_ParseTuple(args, "O|l:Load", &obpszFileName, &dwMode) )
+	if ( !PyArg_ParseTuple(args, "O|l:Load", &obFileName, &dwMode) )
 		return NULL;
-	BOOL bPythonIsHappy = TRUE;
-	if (!PyWinObject_AsBstr(obpszFileName, &pszFileName)) bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) return NULL;
+	if (!PyWinObject_AsWCHAR(obFileName, &FileName))
+		return NULL;
 	HRESULT hr;
 	PY_INTERFACE_PRECALL;
-	hr = pIPF->Load( pszFileName, dwMode );
+	hr = pIPF->Load(FileName, dwMode );
 	PY_INTERFACE_POSTCALL;
-	SysFreeString(pszFileName);
 
 	if ( FAILED(hr) )
 		return PyCom_BuildPyException(hr, pIPF, IID_IPersistFile);
 	Py_INCREF(Py_None);
 	return Py_None;
-
 }
 
 // @pymethod |PyIPersistFile|Save|Saves the object into the specified file.
@@ -81,27 +78,24 @@ PyObject *PyIPersistFile::Save(PyObject *self, PyObject *args)
 	IPersistFile *pIPF = GetI(self);
 	if ( pIPF == NULL )
 		return NULL;
-	// @pyparm <o unicode>|pszFileName||absolute path of the file where the object is saved.
+	// @pyparm str|FileName||absolute path of the file where the object is saved.
 	// @pyparm int|fRemember||Specifies whether the file is to be the current working file or not.
-	PyObject *obpszFileName;
-	LPOLESTR pszFileName;
+	PyObject *obFileName;
+	TmpWCHAR FileName;
 	BOOL fRemember;
-	if ( !PyArg_ParseTuple(args, "Oi:Save", &obpszFileName, &fRemember) )
+	if ( !PyArg_ParseTuple(args, "Oi:Save", &obFileName, &fRemember) )
 		return NULL;
-	BOOL bPythonIsHappy = TRUE;
-	if (!PyWinObject_AsBstr(obpszFileName, &pszFileName, TRUE)) bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) return NULL;
+	if (!PyWinObject_AsWCHAR(obFileName, &FileName, TRUE))
+		return NULL;
 	HRESULT hr;
 	PY_INTERFACE_PRECALL;
-	hr = pIPF->Save( pszFileName, fRemember );
+	hr = pIPF->Save(FileName, fRemember );
 	PY_INTERFACE_POSTCALL;
-	SysFreeString(pszFileName);
 
 	if ( FAILED(hr) )
 		return PyCom_BuildPyException(hr, pIPF, IID_IPersistFile);
 	Py_INCREF(Py_None);
 	return Py_None;
-
 }
 
 // @pymethod |PyIPersistFile|SaveCompleted|Notifies the object that it can revert from NoScribble mode to Normal mode.
@@ -110,28 +104,25 @@ PyObject *PyIPersistFile::SaveCompleted(PyObject *self, PyObject *args)
 	IPersistFile *pIPF = GetI(self);
 	if ( pIPF == NULL )
 		return NULL;
-	// @pyparm <o unicode>|pszFileName||Absolute path of the file where the object was saved.
-	PyObject *obpszFileName;
-	LPOLESTR pszFileName;
-	if ( !PyArg_ParseTuple(args, "O:SaveCompleted", &obpszFileName) )
+	// @pyparm str|FileName||Absolute path of the file where the object was saved.
+	PyObject *obFileName;
+	TmpWCHAR FileName;
+	if ( !PyArg_ParseTuple(args, "O:SaveCompleted", &obFileName) )
 		return NULL;
-	BOOL bPythonIsHappy = TRUE;
-	if (!PyWinObject_AsBstr(obpszFileName, &pszFileName)) bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) return NULL;
+	if (!PyWinObject_AsWCHAR(obFileName, &FileName))
+		return NULL;
 	HRESULT hr;
 	PY_INTERFACE_PRECALL;
-	hr = pIPF->SaveCompleted( pszFileName );
+	hr = pIPF->SaveCompleted(FileName );
 	PY_INTERFACE_POSTCALL;
-	SysFreeString(pszFileName);
 
 	if ( FAILED(hr) )
 		return PyCom_BuildPyException(hr, pIPF, IID_IPersistFile);
 	Py_INCREF(Py_None);
 	return Py_None;
-
 }
 
-// @pymethod <o unicode>|PyIPersistFile|GetCurFile|Gets the current name of the file associated with the object.
+// @pymethod str|PyIPersistFile|GetCurFile|Gets the current name of the file associated with the object.
 PyObject *PyIPersistFile::GetCurFile(PyObject *self, PyObject *args)
 {
 	IPersistFile *pIPF = GetI(self);
@@ -147,11 +138,7 @@ PyObject *PyIPersistFile::GetCurFile(PyObject *self, PyObject *args)
 
 	if ( FAILED(hr) )
 		return PyCom_BuildPyException(hr, pIPF, IID_IPersistFile);
-	PyObject *obppszFileName;
-
-	obppszFileName = MakeOLECHARToObj(ppszFileName);
-	PyObject *pyretval = Py_BuildValue("O", obppszFileName);
-	Py_XDECREF(obppszFileName);
+	PyObject *pyretval = MakeOLECHARToObj(ppszFileName);
 	CoTaskMemFree(ppszFileName);
 	return pyretval;
 }
@@ -227,10 +214,10 @@ STDMETHODIMP PyGPersistFile::GetCurFile(
 	if (FAILED(hr)) return hr;
 	// Process the Python results, and convert back to the real params
 	PyObject *obppszFileName;
-	if (!PyArg_Parse(result, "O" , &obppszFileName)) return PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
-	BOOL bPythonIsHappy = TRUE;
-	if (!PyWinObject_AsBstr(obppszFileName, ppszFileName)) bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) hr = PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
+	if (!PyArg_Parse(result, "O" , &obppszFileName))
+		hr = PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
+	else if (!PyWinObject_AsTaskAllocatedWCHAR(obppszFileName, ppszFileName))
+		hr = PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
 	Py_DECREF(result);
 	return hr;
 }
