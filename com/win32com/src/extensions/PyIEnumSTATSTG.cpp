@@ -27,7 +27,7 @@ PyIEnumSTATSTG::~PyIEnumSTATSTG()
 	return (IEnumSTATSTG *)PyIUnknown::GetI(self);
 }
 
-// @pymethod object|PyIEnumSTATSTG|Next|Retrieves a specified number of items in the enumeration sequence.
+// @pymethod (<o STATSTG>, ...)|PyIEnumSTATSTG|Next|Retrieves a specified number of items in the enumeration sequence.
 PyObject *PyIEnumSTATSTG::Next(PyObject *self, PyObject *args)
 {
 	long celt = 1;
@@ -139,7 +139,7 @@ PyObject *PyIEnumSTATSTG::Clone(PyObject *self, PyObject *args)
 	return PyCom_PyObjectFromIUnknown(pClone, IID_IEnumSTATSTG, FALSE);
 }
 
-// @object PyIEnumSTATSTG|A Python interface to IEnumVARIANT
+// @object PyIEnumSTATSTG|An enumerator for elements contained in a <o PyIStorage> object
 static struct PyMethodDef PyIEnumSTATSTG_methods[] =
 {
 	{ "Next", PyIEnumSTATSTG::Next, 1 },    // @pymeth Next|Retrieves a specified number of items in the enumeration sequence.

@@ -33,8 +33,8 @@ PyObject *PyIStorage::CreateStream(PyObject *self, PyObject *args)
 	IStorage *pIS = GetI(self);
 	if ( pIS == NULL )
 		return NULL;
-	// @pyparm string|pwcsName||Name of the new stream
-	// @pyparm int|grfMode||Specifies the access mode to use when opening the newly created stream.
+	// @pyparm str|Name||Name of the new stream
+	// @pyparm int|Mode||Access mode, storagecon.STGM_*
 	// @pyparm int|reserved1|0|Reserved - must be zero.
 	// @pyparm int|reserved2|0|Reserved - must be zero.
 	DWORD grfMode;
@@ -44,13 +44,12 @@ PyObject *PyIStorage::CreateStream(PyObject *self, PyObject *args)
 	if ( !PyArg_ParseTuple(args, "Oi|ii:CreateStream", &obName, &grfMode, &reserved1, &reserved2) )
 		return NULL;
 	IStream *ppstm;
-	BOOL bPythonIsHappy = TRUE;
-	BSTR bstrName;
-	bPythonIsHappy = PyWinObject_AsBstr(obName, &bstrName);
-	if (!bPythonIsHappy) return NULL;
+	TmpWCHAR Name;
+	if (!PyWinObject_AsWCHAR(obName, &Name))
+		return NULL;
+
 	PY_INTERFACE_PRECALL;
-	HRESULT hr = pIS->CreateStream( bstrName, grfMode, reserved1, reserved2, &ppstm );
-	PyWinObject_FreeBstr(bstrName);
+	HRESULT hr = pIS->CreateStream(Name, grfMode, reserved1, reserved2, &ppstm );
 	PY_INTERFACE_POSTCALL;
 	if ( FAILED(hr) )
 		return PyCom_BuildPyException(hr, pIS, IID_IStorage);
@@ -64,9 +63,9 @@ PyObject *PyIStorage::OpenStream(PyObject *self, PyObject *args)
 	IStorage *pIS = GetI(self);
 	if ( pIS == NULL )
 		return NULL;
-	// @pyparm string|pwcsName||Description for pwcsName
+	// @pyparm str|Name||Name of stream to be opened
 	// @pyparm object|reserved1||A reserved param.  Always pass None.  NULL is always passed to the COM function
-	// @pyparm int|grfMode||Specifies the access mode to be assigned to the open stream. See the STGM enumeration values for descriptions of the possible values. . Whatever other modes you may choose, you must at least specify STGM_SHARE_EXCLUSIVE when calling this method.
+	// @pyparm int|Mode||Access mode, storagecon.STGM_*
 	// @pyparm int|reserved2|0|Reserved - must be zero.
 	PyObject *obName;
 	DWORD grfMode;
@@ -78,19 +77,17 @@ PyObject *PyIStorage::OpenStream(PyObject *self, PyObject *args)
 		PyErr_SetString(PyExc_TypeError, "The 'reserved' parameter (param 2) must be None");
 		return NULL;
 	}
-	IStream *ppstm;
-	BOOL bPythonIsHappy = TRUE;
-	BSTR name;
-	bPythonIsHappy = PyWinObject_AsBstr(obName, &name);
-	if (!bPythonIsHappy) return NULL;
+	IStream *pstm;
+	TmpWCHAR name;
+	if (!PyWinObject_AsWCHAR(obName, &name))
+		return NULL;
+
 	PY_INTERFACE_PRECALL;
-	HRESULT hr = pIS->OpenStream( name, NULL, grfMode, reserved2, &ppstm );
-	PyWinObject_FreeBstr(name);
+	HRESULT hr = pIS->OpenStream( name, NULL, grfMode, reserved2, &pstm );
 	PY_INTERFACE_POSTCALL;
 	if ( FAILED(hr) )
 		return PyCom_BuildPyException(hr, pIS, IID_IStorage);
-
-	return PyCom_PyObjectFromIUnknown(ppstm, IID_IStream, FALSE);
+	return PyCom_PyObjectFromIUnknown(pstm, IID_IStream, FALSE);
 }
 
 // @pymethod <o PyIStorage>|PyIStorage|CreateStorage|Creates and opens a new storage object nested within this storage object.
@@ -99,9 +96,9 @@ PyObject *PyIStorage::CreateStorage(PyObject *self, PyObject *args)
 	IStorage *pIS = GetI(self);
 	if ( pIS == NULL )
 		return NULL;
-	// @pyparm string|pwcsName||The name of the newly created stream.
-	// @pyparm int|grfMode||Specifies the access mode to use when opening the newly created storage object.
-	// @pyparm int|dwStgFmt||Documented as "reserved"!
+	// @pyparm str|Name||The name of the newly created stream.
+	// @pyparm int|Mode||Access mode - combination of storagecon.STGM_* flags
+	// @pyparm int|StgFmt||Documented as "reserved"!
 	// @pyparm int|reserved2|0|Description for reserved2
 	PyObject *obName;
 	DWORD grfMode;
@@ -109,19 +106,17 @@ PyObject *PyIStorage::CreateStorage(PyObject *self, PyObject *args)
 	DWORD reserved2 = 0;
 	if ( !PyArg_ParseTuple(args, "Oii|i:CreateStorage", &obName, &grfMode, &dwStgFmt, &reserved2) )
 		return NULL;
-	IStorage *ppstg;
-	BOOL bPythonIsHappy = TRUE;
-	BSTR name;
-	bPythonIsHappy = PyWinObject_AsBstr(obName, &name);
-	if (!bPythonIsHappy) return NULL;
+	IStorage *pstg;
+	TmpWCHAR name;
+	if (!PyWinObject_AsWCHAR(obName, &name))
+		return NULL;
+
 	PY_INTERFACE_PRECALL;
-	HRESULT hr = pIS->CreateStorage( name, grfMode, dwStgFmt, reserved2, &ppstg );
+	HRESULT hr = pIS->CreateStorage( name, grfMode, dwStgFmt, reserved2, &pstg );
 	PY_INTERFACE_POSTCALL;
-	PyWinObject_FreeBstr(name);
 	if ( FAILED(hr) )
 		return PyCom_BuildPyException(hr, pIS, IID_IStorage);
-
-	return PyCom_PyObjectFromIUnknown(ppstg, IID_IStorage, FALSE);
+	return PyCom_PyObjectFromIUnknown(pstg, IID_IStorage, FALSE);
 }
 
 // @pymethod <o PyIStorage>|PyIStorage|OpenStorage|Opens an existing storage object with the specified name in the specified access mode.
@@ -130,12 +125,12 @@ PyObject *PyIStorage::OpenStorage(PyObject *self, PyObject *args)
 	IStorage *pIS = GetI(self);
 	if ( pIS == NULL )
 		return NULL;
-	// @pyparm string|pwcsName||Name of the storage, or None.
-	// @pyparm <o PyIStorage>|pstgPriority||If the pstgPriority parameter is not None, it is a <o PyIStorage> object to a previous opening of an element of the storage object, 
+	// @pyparm str|Name||Name of the storage, or None.
+	// @pyparm <o PyIStorage>|Priority||If the pstgPriority parameter is not None, it is a <o PyIStorage> object to a previous opening of an element of the storage object, 
 	// usually one that was opened in priority mode. The storage object should be closed and re-opened 
 	// according to grfMode. When the <om PyIStorage.OpenStorage> method returns, pstgPriority is no longer valid - use the result value. 
 	// If the pstgPriority parameter is None, it is ignored.
-	// @pyparm int|grfMode||Specifies the access mode to use when opening the storage object. See the STGM enumeration values for descriptions of the possible values. Whatever other modes you may choose, you must at least specify STGM_SHARE_EXCLUSIVE when calling this method. 
+	// @pyparm int|Mode||Access mode - combination of storagecon.STGM_* flags (must include STGM_SHARE_EXCLUSIVE)
 	// @pyparm <o SNB>|snbExclude||Reserved for later - Must be None
 	// @pyparm int|reserved|0|Reserved integer param.
 	PyObject *obName;
@@ -146,23 +141,22 @@ PyObject *PyIStorage::OpenStorage(PyObject *self, PyObject *args)
 	if ( !PyArg_ParseTuple(args, "OOi|zi:OpenStorage", &obName, &obpstgPriority, &grfMode, &temp, &reserved) )
 		return NULL;
 	IStorage *pstgPriority;
-	IStorage *ppstg;
-	BOOL bPythonIsHappy = TRUE;
-	BSTR bstrName;
-	bPythonIsHappy = PyWinObject_AsBstr(obName, &bstrName, TRUE);
+	IStorage *pstg;
+	TmpWCHAR Name;
+	if (!PyWinObject_AsWCHAR(obName, &Name, TRUE))
+		return NULL;
 	if (!PyCom_InterfaceFromPyObject(obpstgPriority, IID_IStorage, (void **)&pstgPriority, TRUE /* bNoneOK */))
-		 bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) return NULL;
+		return NULL;
+
 	PY_INTERFACE_PRECALL;
-	HRESULT hr = pIS->OpenStorage( bstrName, pstgPriority, grfMode, NULL, reserved, &ppstg );
+	HRESULT hr = pIS->OpenStorage(Name, pstgPriority, grfMode, NULL, reserved, &pstg );
 	if ( pstgPriority != NULL )
 		pstgPriority->Release();
-	PyWinObject_FreeBstr(bstrName);
 	PY_INTERFACE_POSTCALL;
 	if ( FAILED(hr) )
 		return PyCom_BuildPyException(hr, pIS, IID_IStorage);
 
-	return PyCom_PyObjectFromIUnknown(ppstg, IID_IStorage, FALSE);
+	return PyCom_PyObjectFromIUnknown(pstg, IID_IStorage, FALSE);
 }
 
 // @pymethod |PyIStorage|CopyTo|Copies the entire contents of an open storage object to another storage object.
@@ -171,56 +165,35 @@ PyObject *PyIStorage::CopyTo(PyObject *self, PyObject *args)
 	IStorage *pIS = GetI(self);
 	if ( pIS == NULL )
 		return NULL;
-	// @pyparm [<o PyIID>,]|rgiidExclude||List of IID's to be excluded.
+	// @pyparm [<o PyIID>,]|rgiidExclude||List of IID's to be excluded.  Use empty seq to exclude all objects, or None to indicate no excludes.
 	// @pyparm <o SNB>|snbExclude||Reserved for later - Must be None
 	// @pyparm <o PyIStorage>|stgDest||The open storage object into which this storage object is to be copied. 
 	// The destination storage object can be a different implementation of the <o PyIStorage> interface from the source storage object. 
 	// Thus, <om IStorage::CopyTo> can only use publicly available methods of the destination storage object. 
 	// If stgDest is open in transacted mode, it can be reverted by calling its <om PyIStorage::Revert> method. 
-	DWORD ciidExclude = 0;
 	PyObject *obSeqExclude;
 	PyObject *obpstgDest;
 	char *temp;
 	if ( !PyArg_ParseTuple(args, "OzO:CopyTo", &obSeqExclude, &temp, &obpstgDest) )
 		return NULL;
-	IID *pExclude;
-	if (obSeqExclude==Py_None)
-		pExclude = NULL;
-	else {
-		if (!PySequence_Check(obSeqExclude)) {
-			PyErr_SetString(PyExc_TypeError, "Argument 1 must be a sequence of IID's, or None");
+	DWORD ciidExclude = 0;
+	IID *pExclude = NULL;
+	if (obSeqExclude != Py_None)
+		if (!SeqToVector(obSeqExclude, &pExclude, &ciidExclude, PyWinObject_AsIID))
 			return NULL;
-		}
-		ciidExclude = PySequence_Length(obSeqExclude);
-		pExclude = new IID[ciidExclude];
-		if (pExclude==NULL) {
-			PyErr_SetString(PyExc_MemoryError, "Allocating array of IID's");
-			return NULL;
-		}
-		for (DWORD i=0;i<ciidExclude;i++) {
-			PyObject *ob = PySequence_GetItem(obSeqExclude, (int)i);
-			BOOL ok = PyWinObject_AsIID(ob, pExclude+i);
-			Py_XDECREF(ob);
-			if (!ok) {
-				delete [] pExclude;
-				return NULL;
-			}
-		}
-	}
 	IStorage *pstgDest;
-	BOOL bPythonIsHappy = TRUE;
-	if (!PyCom_InterfaceFromPyObject(obpstgDest, IID_IStorage, (void **)&pstgDest, FALSE /* bNoneOK */))
-		 bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) {
+	if (!PyCom_InterfaceFromPyObject(obpstgDest, IID_IStorage, (void **)&pstgDest, FALSE /* bNoneOK */)){
+		if (pExclude)
+			CoTaskMemFree(pExclude);
 		return NULL;
-		delete [] pExclude;
 	}
+
 	PY_INTERFACE_PRECALL;
 	HRESULT hr = pIS->CopyTo( ciidExclude, pExclude, NULL, pstgDest );
-	delete [] pExclude;
 	pstgDest->Release();
 	PY_INTERFACE_POSTCALL;
-
+	if (pExclude)
+		CoTaskMemFree(pExclude);
 	if ( FAILED(hr) )
 		return PyCom_BuildPyException(hr, pIS, IID_IStorage);
 	Py_INCREF(Py_None);
@@ -233,35 +206,32 @@ PyObject *PyIStorage::MoveElementTo(PyObject *self, PyObject *args)
 	IStorage *pIS = GetI(self);
 	if ( pIS == NULL )
 		return NULL;
-	// @pyparm string|name||A string that contains the name of the element in this storage object to be moved or copied.
+	// @pyparm str|Name||A string that contains the name of the element in this storage object to be moved or copied.
 	// @pyparm <o PyIStorage>|stgDest||<o PyIStorage> for the destination storage object.
-	// @pyparm string|newName||A string that contains the new name for the element in its new storage object.
-	// @pyparm int|grfFlags||Specifies whether the operation should be a move (STGMOVE_MOVE) or a copy (STGMOVE_COPY). See the STGMOVE enumeration.
+	// @pyparm str|NewName||A string that contains the new name for the element in its new storage object.
+	// @pyparm int|Flags||Specifies whether to move or copy (storagecon.STGMOVE_MOVE or STGMOVE_COPY)
 	PyObject *obName, *obNewName;
 	PyObject *obpstgDest;
 	DWORD grfFlags;
 	if ( !PyArg_ParseTuple(args, "OOOi:MoveElementTo", &obName, &obpstgDest, &obNewName, &grfFlags) )
 		return NULL;
 	IStorage *pstgDest;
-	BOOL bPythonIsHappy = TRUE;
-	BSTR bstrName, bstrNewName;
-	bPythonIsHappy = PyWinObject_AsBstr(obName, &bstrName);
-	if (!PyWinObject_AsBstr(obNewName, &bstrNewName))
-		bPythonIsHappy = FALSE;
+	TmpWCHAR Name, NewName;
+	if (!PyWinObject_AsWCHAR(obName, &Name))
+		return NULL;
+	if (!PyWinObject_AsWCHAR(obNewName, &NewName))
+		return NULL;
 	if (!PyCom_InterfaceFromPyObject(obpstgDest, IID_IStorage, (void **)&pstgDest, FALSE /* bNoneOK */))
-		 bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) return NULL;
+		return NULL;
 	PY_INTERFACE_PRECALL;
-	HRESULT hr = pIS->MoveElementTo( bstrName, pstgDest, bstrNewName, grfFlags );
+	HRESULT hr = pIS->MoveElementTo(Name, pstgDest, NewName, grfFlags );
 	pstgDest->Release();
 	PY_INTERFACE_POSTCALL;
-	PyWinObject_FreeBstr(bstrName);
-	PyWinObject_FreeBstr(bstrNewName);
+
 	if ( FAILED(hr) )
 		return PyCom_BuildPyException(hr, pIS, IID_IStorage);
 	Py_INCREF(Py_None);
 	return Py_None;
-
 }
 
 // @pymethod |PyIStorage|Commit|Ensures that any changes made to a storage object open in transacted mode are reflected in the parent storage; 
@@ -338,19 +308,16 @@ PyObject *PyIStorage::DestroyElement(PyObject *self, PyObject *args)
 	PyObject *obName;
 	if ( !PyArg_ParseTuple(args, "O:DestroyElement", &obName) )
 		return NULL;
-	BOOL bPythonIsHappy = TRUE;
-	BSTR bstrName;
-	bPythonIsHappy = PyWinObject_AsBstr(obName, &bstrName);
-	if (!bPythonIsHappy) return NULL;
+	TmpWCHAR Name;
+	if (!PyWinObject_AsWCHAR(obName, &Name))
+		return NULL;
 	PY_INTERFACE_PRECALL;
-	HRESULT hr = pIS->DestroyElement( bstrName );
+	HRESULT hr = pIS->DestroyElement(Name);
 	PY_INTERFACE_POSTCALL;
-	PyWinObject_FreeBstr(bstrName);
 	if ( FAILED(hr) )
 		return PyCom_BuildPyException(hr, pIS, IID_IStorage);
 	Py_INCREF(Py_None);
 	return Py_None;
-
 }
 
 // @pymethod |PyIStorage|RenameElement|Renames the specified substorage or stream in this storage object.
@@ -359,27 +326,24 @@ PyObject *PyIStorage::RenameElement(PyObject *self, PyObject *args)
 	IStorage *pIS = GetI(self);
 	if ( pIS == NULL )
 		return NULL;
-	// @pyparm string|oldName||The name of the substorage or stream to be changed.
-	// @pyparm string|newName||The new name for the specified sustorage or stream.
+	// @pyparm str|OldName||The name of the substorage or stream to be changed.
+	// @pyparm str|NewName||The new name for the specified sustorage or stream.
 	PyObject *obNewName, *obOldName;
 	if ( !PyArg_ParseTuple(args, "OO:RenameElement", &obOldName, &obNewName) )
 		return NULL;
-	BOOL bPythonIsHappy = TRUE;
-	BSTR bstrNewName, bstrOldName;
-	bPythonIsHappy = PyWinObject_AsBstr(obOldName, &bstrOldName);
-	if (!PyWinObject_AsBstr(obNewName, &bstrNewName))
-		bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) return NULL;
+	TmpWCHAR NewName, OldName;
+	if (!PyWinObject_AsWCHAR(obOldName, &OldName))
+		return NULL;
+	if (!PyWinObject_AsWCHAR(obNewName, &NewName))
+		return NULL;
+
 	PY_INTERFACE_PRECALL;
-	HRESULT hr = pIS->RenameElement( bstrOldName, bstrNewName );
-	PyWinObject_FreeBstr(bstrOldName);
-	PyWinObject_FreeBstr(bstrNewName);
+	HRESULT hr = pIS->RenameElement(OldName, NewName);
 	PY_INTERFACE_POSTCALL;
 	if ( FAILED(hr) )
 		return PyCom_BuildPyException(hr, pIS, IID_IStorage);
 	Py_INCREF(Py_None);
 	return Py_None;
-
 }
 
 // @pymethod |PyIStorage|SetElementTimes|Sets the modification, access, and creation times of the specified storage element, if supported by the underlying file system.
@@ -388,7 +352,7 @@ PyObject *PyIStorage::SetElementTimes(PyObject *self, PyObject *args)
 	IStorage *pIS = GetI(self);
 	if ( pIS == NULL )
 		return NULL;
-	// @pyparm string|name||The name of the storage object element whose times are to be modified. If NULL, the time is set on the root storage rather than one of its elements. 
+	// @pyparm str|name||The name of the storage object element whose times are to be modified. If NULL, the time is set on the root storage rather than one of its elements. 
 	// @pyparm <o PyTime>|ctime||Either the new creation time for the element or None if the creation time is not to be modified.
 	// @pyparm <o PyTime>|atime||Either the new access time for the element or None if the access time is not to be modified.
 	// @pyparm <o PyTime>|mtime||Either the new modification time for the element or None if the modification time is not to be modified.
@@ -416,12 +380,11 @@ PyObject *PyIStorage::SetElementTimes(PyObject *self, PyObject *args)
 			return NULL;
 		pmtime = &mtime;
 	}
-	BSTR bstrName;
-	if (!PyWinObject_AsBstr(obName, &bstrName))
+	TmpWCHAR Name;
+	if (!PyWinObject_AsWCHAR(obName, &Name))
 		return NULL;
 	PY_INTERFACE_PRECALL;
-	HRESULT hr = pIS->SetElementTimes( bstrName, pctime, patime, pmtime );
-	PyWinObject_FreeBstr(bstrName);
+	HRESULT hr = pIS->SetElementTimes(Name, pctime, patime, pmtime );
 	PY_INTERFACE_POSTCALL;
 	if ( FAILED(hr) )
 		return PyCom_BuildPyException(hr, pIS, IID_IStorage);
@@ -440,9 +403,8 @@ PyObject *PyIStorage::SetClass(PyObject *self, PyObject *args)
 	if ( !PyArg_ParseTuple(args, "O:SetClass", &obclsid) )
 		return NULL;
 	IID clsid;
-	BOOL bPythonIsHappy = TRUE;
-	if (!PyWinObject_AsIID(obclsid, &clsid)) bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) return NULL;
+	if (!PyWinObject_AsIID(obclsid, &clsid))
+		return NULL;
 	PY_INTERFACE_PRECALL;
 	HRESULT hr = pIS->SetClass( clsid );
 	PY_INTERFACE_POSTCALL;
@@ -498,7 +460,8 @@ PyObject *PyIStorage::Stat(PyObject *self, PyObject *args)
 	return obpstatstg;
 }
 
-// @object PyIStorage|Description of the interface
+// @object PyIStorage|Structured storage compound storage object
+// @comm This object acts as an iterator through <om PyIStorage.EnumElements>
 static struct PyMethodDef PyIStorage_methods[] =
 {
 	{ "CreateStream", PyIStorage::CreateStream, 1 }, // @pymeth CreateStream|Creates and opens a stream object with the specified name contained in this storage object.
@@ -519,11 +482,12 @@ static struct PyMethodDef PyIStorage_methods[] =
 	{ NULL }
 };
 
-PyComTypeObject PyIStorage::type("PyIStorage",
+PyComEnumProviderTypeObject PyIStorage::type("PyIStorage",
 		&PyIUnknown::type, // @base PyIStorage|PyIUnknown
 		sizeof(PyIStorage),
 		PyIStorage_methods,
-		GET_PYCOM_CTOR(PyIStorage));
+		GET_PYCOM_CTOR(PyIStorage),
+		"EnumElements");
 // ---------------------------------------------------
 //
 // Gateway Implementation

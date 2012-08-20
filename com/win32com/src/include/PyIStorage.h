@@ -9,7 +9,7 @@ class PyIStorage : public PyIUnknown
 public:
 	MAKE_PYCOM_CTOR(PyIStorage);
 	static IStorage *GetI(PyObject *self);
-	static PyComTypeObject type;
+	static PyComEnumProviderTypeObject type;
 
 	// The Python methods
 	static PyObject *CreateStream(PyObject *self, PyObject *args);
