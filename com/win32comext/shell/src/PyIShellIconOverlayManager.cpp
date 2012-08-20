@@ -24,37 +24,32 @@ PyIShellIconOverlayManager::~PyIShellIconOverlayManager()
 	return (IShellIconOverlayManager *)PyIUnknown::GetI(self);
 }
 
-// @pymethod |PyIShellIconOverlayManager|GetFileOverlayInfo|Description of GetFileOverlayInfo.
+// @pymethod int|PyIShellIconOverlayManager|GetFileOverlayInfo|Returns an index into the system image list for the icon image or overlay image
 PyObject *PyIShellIconOverlayManager::GetFileOverlayInfo(PyObject *self, PyObject *args)
 {
 	IShellIconOverlayManager *pISIOM = GetI(self);
 	if ( pISIOM == NULL )
 		return NULL;
-	// @pyparm <o unicode>|path||Description for path
-	// @pyparm int|attrib||Description for attrib
-	// @pyparm int|flags||Description for flags
+	// @pyparm str|path||Full path to the file
+	// @pyparm int|attrib||File attributes (win32com.FILE_ATTRIBUTE_*)
+	// @pyparm int|flags||SIOM_OVERLAYINDEX (1) or SIOM_ICONINDEX (2)
 	PyObject *obpath;
-	LPWSTR path;
+	TmpWCHAR path;
 	DWORD attrib;
 	int index;
 	DWORD flags;
 	if ( !PyArg_ParseTuple(args, "Oll:GetFileOverlayInfo", &obpath, &attrib, &flags) )
 		return NULL;
-	BOOL bPythonIsHappy = TRUE;
-	if (bPythonIsHappy && !PyWinObject_AsBstr(obpath, &path)) bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) return NULL;
+	if (!PyWinObject_AsWCHAR(obpath, &path))
+		return NULL;
 	HRESULT hr;
 	PY_INTERFACE_PRECALL;
 	hr = pISIOM->GetFileOverlayInfo( path, attrib, &index, flags );
-	SysFreeString(path);
-
 	PY_INTERFACE_POSTCALL;
 
 	if ( FAILED(hr) )
 		return PyCom_BuildPyException(hr, pISIOM, IID_IShellIconOverlayManager );
-
-	PyObject *pyretval = Py_BuildValue("i", index);
-	return pyretval;
+	return PyInt_FromLong(index);
 }
 
 // @pymethod |PyIShellIconOverlayManager|GetReservedOverlayInfo|Description of GetReservedOverlayInfo.
@@ -63,33 +58,29 @@ PyObject *PyIShellIconOverlayManager::GetReservedOverlayInfo(PyObject *self, PyO
 	IShellIconOverlayManager *pISIOM = GetI(self);
 	if ( pISIOM == NULL )
 		return NULL;
-	// @pyparm <o unicode>|path||Description for path
+	// @pyparm str|path||Description for path
 	// @pyparm int|attrib||Description for attrib
 	// @pyparm int|flags||Description for flags
 	// @pyparm int|ireservedID||Description for ireservedID
 	PyObject *obpath;
-	LPWSTR path;
+	TmpWCHAR path;
 	DWORD attrib;
 	int index;
 	DWORD flags;
 	int ireservedID;
 	if ( !PyArg_ParseTuple(args, "Olli:GetReservedOverlayInfo", &obpath, &attrib, &flags, &ireservedID) )
 		return NULL;
-	BOOL bPythonIsHappy = TRUE;
-	if (bPythonIsHappy && !PyWinObject_AsBstr(obpath, &path)) bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) return NULL;
+	if (!PyWinObject_AsWCHAR(obpath, &path))
+		return NULL;
 	HRESULT hr;
 	PY_INTERFACE_PRECALL;
 	hr = pISIOM->GetReservedOverlayInfo( path, attrib, &index, flags, ireservedID );
-	SysFreeString(path);
-
 	PY_INTERFACE_POSTCALL;
 
 	if ( FAILED(hr) )
 		return PyCom_BuildPyException(hr, pISIOM, IID_IShellIconOverlayManager );
 
-	PyObject *pyretval = Py_BuildValue("i", index);
-	return pyretval;
+	return PyInt_FromLong(index);
 }
 
 // @pymethod |PyIShellIconOverlayManager|RefreshOverlayImages|Description of RefreshOverlayImages.
