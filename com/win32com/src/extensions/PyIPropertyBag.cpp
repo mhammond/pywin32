@@ -24,7 +24,7 @@ PyObject *PyIPropertyBag::Read(PyObject *self, PyObject *args)
 	int varType = VT_EMPTY;
 	PyObject *obLog = NULL;
 	PyObject *obName;
-	// @pyparm string|propName||Name of the property to read.
+	// @pyparm str|propName||Name of the property to read.
 	// @pyparm int|propType||The type of the object to read.  Must be a VT_* Variant Type constant.
 	// @pyparm <o PyIErrorLog>|errorLog|None|The caller's <o PyIErrorLog> object in which the property bag stores any errors that occur during reads. Can be None in which case the caller is not interested in errors.
 	if ( !PyArg_ParseTuple(args, "O|iO:Read", &obName, &varType, &obLog) )
@@ -34,24 +34,22 @@ PyObject *PyIPropertyBag::Read(PyObject *self, PyObject *args)
 	if ( pIPB == NULL )
 		return NULL;
 
-	BSTR bstrName;
-	if (!PyWinObject_AsBstr(obName, &bstrName)) return NULL;
+	TmpWCHAR Name;
+	if (!PyWinObject_AsWCHAR(obName, &Name))
+		return NULL;
 	IErrorLog *pIEL = NULL;
 	if ( obLog != NULL && obLog != Py_None &&
-		!PyCom_InterfaceFromPyObject(obLog, IID_IErrorLog, (LPVOID*)&pIEL, FALSE) ) {
-		PyWinObject_FreeBstr(bstrName);
+		!PyCom_InterfaceFromPyObject(obLog, IID_IErrorLog, (LPVOID*)&pIEL, FALSE) )
 		return NULL;
-	}
 
 	VARIANT var;
 	VariantInit(&var);
 	V_VT(&var) = varType;	// ### do we need to set anything more?
 
 	PY_INTERFACE_PRECALL;
-	HRESULT hr = pIPB->Read(bstrName, &var, pIEL);
+	HRESULT hr = pIPB->Read(Name, &var, pIEL);
 	if ( pIEL != NULL )
 		pIEL->Release();
-	PyWinObject_FreeBstr(bstrName);
 	PY_INTERFACE_POSTCALL;
 	if ( FAILED(hr) )
 		return PyCom_BuildPyException(hr, pIPB, IID_IPropertyBag);
@@ -67,7 +65,7 @@ PyObject *PyIPropertyBag::Write(PyObject *self, PyObject *args)
 {
 	PyObject *obName;
 	PyObject *obValue;
-	// @pyparm string|propName||Name of the property to read.
+	// @pyparm str|propName||Name of the property to read.
 	// @pyparm object|value||The value for the property.  The value must be able to be converted to a COM VARIANT.
 	if ( !PyArg_ParseTuple(args, "OO:Write", &obName, &obValue) )
 		return NULL;
@@ -76,17 +74,16 @@ PyObject *PyIPropertyBag::Write(PyObject *self, PyObject *args)
 	if ( pIPB == NULL )
 		return NULL;
 
+	TmpWCHAR Name;
+	if ( !PyWinObject_AsWCHAR(obName, &Name))
+		return NULL;
 	VARIANT var;
 	if ( !PyCom_VariantFromPyObject(obValue, &var) )
 		return NULL;
 
-	BSTR bstrName;
-	if ( !PyWinObject_AsBstr(obName, &bstrName))
-		return NULL;
 	PY_INTERFACE_PRECALL;
-	HRESULT hr = pIPB->Write(bstrName, &var);
+	HRESULT hr = pIPB->Write(Name, &var);
 	VariantClear(&var);
-	PyWinObject_FreeBstr(bstrName);
 	PY_INTERFACE_POSTCALL;
 	if ( FAILED(hr) )
 		return PyCom_BuildPyException(hr, pIPB, IID_IPropertyBag);
