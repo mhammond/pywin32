@@ -2066,20 +2066,27 @@ BOOL CALLBACK PyEnumWindowsProc(
 	PyEnumWindowsCallback *cb = (PyEnumWindowsCallback *)lParam;
 	CEnterLeavePython _celp;
 	PyObject *args = Py_BuildValue("(NO)", PyWinLong_FromHANDLE(hwnd), cb->extra);
+	if (args == NULL)
+		return FALSE;
 	PyObject *ret = PyEval_CallObject(cb->func, args);
-	Py_XDECREF(args);
-	if (ret && PyInt_Check(ret))
+	Py_DECREF(args);
+	if (ret == NULL)		
+		return FALSE;
+	if (ret != Py_None){
 		result = PyInt_AsLong(ret);
-	Py_XDECREF(ret);
+		if (result == -1 && PyErr_Occurred())
+			result = FALSE;
+		}
+	Py_DECREF(ret);
 	return result;
 }
 
-// @pyswig |EnumWindows|Enumerates all top-level windows on the screen by passing the handle to each window, in turn, to an application-defined callback function. EnumWindows continues until the last top-level window is enumerated or the callback function returns FALSE
+// @pyswig |EnumWindows|Enumerates all top-level windows on the screen by passing the handle to each window, in turn, to an application-defined callback function.
 static PyObject *PyEnumWindows(PyObject *self, PyObject *args)
 {
 	BOOL rc;
 	PyObject *obFunc, *obOther;
-	// @pyparm object|callback||A Python function to be used as the callback.
+	// @pyparm function|callback||A Python function to be used as the callback.  Function can return False to stop enumeration, or raise an exception.
 	// @pyparm object|extra||Any python object - this is passed to the callback function as the second param (first is the hwnd).
 	if (!PyArg_ParseTuple(args, "OO", &obFunc, &obOther))
 		return NULL;
@@ -2093,8 +2100,12 @@ static PyObject *PyEnumWindows(PyObject *self, PyObject *args)
     Py_BEGIN_ALLOW_THREADS
 	rc = EnumWindows(PyEnumWindowsProc, (LPARAM)&cb);
     Py_END_ALLOW_THREADS
-	if (!rc)
+	if (!rc){
+		// Callback may have raised an exception already
+		if (PyErr_Occurred())
+			return NULL;
 		return PyWin_SetAPIError("EnumWindows");
+		}
 	Py_INCREF(Py_None);
 	return Py_None;
 }
