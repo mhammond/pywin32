@@ -10,67 +10,49 @@
 // @doc - This file contains autoduck documentation
 // ---------------------------------------------------
 
+void PyObject_FreePROPSPECs(PROPSPEC *pFree, ULONG cFree)
+{
+	if (!pFree)
+		return;
+	for (ULONG i=0; i<cFree; i++)
+		if (pFree[i].ulKind == PRSPEC_LPWSTR && pFree[i].lpwstr)
+			PyWinObject_FreeWCHAR(pFree[i].lpwstr);
+	free(pFree);
+}
+
 // @object PROPSPEC|Identifies a property.  Can be either an int property id, or a str/unicode property name.
 BOOL PyObject_AsPROPSPECs( PyObject *ob, PROPSPEC **ppRet, ULONG *pcRet)
 {
-	BOOL ret=FALSE;
-	DWORD len, i;
-	PyObject *tuple=PyWinSequence_Tuple(ob, &len);
+	TmpPyObject tuple=PyWinSequence_Tuple(ob, pcRet);
 	if (tuple==NULL)
 		return FALSE;
-
-	// First count the items, and the total string space we need.
-	size_t cChars = 0;
-	for (i=0;i<len;i++) {
-		PyObject *sub = PyTuple_GET_ITEM(tuple, i);
-		if (PyUnicode_Check(sub))
-			cChars += PyUnicode_GET_SIZE(sub) + 1;
-		else if (PyString_Check(sub))
-			cChars += PyString_Size(sub) + 1;
-		else if (PyInt_Check(sub))
-			;	// PROPID is a ULONG, so this may fail for values that require a python long
-		else {
-			PyErr_SetString(PyExc_TypeError, "PROPSPECs must be a sequence of strings or integers");
-			goto cleanup;
-		}
+	size_t numBytes = sizeof(PROPSPEC) * *pcRet;
+	*ppRet = (PROPSPEC *)malloc(numBytes);
+	if (*ppRet==NULL) {
+		PyErr_NoMemory();
+		return FALSE;
 	}
-	size_t numBytes;
-	numBytes = (sizeof(PROPSPEC) * len) + (sizeof(WCHAR) * cChars);
-	PROPSPEC *pRet;
-	pRet = (PROPSPEC *)malloc(numBytes);
-	if (pRet==NULL) {
-		PyErr_SetString(PyExc_MemoryError, "allocating PROPSPECs");
-		goto cleanup;
-	}
-	WCHAR *curBuf;
-	curBuf = (WCHAR *)(pRet+len);
-	for (i=0;i<len;i++) {
-		PyObject *sub = PyTuple_GET_ITEM(tuple, i);
-		BSTR bstr;
-		if (PyWinObject_AsBstr(sub, &bstr)) {
-			pRet[i].ulKind = PRSPEC_LPWSTR;
-			pRet[i].lpwstr = curBuf;
-			wcscpy( curBuf, bstr);
-			curBuf += wcslen(curBuf) + 1;
-			PyWinObject_FreeBstr(bstr);
-		} else {
+	ZeroMemory(*ppRet, numBytes);
+	for (DWORD i=0; i<*pcRet; i++) {
+		PyObject *sub = PyTuple_GET_ITEM((PyObject *)tuple, i);
+		(*ppRet)[i].propid = PyInt_AsUnsignedLongMask(sub);
+		if ((*ppRet)[i].propid != (ULONG)-1 || !PyErr_Occurred())
+			(*ppRet)[i].ulKind = PRSPEC_PROPID;
+		else{
 			PyErr_Clear();
-			pRet[i].ulKind = PRSPEC_PROPID;
-			pRet[i].propid = PyInt_AsLong(sub);
+			(*ppRet)[i].lpwstr = NULL;
+			if (PyWinObject_AsWCHAR(sub, &(*ppRet)[i].lpwstr))
+				(*ppRet)[i].ulKind = PRSPEC_LPWSTR;
+			else{
+				PyErr_Clear();
+				PyErr_SetString(PyExc_TypeError, "PROPSPECs must be a sequence of strings or integers");
+				PyObject_FreePROPSPECs(*ppRet, *pcRet);
+				*ppRet=NULL;
+				return FALSE;
+				}
+			}
 		}
-	}
-	ret=TRUE;
-	*ppRet = pRet;
-	*pcRet = len;
-cleanup:
-	Py_DECREF(tuple);
-	return ret;
-}
-
-void PyObject_FreePROPSPECs(PROPSPEC *pFree, ULONG /*cFree*/)
-{
-	if (pFree)
-		free(pFree);
+	return TRUE;
 }
 
 // Generic conversion from VT_VECTOR arrays to list.
@@ -428,7 +410,8 @@ PyIPropertyStorage::~PyIPropertyStorage()
 	return (IPropertyStorage *)PyIUnknown::GetI(self);
 }
 
-// @pymethod |PyIPropertyStorage|ReadMultiple|Reads specified properties from the current property set.
+// @pymethod (object, ...)|PyIPropertyStorage|ReadMultiple|Reads specified properties from the current property set.
+// @rdesc Returned values are automatically converted to an appropriate python type
 PyObject *PyIPropertyStorage::ReadMultiple(PyObject *self, PyObject *args)
 {
 	IPropertyStorage *pIPS = GetI(self);
@@ -552,7 +535,7 @@ PyObject *PyIPropertyStorage::DeleteMultiple(PyObject *self, PyObject *args)
 
 }
 
-// @pymethod |PyIPropertyStorage|ReadPropertyNames|Retrieves any existing string names for the specified property identifiers.
+// @pymethod (str,...)|PyIPropertyStorage|ReadPropertyNames|Retrieves any existing string names for the specified property identifiers.
 PyObject *PyIPropertyStorage::ReadPropertyNames(PyObject *self, PyObject *args)
 {
 	IPropertyStorage *pIPS = GetI(self);
@@ -688,7 +671,7 @@ PyObject *PyIPropertyStorage::Commit(PyObject *self, PyObject *args)
 	IPropertyStorage *pIPS = GetI(self);
 	if ( pIPS == NULL )
 		return NULL;
-	// @pyparm int|grfCommitFlags||Combination of STGC_* flags
+	// @pyparm int|CommitFlags||Combination of storagecon.STGC_* flags
 	DWORD grfCommitFlags;
 	if ( !PyArg_ParseTuple(args, "l:Commit", &grfCommitFlags) )
 		return NULL;
@@ -761,7 +744,6 @@ PyObject *PyIPropertyStorage::SetTimes(PyObject *self, PyObject *args)
 	FILETIME pmtime;
 	if ( !PyArg_ParseTuple(args, "OOO:SetTimes", &obpctime, &obpatime, &obpmtime) )
 		return NULL;
-	BOOL bPythonIsHappy = TRUE;
 	if (!PyWinObject_AsFILETIME(obpctime, &pctime))
 		return NULL;
 	if (!PyWinObject_AsFILETIME(obpatime, &patime))
@@ -806,7 +788,8 @@ PyObject *PyIPropertyStorage::SetClass(PyObject *self, PyObject *args)
 
 }
 
-// @pymethod |PyIPropertyStorage|Stat|Returns various infomation about the property set
+// @pymethod tuple|PyIPropertyStorage|Stat|Returns various infomation about the property set
+// @rdesc Returns a tuple representing a STATPROPSETSTG struct.
 PyObject *PyIPropertyStorage::Stat(PyObject *self, PyObject *args)
 {
 	IPropertyStorage *pIPS = GetI(self);
@@ -825,7 +808,8 @@ PyObject *PyIPropertyStorage::Stat(PyObject *self, PyObject *args)
 	return PyCom_PyObjectFromSTATPROPSETSTG(&p);
 }
 
-// @object PyIPropertyStorage|Description of the interface
+// @object PyIPropertyStorage|Structured storage object that contains a set of properties.
+//	Supports iteration to list properties.
 static struct PyMethodDef PyIPropertyStorage_methods[] =
 {
 	{ "ReadMultiple", PyIPropertyStorage::ReadMultiple, 1 }, // @pymeth ReadMultiple|Reads specified properties from the current property set.

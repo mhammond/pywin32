@@ -496,7 +496,10 @@ BOOL PyWinObject_AsDWORDArray(PyObject *obdwords, DWORD **pdwords, DWORD *item_c
 	else
 		for (tuple_index=0; tuple_index<*item_cnt; tuple_index++){
 			tuple_item=PyTuple_GET_ITEM(dwords_tuple,tuple_index);
-			(*pdwords)[tuple_index]=PyInt_AsLong(tuple_item);
+			// Doesn't check for overflow, but will accept a python long
+			//  greater than INT_MAX (even on python 2.3).  Also accepts
+			//  negatives and converts to the correct hex representation
+			(*pdwords)[tuple_index]=PyInt_AsUnsignedLongMask(tuple_item);
 			if (((*pdwords)[tuple_index]==-1) && PyErr_Occurred()){
 				ret=FALSE;
 				break;
