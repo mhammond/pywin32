@@ -486,7 +486,7 @@ PyObject *PyCListCtrl_GetItem( PyObject *self, PyObject *args )
 PyObject *PyCListCtrl_GetItemText( PyObject *self, PyObject *args )
 {
 	int item, sub;
-	TCHAR buf[256];
+	// TCHAR buf[256];
 	if (!PyArg_ParseTuple( args, "ii:GetItemText", 
 	                   &item, // @pyparm int|item||The index of the item whose text is to be retrieved.
 					   &sub)) // @pyparm int|sub||Specifies the subitem whose text is to be retrieved.
@@ -494,11 +494,10 @@ PyObject *PyCListCtrl_GetItemText( PyObject *self, PyObject *args )
 	CListCtrl *pList = GetListCtrl(self);
 	if (!pList) return NULL;
 	GUI_BGN_SAVE;
-	int len = pList->GetItemText(item, sub, buf, sizeof(buf)/sizeof(TCHAR));
+	// int len = pList->GetItemText(item, sub, buf, sizeof(buf)/sizeof(TCHAR));
+	CString s = pList->GetItemText(item, sub);
 	GUI_END_SAVE;
-	if (len==0)
-		RETURN_ERR("GetItemText failed");
-	return PyWinObject_FromTCHAR(buf,len);
+	return PyWinObject_FromTCHAR(s);
 }
 
 // @pymethod int|PyCListCtrl|SetItemText|Changes the text of a list view item or subitem.
