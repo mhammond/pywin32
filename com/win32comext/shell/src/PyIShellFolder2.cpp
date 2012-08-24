@@ -157,11 +157,12 @@ PyObject *PyIShellFolder2::GetDetailsOf(PyObject *self, PyObject *args)
 	HRESULT hr;
 	PY_INTERFACE_PRECALL;
 	hr = pISF2->GetDetailsOf( pidl, iColumn, &sd );
-	PyObject_FreePIDL(pidl);
 	PY_INTERFACE_POSTCALL;
 	if ( FAILED(hr) )
 		return PyCom_BuildPyException(hr, pISF2, IID_IShellFolder2 );
-	return Py_BuildValue("(iiN)", sd.fmt, sd.cxChar, PyObject_FromSTRRET(&sd.str, pidl, TRUE));
+	PyObject *ret = Py_BuildValue("(iiN)", sd.fmt, sd.cxChar, PyObject_FromSTRRET(&sd.str, pidl, TRUE));
+	PyObject_FreePIDL(pidl);
+	return ret;
 }
 
 // @pymethod <o SHCOLUMNID>|PyIShellFolder2|MapColumnToSCID|Returns the unique identifier (FMTID, pid) of a column

@@ -20,7 +20,6 @@ BOOL PyObject_AsCMINVOKECOMMANDINFO(PyObject *ob, CMINVOKECOMMANDINFO *ppci);
 void PyObject_FreeCMINVOKECOMMANDINFO( CMINVOKECOMMANDINFO *pci );
 PyObject *PyObject_FromCMINVOKECOMMANDINFO(const CMINVOKECOMMANDINFO *pci);
 
-BOOL PyObject_AsSTRRET( PyObject *obout, STRRET &out );
 void PyObject_FreeSTRRET(STRRET &);
 PyObject *PyObject_FromSTRRET(STRRET *pci, ITEMIDLIST *pidl, BOOL bFree);
 

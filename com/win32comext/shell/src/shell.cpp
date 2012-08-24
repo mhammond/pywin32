@@ -611,22 +611,6 @@ PyObject *PyObject_FromCMINVOKECOMMANDINFO(const CMINVOKECOMMANDINFO *pci)
 	                                 pci->nShow, pci->dwHotKey, PyWinLong_FromHANDLE(pci->hIcon));
 }
 
-BOOL PyObject_AsSTRRET( PyObject *ob, STRRET &out )
-{
-	if (PyInt_Check(ob)) {
-		out.uType = STRRET_OFFSET;
-		out.uOffset = PyInt_AsLong(ob);
-		return TRUE;
-	}
-	if (PyString_Check(ob)) {
-		out.uType = STRRET_CSTR;
-		strncpy(out.cStr, PyString_AsString(ob), MAX_PATH);
-		return TRUE;
-	}
-	PyErr_Format(PyExc_TypeError, "Can't convert objects of type '%s' to STRRET", ob->ob_type->tp_name);
-	return FALSE;
-}
-
 void PyObject_FreeSTRRET(STRRET &s)
 {
 	if (s.uType==STRRET_WSTR) {
@@ -638,8 +622,6 @@ void PyObject_FreeSTRRET(STRRET &s)
 PyObject *PyObject_FromSTRRET(STRRET *ps, ITEMIDLIST *pidl, BOOL bFree)
 {
 	if (ps==NULL) {
-		if (bFree)
-			PyObject_FreeSTRRET(*ps);
 		Py_INCREF(Py_None);
 		return Py_None;
 	}
@@ -2682,31 +2664,30 @@ static PyObject *PySHGetNameFromIDList(PyObject *self, PyObject *args)
 	PyObject *ret = NULL;
 	PyObject *obpidl;
 	SIGDN flags;
-	WCHAR *strret = NULL;
+	WCHAR *name = NULL;
 	PIDLIST_ABSOLUTE pidl = NULL;
 	if(!PyArg_ParseTuple(args, "Ok:SHGetNameFromIDList", &obpidl, &flags))
 		return NULL;
-	// @pyparm PIDL|parent||
-	// @pyparm int|flags||
+	// @pyparm <o PyIDL>|pidl||Absolute ID list of the item
+	// @pyparm int|flags||Type of name to return, shellcon.SIGDN_*
 	if (!PyObject_AsPIDL(obpidl, &pidl))
 		goto done;
 	HRESULT hr;
 	{
 	PY_INTERFACE_PRECALL;
-	hr = (*pfnSHGetNameFromIDList)(pidl, flags, &strret);
+	hr = (*pfnSHGetNameFromIDList)(pidl, flags, &name);
 	PY_INTERFACE_POSTCALL;
 	}
 	if (FAILED(hr)) {
 		PyCom_BuildPyException(hr);
 		goto done;
 	}
-	// ref on view consumed by ret object.
-	ret = PyWinObject_FromWCHAR(strret);
+	ret = PyWinObject_FromWCHAR(name);
 done:
 	if (pidl)
 		PyObject_FreePIDL(pidl);
-	if (strret)
-		CoTaskMemFree(strret);
+	if (name)
+		CoTaskMemFree(name);
 	return ret;
 }
 
@@ -2729,13 +2710,13 @@ static PyObject *PySHCreateShellItemArray(PyObject *self, PyObject *args)
 	IShellItemArray *sia_ret = NULL;
 	if(!PyArg_ParseTuple(args, "OOO:SHCreateShellItemArray", &obParent, &obsf, &obChildren))
 		return NULL;
-	// @pyparm PIDL|parent||
+	// @pyparm <o PyIDL>|parent||Absolute ID list of parent folder, or None if sf is specified
 	if (!PyObject_AsPIDL(obParent, &parent, TRUE))
 		goto done;
 	// @pyparm <o PyIShellFolder>|sf||The Shell data source object that is the parent of the child items specified in children. If parent is specified, this parameter can be NULL.
 	if (!PyCom_InterfaceFromPyInstanceOrObject(obsf, IID_IShellFolder, (void **)&sf, TRUE/* bNoneOK */))
 		goto done;
-	// @pyparm [PIDL, ...]|children||
+	// @pyparm [<o PyIDL>, ...]|children||Sequence of relative IDLs for items in the parent folder
 	if (!PyObject_AsPIDLArray(obChildren, &nchildren, &children))
 		goto done;
 	HRESULT hr;

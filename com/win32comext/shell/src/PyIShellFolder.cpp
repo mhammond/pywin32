@@ -365,13 +365,13 @@ PyObject *PyIShellFolder::GetDisplayNameOf(PyObject *self, PyObject *args)
 	STRRET out;
 	PY_INTERFACE_PRECALL;
 	hr = pISF->GetDisplayNameOf( pidl, uFlags, &out );
-	PyObject_FreePIDL(pidl);
-
 	PY_INTERFACE_POSTCALL;
 
 	if ( FAILED(hr) )
 		return PyCom_BuildPyException(hr, pISF, IID_IShellFolder );
-	return PyObject_FromSTRRET(&out, pidl, TRUE);
+	PyObject *ret = PyObject_FromSTRRET(&out, pidl, TRUE);
+	PyObject_FreePIDL(pidl);
+	return ret;
 }
 
 // @pymethod <o PyIDL>|PyIShellFolder|SetNameOf|Sets the display name of an item and changes its PIDL
