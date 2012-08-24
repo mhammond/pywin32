@@ -121,28 +121,32 @@ BOOL PyObject_AsNET_STRUCT( PyObject *ob, PyNET_STRUCT *pI, BYTE **ppRet )
 					*((WCHAR **)(buf+pItem->off)) = wsz;
 					break;
 				case NSI_DWORD:
-					if (!PyInt_Check(subob)) {
-						PyErr_Format(PyExc_TypeError, "The mapping attribute '%s' must be an integer", pItem->attrname);
+					*((DWORD *)(buf+pItem->off)) = PyInt_AsUnsignedLongMask(subob);
+					if (*((DWORD *)(buf+pItem->off)) == -1 && PyErr_Occurred()){
+						PyErr_Clear();
+						PyErr_Format(PyExc_TypeError, "The mapping attribute '%s' must be an unsigned 32 bit int", pItem->attrname);
 						Py_DECREF(subob);
 						goto done;
 					}
-					*((DWORD *)(buf+pItem->off)) = (DWORD)PyInt_AsLong(subob);
 					break;
 				case NSI_LONG:
-					if (!PyInt_Check(subob)) {
+					*((LONG *)(buf+pItem->off)) = PyInt_AsLong(subob);
+					if (*((LONG *)(buf+pItem->off)) == -1 && PyErr_Occurred()){
+						PyErr_Clear();
 						PyErr_Format(PyExc_TypeError, "The mapping attribute '%s' must be an integer", pItem->attrname);
 						Py_DECREF(subob);
 						goto done;
 					}
-					*((LONG *)(buf+pItem->off)) = (LONG)PyInt_AsLong(subob);
 					break;
 				case NSI_BOOL:
-					if (!PyInt_Check(subob)) {
-						PyErr_Format(PyExc_TypeError, "The mapping attribute '%s' must be an integer", pItem->attrname);
+					*((BOOL *)(buf+pItem->off)) = PyObject_IsTrue(subob);
+					if (*((BOOL *)(buf+pItem->off)) == -1 && PyErr_Occurred()){
+						PyErr_Clear();
+						PyErr_Format(PyExc_TypeError, "The mapping attribute '%s' must be boolean", pItem->attrname);
 						Py_DECREF(subob);
 						goto done;
 					}
-					*((BOOL *)(buf+pItem->off)) = (BOOL)PyInt_AsLong(subob);
+					
 					break;
 				case NSI_HOURS:
 					if (subob != Py_None) {
@@ -213,7 +217,7 @@ PyObject *PyObject_FromNET_STRUCT(PyNET_STRUCT *pI, BYTE *buf)
 				newObj = PyWinObject_FromWCHAR(*((WCHAR **)(buf+pItem->off)));
 				break;
 			case NSI_DWORD:
-				newObj = PyInt_FromLong(*((DWORD *)(buf+pItem->off)));
+				newObj = PyLong_FromUnsignedLong(*((DWORD *)(buf+pItem->off)));
 				break;
 			case NSI_LONG:
 				newObj = PyInt_FromLong(*((LONG *)(buf+pItem->off)));
