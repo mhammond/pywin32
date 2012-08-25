@@ -72,31 +72,20 @@ PyObject *PyObject_FromCurrency(CURRENCY &cy)
 
 PYCOM_EXPORT BOOL PyObject_AsCurrency(PyObject *ob, CURRENCY *pcy)
 {
-	if (!PyTuple_Check(ob) || PyTuple_Size(ob) != 2 ||
-		!PyLong_Check(PyTuple_GET_ITEM(ob, 0)) ||
-		!PyLong_Check(PyTuple_GET_ITEM(ob, 1)))
-	{
-		if (strcmp(ob->ob_type->tp_name, "Decimal")==0) {
-			PyObject *scaled = PyObject_CallMethod(ob, "__mul__", "l", 10000);
-			if (!scaled) return FALSE;
-			PyObject *longval = PyNumber_Long(scaled);
-			Py_DECREF(scaled);
-			pcy->int64 = PyLong_AsLongLong(longval);
-			Py_DECREF(longval);
-			if (pcy->int64 == -1 && PyErr_Occurred())
-				return FALSE;
-		} else {
-			PyErr_Format(
-				PyExc_TypeError,
-				"Currency object must be either a tuple of 2 longs or a "
-				"Decimal instance (got %s).",
-				ob->ob_type->tp_name);
-			return FALSE;
+	if (strcmp(ob->ob_type->tp_name, "Decimal")!=0){
+		PyErr_Format(PyExc_TypeError,
+			"Currency object must be a Decimal instance (got %s).",ob->ob_type->tp_name);
+		return FALSE;
 		}
-	} else {
-		pcy->Hi = PyLong_AsLong(PyTuple_GET_ITEM(ob, 0));
-		pcy->Lo = PyLong_AsLong(PyTuple_GET_ITEM(ob, 1));
-	}
+	TmpPyObject scaled = PyObject_CallMethod(ob, "__mul__", "l", 10000);
+	if (scaled == NULL)
+		return FALSE;
+	TmpPyObject longval = PyNumber_Long(scaled);
+	if (longval == NULL)
+		return FALSE;
+	pcy->int64 = PyLong_AsLongLong(longval);
+	if (pcy->int64 == -1 && PyErr_Occurred())
+		return FALSE;
 	return TRUE;
 }
 
