@@ -988,10 +988,16 @@ DWORD WINAPI dispatchServiceCtrl(DWORD dwCtrlCode, DWORD dwEventType,
 	if (result==NULL) {
 		ReportPythonError(PYS_E_SERVICE_CONTROL_FAILED);
 		dwResult = ERROR_CALL_NOT_IMPLEMENTED; // correct code?
-	} else if (PyInt_Check(result)||PyLong_Check(result))
-		dwResult = PyInt_AsLong(result);
-	else
+	}
+	else if (result == Py_None)
 		dwResult = NOERROR;
+	else{
+		dwResult = PyInt_AsUnsignedLongMask(result);
+		if (dwResult == -1 && PyErr_Occurred()){
+			ReportPythonError(PYS_E_SERVICE_CONTROL_FAILED);
+			dwResult = ERROR_SERVICE_SPECIFIC_ERROR;
+		}
+	}
 
 	Py_XDECREF(result);
 	return dwResult;

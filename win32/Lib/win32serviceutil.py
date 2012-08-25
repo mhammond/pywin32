@@ -808,27 +808,27 @@ class ServiceFramework:
             pass
 
     def ServiceCtrlHandler(self, control):
-        self.ServiceCtrlHandlerEx(control, 0, None)
+        return self.ServiceCtrlHandlerEx(control, 0, None)
 
     # The 'Ex' functions, which take additional params
     def SvcOtherEx(self, control, event_type, data):
         # The default here is to call self.SvcOther as that is the old behaviour.
         # If you want to take advantage of the extra data, override this method
-        self.SvcOther(control)
+        return self.SvcOther(control)
 
     def ServiceCtrlHandlerEx(self, control, event_type, data):
         if control==win32service.SERVICE_CONTROL_STOP:
-            self.SvcStop()
+            return self.SvcStop()
         elif control==win32service.SERVICE_CONTROL_PAUSE:
-            self.SvcPause()
+            return self.SvcPause()
         elif control==win32service.SERVICE_CONTROL_CONTINUE:
-            self.SvcContinue()
+            return self.SvcContinue()
         elif control==win32service.SERVICE_CONTROL_INTERROGATE:
-            self.SvcInterrogate()
+            return self.SvcInterrogate()
         elif control==win32service.SERVICE_CONTROL_SHUTDOWN:
-            self.SvcShutdown()
+            return self.SvcShutdown()
         else:
-            self.SvcOtherEx(control, event_type, data)
+            return self.SvcOtherEx(control, event_type, data)
 
     def SvcRun(self):
         self.ReportServiceStatus(win32service.SERVICE_RUNNING)
