@@ -41,6 +41,31 @@ PyObject *MakeOLECHARToObj(const OLECHAR * str)
 }
 
 // Currency conversions.
+// Should probably place this in module dict so it can be DECREF'ed on finalization
+// Also may get borked by a reload of the decimal module
+static PyObject *Decimal_class = NULL;
+
+PyObject *get_Decimal_class(void)
+{
+	// Try to import compiled _decimal module introduced in Python 3.3
+	TmpPyObject decimal_module = PyImport_ImportModule("_decimal");
+
+	// Look for python implemented module introduced in Python 2.4
+	if (decimal_module==NULL){
+		PyErr_Clear();
+		decimal_module = PyImport_ImportModule("decimal");
+		}
+
+	// Look for our own copy included in Pywin32 for Python 2.3
+	if (decimal_module==NULL){
+		PyErr_Clear();
+		decimal_module=PyImport_ImportModule("win32com.decimal_23");
+		}
+	if (decimal_module==NULL)
+		return NULL;
+	return PyObject_GetAttrString(decimal_module, "Decimal");
+}
+
 PyObject *PyObject_FromCurrency(CURRENCY &cy)
 {
 #if (PY_VERSION_HEX < 0x03000000)
@@ -48,35 +73,35 @@ PyObject *PyObject_FromCurrency(CURRENCY &cy)
 #else
 	static char *divname = "__truediv__";
 #endif
-	static PyObject *decimal_module=NULL;
-	PyObject *result = NULL;
-	
-	if (decimal_module==NULL){
-		decimal_module=PyImport_ImportModule("decimal");
-		if (!decimal_module) {
-			PyErr_Clear();
-			decimal_module=PyImport_ImportModule("win32com.decimal_23");
-			}
+	if (Decimal_class == NULL){
+		Decimal_class = get_Decimal_class();
+		if (Decimal_class == NULL)
+			return NULL;
 		}
-	if (decimal_module==NULL)
-		return NULL;
 
-	PyObject *unscaled_result;
-	unscaled_result=PyObject_CallMethod(decimal_module, "Decimal", "L", cy.int64);
-	if (unscaled_result!=NULL){
-		result=PyObject_CallMethod(unscaled_result, divname, "l", 10000);
-		Py_DECREF(unscaled_result);
-		}
-	return result;
+	TmpPyObject unscaled_result = PyObject_CallFunction(Decimal_class, "L", cy.int64);
+	if (unscaled_result == NULL)
+		return NULL;
+	return PyObject_CallMethod(unscaled_result, divname, "l", 10000);
 }
 
 PYCOM_EXPORT BOOL PyObject_AsCurrency(PyObject *ob, CURRENCY *pcy)
 {
-	if (strcmp(ob->ob_type->tp_name, "Decimal")!=0){
+	if (Decimal_class == NULL){
+		Decimal_class = get_Decimal_class();
+		if (Decimal_class == NULL)
+			return FALSE;
+		}
+
+	int right_type = PyObject_IsInstance(ob, Decimal_class);
+	if (right_type == -1)
+		return FALSE;
+	else if (right_type == 0){
 		PyErr_Format(PyExc_TypeError,
 			"Currency object must be a Decimal instance (got %s).",ob->ob_type->tp_name);
 		return FALSE;
 		}
+
 	TmpPyObject scaled = PyObject_CallMethod(ob, "__mul__", "l", 10000);
 	if (scaled == NULL)
 		return FALSE;
