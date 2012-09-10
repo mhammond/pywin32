@@ -2028,6 +2028,8 @@ com_extensions += [
                         %(shell)s/PyIExtractIconW.cpp
                         %(shell)s/PyIExtractImage.cpp
                         %(shell)s/PyIInputObject.cpp
+                        %(shell)s/PyIKnownFolder.cpp
+                        %(shell)s/PyIKnownFolderManager.cpp
                         %(shell)s/PyINameSpaceTreeControl.cpp
                         %(shell)s/PyIPersistFolder.cpp
                         %(shell)s/PyIPersistFolder2.cpp

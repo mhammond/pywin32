@@ -64,6 +64,8 @@ generates Windows .hlp files.
 #include "PyIShellItemArray.h"
 #include "PyINameSpaceTreeControl.h"
 #include "PyIEnumShellItems.h"
+#include "PyIKnownFolder.h"
+#include "PyIKnownFolderManager.h"
 #include "PythonCOMRegister.h" // For simpler registration of IIDs etc.
 
 // We should not be using this!
@@ -3395,6 +3397,9 @@ static const PyCom_InterfaceSupportInfo g_interfaceSupportData[] =
 	PYCOM_INTERFACE_CLIENT_ONLY (ActiveDesktopP),
 	PYCOM_INTERFACE_CLIENT_ONLY (ADesktopP2),
 	PYCOM_INTERFACE_FULL (EnumShellItems),
+	PYCOM_INTERFACE_CLSID_ONLY (KnownFolderManager),
+	PYCOM_INTERFACE_CLIENT_ONLY(KnownFolderManager),
+	PYCOM_INTERFACE_CLIENT_ONLY(KnownFolder),
 };
 
 static int AddConstant(PyObject *dict, const char *key, long value)
@@ -3605,6 +3610,115 @@ PYWIN_MODULE_INIT_FUNC(shell)
 	ADD_IID(BHID_DataObject);
 	ADD_IID(BHID_AssociationArray);
 	ADD_IID(BHID_Filter);
+
+	// Known folder ids
+	ADD_IID(FOLDERID_NetworkFolder);
+	ADD_IID(FOLDERID_ComputerFolder);
+	ADD_IID(FOLDERID_InternetFolder);
+	ADD_IID(FOLDERID_ControlPanelFolder);
+	ADD_IID(FOLDERID_PrintersFolder);
+	ADD_IID(FOLDERID_SyncManagerFolder);
+	ADD_IID(FOLDERID_SyncSetupFolder);
+	ADD_IID(FOLDERID_ConflictFolder);
+	ADD_IID(FOLDERID_SyncResultsFolder);
+	ADD_IID(FOLDERID_RecycleBinFolder);
+	ADD_IID(FOLDERID_ConnectionsFolder);
+	ADD_IID(FOLDERID_Fonts);
+	ADD_IID(FOLDERID_Desktop);
+	ADD_IID(FOLDERID_Startup);
+	ADD_IID(FOLDERID_Programs);
+	ADD_IID(FOLDERID_StartMenu);
+	ADD_IID(FOLDERID_Recent);
+	ADD_IID(FOLDERID_SendTo);
+	ADD_IID(FOLDERID_Documents);
+	ADD_IID(FOLDERID_Favorites);
+	ADD_IID(FOLDERID_NetHood);
+	ADD_IID(FOLDERID_PrintHood);
+	ADD_IID(FOLDERID_Templates);
+	ADD_IID(FOLDERID_CommonStartup);
+	ADD_IID(FOLDERID_CommonPrograms);
+	ADD_IID(FOLDERID_CommonStartMenu);
+	ADD_IID(FOLDERID_PublicDesktop);
+	ADD_IID(FOLDERID_ProgramData);
+	ADD_IID(FOLDERID_CommonTemplates);
+	ADD_IID(FOLDERID_PublicDocuments);
+	ADD_IID(FOLDERID_RoamingAppData);
+	ADD_IID(FOLDERID_LocalAppData);
+	ADD_IID(FOLDERID_LocalAppDataLow);
+	ADD_IID(FOLDERID_InternetCache);
+	ADD_IID(FOLDERID_Cookies);
+	ADD_IID(FOLDERID_History);
+	ADD_IID(FOLDERID_System);
+	ADD_IID(FOLDERID_SystemX86);
+	ADD_IID(FOLDERID_Windows);
+	ADD_IID(FOLDERID_Profile);
+	ADD_IID(FOLDERID_Pictures);
+	ADD_IID(FOLDERID_ProgramFilesX86);
+	ADD_IID(FOLDERID_ProgramFilesCommonX86);
+	ADD_IID(FOLDERID_ProgramFilesX64);
+	ADD_IID(FOLDERID_ProgramFilesCommonX64);
+	ADD_IID(FOLDERID_ProgramFiles);
+	ADD_IID(FOLDERID_ProgramFilesCommon);
+	ADD_IID(FOLDERID_AdminTools);
+	ADD_IID(FOLDERID_CommonAdminTools);
+	ADD_IID(FOLDERID_Music);
+	ADD_IID(FOLDERID_Videos);
+	ADD_IID(FOLDERID_PublicPictures);
+	ADD_IID(FOLDERID_PublicMusic);
+	ADD_IID(FOLDERID_PublicVideos);
+	ADD_IID(FOLDERID_ResourceDir);
+	ADD_IID(FOLDERID_LocalizedResourcesDir);
+	ADD_IID(FOLDERID_CommonOEMLinks);
+	ADD_IID(FOLDERID_CDBurning);
+	ADD_IID(FOLDERID_UserProfiles);
+	ADD_IID(FOLDERID_Playlists);
+	ADD_IID(FOLDERID_SamplePlaylists);
+	ADD_IID(FOLDERID_SampleMusic);
+	ADD_IID(FOLDERID_SamplePictures);
+	ADD_IID(FOLDERID_SampleVideos);
+	ADD_IID(FOLDERID_PhotoAlbums);
+	ADD_IID(FOLDERID_Public);
+	ADD_IID(FOLDERID_ChangeRemovePrograms);
+	ADD_IID(FOLDERID_AppUpdates);
+	ADD_IID(FOLDERID_AddNewPrograms);
+	ADD_IID(FOLDERID_Downloads);
+	ADD_IID(FOLDERID_PublicDownloads);
+	ADD_IID(FOLDERID_SavedSearches);
+	ADD_IID(FOLDERID_QuickLaunch);
+	ADD_IID(FOLDERID_Contacts);
+	ADD_IID(FOLDERID_SidebarParts);
+	ADD_IID(FOLDERID_SidebarDefaultParts);
+	ADD_IID(FOLDERID_TreeProperties);
+	ADD_IID(FOLDERID_PublicGameTasks);
+	ADD_IID(FOLDERID_GameTasks);
+	ADD_IID(FOLDERID_SavedGames);
+	ADD_IID(FOLDERID_Games);
+	ADD_IID(FOLDERID_RecordedTV);
+	ADD_IID(FOLDERID_SEARCH_MAPI);
+	ADD_IID(FOLDERID_SEARCH_CSC);
+	ADD_IID(FOLDERID_Links);
+	ADD_IID(FOLDERID_UsersFiles);
+	ADD_IID(FOLDERID_SearchHome);
+	ADD_IID(FOLDERID_OriginalImages);
+
+	// Known folder types
+ 	ADD_IID(FOLDERTYPEID_NotSpecified);
+	ADD_IID(FOLDERTYPEID_Invalid);
+	ADD_IID(FOLDERTYPEID_Documents);
+	ADD_IID(FOLDERTYPEID_Pictures);
+	ADD_IID(FOLDERTYPEID_MusicDetails);
+	ADD_IID(FOLDERTYPEID_MusicIcons);
+	ADD_IID(FOLDERTYPEID_Games);
+	ADD_IID(FOLDERTYPEID_ControlPanelCategory);
+	ADD_IID(FOLDERTYPEID_ControlPanelClassic);
+	ADD_IID(FOLDERTYPEID_Printers);
+	ADD_IID(FOLDERTYPEID_RecycleBin);
+	ADD_IID(FOLDERTYPEID_SoftwareExplorer);
+	ADD_IID(FOLDERTYPEID_CompressedFolder);
+	ADD_IID(FOLDERTYPEID_Contacts);
+	ADD_IID(FOLDERTYPEID_Library);
+	ADD_IID(FOLDERTYPEID_NetworkExplorer);
+	ADD_IID(FOLDERTYPEID_UserFiles);
 
 	PYWIN_MODULE_INIT_RETURN_SUCCESS;
 }
