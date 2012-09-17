@@ -168,6 +168,12 @@ static PFNSHOpenFolderAndSelectItems pfnSHOpenFolderAndSelectItems = NULL;
 typedef HRESULT (WINAPI *PFNSHCreateStreamOnFileEx)(LPCWSTR, DWORD, DWORD, BOOL, IStream *, IStream **);
 static PFNSHCreateStreamOnFileEx pfnSHCreateStreamOnFileEx = NULL;
 
+typedef HRESULT (WINAPI *PFNSetCurrentProcessExplicitAppUserModelID)(WCHAR *);
+static  PFNSetCurrentProcessExplicitAppUserModelID pfnSetCurrentProcessExplicitAppUserModelID;
+
+typedef HRESULT (WINAPI *PFNGetCurrentProcessExplicitAppUserModelID)(WCHAR **);
+static  PFNGetCurrentProcessExplicitAppUserModelID pfnGetCurrentProcessExplicitAppUserModelID;
+
 // Some magic hackery macros :-)
 #define _ILSkip(pidl, cb)       ((LPITEMIDLIST)(((BYTE*)(pidl))+cb))
 #define _ILNext(pidl)           _ILSkip(pidl, (pidl)->mkid.cb)
@@ -3271,6 +3277,50 @@ static PyObject *PySHCreateStreamOnFileEx(PyObject *self, PyObject *args, PyObje
 	return PyCom_PyObjectFromIUnknown(ret, IID_IStream, FALSE);
 }
 
+// @pymethod |shell|SetCurrentProcessExplicitAppUserModelID|Sets the taskbar identifier
+static PyObject *PySetCurrentProcessExplicitAppUserModelID(PyObject *self, PyObject *args)
+{
+	// @comm Should be used early in process startup before creating any windows
+	// @comm Requires Windows 7 or later
+	// @pyparm str|AppID||The Application User Model ID used to group taskbar buttons
+	if (pfnSetCurrentProcessExplicitAppUserModelID==NULL)
+		return PyCom_BuildPyException(E_NOTIMPL);
+	TmpWCHAR appid;
+	PyObject *obappid;
+	if(!PyArg_ParseTuple(args, "O:SetCurrentProcessExplicitAppUserModelID", &obappid))
+		return NULL;
+	if (!PyWinObject_AsWCHAR(obappid, &appid, FALSE))
+		return NULL;
+
+	HRESULT hr;
+	PY_INTERFACE_PRECALL;
+	hr = (*pfnSetCurrentProcessExplicitAppUserModelID)(appid);
+	PY_INTERFACE_POSTCALL;
+	if (FAILED(hr))
+		return PyCom_BuildPyException(hr);
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
+// @pymethod str|shell|GetCurrentProcessExplicitAppUserModelID|Retrieves the current taskbar identifier
+// @comm Will only retrieve an identifier if set by the application, not a system-assigned default.
+// @comm Requires Windows 7 or later
+static PyObject *PyGetCurrentProcessExplicitAppUserModelID(PyObject *self, PyObject *args)
+{
+	if (pfnGetCurrentProcessExplicitAppUserModelID==NULL)
+		return PyCom_BuildPyException(E_NOTIMPL);
+	WCHAR* appid;
+	HRESULT hr;
+	PY_INTERFACE_PRECALL;
+	hr = (*pfnGetCurrentProcessExplicitAppUserModelID)(&appid);
+	PY_INTERFACE_POSTCALL;
+	if (FAILED(hr))
+		return PyCom_BuildPyException(hr);
+	PyObject *ret = PyWinObject_FromWCHAR(appid);
+	CoTaskMemFree(appid);
+	return ret;
+}
+
 
 /* List of module functions */
 // @module shell|A module wrapping Windows Shell functions and interfaces
@@ -3331,6 +3381,8 @@ static struct PyMethodDef shell_methods[]=
 	{ "SHCreateShellItem", PySHCreateShellItem, METH_VARARGS}, // @pymeth SHCreateShellItem|Creates an IShellItem interface from a PIDL
 	{ "SHOpenFolderAndSelectItems", (PyCFunction)PySHOpenFolderAndSelectItems, METH_VARARGS|METH_KEYWORDS}, // @pymeth SHOpenFolderAndSelectItems|Displays a shell folder with items pre-selected
 	{ "SHCreateStreamOnFileEx", (PyCFunction)PySHCreateStreamOnFileEx, METH_VARARGS|METH_KEYWORDS},	// @pymeth SHCreateStreamOnFileEx|Creates a <o PyIStream> that reads and writes to a file
+	{ "SetCurrentProcessExplicitAppUserModelID", PySetCurrentProcessExplicitAppUserModelID, METH_VARARGS},	// @pymeth SetCurrentProcessExplicitAppUserModelID|Sets the taskbar identifier
+	{ "GetCurrentProcessExplicitAppUserModelID", PyGetCurrentProcessExplicitAppUserModelID, METH_NOARGS},	// @pymeth GetCurrentProcessExplicitAppUserModelID|Retrieves the current taskbar identifier
 	{ NULL, NULL },
 };
 
@@ -3470,6 +3522,8 @@ PYWIN_MODULE_INIT_FUNC(shell)
 		pfnSHGetIDListFromObject =(PFNSHGetIDListFromObject)GetProcAddress(shell32, "SHGetIDListFromObject");
 		pfnSHCreateShellItem =(PFNSHCreateShellItem)GetProcAddress(shell32, "SHCreateShellItem");
 		pfnSHOpenFolderAndSelectItems = (PFNSHOpenFolderAndSelectItems)GetProcAddress(shell32, "SHOpenFolderAndSelectItems");
+		pfnSetCurrentProcessExplicitAppUserModelID = (PFNSetCurrentProcessExplicitAppUserModelID)GetProcAddress(shell32, "SetCurrentProcessExplicitAppUserModelID");
+		pfnGetCurrentProcessExplicitAppUserModelID = (PFNGetCurrentProcessExplicitAppUserModelID)GetProcAddress(shell32, "GetCurrentProcessExplicitAppUserModelID");
 	}
 	// SHGetFolderPath comes from shfolder.dll on older systems
 	if (pfnSHGetFolderPath==NULL){
