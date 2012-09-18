@@ -27,7 +27,7 @@ PyIShellLink::~PyIShellLink()
 	return (IShellLink *)PyIUnknown::GetI(self);
 }
 
-// @pymethod name, <o WIN32_FIND_DATA>|PyIShellLink|GetPath|Retrieves the path and file name of a shell link object
+// @pymethod str, <o WIN32_FIND_DATA>|PyIShellLink|GetPath|Retrieves the target path and file name of a shell link object
 // @comm The AlternateFileName (8.3) member of WIN32_FIND_DATA does not return information
 PyObject *PyIShellLink::GetPath(PyObject *self, PyObject *args)
 {
@@ -40,7 +40,7 @@ PyObject *PyIShellLink::GetPath(PyObject *self, PyObject *args)
 	// @flag SLGP_SHORTPATH|Retrieves the standard short (8.3 format) file name.  
 	// @flag SLGP_UNCPRIORITY|Retrieves the Universal Naming Convention (UNC) path name of the file.  
 	// @flag SLGP_RAWPATH|Retrieves the raw path name. A raw path is something that might not exist and may include environment variables that need to be expanded. 
-	// @pyparm int|cchMaxPath|_MAX_PATH|Description for cchMaxPath
+	// @pyparm int|cchMaxPath|_MAX_PATH|Number of characters to allocate for returned filename
 	int cchMaxPath = _MAX_PATH;
 	DWORD fFlags;
 	if ( !PyArg_ParseTuple(args, "l|i:GetPath", &fFlags, &cchMaxPath) )
@@ -67,7 +67,7 @@ PyObject *PyIShellLink::GetPath(PyObject *self, PyObject *args)
 	return ret;
 }
 
-// @pymethod string|PyIShellLink|GetIDList|Retrieves the list of item identifiers for a shell link object.
+// @pymethod <o PyIDL>|PyIShellLink|GetIDList|Retrieves the item id list that identifies the target of the shell link.
 PyObject *PyIShellLink::GetIDList(PyObject *self, PyObject *args)
 {
 	IShellLink *pISL = GetI(self);
@@ -86,7 +86,7 @@ PyObject *PyIShellLink::GetIDList(PyObject *self, PyObject *args)
 	return PyObject_FromPIDL(pidl, TRUE);
 }
 
-// @pymethod |PyIShellLink|SetIDList|Sets the list of item identifiers for a shell link object.
+// @pymethod |PyIShellLink|SetIDList|Sets the target of the link using an item id list
 PyObject *PyIShellLink::SetIDList(PyObject *self, PyObject *args)
 {
 	IShellLink *pISL = GetI(self);
@@ -94,11 +94,11 @@ PyObject *PyIShellLink::SetIDList(PyObject *self, PyObject *args)
 		return NULL;
 	LPITEMIDLIST pidl;
 	PyObject *obpidl;
+	// @pyparm <o PyIDL>|pidl||Absolute item id list that identifies the target
 	if ( !PyArg_ParseTuple(args, "O:SetIDList", &obpidl) )
 		return NULL;
-	BOOL bPythonIsHappy = TRUE;
-	if (bPythonIsHappy && !PyObject_AsPIDL( obpidl, &pidl )) bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) return NULL;
+	if (!PyObject_AsPIDL( obpidl, &pidl ))
+		return NULL;
 	HRESULT hr;
 	PY_INTERFACE_PRECALL;
 	hr = pISL->SetIDList( pidl );
@@ -112,13 +112,13 @@ PyObject *PyIShellLink::SetIDList(PyObject *self, PyObject *args)
 	return Py_None;
 }
 
-// @pymethod |PyIShellLink|GetDescription|Description of GetDescription.
+// @pymethod str|PyIShellLink|GetDescription|Retrieves the description of the link (displays as Comment in the UI)
 PyObject *PyIShellLink::GetDescription(PyObject *self, PyObject *args)
 {
 	IShellLink *pISL = GetI(self);
 	if ( pISL == NULL )
 		return NULL;
-	// @pyparm int|cchMaxName|1024|Description for cchMaxName
+	// @pyparm int|cchMaxName|1024|Number of character to allocate for the retrieved text
 	int cchMaxName = 1024;
 	if ( !PyArg_ParseTuple(args, "|i:GetDescription", &cchMaxName) )
 		return NULL;
@@ -141,13 +141,14 @@ PyObject *PyIShellLink::GetDescription(PyObject *self, PyObject *args)
 	return ret;
 }
 
-// @pymethod |PyIShellLink|SetDescription|Description of SetDescription.
+// @pymethod |PyIShellLink|SetDescription|Sets the description of the link (displays as Comment in the UI)
 PyObject *PyIShellLink::SetDescription(PyObject *self, PyObject *args)
 {
 	IShellLink *pISL = GetI(self);
 	if ( pISL == NULL )
 		return NULL;
 	PyObject *obName;
+	// @pyparm str|Name||The description for the link
 	if ( !PyArg_ParseTuple(args, "O:SetDescription", &obName) )
 		return NULL;
 	TCHAR *pszName;
@@ -165,13 +166,13 @@ PyObject *PyIShellLink::SetDescription(PyObject *self, PyObject *args)
 	return Py_None;
 }
 
-// @pymethod |PyIShellLink|GetWorkingDirectory|Description of GetWorkingDirectory.
+// @pymethod str|PyIShellLink|GetWorkingDirectory|Retrieves the working directory for the link
 PyObject *PyIShellLink::GetWorkingDirectory(PyObject *self, PyObject *args)
 {
 	IShellLink *pISL = GetI(self);
 	if ( pISL == NULL )
 		return NULL;
-	// @pyparm int|cchMaxName|1024|Description for cchMaxName
+	// @pyparm int|cchMaxName|1024|Number of characters to allocate for returned text
 	int cchMaxName = 1024;
 	if ( !PyArg_ParseTuple(args, "|i:GetWorkingDirectory", &cchMaxName) )
 		return NULL;
@@ -194,13 +195,14 @@ PyObject *PyIShellLink::GetWorkingDirectory(PyObject *self, PyObject *args)
 	return ret;
 }
 
-// @pymethod |PyIShellLink|SetWorkingDirectory|Description of SetWorkingDirectory.
+// @pymethod |PyIShellLink|SetWorkingDirectory|Sets the working directory for the link.
 PyObject *PyIShellLink::SetWorkingDirectory(PyObject *self, PyObject *args)
 {
 	IShellLink *pISL = GetI(self);
 	if ( pISL == NULL )
 		return NULL;
 	PyObject *obName;
+	// @pyparm str|Dir||The working directory for the link
 	if ( !PyArg_ParseTuple(args, "O:SetWorkingDirectory", &obName) )
 		return NULL;
 	TCHAR *pszName;
@@ -219,7 +221,7 @@ PyObject *PyIShellLink::SetWorkingDirectory(PyObject *self, PyObject *args)
 
 }
 
-// @pymethod string|PyIShellLink|GetArguments|Retrieves the command-line arguments associated with a shell link object.
+// @pymethod str|PyIShellLink|GetArguments|Retrieves the command-line arguments associated with a shell link object.
 PyObject *PyIShellLink::GetArguments(PyObject *self, PyObject *args)
 {
 	IShellLink *pISL = GetI(self);
@@ -255,7 +257,7 @@ PyObject *PyIShellLink::SetArguments(PyObject *self, PyObject *args)
 	if ( pISL == NULL )
 		return NULL;
 	PyObject *obArgs;
-	// @pyparm string|args||The new arguments.
+	// @pyparm str|args||The new arguments.
 	if ( !PyArg_ParseTuple(args, "O:SetArguments", &obArgs) )
 		return NULL;
 	TCHAR *pszArgs;
@@ -358,7 +360,7 @@ PyObject *PyIShellLink::SetShowCmd(PyObject *self, PyObject *args)
 
 }
 
-// @pymethod string|PyIShellLink|GetIconLocation|Retrieves the location (path and index) of the icon for a shell link object.
+// @pymethod str|PyIShellLink|GetIconLocation|Retrieves the location (path and index) of the icon for a shell link object.
 PyObject *PyIShellLink::GetIconLocation(PyObject *self, PyObject *args)
 {
 	IShellLink *pISL = GetI(self);
@@ -516,16 +518,16 @@ PyObject *PyIShellLink::SetPath(PyObject *self, PyObject *args)
 	return Py_None;
 }
 
-// @object PyIShellLink|Description of the interface
+// @object PyIShellLink|Interface used to access the properties of a shell link file (*.lnk)
 static struct PyMethodDef PyIShellLink_methods[] =
 {
 	{ "GetPath", PyIShellLink::GetPath, 1 }, // @pymeth GetPath|Retrieves the path and file name of a shell link object.
-	{ "GetIDList", PyIShellLink::GetIDList, 1 }, // @pymeth GetIDList|Retrieves the list of item identifiers for a shell link object.
-	{ "SetIDList", PyIShellLink::SetIDList, 1 }, // @pymeth SetIDList|Sets the list of item identifiers for a shell link object.
-	{ "GetDescription", PyIShellLink::GetDescription, 1 }, // @pymeth GetDescription|Description of GetDescription
-	{ "SetDescription", PyIShellLink::SetDescription, 1 }, // @pymeth SetDescription|Description of SetDescription
-	{ "GetWorkingDirectory", PyIShellLink::GetWorkingDirectory, 1 }, // @pymeth GetWorkingDirectory|Description of GetWorkingDirectory
-	{ "SetWorkingDirectory", PyIShellLink::SetWorkingDirectory, 1 }, // @pymeth SetWorkingDirectory|Description of SetWorkingDirectory
+	{ "GetIDList", PyIShellLink::GetIDList, 1 }, // @pymeth GetIDList|Retrieves the item id list that identifies the target of the shell link.
+	{ "SetIDList", PyIShellLink::SetIDList, 1 }, // @pymeth SetIDList|Sets the target of the link using an item id list
+	{ "GetDescription", PyIShellLink::GetDescription, 1 }, // @pymeth GetDescription|Retrieves the description of the link (displays as Comment in the UI)
+	{ "SetDescription", PyIShellLink::SetDescription, 1 }, // @pymeth SetDescription|Sets the description of the link (displays as Comment in the UI)
+	{ "GetWorkingDirectory", PyIShellLink::GetWorkingDirectory, 1 }, // @pymeth GetWorkingDirectory|Retrieves the working directory for the link
+	{ "SetWorkingDirectory", PyIShellLink::SetWorkingDirectory, 1 }, // @pymeth SetWorkingDirectory|Sets the working directory for the link
 	{ "GetArguments", PyIShellLink::GetArguments, 1 }, // @pymeth GetArguments|Retrieves the command-line arguments associated with a shell link object.
 	{ "SetArguments", PyIShellLink::SetArguments, 1 }, // @pymeth SetArguments|Sets the command-line arguments associated with a shell link object.
 	{ "GetHotkey", PyIShellLink::GetHotkey, 1 }, // @pymeth GetHotkey|Retrieves the hot key for a shell link object.
