@@ -97,13 +97,16 @@ PyObject *PyIContextMenu::GetCommandString(PyObject *self, PyObject *args)
 	UINT cchMax = 2048;
 	if ( !PyArg_ParseTuple(args, "OI|I:GetCommandString", &obCmd, &uType, &cchMax) )
 		return NULL;
-	if (uType & GCS_UNICODE)
-		cchMax *= sizeof(WCHAR); // buffer size is in characters
+
 	UINT_PTR idCmd;
 	if (!PyWinLong_AsULONG_PTR(obCmd, (ULONG_PTR *)&idCmd))
 		return NULL;
-
-	char *buf = (char *)malloc(cchMax);
+	// buffer size is in characters
+	char *buf;
+	if (uType & GCS_UNICODE)
+		buf = (char *)malloc(cchMax * sizeof(WCHAR));
+	else
+		buf = (char *)malloc(cchMax);
 	if (!buf)
 		return PyErr_NoMemory();
 	HRESULT hr;
