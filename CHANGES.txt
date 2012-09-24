@@ -6,6 +6,10 @@ However contributors are encouraged to add their own entries for their work.
 
 Since build 217:
 ----------------
+* mapiutil.py GetPropTagName has been modified to return the fully qualified
+  PT_UNICODE and PT_STRING8 type name. Added optional argument to override
+  rawType default in GetMapiTypeName. (Nick Czeczulin)
+
 * Fix the count of replaced terms in Pythonwin's search/replace (rupole).
 
 * Fix obscure issues in the Pythonwin code browser and other uses of the 

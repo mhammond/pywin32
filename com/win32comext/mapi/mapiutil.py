@@ -16,7 +16,6 @@ def GetPropTagName(pt):
 				# This is so PR_FOO_A and PR_FOO_W are still differentiated,
 				# but should we get a PT_FOO with PT_ERROR set, we fallback
 				# to the ID.
-				prTable[value] = name
 
 				# String types should have 3 definitions in mapitags.py
 				# PR_BODY	= PROP_TAG( PT_TSTRING,	4096)
@@ -25,11 +24,21 @@ def GetPropTagName(pt):
 				# The following change ensures a lookup using only the the
 				# property id returns the conditional default.
 
-				if (mapitags.PROP_TYPE(value) == mapitags.PT_UNICODE or \
-					mapitags.PROP_TYPE(value) == mapitags.PT_STRING8) and \
-					(name[-2:] == '_A' or name[-2:] == '_W'):
-					continue
-				prTable[mapitags.PROP_ID(value)] = name
+				# PT_TSTRING is a conditional assignment for either PT_UNICODE or
+				# PT_STRING8 and should not be returned during a lookup.
+
+				if mapitags.PROP_TYPE(value) == mapitags.PT_UNICODE or \
+					mapitags.PROP_TYPE(value) == mapitags.PT_STRING8:
+
+					if name[-2:] == '_A' or name[-2:] == '_W':
+						prTable[value] = name
+					else:
+						prTable[mapitags.PROP_ID(value)] = name
+
+				else:
+					prTable[value] = name
+					prTable[mapitags.PROP_ID(value)] = name
+
 	try:
 		try:
 			return prTable[pt]
@@ -55,7 +64,7 @@ def GetScodeString(hr):
 
 
 ptTable = {}
-def GetMapiTypeName(propType):
+def GetMapiTypeName(propType, rawType=True):
 	"""Given a mapi type flag, return a string description of the type"""
 	if not ptTable:
 		for name, value in mapitags.__dict__.iteritems():
@@ -67,8 +76,9 @@ def GetMapiTypeName(propType):
 					continue
 				ptTable[value] = name
 
-	rawType = propType & ~mapitags.MV_FLAG
-	return ptTable.get(rawType, str(hex(rawType)))
+	if rawType:
+		propType = propType & ~mapitags.MV_FLAG
+	return ptTable.get(propType, str(hex(propType)))
 
 def GetProperties(obj, propList):
 	"""Given a MAPI object and a list of properties, return a list of property values.
