@@ -25,7 +25,7 @@
 #ifndef MS_WINCE
 //#define FAR
 #ifndef _WIN32_WINNT
-#define _WIN32_WINNT 0x0501
+#define _WIN32_WINNT 0x0600
 #endif
 #include "winsock2.h"
 #include "mswsock.h"
@@ -800,7 +800,7 @@ static PyObject *PyGetFileInformationByHandle(PyObject *self, PyObject *args)
 	if (!rc)
 		return PyWin_SetAPIError("GetFileInformationByHandle");
 	// @rdesc The result is a tuple of:
-	return Py_BuildValue("iNNNiiiiii",
+	return Py_BuildValue("kNNNkkkkkk",
 		fi.dwFileAttributes, // @tupleitem 0|int|dwFileAttributes|
 		PyWinObject_FromFILETIME(fi.ftCreationTime), // @tupleitem 1|<o PyTime>|ftCreationTime|
 		PyWinObject_FromFILETIME(fi.ftLastAccessTime),// @tupleitem 2|<o PyTime>|ftLastAccessTime|
@@ -819,8 +819,6 @@ static PyObject *PyGetFileInformationByHandle(PyObject *self, PyObject *args)
 
 %}
 %native(GetFileInformationByHandle) PyGetFileInformationByHandle;
-
-
 
 #ifndef MS_WINCE
 %{
@@ -3001,11 +2999,13 @@ static Wow64DisableWow64FsRedirectionfunc pfnWow64DisableWow64FsRedirection = NU
 typedef BOOL (WINAPI *Wow64RevertWow64FsRedirectionfunc)(PVOID);
 static Wow64RevertWow64FsRedirectionfunc pfnWow64RevertWow64FsRedirection = NULL;
 
-/* FILE_INFO_BY_HANDLE_CLASS and various structs used by this function are in fileextd.h, can be downloaded here:
-http://www.microsoft.com/downloads/details.aspx?familyid=1decc547-ab00-4963-a360-e4130ec079b8&displaylang=en
+/* GetFileInformationByHandleEx and supporting structs are defined in SDK for Vista and later,
+	but can also be used on XP with a separate header and lib:
+	http://www.microsoft.com/en-us/download/details.aspx?id=22599
+	However, the filextd.lib included is static, so this module would have to be compiled for XP only.
+*/
 typedef BOOL (WINAPI *GetFileInformationByHandleExfunc)(HANDLE,FILE_INFO_BY_HANDLE_CLASS,LPVOID,DWORD);
 static GetFileInformationByHandleExfunc pfnGetFileInformationByHandleEx = NULL;
-*/
 
 // From sfc.dll
 typedef BOOL (WINAPI *SfcGetNextProtectedFilefunc)(HANDLE,PPROTECTED_FILE_DATA);
@@ -3988,8 +3988,10 @@ py_SetFileShortName(PyObject *self, PyObject *args)
 // @object CopyProgressRoutine|Python function used as a callback for <om win32file.CopyFileEx> and <om win32file.MoveFileWithProgress><nl>
 // Function will receive 9 parameters:<nl>
 // (TotalFileSize, TotalBytesTransferred, StreamSize, StreamBytesTransferred,
-//  StreamNumber, CallbackReason, SourceFile, DestinationFile)<nl>
-// SourceFile and DestinationFile are <o PyHANDLE>s, all others are longs.<nl>
+//  StreamNumber, CallbackReason, SourceFile, DestinationFile, Data)<nl>
+// SourceFile and DestinationFile are <o PyHANDLE>s.
+// Data is the context object passed to the calling function.
+// All others are longs.<nl>
 // CallbackReason will be one of CALLBACK_CHUNK_FINISHED or CALLBACK_STREAM_SWITCH<nl>
 // Your implementation of this function must return one of the PROGRESS_* constants.
 DWORD CALLBACK CopyFileEx_ProgressRoutine(
@@ -5448,6 +5450,234 @@ static PyObject *py_Wow64RevertWow64FsRedirection(PyObject *self, PyObject *args
 }
 %}
 
+%{
+// @pyswig object|GetFileInformationByHandleEx|Retrieves extended file information for an open file handle.
+// @comm Available on Vista and later.
+// @comm Accepts keyword args.
+// @rdesc Type of returned object is determined by the requested information class
+// @flagh Class|Returned info
+// @flag FileBasicInfo|Dict representing a FILE_BASIC_INFO struct
+// @flag FileStandardInfo|Dict representing a FILE_STANDARD_INFO struct
+// @flag FileNameInfo|String containing the file name, without the drive letter
+// @flag FileCompressionInfo|Dict representing a FILE_COMPRESSION_INFO struct
+// @flag FileAttributeTagInfo|Dict representing a FILE_ATTRIBUTE_TAG_INFO struct
+// @flag FileIdBothDirectoryInfo|Sequence of dicts representing FILE_ID_BOTH_DIR_INFO structs.  Call in loop until no more files are returned.
+// @flag FileIdBothDirectoryRestartInfo|Sequence of dicts representing FILE_ID_BOTH_DIR_INFO structs.
+// @flag FileStreamInfo|Sequence of dicts representing FILE_STREAM_INFO structs
+static PyObject *py_GetFileInformationByHandleEx(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+	// According to MSDN, this function is in kernel32.lib in Vista or later, but I can't get it to link
+	//	with either Vista or Windows 7 sdks.
+	// On XP, you can use it with the downloadable fileextd.lib add-on, but it's a static library
+	//	and would never call the function exported from kernel32.dll.
+	CHECK_PFN(GetFileInformationByHandleEx);
+	static char *keywords[] = {"File", "FileInformationClass", NULL};
+	HANDLE handle;
+	FILE_INFO_BY_HANDLE_CLASS info_class;
+	void *buf = NULL;
+	DWORD buflen = 0;
+	BOOL rc;
+	DWORD err = 0;
+	PyObject *ret;
+	
+	// @pyparm <o PyHANDLE>|File||Handle to a file or directory.  Do not pass a pipe handle.
+	// @pyparm int|FileInformationClass||Type of data to return, one of win32file.File*Info values
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O&i", keywords,
+		PyWinObject_AsHANDLE, &handle,
+		&info_class))
+		return NULL;
+
+	switch (info_class){
+		case FileBasicInfo:
+			buflen = sizeof(FILE_BASIC_INFO); 
+			break;
+		case FileStandardInfo:
+			buflen = sizeof(FILE_STANDARD_INFO);
+			break;
+		case FileNameInfo:
+			// FILE_NAME_INFO.FileName is one of those bleeping [1] sized arrays that is treated as variable size.
+			buflen = sizeof(FILE_NAME_INFO) + (sizeof(WCHAR) * (MAX_PATH + 1));
+			// buflen = sizeof(FILE_NAME_INFO) + (10); // Test reallocation logic
+			break;
+		case FileCompressionInfo:
+			buflen = sizeof(FILE_COMPRESSION_INFO);
+			break;
+		case FileAttributeTagInfo:
+			buflen = sizeof(FILE_ATTRIBUTE_TAG_INFO);
+			break;
+		// These all return multiple linked structs, allocate extra space.  May need to allow for a
+		// size hint to be passed in if large number of results expected.
+		case FileIdBothDirectoryInfo:
+		case FileIdBothDirectoryRestartInfo:
+		case FileStreamInfo:
+			buflen = 2048;
+			break;
+		default:
+			PyErr_SetString(PyExc_NotImplementedError, "Unsupported file information class");
+			return NULL;
+		}
+
+	while (true){
+		if (buf)
+			free(buf);
+		buf = malloc(buflen);
+		if (buf == NULL){
+			PyErr_NoMemory();
+			return NULL;
+			}
+		Py_BEGIN_ALLOW_THREADS
+		rc = (*pfnGetFileInformationByHandleEx)(handle, info_class, buf, buflen);
+		// rc = GetFileInformationByHandleEx(handle, info_class, buf, buflen);
+		Py_END_ALLOW_THREADS
+		if (rc)
+			break;
+		err = GetLastError();
+		// ERROR_MORE_DATA can be returned if:
+		//	FileStreamInfo is called on a file with numerous alternate streams
+		//  FileNameInfo is called on a file whose name exceeds MAX_PATH
+		if (err == ERROR_MORE_DATA){
+			buflen *= 2;
+			continue;
+			}
+		// ERROR_NO_MORE_FILES is returned when using FileIdBothDirectoryInfo and enumeration is done.
+		// ERROR_HANDLE_EOF is returned when FileStreamInfo is called for a file with no streams
+		//	(should only be for directories).
+		// Treat either of these as success, and return empty tuple instead of raising an exception
+		if ((err == ERROR_NO_MORE_FILES &&
+				(info_class == FileIdBothDirectoryInfo || info_class == FileIdBothDirectoryRestartInfo))  
+			|| (err == ERROR_HANDLE_EOF && info_class == FileStreamInfo))
+			rc = true;
+		break;
+		}
+
+	if (!rc){
+		free(buf);
+		return PyWin_SetAPIError("GetFileInformationByHandleEx", err);
+		}
+	switch (info_class){
+		case FileBasicInfo:{
+			FILE_BASIC_INFO *pbi = (FILE_BASIC_INFO *)buf;
+			ret = Py_BuildValue("{s:N, s:N, s:N, s:N, s:k}",
+				"CreationTime", PyWinObject_FromTimeStamp(pbi->CreationTime),
+				"LastAccessTime", PyWinObject_FromTimeStamp(pbi->LastAccessTime),
+				"LastWriteTime", PyWinObject_FromTimeStamp(pbi->LastWriteTime),
+				"ChangeTime", PyWinObject_FromTimeStamp(pbi->ChangeTime),
+				"FileAttributes", pbi->FileAttributes);
+			break;
+			}
+		case FileStandardInfo:{
+			FILE_STANDARD_INFO *psi = (FILE_STANDARD_INFO *)buf;
+			ret = Py_BuildValue("{s:N, s:N, s:k, s:N, s:N}",
+				"AllocationSize", PyWinObject_FromLARGE_INTEGER(psi->AllocationSize),
+				"EndOfFile", PyWinObject_FromLARGE_INTEGER(psi->EndOfFile),
+				"NumberOfLinks", psi->NumberOfLinks,
+				"DeletePending", PyBool_FromLong(psi->DeletePending),
+				"Directory", PyBool_FromLong(psi->Directory));
+			break;
+			}
+		case FileNameInfo:{
+			FILE_NAME_INFO *pni = (FILE_NAME_INFO *)buf;
+			ret = PyWinObject_FromWCHAR(pni->FileName, pni->FileNameLength/sizeof(WCHAR));
+			break;
+			}
+		case FileCompressionInfo:{
+			FILE_COMPRESSION_INFO *pci = (FILE_COMPRESSION_INFO *)buf;
+			ret = Py_BuildValue("{s:N, s:H, s:B, s:B, s:B, s:(BBB)}",
+				"CompressedFileSize", PyWinObject_FromLARGE_INTEGER(pci->CompressedFileSize),
+				"CompressionFormat", pci->CompressionFormat,
+				"CompressionUnitShift", pci->CompressionUnitShift,
+				"ChunkShift", pci->ChunkShift,
+				"ClusterShift", pci->ClusterShift,
+				"Reserved", pci->Reserved[0], pci->Reserved[1], pci->Reserved[2]);
+			break;
+			}
+		case FileAttributeTagInfo:{
+			FILE_ATTRIBUTE_TAG_INFO *pati = (FILE_ATTRIBUTE_TAG_INFO *)buf;
+			ret = Py_BuildValue("{s:k, s:k}",
+				"FileAttributes", pati->FileAttributes,
+				"ReparseTag", pati->ReparseTag);
+			break;
+			}
+		case FileIdBothDirectoryInfo:
+		case FileIdBothDirectoryRestartInfo:{
+			FILE_ID_BOTH_DIR_INFO *pdi = (FILE_ID_BOTH_DIR_INFO *)buf;
+			if (err == ERROR_NO_MORE_FILES){
+				ret = PyTuple_New(0);
+				break;
+				}
+			ULONG file_cnt = 1;
+			while (pdi->NextEntryOffset){
+				file_cnt++;
+				pdi = (FILE_ID_BOTH_DIR_INFO *)((BYTE *)pdi + pdi->NextEntryOffset);
+				};
+			ret = PyTuple_New(file_cnt);
+			if (ret == NULL)
+				break;
+			pdi = (FILE_ID_BOTH_DIR_INFO *)buf;
+			for (ULONG i = 0; i < file_cnt; i++){
+				PyObject *file_info = Py_BuildValue("{s:k, s:N, s:N, s:N, s:N, s:N, s:N, s:k, s:k, s:N, s:N, s:N}",
+					"FileIndex", pdi->FileIndex,
+					"CreationTime", PyWinObject_FromTimeStamp(pdi->CreationTime),
+					"LastAccessTime", PyWinObject_FromTimeStamp(pdi->LastAccessTime),
+					"LastWriteTime", PyWinObject_FromTimeStamp(pdi->LastWriteTime),
+					"ChangeTime", PyWinObject_FromTimeStamp(pdi->ChangeTime),
+					"EndOfFile", PyWinObject_FromLARGE_INTEGER(pdi->EndOfFile),
+					"AllocationSize", PyWinObject_FromLARGE_INTEGER(pdi->AllocationSize),
+					"FileAttributes", pdi->FileAttributes,
+					"EaSize", pdi->EaSize,
+					"ShortName", PyWinObject_FromWCHAR(pdi->ShortName, pdi->ShortNameLength/sizeof(WCHAR)),
+					"FileId", PyWinObject_FromLARGE_INTEGER(pdi->FileId),
+					"FileName", PyWinObject_FromWCHAR(pdi->FileName, pdi->FileNameLength/sizeof(WCHAR)));
+				if (file_info == NULL){
+					Py_DECREF(ret);
+					ret = NULL;
+					break;
+					}
+				PyTuple_SET_ITEM(ret, i, file_info);
+				pdi = (FILE_ID_BOTH_DIR_INFO *)((BYTE *)pdi + pdi->NextEntryOffset);
+				}
+			break;
+			}
+		case FileStreamInfo:{
+			FILE_STREAM_INFO *psi = (FILE_STREAM_INFO *)buf;
+			if (err == ERROR_HANDLE_EOF){
+				ret = PyTuple_New(0);
+				break;
+				}
+			// Function fails if no streams retrieved, so guaranteed to have at least one struct
+			DWORD stream_cnt = 1;
+			while (psi->NextEntryOffset){
+				stream_cnt++;
+				psi = (FILE_STREAM_INFO *)((BYTE *)psi + psi->NextEntryOffset);
+				};
+			ret = PyTuple_New(stream_cnt);
+			if (ret == NULL)
+				break;
+			psi = (FILE_STREAM_INFO *)buf;
+			for (DWORD i = 0; i < stream_cnt; i++){
+				PyObject *stream_info = Py_BuildValue("{s:N, s:N, s:N}",
+					"StreamSize", PyWinObject_FromLARGE_INTEGER(psi->StreamSize),
+					"StreamAllocationSize", PyWinObject_FromLARGE_INTEGER(psi->StreamAllocationSize),
+					"StreamName", PyWinObject_FromWCHAR(psi->StreamName, psi->StreamNameLength/sizeof(WCHAR)));
+				if (stream_info == NULL){
+					Py_DECREF(ret);
+					ret = NULL;
+					break;
+					}
+				PyTuple_SET_ITEM(ret, i, stream_info);
+				psi = (FILE_STREAM_INFO *)((BYTE *)psi + psi->NextEntryOffset);
+				};
+			break;
+			}
+		default:
+			PyErr_SetString(PyExc_SystemError, "Mismatched case statements");
+		}
+	free(buf);
+	return ret;
+}
+PyCFunction pfnpy_GetFileInformationByHandleEx=(PyCFunction)py_GetFileInformationByHandleEx;
+%}
+
 %native (SetVolumeMountPoint) pfnpy_SetVolumeMountPoint;
 %native (DeleteVolumeMountPoint) pfnpy_DeleteVolumeMountPoint;
 %native (GetVolumeNameForVolumeMountPoint) pfnpy_GetVolumeNameForVolumeMountPoint;
@@ -5483,6 +5713,7 @@ static PyObject *py_Wow64RevertWow64FsRedirection(PyObject *self, PyObject *args
 %native (DeleteFileW) pfnpy_DeleteFileW;
 %native (GetFileAttributesEx) pfnpy_GetFileAttributesEx;
 %native (GetFileAttributesExW) pfnpy_GetFileAttributesExW;
+%native (GetFileInformationByHandleEx) pfnpy_GetFileInformationByHandleEx;
 %native (SetFileAttributesW) pfnpy_SetFileAttributesW;
 %native (CreateDirectoryExW) pfnpy_CreateDirectoryExW;
 %native (RemoveDirectory) pfnpy_RemoveDirectory;
@@ -5541,7 +5772,7 @@ static PyObject *py_Wow64RevertWow64FsRedirection(PyObject *self, PyObject *args
 			||(strcmp(pmd->ml_name, "DuplicateEncryptionInfoFile")==0)
 			||(strcmp(pmd->ml_name, "GetLongPathName")==0)
 			||(strcmp(pmd->ml_name, "GetFullPathName")==0)
-			||(strcmp(pmd->ml_name, "GetFileInformationByHandleEx")==0)	// not impl yet
+			||(strcmp(pmd->ml_name, "GetFileInformationByHandleEx")==0)
 			||(strcmp(pmd->ml_name, "DeviceIoControl")==0)
 			||(strcmp(pmd->ml_name, "TransmitFile")==0)
 			||(strcmp(pmd->ml_name, "ConnectEx")==0)
@@ -5612,7 +5843,7 @@ static PyObject *py_Wow64RevertWow64FsRedirection(PyObject *self, PyObject *args
 		pfnGetLongPathNameTransacted=(GetLongPathNameTransactedfunc)GetProcAddress(hmodule, "GetLongPathNameTransactedW");
 		pfnGetFullPathNameTransactedW=(GetFullPathNameTransactedWfunc)GetProcAddress(hmodule, "GetFullPathNameTransactedW");
 		pfnGetFullPathNameTransactedA=(GetFullPathNameTransactedAfunc)GetProcAddress(hmodule, "GetFullPathNameTransactedA");
-		// pfnGetFileInformationByHandleEx=(GetFileInformationByHandleExfunc)GetProcAddress(hmodule, "GetFileInformationByHandleEx");
+		pfnGetFileInformationByHandleEx=(GetFileInformationByHandleExfunc)GetProcAddress(hmodule, "GetFileInformationByHandleEx");
 		pfnWow64DisableWow64FsRedirection=(Wow64DisableWow64FsRedirectionfunc)GetProcAddress(hmodule, "Wow64DisableWow64FsRedirection");
 		pfnWow64RevertWow64FsRedirection=(Wow64RevertWow64FsRedirectionfunc)GetProcAddress(hmodule, "Wow64RevertWow64FsRedirection");
 		}
@@ -5727,3 +5958,18 @@ static PyObject *py_Wow64RevertWow64FsRedirection(PyObject *self, PyObject *args
 
 // Flags for CreateSymbolicLink/CreateSymbolicLinkTransacted
 #define SYMBOLIC_LINK_FLAG_DIRECTORY 1
+
+// FILE_INFO_BY_HANDLE_CLASS used with GetFileInformationByHandleEx
+#define FileBasicInfo FileBasicInfo
+#define FileStandardInfo FileStandardInfo
+#define FileNameInfo FileNameInfo
+#define FileRenameInfo FileRenameInfo
+#define FileDispositionInfo FileDispositionInfo
+#define FileAllocationInfo FileAllocationInfo
+#define FileEndOfFileInfo FileEndOfFileInfo
+#define FileStreamInfo FileStreamInfo
+#define FileCompressionInfo FileCompressionInfo
+#define FileAttributeTagInfo FileAttributeTagInfo
+#define FileIdBothDirectoryInfo FileIdBothDirectoryInfo
+#define FileIdBothDirectoryRestartInfo FileIdBothDirectoryRestartInfo
+#define FileIoPriorityHintInfo FileIoPriorityHintInfo
