@@ -5364,7 +5364,7 @@ static PyObject * PyUpdateResource(PyObject *self, PyObject *args)
 	if (PyWinObject_AsHANDLE(obhUpdate, (HANDLE *)&hUpdate)
 		&&PyWinObject_AsResourceIdW(obType, &lpType) 
 		&&PyWinObject_AsResourceIdW(obName, &lpName)
-		&&PyWinObject_AsReadBuffer(obData, &lpData, &cbData, FALSE)){
+		&&PyWinObject_AsReadBuffer(obData, &lpData, &cbData, TRUE)){
 		if (UpdateResourceW(hUpdate, lpType, lpName, wLanguage, lpData, cbData)){
 			Py_INCREF(Py_None);
 			ret=Py_None;
