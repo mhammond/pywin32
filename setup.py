@@ -2001,6 +2001,8 @@ com_extensions += [
                     windows_h_version = 0x600,
                     sources=("""
                         %(shell)s/PyIActiveDesktop.cpp
+                        %(shell)s/PyIApplicationDestinations.cpp
+                        %(shell)s/PyIApplicationDocumentLists.cpp
                         %(shell)s/PyIAsyncOperation.cpp
                         %(shell)s/PyIBrowserFrameOptions.cpp
                         %(shell)s/PyICategorizer.cpp
@@ -2016,6 +2018,7 @@ com_extensions += [
                         %(shell)s/PyIDropTargetHelper.cpp
                         %(shell)s/PyIEnumExplorerCommand.cpp
                         %(shell)s/PyIEnumIDList.cpp
+                        %(shell)s/PyIEnumObjects.cpp
                         %(shell)s/PyIEnumShellItems.cpp
                         %(shell)s/PyIEmptyVolumeCache.cpp
                         %(shell)s/PyIEmptyVolumeCacheCallBack.cpp
@@ -2048,6 +2051,7 @@ com_extensions += [
                         %(shell)s/PyIShellLink.cpp
                         %(shell)s/PyIShellLinkDataList.cpp
                         %(shell)s/PyIShellView.cpp
+                        %(shell)s/PyITaskbarList.cpp
                         %(shell)s/PyIUniformResourceLocator.cpp
                         %(shell)s/shell.cpp
 

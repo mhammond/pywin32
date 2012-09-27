@@ -35,7 +35,9 @@ Since build 217:
 * Python 3.3 version is built with VS2010.
 
 * win32com.shell - added function SHCreateStreamOnFileEx and
-	interfaces IShellItem2, IEnumShellItems 
+	interfaces IShellItem2, IEnumShellItems, IApplicationDocumentLists,
+	IApplicationDestinations, ITaskbarList, IEnumObjects,
+	IKnownFolder, and IKnownFolderManager
 
 * win32com.propsys - Many Property System interfaces and functions added
 
@@ -44,6 +46,10 @@ Since build 217:
 * win32com.client - 
 	Fix iteration of objects that don't declare an enumerator in their typelib
 	Validate syntax of constants written to makepy generated files
+
+* win32file - Add GetFileInformationByHandleEx
+
+* win32api - Allow UpdateResource to remove a resource
 
 Since build 216:
 ----------------

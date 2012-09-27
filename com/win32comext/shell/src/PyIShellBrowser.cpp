@@ -9,7 +9,7 @@
 // ---------------------------------------------------
 //
 extern BOOL PyObject_AsTBBUTTONs( PyObject *ob, TBBUTTON **ppButtons, UINT *nButtons );
-extern void PyObject_FreeTBBUTTONs(TBBUTTON *);
+extern void PyObject_FreeTBBUTTONs(TBBUTTON *, UINT);
 
 // Interface Implementation
 
@@ -352,7 +352,7 @@ PyObject *PyIShellBrowser::SetToolbarItems(PyObject *self, PyObject *args)
 	HRESULT hr;
 	PY_INTERFACE_PRECALL;
 	hr = pISB->SetToolbarItems( lpButtons, nButtons, uFlags );
-	PyObject_FreeTBBUTTONs(lpButtons);
+	PyObject_FreeTBBUTTONs(lpButtons, nButtons);
 	PY_INTERFACE_POSTCALL;
 
 	if ( FAILED(hr) )
