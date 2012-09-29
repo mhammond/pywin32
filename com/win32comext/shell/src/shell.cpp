@@ -68,11 +68,13 @@ generates Windows .hlp files.
 #include "PyIKnownFolderManager.h"
 #include "PyITaskbarList.h"
 
-// These Requires Windows 7 SDK to build
+// These Require Windows 7 SDK to build
 #include "PyIEnumObjects.h"
 #include "PyIApplicationDocumentLists.h"
 #include "PyIApplicationDestinations.h"
-
+#include "PyIObjectArray.h"
+#include "PyIObjectCollection.h"
+#include "PyICustomDestinationList.h"
 
 #include "PythonCOMRegister.h" // For simpler registration of IIDs etc.
 
@@ -3449,6 +3451,13 @@ static const PyCom_InterfaceSupportInfo g_interfaceSupportData[] =
 	PYCOM_INTERFACE_CLSID_ONLY(ApplicationDocumentLists),
 	PYCOM_INTERFACE_CLIENT_ONLY(ApplicationDestinations),
 	PYCOM_INTERFACE_CLSID_ONLY(ApplicationDestinations),
+	// CLSID_EnumerableObjectCollection is used to create IObjectArray or IObjectCollection
+	PYCOM_INTERFACE_CLSID_ONLY(EnumerableObjectCollection),
+	PYCOM_INTERFACE_CLIENT_ONLY(ObjectArray),
+	PYCOM_INTERFACE_CLIENT_ONLY(ObjectCollection),
+	// CLSID_DestinationList used to create ICustomDestinationList
+	PYCOM_INTERFACE_CLSID_ONLY(DestinationList),
+	PYCOM_INTERFACE_CLIENT_ONLY(CustomDestinationList),
 #endif
 };
 

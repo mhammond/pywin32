@@ -2012,6 +2012,7 @@ com_extensions += [
                         %(shell)s/PyIContextMenu2.cpp
                         %(shell)s/PyIContextMenu3.cpp
                         %(shell)s/PyICopyHook.cpp
+                        %(shell)s/PyICustomDestinationList.cpp
                         %(shell)s/PyIDefaultExtractIconInit.cpp
                         %(shell)s/PyIDeskBand.cpp
                         %(shell)s/PyIDockingWindow.cpp
@@ -2034,6 +2035,8 @@ com_extensions += [
                         %(shell)s/PyIKnownFolder.cpp
                         %(shell)s/PyIKnownFolderManager.cpp
                         %(shell)s/PyINameSpaceTreeControl.cpp
+                        %(shell)s/PyIObjectArray.cpp
+                        %(shell)s/PyIObjectCollection.cpp
                         %(shell)s/PyIPersistFolder.cpp
                         %(shell)s/PyIPersistFolder2.cpp
                         %(shell)s/PyIQueryAssociations.cpp

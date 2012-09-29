@@ -133,7 +133,7 @@ static struct PyMethodDef PyITaskbarList_methods[] =
 	{ "AddTab", PyITaskbarList::AddTab, 1 }, // @pymeth AddTab|Places a window on the taskbar
 	{ "DeleteTab", PyITaskbarList::DeleteTab, 1 }, // @pymeth DeleteTab|Removes a window from the taskbar
 	{ "ActivateTab", PyITaskbarList::ActivateTab, 1 }, // @pymeth ActivateTab|Marks a window as the active tab on the taskbar
-	{ "SetActiveAlt", PyITaskbarList::SetActiveAlt, 1 }, // @pymeth SetActiveAlt|Description of SetActiveAlt
+	{ "SetActiveAlt", PyITaskbarList::SetActiveAlt, 1 }, // @pymeth SetActiveAlt|Sets the window as the active tab, without displaying it as pressed on the taskbar
 	{ NULL }
 };
 
