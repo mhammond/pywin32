@@ -2051,6 +2051,7 @@ com_extensions += [
                         %(shell)s/PyIShellItem.cpp
                         %(shell)s/PyIShellItem2.cpp
                         %(shell)s/PyIShellItemArray.cpp
+                        %(shell)s/PyIShellLibrary.cpp
                         %(shell)s/PyIShellLink.cpp
                         %(shell)s/PyIShellLinkDataList.cpp
                         %(shell)s/PyIShellView.cpp

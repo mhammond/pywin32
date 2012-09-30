@@ -37,7 +37,8 @@ Since build 217:
 * win32com.shell - added function SHCreateStreamOnFileEx and
 	interfaces IShellItem2, IEnumShellItems, IApplicationDocumentLists,
 	IApplicationDestinations, ITaskbarList, IEnumObjects,
-	IKnownFolder, and IKnownFolderManager
+	IKnownFolder, IKnownFolderManager, IObjectArray, IObjectCollection,
+	ICustomDestinationList, and IShellLibrary
 
 * win32com.propsys - Many Property System interfaces and functions added
 

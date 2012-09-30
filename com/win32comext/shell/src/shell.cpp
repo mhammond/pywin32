@@ -75,6 +75,7 @@ generates Windows .hlp files.
 #include "PyIObjectArray.h"
 #include "PyIObjectCollection.h"
 #include "PyICustomDestinationList.h"
+#include "PyIShellLibrary.h"
 
 #include "PythonCOMRegister.h" // For simpler registration of IIDs etc.
 
@@ -3458,6 +3459,8 @@ static const PyCom_InterfaceSupportInfo g_interfaceSupportData[] =
 	// CLSID_DestinationList used to create ICustomDestinationList
 	PYCOM_INTERFACE_CLSID_ONLY(DestinationList),
 	PYCOM_INTERFACE_CLIENT_ONLY(CustomDestinationList),
+	PYCOM_INTERFACE_CLSID_ONLY(ShellLibrary),
+	PYCOM_INTERFACE_CLIENT_ONLY(ShellLibrary),
 #endif
 };
 
@@ -3755,14 +3758,31 @@ PYWIN_MODULE_INIT_FUNC(shell)
 	ADD_IID(FOLDERID_GameTasks);
 	ADD_IID(FOLDERID_SavedGames);
 	ADD_IID(FOLDERID_Games);
-	// Removed in Windows 7 SDK (??? or changed to FOLDERID_RecordedTVLibrary ???) 
-	// ADD_IID(FOLDERID_RecordedTV);
 	ADD_IID(FOLDERID_SEARCH_MAPI);
 	ADD_IID(FOLDERID_SEARCH_CSC);
 	ADD_IID(FOLDERID_Links);
 	ADD_IID(FOLDERID_UsersFiles);
 	ADD_IID(FOLDERID_SearchHome);
 	ADD_IID(FOLDERID_OriginalImages);
+#if WINVER >= 0x0601
+	// Added in Windows 7 SDK
+	ADD_IID(FOLDERID_DeviceMetadataStore);
+	ADD_IID(FOLDERID_DocumentsLibrary);
+	ADD_IID(FOLDERID_HomeGroup);
+	ADD_IID(FOLDERID_ImplicitAppShortcuts);
+	ADD_IID(FOLDERID_Libraries);
+	ADD_IID(FOLDERID_MusicLibrary);
+	ADD_IID(FOLDERID_PicturesLibrary);
+	ADD_IID(FOLDERID_PublicLibraries);
+	ADD_IID(FOLDERID_PublicRingtones);
+	ADD_IID(FOLDERID_RecordedTVLibrary); // was FOLDERID_RecordedTV in Vista SDK
+	ADD_IID(FOLDERID_Ringtones);
+	ADD_IID(FOLDERID_UserPinned);
+	ADD_IID(FOLDERID_UserProgramFiles);
+	ADD_IID(FOLDERID_UserProgramFilesCommon);
+	ADD_IID(FOLDERID_UsersLibraries);
+	ADD_IID(FOLDERID_VideosLibrary);
+#endif // WINVER	
 
 	// Known folder types
 	ADD_IID(FOLDERTYPEID_Invalid);
@@ -3783,7 +3803,25 @@ PYWIN_MODULE_INIT_FUNC(shell)
 	// ADD_IID(FOLDERTYPEID_MusicDetails);
 	// ADD_IID(FOLDERTYPEID_MusicIcons);
  	// ADD_IID(FOLDERTYPEID_NotSpecified);
-
-
+#if WINVER >= 0x0601
+	// Added in Windows 7 SDK
+	ADD_IID(FOLDERTYPEID_Communications);
+	ADD_IID(FOLDERTYPEID_Generic);
+	ADD_IID(FOLDERTYPEID_GenericLibrary);
+	ADD_IID(FOLDERTYPEID_GenericSearchResults);
+	ADD_IID(FOLDERTYPEID_Music);
+	ADD_IID(FOLDERTYPEID_OpenSearch);
+	ADD_IID(FOLDERTYPEID_OtherUsers);
+	ADD_IID(FOLDERTYPEID_PublishedItems);
+	ADD_IID(FOLDERTYPEID_RecordedTV);
+	ADD_IID(FOLDERTYPEID_SavedGames);
+	ADD_IID(FOLDERTYPEID_SearchConnector);
+	ADD_IID(FOLDERTYPEID_SearchHome);
+	ADD_IID(FOLDERTYPEID_Searches);
+	ADD_IID(FOLDERTYPEID_StartMenu);
+	ADD_IID(FOLDERTYPEID_UsersLibraries);
+	ADD_IID(FOLDERTYPEID_Videos);
+#endif // WINVER
+	
 	PYWIN_MODULE_INIT_RETURN_SUCCESS;
 }
