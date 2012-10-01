@@ -1422,27 +1422,160 @@ static PyObject *PySHGetFolderLocation(PyObject *self, PyObject *args)
 }
 
 // @pymethod |shell|SHAddToRecentDocs|Adds a document to the shell's list of recently used documents or clears all documents from the list. The user gains access to the list through the Start menu of the Windows taskbar.
+// @comm On Windows 7, the entry is also added to the application's jump list.
 // @pyseeapi SHAddToRecentDocs
 // @comm The underlying API function has no return value, and therefore no way to indicate failure.
 static PyObject *PySHAddToRecentDocs(PyObject *self, PyObject *args)
 {
 	int flags;
-	void *whatever;
-	Py_ssize_t cb;  // not used, but must accept strings containing NULL bytes
-	if(!PyArg_ParseTuple(args, "iz#:SHAddToRecentDocs",
-			&flags, // @pyparm int|flags||Value from SHARD enum indicating type of data passed in second arg
-			&whatever,	// @pyparm string/buffer|data||A file system path or PIDL (see <om shell.PIDLAsString>) identifying a shell object.
-			&cb))		//	In Windows 7, some flags require a buffer containing one of various structs.
-						//	Pass None to clear list of recent documents.
+	PyObject *ob;
+	if(!PyArg_ParseTuple(args, "iO:SHAddToRecentDocs",
+			&flags, // @pyparm int|Flags||Value from SHARD enum indicating how the item is identified.
+			&ob))	// @pyparm object|data||Type of input is determined by the SHARD_* flag.  Use None to clear recent items list.
 		return NULL;
 
-	PY_INTERFACE_PRECALL;
-	SHAddToRecentDocs(flags, whatever);
-	PY_INTERFACE_POSTCALL;
+	if (ob == Py_None){
+		PY_INTERFACE_PRECALL;
+		SHAddToRecentDocs(flags, NULL);
+		PY_INTERFACE_POSTCALL;
+		Py_INCREF(Py_None);
+		return Py_None;
+		}
+	switch(flags){
+		// @flagh Flags|Type of input
+		case SHARD_PATHA:{
+			// @flag SHARD_PATHA|String containing a file path
+			char *buf;
+			if (!PyWinObject_AsString(ob, &buf, FALSE))
+				return NULL;
+			PY_INTERFACE_PRECALL;
+			SHAddToRecentDocs(flags, buf);
+			PY_INTERFACE_POSTCALL;
+			PyWinObject_FreeString(buf);
+			break;
+			}
+		case SHARD_PATHW:{
+			// @flag SHARD_PATHW|String containing a file path
+			WCHAR *buf;
+			if (!PyWinObject_AsWCHAR(ob, &buf, FALSE))
+				return NULL;
+			PY_INTERFACE_PRECALL;
+			SHAddToRecentDocs(flags, buf);
+			PY_INTERFACE_POSTCALL;
+			PyWinObject_FreeWCHAR(buf);
+			break;
+			}
+		case SHARD_PIDL:{
+			// @flag SHARD_PIDL|<o PyIDL>, or a buffer containing a PIDL (see <om shell.PIDLAsString>)
+			LPITEMIDLIST buf;
+			bool freepidl = FALSE;
+			if (PyObject_AsPIDL(ob, &buf, FALSE))
+				freepidl = TRUE;
+			else{
+				// Also accept a string containing a contiguous PIDL for backward compatibility
+				PyErr_Clear();
+				DWORD buflen;
+				if (!PyWinObject_AsReadBuffer(ob, (void **)&buf, &buflen, FALSE))
+					return NULL;
+				}
+			PY_INTERFACE_PRECALL;
+			SHAddToRecentDocs(flags, buf);
+			PY_INTERFACE_POSTCALL;
+			if (freepidl)
+				PyObject_FreePIDL(buf);
+			break;
+			}
+#if WINVER >= 0x0601
+		// Introduced in Windows 7
+		case SHARD_APPIDINFO:{
+			// @flag SHARD_APPIDINFO|Tuple of (<o PyIShellItem>, str), where str is an AppID
+			SHARDAPPIDINFO buf;
+			TmpWCHAR appid;
+			PyObject *obitem, *obappid;
+			if (!PyArg_ParseTuple(ob, "OO;SHARDAPPIDINFO must be a tuple of (<o PyIShellItem>, str)",
+				&obitem, &obappid))
+				return NULL;
+			if (!PyWinObject_AsWCHAR(obappid, &appid, FALSE))
+				return NULL;
+			buf.pszAppID = appid;
+			if (!PyCom_InterfaceFromPyObject(obitem, IID_IShellItem, (void **)&buf.psi, FALSE))
+				return NULL;
+			PY_INTERFACE_PRECALL;
+			SHAddToRecentDocs(flags, &buf);
+			buf.psi->Release();
+			PY_INTERFACE_POSTCALL;
+			break;
+			}
+		case SHARD_APPIDINFOIDLIST:{
+			// @flag SHARD_APPIDINFOIDLIST|Tuple of (<o PyIDL>, str), where str is an AppID
+			SHARDAPPIDINFOIDLIST buf;
+			LPITEMIDLIST pidl;
+			TmpWCHAR appid;
+			PyObject *obitem, *obappid;
+			if (!PyArg_ParseTuple(ob, "OO;SHARDAPPIDINFOIDLIST must be tuple of (<o PyIDL>, str)",
+				&obitem, &obappid))
+				return NULL;
+			if (!PyWinObject_AsWCHAR(obappid, &appid, FALSE))
+				return NULL;
+			buf.pszAppID = appid;
+			if (!PyObject_AsPIDL(obitem, &pidl, FALSE))
+				return NULL;
+			buf.pidl = pidl;
+			PY_INTERFACE_PRECALL;
+			SHAddToRecentDocs(flags, &buf);
+			PY_INTERFACE_POSTCALL;
+			PyObject_FreePIDL(pidl);
+			break;
+			}
+		case SHARD_LINK:{
+			// @flag SHARD_LINK|<o PyIShellLink>
+			IShellLink *buf;
+			if (!PyCom_InterfaceFromPyObject(ob, IID_IShellLink, (void **)&buf, FALSE))
+				return NULL;
+			PY_INTERFACE_PRECALL;
+			SHAddToRecentDocs(flags, buf);
+			buf->Release();
+			PY_INTERFACE_POSTCALL;
+			break;
+			}
+		case SHARD_APPIDINFOLINK:{
+			// @flag SHARD_APPIDINFOLINK|Tuple of (<o PyIShellLink>, str) where str is an AppID
+			SHARDAPPIDINFOLINK buf;
+			TmpWCHAR appid;
+			PyObject *obitem, *obappid;
+			if (!PyArg_ParseTuple(ob, "OO;SHARDAPPIDINFOLINK must be a tuple of (<o PyIShellLink>, str)",
+				&obitem, &obappid))
+				return NULL;
+			if (!PyWinObject_AsWCHAR(obappid, &appid, FALSE))
+				return NULL;
+			buf.pszAppID = appid;
+			if (!PyCom_InterfaceFromPyObject(obitem, IID_IShellLink, (void **)&buf.psl, FALSE))
+				return NULL;
+			PY_INTERFACE_PRECALL;
+			SHAddToRecentDocs(flags, &buf);
+			buf.psl->Release();
+			PY_INTERFACE_POSTCALL;
+			break;
+			}
+		case SHARD_SHELLITEM:{
+			// @flag SHARD_SHELLITEM|<o PyIShellItem>
+			IShellItem *buf;
+			if (!PyCom_InterfaceFromPyObject(ob, IID_IShellItem, (void **)&buf, FALSE))
+				return NULL;
+			PY_INTERFACE_PRECALL;
+			SHAddToRecentDocs(flags, buf);
+			buf->Release();
+			PY_INTERFACE_POSTCALL;
+			break;
+			}
+#endif // WINVER
+		default:
+			PyErr_SetString(PyExc_NotImplementedError, "SHARD value not supported");
+			return NULL;
+	}
 	Py_INCREF(Py_None);
 	return Py_None;
 }
-
 
 // @pymethod |shell|SHEmptyRecycleBin|Empties the recycle bin on the specified drive.
 static PyObject *PySHEmptyRecycleBin(PyObject *self, PyObject *args)
@@ -2806,7 +2939,7 @@ static PyObject *PySHCreateShellItemArrayFromIDLists(PyObject *self, PyObject *a
 	PCIDLIST_ABSOLUTE_ARRAY pidls = NULL;
 	IShellItemArray *iret = NULL;
 	UINT npidls;
-	if(!PyArg_ParseTuple(args, "O:SHCreateShellItemArray", &obpidls))
+	if(!PyArg_ParseTuple(args, "O:SHCreateShellItemArrayFromIDLists", &obpidls))
 		return NULL;
 	// @pyparm [<o PyIDL>, ...]|pidls||A sequence of absolute IDLs.
 	if (!PyObject_AsPIDLArray(obpidls, &npidls, &pidls))
@@ -2830,7 +2963,7 @@ done:
 	return ret;
 }
 
-// @pymethod <o PyIUnknown>|shell|SHCreateShellItemArrayFromShellItem|
+// @pymethod <o PyIShellItemArray>|shell|SHCreateShellItemArrayFromShellItem|Creates an item array containing a single item
 static PyObject *PySHCreateShellItemArrayFromShellItem(PyObject *self, PyObject *args)
 {
 	// @comm This function is only available on Vista and later; a
@@ -2838,35 +2971,28 @@ static PyObject *PySHCreateShellItemArrayFromShellItem(PyObject *self, PyObject 
 	if (pfnSHCreateShellItemArrayFromShellItem==NULL)
 		return PyCom_BuildPyException(E_NOTIMPL);
 
-	PyObject *ret = NULL;
 	PyObject *obsi;
-	PyObject *obiid = Py_None;
 	IShellItem *isi = NULL;
 	IID iid = IID_IShellItemArray;
 	void *iret = NULL;
-	if(!PyArg_ParseTuple(args, "O|O:SHCreateShellItemArrayFromShellItem", &obsi, &obiid))
+	if(!PyArg_ParseTuple(args, "O|O&:SHCreateShellItemArrayFromShellItem", &obsi,
+		PyWinObject_AsIID, &iid))
 		return NULL;
 	// @pyparm <o PyIShellItem>|si||A shell item
 	if (!PyCom_InterfaceFromPyInstanceOrObject(obsi, IID_IShellItem, (void **)&isi, FALSE/* bNoneOK */))
-		goto done;
-	// @pyparm <o PyIID>|iid|IID_IShellItemArray|The IID to query for
-	if (obiid != Py_None && !PyWinObject_AsIID(obiid, &iid))
-		goto done;
+		return NULL;
+	// @pyparm <o PyIID>|riid|IID_IShellItemArray|The interface to return
 	HRESULT hr;
 	{
 	PY_INTERFACE_PRECALL;
 	hr = (*pfnSHCreateShellItemArrayFromShellItem)(isi, iid, &iret);
+	isi->Release();
 	PY_INTERFACE_POSTCALL;
 	}
-	if (FAILED(hr)) {
-		PyCom_BuildPyException(hr);
-		goto done;
-	}
+	if (FAILED(hr))
+		return PyCom_BuildPyException(hr);
 	// ref on view consumed by ret object.
-	ret = PyCom_PyObjectFromIUnknown((IUnknown *)iret, iid, FALSE);
-done:
-	PYCOM_RELEASE(isi);
-	return ret;
+	return PyCom_PyObjectFromIUnknown((IUnknown *)iret, iid, FALSE);
 }
 
 // @pymethod <o PyIShellItem>|shell|SHCreateItemFromIDList|Creates and initializes a Shell item
@@ -2881,7 +3007,7 @@ static PyObject *PySHCreateItemFromIDList(PyObject *self, PyObject *args)
 	PyObject *obpidl;
 	IID iid = IID_IShellItem;
 	// @pyparm <o PyIDL>|pidl||An absolute item identifier list
-	// @pyparm <o PyIID>|iid|IID_IShellItem|The interface to create
+	// @pyparm <o PyIID>|riid|IID_IShellItem|The interface to create
 	if(!PyArg_ParseTuple(args, "O|O&:SHCreateItemFromIDList", &obpidl, PyWinObject_AsIID, &iid))
 		return NULL;
 	PIDLIST_ABSOLUTE pidl;
@@ -2916,7 +3042,7 @@ static PyObject *PySHCreateItemFromParsingName(PyObject *self, PyObject *args)
 	PyObject *obname, *obctx, *obiid;
 	// @pyparm str|name||The display name of the item to create, eg a file path
 	// @pyparm <o PyIBindCtx>|ctx||Bind context, can be None
-	// @pyparm <o PyIID>|iid||The interface to create, IID_IShellItem or IID_IShellItem2
+	// @pyparm <o PyIID>|riid||The interface to create, IID_IShellItem or IID_IShellItem2
 
 	if(!PyArg_ParseTuple(args, "OOO:SHCreateItemFromParsingName", &obname, &obctx, &obiid))
 		return NULL;
@@ -2965,10 +3091,10 @@ static PyObject *PySHCreateItemFromRelativeName(PyObject *self, PyObject *args)
 
 	PyObject *ret = NULL;
 	PyObject *obname, *obctx, *obiid, *obparent;
-	// @pyparm <o PyIShellItem>|parent||
-	// @pyparm unicode|name||
-	// @pyparm <o PyIBindCtx>|ctx||
-	// @pyparm <o PyIID>|iid||
+	// @pyparm <o PyIShellItem>|Parent||Shell item interface on the parent folder
+	// @pyparm str|Name||Relative name of an item within the parent folder
+	// @pyparm <o PyIBindCtx>|ctx||Bind context for parsing, can be None
+	// @pyparm <o PyIID>|riid||The interface to return, IID_IShellItem or IID_IShellItem2
 
 	if(!PyArg_ParseTuple(args, "OOOO:SHCreateItemFromRelativeName", &obparent, &obname, &obctx, &obiid))
 		return NULL;
