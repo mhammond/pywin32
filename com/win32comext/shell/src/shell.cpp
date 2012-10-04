@@ -583,7 +583,7 @@ BOOL PyObject_AsCMINVOKECOMMANDINFO(PyObject *ob, CMINVOKECOMMANDINFO *pci)
 		return FALSE;
 	if (!PyWinObject_AsHANDLE(obhIcon, (HANDLE *)&pci->hIcon))
 		return FALSE;
-	if (!PyWinObject_AsResourceId(obVerb, (char **)&pci->lpVerb))
+	if (!PyWinObject_AsResourceIdA(obVerb, (char **)&pci->lpVerb))
 		return FALSE;
 	return TRUE;
 }
