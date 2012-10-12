@@ -3006,6 +3006,8 @@ static Wow64RevertWow64FsRedirectionfunc pfnWow64RevertWow64FsRedirection = NULL
 */
 typedef BOOL (WINAPI *GetFileInformationByHandleExfunc)(HANDLE,FILE_INFO_BY_HANDLE_CLASS,LPVOID,DWORD);
 static GetFileInformationByHandleExfunc pfnGetFileInformationByHandleEx = NULL;
+typedef BOOL (WINAPI *SetFileInformationByHandlefunc)(HANDLE,FILE_INFO_BY_HANDLE_CLASS,LPVOID,DWORD);
+static SetFileInformationByHandlefunc pfnSetFileInformationByHandle = NULL;
 
 // From sfc.dll
 typedef BOOL (WINAPI *SfcGetNextProtectedFilefunc)(HANDLE,PPROTECTED_FILE_DATA);
@@ -5678,6 +5680,159 @@ static PyObject *py_GetFileInformationByHandleEx(PyObject *self, PyObject *args,
 PyCFunction pfnpy_GetFileInformationByHandleEx=(PyCFunction)py_GetFileInformationByHandleEx;
 %}
 
+%{
+// @pyswig |SetFileInformationByHandle|Changes file characteristics by file handle
+// @comm Available on Vista and later.
+// @comm Accepts keyword args.
+static PyObject *py_SetFileInformationByHandle(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+	CHECK_PFN(SetFileInformationByHandle);
+	static char *keywords[] = {"File", "FileInformationClass", "Information", NULL};
+	HANDLE handle;
+	FILE_INFO_BY_HANDLE_CLASS info_class;
+	void *buf = NULL;
+	DWORD buflen = 0;
+	BOOL rc = FALSE;
+	PyObject *info;
+			
+	// @pyparm <o PyHANDLE>|File||Handle to a file or directory.  Do not pass a pipe handle.
+	// @pyparm int|FileInformationClass||Type of data, one of win32file.File*Info values
+	// @pyparm object|Information||Type is dependent on the class to be changed
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O&iO", keywords,
+		PyWinObject_AsHANDLE, &handle,
+		&info_class, &info))
+		return NULL;
+
+	// @flagh Class|Type of input
+	switch (info_class){
+		// @flag FileBasicInfo|Dict representing a FILE_BASIC_INFO struct, containing
+		// {"CreationTime":<o PyTime>, "LastAccessTime":<o PyTime>,  "LastWriteTime":<o PyTime>,
+		//		"ChangeTime":<o PyTime>, "FileAttributes":int}
+		case FileBasicInfo:{
+			TmpPyObject dummy_tuple = PyTuple_New(0);
+			if (dummy_tuple == NULL)
+				return NULL;
+			buflen = sizeof(FILE_BASIC_INFO);
+			FILE_BASIC_INFO *pbi = (FILE_BASIC_INFO *)malloc(buflen);
+			if (pbi == NULL)
+				break;
+			buf = pbi;
+			static char *keywords[] = {"CreationTime", "LastAccessTime",  "LastWriteTime",
+				"ChangeTime", "FileAttributes", NULL};
+			// The times are LARGE_INTEGER's (identical to timestamp), but can be converted as FILETIME's.
+			rc = PyArg_ParseTupleAndKeywords(dummy_tuple, info, "O&O&O&O&k", keywords,
+				PyWinObject_AsFILETIME, &pbi->CreationTime,
+				PyWinObject_AsFILETIME, &pbi->LastAccessTime,
+				PyWinObject_AsFILETIME, &pbi->LastWriteTime,
+				PyWinObject_AsFILETIME, &pbi->ChangeTime,
+				&pbi->FileAttributes);
+			break;
+			}
+		// @flag FileRenameInfo|Dict representing a FILE_RENAME_INFO struct, containing
+		// {"ReplaceIfExists":boolean, "RootDirectory":<o PyHANDLE>, "FileName":str}
+		// MSDN says the RootDirectory is "A handle to the root directory in which the file to be renamed is located".
+		// However, this is actually the destination dir, can be None to stay in same dir.
+		case FileRenameInfo:{
+			TmpPyObject dummy_tuple = PyTuple_New(0);
+			if (dummy_tuple == NULL)
+				return NULL;
+			// Variable size struct, need to convert filename first to determine full length
+			FILE_RENAME_INFO *pri;
+			PyObject *obFileName;
+			TmpWCHAR FileName;
+			DWORD FileNameLength;
+			BOOL ReplaceIfExists;
+			HANDLE RootDirectory;
+
+			static char *keywords[] = {"ReplaceIfExists", "RootDirectory", "FileName", NULL};			
+			rc = PyArg_ParseTupleAndKeywords(dummy_tuple, info, "iO&O", keywords,
+				&ReplaceIfExists,
+				PyWinObject_AsHANDLE, &RootDirectory,
+				&obFileName)
+				&& PyWinObject_AsWCHAR(obFileName, &FileName, FALSE, &FileNameLength);
+			if (!rc)
+				return NULL;
+			buflen = sizeof(FILE_RENAME_INFO) + (FileNameLength * sizeof(WCHAR));
+			pri = (FILE_RENAME_INFO *)malloc(buflen);
+			if (pri == NULL)
+				break;
+			buf = pri;
+			pri->ReplaceIfExists = ReplaceIfExists;
+			pri->RootDirectory = RootDirectory;
+			wcsncpy(pri->FileName, FileName, FileNameLength + 1);
+			pri->FileNameLength = FileNameLength * sizeof(WCHAR);
+			break;
+			}
+		// @flag FileDispositionInfo|Boolean indicating if file should be deleted when handle is closed
+		case FileDispositionInfo:{
+			buflen = sizeof(FILE_DISPOSITION_INFO);
+			FILE_DISPOSITION_INFO *pdi = (FILE_DISPOSITION_INFO *)malloc(buflen);
+			if (pdi == NULL)
+				break;
+			buf = pdi;
+			// Thought this always succeeded, need to add error checking to other places it's used
+			pdi->DeleteFile = PyObject_IsTrue(info);
+			rc = pdi->DeleteFile != -1;
+			break;
+			}
+		// @flag FileAllocationInfo|Int giving the allocation size.
+		case FileAllocationInfo:{
+			buflen = sizeof(FILE_ALLOCATION_INFO);
+			FILE_ALLOCATION_INFO *pai = (FILE_ALLOCATION_INFO *)malloc(buflen);
+			if (pai == NULL)
+				break;
+			buf = pai;
+			rc = PyWinObject_AsLARGE_INTEGER(info, &pai->AllocationSize);
+			break;
+			}
+		// @flag FileEndOfFileInfo|Int giving the EOF position, cannot be greater than allocated size.
+		case FileEndOfFileInfo:{
+			buflen = sizeof(FILE_END_OF_FILE_INFO);
+			FILE_END_OF_FILE_INFO *peofi = (FILE_END_OF_FILE_INFO *)malloc(buflen);
+			if (peofi == NULL)
+				break;
+			buf = peofi;
+			rc = PyWinObject_AsLARGE_INTEGER(info, &peofi->EndOfFile);
+			break;
+			}
+		// @flag FileIoPriorityHintInfo|Int containing the IO priority (IoPriorityHint*)
+		case FileIoPriorityHintInfo:{
+			buflen = sizeof(FILE_IO_PRIORITY_HINT_INFO);
+			FILE_IO_PRIORITY_HINT_INFO *piohi= (FILE_IO_PRIORITY_HINT_INFO *)malloc(buflen);
+			if (piohi == NULL)
+				break;
+			buf = piohi;
+			piohi->PriorityHint = (PRIORITY_HINT)PyInt_AsLong(info);
+			rc = piohi->PriorityHint != -1 || !PyErr_Occurred();
+			break;
+			}
+		default:
+			PyErr_SetString(PyExc_NotImplementedError, "Unsupported file information class");
+			return NULL;
+		}
+	if (buf == NULL){
+		PyErr_NoMemory();
+		return NULL;
+		}
+	if (!rc){
+		free(buf);
+		return NULL;
+		}
+
+	Py_BEGIN_ALLOW_THREADS
+	rc = (*pfnSetFileInformationByHandle)(handle, info_class, buf, buflen);
+	// rc = SetFileInformationByHandle(handle, info_class, buf, buflen);
+	Py_END_ALLOW_THREADS
+	free(buf);
+	if (rc){
+		Py_INCREF(Py_None);
+		return Py_None;
+		}
+	return PyWin_SetAPIError("SetFileInformationByHandle");
+}
+PyCFunction pfnpy_SetFileInformationByHandle=(PyCFunction)py_SetFileInformationByHandle;
+%}
+
 %native (SetVolumeMountPoint) pfnpy_SetVolumeMountPoint;
 %native (DeleteVolumeMountPoint) pfnpy_DeleteVolumeMountPoint;
 %native (GetVolumeNameForVolumeMountPoint) pfnpy_GetVolumeNameForVolumeMountPoint;
@@ -5714,6 +5869,7 @@ PyCFunction pfnpy_GetFileInformationByHandleEx=(PyCFunction)py_GetFileInformatio
 %native (GetFileAttributesEx) pfnpy_GetFileAttributesEx;
 %native (GetFileAttributesExW) pfnpy_GetFileAttributesExW;
 %native (GetFileInformationByHandleEx) pfnpy_GetFileInformationByHandleEx;
+%native (SetFileInformationByHandle) pfnpy_SetFileInformationByHandle;
 %native (SetFileAttributesW) pfnpy_SetFileAttributesW;
 %native (CreateDirectoryExW) pfnpy_CreateDirectoryExW;
 %native (RemoveDirectory) pfnpy_RemoveDirectory;
@@ -5773,6 +5929,7 @@ PyCFunction pfnpy_GetFileInformationByHandleEx=(PyCFunction)py_GetFileInformatio
 			||(strcmp(pmd->ml_name, "GetLongPathName")==0)
 			||(strcmp(pmd->ml_name, "GetFullPathName")==0)
 			||(strcmp(pmd->ml_name, "GetFileInformationByHandleEx")==0)
+			||(strcmp(pmd->ml_name, "SetFileInformationByHandle")==0)
 			||(strcmp(pmd->ml_name, "DeviceIoControl")==0)
 			||(strcmp(pmd->ml_name, "TransmitFile")==0)
 			||(strcmp(pmd->ml_name, "ConnectEx")==0)
@@ -5844,6 +6001,7 @@ PyCFunction pfnpy_GetFileInformationByHandleEx=(PyCFunction)py_GetFileInformatio
 		pfnGetFullPathNameTransactedW=(GetFullPathNameTransactedWfunc)GetProcAddress(hmodule, "GetFullPathNameTransactedW");
 		pfnGetFullPathNameTransactedA=(GetFullPathNameTransactedAfunc)GetProcAddress(hmodule, "GetFullPathNameTransactedA");
 		pfnGetFileInformationByHandleEx=(GetFileInformationByHandleExfunc)GetProcAddress(hmodule, "GetFileInformationByHandleEx");
+		pfnSetFileInformationByHandle=(SetFileInformationByHandlefunc)GetProcAddress(hmodule, "SetFileInformationByHandle");
 		pfnWow64DisableWow64FsRedirection=(Wow64DisableWow64FsRedirectionfunc)GetProcAddress(hmodule, "Wow64DisableWow64FsRedirection");
 		pfnWow64RevertWow64FsRedirection=(Wow64RevertWow64FsRedirectionfunc)GetProcAddress(hmodule, "Wow64RevertWow64FsRedirection");
 		}
@@ -5973,3 +6131,7 @@ PyCFunction pfnpy_GetFileInformationByHandleEx=(PyCFunction)py_GetFileInformatio
 #define FileIdBothDirectoryInfo FileIdBothDirectoryInfo
 #define FileIdBothDirectoryRestartInfo FileIdBothDirectoryRestartInfo
 #define FileIoPriorityHintInfo FileIoPriorityHintInfo
+
+#define IoPriorityHintVeryLow IoPriorityHintVeryLow
+#define IoPriorityHintLow IoPriorityHintLow
+#define IoPriorityHintNormal IoPriorityHintNormal
