@@ -366,10 +366,11 @@ PyObject *PyIShellFolder::GetDisplayNameOf(PyObject *self, PyObject *args)
 	PY_INTERFACE_PRECALL;
 	hr = pISF->GetDisplayNameOf( pidl, uFlags, &out );
 	PY_INTERFACE_POSTCALL;
-
+	PyObject *ret;
 	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pISF, IID_IShellFolder );
-	PyObject *ret = PyObject_FromSTRRET(&out, pidl, TRUE);
+		ret = PyCom_BuildPyException(hr, pISF, IID_IShellFolder);
+	else
+		ret = PyObject_FromSTRRET(&out, pidl, TRUE);
 	PyObject_FreePIDL(pidl);
 	return ret;
 }

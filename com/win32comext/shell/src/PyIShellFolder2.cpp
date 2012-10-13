@@ -148,7 +148,7 @@ PyObject *PyIShellFolder2::GetDetailsOf(PyObject *self, PyObject *args)
 	// @pyparm int|iColumn||Zero based index of column
 	SHELLDETAILS sd;
 	PyObject *obpidl;
-	LPITEMIDLIST pidl;
+	ITEMIDLIST *pidl;
 	UINT iColumn;
 	if (!PyArg_ParseTuple(args, "Oi:GetDetailsOf", &obpidl, &iColumn))
 		return NULL;
@@ -158,9 +158,11 @@ PyObject *PyIShellFolder2::GetDetailsOf(PyObject *self, PyObject *args)
 	PY_INTERFACE_PRECALL;
 	hr = pISF2->GetDetailsOf( pidl, iColumn, &sd );
 	PY_INTERFACE_POSTCALL;
+	PyObject *ret;
 	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pISF2, IID_IShellFolder2 );
-	PyObject *ret = Py_BuildValue("(iiN)", sd.fmt, sd.cxChar, PyObject_FromSTRRET(&sd.str, pidl, TRUE));
+		ret = PyCom_BuildPyException(hr, pISF2, IID_IShellFolder2);
+	else
+		ret = Py_BuildValue("(iiN)", sd.fmt, sd.cxChar, PyObject_FromSTRRET(&sd.str, pidl, TRUE));
 	PyObject_FreePIDL(pidl);
 	return ret;
 }
