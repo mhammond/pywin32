@@ -3009,6 +3009,13 @@ static GetFileInformationByHandleExfunc pfnGetFileInformationByHandleEx = NULL;
 typedef BOOL (WINAPI *SetFileInformationByHandlefunc)(HANDLE,FILE_INFO_BY_HANDLE_CLASS,LPVOID,DWORD);
 static SetFileInformationByHandlefunc pfnSetFileInformationByHandle = NULL;
 
+typedef HANDLE (WINAPI *ReOpenFilefunc)(HANDLE, DWORD, DWORD, DWORD);
+static ReOpenFilefunc pfnReOpenFile = NULL;
+
+typedef HANDLE (WINAPI *OpenFileByIdfunc)(HANDLE, LPFILE_ID_DESCRIPTOR, DWORD, DWORD,
+	LPSECURITY_ATTRIBUTES, DWORD);
+static OpenFileByIdfunc pfnOpenFileById = NULL;
+
 // From sfc.dll
 typedef BOOL (WINAPI *SfcGetNextProtectedFilefunc)(HANDLE,PPROTECTED_FILE_DATA);
 static SfcGetNextProtectedFilefunc pfnSfcGetNextProtectedFile = NULL;
@@ -5484,7 +5491,7 @@ static PyObject *py_GetFileInformationByHandleEx(PyObject *self, PyObject *args,
 	
 	// @pyparm <o PyHANDLE>|File||Handle to a file or directory.  Do not pass a pipe handle.
 	// @pyparm int|FileInformationClass||Type of data to return, one of win32file.File*Info values
-	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O&i", keywords,
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O&i:GetFileInformationByHandleEx", keywords,
 		PyWinObject_AsHANDLE, &handle,
 		&info_class))
 		return NULL;
@@ -5698,7 +5705,7 @@ static PyObject *py_SetFileInformationByHandle(PyObject *self, PyObject *args, P
 	// @pyparm <o PyHANDLE>|File||Handle to a file or directory.  Do not pass a pipe handle.
 	// @pyparm int|FileInformationClass||Type of data, one of win32file.File*Info values
 	// @pyparm object|Information||Type is dependent on the class to be changed
-	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O&iO", keywords,
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O&iO:SetFileInformationByHandle", keywords,
 		PyWinObject_AsHANDLE, &handle,
 		&info_class, &info))
 		return NULL;
@@ -5833,6 +5840,86 @@ static PyObject *py_SetFileInformationByHandle(PyObject *self, PyObject *args, P
 PyCFunction pfnpy_SetFileInformationByHandle=(PyCFunction)py_SetFileInformationByHandle;
 %}
 
+%{
+// @pyswig <o PyHANDLE>|ReOpenFile|Creates a new handle to an open file
+// @comm Available on Vista and later.
+// @comm Accepts keyword args.
+static PyObject *py_ReOpenFile(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+	CHECK_PFN(ReOpenFile);
+	static char *keywords[] = {"OriginalFile", "DesiredAccess", "ShareMode", "Flags", NULL};
+	HANDLE horig, hret;
+	DWORD DesiredAccess, ShareMode, Flags;			
+	// @pyparm <o PyHANDLE>|OriginalFile||An open file handle
+	// @pyparm int|DesiredAccess||Access mode, cannot conflict with original access mode
+	// @pyparm int|ShareMode||Sharing mode (FILE_SHARE_*), cannot conflict with original share mode
+	// @pyparm int|Flags||Combination of FILE_FLAG_* flags
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O&kkk:ReOpenFile", keywords,
+		PyWinObject_AsHANDLE, &horig, &DesiredAccess, &ShareMode, &Flags))
+		return NULL;
+
+	Py_BEGIN_ALLOW_THREADS
+	hret = (*pfnReOpenFile)(horig, DesiredAccess, ShareMode, Flags);
+	// hret = ReOpenFile(horig, DesiredAccess, ShareMode, Flags);
+	Py_END_ALLOW_THREADS
+	if (hret == INVALID_HANDLE_VALUE)
+		return PyWin_SetAPIError("ReOpenFile");
+	return PyWinObject_FromHANDLE(hret);
+}
+PyCFunction pfnpy_ReOpenFile=(PyCFunction)py_ReOpenFile;
+%}
+
+%{
+// @pyswig <o PyHANDLE>|OpenFileById|Opens a file by File Id or Object Id
+// @comm Available on Vista and later.
+// @comm Accepts keyword args.
+static PyObject *py_OpenFileById(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+	CHECK_PFN(OpenFileById);
+	static char *keywords[] = {"File", "FileID", "DesiredAccess", "ShareMode",
+		"Flags", "SecurityAttributes", NULL};
+	HANDLE hvol, hret;
+	DWORD DesiredAccess, ShareMode, Flags;
+	PyObject *obsa = Py_None;
+	PSECURITY_ATTRIBUTES sa;
+	PyObject *obfileid;
+	FILE_ID_DESCRIPTOR fileid = {sizeof(FILE_ID_DESCRIPTOR)};
+
+	// @pyparm <o PyHANDLE>|File||Handle to a file on the volume that contains the file to open
+	// @pyparm int/<o PyIID>|FileId||File Id or Object Id of the file to open
+	// @pyparm int|DesiredAccess||Access mode
+	// @pyparm int|ShareMode||Sharing mode (FILE_SHARE_*)
+	// @pyparm int|Flags||Combination of FILE_FLAG_* flags
+	// @pyparm <o PySECURITY_ATTRIBUTES>|SecurityAttributes|None|Reserved, use only None
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O&Okkk|O:OpenFileById", keywords,
+		PyWinObject_AsHANDLE, &hvol, &obfileid, &DesiredAccess, &ShareMode, &Flags, &obsa))
+		return NULL;
+	if (!PyWinObject_AsSECURITY_ATTRIBUTES(obsa, &sa, TRUE))
+		return NULL;
+		
+	fileid.Type = FileIdType;
+	if (!PyWinObject_AsLARGE_INTEGER(obfileid, &fileid.FileId)){
+		PyErr_Clear();
+		fileid.Type = ObjectIdType;
+		if (!PyWinObject_AsIID(obfileid, &fileid.ObjectId)){
+			PyErr_Clear();
+			PyErr_SetString(PyExc_TypeError, "FileId must be an integer or GUID");
+			return NULL;
+			}
+		}
+
+	Py_BEGIN_ALLOW_THREADS
+	hret = (*pfnOpenFileById)(hvol, &fileid, DesiredAccess, ShareMode, sa, Flags);
+	// hret = OpenFileById(hvol, &fileid, DesiredAccess, ShareMode, sa, Flags);
+	Py_END_ALLOW_THREADS
+	if (hret == INVALID_HANDLE_VALUE)
+		return PyWin_SetAPIError("OpenFileById");
+	return PyWinObject_FromHANDLE(hret);
+}
+PyCFunction pfnpy_OpenFileById=(PyCFunction)py_OpenFileById;
+%}
+
+
 %native (SetVolumeMountPoint) pfnpy_SetVolumeMountPoint;
 %native (DeleteVolumeMountPoint) pfnpy_DeleteVolumeMountPoint;
 %native (GetVolumeNameForVolumeMountPoint) pfnpy_GetVolumeNameForVolumeMountPoint;
@@ -5886,6 +5973,9 @@ PyCFunction pfnpy_SetFileInformationByHandle=(PyCFunction)py_SetFileInformationB
 
 %native (Wow64DisableWow64FsRedirection) py_Wow64DisableWow64FsRedirection;
 %native (Wow64RevertWow64FsRedirection) py_Wow64RevertWow64FsRedirection;
+%native (ReOpenFile) pfnpy_ReOpenFile;
+%native (OpenFileById) pfnpy_OpenFileById;
+
 
 %init %{
 
@@ -5933,6 +6023,8 @@ PyCFunction pfnpy_SetFileInformationByHandle=(PyCFunction)py_SetFileInformationB
 			||(strcmp(pmd->ml_name, "DeviceIoControl")==0)
 			||(strcmp(pmd->ml_name, "TransmitFile")==0)
 			||(strcmp(pmd->ml_name, "ConnectEx")==0)
+			||(strcmp(pmd->ml_name, "ReOpenFile")==0)
+			||(strcmp(pmd->ml_name, "OpenFileById")==0)
 			)
 			pmd->ml_flags = METH_VARARGS | METH_KEYWORDS;
 
@@ -6004,6 +6096,8 @@ PyCFunction pfnpy_SetFileInformationByHandle=(PyCFunction)py_SetFileInformationB
 		pfnSetFileInformationByHandle=(SetFileInformationByHandlefunc)GetProcAddress(hmodule, "SetFileInformationByHandle");
 		pfnWow64DisableWow64FsRedirection=(Wow64DisableWow64FsRedirectionfunc)GetProcAddress(hmodule, "Wow64DisableWow64FsRedirection");
 		pfnWow64RevertWow64FsRedirection=(Wow64RevertWow64FsRedirectionfunc)GetProcAddress(hmodule, "Wow64RevertWow64FsRedirection");
+		pfnReOpenFile=(ReOpenFilefunc)GetProcAddress(hmodule, "ReOpenFile");
+		pfnOpenFileById=(OpenFileByIdfunc)GetProcAddress(hmodule, "OpenFileById");
 		}
 
 	hmodule=GetModuleHandle(TEXT("sfc.dll"));
@@ -6135,3 +6229,7 @@ PyCFunction pfnpy_SetFileInformationByHandle=(PyCFunction)py_SetFileInformationB
 #define IoPriorityHintVeryLow IoPriorityHintVeryLow
 #define IoPriorityHintLow IoPriorityHintLow
 #define IoPriorityHintNormal IoPriorityHintNormal
+
+// used with OpenFileById
+#define FileIdType FileIdType
+#define ObjectIdType ObjectIdType
