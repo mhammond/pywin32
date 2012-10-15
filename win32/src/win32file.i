@@ -714,71 +714,65 @@ static BOOL PyWinTime_DateTimeCheck(PyObject *ob)
 		;
 }
 
-// @pyswig None|SetFileTime|Sets the date and time that a file was created, last accessed, or last modified.
-static PyObject *PySetFileTime (PyObject *self, PyObject *args)
+// @pyswig |SetFileTime|Sets the date and time that a file was created, last accessed, or last modified.
+static PyObject *PySetFileTime (PyObject *self, PyObject *args, PyObject *kwargs)
 {
-	PyObject *obHandle;       // @pyparm <o PyHANDLE>/int|handle||Previously opened handle (opened with GENERIC_WRITE access).
-	PyObject *obTimeCreated;  // @pyparm <o PyTime>|CreatedTime||File created time. None for no change.
-	PyObject *obTimeAccessed; // @pyparm <o PyTime>|AccessTime||File access time. None for no change.
-	PyObject *obTimeWritten;  // @pyparm <o PyTime>|WrittenTime||File written time. None for no change.
+	PyObject *obHandle;       // @pyparm <o PyHANDLE>|File||Previously opened handle (opened with FILE_WRITE_ATTRIBUTES access).
+	PyObject *obCreationTime = Py_None;  // @pyparm <o PyTime>|CreationTime|None|File created time. None for no change.
+	PyObject *obLastAccessTime = Py_None; // @pyparm <o PyTime>|LastAccessTime|None|File access time. None for no change.
+	PyObject *obLastWriteTime = Py_None;  // @pyparm <o PyTime>|LastWriteTime|None|File written time. None for no change.
+	BOOL UTCTimes = FALSE;    // @pyparm boolean|UTCTimes|False|If True, input times are treated as UTC and no conversion is done, 
+							  // otherwise they are treated as local times.  Defaults to False for backward compatibility.
+
+	static char *keywords[] = {"File", "CreationTime", "LastAccessTime", "LastWriteTime", "UTCTimes", NULL};
 	HANDLE hHandle;
-	FILETIME TimeCreated, *lpTimeCreated;
-	FILETIME TimeAccessed, *lpTimeAccessed;
-	FILETIME TimeWritten, *lpTimeWritten;
-	FILETIME LocalFileTime;
-	
-	if (!PyArg_ParseTuple(args, "OOOO:SetFileTime",
-		&obHandle, &obTimeCreated, &obTimeAccessed, &obTimeWritten))
+	FILETIME CreationTime, *lpCreationTime = NULL;
+	FILETIME LastAccessTime, *lpLastAccessTime = NULL;
+	FILETIME LastWriteTime, *lpLastWriteTime = NULL;
+	FILETIME FileTime;
+
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O|OOOi:SetFileTime", keywords,
+		&obHandle, &obCreationTime, &obLastAccessTime, &obLastWriteTime, &UTCTimes))
 		return NULL;
 
     if (!PyWinObject_AsHANDLE(obHandle, &hHandle))
         return NULL;
-	if (obTimeCreated == Py_None)
-		lpTimeCreated= NULL;
-	else
-	{
-		if (!PyWinObject_AsFILETIME(obTimeCreated, &LocalFileTime))
+	if (obCreationTime != Py_None){
+		if (!PyWinObject_AsFILETIME(obCreationTime, &FileTime))
 			return NULL;
-		// This sucks!  This code is the only code in pywin32 that
-		// blindly converted the result of AsFILETIME to a localtime.
-		// That doesn't make sense in a tz-aware datetime world...
-		if (PyWinTime_DateTimeCheck(obTimeCreated))
-			TimeCreated = LocalFileTime;
+		// Do no conversion if given a timezone-aware object, or told input is UTC
+		if (UTCTimes || PyWinTime_DateTimeCheck(obCreationTime))
+			CreationTime = FileTime;
 		else
-			LocalFileTimeToFileTime(&LocalFileTime, &TimeCreated);
-		lpTimeCreated= &TimeCreated;
+			LocalFileTimeToFileTime(&FileTime, &CreationTime);
+		lpCreationTime = &CreationTime;
 	}
-	if (obTimeAccessed == Py_None)
-		lpTimeAccessed= NULL;
-	else
-	{
-		if (!PyWinObject_AsFILETIME(obTimeAccessed, &LocalFileTime))
+	if (obLastAccessTime != Py_None){
+		if (!PyWinObject_AsFILETIME(obLastAccessTime, &FileTime))
 			return NULL;
-		if (PyWinTime_DateTimeCheck(obTimeAccessed))
-			TimeAccessed = LocalFileTime;
+		if (UTCTimes || PyWinTime_DateTimeCheck(obLastAccessTime))
+			LastAccessTime = FileTime;
 		else
-			LocalFileTimeToFileTime(&LocalFileTime, &TimeAccessed);
-		lpTimeAccessed= &TimeAccessed;
+			LocalFileTimeToFileTime(&FileTime, &LastAccessTime);
+		lpLastAccessTime= &LastAccessTime;
 	}
-	if (obTimeWritten == Py_None)
-		lpTimeWritten= NULL;
-	else
-	{
-		if (!PyWinObject_AsFILETIME(obTimeWritten, &LocalFileTime))
+	if (obLastWriteTime != Py_None){
+		if (!PyWinObject_AsFILETIME(obLastWriteTime, &FileTime))
 			return NULL;
-		if (PyWinTime_DateTimeCheck(obTimeWritten))
-			TimeWritten = LocalFileTime;
+		if (UTCTimes || PyWinTime_DateTimeCheck(obLastWriteTime))
+			LastWriteTime = FileTime;
 		else
-			LocalFileTimeToFileTime(&LocalFileTime, &TimeWritten);
-		lpTimeWritten= &TimeWritten;
+			LocalFileTimeToFileTime(&FileTime, &LastWriteTime);
+		lpLastWriteTime= &LastWriteTime;
 	}
-	if (!::SetFileTime(hHandle, lpTimeCreated, lpTimeAccessed, lpTimeWritten))
+	if (!::SetFileTime(hHandle, lpCreationTime, lpLastAccessTime, lpLastWriteTime))
 		return PyWin_SetAPIError("SetFileTime");
 	Py_INCREF(Py_None);
 	return Py_None;
 }
+PyCFunction pfnPySetFileTime = (PyCFunction)PySetFileTime;
 %}
-%native(SetFileTime) PySetFileTime;
+%native(SetFileTime) pfnPySetFileTime;
 
 %{
 // @pyswig tuple|GetFileInformationByHandle|Retrieves file information for a specified file. 
@@ -878,7 +872,7 @@ PyObject *MyGetFileSize(PyObject *self, PyObject *args)
 // of arbitary size, so currently this can only be created by <om win32file.AllocateReadBuffer>.
 #ifndef MS_WINCE
 %{
-// @pyswig <o PyOVERLAPPEDReadBuffer>|AllocateReadBuffer|Allocated a buffer which can be used with an overlapped Read operation using <om win32file.ReadFile>
+// @pyswig <o PyOVERLAPPEDReadBuffer>|AllocateReadBuffer|Allocates a buffer which can be used with an overlapped Read operation using <om win32file.ReadFile>
 PyObject *MyAllocateReadBuffer(PyObject *self, PyObject *args)
 {
 	int bufSize;
@@ -6025,6 +6019,7 @@ PyCFunction pfnpy_OpenFileById=(PyCFunction)py_OpenFileById;
 			||(strcmp(pmd->ml_name, "ConnectEx")==0)
 			||(strcmp(pmd->ml_name, "ReOpenFile")==0)
 			||(strcmp(pmd->ml_name, "OpenFileById")==0)
+			||(strcmp(pmd->ml_name, "SetFileTime")==0)
 			)
 			pmd->ml_flags = METH_VARARGS | METH_KEYWORDS;
 
