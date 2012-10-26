@@ -38,7 +38,7 @@ Since build 217:
 	interfaces IShellItem2, IEnumShellItems, IApplicationDocumentLists,
 	IApplicationDestinations, ITaskbarList, IEnumObjects,
 	IKnownFolder, IKnownFolderManager, IObjectArray, IObjectCollection,
-	ICustomDestinationList, and IShellLibrary
+	ICustomDestinationList, and IShellLibrary; enhance SHAddToRecentDocs.
 
 * win32com.propsys - Many Property System interfaces and functions added
 
@@ -48,7 +48,9 @@ Since build 217:
 	Fix iteration of objects that don't declare an enumerator in their typelib
 	Validate syntax of constants written to makepy generated files
 
-* win32file - Add GetFileInformationByHandleEx
+* win32file - Add GetFileInformationByHandleEx, ReOpenFile and OpenFileById,
+  SetFileInformationByHandle.  SetFileTime() has an extra param to allow UTC 
+  time to be specified.
 
 * win32api - Allow UpdateResource to remove a resource
 
