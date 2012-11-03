@@ -67,6 +67,8 @@ generates Windows .hlp files.
 #include "PyIKnownFolder.h"
 #include "PyIKnownFolderManager.h"
 #include "PyITaskbarList.h"
+#include "PyIFileOperation.h"
+#include "PyIFileOperationProgressSink.h"
 
 // These Require Windows 7 SDK to build
 #include "PyIEnumObjects.h"
@@ -3321,7 +3323,7 @@ static PyObject *PySHOpenFolderAndSelectItems(PyObject *self, PyObject *args, Py
 	if (pfnSHOpenFolderAndSelectItems==NULL)
 		return PyCom_BuildPyException(E_NOTIMPL);
 	static char *keywords[] = {"Folder", "Items", "Flags", NULL};
-	DWORD flags;
+	DWORD flags = 0;
 	PyObject *obfolder, *obitems, *ret=NULL;
 	// @pyparm <o PyIDL>|Folder||An absolute item id list identifying a shell folder
 	// @pyparm (<o PyIDL>,...)|Items||A sequence of relative item ids identifying items in the folder
@@ -3570,7 +3572,9 @@ static const PyCom_InterfaceSupportInfo g_interfaceSupportData[] =
 	PYCOM_INTERFACE_CLIENT_ONLY(KnownFolder),
 	PYCOM_INTERFACE_CLIENT_ONLY(TaskbarList),
 	PYCOM_INTERFACE_CLSID_ONLY(TaskbarList),
-
+	PYCOM_INTERFACE_CLIENT_ONLY(FileOperation),
+	PYCOM_INTERFACE_CLSID_ONLY(FileOperation),
+	PYCOM_INTERFACE_SERVER_ONLY(FileOperationProgressSink),
 	// These require Windows 7 SDK to build
 #if WINVER >= 0x0601
 	PYCOM_INTERFACE_CLIENT_ONLY(EnumObjects),

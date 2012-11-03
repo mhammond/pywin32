@@ -30,6 +30,9 @@
 #include "PyIPropertyEnumType.h"
 #include "PyIPropertyEnumTypeList.h"
 #include "PyIPersistSerializedPropStorage.h"
+#include "PyIObjectWithPropertyKey.h"
+#include "PyIPropertyChange.h"
+#include "PyIPropertyChangeArray.h"
 
 #include "delayimp.h"
 #include "propvarutil.h"
@@ -433,7 +436,6 @@ static PyObject *PyPSGetPropertyFromPropertyStorage(PyObject *self, PyObject *ar
 
 	HRESULT hr;
 	PY_INTERFACE_PRECALL;
-	// PCUSERIALIZEDPROPSTORAGE psps,    // IPersistSerializedPropStorage::GetPropertyStorage
 	hr = PSGetPropertyFromPropertyStorage((PCUSERIALIZEDPROPSTORAGE)buf, bufsize, key, &val);
 	PY_INTERFACE_POSTCALL;
 	if (FAILED(hr))
@@ -468,12 +470,94 @@ static PyObject *PyPSGetNamedPropertyFromPropertyStorage(PyObject *self, PyObjec
 	return PyWinObject_FromPROPVARIANT(val);
 }
 
+// @pymethod <o PyIPropertyChange>|propsys|PSCreateSimplePropertyChange|Creates an IPropertyChange interface used to apply changes to a <o PyPROPVARIANT>
+static PyObject *PyPSCreateSimplePropertyChange(PyObject *self, PyObject *args)
+{
+	// @pyparm int|flags||The change operation, pscon.PKA_*
+	// @pyparm <o PyPROPERTYKEY>|key||The property key
+	// @pyparm <o PyPROPVARIANT>|val||The value that the change operation will apply
+	// @pyparm <o PyIID>|riid|IID_IPropertyChange|The interface to return.
+	PKA_FLAGS flags;
+	PROPERTYKEY key;
+	PROPVARIANT *val;
+	IID riid = IID_IPropertyChange;
+	void *ret;
+	if (!PyArg_ParseTuple(args, "lO&O&|O&:PSCreateSimplePropertyChange",
+		&flags,
+		PyWinObject_AsPROPERTYKEY, &key,
+		PyWinObject_AsPROPVARIANT, &val,
+		PyWinObject_AsIID, &riid))
+		return NULL;
+
+	HRESULT hr;
+	PY_INTERFACE_PRECALL;
+	hr = PSCreateSimplePropertyChange(flags, key, *val, riid, &ret);
+	PY_INTERFACE_POSTCALL;
+	if (FAILED(hr))
+		return PyCom_BuildPyException(hr);
+	return PyCom_PyObjectFromIUnknown((IUnknown *) ret, riid);
+}
+
+// @pymethod <o PyIPropertyChangeArray>|propsys|PSCreatePropertyChangeArray|Creates an IPropertyChangeArray interface to be used with <o PyIFileOperation>
+// @comm Currently only creates an empty array to be filled in later
+static PyObject *PyPSCreatePropertyChangeArray(PyObject *self, PyObject *args)
+{
+	IID riid = IID_IPropertyChangeArray;
+	void *ret;
+	HRESULT hr;
+	PY_INTERFACE_PRECALL;
+	hr = PSCreatePropertyChangeArray(NULL, NULL, NULL, 0, riid, &ret);
+	PY_INTERFACE_POSTCALL;
+	if (FAILED(hr))
+		return PyCom_BuildPyException(hr);
+	return PyCom_PyObjectFromIUnknown((IUnknown *) ret, riid);
+}
+
+// @pymethod |propsys|SHSetDefaultProperties|Sets the default properties for a file.
+// @comm Default properties are registered by filetype under SetDefaultsFor value.
+static PyObject *PySHSetDefaultProperties(PyObject *self, PyObject *args)
+{
+	HWND hwnd;
+	PyObject *obItem, *obSink = Py_None;
+	DWORD flags = 0;
+	IShellItem *pItem;
+	IFileOperationProgressSink *pSink;
+	// @pyparm <o PyHANDLE>|hwnd||Parent window for any notifications, can be None
+	// @pyparm <o PyIShellItem>|Item||Shell item whose defaults are to be set
+	// @pyparm int|FileOpFlags|0|File operation flags, as used with <om PyIFileOperation.SetOperationFlags>
+	// @pyparm <o PyGFileOperationProgressSink>|Sink|None|Event sink to receive notifications
+	if (!PyArg_ParseTuple(args, "O&O|kO:SHSetDefaultProperties",
+		PyWinObject_AsHANDLE, &hwnd,
+		&obItem, &flags, &obSink))
+		return NULL;
+		
+	if (!PyCom_InterfaceFromPyInstanceOrObject(obItem, IID_IShellItem, (void **)&pItem, FALSE))
+		return NULL;
+	if (!PyCom_InterfaceFromPyInstanceOrObject(obSink, IID_IFileOperationProgressSink, (void **)&pSink, TRUE)){
+		PYCOM_RELEASE(pItem);
+		return NULL;
+		}
+		
+	HRESULT hr;
+	PY_INTERFACE_PRECALL;
+	hr = SHSetDefaultProperties(hwnd, pItem, flags, pSink);
+	pItem->Release();
+	if (pSink)
+		pSink->Release();
+	PY_INTERFACE_POSTCALL;
+
+	if (FAILED(hr))
+		return PyCom_BuildPyException(hr);
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
 
 /* List of module functions */
 // @module propsys|A module, encapsulating the Vista Property System interfaces
 static struct PyMethodDef propsys_methods[]=
 {
-//	{ "SHGetPropertyStoreFromIDList", PySHGetPropertyStoreFromIDList, 1 }, // @pymeth SHGetPropertyStoreFromParsingName|Retrieves the property store from an absolute ID list
+//	{ "SHGetPropertyStoreFromIDList", PySHGetPropertyStoreFromIDList, 1 }, // @pymeth SHGetPropertyStoreFromIDList|Retrieves the property store from an absolute ID list
 	{ "PSGetItemPropertyHandler", PyPSGetItemPropertyHandler, 1 }, // @pymeth PSGetItemPropertyHandler|Retrieves the property store for a shell item
 	{ "PSGetPropertyDescription", PyPSGetPropertyDescription, 1 }, // @pymeth PSGetPropertyDescription|Gets a description interface for a property
 	{ "PSGetPropertySystem", PyPSGetPropertySystem, 1 }, // @pymeth PSGetPropertySystem|Creates an IPropertySystem interface
@@ -490,9 +574,18 @@ static struct PyMethodDef propsys_methods[]=
 	{ "SHGetPropertyStoreForWindow", PySHGetPropertyStoreForWindow, 1 }, // @pymeth SHGetPropertyStoreForWindow|Retrieves a collection of a window's properties
 	{ "PSGetPropertyFromPropertyStorage", PyPSGetPropertyFromPropertyStorage, 1 }, // @pymeth PSGetPropertyFromPropertyStorage|Extracts a property from a serialized buffer by key
 	{ "PSGetNamedPropertyFromPropertyStorage", PyPSGetNamedPropertyFromPropertyStorage, 1 }, // @pymeth PSGetNamedPropertyFromPropertyStorage|Extracts a property from a serialized buffer by name
+	{ "PSCreateSimplePropertyChange", PyPSCreateSimplePropertyChange, 1}, // @pymeth PSCreateSimplePropertyChange|Creates a <o PyIPropertyChange> interface used to apply changes to a <o PyPROPVARIANT>
+	{ "PSCreatePropertyChangeArray", PyPSCreatePropertyChangeArray, METH_NOARGS}, // @pymeth PSCreatePropertyChangeArray|Creates a <o PyIPropertyChangeArray> interface to be used with <o PyIFileOperation>
+	{ "SHSetDefaultProperties", PySHSetDefaultProperties, METH_VARARGS}, // @pymeth SHSetDefaultProperties|Sets the default properties for a file.
 	{ NULL, NULL },
 };
 
+	// MSDN says CLSID_PropertyChangeArray can be used to create IPropertyChangeArray, but
+	// I get "Class not registered".  Plus, it doesn't appear in any headers, although
+	// it's contained in uuid.lib.
+#ifndef CLSID_PropertyChangeArray
+	EXTERN_C const CLSID CLSID_PropertyChangeArray;
+#endif
 
 static const PyCom_InterfaceSupportInfo g_interfaceSupportData[] =
 {
@@ -510,6 +603,10 @@ static const PyCom_InterfaceSupportInfo g_interfaceSupportData[] =
 	PYCOM_INTERFACE_CLIENT_ONLY (PropertyEnumType),
 	PYCOM_INTERFACE_CLIENT_ONLY (PropertyEnumTypeList),
 	PYCOM_INTERFACE_CLIENT_ONLY (PersistSerializedPropStorage),
+	PYCOM_INTERFACE_CLIENT_ONLY (ObjectWithPropertyKey),
+	PYCOM_INTERFACE_CLIENT_ONLY (PropertyChange),
+	PYCOM_INTERFACE_CLIENT_ONLY (PropertyChangeArray),
+	PYCOM_INTERFACE_CLSID_ONLY (PropertyChangeArray),
 };
 
 /* Module initialisation */

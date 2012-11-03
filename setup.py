@@ -2031,6 +2031,8 @@ com_extensions += [
                         %(shell)s/PyIExtractIcon.cpp
                         %(shell)s/PyIExtractIconW.cpp
                         %(shell)s/PyIExtractImage.cpp
+                        %(shell)s/PyIFileOperation.cpp
+                        %(shell)s/PyIFileOperationProgressSink.cpp
                         %(shell)s/PyIInputObject.cpp
                         %(shell)s/PyIKnownFolder.cpp
                         %(shell)s/PyIKnownFolderManager.cpp
@@ -2080,6 +2082,9 @@ com_extensions += [
                         %(propsys)s/PyIPropertySystem.cpp
                         %(propsys)s/PyPROPVARIANT.cpp
                         %(propsys)s/PyIPersistSerializedPropStorage.cpp
+                        %(propsys)s/PyIObjectWithPropertyKey.cpp
+                        %(propsys)s/PyIPropertyChange.cpp
+                        %(propsys)s/PyIPropertyChangeArray.cpp
                         """ % dirs).split(),
                     implib_name="pypropsys",
                     ),

@@ -717,3 +717,7 @@ PKEY_AppUserModel_IsDestListSeparator = (IID('{9F4C2855-9F79-4B39-A8D0-E1D42DE1D
 PKEY_AppUserModel_ExcludeFromShowInNewInstall = (IID('{9F4C2855-9F79-4B39-A8D0-E1D42DE1D5F3}'), 8)
 PKEY_AppUserModel_PreventPinning = (IID('{9F4C2855-9F79-4B39-A8D0-E1D42DE1D5F3}'), 9)
 
+# PKA_FLAGS, used with IPropertyChange
+PKA_SET = 0
+PKA_APPEND = 1
+PKA_DELETE = 2

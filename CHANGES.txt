@@ -4,6 +4,15 @@ Generally created by hand after running:
    hg log -rb2xx: > log.out
 However contributors are encouraged to add their own entries for their work.
 
+Since build 218:
+----------------
+* win32com.shell
+	Add interfaces IFileOperation and IFileOperationProgressSink
+
+* win32com.propsys
+	Add interfaces IPropertyChange, IPropertyChangeArray, and IObjectWithPropertyKey
+	Add functions PSCreateSimplePropertyChange, PSCreatePropertyChangeArray, and SHSetDefaultProperties
+
 Since build 217:
 ----------------
 * mapiutil.py GetPropTagName has been modified to return the fully qualified
