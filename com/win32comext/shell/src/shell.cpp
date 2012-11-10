@@ -187,6 +187,10 @@ static  PFNSetCurrentProcessExplicitAppUserModelID pfnSetCurrentProcessExplicitA
 typedef HRESULT (WINAPI *PFNGetCurrentProcessExplicitAppUserModelID)(WCHAR **);
 static  PFNGetCurrentProcessExplicitAppUserModelID pfnGetCurrentProcessExplicitAppUserModelID;
 
+typedef HRESULT (WINAPI *PFNSHParseDisplayName)(LPCWSTR, IBindCtx *, PIDLIST_ABSOLUTE *, SFGAOF, SFGAOF *);
+static  PFNSHParseDisplayName pfnSHParseDisplayName;
+
+
 // Some magic hackery macros :-)
 #define _ILSkip(pidl, cb)       ((LPITEMIDLIST)(((BYTE*)(pidl))+cb))
 #define _ILNext(pidl)           _ILSkip(pidl, (pidl)->mkid.cb)
@@ -3439,6 +3443,42 @@ static PyObject *PyGetCurrentProcessExplicitAppUserModelID(PyObject *self, PyObj
 	return ret;
 }
 
+// @pymethod (<o PyIDL>, int)|shell|SHParseDisplayName|Translates a display name into a shell item identifier
+// @rdesc Returns the item id list and any requested attribute flags
+// @comm Accepts keyword args
+// @comm Requires XP or later
+static PyObject *PySHParseDisplayName(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+	if (pfnSHParseDisplayName==NULL)
+		return PyCom_BuildPyException(E_NOTIMPL);
+	static char *keywords[] = {"Name", "Attributes", "BindCtx", NULL};
+	TmpWCHAR Name;
+	IBindCtx *pBindCtx;
+	SFGAOF att_requested, att_returned;
+	PyObject *obName, *obBindCtx = Py_None;
+	PIDLIST_ABSOLUTE pidl;
+	// @pyparm str|Name||Display name of a shell item, such as a file path
+	// @pyparm int|Attributes||Bitmask of shell attributes to retrieve, combination of shellcon.SFGAO_*
+	// @pyparm <o PyIBindCtx>|BindCtx|None|Bind context, can be None
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "Ok|O", keywords,
+		&obName, &att_requested, &obBindCtx))
+		return NULL;
+	if (!PyWinObject_AsWCHAR(obName, &Name, FALSE))
+		return NULL;
+	if (!PyCom_InterfaceFromPyObject(obBindCtx, IID_IBindCtx, (void **)&pBindCtx, TRUE))
+		return NULL;
+
+	HRESULT hr;
+	PY_INTERFACE_PRECALL;
+	hr = (*pfnSHParseDisplayName)(Name, pBindCtx, &pidl, att_requested, &att_returned);
+	if (pBindCtx)
+		pBindCtx->Release();
+	PY_INTERFACE_POSTCALL;
+	if (FAILED(hr))
+		return PyCom_BuildPyException(hr);
+	return Py_BuildValue("Nk", PyObject_FromPIDL(pidl, TRUE), att_returned);
+}
+
 
 /* List of module functions */
 // @module shell|A module wrapping Windows Shell functions and interfaces
@@ -3501,6 +3541,7 @@ static struct PyMethodDef shell_methods[]=
 	{ "SHCreateStreamOnFileEx", (PyCFunction)PySHCreateStreamOnFileEx, METH_VARARGS|METH_KEYWORDS},	// @pymeth SHCreateStreamOnFileEx|Creates a <o PyIStream> that reads and writes to a file
 	{ "SetCurrentProcessExplicitAppUserModelID", PySetCurrentProcessExplicitAppUserModelID, METH_VARARGS},	// @pymeth SetCurrentProcessExplicitAppUserModelID|Sets the taskbar identifier
 	{ "GetCurrentProcessExplicitAppUserModelID", PyGetCurrentProcessExplicitAppUserModelID, METH_NOARGS},	// @pymeth GetCurrentProcessExplicitAppUserModelID|Retrieves the current taskbar identifier
+	{ "SHParseDisplayName", (PyCFunction)PySHParseDisplayName, METH_VARARGS|METH_KEYWORDS},	// @pymeth SHParseDisplayName|Translates a display name into a shell item identifier
 	{ NULL, NULL },
 };
 
@@ -3664,6 +3705,7 @@ PYWIN_MODULE_INIT_FUNC(shell)
 		pfnSHOpenFolderAndSelectItems = (PFNSHOpenFolderAndSelectItems)GetProcAddress(shell32, "SHOpenFolderAndSelectItems");
 		pfnSetCurrentProcessExplicitAppUserModelID = (PFNSetCurrentProcessExplicitAppUserModelID)GetProcAddress(shell32, "SetCurrentProcessExplicitAppUserModelID");
 		pfnGetCurrentProcessExplicitAppUserModelID = (PFNGetCurrentProcessExplicitAppUserModelID)GetProcAddress(shell32, "GetCurrentProcessExplicitAppUserModelID");
+		pfnSHParseDisplayName = (PFNSHParseDisplayName)GetProcAddress(shell32, "SHParseDisplayName");
 	}
 	// SHGetFolderPath comes from shfolder.dll on older systems
 	if (pfnSHGetFolderPath==NULL){
