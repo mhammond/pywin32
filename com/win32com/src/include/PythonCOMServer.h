@@ -38,7 +38,7 @@ HRESULT PyCom_MakeRegisteredGatewayObject(REFIID iid, PyObject *instance, PyGate
 			return *ppResult ? S_OK : E_OUTOFMEMORY; } \
 	protected: \
 		virtual IID GetIID(void) { return theIID; } \
-		virtual void *ThisAsIID(IID iid) {if (this==NULL) return NULL;if (iid==theIID) return (IInterface *)this; else return gatewaybaseclass::ThisAsIID(iid);} \
+		virtual void *ThisAsIID(IID iid) {if (this==NULL) return NULL;if (iid==theIID) return (IInterface *)(gatewaybaseclass *)this; else return gatewaybaseclass::ThisAsIID(iid);} \
 		STDMETHOD_(ULONG,AddRef)(void) {return gatewaybaseclass::AddRef();} \
 		STDMETHOD_(ULONG,Release)(void) {return gatewaybaseclass::Release();} \
 		STDMETHOD(QueryInterface)(REFIID iid, void ** obj) {return gatewaybaseclass::QueryInterface(iid, obj);};
