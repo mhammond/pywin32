@@ -6,6 +6,9 @@ However contributors are encouraged to add their own entries for their work.
 
 Since build 218:
 ----------------
+* Fix issue implementing COM objects from within a virtualenv (Kevin Smyth 
+  via issue #3597965)
+
 * win32com.shell
 	Add interfaces IFileOperation and IFileOperationProgressSink
 

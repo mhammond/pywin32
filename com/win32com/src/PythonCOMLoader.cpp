@@ -17,6 +17,7 @@ static PFN_ACTIVATEACTCTX pfnActivateActCtx = NULL;
 static PFN_DEACTIVATEACTCTX pfnDeactivateActCtx = NULL;
 static PFN_ADDREFACTCTX pfnAddRefActCtx = NULL;
 static PFN_RELEASEACTCTX pfnReleaseActCtx = NULL;
+static HINSTANCE hinstThisModule = NULL;
 
 void _LoadActCtxPointers()
 {
@@ -68,8 +69,21 @@ STDAPI DllGetClassObject(REFCLSID rclsid, REFIID riid, LPVOID* ppv)
 	if (pfnDllGetClassObject==0) {
 		// before loading pythoncom we must activate our context so
 		// the CRT loads correctly.
+		HMODULE hpycom = NULL;
 		ULONG_PTR cookie = _Py_ActivateActCtx();
-		HMODULE hpycom = LoadLibraryEx(DLL_DELEGATE, NULL, LOAD_WITH_ALTERED_SEARCH_PATH);
+		TCHAR loader_path[MAX_PATH];
+		if (GetModuleFileName(hinstThisModule, loader_path, MAX_PATH) != 0) {
+			TCHAR fullpath[MAX_PATH];
+			TCHAR* filepart;
+			if (GetFullPathName(loader_path, MAX_PATH, fullpath, &filepart) != 0 && filepart != NULL) {
+				if (_tcslen(DLL_DELEGATE) + _tcslen(loader_path) < sizeof(fullpath) / sizeof(fullpath[0])) {
+					_tcscpy(filepart, DLL_DELEGATE);
+					hpycom = LoadLibraryEx(fullpath, NULL, LOAD_WITH_ALTERED_SEARCH_PATH);
+				}
+			}
+		}
+		if (hpycom == NULL)
+			hpycom = LoadLibrary(DLL_DELEGATE);
 		_Py_DeactivateActCtx(cookie);
 		if (hpycom) {
 			pfnDllGetClassObject = (PFNDllGetClassObject)GetProcAddress(hpycom, _T("DllGetClassObject"));
@@ -82,7 +96,7 @@ STDAPI DllGetClassObject(REFCLSID rclsid, REFIID riid, LPVOID* ppv)
 }
 
 
-BOOL WINAPI  DllMain (HANDLE hInst, ULONG ul_reason_for_call, LPVOID lpReserved)
+BOOL WINAPI  DllMain (HINSTANCE hInst, ULONG ul_reason_for_call, LPVOID lpReserved)
 {
 	switch (ul_reason_for_call) {
 		case DLL_PROCESS_ATTACH:
@@ -92,6 +106,7 @@ BOOL WINAPI  DllMain (HANDLE hInst, ULONG ul_reason_for_call, LPVOID lpReserved)
 			if ((*pfnGetCurrentActCtx)(&PyWin_DLLhActivationContext))
 				if (!(*pfnAddRefActCtx)(PyWin_DLLhActivationContext))
 					OutputDebugString("pythoncomloader failed to load the default activation context\n");
+		hinstThisModule = hInst;
 		break;
 
 	case DLL_PROCESS_DETACH:
