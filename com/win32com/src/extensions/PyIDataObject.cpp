@@ -17,7 +17,7 @@
 BOOL PyObject_AsFORMATETC(PyObject *ob, FORMATETC *petc)
 {
 	PyObject *obtd;
-	if (!PyArg_ParseTuple(ob, "iOiii:FORMATETC",
+	if (!PyArg_ParseTuple(ob, "HOiii:FORMATETC",
 			&petc->cfFormat,
 			&obtd,
 			&petc->dwAspect,
@@ -34,7 +34,7 @@ BOOL PyObject_AsFORMATETC(PyObject *ob, FORMATETC *petc)
 
 PyObject *PyObject_FromFORMATETC(FORMATETC *petc)
 {
-	return Py_BuildValue("iziii",
+	return Py_BuildValue("Hziii",
 			petc->cfFormat,
 			NULL,
 			petc->dwAspect,
