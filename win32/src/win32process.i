@@ -24,6 +24,8 @@ static EnumProcessesfunc pfnEnumProcesses = NULL;
 typedef BOOL (WINAPI *EnumProcessModulesfunc)(HANDLE, HMODULE *, DWORD, LPDWORD);
 static EnumProcessModulesfunc pfnEnumProcessModules = NULL;
 typedef DWORD (WINAPI *GetModuleFileNameExfunc)(HANDLE, HMODULE, WCHAR *, DWORD);
+typedef BOOL (WINAPI *EnumProcessModulesExfunc)(HANDLE, HMODULE*, DWORD, LPDWORD, DWORD);
+static EnumProcessModulesExfunc pfnEnumProcessModulesEx = NULL;
 static GetModuleFileNameExfunc pfnGetModuleFileNameEx = NULL;
 typedef DWORD (WINAPI *GetProcessIdfunc)(HANDLE);
 static GetProcessIdfunc pfnGetProcessId = NULL;
@@ -1252,6 +1254,65 @@ done:
 }
 %}
 
+// @pyswig (long,....)|EnumProcessModulesEx|Lists 32 or 64-bit modules load by a process
+// @comm Requires Vista or later
+%native(EnumProcessModulesEx) PyEnumProcessModulesEx;
+%{
+PyObject *PyEnumProcessModulesEx(PyObject *self, PyObject *args)
+{
+	CHECK_PFN(EnumProcessModulesEx);
+	HMODULE *hmods=NULL, *hmod=NULL;
+	HANDLE hprocess=NULL;
+	DWORD nbr_hmods_allocated=100, nbr_hmods_returned=0, tuple_ind=0;
+	DWORD bytes_allocated=0,bytes_needed=0;
+	DWORD FilterFlag = LIST_MODULES_DEFAULT;
+	PyObject *ret=NULL, *obhmod=NULL, *obhprocess;
+	// @pyparm <o PyHANDLE>|hProcess||Process handle as returned by OpenProcess
+	// @pyparm int|FilterFlag|LIST_MODULES_DEFAULT|Controls whether 32 or 64-bit modules are returned
+	if (!PyArg_ParseTuple(args, "O|k:EnumProcessModulesEx", &obhprocess, &FilterFlag))
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obhprocess, &hprocess))
+		return NULL;
+	bytes_allocated=nbr_hmods_allocated*sizeof(HMODULE);
+	do{
+		if (hmods){
+			free(hmods);
+			bytes_allocated=bytes_needed; // unlike EnumProcesses, this one tells you if more space is needed
+			}
+		hmods=(HMODULE *)malloc(bytes_allocated);
+		if (hmods==NULL){
+			PyErr_SetString(PyExc_MemoryError,"EnumProcessModulesEx: unable to allocate HMODULE list");
+			return NULL;
+			}
+		if (!(*pfnEnumProcessModulesEx)(hprocess, hmods, bytes_allocated, &bytes_needed, FilterFlag)){
+			PyWin_SetAPIError("EnumProcessModulesEx",GetLastError());
+			goto done;
+			}
+		}
+	while (bytes_needed>bytes_allocated);
+
+	nbr_hmods_returned=bytes_needed/sizeof(HMODULE);
+	ret=PyTuple_New(nbr_hmods_returned);
+	if (ret==NULL)
+		goto done;
+	hmod=hmods;
+	for (tuple_ind=0;tuple_ind<nbr_hmods_returned;tuple_ind++){
+		obhmod=PyWinLong_FromHANDLE(*hmod);
+		if (obhmod==NULL){
+			Py_DECREF(ret);
+			ret=NULL;
+			goto done;
+			}
+		PyTuple_SET_ITEM(ret,tuple_ind,obhmod);
+		hmod++;
+		}
+done:
+	if (hmods)
+		free (hmods);
+	return ret;
+}
+%}
+
 // @pyswig <o PyUNICODE>|GetModuleFileNameEx|Return name of module loaded by another process (uses process handle, not pid)
 %native(GetModuleFileNameEx) PyGetModuleFileNameEx;
 %{
@@ -1565,6 +1626,7 @@ PyObject *PyIsWow64Process(PyObject *self, PyObject *args)
 	if (hmodule!=NULL){
 		pfnEnumProcesses = (EnumProcessesfunc)GetProcAddress(hmodule, "EnumProcesses");
 		pfnEnumProcessModules = (EnumProcessModulesfunc)GetProcAddress(hmodule, "EnumProcessModules");
+		pfnEnumProcessModulesEx = (EnumProcessModulesExfunc)GetProcAddress(hmodule, "EnumProcessModulesEx");
 		pfnGetModuleFileNameEx = (GetModuleFileNameExfunc)GetProcAddress(hmodule, "GetModuleFileNameExW");
 #ifndef MS_WINCE
 		pfnGetProcessMemoryInfo = (GetProcessMemoryInfofunc)GetProcAddress(hmodule, "GetProcessMemoryInfo");
@@ -1664,6 +1726,12 @@ PyObject *PyIsWow64Process(PyObject *self, PyObject *args)
 #define IDLE_PRIORITY_CLASS IDLE_PRIORITY_CLASS // Indicates a process whose threads run only when the system is idle and are preempted by the threads of any process running in a higher priority class. An example is a screen saver. The idle priority class is inherited by child processes. 
 #define NORMAL_PRIORITY_CLASS NORMAL_PRIORITY_CLASS // Indicates a normal process with no special scheduling needs. 
 #define REALTIME_PRIORITY_CLASS REALTIME_PRIORITY_CLASS // Indicates a process that has the highest possible priority. The threads of a real-time priority class process preempt the threads of all other processes, including operating system processes performing important tasks. For example, a real-time process that executes for more than a very brief interval can cause disk caches not to flush or cause the mouse to be unresponsive. 
+
+// Used with EnumProcessModulesEx
+#define LIST_MODULES_32BIT LIST_MODULES_32BIT
+#define LIST_MODULES_64BIT LIST_MODULES_64BIT
+#define LIST_MODULES_ALL LIST_MODULES_ALL
+#define LIST_MODULES_DEFAULT LIST_MODULES_DEFAULT
 
 #define STARTF_FORCEONFEEDBACK STARTF_FORCEONFEEDBACK
 // Indicates that the cursor is in feedback mode for two seconds after CreateProcess is called. If during those two seconds the process makes the first GUI call, the system gives five more seconds to the process. If during those five seconds the process shows a window, the system gives five more seconds to the process to finish drawing the window. 
