@@ -419,3 +419,14 @@ PyObject *PyCom_PyObjectFromSTATPROPSETSTG(STATPROPSETSTG *pStg)
 	Py_XDECREF(obatime);
 	return ret;
 }
+
+BOOL PyCom_PyObjectAsSTATPROPSETSTG(PyObject *obstat, STATPROPSETSTG *pstat) 
+{
+	return PyArg_ParseTuple(obstat, "O&O&kO&O&O&:STATPROPSETSTG",
+			PyWinObject_AsIID, &pstat->fmtid,
+			PyWinObject_AsIID, &pstat->clsid,
+			&pstat->grfFlags,
+			PyWinObject_AsFILETIME, &pstat->mtime,
+			PyWinObject_AsFILETIME, &pstat->ctime,
+			PyWinObject_AsFILETIME, &pstat->atime);
+}

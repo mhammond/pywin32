@@ -3,6 +3,7 @@
 
 #include "stdafx.h"
 #include "PythonCOM.h"
+#include "PythonCOMServer.h"
 
 #ifndef NO_PYCOM_ENUMSTATPROPSTG
 
@@ -67,9 +68,15 @@ PyObject *PyIEnumSTATPROPSTG::Next(PyObject *self, PyObject *args)
 	{
 		for ( i = celtFetched; i--; )
 		{
-			PyObject *obName = PyWinObject_FromOLECHAR(rgVar[i].lpwstrName);
-			PyObject *ob = Py_BuildValue("Oll", obName, rgVar[i].propid, rgVar[i].vt);
-			Py_XDECREF(obName);
+			PyObject *ob = Py_BuildValue("NkH",
+				PyWinObject_FromWCHAR(rgVar[i].lpwstrName),
+				rgVar[i].propid,
+				rgVar[i].vt);
+			if (ob == NULL){
+				Py_DECREF(result);
+				result = NULL;
+				break;
+				}
 			PyTuple_SET_ITEM(result, i, ob);
 		}
 	}
@@ -157,5 +164,116 @@ PyComEnumTypeObject PyIEnumSTATPROPSTG::type("PyIEnumSTATPROPSTG",
 		sizeof(PyIEnumSTATPROPSTG),
 		PyIEnumSTATPROPSTG_methods,
 		GET_PYCOM_CTOR(PyIEnumSTATPROPSTG));
+
+// ---------------------------------------------------
+//
+// Gateway Implementation
+STDMETHODIMP PyGEnumSTATPROPSTG::Next( 
+            /* [in] */ ULONG celt,
+            /* [length_is][size_is][out] */ STATPROPSTG __RPC_FAR *rgVar,
+            /* [out] */ ULONG __RPC_FAR *pCeltFetched)
+{
+	PY_GATEWAY_METHOD;
+	PyObject *result;
+	HRESULT hr = InvokeViaPolicy("Next", &result, "i", celt);
+	if ( FAILED(hr) )
+		return hr;
+
+	if ( !PySequence_Check(result) )
+		goto error;
+	int len;
+	len = PyObject_Length(result);
+	if ( len == -1 )
+		goto error;
+	if ( len > (int)celt)
+		len = celt;
+
+	if ( pCeltFetched )
+		*pCeltFetched = len;
+
+	int i;
+	PyObject *obname;
+	for ( i = 0; i < len; ++i )
+	{
+		TmpPyObject ob = PySequence_GetItem(result, i);
+		if ( ob == NULL )
+			goto error;
+
+		if (!PyArg_ParseTuple(ob, "OkH", &obname, &rgVar[i].propid, &rgVar[i].vt)
+			||!PyWinObject_AsTaskAllocatedWCHAR(obname, &rgVar[i].lpwstrName, TRUE))
+		{
+			Py_DECREF(result);
+			for (; i--; )
+				CoTaskMemFree(rgVar[i].lpwstrName);
+			return PyCom_SetCOMErrorFromPyException(IID_IEnumSTATPROPSTG);
+		}
+	}
+
+	Py_DECREF(result);
+
+	return len < (int)celt ? S_FALSE : S_OK;
+
+  error:
+	PyErr_Clear();	// just in case
+	Py_DECREF(result);
+	return PyCom_SetCOMErrorFromSimple(E_FAIL, IID_IEnumSTATPROPSTG, "Next() did not return a sequence of objects");
+}
+
+STDMETHODIMP PyGEnumSTATPROPSTG::Skip( 
+            /* [in] */ ULONG celt)
+{
+	PY_GATEWAY_METHOD;
+	return InvokeViaPolicy("Skip", NULL, "i", celt);
+}
+
+STDMETHODIMP PyGEnumSTATPROPSTG::Reset(void)
+{
+	PY_GATEWAY_METHOD;
+	return InvokeViaPolicy("Reset");
+}
+
+STDMETHODIMP PyGEnumSTATPROPSTG::Clone( 
+            /* [out] */ IEnumSTATPROPSTG __RPC_FAR *__RPC_FAR *ppEnum)
+{
+	PY_GATEWAY_METHOD;
+	PyObject * result;
+	HRESULT hr = InvokeViaPolicy("Clone", &result);
+	if ( FAILED(hr) )
+		return hr;
+
+	/*
+	** Make sure we have the right kind of object: we should have some kind
+	** of IUnknown subclass wrapped into a PyIUnknown instance.
+	*/
+	if ( !PyIBase::is_object(result, &PyIUnknown::type) )
+	{
+		/* the wrong kind of object was returned to us */
+		Py_DECREF(result);
+		return PyCom_SetCOMErrorFromSimple(E_FAIL, IID_IEnumSTATPROPSTG);
+	}
+
+	/*
+	** Get the IUnknown out of the thing. note that the Python ob maintains
+	** a reference, so we don't have to explicitly AddRef() here.
+	*/
+	IUnknown *punk = ((PyIUnknown *)result)->m_obj;
+	if ( !punk )
+	{
+		/* damn. the object was released. */
+		Py_DECREF(result);
+		return PyCom_SetCOMErrorFromSimple(E_FAIL, IID_IEnumSTATPROPSTG);
+	}
+
+	/*
+	** Get the interface we want. note it is returned with a refcount.
+	** This QI is actually going to instantiate a PyGEnumSTATPROPSTG.
+	*/
+	hr = punk->QueryInterface(IID_IEnumSTATPROPSTG, (LPVOID *)ppEnum);
+
+	/* done with the result; this DECREF is also for <punk> */
+	Py_DECREF(result);
+
+	return PyCom_SetCOMErrorFromSimple(hr, IID_IEnumSTATPROPSTG, "Python could not convert the result from Next() into the required COM interface");
+}
 
 #endif // NO_PYCOM_ENUMSTATPROPSTG

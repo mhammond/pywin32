@@ -1,4 +1,4 @@
-build_id="218" # may optionally include a ".{patchno}" suffix.
+build_id="218.3" # may optionally include a ".{patchno}" suffix.
 # Putting buildno at the top prevents automatic __doc__ assignment, and
 # I *want* the build number at the top :)
 __doc__="""This is a distutils setup-script for the pywin32 extensions
@@ -1822,6 +1822,9 @@ pythoncom = WinExt_system32('pythoncom',
                         %(win32com)s/extensions/PyIStorage.cpp              %(win32com)s/extensions/PyIStream.cpp
                         %(win32com)s/extensions/PyIType.cpp                 %(win32com)s/extensions/PyITypeObjects.cpp
                         %(win32com)s/extensions/PyTYPEATTR.cpp              %(win32com)s/extensions/PyVARDESC.cpp
+                        %(win32com)s/extensions/PyICancelMethodCalls.cpp    %(win32com)s/extensions/PyIContext.cpp
+                        %(win32com)s/extensions/PyIEnumContextProps.cpp     %(win32com)s/extensions/PyIClientSecurity.cpp
+                        %(win32com)s/extensions/PyIServerSecurity.cpp
                         """ % dirs).split(),
                    depends=(r"""
                         %(win32com)s/include\propbag.h          %(win32com)s/include\PyComTypeObjects.h
@@ -1844,6 +1847,9 @@ pythoncom = WinExt_system32('pythoncom',
                         %(win32com)s/include\PythonCOM.h        %(win32com)s/include\PythonCOMRegister.h
                         %(win32com)s/include\PythonCOMServer.h  %(win32com)s/include\stdafx.h
                         %(win32com)s/include\univgw_dataconv.h
+                        %(win32com)s/include/PyICancelMethodCalls.h    %(win32com)s/include/PyIContext.h
+                        %(win32com)s/include/PyIEnumContextProps.h     %(win32com)s/include/PyIClientSecurity.h
+                        %(win32com)s/include/PyIServerSecurity.h
                         """ % dirs).split(),
                    libraries = "oleaut32 ole32 user32 urlmon",
                    export_symbol_file = 'com/win32com/src/PythonCOM.def',
@@ -2012,6 +2018,7 @@ com_extensions += [
                         %(shell)s/PyIContextMenu2.cpp
                         %(shell)s/PyIContextMenu3.cpp
                         %(shell)s/PyICopyHook.cpp
+                        %(shell)s/PyICurrentItem.cpp
                         %(shell)s/PyICustomDestinationList.cpp
                         %(shell)s/PyIDefaultExtractIconInit.cpp
                         %(shell)s/PyIDeskBand.cpp
@@ -2020,6 +2027,7 @@ com_extensions += [
                         %(shell)s/PyIEnumExplorerCommand.cpp
                         %(shell)s/PyIEnumIDList.cpp
                         %(shell)s/PyIEnumObjects.cpp
+                        %(shell)s/PyIEnumResources.cpp
                         %(shell)s/PyIEnumShellItems.cpp
                         %(shell)s/PyIEmptyVolumeCache.cpp
                         %(shell)s/PyIEmptyVolumeCacheCallBack.cpp
@@ -2033,6 +2041,7 @@ com_extensions += [
                         %(shell)s/PyIExtractImage.cpp
                         %(shell)s/PyIFileOperation.cpp
                         %(shell)s/PyIFileOperationProgressSink.cpp
+                        %(shell)s/PyIIdentityName.cpp
                         %(shell)s/PyIInputObject.cpp
                         %(shell)s/PyIKnownFolder.cpp
                         %(shell)s/PyIKnownFolderManager.cpp
@@ -2042,6 +2051,7 @@ com_extensions += [
                         %(shell)s/PyIPersistFolder.cpp
                         %(shell)s/PyIPersistFolder2.cpp
                         %(shell)s/PyIQueryAssociations.cpp
+                        %(shell)s/PyIRelatedItem.cpp
                         %(shell)s/PyIShellBrowser.cpp
                         %(shell)s/PyIShellExtInit.cpp
                         %(shell)s/PyIShellFolder.cpp
@@ -2053,11 +2063,16 @@ com_extensions += [
                         %(shell)s/PyIShellItem.cpp
                         %(shell)s/PyIShellItem2.cpp
                         %(shell)s/PyIShellItemArray.cpp
+                        %(shell)s/PyIShellItemResources.cpp
                         %(shell)s/PyIShellLibrary.cpp
                         %(shell)s/PyIShellLink.cpp
                         %(shell)s/PyIShellLinkDataList.cpp
                         %(shell)s/PyIShellView.cpp
                         %(shell)s/PyITaskbarList.cpp
+                        %(shell)s/PyITransferAdviseSink.cpp
+                        %(shell)s/PyITransferDestination.cpp
+                        %(shell)s/PyITransferMediumItem.cpp
+                        %(shell)s/PyITransferSource.cpp
                         %(shell)s/PyIUniformResourceLocator.cpp
                         %(shell)s/shell.cpp
 

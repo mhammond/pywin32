@@ -292,6 +292,7 @@ PYCOM_EXPORT PyObject *PyCom_PyObjectFromSAFEARRAY(SAFEARRAY *psa, VARENUM vt = 
 PYCOM_EXPORT BOOL PyCom_PyObjectAsSTGOPTIONS(PyObject *obstgoptions, STGOPTIONS **ppstgoptions);
 #endif
 PYCOM_EXPORT PyObject *PyCom_PyObjectFromSTATPROPSETSTG(STATPROPSETSTG *pStat);
+PYCOM_EXPORT BOOL PyCom_PyObjectAsSTATPROPSETSTG(PyObject *, STATPROPSETSTG *);
 
 // Currency support.
 PYCOM_EXPORT PyObject *PyObject_FromCurrency(CURRENCY &cy);

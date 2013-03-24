@@ -29,3 +29,67 @@ protected:
 	PyIPropertyStorage(IUnknown *pdisp);
 	~PyIPropertyStorage();
 };
+
+// ---------------------------------------------------
+//
+// Gateway Declaration
+
+class PyGPropertyStorage : public PyGatewayBase, public IPropertyStorage
+{
+protected:
+	PyGPropertyStorage(PyObject *instance) : PyGatewayBase(instance) { ; }
+	PYGATEWAY_MAKE_SUPPORT2(PyGPropertyStorage, IPropertyStorage, IID_IPropertyStorage, PyGatewayBase)
+
+
+
+	// IPropertyStorage
+	STDMETHOD(ReadMultiple)(
+		ULONG cpspec,
+		const PROPSPEC rgpspec[],
+		PROPVARIANT rgpropvar[]);
+
+	STDMETHOD(WriteMultiple)(
+		ULONG cpspec,
+		const PROPSPEC rgpspec[],
+		const PROPVARIANT rgpropvar[],
+		PROPID propidNameFirst);
+
+	STDMETHOD(DeleteMultiple)(
+		ULONG cpspec,
+		const PROPSPEC rgpspec[]);
+
+	STDMETHOD(ReadPropertyNames)(
+		ULONG cpropid,
+		const PROPID rgpropid[],
+		LPOLESTR rglpwstrName[]);
+
+	STDMETHOD(WritePropertyNames)(
+		ULONG cpropid,
+		const PROPID rgpropid[],
+		const LPOLESTR rglpwstrName[]);
+
+	STDMETHOD(DeletePropertyNames)(
+		ULONG cpropid,
+		const PROPID rgpropid[]);
+
+	STDMETHOD(Commit)(
+		DWORD grfCommitFlags);
+
+	STDMETHOD(Revert)(
+		void);
+
+	STDMETHOD(Enum)(
+		IEnumSTATPROPSTG ** ppenum);
+
+	STDMETHOD(SetTimes)(
+		const FILETIME * pctime,
+		const FILETIME * patime,
+		const FILETIME * pmtime);
+
+	STDMETHOD(SetClass)(
+		REFCLSID clsid);
+
+	STDMETHOD(Stat)(
+		STATPROPSETSTG * pstatpsstg);
+
+};
