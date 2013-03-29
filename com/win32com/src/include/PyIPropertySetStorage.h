@@ -20,3 +20,36 @@ protected:
 	PyIPropertySetStorage(IUnknown *pdisp);
 	~PyIPropertySetStorage();
 };
+
+// ---------------------------------------------------
+//
+// Gateway Declaration
+
+class PyGPropertySetStorage : public PyGatewayBase, public IPropertySetStorage
+{
+protected:
+	PyGPropertySetStorage(PyObject *instance) : PyGatewayBase(instance) { ; }
+	PYGATEWAY_MAKE_SUPPORT2(PyGPropertySetStorage, IPropertySetStorage, IID_IPropertySetStorage, PyGatewayBase)
+
+
+
+	// IPropertySetStorage
+	STDMETHOD(Create)(
+		REFFMTID rfmtid,
+		const CLSID * pclsid,
+		DWORD grfFlags,
+		DWORD grfMode,
+		IPropertyStorage ** ppprstg);
+
+	STDMETHOD(Open)(
+		REFFMTID rfmtid,
+		DWORD grfMode,
+		IPropertyStorage ** ppprstg);
+
+	STDMETHOD(Delete)(
+		REFFMTID rfmtid);
+
+	STDMETHOD(Enum)(
+		IEnumSTATPROPSETSTG ** ppenum);
+
+};

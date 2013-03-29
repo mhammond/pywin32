@@ -69,6 +69,17 @@ generates Windows .hlp files.
 #include "PyITaskbarList.h"
 #include "PyIFileOperation.h"
 #include "PyIFileOperationProgressSink.h"
+#include "PyITransferSource.h"
+#include "PyITransferDestination.h"
+#include "PyITransferAdviseSink.h"
+#include "PyIShellItemResources.h"
+#include "PyIEnumResources.h"
+
+#include "PyIRelatedItem.h" // Next 4 all derived from IRelatedItem
+#include "PyIDisplayItem.h"
+#include "PyICurrentItem.h"
+#include "PyITransferMediumItem.h"
+#include "PyIIdentityName.h"
 
 // These Require Windows 7 SDK to build
 #include "PyIEnumObjects.h"
@@ -1086,6 +1097,34 @@ done:
 }
 
 #endif // PY_VERSION_HEX
+
+// @object PySHELL_ITEM_RESOURCE|Tuple of (<o PyIID>, str) that identifies a shell resource
+BOOL PyWinObject_AsSHELL_ITEM_RESOURCE(PyObject *ob, SHELL_ITEM_RESOURCE *psir)
+{
+	GUID typ;
+	TmpWCHAR name;
+	PyObject *obname;
+	DWORD namelen;
+	const DWORD max_namelen = sizeof(psir->szName) / sizeof psir->szName[0];
+	if (!PyArg_ParseTuple(ob, "O&O", PyWinObject_AsIID, &typ, &obname))
+		return FALSE;
+	if (!PyWinObject_AsWCHAR(obname, &name, FALSE, &namelen))
+		return FALSE;
+	if (namelen > max_namelen - 1){
+		PyErr_SetString(PyExc_ValueError, "Resource name too long");
+		return FALSE;
+		}
+	wcsncpy(psir->szName, name, namelen);
+	return TRUE;
+}
+
+PyObject *PyWinObject_FromSHELL_ITEM_RESOURCE(const SHELL_ITEM_RESOURCE *psir)
+{
+	return Py_BuildValue("NN",
+		PyWinObject_FromIID(psir->guidType),
+		PyWinObject_FromWCHAR(psir->szName));
+}
+
 //////////////////////////////////////////////////////////////
 //
 // The methods
@@ -3616,6 +3655,16 @@ static const PyCom_InterfaceSupportInfo g_interfaceSupportData[] =
 	PYCOM_INTERFACE_CLIENT_ONLY(FileOperation),
 	PYCOM_INTERFACE_CLSID_ONLY(FileOperation),
 	PYCOM_INTERFACE_SERVER_ONLY(FileOperationProgressSink),
+	PYCOM_INTERFACE_FULL(TransferSource),
+	PYCOM_INTERFACE_FULL(TransferDestination),
+	PYCOM_INTERFACE_FULL(TransferAdviseSink),
+	PYCOM_INTERFACE_FULL(ShellItemResources),
+	PYCOM_INTERFACE_FULL(EnumResources),
+	PYCOM_INTERFACE_FULL(RelatedItem),
+	PYCOM_INTERFACE_FULL(TransferMediumItem), // based on IRelatedItem with no extra methods
+	PYCOM_INTERFACE_FULL(CurrentItem), // based on IRelatedItem with no extra methods
+	PYCOM_INTERFACE_FULL(CurrentItem), // based on IRelatedItem with no extra methods
+	PYCOM_INTERFACE_FULL(IdentityName), // based on IRelatedItem with no extra methods
 	// These require Windows 7 SDK to build
 #if WINVER >= 0x0601
 	PYCOM_INTERFACE_CLIENT_ONLY(EnumObjects),
@@ -3994,6 +4043,11 @@ PYWIN_MODULE_INIT_FUNC(shell)
 	ADD_IID(FOLDERTYPEID_UsersLibraries);
 	ADD_IID(FOLDERTYPEID_Videos);
 #endif // WINVER
-	
+
+	// ??? The shell passes this resource type to IShellResources.OpenResource,
+	// but it doesn't seem to be defined anywhere ???
+	// pywintypes.IID('{4F74D1CF-680C-4EA3-8020-4BDA6792DA3C}')
+	const GUID ResourceTypeStream = {0x4F74D1CF, 0x680C, 0x4EA3, 0x80, 0x20, 0x4B, 0xDA, 0x67, 0x92, 0xDA, 0x3C};
+	ADD_IID(ResourceTypeStream);
 	PYWIN_MODULE_INIT_RETURN_SUCCESS;
 }

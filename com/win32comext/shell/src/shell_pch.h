@@ -54,6 +54,9 @@ PyObject *PyObject_FromSHCOLUMNDATA(LPCSHCOLUMNDATA);
 PyObject *PyObject_FromFOLDERSETTINGS( const FOLDERSETTINGS *pf);
 BOOL PyObject_AsFOLDERSETTINGS( PyObject *ob, FOLDERSETTINGS *pf);
 
+BOOL PyWinObject_AsSHELL_ITEM_RESOURCE(PyObject *ob, SHELL_ITEM_RESOURCE *psir);
+PyObject *PyWinObject_FromSHELL_ITEM_RESOURCE(const SHELL_ITEM_RESOURCE *psir);
+
 // Vista has new spellings for PIDL.
 inline BOOL PyObject_AsPCUIDLIST_RELATIVE(PyObject *ob, PCUIDLIST_RELATIVE *ppidl, BOOL bNoneOK = FALSE, UINT *pcb = NULL)
 {
@@ -77,3 +80,8 @@ inline PyObject *PyObject_FromPCIDLIST_ABSOLUTE(PCUIDLIST_ABSOLUTE pidl, BOOL bF
 {
 	return PyObject_FromPIDL((LPITEMIDLIST)pidl, bFreeSystemPIDL);
 }
+
+// TRANSFER_SOURCE_FLAGS enum isn't in Vista SDK, instead was a sequence of #defines
+#ifndef TRANSFER_SOURCE_FLAGS
+#define TRANSFER_SOURCE_FLAGS DWORD
+#endif

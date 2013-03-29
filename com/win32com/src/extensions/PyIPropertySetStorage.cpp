@@ -3,6 +3,7 @@
 
 #include "stdafx.h"
 #include "PythonCOM.h"
+#include "PythonCOMServer.h"
 
 #ifndef NO_PYCOM_IPROPERTYSETSTORAGE
 #include "PyIPropertySetStorage.h"
@@ -149,4 +150,89 @@ PyComEnumProviderTypeObject PyIPropertySetStorage::type("PyIPropertySetStorage",
 		PyIPropertySetStorage_methods,
 		GET_PYCOM_CTOR(PyIPropertySetStorage),
 		"Enum");
+
+// ---------------------------------------------------
+//
+// Gateway Implementation
+STDMETHODIMP PyGPropertySetStorage::Create(
+		/* [in] */ REFFMTID rfmtid,
+		/* [unique][in] */ const CLSID * pclsid,
+		/* [in] */ DWORD grfFlags,
+		/* [in] */ DWORD grfMode,
+		/* [out] */ IPropertyStorage ** ppprstg)
+{
+	PY_GATEWAY_METHOD;
+	if (ppprstg==NULL) return E_POINTER;
+	HRESULT hr;
+	PyObject *result;
+	{
+	TmpPyObject obclsid;
+	if (pclsid){
+		obclsid = PyWinObject_FromIID(*pclsid);
+		if (obclsid==NULL)
+			return MAKE_PYCOM_GATEWAY_FAILURE_CODE("Create");
+		}
+	else{
+		Py_INCREF(Py_None);
+		obclsid = Py_None;
+		}
+	TmpPyObject obfmtid = PyWinObject_FromIID(rfmtid);
+	if (obfmtid==NULL)
+		return MAKE_PYCOM_GATEWAY_FAILURE_CODE("Create");
+	hr = InvokeViaPolicy("Create", &result, "OOkk", obfmtid, obclsid, grfFlags, grfMode);
+	}
+	if (FAILED(hr)) return hr;
+	// Process the Python results, and convert back to the real params
+	if (!PyCom_InterfaceFromPyInstanceOrObject(result, IID_IPropertyStorage, (void **)ppprstg, FALSE))
+		hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("Create");
+	Py_DECREF(result);
+	return hr;
+}
+
+STDMETHODIMP PyGPropertySetStorage::Open(
+		/* [in] */ REFFMTID rfmtid,
+		/* [in] */ DWORD grfMode,
+		/* [out] */ IPropertyStorage ** ppprstg)
+{
+	PY_GATEWAY_METHOD;
+	TmpPyObject obfmtid = PyWinObject_FromIID(rfmtid);
+	if (obfmtid==NULL) return MAKE_PYCOM_GATEWAY_FAILURE_CODE("Open");
+	if (ppprstg==NULL) return E_POINTER;
+	PyObject *result;
+	HRESULT hr=InvokeViaPolicy("Open", &result, "Ok", obfmtid, grfMode);
+	if (FAILED(hr)) return hr;
+	// Process the Python results, and convert back to the real params
+	if (!PyCom_InterfaceFromPyInstanceOrObject(result, IID_IPropertyStorage, (void **)ppprstg, FALSE))
+		hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("Open");
+	Py_DECREF(result);
+	return hr;
+}
+
+STDMETHODIMP PyGPropertySetStorage::Delete(
+		/* [in] */ REFFMTID rfmtid)
+{
+	PY_GATEWAY_METHOD;
+	PyObject *obrfmtid = PyWinObject_FromIID(rfmtid);
+	if (obrfmtid==NULL) return MAKE_PYCOM_GATEWAY_FAILURE_CODE("Delete");
+	HRESULT hr=InvokeViaPolicy("Delete", NULL, "O", obrfmtid);
+	Py_DECREF(obrfmtid);
+	return hr;
+}
+
+STDMETHODIMP PyGPropertySetStorage::Enum(
+		/* [out] */ IEnumSTATPROPSETSTG ** ppenum)
+{
+	PY_GATEWAY_METHOD;
+	if (ppenum==NULL) return E_POINTER;
+	PyObject *result;
+	HRESULT hr=InvokeViaPolicy("Enum", &result);
+	if (FAILED(hr))
+		return hr;
+	// Process the Python results, and convert back to the real params
+	if (!PyCom_InterfaceFromPyInstanceOrObject(result, IID_IEnumSTATPROPSETSTG, (void **)ppenum, FALSE))
+		hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("Enum");
+	Py_DECREF(result);
+	return hr;
+}
+
 #endif // NO_PYCOM_IPROPERTYSETSTORAGE
