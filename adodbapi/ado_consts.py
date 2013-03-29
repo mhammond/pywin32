@@ -26,6 +26,7 @@ adOpenUnspecified   = -1
 # CommandTypeEnum
 adCmdText = 1
 adCmdStoredProc = 4
+adSchemaTables = 20
 
 # ParameterDirectionEnum
 adParamInput       = 1

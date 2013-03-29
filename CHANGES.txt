@@ -6,6 +6,12 @@ However contributors are encouraged to add their own entries for their work.
 
 Since build 218:
 ----------------
+* adodbapi updated to version 2.4.3 -- new examples folder includes short programs for
+   reading and writing .xls spreadsheets and reading ACCESS .mdb files using SQL.
+  New functions .is64bit.Python() and .is64bit.os() to help pick the correct drivers.
+  New function .schema_table.names() returns a list of all tables in a database.
+   see adodbapi/README.txt for more information.
+
 * Fix issue implementing COM objects from within a virtualenv (Kevin Smyth 
   via issue #3597965)
 
@@ -296,7 +302,7 @@ Since build 212:
 
 * Added win32inet.WinHttpGetDefaultProxyConfiguration()
 
-* Pythonwin updates from Rémi Paucher; enter completes auto-complete in
+* Pythonwin updates from Rï¿½mi Paucher; enter completes auto-complete in
   the editor and interactive windows, auto-complete should now work on French
   keyboards.  (XXX - some of this was reverted - update!)
 
@@ -622,7 +628,7 @@ Build 208
   multiple file names, prevent Windows handle leak in IQueryAssociations.
 * win32com.adsi: Always return extended error info when available, and expose
   ADsGetLastError explicitly.
-* Leonard Ritter and Robert Förtsch contributed some IE extension samples
+* Leonard Ritter and Robert Fï¿½rtsch contributed some IE extension samples
   (see win32com\demos)
 * .chm documentation now includes a link to search MSDN and google for many 
   API functions

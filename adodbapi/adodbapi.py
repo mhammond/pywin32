@@ -26,7 +26,7 @@ This module source should run correctly in CPython versions 2.3 and later,
 or IronPython version 2.6 and later,
 or, after running through 2to3.py, CPython 3.0 or later.
 """
-__version__ = '2.4.2.2'
+__version__ = '2.4.3'
 version = 'adodbapi v' + __version__
 # N.O.T.E.:...
 # if you have been using an older version of adodbapi and are getting errors because
@@ -46,15 +46,9 @@ except ImportError:  #perhaps running Cpython 2.3
     import win32com.decimal_23 as decimal
 # or # from django.utils import _decimal as decimal
 
-onIronPython = sys.platform == 'cli'
-if not onIronPython:
-    try:
-        import win32com.client
-    except ImportError:
-        import warnings
-        warnings.warn("pywin32 package required but not found.",ImportWarning)
 
-# --- define objects to smooth out IronPython <-> CPython differences    
+onIronPython = sys.platform == 'cli'
+# --- define objects to smooth out IronPython <-> CPython differences
 if onIronPython: 
     from System import Activator, Type, DBNull, DateTime, Array, Byte
     from System import Decimal as SystemDecimal
@@ -66,13 +60,15 @@ if onIronPython:
         return obj.Item[index]
 else: #pywin32
     try:
+        import win32com.client
         import pythoncom
         import pywintypes
         pythoncom.__future_currency__ = True
         def Dispatch(dispatch):
             return win32com.client.Dispatch(dispatch)
-    except:
-        pass #warning already given above
+    except ImportError:
+        import warnings
+        warnings.warn("pywin32 package required but not found.",ImportWarning)
     def getIndexedValue(obj,index):
         return obj(index) 
     DBNull = type(None)
@@ -107,6 +103,22 @@ def standardErrorHandler(connection,cursor,errorclass,errorvalue):
     raise errorclass(errorvalue)
 
 # -----     Time converters ----------------------------------------------
+
+# all purpose date to ISO format converter
+def _dateObjectToIsoFormatString(obj):
+    if isinstance(obj, datetime.datetime):
+        s = obj.strftime('%Y-%m-%d %H:%M:%S')
+    elif isinstance(obj, datetime.date): #exact midnight
+        s = obj.strftime('%Y-%m-%d 00:00:00')
+    elif isinstance(obj, time.struct_time):
+        s = time.strftime('%Y-%m-%d %H:%M:%S',obj)
+    else:
+        try:  #usually datetime.datetime
+            s = obj.isoformat()
+        except:  #but may be mxdatetime
+            s = obj.Format('%Y-%m-%d %H:%M:%S')
+    return s
+
 class TimeConverter(object):  # this is a generic time converter skeleton
     def __init__(self):       # the details will be filled in by instances
         self._ordinal_1899_12_31=datetime.date(1899,12,31).toordinal()-1
@@ -131,7 +143,7 @@ class TimeConverter(object):  # this is a generic time converter skeleton
         raise NotImplementedError   #"Abstract class"
     def DateObjectToIsoFormatString(self,obj):
         "This function should return a string in the format 'YYYY-MM-dd HH:MM:SS:ms' (ms optional) "
-        raise NotImplementedError   #"Abstract class"        
+        raise NotImplementedError   #"Abstract class"
 
 # -- Optional: if mx extensions are installed you may use mxDateTime ----
 try:
@@ -156,7 +168,7 @@ if mxDateTime:
         def Timestamp(self,year,month,day,hour,minute,second):
             return mx.DateTime.Timestamp(year,month,day,hour,minute,second)
         def DateObjectToIsoFormatString(self,obj):
-            return obj.Format('%Y-%m-%d %H:%M:%S')
+            return _dateObjectToIsoFormatString(obj)
 else:
     class mxDateTimeConverter(TimeConverter):
         pass    # if no mx is installed
@@ -203,16 +215,7 @@ class pythonDateTimeConverter(TimeConverter): # standard since Python 2.3
         fractPart = ms / 86400000.0
         return integerPart + fractPart
     def DateObjectToIsoFormatString(self,obj):
-        if isinstance(obj,datetime.datetime):
-            s = obj.strftime('%Y-%m-%d %H:%M:%S')
-        elif isinstance(obj,datetime.date): #exact midnight
-            s = obj.strftime('%Y-%m-%d 00:00:00')
-        else:
-            try:  #usually datetime.datetime
-                s = obj.isoformat()
-            except:  #but may be mxdatetime
-                s = obj.Format('%Y-%m-%d %H:%M:%S')
-        return s
+        return _dateObjectToIsoFormatString(obj)
 
 class pythonTimeConverter(TimeConverter): # the old, ?nix type date and time 
     def __init__(self): #caution: this Class gets confised by timezones and DST
@@ -244,11 +247,7 @@ class pythonTimeConverter(TimeConverter): # the old, ?nix type date and time
     def Timestamp(self,year,month,day,hour,minute,second):
         return time.localtime(time.mktime((year,month,day,hour,minute,second,0,0,-1)))
     def DateObjectToIsoFormatString(self,obj):
-        try:
-            s = time.strftime('%Y-%m-%d %H:%M:%S',obj)
-        except:
-            s = obj.strftime('%Y-%m-%d')
-        return s
+        return _dateObjectToIsoFormatString(obj)
 
 dateconverter = pythonDateTimeConverter() # default
 # -----------------------------------------------------------
@@ -372,27 +371,22 @@ def format_parameters(ADOparameters, show_value=False):
     except:
         return '[]'
 
-def _configure_parameter(p, value, settings_known):
+def _configure_parameter(p, value, adotype, settings_known):
     """Configure the given ADO Parameter 'p' with the Python 'value'."""
-    if verbose > 3:
-        print 'Configuring  parameter %s type=%s value="%s"' % (p.Name,p.Type,repr(value))
 
-    if p.Direction not in [adc.adParamInput, adc.adParamInputOutput, adc.adParamUnknown]:
-        return
+    if adotype in adoBinaryTypes:
+        p.Size = len(value)
+        p.AppendChunk(value)
 
-    if isinstance(value,StringTypes):            #v2.1 Jevon
+    elif isinstance(value,StringTypes):            #v2.1 Jevon
         L = len(value)
-        if p.Type in adoStringTypes: #v2.2.1 Cole
+        if adotype in adoStringTypes: #v2.2.1 Cole
             if settings_known: L = min(L,p.Size) #v2.1 Cole limit data to defined size
             p.Value = value[:L]       #v2.1 Jevon & v2.1 Cole
         else:
             p.Value = value    # dont limit if db column is numeric
         if L>0:   #v2.1 Cole something does not like p.Size as Zero
             p.Size = L           #v2.1 Jevon
-
-    elif isinstance(value, memoryViewType):
-        p.Size = len(value)
-        p.AppendChunk(value)
 
     elif isinstance(value, decimal.Decimal):
         if onIronPython:
@@ -415,7 +409,7 @@ def _configure_parameter(p, value, settings_known):
             p.Precision = digit_count + exponent
 
     elif type(value) in dateconverter.types:
-        if settings_known and p.Type in adoDateTimeTypes:
+        if settings_known and adotype in adoDateTimeTypes:
             p.Value=dateconverter.COMDate(value)
         else: #probably a string
                 #Known problem with JET Provider. Date can not be specified as a COM date.
@@ -425,7 +419,7 @@ def _configure_parameter(p, value, settings_known):
             p.Value = s
             p.Size = len(s)
 
-    elif isinstance(value, longType) and onIronPython: # Iron Python Long
+    elif onIronPython and isinstance(value, longType) and sys.version_info < (2,7,2): # Iron Python Long
         s = SystemDecimal(value)  # feature workaround for IPy 2.0
         p.Value = s
 
@@ -911,20 +905,23 @@ class Cursor(object):
         cursor if the sproc defines an integer return value.
         """
         self._new_command(procname, adc.adCmdStoredProc)
-        self._buildADOparameterList(procname, parameters)
+        self._buildADOparameterList(procname, parameters, do_refresh=True)
+        if verbose > 2:
+            print 'Params=', format_parameters(self.cmd.Parameters, True)
         self._execute_command()
 
-        if parameters != None:
-            retLst=[]
-            for p in tuple(self.cmd.Parameters):
-                if verbose > 2:
-                    print 'returning=', p.Name, p.Type, p.Direction, repr(p.Value)
-                pyObject=_convert_to_python(p.Value,variantConversions[p.Type])
-                if p.Direction == adc.adParamReturnValue:
-                    self.returnValue=pyObject
-                else:
-                    retLst.append(pyObject)
-            return retLst
+        retLst=[]
+        for p in tuple(self.cmd.Parameters):
+            if verbose > 2:
+                print "Returned=Name: %s, Dir.: %s, Type: %s, Size: %s, Value: \"%s\", Precision: %s, NumericScale: %s" % \
+                      (p.Name, adc.directions[p.Direction], adc.adTypeNames.get(p.Type, str(p.Type)+' (unknown type)'),
+                       p.Size, p.Value, p.Precision, p.NumericScale)
+            pyObject = _convert_to_python(p.Value,variantConversions[p.Type])
+            if p.Direction == adc.adParamReturnValue:
+                self.returnValue = pyObject
+            else:
+                retLst.append(pyObject)
+        return retLst   # return the parameter list to the caller
 
     def _reformat_operation(self,operation,parameters):
         if parameters:
@@ -934,44 +931,40 @@ class Cursor(object):
                 operation, parameters = self._namedToQmark(operation,parameters)
         return operation,parameters
 
-    def _buildADOparameterList(self, operation, parameters):
+    def _buildADOparameterList(self, operation, parameters, do_refresh=False):
         self.parameters = parameters
         self.cmd.CommandText = operation
-        if parameters != None:
+
+        parameters_known = False
+        if do_refresh:  # needed only if we are calling a stored procedure
             try: # attempt to use ADO's parameter list
                 self.cmd.Parameters.Refresh()
-                self.parameters_known = True
-            except: # if it blows up
-                self.parameters_known = False
-            if not self.parameters_known:  #-- build own parameter list
-                if verbose:
-                    print('error in COM Refresh(), so adodbapi is building a parameter list')
+                parameters_known = True
+            except:
+                pass
+
+        if parameters != None:
+            if parameters_known:  # use ado parameter list
+                i = 0
+                for value in parameters:
+                    p = getIndexedValue(self.cmd.Parameters,i)
+                    if p.Direction == adc.adParamReturnValue:  # this is an extra parameter added by ADO
+                        i += 1   # skip the extra
+                        p=getIndexedValue(self.cmd.Parameters,i)
+                    try:
+                        _configure_parameter(p, value, p.Type, parameters_known)
+                    except (Exception), e:
+                        _message = u'Error Converting Parameter %s: %s, %s <- %s\n' % \
+                                       (p.Name, adc.ado_type_name(p.Type), p.Value, repr(value))
+                        self._raiseCursorError(DataError, _message+'->'+repr(e.args))
+                    i += 1
+            else: #-- build own parameter list
                 for i,elem in enumerate(parameters):
                     name='p%i' % i
                     adotype = pyTypeToADOType(elem)
-                    p=self.cmd.CreateParameter(name,adotype) # Name, Type, Direction, Size, Value
-                    if adotype in adoBinaryTypes:
-                        p.Size = len(elem)
-                    self.cmd.Parameters.Append(p)  
-                if verbose > 2:
-                    for i in range(self.cmd.Parameters.Count):
-                        P = self.cmd.Parameters[i]
-                        print 'adodbapi parameter attributes=', P.Name, P.Type, P.Direction, P.Size
-
-            ##parameter_replacements = list()
-            i = 0
-            for value in parameters:
-                p=getIndexedValue(self.cmd.Parameters,i)
-                if p.Direction == adc.adParamReturnValue:
-                    i += 1
-                    p=getIndexedValue(self.cmd.Parameters,i)
-                try:
-                    _configure_parameter(p, value, self.parameters_known)
-                except (Exception), e:
-                    _message = u'Error Converting Parameter %s: %s, %s <- %s\n' %\
-                             (p.Name, adc.ado_type_name(p.Type), p.Value, repr(value))
-                    self._raiseCursorError(DataError, _message+'->'+repr(e.args))
-                i += 1
+                    p=self.cmd.CreateParameter(name, adotype, adc.adParamInput) # Name, Type, Direction, Size, Value
+                    _configure_parameter(p, elem, adotype, parameters_known)
+                    self.cmd.Parameters.Append(p)
 
     def execute(self, operation, parameters=None):
         """Prepare and execute a database operation (query or command).
@@ -1005,6 +998,8 @@ class Cursor(object):
         if self.paramstyle != 'qmark':
             operation,parameters = self._reformat_operation(operation,parameters)
         self._buildADOparameterList(operation,parameters)
+        if verbose > 3:
+            print 'Params=', format_parameters(self.cmd.Parameters, True)
         self._execute_command()
 
     def executemany(self, operation, seq_of_parameters):
@@ -1235,12 +1230,12 @@ adoLongTypes=(adc.adBigInt,adc.adFileTime,adc.adUnsignedBigInt)
 adoExactNumericTypes=(adc.adDecimal,adc.adNumeric,adc.adVarNumeric,adc.adCurrency)      #v2.3 Cole     
 adoApproximateNumericTypes=(adc.adDouble,adc.adSingle)                          #v2.1 Cole
 adoStringTypes=(adc.adBSTR,adc.adChar,adc.adLongVarChar,adc.adLongVarWChar,
-                adc.adVarChar,adc.adVarWChar,adc.adWChar,adc.adGUID)
+                adc.adVarChar,adc.adVarWChar,adc.adWChar)
 adoBinaryTypes=(adc.adBinary,adc.adLongVarBinary,adc.adVarBinary)
 adoDateTimeTypes=(adc.adDBTime, adc.adDBTimeStamp, adc.adDate, adc.adDBDate)            
 adoRemainingTypes=(adc.adEmpty,adc.adIDispatch,adc.adIUnknown,
                    adc.adPropVariant,adc.adArray,adc.adUserDefined,
-                   adc.adVariant)
+                   adc.adVariant,adc.adGUID)
 
 """This type object is used to describe columns in a database that are string-based (e.g. CHAR). """
 STRING   = DBAPITypeObject(adoStringTypes)
@@ -1257,6 +1252,8 @@ NUMBER   = DBAPITypeObject(adoIntegerTypes + adoLongTypes + \
 DATETIME = DBAPITypeObject(adoDateTimeTypes)
 """This type object is used to describe the "Row ID" column in a database. """
 ROWID    = DBAPITypeObject(adoRowIdTypes)
+
+OTHER = DBAPITypeObject(adoRemainingTypes)
 
 typeMap= { memoryViewType: adc.adVarBinary,
            float: adc.adDouble,
