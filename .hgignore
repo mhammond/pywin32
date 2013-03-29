@@ -17,6 +17,7 @@ dist
 *.pyo
 Pythonwin/Scintilla/win32/*.pdb
 PyWin32.kpf
+.idea  #Pycharm
 
 # COM test bits
 com\TestSources\Build
