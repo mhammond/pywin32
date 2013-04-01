@@ -260,7 +260,8 @@ BOOL PyCom_VariantFromPyObject(PyObject *obj, VARIANT *var)
 			return FALSE;
 		V_VT(var) = VT_RECORD;
 	}
-	else if (strcmp(obj->ob_type->tp_name, "Decimal")==0)
+	// Decimal class from new _decimal module in Python 3.3 shows different name
+	else if (strcmp(obj->ob_type->tp_name, "Decimal")==0 || strcmp(obj->ob_type->tp_name, "decimal.Decimal")==0)
 	{
 		if (!PyObject_AsCurrency(obj, &V_CY(var)))
 			return FALSE;
