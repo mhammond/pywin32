@@ -216,6 +216,12 @@ BOOL PyCom_VariantFromPyObject(PyObject *obj, VARIANT *var)
 	else if (obj->ob_type == &PyOleEmptyType) {
 		bGoodEmpty = TRUE;
 	}
+// code changed by ssc
+	else if (obj->ob_type == &PyOleNothingType) {
+		V_VT(var) = VT_DISPATCH;
+		V_DISPATCH(var) = NULL;
+	}
+// end code changed by ssc
 	else if (obj->ob_type == &PyOleArgNotFoundType)
 	{
 		// use default parameter

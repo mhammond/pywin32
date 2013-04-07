@@ -195,6 +195,38 @@ PyObject *PyComEnumProviderTypeObject::iter(PyObject *self)
 }
 
 
+// code changed by ssc	
+/////////////////////////////////////////////////////////////////////////////
+// class PyOleNothing
+PyOleNothing::PyOleNothing()
+{
+	ob_type = &PyOleNothingType;
+	_Py_NewReference(this);
+}
+
+static void nothing_dealloc(PyOleNothing *o)
+{
+	delete o;
+}
+
+PyTypeObject PyOleNothingType =
+{
+	PYWIN_OBJECT_HEAD
+	"PyOleNothing",
+	sizeof(PyOleNothingType),
+	0,
+	(destructor)nothing_dealloc,  /*tp_dealloc*/
+	0,                      /*tp_print*/
+	0,                      /*tp_getattr*/
+	0,                      /*tp_setattr*/
+	0,                      /*tp_compare*/
+	0,                      /*tp_repr*/
+	0,                      /*tp_as_number*/
+	0,                      /*tp_as_sequence*/
+	0,                      /*tp_as_mapping*/
+};
+// end code changed by ssc
+
 /////////////////////////////////////////////////////////////////////////////
 // class PyOleEmpty
 PyOleEmpty::PyOleEmpty()

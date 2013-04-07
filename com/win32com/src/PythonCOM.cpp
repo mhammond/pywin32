@@ -35,7 +35,7 @@ extern PyObject *g_obPyCom_MapInterfaceNameToIID;
 PyObject *g_obEmpty = NULL;
 PyObject *g_obMissing = NULL;
 PyObject *g_obArgNotFound = NULL;
-
+PyObject *g_obNothing = NULL;
 PyObject *PyCom_InternalError = NULL;
 
 // Storage related functions.
@@ -2153,6 +2153,11 @@ PYWIN_MODULE_INIT_FUNC(pythoncom)
 
 	g_obArgNotFound = new PyOleArgNotFound;
 	PyDict_SetItemString(dict, "ArgNotFound", g_obArgNotFound);
+
+// code changed by ssc	
+	g_obNothing = new PyOleNothing;
+	PyDict_SetItemString(dict, "Nothing", g_obNothing);
+// end code changed by ssc
 
 	// Add some symbolic constants to the module   
 	// pycom_Error = PyString_FromString("pythoncom.error");
