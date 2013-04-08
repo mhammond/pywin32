@@ -1617,11 +1617,15 @@ pywintypes = WinExt_system32('pywintypes',
 win32_extensions = [pywintypes]
 
 win32_extensions.append(
-    WinExt_win32("perfmondata", 
-                 libraries="advapi32",
-                 unicode_mode=True,
-                 export_symbol_file = "win32/src/PerfMon/perfmondata.def",
-                 is_regular_dll = 1,
+    WinExt_win32("perfmondata",
+        sources=[
+            "win32/src/PerfMon/perfmondata.cpp",
+            "win32/src/PerfMon/PyPerfMsgs.mc",
+            ],
+        libraries="advapi32",
+        unicode_mode=True,
+        export_symbol_file = "win32/src/PerfMon/perfmondata.def",
+        is_regular_dll = 1,
         ),
     )
 
@@ -1629,9 +1633,14 @@ for info in (
         # (name, libraries, UNICODE, WINVER, sources)
         ("mmapfile", "", None, None, "win32/src/mmapfilemodule.cpp"),
         ("odbc", "odbc32 odbccp32", None, None, "win32/src/odbc.cpp"),
-        ("perfmon", "", True),
+        ("perfmon", "", True, None, """
+            win32/src/PerfMon/MappingManager.cpp
+            win32/src/PerfMon/PerfCounterDefn.cpp
+            win32/src/PerfMon/PerfObjectType.cpp
+            win32/src/PerfMon/PyPerfMon.cpp
+            """),
         ("timer", "user32", None, None, "win32/src/timermodule.cpp"),
-        ("win2kras", "rasapi32", None, 0x0500),
+        ("win2kras", "rasapi32", None, 0x0500, "win32/src/win2krasmodule.cpp"),
         ("win32cred", "AdvAPI32 credui", True, 0x0501, 'win32/src/win32credmodule.cpp'),
         ("win32crypt", "Crypt32", None, 0x0500, 'win32/src/win32crypt.i'),
         ("win32file", "", None, 0x0500, """
@@ -1643,19 +1652,19 @@ for info in (
 
         # win32gui handled below
         ("win32job", "user32", True, 0x0500, 'win32/src/win32job.i'),
-        ("win32lz", "lz32", None),
+        ("win32lz", "lz32", None, None, "win32/src/win32lzmodule.cpp"),
         ("win32net", "netapi32 advapi32", True, None, """
               win32/src/win32net/win32netfile.cpp    win32/src/win32net/win32netgroup.cpp
               win32/src/win32net/win32netmisc.cpp    win32/src/win32net/win32netmodule.cpp
               win32/src/win32net/win32netsession.cpp win32/src/win32net/win32netuse.cpp
               win32/src/win32net/win32netuser.cpp
               """),
-        ("win32pdh", "", True),
+        ("win32pdh", "", True, None, "win32/src/win32pdhmodule.cpp"),
         ("win32pipe", "", None, None, 'win32/src/win32pipe.i win32/src/win32popen.cpp'),
-        ("win32print", "winspool user32 gdi32", None, 0x0500),
+        ("win32print", "winspool user32 gdi32", None, 0x0500, "win32/src/win32print/win32print.cpp"),
         ("win32process", "advapi32 user32", None, 0x0500, "win32/src/win32process.i"),
         ("win32profile", "Userenv", True, None, 'win32/src/win32profilemodule.cpp'),
-        ("win32ras", "rasapi32 user32", None, 0x0500),
+        ("win32ras", "rasapi32 user32", None, 0x0500, "win32/src/win32rasmodule.cpp"),
         ("win32security", "advapi32 user32 netapi32", True, 0x0500, """
             win32/src/win32security.i
             win32/src/win32security_sspi.cpp win32/src/win32security_ds.cpp
@@ -1664,12 +1673,16 @@ for info in (
             win32/src/win32service_messages.mc
             win32/src/win32service.i
             """),
-        ("win32trace", "advapi32", None),
-        ("win32wnet", "netapi32 mpr", None),
+        ("win32trace", "advapi32", None, None, "win32/src/win32trace.cpp"),
+        ("win32wnet", "netapi32 mpr", None, None, """
+            win32/src/win32wnet/PyNCB.cpp
+            win32/src/win32wnet/PyNetresource.cpp
+            win32/src/win32wnet/win32wnet.cpp
+            """),
         ("win32inet", "wininet", None, 0x500, """
             win32/src/win32inet.i
-            win32/src/win32inet_winhttp.cpp"""
-                        ),
+            win32/src/win32inet_winhttp.cpp
+            """),
         ("win32console", "kernel32", True, 0x0501, "win32/src/win32consolemodule.cpp"),
         ("win32ts", "WtsApi32", True, 0x0501, "win32/src/win32tsmodule.cpp"),
         ("_win32sysloader", "", None, 0x0501, "win32/src/_win32sysloader.cpp"),
@@ -1760,6 +1773,7 @@ elif sdk_dir and os.path.exists(os.path.join(sdk_dir, "VC", "Lib", "RunTmChk.lib
     win32help_libs += " RunTmChk"
 win32_extensions += [
     WinExt_win32('win32help',
+                 sources = ["win32/src/win32helpmodule.cpp"],
                  libraries=win32help_libs,
                  windows_h_version = 0x500),
 ]
