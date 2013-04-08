@@ -11,6 +11,7 @@ dist
 *.ncb
 *.opt
 *.plg
+*.flg
 *.chm
 *.chw
 *.pyc
@@ -43,3 +44,9 @@ win32/src/PythonServiceMessages.h
 win32/src/win32service_messages.h
 win32/src/win32evtlog_messages.h
 isapi/src/pyISAPI_messages.h
+
+# VC2003 and up project files
+*.sln
+*.suo
+*.vcproj
+*.user

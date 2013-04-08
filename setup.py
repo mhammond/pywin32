@@ -316,7 +316,7 @@ class WinExt (Extension):
     # library and include dirs, and predefined windows libraries.
     # Additionally a method to parse .def files into lists of exported
     # symbols, and to read 
-    def __init__ (self, name, sources=None,
+    def __init__ (self, name, sources,
                   include_dirs=[],
                   define_macros=None,
                   undef_macros=None,
@@ -328,7 +328,6 @@ class WinExt (Extension):
                   extra_link_args=None,
                   export_symbols=None,
                   export_symbol_file=None,
-                  dsp_file=None,
                   pch_header=None,
                   windows_h_version=None, # min version of windows.h needed.
                   extra_swig_commands=None,
@@ -343,7 +342,6 @@ class WinExt (Extension):
                   implib_name=None,
                   delay_load_libraries="",
                  ):
-        assert dsp_file or sources, "Either dsp_file or sources must be specified"
         libary_dirs = library_dirs,
         include_dirs = ['com/win32com/src/include',
                         'win32/src'] + include_dirs
@@ -355,9 +353,6 @@ class WinExt (Extension):
             export_symbols = export_symbols or []
             export_symbols.extend(self.parse_def_file(export_symbol_file))
 
-        if dsp_file:
-            sources = sources or []
-            sources.extend(self.get_source_files(dsp_file))
         # Some of our swigged files behave differently in distutils vs
         # MSVC based builds.  Always define DISTUTILS_BUILD so they can tell.
         define_macros = define_macros or []
@@ -523,8 +518,6 @@ class WinExt (Extension):
 
 class WinExt_pythonwin(WinExt):
     def __init__ (self, name, **kw):
-        if "dsp_file" not in kw and not kw.get("sources"):
-            kw["dsp_file"] = "pythonwin/" + name + ".dsp"
         if 'unicode_mode' not in kw:
             kw['unicode_mode']=None
         kw.setdefault("extra_compile_args", []).extend(
@@ -536,8 +529,6 @@ class WinExt_pythonwin(WinExt):
 
 class WinExt_win32(WinExt):
     def __init__ (self, name, **kw):
-        if "dsp_file" not in kw and not kw.get("sources"):
-            kw["dsp_file"] = "win32/" + name + ".dsp"
         WinExt.__init__(self, name, **kw)
     def get_pywin32_dir(self):
         return "win32"
@@ -1608,11 +1599,31 @@ class my_install_data(install_data):
 ################################################################
 
 pywintypes = WinExt_system32('pywintypes',
-                    dsp_file = r"win32\PyWinTypes.dsp",
-                    extra_compile_args = ['-DBUILD_PYWINTYPES'],
-                    libraries = "advapi32 user32 ole32 oleaut32",
-                    pch_header = "PyWinTypes.h",
-                    )
+    sources = [
+        "win32/src/PyACL.cpp",
+        "win32/src/PyDEVMODE.cpp",
+        "win32/src/PyHANDLE.cpp",
+        "win32/src/PyIID.cpp",
+        "win32/src/PyLARGE_INTEGER.cpp",
+        "win32/src/PyOVERLAPPED.cpp",
+        "win32/src/PySECURITY_ATTRIBUTES.cpp",
+        "win32/src/PySECURITY_DESCRIPTOR.cpp",
+        "win32/src/PySID.cpp",
+        "win32/src/PyTime.cpp",
+        "win32/src/PyUnicode.cpp",
+        "win32/src/PyWAVEFORMATEX.cpp",
+        "win32/src/PyWinTypesmodule.cpp",
+        ],
+    depends = [
+        "win32/src/PyWinObjects.h",
+        "win32/src/PyWinTypes.h",
+        "win32/src/PySoundObjects.h",
+        "win32/src/PySecurityObjects.h",
+        ],
+    extra_compile_args = ['-DBUILD_PYWINTYPES'],
+    libraries = "advapi32 user32 ole32 oleaut32",
+    pch_header = "PyWinTypes.h",
+    )
 
 win32_extensions = [pywintypes]
 
@@ -1755,9 +1766,9 @@ win32_extensions += [
 ]
 win32_extensions += [
     WinExt_win32('servicemanager',
+           sources = ["win32/src/PythonService.cpp", "win32/src/PythonServiceMessages.mc"],
            extra_compile_args = ['-DPYSERVICE_BUILD_DLL'],
            libraries = "user32 ole32 advapi32 shell32",
-           dsp_file = r"win32\Pythonservice servicemanager.dsp",
            windows_h_version = 0x500,
            unicode_mode=True,),
 ]
@@ -2173,59 +2184,185 @@ com_extensions += [
 ]
 
 pythonwin_extensions = [
-    WinExt_pythonwin("win32ui", extra_compile_args = ['-DBUILD_PYW'],
-                     pch_header="stdafx.h", base_address=dll_base_address,
-                     depends=["Pythonwin/stdafx.h", "Pythonwin/win32uiExt.h"],
-                     optional_headers=['afxres.h']),
-    WinExt_pythonwin("win32uiole", pch_header="stdafxole.h",
-                     windows_h_version = 0x500,
-                     optional_headers=['afxres.h']),
-    WinExt_pythonwin("dde", pch_header="stdafxdde.h",
-                     depends=["win32/src/stddde.h", "pythonwin/ddemodule.h"],
-                     optional_headers=['afxres.h']),
+    WinExt_pythonwin("win32ui",
+        sources = [
+            "Pythonwin/dbgthread.cpp",
+            "Pythonwin/dibapi.cpp",
+            "Pythonwin/dllmain.cpp",
+            "Pythonwin/pythondoc.cpp",
+            "Pythonwin/pythonppage.cpp",
+            "Pythonwin/pythonpsheet.cpp",
+            "Pythonwin/pythonRichEditCntr.cpp",
+            "Pythonwin/pythonRichEditDoc.cpp",
+            "Pythonwin/pythonview.cpp",
+            "Pythonwin/stdafx.cpp",
+            "Pythonwin/win32app.cpp",
+            "Pythonwin/win32assoc.cpp",
+            "Pythonwin/win32bitmap.cpp",
+            "Pythonwin/win32brush.cpp",
+            "Pythonwin/win32cmd.cpp",
+            "Pythonwin/win32cmdui.cpp",
+            "Pythonwin/win32context.cpp",
+            "Pythonwin/win32control.cpp",
+            "Pythonwin/win32ctledit.cpp",
+            "Pythonwin/win32ctrlList.cpp",
+            "Pythonwin/win32ctrlRichEdit.cpp",
+            "Pythonwin/win32ctrlTree.cpp",
+            "Pythonwin/win32dc.cpp",
+            "Pythonwin/win32dlg.cpp",
+            "Pythonwin/win32dlgbar.cpp",
+            "Pythonwin/win32dll.cpp",
+            "Pythonwin/win32doc.cpp",
+            "win32/src/win32dynamicdialog.cpp",
+            "Pythonwin/win32font.cpp",
+            "Pythonwin/win32gdi.cpp",
+            "Pythonwin/win32ImageList.cpp",
+            "Pythonwin/win32menu.cpp",
+            "Pythonwin/win32notify.cpp",
+            "Pythonwin/win32pen.cpp",
+            "Pythonwin/win32prinfo.cpp",
+            "Pythonwin/win32prop.cpp",
+            "Pythonwin/win32rgn.cpp",
+            "Pythonwin/win32RichEdit.cpp",
+            "Pythonwin/win32RichEditDocTemplate.cpp",
+            "Pythonwin/win32splitter.cpp",
+            "Pythonwin/win32template.cpp",
+            "Pythonwin/win32thread.cpp",
+            "Pythonwin/win32toolbar.cpp",
+            "Pythonwin/win32tooltip.cpp",
+            "Pythonwin/win32ui.rc",
+            "Pythonwin/win32uimodule.cpp",
+            "Pythonwin/win32util.cpp",
+            "Pythonwin/win32view.cpp",
+            "Pythonwin/win32virt.cpp",
+            "Pythonwin/win32win.cpp",
+            ],
+        extra_compile_args = ['-DBUILD_PYW'],
+        pch_header="stdafx.h", base_address=dll_base_address,
+        depends = [
+            "Pythonwin/stdafx.h",
+            "Pythonwin/win32uiExt.h",
+            "Pythonwin/dibapi.h",
+            "Pythonwin/pythoncbar.h",
+            "Pythonwin/pythondoc.h",
+            "Pythonwin/pythonframe.h",
+            "Pythonwin/pythonppage.h",
+            "Pythonwin/pythonpsheet.h",
+            "Pythonwin/pythonRichEdit.h",
+            "Pythonwin/pythonRichEditCntr.h",
+            "Pythonwin/pythonRichEditDoc.h",
+            "Pythonwin/pythonview.h",
+            "Pythonwin/pythonwin.h",
+            "Pythonwin/Win32app.h",
+            "Pythonwin/win32assoc.h",
+            "Pythonwin/win32bitmap.h",
+            "Pythonwin/win32brush.h",
+            "Pythonwin/win32cmd.h",
+            "Pythonwin/win32cmdui.h",
+            "Pythonwin/win32control.h",
+            "Pythonwin/win32ctrlList.h",
+            "Pythonwin/win32ctrlTree.h",
+            "Pythonwin/win32dc.h",
+            "Pythonwin/win32dlg.h",
+            "Pythonwin/win32dlgbar.h",
+            "Pythonwin/win32dlgdyn.h",
+            "Pythonwin/win32dll.h",
+            "Pythonwin/win32doc.h",
+            "Pythonwin/win32font.h",
+            "Pythonwin/win32gdi.h",
+            "Pythonwin/win32hl.h",
+            "Pythonwin/win32ImageList.h",
+            "Pythonwin/win32menu.h",
+            "Pythonwin/win32pen.h",
+            "Pythonwin/win32prinfo.h",
+            "Pythonwin/win32prop.h",
+            "Pythonwin/win32rgn.h",
+            "Pythonwin/win32RichEdit.h",
+            "Pythonwin/win32RichEditDocTemplate.h",
+            "Pythonwin/win32splitter.h",
+            "Pythonwin/win32template.h",
+            "Pythonwin/win32toolbar.h",
+            "Pythonwin/win32ui.h",
+            "Pythonwin/Win32uiHostGlue.h",
+            "Pythonwin/win32win.h",
+            ],
+        optional_headers=['afxres.h']),
+    WinExt_pythonwin("win32uiole",
+        sources = [
+            "Pythonwin/stdafxole.cpp",
+            "Pythonwin/win32oleDlgInsert.cpp",
+            "Pythonwin/win32oleDlgs.cpp",
+            "Pythonwin/win32uiole.cpp",
+            "Pythonwin/win32uioleClientItem.cpp",
+            "Pythonwin/win32uioledoc.cpp",
+            ],
+        depends = [
+            "Pythonwin/stdafxole.h",
+            "Pythonwin/win32oleDlgs.h",
+            "Pythonwin/win32uioledoc.h",
+            ],
+        pch_header="stdafxole.h",
+        windows_h_version = 0x500,
+        optional_headers=['afxres.h']),
+    WinExt_pythonwin("dde",
+        sources = [
+            "Pythonwin/stddde.cpp",
+            "Pythonwin/ddetopic.cpp",
+            "Pythonwin/ddeconv.cpp",
+            "Pythonwin/ddeitem.cpp",
+            "Pythonwin/ddemodule.cpp",
+            "Pythonwin/ddeserver.cpp",
+            ],
+        pch_header="stdafxdde.h",
+        depends=["win32/src/stddde.h", "pythonwin/ddemodule.h"],
+        optional_headers=['afxres.h']),
     ]
 # win32ui is large, so we reserve more bytes than normal
 dll_base_address += 0x100000
 
 other_extensions = []
-if sys.hexversion >= 0x2030000:
-    # GILState stuff too hard pre 2.3!
-    other_extensions.append(
-        WinExt_ISAPI('PyISAPI_loader',
-           sources=[os.path.join("isapi", "src", s) for s in
-                   """PyExtensionObjects.cpp PyFilterObjects.cpp
-                      pyISAPI.cpp pyISAPI_messages.mc
-                      PythonEng.cpp StdAfx.cpp Utils.cpp
-                   """.split()],
-           # We keep pyISAPI_messages.h out of the depends list, as it is
-           # generated and we aren't smart enough to say *only* the .cpp etc
-           # depend on it - so the generated .h says the .mc needs to be
-           # rebuilt, which re-creates the .h...
-           depends=[os.path.join("isapi", "src", s) for s in
-                   """ControlBlock.h FilterContext.h PyExtensionObjects.h
-                      PyFilterObjects.h pyISAPI.h
-                      PythonEng.h StdAfx.h Utils.h
-                   """.split()],
-           pch_header = "StdAfx.h",
-           is_regular_dll = 1,
-           export_symbols = """HttpExtensionProc GetExtensionVersion
-                               TerminateExtension GetFilterVersion
-                               HttpFilterProc TerminateFilter
-                               PyISAPISetOptions WriteEventLogMessage
-                               """.split(),
-           libraries='advapi32',
-           )
-    )
+other_extensions.append(
+    WinExt_ISAPI('PyISAPI_loader',
+       sources=[os.path.join("isapi", "src", s) for s in
+               """PyExtensionObjects.cpp PyFilterObjects.cpp
+                  pyISAPI.cpp pyISAPI_messages.mc
+                  PythonEng.cpp StdAfx.cpp Utils.cpp
+               """.split()],
+       # We keep pyISAPI_messages.h out of the depends list, as it is
+       # generated and we aren't smart enough to say *only* the .cpp etc
+       # depend on it - so the generated .h says the .mc needs to be
+       # rebuilt, which re-creates the .h...
+       depends=[os.path.join("isapi", "src", s) for s in
+               """ControlBlock.h FilterContext.h PyExtensionObjects.h
+                  PyFilterObjects.h pyISAPI.h
+                  PythonEng.h StdAfx.h Utils.h
+               """.split()],
+       pch_header = "StdAfx.h",
+       is_regular_dll = 1,
+       export_symbols = """HttpExtensionProc GetExtensionVersion
+                           TerminateExtension GetFilterVersion
+                           HttpFilterProc TerminateFilter
+                           PyISAPISetOptions WriteEventLogMessage
+                           """.split(),
+       libraries='advapi32',
+       )
+)
 
 W32_exe_files = [
     WinExt_win32("pythonservice",
-                 sources=[os.path.join("win32", "src", s) for s in
-                          "PythonService.cpp PythonService.rc".split()],
-                 unicode_mode = True,
-                 extra_link_args=["/SUBSYSTEM:CONSOLE"],
-                 libraries = "user32 advapi32 ole32 shell32"),
-        WinExt_pythonwin("Pythonwin", extra_link_args=["/SUBSYSTEM:WINDOWS"],
-                         optional_headers=['afxres.h']),
+         sources=[os.path.join("win32", "src", s) for s in
+                  "PythonService.cpp PythonService.rc".split()],
+         unicode_mode = True,
+         extra_link_args=["/SUBSYSTEM:CONSOLE"],
+         libraries = "user32 advapi32 ole32 shell32"),
+    WinExt_pythonwin("Pythonwin",
+        sources = [
+            "Pythonwin/pythonwin.cpp",
+            "Pythonwin/pythonwin.rc",
+            "Pythonwin/stdafxpw.cpp",
+            ],
+        extra_link_args=["/SUBSYSTEM:WINDOWS"],
+        optional_headers=['afxres.h']),
 ]
 
 # Special definitions for SWIG.

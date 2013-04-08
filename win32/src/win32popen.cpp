@@ -167,7 +167,6 @@ static int _PyPopenCreateProcess(char *cmdstring,
 	PROCESS_INFORMATION piProcInfo;
 	STARTUPINFO siStartInfo;
 	char *s1,*s2, *s3=" /c ";
-	const char *szConsoleSpawn = "win32popenWin9x.exe \"";
 	DWORD i;
 	size_t x;
 
