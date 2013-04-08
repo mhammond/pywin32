@@ -1,4 +1,4 @@
-build_id="218.3" # may optionally include a ".{patchno}" suffix.
+build_id="218.4" # may optionally include a ".{patchno}" suffix.
 # Putting buildno at the top prevents automatic __doc__ assignment, and
 # I *want* the build number at the top :)
 __doc__="""This is a distutils setup-script for the pywin32 extensions
@@ -2479,7 +2479,7 @@ dist = setup(name="pywin32",
                 'isapi/test/*.py',
                 'isapi/test/*.txt',
                 'adodbapi/*.txt',
-                'adodbapi/tests/*.py',
+                'adodbapi/test/*.py',
                  ]) +
                 # The headers and .lib files
                 [

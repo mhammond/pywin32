@@ -51,11 +51,8 @@ except ImportError: #we are doing a shortcut import as a module -- so
         import ado_consts
     except ImportError:
         from adodbapi import ado_consts
-    
-try:
-    import decimal
-except ImportError:
-    import win32com.decimal_23 as decimal
+
+import decimal
 
 def str2bytes(sval):
     if sys.version_info < (3,0) and isinstance(sval, str):

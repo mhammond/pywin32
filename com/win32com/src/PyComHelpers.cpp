@@ -55,12 +55,6 @@ PyObject *get_Decimal_class(void)
 		PyErr_Clear();
 		decimal_module = PyImport_ImportModule("decimal");
 		}
-
-	// Look for our own copy included in Pywin32 for Python 2.3
-	if (decimal_module==NULL){
-		PyErr_Clear();
-		decimal_module=PyImport_ImportModule("win32com.decimal_23");
-		}
 	if (decimal_module==NULL)
 		return NULL;
 	return PyObject_GetAttrString(decimal_module, "Decimal");

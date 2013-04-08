@@ -38,20 +38,6 @@ to force use of the decimal module, with a warning issued otherwise.  In
 builds 213 and later, the decimal module is unconditionally used when
 pythoncon returns you a currency value.
 </p>
-<p>
-Python 2.3 does not ship with a decimal module.  For this reason,
-win32com/decimal_23.py is supplied with pywin32.  This is a clone of the decimal
-module, but will only be used when <code>import decimal</code> fails.  If you
-want to use this functionality in your Python 2.3 programs, you should write
-something similar to:
-<pre>
-    try:
-        import decimal
-    except ImportError:
-        import win32com.decimal_23 as decimal
-    val = decimal.Decimal("123.45")
-</pre>
-</p>
 
 <h3>Recent Changes</h3>
 

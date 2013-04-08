@@ -40,10 +40,7 @@ import time
 #import traceback
 import datetime
 
-try:
-    import decimal
-except ImportError:  #perhaps running Cpython 2.3 
-    import win32com.decimal_23 as decimal
+import decimal
 # or # from django.utils import _decimal as decimal
 
 
