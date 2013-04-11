@@ -47,18 +47,7 @@ typedef unsigned long ULONG;
 	// PyLong_AsUnsignedLongMask isn't ideal - no overflow checking - but
 	// this is what the 'k' format specifier in PyArg_ParseTuple uses, and
 	// that is what much of pywin32 uses for DWORDS, so we use it here too
-	// Also, Python 2.3 and below will not accept a plain int for the PyLong_* functions
-	#if (PY_VERSION_HEX < 0x02040000)
-		{
-		PyObject *tmpLong = PyNumber_Long($source);
-		if (tmpLong == NULL)
-			return NULL;
-		$target = PyLong_AsUnsignedLongMask(tmpLong);
-		Py_DECREF(tmpLong);
-		}
-	#else
-		$target = PyLong_AsUnsignedLongMask($source);
-	#endif
+	$target = PyLong_AsUnsignedLongMask($source);
 	if ($target==(DWORD)-1 && PyErr_Occurred())
 		return NULL;
 }

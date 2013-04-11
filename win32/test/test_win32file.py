@@ -11,12 +11,7 @@ import shutil
 import socket
 import datetime
 import random
-
-try:
-    import win32timezone
-except SyntaxError:
-    # win32timezone uses decorators and isn't compatible with py2.3
-    assert sys.version_info < (2,4)
+import win32timezone
 
 try:
     set

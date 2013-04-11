@@ -902,12 +902,6 @@ static int ibindDate(cursorObject*cur, int column, PyObject *item)
 		if (usec == NULL)
 			PyErr_Clear();
 		else{
-			// In Python 2.3 PyLong_AsUnsignedLong will not accept a regular int
-			#if (PY_VERSION_HEX < 0x02400000)
-			usec=PyNumber_Long(usec);
-			if (usec == NULL)
-				return 0;
-			#endif
 			dt->fraction=PyLong_AsUnsignedLong(usec);
 			if (dt->fraction == -1 && PyErr_Occurred())
 				return 0;

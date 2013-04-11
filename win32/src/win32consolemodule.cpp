@@ -558,11 +558,7 @@ int PyINPUT_RECORD::tp_setattro(PyObject *self, PyObject *obname, PyObject *obva
 			return -1;
 			}
 
-#if (PY_VERSION_HEX < 0x02030000)
-		*dest_ptr=PyLong_AsUnsignedLong(obvalue);
-#else
 		*dest_ptr=PyInt_AsUnsignedLongMask(obvalue);
-#endif
 		if ((*dest_ptr==(DWORD)-1) && PyErr_Occurred())
 			return -1;
 		return 0;

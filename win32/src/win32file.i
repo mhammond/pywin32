@@ -589,12 +589,11 @@ PyTypeObject FindFileIterator_Type = {
 	0,					/* tp_setattro */
 	0,					/* tp_as_buffer */
 	Py_TPFLAGS_DEFAULT, /* tp_flags */
- 	0,					/* tp_doc */
- 	0,					/* tp_traverse */
- 	0,					/* tp_clear */
+	0,					/* tp_doc */
+	0,					/* tp_traverse */
+	0,					/* tp_clear */
 	0,					/* tp_richcompare */
 	0,					/* tp_weaklistoffset */
-#if (PY_VERSION_HEX >= 0x02030000) // Iterators only in 2.3+
 	PyObject_SelfIter,	/* tp_iter */
 	(iternextfunc)ffi_iternext,		/* tp_iternext */
 	0,					/* tp_methods */
@@ -604,7 +603,6 @@ PyTypeObject FindFileIterator_Type = {
 	0,					/* tp_dict */
 	0,					/* tp_descr_get */
 	0,					/* tp_descr_set */
-#endif // PY_VERSION
 };
 %}
 

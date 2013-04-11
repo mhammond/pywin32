@@ -451,9 +451,7 @@ def install():
     # Check the MFC dll exists - it is doesn't, point them at it
     # (I should install it, but its a bit tricky with distutils)
     # Unfortunately, this is quite likely on Windows XP and MFC71.dll
-    if sys.hexversion < 0x2040000:
-        mfc_dll = "mfc42.dll"
-    elif sys.hexversion < 0x2060000:
+    if sys.hexversion < 0x2060000:
         mfc_dll = "mfc71.dll"
     elif sys.hexversion < 0x2070000:
         mfc_dll = "mfc90.dll"

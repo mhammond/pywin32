@@ -19,13 +19,10 @@ Visual Studio used - some VS versions are not compatible with some SDK
 versions.  Below are the Windows SDK versions required (and the URL - although
 these are subject to being changed by MS at any time:)
 
-Python 2.3->2.5:
+Python 2.4->2.5:
   Microsoft Windows Software Development Kit Update for Windows Vista (version 6.0)
   http://www.microsoft.com/downloads/en/details.aspx?FamilyID=4377f86d-c913-4b5c-b87e-ef72e5b4e065
-  ** If you want to build Python 2.3, be sure to install the SDK compilers
-     too - although we don't use them, this setup option installs some .lib
-     files we do need.
-  **
+
 Python 2.6+:
   Microsoft Windows SDK for Windows 7 and .NET Framework 4 (version 7.1)
   http://www.microsoft.com/downloads/en/details.aspx?FamilyID=6b6c21d2-2006-4afa-9702-529fa782d63b
@@ -94,27 +91,9 @@ from distutils.command.install_data import install_data
 from distutils.command.build_py import build_py
 from distutils.command.build_scripts import build_scripts
 
-try:
-    from distutils.command.bdist_msi import bdist_msi
-except ImportError:
-    # py23 and earlier
-    bdist_msi = None
-try:
-    from distutils.msvccompiler import get_build_version
-except ImportError:
-    # py22
-    def get_build_version():
-        return 6.0
-# nor distutils.log
-try:
-    from distutils import log
-except ImportError:
-    class Log:
-        def debug(self, msg, *args):
-            print msg % args
-        def info(self, msg, *args):
-            print msg % args
-    log = Log()
+from distutils.command.bdist_msi import bdist_msi
+from distutils.msvccompiler import get_build_version
+from distutils import log
 
 # some modules need a static CRT to avoid problems caused by them having a
 # manifest.
@@ -460,16 +439,14 @@ class WinExt (Extension):
             # basic info - but its better than nothing!)
             # For now use the temp dir - later we may package them, so should
             # maybe move them next to the output file.
-            # ack - but fails with obscure errors in py23 :(
-            if sys.version_info > (2,4):
-                pch_dir = os.path.join(build_ext.build_temp)
-                if not build_ext.debug:
-                    self.extra_compile_args.append("/Zi")
-                self.extra_compile_args.append("/Fd%s\%s_vc.pdb" %
-                                              (pch_dir, self.name))
-                self.extra_link_args.append("/DEBUG")
-                self.extra_link_args.append("/PDB:%s\%s.pdb" %
-                                           (pch_dir, self.name))
+            pch_dir = os.path.join(build_ext.build_temp)
+            if not build_ext.debug:
+                self.extra_compile_args.append("/Zi")
+            self.extra_compile_args.append("/Fd%s\%s_vc.pdb" %
+                                          (pch_dir, self.name))
+            self.extra_link_args.append("/DEBUG")
+            self.extra_link_args.append("/PDB:%s\%s.pdb" %
+                                       (pch_dir, self.name))
             # enable unwind semantics - some stuff needs it and I can't see 
             # it hurting
             self.extra_compile_args.append("/EHsc")
@@ -807,16 +784,6 @@ class my_build_ext(build_ext):
                 os.environ["LIB"] += ";" + os.path.join(sdk_dir, 'VC', 'LIB')
                 log.debug("Vista SDK found: %%LIB%% now %s", os.environ["LIB"])
 
-        if sys.hexversion < 0x02030000:
-            # Python 2.2 distutils doesn't handle the 'PC'/PCBuild directory for
-            # us (it only exists if building from the source tree)
-            extra = os.path.join(sys.exec_prefix, 'PC')
-            if extra not in self.include_dirs and os.path.isdir(extra):
-                self.compiler.add_include_dir(extra)
-            extra = os.path.join(sys.exec_prefix, 'PCBuild')
-            if extra not in self.library_dirs and os.path.isdir(extra):
-                self.compiler.add_library_dir(os.path.join(extra))
-
     def _why_cant_build_extension(self, ext):
         # Return None, or a reason it can't be built.
         # This kinda sucks, but I'm giving up on exchange support in 64bit
@@ -884,9 +851,6 @@ class my_build_ext(build_ext):
                     return "No library '%s'" % lib
                 self.found_libraries[lib.lower()] = found
             patched_libs.append(os.path.splitext(os.path.basename(found))[0])
-        # axdebug struggles under debug builds - worry about that when I care :)
-        if sys.hexversion < 0x2040000 and ext.name == 'axdebug' and self.debug:
-            return "axdebug doesn't build in VC6 debug builds (irony!)"
 
         if ext.platforms and self.plat_name not in ext.platforms:
             return "Only available on platforms %s" % (ext.platforms,)
@@ -1048,9 +1012,7 @@ class my_build_ext(build_ext):
         # The MFC DLLs.
         try:
             target_dir = os.path.join(self.build_lib, "pythonwin")
-            if sys.hexversion < 0x2040000:
-                pass # don't do anything for these early versions.
-            elif sys.hexversion < 0x2060000:
+            if sys.hexversion < 0x2060000:
                 # hrm - there doesn't seem to be a 'redist' directory for this
                 # compiler (even the installation CDs only seem to have the MFC
                 # DLLs in the "win\system" directory - just grab it from
@@ -1158,15 +1120,13 @@ class my_build_ext(build_ext):
         # this, distutils gets confused, as they both try and use the same
         # .obj.
         output_dir = os.path.join(self.build_temp, ext.name)
-        # 2.2 has no 'depends' param.
         kw = {'output_dir': output_dir,
               'macros': macros,
               'include_dirs': ext.include_dirs,
               'debug': self.debug,
-              'extra_postargs': extra_args
+              'extra_postargs': extra_args,
+              'depends': ext.depends,
         }
-        if sys.version_info > (2,3):
-            kw["depends"] = ext.depends
         objects = self.compiler.compile(sources, **kw)
 
         # XXX -- this is a Vile HACK!
@@ -1195,10 +1155,10 @@ class my_build_ext(build_ext):
                'debug': self.debug,
                'build_temp': self.build_temp,
         }
-        if sys.version_info > (2,3):
-            # Detect target language, if not provided
-            language = ext.language or self.compiler.detect_language(sources)
-            kw["target_lang"] = language
+
+        # Detect target language, if not provided
+        language = ext.language or self.compiler.detect_language(sources)
+        kw["target_lang"] = language
 
         self.compiler.link(
             "executable",
@@ -1239,9 +1199,6 @@ class my_build_ext(build_ext):
         # with special defines. So we cannot use a shared
         # directory for objects, we must use a special one for each extension.
         old_build_temp = self.build_temp
-        if sys.version_info < (2,3):
-            # 2.3+ - Wrong dir, numbered name
-            self.build_temp = os.path.join(self.build_temp, ext.name)
         want_static_crt = sys.version_info > (2,6) and ext.name in static_crt_modules
         if want_static_crt:
             self.compiler.compile_options.remove('/MD')
@@ -1271,14 +1228,10 @@ class my_build_ext(build_ext):
                 # directory as the first source file's object file:
                 #    os.path.dirname(objects[0])
                 # rather than in the self.build_temp directory
-                if sys.version_info > (2,3):
-                    # 2.3+ - Wrong dir, numbered name
-                    src = os.path.join(old_build_temp,
+                # 2.3+ - Wrong dir, numbered name
+                src = os.path.join(old_build_temp,
                                    os.path.dirname(ext.sources[0]),
                                    name1)
-                else:
-                    # 2.2 it is in the right dir, just with the 'numbered' named.
-                    src = os.path.join(self.build_temp, name1)
                 dst = os.path.join(old_build_temp, name2)
                 if os.path.abspath(src) != os.path.abspath(dst):
                     self.copy_file(src, dst)#, update=1)
@@ -1489,92 +1442,47 @@ class my_compiler(base_compiler):
               runtime_library_dirs=None,
               export_symbols=None,
               debug=0, *args, **kw):
-        # Oh joy of joys.  With latest platform SDKs, VC6 is unable to link
-        # debug mode projects.  So we use the VC7 linker.
-        old_linker = None
-        if debug and sys.hexversion < 0x02040000:
-            # msvc compiler uses __ prefix on attributes, making it hard
-            # to patch things up. So we get tricky, creating a new compiler
-            # after tricking distutils into thinking we are a later version.
-            save_env = {}
-            for key in "LIB INCLUDE PATH".split():
-                save_env[key] = os.environ[key]
-            def hack_get_build_version():
-                return 7.1
-            gbv = msvccompiler.get_build_version
-            msvccompiler.get_build_version = hack_get_build_version
-            new_compiler = msvccompiler.MSVCCompiler()
-            msvccompiler.get_build_version = gbv
-            for key in save_env.keys():
-                os.environ[key] = save_env[key]
-
-            old_linker = self.linker
-            self.linker = new_compiler.linker
+        msvccompiler.MSVCCompiler.link( self,
+                                        target_desc,
+                                        objects,
+                                        output_filename,
+                                        output_dir,
+                                        libraries,
+                                        library_dirs,
+                                        runtime_library_dirs,
+                                        export_symbols,
+                                        debug, *args, **kw)
+        # Here seems a good place to stamp the version of the built
+        # target.  Do this externally to avoid suddenly dragging in the
+        # modules needed by this process, and which we will soon try and
+        # update.
         try:
-            msvccompiler.MSVCCompiler.link( self,
-                                            target_desc,
-                                            objects,
-                                            output_filename,
-                                            output_dir,
-                                            libraries,
-                                            library_dirs,
-                                            runtime_library_dirs,
-                                            export_symbols,
-                                            debug, *args, **kw)
-            # Here seems a good place to stamp the version of the built
-            # target.  Do this externally to avoid suddenly dragging in the
-            # modules needed by this process, and which we will soon try and
-            # update.
+            import optparse # win32verstamp will not work without this!
+            ok = True
+        except ImportError:
+            ok = False
+        if ok:
+            stamp_script = os.path.join(sys.prefix, "Lib", "site-packages",
+                                        "win32", "lib", "win32verstamp.py")
+            ok = os.path.isfile(stamp_script)
+        if ok:
+            args = [sys.executable]
+            args.append(stamp_script)
+            args.append("--version=%s" % (pywin32_version,))
+            args.append("--comments=http://pywin32.sourceforge.net")
+            args.append("--original-filename=%s" % (os.path.basename(output_filename),))
+            args.append("--product=PyWin32")
+            if '-v' not in sys.argv:
+                args.append("--quiet")
+            args.append(output_filename)
             try:
-                import optparse # win32verstamp will not work without this!
-                ok = True
-            except ImportError:
+                self.spawn(args)
+            except DistutilsExecError, msg:
+                log.info("VersionStamp failed: %s", msg)
                 ok = False
-            if ok:
-                stamp_script = os.path.join(sys.prefix, "Lib", "site-packages",
-                                            "win32", "lib", "win32verstamp.py")
-                ok = os.path.isfile(stamp_script)
-            if ok:
-                args = [sys.executable]
-                args.append(stamp_script)
-                args.append("--version=%s" % (pywin32_version,))
-                args.append("--comments=http://pywin32.sourceforge.net")
-                args.append("--original-filename=%s" % (os.path.basename(output_filename),))
-                args.append("--product=PyWin32")
-                if '-v' not in sys.argv:
-                    args.append("--quiet")
-                args.append(output_filename)
-                try:
-                    self.spawn(args)
-                except DistutilsExecError, msg:
-                    log.info("VersionStamp failed: %s", msg)
-                    ok = False
-            if not ok:
-                log.info('Unable to import verstamp, no version info will be added')
-        finally:
-            if old_linker is not None:
-                self.linker = old_linker
+        if not ok:
+            log.info('Unable to import verstamp, no version info will be added')
 
-    # overriding _setup_compile is the easiest way to get this support in.
-    def _setup_compile(self, *args):
-        macros, objects, extra, pp_opts, build = \
-               msvccompiler.MSVCCompiler._setup_compile(self, *args)
-        if sys.hexversion < 0x02040000:
-            build_order = ".i .mc .rc .cpp".split()
-            decorated = [(build_order.index(ext.lower()), obj, (src, ext))
-                         for obj, (src, ext) in build.items()]
-            decorated.sort()
-            items = [item[1:] for item in decorated]
-            # The compiler itself only calls ".items" - leverage that, so that
-            # when it does, the list is in the correct order.
-            class OnlyItems:
-                def __init__(self, items):
-                    self._items = items
-                def items(self):
-                    return self._items
-            build = OnlyItems(items)
-
-        return macros, objects, extra, pp_opts, build
 
 ################################################################
 
@@ -2265,7 +2173,7 @@ pythonwin_extensions = [
             "Pythonwin/win32dc.h",
             "Pythonwin/win32dlg.h",
             "Pythonwin/win32dlgbar.h",
-            "Pythonwin/win32dlgdyn.h",
+            "win32/src/win32dynamicdialog.h",
             "Pythonwin/win32dll.h",
             "Pythonwin/win32doc.h",
             "Pythonwin/win32font.h",
@@ -2509,14 +2417,7 @@ packages=['win32com',
           'adodbapi',
           ]
 
-# Python 2.2 distutils can't handle py_modules *and* packages,
-# but putting 'win32.lib' as a package whinges there is no __init__
-if sys.version_info < (2,3):
-    packages.append('win32.lib')
-    py_modules = None
-else:
-    py_modules = expand_modules("win32\\lib")
-
+py_modules = expand_modules("win32\\lib")
 ext_modules = win32_extensions + com_extensions + pythonwin_extensions + \
                     other_extensions
 

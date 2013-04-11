@@ -145,9 +145,6 @@ class FILEGROUPDESCRIPTORTester(win32com.test.util.TestCase):
         self._testSimple(True)
 
     def testComplex(self):
-        if sys.hexversion < 0x2030000:
-            # no kw-args to dict in 2.2 - not worth converting!
-            return
         clsid = pythoncom.MakeIID("{CD637886-DB8B-4b04-98B5-25731E1495BE}")
         ctime, atime, wtime = self._getTestTimes()
         d = dict(cFileName="foo.txt",
@@ -163,10 +160,6 @@ class FILEGROUPDESCRIPTORTester(win32com.test.util.TestCase):
 
     def testUnicode(self):
         # exercise a bug fixed in build 210 - multiple unicode objects failed.
-        if sys.hexversion < 0x2030000:
-            # no kw-args to dict in 2.2 - not worth converting!
-            return
-
         ctime, atime, wtime = self._getTestTimes()
         d = [dict(cFileName="foo.txt",
                  sizel=(1,2),

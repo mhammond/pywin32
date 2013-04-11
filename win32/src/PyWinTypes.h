@@ -43,26 +43,6 @@
 #include "windows.h"
 #undef WRITE_RESTRICTED // stop anyone using the wrong one accidently...
 
-// Python 2.3 doesn't have Py_CLEAR...
-#if (PY_VERSION_HEX < 0x02040000)
-#ifndef Py_CLEAR
-#define Py_CLEAR(op)				\
-        do {                            	\
-                if (op) {			\
-                        PyObject *_py_tmp = (PyObject *)(op);	\
-                        (op) = NULL;		\
-                        Py_DECREF(_py_tmp);	\
-                }				\
-        } while (0)
-#endif
-// or Py_RETURN_NONE
-#ifndef Py_RETURN_NONE
-/* Macro for returning Py_None from a function */
-#define Py_RETURN_NONE return Py_INCREF(Py_None), Py_None
-#endif
-
-#endif //  (PY_VERSION_HEX < 0x02040000)
-
 
 // Helpers for our modules.
 // Some macros to help the pywin32 modules co-exist in py2x and py3k.
@@ -176,10 +156,6 @@ typedef int Py_ssize_t;
 typedef long Py_hash_t;
 #else
 typedef Py_ssize_t Py_hash_t;
-#endif
-
-#if PY_VERSION_HEX < 0x02030000
-#define PyLong_AsUnsignedLongMask PyLong_AsUnsignedLong
 #endif
 
 // This only enables runtime checks in debug builds - so we use
@@ -436,16 +412,6 @@ inline BOOL PyWinLong_AsDWORD_PTR(PyObject *ob, DWORD_PTR *r) {
     return PyWinLong_AsVoidPtr(ob, (void **)r);
 }
 
-// Some boolean helpers for Python 2.2 and earlier
-#if (PY_VERSION_HEX < 0x02030000 && !defined(PYWIN_NO_BOOL_FROM_LONG))
-// PyBool_FromLong only in 2.3 and later
-inline PyObject *PyBool_FromLong(long v)
-{
-	PyObject *ret= v ? Py_True : Py_False;
-	Py_INCREF(ret);
-    return ret;
-}
-#endif
 
 /*
 ** OVERLAPPED Object and API
@@ -804,73 +770,6 @@ extern PYWINTYPES_EXPORT void PyWinGlobals_Free();
 
 extern PYWINTYPES_EXPORT void PyWin_MakePendingCalls();
 
-// For 2.3, use the PyGILState_ calls
-#if (PY_VERSION_HEX >= 0x02030000)
-#define PYWIN_USE_GILSTATE
-#endif
-
-#ifndef PYWIN_USE_GILSTATE
-
-class CEnterLeavePython {
-public:
-	CEnterLeavePython() {
-		acquired = FALSE;
-		acquire();
-	}
-	void acquire() {
-		if (acquired)
-			return;
-		created = PyWinThreadState_Ensure();
-#ifndef PYCOM_USE_FREE_THREAD
-		PyWinInterpreterLock_Acquire();
-#endif
-		if (created) {
-			// If pending python calls are waiting as we enter Python,
-			// it will generally mean an asynch signal handler, etc.
-			// We can either call it here, or wait for Python to call it
-			// as part of its "every 'n' opcodes" check.  If we wait for
-			// Python to check it and the pending call raises an exception,
-			// then it is _our_ code that will fail - this is unfair,
-			// as the signal was raised before we were entered - indeed,
-			// we may be directly responding to the signal!
-			// Thus, we flush all the pending calls here, and report any
-			// exceptions via our normal exception reporting mechanism.
-			// (of which we don't have, but not to worry... :)
-			// We can then execute our code in the knowledge that only
-			// signals raised _while_ we are executing will cause exceptions.
-			PyWin_MakePendingCalls();
-		}
-		acquired = TRUE;
-	}
-	~CEnterLeavePython() {
-		if (acquired)
-			release();
-	}
-	void release() {
-	// The interpreter state must be cleared
-	// _before_ we release the lock, as some of
-	// the sys. attributes cleared (eg, the current exception)
-	// may need the lock to invoke their destructors - 
-	// specifically, when exc_value is a class instance, and
-	// the exception holds the last reference!
-		if ( !acquired )
-			return;
-		if ( created )
-			PyWinThreadState_Clear();
-#ifndef PYCOM_USE_FREE_THREAD
-		PyWinInterpreterLock_Release();
-#endif
-		if ( created )
-			PyWinThreadState_Free();
-		acquired = FALSE;
-	}
-private:
-	BOOL created;
-	BOOL acquired;
-};
-
-#else // PYWIN_USE_GILSTATE
-
 class CEnterLeavePython {
 public:
 	CEnterLeavePython() {
@@ -893,7 +792,7 @@ private:
 	PyGILState_STATE state;
 	BOOL released;
 };
-#endif // PYWIN_USE_GILSTATE
+
 
 // A helper for simple exception handling.
 // try/__try

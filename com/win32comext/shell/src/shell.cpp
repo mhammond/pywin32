@@ -1053,8 +1053,6 @@ done:
 	return ok;
 }
 
-#if (PY_VERSION_HEX >= 0x02030000) // PyGILState only in 2.3+
-
 // Callback for BrowseForFolder
 struct PyCallback {
 	PyObject *fn;
@@ -1095,8 +1093,6 @@ done:
 	PyGILState_Release(state);
 	return rc;
 }
-
-#endif // PY_VERSION_HEX
 
 // @object PySHELL_ITEM_RESOURCE|Tuple of (<o PyIID>, str) that identifies a shell resource
 BOOL PyWinObject_AsSHELL_ITEM_RESOURCE(PyObject *ob, SHELL_ITEM_RESOURCE *psir)
@@ -1144,9 +1140,7 @@ static PyObject *PySHBrowseForFolder( PyObject *self, PyObject *args)
 	TCHAR retPath[MAX_PATH];
 	bi.pszDisplayName = retPath;
 	LPITEMIDLIST pl = NULL;
-#if (PY_VERSION_HEX >= 0x02030000) // PyGILState only in 2.3+
 	PyCallback pycb;
-#endif
 
 	if(!PyArg_ParseTuple(args, "|OOOlOO:SHBrowseForFolder",
 			&obhwndOwner, // @pyparm <o PyHANDLE>|hwndOwner|None|Parent window for the dialog box, can be None
@@ -1159,7 +1153,6 @@ static PyObject *PySHBrowseForFolder( PyObject *self, PyObject *args)
 	if (!PyWinObject_AsHANDLE(obhwndOwner, (HANDLE *)&bi.hwndOwner))
 		return NULL;
 	if (obcb != Py_None) {
-#if (PY_VERSION_HEX >= 0x02030000) // PyGILState only in 2.3+
 		if (!PyCallable_Check(obcb)) {
 			PyErr_SetString(PyExc_TypeError, "Callback item must None or a callable object");
 			goto done;
@@ -1168,12 +1161,6 @@ static PyObject *PySHBrowseForFolder( PyObject *self, PyObject *args)
 		pycb.data = obcbparam;
 		bi.lParam = (LPARAM)&pycb;
 		bi.lpfn = PyBrowseCallbackProc;
-#else // PY_VERSION_HEX
-		PyErr_SetString(PyExc_NotImplementedError,
-						"Callbacks can only be specified in Python 2.3+");
-		return NULL;
-#endif // PY_VERSION_HEX
-		
 	} // else bi.lParam/lpfn remains 0
 	if (!PyObject_AsPIDL(obPIDL, (LPITEMIDLIST *)&bi.pidlRoot, TRUE))
 		goto done;

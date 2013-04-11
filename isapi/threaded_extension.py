@@ -11,15 +11,6 @@ from win32security import SetThreadToken
 from win32event import INFINITE
 from pywintypes import OVERLAPPED
 
-# Python 2.3 and earlier insists on "C" locale - if it isn't, subtle things
-# break, such as floating point constants loaded from .pyc files.
-# The threading module uses such floating-points as an argument to sleep(),
-# resulting in extremely long sleeps when tiny intervals are specified.
-# We can work around this by resetting the C locale before the import.
-if sys.hexversion < 0x02040000:
-    import locale
-    locale.setlocale(locale.LC_NUMERIC, "C")
-
 import threading
 import traceback
 
