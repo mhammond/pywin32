@@ -3546,6 +3546,25 @@ PyWinObject_AsRegistryValue(PyObject *value, DWORD typ, BYTE **retDataBuf, DWORD
 					}
 				}
 			return true;
+
+		case REG_QWORD:
+			*retDataSize=sizeof(ULONGLONG);
+			*retDataBuf = (BYTE *)PyMem_MALLOC(*retDataSize);
+			if (*retDataBuf==NULL){
+				PyErr_NoMemory();
+				return false;
+			}
+			if (value==Py_None){
+				*(ULONGLONG *)*retDataBuf=0;
+				return true;
+				}
+			* (ULONGLONG *)*retDataBuf=PyLong_AsUnsignedLongLong(value);
+			if (* (ULONGLONG *)*retDataBuf == -1 && PyErr_Occurred()){
+				PyMem_Free(*retDataBuf);
+				*retDataBuf=NULL;
+				return false;
+				}
+			return true;
 		case REG_SZ:
 		case REG_EXPAND_SZ:{
 			*retDataBuf=NULL;
@@ -3592,9 +3611,15 @@ PyWinObject_FromRegistryValue(BYTE *retDataBuf, DWORD retDataSize, DWORD typ)
 	switch (typ) {
 		case REG_DWORD:
 			if (retDataSize==0)
-				obData = Py_BuildValue("i", 0);
+				obData = PyInt_FromLong(0);
+			else	// ??? Should be returned as unsigned ???
+				obData = PyInt_FromLong(*(int *)retDataBuf);
+			break;
+		case REG_QWORD:
+			if (retDataSize==0)
+				obData = PyInt_FromLong(0);
 			else
-				obData = Py_BuildValue("i", *(int *)retDataBuf);
+				obData = PyLong_FromUnsignedLongLong(*(ULONGLONG *)retDataBuf);
 			break;
 		case REG_SZ:
 		case REG_EXPAND_SZ:{
@@ -4299,6 +4324,8 @@ PyRegSetValueEx( PyObject *self, PyObject *args )
 	// @flag REG_BINARY|Binary data in any form. 
 	// @flag REG_DWORD|A 32-bit number. 
 	// @flag REG_DWORD_LITTLE_ENDIAN|A 32-bit number in little-endian format. This is equivalent to REG_DWORD.<nl>In little-endian format, a multi-byte value is stored in memory from the lowest byte (the little end) to the highest byte. For example, the value 0x12345678 is stored as (0x78 0x56 0x34 0x12) in little-endian format. 
+	// @flag REG_QWORD|A 64-bit number. 
+	// @flag REG_QWORD_LITTLE_ENDIAN|A 64-bit number in little-endian format. This is equivalent to REG_QWORD.<nl>In little-endian format, a multi-byte value is stored in memory from the lowest byte (the little end) to the highest byte. For example, the value 0x12345678 is stored as (0x78 0x56 0x34 0x12) in little-endian format.
 	// Windows NT and Windows 95 are designed to run on little-endian computer architectures. A user may connect to computers that have big-endian architectures, such as some UNIX systems. 
 	// @flag REG_DWORD_BIG_ENDIAN|A 32-bit number in big-endian format.
 	// In big-endian format, a multi-byte value is stored in memory from the highest byte (the big end) to the lowest byte. For example, the value 0x12345678 is stored as (0x12 0x34 0x56 0x78) in big-endian format. 
