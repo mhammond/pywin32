@@ -993,19 +993,10 @@ AFX_DATADEF const AFX_MSGMAP CPythonPrtDlgFramework<T>::messageMap =
 
 template <class T>
 const AFX_MSGMAP_ENTRY CPythonPrtDlgFramework<T>::_messageEntries[] = {
-#if _MFC_VER < 0x0700
-	// Python 2.3 (ie, VS6) doesn't like the new version below.
-        ON_MESSAGE(WM_INITDIALOG,     HandleInitDialog)
-        ON_COMMAND(IDC_PRINT_TO_FILE, HandlePrintToFile)
-        ON_COMMAND(IDC_PRINT_COLLATE, HandleCollate)
-        ON_COMMAND_RANGE(IDC_PRINT_RANGE_ALL, IDC_PRINT_RANGE_PAGES, HandlePrintRange)
-#else
-	// Either vista/x64 doesn't like the old version above.
         ON_MESSAGE(WM_INITDIALOG,     &CPythonPrtDlgFramework<T>::HandleInitDialog)
         ON_COMMAND(IDC_PRINT_TO_FILE, &CPythonPrtDlgFramework<T>::HandlePrintToFile)
         ON_COMMAND(IDC_PRINT_COLLATE, &CPythonPrtDlgFramework<T>::HandleCollate)
         ON_COMMAND_RANGE(IDC_PRINT_RANGE_ALL, IDC_PRINT_RANGE_PAGES, &CPythonPrtDlgFramework<T>::HandlePrintRange)
-#endif
 	{0, 0, 0, 0, AfxSig_end, (AFX_PMSG)0 }
 };
 

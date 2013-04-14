@@ -7,12 +7,6 @@ import win32rcparser
 import commctrl
 import sys, os
 
-# We use the .rc file in our 'test' directory.
-try:
-    __file__
-except NameError: # pre 2.3
-    __file__ = sys.argv[0]
-
 this_dir = os.path.abspath(os.path.dirname(__file__))
 g_rcname = os.path.abspath(
         os.path.join( this_dir, "..", "test", "win32rcparser", "test.rc"))

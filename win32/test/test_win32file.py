@@ -37,10 +37,7 @@ class TestReadBuffer(unittest.TestCase):
 
 class TestSimpleOps(unittest.TestCase):
     def testSimpleFiles(self):
-        try:
-            fd, filename = tempfile.mkstemp()
-        except AttributeError:
-            self.fail("This test requires Python 2.3 or later")
+        fd, filename = tempfile.mkstemp()
         os.close(fd)
         os.unlink(filename)
         handle = win32file.CreateFile(filename, win32file.GENERIC_WRITE, 0, None, win32con.CREATE_NEW, 0, None)
@@ -720,11 +717,7 @@ class TestConnect(unittest.TestCase):
 class TestTransmit(unittest.TestCase):
     def test_transmit(self):
         import binascii
-        try:
-            bytes = os.urandom(1024*1024)
-        except AttributeError:
-            # must be py2.3...
-            bytes = ''.join([chr(random.randint(0,255)) for _ in range(5)])
+        bytes = os.urandom(1024*1024)
         val = binascii.hexlify(bytes)
         val_length = len(val)
         f = tempfile.TemporaryFile()

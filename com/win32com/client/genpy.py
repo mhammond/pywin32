@@ -204,22 +204,14 @@ class EnumerationItem(build.OleItem, WritableItem):
       vdesc = entry.desc
       if vdesc[4] == pythoncom.VAR_CONST:
         val = vdesc[1]
-        if sys.version_info <= (2,4) and (isinstance(val, int) or isinstance(val, long)):
-          # in python 2.3, 0x80000000L == 2147483648
-          if val==2147483648: # == 0x80000000L - special case for 2.3...
-            use = "0x80000000L" # 'L' for future warning
-          elif val > 2147483648 or val < 0: # avoid a FutureWarning
-            use = long(val)
-          else:
-            use = hex(val)
-        else:
-          use = repr(val)
-          # Make sure the repr of the value is valid python syntax
-          # still could cause an error on import if it contains a module or type name
-          # not available in the global namespace
-          try:
+        
+        use = repr(val)
+        # Make sure the repr of the value is valid python syntax
+        # still could cause an error on import if it contains a module or type name
+        # not available in the global namespace
+        try:
             compile(use, '<makepy>', 'eval')
-          except SyntaxError:
+        except SyntaxError:
             # At least add the repr as a string, so it can be investigated further
             # Sanitize it, in case the repr contains its own quotes.  (??? line breaks too ???)
             use = use.replace('"',"'")

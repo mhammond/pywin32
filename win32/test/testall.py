@@ -73,20 +73,13 @@ class TestRunner:
     def __init__(self, argv):
         self.argv = argv
     def __call__(self):
-        try:
-            import subprocess
-            p = subprocess.Popen(self.argv,
-                                 stdout=subprocess.PIPE,
-                                 stderr=subprocess.STDOUT)
-            output, _ = p.communicate()
-            rc = p.returncode
-        except ImportError:
-            # py2.3?
-            fin, fout, ferr = os.popen3(" ".join(self.argv))
-            fin.close()
-            output = fout.read() + ferr.read()
-            fout.close()
-            rc = ferr.close()
+        import subprocess
+        p = subprocess.Popen(self.argv,
+                             stdout=subprocess.PIPE,
+                             stderr=subprocess.STDOUT)
+        output, _ = p.communicate()
+        rc = p.returncode
+
         if rc:
             base = os.path.basename(self.argv[1])
             # See if we can detect and reconstruct an exception in the output.

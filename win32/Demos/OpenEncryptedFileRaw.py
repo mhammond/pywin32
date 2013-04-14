@@ -6,7 +6,7 @@ def ReadCallback(input_buffer, data, buflen):
     ## print fnamein, fnameout, buflen
     f.write(input_buffer)
     ## python 2.3 throws an error if return value is a plain int
-    return long(winerror.ERROR_SUCCESS)
+    return winerror.ERROR_SUCCESS
 
 def WriteCallback(output_buffer, data, buflen):
     fnamebackup, fnameout, f = data

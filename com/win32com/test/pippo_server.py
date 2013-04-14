@@ -8,11 +8,6 @@ import win32com
 import winerror
 from win32com.server.util import wrap
 
-try:
-    __file__ # 2.3 only for __main__
-except NameError:
-    __file__ = sys.argv[0]
-
 class CPippo:
     #
     # COM declarations    
