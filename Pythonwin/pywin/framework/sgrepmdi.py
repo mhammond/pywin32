@@ -257,12 +257,15 @@ class GrepDocument(docview.RichEditDoc):
 			f = self.flist[self.fndx]
 			if self.verbose:
 				self.GetFirstView().Append('# ..'+f+'\n')
-			win32ui.SetStatusText("Searching "+f, 0)
-			lines = open(f, 'r').readlines()
-			for i in range(len(lines)):
-				line = lines[i]
-				if self.pat.search(line) != None:
-					self.GetFirstView().Append(f+'('+repr(i+1) + ') '+line)
+			# Directories may match the file type pattern, and files may be removed
+			#  while grep is running
+			if os.path.isfile(f):
+				win32ui.SetStatusText("Searching "+f, 0)
+				lines = open(f, 'r').readlines()
+				for i in range(len(lines)):
+					line = lines[i]
+					if self.pat.search(line) != None:
+						self.GetFirstView().Append(f+'('+repr(i+1) + ') '+line)
 		else:
 			self.fndx = -1
 			self.fpndx = self.fpndx + 1
