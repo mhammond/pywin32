@@ -1344,7 +1344,7 @@ static PyObject *PyDocumentProperties(PyObject *self, PyObject *args)
 		&&PyWinObject_AsDEVMODE(obdmoutput, &dmoutput, TRUE)
 		&&PyWinObject_AsDEVMODE(obdminput, &dminput, TRUE)){
 		rc=DocumentProperties(hwnd, hprinter, devicename, dmoutput, dminput, mode);
-		if (ret < 0)
+		if (rc < 0)
 			PyWin_SetAPIError("DocumentProperties");
 		else{
 			if (obdmoutput!=Py_None)
