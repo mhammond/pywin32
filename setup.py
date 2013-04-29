@@ -91,7 +91,12 @@ from distutils.command.install_data import install_data
 from distutils.command.build_py import build_py
 from distutils.command.build_scripts import build_scripts
 
-from distutils.command.bdist_msi import bdist_msi
+try:
+    from distutils.command.bdist_msi import bdist_msi
+except ImportError:
+    # py24 and earlier
+    bdist_msi = None
+
 from distutils.msvccompiler import get_build_version
 from distutils import log
 
@@ -1538,8 +1543,8 @@ win32_extensions = [pywintypes]
 win32_extensions.append(
     WinExt_win32("perfmondata",
         sources=[
-            "win32/src/PerfMon/perfmondata.cpp",
             "win32/src/PerfMon/PyPerfMsgs.mc",
+            "win32/src/PerfMon/perfmondata.cpp",
             ],
         libraries="advapi32",
         unicode_mode=True,
@@ -1674,7 +1679,7 @@ win32_extensions += [
 ]
 win32_extensions += [
     WinExt_win32('servicemanager',
-           sources = ["win32/src/PythonService.cpp", "win32/src/PythonServiceMessages.mc"],
+           sources = ["win32/src/PythonServiceMessages.mc", "win32/src/PythonService.cpp"],
            extra_compile_args = ['-DPYSERVICE_BUILD_DLL'],
            libraries = "user32 ole32 advapi32 shell32",
            windows_h_version = 0x500,
