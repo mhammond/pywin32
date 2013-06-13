@@ -72,7 +72,7 @@ def GetMapiTypeName(propType, rawType=True):
 				# PT_TSTRING is a conditional assignment
 				# for either PT_UNICODE or PT_STRING8 and
 				# should not be returned during a lookup.
-				if name == 'PT_TSTRING':
+				if name in ['PT_TSTRING', 'PT_MV_TSTRING']:
 					continue
 				ptTable[value] = name
 
