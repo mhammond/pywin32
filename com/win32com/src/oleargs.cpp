@@ -371,6 +371,22 @@ PyObject *PyCom_PyObjectFromVariant(const VARIANT *var)
 			result = PyInt_FromLong(V_I4(&varValue));
 			break;
 
+		case VT_UI8:
+			// The result may be too large for a simple "long". If so,
+			// we must return a long.
+			if (V_UI8(&varValue) <= LONG_MAX)
+				result = PyInt_FromLong((long)V_UI8(&varValue));
+			else
+				result = PyLong_FromUnsignedLongLong(V_UI8(&varValue));
+			break;
+
+		case VT_I8:
+			if ((LONG_MIN <= V_I8(&varValue)) && (V_I8(&varValue) <= LONG_MAX))
+				result = PyInt_FromLong((long)V_I8(&varValue));
+			else
+				result = PyLong_FromLongLong(V_I8(&varValue));
+			break;
+
 		case VT_HRESULT:
 		case VT_ERROR:
 			result = PyInt_FromLong(V_ERROR(&varValue));

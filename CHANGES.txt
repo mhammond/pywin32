@@ -6,6 +6,9 @@ However contributors are encouraged to add their own entries for their work.
 
 Since build 218:
 ----------------
+ * Add support for VT_I8 and VT_UI8 when converting a variant into a Python
+   object (Stefan Schukat via patch #128)
+
  * win32com.mapi.exchange
    Added 64-bit support by excluding the 32-bit Ex2kSdk.lib functions from 64-bit builds.
    Unfortunately, this means that only IExchangeManageStore::CreateStoreEntryID
