@@ -145,29 +145,58 @@ BOOL PyCom_VariantFromPyObject(PyObject *obj, VARIANT *var)
 	}
 	else if (PyLong_Check(obj))
 	{
-		__int64 lval = PyLong_AsLongLong(obj);
-		if (PyErr_Occurred() && !PyErr_ExceptionMatches(PyExc_OverflowError))
+		int sign = _PyLong_Sign(obj);
+		size_t nbits = _PyLong_NumBits(obj);
+		if (nbits == (size_t)-1 && PyErr_Occurred())
 			return FALSE;
-		if (PyErr_Occurred()) {
-			PyErr_Clear();
+		if (64 < nbits) {
 			// too big for 64 bits!  Use a double.
-			double dval = PyLong_AsDouble(obj);
 			V_VT(var) = VT_R8;
-			V_R8(var) = dval;
-		} else {
-			// 64 bits is OK - but if it fits in 32 we will
-			// use that.  Prefer VT_I4 if possible as VBScript
-			// etc like it better.
-			if (lval >= LONG_MIN && lval <= LONG_MAX) {
-				V_VT(var) = VT_I4;
-				V_I4(var) = (long)lval;
-			// OK, we know it must be > LONG_MAX, but zero is clearer
-			} else if (lval >= 0 && lval <= ULONG_MAX) {
-				V_VT(var) = VT_UI4;
-				V_UI4(var) = (unsigned long)lval;
+			V_R8(var) = PyLong_AsDouble(obj);
+		}
+		else if (32 < nbits) {
+			// between 32 and 64 use longlong
+			// signed and using all bits use unsigned
+			if (sign > 0 && 64 == nbits) {
+				V_VT(var) = VT_UI8;
+				V_UI8(var) = PyLong_AsUnsignedLongLong(obj);
 			} else {
+				// Negative so use signed
 				V_VT(var) = VT_I8;
-				V_I8(var) = lval;
+				V_I8(var) = PyLong_AsLongLong(obj);
+				// Problem if value is between LLONG_MIN and -ULLONG_MAX
+				if (PyErr_Occurred()) {
+					if (PyErr_ExceptionMatches(PyExc_OverflowError)) {
+						// Take now double
+						PyErr_Clear();
+						V_VT(var) = VT_R8;
+						V_R8(var) = PyLong_AsDouble(obj);
+					} else {
+						return FALSE;
+					}
+				}
+			}
+		} else {
+			// less then 32 bit use standard long
+			// positive and using all bits so unsigned
+			if (sign > 0 && 32 == nbits) {
+				V_VT(var) = VT_UI4;
+				V_UI4(var) = PyLong_AsUnsignedLong(obj);
+			} else {
+				// Negative so use signed
+				V_VT(var) = VT_I4;
+				V_I4(var) = PyLong_AsLong(obj);
+				// Problem if value is between LONG_MIN and -ULONG_MAX
+				if (PyErr_Occurred()) {
+					if (PyErr_ExceptionMatches(PyExc_OverflowError)) {
+						// Take now double
+						PyErr_Clear();
+						V_VT(var) = VT_I8;
+						V_I8(var) = PyLong_AsLongLong(obj);
+					} else {
+						return FALSE;
+					}
+				}
 			}
 		}
 	}
