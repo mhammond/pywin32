@@ -28,16 +28,21 @@
 
 #include "MAPIUTIL.H"
 #include "EDKMDB.H"
-#include "EDKMAPI.H"
-#include "EDKCFG.H"
-#include "EDKUTILS.H"
 
-#define INITGUID
 #define USES_IID_IExchangeManageStore
 #include <edkguid.h>
 
 #include "PyIExchangeManageStore.h"
+%}
 
+/*
+   Only include Ex2KSdk.lib functions for 32-bit builds.
+*/
+#ifdef SWIG_PY32BIT
+%{
+#include "EDKMAPI.H"
+#include "EDKCFG.H"
+#include "EDKUTILS.H"
 
 // What is the correct story here??  The Exchange SDK story sucks - it seems
 // certain functions in the stand-alone version are simply commented out.
@@ -52,7 +57,10 @@
 #if !defined(DONT_HAVE_MBLOGON)
 #	include "MBLOGON.H"
 #endif
+%}
+#endif
 
+%{
 static int AddIID(PyObject *dict, const char *key, REFGUID guid)
 {
 	PyObject *obiid = PyWinObject_FromIID(guid);
@@ -67,11 +75,24 @@ static int AddIID(PyObject *dict, const char *key, REFGUID guid)
 
 %}
 
+
+// IExchangeManageStore::CreateStoreEntryId flags
+#define OPENSTORE_USE_ADMIN_PRIVILEGE OPENSTORE_USE_ADMIN_PRIVILEGE
+#define OPENSTORE_PUBLIC OPENSTORE_PUBLIC
+#define OPENSTORE_HOME_LOGON OPENSTORE_HOME_LOGON
+#define OPENSTORE_TAKE_OWNERSHIP OPENSTORE_TAKE_OWNERSHIP
+#define OPENSTORE_OVERRIDE_HOME_MDB OPENSTORE_OVERRIDE_HOME_MDB
+
+
 %init %{
 	if ( PyCom_RegisterClientType(&PyIExchangeManageStore::type, &IID_IExchangeManageStore) != 0 ) return MODINIT_ERROR_RETURN;
 	ADD_IID(IID_IExchangeManageStore);
 %}
 
+/*
+   Only include Ex2KSdk.lib functions for 32-bit builds.
+*/
+#ifdef SWIG_PY32BIT
 // @pyswig int, int|HrGetExchangeStatus|Obtains the current state of the server on a computer.
 // @rdesc The result is a tuple of serviceState, serverState
 HRESULT HrGetExchangeStatus( 
@@ -510,3 +531,4 @@ HRESULT HrOpenSiteContainerAddressing(
 	IMAPISession *INPUT, // @pyparm <o PyIMAPISession>|session||The MAPI session object
 	IMAPIProp **OUTPUT 
 );
+#endif /* SWIG_PY32BIT */

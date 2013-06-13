@@ -6,6 +6,11 @@ However contributors are encouraged to add their own entries for their work.
 
 Since build 218:
 ----------------
+ * win32com.mapi.exchange
+   Added 64-bit support by excluding the 32-bit Ex2kSdk.lib functions from 64-bit builds.
+   Unfortunately, this means that only IExchangeManageStore::CreateStoreEntryID
+   is currently available in a 64-bit build. (Nick Czeczulin)
+
 * adodbapi updated to version 2.4.3 -- new examples folder includes short programs for
    reading and writing .xls spreadsheets and reading ACCESS .mdb files using SQL.
   New functions .is64bit.Python() and .is64bit.os() to help pick the correct drivers.

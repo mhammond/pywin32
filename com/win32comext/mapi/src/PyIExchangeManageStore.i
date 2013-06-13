@@ -10,6 +10,7 @@
 %{
 #include <edkmdb.h>
 #define INITGUID
+#include <initguid.h>
 #define USES_IID_IExchangeManageStore
 #include <edkguid.h>
 %}

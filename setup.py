@@ -546,7 +546,7 @@ class WinExt_win32com_mapi(WinExt_win32com):
         keyname = "SOFTWARE\Microsoft\Exchange\SDK"
         for root in _winreg.HKEY_LOCAL_MACHINE, _winreg.HKEY_CURRENT_USER:
             try:
-                keyob = _winreg.OpenKey(root, keyname)
+                keyob = _winreg.OpenKey(root, keyname, 0, _winreg.KEY_READ | _winreg.KEY_WOW64_32KEY)
                 value, type_id = _winreg.QueryValueEx(keyob, "INSTALLDIR")
                 if type_id == _winreg.REG_SZ:
                     sdk_install_dir = value
@@ -562,7 +562,11 @@ class WinExt_win32com_mapi(WinExt_win32com):
                 kw.setdefault("library_dirs", []).insert(0, d)
                 
         # The stand-alone exchange SDK has these libs
-        libs += " Ex2KSdk sadapi mapi32 netapi32"
+        if distutils.util.get_platform() == 'win-amd64':
+            # Additional utility functions are only available for 32-bit builds.
+            pass
+        else:
+            libs += " version user32 advapi32 Ex2KSdk sadapi netapi32"
         kw["libraries"] = libs
         WinExt_win32com.__init__(self, name, **kw)
 
@@ -791,10 +795,11 @@ class my_build_ext(build_ext):
 
     def _why_cant_build_extension(self, ext):
         # Return None, or a reason it can't be built.
-        # This kinda sucks, but I'm giving up on exchange support in 64bit
-        # builds.
-        if self.plat_name == 'win-amd64' and ext.name in ['exchange', 'exchdapi']:
-            return "Can't get exchange support working in 64bit builds"
+        # Exclude exchange 32-bit utility libraries from 64-bit
+        # builds. Note that the exchange module now builds, but only
+        # includes interfaces for 64-bit builds.
+        if self.plat_name == 'win-amd64' and ext.name in ['exchdapi']:
+            return "No 64-bit library for utility functions available."
         include_dirs = self.compiler.include_dirs + \
                        os.environ.get("INCLUDE", "").split(os.pathsep)
         if self.windows_h_version is None:
@@ -1345,6 +1350,10 @@ class my_build_ext(build_ext):
             swig_cmd.extend(self.current_extension.extra_swig_commands)
             if not is_py3k:
                 swig_cmd.append("-DSWIG_PY2K")
+            if distutils.util.get_platform() == 'win-amd64':
+                swig_cmd.append("-DSWIG_PY64BIT")
+            else:
+                swig_cmd.append("-DSWIG_PY32BIT")
             target = swig_targets[source]
             try:
                 interface_parent = swig_interface_parents[
@@ -1932,12 +1941,12 @@ com_extensions += [
                         %(mapi)s/mapiutil.cpp
                         %(mapi)s/mapiguids.cpp
                         """ % dirs).split()),
-    WinExt_win32com_mapi('exchange', libraries="version user32 advapi32",
+    WinExt_win32com_mapi('exchange', libraries="mapi32",
                          sources=("""
                                   %(mapi)s/exchange.i         %(mapi)s/exchange.cpp
                                   %(mapi)s/PyIExchangeManageStore.i %(mapi)s/PyIExchangeManageStore.cpp
                                   """ % dirs).split()),
-    WinExt_win32com_mapi('exchdapi', libraries="advapi32",
+    WinExt_win32com_mapi('exchdapi', libraries="mapi32",
                          sources=("""
                                   %(mapi)s/exchdapi.i         %(mapi)s/exchdapi.cpp
                                   """ % dirs).split()),
