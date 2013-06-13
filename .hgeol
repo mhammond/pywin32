@@ -2,4 +2,8 @@
 **.dsp = CRLF
 **.dsw = CRLF
 **.vbp = CRLF
+# adodbapi appears to have been checked in with windows line endings
+# and without the 'eol' extension enabled, so we say it's binary to stop
+# hg continually thinking it has changed.
+path:adodbapi = bin
 ** = native
