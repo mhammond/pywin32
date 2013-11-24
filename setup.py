@@ -1937,6 +1937,7 @@ com_extensions += [
                         %(mapi)s/PyIMsgStore.i          %(mapi)s/PyIMsgStore.cpp
                         %(mapi)s/PyIProfAdmin.i         %(mapi)s/PyIProfAdmin.cpp
                         %(mapi)s/PyIProfSect.i          %(mapi)s/PyIProfSect.cpp
+						%(mapi)s/PyIConverterSession.i	%(mapi)s/PyIConverterSession.cpp
                         %(mapi)s/PyIMAPIAdviseSink.cpp
                         %(mapi)s/mapiutil.cpp
                         %(mapi)s/mapiguids.cpp
@@ -2308,6 +2309,7 @@ swig_interface_parents = {
     'PyIMsgStore':          'IMAPIProp',
     'PyIProfAdmin':         '',
     'PyIProfSect':          'IMAPIProp',
+	'PyIConverterSession':	'',
     # exchange and exchdapi
     'exchange':             None,
     'exchdapi':             None,

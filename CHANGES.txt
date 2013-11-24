@@ -6,6 +6,10 @@ However contributors are encouraged to add their own entries for their work.
 
 Since build 218:
 ----------------
+ * win32com.mapi
+   Addded outlook interface IConverterSession with methods MIMEToMAPI, MAPIToMIMEStm, and SetAdrBook
+   Added method OpenStreamOnFile (Nick Czeczulin)
+ 
  * Conversions from a Python object to a variant now does a better job at
    deciding what variant type to use, taking into account the size and sign of
    the value (Stefan Schukat via patch #127)

@@ -76,14 +76,10 @@ PyObject *PyIExchangeManageStore::CreateStoreEntryID(PyObject *self, PyObject *a
 	Py_END_ALLOW_THREADS
 
 	if (FAILED(hRes))
-	{
-		OleSetOleError(hRes);
-		goto error;
-	}
+		result = OleSetOleError(hRes);
+	else
+		result = Py_BuildValue("s#", sbEID.lpb, sbEID.cb);
 
-	result = Py_BuildValue("s#", sbEID.lpb, sbEID.cb);
-
-error:
 	MAPIFreeBuffer((LPENTRYID)sbEID.lpb);
 	
 	return result;

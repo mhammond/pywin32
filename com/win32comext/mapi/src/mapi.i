@@ -44,6 +44,8 @@
 #include "PyIProfSect.h"
 #include "PyIMsgServiceAdmin.h"
 #include "PyIMAPIAdviseSink.h"
+#include "IConverterSession.h"
+#include "PyIConverterSession.h"
 
 #include "MAPISPI.H"
 #include "MAPISPI.H"
@@ -176,6 +178,12 @@ static PyObject *PyMAPIUninitialize(PyObject *self, PyObject *args)
         if ( PyCom_RegisterGatewayObject(IID_IMAPIAdviseSink, GET_PYGATEWAY_CTOR(PyGMAPIAdviseSink), "IMAPIAdviseSink") != 0) return MODINIT_ERROR_RETURN;
 	ADD_IID(IID_IMAPIAdviseSink);
 
+	if ( PyCom_RegisterClientType(&PyIConverterSession::type, &IID_IConverterSession) != 0 ) return MODINIT_ERROR_RETURN;
+	{
+		ADD_IID(IID_IConverterSession);
+		ADD_IID(CLSID_IConverterSession);
+	}
+	
 	ADD_IID(PS_PUBLIC_STRINGS);
 	ADD_IID(PS_MAPI);
 	ADD_IID(PS_ROUTING_EMAIL_ADDRESSES);
@@ -183,7 +191,6 @@ static PyObject *PyMAPIUninitialize(PyObject *self, PyObject *args)
 	ADD_IID(PS_ROUTING_DISPLAY_NAME);
 	ADD_IID(PS_ROUTING_ENTRYID);
 	ADD_IID(PS_ROUTING_SEARCH_KEY);
-
 %}
 
 #define NO_ATTACHMENT NO_ATTACHMENT // The attachment has just been created. 
@@ -235,7 +242,7 @@ static PyObject *PyMAPIUninitialize(PyObject *self, PyObject *args)
 #define RTF_SYNC_RTF_CHANGED RTF_SYNC_RTF_CHANGED // The RTF version of the message has changed. 
 
 #define MAPI_CREATE MAPI_CREATE // The object will be created if necessary.
-#define MAPI_E_CALL_FAILED								
+#define MAPI_E_CALL_FAILED MAPI_E_CALL_FAILED						
 #define MAPI_E_NOT_ENOUGH_MEMORY MAPI_E_NOT_ENOUGH_MEMORY
 #define MAPI_E_INVALID_PARAMETER MAPI_E_INVALID_PARAMETER
 #define MAPI_E_INTERFACE_NOT_SUPPORTED MAPI_E_INTERFACE_NOT_SUPPORTED
@@ -448,6 +455,18 @@ static PyObject *PyMAPIUninitialize(PyObject *self, PyObject *args)
 #define FLUSH_FORCE FLUSH_FORCE
 #define FLUSH_NO_UI FLUSH_NO_UI
 #define FLUSH_ASYNC_OK FLUSH_ASYNC_OK
+
+// IConverterSession Constants - http://msdn2.microsoft.com/en-us/library/bb905201.aspx
+#define CCSF_SMTP             CCSF_SMTP // the converter is being passed an SMTP message
+#define CCSF_NOHEADERS        CCSF_NOHEADERS // the converter should ignore the headers on the outside message
+#define CCSF_USE_TNEF         CCSF_USE_TNEF // the converter should embed TNEF in the MIME message
+#define CCSF_INCLUDE_BCC      CCSF_INCLUDE_BCC // the converter should include Bcc recipients
+#define CCSF_8BITHEADERS      CCSF_8BITHEADERS // the converter should allow 8 bit headers
+#define CCSF_USE_RTF          CCSF_USE_RTF // the converter should do HTML->RTF conversion
+#define CCSF_PLAIN_TEXT_ONLY  CCSF_PLAIN_TEXT_ONLY // the converter should just send plain text
+#define CCSF_NO_MSGID         CCSF_NO_MSGID // don't include Message-Id field in outgoing messages
+#define CCSF_EMBEDDED_MESSAGE CCSF_EMBEDDED_MESSAGE // sent/unsent information is persisted in X-Unsent
+#define CCSF_PRESERVE_SOURCE  CCSF_PRESERVE_SOURCE // don't modify the source message
 
 // @object MAPIINIT_0|A MAPIINIT_0 is represented as a tuple of:
 // @tupleitem 0|int|version|This must be MAPI_INIT_VERSION.
@@ -775,3 +794,29 @@ exit:
 }
 %}
 %native(RTFStreamToHTML) MyRTFStreamToHTML;
+
+
+%{
+PyObject *PyOpenStreamOnFile(PyObject *self, PyObject *args)
+{	
+		HRESULT hRes;
+		unsigned long flags = 0;
+		IStream *pStream;
+		char *filepath;
+		
+	if (!PyArg_ParseTuple(args, "s|l:OpenStreamOnFile", &filepath, &flags))
+			return NULL;
+
+		PY_INTERFACE_PRECALL;
+		hRes = OpenStreamOnFile(MAPIAllocateBuffer, MAPIFreeBuffer, flags, filepath, NULL, &pStream);
+		PY_INTERFACE_POSTCALL;
+
+		if (FAILED(hRes))
+			return OleSetOleError(hRes);	
+				
+		return PyCom_PyObjectFromIUnknown(pStream, IID_IStream, FALSE);	
+}
+%}
+%native(OpenStreamOnFile) PyOpenStreamOnFile;
+
+
