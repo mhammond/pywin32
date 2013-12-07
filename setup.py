@@ -1,4 +1,4 @@
-build_id="218.4" # may optionally include a ".{patchno}" suffix.
+build_id="218.5" # may optionally include a ".{patchno}" suffix.
 # Putting buildno at the top prevents automatic __doc__ assignment, and
 # I *want* the build number at the top :)
 __doc__="""This is a distutils setup-script for the pywin32 extensions
@@ -1575,7 +1575,17 @@ for info in (
         ("timer", "user32", None, None, "win32/src/timermodule.cpp"),
         ("win2kras", "rasapi32", None, 0x0500, "win32/src/win2krasmodule.cpp"),
         ("win32cred", "AdvAPI32 credui", True, 0x0501, 'win32/src/win32credmodule.cpp'),
-        ("win32crypt", "Crypt32", None, 0x0500, 'win32/src/win32crypt.i'),
+        ("win32crypt", "Crypt32 Advapi32", True, 0x0500, """
+            win32/src/win32crypt/win32cryptmodule.cpp	
+            win32/src/win32crypt/win32crypt_structs.cpp
+            win32/src/win32crypt/PyCERTSTORE.cpp
+            win32/src/win32crypt/PyCERT_CONTEXT.cpp
+            win32/src/win32crypt/PyCRYPTHASH.cpp
+            win32/src/win32crypt/PyCRYPTKEY.cpp
+            win32/src/win32crypt/PyCRYPTMSG.cpp
+            win32/src/win32crypt/PyCRYPTPROV.cpp
+            win32/src/win32crypt/PyCTL_CONTEXT.cpp
+            """),
         ("win32file", "", None, 0x0500, """
               win32/src/win32file.i
               win32/src/win32file_comm.cpp
@@ -1937,7 +1947,7 @@ com_extensions += [
                         %(mapi)s/PyIMsgStore.i          %(mapi)s/PyIMsgStore.cpp
                         %(mapi)s/PyIProfAdmin.i         %(mapi)s/PyIProfAdmin.cpp
                         %(mapi)s/PyIProfSect.i          %(mapi)s/PyIProfSect.cpp
-						%(mapi)s/PyIConverterSession.i	%(mapi)s/PyIConverterSession.cpp
+                        %(mapi)s/PyIConverterSession.i	%(mapi)s/PyIConverterSession.cpp
                         %(mapi)s/PyIMAPIAdviseSink.cpp
                         %(mapi)s/mapiutil.cpp
                         %(mapi)s/mapiguids.cpp

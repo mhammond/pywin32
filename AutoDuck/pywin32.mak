@@ -40,10 +40,11 @@ WIN32_SOURCE = $(WIN32_SOURCE_DIR)/*.cpp \
 	  $(WIN32_SOURCE_DIR)/win32net/*.cpp \
 	  $(WIN32_SOURCE_DIR)/win32wnet/*.cpp \
 	  $(WIN32_SOURCE_DIR)/win32print/*.cpp \
+	  $(WIN32_SOURCE_DIR)/win32crypt/*.cpp \
 	  $(GENDIR)/win32evtlog.d $(GENDIR)/win32event.d $(GENDIR)/win32file.d \
 	  $(GENDIR)/win32service.d $(GENDIR)/win32pipe.d $(GENDIR)/win32security.d \
 	  $(GENDIR)/win32process.d $(GENDIR)/wincerapi.d $(GENDIR)/win32gui.d \
-	  $(GENDIR)/win32inet.d $(GENDIR)/_winxptheme.d  $(GENDIR)/win32crypt.d \
+	  $(GENDIR)/win32inet.d $(GENDIR)/_winxptheme.d \
 	  $(GENDIR)/win32job.d \
 	  winxpgui.d
 
