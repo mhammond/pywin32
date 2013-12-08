@@ -224,12 +224,14 @@ PyObject *PyWinObject_FromCERT_CONTEXT(PCCERT_CONTEXT pcc)
 PyObject *PyCERT_CONTEXT::PyCertFreeCertificateContext (PyObject *self, PyObject *args)
 {
 	PCCERT_CONTEXT pccert_context=((PyCERT_CONTEXT *)self)->GetPCCERT_CONTEXT();
-	if (CertFreeCertificateContext (pccert_context)){
-		Py_INCREF(Py_None);
-		return Py_None;
-		}
-	PyWin_SetAPIError("CertFreeCertificateContext");
-	return NULL;
+	BOOL bsuccess;
+	Py_BEGIN_ALLOW_THREADS
+	bsuccess = CertFreeCertificateContext (pccert_context);
+	Py_END_ALLOW_THREADS
+	if (!bsuccess)
+		return PyWin_SetAPIError("CertFreeCertificateContext");
+	Py_INCREF(Py_None);
+	return Py_None;
 }
 
 // @pymethod [int,...]|PyCERT_CONTEXT|CertEnumCertificateContextProperties|Lists property ids for the certificate
@@ -242,7 +244,9 @@ PyObject *PyCERT_CONTEXT::PyCertEnumCertificateContextProperties(PyObject *self,
 	if (ret==NULL)
 		return NULL;
 	while (TRUE){
+		Py_BEGIN_ALLOW_THREADS
 		dwPropId=CertEnumCertificateContextProperties(pccert_context, dwPropId);
+		Py_END_ALLOW_THREADS
 		if (dwPropId==0)
 			break;
 		ret_item=PyLong_FromUnsignedLong(dwPropId);
@@ -272,8 +276,12 @@ PyObject *PyCERT_CONTEXT::PyCryptAcquireCertificatePrivateKey(PyObject *self, Py
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|k:CryptAcquireCertificatePrivateKey", keywords, 
 		&flags))	// @pyparm int|Flags|0|Combination of CRYPT_ACQUIRE_*_FLAG constants
 		return NULL;
-	if (!CryptAcquireCertificatePrivateKey(pccert_context, flags, reserved,
-		&hcryptprov, &keyspec, &callerfree))
+	BOOL bsuccess;
+	Py_BEGIN_ALLOW_THREADS
+	bsuccess = CryptAcquireCertificatePrivateKey(pccert_context, flags, reserved,
+		&hcryptprov, &keyspec, &callerfree);
+	Py_END_ALLOW_THREADS
+	if (!bsuccess)
 		return PyWin_SetAPIError("CryptAcquireCertificatePrivateKey");
 	
 	/* If callerfree returns false, CSP handle shouldn't be freed, so increase its refcount since 
@@ -297,13 +305,19 @@ PyObject *PyCERT_CONTEXT::PyCertGetEnhancedKeyUsage(PyObject *self, PyObject *ar
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|k:CertGetEnhancedKeyUsage", keywords, 
 		&flags))	// @pyparm int|Flags|0|CERT_FIND_EXT_ONLY_ENHKEY_USAGE_FLAG, CERT_FIND_PROP_ONLY_ENHKEY_USAGE_FLAG, or 0 
 		return NULL;
-	if (!CertGetEnhancedKeyUsage(pccert_context, flags, pceu, &bufsize))
+	BOOL bsuccess;
+	Py_BEGIN_ALLOW_THREADS
+	bsuccess = CertGetEnhancedKeyUsage(pccert_context, flags, pceu, &bufsize);
+	Py_END_ALLOW_THREADS
+	if (!bsuccess)
 		return PyWin_SetAPIError("CertGetEnhancedKeyUsage");
 	pceu=(PCERT_ENHKEY_USAGE)malloc(bufsize);
 	if (pceu==NULL)
 		return PyErr_Format(PyExc_MemoryError, "Failed to allocate %d bytes", bufsize);
-
-	if (!CertGetEnhancedKeyUsage(pccert_context, flags, pceu, &bufsize))
+	Py_BEGIN_ALLOW_THREADS
+	bsuccess = CertGetEnhancedKeyUsage(pccert_context, flags, pceu, &bufsize);
+	Py_END_ALLOW_THREADS
+	if (!bsuccess)
 		PyWin_SetAPIError("CertGetEnhancedKeyUsage");
 	else
 		ret=PyWinObject_FromCTL_USAGE(pceu);
@@ -318,7 +332,11 @@ PyObject *PyCERT_CONTEXT::PyCertGetIntendedKeyUsage(PyObject *self, PyObject *ar
 	PCCERT_CONTEXT pccert_context=((PyCERT_CONTEXT *)self)->GetPCCERT_CONTEXT();
 	DWORD buf;
 	DWORD bufsize=sizeof(DWORD);
-	if (!CertGetIntendedKeyUsage(pccert_context->dwCertEncodingType, pccert_context->pCertInfo, (BYTE *)&buf, bufsize))
+	BOOL bsuccess;
+	Py_BEGIN_ALLOW_THREADS
+	bsuccess = CertGetIntendedKeyUsage(pccert_context->dwCertEncodingType, pccert_context->pCertInfo, (BYTE *)&buf, bufsize);
+	Py_END_ALLOW_THREADS
+	if (!bsuccess)
 		return PyWin_SetAPIError("CertGetIntendedKeyUsage");
 	return PyLong_FromUnsignedLong(buf);
 }
@@ -334,12 +352,21 @@ PyObject *PyCERT_CONTEXT::PyCertSerializeCertificateStoreElement(PyObject *self,
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|k:CertSerializeCertificateStoreElement", keywords,
 		&flags))	// @pyparm int|Flags|0|Reserved, use only 0 if passed in
 		return NULL;
-	if (!CertSerializeCertificateStoreElement(pccert_context, flags, buf, &bufsize))
+
+	BOOL bsuccess;
+	Py_BEGIN_ALLOW_THREADS
+	bsuccess = CertSerializeCertificateStoreElement(pccert_context, flags, buf, &bufsize);
+	Py_END_ALLOW_THREADS
+	if (!bsuccess)
 		return PyWin_SetAPIError("CertSerializeCertificateStoreElement");
 	buf=(BYTE *)malloc(bufsize);
 	if (buf==NULL)
 		return PyErr_Format(PyExc_MemoryError, "Unable to allocate %d bytes", bufsize);
-	if (!CertSerializeCertificateStoreElement(pccert_context, flags, buf, &bufsize))
+
+	Py_BEGIN_ALLOW_THREADS
+	bsuccess = CertSerializeCertificateStoreElement(pccert_context, flags, buf, &bufsize);
+	Py_END_ALLOW_THREADS
+	if (!bsuccess)
 		PyWin_SetAPIError("CertSerializeCertificateStoreElement");
 	else
 		ret=PyString_FromStringAndSize((char *)buf, bufsize);
@@ -362,7 +389,11 @@ PyObject *PyCERT_CONTEXT::PyCertVerifySubjectCertificateContext(PyObject *self, 
 		return NULL;
 	if (!PyWinObject_AsCERT_CONTEXT(obissuer, &issuer, TRUE))
 		return NULL;
-	if (!CertVerifySubjectCertificateContext(pccert_context, issuer, &flags))
+	BOOL bsuccess;
+	Py_BEGIN_ALLOW_THREADS
+	bsuccess = CertVerifySubjectCertificateContext(pccert_context, issuer, &flags);
+	Py_END_ALLOW_THREADS
+	if (!bsuccess)
 		return PyWin_SetAPIError("CertVerifySubjectCertificateContext");
 	return PyLong_FromUnsignedLong(flags);
 }
@@ -371,7 +402,11 @@ PyObject *PyCERT_CONTEXT::PyCertVerifySubjectCertificateContext(PyObject *self, 
 PyObject *PyCERT_CONTEXT::PyCertDeleteCertificateFromStore(PyObject *self, PyObject *args)
 {
 	PCCERT_CONTEXT pcert_context=((PyCERT_CONTEXT *)self)->GetPCCERT_CONTEXT();
-	if (!CertDeleteCertificateFromStore(pcert_context))
+	BOOL bsuccess;
+	Py_BEGIN_ALLOW_THREADS
+	bsuccess = CertDeleteCertificateFromStore(pcert_context);
+	Py_END_ALLOW_THREADS
+	if (!bsuccess)
 		return PyWin_SetAPIError("CertDeleteCertificateFromStore");
 	Py_INCREF(Py_None);
 	return Py_None;
@@ -391,7 +426,11 @@ PyObject *PyCERT_CONTEXT::PyCertGetCertificateContextProperty(PyObject *self, Py
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "k:CertGetCertificateContextProperty", keywords, 
 		&dwPropId))		// @pyparm int|PropId||One of the CERT_*_PROP_ID constants
 		return NULL;
-	if (!CertGetCertificateContextProperty(pccert_context, dwPropId, pvData, &pcbData)){
+	BOOL bsuccess;
+	Py_BEGIN_ALLOW_THREADS
+	bsuccess = CertGetCertificateContextProperty(pccert_context, dwPropId, pvData, &pcbData);
+	Py_END_ALLOW_THREADS
+	if (!bsuccess){
 		PyWin_SetAPIError("CertGetCertificateContextProperty");
 		return NULL;
 		}
@@ -401,7 +440,10 @@ PyObject *PyCERT_CONTEXT::PyCertGetCertificateContextProperty(PyObject *self, Py
 		if (pvData==NULL)
 			return PyErr_Format(PyExc_MemoryError,"CertGetCertificateContextProperty: unable to allocate %d bytes", pcbData);
 		ZeroMemory(pvData, pcbData);
-		if (!CertGetCertificateContextProperty(pccert_context, dwPropId, pvData, &pcbData)){
+		Py_BEGIN_ALLOW_THREADS
+		bsuccess = CertGetCertificateContextProperty(pccert_context, dwPropId, pvData, &pcbData);
+		Py_END_ALLOW_THREADS
+		if (!bsuccess){
 			PyWin_SetAPIError("CertGetCertificateContextProperty");
 			free(pvData);
 			return NULL;
@@ -494,9 +536,13 @@ PyObject *PyCERT_CONTEXT::PyCertSetCertificateContextProperty(PyObject *self, Py
 		&flags))	// @pyparm int|Flags|0|Combination of CERT_SET_* flags
 		return NULL;
 
+	BOOL bsuccess;
 	// When Data is None, property is to be deleted so no conversion necessary
 	if (obData==Py_None){
-		if (!CertSetCertificateContextProperty(pccert_context, prop, flags, NULL))
+		Py_BEGIN_ALLOW_THREADS
+		bsuccess = CertSetCertificateContextProperty(pccert_context, prop, flags, NULL);
+		Py_END_ALLOW_THREADS
+		if (!bsuccess)
 			return PyWin_SetAPIError("CertSetCertificateContextProperty");
 		else{
 			Py_INCREF(Py_None);
@@ -577,7 +623,10 @@ PyObject *PyCERT_CONTEXT::PyCertSetCertificateContextProperty(PyObject *self, Py
 			goto cleanup;
 		}
 
-	if (!CertSetCertificateContextProperty(pccert_context, prop, flags, pvData))
+	Py_BEGIN_ALLOW_THREADS
+	bsuccess = CertSetCertificateContextProperty(pccert_context, prop, flags, pvData);
+	Py_END_ALLOW_THREADS
+	if (!bsuccess)
 		PyWin_SetAPIError("CertSetCertificateContextProperty");
 	else{
 		Py_INCREF(Py_None);
