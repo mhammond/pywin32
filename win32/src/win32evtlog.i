@@ -1127,7 +1127,7 @@ static PyObject *PyEvtGetChannelConfigProperty(PyObject *self, PyObject *args, P
 	free(val);
 	return ret;
 }
-PyCFunction pfnEvtGetChannelConfigProperty = (PyCFunction) PyEvtGetChannelConfigProperty;
+PyCFunction pfnPyEvtGetChannelConfigProperty = (PyCFunction) PyEvtGetChannelConfigProperty;
 
 // @pyswig <o PyEVT_HANDLE>|EvtOpenChannelConfig|Opens channel configuration
 // @comm Accepts keyword args
@@ -1152,7 +1152,7 @@ static PyObject *PyEvtOpenChannelConfig(PyObject *self, PyObject *args, PyObject
 		return PyWin_SetAPIError("EvtOpenChannelConfig");
 	return PyWinObject_FromEVT_HANDLE(ret);
 }
-PyCFunction pfnEvtOpenChannelConfig = (PyCFunction) PyEvtOpenChannelConfig;
+PyCFunction pfnPyEvtOpenChannelConfig = (PyCFunction) PyEvtOpenChannelConfig;
 
 void PyWinObject_FreeEVT_RPC_LOGIN(EVT_RPC_LOGIN *erl)
 {
@@ -1213,11 +1213,153 @@ static PyObject *PyEvtOpenSession(PyObject *self, PyObject *args, PyObject *kwar
 	Py_END_ALLOW_THREADS
 	PyWinObject_FreeEVT_RPC_LOGIN(&login);
 	if (ret == NULL)
-		return PyWin_SetAPIError("EvtOpenChannelConfig");
+		return PyWin_SetAPIError("EvtOpenSession");
 	return PyWinObject_FromEVT_HANDLE(ret);
 }
-PyCFunction pfnEvtOpenSession = (PyCFunction) PyEvtOpenSession;
+PyCFunction pfnPyEvtOpenSession = (PyCFunction) PyEvtOpenSession;
+
+// @pyswig <o PyEVT_HANDLE>|EvtOpenPublisherEnum|Begins an enumeration of event publishers
+// @comm Accepts keyword args
+static PyObject *PyEvtOpenPublisherEnum(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+	static char *keywords[]={"Session", "Flags", NULL};
+	EVT_HANDLE session=NULL, enum_handle;
+	DWORD flags=0;
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|O&k:EvtOpenPublisherEnum", keywords,
+		PyWinObject_AsHANDLE, &session,	// @pyparm <o PyEVT_HANDLE>|Session|None|Handle to a remote session (see <om win32evtlog.EvtOpenSession>), or None for local machine.
+		&flags))						// @pyparm int|Flags|0|Reserved, use only 0
+		return NULL;
+	Py_BEGIN_ALLOW_THREADS
+	enum_handle=EvtOpenPublisherEnum(session, flags);
+	Py_END_ALLOW_THREADS
+	if (enum_handle==NULL)
+		return PyWin_SetAPIError("EvtOpenPublisherEnum");
+	return PyWinObject_FromEVT_HANDLE(enum_handle);
+}
+PyCFunction pfnPyEvtOpenPublisherEnum = (PyCFunction) PyEvtOpenPublisherEnum;
+
+// @pyswig str|EvtNextPublisherId|Returns the next publisher from an enumeration
+// @rdesc Returns None at end of enumeration
+// @comm Accepts keyword args
+static PyObject *PyEvtNextPublisherId(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+	static char *keywords[]={"PublisherEnum", NULL};
+	EVT_HANDLE enum_handle;
+	DWORD allocated_size=256, returned_size, err;
+	WCHAR *buf=NULL;
+	PyObject *ret=NULL;
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O&:EvtNextPublisherId", keywords,
+		PyWinObject_AsHANDLE, &enum_handle))	// @pyparm <o PyEVT_HANDLE>|PublisherEnum||Handle to an enumeration as returned by <om win32evtlog.EvtOpenPublisherEnum>
+		return NULL;
+	BOOL bsuccess;
+	while (true){
+		if (buf)
+			free(buf);
+		WCHAR *buf=(WCHAR *)malloc(allocated_size * sizeof(WCHAR));
+		if (!buf)
+			return NULL;
+		
+		Py_BEGIN_ALLOW_THREADS
+		bsuccess = EvtNextPublisherId(enum_handle, allocated_size, buf, &returned_size);
+		Py_END_ALLOW_THREADS
+		if (bsuccess){
+			ret=PyWinObject_FromWCHAR(buf);
+			break;
+			}
+		err=GetLastError();
+		if (err==ERROR_INSUFFICIENT_BUFFER){
+			allocated_size=returned_size;
+			continue;
+			}
+		if (err==ERROR_NO_MORE_ITEMS){
+			Py_INCREF(Py_None);
+			ret=Py_None;
+			break;
+			}
+		PyWin_SetAPIError("EvtNextPublisherId", err);
+		break;
+	}
+	if (buf)
+		free(buf);
+	return ret;
+}
+PyCFunction pfnPyEvtNextPublisherId = (PyCFunction) PyEvtNextPublisherId;
+
+// @pyswig <o PyEVT_HANDLE>|EvtOpenPublisherMetadata|Opens a publisher to retrieve properties using <om win32evtlog.EvtGetPublisherMetadataProperty>
+// @comm Accepts keyword args
+static PyObject *PyEvtOpenPublisherMetadata(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+	static char *keywords[]={"PublisherIdentity", "Session", "LogFilePath", "Locale", "Flags", NULL};
+	PyObject *obpublisher, *oblogfile=Py_None;
+	TmpWCHAR publisher, logfile;
+	EVT_HANDLE session = NULL;
+	LCID locale = 0;
+	DWORD flags = 0;
+	EVT_HANDLE ret;
+
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O|O&Okk:EvtOpenPublisherMetadata", keywords,
+		&obpublisher,	// @pyparm str|PublisherIdentity||Publisher id as returned by <om win32evtlog.EvtNextPublisherId>
+		PyWinObject_AsHANDLE, &session,	// @pyparm <o PyEVT_HANDLE>|Session|None|Handle to remote session, or None for local machine
+		&oblogfile,	// @pyparm str|LogFilePath|None|Log file from which to retrieve publisher, or None for locally registered publisher
+		&locale,	// @pyparm int|Locale|0|Locale to use for retrieved properties, use 0 for current locale
+		&flags))	// @pyparm int|Flags|0|Reserved, use only 0
+		return NULL;
+	if (!PyWinObject_AsWCHAR(obpublisher, &publisher, FALSE))
+		return NULL;
+	if (!PyWinObject_AsWCHAR(oblogfile, &logfile, TRUE))
+		return NULL;
+
+	Py_BEGIN_ALLOW_THREADS
+	ret = EvtOpenPublisherMetadata(session, publisher, logfile, locale, flags);
+	Py_END_ALLOW_THREADS
+	if (ret == NULL)
+		return PyWin_SetAPIError("EvtOpenPublisherMetadata");
+	return PyWinObject_FromEVT_HANDLE(ret);
+}
+PyCFunction pfnPyEvtOpenPublisherMetadata = (PyCFunction) PyEvtOpenPublisherMetadata;
+
+// @pyswig (object, int)|EvtGetPublisherMetadataProperty|Retrieves a property from an event publisher
+// @comm Accepts keyword args
+// @comm Returns the value and type of value (EvtVarType*)
+static PyObject *PyEvtGetPublisherMetadataProperty(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+	static char *keywords[]={"PublisherMetadata", "PropertyId", "Flags", NULL};
+	EVT_HANDLE hpublisher;
+	EVT_PUBLISHER_METADATA_PROPERTY_ID prop_id;
+	DWORD flags = 0;
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O&i|k:EvtGetPublisherMetadataProperty", keywords,
+		PyWinObject_AsHANDLE, &hpublisher,	// @pyparm <o PyEVT_HANDLE>|PublisherMetadata||Publisher handle as returned by <om win32evtlog.EvtOpenPublisherMetadata>
+		&prop_id,	// @pyparm int|PropertyId||Property to retreive, EvtPublisherMetadata*
+		&flags))	// @pyparm int|Flags|0|Reserved, use only 0
+		return NULL;
+
+	PEVT_VARIANT val = NULL;
+	DWORD buf_size=0, buf_needed, err;
+	Py_BEGIN_ALLOW_THREADS
+	EvtGetPublisherMetadataProperty(hpublisher, prop_id, flags, buf_size, val, &buf_needed);
+	Py_END_ALLOW_THREADS
+	err = GetLastError();
+	if (err != ERROR_INSUFFICIENT_BUFFER)
+		return PyWin_SetAPIError("EvtGetPublisherMetadataProperty", err);
+	val = (PEVT_VARIANT)malloc(buf_needed);
+	if (val == NULL)
+		return PyErr_Format(PyExc_MemoryError, "Unable to allocate %d bytes", buf_needed);
+	buf_size = buf_needed;
+	BOOL bsuccess;
+	Py_BEGIN_ALLOW_THREADS
+	bsuccess = EvtGetPublisherMetadataProperty(hpublisher, prop_id, flags, buf_size, val, &buf_needed);
+	Py_END_ALLOW_THREADS
+	PyObject *ret = NULL;
+	if (!bsuccess)
+		PyWin_SetAPIError("EvtGetPublisherMetadataProperty");
+	else
+		ret = PyWinObject_FromEVT_VARIANT(val);
+	free(val);
+	return ret;
+}
+PyCFunction pfnPyEvtGetPublisherMetadataProperty = (PyCFunction) PyEvtGetPublisherMetadataProperty;
 %}
+
 
 %native (EvtOpenChannelEnum) pfnPyEvtOpenChannelEnum;
 %native (EvtNextChannelPath) pfnPyEvtNextChannelPath;
@@ -1233,9 +1375,13 @@ PyCFunction pfnEvtOpenSession = (PyCFunction) PyEvtOpenSession;
 %native (EvtSubscribe) pfnPyEvtSubscribe;
 %native (EvtCreateBookmark) pfnPyEvtCreateBookmark;
 %native (EvtUpdateBookmark) pfnPyEvtUpdateBookmark;
-%native (EvtGetChannelConfigProperty) pfnEvtGetChannelConfigProperty;
-%native (EvtOpenChannelConfig) pfnEvtOpenChannelConfig;
-%native (EvtOpenSession) pfnEvtOpenSession;
+%native (EvtGetChannelConfigProperty) pfnPyEvtGetChannelConfigProperty;
+%native (EvtOpenChannelConfig) pfnPyEvtOpenChannelConfig;
+%native (EvtOpenSession) pfnPyEvtOpenSession;
+%native (EvtOpenPublisherEnum) pfnPyEvtOpenPublisherEnum;
+%native (EvtNextPublisherId) pfnPyEvtNextPublisherId;
+%native (EvtOpenPublisherMetadata) pfnPyEvtOpenPublisherMetadata;
+%native (EvtGetPublisherMetadataProperty) pfnPyEvtGetPublisherMetadataProperty;
 
 
 %init %{
@@ -1257,6 +1403,10 @@ PyCFunction pfnEvtOpenSession = (PyCFunction) PyEvtOpenSession;
 			||(strcmp(pmd->ml_name, "EvtGetChannelConfigProperty")==0)
 			||(strcmp(pmd->ml_name, "EvtOpenChannelConfig")==0)
 			||(strcmp(pmd->ml_name, "EvtOpenSession")==0)
+			||(strcmp(pmd->ml_name, "EvtOpenPublisherEnum")==0)
+			||(strcmp(pmd->ml_name, "EvtNextPublisherId")==0)
+			||(strcmp(pmd->ml_name, "EvtOpenPublisherMetadata")==0)
+			||(strcmp(pmd->ml_name, "EvtGetPublisherMetadataProperty")==0)
 			){
 			pmd->ml_flags = METH_VARARGS | METH_KEYWORDS;
 			}
@@ -1361,3 +1511,35 @@ PyCFunction pfnEvtOpenSession = (PyCFunction) PyEvtOpenSession;
 #define EvtRpcLoginAuthNegotiate EvtRpcLoginAuthNegotiate
 #define EvtRpcLoginAuthKerberos EvtRpcLoginAuthKerberos
 #define EvtRpcLoginAuthNTLM EvtRpcLoginAuthNTLM
+
+// EVT_PUBLISHER_METADATA_PROPERTY_ID
+#define EvtPublisherMetadataPublisherGuid EvtPublisherMetadataPublisherGuid
+#define EvtPublisherMetadataResourceFilePath EvtPublisherMetadataResourceFilePath
+#define EvtPublisherMetadataParameterFilePath EvtPublisherMetadataParameterFilePath
+#define EvtPublisherMetadataMessageFilePath EvtPublisherMetadataMessageFilePath
+#define EvtPublisherMetadataHelpLink EvtPublisherMetadataHelpLink
+#define EvtPublisherMetadataPublisherMessageID EvtPublisherMetadataPublisherMessageID
+#define EvtPublisherMetadataChannelReferences EvtPublisherMetadataChannelReferences
+#define EvtPublisherMetadataChannelReferencePath EvtPublisherMetadataChannelReferencePath
+#define EvtPublisherMetadataChannelReferenceIndex EvtPublisherMetadataChannelReferenceIndex
+#define EvtPublisherMetadataChannelReferenceID EvtPublisherMetadataChannelReferenceID
+#define EvtPublisherMetadataChannelReferenceFlags EvtPublisherMetadataChannelReferenceFlags
+#define EvtPublisherMetadataChannelReferenceMessageID EvtPublisherMetadataChannelReferenceMessageID
+#define EvtPublisherMetadataLevels EvtPublisherMetadataLevels
+#define EvtPublisherMetadataLevelName EvtPublisherMetadataLevelName
+#define EvtPublisherMetadataLevelValue EvtPublisherMetadataLevelValue
+#define EvtPublisherMetadataLevelMessageID EvtPublisherMetadataLevelMessageID
+#define EvtPublisherMetadataTasks EvtPublisherMetadataTasks
+#define EvtPublisherMetadataTaskName EvtPublisherMetadataTaskName
+#define EvtPublisherMetadataTaskEventGuid EvtPublisherMetadataTaskEventGuid
+#define EvtPublisherMetadataTaskValue EvtPublisherMetadataTaskValue
+#define EvtPublisherMetadataTaskMessageID EvtPublisherMetadataTaskMessageID
+#define EvtPublisherMetadataOpcodes EvtPublisherMetadataOpcodes
+#define EvtPublisherMetadataOpcodeName EvtPublisherMetadataOpcodeName
+#define EvtPublisherMetadataOpcodeValue EvtPublisherMetadataOpcodeValue
+#define EvtPublisherMetadataOpcodeMessageID EvtPublisherMetadataOpcodeMessageID
+#define EvtPublisherMetadataKeywords EvtPublisherMetadataKeywords
+#define EvtPublisherMetadataKeywordName EvtPublisherMetadataKeywordName
+#define EvtPublisherMetadataKeywordValue EvtPublisherMetadataKeywordValue
+#define EvtPublisherMetadataKeywordMessageID EvtPublisherMetadataKeywordMessageID
+#define EvtPublisherMetadataPropertyIdEND EvtPublisherMetadataPropertyIdEND
