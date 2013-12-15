@@ -1358,6 +1358,93 @@ static PyObject *PyEvtGetPublisherMetadataProperty(PyObject *self, PyObject *arg
 	return ret;
 }
 PyCFunction pfnPyEvtGetPublisherMetadataProperty = (PyCFunction) PyEvtGetPublisherMetadataProperty;
+
+// @pyswig <o PyEVT_HANDLE>|EvtOpenEventMetadataEnum|Enumerates the events that a publisher provides
+// @comm Accepts keyword args
+static PyObject *PyEvtOpenEventMetadataEnum(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+	static char *keywords[]={"PublisherMetadata", "Flags", NULL};
+	EVT_HANDLE hpublisher, enum_handle;
+	DWORD flags=0;
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O&|k:EvtOpenEventMetadataEnum", keywords,
+		PyWinObject_AsHANDLE, &hpublisher,	// @pyparm <o PyEVT_HANDLE>|PublisherMetadata||Publisher handle as returned by <om win32evtlog.EvtOpenPublisherMetadata>
+		&flags))							// @pyparm int|Flags|0|Reserved, use only 0
+		return NULL;
+	Py_BEGIN_ALLOW_THREADS
+	enum_handle=EvtOpenEventMetadataEnum(hpublisher, flags);
+	Py_END_ALLOW_THREADS
+	if (enum_handle==NULL)
+		return PyWin_SetAPIError("EvtOpenEventMetadataEnum");
+	return PyWinObject_FromEVT_HANDLE(enum_handle);
+}
+PyCFunction pfnPyEvtOpenEventMetadataEnum = (PyCFunction) PyEvtOpenEventMetadataEnum;
+
+// @pyswig <o PyEVT_HANDLE>|EvtNextEventMetadata|Retrieves the next item from an event metadata enumeration
+// @comm Accepts keyword args
+static PyObject *PyEvtNextEventMetadata(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+	static char *keywords[]={"EventMetadataEnum", "Flags", NULL};
+	EVT_HANDLE henum, ret;
+	DWORD flags = 0;
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O&|k:EvtNextEventMetadata", keywords,
+		PyWinObject_AsHANDLE, &henum,	// @pyparm <o PyEVT_HANDLE>|EventMetadataEnum||Enumeration handle as returned by <om win32evtlog.EvtOpenEventMetadataEnum>
+		&flags))						// @pyparm int|Flags|0|Reserved, use only 0
+		return NULL;
+
+	Py_BEGIN_ALLOW_THREADS
+	ret = EvtNextEventMetadata(henum, flags);
+	Py_END_ALLOW_THREADS
+	if (ret != NULL)
+		return PyWinObject_FromEVT_HANDLE(ret);
+	DWORD err=GetLastError();
+	if (err==ERROR_NO_MORE_ITEMS){
+		Py_INCREF(Py_None);
+		return Py_None;
+		}
+	return PyWin_SetAPIError("EvtNextEventMetadata");
+}
+PyCFunction pfnPyEvtNextEventMetadata = (PyCFunction) PyEvtNextEventMetadata;
+
+// @pyswig (object, int)|EvtGetEventMetadataProperty|Retrieves a property from an event publisher
+// @comm Accepts keyword args
+// @comm Returns the value and type of value (EvtVarType*)
+static PyObject *PyEvtGetEventMetadataProperty(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+	static char *keywords[]={"EventMetadata", "PropertyId", "Flags", NULL};
+	EVT_HANDLE hevent;
+	EVT_EVENT_METADATA_PROPERTY_ID prop_id;
+	DWORD flags = 0;
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O&i|k:EvtGetEventMetadataProperty", keywords,
+		PyWinObject_AsHANDLE, &hevent,	// @pyparm <o PyEVT_HANDLE>|EventMetadata||Event metadata handle as returned by <om win32evtlog.EvtNextEventMetadata>
+		&prop_id,	// @pyparm int|PropertyId||Property to retreive, EvtPublisherMetadata*
+		&flags))	// @pyparm int|Flags|0|Reserved, use only 0
+		return NULL;
+
+	PEVT_VARIANT val = NULL;
+	DWORD buf_size=0, buf_needed, err;
+	Py_BEGIN_ALLOW_THREADS
+	EvtGetEventMetadataProperty(hevent, prop_id, flags, buf_size, val, &buf_needed);
+	Py_END_ALLOW_THREADS
+	err = GetLastError();
+	if (err != ERROR_INSUFFICIENT_BUFFER)
+		return PyWin_SetAPIError("EvtGetEventMetadataProperty", err);
+	val = (PEVT_VARIANT)malloc(buf_needed);
+	if (val == NULL)
+		return PyErr_Format(PyExc_MemoryError, "Unable to allocate %d bytes", buf_needed);
+	buf_size = buf_needed;
+	BOOL bsuccess;
+	Py_BEGIN_ALLOW_THREADS
+	bsuccess = EvtGetEventMetadataProperty(hevent, prop_id, flags, buf_size, val, &buf_needed);
+	Py_END_ALLOW_THREADS
+	PyObject *ret = NULL;
+	if (!bsuccess)
+		PyWin_SetAPIError("EvtGetEventMetadataProperty");
+	else
+		ret = PyWinObject_FromEVT_VARIANT(val);
+	free(val);
+	return ret;
+}
+PyCFunction pfnPyEvtGetEventMetadataProperty = (PyCFunction) PyEvtGetEventMetadataProperty;
 %}
 
 
@@ -1382,6 +1469,9 @@ PyCFunction pfnPyEvtGetPublisherMetadataProperty = (PyCFunction) PyEvtGetPublish
 %native (EvtNextPublisherId) pfnPyEvtNextPublisherId;
 %native (EvtOpenPublisherMetadata) pfnPyEvtOpenPublisherMetadata;
 %native (EvtGetPublisherMetadataProperty) pfnPyEvtGetPublisherMetadataProperty;
+%native (EvtOpenEventMetadataEnum) pfnPyEvtOpenEventMetadataEnum;
+%native (EvtNextEventMetadata) pfnPyEvtNextEventMetadata;
+%native (EvtGetEventMetadataProperty) pfnPyEvtGetEventMetadataProperty;
 
 
 %init %{
@@ -1407,6 +1497,9 @@ PyCFunction pfnPyEvtGetPublisherMetadataProperty = (PyCFunction) PyEvtGetPublish
 			||(strcmp(pmd->ml_name, "EvtNextPublisherId")==0)
 			||(strcmp(pmd->ml_name, "EvtOpenPublisherMetadata")==0)
 			||(strcmp(pmd->ml_name, "EvtGetPublisherMetadataProperty")==0)
+			||(strcmp(pmd->ml_name, "EvtOpenEventMetadataEnum")==0)
+			||(strcmp(pmd->ml_name, "EvtNextEventMetadata")==0)
+			||(strcmp(pmd->ml_name, "EvtGetEventMetadataProperty")==0)		
 			){
 			pmd->ml_flags = METH_VARARGS | METH_KEYWORDS;
 			}
@@ -1543,3 +1636,15 @@ PyCFunction pfnPyEvtGetPublisherMetadataProperty = (PyCFunction) PyEvtGetPublish
 #define EvtPublisherMetadataKeywordValue EvtPublisherMetadataKeywordValue
 #define EvtPublisherMetadataKeywordMessageID EvtPublisherMetadataKeywordMessageID
 #define EvtPublisherMetadataPropertyIdEND EvtPublisherMetadataPropertyIdEND
+
+// EVT_EVENT_METADATA_PROPERTY_ID used with EvtGetEventMetadataProperty
+#define EventMetadataEventID EventMetadataEventID
+#define EventMetadataEventVersion EventMetadataEventVersion
+#define EventMetadataEventChannel EventMetadataEventChannel
+#define EventMetadataEventLevel EventMetadataEventLevel
+#define EventMetadataEventOpcode EventMetadataEventOpcode
+#define EventMetadataEventTask EventMetadataEventTask
+#define EventMetadataEventKeyword EventMetadataEventKeyword
+#define EventMetadataEventMessageID EventMetadataEventMessageID
+#define EventMetadataEventTemplate EventMetadataEventTemplate
+#define EvtEventMetadataPropertyIdEND EvtEventMetadataPropertyIdEND
