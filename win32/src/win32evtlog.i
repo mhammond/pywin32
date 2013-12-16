@@ -1416,7 +1416,7 @@ static PyObject *PyEvtGetEventMetadataProperty(PyObject *self, PyObject *args, P
 	DWORD flags = 0;
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O&i|k:EvtGetEventMetadataProperty", keywords,
 		PyWinObject_AsHANDLE, &hevent,	// @pyparm <o PyEVT_HANDLE>|EventMetadata||Event metadata handle as returned by <om win32evtlog.EvtNextEventMetadata>
-		&prop_id,	// @pyparm int|PropertyId||Property to retreive, EvtPublisherMetadata*
+		&prop_id,	// @pyparm int|PropertyId||Property to retreive, EventMetadata*
 		&flags))	// @pyparm int|Flags|0|Reserved, use only 0
 		return NULL;
 
@@ -1445,6 +1445,84 @@ static PyObject *PyEvtGetEventMetadataProperty(PyObject *self, PyObject *args, P
 	return ret;
 }
 PyCFunction pfnPyEvtGetEventMetadataProperty = (PyCFunction) PyEvtGetEventMetadataProperty;
+
+// @pyswig (object, int)|EvtGetLogInfo|Retrieves log file or channel information 
+// @comm Accepts keyword args
+// @comm Returns the value and type of value (EvtVarType*)
+static PyObject *PyEvtGetLogInfo(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+	static char *keywords[]={"Log", "PropertyId", NULL};
+	EVT_HANDLE hlog;
+	EVT_LOG_PROPERTY_ID prop_id;
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O&i:EvtGetLogInfo", keywords,
+		PyWinObject_AsHANDLE, &hlog,	// @pyparm <o PyEVT_HANDLE>|Log||Event log handle as returned by <om win32evtlog.EvtOpenLog>
+		&prop_id))	// @pyparm int|PropertyId||Property to retreive, EvtLog*
+		return NULL;
+
+	PEVT_VARIANT val = NULL;
+	DWORD buf_size=0, buf_needed, err;
+	Py_BEGIN_ALLOW_THREADS
+	EvtGetLogInfo(hlog, prop_id, buf_size, val, &buf_needed);
+	Py_END_ALLOW_THREADS
+	err = GetLastError();
+	if (err != ERROR_INSUFFICIENT_BUFFER)
+		return PyWin_SetAPIError("EvtGetLogInfo", err);
+	val = (PEVT_VARIANT)malloc(buf_needed);
+	if (val == NULL)
+		return PyErr_Format(PyExc_MemoryError, "Unable to allocate %d bytes", buf_needed);
+	buf_size = buf_needed;
+	BOOL bsuccess;
+	Py_BEGIN_ALLOW_THREADS
+	bsuccess = EvtGetLogInfo(hlog, prop_id, buf_size, val, &buf_needed);
+	Py_END_ALLOW_THREADS
+	PyObject *ret = NULL;
+	if (!bsuccess)
+		PyWin_SetAPIError("EvtGetLogInfo");
+	else
+		ret = PyWinObject_FromEVT_VARIANT(val);
+	free(val);
+	return ret;
+}
+PyCFunction pfnPyEvtGetLogInfo = (PyCFunction) PyEvtGetLogInfo;
+
+// @pyswig (object, int)|EvtGetEventInfo|Retrieves information about the source of an event
+// @comm Accepts keyword args
+// @comm Returns the value and type of value (EvtVarType*)
+static PyObject *PyEvtGetEventInfo(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+	static char *keywords[]={"Event", "PropertyId", NULL};
+	EVT_HANDLE hevent;
+	EVT_EVENT_PROPERTY_ID prop_id;
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O&i:EvtGetEventInfo", keywords,
+		PyWinObject_AsHANDLE, &hevent,	// @pyparm <o PyEVT_HANDLE>|Event||Handle to an event
+		&prop_id))	// @pyparm int|PropertyId||Property to retreive, EvtEvent*
+		return NULL;
+
+	PEVT_VARIANT val = NULL;
+	DWORD buf_size=0, buf_needed, err;
+	Py_BEGIN_ALLOW_THREADS
+	EvtGetEventInfo(hevent, prop_id, buf_size, val, &buf_needed);
+	Py_END_ALLOW_THREADS
+	err = GetLastError();
+	if (err != ERROR_INSUFFICIENT_BUFFER)
+		return PyWin_SetAPIError("EvtGetEventInfo", err);
+	val = (PEVT_VARIANT)malloc(buf_needed);
+	if (val == NULL)
+		return PyErr_Format(PyExc_MemoryError, "Unable to allocate %d bytes", buf_needed);
+	buf_size = buf_needed;
+	BOOL bsuccess;
+	Py_BEGIN_ALLOW_THREADS
+	bsuccess = EvtGetEventInfo(hevent, prop_id, buf_size, val, &buf_needed);
+	Py_END_ALLOW_THREADS
+	PyObject *ret = NULL;
+	if (!bsuccess)
+		PyWin_SetAPIError("EvtGetEventInfo");
+	else
+		ret = PyWinObject_FromEVT_VARIANT(val);
+	free(val);
+	return ret;
+}
+PyCFunction pfnPyEvtGetEventInfo = (PyCFunction) PyEvtGetEventInfo;
 %}
 
 
@@ -1472,6 +1550,8 @@ PyCFunction pfnPyEvtGetEventMetadataProperty = (PyCFunction) PyEvtGetEventMetada
 %native (EvtOpenEventMetadataEnum) pfnPyEvtOpenEventMetadataEnum;
 %native (EvtNextEventMetadata) pfnPyEvtNextEventMetadata;
 %native (EvtGetEventMetadataProperty) pfnPyEvtGetEventMetadataProperty;
+%native (EvtGetLogInfo) pfnPyEvtGetLogInfo;
+%native (EvtGetEventInfo) pfnPyEvtGetEventInfo;
 
 
 %init %{
@@ -1499,7 +1579,9 @@ PyCFunction pfnPyEvtGetEventMetadataProperty = (PyCFunction) PyEvtGetEventMetada
 			||(strcmp(pmd->ml_name, "EvtGetPublisherMetadataProperty")==0)
 			||(strcmp(pmd->ml_name, "EvtOpenEventMetadataEnum")==0)
 			||(strcmp(pmd->ml_name, "EvtNextEventMetadata")==0)
-			||(strcmp(pmd->ml_name, "EvtGetEventMetadataProperty")==0)		
+			||(strcmp(pmd->ml_name, "EvtGetEventMetadataProperty")==0)
+			||(strcmp(pmd->ml_name, "EvtGetLogInfo")==0)
+			||(strcmp(pmd->ml_name, "EvtGetEventInfo")==0)
 			){
 			pmd->ml_flags = METH_VARARGS | METH_KEYWORDS;
 			}
@@ -1648,3 +1730,18 @@ PyCFunction pfnPyEvtGetEventMetadataProperty = (PyCFunction) PyEvtGetEventMetada
 #define EventMetadataEventMessageID EventMetadataEventMessageID
 #define EventMetadataEventTemplate EventMetadataEventTemplate
 #define EvtEventMetadataPropertyIdEND EvtEventMetadataPropertyIdEND
+
+// EVT_LOG_PROPERTY_ID, used with EvtGetLogInfo
+#define EvtLogCreationTime EvtLogCreationTime
+#define EvtLogLastAccessTime EvtLogLastAccessTime
+#define EvtLogLastWriteTime EvtLogLastWriteTime
+#define EvtLogFileSize EvtLogFileSize
+#define EvtLogAttributes EvtLogAttributes
+#define EvtLogNumberOfLogRecords EvtLogNumberOfLogRecords
+#define EvtLogOldestRecordNumber EvtLogOldestRecordNumber
+#define EvtLogFull EvtLogFull
+
+// EVT_EVENT_PROPERTY_ID used with EvtGetEventInfo
+#define EvtEventQueryIDs EvtEventQueryIDs
+#define EvtEventPath EvtEventPath
+#define EvtEventPropertyIdEND EvtEventPropertyIdEND
