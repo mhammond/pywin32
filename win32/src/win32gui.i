@@ -7521,3 +7521,11 @@ PyObject *PyRegisterDeviceNotification(PyObject *self, PyObject *args)
 // It is generally not necessary to call this function manually, but in some cases,
 // handle values may be extracted via the struct module and need to be closed explicitly.
 BOOLAPI UnregisterDeviceNotification(HANDLE);
+
+// @pyswig |RegisterHotKey|Registers a hotkey for a window
+// @pyseeapi RegisterHotKey
+// @pyparm <o PyHANDLE>|hWnd||Handle to window that will receive WM_HOTKEY messages
+// @pyparm int|id||Unique id to be used for the hot key
+// @pyparm int|Modifiers||Control keys, combination of win32con.MOD_*
+// @pyparm int|vk||Virtual key code
+BOOLAPI RegisterHotKey(HWND, int, UINT, UINT);

@@ -1,4 +1,4 @@
-A changelog for recent builds as pasted into the sourceforge page.
+﻿A changelog for recent builds as pasted into the sourceforge page.
 
 Generally created by hand after running:
    hg log -rb2xx: > log.out
@@ -37,6 +37,15 @@ Since build 218:
 * win32com.propsys
 	Add interfaces IPropertyChange, IPropertyChangeArray, and IObjectWithPropertyKey
 	Add functions PSCreateSimplePropertyChange, PSCreatePropertyChangeArray, and SHSetDefaultProperties
+
+* win32crypt
+	Add functions and objects for handling certificates and certificate stores
+
+* win32gui
+	Add RegisterHotKey
+
+* win32evtlog
+	Add several more Evt* functions (Vista+ event log API)
 
 Since build 217:
 ----------------
