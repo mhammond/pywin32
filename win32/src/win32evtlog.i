@@ -1320,7 +1320,9 @@ PyCFunction pfnPyEvtOpenPublisherMetadata = (PyCFunction) PyEvtOpenPublisherMeta
 
 // @pyswig (object, int)|EvtGetPublisherMetadataProperty|Retrieves a property from an event publisher
 // @comm Accepts keyword args
-// @comm Returns the value and type of value (EvtVarType*)
+// @rdesc Returns the value and type of value (EvtVarType*)
+// Some properties return a handle (type EvtVarTypeEvtHandle) which can be iterated using
+// <om win32evtlog.EvtGetObjectArraySize> and <om win32evtlog.EvtGetObjectArrayProperty>.
 static PyObject *PyEvtGetPublisherMetadataProperty(PyObject *self, PyObject *args, PyObject *kwargs)
 {
 	static char *keywords[]={"PublisherMetadata", "PropertyId", "Flags", NULL};
@@ -1407,7 +1409,7 @@ PyCFunction pfnPyEvtNextEventMetadata = (PyCFunction) PyEvtNextEventMetadata;
 
 // @pyswig (object, int)|EvtGetEventMetadataProperty|Retrieves a property from an event publisher
 // @comm Accepts keyword args
-// @comm Returns the value and type of value (EvtVarType*)
+// @rdesc Returns the value and type of value (EvtVarType*).
 static PyObject *PyEvtGetEventMetadataProperty(PyObject *self, PyObject *args, PyObject *kwargs)
 {
 	static char *keywords[]={"EventMetadata", "PropertyId", "Flags", NULL};
@@ -1523,6 +1525,67 @@ static PyObject *PyEvtGetEventInfo(PyObject *self, PyObject *args, PyObject *kwa
 	return ret;
 }
 PyCFunction pfnPyEvtGetEventInfo = (PyCFunction) PyEvtGetEventInfo;
+
+// @pyswig int|EvtGetObjectArraySize|Returns the size of an array of event objects
+// @comm Accepts keyword args
+static PyObject *PyEvtGetObjectArraySize(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+	static char *keywords[]={"ObjectArray", NULL};
+	EVT_HANDLE harray;
+	DWORD size;
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O&:EvtGetObjectArraySize", keywords,
+		PyWinObject_AsHANDLE, &harray))	// @pyparm <o PyEVT_HANDLE>|ObjectArray||Handle to an array of objects as returned by <om win32evtlog.EvtGetPublisherMetadataProperty> for some ProperyId's
+		return NULL;
+	BOOL bsuccess;
+	Py_BEGIN_ALLOW_THREADS
+	bsuccess = EvtGetObjectArraySize(harray, &size);
+	Py_END_ALLOW_THREADS
+	if (!bsuccess)
+		return PyWin_SetAPIError("EvtGetObjectArraySize");
+	return PyLong_FromUnsignedLong(size);
+}
+PyCFunction pfnPyEvtGetObjectArraySize = (PyCFunction) PyEvtGetObjectArraySize;
+
+// @pyswig (object, int)|EvtGetObjectArrayProperty|Retrieves an item from an object array
+// @comm Accepts keyword args
+// @rdesc Returns the value and type of value (EvtVarType*)
+static PyObject *PyEvtGetObjectArrayProperty(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+	static char *keywords[]={"ObjectArray", "PropertyId", "ArrayIndex", "Flags", NULL};
+	EVT_HANDLE harray;
+	DWORD prop_id, index, flags = 0;
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O&kk|k:EvtGetObjectArrayProperty", keywords,
+		PyWinObject_AsHANDLE, &harray,	// @pyparm <o PyEVT_HANDLE>|ObjectArray||Handle to an array of objects as returned by <om win32evtlog.EvtGetPublisherMetadataProperty> for some ProperyId's
+		&prop_id,	// @pyparm int|PropertyId||Type of property contained in the array
+		&index,		// @pyparm int|ArrayIndex||Zero-based index of item to retrieve
+		&flags))	// @pyparm int|Flags|0|Reserved, use only 0
+		return NULL;
+
+	PEVT_VARIANT val = NULL;
+	DWORD buf_size=0, buf_needed, err;
+	Py_BEGIN_ALLOW_THREADS
+	EvtGetObjectArrayProperty(harray, prop_id, index, flags, buf_size, val, &buf_needed);
+	Py_END_ALLOW_THREADS
+	err = GetLastError();
+	if (err != ERROR_INSUFFICIENT_BUFFER)
+		return PyWin_SetAPIError("EvtGetObjectArrayProperty", err);
+	val = (PEVT_VARIANT)malloc(buf_needed);
+	if (val == NULL)
+		return PyErr_Format(PyExc_MemoryError, "Unable to allocate %d bytes", buf_needed);
+	buf_size = buf_needed;
+	BOOL bsuccess;
+	Py_BEGIN_ALLOW_THREADS
+	bsuccess = EvtGetObjectArrayProperty(harray, prop_id, index, flags, buf_size, val, &buf_needed);
+	Py_END_ALLOW_THREADS
+	PyObject *ret = NULL;
+	if (!bsuccess)
+		PyWin_SetAPIError("EvtGetObjectArrayProperty");
+	else
+		ret = PyWinObject_FromEVT_VARIANT(val);
+	free(val);
+	return ret;
+}
+PyCFunction pfnPyEvtGetObjectArrayProperty = (PyCFunction) PyEvtGetObjectArrayProperty;
 %}
 
 
@@ -1552,6 +1615,8 @@ PyCFunction pfnPyEvtGetEventInfo = (PyCFunction) PyEvtGetEventInfo;
 %native (EvtGetEventMetadataProperty) pfnPyEvtGetEventMetadataProperty;
 %native (EvtGetLogInfo) pfnPyEvtGetLogInfo;
 %native (EvtGetEventInfo) pfnPyEvtGetEventInfo;
+%native (EvtGetObjectArraySize) pfnPyEvtGetObjectArraySize;
+%native (EvtGetObjectArrayProperty) pfnPyEvtGetObjectArrayProperty;
 
 
 %init %{
@@ -1582,6 +1647,8 @@ PyCFunction pfnPyEvtGetEventInfo = (PyCFunction) PyEvtGetEventInfo;
 			||(strcmp(pmd->ml_name, "EvtGetEventMetadataProperty")==0)
 			||(strcmp(pmd->ml_name, "EvtGetLogInfo")==0)
 			||(strcmp(pmd->ml_name, "EvtGetEventInfo")==0)
+			||(strcmp(pmd->ml_name, "EvtGetObjectArraySize")==0)
+			||(strcmp(pmd->ml_name, "EvtGetObjectArrayProperty")==0)
 			){
 			pmd->ml_flags = METH_VARARGS | METH_KEYWORDS;
 			}
