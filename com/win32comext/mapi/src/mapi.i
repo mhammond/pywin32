@@ -802,9 +802,13 @@ PyObject *PyOpenStreamOnFile(PyObject *self, PyObject *args)
 		HRESULT hRes;
 		unsigned long flags = 0;
 		IStream *pStream;
-		char *filepath;
+		PyObject *obFilepath;
 		
-	if (!PyArg_ParseTuple(args, "s|l:OpenStreamOnFile", &filepath, &flags))
+		if (!PyArg_ParseTuple(args, "O|l:OpenStreamOnFile", &obFilepath, &flags))
+			return NULL;
+
+		TCHAR *filepath;
+		if (!PyWinObject_AsTCHAR(obFilepath, &filepath, FALSE))
 			return NULL;
 
 		PY_INTERFACE_PRECALL;
