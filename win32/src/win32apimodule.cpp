@@ -2266,7 +2266,7 @@ PyGetSystemInfo(PyObject * self, PyObject * args)
 static PyObject *
 PyGetNativeSystemInfo(PyObject * self, PyObject * args)
 {
-	CHECK_PFN(SetSystemPowerState);
+	CHECK_PFN(GetNativeSystemInfo);
 	if (!PyArg_ParseTuple(args, ":GetNativeSystemInfo"))
 		return NULL;
 	// @pyseeapi GetNativeSystemInfo
