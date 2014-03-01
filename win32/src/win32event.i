@@ -98,18 +98,18 @@ BOOLAPI CancelWaitableTimer(PyHANDLE handle);
 // @pyswig <o PyHANDLE>|CreateEvent|Creates a waitable event
 // @rdesc The result is a handle to the created object
 PyHANDLE CreateEvent(
-    SECURITY_ATTRIBUTES *inNullSA,   // @pyparm <o PySECURITY_ATTRIBUTES>|sa||The security attributes, or None
-    BOOL bManualReset,	// @pyparm int|bManualReset||flag for manual-reset event 
-    BOOL bInitialState,	// @pyparm int|bInitialState||flag for initial state 
-    TCHAR *INPUT_NULLOK 	// @pyparm <o PyIUnicode>|objectName||event-object name, or None
+    SECURITY_ATTRIBUTES *inNullSA,   // @pyparm <o PySECURITY_ATTRIBUTES>|EventAttributes||The security attributes, or None
+    BOOL bManualReset,	// @pyparm bool|bManualReset||flag for manual-reset event 
+    BOOL bInitialState,	// @pyparm bool|bInitialState||flag for initial state 
+    TCHAR *INPUT_NULLOK 	// @pyparm <o PyUnicode>|Name||event-object name, or None
 );
 
 // @pyswig <o PyHANDLE>|CreateMutex|Creates a mutex
 // @rdesc The result is a handle to the created object
 PyHANDLE CreateMutex(
-    SECURITY_ATTRIBUTES *inNullSA, // @pyparm object|securityAttributes||Placeholder for furture security object, or None
-    BOOL bInitialOwner,	// @pyparm int|bInitialOwner||flag for initial ownership 
-    TCHAR * INPUT_NULLOK 	// @pyparm <o PyIUnicode>|mutexName||mutex-object name, or None
+    SECURITY_ATTRIBUTES *inNullSA, // @pyparm <o PySECURITY_ATTRIBUTES>|MutexAttributes||Specifies inheritance and security descriptor for object, or None for defaults
+    BOOL bInitialOwner,	// @pyparm bool|InitialOwner||flag for initial ownership 
+    TCHAR * INPUT_NULLOK 	// @pyparm <o PyUnicode>|Name||Mutex-object name, or None
   );
 
 #ifndef MS_WINCE
@@ -119,7 +119,7 @@ PyHANDLE CreateMutex(
 PyHANDLE CreateSemaphore(
     SECURITY_ATTRIBUTES *SemaphoreAttributes, // @pyparm <o PySECURITY_ATTRIBUTES>|SemaphoreAttributes||Specifies inheritance and security descriptor for object, or None for defaults
     LONG lInitialCount,	// @pyparm int|InitialCount||Initial count 
-    LONG lMaximumCount,	// @pyparm int|Maximum count||Maximum count
+    LONG lMaximumCount,	// @pyparm int|MaximumCount||Maximum count
     TCHAR * INPUT_NULLOK // @pyparm str|SemaphoreName||Semaphore-object name, or None
 );
 
@@ -128,7 +128,7 @@ PyHANDLE CreateSemaphore(
 // @pyseeapi CreateWaitableTimer
 PyHANDLE CreateWaitableTimer(
     SECURITY_ATTRIBUTES *TimerAttributes, // @pyparm <o PySECURITY_ATTRIBUTES>|TimerAttributes||Specifies inheritance and security descriptor for object, or None for defaults
-    BOOL bManualReset,	// @pyparm bool|ManualReset||True for manual reset timer, or False to create a synchronization time
+    BOOL bManualReset,	// @pyparm bool|ManualReset||True for manual reset timer, or False to create a synchronization timer
     TCHAR * INPUT_NULLOK	// @pyparm str|TimerName||Timer object name, or None
 );
 #endif // MS_WINCE
@@ -172,7 +172,7 @@ static BOOL MakeHandleList(PyObject *handleList, HANDLE **ppBuf, DWORD *pNumEntr
 // @pyswig int|MsgWaitForMultipleObjects|Returns when a message arrives of an event is signalled
 %name(MsgWaitForMultipleObjects) PyObject *MyMsgWaitForMultipleObjects(
     PyObject *obHandleList, // @pyparm [<o PyHANDLE>, ...]|handleList||A sequence of handles to wait on.
-    BOOL bWaitAll, // @pyparm int|bWaitAll||If true, waits for all handles in the list.
+    BOOL bWaitAll, // @pyparm bool|bWaitAll||If true, waits for all handles in the list.
     DWORD dwMilliseconds,	// @pyparm int|milliseconds||time-out interval in milliseconds 
     DWORD dwWakeMask 	// @pyparm int|wakeMask||type of input events to wait for.  One of the win32event.QS_ constants.
 	// @comm Note that if bWaitAll is TRUE, the function will return when there is input in the queue,
@@ -246,29 +246,29 @@ static PyObject * MyMsgWaitForMultipleObjectsEx(
 // @pyswig <o PyHANDLE>|OpenEvent|Returns a handle of an existing named event object. 
 PyHANDLE OpenEvent(
     DWORD dwDesiredAccess,	// @pyparm int|desiredAccess||access flag - one of <om win32event.EVENT_ALL_ACCESS>, <om win32event.EVENT_MODIFY_STATE>, or (NT only) <om win32event.SYNCHRONIZE>
-    BOOL bInheritHandle,	// @pyparm int|bInheritHandle||inherit flag 
+    BOOL bInheritHandle,	// @pyparm bool|bInheritHandle||inherit flag 
     TCHAR *lpName 	// @pyparm <o PyUnicode>|name||name of event to open.
    );
 
 // @pyswig <o PyHANDLE>|OpenMutex|Returns a handle of an existing named mutex object. 
 PyHANDLE OpenMutex(
     DWORD dwDesiredAccess,	// @pyparm int|desiredAccess||access flag 
-    BOOL bInheritHandle,	// @pyparm int|bInheritHandle||inherit flag 
+    BOOL bInheritHandle,	// @pyparm bool|bInheritHandle||inherit flag 
     TCHAR *lpName 	// @pyparm <o PyUnicode>|name||name of mutex to open.
    );
 
 // @pyswig <o PyHANDLE>|OpenSemaphore|Returns a handle of an existing named semaphore object. 
 PyHANDLE OpenSemaphore(
     DWORD dwDesiredAccess,	// @pyparm int|desiredAccess||access flag 
-    BOOL bInheritHandle,	// @pyparm int|bInheritHandle||inherit flag 
+    BOOL bInheritHandle,	// @pyparm bool|bInheritHandle||inherit flag 
     TCHAR *lpName 	// @pyparm <o PyUnicode>|name||name of semaphore to open.
    );
 
-//@pyswig handle|OpenWaitableTimer|Opens an existing named waitable timer object
+//@pyswig <o PyHANDLE>|OpenWaitableTimer|Opens an existing named waitable timer object
 PyHANDLE OpenWaitableTimer(
     DWORD dwDesiredAccess,	// @pyparm int|desiredAccess||access flag
-    BOOL bInheritHandle,	// @pyparm int|bInheritHandle||inherit flag
-    TCHAR *lpTimerName	// @pyparm string|timerName||pointer to timer object name
+    BOOL bInheritHandle,	// @pyparm bool|bInheritHandle||inherit flag
+    TCHAR *lpTimerName	// @pyparm str|timerName||pointer to timer object name
 );
 
 #endif /* MS_WINCE */
@@ -306,7 +306,7 @@ BOOLAPI SetEvent(
 #ifndef MS_WINCE
 // @pyswig |SetWaitableTimer|Sets a waitable timer.
 BOOLAPI SetWaitableTimer(
-  PyHANDLE hTimer,                          // @pyparm int|handle||handle to timer
+  PyHANDLE hTimer,                          // @pyparm <o PyHANDLE>|handle||handle to timer
   LARGE_INTEGER *INPUT,          // @pyparm long|dueTime||timer due time
   long lPeriod,                           // @pyparm int|period||timer interval
   PTIMERAPCROUTINE pfnCompletionRoutine,  // @pyparm object|func||completion routine - must be None
@@ -349,7 +349,7 @@ static PyObject *MyWaitForMultipleObjects(
 // @pyswig int|WaitForMultipleObjects|Returns when an event is signalled
 %name(WaitForMultipleObjects) PyObject *MyWaitForMultipleObjects(
     PyObject *handleList,  // @pyparm [<o PyHANDLE>, ...]|handleList||A sequence of handles to wait on.
-    BOOL bWaitAll,	// @pyparm int|bWaitAll||wait flag 
+    BOOL bWaitAll,	// @pyparm bool|bWaitAll||wait flag 
     DWORD dwMilliseconds 	// @pyparm int|milliseconds||time-out interval in milliseconds 
    );	
 
@@ -382,9 +382,9 @@ static PyObject *MyWaitForMultipleObjectsEx(
 // @pyswig int|WaitForMultipleObjectsEx|Returns when an event is signalled
 %name(WaitForMultipleObjectsEx) PyObject *MyWaitForMultipleObjectsEx(
     PyObject *handleList, // @pyparm [<o PyHANDLE>, ...]|handleList||A sequence of handles to wait on.
-    BOOL bWaitAll,	// @pyparm int|bWaitAll||wait flag 
+    BOOL bWaitAll,	// @pyparm bool|bWaitAll||wait flag 
     DWORD dwMilliseconds,	// @pyparm int|milliseconds||time-out interval in milliseconds 
-    BOOL bAlertable 	// @pyparm int|bAlertable||alertable wait flag.
+    BOOL bAlertable 	// @pyparm bool|bAlertable||alertable wait flag.
    );
 #endif
 %typedef DWORD DWORD_WAITAPI
@@ -415,7 +415,7 @@ DWORD_WAITAPI WaitForSingleObject(
 DWORD_WAITAPI WaitForSingleObjectEx(
     PyHANDLE hHandle,	// @pyparm <o PyHANDLE>|hHandle||handle of object to wait for 
     DWORD dwMilliseconds, // @pyparm int|milliseconds||time-out interval in milliseconds  
-    BOOL bAlertable // @pyparm int|bAlertable||alertable wait flag.
+    BOOL bAlertable // @pyparm bool|bAlertable||alertable wait flag.
    );
 // @rdesc See <om win32event.WaitForSingleObject> for return values.   
 #endif /* MS_WINCE */
