@@ -113,23 +113,26 @@ PyHANDLE CreateMutex(
   );
 
 #ifndef MS_WINCE
-// @pyswig <o PyHANDLE>|CreateSemaphore|Creates a Semaphore
-// @rdesc The result is a handle to the created object
+// @pyswig <o PyHANDLE>|CreateSemaphore|Creates a semaphore, or opens an existing one
+// @rdesc The result is a handle to the object
+// @pyseeapi CreateSemaphore
 PyHANDLE CreateSemaphore(
-    SECURITY_ATTRIBUTES *inNullSA, // lpSemaphoreAttributes,	// @pyparm object|securityAttributes||Placeholder for furture security object, or None
-    LONG lInitialCount,	// @pyparm int|initialCount||initial count 
-    LONG lMaximumCount,	// maximum count 
-    TCHAR * INPUT_NULLOK // @pyparm <o PyIUnicode>|semaphoreName||semaphore-object name, or None
+    SECURITY_ATTRIBUTES *SemaphoreAttributes, // @pyparm <o PySECURITY_ATTRIBUTES>|SemaphoreAttributes||Specifies inheritance and security descriptor for object, or None for defaults
+    LONG lInitialCount,	// @pyparm int|InitialCount||Initial count 
+    LONG lMaximumCount,	// @pyparm int|Maximum count||Maximum count
+    TCHAR * INPUT_NULLOK // @pyparm str|SemaphoreName||Semaphore-object name, or None
 );
 
+// @pyswig <o PyHANDLE>|CreateWaitableTimer|Creates a waitable timer, or opens an existing one
+// @rdesc The result is a handle to the object
+// @pyseeapi CreateWaitableTimer
 PyHANDLE CreateWaitableTimer(
-    SECURITY_ATTRIBUTES *inNullSA, // lpTimerAttributes,	// pointer to security attributes
-    BOOL bManualReset,	// @pyparm int|bManualReset||flag for manual reset state
-    TCHAR * INPUT_NULLOK	// pointer to timer object name
+    SECURITY_ATTRIBUTES *TimerAttributes, // @pyparm <o PySECURITY_ATTRIBUTES>|TimerAttributes||Specifies inheritance and security descriptor for object, or None for defaults
+    BOOL bManualReset,	// @pyparm bool|ManualReset||True for manual reset timer, or False to create a synchronization time
+    TCHAR * INPUT_NULLOK	// @pyparm str|TimerName||Timer object name, or None
 );
 #endif // MS_WINCE
 
-// GetOverlappedResult
 
 %{
 static BOOL MakeHandleList(PyObject *handleList, HANDLE **ppBuf, DWORD *pNumEntries)
