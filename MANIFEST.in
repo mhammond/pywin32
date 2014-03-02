@@ -27,11 +27,11 @@ include win32/Demos/images/*.bmp
 include win32/src/*.h
 include win32/src/*.manifest
 include win32/src/PerfMon/perfmondata.def
-include win32/*.dsp
+include win32/src/PerfMon/*.h
 include win32/License.txt
 # COM
 include com/pythoncom.py
-include com/win32com/src/*.h
+include com/win32com/src/include/*.h
 include com/win32com/src/PythonCOM.def
 include com/win32com/src/PythonCOMLoader.def
 include com/win32com/src/PythonCOMLoader.cpp

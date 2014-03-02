@@ -1559,6 +1559,10 @@ win32_extensions.append(
         unicode_mode=True,
         export_symbol_file = "win32/src/PerfMon/perfmondata.def",
         is_regular_dll = 1,
+        depends = [
+            "win32/src/PerfMon/perfutil.h",
+            "win32/src/PerfMon/PyPerfMonControl.h",
+            ],
         ),
     )
 
