@@ -1984,6 +1984,7 @@ com_extensions += [
                         %(shell)s/PyICustomDestinationList.cpp
                         %(shell)s/PyIDefaultExtractIconInit.cpp
                         %(shell)s/PyIDeskBand.cpp
+                        %(shell)s/PyIDisplayItem.cpp
                         %(shell)s/PyIDockingWindow.cpp
                         %(shell)s/PyIDropTargetHelper.cpp
                         %(shell)s/PyIEnumExplorerCommand.cpp

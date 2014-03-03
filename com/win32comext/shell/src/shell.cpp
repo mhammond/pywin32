@@ -3650,7 +3650,7 @@ static const PyCom_InterfaceSupportInfo g_interfaceSupportData[] =
 	PYCOM_INTERFACE_FULL(RelatedItem),
 	PYCOM_INTERFACE_FULL(TransferMediumItem), // based on IRelatedItem with no extra methods
 	PYCOM_INTERFACE_FULL(CurrentItem), // based on IRelatedItem with no extra methods
-	PYCOM_INTERFACE_FULL(CurrentItem), // based on IRelatedItem with no extra methods
+	PYCOM_INTERFACE_FULL(DisplayItem), // based on IRelatedItem with no extra methods
 	PYCOM_INTERFACE_FULL(IdentityName), // based on IRelatedItem with no extra methods
 	// These require Windows 7 SDK to build
 #if WINVER >= 0x0601

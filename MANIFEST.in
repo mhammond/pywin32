@@ -28,6 +28,9 @@ include win32/src/*.h
 include win32/src/*.manifest
 include win32/src/PerfMon/perfmondata.def
 include win32/src/PerfMon/*.h
+include win32/src/win32crypt/*.h
+include win32/src/win32net/*.h
+include win32/src/win32wnet/*.h
 include win32/License.txt
 # COM
 include com/pythoncom.py
@@ -74,6 +77,7 @@ include com/win32comext/mapi/src/mapilib.i
 include com/win32comext/mapi/src/*.h
 include com/win32comext/mapi/demos/*.py
 include com/win32comext/propsys/test/*.py
+include com/win32comext/propsys/src/*.h
 include com/win32comext/shell/src/*.h
 include com/win32comext/shell/demos/servers/*.py
 include com/win32comext/shell/demos/servers/*.propdesc
