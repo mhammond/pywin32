@@ -170,8 +170,10 @@ def ado_type_name(ado_type):
 #adInteger 3 Indicates a four-byte signed integer (DBTYPE_I4). 
 #adSingle 4 Indicates a single-precision floating-point value (DBTYPE_R4). 
 #adDouble 5 Indicates a double-precision floating-point value (DBTYPE_R8). 
-#adCurrency 6 Indicates a currency value (DBTYPE_CY). Currency is a fixed-point number with four digits to the right of the decimal point. It is stored in an eight-byte signed integer scaled by 10,000. 
-#adDate 7 Indicates a date value (DBTYPE_DATE). A date is stored as a double, the whole part of which is the number of days since December 30, 1899, and the fractional part of which is the fraction of a day. 
+#adCurrency 6 Indicates a currency value (DBTYPE_CY). Currency is a fixed-point number
+#   with four digits to the right of the decimal point. It is stored in an eight-byte signed integer scaled by 10,000.
+#adDate 7 Indicates a date value (DBTYPE_DATE). A date is stored as a double, the whole part of which is
+#   the number of days since December 30, 1899, and the fractional part of which is the fraction of a day.
 #adBSTR 8 Indicates a null-terminated character string (Unicode) (DBTYPE_BSTR). 
 #adIDispatch 9 Indicates a pointer to an IDispatch interface on a COM object (DBTYPE_IDISPATCH). 
 #adError 10 Indicates a 32-bit error code (DBTYPE_ERROR). 
@@ -185,12 +187,14 @@ def ado_type_name(ado_type):
 #adUnsignedInt 19 Indicates a four-byte unsigned integer (DBTYPE_UI4). 
 #adBigInt 20 Indicates an eight-byte signed integer (DBTYPE_I8). 
 #adUnsignedBigInt 21 Indicates an eight-byte unsigned integer (DBTYPE_UI8). 
-#adFileTime 64 Indicates a 64-bit value representing the number of 100-nanosecond intervals since January 1, 1601 (DBTYPE_FILETIME). 
+#adFileTime 64 Indicates a 64-bit value representing the number of 100-nanosecond intervals since
+#    January 1, 1601 (DBTYPE_FILETIME).
 #adGUID 72 Indicates a globally unique identifier (GUID) (DBTYPE_GUID). 
 #adBinary 128 Indicates a binary value (DBTYPE_BYTES). 
 #adChar 129 Indicates a string value (DBTYPE_STR). 
 #adWChar 130 Indicates a null-terminated Unicode character string (DBTYPE_WSTR). 
-#adNumeric 131 Indicates an exact numeric value with a fixed precision and scale (DBTYPE_NUMERIC). adUserDefined 132 Indicates a user-defined variable (DBTYPE_UDT). 
+#adNumeric 131 Indicates an exact numeric value with a fixed precision and scale (DBTYPE_NUMERIC).
+#   adUserDefined 132 Indicates a user-defined variable (DBTYPE_UDT).
 #adUserDefined 132 Indicates a user-defined variable (DBTYPE_UDT). 
 #adDBDate 133 Indicates a date value (yyyymmdd) (DBTYPE_DBDATE). 
 #adDBTime 134 Indicates a time value (hhmmss) (DBTYPE_DBTIME). 
@@ -204,7 +208,8 @@ def ado_type_name(ado_type):
 #adLongVarWChar 203 Indicates a long null-terminated Unicode string value (Parameter object only). 
 #adVarBinary 204 Indicates a binary value (Parameter object only). 
 #adLongVarBinary 205 Indicates a long binary value (Parameter object only). 
-#adArray (Does not apply to ADOX.) 0x2000 A flag value, always combined with another data type constant, that indicates an array of that other data type.  
+#adArray (Does not apply to ADOX.) 0x2000 A flag value, always combined with another data type constant,
+#   that indicates an array of that other data type.
 
 # Error codes to names
 adoErrors= {

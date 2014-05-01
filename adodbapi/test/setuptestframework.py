@@ -1,20 +1,40 @@
-#!/usr/bin/python2 Configure this in order to run the testcases.
-"setuptestframework.py v 2.4.3"
+#!/usr/bin/python2
+# Configure this in order to run the testcases.
+"setuptestframework.py v 2.5.0.c9"
 
 import os
 import sys
 import tempfile
 import shutil
 
+try:
+    OSErrors = (WindowsError, OSError)
+except NameError:  # not running on Windows
+    OSErrors = OSError
+
 def maketemp():
-    tempdir = tempfile.mkdtemp(prefix='adotest_')
+    temphome = tempfile.gettempdir()
+    tempdir = os.path.join(temphome, 'adodbapi_test')
+    ## try:  ## if running simultanous test, don't erase the other thread's work
+    ##    shutil.rmtree(tempdir) # kill off an old copy
+    ## except: pass
+    try: os.mkdir(tempdir)
+    except: pass
     return tempdir
 
-def _cleanup_function(testfolder):
-    shutil.rmtree(testfolder)
+def _cleanup_function(testfolder, mdb_name):
+    try: os.unlink(os.path.join(testfolder, mdb_name))
+    except: pass  # mdb database not present
+    try: shutil.rmtree(os.path.join(testfolder, 'adodbapi'))
+    except: pass # test package not present
 
 def getcleanupfunction():
     return _cleanup_function
+
+def find_ado_path():
+    adoName = os.path.normpath(os.getcwd() + '/../../adodbapi.py')
+    adoPackage = os.path.dirname(adoName)
+    return adoPackage
 
 # make a new package directory for the test copy of ado
 def makeadopackage(testfolder):
@@ -22,7 +42,10 @@ def makeadopackage(testfolder):
     adoPath = os.path.dirname(adoName)
     if os.path.exists(adoName):
         newpackage = os.path.join(testfolder,'adodbapi')
-        os.mkdir(newpackage)
+        try:
+            os.mkdir(newpackage)
+        except OSErrors:
+            print('*Note: temporary adodbapi package already exists: may be two versions running?')
         for f in os.listdir(adoPath):
             if f.endswith('.py'):
                 shutil.copy(os.path.join(adoPath, f), newpackage)
@@ -36,51 +59,55 @@ def makeadopackage(testfolder):
     else:
         raise EnvironmentError('Connot find source of adodbapi to test.')
 
-def makemdb(testfolder):
+def makemdb(testfolder, mdb_name):
     # following setup code borrowed from pywin32 odbc test suite
     # kindly contributed by Frank Millman.
-    import tempfile
     import os
 
-    _accessdatasource = tempfile.mktemp(suffix='.mdb', prefix='ado_test_', dir=testfolder)
-    if os.path.isfile(_accessdatasource):
-        os.unlink(_accessdatasource)
-    try:
-        from win32com.client.gencache import EnsureDispatch
-        from win32com.client import constants
-        win32 = True
-    except ImportError: #perhaps we are running IronPython
-        win32 = False #iron Python
-        from System import Activator, Type
-
-    # Create a brand-new database - what is the story with these?
-    dbe = None
-    for suffix in (".36", ".35", ".30"):
+    _accessdatasource = os.path.join(testfolder, mdb_name)
+    if not os.path.isfile(_accessdatasource):
         try:
+            from win32com.client.gencache import EnsureDispatch
+            from win32com.client import constants
+            win32 = True
+        except ImportError: #perhaps we are running IronPython
+            win32 = False #iron Python
+            try:
+                from System import Activator, Type
+            except:
+                pass
+
+        # Create a brand-new database - what is the story with these?
+        dbe = None
+        for suffix in (".36", ".35", ".30"):
+            try:
+                if win32:
+                    dbe = EnsureDispatch("DAO.DBEngine" + suffix)
+                else:
+                    type= Type.GetTypeFromProgID("DAO.DBEngine" + suffix)
+                    dbe =  Activator.CreateInstance(type)
+                break
+            except:
+                pass
+        if dbe:
+            print('    ...Creating ACCESS db at '+_accessdatasource)
             if win32:
-                dbe = EnsureDispatch("DAO.DBEngine" + suffix)
+                workspace = dbe.Workspaces(0)
+                newdb = workspace.CreateDatabase(_accessdatasource,
+                                                constants.dbLangGeneral,
+                                                constants.dbEncrypt)
             else:
-                type= Type.GetTypeFromProgID("DAO.DBEngine" + suffix)
-                dbe =  Activator.CreateInstance(type)
-            break
-        except:
-            pass
-    if dbe:
-        print(('    ...Creating ACCESS db at '+_accessdatasource))
-        if win32:
-            workspace = dbe.Workspaces(0)
-            newdb = workspace.CreateDatabase(_accessdatasource, 
-                                            constants.dbLangGeneral,
-                                            constants.dbEncrypt)
+                newdb = dbe.CreateDatabase(_accessdatasource,';LANGID=0x0409;CP=1252;COUNTRY=0')
+            newdb.Close()
         else:
-            newdb = dbe.CreateDatabase(_accessdatasource,';LANGID=0x0409;CP=1252;COUNTRY=0')
-        newdb.Close()
-    else:
-        print(('    ...copying test ACCESS db to '+_accessdatasource))
-        mdbName = os.path.normpath(os.getcwd() + '/../examples/test.mdb')
-        import shutil
-        shutil.copy(mdbName, _accessdatasource)
+            print('    ...copying test ACCESS db to '+_accessdatasource)
+            mdbName = os.path.normpath(os.getcwd() + '/../examples/test.mdb')
+            import shutil
+            shutil.copy(mdbName, _accessdatasource)
 
     return  _accessdatasource
 
-
+if __name__ == "__main__":
+    print('Setting up a Jet database for server to use for remote testing...')
+    temp = maketemp()
+    makemdb(temp, 'server_test.mdb')

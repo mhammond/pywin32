@@ -5,48 +5,79 @@ import unittest
 import sys
 
 import dbapi20
-import is64bit
 import setuptestframework
 
 testfolder = setuptestframework.maketemp()
-pth = setuptestframework.makeadopackage(testfolder)
+if '--package' in sys.argv:
+    pth = setuptestframework.makeadopackage(testfolder)
+    sys.argv.remove('--package')
+else:
+    pth = setuptestframework.find_ado_path()
 if pth not in sys.path:
     sys.path.insert(1,pth)
 # function to clean up the temporary folder -- calling program must run this function before exit.
 cleanup = setuptestframework.getcleanupfunction()
 
 import adodbapi
+import adodbapi.is64bit as is64bit
+db = adodbapi
+
+if '--verbose' in sys.argv:
+    db.adodbapi.verbose = 3
 
 print(adodbapi.version)
 print("Tested with dbapi20 %s" % dbapi20.__version__)
 
+try:
+    onWindows = bool(sys.getwindowsversion()) # seems to work on all versions of Python
+except:
+    onWindows = False
 
 node = platform.node()
-if node == "novelt2":
-    _computername = '127.0.0.1'
-    _databasename = 'vernon'
-    connStr = "Provider=SQLOLEDB.1; Integrated Security=SSPI; Initial Catalog=%s;Data Source=%s" %(_databasename, _computername)
-elif node == "z-PC":
+
+conn_kws = {}
+host = None # if None, will use macro to fill in node name
+instance = r'%s\SQLExpress'
+conn_kws['name'] = 'adotest'
+
+if host is None:
+    conn_kws['macro_getnode'] = ['host', instance]
+else:
+    conn_kws['host'] = host
+
+conn_kws['provider'] = 'Provider=SQLNCLI11;DataTypeCompatibility=80;MARS Connection=True;'
+connStr = "%(provider)s; Integrated Security=SSPI; Initial Catalog=%(name)s;Data Source=%(host)s"
+
+if onWindows and node != "z-PC":
+    pass # default should make a local SQL Server connection
+elif node == "xxx":  # try Postgres database
     _computername = "25.223.161.222"
     _databasename='adotest'
     _username = 'adotestuser'
     _password = '12345678'
     _driver="PostgreSQL Unicode"
     _provider = ''
-    if is64bit.Python():
-        _driver += '(x64)'
-        _provider = 'Provider=MSDASQL;'
     connStr = '%sDriver={%s};Server=%s;Database=%s;uid=%s;pwd=%s;' % \
                   (_provider,_driver,_computername,_databasename,_username,_password)
-else:  # ACCESS data base is known to fail some tests.
+elif node == "yyy":  # ACCESS data base is known to fail some tests.
+    if is64bit.Python():
+        driver = "Microsoft.ACE.OLEDB.12.0"
+    else:
+        driver = "Microsoft.Jet.OLEDB.4.0"
     testmdb = setuptestframework.makemdb(testfolder)
-    connStr = r"Provider=Microsoft.Jet.OLEDB.4.0;Data Source=" + testmdb
-print('Using Connection String='+connStr)
+    connStr = r"Provider=%s;Data Source=%s" % (driver, testmdb)
+else: # try a remote connection to an SQL server
+    conn_kws['proxy_host'] = '25.44.77.176'
+    import adodbapi.remote
+    db = adodbapi.remote
+
+print('Using Connection String like=%s' % connStr)
+print('Keywords=%s' % repr(conn_kws))
 
 class test_adodbapi(dbapi20.DatabaseAPI20Test):
-    driver = adodbapi
-    connect_args =  (connStr,)
-    connect_kw_args = {}
+    driver = db
+    connect_args = (connStr,)
+    connect_kw_args = conn_kws
 
     def __init__(self,arg):
         dbapi20.DatabaseAPI20Test.__init__(self,arg)
@@ -58,22 +89,32 @@ class test_adodbapi(dbapi20.DatabaseAPI20Test):
         # Call superclass setUp In case this does something in the
         # future
         dbapi20.DatabaseAPI20Test.setUp(self)
-        con = self._connect()
-        con.close()
         if self.testMethodName()=='test_callproc':
-            sql="""
-                create procedure templower
-                    @theData varchar(50)
-                as
-                    select lower(@theData)
-            """
-            con = self._connect()       
+            con = self._connect()
+            engine = con.dbms_name
+            ## print('Using database Engine=%s' % engine) ##
+            if engine != 'MS Jet':
+                sql="""
+                    create procedure templower
+                        @theData varchar(50)
+                    as
+                        select lower(@theData)
+                """
+            else: # Jet
+                sql="""
+                    create procedure templower
+                        (theData varchar(50))
+                    as
+                        select lower(theData);
+                """
             cur = con.cursor()
             try:
                 cur.execute(sql)
                 con.commit()
             except:
                 pass
+            cur.close()
+            con.close()
             self.lower_func='templower'
 
 
@@ -81,7 +122,10 @@ class test_adodbapi(dbapi20.DatabaseAPI20Test):
         if self.testMethodName()=='test_callproc':
             con = self._connect()
             cur = con.cursor()
-            cur.execute("drop procedure templower")
+            try:
+                cur.execute("drop procedure templower")
+            except:
+                pass
             con.commit()
         dbapi20.DatabaseAPI20Test.tearDown(self)
         
@@ -134,4 +178,4 @@ class test_adodbapi(dbapi20.DatabaseAPI20Test):
 
 if __name__ == '__main__':
     unittest.main()
-    cleanup(testfolder)
+    cleanup(testfolder, None)

@@ -22,11 +22,12 @@ Since build 218:
    Unfortunately, this means that only IExchangeManageStore::CreateStoreEntryID
    is currently available in a 64-bit build. (Nick Czeczulin)
 
-* adodbapi updated to version 2.4.3 -- new examples folder includes short programs for
-   reading and writing .xls spreadsheets and reading ACCESS .mdb files using SQL.
+* adodbapi updated to version 2.6 -- new examples folder includes short programs for
+    reading and writing .xls spreadsheets and reading ACCESS .mdb files using SQL.
   New functions .is64bit.Python() and .is64bit.os() to help pick the correct drivers.
   New function .schema_table.names() returns a list of all tables in a database.
-   see adodbapi/README.txt for more information.
+  Ability for a Windows computer to be a database proxy for a remote (Linux or Windows) unit.
+    see adodbapi/README.txt for more information.
 
 * Fix issue implementing COM objects from within a virtualenv (Kevin Smyth 
   via issue #3597965)

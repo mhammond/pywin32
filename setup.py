@@ -2562,8 +2562,9 @@ dist = setup(name="pywin32",
                 'isapi/test/*.py',
                 'isapi/test/*.txt',
                 'adodbapi/*.txt',
-                'adodbapi/test/*.py',
-                 ]) +
+                'adodbapi/test/*.py'
+                'adodbapi/examples/*.py'
+        ]) +
                 # The headers and .lib files
                 [
                     ('win32/include',    ('win32/src/PyWinTypes.h',)),

@@ -1,4 +1,3 @@
-from __future__ import print_function
 import sys
 import adodbapi
 try:
@@ -25,12 +24,8 @@ conn = adodbapi.connect(constr)
 try:  # second command line argument will be worksheet name -- default to first worksheet
     sheet = sys.argv[2]
 except IndexError:
-    # use ADO internals to get the name of the first worksheet
-    ado = conn.adoConn  # the actual ADO connection object
-    adSchemaTables = 20  # known constant from Microsoft
-    schema = ado.OpenSchema(adSchemaTables) # get list of tables
-    f = adodbapi.getIndexedValue(schema.Fields,'TABLE_NAME')
-    sheet = f.Value
+    # use ADO feature to get the name of the first worksheet
+    sheet = conn.get_table_names()[0]
 
 print('Shreadsheet=%s  Worksheet=%s' % (filename, sheet))
 print('------------------------------------------------------------')
