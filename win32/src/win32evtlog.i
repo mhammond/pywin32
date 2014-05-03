@@ -1742,7 +1742,9 @@ PyCFunction pfnPyEvtGetObjectArrayProperty = (PyCFunction) PyEvtGetObjectArrayPr
 #define EvtChannelPublishingConfigClockType EvtChannelPublishingConfigClockType
 #define EvtChannelPublishingConfigSidType EvtChannelPublishingConfigSidType
 #define EvtChannelPublisherList EvtChannelPublisherList
+#ifdef EvtChannelPublishingConfigFileMax // this is only in SDK versions 7 and up
 #define EvtChannelPublishingConfigFileMax EvtChannelPublishingConfigFileMax
+#endif
 #define EvtChannelConfigPropertyIdEND EvtChannelConfigPropertyIdEND
 
 // Login type used with EvtOpenSession

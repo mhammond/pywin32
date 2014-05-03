@@ -544,9 +544,14 @@ class WinExt_win32com_mapi(WinExt_win32com):
         sdk_install_dir = None
         libs = kw.get("libraries", "")
         keyname = "SOFTWARE\Microsoft\Exchange\SDK"
+        flags = _winreg.KEY_READ
+        try:
+            flags |= _winreg.KEY_WOW64_32KEY
+        except AttributeError:
+            pass # this version doesn't support 64 bits, so must already be using 32bit key.
         for root in _winreg.HKEY_LOCAL_MACHINE, _winreg.HKEY_CURRENT_USER:
             try:
-                keyob = _winreg.OpenKey(root, keyname, 0, _winreg.KEY_READ | _winreg.KEY_WOW64_32KEY)
+                keyob = _winreg.OpenKey(root, keyname, 0, flags)
                 value, type_id = _winreg.QueryValueEx(keyob, "INSTALLDIR")
                 if type_id == _winreg.REG_SZ:
                     sdk_install_dir = value
