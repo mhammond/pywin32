@@ -9,7 +9,8 @@ Since build 218:
  * win32com.mapi
    Addded outlook interface IConverterSession with methods MIMEToMAPI, MAPIToMIMEStm, and SetAdrBook
    Added method OpenStreamOnFile (Nick Czeczulin)
- 
+   Ignore PT_MV_TSTRING along with PT_TSTRING (Nick Czeczulin) 
+
  * Conversions from a Python object to a variant now does a better job at
    deciding what variant type to use, taking into account the size and sign of
    the value (Stefan Schukat via patch #127)
@@ -32,8 +33,18 @@ Since build 218:
 * Fix issue implementing COM objects from within a virtualenv (Kevin Smyth 
   via issue #3597965)
 
+* Fix some issues using decimal objects with Python 3.3 and later (rupole)
+
+* Add a counterpart to VB's Nothing, from patch 3609027 by Stefan Schukat
+
+* win32api
+    Handle REG_QWORD (64-bit ints) (rupole)
+    Add GetEnvironmentVariableW and SetEnvironmentVariableW (rupole)
+    Fix function pointer check for win32api.GetNativeSystemInfo (bug#665)
+
 * win32com.shell
 	Add interfaces IFileOperation and IFileOperationProgressSink
+    Add SHParseDisplayName (feature req #3585998) (rupole)
 
 * win32com.propsys
 	Add interfaces IPropertyChange, IPropertyChangeArray, and IObjectWithPropertyKey
@@ -43,10 +54,16 @@ Since build 218:
 	Add functions and objects for handling certificates and certificate stores
 
 * win32gui
-	Add RegisterHotKey
+	Add RegisterHotKey (rupole)
 
 * win32evtlog
 	Add several more Evt* functions (Vista+ event log API)
+
+* win32prociess
+  Add EnumProcessModulesEx (feature request 3608155) (rupole)
+
+* pythonwin
+  Fix a hang using the tools menu
 
 Since build 217:
 ----------------
