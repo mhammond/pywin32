@@ -261,11 +261,11 @@ PyObject *PyIMAPIProp::OpenProperty(PyObject *self, PyObject *args)
 	HRESULT hr;
 	IMAPIProp *pMAPIProp;
 	if ((pMAPIProp=GetI(self))==NULL) return NULL;
-	// @pyparm int|propTag||The property tag to open
+	// @pyparm ULONG|propTag||The property tag to open
 	// @pyparm <o PyIID>|iid||The IID of the resulting interface.
 	// @pyparm int|interfaceOptions||Data that relates to the interface identified by the lpiid parameter. 
 	// @pyparm int|flags||flags
-    if(!PyArg_ParseTuple(args,"lOll:OpenProperty",&propTag, &obIID, &interfaceOptions, &flags))
+    if(!PyArg_ParseTuple(args,"kOll:OpenProperty",&propTag, &obIID, &interfaceOptions, &flags))
 		return NULL;
 	// IID.
 	if (!PyWinObject_AsIID(obIID, &iid))

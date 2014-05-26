@@ -125,9 +125,9 @@ BOOL AllocMVBuffer(PyObject *seq, size_t itemSize, void *pAllocMoreLinkBlock, vo
 BOOL PyMAPIObject_AsSPropValue(PyObject *Valob, SPropValue *pv, void *pAllocMoreLinkBlock)
 {
 	PyObject *ob;
-	// @pyparm int|propType||The type of the MAPI property
+	// @pyparm ULONG|propType||The type of the MAPI property
 	// @pyparm object|value||The property value
-	if (!PyArg_ParseTuple(Valob, "lO:SPropValue item", &pv->ulPropTag, &ob )) {
+	if (!PyArg_ParseTuple(Valob, "kO:SPropValue item", &pv->ulPropTag, &ob )) {
 		PyErr_Clear();
 		PyErr_SetString(PyExc_TypeError, "An SPropValue item must be a tuple of (integer, object)");
 		return NULL;
@@ -514,7 +514,7 @@ PyObject *PyMAPIObject_FromSPropValue(SPropValue *pv)
 		PyErr_SetString(PyExc_MemoryError, "Tuple(2) for PROP result");
 		return NULL;
 	}
-	PyTuple_SET_ITEM(rc, 0, PyInt_FromLong(pv->ulPropTag));
+	PyTuple_SET_ITEM(rc, 0, PyLong_FromUnsignedLong(pv->ulPropTag));
 	PyTuple_SET_ITEM(rc, 1, val);
 	return rc;
 }
@@ -723,7 +723,7 @@ BOOL PyMAPIObject_AsSPropTagArray(PyObject *obta, SPropTagArray **ppta)
 				MAPIFreeBuffer(pta);
 				return FALSE;
 			}
-			pta->aulPropTag[i] = PyInt_AsLong(obItem);
+			pta->aulPropTag[i] = PyLong_AsUnsignedLong(obItem);
 			if (PyErr_Occurred()) {
 				Py_DECREF(obItem);
 				MAPIFreeBuffer(pta);
@@ -733,7 +733,7 @@ BOOL PyMAPIObject_AsSPropTagArray(PyObject *obta, SPropTagArray **ppta)
 		}
 	} else {
 		// Simple int.
-		pta->aulPropTag[0] = PyInt_AsLong(obta);
+		pta->aulPropTag[0] = PyLong_AsUnsignedLong(obta);
 	}
 	*ppta = pta;
 	return TRUE;
@@ -749,7 +749,7 @@ PyObject *PyMAPIObject_FromSPropTagArray(SPropTagArray *pta)
 {
 	PyObject *ret = PyTuple_New(pta->cValues);
 	for (ULONG i=0;i<pta->cValues;i++) {
-		PyTuple_SET_ITEM(ret, i, PyInt_FromLong(pta->aulPropTag[i]));
+		PyTuple_SET_ITEM(ret, i, PyLong_FromUnsignedLong(pta->aulPropTag[i]));
 	}
 	return ret;
 }
@@ -859,7 +859,7 @@ BOOL PyMAPIObject_AsMAPINAMEIDArray(PyObject *ob, MAPINAMEID ***pppNameId, ULONG
 			goto loop_error;
 		if (PyInt_Check(obPropId)) {
 			pNew->ulKind = MNID_ID;
-			pNew->Kind.lID = PyInt_AsLong(obPropId);
+			pNew->Kind.lID = PyLong_AsUnsignedLong(obPropId);
 		} else if (PyWinObject_AsBstr(obPropId, &bstrVal)) {
 			// Make a copy of the string
 			pNew->ulKind = MNID_STRING;
@@ -922,11 +922,11 @@ BOOL PyMAPIObject_AsSingleSRestriction(PyObject *ob, SRestriction *pRest, void *
 // @object PySExistRestriction|
 BOOL PyMAPIObject_AsSExistRestriction(PyObject *ob, SExistRestriction *pRest, void *pAllocMoreLinkBlock)
 {
-	// @pyparm int|propTag||The property ID to check for existance.
+	// @pyparm ULONG|propTag||The property ID to check for existance.
 	// @pyparm int|reserved1|0|
 	// @pyparm int|reserved2|0|
 	pRest->ulReserved1 = pRest->ulReserved2 = 0;
-	if (!PyArg_ParseTuple(ob, "l|ll:SExistRestriction tuple", &pRest->ulPropTag, &pRest->ulReserved1, &pRest->ulReserved2))
+	if (!PyArg_ParseTuple(ob, "k|ll:SExistRestriction tuple", &pRest->ulPropTag, &pRest->ulReserved1, &pRest->ulReserved2))
 		return FALSE;
 	return TRUE;
 }
@@ -935,10 +935,10 @@ BOOL PyMAPIObject_AsSExistRestriction(PyObject *ob, SExistRestriction *pRest, vo
 BOOL PyMAPIObject_AsSPropertyRestriction(PyObject *ob, SPropertyRestriction *pRest, void *pAllocMoreLinkBlock)
 {
 	// @pyparm int|relOp||
-	// @pyparm int|propTag||The property ID.
+	// @pyparm ULONG|propTag||The property ID.
 	// @pyparm <o PySPropValue>|propertyValue||
 	PyObject *subOb;
-	if (!PyArg_ParseTuple(ob, "llO:SPropertyRestriction tuple", &pRest->relop, &pRest->ulPropTag, &subOb))
+	if (!PyArg_ParseTuple(ob, "lkO:SPropertyRestriction tuple", &pRest->relop, &pRest->ulPropTag, &subOb))
 		return FALSE;
 	HRESULT hr;
 	if (FAILED((hr=MAPIAllocateMore(sizeof(SPropValue), pAllocMoreLinkBlock, (void **)&pRest->lpProp)))) {
@@ -953,10 +953,10 @@ BOOL PyMAPIObject_AsSPropertyRestriction(PyObject *ob, SPropertyRestriction *pRe
 BOOL PyMAPIObject_AsSContentRestriction(PyObject *ob, SContentRestriction *pRest, void *pAllocMoreLinkBlock)
 {
 	// @pyparm int|fuzzyLevel||
-	// @pyparm int|propTag||The property ID.
+	// @pyparm ULONG|propTag||The property ID.
 	// @pyparm <o PySPropValue>|propertyValue||
 	PyObject *subOb;
-	if (!PyArg_ParseTuple(ob, "llO:SContentRestriction tuple", &pRest->ulFuzzyLevel, &pRest->ulPropTag, &subOb))
+	if (!PyArg_ParseTuple(ob, "lkO:SContentRestriction tuple", &pRest->ulFuzzyLevel, &pRest->ulPropTag, &subOb))
 		return FALSE;
 	HRESULT hr;
 	if (FAILED((hr=MAPIAllocateMore(sizeof(SPropValue), pAllocMoreLinkBlock, (void **)&pRest->lpProp)))) {
@@ -1037,10 +1037,10 @@ BOOL PyMAPIObject_AsSOrRestriction(PyObject *ob, SOrRestriction *pRest, void *pA
 BOOL PyMAPIObject_AsSBitMaskRestriction(PyObject *ob, SBitMaskRestriction *pRest, void *pAllocMoreLinkBlock)
 {
 	// @pyparm int|relBMR||
-	// @pyparm int|propTag||The property ID.
+	// @pyparm ULONG|propTag||The property ID.
 	// @pyparm int|ulMask|0|
 	pRest->ulMask=0;
-	if (!PyArg_ParseTuple(ob, "ll|l", &pRest->relBMR, &pRest->ulPropTag, &pRest->ulMask))
+	if (!PyArg_ParseTuple(ob, "lk|l", &pRest->relBMR, &pRest->ulPropTag, &pRest->ulMask))
 		return FALSE;
 	return TRUE;
 }
