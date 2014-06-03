@@ -3277,7 +3277,7 @@ static PyObject *PySHGetIDListFromObject(PyObject *self, PyObject *args)
 	if(!PyArg_ParseTuple(args, "O:SHGetIDListFromObject", &ob))
 		return NULL;
 
-	IUnknown *unk;
+	IUnknown *unk = NULL;
 	PIDLIST_ABSOLUTE pidl;
 	HRESULT hr;
 	if (!PyCom_InterfaceFromPyInstanceOrObject(ob, IID_IUnknown, (void **)&unk, FALSE/* bNoneOK */))
