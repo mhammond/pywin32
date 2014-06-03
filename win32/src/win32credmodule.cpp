@@ -639,7 +639,7 @@ PyObject *PyCredRead(PyObject *self, PyObject *args, PyObject *kwargs)
 	PyObject *obtargetname, *ret=NULL;
 	WCHAR *targetname=NULL;
 	DWORD cred_type, flags=0;
-	PCREDENTIAL cred;
+	PCREDENTIAL cred = NULL;
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "Ok|k:CredRead", keywords,
 		&obtargetname,		// @pyparm <o PyUnicode>|TargetName||The target of the credentials to retrieve
 		&cred_type,			// @pyparm int|Type||One of the CRED_TYPE_* constants
