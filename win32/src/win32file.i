@@ -1099,7 +1099,7 @@ MyUnlockFileEx(PyObject *self, PyObject *args)
     PyObject *obOverlapped = NULL;
     DWORD nbytesLow, nbytesHigh;
 
-    if (!PyArg_ParseTuple(args, "OiiO:UnlockFileEx", 
+    if (!PyArg_ParseTuple(args, "OkkO:UnlockFileEx", 
         &obhFile, // @pyparm <o PyHANDLE>/int|hFile||Handle to the file
         &nbytesLow, // @pyparm nbytesLow|int||low-order part of number of
                     // bytes to lock
