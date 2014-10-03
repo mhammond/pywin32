@@ -2318,7 +2318,6 @@ PyGetShortPathName(PyObject * self, PyObject * args)
 			return NULL;
 
 		char szOutPath[_MAX_PATH + 1];
-		// @pyseeapi GetShortPathName
 		PyW32_BEGIN_ALLOW_THREADS
 		DWORD rc = GetShortPathNameA(path, szOutPath, sizeof(szOutPath));
 		PyW32_END_ALLOW_THREADS
@@ -2330,20 +2329,39 @@ PyGetShortPathName(PyObject * self, PyObject * args)
 		return Py_BuildValue("s", szOutPath);
 		}
 #endif
+	PyObject *ret=NULL;
 	WCHAR *path;
 	if (!PyWinObject_AsWCHAR(obPath, &path))
 		return NULL;
-	WCHAR szOutPath[_MAX_PATH + 1];
+	WCHAR *szOutPath=NULL;
+	DWORD rc, bufsize;
 	// @pyseeapi GetShortPathName
 	PyW32_BEGIN_ALLOW_THREADS
-	DWORD rc = GetShortPathNameW(path, szOutPath, sizeof(szOutPath)/sizeof(szOutPath[0]));
+	rc = GetShortPathNameW(path, NULL, 0);
 	PyW32_END_ALLOW_THREADS
+	if (rc == 0)
+		PyWin_SetAPIError("GetShortPathNameW");
+	else{
+		bufsize = rc;
+		szOutPath = (WCHAR *)malloc(bufsize * sizeof(WCHAR));
+		if (szOutPath == NULL)
+			PyErr_NoMemory();
+		else{
+			PyW32_BEGIN_ALLOW_THREADS
+			rc = GetShortPathNameW(path, szOutPath, bufsize);
+			PyW32_END_ALLOW_THREADS
+			if (rc == 0)
+				PyWin_SetAPIError("GetShortPathNameW");
+			else if (rc > bufsize)
+				ReturnError("Short path name changed between calls", "GetShortPathNameW");
+			else
+				ret = PyWinObject_FromWCHAR(szOutPath, rc);
+		}
+	}
 	PyWinObject_FreeWCHAR(path);
-	if (rc==0)
-		return ReturnAPIError("GetShortPathNameW");
-	if (rc >= sizeof(szOutPath)/sizeof(szOutPath[0]))
-		return ReturnError("The (unicode) pathname would be too big!!!");
-	return Py_BuildValue("u", szOutPath);
+	if (szOutPath)
+		free(szOutPath);
+	return ret;
 	// @comm The short path name is an 8.3 compatible file name.  As the input path does
 	// not need to be absolute, the returned name may be longer than the input path.
 }
