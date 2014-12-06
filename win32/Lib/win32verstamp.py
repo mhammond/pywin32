@@ -126,7 +126,7 @@ def stamp(pathname, options):
   if not ifn:
     ifn = os.path.basename(pathname)
   ofn = options.original_filename
-  if not ofn:
+  if ofn is None:
     ofn = os.path.basename(pathname)
 
   sdata = {
