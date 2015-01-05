@@ -10,6 +10,7 @@ Since build 218:
    Addded outlook interface IConverterSession with methods MIMEToMAPI, MAPIToMIMEStm, and SetAdrBook
    Added method OpenStreamOnFile (Nick Czeczulin)
    Ignore PT_MV_TSTRING along with PT_TSTRING (Nick Czeczulin) 
+   Bugfix to support PT_MV_BINARY properties (Nick Czeczulin via patch #37) 
 
  * Conversions from a Python object to a variant now does a better job at
    deciding what variant type to use, taking into account the size and sign of

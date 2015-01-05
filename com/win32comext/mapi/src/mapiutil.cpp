@@ -305,8 +305,13 @@ BOOL PyMAPIObject_AsSPropValue(PyObject *Valob, SPropValue *pv, void *pAllocMore
 			for (i=0;!PyErr_Occurred() && i<pv->Value.MVbin.cValues;i++) {
 				PyObject *obmv=PySequence_GetItem(ob,i);
 				if (obmv==NULL) break;
-				pv->Value.MVbin.lpbin[i].lpb = (unsigned char *)PyString_AsString(ob);
-				pv->Value.MVbin.lpbin[i].cb = PyString_Size(ob);
+				if (!PyString_Check(obmv)) {
+					Py_DECREF(obmv);
+					PyErr_SetString(PyExc_TypeError, "PT_MV_BINARY elements must be strings");
+					break;
+				}
+				pv->Value.MVbin.lpbin[i].lpb = (unsigned char *)PyString_AsString(obmv);
+				pv->Value.MVbin.lpbin[i].cb = PyString_Size(obmv);
 				Py_DECREF(obmv);
 			}
 			break; 
