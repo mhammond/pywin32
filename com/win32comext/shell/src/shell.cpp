@@ -852,9 +852,10 @@ PyObject *PyObject_FromSHFILEINFO(SHFILEINFO *p)
 		Py_INCREF(Py_None);
 		return Py_None;
 	}
+	PyObject *obhIcon = PyWinLong_FromHANDLE(p->hIcon);
 	PyObject *obDisplayName = PyWinObject_FromTCHAR(p->szDisplayName);
 	PyObject *obTypeName = PyWinObject_FromTCHAR(p->szTypeName);
-	return Py_BuildValue("iiiNN", p->hIcon, p->iIcon, p->dwAttributes, 
+	return Py_BuildValue("NikNN", obhIcon, p->iIcon, p->dwAttributes, 
 	                              obDisplayName, obTypeName);
 }
 
@@ -1310,9 +1311,10 @@ static PyObject *PySHGetFileInfo(PyObject *self, PyObject *args)
 	TCHAR *name = NULL;
 	LPITEMIDLIST pidl = NULL;
 	TCHAR *pidl_or_name;
-	int attr, flags, info_attrs=0;
+	UINT flags;
+	DWORD attr, info_attrs=0;
 	BOOL ok;
-	if (!PyArg_ParseTuple(args, "Oii|i", 
+	if (!PyArg_ParseTuple(args, "OkI|k", 
 			&obName, // @pyparm string/<o PyIDL>|name||The path and file name. Both absolute 
 					 // and relative paths are valid.
 					 // <nl>If the uFlags parameter includes the SHGFI_PIDL flag, this parameter 
@@ -1327,7 +1329,7 @@ static PyObject *PySHGetFileInfo(PyObject *self, PyObject *args)
 					 // in dwFileAttributes.
 					 // <nl>This string can use either short (the 8.3 form) or long file names.
 			&attr, // @pyparm int|dwFileAttributes||Combination of one or more file attribute flags (FILE_ATTRIBUTE_ values). If uFlags does not include the SHGFI_USEFILEATTRIBUTES flag, this parameter is ignored.
-			&flags, // @pyparm int|uFlags||Flags that specify the file information to retrieve.  See MSDN for details
+			&flags, // @pyparm int|uFlags||Combination of shellcon.SHGFI_* flags that specify the file information to retrieve.  See MSDN for details
 			&info_attrs)) // @pyparm int|infoAttrs|0|Flags copied to the SHFILEINFO.dwAttributes member - useful when flags contains SHGFI_ATTR_SPECIFIED
 		return NULL;
 	if (flags & SHGFI_PIDL) {
@@ -1343,7 +1345,7 @@ static PyObject *PySHGetFileInfo(PyObject *self, PyObject *args)
 	memset(&info, 0, sizeof(info));
 	info.dwAttributes = info_attrs;
 	PY_INTERFACE_PRECALL;
-	DWORD_PTR dw = SHGetFileInfo(name, attr, &info, sizeof(info), flags);
+	DWORD_PTR dw = SHGetFileInfo(pidl_or_name, attr, &info, sizeof(info), flags);
 	PY_INTERFACE_POSTCALL;
 	ret = Py_BuildValue("NN", PyLong_FromUnsignedLongLong(dw), PyObject_FromSHFILEINFO(&info));
 	if (name) PyWinObject_FreeTCHAR(name);
