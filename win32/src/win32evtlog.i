@@ -1177,7 +1177,7 @@ BOOL PyWinObject_AsEVT_RPC_LOGIN(PyObject *ob, EVT_RPC_LOGIN *erl)
 		return FALSE;
 		}
 	PyObject *observer, *obuser=Py_None, *obdomain=Py_None, *obpassword=Py_None;
-	if (!PyArg_ParseTuple(ob, "O|OOOk", &observer, *obuser, &obdomain, &obpassword, &erl->Flags))
+	if (!PyArg_ParseTuple(ob, "O|OOOk", &observer, &obuser, &obdomain, &obpassword, &erl->Flags))
 		return FALSE;
 	if (PyWinObject_AsWCHAR(observer, &erl->Server, FALSE) &&
 		PyWinObject_AsWCHAR(obuser, &erl->User, TRUE) &&
