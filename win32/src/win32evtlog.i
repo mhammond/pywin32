@@ -286,10 +286,9 @@ PyObject *MakeEventLogObject( BYTE *buf, DWORD numBytes )
 	return ret;
 }
 
-PyObject *MyReadEventLog( HANDLE hEventLog, DWORD dwReadFlags, DWORD dwRecordOffset)
+PyObject *_MyReadEventLog(HANDLE hEventLog, DWORD dwReadFlags, DWORD dwRecordOffset, DWORD nNumberOfBytesToRead)
 {
-	DWORD needed, read;
-	needed = 1024;
+	DWORD needed = nNumberOfBytesToRead, read;
 	BYTE *buf;
 	BOOL ok;
 	while (1) {
@@ -322,6 +321,27 @@ PyObject *MyReadEventLog( HANDLE hEventLog, DWORD dwReadFlags, DWORD dwRecordOff
 	PyObject *ret = MakeEventLogObject(buf, read);
 	free(buf);
 	return ret;
+}
+
+#define EVTLOG_READ_BUF_LEN_MAX 0x7ffff
+#define EVTLOG_READ_BUF_LEN_DEFAULT 0x1000
+
+// @pyswig [object,...]|ReadEventLog|Reads some event log records.
+// @rdesc If there are no event log records available, then an empty list is returned.
+PyObject *MyReadEventLog(PyObject *self, PyObject *args) {
+    HANDLE hEventLog = INVALID_HANDLE_VALUE;
+    DWORD dwReadFlags, dwRecordOffset, nNumberOfBytesToRead = EVTLOG_READ_BUF_LEN_DEFAULT;
+    if (!PyArg_ParseTuple(args, "O&kk|k:ReadEventLog",
+        PyWinObject_AsHANDLE, &hEventLog,  // @pyparm <o Py_HANDLE>|Handle||Handle to a an opened event log (see <om win32evtlog.OpenEventLog>)
+        &dwReadFlags,                      // @pyparm int|Flags||Reading flags
+        &dwRecordOffset,                   // @pyparm int|Offset||Record offset to read (in SEEK mode).
+        &nNumberOfBytesToRead))            // @pyparm int|Size|4096|Output buffer size.
+        return NULL;
+    if (nNumberOfBytesToRead == 0)
+        nNumberOfBytesToRead = EVTLOG_READ_BUF_LEN_DEFAULT;
+    if (nNumberOfBytesToRead > EVTLOG_READ_BUF_LEN_MAX)
+        nNumberOfBytesToRead = EVTLOG_READ_BUF_LEN_MAX;
+    return _MyReadEventLog(hEventLog, dwReadFlags, dwRecordOffset, nNumberOfBytesToRead);
 }
 
 PyObject * MyReportEvent( HANDLE hEventLog,
@@ -454,14 +474,7 @@ RegisterEventSourceW (
     WCHAR *fileName      // @pyparm <o PyUnicode>|fileName||The filename to open
     );
 
-// @pyswig [object,...]|ReadEventLog|Reads some event log records.
-// @rdesc If there are no event log records available, then an empty list is returned.
-%name (ReadEventLog) PyObject *MyReadEventLog (
-     HANDLE     hEventLog, // @pyparm int|handle||The handle of the event log to read.
-     DWORD      dwReadFlags, // @pyparm int|flags||The read flags
-     DWORD      dwRecordOffset // @pyparm int|offset||The offset
-    );
-    
+%native (ReadEventLog) MyReadEventLog;
 
 // @pyswig |ReportEvent|Reports an event
 %name (ReportEvent) PyObject *MyReportEvent (
