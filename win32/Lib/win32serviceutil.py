@@ -619,7 +619,7 @@ def HandleCommandLine(cls, serviceClassString = None, argv = None, customInstall
             try:
                 exeName = LocateSpecificServiceExe(serviceName)
             except win32api.error, exc:
-                if exc[0] == winerror.ERROR_FILE_NOT_FOUND:
+                if exc.winerror == winerror.ERROR_FILE_NOT_FOUND:
                     print "The service does not appear to be installed."
                     print "Please install the service before debugging it."
                     sys.exit(1)
