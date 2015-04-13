@@ -157,9 +157,9 @@ class AXScriptException(win32com.server.exception.COMException):
 		bits = ['Traceback (most recent call last):\n']
 		bits.extend(traceback.format_list(format_items))
 		if exc_type==pythoncom.com_error:
-			desc = "%s (0x%x)" % (value[1], value[0])
-			if value[0]==winerror.DISP_E_EXCEPTION and value[2] and value[2][2]:
-				desc = value[2][2]
+			desc = "%s (0x%x)" % (value.strerror, value.hresult)
+			if value.hresult==winerror.DISP_E_EXCEPTION and value.excepinfo and value.excepinfo[2]:
+				desc = value.excepinfo[2]
 			bits.append("COM Error: "+desc)
 		else:
 			bits.extend(traceback.format_exception_only(exc_type, value))

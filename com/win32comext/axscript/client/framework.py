@@ -941,10 +941,10 @@ class COMScript:
 			exc_traceback = None
 			raise
 		# It could be an error by another script.
-		if issubclass(pythoncom.com_error, exc_type) and exc_value[0]==axscript.SCRIPT_E_REPORTED:
+		if issubclass(pythoncom.com_error, exc_type) and exc_value.hresult==axscript.SCRIPT_E_REPORTED:
 			# Ensure the traceback doesnt cause a cycle.
 			exc_traceback = None
-			raise Exception(scode=exc_value[0])
+			raise Exception(scode=exc_value.hresult)
 		
 		exception = error.AXScriptException(self, \
 		                       codeBlock, exc_type, exc_value, exc_traceback)
