@@ -4542,12 +4542,14 @@ static PyObject *py_CreateFileW(PyObject *self, PyObject *args, PyObject *kwargs
 	if (!PyWinObject_AsWCHAR(obfilename, &filename, FALSE))
 		return NULL;
 
+	Py_BEGIN_ALLOW_THREADS
 	if (htransaction)
 		hret=(*pfnCreateFileTransacted)(filename, desiredaccess, sharemode, psa, creationdisposition,
 			flags, htemplate, htransaction, pminiversion, extendedparameter);
 	else
 		hret=CreateFileW(filename, desiredaccess, sharemode, psa, creationdisposition,
 			flags, htemplate);
+	Py_END_ALLOW_THREADS
 
 	PyWinObject_FreeWCHAR(filename);
 	if (hret==INVALID_HANDLE_VALUE)
@@ -4580,10 +4582,13 @@ static PyObject *py_DeleteFileW(PyObject *self, PyObject *args, PyObject *kwargs
 		return NULL;
 
 	BOOL ret;
+	Py_BEGIN_ALLOW_THREADS
 	if (htransaction)
 		ret=(*pfnDeleteFileTransacted)(filename, htransaction);
 	else
 		ret=DeleteFileW(filename);
+	Py_END_ALLOW_THREADS
+
 	PyWinObject_FreeWCHAR(filename);
 	if (!ret)
 		return PyWin_SetAPIError("DeleteFileW");
@@ -4698,6 +4703,8 @@ static PyObject *py_GetFileAttributesEx(PyObject *self, PyObject *args, PyObject
 		PyErr_Format(PyExc_MemoryError, "Unable to allocate %d bytes", bufsize);
 		goto done;
 		}
+
+	Py_BEGIN_ALLOW_THREADS
 	// MSDN docs say this returns a DWORD containing the attributes, but it actually acts as a boolean
 	if (htrans){
 		if (bUnicode)
@@ -4711,6 +4718,7 @@ static PyObject *py_GetFileAttributesEx(PyObject *self, PyObject *args, PyObject
 		else
 			ok=GetFileAttributesExA(cname, lvl, buf);
 		}
+	Py_END_ALLOW_THREADS
 
 	if (!ok)
 		PyWin_SetAPIError("GetFileAttributesEx");
