@@ -9,10 +9,6 @@
 from win32com.mapi import mapi
 from win32com.mapi import mapitags
 
-# Pre 2.2.1 compat.
-try: True, False
-except NameError: True = 1==1; False = 1==0
-
 def SendEMAPIMail(Subject="", Message="", SendTo=None, SendCC=None, SendBCC=None, MAPIProfile=None):
     """Sends an email to the recipient using the extended MAPI interface
     Subject and Message are strings
