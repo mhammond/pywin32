@@ -67,7 +67,7 @@ void PyCom_DLLAddRef(void)
 			// Make sure we have _something_ as sys.argv.
 			if (PySys_GetObject("argv")==NULL) {
 				PyObject *path = PyList_New(0);
-				PyObject *str = PyString_FromString("");
+				PyObject *str = PyWinCoreString_FromString("");
 				PyList_Append(path, str);
 				PySys_SetObject("argv", path);
 				Py_XDECREF(path);

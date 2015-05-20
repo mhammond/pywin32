@@ -4,6 +4,10 @@ Generally created by hand after running:
    hg log -rb2xx: > log.out
 However contributors are encouraged to add their own entries for their work.
 
+Since build 219:
+* win32com - sys.argv[0] may be set to a bytes object instead of a string on
+  Python 3 when implementing an in-process COM object.
+
 Since build 218:
 ----------------
  * win32com.mapi
