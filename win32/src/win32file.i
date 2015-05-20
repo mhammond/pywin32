@@ -889,7 +889,7 @@ PyObject *MyAllocateReadBuffer(PyObject *self, PyObject *args)
 // @rdesc The result is a tuple of (hr, string/<o PyOVERLAPPEDReadBuffer>), where hr may be 
 // 0, ERROR_MORE_DATA or ERROR_IO_PENDING.
 // If the overlapped param is not None, then the result is a <o PyOVERLAPPEDReadBuffer>.  Once the overlapped IO operation
-// has completed, you can convert this to a string (str(object))to obtain the data.
+// has completed, you can convert this to a string (str(object)) [py2k] or (bytes(object)) [py3k] to obtain the data.
 // While the operation is in progress, you can use the slice operations (object[:end]) to
 // obtain the data read so far.
 // You must use the OVERLAPPED API functions to determine how much of the data is valid.
