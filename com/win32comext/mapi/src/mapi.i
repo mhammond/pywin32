@@ -468,6 +468,9 @@ static PyObject *PyMAPIUninitialize(PyObject *self, PyObject *args)
 #define CCSF_EMBEDDED_MESSAGE CCSF_EMBEDDED_MESSAGE // sent/unsent information is persisted in X-Unsent
 #define CCSF_PRESERVE_SOURCE  CCSF_PRESERVE_SOURCE // don't modify the source message
 
+// StreamOnFile (SOF)
+#define SOF_UNIQUEFILENAME	SOF_UNIQUEFILENAME // A temporary file is to be created for the IStream object
+
 // @object MAPIINIT_0|A MAPIINIT_0 is represented as a tuple of:
 // @tupleitem 0|int|version|This must be MAPI_INIT_VERSION.
 // @tupleitem 1|int|flags|MAPI initlization flags.
@@ -795,25 +798,42 @@ exit:
 %}
 %native(RTFStreamToHTML) MyRTFStreamToHTML;
 
-
+// @pyswig <o PyIStream>|OpenStreamOnFile|Allocates and initializes an OLE IStream object to access the contents of a file. 
+%native(OpenStreamOnFile) PyOpenStreamOnFile;
 %{
 PyObject *PyOpenStreamOnFile(PyObject *self, PyObject *args)
 {	
 		HRESULT hRes;
 		unsigned long flags = 0;
 		IStream *pStream;
-		PyObject *obFilepath;
+		PyObject *obFileName;
+		char *filename = NULL;
+		PyObject *obPrefix = Py_None;
+		char *prefix = NULL;
 		
-		if (!PyArg_ParseTuple(args, "O|l:OpenStreamOnFile", &obFilepath, &flags))
+		if (!PyArg_ParseTuple(args, "O|lO:OpenStreamOnFile",
+			&obFileName, // @pyparm string|filename||
+			&flags, // @pyparm int|flags|0|
+			&obPrefix)) // @pyparm string|prefix|None|
 			return NULL;
 
-		TCHAR *filepath;
-		if (!PyWinObject_AsTCHAR(obFilepath, &filepath, FALSE))
-			return NULL;
+		if (!PyWinObject_AsString(obFileName, &filename, TRUE))
+			goto done;
+
+		if (!PyWinObject_AsString(obPrefix, &prefix, TRUE))
+			goto done;
 
 		PY_INTERFACE_PRECALL;
-		hRes = OpenStreamOnFile(MAPIAllocateBuffer, MAPIFreeBuffer, flags, filepath, NULL, &pStream);
+		// mapiutil.h incorrectly declares OpenStreamOnFile taking type LPTSTR
+		hRes = OpenStreamOnFile(MAPIAllocateBuffer, MAPIFreeBuffer, flags, (LPTSTR)filename, (LPTSTR)prefix, &pStream);
 		PY_INTERFACE_POSTCALL;
+
+	done:
+		PyWinObject_FreeString(filename);
+		PyWinObject_FreeString(prefix);
+
+		if (PyErr_Occurred())
+			return NULL;
 
 		if (FAILED(hRes))
 			return OleSetOleError(hRes);	
@@ -821,6 +841,3 @@ PyObject *PyOpenStreamOnFile(PyObject *self, PyObject *args)
 		return PyCom_PyObjectFromIUnknown(pStream, IID_IStream, FALSE);	
 }
 %}
-%native(OpenStreamOnFile) PyOpenStreamOnFile;
-
-
