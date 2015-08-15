@@ -841,3 +841,101 @@ PyObject *PyOpenStreamOnFile(PyObject *self, PyObject *args)
 		return PyCom_PyObjectFromIUnknown(pStream, IID_IStream, FALSE);	
 }
 %}
+
+// @pyswig item|HrGetOneProp|Retrieves the value of a single property from an IMAPIProp object.
+%native(HrGetOneProp) PyHrGetOneProp;
+%{
+PyObject *PyHrGetOneProp(PyObject *self, PyObject *args)
+{
+	HRESULT hRes;
+	PyObject *obProp;
+	ULONG propTag;
+	IMAPIProp *pProp = NULL;
+	PyObject *ret = NULL;
+	SPropValue *pPV = NULL;
+	
+	if (!PyArg_ParseTuple(args, "Ok:HrGetOneProp",
+		&obProp, // @pyparm <o PyIMAPIProp>|prop||Object to retrieve property value from.
+		&propTag))// @pyparm ULONG|propTag||The property tag to open.
+		return NULL;
+		
+	if (!PyCom_InterfaceFromPyObject(obProp, IID_IMAPIProp, (void **)&pProp, FALSE))
+		goto done;
+	
+	PY_INTERFACE_PRECALL;
+	hRes = HrGetOneProp(pProp, propTag, &pPV);
+	PY_INTERFACE_POSTCALL;
+	if (FAILED(hRes))
+	{
+		OleSetOleError(hRes);
+		goto done;
+	}
+	if ((ret = PyMAPIObject_FromSPropValue(pPV)) == NULL)
+		goto done;
+	
+	// PyMAPIObject_FromSPropValue does not raise an exception for types
+	// it cannot handle so that GetProps doesn't blow up. Since we are processing
+	// only a single item, we test for this condition, and raise an exception.
+	if (PyTuple_GET_ITEM(ret, 1) == Py_None &&
+		PyLong_AsUnsignedLong(PyTuple_GET_ITEM(ret, 0)) != PT_NULL)
+	{
+		char buf[128];
+		sprintf(buf, "Unsupported MAPI property type 0x%X", PROP_TYPE(pPV->ulPropTag));
+		PyErr_SetString(PyExc_TypeError, buf);
+		Py_DECREF(ret);
+		ret = NULL;
+	}
+done:
+	if (pProp) pProp->Release();
+	MAPIFreeBuffer(pPV);
+	
+	return ret;
+}
+%}
+
+// @pyswig item|HrSetOneProp|Sets the value of a single property on a IMAPIProp object.
+%native(HrSetOneProp) PyHrSetOneProp;
+%{
+PyObject *PyHrSetOneProp(PyObject *self, PyObject *args)
+{
+	HRESULT hRes;
+	PyObject *obProp;
+	PyObject *obPropValue;
+	ULONG propTag;
+	IMAPIProp *pProp = NULL;
+	PyObject *ret = NULL;
+	SPropValue *pPV = NULL;
+	
+	if (!PyArg_ParseTuple(args, "OO:HrSetOneProp",
+		&obProp, // @pyparm <o PyIMAPIProp>|prop||Object to set property value on.
+		&obPropValue))// @pyparm <o PySPropValue>|propValue||Property value to set.
+		return NULL;
+		
+	if (!PyCom_InterfaceFromPyObject(obProp, IID_IMAPIProp, (void **)&pProp, FALSE))
+		goto done;
+	if (S_OK != (hRes=MAPIAllocateBuffer(sizeof(SPropValue), (void **)&pPV)))
+	{
+		OleSetOleError(hRes);
+		goto done;
+	}
+	if (!PyMAPIObject_AsSPropValue(obPropValue, pPV, pPV))
+		goto done;
+	
+	PY_INTERFACE_PRECALL;
+	hRes = HrSetOneProp(pProp, pPV);
+	PY_INTERFACE_POSTCALL;
+	if (FAILED(hRes))
+	{
+		OleSetOleError(hRes);
+		goto done;
+	}
+	Py_INCREF(Py_None);
+	ret = Py_None;
+done:
+	if (pProp) pProp->Release();
+	MAPIFreeBuffer(pPV);
+	
+	return ret;
+}
+	
+%}
