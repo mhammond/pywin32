@@ -241,6 +241,13 @@ static PyObject *PyMAPIUninitialize(PyObject *self, PyObject *args)
 #define RTF_SYNC_BODY_CHANGED RTF_SYNC_BODY_CHANGED // The plain text version of the message has changed. 
 #define RTF_SYNC_RTF_CHANGED RTF_SYNC_RTF_CHANGED // The RTF version of the message has changed. 
 
+#define DEL_FOLDERS DEL_FOLDERS // All subfolders of the subfolder pointed to by lpEntryID should be deleted.
+#define DEL_MESSAGES DEL_MESSAGES // All messages in the subfolder pointed to by lpEntryID should be deleted.
+#define FOLDER_DIALOG FOLDER_DIALOG // A progress indicator should be displayed while the operation proceeds.
+#define MESSAGE_DIALOG MESSAGE_DIALOG // Displays a progress indicator as the operation proceeds.
+#define SHOW_SOFT_DELETES ((ULONG) 0x00000002) // Shows items that are currently marked as soft deleted.
+#define DELETE_HARD_DELETE ((ULONG) 0x00000010) // Permanently removes all messages, including soft-deleted ones.
+
 #define MAPI_CREATE MAPI_CREATE // The object will be created if necessary.
 #define MAPI_E_CALL_FAILED MAPI_E_CALL_FAILED						
 #define MAPI_E_NOT_ENOUGH_MEMORY MAPI_E_NOT_ENOUGH_MEMORY

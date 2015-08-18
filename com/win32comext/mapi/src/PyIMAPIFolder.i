@@ -64,6 +64,53 @@ HRESULT CopyMessages(
 	// @flag MESSAGE_DIALOG |Displays a progress indicator as the operation proceeds. 
 	// @flag MESSAGE_MOVE|The message or messages are to be moved rather than copied. If MESSAGE_MOVE is not set, the messages are copied. 
 
+// @pyswig |DeleteFolder|Deletes a subfolder.
+%native(DeleteFolder) DeleteFolder;
+%{
+PyObject *PyIMAPIFolder::DeleteFolder(PyObject *self, PyObject *args) 
+{
+	HRESULT hRes;
+	PyObject *obEntryId, *obUIParam, *obProgress;
+	ULONG cbEID;
+	LPENTRYID eid;
+	ULONG_PTR ulUIParam;
+	LPMAPIPROGRESS lpProgress;
+	ULONG flags = 0;
+	
+	IMAPIFolder *_swig_self;
+	if ((_swig_self=GetI(self))==NULL) return NULL;
+	
+    if(!PyArg_ParseTuple(args,"OOO|l:DeleteFolder",
+		&obEntryId, // @pyparm string|entryId||The EntryID of the subfolder to delete.
+		&obUIParam, // @pyparm long|uiParam||Handle of the parent window of the progress indicator.
+		&obProgress, // @pyparm <o PyIMAPIProgress>|progress||A progress object, or None
+		&flags)) 
+        return NULL;
+	if PyString_Check(obEntryId) {
+		eid = (LPENTRYID)PyString_AsString(obEntryId);
+		cbEID = PyString_Size(obEntryId);
+	} else {
+		PyErr_SetString(PyExc_TypeError, "EntryID must be a string");
+		return NULL;
+	}
+	if (!PyWinLong_AsULONG_PTR(obUIParam, &ulUIParam))
+		return NULL;
+	if (!PyCom_InterfaceFromPyInstanceOrObject(obProgress, IID_IMAPIProgress, (void **)&lpProgress, TRUE))
+		return NULL;
+
+	PY_INTERFACE_PRECALL;
+	hRes = (HRESULT)_swig_self->DeleteFolder(cbEID, eid, ulUIParam, lpProgress, flags);
+	PY_INTERFACE_POSTCALL;
+	
+	if (lpProgress)
+		lpProgress->Release();
+	
+	if (FAILED(hRes))
+		return OleSetOleError(hRes);
+
+	return Py_BuildValue("i", hRes);
+}
+%}
 
 // @pyswig |DeleteMessages|Deletes the specified messages.
 HRESULT DeleteMessages(
