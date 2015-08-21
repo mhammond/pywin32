@@ -210,3 +210,57 @@ done:
 	return rc;
 }
 %}
+
+// @pyswig |Advise|Registers to receive notification of specified events that affect the message store.
+%native(Advise) Advise;
+%{
+PyObject *PyIMsgStore::Advise(PyObject *self, PyObject *args)
+{
+	HRESULT hRes;
+	PyObject *obEntryId, *obAdviseSink;
+	ULONG cbEID;
+	LPENTRYID eid;
+	ULONG ulEventMask;
+	LPMAPIADVISESINK lpAdviseSink;
+	ULONG lpulConnection;
+
+	IMsgStore *_swig_self;
+	if ((_swig_self=GetI(self))==NULL) return NULL;
+
+    if(!PyArg_ParseTuple(args,"OkO:Advise",
+		&obEntryId, // @pyparm string|entryId||entry identifier of the folder or message about which notifications should be generated, or None
+		&ulEventMask, // @pyparm int|eventMask||A mask of values that indicate the types of notification events.
+		&obAdviseSink)) // @pyparm <o PyIMAPIAdviseSink>|adviseSink||An advise sink.
+        return NULL;
+	if (obEntryId == Py_None)
+	{
+		eid = NULL;
+		cbEID = 0;
+	} else if PyString_Check(obEntryId) {
+		eid = (LPENTRYID)PyString_AsString(obEntryId);
+		cbEID = PyString_Size(obEntryId);
+	} else {
+		PyErr_SetString(PyExc_TypeError, "EntryID must be a string");
+		return NULL;
+	}
+	if (!PyCom_InterfaceFromPyInstanceOrObject(obAdviseSink, IID_IMAPIAdviseSink, (void **)&lpAdviseSink, FALSE))
+		return NULL;
+
+	PY_INTERFACE_PRECALL;
+	hRes = (HRESULT)_swig_self->Advise(cbEID, eid, ulEventMask, lpAdviseSink, &lpulConnection);
+	PY_INTERFACE_POSTCALL;
+
+	if (lpAdviseSink)
+		lpAdviseSink->Release();
+
+	if (FAILED(hRes))
+		return OleSetOleError(hRes);
+
+	return PyLong_FromUnsignedLong(lpulConnection);
+}
+%}
+
+
+// @pyswig |Unadvise|Cancels the sending of notifications previously set up with a call to the IMsgStore::Advise method.
+HRESULT Unadvise(
+	ULONG handle); // @pyparm int|connection||Connection number returned from <om PyIMsgStore.Advise>

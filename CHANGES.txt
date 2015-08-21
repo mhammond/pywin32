@@ -8,7 +8,9 @@ Since build 220:
 ----------------
 * A null SPropTagArray will now return None instead of crashing.
 
-* New exchange interface PyIExchangeManageStoreEx (Nick Czeczulin)
+* New mapi/exchange interfaces PyIExchangeManageStoreEx, PyIMAPIAdviseSink,
+ PyIMsgStore::Advise, PyIMsgStore::Unadvise, HrAllocAdviseSink,
+ HrThisThreadAdviseSink, and HrDispatchNotifications (Nick Czeczulin)
 
 Since build 219:
 ----------------

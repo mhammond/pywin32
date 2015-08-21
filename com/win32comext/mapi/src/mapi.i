@@ -175,6 +175,8 @@ static PyObject *PyMAPIUninitialize(PyObject *self, PyObject *args)
 	if ( PyCom_RegisterClientType(&PyIMsgServiceAdmin::type, &IID_IMsgServiceAdmin) != 0 ) return MODINIT_ERROR_RETURN;
 	ADD_IID(IID_IMsgServiceAdmin);
 
+	if ( PyCom_RegisterClientType(&PyIMAPIAdviseSink::type, &IID_IMAPIAdviseSink) != 0 ) return MODINIT_ERROR_RETURN;
+	ADD_IID(IID_IMAPIAdviseSink);
         if ( PyCom_RegisterGatewayObject(IID_IMAPIAdviseSink, GET_PYGATEWAY_CTOR(PyGMAPIAdviseSink), "IMAPIAdviseSink") != 0) return MODINIT_ERROR_RETURN;
 	ADD_IID(IID_IMAPIAdviseSink);
 
@@ -283,6 +285,48 @@ static PyObject *PyMAPIUninitialize(PyObject *self, PyObject *args)
 #define MAPI_E_FAILONEPROVIDER MAPI_E_FAILONEPROVIDER
 #define MAPI_E_UNKNOWN_CPID MAPI_E_UNKNOWN_CPID
 #define MAPI_E_UNKNOWN_LCID MAPI_E_UNKNOWN_LCID
+
+/* IMAPIAdviseSink Interface */
+
+#define fnevCriticalError fnevCriticalError
+#define fnevNewMail fnevNewMail
+#define fnevObjectCreated fnevObjectCreated
+#define fnevObjectDeleted fnevObjectDeleted
+#define fnevObjectModified fnevObjectModified
+#define fnevObjectMoved fnevObjectMoved
+#define fnevObjectCopied fnevObjectCopied
+#define fnevSearchComplete fnevSearchComplete
+#define fnevTableModified fnevTableModified
+#define fnevStatusObjectModified fnevStatusObjectModified
+#define fnevReservedForMapi fnevReservedForMapi
+#define fnevExtended fnevExtended
+
+/* TABLE_NOTIFICATION event types passed in ulTableEvent */
+
+#define TABLE_CHANGED TABLE_CHANGED
+#define TABLE_ERROR TABLE_ERROR
+#define TABLE_ROW_ADDED TABLE_ROW_ADDED
+#define TABLE_ROW_DELETED TABLE_ROW_DELETED
+#define TABLE_ROW_MODIFIED TABLE_ROW_MODIFIED
+#define TABLE_SORT_DONE TABLE_SORT_DONE
+#define TABLE_RESTRICT_DONE TABLE_RESTRICT_DONE
+#define TABLE_SETCOL_DONE TABLE_SETCOL_DONE
+#define TABLE_RELOAD TABLE_RELOAD
+
+/* Object type */
+
+#define MAPI_STORE MAPI_STORE
+#define MAPI_ADDRBOOK MAPI_ADDRBOOK
+#define MAPI_FOLDER MAPI_FOLDER
+#define MAPI_ABCONT MAPI_ABCONT
+#define MAPI_MESSAGE MAPI_MESSAGE
+#define MAPI_MAILUSER MAPI_MAILUSER
+#define MAPI_ATTACH MAPI_ATTACH
+#define MAPI_DISTLIST MAPI_DISTLIST
+#define MAPI_PROFSECT MAPI_PROFSECT
+#define MAPI_STATUS MAPI_STATUS
+#define MAPI_SESSION MAPI_SESSION
+#define MAPI_FORMINFO MAPI_FORMINFO
 
 /* Flavors of E_ACCESSDENIED, used at logon */
 
@@ -946,3 +990,37 @@ done:
 }
 	
 %}
+
+// @pyswig <o PyIMAPIAdviseSink>|HrAllocAdviseSink|Creates an advise sink object, given a context specified by the calling implementation and a callback function to be triggered by an event notification.
+%native(HrAllocAdviseSink) PyHrAllocAdviseSink;
+%{
+PyObject *PyHrAllocAdviseSink(PyObject *self, PyObject *args)
+{
+	PyObject *ob_callback;
+	PyObject *ob_context = Py_None;
+	PyCMAPIAdviseSink *sink = NULL;
+
+	if (!PyArg_ParseTuple(args, "O|O:HrAllocAdviseSink",
+		&ob_callback,			// @pyparm function|callback|OnNotify callback function
+		&ob_context))           // @pyparm object|context|Context data to be passed to the callback
+		return NULL;
+	if (!PyCallable_Check(ob_callback)){
+		PyErr_SetString(PyExc_TypeError,"OnNotify must be callable");
+		return NULL;
+		}
+
+	// We don't actually call HrAllocAdviseSink preferring our own sink for ref counting.
+	// However, we use the name and signature.
+	sink = new PyCMAPIAdviseSink(ob_callback, ob_context);
+	return PyCom_PyObjectFromIUnknown((IUnknown *)sink, IID_IMAPIAdviseSink, FALSE);
+}
+
+%}
+
+// @pyswig <o PyIMAPIAdviseSink>|HrThisThreadAdviseSink|Creates an advise sink that wraps an existing advise sink for thread safety.
+HRESULT HrThisThreadAdviseSink(
+	IMAPIAdviseSink *INPUT,    // @pyparm <o PyIMAPIAdviseSink>|object||The advise sink to be wrapped.
+	IMAPIAdviseSink **OUTPUT);
+
+HRESULT HrDispatchNotifications(
+	ULONG ulFlags);
