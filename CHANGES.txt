@@ -9,6 +9,9 @@ Since build 221:
 * Change PyIMAPIFolder CopyMessages, DeleteMessages, and EmptyFolder to return
   the HRESULT (Nick Czeczulin via patch #162)
 
+* Fix a reference leak of Py_None in a couple of MAPI methods (Nick Czeczulin
+  via patch #149)
+
 Since build 220:
 ----------------
 * Add PyIMapiSession::AdminServices method (Nick Czeczulin via patch #161)
