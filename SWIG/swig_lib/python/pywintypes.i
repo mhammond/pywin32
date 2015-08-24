@@ -480,6 +480,49 @@ typedef float HWND;
     }
 }
 
+//--------------------------------------------------------------------------
+//
+// ULONG_PTR
+//
+//--------------------------------------------------------------------------
+%typemap(python, in) ULONG_PTR
+{
+	if (!PyWinLong_AsULONG_PTR($source, &$target))
+		return NULL;
+}
+%typemap(python, in) ULONG_PTR * (ULONG_PTR temp)
+{
+	$target = &temp;
+	if (!PyWinLong_AsULONG_PTR($source, $target))
+		return NULL;
+}
+%typemap(python, ignore) ULONG_PTR *OUTPUT(ULONG_PTR temp)
+{
+	$target = &temp;
+}
+%typemap(python, out) ULONG_PTR
+{
+	$target = PyWinObject_FromULONG_PTR($source)
+}
+%typemap(python,argout) ULONG_PTR *OUTPUT {
+	PyObject *o;
+	o = PyWinObject_FromULONG_PTR(*$source);
+	if (!$target) {
+		$target = o;
+	} else if ($target == Py_None) {
+		Py_DECREF(Py_None);
+		$target = o;
+	} else {
+		if (!PyList_Check($target)) {
+			PyObject *o2 = $target;
+			$target = PyList_New(0);
+			PyList_Append($target,o2);
+			Py_XDECREF(o2);
+		}
+		PyList_Append($target,o);
+		Py_XDECREF(o);
+	}
+}
 
 //---------------------------------------------------------------------------
 //
