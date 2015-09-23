@@ -1220,3 +1220,29 @@ void PyMAPIObject_FreeSSortOrderSet(SSortOrderSet *ppsos)
 	MAPIFreeBuffer(ppsos);
 }
 
+
+PyObject *PyMAPIObject_FromSPropProblemArray(SPropProblemArray *ppa)
+{
+	if (!ppa) {
+		Py_INCREF(Py_None);
+		return Py_None;
+	}
+	PyObject *result = PyTuple_New(ppa->cProblem);
+	if (!result)
+	{
+		PyErr_SetString(PyExc_MemoryError, "Allocating SPropProblemArray result");
+		return NULL;
+	}
+	
+	for (ULONG i=0; i < ppa->cProblem; i++)
+	{
+		PyObject *obNew = Py_BuildValue("kki", ppa->aProblem[i].ulIndex, ppa->aProblem[i].ulPropTag, ppa->aProblem[i].scode);
+		if (!obNew)
+		{
+			Py_DECREF(result);
+			return NULL;
+		}
+		PyTuple_SET_ITEM(result, i, obNew);
+	}
+	return result;
+}

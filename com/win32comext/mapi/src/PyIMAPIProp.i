@@ -89,20 +89,32 @@ PyObject *PyIMAPIProp::DeleteProps(PyObject *self, PyObject *args)
     SPropTagArray * _arg0;
 	HRESULT hr;
 	IMAPIProp *pMAPIProp;
+	PyObject *obWantProblems = Py_False;
+	SPropProblemArray *pProblems = NULL;
 	if ((pMAPIProp=GetI(self))==NULL) return NULL;
-	PyObject *myob = NULL;
 	// @pyparm <o PySPropTagArray>|propList||The list of properties
-    if(!PyArg_ParseTuple(args,"O:DeleteProps",&obs))
+	// @pyparm bool|wantProblems|False|Return detailed error information
+    if(!PyArg_ParseTuple(args,"O|O:DeleteProps",&obs, &obWantProblems))
+		return NULL;
+	int wantProblems = PyObject_IsTrue(obWantProblems);
+	if (wantProblems == -1)
 		return NULL;
 	if (!PyMAPIObject_AsSPropTagArray(obs, &_arg0))
 		return NULL;
 	Py_BEGIN_ALLOW_THREADS
-	hr = pMAPIProp->DeleteProps( _arg0, NULL);
+	hr = pMAPIProp->DeleteProps( _arg0, wantProblems ? &pProblems : NULL);
 	Py_END_ALLOW_THREADS
 	PyMAPIObject_FreeSPropTagArray(_arg0);
 	if (FAILED(hr))
 		return OleSetOleError(hr);
-	return Py_BuildValue("iz", hr, NULL); // None used as place holder for problem array later.
+	if (wantProblems)
+	{
+		PyObject *result = Py_BuildValue("iN", hr, PyMAPIObject_FromSPropProblemArray(pProblems));
+		MAPIFreeBuffer(pProblems);
+		return result;
+	}
+	else
+		return Py_BuildValue("iz", hr, NULL);
 }
 
 // @pyswig int, [problems, ]|SetProps|Sets a set of properties.
@@ -111,26 +123,39 @@ PyObject *PyIMAPIProp::SetProps(PyObject *self, PyObject *args)
 	PyObject *obs;
 	HRESULT hr;
 	IMAPIProp *pMAPIProp;
+	PyObject *obWantProblems = Py_False;
+	SPropProblemArray *pProblems = NULL;
 	if ((pMAPIProp=GetI(self))==NULL) return NULL;
-	PyObject *myob = NULL;
 	// @pyparm [<o PySPropValue>, ]|propList||The list of properties
-    if(!PyArg_ParseTuple(args,"O:SetProps",&obs))
+	// @pyparm bool|wantProblems|False|Return detailed error information
+    if(!PyArg_ParseTuple(args,"O|O:SetProps",&obs, &obWantProblems))
 		return NULL;
 	if (!PySequence_Check(obs)) {
 		PyErr_SetString(PyExc_TypeError, "Properties must be a sequence of tuples");
 		return NULL;
 	}
+	int wantProblems = PyObject_IsTrue(obWantProblems);
+	if (wantProblems == -1)
+		return NULL;
+	
 	SPropValue *pPV;
 	ULONG seqLen;
 	if (!PyMAPIObject_AsSPropValueArray(obs, &pPV, &seqLen))
 		return NULL;
 	Py_BEGIN_ALLOW_THREADS
-	hr = pMAPIProp->SetProps( seqLen, pPV, NULL);
+	hr = pMAPIProp->SetProps( seqLen, pPV, wantProblems ? &pProblems : NULL);
 	Py_END_ALLOW_THREADS
 	MAPIFreeBuffer(pPV);
 	if (FAILED(hr))
 		return OleSetOleError(hr);
-	return Py_BuildValue("iz", hr, NULL); // None used as place holder for proplem array later.
+	if (wantProblems)
+	{
+		PyObject *result = Py_BuildValue("iN", hr, PyMAPIObject_FromSPropProblemArray(pProblems));
+		MAPIFreeBuffer(pProblems);
+		return result;
+	}
+	else
+		return Py_BuildValue("iz", hr, NULL);
 }
 
 // @pyswig int, [problems, ]|CopyTo|Copies an object to another
@@ -143,19 +168,25 @@ PyObject *PyIMAPIProp::CopyTo(PyObject *self, PyObject *args)
 	SPropTagArray *pta = NULL;
 	PyObject *result = NULL;
 	PyObject *obIIDExclude, *obPropTags, *obDest, *obIID;
-	ULONG ulUIParm, flags;
+	ULONG ulUIParam, flags;
 	char *szIgnore;
 	HRESULT hr;
 	IMAPIProp *pMAPIProp;
+	PyObject *obWantProblems = Py_False;
+	SPropProblemArray *pProblems = NULL;
 	if ((pMAPIProp=GetI(self))==NULL) return NULL;
 	// @pyparm [<o PyIID>, ]|IIDExcludeList||A sequence of IIDs to exclude.
-	// @pyparm <o PySPropTagArray>|propTags||The property tags to copy
-	// @pyparm int|uiFlags||Flags for the progress object
+	// @pyparm <o PySPropTagArray>|propTags||The property tags to exclude.
+	// @pyparm int|uiParam||Handle to the parent window of the progress object
 	// @pyparm None|progress||Reserved - must pass None
 	// @pyparm <o PyIID>|resultIID||IID of the destination object
 	// @pyparm <o PyIMAPIProp>|dest||The destination object
 	// @pyparm int|flags||flags
-    if(!PyArg_ParseTuple(args,"OOlzOOl:CopyTo",&obIIDExclude, &obPropTags, &ulUIParm, &szIgnore, &obIID, &obDest, &flags))
+	// @pyparm bool|wantProblems|False|Return detailed error information
+    if(!PyArg_ParseTuple(args,"OOlzOOl|O:CopyTo",&obIIDExclude, &obPropTags, &ulUIParam, &szIgnore, &obIID, &obDest, &flags, &obWantProblems))
+		return NULL;
+	int wantProblems = PyObject_IsTrue(obWantProblems);
+	if (wantProblems == -1)
 		return NULL;
 	if (obIIDExclude==Py_None)
 		pExclude = NULL;
@@ -190,15 +221,21 @@ PyObject *PyIMAPIProp::CopyTo(PyObject *self, PyObject *args)
 		goto error;
 	// Finally make the call.
 	Py_BEGIN_ALLOW_THREADS
-	hr = pMAPIProp->CopyTo(ciidExclude, pExclude, pta, ulUIParm, NULL, &iid, (void *)pUnk, flags, NULL );
+	hr = pMAPIProp->CopyTo(ciidExclude, pExclude, pta, ulUIParam, NULL, &iid, (void *)pUnk, flags, wantProblems ? &pProblems : NULL);
 	Py_END_ALLOW_THREADS
 	if (FAILED(hr)) {
 		OleSetOleError(hr);
 		goto error;
 	}
-	result = Py_BuildValue("iz", hr, NULL);
+	if (wantProblems)
+	{
+		result = Py_BuildValue("iN", hr, PyMAPIObject_FromSPropProblemArray(pProblems));
+		MAPIFreeBuffer(pProblems);
+	}
+	else
+		result = Py_BuildValue("iz", hr, NULL);
 error:
-	free(pExclude);
+	delete[] pExclude;
 	PyMAPIObject_FreeSPropTagArray(pta);
 	if (pUnk)
 		pUnk->Release();
@@ -213,19 +250,25 @@ PyObject *PyIMAPIProp::CopyProps(PyObject *self, PyObject *args)
 	SPropTagArray *pta = NULL;
 	PyObject *result = NULL;
 	PyObject *obPropTags, *obDest, *obIID;
-	ULONG ulUIParm, flags;
+	ULONG ulUIParam, flags;
 	char *szIgnore;
 	HRESULT hr;
 	IMAPIProp *pMAPIProp;
+	PyObject *obWantProblems = Py_False;
+	SPropProblemArray *pProblems = NULL;
 	if ((pMAPIProp=GetI(self))==NULL) return NULL;
 	// @pyparm <o PySPropTagArray>|propTags||The property tags to copy
-	// @pyparm int|uiFlags||Flags for the progress object
+	// @pyparm int|uiParam||Handle to the parent window of the progress object
 	// @pyparm None|progress||Reserved - must pass None
 	// @pyparm <o PyIID>|resultIID||IID of the destination object
 	// @pyparm <o PyIMAPIProp>|dest||The destination object
 	// @pyparm int|flags||flags
-    if(!PyArg_ParseTuple(args,"OlzOOl:CopyProps",&obPropTags, &ulUIParm, &szIgnore, &obIID, &obDest, &flags))
+	// @pyparm bool|wantProblems|False|Return detailed error information
+    if(!PyArg_ParseTuple(args,"OlzOOl|O:CopyProps",&obPropTags, &ulUIParam, &szIgnore, &obIID, &obDest, &flags, &obWantProblems))
 		return NULL;
+	int wantProblems = PyObject_IsTrue(obWantProblems);
+	if (wantProblems == -1)
+		return NULL;	
 	// PropTagArray
 	if (!PyMAPIObject_AsSPropTagArray(obPropTags, &pta))
 		goto error;
@@ -237,13 +280,19 @@ PyObject *PyIMAPIProp::CopyProps(PyObject *self, PyObject *args)
 		goto error;
 	// Finally make the call.
 	Py_BEGIN_ALLOW_THREADS
-	hr = pMAPIProp->CopyProps(pta, ulUIParm, NULL, &iid, (void *)pUnk, flags, NULL );
+	hr = pMAPIProp->CopyProps(pta, ulUIParam, NULL, &iid, (void *)pUnk, flags, wantProblems ? &pProblems : NULL);
 	Py_END_ALLOW_THREADS
 	if (FAILED(hr)) {
 		OleSetOleError(hr);
 		goto error;
 	}
-	result = Py_BuildValue("iz", hr, NULL);
+	if (wantProblems)
+	{
+		result = Py_BuildValue("iN", hr, PyMAPIObject_FromSPropProblemArray(pProblems));
+		MAPIFreeBuffer(pProblems);
+	}
+	else
+		result = Py_BuildValue("iz", hr, NULL);
 error:
 	PyMAPIObject_FreeSPropTagArray(pta);
 	if (pUnk)

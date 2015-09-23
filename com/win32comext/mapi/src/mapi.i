@@ -212,7 +212,9 @@ static PyObject *PyMAPIUninitialize(PyObject *self, PyObject *args)
 #define KEEP_OPEN_READONLY KEEP_OPEN_READONLY // Changes should be committed and the object should be kept open for reading. No further changes will be made. 
 #define KEEP_OPEN_READWRITE KEEP_OPEN_READWRITE // Changes should be committed and the object should be kept open for read/write access. This flag is usually set when the object was initially opened for read/write access. Subsequent changes to the object are allowed. 
 
-#define MAPI_DIALOG MAPI_DIALOG 
+#define MAPI_DIALOG MAPI_DIALOG
+#define MAPI_MOVE MAPI_MOVE // Perform a move operation instead of a copy.
+#define MAPI_NOREPLACE MAPI_NOREPLACE // Existing objects in the destination object should not be overwritten.
 #define MAPI_ASSOCIATED MAPI_ASSOCIATED // The container's associated contents table should be returned rather than the standard contents table. This flag is used only with folders. The messages that are included in the associated contents table were created with the MAPI_ASSOCIATED flag set in the call to IMAPIFolder::CreateMessage. Clients typically use the associated contents table to retrieve forms and views. 
 #define MAPI_ALLOW_OTHERS MAPI_ALLOW_OTHERS // The shared session should be returned, allowing subsequent clients to acquire the session without providing any user credentials. 
 #define MAPI_EXPLICIT_PROFILE MAPI_EXPLICIT_PROFILE // The default profile should not be used, and the user should be required to supply a profile. 

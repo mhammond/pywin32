@@ -60,3 +60,6 @@ void PyMAPIObject_FreeMAPINAMEIDArray(MAPINAMEID **pv);
 
 /* Create a PyObject from a MAPINAMEID Array */
 PyObject *PyMAPIObject_FromMAPINAMEIDArray(MAPINAMEID **ppNameId, ULONG numIds);
+
+/* Create a PyObject from a SPropProblemArray */
+PyObject *PyMAPIObject_FromSPropProblemArray(SPropProblemArray *ppa);
