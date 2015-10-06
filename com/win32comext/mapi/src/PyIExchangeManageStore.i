@@ -59,8 +59,10 @@ PyIExchangeManageStore::~PyIExchangeManageStore()
 PyObject *PyIExchangeManageStore::CreateStoreEntryID(PyObject *self, PyObject *args)
 {
 	HRESULT hRes;
-	char *serverDN;
-	char *userDN;
+	PyObject *obServerDN;
+	PyObject *obUserDN;
+	char *serverDN = NULL;
+	char *userDN = NULL;
 	unsigned long flags = 0;
 	SBinary sbEID = {0, NULL};	
 	PyObject *result = NULL;
@@ -68,9 +70,17 @@ PyObject *PyIExchangeManageStore::CreateStoreEntryID(PyObject *self, PyObject *a
 	IExchangeManageStore *_swig_self;
 	if ((_swig_self=GetI(self))==NULL) return NULL;
 
-	if (!PyArg_ParseTuple(args, "ss|l:CreateStoreEntryID", &serverDN, &userDN, &flags))
+	if (!PyArg_ParseTuple(args, "OO|l:CreateStoreEntryID",
+		&obServerDN,
+		&obUserDN,
+		&flags))
 		return NULL;
 
+	if (!PyWinObject_AsString(obServerDN, &serverDN, FALSE))
+		goto done;
+	if (!PyWinObject_AsString(obUserDN, &userDN, TRUE))
+		goto done;
+	
 	Py_BEGIN_ALLOW_THREADS
 	hRes = _swig_self->CreateStoreEntryID(serverDN, userDN, flags, &sbEID.cb, (LPENTRYID *) &sbEID.lpb);
 	Py_END_ALLOW_THREADS
@@ -78,9 +88,18 @@ PyObject *PyIExchangeManageStore::CreateStoreEntryID(PyObject *self, PyObject *a
 	if (FAILED(hRes))
 		result = OleSetOleError(hRes);
 	else
-		result = Py_BuildValue("s#", sbEID.lpb, sbEID.cb);
+		result = Py_BuildValue(
+#if PY_MAJOR_VERSION >= 3
+								"y#",
+#else
+								"s#",
+#endif
+								sbEID.lpb, sbEID.cb);
 
+done:
 	MAPIFreeBuffer((LPENTRYID)sbEID.lpb);
+	PyWinObject_FreeString(serverDN);
+	PyWinObject_FreeString(userDN);
 	
 	return result;
 }
