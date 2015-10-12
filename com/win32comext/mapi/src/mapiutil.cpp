@@ -491,14 +491,23 @@ PyObject *PyMAPIObject_FromSPropValue(SPropValue *pv)
 					PyTuple_SET_ITEM(val, i, PyWinObject_FromWCHAR(pv->Value.MVszW.lppszW[i]));
 			}
 			break;
-/*
+
 		case PT_MV_CLSID:
-			MVguid 
-			SGuidArray 
+			val = PyTuple_New(pv->Value.MVguid.cValues);
+			if (val) {
+				for (i=0;i<pv->Value.MVguid.cValues;i++)
+					PyTuple_SET_ITEM(val, i, PyWinObject_FromIID(pv->Value.MVguid.lpguid[i]));
+			}
+			break;
+			
 		case PT_MV_I8:
-			MVli 
-			SLargeIntegerArray 
-*/
+			val = PyTuple_New(pv->Value.MVli.cValues);
+			if (val) {
+				for (i=0;i<pv->Value.MVli.cValues;i++)
+					PyTuple_SET_ITEM(val, i, PyWinObject_FromLARGE_INTEGER(pv->Value.MVli.lpli[i]));
+			}
+			break;
+			
 		case PT_OBJECT:
 			val = PyInt_FromLong(pv->Value.x);
 			break;
