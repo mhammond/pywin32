@@ -53,24 +53,9 @@ PyObject *PyMAPIObject_FromTypedUnknown( ULONG typ, IUnknown *pUnk, BOOL bAddRef
 
 PyObject *PyObject_FromMAPIERROR(MAPIERROR *e, BOOL bIsUnicode, BOOL free_buffer)
 {
-	PyObject *obError;
-	if (e->lpszError)
-		obError = bIsUnicode ? PyWinObject_FromWCHAR((const WCHAR *)e->lpszError) :
-					PyString_FromString((const char *)e->lpszError);
-		
-	else {
-		obError = Py_None;
-		Py_INCREF(Py_None);
-	}
-	PyObject *obComp;
-	if (e->lpszComponent)
-		obComp = bIsUnicode ? PyWinObject_FromWCHAR((const WCHAR *)e->lpszComponent) :
-					PyString_FromString((const char *)e->lpszComponent);
-	else {
-		obComp = Py_None;
-		Py_INCREF(Py_None);
-	}
-
+	PyObject *obError = PyWinObject_FromMAPIStr((LPTSTR)e->lpszError, bIsUnicode);
+	PyObject *obComp = PyWinObject_FromMAPIStr((LPTSTR)e->lpszComponent, bIsUnicode);
+	
 	PyObject *ret = Py_BuildValue("lOOll", 
 		e->ulVersion,
 		obError,
@@ -1245,4 +1230,25 @@ PyObject *PyMAPIObject_FromSPropProblemArray(SPropProblemArray *ppa)
 		PyTuple_SET_ITEM(result, i, obNew);
 	}
 	return result;
+}
+
+PyObject *PyWinObject_FromMAPIStr(LPTSTR str, BOOL isUnicode)
+{
+	if (str == NULL)
+	{
+		Py_INCREF(Py_None);
+		return Py_None;
+	}
+	if (isUnicode)
+	{
+		return PyUnicode_FromWideChar((LPCWSTR)str, wcslen((LPCWSTR)str));
+	}
+	else
+	{
+#if PY_MAJOR_VERSION >= 3
+	return (PyObject *)PyUnicode_DecodeMBCS((LPSTR)str, strlen((LPSTR)str), NULL);
+#else
+	return PyString_FromString((LPSTR)str);
+#endif	
+	}
 }

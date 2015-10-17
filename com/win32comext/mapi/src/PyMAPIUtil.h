@@ -63,3 +63,5 @@ PyObject *PyMAPIObject_FromMAPINAMEIDArray(MAPINAMEID **ppNameId, ULONG numIds);
 
 /* Create a PyObject from a SPropProblemArray */
 PyObject *PyMAPIObject_FromSPropProblemArray(SPropProblemArray *ppa);
+
+PyObject *PyWinObject_FromMAPIStr(LPTSTR str, BOOL isUnicode);

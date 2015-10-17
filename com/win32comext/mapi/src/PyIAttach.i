@@ -30,7 +30,35 @@ PyIAttach::~PyIAttach()
 
 %}
 
+%native(GetLastError) GetLastError;
+%{
+// @pyswig <o MAPIERROR>|GetLastError|Returns the last error code for the object.
+PyObject *PyIAttach::GetLastError(PyObject *self, PyObject *args)
+{
+	HRESULT hr, hRes;
+	ULONG flags = 0;
+	MAPIERROR *me = NULL;
+	
+	IAttach *_swig_self;
+	if ((_swig_self=GetI(self))==NULL) return NULL;
+	
+    if(!PyArg_ParseTuple(args,"l|l:GetLastError",
+		&hr, // @pyparm int|hr||Contains the error code generated in the previous method call.
+		&flags)) // @pyparm int|flags||Indicates for format for the output.
+        return NULL;
+		
+	Py_BEGIN_ALLOW_THREADS
+	hRes = _swig_self->GetLastError(hr, flags, &me);
+	Py_END_ALLOW_THREADS
 
-// GetLastError|Returns a MAPIERROR structure containing information about the previous error on the table. 
-HRESULT GetLastError(HRESULT hr, unsigned long flags, MAPIERROR **OUTPUT);
-
+	if (FAILED(hRes))
+		return OleSetOleError(hRes);
+	
+	if (me == NULL)
+	{
+		Py_INCREF(Py_None);
+		return Py_None;
+	}
+	return PyObject_FromMAPIERROR(me, flags & MAPI_UNICODE, TRUE);
+}
+%}

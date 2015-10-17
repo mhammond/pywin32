@@ -31,10 +31,38 @@ PyIMAPIFolder::~PyIMAPIFolder()
 
 %}
 
-// @pyswig <o PyMAPIError>|GetLastError|Returns the last error associated with this object
-// @pyparm int|hr||The HRESULT
-// @pyparm int|flags||
-HRESULT GetLastError(HRESULT hr, unsigned long flags, MAPIERROR **OUTPUT);
+%native(GetLastError) GetLastError;
+%{
+// @pyswig <o MAPIERROR>|GetLastError|Returns the last error code for the object.
+PyObject *PyIMAPIFolder::GetLastError(PyObject *self, PyObject *args)
+{
+	HRESULT hr, hRes;
+	ULONG flags = 0;
+	MAPIERROR *me = NULL;
+	
+	IMAPIFolder *_swig_self;
+	if ((_swig_self=GetI(self))==NULL) return NULL;
+	
+    if(!PyArg_ParseTuple(args,"l|l:GetLastError",
+		&hr, // @pyparm int|hr||Contains the error code generated in the previous method call.
+		&flags)) // @pyparm int|flags||Indicates for format for the output.
+        return NULL;
+		
+	Py_BEGIN_ALLOW_THREADS
+	hRes = _swig_self->GetLastError(hr, flags, &me);
+	Py_END_ALLOW_THREADS
+
+	if (FAILED(hRes))
+		return OleSetOleError(hRes);
+	
+	if (me == NULL)
+	{
+		Py_INCREF(Py_None);
+		return Py_None;
+	}
+	return PyObject_FromMAPIERROR(me, flags & MAPI_UNICODE, TRUE);
+}
+%}
 
 // @pyswig <o PyIMAPIFolder>|CreateFolder|Creates a folder object.
 HRESULT CreateFolder(
