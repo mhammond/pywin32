@@ -62,13 +62,51 @@ PyObject *PyIMsgServiceAdmin::GetLastError(PyObject *self, PyObject *args)
 }
 %}
 
-// @pyswig |CreateMsgService|Creates a message service. 
-HRESULT CreateMsgService( 
-	TCHAR *INPUT, // @pyparm string|serviceName||The name of the service.
-	TCHAR *INPUT_NULLOK, // @pyparm string|displayName||Display name of the service, or None
-	unsigned long ulUIParam, // @pyparm int|ulUIParam||Handle of the parent window for the configuration property sheet.
-	unsigned long ulFlags // @pyparm int|ulFlags||Bitmask of flags that controls the display of the property sheet.
-);
+%native(CreateMsgService) CreateMsgService;
+%{
+// @pyswig |CreateMsgService|Creates a message service.
+PyObject *PyIMsgServiceAdmin::CreateMsgService(PyObject *self, PyObject *args)
+{
+	PyObject *result = NULL;
+	HRESULT hRes;
+	PyObject *obService;
+	LPTSTR lpszService = NULL;
+	PyObject *obDisplayName;
+	LPTSTR lpszDisplayName = NULL;
+	ULONG ulUIParam = 0;
+	ULONG ulFlags = 0;
+	
+	IMsgServiceAdmin *_swig_self;
+	if ((_swig_self=GetI(self))==NULL) return NULL;
+	
+	if (!PyArg_ParseTuple(args, "OO|ll",
+		&obService, // @pyparm string|serviceName||The name of the service. 
+		&obDisplayName, // @pyparm string|displayName||Display name of the service, or None
+		&ulUIParam, // @pyparm int|uiParam|0|A handle of the parent window for any dialog boxes or windows that this method displays.
+		&ulFlags)) // @pyparm int|flags||A bitmask of flags that controls how the message service is installed.
+		return NULL;
+
+	if (!PyWinObject_AsMAPIStr(obService, &lpszService, ulFlags & MAPI_UNICODE, FALSE))
+		goto done;
+	if (!PyWinObject_AsMAPIStr(obDisplayName, &lpszDisplayName, ulFlags & MAPI_UNICODE, TRUE))
+		goto done;
+	
+	Py_BEGIN_ALLOW_THREADS
+	hRes = _swig_self->CreateMsgService(lpszService, lpszDisplayName, ulUIParam, ulFlags);
+	Py_END_ALLOW_THREADS
+	
+	if (FAILED(hRes))
+		result = OleSetOleError(hRes);
+	else
+		result = Py_BuildValue("");
+
+done:
+	PyWinObject_FreeString(lpszService);
+	PyWinObject_FreeString(lpszDisplayName);
+	
+	return result;
+}
+%}
 
 %{
 // @pyswig |ConfigureMsgService|Reconfigures a message service. 
@@ -130,6 +168,7 @@ HRESULT DeleteMsgService(
 );
 
 // @pyswig |RenameMsgService|Renames the specified service
+// @comm This is deprecated, and there is no replacement referenced to use instead.
 HRESULT RenameMsgService(
 	MAPIUID *INPUT, // @pyparm <o PyIID>|uuid||The ID of the service
 	unsigned long flags, // @pyparm int|flags||

@@ -65,3 +65,4 @@ PyObject *PyMAPIObject_FromMAPINAMEIDArray(MAPINAMEID **ppNameId, ULONG numIds);
 PyObject *PyMAPIObject_FromSPropProblemArray(SPropProblemArray *ppa);
 
 PyObject *PyWinObject_FromMAPIStr(LPTSTR str, BOOL isUnicode);
+BOOL PyWinObject_AsMAPIStr(PyObject *stringObject, LPTSTR * pResult, BOOL asUnicode, BOOL bNoneOK = FALSE, DWORD *pResultLen = NULL);

@@ -85,22 +85,22 @@ PyObject *PyIMsgStore::OpenEntry(PyObject *self, PyObject *args)
 PyObject *PyIMsgStore::GetReceiveFolder(PyObject *self, PyObject *args) 
 {
 	HRESULT  _result;
-	unsigned long  flags;
-	PyObject *obClass;
-	TCHAR *szClass;
-	TCHAR *sz_explicit_class = NULL;
+	unsigned long  flags = 0;
+	PyObject *obClass = Py_None;
+	LPTSTR szClass = NULL;
+	LPTSTR sz_explicit_class = NULL;
 	ULONG eid_cb;
 	LPENTRYID eid_out = NULL;
 	PyObject *rc = NULL;
 
 	IMsgStore *_swig_self;
 	if ((_swig_self=GetI(self))==NULL) return NULL;
-	// @pyparm string|||Message class that is associated with a receive folder. If thid parameter is set to None or an empty string, GetReceiveFolder returns the default receive folder for the message store. 
-	// @pyparm int|flags||
-	if(!PyArg_ParseTuple(args,"Ol:OpenEntry",&obClass, &flags))
+	// @pyparm string|messageClass|None|Message class that is associated with a receive folder. If this parameter is set to None or an empty string, GetReceiveFolder returns the default receive folder for the message store. 
+	// @pyparm int|flags|0|
+	if(!PyArg_ParseTuple(args,"|Ol:GetReceiveFolder",&obClass, &flags))
 		goto done;
 
-	if (!PyWinObject_AsTCHAR(obClass, &szClass, TRUE))
+	if (!PyWinObject_AsMAPIStr(obClass, &szClass, flags & MAPI_UNICODE, TRUE))
 		goto done;
 
 	Py_BEGIN_ALLOW_THREADS
@@ -112,11 +112,11 @@ PyObject *PyIMsgStore::GetReceiveFolder(PyObject *self, PyObject *args)
 	}
 
 	rc = Py_BuildValue("NN", PyString_FromStringAndSize((char *)eid_out, eid_cb),
-	                         PyWinObject_FromTCHAR(sz_explicit_class));
+	                         PyWinObject_FromMAPIStr(sz_explicit_class, flags & MAPI_UNICODE));
 	MAPIFreeBuffer(eid_out);
 	MAPIFreeBuffer(sz_explicit_class);
-	PyWinObject_FreeTCHAR(szClass);
 done:
+	PyWinObject_FreeTCHAR(szClass);
 	return rc;
 }
 

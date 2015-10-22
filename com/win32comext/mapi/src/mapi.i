@@ -538,14 +538,51 @@ HRESULT MAPIInitialize
 	MAPIINIT_0 *INPUT // @pyparm <o MAPIINIT_0>|init||MAPI Initialization flags.
 );
 
+%native(MAPILogonEx) PyMAPILogonEx;
+%{
 // @pyswig <o PyIMAPISession>|MAPILogonEx|
-HRESULT MAPILogonEx( 
-	ULONG INPUT, // @pyparm int|hWnd||Handle to the window to which the logon dialog box is modal. If no dialog box is displayed during the call, the hWnd parameter is ignored. This parameter can be zero. 
-	TCHAR *inNullString, // @pyparm <o PyUnicode>|profileName||A string containing the name of the profile to use when logging on. This string is limited to 64 characters.
-	TCHAR *inNullString, // @pyparm <o PyUnicode>|password||A string containing the password of the profile. This parameter can be None whether or not the profileName parameter is None. This string is limited to 64 characters.
-	FLAGS flFlags, // @pyparm int|uiFlags||Bitmask of flags used to control how logon is performed.  See the MAPI documentation for details.
-	IMAPISession **OUTPUT 
-);
+PyObject *PyMAPILogonEx(PyObject *self, PyObject *args)
+{
+	PyObject *result = NULL;
+	HRESULT hRes;
+	
+	ULONG ulUIParam;
+	PyObject *obProfileName;
+	LPTSTR lpszProfileName = NULL;
+	PyObject *obPassword = Py_None;
+	LPTSTR lpszPassword = NULL;
+	ULONG ulFlags = 0;
+	LPMAPISESSION lpSession = NULL;
+	
+	if (!PyArg_ParseTuple(args, "lO|Ol",
+		&ulUIParam, // @pyparm int|uiParam||Handle to the window to which the logon dialog box is modal. If no dialog box appears during the call, the uiParam parameter is ignored. This parameter can be zero.
+		&obProfileName, // @pyparm string|profileName||A string that contains the name of the profile to use when the user logs on. This string is limited to 64 characters.
+		&obPassword, // @pyparm string|password|None|A string that contains the password of the profile. The password parameter must be None.
+		&ulFlags)) // @pyparm int|flags|0|
+		return NULL;
+
+	if (!PyWinObject_AsMAPIStr(obProfileName, &lpszProfileName, ulFlags & MAPI_UNICODE, FALSE))
+		goto done;
+	if (!PyWinObject_AsMAPIStr(obPassword, &lpszPassword, ulFlags & MAPI_UNICODE, TRUE))
+		goto done;
+	
+	Py_BEGIN_ALLOW_THREADS
+	hRes = ::MAPILogonEx(ulUIParam, lpszProfileName, lpszPassword, ulFlags, &lpSession);
+	Py_END_ALLOW_THREADS
+	
+	if (FAILED(hRes))
+		result = OleSetOleError(hRes);
+	else
+		MAKE_OUTPUT_INTERFACE(&lpSession, result, IID_IMAPISession);
+	
+done:
+	PyWinObject_FreeString(lpszProfileName);
+	PyWinObject_FreeString(lpszPassword);
+	
+	return result;
+}
+%}
+
 
 // @pyswig <o PyIProfAdmin>|MAPIAdminProfiles|
 HRESULT MAPIAdminProfiles( 

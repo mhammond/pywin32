@@ -64,14 +64,62 @@ PyObject *PyIMAPIFolder::GetLastError(PyObject *self, PyObject *args)
 }
 %}
 
+%native(CreateFolder) CreateFolder;
+%{
 // @pyswig <o PyIMAPIFolder>|CreateFolder|Creates a folder object.
-HRESULT CreateFolder(
-	ULONG ulFolderType, // @pyparm int|folderType||The type of folder to create
-	TCHAR *INPUT, // @pyparm string|folderName||The name of the folder.
-	TCHAR *INPUT_NULLOK, // @pyparm string|folderComment||A comment for the folder or None
-	IID *INPUT_NULLOK,    // @pyparm <o PyIID>|iid||The IID of the object to return.  Should usually be None.
-	ULONG ulFlags, // @pyparm int|flags||
-	IMAPIFolder **OUTPUT);
+PyObject *PyIMAPIFolder::CreateFolder(PyObject *self, PyObject *args)
+{
+	PyObject *result = NULL;
+	HRESULT hRes;
+	ULONG ulFolderType;
+	PyObject *obFolderName;
+	LPTSTR lpszFolderName = NULL;
+	PyObject *obFolderComment = Py_None;
+	LPTSTR lpszFolderComment = NULL;
+	PyObject *obInterface = Py_None;
+	IID iid;
+	LPIID lpInterface = NULL;
+	ULONG ulFlags = 0;
+	LPMAPIFOLDER lpFolder = NULL;
+	
+	IMAPIFolder *_swig_self;
+	if ((_swig_self=GetI(self))==NULL) return NULL;
+	
+	if (!PyArg_ParseTuple(args, "lO|OOl",
+		&ulFolderType, // @pyparm int|folderType||The type of folder to create
+		&obFolderName, // @pyparm string|folderName||The name of the folder.
+		&obFolderComment, // @pyparm string|folderComment|None|A comment for the folder or None
+		&obInterface, // @pyparm <o PyIID>|iid|None|The IID of the object to return.  Should usually be None.
+		&ulFlags)) // @pyparm int|flags|0|
+		return NULL;
+
+	if (!PyWinObject_AsMAPIStr(obFolderName, &lpszFolderName, ulFlags & MAPI_UNICODE, FALSE))
+		goto done;
+	if (!PyWinObject_AsMAPIStr(obFolderComment, &lpszFolderComment, ulFlags & MAPI_UNICODE, TRUE))
+		goto done;
+	if (obInterface != Py_None)
+	{
+		lpInterface = &iid;
+		if (!PyWinObject_AsIID(obInterface, lpInterface))
+			goto done;
+	}
+	
+	Py_BEGIN_ALLOW_THREADS
+	hRes = _swig_self->CreateFolder(ulFolderType, lpszFolderName, lpszFolderComment, lpInterface, ulFlags, &lpFolder);
+	Py_END_ALLOW_THREADS
+	
+	if (FAILED(hRes))
+		result = OleSetOleError(hRes);
+	else
+		MAKE_OUTPUT_INTERFACE(&lpFolder, result, IID_IMAPIFolder);
+
+done:
+	PyWinObject_FreeString(lpszFolderName);
+	PyWinObject_FreeString(lpszFolderComment);
+	
+	return result;
+}
+%}
 
 // @pyswig <o PyIMessage>|CreateMessage|Creates a message in a folder
 HRESULT CreateMessage( 

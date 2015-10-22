@@ -1252,3 +1252,18 @@ PyObject *PyWinObject_FromMAPIStr(LPTSTR str, BOOL isUnicode)
 #endif	
 	}
 }
+
+BOOL PyWinObject_AsMAPIStr(PyObject *stringObject, LPTSTR *pResult, BOOL asUnicode, BOOL bNoneOK /*= FALSE*/, DWORD *pResultLen /* = NULL */)
+{
+#if PY_MAJOR_VERSION >= 3
+	if (asUnicode)
+		return PyWinObject_AsWCHAR(stringObject, (LPWSTR *)pResult, bNoneOK, pResultLen);
+	else
+		return PyWinObject_AsString(stringObject, (LPSTR *)pResult, bNoneOK, pResultLen);
+#else
+	if (asUnicode && PyUnicode_Check(stringObject))
+		return PyWinObject_AsWCHAR(stringObject, (LPWSTR *)pResult, bNoneOK, pResultLen);
+	// allows already encoded string pass-through workaround (backwards compat)
+	return PyWinObject_AsString(stringObject, (LPSTR *)pResult, bNoneOK, pResultLen);
+#endif
+}
