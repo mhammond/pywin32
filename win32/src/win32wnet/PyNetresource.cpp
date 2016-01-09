@@ -87,7 +87,11 @@ PyTypeObject PyNETRESOURCEType =
 	0,									/* tp_print */
 	0,									/* tp_getattr */
 	0,									/* tp_setattr */
+#if (PY_VERSION_HEX >= 0x03000000)
+	0,									/* tp_as_async */
+#else
 	PyNETRESOURCE::compareFunc,			/* tp_compare */
+#endif
 	0,										/* tp_repr */
 	0,										/* tp_as_number */
 	0,										/* tp_as_sequence */
