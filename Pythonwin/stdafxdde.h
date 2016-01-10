@@ -1,3 +1,5 @@
+#define _USING_V110_SDK71_
+
 #include <afxwin.h>         // MFC core and standard components
 #include <afxext.h>         // MFC extensions
 #include <afxmt.h>			// Thread safety!

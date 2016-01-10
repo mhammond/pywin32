@@ -11,6 +11,10 @@
 #define WINVER 0x0600
 #endif
 
+#define _USING_V110_SDK71_
+// MFC support for mbcs is going away, but no need for us to constantly be told...
+#define NO_WARN_MBCS_MFC_DEPRECATION
+
 #include <afxwin.h>			// MFC core and standard components
 
 #if (_MFC_VER < 0x0600)
