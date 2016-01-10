@@ -107,10 +107,17 @@ static_crt_modules = ["winxpgui"]
 
 from distutils.dep_util import newer_group, newer
 from distutils import dir_util, file_util
-from distutils.sysconfig import get_python_lib
+from distutils.sysconfig import get_python_lib, get_config_vars
 from distutils.filelist import FileList
 from distutils.errors import DistutilsExecError
 import distutils.util
+
+# prevent the new in 3.5 suffix of "cpXX-win32" from being added.
+# (adjusting both .cp35-win_amd64.pyd and .cp35-win32.pyd to .pyd)
+try:
+  get_config_vars()["EXT_SUFFIX"] = re.sub("\\.cp\d\d-win((32)|(_amd64))", "", get_config_vars()["EXT_SUFFIX"])
+except KeyError:
+  pass # no EXT_SUFFIX in this build.
 
 build_id_patch = build_id
 if not "." in build_id_patch:
@@ -803,8 +810,10 @@ class my_build_ext(build_ext):
         # Exclude exchange 32-bit utility libraries from 64-bit
         # builds. Note that the exchange module now builds, but only
         # includes interfaces for 64-bit builds.
-        if self.plat_name == 'win-amd64' and ext.name in ['exchdapi']:
+        if self.plat_name == 'win-amd64' and ext.name in ['exchdapi', 'exchange']:
             return "No 64-bit library for utility functions available."
+        if get_build_version() >=14 and ext.name in ['exchdapi', 'exchange']:
+            return "Haven't worked out how to make exchange modules build on vs2015"
         include_dirs = self.compiler.include_dirs + \
                        os.environ.get("INCLUDE", "").split(os.pathsep)
         if self.windows_h_version is None:
@@ -1037,17 +1046,23 @@ class my_build_ext(build_ext):
                     raise RuntimeError("Can't find %r" % (src,))
                 self.copy_file(src, target_dir)
             else:
-                # vs2008 or vs2010
+                plat_dir_64 = "x64"
+                # 2.6, 2.7, 3.0, 3.1 and 3.2 all use(d) vs2008 (compiler version 1500)
                 if sys.hexversion < 0x3030000:
                     product_key = r"SOFTWARE\Microsoft\VisualStudio\9.0\Setup\VC"
                     plat_dir_64 = "amd64"
                     mfc_dir = "Microsoft.VC90.MFC"
                     mfc_files = "mfc90.dll mfc90u.dll mfcm90.dll mfcm90u.dll Microsoft.VC90.MFC.manifest".split()
-                else:
+                # 3.3 and 3.4 use(d) vs2010 (compiler version 1600, crt=10)
+                elif sys.hexversion < 0x3050000:
                     product_key = r"SOFTWARE\Microsoft\VisualStudio\10.0\Setup\VC"
-                    plat_dir_64 = "x64"
                     mfc_dir = "Microsoft.VC100.MFC"
                     mfc_files = ["mfc100u.dll", "mfcm100u.dll"]
+                # 3.5 and later on vs2015 (compiler version 1900, crt=14)
+                else:
+                    product_key = r"SOFTWARE\Microsoft\VisualStudio\14.0\Setup\VC"
+                    mfc_dir = "Microsoft.VC140.MFC"
+                    mfc_files = ["mfc140u.dll", "mfcm140u.dll"]
 
                 # On a 64bit host, the value we are looking for is actually in
                 # SysWow64Node - but that is only available on xp and later.
