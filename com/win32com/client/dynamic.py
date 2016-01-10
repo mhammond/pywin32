@@ -113,9 +113,14 @@ def _GetGoodDispatchAndUserName(IDispatch, userName, clsctx):
 		userName = str(userName)
 	return (_GetGoodDispatch(IDispatch, clsctx), userName)
 
-def _GetDescInvokeType(entry, default_invoke_type):
-	if not entry or not entry.desc: return default_invoke_type
-	return entry.desc[4]
+def _GetDescInvokeType(entry, invoke_type):
+	# determine the wFlags argument passed as input to IDispatch::Invoke
+	if not entry or not entry.desc: return invoke_type
+	varkind = entry.desc[4] # from VARDESC struct returned by ITypeComp::Bind
+	if varkind == pythoncom.VAR_DISPATCH and invoke_type == pythoncom.INVOKE_PROPERTYGET:
+		return pythoncom.INVOKE_FUNC | invoke_type # DISPATCH_METHOD & DISPATCH_PROPERTYGET can be combined in IDispatch::Invoke
+	else:
+		return invoke_type
 
 def Dispatch(IDispatch, userName = None, createClass = None, typeinfo = None, UnicodeToString=None, clsctx = pythoncom.CLSCTX_SERVER):
 	assert UnicodeToString is None, "this is deprecated and will go away"

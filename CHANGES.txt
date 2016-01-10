@@ -8,6 +8,9 @@ Since build 219:
 * win32com - sys.argv[0] may be set to a bytes object instead of a string on
   Python 3 when implementing an in-process COM object.
 
+* Fix that allows a property to be fetched on COM objects to work in more cases
+  (Fredrik Orderud via patch #155)
+
 Since build 218:
 ----------------
  * win32com.mapi
