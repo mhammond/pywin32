@@ -2,12 +2,12 @@
 @if "%1"=="already_built" goto already_built
 if exist build\. rm -rf build
 if exist build\. goto couldnt_rm
+:quick
+call build_all.bat
 cd autoduck
 call make.bat
 @if errorlevel 1 goto failed
 cd ..
-:quick
-call build_all.bat
 :already_built
 rem Now the binaries.
 
@@ -37,8 +37,11 @@ py -3.3-32 setup3.py -q bdist_wininst --target-version=3.3 --skip-build --plat-n
 py -3.4-32 setup3.py -q bdist_wininst --target-version=3.4 --skip-build
 py -3.4-32 setup3.py -q bdist_wininst --target-version=3.4 --skip-build --plat-name=win-amd64 
 
-py -3.5-32 setup3.py -q bdist_wininst --target-version=3.5 --skip-build
-py -3.5-32 setup3.py -q bdist_wininst --target-version=3.5 --skip-build --plat-name=win-amd64 
+py -3.5-32 setup3.py -q bdist_wininst --skip-build
+py -3.5 setup3.py -q bdist_wininst --skip-build
+
+py -3.6-32 setup3.py -q bdist_wininst --skip-build
+py -3.6 setup3.py -q bdist_wininst --skip-build
 
 rem And nuke the dirs one more time :)
 if exist build/bdist.win32/. rm -rf build/bdist.win32
