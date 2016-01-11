@@ -26,6 +26,13 @@ class Tee:
                 pass
         tee_f.flush()
 
+# For some unknown reason, when running under bdist_wininst we will start up
+# with sys.stdout as None but stderr is hooked up. This work-around allows
+# bdist_wininst to see the output we write and display it at the end of
+# the install.
+if sys.stdout is None:
+    sys.stdout = sys.stderr
+
 sys.stderr = Tee(sys.stderr)
 sys.stdout = Tee(sys.stdout)
 
@@ -447,32 +454,6 @@ def install():
                 print "Can't install shortcuts - %r is not a folder" % (fldr,)
     except Exception, details:
         print details
-
-    # Check the MFC dll exists - it is doesn't, point them at it
-    # (I should install it, but its a bit tricky with distutils)
-    # Unfortunately, this is quite likely on Windows XP and MFC71.dll
-    if sys.hexversion < 0x2060000:
-        mfc_dll = "mfc71.dll"
-    elif sys.hexversion < 0x2070000:
-        mfc_dll = "mfc90.dll"
-    elif sys.hexversion < 0x3000000:
-        mfc_dll = "mfc90u.dll"
-    else:
-        mfc_dll = "mfc100u.dll"
-    try:
-        # It might be next to pythonwin itself (which is where setup.py
-        # currently arranges for it to be installed...)
-        if not os.path.isfile(os.path.join(lib_dir, "pythonwin", mfc_dll)):
-            win32api.SearchPath(None, mfc_dll)
-    except win32api.error:
-        print "*" * 20, "WARNING", "*" * 20
-        print "It appears that the MFC DLL '%s' is not installed" % (mfc_dll,)
-        print "Pythonwin will not work without this DLL, and I haven't had the"
-        print "time to package it in with the installer."
-        print
-        print "You can download this DLL from:"
-        print "http://starship.python.net/crew/mhammond/win32/"
-        print "*" * 50
 
     # importing win32com.client ensures the gen_py dir created - not strictly
     # necessary to do now, but this makes the installation "complete"
