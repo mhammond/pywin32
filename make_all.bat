@@ -37,11 +37,19 @@ py -3.3-32 setup3.py -q bdist_wininst --target-version=3.3 --skip-build --plat-n
 py -3.4-32 setup3.py -q bdist_wininst --target-version=3.4 --skip-build
 py -3.4-32 setup3.py -q bdist_wininst --target-version=3.4 --skip-build --plat-name=win-amd64 
 
-py -3.5-32 setup3.py -q bdist_wininst --skip-build
-py -3.5 setup3.py -q bdist_wininst --skip-build
+rem *sob* - for some reason 3.5 and later are failing to remove the bdist temp dir
+rem due to the mfc DLLs - but the dir can be removed manually.
+rem I've excluded the possibility of anti-virus or the indexer.
+rem So manually nuke them before builds.
+@if exist build\bdist.win32 rd /s/q build\bdist.win32 & @if exist build\bdist.amd64 rd /s/q build\bdist.amd64
+py -3.5-32 setup3.py -q bdist_wininst --target-version=3.5 --skip-build
+@if exist build\bdist.win32 rd /s/q build\bdist.win32 & @if exist build\bdist.amd64 rd /s/q build\bdist.amd64
+py -3.5 setup3.py -q bdist_wininst --target-version=3.5 --skip-build --plat-name=win-amd64
 
-py -3.6-32 setup3.py -q bdist_wininst --skip-build
-py -3.6 setup3.py -q bdist_wininst --skip-build
+@if exist build\bdist.win32 rd /s/q build\bdist.win32 & @if exist build\bdist.amd64 rd /s/q build\bdist.amd64
+py -3.6-32 setup3.py -q bdist_wininst --target-version=3.6 --skip-build
+@if exist build\bdist.win32 rd /s/q build\bdist.win32 & @if exist build\bdist.amd64 rd /s/q build\bdist.amd64
+py -3.6 setup3.py -q bdist_wininst --target-version=3.6 --skip-build --plat-name=win-amd64
 
 rem And nuke the dirs one more time :)
 if exist build/bdist.win32/. rm -rf build/bdist.win32
