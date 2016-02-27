@@ -954,7 +954,6 @@ PyObject *PyHrSetOneProp(PyObject *self, PyObject *args)
 	HRESULT hRes;
 	PyObject *obProp;
 	PyObject *obPropValue;
-	ULONG propTag;
 	IMAPIProp *pProp = NULL;
 	PyObject *ret = NULL;
 	SPropValue *pPV = NULL;
