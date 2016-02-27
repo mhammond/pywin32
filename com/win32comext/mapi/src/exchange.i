@@ -33,6 +33,9 @@
 #include <edkguid.h>
 
 #include "PyIExchangeManageStore.h"
+#include "IExchangeManageStoreEx.h"
+#include "PyIExchangeManageStoreEx.h"
+
 %}
 
 /*
@@ -87,6 +90,8 @@ static int AddIID(PyObject *dict, const char *key, REFGUID guid)
 %init %{
 	if ( PyCom_RegisterClientType(&PyIExchangeManageStore::type, &IID_IExchangeManageStore) != 0 ) return MODINIT_ERROR_RETURN;
 	ADD_IID(IID_IExchangeManageStore);
+	if ( PyCom_RegisterClientType(&PyIExchangeManageStoreEx::type, &IID_IExchangeManageStoreEx) != 0 ) return MODINIT_ERROR_RETURN;
+	ADD_IID(IID_IExchangeManageStoreEx);
 %}
 
 /*

@@ -8,6 +8,8 @@ Since build 220:
 ----------------
 * A null SPropTagArray will now return None instead of crashing.
 
+* New exchange interface PyIExchangeManageStoreEx (Nick Czeczulin)
+
 Since build 219:
 ----------------
 * win32com - sys.argv[0] may be set to a bytes object instead of a string on
