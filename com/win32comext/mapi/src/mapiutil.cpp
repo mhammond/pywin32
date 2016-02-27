@@ -752,6 +752,10 @@ void PyMAPIObject_FreeSPropTagArray(SPropTagArray *pta)
 
 PyObject *PyMAPIObject_FromSPropTagArray(SPropTagArray *pta)
 {
+	if (!pta) {
+		Py_INCREF(Py_None);
+		return Py_None;
+	}
 	PyObject *ret = PyTuple_New(pta->cValues);
 	for (ULONG i=0;i<pta->cValues;i++) {
 		PyTuple_SET_ITEM(ret, i, PyLong_FromUnsignedLong(pta->aulPropTag[i]));
