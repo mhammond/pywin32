@@ -6,6 +6,8 @@ However contributors are encouraged to add their own entries for their work.
 
 Since build 220:
 ----------------
+* Add PyIMapiSession::AdminServices method (Nick Czeczulin via patch #161)
+
 * Allow win32com.client.CastTo() to have a typelib specified, which will be
   used to locate the object definition (Pieter Aarnoutse via patch #136)
 

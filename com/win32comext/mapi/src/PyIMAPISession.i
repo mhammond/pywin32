@@ -313,3 +313,9 @@ HRESULT OpenProfileSection(
 	IID *INPUT_NULLOK, // @pyparm <o PyIID>|iid||The IID of the interface, or None.
 	unsigned long flags, // @pyparm int|flags||Flags that control the opening.
 	IProfSect **OUTPUT);
+
+
+// @pyswig <o PyIMsgServiceAdmin>|AdminServices|Provides access to a message service administration object for making changes to the message services.
+HRESULT AdminServices(
+   unsigned long ulFlags=0, // @pyparm int|flags|0|reserved; must be zero.
+   IMsgServiceAdmin **OUTPUT);
