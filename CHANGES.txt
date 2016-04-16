@@ -6,6 +6,9 @@ However contributors are encouraged to add their own entries for their work.
 
 Since build 220:
 ----------------
+* Allow win32com.client.CastTo() to have a typelib specified, which will be
+  used to locate the object definition (Pieter Aarnoutse via patch #136)
+
 * Add pythoncom.StgOpenStorageOnILockBytes (Nick Czeczulin via patch #135)
 
 * IDispatch failures will try and get error information via IErrorInfo (Stefan
