@@ -6,6 +6,8 @@ However contributors are encouraged to add their own entries for their work.
 
 Since build 220:
 ----------------
+* Add pythoncom.StgOpenStorageOnILockBytes (Nick Czeczulin via patch #135)
+
 * IDispatch failures will try and get error information via IErrorInfo (Stefan
   Schukat via patch #130)
 

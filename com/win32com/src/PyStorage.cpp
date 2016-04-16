@@ -190,6 +190,41 @@ PyObject *pythoncom_StgCreateDocfileOnILockBytes(PyObject *self, PyObject *args)
 	return PyCom_PyObjectFromIUnknown(pResult, IID_IStorage, FALSE);
 }
 
+// @pymethod <o PyIStorage>|pythoncom|StgOpenStorageOnILockBytes|Open an existing storage object that does not reside in a disk file, but instead has an underlying <PyILockBytes> byte array provided by the caller.
+PyObject *pythoncom_StgOpenStorageOnILockBytes(PyObject *self, PyObject *args)
+{
+	PyObject *obLockBytes;
+	PyObject *obStgPriority = NULL;
+	DWORD mode;
+	PyObject *obSnbExclude = NULL;
+	DWORD reserved = 0;
+	IStorage *pResult;
+
+	if (!PyArg_ParseTuple(args, "OOk|Ok:StgOpenStorageOnILockBytes",
+						&obLockBytes, // @pyparm <o PyILockBytes>|lockBytes||The <o PyILockBytes> interface on the underlying byte array object on which to open an existing storage object.
+						&obStgPriority, // @pyparm <o PyIStorage>|stgPriority||Usually None, or another parent storage.
+						&mode,
+						&obSnbExclude, // @pyparm object|snbExclude|None|Not yet supported - must be None
+						&reserved)) // @pyparm int|reserved|0|A reserved value
+		return NULL;
+	ILockBytes *plb;
+	if (!PyCom_InterfaceFromPyObject(obLockBytes, IID_ILockBytes, (void **)&plb, FALSE))
+		return NULL;
+	IStorage *pStgPriority;
+	if (!PyCom_InterfaceFromPyObject(obStgPriority, IID_IStorage, (void **)&pStgPriority, TRUE))
+	{
+		plb->Release();
+		return NULL;
+	}
+	PY_INTERFACE_PRECALL;
+	HRESULT hr = StgOpenStorageOnILockBytes(plb, pStgPriority, mode, NULL, reserved, &pResult);
+	plb->Release();
+	if (pStgPriority) pStgPriority->Release();
+	PY_INTERFACE_POSTCALL;
+	if (FAILED(hr)) return PyCom_BuildPyException(hr);
+	return PyCom_PyObjectFromIUnknown(pResult, IID_IStorage, FALSE);
+}
+
 #ifndef MS_WINCE
 // @pymethod int|pythoncom|StgIsStorageFile|Indicates whether a particular disk file contains a storage object.
 PyObject *pythoncom_StgIsStorageFile(PyObject *self, PyObject *args)
