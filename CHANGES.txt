@@ -6,6 +6,9 @@ However contributors are encouraged to add their own entries for their work.
 
 Since build 220:
 ----------------
+* IDispatch failures will try and get error information via IErrorInfo (Stefan
+  Schukat via patch #130)
+
 * A null SPropTagArray will now return None instead of crashing.
 
 * New mapi/exchange interfaces PyIExchangeManageStoreEx, PyIMAPIAdviseSink,

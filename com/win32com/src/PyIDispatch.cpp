@@ -4,7 +4,69 @@
 #include "stdafx.h"
 #include "PythonCOM.h"
 
-static BOOL HandledDispatchFailure(HRESULT hr, EXCEPINFO *einfo, UINT nArgErr, UINT cArgs)
+// Check if IDispatch implementation transports via IErrorInfo instead of
+// EXCEPINFO
+static BOOL ExcepInfoFromIErrorInfo(EXCEPINFO *einfo, IDispatch* pDisp, HRESULT scode)
+{
+	if (NULL == einfo || pDisp == NULL) {
+		return FALSE;
+	}
+	ISupportErrorInfo *pSEI;
+	HRESULT hr;
+	Py_BEGIN_ALLOW_THREADS
+	hr = pDisp->QueryInterface(IID_ISupportErrorInfo, (void **)&pSEI);
+	if (SUCCEEDED(hr)) {
+		hr = pSEI->InterfaceSupportsErrorInfo(IID_IDispatch);
+		pSEI->Release(); // Finished with this object
+	}
+	Py_END_ALLOW_THREADS
+
+	// InterfaceSupportsErrorInfo returning S_FALSE means we should ignore it.
+	if (FAILED(hr) || hr == S_FALSE) {
+		return FALSE;
+	}
+
+	// ErrorInfo via IErrorInfo hence transform to EXCEPINFO
+	IErrorInfo *pEI;
+	Py_BEGIN_ALLOW_THREADS
+	hr=GetErrorInfo(0, &pEI);
+	Py_END_ALLOW_THREADS
+
+	if (hr!=S_OK) {
+		return FALSE;
+	}
+	// These strings will be freed when PyCom_CleanupExcepInfo is called
+	// by our caller.
+	BSTR desc = NULL;
+	BSTR source = NULL;
+	BSTR helpfile = NULL;
+
+	Py_BEGIN_ALLOW_THREADS
+	hr=pEI->GetDescription(&desc);
+	if (hr==S_OK) {
+		einfo->bstrDescription = desc;
+	}
+	hr=pEI->GetSource(&source);
+	if (hr==S_OK) {
+		einfo->bstrSource = source;
+	}
+	hr=pEI->GetHelpFile(&helpfile);
+	if (hr==S_OK) {
+		einfo->bstrHelpFile = helpfile;
+	}
+	DWORD helpContext = 0;
+	hr = pEI->GetHelpContext(&helpContext);
+	if (hr==S_OK) {
+		einfo->dwHelpContext = helpContext;
+	}
+	einfo->wCode = 0;
+	einfo->scode = scode;
+	Py_END_ALLOW_THREADS
+	PYCOM_RELEASE(pEI);
+	return TRUE;
+}
+
+static BOOL HandledDispatchFailure(HRESULT hr, EXCEPINFO *einfo, UINT nArgErr, UINT cArgs, IDispatch *pDisp)
 {
 	if ( hr == DISP_E_EXCEPTION )
 	{
@@ -23,7 +85,13 @@ static BOOL HandledDispatchFailure(HRESULT hr, EXCEPINFO *einfo, UINT nArgErr, U
 			nArgErr =(UINT)-1;
 		else
 			nArgErr = cArgs - nArgErr;	/* convert to usable index */
-		PyCom_BuildPyExceptionFromEXCEPINFO(hr, NULL, nArgErr);
+		// See if we can fill the EXCEPINFO via IErrorInfo.
+		if(ExcepInfoFromIErrorInfo(einfo, pDisp, hr)) {
+			PyCom_BuildPyExceptionFromEXCEPINFO(hr, einfo, nArgErr);
+		} else {
+			PyCom_BuildPyExceptionFromEXCEPINFO(hr, NULL, nArgErr);
+		}
+
 		return TRUE;
 	}
 	return FALSE;
@@ -270,7 +338,7 @@ PyObject * PyIDispatch::Invoke(PyObject *self, PyObject *args)
 	PY_INTERFACE_POSTCALL;
 
 	if (!PyCom_FinishUntypedDISPPARAMS(&dispparams, helpers) ||
-	    HandledDispatchFailure(hr, &excepInfo, nArgErr, dispparams.cArgs) )	{
+	    HandledDispatchFailure(hr, &excepInfo, nArgErr, dispparams.cArgs, pMyDispatch) )	{
 		if ( pVarResultUse )
 			VariantClear(pVarResultUse);
 		return NULL;
@@ -425,7 +493,7 @@ PyObject * PyIDispatch::InvokeTypes(PyObject *self, PyObject *args)
 	PY_INTERFACE_POSTCALL;
 	}
 
-	if ( !HandledDispatchFailure(hr, &excepInfo, nArgErr, dispparams.cArgs) )
+	if ( !HandledDispatchFailure(hr, &excepInfo, nArgErr, dispparams.cArgs, pMyDispatch) )
 	{
 		// Now get fancy with the args.  Any args specified as BYREF get returned
 		// to Python.
@@ -657,7 +725,7 @@ PyObject *PyIDispatchEx::InvokeEx(PyObject *self, PyObject *args)
 	PY_INTERFACE_POSTCALL;
 
 	if (!PyCom_FinishUntypedDISPPARAMS(&dispparams, helpers) ||
-	    HandledDispatchFailure(hr, &excepInfo, (UINT)-1, dispparams.cArgs) ) {
+	    HandledDispatchFailure(hr, &excepInfo, (UINT)-1, dispparams.cArgs, pMyDispatch) ) {
 		if ( pVarResultUse )
 			VariantClear(pVarResultUse);
 		return NULL;
