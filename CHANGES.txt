@@ -4,6 +4,11 @@ Generally created by hand after running:
    hg log -rb2xx: > log.out
 However contributors are encouraged to add their own entries for their work.
 
+Since build 221:
+----------------
+* Change PyIMAPIFolder CopyMessages, DeleteMessages, and EmptyFolder to return
+  the HRESULT (Nick Czeczulin via patch #162)
+
 Since build 220:
 ----------------
 * Add PyIMapiSession::AdminServices method (Nick Czeczulin via patch #161)
