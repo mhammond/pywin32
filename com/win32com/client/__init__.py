@@ -471,7 +471,13 @@ class DispatchBaseClass:
 		args=self._prop_map_get_.get(attr)
 		if args is None:
 			raise AttributeError("'%s' object has no attribute '%s'" % (repr(self), attr))
-		return self._ApplyTypes_(*args)
+      ret = self._ApplyTypes_(*args)
+      if isinstance(ret, str):  # Dispatch on string tries to load a library
+          return ret
+      try:
+          return Dispatch(ret)
+      except AttributeError:  # Dispatch fails with non-COM variables like int
+          return self._ApplyTypes_(*args)
 
 	def __setattr__(self, attr, value):
 		if attr in self.__dict__: self.__dict__[attr] = value; return
