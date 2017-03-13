@@ -51,6 +51,11 @@ py -3.6-32 setup3.py -q bdist_wininst --target-version=3.6 --skip-build
 @if exist build\bdist.win32 rd /s/q build\bdist.win32 & @if exist build\bdist.amd64 rd /s/q build\bdist.amd64
 py -3.6 setup3.py -q bdist_wininst --target-version=3.6 --skip-build --plat-name=win-amd64
 
+@if exist build\bdist.win32 rd /s/q build\bdist.win32 & @if exist build\bdist.amd64 rd /s/q build\bdist.amd64
+py -3.7-32 setup3.py -q bdist_wininst --target-version=3.7 --skip-build
+@if exist build\bdist.win32 rd /s/q build\bdist.win32 & @if exist build\bdist.amd64 rd /s/q build\bdist.amd64
+py -3.7 setup3.py -q bdist_wininst --target-version=3.7 --skip-build --plat-name=win-amd64
+
 rem And nuke the dirs one more time :)
 if exist build/bdist.win32/. rm -rf build/bdist.win32
 if exist build/bdist.win-amd64/. rm -rf build/bdist.win-amd64
