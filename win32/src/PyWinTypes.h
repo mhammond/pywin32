@@ -114,7 +114,7 @@
 	documented, but is used extensively in the Python codebase itself,
 	so it's reasonable to assume it won't disappear anytime soon.
 */
-#define PYWIN_ATTR_CONVERT _PyUnicode_AsString
+#define PYWIN_ATTR_CONVERT (char *)_PyUnicode_AsString
 
 /* Some API functions changed/removed in python 3.0
 	Definitions for the string functions are in stringobject.h,
