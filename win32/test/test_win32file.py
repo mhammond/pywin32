@@ -209,6 +209,37 @@ class TestSimpleOps(unittest.TestCase):
             f.Close()
             os.unlink(filename)
 
+class TestGetFileInfoByHandleEx(unittest.TestCase):
+    __handle = __filename = None
+    def setUp(self):
+        fd, self.__filename = tempfile.mkstemp()
+        os.close(fd)
+
+    def tearDown(self):
+        if self.__handle is not None:
+            self.__handle.Close()
+        if self.__filename is not None:
+            try:
+                os.unlink(self.__filename)
+            except OSError:
+                pass
+        self.__handle = self.__filename = None
+
+    def testFileBasicInfo(self):
+        attr = win32file.GetFileAttributes(self.__filename)
+        f = win32file.CreateFile(self.__filename, win32file.GENERIC_READ, 0, None,
+                                 win32con.OPEN_EXISTING, 0, None)
+        self.__handle = f
+        ct, at, wt = win32file.GetFileTime(f)
+
+        # bug #752: this throws ERROR_BAD_LENGTH (24) in x86 binaries of build 221
+        basic_info = win32file.GetFileInformationByHandleEx(f, win32file.FileBasicInfo)
+
+        self.assertEqual(ct, basic_info['CreationTime'])
+        self.assertEqual(at, basic_info['LastAccessTime'])
+        self.assertEqual(wt, basic_info['LastWriteTime'])
+        self.assertEqual(attr, basic_info['FileAttributes'])
+
 class TestOverlapped(unittest.TestCase):
     def testSimpleOverlapped(self):
         # Create a file in the %TEMP% directory.

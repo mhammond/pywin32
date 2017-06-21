@@ -6,6 +6,9 @@ However contributors are encouraged to add their own entries for their work.
 
 Since build 221:
 ----------------
+* win32file - fix ERROR_BAD_LENGTH in GetFileInformationByHandleEx
+  in x86 builds(issue #752, rbschk)
+
 * MakeModuleForTypelib no longer catches COM exceptions, so no longer can
   return None. This is what the docstring always claimed the behaviour was
   and makes things less error prone. If you explicitly call this function and

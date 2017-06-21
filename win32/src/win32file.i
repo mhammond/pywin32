@@ -27,6 +27,22 @@
 #ifndef _WIN32_WINNT
 #define _WIN32_WINNT 0x0600
 #endif
+
+// bug #752
+// Include windows.h before winsock2 because with older SDKs the latter may
+// include windows.h with wrong pragma pack directive in effect, making
+// incorrect sizeof and layout of some WINAPI structs.
+// One does not simple include windows.h before winsock2, because windows.h
+// pulls old winsock.h (MSDN: for historical reasons) which conflicts with
+// winsock2 causing compilation errors.
+// To avoid inclusion of winsock.h we define WIN32_LEAN_AND_MEAN macro to
+// drop some headers from compilation. We then have to explicitly include ole2
+// and windefs affected by the macro.
+#define WIN32_LEAN_AND_MEAN
+#include "windows.h"
+#include "ole2.h"
+#include "Winefs.h"
+
 #include "winsock2.h"
 #include "mswsock.h"
 #include "pywintypes.h"
