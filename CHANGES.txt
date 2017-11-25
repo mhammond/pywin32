@@ -6,23 +6,27 @@ However contributors are encouraged to add their own entries for their work.
 
 Since build 221:
 ----------------
+* Moved to github for development. As a part of this, I've changed every issue
+  in this file from "#xxx" to "#sfxxx to indicate they refer to the old
+  sourceforge issue numbers.
+
 * Change PyIMAPIFolder CopyMessages, DeleteMessages, and EmptyFolder to return
-  the HRESULT (Nick Czeczulin via patch #162)
+  the HRESULT (Nick Czeczulin via patch #sf162)
 
 * Fix a reference leak of Py_None in a couple of MAPI methods (Nick Czeczulin
-  via patch #149)
+  via patch #sf149)
 
 Since build 220:
 ----------------
-* Add PyIMapiSession::AdminServices method (Nick Czeczulin via patch #161)
+* Add PyIMapiSession::AdminServices method (Nick Czeczulin via patch #sf161)
 
 * Allow win32com.client.CastTo() to have a typelib specified, which will be
-  used to locate the object definition (Pieter Aarnoutse via patch #136)
+  used to locate the object definition (Pieter Aarnoutse via patch #sf136)
 
-* Add pythoncom.StgOpenStorageOnILockBytes (Nick Czeczulin via patch #135)
+* Add pythoncom.StgOpenStorageOnILockBytes (Nick Czeczulin via patch #sf135)
 
 * IDispatch failures will try and get error information via IErrorInfo (Stefan
-  Schukat via patch #130)
+  Schukat via patch #sf130)
 
 * A null SPropTagArray will now return None instead of crashing.
 
@@ -36,7 +40,7 @@ Since build 219:
   Python 3 when implementing an in-process COM object.
 
 * Fix that allows a property to be fetched on COM objects to work in more cases
-  (Fredrik Orderud via patch #155)
+  (Fredrik Orderud via patch #sf155)
 
 * Disabled exchange and exchdapi modules on Python 2.5 due to unresolved
   build issues.
@@ -45,14 +49,14 @@ Since build 219:
 
 * Allow GetShortPathName to handle long paths in unicode mode (ruple)
 
-* Fix intermittent crash in win32cred.CredRead() (bug #670, rupole)
+* Fix intermittent crash in win32cred.CredRead() (bug #sf670, rupole)
 
-* Support PT_MV_BINARY MAPI properties, (patch #37) and many other MAPI
+* Support PT_MV_BINARY MAPI properties, (patch #sf37) and many other MAPI
   improvements (Nick Czeczulin)
 
-* Fix username used with EvtOpenSession (bug #688, rupole)
+* Fix username used with EvtOpenSession (bug #sf688, rupole)
 
-* Fix OutputDebugString encoding in wide builds (patch #142, rupole)
+* Fix OutputDebugString encoding in wide builds (patch #sf142, rupole)
 
 Since build 218:
 ----------------
@@ -60,14 +64,14 @@ Since build 218:
    Addded outlook interface IConverterSession with methods MIMEToMAPI, MAPIToMIMEStm, and SetAdrBook
    Added method OpenStreamOnFile (Nick Czeczulin)
    Ignore PT_MV_TSTRING along with PT_TSTRING (Nick Czeczulin) 
-   Bugfix to support PT_MV_BINARY properties (Nick Czeczulin via patch #37) 
+   Bugfix to support PT_MV_BINARY properties (Nick Czeczulin via patch #sf37) 
 
  * Conversions from a Python object to a variant now does a better job at
    deciding what variant type to use, taking into account the size and sign of
-   the value (Stefan Schukat via patch #127)
+   the value (Stefan Schukat via patch #sf127)
 
  * Add support for VT_I8 and VT_UI8 when converting a variant into a Python
-   object (Stefan Schukat via patch #128)
+   object (Stefan Schukat via patch #sf128)
 
  * win32com.mapi.exchange
    Added 64-bit support by excluding the 32-bit Ex2kSdk.lib functions from 64-bit builds.
@@ -91,7 +95,7 @@ Since build 218:
 * win32api
     Handle REG_QWORD (64-bit ints) (rupole)
     Add GetEnvironmentVariableW and SetEnvironmentVariableW (rupole)
-    Fix function pointer check for win32api.GetNativeSystemInfo (bug#665)
+    Fix function pointer check for win32api.GetNativeSystemInfo (bug#sf665)
 
 * win32com.shell
 	Add interfaces IFileOperation and IFileOperationProgressSink
