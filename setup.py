@@ -301,6 +301,8 @@ if sys.version_info > (2,6):
 
 
 sdk_dir = find_platform_sdk_dir()
+if not sdk_dir:
+    raise RuntimeError("Can't find the Windows SDK")
 
 class WinExt (Extension):
     # Base class for all win32 extensions, with some predefined
