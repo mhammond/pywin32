@@ -149,6 +149,7 @@ def RegisterServer(clsid,
                    dispatcher = None,
                    clsctx = None,
                    addnPath = None,
+                   exeOption = None
                   ):
   """Registers a Python object as a COM Server.  This enters almost all necessary
      information in the system registry, allowing COM to use the object.
@@ -172,6 +173,8 @@ def RegisterServer(clsid,
      clsctx -- One of the CLSCTX_* constants.
      addnPath -- An additional path the COM framework will add to sys.path
                  before attempting to create the object.
+     exeOption -- Option under which the server shall be started. By detault
+                  this varaible is set to '/Automate'.
   """
 
 
@@ -231,12 +234,17 @@ def RegisterServer(clsid,
   else: # Remove any old InProcServer32 registrations
     _remove_key(keyNameRoot + "\\InprocServer32")
 
+  if not exeOption:
+    exeOption = "/Automate"
   if clsctx & pythoncom.CLSCTX_LOCAL_SERVER:
     if pythoncom.frozen:
       # If we are frozen, we write "{exe} /Automate", just
       # like "normal" .EXEs do
       exeName = win32api.GetShortPathName(sys.executable)
-      command = '%s /Automate' % (exeName,)
+      if exeOption:
+        command = ' '.join([exeName,exeOption])
+      else:
+        command = exeName
     else:
       # Running from .py sources - we need to write
       # 'python.exe win32com\server\localserver.py {clsid}"
@@ -390,6 +398,7 @@ def RegisterClasses(*classes, **flags):
     policySpec = _get(cls, '_reg_policy_spec_')
     clsctx = _get(cls, '_reg_clsctx_')
     tlb_filename = _get(cls, '_reg_typelib_filename_')
+    exeOption = _get(cls, '_reg_executable_option_')
     # default to being a COM category only when not frozen.
     addPyComCat = not _get(cls, '_reg_disable_pycomcat_', pythoncom.frozen!=0)
     addnPath = None
@@ -427,7 +436,8 @@ def RegisterClasses(*classes, **flags):
 
     RegisterServer(clsid, spec, desc, progID, verProgID, defIcon,
                    threadingModel, policySpec, catids, options,
-                   addPyComCat, dispatcherSpec, clsctx, addnPath)
+                   addPyComCat, dispatcherSpec, clsctx, addnPath,
+                   exeOption)
     if not quiet:
       print 'Registered:', progID or spec, debuggingDesc
     # Register the typelibrary
