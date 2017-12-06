@@ -234,7 +234,7 @@ def RegisterServer(clsid,
   else: # Remove any old InProcServer32 registrations
     _remove_key(keyNameRoot + "\\InprocServer32")
 
-  if not exeOption:
+  if exeOption is None:
     exeOption = "/Automate"
   if clsctx & pythoncom.CLSCTX_LOCAL_SERVER:
     if pythoncom.frozen:
