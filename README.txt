@@ -15,4 +15,4 @@ should be  installed, but run 'setup.py' without any arguments to see
 specific information about dependencies.  A vanilla MSVC installation should 
 be able to build most extensions and list any extensions that could not be 
 built due to missing libraries - if the build actually fails with your 
-configuration, please log a bug via http://sourceforge.net/projects/pywin32.
+configuration, please log a bug via https://github.com/mhammond/pywin32/issues.
