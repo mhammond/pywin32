@@ -1,11 +1,12 @@
 ﻿A changelog for recent builds as pasted into the sourceforge page.
 
 Generally created by hand after running:
+```
    hg log -rb2xx: > log.out
+```
 However contributors are encouraged to add their own entries for their work.
 
-Since build 221:
-----------------
+### Since build 221:
 * Moved to github for development. As a part of this, I've changed every issue
   in this file from "#xxx" to "#sfxxx to indicate they refer to the old
   sourceforge issue numbers.
@@ -16,8 +17,8 @@ Since build 221:
 * Fix a reference leak of Py_None in a couple of MAPI methods (Nick Czeczulin
   via patch #sf149)
 
-Since build 220:
-----------------
+### Since build 220:
+
 * Add PyIMapiSession::AdminServices method (Nick Czeczulin via patch #sf161)
 
 * Allow win32com.client.CastTo() to have a typelib specified, which will be
@@ -34,8 +35,8 @@ Since build 220:
  PyIMsgStore::Advise, PyIMsgStore::Unadvise, HrAllocAdviseSink,
  HrThisThreadAdviseSink, and HrDispatchNotifications (Nick Czeczulin)
 
-Since build 219:
-----------------
+### Since build 219:
+
 * win32com - sys.argv[0] may be set to a bytes object instead of a string on
   Python 3 when implementing an in-process COM object.
 
@@ -58,8 +59,8 @@ Since build 219:
 
 * Fix OutputDebugString encoding in wide builds (patch #sf142, rupole)
 
-Since build 218:
-----------------
+### Since build 218:
+
  * win32com.mapi
    Addded outlook interface IConverterSession with methods MIMEToMAPI, MAPIToMIMEStm, and SetAdrBook
    Added method OpenStreamOnFile (Nick Czeczulin)
@@ -120,8 +121,8 @@ Since build 218:
 * pythonwin
   Fix a hang using the tools menu
 
-Since build 217:
-----------------
+### Since build 217:
+
 * mapiutil.py GetPropTagName has been modified to return the fully qualified
   PT_UNICODE and PT_STRING8 type name. Added optional argument to override
   rawType default in GetMapiTypeName. (Nick Czeczulin)
@@ -170,8 +171,8 @@ Since build 217:
 
 * win32api - Allow UpdateResource to remove a resource
 
-Since build 216:
-----------------
+### Since build 216:
+
 * ISAPI extension works with Python 3.x
 
 * Python service module will now have their directory added to the start
@@ -237,8 +238,8 @@ Since build 216:
 
 * win32net - Fix a problem with NetFileEnum on 64-bit (bug #3376041)
 
-Since build 215:
-----------------
+### Since build 215:
+
 * New loader module for COM objects to avoid some CRT manifest issues.
   pythoncomloaderxx.dll will be copied to your System32 directory and used as
   the entry-point for COM objects instead of pythoncomxx.dll.  This DLL
@@ -257,8 +258,8 @@ Since build 215:
 * Pythonwin gets an option to set the background color of the selected text.
 
 
-Since build 214:
-----------------
+### Since build 214:
+
 * Update adodbapi to version 2.4,2 -- in this version,
   1. The cursor has a new .query attribute.  It returns the (possibly converted) query sent to ADO. [Thanks to William Dode.]
      This may be useful for testing paramstyle 'format' and 'named' queries.  .query is an extension borrowed from psycopg2.
@@ -338,8 +339,7 @@ Since build 214:
 * Many functions in win32event would swallow exceptions due to things like
   invalid handles etc (Ziga Seilnacht via issue 3136751)
 
-Since build 213:
-----------------
+### Since build 213:
 
 * pythoncom gets better support for 64bit integers, including in arrays.
 
@@ -352,8 +352,7 @@ Since build 213:
 * Fixed a regression which would cause an error if you compared a PyTime 
   object to any other type, including None
 
-Since build 212:
-----------------
+### Since build 212:
 
 * py3k work - see the notes in the main documentation index for details,
   but this entailed a huge overhaul of almost all the pywin32 sources.
@@ -449,8 +448,8 @@ Since build 212:
 * add win32file.ConnectEx() and win32file.TransmitFile() (ionel and Roger via
   [1962146])
 
-Since build 211:
-----------------
+### Since build 211:
+
 * adodbapi updated to version 2.2. Supports Iron Python. Better
   logic for .rowcount. New .cvtString convertion method. Multiple
   result sets work correctly. Code cleanup and eliminate classic
