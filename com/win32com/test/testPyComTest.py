@@ -32,7 +32,7 @@ except pythoncom.com_error:
     print importMsg
     raise RuntimeError(importMsg)
 
-# We had a bg where RegisterInterfaces would fail if gencache had 
+# We had a bg where RegisterInterfaces would fail if gencache had
 # already been run - exercise that here
 from win32com import universal
 universal.RegisterInterfaces('{6BCDCB60-5605-11D0-AE5F-CADD4C000000}', 0, 1, 1)
@@ -79,7 +79,7 @@ def TestApplyResult(fn, args, result):
         raise error("%s failed - result not %r but %r" % (pref, result, rc))
 
 def TestConstant(constName, pyConst):
-    try: 
+    try:
         comConst = getattr(constants, constName)
     except:
         raise error("Constant %s missing" % (constName,))
@@ -113,6 +113,36 @@ class RandomEventHandler:
             print "ERROR: Nothing was received!"
         for firedId, no in self.fireds.iteritems():
             progress("ID %d fired %d times" % (firedId, no))
+
+# A simple handler class that derives from object (ie, a "new style class") -
+# only relevant for Python 2.x (ie, the 2 classes should be identical in 3.x)
+class NewStyleRandomEventHandler(object):
+    def _Init(self):
+        self.fireds = {}
+    def OnFire(self, no):
+        try:
+            self.fireds[no] = self.fireds[no] + 1
+        except KeyError:
+            self.fireds[no] = 0
+    def OnFireWithNamedParams(self, no, a_bool, out1, out2):
+        # This test exists mainly to help with an old bug, where named
+        # params would come in reverse.
+        Missing = pythoncom.Missing
+        if no is not Missing:
+            # We know our impl called 'OnFire' with the same ID
+            assert no in self.fireds
+            assert no+1==out1, "expecting 'out1' param to be ID+1"
+            assert no+2==out2, "expecting 'out2' param to be ID+2"
+        # The middle must be a boolean.
+        assert a_bool is Missing or type(a_bool)==bool, "middle param not a bool"
+        return out1+2, out2+2
+
+    def _DumpFireds(self):
+        if not self.fireds:
+            print "ERROR: Nothing was received!"
+        for firedId, no in self.fireds.iteritems():
+            progress("ID %d fired %d times" % (firedId, no))
+
 
 # Test everything which can be tested using both the "dynamic" and "generated"
 # COM objects (or when there are very subtle differences)
@@ -233,7 +263,7 @@ def TestCommon(o, is_generated):
     TestConstant("UCharTest", 255)
     TestConstant("CharTest", -1)
     # 'Hello Loraine', but the 'r' is the "Registered" sign (\xae)
-    TestConstant("StringTest", u"Hello Lo\xaeaine") 
+    TestConstant("StringTest", u"Hello Lo\xaeaine")
 
     progress("Checking dates and times")
     if issubclass(pywintypes.TimeType, datetime.datetime):
@@ -443,8 +473,12 @@ def TestGenerated():
     progress("Testing connection points")
     o2 = win32com.client.DispatchWithEvents(o, RandomEventHandler)
     TestEvents(o2, o2)
+    o2 = win32com.client.DispatchWithEvents(o, NewStyleRandomEventHandler)
+    TestEvents(o2, o2)
     # and a plain "WithEvents".
     handler = win32com.client.WithEvents(o, RandomEventHandler)
+    TestEvents(o, handler)
+    handler = win32com.client.WithEvents(o, NewStyleRandomEventHandler)
     TestEvents(o, handler)
     progress("Finished generated .py test.")
 
@@ -528,7 +562,12 @@ def TestCounter(counter, bIsGenerated):
     for i in xrange(50):
         num = int(random.random() * len(counter))
         try:
-            ret = counter[num]
+            # XXX - this appears broken by commit 08a14d4deb374eaa06378509cf44078ad467b9dc -
+            # We shouldn't need to do generated differently than dynamic.
+            if bIsGenerated:
+                ret = counter.Item(num+1)
+            else:
+                ret = counter[num]
             if ret != num+1:
                 raise error("Random access into element %d failed - return was %s" % (num,repr(ret)))
         except IndexError:
@@ -565,7 +604,7 @@ def TestCounter(counter, bIsGenerated):
     if num != 10:
         raise error("*** Unexpected number of loop iterations ***")
 
-    counter = counter._enum_.Clone() # Test Clone() and enum directly
+    counter = iter(counter)._iter_.Clone() # Test Clone() and enum directly
     counter.Reset()
     num = 0
     for item in counter:
