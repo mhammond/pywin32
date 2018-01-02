@@ -2366,7 +2366,7 @@ PYWIN_MODULE_INIT_FUNC(win32ui)
 
 	// drop email addy - too many ppl use it for support requests for other
 	// tools that simply embed Pythonwin...
-	PyObject *copyright = PyWinCoreString_FromString("Copyright 1994-2008 Mark Hammond");
+	PyObject *copyright = PyWinCoreString_FromString("Copyright 1994-2018 Mark Hammond");
 	if ((copyright == NULL) || PyDict_SetItemString(dict, "copyright", copyright) == -1)
 		PYWIN_MODULE_INIT_RETURN_ERROR;
 	Py_XDECREF(copyright);
