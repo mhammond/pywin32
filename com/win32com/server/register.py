@@ -174,7 +174,7 @@ def RegisterServer(clsid,
      addnPath -- An additional path the COM framework will add to sys.path
                  before attempting to create the object.
      exeOption -- Option under which the server shall be started. By detault
-                  this varaible is set to '/Automate'.
+                  this variable is set to '/Automate'.
   """
 
 
