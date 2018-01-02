@@ -6,6 +6,11 @@ However contributors are encouraged to add their own entries for their work.
 
 Since build 221:
 ----------------
+* MakeModuleForTypelib no longer catches COM exceptions, so no longer can
+  return None. This is what the docstring always claimed the behaviour was
+  and makes things less error prone. If you explicitly call this function and
+  handle None, you will need to wrap the call in an exception handler.
+
 * Moved to github for development. As a part of this, I've changed every issue
   in this file from "#xxx" to "#sfxxx to indicate they refer to the old
   sourceforge issue numbers.
