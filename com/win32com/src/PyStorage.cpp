@@ -190,7 +190,7 @@ PyObject *pythoncom_StgCreateDocfileOnILockBytes(PyObject *self, PyObject *args)
 	return PyCom_PyObjectFromIUnknown(pResult, IID_IStorage, FALSE);
 }
 
-// @pymethod <o PyIStorage>|pythoncom|StgOpenStorageOnILockBytes|Open an existing storage object that does not reside in a disk file, but instead has an underlying <PyILockBytes> byte array provided by the caller.
+// @pymethod <o PyIStorage>|pythoncom|StgOpenStorageOnILockBytes|Open an existing storage object that does not reside in a disk file, but instead has an underlying <o PyILockBytes> byte array provided by the caller.
 PyObject *pythoncom_StgOpenStorageOnILockBytes(PyObject *self, PyObject *args)
 {
 	PyObject *obLockBytes;
