@@ -1505,7 +1505,7 @@ class my_compiler(base_compiler):
             args = [sys.executable]
             args.append(stamp_script)
             args.append("--version=%s" % (pywin32_version,))
-            args.append("--comments=http://pywin32.sourceforge.net")
+            args.append("--comments=https://github.com/mhammond/pywin32")
             args.append("--original-filename=%s" % (os.path.basename(output_filename),))
             args.append("--product=PyWin32")
             if '-v' not in sys.argv:
@@ -2508,7 +2508,7 @@ dist = setup(name="pywin32",
                        "Pythonwin environment.",
       author="Mark Hammond (et al)",
       author_email = "mhammond@users.sourceforge.net",
-      url="http://sourceforge.net/projects/pywin32/",
+      url="https://github.com/mhammond/pywin32",
       license="PSF",
       cmdclass = cmdclass,
       options = {"bdist_wininst":

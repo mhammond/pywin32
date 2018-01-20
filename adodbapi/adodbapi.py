@@ -2,6 +2,7 @@
 
 Copyright (C) 2002 Henrik Ekelund, versions 2.1 and later by Vernon Cole
 * http://sourceforge.net/projects/pywin32
+* https://github.com/mhammond/pywin32
 * http://sourceforge.net/projects/adodbapi
 
     This library is free software; you can redistribute it and/or
