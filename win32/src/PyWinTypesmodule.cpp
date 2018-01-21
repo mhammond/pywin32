@@ -804,6 +804,7 @@ static struct PyMethodDef pywintypes_functions[] = {
 	{"IID",			PyWinMethod_NewIID, 1 },         // @pymeth IID|Makes an <o PyIID> object from a string.
 #endif
 	{"Time",		PyWinMethod_NewTime, 1 },		// @pymeth Time|Makes a <o PyTime> object from the argument.
+	{"TimeStamp",	PyWinMethod_NewTimeStamp, 1 },	// @pymeth Time|Makes a <o PyTime> object from the argument.
 #ifndef MS_WINCE
 	{"CreateGuid",  PyWin_CreateGuid, 1 },      // @pymeth CreateGuid|Creates a new, unique GUIID.
 #endif // MS_WINCE
