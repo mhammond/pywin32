@@ -18,6 +18,9 @@ Since build 221:
   As a part of this, I've changed every issue in this file from "#xxx" to
   "#sfxxx" to indicate they refer to the old sourceforge issue numbers.
 
+* Older Python versions are no longer supported - builds are only made
+  available for Python 2.7 and Python 3.5+.
+
 * For Python 3.x, a win32 FILETIME or TimeStamp which is greater than the
   datetime module can handle will return datetime.datetime.max instead of
   throwing (fixes issue #748)
