@@ -13,6 +13,7 @@ dist
 *.chw
 *.pyc
 *.pyo
+pywin32.egg-info/
 Pythonwin/Scintilla/win32/*.pdb
 PyWin32.kpf
 .idea  #Pycharm
