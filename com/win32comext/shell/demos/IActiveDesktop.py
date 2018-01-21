@@ -1,7 +1,7 @@
 from win32com.shell import shell, shellcon
 import pythoncom
 import time
-website='http://sourceforge.net/projects/pywin32/'
+website='https://github.com/mhammond/pywin32/'
 iad=pythoncom.CoCreateInstance(shell.CLSID_ActiveDesktop, None, pythoncom.CLSCTX_INPROC_SERVER, shell.IID_IActiveDesktop)
 opts=iad.GetDesktopItemOptions()
 if not (opts['ActiveDesktop'] and opts['EnableComponents']):
