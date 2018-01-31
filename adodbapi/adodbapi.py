@@ -35,9 +35,9 @@ import copy
 import decimal
 import os
 
-import process_connect_string
-import ado_consts as adc
-import apibase as api
+from . import process_connect_string
+from . import ado_consts as adc
+from . import apibase as api
 
 try:
     verbose = int(os.environ['ADODBAPI_VERBOSE'])
