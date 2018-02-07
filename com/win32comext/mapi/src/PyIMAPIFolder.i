@@ -127,8 +127,8 @@ HRESULT CreateMessage(
 	ULONG ulFlags,	// @pyparm int|flags||
 	IMessage **OUTPUT);
 
-// @pyswig |CopyMessages|Copies the specified messages
-HRESULT CopyMessages(
+// @pyswig int|CopyMessages|Copies the specified messages
+HRESULT_KEEP_INFO CopyMessages(
 	SBinaryArray *INPUT, // @pyparm <o PySBinaryArray>|msgs||
 	IID *INPUT_NULLOK,    // @pyparm <o PyIID>|iid||IID representing the interface to be used to access the destination folder.  Should usually be None.
 	IMAPIFolder *INPUT, // @pyparm <o PyIMAPIFolder>|folder||The destination folder
@@ -188,15 +188,15 @@ PyObject *PyIMAPIFolder::DeleteFolder(PyObject *self, PyObject *args)
 }
 %}
 
-// @pyswig |DeleteMessages|Deletes the specified messages.
-HRESULT DeleteMessages(
+// @pyswig int|DeleteMessages|Deletes the specified messages.
+HRESULT_KEEP_INFO DeleteMessages(
 	SBinaryArray *INPUT, // @pyparm <o PySBinaryArray>|msgs||
 	unsigned long ulUIParam, // @pyparm int|uiParam||A HWND for the progress
 	IMAPIProgress *INPUT_NULLOK,// @pyparm <o PyIMAPIProgress>|progress||A progress object, or None
 	unsigned long ulFlags); // @pyparm int|flags||
 
-// @pyswig |EmptyFolder|deletes all messages and subfolders from a folder without deleting the folder itself.
-HRESULT EmptyFolder(
+// @pyswig int|EmptyFolder|deletes all messages and subfolders from a folder without deleting the folder itself.
+HRESULT_KEEP_INFO EmptyFolder(
 	ULONG ulUIParam, // @pyparm int|uiParam||A HWND for the progress
 	IMAPIProgress *INPUT_NULLOK, // @pyparm <o PyIMAPIProgress>|progress||A progress object, or None
 	ULONG ulFlags // @pyparm int|flags||

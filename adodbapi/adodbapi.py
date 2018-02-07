@@ -2,6 +2,7 @@
 
 Copyright (C) 2002 Henrik Ekelund, versions 2.1 and later by Vernon Cole
 * http://sourceforge.net/projects/pywin32
+* https://github.com/mhammond/pywin32
 * http://sourceforge.net/projects/adodbapi
 
     This library is free software; you can redistribute it and/or
@@ -34,9 +35,9 @@ import copy
 import decimal
 import os
 
-import process_connect_string
-import ado_consts as adc
-import apibase as api
+from . import process_connect_string
+from . import ado_consts as adc
+from . import apibase as api
 
 try:
     verbose = int(os.environ['ADODBAPI_VERBOSE'])

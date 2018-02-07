@@ -1039,8 +1039,8 @@ PyObject *PyHrAllocAdviseSink(PyObject *self, PyObject *args)
 	PyCMAPIAdviseSink *sink = NULL;
 
 	if (!PyArg_ParseTuple(args, "O|O:HrAllocAdviseSink",
-		&ob_callback,			// @pyparm function|callback|OnNotify callback function
-		&ob_context))           // @pyparm object|context|Context data to be passed to the callback
+		&ob_callback,			// @pyparm function|callback||OnNotify callback function
+		&ob_context))           // @pyparm object|context||Context data to be passed to the callback
 		return NULL;
 	if (!PyCallable_Check(ob_callback)){
 		PyErr_SetString(PyExc_TypeError,"OnNotify must be callable");

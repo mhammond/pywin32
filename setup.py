@@ -1,4 +1,4 @@
-build_id="221" # may optionally include a ".{patchno}" suffix.
+build_id="222.1" # may optionally include a ".{patchno}" suffix.
 # Putting buildno at the top prevents automatic __doc__ assignment, and
 # I *want* the build number at the top :)
 __doc__="""This is a distutils setup-script for the pywin32 extensions
@@ -65,6 +65,19 @@ To build 64bit versions of this:
       setup.py build --plat-name=win-amd64
 
    see the distutils cross-compilation documentation for more details.
+
+Creating Distributions:
+-----------------------
+
+The make_all.bat batch file will build and create distributions.
+
+Once a distribution has been built and tested, you should ensure that
+'git status' shows no dirty files, then create a tag with the format 'bXXX'
+
+The executable installers are uploaded to github.
+
+The "wheel" packages are uploaded to pypi using `twine upload dist/path-to.whl`
+
 """
 # Originally by Thomas Heller, started in 2000 or so.
 import os, string, sys
@@ -82,7 +95,8 @@ else:
     import _winreg
 
 # The rest of our imports.
-from distutils.core import setup, Extension, Command
+from setuptools import setup
+from distutils.core import Extension, Command
 from distutils.command.install import install
 from distutils.command.install_lib import install_lib
 from distutils.command.build_ext import build_ext
@@ -301,6 +315,8 @@ if sys.version_info > (2,6):
 
 
 sdk_dir = find_platform_sdk_dir()
+if not sdk_dir:
+    raise RuntimeError("Can't find the Windows SDK")
 
 class WinExt (Extension):
     # Base class for all win32 extensions, with some predefined
@@ -484,7 +500,7 @@ class WinExt (Extension):
             found_mfc = False
             for incl in os.environ.get("INCLUDE", "").split(os.pathsep):
                 # first is a "standard" MSVC install, second is the Vista SDK.
-                for candidate in ("..\src\occimpl.h", "..\..\src\mfc\occimpl.h"):
+                for candidate in (r"..\src\occimpl.h", r"..\..\src\mfc\occimpl.h"):
                     check = os.path.join(incl, candidate)
                     if os.path.isfile(check):
                         self.extra_compile_args.append('/DMFC_OCC_IMPL_H=\\"%s\\"' % candidate)
@@ -1034,57 +1050,54 @@ class my_build_ext(build_ext):
             self.copy_file(
                     os.path.join(self.build_temp, fname), target_dir)
         # The MFC DLLs.
-        try:
-            target_dir = os.path.join(self.build_lib, "pythonwin")
-            if sys.hexversion < 0x2060000:
-                # hrm - there doesn't seem to be a 'redist' directory for this
-                # compiler (even the installation CDs only seem to have the MFC
-                # DLLs in the "win\system" directory - just grab it from
-                # system32 (but we can't even use win32api for that!)
-                src = os.path.join(os.environ.get('SystemRoot'), 'System32', 'mfc71.dll')
-                if not os.path.isfile(src):
-                    raise RuntimeError("Can't find %r" % (src,))
-                self.copy_file(src, target_dir)
+        target_dir = os.path.join(self.build_lib, "pythonwin")
+        if sys.hexversion < 0x2060000:
+            # hrm - there doesn't seem to be a 'redist' directory for this
+            # compiler (even the installation CDs only seem to have the MFC
+            # DLLs in the "win\system" directory - just grab it from
+            # system32 (but we can't even use win32api for that!)
+            src = os.path.join(os.environ.get('SystemRoot'), 'System32', 'mfc71.dll')
+            if not os.path.isfile(src):
+                raise RuntimeError("Can't find %r" % (src,))
+            self.copy_file(src, target_dir)
+        else:
+            plat_dir_64 = "x64"
+            # 2.6, 2.7, 3.0, 3.1 and 3.2 all use(d) vs2008 (compiler version 1500)
+            if sys.hexversion < 0x3030000:
+                product_key = r"SOFTWARE\Microsoft\VisualStudio\9.0\Setup\VC"
+                plat_dir_64 = "amd64"
+                mfc_dir = "Microsoft.VC90.MFC"
+                mfc_files = "mfc90.dll mfc90u.dll mfcm90.dll mfcm90u.dll Microsoft.VC90.MFC.manifest".split()
+            # 3.3 and 3.4 use(d) vs2010 (compiler version 1600, crt=10)
+            elif sys.hexversion < 0x3050000:
+                product_key = r"SOFTWARE\Microsoft\VisualStudio\10.0\Setup\VC"
+                mfc_dir = "Microsoft.VC100.MFC"
+                mfc_files = ["mfc100u.dll", "mfcm100u.dll"]
+            # 3.5 and later on vs2015 (compiler version 1900, crt=14)
             else:
-                plat_dir_64 = "x64"
-                # 2.6, 2.7, 3.0, 3.1 and 3.2 all use(d) vs2008 (compiler version 1500)
-                if sys.hexversion < 0x3030000:
-                    product_key = r"SOFTWARE\Microsoft\VisualStudio\9.0\Setup\VC"
-                    plat_dir_64 = "amd64"
-                    mfc_dir = "Microsoft.VC90.MFC"
-                    mfc_files = "mfc90.dll mfc90u.dll mfcm90.dll mfcm90u.dll Microsoft.VC90.MFC.manifest".split()
-                # 3.3 and 3.4 use(d) vs2010 (compiler version 1600, crt=10)
-                elif sys.hexversion < 0x3050000:
-                    product_key = r"SOFTWARE\Microsoft\VisualStudio\10.0\Setup\VC"
-                    mfc_dir = "Microsoft.VC100.MFC"
-                    mfc_files = ["mfc100u.dll", "mfcm100u.dll"]
-                # 3.5 and later on vs2015 (compiler version 1900, crt=14)
-                else:
-                    product_key = r"SOFTWARE\Microsoft\VisualStudio\14.0\Setup\VC"
-                    mfc_dir = "Microsoft.VC140.MFC"
-                    mfc_files = ["mfc140u.dll", "mfcm140u.dll"]
+                product_key = r"SOFTWARE\Microsoft\VisualStudio\14.0\Setup\VC"
+                mfc_dir = "Microsoft.VC140.MFC"
+                mfc_files = ["mfc140u.dll", "mfcm140u.dll"]
 
-                # On a 64bit host, the value we are looking for is actually in
-                # SysWow64Node - but that is only available on xp and later.
-                access = _winreg.KEY_READ
-                if sys.getwindowsversion()[0] >= 5:
-                    access = access | 512 # KEY_WOW64_32KEY
-                if self.plat_name == 'win-amd64':
-                    plat_dir = plat_dir_64
-                else:
-                    plat_dir = "x86"
-                # Find the redist directory.
-                vckey = _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE, product_key,
-                                        0, access)
-                val, val_typ = _winreg.QueryValueEx(vckey, "ProductDir")
-                mfc_dir = os.path.join(val, "redist", plat_dir, mfc_dir)
-                if not os.path.isdir(mfc_dir):
-                    raise RuntimeError("Can't find the redist dir at %r" % (mfc_dir))
-                for f in mfc_files:
-                    self.copy_file(
-                            os.path.join(mfc_dir, f), target_dir)
-        except (EnvironmentError, RuntimeError), exc:
-            print "Can't find an installed VC for the MFC DLLs:", exc
+            # On a 64bit host, the value we are looking for is actually in
+            # SysWow64Node - but that is only available on xp and later.
+            access = _winreg.KEY_READ
+            if sys.getwindowsversion()[0] >= 5:
+                access = access | 512 # KEY_WOW64_32KEY
+            if self.plat_name == 'win-amd64':
+                plat_dir = plat_dir_64
+            else:
+                plat_dir = "x86"
+            # Find the redist directory.
+            vckey = _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE, product_key,
+                                    0, access)
+            val, val_typ = _winreg.QueryValueEx(vckey, "ProductDir")
+            mfc_dir = os.path.join(val, "redist", plat_dir, mfc_dir)
+            if not os.path.isdir(mfc_dir):
+                raise RuntimeError("Can't find the redist dir at %r" % (mfc_dir))
+            for f in mfc_files:
+                shutil.copyfile(
+                        os.path.join(mfc_dir, f), os.path.join(target_dir, f))
 
 
     def build_exefile(self, ext):
@@ -1503,7 +1516,7 @@ class my_compiler(base_compiler):
             args = [sys.executable]
             args.append(stamp_script)
             args.append("--version=%s" % (pywin32_version,))
-            args.append("--comments=http://pywin32.sourceforge.net")
+            args.append("--comments=https://github.com/mhammond/pywin32")
             args.append("--original-filename=%s" % (os.path.basename(output_filename),))
             args.append("--product=PyWin32")
             if '-v' not in sys.argv:
@@ -2505,8 +2518,8 @@ dist = setup(name="pywin32",
                        "ability to create and use COM objects, and the\n"
                        "Pythonwin environment.",
       author="Mark Hammond (et al)",
-      author_email = "mhammond@users.sourceforge.net",
-      url="http://sourceforge.net/projects/pywin32/",
+      author_email = "mhammond@skippinet.com.au",
+      url="https://github.com/mhammond/pywin32",
       license="PSF",
       cmdclass = cmdclass,
       options = {"bdist_wininst":

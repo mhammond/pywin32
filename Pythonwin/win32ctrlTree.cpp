@@ -354,11 +354,15 @@ MAKE_BOOL_ITEM_INT_ACTION(PyCTreeCtrl_Select, Select )
 // @pyparm HTREEITEM|item||The specified item
 PyObject *PyCTreeCtrl_GetItemImage( PyObject *self, PyObject *args ) 
 {
-	HTREEITEM item;
-	if (!PyArg_ParseTuple( args, "i:GetItemImage", &item))
+	PyObject *obItem;
+	if (!PyArg_ParseTuple( args, "O:GetItemImage", &obItem))
 		return NULL;
+
 	CTreeCtrl *pList = GetTreeCtrl(self);
 	if (!pList) return NULL;
+	HTREEITEM item;
+	if (!PyWinObject_AsHANDLE(obItem, (HANDLE *)&item))
+		return NULL;
 	int res1, res2;
 	GUI_BGN_SAVE;
 	BOOL ok = pList->GetItemImage(item, res1, res2);
@@ -371,13 +375,16 @@ PyObject *PyCTreeCtrl_GetItemImage( PyObject *self, PyObject *args )
 // @pymethod (int,int)|PyCTreeCtrl|GetItemState|Retrieves the state and mask of an item.
 // @pyparm HTREEITEM|item||The specified item
 // @pyparm int|stateMask||The mask for the result.
-PyObject *PyCTreeCtrl_GetItemState( PyObject *self, PyObject *args ) 
+PyObject *PyCTreeCtrl_GetItemState( PyObject *self, PyObject *args )
 {
-	HTREEITEM item; UINT stateMask;
-	if (!PyArg_ParseTuple( args, "ii:GetItemState", &item, &stateMask))
+	PyObject *obItem; UINT stateMask;
+	if (!PyArg_ParseTuple( args, "Ok:GetItemState", &obItem, &stateMask))
 		return NULL;
 	CTreeCtrl *pList = GetTreeCtrl(self);
 	if (!pList) return NULL;
+	HTREEITEM item;
+	if (!PyWinObject_AsHANDLE(obItem, (HANDLE *)&item))
+		return NULL;
 	GUI_BGN_SAVE;
 	long state = pList->GetItemState(item, stateMask);
 	GUI_END_SAVE;
@@ -549,16 +556,19 @@ PyObject *PyCTreeCtrl_SetImageList( PyObject *self, PyObject *args )
 // @pymethod <o TV_ITEM>|PyCTreeCtrl|GetItem|Retrieves the details of an items attributes.
 PyObject *PyCTreeCtrl_GetItem( PyObject *self, PyObject *args )
 {
-	HTREEITEM item;
+	PyObject *obItem;
 	UINT mask = TVIF_CHILDREN | TVIF_HANDLE | TVIF_IMAGE | TVIF_PARAM | TVIF_SELECTEDIMAGE | TVIF_STATE | TVIF_TEXT; 
 
-	if (!PyArg_ParseTuple( args, "i|i:GetItem", 
-	                   &item, // @pyparm HTREEITEM|item||The item whose attributes are to be retrieved.
+	if (!PyArg_ParseTuple( args, "O|i:GetItem",
+	                   &obItem, // @pyparm HTREEITEM|item||The item whose attributes are to be retrieved.
 					   &mask)) // @pyparm int|mask|(all flags set)|The requested attributes.
 		return NULL;
 
 	CTreeCtrl *pList = GetTreeCtrl(self);
 	if (!pList) return NULL;
+	HTREEITEM item;
+	if (!PyWinObject_AsHANDLE(obItem, (HANDLE *)&item))
+		return NULL;
 	TCHAR textBuf[256];
 	TV_ITEM tvItem;
 	tvItem.hItem = item;
@@ -576,12 +586,15 @@ PyObject *PyCTreeCtrl_GetItem( PyObject *self, PyObject *args )
 // @pymethod int|PyCTreeCtrl|GetItemText|Retrieves the text of a list view item or subitem.
 PyObject *PyCTreeCtrl_GetItemText( PyObject *self, PyObject *args )
 {
-	HTREEITEM item;
-	if (!PyArg_ParseTuple( args, "i:GetItemText", 
-	                   &item)) // @pyparm HTREEITEM|item||The item whose text is to be retrieved.
+	PyObject *obItem;
+	if (!PyArg_ParseTuple( args, "O:GetItemText",
+	                   &obItem)) // @pyparm HTREEITEM|item||The item whose text is to be retrieved.
 		return NULL;
 	CTreeCtrl *pList = GetTreeCtrl(self);
 	if (!pList) return NULL;
+	HTREEITEM item;
+	if (!PyWinObject_AsHANDLE(obItem, (HANDLE *)&item))
+		return NULL;
  	GUI_BGN_SAVE;
 	CString csText = pList->GetItemText(item);
  	GUI_END_SAVE;
@@ -593,13 +606,16 @@ PyObject *PyCTreeCtrl_SetItemText( PyObject *self, PyObject *args )
 {
 	CTreeCtrl *pList = GetTreeCtrl(self);
 	if (!pList) return NULL;
-	HTREEITEM item;
+	PyObject *obItem;
 	TCHAR *text;
 	PyObject *obtext;
-	if (!PyArg_ParseTuple( args, "iO:SetItemText", 
-	                   &item, // @pyparm HTREEITEM|item||The item whose text is to be retrieved.
+	if (!PyArg_ParseTuple( args, "OO:SetItemText", 
+	                   &obItem, // @pyparm HTREEITEM|item||The item whose text is to be retrieved.
 					   &obtext)) // @pyparm string|text||String that contains the new item text.
 
+		return NULL;
+	HTREEITEM item;
+	if (!PyWinObject_AsHANDLE(obItem, (HANDLE *)&item))
 		return NULL;
 	if (!PyWinObject_AsTCHAR(obtext, &text, FALSE))
 		return NULL;
@@ -615,13 +631,16 @@ PyObject *PyCTreeCtrl_SetItemText( PyObject *self, PyObject *args )
 // @pymethod object|PyCTreeCtrl|GetItemData|Retrieves the application-specific value associated with an item.
 PyObject *PyCTreeCtrl_GetItemData( PyObject *self, PyObject *args )
 {
-	HTREEITEM item;
-	if (!PyArg_ParseTuple( args, "i:GetItemData", 
-	                   &item)) // @pyparm HTREEITEM|item||The index of the item whose data is to be retrieved.
+	PyObject *obItem;
+	if (!PyArg_ParseTuple( args, "O:GetItemData",
+	                   &obItem)) // @pyparm HTREEITEM|item||The index of the item whose data is to be retrieved.
 
 		return NULL;
 	CTreeCtrl *pList = GetTreeCtrl(self);
 	if (!pList) return NULL;
+	HTREEITEM item;
+	if (!PyWinObject_AsHANDLE(obItem, (HANDLE *)&item))
+		return NULL;
 	GUI_BGN_SAVE;
 	DWORD_PTR rc = pList->GetItemData(item);
 	GUI_END_SAVE;
@@ -633,11 +652,14 @@ PyObject *PyCTreeCtrl_SetItemData( PyObject *self, PyObject *args )
 {
 	CTreeCtrl *pList = GetTreeCtrl(self);
 	if (!pList) return NULL;
-	HTREEITEM item;
+	PyObject *obItem;
 	int data;
-	if (!PyArg_ParseTuple( args, "ii:SetItemData", 
-		                   &item, // @pyparm HTREEITEM|item||The item whose Data is to be set.
+	if (!PyArg_ParseTuple( args, "Oi:SetItemData",
+		                   &obItem, // @pyparm HTREEITEM|item||The item whose Data is to be set.
 						   &data)) // @pyparm int|Data||New value for the data.
+		return NULL;
+	HTREEITEM item;
+	if (!PyWinObject_AsHANDLE(obItem, (HANDLE *)&item))
 		return NULL;
 	GUI_BGN_SAVE;
 	BOOL ok = pList->SetItemData(item, data);
@@ -669,12 +691,15 @@ PyObject *PyCTreeCtrl_GetItemRect( PyObject *self, PyObject *args )
 {
 	CTreeCtrl *pList = GetTreeCtrl(self);
 	if (!pList) return NULL;
-	HTREEITEM item;
+	PyObject *obItem;
 	RECT rect;
 	BOOL bTextOnly;
-	if (!PyArg_ParseTuple( args, "ii:GetItemRect", 
-		                   &item, // @pyparm HTREEITEM|item||The item whose Data is to be set.
+	if (!PyArg_ParseTuple( args, "Oi:GetItemRect",
+		                   &obItem, // @pyparm HTREEITEM|item||The item whose Data is to be set.
 						   &bTextOnly)) // @pyparm int|bTextOnly||f this parameter is nonzero, the bounding rectangle includes only the text of the item. Otherwise it includes the entire line that the item occupies in the tree view control.
+		return NULL;
+	HTREEITEM item;
+	if (!PyWinObject_AsHANDLE(obItem, (HANDLE *)&item))
 		return NULL;
 	GUI_BGN_SAVE;
 	BOOL ok = pList->GetItemRect(item, &rect, bTextOnly);
@@ -704,9 +729,12 @@ PyObject *PyCTreeCtrl_EditLabel( PyObject *self, PyObject *args )
 {
 	CTreeCtrl *pList = GetTreeCtrl(self);
 	if (!pList) return NULL;
-	HTREEITEM item;
+	PyObject *obItem;
 	// @pyparm HTREEITEM|item||The item to edit.
-	if (!PyArg_ParseTuple( args, "i:EditLabel", &item))
+	if (!PyArg_ParseTuple( args, "O:EditLabel", &obItem))
+		return NULL;
+	HTREEITEM item;
+	if (!PyWinObject_AsHANDLE(obItem, (HANDLE *)&item))
 		return NULL;
 	GUI_BGN_SAVE;
 	CEdit *pEdit = pList->EditLabel(item);
@@ -721,9 +749,12 @@ PyObject *PyCTreeCtrl_EnsureVisible( PyObject *self, PyObject *args )
 {
 	CTreeCtrl *pList = GetTreeCtrl(self);
 	if (!pList) return NULL;
-	HTREEITEM item;
+	PyObject *obItem;
 	// @pyparm HTREEITEM|item||The item to edit.
-	if (!PyArg_ParseTuple( args, "i:EnsureVisible", &item))
+	if (!PyArg_ParseTuple( args, "O:EnsureVisible", &obItem))
+		return NULL;
+	HTREEITEM item;
+	if (!PyWinObject_AsHANDLE(obItem, (HANDLE *)&item))
 		return NULL;
 	GUI_BGN_SAVE;
 	BOOL ok = pList->EnsureVisible(item);
@@ -738,9 +769,12 @@ PyObject *PyCTreeCtrl_CreateDragImage( PyObject *self, PyObject *args )
 {
 	CTreeCtrl *pList = GetTreeCtrl(self);
 	if (!pList) return NULL;
-	HTREEITEM item;
+	PyObject *obItem;
 	// @pyparm HTREEITEM|item||The item to edit.
-	if (!PyArg_ParseTuple( args, "i:CreateDragImage", &item))
+	if (!PyArg_ParseTuple( args, "O:CreateDragImage", &obItem))
+		return NULL;
+	HTREEITEM item;
+	if (!PyWinObject_AsHANDLE(obItem, (HANDLE *)&item))
 		return NULL;
 	GUI_BGN_SAVE;
 	CImageList *pIL = pList->CreateDragImage(item);

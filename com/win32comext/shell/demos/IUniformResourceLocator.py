@@ -25,7 +25,7 @@ os.remove(linkname)
 linkname+='.url'
 
 ish=InternetShortcut()
-ish.SetURL('http://sourceforge.net/projects/pywin32/')
+ish.SetURL('https://github.com/mhammond/pywin32')
 ish.save(linkname)
 
 ## IUniformResourceLocator also give access to IPropertySetStorage
