@@ -220,7 +220,7 @@ def find_platform_sdk_dir():
         pass
     else:
         if DEBUG:
-            print r"PSDK: try 'HKLM\Software\Microsoft\MicrosoftSDKs"\
+            print r"PSDK: try 'HKLM\Software\Microsoft\Microsoft SDKs"\
                    "\Windows\CurrentInstallFolder': '%s'" % sdkdir
         if os.path.isfile(os.path.join(sdkdir, landmark)):
             return sdkdir
