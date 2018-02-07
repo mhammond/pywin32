@@ -1,3 +1,6 @@
+image:
+- Visual Studio 2017
+
 environment:
   matrix:
     # For Python versions available on Appveyor, see
