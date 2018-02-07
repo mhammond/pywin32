@@ -17,12 +17,8 @@ environment:
     - PYTHON: "C:\\Python36"
     - PYTHON: "C:\\Python36-x64"
 
-install:
-  # We need wheel installed to build wheels
-  - "build.cmd %PYTHON%\\python.exe setup3.py install"
-
-build:
-  - "build.cmd %PYTHON%\\python.exe pywin32_testall.py"
+build_script:
+  - "build.cmd %PYTHON%\\python.exe setup3.py build"
 
 test_script:
   # Put your test command here.
