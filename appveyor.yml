@@ -19,9 +19,9 @@ environment:
 
 install:
   # We need wheel installed to build wheels
-  - "%PYTHON%\\python.exe setup3.py build"
+  - "build.cmd %PYTHON%\\python.exe setup3.py install"
 
-build: off
+build:
   - "build.cmd %PYTHON%\\python.exe pywin32_testall.py"
 
 test_script:
