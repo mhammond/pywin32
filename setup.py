@@ -224,6 +224,23 @@ def find_platform_sdk_dir():
                    "\Windows\CurrentInstallFolder': '%s'" % sdkdir
         if os.path.isfile(os.path.join(sdkdir, landmark)):
             return sdkdir
+    
+    main_key = _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE, r"Software\Microsoft\Microsoft SDKs\Windows")
+    sdks_keys = []
+    i = 0
+    while True:
+        try:
+            sdk_key = _winreg.EnumKey(main_key, i)
+            sdks_keys.append(sdk_key)
+        except WindowsError:
+            break
+    sdks_keys.reverse()
+    for sdk_key in sdks_keys:
+        key = _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE,
+                              r"Software\Microsoft\Microsoft SDKs\Windows\%s" %sdk_key )
+        sdkdir, ignore = _winreg.QueryValueEx(key, "InstallationFolder")
+        if os.path.isfile(os.path.join(sdkdir, landmark)):
+            return sdkdir
 
     # 5. Failing this just try a few well-known default install locations.
     progfiles = os.environ.get("ProgramFiles", r"C:\Program Files")
