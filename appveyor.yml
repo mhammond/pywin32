@@ -35,7 +35,7 @@ install:
   - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
 
   # Check that we have the expected version and architecture for Python
-  - "build.cmd %PYTHON%\\python.exe --version"
+  - "%PYTHON%\\python.exe --version"
 
   # Install setuptools/wheel so that we can e.g. use bdist_wheel
   - "pip install setuptools wheel"
