@@ -5,6 +5,12 @@ environment:
   matrix:
     # For Python versions available on Appveyor, see
     # http://www.appveyor.com/docs/installed-software#python
+    - PYTHON: "C:\\Python27"
+      WIN_ARCH: "x86"
+      SETUP_PY: "setup.py"
+    - PYTHON: "C:\\Python27-x64"
+      WIN_ARCH: "amd64"
+      SETUP_PY: "setup.py"
     - PYTHON: "C:\\Python33"
       WIN_ARCH: "x86"
       SETUP_PY: "setup3.py"
