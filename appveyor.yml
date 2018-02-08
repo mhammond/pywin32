@@ -41,7 +41,7 @@ install:
   - "pip install setuptools wheel"
 
 build_script:
-  - "CALL \"C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat\" %WIN_ARCH%"
+  - "CALL \"C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\vcvarsall.bat\" %WIN_ARCH%"
   - "%PYTHON%\\python.exe %SETUP_PY% build"
 
 test_script:
@@ -59,7 +59,7 @@ after_test:
   # Again, you only need build.cmd if you're building C extensions for
   # 64-bit Python 3.3/3.4. And you need to use %PYTHON% to get the correct
   # interpreter
-  - "CALL \"C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat\" %WIN_ARCH%"
+  - "CALL \"C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\vcvarsall.bat\" %WIN_ARCH%"
   - "%PYTHON%\\python.exe %SETUP_PY% bdist_wheel"
 
 artifacts:
