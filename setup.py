@@ -225,20 +225,27 @@ def find_platform_sdk_dir():
         if os.path.isfile(os.path.join(sdkdir, landmark)):
             return sdkdir
     
-    main_key = _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE, r"Software\Microsoft\Microsoft SDKs\Windows")
+    main_key = _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE,
+                               r"Software\Microsoft\Microsoft SDKs\Windows")
     sdks_keys = []
     i = 0
     while True:
         try:
             sdk_key = _winreg.EnumKey(main_key, i)
+            if DEBUG:
+                print r"Found SDK in registry: '%s'" % sdk_key
             sdks_keys.append(sdk_key)
+            i+=1
         except WindowsError:
             break
     sdks_keys.reverse()
     for sdk_key in sdks_keys:
         key = _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE,
-                              r"Software\Microsoft\Microsoft SDKs\Windows\%s" %sdk_key )
+                              r"Software\Microsoft\Microsoft SDKs\Windows\%s" % sdk_key )
         sdkdir, ignore = _winreg.QueryValueEx(key, "InstallationFolder")
+        if DEBUG:
+            print r"PSDK: try 'HKLM\Software\Microsoft\Microsoft SDKs"\
+                   "\Windows\%s\InstallationFolder': '%s'" %(sdk_key, sdkdir)
         if os.path.isfile(os.path.join(sdkdir, landmark)):
             return sdkdir
 
