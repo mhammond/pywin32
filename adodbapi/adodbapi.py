@@ -772,7 +772,7 @@ class Cursor(object):
             if sproc:
                 expected -= 1
             if len(parameters) != expected:
-                raise api.ProgrammingError('You must supply %d parameters for this stored procedure' % expected)
+                raise api.ProgrammingError('You must supply %d parameters for this command' % expected)
         if sproc or parameters != []:
             i = 0
             if parameters_known:  # use ado parameter list
