@@ -757,21 +757,22 @@ class Cursor(object):
             parameters = []
 
         parameters_known = False
-        if sproc:  # needed only if we are calling a stored procedure
-            try: # attempt to use ADO's parameter list
-                self.cmd.Parameters.Refresh()
-                if verbose > 2:
-                    print 'ADO detected Params=', format_parameters(self.cmd.Parameters, True)
-                    print 'Program Parameters=', repr(parameters)
-                parameters_known = True
-            except api.Error:
-                if verbose:
-                    print 'ADO Parameter Refresh failed'
-                pass
-            else:
-                if len(parameters) != self.cmd.Parameters.Count - 1:
-                    raise api.ProgrammingError('You must supply %d parameters for this stored procedure' % \
-                                               (self.cmd.Parameters.Count - 1))
+        try: # attempt to use ADO's parameter list
+            self.cmd.Parameters.Refresh()
+            if verbose > 2:
+                print 'ADO detected Params=', format_parameters(self.cmd.Parameters, True)
+                print 'Program Parameters=', repr(parameters)
+            parameters_known = True
+        except api.Error:
+            if verbose:
+                print 'ADO Parameter Refresh failed'
+            pass
+        else:
+            expected = self.cmd.Parameters.Count
+            if sproc:
+                expected -= 1
+            if len(parameters) != expected:
+                raise api.ProgrammingError('You must supply %d parameters for this stored procedure' % expected)
         if sproc or parameters != []:
             i = 0
             if parameters_known:  # use ado parameter list
