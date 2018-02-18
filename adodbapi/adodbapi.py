@@ -34,6 +34,7 @@ import sys
 import copy
 import decimal
 import os
+import datetime
 
 from . import process_connect_string
 from . import ado_consts as adc
@@ -159,6 +160,10 @@ def format_parameters(ADOparameters, show_value=False):
 def _configure_parameter(p, value, adotype, settings_known):
     """Configure the given ADO Parameter 'p' with the Python 'value'."""
 
+    # Preliminary conversion in preparation for ADO datetime bug workaround
+    if isinstance(value, datetime.datetime) and adotype == adc.adDBTimeStamp:
+        value = str(value)
+
     if adotype in api.adoBinaryTypes:
         p.Size = len(value)
         p.AppendChunk(value)
@@ -168,6 +173,9 @@ def _configure_parameter(p, value, adotype, settings_known):
         if adotype in api.adoStringTypes: #v2.2.1 Cole
             if settings_known: L = min(L,p.Size) #v2.1 Cole limit data to defined size
             p.Value = value[:L]       #v2.1 Jevon & v2.1 Cole
+        # ADO/DB blows up if an adDBTimeStamp value has sub-second precision
+        elif adotype == adc.adDBTimeStamp and "." in value:
+            p.Value = value.split(".")[0]
         else:
             p.Value = value    # dont limit if db column is numeric
         if L>0:   #v2.1 Cole something does not like p.Size as Zero
