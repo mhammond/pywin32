@@ -2,3 +2,4 @@
 win32
 win32\lib
 Pythonwin
+import os;os.environ["PATH"]+=(';'+os.path.join(sitedir,"pywin32_system32"))
