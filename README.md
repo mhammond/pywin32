@@ -22,15 +22,11 @@ Note that PIP support is experimental.
 You can install pywin32 via pip:
 > pip install pywin32
 
-However, you almost certainly need to execute:
+Note that if you want to use pywin32 for "system wide" features, such as
+registering COM objects or implementing Windows Services, then you must run
+the following command from an elevated command prompt:
+
 > python Scripts/pywin32_postinstall.py -install
-
-after installation, or you will see various ImportErrors importing core
-modules.
-
-Note that if you want to use pywin32 for "system wide" features, such as COM
-objects or Windows Services, then you must run the above command from an
-elevated command prompt.
 
 ## Building from source
 Building from source is extremely complicated due to the fact we support building
