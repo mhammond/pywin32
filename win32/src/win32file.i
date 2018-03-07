@@ -3286,7 +3286,7 @@ static PyObject *py_CreateSymbolicLink(PyObject *self, PyObject *args, PyObject 
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OO|kO:CreateSymbolicLink", keywords,
 		&oblinkname,	// @pyparm <o PyUnicode>|SymlinkFileName||Path of the symbolic link to be created
 		&obtargetname,	// @pyparm <o PyUnicode>|TargetFileName||The name of file to which link will point
-		&flags,			// @pyparm int|Flags|0|SYMBOLIC_LINK_FLAG_DIRECTORY is only defined flag
+		&flags,			// @pyparm int|Flags|0|SYMBOLIC_LINK_FLAG_DIRECTORY and SYMBOLIC_LINK_FLAG_ALLOW_UNPRIVILEGED_CREATE are the only defined flags
 		&obtrans))		// @pyparm <o PyHANDLE>|Transaction|None|Handle to a transaction, as returned by <om win32transaction.CreateTransaction>
 		return NULL;
 	if (!PyWinObject_AsHANDLE(obtrans, &htrans))
