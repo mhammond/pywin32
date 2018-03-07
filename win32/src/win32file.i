@@ -6227,6 +6227,7 @@ PyCFunction pfnpy_OpenFileById=(PyCFunction)py_OpenFileById;
 
 // Flags for CreateSymbolicLink/CreateSymbolicLinkTransacted
 #define SYMBOLIC_LINK_FLAG_DIRECTORY 1
+#define SYMBOLIC_LINK_FLAG_ALLOW_UNPRIVILEGED_CREATE 2
 
 // FILE_INFO_BY_HANDLE_CLASS used with GetFileInformationByHandleEx
 #define FileBasicInfo FileBasicInfo
