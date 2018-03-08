@@ -10,10 +10,20 @@ the old project home at [sourceforge](https://sourceforge.net/projects/pywin32/)
 
 A special shout-out to @xoviat who provided enormous help with the github move!
 
+## Support
+
+Feel free to [open issues](https://github.com/mhammond/pywin32/issues) for
+all bugs (or suspected bugs) in pywin32. [pull-requests](https://github.com/mhammond/pywin32/pulls)
+for all bugs or features are also welcome.
+
+However, please **do not open github issues for general support requests**, or
+for problems or questions using the modules in this package - they will be
+closed. For such issues, please email the
+[python-win32 mailing list](http://mail.python.org/mailman/listinfo/python-win32) -
+note that you must be subscribed to the list before posting.
+
 ## Binaries
 By far the easiest way to use pywin32 is to grab binaries from the [most recent release](https://github.com/mhammond/pywin32/releases)
-
-Feel free to [open issues](https://github.com/mhammond/pywin32/issues) or [pull-requests](https://github.com/mhammond/pywin32/pulls)
 
 ## Installing via PIP
 
