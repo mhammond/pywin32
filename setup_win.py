@@ -5,6 +5,9 @@ import re
 from tempfile import gettempdir
 import shutil
 
+# Getting the build_id from the OS-indepedent setup file
+from setup import build_id
+
 is_py3k = sys.version_info > (3,) # get this out of the way early on...
 # We have special handling for _winreg so our setup3.py script can avoid
 # using the 'imports' fixer and therefore start much faster...
