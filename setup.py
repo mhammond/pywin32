@@ -1,6 +1,5 @@
-build_id="223.1" # may optionally include a ".{patchno}" suffix.
-# Putting buildno at the top prevents automatic __doc__ assignment, and
-# I *want* the build number at the top :)
+from version import build_id
+
 __doc__="""This is a distutils setup-script for the pywin32 extensions
 
 To build the pywin32 extensions, simply execute:
