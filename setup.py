@@ -129,9 +129,9 @@ import distutils.util
 # prevent the new in 3.5 suffix of "cpXX-win32" from being added.
 # (adjusting both .cp35-win_amd64.pyd and .cp35-win32.pyd to .pyd)
 try:
-  get_config_vars()["EXT_SUFFIX"] = re.sub("\\.cp\d\d-win((32)|(_amd64))", "", get_config_vars()["EXT_SUFFIX"])
+    get_config_vars()["EXT_SUFFIX"] = re.sub("\\.cp\d\d-win((32)|(_amd64))", "", get_config_vars()["EXT_SUFFIX"])
 except KeyError:
-  pass # no EXT_SUFFIX in this build.
+    pass # no EXT_SUFFIX in this build.
 
 build_id_patch = build_id
 if not "." in build_id_patch:
@@ -316,14 +316,14 @@ if sys.version_info > (2,6):
 
 sdk_dir = find_platform_sdk_dir()
 if not sdk_dir:
-  print
-  print "It looks like you are trying to build pywin32 in an environment without"
-  print "the necessary tools installed. It's much easier to grab binaries!"
-  print
-  print "Please read the docstring at the top of this file, or read README.md"
-  print "for more information."
-  print
-  raise RuntimeError("Can't find the Windows SDK")
+    print
+    print "It looks like you are trying to build pywin32 in an environment without"
+    print "the necessary tools installed. It's much easier to grab binaries!"
+    print
+    print "Please read the docstring at the top of this file, or read README.md"
+    print "for more information."
+    print
+    raise RuntimeError("Can't find the Windows SDK")
 
 class WinExt (Extension):
     # Base class for all win32 extensions, with some predefined
