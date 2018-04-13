@@ -120,7 +120,7 @@ def _GetDescInvokeType(entry, invoke_type):
 	if varkind == pythoncom.VAR_DISPATCH and invoke_type == pythoncom.INVOKE_PROPERTYGET:
 		return pythoncom.INVOKE_FUNC | invoke_type # DISPATCH_METHOD & DISPATCH_PROPERTYGET can be combined in IDispatch::Invoke
 	else:
-		return invoke_type
+		return varkind
 
 def Dispatch(IDispatch, userName = None, createClass = None, typeinfo = None, UnicodeToString=None, clsctx = pythoncom.CLSCTX_SERVER):
 	assert UnicodeToString is None, "this is deprecated and will go away"
