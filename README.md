@@ -43,8 +43,7 @@ Building from source is extremely complicated due to the fact we support buildin
 old versions of Python using old versions of Windows SDKs. If you just want to
 build the most recent version, you can probably get away with installing th
 same MSVC version used to build that version of Python, grabbing a recent
-Windows SDK, setting the `MSSDK` environment variable to point at the root of
-the SDK, and running `setup.py` (or `setup3.py` for Python 3.x versions)
+Windows SDK and running `setup.py`
 
 `setup.py` is a standard distutils build script.  You probably want:
 

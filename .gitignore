@@ -48,3 +48,7 @@ isapi/src/pyISAPI_messages.h
 *.suo
 *.vcproj
 *.user
+
+# Eclipse + PyDev
+.project
+.pydevproject

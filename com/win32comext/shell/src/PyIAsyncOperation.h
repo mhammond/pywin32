@@ -4,6 +4,10 @@
 //
 // Interface Declaration
 
+// Note that later Windows SDKs have renamed IAsyncOperation to IDataObjectAsyncCapability
+#define IAsyncOperation IDataObjectAsyncCapability
+#define IID_IAsyncOperation IID_IDataObjectAsyncCapability
+
 class PyIAsyncOperation : public PyIUnknown
 {
 public:
