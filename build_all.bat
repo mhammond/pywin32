@@ -1,5 +1,3 @@
-rem All builds below work with version 7.1 of the MSSDK (and possibly later)
-set mssdk=c:\mssdk\7.1
 py -2.7-32 setup.py -q build
 @if errorlevel 1 goto failed
 py -2.7 setup.py -q build

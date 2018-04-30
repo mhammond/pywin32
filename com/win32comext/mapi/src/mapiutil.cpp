@@ -1,7 +1,6 @@
 // General utilities and conversion routines for MAPI support.
 #include "pywintypes.h"
 #include "PythonCOM.h"
-#include "mapix.h"
 #include "PyMAPIUtil.h"
 // @doc
 

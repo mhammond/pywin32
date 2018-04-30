@@ -33,5 +33,4 @@
 
 
 #include "windows.h"
-#include "mapix.h"
 #include "mapiguid.h"
