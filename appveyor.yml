@@ -58,8 +58,7 @@ init:
   #- ps: iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
 
 build_script:
-  - if "%PYTHON_MAJOR%"=="2" python setup.py build 
-  - if "%PYTHON_MAJOR%"=="3" python setup3.py build 
+  - python setup.py build
 
 test_script:
   # Put your test command here.
@@ -78,10 +77,8 @@ after_test:
   # 64-bit Python 3.3/3.4. And you need to use %PYTHON% to get the correct
   # interpreter
   - if "%PYTHON_MAJOR%"=="2" if "%PYTHON_MINOR%"=="7" python setup.py sdist
-  - if "%PYTHON_MAJOR%"=="2" python setup.py bdist_wheel --skip-build
-  - if "%PYTHON_MAJOR%"=="2" python setup.py bdist_wininst --skip-build --target-version=%PYTHON_MAJOR%.%PYTHON_MINOR%
-  - if "%PYTHON_MAJOR%"=="3" python setup3.py bdist_wheel --skip-build
-  - if "%PYTHON_MAJOR%"=="3" python setup3.py bdist_wininst --skip-build --target-version=%PYTHON_MAJOR%.%PYTHON_MINOR%
+  - python setup.py bdist_wheel --skip-build
+  - python setup.py bdist_wininst --skip-build --target-version=%PYTHON_MAJOR%.%PYTHON_MINOR%
 
 #artifacts:
   # bdist_wheel puts your built wheel in the dist directory
