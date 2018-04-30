@@ -3,17 +3,17 @@ py -2.7-32 setup.py -q build
 py -2.7 setup.py -q build
 @if errorlevel 1 goto failed
 rem py3k
-py -3.5-32 setup3.py -q build
+py -3.5-32 setup.py -q build
 @if errorlevel 1 goto failed
-py -3.5 setup3.py -q build
+py -3.5 setup.py -q build
 @if errorlevel 1 goto failed
-py -3.6-32 setup3.py -q build
+py -3.6-32 setup.py -q build
 @if errorlevel 1 goto failed
-py -3.6 setup3.py -q build
+py -3.6 setup.py -q build
 @if errorlevel 1 goto failed
-py -3.7-32 setup3.py -q build
+py -3.7-32 setup.py -q build
 @if errorlevel 1 goto failed
-py -3.7 setup3.py -q build
+py -3.7 setup.py -q build
 @if errorlevel 1 goto failed
 
 goto xit

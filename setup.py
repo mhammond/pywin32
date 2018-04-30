@@ -1,5 +1,7 @@
+from __future__ import print_function
+
 build_id="223.1" # may optionally include a ".{patchno}" suffix.
-# Putting buildno at the top prevents automatic __doc__ assignment, and
+# Putting build_id at the top prevents automatic __doc__ assignment, and
 # I *want* the build number at the top :)
 __doc__="""This is a distutils setup-script for the pywin32 extensions
 
@@ -66,12 +68,11 @@ from tempfile import gettempdir
 import shutil
 
 is_py3k = sys.version_info > (3,) # get this out of the way early on...
-# We have special handling for _winreg so our setup3.py script can avoid
-# using the 'imports' fixer and therefore start much faster...
-if is_py3k:
-    import winreg as _winreg
-else:
-    import _winreg
+
+try:
+    import winreg # py3k
+except ImportError:
+    import _winreg as winreg # py2k
 
 # The rest of our imports.
 from setuptools import setup
@@ -117,7 +118,7 @@ if not "." in build_id_patch:
     build_id_patch = build_id_patch + ".0"
 pywin32_version="%d.%d.%s" % (sys.version_info[0], sys.version_info[1],
                               build_id_patch)
-print "Building pywin32", pywin32_version
+print("Building pywin32", pywin32_version)
 
 try:
     this_file = __file__
@@ -139,7 +140,7 @@ def find_platform_sdk_dir():
     # The user might have their current environment setup for the
     # SDK, in which case "MSSDK_INCLUDE" and "MSSDK_LIB" vars must be set.
     if "MSSDK_INCLUDE" in os.environ and "MSSDK_LIB" in os.environ:
-        print "Using SDK as specified in the environment"
+        print("Using SDK as specified in the environment")
         return {
             "include": os.environ["MSSDK_INCLUDE"].split(os.path.pathsep),
             "lib": os.environ["MSSDK_LIB"].split(os.path.pathsep),
@@ -149,18 +150,18 @@ def find_platform_sdk_dir():
     # SDKs 8 and later use SOFTWARE\Microsoft\Windows Kits\Installed Roots
     # We currently target version 8.1
     try:
-        key = _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE,
+        key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE,
                               r"SOFTWARE\Microsoft\Windows Kits\Installed Roots")
-        installRoot, ignore = _winreg.QueryValueEx(key, "KitsRoot81")
+        installRoot, ignore = winreg.QueryValueEx(key, "KitsRoot81")
     except EnvironmentError:
-        print "Can't find a windows 8.1 sdk"
+        print("Can't find a windows 8.1 sdk")
         return None
 
     # no idea what these 'um' and 'winv6.3' paths actually mean and whether
     # hard-coding them is appropriate, but here we are...
     include = [os.path.join(installRoot, "include", "um")]
     if not os.path.exists(os.path.join(include[0], "windows.h")):
-        print "Found Windows 8.1 sdk in", include, "but it doesn't appear to have windows.h"
+        print("Found Windows 8.1 sdk in", include, "but it doesn't appear to have windows.h")
         return None
     include.append(os.path.join(installRoot, "include", "shared"))
     lib = [os.path.join(installRoot, "lib", "winv6.3", "um")]
@@ -244,13 +245,13 @@ if sys.version_info > (2,6):
 
 sdk_info = find_platform_sdk_dir()
 if not sdk_info:
-  print
-  print "It looks like you are trying to build pywin32 in an environment without"
-  print "the necessary tools installed. It's much easier to grab binaries!"
-  print
-  print "Please read the docstring at the top of this file, or read README.md"
-  print "for more information."
-  print
+  print()
+  print("It looks like you are trying to build pywin32 in an environment without")
+  print("the necessary tools installed. It's much easier to grab binaries!")
+  print()
+  print("Please read the docstring at the top of this file, or read README.md")
+  print("for more information.")
+  print()
   raise RuntimeError("Can't find the Windows SDK")
 
 class WinExt (Extension):
@@ -498,16 +499,16 @@ class WinExt_win32com_mapi(WinExt_win32com):
         sdk_install_dir = None
         libs = kw.get("libraries", "")
         keyname = r"SOFTWARE\Microsoft\Exchange\SDK"
-        flags = _winreg.KEY_READ
+        flags = winreg.KEY_READ
         try:
-            flags |= _winreg.KEY_WOW64_32KEY
+            flags |= winreg.KEY_WOW64_32KEY
         except AttributeError:
             pass # this version doesn't support 64 bits, so must already be using 32bit key.
-        for root in _winreg.HKEY_LOCAL_MACHINE, _winreg.HKEY_CURRENT_USER:
+        for root in winreg.HKEY_LOCAL_MACHINE, winreg.HKEY_CURRENT_USER:
             try:
-                keyob = _winreg.OpenKey(root, keyname, 0, flags)
-                value, type_id = _winreg.QueryValueEx(keyob, "INSTALLDIR")
-                if type_id == _winreg.REG_SZ:
+                keyob = winreg.OpenKey(root, keyname, 0, flags)
+                value, type_id = winreg.QueryValueEx(keyob, "INSTALLDIR")
+                if type_id == winreg.REG_SZ:
                     sdk_install_dir = value
                     break
             except WindowsError:
@@ -630,8 +631,8 @@ class my_build(build):
             f = open(ver_fname, "w")
             f.write("%s\n" % build_id)
             f.close()
-        except EnvironmentError, why:
-            print "Failed to open '%s': %s" % (ver_fname, why)
+        except EnvironmentError as why:
+            print("Failed to open '%s': %s" % (ver_fname, why))
 
 class my_build_ext(build_ext):
 
@@ -877,7 +878,7 @@ class my_build_ext(build_ext):
             if why is not None:
                 self.excluded_extensions.append((ext, why))
                 assert why, "please give a reason, or None"
-                print "Skipping %s: %s" % (ext.name, why)
+                print("Skipping %s: %s" % (ext.name, why))
                 continue
 
             try:
@@ -938,7 +939,7 @@ class my_build_ext(build_ext):
 
             # On a 64bit host, the value we are looking for is actually in
             # SysWow64Node - but that is only available on xp and later.
-            access = _winreg.KEY_READ
+            access = winreg.KEY_READ
             if sys.getwindowsversion()[0] >= 5:
                 access = access | 512 # KEY_WOW64_32KEY
             if self.plat_name == 'win-amd64':
@@ -946,9 +947,9 @@ class my_build_ext(build_ext):
             else:
                 plat_dir = "x86"
             # Find the redist directory.
-            vckey = _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE, product_key,
+            vckey = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, product_key,
                                     0, access)
-            val, val_typ = _winreg.QueryValueEx(vckey, "ProductDir")
+            val, val_typ = winreg.QueryValueEx(vckey, "ProductDir")
             mfc_dir = os.path.join(val, "redist", plat_dir, mfc_dir)
             if not os.path.isdir(mfc_dir):
                 raise RuntimeError("Can't find the redist dir at %r" % (mfc_dir))
@@ -1078,7 +1079,7 @@ class my_build_ext(build_ext):
         if why is not None:
             self.excluded_extensions.append((ext, why))
             assert why, "please give a reason, or None"
-            print "Skipping %s: %s" % (ext.name, why)
+            print("Skipping %s: %s" % (ext.name, why))
             return
         self.current_extension = ext
 
@@ -1305,7 +1306,7 @@ class my_install(install):
             filename = os.path.join(self.prefix, "Scripts", "pywin32_postinstall.py")
             if not os.path.isfile(filename):
                 raise RuntimeError("Can't find '%s'" % (filename,))
-            print "Executing post install script..."
+            print("Executing post install script...")
             # What executable to use?  This one I guess.
             os.spawnl(os.P_NOWAIT, sys.executable,
                       sys.executable, filename,
@@ -1381,7 +1382,7 @@ class my_compiler(base_compiler):
             args.append(output_filename)
             try:
                 self.spawn(args)
-            except DistutilsExecError, msg:
+            except DistutilsExecError as msg:
                 log.info("VersionStamp failed: %s", msg)
                 ok = False
         if not ok:
@@ -1398,7 +1399,7 @@ class my_install_data(install_data):
         if self.install_dir is None:
             installobj = self.distribution.get_command_obj('install')
             self.install_dir = installobj.install_lib
-        print 'Installing data files to %s' % self.install_dir
+        print('Installing data files to %s' % self.install_dir)
         install_data.finalize_options(self)
 
     def copy_file(self, src, dest):
@@ -2274,7 +2275,7 @@ def convert_optional_data_files(files):
     for file in files:
         try:
             temp = convert_data_files([file])
-        except RuntimeError, details:
+        except RuntimeError as details:
             if not str(details.args[0]).startswith("No file"):
                 raise
             log.info('NOTE: Optional file %s not found - skipping' % file)
@@ -2285,8 +2286,8 @@ def convert_optional_data_files(files):
 ################################################################
 if len(sys.argv)==1:
     # distutils will print usage - print our docstring first.
-    print __doc__
-    print "Standard usage information follows:"
+    print(__doc__)
+    print("Standard usage information follows:")
 
 packages=['win32com',
           'win32com.client',
@@ -2474,10 +2475,10 @@ if 'build_ext' in dist.command_obj:
     if 'build_ext' in dist.command_obj:
         excluded_extensions = dist.command_obj['build_ext'].excluded_extensions
         if excluded_extensions:
-            print "*** NOTE: The following extensions were NOT %s:" % what_string
+            print("*** NOTE: The following extensions were NOT %s:" % what_string)
             for ext, why in excluded_extensions:
-                print " %s: %s" % (ext.name, why)
-            print "For more details on installing the correct libraries and headers,"
-            print "please execute this script with no arguments (or see the docstring)"
+                print(" %s: %s" % (ext.name, why))
+            print("For more details on installing the correct libraries and headers,")
+            print("please execute this script with no arguments (or see the docstring)")
         else:
-            print "All extension modules %s OK" % (what_string,)
+            print("All extension modules %s OK" % (what_string,))

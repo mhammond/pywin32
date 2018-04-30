@@ -29,31 +29,31 @@ rem due to the mfc DLLs - but the dir can be removed manually.
 rem I've excluded the possibility of anti-virus or the indexer.
 rem So manually nuke them before builds.
 rem @if exist build\bdist.win32 rd /s/q build\bdist.win32 & @if exist build\bdist.amd64 rd /s/q build\bdist.amd64
-py -3.5-32 setup3.py -q bdist_wininst --skip-build --target-version=3.5
+py -3.5-32 setup.py -q bdist_wininst --skip-build --target-version=3.5
 rem @if exist build\bdist.win32 rd /s/q build\bdist.win32 & @if exist build\bdist.amd64 rd /s/q build\bdist.amd64
-py -3.5-32 setup3.py -q bdist_wheel --skip-build
+py -3.5-32 setup.py -q bdist_wheel --skip-build
 rem @if exist build\bdist.win32 rd /s/q build\bdist.win32 & @if exist build\bdist.amd64 rd /s/q build\bdist.amd64
-py -3.5 setup3.py -q bdist_wininst --skip-build --target-version=3.5
+py -3.5 setup.py -q bdist_wininst --skip-build --target-version=3.5
 rem @if exist build\bdist.win32 rd /s/q build\bdist.win32 & @if exist build\bdist.amd64 rd /s/q build\bdist.amd64
-py -3.5 setup3.py -q bdist_wheel --skip-build
+py -3.5 setup.py -q bdist_wheel --skip-build
 
 rem @if exist build\bdist.win32 rd /s/q build\bdist.win32 & @if exist build\bdist.amd64 rd /s/q build\bdist.amd64
-py -3.6-32 setup3.py -q bdist_wininst --skip-build --target-version=3.6
+py -3.6-32 setup.py -q bdist_wininst --skip-build --target-version=3.6
 rem @if exist build\bdist.win32 rd /s/q build\bdist.win32 & @if exist build\bdist.amd64 rd /s/q build\bdist.amd64
-py -3.6-32 setup3.py -q bdist_wheel --skip-build
+py -3.6-32 setup.py -q bdist_wheel --skip-build
 rem @if exist build\bdist.win32 rd /s/q build\bdist.win32 & @if exist build\bdist.amd64 rd /s/q build\bdist.amd64
-py -3.6 setup3.py -q bdist_wininst --skip-build --target-version=3.6
+py -3.6 setup.py -q bdist_wininst --skip-build --target-version=3.6
 rem @if exist build\bdist.win32 rd /s/q build\bdist.win32 & @if exist build\bdist.amd64 rd /s/q build\bdist.amd64
-py -3.6 setup3.py -q bdist_wheel --skip-build
+py -3.6 setup.py -q bdist_wheel --skip-build
 
 rem @if exist build\bdist.win32 rd /s/q build\bdist.win32 & @if exist build\bdist.amd64 rd /s/q build\bdist.amd64
-py -3.7-32 setup3.py -q bdist_wininst --skip-build --target-version=3.7
+py -3.7-32 setup.py -q bdist_wininst --skip-build --target-version=3.7
 rem @if exist build\bdist.win32 rd /s/q build\bdist.win32 & @if exist build\bdist.amd64 rd /s/q build\bdist.amd64
-py -3.7-32 setup3.py -q bdist_wheel --skip-build
+py -3.7-32 setup.py -q bdist_wheel --skip-build
 rem @if exist build\bdist.win32 rd /s/q build\bdist.win32 & @if exist build\bdist.amd64 rd /s/q build\bdist.amd64
-py -3.7 setup3.py -q bdist_wininst --skip-build --target-version=3.7
+py -3.7 setup.py -q bdist_wininst --skip-build --target-version=3.7
 rem @if exist build\bdist.win32 rd /s/q build\bdist.win32 & @if exist build\bdist.amd64 rd /s/q build\bdist.amd64
-py -3.7 setup3.py -q bdist_wheel --skip-build
+py -3.7 setup.py -q bdist_wheel --skip-build
 
 rem And nuke the dirs one more time :)
 if exist build/bdist.win32/. rm -rf build/bdist.win32
