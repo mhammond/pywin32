@@ -968,7 +968,8 @@ class my_build_ext(build_ext):
                 print("Can't find the redist dir at %r. Looking into WinSxS now.." % (mfc_dir))
 
                 mfc_files = []
-                if "windir" in os.environ.keys():
+                windows_dir = os.getenv("windir", "C:\\Windows")
+                if os.path.isdir(windows_dir):
                     winsxs_path = os.path.join(os.environ["windir"], "WinSxS")
                     if os.path.isdir(winsxs_path):
                         mfc_redist_path = None
@@ -993,6 +994,8 @@ class my_build_ext(build_ext):
                             print("Could not find any redist libraries in WinSxS!")
                     else:
                         print("Could not find WinSxS directory in %WINDIR%.")
+                else:
+                    print("Windows directory not found!")
             else:
                 mfc_files = [os.path.join(mfc_dir, mfc_file) for mfc_file in mfc_files]
 
