@@ -65,6 +65,7 @@ import os, string, sys
 import types, glob
 import re
 from tempfile import gettempdir
+import platform
 import shutil
 
 is_py3k = sys.version_info > (3,) # get this out of the way early on...
