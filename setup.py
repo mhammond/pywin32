@@ -258,7 +258,7 @@ class WinExt (Extension):
     # Base class for all win32 extensions, with some predefined
     # library and include dirs, and predefined windows libraries.
     # Additionally a method to parse .def files into lists of exported
-    # symbols, and to read 
+    # symbols, and to read
     def __init__ (self, name, sources,
                   include_dirs=[],
                   define_macros=None,
@@ -554,7 +554,7 @@ if do_2to3:
                     urllib xrange""".split()
         fqfixers = ['lib2to3.fixes.fix_' + f for f in fixers]
 
-        options = dict(doctests_only=False, fix=[], list_fixes=[], 
+        options = dict(doctests_only=False, fix=[], list_fixes=[],
                        print_function=False, verbose=False,
                        write=True)
         r = RefactoringTool(fqfixers, options)
@@ -585,20 +585,20 @@ if do_2to3:
 
         def run(self):
             self.updated_files = []
-    
+
             # Base class code
             if self.py_modules:
                 self.build_modules()
             if self.packages:
                 self.build_packages()
                 self.build_package_data()
-    
+
             # 2to3
             refactor_filenames(self.updated_files)
-    
+
             # Remaining base class code
             self.byte_compile(self.get_outputs(include_bytecode=0))
-    
+
         def build_module(self, module, module_file, package):
             res = build_py.build_module(self, module, module_file, package)
             if res[1]:
@@ -919,23 +919,35 @@ class my_build_ext(build_ext):
                 raise RuntimeError("Can't find %r" % (src,))
             self.copy_file(src, target_dir)
         else:
+            # Common values for the MFC lookup over the Visual Studio installation and redist installation.
+            if sys.hexversion < 0x3030000:
+                mfc_version = "vc90"
+                mfc_libraries = ["mfc90.dll", "mfc90u.dll", "mfcm90.dll", "mfcm90u.dll"]
+            # 3.3 and 3.4 use(d) vs2010 (compiler version 1600, crt=10)
+            elif sys.hexversion < 0x3050000:
+                mfc_version = "vc100"
+                mfc_libraries = ["mfc100u.dll", "mfcm100u.dll"]
+            # 3.5 and later on vs2015 (compiler version 1900, crt=14)
+            else:
+                mfc_version = "vc140"
+                mfc_libraries = ["mfc140u.dll", "mfcm140u.dll"]
+
+            # Looking for the MFC files in the installation paths of the Visual Studios
             plat_dir_64 = "x64"
+            mfc_dir = "Microsoft.{}.MFC".format(mfc_version.upper())
             # 2.6, 2.7, 3.0, 3.1 and 3.2 all use(d) vs2008 (compiler version 1500)
             if sys.hexversion < 0x3030000:
                 product_key = r"SOFTWARE\Microsoft\VisualStudio\9.0\Setup\VC"
                 plat_dir_64 = "amd64"
-                mfc_dir = "Microsoft.VC90.MFC"
-                mfc_files = "mfc90.dll mfc90u.dll mfcm90.dll mfcm90u.dll Microsoft.VC90.MFC.manifest".split()
+                mfc_files = mfc_libraries + ["Microsoft.VC90.MFC.manifest", ]
             # 3.3 and 3.4 use(d) vs2010 (compiler version 1600, crt=10)
             elif sys.hexversion < 0x3050000:
                 product_key = r"SOFTWARE\Microsoft\VisualStudio\10.0\Setup\VC"
-                mfc_dir = "Microsoft.VC100.MFC"
-                mfc_files = ["mfc100u.dll", "mfcm100u.dll"]
+                mfc_files = mfc_libraries
             # 3.5 and later on vs2015 (compiler version 1900, crt=14)
             else:
                 product_key = r"SOFTWARE\Microsoft\VisualStudio\14.0\Setup\VC"
-                mfc_dir = "Microsoft.VC140.MFC"
-                mfc_files = ["mfc140u.dll", "mfcm140u.dll"]
+                mfc_files = mfc_libraries
 
             # On a 64bit host, the value we are looking for is actually in
             # SysWow64Node - but that is only available on xp and later.
@@ -952,10 +964,44 @@ class my_build_ext(build_ext):
             val, val_typ = winreg.QueryValueEx(vckey, "ProductDir")
             mfc_dir = os.path.join(val, "redist", plat_dir, mfc_dir)
             if not os.path.isdir(mfc_dir):
-                raise RuntimeError("Can't find the redist dir at %r" % (mfc_dir))
-            for f in mfc_files:
-                shutil.copyfile(
-                        os.path.join(mfc_dir, f), os.path.join(target_dir, f))
+                print("Can't find the redist dir at %r. Looking into WinSxS now.." % (mfc_dir))
+
+                mfc_files = []
+                if "windir" in os.environ.keys():
+                    winsxs_path = os.path.join(os.environ["windir"], "WinSxS")
+                    if os.path.isdir(winsxs_path):
+                        mfc_redist_path = None
+                        winsxs_listdir = os.listdir(winsxs_path)
+                        winsxs_listdir.sort()
+                        for entry in winsxs_listdir:
+                            if entry.startswith("{}_microsoft.{}.mfc_".format(platform.machine().lower(), mfc_version)) and os.path.isdir(os.path.join(winsxs_path, entry)):
+                                all_files_available = True
+                                for mfc_libary in mfc_libraries:
+                                    if not os.path.isfile(os.path.join(winsxs_path, entry, mfc_libary)):
+                                        continue
+                                mfc_redist_path = entry
+                        if mfc_redist_path:
+                            mfc_files = [os.path.join(winsxs_path, mfc_redist_path, mfc_libary) for mfc_libary in mfc_libraries]
+                            mfc_manifest_file = os.path.join(winsxs_path, "Manifests", "{}.manifest".format(mfc_redist_path))
+                            mfc_signature_file = os.path.join(winsxs_path, "Manifests", "{}.cat".format(mfc_redist_path))
+                            if os.path.isfile(mfc_manifest_file): # Looking whether there is a manifest file
+                                mfc_files.append(mfc_manifest_file)
+                                if os.path.isfile(mfc_signature_file): # If there is, also add the signaure file
+                                    mfc_files.append(mfc_signature_file)
+                        else:
+                            print("Could not find any redist libraries in WinSxS!")
+                    else:
+                        print("Could not find WinSxS directory in %WINDIR%.")
+            else:
+                mfc_files = [os.path.join(mfc_dir, mfc_file) for mfc_file in mfc_files]
+
+            if not mfc_files:
+                raise RuntimeError("No MFC files found!")
+
+            for mfc_file_absolute in mfc_files:
+                shutil.copy(mfc_file_absolute,
+                            target_dir,
+                            )
 
 
     def build_exefile(self, ext):
@@ -1471,7 +1517,7 @@ for info in (
         ("win2kras", "rasapi32", None, 0x0500, "win32/src/win2krasmodule.cpp"),
         ("win32cred", "AdvAPI32 credui", True, 0x0501, 'win32/src/win32credmodule.cpp'),
         ("win32crypt", "Crypt32 Advapi32", True, 0x0500, """
-            win32/src/win32crypt/win32cryptmodule.cpp	
+            win32/src/win32crypt/win32cryptmodule.cpp
             win32/src/win32crypt/win32crypt_structs.cpp
             win32/src/win32crypt/PyCERTSTORE.cpp
             win32/src/win32crypt/PyCERT_CONTEXT.cpp
@@ -1537,7 +1583,7 @@ for info in (
     if len(info)>4:
         sources = info[4].split()
     extra_compile_args = []
-    ext = WinExt_win32(name, 
+    ext = WinExt_win32(name,
                  libraries=lib_names,
                  extra_compile_args = extra_compile_args,
                  windows_h_version = windows_h_ver,
@@ -1563,7 +1609,7 @@ win32_extensions += [
            delay_load_libraries="powrprof",
            windows_h_version=0x0500,
         ),
-    WinExt_win32("win32gui", 
+    WinExt_win32("win32gui",
            sources = """
                 win32/src/win32dynamicdialog.cpp
                 win32/src/win32gui.i
@@ -2316,7 +2362,7 @@ packages=['win32com',
           'win32comext.directsound.test',
           'win32comext.authorization',
           'win32comext.bits',
-          
+
           'pythonwin.pywin',
           'pythonwin.pywin.debugger',
           'pythonwin.pywin.dialogs',
@@ -2390,10 +2436,10 @@ dist = setup(name="pywin32",
       packages = packages,
       py_modules = py_modules,
 
-      data_files=[('', (os.path.join(gettempdir(),'pywin32.version.txt'),))] + 
+      data_files=[('', (os.path.join(gettempdir(),'pywin32.version.txt'),))] +
         convert_optional_data_files([
                 'PyWin32.chm',
-                ]) + 
+                ]) +
         convert_data_files([
                 'pythonwin/pywin/*.cfg',
                 'pythonwin/pywin/Demos/*.py',
