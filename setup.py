@@ -422,7 +422,7 @@ class WinExt (Extension):
                 else:
                     suffix = ""
                 self.extra_link_args.append("/IMPLIB:%s%s.lib" % (implib, suffix))
-            # Try and find the MFC source code, so we can reach inside for
+            # Try and find the MFC headers, so we can reach inside for
             # some of the ActiveX support we need.  We need to do this late, so
             # the environment is setup correctly.
             # Only used by the win32uiole extensions, but I can't be
