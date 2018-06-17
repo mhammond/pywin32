@@ -1003,9 +1003,9 @@ class my_build_ext(build_ext):
                 raise RuntimeError("No MFC files found!")
 
             for mfc_file_absolute in mfc_files:
-                shutil.copy(mfc_file_absolute,
-                            target_dir,
-                            )
+                shutil.copyfile(mfc_file_absolute,
+                                os.path.join(target_dir, os.path.split(mfc_file_absolute)[1]),
+                                )
 
 
     def build_exefile(self, ext):
