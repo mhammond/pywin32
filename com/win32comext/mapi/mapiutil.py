@@ -5,7 +5,7 @@ ListType=list
 IntType=int
 from pywintypes import TimeType
 import pythoncom
-import mapi, mapitags
+from . import mapi, mapitags
 
 prTable = {}
 def GetPropTagName(pt):
