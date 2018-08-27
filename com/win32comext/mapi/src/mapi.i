@@ -43,6 +43,7 @@
 #include "PyIABContainer.h"
 #include "PyIProfSect.h"
 #include "PyIMsgServiceAdmin.h"
+#include "PyIProviderAdmin.h"
 #include "PyIMAPIAdviseSink.h"
 #include "IConverterSession.h"
 #include "PyIConverterSession.h"
@@ -174,6 +175,9 @@ static PyObject *PyMAPIUninitialize(PyObject *self, PyObject *args)
 
 	if ( PyCom_RegisterClientType(&PyIMsgServiceAdmin::type, &IID_IMsgServiceAdmin) != 0 ) return MODINIT_ERROR_RETURN;
 	ADD_IID(IID_IMsgServiceAdmin);
+
+	if ( PyCom_RegisterClientType(&PyIProviderAdmin::type, &IID_IProviderAdmin) != 0 ) return MODINIT_ERROR_RETURN;
+	ADD_IID(IID_IProviderAdmin);
 
 	if ( PyCom_RegisterClientType(&PyIMAPIAdviseSink::type, &IID_IMAPIAdviseSink) != 0 ) return MODINIT_ERROR_RETURN;
 	ADD_IID(IID_IMAPIAdviseSink);
