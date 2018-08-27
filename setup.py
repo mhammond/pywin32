@@ -761,8 +761,8 @@ class my_build_ext(build_ext):
         return None # no reason - it can be built!
 
     def _build_scintilla(self):
-        path = 'pythonwin\\Scintilla'
-        makefile = 'makefile_pythonwin'
+        path = "pythonwin\\Scintilla"
+        makefile = "makefile_pythonwin"
         makeargs = []
 
         if self.debug:
@@ -814,7 +814,7 @@ class my_build_ext(build_ext):
         suffix = "%d%d" % (sys.version_info[0], sys.version_info[1])
         if self.debug:
             suffix += '_d'
-        src = r"com\win32com\src\PythonCOMLoader.cpp"
+        src = "com\\win32com\\src\\PythonCOMLoader.cpp"
         build_temp = os.path.abspath(self.build_temp)
         obj = os.path.join(build_temp, os.path.splitext(src)[0]+".obj")
         dll = os.path.join(self.build_lib, "pywin32_system32", "pythoncomloader"+suffix+".dll")
@@ -829,7 +829,7 @@ class my_build_ext(build_ext):
             ccargs.append('/DDLL_DELEGATE=\\"pythoncom%s.dll\\"' % (suffix,))
             self.spawn(ccargs)
 
-        deffile = r"com\win32com\src\PythonCOMLoader.def"
+        deffile = "com\\win32com\\src\\PythonCOMLoader.def"
         if self.force or newer_group([obj, deffile], dll, 'newer'):
             largs = [self.compiler.linker, '/DLL', '/nologo', '/incremental:no']
             if self.debug:
@@ -930,16 +930,16 @@ class my_build_ext(build_ext):
         mfc_dir = "Microsoft.{}.MFC".format(mfc_version.upper())
         # 2.7, 3.0, 3.1 and 3.2 all use(d) vs2008 (compiler version 1500)
         if sys.version_info < (3, 3):
-            product_key = r"SOFTWARE\Microsoft\VisualStudio\9.0\Setup\VC"
+            product_key = "SOFTWARE\\Microsoft\\VisualStudio\\9.0\\Setup\\VC"
             plat_dir_64 = "amd64"
             mfc_files = mfc_libraries + ["Microsoft.VC90.MFC.manifest", ]
         # 3.3 and 3.4 use(d) vs2010 (compiler version 1600, crt=10)
         elif sys.version_info < (3, 5):
-            product_key = r"SOFTWARE\Microsoft\VisualStudio\10.0\Setup\VC"
+            product_key = "SOFTWARE\\Microsoft\\VisualStudio\\10.0\\Setup\\VC"
             mfc_files = mfc_libraries
         # 3.5 and later on vs2015 (compiler version 1900, crt=14)
         else:
-            product_key = r"SOFTWARE\Microsoft\VisualStudio\14.0\Setup\VC"
+            product_key = "SOFTWARE\\Microsoft\\VisualStudio\\14.0\\Setup\\VC"
             mfc_files = mfc_libraries
 
         # On a 64bit host, the value we are looking for is actually in
@@ -952,11 +952,17 @@ class my_build_ext(build_ext):
         else:
             plat_dir = "x86"
         # Find the redist directory.
-        vckey = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, product_key,
-                                0, access)
+        vckey = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE,
+                               product_key,
+                               0,
+                               access,
+                               )
         val, val_typ = winreg.QueryValueEx(vckey, "ProductDir")
         mfc_dir = os.path.join(val, "redist", plat_dir, mfc_dir)
-        if not os.path.isdir(mfc_dir):
+        if os.path.isdir(mfc_dir):
+            # Ensuring absolute paths
+            mfc_files = [os.path.join(mfc_dir, mfc_file) for mfc_file in mfc_files]
+        else:
             print("Can't find the redist dir at %r. Looking into WinSxS now.." % (mfc_dir))
 
             mfc_files = []
@@ -988,8 +994,6 @@ class my_build_ext(build_ext):
                     print("Could not find WinSxS directory in %WINDIR%.")
             else:
                 print("Windows directory not found!")
-        else:
-            mfc_files = [os.path.join(mfc_dir, mfc_file) for mfc_file in mfc_files]
 
         if not mfc_files:
             raise RuntimeError("No MFC files found!")
@@ -1196,25 +1200,25 @@ class my_build_ext(build_ext):
 
         # The pre 3.1 pywintypes
         if name == "pywin32_system32.pywintypes":
-            return r"pywin32_system32\pywintypes%d%d%s" % (sys.version_info[0], sys.version_info[1], extra_dll)
+            return "pywin32_system32\\pywintypes%d%d%s" % (sys.version_info[0], sys.version_info[1], extra_dll)
         # 3.1+ pywintypes
         elif name == "pywintypes":
-            return r"pywintypes%d%d%s" % (sys.version_info[0], sys.version_info[1], extra_dll)
+            return "pywintypes%d%d%s" % (sys.version_info[0], sys.version_info[1], extra_dll)
         # pre 3.1 pythoncom
         elif name == "pywin32_system32.pythoncom":
-            return r"pywin32_system32\pythoncom%d%d%s" % (sys.version_info[0], sys.version_info[1], extra_dll)
+            return "pywin32_system32\\pythoncom%d%d%s" % (sys.version_info[0], sys.version_info[1], extra_dll)
         # 3.1+ pythoncom
         elif name == "pythoncom":
-            return r"pythoncom%d%d%s" % (sys.version_info[0], sys.version_info[1], extra_dll)
+            return "pythoncom%d%d%s" % (sys.version_info[0], sys.version_info[1], extra_dll)
         # Pre 3.1 rest.
         elif name.endswith("win32.perfmondata"):
-            return r"win32\perfmondata" + extra_dll
+            return "win32\\perfmondata" + extra_dll
         elif name.endswith("win32.pythonservice"):
-            return r"win32\pythonservice" + extra_exe
+            return "win32\\pythonservice" + extra_exe
         elif name.endswith("pythonwin.Pythonwin"):
-            return r"pythonwin\Pythonwin" + extra_exe
+            return "pythonwin\\Pythonwin" + extra_exe
         elif name.endswith("isapi.PyISAPI_loader"):
-            return r"isapi\PyISAPI_loader" + extra_dll
+            return "isapi\\PyISAPI_loader" + extra_dll
         # The post 3.1 rest
         elif name in ['perfmondata', 'PyISAPI_loader']:
             return name + extra_dll
@@ -1233,7 +1237,7 @@ class my_build_ext(build_ext):
             swig = os.environ["SWIG"]
         else:
             # We know where our swig is
-            swig = os.path.abspath(r"swig\swig.exe")
+            swig = os.path.abspath("swig\\swig.exe")
         lib = os.path.join(os.path.dirname(swig), "swig_lib")
         os.environ["SWIG_LIB"] = lib
         return swig
@@ -1711,30 +1715,30 @@ pythoncom = WinExt_system32('pythoncom',
                         %(win32com)s/extensions/PyIEnumContextProps.cpp     %(win32com)s/extensions/PyIClientSecurity.cpp
                         %(win32com)s/extensions/PyIServerSecurity.cpp
                         """ % dirs).split(),
-                   depends=(r"""
-                        %(win32com)s/include\propbag.h          %(win32com)s/include\PyComTypeObjects.h
-                        %(win32com)s/include\PyFactory.h        %(win32com)s/include\PyGConnectionPoint.h
-                        %(win32com)s/include\PyGConnectionPointContainer.h
-                        %(win32com)s/include\PyGPersistStorage.h %(win32com)s/include\PyIBindCtx.h
-                        %(win32com)s/include\PyICatInformation.h %(win32com)s/include\PyICatRegister.h
-                        %(win32com)s/include\PyIDataObject.h    %(win32com)s/include\PyIDropSource.h
-                        %(win32com)s/include\PyIDropTarget.h    %(win32com)s/include\PyIEnumConnectionPoints.h
-                        %(win32com)s/include\PyIEnumConnections.h %(win32com)s/include\PyIEnumFORMATETC.h
-                        %(win32com)s/include\PyIEnumGUID.h      %(win32com)s/include\PyIEnumSTATPROPSETSTG.h
-                        %(win32com)s/include\PyIEnumSTATSTG.h   %(win32com)s/include\PyIEnumString.h
-                        %(win32com)s/include\PyIEnumVARIANT.h   %(win32com)s/include\PyIExternalConnection.h
-                        %(win32com)s/include\PyIGlobalInterfaceTable.h %(win32com)s/include\PyILockBytes.h
-                        %(win32com)s/include\PyIMoniker.h       %(win32com)s/include\PyIOleWindow.h
-                        %(win32com)s/include\PyIPersist.h       %(win32com)s/include\PyIPersistFile.h
-                        %(win32com)s/include\PyIPersistStorage.h %(win32com)s/include\PyIPersistStream.h
-                        %(win32com)s/include\PyIPersistStreamInit.h %(win32com)s/include\PyIRunningObjectTable.h
-                        %(win32com)s/include\PyIStorage.h       %(win32com)s/include\PyIStream.h
-                        %(win32com)s/include\PythonCOM.h        %(win32com)s/include\PythonCOMRegister.h
-                        %(win32com)s/include\PythonCOMServer.h  %(win32com)s/include\stdafx.h
-                        %(win32com)s/include\univgw_dataconv.h
-                        %(win32com)s/include/PyICancelMethodCalls.h    %(win32com)s/include/PyIContext.h
-                        %(win32com)s/include/PyIEnumContextProps.h     %(win32com)s/include/PyIClientSecurity.h
-                        %(win32com)s/include/PyIServerSecurity.h
+                   depends=("""
+                        %(win32com)s/include\\propbag.h          %(win32com)s/include\\PyComTypeObjects.h
+                        %(win32com)s/include\\PyFactory.h        %(win32com)s/include\\PyGConnectionPoint.h
+                        %(win32com)s/include\\PyGConnectionPointContainer.h
+                        %(win32com)s/include\\PyGPersistStorage.h %(win32com)s/include\\PyIBindCtx.h
+                        %(win32com)s/include\\PyICatInformation.h %(win32com)s/include\\PyICatRegister.h
+                        %(win32com)s/include\\PyIDataObject.h    %(win32com)s/include\\PyIDropSource.h
+                        %(win32com)s/include\\PyIDropTarget.h    %(win32com)s/include\\PyIEnumConnectionPoints.h
+                        %(win32com)s/include\\PyIEnumConnections.h %(win32com)s/include\\PyIEnumFORMATETC.h
+                        %(win32com)s/include\\PyIEnumGUID.h      %(win32com)s/include\\PyIEnumSTATPROPSETSTG.h
+                        %(win32com)s/include\\PyIEnumSTATSTG.h   %(win32com)s/include\\PyIEnumString.h
+                        %(win32com)s/include\\PyIEnumVARIANT.h   %(win32com)s/include\\PyIExternalConnection.h
+                        %(win32com)s/include\\PyIGlobalInterfaceTable.h %(win32com)s/include\\PyILockBytes.h
+                        %(win32com)s/include\\PyIMoniker.h       %(win32com)s/include\\PyIOleWindow.h
+                        %(win32com)s/include\\PyIPersist.h       %(win32com)s/include\\PyIPersistFile.h
+                        %(win32com)s/include\\PyIPersistStorage.h %(win32com)s/include\\PyIPersistStream.h
+                        %(win32com)s/include\\PyIPersistStreamInit.h %(win32com)s/include\\PyIRunningObjectTable.h
+                        %(win32com)s/include\\PyIStorage.h       %(win32com)s/include\\PyIStream.h
+                        %(win32com)s/include\\PythonCOM.h        %(win32com)s/include\\PythonCOMRegister.h
+                        %(win32com)s/include\\PythonCOMServer.h  %(win32com)s/include\\stdafx.h
+                        %(win32com)s/include\\univgw_dataconv.h
+                        %(win32com)s/include\\PyICancelMethodCalls.h    %(win32com)s/include\\PyIContext.h
+                        %(win32com)s/include\\PyIEnumContextProps.h     %(win32com)s/include\\PyIClientSecurity.h
+                        %(win32com)s/include\\PyIServerSecurity.h
                         """ % dirs).split(),
                    libraries = "oleaut32 ole32 user32 urlmon",
                    export_symbol_file = 'com/win32com/src/PythonCOM.def',
