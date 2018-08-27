@@ -975,7 +975,6 @@ class my_build_ext(build_ext):
                     winsxs_listdir.sort()
                     for entry in winsxs_listdir:
                         if entry.startswith("{}_microsoft.{}.mfc_".format(platform.machine().lower(), mfc_version)) and os.path.isdir(os.path.join(winsxs_path, entry)):
-                            all_files_available = True
                             for mfc_libary in mfc_libraries:
                                 if not os.path.isfile(os.path.join(winsxs_path, entry, mfc_libary)):
                                     continue
