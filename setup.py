@@ -913,11 +913,11 @@ class my_build_ext(build_ext):
         target_dir = os.path.join(self.build_lib, "pythonwin")
 
         # Common values for the MFC lookup over the Visual Studio installation and redist installation.
-        if sys.hexversion < 0x3030000:
+        if sys.version_info < (3, 3):
             mfc_version = "vc90"
             mfc_libraries = ["mfc90.dll", "mfc90u.dll", "mfcm90.dll", "mfcm90u.dll"]
         # 3.3 and 3.4 use(d) vs2010 (compiler version 1600, crt=10)
-        elif sys.hexversion < 0x3050000:
+        elif sys.version_info < (3, 5):
             mfc_version = "vc100"
             mfc_libraries = ["mfc100u.dll", "mfcm100u.dll"]
         # 3.5 and later on vs2015 (compiler version 1900, crt=14)
@@ -929,15 +929,15 @@ class my_build_ext(build_ext):
         plat_dir_64 = "x64"
         mfc_dir = "Microsoft.{}.MFC".format(mfc_version.upper())
         # 2.7, 3.0, 3.1 and 3.2 all use(d) vs2008 (compiler version 1500)
-        if sys.hexversion < 0x3050000:
-            product_key = r"SOFTWARE\Microsoft\VisualStudio\10.0\Setup\VC"
-            mfc_files = mfc_libraries
-        # 3.5 and later on vs2015 (compiler version 1900, crt=14)
-        elif sys.hexversion < 0x3030000:
+        if sys.version_info < (3, 3):
             product_key = r"SOFTWARE\Microsoft\VisualStudio\9.0\Setup\VC"
             plat_dir_64 = "amd64"
             mfc_files = mfc_libraries + ["Microsoft.VC90.MFC.manifest", ]
         # 3.3 and 3.4 use(d) vs2010 (compiler version 1600, crt=10)
+        elif sys.version_info < (3, 5):
+            product_key = r"SOFTWARE\Microsoft\VisualStudio\10.0\Setup\VC"
+            mfc_files = mfc_libraries
+        # 3.5 and later on vs2015 (compiler version 1900, crt=14)
         else:
             product_key = r"SOFTWARE\Microsoft\VisualStudio\14.0\Setup\VC"
             mfc_files = mfc_libraries
