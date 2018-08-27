@@ -970,7 +970,7 @@ class my_build_ext(build_ext):
                 mfc_files = []
                 windows_dir = os.getenv("windir", "C:\\Windows")
                 if os.path.isdir(windows_dir):
-                    winsxs_path = os.path.join(os.environ["windir"], "WinSxS")
+                    winsxs_path = os.path.join(windows_dir, "WinSxS")
                     if os.path.isdir(winsxs_path):
                         mfc_redist_path = None
                         winsxs_listdir = os.listdir(winsxs_path)
