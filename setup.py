@@ -890,7 +890,7 @@ class my_build_ext(build_ext):
 
         # Not sure how to make this completely generic, and there is no
         # need at this stage.
-        if sys.version_info > (2,6) and sys.version_info < (3, 3):
+        if sys.version_info > (2, 7) and sys.version_info < (3, 3):
             # only stuff built with msvc9 needs this loader.
             self._build_pycom_loader()
         self._build_scintilla()
@@ -906,106 +906,98 @@ class my_build_ext(build_ext):
             if self.debug:
                 suffix = "_d"
             fname = clib_file[1] % suffix
-            self.copy_file(
-                    os.path.join(self.build_temp, fname), target_dir)
+            self.copy_file(os.path.join(self.build_temp, fname),
+                           target_dir
+                           )
         # The MFC DLLs.
         target_dir = os.path.join(self.build_lib, "pythonwin")
-        if sys.hexversion < 0x2060000:
-            # hrm - there doesn't seem to be a 'redist' directory for this
-            # compiler (even the installation CDs only seem to have the MFC
-            # DLLs in the "win\system" directory - just grab it from
-            # system32 (but we can't even use win32api for that!)
-            src = os.path.join(os.environ.get('SystemRoot'), 'System32', 'mfc71.dll')
-            if not os.path.isfile(src):
-                raise RuntimeError("Can't find %r" % (src,))
-            self.copy_file(src, target_dir)
+
+        # Common values for the MFC lookup over the Visual Studio installation and redist installation.
+        if sys.hexversion < 0x3030000:
+            mfc_version = "vc90"
+            mfc_libraries = ["mfc90.dll", "mfc90u.dll", "mfcm90.dll", "mfcm90u.dll"]
+        # 3.3 and 3.4 use(d) vs2010 (compiler version 1600, crt=10)
+        elif sys.hexversion < 0x3050000:
+            mfc_version = "vc100"
+            mfc_libraries = ["mfc100u.dll", "mfcm100u.dll"]
+        # 3.5 and later on vs2015 (compiler version 1900, crt=14)
         else:
-            # Common values for the MFC lookup over the Visual Studio installation and redist installation.
-            if sys.hexversion < 0x3030000:
-                mfc_version = "vc90"
-                mfc_libraries = ["mfc90.dll", "mfc90u.dll", "mfcm90.dll", "mfcm90u.dll"]
-            # 3.3 and 3.4 use(d) vs2010 (compiler version 1600, crt=10)
-            elif sys.hexversion < 0x3050000:
-                mfc_version = "vc100"
-                mfc_libraries = ["mfc100u.dll", "mfcm100u.dll"]
-            # 3.5 and later on vs2015 (compiler version 1900, crt=14)
-            else:
-                mfc_version = "vc140"
-                mfc_libraries = ["mfc140u.dll", "mfcm140u.dll"]
+            mfc_version = "vc140"
+            mfc_libraries = ["mfc140u.dll", "mfcm140u.dll"]
 
-            # Looking for the MFC files in the installation paths of the Visual Studios
-            plat_dir_64 = "x64"
-            mfc_dir = "Microsoft.{}.MFC".format(mfc_version.upper())
-            # 2.6, 2.7, 3.0, 3.1 and 3.2 all use(d) vs2008 (compiler version 1500)
-            if sys.hexversion < 0x3030000:
-                product_key = r"SOFTWARE\Microsoft\VisualStudio\9.0\Setup\VC"
-                plat_dir_64 = "amd64"
-                mfc_files = mfc_libraries + ["Microsoft.VC90.MFC.manifest", ]
-            # 3.3 and 3.4 use(d) vs2010 (compiler version 1600, crt=10)
-            elif sys.hexversion < 0x3050000:
-                product_key = r"SOFTWARE\Microsoft\VisualStudio\10.0\Setup\VC"
-                mfc_files = mfc_libraries
-            # 3.5 and later on vs2015 (compiler version 1900, crt=14)
-            else:
-                product_key = r"SOFTWARE\Microsoft\VisualStudio\14.0\Setup\VC"
-                mfc_files = mfc_libraries
+        # Looking for the MFC files in the installation paths of the Visual Studios
+        plat_dir_64 = "x64"
+        mfc_dir = "Microsoft.{}.MFC".format(mfc_version.upper())
+        # 2.7, 3.0, 3.1 and 3.2 all use(d) vs2008 (compiler version 1500)
+        if sys.hexversion < 0x3050000:
+            product_key = r"SOFTWARE\Microsoft\VisualStudio\10.0\Setup\VC"
+            mfc_files = mfc_libraries
+        # 3.5 and later on vs2015 (compiler version 1900, crt=14)
+        elif sys.hexversion < 0x3030000:
+            product_key = r"SOFTWARE\Microsoft\VisualStudio\9.0\Setup\VC"
+            plat_dir_64 = "amd64"
+            mfc_files = mfc_libraries + ["Microsoft.VC90.MFC.manifest", ]
+        # 3.3 and 3.4 use(d) vs2010 (compiler version 1600, crt=10)
+        else:
+            product_key = r"SOFTWARE\Microsoft\VisualStudio\14.0\Setup\VC"
+            mfc_files = mfc_libraries
 
-            # On a 64bit host, the value we are looking for is actually in
-            # SysWow64Node - but that is only available on xp and later.
-            access = winreg.KEY_READ
-            if sys.getwindowsversion()[0] >= 5:
-                access = access | 512 # KEY_WOW64_32KEY
-            if self.plat_name == 'win-amd64':
-                plat_dir = plat_dir_64
-            else:
-                plat_dir = "x86"
-            # Find the redist directory.
-            vckey = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, product_key,
-                                    0, access)
-            val, val_typ = winreg.QueryValueEx(vckey, "ProductDir")
-            mfc_dir = os.path.join(val, "redist", plat_dir, mfc_dir)
-            if not os.path.isdir(mfc_dir):
-                print("Can't find the redist dir at %r. Looking into WinSxS now.." % (mfc_dir))
+        # On a 64bit host, the value we are looking for is actually in
+        # SysWow64Node - but that is only available on xp and later.
+        access = winreg.KEY_READ
+        if sys.getwindowsversion()[0] >= 5:
+            access = access | 512 # KEY_WOW64_32KEY
+        if self.plat_name == 'win-amd64':
+            plat_dir = plat_dir_64
+        else:
+            plat_dir = "x86"
+        # Find the redist directory.
+        vckey = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, product_key,
+                                0, access)
+        val, val_typ = winreg.QueryValueEx(vckey, "ProductDir")
+        mfc_dir = os.path.join(val, "redist", plat_dir, mfc_dir)
+        if not os.path.isdir(mfc_dir):
+            print("Can't find the redist dir at %r. Looking into WinSxS now.." % (mfc_dir))
 
-                mfc_files = []
-                windows_dir = os.getenv("windir", "C:\\Windows")
-                if os.path.isdir(windows_dir):
-                    winsxs_path = os.path.join(windows_dir, "WinSxS")
-                    if os.path.isdir(winsxs_path):
-                        mfc_redist_path = None
-                        winsxs_listdir = os.listdir(winsxs_path)
-                        winsxs_listdir.sort()
-                        for entry in winsxs_listdir:
-                            if entry.startswith("{}_microsoft.{}.mfc_".format(platform.machine().lower(), mfc_version)) and os.path.isdir(os.path.join(winsxs_path, entry)):
-                                all_files_available = True
-                                for mfc_libary in mfc_libraries:
-                                    if not os.path.isfile(os.path.join(winsxs_path, entry, mfc_libary)):
-                                        continue
-                                mfc_redist_path = entry
-                        if mfc_redist_path:
-                            mfc_files = [os.path.join(winsxs_path, mfc_redist_path, mfc_libary) for mfc_libary in mfc_libraries]
-                            mfc_manifest_file = os.path.join(winsxs_path, "Manifests", "{}.manifest".format(mfc_redist_path))
-                            mfc_signature_file = os.path.join(winsxs_path, "Manifests", "{}.cat".format(mfc_redist_path))
-                            if os.path.isfile(mfc_manifest_file): # Looking whether there is a manifest file
-                                mfc_files.append(mfc_manifest_file)
-                                if os.path.isfile(mfc_signature_file): # If there is, also add the signaure file
-                                    mfc_files.append(mfc_signature_file)
-                        else:
-                            print("Could not find any redist libraries in WinSxS!")
+            mfc_files = []
+            windows_dir = os.getenv("windir", "C:\\Windows")
+            if os.path.isdir(windows_dir):
+                winsxs_path = os.path.join(windows_dir, "WinSxS")
+                if os.path.isdir(winsxs_path):
+                    mfc_redist_path = None
+                    winsxs_listdir = os.listdir(winsxs_path)
+                    winsxs_listdir.sort()
+                    for entry in winsxs_listdir:
+                        if entry.startswith("{}_microsoft.{}.mfc_".format(platform.machine().lower(), mfc_version)) and os.path.isdir(os.path.join(winsxs_path, entry)):
+                            all_files_available = True
+                            for mfc_libary in mfc_libraries:
+                                if not os.path.isfile(os.path.join(winsxs_path, entry, mfc_libary)):
+                                    continue
+                            mfc_redist_path = entry
+                    if mfc_redist_path:
+                        mfc_files = [os.path.join(winsxs_path, mfc_redist_path, mfc_libary) for mfc_libary in mfc_libraries]
+                        mfc_manifest_file = os.path.join(winsxs_path, "Manifests", "{}.manifest".format(mfc_redist_path))
+                        mfc_signature_file = os.path.join(winsxs_path, "Manifests", "{}.cat".format(mfc_redist_path))
+                        if os.path.isfile(mfc_manifest_file): # Looking whether there is a manifest file
+                            mfc_files.append(mfc_manifest_file)
+                            if os.path.isfile(mfc_signature_file): # If there is, also add the signaure file
+                                mfc_files.append(mfc_signature_file)
                     else:
-                        print("Could not find WinSxS directory in %WINDIR%.")
+                        print("Could not find any redist libraries in WinSxS!")
                 else:
-                    print("Windows directory not found!")
+                    print("Could not find WinSxS directory in %WINDIR%.")
             else:
-                mfc_files = [os.path.join(mfc_dir, mfc_file) for mfc_file in mfc_files]
+                print("Windows directory not found!")
+        else:
+            mfc_files = [os.path.join(mfc_dir, mfc_file) for mfc_file in mfc_files]
 
-            if not mfc_files:
-                raise RuntimeError("No MFC files found!")
+        if not mfc_files:
+            raise RuntimeError("No MFC files found!")
 
-            for mfc_file_absolute in mfc_files:
-                shutil.copyfile(mfc_file_absolute,
-                                os.path.join(target_dir, os.path.split(mfc_file_absolute)[1]),
-                                )
+        for mfc_file_absolute in mfc_files:
+            shutil.copyfile(mfc_file_absolute,
+                            os.path.join(target_dir, os.path.split(mfc_file_absolute)[1]),
+                            )
 
 
     def build_exefile(self, ext):
