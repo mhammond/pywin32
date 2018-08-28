@@ -61,8 +61,10 @@ The "wheel" packages are uploaded to pypi using `twine upload dist/path-to.whl`
 
 """
 # Originally by Thomas Heller, started in 2000 or so.
-import os, string, sys
-import types, glob
+import os
+import string
+import sys
+import glob
 import re
 from tempfile import gettempdir
 import platform
@@ -77,9 +79,8 @@ except ImportError:
 
 # The rest of our imports.
 from setuptools import setup
-from distutils.core import Extension, Command
+from distutils.core import Extension
 from distutils.command.install import install
-from distutils.command.install_lib import install_lib
 from distutils.command.build_ext import build_ext
 from distutils.command.build import build
 from distutils.command.install_data import install_data
@@ -100,9 +101,8 @@ from distutils import log
 static_crt_modules = ["winxpgui"]
 
 
-from distutils.dep_util import newer_group, newer
-from distutils import dir_util, file_util
-from distutils.sysconfig import get_python_lib, get_config_vars
+from distutils.dep_util import newer_group
+from distutils.sysconfig import get_config_vars
 from distutils.filelist import FileList
 from distutils.errors import DistutilsExecError
 import distutils.util
