@@ -956,7 +956,7 @@ class my_build_ext(build_ext):
                                0,
                                access,
                                )
-        val, val_typ = winreg.QueryValueEx(vckey, "ProductDir")
+        val = winreg.QueryValueEx(vckey, "ProductDir")[0]
         mfc_dir = os.path.join(val, "redist", plat_dir, mfc_dir)
         if os.path.isdir(mfc_dir):
             # Ensuring absolute paths
@@ -1410,8 +1410,13 @@ class my_compiler(base_compiler):
         except ImportError:
             ok = False
         if ok:
-            stamp_script = os.path.join(sys.prefix, "Lib", "site-packages",
-                                        "win32", "lib", "win32verstamp.py")
+            stamp_script = os.path.join(sys.prefix,
+                                        "Lib",
+                                        "site-packages",
+                                        "win32",
+                                        "lib",
+                                        "win32verstamp.py",
+                                        )
             ok = os.path.isfile(stamp_script)
         if ok:
             args = [sys.executable]
