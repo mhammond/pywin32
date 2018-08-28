@@ -1005,7 +1005,7 @@ class my_build_ext(build_ext):
         mfc_contents = self.lookupMfcInVisualStudio(mfc_version, mfc_libraries)
         if not mfc_contents:
             print("Can't find MFC contents in VisualStudio. Looking into WinSxS now..")
-            self.lookupMfcInWinSxS(mfc_version, mfc_libraries)
+            mfc_contents = self.lookupMfcInWinSxS(mfc_version, mfc_libraries)
 
         if not mfc_contents:
             raise RuntimeError("No MFC files found!")
