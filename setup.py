@@ -153,7 +153,7 @@ def find_platform_sdk_dir():
     try:
         key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE,
                               r"SOFTWARE\Microsoft\Windows Kits\Installed Roots")
-        installRoot, ignore = winreg.QueryValueEx(key, "KitsRoot81")
+        installRoot = winreg.QueryValueEx(key, "KitsRoot81")[0]
     except EnvironmentError:
         print("Can't find a windows 8.1 sdk")
         return None
@@ -285,7 +285,7 @@ class WinExt (Extension):
                   implib_name=None,
                   delay_load_libraries="",
                  ):
-        libary_dirs = library_dirs,
+        _ = library_dirs,
         include_dirs = ['com/win32com/src/include',
                         'win32/src'] + include_dirs
         libraries=libraries.split()
