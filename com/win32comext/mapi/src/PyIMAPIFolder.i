@@ -202,3 +202,10 @@ HRESULT_KEEP_INFO EmptyFolder(
 	ULONG ulFlags // @pyparm int|flags||
 ); 
  
+// @pyswig |SetReadFlags|Sets or clears the MSGFLAG_READ flag in the PR_MESSAGE_FLAGS (PidTagMessageFlags) property of one or more of the folder's messages, and manages the sending of read reports.
+HRESULT_KEEP_INFO SetReadFlags(
+	SBinaryArray *INPUT, // @pyparm <o PySBinaryArray>|msgs||
+	ULONG ulUIParam, // @pyparm int|uiParam||A HWND for the progress
+	IMAPIProgress *INPUT_NULLOK, // @pyparm <o PyIMAPIProgress>|progress||A progress object, or None
+	ULONG ulFlags // @pyparm int|flag||Bitmask of flags that controls the setting of a message's read flag - that is, the message's MSGFLAG_READ flag in its PR_MESSAGE_FLAGS property and the processing of read reports.
+);

@@ -423,7 +423,7 @@ class WinExt (Extension):
                 else:
                     suffix = ""
                 self.extra_link_args.append("/IMPLIB:%s%s.lib" % (implib, suffix))
-            # Try and find the MFC source code, so we can reach inside for
+            # Try and find the MFC headers, so we can reach inside for
             # some of the ActiveX support we need.  We need to do this late, so
             # the environment is setup correctly.
             # Only used by the win32uiole extensions, but I can't be
@@ -1874,6 +1874,7 @@ com_extensions += [
                         %(mapi)s/PyIMAPITable.i         %(mapi)s/PyIMAPITable.cpp
                         %(mapi)s/PyIMessage.i           %(mapi)s/PyIMessage.cpp
                         %(mapi)s/PyIMsgServiceAdmin.i   %(mapi)s/PyIMsgServiceAdmin.cpp
+                        %(mapi)s/PyIProviderAdmin.i     %(mapi)s/PyIProviderAdmin.cpp
                         %(mapi)s/PyIMsgStore.i          %(mapi)s/PyIMsgStore.cpp
                         %(mapi)s/PyIProfAdmin.i         %(mapi)s/PyIProfAdmin.cpp
                         %(mapi)s/PyIProfSect.i          %(mapi)s/PyIProfSect.cpp
@@ -2249,6 +2250,7 @@ swig_interface_parents = {
     'PyIMAPITable':         '',
     'PyIMessage':           'IMAPIProp',
     'PyIMsgServiceAdmin':   '',
+    'PyIProviderAdmin':     '',
     'PyIMsgStore':          'IMAPIProp',
     'PyIProfAdmin':         '',
     'PyIProfSect':          'IMAPIProp',
