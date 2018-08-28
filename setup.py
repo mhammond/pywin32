@@ -174,7 +174,6 @@ def find_platform_sdk_dir():
 # http://bugs.python.org/issue7833 (which has landed for Python 2.7 and on 3.2
 # and later, which are all we care about currently)
 if sys.version_info > (2,6):
-    from distutils.spawn import spawn
     from distutils.msvc9compiler import MSVCCompiler
     MSVCCompiler._orig_spawn = MSVCCompiler.spawn
     MSVCCompiler._orig_link = MSVCCompiler.link
@@ -1407,7 +1406,6 @@ class my_compiler(base_compiler):
         # modules needed by this process, and which we will soon try and
         # update.
         try:
-            import optparse # win32verstamp will not work without this!
             ok = True
         except ImportError:
             ok = False
