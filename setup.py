@@ -377,7 +377,7 @@ class WinExt (Extension):
             if self not in W32_exe_files:
                 base = self.base_address
                 if not base:
-                    base = dll_base_addresses[self.name]
+                    base = find_dll_base_address()[self.name]
                 self.extra_link_args.append("/BASE:0x%x" % (base,))
 
             # like Python, always use debug info, even in release builds
@@ -2422,23 +2422,31 @@ else:
                 ]
     )
 
-dll_base_addresses = {}
 
-
-def fill_dll_base_address():
+dll_base_addresses = None
+def find_dll_base_address():
     # Build a map of DLL base addresses.  According to Python's PC\dllbase_nt.txt,
     # we start at 0x1e200000 and go up in 0x00020000 increments.  A couple of
     # our modules just go over this limit, so we use 30000.  We also do it sorted
     # so each module gets the same addy each build.
     # Note: If a module specifies a base address it still gets a slot reserved
     # here which is unused.  We can live with that tho.
+    global dll_base_addresses
+    global dll_base_address
+
+    if dll_base_addresses is not None:
+        return dll_base_addresses
+
     names = [ext.name for ext in ext_modules]
     names.sort()
+
+    dll_base_addresses = {}
 
     for name in names:
         dll_base_addresses[name] = dll_base_address
         dll_base_address += 0x30000
 
+    return dll_base_addresses
 
 cmdclass = { 'install': my_install,
              'build': my_build,
