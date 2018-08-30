@@ -2035,7 +2035,10 @@ packages=['win32com',
           ]
 
 py_modules = expand_modules("win32\\lib")
-if is_win32:
+if not is_win32:
+    ext_modules = ()
+    data_files = ()
+else:
     com_extensions = [pythoncom]
     com_extensions += [
         WinExt_win32com('adsi', libraries="ACTIVEDS ADSIID user32 advapi32",
@@ -2418,9 +2421,6 @@ if is_win32:
                     ('', ('pywin32.pth',)),
                 ]
     )
-else:
-    ext_modules = ()
-    data_files = ()
 
 dll_base_addresses = {}
 
