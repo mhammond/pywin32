@@ -11,6 +11,10 @@ Since build 223:
   creep in, so it should be explicitly called out as a change.
   On the plus side, this makes building the extensions far simpler.
 
+* win32serviceutil - in GetServiceClassString, skip rewrite of file name (fname)
+  when win32api.FindFiles returns an empty list, e.g., if the service has been
+  packaged in a zip or exe. (fixes issue #642)
+
 Since build 222:
 ----------------
 * pywin32.pth now arranges for the pywin32_system32 directory to be on

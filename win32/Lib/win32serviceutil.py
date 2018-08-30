@@ -484,7 +484,7 @@ def GetServiceClassString(cls, argv = None):
             filelist = win32api.FindFiles(fname)
             # win32api.FindFiles will not detect files in a zip or exe. If list is empty,
             # skip the test and hope the file really exists. 
-            if len(filelist) is not 0:
+            if len(filelist) != 0:
                 # Get the long name
                 fname = os.path.join(path, filelist[0][8])
         except win32api.error:
