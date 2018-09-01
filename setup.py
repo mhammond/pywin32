@@ -104,7 +104,7 @@ static_crt_modules = ["winxpgui"]
 from distutils.dep_util import newer_group
 from distutils.sysconfig import get_config_vars
 from distutils.filelist import FileList
-from distutils.errors import DistutilsExecError
+from distutils.errors import DistutilsExecError, DistutilsSetupError
 import distutils.util
 
 # prevent the new in 3.5 suffix of "cpXX-win32" from being added.
