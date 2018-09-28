@@ -713,10 +713,13 @@ class my_build_ext(build_ext):
         # Exclude exchange 32-bit utility libraries from 64-bit
         # builds. Note that the exchange module now builds, but only
         # includes interfaces for 64-bit builds.
-        if self.plat_name == 'win-amd64' and ext.name in ['exchdapi', 'exchange']:
+        if self.plat_name == 'win-amd64' and ext.name == 'exchdapi':
             return "No 64-bit library for utility functions available."
-        if get_build_version() >=14 and ext.name in ['exchdapi', 'exchange']:
-            return "Haven't worked out how to make exchange modules build on vs2015"
+        if get_build_version() >=14:
+            if ext.name == 'exchange':
+                ext.libraries.append('legacy_stdio_definitions')
+            elif ext.name == 'exchdapi':
+                return "Haven't worked out how to build on vs2015"
         include_dirs = self.compiler.include_dirs + \
                        os.environ.get("INCLUDE", "").split(os.pathsep)
         if self.windows_h_version is None:
@@ -1269,6 +1272,11 @@ class my_build_ext(build_ext):
             fqsource = os.path.abspath(source)
             fqtarget = os.path.abspath(target)
             rebuild = self.force or (ext and newer_group(ext.swig_deps + [fqsource], fqtarget))
+
+            # can remove once edklib is no longer used for 32-bit builds
+            if source == "com/win32comext/mapi/src/exchange.i":
+                rebuild = True
+
             log.debug("should swig %s->%s=%s", source, target, rebuild)
             if rebuild:
                 swig_cmd.extend(["-o", fqtarget, fqsource])
@@ -1839,11 +1847,13 @@ com_extensions += [
                         %(mapi)s/mapiguids.cpp
                         """ % dirs).split()),
     WinExt_win32com_mapi('exchange', libraries="mapi32",
+                         include_dirs=["%(mapi)s/mapi_headers" % dirs],
                          sources=("""
                                   %(mapi)s/exchange.i         %(mapi)s/exchange.cpp
                                   %(mapi)s/PyIExchangeManageStore.i %(mapi)s/PyIExchangeManageStore.cpp
                                   %(mapi)s/PyIExchangeManageStoreEx.i %(mapi)s/PyIExchangeManageStoreEx.cpp
                                   %(mapi)s/mapiutil.cpp
+                                  %(mapi)s/mapiguids.cpp
                                   """ % dirs).split()),
     WinExt_win32com_mapi('exchdapi', libraries="mapi32",
                          sources=("""

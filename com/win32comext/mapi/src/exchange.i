@@ -446,7 +446,9 @@ HRESULT MyHrMailboxLogon(
     OUT LPMDB           *lppMailboxMDB)            // ptr to mailbox message store ptr
 {
 #if defined(DONT_HAVE_MBLOGON)
+	PyGILState_STATE gstate = PyGILState_Ensure();
 	PyErr_Warn(PyExc_RuntimeWarning, "Not available with this version of the Exchange SDK");
+	PyGILState_Release(gstate);
 	return E_NOTIMPL;
 #else
 	return HrMailboxLogon(lplhSession, lpMDB, lpszMsgStoreDN, lpszMailboxDN, lppMailboxMDB);
@@ -467,7 +469,9 @@ HRESULT MyHrMailboxLogon(
 HRESULT MyHrMailboxLogoff(IMsgStore **pp)
 {
 #if defined(DONT_HAVE_MBLOGON)
+	PyGILState_STATE gstate = PyGILState_Ensure();
 	PyErr_Warn(PyExc_RuntimeWarning, "Not available with this version of the Exchange SDK");
+	PyGILState_Release(gstate);
 	return E_NOTIMPL;
 #else
 	return HrMailboxLogoff(pp);
