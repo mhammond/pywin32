@@ -6,7 +6,7 @@ However contributors are encouraged to add their own entries for their work.
 
 Since build 223:
 ----------------
-* Built with a released version of Pythohn 3.7, which fixes various date related
+* Built with a released version of Python 3.7, which fixes various date related
   issues with Python 3.7
 
 * Fix a regression introduced in build 220 around how some COM properties are
