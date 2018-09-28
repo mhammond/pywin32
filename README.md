@@ -58,3 +58,23 @@ specific information about dependencies.  A vanilla MSVC installation should
 be able to build most extensions and list any extensions that could not be
 built due to missing libraries - if the build actually fails with your
 configuration, please [open an issue](https://github.com/mhammond/pywin32/issues).
+
+## Release process
+
+The following steps are performed when making a new release - this is mainly
+to form a checklist so mhammond doesn't forget what to do :)
+
+* Ensure CHANGES.txt has everything worth noting, commit it.
+
+* Update setup.py with the new build number.
+
+* Execute build.bat, wait forever, test the artifacts.
+
+* Commit setup.py (so the new build number is in the repo), create a new git tag
+
+* Upload the .exe installers to github, the .whl files to pypi.
+
+* Update setup.py with the new build number + ".1" (eg, 123.1), to ensure
+  future test builds aren't mistaken for the real release.
+
+* Send mail to python-win32
