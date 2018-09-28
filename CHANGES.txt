@@ -6,6 +6,9 @@ However contributors are encouraged to add their own entries for their work.
 
 Since build 223:
 ----------------
+* Fix a regression introduced in build 220 around how some COM properties are
+  handled (#1211 and #1199)
+
 * Everything is now build with the Windows 8.1 SDK. While this should typically
   be invisible, it is mentioned because it might explain obscure issues that
   creep in, so it should be explicitly called out as a change.
