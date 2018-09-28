@@ -70,8 +70,10 @@ PyObject *PyObject_FromMAPIERROR(MAPIERROR *e, BOOL bIsUnicode, BOOL free_buffer
 
 BOOL AllocMVBuffer(PyObject *seq, size_t itemSize, void *pAllocMoreLinkBlock, void **pbuf, ULONG *pLen)
 {
-	if (!PySequence_Check(seq))
+	if (!PySequence_Check(seq)) {
+		PyErr_SetString(PyExc_TypeError, "A multi-valued SPropValue item must be a sequence");
 		return FALSE;
+	}
 	*pLen = PySequence_Length(seq);
 	int bufSize = *pLen * itemSize;
 	HRESULT hr = MAPIAllocateMore(bufSize, pAllocMoreLinkBlock, (void **)pbuf);
