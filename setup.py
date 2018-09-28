@@ -285,7 +285,6 @@ class WinExt (Extension):
                   implib_name=None,
                   delay_load_libraries="",
                  ):
-        _ = library_dirs,
         include_dirs = ['com/win32com/src/include',
                         'win32/src'] + include_dirs
         libraries=libraries.split()
