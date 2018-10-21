@@ -5390,6 +5390,48 @@ static PyObject * PyLoadString(PyObject *self, PyObject *args)
 	return rc;
 }
 
+// @pymethod PyHANDLE|win32api|LoadResource|Finds a resource in a PE file. Returns a HRSRC(HANDLE) to the resource if found, otherwise returns None.
+static PyObject * PyFindResource(PyObject *self, PyObject *args) {
+    
+    PyObject *ret;
+    
+    PyObject *obhModule;
+    PyObject *obName;
+    PyObject *obType;
+    
+    HMODULE hModule;
+    LPTSTR lpName = NULL;
+    LPTSTR lpType = NULL;
+    
+    if ( !PyArg_ParseTuple(args, "OOO|H:FindResource",
+			&obhModule, // @pyparm <o PyHANDLE>|handle||The handle of the module containing the resource.  Use None for currrent process executable.
+			&obName,    // @pyparm <o PyResourceId>|name||Name of the resource to find
+			&obType     // @pyparm <o PyResourceId>|type||The type of resource to find.
+		))
+		return NULL;
+        
+        
+    if (PyWinObject_AsHANDLE(obhModule, (HANDLE *)&hModule)
+        &&PyWinObject_AsResourceId(obType, &lpType) 
+		&&PyWinObject_AsResourceId(obName, &lpName)) {
+            HRSRC resource = FindResource(hModule, lpName, lpType);
+            
+            if (resource) {
+                ret = PyWinObject_FromHANDLE(resource);
+            } else {
+                Py_INCREF(Py_None);
+                ret = Py_None;
+            }
+            
+            
+        } else {
+            PyWin_SetAPIError("PyWinObject_AsHANDLE");
+        }
+    
+    PyWinObject_FreeResourceId(lpType);
+	PyWinObject_FreeResourceId(lpName);
+    return ret;
+}
 
 // @pymethod string|win32api|LoadResource|Finds and loads a resource from a PE file.
 static PyObject * PyLoadResource(PyObject *self, PyObject *args)
@@ -5411,7 +5453,7 @@ static PyObject * PyLoadResource(PyObject *self, PyObject *args)
 		return NULL;
 	if (PyWinObject_AsHANDLE(obhModule, (HANDLE *)&hModule)
 		&&PyWinObject_AsResourceId(obType, &lpType) 
-		&&PyWinObject_AsResourceId(obName, &lpName)){
+		&&PyWinObject_AsResourceId(obName, &lpName)) {
 		HRSRC hrsrc = FindResourceEx(hModule, lpType, lpName, wLanguage);
 		if ( hrsrc == NULL )
 			PyWin_SetAPIError("FindResourceEx");
@@ -6397,6 +6439,7 @@ static struct PyMethodDef win32api_functions[] = {
 	{"FindNextChangeNotification", PyFindNextChangeNotification, 1}, // @pymeth FindNextChangeNotification|Requests that the operating system signal a change notification handle the next time it detects an appropriate change.
 	{"FindCloseChangeNotification", PyFindCloseChangeNotification, 1}, // @pymeth FindCloseChangeNotification|Closes the change notification handle.
 	{"FindExecutable",		PyFindExecutable,   1}, // @pymeth FindExecutable|Find an executable associated with a document.
+    {"FindResource",        PyFindResource, 1}, // @pymeth FindResource| Determines the location of a resource with the specified type and name in the specified module.
 	// @pymeth FormatMessage|Return an error message string.
 #ifdef UNICODE
 	{"FormatMessage",		PyFormatMessageW,    1},
