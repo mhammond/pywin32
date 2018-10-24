@@ -4,6 +4,10 @@ Generally created by hand after running:
    hg log -rb2xx: > log.out
 However contributors are encouraged to add their own entries for their work.
 
+Since build 224:
+----------------
+* PythonWin is now able to start with non-English active keyboard layout.
+
 Since build 223:
 ----------------
 * Built with a released version of Python 3.7, which fixes various date related
