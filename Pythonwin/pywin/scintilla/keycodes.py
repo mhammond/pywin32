@@ -35,7 +35,9 @@ def get_vk(chardesc):
         # it is a character.
         info = win32api.VkKeyScan(chardesc)
         if info==-1:
-            return None, None
+            # Note: returning None, None causes an error when keyboard layout is non-English, see the report below
+            # https://stackoverflow.com/questions/45138084/pythonwin-occasionally-gives-an-error-on-opening
+            return 0, 0
         vk = win32api.LOBYTE(info)
         state = win32api.HIBYTE(info)
         modifiers = 0
