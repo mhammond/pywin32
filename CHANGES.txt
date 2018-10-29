@@ -20,6 +20,9 @@ Since build 223:
 * win32serviceutil - in GetServiceClassString, skip rewrite of file name (fname)
   when win32api.FindFiles returns an empty list, e.g., if the service has been
   packaged in a zip or exe. (fixes issue #642)
+  
+* Added a wrapper around the FindResource function.
+  This allows developers to easily check if a PE contains a certain resource (#1262)
 
 Since build 222:
 ----------------
