@@ -27,6 +27,9 @@ import glob
 import traceback
 import CLSIDToClass
 import operator
+
+IS_PY3 = sys.version_info.major >= 3
+
 try:
 	from imp import reload # exported by the imp module in py3k.
 except:
@@ -52,7 +55,10 @@ is_readonly = is_zip = hasattr(win32com, "__loader__") and hasattr(win32com.__lo
 # Keyed by usual clsid, lcid, major, minor
 demandGeneratedTypeLibraries = {}
 
-import cPickle as pickle
+if IS_PY3:
+	import pickle
+else:
+	import cPickle as pickle
 
 def __init__():
 	# Initialize the module.  Called once explicitly at module import below.
@@ -77,7 +83,10 @@ def _SaveDicts():
 def _LoadDicts():
 	# Load the dictionary from a .zip file if that is where we live.
 	if is_zip:
-		import cStringIO as io
+		if IS_PY3:
+			import io
+		else:
+			import cStringIO as io
 		loader = win32com.__loader__
 		arc_path = loader.archive
 		dicts_path = os.path.join(win32com.__gen_path__, "dicts.dat")
@@ -104,7 +113,10 @@ def _LoadDicts():
 			# for these apps is to call EnsureModule, rather than freezing
 			# the dict)
 			return
-		f = io.StringIO(data)
+		if IS_PY3:
+			f = io.BytesIO(data)
+		else:
+			f = io.StringIO(data)
 	else:
 		# NOTE: IOError on file open must be caught by caller.
 		f = open(os.path.join(win32com.__gen_path__, "dicts.dat"), "rb")
@@ -357,7 +369,7 @@ def ForgetAboutTypelibInterface(typelib_ob):
 		del demandGeneratedTypeLibraries[info]
 	except KeyError:
 		# Not worth raising an exception - maybe they dont know we only remember for demand generated, etc.
-		print "ForgetAboutTypelibInterface:: Warning - type library with info %s is not being remembered!" % (info,)
+		print("ForgetAboutTypelibInterface:: Warning - type library with info %s is not being remembered!" % (info,))
 	# and drop any version redirects to it
 	for key, val in list(versionRedirectMap.items()):
 		if val==info:
@@ -633,28 +645,28 @@ def Rebuild(verbose = 1):
 	clsidToTypelib.clear()
 	infos = GetGeneratedInfos()
 	if verbose and len(infos): # Dont bother reporting this when directory is empty!
-		print "Rebuilding cache of generated files for COM support..."
+		print("Rebuilding cache of generated files for COM support...")
 	for info in infos:
 		iid, lcid, major, minor = info
 		if verbose:
-			print "Checking", GetGeneratedFileName(*info)
+			print("Checking %s"%GetGeneratedFileName(*info))
 		try:
 			AddModuleToCache(iid, lcid, major, minor, verbose, 0)
 		except:
 			print "Could not add module %s - %s: %s" % (info, sys.exc_info()[0],sys.exc_info()[1])
 	if verbose and len(infos): # Dont bother reporting this when directory is empty!
-		print "Done."
+		print("Done.")
 	_SaveDicts()
 
 def _Dump():
-	print "Cache is in directory", win32com.__gen_path__
+	print("Cache is in directory %s"%win32com.__gen_path__)
 	# Build a unique dir
 	d = {}
 	for clsid, (typelibCLSID, lcid, major, minor) in clsidToTypelib.iteritems():
 		d[typelibCLSID, lcid, major, minor] = None
 	for typelibCLSID, lcid, major, minor in d.iterkeys():
 		mod = GetModuleForTypelib(typelibCLSID, lcid, major, minor)
-		print "%s - %s" % (mod.__doc__, typelibCLSID)
+		print("%s - %s" % (mod.__doc__, typelibCLSID))
 
 # Boot up
 __init__()
@@ -667,7 +679,7 @@ def usage():
 			 -d         - Dump the cache (typelibrary description and filename).
 			 -r         - Rebuild the cache dictionary from the existing .py files
 	"""
-	print usageString
+	print(usageString)
 	sys.exit(1)
 
 if __name__=='__main__':
@@ -675,12 +687,12 @@ if __name__=='__main__':
 	try:
 		opts, args = getopt.getopt(sys.argv[1:], "qrd")
 	except getopt.error, message:
-		print message
+		print(message)
 		usage()
 
 	# we only have options - complain about real args, or none at all!
 	if len(sys.argv)==1 or args:
-		print usage()
+		usage()
 		
 	verbose = 1
 	for opt, val in opts:
