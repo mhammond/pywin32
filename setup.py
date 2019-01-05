@@ -155,6 +155,10 @@ def find_platform_sdk_dir():
                               r"SOFTWARE\Microsoft\Windows Kits\Installed Roots")
         installRoot = winreg.QueryValueEx(key, "KitsRoot81")[0]
     except EnvironmentError:
+        key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE,
+                              r"SOFTWARE\WOW6432NODE\Microsoft\Windows Kits\Installed Roots")
+        installRoot = winreg.QueryValueEx(key, "KitsRoot81")[0]
+    except EnvironmentError:
         print("Can't find a windows 8.1 sdk")
         return None
 
