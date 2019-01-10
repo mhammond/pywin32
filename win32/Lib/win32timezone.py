@@ -860,7 +860,7 @@ def resolveMUITimeZone(spec):
 	spec should be of the format @path,-stringID[;comment]
 	see http://msdn2.microsoft.com/en-us/library/ms725481.aspx for details
 	"""
-	pattern = re.compile('@(?P<dllname>.*),-(?P<index>\d+)(?:;(?P<comment>.*))?')
+	pattern = re.compile(r'@(?P<dllname>.*),-(?P<index>\d+)(?:;(?P<comment>.*))?')
 	matcher = pattern.match(spec)
 	assert matcher, 'Could not parse MUI spec'
 
