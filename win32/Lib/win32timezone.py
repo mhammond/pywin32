@@ -720,7 +720,7 @@ class TimeZoneInfo(datetime.tzinfo):
 		key_names = list(TimeZoneInfo._get_time_zone_key_names())
 		def get_index_value(key_name):
 			key = TimeZoneInfo._get_time_zone_key(key_name)
-			return key[index_key]
+			return key.get(index_key, key_name)
 		values = map(get_index_value, key_names)
 		return zip(values, key_names)
 
