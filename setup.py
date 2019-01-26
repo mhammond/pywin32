@@ -2438,6 +2438,17 @@ cmdclass = { 'install': my_install,
              'build_scripts' : my_build_scripts,
            }
 
+classifiers = [ 'Environment :: Win32 (MS Windows)',
+	            'Intended Audience :: Developers',
+	            'License :: OSI Approved :: Python Software Foundation License',
+	            'Operating System :: Microsoft :: Windows',
+	            'Programming Language :: Python :: 2.7',
+	            'Programming Language :: Python :: 3.5',
+	            'Programming Language :: Python :: 3.6',
+	            'Programming Language :: Python :: 3.7',
+	            'Programming Language :: Python :: Implementation :: CPython',
+	          ]
+
 dist = setup(name="pywin32",
       version=str(build_id),
       description="Python for Window Extensions",
@@ -2449,6 +2460,7 @@ dist = setup(name="pywin32",
       author_email = "mhammond@skippinet.com.au",
       url="https://github.com/mhammond/pywin32",
       license="PSF",
+      classifiers = classifiers,
       cmdclass = cmdclass,
       options = {"bdist_wininst":
                     {"install_script": "pywin32_postinstall.py",
