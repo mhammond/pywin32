@@ -20,6 +20,8 @@ environment:
       PYTHON_MINOR: 5
     - PYTHON_MAJOR: 3
       PYTHON_MINOR: 6
+    - PYTHON_MAJOR: 3
+      PYTHON_MINOR: 7
 
 install:
   # Prepare environment
@@ -42,6 +44,7 @@ init:
   # Following the matrix here: https://wiki.python.org/moin/WindowsCompilers#Which_Microsoft_Visual_C.2B-.2B-_compiler_to_use_with_a_specific_Python_version_.3F
   - if "%PLATFORM%"=="x86" set VC_ARCH=x86
   - if "%PLATFORM%"=="x64" set VC_ARCH=amd64
+  - if "%PYTHON_MAJOR%"=="3" if "%PYTHON_MINOR%"=="7" set VC_VERSION=14.0
   - if "%PYTHON_MAJOR%"=="3" if "%PYTHON_MINOR%"=="6" set VC_VERSION=14.0
   - if "%PYTHON_MAJOR%"=="3" if "%PYTHON_MINOR%"=="5" set VC_VERSION=14.0
   - if "%PYTHON_MAJOR%"=="3" if "%PYTHON_MINOR%"=="4" set VC_VERSION=10.0
