@@ -8,6 +8,8 @@ Since build 224:
 ----------------
 * PythonWin is now able to start with non-English active keyboard layout.
 
+* Implement PdhGetFormattedCounterArray (#1306, konserw)
+
 Since build 223:
 ----------------
 * Built with a released version of Python 3.7, which fixes various date related
