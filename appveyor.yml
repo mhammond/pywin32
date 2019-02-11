@@ -23,23 +23,6 @@ environment:
     - PYTHON_MAJOR: 3
       PYTHON_MINOR: 7
 
-install:
-  # Prepare environment
-  - set PYTHON_PATH=C:\Python%PYTHON_MAJOR%%PYTHON_MINOR%
-  - if "%PLATFORM%"=="x64" set PYTHON_PATH=%PYTHON_PATH%-x64
-  - echo %PYTHON_PATH%
-  - set PATH=%PYTHON_PATH%;%PYTHON_PATH%\Scripts;%PATH%
-
-  # Check that we have the expected version and architecture for Python
-  - python --version
-
-  # Install setuptools/wheel so that we can e.g. use bdist_wheel
-  - pip install --upgrade setuptools wheel
-  
-  ## Use Chocolatey to install SWIG.
-  #- set SWIG=C:\ProgramData\chocolatey\bin\swig.exe
-  #- if not exist %SWIG% choco install swig --version 3.0.9 --yes --limit-output
-
 init:
   # Following the matrix here: https://wiki.python.org/moin/WindowsCompilers#Which_Microsoft_Visual_C.2B-.2B-_compiler_to_use_with_a_specific_Python_version_.3F
   - if "%PLATFORM%"=="x86" set VC_ARCH=x86
@@ -55,6 +38,25 @@ init:
   
   # RDP session for debugging
   #- ps: iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
+
+install:
+  # Copy over missing headers on x86-64
+  - if "%PYTHON_MAJOR%"=="2" if "%PYTHON_MINOR%"=="7" if "%PLATFORM%"=="x64" xcopy /I /Y "3rd_party\*" "C:\Program Files (x86)\Windows Kits\8.1\Include\um"
+  # Prepare environment
+  - set PYTHON_PATH=C:\Python%PYTHON_MAJOR%%PYTHON_MINOR%
+  - if "%PLATFORM%"=="x64" set PYTHON_PATH=%PYTHON_PATH%-x64
+  - echo %PYTHON_PATH%
+  - set PATH=%PYTHON_PATH%;%PYTHON_PATH%\Scripts;%PATH%
+
+  # Check that we have the expected version and architecture for Python
+  - python --version
+
+  # Install setuptools/wheel so that we can e.g. use bdist_wheel
+  - pip install --upgrade setuptools wheel
+  
+  ## Use Chocolatey to install SWIG.
+  #- set SWIG=C:\ProgramData\chocolatey\bin\swig.exe
+  #- if not exist %SWIG% choco install swig --version 3.0.9 --yes --limit-output
 
 build_script:
   - python setup.py build
