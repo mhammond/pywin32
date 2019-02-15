@@ -786,25 +786,6 @@ class _RegKeyDict(dict):
 		except WindowsError: pass
 
 
-# for backward compatibility
-def deprecated(func, name='Unknown'):
-	"""This is a decorator which can be used to mark functions
-	as deprecated. It will result in a warning being emmitted
-	when the function is used."""
-	def newFunc(*args, **kwargs):
-		warnings.warn("Call to deprecated function %s." % name,
-			category=DeprecationWarning)
-		return func(*args, **kwargs)
-	newFunc.__name__ = func.__name__
-	newFunc.__doc__ = func.__doc__
-	newFunc.__dict__.update(func.__dict__)
-	return newFunc
-
-GetTimeZoneNames = deprecated(TimeZoneInfo._get_time_zone_key_names, 'GetTimeZoneNames')
-GetIndexedTimeZoneNames = deprecated(TimeZoneInfo._get_indexed_time_zone_keys, 'GetIndexedTimeZoneNames')
-GetSortedTimeZoneNames = deprecated(TimeZoneInfo.get_sorted_time_zone_names, 'GetSortedTimeZoneNames')
-# end backward compatibility
-
 def utcnow():
 	"""
 	Return the UTC time now with timezone awareness as enabled
