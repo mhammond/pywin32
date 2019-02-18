@@ -715,14 +715,22 @@ class TimeZoneInfo(datetime.tzinfo):
 	@staticmethod
 	def _get_indexed_time_zone_keys(index_key='Index'):
 		"""
-		Get the names of the registry keys indexed by a value in that key.
+		Get the names of the registry keys indexed by a value in that key,
+		ignoring any keys for which that value is empty or missing.
 		"""
 		key_names = list(TimeZoneInfo._get_time_zone_key_names())
+
 		def get_index_value(key_name):
 			key = TimeZoneInfo._get_time_zone_key(key_name)
-			return key[index_key]
+			return key.get(index_key)
+
 		values = map(get_index_value, key_names)
-		return zip(values, key_names)
+
+		return (
+			(value, key_name)
+			for value, key_name in zip(values, key_names)
+			if value
+		)
 
 	@staticmethod
 	def get_sorted_time_zone_names():
