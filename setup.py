@@ -1883,6 +1883,7 @@ com_extensions += [
                     depends=["%(internet)s/internet_pch.h" % dirs]),
     WinExt_win32com('mapi', libraries="advapi32", pch_header="PythonCOM.h",
                     include_dirs=["%(mapi)s/mapi_headers" % dirs],
+                    optional_headers=['edkmdb.h', 'edkguid.h'],
                     sources=("""
                         %(mapi)s/mapi.i                 %(mapi)s/mapi.cpp
                         %(mapi)s/PyIABContainer.i       %(mapi)s/PyIABContainer.cpp
@@ -1911,6 +1912,7 @@ com_extensions += [
                         """ % dirs).split()),
     WinExt_win32com_mapi('exchange', libraries="advapi32",
                          include_dirs=["%(mapi)s/mapi_headers" % dirs],
+                         optional_headers=['edkmdb.h', 'edkguid.h'],
                          sources=("""
                                   %(mapi)s/exchange.i         %(mapi)s/exchange.cpp
                                   %(mapi)s/PyIExchangeManageStore.i %(mapi)s/PyIExchangeManageStore.cpp
