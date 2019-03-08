@@ -39,75 +39,75 @@ CRITICAL_SECTION critSec;
 
 // Function pointer typedefs
 typedef PDH_STATUS (WINAPI * FuncPdhEnumObjects)(
-    LPCTSTR szReserved,	// DataSource
-    LPCTSTR szMachineName,	// machine name
-    LPTSTR mszObjectList,	// buffer for objects
-    LPDWORD pcchBufferLength,	// size of buffer
-    DWORD dwDetailLevel,	// detail level
-    BOOL bRefresh	// refresh flag for connected machines
+	LPCTSTR szReserved,	// DataSource
+	LPCTSTR szMachineName,	// machine name
+	LPTSTR mszObjectList,	// buffer for objects
+	LPDWORD pcchBufferLength,	// size of buffer
+	DWORD dwDetailLevel,	// detail level
+	BOOL bRefresh	// refresh flag for connected machines
    );
 
 typedef PDH_STATUS (WINAPI * FuncPdhEnumObjectItems)(
-    LPCTSTR szReserved,	// DataSource
-    LPCTSTR szMachineName,	// machine name
-    LPCTSTR szObjectName,	// object name
-    LPTSTR mszCounterList,	// buffer for object's counters
-    LPDWORD pcchCounterListLength,	// size of counter list buffer
-    LPTSTR mszInstanceList,	// buffer for object's instances
-    LPDWORD pcchInstanceListLength,	// size of instance list buffer
-    DWORD dwDetailLevel,	// detail level
-    DWORD dwFlags	// formatting flag
-   );	
+	LPCTSTR szReserved,	// DataSource
+	LPCTSTR szMachineName,	// machine name
+	LPCTSTR szObjectName,	// object name
+	LPTSTR mszCounterList,	// buffer for object's counters
+	LPDWORD pcchCounterListLength,	// size of counter list buffer
+	LPTSTR mszInstanceList,	// buffer for object's instances
+	LPDWORD pcchInstanceListLength,	// size of instance list buffer
+	DWORD dwDetailLevel,	// detail level
+	DWORD dwFlags	// formatting flag
+   );
 
 typedef PDH_STATUS (WINAPI * FuncPdhOpenQuery)(
-    LPCTSTR szDataSource,	// DataSource
-    DWORD_PTR dwUserData,	// a value associated with this query
-    HQUERY *phQuery	// pointer to a buffer that will receive the query handle
+	LPCTSTR szDataSource,	// DataSource
+	DWORD_PTR dwUserData,	// a value associated with this query
+	HQUERY *phQuery	// pointer to a buffer that will receive the query handle
    ) ;
 
 typedef PDH_STATUS (WINAPI * FuncPdhCloseQuery)(
-    HQUERY hQuery
+	HQUERY hQuery
    ) ;
 
 typedef PDH_STATUS (WINAPI * FuncPdhRemoveCounter)(
-    HCOUNTER hCounter
+	HCOUNTER hCounter
    ) ;
 
 typedef PDH_STATUS (WINAPI * FuncPdhAddCounter)(
-    HQUERY hQuery,	// handle to the query
-    LPCTSTR szFullCounterPath,	// path of the counter
-    DWORD_PTR dwUserData,	// user-defined value
-    HCOUNTER *phCounter	// pointer to the counter handle buffer
-   );	
+	HQUERY hQuery,	// handle to the query
+	LPCTSTR szFullCounterPath,	// path of the counter
+	DWORD_PTR dwUserData,	// user-defined value
+	HCOUNTER *phCounter	// pointer to the counter handle buffer
+   );
 
 typedef PDH_STATUS (WINAPI * FuncPdhMakeCounterPath)(
-    PDH_COUNTER_PATH_ELEMENTS *pCounterPathElements,	// counter path elements
-    LPTSTR szFullPathBuffer,	// path string buffer
-    LPDWORD pcchBufferSize,	// size of buffer
-    DWORD dwFlags	// reserved
-   );	
+	PDH_COUNTER_PATH_ELEMENTS *pCounterPathElements,	// counter path elements
+	LPTSTR szFullPathBuffer,	// path string buffer
+	LPDWORD pcchBufferSize,	// size of buffer
+	DWORD dwFlags	// reserved
+   );
 
 typedef PDH_STATUS (WINAPI * FuncPdhGetCounterInfo)(
-    HQUERY hCounter,	// handle of the counter
-    BOOLEAN bRetrieveExplainText,	// TRUE to retrieve explain text
-    LPDWORD pdwBufferSize,	// pointer to size of lpBuffer
-    PPDH_COUNTER_INFO lpBuffer	// buffer for counter information
+	HQUERY hCounter,	// handle of the counter
+	BOOLEAN bRetrieveExplainText,	// TRUE to retrieve explain text
+	LPDWORD pdwBufferSize,	// pointer to size of lpBuffer
+	PPDH_COUNTER_INFO lpBuffer	// buffer for counter information
    );
 
 typedef PDH_STATUS (WINAPI * FuncPdhGetFormattedCounterValue)(
-    HCOUNTER hCounter,	// handle of the counter
-    DWORD dwFormat,	// formatting flag
-    LPDWORD lpdwType,	// counter type
-    PPDH_FMT_COUNTERVALUE pValue	// counter value
-   );	
+	HCOUNTER hCounter,	// handle of the counter
+	DWORD dwFormat,	// formatting flag
+	LPDWORD lpdwType,	// counter type
+	PPDH_FMT_COUNTERVALUE pValue	// counter value
+   );
 
 typedef PDH_STATUS (WINAPI * FuncPdhCollectQueryData)(
-    HQUERY hQuery
-   );	
+	HQUERY hQuery
+   );
 
 typedef PDH_STATUS (WINAPI * FuncPdhValidatePath)(
-    LPCTSTR szFullCounterPath
-   );	
+	LPCTSTR szFullCounterPath
+   );
 
 typedef PDH_STATUS (WINAPI * FuncPdhExpandCounterPath)(
    LPCTSTR szWildCardPath,	// counter path to expand
@@ -115,7 +115,7 @@ typedef PDH_STATUS (WINAPI * FuncPdhExpandCounterPath)(
    LPDWORD pcchPathListLength	// size of buffer
    );
 
-typedef PDH_STATUS (WINAPI * FuncPdhParseCounterPath)( 
+typedef PDH_STATUS (WINAPI * FuncPdhParseCounterPath)(
   LPCTSTR szFullPathBuffer, // path string buffer
   PDH_COUNTER_PATH_ELEMENTS *pCounterPathElements, // counter path elements
   LPDWORD pdwBufferSize, // size of buffer
@@ -259,18 +259,18 @@ static PyObject *PyEnumObjectItems(PyObject *self, PyObject *args)
 {
 	DWORD detailLevel, flags = 0;
 	PyObject *obDataSource, *obMachine, *obObject, *ret=NULL;
-	if (!PyArg_ParseTuple(args, "OOOk|k:EnumObjectItems", 
-	          &obDataSource, // @pyparm string|DataSource||Path of a performance log file, or None for machine counters
-	          &obMachine, // @pyparm string|machine||The machine to use, or None
+	if (!PyArg_ParseTuple(args, "OOOk|k:EnumObjectItems",
+			  &obDataSource, // @pyparm string|DataSource||Path of a performance log file, or None for machine counters
+			  &obMachine, // @pyparm string|machine||The machine to use, or None
 			  &obObject, // @pyparm string|object||The type of object
-	          &detailLevel, // @pyparm int|detailLevel||The level of data required, win32pdh.PERF_DETAIL_*
-	          &flags)) // @pyparm int|flags|0|Flags - must be zero
+			  &detailLevel, // @pyparm int|detailLevel||The level of data required, win32pdh.PERF_DETAIL_*
+			  &flags)) // @pyparm int|flags|0|Flags - must be zero
 		return NULL;
 
-    LPTSTR      szCounterListBuffer     = NULL;
-    DWORD       dwCounterListSize       = 0;
-    LPTSTR      szInstanceListBuffer    = NULL;
-    DWORD       dwInstanceListSize      = 0;
+	LPTSTR      szCounterListBuffer     = NULL;
+	DWORD       dwCounterListSize       = 0;
+	LPTSTR      szInstanceListBuffer    = NULL;
+	DWORD       dwInstanceListSize      = 0;
 
 	CHECK_PDH_PTR(pPdhEnumObjectItems);
 
@@ -286,15 +286,15 @@ static PyObject *PyEnumObjectItems(PyObject *self, PyObject *args)
 
 	Py_BEGIN_ALLOW_THREADS
 	pdhStatus = (*pPdhEnumObjectItems) (
-        DataSource,                   // Perf log file
-        Machine,                   // local machine
-        Object,        // object to enumerate
-        szCounterListBuffer,    // pass in NULL buffers
-        &dwCounterListSize,     // an 0 length to get
-        szInstanceListBuffer,   // required size 
-        &dwInstanceListSize,    // of the buffers in chars
-        detailLevel,     // counter detail level
-        flags); 
+		DataSource,                   // Perf log file
+		Machine,                   // local machine
+		Object,        // object to enumerate
+		szCounterListBuffer,    // pass in NULL buffers
+		&dwCounterListSize,     // an 0 length to get
+		szInstanceListBuffer,   // required size
+		&dwInstanceListSize,    // of the buffers in chars
+		detailLevel,     // counter detail level
+		flags);
 	Py_END_ALLOW_THREADS
 
 	// it appears NT/2k will return 0, while XP will return
@@ -321,15 +321,15 @@ static PyObject *PyEnumObjectItems(PyObject *self, PyObject *args)
 
 	Py_BEGIN_ALLOW_THREADS
 	pdhStatus = (*pPdhEnumObjectItems) (
-	        DataSource,                   // Perf log file
-	        Machine,                   // local machine
-	        Object,        // object to enumerate
-	        szCounterListBuffer,    // pass in NULL buffers
-	        &dwCounterListSize,     // an 0 length to get
-	        szInstanceListBuffer,   // required size 
-	        &dwInstanceListSize,    // of the buffers in chars
-	        detailLevel,     // counter detail level
-	        flags); 
+			DataSource,                   // Perf log file
+			Machine,                   // local machine
+			Object,        // object to enumerate
+			szCounterListBuffer,    // pass in NULL buffers
+			&dwCounterListSize,     // an 0 length to get
+			szInstanceListBuffer,   // required size
+			&dwInstanceListSize,    // of the buffers in chars
+			detailLevel,     // counter detail level
+			flags);
 	Py_END_ALLOW_THREADS
 
 	if (pdhStatus != ERROR_SUCCESS)
@@ -352,15 +352,15 @@ static PyObject *PyEnumObjects(PyObject *self, PyObject *args)
 {
 	DWORD detailLevel, refresh=1;
 	PyObject *obMachine, *obDataSource, *ret=NULL;
-	if (!PyArg_ParseTuple(args, "OOi|i:EnumObjects", 
-	          &obDataSource, // @pyparm string|DataSource||Path to a performance log file, or None for machine counters
-	          &obMachine, // @pyparm string|machine||The machine to use, or None
-	          &detailLevel, // @pyparm int|detailLevel||The level of data required.
-	          &refresh)) // @pyparm int|refresh|1|Should the list be refreshed.
+	if (!PyArg_ParseTuple(args, "OOi|i:EnumObjects",
+			  &obDataSource, // @pyparm string|DataSource||Path to a performance log file, or None for machine counters
+			  &obMachine, // @pyparm string|machine||The machine to use, or None
+			  &detailLevel, // @pyparm int|detailLevel||The level of data required.
+			  &refresh)) // @pyparm int|refresh|1|Should the list be refreshed.
 		return NULL;
 
-    LPTSTR      szObjectListBuffer     = NULL;
-    DWORD       dwObjectListSize       = 0;
+	LPTSTR      szObjectListBuffer     = NULL;
+	DWORD       dwObjectListSize       = 0;
 
 	CHECK_PDH_PTR(pPdhEnumObjects);
 	TmpTCHAR DataSource, Machine;
@@ -373,12 +373,12 @@ static PyObject *PyEnumObjects(PyObject *self, PyObject *args)
 
 	Py_BEGIN_ALLOW_THREADS
 	pdhStatus = (*pPdhEnumObjects) (
-        DataSource,                   // perf log file
-        Machine,                   // local machine
-        szObjectListBuffer,    // pass in NULL buffers
-        &dwObjectListSize,     // an 0 length to get
-        detailLevel,     // counter detail level
-        refresh); 
+		DataSource,                   // perf log file
+		Machine,                   // local machine
+		szObjectListBuffer,    // pass in NULL buffers
+		&dwObjectListSize,     // an 0 length to get
+		detailLevel,     // counter detail level
+		refresh);
 	Py_END_ALLOW_THREADS
 
 	// it appears NT/2k will return 0, while XP will return
@@ -386,7 +386,7 @@ static PyObject *PyEnumObjects(PyObject *self, PyObject *args)
 	if (pdhStatus != ERROR_SUCCESS && pdhStatus != PDH_MORE_DATA)
 		return PyWin_SetAPIError("EnumObjects for buffer size", pdhStatus);
 
-    // Allocate the buffers and try the call again.
+	// Allocate the buffers and try the call again.
 	if (dwObjectListSize) {
 		szObjectListBuffer = (LPTSTR)malloc (dwObjectListSize * sizeof (TCHAR));
 		if (szObjectListBuffer==NULL) {
@@ -397,12 +397,12 @@ static PyObject *PyEnumObjects(PyObject *self, PyObject *args)
 
 	Py_BEGIN_ALLOW_THREADS
 	pdhStatus = (*pPdhEnumObjects) (
-	        DataSource,                   // Perf log file
-	        Machine,                   // local machine
-	        szObjectListBuffer,    // pass in NULL buffers
-	        &dwObjectListSize,     // an 0 length to get
-	        detailLevel,     // counter detail level
-	        0); 
+			DataSource,                   // Perf log file
+			Machine,                   // local machine
+			szObjectListBuffer,    // pass in NULL buffers
+			&dwObjectListSize,     // an 0 length to get
+			detailLevel,     // counter detail level
+			0);
 	Py_END_ALLOW_THREADS
 
 	if (pdhStatus != ERROR_SUCCESS)
@@ -425,10 +425,10 @@ static PyObject *PyAddCounter(PyObject *self, PyObject *args)
 	DWORD_PTR userData = 0;
 	CHECK_PDH_PTR(pPdhAddCounter);
 	PDH_STATUS pdhStatus;
-	if (!PyArg_ParseTuple(args, "OO|O:AddCounter", 
-	          &obhQuery, // @pyparm int|hQuery||Handle to an open query.
-	          &obPath, // @pyparm string|path||Full path to the performance data
-	          &obuserData)) // @pyparm int|userData|0|User data associated with the counter.
+	if (!PyArg_ParseTuple(args, "OO|O:AddCounter",
+			  &obhQuery, // @pyparm int|hQuery||Handle to an open query.
+			  &obPath, // @pyparm string|path||Full path to the performance data
+			  &obuserData)) // @pyparm int|userData|0|User data associated with the counter.
 		return NULL;
 	if (!PyWinObject_AsHANDLE(obhQuery, &hQuery))
 		return NULL;
@@ -442,14 +442,14 @@ static PyObject *PyAddCounter(PyObject *self, PyObject *args)
 
 	Py_BEGIN_ALLOW_THREADS
 	pdhStatus = (*pPdhAddCounter) (
-        hQuery,
-        szPath,
-	    userData,
-	    &hCounter);
+		hQuery,
+		szPath,
+		userData,
+		&hCounter);
 
 	Py_END_ALLOW_THREADS;
 	PyWinObject_FreeTCHAR(szPath);
-	if (pdhStatus != ERROR_SUCCESS) 
+	if (pdhStatus != ERROR_SUCCESS)
 		return PyWin_SetAPIError("AddCounter", pdhStatus);
 	// @comm See also <om win32pdh.RemoveCounter>
 	return PyWinLong_FromHANDLE(hCounter);
@@ -467,10 +467,10 @@ static PyObject *PyAddEnglishCounter(PyObject *self, PyObject *args)
 	DWORD_PTR userData = 0;
 	CHECK_PDH_PTR(pPdhAddEnglishCounter);
 	PDH_STATUS pdhStatus;
-	if (!PyArg_ParseTuple(args, "OO|O:AddEnglishCounter", 
-	          &obhQuery, // @pyparm int|hQuery||Handle to an open query.
-	          &obPath, // @pyparm string|path||Full counter path with standard English names.
-	          &obuserData)) // @pyparm int|userData|0|User data associated with the counter.
+	if (!PyArg_ParseTuple(args, "OO|O:AddEnglishCounter",
+			  &obhQuery, // @pyparm int|hQuery||Handle to an open query.
+			  &obPath, // @pyparm string|path||Full counter path with standard English names.
+			  &obuserData)) // @pyparm int|userData|0|User data associated with the counter.
 		return NULL;
 	if (!PyWinObject_AsHANDLE(obhQuery, &hQuery))
 		return NULL;
@@ -484,14 +484,14 @@ static PyObject *PyAddEnglishCounter(PyObject *self, PyObject *args)
 
 	Py_BEGIN_ALLOW_THREADS
 	pdhStatus = (*pPdhAddEnglishCounter) (
-        hQuery,
-        szPath,
-	    userData,
-	    &hCounter);
+		hQuery,
+		szPath,
+		userData,
+		&hCounter);
 
 	Py_END_ALLOW_THREADS;
 	PyWinObject_FreeTCHAR(szPath);
-	if (pdhStatus != ERROR_SUCCESS) 
+	if (pdhStatus != ERROR_SUCCESS)
 		return PyWin_SetAPIError("AddEnglishCounter", pdhStatus);
 	// @comm See also <om win32pdh.RemoveCounter>
 	return PyWinLong_FromHANDLE(hCounter);
@@ -503,8 +503,8 @@ static PyObject *PyRemoveCounter(PyObject *self, PyObject *args)
 	HQUERY handle;
 	PyObject *obhandle;
 	PDH_STATUS pdhStatus;
-	if (!PyArg_ParseTuple(args, "O:RemoveCounter", 
-	          &obhandle)) // @pyparm int|handle||Handle to an open counter.
+	if (!PyArg_ParseTuple(args, "O:RemoveCounter",
+			  &obhandle)) // @pyparm int|handle||Handle to an open counter.
 		return NULL;
 	if (!PyWinObject_AsHANDLE(obhandle, &handle))
 		return NULL;
@@ -514,7 +514,7 @@ static PyObject *PyRemoveCounter(PyObject *self, PyObject *args)
 	pdhStatus = (*pPdhRemoveCounter) (handle);
 	Py_END_ALLOW_THREADS
 
-    if (pdhStatus != ERROR_SUCCESS) 
+	if (pdhStatus != ERROR_SUCCESS)
 		return PyWin_SetAPIError("RemoveCounter", pdhStatus);
 	Py_INCREF(Py_None);
 	return Py_None;
@@ -527,9 +527,9 @@ static PyObject *PyOpenQuery(PyObject *self, PyObject *args)
 	DWORD_PTR userData = 0;
 	TCHAR *DataSource = NULL;
 	PyObject *obDataSource = Py_None, *obuserData = Py_None;
-	if (!PyArg_ParseTuple(args, "|OO:OpenQuery", 
-	          &obDataSource, // @pyparm str|DataSource|None|Name of a performaance log file, or None for live data
-	          &obuserData)) // @pyparm int|userData|0|User data associated with the query.
+	if (!PyArg_ParseTuple(args, "|OO:OpenQuery",
+			  &obDataSource, // @pyparm str|DataSource|None|Name of a performaance log file, or None for live data
+			  &obuserData)) // @pyparm int|userData|0|User data associated with the query.
 		return NULL;
 
 	HQUERY hQuery;
@@ -543,13 +543,13 @@ static PyObject *PyOpenQuery(PyObject *self, PyObject *args)
 
 	Py_BEGIN_ALLOW_THREADS
 	pdhStatus = (*pPdhOpenQuery) (
-        DataSource,
-	    userData,
-	    &hQuery);
+		DataSource,
+		userData,
+		&hQuery);
 	Py_END_ALLOW_THREADS
 
 	PyWinObject_FreeTCHAR(DataSource);
-    if (pdhStatus != ERROR_SUCCESS) 
+	if (pdhStatus != ERROR_SUCCESS)
 		return PyWin_SetAPIError("OpenQuery", pdhStatus);
 	return PyWinLong_FromHANDLE(hQuery);
 	// @comm See also <om win32pdh.CloseQuery>
@@ -561,7 +561,7 @@ static PyObject *PyCloseQuery(PyObject *self, PyObject *args)
 	HQUERY handle;
 	PyObject *obhandle;
 	PDH_STATUS pdhStatus;
-	if (!PyArg_ParseTuple(args, "O:CloseQuery", 
+	if (!PyArg_ParseTuple(args, "O:CloseQuery",
 			&obhandle)) // @pyparm int|handle||Handle to an open query.
 		return NULL;
 	if (!PyWinObject_AsHANDLE(obhandle, &handle))
@@ -572,7 +572,7 @@ static PyObject *PyCloseQuery(PyObject *self, PyObject *args)
 	pdhStatus = (*pPdhCloseQuery) (handle);
 	Py_END_ALLOW_THREADS
 
-	if (pdhStatus != ERROR_SUCCESS) 
+	if (pdhStatus != ERROR_SUCCESS)
 		return PyWin_SetAPIError("CloseQuery", pdhStatus);
 	Py_INCREF(Py_None);
 	return Py_None;
@@ -593,7 +593,7 @@ static PyObject *PyMakeCounterPath(PyObject *self, PyObject *args)
 
 	// @pyparm (machineName, objectName, instanceName, parentInstance, instanceIndex, counterName)|elements||The elements to use to create the path.
 	// @pyparm int|flags|0|PDH_PATH_WBEM_RESULT, PDH_PATH_WBEM_INPUT, or 0
-	if (!PyArg_ParseTuple(args, "(OOOOkO)|l:MakeCounterPath", 
+	if (!PyArg_ParseTuple(args, "(OOOOkO)|l:MakeCounterPath",
 			&obMachineName,
 			&obObjectName,
 			&obInstanceName,
@@ -623,10 +623,10 @@ static PyObject *PyMakeCounterPath(PyObject *self, PyObject *args)
 	Py_BEGIN_ALLOW_THREADS
 	pdhStatus = (*pPdhMakeCounterPath) (&cpe, szResult, &bufSize, flags);
 	Py_END_ALLOW_THREADS
-    if (pdhStatus != ERROR_SUCCESS)
-    	PyWin_SetAPIError("PdhMakeCounterPath", pdhStatus);
-    else
-    	ret = PyWinObject_FromTCHAR(szResult);
+	if (pdhStatus != ERROR_SUCCESS)
+		PyWin_SetAPIError("PdhMakeCounterPath", pdhStatus);
+	else
+		ret = PyWinObject_FromTCHAR(szResult);
 
 done:
 	if (szResult)
@@ -636,7 +636,7 @@ done:
 	PyWinObject_FreeTCHAR(cpe.szInstanceName);
 	PyWinObject_FreeTCHAR(cpe.szParentInstance);
 	PyWinObject_FreeTCHAR(cpe.szCounterName);
-    return ret;
+	return ret;
 }
 
 // @pymethod |win32pdh|GetCounterInfo|Retrieves information about a counter, such as data size, counter type, path, and user-supplied data values.
@@ -644,8 +644,8 @@ static PyObject *PyGetCounterInfo(PyObject *self, PyObject *args)
 {
 	HCOUNTER handle;
 	PyObject *obhandle;
-	BOOL bExplainText = TRUE;	
-	if (!PyArg_ParseTuple(args, "O|i:GetCounterInfo", 
+	BOOL bExplainText = TRUE;
+	if (!PyArg_ParseTuple(args, "O|i:GetCounterInfo",
 			&obhandle, // @pyparm int|handle||The handle of the item to query
 			&bExplainText)) // @pyparm int|bRetrieveExplainText||Should explain text be retrieved?
 		return NULL;
@@ -659,9 +659,9 @@ static PyObject *PyGetCounterInfo(PyObject *self, PyObject *args)
 	pdhStatus = (*pPdhGetCounterInfo) (handle, bExplainText, &bufSize, NULL);
 	Py_END_ALLOW_THREADS
 	// as usual, pre-xp returns ERROR_SUCCESS, xp returns PDH_MORE_DATA
-	if (pdhStatus != ERROR_SUCCESS && pdhStatus != PDH_MORE_DATA) 
+	if (pdhStatus != ERROR_SUCCESS && pdhStatus != PDH_MORE_DATA)
 		return PyWin_SetAPIError("GetCounterInfo for size", pdhStatus);
-		
+
 	PPDH_COUNTER_INFO pInfo = (PPDH_COUNTER_INFO)malloc(bufSize);
 	if (pInfo==NULL) {
 		PyErr_SetString(PyExc_MemoryError, "Allocating result buffer");
@@ -678,7 +678,7 @@ static PyObject *PyGetCounterInfo(PyObject *self, PyObject *args)
 	else {
 		if (!CheckCounterStatusOK(pInfo->CStatus))
 			rc = NULL;
-		else 
+		else
 			rc = Py_BuildValue("iiiiNNN(NNNNiN)N",
 				pInfo->dwType,
 				pInfo->CVersion,
@@ -688,18 +688,18 @@ static PyObject *PyGetCounterInfo(PyObject *self, PyObject *args)
 				PyWinObject_FromDWORD_PTR(pInfo->dwUserData),
 				PyWinObject_FromDWORD_PTR(pInfo->dwQueryUserData),
 				PyWinObject_FromTCHAR(pInfo->szFullPath),
-						  
+
 				PyWinObject_FromTCHAR(pInfo->szMachineName),
 				PyWinObject_FromTCHAR(pInfo->szObjectName),
 				PyWinObject_FromTCHAR(pInfo->szInstanceName),
 				PyWinObject_FromTCHAR(pInfo->szParentInstance),
 				pInfo->dwInstanceIndex,
 				PyWinObject_FromTCHAR(pInfo->szCounterName),
-			
+
 				PyWinObject_FromTCHAR(pInfo->szExplainText));
-    }
-    free(pInfo);
-    return rc;
+	}
+	free(pInfo);
+	return rc;
 }
 
 
@@ -709,7 +709,7 @@ static PyObject *PyGetFormattedCounterValue(PyObject *self, PyObject *args)
 	HCOUNTER handle;
 	PyObject *obhandle;
 	DWORD format;
-	if (!PyArg_ParseTuple(args, "Oi:GetFormattedCounterValue", 
+	if (!PyArg_ParseTuple(args, "Oi:GetFormattedCounterValue",
 			&obhandle, // @pyparm int|handle||Handle to the counter
 			&format)) // @pyparm int|format||Format of result.  Can be PDH_FMT_DOUBLE, PDH_FMT_LARGE, PDH_FMT_LONG and or'd with PDH_FMT_NOSCALE, PDH_FMT_1000
 
@@ -723,7 +723,7 @@ static PyObject *PyGetFormattedCounterValue(PyObject *self, PyObject *args)
 	Py_BEGIN_ALLOW_THREADS
 	pdhStatus = (*pPdhGetFormattedCounterValue) (handle, format, &type, &result);
 	Py_END_ALLOW_THREADS
-    if (pdhStatus != ERROR_SUCCESS) 
+	if (pdhStatus != ERROR_SUCCESS)
 		return PyWin_SetAPIError("GetFormattedCounterValue", pdhStatus);
 	if (!CheckCounterStatusOK(result.CStatus))
 		return NULL;
@@ -749,8 +749,8 @@ static PyObject *PyCollectQueryData(PyObject *self, PyObject *args)
 {
 	HQUERY hQuery;
 	PyObject *obhQuery;
-	if (!PyArg_ParseTuple(args, "O:CollectQueryData", 
-	          &obhQuery)) // @pyparm int|hQuery||Handle to an open query.
+	if (!PyArg_ParseTuple(args, "O:CollectQueryData",
+			  &obhQuery)) // @pyparm int|hQuery||Handle to an open query.
 		return NULL;
 	if (!PyWinObject_AsHANDLE(obhQuery, &hQuery))
 		return NULL;
@@ -760,7 +760,7 @@ static PyObject *PyCollectQueryData(PyObject *self, PyObject *args)
 	pdhStatus = (*pPdhCollectQueryData) (hQuery);
 	Py_END_ALLOW_THREADS
 
-    if (pdhStatus != ERROR_SUCCESS) 
+	if (pdhStatus != ERROR_SUCCESS)
 		return PyWin_SetAPIError("CollectQueryData", pdhStatus);
 	Py_INCREF(Py_None);
 	return Py_None;
@@ -770,8 +770,8 @@ static PyObject *PyCollectQueryData(PyObject *self, PyObject *args)
 static PyObject *PyValidatePath(PyObject *self, PyObject *args)
 {
 	PyObject *obPath;
-	if (!PyArg_ParseTuple(args, "O:ValidatePath", 
-	          &obPath)) // @pyparm string|path||The counter path to validate.
+	if (!PyArg_ParseTuple(args, "O:ValidatePath",
+			  &obPath)) // @pyparm string|path||The counter path to validate.
 		return NULL;
 
 	CHECK_PDH_PTR(pPdhValidatePath);
@@ -780,7 +780,7 @@ static PyObject *PyValidatePath(PyObject *self, PyObject *args)
 	if (!PyWinObject_AsTCHAR(obPath, &path, FALSE))
 		return NULL;
 
-    PDH_STATUS pdhStatus = (*pPdhValidatePath) (path);
+	PDH_STATUS pdhStatus = (*pPdhValidatePath) (path);
 
 	PyWinObject_FreeTCHAR(path);
 
@@ -802,8 +802,8 @@ static PyObject *PyExpandCounterPath(PyObject *self, PyObject *args)
 	}
 	*/
 	PyObject *obPath;
-	if (!PyArg_ParseTuple(args, "O:ExpandCounterPath", 
-	          &obPath)) // @pyparm string|wildCardPath||The counter path to expand.
+	if (!PyArg_ParseTuple(args, "O:ExpandCounterPath",
+			  &obPath)) // @pyparm string|wildCardPath||The counter path to expand.
 		return NULL;
 
 	TmpTCHAR path;
@@ -817,7 +817,7 @@ static PyObject *PyExpandCounterPath(PyObject *self, PyObject *args)
 	Py_BEGIN_ALLOW_THREADS
 	pdhStatus = (*pPdhExpandCounterPath) (path, NULL, &dwSize);
 	Py_END_ALLOW_THREADS
-	
+
 	if (dwSize == 0)
 		return PyWin_SetAPIError("ExpandCounterPath for size", pdhStatus);
 	dwSize++;
@@ -831,7 +831,7 @@ static PyObject *PyExpandCounterPath(PyObject *self, PyObject *args)
 	pdhStatus = (*pPdhExpandCounterPath) (path, buf, &dwSize);
 	Py_END_ALLOW_THREADS
 	PyObject *rc;
-	if (pdhStatus != ERROR_SUCCESS) 
+	if (pdhStatus != ERROR_SUCCESS)
 		rc = PyWin_SetAPIError("ExpandCounterPath for data", pdhStatus);
 	else
 		rc = PyWinObject_FromMultipleString(buf);
@@ -849,8 +849,8 @@ static PyObject *PyParseCounterPath(PyObject *self, PyObject *args)
 {
 	PyObject *obPath;
 	int flags = 0;
-	if (!PyArg_ParseTuple(args, "O|i:ParseCounterPath", 
-	          &obPath,   // @pyparm string|path||The counter path to parse.
+	if (!PyArg_ParseTuple(args, "O|i:ParseCounterPath",
+			  &obPath,   // @pyparm string|path||The counter path to parse.
 			  &flags)) // @pyparm int|flags|0|Reserved - must be zero.
 		return NULL;
 	TmpTCHAR path;
@@ -864,7 +864,7 @@ static PyObject *PyParseCounterPath(PyObject *self, PyObject *args)
 	Py_BEGIN_ALLOW_THREADS
 	pdhStatus = (*pPdhParseCounterPath) (path, NULL, &size, flags);
 	Py_END_ALLOW_THREADS
-    if (size==0)
+	if (size==0)
 		return PyWin_SetAPIError("ParseCounterPath for size", pdhStatus);
 	void *pBuf = malloc(size);
 	if (pBuf==NULL) {
@@ -881,7 +881,7 @@ static PyObject *PyParseCounterPath(PyObject *self, PyObject *args)
 	if (pdhStatus != 0) {
 		rc = PyWin_SetAPIError("ParseCounterPath", pdhStatus);
 	} else {
-		rc = Py_BuildValue("NNNNkN", 
+		rc = Py_BuildValue("NNNNkN",
 			PyWinObject_FromTCHAR(pCPE->szMachineName),
 			PyWinObject_FromTCHAR(pCPE->szObjectName),
 			PyWinObject_FromTCHAR(pCPE->szInstanceName),
@@ -898,8 +898,8 @@ static PyObject *PyParseInstanceName(PyObject *self, PyObject *args)
 {
 	PyObject *obiname;
 	PDH_STATUS pdhStatus;
-	if (!PyArg_ParseTuple(args, "O:ParseInstanceName", 
-	          &obiname))// @pyparm string|instanceName||The instance name to parse.
+	if (!PyArg_ParseTuple(args, "O:ParseInstanceName",
+			  &obiname))// @pyparm string|instanceName||The instance name to parse.
 		return NULL;
 	TCHAR *iname;
 	if (!PyWinObject_AsTCHAR(obiname, &iname, FALSE))
@@ -910,7 +910,7 @@ static PyObject *PyParseInstanceName(PyObject *self, PyObject *args)
 	DWORD nameSize = _MAX_PATH, parentSize = _MAX_PATH;
 	DWORD dwInstance;
 	Py_BEGIN_ALLOW_THREADS
-    pdhStatus = (*pPdhParseInstanceName) (iname, szName, &nameSize, szParent, &parentSize, &dwInstance);
+	pdhStatus = (*pPdhParseInstanceName) (iname, szName, &nameSize, szParent, &parentSize, &dwInstance);
 	Py_END_ALLOW_THREADS
 	PyWinObject_FreeTCHAR(iname);
 	if (pdhStatus != 0)
@@ -928,15 +928,15 @@ static PyObject *PySetCounterScaleFactor(PyObject *self, PyObject *args)
 	PDH_STATUS pdhStatus;
 	PyObject *obhCounter;
 	LONG lFactor;
-	if (!PyArg_ParseTuple(args, "Ol:SetCounterScaleFactor", 
-	          &obhCounter, // @pyparm int|hCounter||Handle to the counter.
+	if (!PyArg_ParseTuple(args, "Ol:SetCounterScaleFactor",
+			  &obhCounter, // @pyparm int|hCounter||Handle to the counter.
 			  &lFactor)) // @pyparm int|factor||power of ten used to multiply value.
 		return NULL;
 	if (!PyWinObject_AsHANDLE(obhCounter, &hCounter))
 		return NULL;
 	CHECK_PDH_PTR(pPdhSetCounterScaleFactor);
 	Py_BEGIN_ALLOW_THREADS
-    pdhStatus = (*pPdhSetCounterScaleFactor) (hCounter, lFactor);
+	pdhStatus = (*pPdhSetCounterScaleFactor) (hCounter, lFactor);
 	Py_END_ALLOW_THREADS
 	if (pdhStatus != 0)
 		return PyWin_SetAPIError("SetCounterScaleFactor", pdhStatus);
@@ -979,12 +979,12 @@ PDH_STATUS __stdcall PyCounterPathCallback(DWORD_PTR dwArg)
 	PyObject *args=NULL, *result=NULL;
 	DWORD rc;
 	if (pMy->callbackarg)
-		args = Py_BuildValue("(NO)", 
+		args = Py_BuildValue("(NO)",
 			pMy->bReturnMultiple ? PyWinObject_FromMultipleString(pMy->cfg.szReturnPathBuffer)
 								 : PyWinObject_FromTCHAR(pMy->cfg.szReturnPathBuffer),
 			pMy->callbackarg);
 	else
-		args = Py_BuildValue("(N)", 
+		args = Py_BuildValue("(N)",
 			pMy->bReturnMultiple ? PyWinObject_FromMultipleString(pMy->cfg.szReturnPathBuffer)
 								 : PyWinObject_FromTCHAR(pMy->cfg.szReturnPathBuffer));
 	if (args == NULL){
@@ -1033,16 +1033,16 @@ static PyObject *PyBrowseCounters(PyObject *self, PyObject *args, PyObject *kwar
 	PDH_STATUS pdhStatus;
 	static char *keywords[] = {"Flags", "hWndOwner", "CallBack", "DefaultDetailLevel", "DialogBoxCaption",
 		"InitialPath", "DataSource", "ReturnMultiple", "CallBackArg", NULL};
-  
+
 	// Note - this has set caption and others to default of zero.
 	memset(&myCfg, 0, sizeof(myCfg));
-	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OOOk|OOOlO:BrowseCounters", keywords, 
-	          &obFlags, // @pyparm (boolean, ...)|Flags||Sequence of boolean flags, or None. All default to False.
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OOOk|OOOlO:BrowseCounters", keywords,
+			  &obFlags, // @pyparm (boolean, ...)|Flags||Sequence of boolean flags, or None. All default to False.
 						// (bIncludeInstanceIndex, bSingleCounterPerAdd, bSingleCounterPerDialog, bLocalCountersOnly, bWildCardInstances,
 						// bHideDetailBox, bInitializePath, bDisableMachineSelection, bIncludeCostlyObjects, bShowObjectBrowser)
 			  &obhwnd, // @pyparm <o PyHANDLE>|hWndOwner||Parent for the dialog.
 			  &myCfg.func, // @pyparm object|CallBack||A callable object to function as the callback.
-			  &myCfg.cfg.dwDefaultDetailLevel, // @pyparm int|DefaultDetailLevel||The default detail level to show on startup in the Detail Level combo box. If the Detail Level combo box is not shown, this is the detail level to use in filtering the displayed performance counters and objects. 
+			  &myCfg.cfg.dwDefaultDetailLevel, // @pyparm int|DefaultDetailLevel||The default detail level to show on startup in the Detail Level combo box. If the Detail Level combo box is not shown, this is the detail level to use in filtering the displayed performance counters and objects.
 			  &obDialogBoxCaption, // @pyparm string|DialogBoxCaption|None|The dialog caption, or None for default.
 			  &obInitialPath,	// @pyparm str|InitialPath|None|Counter to be selected initially, or None for default
 			  &obDataSource,	// @pyparm str|DataSource|None|Name of a performance log file, or None for live counters
@@ -1097,7 +1097,7 @@ static PyObject *PyBrowseCounters(PyObject *self, PyObject *args, PyObject *kwar
 		goto cleanup;
 	if (!PyWinObject_AsTCHAR(obDataSource, &myCfg.cfg.szDataSource, TRUE))
 		goto cleanup;
-	
+
 	Py_BEGIN_ALLOW_THREADS
 	pdhStatus = (*pPdhBrowseCounters) (&myCfg.cfg);
 	Py_END_ALLOW_THREADS
@@ -1123,8 +1123,8 @@ static PyObject *PyConnectMachine(PyObject *self, PyObject *args)
 {
 	PyObject *obPath;
 	PDH_STATUS pdhStatus;
-	if (!PyArg_ParseTuple(args, "O:ConnectMachine", 
-	          &obPath))   // @pyparm string|machineName||The machine name.
+	if (!PyArg_ParseTuple(args, "O:ConnectMachine",
+			  &obPath))   // @pyparm string|machineName||The machine name.
 		return NULL;
 	TCHAR *path;
 	if (!PyWinObject_AsTCHAR(obPath, &path, TRUE))
@@ -1151,9 +1151,9 @@ static PyObject *PyLookupPerfIndexByName(PyObject *self, PyObject *args)
 {
 	PyObject *obiname, *obmname;
 	PDH_STATUS pdhStatus;
-	if (!PyArg_ParseTuple(args, "OO:LookupPerfIndexByName", 
-	          &obmname,// @pyparm string|machineName||The name of the machine where the specified counter is located. The machine name can be specified by the DNS name or the IP address. 
-	          &obiname))// @pyparm string|instanceName||The full name of the counter.
+	if (!PyArg_ParseTuple(args, "OO:LookupPerfIndexByName",
+			  &obmname,// @pyparm string|machineName||The name of the machine where the specified counter is located. The machine name can be specified by the DNS name or the IP address.
+			  &obiname))// @pyparm string|instanceName||The full name of the counter.
 		return NULL;
 	TmpTCHAR mname, iname;
 	if (!PyWinObject_AsTCHAR(obmname, &mname, TRUE))
@@ -1178,9 +1178,9 @@ static PyObject *PyLookupPerfNameByIndex(PyObject *self, PyObject *args)
 	CHECK_PDH_PTR(pPdhLookupPerfNameByIndex);
 	PyObject *obmname;
 	DWORD index;
-	if (!PyArg_ParseTuple(args, "Ok:LookupPerfIndexByName", 
-	          &obmname,// @pyparm string|machineName||The name of the machine where the specified counter is located. The machine name can be specified by the DNS name or the IP address. 
-	          &index))// @pyparm int|index||The index of the performance object.
+	if (!PyArg_ParseTuple(args, "Ok:LookupPerfIndexByName",
+			  &obmname,// @pyparm string|machineName||The name of the machine where the specified counter is located. The machine name can be specified by the DNS name or the IP address.
+			  &index))// @pyparm int|index||The index of the performance object.
 		return NULL;
 	TmpTCHAR mname;
 	if (!PyWinObject_AsTCHAR(obmname, &mname, TRUE))
@@ -1192,7 +1192,7 @@ static PyObject *PyLookupPerfNameByIndex(PyObject *self, PyObject *args)
 		If you pass it a NULL buffer on XP, it returns PDH_INVALID_ARGUMENT, so need to always
 		preallocate some buffer space.  To account for different platforms, check for either
 		PDH_MORE_DATA or PDH_INSUFFICIENT_BUFFER, and just keep doubling the allocation if
-		required buffer size is not returned. 
+		required buffer size is not returned.
 	*/
 	TCHAR *buffer = NULL;
 	DWORD buf_size = 128, init_buf_size;
@@ -1232,7 +1232,7 @@ static struct PyMethodDef win32pdh_functions[] = {
 	{"AddEnglishCounter",        PyAddEnglishCounter,    1}, // @pymeth AddEnglishCounter|Adds a counter to a query by its English name
 	{"RemoveCounter",            PyRemoveCounter,        1}, // @pymeth RemoveCounter|Removes an open counter.
 	{"EnumObjectItems",          PyEnumObjectItems,      1}, // @pymeth EnumObjectItems|Enumerates an object's items
- 	{"EnumObjects",		         PyEnumObjects,          1}, // @pymeth EnumObjects|Enumerates objects
+	{"EnumObjects",		         PyEnumObjects,          1}, // @pymeth EnumObjects|Enumerates objects
 	{"OpenQuery",                PyOpenQuery,            1}, // @pymeth OpenQuery|Opens a new query
 	{"CloseQuery",               PyCloseQuery,           1}, // @pymeth CloseQuery|Closes an open query.
 	{"MakeCounterPath",          PyMakeCounterPath,      1}, // @pymeth MakeCounterPath|Makes a fully resolved counter path
@@ -1244,7 +1244,7 @@ static struct PyMethodDef win32pdh_functions[] = {
 	{"ParseCounterPath",         PyParseCounterPath,      1}, // @pymeth ParseCounterPath|Parses the elements of the counter path.
 	{"ParseInstanceName",        PyParseInstanceName,     1}, // @pymeth ParseInstanceName|Parses the elements of the instance name
 	{"SetCounterScaleFactor",	 PySetCounterScaleFactor, 1}, // @pymeth SetCounterScaleFactor|Sets the scale factor that is applied to the calculated value of the specified counter when you request the formatted counter value.
-	{"BrowseCounters",           (PyCFunction)PyBrowseCounters, METH_VARARGS|METH_KEYWORDS}, // @pymeth BrowseCounters|Displays the counter browsing dialog box so that the user can select the counters to be returned to the caller. 
+	{"BrowseCounters",           (PyCFunction)PyBrowseCounters, METH_VARARGS|METH_KEYWORDS}, // @pymeth BrowseCounters|Displays the counter browsing dialog box so that the user can select the counters to be returned to the caller.
 	{"ConnectMachine",           PyConnectMachine,        1}, // @pymeth ConnectMachine|connects to the specified machine, and creates and initializes a machine entry in the PDH DLL.
 	{"LookupPerfIndexByName",    PyLookupPerfIndexByName, 1}, // @pymeth LookupPerfIndexByName|Returns the counter index corresponding to the specified counter name.
 	{"LookupPerfNameByIndex",    PyLookupPerfNameByIndex, 1}, // @pymeth LookupPerfNameByIndex|Returns the performance object name corresponding to the specified index.
@@ -1257,16 +1257,16 @@ static struct PyMethodDef win32pdh_functions[] = {
 PYWIN_MODULE_INIT_FUNC(win32pdh)
 {
 	PYWIN_MODULE_INIT_PREPARE(win32pdh, win32pdh_functions,
-	                          "A module, encapsulating the Windows Performance Data Helpers API");
+							  "A module, encapsulating the Windows Performance Data Helpers API");
 	// InitializeCriticalSection(&critSec);
 
 	PyDict_SetItemString(dict, "error", PyWinExc_ApiError);
 	win32pdh_counter_error = PyErr_NewException("win32pdh.counter_status_error", NULL, NULL);
 	PyDict_SetItemString(dict, "counter_status_error", win32pdh_counter_error);
 	LoadPointers(); // Setting an error in this function will cause Python to spew.
-  
+
 	ADD_CONSTANT(PDH_VERSION);
- 
+
 	ADD_CONSTANT(PDH_FMT_RAW);
 	ADD_CONSTANT(PDH_FMT_ANSI);
 	ADD_CONSTANT(PDH_FMT_UNICODE);
@@ -1276,10 +1276,10 @@ PYWIN_MODULE_INIT_FUNC(win32pdh)
 	ADD_CONSTANT(PDH_FMT_NOSCALE);
 	ADD_CONSTANT(PDH_FMT_1000);
 	ADD_CONSTANT(PDH_FMT_NODATA);
-	
+
 	ADD_CONSTANT(PDH_MAX_SCALE);
 	ADD_CONSTANT(PDH_MIN_SCALE);
-	
+
 	ADD_CONSTANT(PERF_DETAIL_NOVICE);
 	ADD_CONSTANT(PERF_DETAIL_ADVANCED);
 	ADD_CONSTANT(PERF_DETAIL_EXPERT);
