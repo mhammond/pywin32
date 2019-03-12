@@ -1,6 +1,6 @@
 #!/usr/bin/python2
 # Configure this in order to run the testcases.
-"setuptestframework.py v 2.5.0.c9"
+"setuptestframework.py v 2.6.0.8"
 
 import os
 import sys
@@ -101,7 +101,7 @@ def makemdb(testfolder, mdb_name):
             newdb.Close()
         else:
             print('    ...copying test ACCESS db to '+_accessdatasource)
-            mdbName = os.path.normpath(os.getcwd() + '/../examples/test.mdb')
+            mdbName = os.path.normpath(os.path.dirname(__file__) + '/../examples/test.mdb')
             import shutil
             shutil.copy(mdbName, _accessdatasource)
 

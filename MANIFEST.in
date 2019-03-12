@@ -133,6 +133,7 @@ include isapi/src/*.h
 
 # adodbapi
 include adodbapi/*.py
+exclude adodbapi/setup.py
 include adodbapi/*.txt
 include adodbapi/tests/*.py
 include adodbapi/tests/*.bat

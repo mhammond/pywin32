@@ -21,14 +21,14 @@ Features:
 * Supports user-definable system-to-Python data conversion functions (selected by ADO data type, or by column)
 
 Prerequisites:
-* C Python 2.5 or higher
+* C Python 2.7 or 3.5 or higher
  and pywin32 (Mark Hammond's python for windows extensions.)
 or
- Iron Python 2.6 or higher.  (works in IPy2.0 for all data types except BUFFER)
+ Iron Python 2.7 or higher.  (works in IPy2.0 for all data types except BUFFER)
 
 Installation:
 * (C-Python on Windows): Download pywin32 from http://sf.net/projects/pywin32 and install from .msi (adodbapi is included)
-* ((to use Windows as a server, also download and install Pyro4 (requires Python 2.6 or later))) https://pypi.python.org/pypi/Pyro4
+* ((to use Windows as a server, also download and install Pyro4 )) https://pypi.python.org/pypi/Pyro4
 * (IronPython on Windows): Download adodbapi from http://sf.net/projects/adodbapi.  Unpack the zip.
      Open a command window as an administrator. CD to the folder containing the unzipped files.
      Run "setup.py install" using the IronPython of your choice.

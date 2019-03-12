@@ -2,7 +2,6 @@
 
 Copyright (C) 2002 Henrik Ekelund, versions 2.1 and later by Vernon Cole
 * http://sourceforge.net/projects/pywin32
-* https://github.com/mhammond/pywin32
 * http://sourceforge.net/projects/adodbapi
 
     This library is free software; you can redistribute it and/or
@@ -27,17 +26,18 @@ This module source should run correctly in CPython versions 2.5 and later,
 or IronPython version 2.6 and later,
 or, after running through 2to3.py, CPython 3.0 or later.
 """
-__version__ = '2.6.0.6'
+__version__ = '2.6.1.4'
 version = 'adodbapi v' + __version__
 
 import sys
 import copy
 import decimal
 import os
+import weakref
 
-from . import process_connect_string
-from . import ado_consts as adc
-from . import apibase as api
+import process_connect_string
+import ado_consts as adc
+import apibase as api
 
 try:
     verbose = int(os.environ['ADODBAPI_VERBOSE'])
@@ -215,12 +215,6 @@ def _configure_parameter(p, value, adotype, settings_known):
         p.Value = value
 
 
-def counter():
-    i = 0
-    while True:
-        yield i
-        i += 1
-
 # # # # # ----- the Class that defines a connection ----- # # # # # 
 class Connection(object):
     # include connection attributes as class attributes required by api definition.
@@ -248,8 +242,7 @@ class Connection(object):
         self.paramstyle = api.paramstyle
         self.supportsTransactions = False
         self.connection_string = ''
-        self.cursors = {}
-        self.cursor_counter = counter()
+        self.cursors = weakref.WeakValueDictionary()
         self.dbms_name = ''
         self.dbms_version = ''
         self.errorhandler = None # use the standard error handler for this instance
@@ -276,10 +269,16 @@ class Connection(object):
         except api.Error:
             self._raiseConnectionError(api.DatabaseError, 'ADO error trying to Open=%s' % self.connection_string)
 
-        if getIndexedValue(self.connector.Properties,'Transaction DDL').Value != 0:
-            self.supportsTransactions=True
+        try:                                                        # Stefan Fuchs; support WINCCOLEDBProvider
+            if getIndexedValue(self.connector.Properties,'Transaction DDL').Value != 0:
+                self.supportsTransactions=True
+        except pywintypes.com_error:
+            pass                                                    # Stefan Fuchs
         self.dbms_name = getIndexedValue(self.connector.Properties,'DBMS Name').Value
-        self.dbms_version = getIndexedValue(self.connector.Properties,'DBMS Version').Value
+        try:                                                        # Stefan Fuchs
+            self.dbms_version = getIndexedValue(self.connector.Properties,'DBMS Version').Value
+        except pywintypes.com_error:
+            pass                                                    # Stefan Fuchs
         self.connector.CursorLocation = defaultCursorLocation #v2.1 Rose
         if self.supportsTransactions:
             self.connector.IsolationLevel=defaultIsolationLevel
@@ -321,8 +320,8 @@ class Connection(object):
         The same applies to all cursor objects trying to use the connection. 
         """
         for crsr in self.cursors.values()[:]:  # copy the list, then close each one
-            crsr.close(dont_tell_me=True)
-        self.messages=[]
+            crsr.close(dont_tell_me=True)  # close without back-link clearing
+        self.messages = []
         try:
             self._closeAdoConnection()                      #v2.1 Rose
         except (Exception), e:
@@ -380,7 +379,7 @@ class Connection(object):
                     #If attributes has adXactAbortRetaining it performs retaining aborts that is,
                     #calling RollbackTrans automatically starts a new transaction. Not all providers support this.
                     #If not, we will have to start a new transaction by this command:
-                    if self.transaction_level == 0:
+                    if not self.transaction_level:  # if self.transaction_level == 0 or self.transaction_level is None:
                         self.transaction_level = self.connector.BeginTrans()
             except Exception, e:
                 self._raiseConnectionError(api.ProgrammingError, e)
@@ -419,14 +418,13 @@ class Connection(object):
 
     def _i_am_here(self, crsr):
         "message from a new cursor proclaiming its existence"
-        i = self.cursor_counter.next()
-        self.cursors[i] = crsr
-        crsr.id = i
+        oid = id(crsr)
+        self.cursors[oid] = crsr
         
     def _i_am_closing(self,crsr):
         "message from a cursor giving connection a chance to clean up"
         try:
-            del self.cursors[crsr.id]
+            del self.cursors[id(crsr)]
         except:
             pass
 
@@ -610,7 +608,7 @@ class Cursor(object):
     def __getattr__(self, item):
         if item == 'description':
             return self.get_description()
-        getattr(self, item)  # may get here on Remote attribute calls for existing attributes
+        object.__getattribute__(self, item)  # may get here on Remote attribute calls for existing attributes
 
     def format_description(self,d):
         """Format db_api description tuple for printing."""
@@ -630,12 +628,12 @@ class Cursor(object):
         """
         if self.connection is None:
             return
-        if not dont_tell_me:
-            self.connection._i_am_closing(self) # take me off the connection's cursors list
         self.messages = []
         if self.rs and self.rs.State != adc.adStateClosed: # rs exists and is open      #v2.1 Rose
             self.rs.Close()                                                         #v2.1 Rose
             self.rs = None # let go of the recordset so ADO will let it be disposed #v2.1 Rose
+        if not dont_tell_me:
+            self.connection._i_am_closing(self) # take me off the connection's cursors list
         self.connection = None    #this will make all future method calls on me throw an exception
         if verbose:
             print 'adodbapi Closed cursor at %X' % id(self)
@@ -646,7 +644,7 @@ class Cursor(object):
         except:
             pass
 
-    def _new_command(self, command_text, command_type=adc.adCmdText):
+    def _new_command(self, command_type=adc.adCmdText):
         self.cmd = None
         self.messages = []
 
@@ -658,11 +656,11 @@ class Cursor(object):
             self.cmd.ActiveConnection = self.connection.connector
             self.cmd.CommandTimeout = self.connection.timeout
             self.cmd.CommandType = command_type
-            self.cmd.CommandText = command_text
+            self.cmd.CommandText = self.commandText
             self.cmd.Prepared = bool(self._ado_prepared)
         except:
             self._raiseCursorError(api.DatabaseError,
-                                   'Error creating new ADODB.Command object for "%s"' % repr(command_text))
+                                   'Error creating new ADODB.Command object for "%s"' % repr(self.commandText))
 
     def _execute_command(self):
         # Stored procedures may have an integer return value
@@ -670,7 +668,7 @@ class Cursor(object):
         recordset = None
         count = -1 #default value
         if verbose:
-            print 'Executing command="%s"'%self.command
+            print 'Executing command="%s"'%self.commandText
         try:
             # ----- the actual SQL is executed here ---
             if api.onIronPython:
@@ -683,7 +681,7 @@ class Cursor(object):
         except (Exception), e:
             _message = ""
             if hasattr(e, 'args'): _message += str(e.args)+"\n"
-            _message += "Command:\n%s\nParameters:\n%s" %  (self.cmd.CommandText,
+            _message += "Command:\n%s\nParameters:\n%s" %  (self.commandText,
                                                             format_parameters(self.cmd.Parameters, True))
             klass = self.connection._suggest_error_class()
             self._raiseCursorError(klass, _message)
@@ -737,7 +735,8 @@ class Cursor(object):
         cursor if the sproc defines an integer return value.
         """
         self._parameter_names = []
-        self._new_command(procname, command_type=adc.adCmdStoredProc)
+        self.commandText = procname
+        self._new_command(command_type=adc.adCmdStoredProc)
         self._buildADOparameterList(parameters, sproc=True)
         if verbose > 2:
             print 'Calling Stored Proc with Params=', format_parameters(self.cmd.Parameters, True)
@@ -756,6 +755,7 @@ class Cursor(object):
         if parameters is None:
             parameters = []
 
+        # Note: ADO does not preserve the parameter list, even if "Prepared" is True, so we must build every time.
         parameters_known = False
         if sproc:  # needed only if we are calling a stored procedure
             try: # attempt to use ADO's parameter list
@@ -828,7 +828,7 @@ class Cursor(object):
                             self._raiseCursorError(api.DataError, _message+'->'+repr(e.args))
                         i += 1
                 if self._ado_prepared == 'setup':
-                    self._ado_prepared = True  # parameters will be known next loop
+                    self._ado_prepared = True  # parameters will be "known" by ADO next loop
 
     def execute(self, operation, parameters=None):
         """Prepare and execute a database operation (query or command).
@@ -858,14 +858,14 @@ class Cursor(object):
             In practical terms, this means that the input value is directly used as a value in the operation.
             The client should not be required to "escape" the value so that it can be used -- the value
             should be equal to the actual database value. """
-        if self.command is not operation or self._ado_prepared == 'setup':
+        if self.command is not operation or self._ado_prepared == 'setup' or not hasattr(self, 'commandText'):
             if self.command is not operation:
                 self._ado_prepared = False
-            self.command = operation
+                self.command = operation
             self._parameter_names = []
-            if parameters and self.paramstyle != 'qmark':
-                operation = self._reformat_operation(operation, parameters)  # if 'named' will set self._parameter_names
-        self._new_command(operation)
+            self.commandText = operation if (self.paramstyle == 'qmark' or  not parameters) \
+                else self._reformat_operation(operation, parameters)
+        self._new_command()
         self._buildADOparameterList(parameters)
         if verbose > 3:
             print 'Params=', format_parameters(self.cmd.Parameters, True)
@@ -998,9 +998,9 @@ class Cursor(object):
     def _last_query(self):  # let the programmer see what query we actually used
         try:
             if self.parameters == None:
-                ret = self.cmd.CommandText
+                ret = self.commandText
             else:
-                ret = "%s,parameters=%s" % (self.cmd.CommandText,repr(self.parameters))
+                ret = "%s,parameters=%s" % (self.commandText,repr(self.parameters))
         except:
             ret = None
         return ret
