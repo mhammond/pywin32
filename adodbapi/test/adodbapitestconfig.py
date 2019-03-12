@@ -1,5 +1,5 @@
 # Configure this to _YOUR_ environment in order to run the testcases.
-"testADOdbapiConfig.py v 2.6.0.A00"
+"testADOdbapiConfig.py v 2.6.1.2"
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # #
@@ -39,10 +39,13 @@ mdb_name = 'xx_' + tmp + '.mdb'
 testfolder = setuptestframework.maketemp()
 
 if '--package' in sys.argv:
+    #  create a new adodbapi module -- running 2to3 if needed.
     pth = setuptestframework.makeadopackage(testfolder)
 else:
+    #  use the adodbapi module in which this file appears
     pth = setuptestframework.find_ado_path()
 if pth not in sys.path:
+    #  look here _first_ to find modules
     sys.path.insert(1,pth)
 
 # function to clean up the temporary folder -- calling program must run this function before exit.
@@ -67,15 +70,16 @@ for a in sys.argv:
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # # start your environment setup here v v v
-SQL_HOST_NODE = 'Vpad'
+SQL_HOST_NODE = 'win19'  # platform.node() of machine running SQL server
 doAllTests = '--all' in sys.argv
-doAccessTest = not ('--nojet' in sys.argv)
+doAccessTest = not ('--nojet' in sys.argv)  # --nojet is used to disable ACCESS tests
 doSqlServerTest = node == SQL_HOST_NODE or '--mssql' in  sys.argv or doAllTests
 doMySqlTest = '--mysql' in sys.argv or doAllTests
 doPostgresTest = '--pg' in sys.argv or doAllTests
 iterateOverTimeTests = ('--time' in sys.argv or doAllTests) and onWindows
 
-THE_PROXY_HOST = '25.44.77.176' if node != SQL_HOST_NODE or not onWindows else '::1' # -- change this
+# remote proxy testing is disabled by default until a better test bed is set up
+THE_PROXY_HOST = None  # if not onWindows else '::1' # -- change this
 
 try: #If mx extensions are installed, use mxDateTime
     import mx.DateTime
@@ -86,22 +90,22 @@ except:
 doTimeTest = True # obsolete python time format
 
 if doAccessTest:
-    if onWindows and (node == SQL_HOST_NODE or not is64bit.Python()):
+    if onWindows:
         c = {'mdb': setuptestframework.makemdb(testfolder, mdb_name)}
     else:
         c = {'macro_find_temp_test_path' : ['mdb', 'server_test.mdb'],
             'proxy_host' : THE_PROXY_HOST}
 
-
     # macro definition for keyword "driver"  using macro "is64bit" -- see documentation
+    # is64bit will return true for 64 bit versions of Python, so the macro will select the ACE driver
     c['macro_is64bit'] = ['driver', "Microsoft.ACE.OLEDB.12.0", "Microsoft.Jet.OLEDB.4.0"]
-    connStrAccess = "Provider=%(driver)s;Data Source=%(mdb)s"
+    connStrAccess = "Provider=%(driver)s;Data Source=%(mdb)s"  # ;Mode=ReadWrite;Persist Security Info=False;Jet OLEDB:Bypass UserInfo Validation=True"
     print('    ...Testing ACCESS connection...')
     doAccessTest, connStrAccess, dbAccessconnect = tryconnection.try_connection(verbose, connStrAccess, 10, **c)
 
 if doSqlServerTest:
-    c = {'macro_getnode' : ['host', r"%s\SQLExpress"],  # name of computer with SQL Server
-        #'host':'25.44.77.176;' # Network Library=dbmssocn',
+    c = {
+        'host': 'testsql.2txt.us',  # default value, may be changed below
         'database': "adotest",
         'user' : 'adotestuser',   # None implies Windows security
         'password' : "12345678",
@@ -111,7 +115,10 @@ if doSqlServerTest:
          }
     connStr = "Provider=%(provider)s; Initial Catalog=%(database)s; Data Source=%(host)s; %(security)s;"
 
-    if node != SQL_HOST_NODE:
+    if node == SQL_HOST_NODE:
+        c['macro_getnode'] = ['host', r"%s\SQLExpress"]  # "host" will come from name of computer with SQL Server
+    elif not onWindows:
+        del c['host']
         if THE_PROXY_HOST:
             c["proxy_host"] = THE_PROXY_HOST  # the SQL server runs a proxy for this test
         else:
@@ -120,7 +127,7 @@ if doSqlServerTest:
     doSqlServerTest, connStrSQLServer, dbSqlServerconnect = tryconnection.try_connection(verbose, connStr, 30, **c)
 
 if doMySqlTest:
-    c = {'host' : "25.223.161.222",
+    c = {'host' : "maria.2txt.us",
         'database' : 'test',
         'user' : 'adotest',
         'password' : '12345678',
@@ -139,7 +146,7 @@ if doMySqlTest:
     doMySqlTest, connStrMySql, dbMySqlconnect = tryconnection.try_connection(verbose, cs, 5, **c)
 
 if doPostgresTest:
-    _computername = "25.223.161.222"
+    _computername = "testpg.2txt.us"
     _databasename='adotest'
     _username = 'adotestuser'
     _password = '12345678'

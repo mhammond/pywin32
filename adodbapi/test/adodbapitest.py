@@ -1,4 +1,4 @@
-""" Unit tests version 2.6.0.6 for adodbapi"""
+""" Unit tests version 2.6.1.0 for adodbapi"""
 from __future__ import with_statement
 # when Python 2.5 is retired, change that to: from __future__ import print_function
 """
@@ -28,6 +28,8 @@ import sys
 import datetime
 import decimal
 import copy
+import random
+import string
 
 try:
     import win32com.client
@@ -68,6 +70,8 @@ try:
 except NameError:
     bytes = str
 
+def randomstring(length):
+    return ''.join([random.choice(string.ascii_letters) for n in xrange(32)])
 class CommonDBTests(unittest.TestCase):
     "Self contained super-simple tests in easy syntax, should work on everything between mySQL and Oracle"
 
@@ -444,7 +448,7 @@ class CommonDBTests(unittest.TestCase):
         crsr=self.getCursor()
         self.helpCreateAndPopulateTableTemp(crsr)
         crsr.prepare("SELECT fldData FROM xx_%s" % config.tmp)
-        crsr.execute(crsr.command)
+        crsr.execute(crsr.command)  # remembes the one that was pregared
         rs=crsr.fetchall()
         assert len(rs)==9
         assert rs[2][0]==2
@@ -454,16 +458,17 @@ class CommonDBTests(unittest.TestCase):
         crsr=self.getCursor()
         self.helpCreateAndPopulateTableTemp(crsr)
         crsr.prepare("SELECT * FROM nowhere")
-        crsr.execute("SELECT fldData FROM xx_%s" % config.tmp)
+        crsr.execute("SELECT fldData FROM xx_%s" % config.tmp)  # should execute this one, not the prepared one
         rs=crsr.fetchall()
         assert len(rs)==9
         assert rs[2][0]==2
         self.helpRollbackTblTemp()
-    def testIterator(self):      
+
+    def testIterator(self):
         crsr=self.getCursor()
         self.helpCreateAndPopulateTableTemp(crsr)
         crsr.execute("SELECT fldData FROM xx_%s" % config.tmp)
-        for i,row in enumerate(crsr): # using cursor rather than fetchxxx
+        for i,row in enumerate(crsr): # using cursor as an iterator, rather than fetchxxx
             assert row[0]==i
         self.helpRollbackTblTemp()
         
@@ -512,7 +517,7 @@ class CommonDBTests(unittest.TestCase):
         rs=crsr.fetchmany(5)
         assert len(rs)==5
         rs=crsr.fetchmany(5)
-        assert len(rs)==1 #Ask for five, but there is only one left
+        assert len(rs)==1 #Asked for five, but there is only one left
         self.helpRollbackTblTemp()        
 
     def testFetchManyWithArraySize(self):
@@ -636,7 +641,8 @@ class CommonDBTests(unittest.TestCase):
         #test the .query implementation
         assert '(?,' in crsr.query, 'expected:"%s" in "%s"'%('(?,',crsr.query)
         #test the .command attribute
-        assert crsr.command == sel
+        assert crsr.command == sel, 'expected:"%s" but found "%s"' % (sel, crsr.command)
+
         #test the .parameters attribute
         if not self.remote: # parameter list will be altered in transit
             self.assertEqual(crsr.parameters, params)
@@ -671,7 +677,7 @@ class CommonDBTests(unittest.TestCase):
                 else:
                     conn.printADOerrors()
                 raise
-            crsr.execute("SELECT fldData FROM xx_%s WHERE :Id=fldID" % config.tmp, {'Id':fldId})
+            crsr.execute("SELECT fldData FROM xx_%s WHERE fldID=:Id" % config.tmp, {'Id':fldId})
             rec = crsr.fetchone()
             self.assertEqual(rec[0], inParam, 'returned value:"%s" != test value:"%s"'%(rec[0],inParam))
         # now a test with a ":" as part of a literal
@@ -707,7 +713,7 @@ class CommonDBTests(unittest.TestCase):
                 else:
                     conn.printADOerrors()
                 raise
-            crsr.execute("SELECT fldData FROM xx_%s WHERE %%(Id)s=fldID" % config.tmp, {'Id':fldId})
+            crsr.execute("SELECT fldData FROM xx_%s WHERE fldID=%%(Id)s" % config.tmp, {'Id':fldId})
             rec = crsr.fetchone()
             self.assertEqual(rec[0], inParam, 'returned value:"%s" != test value:"%s"'%(rec[0],inParam))
         # now a test with a "%" as part of a literal
@@ -765,8 +771,9 @@ class CommonDBTests(unittest.TestCase):
             rec = crsr.fetchone()
             self.assertEqual(rec[0], inParam, 'returned value:"%s" != test value:"%s"'%(rec[0],inParam))
         # now a test with a ":" as part of a literal -- and use a prepared query
-        crsr.prepare("insert into xx_%s (fldId,fldData) VALUES (:xyz,'six:five')" % config.tmp)
-        crsr.execute(crsr.command, {'xyz':30})
+        ppdcmd = "insert into xx_%s (fldId,fldData) VALUES (:xyz,'six:five')" % config.tmp
+        crsr.prepare(ppdcmd)
+        crsr.execute(ppdcmd, {'xyz':30})
         crsr.execute("SELECT fldData FROM xx_%s WHERE fldID=30" % config.tmp)
         rec = crsr.fetchone()
         self.assertEqual(rec[0], 'six:five')
@@ -880,6 +887,39 @@ class CommonDBTests(unittest.TestCase):
             rs = crsr.fetchall()
             assert len(rs) == 10, 'all records should still be present'
         self.helpRollbackTblTemp()
+
+
+    def testExtendedTypeHandling(self):
+        class XtendString(str):
+            pass
+        class XtendInt(int):
+            pass
+        class XtendFloat(float):
+            pass
+        xs = XtendString(randomstring(30))
+        xi = XtendInt(random.randint(-100, 500))
+        xf = XtendFloat(random.random())
+        self.helpForceDropOnTblTemp()
+        conn = self.getConnection()
+        crsr = conn.cursor()
+        tabdef = """
+            CREATE TABLE xx_%s (
+                s VARCHAR(40) NOT NULL,
+                i INTEGER NOT NULL,
+                f REAL NOT NULL)""" % config.tmp
+        crsr.execute(tabdef)
+        crsr.execute("INSERT INTO xx_%s (s, i, f) VALUES (?, ?, ?)" % config.tmp, (xs, xi, xf))
+        crsr.close()
+        conn = self.getConnection()
+        with self.getCursor() as crsr:
+            selectSql = 'SELECT s, i, f from xx_%s' % config.tmp
+            crsr.execute(selectSql)  # closing the connection should _not_ have forced rollback
+            row = crsr.fetchone()
+            self.assertEqual(row.s, xs)
+            self.assertEqual(row.i, xi)
+            self.assertAlmostEqual(row.f, xf)
+        self.helpRollbackTblTemp()
+
 
 class TestADOwithSQLServer(CommonDBTests):
     def setUp(self):

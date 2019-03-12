@@ -145,12 +145,12 @@ class TimeConverter(object):  # this is a generic time converter skeleton
     def __init__(self):       # the details will be filled in by instances
         self._ordinal_1899_12_31=datetime.date(1899,12,31).toordinal()-1
                     # Use cls.types to compare if an input parameter is a datetime
-        self.types = {[type(self.Date(2000,1,1)),
+        self.types = set([type(self.Date(2000,1,1)),  # TODO make this a set literal when Python 2.6 is dropped
                       type(self.Time(12,1,1)),
                       type(self.Timestamp(2000,1,1,12,1,1)),
                       datetime.datetime,
                       datetime.time,
-                      datetime.date]}
+                      datetime.date])
     def COMDate(self,obj):
         '''Returns a ComDate from a date-time'''
         try: # most likely a datetime
