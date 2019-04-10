@@ -135,8 +135,8 @@ include isapi/src/*.h
 include adodbapi/*.py
 exclude adodbapi/setup.py
 include adodbapi/*.txt
-include adodbapi/tests/*.py
-include adodbapi/tests/*.bat
+include adodbapi/test/*.py
+include adodbapi/test/*.bat
 include adodbapi/examples/*.py
 include adodbapi/examples/test.mdb
 
