@@ -89,7 +89,7 @@ class EditorDocumentBase(ParentEditorDocument):
 					win32con.MB_YESNO | win32con.MB_DEFBUTTON2)
 			if rc==win32con.IDYES:
 				try:
-					self.SaveFile(fileName, encoding="latin-1")
+					self.SaveFile(fileName, encoding="utf-8")
 				except IOError, details:
 					win32ui.MessageBox("Error - could not save file\r\n\r\n%s"%details)
 					return 0
