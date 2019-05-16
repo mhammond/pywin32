@@ -567,9 +567,9 @@ PyObject *PyTime::getattro(PyObject *self, PyObject *obname)
 		PyWin_SetAPIError("VariantTimeToSystemTime");
 		return NULL;
 	}
-    
-    double intpart;
-    st.wMilliseconds = modf(This->m_time * SECS_PER_DAY, &intpart) * 1000000;
+
+	double intpart;
+	st.wMilliseconds = modf(This->m_time * SECS_PER_DAY, &intpart) * 1000000;
 
 	char *name=PYWIN_ATTR_CONVERT(obname);
 	if (name==NULL)
