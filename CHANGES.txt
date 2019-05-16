@@ -10,6 +10,8 @@ Since build 224:
 
 * Corrected wMilliseconds truncation in PyTime::getattro (Dorian Bivolaru)
 
+* Implement PdhGetFormattedCounterArray (#1306, konserw)
+
 Since build 223:
 ----------------
 * Built with a released version of Python 3.7, which fixes various date related
