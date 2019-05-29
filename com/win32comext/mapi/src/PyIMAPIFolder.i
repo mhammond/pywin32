@@ -127,8 +127,8 @@ HRESULT CreateMessage(
 	ULONG ulFlags,	// @pyparm int|flags||
 	IMessage **OUTPUT);
 
-// @pyswig |CopyMessages|Copies the specified messages
-HRESULT CopyMessages(
+// @pyswig int|CopyMessages|Copies the specified messages
+HRESULT_KEEP_INFO CopyMessages(
 	SBinaryArray *INPUT, // @pyparm <o PySBinaryArray>|msgs||
 	IID *INPUT_NULLOK,    // @pyparm <o PyIID>|iid||IID representing the interface to be used to access the destination folder.  Should usually be None.
 	IMAPIFolder *INPUT, // @pyparm <o PyIMAPIFolder>|folder||The destination folder
@@ -188,17 +188,24 @@ PyObject *PyIMAPIFolder::DeleteFolder(PyObject *self, PyObject *args)
 }
 %}
 
-// @pyswig |DeleteMessages|Deletes the specified messages.
-HRESULT DeleteMessages(
+// @pyswig int|DeleteMessages|Deletes the specified messages.
+HRESULT_KEEP_INFO DeleteMessages(
 	SBinaryArray *INPUT, // @pyparm <o PySBinaryArray>|msgs||
 	unsigned long ulUIParam, // @pyparm int|uiParam||A HWND for the progress
 	IMAPIProgress *INPUT_NULLOK,// @pyparm <o PyIMAPIProgress>|progress||A progress object, or None
 	unsigned long ulFlags); // @pyparm int|flags||
 
-// @pyswig |EmptyFolder|deletes all messages and subfolders from a folder without deleting the folder itself.
-HRESULT EmptyFolder(
+// @pyswig int|EmptyFolder|deletes all messages and subfolders from a folder without deleting the folder itself.
+HRESULT_KEEP_INFO EmptyFolder(
 	ULONG ulUIParam, // @pyparm int|uiParam||A HWND for the progress
 	IMAPIProgress *INPUT_NULLOK, // @pyparm <o PyIMAPIProgress>|progress||A progress object, or None
 	ULONG ulFlags // @pyparm int|flags||
 ); 
  
+// @pyswig |SetReadFlags|Sets or clears the MSGFLAG_READ flag in the PR_MESSAGE_FLAGS (PidTagMessageFlags) property of one or more of the folder's messages, and manages the sending of read reports.
+HRESULT_KEEP_INFO SetReadFlags(
+	SBinaryArray *INPUT, // @pyparm <o PySBinaryArray>|msgs||
+	ULONG ulUIParam, // @pyparm int|uiParam||A HWND for the progress
+	IMAPIProgress *INPUT_NULLOK, // @pyparm <o PyIMAPIProgress>|progress||A progress object, or None
+	ULONG ulFlags // @pyparm int|flag||Bitmask of flags that controls the setting of a message's read flag - that is, the message's MSGFLAG_READ flag in its PR_MESSAGE_FLAGS property and the processing of read reports.
+);

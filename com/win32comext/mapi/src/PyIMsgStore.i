@@ -250,7 +250,7 @@ PyObject *PyIMsgStore::Advise(PyObject *self, PyObject *args)
 	LPENTRYID eid;
 	ULONG ulEventMask;
 	LPMAPIADVISESINK lpAdviseSink;
-	ULONG lpulConnection;
+	ULONG_PTR lpulConnection;
 
 	IMsgStore *_swig_self;
 	if ((_swig_self=GetI(self))==NULL) return NULL;
@@ -284,7 +284,7 @@ PyObject *PyIMsgStore::Advise(PyObject *self, PyObject *args)
 	if (FAILED(hRes))
 		return OleSetOleError(hRes);
 
-	return PyLong_FromUnsignedLong(lpulConnection);
+	return PyWinObject_FromULONG_PTR(lpulConnection);
 }
 %}
 

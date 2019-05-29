@@ -481,8 +481,12 @@ def GetServiceClassString(cls, argv = None):
             path = os.path.split(fname)[0]
             # Eaaaahhhh - sometimes this will be a short filename, which causes
             # problems with 1.5.1 and the silly filename case rule.
-            # Get the long name
-            fname = os.path.join(path, win32api.FindFiles(fname)[0][8])
+            filelist = win32api.FindFiles(fname)
+            # win32api.FindFiles will not detect files in a zip or exe. If list is empty,
+            # skip the test and hope the file really exists. 
+            if len(filelist) != 0:
+                # Get the long name
+                fname = os.path.join(path, filelist[0][8])
         except win32api.error:
             raise error("Could not resolve the path name '%s' to a full path" % (argv[0]))
         modName = os.path.splitext(fname)[0]

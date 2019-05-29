@@ -3,8 +3,6 @@
 
 #include "PythonCOM.h"
 #include "PythonCOMServer.h"
-#include "mapidefs.h"
-#include "mapiguid.h"
 #include "PyMAPIUtil.h"
 #include "PyIMAPIAdviseSink.h"
 

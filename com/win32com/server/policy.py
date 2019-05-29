@@ -255,7 +255,7 @@ class BasicWrapPolicy:
     return self._query_interface_(iid)
 
   def _query_interface_(self, iid):
-    """Called if the object does not provide the requested interface in _com_interfaces,
+    """Called if the object does not provide the requested interface in _com_interfaces_,
        and does not provide a _query_interface_ handler.
 
        Returns a result to the COM framework indicating the interface is not supported.

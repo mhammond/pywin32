@@ -69,6 +69,21 @@ PyObject *PyWinMethod_NewTime(PyObject *self, PyObject *args)
 	return PyWin_NewTime(timeOb);
 }
 
+// @pymethod <o PyTime>|pywintypes|TimeStamp|Creates a new time object.
+PyObject *PyWinMethod_NewTimeStamp(PyObject *self, PyObject *args)
+{
+	PyObject *obts;
+	LARGE_INTEGER ts;
+	// @pyparm int|timestamp||An integer timestamp representation.
+	if ( !PyArg_ParseTuple(args, "O", &obts) )
+		return NULL;
+
+	if (!PyWinObject_AsLARGE_INTEGER(obts, &ts))
+		return NULL;
+
+	return PyWinObject_FromTimeStamp(ts);
+}
+
 #ifndef NO_PYWINTYPES_TIME
 
 BOOL PyWinObject_AsDATE(PyObject *ob, DATE *pDate)
@@ -977,10 +992,17 @@ PyObject *PyWinObject_FromSYSTEMTIME(const SYSTEMTIME &t)
 	PyObject *obtz = GetTZUTC();
 	if (!obtz)
 		return NULL;
-	PyObject *ret = PyDateTimeAPI->DateTime_FromDateAndTime(
+	// If the value is larger than the datetime module can handle, we return
+	// the max datetime value.
+	PyObject *ret;
+	if (t.wYear > 9999) { // sadly this constant isn't exposed.
+		ret = PyObject_GetAttrString((PyObject *)PyDateTimeAPI->DateTimeType, "max");
+	} else {
+		ret = PyDateTimeAPI->DateTime_FromDateAndTime(
 				t.wYear, t.wMonth, t.wDay, t.wHour, t.wMinute,
 				t.wSecond, t.wMilliseconds*1000,
 				obtz, &PyWinDateTimeType);
+	}
 	Py_DECREF(obtz);
 	return ret;
 #endif // PYWIN_HAVE_DATETIME_CAPI

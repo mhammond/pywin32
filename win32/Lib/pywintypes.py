@@ -94,6 +94,18 @@ def __import_pywin32_system_module__(modname, globs):
             if os.path.isfile(os.path.join(os.path.dirname(__file__), filename)):
                 found = os.path.join(os.path.dirname(__file__), filename)
         if found is None:
+            # We might have been installed via PIP and without the post-install
+            # script having been run, so they might be in the
+            # lib/site-packages/pywin32_system32 directory.
+            # This isn't ideal as it means, say 'python -c "import win32api"'
+            # will not work but 'python -c "import pywintypes, win32api"' will,
+            # but it's better than nothing...
+            import distutils.sysconfig
+            maybe = os.path.join(distutils.sysconfig.get_python_lib(plat_specific=1),
+                                 "pywin32_system32", filename)
+            if os.path.isfile(maybe):
+                found = maybe
+        if found is None:
             # give up in disgust.
             raise ImportError("No system module '%s' (%s)" % (modname, filename))
     # py2k and py3k differences:

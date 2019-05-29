@@ -501,6 +501,8 @@ typedef unsigned long BOOKMARK;
 }
 
 %typemap(python,argout) SPropTagArray **OUTPUT {
+	if ($target == Py_None)
+		Py_DECREF($target);
 	$target = PyMAPIObject_FromSPropTagArray(*$source);
 	if ($target==NULL) {
 		$cleanup;

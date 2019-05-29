@@ -99,6 +99,14 @@ typedef PDH_STATUS (WINAPI * FuncPdhGetFormattedCounterValue)(
     DWORD dwFormat,	// formatting flag
     LPDWORD lpdwType,	// counter type
     PPDH_FMT_COUNTERVALUE pValue	// counter value
+   );
+
+typedef PDH_STATUS (WINAPI * FuncPdhGetFormattedCounterArray)(
+    HCOUNTER hCounter,	// handle of the counter
+    DWORD dwFormat,	// formatting flag
+    LPDWORD lpdwBufferSize, // Size of the ItemBuffer buffer, in bytes. If zero on input, the function returns PDH_MORE_DATA and sets this parameter to the required buffer size.
+    LPDWORD lpdwItemCount, // Number of counter values in the ItemBuffer buffer.
+    PPDH_FMT_COUNTERVALUE_ITEM_W ItemBuffer // Caller-allocated buffer that receives an array of PDH_FMT_COUNTERVALUE_ITEM structures; the structures contain the counter values. Set to NULL if lpdwBufferSize is zero.
    );	
 
 typedef PDH_STATUS (WINAPI * FuncPdhCollectQueryData)(
@@ -170,6 +178,7 @@ FuncPdhAddCounter pPdhAddEnglishCounter = NULL;
 FuncPdhMakeCounterPath pPdhMakeCounterPath = NULL;
 FuncPdhGetCounterInfo pPdhGetCounterInfo = NULL;
 FuncPdhGetFormattedCounterValue pPdhGetFormattedCounterValue = NULL;
+FuncPdhGetFormattedCounterArray pPdhGetFormattedCounterArray = NULL;
 FuncPdhCollectQueryData pPdhCollectQueryData = NULL;
 FuncPdhValidatePath pPdhValidatePath = NULL;
 FuncPdhExpandCounterPath pPdhExpandCounterPath = NULL;
@@ -227,6 +236,7 @@ BOOL LoadPointers()
 	pPdhMakeCounterPath = (FuncPdhMakeCounterPath)GetProcAddress(handle, "PdhMakeCounterPath" A_OR_W);
 	pPdhGetCounterInfo = (FuncPdhGetCounterInfo)GetProcAddress(handle, "PdhGetCounterInfo" A_OR_W);
 	pPdhGetFormattedCounterValue = (FuncPdhGetFormattedCounterValue)GetProcAddress(handle, "PdhGetFormattedCounterValue");
+	pPdhGetFormattedCounterArray = (FuncPdhGetFormattedCounterArray)GetProcAddress(handle, "PdhGetFormattedCounterArray" A_OR_W);
 	pPdhCollectQueryData = (FuncPdhCollectQueryData)GetProcAddress(handle, "PdhCollectQueryData");
 	pPdhValidatePath	= (FuncPdhValidatePath)GetProcAddress(handle, "PdhValidatePath" A_OR_W);
 	pPdhExpandCounterPath	= (FuncPdhExpandCounterPath)GetProcAddress(handle, "PdhExpandCounterPath" A_OR_W);
@@ -744,6 +754,75 @@ static PyObject *PyGetFormattedCounterValue(PyObject *self, PyObject *args)
 	return realrc;
 }
 
+// @pymethod dictionary|win32pdh|GetFormattedCounterArray|Retrieves an array of formatted counter values
+static PyObject *PyPdhGetFormattedCounterArray(PyObject *self, PyObject *args)
+{
+	HCOUNTER handle;
+	PyObject *obhandle;
+	DWORD format;
+	if (!PyArg_ParseTuple(args, "Oi:PdhGetFormattedCounterArray",
+			&obhandle, // @pyparm int|handle||Handle to the counter
+			&format)) // @pyparm int|format||Format of result.  Can be PDH_FMT_DOUBLE, PDH_FMT_LARGE, PDH_FMT_LONG and or'd with PDH_FMT_NOSCALE, PDH_FMT_1000
+
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obhandle, &handle))
+		return NULL;
+	DWORD type;
+	PDH_FMT_COUNTERVALUE result;
+	CHECK_PDH_PTR(pPdhGetFormattedCounterArray);
+	PDH_STATUS pdhStatus;
+	DWORD size = 0;
+	DWORD count;
+	PDH_FMT_COUNTERVALUE_ITEM *pItems = NULL;
+
+	Py_BEGIN_ALLOW_THREADS
+	pdhStatus = (*pPdhGetFormattedCounterArray) (handle, format, &size, &count, pItems);
+	Py_END_ALLOW_THREADS
+	if (pdhStatus != PDH_MORE_DATA)
+		return PyWin_SetAPIError("PdhGetFormattedCounterArray", pdhStatus);
+	pItems = (PDH_FMT_COUNTERVALUE_ITEM *) malloc(size);
+	if (pItems == NULL) {
+		PyErr_NoMemory();
+		return NULL;
+	}
+
+	Py_BEGIN_ALLOW_THREADS
+	pdhStatus = (*pPdhGetFormattedCounterArray) (handle, format, &size, &count, pItems);
+	Py_END_ALLOW_THREADS
+	if (pdhStatus != ERROR_SUCCESS) {
+		free(pItems);
+		return PyWin_SetAPIError("PdhGetFormattedCounterArray", pdhStatus);
+	}
+
+	PyObject *key;
+	PyObject *value;
+	PyObject *rc;
+	rc = PyDict_New();
+	if (rc == NULL) {
+		free(pItems);
+		PyErr_NoMemory();
+		return NULL;
+	}
+	for (DWORD i = 0; i < count; i++) {
+		key = PyWinObject_FromTCHAR(pItems[i].szName);
+		if (format & PDH_FMT_DOUBLE)
+			value = PyFloat_FromDouble(pItems[i].FmtValue.doubleValue);
+		else if (format & PDH_FMT_LONG)
+			value = PyInt_FromLong(pItems[i].FmtValue.longValue);
+		else if (format & PDH_FMT_LARGE)
+			value = PyLong_FromLongLong(pItems[i].FmtValue.largeValue);
+		else {
+			PyErr_SetString(PyExc_ValueError, "Dont know how to convert the result");
+			Py_XDECREF(rc);
+			rc = NULL;
+			break;
+		}
+		PyDict_SetItem(rc, key, value);
+	}
+	free(pItems);
+	return rc;
+}
+
 // @pymethod |win32pdh|CollectQueryData|Collects the current raw data value for all counters in the specified query and updates the status code of each counter.
 static PyObject *PyCollectQueryData(PyObject *self, PyObject *args)
 {
@@ -1238,6 +1317,7 @@ static struct PyMethodDef win32pdh_functions[] = {
 	{"MakeCounterPath",          PyMakeCounterPath,      1}, // @pymeth MakeCounterPath|Makes a fully resolved counter path
 	{"GetCounterInfo",           PyGetCounterInfo,       1}, // @pymeth GetCounterInfo|Retrieves information about a counter, such as data size, counter type, path, and user-supplied data values.
 	{"GetFormattedCounterValue", PyGetFormattedCounterValue,      1}, // @pymeth GetFormattedCounterValue|Retrieves a formatted counter value
+	{"GetFormattedCounterArray", PyPdhGetFormattedCounterArray,      1}, // @pymeth GetFormattedCounterValueArray|Retrieves an array of formatted counter values
 	{"CollectQueryData",         PyCollectQueryData,     1}, // @pymeth CollectQueryData|Collects the current raw data value for all counters in the specified query and updates the status code of each counter.
 	{"ValidatePath",             PyValidatePath,     1}, // @pymeth ValidatePath|Validates that the specified counter is present on the machine specified in the counter path.
 	{"ExpandCounterPath",        PyExpandCounterPath,     1}, // @pymeth ExpandCounterPath|Examines the specified machine (or local machine if none is specified) for counters and instances of counters that match the wild card strings in the counter path.

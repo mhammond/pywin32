@@ -715,14 +715,22 @@ class TimeZoneInfo(datetime.tzinfo):
 	@staticmethod
 	def _get_indexed_time_zone_keys(index_key='Index'):
 		"""
-		Get the names of the registry keys indexed by a value in that key.
+		Get the names of the registry keys indexed by a value in that key,
+		ignoring any keys for which that value is empty or missing.
 		"""
 		key_names = list(TimeZoneInfo._get_time_zone_key_names())
+
 		def get_index_value(key_name):
 			key = TimeZoneInfo._get_time_zone_key(key_name)
-			return key[index_key]
+			return key.get(index_key)
+
 		values = map(get_index_value, key_names)
-		return zip(values, key_names)
+
+		return (
+			(value, key_name)
+			for value, key_name in zip(values, key_names)
+			if value
+		)
 
 	@staticmethod
 	def get_sorted_time_zone_names():
@@ -786,25 +794,6 @@ class _RegKeyDict(dict):
 		except WindowsError: pass
 
 
-# for backward compatibility
-def deprecated(func, name='Unknown'):
-	"""This is a decorator which can be used to mark functions
-	as deprecated. It will result in a warning being emmitted
-	when the function is used."""
-	def newFunc(*args, **kwargs):
-		warnings.warn("Call to deprecated function %s." % name,
-			category=DeprecationWarning)
-		return func(*args, **kwargs)
-	newFunc.__name__ = func.__name__
-	newFunc.__doc__ = func.__doc__
-	newFunc.__dict__.update(func.__dict__)
-	return newFunc
-
-GetTimeZoneNames = deprecated(TimeZoneInfo._get_time_zone_key_names, 'GetTimeZoneNames')
-GetIndexedTimeZoneNames = deprecated(TimeZoneInfo._get_indexed_time_zone_keys, 'GetIndexedTimeZoneNames')
-GetSortedTimeZoneNames = deprecated(TimeZoneInfo.get_sorted_time_zone_names, 'GetSortedTimeZoneNames')
-# end backward compatibility
-
 def utcnow():
 	"""
 	Return the UTC time now with timezone awareness as enabled
@@ -860,7 +849,7 @@ def resolveMUITimeZone(spec):
 	spec should be of the format @path,-stringID[;comment]
 	see http://msdn2.microsoft.com/en-us/library/ms725481.aspx for details
 	"""
-	pattern = re.compile('@(?P<dllname>.*),-(?P<index>\d+)(?:;(?P<comment>.*))?')
+	pattern = re.compile(r'@(?P<dllname>.*),-(?P<index>\d+)(?:;(?P<comment>.*))?')
 	matcher = pattern.match(spec)
 	assert matcher, 'Could not parse MUI spec'
 

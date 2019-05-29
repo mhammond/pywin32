@@ -267,7 +267,7 @@ def GetModuleForTypelib(typelibCLSID, lcid, major, minor):
 		assert "_in_gencache_" in mod.__dict__
 	return mod
 
-def MakeModuleForTypelib(typelibCLSID, lcid, major, minor, progressInstance = None, bGUIProgress = None, bForDemand = bForDemandDefault, bBuildHidden = 1):
+def MakeModuleForTypelib(typelibCLSID, lcid, major, minor, progressInstance = None, bForDemand = bForDemandDefault, bBuildHidden = 1):
 	"""Generate support for a type library.
 	
 	Given the IID, LCID and version information for a type library, generate
@@ -283,14 +283,8 @@ def MakeModuleForTypelib(typelibCLSID, lcid, major, minor, progressInstance = No
 	progressInstance -- Instance to use as progress indicator, or None to
 	                    use the GUI progress bar.
 	"""
-	if bGUIProgress is not None:
-		print "The 'bGuiProgress' param to 'MakeModuleForTypelib' is obsolete."
-
 	import makepy
-	try:
-		makepy.GenerateFromTypeLibSpec( (typelibCLSID, lcid, major, minor), progressInstance=progressInstance, bForDemand = bForDemand, bBuildHidden = bBuildHidden)
-	except pywintypes.com_error:
-		return None
+	makepy.GenerateFromTypeLibSpec( (typelibCLSID, lcid, major, minor), progressInstance=progressInstance, bForDemand = bForDemand, bBuildHidden = bBuildHidden)
 	return GetModuleForTypelib(typelibCLSID, lcid, major, minor)
 
 def MakeModuleForTypelibInterface(typelib_ob, progressInstance = None, bForDemand = bForDemandDefault, bBuildHidden = 1):

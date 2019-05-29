@@ -73,6 +73,14 @@ class TestCase(unittest.TestCase):
         t1 = pywintypes.Time(time.time())
         self.failUnless(pywintypes.Time(t1) is t1)
 
+    def testPyTimeTooLarge(self):
+        # We only do this special thing for python 3.x
+        if not issubclass(pywintypes.TimeType, datetime.datetime):
+            return
+        MAX_TIMESTAMP = 0x7FFFFFFFFFFFFFFF # used by some API function to mean "never"
+        ts = pywintypes.TimeStamp(MAX_TIMESTAMP)
+        self.failUnlessEqual(ts, datetime.datetime.max)
+
     def testGUID(self):
         s = "{00020400-0000-0000-C000-000000000046}"
         iid = pywintypes.IID(s)

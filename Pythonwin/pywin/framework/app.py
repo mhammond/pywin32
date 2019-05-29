@@ -354,7 +354,7 @@ class AboutBox(dialog.Dialog):
 
 	def OnButHomePage(self, id, code):
 		if code == win32con.BN_CLICKED:
-			win32api.ShellExecute(0, "open", "http://starship.python.net/crew/mhammond/win32", None, "", 1)
+			win32api.ShellExecute(0, "open", "https://github.com/mhammond/pywin32", None, "", 1)
 
 def Win32RawInput(prompt=None):
 	"Provide raw_input() for gui apps"

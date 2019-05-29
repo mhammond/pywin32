@@ -43,6 +43,7 @@
 #include "PyIABContainer.h"
 #include "PyIProfSect.h"
 #include "PyIMsgServiceAdmin.h"
+#include "PyIProviderAdmin.h"
 #include "PyIMAPIAdviseSink.h"
 #include "IConverterSession.h"
 #include "PyIConverterSession.h"
@@ -174,6 +175,9 @@ static PyObject *PyMAPIUninitialize(PyObject *self, PyObject *args)
 
 	if ( PyCom_RegisterClientType(&PyIMsgServiceAdmin::type, &IID_IMsgServiceAdmin) != 0 ) return MODINIT_ERROR_RETURN;
 	ADD_IID(IID_IMsgServiceAdmin);
+
+	if ( PyCom_RegisterClientType(&PyIProviderAdmin::type, &IID_IProviderAdmin) != 0 ) return MODINIT_ERROR_RETURN;
+	ADD_IID(IID_IProviderAdmin);
 
 	if ( PyCom_RegisterClientType(&PyIMAPIAdviseSink::type, &IID_IMAPIAdviseSink) != 0 ) return MODINIT_ERROR_RETURN;
 	ADD_IID(IID_IMAPIAdviseSink);
@@ -523,6 +527,13 @@ static PyObject *PyMAPIUninitialize(PyObject *self, PyObject *args)
 
 // StreamOnFile (SOF)
 #define SOF_UNIQUEFILENAME	SOF_UNIQUEFILENAME // A temporary file is to be created for the IStream object
+
+// IMessage::SetReadFlag and IMAPIFolder::SetReadFlags
+#define CLEAR_READ_FLAG CLEAR_READ_FLAG // The MSGFLAG_READ flag should be cleared in PR_MESSAGE_FLAGS and a read report should not be sent.
+#define CLEAR_NRN_PENDING CLEAR_NRN_PENDING // The MSGFLAG_NRN_PENDING flag should be cleared in PR_MESSAGE_FLAGS and an unread report should not be sent.
+#define CLEAR_RN_PENDING CLEAR_RN_PENDING // The MSGFLAG_RN_PENDING flag should be cleared in PR_MESSAGE_FLAGS and a read report should not be sent.
+#define GENERATE_RECEIPT_ONLY GENERATE_RECEIPT_ONLY // A read report should be sent if one is pending, but there should be no change in the state of the MSGFLAG_READ flag.
+#define SUPPRESS_RECEIPT SUPPRESS_RECEIPT // A pending read report should be cancelled if a read report had been requested and this call changes the state of the message from unread to read.
 
 // @object MAPIINIT_0|A MAPIINIT_0 is represented as a tuple of:
 // @tupleitem 0|int|version|This must be MAPI_INIT_VERSION.
@@ -1039,8 +1050,8 @@ PyObject *PyHrAllocAdviseSink(PyObject *self, PyObject *args)
 	PyCMAPIAdviseSink *sink = NULL;
 
 	if (!PyArg_ParseTuple(args, "O|O:HrAllocAdviseSink",
-		&ob_callback,			// @pyparm function|callback|OnNotify callback function
-		&ob_context))           // @pyparm object|context|Context data to be passed to the callback
+		&ob_callback,			// @pyparm function|callback||OnNotify callback function
+		&ob_context))           // @pyparm object|context||Context data to be passed to the callback
 		return NULL;
 	if (!PyCallable_Check(ob_callback)){
 		PyErr_SetString(PyExc_TypeError,"OnNotify must be callable");

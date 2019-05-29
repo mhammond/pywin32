@@ -492,6 +492,7 @@ PYWINTYPES_EXPORT BOOL PyWinObject_AsSYSTEMTIME(PyObject *ob, SYSTEMTIME *pDate)
 
 // A global function that can work as a module method for making a time object.
 PYWINTYPES_EXPORT PyObject *PyWinMethod_NewTime( PyObject *self, PyObject *args);
+PYWINTYPES_EXPORT PyObject *PyWinMethod_NewTimeStamp( PyObject *self, PyObject *args);
 
 PYWINTYPES_EXPORT BOOL PyWinTime_Check(PyObject *ob);
 

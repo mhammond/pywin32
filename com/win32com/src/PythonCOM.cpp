@@ -2064,7 +2064,7 @@ static struct PyMethodDef pythoncom_methods[]=
 #endif // MS_WINCE
 	{ "StgCreateDocfile",      pythoncom_StgCreateDocfile, 1 },       // @pymeth StgCreateDocfile|Creates a new compound file storage object using the OLE-provided compound file implementation for the <o PyIStorage> interface.
 	{ "StgCreateDocfileOnILockBytes",      pythoncom_StgCreateDocfileOnILockBytes, 1 }, // @pymeth StgCreateDocfileOnILockBytes|Creates a new compound file storage object using the OLE-provided compound file implementation for the <o PyIStorage> interface.
-	{ "StgOpenStorageOnILockBytes",        pythoncom_StgOpenStorageOnILockBytes, 1 }, // @pymeth StgOpenStorageOnILockBytes|Open an existing storage object that does not reside in a disk file, but instead has an underlying <PyILockBytes> byte array provided by the caller.
+	{ "StgOpenStorageOnILockBytes",        pythoncom_StgOpenStorageOnILockBytes, 1 }, // @pymeth StgOpenStorageOnILockBytes|Open an existing storage object that does not reside in a disk file, but instead has an underlying <o PyILockBytes> byte array provided by the caller.
 #ifndef MS_WINCE
 	{ "StgIsStorageFile",    pythoncom_StgIsStorageFile, 1 },       // @pymeth StgIsStorageFile|Indicates whether a particular disk file contains a storage object.
 #endif // MS_WINCE
