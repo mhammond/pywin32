@@ -84,7 +84,7 @@ def _cat_registrar():
     pythoncom.CLSCTX_INPROC_SERVER,
     pythoncom.IID_ICatRegister
     )
-    
+
 def _find_localserver_exe(mustfind):
   if not sys.platform.startswith("win32"):
     return sys.executable
@@ -137,20 +137,21 @@ def _find_localserver_module():
       raise RuntimeError("Can not locate the Python module 'win32com.server.%s'" % baseName)
   return pyfile
 
-def RegisterServer(clsid, 
-                   pythonInstString=None, 
+def RegisterServer(clsid,
+                   pythonInstString=None,
                    desc=None,
-                   progID=None, verProgID=None,
+                   progID=None,
+                   verProgID=None,
                    defIcon=None,
                    threadingModel="both",
                    policy=None,
                    catids=[], other={},
                    addPyComCat=None,
-                   dispatcher = None,
-                   clsctx = None,
-                   addnPath = None,
-                   exeOption = None
-                  ):
+                   dispatcher=None,
+                   clsctx=None,
+                   addnPath=None,
+                   exeOption=None
+                   ):
   """Registers a Python object as a COM Server.  This enters almost all necessary
      information in the system registry, allowing COM to use the object.
 
@@ -339,9 +340,9 @@ def GetUnregisterServerKeys(clsid, progID=None, verProgID=None, customKeys = Non
   # Any custom keys?
   if customKeys:
     ret = ret + customKeys
-   
+
   return ret
-  
+
 
 def UnregisterServer(clsid, progID=None, verProgID=None, customKeys = None):
   """Unregisters a Python COM server."""
@@ -538,7 +539,7 @@ def ReExecuteElevated(flags):
     exe_to_run = os.path.join(sys.prefix, 'python_d.exe')
   if not exe_to_run or not os.path.exists(exe_to_run):
     exe_to_run = sys.executable
-    
+
   try:
     batf = open(batfile, "w")
     try:
@@ -581,7 +582,7 @@ def ReExecuteElevated(flags):
         os.unlink(f)
       except os.error, exc:
         print "Failed to remove tempfile '%s': %s" % (f, exc)
-  
+
 def UseCommandLine(*classes, **flags):
   unregisterInfo = '--unregister_info' in sys.argv
   unregister = '--unregister' in sys.argv
@@ -620,5 +621,4 @@ if not pythoncom.frozen:
     try:
       RegisterPyComCategory()
     except pythoncom.error: # Error with the COM category manager - oh well.
-      pass    
-
+      pass
