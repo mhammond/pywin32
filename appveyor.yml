@@ -34,8 +34,8 @@ install:
   - python --version
 
   # Install setuptools/wheel so that we can e.g. use bdist_wheel
-  - pip install --upgrade setuptools wheel
-  - pip install --upgrade pycodestyle
+  - pip install --upgrade setuptools wheel .
+  - pip install --upgrade pycodestyle .
   
   ## Use Chocolatey to install SWIG.
   #- set SWIG=C:\ProgramData\chocolatey\bin\swig.exe
