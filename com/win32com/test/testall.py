@@ -42,7 +42,7 @@ def RemoveRefCountOutput(data):
             # All the output
             return ''
         data = data[:last_line_pos]
-        
+
     return data
 
 def ExecuteSilentlyIfOK(cmd, testcase):
@@ -85,7 +85,7 @@ class PippoTest(TestCase):
 # function in that module if the module isn't unitest based...
 unittest_modules = [
         # Level 1 tests.
-        """testIterators testvbscript_regexp testStorage 
+        """testIterators testvbscript_regexp testStorage
           testStreams testWMI policySemantics testShell testROT
           testAXScript testxslt testDictionary testCollections
           testServers errorSemantics.test testvb testArrays
@@ -193,7 +193,7 @@ def make_test_suite(test_level = 1):
             except:
                 import_failures.append((mod_name, sys.exc_info()[:2]))
                 continue
-            
+
             mod = sys.modules[mod_name]
             if hasattr(mod, "suite"):
                 test = mod.suite()
@@ -212,7 +212,7 @@ def usage(why):
     print "  where test_level is an integer 1-3.  Level 1 tests are quick,"
     print "  level 2 tests invoke Word, IE etc, level 3 take ages!"
     sys.exit(1)
-    
+
 if __name__=='__main__':
     try:
         opts, args = getopt.getopt(sys.argv[1:], "v")
@@ -233,7 +233,7 @@ if __name__=='__main__':
     if test_names:
         usage("Test names are not supported yet")
     CleanGenerated()
-    
+
     suite, import_failures = make_test_suite(testLevel)
     if verbosity:
         if hasattr(sys, "gettotalrefcount"):
@@ -253,11 +253,11 @@ if __name__=='__main__':
             desc = '\n'.join(traceback.format_exception_only(exc_type, exc_val))
             testResult.stream.write("%s: %s" % (mod_name, desc))
         testResult.stream.writeln("*** %d test(s) could not be run ***" % len(import_failures))
-    
+
     # re-print unit-test error here so it is noticed
     if not testResult.wasSuccessful():
         print "*" * 20, "- unittest tests FAILED"
-    
+
     CheckClean()
     pythoncom.CoUninitialize()
     CleanGenerated()

@@ -61,7 +61,7 @@ def TestObjectFromWindow():
     for color in "red green blue orange white".split():
         doc.bgColor = color
         time.sleep(0.2)
-    
+
 def TestExplorer(iexplore):
     if not iexplore.Visible: iexplore.Visible = -1
     iexplore.Navigate(win32api.GetFullPathName('..\\readme.htm'))

@@ -1,4 +1,5 @@
-""" General Server side utilities 
+"""
+General Server side utilities
 """
 import pythoncom
 import policy
@@ -97,7 +98,7 @@ class ListEnumeratorGateway(ListEnumerator):
   def Next(self, count):
     result = self._list_[self.index:self.index+count]
     self.Skip(count)
-    return map(self._wrap, result) 
+    return map(self._wrap, result)
 
 
 def NewEnum(seq,
@@ -107,7 +108,7 @@ def NewEnum(seq,
             useDispatcher=None):
   """Creates a new enumerator COM server.
 
-  This function creates a new COM Server that implements the 
+  This function creates a new COM Server that implements the
   IID_IEnumVARIANT interface.
 
   A COM server that can enumerate the passed in sequence will be
@@ -148,9 +149,9 @@ class Collection:
     except IndexError, desc:
       raise COMException(scode=winerror.DISP_E_BADINDEX, desc=str(desc))
 
-    
+
   _value_ = Item
-  
+
   def Count(self):
     return len(self.data)
 
@@ -176,7 +177,7 @@ class Collection:
 def NewCollection(seq, cls=Collection):
   """Creates a new COM collection object
 
-  This function creates a new COM Server that implements the 
+  This function creates a new COM Server that implements the
   common collection protocols, including enumeration. (_NewEnum)
 
   A COM server that can enumerate the passed in sequence will be

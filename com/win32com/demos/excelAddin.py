@@ -76,8 +76,8 @@ class ExcelAddin:
     _reg_policy_spec_ = "win32com.server.policy.EventHandlerPolicy"
 
     def __init__(self):
-        self.appHostApp = None    
-    
+        self.appHostApp = None
+
     def OnConnection(self, application, connectMode, addin, custom):
         print "OnConnection", application, connectMode, addin, custom
         try:
@@ -105,7 +105,7 @@ class ExcelAddin:
         print "OnDisconnection"
         self.appHostApp.CommandBars("PythonBar").Delete
         self.appHostApp=None
-        
+
     def OnAddInsUpdate(self, custom):
         print "OnAddInsUpdate", custom
     def OnStartupComplete(self, custom):

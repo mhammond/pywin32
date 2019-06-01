@@ -2,7 +2,7 @@
 
 # This sample demonstrates how to use COM events in a free-threaded world.
 # In this world, there is no need to marshall calls across threads, so
-# no message loops are needed at all.  This means regular cross-thread 
+# no message loops are needed at all.  This means regular cross-thread
 # sychronization can be used.  In this sample we just wait on win32 event
 # objects.
 
@@ -66,7 +66,7 @@ def TestExplorerEvents():
     except pythoncom.com_error, details:
         print "Warning - could not open the test HTML file", details
 
-    # In this free-threaded example, we can simply wait until an event has 
+    # In this free-threaded example, we can simply wait until an event has
     # been set - we will give it 2 seconds before giving up.
     rc = win32event.WaitForSingleObject(iexplore.event, 2000)
     if rc != win32event.WAIT_OBJECT_0:

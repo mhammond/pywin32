@@ -8,7 +8,7 @@
 # a loop fetching and dispatching Windows messages).  Without such message
 # processing, dead-locks can occur.
 
-# See also eventsFreeThreaded.py for how to do this in a free-threaded 
+# See also eventsFreeThreaded.py for how to do this in a free-threaded
 # world where these marshalling considerations do not exist.
 
 # NOTE: This example uses Internet Explorer, but it should not be considerd

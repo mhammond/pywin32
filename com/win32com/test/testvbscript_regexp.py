@@ -14,17 +14,17 @@ class RegexTest(win32com.test.util.TestCase):
         StringToSearch = "Python python pYthon Python"
         re.Pattern = "Python"
         re.Global = True
-        
+
         re.IgnoreCase = True
         match = re.Execute(StringToSearch)
         expected = 0, 7, 14, 21
         self._CheckMatches(match, expected)
-    
+
         re.IgnoreCase = False
         match = re.Execute(StringToSearch)
         expected = 0, 21
         self._CheckMatches(match, expected)
-    
+
     def testDynamic(self):
         re = DumbDispatch("VBScript.Regexp")
         self._TestVBScriptRegex(re)

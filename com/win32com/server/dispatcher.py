@@ -11,9 +11,9 @@ from win32com.util import IIDToInterfaceName
 import win32com
 
 class DispatcherBase:
-  """ The base class for all Dispatchers.  
+  """ The base class for all Dispatchers.
 
-      This dispatcher supports wrapping all operations in exception handlers, 
+      This dispatcher supports wrapping all operations in exception handlers,
       and all the necessary delegation to the policy.
 
       This base class supports the printing of "unexpected" exceptions.  Note, however,
@@ -77,7 +77,7 @@ class DispatcherBase:
       return self.policy._InvokeEx_(dispid, lcid, wFlags, args, kwargs, serviceProvider)
     except:
       return self._HandleException_()
- 
+
   def _DeleteMemberByName_(self, name, fdex):
     try:
       return self.policy._DeleteMemberByName_(name, fdex)
@@ -116,7 +116,7 @@ class DispatcherBase:
 
   def _HandleException_(self):
     """Called whenever an exception is raised.
- 
+
        Default behaviour is to print the exception.
     """
     # If not a COM exception, print it for the developer.
@@ -169,7 +169,7 @@ class DispatcherTrace(DispatcherBase):
   def _InvokeEx_(self, dispid, lcid, wFlags, args, kwargs, serviceProvider):
     self._trace_("in %r._InvokeEx_-%s%r [%x,%s,%r]" % (self.policy._obj_, dispid, args, wFlags, lcid, serviceProvider))
     return DispatcherBase._InvokeEx_(self, dispid, lcid, wFlags, args, kwargs, serviceProvider)
- 
+
   def _DeleteMemberByName_(self, name, fdex):
     self._trace_("in _DeleteMemberByName_ with", name, fdex)
     return DispatcherBase._DeleteMemberByName_(self, name, fdex)
@@ -197,7 +197,7 @@ class DispatcherTrace(DispatcherBase):
 
 class DispatcherWin32trace(DispatcherTrace):
   """A tracing dispatcher that sends its output to the win32trace remote collector.
-  
+
   """
   def __init__(self, policyClass, object):
     DispatcherTrace.__init__(self, policyClass, object)
@@ -209,7 +209,7 @@ class DispatcherWin32trace(DispatcherTrace):
 
 class DispatcherOutputDebugString(DispatcherTrace):
   """A tracing dispatcher that sends its output to win32api.OutputDebugString
-  
+
   """
   def _trace_(self, *args):
     for arg in args[:-1]:
@@ -220,7 +220,7 @@ class DispatcherOutputDebugString(DispatcherTrace):
 class DispatcherWin32dbg(DispatcherBase):
   """A source-level debugger dispatcher
 
-  A dispatcher which invokes the debugger as an object is instantiated, or 
+  A dispatcher which invokes the debugger as an object is instantiated, or
   when an unexpected exception occurs.
 
   Requires Pythonwin.
@@ -228,7 +228,7 @@ class DispatcherWin32dbg(DispatcherBase):
   def __init__(self, policyClass, ob):
     # No one uses this, and it just causes py2exe to drag all of
     # pythonwin in.
-    #import pywin.debugger 
+    #import pywin.debugger
     pywin.debugger.brk()
     print "The DispatcherWin32dbg dispatcher is deprecated!"
     print "Please let me know if this is a problem."

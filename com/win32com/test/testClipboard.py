@@ -131,11 +131,11 @@ class ClipboardTester(unittest.TestCase):
         cf = win32con.CF_TEXT, None, pythoncom.DVASPECT_CONTENT, -1, pythoncom.TYMED_HGLOBAL
         stg = do.GetData(cf)
         got = stg.data
-        # The data we get back has the \0, as our STGMEDIUM has no way of 
+        # The data we get back has the \0, as our STGMEDIUM has no way of
         # knowing if it meant to be a string, or a binary buffer, so
         # it must return it too.
         self.failUnlessEqual(got, str2bytes("Hello again!\0"))
-        
+
     def testDataObjectFlush(self):
         do = TestDataObject("Hello from Python")
         do = WrapCOMObject(do, iid=pythoncom.IID_IDataObject)

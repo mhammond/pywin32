@@ -3,7 +3,7 @@
 # PyWin32 Internet Explorer Toolbar
 #
 # written by Leonard Ritter (paniq@gmx.net)
-# and Robert Förtsch (info@robert-foertsch.com)
+# and Robert Fï¿½rtsch (info@robert-foertsch.com)
 
 
 """
@@ -43,7 +43,7 @@ import array, struct
 # ensure we know the ms internet controls typelib so we have access to IWebBrowser2 later on
 win32com.client.gencache.EnsureModule('{EAB22AC0-30C1-11CF-A7EB-0000C05BAE0B}',0,1,1)
 
-# 
+#
 IDeskBand_methods = ['GetBandInfo']
 IDockingWindow_methods = ['ShowDW','CloseDW','ResizeBorderDW']
 IOleWindow_methods = ['GetWindow','ContextSensitiveHelp']
@@ -81,7 +81,7 @@ class WIN32STRUCT:
     def toparam(self):
         self._buffs = []
         full_fmt = ""
-        vals = []        
+        vals = []
         for name, fmt, default in self._struct_items_:
             val = self.__dict__[name]
             if fmt == "z":
@@ -98,7 +98,7 @@ class WIN32STRUCT:
                 if val is None:
                     val = default
                 vals.append(val)
-            full_fmt += fmt		
+            full_fmt += fmt
         return struct.pack(*(full_fmt,) + tuple(vals))
 
 class TBBUTTON(WIN32STRUCT):
@@ -121,7 +121,7 @@ class Stub:
 
     def __init__(self,name):
         self.name = name
-        
+
     def __call__(self,*args):
         print 'STUB: ',self.name,args
 
@@ -193,7 +193,7 @@ class IEToolbar:
 
     def CloseDW(self, dwReserved):
         del self.toolbar
-        
+
     def ShowDW(self, bShow):
         if bShow:
             self.toolbar.ShowWindow(win32con.SW_SHOW)
@@ -309,7 +309,7 @@ def DllUnregisterServer():
 if __name__ == '__main__':
     import win32com.server.register
     win32com.server.register.UseCommandLine( IEToolbar )
-    
+
     # parse actual command line option
     if "--unregister" in sys.argv:
         DllUnregisterServer()

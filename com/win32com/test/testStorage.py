@@ -11,8 +11,8 @@ class TestEnum(win32com.test.util.TestCase):
         ##  file, mode, format, attrs (always 0), IID (IStorage or IPropertySetStorage, storage options(only used with STGFMT_DOCFILE)
         pss=pythoncom.StgOpenStorageEx(fname, m, storagecon.STGFMT_FILE, 0 , pythoncom.IID_IPropertySetStorage)
         ###                               {"Version":2,"reserved":0,"SectorSize":512,"TemplateFile":u'somefilename'})
-        
-        ## FMTID_SummaryInformation FMTID_DocSummaryInformation FMTID_UserDefinedProperties 
+
+        ## FMTID_SummaryInformation FMTID_DocSummaryInformation FMTID_UserDefinedProperties
         psuser=pss.Create(pythoncom.FMTID_UserDefinedProperties,
                       pythoncom.IID_IPropertySetStorage,
                       storagecon.PROPSETFLAG_DEFAULT,
@@ -23,16 +23,16 @@ class TestEnum(win32com.test.util.TestCase):
         expected_summaries.append( ('property3', 3, pythoncom.VT_BSTR))
         expected_summaries.append( ('property4', 4, pythoncom.VT_BSTR))
         psuser=None
-        
+
         pssum=pss.Create(pythoncom.FMTID_SummaryInformation,
                       pythoncom.IID_IPropertySetStorage,
                       storagecon.PROPSETFLAG_DEFAULT,
                       storagecon.STGM_READWRITE|storagecon.STGM_CREATE|storagecon.STGM_SHARE_EXCLUSIVE)
         pssum.WriteMultiple((storagecon.PIDSI_AUTHOR,storagecon.PIDSI_COMMENTS),('me', 'comment'))
-        
+
         pssum=None
-        pss=None    ## doesn't seem to be a close or release method, and you can't even reopen it from the same process until previous object is gone 
-        
+        pss=None    ## doesn't seem to be a close or release method, and you can't even reopen it from the same process until previous object is gone
+
         pssread=pythoncom.StgOpenStorageEx(fname, storagecon.STGM_READ|storagecon.STGM_SHARE_EXCLUSIVE, storagecon.STGFMT_FILE, 0 , pythoncom.IID_IPropertySetStorage)
         found_summaries = []
         for psstat in pssread:
@@ -59,4 +59,3 @@ class TestEnum(win32com.test.util.TestCase):
 
 if __name__=='__main__':
     unittest.main()
-   

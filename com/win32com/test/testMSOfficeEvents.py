@@ -44,7 +44,7 @@ def TestExcel():
     print "Have book", book
 #    sheet = e.Worksheets(1)
 #    sheet = DispatchWithEvents(sheet, WorksheetEvents)
-    
+
     print "Double-click in a few of the Excel cells..."
     print "Press any key when finished with Excel, or wait 10 seconds..."
     if not _WaitForFinish(e, 10):

@@ -52,9 +52,9 @@ class ThreadInterpCase(InterpCase):
 
     def BeginThreadsSimpleMarshal(self, numThreads):
         """Creates multiple threads using simple (but slower) marshalling.
-    
+
         Single interpreter object, but a new stream is created per thread.
-    
+
         Returns the handles the threads will set when complete.
         """
         interp = win32com.client.Dispatch("Python.Interpreter")
@@ -77,9 +77,9 @@ class ThreadInterpCase(InterpCase):
     # I think that refers to CoMarshalInterface though...
     def BeginThreadsFastMarshal(self, numThreads):
         """Creates multiple threads using fast (but complex) marshalling.
-    
+
         The marshal stream is created once, and each thread uses the same stream
-    
+
         Returns the handles the threads will set when complete.
         """
         interp = win32com.client.Dispatch("Python.Interpreter")

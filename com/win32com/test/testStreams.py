@@ -60,7 +60,7 @@ class Stream:
             self.index = 0
         else:
             self.index = min(self.index, len(self.data))
-        return self.index            
+        return self.index
 
 class BadStream(Stream):
     """ PyGStream::Read could formerly overflow buffer if the python implementation
@@ -82,11 +82,11 @@ class StreamTest(win32com.test.util.TestCase):
 
     def testit(self):
         mydata = str2bytes('abcdefghijklmnopqrstuvwxyz')
-    
+
         # First test the objects just as Python objects...
         s = Stream(mydata)
         p = Persists()
-    
+
         p.Load(s)
         p.Save(s, 0)
         self.assertEqual(s.data, mydata)

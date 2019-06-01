@@ -662,7 +662,7 @@ def TestVTableMI():
     ob.QueryInterface(pythoncom.IID_IStorage)
     # IDispatch should always work
     ob.QueryInterface(pythoncom.IID_IDispatch)
-    
+
     iid = pythoncom.InterfaceNames["IPyCOMTest"]
     try:
         ob.QueryInterface(iid)
@@ -726,5 +726,5 @@ if __name__=='__main__':
     thread.start_new( NullThreadFunc, () )
 
     if "-v" in sys.argv: verbose = 1
-    
+
     win32com.test.util.testmain()

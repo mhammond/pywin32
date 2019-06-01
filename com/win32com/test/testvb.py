@@ -264,7 +264,7 @@ def TestArrays(vbtest, bUseGenerated):
     _DoTestArray(vbtest, (vbtest, 2.0, "3"))
     _DoTestArray(vbtest, (1, 2.0, vbtest))
 
-    # Pass arbitrarily sized arrays - these used to fail, but thanks to 
+    # Pass arbitrarily sized arrays - these used to fail, but thanks to
     # Stefan Schukat, they now work!
     expected_exception = None
     arrayData = ( ((1,2,1),(3,4),(5,6)), ((7,8),(9,10),(11,12)) )
@@ -274,7 +274,7 @@ def TestArrays(vbtest, bUseGenerated):
     # Pass bad data - last item wrong size
     arrayData = ( ((1,2),(3,4),(5,6,8)), ((7,8),(9,10),(11,12)) )
     _DoTestArray(vbtest, arrayData, expected_exception)
-    
+
     # byref safearray results with incorrect size.
     callback_ob = wrap(TestObject(), useDispatcher = useDispatcher)
     print "** Expecting a 'ValueError' exception to be printed next:"
@@ -282,7 +282,7 @@ def TestArrays(vbtest, bUseGenerated):
         vbtest.DoCallbackSafeArraySizeFail(callback_ob)
     except pythoncom.com_error, exc:
         assert exc.excepinfo[1] == "Python COM Server Internal Error", "Didnt get the correct exception - '%s'" % (exc,)
-        
+
     if bUseGenerated:
         # This one is a bit strange!  The array param is "ByRef", as VB insists.
         # The function itself also _returns_ the arram param.
@@ -423,7 +423,7 @@ def TestStructs(vbtest):
         print "Expected repr:", expected
         print "Actual repr  :", repr(s)
         raise RuntimeError("repr() of record object failed")
-    
+
     print "Struct/Record tests passed"
 
 def TestVBInterface(ob):

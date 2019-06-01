@@ -49,8 +49,8 @@ class ShellTester(win32com.test.util.TestCase):
         for i in sf: # Magically calls EnumObjects
             name = sf.GetDisplayNameOf(i, SHGDN_NORMAL)
             names_1.append(name)
-        
-        # And get the enumerator manually    
+
+        # And get the enumerator manually
         enum = sf.EnumObjects(0, SHCONTF_FOLDERS | SHCONTF_NONFOLDERS | SHCONTF_INCLUDEHIDDEN)
         names_2 = []
         for i in enum:
@@ -114,10 +114,10 @@ class FILEGROUPDESCRIPTORTester(win32com.test.util.TestCase):
     def _testRT(self, fd):
         fgd_string = shell.FILEGROUPDESCRIPTORAsString([fd])
         fd2 = shell.StringAsFILEGROUPDESCRIPTOR(fgd_string)[0]
-        
+
         fd = fd.copy()
         fd2 = fd2.copy()
-        
+
         # The returned objects *always* have dwFlags and cFileName.
         if 'dwFlags' not in fd:
             del fd2['dwFlags']

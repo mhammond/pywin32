@@ -178,7 +178,7 @@ def restore_test_logger(prev_logger):
         del win32com.logger
     else:
         win32com.logger = prev_logger
-    
+
 # We used to override some of this (and may later!)
 TestCase = unittest.TestCase
 

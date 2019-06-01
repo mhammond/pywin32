@@ -26,7 +26,7 @@ class InterpCase(win32com.test.util.TestCase):
     def testLocalServer(self):
         interp = win32com.client.dynamic.Dispatch("Python.Interpreter", clsctx = pythoncom.CLSCTX_LOCAL_SERVER)
         self._testInterp(interp)
-    
+
     def testAny(self):
         interp = win32com.client.dynamic.Dispatch("Python.Interpreter")
         self._testInterp(interp)
@@ -34,6 +34,6 @@ class InterpCase(win32com.test.util.TestCase):
 class ConnectionsTestCase(win32com.test.util.TestCase):
     def testConnections(self):
         TestConnections()
-    
+
 if __name__=='__main__':
     unittest.main('testServers')

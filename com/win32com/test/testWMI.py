@@ -14,4 +14,3 @@ class Simple(win32com.test.util.TestCase):
 
 if __name__=='__main__':
     unittest.main()
-

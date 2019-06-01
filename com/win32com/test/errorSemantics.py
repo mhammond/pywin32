@@ -114,7 +114,7 @@ if logging is not None:
             print "--- record start"
             print self.format(record)
             print "--- record end"
-    
+
     def testLogger():
         assert not hasattr(win32com, "logger")
         handler = TestLogHandler()
@@ -141,7 +141,7 @@ if logging is not None:
         except pythoncom.error:
             pass
         assert handler.num_emits == 1, handler.num_emits
-    
+
 if __name__=='__main__':
     test()
     if logging is not None:

@@ -3,7 +3,7 @@
 # PyWin32 Internet Explorer Button
 #
 # written by Leonard Ritter (paniq@gmx.net)
-# and Robert Förtsch (info@robert-foertsch.com)
+# and Robert Fï¿½rtsch (info@robert-foertsch.com)
 
 
 """
@@ -49,7 +49,7 @@ import array, struct
 win32com.client.gencache.EnsureModule('{EAB22AC0-30C1-11CF-A7EB-0000C05BAE0B}',0,1,1)
 
 
-# 
+#
 IObjectWithSite_methods = ['SetSite','GetSite']
 IOleCommandTarget_methods = ['Exec','QueryStatus']
 
@@ -65,13 +65,13 @@ class Stub:
     outputting debug info whenever the object
     is being called.
     """
-    
+
     def __init__(self,name):
         self.name = name
-        
+
     def __call__(self,*args):
         print 'STUB: ',self.name,args
-        
+
 class IEButton:
     """
     The actual COM server class
@@ -90,13 +90,13 @@ class IEButton:
             if not hasattr(self,method):
                 print 'providing default stub for %s' % method
                 setattr(self,method,Stub(method))
-                
+
     def QueryStatus (self, pguidCmdGroup, prgCmds, cmdtextf):
         # 'cmdtextf' is the 'cmdtextf' element from the OLECMDTEXT structure,
         # or None if a NULL pointer was passed.
         result = []
         for id, flags in prgCmds:
-            flags |= axcontrol.OLECMDF_SUPPORTED  | axcontrol.OLECMDF_ENABLED 
+            flags |= axcontrol.OLECMDF_SUPPORTED  | axcontrol.OLECMDF_ENABLED
             result.append((id, flags))
         if cmdtextf is None:
             cmdtext = None # must return None if nothing requested.
@@ -174,11 +174,11 @@ class PyWin32InternetExplorerButton(IEButton):
     _button_text_ = 'IE Button'
     _tool_tip_ = 'An example implementation for an IE Button.'
     _icon_ = ''
-    _hot_icon_ = _icon_    
+    _hot_icon_ = _icon_
 
 def DllRegisterServer():
     register(PyWin32InternetExplorerButton)
-    
+
 def DllUnregisterServer():
     unregister(PyWin32InternetExplorerButton)
 

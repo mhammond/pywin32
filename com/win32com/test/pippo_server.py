@@ -10,12 +10,12 @@ from win32com.server.util import wrap
 
 class CPippo:
     #
-    # COM declarations    
+    # COM declarations
     #
     _reg_clsid_ = "{05AC1CCE-3F9B-4d9a-B0B5-DFE8BE45AFA8}"
     _reg_desc_ = "Pippo Python test object"
     _reg_progid_ = "Python.Test.Pippo"
-    #_reg_clsctx_ = pythoncom.CLSCTX_LOCAL_SERVER    
+    #_reg_clsctx_ = pythoncom.CLSCTX_LOCAL_SERVER
     ###
     ### Link to typelib
     _typelib_guid_ = '{41059C57-975F-4B36-8FF3-C5117426647A}'
@@ -45,7 +45,7 @@ def BuildTypelib():
         # just nuke them
         for fname in "dlldata.c pippo_i.c pippo_p.c pippo.h".split():
             os.remove(os.path.join(this_dir, fname))
-    
+
     print "Registering %s" % (tlb,)
     tli=pythoncom.LoadTypeLib(tlb)
     pythoncom.RegisterTypeLib(tli,tlb)
@@ -53,10 +53,10 @@ def BuildTypelib():
 def UnregisterTypelib():
     k = CPippo
     try:
-        pythoncom.UnRegisterTypeLib(k._typelib_guid_, 
-                                    k._typelib_version_[0], 
-                                    k._typelib_version_[1], 
-                                    0, 
+        pythoncom.UnRegisterTypeLib(k._typelib_guid_,
+                                    k._typelib_version_[0],
+                                    k._typelib_version_[1],
+                                    0,
                                     pythoncom.SYS_WIN32)
         print "Unregistered typelib"
     except pythoncom.error, details:
@@ -73,7 +73,7 @@ def main(argv=None):
     else:
         # Build and register the type-libraries.
         BuildTypelib()
-    import win32com.server.register 
+    import win32com.server.register
     win32com.server.register.UseCommandLine(CPippo)
 
 if __name__=='__main__':
