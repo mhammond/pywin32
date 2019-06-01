@@ -34,9 +34,9 @@ install:
   - python --version
 
   # Install setuptools/wheel so that we can e.g. use bdist_wheel
-  - pip install --upgrade setuptools wheel .
-  - pip install --upgrade pycodestyle .
-  
+  - pip install --upgrade setuptools wheel
+  - pip install --upgrade pycodestyle
+
   ## Use Chocolatey to install SWIG.
   #- set SWIG=C:\ProgramData\chocolatey\bin\swig.exe
   #- if not exist %SWIG% choco install swig --version 3.0.9 --yes --limit-output
@@ -53,7 +53,7 @@ init:
   - if "%PYTHON_MAJOR%"=="2" if "%PYTHON_MINOR%"=="7" set VC_VERSION=9.0
   - if "%PYTHON_MAJOR%"=="2" if "%PYTHON_MINOR%"=="6" set VC_VERSION=9.0
   - call "C:\Program Files (x86)\Microsoft Visual Studio %VC_VERSION%\VC\vcvarsall.bat" %VC_ARCH%
-  
+
   # RDP session for debugging
   #- ps: iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
 
@@ -61,7 +61,7 @@ build_script:
   - python setup.py build
 
 test_script:
-  - python -m pycodestyle --show-source --show-pep8
+  - python -m pycodestyle --show-source --show-pep8 .
   - python -m pycodestyle --statistics -qq .
 
 after_test:
