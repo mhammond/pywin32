@@ -10,10 +10,6 @@ environment:
   matrix:
     # For Python versions available on Appveyor, see
     # http://www.appveyor.com/docs/installed-software#python
-    # -> Python 2.6: After updating the wheels module, we get syntax errors.
-    #- PYTHON_MAJOR: 2
-    #  PYTHON_MINOR: 6
-    #  APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2013 # Can be used to override the image, which shall be used.
     - PYTHON_MAJOR: 2
       PYTHON_MINOR: 7
     - PYTHON_MAJOR: 3
@@ -51,7 +47,6 @@ init:
   - if "%PYTHON_MAJOR%"=="3" if "%PYTHON_MINOR%"=="4" set VC_VERSION=10.0
   - if "%PYTHON_MAJOR%"=="3" if "%PYTHON_MINOR%"=="3" set VC_VERSION=10.0
   - if "%PYTHON_MAJOR%"=="2" if "%PYTHON_MINOR%"=="7" set VC_VERSION=9.0
-  - if "%PYTHON_MAJOR%"=="2" if "%PYTHON_MINOR%"=="6" set VC_VERSION=9.0
   - call "C:\Program Files (x86)\Microsoft Visual Studio %VC_VERSION%\VC\vcvarsall.bat" %VC_ARCH%
 
   # RDP session for debugging
