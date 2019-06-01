@@ -35,6 +35,7 @@ install:
 
   # Install setuptools/wheel so that we can e.g. use bdist_wheel
   - pip install --upgrade setuptools wheel
+  - pip install --upgrade pycodestyle
   
   ## Use Chocolatey to install SWIG.
   #- set SWIG=C:\ProgramData\chocolatey\bin\swig.exe
@@ -60,15 +61,8 @@ build_script:
   - python setup.py build
 
 test_script:
-  # Put your test command here.
-  # If you don't need to build C extensions on 64-bit Python 3.3 or 3.4,
-  # you can remove "build.cmd" from the front of the command, as it's
-  # only needed to support those cases.
-  # Note that you must use the environment variable %PYTHON% to refer to
-  # the interpreter you're using - Appveyor does not do anything special
-  # to put the Python version you want to use on PATH.
-  #- if "%PYTHON_MAJOR%"=="2" python pywin32_testall.py
-  - ECHO "TODO: Adding test script here!"
+  - python -m pycodestyle --show-source --show-pep8
+  - python -m pycodestyle --statistics -qq .
 
 after_test:
   # This step builds your wheels.
