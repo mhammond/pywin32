@@ -5,23 +5,31 @@ import win32com.test.util
 import unittest
 from pywin32_testutil import str2bytes
 
+
 class Persists:
-    _public_methods_ = [ 'GetClassID', 'IsDirty', 'Load', 'Save',
-                         'GetSizeMax', 'InitNew' ]
-    _com_interfaces_ = [ pythoncom.IID_IPersistStreamInit ]
+    _public_methods_ = ['GetClassID', 'IsDirty',
+                        'Load', 'Save',
+                        'GetSizeMax', 'InitNew']
+    _com_interfaces_ = [pythoncom.IID_IPersistStreamInit]
+
     def __init__(self):
         self.data = str2bytes("abcdefg")
         self.dirty = 1
+
     def GetClassID(self):
         return pythoncom.IID_NULL
+
     def IsDirty(self):
         return self.dirty
+
     def Load(self, stream):
         self.data = stream.Read(26)
+
     def Save(self, stream, clearDirty):
         stream.Write(self.data)
         if clearDirty:
             self.dirty = 0
+
     def GetSizeMax(self):
         return 1024
 
@@ -30,15 +38,16 @@ class Persists:
 
 
 class Stream:
-    _public_methods_ = [ 'Read', 'Write', 'Seek' ]
-    _com_interfaces_ = [ pythoncom.IID_IStream ]
+    _public_methods_ = ['Read', 'Write',
+                        'Seek']
+    _com_interfaces_ = [pythoncom.IID_IStream]
 
     def __init__(self, data):
         self.data = data
         self.index = 0
 
     def Read(self, amount):
-        result = self.data[self.index : self.index + amount]
+        result = self.data[self.index: self.index + amount]
         self.index = self.index + amount
         return result
 
@@ -48,30 +57,34 @@ class Stream:
         return len(data)
 
     def Seek(self, dist, origin):
-        if origin==pythoncom.STREAM_SEEK_SET:
+        if origin == pythoncom.STREAM_SEEK_SET:
             self.index = dist
-        elif origin==pythoncom.STREAM_SEEK_CUR:
+        elif origin == pythoncom.STREAM_SEEK_CUR:
             self.index = self.index + dist
-        elif origin==pythoncom.STREAM_SEEK_END:
+        elif origin == pythoncom.STREAM_SEEK_END:
             self.index = len(self.data)+dist
         else:
-            raise ValueError('Unknown Seek type: ' +str(origin))
+            raise ValueError('Unknown Seek type: ' + str(origin))
         if self.index < 0:
             self.index = 0
         else:
             self.index = min(self.index, len(self.data))
         return self.index
 
+
 class BadStream(Stream):
-    """ PyGStream::Read could formerly overflow buffer if the python implementation
-        returned more data than requested.
+    """
+    PyGStream::Read could formerly overflow buffer if the python implementation
+    returned more data than requested.
     """
     def Read(self, amount):
         return str2bytes('x')*(amount+1)
 
+
 class StreamTest(win32com.test.util.TestCase):
-    def _readWrite(self, data, write_stream, read_stream = None):
-        if read_stream is None: read_stream = write_stream
+    def _readWrite(self, data, write_stream, read_stream=None):
+        if read_stream is None:
+            read_stream = write_stream
         write_stream.Write(data)
         read_stream.Seek(0, pythoncom.STREAM_SEEK_SET)
         got = read_stream.Read(len(data))
@@ -117,9 +130,10 @@ class StreamTest(win32com.test.util.TestCase):
     def testerrors(self):
         # setup a test logger to capture tracebacks etc.
         records, old_log = win32com.test.util.setup_test_logger()
-        ## check for buffer overflow in Read method
+        # # check for buffer overflow in Read method
         badstream = BadStream('Check for buffer overflow')
-        badstream2 = win32com.server.util.wrap(badstream, pythoncom.IID_IStream)
+        badstream2 = win32com.server.util.wrap(badstream,
+                                               pythoncom.IID_IStream)
         self.assertRaises(pythoncom.com_error, badstream2.Read, 10)
         win32com.test.util.restore_test_logger(old_log)
         # expecting 2 pythoncom errors to have been raised by the gateways.
@@ -127,5 +141,5 @@ class StreamTest(win32com.test.util.TestCase):
         self.failUnless(records[0].msg.startswith('pythoncom error'))
         self.failUnless(records[1].msg.startswith('pythoncom error'))
 
-if __name__=='__main__':
+if __name__ == '__main__':
     unittest.main()

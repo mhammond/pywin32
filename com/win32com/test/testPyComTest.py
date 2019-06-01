@@ -1,8 +1,13 @@
 # NOTE - Still seems to be a leak here somewhere
 # gateway count doesnt hit zero.  Hence the print statements!
 
-import sys; sys.coinit_flags=0 # Must be free-threaded!
-import win32api, pythoncom, time
+import sys
+
+sys.coinit_flags = 0  # Must be free-threaded!
+
+import win32api
+import pythoncom
+import time
 import pywintypes
 import os
 import winerror
@@ -21,7 +26,10 @@ importMsg = "**** PyCOMTest is not installed ***\n  PyCOMTest is a Python test s
 error = Exception
 
 # This test uses a Python implemented COM server - ensure correctly registered.
-RegisterPythonServer(os.path.join(os.path.dirname(__file__), '..', "servers", "test_pycomtest.py"),
+RegisterPythonServer(os.path.join(os.path.dirname(__file__),
+                                  '..',
+                                  "servers",
+                                  "test_pycomtest.py"),
                      "Python.Test.PyCOMTest")
 
 from win32com.client import gencache
@@ -39,6 +47,7 @@ universal.RegisterInterfaces('{6BCDCB60-5605-11D0-AE5F-CADD4C000000}', 0, 1, 1)
 
 verbose = 0
 
+
 # convert a normal int to a long int - used to avoid, eg, '1L' for py3k
 # friendliness
 def ensure_long(int_val):
@@ -48,24 +57,28 @@ def ensure_long(int_val):
     # on py2x, we just use an expression that results in a long
     return 0x100000000-0x100000000+int_val
 
+
 def check_get_set(func, arg):
     got = func(arg)
     if got != arg:
         raise error("%s failed - expected %r, got %r" % (func, arg, got))
 
+
 def check_get_set_raises(exc, func, arg):
     try:
         got = func(arg)
     except exc, e:
-        pass # what we expect!
+        pass  # what we expect!
     else:
         raise error("%s with arg %r didn't raise %s - returned %r" % (func, arg, exc, got))
+
 
 def progress(*args):
     if verbose:
         for arg in args:
             print arg,
         print
+
 
 def TestApplyResult(fn, args, result):
     try:
@@ -78,6 +91,7 @@ def TestApplyResult(fn, args, result):
     if rc != result:
         raise error("%s failed - result not %r but %r" % (pref, result, rc))
 
+
 def TestConstant(constName, pyConst):
     try:
         comConst = getattr(constants, constName)
@@ -86,15 +100,18 @@ def TestConstant(constName, pyConst):
     if comConst != pyConst:
         raise error("Constant value wrong for %s - got %s, wanted %s" % (constName, comConst, pyConst))
 
+
 # Simple handler class.  This demo only fires one event.
 class RandomEventHandler:
     def _Init(self):
         self.fireds = {}
+
     def OnFire(self, no):
         try:
             self.fireds[no] = self.fireds[no] + 1
         except KeyError:
             self.fireds[no] = 0
+
     def OnFireWithNamedParams(self, no, a_bool, out1, out2):
         # This test exists mainly to help with an old bug, where named
         # params would come in reverse.
@@ -102,10 +119,10 @@ class RandomEventHandler:
         if no is not Missing:
             # We know our impl called 'OnFire' with the same ID
             assert no in self.fireds
-            assert no+1==out1, "expecting 'out1' param to be ID+1"
-            assert no+2==out2, "expecting 'out2' param to be ID+2"
+            assert no + 1 == out1, "expecting 'out1' param to be ID+1"
+            assert no + 2 == out2, "expecting 'out2' param to be ID+2"
         # The middle must be a boolean.
-        assert a_bool is Missing or type(a_bool)==bool, "middle param not a bool"
+        assert a_bool is Missing or type(a_bool) == bool, "middle param not a bool"
         return out1+2, out2+2
 
     def _DumpFireds(self):
@@ -114,16 +131,19 @@ class RandomEventHandler:
         for firedId, no in self.fireds.iteritems():
             progress("ID %d fired %d times" % (firedId, no))
 
+
 # A simple handler class that derives from object (ie, a "new style class") -
 # only relevant for Python 2.x (ie, the 2 classes should be identical in 3.x)
 class NewStyleRandomEventHandler(object):
     def _Init(self):
         self.fireds = {}
+
     def OnFire(self, no):
         try:
             self.fireds[no] = self.fireds[no] + 1
         except KeyError:
             self.fireds[no] = 0
+
     def OnFireWithNamedParams(self, no, a_bool, out1, out2):
         # This test exists mainly to help with an old bug, where named
         # params would come in reverse.
@@ -131,10 +151,10 @@ class NewStyleRandomEventHandler(object):
         if no is not Missing:
             # We know our impl called 'OnFire' with the same ID
             assert no in self.fireds
-            assert no+1==out1, "expecting 'out1' param to be ID+1"
-            assert no+2==out2, "expecting 'out2' param to be ID+2"
+            assert no + 1 == out1, "expecting 'out1' param to be ID+1"
+            assert no + 2 == out2, "expecting 'out2' param to be ID+2"
         # The middle must be a boolean.
-        assert a_bool is Missing or type(a_bool)==bool, "middle param not a bool"
+        assert a_bool is Missing or type(a_bool) == bool, "middle param not a bool"
         return out1+2, out2+2
 
     def _DumpFireds(self):
@@ -153,19 +173,19 @@ def TestCommon(o, is_generated):
 
     progress("Checking default args")
     rc = o.TestOptionals()
-    if  rc[:-1] != ("def", 0, 1) or abs(rc[-1]-3.14)>.01:
+    if rc[:-1] != ("def", 0, 1) or abs(rc[-1]-3.14) > .01:
         print rc
         raise error("Did not get the optional values correctly")
     rc = o.TestOptionals("Hi", 2, 3, 1.1)
-    if  rc[:-1] != ("Hi", 2, 3) or abs(rc[-1]-1.1)>.01:
+    if rc[:-1] != ("Hi", 2, 3) or abs(rc[-1]-1.1) > .01:
         print rc
         raise error("Did not get the specified optional values correctly")
     rc = o.TestOptionals2(0)
-    if  rc != (0, "", 1):
+    if rc != (0, "", 1):
         print rc
         raise error("Did not get the optional2 values correctly")
     rc = o.TestOptionals2(1.1, "Hi", 2)
-    if  rc[1:] != ("Hi", 2) or abs(rc[0]-1.1)>.01:
+    if rc[1:] != ("Hi", 2) or abs(rc[0]-1.1) > .01:
         print rc
         raise error("Did not get the specified optional2 values correctly")
 
@@ -192,8 +212,8 @@ def TestCommon(o, is_generated):
     check_get_set(o.GetSetUnsignedInt, 1)
     check_get_set(o.GetSetUnsignedInt, 0x80000000)
     if o.GetSetUnsignedInt(-1) != 0xFFFFFFFF:
-    # -1 is a special case - we accept a negative int (silently converting to
-    # unsigned) but when getting it back we convert it to a long.
+        # -1 is a special case - we accept a negative int (silently converting to
+        # unsigned) but when getting it back we convert it to a long.
         raise error("unsigned -1 failed")
 
     check_get_set(o.GetSetLong, 0)
@@ -209,13 +229,13 @@ def TestCommon(o, is_generated):
 
     # We want to explicitly test > 32 bits.  py3k has no 'maxint' and
     # 'maxsize+1' is no good on 64bit platforms as its 65 bits!
-    big = 2147483647 # sys.maxint on py2k
+    big = 2147483647  # sys.maxint on py2k
     for l in big, big+1, 1 << 65:
         check_get_set(o.GetSetVariant, l)
 
     progress("Checking structs")
     r = o.GetStruct()
-    assert r.int_value == 99 and str(r.str_value)=="Hello from C++"
+    assert r.int_value == 99 and str(r.str_value) == "Hello from C++"
     assert o.DoubleString("foo") == "foofoo"
 
     progress("Checking var args")
@@ -224,11 +244,11 @@ def TestCommon(o, is_generated):
         raise error("VarArgs failed -" + str(o.GetLastVarArgs()))
 
     progress("Checking arrays")
-    l=[]
+    l = []
     TestApplyResult(o.SetVariantSafeArray, (l,), len(l))
-    l=[1,2,3,4]
+    l = [1, 2, 3, 4]
     TestApplyResult(o.SetVariantSafeArray, (l,), len(l))
-    TestApplyResult(o.CheckVariantSafeArray, ((1,2,3,4,),), 1)
+    TestApplyResult(o.CheckVariantSafeArray, ((1, 2, 3, 4,),), 1)
 
     # and binary
     TestApplyResult(o.SetBinSafeArray, (str2memory('foo\0bar'),), 7)
@@ -236,23 +256,23 @@ def TestCommon(o, is_generated):
     progress("Checking properties")
     o.LongProp = 3
     if o.LongProp != 3 or o.IntProp != 3:
-        raise error("Property value wrong - got %d/%d" % (o.LongProp,o.IntProp))
+        raise error("Property value wrong - got %d/%d" % (o.LongProp, o.IntProp))
     o.LongProp = o.IntProp = -3
     if o.LongProp != -3 or o.IntProp != -3:
-        raise error("Property value wrong - got %d/%d" % (o.LongProp,o.IntProp))
+        raise error("Property value wrong - got %d/%d" % (o.LongProp, o.IntProp))
     # This number fits in an unsigned long.  Attempting to set it to a normal
     # long will involve overflow, which is to be expected. But we do
     # expect it to work in a property explicitly a VT_UI4.
-    check = 3 *10 **9
+    check = 3 * 10 ** 9
     o.ULongProp = check
     if o.ULongProp != check:
         raise error("Property value wrong - got %d (expected %d)" % (o.ULongProp, check))
 
-    TestApplyResult(o.Test, ("Unused", 99), 1) # A bool function
-    TestApplyResult(o.Test, ("Unused", -1), 1) # A bool function
-    TestApplyResult(o.Test, ("Unused", 1==1), 1) # A bool function
+    TestApplyResult(o.Test, ("Unused", 99), 1)  # A bool function
+    TestApplyResult(o.Test, ("Unused", -1), 1)  # A bool function
+    TestApplyResult(o.Test, ("Unused", 1 == 1), 1)  # A bool function
     TestApplyResult(o.Test, ("Unused", 0), 0)
-    TestApplyResult(o.Test, ("Unused", 1==0), 0)
+    TestApplyResult(o.Test, ("Unused", 1 == 0), 0)
 
     assert o.DoubleString("foo") == "foofoo"
 
@@ -325,7 +345,7 @@ def TestTrickyTypesWithVariants(o, is_generated):
         raise error("TestByRefString failed")
 
     # check we can pass ints as a VT_UI1
-    vals=[1,2,3,4]
+    vals = [1, 2, 3, 4]
     if is_generated:
         arg = vals
     else:
@@ -346,12 +366,13 @@ def TestTrickyTypesWithVariants(o, is_generated):
         arg = VARIANT(pythoncom.VT_ARRAY | pythoncom.VT_R4, vals)
     TestApplyResult(o.SetFloatSafeArray, (arg,), len(vals))
 
-    vals=[1.1, 2.2, 3.3, 4.4]
+    vals = [1.1, 2.2, 3.3, 4.4]
     expected = (1.1*2, 2.2*2, 3.3*2, 4.4*2)
     if is_generated:
         TestApplyResult(o.ChangeDoubleSafeArray, (vals,), expected)
     else:
-        arg = VARIANT(pythoncom.VT_BYREF | pythoncom.VT_ARRAY | pythoncom.VT_R8, vals)
+        arg = VARIANT(pythoncom.VT_BYREF | pythoncom.VT_ARRAY | pythoncom.VT_R8,
+                      vals)
         o.ChangeDoubleSafeArray(arg)
         if arg.value != expected:
             raise error("ChangeDoubleSafeArray got the wrong value")
@@ -372,6 +393,7 @@ def TestTrickyTypesWithVariants(o, is_generated):
         o.DoubleCurrencyByVal(v)
         got = v.value
     assert got == val * 2
+
 
 def TestDynamic():
     progress("Testing Dynamic")
@@ -408,7 +430,8 @@ def TestGenerated():
 
     # XXX - this is failing in dynamic tests, but should work fine.
     i1, i2 = o.GetMultipleInterfaces()
-    if not isinstance(i1, DispatchBaseClass) or not isinstance(i2, DispatchBaseClass):
+    if not isinstance(i1, DispatchBaseClass) or not isinstance(i2,
+                                                               DispatchBaseClass):
         # Yay - is now an instance returned!
         raise error("GetMultipleInterfaces did not return instances - got '%s', '%s'" % (i1, i2))
     del i1
@@ -439,11 +462,11 @@ def TestGenerated():
     resultCheck = tuple(range(5)), tuple(range(10)), tuple(range(20))
     TestApplyResult(o.GetSafeArrays, (None, None, None), resultCheck)
 
-    l=[]
+    l = []
     TestApplyResult(o.SetIntSafeArray, (l,), len(l))
-    l=[1,2,3,4]
+    l = [1, 2, 3, 4]
     TestApplyResult(o.SetIntSafeArray, (l,), len(l))
-    ll=[1,2,3,0x100000000]
+    ll = [1, 2, 3, 0x100000000]
     TestApplyResult(o.SetLongLongSafeArray, (ll,), len(ll))
     TestApplyResult(o.SetULongLongSafeArray, (ll,), len(ll))
 
@@ -499,7 +522,7 @@ def TestEvents(o, handler):
         handler.close()
 
 
-def _TestPyVariant(o, is_generated, val, checker = None):
+def _TestPyVariant(o, is_generated, val, checker=None):
     if is_generated:
         vt, got = o.GetVariantAndType(val)
     else:
@@ -526,6 +549,7 @@ def _TestPyVariant(o, is_generated, val, checker = None):
     assert type(check) == type(got), (type(check), type(got))
     assert check == got, (check, got)
 
+
 def _TestPyVariantFails(o, is_generated, val, exc):
     try:
         _TestPyVariant(o, is_generated, val)
@@ -533,15 +557,36 @@ def _TestPyVariantFails(o, is_generated, val, exc):
     except exc:
         pass
 
+
 def TestPyVariant(o, is_generated):
-    _TestPyVariant(o, is_generated, VARIANT(pythoncom.VT_UI1, 1))
-    _TestPyVariant(o, is_generated, VARIANT(pythoncom.VT_ARRAY | pythoncom.VT_UI4, [1,2,3]))
-    _TestPyVariant(o, is_generated, VARIANT(pythoncom.VT_BSTR, u"hello"))
-    _TestPyVariant(o, is_generated, VARIANT(pythoncom.VT_ARRAY | pythoncom.VT_BSTR, [u"hello", u"there"]))
+    _TestPyVariant(o,
+                   is_generated,
+                   VARIANT(pythoncom.VT_UI1, 1)
+                   )
+    _TestPyVariant(o,
+                   is_generated,
+                   VARIANT(pythoncom.VT_ARRAY | pythoncom.VT_UI4, [1, 2, 3])
+                   )
+    _TestPyVariant(o,
+                   is_generated,
+                   VARIANT(pythoncom.VT_BSTR, u"hello")
+                   )
+    _TestPyVariant(o,
+                   is_generated,
+                   VARIANT(pythoncom.VT_ARRAY | pythoncom.VT_BSTR, [u"hello", u"there"])
+                   )
+
     def check_dispatch(got):
-        assert isinstance(got._oleobj_, pythoncom.TypeIIDs[pythoncom.IID_IDispatch])
-    _TestPyVariant(o, is_generated, VARIANT(pythoncom.VT_DISPATCH, o), check_dispatch)
-    _TestPyVariant(o, is_generated, VARIANT(pythoncom.VT_ARRAY | pythoncom.VT_DISPATCH, [o]))
+        assert isinstance(got._oleobj_,
+                          pythoncom.TypeIIDs[pythoncom.IID_IDispatch])
+    _TestPyVariant(o,
+                   is_generated,
+                   VARIANT(pythoncom.VT_DISPATCH, o),
+                   check_dispatch)
+    _TestPyVariant(o,
+                   is_generated,
+                   VARIANT(pythoncom.VT_ARRAY | pythoncom.VT_DISPATCH, [o])
+                   )
     # an array of variants each with a specific type.
     v = VARIANT(pythoncom.VT_ARRAY | pythoncom.VT_VARIANT,
                 [VARIANT(pythoncom.VT_UI4, 1),
@@ -552,7 +597,10 @@ def TestPyVariant(o, is_generated):
     _TestPyVariant(o, is_generated, v)
 
     # and failures
-    _TestPyVariantFails(o, is_generated, VARIANT(pythoncom.VT_UI1, "foo"), ValueError)
+    _TestPyVariantFails(o,
+                        is_generated,
+                        VARIANT(pythoncom.VT_UI1, "foo"),
+                        ValueError)
 
 
 def TestCounter(counter, bIsGenerated):
@@ -576,8 +624,8 @@ def TestCounter(counter, bIsGenerated):
     num = 0
     if bIsGenerated:
         counter.SetTestProperty(1)
-        counter.TestProperty = 1 # Note this has a second, default arg.
-        counter.SetTestProperty(1,2)
+        counter.TestProperty = 1  # Note this has a second, default arg.
+        counter.SetTestProperty(1, 2)
         if counter.TestPropertyWithDef != 0:
             raise error("Unexpected property set value!")
         if counter.TestPropertyNoDef(1) != 1:
@@ -586,14 +634,14 @@ def TestCounter(counter, bIsGenerated):
         pass
         # counter.TestProperty = 1
 
-    counter.LBound=1
-    counter.UBound=10
-    if counter.LBound != 1 or counter.UBound!=10:
+    counter.LBound = 1
+    counter.UBound = 10
+    if counter.LBound != 1 or counter.UBound != 10:
         print "** Error - counter did not keep its properties"
 
     if bIsGenerated:
         bounds = counter.GetBounds()
-        if bounds[0]!=1 or bounds[1]!=10:
+        if bounds[0] != 1 or bounds[1] != 10:
             raise error("** Error - counter did not give the same properties back")
         counter.SetBounds(bounds[0], bounds[1])
 
@@ -604,7 +652,7 @@ def TestCounter(counter, bIsGenerated):
     if num != 10:
         raise error("*** Unexpected number of loop iterations ***")
 
-    counter = iter(counter)._iter_.Clone() # Test Clone() and enum directly
+    counter = iter(counter)._iter_.Clone()  # Test Clone() and enum directly
     counter.Reset()
     num = 0
     for item in counter:
@@ -613,23 +661,29 @@ def TestCounter(counter, bIsGenerated):
         raise error("*** Unexpected number of loop iterations - got %d ***" % num)
     progress("Finished testing counter")
 
+
 def TestLocalVTable(ob):
     # Python doesn't fully implement this interface.
     if ob.DoubleString("foo") != "foofoo":
         raise error("couldn't foofoo")
 
+
 ###############################
-##
-## Some vtable tests of the interface
-##
+# #
+# # Some vtable tests of the interface
+# #
 def TestVTable(clsctx=pythoncom.CLSCTX_ALL):
     # Any vtable interfaces marked as dual *should* be able to be
     # correctly implemented as IDispatch.
     ob = win32com.client.Dispatch("Python.Test.PyCOMTest")
     TestLocalVTable(ob)
-    # Now test it via vtable - use some C++ code to help here as Python can't do it directly yet.
+    # Now test it via vtable - use some C++ code to help here as Python
+    # can't do it directly yet.
     tester = win32com.client.Dispatch("PyCOMTest.PyCOMTest")
-    testee = pythoncom.CoCreateInstance("Python.Test.PyCOMTest", None, clsctx, pythoncom.IID_IUnknown)
+    testee = pythoncom.CoCreateInstance("Python.Test.PyCOMTest",
+                                        None,
+                                        clsctx,
+                                        pythoncom.IID_IUnknown)
     # check we fail gracefully with None passed.
     try:
         tester.TestMyInterface(None)
@@ -637,6 +691,7 @@ def TestVTable(clsctx=pythoncom.CLSCTX_ALL):
         pass
     # and a real object.
     tester.TestMyInterface(testee)
+
 
 def TestVTable2():
     # We once crashed creating our object with the native interface as
@@ -653,9 +708,13 @@ def TestVTable2():
         # "expected".  Any COM error is not.
         pass
 
+
 def TestVTableMI():
     clsctx = pythoncom.CLSCTX_SERVER
-    ob = pythoncom.CoCreateInstance("Python.Test.PyCOMTestMI", None, clsctx, pythoncom.IID_IUnknown)
+    ob = pythoncom.CoCreateInstance("Python.Test.PyCOMTestMI",
+                                    None,
+                                    clsctx,
+                                    pythoncom.IID_IUnknown)
     # This inherits from IStream.
     ob.QueryInterface(pythoncom.IID_IStream)
     # This implements IStorage, specifying the IID as a string
@@ -671,11 +730,13 @@ def TestVTableMI():
         # "expected".  Any COM error is not.
         pass
 
-def TestQueryInterface(long_lived_server = 0, iterations=5):
+
+def TestQueryInterface(long_lived_server=0, iterations=5):
     tester = win32com.client.Dispatch("PyCOMTest.PyCOMTest")
     if long_lived_server:
         # Create a local server
-        t0 = win32com.client.Dispatch("Python.Test.PyCOMTest", clsctx=pythoncom.CLSCTX_LOCAL_SERVER)
+        t0 = win32com.client.Dispatch("Python.Test.PyCOMTest",
+                                      clsctx=pythoncom.CLSCTX_LOCAL_SERVER)
     # Request custom interfaces a number of times
     prompt = [
             "Testing QueryInterface without long-lived local-server #%d of %d...",
@@ -683,8 +744,9 @@ def TestQueryInterface(long_lived_server = 0, iterations=5):
     ]
 
     for i in range(iterations):
-        progress(prompt[long_lived_server!=0] % (i+1, iterations))
+        progress(prompt[long_lived_server != 0] % (i+1, iterations))
         tester.TestQueryInterface()
+
 
 class Tester(win32com.test.util.TestCase):
     def testVTableInProc(self):
@@ -692,18 +754,22 @@ class Tester(win32com.test.util.TestCase):
         for i in range(3):
             progress("Testing VTables in-process #%d..." % (i+1))
             TestVTable(pythoncom.CLSCTX_INPROC_SERVER)
+
     def testVTableLocalServer(self):
         for i in range(3):
             progress("Testing VTables out-of-process #%d..." % (i+1))
             TestVTable(pythoncom.CLSCTX_LOCAL_SERVER)
+
     def testVTable2(self):
         for i in range(3):
             TestVTable2()
+
     def testVTableMI(self):
         for i in range(3):
             TestVTableMI()
+
     def testMultiQueryInterface(self):
-        TestQueryInterface(0,6)
+        TestQueryInterface(0, 6)
         # When we use the custom interface in the presence of a long-lived
         # local server, i.e. a local server that is already running when
         # we request an instance of our COM object, and remains afterwards,
@@ -711,20 +777,23 @@ class Tester(win32com.test.util.TestCase):
         # the custom interface disappears -- i.e. QueryInterface fails with
         # E_NOINTERFACE. Set the upper range of the following test to 2 to
         # pass this test, i.e. TestQueryInterface(1,2)
-        TestQueryInterface(1,6)
+        TestQueryInterface(1, 6)
+
     def testDynamic(self):
         TestDynamic()
+
     def testGenerated(self):
         TestGenerated()
 
-if __name__=='__main__':
+if __name__ == '__main__':
     # XXX - todo - Complete hack to crank threading support.
     # Should NOT be necessary
     def NullThreadFunc():
         pass
     import thread
-    thread.start_new( NullThreadFunc, () )
+    thread.start_new(NullThreadFunc, ())
 
-    if "-v" in sys.argv: verbose = 1
+    if "-v" in sys.argv:
+        verbose = 1
 
     win32com.test.util.testmain()
