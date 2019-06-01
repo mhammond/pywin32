@@ -892,7 +892,7 @@ class my_build_ext(build_ext):
             # Should have the same length - if not we lost a file!
             if len(mfc_files) is not len(mfc_contents):
                 mfc_contents = []
-        
+
         return mfc_contents
 
     def lookupMfcInWinSxS(self, mfc_version, mfc_libraries):
@@ -924,7 +924,7 @@ class my_build_ext(build_ext):
                 print("Could not find WinSxS directory in %WINDIR%.")
         else:
             print("Windows directory not found!")
-        
+
         return mfc_contents
 
     def build_extensions(self):
@@ -2433,63 +2433,67 @@ for name in names:
     dll_base_address += 0x30000
 
 
-cmdclass = { 'install': my_install,
-             'build': my_build,
-             'build_ext': my_build_ext,
-             'install_data': my_install_data,
-             'build_py' : my_build_py,
-             'build_scripts' : my_build_scripts,
-           }
+cmdclass = {'install': my_install,
+            'build': my_build,
+            'build_ext': my_build_ext,
+            'install_data': my_install_data,
+            'build_py': my_build_py,
+            'build_scripts': my_build_scripts,
+            }
 
-classifiers = [ 'Environment :: Win32 (MS Windows)',
-	            'Intended Audience :: Developers',
-	            'License :: OSI Approved :: Python Software Foundation License',
-	            'Operating System :: Microsoft :: Windows',
-	            'Programming Language :: Python :: 2.7',
-	            'Programming Language :: Python :: 3.5',
-	            'Programming Language :: Python :: 3.6',
-	            'Programming Language :: Python :: 3.7',
-	            'Programming Language :: Python :: Implementation :: CPython',
-	          ]
+classifiers = ['Environment :: Win32 (MS Windows)',
+               'Intended Audience :: Developers',
+               'License :: OSI Approved :: Python Software Foundation License',
+               'Operating System :: Microsoft :: Windows',
+               'Programming Language :: Python :: 2.7',
+               'Programming Language :: Python :: 3.5',
+               'Programming Language :: Python :: 3.6',
+               'Programming Language :: Python :: 3.7',
+               'Programming Language :: Python :: Implementation :: CPython',
+               ]
 
 dist = setup(name="pywin32",
-      version=str(build_id),
-      description="Python for Window Extensions",
-      long_description="Python extensions for Microsoft Windows\n"
-                       "Provides access to much of the Win32 API, the\n"
-                       "ability to create and use COM objects, and the\n"
-                       "Pythonwin environment.",
-      author="Mark Hammond (et al)",
-      author_email = "mhammond@skippinet.com.au",
-      url="https://github.com/mhammond/pywin32",
-      license="PSF",
-      classifiers = classifiers,
-      cmdclass = cmdclass,
-      options = {"bdist_wininst":
-                    {"install_script": "pywin32_postinstall.py",
-                     "title": "pywin32-%s" % (build_id,),
-                     "user_access_control": "auto",
-                    },
-                 "bdist_msi":
-                    {"install_script": "pywin32_postinstall.py",
-                    },
-                },
+             version=str(build_id),
+             description="Python for Window Extensions",
+             long_description="Python extensions for Microsoft Windows\n"
+                              "Provides access to much of the Win32 API, the\n"
+                              "ability to create and use COM objects, and\n"
+                              "the Pythonwin environment.",
+             author="Mark Hammond (et al)",
+             author_email="mhammond@skippinet.com.au",
+             url="https://github.com/mhammond/pywin32",
+             license="PSF",
+             classifiers=classifiers,
+             cmdclass=cmdclass,
+             options={"bdist_wininst":
+                         {"install_script": "pywin32_postinstall.py",
+                          "title": "pywin32-%s" % (build_id,),
+                          "user_access_control": "auto",
+                          },
+                      "bdist_msi":
+                          {"install_script": "pywin32_postinstall.py",
+                           },
+                      },
+             scripts=["pywin32_postinstall.py",
+                      "pywin32_testall.py",
+                      ],
 
-      scripts = ["pywin32_postinstall.py", "pywin32_testall.py"],
+             ext_modules = ext_modules,
 
-      ext_modules = ext_modules,
+             package_dir={"win32com": "com/win32com",
+                          "win32comext": "com/win32comext",
+                          "pythonwin": "pythonwin",
+                          },
+             packages=packages,
+             py_modules=py_modules,
 
-      package_dir = {"win32com": "com/win32com",
-                     "win32comext": "com/win32comext",
-                     "pythonwin": "pythonwin",},
-      packages = packages,
-      py_modules = py_modules,
-
-      data_files=[('', (os.path.join(gettempdir(),'pywin32.version.txt'),))] +
-        convert_optional_data_files([
-                'PyWin32.chm',
-                ]) +
-        convert_data_files([
+             data_files=[('', (os.path.join(gettempdir(),
+                                            'pywin32.version.txt',
+                                            ),
+                               )
+                          )] + convert_optional_data_files(['PyWin32.chm',
+                                                            ]) +
+                               convert_data_files([
                 'pythonwin/pywin/*.cfg',
                 'pythonwin/pywin/Demos/*.py',
                 'pythonwin/pywin/Demos/app/*.py',
@@ -2564,7 +2568,7 @@ dist = setup(name="pywin32",
 # If we did any extension building, and report if we skipped any.
 if 'build_ext' in dist.command_obj:
     what_string = "built"
-    if 'install' in dist.command_obj: # just to be purdy
+    if 'install' in dist.command_obj:  # just to be purdy
         what_string += "/installed"
     # Print the list of extension modules we skipped building.
     if 'build_ext' in dist.command_obj:

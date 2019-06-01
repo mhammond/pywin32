@@ -8,9 +8,10 @@ from win32com.client import gencache
 com_error = pythoncom.com_error
 _univgw = pythoncom._univgw
 
-def RegisterInterfaces(typelibGUID, lcid, major, minor, interface_names = None):
-    ret = [] # return a list of (dispid, funcname for our policy's benefit
-    # First see if we have makepy support.  If so, we can probably satisfy the request without loading the typelib.
+def RegisterInterfaces(typelibGUID, lcid, major, minor, interface_names=None):
+    ret = []  # return a list of (dispid, funcname for our policy's benefit
+    # First see if we have makepy support.
+    # If so, we can probably satisfy the request without loading the typelib.
     try:
         mod = gencache.GetModuleForTypelib(typelibGUID, lcid, major, minor)
     except ImportError:
@@ -56,7 +57,7 @@ def RegisterInterfaces(typelibGUID, lcid, major, minor, interface_names = None):
                 iid = mod.NamesToIIDMap[name]
             except KeyError:
                 raise ValueError("Interface '%s' does not exist in this cached typelib" % (name,))
-#            print "Processing interface", name
+            # print "Processing interface", name
             sub_mod = gencache.GetModuleForCLSID(iid)
             is_dispatch = getattr(sub_mod, name + "_vtables_dispatch_", None)
             method_defs = getattr(sub_mod, name + "_vtables_", None)
@@ -112,7 +113,7 @@ class Method:
         invkind = desc[4]
         arg_defs = desc[2]
         ret_def = desc[8]
-        
+
         self.dispid = dispid
         self.invkind = invkind
         # We dont use this ATM.
@@ -170,7 +171,7 @@ class Definition:
         "Dispatch a call to an interface method."
         meth = self._methods[index]
         # Infer S_OK if they don't return anything bizarre.
-        hr = 0 
+        hr = 0
         args = ReadFromInTuple(meth._gw_in_args, argPtr)
         # If ob is a dispatcher, ensure a policy
         ob = getattr(ob, "policy", ob)

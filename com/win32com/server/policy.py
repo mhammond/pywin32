@@ -1,70 +1,70 @@
-"""Policies 
+"""Policies
 
 Note that Dispatchers are now implemented in "dispatcher.py", but
 are still documented here.
 
 Policies
 
- A policy is an object which manages the interaction between a public 
- Python object, and COM .  In simple terms, the policy object is the 
- object which is actually called by COM, and it invokes the requested 
- method, fetches/sets the requested property, etc.  See the 
+ A policy is an object which manages the interaction between a public
+ Python object, and COM .  In simple terms, the policy object is the
+ object which is actually called by COM, and it invokes the requested
+ method, fetches/sets the requested property, etc.  See the
  @win32com.server.policy.CreateInstance@ method for a description of
  how a policy is specified or created.
 
- Exactly how a policy determines which underlying object method/property 
- is obtained is up to the policy.  A few policies are provided, but you 
- can build your own.  See each policy class for a description of how it 
+ Exactly how a policy determines which underlying object method/property
+ is obtained is up to the policy.  A few policies are provided, but you
+ can build your own.  See each policy class for a description of how it
  implements its policy.
 
- There is a policy that allows the object to specify exactly which 
- methods and properties will be exposed.  There is also a policy that 
- will dynamically expose all Python methods and properties - even those 
+ There is a policy that allows the object to specify exactly which
+ methods and properties will be exposed.  There is also a policy that
+ will dynamically expose all Python methods and properties - even those
  added after the object has been instantiated.
 
 Dispatchers
 
- A Dispatcher is a level in front of a Policy.  A dispatcher is the 
- thing which actually receives the COM calls, and passes them to the 
- policy object (which in turn somehow does something with the wrapped 
+ A Dispatcher is a level in front of a Policy.  A dispatcher is the
+ thing which actually receives the COM calls, and passes them to the
+ policy object (which in turn somehow does something with the wrapped
  object).
 
  It is important to note that a policy does not need to have a dispatcher.
- A dispatcher has the same interface as a policy, and simply steps in its 
- place, delegating to the real policy.  The primary use for a Dispatcher 
- is to support debugging when necessary, but without imposing overheads 
+ A dispatcher has the same interface as a policy, and simply steps in its
+ place, delegating to the real policy.  The primary use for a Dispatcher
+ is to support debugging when necessary, but without imposing overheads
  when not (ie, by not using a dispatcher at all).
 
- There are a few dispatchers provided - "tracing" dispatchers which simply 
- prints calls and args (including a variation which uses 
- win32api.OutputDebugString), and a "debugger" dispatcher, which can 
+ There are a few dispatchers provided - "tracing" dispatchers which simply
+ prints calls and args (including a variation which uses
+ win32api.OutputDebugString), and a "debugger" dispatcher, which can
  invoke the debugger when necessary.
 
 Error Handling
 
  It is important to realise that the caller of these interfaces may
- not be Python.  Therefore, general Python exceptions and tracebacks aren't 
+ not be Python.  Therefore, general Python exceptions and tracebacks aren't
  much use.
 
- In general, there is an Exception class that should be raised, to allow 
+ In general, there is an Exception class that should be raised, to allow
  the framework to extract rich COM type error information.
 
- The general rule is that the **only** exception returned from Python COM 
- Server code should be an Exception instance.  Any other Python exception 
- should be considered an implementation bug in the server (if not, it 
- should be handled, and an appropriate Exception instance raised).  Any 
- other exception is considered "unexpected", and a dispatcher may take 
+ The general rule is that the **only** exception returned from Python COM
+ Server code should be an Exception instance.  Any other Python exception
+ should be considered an implementation bug in the server (if not, it
+ should be handled, and an appropriate Exception instance raised).  Any
+ other exception is considered "unexpected", and a dispatcher may take
  special action (see Dispatchers above)
 
- Occasionally, the implementation will raise the policy.error error.  
- This usually means there is a problem in the implementation that the 
+ Occasionally, the implementation will raise the policy.error error.
+ This usually means there is a problem in the implementation that the
  Python programmer should fix.
 
- For example, if policy is asked to wrap an object which it can not 
- support (because, eg, it does not provide _public_methods_ or _dynamic_) 
- then policy.error will be raised, indicating it is a Python programmers 
+ For example, if policy is asked to wrap an object which it can not
+ support (because, eg, it does not provide _public_methods_ or _dynamic_)
+ then policy.error will be raised, indicating it is a Python programmers
  problem, rather than a COM error.
- 
+
 """
 __author__ = "Greg Stein and Mark Hammond"
 
@@ -73,13 +73,14 @@ import winerror
 import sys
 import types
 import pywintypes
-import win32con, pythoncom
+import win32con
+import pythoncom
 
 #Import a few important constants to speed lookups.
 from pythoncom import \
-	DISPATCH_METHOD, DISPATCH_PROPERTYGET, DISPATCH_PROPERTYPUT, DISPATCH_PROPERTYPUTREF, \
-	DISPID_UNKNOWN, DISPID_VALUE, DISPID_PROPERTYPUT, DISPID_NEWENUM, \
-	DISPID_EVALUATE, DISPID_CONSTRUCTOR, DISPID_DESTRUCTOR, DISPID_COLLECT,DISPID_STARTENUM
+    DISPATCH_METHOD, DISPATCH_PROPERTYGET, DISPATCH_PROPERTYPUT, DISPATCH_PROPERTYPUTREF, \
+    DISPID_UNKNOWN, DISPID_VALUE, DISPID_PROPERTYPUT, DISPID_NEWENUM, \
+    DISPID_EVALUATE, DISPID_CONSTRUCTOR, DISPID_DESTRUCTOR, DISPID_COLLECT,DISPID_STARTENUM
 
 S_OK = 0
 
@@ -98,11 +99,11 @@ regAddnPath = 'CLSID\\%s\\PythonCOMPath'
 def CreateInstance(clsid, reqIID):
   """Create a new instance of the specified IID
 
-  The COM framework **always** calls this function to create a new 
+  The COM framework **always** calls this function to create a new
   instance for the specified CLSID.  This function looks up the
   registry for the name of a policy, creates the policy, and asks the
   policy to create the specified object by calling the _CreateInstance_ method.
-  
+
   Exactly how the policy creates the instance is up to the policy.  See the
   specific policy documentation for more details.
   """
@@ -162,7 +163,7 @@ class BasicWrapPolicy:
 
      _invokeex_ -- Very similar to _invoke_, except slightly different arguments are used.
          And the result is just the _real_ result (rather than the (hresult, argErr, realResult)
-         tuple that _invoke_ uses.	
+         tuple that _invoke_ uses.
          This is the new, prefered handler (the default _invoke_ handler simply called _invokeex_)
      _getdispid_ -- Very similar to _getidsofnames_, except slightly different arguments are used,
          and only 1 property at a time can be fetched (which is all we support in getidsofnames anyway!)
@@ -245,9 +246,9 @@ class BasicWrapPolicy:
 
   # "QueryInterface" handling.
   def _QueryInterface_(self, iid):
-    """The main COM entry-point for QueryInterface. 
+    """The main COM entry-point for QueryInterface.
 
-       This checks the _com_interfaces_ attribute and if the interface is not specified 
+       This checks the _com_interfaces_ attribute and if the interface is not specified
        there, it calls the derived helper _query_interface_
     """
     if iid in self._com_interfaces_:
@@ -264,7 +265,7 @@ class BasicWrapPolicy:
 
   # "Invoke" handling.
   def _Invoke_(self, dispid, lcid, wFlags, args):
-    """The main COM entry-point for Invoke.  
+    """The main COM entry-point for Invoke.
 
        This calls the _invoke_ helper.
     """
@@ -275,7 +276,7 @@ class BasicWrapPolicy:
       except KeyError:
         raise COMException(scode = winerror.DISP_E_MEMBERNOTFOUND, desc="Member not found")
     return self._invoke_(dispid, lcid, wFlags, args)
- 
+
   def _invoke_(self, dispid, lcid, wFlags, args):
     # Delegates to the _invokeex_ implementation.  This allows
     # a custom policy to define _invokeex_, and automatically get _invoke_ too.
@@ -311,7 +312,7 @@ class BasicWrapPolicy:
 
   # "InvokeEx" handling.
   def _InvokeEx_(self, dispid, lcid, wFlags, args, kwargs, serviceProvider):
-    """The main COM entry-point for InvokeEx.  
+    """The main COM entry-point for InvokeEx.
 
        This calls the _invokeex_ helper.
     """
@@ -322,10 +323,10 @@ class BasicWrapPolicy:
       except KeyError:
         raise COMException(scode = winerror.DISP_E_MEMBERNOTFOUND, desc="Member not found")
     return self._invokeex_(dispid, lcid, wFlags, args, kwargs, serviceProvider)
- 
+
   def _invokeex_(self, dispid, lcid, wFlags, args, kwargs, serviceProvider):
-    """A stub for _invokeex_ - should never be called.  
- 
+    """A stub for _invokeex_ - should never be called.
+
        Simply raises an exception.
     """
     # Base classes should override this method (and not call the base)
@@ -387,7 +388,7 @@ class MappedWrapPolicy(BasicWrapPolicy):
      _dispid_to_func_/_dispid_to_get_/_dispid_to_put_ -- These are dictionaries
        (keyed by integer dispid, values are string attribute names) which the COM
        implementation uses when it is processing COM requests.  Note that the implementation
-       uses this dictionary for its own purposes - not a copy - which means the contents of 
+       uses this dictionary for its own purposes - not a copy - which means the contents of
        these dictionaries will change as the object is used.
 
   """
@@ -419,7 +420,7 @@ class MappedWrapPolicy(BasicWrapPolicy):
 
 class DesignatedWrapPolicy(MappedWrapPolicy):
   """A policy which uses a mapping to link functions and dispid
-     
+
      A MappedWrappedPolicy which allows the wrapped object to specify, via certain
      special named attributes, exactly which methods and properties are exposed.
 
@@ -458,7 +459,7 @@ class DesignatedWrapPolicy(MappedWrapPolicy):
       tlb_lcid = getattr(ob, '_typelib_lcid_', 0)
       from win32com import universal
       # XXX - what if the user wants to implement interfaces from multiple
-      # typelibs? 
+      # typelibs?
       # Filter out all 'normal' IIDs (ie, IID objects and strings starting with {
       interfaces = [i for i in getattr(ob, '_com_interfaces_', [])
                     if type(i) != pywintypes.IIDType and not i.startswith("{")]
@@ -489,7 +490,7 @@ class DesignatedWrapPolicy(MappedWrapPolicy):
           self._dispid_to_get_[dispid] = name
       else:
         raise ValueError("unexpected invkind: %d (%s)" % (invkind,name))
-    
+
     # look for reserved methods
     if hasattr(ob, '_value_'):
       self._dispid_to_get_[DISPID_VALUE] = '_value_'
@@ -549,7 +550,7 @@ class DesignatedWrapPolicy(MappedWrapPolicy):
     if self._typeinfos_ is None:
       self._typeinfos_ = self._build_typeinfos_()
     return len(self._typeinfos_)
-  
+
   def _GetTypeInfo_(self, index, lcid):
     if self._typeinfos_ is None:
       self._typeinfos_ = self._build_typeinfos_()
@@ -573,7 +574,7 @@ class DesignatedWrapPolicy(MappedWrapPolicy):
         funcname = self._dispid_to_func_[dispid]
       except KeyError:
         if not wFlags & DISPATCH_PROPERTYGET:
-          raise COMException(scode=winerror.DISP_E_MEMBERNOTFOUND)	# not found
+          raise COMException(scode=winerror.DISP_E_MEMBERNOTFOUND)    # not found
       else:
         try:
           func = getattr(self._obj_, funcname)
@@ -594,7 +595,7 @@ class DesignatedWrapPolicy(MappedWrapPolicy):
       try:
         name = self._dispid_to_get_[dispid]
       except KeyError:
-          raise COMException(scode=winerror.DISP_E_MEMBERNOTFOUND)	# not found
+          raise COMException(scode=winerror.DISP_E_MEMBERNOTFOUND)    # not found
       retob = getattr(self._obj_, name)
       if type(retob)==types.MethodType: # a method as a property - call it.
         retob = retob(*args)
@@ -604,7 +605,7 @@ class DesignatedWrapPolicy(MappedWrapPolicy):
       try:
         name = self._dispid_to_put_[dispid]
       except KeyError:
-        raise COMException(scode=winerror.DISP_E_MEMBERNOTFOUND)	# read-only
+        raise COMException(scode=winerror.DISP_E_MEMBERNOTFOUND)    # read-only
       # If we have a method of that name (ie, a property get function), and
       # we have an equiv. property set function, use that instead.
       if type(getattr(self._obj_, name, None)) == types.MethodType and \
@@ -650,7 +651,7 @@ class EventHandlerPolicy(DesignatedWrapPolicy):
 
 class DynamicPolicy(BasicWrapPolicy):
   """A policy which dynamically (ie, at run-time) determines public interfaces.
-  
+
      A dynamic policy is used to dynamically dispatch methods and properties to the
      wrapped object.  The list of objects and properties does not need to be known in
      advance, and methods or properties added to the wrapped object after construction
@@ -663,7 +664,7 @@ class DynamicPolicy(BasicWrapPolicy):
             (ie, the mapping of dispid to/from name has been resolved.)  This name property
             may also be '_value_' to indicate the default, and '_NewEnum' to indicate a new
             enumerator is requested.
-            
+
   """
   def _wrap_(self, object):
     BasicWrapPolicy._wrap_(self, object)
@@ -702,7 +703,7 @@ DefaultPolicy = DesignatedWrapPolicy
 
 def resolve_func(spec):
   """Resolve a function by name
-  
+
   Given a function specified by 'module.function', return a callable object
   (ie, the function itself)
   """
@@ -720,7 +721,7 @@ def resolve_func(spec):
 
 def call_func(spec, *args):
   """Call a function specified by name.
-  
+
   Call a function specified by 'module.function' and return the result.
   """
 
