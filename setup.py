@@ -1911,7 +1911,8 @@ com_extensions += [
                         %(mapi)s/mapi_stub_library/MapiStubLibrary.cpp
                         %(mapi)s/mapi_stub_library/StubUtils.cpp
                         """ % dirs).split()),
-    WinExt_win32com_mapi('exchange', libraries="advapi32",
+    WinExt_win32com_mapi('exchange',
+                         libraries="advapi32",
                          include_dirs=["%(mapi)s/mapi_headers" % dirs],
                          optional_headers=['edkmdb.h', 'edkguid.h'],
                          sources=("""
@@ -1923,15 +1924,18 @@ com_extensions += [
                                   %(mapi)s/mapi_stub_library/MapiStubLibrary.cpp
                                   %(mapi)s/mapi_stub_library/StubUtils.cpp
                                   """ % dirs).split()),
-    WinExt_win32com_mapi('exchdapi', libraries="advapi32",
+    WinExt_win32com_mapi('exchdapi',
+                         libraries="advapi32",
                          include_dirs=["%(mapi)s/mapi_headers" % dirs],
                          sources=("""
                                   %(mapi)s/exchdapi.i         %(mapi)s/exchdapi.cpp
                                   %(mapi)s/mapi_stub_library/MapiStubLibrary.cpp
                                   %(mapi)s/mapi_stub_library/StubUtils.cpp
                                   """ % dirs).split()),
-    WinExt_win32com('shell', libraries='shell32', pch_header="shell_pch.h",
-                    windows_h_version = 0x600,
+    WinExt_win32com('shell',
+                    libraries='shell32',
+                    pch_header="shell_pch.h",
+                    windows_h_version=0x600,
                     sources=("""
                         %(shell)s/PyIActiveDesktop.cpp
                         %(shell)s/PyIApplicationDestinations.cpp
@@ -2006,7 +2010,9 @@ com_extensions += [
 
                         """ % dirs).split()),
 
-    WinExt_win32com('propsys', libraries='propsys', delay_load_libraries='shell32',
+    WinExt_win32com('propsys',
+                    libraries='propsys',
+                    delay_load_libraries='shell32',
                     unicode_mode=True,
                     sources=("""
                         %(propsys)s/propsys.cpp
@@ -2088,7 +2094,7 @@ com_extensions += [
 
 pythonwin_extensions = [
     WinExt_pythonwin("win32ui",
-        sources = [
+        sources=[
             "Pythonwin/dbgthread.cpp",
             "Pythonwin/dibapi.cpp",
             "Pythonwin/dllmain.cpp",
@@ -2140,9 +2146,9 @@ pythonwin_extensions = [
             "Pythonwin/win32virt.cpp",
             "Pythonwin/win32win.cpp",
             ],
-        extra_compile_args = ['-DBUILD_PYW'],
+        extra_compile_args=['-DBUILD_PYW'],
         pch_header="stdafx.h", base_address=dll_base_address,
-        depends = [
+        depends=[
             "Pythonwin/stdafx.h",
             "Pythonwin/win32uiExt.h",
             "Pythonwin/dibapi.h",
@@ -2191,7 +2197,7 @@ pythonwin_extensions = [
             ],
         optional_headers=['afxres.h']),
     WinExt_pythonwin("win32uiole",
-        sources = [
+        sources=[
             "Pythonwin/stdafxole.cpp",
             "Pythonwin/win32oleDlgInsert.cpp",
             "Pythonwin/win32oleDlgs.cpp",
@@ -2199,16 +2205,16 @@ pythonwin_extensions = [
             "Pythonwin/win32uioleClientItem.cpp",
             "Pythonwin/win32uioledoc.cpp",
             ],
-        depends = [
+        depends=[
             "Pythonwin/stdafxole.h",
             "Pythonwin/win32oleDlgs.h",
             "Pythonwin/win32uioledoc.h",
             ],
         pch_header="stdafxole.h",
-        windows_h_version = 0x500,
+        windows_h_version=0x500,
         optional_headers=['afxres.h']),
     WinExt_pythonwin("dde",
-        sources = [
+        sources=[
             "Pythonwin/stddde.cpp",
             "Pythonwin/ddetopic.cpp",
             "Pythonwin/ddeconv.cpp",
@@ -2240,9 +2246,9 @@ other_extensions.append(
                   PyFilterObjects.h pyISAPI.h
                   PythonEng.h StdAfx.h Utils.h
                """.split()],
-       pch_header = "StdAfx.h",
-       is_regular_dll = 1,
-       export_symbols = """HttpExtensionProc GetExtensionVersion
+       pch_header="StdAfx.h",
+       is_regular_dll=1,
+       export_symbols="""HttpExtensionProc GetExtensionVersion
                            TerminateExtension GetFilterVersion
                            HttpFilterProc TerminateFilter
                            PyISAPISetOptions WriteEventLogMessage
@@ -2253,58 +2259,59 @@ other_extensions.append(
 
 W32_exe_files = [
     WinExt_win32("pythonservice",
-         sources=[os.path.join("win32", "src", s) for s in
-                  "PythonService.cpp PythonService.rc".split()],
-         unicode_mode = True,
-         extra_link_args=["/SUBSYSTEM:CONSOLE"],
-         libraries = "user32 advapi32 ole32 shell32"),
+                 sources=[os.path.join("win32", "src", s) for s in
+                          "PythonService.cpp PythonService.rc".split()],
+                 unicode_mode=True,
+                 extra_link_args=["/SUBSYSTEM:CONSOLE"],
+                 libraries="user32 advapi32 ole32 shell32",
+                 ),
     WinExt_pythonwin("Pythonwin",
-        sources = [
-            "Pythonwin/pythonwin.cpp",
-            "Pythonwin/pythonwin.rc",
-            "Pythonwin/stdafxpw.cpp",
-            ],
-        extra_link_args=["/SUBSYSTEM:WINDOWS"],
-        optional_headers=['afxres.h']),
+                     sources=["Pythonwin/pythonwin.cpp",
+                              "Pythonwin/pythonwin.rc",
+                              "Pythonwin/stdafxpw.cpp",
+                              ],
+                     extra_link_args=["/SUBSYSTEM:WINDOWS"],
+                     optional_headers=['afxres.h'],
+                     ),
 ]
 
 # Special definitions for SWIG.
 swig_interface_parents = {
     # source file base,     "base class" for generated COM support
-    'mapi':                 None, # not a class, but module
-    'PyIMailUser':          'IMAPIContainer',
-    'PyIABContainer':       'IMAPIContainer',
-    'PyIAddrBook':          'IMAPIProp',
-    'PyIAttach':            'IMAPIProp',
-    'PyIDistList':          'IMAPIContainer',
-    'PyIMailUser':          'IMAPIContainer',
-    'PyIMAPIContainer':     'IMAPIProp',
-    'PyIMAPIFolder':        'IMAPIContainer',
-    'PyIMAPIProp':          '', # '' == default base
-    'PyIMAPISession':       '',
-    'PyIMAPIStatus':       'IMAPIProp',
-    'PyIMAPITable':         '',
-    'PyIMessage':           'IMAPIProp',
-    'PyIMsgServiceAdmin':   '',
-    'PyIProviderAdmin':     '',
-    'PyIMsgStore':          'IMAPIProp',
-    'PyIProfAdmin':         '',
-    'PyIProfSect':          'IMAPIProp',
-	'PyIConverterSession':	'',
+    'mapi': None,  # not a class, but module
+    'PyIMailUser': 'IMAPIContainer',
+    'PyIABContainer': 'IMAPIContainer',
+    'PyIAddrBook': 'IMAPIProp',
+    'PyIAttach': 'IMAPIProp',
+    'PyIDistList': 'IMAPIContainer',
+    'PyIMailUser': 'IMAPIContainer',
+    'PyIMAPIContainer': 'IMAPIProp',
+    'PyIMAPIFolder': 'IMAPIContainer',
+    'PyIMAPIProp': '',  # '' == default base
+    'PyIMAPISession': '',
+    'PyIMAPIStatus': 'IMAPIProp',
+    'PyIMAPITable': '',
+    'PyIMessage': 'IMAPIProp',
+    'PyIMsgServiceAdmin': '',
+    'PyIProviderAdmin': '',
+    'PyIMsgStore': 'IMAPIProp',
+    'PyIProfAdmin': '',
+    'PyIProfSect': 'IMAPIProp',
+    'PyIConverterSession': '',
     # exchange and exchdapi
-    'exchange':             None,
-    'exchdapi':             None,
+    'exchange': None,
+    'exchdapi': None,
     'PyIExchangeManageStore': '',
     'PyIExchangeManageStoreEx': '',
     # ADSI
-    'adsi':                 None, # module
-    'PyIADsContainer':      'IDispatch',
-    'PyIADsDeleteOps':      'IDispatch',
-    'PyIADsUser':           'IADs',
-    'PyIDirectoryObject':   '',
-    'PyIDirectorySearch':   '',
-    'PyIDsObjectPicker':   '',
-    'PyIADs':   'IDispatch',
+    'adsi': None,  # module
+    'PyIADsContainer': 'IDispatch',
+    'PyIADsDeleteOps': 'IDispatch',
+    'PyIADsUser': 'IADs',
+    'PyIDirectoryObject': '',
+    'PyIDirectorySearch': '',
+    'PyIDsObjectPicker': '',
+    'PyIADs': 'IDispatch',
 }
 
 # .i files that are #included, and hence are not part of the build.  Our .dsp
@@ -2332,13 +2339,23 @@ def convert_data_files(files):
             flist.findall(os.path.dirname(file))
             flist.include_pattern(os.path.basename(file), anchor=0)
             # We never want CVS
-            flist.exclude_pattern(re.compile(".*\\\\CVS\\\\"), is_regex=1, anchor=0)
-            flist.exclude_pattern("*.pyc", anchor=0)
-            flist.exclude_pattern("*.pyo", anchor=0)
+            flist.exclude_pattern(re.compile(".*\\\\CVS\\\\"),
+                                  is_regex=1,
+                                  anchor=0,
+                                  )
+            flist.exclude_pattern("*.pyc",
+                                  anchor=0,
+                                  )
+            flist.exclude_pattern("*.pyo",
+                                  anchor=0,
+                                  )
             # files with a leading dot upset bdist_msi, and '.*' doesn't
             # work - it matches from the start of the string and we have
             # dir names.  So any '\.' gets the boot.
-            flist.exclude_pattern(re.compile(".*\\\\\."), is_regex=1, anchor=0)
+            flist.exclude_pattern(re.compile(".*\\\\\."),
+                                  is_regex=1,
+                                  anchor=0,
+                                  )
             if not flist.files:
                 raise RuntimeError("No files match '%s'" % file)
             files_use = flist.files
@@ -2350,8 +2367,9 @@ def convert_data_files(files):
             path_use = os.path.dirname(fname)
             if path_use.startswith("com/") or path_use.startswith("com\\"):
                 path_use = path_use[4:]
-            ret.append( (path_use, (fname,)))
+            ret.append((path_use, (fname,)))
     return ret
+
 
 def convert_optional_data_files(files):
     ret = []
@@ -2366,54 +2384,55 @@ def convert_optional_data_files(files):
             ret.append(temp[0])
     return ret
 
+
 ################################################################
-if len(sys.argv)==1:
+if len(sys.argv) == 1:
     # distutils will print usage - print our docstring first.
     print(__doc__)
     print("Standard usage information follows:")
 
-packages=['win32com',
-          'win32com.client',
-          'win32com.demos',
-          'win32com.makegw',
-          'win32com.server',
-          'win32com.servers',
-          'win32com.test',
+packages = ['win32com',
+            'win32com.client',
+            'win32com.demos',
+            'win32com.makegw',
+            'win32com.server',
+            'win32com.servers',
+            'win32com.test',
 
-          'win32comext.adsi',
+            'win32comext.adsi',
 
-          'win32comext.axscript',
-          'win32comext.axscript.client',
-          'win32comext.axscript.server',
+            'win32comext.axscript',
+            'win32comext.axscript.client',
+            'win32comext.axscript.server',
 
-          'win32comext.axdebug',
+            'win32comext.axdebug',
 
-          'win32comext.propsys',
-          'win32comext.shell',
-          'win32comext.mapi',
-          'win32comext.ifilter',
-          'win32comext.internet',
-          'win32comext.axcontrol',
-          'win32comext.taskscheduler',
-          'win32comext.directsound',
-          'win32comext.directsound.test',
-          'win32comext.authorization',
-          'win32comext.bits',
+            'win32comext.propsys',
+            'win32comext.shell',
+            'win32comext.mapi',
+            'win32comext.ifilter',
+            'win32comext.internet',
+            'win32comext.axcontrol',
+            'win32comext.taskscheduler',
+            'win32comext.directsound',
+            'win32comext.directsound.test',
+            'win32comext.authorization',
+            'win32comext.bits',
 
-          'pythonwin.pywin',
-          'pythonwin.pywin.debugger',
-          'pythonwin.pywin.dialogs',
-          'pythonwin.pywin.docking',
-          'pythonwin.pywin.framework',
-          'pythonwin.pywin.framework.editor',
-          'pythonwin.pywin.framework.editor.color',
-          'pythonwin.pywin.idle',
-          'pythonwin.pywin.mfc',
-          'pythonwin.pywin.scintilla',
-          'pythonwin.pywin.tools',
-          'isapi',
-          'adodbapi',
-          ]
+            'pythonwin.pywin',
+            'pythonwin.pywin.debugger',
+            'pythonwin.pywin.dialogs',
+            'pythonwin.pywin.docking',
+            'pythonwin.pywin.framework',
+            'pythonwin.pywin.framework.editor',
+            'pythonwin.pywin.framework.editor.color',
+            'pythonwin.pywin.idle',
+            'pythonwin.pywin.mfc',
+            'pythonwin.pywin.scintilla',
+            'pythonwin.pywin.tools',
+            'isapi',
+            'adodbapi',
+            ]
 
 py_modules = expand_modules("win32\\lib")
 ext_modules = win32_extensions + com_extensions + pythonwin_extensions + \
@@ -2478,7 +2497,7 @@ dist = setup(name="pywin32",
                       "pywin32_testall.py",
                       ],
 
-             ext_modules = ext_modules,
+             ext_modules=ext_modules,
 
              package_dir={"win32com": "com/win32com",
                           "win32comext": "com/win32comext",
