@@ -7,7 +7,7 @@ image:
 
 environment:
   #APPVEYOR_RDP_PASSWORD: 7A4hcPlOZ2UhEiUk5cVx
-  PYCODESTYLE_CMD: "python -m pycodestyle --exclude=.git,build"
+  PYCODESTYLE_CMD: python -m pycodestyle --exclude=.git,build
   matrix:
     # For Python versions available on Appveyor, see
     # http://www.appveyor.com/docs/installed-software#python
