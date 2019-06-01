@@ -7,6 +7,7 @@ image:
 
 environment:
   #APPVEYOR_RDP_PASSWORD: 7A4hcPlOZ2UhEiUk5cVx
+  PYCODESTYLE_CMD: "python -m pycodestyle --exclude=.git,build"
   matrix:
     # For Python versions available on Appveyor, see
     # http://www.appveyor.com/docs/installed-software#python
@@ -56,8 +57,7 @@ build_script:
   - python setup.py build
 
 test_script:
-  - python -m pycodestyle --exclude=.git,build --show-source --show-pep8 .
-  - python -m pycodestyle --exclude=.git,build --statistics -qq .
+  - %PYCODESTYLE_CMD% --show-source --show-pep8 . || %PYCODESTYLE_CMD% --statistics -qq .
 
 after_test:
   # This step builds your wheels.
