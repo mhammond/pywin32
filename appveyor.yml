@@ -57,7 +57,7 @@ build_script:
   - python setup.py build
 
 test_script:
-  - %PYCODESTYLE_CMD% --show-source --show-pep8 . || %PYCODESTYLE_CMD% --statistics -qq .
+  - python -m pycodestyle --exclude=.git,build --show-source --show-pep8 . || python -m pycodestyle --exclude=.git,build --statistics -qq .
 
 after_test:
   # This step builds your wheels.
