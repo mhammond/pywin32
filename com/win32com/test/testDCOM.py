@@ -1,5 +1,11 @@
 # testDCOM
-usage="""\
+import pythoncom
+import win32com.client
+import win32api
+import string
+import sys
+
+usage = """\
 testDCOM.py - Simple DCOM test
 Usage: testDCOM.py serverName
 
@@ -14,10 +20,10 @@ but no special DCOM configuration should be necessary.
 """
 # NOTE: If you configured the object locally using dcomcnfg, you could
 # simple use Dispatch rather than DispatchEx.
-import pythoncom, win32com.client, win32api, string, sys
+
 
 def test(serverName):
-    if string.lower(serverName)==string.lower(win32api.GetComputerName()):
+    if string.lower(serverName) == string.lower(win32api.GetComputerName()):
         print "You must specify a remote server name, not the local machine!"
         return
 
@@ -25,7 +31,9 @@ def test(serverName):
     # is probably installed locally as an InProc object, DCOM seems to ignore
     # all settings, and use the local object.
     clsctx = pythoncom.CLSCTX_SERVER & ~pythoncom.CLSCTX_INPROC_SERVER
-    ob = win32com.client.DispatchEx("Python.Interpreter", serverName, clsctx=clsctx)
+    ob = win32com.client.DispatchEx("Python.Interpreter",
+                                    serverName,
+                                    clsctx=clsctx)
     ob.Exec("import win32api")
     actualName = ob.Eval("win32api.GetComputerName()")
     if string.lower(serverName) != string.lower(actualName):
@@ -33,7 +41,7 @@ def test(serverName):
     else:
         print "Object created and tested OK on server '%s'" % serverName
 
-if __name__=='__main__':
+if __name__ == '__main__':
     if len(sys.argv) == 2:
         test(sys.argv[1])
     else:

@@ -13,13 +13,16 @@ import unittest
 
 error = "dictionary test error"
 
+
 def MakeTestDictionary():
     return win32com.client.Dispatch("Python.Dictionary")
 
-def TestDictAgainst(dict,check):
+
+def TestDictAgainst(dict, check):
     for key, value in check.iteritems():
         if dict(key) != value:
             raise error("Indexing for '%s' gave the incorrect value - %s/%s" % (repr(key), repr(dict[key]), repr(check[key])))
+
 
 # Ensure we have the correct version registered.
 def Register(quiet):
@@ -27,12 +30,14 @@ def Register(quiet):
     from win32com.test.util import RegisterPythonServer
     RegisterPythonServer(win32com.servers.dictionary.__file__, 'Python.Dictionary')
 
+
 def TestDict(quiet=None):
     if quiet is None:
         quiet = not "-v" in sys.argv
     Register(quiet)
 
-    if not quiet: print "Simple enum test"
+    if not quiet:
+        print "Simple enum test"
     dict = MakeTestDictionary()
     checkDict = {}
     TestDictAgainst(dict, checkDict)
@@ -71,9 +76,11 @@ def TestDict(quiet=None):
     if not quiet:
         print "Python.Dictionary tests complete."
 
+
 class TestCase(win32com.test.util.TestCase):
     def testDict(self):
         TestDict()
+
 
 if __name__=='__main__':
     unittest.main()

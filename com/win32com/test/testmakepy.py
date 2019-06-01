@@ -12,6 +12,7 @@ from win32com.client import makepy, selecttlb, gencache
 import pythoncom
 import winerror
 
+
 def TestBuildAll(verbose = 1):
     num = 0
     tlbInfos = selecttlb.EnumTlbs()
@@ -20,13 +21,13 @@ def TestBuildAll(verbose = 1):
             print "%s (%s)" % (info.desc, info.dll)
         try:
             makepy.GenerateFromTypeLibSpec(info)
-#          sys.stderr.write("Attr typeflags for coclass referenced object %s=%d (%d), typekind=%d\n" % (name, refAttr.wTypeFlags, refAttr.wTypeFlags & pythoncom.TYPEFLAG_FDUAL,refAttr.typekind))
+            # sys.stderr.write("Attr typeflags for coclass referenced object %s=%d (%d), typekind=%d\n" % (name, refAttr.wTypeFlags, refAttr.wTypeFlags & pythoncom.TYPEFLAG_FDUAL,refAttr.typekind))
             num += 1
         except pythoncom.com_error, details:
             # Ignore these 2 errors, as the are very common and can obscure
             # useful warnings.
             if details.hresult not in [winerror.TYPE_E_CANTLOADLIBRARY,
-                              winerror.TYPE_E_LIBNOTREGISTERED]:
+                                       winerror.TYPE_E_LIBNOTREGISTERED]:
                 print "** COM error on", info.desc
                 print details
         except KeyboardInterrupt:
@@ -39,15 +40,20 @@ def TestBuildAll(verbose = 1):
             # This only builds enums etc by default - build each
             # interface manually
             tinfo = (info.clsid, info.lcid, info.major, info.minor)
-            mod = gencache.EnsureModule(info.clsid, info.lcid, info.major, info.minor)
+            mod = gencache.EnsureModule(info.clsid,
+                                        info.lcid,
+                                        info.major,
+                                        info.minor)
             for name in mod.NamesToIIDMap.iterkeys():
                 makepy.GenerateChildFromTypeLibSpec(name, tinfo)
     return num
 
-def TestAll(verbose = 0):
+
+def TestAll(verbose=0):
     num = TestBuildAll(verbose)
     print "Generated and imported", num, "modules"
     win32com.test.util.CheckClean()
 
-if __name__=='__main__':
+
+if __name__ == '__main__':
     TestAll("-q" not in sys.argv)
