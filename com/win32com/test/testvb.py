@@ -14,28 +14,38 @@ import traceback
 
 # for debugging
 useDispatcher = None
-##  import win32com.server.dispatcher
-##  useDispatcher = win32com.server.dispatcher.DefaultDebugDispatcher
+# # import win32com.server.dispatcher
+# # useDispatcher = win32com.server.dispatcher.DefaultDebugDispatcher
 
 error = RuntimeError
+
 
 # Set up a COM object that VB will do some callbacks on.  This is used
 # to test byref params for gateway IDispatch.
 class TestObject:
-    _public_methods_ = ["CallbackVoidOneByRef","CallbackResultOneByRef", "CallbackVoidTwoByRef",
-                                        "CallbackString","CallbackResultOneByRefButReturnNone",
-                                        "CallbackVoidOneByRefButReturnNone",
-                                        "CallbackArrayResult", "CallbackArrayResultOneArrayByRef",
-                                        "CallbackArrayResultWrongSize"
-                                       ]
+    _public_methods_ = ["CallbackVoidOneByRef",
+                        "CallbackResultOneByRef",
+                        "CallbackVoidTwoByRef",
+                        "CallbackString",
+                        "CallbackResultOneByRefButReturnNone",
+                        "CallbackVoidOneByRefButReturnNone",
+                        "CallbackArrayResult",
+                        "CallbackArrayResultOneArrayByRef",
+                        "CallbackArrayResultWrongSize"
+                        ]
+
     def CallbackVoidOneByRef(self, intVal):
         return intVal + 1
+
     def CallbackResultOneByRef(self, intVal):
         return intVal, intVal + 1
+
     def CallbackVoidTwoByRef(self, int1, int2):
         return int1+int2, int1-int2
+
     def CallbackString(self, strVal):
         return 0, strVal + " has visited Python"
+
     def CallbackArrayResult(self, arrayVal):
         ret = []
         for i in arrayVal:
@@ -44,8 +54,10 @@ class TestObject:
         # (rather than a tuple, where it may be interpreted as
         # multiple results for byref unpacking)
         return ret
+
     def CallbackArrayResultWrongSize(self, arrayVal):
         return list(arrayVal[:-1])
+
     def CallbackArrayResultOneArrayByRef(self, arrayVal):
         ret = []
         for i in arrayVal:
@@ -55,10 +67,12 @@ class TestObject:
 
     def CallbackResultOneByRefButReturnNone(self, intVal):
         return
+
     def CallbackVoidOneByRefButReturnNone(self, intVal):
         return
 
-def TestVB( vbtest, bUseGenerated ):
+
+def TestVB(vbtest, bUseGenerated):
     vbtest.LongProperty = -1
     if vbtest.LongProperty != -1:
         raise error("Could not set the long property correctly.")
@@ -85,17 +99,17 @@ def TestVB( vbtest, bUseGenerated ):
     TestStructs(vbtest)
     TestCollections(vbtest)
 
-    assert vbtest.TakeByValObject(vbtest)==vbtest
+    assert vbtest.TakeByValObject(vbtest) == vbtest
 
     # Python doesnt support PUTREF properties without a typeref
     # (although we could)
     if bUseGenerated:
         ob = vbtest.TakeByRefObject(vbtest)
-        assert ob[0]==vbtest and ob[1]==vbtest
+        assert ob[0] == vbtest and ob[1] == vbtest
 
         # A property that only has PUTREF defined.
         vbtest.VariantPutref = vbtest
-        if vbtest.VariantPutref._oleobj_!= vbtest._oleobj_:
+        if vbtest.VariantPutref._oleobj_ != vbtest._oleobj_:
             raise error("Could not set the VariantPutref property correctly.")
         # Cant test further types for this VariantPutref, as only
         # COM objects can be stored ByRef.
