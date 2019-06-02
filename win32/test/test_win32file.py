@@ -18,6 +18,7 @@ try:
 except NameError:
     from sets import Set as set
 
+
 class TestReadBuffer(unittest.TestCase):
     def testLen(self):
         buffer = win32file.AllocateReadBuffer(1)
@@ -35,19 +36,32 @@ class TestReadBuffer(unittest.TestCase):
         buffer[:2] = val
         self.failUnlessEqual(buffer[0:2], val)
 
+
 class TestSimpleOps(unittest.TestCase):
     def testSimpleFiles(self):
         fd, filename = tempfile.mkstemp()
         os.close(fd)
         os.unlink(filename)
-        handle = win32file.CreateFile(filename, win32file.GENERIC_WRITE, 0, None, win32con.CREATE_NEW, 0, None)
+        handle = win32file.CreateFile(filename,
+                                      win32file.GENERIC_WRITE,
+                                      0,
+                                      None,
+                                      win32con.CREATE_NEW,
+                                      0,
+                                      None)
         test_data = str2bytes("Hello\0there")
         try:
             win32file.WriteFile(handle, test_data)
             handle.Close()
             # Try and open for read
-            handle = win32file.CreateFile(filename, win32file.GENERIC_READ, 0, None, win32con.OPEN_EXISTING, 0, None)
-            rc, data = win32file.ReadFile(handle, 1024)
+            handle = win32file.CreateFile(filename,
+                                          win32file.GENERIC_READ,
+                                          0,
+                                          None,
+                                          win32con.OPEN_EXISTING,
+                                          0,
+                                          None)
+            _, data = win32file.ReadFile(handle, 1024)
             self.assertEquals(data, test_data)
         finally:
             handle.Close()
@@ -64,72 +78,76 @@ class TestSimpleOps(unittest.TestCase):
         # Set a flag to delete the file automatically when it is closed.
         fileFlags = win32file.FILE_FLAG_DELETE_ON_CLOSE
         h = win32file.CreateFile( testName, desiredAccess, win32file.FILE_SHARE_READ, None, win32file.CREATE_ALWAYS, fileFlags, 0)
-    
+
         # Write a known number of bytes to the file.
         data = str2bytes("z") * 1025
-    
+
         win32file.WriteFile(h, data)
-    
+
         self.failUnless(win32file.GetFileSize(h) == len(data), "WARNING: Written file does not have the same size as the length of the data in it!")
-    
+
         # Ensure we can read the data back.
         win32file.SetFilePointer(h, 0, win32file.FILE_BEGIN)
         hr, read_data = win32file.ReadFile(h, len(data)+10) # + 10 to get anything extra
-        self.failUnless(hr==0, "Readfile returned %d" % hr)
+        self.failUnless(hr == 0, "Readfile returned %d" % hr)
 
         self.failUnless(read_data == data, "Read data is not what we wrote!")
-    
+
         # Now truncate the file at 1/2 its existing size.
         newSize = len(data)//2
         win32file.SetFilePointer(h, newSize, win32file.FILE_BEGIN)
         win32file.SetEndOfFile(h)
         self.failUnlessEqual(win32file.GetFileSize(h), newSize)
-    
+
         # GetFileAttributesEx/GetFileAttributesExW tests.
-        self.failUnlessEqual(win32file.GetFileAttributesEx(testName), win32file.GetFileAttributesExW(testName))
+        self.failUnlessEqual(win32file.GetFileAttributesEx(testName),
+                             win32file.GetFileAttributesExW(testName))
 
         attr, ct, at, wt, size = win32file.GetFileAttributesEx(testName)
-        self.failUnless(size==newSize, 
+        self.failUnless(size == newSize, 
                         "Expected GetFileAttributesEx to return the same size as GetFileSize()")
-        self.failUnless(attr==win32file.GetFileAttributes(testName), 
+        self.failUnless(attr == win32file.GetFileAttributes(testName), 
                         "Expected GetFileAttributesEx to return the same attributes as GetFileAttributes")
 
-        h = None # Close the file by removing the last reference to the handle!
+        h = None  # Close the file by removing the last reference to the handle!
 
-        self.failUnless(not os.path.isfile(testName), "After closing the file, it still exists!")
+        self.failUnless(not os.path.isfile(testName),
+                        "After closing the file, it still exists!"
+                        )
 
     def testFilePointer(self):
         # via [ 979270 ] SetFilePointer fails with negative offset
 
         # Create a file in the %TEMP% directory.
-        filename = os.path.join( win32api.GetTempPath(), "win32filetest.dat" )
+        filename = os.path.join(win32api.GetTempPath(),
+                                "win32filetest.dat")
 
         f = win32file.CreateFile(filename,
-                                win32file.GENERIC_READ|win32file.GENERIC_WRITE,
-                                0,
-                                None,
-                                win32file.CREATE_ALWAYS,
-                                win32file.FILE_ATTRIBUTE_NORMAL,
-                                0)
+                                 win32file.GENERIC_READ | win32file.GENERIC_WRITE,
+                                 0,
+                                 None,
+                                 win32file.CREATE_ALWAYS,
+                                 win32file.FILE_ATTRIBUTE_NORMAL,
+                                 0)
         try:
-            #Write some data
+            # Write some data
             data = str2bytes('Some data')
             (res, written) = win32file.WriteFile(f, data)
-            
+
             self.failIf(res)
             self.assertEqual(written, len(data))
-            
-            #Move at the beginning and read the data
+
+            # Move at the beginning and read the data
             win32file.SetFilePointer(f, 0, win32file.FILE_BEGIN)
             (res, s) = win32file.ReadFile(f, len(data))
-            
+
             self.failIf(res)
             self.assertEqual(s, data)
-            
-            #Move at the end and read the data
+
+            # Move at the end and read the data
             win32file.SetFilePointer(f, -len(data), win32file.FILE_END)
             (res, s) = win32file.ReadFile(f, len(data))
-            
+
             self.failIf(res)
             self.failUnlessEqual(s, data)
         finally:
@@ -145,7 +163,7 @@ class TestSimpleOps(unittest.TestCase):
         now_utc = win32timezone.utcnow()
         now_local = now_utc.astimezone(win32timezone.TimeZoneInfo.local())
         h = win32file.CreateFile(filename,
-                                 win32file.GENERIC_READ|win32file.GENERIC_WRITE,
+                                 win32file.GENERIC_READ | win32file.GENERIC_WRITE,
                                  0, None, win32file.CREATE_ALWAYS, 0, 0)
         try:
             win32file.SetFileTime(h, now_utc, now_utc, now_utc)
@@ -183,16 +201,18 @@ class TestSimpleOps(unittest.TestCase):
         filename = tempfile.mktemp("-testFileTimes")
         # Windows docs the 'last time' isn't valid until the last write
         # handle is closed - so create the file, then re-open it to check.
-        open(filename,"w").close()
-        f = win32file.CreateFile(filename, win32file.GENERIC_READ|win32file.GENERIC_WRITE,
+        open(filename, "w").close()
+        f = win32file.CreateFile(filename, win32file.GENERIC_READ | win32file.GENERIC_WRITE,
                                  0, None,
                                  win32con.OPEN_EXISTING, 0, None)
         try:
             ct, at, wt = win32file.GetFileTime(f)
-            self.failUnless(ct >= now, "File was created in the past - now=%s, created=%s" % (now, ct))
-            self.failUnless( now <= ct <= nowish, (now, ct))
-            self.failUnless(wt >= now, "File was written-to in the past now=%s, written=%s" % (now,wt))
-            self.failUnless( now <= wt <= nowish, (now, wt))
+            self.failUnless(ct >= now,
+                            "File was created in the past - now=%s, created=%s" % (now, ct))
+            self.failUnless(now <= ct <= nowish, (now, ct))
+            self.failUnless(wt >= now,
+                            "File was written-to in the past now=%s, written=%s" % (now,wt))
+            self.failUnless(now <= wt <= nowish, (now, wt))
 
             # Now set the times.
             win32file.SetFileTime(f, later, later, later)
@@ -209,8 +229,10 @@ class TestSimpleOps(unittest.TestCase):
             f.Close()
             os.unlink(filename)
 
+
 class TestGetFileInfoByHandleEx(unittest.TestCase):
     __handle = __filename = None
+
     def setUp(self):
         fd, self.__filename = tempfile.mkstemp()
         os.close(fd)
@@ -227,13 +249,19 @@ class TestGetFileInfoByHandleEx(unittest.TestCase):
 
     def testFileBasicInfo(self):
         attr = win32file.GetFileAttributes(self.__filename)
-        f = win32file.CreateFile(self.__filename, win32file.GENERIC_READ, 0, None,
-                                 win32con.OPEN_EXISTING, 0, None)
+        f = win32file.CreateFile(self.__filename,
+                                 win32file.GENERIC_READ,
+                                 0,
+                                 None,
+                                 win32con.OPEN_EXISTING,
+                                 0,
+                                 None)
         self.__handle = f
         ct, at, wt = win32file.GetFileTime(f)
 
         # bug #752: this throws ERROR_BAD_LENGTH (24) in x86 binaries of build 221
-        basic_info = win32file.GetFileInformationByHandleEx(f, win32file.FileBasicInfo)
+        basic_info = win32file.GetFileInformationByHandleEx(f,
+                                                            win32file.FileBasicInfo)
 
         self.assertEqual(ct, basic_info['CreationTime'])
         self.assertEqual(at, basic_info['LastAccessTime'])
@@ -244,19 +272,27 @@ class TestOverlapped(unittest.TestCase):
     def testSimpleOverlapped(self):
         # Create a file in the %TEMP% directory.
         import win32event
-        testName = os.path.join( win32api.GetTempPath(), "win32filetest.dat" )
+        testName = os.path.join(win32api.GetTempPath(),
+                                 "win32filetest.dat")
         desiredAccess = win32file.GENERIC_WRITE
         overlapped = pywintypes.OVERLAPPED()
         evt = win32event.CreateEvent(None, 0, 0, None)
         overlapped.hEvent = evt
         # Create the file and write shit-loads of data to it.
-        h = win32file.CreateFile( testName, desiredAccess, 0, None, win32file.CREATE_ALWAYS, 0, 0)
+        h = win32file.CreateFile(testName,
+                                 desiredAccess,
+                                 0,
+                                 None,
+                                 win32file.CREATE_ALWAYS,
+                                 0,
+                                 0)
         chunk_data = str2bytes("z") * 0x8000
         num_loops = 512
         expected_size = num_loops * len(chunk_data)
-        for i in range(num_loops):
+        for _ in range(num_loops):
             win32file.WriteFile(h, chunk_data, overlapped)
-            win32event.WaitForSingleObject(overlapped.hEvent, win32event.INFINITE)
+            win32event.WaitForSingleObject(overlapped.hEvent,
+                                           win32event.INFINITE)
             overlapped.Offset = overlapped.Offset + len(chunk_data)
         h.Close()
         # Now read the data back overlapped
@@ -264,12 +300,19 @@ class TestOverlapped(unittest.TestCase):
         evt = win32event.CreateEvent(None, 0, 0, None)
         overlapped.hEvent = evt
         desiredAccess = win32file.GENERIC_READ
-        h = win32file.CreateFile( testName, desiredAccess, 0, None, win32file.OPEN_EXISTING, 0, 0)
+        h = win32file.CreateFile(testName,
+                                 desiredAccess,
+                                 0,
+                                 None,
+                                 win32file.OPEN_EXISTING,
+                                 0,
+                                 0)
         buffer = win32file.AllocateReadBuffer(0xFFFF)
         while 1:
             try:
                 hr, data = win32file.ReadFile(h, buffer, overlapped)
-                win32event.WaitForSingleObject(overlapped.hEvent, win32event.INFINITE)
+                win32event.WaitForSingleObject(overlapped.hEvent,
+                                               win32event.INFINITE)
                 overlapped.Offset = overlapped.Offset + len(data)
                 if not data is buffer:
                     self.fail("Unexpected result from ReadFile - should be the same buffer we passed it")
@@ -281,7 +324,9 @@ class TestOverlapped(unittest.TestCase):
         # Mainly checking that we can "associate" an existing handle.  This
         # failed in build 203.
         ioport = win32file.CreateIoCompletionPort(win32file.INVALID_HANDLE_VALUE,
-                                                  0, 0, 0)
+                                                  0,
+                                                  0,
+                                                  0)
         socks = []
         for PORT in range(9123, 9125):
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -289,7 +334,10 @@ class TestOverlapped(unittest.TestCase):
             sock.bind(('', PORT))
             sock.listen(1)
             socks.append(sock)
-            new = win32file.CreateIoCompletionPort(sock.fileno(), ioport, PORT, 0)
+            new = win32file.CreateIoCompletionPort(sock.fileno(),
+                                                   ioport,
+                                                   PORT,
+                                                   0)
             assert new is ioport
         for s in socks:
             s.close()
@@ -304,13 +352,14 @@ class TestOverlapped(unittest.TestCase):
             self.failUnlessEqual(details.winerror, winerror.ERROR_INVALID_HANDLE)
 
     def testCompletionPortsQueued(self):
-        class Foo: pass
+        class Foo:
+            pass
         io_req_port = win32file.CreateIoCompletionPort(-1, None, 0, 0)
         overlapped = pywintypes.OVERLAPPED()
         overlapped.object = Foo()
         win32file.PostQueuedCompletionStatus(io_req_port, 0, 99, overlapped)
-        errCode, bytes, key, overlapped = \
-                win32file.GetQueuedCompletionStatus(io_req_port, win32event.INFINITE)
+        errCode, bytes, key, overlapped = win32file.GetQueuedCompletionStatus(io_req_port,
+                                                                              win32event.INFINITE)
         self.failUnlessEqual(errCode, 0)
         self.failUnless(isinstance(overlapped.object, Foo))
 
@@ -326,7 +375,9 @@ class TestOverlapped(unittest.TestCase):
             # on Vista 64...
             try:
                 self.failUnlessRaises(RuntimeError,
-                                      win32file.GetQueuedCompletionStatus, port, -1)
+                                      win32file.GetQueuedCompletionStatus,
+                                      port,
+                                      -1)
             finally:
                 handle.Close()
             return
@@ -346,25 +397,31 @@ class TestOverlapped(unittest.TestCase):
         BUFSIZE = 512
         pipe_name = r"\\.\pipe\pywin32_test_pipe"
         handle = win32pipe.CreateNamedPipe(pipe_name,
-                          win32pipe.PIPE_ACCESS_DUPLEX|
-                          win32file.FILE_FLAG_OVERLAPPED,
-                          win32pipe.PIPE_TYPE_MESSAGE|
-                          win32pipe.PIPE_READMODE_MESSAGE|
-                          win32pipe.PIPE_WAIT,
-                          1, BUFSIZE, BUFSIZE,
-                          win32pipe.NMPWAIT_WAIT_FOREVER,
-                          None)
-        # Create an IOCP and associate it with the handle.        
+                                           win32pipe.PIPE_ACCESS_DUPLEX |
+                                           win32file.FILE_FLAG_OVERLAPPED,
+                                           win32pipe.PIPE_TYPE_MESSAGE |
+                                           win32pipe.PIPE_READMODE_MESSAGE |
+                                           win32pipe.PIPE_WAIT,
+                                           1,
+                                           BUFSIZE,
+                                           BUFSIZE,
+                                           win32pipe.NMPWAIT_WAIT_FOREVER,
+                                           None)
+        # Create an IOCP and associate it with the handle.
         port = win32file.CreateIoCompletionPort(-1, 0, 0, 0)
         win32file.CreateIoCompletionPort(handle, port, 1, 0)
 
-        t = threading.Thread(target=self._IOCPServerThread, args=(handle,port, test_overlapped_death))
-        t.setDaemon(True) # avoid hanging entire test suite on failure.
+        t = threading.Thread(target=self._IOCPServerThread,
+                             args=(handle, port, test_overlapped_death))
+        t.setDaemon(True)  # avoid hanging entire test suite on failure.
         t.start()
         try:
-            time.sleep(0.1) # let thread do its thing.
+            time.sleep(0.1)  # let thread do its thing.
             try:
-                win32pipe.CallNamedPipe(r"\\.\pipe\pywin32_test_pipe", str2bytes("Hello there"), BUFSIZE, 0)
+                win32pipe.CallNamedPipe(r"\\.\pipe\pywin32_test_pipe",
+                                        str2bytes("Hello there"),
+                                        BUFSIZE,
+                                        0)
             except win32pipe.error:
                 # Testing for overlapped death causes this
                 if not test_overlapped_death:
@@ -406,6 +463,7 @@ class TestOverlapped(unittest.TestCase):
         self.failIf(overlapped1 == overlapped2)
         self.failUnless(overlapped1 != overlapped2)
 
+
 class TestSocketExtensions(unittest.TestCase):
     def acceptWorker(self, port, running_event, stopped_event):
         listener = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -420,8 +478,13 @@ class TestSocketExtensions(unittest.TestCase):
         # accept the connection.
         # We used to allow strings etc to be passed here, and they would be
         # modified!  Obviously this is evil :)
-        buffer = " " * 1024 # EVIL - SHOULD NOT BE ALLOWED.
-        self.assertRaises(TypeError, win32file.AcceptEx, listener, accepter, buffer, overlapped)
+        buffer = " " * 1024  # EVIL - SHOULD NOT BE ALLOWED.
+        self.assertRaises(TypeError,
+                          win32file.AcceptEx,
+                          listener,
+                          accepter,
+                          buffer,
+                          overlapped)
 
         # This is the correct way to allocate the buffer...
         buffer = win32file.AllocateReadBuffer(1024)
@@ -433,8 +496,10 @@ class TestSocketExtensions(unittest.TestCase):
         rc = win32event.WaitForSingleObject(overlapped.hEvent, 2000)
         if rc == win32event.WAIT_TIMEOUT:
             self.fail("timed out waiting for a connection")
-        nbytes = win32file.GetOverlappedResult(listener.fileno(), overlapped, False)
-        #fam, loc, rem = win32file.GetAcceptExSockaddrs(accepter, buffer)
+        nbytes = win32file.GetOverlappedResult(listener.fileno(),
+                                               overlapped,
+                                               False)
+        # fam, loc, rem = win32file.GetAcceptExSockaddrs(accepter, buffer)
         accepter.send(buffer[:nbytes])
         # NOT set in a finally - this means *successfully* stopped!
         stopped_event.set()
@@ -443,7 +508,9 @@ class TestSocketExtensions(unittest.TestCase):
         port = 4680
         running = threading.Event()
         stopped = threading.Event()
-        t = threading.Thread(target=self.acceptWorker, args=(port, running,stopped))
+        t = threading.Thread(target=self.acceptWorker,
+                             args=(port, running, stopped)
+                             )
         t.start()
         running.wait(2)
         if not running.isSet():
@@ -466,6 +533,7 @@ class TestSocketExtensions(unittest.TestCase):
         stopped.wait(2)
         if not stopped.isSet():
             self.fail("AcceptEx Worker thread failed to successfully stop")
+
 
 class TestFindFiles(unittest.TestCase):
     def testIter(self):
@@ -491,7 +559,8 @@ class TestFindFiles(unittest.TestCase):
         self.failUnlessEqual(0, num)
 
     def testEmptyDir(self):
-        test_path = os.path.join(win32api.GetTempPath(), "win32file_test_directory")
+        test_path = os.path.join(win32api.GetTempPath(),
+                                 "win32file_test_directory")
         try:
             # Note: previously used shutil.rmtree, but when looking for
             # reference count leaks, that function showed leaks!  os.rmdir
@@ -502,15 +571,17 @@ class TestFindFiles(unittest.TestCase):
         os.mkdir(test_path)
         try:
             num = 0
-            for i in win32file.FindFilesIterator(os.path.join(test_path, "*")):
+            for _ in win32file.FindFilesIterator(os.path.join(test_path, "*")):
                 num += 1
             # Expecting "." and ".." only
             self.failUnlessEqual(2, num)
         finally:
             os.rmdir(test_path)
 
+
 class TestDirectoryChanges(unittest.TestCase):
     num_test_dirs = 1
+
     def setUp(self):
         self.watcher_threads = []
         self.watcher_thread_changes = []
@@ -520,10 +591,10 @@ class TestDirectoryChanges(unittest.TestCase):
             td = tempfile.mktemp("-test-directory-changes-%d" % i)
             os.mkdir(td)
             self.dir_names.append(td)
-            hdir = win32file.CreateFile(td, 
+            hdir = win32file.CreateFile(td,
                                         ntsecuritycon.FILE_LIST_DIRECTORY,
                                         win32con.FILE_SHARE_READ,
-                                        None, # security desc
+                                        None,  # security desc
                                         win32con.OPEN_EXISTING,
                                         win32con.FILE_FLAG_BACKUP_SEMANTICS |
                                         win32con.FILE_FLAG_OVERLAPPED,
@@ -553,7 +624,7 @@ class TestDirectoryChanges(unittest.TestCase):
                 print "waiting", dh
                 changes = win32file.ReadDirectoryChangesW(dh,
                                                           8192,
-                                                          False, #sub-tree
+                                                          False,  # sub-tree
                                                           flags)
                 print "got", changes
             except:
@@ -568,7 +639,7 @@ class TestDirectoryChanges(unittest.TestCase):
         while 1:
             win32file.ReadDirectoryChangesW(dh,
                                             buf,
-                                            False, #sub-tree
+                                            False,  # sub-tree
                                             flags,
                                             overlapped)
             # Wait for our event, or for 5 seconds.
@@ -589,7 +660,7 @@ class TestDirectoryChanges(unittest.TestCase):
                     return
             else:
                 print "ERROR: Watcher thread timed-out!"
-                return # kill the thread!
+                return  # kill the thread!
 
     def tearDown(self):
         # be careful about raising errors at teardown!
@@ -633,6 +704,7 @@ class TestDirectoryChanges(unittest.TestCase):
         changes = self.watcher_thread_changes[0]
         self.failUnlessEqual(changes, [(1, "x")])
 
+
 class TestEncrypt(unittest.TestCase):
     def testEncrypt(self):
         fname = tempfile.mktemp("win32file_test")
@@ -653,13 +725,14 @@ class TestEncrypt(unittest.TestCase):
                 f.close()
             os.unlink(fname)
 
+
 class TestConnect(unittest.TestCase):
     def connect_thread_runner(self, expect_payload, giveup_event):
         # As Windows 2000 doesn't do ConnectEx, we need to use a non-blocking
         # accept, as our test connection may never come.  May as well use
         # AcceptEx for this...
         listener = socket.socket()
-        self.addr = ('localhost', random.randint(10000,64000))
+        self.addr = ('localhost', random.randint(10000, 64000))
         listener.bind(self.addr)
         listener.listen(1)
 
@@ -687,7 +760,9 @@ class TestConnect(unittest.TestCase):
             # Our main thread running the test failed and will never connect.
             return
         # must be a connection.
-        nbytes = win32file.GetOverlappedResult(listener.fileno(), overlapped, False)
+        nbytes = win32file.GetOverlappedResult(listener.fileno(),
+                                               overlapped,
+                                               False)
         if expect_payload:
             self.request = buffer[:nbytes]
         accepter.send(str2bytes('some expected response'))
@@ -702,12 +777,16 @@ class TestConnect(unittest.TestCase):
         ol = pywintypes.OVERLAPPED()
         s2.bind(('0.0.0.0', 0)) # connectex requires the socket be bound beforehand
         try:
-            win32file.ConnectEx(s2, self.addr, ol, str2bytes("some expected request"))
+            win32file.ConnectEx(s2,
+                                self.addr,
+                                ol,
+                                str2bytes("some expected request")
+                                )
         except win32file.error, exc:
             win32event.SetEvent(giveup_event)
-            if exc.winerror == 10022: # WSAEINVAL
+            if exc.winerror == 10022:  # WSAEINVAL
                 raise TestSkipped("ConnectEx is not available on this platform")
-            raise # some error error we don't expect.
+            raise  # some error error we don't expect.
         win32file.GetOverlappedResult(s2.fileno(), ol, 1)
         ol = pywintypes.OVERLAPPED()
         buff = win32file.AllocateReadBuffer(1024)
@@ -727,14 +806,14 @@ class TestConnect(unittest.TestCase):
         time.sleep(0.1)
         s2 = socket.socket()
         ol = pywintypes.OVERLAPPED()
-        s2.bind(('0.0.0.0', 0)) # connectex requires the socket be bound beforehand
+        s2.bind(('0.0.0.0', 0))  # connectex requires the socket be bound beforehand
         try:
             win32file.ConnectEx(s2, self.addr, ol)
         except win32file.error, exc:
             win32event.SetEvent(giveup_event)
-            if exc.winerror == 10022: # WSAEINVAL
+            if exc.winerror == 10022:  # WSAEINVAL
                 raise TestSkipped("ConnectEx is not available on this platform")
-            raise # some error error we don't expect.
+            raise  # some error error we don't expect.
         win32file.GetOverlappedResult(s2.fileno(), ol, 1)
         ol = pywintypes.OVERLAPPED()
         buff = win32file.AllocateReadBuffer(1024)
@@ -744,6 +823,7 @@ class TestConnect(unittest.TestCase):
         self.assertEqual(self.response, str2bytes('some expected response'))
         t.join(5)
         self.failIf(t.isAlive(), "worker thread didn't terminate")
+
 
 class TestTransmit(unittest.TestCase):
     def test_transmit(self):
@@ -756,7 +836,7 @@ class TestTransmit(unittest.TestCase):
 
         def runner():
             s1 = socket.socket()
-            self.addr = ('localhost', random.randint(10000,64000))
+            self.addr = ('localhost', random.randint(10000, 64000))
             s1.bind(self.addr)
             s1.listen(1)
             cli, addr = s1.accept()
@@ -771,7 +851,7 @@ class TestTransmit(unittest.TestCase):
         time.sleep(0.5)
         s2 = socket.socket()
         s2.connect(self.addr)
-        
+
         length = 0
         aaa = str2bytes("[AAA]")
         bbb = str2bytes("[BBB]")
@@ -780,29 +860,61 @@ class TestTransmit(unittest.TestCase):
         empty = str2bytes("")
         ol = pywintypes.OVERLAPPED()
         f.seek(0)
-        win32file.TransmitFile(s2, win32file._get_osfhandle(f.fileno()), val_length, 0, ol, 0)
+        win32file.TransmitFile(s2,
+                               win32file._get_osfhandle(f.fileno()),
+                               val_length,
+                               0,
+                               ol,
+                               0)
         length += win32file.GetOverlappedResult(s2.fileno(), ol, 1)
-        
+
         ol = pywintypes.OVERLAPPED()
         f.seek(0)
-        win32file.TransmitFile(s2, win32file._get_osfhandle(f.fileno()), val_length, 0, ol, 0, aaa, bbb)
+        win32file.TransmitFile(s2,
+                               win32file._get_osfhandle(f.fileno()),
+                               val_length,
+                               0,
+                               ol,
+                               0,
+                               aaa,
+                               bbb)
         length += win32file.GetOverlappedResult(s2.fileno(), ol, 1)
-        
+
         ol = pywintypes.OVERLAPPED()
         f.seek(0)
-        win32file.TransmitFile(s2, win32file._get_osfhandle(f.fileno()), val_length, 0, ol, 0, empty, empty)
+        win32file.TransmitFile(s2,
+                               win32file._get_osfhandle(f.fileno()),
+                               val_length,
+                               0,
+                               ol,
+                               0,
+                               empty,
+                               empty)
         length += win32file.GetOverlappedResult(s2.fileno(), ol, 1)
-        
+
         ol = pywintypes.OVERLAPPED()
         f.seek(0)
-        win32file.TransmitFile(s2, win32file._get_osfhandle(f.fileno()), val_length, 0, ol, 0, None, ccc)
+        win32file.TransmitFile(s2,
+                               win32file._get_osfhandle(f.fileno()),
+                               val_length,
+                               0,
+                               ol,
+                               0,
+                               None,
+                               ccc)
         length += win32file.GetOverlappedResult(s2.fileno(), ol, 1)
-        
+
         ol = pywintypes.OVERLAPPED()
         f.seek(0)
-        win32file.TransmitFile(s2, win32file._get_osfhandle(f.fileno()), val_length, 0, ol, 0, ddd)
+        win32file.TransmitFile(s2,
+                               win32file._get_osfhandle(f.fileno()),
+                               val_length,
+                               0,
+                               ol,
+                               0,
+                               ddd)
         length += win32file.GetOverlappedResult(s2.fileno(), ol, 1)
-        
+
         s2.close()
         th.join()
         buf = str2bytes('').join(self.request)
@@ -827,7 +939,10 @@ class TestWSAEnumNetworkEvents(unittest.TestCase):
         f = open("NUL")
         h = win32file._get_osfhandle(f.fileno())
         self.assertRaises(win32file.error, win32file.WSAEnumNetworkEvents, h)
-        self.assertRaises(win32file.error, win32file.WSAEnumNetworkEvents, s, h)
+        self.assertRaises(win32file.error,
+                          win32file.WSAEnumNetworkEvents,
+                          s,
+                          h)
         try:
             win32file.WSAEnumNetworkEvents(h)
         except win32file.error, e:
@@ -893,7 +1008,8 @@ class TestWSAEnumNetworkEvents(unittest.TestCase):
             except socket.error, e:
                 if e.args[0] == win32file.WSAEINTR:
                     continue
-                elif e.args[0] in (win32file.WSAEWOULDBLOCK, win32file.WSAENOBUFS):
+                elif e.args[0] in (win32file.WSAEWOULDBLOCK,
+                                   win32file.WSAENOBUFS):
                     break
                 else:
                     raise
@@ -931,9 +1047,10 @@ class TestWSAEnumNetworkEvents(unittest.TestCase):
         res = win32event.WaitForSingleObject(server_event, 1000)
         self.assertEquals(res, win32event.WAIT_OBJECT_0)
         # strange timing issues...
-        for i in range(5):
+        for _ in range(5):
             events = win32file.WSAEnumNetworkEvents(server, server_event)
-            if events: break
+            if events:
+                break
             win32api.Sleep(100)
         else:
             raise AssertionError("failed to get events")
