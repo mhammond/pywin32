@@ -12,7 +12,9 @@
      This module provides a class which provides the necessary attributes.
 
 """
-import sys, pythoncom
+import sys
+import pythoncom
+
 
 # Note that we derive from com_error, which derives from exceptions.Exception
 # Also note that we dont support "self.args", as we dont support tuple-unpacking
@@ -29,9 +31,14 @@ class COMException(pythoncom.com_error):
     By using this class, you automatically provide rich error information to the
     server.
     """
-    def __init__(self, description = None, scode = None,
-                 source = None, helpfile = None, helpContext = None,
-                 desc = None, hresult = None):
+    def __init__(self,
+                 description=None,
+                 scode=None,
+                 source=None,
+                 helpfile=None,
+                 helpContext=None,
+                 desc=None,
+                 hresult=None):
         """Initialize an exception
         **Params**
 
@@ -47,14 +54,14 @@ class COMException(pythoncom.com_error):
 
         # convert a WIN32 error into an HRESULT
         scode = scode or hresult
-        if scode and scode != 1: # We dont want S_FALSE mapped!
+        if scode and scode != 1:  # We dont want S_FALSE mapped!
             if scode >= -32768 and scode < 32768:
                 # this is HRESULT_FROM_WIN32()
                 scode = -2147024896 | (scode & 0x0000FFFF)
         self.scode = scode
 
         self.description = description or desc
-        if scode==1 and not self.description:
+        if scode == 1 and not self.description:
             self.description = "S_FALSE"
         elif scode and not self.description:
             self.description = pythoncom.GetScodeString(scode)
@@ -67,25 +74,29 @@ class COMException(pythoncom.com_error):
         pythoncom.com_error.__init__(self, scode, self.description, None, -1)
 
     def __repr__(self):
-        return "<COM Exception - scode=%s, desc=%s>" % (self.scode, self.description)
+        return "<COM Exception - scode=%s, desc=%s>" % (self.scode,
+                                                        self.description)
+
 
 # Old name for the COMException class.
 # Do NOT use the name Exception, as it is now a built-in
 # COMException is the new, official name.
 Exception = COMException
 
-def IsCOMException(t = None):
+
+def IsCOMException(t=None):
     if t is None:
         t = sys.exc_info()[0]
     try:
         return issubclass(t, pythoncom.com_error)
-    except TypeError: # 1.5 in -X mode?
+    except TypeError:  # 1.5 in -X mode?
         return t is pythoncon.com_error
 
-def IsCOMServerException(t = None):
+
+def IsCOMServerException(t=None):
     if t is None:
         t = sys.exc_info()[0]
     try:
         return issubclass(t, COMException)
-    except TypeError: # String exception
+    except TypeError:  # String exception
         return 0

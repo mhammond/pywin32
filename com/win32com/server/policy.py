@@ -76,11 +76,14 @@ import pywintypes
 import win32con
 import pythoncom
 
-#Import a few important constants to speed lookups.
-from pythoncom import \
-    DISPATCH_METHOD, DISPATCH_PROPERTYGET, DISPATCH_PROPERTYPUT, DISPATCH_PROPERTYPUTREF, \
-    DISPID_UNKNOWN, DISPID_VALUE, DISPID_PROPERTYPUT, DISPID_NEWENUM, \
-    DISPID_EVALUATE, DISPID_CONSTRUCTOR, DISPID_DESTRUCTOR, DISPID_COLLECT,DISPID_STARTENUM
+# Import a few important constants to speed lookups.
+from pythoncom import DISPATCH_METHOD, DISPATCH_PROPERTYGET, \
+                      DISPATCH_PROPERTYPUT, DISPATCH_PROPERTYPUTREF, \
+                      DISPID_UNKNOWN, DISPID_VALUE, DISPID_PROPERTYPUT, \
+                      DISPID_NEWENUM, DISPID_EVALUATE, DISPID_CONSTRUCTOR, \
+                      DISPID_DESTRUCTOR, DISPID_COLLECT, DISPID_STARTENUM
+
+from exception import COMException
 
 S_OK = 0
 
@@ -88,13 +91,13 @@ S_OK = 0
 IDispatchType = pythoncom.TypeIIDs[pythoncom.IID_IDispatch]
 IUnknownType = pythoncom.TypeIIDs[pythoncom.IID_IUnknown]
 
-from exception import COMException
 error = __name__ + " error"
 
 regSpec = 'CLSID\\%s\\PythonCOM'
 regPolicy = 'CLSID\\%s\\PythonCOMPolicy'
 regDispatcher = 'CLSID\\%s\\PythonCOMDispatcher'
 regAddnPath = 'CLSID\\%s\\PythonCOMPath'
+
 
 def CreateInstance(clsid, reqIID):
   """Create a new instance of the specified IID

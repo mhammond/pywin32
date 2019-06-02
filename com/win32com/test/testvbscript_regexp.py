@@ -3,6 +3,7 @@ from win32com.client.gencache import EnsureDispatch
 from win32com.client.dynamic import DumbDispatch
 import win32com.test.util
 
+
 class RegexTest(win32com.test.util.TestCase):
     def _CheckMatches(self, match, expected):
         found = []
@@ -33,5 +34,6 @@ class RegexTest(win32com.test.util.TestCase):
         re = EnsureDispatch("VBScript.Regexp")
         self._TestVBScriptRegex(re)
 
-if __name__=='__main__':
+
+if __name__ == '__main__':
     unittest.main()

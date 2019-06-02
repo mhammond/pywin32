@@ -129,7 +129,11 @@ class PyCOMTest:
     def Test6(self, inval):
         return inval
 
-    def TestOptionals(self, strArg='def', sval=0, lval=1, dval=3.1400001049041748):
+    def TestOptionals(self,
+                      strArg='def',
+                      sval=0,
+                      lval=1,
+                      dval=3.1400001049041748):
         raise COMException(hresult=winerror.E_NOTIMPL)
 
     def TestOptionals2(self, dval, strval='', sval=1):
@@ -140,20 +144,26 @@ class PyCOMTest:
 
     def LongProp(self):
         return self.longval
+
     def SetLongProp(self, val):
         self.longval = val
+
     def ULongProp(self):
         return self.ulongval
+
     def SetULongProp(self, val):
         self.ulongval = val
+
     def IntProp(self):
         return self.intval
+
     def SetIntProp(self, val):
         self.intval = val
 
+
 class PyCOMTestMI(PyCOMTest):
     _typelib_guid_ = "{6BCDCB60-5605-11D0-AE5F-CADD4C000000}"
-    _typelib_version = 1,0
+    _typelib_version = (1, 0)
     # Interfaces with a interface name, a real IID, and an IID as a string
     _com_interfaces_ = ['IPyCOMTest',
                         pythoncom.IID_IStream,
@@ -161,6 +171,7 @@ class PyCOMTestMI(PyCOMTest):
                         ]
     _reg_clsid_ = "{F506E9A1-FB46-4238-A597-FA4EB69787CA}"
     _reg_progid_ = "Python.Test.PyCOMTestMI"
+
 
 if __name__ == '__main__':
     import win32com.server.register
