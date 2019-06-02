@@ -25,7 +25,8 @@ Contribtions to this sample to make it a little "friendlier" welcome!
 """
 
 # imports section
-import sys, os
+import sys
+import os
 from win32com import universal
 from win32com.client import gencache, DispatchWithEvents, Dispatch
 from win32com.client import constants, getevents
@@ -43,21 +44,23 @@ except win32api.error:
 
 from win32com.axcontrol import axcontrol
 
-import array, struct
+import array
+import struct
 
 # ensure we know the ms internet controls typelib so we have access to IWebBrowser2 later on
-win32com.client.gencache.EnsureModule('{EAB22AC0-30C1-11CF-A7EB-0000C05BAE0B}',0,1,1)
+win32com.client.gencache.EnsureModule('{EAB22AC0-30C1-11CF-A7EB-0000C05BAE0B}', 0, 1, 1)
 
-
-#
-IObjectWithSite_methods = ['SetSite','GetSite']
-IOleCommandTarget_methods = ['Exec','QueryStatus']
+IObjectWithSite_methods = ['SetSite',
+                           'GetSite']
+IOleCommandTarget_methods = ['Exec',
+                             'QueryStatus']
 
 _iebutton_methods_ = IOleCommandTarget_methods + IObjectWithSite_methods
 _iebutton_com_interfaces_ = [
     axcontrol.IID_IOleCommandTarget,
-    axcontrol.IID_IObjectWithSite, # IObjectWithSite
+    axcontrol.IID_IObjectWithSite,  # IObjectWithSite
 ]
+
 
 class Stub:
     """
@@ -66,11 +69,12 @@ class Stub:
     is being called.
     """
 
-    def __init__(self,name):
+    def __init__(self, name):
         self.name = name
 
-    def __call__(self,*args):
-        print 'STUB: ',self.name,args
+    def __call__(self, *args):
+        print 'STUB: ', self.name, args
+
 
 class IEButton:
     """
@@ -84,22 +88,22 @@ class IEButton:
     _icon_ = ''
     _hot_icon_ = ''
 
-    def __init__( self ):
+    def __init__(self):
         # put stubs for non-implemented methods
         for method in self._public_methods_:
-            if not hasattr(self,method):
+            if not hasattr(self, method):
                 print 'providing default stub for %s' % method
-                setattr(self,method,Stub(method))
+                setattr(self, method, Stub(method))
 
-    def QueryStatus (self, pguidCmdGroup, prgCmds, cmdtextf):
+    def QueryStatus(self, pguidCmdGroup, prgCmds, cmdtextf):
         # 'cmdtextf' is the 'cmdtextf' element from the OLECMDTEXT structure,
         # or None if a NULL pointer was passed.
         result = []
         for id, flags in prgCmds:
-            flags |= axcontrol.OLECMDF_SUPPORTED  | axcontrol.OLECMDF_ENABLED
+            flags |= axcontrol.OLECMDF_SUPPORTED | axcontrol.OLECMDF_ENABLED
             result.append((id, flags))
         if cmdtextf is None:
-            cmdtext = None # must return None if nothing requested.
+            cmdtext = None  # must return None if nothing requested.
         # IE never seems to want any text - this code is here for
         # demo purposes only
         elif cmdtextf == axcontrol.OLECMDTEXTF_NAME:
@@ -111,16 +115,16 @@ class IEButton:
     def Exec(self, pguidCmdGroup, nCmdID, nCmdExecOpt, pvaIn):
         print pguidCmdGroup, nCmdID, nCmdExecOpt, pvaIn
         print "IOleCommandTarget::Exec called."
-        #self.webbrowser.ShowBrowserBar(GUID_IETOOLBAR, not is_ietoolbar_visible())
+        # self.webbrowser.ShowBrowserBar(GUID_IETOOLBAR, not is_ietoolbar_visible())
 
-    def SetSite(self,unknown):
+    def SetSite(self, unknown):
         if unknown:
             # first get a command target
             cmdtarget = unknown.QueryInterface(axcontrol.IID_IOleCommandTarget)
             # then travel over to a service provider
             serviceprovider = cmdtarget.QueryInterface(pythoncom.IID_IServiceProvider)
             # finally ask for the internet explorer application, returned as a dispatch object
-            self.webbrowser = win32com.client.Dispatch(serviceprovider.QueryService('{0002DF05-0000-0000-C000-000000000046}',pythoncom.IID_IDispatch))
+            self.webbrowser = win32com.client.Dispatch(serviceprovider.QueryService('{0002DF05-0000-0000-C000-000000000046}', pythoncom.IID_IDispatch))
         else:
             # lose all references
             self.webbrowser = None
@@ -128,45 +132,47 @@ class IEButton:
     def GetClassID(self):
         return self._reg_clsid_
 
+
 def register(classobj):
     import _winreg
     subKeyCLSID = "SOFTWARE\\Microsoft\\Internet Explorer\\Extensions\\%38s" % classobj._reg_clsid_
     try:
-        hKey = _winreg.CreateKey( _winreg.HKEY_LOCAL_MACHINE, subKeyCLSID )
-        subKey = _winreg.SetValueEx( hKey, "ButtonText", 0, _winreg.REG_SZ, classobj._button_text_ )
-        _winreg.SetValueEx( hKey, "ClsidExtension", 0, _winreg.REG_SZ, classobj._reg_clsid_ ) # reg value for calling COM object
-        _winreg.SetValueEx( hKey, "CLSID", 0, _winreg.REG_SZ, "{1FBA04EE-3024-11D2-8F1F-0000F87ABD16}" ) # CLSID for button that sends command to COM object
-        _winreg.SetValueEx( hKey, "Default Visible", 0, _winreg.REG_SZ, "Yes" )
-        _winreg.SetValueEx( hKey, "ToolTip", 0, _winreg.REG_SZ, classobj._tool_tip_ )
-        _winreg.SetValueEx( hKey, "Icon", 0, _winreg.REG_SZ, classobj._icon_)
-        _winreg.SetValueEx( hKey, "HotIcon", 0, _winreg.REG_SZ, classobj._hot_icon_)
+        hKey = _winreg.CreateKey(_winreg.HKEY_LOCAL_MACHINE, subKeyCLSID)
+        subKey = _winreg.SetValueEx(hKey, "ButtonText", 0, _winreg.REG_SZ, classobj._button_text_)
+        _winreg.SetValueEx(hKey, "ClsidExtension", 0, _winreg.REG_SZ, classobj._reg_clsid_)  # reg value for calling COM object
+        _winreg.SetValueEx(hKey, "CLSID", 0, _winreg.REG_SZ, "{1FBA04EE-3024-11D2-8F1F-0000F87ABD16}")  # CLSID for button that sends command to COM object
+        _winreg.SetValueEx(hKey, "Default Visible", 0, _winreg.REG_SZ, "Yes")
+        _winreg.SetValueEx(hKey, "ToolTip", 0, _winreg.REG_SZ, classobj._tool_tip_)
+        _winreg.SetValueEx(hKey, "Icon", 0, _winreg.REG_SZ, classobj._icon_)
+        _winreg.SetValueEx(hKey, "HotIcon", 0, _winreg.REG_SZ, classobj._hot_icon_)
     except WindowsError:
         print "Couldn't set standard toolbar reg keys."
     else:
         print "Set standard toolbar reg keys."
 
+
 def unregister(classobj):
     import _winreg
     subKeyCLSID = "SOFTWARE\\Microsoft\\Internet Explorer\\Extensions\\%38s" % classobj._reg_clsid_
     try:
-        hKey = _winreg.CreateKey( _winreg.HKEY_LOCAL_MACHINE, subKeyCLSID )
-        subKey = _winreg.DeleteValue( hKey, "ButtonText" )
-        _winreg.DeleteValue( hKey, "ClsidExtension" ) # for calling COM object
-        _winreg.DeleteValue( hKey, "CLSID" )
-        _winreg.DeleteValue( hKey, "Default Visible" )
-        _winreg.DeleteValue( hKey, "ToolTip" )
-        _winreg.DeleteValue( hKey, "Icon" )
-        _winreg.DeleteValue( hKey, "HotIcon" )
-        _winreg.DeleteKey( _winreg.HKEY_LOCAL_MACHINE, subKeyCLSID )
+        hKey = _winreg.CreateKey(_winreg.HKEY_LOCAL_MACHINE, subKeyCLSID)
+        subKey = _winreg.DeleteValue(hKey, "ButtonText")
+        _winreg.DeleteValue(hKey, "ClsidExtension")  # for calling COM object
+        _winreg.DeleteValue(hKey, "CLSID")
+        _winreg.DeleteValue(hKey, "Default Visible")
+        _winreg.DeleteValue(hKey, "ToolTip")
+        _winreg.DeleteValue(hKey, "Icon")
+        _winreg.DeleteValue(hKey, "HotIcon")
+        _winreg.DeleteKey(_winreg.HKEY_LOCAL_MACHINE, subKeyCLSID)
     except WindowsError:
         print "Couldn't delete Standard toolbar regkey."
     else:
         print "Deleted Standard toolbar regkey."
 
+
 #
 # test implementation
 #
-
 class PyWin32InternetExplorerButton(IEButton):
     _reg_clsid_ = "{104B66A9-9E68-49D1-A3F5-94754BE9E0E6}"
     _reg_progid_ = "PyWin32.IEButton"
@@ -176,13 +182,17 @@ class PyWin32InternetExplorerButton(IEButton):
     _icon_ = ''
     _hot_icon_ = _icon_
 
+
 def DllRegisterServer():
     register(PyWin32InternetExplorerButton)
+
 
 def DllUnregisterServer():
     unregister(PyWin32InternetExplorerButton)
 
+
 if __name__ == '__main__':
     win32com.server.register.UseCommandLine(PyWin32InternetExplorerButton,
-                                        finalize_register = DllRegisterServer,
-                                        finalize_unregister = DllUnregisterServer)
+                                            finalize_register=DllRegisterServer,
+                                            finalize_unregister=DllUnregisterServer,
+                                            )

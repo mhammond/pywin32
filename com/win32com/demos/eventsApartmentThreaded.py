@@ -32,6 +32,7 @@ import time
 class ExplorerEvents:
     def __init__(self):
         self.event = win32event.CreateEvent(None, 0, 0, None)
+
     def OnDocumentComplete(self,
                            pDisp=pythoncom.Empty,
                            URL=pythoncom.Empty):
@@ -39,20 +40,22 @@ class ExplorerEvents:
         print "OnDocumentComplete event processed on thread %d"%thread
         # Set the event our main thread is waiting on.
         win32event.SetEvent(self.event)
+
     def OnQuit(self):
         thread = win32api.GetCurrentThreadId()
-        print "OnQuit event processed on thread %d"%thread
+        print "OnQuit event processed on thread %d" % thread
         win32event.SetEvent(self.event)
 
-def WaitWhileProcessingMessages(event, timeout = 2):
+
+def WaitWhileProcessingMessages(event, timeout=2):
     start = time.clock()
     while True:
         # Wake 4 times a second - we can't just specify the
         # full timeout here, as then it would reset for every
         # message we process.
-        rc = win32event.MsgWaitForMultipleObjects( (event,), 0,
-                                250,
-                                win32event.QS_ALLEVENTS)
+        rc = win32event.MsgWaitForMultipleObjects((event,), 0,
+                                                  250,
+                                                  win32event.QS_ALLEVENTS)
         if rc == win32event.WAIT_OBJECT_0:
             # event signalled - stop now!
             return True
@@ -62,12 +65,13 @@ def WaitWhileProcessingMessages(event, timeout = 2):
         # must be a message.
         pythoncom.PumpWaitingMessages()
 
+
 def TestExplorerEvents():
     iexplore = win32com.client.DispatchWithEvents(
         "InternetExplorer.Application", ExplorerEvents)
 
     thread = win32api.GetCurrentThreadId()
-    print 'TestExplorerEvents created IE object on thread %d'%thread
+    print 'TestExplorerEvents created IE object on thread %d' % thread
 
     iexplore.Visible = 1
     try:
@@ -90,5 +94,6 @@ def TestExplorerEvents():
 
     iexplore = None
 
-if __name__=='__main__':
+
+if __name__ == '__main__':
     TestExplorerEvents()

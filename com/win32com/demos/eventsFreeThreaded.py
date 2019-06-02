@@ -19,7 +19,8 @@
 #   vanish without ever being repainted.
 
 import sys
-sys.coinit_flags=0          # specify free threading
+
+sys.coinit_flags = 0          # specify free threading
 
 import os
 import win32api
@@ -28,6 +29,7 @@ import win32com.client
 import pythoncom
 import time
 
+
 # The print statements indicate that COM has actually started another thread
 # and will deliver the events to that thread (ie, the events do not actually
 # fire on our main thread.
@@ -35,6 +37,7 @@ class ExplorerEvents:
     def __init__(self):
         # We reuse this event for all events.
         self.event = win32event.CreateEvent(None, 0, 0, None)
+
     def OnDocumentComplete(self,
                            pDisp=pythoncom.Empty,
                            URL=pythoncom.Empty):
@@ -45,20 +48,22 @@ class ExplorerEvents:
         # situation may be different.   Caveat programmer.
         #
         thread = win32api.GetCurrentThreadId()
-        print "OnDocumentComplete event processed on thread %d"%thread
+        print "OnDocumentComplete event processed on thread %d" % thread
         # Set the event our main thread is waiting on.
         win32event.SetEvent(self.event)
+
     def OnQuit(self):
         thread = win32api.GetCurrentThreadId()
-        print "OnQuit event processed on thread %d"%thread
+        print "OnQuit event processed on thread %d" % thread
         win32event.SetEvent(self.event)
+
 
 def TestExplorerEvents():
     iexplore = win32com.client.DispatchWithEvents(
         "InternetExplorer.Application", ExplorerEvents)
 
     thread = win32api.GetCurrentThreadId()
-    print 'TestExplorerEvents created IE object on thread %d'%thread
+    print 'TestExplorerEvents created IE object on thread %d' % thread
 
     iexplore.Visible = 1
     try:
@@ -84,5 +89,6 @@ def TestExplorerEvents():
     iexplore = None
     print "Finished the IE event sample!"
 
-if __name__=='__main__':
+
+if __name__ == '__main__':
     TestExplorerEvents()
