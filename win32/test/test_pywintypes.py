@@ -6,6 +6,7 @@ from pywin32_testutil import str2bytes, ob2memory
 import datetime
 import operator
 
+
 class TestCase(unittest.TestCase):
     def testPyTimeFormat(self):
         struct_current = time.localtime()
@@ -22,7 +23,7 @@ class TestCase(unittest.TestCase):
     def testPyTimePrint(self):
         # This used to crash with an invalid, or too early time.
         # We don't really want to check that it does cause a ValueError
-        # (as hopefully this wont be true forever).  So either working, or 
+        # (as hopefully this wont be true forever).  So either working, or
         # ValueError is OK.
         try:
             t = pywintypes.Time(-2)
@@ -46,7 +47,7 @@ class TestCase(unittest.TestCase):
 
         self.failIfEqual(t1, t2)
         self.failUnless(t1 < t2)
-        self.failUnless(t2 > t1 )
+        self.failUnless(t2 > t1)
 
     def testPyTimeCompareOther(self):
         t1 = pywintypes.Time(100)
@@ -54,7 +55,7 @@ class TestCase(unittest.TestCase):
         self.failIfEqual(t1, t2)
 
     def testTimeTuple(self):
-        now = datetime.datetime.now() # has usec...
+        now = datetime.datetime.now()  # has usec...
         # timetuple() lost usec - pt must be <=...
         pt = pywintypes.Time(now.timetuple())
         # *sob* - only if we have a datetime object can we compare like this.
@@ -62,7 +63,7 @@ class TestCase(unittest.TestCase):
             self.failUnless(pt <= now)
 
     def testTimeTuplems(self):
-        now = datetime.datetime.now() # has usec...
+        now = datetime.datetime.now()  # has usec...
         tt = now.timetuple() + (now.microsecond // 1000,)
         pt = pywintypes.Time(tt)
         # we can't compare if using the old type, as it loses all sub-second res.
@@ -77,7 +78,7 @@ class TestCase(unittest.TestCase):
         # We only do this special thing for python 3.x
         if not issubclass(pywintypes.TimeType, datetime.datetime):
             return
-        MAX_TIMESTAMP = 0x7FFFFFFFFFFFFFFF # used by some API function to mean "never"
+        MAX_TIMESTAMP = 0x7FFFFFFFFFFFFFFF  # used by some API function to mean "never"
         ts = pywintypes.TimeStamp(MAX_TIMESTAMP)
         self.failUnlessEqual(ts, datetime.datetime.max)
 
@@ -86,17 +87,25 @@ class TestCase(unittest.TestCase):
         iid = pywintypes.IID(s)
         iid2 = pywintypes.IID(ob2memory(iid), True)
         self.assertEquals(iid, iid2)
-        self.assertRaises(ValueError, pywintypes.IID, str2bytes('00'), True) # too short
-        self.assertRaises(TypeError, pywintypes.IID, 0, True) # no buffer
+        self.assertRaises(ValueError,
+                          pywintypes.IID,
+                          str2bytes('00'),
+                          True
+                          )  # too short
+        self.assertRaises(TypeError,
+                          pywintypes.IID,
+                          0,
+                          True
+                          )  # no buffer
 
     def testGUIDRichCmp(self):
         s = "{00020400-0000-0000-C000-000000000046}"
         iid = pywintypes.IID(s)
-        self.failIf(s==None)
-        self.failIf(None==s)
-        self.failUnless(s!=None)
-        self.failUnless(None!=s)
-        if sys.version_info > (3,0):
+        self.failIf(s == None)
+        self.failIf(None == s)
+        self.failUnless(s != None)
+        self.failUnless(None != s)
+        if sys.version_info > (3, 0):
             self.assertRaises(TypeError, operator.gt, None, s)
             self.assertRaises(TypeError, operator.gt, s, None)
             self.assertRaises(TypeError, operator.lt, None, s)
@@ -108,6 +117,6 @@ class TestCase(unittest.TestCase):
         d = dict(item=iid)
         self.failUnlessEqual(d['item'], iid)
 
+
 if __name__ == '__main__':
     unittest.main()
-

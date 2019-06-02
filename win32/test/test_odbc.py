@@ -12,6 +12,7 @@ from win32com.client.gencache import EnsureDispatch
 from win32com.client import constants
 import pythoncom
 
+
 class TestStuff(unittest.TestCase):
     def setUp(self):
         self.tablename = "pywin32test_users"
@@ -23,7 +24,7 @@ class TestStuff(unittest.TestCase):
         except KeyError:
             # Create a local MSAccess DB for testing.
             self.db_filename = tempfile.NamedTemporaryFile().name + '.mdb'
-    
+
             # Create a brand-new database - what is the story with these?
             for suffix in (".36", ".35", ".30"):
                 try:
@@ -33,30 +34,30 @@ class TestStuff(unittest.TestCase):
                     pass
             else:
                 raise TestSkipped("Can't find a DB engine")
-    
+
             workspace = dbe.Workspaces(0)
-    
-            newdb = workspace.CreateDatabase(self.db_filename, 
+
+            newdb = workspace.CreateDatabase(self.db_filename,
                                              constants.dbLangGeneral,
                                              constants.dbEncrypt)
-    
+
             newdb.Close()
-    
+
             conn_str = "Driver={Microsoft Access Driver (*.mdb)};dbq=%s;Uid=;Pwd=;" \
                        % (self.db_filename,)
-        ## print 'Connection string:', conn_str
+        # # print 'Connection string:', conn_str
         self.conn = odbc.odbc(conn_str)
         # And we expect a 'users' table for these tests.
         self.cur = self.conn.cursor()
-        ## self.cur.setoutputsize(1000)
+        # # self.cur.setoutputsize(1000)
         try:
-            self.cur.execute("""drop table %s""" %self.tablename)
+            self.cur.execute("""drop table %s""" % self.tablename)
         except (odbc.error, odbc.progError):
             pass
 
-        ## This needs to be adjusted for sql server syntax for unicode fields
-        ##  - memo -> TEXT
-        ##  - varchar -> nvarchar
+        # # This needs to be adjusted for sql server syntax for unicode fields
+        # #  - memo -> TEXT
+        # #  - varchar -> nvarchar
         self.assertEqual(self.cur.execute(
             """create table %s (
                     userid varchar(25),
@@ -68,14 +69,14 @@ class TestStuff(unittest.TestCase):
                     rawfield varbinary(100),
                     longtextfield memo,
                     longbinaryfield image
-            )""" %self.tablename),-1)
+            )""" % self.tablename),-1)
 
     def tearDown(self):
         if self.cur is not None:
             try:
-                self.cur.execute("""drop table %s""" %self.tablename)
+                self.cur.execute("""drop table %s""" % self.tablename)
             except (odbc.error, odbc.progError), why:
-                print "Failed to delete test table %s" %self.tablename, why
+                print "Failed to delete test table %s" % self.tablename, why
 
             self.cur.close()
             self.cur = None
@@ -90,19 +91,21 @@ class TestStuff(unittest.TestCase):
 
     def test_insert_select(self, userid='Frank', username='Frank Millman'):
         self.assertEqual(self.cur.execute("insert into %s (userid, username) \
-            values (?,?)" %self.tablename, [userid, username]),1)
+            values (?,?)" % self.tablename, [userid, username]), 1)
         self.assertEqual(self.cur.execute("select * from %s \
-            where userid = ?" %self.tablename, [userid.lower()]),0)
+            where userid = ?" % self.tablename, [userid.lower()]), 0)
         self.assertEqual(self.cur.execute("select * from %s \
-            where username = ?" %self.tablename, [username.lower()]),0)
+            where username = ?" % self.tablename, [username.lower()]), 0)
 
-    def test_insert_select_unicode(self, userid=u'Frank', username=u"Frank Millman"):
+    def test_insert_select_unicode(self,
+                                   userid=u'Frank',
+                                   username=u"Frank Millman"):
         self.assertEqual(self.cur.execute("insert into %s (userid, username)\
-            values (?,?)" %self.tablename, [userid, username]),1)
+            values (?,?)" % self.tablename, [userid, username]), 1)
         self.assertEqual(self.cur.execute("select * from %s \
-            where userid = ?" %self.tablename, [userid.lower()]),0)
+            where userid = ?" % self.tablename, [userid.lower()]), 0)
         self.assertEqual(self.cur.execute("select * from %s \
-            where username = ?" %self.tablename, [username.lower()]),0)
+            where username = ?" % self.tablename, [username.lower()]), 0)
 
     def test_insert_select_unicode_ext(self):
         userid = u"t-\xe0\xf2"
@@ -111,11 +114,13 @@ class TestStuff(unittest.TestCase):
 
     def _test_val(self, fieldName, value):
         for x in range(100):
-            self.cur.execute("delete from %s where userid='Frank'" %self.tablename)
+            self.cur.execute("delete from %s where userid='Frank'" % self.tablename)
             self.assertEqual(self.cur.execute(
-                "insert into %s (userid, %s) values (?,?)" % (self.tablename, fieldName),
+                "insert into %s (userid, %s) values (?,?)" % (self.tablename,
+                                                              fieldName),
                 ["Frank", value]), 1)
-            self.cur.execute("select %s from %s where userid = ?" % (fieldName, self.tablename),
+            self.cur.execute("select %s from %s where userid = ?" % (fieldName,
+                                                                     self.tablename),
                              ["Frank"])
             rows = self.cur.fetchmany()
             self.failUnlessEqual(1, len(rows))
@@ -134,7 +139,7 @@ class TestStuff(unittest.TestCase):
         except AttributeError:
             big = sys.maxint
         self._test_val('intfield', big)
-        
+
     def testFloat(self):
         self._test_val('floatfield', 1.01)
         self._test_val('floatfield', 0)
@@ -162,31 +167,34 @@ class TestStuff(unittest.TestCase):
 
     def testDates(self):
         import datetime
-        for v in (
-            (1900, 12, 25, 23, 39, 59),
-            ):
+        for v in ((1900, 12, 25, 23, 39, 59),
+                  ):
             d = datetime.datetime(*v)
             self._test_val('datefield', d)
 
     def test_set_nonzero_length(self):
         self.assertEqual(self.cur.execute("insert into %s (userid,username) "
-            "values (?,?)" %self.tablename, ['Frank', 'Frank Millman']),1)
-        self.assertEqual(self.cur.execute("update %s set username = ?" %self.tablename,
-            ['Frank']),1)
-        self.assertEqual(self.cur.execute("select * from %s" %self.tablename), 0)
-        self.assertEqual(len(self.cur.fetchone()[1]),5)
+                                          "values (?,?)" % self.tablename,
+                                          ['Frank', 'Frank Millman']), 1)
+        self.assertEqual(self.cur.execute("update %s set username = ?" % self.tablename,
+                                          ['Frank']), 1)
+        self.assertEqual(self.cur.execute("select * from %s" % self.tablename), 0)
+        self.assertEqual(len(self.cur.fetchone()[1]), 5)
 
     def test_set_zero_length(self):
         self.assertEqual(self.cur.execute("insert into %s (userid,username) "
-            "values (?,?)" %self.tablename, [str2bytes('Frank'), '']),1)
-        self.assertEqual(self.cur.execute("select * from %s" %self.tablename), 0)
-        self.assertEqual(len(self.cur.fetchone()[1]),0)
+                                          "values (?,?)" % self.tablename,
+                                          [str2bytes('Frank'), '']), 1)
+        self.assertEqual(self.cur.execute("select * from %s" % self.tablename), 0)
+        self.assertEqual(len(self.cur.fetchone()[1]), 0)
 
     def test_set_zero_length_unicode(self):
         self.assertEqual(self.cur.execute("insert into %s (userid,username) "
-            "values (?,?)" %self.tablename, [u'Frank', u'']),1)
-        self.assertEqual(self.cur.execute("select * from %s" %self.tablename), 0)
-        self.assertEqual(len(self.cur.fetchone()[1]),0)
+                                          "values (?,?)" % self.tablename,
+                                          [u'Frank', u'']), 1)
+        self.assertEqual(self.cur.execute("select * from %s" % self.tablename), 0)
+        self.assertEqual(len(self.cur.fetchone()[1]), 0)
+
 
 if __name__ == '__main__':
     unittest.main()

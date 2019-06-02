@@ -1,9 +1,13 @@
 # Some tests of the win32security sspi functions.
 # Stolen from Roger's original test_sspi.c, a version of which is in "Demos"
 # See also the other SSPI demos.
-import win32security, sspi, sspicon, win32api
+import win32security
+import sspi
+import sspicon
+import win32api
 from pywin32_testutil import TestSkipped, testmain, str2bytes
 import unittest
+
 
 # It is quite likely that the Kerberos tests will fail due to not being
 # installed.  The NTLM tests do *not* get the same behaviour as they should
@@ -27,10 +31,12 @@ class TestSSPI(unittest.TestCase):
             self.failUnlessEqual(exc.winerror, hr)
 
     def _doAuth(self, pkg_name):
-        sspiclient=sspi.ClientAuth(pkg_name,targetspn=win32api.GetUserName())
-        sspiserver=sspi.ServerAuth(pkg_name)
+        sspiclient = sspi.ClientAuth(pkg_name,
+                                     targetspn=win32api.GetUserName()
+                                     )
+        sspiserver = sspi.ServerAuth(pkg_name)
 
-        sec_buffer=None
+        sec_buffer = None
         err = 1
         while err != 0:
             err, sec_buffer = sspiclient.authorize(sec_buffer)
@@ -53,16 +59,18 @@ class TestSSPI(unittest.TestCase):
 
         sspiclient, sspiserver = self._doAuth(pkg_name)
 
-        pkg_size_info=sspiclient.ctxt.QueryContextAttributes(sspicon.SECPKG_ATTR_SIZES)
-        msg=str2bytes('some data to be encrypted ......')
+        pkg_size_info = sspiclient.ctxt.QueryContextAttributes(sspicon.SECPKG_ATTR_SIZES)
+        msg = str2bytes('some data to be encrypted ......')
 
-        trailersize=pkg_size_info['SecurityTrailer']
-        encbuf=win32security.PySecBufferDescType()
-        encbuf.append(win32security.PySecBufferType(len(msg), sspicon.SECBUFFER_DATA))
-        encbuf.append(win32security.PySecBufferType(trailersize, sspicon.SECBUFFER_TOKEN))
-        encbuf[0].Buffer=msg
-        sspiclient.ctxt.EncryptMessage(0,encbuf,1)
-        sspiserver.ctxt.DecryptMessage(encbuf,1)
+        trailersize = pkg_size_info['SecurityTrailer']
+        encbuf = win32security.PySecBufferDescType()
+        encbuf.append(win32security.PySecBufferType(len(msg),
+                                                    sspicon.SECBUFFER_DATA))
+        encbuf.append(win32security.PySecBufferType(trailersize,
+                                                    sspicon.SECBUFFER_TOKEN))
+        encbuf[0].Buffer = msg
+        sspiclient.ctxt.EncryptMessage(0, encbuf, 1)
+        sspiserver.ctxt.DecryptMessage(encbuf, 1)
         self.failUnlessEqual(msg, encbuf[0].Buffer)
         # and test the higher-level functions
         data_in = str2bytes("hello")
@@ -74,7 +82,7 @@ class TestSSPI(unittest.TestCase):
 
     def testEncryptNTLM(self):
         self._doTestEncrypt("NTLM")
-    
+
     def testEncryptKerberos(self):
         applyHandlingSkips(self._doTestEncrypt, "Kerberos")
 
@@ -82,16 +90,18 @@ class TestSSPI(unittest.TestCase):
 
         sspiclient, sspiserver = self._doAuth(pkg_name)
 
-        pkg_size_info=sspiclient.ctxt.QueryContextAttributes(sspicon.SECPKG_ATTR_SIZES)
-        msg=str2bytes('some data to be encrypted ......')
-        
-        sigsize=pkg_size_info['MaxSignature']
-        sigbuf=win32security.PySecBufferDescType()
-        sigbuf.append(win32security.PySecBufferType(len(msg), sspicon.SECBUFFER_DATA))
-        sigbuf.append(win32security.PySecBufferType(sigsize, sspicon.SECBUFFER_TOKEN))
-        sigbuf[0].Buffer=msg
-        sspiclient.ctxt.MakeSignature(0,sigbuf,0)
-        sspiserver.ctxt.VerifySignature(sigbuf,0)
+        pkg_size_info = sspiclient.ctxt.QueryContextAttributes(sspicon.SECPKG_ATTR_SIZES)
+        msg = str2bytes('some data to be encrypted ......')
+
+        sigsize = pkg_size_info['MaxSignature']
+        sigbuf = win32security.PySecBufferDescType()
+        sigbuf.append(win32security.PySecBufferType(len(msg),
+                                                    sspicon.SECBUFFER_DATA))
+        sigbuf.append(win32security.PySecBufferType(sigsize,
+                                                    sspicon.SECBUFFER_TOKEN))
+        sigbuf[0].Buffer = msg
+        sspiclient.ctxt.MakeSignature(0, sigbuf, 0)
+        sspiserver.ctxt.VerifySignature(sigbuf, 0)
         # and test the higher-level functions
         sspiclient.next_seq_num = 1
         sspiserver.next_seq_num = 1
@@ -111,7 +121,7 @@ class TestSSPI(unittest.TestCase):
 
     def testSignNTLM(self):
         self._doTestSign("NTLM")
-    
+
     def testSignKerberos(self):
         applyHandlingSkips(self._doTestSign, "Kerberos")
 
@@ -137,5 +147,6 @@ class TestSSPI(unittest.TestCase):
     def testSequenceEncrypt(self):
         applyHandlingSkips(self._testSequenceEncrypt)
 
-if __name__=='__main__':
+
+if __name__ == '__main__':
     testmain()
