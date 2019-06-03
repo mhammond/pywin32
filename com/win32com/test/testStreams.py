@@ -77,6 +77,7 @@ class BadStream(Stream):
     PyGStream::Read could formerly overflow buffer if the python implementation
     returned more data than requested.
     """
+
     def Read(self, amount):
         return str2bytes('x')*(amount+1)
 
@@ -140,6 +141,7 @@ class StreamTest(win32com.test.util.TestCase):
         self.assertEqual(len(records), 2)
         self.failUnless(records[0].msg.startswith('pythoncom error'))
         self.failUnless(records[1].msg.startswith('pythoncom error'))
+
 
 if __name__ == '__main__':
     unittest.main()

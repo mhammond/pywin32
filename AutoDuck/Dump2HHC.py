@@ -11,6 +11,7 @@ TODOs:
 Add support for merging in non-autoduck'd comments into HTML Help files.
 """
 
+
 class category:
     def __init__(self, category_defn):
         self.category_defn = category_defn
@@ -31,8 +32,9 @@ class category:
             top.context = "html/" + oi.href
             top.type = "topic"
             assert not top.name in d and not top.name in self.overviewTopics, \
-               "Duplicate named topic detected: " + top.name
+                "Duplicate named topic detected: " + top.name
             d[top.name] = top
+
 
 class topic:
     def __init__(self):
@@ -40,24 +42,29 @@ class topic:
         self.name = None
         self.type = None
         self.contains = []
+
     def __str__(self):
-        return str({ "context" : self.context, "name" : self.name, "contains" : self.contains })
-    
+        return str({"context": self.context, "name": self.name, "contains": self.contains})
+
     def __repr__(self):
         if len(self.contains) > 0:
-            return repr({ "context" : self.context, "name" : self.name, "contains" : self.contains })
+            return repr({"context": self.context, "name": self.name, "contains": self.contains})
         else:
-            return repr({ "context" : self.context, "name" : self.name})
+            return repr({"context": self.context, "name": self.name})
+
 
 def TopicCmp(a, b):
-        if a.name == b.name:
-            return 0
-        elif a.name > b.name:
-            return 1
-        else:
-            return -1
+    if a.name == b.name:
+        return 0
+    elif a.name > b.name:
+        return 1
+    else:
+        return -1
+
+
 def TopicKey(a):
     return a.name
+
 
 def parseCategories():
     # Sucks in an external category file.
@@ -72,6 +79,7 @@ def parseCategories():
         cat.process()
         ret.append(cat)
     return ret
+
 
 def parseTopics(cat, input):
     # Sucks in a AutoDuck Dump file.
@@ -132,13 +140,13 @@ def parseTopics(cat, input):
         else:
             # add to modules or object
             if top.type == "module":
-              d = cat.modules
+                d = cat.modules
             elif top.type == "object":
-              d = cat.objects
+                d = cat.objects
             elif top.type == "topic":
-              d = cat.overviewTopics
+                d = cat.overviewTopics
             elif top.type == "const":
-              d = cat.constants
+                d = cat.constants
             else:
                 raise RuntimeError("What is '%s'" % (top.type,))
 
@@ -149,7 +157,8 @@ def parseTopics(cat, input):
             line = input.readline()
             line = line[:-1]
             fields = line.split("\t")
-            assert len(fields[0]) == 0 and len(fields[1]) == 0, "%s, %s" %(fields, top.name)
+            assert len(fields[0]) == 0 and len(
+                fields[1]) == 0, "%s, %s" % (fields, top.name)
             if line == '':
                 raise ValueError("incomplete topic!")
 
@@ -166,7 +175,8 @@ def parseTopics(cat, input):
                     break
 
                 # Do real work here...
-                assert len(fields[0]) == 0 and len(fields[1]) > 0, "Bogus fields: " + fields
+                assert len(fields[0]) == 0 and len(
+                    fields[1]) > 0, "Bogus fields: " + fields
                 top2 = topic()
                 top2.type = fields[1]
 
@@ -179,10 +189,12 @@ def parseTopics(cat, input):
                 assert len(fields[0]) == 0 and len(fields[1]) == 0, fields
                 if top2.type == "pymeth":
                     top2.name = fields[2]
-                    top2.context = "%s__%s_meth.html" % (_urlescape(top.name), top2.name)
+                    top2.context = "%s__%s_meth.html" % (
+                        _urlescape(top.name), top2.name)
                 elif top2.type == "prop":
                     top2.name = fields[3]
-                    top2.context = "%s__%s_prop.html" % (_urlescape(top.name), top2.name)
+                    top2.context = "%s__%s_prop.html" % (
+                        _urlescape(top.name), top2.name)
                 else:
                     # and loop....
                     line = input.readline()
@@ -204,9 +216,10 @@ def parseTopics(cat, input):
                 fields = line.split("\t")
             d[top.name] = top
 
+
 def _urlescape(name):
     """Escape the given name for inclusion in a URL.
-    
+
     Escaping is done in the manner in which AutoDuck(?) seems to be doing
     it.
     """
@@ -215,12 +228,14 @@ def _urlescape(name):
                .replace(')', '.29')
     return name
 
+
 def _genCategoryHTMLFromDict(dict, output):
     keys = list(dict.keys())
     keys.sort()
     for key in keys:
         topic = dict[key]
         output.write('<LI><A HREF="%s">%s</A>\n' % (topic.context, topic.name))
+
 
 def _genOneCategoryHTML(output_dir, cat, title, suffix, *dicts):
     # Overview
@@ -234,6 +249,7 @@ def _genOneCategoryHTML(output_dir, cat, title, suffix, *dicts):
     output.write("</BODY></HTML>\n")
     output.close()
 
+
 def _genCategoryTopic(output_dir, cat, title):
     fname = os.path.join(output_dir, cat.id + ".html")
     output = open(fname, "w")
@@ -241,48 +257,56 @@ def _genCategoryTopic(output_dir, cat, title):
     output.write("<BODY>\n")
     output.write("<H1>" + title + "</H1>\n")
     for subtitle, suffix in ("Overviews", "_overview"), ("Modules", "_modules"), ("Objects", "_objects"):
-        output.write('<LI><A HREF="%s%s.html">%s</A>\n' % (cat.id, suffix, subtitle))
+        output.write('<LI><A HREF="%s%s.html">%s</A>\n' %
+                     (cat.id, suffix, subtitle))
     output.write("</BODY></HTML>\n")
     output.close()
+
 
 def genCategoryHTML(output_dir, cats):
     for cat in cats:
         _genCategoryTopic(output_dir, cat, cat.name)
-        _genOneCategoryHTML(output_dir, cat, "Overviews", "_overview", cat.extOverviewTopics, cat.overviewTopics)
-        _genOneCategoryHTML(output_dir, cat, "Modules", "_modules", cat.modules)
-        _genOneCategoryHTML(output_dir, cat, "Objects", "_objects", cat.objects)
-        _genOneCategoryHTML(output_dir, cat, "Constants", "_constants", cat.constants)
+        _genOneCategoryHTML(output_dir, cat, "Overviews",
+                            "_overview", cat.extOverviewTopics, cat.overviewTopics)
+        _genOneCategoryHTML(output_dir, cat, "Modules",
+                            "_modules", cat.modules)
+        _genOneCategoryHTML(output_dir, cat, "Objects",
+                            "_objects", cat.objects)
+        _genOneCategoryHTML(output_dir, cat, "Constants",
+                            "_constants", cat.constants)
 
-def _genItemsFromDict(dict, cat, output, target, do_children = 1):
+
+def _genItemsFromDict(dict, cat, output, target, do_children=1):
     CHM = "mk:@MSITStore:%s.chm::/" % target
     keys = list(dict.keys())
     keys.sort()
     for k in keys:
-      context = dict[k].context
-      name = dict[k].name
-      output.write('''
+        context = dict[k].context
+        name = dict[k].name
+        output.write('''
         <LI> <OBJECT type="text/sitemap">
              <param name="Name" value="%(name)s">
              <param name="ImageNumber" value="1">
              <param name="Local" value="%(CHM)s%(context)s">
              </OBJECT>
       ''' % locals())
-      if not do_children:
-          continue
-      if len(dict[k].contains) > 0:
-        output.write("<UL>")
-      containees = copy.copy(dict[k].contains)
-      containees.sort(key=TopicKey)
-      for m in containees:
-        output.write('''
+        if not do_children:
+            continue
+        if len(dict[k].contains) > 0:
+            output.write("<UL>")
+        containees = copy.copy(dict[k].contains)
+        containees.sort(key=TopicKey)
+        for m in containees:
+            output.write('''
         <LI><OBJECT type="text/sitemap">
              <param name="Name" value="%s">
              <param name="ImageNumber" value="11">
              <param name="Local" value="%s%s">
             </OBJECT>''' % (m.name, CHM, m.context))
-      if len(dict[k].contains) > 0:
-        output.write('''
+        if len(dict[k].contains) > 0:
+            output.write('''
         </UL>''')
+
 
 def genTOC(cats, output, title, target):
     CHM = "mk:@MSITStore:%s.chm::/" % target
@@ -306,7 +330,8 @@ def genTOC(cats, output, title, target):
 ''' % locals())
 
     for cat in cats:
-        cat_name = cat.name; cat_id = cat.id
+        cat_name = cat.name
+        cat_id = cat.id
         output.write('''\
             <LI> <OBJECT type="text/sitemap">
                  <param name="Name" value="%(cat_name)s">
@@ -367,7 +392,7 @@ def genTOC(cats, output, title, target):
         # Finish this category
         output.write('''
         </UL>''')
-    
+
     # Finished dumping categories - finish up
     output.write('''
 </UL>
@@ -378,6 +403,7 @@ def genTOC(cats, output, title, target):
 # Usage:
 #   Dump2HHC.py dirname output.hhc
 #
+
 
 def main():
     gen_dir = sys.argv[1]
@@ -391,8 +417,9 @@ def main():
     output = open(sys.argv[2], "w")
     genTOC(cats, output, sys.argv[3], sys.argv[4])
     genCategoryHTML(gen_dir, cats)
-    #pprint.pprint(g_dModules["win32lz"].contains)
-    #pprint.pprint(g_dObject["connection"].contains)
+    # pprint.pprint(g_dModules["win32lz"].contains)
+    # pprint.pprint(g_dObject["connection"].contains)
+
 
 if __name__ == "__main__":
     main()

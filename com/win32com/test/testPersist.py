@@ -2,7 +2,11 @@ import pythoncom
 import win32com.server.util
 import time
 
-import win32com, sys, string, win32api, traceback
+import win32com
+import sys
+import string
+import win32api
+import traceback
 import win32com.client.dynamic
 import win32com.client
 import pythoncom
@@ -85,18 +89,18 @@ class LockBytes:
     def Stat(self, statflag):
         print "returning Stat " + str(statflag)
         return (
-          "PyMemBytes",
-          storagecon.STGTY_LOCKBYTES,
-          len(self.data),
-          self.mtime,
-          self.ctime,
-          self.atime,
-          storagecon.STGM_DIRECT | storagecon.STGM_READWRITE | storagecon.STGM_CREATE ,
-          storagecon.STGM_SHARE_EXCLUSIVE,
-          "{00020905-0000-0000-C000-000000000046}",
-          0,   # statebits ?
-          0
-          )
+            "PyMemBytes",
+            storagecon.STGTY_LOCKBYTES,
+            len(self.data),
+            self.mtime,
+            self.ctime,
+            self.atime,
+            storagecon.STGM_DIRECT | storagecon.STGM_READWRITE | storagecon.STGM_CREATE,
+            storagecon.STGM_SHARE_EXCLUSIVE,
+            "{00020905-0000-0000-C000-000000000046}",
+            0,   # statebits ?
+            0
+        )
 
 
 class OleClientSite:
@@ -143,7 +147,8 @@ def test():
     # Create a LockBytes object and
     # Wrap it as a COM object
     #  import win32com.server.dispatcher
-    lbcom = win32com.server.util.wrap(LockBytes(), pythoncom.IID_ILockBytes)  # , useDispatcher=win32com.server.dispatcher.DispatcherWin32trace)
+    # , useDispatcher=win32com.server.dispatcher.DispatcherWin32trace)
+    lbcom = win32com.server.util.wrap(LockBytes(), pythoncom.IID_ILockBytes)
 
     # create a structured storage on the ILockBytes object
     stcom = pythoncom.StgCreateDocfileOnILockBytes(lbcom,
@@ -179,7 +184,8 @@ def test():
     oocom.SetHostNames("OTPython2", "ThisisCool2")
 
     # get IDispatch of Word
-    doc = win32com.client.Dispatch(oocom.QueryInterface(pythoncom.IID_IDispatch))
+    doc = win32com.client.Dispatch(
+        oocom.QueryInterface(pythoncom.IID_IDispatch))
 
     # get IPersistStorage of Word
     dpcom = oocom.QueryInterface(pythoncom.IID_IPersistStorage)
@@ -215,6 +221,7 @@ def test():
     # Exiting Winword will automatically update the ILockBytes data
     # and flush it to "%TEMP%\persist.doc"
     doc.Application.Quit()
+
 
 if __name__ == '__main__':
     test()

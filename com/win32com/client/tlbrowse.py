@@ -5,29 +5,34 @@ import commctrl
 import pythoncom
 from pywin.mfc import dialog
 
+
 class TLBrowserException(Exception):
     "TypeLib browser internal error"
+
+
 error = TLBrowserException
 
 FRAMEDLG_STD = win32con.WS_CAPTION | win32con.WS_SYSMENU
 SS_STD = win32con.WS_CHILD | win32con.WS_VISIBLE
-BS_STD = SS_STD  | win32con.WS_TABSTOP
+BS_STD = SS_STD | win32con.WS_TABSTOP
 ES_STD = BS_STD | win32con.WS_BORDER
 LBS_STD = ES_STD | win32con.LBS_NOTIFY | win32con.LBS_NOINTEGRALHEIGHT | win32con.WS_VSCROLL
 CBS_STD = ES_STD | win32con.CBS_NOINTEGRALHEIGHT | win32con.WS_VSCROLL
 
 typekindmap = {
-    pythoncom.TKIND_ENUM : 'Enumeration',
-    pythoncom.TKIND_RECORD : 'Record',
-    pythoncom.TKIND_MODULE : 'Module',
-    pythoncom.TKIND_INTERFACE : 'Interface',
-    pythoncom.TKIND_DISPATCH : 'Dispatch',
-    pythoncom.TKIND_COCLASS : 'CoClass',
-    pythoncom.TKIND_ALIAS : 'Alias',
-    pythoncom.TKIND_UNION : 'Union'
+    pythoncom.TKIND_ENUM: 'Enumeration',
+    pythoncom.TKIND_RECORD: 'Record',
+    pythoncom.TKIND_MODULE: 'Module',
+    pythoncom.TKIND_INTERFACE: 'Interface',
+    pythoncom.TKIND_DISPATCH: 'Dispatch',
+    pythoncom.TKIND_COCLASS: 'CoClass',
+    pythoncom.TKIND_ALIAS: 'Alias',
+    pythoncom.TKIND_UNION: 'Union'
 }
 
-TypeBrowseDialog_Parent=dialog.Dialog
+TypeBrowseDialog_Parent = dialog.Dialog
+
+
 class TypeBrowseDialog(TypeBrowseDialog_Parent):
     "Browse a type library"
 
@@ -36,7 +41,7 @@ class TypeBrowseDialog(TypeBrowseDialog_Parent):
     IDC_PARAMLIST = 1002
     IDC_LISTVIEW = 1003
 
-    def __init__(self, typefile = None):
+    def __init__(self, typefile=None):
         TypeBrowseDialog_Parent.__init__(self, self.GetTemplate())
         try:
             if typefile:
@@ -57,13 +62,14 @@ class TypeBrowseDialog(TypeBrowseDialog_Parent):
 
     def _SetupMenu(self):
         menu = win32ui.CreateMenu()
-        flags=win32con.MF_STRING|win32con.MF_ENABLED
+        flags = win32con.MF_STRING | win32con.MF_ENABLED
         menu.AppendMenu(flags, win32ui.ID_FILE_OPEN, "&Open...")
         menu.AppendMenu(flags, win32con.IDCANCEL, "&Close")
         mainMenu = win32ui.CreateMenu()
-        mainMenu.AppendMenu(flags|win32con.MF_POPUP, menu.GetHandle(), "&File")
+        mainMenu.AppendMenu(flags | win32con.MF_POPUP,
+                            menu.GetHandle(), "&File")
         self.SetMenu(mainMenu)
-        self.HookCommand(self.OnFileOpen,win32ui.ID_FILE_OPEN)
+        self.HookCommand(self.OnFileOpen, win32ui.ID_FILE_OPEN)
 
     def OnFileOpen(self, id, code):
         openFlags = win32con.OFN_OVERWRITEPROMPT | win32con.OFN_FILEMUSTEXIST
@@ -91,7 +97,7 @@ class TypeBrowseDialog(TypeBrowseDialog_Parent):
         self.listview.InsertColumn(1, itemDetails)
 
         if self.tlb is None:
-            self.OnFileOpen(None,None)
+            self.OnFileOpen(None, None)
         else:
             self._SetupTLB()
         return TypeBrowseDialog_Parent.OnInitDialog(self)
@@ -102,7 +108,8 @@ class TypeBrowseDialog(TypeBrowseDialog_Parent):
         self.paramlb.ResetContent()
         self.typeinfo = None
         self.attr = None
-        if self.tlb is None: return
+        if self.tlb is None:
+            return
         n = self.tlb.GetTypeInfoCount()
         for i in range(n):
             self.typelb.AddString(self.tlb.GetDocumentation(i)[0])
@@ -111,9 +118,10 @@ class TypeBrowseDialog(TypeBrowseDialog_Parent):
         self.listview.DeleteAllItems()
         index = -1
         for item in items:
-            index = self.listview.InsertItem(index+1,item[0])
+            index = self.listview.InsertItem(index+1, item[0])
             data = item[1]
-            if data is None: data = ""
+            if data is None:
+                data = ""
             self.listview.SetItemText(index, 1, data)
 
     def SetupAllInfoTypes(self):
@@ -122,13 +130,15 @@ class TypeBrowseDialog(TypeBrowseDialog_Parent):
 
     def _GetMainInfoTypes(self):
         pos = self.typelb.GetCurSel()
-        if pos<0: return []
+        if pos < 0:
+            return []
         docinfo = self.tlb.GetDocumentation(pos)
         infos = [('GUID', str(self.attr[0]))]
         infos.append(('Help File', docinfo[3]))
         infos.append(('Help Context', str(docinfo[2])))
         try:
-            infos.append(('Type Kind', typekindmap[self.tlb.GetTypeInfoType(pos)]))
+            infos.append(
+                ('Type Kind', typekindmap[self.tlb.GetTypeInfoType(pos)]))
         except:
             pass
 
@@ -145,16 +155,19 @@ class TypeBrowseDialog(TypeBrowseDialog_Parent):
             typeFlags = attr[11]
 
             desc = doc[0]
-            desc = desc + ", Flags=0x%x, typeKind=0x%x, typeFlags=0x%x" % (flags, typeKind, typeFlags)
+            desc = desc + \
+                ", Flags=0x%x, typeKind=0x%x, typeFlags=0x%x" % (
+                    flags, typeKind, typeFlags)
             if flags & pythoncom.IMPLTYPEFLAG_FSOURCE:
                 desc = desc + "(Source)"
-            infos.append( ('Implements', desc))
+            infos.append(('Implements', desc))
 
         return infos
 
     def _GetMethodInfoTypes(self):
         pos = self.memberlb.GetCurSel()
-        if pos<0: return []
+        if pos < 0:
+            return []
 
         realPos, isMethod = self._GetRealMemberPos(pos)
         ret = []
@@ -215,20 +228,29 @@ class TypeBrowseDialog(TypeBrowseDialog_Parent):
         w = 272  # Dialog width
         h = 192  # Dialog height
         style = FRAMEDLG_STD | win32con.WS_VISIBLE | win32con.DS_SETFONT | win32con.WS_MINIMIZEBOX
-        template = [['Type Library Browser', (0, 0, w, h), style, None, (8, 'Helv')], ]
-        template.append([130, "&Type", -1, (10, 10, 62, 9), SS_STD | win32con.SS_LEFT])
-        template.append([131, None, self.IDC_TYPELIST, (10, 20, 80, 80), LBS_STD])
-        template.append([130, "&Members", -1, (100, 10, 62, 9), SS_STD | win32con.SS_LEFT])
-        template.append([131, None, self.IDC_MEMBERLIST, (100, 20, 80, 80), LBS_STD])
-        template.append([130, "&Parameters", -1, (190, 10, 62, 9), SS_STD | win32con.SS_LEFT])
-        template.append([131, None, self.IDC_PARAMLIST, (190, 20, 75, 80), LBS_STD])
+        template = [['Type Library Browser',
+                     (0, 0, w, h), style, None, (8, 'Helv')], ]
+        template.append([130, "&Type", -1, (10, 10, 62, 9),
+                         SS_STD | win32con.SS_LEFT])
+        template.append([131, None, self.IDC_TYPELIST,
+                         (10, 20, 80, 80), LBS_STD])
+        template.append(
+            [130, "&Members", -1, (100, 10, 62, 9), SS_STD | win32con.SS_LEFT])
+        template.append([131, None, self.IDC_MEMBERLIST,
+                         (100, 20, 80, 80), LBS_STD])
+        template.append(
+            [130, "&Parameters", -1, (190, 10, 62, 9), SS_STD | win32con.SS_LEFT])
+        template.append([131, None, self.IDC_PARAMLIST,
+                         (190, 20, 75, 80), LBS_STD])
 
         lvStyle = SS_STD | commctrl.LVS_REPORT | commctrl.LVS_AUTOARRANGE | commctrl.LVS_ALIGNLEFT | win32con.WS_BORDER | win32con.WS_TABSTOP
-        template.append(["SysListView32", "", self.IDC_LISTVIEW, (10, 110, 255, 65), lvStyle])
+        template.append(
+            ["SysListView32", "", self.IDC_LISTVIEW, (10, 110, 255, 65), lvStyle])
 
         return template
 
-if __name__=='__main__':
+
+if __name__ == '__main__':
     import sys
     fname = None
     try:

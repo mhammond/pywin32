@@ -97,7 +97,8 @@ def make_framework_support(header_file_name,
 #            fout.write('#include "PythonCOMServer.h"\n')
 #        if interface.base not in ["IUnknown", "IDispatch"]:
 #            fout.write('#include "Py%s.h"\n' % interface.base)
-        fout.write('#include "Py%s.h"\n\n// @doc - This file contains autoduck documentation\n' % interface.name)
+        fout.write(
+            '#include "Py%s.h"\n\n// @doc - This file contains autoduck documentation\n' % interface.name)
         if bMakeInterface:
             ifc_cpp_writer(fout, interface)
         if bMakeGateway:
@@ -141,7 +142,8 @@ public:
 	// The Python methods
 ''' % (interface.name, interface.base, interface.name, interface.name))
     for method in interface.methods:
-        f.write('\tstatic PyObject *%s(PyObject *self, PyObject *args);\n' % method.name)
+        f.write('\tstatic PyObject *%s(PyObject *self, PyObject *args);\n' %
+                method.name)
     f.write('''\
 
 protected:
@@ -211,15 +213,20 @@ PyObject *Py%(interfacename)s::%(method)s(PyObject *self, PyObject *args)
                         cleanup = cleanup + argCvt.GetInterfaceArgCleanup()
                         cleanup_gil = cleanup_gil + argCvt.GetInterfaceArgCleanupGIL()
                 comArgName, comArgDeclString = argCvt.GetInterfaceCppObjectInfo()
-                if comArgDeclString: # If we should declare a variable
-                    codeCobjects = codeCobjects + "\t%s;\n" % (comArgDeclString)
+                if comArgDeclString:  # If we should declare a variable
+                    codeCobjects = codeCobjects + \
+                        "\t%s;\n" % (comArgDeclString)
                 argsCOM = argsCOM + ", " + comArgName
             except makegwparse.error_not_supported, why:
                 f.write('// *** The input argument %s of type "%s" was not processed ***\n//     Please check the conversion function is appropriate and exists!\n' % (arg.name, arg.raw_type))
 
-                f.write('\t%s %s;\n\tPyObject *ob%s;\n' % (arg.type, arg.name, arg.name))
-                f.write('\t// @pyparm <o Py%s>|%s||Description for %s\n' % (arg.type, arg.name, arg.name))
-                codePost = codePost + '\tif (bPythonIsHappy && !PyObject_As%s( ob%s, &%s )) bPythonIsHappy = FALSE;\n' % (arg.type, arg.name, arg.name)
+                f.write('\t%s %s;\n\tPyObject *ob%s;\n' %
+                        (arg.type, arg.name, arg.name))
+                f.write('\t// @pyparm <o Py%s>|%s||Description for %s\n' %
+                        (arg.type, arg.name, arg.name))
+                codePost = codePost + \
+                    '\tif (bPythonIsHappy && !PyObject_As%s( ob%s, &%s )) bPythonIsHappy = FALSE;\n' % (
+                        arg.type, arg.name, arg.name)
 
                 formatChars = formatChars + "O"
                 argsParseTuple = argsParseTuple + ", &ob%s" % (arg.name)
@@ -232,7 +239,8 @@ PyObject *Py%(interfacename)s::%(method)s(PyObject *self, PyObject *args)
             f.write("\tUSES_CONVERSION;\n")
         f.write(codePobjects)
         f.write(codeCobjects)
-        f.write('\tif ( !PyArg_ParseTuple(args, "%s:%s"%s) )\n\t\treturn NULL;\n' % (formatChars, method.name, argsParseTuple))
+        f.write('\tif ( !PyArg_ParseTuple(args, "%s:%s"%s) )\n\t\treturn NULL;\n' % (
+            formatChars, method.name, argsParseTuple))
         if codePost:
             f.write('\tBOOL bPythonIsHappy = TRUE;\n')
             f.write(codePost)
@@ -263,18 +271,21 @@ PyObject *Py%(interfacename)s::%(method)s(PyObject *self, PyObject *args)
                     codeVarsPass = codeVarsPass + ", " + argCvt.GetBuildValueArg()
                     codeDecl = codeDecl + argCvt.DeclareParseArgTupleInputConverter()
             except makegwparse.error_not_supported, why:
-                f.write('// *** The output argument %s of type "%s" was not processed ***\n//         %s\n' % (arg.name, arg.raw_type, why))
+                f.write('// *** The output argument %s of type "%s" was not processed ***\n//         %s\n' %
+                        (arg.name, arg.raw_type, why))
                 continue
         if formatChars:
-            f.write('%s\n%s\tPyObject *pyretval = Py_BuildValue("%s"%s);\n%s\treturn pyretval;' % (codeDecl, codePre, formatChars, codeVarsPass, codePost))
+            f.write('%s\n%s\tPyObject *pyretval = Py_BuildValue("%s"%s);\n%s\treturn pyretval;' %
+                    (codeDecl, codePre, formatChars, codeVarsPass, codePost))
         else:
             f.write('\tPy_INCREF(Py_None);\n\treturn Py_None;\n')
         f.write('\n}\n\n')
 
-    f.write ('// @object Py%s|Description of the interface\n' % (name))
+    f.write('// @object Py%s|Description of the interface\n' % (name))
     f.write('static struct PyMethodDef Py%s_methods[] =\n{\n' % name)
     for method in interface.methods:
-        f.write('\t{ "%s", Py%s::%s, 1 }, // @pymeth %s|Description of %s\n' % (method.name, interface.name, method.name, method.name, method.name))
+        f.write('\t{ "%s", Py%s::%s, 1 }, // @pymeth %s|Description of %s\n' %
+                (method.name, interface.name, method.name, method.name, method.name))
 
     interfacebase = interface.base
     f.write('''\
@@ -302,8 +313,8 @@ def _write_gw_h(f, interface):
             base_name = 'PyG' + interface.base[1:]
         else:
             base_name = 'PyG' + interface.base
-    f.write(\
-'''\
+    f.write(
+        '''\
 // ---------------------------------------------------
 //
 // Gateway Declaration
@@ -316,7 +327,8 @@ protected:
 
 ''' % (gname, base_name, name, gname, base_name, gname, name, name, base_name))
     if interface.base != "IUnknown":
-        f.write("\t// %s\n\t// *** Manually add %s method decls here\n\n" % (interface.base, interface.base))
+        f.write("\t// %s\n\t// *** Manually add %s method decls here\n\n" %
+                (interface.base, interface.base))
     else:
         f.write('\n\n')
 
@@ -335,6 +347,7 @@ protected:
     f.write('};\n')
     f.close()
 
+
 def _write_gw_cpp(f, interface):
     if interface.name[0] == "I":
         gname = 'PyG' + interface.name[1:]
@@ -352,22 +365,24 @@ def _write_gw_cpp(f, interface):
 // ---------------------------------------------------
 //
 // Gateway Implementation
-''' % {'name':name, 'gname':gname, 'base_name':base_name})
+''' % {'name': name, 'gname': gname, 'base_name': base_name})
 
     for method in interface.methods:
-        f.write(\
-'''\
+        f.write(
+            '''\
 STDMETHODIMP %s::%s(
 ''' % (gname, method.name))
 
         if method.args:
             for arg in method.args[:-1]:
                 inoutstr = ']['.join(arg.inout)
-                f.write("\t\t/* [%s] */ %s,\n" % (inoutstr, arg.GetRawDeclaration()))
+                f.write("\t\t/* [%s] */ %s,\n" %
+                        (inoutstr, arg.GetRawDeclaration()))
 
             arg = method.args[-1]
             inoutstr = ']['.join(arg.inout)
-            f.write("\t\t/* [%s] */ %s)\n" % (inoutstr, arg.GetRawDeclaration()))
+            f.write("\t\t/* [%s] */ %s)\n" %
+                    (inoutstr, arg.GetRawDeclaration()))
         else:
             f.write('\t\tvoid)\n')
 
@@ -381,13 +396,14 @@ STDMETHODIMP %s::%s(
             for arg in method.args:
                 if arg.HasAttribute("out"):
                     cout = cout + 1
-                    if arg.indirectionLevel ==2 :
-                        f.write("\tif (%s==NULL) return E_POINTER;\n" % arg.name)
+                    if arg.indirectionLevel == 2:
+                        f.write("\tif (%s==NULL) return E_POINTER;\n" %
+                                arg.name)
                 if arg.HasAttribute("in"):
                     try:
                         argCvt = makegwparse.make_arg_converter(arg)
                         argCvt.SetGatewayMode()
-                        formatchar = argCvt.GetFormatChar();
+                        formatchar = argCvt.GetFormatChar()
                         needConversion = needConversion or argCvt.NeedUSES_CONVERSION()
 
                         if formatchar:
@@ -398,13 +414,16 @@ STDMETHODIMP %s::%s(
                         codePost = codePost + argCvt.GetBuildForGatewayPostCode()
                     except makegwparse.error_not_supported, why:
                         f.write('// *** The input argument %s of type "%s" was not processed ***\n//     - Please ensure this conversion function exists, and is appropriate\n//     - %s\n' % (arg.name, arg.raw_type, why))
-                        f.write('\tPyObject *ob%s = PyObject_From%s(%s);\n' % (arg.name, arg.type, arg.name))
-                        f.write('\tif (ob%s==NULL) return MAKE_PYCOM_GATEWAY_FAILURE_CODE("%s");\n' % (arg.name, method.name))
+                        f.write('\tPyObject *ob%s = PyObject_From%s(%s);\n' %
+                                (arg.name, arg.type, arg.name))
+                        f.write('\tif (ob%s==NULL) return MAKE_PYCOM_GATEWAY_FAILURE_CODE("%s");\n' % (
+                            arg.name, method.name))
                         codePost = codePost + "\tPy_DECREF(ob%s);\n" % arg.name
                         formatChars = formatChars + "O"
                         argStr = argStr + ", ob%s" % (arg.name)
 
-        if needConversion: f.write('\tUSES_CONVERSION;\n')
+        if needConversion:
+            f.write('\tUSES_CONVERSION;\n')
         f.write(codeVars)
         f.write(codePre)
         if cout:
@@ -418,11 +437,13 @@ STDMETHODIMP %s::%s(
         else:
             fullArgStr = resStr
 
-        f.write('\tHRESULT hr=InvokeViaPolicy("%s", %s);\n' % (method.name, fullArgStr))
+        f.write('\tHRESULT hr=InvokeViaPolicy("%s", %s);\n' %
+                (method.name, fullArgStr))
         f.write(codePost)
         if cout:
             f.write("\tif (FAILED(hr)) return hr;\n")
-            f.write("\t// Process the Python results, and convert back to the real params\n")
+            f.write(
+                "\t// Process the Python results, and convert back to the real params\n")
             # process the output arguments.
             formatChars = codePobjects = codePost = argsParseTuple = ""
             needConversion = 0
@@ -440,7 +461,8 @@ STDMETHODIMP %s::%s(
                         codePost = codePost + argCvt.GetParsePostCode()
                         needConversion = needConversion or argCvt.NeedUSES_CONVERSION()
                 except makegwparse.error_not_supported, why:
-                    f.write('// *** The output argument %s of type "%s" was not processed ***\n//         %s\n' % (arg.name, arg.raw_type, why))
+                    f.write('// *** The output argument %s of type "%s" was not processed ***\n//         %s\n' %
+                            (arg.name, arg.raw_type, why))
 
             if formatChars:  # If I have any to actually process.
                 if len(formatChars) == 1:
@@ -449,12 +471,14 @@ STDMETHODIMP %s::%s(
                     parseFn = "PyArg_ParseTuple"
                 if codePobjects:
                     f.write(codePobjects)
-                f.write('\tif (!%s(result, "%s" %s))\n\t\treturn MAKE_PYCOM_GATEWAY_FAILURE_CODE("%s");\n' % (parseFn, formatChars, argsParseTuple, method.name))
+                f.write('\tif (!%s(result, "%s" %s))\n\t\treturn MAKE_PYCOM_GATEWAY_FAILURE_CODE("%s");\n' % (
+                    parseFn, formatChars, argsParseTuple, method.name))
             if codePost:
                 f.write('\tBOOL bPythonIsHappy = TRUE;\n')
                 f.write(codePost)
-                f.write('\tif (!bPythonIsHappy) hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("%s");\n' % method.name)
-            f.write('\tPy_DECREF(result);\n');
+                f.write(
+                    '\tif (!bPythonIsHappy) hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("%s");\n' % method.name)
+            f.write('\tPy_DECREF(result);\n')
         f.write('\treturn hr;\n}\n\n')
 
 

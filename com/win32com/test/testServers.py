@@ -44,5 +44,6 @@ class ConnectionsTestCase(win32com.test.util.TestCase):
     def testConnections(self):
         TestConnections()
 
+
 if __name__ == '__main__':
     unittest.main('testServers')

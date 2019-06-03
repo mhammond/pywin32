@@ -78,10 +78,10 @@ import pythoncom
 
 # Import a few important constants to speed lookups.
 from pythoncom import DISPATCH_METHOD, DISPATCH_PROPERTYGET, \
-                      DISPATCH_PROPERTYPUT, DISPATCH_PROPERTYPUTREF, \
-                      DISPID_UNKNOWN, DISPID_VALUE, DISPID_PROPERTYPUT, \
-                      DISPID_NEWENUM, DISPID_EVALUATE, DISPID_CONSTRUCTOR, \
-                      DISPID_DESTRUCTOR, DISPID_COLLECT, DISPID_STARTENUM
+    DISPATCH_PROPERTYPUT, DISPATCH_PROPERTYPUTREF, \
+    DISPID_UNKNOWN, DISPID_VALUE, DISPID_PROPERTYPUT, \
+    DISPID_NEWENUM, DISPID_EVALUATE, DISPID_CONSTRUCTOR, \
+    DISPID_DESTRUCTOR, DISPID_COLLECT, DISPID_STARTENUM
 
 from exception import COMException
 
@@ -129,7 +129,8 @@ def CreateInstance(clsid, reqIID):
     try:
         dispatcher = win32api.RegQueryValue(win32con.HKEY_CLASSES_ROOT,
                                             regDispatcher % clsid)
-        if dispatcher: dispatcher = resolve_func(dispatcher)
+        if dispatcher:
+            dispatcher = resolve_func(dispatcher)
     except win32api.error:
         dispatcher = None
 
@@ -138,6 +139,7 @@ def CreateInstance(clsid, reqIID):
     else:
         retObj = policy(None)
     return retObj._CreateInstance_(clsid, reqIID)
+
 
 class BasicWrapPolicy:
     """The base class of policies.
@@ -173,6 +175,7 @@ class BasicWrapPolicy:
          This is the new, prefered handler (the default _invoke_ handler simply called _invokeex_)
      _getnextdispid_- uses self._name_to_dispid_ to enumerate the DISPIDs
     """
+
     def __init__(self, object):
         """Initialise the policy object
 
@@ -194,7 +197,8 @@ class BasicWrapPolicy:
             classSpec = win32api.RegQueryValue(win32con.HKEY_CLASSES_ROOT,
                                                regSpec % clsid)
         except win32api.error:
-            raise error("The object is not correctly registered - %s key can not be read" % (regSpec % clsid))
+            raise error(
+                "The object is not correctly registered - %s key can not be read" % (regSpec % clsid))
         myob = call_func(classSpec)
         self._wrap_(myob)
         try:
@@ -202,8 +206,8 @@ class BasicWrapPolicy:
         except pythoncom.com_error, (hr, desc, exc, arg):
             from win32com.util import IIDToInterfaceName
             desc = "The object '%r' was created, but does not support the " \
-                         "interface '%s'(%s): %s" \
-                         % (myob, IIDToInterfaceName(reqIID), reqIID, desc)
+                "interface '%s'(%s): %s" \
+                % (myob, IIDToInterfaceName(reqIID), reqIID, desc)
             raise pythoncom.com_error(hr, desc, exc, arg)
 
     def _wrap_(self, object):
@@ -411,6 +415,7 @@ class MappedWrapPolicy(BasicWrapPolicy):
              these dictionaries will change as the object is used.
 
     """
+
     def _wrap_(self, object):
         BasicWrapPolicy._wrap_(self, object)
         ob = self._obj_
@@ -436,6 +441,7 @@ class MappedWrapPolicy(BasicWrapPolicy):
             return self._dispid_to_put_[dispid]
         else:
             raise COMException(scode=winerror.DISP_E_MEMBERNOTFOUND)
+
 
 class DesignatedWrapPolicy(MappedWrapPolicy):
     """A policy which uses a mapping to link functions and dispid
@@ -468,6 +474,7 @@ class DesignatedWrapPolicy(MappedWrapPolicy):
          _Evaluate -- Dunno what this means, except the host has called Invoke with dispid==DISPID_EVALUATE!
                                     See the COM documentation for details.
     """
+
     def _wrap_(self, ob):
         # If we have nominated universal interfaces to support, load them now
         tlb_guid = getattr(ob, '_typelib_guid_', None)
@@ -490,7 +497,8 @@ class DesignatedWrapPolicy(MappedWrapPolicy):
         MappedWrapPolicy._wrap_(self, ob)
         if not hasattr(ob, '_public_methods_') and \
            not hasattr(ob, "_typelib_guid_"):
-            raise error("Object does not support DesignatedWrapPolicy, as it does not have either _public_methods_ or _typelib_guid_ attributes.")
+            raise error(
+                "Object does not support DesignatedWrapPolicy, as it does not have either _public_methods_ or _typelib_guid_ attributes.")
 
         # Copy existing _dispid_to_func_ entries to _name_to_dispid_
         for dispid, name in self._dispid_to_func_.iteritems():
@@ -633,7 +641,8 @@ class DesignatedWrapPolicy(MappedWrapPolicy):
             try:
                 name = self._dispid_to_put_[dispid]
             except KeyError:
-                raise COMException(scode=winerror.DISP_E_MEMBERNOTFOUND)  # read-only
+                raise COMException(
+                    scode=winerror.DISP_E_MEMBERNOTFOUND)  # read-only
             # If we have a method of that name (ie, a property get function), and
             # we have an equiv. property set function, use that instead.
             if type(getattr(self._obj_, name, None)) == types.MethodType and \
@@ -658,6 +667,7 @@ class EventHandlerPolicy(DesignatedWrapPolicy):
 
     NOTE: Later, we may allow the object to override this process??
     """
+
     def _transform_args_(self,
                          args,
                          kwArgs,
@@ -715,6 +725,7 @@ class DynamicPolicy(BasicWrapPolicy):
                         enumerator is requested.
 
     """
+
     def _wrap_(self, object):
         BasicWrapPolicy._wrap_(self, object)
         if not hasattr(self._obj_, '_dynamic_'):
@@ -732,7 +743,8 @@ class DynamicPolicy(BasicWrapPolicy):
         except KeyError:
             dispid = self._next_dynamic_ = self._next_dynamic_ + 1
             self._name_to_dispid_[lname] = dispid
-            self._dyn_dispid_to_name_[dispid] = name  # Keep case in this map...
+            # Keep case in this map...
+            self._dyn_dispid_to_name_[dispid] = name
             return dispid
 
     def _invoke_(self, dispid, lcid, wFlags, args):

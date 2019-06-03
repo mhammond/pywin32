@@ -1,7 +1,10 @@
 import os
 import win32com.server.policy
-import win32security, ntsecuritycon, win32con
-import pythoncom, win32api
+import win32security
+import ntsecuritycon
+import win32con
+import pythoncom
+import win32api
 from win32com.authorization import authorization
 
 from ntsecuritycon import FILE_READ_ATTRIBUTES, FILE_READ_DATA, FILE_READ_EA, SYNCHRONIZE,\
@@ -14,56 +17,57 @@ from ntsecuritycon import FILE_READ_ATTRIBUTES, FILE_READ_DATA, FILE_READ_EA, SY
     SI_PAGE_PERM, SI_PAGE_ADVPERM, SI_PAGE_AUDIT, SI_PAGE_OWNER, PSPCB_SI_INITDIALOG, \
     SI_CONTAINER
 from win32security import OBJECT_INHERIT_ACE, CONTAINER_INHERIT_ACE, INHERIT_ONLY_ACE
-from win32com.shell.shellcon import PSPCB_RELEASE, PSPCB_CREATE ## Msg parameter to PropertySheetPageCallback
+# Msg parameter to PropertySheetPageCallback
+from win32com.shell.shellcon import PSPCB_RELEASE, PSPCB_CREATE
 from pythoncom import IID_NULL
 
 
 class SecurityInformation(win32com.server.policy.DesignatedWrapPolicy):
-    _com_interfaces_=[authorization.IID_ISecurityInformation]
-    _public_methods_=['GetObjectInformation','GetSecurity','SetSecurity','GetAccessRights',
-        'GetInheritTypes','MapGeneric','PropertySheetPageCallback']
+    _com_interfaces_ = [authorization.IID_ISecurityInformation]
+    _public_methods_ = ['GetObjectInformation', 'GetSecurity', 'SetSecurity', 'GetAccessRights',
+                        'GetInheritTypes', 'MapGeneric', 'PropertySheetPageCallback']
 
     def __init__(self, FileName):
-        self.FileName=FileName
+        self.FileName = FileName
         self._wrap_(self)
 
     def GetObjectInformation(self):
         """Identifies object whose security will be modified, and determines options available
            to the end user"""
-        flags=SI_ADVANCED|SI_EDIT_ALL|SI_PAGE_TITLE|SI_RESET
+        flags = SI_ADVANCED | SI_EDIT_ALL | SI_PAGE_TITLE | SI_RESET
         if os.path.isdir(self.FileName):
-            flags|=SI_CONTAINER
-        hinstance=0  ## handle to module containing string resources
-        servername=''  ## name of authenticating server if not local machine
-        objectname=os.path.split(self.FileName)[1]
-        pagetitle='Python ACL Editor'
+            flags |= SI_CONTAINER
+        hinstance = 0  # handle to module containing string resources
+        servername = ''  # name of authenticating server if not local machine
+        objectname = os.path.split(self.FileName)[1]
+        pagetitle = 'Python ACL Editor'
         if os.path.isdir(self.FileName):
-            pagetitle+=' (dir)'
+            pagetitle += ' (dir)'
         else:
-            pagetitle+=' (file)'
-        objecttype=IID_NULL
+            pagetitle += ' (file)'
+        objecttype = IID_NULL
         return flags, hinstance, servername, objectname, pagetitle, objecttype
 
     def GetSecurity(self, requestedinfo, bdefault):
         """Requests the existing permissions for object"""
         if bdefault:
-            ## This is invoked if the 'Default' button is pressed (only present if SI_RESET is passed
-            ## with the flags in GetObjectInfo). Passing an empty SD with a NULL Dacl
-            ##  should cause inherited ACL from parent dir or default dacl from user's token to be used
+            # This is invoked if the 'Default' button is pressed (only present if SI_RESET is passed
+            # with the flags in GetObjectInfo). Passing an empty SD with a NULL Dacl
+            # should cause inherited ACL from parent dir or default dacl from user's token to be used
             return win32security.SECURITY_DESCRIPTOR()
         else:
-            ## GetFileSecurity sometimes fails to return flags indicating that an ACE is inherited
+            # GetFileSecurity sometimes fails to return flags indicating that an ACE is inherited
             return win32security.GetNamedSecurityInfo(self.FileName, win32security.SE_FILE_OBJECT, requestedinfo)
 
     def SetSecurity(self, requestedinfo, sd):
         """Applies permissions to the object"""
-        owner=sd.GetSecurityDescriptorOwner()
-        group=sd.GetSecurityDescriptorGroup()
-        dacl=sd.GetSecurityDescriptorDacl()
-        sacl=sd.GetSecurityDescriptorSacl()
+        owner = sd.GetSecurityDescriptorOwner()
+        group = sd.GetSecurityDescriptorGroup()
+        dacl = sd.GetSecurityDescriptorDacl()
+        sacl = sd.GetSecurityDescriptorSacl()
         win32security.SetNamedSecurityInfo(self.FileName, win32security.SE_FILE_OBJECT, requestedinfo,
-            owner, group, dacl, sacl)
-        ## should also handle recursive operations here
+                                           owner, group, dacl, sacl)
+        # should also handle recursive operations here
 
     def GetAccessRights(self, objecttype, flags):
         """Returns a tuple of (AccessRights, DefaultAccess), where AccessRights is a sequence of tuples representing
@@ -72,28 +76,35 @@ class SecurityInformation(win32com.server.policy.DesignatedWrapPolicy):
             Flags can contain SI_ACCESS_SPECIFIC,SI_ACCESS_GENERAL,SI_ACCESS_CONTAINER,SI_ACCESS_PROPERTY,
                   CONTAINER_INHERIT_ACE,INHERIT_ONLY_ACE,OBJECT_INHERIT_ACE
         """
-        ## input flags: SI_ADVANCED,SI_EDIT_AUDITS,SI_EDIT_PROPERTIES indicating which property sheet is requesting the rights
-        if (objecttype is not None) and (objecttype!=IID_NULL):
-            ## Should not be true for file objects.  Usually only used with DS objects that support security for
-            ## their properties
+        # input flags: SI_ADVANCED,SI_EDIT_AUDITS,SI_EDIT_PROPERTIES indicating which property sheet is requesting the rights
+        if (objecttype is not None) and (objecttype != IID_NULL):
+            # Should not be true for file objects.  Usually only used with DS objects that support security for
+            # their properties
             raise NotImplementedError("Object type is not supported")
-        
+
         if os.path.isdir(self.FileName):
-            file_append_data_desc='Create subfolders'
-            file_write_data_desc='Create Files'
+            file_append_data_desc = 'Create subfolders'
+            file_write_data_desc = 'Create Files'
         else:
-            file_append_data_desc='Append data'
-            file_write_data_desc='Write data'
-            
-        accessrights=[(IID_NULL, FILE_GENERIC_READ, 'Generic read', SI_ACCESS_GENERAL|SI_ACCESS_SPECIFIC|OBJECT_INHERIT_ACE|CONTAINER_INHERIT_ACE),
-                      (IID_NULL, FILE_GENERIC_WRITE, 'Generic write', SI_ACCESS_GENERAL|SI_ACCESS_SPECIFIC|OBJECT_INHERIT_ACE|CONTAINER_INHERIT_ACE),
-                      (IID_NULL, win32con.DELETE, 'Delete', SI_ACCESS_SPECIFIC|OBJECT_INHERIT_ACE|CONTAINER_INHERIT_ACE),
-                      (IID_NULL, WRITE_OWNER, 'Change owner', SI_ACCESS_SPECIFIC|OBJECT_INHERIT_ACE|CONTAINER_INHERIT_ACE),
-                      (IID_NULL, READ_CONTROL,'Read Permissions', SI_ACCESS_SPECIFIC|OBJECT_INHERIT_ACE|CONTAINER_INHERIT_ACE),
-                      (IID_NULL, WRITE_DAC, 'Change permissions', SI_ACCESS_SPECIFIC|OBJECT_INHERIT_ACE|CONTAINER_INHERIT_ACE),
-                      (IID_NULL, FILE_APPEND_DATA, file_append_data_desc, SI_ACCESS_SPECIFIC|OBJECT_INHERIT_ACE|CONTAINER_INHERIT_ACE),
-                      (IID_NULL, FILE_WRITE_DATA, file_write_data_desc, SI_ACCESS_SPECIFIC|OBJECT_INHERIT_ACE|CONTAINER_INHERIT_ACE)
-                      ]
+            file_append_data_desc = 'Append data'
+            file_write_data_desc = 'Write data'
+
+        accessrights = [(IID_NULL, FILE_GENERIC_READ, 'Generic read', SI_ACCESS_GENERAL | SI_ACCESS_SPECIFIC | OBJECT_INHERIT_ACE | CONTAINER_INHERIT_ACE),
+                        (IID_NULL, FILE_GENERIC_WRITE, 'Generic write', SI_ACCESS_GENERAL |
+                         SI_ACCESS_SPECIFIC | OBJECT_INHERIT_ACE | CONTAINER_INHERIT_ACE),
+                        (IID_NULL, win32con.DELETE, 'Delete', SI_ACCESS_SPECIFIC |
+                         OBJECT_INHERIT_ACE | CONTAINER_INHERIT_ACE),
+                        (IID_NULL, WRITE_OWNER, 'Change owner', SI_ACCESS_SPECIFIC |
+                         OBJECT_INHERIT_ACE | CONTAINER_INHERIT_ACE),
+                        (IID_NULL, READ_CONTROL, 'Read Permissions', SI_ACCESS_SPECIFIC |
+                         OBJECT_INHERIT_ACE | CONTAINER_INHERIT_ACE),
+                        (IID_NULL, WRITE_DAC, 'Change permissions', SI_ACCESS_SPECIFIC |
+                         OBJECT_INHERIT_ACE | CONTAINER_INHERIT_ACE),
+                        (IID_NULL, FILE_APPEND_DATA, file_append_data_desc,
+                         SI_ACCESS_SPECIFIC | OBJECT_INHERIT_ACE | CONTAINER_INHERIT_ACE),
+                        (IID_NULL, FILE_WRITE_DATA, file_write_data_desc,
+                         SI_ACCESS_SPECIFIC | OBJECT_INHERIT_ACE | CONTAINER_INHERIT_ACE)
+                        ]
         return (accessrights, 0)
 
     def MapGeneric(self, guid, aceflags, mask):
@@ -109,32 +120,36 @@ class SecurityInformation(win32com.server.policy.DesignatedWrapPolicy):
         Directory Service objects.
         """
         return ((IID_NULL, 0, 'Only current object'),
-                 (IID_NULL, OBJECT_INHERIT_ACE, 'Files inherit permissions'),
-                 (IID_NULL, CONTAINER_INHERIT_ACE, 'Sub Folders inherit permissions'),
-                 (IID_NULL, CONTAINER_INHERIT_ACE|OBJECT_INHERIT_ACE, 'Files and subfolders'),
+                (IID_NULL, OBJECT_INHERIT_ACE, 'Files inherit permissions'),
+                (IID_NULL, CONTAINER_INHERIT_ACE,
+                 'Sub Folders inherit permissions'),
+                (IID_NULL, CONTAINER_INHERIT_ACE |
+                 OBJECT_INHERIT_ACE, 'Files and subfolders'),
                 )
 
     def PropertySheetPageCallback(self, hwnd, msg, pagetype):
         """Invoked each time a property sheet page is created or destroyed."""
-        ## page types from SI_PAGE_TYPE enum: SI_PAGE_PERM SI_PAGE_ADVPERM SI_PAGE_AUDIT SI_PAGE_OWNER
-        ## msg: PSPCB_CREATE, PSPCB_RELEASE, PSPCB_SI_INITDIALOG
+        # page types from SI_PAGE_TYPE enum: SI_PAGE_PERM SI_PAGE_ADVPERM SI_PAGE_AUDIT SI_PAGE_OWNER
+        # msg: PSPCB_CREATE, PSPCB_RELEASE, PSPCB_SI_INITDIALOG
         return None
 
     def EditSecurity(self, owner_hwnd=0):
         """Creates an ACL editor dialog based on parameters returned by interface methods"""
-        isi=pythoncom.WrapObject(self, authorization.IID_ISecurityInformation, pythoncom.IID_IUnknown)
+        isi = pythoncom.WrapObject(
+            self, authorization.IID_ISecurityInformation, pythoncom.IID_IUnknown)
         authorization.EditSecurity(owner_hwnd, isi)
-        
-## folder permissions
-temp_dir=win32api.GetTempPath()
-dir_name=win32api.GetTempFileName(temp_dir,'isi')[0]
+
+
+# folder permissions
+temp_dir = win32api.GetTempPath()
+dir_name = win32api.GetTempFileName(temp_dir, 'isi')[0]
 print dir_name
 os.remove(dir_name)
 os.mkdir(dir_name)
-si=SecurityInformation(dir_name)
+si = SecurityInformation(dir_name)
 si.EditSecurity()
 
-## file permissions
-fname=win32api.GetTempFileName(dir_name,'isi')[0]
-si=SecurityInformation(fname)
+# file permissions
+fname = win32api.GetTempFileName(dir_name, 'isi')[0]
+si = SecurityInformation(fname)
 si.EditSecurity()

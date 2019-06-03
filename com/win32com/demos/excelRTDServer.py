@@ -212,7 +212,8 @@ class ExcelRTDServer(object):
             raise COMException(desc='Excel did not provide a callback')
 
         # Need to "cast" the raw PyIDispatch object to the IRTDUpdateEvent interface
-        IRTDUpdateEventKlass = win32com.client.CLSIDToClass.GetClass('{A43788C1-D91B-11D3-8F39-00C04F3651B8}')
+        IRTDUpdateEventKlass = win32com.client.CLSIDToClass.GetClass(
+            '{A43788C1-D91B-11D3-8F39-00C04F3651B8}')
         self.__callback = IRTDUpdateEventKlass(CallbackObject)
 
         self.OnServerStart()
@@ -260,6 +261,7 @@ class RTDTopic(object):
     """Base RTD Topic.
     Only method required by our RTDServer implementation is GetValue().
     The others are more for convenience."""
+
     def __init__(self, TopicStrings):
         super(RTDTopic, self).__init__()
         self.TopicStrings = TopicStrings
@@ -337,7 +339,8 @@ class TimeServer(ExcelRTDServer):
 
     def OnServerTerminate(self):
         if not self.ticker.finished.isSet():
-            self.ticker.cancel()  # Cancel our wake-up thread. Excel has killed us.
+            # Cancel our wake-up thread. Excel has killed us.
+            self.ticker.cancel()
 
     def Update(self):
         # Get our wake-up thread ready...
@@ -372,6 +375,7 @@ class TimeTopic(RTDTopic):
         * minutes, delay_in_minutes
         * hours, delay_in_hours
     """
+
     def __init__(self, TopicStrings):
         super(TimeTopic, self).__init__(TopicStrings)
         try:

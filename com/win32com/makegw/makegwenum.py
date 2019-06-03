@@ -23,12 +23,16 @@ def _write_enumifc_cpp(f, interface):
     if is_interface_enum(enumtype):
         # Assume an interface.
         enum_interface = "I" + enumtype[:-1]
-        converter = "PyObject *ob = PyCom_PyObjectFromIUnknown(rgVar[i], IID_%(enum_interface)s, FALSE);" % locals()
-        arraydeclare = "%(enum_interface)s **rgVar = new %(enum_interface)s *[celt];" % locals()
+        converter = "PyObject *ob = PyCom_PyObjectFromIUnknown(rgVar[i], IID_%(enum_interface)s, FALSE);" % locals(
+        )
+        arraydeclare = "%(enum_interface)s **rgVar = new %(enum_interface)s *[celt];" % locals(
+        )
     else:
         # Enum of a simple structure
-        converter = "PyObject *ob = PyCom_PyObjectFrom%(enumtype)s(&rgVar[i]);" % locals()
-        arraydeclare = "%(enumtype)s *rgVar = new %(enumtype)s[celt];" % locals()
+        converter = "PyObject *ob = PyCom_PyObjectFrom%(enumtype)s(&rgVar[i]);" % locals(
+        )
+        arraydeclare = "%(enumtype)s *rgVar = new %(enumtype)s[celt];" % locals(
+        )
 
     f.write('''
 // ---------------------------------------------------
@@ -190,11 +194,13 @@ def _write_enumgw_cpp(f, interface):
     if is_interface_enum(enumtype):
         # Assume an interface.
         enum_interface = "I" + enumtype[:-1]
-        converter = "if ( !PyCom_InterfaceFromPyObject(ob, IID_%(enum_interface)s, (void **)&rgVar[i], FALSE) )" % locals()
+        converter = "if ( !PyCom_InterfaceFromPyObject(ob, IID_%(enum_interface)s, (void **)&rgVar[i], FALSE) )" % locals(
+        )
         argdeclare = "%(enum_interface)s __RPC_FAR * __RPC_FAR *rgVar" % locals()
     else:
         argdeclare = "%(enumtype)s __RPC_FAR *rgVar" % locals()
-        converter = "if ( !PyCom_PyObjectAs%(enumtype)s(ob, &rgVar[i]) )" % locals()
+        converter = "if ( !PyCom_PyObjectAs%(enumtype)s(ob, &rgVar[i]) )" % locals(
+        )
     f.write('''
 // ---------------------------------------------------
 //

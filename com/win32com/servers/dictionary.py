@@ -51,7 +51,7 @@ class DictionaryPolicy(policy.BasicWrapPolicy):
         'item': pythoncom.DISPID_VALUE,
         '_newenum': pythoncom.DISPID_NEWENUM,
         'count': 1,
-        }
+    }
 
     # # Auto-Registration process looks for these...
     _reg_desc_ = 'Python Dictionary'

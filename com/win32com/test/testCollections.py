@@ -4,6 +4,7 @@
 # and enumerators.
 #
 # Also has the side effect of testing some of the PythonCOM error semantics.
+import unittest
 import sys
 import win32com.server.util
 import win32com.test.util
@@ -14,7 +15,6 @@ import pywintypes
 import winerror
 L = pywintypes.Unicode
 
-import unittest
 
 error = "collection test error"
 
@@ -43,11 +43,13 @@ def MakeTestEnum():
 def TestEnumAgainst(o, check):
     for i in range(len(check)):
         if o(i) != check[i]:
-            raise error("Using default method gave the incorrect value - %s/%s" % (repr(o(i)), repr(check[i])))
+            raise error("Using default method gave the incorrect value - %s/%s" %
+                        (repr(o(i)), repr(check[i])))
 
     for i in range(len(check)):
         if o.Item(i) != check[i]:
-            raise error("Using Item method gave the incorrect value - %s/%s" % (repr(o(i)), repr(check[i])))
+            raise error("Using Item method gave the incorrect value - %s/%s" %
+                        (repr(o(i)), repr(check[i])))
 
     # First try looping.
     cmp = []
@@ -55,7 +57,8 @@ def TestEnumAgainst(o, check):
         cmp.append(s)
 
     if cmp[:len(check)] != check:
-        raise error("Result after looping isnt correct - %s/%s" % (repr(cmp[:len(check)]), repr(check)))
+        raise error("Result after looping isnt correct - %s/%s" %
+                    (repr(cmp[:len(check)]), repr(check)))
 
     for i in range(len(check)):
         if o[i] != check[i]:
@@ -97,7 +100,7 @@ def TestEnum(quiet=None):
     check.insert(2, -1)
     TestEnumAgainst(o, check)
 
-### This does not work!
+# This does not work!
 #       if not quiet: print "Indexed replace item test"
 #       o[2] = 'Replaced Item'
 #       check[2] = 'Replaced Item'
@@ -108,14 +111,16 @@ def TestEnum(quiet=None):
         raise error("default method with no args worked when it shouldnt have!")
     except pythoncom.com_error, (hr, desc, exc, argErr):
         if hr != winerror.DISP_E_BADPARAMCOUNT:
-            raise error("Expected DISP_E_BADPARAMCOUNT - got %d (%s)" % (hr, desc))
+            raise error(
+                "Expected DISP_E_BADPARAMCOUNT - got %d (%s)" % (hr, desc))
 
     try:
         o.Insert("foo", 2)
         raise error("Insert worked when it shouldnt have!")
     except pythoncom.com_error, (hr, desc, exc, argErr):
         if hr != winerror.DISP_E_TYPEMISMATCH:
-            raise error("Expected DISP_E_TYPEMISMATCH - got %d (%s)" % (hr, desc))
+            raise error("Expected DISP_E_TYPEMISMATCH - got %d (%s)" %
+                        (hr, desc))
 
     # Remove the sublist for this test!
     try:

@@ -16,15 +16,17 @@ pythoncom.__future_currency__ = True
 # Otherwise, use of gencache is not necessary (tho still advised)
 gencache.EnsureModule('{6BCDCB60-5605-11D0-AE5F-CADD4C000000}', 0, 1, 1)
 
+
 class PyCOMTest:
     _typelib_guid_ = "{6BCDCB60-5605-11D0-AE5F-CADD4C000000}"
-    _typelib_version = 1,0
+    _typelib_version = 1, 0
     _com_interfaces_ = ['IPyCOMTest']
     _reg_clsid_ = "{e743d9cd-cb03-4b04-b516-11d3a81c1597}"
     _reg_progid_ = "Python.Test.PyCOMTest"
 
     def DoubleString(self, str):
         return str*2
+
     def DoubleInOutString(self, str):
         return str*2
 

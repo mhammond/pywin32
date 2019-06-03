@@ -12,7 +12,8 @@ from win32com.server.exception import Exception
 from pywin32_testutil import str2bytes
 
 # This is the IID of the Events interface both Client and Server support.
-IID_IConnectDemoEvents = pythoncom.MakeIID("{A4988850-49C3-11d0-AE5D-52342E000000}")
+IID_IConnectDemoEvents = pythoncom.MakeIID(
+    "{A4988850-49C3-11d0-AE5D-52342E000000}")
 
 # The server which implements
 # Create a connectable class, that has a single public method
@@ -20,7 +21,8 @@ IID_IConnectDemoEvents = pythoncom.MakeIID("{A4988850-49C3-11d0-AE5D-52342E00000
 
 
 class ConnectableServer(win32com.server.connect.ConnectableServer):
-    _public_methods_ = ["DoIt"] + win32com.server.connect.ConnectableServer._public_methods_
+    _public_methods_ = ["DoIt"] + \
+        win32com.server.connect.ConnectableServer._public_methods_
     _connect_interfaces_ = [IID_IConnectDemoEvents]
     # The single public method that the client can call on us
     # (ie, as a normal COM server, this exposes just this single method.
@@ -64,7 +66,8 @@ def CheckEvent(server, client, val, verbose):
     client.last_event_arg = None
     server.DoIt(val)
     if client.last_event_arg != val:
-        raise RuntimeError("Sent %r, but got back %r" % (val, client.last_event_arg))
+        raise RuntimeError("Sent %r, but got back %r" %
+                           (val, client.last_event_arg))
     if verbose:
         print "Sent and received %r" % val
 
@@ -76,7 +79,8 @@ def test(verbose=0):
     import win32com.client.dynamic
     import win32com.client.connect
     import win32com.server.policy
-    server = win32com.client.dynamic.Dispatch(win32com.server.util.wrap(ConnectableServer()))
+    server = win32com.client.dynamic.Dispatch(
+        win32com.server.util.wrap(ConnectableServer()))
     connection = win32com.client.connect.SimpleConnection()
     client = ConnectableClient()
     connection.Connect(server, client, IID_IConnectDemoEvents)

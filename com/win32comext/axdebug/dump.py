@@ -1,10 +1,12 @@
-import sys, string
+import sys
+import string
 import traceback
 from win32com.axdebug import axdebug
 from win32com.client.util import Enumerator
 import pythoncom
 
-def DumpDebugApplicationNode(node, level = 0):
+
+def DumpDebugApplicationNode(node, level=0):
     # Recursive dump of a DebugApplicationNode
     spacer = " " * level
     for desc, attr in [("Node Name", axdebug.DOCUMENTNAMETYPE_APPNODE),
@@ -33,15 +35,19 @@ def DumpDebugApplicationNode(node, level = 0):
     for child in Enumerator(node.EnumChildren()):
         DumpDebugApplicationNode(child, level+1)
 
+
 def dumpall():
-    dm=pythoncom.CoCreateInstance(axdebug.CLSID_MachineDebugManager,None,pythoncom.CLSCTX_ALL, axdebug.IID_IMachineDebugManager)
-    e=Enumerator(dm.EnumApplications())
+    dm = pythoncom.CoCreateInstance(
+        axdebug.CLSID_MachineDebugManager, None, pythoncom.CLSCTX_ALL, axdebug.IID_IMachineDebugManager)
+    e = Enumerator(dm.EnumApplications())
     for app in e:
         print "Application: %s" % app.GetName()
-        node = app.GetRootNode() # of type PyIDebugApplicationNode->PyIDebugDocumentProvider->PyIDebugDocumentInfo
+        # of type PyIDebugApplicationNode->PyIDebugDocumentProvider->PyIDebugDocumentInfo
+        node = app.GetRootNode()
         DumpDebugApplicationNode(node)
 
-if __name__=='__main__':
+
+if __name__ == '__main__':
     try:
         dumpall()
     except:

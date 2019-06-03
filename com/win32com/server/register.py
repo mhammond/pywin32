@@ -88,7 +88,7 @@ def _cat_registrar():
         None,
         pythoncom.CLSCTX_INPROC_SERVER,
         pythoncom.IID_ICatRegister
-        )
+    )
 
 
 def _find_localserver_exe(mustfind):
@@ -148,7 +148,8 @@ def _find_localserver_module():
         try:
             os.stat(pyfile)
         except os.error:
-            raise RuntimeError("Can not locate the Python module 'win32com.server.%s'" % baseName)
+            raise RuntimeError(
+                "Can not locate the Python module 'win32com.server.%s'" % baseName)
     return pyfile
 
 
@@ -192,7 +193,8 @@ def RegisterServer(clsid,
     # # Backwards-compat check
     # # Certain policies do not require a "class name", just the policy itself.
     if not pythonInstString and not policy:
-        raise TypeError('You must specify either the Python Class or Python Policy which implement the COM object.')
+        raise TypeError(
+            'You must specify either the Python Class or Python Policy which implement the COM object.')
 
     keyNameRoot = "CLSID\\%s" % str(clsid)
     _set_string(keyNameRoot, desc)
@@ -221,7 +223,8 @@ def RegisterServer(clsid,
             if hasattr(sys, "frozendllhandle"):
                 dllName = win32api.GetModuleFileName(sys.frozendllhandle)
             else:
-                raise RuntimeError("We appear to have a frozen DLL, but I don't know the DLL to use")
+                raise RuntimeError(
+                    "We appear to have a frozen DLL, but I don't know the DLL to use")
         else:
             # Normal case - running from .py file, so register pythoncom's DLL.
             # Although now we prefer a 'loader' DLL if it exists to avoid some
@@ -362,14 +365,14 @@ def UnregisterServer(clsid, progID=None, verProgID=None, customKeys=None):
     for args in GetUnregisterServerKeys(clsid, progID, verProgID, customKeys):
         recurse_delete_key(*args)
 
-    ### it might be nice at some point to "roll back" the independent ProgID
-    ### to an earlier version if one exists, and just blowing away the
-    ### specified version of the ProgID (and its corresponding CLSID)
-    ### another time, though...
+    # it might be nice at some point to "roll back" the independent ProgID
+    # to an earlier version if one exists, and just blowing away the
+    # specified version of the ProgID (and its corresponding CLSID)
+    # another time, though...
 
-    ### NOTE: ATL simply blows away the above three keys without the
-    ### potential checks that I describe.    Assuming that defines the
-    ### "standard" then we have no additional changes necessary.
+    # NOTE: ATL simply blows away the above three keys without the
+    # potential checks that I describe.    Assuming that defines the
+    # "standard" then we have no additional changes necessary.
 
 
 def GetRegisteredServerOption(clsid, optionName):
@@ -438,10 +441,12 @@ def RegisterClasses(*classes, **flags):
                 # Use argv[0] to determine the module name.
                 try:
                     # Use the win32api to find the case-sensitive name
-                    moduleName = os.path.splitext(win32api.FindFiles(sys.argv[0])[0][8])[0]
+                    moduleName = os.path.splitext(
+                        win32api.FindFiles(sys.argv[0])[0][8])[0]
                 except (IndexError, win32api.error):
                     # Can't find the script file - the user must explicitely set the _reg_... attribute.
-                    raise TypeError("Can't locate the script hosting the COM object - please set _reg_class_spec_ in your object")
+                    raise TypeError(
+                        "Can't locate the script hosting the COM object - please set _reg_class_spec_ in your object")
 
             spec = moduleName + "." + cls.__name__
             # Frozen apps don't need their directory on sys.path
@@ -498,7 +503,7 @@ def UnregisterClasses(*classes, **flags):
                 # I guess I could load the typelib, but they need the GUID anyway.
                 print "Have typelib filename, but no GUID - can't unregister"
             else:
-                major, minor = _get(cls, "_typelib_version_", (1,0))
+                major, minor = _get(cls, "_typelib_version_", (1, 0))
                 lcid = _get(cls, "_typelib_lcid_", 0)
                 try:
                     pythoncom.UnRegisterTypeLib(tlb_guid, major, minor, lcid)
@@ -626,7 +631,8 @@ def UseCommandLine(*classes, **flags):
     unregister = '--unregister' in sys.argv
     flags['quiet'] = flags.get('quiet', 0) or '--quiet' in sys.argv
     flags['debug'] = flags.get('debug', 0) or '--debug' in sys.argv
-    flags['unattended'] = flags.get('unattended', 0) or '--unattended' in sys.argv
+    flags['unattended'] = flags.get(
+        'unattended', 0) or '--unattended' in sys.argv
     if unregisterInfo:
         return UnregisterInfoClasses(*classes, **flags)
     try:
@@ -664,5 +670,6 @@ if not pythoncom.frozen:
     except win32api.error:
         try:
             RegisterPyComCategory()
-        except pythoncom.error:  # Error with the COM category manager - oh well.
+        # Error with the COM category manager - oh well.
+        except pythoncom.error:
             pass

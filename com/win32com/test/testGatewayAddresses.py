@@ -82,6 +82,7 @@ class DeletgatedDummy:
 class Dummy3:
     _public_methods_ = []  # We never attempt to make a call on this object.
     _com_interfaces_ = [pythoncom.IID_IPersistStorage]
+
     def _query_interface_(self, iid):
         if iid == pythoncom.IID_IExternalConnection:
             # This will NEVER work - can only wrap the object once!
@@ -122,11 +123,13 @@ def TestMultiInterface():
     # Make the same QI again, to make sure it is stable.
     o22 = o.QueryInterface(pythoncom.IID_IExternalConnection)
     FailObjectIdentity(o, o22, "IID_IPersistStorage->IID_IExternalConnection")
-    FailObjectIdentity(o2, o22, "IID_IPersistStorage->IID_IExternalConnection (stability)")
+    FailObjectIdentity(
+        o2, o22, "IID_IPersistStorage->IID_IExternalConnection (stability)")
 
     o3 = o2.QueryInterface(pythoncom.IID_IPersistStorage)
     FailObjectIdentity(o2, o3, "IID_IExternalConnection->IID_IPersistStorage")
-    FailObjectIdentity(o, o3, "IID_IPersistStorage->IID_IExternalConnection->IID_IPersistStorage")
+    FailObjectIdentity(
+        o, o3, "IID_IPersistStorage->IID_IExternalConnection->IID_IPersistStorage")
 
 
 def test():

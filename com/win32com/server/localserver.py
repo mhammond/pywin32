@@ -11,13 +11,13 @@
 #
 # Usage:
 #  wpython.exe LocalServer.py clsid [, clsid]
+from win32com.server import factory
+import win32api
+import pythoncom
 import sys
 
 sys.coinit_flags = 2
 
-import pythoncom
-import win32api
-from win32com.server import factory
 
 usage = """\
 Invalid command line arguments

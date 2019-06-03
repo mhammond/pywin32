@@ -141,5 +141,6 @@ def suite():
             suite.addTest(unittest.makeSuite(item))
     return suite
 
+
 if __name__ == '__main__':
     unittest.main(argv=sys.argv + ['suite'])

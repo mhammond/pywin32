@@ -17,12 +17,15 @@ IDataObject_Methods = """GetData GetDataHere QueryGetData
 # A COM object implementing IDataObject used for basic testing.
 num_do_objects = 0
 
+
 def WrapCOMObject(ob, iid=None):
-    return wrap(ob, iid=iid, useDispatcher = 0)
+    return wrap(ob, iid=iid, useDispatcher=0)
+
 
 class TestDataObject:
     _com_interfaces_ = [pythoncom.IID_IDataObject]
     _public_methods_ = IDataObject_Methods
+
     def __init__(self, strval):
         global num_do_objects
         num_do_objects += 1
@@ -37,14 +40,14 @@ class TestDataObject:
         num_do_objects -= 1
 
     def _query_interface_(self, iid):
-        if iid==pythoncom.IID_IEnumFORMATETC:
+        if iid == pythoncom.IID_IEnumFORMATETC:
             return NewEnum(self.supported_fe, iid=iid)
 
     def GetData(self, fe):
         ret_stg = None
-        cf, target, aspect, index, tymed  = fe
+        cf, target, aspect, index, tymed = fe
         if aspect & pythoncom.DVASPECT_CONTENT and \
-           tymed==pythoncom.TYMED_HGLOBAL:
+           tymed == pythoncom.TYMED_HGLOBAL:
             if cf == win32con.CF_TEXT:
                 ret_stg = pythoncom.STGMEDIUM()
                 # ensure always 'bytes' by encoding string.
@@ -61,12 +64,12 @@ class TestDataObject:
         raise COMException(hresult=winerror.E_NOTIMPL)
 
     def QueryGetData(self, fe):
-        cf, target, aspect, index, tymed  = fe
+        cf, target, aspect, index, tymed = fe
         if aspect & pythoncom.DVASPECT_CONTENT == 0:
             raise COMException(hresult=winerror.DV_E_DVASPECT)
-        if tymed!=pythoncom.TYMED_HGLOBAL:
+        if tymed != pythoncom.TYMED_HGLOBAL:
             raise COMException(hresult=winerror.DV_E_TYMED)
-        return None # should check better
+        return None  # should check better
 
     def GetCanonicalFormatEtc(self, fe):
         RaiseCOMException(winerror.DATA_S_SAMEFORMATETC)
@@ -89,15 +92,18 @@ class TestDataObject:
     def EnumDAdvise(self):
         raise COMException(hresult=winerror.E_NOTIMPL)
 
+
 class ClipboardTester(unittest.TestCase):
     def setUp(self):
         pythoncom.OleInitialize()
+
     def tearDown(self):
         try:
             pythoncom.OleFlushClipboard()
         except pythoncom.com_error:
             # We never set anything!
             pass
+
     def testIsCurrentClipboard(self):
         do = TestDataObject("Hello from Python")
         do = WrapCOMObject(do, iid=pythoncom.IID_IDataObject)
@@ -122,7 +128,7 @@ class ClipboardTester(unittest.TestCase):
 
     def testWin32ToCom(self):
         # Set the data via the std win32 clipboard functions.
-        val = str2bytes("Hello again!") # ensure always bytes, even in py3k
+        val = str2bytes("Hello again!")  # ensure always bytes, even in py3k
         win32clipboard.OpenClipboard()
         win32clipboard.SetClipboardData(win32con.CF_TEXT, val)
         win32clipboard.CloseClipboard()
@@ -142,7 +148,7 @@ class ClipboardTester(unittest.TestCase):
         pythoncom.OleSetClipboard(do)
         self.assertEqual(num_do_objects, 1)
 
-        do = None # clear my ref!
+        do = None  # clear my ref!
         pythoncom.OleFlushClipboard()
         self.assertEqual(num_do_objects, 0)
 
@@ -150,11 +156,12 @@ class ClipboardTester(unittest.TestCase):
         do = TestDataObject("Hello from Python")
         do = WrapCOMObject(do)
         pythoncom.OleSetClipboard(do)
-        do = None # clear my ref!
+        do = None  # clear my ref!
         self.assertEqual(num_do_objects, 1)
         pythoncom.OleSetClipboard(None)
         self.assertEqual(num_do_objects, 0)
 
-if __name__=='__main__':
+
+if __name__ == '__main__':
     from win32com.test import util
     util.testmain()

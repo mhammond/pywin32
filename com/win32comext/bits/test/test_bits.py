@@ -1,10 +1,16 @@
 
 
 from win32com.server.util import wrap
-import pythoncom, sys, os, time, win32api, win32event, tempfile
+import pythoncom
+import sys
+import os
+import time
+import win32api
+import win32event
+import tempfile
 from win32com.bits import bits
 
-TIMEOUT = 200 # ms
+TIMEOUT = 200  # ms
 StopEvent = win32event.CreateEvent(None, 0, 0, None)
 
 job_name = 'bits-pywin32-test'
@@ -12,19 +18,20 @@ states = dict([(val, (name[13:]))
                for name, val in vars(bits).iteritems()
                if name.startswith('BG_JOB_STATE_')])
 
-bcm = pythoncom.CoCreateInstance(bits.CLSID_BackgroundCopyManager, 
+bcm = pythoncom.CoCreateInstance(bits.CLSID_BackgroundCopyManager,
                                  None,
                                  pythoncom.CLSCTX_LOCAL_SERVER,
                                  bits.IID_IBackgroundCopyManager)
 
+
 class BackgroundJobCallback:
     _com_interfaces_ = [bits.IID_IBackgroundCopyCallback]
     _public_methods_ = ["JobTransferred", "JobError", "JobModification"]
-    
+
     def JobTransferred(self, job):
         print 'Job Transferred', job
         job.Complete()
-        win32event.SetEvent(StopEvent) # exit msg pump
+        win32event.SetEvent(StopEvent)  # exit msg pump
 
     def JobError(self, job, error):
         print 'Job Error', job, error
@@ -48,7 +55,7 @@ class BackgroundJobCallback:
         try:
             hresult_msg = win32api.FormatMessage(hresult)
         except win32api.error:
-            hresult_msg  = ""
+            hresult_msg = ""
         print "Context=0x%x, hresult=0x%x (%s)" % (ctx, hresult, hresult_msg)
         print err.GetErrorDescription()
 
@@ -61,6 +68,7 @@ class BackgroundJobCallback:
             print "Error details:"
             err = job.GetError()
             self._print_error(err)
+
 
 job = bcm.CreateJob(job_name, bits.BG_JOB_TYPE_DOWNLOAD)
 
@@ -81,8 +89,10 @@ job.SetNotifyFlags(bits.BG_NOTIFY_JOB_TRANSFERRED |
 # your DNS is configured. For example, if you use OpenDNS.org's DNS
 # servers, an invalid hostname will *always* be resolved (they
 # redirect you to a search page), so be careful when testing.
-job.AddFile('http://www.python.org/favicon.ico', os.path.join(tempfile.gettempdir(), 'bits-favicon.ico'))
-job.AddFile('http://www.python.org/missing-favicon.ico', os.path.join(tempfile.gettempdir(), 'bits-missing-favicon.ico'))
+job.AddFile('http://www.python.org/favicon.ico',
+            os.path.join(tempfile.gettempdir(), 'bits-favicon.ico'))
+job.AddFile('http://www.python.org/missing-favicon.ico',
+            os.path.join(tempfile.gettempdir(), 'bits-missing-favicon.ico'))
 
 for f in job.EnumFiles():
     print 'Downloading', f.GetRemoteName()
@@ -92,7 +102,7 @@ job.Resume()
 
 while True:
     rc = win32event.MsgWaitForMultipleObjects(
-        (StopEvent,), 
+        (StopEvent,),
         0,
         TIMEOUT,
         win32event.QS_ALLEVENTS)
@@ -101,4 +111,4 @@ while True:
         break
     elif rc == win32event.WAIT_OBJECT_0+1:
         if pythoncom.PumpWaitingMessages():
-            break # wm_quit
+            break  # wm_quit

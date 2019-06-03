@@ -18,7 +18,7 @@ class PippoTester(unittest.TestCase):
             gtrc = sys.gettotalrefcount
         except AttributeError:
             print "Please run this with python_d for leak tests"
-            gtrc = lambda: 0
+            def gtrc(): return 0
         # note creating self.object() should have consumed our "one time" leaks
         self.object.Method1()
         start = gtrc()
@@ -40,7 +40,7 @@ class PippoTester(unittest.TestCase):
             gtrc = sys.gettotalrefcount
         except AttributeError:
             print "Please run this with python_d for leak tests"
-            gtrc = lambda: 0
+            def gtrc(): return 0
         # note creating self.object() should have consumed our "one time" leaks
         object = EnsureDispatch("Python.Test.Pippo")
         start = gtrc()
@@ -51,6 +51,7 @@ class PippoTester(unittest.TestCase):
         end = gtrc()
         if end-start > 10:
             self.fail("We lost %d references!" % (end-start,))
+
 
 if __name__ == '__main__':
     unittest.main()

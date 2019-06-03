@@ -7,7 +7,7 @@ import datetime
 import win32timezone
 
 try:
-    sys_maxsize = sys.maxsize # 2.6 and later - maxsize != maxint on 64bits
+    sys_maxsize = sys.maxsize  # 2.6 and later - maxsize != maxint on 64bits
 except AttributeError:
     sys_maxsize = sys.maxint
 
@@ -56,7 +56,8 @@ class ShellTester(win32com.test.util.TestCase):
             names_1.append(name)
 
         # And get the enumerator manually
-        enum = sf.EnumObjects(0, SHCONTF_FOLDERS | SHCONTF_NONFOLDERS | SHCONTF_INCLUDEHIDDEN)
+        enum = sf.EnumObjects(0, SHCONTF_FOLDERS |
+                              SHCONTF_NONFOLDERS | SHCONTF_INCLUDEHIDDEN)
         names_2 = []
         for i in enum:
             name = sf.GetDisplayNameOf(i, SHGDN_NORMAL)
@@ -267,6 +268,7 @@ class FileOperationTester(win32com.test.util.TestCase):
         self.failUnless(not aborted)
         self.failUnlessEqual(0, rc)
         self.failUnless(not os.path.isfile(self.src_name))
+
 
 if __name__ == '__main__':
     win32com.test.util.testmain()

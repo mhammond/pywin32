@@ -43,14 +43,16 @@ import array
 import struct
 
 # ensure we know the ms internet controls typelib so we have access to IWebBrowser2 later on
-win32com.client.gencache.EnsureModule('{EAB22AC0-30C1-11CF-A7EB-0000C05BAE0B}', 0, 1, 1)
+win32com.client.gencache.EnsureModule(
+    '{EAB22AC0-30C1-11CF-A7EB-0000C05BAE0B}', 0, 1, 1)
 
 IDeskBand_methods = ['GetBandInfo']
 IDockingWindow_methods = ['ShowDW', 'CloseDW', 'ResizeBorderDW']
 IOleWindow_methods = ['GetWindow', 'ContextSensitiveHelp']
 IInputObject_methods = ['UIActivateIO', 'HasFocusIO', 'TranslateAcceleratorIO']
 IObjectWithSite_methods = ['SetSite', 'GetSite']
-IPersistStream_methods = ['GetClassID', 'IsDirty', 'Load', 'Save', 'GetSizeMax']
+IPersistStream_methods = ['GetClassID',
+                          'IsDirty', 'Load', 'Save', 'GetSizeMax']
 
 _ietoolbar_methods_ = IDeskBand_methods + IDockingWindow_methods + \
     IOleWindow_methods + IInputObject_methods + \
@@ -135,6 +137,7 @@ class IEToolbarCtrl:
     a tiny wrapper for our winapi-based
     toolbar control implementation.
     """
+
     def __init__(self, hwndparent):
         styles = win32con.WS_CHILD \
             | win32con.WS_VISIBLE \
@@ -231,9 +234,11 @@ class IEToolbar:
             # first get a command target
             cmdtarget = unknown.QueryInterface(axcontrol.IID_IOleCommandTarget)
             # then travel over to a service provider
-            serviceprovider = cmdtarget.QueryInterface(pythoncom.IID_IServiceProvider)
+            serviceprovider = cmdtarget.QueryInterface(
+                pythoncom.IID_IServiceProvider)
             # finally ask for the internet explorer application, returned as a dispatch object
-            self.webbrowser = win32com.client.Dispatch(serviceprovider.QueryService('{0002DF05-0000-0000-C000-000000000046}', pythoncom.IID_IDispatch))
+            self.webbrowser = win32com.client.Dispatch(serviceprovider.QueryService(
+                '{0002DF05-0000-0000-C000-000000000046}', pythoncom.IID_IDispatch))
 
             # now create and set up the toolbar
             self.toolbar = IEToolbarCtrl(hwndparent)

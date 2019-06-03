@@ -20,7 +20,7 @@ IConnectionPoint_methods = ["EnumConnections",
 
 class ConnectableServer:
     _public_methods_ = IConnectionPointContainer_methods + \
-                       IConnectionPoint_methods
+        IConnectionPoint_methods
     _com_interfaces_ = [pythoncom.IID_IConnectionPoint,
                         pythoncom.IID_IConnectionPointContainer,
                         ]

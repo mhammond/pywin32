@@ -24,7 +24,8 @@ class ExplorerEvents:
 
 def TestExplorerEvents():
     global bVisibleEventFired
-    iexplore = win32com.client.DispatchWithEvents("InternetExplorer.Application", ExplorerEvents)
+    iexplore = win32com.client.DispatchWithEvents(
+        "InternetExplorer.Application", ExplorerEvents)
     iexplore.Visible = 1
     if not bVisibleEventFired:
         raise RuntimeError("The IE event did not appear to fire!")
@@ -89,7 +90,8 @@ def TestExplorer(iexplore):
 def TestAll():
     try:
         try:
-            iexplore = win32com.client.dynamic.Dispatch("InternetExplorer.Application")
+            iexplore = win32com.client.dynamic.Dispatch(
+                "InternetExplorer.Application")
             TestExplorer(iexplore)
 
             win32api.Sleep(1000)

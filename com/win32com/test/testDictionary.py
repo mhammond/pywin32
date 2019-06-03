@@ -21,14 +21,16 @@ def MakeTestDictionary():
 def TestDictAgainst(dict, check):
     for key, value in check.iteritems():
         if dict(key) != value:
-            raise error("Indexing for '%s' gave the incorrect value - %s/%s" % (repr(key), repr(dict[key]), repr(check[key])))
+            raise error("Indexing for '%s' gave the incorrect value - %s/%s" %
+                        (repr(key), repr(dict[key]), repr(check[key])))
 
 
 # Ensure we have the correct version registered.
 def Register(quiet):
     import win32com.servers.dictionary
     from win32com.test.util import RegisterPythonServer
-    RegisterPythonServer(win32com.servers.dictionary.__file__, 'Python.Dictionary')
+    RegisterPythonServer(
+        win32com.servers.dictionary.__file__, 'Python.Dictionary')
 
 
 def TestDict(quiet=None):
@@ -57,21 +59,24 @@ def TestDict(quiet=None):
         raise error("default method with no args worked when it shouldnt have!")
     except pythoncom.com_error, (hr, desc, exc, argErr):
         if hr != winerror.DISP_E_BADPARAMCOUNT:
-            raise error("Expected DISP_E_BADPARAMCOUNT - got %d (%s)" % (hr, desc))
+            raise error(
+                "Expected DISP_E_BADPARAMCOUNT - got %d (%s)" % (hr, desc))
 
     try:
         dict("hi", "there")
         raise error("multiple args worked when it shouldnt have!")
     except pythoncom.com_error, (hr, desc, exc, argErr):
         if hr != winerror.DISP_E_BADPARAMCOUNT:
-            raise error("Expected DISP_E_BADPARAMCOUNT - got %d (%s)" % (hr, desc))
+            raise error(
+                "Expected DISP_E_BADPARAMCOUNT - got %d (%s)" % (hr, desc))
 
     try:
         dict(0)
         raise error("int key worked when it shouldnt have!")
     except pythoncom.com_error, (hr, desc, exc, argErr):
         if hr != winerror.DISP_E_TYPEMISMATCH:
-            raise error("Expected DISP_E_TYPEMISMATCH - got %d (%s)" % (hr, desc))
+            raise error("Expected DISP_E_TYPEMISMATCH - got %d (%s)" %
+                        (hr, desc))
 
     if not quiet:
         print "Python.Dictionary tests complete."
@@ -82,5 +87,5 @@ class TestCase(win32com.test.util.TestCase):
         TestDict()
 
 
-if __name__=='__main__':
+if __name__ == '__main__':
     unittest.main()

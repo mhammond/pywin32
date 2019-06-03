@@ -41,6 +41,7 @@ def test(serverName):
     else:
         print "Object created and tested OK on server '%s'" % serverName
 
+
 if __name__ == '__main__':
     if len(sys.argv) == 2:
         test(sys.argv[1])

@@ -7,9 +7,10 @@ When a script error occurs, it wraps the COM object that describes the
 exception in a Python instance, which can then be raised and caught.
 """
 
-class Exception:
-	def __init__(self, activeScriptError):
-		self.activeScriptError = activeScriptError
-	def __getattr__(self, attr):
-		return getattr(self.activeScriptError, attr)
 
+class Exception:
+    def __init__(self, activeScriptError):
+        self.activeScriptError = activeScriptError
+
+    def __getattr__(self, attr):
+        return getattr(self.activeScriptError, attr)

@@ -1,37 +1,44 @@
-import sys, os, string, re
+import sys
+import os
+import string
+import re
 import pythoncom
 import win32com.client
 from win32com.test.util import CheckClean, TestCase,  \
-            CapturingFunctionTestCase, ShellTestCase, \
-            TestLoader, TestRunner, RegisterPythonServer
+    CapturingFunctionTestCase, ShellTestCase, \
+    TestLoader, TestRunner, RegisterPythonServer
 import traceback
 import getopt
 
 import unittest
 
-verbosity = 1 # default unittest verbosity.
+verbosity = 1  # default unittest verbosity.
 
 try:
     this_file = __file__
 except NameError:
     this_file = sys.argv[0]
 
+
 def GenerateAndRunOldStyle():
     import GenTestScripts
     GenTestScripts.GenerateAll()
     try:
-        pass #
+        pass
     finally:
         GenTestScripts.CleanAll()
 
+
 def CleanGenerated():
-    import win32com, shutil
+    import win32com
+    import shutil
     if os.path.isdir(win32com.__gen_path__):
         if verbosity > 1:
             print "Deleting files from %s" % (win32com.__gen_path__)
         shutil.rmtree(win32com.__gen_path__)
     import win32com.client.gencache
-    win32com.client.gencache.__init__() # Reset
+    win32com.client.gencache.__init__()  # Reset
+
 
 def RemoveRefCountOutput(data):
     while 1:
@@ -45,6 +52,7 @@ def RemoveRefCountOutput(data):
 
     return data
 
+
 def ExecuteSilentlyIfOK(cmd, testcase):
     f = os.popen(cmd)
     data = f.read().strip()
@@ -55,8 +63,10 @@ def ExecuteSilentlyIfOK(cmd, testcase):
     # for "_d" builds, strip the '[xxx refs]' line
     return RemoveRefCountOutput(data)
 
+
 class PyCOMTest(TestCase):
-    no_leak_tests = True # done by the test itself
+    no_leak_tests = True  # done by the test itself
+
     def testit(self):
         # Check that the item is registered, so we get the correct
         # 'skipped' behaviour (and recorded as such) rather than either
@@ -70,6 +80,7 @@ class PyCOMTest(TestCase):
         cmd = '%s "%s" -q 2>&1' % (sys.executable, fname)
         data = ExecuteSilentlyIfOK(cmd, self)
 
+
 class PippoTest(TestCase):
     def testit(self):
         # Check we are registered before spawning the process.
@@ -81,69 +92,72 @@ class PippoTest(TestCase):
         cmd = '%s "%s" 2>&1' % (python, fname)
         ExecuteSilentlyIfOK(cmd, self)
 
+
 # This is a list of "win32com.test.???" module names, optionally with a
 # function in that module if the module isn't unitest based...
 unittest_modules = [
-        # Level 1 tests.
-        """testIterators testvbscript_regexp testStorage
+    # Level 1 tests.
+    """testIterators testvbscript_regexp testStorage
           testStreams testWMI policySemantics testShell testROT
           testAXScript testxslt testDictionary testCollections
           testServers errorSemantics.test testvb testArrays
           testClipboard testMarshal
         """.split(),
-        # Level 2 tests.
-        """testMSOffice.TestAll testMSOfficeEvents.test testAccess.test
+    # Level 2 tests.
+    """testMSOffice.TestAll testMSOfficeEvents.test testAccess.test
            testExplorer.TestAll testExchange.test
         """.split(),
-        # Level 3 tests.
-        """testmakepy.TestAll
+    # Level 3 tests.
+    """testmakepy.TestAll
         """.split()
 ]
 
 # A list of other unittest modules we use - these are fully qualified module
 # names and the module is assumed to be unittest based.
 unittest_other_modules = [
-        # Level 1 tests.
-        """win32com.directsound.test.ds_test
+    # Level 1 tests.
+    """win32com.directsound.test.ds_test
         """.split(),
-        # Level 2 tests.
-        [],
-        # Level 3 tests.
-        []
+    # Level 2 tests.
+    [],
+    # Level 3 tests.
+    []
 ]
 
 
 output_checked_programs = [
-        # Level 1 tests.
-        [
-            ("cscript.exe /nologo //E:vbscript testInterp.vbs", "VBScript test worked OK"),
-            ("cscript.exe /nologo //E:vbscript testDictionary.vbs",
-                         "VBScript has successfully tested Python.Dictionary"),
-        ],
-        # Level 2 tests.
-        [
-        ],
-        # Level 3 tests
-        [
-        ],
+    # Level 1 tests.
+    [
+        ("cscript.exe /nologo //E:vbscript testInterp.vbs",
+         "VBScript test worked OK"),
+        ("cscript.exe /nologo //E:vbscript testDictionary.vbs",
+         "VBScript has successfully tested Python.Dictionary"),
+    ],
+    # Level 2 tests.
+    [
+    ],
+    # Level 3 tests
+    [
+    ],
 ]
 
 custom_test_cases = [
-        # Level 1 tests.
-        [
-            PyCOMTest,
-            PippoTest,
-        ],
-        # Level 2 tests.
-        [
-        ],
-        # Level 3 tests
-        [
-        ],
+    # Level 1 tests.
+    [
+        PyCOMTest,
+        PippoTest,
+    ],
+    # Level 2 tests.
+    [
+    ],
+    # Level 3 tests
+    [
+    ],
 ]
 
+
 def get_test_mod_and_func(test_name, import_failures):
-    if test_name.find(".")>0:
+    if test_name.find(".") > 0:
         mod_name, func_name = test_name.split(".")
     else:
         mod_name = test_name
@@ -162,7 +176,9 @@ def get_test_mod_and_func(test_name, import_failures):
     return mod, func
 
 # Return a test suite all loaded with the tests we want to run
-def make_test_suite(test_level = 1):
+
+
+def make_test_suite(test_level=1):
     suite = unittest.TestSuite()
     import_failures = []
     loader = TestLoader()
@@ -184,7 +200,8 @@ def make_test_suite(test_level = 1):
             suite.addTest(ShellTestCase(cmd, output))
 
         for test_class in custom_test_cases[i]:
-            suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(test_class))
+            suite.addTest(
+                unittest.defaultTestLoader.loadTestsFromTestCase(test_class))
     # other "normal" unittest modules.
     for i in range(testLevel):
         for mod_name in unittest_other_modules[i]:
@@ -204,6 +221,7 @@ def make_test_suite(test_level = 1):
 
     return suite, import_failures
 
+
 def usage(why):
     print why
     print
@@ -213,15 +231,16 @@ def usage(why):
     print "  level 2 tests invoke Word, IE etc, level 3 take ages!"
     sys.exit(1)
 
-if __name__=='__main__':
+
+if __name__ == '__main__':
     try:
         opts, args = getopt.getopt(sys.argv[1:], "v")
     except getopt.error, why:
         usage(why)
     for opt, val in opts:
-        if opt=='-v':
+        if opt == '-v':
             verbosity += 1
-    testLevel = 1 # default to quick test
+    testLevel = 1  # default to quick test
     test_names = []
     for arg in args:
         try:
@@ -241,18 +260,21 @@ if __name__=='__main__':
             print "These tests may take *many* minutes to run - be patient!"
             print "(running from python.exe will avoid these leak tests)"
         print "Executing level %d tests - %d test cases will be run" \
-                % (testLevel, suite.countTestCases())
-        if verbosity==1 and suite.countTestCases() < 70:
+            % (testLevel, suite.countTestCases())
+        if verbosity == 1 and suite.countTestCases() < 70:
             # A little row of markers so the dots show how close to finished
             print '|' * suite.countTestCases()
     testRunner = TestRunner(verbosity=verbosity)
     testResult = testRunner.run(suite)
     if import_failures:
-        testResult.stream.writeln("*** The following test modules could not be imported ***")
+        testResult.stream.writeln(
+            "*** The following test modules could not be imported ***")
         for mod_name, (exc_type, exc_val) in import_failures:
-            desc = '\n'.join(traceback.format_exception_only(exc_type, exc_val))
+            desc = '\n'.join(
+                traceback.format_exception_only(exc_type, exc_val))
             testResult.stream.write("%s: %s" % (mod_name, desc))
-        testResult.stream.writeln("*** %d test(s) could not be run ***" % len(import_failures))
+        testResult.stream.writeln(
+            "*** %d test(s) could not be run ***" % len(import_failures))
 
     # re-print unit-test error here so it is noticed
     if not testResult.wasSuccessful():

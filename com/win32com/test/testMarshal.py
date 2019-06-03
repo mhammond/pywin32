@@ -67,10 +67,11 @@ class ThreadInterpCase(InterpCase):
         for i in range(numThreads):
             hEvent = win32event.CreateEvent(None, 0, 0, None)
             events.append(hEvent)
-            interpStream = pythoncom.CoMarshalInterThreadInterfaceInStream(pythoncom.IID_IDispatch, interp._oleobj_)
+            interpStream = pythoncom.CoMarshalInterThreadInterfaceInStream(
+                pythoncom.IID_IDispatch, interp._oleobj_)
             t = threading.Thread(target=self._testInterpInThread,
                                  args=(hEvent, interpStream))
-            t.setDaemon(1) # so errors dont cause shutdown hang
+            t.setDaemon(1)  # so errors dont cause shutdown hang
             t.start()
             threads.append(t)
         interp = None

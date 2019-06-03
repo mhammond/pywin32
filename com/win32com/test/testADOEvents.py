@@ -3,14 +3,16 @@ import pythoncom
 import os
 import time
 
-finished = 0 # Flag for the wait loop from (3) to test
+finished = 0  # Flag for the wait loop from (3) to test
 
-class ADOEvents: # event handler class
+
+class ADOEvents:  # event handler class
     def OnWillConnect(self, str, user, pw, opt, sts, cn):
         # Must have this event, as if it is not handled, ADO assumes the
         # operation is cancelled, and raises an error (Operation cancelled
         # by the user)
         pass
+
     def OnConnectComplete(self, error, status, connection):
         # Assume no errors, until we have the basic stuff
         # working. Now, "connection" should be an open
@@ -22,20 +24,28 @@ class ADOEvents: # event handler class
         # OK, our work is done. Let the main loop know
         global finished
         finished = 1
+
     def OnCommitTransComplete(self, pError, adStatus, pConnection):
         pass
+
     def OnInfoMessage(self, pError, adStatus, pConnection):
         pass
+
     def OnDisconnect(self, adStatus, pConnection):
         pass
+
     def OnBeginTransComplete(self, TransactionLevel, pError, adStatus, pConnection):
         pass
+
     def OnRollbackTransComplete(self, pError, adStatus, pConnection):
         pass
+
     def OnExecuteComplete(self, RecordsAffected, pError, adStatus, pCommand, pRecordset, pConnection):
         pass
+
     def OnWillExecute(self, Source, CursorType, LockType, Options, adStatus, pCommand, pRecordset, pConnection):
         pass
+
 
 def TestConnection(dbname):
     # Create the ADO connection object, and link the event
@@ -57,6 +67,7 @@ def TestConnection(dbname):
     if not finished:
         print "XXX - Failed to connect!"
 
+
 def Test():
     import testAccess
     try:
@@ -70,5 +81,6 @@ def Test():
     finally:
         os.unlink(dbname)
 
-if __name__=='__main__':
+
+if __name__ == '__main__':
     Test()

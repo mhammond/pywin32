@@ -146,13 +146,16 @@ class DispatcherBase:
                 print arg,
             print args[-1]
 
+
 class DispatcherTrace(DispatcherBase):
     """A dispatcher, which causes a 'print' line for each COM function called.
     """
+
     def _QueryInterface_(self, iid):
         rc = DispatcherBase._QueryInterface_(self, iid)
         if not rc:
-            self._trace_("in %s._QueryInterface_ with unsupported IID %s (%s)" % (repr(self.policy._obj_), IIDToInterfaceName(iid),iid))
+            self._trace_("in %s._QueryInterface_ with unsupported IID %s (%s)" % (
+                repr(self.policy._obj_), IIDToInterfaceName(iid), iid))
         return rc
 
     def _GetIDsOfNames_(self, names, lcid):
@@ -160,7 +163,8 @@ class DispatcherTrace(DispatcherBase):
         return DispatcherBase._GetIDsOfNames_(self, names, lcid)
 
     def _GetTypeInfo_(self, index, lcid):
-        self._trace_("in _GetTypeInfo_ with index=%d, lcid=%d\n" % (index, lcid))
+        self._trace_("in _GetTypeInfo_ with index=%d, lcid=%d\n" %
+                     (index, lcid))
         return DispatcherBase._GetTypeInfo_(self, index, lcid)
 
     def _GetTypeInfoCount_(self):
@@ -221,18 +225,21 @@ class DispatcherWin32trace(DispatcherTrace):
     A tracing dispatcher that sends its output to
     the win32trace remote collector.
     """
+
     def __init__(self, policyClass, object):
         DispatcherTrace.__init__(self, policyClass, object)
         if self.logger is None:
             # If we have no logger, setup our output.
-            import win32traceutil # Sets up everything.
-        self._trace_("Object with win32trace dispatcher created (object=%s)" % repr(object))
+            import win32traceutil  # Sets up everything.
+        self._trace_(
+            "Object with win32trace dispatcher created (object=%s)" % repr(object))
 
 
 class DispatcherOutputDebugString(DispatcherTrace):
     """
     A tracing dispatcher that sends its output to win32api.OutputDebugString
     """
+
     def _trace_(self, *args):
         for arg in args[:-1]:
             win32api.OutputDebugString(str(arg)+" ")
@@ -248,6 +255,7 @@ class DispatcherWin32dbg(DispatcherBase):
 
     Requires Pythonwin.
     """
+
     def __init__(self, policyClass, ob):
         # No one uses this, and it just causes py2exe to drag all of
         # pythonwin in.
@@ -273,7 +281,8 @@ class DispatcherWin32dbg(DispatcherBase):
         except Exception:  # AARG - What is this Exception???
             # Use some inside knowledge to borrow a Debugger option which dictates if we
             # stop at "expected" exceptions.
-            debug = pywin.debugger.GetDebugger().get_option(pywin.debugger.dbgcon.OPT_STOP_EXCEPTIONS)
+            debug = pywin.debugger.GetDebugger().get_option(
+                pywin.debugger.dbgcon.OPT_STOP_EXCEPTIONS)
         except:
             debug = 1
         if debug:

@@ -35,6 +35,7 @@ DEBUG = 0
 
 class ArgFormatter:
     "An instance for a specific type of argument. Knows how to convert itself"
+
     def __init__(self, arg, builtinIndirection, declaredIndirection=0):
         # print 'init:', arg.name,
         #                builtinIndirection,
@@ -63,16 +64,17 @@ class ArgFormatter:
             return "*"
         else:
             return "?? (%d)" % (dif,)
-            raise error_not_supported("Can't indirect this far - please fix me :-)")
+            raise error_not_supported(
+                "Can't indirect this far - please fix me :-)")
 
     def GetIndirectedArgName(self, indirectFrom, indirectionTo):
-        #print 'get:',self.arg.name, indirectFrom,self._GetDeclaredIndirection() + self.builtinIndirection, indirectionTo, self.arg.indirectionLevel
+        # print 'get:',self.arg.name, indirectFrom,self._GetDeclaredIndirection() + self.builtinIndirection, indirectionTo, self.arg.indirectionLevel
 
         if indirectFrom is None:
             # # ACK! this does not account for [in][out] variables.
             # # when this method is called, we need to know which
             indirectFrom = self._GetDeclaredIndirection() + \
-                           self.builtinIndirection
+                self.builtinIndirection
 
         return self._IndirectPrefix(indirectFrom, indirectionTo) + \
             self.arg.name
@@ -186,7 +188,7 @@ class ArgFormatter:
 
     def GetBuildForGatewayPostCode(self):
         "Get a string of C++ code to be executed after (ie, to finalise) the Py_BuildValue conversion for Gateways"
-        s = self.GetBuildForInterfacePostCode() # Usually the same
+        s = self.GetBuildForInterfacePostCode()  # Usually the same
         if DEBUG:
             if s[:4] == "/* G":
                 s = "/* GetBuildForGatewayPostCode goes here: %s */\n" % self.arg.name
@@ -229,9 +231,9 @@ class ArgFormatterFloat(ArgFormatter):
 
     def GetBuildForGatewayPreCode(self):
         return "\tdbl%s = " % self.arg.name + \
-                              self._IndirectPrefix(self._GetDeclaredIndirection(),
-                                                   0) + \
-                              self.arg.name + ";\n"
+            self._IndirectPrefix(self._GetDeclaredIndirection(),
+                                 0) + \
+            self.arg.name + ";\n"
 
     def GetParsePostCode(self):
         s = "\t"
@@ -268,9 +270,9 @@ class ArgFormatterShort(ArgFormatter):
 
     def GetBuildForGatewayPreCode(self):
         return "\ti%s = " % self.arg.name + \
-                            self._IndirectPrefix(self._GetDeclaredIndirection(),
-                                                 0) + \
-                            self.arg.name + ";\n"
+            self._IndirectPrefix(self._GetDeclaredIndirection(),
+                                 0) + \
+            self.arg.name + ";\n"
 
     def GetParsePostCode(self):
         s = "\t"
@@ -326,7 +328,7 @@ class ArgFormatterPythonCOM(ArgFormatter):
     def GetFormatChar(self):
         return "O"
 
-    #def GetInterfaceCppObjectInfo(self):
+    # def GetInterfaceCppObjectInfo(self):
     #    return ArgFormatter.GetInterfaceCppObjectInfo(self)[0], \
     #        "%s %s%s" % (self.arg.unc_type, "*" * self._GetDeclaredIndirection(), self.arg.name)
 
@@ -376,7 +378,7 @@ class ArgFormatterOLECHAR(ArgFormatterPythonCOM):
         return "<o unicode>"
 
     def GetUnconstType(self):
-        if self.arg.type[:3]=="LPC":
+        if self.arg.type[:3] == "LPC":
             return self.arg.type[:2] + self.arg.type[3:]
         else:
             return self.arg.unc_type
@@ -407,7 +409,7 @@ class ArgFormatterTCHAR(ArgFormatterPythonCOM):
         return "string/<o unicode>"
 
     def GetUnconstType(self):
-        if self.arg.type[:3]=="LPC":
+        if self.arg.type[:3] == "LPC":
             return self.arg.type[:2] + self.arg.type[3:]
         else:
             return self.arg.unc_type
@@ -471,7 +473,7 @@ class ArgFormatterTime(ArgFormatterPythonCOM):
 
     def GetBuildForInterfacePreCode(self):
         # # Use just the builtinIndirection again...
-        notdirected = self.GetIndirectedArgName(self.builtinIndirection,0)
+        notdirected = self.GetIndirectedArgName(self.builtinIndirection, 0)
         return "\tob%s = new PyTime(%s);\n" % (self.arg.name, notdirected)
 
     def GetBuildForInterfacePostCode(self):
@@ -492,7 +494,7 @@ class ArgFormatterSTATSTG(ArgFormatterPythonCOM):
 
     def GetBuildForInterfacePreCode(self):
         notdirected = self.GetIndirectedArgName(None, 1)
-        return "\tob%s = PyCom_PyObjectFromSTATSTG(%s);\n\t// STATSTG doco says our responsibility to free\n\tif ((%s).pwcsName) CoTaskMemFree((%s).pwcsName);\n" % (self.arg.name, self.GetIndirectedArgName(None, 1),notdirected,notdirected)
+        return "\tob%s = PyCom_PyObjectFromSTATSTG(%s);\n\t// STATSTG doco says our responsibility to free\n\tif ((%s).pwcsName) CoTaskMemFree((%s).pwcsName);\n" % (self.arg.name, self.GetIndirectedArgName(None, 1), notdirected, notdirected)
 
 
 class ArgFormatterGeneric(ArgFormatterPythonCOM):
@@ -562,7 +564,7 @@ class ArgFormatterULARGE_INTEGER(ArgFormatterLARGE_INTEGER):
 class ArgFormatterInterface(ArgFormatterPythonCOM):
     def GetInterfaceCppObjectInfo(self):
         return self.GetIndirectedArgName(1, self.arg.indirectionLevel), \
-               "%s * %s" % (self.GetUnconstType(), self.arg.name)
+            "%s * %s" % (self.GetUnconstType(), self.arg.name)
 
     def GetParsePostCode(self):
         # This gets called for out params in gateway mode
@@ -595,6 +597,7 @@ class ArgFormatterVARIANT(ArgFormatterPythonCOM):
     def GetBuildForGatewayPostCode(self):
         return "\tPy_XDECREF(ob%s);\n" % self.arg.name
 
+
 #                     Key : , Python Type Description, ParseTuple format char
 ConvertSimpleTypes = {"BOOL": ("BOOL", "int", "i"),
                       "UINT": ("UINT", "int", "i"),
@@ -622,6 +625,7 @@ ConvertSimpleTypes = {"BOOL": ("BOOL", "int", "i"),
 
 class ArgFormatterSimple(ArgFormatter):
     """An arg formatter for simple integer etc types"""
+
     def GetFormatChar(self):
         return ConvertSimpleTypes[self.arg.type][2]
 
@@ -723,7 +727,8 @@ class Argument:
     """
     #                               in,out                      type              name             [    ]
     #                               --------------                --------      ------------        ------
-    regex = re.compile(r'/\* \[([^\]]*.*?)] \*/[ \t](.*[* ]+)(\w+)(\[ *])?[\),]')
+    regex = re.compile(
+        r'/\* \[([^\]]*.*?)] \*/[ \t](.*[* ]+)(\w+)(\[ *])?[\),]')
 
     def __init__(self, good_interface_names):
         self.good_interface_names = good_interface_names

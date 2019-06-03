@@ -48,7 +48,8 @@ import array
 import struct
 
 # ensure we know the ms internet controls typelib so we have access to IWebBrowser2 later on
-win32com.client.gencache.EnsureModule('{EAB22AC0-30C1-11CF-A7EB-0000C05BAE0B}', 0, 1, 1)
+win32com.client.gencache.EnsureModule(
+    '{EAB22AC0-30C1-11CF-A7EB-0000C05BAE0B}', 0, 1, 1)
 
 IObjectWithSite_methods = ['SetSite',
                            'GetSite']
@@ -122,9 +123,11 @@ class IEButton:
             # first get a command target
             cmdtarget = unknown.QueryInterface(axcontrol.IID_IOleCommandTarget)
             # then travel over to a service provider
-            serviceprovider = cmdtarget.QueryInterface(pythoncom.IID_IServiceProvider)
+            serviceprovider = cmdtarget.QueryInterface(
+                pythoncom.IID_IServiceProvider)
             # finally ask for the internet explorer application, returned as a dispatch object
-            self.webbrowser = win32com.client.Dispatch(serviceprovider.QueryService('{0002DF05-0000-0000-C000-000000000046}', pythoncom.IID_IDispatch))
+            self.webbrowser = win32com.client.Dispatch(serviceprovider.QueryService(
+                '{0002DF05-0000-0000-C000-000000000046}', pythoncom.IID_IDispatch))
         else:
             # lose all references
             self.webbrowser = None
@@ -138,13 +141,20 @@ def register(classobj):
     subKeyCLSID = "SOFTWARE\\Microsoft\\Internet Explorer\\Extensions\\%38s" % classobj._reg_clsid_
     try:
         hKey = _winreg.CreateKey(_winreg.HKEY_LOCAL_MACHINE, subKeyCLSID)
-        subKey = _winreg.SetValueEx(hKey, "ButtonText", 0, _winreg.REG_SZ, classobj._button_text_)
-        _winreg.SetValueEx(hKey, "ClsidExtension", 0, _winreg.REG_SZ, classobj._reg_clsid_)  # reg value for calling COM object
-        _winreg.SetValueEx(hKey, "CLSID", 0, _winreg.REG_SZ, "{1FBA04EE-3024-11D2-8F1F-0000F87ABD16}")  # CLSID for button that sends command to COM object
+        subKey = _winreg.SetValueEx(
+            hKey, "ButtonText", 0, _winreg.REG_SZ, classobj._button_text_)
+        # reg value for calling COM object
+        _winreg.SetValueEx(hKey, "ClsidExtension", 0,
+                           _winreg.REG_SZ, classobj._reg_clsid_)
+        # CLSID for button that sends command to COM object
+        _winreg.SetValueEx(hKey, "CLSID", 0, _winreg.REG_SZ,
+                           "{1FBA04EE-3024-11D2-8F1F-0000F87ABD16}")
         _winreg.SetValueEx(hKey, "Default Visible", 0, _winreg.REG_SZ, "Yes")
-        _winreg.SetValueEx(hKey, "ToolTip", 0, _winreg.REG_SZ, classobj._tool_tip_)
+        _winreg.SetValueEx(hKey, "ToolTip", 0,
+                           _winreg.REG_SZ, classobj._tool_tip_)
         _winreg.SetValueEx(hKey, "Icon", 0, _winreg.REG_SZ, classobj._icon_)
-        _winreg.SetValueEx(hKey, "HotIcon", 0, _winreg.REG_SZ, classobj._hot_icon_)
+        _winreg.SetValueEx(hKey, "HotIcon", 0,
+                           _winreg.REG_SZ, classobj._hot_icon_)
     except WindowsError:
         print "Couldn't set standard toolbar reg keys."
     else:

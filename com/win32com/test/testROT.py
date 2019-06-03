@@ -23,5 +23,6 @@ class TestROT(win32com.test.util.TestCase):
         # if num < 2:
         #     print "Only", num, "objects in the ROT - this is unusual"
 
+
 if __name__ == '__main__':
     unittest.main()

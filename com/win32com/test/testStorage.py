@@ -11,19 +11,19 @@ class TestEnum(win32com.test.util.TestCase):
     def testit(self):
         fname, tmp = win32api.GetTempFileName(win32api.GetTempPath(), 'stg')
         m = storagecon.STGM_READWRITE | storagecon.STGM_SHARE_EXCLUSIVE
-        ##  file, mode, format, attrs (always 0), IID (IStorage or IPropertySetStorage, storage options(only used with STGFMT_DOCFILE)
+        # file, mode, format, attrs (always 0), IID (IStorage or IPropertySetStorage, storage options(only used with STGFMT_DOCFILE)
         pss = pythoncom.StgOpenStorageEx(fname,
                                          m,
                                          storagecon.STGFMT_FILE,
                                          0,
                                          pythoncom.IID_IPropertySetStorage)
-        ###                               {"Version":2,"reserved":0,"SectorSize":512,"TemplateFile":u'somefilename'})
+        # {"Version":2,"reserved":0,"SectorSize":512,"TemplateFile":u'somefilename'})
 
-        ## FMTID_SummaryInformation FMTID_DocSummaryInformation FMTID_UserDefinedProperties
+        # FMTID_SummaryInformation FMTID_DocSummaryInformation FMTID_UserDefinedProperties
         psuser = pss.Create(pythoncom.FMTID_UserDefinedProperties,
                             pythoncom.IID_IPropertySetStorage,
                             storagecon.PROPSETFLAG_DEFAULT,
-                            storagecon.STGM_READWRITE | storagecon.STGM_CREATE | storagecon.STGM_SHARE_EXCLUSIVE) ## its very picky about flag combinations!
+                            storagecon.STGM_READWRITE | storagecon.STGM_CREATE | storagecon.STGM_SHARE_EXCLUSIVE)  # its very picky about flag combinations!
         psuser.WriteMultiple((3, 4), ('hey', 'bubba'))
         psuser.WritePropertyNames((3, 4), ('property3', 'property4'))
         expected_summaries = []
@@ -73,6 +73,7 @@ class TestEnum(win32com.test.util.TestCase):
         expected_summaries.sort()
         found_summaries.sort()
         self.assertEqual(expected_summaries, found_summaries)
+
 
 if __name__ == '__main__':
     unittest.main()

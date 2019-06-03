@@ -59,7 +59,8 @@ def RegisterPythonServer(filename, progids=None, verbose=0):
                                                      )
                         ]
             if os.path.basename(dll) not in ok_files:
-                why_not = "%r is registered against a different Python version (%s)" % (progid, dll)
+                why_not = "%r is registered against a different Python version (%s)" % (
+                    progid, dll)
                 break
         else:
             # print "Skipping registration of '%s' - already registered" % filename
@@ -77,7 +78,8 @@ def RegisterPythonServer(filename, progids=None, verbose=0):
             # old, less-secure OS - assume *is* admin.
             is_admin = True
     if not is_admin:
-        msg = "%r isn't registered, but I'm not an administrator who can register it." % progids[0]
+        msg = "%r isn't registered, but I'm not an administrator who can register it." % progids[
+            0]
         if why_not:
             msg += "\n(registration check failed as %s)" % why_not
         # throw a normal "class not registered" exception - we don't report
@@ -214,7 +216,8 @@ def CapturingFunctionTestCase(*args, **kw):
     return LeakTestCase(real_test)
 
 
-class _CapturingFunctionTestCase(unittest.FunctionTestCase):  # , TestCaseMixin):
+# , TestCaseMixin):
+class _CapturingFunctionTestCase(unittest.FunctionTestCase):
     def __call__(self, result=None):
         if result is None:
             result = self.defaultTestResult()

@@ -1,25 +1,27 @@
 # NOTE - Still seems to be a leak here somewhere
 # gateway count doesnt hit zero.  Hence the print statements!
 
+from win32com import universal
+from win32com.client import gencache
+import win32timezone
+import decimal
+import datetime
+from pywin32_testutil import str2memory
+from win32com.test.util import RegisterPythonServer
+from win32com.client import constants, DispatchBaseClass, CastTo, VARIANT
+from win32com.test.util import CheckClean
+import win32com.client.connect
+import win32com
+import winerror
+import os
+import pywintypes
+import time
+import pythoncom
+import win32api
 import sys
 
 sys.coinit_flags = 0  # Must be free-threaded!
 
-import win32api
-import pythoncom
-import time
-import pywintypes
-import os
-import winerror
-import win32com
-import win32com.client.connect
-from win32com.test.util import CheckClean
-from win32com.client import constants, DispatchBaseClass, CastTo, VARIANT
-from win32com.test.util import RegisterPythonServer
-from pywin32_testutil import str2memory
-import datetime
-import decimal
-import win32timezone
 
 importMsg = "**** PyCOMTest is not installed ***\n  PyCOMTest is a Python test specific COM client and server.\n  It is likely this server is not installed on this machine\n  To install the server, you must get the win32com sources\n  and build it using MS Visual C++"
 
@@ -32,7 +34,6 @@ RegisterPythonServer(os.path.join(os.path.dirname(__file__),
                                   "test_pycomtest.py"),
                      "Python.Test.PyCOMTest")
 
-from win32com.client import gencache
 try:
     gencache.EnsureModule('{6BCDCB60-5605-11D0-AE5F-CADD4C000000}', 0, 1, 1)
 except pythoncom.com_error:
@@ -42,7 +43,6 @@ except pythoncom.com_error:
 
 # We had a bg where RegisterInterfaces would fail if gencache had
 # already been run - exercise that here
-from win32com import universal
 universal.RegisterInterfaces('{6BCDCB60-5605-11D0-AE5F-CADD4C000000}', 0, 1, 1)
 
 verbose = 0
@@ -70,7 +70,8 @@ def check_get_set_raises(exc, func, arg):
     except exc, e:
         pass  # what we expect!
     else:
-        raise error("%s with arg %r didn't raise %s - returned %r" % (func, arg, exc, got))
+        raise error("%s with arg %r didn't raise %s - returned %r" %
+                    (func, arg, exc, got))
 
 
 def progress(*args):
@@ -87,7 +88,7 @@ def TestApplyResult(fn, args, result):
         fnName = str(fn)
     progress("Testing ", fnName)
     pref = "function " + fnName
-    rc  = fn(*args)
+    rc = fn(*args)
     if rc != result:
         raise error("%s failed - result not %r but %r" % (pref, result, rc))
 
@@ -98,7 +99,8 @@ def TestConstant(constName, pyConst):
     except:
         raise error("Constant %s missing" % (constName,))
     if comConst != pyConst:
-        raise error("Constant value wrong for %s - got %s, wanted %s" % (constName, comConst, pyConst))
+        raise error("Constant value wrong for %s - got %s, wanted %s" %
+                    (constName, comConst, pyConst))
 
 
 # Simple handler class.  This demo only fires one event.
@@ -122,7 +124,8 @@ class RandomEventHandler:
             assert no + 1 == out1, "expecting 'out1' param to be ID+1"
             assert no + 2 == out2, "expecting 'out2' param to be ID+2"
         # The middle must be a boolean.
-        assert a_bool is Missing or type(a_bool) == bool, "middle param not a bool"
+        assert a_bool is Missing or type(
+            a_bool) == bool, "middle param not a bool"
         return out1+2, out2+2
 
     def _DumpFireds(self):
@@ -154,7 +157,8 @@ class NewStyleRandomEventHandler(object):
             assert no + 1 == out1, "expecting 'out1' param to be ID+1"
             assert no + 2 == out2, "expecting 'out2' param to be ID+2"
         # The middle must be a boolean.
-        assert a_bool is Missing or type(a_bool) == bool, "middle param not a bool"
+        assert a_bool is Missing or type(
+            a_bool) == bool, "middle param not a bool"
         return out1+2, out2+2
 
     def _DumpFireds(self):
@@ -256,17 +260,20 @@ def TestCommon(o, is_generated):
     progress("Checking properties")
     o.LongProp = 3
     if o.LongProp != 3 or o.IntProp != 3:
-        raise error("Property value wrong - got %d/%d" % (o.LongProp, o.IntProp))
+        raise error("Property value wrong - got %d/%d" %
+                    (o.LongProp, o.IntProp))
     o.LongProp = o.IntProp = -3
     if o.LongProp != -3 or o.IntProp != -3:
-        raise error("Property value wrong - got %d/%d" % (o.LongProp, o.IntProp))
+        raise error("Property value wrong - got %d/%d" %
+                    (o.LongProp, o.IntProp))
     # This number fits in an unsigned long.  Attempting to set it to a normal
     # long will involve overflow, which is to be expected. But we do
     # expect it to work in a property explicitly a VT_UI4.
     check = 3 * 10 ** 9
     o.ULongProp = check
     if o.ULongProp != check:
-        raise error("Property value wrong - got %d (expected %d)" % (o.ULongProp, check))
+        raise error("Property value wrong - got %d (expected %d)" %
+                    (o.ULongProp, check))
 
     TestApplyResult(o.Test, ("Unused", 99), 1)  # A bool function
     TestApplyResult(o.Test, ("Unused", -1), 1)  # A bool function
@@ -433,7 +440,8 @@ def TestGenerated():
     if not isinstance(i1, DispatchBaseClass) or not isinstance(i2,
                                                                DispatchBaseClass):
         # Yay - is now an instance returned!
-        raise error("GetMultipleInterfaces did not return instances - got '%s', '%s'" % (i1, i2))
+        raise error(
+            "GetMultipleInterfaces did not return instances - got '%s', '%s'" % (i1, i2))
     del i1
     del i2
 
@@ -573,7 +581,8 @@ def TestPyVariant(o, is_generated):
                    )
     _TestPyVariant(o,
                    is_generated,
-                   VARIANT(pythoncom.VT_ARRAY | pythoncom.VT_BSTR, [u"hello", u"there"])
+                   VARIANT(pythoncom.VT_ARRAY | pythoncom.VT_BSTR,
+                           [u"hello", u"there"])
                    )
 
     def check_dispatch(got):
@@ -617,7 +626,8 @@ def TestCounter(counter, bIsGenerated):
             else:
                 ret = counter[num]
             if ret != num+1:
-                raise error("Random access into element %d failed - return was %s" % (num,repr(ret)))
+                raise error(
+                    "Random access into element %d failed - return was %s" % (num, repr(ret)))
         except IndexError:
             raise error("** IndexError accessing collection element %d" % num)
 
@@ -642,7 +652,8 @@ def TestCounter(counter, bIsGenerated):
     if bIsGenerated:
         bounds = counter.GetBounds()
         if bounds[0] != 1 or bounds[1] != 10:
-            raise error("** Error - counter did not give the same properties back")
+            raise error(
+                "** Error - counter did not give the same properties back")
         counter.SetBounds(bounds[0], bounds[1])
 
     for item in counter:
@@ -658,7 +669,8 @@ def TestCounter(counter, bIsGenerated):
     for item in counter:
         num = num + 1
     if num != 10:
-        raise error("*** Unexpected number of loop iterations - got %d ***" % num)
+        raise error(
+            "*** Unexpected number of loop iterations - got %d ***" % num)
     progress("Finished testing counter")
 
 
@@ -739,8 +751,8 @@ def TestQueryInterface(long_lived_server=0, iterations=5):
                                       clsctx=pythoncom.CLSCTX_LOCAL_SERVER)
     # Request custom interfaces a number of times
     prompt = [
-            "Testing QueryInterface without long-lived local-server #%d of %d...",
-            "Testing QueryInterface with long-lived local-server #%d of %d..."
+        "Testing QueryInterface without long-lived local-server #%d of %d...",
+        "Testing QueryInterface with long-lived local-server #%d of %d..."
     ]
 
     for i in range(iterations):
@@ -784,6 +796,7 @@ class Tester(win32com.test.util.TestCase):
 
     def testGenerated(self):
         TestGenerated()
+
 
 if __name__ == '__main__':
     # XXX - todo - Complete hack to crank threading support.

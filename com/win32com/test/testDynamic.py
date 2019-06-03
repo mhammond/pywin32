@@ -9,6 +9,7 @@ error = "testDynamic error"
 
 iid = pythoncom.MakeIID("{b48969a0-784b-11d0-ae71-d23f56000000}")
 
+
 class VeryPermissive:
     def _dynamic_(self, name, lcid, wFlags, args):
         if wFlags & pythoncom.DISPATCH_METHOD:
@@ -62,7 +63,8 @@ def Test():
         v = ["Hello", "From", "Python", 1.4]
         client.TestSequence = v
         if v != list(client.TestSequence):
-            raise error("Dynamic sequences not working! %r/%r" % (repr(v), repr(client.testSequence)))
+            raise error("Dynamic sequences not working! %r/%r" %
+                        (repr(v), repr(client.testSequence)))
 
         client.write("This", "output", "has", "come", "via", "COM")
         # Check our new "_FlagAsMethod" works (kinda!)

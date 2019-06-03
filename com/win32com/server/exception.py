@@ -31,6 +31,7 @@ class COMException(pythoncom.com_error):
     By using this class, you automatically provide rich error information to the
     server.
     """
+
     def __init__(self,
                  description=None,
                  scode=None,

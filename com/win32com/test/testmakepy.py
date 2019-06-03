@@ -13,7 +13,7 @@ import pythoncom
 import winerror
 
 
-def TestBuildAll(verbose = 1):
+def TestBuildAll(verbose=1):
     num = 0
     tlbInfos = selecttlb.EnumTlbs()
     for info in tlbInfos:

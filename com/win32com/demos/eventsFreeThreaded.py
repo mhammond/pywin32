@@ -18,16 +18,15 @@
 #   running this sample you will see an IE Windows briefly appear, but
 #   vanish without ever being repainted.
 
+import time
+import pythoncom
+import win32com.client
+import win32event
+import win32api
+import os
 import sys
 
 sys.coinit_flags = 0          # specify free threading
-
-import os
-import win32api
-import win32event
-import win32com.client
-import pythoncom
-import time
 
 
 # The print statements indicate that COM has actually started another thread

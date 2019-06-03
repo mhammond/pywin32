@@ -34,11 +34,14 @@ from win32com.client import constants
 import sys
 
 # Support for COM objects we use.
-gencache.EnsureModule('{00062FFF-0000-0000-C000-000000000046}', 0, 9, 0, bForDemand=True)  # Outlook 9
-gencache.EnsureModule('{2DF8D04C-5BFA-101B-BDE5-00AA0044DE52}', 0, 2, 1, bForDemand=True)  # Office 9
+gencache.EnsureModule('{00062FFF-0000-0000-C000-000000000046}',
+                      0, 9, 0, bForDemand=True)  # Outlook 9
+gencache.EnsureModule('{2DF8D04C-5BFA-101B-BDE5-00AA0044DE52}',
+                      0, 2, 1, bForDemand=True)  # Office 9
 
 # The TLB defining the interfaces we implement
-universal.RegisterInterfaces('{AC0714F2-3D04-11D1-AE7D-00A0C90F26F4}', 0, 1, 0, ["_IDTExtensibility2"])
+universal.RegisterInterfaces(
+    '{AC0714F2-3D04-11D1-AE7D-00A0C90F26F4}', 0, 1, 0, ["_IDTExtensibility2"])
 
 
 class ButtonEvent:
@@ -71,7 +74,8 @@ class OutlookAddin:
         if activeExplorer is not None:
             bars = activeExplorer.CommandBars
             toolbar = bars.Item("Standard")
-            item = toolbar.Controls.Add(Type=constants.msoControlButton, Temporary=True)
+            item = toolbar.Controls.Add(
+                Type=constants.msoControlButton, Temporary=True)
             # Hook events for the item
             item = self.toolbarButton = DispatchWithEvents(item, ButtonEvent)
             item.Caption = "Python"
@@ -97,18 +101,22 @@ class OutlookAddin:
 
 def RegisterAddin(klass):
     import _winreg
-    key = _winreg.CreateKey(_winreg.HKEY_CURRENT_USER, "Software\\Microsoft\\Office\\Outlook\\Addins")
+    key = _winreg.CreateKey(_winreg.HKEY_CURRENT_USER,
+                            "Software\\Microsoft\\Office\\Outlook\\Addins")
     subkey = _winreg.CreateKey(key, klass._reg_progid_)
     _winreg.SetValueEx(subkey, "CommandLineSafe", 0, _winreg.REG_DWORD, 0)
     _winreg.SetValueEx(subkey, "LoadBehavior", 0, _winreg.REG_DWORD, 3)
-    _winreg.SetValueEx(subkey, "Description", 0, _winreg.REG_SZ, klass._reg_progid_)
-    _winreg.SetValueEx(subkey, "FriendlyName", 0, _winreg.REG_SZ, klass._reg_progid_)
+    _winreg.SetValueEx(subkey, "Description", 0,
+                       _winreg.REG_SZ, klass._reg_progid_)
+    _winreg.SetValueEx(subkey, "FriendlyName", 0,
+                       _winreg.REG_SZ, klass._reg_progid_)
 
 
 def UnregisterAddin(klass):
     import _winreg
     try:
-        _winreg.DeleteKey(_winreg.HKEY_CURRENT_USER, "Software\\Microsoft\\Office\\Outlook\\Addins\\" + klass._reg_progid_)
+        _winreg.DeleteKey(_winreg.HKEY_CURRENT_USER,
+                          "Software\\Microsoft\\Office\\Outlook\\Addins\\" + klass._reg_progid_)
     except WindowsError:
         pass
 

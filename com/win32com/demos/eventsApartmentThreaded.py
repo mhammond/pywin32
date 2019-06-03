@@ -29,6 +29,7 @@ import win32event
 import pythoncom
 import time
 
+
 class ExplorerEvents:
     def __init__(self):
         self.event = win32event.CreateEvent(None, 0, 0, None)
@@ -37,7 +38,7 @@ class ExplorerEvents:
                            pDisp=pythoncom.Empty,
                            URL=pythoncom.Empty):
         thread = win32api.GetCurrentThreadId()
-        print "OnDocumentComplete event processed on thread %d"%thread
+        print "OnDocumentComplete event processed on thread %d" % thread
         # Set the event our main thread is waiting on.
         win32event.SetEvent(self.event)
 

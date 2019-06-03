@@ -38,7 +38,8 @@ def TestInterp(interp):
     except pythoncom.com_error, details:
         import winerror
         if details[0] != winerror.DISP_E_TYPEMISMATCH:
-            raise ValueError("The interpreter exception was not winerror.DISP_E_TYPEMISMATCH.")
+            raise ValueError(
+                "The interpreter exception was not winerror.DISP_E_TYPEMISMATCH.")
 
 
 def TestInterpInThread(stopEvent, cookie):
@@ -117,6 +118,7 @@ def test(fn):
     GIT.RevokeInterfaceFromGlobal(cookie)
     del interp
     del GIT
+
 
 if __name__ == '__main__':
     test(BeginThreadsSimpleMarshal)

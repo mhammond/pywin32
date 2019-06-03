@@ -11,7 +11,8 @@ for f in formats:
     val = getattr(win32con, f)
     format_name_map[val] = f
 
-tymeds = [attr for attr in pythoncom.__dict__.iterkeys() if attr.startswith("TYMED_")]
+tymeds = [attr for attr in pythoncom.__dict__.iterkeys()
+          if attr.startswith("TYMED_")]
 
 
 def DumpClipboard():
@@ -19,7 +20,8 @@ def DumpClipboard():
     print "Dumping all clipboard formats..."
     for fe in do.EnumFormatEtc():
         fmt, td, aspect, index, tymed = fe
-        tymeds_this = [getattr(pythoncom, t) for t in tymeds if tymed & getattr(pythoncom, t)]
+        tymeds_this = [getattr(pythoncom, t)
+                       for t in tymeds if tymed & getattr(pythoncom, t)]
         print "Clipboard format", format_name_map.get(fmt, str(fmt))
         for t_this in tymeds_this:
             # As we are enumerating there should be no need to call
