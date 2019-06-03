@@ -1,4 +1,5 @@
-import sys, os
+import sys
+import os
 import re
 import unittest
 import traceback
@@ -22,10 +23,12 @@ argvs = {
 
 # re to pull apart an exception line into the exception type and the args.
 re_exception = re.compile("([a-zA-Z0-9_.]*): (.*)$")
+
+
 def find_exception_in_output(data):
     have_traceback = False
     for line in data.splitlines():
-        line = line.decode('ascii') # not sure what the correct encoding is...
+        line = line.decode('ascii')  # not sure what the correct encoding is...
         if line.startswith("Traceback ("):
             have_traceback = True
             continue
@@ -72,6 +75,7 @@ def find_exception_in_output(data):
 class TestRunner:
     def __init__(self, argv):
         self.argv = argv
+
     def __call__(self):
         import subprocess
         p = subprocess.Popen(self.argv,
@@ -88,34 +92,40 @@ class TestRunner:
                 raise reconstituted
             raise AssertionError("%s failed with exit code %s.  Output is:\n%s" % (base, rc, output))
 
+
 def get_demo_tests():
     import win32api
     ret = []
-    demo_dir = os.path.abspath(os.path.join(os.path.dirname(win32api.__file__), "Demos"))
+    demo_dir = os.path.abspath(os.path.join(os.path.dirname(win32api.__file__),
+                                            "Demos"
+                                            )
+                               )
     assert os.path.isdir(demo_dir), demo_dir
     for name in os.listdir(demo_dir):
         base, ext = os.path.splitext(name)
         if ext != ".py" or base in ui_demos or base in bad_demos:
             continue
         argv = (sys.executable, os.path.join(demo_dir, base+".py")) + \
-               argvs.get(base, ())
-        ret.append(unittest.FunctionTestCase(TestRunner(argv), description="win32/demos/" + name))
+            argvs.get(base, ())
+        ret.append(unittest.FunctionTestCase(TestRunner(argv),
+                                             description="win32/demos/" + name))
     return ret
+
 
 def import_all():
     # Some hacks for import order - dde depends on win32ui
     try:
         import win32ui
     except ImportError:
-        pass # 'what-ev-a....'
-    
+        pass  # 'what-ev-a....'
+
     import win32api
     dir = os.path.dirname(win32api.__file__)
     num = 0
     is_debug = os.path.basename(win32api.__file__).endswith("_d")
     for name in os.listdir(dir):
         base, ext = os.path.splitext(name)
-        if (ext==".pyd") and \
+        if (ext == ".pyd") and \
            name != "_winxptheme.pyd" and \
            (is_debug and base.endswith("_d") or \
            not is_debug and not base.endswith("_d")):
@@ -125,6 +135,7 @@ def import_all():
                 print "FAILED to import", name
                 raise
             num += 1
+
 
 def suite():
     # Loop over all .py files here, except me :)
@@ -138,7 +149,7 @@ def suite():
     suite.addTest(unittest.FunctionTestCase(import_all))
     for file in files:
         base, ext = os.path.splitext(file)
-        if ext=='.py' and os.path.basename(me) != file:
+        if ext == '.py' and os.path.basename(me) != file:
             try:
                 mod = __import__(base)
             except:
@@ -154,9 +165,11 @@ def suite():
         suite.addTest(test)
     return suite
 
+
 class CustomLoader(pywin32_testutil.TestLoader):
     def loadTestsFromModule(self, module):
         return self.fixupTestsForLeakTests(suite())
 
-if __name__=='__main__':
+
+if __name__ == '__main__':
     pywin32_testutil.testmain(testLoader=CustomLoader())

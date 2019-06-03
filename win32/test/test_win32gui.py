@@ -6,10 +6,11 @@ import operator
 import array
 import sys
 
+
 # theoretically should be in pywin32_testutil, but this is the only place
 # that currently needs such a function...
 def ob2bytes(ob):
-    if sys.version_info < (3,0):
+    if sys.version_info < (3, 0):
         return str(buffer(ob))
     # py3k.
     return bytes(ob)
@@ -21,6 +22,7 @@ class TestPyGetString(unittest.TestCase):
         self.assertRaises(ValueError, win32gui.PyGetString, 0)
         self.assertRaises(ValueError, win32gui.PyGetString, 1)
         self.assertRaises(ValueError, win32gui.PyGetString, 1,1)
+
 
 class TestPyGetMemory(unittest.TestCase):
     def test_ob(self):
@@ -47,7 +49,7 @@ class TestPyGetMemory(unittest.TestCase):
         addr, buflen = c.buffer_info()
         got = win32gui.PyGetMemory(addr, buflen)
         self.failUnlessEqual(got[0:3], pywin32_testutil.str2bytes('\0\1\2'))
-    
+
     def test_real_view(self):
         # Do the PyGetMemory, then change the original memory, then ensure
         # the initial object we fetched sees the new value.
@@ -70,5 +72,5 @@ class TestPyGetMemory(unittest.TestCase):
         self.failUnlessRaises(TypeError, operator.setitem, got, 0, new)
 
 
-if __name__=='__main__':
+if __name__ == '__main__':
     unittest.main()

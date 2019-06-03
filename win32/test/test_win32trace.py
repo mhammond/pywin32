@@ -5,10 +5,14 @@ import time
 import os
 import sys
 
-if __name__=='__main__':
+import win32event
+import win32process
+
+if __name__ == '__main__':
     this_file = sys.argv[0]
 else:
     this_file = __file__
+
 
 def CheckNoOtherReaders():
     win32trace.write("Hi")
@@ -19,6 +23,7 @@ def CheckNoOtherReaders():
         win32trace.TermWrite()
         raise RuntimeError("An existing win32trace reader appears to be " \
                             "running - please stop this process and try again")
+
 
 class TestInitOps(unittest.TestCase):
     def setUp(self):
@@ -36,7 +41,7 @@ class TestInitOps(unittest.TestCase):
             win32trace.TermWrite()
         except win32trace.error:
             pass
-        
+
     def testInitTermRead(self):
         self.assertRaises(win32trace.error, win32trace.read)
         win32trace.InitRead()
@@ -93,9 +98,9 @@ class BasicSetupTearDown(unittest.TestCase):
     def tearDown(self):
         win32trace.TermWrite()
         win32trace.TermRead()
-    
 
-class TestModuleOps(BasicSetupTearDown):        
+
+class TestModuleOps(BasicSetupTearDown):
     def testRoundTrip(self):
         win32trace.write('Syver Enstad')
         syverEnstad = win32trace.read()
@@ -116,7 +121,8 @@ class TestModuleOps(BasicSetupTearDown):
         win32trace.write(u'\xa9opyright Syver Enstad')
         # str objects are always returned in py2k (latin-1 encoding was used
         # on unicode objects)
-        self.assertEquals('\xa9opyright Syver Enstad', win32trace.blockingread())
+        self.assertEquals('\xa9opyright Syver Enstad',
+                          win32trace.blockingread())
 
     def testFlush(self):
         win32trace.flush()
@@ -140,13 +146,13 @@ class TestTraceObjectOps(BasicSetupTearDown):
 
     def testIsatty(self):
         tracer = win32trace.GetTracer()
-        assert tracer.isatty() == False
-        
+        assert tracer.isatty() is False
 
     def testRoundTrip(self):
         traceObject = win32trace.GetTracer()
         traceObject.write('Syver Enstad')
         self.assertEquals('Syver Enstad', traceObject.read())
+
 
 class WriterThread(threading.Thread):
     def run(self):
@@ -158,14 +164,17 @@ class WriterThread(threading.Thread):
     def verifyWritten(self):
         return self.writeCount == self.BucketCount
 
+
 class TestMultipleThreadsWriting(unittest.TestCase):
     # FullBucket is the thread count
     FullBucket = 50
-    BucketCount = 9 # buckets must be a single digit number (ie. less than 10)
+    # buckets must be a single digit number (ie. less than 10)
+    BucketCount = 9
+
     def setUp(self):
-        WriterThread.BucketCount = self.BucketCount        
+        WriterThread.BucketCount = self.BucketCount
         win32trace.InitRead()
-        win32trace.read() # clear any old data.
+        win32trace.read()  # clear any old data.
         win32trace.InitWrite()
         CheckNoOtherReaders()
         self.threads = [WriterThread() for each in range(self.FullBucket)]
@@ -185,7 +194,6 @@ class TestMultipleThreadsWriting(unittest.TestCase):
                 bucketsAreFull = False
                 break
         return bucketsAreFull
-        
 
     def read(self):
         while 1:
@@ -198,7 +206,7 @@ class TestMultipleThreadsWriting(unittest.TestCase):
                 if self.buckets[integer] == self.FullBucket:
                     if self.areBucketsFull():
                         return
-                        
+
     def testThreads(self):
         for each in self.threads:
             each.start()
@@ -209,13 +217,16 @@ class TestMultipleThreadsWriting(unittest.TestCase):
             assert each.verifyWritten()
         assert self.areBucketsFull()
 
+
 class TestHugeChunks(unittest.TestCase):
     # BiggestChunk is the size where we stop stressing the writer
-    BiggestChunk = 2**16 # 256k should do it.
+    BiggestChunk = 2**16  # 256k should do it.
+
     def setUp(self):
         win32trace.InitRead()
-        win32trace.read() # clear any old data
+        win32trace.read()  # clear any old data
         win32trace.InitWrite()
+
     def testHugeChunks(self):
         data = "*" * 1023 + "\n"
         while len(data) <= self.BiggestChunk:
@@ -227,30 +238,28 @@ class TestHugeChunks(unittest.TestCase):
         win32trace.TermRead()
         win32trace.TermWrite()
 
-import win32event
-import win32process
 
 class TraceWriteProcess:
     def __init__(self, threadCount):
         self.exitCode = -1
         self.threadCount = threadCount
-        
+
     def start(self):
-        procHandle, threadHandle, procId, threadId  = win32process.CreateProcess(
-            None, # appName
+        procHandle, threadHandle, procId, threadId = win32process.CreateProcess(
+            None,  # appName
             'python.exe "%s" /run_test_process %s %s' % (this_file,
                                                          self.BucketCount,
                                                          self.threadCount),
-            None, # process security
-            None, # thread security
-            0, # inherit handles
+            None,  # process security
+            None,  # thread security
+            0,  # inherit handles
             win32process.NORMAL_PRIORITY_CLASS,
-            None, # new environment
-            None, # Current directory
-            win32process.STARTUPINFO(), # startup info
+            None,  # new environment
+            None,  # Current directory
+            win32process.STARTUPINFO(),  # startup info
             )
         self.processHandle = procHandle
-        
+
     def join(self):
         win32event.WaitForSingleObject(self.processHandle,
                                        win32event.INFINITE)
@@ -263,6 +272,7 @@ class TraceWriteProcess:
 class TestOutofProcess(unittest.TestCase):
     BucketCount = 9
     FullBucket = 50
+
     def setUp(self):
         win32trace.InitRead()
         TraceWriteProcess.BucketCount = self.BucketCount
@@ -274,7 +284,6 @@ class TestOutofProcess(unittest.TestCase):
     def tearDown(self):
         win32trace.TermRead()
 
-
     def setUpWriters(self):
         self.processes = []
         # 5 processes, quot threads in each process
@@ -283,7 +292,7 @@ class TestOutofProcess(unittest.TestCase):
             self.processes.append(TraceWriteProcess(quot))
         if remainder:
             self.processes.append(TraceWriteProcess(remainder))
-            
+
     def areBucketsFull(self):
         bucketsAreFull = True
         for each in self.buckets:
@@ -292,7 +301,7 @@ class TestOutofProcess(unittest.TestCase):
                 bucketsAreFull = False
                 break
         return bucketsAreFull
-        
+
     def read(self):
         while 1:
             readString = win32trace.blockingread()
@@ -304,7 +313,7 @@ class TestOutofProcess(unittest.TestCase):
                 if self.buckets[integer] == self.FullBucket:
                     if self.areBucketsFull():
                         return
-                        
+
     def testProcesses(self):
         for each in self.processes:
             each.start()
@@ -313,7 +322,8 @@ class TestOutofProcess(unittest.TestCase):
             each.join()
         for each in self.processes:
             assert each.verifyWritten()
-        assert self.areBucketsFull()    
+        assert self.areBucketsFull()
+
 
 def _RunAsTestProcess():
     # Run as an external process by the main tests.
@@ -328,9 +338,10 @@ def _RunAsTestProcess():
     for t in threads:
         if not t.verifyWritten():
             sys.exit(-1)
-    
+
+
 if __name__ == '__main__':
-    if sys.argv[1:2]==["/run_test_process"]:
+    if sys.argv[1:2] == ["/run_test_process"]:
         _RunAsTestProcess()
         sys.exit(0)
     # If some other win32traceutil reader is running, these tests fail
