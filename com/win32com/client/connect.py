@@ -1,14 +1,17 @@
 """Utilities for working with Connections"""
-import win32com.server.util, pythoncom
+import win32com.server.util
+import pythoncom
+
 
 class SimpleConnection:
     "A simple, single connection object"
-    def __init__(self, coInstance = None, eventInstance = None, eventCLSID = None, debug = 0):
+
+    def __init__(self, coInstance=None, eventInstance=None, eventCLSID=None, debug=0):
         self.cp = None
         self.cookie = None
         self.debug = debug
         if not coInstance is None:
-            self.Connect(coInstance , eventInstance, eventCLSID)
+            self.Connect(coInstance, eventInstance, eventCLSID)
 
     def __del__(self):
         try:
@@ -24,15 +27,16 @@ class SimpleConnection:
             useDispatcher = dispatcher.DefaultDebugDispatcher
         return win32com.server.util.wrap(obj, useDispatcher=useDispatcher)
 
-    def Connect(self, coInstance, eventInstance, eventCLSID = None):
+    def Connect(self, coInstance, eventInstance, eventCLSID=None):
         try:
             oleobj = coInstance._oleobj_
         except AttributeError:
             oleobj = coInstance
-        cpc=oleobj.QueryInterface(pythoncom.IID_IConnectionPointContainer)
-        if eventCLSID is None: eventCLSID = eventInstance.CLSID
+        cpc = oleobj.QueryInterface(pythoncom.IID_IConnectionPointContainer)
+        if eventCLSID is None:
+            eventCLSID = eventInstance.CLSID
         comEventInstance = self._wrap(eventInstance)
-        self.cp=cpc.FindConnectionPoint(eventCLSID)
+        self.cp = cpc.FindConnectionPoint(eventCLSID)
         self.cookie = self.cp.Advise(comEventInstance)
 
     def Disconnect(self):

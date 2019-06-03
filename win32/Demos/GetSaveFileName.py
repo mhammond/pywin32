@@ -1,11 +1,13 @@
-import win32gui, win32con, os
+import win32gui
+import win32con
+import os
 
-filter='Python Scripts\0*.py;*.pyw;*.pys\0Text files\0*.txt\0'
-customfilter='Other file types\0*.*\0'
+filter = 'Python Scripts\0*.py;*.pyw;*.pys\0Text files\0*.txt\0'
+customfilter = 'Other file types\0*.*\0'
 
-fname, customfilter, flags=win32gui.GetSaveFileNameW(
+fname, customfilter, flags = win32gui.GetSaveFileNameW(
     InitialDir=os.environ['temp'],
-    Flags=win32con.OFN_ALLOWMULTISELECT|win32con.OFN_EXPLORER,
+    Flags=win32con.OFN_ALLOWMULTISELECT | win32con.OFN_EXPLORER,
     File='somefilename', DefExt='py',
     Title='GetSaveFileNameW',
     Filter=filter,
@@ -15,13 +17,13 @@ fname, customfilter, flags=win32gui.GetSaveFileNameW(
 print 'save file names:', repr(fname)
 print 'filter used:', repr(customfilter)
 print 'Flags:', flags
-for k,v in win32con.__dict__.items():
+for k, v in win32con.__dict__.items():
     if k.startswith('OFN_') and flags & v:
         print '\t'+k
 
-fname, customfilter, flags=win32gui.GetOpenFileNameW(
+fname, customfilter, flags = win32gui.GetOpenFileNameW(
     InitialDir=os.environ['temp'],
-    Flags=win32con.OFN_ALLOWMULTISELECT|win32con.OFN_EXPLORER,
+    Flags=win32con.OFN_ALLOWMULTISELECT | win32con.OFN_EXPLORER,
     File='somefilename', DefExt='py',
     Title='GetOpenFileNameW',
     Filter=filter,
@@ -31,6 +33,6 @@ fname, customfilter, flags=win32gui.GetOpenFileNameW(
 print 'open file names:', repr(fname)
 print 'filter used:', repr(customfilter)
 print 'Flags:', flags
-for k,v in win32con.__dict__.items():
+for k, v in win32con.__dict__.items():
     if k.startswith('OFN_') and flags & v:
         print '\t'+k

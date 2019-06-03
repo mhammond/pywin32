@@ -7,18 +7,18 @@ Raw data for binary fields should be passed as buffer objects for Python 2.x,
 and memoryview objects in Py3k.
 """
 
+from odbc import *
+import datetime
 import warnings
 warnings.warn(
-	"dbi module is obsolete, code should now use native python datetime and buffer/memoryview objects",
-	DeprecationWarning)
+    "dbi module is obsolete, code should now use native python datetime and buffer/memoryview objects",
+    DeprecationWarning)
 
-import datetime
 dbDate = dbiDate = datetime.datetime
-	  
+
 try:
-	dbRaw = dbiRaw = buffer
+    dbRaw = dbiRaw = buffer
 except NameError:
-	dbRaw = dbiRaw = memoryview
+    dbRaw = dbiRaw = memoryview
 
 # type names are still exported by odbc module
-from odbc import *

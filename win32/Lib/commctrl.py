@@ -20,7 +20,7 @@ ODT_TAB = 101
 ODT_LISTVIEW = 102
 PY_0U = 0
 NM_FIRST = (PY_0U)				# generic to all controls
-NM_LAST = (PY_0U- 99)
+NM_LAST = (PY_0U - 99)
 LVN_FIRST = (PY_0U-100)			# listview
 LVN_LAST = (PY_0U-199)
 HDN_FIRST = (PY_0U-300)			# header
@@ -58,8 +58,9 @@ TCM_FIRST = 4864				# Tab control messages
 PGM_FIRST = 5120				# Pager control messages
 CCM_FIRST = 8192				# Common control shared messages
 CCM_SETBKCOLOR = (CCM_FIRST + 1)		# lParam is bkColor
-CCM_SETCOLORSCHEME = (CCM_FIRST + 2)	# lParam is color scheme
-CCM_GETCOLORSCHEME = (CCM_FIRST + 3)	# fills in COLORSCHEME pointed to by lParam
+CCM_SETCOLORSCHEME = (CCM_FIRST + 2)  # lParam is color scheme
+# fills in COLORSCHEME pointed to by lParam
+CCM_GETCOLORSCHEME = (CCM_FIRST + 3)
 CCM_GETDROPTARGET = (CCM_FIRST + 4)
 CCM_SETUNICODEFORMAT = (CCM_FIRST + 5)
 CCM_GETUNICODEFORMAT = (CCM_FIRST + 6)
@@ -109,8 +110,8 @@ CDIS_DEFAULT = 32
 CDIS_HOT = 64
 CDIS_MARKED = 128
 CDIS_INDETERMINATE = 256
-CLR_NONE = -1 # 0xFFFFFFFFL
-CLR_DEFAULT = -16777216 # 0xFF000000L
+CLR_NONE = -1  # 0xFFFFFFFFL
+CLR_DEFAULT = -16777216  # 0xFF000000L
 ILC_MASK = 1
 ILC_COLOR = 0
 ILC_COLORDDB = 254
@@ -238,8 +239,8 @@ TBSTYLE_CHECK = 2
 TBSTYLE_GROUP = 4
 TBSTYLE_CHECKGROUP = (TBSTYLE_GROUP | TBSTYLE_CHECK)
 TBSTYLE_DROPDOWN = 8
-TBSTYLE_AUTOSIZE = 16 # automatically calculate the cx of the button
-TBSTYLE_NOPREFIX = 32 # if this button should not have accel prefix
+TBSTYLE_AUTOSIZE = 16  # automatically calculate the cx of the button
+TBSTYLE_NOPREFIX = 32  # if this button should not have accel prefix
 TBSTYLE_TOOLTIPS = 256
 TBSTYLE_WRAPABLE = 512
 TBSTYLE_ALTDRAG = 1024
@@ -253,12 +254,15 @@ BTNS_BUTTON = TBSTYLE_BUTTON
 BTNS_SEP = TBSTYLE_SEP         # 0x0001
 BTNS_CHECK = TBSTYLE_CHECK       # 0x0002
 BTNS_GROUP = TBSTYLE_GROUP       # 0x0004
-BTNS_CHECKGROUP = TBSTYLE_CHECKGROUP # (TBSTYLE_GROUP | TBSTYLE_CHECK)
+BTNS_CHECKGROUP = TBSTYLE_CHECKGROUP  # (TBSTYLE_GROUP | TBSTYLE_CHECK)
 BTNS_DROPDOWN = TBSTYLE_DROPDOWN    # 0x0008
-BTNS_AUTOSIZE = TBSTYLE_AUTOSIZE    # 0x0010; automatically calculate the cx of the button
-BTNS_NOPREFIX = TBSTYLE_NOPREFIX    # 0x0020; this button should not have accel prefix
-BTNS_SHOWTEXT   = 64 # 0x0040              // ignored unless TBSTYLE_EX_MIXEDBUTTONS is set
-BTNS_WHOLEDROPDOWN  = 128 # 0x0080          // draw drop-down arrow, but without split arrow section
+# 0x0010; automatically calculate the cx of the button
+BTNS_AUTOSIZE = TBSTYLE_AUTOSIZE
+# 0x0020; this button should not have accel prefix
+BTNS_NOPREFIX = TBSTYLE_NOPREFIX
+BTNS_SHOWTEXT = 64  # 0x0040              // ignored unless TBSTYLE_EX_MIXEDBUTTONS is set
+# 0x0080          // draw drop-down arrow, but without split arrow section
+BTNS_WHOLEDROPDOWN = 128
 TBCDRF_NOEDGES = 65536  # Don't draw button edges
 TBCDRF_HILITEHOTTRACK = 131072  # Use color of the button bk when hottracked
 TBCDRF_NOOFFSET = 262144  # Don't offset button if pressed
@@ -352,7 +356,7 @@ TB_SETINDENT = (WM_USER + 47)
 TB_SETIMAGELIST = (WM_USER + 48)
 TB_GETIMAGELIST = (WM_USER + 49)
 TB_LOADIMAGES = (WM_USER + 50)
-TB_GETRECT = (WM_USER + 51) # wParam is the Cmd instead of index
+TB_GETRECT = (WM_USER + 51)  # wParam is the Cmd instead of index
 TB_SETHOTIMAGELIST = (WM_USER + 52)
 TB_GETHOTIMAGELIST = (WM_USER + 53)
 TB_SETDISABLEDIMAGELIST = (WM_USER + 54)
@@ -375,11 +379,12 @@ TB_SETHOTITEM = (WM_USER + 72)  # wParam == iHotItem
 TB_SETANCHORHIGHLIGHT = (WM_USER + 73)  # wParam == TRUE/FALSE
 TB_GETANCHORHIGHLIGHT = (WM_USER + 74)
 TB_MAPACCELERATORA = (WM_USER + 78)  # wParam == ch, lParam int * pidBtn
-TBIMHT_AFTER = 1 # TRUE = insert After iButton, otherwise before
-TBIMHT_BACKGROUND = 2 # TRUE iff missed buttons completely
+TBIMHT_AFTER = 1  # TRUE = insert After iButton, otherwise before
+TBIMHT_BACKGROUND = 2  # TRUE iff missed buttons completely
 TB_GETINSERTMARK = (WM_USER + 79)  # lParam == LPTBINSERTMARK
 TB_SETINSERTMARK = (WM_USER + 80)  # lParam == LPTBINSERTMARK
-TB_INSERTMARKHITTEST = (WM_USER + 81)  # wParam == LPPOINT lParam == LPTBINSERTMARK
+# wParam == LPPOINT lParam == LPTBINSERTMARK
+TB_INSERTMARKHITTEST = (WM_USER + 81)
 TB_MOVEBUTTON = (WM_USER + 82)
 TB_GETMAXSIZE = (WM_USER + 83)  # lParam == LPSIZE
 TB_SETEXTENDEDSTYLE = (WM_USER + 84)  # For TBSTYLE_EX_*
@@ -389,7 +394,8 @@ TB_SETPADDING = (WM_USER + 87)
 TB_SETINSERTMARKCOLOR = (WM_USER + 88)
 TB_GETINSERTMARKCOLOR = (WM_USER + 89)
 TB_SETCOLORSCHEME = CCM_SETCOLORSCHEME  # lParam is color scheme
-TB_GETCOLORSCHEME = CCM_GETCOLORSCHEME	# fills in COLORSCHEME pointed to by lParam
+# fills in COLORSCHEME pointed to by lParam
+TB_GETCOLORSCHEME = CCM_GETCOLORSCHEME
 TB_SETUNICODEFORMAT = CCM_SETUNICODEFORMAT
 TB_GETUNICODEFORMAT = CCM_GETUNICODEFORMAT
 TB_MAPACCELERATORW = (WM_USER + 90)  # wParam == ch, lParam int * pidBtn
@@ -434,10 +440,13 @@ HICF_ENTERING = 16          # idOld is invalid
 HICF_LEAVING = 32          # idNew is invalid
 HICF_RESELECT = 64          # hot item reselected
 TBN_HOTITEMCHANGE = (TBN_FIRST - 13)
-TBN_DRAGOUT = (TBN_FIRST - 14) # this is sent when the user clicks down on a button then drags off the button
-TBN_DELETINGBUTTON = (TBN_FIRST - 15) # uses TBNOTIFY
-TBN_GETDISPINFOA = (TBN_FIRST - 16) # This is sent when the  toolbar needs  some display information
-TBN_GETDISPINFOW = (TBN_FIRST - 17) # This is sent when the  toolbar needs  some display information
+# this is sent when the user clicks down on a button then drags off the button
+TBN_DRAGOUT = (TBN_FIRST - 14)
+TBN_DELETINGBUTTON = (TBN_FIRST - 15)  # uses TBNOTIFY
+# This is sent when the  toolbar needs  some display information
+TBN_GETDISPINFOA = (TBN_FIRST - 16)
+# This is sent when the  toolbar needs  some display information
+TBN_GETDISPINFOW = (TBN_FIRST - 17)
 TBN_GETINFOTIPA = (TBN_FIRST - 18)
 TBN_GETINFOTIPW = (TBN_FIRST - 19)
 TBN_GETINFOTIP = TBN_GETINFOTIPA
@@ -458,7 +467,8 @@ RBS_BANDBORDERS = 1024
 RBS_FIXEDORDER = 2048
 RBS_REGISTERDROP = 4096
 RBS_AUTOSIZE = 8192
-RBS_VERTICALGRIPPER = 16384  # this always has the vertical gripper (default for horizontal mode)
+# this always has the vertical gripper (default for horizontal mode)
+RBS_VERTICALGRIPPER = 16384
 RBS_DBLCLKTOGGLE = 32768
 RBS_TOOLTIPS = 256
 RBS_VARHEIGHT = 512
@@ -484,30 +494,32 @@ RBBIM_BACKGROUND = 128
 RBBIM_ID = 256
 RBBIM_IDEALSIZE = 512
 RBBIM_LPARAM = 1024
-RB_INSERTBANDA = (WM_USER +  1)
-RB_DELETEBAND = (WM_USER +  2)
-RB_GETBARINFO = (WM_USER +  3)
-RB_SETBARINFO = (WM_USER +  4)
-RB_GETBANDINFO = (WM_USER +  5)
-RB_SETBANDINFOA = (WM_USER +  6)
-RB_SETPARENT = (WM_USER +  7)
-RB_HITTEST = (WM_USER +  8)
-RB_GETRECT = (WM_USER +  9)
-RB_INSERTBANDW = (WM_USER +  10)
-RB_SETBANDINFOW = (WM_USER +  11)
-RB_GETBANDCOUNT = (WM_USER +  12)
-RB_GETROWCOUNT = (WM_USER +  13)
-RB_GETROWHEIGHT = (WM_USER +  14)
-RB_IDTOINDEX = (WM_USER +  16) # wParam == id
-RB_GETTOOLTIPS = (WM_USER +  17)
-RB_SETTOOLTIPS = (WM_USER +  18)
-RB_SETBKCOLOR = (WM_USER +  19) # sets the default BK color
-RB_GETBKCOLOR = (WM_USER +  20) # defaults to CLR_NONE
-RB_SETTEXTCOLOR = (WM_USER +  21)
-RB_GETTEXTCOLOR = (WM_USER +  22) # defaults to 0x00000000
-RB_SIZETORECT = (WM_USER +  23) # resize the rebar/break bands and such to this rect (lparam)
+RB_INSERTBANDA = (WM_USER + 1)
+RB_DELETEBAND = (WM_USER + 2)
+RB_GETBARINFO = (WM_USER + 3)
+RB_SETBARINFO = (WM_USER + 4)
+RB_GETBANDINFO = (WM_USER + 5)
+RB_SETBANDINFOA = (WM_USER + 6)
+RB_SETPARENT = (WM_USER + 7)
+RB_HITTEST = (WM_USER + 8)
+RB_GETRECT = (WM_USER + 9)
+RB_INSERTBANDW = (WM_USER + 10)
+RB_SETBANDINFOW = (WM_USER + 11)
+RB_GETBANDCOUNT = (WM_USER + 12)
+RB_GETROWCOUNT = (WM_USER + 13)
+RB_GETROWHEIGHT = (WM_USER + 14)
+RB_IDTOINDEX = (WM_USER + 16)  # wParam == id
+RB_GETTOOLTIPS = (WM_USER + 17)
+RB_SETTOOLTIPS = (WM_USER + 18)
+RB_SETBKCOLOR = (WM_USER + 19)  # sets the default BK color
+RB_GETBKCOLOR = (WM_USER + 20)  # defaults to CLR_NONE
+RB_SETTEXTCOLOR = (WM_USER + 21)
+RB_GETTEXTCOLOR = (WM_USER + 22)  # defaults to 0x00000000
+# resize the rebar/break bands and such to this rect (lparam)
+RB_SIZETORECT = (WM_USER + 23)
 RB_SETCOLORSCHEME = CCM_SETCOLORSCHEME  # lParam is color scheme
-RB_GETCOLORSCHEME = CCM_GETCOLORSCHEME  # fills in COLORSCHEME pointed to by lParam
+# fills in COLORSCHEME pointed to by lParam
+RB_GETCOLORSCHEME = CCM_GETCOLORSCHEME
 RB_INSERTBAND = RB_INSERTBANDA
 RB_SETBANDINFO = RB_SETBANDINFOA
 RB_BEGINDRAG = (WM_USER + 24)
@@ -520,7 +532,8 @@ RB_GETBANDINFO = RB_GETBANDINFOA
 RB_MINIMIZEBAND = (WM_USER + 30)
 RB_MAXIMIZEBAND = (WM_USER + 31)
 RB_GETDROPTARGET = (CCM_GETDROPTARGET)
-RB_GETBANDBORDERS = (WM_USER + 34)  # returns in lparam = lprc the amount of edges added to band wparam
+# returns in lparam = lprc the amount of edges added to band wparam
+RB_GETBANDBORDERS = (WM_USER + 34)
 RB_SHOWBAND = (WM_USER + 35)      # show/hide band
 RB_SETPALETTE = (WM_USER + 37)
 RB_GETPALETTE = (WM_USER + 38)
@@ -572,19 +585,20 @@ TTM_GETTOOLINFOA = (WM_USER + 8)
 TTM_GETTOOLINFOW = (WM_USER + 53)
 TTM_SETTOOLINFOA = (WM_USER + 9)
 TTM_SETTOOLINFOW = (WM_USER + 54)
-TTM_HITTESTA = (WM_USER +10)
-TTM_HITTESTW = (WM_USER +55)
-TTM_GETTEXTA = (WM_USER +11)
-TTM_GETTEXTW = (WM_USER +56)
-TTM_UPDATETIPTEXTA = (WM_USER +12)
-TTM_UPDATETIPTEXTW = (WM_USER +57)
-TTM_GETTOOLCOUNT = (WM_USER +13)
-TTM_ENUMTOOLSA = (WM_USER +14)
-TTM_ENUMTOOLSW = (WM_USER +58)
+TTM_HITTESTA = (WM_USER + 10)
+TTM_HITTESTW = (WM_USER + 55)
+TTM_GETTEXTA = (WM_USER + 11)
+TTM_GETTEXTW = (WM_USER + 56)
+TTM_UPDATETIPTEXTA = (WM_USER + 12)
+TTM_UPDATETIPTEXTW = (WM_USER + 57)
+TTM_GETTOOLCOUNT = (WM_USER + 13)
+TTM_ENUMTOOLSA = (WM_USER + 14)
+TTM_ENUMTOOLSW = (WM_USER + 58)
 TTM_GETCURRENTTOOLA = (WM_USER + 15)
 TTM_GETCURRENTTOOLW = (WM_USER + 59)
 TTM_WINDOWFROMPOINT = (WM_USER + 16)
-TTM_TRACKACTIVATE = (WM_USER + 17)  # wParam = TRUE/FALSE start end  lparam = LPTOOLINFO
+# wParam = TRUE/FALSE start end  lparam = LPTOOLINFO
+TTM_TRACKACTIVATE = (WM_USER + 17)
 TTM_TRACKPOSITION = (WM_USER + 18)  # lParam = dwPos
 TTM_SETTIPBKCOLOR = (WM_USER + 19)
 TTM_SETTIPTEXTCOLOR = (WM_USER + 20)
@@ -703,8 +717,8 @@ TBTS_TOP = 0
 TBTS_LEFT = 1
 TBTS_BOTTOM = 2
 TBTS_RIGHT = 3
-TBM_SETBUDDY = (WM_USER+32) # wparam = BOOL fLeft; (or right)
-TBM_GETBUDDY = (WM_USER+33) # wparam = BOOL fLeft; (or right)
+TBM_SETBUDDY = (WM_USER+32)  # wparam = BOOL fLeft; (or right)
+TBM_GETBUDDY = (WM_USER+33)  # wparam = BOOL fLeft; (or right)
 TBM_SETUNICODEFORMAT = CCM_SETUNICODEFORMAT
 TBM_GETUNICODEFORMAT = CCM_GETUNICODEFORMAT
 TB_LINEUP = 0
@@ -752,7 +766,7 @@ UDM_GETACCEL = (WM_USER+108)
 UDM_SETBASE = (WM_USER+109)
 UDM_GETBASE = (WM_USER+110)
 UDM_SETRANGE32 = (WM_USER+111)
-UDM_GETRANGE32 = (WM_USER+112) # wParam & lParam are LPINT
+UDM_GETRANGE32 = (WM_USER+112)  # wParam & lParam are LPINT
 UDM_SETUNICODEFORMAT = CCM_SETUNICODEFORMAT
 UDM_GETUNICODEFORMAT = CCM_GETUNICODEFORMAT
 UDN_DELTAPOS = (UDN_FIRST - 1)
@@ -766,7 +780,8 @@ PBM_DELTAPOS = (WM_USER+3)
 PBM_SETSTEP = (WM_USER+4)
 PBM_STEPIT = (WM_USER+5)
 PBM_SETRANGE32 = (WM_USER+6)  # lParam = high, wParam = low
-PBM_GETRANGE = (WM_USER+7)  # wParam = return (TRUE ? low : high). lParam = PPBRANGE or NULL
+# wParam = return (TRUE ? low : high). lParam = PPBRANGE or NULL
+PBM_GETRANGE = (WM_USER+7)
 PBM_GETPOS = (WM_USER+8)
 PBM_SETBARCOLOR = (WM_USER+9)		# lParam = bar color
 PBM_SETBKCOLOR = CCM_SETBKCOLOR  # lParam = bkColor
@@ -982,12 +997,12 @@ LVS_EX_SUBITEMIMAGES = 2
 LVS_EX_CHECKBOXES = 4
 LVS_EX_TRACKSELECT = 8
 LVS_EX_HEADERDRAGDROP = 16
-LVS_EX_FULLROWSELECT = 32 # applies to report mode only
+LVS_EX_FULLROWSELECT = 32  # applies to report mode only
 LVS_EX_ONECLICKACTIVATE = 64
 LVS_EX_TWOCLICKACTIVATE = 128
 LVS_EX_FLATSB = 256
 LVS_EX_REGIONAL = 512
-LVS_EX_INFOTIP = 1024 # listview does InfoTips for you
+LVS_EX_INFOTIP = 1024  # listview does InfoTips for you
 LVS_EX_UNDERLINEHOT = 2048
 LVS_EX_UNDERLINECOLD = 4096
 LVS_EX_MULTIWORKAREAS = 8192
@@ -1241,8 +1256,9 @@ CBEM_SETITEMA = (WM_USER + 5)
 CBEM_GETCOMBOCONTROL = (WM_USER + 6)
 CBEM_GETEDITCONTROL = (WM_USER + 7)
 CBEM_SETEXSTYLE = (WM_USER + 8)  # use  SETEXTENDEDSTYLE instead
-CBEM_SETEXTENDEDSTYLE = (WM_USER + 14)   # lparam == new style, wParam (optional) == mask
-CBEM_GETEXSTYLE = (WM_USER + 9) # use GETEXTENDEDSTYLE instead
+# lparam == new style, wParam (optional) == mask
+CBEM_SETEXTENDEDSTYLE = (WM_USER + 14)
+CBEM_GETEXSTYLE = (WM_USER + 9)  # use GETEXTENDEDSTYLE instead
 CBEM_GETEXTENDEDSTYLE = (WM_USER + 9)
 CBEM_SETUNICODEFORMAT = CCM_SETUNICODEFORMAT
 CBEM_GETUNICODEFORMAT = CCM_GETUNICODEFORMAT
@@ -1438,39 +1454,45 @@ DTM_GETMCCOLOR = (DTM_FIRST + 7)
 DTM_GETMONTHCAL = (DTM_FIRST + 8)
 DTM_SETMCFONT = (DTM_FIRST + 9)
 DTM_GETMCFONT = (DTM_FIRST + 10)
-DTS_UPDOWN = 1 # use UPDOWN instead of MONTHCAL
-DTS_SHOWNONE = 2 # allow a NONE selection
-DTS_SHORTDATEFORMAT = 0 # use the short date format (app must forward WM_WININICHANGE messages)
-DTS_LONGDATEFORMAT = 4 # use the long date format (app must forward WM_WININICHANGE messages)
-DTS_TIMEFORMAT = 9 # use the time format (app must forward WM_WININICHANGE messages)
-DTS_APPCANPARSE = 16 # allow user entered strings (app MUST respond to DTN_USERSTRING)
-DTS_RIGHTALIGN = 32 # right-align popup instead of left-align it
-DTN_DATETIMECHANGE = (DTN_FIRST + 1) # the systemtime has changed
-DTN_USERSTRINGA = (DTN_FIRST + 2) # the user has entered a string
+DTS_UPDOWN = 1  # use UPDOWN instead of MONTHCAL
+DTS_SHOWNONE = 2  # allow a NONE selection
+# use the short date format (app must forward WM_WININICHANGE messages)
+DTS_SHORTDATEFORMAT = 0
+# use the long date format (app must forward WM_WININICHANGE messages)
+DTS_LONGDATEFORMAT = 4
+# use the time format (app must forward WM_WININICHANGE messages)
+DTS_TIMEFORMAT = 9
+# allow user entered strings (app MUST respond to DTN_USERSTRING)
+DTS_APPCANPARSE = 16
+DTS_RIGHTALIGN = 32  # right-align popup instead of left-align it
+DTN_DATETIMECHANGE = (DTN_FIRST + 1)  # the systemtime has changed
+DTN_USERSTRINGA = (DTN_FIRST + 2)  # the user has entered a string
 DTN_USERSTRINGW = (DTN_FIRST + 15)
 DTN_USERSTRING = DTN_USERSTRINGW
-DTN_WMKEYDOWNA = (DTN_FIRST + 3) # modify keydown on app format field (X)
+DTN_WMKEYDOWNA = (DTN_FIRST + 3)  # modify keydown on app format field (X)
 DTN_WMKEYDOWNW = (DTN_FIRST + 16)
 DTN_WMKEYDOWN = DTN_WMKEYDOWNA
-DTN_FORMATA = (DTN_FIRST + 4) # query display for app format field (X)
+DTN_FORMATA = (DTN_FIRST + 4)  # query display for app format field (X)
 DTN_FORMATW = (DTN_FIRST + 17)
 DTN_FORMAT = DTN_FORMATA
-DTN_FORMATQUERYA = (DTN_FIRST + 5) # query formatting info for app format field (X)
+# query formatting info for app format field (X)
+DTN_FORMATQUERYA = (DTN_FIRST + 5)
 DTN_FORMATQUERYW = (DTN_FIRST + 18)
 DTN_FORMATQUERY = DTN_FORMATQUERYA
-DTN_DROPDOWN = (DTN_FIRST + 6) # MonthCal has dropped down
-DTN_CLOSEUP = (DTN_FIRST + 7) # MonthCal is popping up
+DTN_DROPDOWN = (DTN_FIRST + 6)  # MonthCal has dropped down
+DTN_CLOSEUP = (DTN_FIRST + 7)  # MonthCal is popping up
 GDTR_MIN = 1
 GDTR_MAX = 2
 GDT_ERROR = -1
 GDT_VALID = 0
 GDT_NONE = 1
-IPM_CLEARADDRESS = (WM_USER+100) # no parameters
-IPM_SETADDRESS = (WM_USER+101) # lparam = TCP/IP address
-IPM_GETADDRESS = (WM_USER+102) # lresult = # of non black fields.  lparam = LPDWORD for TCP/IP address
-IPM_SETRANGE = (WM_USER+103) # wparam = field, lparam = range
-IPM_SETFOCUS = (WM_USER+104) # wparam = field
-IPM_ISBLANK = (WM_USER+105) # no parameters
+IPM_CLEARADDRESS = (WM_USER+100)  # no parameters
+IPM_SETADDRESS = (WM_USER+101)  # lparam = TCP/IP address
+# lresult = # of non black fields.  lparam = LPDWORD for TCP/IP address
+IPM_GETADDRESS = (WM_USER+102)
+IPM_SETRANGE = (WM_USER+103)  # wparam = field, lparam = range
+IPM_SETFOCUS = (WM_USER+104)  # wparam = field
+IPM_ISBLANK = (WM_USER+105)  # no parameters
 WC_IPADDRESSA = "SysIPAddress32"
 WC_IPADDRESS = WC_IPADDRESSA
 IPN_FIELDCHANGED = (IPN_FIRST - 0)
@@ -1542,8 +1564,10 @@ FSB_FLAT_MODE = 2
 FSB_ENCARTA_MODE = 1
 FSB_REGULAR_MODE = 0
 
+
 def INDEXTOOVERLAYMASK(i):
     return i << 8
+
 
 def INDEXTOSTATEIMAGEMASK(i):
     return i << 12

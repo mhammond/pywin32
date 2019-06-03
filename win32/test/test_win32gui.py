@@ -21,7 +21,7 @@ class TestPyGetString(unittest.TestCase):
         # test invalid addresses cause a ValueError rather than crash!
         self.assertRaises(ValueError, win32gui.PyGetString, 0)
         self.assertRaises(ValueError, win32gui.PyGetString, 1)
-        self.assertRaises(ValueError, win32gui.PyGetString, 1,1)
+        self.assertRaises(ValueError, win32gui.PyGetString, 1, 1)
 
 
 class TestPyGetMemory(unittest.TestCase):

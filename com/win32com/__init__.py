@@ -52,7 +52,8 @@ def SetupEnvironment():
                 pass
         if not found:
             try:
-                __path__.append(win32api.GetFullPathName( __path__[0] + "\\..\\win32comext") )
+                __path__.append(win32api.GetFullPathName(
+                    __path__[0] + "\\..\\win32comext"))
             except win32api.error:
                 # Give up in disgust!
                 pass
@@ -81,6 +82,8 @@ def SetupEnvironment():
 # A Helper for developers.  A sub-package's __init__ can call this help function,
 # which allows the .pyd files for the extension to live in a special "Build" directory
 # (which the win32com developers do!)
+
+
 def __PackageSupportBuildPath__(package_path):
     # See if we have a special directory for the binaries (for developers)
     if not _frozen and __build_path__:
@@ -111,11 +114,11 @@ if not __gen_path__:
             # create a version specific directory under the user temp
             # directory.
             __gen_path__ = os.path.join(
-                                win32api.GetTempPath(), "gen_py",
-                                "%d.%d" % (sys.version_info[0],
-                                           sys.version_info[1],
-                                           )
-                                        )
+                win32api.GetTempPath(), "gen_py",
+                "%d.%d" % (sys.version_info[0],
+                           sys.version_info[1],
+                           )
+            )
 
 # we must have a __gen_path__, but may not have a gen_py module -
 # set that up.

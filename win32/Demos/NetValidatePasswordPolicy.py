@@ -26,10 +26,12 @@ which always (with and without '-m') seems to return:
 
 import sys
 import win32api
-import win32net, win32netcon
+import win32net
+import win32netcon
 
 import optparse
 from pprint import pprint
+
 
 def main():
     parser = optparse.OptionParser("%prog [options] auth|change ...",
@@ -80,7 +82,7 @@ def main():
 
         try:
             fields, status = win32net.NetValidatePasswordPolicy(options.server,
-                                                         None, val_type, input)
+                                                                None, val_type, input)
         except NotImplementedError:
             print "NetValidatePasswordPolicy not implemented on this platform."
             return 1
@@ -93,9 +95,10 @@ def main():
             pprint(fields)
 
         print "Result of %r validation is %d: %s" % \
-                    (arg, status, win32api.FormatMessage(status).strip())
+            (arg, status, win32api.FormatMessage(status).strip())
 
     return 0
 
-if __name__=='__main__':
+
+if __name__ == '__main__':
     sys.exit(main())

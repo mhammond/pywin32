@@ -25,10 +25,10 @@ import build
 
 from pywintypes import IIDType
 
-import win32com.client # Needed as code we eval() references it.
+import win32com.client  # Needed as code we eval() references it.
 
-debugging=0            # General debugging
-debugging_attr=0    # Debugging dynamic attribute lookups.
+debugging = 0            # General debugging
+debugging_attr = 0    # Debugging dynamic attribute lookups.
 
 LCID = 0x0
 
@@ -50,11 +50,13 @@ ALL_INVOKE_TYPES = [
     pythoncom.INVOKE_FUNC
 ]
 
+
 def debug_print(*args):
     if debugging:
         for arg in args:
             print arg,
         print
+
 
 def debug_attr_print(*args):
     if debugging_attr:
@@ -62,25 +64,27 @@ def debug_attr_print(*args):
             print arg,
         print
 
+
 # A helper to create method objects on the fly
-py3k = sys.version_info > (3,0)
+py3k = sys.version_info > (3, 0)
 if py3k:
     def MakeMethod(func, inst, cls):
-        return types.MethodType(func, inst) # class not needed in py3k
+        return types.MethodType(func, inst)  # class not needed in py3k
 else:
-    MakeMethod = types.MethodType # all args used in py2k.
+    MakeMethod = types.MethodType  # all args used in py2k.
 
 # get the type objects for IDispatch and IUnknown
 PyIDispatchType = pythoncom.TypeIIDs[pythoncom.IID_IDispatch]
 PyIUnknownType = pythoncom.TypeIIDs[pythoncom.IID_IUnknown]
 
 if py3k:
-    _GoodDispatchTypes=(str, IIDType)
+    _GoodDispatchTypes = (str, IIDType)
 else:
-    _GoodDispatchTypes=(str, IIDType, unicode)
-_defaultDispatchItem=build.DispatchItem
+    _GoodDispatchTypes = (str, IIDType, unicode)
+_defaultDispatchItem = build.DispatchItem
 
-def _GetGoodDispatch(IDispatch, clsctx = pythoncom.CLSCTX_SERVER):
+
+def _GetGoodDispatch(IDispatch, clsctx=pythoncom.CLSCTX_SERVER):
     # quick return for most common case
     if isinstance(IDispatch, PyIDispatchType):
         return IDispatch
@@ -88,11 +92,13 @@ def _GetGoodDispatch(IDispatch, clsctx = pythoncom.CLSCTX_SERVER):
         try:
             IDispatch = pythoncom.connect(IDispatch)
         except pythoncom.ole_error:
-            IDispatch = pythoncom.CoCreateInstance(IDispatch, None, clsctx, pythoncom.IID_IDispatch)
+            IDispatch = pythoncom.CoCreateInstance(
+                IDispatch, None, clsctx, pythoncom.IID_IDispatch)
     else:
         # may already be a wrapped class.
         IDispatch = getattr(IDispatch, "_oleobj_", IDispatch)
     return IDispatch
+
 
 def _GetGoodDispatchAndUserName(IDispatch, userName, clsctx):
     # Get a dispatch object, and a 'user name' (ie, the name as
@@ -104,7 +110,7 @@ def _GetGoodDispatchAndUserName(IDispatch, userName, clsctx):
         elif not py3k and isinstance(IDispatch, unicode):
             # 2to3 converts the above 'unicode' to 'str', but this will never be executed in py3k
             userName = IDispatch.encode("ascii", "replace")
-        ## ??? else userName remains None ???
+        # ??? else userName remains None ???
     elif not py3k and isinstance(userName, unicode):
         # 2to3 converts the above 'unicode' to 'str', but this will never be executed in py3k
         # As above - always a plain string in py2k
@@ -113,18 +119,23 @@ def _GetGoodDispatchAndUserName(IDispatch, userName, clsctx):
         userName = str(userName)
     return (_GetGoodDispatch(IDispatch, clsctx), userName)
 
+
 def _GetDescInvokeType(entry, invoke_type):
     # determine the wFlags argument passed as input to IDispatch::Invoke
-    if not entry or not entry.desc: return invoke_type
-    varkind = entry.desc[4] # from VARDESC struct returned by ITypeComp::Bind
+    if not entry or not entry.desc:
+        return invoke_type
+    varkind = entry.desc[4]  # from VARDESC struct returned by ITypeComp::Bind
     if varkind == pythoncom.VAR_DISPATCH and invoke_type == pythoncom.INVOKE_PROPERTYGET:
-        return pythoncom.INVOKE_FUNC | invoke_type # DISPATCH_METHOD & DISPATCH_PROPERTYGET can be combined in IDispatch::Invoke
+        # DISPATCH_METHOD & DISPATCH_PROPERTYGET can be combined in IDispatch::Invoke
+        return pythoncom.INVOKE_FUNC | invoke_type
     else:
         return varkind
 
-def Dispatch(IDispatch, userName = None, createClass = None, typeinfo = None, UnicodeToString=None, clsctx = pythoncom.CLSCTX_SERVER):
+
+def Dispatch(IDispatch, userName=None, createClass=None, typeinfo=None, UnicodeToString=None, clsctx=pythoncom.CLSCTX_SERVER):
     assert UnicodeToString is None, "this is deprecated and will go away"
-    IDispatch, userName = _GetGoodDispatchAndUserName(IDispatch,userName,clsctx)
+    IDispatch, userName = _GetGoodDispatchAndUserName(
+        IDispatch, userName, clsctx)
     if createClass is None:
         createClass = CDispatch
     lazydata = None
@@ -133,7 +144,7 @@ def Dispatch(IDispatch, userName = None, createClass = None, typeinfo = None, Un
             typeinfo = IDispatch.GetTypeInfo()
         if typeinfo is not None:
             try:
-                #try for a typecomp
+                # try for a typecomp
                 typecomp = typeinfo.GetTypeComp()
                 lazydata = typeinfo, typecomp
             except pythoncom.com_error:
@@ -142,6 +153,7 @@ def Dispatch(IDispatch, userName = None, createClass = None, typeinfo = None, Un
         typeinfo = None
     olerepr = MakeOleRepr(IDispatch, typeinfo, lazydata)
     return createClass(IDispatch, olerepr, userName, lazydata=lazydata)
+
 
 def MakeOleRepr(IDispatch, typeinfo, typecomp):
     olerepr = None
@@ -153,7 +165,7 @@ def MakeOleRepr(IDispatch, typeinfo, typecomp):
             if attr[5] == pythoncom.TKIND_INTERFACE and attr[11] & pythoncom.TYPEFLAG_FDUAL:
                 # Get corresponding Disp interface;
                 # -1 is a special value which does this for us.
-                href = typeinfo.GetRefTypeOfImplType(-1);
+                href = typeinfo.GetRefTypeOfImplType(-1)
                 typeinfo = typeinfo.GetRefTypeInfo(href)
                 attr = typeinfo.GetTypeAttr()
             if typecomp is None:
@@ -162,21 +174,26 @@ def MakeOleRepr(IDispatch, typeinfo, typecomp):
                 olerepr = build.LazyDispatchItem(attr, None)
         except pythoncom.ole_error:
             pass
-    if olerepr is None: olerepr = build.DispatchItem()
+    if olerepr is None:
+        olerepr = build.DispatchItem()
     return olerepr
 
-def DumbDispatch(IDispatch, userName = None, createClass = None,UnicodeToString=None, clsctx=pythoncom.CLSCTX_SERVER):
+
+def DumbDispatch(IDispatch, userName=None, createClass=None, UnicodeToString=None, clsctx=pythoncom.CLSCTX_SERVER):
     "Dispatch with no type info"
     assert UnicodeToString is None, "this is deprecated and will go away"
-    IDispatch, userName = _GetGoodDispatchAndUserName(IDispatch,userName,clsctx)
+    IDispatch, userName = _GetGoodDispatchAndUserName(
+        IDispatch, userName, clsctx)
     if createClass is None:
         createClass = CDispatch
     return createClass(IDispatch, build.DispatchItem(), userName)
 
+
 class CDispatch:
     def __init__(self, IDispatch, olerepr, userName=None, UnicodeToString=None, lazydata=None):
         assert UnicodeToString is None, "this is deprecated and will go away"
-        if userName is None: userName = "<unknown>"
+        if userName is None:
+            userName = "<unknown>"
         self.__dict__['_oleobj_'] = IDispatch
         self.__dict__['_username_'] = userName
         self.__dict__['_olerepr_'] = olerepr
@@ -189,16 +206,19 @@ class CDispatch:
     def __call__(self, *args):
         "Provide 'default dispatch' COM functionality - allow instance to be called"
         if self._olerepr_.defaultDispatchName:
-            invkind, dispid = self._find_dispatch_type_(self._olerepr_.defaultDispatchName)
+            invkind, dispid = self._find_dispatch_type_(
+                self._olerepr_.defaultDispatchName)
         else:
             invkind, dispid = pythoncom.DISPATCH_METHOD | pythoncom.DISPATCH_PROPERTYGET, pythoncom.DISPID_VALUE
         if invkind is not None:
-            allArgs = (dispid,LCID,invkind,1) + args
-            return self._get_good_object_(self._oleobj_.Invoke(*allArgs),self._olerepr_.defaultDispatchName,None)
-        raise TypeError("This dispatch object does not define a default method")
+            allArgs = (dispid, LCID, invkind, 1) + args
+            return self._get_good_object_(self._oleobj_.Invoke(*allArgs), self._olerepr_.defaultDispatchName, None)
+        raise TypeError(
+            "This dispatch object does not define a default method")
 
     def __nonzero__(self):
-        return True # ie "if object:" should always be "true" - without this, __len__ is tried.
+        # ie "if object:" should always be "true" - without this, __len__ is tried.
+        return True
         # _Possibly_ want to defer to __len__ if available, but Im not sure this is
         # desirable???
 
@@ -236,13 +256,14 @@ class CDispatch:
     def _NewEnum(self):
         try:
             invkind = pythoncom.DISPATCH_METHOD | pythoncom.DISPATCH_PROPERTYGET
-            enum = self._oleobj_.InvokeTypes(pythoncom.DISPID_NEWENUM,LCID,invkind,(13, 10),())
+            enum = self._oleobj_.InvokeTypes(
+                pythoncom.DISPID_NEWENUM, LCID, invkind, (13, 10), ())
         except pythoncom.com_error:
-            return None # no enumerator for this object.
+            return None  # no enumerator for this object.
         import util
         return util.WrapEnum(enum, None)
 
-    def __getitem__(self, index): # syver modified
+    def __getitem__(self, index):  # syver modified
         # Improved __getitem__ courtesy Syver Enstad
         # Must check _NewEnum before Item, to ensure b/w compat.
         if isinstance(index, int):
@@ -258,15 +279,17 @@ class CDispatch:
 
     def __setitem__(self, index, *args):
         # XXX - todo - We should support calling Item() here too!
-#        print "__setitem__ with", index, args
+        #        print "__setitem__ with", index, args
         if self._olerepr_.defaultDispatchName:
-            invkind, dispid = self._find_dispatch_type_(self._olerepr_.defaultDispatchName)
+            invkind, dispid = self._find_dispatch_type_(
+                self._olerepr_.defaultDispatchName)
         else:
             invkind, dispid = pythoncom.DISPATCH_PROPERTYPUT | pythoncom.DISPATCH_PROPERTYPUTREF, pythoncom.DISPID_VALUE
         if invkind is not None:
-            allArgs = (dispid,LCID,invkind,0,index) + args
-            return self._get_good_object_(self._oleobj_.Invoke(*allArgs),self._olerepr_.defaultDispatchName,None)
-        raise TypeError("This dispatch object does not define a default method")
+            allArgs = (dispid, LCID, invkind, 0, index) + args
+            return self._get_good_object_(self._oleobj_.Invoke(*allArgs), self._olerepr_.defaultDispatchName, None)
+        raise TypeError(
+            "This dispatch object does not define a default method")
 
     def _find_dispatch_type_(self, methodName):
         if methodName in self._olerepr_.mapFuncs:
@@ -278,21 +301,22 @@ class CDispatch:
             return item.desc[4], item.dispid
 
         try:
-            dispid = self._oleobj_.GetIDsOfNames(0,methodName)
-        except:    ### what error?
+            dispid = self._oleobj_.GetIDsOfNames(0, methodName)
+        except:  # what error?
             return None, None
         return pythoncom.DISPATCH_METHOD | pythoncom.DISPATCH_PROPERTYGET, dispid
 
     def _ApplyTypes_(self, dispid, wFlags, retType, argTypes, user, resultCLSID, *args):
-        result = self._oleobj_.InvokeTypes(*(dispid, LCID, wFlags, retType, argTypes) + args)
+        result = self._oleobj_.InvokeTypes(
+            *(dispid, LCID, wFlags, retType, argTypes) + args)
         return self._get_good_object_(result, user, resultCLSID)
 
-    def _wrap_dispatch_(self, ob, userName = None, returnCLSID = None, UnicodeToString=None):
+    def _wrap_dispatch_(self, ob, userName=None, returnCLSID=None, UnicodeToString=None):
         # Given a dispatch object, wrap it in a class
         assert UnicodeToString is None, "this is deprecated and will go away"
         return Dispatch(ob, userName)
 
-    def _get_good_single_object_(self,ob,userName = None, ReturnCLSID=None):
+    def _get_good_single_object_(self, ob, userName=None, ReturnCLSID=None):
         if isinstance(ob, PyIDispatchType):
             # make a new instance of (probably this) class.
             return self._wrap_dispatch_(ob, userName, ReturnCLSID)
@@ -305,11 +329,11 @@ class CDispatch:
             return self._wrap_dispatch_(ob, userName, ReturnCLSID)
         return ob
 
-    def _get_good_object_(self,ob,userName = None, ReturnCLSID=None):
+    def _get_good_object_(self, ob, userName=None, ReturnCLSID=None):
         """Given an object (usually the retval from a method), make it a good object to return.
            Basically checks if it is a COM object, and wraps it up.
            Also handles the fact that a retval may be a tuple of retvals"""
-        if ob is None: # Quick exit!
+        if ob is None:  # Quick exit!
             return None
         elif isinstance(ob, tuple):
             return tuple(map(lambda o, s=self, oun=userName, rc=ReturnCLSID: s._get_good_single_object_(o, oun, rc),  ob))
@@ -318,19 +342,22 @@ class CDispatch:
 
     def _make_method_(self, name):
         "Make a method object - Assumes in olerepr funcmap"
-        methodName = build.MakePublicAttributeName(name) # translate keywords etc.
-        methodCodeList = self._olerepr_.MakeFuncMethod(self._olerepr_.mapFuncs[name], methodName,0)
+        # translate keywords etc.
+        methodName = build.MakePublicAttributeName(name)
+        methodCodeList = self._olerepr_.MakeFuncMethod(
+            self._olerepr_.mapFuncs[name], methodName, 0)
         methodCode = "\n".join(methodCodeList)
         try:
-#            print "Method code for %s is:\n" % self._username_, methodCode
-#            self._print_details_()
-            codeObject = compile(methodCode, "<COMObject %s>" % self._username_,"exec")
+            #            print "Method code for %s is:\n" % self._username_, methodCode
+            #            self._print_details_()
+            codeObject = compile(methodCode, "<COMObject %s>" %
+                                 self._username_, "exec")
             # Exec the code object
             tempNameSpace = {}
             # "Dispatch" in the exec'd code is win32com.client.Dispatch, not ours.
             globNameSpace = globals().copy()
             globNameSpace["Dispatch"] = win32com.client.Dispatch
-            exec codeObject in globNameSpace, tempNameSpace # self.__dict__, self.__dict__
+            exec codeObject in globNameSpace, tempNameSpace  # self.__dict__, self.__dict__
             name = methodName
             # Save the function in map.
             fn = self._builtMethods_[name] = tempNameSpace[name]
@@ -360,13 +387,13 @@ class CDispatch:
         try:
             item = self._olerepr_.mapFuncs[name]
             dispId = item.dispid
-            return self._get_good_object_(self._oleobj_.Invoke(*(dispId, LCID, item.desc[4], 0) + (args) ))
+            return self._get_good_object_(self._oleobj_.Invoke(*(dispId, LCID, item.desc[4], 0) + (args)))
         except KeyError:
             raise AttributeError(name)
 
     def _print_details_(self):
         "Debug routine - dumps what it knows about an object."
-        print "AxDispatch container",self._username_
+        print "AxDispatch container", self._username_
         try:
             print "Methods:"
             for method in self._olerepr_.mapFuncs.iterkeys():
@@ -386,14 +413,16 @@ class CDispatch:
     def __LazyMap__(self, attr):
         try:
             if self._LazyAddAttr_(attr):
-                debug_attr_print("%s.__LazyMap__(%s) added something" % (self._username_,attr))
+                debug_attr_print(
+                    "%s.__LazyMap__(%s) added something" % (self._username_, attr))
                 return 1
         except AttributeError:
             return 0
 
     # Using the typecomp, lazily create a new attribute definition.
-    def _LazyAddAttr_(self,attr):
-        if self._lazydata_ is None: return 0
+    def _LazyAddAttr_(self, attr):
+        if self._lazydata_ is None:
+            return 0
         res = 0
         typeinfo, typecomp = self._lazydata_
         olerepr = self._olerepr_
@@ -403,24 +432,24 @@ class CDispatch:
         # the info for the prop_put.)
         for i in ALL_INVOKE_TYPES:
             try:
-                x,t = typecomp.Bind(attr,i)
+                x, t = typecomp.Bind(attr, i)
                 # Support 'Get' and 'Set' properties - see
                 # bug 1587023
-                if x==0 and attr[:3] in ('Set', 'Get'):
-                    x,t = typecomp.Bind(attr[3:], i)
-                if x==1:    #it's a FUNCDESC
-                    r = olerepr._AddFunc_(typeinfo,t,0)
-                elif x==2:    #it's a VARDESC
-                    r = olerepr._AddVar_(typeinfo,t,0)
-                else:        #not found or TYPEDESC/IMPLICITAPP
-                    r=None
+                if x == 0 and attr[:3] in ('Set', 'Get'):
+                    x, t = typecomp.Bind(attr[3:], i)
+                if x == 1:  # it's a FUNCDESC
+                    r = olerepr._AddFunc_(typeinfo, t, 0)
+                elif x == 2:  # it's a VARDESC
+                    r = olerepr._AddVar_(typeinfo, t, 0)
+                else:  # not found or TYPEDESC/IMPLICITAPP
+                    r = None
                 if not r is None:
-                    key, map = r[0],r[1]
+                    key, map = r[0], r[1]
                     item = map[key]
-                    if map==olerepr.propMapPut:
-                        olerepr._propMapPutCheck_(key,item)
-                    elif map==olerepr.propMapGet:
-                        olerepr._propMapGetCheck_(key,item)
+                    if map == olerepr.propMapPut:
+                        olerepr._propMapPutCheck_(key, item)
+                    elif map == olerepr.propMapGet:
+                        olerepr._propMapGetCheck_(key, item)
                     res = 1
             except:
                 pass
@@ -442,29 +471,34 @@ class CDispatch:
             details = build.MapEntry(self.__AttrToID__(name), (name,))
             self._olerepr_.mapFuncs[name] = details
 
-    def __AttrToID__(self,attr):
-            debug_attr_print("Calling GetIDsOfNames for property %s in Dispatch container %s" % (attr, self._username_))
-            return self._oleobj_.GetIDsOfNames(0,attr)
+    def __AttrToID__(self, attr):
+        debug_attr_print("Calling GetIDsOfNames for property %s in Dispatch container %s" % (
+            attr, self._username_))
+        return self._oleobj_.GetIDsOfNames(0, attr)
 
     def __getattr__(self, attr):
-        if attr=='__iter__':
+        if attr == '__iter__':
             # We can't handle this as a normal method, as if the attribute
             # exists, then it must return an iterable object.
             try:
                 invkind = pythoncom.DISPATCH_METHOD | pythoncom.DISPATCH_PROPERTYGET
-                enum = self._oleobj_.InvokeTypes(pythoncom.DISPID_NEWENUM,LCID,invkind,(13, 10),())
+                enum = self._oleobj_.InvokeTypes(
+                    pythoncom.DISPID_NEWENUM, LCID, invkind, (13, 10), ())
             except pythoncom.com_error:
-                raise AttributeError("This object can not function as an iterator")
+                raise AttributeError(
+                    "This object can not function as an iterator")
             # We must return a callable object.
+
             class Factory:
                 def __init__(self, ob):
                     self.ob = ob
+
                 def __call__(self):
                     import win32com.client.util
                     return win32com.client.util.Iterator(self.ob)
             return Factory(enum)
 
-        if attr.startswith('_') and attr.endswith('_'): # Fast-track.
+        if attr.startswith('_') and attr.endswith('_'):  # Fast-track.
             raise AttributeError(attr)
         # If a known method, create new instance and return.
         try:
@@ -491,29 +525,33 @@ class CDispatch:
             if retEntry is None:
                 try:
                     if self.__LazyMap__(attr):
-                        if attr in self._olerepr_.mapFuncs: return self._make_method_(attr)
+                        if attr in self._olerepr_.mapFuncs:
+                            return self._make_method_(attr)
                         retEntry = self._olerepr_.propMap.get(attr)
                         if retEntry is None:
                             retEntry = self._olerepr_.propMapGet.get(attr)
                     if retEntry is None:
-                        retEntry = build.MapEntry(self.__AttrToID__(attr), (attr,))
+                        retEntry = build.MapEntry(
+                            self.__AttrToID__(attr), (attr,))
                 except pythoncom.ole_error:
-                    pass # No prop by that name - retEntry remains None.
+                    pass  # No prop by that name - retEntry remains None.
 
-        if not retEntry is None: # see if in my cache
+        if not retEntry is None:  # see if in my cache
             try:
                 ret = self._mapCachedItems_[retEntry.dispid]
-                debug_attr_print ("Cached items has attribute!", ret)
+                debug_attr_print("Cached items has attribute!", ret)
                 return ret
             except (KeyError, AttributeError):
                 debug_attr_print("Attribute %s not in cache" % attr)
 
         # If we are still here, and have a retEntry, get the OLE item
         if not retEntry is None:
-            invoke_type = _GetDescInvokeType(retEntry, pythoncom.INVOKE_PROPERTYGET)
-            debug_attr_print("Getting property Id 0x%x from OLE object" % retEntry.dispid)
+            invoke_type = _GetDescInvokeType(
+                retEntry, pythoncom.INVOKE_PROPERTYGET)
+            debug_attr_print(
+                "Getting property Id 0x%x from OLE object" % retEntry.dispid)
             try:
-                ret = self._oleobj_.Invoke(retEntry.dispid,0,invoke_type,1)
+                ret = self._oleobj_.Invoke(retEntry.dispid, 0, invoke_type, 1)
             except pythoncom.com_error, details:
                 if details.hresult in ERRORS_BAD_CONTEXT:
                     # May be a method.
@@ -527,25 +565,29 @@ class CDispatch:
         raise AttributeError("%s.%s" % (self._username_, attr))
 
     def __setattr__(self, attr, value):
-        if attr in self.__dict__: # Fast-track - if already in our dict, just make the assignment.
+        # Fast-track - if already in our dict, just make the assignment.
+        if attr in self.__dict__:
             # XXX - should maybe check method map - if someone assigns to a method,
             # it could mean something special (not sure what, tho!)
             self.__dict__[attr] = value
             return
         # Allow property assignment.
-        debug_attr_print("SetAttr called for %s.%s=%s on DispatchContainer" % (self._username_, attr, repr(value)))
+        debug_attr_print("SetAttr called for %s.%s=%s on DispatchContainer" % (
+            self._username_, attr, repr(value)))
 
         if self._olerepr_:
             # Check the "general" property map.
             if attr in self._olerepr_.propMap:
                 entry = self._olerepr_.propMap[attr]
-                invoke_type = _GetDescInvokeType(entry, pythoncom.INVOKE_PROPERTYPUT)
+                invoke_type = _GetDescInvokeType(
+                    entry, pythoncom.INVOKE_PROPERTYPUT)
                 self._oleobj_.Invoke(entry.dispid, 0, invoke_type, 0, value)
                 return
             # Check the specific "put" map.
             if attr in self._olerepr_.propMapPut:
                 entry = self._olerepr_.propMapPut[attr]
-                invoke_type = _GetDescInvokeType(entry, pythoncom.INVOKE_PROPERTYPUT)
+                invoke_type = _GetDescInvokeType(
+                    entry, pythoncom.INVOKE_PROPERTYPUT)
                 self._oleobj_.Invoke(entry.dispid, 0, invoke_type, 0, value)
                 return
 
@@ -555,27 +597,35 @@ class CDispatch:
                 # Check the "general" property map.
                 if attr in self._olerepr_.propMap:
                     entry = self._olerepr_.propMap[attr]
-                    invoke_type = _GetDescInvokeType(entry, pythoncom.INVOKE_PROPERTYPUT)
-                    self._oleobj_.Invoke(entry.dispid, 0, invoke_type, 0, value)
+                    invoke_type = _GetDescInvokeType(
+                        entry, pythoncom.INVOKE_PROPERTYPUT)
+                    self._oleobj_.Invoke(
+                        entry.dispid, 0, invoke_type, 0, value)
                     return
                 # Check the specific "put" map.
                 if attr in self._olerepr_.propMapPut:
                     entry = self._olerepr_.propMapPut[attr]
-                    invoke_type = _GetDescInvokeType(entry, pythoncom.INVOKE_PROPERTYPUT)
-                    self._oleobj_.Invoke(entry.dispid, 0, invoke_type, 0, value)
+                    invoke_type = _GetDescInvokeType(
+                        entry, pythoncom.INVOKE_PROPERTYPUT)
+                    self._oleobj_.Invoke(
+                        entry.dispid, 0, invoke_type, 0, value)
                     return
             try:
-                entry = build.MapEntry(self.__AttrToID__(attr),(attr,))
+                entry = build.MapEntry(self.__AttrToID__(attr), (attr,))
             except pythoncom.com_error:
                 # No attribute of that name
                 entry = None
             if entry is not None:
                 try:
-                    invoke_type = _GetDescInvokeType(entry, pythoncom.INVOKE_PROPERTYPUT)
-                    self._oleobj_.Invoke(entry.dispid, 0, invoke_type, 0, value)
+                    invoke_type = _GetDescInvokeType(
+                        entry, pythoncom.INVOKE_PROPERTYPUT)
+                    self._oleobj_.Invoke(
+                        entry.dispid, 0, invoke_type, 0, value)
                     self._olerepr_.propMap[attr] = entry
-                    debug_attr_print("__setattr__ property %s (id=0x%x) in Dispatch container %s" % (attr, entry.dispid, self._username_))
+                    debug_attr_print("__setattr__ property %s (id=0x%x) in Dispatch container %s" % (
+                        attr, entry.dispid, self._username_))
                     return
                 except pythoncom.com_error:
                     pass
-        raise AttributeError("Property '%s.%s' can not be set." % (self._username_, attr))
+        raise AttributeError("Property '%s.%s' can not be set." %
+                             (self._username_, attr))

@@ -10,7 +10,7 @@ except IndexError:
 provider = ['prv', "Microsoft.ACE.OLEDB.12.0", "Microsoft.Jet.OLEDB.4.0"]
 constr = "Provider=%(prv)s;Data Source=%(db)s"
 
-#create the connection
+# create the connection
 con = adodbapi.connect(constr, db=databasename, macro_is64bit=provider)
 
 print('Table names in= %s' % databasename)

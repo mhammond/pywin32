@@ -16,7 +16,8 @@ import datetime
 class CurrentUserTestCase(unittest.TestCase):
     def testGetCurrentUser(self):
         name = "%s\\%s" % (win32api.GetDomainName(), win32api.GetUserName())
-        self.failUnless(name == win32api.GetUserNameEx(win32api.NameSamCompatible))
+        self.failUnless(name == win32api.GetUserNameEx(
+            win32api.NameSamCompatible))
 
 
 class TestTime(unittest.TestCase):
@@ -51,7 +52,7 @@ class TestTime(unittest.TestCase):
 
 class Registry(unittest.TestCase):
     key_name = r'PythonTestHarness\Whatever'
-    
+
     def test1(self):
         # This used to leave a stale exception behind.
         def reg_operation():
@@ -66,7 +67,8 @@ class Registry(unittest.TestCase):
                 except:
                     1/0  # Force exception
             finally:
-                win32api.RegDeleteKey(win32con.HKEY_CURRENT_USER, self.key_name)
+                win32api.RegDeleteKey(
+                    win32con.HKEY_CURRENT_USER, self.key_name)
         except ZeroDivisionError:
             pass
 
@@ -140,12 +142,14 @@ class FileNames(unittest.TestCase):
         fname = os.path.abspath(me).lower()
         short_name = win32api.GetShortPathName(fname).lower()
         long_name = win32api.GetLongPathName(short_name).lower()
-        self.failUnless(long_name == fname, \
+        self.failUnless(long_name == fname,
                         "Expected long name ('%s') to be original name ('%s')" % (long_name, fname))
-        self.failUnlessEqual(long_name, win32api.GetLongPathNameW(short_name).lower())
+        self.failUnlessEqual(
+            long_name, win32api.GetLongPathNameW(short_name).lower())
         long_name = win32api.GetLongPathNameW(short_name).lower()
-        self.failUnless(type(long_name) == unicode, "GetLongPathNameW returned type '%s'" % (type(long_name),))
-        self.failUnless(long_name == fname, \
+        self.failUnless(type(long_name) == unicode,
+                        "GetLongPathNameW returned type '%s'" % (type(long_name),))
+        self.failUnless(long_name == fname,
                         "Expected long name ('%s') to be original name ('%s')" % (long_name, fname))
 
     def testShortUnicodeNames(self):
@@ -158,12 +162,14 @@ class FileNames(unittest.TestCase):
         short_name = win32api.GetShortPathName(unicode(fname)).lower()
         self.failUnless(isinstance(short_name, unicode))
         long_name = win32api.GetLongPathName(short_name).lower()
-        self.failUnless(long_name == fname, \
+        self.failUnless(long_name == fname,
                         "Expected long name ('%s') to be original name ('%s')" % (long_name, fname))
-        self.failUnlessEqual(long_name, win32api.GetLongPathNameW(short_name).lower())
+        self.failUnlessEqual(
+            long_name, win32api.GetLongPathNameW(short_name).lower())
         long_name = win32api.GetLongPathNameW(short_name).lower()
-        self.failUnless(type(long_name)==unicode, "GetLongPathNameW returned type '%s'" % (type(long_name),))
-        self.failUnless(long_name == fname, \
+        self.failUnless(type(long_name) == unicode,
+                        "GetLongPathNameW returned type '%s'" % (type(long_name),))
+        self.failUnless(long_name == fname,
                         "Expected long name ('%s') to be original name ('%s')" % (long_name, fname))
 
     def testLongLongPathNames(self):

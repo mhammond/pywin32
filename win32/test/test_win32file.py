@@ -1,7 +1,13 @@
 import unittest
 from pywin32_testutil import str2bytes, TestSkipped, testmain
-import win32api, win32file, win32pipe, pywintypes, winerror, win32event
-import win32con, ntsecuritycon
+import win32api
+import win32file
+import win32pipe
+import pywintypes
+import winerror
+import win32event
+import win32con
+import ntsecuritycon
 import sys
 import os
 import tempfile
@@ -73,22 +79,25 @@ class TestSimpleOps(unittest.TestCase):
     # A simple test using normal read/write operations.
     def testMoreFiles(self):
         # Create a file in the %TEMP% directory.
-        testName = os.path.join( win32api.GetTempPath(), "win32filetest.dat" )
+        testName = os.path.join(win32api.GetTempPath(), "win32filetest.dat")
         desiredAccess = win32file.GENERIC_READ | win32file.GENERIC_WRITE
         # Set a flag to delete the file automatically when it is closed.
         fileFlags = win32file.FILE_FLAG_DELETE_ON_CLOSE
-        h = win32file.CreateFile( testName, desiredAccess, win32file.FILE_SHARE_READ, None, win32file.CREATE_ALWAYS, fileFlags, 0)
+        h = win32file.CreateFile(
+            testName, desiredAccess, win32file.FILE_SHARE_READ, None, win32file.CREATE_ALWAYS, fileFlags, 0)
 
         # Write a known number of bytes to the file.
         data = str2bytes("z") * 1025
 
         win32file.WriteFile(h, data)
 
-        self.failUnless(win32file.GetFileSize(h) == len(data), "WARNING: Written file does not have the same size as the length of the data in it!")
+        self.failUnless(win32file.GetFileSize(h) == len(
+            data), "WARNING: Written file does not have the same size as the length of the data in it!")
 
         # Ensure we can read the data back.
         win32file.SetFilePointer(h, 0, win32file.FILE_BEGIN)
-        hr, read_data = win32file.ReadFile(h, len(data)+10) # + 10 to get anything extra
+        hr, read_data = win32file.ReadFile(
+            h, len(data)+10)  # + 10 to get anything extra
         self.failUnless(hr == 0, "Readfile returned %d" % hr)
 
         self.failUnless(read_data == data, "Read data is not what we wrote!")
@@ -104,9 +113,9 @@ class TestSimpleOps(unittest.TestCase):
                              win32file.GetFileAttributesExW(testName))
 
         attr, ct, at, wt, size = win32file.GetFileAttributesEx(testName)
-        self.failUnless(size == newSize, 
+        self.failUnless(size == newSize,
                         "Expected GetFileAttributesEx to return the same size as GetFileSize()")
-        self.failUnless(attr == win32file.GetFileAttributes(testName), 
+        self.failUnless(attr == win32file.GetFileAttributes(testName),
                         "Expected GetFileAttributesEx to return the same attributes as GetFileAttributes")
 
         h = None  # Close the file by removing the last reference to the handle!
@@ -190,9 +199,9 @@ class TestSimpleOps(unittest.TestCase):
         else:
             rc, tzi = win32api.GetTimeZoneInformation()
             bias = tzi[0]
-            if rc==2: # daylight-savings is in effect.
+            if rc == 2:  # daylight-savings is in effect.
                 bias += tzi[-1]
-            bias *= 60 # minutes to seconds...
+            bias *= 60  # minutes to seconds...
             tick = int(time.time())
             now = pywintypes.Time(tick+bias)
             nowish = pywintypes.Time(tick+bias+1)
@@ -211,7 +220,7 @@ class TestSimpleOps(unittest.TestCase):
                             "File was created in the past - now=%s, created=%s" % (now, ct))
             self.failUnless(now <= ct <= nowish, (now, ct))
             self.failUnless(wt >= now,
-                            "File was written-to in the past now=%s, written=%s" % (now,wt))
+                            "File was written-to in the past now=%s, written=%s" % (now, wt))
             self.failUnless(now <= wt <= nowish, (now, wt))
 
             # Now set the times.
@@ -268,12 +277,13 @@ class TestGetFileInfoByHandleEx(unittest.TestCase):
         self.assertEqual(wt, basic_info['LastWriteTime'])
         self.assertEqual(attr, basic_info['FileAttributes'])
 
+
 class TestOverlapped(unittest.TestCase):
     def testSimpleOverlapped(self):
         # Create a file in the %TEMP% directory.
         import win32event
         testName = os.path.join(win32api.GetTempPath(),
-                                 "win32filetest.dat")
+                                "win32filetest.dat")
         desiredAccess = win32file.GENERIC_WRITE
         overlapped = pywintypes.OVERLAPPED()
         evt = win32event.CreateEvent(None, 0, 0, None)
@@ -315,7 +325,8 @@ class TestOverlapped(unittest.TestCase):
                                                win32event.INFINITE)
                 overlapped.Offset = overlapped.Offset + len(data)
                 if not data is buffer:
-                    self.fail("Unexpected result from ReadFile - should be the same buffer we passed it")
+                    self.fail(
+                        "Unexpected result from ReadFile - should be the same buffer we passed it")
             except win32api.error:
                 break
         h.Close()
@@ -349,7 +360,8 @@ class TestOverlapped(unittest.TestCase):
             win32file.CloseHandle(hv)
             raise RuntimeError("Expected close to fail!")
         except win32file.error, details:
-            self.failUnlessEqual(details.winerror, winerror.ERROR_INVALID_HANDLE)
+            self.failUnlessEqual(
+                details.winerror, winerror.ERROR_INVALID_HANDLE)
 
     def testCompletionPortsQueued(self):
         class Foo:
@@ -388,7 +400,7 @@ class TestOverlapped(unittest.TestCase):
         data = win32file.ReadFile(handle, 512)[1]
         win32file.WriteFile(handle, data)
 
-    def testCompletionPortsNonQueued(self, test_overlapped_death = 0):
+    def testCompletionPortsNonQueued(self, test_overlapped_death=0):
         # In 204 we had a reference count bug when OVERLAPPED objects were
         # associated with a completion port other than via
         # PostQueuedCompletionStatus.  This test is based on the reproduction
@@ -775,7 +787,8 @@ class TestConnect(unittest.TestCase):
         time.sleep(0.1)
         s2 = socket.socket()
         ol = pywintypes.OVERLAPPED()
-        s2.bind(('0.0.0.0', 0)) # connectex requires the socket be bound beforehand
+        # connectex requires the socket be bound beforehand
+        s2.bind(('0.0.0.0', 0))
         try:
             win32file.ConnectEx(s2,
                                 self.addr,
@@ -785,7 +798,8 @@ class TestConnect(unittest.TestCase):
         except win32file.error, exc:
             win32event.SetEvent(giveup_event)
             if exc.winerror == 10022:  # WSAEINVAL
-                raise TestSkipped("ConnectEx is not available on this platform")
+                raise TestSkipped(
+                    "ConnectEx is not available on this platform")
             raise  # some error error we don't expect.
         win32file.GetOverlappedResult(s2.fileno(), ol, 1)
         ol = pywintypes.OVERLAPPED()
@@ -806,13 +820,15 @@ class TestConnect(unittest.TestCase):
         time.sleep(0.1)
         s2 = socket.socket()
         ol = pywintypes.OVERLAPPED()
-        s2.bind(('0.0.0.0', 0))  # connectex requires the socket be bound beforehand
+        # connectex requires the socket be bound beforehand
+        s2.bind(('0.0.0.0', 0))
         try:
             win32file.ConnectEx(s2, self.addr, ol)
         except win32file.error, exc:
             win32event.SetEvent(giveup_event)
             if exc.winerror == 10022:  # WSAEINVAL
-                raise TestSkipped("ConnectEx is not available on this platform")
+                raise TestSkipped(
+                    "ConnectEx is not available on this platform")
             raise  # some error error we don't expect.
         win32file.GetOverlappedResult(s2.fileno(), ol, 1)
         ol = pywintypes.OVERLAPPED()

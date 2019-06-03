@@ -8,11 +8,13 @@ import traceback
 
 verbose_level = 0
 
-server = None # Run on local machine.
+server = None  # Run on local machine.
+
 
 def verbose(msg):
     if verbose_level:
         print msg
+
 
 def CreateUser():
     "Creates a new test user, then deletes the user"
@@ -41,13 +43,16 @@ def CreateUser():
         win32net.NetUserDel(server, testName)
     print "Created a user, changed their password, and deleted them!"
 
+
 def UserEnum():
     "Enumerates all the local users"
     resume = 0
     nuser = 0
     while 1:
-        data, total, resume = win32net.NetUserEnum(server, 3, win32netcon.FILTER_NORMAL_ACCOUNT, resume)
-        verbose("Call to NetUserEnum obtained %d entries of %d total" % (len(data), total))
+        data, total, resume = win32net.NetUserEnum(
+            server, 3, win32netcon.FILTER_NORMAL_ACCOUNT, resume)
+        verbose("Call to NetUserEnum obtained %d entries of %d total" %
+                (len(data), total))
         for user in data:
             verbose("Found user %s" % user['name'])
             nuser = nuser + 1
@@ -55,6 +60,7 @@ def UserEnum():
             break
     assert nuser, "Could not find any users!"
     print "Enumerated all the local users"
+
 
 def GroupEnum():
     "Enumerates all the domain groups"
@@ -67,16 +73,18 @@ def GroupEnum():
             verbose("Found group %(name)s:%(comment)s " % group)
             memberresume = 0
             while 1:
-                memberdata, total, memberresume = win32net.NetGroupGetUsers(server, group['name'], 0, resume)
+                memberdata, total, memberresume = win32net.NetGroupGetUsers(
+                    server, group['name'], 0, resume)
                 for member in memberdata:
                     verbose(" Member %(name)s" % member)
                     nmembers = nmembers + 1
-                if memberresume==0:
+                if memberresume == 0:
                     break
         if not resume:
             break
     assert nmembers, "Couldnt find a single member in a single group!"
     print "Enumerated all the groups"
+
 
 def LocalGroupEnum():
     "Enumerates all the local groups"
@@ -88,43 +96,52 @@ def LocalGroupEnum():
             verbose("Found group %(name)s:%(comment)s " % group)
             memberresume = 0
             while 1:
-                memberdata, total, memberresume = win32net.NetLocalGroupGetMembers(server, group['name'], 2, resume)
+                memberdata, total, memberresume = win32net.NetLocalGroupGetMembers(
+                    server, group['name'], 2, resume)
                 for member in memberdata:
                     # Just for the sake of it, we convert the SID to a username
-                    username, domain, type = win32security.LookupAccountSid(server, member['sid'])
+                    username, domain, type = win32security.LookupAccountSid(
+                        server, member['sid'])
                     nmembers = nmembers + 1
-                    verbose(" Member %s (%s)" % (username, member['domainandname']))
-                if memberresume==0:
+                    verbose(" Member %s (%s)" %
+                            (username, member['domainandname']))
+                if memberresume == 0:
                     break
         if not resume:
             break
     assert nmembers, "Couldnt find a single member in a single group!"
     print "Enumerated all the local groups"
 
+
 def ServerEnum():
     "Enumerates all servers on the network"
     resume = 0
     while 1:
-        data, total, resume = win32net.NetServerEnum(server, 100, win32netcon.SV_TYPE_ALL, None, resume)
+        data, total, resume = win32net.NetServerEnum(
+            server, 100, win32netcon.SV_TYPE_ALL, None, resume)
         for s in data:
             verbose("Found server %s" % s['name'])
             # Now loop over the shares.
-            shareresume=0
+            shareresume = 0
             while 1:
-                sharedata, total, shareresume = win32net.NetShareEnum(server, 2, shareresume)
+                sharedata, total, shareresume = win32net.NetShareEnum(
+                    server, 2, shareresume)
                 for share in sharedata:
-                    verbose(" %(netname)s (%(path)s):%(remark)s - in use by %(current_uses)d users" % share)
+                    verbose(
+                        " %(netname)s (%(path)s):%(remark)s - in use by %(current_uses)d users" % share)
                 if not shareresume:
                     break
         if not resume:
             break
     print "Enumerated all the servers on the network"
 
+
 def LocalGroup(uname=None):
     "Creates a local group, adds some members, deletes them, then removes the group"
     level = 3
-    if uname is None: uname=win32api.GetUserName()
-    if uname.find("\\")<0:
+    if uname is None:
+        uname = win32api.GetUserName()
+    if uname.find("\\") < 0:
         uname = win32api.GetDomainName() + "\\" + uname
     group = 'python_test_group'
     # delete the group if it already exists
@@ -136,46 +153,54 @@ def LocalGroup(uname=None):
     group_data = {'name': group}
     win32net.NetLocalGroupAdd(server, 1, group_data)
     try:
-        u={'domainandname': uname}
+        u = {'domainandname': uname}
         win32net.NetLocalGroupAddMembers(server, group, level, [u])
         mem, tot, res = win32net.NetLocalGroupGetMembers(server, group, level)
         print "members are", mem
         if mem[0]['domainandname'] != uname:
             print "ERROR: LocalGroup just added %s, but members are %r" % (uname, mem)
         # Convert the list of dicts to a list of strings.
-        win32net.NetLocalGroupDelMembers(server, group, [m['domainandname'] for m in mem])
+        win32net.NetLocalGroupDelMembers(
+            server, group, [m['domainandname'] for m in mem])
     finally:
         win32net.NetLocalGroupDel(server, group)
     print "Created a local group, added and removed members, then deleted the group"
 
+
 def GetInfo(userName=None):
     "Dumps level 3 information about the current user"
-    if userName is None: userName=win32api.GetUserName()
+    if userName is None:
+        userName = win32api.GetUserName()
     print "Dumping level 3 information about user"
     info = win32net.NetUserGetInfo(server, userName, 3)
     for key, val in info.items():
-        verbose("%s=%s" % (key,val))
+        verbose("%s=%s" % (key, val))
+
 
 def SetInfo(userName=None):
     "Attempts to change the current users comment, then set it back"
-    if userName is None: userName=win32api.GetUserName()
+    if userName is None:
+        userName = win32api.GetUserName()
     oldData = win32net.NetUserGetInfo(server, userName, 3)
     try:
         d = oldData.copy()
         d["usr_comment"] = "Test comment"
         win32net.NetUserSetInfo(server, userName, 3, d)
         new = win32net.NetUserGetInfo(server, userName, 3)['usr_comment']
-        if  str(new) != "Test comment":
-            raise RuntimeError("Could not read the same comment back - got %s" % new)
+        if str(new) != "Test comment":
+            raise RuntimeError(
+                "Could not read the same comment back - got %s" % new)
         print "Changed the data for the user"
     finally:
         win32net.NetUserSetInfo(server, userName, 3, oldData)
+
 
 def SetComputerInfo():
     "Doesnt actually change anything, just make sure we could ;-)"
     info = win32net.NetWkstaGetInfo(None, 502)
     # *sob* - but we can't!  Why not!!!
     # win32net.NetWkstaSetInfo(None, 502, info)
+
 
 def usage(tests):
     import os
@@ -185,31 +210,32 @@ def usage(tests):
     print "  -c : include the CreateUser test by default"
     print "where Test is one of:"
     for t in tests:
-        print t.__name__,":", t.__doc__
+        print t.__name__, ":", t.__doc__
     print
     print "If not tests are specified, all tests are run"
     sys.exit(1)
 
+
 def main():
     tests = []
     for ob in globals().values():
-        if type(ob)==type(main) and ob.__doc__:
+        if type(ob) == type(main) and ob.__doc__:
             tests.append(ob)
     opts, args = getopt.getopt(sys.argv[1:], "s:hvc")
     create_user = False
     for opt, val in opts:
-        if opt=="-s":
+        if opt == "-s":
             global server
             server = val
-        if opt=="-h":
+        if opt == "-h":
             usage(tests)
-        if opt=="-v":
+        if opt == "-v":
             global verbose_level
             verbose_level = verbose_level + 1
-        if opt=="-c":
+        if opt == "-c":
             create_user = True
 
-    if len(args)==0:
+    if len(args) == 0:
         print "Running all tests - use '-h' to see command-line options..."
         dotests = tests
         if not create_user:
@@ -218,7 +244,7 @@ def main():
         dotests = []
         for arg in args:
             for t in tests:
-                if t.__name__==arg:
+                if t.__name__ == arg:
                     dotests.append(t)
                     break
             else:
@@ -233,5 +259,6 @@ def main():
             print "Test %s failed" % test.__name__
             traceback.print_exc()
 
-if __name__=='__main__':
+
+if __name__ == '__main__':
     main()

@@ -69,7 +69,7 @@ class TestStuff(unittest.TestCase):
                     rawfield varbinary(100),
                     longtextfield memo,
                     longbinaryfield image
-            )""" % self.tablename),-1)
+            )""" % self.tablename), -1)
 
     def tearDown(self):
         if self.cur is not None:
@@ -114,7 +114,8 @@ class TestStuff(unittest.TestCase):
 
     def _test_val(self, fieldName, value):
         for x in range(100):
-            self.cur.execute("delete from %s where userid='Frank'" % self.tablename)
+            self.cur.execute(
+                "delete from %s where userid='Frank'" % self.tablename)
             self.assertEqual(self.cur.execute(
                 "insert into %s (userid, %s) values (?,?)" % (self.tablename,
                                                               fieldName),
@@ -156,7 +157,7 @@ class TestStuff(unittest.TestCase):
         self._test_val('longbinaryfield', str2memory('\0\1\2' * 70000))
 
     def testRaw(self):
-        ## Test binary data
+        # Test binary data
         self._test_val('rawfield', str2memory('\1\2\3\4\0\5\6\7\8'))
 
     def test_widechar(self):
@@ -178,21 +179,24 @@ class TestStuff(unittest.TestCase):
                                           ['Frank', 'Frank Millman']), 1)
         self.assertEqual(self.cur.execute("update %s set username = ?" % self.tablename,
                                           ['Frank']), 1)
-        self.assertEqual(self.cur.execute("select * from %s" % self.tablename), 0)
+        self.assertEqual(self.cur.execute(
+            "select * from %s" % self.tablename), 0)
         self.assertEqual(len(self.cur.fetchone()[1]), 5)
 
     def test_set_zero_length(self):
         self.assertEqual(self.cur.execute("insert into %s (userid,username) "
                                           "values (?,?)" % self.tablename,
                                           [str2bytes('Frank'), '']), 1)
-        self.assertEqual(self.cur.execute("select * from %s" % self.tablename), 0)
+        self.assertEqual(self.cur.execute(
+            "select * from %s" % self.tablename), 0)
         self.assertEqual(len(self.cur.fetchone()[1]), 0)
 
     def test_set_zero_length_unicode(self):
         self.assertEqual(self.cur.execute("insert into %s (userid,username) "
                                           "values (?,?)" % self.tablename,
                                           [u'Frank', u'']), 1)
-        self.assertEqual(self.cur.execute("select * from %s" % self.tablename), 0)
+        self.assertEqual(self.cur.execute(
+            "select * from %s" % self.tablename), 0)
         self.assertEqual(len(self.cur.fetchone()[1]), 0)
 
 

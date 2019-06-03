@@ -14,7 +14,8 @@ import ntsecuritycon
 class SecurityTests(unittest.TestCase):
     def setUp(self):
         self.pwr_sid = win32security.LookupAccountName('', 'Power Users')[0]
-        self.admin_sid = win32security.LookupAccountName('', 'Administrator')[0]
+        self.admin_sid = win32security.LookupAccountName('', 'Administrator')[
+            0]
 
     def tearDown(self):
         pass

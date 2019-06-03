@@ -1,5 +1,6 @@
 import sys
-import string, tokenize
+import string
+import tokenize
 import PyParse
 from pywin import default_scintilla_encoding
 
@@ -12,7 +13,8 @@ else:
     # token_generator is the 'undocumented b/w compat' function that
     # theoretically works with str objects - but actually seems to fail)
     token_generator = tokenize.tokenize
-    
+
+
 class AutoIndent:
 
     menudefs = [
@@ -138,7 +140,7 @@ class AutoIndent:
             else:
                 text.bell()     # at start of buffer
             return "break"
-        if  chars[-1] not in " \t":
+        if chars[-1] not in " \t":
             # easy: delete preceding real char
             text.delete("insert-1c")
             return "break"
@@ -236,8 +238,8 @@ class AutoIndent:
                 rawtext = text.get(startatindex, "insert")
                 y.set_str(rawtext)
                 bod = y.find_good_parse_start(
-                          self.context_use_ps1,
-                          self._build_char_in_string_func(startatindex))
+                    self.context_use_ps1,
+                    self._build_char_in_string_func(startatindex))
                 if bod is not None or startat == 1:
                     break
             y.set_lo(bod or 0)
@@ -356,9 +358,9 @@ class AutoIndent:
 
     def toggle_tabs_event(self, event):
         if self.editwin.askyesno(
-              "Toggle tabs",
-              "Turn tabs " + ("on", "off")[self.usetabs] + "?",
-              parent=self.text):
+            "Toggle tabs",
+            "Turn tabs " + ("on", "off")[self.usetabs] + "?",
+                parent=self.text):
             self.usetabs = not self.usetabs
         return "break"
 
@@ -372,12 +374,12 @@ class AutoIndent:
 
     def change_indentwidth_event(self, event):
         new = self.editwin.askinteger(
-                  "Indent width",
-                  "New indent width (1-16)",
-                  parent=self.text,
-                  initialvalue=self.indentwidth,
-                  minvalue=1,
-                  maxvalue=16)
+            "Indent width",
+            "New indent width (1-16)",
+            parent=self.text,
+            initialvalue=self.indentwidth,
+            minvalue=1,
+            maxvalue=16)
         if new and new != self.indentwidth:
             self.indentwidth = new
         return "break"
@@ -454,6 +456,8 @@ class AutoIndent:
         return indentlarge - indentsmall
 
 # "line.col" -> line, as an int
+
+
 def index2line(index):
     return int(float(index))
 
@@ -461,6 +465,7 @@ def index2line(index):
 # Return pair (# of leading ws characters,
 #              effective # of leading blanks after expanding
 #              tabs to width tabwidth)
+
 
 def classifyws(s, tabwidth):
     raw = effective = 0
@@ -474,6 +479,7 @@ def classifyws(s, tabwidth):
         else:
             break
     return raw, effective
+
 
 class IndentSearcher:
 
@@ -505,10 +511,10 @@ class IndentSearcher:
         return val.encode(default_scintilla_encoding)
 
     def run(self):
-        OPENERS=('class', 'def', 'for', 'if', 'try', 'while')
-        INDENT=tokenize.INDENT
-        NAME=tokenize.NAME
-                   
+        OPENERS = ('class', 'def', 'for', 'if', 'try', 'while')
+        INDENT = tokenize.INDENT
+        NAME = tokenize.NAME
+
         save_tabsize = tokenize.tabsize
         tokenize.tabsize = self.tabwidth
         try:

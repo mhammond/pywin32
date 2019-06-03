@@ -59,7 +59,8 @@ class TestSSPI(unittest.TestCase):
 
         sspiclient, sspiserver = self._doAuth(pkg_name)
 
-        pkg_size_info = sspiclient.ctxt.QueryContextAttributes(sspicon.SECPKG_ATTR_SIZES)
+        pkg_size_info = sspiclient.ctxt.QueryContextAttributes(
+            sspicon.SECPKG_ATTR_SIZES)
         msg = str2bytes('some data to be encrypted ......')
 
         trailersize = pkg_size_info['SecurityTrailer']
@@ -90,7 +91,8 @@ class TestSSPI(unittest.TestCase):
 
         sspiclient, sspiserver = self._doAuth(pkg_name)
 
-        pkg_size_info = sspiclient.ctxt.QueryContextAttributes(sspicon.SECPKG_ATTR_SIZES)
+        pkg_size_info = sspiclient.ctxt.QueryContextAttributes(
+            sspicon.SECPKG_ATTR_SIZES)
         msg = str2bytes('some data to be encrypted ......')
 
         sigsize = pkg_size_info['MaxSignature']

@@ -32,7 +32,7 @@ NETRESOURCE_attributes = [
     ("lpRemoteName", str),
     ("lpComment", str),
     ("lpProvider", str),
-    ]
+]
 
 NCB_attributes = [
     ("Command", int),
@@ -48,7 +48,7 @@ NCB_attributes = [
     ("Cmd_cplt", int),
     ("Event", int),
     ("Post", int),
-    ]
+]
 
 
 class TestCase(unittest.TestCase):
@@ -84,11 +84,11 @@ class TestCase(unittest.TestCase):
                                         0, None)
         try:
             while 1:
-                    items = win32wnet.WNetEnumResource(handle, 0)
-                    if len(items) == 0:
-                            break
-                    for item in items:
-                        self._checkItemAttributes(item, NETRESOURCE_attributes)
+                items = win32wnet.WNetEnumResource(handle, 0)
+                if len(items) == 0:
+                    break
+                for item in items:
+                    self._checkItemAttributes(item, NETRESOURCE_attributes)
         finally:
             handle.Close()
 
@@ -138,23 +138,25 @@ class TestCase(unittest.TestCase):
                     yield item
 
     def findUnusedDriveLetter(self):
-        existing = [x[0].lower() for x in win32api.GetLogicalDriveStrings().split('\0') if x]
+        existing = [x[0].lower()
+                    for x in win32api.GetLogicalDriveStrings().split('\0') if x]
         handle = win32wnet.WNetOpenEnum(RESOURCE_REMEMBERED,
                                         RESOURCETYPE_DISK,
                                         0,
                                         None)
         try:
-                while 1:
-                        items = win32wnet.WNetEnumResource(handle, 0)
-                        if len(items) == 0:
-                                break
-                        xtra = [i.lpLocalName[0].lower() for i in items if i.lpLocalName]
-                        existing.extend(xtra)
+            while 1:
+                items = win32wnet.WNetEnumResource(handle, 0)
+                if len(items) == 0:
+                    break
+                xtra = [i.lpLocalName[0].lower()
+                        for i in items if i.lpLocalName]
+                existing.extend(xtra)
         finally:
-                handle.Close()
+            handle.Close()
         for maybe in 'defghijklmnopqrstuvwxyz':
-                if maybe not in existing:
-                        return maybe
+            if maybe not in existing:
+                return maybe
         self.fail("All drive mappings are taken?")
 
     def testAddConnection(self):

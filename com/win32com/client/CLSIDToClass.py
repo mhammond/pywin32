@@ -18,7 +18,8 @@ Access.
 """
 mapCLSIDToClass = {}
 
-def RegisterCLSID( clsid, pythonClass ):
+
+def RegisterCLSID(clsid, pythonClass):
     """Register a class that wraps a CLSID
 
     This function allows a CLSID to be globally associated with a class.
@@ -28,7 +29,8 @@ def RegisterCLSID( clsid, pythonClass ):
 
     mapCLSIDToClass[str(clsid)] = pythonClass
 
-def RegisterCLSIDsFromDict( dict ):
+
+def RegisterCLSIDsFromDict(dict):
     """Register a dictionary of CLSID's and classes.
 
     This module performs the same function as @RegisterCLSID@, but for
@@ -38,12 +40,14 @@ def RegisterCLSIDsFromDict( dict ):
     """
     mapCLSIDToClass.update(dict)
 
+
 def GetClass(clsid):
     """Given a CLSID, return the globally associated class.
 
     clsid -- a string CLSID representation to check.
     """
     return mapCLSIDToClass[clsid]
+
 
 def HasClass(clsid):
     """Determines if the CLSID has an associated class.

@@ -90,7 +90,8 @@ class TestRunner:
             reconstituted = find_exception_in_output(output)
             if reconstituted is not None:
                 raise reconstituted
-            raise AssertionError("%s failed with exit code %s.  Output is:\n%s" % (base, rc, output))
+            raise AssertionError(
+                "%s failed with exit code %s.  Output is:\n%s" % (base, rc, output))
 
 
 def get_demo_tests():
@@ -127,8 +128,8 @@ def import_all():
         base, ext = os.path.splitext(name)
         if (ext == ".pyd") and \
            name != "_winxptheme.pyd" and \
-           (is_debug and base.endswith("_d") or \
-           not is_debug and not base.endswith("_d")):
+           (is_debug and base.endswith("_d") or
+                not is_debug and not base.endswith("_d")):
             try:
                 __import__(base)
             except:

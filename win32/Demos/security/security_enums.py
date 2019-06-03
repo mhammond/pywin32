@@ -1,4 +1,7 @@
-import win32security, ntsecuritycon, winnt
+import win32security
+import ntsecuritycon
+import winnt
+
 
 class Enum:
     def __init__(self, *const_names):
@@ -6,33 +9,35 @@ class Enum:
             win32security, ntsecuritycon, or winnt."""
         for const_name in const_names:
             try:
-                const_val=getattr(win32security,const_name)
+                const_val = getattr(win32security, const_name)
             except AttributeError:
                 try:
-                    const_val=getattr(ntsecuritycon, const_name)
+                    const_val = getattr(ntsecuritycon, const_name)
                 except AttributeError:
                     try:
-                        const_val=getattr(winnt, const_name)
+                        const_val = getattr(winnt, const_name)
                     except AttributeError:
-                        raise AttributeError('Constant "%s" not found in win32security, ntsecuritycon, or winnt.' %const_name)
+                        raise AttributeError(
+                            'Constant "%s" not found in win32security, ntsecuritycon, or winnt.' % const_name)
             setattr(self, const_name, const_val)
 
     def lookup_name(self, const_val):
         """Looks up the name of a particular value."""
-        for k,v in self.__dict__.iteritems():
-            if v==const_val:
+        for k, v in self.__dict__.iteritems():
+            if v == const_val:
                 return k
-        raise AttributeError('Value %s not found in enum' %const_val)
+        raise AttributeError('Value %s not found in enum' % const_val)
 
     def lookup_flags(self, flags):
         """Returns the names of all recognized flags in input, and any flags not found in the enum."""
-        flag_names=[]
-        unknown_flags=flags
-        for k,v in self.__dict__.iteritems():
+        flag_names = []
+        unknown_flags = flags
+        for k, v in self.__dict__.iteritems():
             if flags & v == v:
                 flag_names.append(k)
                 unknown_flags = unknown_flags & ~v
         return flag_names, unknown_flags
+
 
 TOKEN_INFORMATION_CLASS = Enum(
     'TokenUser',
@@ -74,35 +79,35 @@ TOKEN_ELEVATION_TYPE = Enum(
     'TokenElevationTypeLimited')
 
 POLICY_AUDIT_EVENT_TYPE = Enum(
-    'AuditCategorySystem', 
-    'AuditCategoryLogon', 
-    'AuditCategoryObjectAccess', 
-    'AuditCategoryPrivilegeUse', 
-    'AuditCategoryDetailedTracking', 
-    'AuditCategoryPolicyChange', 
-    'AuditCategoryAccountManagement', 
-    'AuditCategoryDirectoryServiceAccess', 
+    'AuditCategorySystem',
+    'AuditCategoryLogon',
+    'AuditCategoryObjectAccess',
+    'AuditCategoryPrivilegeUse',
+    'AuditCategoryDetailedTracking',
+    'AuditCategoryPolicyChange',
+    'AuditCategoryAccountManagement',
+    'AuditCategoryDirectoryServiceAccess',
     'AuditCategoryAccountLogon')
 
 POLICY_INFORMATION_CLASS = Enum(
-    'PolicyAuditLogInformation', 
-    'PolicyAuditEventsInformation', 
+    'PolicyAuditLogInformation',
+    'PolicyAuditEventsInformation',
     'PolicyPrimaryDomainInformation',
-    'PolicyPdAccountInformation', 
-    'PolicyAccountDomainInformation', 
-    'PolicyLsaServerRoleInformation', 
-    'PolicyReplicaSourceInformation', 
-    'PolicyDefaultQuotaInformation', 
-    'PolicyModificationInformation', 
-    'PolicyAuditFullSetInformation', 
-    'PolicyAuditFullQueryInformation', 
+    'PolicyPdAccountInformation',
+    'PolicyAccountDomainInformation',
+    'PolicyLsaServerRoleInformation',
+    'PolicyReplicaSourceInformation',
+    'PolicyDefaultQuotaInformation',
+    'PolicyModificationInformation',
+    'PolicyAuditFullSetInformation',
+    'PolicyAuditFullQueryInformation',
     'PolicyDnsDomainInformation')
 
 POLICY_LSA_SERVER_ROLE = Enum(
-    'PolicyServerRoleBackup', 
+    'PolicyServerRoleBackup',
     'PolicyServerRolePrimary')
 
-## access modes for opening a policy handle - this is not a real enum
+# access modes for opening a policy handle - this is not a real enum
 POLICY_ACCESS_MODES = Enum(
     'POLICY_VIEW_LOCAL_INFORMATION',
     'POLICY_VIEW_AUDIT_INFORMATION',
@@ -122,7 +127,7 @@ POLICY_ACCESS_MODES = Enum(
     'POLICY_WRITE',
     'POLICY_EXECUTE')
 
-## EventAuditingOptions flags - not a real enum
+# EventAuditingOptions flags - not a real enum
 POLICY_AUDIT_EVENT_OPTIONS_FLAGS = Enum(
     'POLICY_AUDIT_EVENT_UNCHANGED',
     'POLICY_AUDIT_EVENT_SUCCESS',
@@ -158,7 +163,7 @@ ACE_TYPE = Enum(
     'SYSTEM_MANDATORY_LABEL_ACE_TYPE',
     'ACCESS_MAX_MS_V5_ACE_TYPE')
 
-#bit flags for AceFlags - not a real enum
+# bit flags for AceFlags - not a real enum
 ACE_FLAGS = Enum(
     'CONTAINER_INHERIT_ACE',
     'FAILED_ACCESS_ACE_FLAG',
@@ -174,42 +179,42 @@ ACE_FLAGS = Enum(
 
 # used in SetEntriesInAcl - very similar to ACE_TYPE
 ACCESS_MODE = Enum(
-    'NOT_USED_ACCESS', 
-    'GRANT_ACCESS', 
-    'SET_ACCESS', 
-    'DENY_ACCESS', 
-    'REVOKE_ACCESS', 
-    'SET_AUDIT_SUCCESS', 
+    'NOT_USED_ACCESS',
+    'GRANT_ACCESS',
+    'SET_ACCESS',
+    'DENY_ACCESS',
+    'REVOKE_ACCESS',
+    'SET_AUDIT_SUCCESS',
     'SET_AUDIT_FAILURE')
 
 # Bit flags in PSECURITY_DESCRIPTOR->Control - not a real enum
 SECURITY_DESCRIPTOR_CONTROL_FLAGS = Enum(
-    'SE_DACL_AUTO_INHERITED',        ## win2k and up
-    'SE_SACL_AUTO_INHERITED',        ## win2k and up
-    'SE_DACL_PROTECTED',             ## win2k and up
-    'SE_SACL_PROTECTED',             ## win2k and up
-    'SE_DACL_DEFAULTED',       
-    'SE_DACL_PRESENT',       
-    'SE_GROUP_DEFAULTED',       
-    'SE_OWNER_DEFAULTED',       
-    'SE_SACL_PRESENT',       
-    'SE_SELF_RELATIVE',       
+    'SE_DACL_AUTO_INHERITED',  # win2k and up
+    'SE_SACL_AUTO_INHERITED',  # win2k and up
+    'SE_DACL_PROTECTED',  # win2k and up
+    'SE_SACL_PROTECTED',  # win2k and up
+    'SE_DACL_DEFAULTED',
+    'SE_DACL_PRESENT',
+    'SE_GROUP_DEFAULTED',
+    'SE_OWNER_DEFAULTED',
+    'SE_SACL_PRESENT',
+    'SE_SELF_RELATIVE',
     'SE_SACL_DEFAULTED')
 
 # types of SID
 SID_NAME_USE = Enum(
     'SidTypeUser',
-    'SidTypeGroup', 
-    'SidTypeDomain', 
-    'SidTypeAlias', 
-    'SidTypeWellKnownGroup', 
-    'SidTypeDeletedAccount', 
-    'SidTypeInvalid', 
-    'SidTypeUnknown', 
+    'SidTypeGroup',
+    'SidTypeDomain',
+    'SidTypeAlias',
+    'SidTypeWellKnownGroup',
+    'SidTypeDeletedAccount',
+    'SidTypeInvalid',
+    'SidTypeUnknown',
     'SidTypeComputer',
     'SidTypeLabel')
 
-## bit flags, not a real enum
+# bit flags, not a real enum
 TOKEN_ACCESS_PRIVILEGES = Enum(
     'TOKEN_ADJUST_DEFAULT',
     'TOKEN_ADJUST_GROUPS',
@@ -223,7 +228,7 @@ TOKEN_ACCESS_PRIVILEGES = Enum(
     'TOKEN_QUERY_SOURCE',
     'TOKEN_READ',
     'TOKEN_WRITE')
- 
+
 SECURITY_IMPERSONATION_LEVEL = Enum(
     'SecurityAnonymous',
     'SecurityIdentification',
@@ -258,24 +263,24 @@ TRUSTED_INFORMATION_CLASS = Enum(
     'TrustedDomainFullInformation2Internal')
 
 TRUSTEE_FORM = Enum(
-    'TRUSTEE_IS_SID', 
-    'TRUSTEE_IS_NAME', 
-    'TRUSTEE_BAD_FORM', 
-    'TRUSTEE_IS_OBJECTS_AND_SID', 
+    'TRUSTEE_IS_SID',
+    'TRUSTEE_IS_NAME',
+    'TRUSTEE_BAD_FORM',
+    'TRUSTEE_IS_OBJECTS_AND_SID',
     'TRUSTEE_IS_OBJECTS_AND_NAME')
 
 TRUSTEE_TYPE = Enum(
-    'TRUSTEE_IS_UNKNOWN', 
-    'TRUSTEE_IS_USER', 
-    'TRUSTEE_IS_GROUP', 
-    'TRUSTEE_IS_DOMAIN', 
-    'TRUSTEE_IS_ALIAS', 
-    'TRUSTEE_IS_WELL_KNOWN_GROUP', 
-    'TRUSTEE_IS_DELETED', 
-    'TRUSTEE_IS_INVALID', 
+    'TRUSTEE_IS_UNKNOWN',
+    'TRUSTEE_IS_USER',
+    'TRUSTEE_IS_GROUP',
+    'TRUSTEE_IS_DOMAIN',
+    'TRUSTEE_IS_ALIAS',
+    'TRUSTEE_IS_WELL_KNOWN_GROUP',
+    'TRUSTEE_IS_DELETED',
+    'TRUSTEE_IS_INVALID',
     'TRUSTEE_IS_COMPUTER')
 
-## SE_OBJECT_TYPE - securable objects
+# SE_OBJECT_TYPE - securable objects
 SE_OBJECT_TYPE = Enum(
     'SE_UNKNOWN_OBJECT_TYPE',
     'SE_FILE_OBJECT',

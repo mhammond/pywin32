@@ -17,21 +17,22 @@
 import string
 import re
 
+
 class FormatParagraph:
 
     menudefs = [
         ('edit', [
             ('Format Paragraph', '<<format-paragraph>>'),
-         ])
+        ])
     ]
 
     keydefs = {
         '<<format-paragraph>>': ['<Alt-q>'],
     }
-    
+
     unix_keydefs = {
         '<<format-paragraph>>': ['<Meta-q>'],
-    } 
+    }
 
     def __init__(self, editwin):
         self.editwin = editwin
@@ -47,7 +48,7 @@ class FormatParagraph:
             comment_header = ''
         else:
             first, last, comment_header, data = \
-                    find_paragraph(text, text.index("insert"))
+                find_paragraph(text, text.index("insert"))
         if comment_header:
             # Reformat the comment lines - convert to text sans header.
             lines = data.split("\n")
@@ -67,7 +68,8 @@ class FormatParagraph:
             if not newdata[-1]:
                 block_suffix = "\n"
                 newdata = newdata[:-1]
-            builder = lambda item, prefix=comment_header: prefix+item
+
+            def builder(item, prefix=comment_header): return prefix+item
             newdata = '\n'.join([builder(d) for d in newdata]) + block_suffix
         else:
             # Just a normal text format
@@ -83,6 +85,7 @@ class FormatParagraph:
             text.mark_set("insert", last)
         text.see("insert")
 
+
 def find_paragraph(text, mark):
     lineno, col = list(map(int, mark.split(".")))
     line = text.get("%d.0" % lineno, "%d.0 lineend" % lineno)
@@ -92,8 +95,8 @@ def find_paragraph(text, mark):
     first_lineno = lineno
     comment_header = get_comment_header(line)
     comment_header_len = len(comment_header)
-    while get_comment_header(line)==comment_header and \
-              not is_all_white(line[comment_header_len:]):
+    while get_comment_header(line) == comment_header and \
+            not is_all_white(line[comment_header_len:]):
         lineno = lineno + 1
         line = text.get("%d.0" % lineno, "%d.0 lineend" % lineno)
     last = "%d.0" % lineno
@@ -101,12 +104,13 @@ def find_paragraph(text, mark):
     lineno = first_lineno - 1
     line = text.get("%d.0" % lineno, "%d.0 lineend" % lineno)
     while lineno > 0 and \
-              get_comment_header(line)==comment_header and \
-              not is_all_white(line[comment_header_len:]):
+        get_comment_header(line) == comment_header and \
+            not is_all_white(line[comment_header_len:]):
         lineno = lineno - 1
         line = text.get("%d.0" % lineno, "%d.0 lineend" % lineno)
     first = "%d.0" % (lineno+1)
     return first, last, comment_header, text.get(first, last)
+
 
 def reformat_paragraph(data, limit=70):
     lines = data.split("\n")
@@ -129,7 +133,7 @@ def reformat_paragraph(data, limit=70):
         for j in range(0, len(words), 2):
             word = words[j]
             if not word:
-                continue # Can happen when line ends in whitespace
+                continue  # Can happen when line ends in whitespace
             if len((partial + word).expandtabs()) > limit and \
                partial != indent1:
                 new.append(partial.rstrip())
@@ -143,13 +147,17 @@ def reformat_paragraph(data, limit=70):
     new.extend(lines[i:])
     return "\n".join(new)
 
+
 def is_all_white(line):
     return re.match(r"^\s*$", line) is not None
+
 
 def get_indent(line):
     return re.match(r"^(\s*)", line).group()
 
+
 def get_comment_header(line):
     m = re.match(r"^(\s*#*)", line)
-    if m is None: return ""
+    if m is None:
+        return ""
     return m.group(1)

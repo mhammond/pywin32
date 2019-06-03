@@ -16,17 +16,18 @@ import win32ui
 # import win32traceutil # Just uncomment this line to see error output!
 
 # An old class I used to use - generally only useful if Pythonwin is running under MSVC
-#class DebugOutput:
+# class DebugOutput:
 #	softspace=1
 #	def write(self,message):
 #		win32ui.OutputDebug(message)
-#sys.stderr=sys.stdout=DebugOutput()
+# sys.stderr=sys.stdout=DebugOutput()
 
 # To fix a problem with Pythonwin when started from the Pythonwin directory,
 # we update the pywin path to ensure it is absolute.
 # If it is indeed relative, it will be relative to our current directory.
 # If its already absolute, then this will have no affect.
-import pywin, pywin.framework
+import pywin
+import pywin.framework
 pywin.__path__[0] = win32ui.FullPath(pywin.__path__[0])
 pywin.framework.__path__[0] = win32ui.FullPath(pywin.framework.__path__[0])
 
@@ -37,26 +38,26 @@ moduleName = "pywin.framework.intpyapp"
 sys.appargvoffset = 0
 sys.appargv = sys.argv[:]
 # Must check for /app param here.
-if len(sys.argv)>=2 and sys.argv[0].lower()=='/app':
-	import cmdline
-	moduleName = cmdline.FixArgFileName(sys.argv[1])
-	sys.appargvoffset = 2
-	newargv=sys.argv[sys.appargvoffset:]
+if len(sys.argv) >= 2 and sys.argv[0].lower() == '/app':
+    import cmdline
+    moduleName = cmdline.FixArgFileName(sys.argv[1])
+    sys.appargvoffset = 2
+    newargv = sys.argv[sys.appargvoffset:]
 #	newargv.insert(0, sys.argv[0])
-	sys.argv = newargv
+    sys.argv = newargv
 
 # Import the application module.
 __import__(moduleName)
 
 try:
-	win32ui.GetApp()._obj_
-	# This worked - an app already exists - do nothing more
+    win32ui.GetApp()._obj_
+    # This worked - an app already exists - do nothing more
 except (AttributeError, win32ui.error):
-	# This means either no app object exists at all, or the one
-	# that does exist does not have a Python class (ie, was created
-	# by the host .EXE).  In this case, we do the "old style" init...
-	import app
-	if app.AppBuilder is None:
-		raise TypeError("No application object has been registered")
+    # This means either no app object exists at all, or the one
+    # that does exist does not have a Python class (ie, was created
+    # by the host .EXE).  In this case, we do the "old style" init...
+    import app
+    if app.AppBuilder is None:
+        raise TypeError("No application object has been registered")
 
-	app.App = app.AppBuilder()
+    app.App = app.AppBuilder()

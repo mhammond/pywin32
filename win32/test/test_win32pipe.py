@@ -72,7 +72,7 @@ class PipeTests(unittest.TestCase):
 
         # set to message mode.
         win32pipe.SetNamedPipeHandleState(
-                        hpipe, win32pipe.PIPE_READMODE_MESSAGE, None, None)
+            hpipe, win32pipe.PIPE_READMODE_MESSAGE, None, None)
 
         hr, got = win32pipe.TransactNamedPipe(hpipe,
                                               str2bytes("foo\0bar"),
@@ -99,7 +99,7 @@ class PipeTests(unittest.TestCase):
 
         # set to message mode.
         win32pipe.SetNamedPipeHandleState(
-                        hpipe, win32pipe.PIPE_READMODE_MESSAGE, None, None)
+            hpipe, win32pipe.PIPE_READMODE_MESSAGE, None, None)
 
         buffer = win32file.AllocateReadBuffer(1024)
         hr, got = win32pipe.TransactNamedPipe(hpipe,
@@ -127,7 +127,7 @@ class PipeTests(unittest.TestCase):
 
         # set to message mode.
         win32pipe.SetNamedPipeHandleState(
-                        hpipe, win32pipe.PIPE_READMODE_MESSAGE, None, None)
+            hpipe, win32pipe.PIPE_READMODE_MESSAGE, None, None)
 
         buffer = win32file.AllocateReadBuffer(1024)
         hr, got = win32pipe.TransactNamedPipe(hpipe,

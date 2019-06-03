@@ -19,7 +19,7 @@ class TestParser(unittest.TestCase):
             ("IDS_TEST_STRING1", 'Test "quoted" string'),
             ("IDS_TEST_STRING3", 'String with single " quote'),
             ("IDS_TEST_STRING2", 'Test string'),
-                             ]:
+        ]:
             got = self.resources.stringTable[sid].value
             self.assertEqual(got, expected)
 

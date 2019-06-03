@@ -6,6 +6,7 @@ import sys
 import inspect
 import traceback
 
+
 class CallTips:
 
     menudefs = [
@@ -46,7 +47,7 @@ class CallTips:
         if self.calltip:
             self.calltip.hidetip()
             self.calltip = None
-        
+
     def paren_open_event(self, event):
         self._remove_calltip_window()
         arg_text = get_arg_text(self.get_object_at_cursor())
@@ -54,13 +55,13 @@ class CallTips:
             self.calltip_start = self.text.index("insert")
             self.calltip = self._make_calltip_window()
             self.calltip.showtip(arg_text)
-        return "" #so the event is handled normally.
+        return ""  # so the event is handled normally.
 
     def paren_close_event(self, event):
         # Now just hides, but later we should check if other
         # paren'd expressions remain open.
         self._remove_calltip_window()
-        return "" #so the event is handled normally.
+        return ""  # so the event is handled normally.
 
     def check_calltip_cancel_event(self, event):
         if self.calltip:
@@ -70,11 +71,11 @@ class CallTips:
             if self.text.compare("insert", "<=", self.calltip_start) or \
                self.text.compare("insert", ">", self.calltip_start + " lineend"):
                 self._remove_calltip_window()
-        return "" #so the event is handled normally.
+        return ""  # so the event is handled normally.
 
     def calltip_cancel_event(self, event):
         self._remove_calltip_window()
-        return "" #so the event is handled normally.
+        return ""  # so the event is handled normally.
 
     def get_object_at_cursor(self,
                              wordchars="._" + string.ascii_uppercase + string.ascii_lowercase + string.digits):
@@ -88,14 +89,16 @@ class CallTips:
         word = chars[i:]
         if word:
             # How is this for a hack!
-            import sys, __main__
+            import sys
+            import __main__
             namespace = sys.modules.copy()
             namespace.update(__main__.__dict__)
             try:
-                    return eval(word, namespace)
+                return eval(word, namespace)
             except:
-                    pass
-        return None # Can't find an object.
+                pass
+        return None  # Can't find an object.
+
 
 def _find_constructor(class_ob):
     # Given a class object, return a function object used for the
@@ -108,8 +111,10 @@ def _find_constructor(class_ob):
     except AttributeError:
         for base in class_ob.__bases__:
             rc = _find_constructor(base)
-            if rc is not None: return rc
+            if rc is not None:
+                return rc
     return None
+
 
 def get_arg_text(ob):
     # Get a string describing the arguments for the given object.
@@ -120,39 +125,43 @@ def get_arg_text(ob):
             # Look for the highest __init__ in the class chain.
             fob = _find_constructor(ob)
             if fob is None:
-                fob = lambda: None
+                def fob(): return None
         else:
             fob = ob
         if inspect.isfunction(fob) or inspect.ismethod(fob):
             try:
                 # py3k has a 'getfullargspec' which can handle py3k specific things.
-                arg_getter = getattr(inspect, "getfullargspec", inspect.getargspec)
+                arg_getter = getattr(
+                    inspect, "getfullargspec", inspect.getargspec)
                 argText = inspect.formatargspec(*arg_getter(fob))
             except:
                 print "Failed to format the args"
                 traceback.print_exc()
         # See if we can use the docstring
         if hasattr(ob, "__doc__"):
-            doc=ob.__doc__
+            doc = ob.__doc__
             try:
                 doc = doc.strip()
                 pos = doc.find("\n")
             except AttributeError:
-                ## New style classes may have __doc__ slot without actually
-                ## having a string assigned to it
+                # New style classes may have __doc__ slot without actually
+                # having a string assigned to it
                 pass
             else:
-                if pos<0 or pos>70: pos=70
-                if argText: argText = argText + "\n"
+                if pos < 0 or pos > 70:
+                    pos = 70
+                if argText:
+                    argText = argText + "\n"
                 argText = argText + doc[:pos]
 
     return argText
+
 
 #################################################
 #
 # Test code
 #
-if __name__=='__main__':
+if __name__ == '__main__':
 
     def t1(): "()"
     def t2(a, b=None): "(a, b=None)"
@@ -163,6 +172,7 @@ if __name__=='__main__':
 
     class TC:
         "(self, a=None, *b)"
+
         def __init__(self, a=None, *b): "(self, a=None, *b)"
         def t1(self): "(self)"
         def t2(self, a, b=None): "(self, a, b=None)"
@@ -171,8 +181,8 @@ if __name__=='__main__':
         def t5(self, a, *args): "(self, a, *args)"
         def t6(self, a, b=None, *args, **kw): "(self, a, b=None, *args, **kw)"
 
-    def test( tests ):
-        failed=[]
+    def test(tests):
+        failed = []
         for t in tests:
             expected = t.__doc__ + "\n" + t.__doc__
             if get_arg_text(t) != expected:
@@ -182,7 +192,6 @@ if __name__=='__main__':
 
     tc = TC()
     tests = t1, t2, t3, t4, t5, t6, \
-            TC, tc.t1, tc.t2, tc.t3, tc.t4, tc.t5, tc.t6
+        TC, tc.t1, tc.t2, tc.t3, tc.t4, tc.t5, tc.t6
 
     test(tests)
-

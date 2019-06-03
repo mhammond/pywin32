@@ -38,7 +38,8 @@ class TestAPISimple(TestBase):
 
     def testMessageIndex(self):
         exc = self._getInvalidHandleException()
-        expected = win32api.FormatMessage(winerror.ERROR_INVALID_HANDLE).rstrip()
+        expected = win32api.FormatMessage(
+            winerror.ERROR_INVALID_HANDLE).rstrip()
         self._testExceptionIndex(exc, 2, expected)
 
     def testUnpack(self):
@@ -50,22 +51,25 @@ class TestAPISimple(TestBase):
                                  winerror.ERROR_INVALID_HANDLE)
             self.failUnlessEqual(exc.funcname,
                                  "CloseHandle")
-            expected_msg = win32api.FormatMessage(winerror.ERROR_INVALID_HANDLE).rstrip()
-            self.failUnlessEqual(exc.strerror, 
+            expected_msg = win32api.FormatMessage(
+                winerror.ERROR_INVALID_HANDLE).rstrip()
+            self.failUnlessEqual(exc.strerror,
                                  expected_msg)
 
     def testAsStr(self):
         exc = self._getInvalidHandleException()
-        err_msg = win32api.FormatMessage(winerror.ERROR_INVALID_HANDLE).rstrip()
+        err_msg = win32api.FormatMessage(
+            winerror.ERROR_INVALID_HANDLE).rstrip()
         # early on the result actually *was* a tuple - it must always look like one
         err_tuple = (winerror.ERROR_INVALID_HANDLE, 'CloseHandle', err_msg)
-        self.failUnlessEqual(str(exc), 
+        self.failUnlessEqual(str(exc),
                              str(err_tuple)
                              )
 
     def testAsTuple(self):
         exc = self._getInvalidHandleException()
-        err_msg = win32api.FormatMessage(winerror.ERROR_INVALID_HANDLE).rstrip()
+        err_msg = win32api.FormatMessage(
+            winerror.ERROR_INVALID_HANDLE).rstrip()
         # early on the result actually *was* a tuple - it must be able to be one
         err_tuple = (winerror.ERROR_INVALID_HANDLE, 'CloseHandle', err_msg)
         if sys.version_info < (3,):
@@ -89,7 +93,8 @@ class TestAPISimple(TestBase):
 
     def testAttributes(self):
         exc = self._getInvalidHandleException()
-        err_msg = win32api.FormatMessage(winerror.ERROR_INVALID_HANDLE).rstrip()
+        err_msg = win32api.FormatMessage(
+            winerror.ERROR_INVALID_HANDLE).rstrip()
         self.failUnlessEqual(exc.winerror, winerror.ERROR_INVALID_HANDLE)
         self.failUnlessEqual(exc.strerror, err_msg)
         self.failUnlessEqual(exc.funcname, 'CloseHandle')

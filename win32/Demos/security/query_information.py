@@ -1,7 +1,11 @@
 from ntsecuritycon import *
-import win32api, win32security, winerror
+import win32api
+import win32security
+import winerror
 
 # This is a Python implementation of win32api.GetDomainName()
+
+
 def GetDomainName():
     try:
         tok = win32security.OpenThreadToken(win32api.GetCurrentThread(),
@@ -19,7 +23,6 @@ def GetDomainName():
     name, dom, typ = win32security.LookupAccountSid(None, sid)
     return dom
 
-if __name__=='__main__':
-    print "Domain name is", GetDomainName()
 
-    
+if __name__ == '__main__':
+    print "Domain name is", GetDomainName()

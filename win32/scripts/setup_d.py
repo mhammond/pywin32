@@ -9,6 +9,7 @@ import sys
 import shutil
 import os
 
+
 def usage_and_die(rc):
     print
     print "This script is designed to copy and register the Python debug"
@@ -19,7 +20,8 @@ def usage_and_die(rc):
     print "included these _d files.  Please run this script from"
     print "that directory"
     sys.exit(rc)
-    
+
+
 if win32api.__file__.find("_d") > 0:
     print "This scripts appears to be running a DEBUG version of Python."
     print "Please run it using a normal release build (python.exe)"
@@ -41,10 +43,11 @@ except ImportError, details:
     print "Please correct this error and rerun the script"
     usage_and_die(2)
 
+
 def _docopy(src, dest):
     orig_src = src
     if not os.path.isfile(src):
-        src = os.path.join( os.path.split(sys.argv[0])[0], src)
+        src = os.path.join(os.path.split(sys.argv[0])[0], src)
         print "Can not find %s or %s to copy" % (os.path.abspath(orig_src), os.path.abspath(src))
         return 0
     try:
@@ -56,13 +59,17 @@ def _docopy(src, dest):
         print str(sys.exc_info[1])
         usage_and_die(3)
 
+
 def _doregister(mod_name, dll_name):
-    assert os.path.isfile(dll_name), "Shouldn't get here if the file doesn't exist!"
+    assert os.path.isfile(
+        dll_name), "Shouldn't get here if the file doesn't exist!"
     try:
-        key = _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE, "Software\\Python\\PythonCore\\%s\\Modules\\%s" % (sys.winver, mod_name))
+        key = _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE,
+                              "Software\\Python\\PythonCore\\%s\\Modules\\%s" % (sys.winver, mod_name))
     except _winreg.error:
         try:
-            key = _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE, "Software\\Python\\PythonCore\\%s\\Modules\\%s" % (sys.winver, mod_name))
+            key = _winreg.OpenKey(
+                _winreg.HKEY_LOCAL_MACHINE, "Software\\Python\\PythonCore\\%s\\Modules\\%s" % (sys.winver, mod_name))
         except _winreg.error:
             print "Could not find the existing '%s' module registered in the registry" % (mod_name,)
             usage_and_die(4)
@@ -71,16 +78,18 @@ def _doregister(mod_name, dll_name):
     _winreg.SetValue(sub_key, None, _winreg.REG_SZ, dll_name)
     print "Registered '%s' in the registry" % (dll_name,)
 
+
 def _domodule(mod_name, release_mod_filename):
     path, fname = os.path.split(release_mod_filename)
     base, ext = os.path.splitext(fname)
     new_fname = base + "_d" + ext
     if _docopy(new_fname, path):
-        _doregister( mod_name, os.path.abspath( os.path.join(path, new_fname) ) )
+        _doregister(mod_name, os.path.abspath(os.path.join(path, new_fname)))
 
-    
+
 # First the main Python DLL.
-path, fname = path, fname = os.path.split(win32api.GetModuleFileName(sys.dllhandle))
+path, fname = path, fname = os.path.split(
+    win32api.GetModuleFileName(sys.dllhandle))
 base, ext = os.path.splitext(fname)
 _docopy(base + "_d" + ext, path)
 

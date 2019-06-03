@@ -15,13 +15,16 @@ extended = 'Extended Properties="Excel 8.0;Readonly=False;"'
 constr = "Provider=%s;Data Source=%s;%s" % (driver, filename, extended)
 
 conn = adodbapi.connect(constr)
-with conn: # will auto commit if no errors
+with conn:  # will auto commit if no errors
     with conn.cursor() as crsr:
-        try:    crsr.execute('drop table SheetOne')
-        except: pass  # just is case there is one already there
+        try:
+            crsr.execute('drop table SheetOne')
+        except:
+            pass  # just is case there is one already there
 
         # create the sheet and the header row and set the types for the columns
-        crsr.execute('create table SheetOne (Header1 text, Header2 text, Header3 text, Header4 text, Header5 text)')
+        crsr.execute(
+            'create table SheetOne (Header1 text, Header2 text, Header3 text, Header4 text, Header5 text)')
 
         sql = "INSERT INTO SheetOne (Header1, Header2 ,Header3, Header4, Header5) values (?,?,?,?,?)"
 
