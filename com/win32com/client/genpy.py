@@ -429,7 +429,7 @@ class DispatchItem(build.DispatchItem, WritableItem):
                   print("\t\t# Property '%s' is an %s of type '%s'" % (key, kind, resultName), file=stream)
                 lkey = key.lower()
                 details = entry.desc
-                if details[8][5] == pythoncom.TKIND_ENUM:
+                if generator.iCreateEnums != 0 and details[8][5] == pythoncom.TKIND_ENUM:
                   resultCLSID = '(%s,%d)' % (entry.GetResultName(), details[8][0] & 0x2000)
                 else:
                   resultCLSID = entry.GetResultCLSIDStr()
@@ -465,7 +465,7 @@ class DispatchItem(build.DispatchItem, WritableItem):
                 lkey = key.lower()
                 argDesc = details[2]
                 resultDesc = details[8]
-                if details[8][5] == pythoncom.TKIND_ENUM:
+                if generator.iCreateEnums != 0 and details[8][5] == pythoncom.TKIND_ENUM:
                   resultCLSID = '(%s,%d)' % (entry.GetResultName(), details[8][0] & 0x2000)
                 else:
                   resultCLSID = entry.GetResultCLSIDStr()
