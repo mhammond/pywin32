@@ -489,6 +489,8 @@ class DispatchBaseClass:
 def _get_good_single_object_(obj, obUserName=None, resultCLSID=None):
 	if _PyIDispatchType==type(obj):
 		return Dispatch(obj, obUserName, resultCLSID)
+	elif obj is not None and tuple==type(resultCLSID):
+		return resultCLSID[0](obj)
 	return obj
 
 def _get_good_object_(obj, obUserName=None, resultCLSID=None):

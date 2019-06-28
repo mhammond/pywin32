@@ -24,7 +24,7 @@ usageHelp = """ \
 
 Usage:
 
-  makepy.py [-i] [-v|q] [-h] [-u] [-o output_file] [-d] [typelib, ...]
+  makepy.py [-i] [-v|q] [-h] [-u] [-e] [-f] [-t] [-o output_file] [-d] [typelib, ...]
   
   -i    -- Show information for the specified typelib.
   
@@ -47,6 +47,10 @@ Usage:
   -d    -- Generate the base code now and the class code on demand.
            Recommended for large type libraries.
            
+  -e    -- Generate IntEnum classes (instead of int constants) for enumerations in the typelib (requires at least version 3.4)
+           
+  -t    -- Generate type hints  (requires at least version 3.7)
+           
   typelib -- A TLB, DLL, OCX or anything containing COM type information.
              If a typelib is not specified, a window containing a textbox
              will open from which you can select a registered type
@@ -67,8 +71,8 @@ Examples:
 """
 
 import sys, os, pythoncom
-from win32com.client import genpy, selecttlb, gencache
 from win32com.client import Dispatch
+from win32com.client import genpy, selecttlb, gencache
 
 bForDemandDefault = 0 # Default value of bForDemand - toggle this to change the world - see also gencache.py
 
@@ -99,11 +103,11 @@ def ShowInfo(spec):
 				desc = "<Could not load typelib %s>" % (tlbSpec.dll)
 			else:
 				desc = tlb.GetDocumentation(-1)[0]
-		print desc
-		print " %s, lcid=%s, major=%s, minor=%s" % (tlbSpec.clsid, tlbSpec.lcid, tlbSpec.major, tlbSpec.minor)
-		print " >>> # Use these commands in Python code to auto generate .py support"
-		print " >>> from win32com.client import gencache"
-		print " >>> gencache.EnsureModule('%s', %s, %s, %s)" % (tlbSpec.clsid, tlbSpec.lcid, tlbSpec.major, tlbSpec.minor)
+		print(desc)
+		print(" %s, lcid=%s, major=%s, minor=%s" % (tlbSpec.clsid, tlbSpec.lcid, tlbSpec.major, tlbSpec.minor))
+		print(" >>> # Use these commands in Python code to auto generate .py support")
+		print(" >>> from win32com.client import gencache")
+		print(" >>> gencache.EnsureModule('%s', %s, %s, %s)" % (tlbSpec.clsid, tlbSpec.lcid, tlbSpec.major, tlbSpec.minor))
 
 class SimpleProgress(genpy.GeneratorProgress):
 	"""A simple progress class prints its output to stderr
@@ -187,7 +191,7 @@ def GetTypeLibsForSpec(arg):
 				except pythoncom.com_error:
 					pass
 			if len(tlbs)==0:
-				print "Could not locate a type library matching '%s'" % (arg)
+				print("Could not locate a type library matching '%s'" % (arg))
 			for spec in tlbs:
 				# Version numbers not always reliable if enumerated from registry.
 				# (as some libs use hex, other's dont.  Both examples from MS, of course.)
@@ -210,7 +214,7 @@ def GetTypeLibsForSpec(arg):
 		tb = None # Storing tb in a local is a cycle!
 		sys.exit(1)
 
-def GenerateFromTypeLibSpec(typelibInfo, file = None, verboseLevel = None, progressInstance = None, bUnicodeToString=None, bForDemand = bForDemandDefault, bBuildHidden = 1):
+def GenerateFromTypeLibSpec(typelibInfo, file = None, verboseLevel = None, progressInstance = None, bUnicodeToString=None, bForDemand = bForDemandDefault, bBuildHidden = 1, iCreateEnums = 0, bTypeHints = 0):
 	assert bUnicodeToString is None, "this is deprecated and will go away"
 	if verboseLevel is None:
 		verboseLevel = 0 # By default, we use no gui and no verbose level!
@@ -252,7 +256,7 @@ def GenerateFromTypeLibSpec(typelibInfo, file = None, verboseLevel = None, progr
 	bToGenDir = (file is None)
 
 	for typelib, info in typelibs:
-		gen = genpy.Generator(typelib, info.dll, progress, bBuildHidden=bBuildHidden)
+		gen = genpy.Generator(typelib, info.dll, progress, bBuildHidden=bBuildHidden, iCreateEnums=iCreateEnums, bTypeHints=bTypeHints)
 
 		if file is None:
 			this_name = gencache.GetGeneratedFileName(info.clsid, info.lcid, info.major, info.minor)
@@ -327,8 +331,11 @@ def main():
 	verboseLevel = 1
 	doit = 1
 	bForDemand = bForDemandDefault
+	createEnums = 0
+	typeHints = 0
+
 	try:
-		opts, args = getopt.getopt(sys.argv[1:], 'vo:huiqd')
+		opts, args = getopt.getopt(sys.argv[1:], 'vo:huiqdte')
 		for o,v in opts:
 			if o=='-h':
 				hiddenSpec = 0
@@ -347,8 +354,12 @@ def main():
 				doit = 0
 			elif o=='-d':
 				bForDemand = not bForDemand
+			elif o=='-e':
+				createEnums = 2
+			elif o=='-t':
+				typeHints = 1
 
-	except (getopt.error, error), msg:
+	except (getopt.error, error) as msg:
 		sys.stderr.write (str(msg) + "\n")
 		usage()
 
@@ -377,7 +388,7 @@ def main():
 		f = None
 
 	for arg in args:
-		GenerateFromTypeLibSpec(arg, f, verboseLevel = verboseLevel, bForDemand = bForDemand, bBuildHidden = hiddenSpec)
+		GenerateFromTypeLibSpec(arg, f, verboseLevel = verboseLevel, bForDemand = bForDemand, bBuildHidden = hiddenSpec, iCreateEnums=createEnums, bTypeHints=typeHints)
 
 	if f:	
 		f.close()

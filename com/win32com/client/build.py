@@ -53,6 +53,40 @@ NoTranslateMap = {}
 for v in NoTranslateTypes:
 	NoTranslateMap[v] = None
 
+
+NativeTypeMap = {
+	pythoncom.VT_BOOL : 'bool',          
+	# pythoncom.VT_CLSID,        
+	pythoncom.VT_CY : 'float',
+	pythoncom.VT_DATE : 'float',         
+	pythoncom.VT_DECIMAL : 'float',       
+	pythoncom.VT_EMPTY : 'None',
+	pythoncom.VT_ERROR : 'int',
+	pythoncom.VT_FILETIME : 'float',   
+	pythoncom.VT_HRESULT : 'int',
+	pythoncom.VT_I1 : 'int',            
+	pythoncom.VT_I2 : 'int',           
+	pythoncom.VT_I4 : 'int',
+	pythoncom.VT_I8 : 'int',            
+	pythoncom.VT_INT : 'int',          
+	pythoncom.VT_NULL : 'None',
+	pythoncom.VT_R4 : 'float',           
+	pythoncom.VT_R8 : 'float', 
+#	pythoncom.VT_STREAM,
+	pythoncom.VT_UI1 : 'int',            
+	pythoncom.VT_UI2 : 'int',           
+	pythoncom.VT_UI4 : 'int',
+	pythoncom.VT_UI8 : 'int',            
+	pythoncom.VT_UINT : 'int',          
+	pythoncom.VT_VOID : 'None',
+	pythoncom.VT_BSTR : 'str',
+	pythoncom.VT_VARIANT : 'typing.Any',
+	pythoncom.VT_DISPATCH : 'Dispatch',
+	pythoncom.VT_UNKNOWN : 'typing.Any',
+
+}
+
+
 class MapEntry:
 	"Simple holder for named attibutes - items in a map."
 	def __init__(self, desc_or_id, names=None, doc=None, resultCLSID=pythoncom.IID_NULL, resultDoc = None, hidden=0):
@@ -102,7 +136,7 @@ class OleItem:
 class DispatchItem(OleItem):
 	typename = "DispatchItem"
 
-	def __init__(self, typeinfo=None, attr=None, doc=None, bForUser=1):
+	def __init__(self, typeinfo=None, attr=None, doc=None, bForUser=1, iCreateEnums=0):
 		OleItem.__init__(self,doc)
 		self.propMap = {}
 		self.propMapGet = {}
@@ -112,7 +146,7 @@ class DispatchItem(OleItem):
 		self.hidden = 0
 
 		if typeinfo:
-			self.Build(typeinfo, attr, bForUser)
+			self.Build(typeinfo, attr, bForUser, iCreateEnums)
 
 	def _propMapPutCheck_(self,key,item):
 		ins, outs, opts = self.CountInOutOptArgs(item.desc[2])
@@ -148,7 +182,7 @@ class DispatchItem(OleItem):
 			if deleteExisting:
 				del self.propMapGet[key]
 
-	def	_AddFunc_(self,typeinfo,fdesc,bForUser):
+	def	_AddFunc_(self,typeinfo,fdesc,bForUser, iCreateEnums):
 		id = fdesc.memid
 		funcflags = fdesc.wFuncFlags
 		try:
@@ -173,16 +207,16 @@ class DispatchItem(OleItem):
 		# We need to translate any Alias', Enums, structs etc in result and args
 		typerepr, flag, defval = fdesc.rettype
 #		sys.stderr.write("%s result - %s -> " % (name, typerepr))
-		typerepr, resultCLSID, resultDoc = _ResolveType(typerepr, typeinfo)
+		typerepr, resultCLSID, resultDoc, resultKind = _ResolveType(typerepr, typeinfo, iCreateEnums)
 #		sys.stderr.write("%s\n" % (typerepr,))
-		fdesc.rettype = typerepr, flag, defval, resultCLSID
+		fdesc.rettype = typerepr, flag, defval, resultCLSID, resultDoc, resultKind
 		# Translate any Alias or Enums in argument list.
 		argList = []
 		for argDesc in fdesc.args:
 			typerepr, flag, defval = argDesc
 #			sys.stderr.write("%s arg - %s -> " % (name, typerepr))
-			arg_type, arg_clsid, arg_doc = _ResolveType(typerepr, typeinfo)
-			argDesc = arg_type, flag, defval, arg_clsid
+			arg_type, arg_clsid, arg_doc, arg_kind = _ResolveType(typerepr, typeinfo, iCreateEnums)
+			argDesc = arg_type, flag, defval, arg_clsid, arg_doc, arg_kind
 #			sys.stderr.write("%s\n" % (argDesc[0],))
 			argList.append(argDesc)
 		fdesc.args = tuple(argList)
@@ -225,7 +259,7 @@ class DispatchItem(OleItem):
 			return (name,map)
 		return None
 
-	def _AddVar_(self,typeinfo,fdesc,bForUser):
+	def _AddVar_(self,typeinfo,fdesc,bForUser, iCreateEnums):
 		### need pythoncom.VARFLAG_FRESTRICTED ...
 		### then check it
 
@@ -234,7 +268,7 @@ class DispatchItem(OleItem):
 			names = typeinfo.GetNames(id)
 			# Translate any Alias or Enums in result.
 			typerepr, flags, defval = fdesc.elemdescVar
-			typerepr, resultCLSID, resultDoc = _ResolveType(typerepr, typeinfo)
+			typerepr, resultCLSID, resultDoc, resultKind = _ResolveType(typerepr, typeinfo, iCreateEnums)
 			fdesc.elemdescVar = typerepr, flags, defval
 			doc = None
 			try:
@@ -253,19 +287,19 @@ class DispatchItem(OleItem):
 		else:
 			return None
 
-	def Build(self, typeinfo, attr, bForUser = 1):
+	def Build(self, typeinfo, attr, bForUser = 1, iCreateEnums = 0):
 		self.clsid = attr[0]
 		self.bIsDispatch = (attr.wTypeFlags & pythoncom.TYPEFLAG_FDISPATCHABLE) != 0
 		if typeinfo is None: return
 		# Loop over all methods
 		for j in range(attr[6]):
 			fdesc = typeinfo.GetFuncDesc(j)
-			self._AddFunc_(typeinfo,fdesc,bForUser)
+			self._AddFunc_(typeinfo,fdesc,bForUser, iCreateEnums)
 
 		# Loop over all variables (ie, properties)
 		for j in range(attr[7]):
 			fdesc = typeinfo.GetVarDesc(j)
-			self._AddVar_(typeinfo,fdesc,bForUser)
+			self._AddVar_(typeinfo,fdesc,bForUser, iCreateEnums)
 		
 		# Now post-process the maps.  For any "Get" or "Set" properties
 		# that have arguments, we must turn them into methods.  If a method
@@ -293,14 +327,14 @@ class DispatchItem(OleItem):
 					out = out + 1
 		return ins, out, opts
 
-	def MakeFuncMethod(self, entry, name, bMakeClass = 1):
+	def MakeFuncMethod(self, entry, name, bMakeClass = 1, bTypeHints = 0, iCreateEnums=0):
 		# If we have a type description, and not varargs...
 		if entry.desc is not None and (len(entry.desc) < 6 or entry.desc[6]!=-1):
-			return self.MakeDispatchFuncMethod(entry, name, bMakeClass)
+			return self.MakeDispatchFuncMethod(entry, name, bMakeClass, bTypeHints, iCreateEnums)
 		else:
-			return self.MakeVarArgsFuncMethod(entry, name, bMakeClass)
+			return self.MakeVarArgsFuncMethod(entry, name, bMakeClass, bTypeHints, iCreateEnums)
 
-	def MakeDispatchFuncMethod(self, entry, name, bMakeClass = 1):
+	def MakeDispatchFuncMethod(self, entry, name, bMakeClass = 1, bTypeHints = 0, iCreateEnums=0):
 		fdesc = entry.desc
 		doc = entry.doc
 		names = entry.names
@@ -318,7 +352,13 @@ class DispatchItem(OleItem):
 		defOutArg = "pythoncom.Missing"
 		id = fdesc[0]
 
-		s = linePrefix + 'def ' + name + '(self' + BuildCallList(fdesc, names, defNamedOptArg, defNamedNotOptArg, defUnnamedArg, defOutArg) + '):'
+		if bTypeHints:
+			resultType = _MakeTypeHint(entry.resultDocumentation, fdesc[8][0])
+			linePostfix	= ') -> ' + resultType + ':'
+		else:
+			linePostfix	= '):'
+
+		s = linePrefix + 'def ' + name + '(self' + BuildCallList(fdesc, names, defNamedOptArg, defNamedNotOptArg, defUnnamedArg, defOutArg, bTypeHints=bTypeHints) + linePostfix
 		ret.append(s)
 		if doc and doc[1]:
 			ret.append(linePrefix + '\t' + _makeDocString(doc[1]))
@@ -333,6 +373,16 @@ class DispatchItem(OleItem):
 		# Strip the default values from the arg desc
 		retDesc = fdesc[8][:2]
 		argsDesc = tuple([what[:2] for what in fdesc[2]])
+
+		if iCreateEnums != 0 and fdesc[8][5] == pythoncom.TKIND_ENUM:
+			# here we can encode the enum-name as type
+			#resclsid = _MakeResultTypeCreator(entry.resultDocumentation, fdesc[8][0])
+			result_prefix = fdesc[8][4][0] + '('
+			result_postfix = ')'
+		else:
+			result_prefix = ''
+			result_postfix = ''
+
 		# The runtime translation of the return types is expensive, so when we know the
 		# return type of the function, there is no need to check the type at runtime.
 		# To qualify, this function must return a "simple" type, and have no byref args.
@@ -343,7 +393,7 @@ class DispatchItem(OleItem):
 		if len(bad_params)==0 and len(retDesc)==2 and retDesc[1]==0:
 			rd = retDesc[0]
 			if rd in NoTranslateMap:
-				s = '%s\treturn self._oleobj_.InvokeTypes(%d, LCID, %s, %s, %s%s)' % (linePrefix, id, fdesc[4], retDesc, argsDesc, _BuildArgList(fdesc, names))
+				s = '%s\treturn %sself._oleobj_.InvokeTypes(%d, LCID, %s, %s, %s%s)%s' % (linePrefix, result_prefix, id, fdesc[4], retDesc, argsDesc, _BuildArgList(fdesc, names), result_postfix)
 			elif rd in [pythoncom.VT_DISPATCH, pythoncom.VT_UNKNOWN]:
 				s = '%s\tret = self._oleobj_.InvokeTypes(%d, LCID, %s, %s, %s%s)\n' % (linePrefix, id, fdesc[4], retDesc, repr(argsDesc), _BuildArgList(fdesc, names))
 				s = s + '%s\tif ret is not None:\n' % (linePrefix,)
@@ -360,13 +410,13 @@ class DispatchItem(OleItem):
 				s = s + '%s\treturn self._oleobj_.InvokeTypes(%d, LCID, %s, %s, %s%s)' % (linePrefix, id, fdesc[4], retDesc, repr(argsDesc), _BuildArgList(fdesc, names))
 			# else s remains None
 		if s is None:
-			s = '%s\treturn self._ApplyTypes_(%d, %s, %s, %s, %s, %s%s)' % (linePrefix, id, fdesc[4], retDesc, argsDesc, repr(name), resclsid, _BuildArgList(fdesc, names))
+			s = '%s\treturn %sself._ApplyTypes_(%d, %s, %s, %s, %s, %s%s)%s' % (linePrefix, result_prefix, id, fdesc[4], retDesc, argsDesc, repr(name), resclsid, _BuildArgList(fdesc, names), result_postfix)
 
 		ret.append(s)
 		ret.append("")
 		return ret
 
-	def MakeVarArgsFuncMethod(self, entry, name, bMakeClass = 1):
+	def MakeVarArgsFuncMethod(self, entry, name, bMakeClass = 1, bTypeHints = 0, iCreateEnums=0):
 		fdesc = entry.desc
 		names = entry.names
 		doc = entry.doc
@@ -389,8 +439,8 @@ class DispatchItem(OleItem):
 
 # Note - "DispatchItem" poorly named - need a new intermediate class.
 class VTableItem(DispatchItem):
-	def Build(self, typeinfo, attr, bForUser = 1):
-		DispatchItem.Build(self, typeinfo, attr, bForUser)
+	def Build(self, typeinfo, attr, bForUser = 1, iCreateEnums = 0):
+		DispatchItem.Build(self, typeinfo, attr, bForUser, iCreateEnums)
 		assert typeinfo is not None, "Cant build vtables without type info!"
 
 		meth_list = list(self.mapFuncs.values()) + list(self.propMapGet.values()) + list(self.propMapPut.values())
@@ -417,7 +467,24 @@ typeSubstMap = {
 	pythoncom.VT_HRESULT: pythoncom.VT_I4,
 }
 
-def _ResolveType(typerepr, itypeinfo):
+def _MakeTypeHint(doc, vt):
+	if doc:
+		resultType = doc[0]
+	else:
+		resultType = NativeTypeMap.get(vt & 0xfff)
+	if vt & 0x2000:
+		resultType = 'typing.List[' + resultType + ']'
+	return resultType
+
+def _MakeResultTypeCreator(doc, vt):
+	if doc:
+		resultType = doc[0]
+	else:
+		resultType = NativeTypeMap.get(vt & 0xfff)
+	return resultType, vt & 0x2000
+
+
+def _ResolveType(typerepr, itypeinfo, iCreateEnums):
 	# Resolve VT_USERDEFINED (often aliases or typed IDispatches)
 
 	if type(typerepr)==tuple:
@@ -431,54 +498,61 @@ def _ResolveType(typerepr, itypeinfo):
 			# only when "somehandle" is an object.
 			# but (VT_PTR, (VT_USERDEFINED, otherhandle)) doesnt get the indirection dropped.
 			was_user = type(subrepr)==tuple and subrepr[0]==pythoncom.VT_USERDEFINED
-			subrepr, sub_clsid, sub_doc = _ResolveType(subrepr, itypeinfo)
+			subrepr, sub_clsid, sub_doc, typeKind = _ResolveType(subrepr, itypeinfo, iCreateEnums)
 			if was_user and subrepr in [pythoncom.VT_DISPATCH, pythoncom.VT_UNKNOWN, pythoncom.VT_RECORD]:
 				# Drop the VT_PTR indirection
-				return subrepr, sub_clsid, sub_doc
+				return subrepr, sub_clsid, sub_doc, typeKind
 			# Change PTR indirection to byref
-			return subrepr | pythoncom.VT_BYREF, sub_clsid, sub_doc
+			return subrepr | pythoncom.VT_BYREF, sub_clsid, sub_doc, typeKind
 		if indir_vt == pythoncom.VT_SAFEARRAY:
 			# resolve the array element, and convert to VT_ARRAY
-			subrepr, sub_clsid, sub_doc = _ResolveType(subrepr, itypeinfo)
-			return pythoncom.VT_ARRAY | subrepr, sub_clsid, sub_doc
+			subrepr, sub_clsid, sub_doc, typeKind = _ResolveType(subrepr, itypeinfo, iCreateEnums)
+			return pythoncom.VT_ARRAY | subrepr, sub_clsid, sub_doc, typeKind
 		if indir_vt == pythoncom.VT_CARRAY: # runtime has no support for this yet.
 			# resolve the array element, and convert to VT_CARRAY
 			# sheesh - return _something_
-			return pythoncom.VT_CARRAY, None, None
+			return pythoncom.VT_CARRAY, None, None, -1
 		if indir_vt == pythoncom.VT_USERDEFINED:
 			try:
 				resultTypeInfo = itypeinfo.GetRefTypeInfo(subrepr)
-			except pythoncom.com_error, details:
+			except pythoncom.com_error as details:
 				if details.hresult in [winerror.TYPE_E_CANTLOADLIBRARY, winerror.TYPE_E_LIBNOTREGISTERED]:
 					# an unregistered interface
-					return pythoncom.VT_UNKNOWN, None, None
+					return pythoncom.VT_UNKNOWN, None, None, -1
 				raise
 
 			resultAttr = resultTypeInfo.GetTypeAttr()
 			typeKind = resultAttr.typekind
 			if typeKind == pythoncom.TKIND_ALIAS:
 				tdesc = resultAttr.tdescAlias
-				return _ResolveType(tdesc, resultTypeInfo)
-			elif typeKind in [pythoncom.TKIND_ENUM, pythoncom.TKIND_MODULE]:
+				return _ResolveType(tdesc, resultTypeInfo, iCreateEnums)
+			elif typeKind in [pythoncom.TKIND_MODULE]:
 				# For now, assume Long
-				return pythoncom.VT_I4, None, None
+				return pythoncom.VT_I4, None, None, typeKind
+
+			elif typeKind in [pythoncom.TKIND_ENUM]:
+				if iCreateEnums != 0:
+					retdoc = resultTypeInfo.GetDocumentation(-1)
+					return pythoncom.VT_I4, None, retdoc, typeKind
+				else:
+					return pythoncom.VT_I4, None, None, typeKind
 
 			elif typeKind == pythoncom.TKIND_DISPATCH:
 				clsid = resultTypeInfo.GetTypeAttr()[0]
 				retdoc = resultTypeInfo.GetDocumentation(-1)
-				return pythoncom.VT_DISPATCH, clsid, retdoc
+				return pythoncom.VT_DISPATCH, clsid, retdoc, typeKind
 
 			elif typeKind in [pythoncom.TKIND_INTERFACE,
 							  pythoncom.TKIND_COCLASS]:
 				# XXX - should probably get default interface for CO_CLASS???
 				clsid = resultTypeInfo.GetTypeAttr()[0]
 				retdoc = resultTypeInfo.GetDocumentation(-1)
-				return pythoncom.VT_UNKNOWN, clsid, retdoc
+				return pythoncom.VT_UNKNOWN, clsid, retdoc, typeKind
 
 			elif typeKind == pythoncom.TKIND_RECORD:
-				return pythoncom.VT_RECORD, None, None
+				return pythoncom.VT_RECORD, None, None, typeKind
 			raise NotSupportedException("Can not resolve alias or user-defined type")
-	return typeSubstMap.get(typerepr,typerepr), None, None
+	return typeSubstMap.get(typerepr,typerepr), None, None, -1
 
 def _BuildArgList(fdesc, names):
     "Builds list of args to the underlying Invoke method."
@@ -571,7 +645,7 @@ def MakeDefaultArgRepr(defArgVal):
     return repr(val)
   return None
 
-def BuildCallList(fdesc, names, defNamedOptArg, defNamedNotOptArg, defUnnamedArg, defOutArg, is_comment = False):
+def BuildCallList(fdesc, names, defNamedOptArg, defNamedNotOptArg, defUnnamedArg, defOutArg, is_comment = False, bTypeHints = 0):
   "Builds a Python declaration for a method."
   # Names[0] is the func name - param names are from 1.
   numArgs = len(fdesc[2])
@@ -582,7 +656,7 @@ def BuildCallList(fdesc, names, defNamedOptArg, defNamedNotOptArg, defUnnamedArg
     numArgs = numArgs - 1
   else:
     firstOptArg = numArgs - numOptArgs
-  for arg in xrange(numArgs):
+  for arg in range(numArgs):
     try:
       argName = names[arg+1] 
       namedArg = argName is not None
@@ -608,6 +682,11 @@ def BuildCallList(fdesc, names, defNamedOptArg, defNamedNotOptArg, defUnnamedArg
           defArgVal = defUnnamedArg
 
     argName = MakePublicAttributeName(argName)
+
+    if bTypeHints:
+        resultType = _MakeTypeHint(thisdesc[4], thisdesc[0])
+        argName += ': ' + resultType
+
     # insanely long lines with an 'encoding' flag crashes python 2.4.0
     # keep 5 args per line
     # This may still fail if the arg names are insane, but that seems
@@ -627,4 +706,4 @@ def BuildCallList(fdesc, names, defNamedOptArg, defNamedNotOptArg, defUnnamedArg
 
 
 if __name__=='__main__':
-  print "Use 'makepy.py' to generate Python code - this module is just a helper"
+  print("Use 'makepy.py' to generate Python code - this module is just a helper")
