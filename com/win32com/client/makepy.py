@@ -47,7 +47,7 @@ Usage:
   -d    -- Generate the base code now and the class code on demand.
            Recommended for large type libraries.
            
-  -e    -- Generate IntEnum classes (instead of int constants) for enumerations in the typelib (requires at least version 3.4)
+  -e    -- Generate RelaxedIntEnum classes (instead of int constants) for enumerations in the typelib (requires at least version 3.4)
            
   -t    -- Generate type hints  (requires at least version 3.7)
            

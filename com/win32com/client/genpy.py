@@ -204,7 +204,7 @@ class EnumerationItem(build.OleItem, WritableItem):
       print("class %s(Enum):" % (enumName), file=stream)
     elif iCreateEnum == 2:
       # do not sort when using class
-      print("class %s(IntEnum):" % (enumName), file=stream)
+      print("class %s(RelaxedIntEnum):" % (enumName), file=stream)
     else:
       names.sort()
 
@@ -887,7 +887,8 @@ class Generator:
     if self.iCreateEnums == 1:
       print('from enum import Enum', file=self.file)
     elif self.iCreateEnums == 2:
-      print('from enum import IntEnum', file=self.file)
+      #print('from enum import IntEnum', file=self.file)
+      print('from win32com.client.RelaxedIntEnum import RelaxedIntEnum', file=self.file)
     if self.bTypeHints:
       print('import typing', file=self.file)
     print('from pywintypes import IID', file=self.file)
