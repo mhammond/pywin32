@@ -15,6 +15,7 @@
 #define _WIN32_DCOM
 
 #include "PyWinTypes.h"
+#include "direct.h"
 #include "objbase.h"
 #include "tchar.h"
 
