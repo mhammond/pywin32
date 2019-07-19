@@ -127,7 +127,7 @@ static void CheckRegisterEventSourceFile()
 		return;
 
 	GetModuleFileNameW(g_hInstance, mod_name,
-			  sizeof mod_name/sizeof WCHAR);
+			  sizeof mod_name/sizeof(WCHAR));
 	if (!mod_name[0]) {
 		OutputDebugString(_T("GetModuleFileNameW failed!"));
 		return;
