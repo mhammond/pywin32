@@ -160,8 +160,8 @@ static void CheckRegisterEventSourceFile()
 }
 
 // Write stuff to the event log.
-BOOL WriteEventLogMessage(WORD eventType, DWORD eventID, WORD num_inserts,
-                          const char **inserts)
+extern "C" BOOL WriteEventLogMessage(WORD eventType, DWORD eventID, WORD num_inserts,
+                                     const char **inserts)
 {
 	BOOL ok = FALSE;
 	HANDLE hEventSource;
