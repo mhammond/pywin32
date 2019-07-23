@@ -175,15 +175,15 @@ static PyObject *servicemanager_startup_error;
 
 static PyObject *DoLogMessage(WORD errorType, PyObject *obMsg)
 {
-	WCHAR *msg;
-	if (!PyWinObject_AsWCHAR(obMsg, &msg))
+	TCHAR *msg;
+	if (!PyWinObject_AsTCHAR(obMsg, &msg))
 		return NULL;
 	DWORD errorCode = errorType==EVENTLOG_ERROR_TYPE ? PYS_E_GENERIC_ERROR : PYS_E_GENERIC_WARNING;
 	LPCTSTR inserts[] = {msg, NULL};
 	BOOL ok;
 	Py_BEGIN_ALLOW_THREADS
 	ok = ReportError(errorCode, inserts, errorType);
-	PyWinObject_FreeWCHAR(msg);
+	PyWinObject_FreeTCHAR(msg);
 	Py_END_ALLOW_THREADS
 	if (!ok)
 		return PyWin_SetAPIError("RegisterEventSource/ReportEvent");
@@ -326,13 +326,13 @@ static PyObject *PyRegisterServiceCtrlHandler(PyObject *self, PyObject *args)
 		PyErr_SetString(PyExc_TypeError, "Second argument must be a callable object");
 		return NULL;
 	}
-	WCHAR *szName;
-	if (!PyWinObject_AsWCHAR(nameOb, &szName))
+	TCHAR *szName;
+	if (!PyWinObject_AsTCHAR(nameOb, &szName))
 		return NULL;
 	PY_SERVICE_TABLE_ENTRY *pe = FindPythonServiceEntry(szName);
 	if (pe==NULL) {
 		PyErr_SetString(PyExc_ValueError, "The service name is not hosted by this process");
-		PyWinObject_FreeWCHAR(szName);
+		PyWinObject_FreeTCHAR(szName);
 		return NULL;
 	}
 	Py_XDECREF(pe->obServiceCtrlHandler);
@@ -350,7 +350,7 @@ static PyObject *PyRegisterServiceCtrlHandler(PyObject *self, PyObject *args)
 		// Otherwise fall back to NT
 		pe->sshStatusHandle = RegisterServiceCtrlHandler(szName, service_ctrl);
 	}
-	PyWinObject_FreeWCHAR(szName);
+	PyWinObject_FreeTCHAR(szName);
 	PyObject *rc;
 	if (pe->sshStatusHandle==0) {
 		Py_DECREF(obCallback);
@@ -1258,7 +1258,7 @@ PyObject *LoadPythonServiceInstance(	PyObject *pyclass,
 		return NULL;
 	}
 	for (DWORD i=0;i<dwArgc;i++) {
-		PyObject *arg = PyWinObject_FromWCHAR(lpszArgv[i]);
+		PyObject *arg = PyWinObject_FromTCHAR(lpszArgv[i]);
 		if (arg==NULL) {
 			Py_DECREF(args);
 			Py_DECREF(pyclass);
@@ -1390,7 +1390,7 @@ static void ReportAPIError(DWORD msgCode, DWORD errCode /*= 0*/)
 			buf[end]=L'\0';
 
 	TCHAR cvtBuf[20];
-	wsprintf(cvtBuf, L"%d", errCode);
+	wsprintf(cvtBuf, TEXT("%d"), errCode);
 	LPTSTR  lpszStrings[] = {cvtBuf, buf, L'\0'};
 	ReportError(msgCode, (LPCTSTR *)lpszStrings);
 }
@@ -1401,15 +1401,19 @@ static void ReportPythonError(DWORD code)
 		LPTSTR inserts[4] = {NULL, NULL, NULL, NULL};
 		PyObject *type, *value, *traceback;
 		PyErr_Fetch(&type, &value, &traceback);
-		TCHAR *szTracebackUse = L"<No memory!>"; // default.
+		TCHAR *szTracebackUse = TEXT("<No memory!>"); // default.
 		TCHAR *szTraceback = NULL; // to be freed.
 		char *szmbTraceback = GetPythonTraceback(type, value, traceback);
 		if (szmbTraceback) {
 			int tb_len = strlen(szmbTraceback) + 1;
-			szTraceback = (TCHAR *)malloc(sizeof(WCHAR) * tb_len);
+			szTraceback = (TCHAR*)malloc(sizeof(TCHAR) * tb_len);
 			if (szTraceback) {
 				szTracebackUse = szTraceback;
+				#ifdef UNICODE
 				MultiByteToWideChar(CP_ACP, 0, szmbTraceback, tb_len, szTraceback, tb_len);
+				#else
+				strncpy(szTraceback, szmbTraceback, tb_len);
+				#endif
 				// trim crud from the end.
 				if (tb_len>2) szTracebackUse[tb_len-2] = L'\0';
 			}
@@ -1427,7 +1431,7 @@ static void ReportPythonError(DWORD code)
 			Py_XDECREF(traceback);
 		}
 	} else {
-		LPCTSTR inserts[] = {L"<No Python Error!>", L"", L"", NULL};
+		LPCTSTR inserts[] = {TEXT("<No Python Error!>"), TEXT(""), TEXT(""), NULL};
 		ReportError(code, inserts);
 	}
 	PyErr_Clear();
