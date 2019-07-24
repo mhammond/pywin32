@@ -127,7 +127,7 @@ static void CheckRegisterEventSourceFile()
 		return;
 
 	GetModuleFileNameW(g_hInstance, mod_name,
-			  sizeof mod_name/sizeof WCHAR);
+			  sizeof mod_name/sizeof(WCHAR));
 	if (!mod_name[0]) {
 		OutputDebugString(_T("GetModuleFileNameW failed!"));
 		return;
@@ -160,8 +160,8 @@ static void CheckRegisterEventSourceFile()
 }
 
 // Write stuff to the event log.
-BOOL WriteEventLogMessage(WORD eventType, DWORD eventID, WORD num_inserts,
-                          const char **inserts)
+extern "C" BOOL WriteEventLogMessage(WORD eventType, DWORD eventID, WORD num_inserts,
+                                     const char **inserts)
 {
 	BOOL ok = FALSE;
 	HANDLE hEventSource;
