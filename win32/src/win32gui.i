@@ -4596,29 +4596,29 @@ BOOL GetOpenFileName(OPENFILENAME *INPUT);
 %typemap (python, in) MENUITEMINFO *INPUT (Py_ssize_t target_size){
 	if (0 != PyObject_AsReadBuffer($source, (const void **)&$target, &target_size))
 		return NULL;
-	if (sizeof MENUITEMINFO != target_size)
-		return PyErr_Format(PyExc_TypeError, "Argument must be a %d-byte string/buffer (got %d bytes)", sizeof MENUITEMINFO, target_size);
+	if (sizeof(MENUITEMINFO) != target_size)
+		return PyErr_Format(PyExc_TypeError, "Argument must be a %d-byte string/buffer (got %d bytes)", sizeof(MENUITEMINFO), target_size);
 }
 
 %typemap (python,in) MENUITEMINFO *BOTH(Py_ssize_t target_size) {
 	if (0 != PyObject_AsWriteBuffer($source, (void **)&$target, &target_size))
 		return NULL;
-	if (sizeof MENUITEMINFO != target_size)
-		return PyErr_Format(PyExc_TypeError, "Argument must be a %d-byte buffer (got %d bytes)", sizeof MENUITEMINFO, target_size);
+	if (sizeof(MENUITEMINFO) != target_size)
+		return PyErr_Format(PyExc_TypeError, "Argument must be a %d-byte buffer (got %d bytes)", sizeof(MENUITEMINFO), target_size);
 }
 
 %typemap (python, in) MENUINFO *INPUT (Py_ssize_t target_size){
 	if (0 != PyObject_AsReadBuffer($source, (const void **)&$target, &target_size))
 		return NULL;
-	if (sizeof MENUINFO != target_size)
-		return PyErr_Format(PyExc_TypeError, "Argument must be a %d-byte string/buffer (got %d bytes)", sizeof MENUINFO, target_size);
+	if (sizeof(MENUINFO) != target_size)
+		return PyErr_Format(PyExc_TypeError, "Argument must be a %d-byte string/buffer (got %d bytes)", sizeof(MENUINFO), target_size);
 }
 
 %typemap (python,in) MENUINFO *BOTH(Py_ssize_t target_size) {
 	if (0 != PyObject_AsWriteBuffer($source, (void **)&$target, &target_size))
 		return NULL;
-	if (sizeof MENUINFO != target_size)
-		return PyErr_Format(PyExc_TypeError, "Argument must be a %d-byte buffer (got %d bytes)", sizeof MENUINFO, target_size);
+	if (sizeof(MENUINFO) != target_size)
+		return PyErr_Format(PyExc_TypeError, "Argument must be a %d-byte buffer (got %d bytes)", sizeof(MENUINFO), target_size);
 }
 
 // @pyswig |InsertMenuItem|Inserts a menu item
@@ -4750,8 +4750,8 @@ PyObject *PySetMenuInfo(PyObject *self, PyObject *args)
 
 	if (0 != PyObject_AsReadBuffer(obInfo, (const void **)&pInfo, &cbInfo))
 		return NULL;
-	if (sizeof MENUINFO != cbInfo)
-		return PyErr_Format(PyExc_TypeError, "Argument must be a %d byte string/buffer (got %d bytes)", sizeof MENUINFO, cbInfo);
+	if (sizeof(MENUINFO) != cbInfo)
+		return PyErr_Format(PyExc_TypeError, "Argument must be a %d byte string/buffer (got %d bytes)", sizeof(MENUINFO), cbInfo);
 
 	Py_BEGIN_ALLOW_THREADS
 	result = (*pfnSetMenuInfo)(hmenu, pInfo);
@@ -4787,8 +4787,8 @@ PyObject *PyGetMenuInfo(PyObject *self, PyObject *args)
 
 	if (0 != PyObject_AsWriteBuffer(obInfo, (void **)&pInfo, &cbInfo))
 		return NULL;
-	if (sizeof MENUINFO != cbInfo)
-		return PyErr_Format(PyExc_TypeError, "Argument must be a %d byte buffer (got %d bytes)", sizeof MENUINFO, cbInfo);
+	if (sizeof(MENUINFO) != cbInfo)
+		return PyErr_Format(PyExc_TypeError, "Argument must be a %d byte buffer (got %d bytes)", sizeof(MENUINFO), cbInfo);
 
 	Py_BEGIN_ALLOW_THREADS
 	result = (*pfnGetMenuInfo)(hmenu, pInfo);

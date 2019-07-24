@@ -1141,7 +1141,7 @@ BOOL WINAPI DllMain(HANDLE hInstance, DWORD dwReason, LPVOID lpReserved)
 
 // Function to format a python traceback into a character string.
 #define GPEM_ERROR(what) {errorMsg = "<Error getting traceback - " ## what ## ">";goto done;}
-char *GetPythonTraceback(PyObject *exc_type, PyObject *exc_value, PyObject *exc_tb)
+PYWINTYPES_EXPORT char *GetPythonTraceback(PyObject *exc_type, PyObject *exc_value, PyObject *exc_tb)
 {
 	// Sleep (30000); // Time enough to attach the debugger (barely)
 	char *result = NULL;
