@@ -8,6 +8,8 @@ Since build 224:
 ----------------
 * PythonWin is now able to start with non-English active keyboard layout.
 
+* Corrected wMilliseconds truncation in PyTime::getattro (Dorian Bivolaru)
+
 * Implement PdhGetFormattedCounterArray (#1306, konserw)
 
 Since build 223:
