@@ -4,66 +4,53 @@
 //
 // Interface Declaration
 
-class PyIRemoteDebugApplicationThread : public PyIUnknown
-{
-public:
-	MAKE_PYCOM_CTOR(PyIRemoteDebugApplicationThread);
-	static IRemoteDebugApplicationThread *GetI(PyObject *self);
-	static PyComTypeObject type;
+class PyIRemoteDebugApplicationThread : public PyIUnknown {
+   public:
+    MAKE_PYCOM_CTOR(PyIRemoteDebugApplicationThread);
+    static IRemoteDebugApplicationThread *GetI(PyObject *self);
+    static PyComTypeObject type;
 
-	// The Python methods
-	static PyObject *GetSystemThreadId(PyObject *self, PyObject *args);
-	static PyObject *GetApplication(PyObject *self, PyObject *args);
-	static PyObject *EnumStackFrames(PyObject *self, PyObject *args);
-	static PyObject *GetDescription(PyObject *self, PyObject *args);
-	static PyObject *SetNextStatement(PyObject *self, PyObject *args);
-	static PyObject *GetState(PyObject *self, PyObject *args);
-	static PyObject *Suspend(PyObject *self, PyObject *args);
-	static PyObject *Resume(PyObject *self, PyObject *args);
-	static PyObject *GetSuspendCount(PyObject *self, PyObject *args);
+    // The Python methods
+    static PyObject *GetSystemThreadId(PyObject *self, PyObject *args);
+    static PyObject *GetApplication(PyObject *self, PyObject *args);
+    static PyObject *EnumStackFrames(PyObject *self, PyObject *args);
+    static PyObject *GetDescription(PyObject *self, PyObject *args);
+    static PyObject *SetNextStatement(PyObject *self, PyObject *args);
+    static PyObject *GetState(PyObject *self, PyObject *args);
+    static PyObject *Suspend(PyObject *self, PyObject *args);
+    static PyObject *Resume(PyObject *self, PyObject *args);
+    static PyObject *GetSuspendCount(PyObject *self, PyObject *args);
 
-protected:
-	PyIRemoteDebugApplicationThread(IUnknown *pdisp);
-	~PyIRemoteDebugApplicationThread();
+   protected:
+    PyIRemoteDebugApplicationThread(IUnknown *pdisp);
+    ~PyIRemoteDebugApplicationThread();
 };
 // ---------------------------------------------------
 //
 // Gateway Declaration
 
-class PyGRemoteDebugApplicationThread : public PyGatewayBase, public IRemoteDebugApplicationThread
-{
-protected:
-	PyGRemoteDebugApplicationThread(PyObject *instance) : PyGatewayBase(instance) { ; }
-	PYGATEWAY_MAKE_SUPPORT(PyGRemoteDebugApplicationThread, IRemoteDebugApplicationThread, IID_IRemoteDebugApplicationThread)
+class PyGRemoteDebugApplicationThread : public PyGatewayBase, public IRemoteDebugApplicationThread {
+   protected:
+    PyGRemoteDebugApplicationThread(PyObject *instance) : PyGatewayBase(instance) { ; }
+    PYGATEWAY_MAKE_SUPPORT(PyGRemoteDebugApplicationThread, IRemoteDebugApplicationThread,
+                           IID_IRemoteDebugApplicationThread)
 
-	// IRemoteDebugApplicationThread
-	STDMETHOD(GetSystemThreadId)(
-		DWORD __RPC_FAR * dwThreadId);
+    // IRemoteDebugApplicationThread
+    STDMETHOD(GetSystemThreadId)(DWORD __RPC_FAR *dwThreadId);
 
-	STDMETHOD(GetApplication)(
-		IRemoteDebugApplication __RPC_FAR *__RPC_FAR * pprda);
+    STDMETHOD(GetApplication)(IRemoteDebugApplication __RPC_FAR *__RPC_FAR *pprda);
 
-	STDMETHOD(EnumStackFrames)(
-		IEnumDebugStackFrames __RPC_FAR *__RPC_FAR * ppedsf);
+    STDMETHOD(EnumStackFrames)(IEnumDebugStackFrames __RPC_FAR *__RPC_FAR *ppedsf);
 
-	STDMETHOD(GetDescription)(
-		BSTR __RPC_FAR * pbstrDescription,
-		BSTR __RPC_FAR * pbstrState);
+    STDMETHOD(GetDescription)(BSTR __RPC_FAR *pbstrDescription, BSTR __RPC_FAR *pbstrState);
 
-	STDMETHOD(SetNextStatement)(
-		IDebugStackFrame __RPC_FAR * pStackFrame,
-		IDebugCodeContext __RPC_FAR * pCodeContext);
+    STDMETHOD(SetNextStatement)(IDebugStackFrame __RPC_FAR *pStackFrame, IDebugCodeContext __RPC_FAR *pCodeContext);
 
-	STDMETHOD(GetState)(
-		DWORD __RPC_FAR * pState);
+    STDMETHOD(GetState)(DWORD __RPC_FAR *pState);
 
-	STDMETHOD(Suspend)(
-		DWORD __RPC_FAR * pdwCount);
+    STDMETHOD(Suspend)(DWORD __RPC_FAR *pdwCount);
 
-	STDMETHOD(Resume)(
-		DWORD __RPC_FAR * pdwCount);
+    STDMETHOD(Resume)(DWORD __RPC_FAR *pdwCount);
 
-	STDMETHOD(GetSuspendCount)(
-		DWORD __RPC_FAR * pdwCount);
-
+    STDMETHOD(GetSuspendCount)(DWORD __RPC_FAR *pdwCount);
 };

@@ -4,50 +4,40 @@
 //
 // Interface Declaration
 
-class PyIDebugStackFrame : public PyIUnknown
-{
-public:
-	MAKE_PYCOM_CTOR_ERRORINFO(PyIDebugStackFrame, IID_IDebugStackFrame);
-	static IDebugStackFrame *GetI(PyObject *self);
-	static PyComTypeObject type;
+class PyIDebugStackFrame : public PyIUnknown {
+   public:
+    MAKE_PYCOM_CTOR_ERRORINFO(PyIDebugStackFrame, IID_IDebugStackFrame);
+    static IDebugStackFrame *GetI(PyObject *self);
+    static PyComTypeObject type;
 
-	// The Python methods
-	static PyObject *GetCodeContext(PyObject *self, PyObject *args);
-	static PyObject *GetDescriptionString(PyObject *self, PyObject *args);
-	static PyObject *GetLanguageString(PyObject *self, PyObject *args);
-	static PyObject *GetThread(PyObject *self, PyObject *args);
-	static PyObject *GetDebugProperty(PyObject *self, PyObject *args);
+    // The Python methods
+    static PyObject *GetCodeContext(PyObject *self, PyObject *args);
+    static PyObject *GetDescriptionString(PyObject *self, PyObject *args);
+    static PyObject *GetLanguageString(PyObject *self, PyObject *args);
+    static PyObject *GetThread(PyObject *self, PyObject *args);
+    static PyObject *GetDebugProperty(PyObject *self, PyObject *args);
 
-protected:
-	PyIDebugStackFrame(IUnknown *pdisp);
-	~PyIDebugStackFrame();
+   protected:
+    PyIDebugStackFrame(IUnknown *pdisp);
+    ~PyIDebugStackFrame();
 };
 // ---------------------------------------------------
 //
 // Gateway Declaration
 
-class PyGDebugStackFrame : public PyGatewayBase, public IDebugStackFrame
-{
-protected:
-	PyGDebugStackFrame(PyObject *instance) : PyGatewayBase(instance) { ; }
-	PYGATEWAY_MAKE_SUPPORT(PyGDebugStackFrame, IDebugStackFrame, IID_IDebugStackFrame)
+class PyGDebugStackFrame : public PyGatewayBase, public IDebugStackFrame {
+   protected:
+    PyGDebugStackFrame(PyObject *instance) : PyGatewayBase(instance) { ; }
+    PYGATEWAY_MAKE_SUPPORT(PyGDebugStackFrame, IDebugStackFrame, IID_IDebugStackFrame)
 
-	// IDebugStackFrame
-	STDMETHOD(GetCodeContext)(
-		IDebugCodeContext __RPC_FAR *__RPC_FAR * ppcc);
+    // IDebugStackFrame
+    STDMETHOD(GetCodeContext)(IDebugCodeContext __RPC_FAR *__RPC_FAR *ppcc);
 
-	STDMETHOD(GetDescriptionString)(
-		BOOL fLong,  
-		BSTR __RPC_FAR * pbstrDescription);
+    STDMETHOD(GetDescriptionString)(BOOL fLong, BSTR __RPC_FAR *pbstrDescription);
 
-	STDMETHOD(GetLanguageString)(
-		BOOL fLong,  
-		BSTR __RPC_FAR * pbstrLanguage);
+    STDMETHOD(GetLanguageString)(BOOL fLong, BSTR __RPC_FAR *pbstrLanguage);
 
-	STDMETHOD(GetThread)(
-		IDebugApplicationThread __RPC_FAR *__RPC_FAR * ppat);
+    STDMETHOD(GetThread)(IDebugApplicationThread __RPC_FAR *__RPC_FAR *ppat);
 
-	STDMETHOD(GetDebugProperty)(
-		IDebugProperty __RPC_FAR *__RPC_FAR * ppdp);
-
+    STDMETHOD(GetDebugProperty)(IDebugProperty __RPC_FAR *__RPC_FAR *ppdp);
 };

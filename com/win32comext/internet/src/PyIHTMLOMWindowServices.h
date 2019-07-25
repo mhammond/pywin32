@@ -4,27 +4,17 @@
 //
 // Gateway Declaration
 
-class PyGHTMLOMWindowServices : public PyGatewayBase, public IHTMLOMWindowServices
-{
-protected:
-	PyGHTMLOMWindowServices(PyObject *instance) : PyGatewayBase(instance) { ; }
-	PYGATEWAY_MAKE_SUPPORT2(PyGHTMLOMWindowServices, IHTMLOMWindowServices, IID_IHTMLOMWindowServices, PyGatewayBase)
+class PyGHTMLOMWindowServices : public PyGatewayBase, public IHTMLOMWindowServices {
+   protected:
+    PyGHTMLOMWindowServices(PyObject *instance) : PyGatewayBase(instance) { ; }
+    PYGATEWAY_MAKE_SUPPORT2(PyGHTMLOMWindowServices, IHTMLOMWindowServices, IID_IHTMLOMWindowServices, PyGatewayBase)
 
-	// IHTMLOMWindowServices
-	STDMETHOD(moveTo)(
-		LONG x,
-		LONG y);
+    // IHTMLOMWindowServices
+    STDMETHOD(moveTo)(LONG x, LONG y);
 
-	STDMETHOD(moveBy)(
-		LONG x,
-		LONG y);
+    STDMETHOD(moveBy)(LONG x, LONG y);
 
-	STDMETHOD(resizeTo)(
-		LONG x,
-		LONG y);
+    STDMETHOD(resizeTo)(LONG x, LONG y);
 
-	STDMETHOD(resizeBy)(
-		LONG x,
-		LONG y);
-
+    STDMETHOD(resizeBy)(LONG x, LONG y);
 };

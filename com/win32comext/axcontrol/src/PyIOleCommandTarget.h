@@ -6,45 +6,31 @@
 
 #include "docobj.h"
 
-class PyIOleCommandTarget : public PyIUnknown
-{
-public:
-	MAKE_PYCOM_CTOR(PyIOleCommandTarget);
-	static IOleCommandTarget *GetI(PyObject *self);
-	static PyComTypeObject type;
+class PyIOleCommandTarget : public PyIUnknown {
+   public:
+    MAKE_PYCOM_CTOR(PyIOleCommandTarget);
+    static IOleCommandTarget *GetI(PyObject *self);
+    static PyComTypeObject type;
 
-	// The Python methods
-	static PyObject *QueryStatus(PyObject *self, PyObject *args);
-	static PyObject *Exec(PyObject *self, PyObject *args);
+    // The Python methods
+    static PyObject *QueryStatus(PyObject *self, PyObject *args);
+    static PyObject *Exec(PyObject *self, PyObject *args);
 
-protected:
-	PyIOleCommandTarget(IUnknown *pdisp);
-	~PyIOleCommandTarget();
+   protected:
+    PyIOleCommandTarget(IUnknown *pdisp);
+    ~PyIOleCommandTarget();
 };
 // ---------------------------------------------------
 //
 // Gateway Declaration
 
-class PyGOleCommandTarget : public PyGatewayBase, public IOleCommandTarget
-{
-protected:
-	PyGOleCommandTarget(PyObject *instance) : PyGatewayBase(instance) { ; }
-	PYGATEWAY_MAKE_SUPPORT2(PyGOleCommandTarget, IOleCommandTarget, IID_IOleCommandTarget, PyGatewayBase)
+class PyGOleCommandTarget : public PyGatewayBase, public IOleCommandTarget {
+   protected:
+    PyGOleCommandTarget(PyObject *instance) : PyGatewayBase(instance) { ; }
+    PYGATEWAY_MAKE_SUPPORT2(PyGOleCommandTarget, IOleCommandTarget, IID_IOleCommandTarget, PyGatewayBase)
 
+    // IOleCommandTarget
+    STDMETHOD(QueryStatus)(const GUID *pguidCmdGroup, ULONG cCmds, OLECMD prgCmds[], OLECMDTEXT *pCmdText);
 
-
-	// IOleCommandTarget
-	STDMETHOD(QueryStatus)(
-		const GUID * pguidCmdGroup,
-		ULONG cCmds,
-		OLECMD prgCmds[],
-		OLECMDTEXT * pCmdText);
-
-	STDMETHOD(Exec)(
-		const GUID * pguidCmdGroup,
-		DWORD nCmdID,
-		DWORD nCmdexecopt,
-		VARIANT * pvaIn,
-		VARIANT * pvaOut);
-
+    STDMETHOD(Exec)(const GUID *pguidCmdGroup, DWORD nCmdID, DWORD nCmdexecopt, VARIANT *pvaIn, VARIANT *pvaOut);
 };

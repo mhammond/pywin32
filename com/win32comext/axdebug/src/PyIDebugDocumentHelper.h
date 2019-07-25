@@ -4,123 +4,94 @@
 //
 // Interface Declaration
 
-class PyIDebugDocumentHelper : public PyIUnknown
-{
-public:
-	MAKE_PYCOM_CTOR_ERRORINFO(PyIDebugDocumentHelper, IID_IDebugDocumentHelper);
-	static IDebugDocumentHelper *GetI(PyObject *self);
-	static PyComTypeObject type;
+class PyIDebugDocumentHelper : public PyIUnknown {
+   public:
+    MAKE_PYCOM_CTOR_ERRORINFO(PyIDebugDocumentHelper, IID_IDebugDocumentHelper);
+    static IDebugDocumentHelper *GetI(PyObject *self);
+    static PyComTypeObject type;
 
-	// The Python methods
-	static PyObject *Init(PyObject *self, PyObject *args);
-	static PyObject *Attach(PyObject *self, PyObject *args);
-	static PyObject *Detach(PyObject *self, PyObject *args);
-	static PyObject *AddUnicodeText(PyObject *self, PyObject *args);
-	static PyObject *AddDBCSText(PyObject *self, PyObject *args);
-	static PyObject *SetDebugDocumentHost(PyObject *self, PyObject *args);
-	static PyObject *AddDeferredText(PyObject *self, PyObject *args);
-	static PyObject *DefineScriptBlock(PyObject *self, PyObject *args);
-	static PyObject *SetDefaultTextAttr(PyObject *self, PyObject *args);
-	static PyObject *SetTextAttributes(PyObject *self, PyObject *args);
-	static PyObject *SetLongName(PyObject *self, PyObject *args);
-	static PyObject *SetShortName(PyObject *self, PyObject *args);
-	static PyObject *SetDocumentAttr(PyObject *self, PyObject *args);
-	static PyObject *GetDebugApplicationNode(PyObject *self, PyObject *args);
-	static PyObject *GetScriptBlockInfo(PyObject *self, PyObject *args);
-	static PyObject *CreateDebugDocumentContext(PyObject *self, PyObject *args);
-	static PyObject *BringDocumentToTop(PyObject *self, PyObject *args);
-	static PyObject *BringDocumentContextToTop(PyObject *self, PyObject *args);
+    // The Python methods
+    static PyObject *Init(PyObject *self, PyObject *args);
+    static PyObject *Attach(PyObject *self, PyObject *args);
+    static PyObject *Detach(PyObject *self, PyObject *args);
+    static PyObject *AddUnicodeText(PyObject *self, PyObject *args);
+    static PyObject *AddDBCSText(PyObject *self, PyObject *args);
+    static PyObject *SetDebugDocumentHost(PyObject *self, PyObject *args);
+    static PyObject *AddDeferredText(PyObject *self, PyObject *args);
+    static PyObject *DefineScriptBlock(PyObject *self, PyObject *args);
+    static PyObject *SetDefaultTextAttr(PyObject *self, PyObject *args);
+    static PyObject *SetTextAttributes(PyObject *self, PyObject *args);
+    static PyObject *SetLongName(PyObject *self, PyObject *args);
+    static PyObject *SetShortName(PyObject *self, PyObject *args);
+    static PyObject *SetDocumentAttr(PyObject *self, PyObject *args);
+    static PyObject *GetDebugApplicationNode(PyObject *self, PyObject *args);
+    static PyObject *GetScriptBlockInfo(PyObject *self, PyObject *args);
+    static PyObject *CreateDebugDocumentContext(PyObject *self, PyObject *args);
+    static PyObject *BringDocumentToTop(PyObject *self, PyObject *args);
+    static PyObject *BringDocumentContextToTop(PyObject *self, PyObject *args);
 
-protected:
-	PyIDebugDocumentHelper(IUnknown *pdisp);
-	~PyIDebugDocumentHelper();
+   protected:
+    PyIDebugDocumentHelper(IUnknown *pdisp);
+    ~PyIDebugDocumentHelper();
 };
 // ---------------------------------------------------
 //
 // Gateway Declaration
 
-class PyGDebugDocumentHelper : public PyGatewayBase, public IDebugDocumentHelper
-{
-protected:
-	PyGDebugDocumentHelper(PyObject *instance) : PyGatewayBase(instance) { ; }
-	PYGATEWAY_MAKE_SUPPORT(PyGDebugDocumentHelper, IDebugDocumentHelper, IID_IDebugDocumentHelper)
+class PyGDebugDocumentHelper : public PyGatewayBase, public IDebugDocumentHelper {
+   protected:
+    PyGDebugDocumentHelper(PyObject *instance) : PyGatewayBase(instance) { ; }
+    PYGATEWAY_MAKE_SUPPORT(PyGDebugDocumentHelper, IDebugDocumentHelper, IID_IDebugDocumentHelper)
 
-	// IDebugDocumentHelper
-	STDMETHOD(Init)(
-		IDebugApplication __RPC_FAR * pda,
-		LPCOLESTR pszShortName,
-		LPCOLESTR pszLongName,
-		TEXT_DOC_ATTR docAttr);
+    // IDebugDocumentHelper
+    STDMETHOD(Init)
+    (IDebugApplication __RPC_FAR *pda, LPCOLESTR pszShortName, LPCOLESTR pszLongName, TEXT_DOC_ATTR docAttr);
 
-	STDMETHOD(Attach)(
-		IDebugDocumentHelper __RPC_FAR * pddhParent);
+    STDMETHOD(Attach)(IDebugDocumentHelper __RPC_FAR *pddhParent);
 
-	STDMETHOD(Detach)(
-		void);
+    STDMETHOD(Detach)(void);
 
-	STDMETHOD(AddUnicodeText)(
-		LPCOLESTR pszText);
+    STDMETHOD(AddUnicodeText)(LPCOLESTR pszText);
 
-	STDMETHOD(AddDBCSText)(
-		LPCSTR pszText);
+    STDMETHOD(AddDBCSText)(LPCSTR pszText);
 
-	STDMETHOD(SetDebugDocumentHost)(
-		IDebugDocumentHost __RPC_FAR * pddh);
+    STDMETHOD(SetDebugDocumentHost)(IDebugDocumentHost __RPC_FAR *pddh);
 
-	STDMETHOD(AddDeferredText)(
-		ULONG cChars,
-		DWORD dwTextStartCookie);
+    STDMETHOD(AddDeferredText)(ULONG cChars, DWORD dwTextStartCookie);
 
-	STDMETHOD(DefineScriptBlock)(
-		ULONG ulCharOffset,
-		ULONG cChars,
-		IActiveScript __RPC_FAR * pas,
-		BOOL fScriptlet,
+    STDMETHOD(DefineScriptBlock)
+    (ULONG ulCharOffset, ULONG cChars, IActiveScript __RPC_FAR *pas, BOOL fScriptlet,
 #ifdef _WIN64
-		DWORDLONG __RPC_FAR * pdwSourceContext);
+     DWORDLONG __RPC_FAR *pdwSourceContext);
 #else
-		DWORD __RPC_FAR * pdwSourceContext);
+     DWORD __RPC_FAR *pdwSourceContext);
 #endif
 
-	STDMETHOD(SetDefaultTextAttr)(
-		SOURCE_TEXT_ATTR staTextAttr);
+    STDMETHOD(SetDefaultTextAttr)(SOURCE_TEXT_ATTR staTextAttr);
 
-	STDMETHOD(SetTextAttributes)(
-		ULONG ulCharOffset,
-		ULONG cChars,
-		SOURCE_TEXT_ATTR __RPC_FAR * pstaTextAttr);
+    STDMETHOD(SetTextAttributes)(ULONG ulCharOffset, ULONG cChars, SOURCE_TEXT_ATTR __RPC_FAR *pstaTextAttr);
 
-	STDMETHOD(SetLongName)(
-		LPCOLESTR pszLongName);
+    STDMETHOD(SetLongName)(LPCOLESTR pszLongName);
 
-	STDMETHOD(SetShortName)(
-		LPCOLESTR pszShortName);
+    STDMETHOD(SetShortName)(LPCOLESTR pszShortName);
 
-	STDMETHOD(SetDocumentAttr)(
-		TEXT_DOC_ATTR pszAttributes);
+    STDMETHOD(SetDocumentAttr)(TEXT_DOC_ATTR pszAttributes);
 
-	STDMETHOD(GetDebugApplicationNode)(
-		IDebugApplicationNode __RPC_FAR *__RPC_FAR * ppdan);
+    STDMETHOD(GetDebugApplicationNode)(IDebugApplicationNode __RPC_FAR *__RPC_FAR *ppdan);
 
-	STDMETHOD(GetScriptBlockInfo)(
+    STDMETHOD(GetScriptBlockInfo)
+    (
 #ifdef _WIN64
-		DWORDLONG dwSourceContext,
+        DWORDLONG dwSourceContext,
 #else
-		DWORD dwSourceContext,
+        DWORD dwSourceContext,
 #endif
-		IActiveScript __RPC_FAR *__RPC_FAR * ppasd,
-		ULONG __RPC_FAR * piCharPos,
-		ULONG __RPC_FAR * pcChars);
+        IActiveScript __RPC_FAR *__RPC_FAR *ppasd, ULONG __RPC_FAR *piCharPos, ULONG __RPC_FAR *pcChars);
 
-	STDMETHOD(CreateDebugDocumentContext)(
-		ULONG iCharPos,
-		ULONG cChars,
-		IDebugDocumentContext __RPC_FAR *__RPC_FAR * ppddc);
+    STDMETHOD(CreateDebugDocumentContext)
+    (ULONG iCharPos, ULONG cChars, IDebugDocumentContext __RPC_FAR *__RPC_FAR *ppddc);
 
-	STDMETHOD(BringDocumentToTop)(
-		void);
+    STDMETHOD(BringDocumentToTop)(void);
 
-	STDMETHOD(BringDocumentContextToTop)(
-		IDebugDocumentContext __RPC_FAR * pddc);
-
+    STDMETHOD(BringDocumentContextToTop)(IDebugDocumentContext __RPC_FAR *pddc);
 };

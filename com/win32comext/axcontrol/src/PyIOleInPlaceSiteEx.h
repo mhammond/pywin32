@@ -4,85 +4,65 @@
 //
 // Interface Declaration
 
-class PyIOleInPlaceSiteEx : public PyIOleInPlaceSite
-{
-public:
-	MAKE_PYCOM_CTOR(PyIOleInPlaceSiteEx);
-	static IOleInPlaceSiteEx *GetI(PyObject *self);
-	static PyComTypeObject type;
+class PyIOleInPlaceSiteEx : public PyIOleInPlaceSite {
+   public:
+    MAKE_PYCOM_CTOR(PyIOleInPlaceSiteEx);
+    static IOleInPlaceSiteEx *GetI(PyObject *self);
+    static PyComTypeObject type;
 
-	// The Python methods
-	static PyObject *OnInPlaceActivateEx(PyObject *self, PyObject *args);
-	static PyObject *OnInPlaceDeactivateEx(PyObject *self, PyObject *args);
-	static PyObject *RequestUIActivate(PyObject *self, PyObject *args);
+    // The Python methods
+    static PyObject *OnInPlaceActivateEx(PyObject *self, PyObject *args);
+    static PyObject *OnInPlaceDeactivateEx(PyObject *self, PyObject *args);
+    static PyObject *RequestUIActivate(PyObject *self, PyObject *args);
 
-protected:
-	PyIOleInPlaceSiteEx(IUnknown *pdisp);
-	~PyIOleInPlaceSiteEx();
+   protected:
+    PyIOleInPlaceSiteEx(IUnknown *pdisp);
+    ~PyIOleInPlaceSiteEx();
 };
 // ---------------------------------------------------
 //
 // Gateway Declaration
 
-class PyGOleInPlaceSiteEx : public PyGOleInPlaceSite, public IOleInPlaceSiteEx
-{
-protected:
-	PyGOleInPlaceSiteEx(PyObject *instance) : PyGOleInPlaceSite(instance) { ; }
-	PYGATEWAY_MAKE_SUPPORT2(PyGOleInPlaceSiteEx, IOleInPlaceSiteEx, IID_IOleInPlaceSiteEx, PyGOleInPlaceSite)
+class PyGOleInPlaceSiteEx : public PyGOleInPlaceSite, public IOleInPlaceSiteEx {
+   protected:
+    PyGOleInPlaceSiteEx(PyObject *instance) : PyGOleInPlaceSite(instance) { ; }
+    PYGATEWAY_MAKE_SUPPORT2(PyGOleInPlaceSiteEx, IOleInPlaceSiteEx, IID_IOleInPlaceSiteEx, PyGOleInPlaceSite)
 
-	// IOleWindow
-	STDMETHOD(GetWindow)(
-		HWND __RPC_FAR * phwnd) {return PyGOleInPlaceSite::GetWindow(phwnd);}
+    // IOleWindow
+    STDMETHOD(GetWindow)(HWND __RPC_FAR *phwnd) { return PyGOleInPlaceSite::GetWindow(phwnd); }
 
-	STDMETHOD(ContextSensitiveHelp)(
-		BOOL fEnterMode) {return PyGOleInPlaceSite::ContextSensitiveHelp(fEnterMode);}
+    STDMETHOD(ContextSensitiveHelp)(BOOL fEnterMode) { return PyGOleInPlaceSite::ContextSensitiveHelp(fEnterMode); }
 
+    // IOleInPlaceSite
+    STDMETHOD(CanInPlaceActivate)(void) { return PyGOleInPlaceSite::CanInPlaceActivate(); }
 
-	// IOleInPlaceSite
-	STDMETHOD(CanInPlaceActivate)(
-		void) {return PyGOleInPlaceSite::CanInPlaceActivate();}
+    STDMETHOD(OnInPlaceActivate)(void) { return PyGOleInPlaceSite::OnInPlaceActivate(); }
 
-	STDMETHOD(OnInPlaceActivate)(
-		void) {return PyGOleInPlaceSite::OnInPlaceActivate();}
+    STDMETHOD(OnUIActivate)(void) { return PyGOleInPlaceSite::OnUIActivate(); }
 
-	STDMETHOD(OnUIActivate)(
-		void) {return PyGOleInPlaceSite::OnUIActivate();}
+    STDMETHOD(GetWindowContext)
+    (IOleInPlaceFrame __RPC_FAR *__RPC_FAR *ppFrame, IOleInPlaceUIWindow __RPC_FAR *__RPC_FAR *ppDoc,
+     LPRECT lprcPosRect, LPRECT lprcClipRect, LPOLEINPLACEFRAMEINFO lpFrameInfo)
+    {
+        return PyGOleInPlaceSite::GetWindowContext(ppFrame, ppDoc, lprcPosRect, lprcClipRect, lpFrameInfo);
+    }
 
-	STDMETHOD(GetWindowContext)(
-		IOleInPlaceFrame __RPC_FAR *__RPC_FAR * ppFrame,
-		IOleInPlaceUIWindow __RPC_FAR *__RPC_FAR * ppDoc,
-		LPRECT lprcPosRect,
-		LPRECT lprcClipRect,
-		LPOLEINPLACEFRAMEINFO lpFrameInfo)
-		{return PyGOleInPlaceSite::GetWindowContext(ppFrame, ppDoc, lprcPosRect, lprcClipRect, lpFrameInfo);}
+    STDMETHOD(Scroll)(SIZE scrollExtant) { return PyGOleInPlaceSite::Scroll(scrollExtant); }
 
-	STDMETHOD(Scroll)(
-		SIZE scrollExtant) {return PyGOleInPlaceSite::Scroll(scrollExtant);}
+    STDMETHOD(OnUIDeactivate)(BOOL fUndoable) { return PyGOleInPlaceSite::OnUIDeactivate(fUndoable); }
 
-	STDMETHOD(OnUIDeactivate)(
-		BOOL fUndoable) {return PyGOleInPlaceSite::OnUIDeactivate(fUndoable);}
+    STDMETHOD(OnInPlaceDeactivate)(void) { return PyGOleInPlaceSite::OnInPlaceDeactivate(); }
 
-	STDMETHOD(OnInPlaceDeactivate)(
-		void) {return PyGOleInPlaceSite::OnInPlaceDeactivate();}
+    STDMETHOD(DiscardUndoState)(void) { return PyGOleInPlaceSite::DiscardUndoState(); }
 
-	STDMETHOD(DiscardUndoState)(
-		void) {return PyGOleInPlaceSite::DiscardUndoState();}
+    STDMETHOD(DeactivateAndUndo)(void) { return PyGOleInPlaceSite::DeactivateAndUndo(); }
 
-	STDMETHOD(DeactivateAndUndo)(
-		void) {return PyGOleInPlaceSite::DeactivateAndUndo();}
+    STDMETHOD(OnPosRectChange)(LPCRECT lprcPosRect) { return PyGOleInPlaceSite::OnPosRectChange(lprcPosRect); }
 
-	STDMETHOD(OnPosRectChange)(
-		LPCRECT lprcPosRect) {return PyGOleInPlaceSite::OnPosRectChange(lprcPosRect);}
+    // IOleInPlaceSiteEx
+    STDMETHOD(OnInPlaceActivateEx)(BOOL __RPC_FAR *pfNoRedraw, DWORD dwFlags);
 
-	// IOleInPlaceSiteEx
-	STDMETHOD(OnInPlaceActivateEx)(
-		BOOL __RPC_FAR * pfNoRedraw,
-		DWORD dwFlags);
+    STDMETHOD(OnInPlaceDeactivateEx)(BOOL fNoRedraw);
 
-	STDMETHOD(OnInPlaceDeactivateEx)(
-		BOOL fNoRedraw);
-
-	STDMETHOD(RequestUIActivate)(
-		void);
-
+    STDMETHOD(RequestUIActivate)(void);
 };

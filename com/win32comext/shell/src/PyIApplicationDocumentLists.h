@@ -7,20 +7,19 @@
 //
 // Interface Declaration
 
-class PyIApplicationDocumentLists : public PyIUnknown
-{
-public:
-	MAKE_PYCOM_CTOR(PyIApplicationDocumentLists);
-	static IApplicationDocumentLists *GetI(PyObject *self);
-	static PyComTypeObject type;
+class PyIApplicationDocumentLists : public PyIUnknown {
+   public:
+    MAKE_PYCOM_CTOR(PyIApplicationDocumentLists);
+    static IApplicationDocumentLists *GetI(PyObject *self);
+    static PyComTypeObject type;
 
-	// The Python methods
-	static PyObject *SetAppID(PyObject *self, PyObject *args);
-	static PyObject *GetList(PyObject *self, PyObject *args);
+    // The Python methods
+    static PyObject *SetAppID(PyObject *self, PyObject *args);
+    static PyObject *GetList(PyObject *self, PyObject *args);
 
-protected:
-	PyIApplicationDocumentLists(IUnknown *pdisp);
-	~PyIApplicationDocumentLists();
+   protected:
+    PyIApplicationDocumentLists(IUnknown *pdisp);
+    ~PyIApplicationDocumentLists();
 };
 
-#endif // WINVER
+#endif  // WINVER

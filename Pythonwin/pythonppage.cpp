@@ -23,72 +23,67 @@ static char BASED_CODE THIS_FILE[] = __FILE__;
 
 IMPLEMENT_DYNAMIC(CPythonPropertyPage, CPropertyPage)
 
-
-CPythonPropertyPage::CPythonPropertyPage(UINT id, UINT caption) : 
-	CPythonPropertyPageFramework<CPropertyPage>(id, caption)
+CPythonPropertyPage::CPythonPropertyPage(UINT id, UINT caption)
+    : CPythonPropertyPageFramework<CPropertyPage>(id, caption)
 {
-	CommonConstruct();
+    CommonConstruct();
 }
 
-CPythonPropertyPage::CPythonPropertyPage(LPCTSTR id, UINT caption) : 
-	CPythonPropertyPageFramework<CPropertyPage>(id, caption)
+CPythonPropertyPage::CPythonPropertyPage(LPCTSTR id, UINT caption)
+    : CPythonPropertyPageFramework<CPropertyPage>(id, caption)
 {
-	CommonConstruct();
+    CommonConstruct();
 }
 
 void CPythonPropertyPage::CommonConstruct()
 {
-//	hTemplate = 0;
-	hSaved = 0;
-	//{{AFX_DATA_INIT(CPythonPropertyPage)
-		// NOTE: the ClassWizard will add member initialization here
-	//}}AFX_DATA_INIT
+    //	hTemplate = 0;
+    hSaved = 0;
+    //{{AFX_DATA_INIT(CPythonPropertyPage)
+    // NOTE: the ClassWizard will add member initialization here
+    //}}AFX_DATA_INIT
 }
 
 CPythonPropertyPage::~CPythonPropertyPage()
 {
-	if (m_psp.pResource)
-	{
-		GlobalUnlock(hSaved);
-		GlobalFree(hSaved);
-	}
+    if (m_psp.pResource) {
+        GlobalUnlock(hSaved);
+        GlobalFree(hSaved);
+    }
 }
 
-void CPythonPropertyPage::PostNcDestroy()
-{
-}
+void CPythonPropertyPage::PostNcDestroy() {}
 
 BOOL CPythonPropertyPage::SetTemplate(HGLOBAL tpl)
 {
-	hSaved = tpl;
-//	if (m_psp.pResource!=NULL) {
-//		PyErr_SetString(ui_module_error, "The template can only be assigned once");
-//		return FALSE;
-//	}
-	m_psp.dwFlags |= PSP_DLGINDIRECT;
+    hSaved = tpl;
+    //	if (m_psp.pResource!=NULL) {
+    //		PyErr_SetString(ui_module_error, "The template can only be assigned once");
+    //		return FALSE;
+    //	}
+    m_psp.dwFlags |= PSP_DLGINDIRECT;
 
-	m_psp.pResource = (const DLGTEMPLATE *)GlobalLock(tpl);
+    m_psp.pResource = (const DLGTEMPLATE *)GlobalLock(tpl);
 
-	// Set the caption if not already set
-	if (m_strCaption.GetLength() == 0)
-	{
-		// use a LPWSTR because all resource are UNICODE
-		LPCWSTR p = (LPCWSTR)((BYTE*)m_psp.pResource + sizeof(DLGTEMPLATE));
-		// skip menu stuff
-		p+= (*p == 0xffff) ? 2 : wcslen(p)+1;
-		// skip window class stuff
-		p+= (*p == 0xffff) ? 2 : wcslen(p)+1;
-		// we're now at the caption
-		m_strCaption = p;
-	}
-	return TRUE; //CreatePage();
+    // Set the caption if not already set
+    if (m_strCaption.GetLength() == 0) {
+        // use a LPWSTR because all resource are UNICODE
+        LPCWSTR p = (LPCWSTR)((BYTE *)m_psp.pResource + sizeof(DLGTEMPLATE));
+        // skip menu stuff
+        p += (*p == 0xffff) ? 2 : wcslen(p) + 1;
+        // skip window class stuff
+        p += (*p == 0xffff) ? 2 : wcslen(p) + 1;
+        // we're now at the caption
+        m_strCaption = p;
+    }
+    return TRUE;  // CreatePage();
 }
 
 #ifdef _DEBUG
-void CPythonPropertyPage::Dump( CDumpContext &dc ) const
+void CPythonPropertyPage::Dump(CDumpContext &dc) const
 {
-	CPropertyPage::Dump(dc);
-	DumpAssocPyObject(dc, (void *)this);
+    CPropertyPage::Dump(dc);
+    DumpAssocPyObject(dc, (void *)this);
 }
 #endif
 

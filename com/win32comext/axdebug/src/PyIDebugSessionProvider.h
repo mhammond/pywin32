@@ -4,32 +4,28 @@
 //
 // Interface Declaration
 
-class PyIDebugSessionProvider : public PyIUnknown
-{
-public:
-	MAKE_PYCOM_CTOR(PyIDebugSessionProvider);
-	static IDebugSessionProvider *GetI(PyObject *self);
-	static PyComTypeObject type;
+class PyIDebugSessionProvider : public PyIUnknown {
+   public:
+    MAKE_PYCOM_CTOR(PyIDebugSessionProvider);
+    static IDebugSessionProvider *GetI(PyObject *self);
+    static PyComTypeObject type;
 
-	// The Python methods
-	static PyObject *StartDebugSession(PyObject *self, PyObject *args);
+    // The Python methods
+    static PyObject *StartDebugSession(PyObject *self, PyObject *args);
 
-protected:
-	PyIDebugSessionProvider(IUnknown *pdisp);
-	~PyIDebugSessionProvider();
+   protected:
+    PyIDebugSessionProvider(IUnknown *pdisp);
+    ~PyIDebugSessionProvider();
 };
 // ---------------------------------------------------
 //
 // Gateway Declaration
 
-class PyGDebugSessionProvider : public PyGatewayBase, public IDebugSessionProvider
-{
-protected:
-	PyGDebugSessionProvider(PyObject *instance) : PyGatewayBase(instance) { ; }
-	PYGATEWAY_MAKE_SUPPORT(PyGDebugSessionProvider, IDebugSessionProvider, IID_IDebugSessionProvider)
+class PyGDebugSessionProvider : public PyGatewayBase, public IDebugSessionProvider {
+   protected:
+    PyGDebugSessionProvider(PyObject *instance) : PyGatewayBase(instance) { ; }
+    PYGATEWAY_MAKE_SUPPORT(PyGDebugSessionProvider, IDebugSessionProvider, IID_IDebugSessionProvider)
 
-	// IDebugSessionProvider
-	STDMETHOD(StartDebugSession)(
-		IRemoteDebugApplication __RPC_FAR * pda);
-
+    // IDebugSessionProvider
+    STDMETHOD(StartDebugSession)(IRemoteDebugApplication __RPC_FAR *pda);
 };

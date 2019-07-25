@@ -11,261 +11,249 @@
 //
 // Interface Implementation
 
-PyIEnumRemoteDebugApplications::PyIEnumRemoteDebugApplications(IUnknown *pdisp):
-	PyIUnknown(pdisp)
-{
-	ob_type = &type;
-}
+PyIEnumRemoteDebugApplications::PyIEnumRemoteDebugApplications(IUnknown *pdisp) : PyIUnknown(pdisp) { ob_type = &type; }
 
-PyIEnumRemoteDebugApplications::~PyIEnumRemoteDebugApplications()
-{
-}
+PyIEnumRemoteDebugApplications::~PyIEnumRemoteDebugApplications() {}
 
 /* static */ IEnumRemoteDebugApplications *PyIEnumRemoteDebugApplications::GetI(PyObject *self)
 {
-	return (IEnumRemoteDebugApplications *)PyIUnknown::GetI(self);
+    return (IEnumRemoteDebugApplications *)PyIUnknown::GetI(self);
 }
 
-// @pymethod object|PyIEnumRemoteDebugApplications|Next|Retrieves a specified number of items in the enumeration sequence.
+// @pymethod object|PyIEnumRemoteDebugApplications|Next|Retrieves a specified number of items in the enumeration
+// sequence.
 PyObject *PyIEnumRemoteDebugApplications::Next(PyObject *self, PyObject *args)
 {
-	long celt = 1;
-	// @pyparm int|num|1|Number of items to retrieve.
-	if ( !PyArg_ParseTuple(args, "|l:Next", &celt) )
-		return NULL;
+    long celt = 1;
+    // @pyparm int|num|1|Number of items to retrieve.
+    if (!PyArg_ParseTuple(args, "|l:Next", &celt))
+        return NULL;
 
-	IEnumRemoteDebugApplications *pIERemoteDebugApplications = GetI(self);
-	if ( pIERemoteDebugApplications == NULL )
-		return NULL;
+    IEnumRemoteDebugApplications *pIERemoteDebugApplications = GetI(self);
+    if (pIERemoteDebugApplications == NULL)
+        return NULL;
 
-	IRemoteDebugApplication **rgVar = new IRemoteDebugApplication *[celt];
-	if ( rgVar == NULL ) {
-		PyErr_SetString(PyExc_MemoryError, "allocating result IRemoteDebugApplications");
-		return NULL;
-	}
+    IRemoteDebugApplication **rgVar = new IRemoteDebugApplication *[celt];
+    if (rgVar == NULL) {
+        PyErr_SetString(PyExc_MemoryError, "allocating result IRemoteDebugApplications");
+        return NULL;
+    }
 
-	int i;
-/*	for ( i = celt; i--; )
-		// *** possibly init each structure element???
-*/
+    int i;
+    /*	for ( i = celt; i--; )
+            // *** possibly init each structure element???
+    */
 
-	ULONG celtFetched = 0;
-	PY_INTERFACE_PRECALL;
-	HRESULT hr = pIERemoteDebugApplications->Next(celt, rgVar, &celtFetched);
-	PY_INTERFACE_POSTCALL;
-	if (  HRESULT_CODE(hr) != ERROR_NO_MORE_ITEMS && FAILED(hr) )
-	{
-		delete [] rgVar;
-		return SetPythonCOMError(self,hr);
-	}
+    ULONG celtFetched = 0;
+    PY_INTERFACE_PRECALL;
+    HRESULT hr = pIERemoteDebugApplications->Next(celt, rgVar, &celtFetched);
+    PY_INTERFACE_POSTCALL;
+    if (HRESULT_CODE(hr) != ERROR_NO_MORE_ITEMS && FAILED(hr)) {
+        delete[] rgVar;
+        return SetPythonCOMError(self, hr);
+    }
 
-	PyObject *result = PyTuple_New(celtFetched);
-	if ( result != NULL )
-	{
-		for ( i = celtFetched; i--; )
-		{
-
-			PyObject *ob = PyCom_PyObjectFromIUnknown(rgVar[i], IID_IRemoteDebugApplication, FALSE);
-			rgVar[i] = NULL;
-			if ( ob == NULL )
-			{
-				Py_DECREF(result);
-				result = NULL;
-				break;
-			}
-			PyTuple_SET_ITEM(result, i, ob);
-		}
-	}
-	for ( i = celtFetched; i--; ) PYCOM_RELEASE(rgVar[i]);
-	delete [] rgVar;
-	return result;
+    PyObject *result = PyTuple_New(celtFetched);
+    if (result != NULL) {
+        for (i = celtFetched; i--;) {
+            PyObject *ob = PyCom_PyObjectFromIUnknown(rgVar[i], IID_IRemoteDebugApplication, FALSE);
+            rgVar[i] = NULL;
+            if (ob == NULL) {
+                Py_DECREF(result);
+                result = NULL;
+                break;
+            }
+            PyTuple_SET_ITEM(result, i, ob);
+        }
+    }
+    for (i = celtFetched; i--;) PYCOM_RELEASE(rgVar[i]);
+    delete[] rgVar;
+    return result;
 }
 
 // @pymethod |PyIEnumRemoteDebugApplications|Skip|Skips over the next specified elementes.
 PyObject *PyIEnumRemoteDebugApplications::Skip(PyObject *self, PyObject *args)
 {
-	long celt;
-	if ( !PyArg_ParseTuple(args, "l:Skip", &celt) )
-		return NULL;
+    long celt;
+    if (!PyArg_ParseTuple(args, "l:Skip", &celt))
+        return NULL;
 
-	IEnumRemoteDebugApplications *pIERemoteDebugApplications = GetI(self);
-	if ( pIERemoteDebugApplications == NULL )
-		return NULL;
+    IEnumRemoteDebugApplications *pIERemoteDebugApplications = GetI(self);
+    if (pIERemoteDebugApplications == NULL)
+        return NULL;
 
-	PY_INTERFACE_PRECALL;
-	HRESULT hr = pIERemoteDebugApplications->Skip(celt);
-	PY_INTERFACE_POSTCALL;
-	if ( FAILED(hr) )
-		return SetPythonCOMError(self,hr);
+    PY_INTERFACE_PRECALL;
+    HRESULT hr = pIERemoteDebugApplications->Skip(celt);
+    PY_INTERFACE_POSTCALL;
+    if (FAILED(hr))
+        return SetPythonCOMError(self, hr);
 
-	Py_INCREF(Py_None);
-	return Py_None;
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @pymethod |PyIEnumRemoteDebugApplications|Reset|Resets the enumeration sequence to the beginning.
 PyObject *PyIEnumRemoteDebugApplications::Reset(PyObject *self, PyObject *args)
 {
-	if ( !PyArg_ParseTuple(args, ":Reset") )
-		return NULL;
+    if (!PyArg_ParseTuple(args, ":Reset"))
+        return NULL;
 
-	IEnumRemoteDebugApplications *pIERemoteDebugApplications = GetI(self);
-	if ( pIERemoteDebugApplications == NULL )
-		return NULL;
+    IEnumRemoteDebugApplications *pIERemoteDebugApplications = GetI(self);
+    if (pIERemoteDebugApplications == NULL)
+        return NULL;
 
-	PY_INTERFACE_PRECALL;
-	HRESULT hr = pIERemoteDebugApplications->Reset();
-	PY_INTERFACE_POSTCALL;
-	if ( FAILED(hr) )
-		return SetPythonCOMError(self,hr);
+    PY_INTERFACE_PRECALL;
+    HRESULT hr = pIERemoteDebugApplications->Reset();
+    PY_INTERFACE_POSTCALL;
+    if (FAILED(hr))
+        return SetPythonCOMError(self, hr);
 
-	Py_INCREF(Py_None);
-	return Py_None;
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
-// @pymethod <o PyIEnumRemoteDebugApplications>|PyIEnumRemoteDebugApplications|Clone|Creates another enumerator that contains the same enumeration state as the current one
+// @pymethod <o PyIEnumRemoteDebugApplications>|PyIEnumRemoteDebugApplications|Clone|Creates another enumerator that
+// contains the same enumeration state as the current one
 PyObject *PyIEnumRemoteDebugApplications::Clone(PyObject *self, PyObject *args)
 {
-	if ( !PyArg_ParseTuple(args, ":Clone") )
-		return NULL;
+    if (!PyArg_ParseTuple(args, ":Clone"))
+        return NULL;
 
-	IEnumRemoteDebugApplications *pIERemoteDebugApplications = GetI(self);
-	if ( pIERemoteDebugApplications == NULL )
-		return NULL;
+    IEnumRemoteDebugApplications *pIERemoteDebugApplications = GetI(self);
+    if (pIERemoteDebugApplications == NULL)
+        return NULL;
 
-	IEnumRemoteDebugApplications *pClone;
-	PY_INTERFACE_PRECALL;
-	HRESULT hr = pIERemoteDebugApplications->Clone(&pClone);
-	PY_INTERFACE_POSTCALL;
-	if ( FAILED(hr) )
-		return SetPythonCOMError(self,hr);
+    IEnumRemoteDebugApplications *pClone;
+    PY_INTERFACE_PRECALL;
+    HRESULT hr = pIERemoteDebugApplications->Clone(&pClone);
+    PY_INTERFACE_POSTCALL;
+    if (FAILED(hr))
+        return SetPythonCOMError(self, hr);
 
-	return PyCom_PyObjectFromIUnknown(pClone, IID_IEnumRemoteDebugApplications, FALSE);
+    return PyCom_PyObjectFromIUnknown(pClone, IID_IEnumRemoteDebugApplications, FALSE);
 }
 
 // @object PyIEnumRemoteDebugApplications|A Python interface to IEnumRemoteDebugApplications
-static struct PyMethodDef PyIEnumRemoteDebugApplications_methods[] =
-{
-	{ "Next", PyIEnumRemoteDebugApplications::Next, 1 },    // @pymeth Next|Retrieves a specified number of items in the enumeration sequence.
-	{ "Skip", PyIEnumRemoteDebugApplications::Skip, 1 },	// @pymeth Skip|Skips over the next specified elementes.
-	{ "Reset", PyIEnumRemoteDebugApplications::Reset, 1 },	// @pymeth Reset|Resets the enumeration sequence to the beginning.
-	{ "Clone", PyIEnumRemoteDebugApplications::Clone, 1 },	// @pymeth Clone|Creates another enumerator that contains the same enumeration state as the current one.
-	{ NULL }
-};
+static struct PyMethodDef PyIEnumRemoteDebugApplications_methods[] = {
+    {"Next", PyIEnumRemoteDebugApplications::Next,
+     1},  // @pymeth Next|Retrieves a specified number of items in the enumeration sequence.
+    {"Skip", PyIEnumRemoteDebugApplications::Skip, 1},  // @pymeth Skip|Skips over the next specified elementes.
+    {"Reset", PyIEnumRemoteDebugApplications::Reset,
+     1},  // @pymeth Reset|Resets the enumeration sequence to the beginning.
+    {"Clone", PyIEnumRemoteDebugApplications::Clone,
+     1},  // @pymeth Clone|Creates another enumerator that contains the same enumeration state as the current one.
+    {NULL}};
 
-PyComTypeObject PyIEnumRemoteDebugApplications::type("PyIEnumRemoteDebugApplications",
-		&PyIUnknown::type,
-		sizeof(PyIEnumRemoteDebugApplications),
-		PyIEnumRemoteDebugApplications_methods,
-		GET_PYCOM_CTOR(PyIEnumRemoteDebugApplications));
+PyComTypeObject PyIEnumRemoteDebugApplications::type("PyIEnumRemoteDebugApplications", &PyIUnknown::type,
+                                                     sizeof(PyIEnumRemoteDebugApplications),
+                                                     PyIEnumRemoteDebugApplications_methods,
+                                                     GET_PYCOM_CTOR(PyIEnumRemoteDebugApplications));
 
 // ---------------------------------------------------
 //
 // Gateway Implementation
 
-STDMETHODIMP PyGEnumRemoteDebugApplications::Next( 
-            /* [in] */ ULONG celt,
-            /* [length_is][size_is][out] */ IRemoteDebugApplication __RPC_FAR * __RPC_FAR *rgVar,
-            /* [out] */ ULONG __RPC_FAR *pCeltFetched)
+STDMETHODIMP PyGEnumRemoteDebugApplications::Next(
+    /* [in] */ ULONG celt,
+    /* [length_is][size_is][out] */ IRemoteDebugApplication __RPC_FAR *__RPC_FAR *rgVar,
+    /* [out] */ ULONG __RPC_FAR *pCeltFetched)
 {
-	PY_GATEWAY_METHOD;
-	PyObject *result;
-	Py_ssize_t len;
-	HRESULT hr = InvokeViaPolicy("Next", &result, "i", celt);
-	if ( FAILED(hr) )
-		return hr;
+    PY_GATEWAY_METHOD;
+    PyObject *result;
+    Py_ssize_t len;
+    HRESULT hr = InvokeViaPolicy("Next", &result, "i", celt);
+    if (FAILED(hr))
+        return hr;
 
-	if ( !PySequence_Check(result) )
-		goto error;
-	len = PyObject_Length(result);
-	if ( len == -1 )
-		goto error;
-	if ( len > (Py_ssize_t)celt)
-		len = celt;
+    if (!PySequence_Check(result))
+        goto error;
+    len = PyObject_Length(result);
+    if (len == -1)
+        goto error;
+    if (len > (Py_ssize_t)celt)
+        len = celt;
 
-	if ( pCeltFetched )
-		*pCeltFetched = PyWin_SAFE_DOWNCAST(len, Py_ssize_t, ULONG);
+    if (pCeltFetched)
+        *pCeltFetched = PyWin_SAFE_DOWNCAST(len, Py_ssize_t, ULONG);
 
-	Py_ssize_t i;
-	for ( i = 0; i < len; ++i )
-	{
-		PyObject *ob = PySequence_GetItem(result, i);
-		if ( ob == NULL )
-			goto error;
+    Py_ssize_t i;
+    for (i = 0; i < len; ++i) {
+        PyObject *ob = PySequence_GetItem(result, i);
+        if (ob == NULL)
+            goto error;
 
-		if (!PyCom_InterfaceFromPyInstanceOrObject(ob, IID_IRemoteDebugApplication, (void **)&rgVar[i], FALSE /* bNoneOK */))
-		{
-			Py_DECREF(ob);
-			Py_DECREF(result);
-			return PyCom_SetCOMErrorFromPyException(IID_IEnumRemoteDebugApplications);
-		}
-		Py_DECREF(ob);
-	}
+        if (!PyCom_InterfaceFromPyInstanceOrObject(ob, IID_IRemoteDebugApplication, (void **)&rgVar[i],
+                                                   FALSE /* bNoneOK */)) {
+            Py_DECREF(ob);
+            Py_DECREF(result);
+            return PyCom_SetCOMErrorFromPyException(IID_IEnumRemoteDebugApplications);
+        }
+        Py_DECREF(ob);
+    }
 
-	Py_DECREF(result);
+    Py_DECREF(result);
 
-	return len < (Py_ssize_t)celt ? S_FALSE : S_OK;
+    return len < (Py_ssize_t)celt ? S_FALSE : S_OK;
 
-  error:
-	PyErr_Clear();	// just in case
-	Py_DECREF(result);
-	return PyCom_SetCOMErrorFromSimple(E_FAIL, IID_IEnumRemoteDebugApplications, "Next() did not return a sequence of objects");
+error:
+    PyErr_Clear();  // just in case
+    Py_DECREF(result);
+    return PyCom_SetCOMErrorFromSimple(E_FAIL, IID_IEnumRemoteDebugApplications,
+                                       "Next() did not return a sequence of objects");
 }
 
-STDMETHODIMP PyGEnumRemoteDebugApplications::Skip( 
-            /* [in] */ ULONG celt)
+STDMETHODIMP PyGEnumRemoteDebugApplications::Skip(
+    /* [in] */ ULONG celt)
 {
-	PY_GATEWAY_METHOD;
-	return InvokeViaPolicy("Skip", NULL, "i", celt);
+    PY_GATEWAY_METHOD;
+    return InvokeViaPolicy("Skip", NULL, "i", celt);
 }
 
 STDMETHODIMP PyGEnumRemoteDebugApplications::Reset(void)
 {
-	PY_GATEWAY_METHOD;
-	return InvokeViaPolicy("Reset");
+    PY_GATEWAY_METHOD;
+    return InvokeViaPolicy("Reset");
 }
 
-STDMETHODIMP PyGEnumRemoteDebugApplications::Clone( 
-            /* [out] */ IEnumRemoteDebugApplications __RPC_FAR *__RPC_FAR *ppEnum)
+STDMETHODIMP PyGEnumRemoteDebugApplications::Clone(
+    /* [out] */ IEnumRemoteDebugApplications __RPC_FAR *__RPC_FAR *ppEnum)
 {
-	PY_GATEWAY_METHOD;
-	PyObject * result;
-	HRESULT hr = InvokeViaPolicy("Clone", &result);
-	if ( FAILED(hr) )
-		return hr;
+    PY_GATEWAY_METHOD;
+    PyObject *result;
+    HRESULT hr = InvokeViaPolicy("Clone", &result);
+    if (FAILED(hr))
+        return hr;
 
-	/*
-	** Make sure we have the right kind of object: we should have some kind
-	** of IUnknown subclass wrapped into a PyIUnknown instance.
-	*/
-	if ( !PyIBase::is_object(result, &PyIUnknown::type) )
-	{
-		/* the wrong kind of object was returned to us */
-		Py_DECREF(result);
-		return PyCom_SetCOMErrorFromSimple(E_FAIL, IID_IEnumRemoteDebugApplications);
-	}
+    /*
+    ** Make sure we have the right kind of object: we should have some kind
+    ** of IUnknown subclass wrapped into a PyIUnknown instance.
+    */
+    if (!PyIBase::is_object(result, &PyIUnknown::type)) {
+        /* the wrong kind of object was returned to us */
+        Py_DECREF(result);
+        return PyCom_SetCOMErrorFromSimple(E_FAIL, IID_IEnumRemoteDebugApplications);
+    }
 
-	/*
-	** Get the IUnknown out of the thing. note that the Python ob maintains
-	** a reference, so we don't have to explicitly AddRef() here.
-	*/
-	IUnknown *punk = ((PyIUnknown *)result)->m_obj;
-	if ( !punk )
-	{
-		/* damn. the object was released. */
-		Py_DECREF(result);
-		return PyCom_SetCOMErrorFromSimple(E_FAIL, IID_IEnumRemoteDebugApplications);
-	}
+    /*
+    ** Get the IUnknown out of the thing. note that the Python ob maintains
+    ** a reference, so we don't have to explicitly AddRef() here.
+    */
+    IUnknown *punk = ((PyIUnknown *)result)->m_obj;
+    if (!punk) {
+        /* damn. the object was released. */
+        Py_DECREF(result);
+        return PyCom_SetCOMErrorFromSimple(E_FAIL, IID_IEnumRemoteDebugApplications);
+    }
 
-	/*
-	** Get the interface we want. note it is returned with a refcount.
-	** This QI is actually going to instantiate a PyGEnumRemoteDebugApplications.
-	*/
-	Py_BEGIN_ALLOW_THREADS
-	hr = punk->QueryInterface(IID_IEnumRemoteDebugApplications, (LPVOID *)ppEnum);
-	Py_END_ALLOW_THREADS
+    /*
+    ** Get the interface we want. note it is returned with a refcount.
+    ** This QI is actually going to instantiate a PyGEnumRemoteDebugApplications.
+    */
+    Py_BEGIN_ALLOW_THREADS hr = punk->QueryInterface(IID_IEnumRemoteDebugApplications, (LPVOID *)ppEnum);
+    Py_END_ALLOW_THREADS
 
-	/* done with the result; this DECREF is also for <punk> */
-	Py_DECREF(result);
+        /* done with the result; this DECREF is also for <punk> */
+        Py_DECREF(result);
 
-	return PyCom_SetCOMErrorFromSimple(hr, IID_IEnumRemoteDebugApplications);
+    return PyCom_SetCOMErrorFromSimple(hr, IID_IEnumRemoteDebugApplications);
 }

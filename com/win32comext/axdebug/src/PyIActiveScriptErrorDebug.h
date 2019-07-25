@@ -8,43 +8,39 @@
 #include "../../axscript/src/PyGActiveScriptError.h"
 #include "../../axscript/src/PyIActiveScriptError.h"
 
-class PyIActiveScriptErrorDebug : public PyIActiveScriptError
-{
-public:
-	MAKE_PYCOM_CTOR(PyIActiveScriptErrorDebug);
-	static IActiveScriptErrorDebug *GetI(PyObject *self);
-	static PyComTypeObject type;
+class PyIActiveScriptErrorDebug : public PyIActiveScriptError {
+   public:
+    MAKE_PYCOM_CTOR(PyIActiveScriptErrorDebug);
+    static IActiveScriptErrorDebug *GetI(PyObject *self);
+    static PyComTypeObject type;
 
-	// The Python methods
-	static PyObject *GetDocumentContext(PyObject *self, PyObject *args);
-	static PyObject *GetStackFrame(PyObject *self, PyObject *args);
+    // The Python methods
+    static PyObject *GetDocumentContext(PyObject *self, PyObject *args);
+    static PyObject *GetStackFrame(PyObject *self, PyObject *args);
 
-protected:
-	PyIActiveScriptErrorDebug(IUnknown *pdisp);
-	~PyIActiveScriptErrorDebug();
+   protected:
+    PyIActiveScriptErrorDebug(IUnknown *pdisp);
+    ~PyIActiveScriptErrorDebug();
 };
 // ---------------------------------------------------
 //
 // Gateway Declaration
 
-class PyGActiveScriptErrorDebug : public PyGActiveScriptError, public IActiveScriptErrorDebug
-{
-protected:
-	PyGActiveScriptErrorDebug(PyObject *instance) : PyGActiveScriptError(instance) { ; }
-	PYGATEWAY_MAKE_SUPPORT(PyGActiveScriptErrorDebug, IActiveScriptErrorDebug, IID_IActiveScriptErrorDebug)
+class PyGActiveScriptErrorDebug : public PyGActiveScriptError, public IActiveScriptErrorDebug {
+   protected:
+    PyGActiveScriptErrorDebug(PyObject *instance) : PyGActiveScriptError(instance) { ; }
+    PYGATEWAY_MAKE_SUPPORT(PyGActiveScriptErrorDebug, IActiveScriptErrorDebug, IID_IActiveScriptErrorDebug)
 
-	// IActiveScriptError
-	STDMETHOD(GetExceptionInfo)(EXCEPINFO __RPC_FAR *pexcepinfo);
+    // IActiveScriptError
+    STDMETHOD(GetExceptionInfo)(EXCEPINFO __RPC_FAR *pexcepinfo);
 
-	STDMETHOD(GetSourcePosition)(DWORD __RPC_FAR *pdwSourceContext, ULONG __RPC_FAR *pulLineNumber, LONG __RPC_FAR *plCharacterPosition);
-		
-	STDMETHOD(GetSourceLineText)(BSTR __RPC_FAR *pbstrSourceLine);
+    STDMETHOD(GetSourcePosition)
+    (DWORD __RPC_FAR *pdwSourceContext, ULONG __RPC_FAR *pulLineNumber, LONG __RPC_FAR *plCharacterPosition);
 
-	// IActiveScriptErrorDebug
-	STDMETHOD(GetDocumentContext)(
-		IDebugDocumentContext __RPC_FAR *__RPC_FAR * ppssc);
+    STDMETHOD(GetSourceLineText)(BSTR __RPC_FAR *pbstrSourceLine);
 
-	STDMETHOD(GetStackFrame)(
-		IDebugStackFrame __RPC_FAR *__RPC_FAR * ppdsf);
+    // IActiveScriptErrorDebug
+    STDMETHOD(GetDocumentContext)(IDebugDocumentContext __RPC_FAR *__RPC_FAR *ppssc);
 
+    STDMETHOD(GetStackFrame)(IDebugStackFrame __RPC_FAR *__RPC_FAR *ppdsf);
 };

@@ -4,26 +4,18 @@
 //
 // Gateway Declaration
 
-# include "PythonCOMServer.h"
+#include "PythonCOMServer.h"
 
-class PyGBackgroundCopyCallback : public PyGatewayBase, public IBackgroundCopyCallback
-{
-protected:
-	PyGBackgroundCopyCallback(PyObject *instance) : PyGatewayBase(instance) { ; }
-	PYGATEWAY_MAKE_SUPPORT2(PyGBackgroundCopyCallback, IBackgroundCopyCallback, IID_IBackgroundCopyCallback, PyGatewayBase)
+class PyGBackgroundCopyCallback : public PyGatewayBase, public IBackgroundCopyCallback {
+   protected:
+    PyGBackgroundCopyCallback(PyObject *instance) : PyGatewayBase(instance) { ; }
+    PYGATEWAY_MAKE_SUPPORT2(PyGBackgroundCopyCallback, IBackgroundCopyCallback, IID_IBackgroundCopyCallback,
+                            PyGatewayBase)
 
+    // IBackgroundCopyCallback
+    STDMETHOD(JobTransferred)(IBackgroundCopyJob *pJob);
 
+    STDMETHOD(JobError)(IBackgroundCopyJob *pJob, IBackgroundCopyError *pError);
 
-	// IBackgroundCopyCallback
-	STDMETHOD(JobTransferred)(
-		IBackgroundCopyJob * pJob);
-
-	STDMETHOD(JobError)(
-		IBackgroundCopyJob * pJob,
-		IBackgroundCopyError * pError);
-
-	STDMETHOD(JobModification)(
-		IBackgroundCopyJob * pJob,
-		DWORD dwReserved);
-
+    STDMETHOD(JobModification)(IBackgroundCopyJob *pJob, DWORD dwReserved);
 };

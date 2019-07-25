@@ -4,46 +4,37 @@
 //
 // Interface Declaration
 
-class PyIOleControl : public PyIUnknown
-{
-public:
-	MAKE_PYCOM_CTOR(PyIOleControl);
-	static IOleControl *GetI(PyObject *self);
-	static PyComTypeObject type;
+class PyIOleControl : public PyIUnknown {
+   public:
+    MAKE_PYCOM_CTOR(PyIOleControl);
+    static IOleControl *GetI(PyObject *self);
+    static PyComTypeObject type;
 
-	// The Python methods
-	static PyObject *GetControlInfo(PyObject *self, PyObject *args);
-	static PyObject *OnMnemonic(PyObject *self, PyObject *args);
-	static PyObject *OnAmbientPropertyChange(PyObject *self, PyObject *args);
-	static PyObject *FreezeEvents(PyObject *self, PyObject *args);
+    // The Python methods
+    static PyObject *GetControlInfo(PyObject *self, PyObject *args);
+    static PyObject *OnMnemonic(PyObject *self, PyObject *args);
+    static PyObject *OnAmbientPropertyChange(PyObject *self, PyObject *args);
+    static PyObject *FreezeEvents(PyObject *self, PyObject *args);
 
-protected:
-	PyIOleControl(IUnknown *pdisp);
-	~PyIOleControl();
+   protected:
+    PyIOleControl(IUnknown *pdisp);
+    ~PyIOleControl();
 };
 // ---------------------------------------------------
 //
 // Gateway Declaration
 
-class PyGOleControl : public PyGatewayBase, public IOleControl
-{
-protected:
-	PyGOleControl(PyObject *instance) : PyGatewayBase(instance) { ; }
-	PYGATEWAY_MAKE_SUPPORT(PyGOleControl, IOleControl, IID_IOleControl)
+class PyGOleControl : public PyGatewayBase, public IOleControl {
+   protected:
+    PyGOleControl(PyObject *instance) : PyGatewayBase(instance) { ; }
+    PYGATEWAY_MAKE_SUPPORT(PyGOleControl, IOleControl, IID_IOleControl)
 
+    // IOleControl
+    STDMETHOD(GetControlInfo)(CONTROLINFO __RPC_FAR *pCI);
 
+    STDMETHOD(OnMnemonic)(MSG __RPC_FAR *pMsg);
 
-	// IOleControl
-	STDMETHOD(GetControlInfo)(
-		CONTROLINFO __RPC_FAR * pCI);
+    STDMETHOD(OnAmbientPropertyChange)(DISPID dispID);
 
-	STDMETHOD(OnMnemonic)(
-		MSG __RPC_FAR * pMsg);
-
-	STDMETHOD(OnAmbientPropertyChange)(
-		DISPID dispID);
-
-	STDMETHOD(FreezeEvents)(
-		BOOL bFreeze);
-
+    STDMETHOD(FreezeEvents)(BOOL bFreeze);
 };

@@ -4,66 +4,43 @@
 //
 // Interface Declaration
 
-class PyIInternetProtocolInfo : public PyIUnknown
-{
-public:
-	MAKE_PYCOM_CTOR(PyIInternetProtocolInfo);
-	static IInternetProtocolInfo *GetI(PyObject *self);
-	static PyComTypeObject type;
+class PyIInternetProtocolInfo : public PyIUnknown {
+   public:
+    MAKE_PYCOM_CTOR(PyIInternetProtocolInfo);
+    static IInternetProtocolInfo *GetI(PyObject *self);
+    static PyComTypeObject type;
 
-	// The Python methods
-	static PyObject *ParseUrl(PyObject *self, PyObject *args);
-	static PyObject *CombineUrl(PyObject *self, PyObject *args);
-	static PyObject *CompareUrl(PyObject *self, PyObject *args);
-	static PyObject *QueryInfo(PyObject *self, PyObject *args);
+    // The Python methods
+    static PyObject *ParseUrl(PyObject *self, PyObject *args);
+    static PyObject *CombineUrl(PyObject *self, PyObject *args);
+    static PyObject *CompareUrl(PyObject *self, PyObject *args);
+    static PyObject *QueryInfo(PyObject *self, PyObject *args);
 
-protected:
-	PyIInternetProtocolInfo(IUnknown *pdisp);
-	~PyIInternetProtocolInfo();
+   protected:
+    PyIInternetProtocolInfo(IUnknown *pdisp);
+    ~PyIInternetProtocolInfo();
 };
 // ---------------------------------------------------
 //
 // Gateway Declaration
 
-class PyGInternetProtocolInfo : public PyGatewayBase, public IInternetProtocolInfo
-{
-protected:
-	PyGInternetProtocolInfo(PyObject *instance) : PyGatewayBase(instance) { ; }
-	PYGATEWAY_MAKE_SUPPORT(PyGInternetProtocolInfo, IInternetProtocolInfo, IID_IInternetProtocolInfo)
+class PyGInternetProtocolInfo : public PyGatewayBase, public IInternetProtocolInfo {
+   protected:
+    PyGInternetProtocolInfo(PyObject *instance) : PyGatewayBase(instance) { ; }
+    PYGATEWAY_MAKE_SUPPORT(PyGInternetProtocolInfo, IInternetProtocolInfo, IID_IInternetProtocolInfo)
 
+    // IInternetProtocolInfo
+    STDMETHOD(ParseUrl)
+    (LPCWSTR pwzUrl, PARSEACTION ParseAction, DWORD dwParseFlags, LPWSTR pwzResult, DWORD cchResult,
+     DWORD __RPC_FAR *pcchResult, DWORD dwReserved);
 
+    STDMETHOD(CombineUrl)
+    (LPCWSTR pwzBaseUrl, LPCWSTR pwzRelativeUrl, DWORD dwCombineFlags, LPWSTR pwzResult, DWORD cchResult,
+     DWORD __RPC_FAR *pcchResult, DWORD dwReserved);
 
-	// IInternetProtocolInfo
-	STDMETHOD(ParseUrl)(
-		LPCWSTR pwzUrl,
-		PARSEACTION ParseAction,
-		DWORD dwParseFlags,
-		LPWSTR pwzResult,
-		DWORD cchResult,
-		DWORD __RPC_FAR * pcchResult,
-		DWORD dwReserved);
+    STDMETHOD(CompareUrl)(LPCWSTR pwzUrl1, LPCWSTR pwzUrl2, DWORD dwCompareFlags);
 
-	STDMETHOD(CombineUrl)(
-		LPCWSTR pwzBaseUrl,
-		LPCWSTR pwzRelativeUrl,
-		DWORD dwCombineFlags,
-		LPWSTR pwzResult,
-		DWORD cchResult,
-		DWORD __RPC_FAR * pcchResult,
-		DWORD dwReserved);
-
-	STDMETHOD(CompareUrl)(
-		LPCWSTR pwzUrl1,
-		LPCWSTR pwzUrl2,
-		DWORD dwCompareFlags);
-
-	STDMETHOD(QueryInfo)(
-		LPCWSTR pwzUrl,
-		QUERYOPTION OueryOption,
-		DWORD dwQueryFlags,
-		LPVOID pBuffer,
-		DWORD cbBuffer,
-		DWORD __RPC_FAR * pcbBuf,
-		DWORD dwReserved);
-
+    STDMETHOD(QueryInfo)
+    (LPCWSTR pwzUrl, QUERYOPTION OueryOption, DWORD dwQueryFlags, LPVOID pBuffer, DWORD cbBuffer,
+     DWORD __RPC_FAR *pcbBuf, DWORD dwReserved);
 };

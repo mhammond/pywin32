@@ -10,150 +10,140 @@
 //
 // Interface Implementation
 
-PyIEnumContextProps::PyIEnumContextProps(IUnknown *pdisp):
-	PyIUnknown(pdisp)
-{
-	ob_type = &type;
-}
+PyIEnumContextProps::PyIEnumContextProps(IUnknown *pdisp) : PyIUnknown(pdisp) { ob_type = &type; }
 
-PyIEnumContextProps::~PyIEnumContextProps()
-{
-}
+PyIEnumContextProps::~PyIEnumContextProps() {}
 
 /* static */ IEnumContextProps *PyIEnumContextProps::GetI(PyObject *self)
 {
-	return (IEnumContextProps *)PyIUnknown::GetI(self);
+    return (IEnumContextProps *)PyIUnknown::GetI(self);
 }
 
-// @pymethod ((<o PyIID>, int, <o PyIUnknown>), ...)|PyIEnumContextProps|Next|Retrieves a specified number of items in the enumeration sequence.
+// @pymethod ((<o PyIID>, int, <o PyIUnknown>), ...)|PyIEnumContextProps|Next|Retrieves a specified number of items in
+// the enumeration sequence.
 // @rdesc Returns a tuple of 3-tuples representing ContextProperty structs:
-// <nL> First item is GUID identifying the property, second is Flags (reserved), third is the interface set as the property value
+// <nL> First item is GUID identifying the property, second is Flags (reserved), third is the interface set as the
+// property value
 PyObject *PyIEnumContextProps::Next(PyObject *self, PyObject *args)
 {
-	long celt = 1;
-	// @pyparm int|num|1|Number of items to retrieve.
-	if ( !PyArg_ParseTuple(args, "|l:Next", &celt) )
-		return NULL;
+    long celt = 1;
+    // @pyparm int|num|1|Number of items to retrieve.
+    if (!PyArg_ParseTuple(args, "|l:Next", &celt))
+        return NULL;
 
-	IEnumContextProps *pIEContextProps = GetI(self);
-	if ( pIEContextProps == NULL )
-		return NULL;
+    IEnumContextProps *pIEContextProps = GetI(self);
+    if (pIEContextProps == NULL)
+        return NULL;
 
-	ContextProperty *rgVar = new ContextProperty[celt];
-	if ( rgVar == NULL ) {
-		PyErr_SetString(PyExc_MemoryError, "allocating result ContextPropss");
-		return NULL;
-	}
+    ContextProperty *rgVar = new ContextProperty[celt];
+    if (rgVar == NULL) {
+        PyErr_SetString(PyExc_MemoryError, "allocating result ContextPropss");
+        return NULL;
+    }
 
-	int i;
-	ULONG celtFetched = 0;
-	PY_INTERFACE_PRECALL;
-	HRESULT hr = pIEContextProps->Next(celt, rgVar, &celtFetched);
-	PY_INTERFACE_POSTCALL;
-	if (  HRESULT_CODE(hr) != ERROR_NO_MORE_ITEMS && FAILED(hr) )
-	{
-		delete [] rgVar;
-		return PyCom_BuildPyException(hr, pIEContextProps, IID_IEnumContextProps);
-	}
+    int i;
+    ULONG celtFetched = 0;
+    PY_INTERFACE_PRECALL;
+    HRESULT hr = pIEContextProps->Next(celt, rgVar, &celtFetched);
+    PY_INTERFACE_POSTCALL;
+    if (HRESULT_CODE(hr) != ERROR_NO_MORE_ITEMS && FAILED(hr)) {
+        delete[] rgVar;
+        return PyCom_BuildPyException(hr, pIEContextProps, IID_IEnumContextProps);
+    }
 
-	PyObject *result = PyTuple_New(celtFetched);
-	if ( result != NULL ){
-		for ( i = celtFetched; i--; ){
-			// Do in separate operation so we can make sure the ref is set to NULL if it fails
-			PyObject *obval = PyCom_PyObjectFromIUnknown(rgVar[i].pUnk, IID_IUnknown, FALSE);
-			rgVar[i].pUnk = NULL;
-			if (obval == NULL){
-				Py_DECREF(result);
-				result = NULL;
-				break;
-			}
-			PyObject *obitem = Py_BuildValue("NkN",
-				PyWinObject_FromIID(rgVar[i].policyId),
-				rgVar[i].flags,
-				obval);
-			if (obitem == NULL ){
-				Py_DECREF(result);
-				result = NULL;
-				break;
-			}
-			PyTuple_SET_ITEM(result, i, obitem);
-		}
-	}
+    PyObject *result = PyTuple_New(celtFetched);
+    if (result != NULL) {
+        for (i = celtFetched; i--;) {
+            // Do in separate operation so we can make sure the ref is set to NULL if it fails
+            PyObject *obval = PyCom_PyObjectFromIUnknown(rgVar[i].pUnk, IID_IUnknown, FALSE);
+            rgVar[i].pUnk = NULL;
+            if (obval == NULL) {
+                Py_DECREF(result);
+                result = NULL;
+                break;
+            }
+            PyObject *obitem = Py_BuildValue("NkN", PyWinObject_FromIID(rgVar[i].policyId), rgVar[i].flags, obval);
+            if (obitem == NULL) {
+                Py_DECREF(result);
+                result = NULL;
+                break;
+            }
+            PyTuple_SET_ITEM(result, i, obitem);
+        }
+    }
 
-	if (result == NULL)
-		for ( i = celtFetched; i--; )
-			PYCOM_RELEASE(rgVar[i].pUnk);
-	delete [] rgVar;
-	return result;
+    if (result == NULL)
+        for (i = celtFetched; i--;) PYCOM_RELEASE(rgVar[i].pUnk);
+    delete[] rgVar;
+    return result;
 }
 
 // @pymethod |PyIEnumContextProps|Skip|Skips over the next specified elementes.
 PyObject *PyIEnumContextProps::Skip(PyObject *self, PyObject *args)
 {
-	long celt;
-	if ( !PyArg_ParseTuple(args, "l:Skip", &celt) )
-		return NULL;
+    long celt;
+    if (!PyArg_ParseTuple(args, "l:Skip", &celt))
+        return NULL;
 
-	IEnumContextProps *pIEContextProps = GetI(self);
-	if ( pIEContextProps == NULL )
-		return NULL;
+    IEnumContextProps *pIEContextProps = GetI(self);
+    if (pIEContextProps == NULL)
+        return NULL;
 
-	PY_INTERFACE_PRECALL;
-	HRESULT hr = pIEContextProps->Skip(celt);
-	PY_INTERFACE_POSTCALL;
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pIEContextProps, IID_IEnumContextProps);
+    PY_INTERFACE_PRECALL;
+    HRESULT hr = pIEContextProps->Skip(celt);
+    PY_INTERFACE_POSTCALL;
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pIEContextProps, IID_IEnumContextProps);
 
-	Py_INCREF(Py_None);
-	return Py_None;
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @pymethod |PyIEnumContextProps|Reset|Resets the enumeration sequence to the beginning.
 PyObject *PyIEnumContextProps::Reset(PyObject *self, PyObject *args)
 {
-	IEnumContextProps *pIEContextProps = GetI(self);
-	if ( pIEContextProps == NULL )
-		return NULL;
+    IEnumContextProps *pIEContextProps = GetI(self);
+    if (pIEContextProps == NULL)
+        return NULL;
 
-	PY_INTERFACE_PRECALL;
-	HRESULT hr = pIEContextProps->Reset();
-	PY_INTERFACE_POSTCALL;
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pIEContextProps, IID_IEnumContextProps);
+    PY_INTERFACE_PRECALL;
+    HRESULT hr = pIEContextProps->Reset();
+    PY_INTERFACE_POSTCALL;
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pIEContextProps, IID_IEnumContextProps);
 
-	Py_INCREF(Py_None);
-	return Py_None;
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
-// @pymethod <o PyIEnumContextProps>|PyIEnumContextProps|Clone|Creates another enumerator that contains the same enumeration state as the current one
+// @pymethod <o PyIEnumContextProps>|PyIEnumContextProps|Clone|Creates another enumerator that contains the same
+// enumeration state as the current one
 PyObject *PyIEnumContextProps::Clone(PyObject *self, PyObject *args)
 {
-	IEnumContextProps *pIEContextProps = GetI(self);
-	if ( pIEContextProps == NULL )
-		return NULL;
+    IEnumContextProps *pIEContextProps = GetI(self);
+    if (pIEContextProps == NULL)
+        return NULL;
 
-	IEnumContextProps *pClone;
-	PY_INTERFACE_PRECALL;
-	HRESULT hr = pIEContextProps->Clone(&pClone);
-	PY_INTERFACE_POSTCALL;
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pIEContextProps, IID_IEnumContextProps);
+    IEnumContextProps *pClone;
+    PY_INTERFACE_PRECALL;
+    HRESULT hr = pIEContextProps->Clone(&pClone);
+    PY_INTERFACE_POSTCALL;
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pIEContextProps, IID_IEnumContextProps);
 
-	return PyCom_PyObjectFromIUnknown(pClone, IID_IEnumContextProps, FALSE);
+    return PyCom_PyObjectFromIUnknown(pClone, IID_IEnumContextProps, FALSE);
 }
 
 // @object PyIEnumContextProps|A Python interface to IEnumContextProps
-static struct PyMethodDef PyIEnumContextProps_methods[] =
-{
-	{ "Next", PyIEnumContextProps::Next, 1 },    // @pymeth Next|Retrieves a specified number of items in the enumeration sequence.
-	{ "Skip", PyIEnumContextProps::Skip, 1 },	// @pymeth Skip|Skips over the next specified elementes.
-	{ "Reset", PyIEnumContextProps::Reset, METH_NOARGS },	// @pymeth Reset|Resets the enumeration sequence to the beginning.
-	{ "Clone", PyIEnumContextProps::Clone, METH_NOARGS },	// @pymeth Clone|Creates another enumerator that contains the same enumeration state as the current one.
-	{ NULL }
-};
+static struct PyMethodDef PyIEnumContextProps_methods[] = {
+    {"Next", PyIEnumContextProps::Next,
+     1},  // @pymeth Next|Retrieves a specified number of items in the enumeration sequence.
+    {"Skip", PyIEnumContextProps::Skip, 1},  // @pymeth Skip|Skips over the next specified elementes.
+    {"Reset", PyIEnumContextProps::Reset,
+     METH_NOARGS},  // @pymeth Reset|Resets the enumeration sequence to the beginning.
+    {"Clone", PyIEnumContextProps::Clone, METH_NOARGS},  // @pymeth Clone|Creates another enumerator that contains the
+                                                         // same enumeration state as the current one.
+    {NULL}};
 
-PyComEnumTypeObject PyIEnumContextProps::type("PyIEnumContextProps",
-		&PyIUnknown::type,
-		sizeof(PyIEnumContextProps),
-		PyIEnumContextProps_methods,
-		GET_PYCOM_CTOR(PyIEnumContextProps));
+PyComEnumTypeObject PyIEnumContextProps::type("PyIEnumContextProps", &PyIUnknown::type, sizeof(PyIEnumContextProps),
+                                              PyIEnumContextProps_methods, GET_PYCOM_CTOR(PyIEnumContextProps));

@@ -9,7 +9,6 @@
 #include <objbase.h>
 #pragma data_seg(".text")
 
-
 #include "initguid.h"
 
 // === ActiveX Guids ===
@@ -24,7 +23,6 @@
 #include "activscp.h"
 // #include "multinfo.h"
 
-
 #if !WIN16
 #pragma data_seg()
-#endif // !WIN16
+#endif  // !WIN16

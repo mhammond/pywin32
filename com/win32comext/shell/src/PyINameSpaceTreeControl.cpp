@@ -9,523 +9,532 @@
 //
 // Interface Implementation
 
-PyINameSpaceTreeControl::PyINameSpaceTreeControl(IUnknown *pdisp):
-	PyIUnknown(pdisp)
-{
-	ob_type = &type;
-}
+PyINameSpaceTreeControl::PyINameSpaceTreeControl(IUnknown *pdisp) : PyIUnknown(pdisp) { ob_type = &type; }
 
-PyINameSpaceTreeControl::~PyINameSpaceTreeControl()
-{
-}
+PyINameSpaceTreeControl::~PyINameSpaceTreeControl() {}
 
 /* static */ INameSpaceTreeControl *PyINameSpaceTreeControl::GetI(PyObject *self)
 {
-	return (INameSpaceTreeControl *)PyIUnknown::GetI(self);
+    return (INameSpaceTreeControl *)PyIUnknown::GetI(self);
 }
 
 // @pymethod |PyINameSpaceTreeControl|Initialize|Description of Initialize.
 PyObject *PyINameSpaceTreeControl::Initialize(PyObject *self, PyObject *args)
 {
-	INameSpaceTreeControl *pINSTC = GetI(self);
-	if ( pINSTC == NULL )
-		return NULL;
-	// @pyparm int/long|hwndParent||Description for hwndParent
-	RECT rc;
-	// @pyparm (int, int, int, int)|prc||Description for prc
-	// @pyparm int|nsctsFlags||Description for nsctsFlags
-	PyObject *obhwndParent;
-	HWND hwndParent;
-	DWORD nsctsFlags;
-	if ( !PyArg_ParseTuple(args, "O(iiii)l:Initialize", &obhwndParent, 
-	                       &rc.left, &rc.top, &rc.bottom, &rc.right, 
-	                       &nsctsFlags))
-		return NULL;
-	if (!PyWinLong_AsULONG_PTR(obhwndParent, (ULONG_PTR *)&hwndParent))
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pINSTC->Initialize( hwndParent, &rc, nsctsFlags );
-	PY_INTERFACE_POSTCALL;
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pINSTC, IID_INameSpaceTreeControl );
-	Py_INCREF(Py_None);
-	return Py_None;
+    INameSpaceTreeControl *pINSTC = GetI(self);
+    if (pINSTC == NULL)
+        return NULL;
+    // @pyparm int/long|hwndParent||Description for hwndParent
+    RECT rc;
+    // @pyparm (int, int, int, int)|prc||Description for prc
+    // @pyparm int|nsctsFlags||Description for nsctsFlags
+    PyObject *obhwndParent;
+    HWND hwndParent;
+    DWORD nsctsFlags;
+    if (!PyArg_ParseTuple(args, "O(iiii)l:Initialize", &obhwndParent, &rc.left, &rc.top, &rc.bottom, &rc.right,
+                          &nsctsFlags))
+        return NULL;
+    if (!PyWinLong_AsULONG_PTR(obhwndParent, (ULONG_PTR *)&hwndParent))
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pINSTC->Initialize(hwndParent, &rc, nsctsFlags);
+    PY_INTERFACE_POSTCALL;
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pINSTC, IID_INameSpaceTreeControl);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @pymethod |PyINameSpaceTreeControl|TreeAdvise|Description of TreeAdvise.
 PyObject *PyINameSpaceTreeControl::TreeAdvise(PyObject *self, PyObject *args)
 {
-	INameSpaceTreeControl *pINSTC = GetI(self);
-	if ( pINSTC == NULL )
-		return NULL;
-	// @pyparm <o PyIUnknown>|punk||Description for punk
-	PyObject *obpunk;
-	IUnknown * punk;
-	DWORD dwCookie;
-	if ( !PyArg_ParseTuple(args, "O:TreeAdvise", &obpunk) )
-		return NULL;
-	if (!PyCom_InterfaceFromPyInstanceOrObject(obpunk, IID_IUnknown, (void **)&punk, TRUE /* bNoneOK */))
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pINSTC->TreeAdvise( punk, &dwCookie );
-	if (punk) punk->Release();
-	PY_INTERFACE_POSTCALL;
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pINSTC, IID_INameSpaceTreeControl );
-	return PyInt_FromLong(dwCookie);
+    INameSpaceTreeControl *pINSTC = GetI(self);
+    if (pINSTC == NULL)
+        return NULL;
+    // @pyparm <o PyIUnknown>|punk||Description for punk
+    PyObject *obpunk;
+    IUnknown *punk;
+    DWORD dwCookie;
+    if (!PyArg_ParseTuple(args, "O:TreeAdvise", &obpunk))
+        return NULL;
+    if (!PyCom_InterfaceFromPyInstanceOrObject(obpunk, IID_IUnknown, (void **)&punk, TRUE /* bNoneOK */))
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pINSTC->TreeAdvise(punk, &dwCookie);
+    if (punk)
+        punk->Release();
+    PY_INTERFACE_POSTCALL;
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pINSTC, IID_INameSpaceTreeControl);
+    return PyInt_FromLong(dwCookie);
 }
 
 // @pymethod |PyINameSpaceTreeControl|TreeUnadvise|Description of TreeUnadvise.
 PyObject *PyINameSpaceTreeControl::TreeUnadvise(PyObject *self, PyObject *args)
 {
-	INameSpaceTreeControl *pINSTC = GetI(self);
-	if ( pINSTC == NULL )
-		return NULL;
-	// @pyparm int|dwCookie||Description for dwCookie
-	DWORD dwCookie;
-	if ( !PyArg_ParseTuple(args, "l:TreeUnadvise", &dwCookie) )
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pINSTC->TreeUnadvise( dwCookie );
-	PY_INTERFACE_POSTCALL;
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pINSTC, IID_INameSpaceTreeControl );
-	Py_INCREF(Py_None);
-	return Py_None;
+    INameSpaceTreeControl *pINSTC = GetI(self);
+    if (pINSTC == NULL)
+        return NULL;
+    // @pyparm int|dwCookie||Description for dwCookie
+    DWORD dwCookie;
+    if (!PyArg_ParseTuple(args, "l:TreeUnadvise", &dwCookie))
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pINSTC->TreeUnadvise(dwCookie);
+    PY_INTERFACE_POSTCALL;
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pINSTC, IID_INameSpaceTreeControl);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @pymethod |PyINameSpaceTreeControl|AppendRoot|Description of AppendRoot.
 PyObject *PyINameSpaceTreeControl::AppendRoot(PyObject *self, PyObject *args)
 {
-	INameSpaceTreeControl *pINSTC = GetI(self);
-	if ( pINSTC == NULL )
-		return NULL;
-	// @pyparm <o PyIShellItem>|psiRoot||Description for psiRoot
-	// @pyparm int|grfEnumFlags||Description for grfEnumFlags
-	// @pyparm int|grfRootStyle||Description for grfRootStyle
-	// @pyparm <o PyIShellItemFilter>|pif||Description for pif
-	PyObject *obpsiRoot;
-	PyObject *obpif;
-	IShellItem * psiRoot;
-	DWORD grfEnumFlags;
-	DWORD grfRootStyle;
-	IShellItemFilter * pif;
-	if ( !PyArg_ParseTuple(args, "OkkO:AppendRoot", &obpsiRoot, &grfEnumFlags, &grfRootStyle, &obpif) )
-		return NULL;
-	if (!PyCom_InterfaceFromPyInstanceOrObject(obpsiRoot, IID_IShellItem, (void **)&psiRoot, TRUE /* bNoneOK */))
-		return NULL;
-	if (!PyCom_InterfaceFromPyInstanceOrObject(obpif, IID_IShellItemFilter, (void **)&pif, TRUE /* bNoneOK */)) {
-		if (pif) pif->Release();
-		return NULL;
-	}
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pINSTC->AppendRoot( psiRoot, grfEnumFlags, grfRootStyle, pif );
-	if (psiRoot) psiRoot->Release();
-	if (pif) pif->Release();
-	PY_INTERFACE_POSTCALL;
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pINSTC, IID_INameSpaceTreeControl );
-	Py_INCREF(Py_None);
-	return Py_None;
+    INameSpaceTreeControl *pINSTC = GetI(self);
+    if (pINSTC == NULL)
+        return NULL;
+    // @pyparm <o PyIShellItem>|psiRoot||Description for psiRoot
+    // @pyparm int|grfEnumFlags||Description for grfEnumFlags
+    // @pyparm int|grfRootStyle||Description for grfRootStyle
+    // @pyparm <o PyIShellItemFilter>|pif||Description for pif
+    PyObject *obpsiRoot;
+    PyObject *obpif;
+    IShellItem *psiRoot;
+    DWORD grfEnumFlags;
+    DWORD grfRootStyle;
+    IShellItemFilter *pif;
+    if (!PyArg_ParseTuple(args, "OkkO:AppendRoot", &obpsiRoot, &grfEnumFlags, &grfRootStyle, &obpif))
+        return NULL;
+    if (!PyCom_InterfaceFromPyInstanceOrObject(obpsiRoot, IID_IShellItem, (void **)&psiRoot, TRUE /* bNoneOK */))
+        return NULL;
+    if (!PyCom_InterfaceFromPyInstanceOrObject(obpif, IID_IShellItemFilter, (void **)&pif, TRUE /* bNoneOK */)) {
+        if (pif)
+            pif->Release();
+        return NULL;
+    }
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pINSTC->AppendRoot(psiRoot, grfEnumFlags, grfRootStyle, pif);
+    if (psiRoot)
+        psiRoot->Release();
+    if (pif)
+        pif->Release();
+    PY_INTERFACE_POSTCALL;
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pINSTC, IID_INameSpaceTreeControl);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @pymethod |PyINameSpaceTreeControl|InsertRoot|Description of InsertRoot.
 PyObject *PyINameSpaceTreeControl::InsertRoot(PyObject *self, PyObject *args)
 {
-	INameSpaceTreeControl *pINSTC = GetI(self);
-	if ( pINSTC == NULL )
-		return NULL;
-	// @pyparm int|iIndex||Description for iIndex
-	// @pyparm <o PyIShellItem>|psiRoot||Description for psiRoot
-	// @pyparm int|grfEnumFlags||Description for grfEnumFlags
-	// @pyparm int|grfRootStyle||Description for grfRootStyle
-	// @pyparm <o PyIShellItemFilter>|pif||Description for pif
-	PyObject *obpsiRoot;
-	PyObject *obpif;
-	int iIndex;
-	IShellItem * psiRoot;
-	DWORD grfEnumFlags;
-	DWORD grfRootStyle;
-	IShellItemFilter * pif;
-	if ( !PyArg_ParseTuple(args, "iOkkO:InsertRoot", &iIndex, &obpsiRoot, &grfEnumFlags, &grfRootStyle, &obpif) )
-		return NULL;
-	BOOL bPythonIsHappy = TRUE;
-	if (bPythonIsHappy && !PyCom_InterfaceFromPyInstanceOrObject(obpsiRoot, IID_IShellItem, (void **)&psiRoot, TRUE /* bNoneOK */))
-		 bPythonIsHappy = FALSE;
-	if (bPythonIsHappy && !PyCom_InterfaceFromPyInstanceOrObject(obpif, IID_IShellItemFilter, (void **)&pif, TRUE /* bNoneOK */))
-		 bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pINSTC->InsertRoot( iIndex, psiRoot, grfEnumFlags, grfRootStyle, pif );
-	if (psiRoot) psiRoot->Release();
-	if (pif) pif->Release();
+    INameSpaceTreeControl *pINSTC = GetI(self);
+    if (pINSTC == NULL)
+        return NULL;
+    // @pyparm int|iIndex||Description for iIndex
+    // @pyparm <o PyIShellItem>|psiRoot||Description for psiRoot
+    // @pyparm int|grfEnumFlags||Description for grfEnumFlags
+    // @pyparm int|grfRootStyle||Description for grfRootStyle
+    // @pyparm <o PyIShellItemFilter>|pif||Description for pif
+    PyObject *obpsiRoot;
+    PyObject *obpif;
+    int iIndex;
+    IShellItem *psiRoot;
+    DWORD grfEnumFlags;
+    DWORD grfRootStyle;
+    IShellItemFilter *pif;
+    if (!PyArg_ParseTuple(args, "iOkkO:InsertRoot", &iIndex, &obpsiRoot, &grfEnumFlags, &grfRootStyle, &obpif))
+        return NULL;
+    BOOL bPythonIsHappy = TRUE;
+    if (bPythonIsHappy &&
+        !PyCom_InterfaceFromPyInstanceOrObject(obpsiRoot, IID_IShellItem, (void **)&psiRoot, TRUE /* bNoneOK */))
+        bPythonIsHappy = FALSE;
+    if (bPythonIsHappy &&
+        !PyCom_InterfaceFromPyInstanceOrObject(obpif, IID_IShellItemFilter, (void **)&pif, TRUE /* bNoneOK */))
+        bPythonIsHappy = FALSE;
+    if (!bPythonIsHappy)
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pINSTC->InsertRoot(iIndex, psiRoot, grfEnumFlags, grfRootStyle, pif);
+    if (psiRoot)
+        psiRoot->Release();
+    if (pif)
+        pif->Release();
 
-	PY_INTERFACE_POSTCALL;
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pINSTC, IID_INameSpaceTreeControl );
-	Py_INCREF(Py_None);
-	return Py_None;
-
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pINSTC, IID_INameSpaceTreeControl);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @pymethod |PyINameSpaceTreeControl|RemoveRoot|Description of RemoveRoot.
 PyObject *PyINameSpaceTreeControl::RemoveRoot(PyObject *self, PyObject *args)
 {
-	INameSpaceTreeControl *pINSTC = GetI(self);
-	if ( pINSTC == NULL )
-		return NULL;
-	// @pyparm <o PyIShellItem>|psiRoot||Description for psiRoot
-	PyObject *obpsiRoot;
-	IShellItem * psiRoot;
-	if ( !PyArg_ParseTuple(args, "O:RemoveRoot", &obpsiRoot) )
-		return NULL;
-	if (!PyCom_InterfaceFromPyInstanceOrObject(obpsiRoot, IID_IShellItem, (void **)&psiRoot, TRUE /* bNoneOK */))
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pINSTC->RemoveRoot( psiRoot );
-	if (psiRoot) psiRoot->Release();
-	PY_INTERFACE_POSTCALL;
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pINSTC, IID_INameSpaceTreeControl );
-	Py_INCREF(Py_None);
-	return Py_None;
+    INameSpaceTreeControl *pINSTC = GetI(self);
+    if (pINSTC == NULL)
+        return NULL;
+    // @pyparm <o PyIShellItem>|psiRoot||Description for psiRoot
+    PyObject *obpsiRoot;
+    IShellItem *psiRoot;
+    if (!PyArg_ParseTuple(args, "O:RemoveRoot", &obpsiRoot))
+        return NULL;
+    if (!PyCom_InterfaceFromPyInstanceOrObject(obpsiRoot, IID_IShellItem, (void **)&psiRoot, TRUE /* bNoneOK */))
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pINSTC->RemoveRoot(psiRoot);
+    if (psiRoot)
+        psiRoot->Release();
+    PY_INTERFACE_POSTCALL;
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pINSTC, IID_INameSpaceTreeControl);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @pymethod |PyINameSpaceTreeControl|RemoveAllRoots|Description of RemoveAllRoots.
 PyObject *PyINameSpaceTreeControl::RemoveAllRoots(PyObject *self, PyObject *args)
 {
-	INameSpaceTreeControl *pINSTC = GetI(self);
-	if ( pINSTC == NULL )
-		return NULL;
-	if ( !PyArg_ParseTuple(args, ":RemoveAllRoots") )
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pINSTC->RemoveAllRoots( );
+    INameSpaceTreeControl *pINSTC = GetI(self);
+    if (pINSTC == NULL)
+        return NULL;
+    if (!PyArg_ParseTuple(args, ":RemoveAllRoots"))
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pINSTC->RemoveAllRoots();
 
-	PY_INTERFACE_POSTCALL;
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pINSTC, IID_INameSpaceTreeControl );
-	Py_INCREF(Py_None);
-	return Py_None;
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pINSTC, IID_INameSpaceTreeControl);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @pymethod |PyINameSpaceTreeControl|GetRootItems|Description of GetRootItems.
 PyObject *PyINameSpaceTreeControl::GetRootItems(PyObject *self, PyObject *args)
 {
-	INameSpaceTreeControl *pINSTC = GetI(self);
-	if ( pINSTC == NULL )
-		return NULL;
-	IShellItemArray * ppsiaRootItems;
-	if ( !PyArg_ParseTuple(args, ":GetRootItems") )
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pINSTC->GetRootItems( &ppsiaRootItems );
+    INameSpaceTreeControl *pINSTC = GetI(self);
+    if (pINSTC == NULL)
+        return NULL;
+    IShellItemArray *ppsiaRootItems;
+    if (!PyArg_ParseTuple(args, ":GetRootItems"))
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pINSTC->GetRootItems(&ppsiaRootItems);
 
-	PY_INTERFACE_POSTCALL;
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pINSTC, IID_INameSpaceTreeControl );
-	return PyCom_PyObjectFromIUnknown(ppsiaRootItems, IID_IShellItemArray, FALSE);
+    PY_INTERFACE_POSTCALL;
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pINSTC, IID_INameSpaceTreeControl);
+    return PyCom_PyObjectFromIUnknown(ppsiaRootItems, IID_IShellItemArray, FALSE);
 }
 
 // @pymethod |PyINameSpaceTreeControl|SetItemState|Description of SetItemState.
 PyObject *PyINameSpaceTreeControl::SetItemState(PyObject *self, PyObject *args)
 {
-	INameSpaceTreeControl *pINSTC = GetI(self);
-	if ( pINSTC == NULL )
-		return NULL;
-	// @pyparm <o PyIShellItem>|psi||Description for psi
-	// @pyparm int|nstcisMask||Description for nstcisMask
-	// @pyparm int|nstcisFlags||Description for nstcisFlags
-	PyObject *obpsi;
-	IShellItem * psi;
-	DWORD nstcisMask;
-	DWORD nstcisFlags;
-	if ( !PyArg_ParseTuple(args, "Okk:SetItemState", &obpsi, &nstcisMask, &nstcisFlags) )
-		return NULL;
-	if (!PyCom_InterfaceFromPyInstanceOrObject(obpsi, IID_IShellItem, (void **)&psi, TRUE /* bNoneOK */))
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pINSTC->SetItemState( psi, nstcisMask, nstcisFlags );
-	if (psi) psi->Release();
-	PY_INTERFACE_POSTCALL;
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pINSTC, IID_INameSpaceTreeControl );
-	Py_INCREF(Py_None);
-	return Py_None;
+    INameSpaceTreeControl *pINSTC = GetI(self);
+    if (pINSTC == NULL)
+        return NULL;
+    // @pyparm <o PyIShellItem>|psi||Description for psi
+    // @pyparm int|nstcisMask||Description for nstcisMask
+    // @pyparm int|nstcisFlags||Description for nstcisFlags
+    PyObject *obpsi;
+    IShellItem *psi;
+    DWORD nstcisMask;
+    DWORD nstcisFlags;
+    if (!PyArg_ParseTuple(args, "Okk:SetItemState", &obpsi, &nstcisMask, &nstcisFlags))
+        return NULL;
+    if (!PyCom_InterfaceFromPyInstanceOrObject(obpsi, IID_IShellItem, (void **)&psi, TRUE /* bNoneOK */))
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pINSTC->SetItemState(psi, nstcisMask, nstcisFlags);
+    if (psi)
+        psi->Release();
+    PY_INTERFACE_POSTCALL;
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pINSTC, IID_INameSpaceTreeControl);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @pymethod |PyINameSpaceTreeControl|GetItemState|Description of GetItemState.
 PyObject *PyINameSpaceTreeControl::GetItemState(PyObject *self, PyObject *args)
 {
-	INameSpaceTreeControl *pINSTC = GetI(self);
-	if ( pINSTC == NULL )
-		return NULL;
-	// @pyparm <o PyIShellItem>|psi||Description for psi
-	// @pyparm int|nstcisMask||Description for nstcisMask
-	PyObject *obpsi;
-	IShellItem * psi;
-	DWORD nstcisMask;
-	DWORD nstcisFlags;
-	if ( !PyArg_ParseTuple(args, "Ok:GetItemState", &obpsi, &nstcisMask) )
-		return NULL;
-	BOOL bPythonIsHappy = TRUE;
-	if (bPythonIsHappy && !PyCom_InterfaceFromPyInstanceOrObject(obpsi, IID_IShellItem, (void **)&psi, TRUE /* bNoneOK */))
-		 bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pINSTC->GetItemState( psi, nstcisMask, &nstcisFlags );
-	if (psi) psi->Release();
-	PY_INTERFACE_POSTCALL;
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pINSTC, IID_INameSpaceTreeControl );
-	return PyLong_FromUnsignedLong(nstcisFlags);
+    INameSpaceTreeControl *pINSTC = GetI(self);
+    if (pINSTC == NULL)
+        return NULL;
+    // @pyparm <o PyIShellItem>|psi||Description for psi
+    // @pyparm int|nstcisMask||Description for nstcisMask
+    PyObject *obpsi;
+    IShellItem *psi;
+    DWORD nstcisMask;
+    DWORD nstcisFlags;
+    if (!PyArg_ParseTuple(args, "Ok:GetItemState", &obpsi, &nstcisMask))
+        return NULL;
+    BOOL bPythonIsHappy = TRUE;
+    if (bPythonIsHappy &&
+        !PyCom_InterfaceFromPyInstanceOrObject(obpsi, IID_IShellItem, (void **)&psi, TRUE /* bNoneOK */))
+        bPythonIsHappy = FALSE;
+    if (!bPythonIsHappy)
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pINSTC->GetItemState(psi, nstcisMask, &nstcisFlags);
+    if (psi)
+        psi->Release();
+    PY_INTERFACE_POSTCALL;
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pINSTC, IID_INameSpaceTreeControl);
+    return PyLong_FromUnsignedLong(nstcisFlags);
 }
 
 // @pymethod |PyINameSpaceTreeControl|GetSelectedItems|Description of GetSelectedItems.
 PyObject *PyINameSpaceTreeControl::GetSelectedItems(PyObject *self, PyObject *args)
 {
-	INameSpaceTreeControl *pINSTC = GetI(self);
-	if ( pINSTC == NULL )
-		return NULL;
-	IShellItemArray * psiaItems;
-	if ( !PyArg_ParseTuple(args, ":GetSelectedItems") )
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pINSTC->GetSelectedItems( &psiaItems );
-	PY_INTERFACE_POSTCALL;
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pINSTC, IID_INameSpaceTreeControl );
-	return PyCom_PyObjectFromIUnknown(psiaItems, IID_IShellItemArray, FALSE);
+    INameSpaceTreeControl *pINSTC = GetI(self);
+    if (pINSTC == NULL)
+        return NULL;
+    IShellItemArray *psiaItems;
+    if (!PyArg_ParseTuple(args, ":GetSelectedItems"))
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pINSTC->GetSelectedItems(&psiaItems);
+    PY_INTERFACE_POSTCALL;
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pINSTC, IID_INameSpaceTreeControl);
+    return PyCom_PyObjectFromIUnknown(psiaItems, IID_IShellItemArray, FALSE);
 }
 
 // @pymethod |PyINameSpaceTreeControl|GetItemCustomState|Description of GetItemCustomState.
 PyObject *PyINameSpaceTreeControl::GetItemCustomState(PyObject *self, PyObject *args)
 {
-	INameSpaceTreeControl *pINSTC = GetI(self);
-	if ( pINSTC == NULL )
-		return NULL;
-	// @pyparm <o PyIShellItem>|psi||Description for psi
-	PyObject *obpsi;
-	IShellItem * psi;
-	int iStateNumber;
-	if ( !PyArg_ParseTuple(args, "O:GetItemCustomState", &obpsi) )
-		return NULL;
-	if (!PyCom_InterfaceFromPyInstanceOrObject(obpsi, IID_IShellItem, (void **)&psi, TRUE /* bNoneOK */))
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pINSTC->GetItemCustomState( psi, &iStateNumber );
-	if (psi) psi->Release();
-	PY_INTERFACE_POSTCALL;
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pINSTC, IID_INameSpaceTreeControl );
-	return PyInt_FromLong(iStateNumber);
+    INameSpaceTreeControl *pINSTC = GetI(self);
+    if (pINSTC == NULL)
+        return NULL;
+    // @pyparm <o PyIShellItem>|psi||Description for psi
+    PyObject *obpsi;
+    IShellItem *psi;
+    int iStateNumber;
+    if (!PyArg_ParseTuple(args, "O:GetItemCustomState", &obpsi))
+        return NULL;
+    if (!PyCom_InterfaceFromPyInstanceOrObject(obpsi, IID_IShellItem, (void **)&psi, TRUE /* bNoneOK */))
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pINSTC->GetItemCustomState(psi, &iStateNumber);
+    if (psi)
+        psi->Release();
+    PY_INTERFACE_POSTCALL;
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pINSTC, IID_INameSpaceTreeControl);
+    return PyInt_FromLong(iStateNumber);
 }
 
 // @pymethod |PyINameSpaceTreeControl|SetItemCustomState|Description of SetItemCustomState.
 PyObject *PyINameSpaceTreeControl::SetItemCustomState(PyObject *self, PyObject *args)
 {
-	INameSpaceTreeControl *pINSTC = GetI(self);
-	if ( pINSTC == NULL )
-		return NULL;
-	// @pyparm <o PyIShellItem>|psi||Description for psi
-	// @pyparm int|iStateNumber||Description for iStateNumber
-	PyObject *obpsi;
-	IShellItem * psi;
-	int iStateNumber;
-	if ( !PyArg_ParseTuple(args, "Oi:SetItemCustomState", &obpsi, &iStateNumber) )
-		return NULL;
-	if (!PyCom_InterfaceFromPyInstanceOrObject(obpsi, IID_IShellItem, (void **)&psi, TRUE /* bNoneOK */))
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pINSTC->SetItemCustomState( psi, iStateNumber );
-	if (psi) psi->Release();
-	PY_INTERFACE_POSTCALL;
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pINSTC, IID_INameSpaceTreeControl );
-	Py_INCREF(Py_None);
-	return Py_None;
-
+    INameSpaceTreeControl *pINSTC = GetI(self);
+    if (pINSTC == NULL)
+        return NULL;
+    // @pyparm <o PyIShellItem>|psi||Description for psi
+    // @pyparm int|iStateNumber||Description for iStateNumber
+    PyObject *obpsi;
+    IShellItem *psi;
+    int iStateNumber;
+    if (!PyArg_ParseTuple(args, "Oi:SetItemCustomState", &obpsi, &iStateNumber))
+        return NULL;
+    if (!PyCom_InterfaceFromPyInstanceOrObject(obpsi, IID_IShellItem, (void **)&psi, TRUE /* bNoneOK */))
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pINSTC->SetItemCustomState(psi, iStateNumber);
+    if (psi)
+        psi->Release();
+    PY_INTERFACE_POSTCALL;
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pINSTC, IID_INameSpaceTreeControl);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @pymethod |PyINameSpaceTreeControl|EnsureItemVisible|Description of EnsureItemVisible.
 PyObject *PyINameSpaceTreeControl::EnsureItemVisible(PyObject *self, PyObject *args)
 {
-	INameSpaceTreeControl *pINSTC = GetI(self);
-	if ( pINSTC == NULL )
-		return NULL;
-	// @pyparm <o PyIShellItem>|psi||Description for psi
-	PyObject *obpsi;
-	IShellItem * psi;
-	if ( !PyArg_ParseTuple(args, "O:EnsureItemVisible", &obpsi) )
-		return NULL;
-	if (!PyCom_InterfaceFromPyInstanceOrObject(obpsi, IID_IShellItem, (void **)&psi, TRUE /* bNoneOK */))
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pINSTC->EnsureItemVisible( psi );
-	if (psi) psi->Release();
-	PY_INTERFACE_POSTCALL;
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pINSTC, IID_INameSpaceTreeControl );
-	Py_INCREF(Py_None);
-	return Py_None;
-
+    INameSpaceTreeControl *pINSTC = GetI(self);
+    if (pINSTC == NULL)
+        return NULL;
+    // @pyparm <o PyIShellItem>|psi||Description for psi
+    PyObject *obpsi;
+    IShellItem *psi;
+    if (!PyArg_ParseTuple(args, "O:EnsureItemVisible", &obpsi))
+        return NULL;
+    if (!PyCom_InterfaceFromPyInstanceOrObject(obpsi, IID_IShellItem, (void **)&psi, TRUE /* bNoneOK */))
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pINSTC->EnsureItemVisible(psi);
+    if (psi)
+        psi->Release();
+    PY_INTERFACE_POSTCALL;
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pINSTC, IID_INameSpaceTreeControl);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @pymethod |PyINameSpaceTreeControl|SetTheme|Description of SetTheme.
 PyObject *PyINameSpaceTreeControl::SetTheme(PyObject *self, PyObject *args)
 {
-	INameSpaceTreeControl *pINSTC = GetI(self);
-	if ( pINSTC == NULL )
-		return NULL;
-	// @pyparm <o unicode>|pszTheme||Description for pszTheme
-	PyObject *obpszTheme;
-	LPWSTR pszTheme;
-	if ( !PyArg_ParseTuple(args, "O:SetTheme", &obpszTheme) )
-		return NULL;
-	if (!PyWinObject_AsBstr(obpszTheme, &pszTheme))
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pINSTC->SetTheme( pszTheme );
-	SysFreeString(pszTheme);
-	PY_INTERFACE_POSTCALL;
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pINSTC, IID_INameSpaceTreeControl );
-	Py_INCREF(Py_None);
-	return Py_None;
-
+    INameSpaceTreeControl *pINSTC = GetI(self);
+    if (pINSTC == NULL)
+        return NULL;
+    // @pyparm <o unicode>|pszTheme||Description for pszTheme
+    PyObject *obpszTheme;
+    LPWSTR pszTheme;
+    if (!PyArg_ParseTuple(args, "O:SetTheme", &obpszTheme))
+        return NULL;
+    if (!PyWinObject_AsBstr(obpszTheme, &pszTheme))
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pINSTC->SetTheme(pszTheme);
+    SysFreeString(pszTheme);
+    PY_INTERFACE_POSTCALL;
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pINSTC, IID_INameSpaceTreeControl);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @pymethod |PyINameSpaceTreeControl|GetNextItem|Description of GetNextItem.
 PyObject *PyINameSpaceTreeControl::GetNextItem(PyObject *self, PyObject *args)
 {
-	INameSpaceTreeControl *pINSTC = GetI(self);
-	if ( pINSTC == NULL )
-		return NULL;
-	// @pyparm <o PyIShellItem>|psi||Description for psi
-	// @pyparm int|nstcgi||Description for nstcgi
-	PyObject *obpsi;
-	IShellItem * psi;
-	long nstcgi;
-	IShellItem * ppsiNext;
-	if ( !PyArg_ParseTuple(args, "Ol:GetNextItem", &obpsi, &nstcgi) )
-		return NULL;
-	if (!PyCom_InterfaceFromPyInstanceOrObject(obpsi, IID_IShellItem, (void **)&psi, TRUE /* bNoneOK */))
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pINSTC->GetNextItem( psi, (NSTCGNI)nstcgi, &ppsiNext );
-	if (psi) psi->Release();
-	PY_INTERFACE_POSTCALL;
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pINSTC, IID_INameSpaceTreeControl );
-	return PyCom_PyObjectFromIUnknown(ppsiNext, IID_IShellItem, FALSE);
+    INameSpaceTreeControl *pINSTC = GetI(self);
+    if (pINSTC == NULL)
+        return NULL;
+    // @pyparm <o PyIShellItem>|psi||Description for psi
+    // @pyparm int|nstcgi||Description for nstcgi
+    PyObject *obpsi;
+    IShellItem *psi;
+    long nstcgi;
+    IShellItem *ppsiNext;
+    if (!PyArg_ParseTuple(args, "Ol:GetNextItem", &obpsi, &nstcgi))
+        return NULL;
+    if (!PyCom_InterfaceFromPyInstanceOrObject(obpsi, IID_IShellItem, (void **)&psi, TRUE /* bNoneOK */))
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pINSTC->GetNextItem(psi, (NSTCGNI)nstcgi, &ppsiNext);
+    if (psi)
+        psi->Release();
+    PY_INTERFACE_POSTCALL;
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pINSTC, IID_INameSpaceTreeControl);
+    return PyCom_PyObjectFromIUnknown(ppsiNext, IID_IShellItem, FALSE);
 }
 
 // @pymethod |PyINameSpaceTreeControl|HitTest|Description of HitTest.
 PyObject *PyINameSpaceTreeControl::HitTest(PyObject *self, PyObject *args)
 {
-	INameSpaceTreeControl *pINSTC = GetI(self);
-	if ( pINSTC == NULL )
-		return NULL;
-	POINT pt;
-	// @pyparm (int, int)|pt||Description for ppt
-	IShellItem * ppsiOut;
-	if ( !PyArg_ParseTuple(args, "(ii):HitTest", &pt.x, &pt.y) )
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pINSTC->HitTest( &pt, &ppsiOut );
-	PY_INTERFACE_POSTCALL;
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pINSTC, IID_INameSpaceTreeControl );
-	return PyCom_PyObjectFromIUnknown(ppsiOut, IID_IShellItem, FALSE);
+    INameSpaceTreeControl *pINSTC = GetI(self);
+    if (pINSTC == NULL)
+        return NULL;
+    POINT pt;
+    // @pyparm (int, int)|pt||Description for ppt
+    IShellItem *ppsiOut;
+    if (!PyArg_ParseTuple(args, "(ii):HitTest", &pt.x, &pt.y))
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pINSTC->HitTest(&pt, &ppsiOut);
+    PY_INTERFACE_POSTCALL;
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pINSTC, IID_INameSpaceTreeControl);
+    return PyCom_PyObjectFromIUnknown(ppsiOut, IID_IShellItem, FALSE);
 }
 
 // @pymethod |PyINameSpaceTreeControl|GetItemRect|Description of GetItemRect.
 PyObject *PyINameSpaceTreeControl::GetItemRect(PyObject *self, PyObject *args)
 {
-	INameSpaceTreeControl *pINSTC = GetI(self);
-	if ( pINSTC == NULL )
-		return NULL;
-	PyObject *obpsi;
-	IShellItem * psi;
-	if ( !PyArg_ParseTuple(args, "O:GetItemRect", &obpsi) )
-		return NULL;
-	if (!PyCom_InterfaceFromPyInstanceOrObject(obpsi, IID_IShellItem, (void **)&psi, TRUE /* bNoneOK */))
-		return NULL;
-	RECT rect;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pINSTC->GetItemRect( psi, &rect );
-	if (psi) psi->Release();
-	PY_INTERFACE_POSTCALL;
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pINSTC, IID_INameSpaceTreeControl );
-	return Py_BuildValue("iiii", rect.left, rect.top, rect.right, rect.bottom);
+    INameSpaceTreeControl *pINSTC = GetI(self);
+    if (pINSTC == NULL)
+        return NULL;
+    PyObject *obpsi;
+    IShellItem *psi;
+    if (!PyArg_ParseTuple(args, "O:GetItemRect", &obpsi))
+        return NULL;
+    if (!PyCom_InterfaceFromPyInstanceOrObject(obpsi, IID_IShellItem, (void **)&psi, TRUE /* bNoneOK */))
+        return NULL;
+    RECT rect;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pINSTC->GetItemRect(psi, &rect);
+    if (psi)
+        psi->Release();
+    PY_INTERFACE_POSTCALL;
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pINSTC, IID_INameSpaceTreeControl);
+    return Py_BuildValue("iiii", rect.left, rect.top, rect.right, rect.bottom);
 }
 
 // @pymethod |PyINameSpaceTreeControl|CollapseAll|Description of CollapseAll.
 PyObject *PyINameSpaceTreeControl::CollapseAll(PyObject *self, PyObject *args)
 {
-	INameSpaceTreeControl *pINSTC = GetI(self);
-	if ( pINSTC == NULL )
-		return NULL;
-	if ( !PyArg_ParseTuple(args, ":CollapseAll") )
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pINSTC->CollapseAll( );
-	PY_INTERFACE_POSTCALL;
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pINSTC, IID_INameSpaceTreeControl );
-	Py_INCREF(Py_None);
-	return Py_None;
+    INameSpaceTreeControl *pINSTC = GetI(self);
+    if (pINSTC == NULL)
+        return NULL;
+    if (!PyArg_ParseTuple(args, ":CollapseAll"))
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pINSTC->CollapseAll();
+    PY_INTERFACE_POSTCALL;
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pINSTC, IID_INameSpaceTreeControl);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @object PyINameSpaceTreeControl|Description of the interface
-static struct PyMethodDef PyINameSpaceTreeControl_methods[] =
-{
-	{ "Initialize", PyINameSpaceTreeControl::Initialize, 1 }, // @pymeth Initialize|Description of Initialize
-	{ "TreeAdvise", PyINameSpaceTreeControl::TreeAdvise, 1 }, // @pymeth TreeAdvise|Description of TreeAdvise
-	{ "TreeUnadvise", PyINameSpaceTreeControl::TreeUnadvise, 1 }, // @pymeth TreeUnadvise|Description of TreeUnadvise
-	{ "AppendRoot", PyINameSpaceTreeControl::AppendRoot, 1 }, // @pymeth AppendRoot|Description of AppendRoot
-	{ "InsertRoot", PyINameSpaceTreeControl::InsertRoot, 1 }, // @pymeth InsertRoot|Description of InsertRoot
-	{ "RemoveRoot", PyINameSpaceTreeControl::RemoveRoot, 1 }, // @pymeth RemoveRoot|Description of RemoveRoot
-	{ "RemoveAllRoots", PyINameSpaceTreeControl::RemoveAllRoots, 1 }, // @pymeth RemoveAllRoots|Description of RemoveAllRoots
-	{ "GetRootItems", PyINameSpaceTreeControl::GetRootItems, 1 }, // @pymeth GetRootItems|Description of GetRootItems
-	{ "SetItemState", PyINameSpaceTreeControl::SetItemState, 1 }, // @pymeth SetItemState|Description of SetItemState
-	{ "GetItemState", PyINameSpaceTreeControl::GetItemState, 1 }, // @pymeth GetItemState|Description of GetItemState
-	{ "GetSelectedItems", PyINameSpaceTreeControl::GetSelectedItems, 1 }, // @pymeth GetSelectedItems|Description of GetSelectedItems
-	{ "GetItemCustomState", PyINameSpaceTreeControl::GetItemCustomState, 1 }, // @pymeth GetItemCustomState|Description of GetItemCustomState
-	{ "SetItemCustomState", PyINameSpaceTreeControl::SetItemCustomState, 1 }, // @pymeth SetItemCustomState|Description of SetItemCustomState
-	{ "EnsureItemVisible", PyINameSpaceTreeControl::EnsureItemVisible, 1 }, // @pymeth EnsureItemVisible|Description of EnsureItemVisible
-	{ "SetTheme", PyINameSpaceTreeControl::SetTheme, 1 }, // @pymeth SetTheme|Description of SetTheme
-	{ "GetNextItem", PyINameSpaceTreeControl::GetNextItem, 1 }, // @pymeth GetNextItem|Description of GetNextItem
-	{ "HitTest", PyINameSpaceTreeControl::HitTest, 1 }, // @pymeth HitTest|Description of HitTest
-	{ "GetItemRect", PyINameSpaceTreeControl::GetItemRect, 1 }, // @pymeth GetItemRect|Description of GetItemRect
-	{ "CollapseAll", PyINameSpaceTreeControl::CollapseAll, 1 }, // @pymeth CollapseAll|Description of CollapseAll
-	{ NULL }
-};
+static struct PyMethodDef PyINameSpaceTreeControl_methods[] = {
+    {"Initialize", PyINameSpaceTreeControl::Initialize, 1},      // @pymeth Initialize|Description of Initialize
+    {"TreeAdvise", PyINameSpaceTreeControl::TreeAdvise, 1},      // @pymeth TreeAdvise|Description of TreeAdvise
+    {"TreeUnadvise", PyINameSpaceTreeControl::TreeUnadvise, 1},  // @pymeth TreeUnadvise|Description of TreeUnadvise
+    {"AppendRoot", PyINameSpaceTreeControl::AppendRoot, 1},      // @pymeth AppendRoot|Description of AppendRoot
+    {"InsertRoot", PyINameSpaceTreeControl::InsertRoot, 1},      // @pymeth InsertRoot|Description of InsertRoot
+    {"RemoveRoot", PyINameSpaceTreeControl::RemoveRoot, 1},      // @pymeth RemoveRoot|Description of RemoveRoot
+    {"RemoveAllRoots", PyINameSpaceTreeControl::RemoveAllRoots,
+     1},                                                         // @pymeth RemoveAllRoots|Description of RemoveAllRoots
+    {"GetRootItems", PyINameSpaceTreeControl::GetRootItems, 1},  // @pymeth GetRootItems|Description of GetRootItems
+    {"SetItemState", PyINameSpaceTreeControl::SetItemState, 1},  // @pymeth SetItemState|Description of SetItemState
+    {"GetItemState", PyINameSpaceTreeControl::GetItemState, 1},  // @pymeth GetItemState|Description of GetItemState
+    {"GetSelectedItems", PyINameSpaceTreeControl::GetSelectedItems,
+     1},  // @pymeth GetSelectedItems|Description of GetSelectedItems
+    {"GetItemCustomState", PyINameSpaceTreeControl::GetItemCustomState,
+     1},  // @pymeth GetItemCustomState|Description of GetItemCustomState
+    {"SetItemCustomState", PyINameSpaceTreeControl::SetItemCustomState,
+     1},  // @pymeth SetItemCustomState|Description of SetItemCustomState
+    {"EnsureItemVisible", PyINameSpaceTreeControl::EnsureItemVisible,
+     1},                                                 // @pymeth EnsureItemVisible|Description of EnsureItemVisible
+    {"SetTheme", PyINameSpaceTreeControl::SetTheme, 1},  // @pymeth SetTheme|Description of SetTheme
+    {"GetNextItem", PyINameSpaceTreeControl::GetNextItem, 1},  // @pymeth GetNextItem|Description of GetNextItem
+    {"HitTest", PyINameSpaceTreeControl::HitTest, 1},          // @pymeth HitTest|Description of HitTest
+    {"GetItemRect", PyINameSpaceTreeControl::GetItemRect, 1},  // @pymeth GetItemRect|Description of GetItemRect
+    {"CollapseAll", PyINameSpaceTreeControl::CollapseAll, 1},  // @pymeth CollapseAll|Description of CollapseAll
+    {NULL}};
 
-PyComTypeObject PyINameSpaceTreeControl::type("PyINameSpaceTreeControl",
-		&PyIUnknown::type,
-		sizeof(PyINameSpaceTreeControl),
-		PyINameSpaceTreeControl_methods,
-		GET_PYCOM_CTOR(PyINameSpaceTreeControl));
+PyComTypeObject PyINameSpaceTreeControl::type("PyINameSpaceTreeControl", &PyIUnknown::type,
+                                              sizeof(PyINameSpaceTreeControl), PyINameSpaceTreeControl_methods,
+                                              GET_PYCOM_CTOR(PyINameSpaceTreeControl));

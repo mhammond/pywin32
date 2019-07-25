@@ -4,33 +4,29 @@
 //
 // Interface Declaration
 
-class PyIDisplayItem : public PyIRelatedItem
-{
-public:
-	MAKE_PYCOM_CTOR(PyIDisplayItem);
-	static IDisplayItem *GetI(PyObject *self);
-	static PyComTypeObject type;
+class PyIDisplayItem : public PyIRelatedItem {
+   public:
+    MAKE_PYCOM_CTOR(PyIDisplayItem);
+    static IDisplayItem *GetI(PyObject *self);
+    static PyComTypeObject type;
 
-	// The Python methods
+    // The Python methods
 
-protected:
-	PyIDisplayItem(IUnknown *pdisp);
-	~PyIDisplayItem();
+   protected:
+    PyIDisplayItem(IUnknown *pdisp);
+    ~PyIDisplayItem();
 };
 // ---------------------------------------------------
 //
 // Gateway Declaration
 
-class PyGDisplayItem : public PyGRelatedItem, public IDisplayItem
-{
-protected:
-	PyGDisplayItem(PyObject *instance) : PyGRelatedItem(instance) { ; }
-	PYGATEWAY_MAKE_SUPPORT2(PyGDisplayItem, IDisplayItem, IID_IDisplayItem, PyGRelatedItem)
+class PyGDisplayItem : public PyGRelatedItem, public IDisplayItem {
+   protected:
+    PyGDisplayItem(PyObject *instance) : PyGRelatedItem(instance) { ; }
+    PYGATEWAY_MAKE_SUPPORT2(PyGDisplayItem, IDisplayItem, IID_IDisplayItem, PyGRelatedItem)
 
-	// Only has IRelatedItem methods
-	STDMETHOD(GetItemIDList)(PIDLIST_ABSOLUTE * ppidl)
-		{return PyGRelatedItem::GetItemIDList(ppidl);}
+    // Only has IRelatedItem methods
+    STDMETHOD(GetItemIDList)(PIDLIST_ABSOLUTE *ppidl) { return PyGRelatedItem::GetItemIDList(ppidl); }
 
-	STDMETHOD(GetItem)(IShellItem ** ppsi)
-		{return PyGRelatedItem::GetItem(ppsi);}
+    STDMETHOD(GetItem)(IShellItem **ppsi) { return PyGRelatedItem::GetItem(ppsi); }
 };

@@ -17,25 +17,25 @@
 */
 #ifdef _M_ALPHA
 
-typedef va_list *	dataconv_t;
-#define VA_LIST(v)		(*(v))
-#define VA_LIST_PTR(v)	(&(v))
+typedef va_list *dataconv_t;
+#define VA_LIST(v) (*(v))
+#define VA_LIST_PTR(v) (&(v))
 
-#else // _M_ALPHA
+#else  // _M_ALPHA
 
-typedef va_list			dataconv_t;
-#define VA_LIST(v)		(v)
-#define VA_LIST_PTR(v)	(v)
+typedef va_list dataconv_t;
+#define VA_LIST(v) (v)
+#define VA_LIST_PTR(v) (v)
 
-#endif // _M_ALPHA
+#endif  // _M_ALPHA
 
-PyObject * dataconv_L64(PyObject *self, PyObject *args);
-PyObject * dataconv_UL64(PyObject *self, PyObject *args);
-PyObject * dataconv_strL64(PyObject *self, PyObject *args);
-PyObject * dataconv_strUL64(PyObject *self, PyObject *args);
-PyObject * dataconv_interface(PyObject *self, PyObject *args);
-PyObject * dataconv_SizeOfVT(PyObject *self, PyObject *args);
-PyObject * dataconv_WriteFromOutTuple(PyObject *self, PyObject *args);
-PyObject * dataconv_ReadFromInTuple(PyObject *self, PyObject *args);
+PyObject *dataconv_L64(PyObject *self, PyObject *args);
+PyObject *dataconv_UL64(PyObject *self, PyObject *args);
+PyObject *dataconv_strL64(PyObject *self, PyObject *args);
+PyObject *dataconv_strUL64(PyObject *self, PyObject *args);
+PyObject *dataconv_interface(PyObject *self, PyObject *args);
+PyObject *dataconv_SizeOfVT(PyObject *self, PyObject *args);
+PyObject *dataconv_WriteFromOutTuple(PyObject *self, PyObject *args);
+PyObject *dataconv_ReadFromInTuple(PyObject *self, PyObject *args);
 
-#endif // __DATACONV_H__
+#endif  // __DATACONV_H__

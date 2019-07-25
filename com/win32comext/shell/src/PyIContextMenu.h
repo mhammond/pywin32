@@ -5,50 +5,34 @@
 // Interface Declaration
 #pragma once
 
-class PyIContextMenu : public PyIUnknown
-{
-public:
-	MAKE_PYCOM_CTOR(PyIContextMenu);
-	static IContextMenu *GetI(PyObject *self);
-	static PyComTypeObject type;
+class PyIContextMenu : public PyIUnknown {
+   public:
+    MAKE_PYCOM_CTOR(PyIContextMenu);
+    static IContextMenu *GetI(PyObject *self);
+    static PyComTypeObject type;
 
-	// The Python methods
-	static PyObject *QueryContextMenu(PyObject *self, PyObject *args);
-	static PyObject *InvokeCommand(PyObject *self, PyObject *args);
-	static PyObject *GetCommandString(PyObject *self, PyObject *args);
+    // The Python methods
+    static PyObject *QueryContextMenu(PyObject *self, PyObject *args);
+    static PyObject *InvokeCommand(PyObject *self, PyObject *args);
+    static PyObject *GetCommandString(PyObject *self, PyObject *args);
 
-protected:
-	PyIContextMenu(IUnknown *pdisp);
-	~PyIContextMenu();
+   protected:
+    PyIContextMenu(IUnknown *pdisp);
+    ~PyIContextMenu();
 };
 // ---------------------------------------------------
 //
 // Gateway Declaration
 
-class PyGContextMenu : public PyGatewayBase, public IContextMenu
-{
-protected:
-	PyGContextMenu(PyObject *instance) : PyGatewayBase(instance) { ; }
-	PYGATEWAY_MAKE_SUPPORT2(PyGContextMenu, IContextMenu, IID_IContextMenu, PyGatewayBase)
+class PyGContextMenu : public PyGatewayBase, public IContextMenu {
+   protected:
+    PyGContextMenu(PyObject *instance) : PyGatewayBase(instance) { ; }
+    PYGATEWAY_MAKE_SUPPORT2(PyGContextMenu, IContextMenu, IID_IContextMenu, PyGatewayBase)
 
+    // IContextMenu
+    STDMETHOD(QueryContextMenu)(HMENU hmenu, UINT indexMenu, UINT idCmdFirst, UINT idCmdLast, UINT uFlags);
 
+    STDMETHOD(InvokeCommand)(CMINVOKECOMMANDINFO __RPC_FAR *lpici);
 
-	// IContextMenu
-	STDMETHOD(QueryContextMenu)(
-		HMENU hmenu,
-		UINT indexMenu,
-		UINT idCmdFirst,
-		UINT idCmdLast,
-		UINT uFlags);
-
-	STDMETHOD(InvokeCommand)(
-		CMINVOKECOMMANDINFO __RPC_FAR * lpici);
-
-	STDMETHOD(GetCommandString)(
-		UINT_PTR idCmd,
-		UINT uType,
-		UINT     __RPC_FAR * pwReserved,
-		LPSTR pszName,
-		UINT cchMax);
-
+    STDMETHOD(GetCommandString)(UINT_PTR idCmd, UINT uType, UINT __RPC_FAR *pwReserved, LPSTR pszName, UINT cchMax);
 };
