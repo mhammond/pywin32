@@ -11,118 +11,113 @@
 //
 // Interface Implementation
 
-PyIPropertyEnumTypeList::PyIPropertyEnumTypeList(IUnknown *pdisp):
-	PyIUnknown(pdisp)
-{
-	ob_type = &type;
-}
+PyIPropertyEnumTypeList::PyIPropertyEnumTypeList(IUnknown *pdisp) : PyIUnknown(pdisp) { ob_type = &type; }
 
-PyIPropertyEnumTypeList::~PyIPropertyEnumTypeList()
-{
-}
+PyIPropertyEnumTypeList::~PyIPropertyEnumTypeList() {}
 
 /* static */ IPropertyEnumTypeList *PyIPropertyEnumTypeList::GetI(PyObject *self)
 {
-	return (IPropertyEnumTypeList *)PyIUnknown::GetI(self);
+    return (IPropertyEnumTypeList *)PyIUnknown::GetI(self);
 }
 
 // @pymethod int|PyIPropertyEnumTypeList|GetCount|Returns the number of objects in the list
 PyObject *PyIPropertyEnumTypeList::GetCount(PyObject *self, PyObject *args)
 {
-	IPropertyEnumTypeList *pIPETL = GetI(self);
-	if ( pIPETL == NULL )
-		return NULL;
-	UINT count;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIPETL->GetCount(&count);
-	PY_INTERFACE_POSTCALL;
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pIPETL, IID_IPropertyEnumTypeList );
-	return PyLong_FromUnsignedLong(count);
+    IPropertyEnumTypeList *pIPETL = GetI(self);
+    if (pIPETL == NULL)
+        return NULL;
+    UINT count;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIPETL->GetCount(&count);
+    PY_INTERFACE_POSTCALL;
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pIPETL, IID_IPropertyEnumTypeList);
+    return PyLong_FromUnsignedLong(count);
 }
 
 // @pymethod <o PyIPropertyEnumType>|PyIPropertyEnumTypeList|GetAt|Retrieves an item by index
 PyObject *PyIPropertyEnumTypeList::GetAt(PyObject *self, PyObject *args)
 {
-	IPropertyEnumTypeList *pIPETL = GetI(self);
-	if ( pIPETL == NULL )
-		return NULL;
-	IID riid = IID_IPropertyEnumType;
-	void *ret;
-	UINT i;
-	// @pyparm int|itype||Zero based index of type to return
-	// @pyparm <o PyIID>|riid|IID_IPropertyEnumType|The interface to return
-	if (!PyArg_ParseTuple(args, "k|O&:GetAt", &i, PyWinObject_AsIID, &riid))
-		return NULL;
+    IPropertyEnumTypeList *pIPETL = GetI(self);
+    if (pIPETL == NULL)
+        return NULL;
+    IID riid = IID_IPropertyEnumType;
+    void *ret;
+    UINT i;
+    // @pyparm int|itype||Zero based index of type to return
+    // @pyparm <o PyIID>|riid|IID_IPropertyEnumType|The interface to return
+    if (!PyArg_ParseTuple(args, "k|O&:GetAt", &i, PyWinObject_AsIID, &riid))
+        return NULL;
 
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIPETL->GetAt( i, riid, &ret );
-	PY_INTERFACE_POSTCALL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIPETL->GetAt(i, riid, &ret);
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pIPETL, IID_IPropertyEnumTypeList );
-	return PyCom_PyObjectFromIUnknown((IUnknown *)ret, riid);
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pIPETL, IID_IPropertyEnumTypeList);
+    return PyCom_PyObjectFromIUnknown((IUnknown *)ret, riid);
 }
 
 /*
 // @pymethod |PyIPropertyEnumTypeList|GetConditionAt|Not implemented
 PyObject *PyIPropertyEnumTypeList::GetConditionAt(PyObject *self, PyObject *args)
 {
-	IPropertyEnumTypeList *pIPETL = GetI(self);
-	if ( pIPETL == NULL )
-		return NULL;
-	// @pyparm int|index||Zero based index of item to regturn
-	// @pyparm <o PyIID>|riid||The interface to return
-	void *ret;
-	UINT i;
-	if ( !PyArg_ParseTuple(args, "kO&:GetConditionAt", &i, PyWinObject_AsIID, &riid))
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIPETL->GetConditionAt( nIndex, riid, ppv );
-	PY_INTERFACE_POSTCALL;
+    IPropertyEnumTypeList *pIPETL = GetI(self);
+    if ( pIPETL == NULL )
+        return NULL;
+    // @pyparm int|index||Zero based index of item to regturn
+    // @pyparm <o PyIID>|riid||The interface to return
+    void *ret;
+    UINT i;
+    if ( !PyArg_ParseTuple(args, "kO&:GetConditionAt", &i, PyWinObject_AsIID, &riid))
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIPETL->GetConditionAt( nIndex, riid, ppv );
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pIPETL, IID_IPropertyEnumTypeList );
-	return PyCom_PyObjectFromIUnknown(ret, riid);
+    if ( FAILED(hr) )
+        return PyCom_BuildPyException(hr, pIPETL, IID_IPropertyEnumTypeList );
+    return PyCom_PyObjectFromIUnknown(ret, riid);
 }
 */
 
-// @pymethod int|PyIPropertyEnumTypeList|FindMatchingIndex|Attempts to match the specified value to one of the allowable values for the property
+// @pymethod int|PyIPropertyEnumTypeList|FindMatchingIndex|Attempts to match the specified value to one of the allowable
+// values for the property
 PyObject *PyIPropertyEnumTypeList::FindMatchingIndex(PyObject *self, PyObject *args)
 {
-	IPropertyEnumTypeList *pIPETL = GetI(self);
-	if ( pIPETL == NULL )
-		return NULL;
-	PROPVARIANT *val;
-	// @pyparm <o PyPROPVARIANT>|Cmp||A value to match against the defined values of the property
-	UINT i;
-	if ( !PyArg_ParseTuple(args, "O&:FindMatchingIndex", PyWinObject_AsPROPVARIANT, &val))
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIPETL->FindMatchingIndex(*val, &i);
-	PY_INTERFACE_POSTCALL;
+    IPropertyEnumTypeList *pIPETL = GetI(self);
+    if (pIPETL == NULL)
+        return NULL;
+    PROPVARIANT *val;
+    // @pyparm <o PyPROPVARIANT>|Cmp||A value to match against the defined values of the property
+    UINT i;
+    if (!PyArg_ParseTuple(args, "O&:FindMatchingIndex", PyWinObject_AsPROPVARIANT, &val))
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIPETL->FindMatchingIndex(*val, &i);
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pIPETL, IID_IPropertyEnumTypeList );
-	return PyLong_FromUnsignedLong(i);
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pIPETL, IID_IPropertyEnumTypeList);
+    return PyLong_FromUnsignedLong(i);
 }
 
-// @object PyIPropertyEnumTypeList|Contains a collection of <o PyIPropertyEnumType> objects that define the allowable values for a property
-static struct PyMethodDef PyIPropertyEnumTypeList_methods[] =
-{
-	//	{ "GetConditionAt", PyIPropertyEnumTypeList::GetConditionAt, 1 }, // @pymeth GetConditionAt|Not implemented
-	{ "GetCount", PyIPropertyEnumTypeList::GetCount, METH_NOARGS }, // @pymeth GetCount|Returns the number of objects in the list
-	{ "GetAt", PyIPropertyEnumTypeList::GetAt, 1 }, // @pymeth GetAt|Retrieves an item by index
-	{ "FindMatchingIndex", PyIPropertyEnumTypeList::FindMatchingIndex, 1 }, // @pymeth FindMatchingIndex|Attempts to match the specified value to one of the allowable values for the property
-	{ NULL }
-};
+// @object PyIPropertyEnumTypeList|Contains a collection of <o PyIPropertyEnumType> objects that define the allowable
+// values for a property
+static struct PyMethodDef PyIPropertyEnumTypeList_methods[] = {
+    //	{ "GetConditionAt", PyIPropertyEnumTypeList::GetConditionAt, 1 }, // @pymeth GetConditionAt|Not implemented
+    {"GetCount", PyIPropertyEnumTypeList::GetCount,
+     METH_NOARGS},                                 // @pymeth GetCount|Returns the number of objects in the list
+    {"GetAt", PyIPropertyEnumTypeList::GetAt, 1},  // @pymeth GetAt|Retrieves an item by index
+    {"FindMatchingIndex", PyIPropertyEnumTypeList::FindMatchingIndex,
+     1},  // @pymeth FindMatchingIndex|Attempts to match the specified value to one of the allowable values for the
+          // property
+    {NULL}};
 
-PyComTypeObject PyIPropertyEnumTypeList::type("PyIPropertyEnumTypeList",
-		&PyIUnknown::type,
-		sizeof(PyIPropertyEnumTypeList),
-		PyIPropertyEnumTypeList_methods,
-		GET_PYCOM_CTOR(PyIPropertyEnumTypeList));
+PyComTypeObject PyIPropertyEnumTypeList::type("PyIPropertyEnumTypeList", &PyIUnknown::type,
+                                              sizeof(PyIPropertyEnumTypeList), PyIPropertyEnumTypeList_methods,
+                                              GET_PYCOM_CTOR(PyIPropertyEnumTypeList));

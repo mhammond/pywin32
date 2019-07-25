@@ -9,186 +9,179 @@
 //
 // Interface Implementation
 
-PyITransferDestination::PyITransferDestination(IUnknown *pdisp):
-	PyIUnknown(pdisp)
-{
-	ob_type = &type;
-}
+PyITransferDestination::PyITransferDestination(IUnknown *pdisp) : PyIUnknown(pdisp) { ob_type = &type; }
 
-PyITransferDestination::~PyITransferDestination()
-{
-}
+PyITransferDestination::~PyITransferDestination() {}
 
 /* static */ ITransferDestination *PyITransferDestination::GetI(PyObject *self)
 {
-	return (ITransferDestination *)PyIUnknown::GetI(self);
+    return (ITransferDestination *)PyIUnknown::GetI(self);
 }
 
 // @pymethod int|PyITransferDestination|Advise|Connects an advise sink
 // @rdesc Returns an id for the connection, to be passed to <om PyITransferDestination.Unadvise>
 PyObject *PyITransferDestination::Advise(PyObject *self, PyObject *args)
 {
-	ITransferDestination *pITD = GetI(self);
-	if ( pITD == NULL )
-		return NULL;
-	// @pyparm <o PyITransferAdviseSink>|Sink||Event sink to receive notifications
-	PyObject *obpsink;
-	ITransferAdviseSink * psink;
-	DWORD Cookie;
-	if ( !PyArg_ParseTuple(args, "O:Advise", &obpsink) )
-		return NULL;
-	if (!PyCom_InterfaceFromPyInstanceOrObject(obpsink, IID_ITransferAdviseSink, (void **)&psink, FALSE))
-		 return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pITD->Advise( psink, &Cookie );
-	psink->Release();
-	PY_INTERFACE_POSTCALL;
+    ITransferDestination *pITD = GetI(self);
+    if (pITD == NULL)
+        return NULL;
+    // @pyparm <o PyITransferAdviseSink>|Sink||Event sink to receive notifications
+    PyObject *obpsink;
+    ITransferAdviseSink *psink;
+    DWORD Cookie;
+    if (!PyArg_ParseTuple(args, "O:Advise", &obpsink))
+        return NULL;
+    if (!PyCom_InterfaceFromPyInstanceOrObject(obpsink, IID_ITransferAdviseSink, (void **)&psink, FALSE))
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pITD->Advise(psink, &Cookie);
+    psink->Release();
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pITD, IID_ITransferDestination );
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pITD, IID_ITransferDestination);
 
-	return PyLong_FromUnsignedLong(Cookie);
+    return PyLong_FromUnsignedLong(Cookie);
 }
 
 // @pymethod |PyITransferDestination|Unadvise|Disconnects an advise sink
 PyObject *PyITransferDestination::Unadvise(PyObject *self, PyObject *args)
 {
-	ITransferDestination *pITD = GetI(self);
-	if ( pITD == NULL )
-		return NULL;
-	// @pyparm int|Cookie||Connection identifier as returned by <om PyITransferDestination.Advise>
-	DWORD dwCookie;
-	if ( !PyArg_ParseTuple(args, "k:Unadvise", &dwCookie) )
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pITD->Unadvise( dwCookie );
+    ITransferDestination *pITD = GetI(self);
+    if (pITD == NULL)
+        return NULL;
+    // @pyparm int|Cookie||Connection identifier as returned by <om PyITransferDestination.Advise>
+    DWORD dwCookie;
+    if (!PyArg_ParseTuple(args, "k:Unadvise", &dwCookie))
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pITD->Unadvise(dwCookie);
 
-	PY_INTERFACE_POSTCALL;
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pITD, IID_ITransferDestination );
-	Py_INCREF(Py_None);
-	return Py_None;
-
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pITD, IID_ITransferDestination);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @pymethod (int, interface, interface)|PyITransferDestination|CreateItem|Requests that a new item be created
 // @rdesc Returns the HRESULT and requested interfaces.  Interfaces may be None if
-//	function returns one of the informational codes (shellcon.COPYENGINE_S_*) 
+//	function returns one of the informational codes (shellcon.COPYENGINE_S_*)
 PyObject *PyITransferDestination::CreateItem(PyObject *self, PyObject *args)
 {
-	ITransferDestination *pITD = GetI(self);
-	if ( pITD == NULL )
-		return NULL;
-	// @pyparm str|Name||Filename to be created
-	// @pyparm int|Attributes||File attributes
-	ULONGLONG Size;
-	// @pyparm int|Size||Size of file
-	TRANSFER_SOURCE_FLAGS Flags;
-	// @pyparm int|Flags||Combination of shellcon.TSF_* flags
-	// @pyparm <o PyIID>|riidItem|IID_IShellItem|Item interface to return
-	// @pyparm <o PyIID>|riidResources|IID_IShellItemResources|Resource interface to return
-	void *pvResources, *pvItem;
-	PyObject *obName;
-	TmpWCHAR Name;
-	DWORD Attributes;
-	IID riidItem = IID_IShellItem;
-	IID riidResources = IID_IShellItemResources;
-	if ( !PyArg_ParseTuple(args, "OkKi|O&O&:CreateItem", &obName, &Attributes, &Size, &Flags, 
-		PyWinObject_AsIID, &riidItem, PyWinObject_AsIID, &riidResources))
-		return NULL;
-	if (!PyWinObject_AsWCHAR(obName, &Name))
-		return NULL;
+    ITransferDestination *pITD = GetI(self);
+    if (pITD == NULL)
+        return NULL;
+    // @pyparm str|Name||Filename to be created
+    // @pyparm int|Attributes||File attributes
+    ULONGLONG Size;
+    // @pyparm int|Size||Size of file
+    TRANSFER_SOURCE_FLAGS Flags;
+    // @pyparm int|Flags||Combination of shellcon.TSF_* flags
+    // @pyparm <o PyIID>|riidItem|IID_IShellItem|Item interface to return
+    // @pyparm <o PyIID>|riidResources|IID_IShellItemResources|Resource interface to return
+    void *pvResources, *pvItem;
+    PyObject *obName;
+    TmpWCHAR Name;
+    DWORD Attributes;
+    IID riidItem = IID_IShellItem;
+    IID riidResources = IID_IShellItemResources;
+    if (!PyArg_ParseTuple(args, "OkKi|O&O&:CreateItem", &obName, &Attributes, &Size, &Flags, PyWinObject_AsIID,
+                          &riidItem, PyWinObject_AsIID, &riidResources))
+        return NULL;
+    if (!PyWinObject_AsWCHAR(obName, &Name))
+        return NULL;
 
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pITD->CreateItem(Name, Attributes, Size, Flags, riidItem, &pvItem, riidResources, &pvResources);
-	PY_INTERFACE_POSTCALL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pITD->CreateItem(Name, Attributes, Size, Flags, riidItem, &pvItem, riidResources, &pvResources);
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pITD, IID_ITransferDestination );
-	return Py_BuildValue("lNN", hr,
-		PyCom_PyObjectFromIUnknown((IUnknown *)pvItem, riidItem, FALSE),
-		PyCom_PyObjectFromIUnknown((IUnknown *)pvResources, riidResources, FALSE));
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pITD, IID_ITransferDestination);
+    return Py_BuildValue("lNN", hr, PyCom_PyObjectFromIUnknown((IUnknown *)pvItem, riidItem, FALSE),
+                         PyCom_PyObjectFromIUnknown((IUnknown *)pvResources, riidResources, FALSE));
 }
 
 // @object PyITransferDestination|Implemented by shell extensions that act as targets for item copy or move operations
-static struct PyMethodDef PyITransferDestination_methods[] =
-{
-	{ "Advise", PyITransferDestination::Advise, 1 }, // @pymeth Advise|Connects an advise sink
-	{ "Unadvise", PyITransferDestination::Unadvise, 1 }, // @pymeth Unadvise|Disconnects an advise sink
-	{ "CreateItem", PyITransferDestination::CreateItem, 1 }, // @pymeth CreateItem|Requests that a new item be created
-	{ NULL }
-};
+static struct PyMethodDef PyITransferDestination_methods[] = {
+    {"Advise", PyITransferDestination::Advise, 1},          // @pymeth Advise|Connects an advise sink
+    {"Unadvise", PyITransferDestination::Unadvise, 1},      // @pymeth Unadvise|Disconnects an advise sink
+    {"CreateItem", PyITransferDestination::CreateItem, 1},  // @pymeth CreateItem|Requests that a new item be created
+    {NULL}};
 
-PyComTypeObject PyITransferDestination::type("PyITransferDestination",
-		&PyIUnknown::type,
-		sizeof(PyITransferDestination),
-		PyITransferDestination_methods,
-		GET_PYCOM_CTOR(PyITransferDestination));
+PyComTypeObject PyITransferDestination::type("PyITransferDestination", &PyIUnknown::type,
+                                             sizeof(PyITransferDestination), PyITransferDestination_methods,
+                                             GET_PYCOM_CTOR(PyITransferDestination));
 // ---------------------------------------------------
 //
 // Gateway Implementation
 STDMETHODIMP PyGTransferDestination::Advise(
-		/* [in] */ ITransferAdviseSink * psink,
-		/* [out] */ DWORD * pdwCookie)
+    /* [in] */ ITransferAdviseSink *psink,
+    /* [out] */ DWORD *pdwCookie)
 {
-	PY_GATEWAY_METHOD;
-	PyObject *obpsink;
-	obpsink = PyCom_PyObjectFromIUnknown(psink, IID_ITransferAdviseSink, TRUE);
-	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("Advise", &result, "O", obpsink);
-	Py_XDECREF(obpsink);
-	if (FAILED(hr)) return hr;
-	// Process the Python results, and convert back to the real params
-	if (!PyArg_Parse(result, "k" , pdwCookie))
-		hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("Advise");
-	Py_DECREF(result);
-	return hr;
+    PY_GATEWAY_METHOD;
+    PyObject *obpsink;
+    obpsink = PyCom_PyObjectFromIUnknown(psink, IID_ITransferAdviseSink, TRUE);
+    PyObject *result;
+    HRESULT hr = InvokeViaPolicy("Advise", &result, "O", obpsink);
+    Py_XDECREF(obpsink);
+    if (FAILED(hr))
+        return hr;
+    // Process the Python results, and convert back to the real params
+    if (!PyArg_Parse(result, "k", pdwCookie))
+        hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("Advise");
+    Py_DECREF(result);
+    return hr;
 }
 
 STDMETHODIMP PyGTransferDestination::Unadvise(
-		/* [in] */ DWORD dwCookie)
+    /* [in] */ DWORD dwCookie)
 {
-	PY_GATEWAY_METHOD;
-	HRESULT hr=InvokeViaPolicy("Unadvise", NULL, "k", dwCookie);
-	return hr;
+    PY_GATEWAY_METHOD;
+    HRESULT hr = InvokeViaPolicy("Unadvise", NULL, "k", dwCookie);
+    return hr;
 }
 
 STDMETHODIMP PyGTransferDestination::CreateItem(
-		/* [in] */ LPCWSTR pszName,
-		/* [in] */ DWORD dwAttributes,
-		/* [in] */ ULONGLONG ullSize,
-		/* [in] */ TRANSFER_SOURCE_FLAGS flags,
-		/* [in] */ REFIID riidItem,
-		/* [out] */ void ** ppvItem,
-		/* [in] */ REFIID riidResources,
-		/* [out] */ void ** ppvResources)
+    /* [in] */ LPCWSTR pszName,
+    /* [in] */ DWORD dwAttributes,
+    /* [in] */ ULONGLONG ullSize,
+    /* [in] */ TRANSFER_SOURCE_FLAGS flags,
+    /* [in] */ REFIID riidItem,
+    /* [out] */ void **ppvItem,
+    /* [in] */ REFIID riidResources,
+    /* [out] */ void **ppvResources)
 {
-	PY_GATEWAY_METHOD;
-	if (ppvItem==NULL) return E_POINTER;
-	if (ppvResources==NULL) return E_POINTER;
-	PyObject *obpszName;
-	PyObject *obriidItem;
-	PyObject *obriidResources;
-	obpszName = PyWinObject_FromWCHAR(pszName);
-	obriidItem = PyWinObject_FromIID(riidItem);
-	obriidResources = PyWinObject_FromIID(riidResources);
-	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("CreateItem", &result, "OkKkOO", obpszName, dwAttributes, ullSize, flags, obriidItem, obriidResources);
-	Py_XDECREF(obpszName);
-	Py_XDECREF(obriidItem);
-	Py_XDECREF(obriidResources);
-	if (FAILED(hr)) return hr;
-	PyObject *obItem, *obResources;
-	if (!PyArg_ParseTuple(result, "lOO", &hr, &obItem, &obResources))
-		hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("CreateItem");
-	else if (!PyCom_InterfaceFromPyObject(obItem, riidItem, ppvItem, TRUE))
-		hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("CreateItem");
-	else if (!PyCom_InterfaceFromPyObject(obResources, riidResources, ppvResources, TRUE))
-		hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("CreateItem");
-	Py_DECREF(result);
-	return hr;
+    PY_GATEWAY_METHOD;
+    if (ppvItem == NULL)
+        return E_POINTER;
+    if (ppvResources == NULL)
+        return E_POINTER;
+    PyObject *obpszName;
+    PyObject *obriidItem;
+    PyObject *obriidResources;
+    obpszName = PyWinObject_FromWCHAR(pszName);
+    obriidItem = PyWinObject_FromIID(riidItem);
+    obriidResources = PyWinObject_FromIID(riidResources);
+    PyObject *result;
+    HRESULT hr = InvokeViaPolicy("CreateItem", &result, "OkKkOO", obpszName, dwAttributes, ullSize, flags, obriidItem,
+                                 obriidResources);
+    Py_XDECREF(obpszName);
+    Py_XDECREF(obriidItem);
+    Py_XDECREF(obriidResources);
+    if (FAILED(hr))
+        return hr;
+    PyObject *obItem, *obResources;
+    if (!PyArg_ParseTuple(result, "lOO", &hr, &obItem, &obResources))
+        hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("CreateItem");
+    else if (!PyCom_InterfaceFromPyObject(obItem, riidItem, ppvItem, TRUE))
+        hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("CreateItem");
+    else if (!PyCom_InterfaceFromPyObject(obResources, riidResources, ppvResources, TRUE))
+        hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("CreateItem");
+    Py_DECREF(result);
+    return hr;
 }

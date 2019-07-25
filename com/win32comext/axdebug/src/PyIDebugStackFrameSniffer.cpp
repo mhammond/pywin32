@@ -9,70 +9,65 @@
 //
 // Interface Implementation
 
-PyIDebugStackFrameSniffer::PyIDebugStackFrameSniffer(IUnknown *pdisp):
-	PyIUnknown(pdisp)
-{
-	ob_type = &type;
-}
+PyIDebugStackFrameSniffer::PyIDebugStackFrameSniffer(IUnknown *pdisp) : PyIUnknown(pdisp) { ob_type = &type; }
 
-PyIDebugStackFrameSniffer::~PyIDebugStackFrameSniffer()
-{
-}
+PyIDebugStackFrameSniffer::~PyIDebugStackFrameSniffer() {}
 
 /* static */ IDebugStackFrameSniffer *PyIDebugStackFrameSniffer::GetI(PyObject *self)
 {
-	return (IDebugStackFrameSniffer *)PyIUnknown::GetI(self);
+    return (IDebugStackFrameSniffer *)PyIUnknown::GetI(self);
 }
 
 // @pymethod |PyIDebugStackFrameSniffer|EnumStackFrames|Description of EnumStackFrames.
 PyObject *PyIDebugStackFrameSniffer::EnumStackFrames(PyObject *self, PyObject *args)
 {
-	IDebugStackFrameSniffer *pIDSFS = GetI(self);
-	if ( pIDSFS == NULL )
-		return NULL;
-	IEnumDebugStackFrames *ppedsf;
-	if ( !PyArg_ParseTuple(args, ":EnumStackFrames") )
-		return NULL;
-	PY_INTERFACE_PRECALL;
-	HRESULT hr = pIDSFS->EnumStackFrames( &ppedsf );
-	PY_INTERFACE_POSTCALL;
-	if ( FAILED(hr) )
-		return SetPythonCOMError(self,hr);
-	return PyCom_PyObjectFromIUnknown(ppedsf, IID_IEnumDebugStackFrames, FALSE);
+    IDebugStackFrameSniffer *pIDSFS = GetI(self);
+    if (pIDSFS == NULL)
+        return NULL;
+    IEnumDebugStackFrames *ppedsf;
+    if (!PyArg_ParseTuple(args, ":EnumStackFrames"))
+        return NULL;
+    PY_INTERFACE_PRECALL;
+    HRESULT hr = pIDSFS->EnumStackFrames(&ppedsf);
+    PY_INTERFACE_POSTCALL;
+    if (FAILED(hr))
+        return SetPythonCOMError(self, hr);
+    return PyCom_PyObjectFromIUnknown(ppedsf, IID_IEnumDebugStackFrames, FALSE);
 }
 
 // @object PyIDebugStackFrameSniffer|Description of the interface
-static struct PyMethodDef PyIDebugStackFrameSniffer_methods[] =
-{
-	{ "EnumStackFrames", PyIDebugStackFrameSniffer::EnumStackFrames, 1 }, // @pymeth EnumStackFrames|Description of EnumStackFrames
-	{ NULL }
-};
+static struct PyMethodDef PyIDebugStackFrameSniffer_methods[] = {
+    {"EnumStackFrames", PyIDebugStackFrameSniffer::EnumStackFrames,
+     1},  // @pymeth EnumStackFrames|Description of EnumStackFrames
+    {NULL}};
 
-PyComTypeObject PyIDebugStackFrameSniffer::type("PyIDebugStackFrameSniffer",
-		&PyIUnknown::type,
-		sizeof(PyIDebugStackFrameSniffer),
-		PyIDebugStackFrameSniffer_methods,
-		GET_PYCOM_CTOR(PyIDebugStackFrameSniffer));
+PyComTypeObject PyIDebugStackFrameSniffer::type("PyIDebugStackFrameSniffer", &PyIUnknown::type,
+                                                sizeof(PyIDebugStackFrameSniffer), PyIDebugStackFrameSniffer_methods,
+                                                GET_PYCOM_CTOR(PyIDebugStackFrameSniffer));
 // ---------------------------------------------------
 //
 // Gateway Implementation
 
 STDMETHODIMP PyGDebugStackFrameSniffer::EnumStackFrames(
-		/* [out] */ IEnumDebugStackFrames __RPC_FAR *__RPC_FAR * ppedsf)
+    /* [out] */ IEnumDebugStackFrames __RPC_FAR *__RPC_FAR *ppedsf)
 {
-	PY_GATEWAY_METHOD;
-	if (ppedsf==NULL) return E_POINTER;
-	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("EnumStackFrames", &result);
-	if (FAILED(hr)) return hr;
-	// Process the Python results, and convert back to the real params
-	PyObject *obppedsf;
-	if (!PyArg_Parse(result, "O" , &obppedsf)) return PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
-	BOOL bPythonIsHappy = TRUE;
-	if (!PyCom_InterfaceFromPyInstanceOrObject(obppedsf, IID_IEnumDebugStackFrames, (void **)ppedsf, FALSE /* bNoneOK */))
-		 bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) hr = PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
-	Py_DECREF(result);
-	return hr;
+    PY_GATEWAY_METHOD;
+    if (ppedsf == NULL)
+        return E_POINTER;
+    PyObject *result;
+    HRESULT hr = InvokeViaPolicy("EnumStackFrames", &result);
+    if (FAILED(hr))
+        return hr;
+    // Process the Python results, and convert back to the real params
+    PyObject *obppedsf;
+    if (!PyArg_Parse(result, "O", &obppedsf))
+        return PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
+    BOOL bPythonIsHappy = TRUE;
+    if (!PyCom_InterfaceFromPyInstanceOrObject(obppedsf, IID_IEnumDebugStackFrames, (void **)ppedsf,
+                                               FALSE /* bNoneOK */))
+        bPythonIsHappy = FALSE;
+    if (!bPythonIsHappy)
+        hr = PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
+    Py_DECREF(result);
+    return hr;
 }
-

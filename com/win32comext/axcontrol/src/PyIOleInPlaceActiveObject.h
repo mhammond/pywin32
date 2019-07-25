@@ -4,57 +4,46 @@
 //
 // Interface Declaration
 
-class PyIOleInPlaceActiveObject : public PyIOleWindow
-{
-public:
-	MAKE_PYCOM_CTOR(PyIOleInPlaceActiveObject);
-	static IOleInPlaceActiveObject *GetI(PyObject *self);
-	static PyComTypeObject type;
+class PyIOleInPlaceActiveObject : public PyIOleWindow {
+   public:
+    MAKE_PYCOM_CTOR(PyIOleInPlaceActiveObject);
+    static IOleInPlaceActiveObject *GetI(PyObject *self);
+    static PyComTypeObject type;
 
-	// The Python methods
-	static PyObject *TranslateAccelerator(PyObject *self, PyObject *args);
-	static PyObject *OnFrameWindowActivate(PyObject *self, PyObject *args);
-	static PyObject *OnDocWindowActivate(PyObject *self, PyObject *args);
-	static PyObject *ResizeBorder(PyObject *self, PyObject *args);
-	static PyObject *EnableModeless(PyObject *self, PyObject *args);
+    // The Python methods
+    static PyObject *TranslateAccelerator(PyObject *self, PyObject *args);
+    static PyObject *OnFrameWindowActivate(PyObject *self, PyObject *args);
+    static PyObject *OnDocWindowActivate(PyObject *self, PyObject *args);
+    static PyObject *ResizeBorder(PyObject *self, PyObject *args);
+    static PyObject *EnableModeless(PyObject *self, PyObject *args);
 
-protected:
-	PyIOleInPlaceActiveObject(IUnknown *pdisp);
-	~PyIOleInPlaceActiveObject();
+   protected:
+    PyIOleInPlaceActiveObject(IUnknown *pdisp);
+    ~PyIOleInPlaceActiveObject();
 };
 // ---------------------------------------------------
 //
 // Gateway Declaration
 
-class PyGOleInPlaceActiveObject : public PyGOleWindow, public IOleInPlaceActiveObject
-{
-protected:
-	PyGOleInPlaceActiveObject(PyObject *instance) : PyGOleWindow(instance) { ; }
-	PYGATEWAY_MAKE_SUPPORT2(PyGOleInPlaceActiveObject, IOleInPlaceActiveObject, IID_IOleInPlaceActiveObject, PyGOleWindow)
+class PyGOleInPlaceActiveObject : public PyGOleWindow, public IOleInPlaceActiveObject {
+   protected:
+    PyGOleInPlaceActiveObject(PyObject *instance) : PyGOleWindow(instance) { ; }
+    PYGATEWAY_MAKE_SUPPORT2(PyGOleInPlaceActiveObject, IOleInPlaceActiveObject, IID_IOleInPlaceActiveObject,
+                            PyGOleWindow)
 
-	// IOleWindow
-	STDMETHOD(GetWindow)(
-		HWND __RPC_FAR * phwnd);
+    // IOleWindow
+    STDMETHOD(GetWindow)(HWND __RPC_FAR *phwnd);
 
-	STDMETHOD(ContextSensitiveHelp)(
-		BOOL fEnterMode);
+    STDMETHOD(ContextSensitiveHelp)(BOOL fEnterMode);
 
-	// IOleInPlaceActiveObject
-	STDMETHOD(TranslateAccelerator)(
-		LPMSG lpmsg);
+    // IOleInPlaceActiveObject
+    STDMETHOD(TranslateAccelerator)(LPMSG lpmsg);
 
-	STDMETHOD(OnFrameWindowActivate)(
-		BOOL fActivate);
+    STDMETHOD(OnFrameWindowActivate)(BOOL fActivate);
 
-	STDMETHOD(OnDocWindowActivate)(
-		BOOL fActivate);
+    STDMETHOD(OnDocWindowActivate)(BOOL fActivate);
 
-	STDMETHOD(ResizeBorder)(
-		LPCRECT prcBorder,
-		IOleInPlaceUIWindow * pUIWindow,
-		BOOL fFrameWindow);
+    STDMETHOD(ResizeBorder)(LPCRECT prcBorder, IOleInPlaceUIWindow *pUIWindow, BOOL fFrameWindow);
 
-	STDMETHOD(EnableModeless)(
-		BOOL fEnable);
-
+    STDMETHOD(EnableModeless)(BOOL fEnable);
 };

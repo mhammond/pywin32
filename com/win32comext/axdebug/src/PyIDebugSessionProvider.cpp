@@ -11,71 +11,62 @@
 //
 // Interface Implementation
 
-PyIDebugSessionProvider::PyIDebugSessionProvider(IUnknown *pdisp):
-	PyIUnknown(pdisp)
-{
-	ob_type = &type;
-}
+PyIDebugSessionProvider::PyIDebugSessionProvider(IUnknown *pdisp) : PyIUnknown(pdisp) { ob_type = &type; }
 
-PyIDebugSessionProvider::~PyIDebugSessionProvider()
-{
-}
+PyIDebugSessionProvider::~PyIDebugSessionProvider() {}
 
 /* static */ IDebugSessionProvider *PyIDebugSessionProvider::GetI(PyObject *self)
 {
-	return (IDebugSessionProvider *)PyIUnknown::GetI(self);
+    return (IDebugSessionProvider *)PyIUnknown::GetI(self);
 }
 
 // @pymethod |PyIDebugSessionProvider|StartDebugSession|Description of StartDebugSession.
 PyObject *PyIDebugSessionProvider::StartDebugSession(PyObject *self, PyObject *args)
 {
-	IDebugSessionProvider *pIDSP = GetI(self);
-	if ( pIDSP == NULL )
-		return NULL;
-	// @pyparm <o PyIRemoteDebugApplication>|pda||Description for pda
-	PyObject *obpda;
-	IRemoteDebugApplication *pda;
-	if ( !PyArg_ParseTuple(args, "O:StartDebugSession", &obpda) )
-		return NULL;
-	BOOL bPythonIsHappy = TRUE;
-	if (!PyCom_InterfaceFromPyInstanceOrObject(obpda, IID_IRemoteDebugApplication, (void **)&pda, TRUE /* bNoneOK */))
-		 bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) return NULL;
-	PY_INTERFACE_PRECALL;
-	HRESULT hr = pIDSP->StartDebugSession( pda );
-	if (pda) pda->Release();
-	PY_INTERFACE_POSTCALL;
-	if ( FAILED(hr) )
-		return OleSetOleError(hr);
-	Py_INCREF(Py_None);
-	return Py_None;
-
+    IDebugSessionProvider *pIDSP = GetI(self);
+    if (pIDSP == NULL)
+        return NULL;
+    // @pyparm <o PyIRemoteDebugApplication>|pda||Description for pda
+    PyObject *obpda;
+    IRemoteDebugApplication *pda;
+    if (!PyArg_ParseTuple(args, "O:StartDebugSession", &obpda))
+        return NULL;
+    BOOL bPythonIsHappy = TRUE;
+    if (!PyCom_InterfaceFromPyInstanceOrObject(obpda, IID_IRemoteDebugApplication, (void **)&pda, TRUE /* bNoneOK */))
+        bPythonIsHappy = FALSE;
+    if (!bPythonIsHappy)
+        return NULL;
+    PY_INTERFACE_PRECALL;
+    HRESULT hr = pIDSP->StartDebugSession(pda);
+    if (pda)
+        pda->Release();
+    PY_INTERFACE_POSTCALL;
+    if (FAILED(hr))
+        return OleSetOleError(hr);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @object PyIDebugSessionProvider|Description of the interface
-static struct PyMethodDef PyIDebugSessionProvider_methods[] =
-{
-	{ "StartDebugSession", PyIDebugSessionProvider::StartDebugSession, 1 }, // @pymeth StartDebugSession|Description of StartDebugSession
-	{ NULL }
-};
+static struct PyMethodDef PyIDebugSessionProvider_methods[] = {
+    {"StartDebugSession", PyIDebugSessionProvider::StartDebugSession,
+     1},  // @pymeth StartDebugSession|Description of StartDebugSession
+    {NULL}};
 
-PyComTypeObject PyIDebugSessionProvider::type("PyIDebugSessionProvider",
-		&PyIUnknown::type,
-		sizeof(PyIDebugSessionProvider),
-		PyIDebugSessionProvider_methods,
-		GET_PYCOM_CTOR(PyIDebugSessionProvider));
+PyComTypeObject PyIDebugSessionProvider::type("PyIDebugSessionProvider", &PyIUnknown::type,
+                                              sizeof(PyIDebugSessionProvider), PyIDebugSessionProvider_methods,
+                                              GET_PYCOM_CTOR(PyIDebugSessionProvider));
 // ---------------------------------------------------
 //
 // Gateway Implementation
 
 STDMETHODIMP PyGDebugSessionProvider::StartDebugSession(
-		/* [in] */ IRemoteDebugApplication __RPC_FAR * pda)
+    /* [in] */ IRemoteDebugApplication __RPC_FAR *pda)
 {
-	PY_GATEWAY_METHOD;
-	PyObject *obpda;
-	obpda = PyCom_PyObjectFromIUnknown(pda, IID_IRemoteDebugApplication, TRUE);
-	HRESULT hr=InvokeViaPolicy("StartDebugSession", NULL, "O", obpda);
-	Py_XDECREF(obpda);
-	return hr;
+    PY_GATEWAY_METHOD;
+    PyObject *obpda;
+    obpda = PyCom_PyObjectFromIUnknown(pda, IID_IRemoteDebugApplication, TRUE);
+    HRESULT hr = InvokeViaPolicy("StartDebugSession", NULL, "O", obpda);
+    Py_XDECREF(obpda);
+    return hr;
 }
-

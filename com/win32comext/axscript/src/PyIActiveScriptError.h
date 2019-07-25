@@ -4,19 +4,18 @@
 //
 // Interface Declaration
 
-class PYAXSCRIPT_EXPORT PyIActiveScriptError : public PyIUnknown
-{
-public:
-	MAKE_PYCOM_CTOR_ERRORINFO(PyIActiveScriptError, IID_IActiveScriptError);
-	static IActiveScriptError *GetI(PyObject *self);
-	static PyComTypeObject type;
+class PYAXSCRIPT_EXPORT PyIActiveScriptError : public PyIUnknown {
+   public:
+    MAKE_PYCOM_CTOR_ERRORINFO(PyIActiveScriptError, IID_IActiveScriptError);
+    static IActiveScriptError *GetI(PyObject *self);
+    static PyComTypeObject type;
 
-	// The Python methods
-	static PyObject *GetExceptionInfo(PyObject *self, PyObject *args);
-	static PyObject *GetSourcePosition(PyObject *self, PyObject *args);
-	static PyObject *GetSourceLineText(PyObject *self, PyObject *args);
+    // The Python methods
+    static PyObject *GetExceptionInfo(PyObject *self, PyObject *args);
+    static PyObject *GetSourcePosition(PyObject *self, PyObject *args);
+    static PyObject *GetSourceLineText(PyObject *self, PyObject *args);
 
-protected:
-	PyIActiveScriptError(IUnknown *pdisp);
-	~PyIActiveScriptError();
+   protected:
+    PyIActiveScriptError(IUnknown *pdisp);
+    ~PyIActiveScriptError();
 };

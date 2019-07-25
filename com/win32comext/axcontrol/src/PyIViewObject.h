@@ -4,74 +4,49 @@
 //
 // Interface Declaration
 
-class PyIViewObject : public PyIUnknown
-{
-public:
-	MAKE_PYCOM_CTOR(PyIViewObject);
-	static IViewObject *GetI(PyObject *self);
-	static PyComTypeObject type;
+class PyIViewObject : public PyIUnknown {
+   public:
+    MAKE_PYCOM_CTOR(PyIViewObject);
+    static IViewObject *GetI(PyObject *self);
+    static PyComTypeObject type;
 
-	// The Python methods
-	static PyObject *Draw(PyObject *self, PyObject *args);
-	static PyObject *GetColorSet(PyObject *self, PyObject *args);
-	static PyObject *Freeze(PyObject *self, PyObject *args);
-	static PyObject *Unfreeze(PyObject *self, PyObject *args);
-	static PyObject *SetAdvise(PyObject *self, PyObject *args);
-	static PyObject *GetAdvise(PyObject *self, PyObject *args);
+    // The Python methods
+    static PyObject *Draw(PyObject *self, PyObject *args);
+    static PyObject *GetColorSet(PyObject *self, PyObject *args);
+    static PyObject *Freeze(PyObject *self, PyObject *args);
+    static PyObject *Unfreeze(PyObject *self, PyObject *args);
+    static PyObject *SetAdvise(PyObject *self, PyObject *args);
+    static PyObject *GetAdvise(PyObject *self, PyObject *args);
 
-protected:
-	PyIViewObject(IUnknown *pdisp);
-	~PyIViewObject();
+   protected:
+    PyIViewObject(IUnknown *pdisp);
+    ~PyIViewObject();
 };
 // ---------------------------------------------------
 //
 // Gateway Declaration
 
-class PyGViewObject : public PyGatewayBase, public IViewObject
-{
-protected:
-	PyGViewObject(PyObject *instance) : PyGatewayBase(instance) { ; }
-	PYGATEWAY_MAKE_SUPPORT(PyGViewObject, IViewObject, IID_IViewObject)
+class PyGViewObject : public PyGatewayBase, public IViewObject {
+   protected:
+    PyGViewObject(PyObject *instance) : PyGatewayBase(instance) { ; }
+    PYGATEWAY_MAKE_SUPPORT(PyGViewObject, IViewObject, IID_IViewObject)
 
+    // IViewObject
+    STDMETHOD(Draw)
+    (DWORD dwDrawAspect, LONG lindex, void __RPC_FAR *pvAspect, DVTARGETDEVICE __RPC_FAR *ptd, HDC hdcTargetDev,
+     HDC hdcDraw, LPCRECTL lprcBounds, LPCRECTL lprcWBounds, BOOL(STDMETHODCALLTYPE __RPC_FAR *pfnContinue)(ULONG_PTR),
+     ULONG_PTR dwContinue);
 
-	// IViewObject
-	STDMETHOD(Draw)(
-		DWORD dwDrawAspect,
-		LONG lindex,
-		void __RPC_FAR * pvAspect,
-		DVTARGETDEVICE __RPC_FAR * ptd,
-		HDC hdcTargetDev,
-		HDC hdcDraw,
-		LPCRECTL lprcBounds,
-		LPCRECTL lprcWBounds,
-		BOOL ( STDMETHODCALLTYPE __RPC_FAR *pfnContinue )( ULONG_PTR ),
-		ULONG_PTR dwContinue);
+    STDMETHOD(GetColorSet)
+    (DWORD dwDrawAspect, LONG lindex, void __RPC_FAR *pvAspect, DVTARGETDEVICE __RPC_FAR *ptd, HDC hicTargetDev,
+     LOGPALETTE __RPC_FAR *__RPC_FAR *ppColorSet);
 
-	STDMETHOD(GetColorSet)(
-		DWORD dwDrawAspect,
-		LONG lindex,
-		void __RPC_FAR * pvAspect,
-		DVTARGETDEVICE __RPC_FAR * ptd,
-		HDC hicTargetDev,
-		LOGPALETTE __RPC_FAR *__RPC_FAR * ppColorSet);
+    STDMETHOD(Freeze)(DWORD dwDrawAspect, LONG lindex, void __RPC_FAR *pvAspect, DWORD __RPC_FAR *pdwFreeze);
 
-	STDMETHOD(Freeze)(
-		DWORD dwDrawAspect,
-		LONG lindex,
-		void __RPC_FAR * pvAspect,
-		DWORD __RPC_FAR * pdwFreeze);
+    STDMETHOD(Unfreeze)(DWORD dwFreeze);
 
-	STDMETHOD(Unfreeze)(
-		DWORD dwFreeze);
+    STDMETHOD(SetAdvise)(DWORD aspects, DWORD advf, IAdviseSink __RPC_FAR *pAdvSink);
 
-	STDMETHOD(SetAdvise)(
-		DWORD aspects,
-		DWORD advf,
-		IAdviseSink __RPC_FAR * pAdvSink);
-
-	STDMETHOD(GetAdvise)(
-		DWORD __RPC_FAR * pAspects,
-		DWORD __RPC_FAR * pAdvf,
-		IAdviseSink __RPC_FAR *__RPC_FAR * ppAdvSink);
-
+    STDMETHOD(GetAdvise)
+    (DWORD __RPC_FAR *pAspects, DWORD __RPC_FAR *pAdvf, IAdviseSink __RPC_FAR *__RPC_FAR *ppAdvSink);
 };

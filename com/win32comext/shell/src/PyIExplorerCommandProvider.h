@@ -4,21 +4,14 @@
 //
 // Gateway Declaration
 
-class PyGExplorerCommandProvider : public PyGatewayBase, public IExplorerCommandProvider
-{
-protected:
-	PyGExplorerCommandProvider(PyObject *instance) : PyGatewayBase(instance) { ; }
-	PYGATEWAY_MAKE_SUPPORT2(PyGExplorerCommandProvider, IExplorerCommandProvider, IID_IExplorerCommandProvider, PyGatewayBase)
+class PyGExplorerCommandProvider : public PyGatewayBase, public IExplorerCommandProvider {
+   protected:
+    PyGExplorerCommandProvider(PyObject *instance) : PyGatewayBase(instance) { ; }
+    PYGATEWAY_MAKE_SUPPORT2(PyGExplorerCommandProvider, IExplorerCommandProvider, IID_IExplorerCommandProvider,
+                            PyGatewayBase)
 
-	// IExplorerCommandProvider
-	STDMETHOD(GetCommands)(
-		__RPC__in_opt IUnknown * punkSite,
-		__RPC__in REFIID riid,
-		__RPC__deref_out_opt void ** ppv);
+    // IExplorerCommandProvider
+    STDMETHOD(GetCommands)(__RPC__in_opt IUnknown *punkSite, __RPC__in REFIID riid, __RPC__deref_out_opt void **ppv);
 
-	STDMETHOD(GetCommand)(
-		__RPC__in REFGUID rguidCommandId,
-		__RPC__in REFIID riid,
-		__RPC__deref_out_opt void ** ppv);
-
+    STDMETHOD(GetCommand)(__RPC__in REFGUID rguidCommandId, __RPC__in REFIID riid, __RPC__deref_out_opt void **ppv);
 };

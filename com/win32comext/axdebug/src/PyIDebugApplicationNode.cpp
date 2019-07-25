@@ -13,162 +13,157 @@
 //
 // Interface Implementation
 
-PyIDebugApplicationNode::PyIDebugApplicationNode(IUnknown *pdisp):
-	PyIDebugDocumentProvider(pdisp)
-{
-	ob_type = &type;
-}
+PyIDebugApplicationNode::PyIDebugApplicationNode(IUnknown *pdisp) : PyIDebugDocumentProvider(pdisp) { ob_type = &type; }
 
-PyIDebugApplicationNode::~PyIDebugApplicationNode()
-{
-}
+PyIDebugApplicationNode::~PyIDebugApplicationNode() {}
 
 /* static */ IDebugApplicationNode *PyIDebugApplicationNode::GetI(PyObject *self)
 {
-	return (IDebugApplicationNode *)PyIDebugDocumentProvider::GetI(self);
+    return (IDebugApplicationNode *)PyIDebugDocumentProvider::GetI(self);
 }
 
 // @pymethod |PyIDebugApplicationNode|EnumChildren|Description of EnumChildren.
 PyObject *PyIDebugApplicationNode::EnumChildren(PyObject *self, PyObject *args)
 {
-	PY_INTERFACE_METHOD;
-	IDebugApplicationNode *pIDAN = GetI(self);
-	if ( pIDAN == NULL )
-		return NULL;
-	IEnumDebugApplicationNodes *pperddp;
-	if ( !PyArg_ParseTuple(args, ":EnumChildren") )
-		return NULL;
-	PY_INTERFACE_PRECALL;
-	HRESULT hr = pIDAN->EnumChildren( &pperddp );
-	PY_INTERFACE_POSTCALL;
-	if ( FAILED(hr) )
-		return OleSetOleError(hr);
-	return PyCom_PyObjectFromIUnknown(pperddp, IID_IEnumDebugApplicationNodes, FALSE);
+    PY_INTERFACE_METHOD;
+    IDebugApplicationNode *pIDAN = GetI(self);
+    if (pIDAN == NULL)
+        return NULL;
+    IEnumDebugApplicationNodes *pperddp;
+    if (!PyArg_ParseTuple(args, ":EnumChildren"))
+        return NULL;
+    PY_INTERFACE_PRECALL;
+    HRESULT hr = pIDAN->EnumChildren(&pperddp);
+    PY_INTERFACE_POSTCALL;
+    if (FAILED(hr))
+        return OleSetOleError(hr);
+    return PyCom_PyObjectFromIUnknown(pperddp, IID_IEnumDebugApplicationNodes, FALSE);
 }
 
 // @pymethod <o PyIDebugApplicationNode>|PyIDebugApplicationNode|GetParent|Returns the parent node.
 PyObject *PyIDebugApplicationNode::GetParent(PyObject *self, PyObject *args)
 {
-	PY_INTERFACE_METHOD;
-	IDebugApplicationNode *pIDAN = GetI(self);
-	if ( pIDAN == NULL )
-		return NULL;
-	IDebugApplicationNode *pprddp;
-	if ( !PyArg_ParseTuple(args, ":GetParent") )
-		return NULL;
-	PY_INTERFACE_PRECALL;
-	HRESULT hr = pIDAN->GetParent( &pprddp );
-	PY_INTERFACE_POSTCALL;
-	if ( FAILED(hr) )
-		return OleSetOleError(hr);
-	return PyCom_PyObjectFromIUnknown(pprddp, IID_IDebugApplicationNode, FALSE);
+    PY_INTERFACE_METHOD;
+    IDebugApplicationNode *pIDAN = GetI(self);
+    if (pIDAN == NULL)
+        return NULL;
+    IDebugApplicationNode *pprddp;
+    if (!PyArg_ParseTuple(args, ":GetParent"))
+        return NULL;
+    PY_INTERFACE_PRECALL;
+    HRESULT hr = pIDAN->GetParent(&pprddp);
+    PY_INTERFACE_POSTCALL;
+    if (FAILED(hr))
+        return OleSetOleError(hr);
+    return PyCom_PyObjectFromIUnknown(pprddp, IID_IDebugApplicationNode, FALSE);
 }
 
 // @pymethod |PyIDebugApplicationNode|SetDocumentProvider|Description of SetDocumentProvider.
 PyObject *PyIDebugApplicationNode::SetDocumentProvider(PyObject *self, PyObject *args)
 {
-	PY_INTERFACE_METHOD;
-	IDebugApplicationNode *pIDAN = GetI(self);
-	if ( pIDAN == NULL )
-		return NULL;
-	// @pyparm <o PyIDebugDocumentProvider>|pddp||Description for pddp
-	PyObject *obpddp;
-	IDebugDocumentProvider *pddp;
-	if ( !PyArg_ParseTuple(args, "O:SetDocumentProvider", &obpddp) )
-		return NULL;
-	BOOL bPythonIsHappy = TRUE;
-	if (!PyCom_InterfaceFromPyInstanceOrObject(obpddp, IID_IDebugDocumentProvider, (void **)&pddp, FALSE /* bNoneOK */))
-		 bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) return NULL;
-	PY_INTERFACE_PRECALL;
-	HRESULT hr = pIDAN->SetDocumentProvider( pddp );
-	pddp->Release();
-	PY_INTERFACE_POSTCALL;
-	if ( FAILED(hr) )
-		return OleSetOleError(hr);
-	Py_INCREF(Py_None);
-	return Py_None;
+    PY_INTERFACE_METHOD;
+    IDebugApplicationNode *pIDAN = GetI(self);
+    if (pIDAN == NULL)
+        return NULL;
+    // @pyparm <o PyIDebugDocumentProvider>|pddp||Description for pddp
+    PyObject *obpddp;
+    IDebugDocumentProvider *pddp;
+    if (!PyArg_ParseTuple(args, "O:SetDocumentProvider", &obpddp))
+        return NULL;
+    BOOL bPythonIsHappy = TRUE;
+    if (!PyCom_InterfaceFromPyInstanceOrObject(obpddp, IID_IDebugDocumentProvider, (void **)&pddp, FALSE /* bNoneOK */))
+        bPythonIsHappy = FALSE;
+    if (!bPythonIsHappy)
+        return NULL;
+    PY_INTERFACE_PRECALL;
+    HRESULT hr = pIDAN->SetDocumentProvider(pddp);
+    pddp->Release();
+    PY_INTERFACE_POSTCALL;
+    if (FAILED(hr))
+        return OleSetOleError(hr);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @pymethod |PyIDebugApplicationNode|Close|Description of Close.
 PyObject *PyIDebugApplicationNode::Close(PyObject *self, PyObject *args)
 {
-	PY_INTERFACE_METHOD;
-	IDebugApplicationNode *pIDAN = GetI(self);
-	if ( pIDAN == NULL )
-		return NULL;
-	if ( !PyArg_ParseTuple(args, ":Close") )
-		return NULL;
-	PY_INTERFACE_PRECALL;
-	HRESULT hr = pIDAN->Close( );
-	PY_INTERFACE_POSTCALL;
-	if ( FAILED(hr) )
-		return OleSetOleError(hr);
-	Py_INCREF(Py_None);
-	return Py_None;
+    PY_INTERFACE_METHOD;
+    IDebugApplicationNode *pIDAN = GetI(self);
+    if (pIDAN == NULL)
+        return NULL;
+    if (!PyArg_ParseTuple(args, ":Close"))
+        return NULL;
+    PY_INTERFACE_PRECALL;
+    HRESULT hr = pIDAN->Close();
+    PY_INTERFACE_POSTCALL;
+    if (FAILED(hr))
+        return OleSetOleError(hr);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @pymethod |PyIDebugApplicationNode|Attach|Attach a node to its parent.
 PyObject *PyIDebugApplicationNode::Attach(PyObject *self, PyObject *args)
 {
-	PY_INTERFACE_METHOD;
-	IDebugApplicationNode *pIDAN = GetI(self);
-	if ( pIDAN == NULL )
-		return NULL;
-	// @pyparm <o PyIDebugApplicationNode>|pdanParent||The parent node.  None is not acceptable.
-	PyObject *obpdanParent;
-	IDebugApplicationNode *pdanParent;
-	if ( !PyArg_ParseTuple(args, "O:Attach", &obpdanParent) )
-		return NULL;
-	BOOL bPythonIsHappy = TRUE;
-	if (!PyCom_InterfaceFromPyInstanceOrObject(obpdanParent, IID_IDebugApplicationNode, (void **)&pdanParent, FALSE /* bNoneOK */))
-		 bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) return NULL;
-	PY_INTERFACE_PRECALL;
-	HRESULT hr = pIDAN->Attach( pdanParent );
-	pdanParent->Release();
-	PY_INTERFACE_POSTCALL;
-	if ( FAILED(hr) )
-		return OleSetOleError(hr);
-	Py_INCREF(Py_None);
-	return Py_None;
+    PY_INTERFACE_METHOD;
+    IDebugApplicationNode *pIDAN = GetI(self);
+    if (pIDAN == NULL)
+        return NULL;
+    // @pyparm <o PyIDebugApplicationNode>|pdanParent||The parent node.  None is not acceptable.
+    PyObject *obpdanParent;
+    IDebugApplicationNode *pdanParent;
+    if (!PyArg_ParseTuple(args, "O:Attach", &obpdanParent))
+        return NULL;
+    BOOL bPythonIsHappy = TRUE;
+    if (!PyCom_InterfaceFromPyInstanceOrObject(obpdanParent, IID_IDebugApplicationNode, (void **)&pdanParent,
+                                               FALSE /* bNoneOK */))
+        bPythonIsHappy = FALSE;
+    if (!bPythonIsHappy)
+        return NULL;
+    PY_INTERFACE_PRECALL;
+    HRESULT hr = pIDAN->Attach(pdanParent);
+    pdanParent->Release();
+    PY_INTERFACE_POSTCALL;
+    if (FAILED(hr))
+        return OleSetOleError(hr);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @pymethod |PyIDebugApplicationNode|Detach|Detach a node from its parent.
 PyObject *PyIDebugApplicationNode::Detach(PyObject *self, PyObject *args)
 {
-	PY_INTERFACE_METHOD;
-	IDebugApplicationNode *pIDAN = GetI(self);
-	if ( pIDAN == NULL )
-		return NULL;
-	if ( !PyArg_ParseTuple(args, ":Detach") )
-		return NULL;
-	PY_INTERFACE_PRECALL;
-	HRESULT hr = pIDAN->Detach( );
-	PY_INTERFACE_POSTCALL;
-	if ( FAILED(hr) )
-		return OleSetOleError(hr);
-	Py_INCREF(Py_None);
-	return Py_None;
+    PY_INTERFACE_METHOD;
+    IDebugApplicationNode *pIDAN = GetI(self);
+    if (pIDAN == NULL)
+        return NULL;
+    if (!PyArg_ParseTuple(args, ":Detach"))
+        return NULL;
+    PY_INTERFACE_PRECALL;
+    HRESULT hr = pIDAN->Detach();
+    PY_INTERFACE_POSTCALL;
+    if (FAILED(hr))
+        return OleSetOleError(hr);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
-// @object PyIDebugApplicationNode|Provides the functionality of IDebugDocumentProvider, plus a context within a project tree.  Derived from <o PyIDebugDocumentProvider>
-static struct PyMethodDef PyIDebugApplicationNode_methods[] =
-{
-	{ "EnumChildren", PyIDebugApplicationNode::EnumChildren, 1 }, // @pymeth EnumChildren|Description of EnumChildren
-	{ "GetParent", PyIDebugApplicationNode::GetParent, 1 }, // @pymeth GetParent|Description of GetParent
-	{ "SetDocumentProvider", PyIDebugApplicationNode::SetDocumentProvider, 1 }, // @pymeth SetDocumentProvider|Description of SetDocumentProvider
-	{ "Close", PyIDebugApplicationNode::Close, 1 }, // @pymeth Close|Description of Close
-	{ "Attach", PyIDebugApplicationNode::Attach, 1 }, // @pymeth Attach|Attach a node to its parent.
-	{ "Detach", PyIDebugApplicationNode::Detach, 1 }, // @pymeth Detach|Detach a node from its parent.
-	{ NULL }
-};
+// @object PyIDebugApplicationNode|Provides the functionality of IDebugDocumentProvider, plus a context within a project
+// tree.  Derived from <o PyIDebugDocumentProvider>
+static struct PyMethodDef PyIDebugApplicationNode_methods[] = {
+    {"EnumChildren", PyIDebugApplicationNode::EnumChildren, 1},  // @pymeth EnumChildren|Description of EnumChildren
+    {"GetParent", PyIDebugApplicationNode::GetParent, 1},        // @pymeth GetParent|Description of GetParent
+    {"SetDocumentProvider", PyIDebugApplicationNode::SetDocumentProvider,
+     1},                                             // @pymeth SetDocumentProvider|Description of SetDocumentProvider
+    {"Close", PyIDebugApplicationNode::Close, 1},    // @pymeth Close|Description of Close
+    {"Attach", PyIDebugApplicationNode::Attach, 1},  // @pymeth Attach|Attach a node to its parent.
+    {"Detach", PyIDebugApplicationNode::Detach, 1},  // @pymeth Detach|Detach a node from its parent.
+    {NULL}};
 
-PyComTypeObject PyIDebugApplicationNode::type("PyIDebugApplicationNode",
-		&PyIDebugDocumentProvider::type,
-		sizeof(PyIDebugApplicationNode),
-		PyIDebugApplicationNode_methods,
-		GET_PYCOM_CTOR(PyIDebugApplicationNode));
+PyComTypeObject PyIDebugApplicationNode::type("PyIDebugApplicationNode", &PyIDebugDocumentProvider::type,
+                                              sizeof(PyIDebugApplicationNode), PyIDebugApplicationNode_methods,
+                                              GET_PYCOM_CTOR(PyIDebugApplicationNode));
 // ---------------------------------------------------
 //
 // Gateway Implementation
@@ -176,86 +171,102 @@ PyComTypeObject PyIDebugApplicationNode::type("PyIDebugApplicationNode",
 // Std delegation
 
 // IDebugDocumentInfo
-STDMETHODIMP PyGDebugApplicationNode::GetName(DOCUMENTNAMETYPE dnt, BSTR __RPC_FAR * pbstrName) {return PyGDebugDocumentProvider::GetName(dnt, pbstrName);}
-STDMETHODIMP PyGDebugApplicationNode::GetDocumentClassId(GUID __RPC_FAR * pclsidDocument) {return PyGDebugDocumentProvider::GetDocumentClassId(pclsidDocument);}
+STDMETHODIMP PyGDebugApplicationNode::GetName(DOCUMENTNAMETYPE dnt, BSTR __RPC_FAR *pbstrName)
+{
+    return PyGDebugDocumentProvider::GetName(dnt, pbstrName);
+}
+STDMETHODIMP PyGDebugApplicationNode::GetDocumentClassId(GUID __RPC_FAR *pclsidDocument)
+{
+    return PyGDebugDocumentProvider::GetDocumentClassId(pclsidDocument);
+}
 
 // IDebugDocumentProvider
-STDMETHODIMP PyGDebugApplicationNode::GetDocument(IDebugDocument __RPC_FAR *__RPC_FAR * ppssd) {return PyGDebugDocumentProvider::GetDocument(ppssd);}
+STDMETHODIMP PyGDebugApplicationNode::GetDocument(IDebugDocument __RPC_FAR *__RPC_FAR *ppssd)
+{
+    return PyGDebugDocumentProvider::GetDocument(ppssd);
+}
 
 // IDebugDocumentNode
 STDMETHODIMP PyGDebugApplicationNode::EnumChildren(
-		/* [out] */ IEnumDebugApplicationNodes __RPC_FAR *__RPC_FAR * pperddp)
+    /* [out] */ IEnumDebugApplicationNodes __RPC_FAR *__RPC_FAR *pperddp)
 {
-	PY_GATEWAY_METHOD;
-	if (pperddp==NULL) return E_POINTER;
-	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("EnumChildren", &result);
-	if (FAILED(hr)) return hr;
-	// Process the Python results, and convert back to the real params
-	PyObject *obpperddp;
-	if (!PyArg_Parse(result, "O" , &obpperddp)) return PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
-	BOOL bPythonIsHappy = TRUE;
-	if (!PyCom_InterfaceFromPyInstanceOrObject(obpperddp, IID_IEnumDebugApplicationNodes, (void **)pperddp, FALSE /* bNoneOK */))
-		 bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) hr = PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
-	Py_DECREF(result);
-	return hr;
+    PY_GATEWAY_METHOD;
+    if (pperddp == NULL)
+        return E_POINTER;
+    PyObject *result;
+    HRESULT hr = InvokeViaPolicy("EnumChildren", &result);
+    if (FAILED(hr))
+        return hr;
+    // Process the Python results, and convert back to the real params
+    PyObject *obpperddp;
+    if (!PyArg_Parse(result, "O", &obpperddp))
+        return PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
+    BOOL bPythonIsHappy = TRUE;
+    if (!PyCom_InterfaceFromPyInstanceOrObject(obpperddp, IID_IEnumDebugApplicationNodes, (void **)pperddp,
+                                               FALSE /* bNoneOK */))
+        bPythonIsHappy = FALSE;
+    if (!bPythonIsHappy)
+        hr = PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
+    Py_DECREF(result);
+    return hr;
 }
 
 STDMETHODIMP PyGDebugApplicationNode::GetParent(
-		/* [out] */ IDebugApplicationNode __RPC_FAR *__RPC_FAR * pprddp)
+    /* [out] */ IDebugApplicationNode __RPC_FAR *__RPC_FAR *pprddp)
 {
-	PY_GATEWAY_METHOD;
-	if (pprddp==NULL) return E_POINTER;
-	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("GetParent", &result);
-	if (FAILED(hr)) return hr;
-	// Process the Python results, and convert back to the real params
-	PyObject *obpprddp;
-	if (!PyArg_Parse(result, "O" , &obpprddp)) return PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
-	BOOL bPythonIsHappy = TRUE;
-	if (!PyCom_InterfaceFromPyInstanceOrObject(obpprddp, IID_IDebugApplicationNode, (void **)pprddp, FALSE /* bNoneOK */))
-		 bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) hr = PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
-	Py_DECREF(result);
-	return hr;
+    PY_GATEWAY_METHOD;
+    if (pprddp == NULL)
+        return E_POINTER;
+    PyObject *result;
+    HRESULT hr = InvokeViaPolicy("GetParent", &result);
+    if (FAILED(hr))
+        return hr;
+    // Process the Python results, and convert back to the real params
+    PyObject *obpprddp;
+    if (!PyArg_Parse(result, "O", &obpprddp))
+        return PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
+    BOOL bPythonIsHappy = TRUE;
+    if (!PyCom_InterfaceFromPyInstanceOrObject(obpprddp, IID_IDebugApplicationNode, (void **)pprddp,
+                                               FALSE /* bNoneOK */))
+        bPythonIsHappy = FALSE;
+    if (!bPythonIsHappy)
+        hr = PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
+    Py_DECREF(result);
+    return hr;
 }
 
 STDMETHODIMP PyGDebugApplicationNode::SetDocumentProvider(
-		/* [in] */ IDebugDocumentProvider __RPC_FAR * pddp)
+    /* [in] */ IDebugDocumentProvider __RPC_FAR *pddp)
 {
-	PY_GATEWAY_METHOD;
-	PyObject *obpddp;
-	obpddp = PyCom_PyObjectFromIUnknown(pddp, IID_IDebugDocumentProvider, TRUE);
-	HRESULT hr=InvokeViaPolicy("SetDocumentProvider", NULL, "O", obpddp);
-	Py_XDECREF(obpddp);
-	return hr;
+    PY_GATEWAY_METHOD;
+    PyObject *obpddp;
+    obpddp = PyCom_PyObjectFromIUnknown(pddp, IID_IDebugDocumentProvider, TRUE);
+    HRESULT hr = InvokeViaPolicy("SetDocumentProvider", NULL, "O", obpddp);
+    Py_XDECREF(obpddp);
+    return hr;
 }
 
-STDMETHODIMP PyGDebugApplicationNode::Close(
-		void)
+STDMETHODIMP PyGDebugApplicationNode::Close(void)
 {
-	PY_GATEWAY_METHOD;
-	HRESULT hr=InvokeViaPolicy("Close", NULL);
-	return hr;
+    PY_GATEWAY_METHOD;
+    HRESULT hr = InvokeViaPolicy("Close", NULL);
+    return hr;
 }
 
 STDMETHODIMP PyGDebugApplicationNode::Attach(
-		/* [in] */ IDebugApplicationNode __RPC_FAR * pdanParent)
+    /* [in] */ IDebugApplicationNode __RPC_FAR *pdanParent)
 {
-	PY_GATEWAY_METHOD;
-	PyObject *obpdanParent;
-	obpdanParent = PyCom_PyObjectFromIUnknown(pdanParent, IID_IDebugApplicationNode, TRUE);
-	HRESULT hr=InvokeViaPolicy("Attach", NULL, "O", obpdanParent);
-	Py_XDECREF(obpdanParent);
-	return hr;
+    PY_GATEWAY_METHOD;
+    PyObject *obpdanParent;
+    obpdanParent = PyCom_PyObjectFromIUnknown(pdanParent, IID_IDebugApplicationNode, TRUE);
+    HRESULT hr = InvokeViaPolicy("Attach", NULL, "O", obpdanParent);
+    Py_XDECREF(obpdanParent);
+    return hr;
 }
 
-STDMETHODIMP PyGDebugApplicationNode::Detach(
-		void)
+STDMETHODIMP PyGDebugApplicationNode::Detach(void)
 {
-	PY_GATEWAY_METHOD;
-	HRESULT hr=InvokeViaPolicy("Detach", NULL);
-	return hr;
+    PY_GATEWAY_METHOD;
+    HRESULT hr = InvokeViaPolicy("Detach", NULL);
+    return hr;
 }
-

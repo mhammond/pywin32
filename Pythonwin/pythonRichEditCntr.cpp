@@ -1,6 +1,6 @@
 /* win32RichEditCntr : implementation file
 
-	Created March 1996, Mark Hammond (MHammond@skippinet.com.au)
+    Created March 1996, Mark Hammond (MHammond@skippinet.com.au)
 
 Note that this source file contains embedded documentation.
 This documentation consists of marked up text inside the
@@ -29,24 +29,15 @@ static char BASED_CODE THIS_FILE[] = __FILE__;
 
 IMPLEMENT_SERIAL(CPythonCntrItem, CRichEditCntrItem, 0)
 
-CPythonCntrItem::CPythonCntrItem(REOBJECT *preo, CRichEditDoc* pContainer)
-	: CRichEditCntrItem(preo, pContainer)
-{
-}
+CPythonCntrItem::CPythonCntrItem(REOBJECT *preo, CRichEditDoc *pContainer) : CRichEditCntrItem(preo, pContainer) {}
 
 /////////////////////////////////////////////////////////////////////////////
 // CPythonCntrItem diagnostics
 
 #ifdef _DEBUG
-void CPythonCntrItem::AssertValid() const
-{
-	CRichEditCntrItem::AssertValid();
-}
+void CPythonCntrItem::AssertValid() const { CRichEditCntrItem::AssertValid(); }
 
-void CPythonCntrItem::Dump(CDumpContext& dc) const
-{
-	CRichEditCntrItem::Dump(dc);
-}
+void CPythonCntrItem::Dump(CDumpContext &dc) const { CRichEditCntrItem::Dump(dc); }
 #endif
 
 /////////////////////////////////////////////////////////////////////////////

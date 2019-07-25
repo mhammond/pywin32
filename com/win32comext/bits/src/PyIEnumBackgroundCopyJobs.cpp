@@ -10,148 +10,138 @@
 //
 // Interface Implementation
 
-PyIEnumBackgroundCopyJobs::PyIEnumBackgroundCopyJobs(IUnknown *pdisp):
-	PyIUnknown(pdisp)
-{
-	ob_type = &type;
-}
+PyIEnumBackgroundCopyJobs::PyIEnumBackgroundCopyJobs(IUnknown *pdisp) : PyIUnknown(pdisp) { ob_type = &type; }
 
-PyIEnumBackgroundCopyJobs::~PyIEnumBackgroundCopyJobs()
-{
-}
+PyIEnumBackgroundCopyJobs::~PyIEnumBackgroundCopyJobs() {}
 
 /* static */ IEnumBackgroundCopyJobs *PyIEnumBackgroundCopyJobs::GetI(PyObject *self)
 {
-	return (IEnumBackgroundCopyJobs *)PyIUnknown::GetI(self);
+    return (IEnumBackgroundCopyJobs *)PyIUnknown::GetI(self);
 }
 
 // @pymethod object|PyIEnumBackgroundCopyJobs|Next|Retrieves a specified number of items in the enumeration sequence.
 PyObject *PyIEnumBackgroundCopyJobs::Next(PyObject *self, PyObject *args)
 {
-	long celt = 1;
-	// @pyparm int|num|1|Number of items to retrieve.
-	if ( !PyArg_ParseTuple(args, "|l:Next", &celt) )
-		return NULL;
+    long celt = 1;
+    // @pyparm int|num|1|Number of items to retrieve.
+    if (!PyArg_ParseTuple(args, "|l:Next", &celt))
+        return NULL;
 
-	IEnumBackgroundCopyJobs *pIEnumBackgroundCopyJobs = GetI(self);
-	if ( pIEnumBackgroundCopyJobs == NULL )
-		return NULL;
+    IEnumBackgroundCopyJobs *pIEnumBackgroundCopyJobs = GetI(self);
+    if (pIEnumBackgroundCopyJobs == NULL)
+        return NULL;
 
-	IBackgroundCopyJob **rgVar = new IBackgroundCopyJob *[celt];
-	if ( rgVar == NULL ) {
-		PyErr_SetString(PyExc_MemoryError, "allocating result BackgroundCopyJobss");
-		return NULL;
-	}
+    IBackgroundCopyJob **rgVar = new IBackgroundCopyJob *[celt];
+    if (rgVar == NULL) {
+        PyErr_SetString(PyExc_MemoryError, "allocating result BackgroundCopyJobss");
+        return NULL;
+    }
 
-	int i;
-/*	for ( i = celt; i--; )
-		// *** possibly init each structure element???
-*/
+    int i;
+    /*	for ( i = celt; i--; )
+            // *** possibly init each structure element???
+    */
 
-	ULONG celtFetched = 0;
-	PY_INTERFACE_PRECALL;
-	HRESULT hr = pIEnumBackgroundCopyJobs->Next(celt, rgVar, &celtFetched);
-	PY_INTERFACE_POSTCALL;
-	if (  HRESULT_CODE(hr) != ERROR_NO_MORE_ITEMS && FAILED(hr) )
-	{
-		delete [] rgVar;
-		return PyCom_BuildPyException(hr, pIEnumBackgroundCopyJobs, IID_IEnumBackgroundCopyJobs);
-	}
+    ULONG celtFetched = 0;
+    PY_INTERFACE_PRECALL;
+    HRESULT hr = pIEnumBackgroundCopyJobs->Next(celt, rgVar, &celtFetched);
+    PY_INTERFACE_POSTCALL;
+    if (HRESULT_CODE(hr) != ERROR_NO_MORE_ITEMS && FAILED(hr)) {
+        delete[] rgVar;
+        return PyCom_BuildPyException(hr, pIEnumBackgroundCopyJobs, IID_IEnumBackgroundCopyJobs);
+    }
 
-	PyObject *result = PyTuple_New(celtFetched);
-	if ( result != NULL )
-	{
-		for ( i = celtFetched; i--; )
-		{
-			PyObject *ob = PyCom_PyObjectFromIUnknown(rgVar[i], IID_IBackgroundCopyJob, FALSE);
-			rgVar[i] = NULL;
-			if ( ob == NULL )
-			{
-				Py_DECREF(result);
-				result = NULL;
-				break;
-			}
-			PyTuple_SET_ITEM(result, i, ob);
-		}
-	}
-	for ( i = celtFetched; i--; ) PYCOM_RELEASE(rgVar[i]);
-	delete [] rgVar;
-	return result;
+    PyObject *result = PyTuple_New(celtFetched);
+    if (result != NULL) {
+        for (i = celtFetched; i--;) {
+            PyObject *ob = PyCom_PyObjectFromIUnknown(rgVar[i], IID_IBackgroundCopyJob, FALSE);
+            rgVar[i] = NULL;
+            if (ob == NULL) {
+                Py_DECREF(result);
+                result = NULL;
+                break;
+            }
+            PyTuple_SET_ITEM(result, i, ob);
+        }
+    }
+    for (i = celtFetched; i--;) PYCOM_RELEASE(rgVar[i]);
+    delete[] rgVar;
+    return result;
 }
 
 // @pymethod |PyIEnumBackgroundCopyJobs|Skip|Skips over the next specified elementes.
 PyObject *PyIEnumBackgroundCopyJobs::Skip(PyObject *self, PyObject *args)
 {
-	long celt;
-	if ( !PyArg_ParseTuple(args, "l:Skip", &celt) )
-		return NULL;
+    long celt;
+    if (!PyArg_ParseTuple(args, "l:Skip", &celt))
+        return NULL;
 
-	IEnumBackgroundCopyJobs *pIEnumBackgroundCopyJobs = GetI(self);
-	if ( pIEnumBackgroundCopyJobs == NULL )
-		return NULL;
+    IEnumBackgroundCopyJobs *pIEnumBackgroundCopyJobs = GetI(self);
+    if (pIEnumBackgroundCopyJobs == NULL)
+        return NULL;
 
-	PY_INTERFACE_PRECALL;
-	HRESULT hr = pIEnumBackgroundCopyJobs->Skip(celt);
-	PY_INTERFACE_POSTCALL;
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pIEnumBackgroundCopyJobs, IID_IEnumBackgroundCopyJobs);
+    PY_INTERFACE_PRECALL;
+    HRESULT hr = pIEnumBackgroundCopyJobs->Skip(celt);
+    PY_INTERFACE_POSTCALL;
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pIEnumBackgroundCopyJobs, IID_IEnumBackgroundCopyJobs);
 
-	Py_INCREF(Py_None);
-	return Py_None;
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @pymethod |PyIEnumBackgroundCopyJobs|Reset|Resets the enumeration sequence to the beginning.
 PyObject *PyIEnumBackgroundCopyJobs::Reset(PyObject *self, PyObject *args)
 {
-	if ( !PyArg_ParseTuple(args, ":Reset") )
-		return NULL;
+    if (!PyArg_ParseTuple(args, ":Reset"))
+        return NULL;
 
-	IEnumBackgroundCopyJobs *pIEnumBackgroundCopyJobs = GetI(self);
-	if ( pIEnumBackgroundCopyJobs == NULL )
-		return NULL;
+    IEnumBackgroundCopyJobs *pIEnumBackgroundCopyJobs = GetI(self);
+    if (pIEnumBackgroundCopyJobs == NULL)
+        return NULL;
 
-	PY_INTERFACE_PRECALL;
-	HRESULT hr = pIEnumBackgroundCopyJobs->Reset();
-	PY_INTERFACE_POSTCALL;
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pIEnumBackgroundCopyJobs, IID_IEnumBackgroundCopyJobs);
+    PY_INTERFACE_PRECALL;
+    HRESULT hr = pIEnumBackgroundCopyJobs->Reset();
+    PY_INTERFACE_POSTCALL;
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pIEnumBackgroundCopyJobs, IID_IEnumBackgroundCopyJobs);
 
-	Py_INCREF(Py_None);
-	return Py_None;
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
-// @pymethod <o PyIEnumBackgroundCopyJobs>|PyIEnumBackgroundCopyJobs|Clone|Creates another enumerator that contains the same enumeration state as the current one
+// @pymethod <o PyIEnumBackgroundCopyJobs>|PyIEnumBackgroundCopyJobs|Clone|Creates another enumerator that contains the
+// same enumeration state as the current one
 PyObject *PyIEnumBackgroundCopyJobs::Clone(PyObject *self, PyObject *args)
 {
-	if ( !PyArg_ParseTuple(args, ":Clone") )
-		return NULL;
+    if (!PyArg_ParseTuple(args, ":Clone"))
+        return NULL;
 
-	IEnumBackgroundCopyJobs *pIEnumBackgroundCopyJobs = GetI(self);
-	if ( pIEnumBackgroundCopyJobs == NULL )
-		return NULL;
+    IEnumBackgroundCopyJobs *pIEnumBackgroundCopyJobs = GetI(self);
+    if (pIEnumBackgroundCopyJobs == NULL)
+        return NULL;
 
-	IEnumBackgroundCopyJobs *pClone;
-	PY_INTERFACE_PRECALL;
-	HRESULT hr = pIEnumBackgroundCopyJobs->Clone(&pClone);
-	PY_INTERFACE_POSTCALL;
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pIEnumBackgroundCopyJobs, IID_IEnumBackgroundCopyJobs);
+    IEnumBackgroundCopyJobs *pClone;
+    PY_INTERFACE_PRECALL;
+    HRESULT hr = pIEnumBackgroundCopyJobs->Clone(&pClone);
+    PY_INTERFACE_POSTCALL;
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pIEnumBackgroundCopyJobs, IID_IEnumBackgroundCopyJobs);
 
-	return PyCom_PyObjectFromIUnknown(pClone, IID_IEnumBackgroundCopyJobs, FALSE);
+    return PyCom_PyObjectFromIUnknown(pClone, IID_IEnumBackgroundCopyJobs, FALSE);
 }
 
 // @object PyIEnumBackgroundCopyJobs|A Python interface to IEnumBackgroundCopyJobs
-static struct PyMethodDef PyIEnumBackgroundCopyJobs_methods[] =
-{
-	{ "Next", PyIEnumBackgroundCopyJobs::Next, 1 },    // @pymeth Next|Retrieves a specified number of items in the enumeration sequence.
-	{ "Skip", PyIEnumBackgroundCopyJobs::Skip, 1 },	// @pymeth Skip|Skips over the next specified elementes.
-	{ "Reset", PyIEnumBackgroundCopyJobs::Reset, 1 },	// @pymeth Reset|Resets the enumeration sequence to the beginning.
-	{ "Clone", PyIEnumBackgroundCopyJobs::Clone, 1 },	// @pymeth Clone|Creates another enumerator that contains the same enumeration state as the current one.
-	{ NULL }
-};
+static struct PyMethodDef PyIEnumBackgroundCopyJobs_methods[] = {
+    {"Next", PyIEnumBackgroundCopyJobs::Next,
+     1},  // @pymeth Next|Retrieves a specified number of items in the enumeration sequence.
+    {"Skip", PyIEnumBackgroundCopyJobs::Skip, 1},    // @pymeth Skip|Skips over the next specified elementes.
+    {"Reset", PyIEnumBackgroundCopyJobs::Reset, 1},  // @pymeth Reset|Resets the enumeration sequence to the beginning.
+    {"Clone", PyIEnumBackgroundCopyJobs::Clone,
+     1},  // @pymeth Clone|Creates another enumerator that contains the same enumeration state as the current one.
+    {NULL}};
 
-PyComEnumTypeObject PyIEnumBackgroundCopyJobs::type("PyIEnumBackgroundCopyJobs",
-		&PyIUnknown::type,
-		sizeof(PyIEnumBackgroundCopyJobs),
-		PyIEnumBackgroundCopyJobs_methods,
-		GET_PYCOM_CTOR(PyIEnumBackgroundCopyJobs));
+PyComEnumTypeObject PyIEnumBackgroundCopyJobs::type("PyIEnumBackgroundCopyJobs", &PyIUnknown::type,
+                                                    sizeof(PyIEnumBackgroundCopyJobs),
+                                                    PyIEnumBackgroundCopyJobs_methods,
+                                                    GET_PYCOM_CTOR(PyIEnumBackgroundCopyJobs));

@@ -4,21 +4,20 @@
 //
 // Interface Declaration
 
-class PyIFilter : public PyIUnknown
-{
-public:
-	MAKE_PYCOM_CTOR(PyIFilter);
-	static IFilter *GetI(PyObject *self);
-	static PyComTypeObject type;
+class PyIFilter : public PyIUnknown {
+   public:
+    MAKE_PYCOM_CTOR(PyIFilter);
+    static IFilter *GetI(PyObject *self);
+    static PyComTypeObject type;
 
-	// The Python methods
-	static PyObject *Init(PyObject *self, PyObject *args);
-	static PyObject *GetChunk(PyObject *self, PyObject *args);
-	static PyObject *GetText(PyObject *self, PyObject *args);
-	static PyObject *GetValue(PyObject *self, PyObject *args);
-	static PyObject *BindRegion(PyObject *self, PyObject *args);
+    // The Python methods
+    static PyObject *Init(PyObject *self, PyObject *args);
+    static PyObject *GetChunk(PyObject *self, PyObject *args);
+    static PyObject *GetText(PyObject *self, PyObject *args);
+    static PyObject *GetValue(PyObject *self, PyObject *args);
+    static PyObject *BindRegion(PyObject *self, PyObject *args);
 
-protected:
-	PyIFilter(IUnknown *pdisp);
-	~PyIFilter();
+   protected:
+    PyIFilter(IUnknown *pdisp);
+    ~PyIFilter();
 };

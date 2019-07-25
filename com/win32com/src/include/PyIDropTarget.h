@@ -4,54 +4,37 @@
 //
 // Interface Declaration
 
-class PyIDropTarget : public PyIUnknown
-{
-public:
-	MAKE_PYCOM_CTOR(PyIDropTarget);
-	static IDropTarget *GetI(PyObject *self);
-	static PyComTypeObject type;
+class PyIDropTarget : public PyIUnknown {
+   public:
+    MAKE_PYCOM_CTOR(PyIDropTarget);
+    static IDropTarget *GetI(PyObject *self);
+    static PyComTypeObject type;
 
-	// The Python methods
-	static PyObject *DragEnter(PyObject *self, PyObject *args);
-	static PyObject *DragOver(PyObject *self, PyObject *args);
-	static PyObject *DragLeave(PyObject *self, PyObject *args);
-	static PyObject *Drop(PyObject *self, PyObject *args);
+    // The Python methods
+    static PyObject *DragEnter(PyObject *self, PyObject *args);
+    static PyObject *DragOver(PyObject *self, PyObject *args);
+    static PyObject *DragLeave(PyObject *self, PyObject *args);
+    static PyObject *Drop(PyObject *self, PyObject *args);
 
-protected:
-	PyIDropTarget(IUnknown *pdisp);
-	~PyIDropTarget();
+   protected:
+    PyIDropTarget(IUnknown *pdisp);
+    ~PyIDropTarget();
 };
 // ---------------------------------------------------
 //
 // Gateway Declaration
 
-class PyGDropTarget : public PyGatewayBase, public IDropTarget
-{
-protected:
-	PyGDropTarget(PyObject *instance) : PyGatewayBase(instance) { ; }
-	PYGATEWAY_MAKE_SUPPORT2(PyGDropTarget, IDropTarget, IID_IDropTarget, PyGatewayBase)
+class PyGDropTarget : public PyGatewayBase, public IDropTarget {
+   protected:
+    PyGDropTarget(PyObject *instance) : PyGatewayBase(instance) { ; }
+    PYGATEWAY_MAKE_SUPPORT2(PyGDropTarget, IDropTarget, IID_IDropTarget, PyGatewayBase)
 
+    // IDropTarget
+    STDMETHOD(DragEnter)(IDataObject *pDataObj, DWORD grfKeyState, POINTL pt, DWORD *pdwEffect);
 
+    STDMETHOD(DragOver)(DWORD grfKeyState, POINTL pt, DWORD *pdwEffect);
 
-	// IDropTarget
-	STDMETHOD(DragEnter)(
-		IDataObject * pDataObj,
-		DWORD grfKeyState,
-		POINTL pt,
-		DWORD * pdwEffect);
+    STDMETHOD(DragLeave)(void);
 
-	STDMETHOD(DragOver)(
-		DWORD grfKeyState,
-		POINTL pt,
-		DWORD * pdwEffect);
-
-	STDMETHOD(DragLeave)(
-		void);
-
-	STDMETHOD(Drop)(
-		IDataObject * pDataObj,
-		DWORD grfKeyState,
-		POINTL pt,
-		DWORD * pdwEffect);
-
+    STDMETHOD(Drop)(IDataObject *pDataObj, DWORD grfKeyState, POINTL pt, DWORD *pdwEffect);
 };

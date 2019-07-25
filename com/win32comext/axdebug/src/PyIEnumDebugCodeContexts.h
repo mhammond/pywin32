@@ -4,46 +4,37 @@
 //
 // Interface Declaration
 
-class PyIEnumDebugCodeContexts : public PyIUnknown
-{
-public:
-	MAKE_PYCOM_CTOR_ERRORINFO(PyIEnumDebugCodeContexts, IID_IEnumDebugCodeContexts);
-	static IEnumDebugCodeContexts *GetI(PyObject *self);
-	static PyComTypeObject type;
+class PyIEnumDebugCodeContexts : public PyIUnknown {
+   public:
+    MAKE_PYCOM_CTOR_ERRORINFO(PyIEnumDebugCodeContexts, IID_IEnumDebugCodeContexts);
+    static IEnumDebugCodeContexts *GetI(PyObject *self);
+    static PyComTypeObject type;
 
-	// The Python methods
-	static PyObject *Next(PyObject *self, PyObject *args);
-	static PyObject *Skip(PyObject *self, PyObject *args);
-	static PyObject *Reset(PyObject *self, PyObject *args);
-	static PyObject *Clone(PyObject *self, PyObject *args);
+    // The Python methods
+    static PyObject *Next(PyObject *self, PyObject *args);
+    static PyObject *Skip(PyObject *self, PyObject *args);
+    static PyObject *Reset(PyObject *self, PyObject *args);
+    static PyObject *Clone(PyObject *self, PyObject *args);
 
-protected:
-	PyIEnumDebugCodeContexts(IUnknown *pdisp);
-	~PyIEnumDebugCodeContexts();
+   protected:
+    PyIEnumDebugCodeContexts(IUnknown *pdisp);
+    ~PyIEnumDebugCodeContexts();
 };
 // ---------------------------------------------------
 //
 // Gateway Declaration
 
-class PyGEnumDebugCodeContexts : public PyGatewayBase, public IEnumDebugCodeContexts
-{
-protected:
-	PyGEnumDebugCodeContexts(PyObject *instance) : PyGatewayBase(instance) { ; }
-	PYGATEWAY_MAKE_SUPPORT(PyGEnumDebugCodeContexts, IEnumDebugCodeContexts, IID_IEnumDebugCodeContexts)
+class PyGEnumDebugCodeContexts : public PyGatewayBase, public IEnumDebugCodeContexts {
+   protected:
+    PyGEnumDebugCodeContexts(PyObject *instance) : PyGatewayBase(instance) { ; }
+    PYGATEWAY_MAKE_SUPPORT(PyGEnumDebugCodeContexts, IEnumDebugCodeContexts, IID_IEnumDebugCodeContexts)
 
-	// IEnumDebugCodeContexts
-	STDMETHOD(Next)(
-		ULONG celt,
-		IDebugCodeContext __RPC_FAR *__RPC_FAR * pscc,
-		ULONG __RPC_FAR * pceltFetched);
+    // IEnumDebugCodeContexts
+    STDMETHOD(Next)(ULONG celt, IDebugCodeContext __RPC_FAR *__RPC_FAR *pscc, ULONG __RPC_FAR *pceltFetched);
 
-	STDMETHOD(Skip)(
-		ULONG celt);
+    STDMETHOD(Skip)(ULONG celt);
 
-	STDMETHOD(Reset)(
-		void);
+    STDMETHOD(Reset)(void);
 
-	STDMETHOD(Clone)(
-		IEnumDebugCodeContexts __RPC_FAR *__RPC_FAR * ppescc);
-
+    STDMETHOD(Clone)(IEnumDebugCodeContexts __RPC_FAR *__RPC_FAR *ppescc);
 };

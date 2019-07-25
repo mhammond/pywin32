@@ -7,22 +7,21 @@
 // Requires Windows 7 SDK to build
 #if WINVER >= 0x0601
 
-class PyIObjectCollection : public PyIObjectArray
-{
-public:
-	MAKE_PYCOM_CTOR(PyIObjectCollection);
-	static IObjectCollection *GetI(PyObject *self);
-	static PyComTypeObject type;
+class PyIObjectCollection : public PyIObjectArray {
+   public:
+    MAKE_PYCOM_CTOR(PyIObjectCollection);
+    static IObjectCollection *GetI(PyObject *self);
+    static PyComTypeObject type;
 
-	// The Python methods
-	static PyObject *AddObject(PyObject *self, PyObject *args);
-	static PyObject *AddFromArray(PyObject *self, PyObject *args);
-	static PyObject *RemoveObjectAt(PyObject *self, PyObject *args);
-	static PyObject *Clear(PyObject *self, PyObject *args);
+    // The Python methods
+    static PyObject *AddObject(PyObject *self, PyObject *args);
+    static PyObject *AddFromArray(PyObject *self, PyObject *args);
+    static PyObject *RemoveObjectAt(PyObject *self, PyObject *args);
+    static PyObject *Clear(PyObject *self, PyObject *args);
 
-protected:
-	PyIObjectCollection(IUnknown *pdisp);
-	~PyIObjectCollection();
+   protected:
+    PyIObjectCollection(IUnknown *pdisp);
+    ~PyIObjectCollection();
 };
 
-#endif // WINVER
+#endif  // WINVER

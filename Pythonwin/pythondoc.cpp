@@ -18,16 +18,12 @@
 static char BASED_CODE THIS_FILE[] = __FILE__;
 #endif
 
-
 IMPLEMENT_DYNCREATE(CPythonDoc, CDocument);
 
 BEGIN_MESSAGE_MAP(CPythonDoc, CDocument)
-	//{{AFX_MSG_MAP(CPythonDoc)
-	ON_UPDATE_COMMAND_UI(ID_FILE_SAVE, OnUpdateFileSave)
-	//}}AFX_MSG_MAP
+//{{AFX_MSG_MAP(CPythonDoc)
+ON_UPDATE_COMMAND_UI(ID_FILE_SAVE, OnUpdateFileSave)
+//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
-void CPythonDoc::OnUpdateFileSave(CCmdUI* pCmdUI)
-{
-	pCmdUI->Enable(IsModified());
-}
+void CPythonDoc::OnUpdateFileSave(CCmdUI *pCmdUI) { pCmdUI->Enable(IsModified()); }

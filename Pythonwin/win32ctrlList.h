@@ -1,8 +1,8 @@
 /* win32ctrllist : header
 
-	List control object.  
+    List control object.
 
-	Created May 1996, Mark Hammond (MHammond@skippinet.com.au)
+    Created May 1996, Mark Hammond (MHammond@skippinet.com.au)
 
 Note that this source file contains embedded documentation.
 This documentation consists of marked up text inside the
@@ -18,23 +18,21 @@ generates Windows .hlp files.
 // PyCListCtrl
 //
 class PyCListCtrl : public PyCWnd {
+   public:
+    static ui_type_CObject type;
+    MAKE_PY_CTOR(PyCListCtrl)
 
-public:
-	static ui_type_CObject type;
-	MAKE_PY_CTOR(PyCListCtrl)
-
-protected:
-	PyCListCtrl();
-	virtual ~PyCListCtrl();
+   protected:
+    PyCListCtrl();
+    virtual ~PyCListCtrl();
 };
 
-class PythonImageList : public CImageList
-{
-public:
-	PythonImageList();
-	~PythonImageList();
+class PythonImageList : public CImageList {
+   public:
+    PythonImageList();
+    ~PythonImageList();
 #ifdef _DEBUG
-	virtual void Dump( CDumpContext &dc ) const;
+    virtual void Dump(CDumpContext &dc) const;
 #endif
 };
 
@@ -42,12 +40,13 @@ public:
 // ImageList
 //
 
-class PYW_EXPORT PyCImageList : public ui_assoc_CObject{
-public:
-	MAKE_PY_CTOR(PyCImageList)
-	static CImageList *GetImageList(PyObject *self);
-	static ui_type_CObject type;
-protected:
-	PyCImageList();
-	virtual ~PyCImageList();
+class PYW_EXPORT PyCImageList : public ui_assoc_CObject {
+   public:
+    MAKE_PY_CTOR(PyCImageList)
+    static CImageList *GetImageList(PyObject *self);
+    static ui_type_CObject type;
+
+   protected:
+    PyCImageList();
+    virtual ~PyCImageList();
 };

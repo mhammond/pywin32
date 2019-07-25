@@ -1,32 +1,25 @@
 #include <MAPIX.h>
 #include <EdkMdb.h>
 
-// 0x7CFF001E 
+// 0x7CFF001E
 #define PR_PROFILE_MDB_DN PROP_TAG(PT_STRING8, 0x7CFF)
-// 0x7CFE000B 
+// 0x7CFE000B
 #define PR_FORCE_USE_ENTRYID_SERVER PROP_TAG(PT_BOOLEAN, 0x7CFE)
 
-/*------------------------------------------------------------------------ * * 
-"IExchangeManageStoreEx" Interface Declaration 
-* * Used for store management functions. 
+/*------------------------------------------------------------------------ * *
+"IExchangeManageStoreEx" Interface Declaration
+* * Used for store management functions.
 * *-----------------------------------------------------------------------*/
 
-#define EXCHANGE_IEXCHANGEMANAGESTOREEX_METHODS(IPURE)                            \
-       MAPIMETHOD(CreateStoreEntryID2)                                            \
-              (THIS_ ULONG                       cValues,                          \
-               LPSPropValue                      lpPropArray,                     \
-               ULONG                             ulFlags,                         \
-               ULONG *                           lpcbEntryID,                     \
-               LPENTRYID *                        lppEntryID) IPURE;
+#define EXCHANGE_IEXCHANGEMANAGESTOREEX_METHODS(IPURE) \
+    MAPIMETHOD(CreateStoreEntryID2)                    \
+    (THIS_ ULONG cValues, LPSPropValue lpPropArray, ULONG ulFlags, ULONG * lpcbEntryID, LPENTRYID * lppEntryID) IPURE;
 
-#undef        INTERFACE
-#define              INTERFACE  IExchangeManageStoreEx
-DECLARE_MAPI_INTERFACE_(IExchangeManageStoreEx, IUnknown)
-{
-       MAPI_IUNKNOWN_METHODS(PURE)
-       EXCHANGE_IEXCHANGEMANAGESTORE_METHODS(PURE)
-       EXCHANGE_IEXCHANGEMANAGESTOREEX_METHODS(PURE)
-};
+#undef INTERFACE
+#define INTERFACE IExchangeManageStoreEx
+DECLARE_MAPI_INTERFACE_(IExchangeManageStoreEx, IUnknown){MAPI_IUNKNOWN_METHODS(PURE)
+                                                              EXCHANGE_IEXCHANGEMANAGESTORE_METHODS(PURE)
+                                                                  EXCHANGE_IEXCHANGEMANAGESTOREEX_METHODS(PURE)};
 #undef IMPL
 #define IMPL
 

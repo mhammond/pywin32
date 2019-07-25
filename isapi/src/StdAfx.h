@@ -8,7 +8,7 @@
  its documentation for any purpose and without fee is hereby
  granted, provided that the above copyright notice appear in all
  copies and that both that copyright notice and this permission
- notice appear in supporting documentation, and that the name of 
+ notice appear in supporting documentation, and that the name of
  Blackdog Software not be used in advertising or publicity pertaining to
  distribution of the software without specific, written prior
  permission.
@@ -65,7 +65,7 @@ typedef int Py_ssize_t;
 #define PYISAPI_OBJECT_HEAD PyObject_HEAD_INIT(&PyType_Type) 0,
 #define PYISAPI_ATTR_CONVERT PyString_AsString
 
-#else	// Py3k definitions
+#else  // Py3k definitions
 
 // Macros to handle PyObject layout changes in Py3k
 #define PYISAPI_OBJECT_HEAD PyVarObject_HEAD_INIT(NULL, 0)
@@ -87,8 +87,8 @@ typedef int Py_ssize_t;
 // A helper that on py3k takes a str or unicode as input and returns a
 // string - exactly how the 's#' PyArg_ParseTuple format string does...
 // On py2k accepts str objects only.
-const char *PyISAPIString_AsBytes(PyObject *ob, DWORD *psize=NULL);
+const char *PyISAPIString_AsBytes(PyObject *ob, DWORD *psize = NULL);
 
 //{{AFX_INSERT_LOCATION}}
 // Microsoft Visual C++ will insert additional declarations immediately before the previous line.
-#endif // !defined(AFX_STDAFX_H__E2A54271_C650_437E_999F_A5E3E2F41ACC__INCLUDED)
+#endif  // !defined(AFX_STDAFX_H__E2A54271_C650_437E_999F_A5E3E2F41ACC__INCLUDED)

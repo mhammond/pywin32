@@ -58,77 +58,67 @@
  *
  ************************************************************************/
 
-BOOL WINAPI PaintDIB(HDC     hDC,
-					 LPRECT  lpDCRect,
-					 LPSTR   lpDIBHdr,
-					 LPRECT  lpDIBRect,
-					 CPalette* pPal,
-					 DWORD dwRop)
+BOOL WINAPI PaintDIB(HDC hDC, LPRECT lpDCRect, LPSTR lpDIBHdr, LPRECT lpDIBRect, CPalette *pPal, DWORD dwRop)
 {
-	LPSTR    lpDIBBits;           // Pointer to DIB bits
-	BOOL     bSuccess=FALSE;      // Success/fail flag
-	HPALETTE hPal=NULL;           // Our DIB's palette
-	HPALETTE hOldPal=NULL;        // Previous palette
+    LPSTR lpDIBBits;          // Pointer to DIB bits
+    BOOL bSuccess = FALSE;    // Success/fail flag
+    HPALETTE hPal = NULL;     // Our DIB's palette
+    HPALETTE hOldPal = NULL;  // Previous palette
 
-	/* Check for valid DIB  */
-	if (lpDIBHdr == NULL)
-		return FALSE;
+    /* Check for valid DIB  */
+    if (lpDIBHdr == NULL)
+        return FALSE;
 
-	lpDIBBits = ::FindDIBBits(lpDIBHdr);
+    lpDIBBits = ::FindDIBBits(lpDIBHdr);
 
-	// Get the DIB's palette, then select it into DC
-	if (pPal != NULL)
-	{
-		hPal = (HPALETTE) pPal->m_hObject;
+    // Get the DIB's palette, then select it into DC
+    if (pPal != NULL) {
+        hPal = (HPALETTE)pPal->m_hObject;
 
-		// Select as background since we have
-		// already realized in forground if needed
-		hOldPal = ::SelectPalette(hDC, hPal, TRUE);
-	    RealizePalette (hDC);
-	}
+        // Select as background since we have
+        // already realized in forground if needed
+        hOldPal = ::SelectPalette(hDC, hPal, TRUE);
+        RealizePalette(hDC);
+    }
 
-	/* Make sure to use the stretching mode best for color pictures */
-	::SetStretchBltMode(hDC, COLORONCOLOR);
+    /* Make sure to use the stretching mode best for color pictures */
+    ::SetStretchBltMode(hDC, COLORONCOLOR);
 
-	/* Determine whether to call StretchDIBits() or SetDIBitsToDevice() */
-	if ((RECTWIDTH(lpDCRect)  == RECTWIDTH(lpDIBRect)) &&
-	   (RECTHEIGHT(lpDCRect) == RECTHEIGHT(lpDIBRect)))
-		bSuccess = ::SetDIBitsToDevice(hDC,                    // hDC
-								   lpDCRect->left,             // DestX
-								   lpDCRect->top,              // DestY
-								   RECTWIDTH(lpDCRect),        // nDestWidth
-								   RECTHEIGHT(lpDCRect),       // nDestHeight
-								   lpDIBRect->left,            // SrcX
-								   (int)DIBHeight(lpDIBHdr) -
-									  lpDIBRect->top -
-									  RECTHEIGHT(lpDIBRect),   // SrcY
-								   0,                          // nStartScan
-								   (WORD)DIBHeight(lpDIBHdr),  // nNumScans
-								   lpDIBBits,                  // lpBits
-								   (LPBITMAPINFO)lpDIBHdr,     // lpBitsInfo
-								   DIB_RGB_COLORS);            // wUsage
-   else
-	  bSuccess = ::StretchDIBits(hDC,                          // hDC
-								 lpDCRect->left,               // DestX
-								 lpDCRect->top,                // DestY
-								 RECTWIDTH(lpDCRect),          // nDestWidth
-								 RECTHEIGHT(lpDCRect),         // nDestHeight
-								 lpDIBRect->left,              // SrcX
-								 lpDIBRect->top,               // SrcY
-								 RECTWIDTH(lpDIBRect),         // wSrcWidth
-								 RECTHEIGHT(lpDIBRect),        // wSrcHeight
-								 lpDIBBits,                    // lpBits
-								 (LPBITMAPINFO)lpDIBHdr,       // lpBitsInfo
-								 DIB_RGB_COLORS,               // wUsage
-								 dwRop);                       // dwROP
+    /* Determine whether to call StretchDIBits() or SetDIBitsToDevice() */
+    if ((RECTWIDTH(lpDCRect) == RECTWIDTH(lpDIBRect)) && (RECTHEIGHT(lpDCRect) == RECTHEIGHT(lpDIBRect)))
+        bSuccess = ::SetDIBitsToDevice(hDC,                   // hDC
+                                       lpDCRect->left,        // DestX
+                                       lpDCRect->top,         // DestY
+                                       RECTWIDTH(lpDCRect),   // nDestWidth
+                                       RECTHEIGHT(lpDCRect),  // nDestHeight
+                                       lpDIBRect->left,       // SrcX
+                                       (int)DIBHeight(lpDIBHdr) - lpDIBRect->top - RECTHEIGHT(lpDIBRect),  // SrcY
+                                       0,                                                                  // nStartScan
+                                       (WORD)DIBHeight(lpDIBHdr),                                          // nNumScans
+                                       lpDIBBits,                                                          // lpBits
+                                       (LPBITMAPINFO)lpDIBHdr,                                             // lpBitsInfo
+                                       DIB_RGB_COLORS);                                                    // wUsage
+    else
+        bSuccess = ::StretchDIBits(hDC,                     // hDC
+                                   lpDCRect->left,          // DestX
+                                   lpDCRect->top,           // DestY
+                                   RECTWIDTH(lpDCRect),     // nDestWidth
+                                   RECTHEIGHT(lpDCRect),    // nDestHeight
+                                   lpDIBRect->left,         // SrcX
+                                   lpDIBRect->top,          // SrcY
+                                   RECTWIDTH(lpDIBRect),    // wSrcWidth
+                                   RECTHEIGHT(lpDIBRect),   // wSrcHeight
+                                   lpDIBBits,               // lpBits
+                                   (LPBITMAPINFO)lpDIBHdr,  // lpBitsInfo
+                                   DIB_RGB_COLORS,          // wUsage
+                                   dwRop);                  // dwROP
 
-	/* Reselect old palette */
-	if (hOldPal != NULL)
-	{
-		::SelectPalette(hDC, hOldPal, TRUE);
-	}
+    /* Reselect old palette */
+    if (hOldPal != NULL) {
+        ::SelectPalette(hDC, hOldPal, TRUE);
+    }
 
-   return bSuccess;
+    return bSuccess;
 }
 
 //---------------------------------------------------------------------
@@ -159,73 +149,50 @@ BOOL WINAPI PaintDIB(HDC     hDC,
 //
 //---------------------------------------------------------------------
 
-BOOL WINAPI PaintDDB (HDC hDC,
-					  LPRECT lpDCRect,
-					  HBITMAP hDDB,
-					  LPRECT lpDDBRect,
-					  CPalette *pPal,
-					  DWORD dwRop)
+BOOL WINAPI PaintDDB(HDC hDC, LPRECT lpDCRect, HBITMAP hDDB, LPRECT lpDDBRect, CPalette *pPal, DWORD dwRop)
 {
-   HDC      hMemDC;
-   HBITMAP  hOldBitmap;
-   HPALETTE hOldPal1 = NULL;
-   HPALETTE hOldPal2 = NULL;
+    HDC hMemDC;
+    HBITMAP hOldBitmap;
+    HPALETTE hOldPal1 = NULL;
+    HPALETTE hOldPal2 = NULL;
 
-   HPALETTE hPal = (HPALETTE)pPal->GetSafeHandle();
-   hMemDC = CreateCompatibleDC (hDC);
+    HPALETTE hPal = (HPALETTE)pPal->GetSafeHandle();
+    hMemDC = CreateCompatibleDC(hDC);
 
-   if (!hMemDC)
-      return FALSE;
+    if (!hMemDC)
+        return FALSE;
 
-   if (hPal)
-      {
-      hOldPal1   = SelectPalette (hMemDC, hPal, FALSE);
-      hOldPal2   = SelectPalette (hDC, hPal, FALSE);
-      // Assume the palette's already been realized (no need to
-      //  call RealizePalette().  It should have been realized in
-      //  our WM_QUERYNEWPALETTE or WM_PALETTECHANGED messages...
-      }
+    if (hPal) {
+        hOldPal1 = SelectPalette(hMemDC, hPal, FALSE);
+        hOldPal2 = SelectPalette(hDC, hPal, FALSE);
+        // Assume the palette's already been realized (no need to
+        //  call RealizePalette().  It should have been realized in
+        //  our WM_QUERYNEWPALETTE or WM_PALETTECHANGED messages...
+    }
 
-   hOldBitmap = (HBITMAP)SelectObject (hMemDC, hDDB);
+    hOldBitmap = (HBITMAP)SelectObject(hMemDC, hDDB);
 
-   SetStretchBltMode (hDC, COLORONCOLOR);
+    SetStretchBltMode(hDC, COLORONCOLOR);
 
-   if ((RECTWIDTH (lpDCRect)  == RECTWIDTH (lpDDBRect)) &&
-       (RECTHEIGHT (lpDCRect) == RECTHEIGHT (lpDDBRect)))
-      {
-      BitBlt (hDC,
-              lpDCRect->left,
-              lpDCRect->top,
-              lpDCRect->right - lpDCRect->left,
-              lpDCRect->bottom - lpDCRect->top,
-              hMemDC,
-              lpDDBRect->left,
-              lpDDBRect->top,
-              dwRop);
-      }
-   else
-      StretchBlt (hDC,
-                  lpDCRect->left,
-                  lpDCRect->top,
-                  lpDCRect->right - lpDCRect->left,
-                  lpDCRect->bottom - lpDCRect->top,
-                  hMemDC,
-                  lpDDBRect->left,
-                  lpDDBRect->top,
-                  lpDDBRect->right - lpDDBRect->left,
-                  lpDDBRect->bottom - lpDDBRect->top,
-                  dwRop);
+    if ((RECTWIDTH(lpDCRect) == RECTWIDTH(lpDDBRect)) && (RECTHEIGHT(lpDCRect) == RECTHEIGHT(lpDDBRect))) {
+        BitBlt(hDC, lpDCRect->left, lpDCRect->top, lpDCRect->right - lpDCRect->left, lpDCRect->bottom - lpDCRect->top,
+               hMemDC, lpDDBRect->left, lpDDBRect->top, dwRop);
+    }
+    else
+        StretchBlt(hDC, lpDCRect->left, lpDCRect->top, lpDCRect->right - lpDCRect->left,
+                   lpDCRect->bottom - lpDCRect->top, hMemDC, lpDDBRect->left, lpDDBRect->top,
+                   lpDDBRect->right - lpDDBRect->left, lpDDBRect->bottom - lpDDBRect->top, dwRop);
 
-   SelectObject (hMemDC, hOldBitmap);
+    SelectObject(hMemDC, hOldBitmap);
 
-   if (hOldPal1)
-      SelectPalette (hMemDC, hOldPal1, FALSE);
+    if (hOldPal1)
+        SelectPalette(hMemDC, hOldPal1, FALSE);
 
-   if (hOldPal2)
-      SelectPalette (hDC, hOldPal2, FALSE);
+    if (hOldPal2)
+        SelectPalette(hDC, hOldPal2, FALSE);
 
-   DeleteDC (hMemDC);
-   return TRUE;
+    DeleteDC(hMemDC);
+    return TRUE;
 }
 
 //---------------------------------------------------------------------
@@ -248,45 +215,38 @@ BOOL WINAPI PaintDDB (HDC hDC,
 //
 //---------------------------------------------------------------------
 
-HBITMAP WINAPI DIBToBitmap (LPSTR lpDIBHdr, CPalette *pPal)
+HBITMAP WINAPI DIBToBitmap(LPSTR lpDIBHdr, CPalette *pPal)
 {
-   LPSTR    lpDIBBits;
-   HBITMAP  hBitmap;
-   HDC      hDC;
-   HPALETTE hOldPal = NULL;
+    LPSTR lpDIBBits;
+    HBITMAP hBitmap;
+    HDC hDC;
+    HPALETTE hOldPal = NULL;
 
-   HPALETTE hPal = (HPALETTE)pPal->GetSafeHandle();
-   lpDIBBits = FindDIBBits (lpDIBHdr);
-   hDC       = GetDC (NULL);
+    HPALETTE hPal = (HPALETTE)pPal->GetSafeHandle();
+    lpDIBBits = FindDIBBits(lpDIBHdr);
+    hDC = GetDC(NULL);
 
-   if (!hDC)
-      return NULL;
+    if (!hDC)
+        return NULL;
 
-   if (hPal)
-      hOldPal = SelectPalette (hDC, hPal, FALSE);
+    if (hPal)
+        hOldPal = SelectPalette(hDC, hPal, FALSE);
 
-   RealizePalette (hDC);
+    RealizePalette(hDC);
 
-   hBitmap = CreateDIBitmap (hDC,
-                             (LPBITMAPINFOHEADER) lpDIBHdr,
-                             CBM_INIT,
-                             lpDIBBits,
-                             (LPBITMAPINFO) lpDIBHdr,
-                             DIB_RGB_COLORS);
+    hBitmap =
+        CreateDIBitmap(hDC, (LPBITMAPINFOHEADER)lpDIBHdr, CBM_INIT, lpDIBBits, (LPBITMAPINFO)lpDIBHdr, DIB_RGB_COLORS);
 
-   if (!hBitmap)
-      return NULL;
+    if (!hBitmap)
+        return NULL;
 
-   if (hOldPal)
-      SelectPalette (hDC, hOldPal, FALSE);
+    if (hOldPal)
+        SelectPalette(hDC, hOldPal, FALSE);
 
-   ReleaseDC (NULL, hDC);
+    ReleaseDC(NULL, hDC);
 
-   return hBitmap;
+    return hBitmap;
 }
-
-
-
 
 /*************************************************************************
  *
@@ -311,67 +271,60 @@ HBITMAP WINAPI DIBToBitmap (LPSTR lpDIBHdr, CPalette *pPal)
  *
  ************************************************************************/
 
-
-BOOL WINAPI CreateDIBPalette(LPSTR lpbi, CPalette* pPal)
+BOOL WINAPI CreateDIBPalette(LPSTR lpbi, CPalette *pPal)
 {
-	LPLOGPALETTE lpPal;      // pointer to a logical palette
-	int i;                   // loop index
-	WORD wNumColors;         // number of colors in color table
-	LPBITMAPINFO lpbmi;		 // pointer to BITMAPCOREINFO structure (win3)
-	LPBITMAPCOREINFO lpbmc;  // pointer to BITMAPCOREINFO structure (old)
-	BOOL bWinStyleDIB;       // flag which signifies whether this is a Win3.0 DIB
-	BOOL bResult = FALSE;
+    LPLOGPALETTE lpPal;      // pointer to a logical palette
+    int i;                   // loop index
+    WORD wNumColors;         // number of colors in color table
+    LPBITMAPINFO lpbmi;      // pointer to BITMAPCOREINFO structure (win3)
+    LPBITMAPCOREINFO lpbmc;  // pointer to BITMAPCOREINFO structure (old)
+    BOOL bWinStyleDIB;       // flag which signifies whether this is a Win3.0 DIB
+    BOOL bResult = FALSE;
 
-	/* if DIB is invalid, return FALSE */
-	if (lpbi == NULL)
-	  return FALSE;
-   lpbmi = (LPBITMAPINFO)lpbi;
-   /* get pointer to BITMAPCOREINFO (old 1.x) */
-   lpbmc = (LPBITMAPCOREINFO)lpbmi;
+    /* if DIB is invalid, return FALSE */
+    if (lpbi == NULL)
+        return FALSE;
+    lpbmi = (LPBITMAPINFO)lpbi;
+    /* get pointer to BITMAPCOREINFO (old 1.x) */
+    lpbmc = (LPBITMAPCOREINFO)lpbmi;
 
-   /* get the number of colors in the DIB */
-   wNumColors = ::DIBNumColors(lpbi);
+    /* get the number of colors in the DIB */
+    wNumColors = ::DIBNumColors(lpbi);
 
-   if (wNumColors != 0)
-   {
-		/* allocate memory block for logical palette */
-		lpPal = (LPLOGPALETTE)new char[sizeof(LOGPALETTE)
-									+ sizeof(PALETTEENTRY)
-									* wNumColors];
+    if (wNumColors != 0) {
+        /* allocate memory block for logical palette */
+        lpPal = (LPLOGPALETTE) new char[sizeof(LOGPALETTE) + sizeof(PALETTEENTRY) * wNumColors];
 
-		/* if not enough memory, clean up and return NULL */
-		if (lpPal == 0)
-			return FALSE;
+        /* if not enough memory, clean up and return NULL */
+        if (lpPal == 0)
+            return FALSE;
 
-		/* set version and number of palette entries */
-		lpPal->palVersion = PALVERSION;
-		lpPal->palNumEntries = (WORD)wNumColors;
+        /* set version and number of palette entries */
+        lpPal->palVersion = PALVERSION;
+        lpPal->palNumEntries = (WORD)wNumColors;
 
-		/* is this a Win 3.0 DIB? */
-		bWinStyleDIB = IS_WIN30_DIB(lpbi);
-		for (i = 0; i < (int)wNumColors; i++)
-		{
-			if (bWinStyleDIB)
-			{
-				lpPal->palPalEntry[i].peRed = lpbmi->bmiColors[i].rgbRed;
-				lpPal->palPalEntry[i].peGreen = lpbmi->bmiColors[i].rgbGreen;
-				lpPal->palPalEntry[i].peBlue = lpbmi->bmiColors[i].rgbBlue;
-				lpPal->palPalEntry[i].peFlags = 0;
-			}
-			else
-			{
-				lpPal->palPalEntry[i].peRed = lpbmc->bmciColors[i].rgbtRed;
-				lpPal->palPalEntry[i].peGreen = lpbmc->bmciColors[i].rgbtGreen;
-				lpPal->palPalEntry[i].peBlue = lpbmc->bmciColors[i].rgbtBlue;
-				lpPal->palPalEntry[i].peFlags = 0;
-			}
-		}
+        /* is this a Win 3.0 DIB? */
+        bWinStyleDIB = IS_WIN30_DIB(lpbi);
+        for (i = 0; i < (int)wNumColors; i++) {
+            if (bWinStyleDIB) {
+                lpPal->palPalEntry[i].peRed = lpbmi->bmiColors[i].rgbRed;
+                lpPal->palPalEntry[i].peGreen = lpbmi->bmiColors[i].rgbGreen;
+                lpPal->palPalEntry[i].peBlue = lpbmi->bmiColors[i].rgbBlue;
+                lpPal->palPalEntry[i].peFlags = 0;
+            }
+            else {
+                lpPal->palPalEntry[i].peRed = lpbmc->bmciColors[i].rgbtRed;
+                lpPal->palPalEntry[i].peGreen = lpbmc->bmciColors[i].rgbtGreen;
+                lpPal->palPalEntry[i].peBlue = lpbmc->bmciColors[i].rgbtBlue;
+                lpPal->palPalEntry[i].peFlags = 0;
+            }
+        }
 
-		/* create the palette and get handle to it */
-		bResult = pPal->CreatePalette(lpPal);
-		delete lpPal;
-	}
-	return bResult;
+        /* create the palette and get handle to it */
+        bResult = pPal->CreatePalette(lpPal);
+        delete lpPal;
+    }
+    return bResult;
 }
 
 /*************************************************************************
@@ -393,12 +346,7 @@ BOOL WINAPI CreateDIBPalette(LPSTR lpbi, CPalette* pPal)
  *
  ************************************************************************/
 
-
-LPSTR WINAPI FindDIBBits(LPSTR lpbi)
-{
-	return (lpbi + *(LPDWORD)lpbi + ::PaletteSize(lpbi));
-}
-
+LPSTR WINAPI FindDIBBits(LPSTR lpbi) { return (lpbi + *(LPDWORD)lpbi + ::PaletteSize(lpbi)); }
 
 /*************************************************************************
  *
@@ -420,24 +368,22 @@ LPSTR WINAPI FindDIBBits(LPSTR lpbi)
  *
  ************************************************************************/
 
-
 DWORD WINAPI DIBWidth(LPSTR lpDIB)
 {
-	LPBITMAPINFOHEADER lpbmi;  // pointer to a Win 3.0-style DIB
-	LPBITMAPCOREHEADER lpbmc;  // pointer to an other-style DIB
+    LPBITMAPINFOHEADER lpbmi;  // pointer to a Win 3.0-style DIB
+    LPBITMAPCOREHEADER lpbmc;  // pointer to an other-style DIB
 
-	/* point to the header (whether Win 3.0 and old) */
+    /* point to the header (whether Win 3.0 and old) */
 
-	lpbmi = (LPBITMAPINFOHEADER)lpDIB;
-	lpbmc = (LPBITMAPCOREHEADER)lpDIB;
+    lpbmi = (LPBITMAPINFOHEADER)lpDIB;
+    lpbmc = (LPBITMAPCOREHEADER)lpDIB;
 
-	/* return the DIB width if it is a Win 3.0 DIB */
-	if (IS_WIN30_DIB(lpDIB))
-		return lpbmi->biWidth;
-	else  /* it is an other-style DIB, so return its width */
-		return (DWORD)lpbmc->bcWidth;
+    /* return the DIB width if it is a Win 3.0 DIB */
+    if (IS_WIN30_DIB(lpDIB))
+        return lpbmi->biWidth;
+    else /* it is an other-style DIB, so return its width */
+        return (DWORD)lpbmc->bcWidth;
 }
-
 
 /*************************************************************************
  *
@@ -459,24 +405,22 @@ DWORD WINAPI DIBWidth(LPSTR lpDIB)
  *
  ************************************************************************/
 
-
 DWORD WINAPI DIBHeight(LPSTR lpDIB)
 {
-	LPBITMAPINFOHEADER lpbmi;  // pointer to a Win 3.0-style DIB
-	LPBITMAPCOREHEADER lpbmc;  // pointer to an other-style DIB
+    LPBITMAPINFOHEADER lpbmi;  // pointer to a Win 3.0-style DIB
+    LPBITMAPCOREHEADER lpbmc;  // pointer to an other-style DIB
 
-	/* point to the header (whether old or Win 3.0 */
+    /* point to the header (whether old or Win 3.0 */
 
-	lpbmi = (LPBITMAPINFOHEADER)lpDIB;
-	lpbmc = (LPBITMAPCOREHEADER)lpDIB;
+    lpbmi = (LPBITMAPINFOHEADER)lpDIB;
+    lpbmc = (LPBITMAPCOREHEADER)lpDIB;
 
-	/* return the DIB height if it is a Win 3.0 DIB */
-	if (IS_WIN30_DIB(lpDIB))
-		return lpbmi->biHeight;
-	else  /* it is an other-style DIB, so return its height */
-		return (DWORD)lpbmc->bcHeight;
+    /* return the DIB height if it is a Win 3.0 DIB */
+    if (IS_WIN30_DIB(lpDIB))
+        return lpbmi->biHeight;
+    else /* it is an other-style DIB, so return its height */
+        return (DWORD)lpbmc->bcHeight;
 }
-
 
 /*************************************************************************
  *
@@ -499,16 +443,14 @@ DWORD WINAPI DIBHeight(LPSTR lpDIB)
  *
  ************************************************************************/
 
-
 WORD WINAPI PaletteSize(LPSTR lpbi)
 {
-   /* calculate the size required by the palette */
-   if (IS_WIN30_DIB (lpbi))
-	  return (WORD)(::DIBNumColors(lpbi) * sizeof(RGBQUAD));
-   else
-	  return (WORD)(::DIBNumColors(lpbi) * sizeof(RGBTRIPLE));
+    /* calculate the size required by the palette */
+    if (IS_WIN30_DIB(lpbi))
+        return (WORD)(::DIBNumColors(lpbi) * sizeof(RGBQUAD));
+    else
+        return (WORD)(::DIBNumColors(lpbi) * sizeof(RGBTRIPLE));
 }
-
 
 /*************************************************************************
  *
@@ -531,51 +473,47 @@ WORD WINAPI PaletteSize(LPSTR lpbi)
  *
  ************************************************************************/
 
-
 WORD WINAPI DIBNumColors(LPSTR lpbi)
 {
-	WORD wBitCount;  // DIB bit count
+    WORD wBitCount;  // DIB bit count
 
-	/*  If this is a Windows-style DIB, the number of colors in the
-	 *  color table can be less than the number of bits per pixel
-	 *  allows for (i.e. lpbi->biClrUsed can be set to some value).
-	 *  If this is the case, return the appropriate value.
-	 */
+    /*  If this is a Windows-style DIB, the number of colors in the
+     *  color table can be less than the number of bits per pixel
+     *  allows for (i.e. lpbi->biClrUsed can be set to some value).
+     *  If this is the case, return the appropriate value.
+     */
 
-	if (IS_WIN30_DIB(lpbi))
-	{
-		DWORD dwClrUsed;
+    if (IS_WIN30_DIB(lpbi)) {
+        DWORD dwClrUsed;
 
-		dwClrUsed = ((LPBITMAPINFOHEADER)lpbi)->biClrUsed;
-		if (dwClrUsed != 0)
-			return (WORD)dwClrUsed;
-	}
+        dwClrUsed = ((LPBITMAPINFOHEADER)lpbi)->biClrUsed;
+        if (dwClrUsed != 0)
+            return (WORD)dwClrUsed;
+    }
 
-	/*  Calculate the number of colors in the color table based on
-	 *  the number of bits per pixel for the DIB.
-	 */
-	if (IS_WIN30_DIB(lpbi))
-		wBitCount = ((LPBITMAPINFOHEADER)lpbi)->biBitCount;
-	else
-		wBitCount = ((LPBITMAPCOREHEADER)lpbi)->bcBitCount;
+    /*  Calculate the number of colors in the color table based on
+     *  the number of bits per pixel for the DIB.
+     */
+    if (IS_WIN30_DIB(lpbi))
+        wBitCount = ((LPBITMAPINFOHEADER)lpbi)->biBitCount;
+    else
+        wBitCount = ((LPBITMAPCOREHEADER)lpbi)->bcBitCount;
 
-	/* return number of colors based on bits per pixel */
-	switch (wBitCount)
-	{
-		case 1:
-			return 2;
+    /* return number of colors based on bits per pixel */
+    switch (wBitCount) {
+        case 1:
+            return 2;
 
-		case 4:
-			return 16;
+        case 4:
+            return 16;
 
-		case 8:
-			return 256;
+        case 8:
+            return 256;
 
-		default:
-			return 0;
-	}
+        default:
+            return 0;
+    }
 }
-
 
 //////////////////////////////////////////////////////////////////////////
 //// Clipboard support
@@ -595,30 +533,27 @@ WORD WINAPI DIBNumColors(LPSTR lpbi)
 //
 //---------------------------------------------------------------------
 
-HANDLE WINAPI CopyHandle (HANDLE h)
+HANDLE WINAPI CopyHandle(HANDLE h)
 {
-	BYTE  *lpCopy;
-	BYTE  *lp;
-	HANDLE hCopy;
-	SIZE_T dwLen;
+    BYTE *lpCopy;
+    BYTE *lp;
+    HANDLE hCopy;
+    SIZE_T dwLen;
 
-	if (h == NULL)
-		return NULL;
+    if (h == NULL)
+        return NULL;
 
-	dwLen = ::GlobalSize((HGLOBAL) h);
+    dwLen = ::GlobalSize((HGLOBAL)h);
 
-	if ((hCopy = (HANDLE) ::GlobalAlloc (GHND, dwLen)) != NULL)
-	{
-		lpCopy = (BYTE  *) ::GlobalLock((HGLOBAL) hCopy);
-		lp     = (BYTE  *) ::GlobalLock((HGLOBAL) h);
+    if ((hCopy = (HANDLE)::GlobalAlloc(GHND, dwLen)) != NULL) {
+        lpCopy = (BYTE *)::GlobalLock((HGLOBAL)hCopy);
+        lp = (BYTE *)::GlobalLock((HGLOBAL)h);
 
-		while (dwLen--)
-			*lpCopy++ = *lp++;
+        while (dwLen--) *lpCopy++ = *lp++;
 
-		::GlobalUnlock((HGLOBAL) hCopy);
-		::GlobalUnlock((HGLOBAL) h);
-	}
+        ::GlobalUnlock((HGLOBAL)hCopy);
+        ::GlobalUnlock((HGLOBAL)h);
+    }
 
-	return hCopy;
+    return hCopy;
 }
-

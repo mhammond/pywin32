@@ -7,35 +7,28 @@
 #include "PythonCOMServer.h"
 #include "propsys.h"
 
-class PyIInitializeWithStream : public PyIUnknown
-{
-public:
-	MAKE_PYCOM_CTOR(PyIInitializeWithStream);
-	static IInitializeWithStream *GetI(PyObject *self);
-	static PyComTypeObject type;
+class PyIInitializeWithStream : public PyIUnknown {
+   public:
+    MAKE_PYCOM_CTOR(PyIInitializeWithStream);
+    static IInitializeWithStream *GetI(PyObject *self);
+    static PyComTypeObject type;
 
-	// The Python methods
-	static PyObject *Initialize(PyObject *self, PyObject *args);
+    // The Python methods
+    static PyObject *Initialize(PyObject *self, PyObject *args);
 
-protected:
-	PyIInitializeWithStream(IUnknown *pdisp);
-	~PyIInitializeWithStream();
+   protected:
+    PyIInitializeWithStream(IUnknown *pdisp);
+    ~PyIInitializeWithStream();
 };
 // ---------------------------------------------------
 //
 // Gateway Declaration
 
-class PyGInitializeWithStream : public PyGatewayBase, public IInitializeWithStream
-{
-protected:
-	PyGInitializeWithStream(PyObject *instance) : PyGatewayBase(instance) { ; }
-	PYGATEWAY_MAKE_SUPPORT2(PyGInitializeWithStream, IInitializeWithStream, IID_IInitializeWithStream, PyGatewayBase)
+class PyGInitializeWithStream : public PyGatewayBase, public IInitializeWithStream {
+   protected:
+    PyGInitializeWithStream(PyObject *instance) : PyGatewayBase(instance) { ; }
+    PYGATEWAY_MAKE_SUPPORT2(PyGInitializeWithStream, IInitializeWithStream, IID_IInitializeWithStream, PyGatewayBase)
 
-
-
-	// IInitializeWithStream
-	STDMETHOD(Initialize)(
-		IStream * pstream,
-		DWORD grfMode);
-
+    // IInitializeWithStream
+    STDMETHOD(Initialize)(IStream *pstream, DWORD grfMode);
 };

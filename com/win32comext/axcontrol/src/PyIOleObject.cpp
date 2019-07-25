@@ -12,894 +12,917 @@ extern void PyObject_FreeLOGPALETTE(LOGPALETTE *pLogPal);
 //
 // Interface Implementation
 
-PyIOleObject::PyIOleObject(IUnknown *pdisp):
-	PyIUnknown(pdisp)
-{
-	ob_type = &type;
-}
+PyIOleObject::PyIOleObject(IUnknown *pdisp) : PyIUnknown(pdisp) { ob_type = &type; }
 
-PyIOleObject::~PyIOleObject()
-{
-}
+PyIOleObject::~PyIOleObject() {}
 
-/* static */ IOleObject *PyIOleObject::GetI(PyObject *self)
-{
-	return (IOleObject *)PyIUnknown::GetI(self);
-}
+/* static */ IOleObject *PyIOleObject::GetI(PyObject *self) { return (IOleObject *)PyIUnknown::GetI(self); }
 
 // @pymethod |PyIOleObject|SetClientSite|Description of SetClientSite.
 PyObject *PyIOleObject::SetClientSite(PyObject *self, PyObject *args)
 {
-	IOleObject *pIOO = GetI(self);
-	if ( pIOO == NULL )
-		return NULL;
-	// @pyparm <o PyIOleClientSite>|pClientSite||Description for pClientSite
-	PyObject *obpClientSite;
-	IOleClientSite * pClientSite;
-	if ( !PyArg_ParseTuple(args, "O:SetClientSite", &obpClientSite) )
-		return NULL;
-	BOOL bPythonIsHappy = TRUE;
-	if (!PyCom_InterfaceFromPyInstanceOrObject(obpClientSite, IID_IOleClientSite, (void **)&pClientSite, TRUE /* bNoneOK */))
-		 bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIOO->SetClientSite( pClientSite );
-	if (pClientSite) pClientSite->Release();
-	PY_INTERFACE_POSTCALL;
+    IOleObject *pIOO = GetI(self);
+    if (pIOO == NULL)
+        return NULL;
+    // @pyparm <o PyIOleClientSite>|pClientSite||Description for pClientSite
+    PyObject *obpClientSite;
+    IOleClientSite *pClientSite;
+    if (!PyArg_ParseTuple(args, "O:SetClientSite", &obpClientSite))
+        return NULL;
+    BOOL bPythonIsHappy = TRUE;
+    if (!PyCom_InterfaceFromPyInstanceOrObject(obpClientSite, IID_IOleClientSite, (void **)&pClientSite,
+                                               TRUE /* bNoneOK */))
+        bPythonIsHappy = FALSE;
+    if (!bPythonIsHappy)
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIOO->SetClientSite(pClientSite);
+    if (pClientSite)
+        pClientSite->Release();
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return OleSetOleError(hr);
-	Py_INCREF(Py_None);
-	return Py_None;
-
+    if (FAILED(hr))
+        return OleSetOleError(hr);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @pymethod |PyIOleObject|GetClientSite|Description of GetClientSite.
 PyObject *PyIOleObject::GetClientSite(PyObject *self, PyObject *args)
 {
-	IOleObject *pIOO = GetI(self);
-	if ( pIOO == NULL )
-		return NULL;
-	IOleClientSite * ppClientSite;
-	if ( !PyArg_ParseTuple(args, ":GetClientSite") )
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIOO->GetClientSite( &ppClientSite );
-	PY_INTERFACE_POSTCALL;
+    IOleObject *pIOO = GetI(self);
+    if (pIOO == NULL)
+        return NULL;
+    IOleClientSite *ppClientSite;
+    if (!PyArg_ParseTuple(args, ":GetClientSite"))
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIOO->GetClientSite(&ppClientSite);
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return OleSetOleError(hr);
-	return PyCom_PyObjectFromIUnknown(ppClientSite, IID_IOleClientSite, FALSE);
+    if (FAILED(hr))
+        return OleSetOleError(hr);
+    return PyCom_PyObjectFromIUnknown(ppClientSite, IID_IOleClientSite, FALSE);
 }
 
 // @pymethod |PyIOleObject|SetHostNames|Description of SetHostNames.
 PyObject *PyIOleObject::SetHostNames(PyObject *self, PyObject *args)
 {
-	IOleObject *pIOO = GetI(self);
-	if ( pIOO == NULL )
-		return NULL;
-	// @pyparm <o unicode>|szContainerApp||Description for szContainerApp
-	// @pyparm <o unicode>|szContainerObj||Description for szContainerObj
-	PyObject *obszContainerApp;
-	PyObject *obszContainerObj;
-	LPOLESTR szContainerApp;
-	LPOLESTR szContainerObj;
-	if ( !PyArg_ParseTuple(args, "OO:SetHostNames", &obszContainerApp, &obszContainerObj) )
-		return NULL;
-	BOOL bPythonIsHappy = TRUE;
-	if (!PyCom_BstrFromPyObject(obszContainerApp, &szContainerApp)) bPythonIsHappy = FALSE;
-	if (!PyCom_BstrFromPyObject(obszContainerObj, &szContainerObj)) bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIOO->SetHostNames( szContainerApp, szContainerObj );
-	PY_INTERFACE_POSTCALL;
-	SysFreeString(szContainerApp);
-	SysFreeString(szContainerObj);
+    IOleObject *pIOO = GetI(self);
+    if (pIOO == NULL)
+        return NULL;
+    // @pyparm <o unicode>|szContainerApp||Description for szContainerApp
+    // @pyparm <o unicode>|szContainerObj||Description for szContainerObj
+    PyObject *obszContainerApp;
+    PyObject *obszContainerObj;
+    LPOLESTR szContainerApp;
+    LPOLESTR szContainerObj;
+    if (!PyArg_ParseTuple(args, "OO:SetHostNames", &obszContainerApp, &obszContainerObj))
+        return NULL;
+    BOOL bPythonIsHappy = TRUE;
+    if (!PyCom_BstrFromPyObject(obszContainerApp, &szContainerApp))
+        bPythonIsHappy = FALSE;
+    if (!PyCom_BstrFromPyObject(obszContainerObj, &szContainerObj))
+        bPythonIsHappy = FALSE;
+    if (!bPythonIsHappy)
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIOO->SetHostNames(szContainerApp, szContainerObj);
+    PY_INTERFACE_POSTCALL;
+    SysFreeString(szContainerApp);
+    SysFreeString(szContainerObj);
 
-	if ( FAILED(hr) )
-		return OleSetOleError(hr);
-	Py_INCREF(Py_None);
-	return Py_None;
-
+    if (FAILED(hr))
+        return OleSetOleError(hr);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @pymethod |PyIOleObject|Close|Description of Close.
 PyObject *PyIOleObject::Close(PyObject *self, PyObject *args)
 {
-	IOleObject *pIOO = GetI(self);
-	if ( pIOO == NULL )
-		return NULL;
-	// @pyparm int|dwSaveOption||Description for dwSaveOption
-	DWORD dwSaveOption;
-	if ( !PyArg_ParseTuple(args, "i:Close", &dwSaveOption) )
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIOO->Close( dwSaveOption );
-	PY_INTERFACE_POSTCALL;
+    IOleObject *pIOO = GetI(self);
+    if (pIOO == NULL)
+        return NULL;
+    // @pyparm int|dwSaveOption||Description for dwSaveOption
+    DWORD dwSaveOption;
+    if (!PyArg_ParseTuple(args, "i:Close", &dwSaveOption))
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIOO->Close(dwSaveOption);
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return OleSetOleError(hr);
-	Py_INCREF(Py_None);
-	return Py_None;
-
+    if (FAILED(hr))
+        return OleSetOleError(hr);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @pymethod |PyIOleObject|SetMoniker|Description of SetMoniker.
 PyObject *PyIOleObject::SetMoniker(PyObject *self, PyObject *args)
 {
-	IOleObject *pIOO = GetI(self);
-	if ( pIOO == NULL )
-		return NULL;
-	// @pyparm int|dwWhichMoniker||Description for dwWhichMoniker
-	// @pyparm <o PyIMoniker>|pmk||Description for pmk
-	PyObject *obpmk;
-	DWORD dwWhichMoniker;
-	IMoniker * pmk;
-	if ( !PyArg_ParseTuple(args, "iO:SetMoniker", &dwWhichMoniker, &obpmk) )
-		return NULL;
-	BOOL bPythonIsHappy = TRUE;
-	if (!PyCom_InterfaceFromPyInstanceOrObject(obpmk, IID_IMoniker, (void **)&pmk, TRUE /* bNoneOK */))
-		 bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIOO->SetMoniker( dwWhichMoniker, pmk );
-	if (pmk) pmk->Release();
-	PY_INTERFACE_POSTCALL;
+    IOleObject *pIOO = GetI(self);
+    if (pIOO == NULL)
+        return NULL;
+    // @pyparm int|dwWhichMoniker||Description for dwWhichMoniker
+    // @pyparm <o PyIMoniker>|pmk||Description for pmk
+    PyObject *obpmk;
+    DWORD dwWhichMoniker;
+    IMoniker *pmk;
+    if (!PyArg_ParseTuple(args, "iO:SetMoniker", &dwWhichMoniker, &obpmk))
+        return NULL;
+    BOOL bPythonIsHappy = TRUE;
+    if (!PyCom_InterfaceFromPyInstanceOrObject(obpmk, IID_IMoniker, (void **)&pmk, TRUE /* bNoneOK */))
+        bPythonIsHappy = FALSE;
+    if (!bPythonIsHappy)
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIOO->SetMoniker(dwWhichMoniker, pmk);
+    if (pmk)
+        pmk->Release();
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return OleSetOleError(hr);
-	Py_INCREF(Py_None);
-	return Py_None;
-
+    if (FAILED(hr))
+        return OleSetOleError(hr);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @pymethod |PyIOleObject|GetMoniker|Description of GetMoniker.
 PyObject *PyIOleObject::GetMoniker(PyObject *self, PyObject *args)
 {
-	IOleObject *pIOO = GetI(self);
-	if ( pIOO == NULL )
-		return NULL;
-	// @pyparm int|dwAssign||Description for dwAssign
-	// @pyparm int|dwWhichMoniker||Description for dwWhichMoniker
-	DWORD dwAssign;
-	DWORD dwWhichMoniker;
-	IMoniker * ppmk;
-	if ( !PyArg_ParseTuple(args, "ii:GetMoniker", &dwAssign, &dwWhichMoniker) )
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIOO->GetMoniker( dwAssign, dwWhichMoniker, &ppmk );
-	PY_INTERFACE_POSTCALL;
+    IOleObject *pIOO = GetI(self);
+    if (pIOO == NULL)
+        return NULL;
+    // @pyparm int|dwAssign||Description for dwAssign
+    // @pyparm int|dwWhichMoniker||Description for dwWhichMoniker
+    DWORD dwAssign;
+    DWORD dwWhichMoniker;
+    IMoniker *ppmk;
+    if (!PyArg_ParseTuple(args, "ii:GetMoniker", &dwAssign, &dwWhichMoniker))
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIOO->GetMoniker(dwAssign, dwWhichMoniker, &ppmk);
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return OleSetOleError(hr);
-	return PyCom_PyObjectFromIUnknown(ppmk, IID_IMoniker, FALSE);
+    if (FAILED(hr))
+        return OleSetOleError(hr);
+    return PyCom_PyObjectFromIUnknown(ppmk, IID_IMoniker, FALSE);
 }
 
 // @pymethod |PyIOleObject|InitFromData|Description of InitFromData.
 PyObject *PyIOleObject::InitFromData(PyObject *self, PyObject *args)
 {
-	IOleObject *pIOO = GetI(self);
-	if ( pIOO == NULL )
-		return NULL;
-	// @pyparm <o PyIDataObject>|pDataObject||Description for pDataObject
-	// @pyparm int|fCreation||Description for fCreation
-	// @pyparm int|dwReserved||Description for dwReserved
-	PyObject *obpDataObject;
-	IDataObject * pDataObject;
-	BOOL fCreation;
-	DWORD dwReserved;
-	if ( !PyArg_ParseTuple(args, "Oii:InitFromData", &obpDataObject, &fCreation, &dwReserved) )
-		return NULL;
-	BOOL bPythonIsHappy = TRUE;
-	if (!PyCom_InterfaceFromPyInstanceOrObject(obpDataObject, IID_IDataObject, (void **)&pDataObject, TRUE /* bNoneOK */))
-		 bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIOO->InitFromData( pDataObject, fCreation, dwReserved );
-	if (pDataObject) pDataObject->Release();
-	PY_INTERFACE_POSTCALL;
+    IOleObject *pIOO = GetI(self);
+    if (pIOO == NULL)
+        return NULL;
+    // @pyparm <o PyIDataObject>|pDataObject||Description for pDataObject
+    // @pyparm int|fCreation||Description for fCreation
+    // @pyparm int|dwReserved||Description for dwReserved
+    PyObject *obpDataObject;
+    IDataObject *pDataObject;
+    BOOL fCreation;
+    DWORD dwReserved;
+    if (!PyArg_ParseTuple(args, "Oii:InitFromData", &obpDataObject, &fCreation, &dwReserved))
+        return NULL;
+    BOOL bPythonIsHappy = TRUE;
+    if (!PyCom_InterfaceFromPyInstanceOrObject(obpDataObject, IID_IDataObject, (void **)&pDataObject,
+                                               TRUE /* bNoneOK */))
+        bPythonIsHappy = FALSE;
+    if (!bPythonIsHappy)
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIOO->InitFromData(pDataObject, fCreation, dwReserved);
+    if (pDataObject)
+        pDataObject->Release();
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return OleSetOleError(hr);
-	Py_INCREF(Py_None);
-	return Py_None;
-
+    if (FAILED(hr))
+        return OleSetOleError(hr);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @pymethod |PyIOleObject|GetClipboardData|Description of GetClipboardData.
 PyObject *PyIOleObject::GetClipboardData(PyObject *self, PyObject *args)
 {
-	IOleObject *pIOO = GetI(self);
-	if ( pIOO == NULL )
-		return NULL;
-	// @pyparm int|dwReserved||Description for dwReserved
-	DWORD dwReserved;
-	IDataObject * ppDataObject;
-	if ( !PyArg_ParseTuple(args, "i:GetClipboardData", &dwReserved) )
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIOO->GetClipboardData( dwReserved, &ppDataObject );
-	PY_INTERFACE_POSTCALL;
+    IOleObject *pIOO = GetI(self);
+    if (pIOO == NULL)
+        return NULL;
+    // @pyparm int|dwReserved||Description for dwReserved
+    DWORD dwReserved;
+    IDataObject *ppDataObject;
+    if (!PyArg_ParseTuple(args, "i:GetClipboardData", &dwReserved))
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIOO->GetClipboardData(dwReserved, &ppDataObject);
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return OleSetOleError(hr);
-	return PyCom_PyObjectFromIUnknown(ppDataObject, IID_IDataObject, FALSE);
+    if (FAILED(hr))
+        return OleSetOleError(hr);
+    return PyCom_PyObjectFromIUnknown(ppDataObject, IID_IDataObject, FALSE);
 }
 
 // @pymethod |PyIOleObject|DoVerb|Description of DoVerb.
 PyObject *PyIOleObject::DoVerb(PyObject *self, PyObject *args)
 {
-	IOleObject *pIOO = GetI(self);
-	if ( pIOO == NULL )
-		return NULL;
-	// @pyparm int|iVerb||Description for iVerb
-	// @pyparm <o PyMSG>|msg||MSG tuple, a-la win32gui etc.
-	// @pyparm <o PyIOleClientSite>|pActiveSite||Description for pActiveSite
-	// @pyparm int|lindex||Description for lindex
-	// @pyparm HWND|hwndParent||Description for hwndParent
-	// @pyparm (int, int, int, int)|rect||
-	PyObject *obpActiveSite;
-	LONG iVerb;
-	IOleClientSite * pActiveSite;
-	LONG lindex;
-	HWND hwndParent;
-	MSG msg, *lpmsg = NULL;
-	PyObject *obMsg;
-	RECT rect;
-	LPCRECT lprcPosRect = &rect;
-	if ( !PyArg_ParseTuple(args, "iOOii(iiii):DoVerb", &iVerb, &obMsg, &obpActiveSite, &lindex, &hwndParent,
-		&rect.left, &rect.top, &rect.right, &rect.bottom) )
-		return NULL;
+    IOleObject *pIOO = GetI(self);
+    if (pIOO == NULL)
+        return NULL;
+    // @pyparm int|iVerb||Description for iVerb
+    // @pyparm <o PyMSG>|msg||MSG tuple, a-la win32gui etc.
+    // @pyparm <o PyIOleClientSite>|pActiveSite||Description for pActiveSite
+    // @pyparm int|lindex||Description for lindex
+    // @pyparm HWND|hwndParent||Description for hwndParent
+    // @pyparm (int, int, int, int)|rect||
+    PyObject *obpActiveSite;
+    LONG iVerb;
+    IOleClientSite *pActiveSite;
+    LONG lindex;
+    HWND hwndParent;
+    MSG msg, *lpmsg = NULL;
+    PyObject *obMsg;
+    RECT rect;
+    LPCRECT lprcPosRect = &rect;
+    if (!PyArg_ParseTuple(args, "iOOii(iiii):DoVerb", &iVerb, &obMsg, &obpActiveSite, &lindex, &hwndParent, &rect.left,
+                          &rect.top, &rect.right, &rect.bottom))
+        return NULL;
 
-	if (obMsg != Py_None) {
-		lpmsg = &msg;
-		if (!PyWinObject_AsMSG(obMsg, &msg))
-			return NULL;
-	}
+    if (obMsg != Py_None) {
+        lpmsg = &msg;
+        if (!PyWinObject_AsMSG(obMsg, &msg))
+            return NULL;
+    }
 
-	BOOL bPythonIsHappy = TRUE;
-	if (!PyCom_InterfaceFromPyInstanceOrObject(obpActiveSite, IID_IOleClientSite, (void **)&pActiveSite, TRUE /* bNoneOK */))
-		 bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIOO->DoVerb( iVerb, lpmsg, pActiveSite, lindex, hwndParent, lprcPosRect );
-	if (pActiveSite) pActiveSite->Release();
-	PY_INTERFACE_POSTCALL;
+    BOOL bPythonIsHappy = TRUE;
+    if (!PyCom_InterfaceFromPyInstanceOrObject(obpActiveSite, IID_IOleClientSite, (void **)&pActiveSite,
+                                               TRUE /* bNoneOK */))
+        bPythonIsHappy = FALSE;
+    if (!bPythonIsHappy)
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIOO->DoVerb(iVerb, lpmsg, pActiveSite, lindex, hwndParent, lprcPosRect);
+    if (pActiveSite)
+        pActiveSite->Release();
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return OleSetOleError(hr);
-	Py_INCREF(Py_None);
-	return Py_None;
-
+    if (FAILED(hr))
+        return OleSetOleError(hr);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @pymethod |PyIOleObject|EnumVerbs|Description of EnumVerbs.
 PyObject *PyIOleObject::EnumVerbs(PyObject *self, PyObject *args)
 {
-	IOleObject *pIOO = GetI(self);
-	if ( pIOO == NULL )
-		return NULL;
-	IEnumOLEVERB * ppEnumOleVerb;
-	if ( !PyArg_ParseTuple(args, ":EnumVerbs") )
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIOO->EnumVerbs( &ppEnumOleVerb );
-	PY_INTERFACE_POSTCALL;
+    IOleObject *pIOO = GetI(self);
+    if (pIOO == NULL)
+        return NULL;
+    IEnumOLEVERB *ppEnumOleVerb;
+    if (!PyArg_ParseTuple(args, ":EnumVerbs"))
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIOO->EnumVerbs(&ppEnumOleVerb);
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return OleSetOleError(hr);
-	return PyCom_PyObjectFromIUnknown(ppEnumOleVerb, IID_IEnumOLEVERB, FALSE);
+    if (FAILED(hr))
+        return OleSetOleError(hr);
+    return PyCom_PyObjectFromIUnknown(ppEnumOleVerb, IID_IEnumOLEVERB, FALSE);
 }
 
 // @pymethod |PyIOleObject|Update|Description of Update.
 PyObject *PyIOleObject::Update(PyObject *self, PyObject *args)
 {
-	IOleObject *pIOO = GetI(self);
-	if ( pIOO == NULL )
-		return NULL;
-	if ( !PyArg_ParseTuple(args, ":Update") )
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIOO->Update( );
-	PY_INTERFACE_POSTCALL;
+    IOleObject *pIOO = GetI(self);
+    if (pIOO == NULL)
+        return NULL;
+    if (!PyArg_ParseTuple(args, ":Update"))
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIOO->Update();
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return OleSetOleError(hr);
-	Py_INCREF(Py_None);
-	return Py_None;
-
+    if (FAILED(hr))
+        return OleSetOleError(hr);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @pymethod |PyIOleObject|IsUpToDate|Description of IsUpToDate.
 PyObject *PyIOleObject::IsUpToDate(PyObject *self, PyObject *args)
 {
-	IOleObject *pIOO = GetI(self);
-	if ( pIOO == NULL )
-		return NULL;
-	if ( !PyArg_ParseTuple(args, ":IsUpToDate") )
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIOO->IsUpToDate( );
-	PY_INTERFACE_POSTCALL;
+    IOleObject *pIOO = GetI(self);
+    if (pIOO == NULL)
+        return NULL;
+    if (!PyArg_ParseTuple(args, ":IsUpToDate"))
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIOO->IsUpToDate();
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return OleSetOleError(hr);
-	Py_INCREF(Py_None);
-	return Py_None;
-
+    if (FAILED(hr))
+        return OleSetOleError(hr);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @pymethod |PyIOleObject|GetUserClassID|Description of GetUserClassID.
 PyObject *PyIOleObject::GetUserClassID(PyObject *self, PyObject *args)
 {
-	IOleObject *pIOO = GetI(self);
-	if ( pIOO == NULL )
-		return NULL;
-	IID pClsid;
-	if ( !PyArg_ParseTuple(args, ":GetUserClassID") )
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIOO->GetUserClassID( &pClsid );
-	PY_INTERFACE_POSTCALL;
+    IOleObject *pIOO = GetI(self);
+    if (pIOO == NULL)
+        return NULL;
+    IID pClsid;
+    if (!PyArg_ParseTuple(args, ":GetUserClassID"))
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIOO->GetUserClassID(&pClsid);
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return OleSetOleError(hr);
-	PyObject *obpClsid;
+    if (FAILED(hr))
+        return OleSetOleError(hr);
+    PyObject *obpClsid;
 
-	obpClsid = PyWinObject_FromIID(pClsid);
-	PyObject *pyretval = Py_BuildValue("O", obpClsid);
-	Py_XDECREF(obpClsid);
-	return pyretval;
+    obpClsid = PyWinObject_FromIID(pClsid);
+    PyObject *pyretval = Py_BuildValue("O", obpClsid);
+    Py_XDECREF(obpClsid);
+    return pyretval;
 }
 
 // @pymethod |PyIOleObject|GetUserType|Description of GetUserType.
 PyObject *PyIOleObject::GetUserType(PyObject *self, PyObject *args)
 {
-	IOleObject *pIOO = GetI(self);
-	if ( pIOO == NULL )
-		return NULL;
-	// @pyparm int|dwFormOfType||Description for dwFormOfType
-	DWORD dwFormOfType;
-	LPOLESTR pszUserType;
-	if ( !PyArg_ParseTuple(args, "i:GetUserType", &dwFormOfType) )
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIOO->GetUserType( dwFormOfType, &pszUserType );
-	PY_INTERFACE_POSTCALL;
+    IOleObject *pIOO = GetI(self);
+    if (pIOO == NULL)
+        return NULL;
+    // @pyparm int|dwFormOfType||Description for dwFormOfType
+    DWORD dwFormOfType;
+    LPOLESTR pszUserType;
+    if (!PyArg_ParseTuple(args, "i:GetUserType", &dwFormOfType))
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIOO->GetUserType(dwFormOfType, &pszUserType);
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return OleSetOleError(hr);
-	PyObject *obpszUserType;
+    if (FAILED(hr))
+        return OleSetOleError(hr);
+    PyObject *obpszUserType;
 
-	obpszUserType = MakeOLECHARToObj(pszUserType);
-	PyObject *pyretval = Py_BuildValue("O", obpszUserType);
-	CoTaskMemFree(pszUserType);
-	Py_XDECREF(obpszUserType);
-	return pyretval;
+    obpszUserType = MakeOLECHARToObj(pszUserType);
+    PyObject *pyretval = Py_BuildValue("O", obpszUserType);
+    CoTaskMemFree(pszUserType);
+    Py_XDECREF(obpszUserType);
+    return pyretval;
 }
 
 // @pymethod |PyIOleObject|SetExtent|Description of SetExtent.
 PyObject *PyIOleObject::SetExtent(PyObject *self, PyObject *args)
 {
-	IOleObject *pIOO = GetI(self);
-	if ( pIOO == NULL )
-		return NULL;
-	// @pyparm int|dwDrawAspect||Description for dwDrawAspect
-	// @pyparm (int, int)|size||Size limit for the object. 
-	DWORD dwDrawAspect;
-	SIZEL sizel;
-	if ( !PyArg_ParseTuple(args, "i(ll):SetExtent", &dwDrawAspect, &sizel.cx, &sizel.cy) )
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
+    IOleObject *pIOO = GetI(self);
+    if (pIOO == NULL)
+        return NULL;
+    // @pyparm int|dwDrawAspect||Description for dwDrawAspect
+    // @pyparm (int, int)|size||Size limit for the object.
+    DWORD dwDrawAspect;
+    SIZEL sizel;
+    if (!PyArg_ParseTuple(args, "i(ll):SetExtent", &dwDrawAspect, &sizel.cx, &sizel.cy))
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
 
-	hr = pIOO->SetExtent( dwDrawAspect, &sizel );
+    hr = pIOO->SetExtent(dwDrawAspect, &sizel);
 
-	PY_INTERFACE_POSTCALL;
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return OleSetOleError(hr);
-	Py_INCREF(Py_None);
-	return Py_None;
+    if (FAILED(hr))
+        return OleSetOleError(hr);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @pymethod |PyIOleObject|GetExtent|Description of GetExtent.
 PyObject *PyIOleObject::GetExtent(PyObject *self, PyObject *args)
 {
-	IOleObject *pIOO = GetI(self);
-	if ( pIOO == NULL )
-		return NULL;
-	// @pyparm int|dwDrawAspect||Description for dwDrawAspect
-	// @pyparm (int, int)|size||Size limit for the object. 
-	DWORD dwDrawAspect;
-	if ( !PyArg_ParseTuple(args, "i:GetExtent", &dwDrawAspect) )
-		return NULL;
-	HRESULT hr;
-	SIZEL sizel;
-	PY_INTERFACE_PRECALL;
+    IOleObject *pIOO = GetI(self);
+    if (pIOO == NULL)
+        return NULL;
+    // @pyparm int|dwDrawAspect||Description for dwDrawAspect
+    // @pyparm (int, int)|size||Size limit for the object.
+    DWORD dwDrawAspect;
+    if (!PyArg_ParseTuple(args, "i:GetExtent", &dwDrawAspect))
+        return NULL;
+    HRESULT hr;
+    SIZEL sizel;
+    PY_INTERFACE_PRECALL;
 
-	hr = pIOO->GetExtent( dwDrawAspect, &sizel );
+    hr = pIOO->GetExtent(dwDrawAspect, &sizel);
 
-	PY_INTERFACE_POSTCALL;
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return OleSetOleError(hr);
-	return Py_BuildValue("ll", sizel.cx, sizel.cy);
-
+    if (FAILED(hr))
+        return OleSetOleError(hr);
+    return Py_BuildValue("ll", sizel.cx, sizel.cy);
 }
 
 // @pymethod |PyIOleObject|Advise|Description of Advise.
 PyObject *PyIOleObject::Advise(PyObject *self, PyObject *args)
 {
-	IOleObject *pIOO = GetI(self);
-	if ( pIOO == NULL )
-		return NULL;
-	// @pyparm <o PyIAdviseSink>|pAdvSink||Description for pAdvSink
-	PyObject *obpAdvSink;
-	IAdviseSink * pAdvSink;
-	DWORD pdwConnection;
-	if ( !PyArg_ParseTuple(args, "O:Advise", &obpAdvSink) )
-		return NULL;
-	BOOL bPythonIsHappy = TRUE;
-	if (!PyCom_InterfaceFromPyInstanceOrObject(obpAdvSink, IID_IAdviseSink, (void **)&pAdvSink, TRUE /* bNoneOK */))
-		 bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIOO->Advise( pAdvSink, &pdwConnection );
-	if (pAdvSink) pAdvSink->Release();
-	PY_INTERFACE_POSTCALL;
+    IOleObject *pIOO = GetI(self);
+    if (pIOO == NULL)
+        return NULL;
+    // @pyparm <o PyIAdviseSink>|pAdvSink||Description for pAdvSink
+    PyObject *obpAdvSink;
+    IAdviseSink *pAdvSink;
+    DWORD pdwConnection;
+    if (!PyArg_ParseTuple(args, "O:Advise", &obpAdvSink))
+        return NULL;
+    BOOL bPythonIsHappy = TRUE;
+    if (!PyCom_InterfaceFromPyInstanceOrObject(obpAdvSink, IID_IAdviseSink, (void **)&pAdvSink, TRUE /* bNoneOK */))
+        bPythonIsHappy = FALSE;
+    if (!bPythonIsHappy)
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIOO->Advise(pAdvSink, &pdwConnection);
+    if (pAdvSink)
+        pAdvSink->Release();
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return OleSetOleError(hr);
+    if (FAILED(hr))
+        return OleSetOleError(hr);
 
-	PyObject *pyretval = Py_BuildValue("i", pdwConnection);
-	return pyretval;
+    PyObject *pyretval = Py_BuildValue("i", pdwConnection);
+    return pyretval;
 }
 
 // @pymethod |PyIOleObject|Unadvise|Description of Unadvise.
 PyObject *PyIOleObject::Unadvise(PyObject *self, PyObject *args)
 {
-	IOleObject *pIOO = GetI(self);
-	if ( pIOO == NULL )
-		return NULL;
-	// @pyparm int|dwConnection||Description for dwConnection
-	DWORD dwConnection;
-	if ( !PyArg_ParseTuple(args, "i:Unadvise", &dwConnection) )
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIOO->Unadvise( dwConnection );
-	PY_INTERFACE_POSTCALL;
+    IOleObject *pIOO = GetI(self);
+    if (pIOO == NULL)
+        return NULL;
+    // @pyparm int|dwConnection||Description for dwConnection
+    DWORD dwConnection;
+    if (!PyArg_ParseTuple(args, "i:Unadvise", &dwConnection))
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIOO->Unadvise(dwConnection);
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return OleSetOleError(hr);
-	Py_INCREF(Py_None);
-	return Py_None;
-
+    if (FAILED(hr))
+        return OleSetOleError(hr);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @pymethod |PyIOleObject|EnumAdvise|Description of EnumAdvise.
 PyObject *PyIOleObject::EnumAdvise(PyObject *self, PyObject *args)
 {
-	IOleObject *pIOO = GetI(self);
-	if ( pIOO == NULL )
-		return NULL;
-	IEnumSTATDATA * ppenumAdvise;
-	if ( !PyArg_ParseTuple(args, ":EnumAdvise") )
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIOO->EnumAdvise( &ppenumAdvise );
-	PY_INTERFACE_POSTCALL;
+    IOleObject *pIOO = GetI(self);
+    if (pIOO == NULL)
+        return NULL;
+    IEnumSTATDATA *ppenumAdvise;
+    if (!PyArg_ParseTuple(args, ":EnumAdvise"))
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIOO->EnumAdvise(&ppenumAdvise);
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return OleSetOleError(hr);
-	return PyCom_PyObjectFromIUnknown(ppenumAdvise, IID_IEnumSTATDATA, FALSE);
+    if (FAILED(hr))
+        return OleSetOleError(hr);
+    return PyCom_PyObjectFromIUnknown(ppenumAdvise, IID_IEnumSTATDATA, FALSE);
 }
 
 // @pymethod |PyIOleObject|GetMiscStatus|Description of GetMiscStatus.
 PyObject *PyIOleObject::GetMiscStatus(PyObject *self, PyObject *args)
 {
-	IOleObject *pIOO = GetI(self);
-	if ( pIOO == NULL )
-		return NULL;
-	// @pyparm int|dwAspect||Description for dwAspect
-	DWORD dwAspect;
-	DWORD pdwStatus;
-	if ( !PyArg_ParseTuple(args, "i:GetMiscStatus", &dwAspect) )
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIOO->GetMiscStatus( dwAspect, &pdwStatus );
-	PY_INTERFACE_POSTCALL;
+    IOleObject *pIOO = GetI(self);
+    if (pIOO == NULL)
+        return NULL;
+    // @pyparm int|dwAspect||Description for dwAspect
+    DWORD dwAspect;
+    DWORD pdwStatus;
+    if (!PyArg_ParseTuple(args, "i:GetMiscStatus", &dwAspect))
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIOO->GetMiscStatus(dwAspect, &pdwStatus);
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return OleSetOleError(hr);
+    if (FAILED(hr))
+        return OleSetOleError(hr);
 
-	PyObject *pyretval = Py_BuildValue("i", pdwStatus);
-	return pyretval;
+    PyObject *pyretval = Py_BuildValue("i", pdwStatus);
+    return pyretval;
 }
 
 // @pymethod |PyIOleObject|SetColorScheme|Description of SetColorScheme.
 PyObject *PyIOleObject::SetColorScheme(PyObject *self, PyObject *args)
 {
-	IOleObject *pIOO = GetI(self);
-	if ( pIOO == NULL )
-		return NULL;
+    IOleObject *pIOO = GetI(self);
+    if (pIOO == NULL)
+        return NULL;
 
-	PyObject *obLogPal;
-	if ( !PyArg_ParseTuple(args, "O:SetColorScheme", &obLogPal) )
-		return NULL;
-	LOGPALETTE *pLogPal;
-	if (!PyObject_AsLOGPALETTE(obLogPal, &pLogPal))
-		return NULL;
+    PyObject *obLogPal;
+    if (!PyArg_ParseTuple(args, "O:SetColorScheme", &obLogPal))
+        return NULL;
+    LOGPALETTE *pLogPal;
+    if (!PyObject_AsLOGPALETTE(obLogPal, &pLogPal))
+        return NULL;
 
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
 
-	hr = pIOO->SetColorScheme( pLogPal );
+    hr = pIOO->SetColorScheme(pLogPal);
 
-	PY_INTERFACE_POSTCALL;
+    PY_INTERFACE_POSTCALL;
 
-	PyObject_FreeLOGPALETTE(pLogPal);
+    PyObject_FreeLOGPALETTE(pLogPal);
 
-	if ( FAILED(hr) )
-		return OleSetOleError(hr);
-	Py_INCREF(Py_None);
-	return Py_None;
-
+    if (FAILED(hr))
+        return OleSetOleError(hr);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @object PyIOleObject|Description of the interface
-static struct PyMethodDef PyIOleObject_methods[] =
-{
-	{ "SetClientSite", PyIOleObject::SetClientSite, 1 }, // @pymeth SetClientSite|Description of SetClientSite
-	{ "GetClientSite", PyIOleObject::GetClientSite, 1 }, // @pymeth GetClientSite|Description of GetClientSite
-	{ "SetHostNames", PyIOleObject::SetHostNames, 1 }, // @pymeth SetHostNames|Description of SetHostNames
-	{ "Close", PyIOleObject::Close, 1 }, // @pymeth Close|Description of Close
-	{ "SetMoniker", PyIOleObject::SetMoniker, 1 }, // @pymeth SetMoniker|Description of SetMoniker
-	{ "GetMoniker", PyIOleObject::GetMoniker, 1 }, // @pymeth GetMoniker|Description of GetMoniker
-	{ "InitFromData", PyIOleObject::InitFromData, 1 }, // @pymeth InitFromData|Description of InitFromData
-	{ "GetClipboardData", PyIOleObject::GetClipboardData, 1 }, // @pymeth GetClipboardData|Description of GetClipboardData
-	{ "DoVerb", PyIOleObject::DoVerb, 1 }, // @pymeth DoVerb|Description of DoVerb
-	{ "EnumVerbs", PyIOleObject::EnumVerbs, 1 }, // @pymeth EnumVerbs|Description of EnumVerbs
-	{ "Update", PyIOleObject::Update, 1 }, // @pymeth Update|Description of Update
-	{ "IsUpToDate", PyIOleObject::IsUpToDate, 1 }, // @pymeth IsUpToDate|Description of IsUpToDate
-	{ "GetUserClassID", PyIOleObject::GetUserClassID, 1 }, // @pymeth GetUserClassID|Description of GetUserClassID
-	{ "GetUserType", PyIOleObject::GetUserType, 1 }, // @pymeth GetUserType|Description of GetUserType
-	{ "SetExtent", PyIOleObject::SetExtent, 1 }, // @pymeth SetExtent|Description of SetExtent
-	{ "GetExtent", PyIOleObject::GetExtent, 1 }, // @pymeth GetExtent|Description of GetExtent
-	{ "Advise", PyIOleObject::Advise, 1 }, // @pymeth Advise|Description of Advise
-	{ "Unadvise", PyIOleObject::Unadvise, 1 }, // @pymeth Unadvise|Description of Unadvise
-	{ "EnumAdvise", PyIOleObject::EnumAdvise, 1 }, // @pymeth EnumAdvise|Description of EnumAdvise
-	{ "GetMiscStatus", PyIOleObject::GetMiscStatus, 1 }, // @pymeth GetMiscStatus|Description of GetMiscStatus
-	{ "SetColorScheme", PyIOleObject::SetColorScheme, 1 }, // @pymeth SetColorScheme|Description of SetColorScheme
-	{ NULL }
-};
+static struct PyMethodDef PyIOleObject_methods[] = {
+    {"SetClientSite", PyIOleObject::SetClientSite, 1},  // @pymeth SetClientSite|Description of SetClientSite
+    {"GetClientSite", PyIOleObject::GetClientSite, 1},  // @pymeth GetClientSite|Description of GetClientSite
+    {"SetHostNames", PyIOleObject::SetHostNames, 1},    // @pymeth SetHostNames|Description of SetHostNames
+    {"Close", PyIOleObject::Close, 1},                  // @pymeth Close|Description of Close
+    {"SetMoniker", PyIOleObject::SetMoniker, 1},        // @pymeth SetMoniker|Description of SetMoniker
+    {"GetMoniker", PyIOleObject::GetMoniker, 1},        // @pymeth GetMoniker|Description of GetMoniker
+    {"InitFromData", PyIOleObject::InitFromData, 1},    // @pymeth InitFromData|Description of InitFromData
+    {"GetClipboardData", PyIOleObject::GetClipboardData,
+     1},                                                  // @pymeth GetClipboardData|Description of GetClipboardData
+    {"DoVerb", PyIOleObject::DoVerb, 1},                  // @pymeth DoVerb|Description of DoVerb
+    {"EnumVerbs", PyIOleObject::EnumVerbs, 1},            // @pymeth EnumVerbs|Description of EnumVerbs
+    {"Update", PyIOleObject::Update, 1},                  // @pymeth Update|Description of Update
+    {"IsUpToDate", PyIOleObject::IsUpToDate, 1},          // @pymeth IsUpToDate|Description of IsUpToDate
+    {"GetUserClassID", PyIOleObject::GetUserClassID, 1},  // @pymeth GetUserClassID|Description of GetUserClassID
+    {"GetUserType", PyIOleObject::GetUserType, 1},        // @pymeth GetUserType|Description of GetUserType
+    {"SetExtent", PyIOleObject::SetExtent, 1},            // @pymeth SetExtent|Description of SetExtent
+    {"GetExtent", PyIOleObject::GetExtent, 1},            // @pymeth GetExtent|Description of GetExtent
+    {"Advise", PyIOleObject::Advise, 1},                  // @pymeth Advise|Description of Advise
+    {"Unadvise", PyIOleObject::Unadvise, 1},              // @pymeth Unadvise|Description of Unadvise
+    {"EnumAdvise", PyIOleObject::EnumAdvise, 1},          // @pymeth EnumAdvise|Description of EnumAdvise
+    {"GetMiscStatus", PyIOleObject::GetMiscStatus, 1},    // @pymeth GetMiscStatus|Description of GetMiscStatus
+    {"SetColorScheme", PyIOleObject::SetColorScheme, 1},  // @pymeth SetColorScheme|Description of SetColorScheme
+    {NULL}};
 
-PyComTypeObject PyIOleObject::type("PyIOleObject",
-		&PyIUnknown::type,
-		sizeof(PyIOleObject),
-		PyIOleObject_methods,
-		GET_PYCOM_CTOR(PyIOleObject));
+PyComTypeObject PyIOleObject::type("PyIOleObject", &PyIUnknown::type, sizeof(PyIOleObject), PyIOleObject_methods,
+                                   GET_PYCOM_CTOR(PyIOleObject));
 // ---------------------------------------------------
 //
 // Gateway Implementation
 
 STDMETHODIMP PyGOleObject::SetClientSite(
-		/* [unique][in] */ IOleClientSite __RPC_FAR * pClientSite)
+    /* [unique][in] */ IOleClientSite __RPC_FAR *pClientSite)
 {
-	PY_GATEWAY_METHOD;
-	PyObject *obpClientSite;
-	obpClientSite = PyCom_PyObjectFromIUnknown(pClientSite, IID_IOleClientSite, TRUE);
-	HRESULT hr=InvokeViaPolicy("SetClientSite", NULL, "O", obpClientSite);
-	Py_XDECREF(obpClientSite);
-	return hr;
+    PY_GATEWAY_METHOD;
+    PyObject *obpClientSite;
+    obpClientSite = PyCom_PyObjectFromIUnknown(pClientSite, IID_IOleClientSite, TRUE);
+    HRESULT hr = InvokeViaPolicy("SetClientSite", NULL, "O", obpClientSite);
+    Py_XDECREF(obpClientSite);
+    return hr;
 }
 
 STDMETHODIMP PyGOleObject::GetClientSite(
-		/* [out] */ IOleClientSite __RPC_FAR *__RPC_FAR * ppClientSite)
+    /* [out] */ IOleClientSite __RPC_FAR *__RPC_FAR *ppClientSite)
 {
-	PY_GATEWAY_METHOD;
-	if (ppClientSite==NULL) return E_POINTER;
-	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("GetClientSite", &result);
-	if (FAILED(hr)) return hr;
-	// Process the Python results, and convert back to the real params
-	PyObject *obppClientSite;
-	if (!PyArg_Parse(result, "O" , &obppClientSite)) return PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
-	BOOL bPythonIsHappy = TRUE;
-	if (!PyCom_InterfaceFromPyInstanceOrObject(obppClientSite, IID_IOleClientSite, (void **)ppClientSite, TRUE /* bNoneOK */))
-		 bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) hr = PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
-	Py_DECREF(result);
-	return hr;
+    PY_GATEWAY_METHOD;
+    if (ppClientSite == NULL)
+        return E_POINTER;
+    PyObject *result;
+    HRESULT hr = InvokeViaPolicy("GetClientSite", &result);
+    if (FAILED(hr))
+        return hr;
+    // Process the Python results, and convert back to the real params
+    PyObject *obppClientSite;
+    if (!PyArg_Parse(result, "O", &obppClientSite))
+        return PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
+    BOOL bPythonIsHappy = TRUE;
+    if (!PyCom_InterfaceFromPyInstanceOrObject(obppClientSite, IID_IOleClientSite, (void **)ppClientSite,
+                                               TRUE /* bNoneOK */))
+        bPythonIsHappy = FALSE;
+    if (!bPythonIsHappy)
+        hr = PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
+    Py_DECREF(result);
+    return hr;
 }
 
 STDMETHODIMP PyGOleObject::SetHostNames(
-		/* [in] */ LPCOLESTR szContainerApp,
-		/* [unique][in] */ LPCOLESTR szContainerObj)
+    /* [in] */ LPCOLESTR szContainerApp,
+    /* [unique][in] */ LPCOLESTR szContainerObj)
 {
-	PY_GATEWAY_METHOD;
-	PyObject *obszContainerApp;
-	PyObject *obszContainerObj;
-	obszContainerApp = MakeOLECHARToObj(szContainerApp);
-	obszContainerObj = MakeOLECHARToObj(szContainerObj);
-	HRESULT hr=InvokeViaPolicy("SetHostNames", NULL, "OO", obszContainerApp, obszContainerObj);
-	Py_XDECREF(obszContainerApp);
-	Py_XDECREF(obszContainerObj);
-	return hr;
+    PY_GATEWAY_METHOD;
+    PyObject *obszContainerApp;
+    PyObject *obszContainerObj;
+    obszContainerApp = MakeOLECHARToObj(szContainerApp);
+    obszContainerObj = MakeOLECHARToObj(szContainerObj);
+    HRESULT hr = InvokeViaPolicy("SetHostNames", NULL, "OO", obszContainerApp, obszContainerObj);
+    Py_XDECREF(obszContainerApp);
+    Py_XDECREF(obszContainerObj);
+    return hr;
 }
 
 STDMETHODIMP PyGOleObject::Close(
-		/* [in] */ DWORD dwSaveOption)
+    /* [in] */ DWORD dwSaveOption)
 {
-	PY_GATEWAY_METHOD;
-	HRESULT hr=InvokeViaPolicy("Close", NULL, "i", dwSaveOption);
-	return hr;
+    PY_GATEWAY_METHOD;
+    HRESULT hr = InvokeViaPolicy("Close", NULL, "i", dwSaveOption);
+    return hr;
 }
 
 STDMETHODIMP PyGOleObject::SetMoniker(
-		/* [in] */ DWORD dwWhichMoniker,
-		/* [unique][in] */ IMoniker __RPC_FAR * pmk)
+    /* [in] */ DWORD dwWhichMoniker,
+    /* [unique][in] */ IMoniker __RPC_FAR *pmk)
 {
-	PY_GATEWAY_METHOD;
-	PyObject *obpmk;
-	obpmk = PyCom_PyObjectFromIUnknown(pmk, IID_IMoniker, TRUE);
-	HRESULT hr=InvokeViaPolicy("SetMoniker", NULL, "iO", dwWhichMoniker, obpmk);
-	Py_XDECREF(obpmk);
-	return hr;
+    PY_GATEWAY_METHOD;
+    PyObject *obpmk;
+    obpmk = PyCom_PyObjectFromIUnknown(pmk, IID_IMoniker, TRUE);
+    HRESULT hr = InvokeViaPolicy("SetMoniker", NULL, "iO", dwWhichMoniker, obpmk);
+    Py_XDECREF(obpmk);
+    return hr;
 }
 
 STDMETHODIMP PyGOleObject::GetMoniker(
-		/* [in] */ DWORD dwAssign,
-		/* [in] */ DWORD dwWhichMoniker,
-		/* [out] */ IMoniker __RPC_FAR *__RPC_FAR * ppmk)
+    /* [in] */ DWORD dwAssign,
+    /* [in] */ DWORD dwWhichMoniker,
+    /* [out] */ IMoniker __RPC_FAR *__RPC_FAR *ppmk)
 {
-	PY_GATEWAY_METHOD;
-	if (ppmk==NULL) return E_POINTER;
-	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("GetMoniker", &result, "ii", dwAssign, dwWhichMoniker);
-	if (FAILED(hr)) return hr;
-	// Process the Python results, and convert back to the real params
-	PyObject *obppmk;
-	if (!PyArg_Parse(result, "O" , &obppmk)) return PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
-	BOOL bPythonIsHappy = TRUE;
-	if (!PyCom_InterfaceFromPyInstanceOrObject(obppmk, IID_IMoniker, (void **)ppmk, TRUE /* bNoneOK */))
-		 bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) hr = PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
-	Py_DECREF(result);
-	return hr;
+    PY_GATEWAY_METHOD;
+    if (ppmk == NULL)
+        return E_POINTER;
+    PyObject *result;
+    HRESULT hr = InvokeViaPolicy("GetMoniker", &result, "ii", dwAssign, dwWhichMoniker);
+    if (FAILED(hr))
+        return hr;
+    // Process the Python results, and convert back to the real params
+    PyObject *obppmk;
+    if (!PyArg_Parse(result, "O", &obppmk))
+        return PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
+    BOOL bPythonIsHappy = TRUE;
+    if (!PyCom_InterfaceFromPyInstanceOrObject(obppmk, IID_IMoniker, (void **)ppmk, TRUE /* bNoneOK */))
+        bPythonIsHappy = FALSE;
+    if (!bPythonIsHappy)
+        hr = PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
+    Py_DECREF(result);
+    return hr;
 }
 
 STDMETHODIMP PyGOleObject::InitFromData(
-		/* [unique][in] */ IDataObject __RPC_FAR * pDataObject,
-		/* [in] */ BOOL fCreation,
-		/* [in] */ DWORD dwReserved)
+    /* [unique][in] */ IDataObject __RPC_FAR *pDataObject,
+    /* [in] */ BOOL fCreation,
+    /* [in] */ DWORD dwReserved)
 {
-	PY_GATEWAY_METHOD;
-	PyObject *obpDataObject;
-	obpDataObject = PyCom_PyObjectFromIUnknown(pDataObject, IID_IDataObject, TRUE);
-	HRESULT hr=InvokeViaPolicy("InitFromData", NULL, "Oii", obpDataObject, fCreation, dwReserved);
-	Py_XDECREF(obpDataObject);
-	return hr;
+    PY_GATEWAY_METHOD;
+    PyObject *obpDataObject;
+    obpDataObject = PyCom_PyObjectFromIUnknown(pDataObject, IID_IDataObject, TRUE);
+    HRESULT hr = InvokeViaPolicy("InitFromData", NULL, "Oii", obpDataObject, fCreation, dwReserved);
+    Py_XDECREF(obpDataObject);
+    return hr;
 }
 
 STDMETHODIMP PyGOleObject::GetClipboardData(
-		/* [in] */ DWORD dwReserved,
-		/* [out] */ IDataObject __RPC_FAR *__RPC_FAR * ppDataObject)
+    /* [in] */ DWORD dwReserved,
+    /* [out] */ IDataObject __RPC_FAR *__RPC_FAR *ppDataObject)
 {
-	PY_GATEWAY_METHOD;
-	if (ppDataObject==NULL) return E_POINTER;
-	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("GetClipboardData", &result, "i", dwReserved);
-	if (FAILED(hr)) return hr;
-	// Process the Python results, and convert back to the real params
-	PyObject *obppDataObject;
-	if (!PyArg_Parse(result, "O" , &obppDataObject)) return PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
-	BOOL bPythonIsHappy = TRUE;
-	if (!PyCom_InterfaceFromPyInstanceOrObject(obppDataObject, IID_IDataObject, (void **)ppDataObject, TRUE /* bNoneOK */))
-		 bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) hr = PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
-	Py_DECREF(result);
-	return hr;
+    PY_GATEWAY_METHOD;
+    if (ppDataObject == NULL)
+        return E_POINTER;
+    PyObject *result;
+    HRESULT hr = InvokeViaPolicy("GetClipboardData", &result, "i", dwReserved);
+    if (FAILED(hr))
+        return hr;
+    // Process the Python results, and convert back to the real params
+    PyObject *obppDataObject;
+    if (!PyArg_Parse(result, "O", &obppDataObject))
+        return PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
+    BOOL bPythonIsHappy = TRUE;
+    if (!PyCom_InterfaceFromPyInstanceOrObject(obppDataObject, IID_IDataObject, (void **)ppDataObject,
+                                               TRUE /* bNoneOK */))
+        bPythonIsHappy = FALSE;
+    if (!bPythonIsHappy)
+        hr = PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
+    Py_DECREF(result);
+    return hr;
 }
 
 STDMETHODIMP PyGOleObject::DoVerb(
-		/* [in] */ LONG iVerb,
-		/* [unique][in] */ LPMSG lpmsg,
-		/* [unique][in] */ IOleClientSite __RPC_FAR * pActiveSite,
-		/* [in] */ LONG lindex,
-		/* [in] */ HWND hwndParent,
-		/* [unique][in] */ LPCRECT lprcPosRect)
+    /* [in] */ LONG iVerb,
+    /* [unique][in] */ LPMSG lpmsg,
+    /* [unique][in] */ IOleClientSite __RPC_FAR *pActiveSite,
+    /* [in] */ LONG lindex,
+    /* [in] */ HWND hwndParent,
+    /* [unique][in] */ LPCRECT lprcPosRect)
 {
-	PY_GATEWAY_METHOD;
-	return InvokeViaPolicy("DoVerb", NULL, "iNNii(iiii)",
-	                       iVerb,
-	                       PyWinObject_FromMSG(lpmsg),
-	                       PyCom_PyObjectFromIUnknown(pActiveSite, IID_IOleClientSite, TRUE),
-	                       lindex, hwndParent,
-	                       lprcPosRect->left, lprcPosRect->top, lprcPosRect->right, lprcPosRect->bottom);
+    PY_GATEWAY_METHOD;
+    return InvokeViaPolicy("DoVerb", NULL, "iNNii(iiii)", iVerb, PyWinObject_FromMSG(lpmsg),
+                           PyCom_PyObjectFromIUnknown(pActiveSite, IID_IOleClientSite, TRUE), lindex, hwndParent,
+                           lprcPosRect->left, lprcPosRect->top, lprcPosRect->right, lprcPosRect->bottom);
 }
 
 STDMETHODIMP PyGOleObject::EnumVerbs(
-		/* [out] */ IEnumOLEVERB __RPC_FAR *__RPC_FAR * ppEnumOleVerb)
+    /* [out] */ IEnumOLEVERB __RPC_FAR *__RPC_FAR *ppEnumOleVerb)
 {
-	PY_GATEWAY_METHOD;
-	if (ppEnumOleVerb==NULL) return E_POINTER;
-	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("EnumVerbs", &result);
-	if (FAILED(hr)) return hr;
-	// Process the Python results, and convert back to the real params
-	PyObject *obppEnumOleVerb;
-	if (!PyArg_Parse(result, "O" , &obppEnumOleVerb)) return PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
-	BOOL bPythonIsHappy = TRUE;
-	if (!PyCom_InterfaceFromPyInstanceOrObject(obppEnumOleVerb, IID_IEnumOLEVERB, (void **)ppEnumOleVerb, TRUE /* bNoneOK */))
-		 bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) hr = PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
-	Py_DECREF(result);
-	return hr;
+    PY_GATEWAY_METHOD;
+    if (ppEnumOleVerb == NULL)
+        return E_POINTER;
+    PyObject *result;
+    HRESULT hr = InvokeViaPolicy("EnumVerbs", &result);
+    if (FAILED(hr))
+        return hr;
+    // Process the Python results, and convert back to the real params
+    PyObject *obppEnumOleVerb;
+    if (!PyArg_Parse(result, "O", &obppEnumOleVerb))
+        return PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
+    BOOL bPythonIsHappy = TRUE;
+    if (!PyCom_InterfaceFromPyInstanceOrObject(obppEnumOleVerb, IID_IEnumOLEVERB, (void **)ppEnumOleVerb,
+                                               TRUE /* bNoneOK */))
+        bPythonIsHappy = FALSE;
+    if (!bPythonIsHappy)
+        hr = PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
+    Py_DECREF(result);
+    return hr;
 }
 
-STDMETHODIMP PyGOleObject::Update(
-		void)
+STDMETHODIMP PyGOleObject::Update(void)
 {
-	PY_GATEWAY_METHOD;
-	HRESULT hr=InvokeViaPolicy("Update", NULL);
-	return hr;
+    PY_GATEWAY_METHOD;
+    HRESULT hr = InvokeViaPolicy("Update", NULL);
+    return hr;
 }
 
-STDMETHODIMP PyGOleObject::IsUpToDate(
-		void)
+STDMETHODIMP PyGOleObject::IsUpToDate(void)
 {
-	PY_GATEWAY_METHOD;
-	HRESULT hr=InvokeViaPolicy("IsUpToDate", NULL);
-	return hr;
+    PY_GATEWAY_METHOD;
+    HRESULT hr = InvokeViaPolicy("IsUpToDate", NULL);
+    return hr;
 }
 
 STDMETHODIMP PyGOleObject::GetUserClassID(
-		/* [out] */ CLSID __RPC_FAR * pClsid)
+    /* [out] */ CLSID __RPC_FAR *pClsid)
 {
-	PY_GATEWAY_METHOD;
-	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("GetUserClassID", &result);
-	if (FAILED(hr)) return hr;
-	// Process the Python results, and convert back to the real params
-	PyObject *obpClsid;
-	if (!PyArg_Parse(result, "O" , &obpClsid)) return PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
-	BOOL bPythonIsHappy = TRUE;
-	if (!PyWinObject_AsIID(obpClsid, pClsid)) bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) hr = PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
-	Py_DECREF(result);
-	return hr;
+    PY_GATEWAY_METHOD;
+    PyObject *result;
+    HRESULT hr = InvokeViaPolicy("GetUserClassID", &result);
+    if (FAILED(hr))
+        return hr;
+    // Process the Python results, and convert back to the real params
+    PyObject *obpClsid;
+    if (!PyArg_Parse(result, "O", &obpClsid))
+        return PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
+    BOOL bPythonIsHappy = TRUE;
+    if (!PyWinObject_AsIID(obpClsid, pClsid))
+        bPythonIsHappy = FALSE;
+    if (!bPythonIsHappy)
+        hr = PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
+    Py_DECREF(result);
+    return hr;
 }
 
 STDMETHODIMP PyGOleObject::GetUserType(
-		/* [in] */ DWORD dwFormOfType,
-		/* [out] */ LPOLESTR __RPC_FAR * pszUserType)
+    /* [in] */ DWORD dwFormOfType,
+    /* [out] */ LPOLESTR __RPC_FAR *pszUserType)
 {
-	PY_GATEWAY_METHOD;
-	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("GetUserType", &result, "i", dwFormOfType);
-	if (FAILED(hr)) return hr;
-	// Process the Python results, and convert back to the real params
-	PyObject *obpszUserType;
-	if (!PyArg_Parse(result, "O" , &obpszUserType)) return PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
-	BOOL bPythonIsHappy = TRUE;
-	if (!PyCom_BstrFromPyObject(obpszUserType, pszUserType)) bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) hr = PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
-	Py_DECREF(result);
-	return hr;
+    PY_GATEWAY_METHOD;
+    PyObject *result;
+    HRESULT hr = InvokeViaPolicy("GetUserType", &result, "i", dwFormOfType);
+    if (FAILED(hr))
+        return hr;
+    // Process the Python results, and convert back to the real params
+    PyObject *obpszUserType;
+    if (!PyArg_Parse(result, "O", &obpszUserType))
+        return PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
+    BOOL bPythonIsHappy = TRUE;
+    if (!PyCom_BstrFromPyObject(obpszUserType, pszUserType))
+        bPythonIsHappy = FALSE;
+    if (!bPythonIsHappy)
+        hr = PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
+    Py_DECREF(result);
+    return hr;
 }
 
 STDMETHODIMP PyGOleObject::SetExtent(
-		/* [in] */ DWORD dwDrawAspect,
-		/* [in] */ SIZEL __RPC_FAR * psizel)
+    /* [in] */ DWORD dwDrawAspect,
+    /* [in] */ SIZEL __RPC_FAR *psizel)
 {
-	PY_GATEWAY_METHOD;
-// *** The input argument psizel of type "SIZEL __RPC_FAR *" was not processed ***
-//   - None will always be passed to the Python function as a placeholder
-//   - The type 'SIZEL' (psizel) is unknown.
-	HRESULT hr=InvokeViaPolicy("SetExtent", NULL, "iz", dwDrawAspect, NULL);
-	return hr;
+    PY_GATEWAY_METHOD;
+    // *** The input argument psizel of type "SIZEL __RPC_FAR *" was not processed ***
+    //   - None will always be passed to the Python function as a placeholder
+    //   - The type 'SIZEL' (psizel) is unknown.
+    HRESULT hr = InvokeViaPolicy("SetExtent", NULL, "iz", dwDrawAspect, NULL);
+    return hr;
 }
 
 STDMETHODIMP PyGOleObject::GetExtent(
-		/* [in] */ DWORD dwDrawAspect,
-		/* [out] */ SIZEL __RPC_FAR * psizel)
+    /* [in] */ DWORD dwDrawAspect,
+    /* [out] */ SIZEL __RPC_FAR *psizel)
 {
-	PY_GATEWAY_METHOD;
-	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("GetExtent", &result, "i", dwDrawAspect);
-	if (FAILED(hr)) return hr;
-	// Process the Python results, and convert back to the real params
-// *** The output argument psizel of type "SIZEL __RPC_FAR *" was not processed ***
-//     The type 'SIZEL' (psizel) is unknown.
-	Py_DECREF(result);
-	return hr;
+    PY_GATEWAY_METHOD;
+    PyObject *result;
+    HRESULT hr = InvokeViaPolicy("GetExtent", &result, "i", dwDrawAspect);
+    if (FAILED(hr))
+        return hr;
+    // Process the Python results, and convert back to the real params
+    // *** The output argument psizel of type "SIZEL __RPC_FAR *" was not processed ***
+    //     The type 'SIZEL' (psizel) is unknown.
+    Py_DECREF(result);
+    return hr;
 }
 
 STDMETHODIMP PyGOleObject::Advise(
-		/* [unique][in] */ IAdviseSink __RPC_FAR * pAdvSink,
-		/* [out] */ DWORD __RPC_FAR * pdwConnection)
+    /* [unique][in] */ IAdviseSink __RPC_FAR *pAdvSink,
+    /* [out] */ DWORD __RPC_FAR *pdwConnection)
 {
-	PY_GATEWAY_METHOD;
-	PyObject *obpAdvSink;
-	obpAdvSink = PyCom_PyObjectFromIUnknown(pAdvSink, IID_IAdviseSink, TRUE);
-	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("Advise", &result, "O", obpAdvSink);
-	Py_XDECREF(obpAdvSink);
-	if (FAILED(hr)) return hr;
-	// Process the Python results, and convert back to the real params
-	if (!PyArg_Parse(result, "i" , pdwConnection)) return PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
-	Py_DECREF(result);
-	return hr;
+    PY_GATEWAY_METHOD;
+    PyObject *obpAdvSink;
+    obpAdvSink = PyCom_PyObjectFromIUnknown(pAdvSink, IID_IAdviseSink, TRUE);
+    PyObject *result;
+    HRESULT hr = InvokeViaPolicy("Advise", &result, "O", obpAdvSink);
+    Py_XDECREF(obpAdvSink);
+    if (FAILED(hr))
+        return hr;
+    // Process the Python results, and convert back to the real params
+    if (!PyArg_Parse(result, "i", pdwConnection))
+        return PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
+    Py_DECREF(result);
+    return hr;
 }
 
 STDMETHODIMP PyGOleObject::Unadvise(
-		/* [in] */ DWORD dwConnection)
+    /* [in] */ DWORD dwConnection)
 {
-	PY_GATEWAY_METHOD;
-	HRESULT hr=InvokeViaPolicy("Unadvise", NULL, "i", dwConnection);
-	return hr;
+    PY_GATEWAY_METHOD;
+    HRESULT hr = InvokeViaPolicy("Unadvise", NULL, "i", dwConnection);
+    return hr;
 }
 
 STDMETHODIMP PyGOleObject::EnumAdvise(
-		/* [out] */ IEnumSTATDATA __RPC_FAR *__RPC_FAR * ppenumAdvise)
+    /* [out] */ IEnumSTATDATA __RPC_FAR *__RPC_FAR *ppenumAdvise)
 {
-	PY_GATEWAY_METHOD;
-	if (ppenumAdvise==NULL) return E_POINTER;
-	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("EnumAdvise", &result);
-	if (FAILED(hr)) return hr;
-	// Process the Python results, and convert back to the real params
-	PyObject *obppenumAdvise;
-	if (!PyArg_Parse(result, "O" , &obppenumAdvise)) return PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
-	BOOL bPythonIsHappy = TRUE;
-	if (!PyCom_InterfaceFromPyInstanceOrObject(obppenumAdvise, IID_IEnumSTATDATA, (void **)ppenumAdvise, TRUE /* bNoneOK */))
-		 bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) hr = PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
-	Py_DECREF(result);
-	return hr;
+    PY_GATEWAY_METHOD;
+    if (ppenumAdvise == NULL)
+        return E_POINTER;
+    PyObject *result;
+    HRESULT hr = InvokeViaPolicy("EnumAdvise", &result);
+    if (FAILED(hr))
+        return hr;
+    // Process the Python results, and convert back to the real params
+    PyObject *obppenumAdvise;
+    if (!PyArg_Parse(result, "O", &obppenumAdvise))
+        return PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
+    BOOL bPythonIsHappy = TRUE;
+    if (!PyCom_InterfaceFromPyInstanceOrObject(obppenumAdvise, IID_IEnumSTATDATA, (void **)ppenumAdvise,
+                                               TRUE /* bNoneOK */))
+        bPythonIsHappy = FALSE;
+    if (!bPythonIsHappy)
+        hr = PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
+    Py_DECREF(result);
+    return hr;
 }
 
 STDMETHODIMP PyGOleObject::GetMiscStatus(
-		/* [in] */ DWORD dwAspect,
-		/* [out] */ DWORD __RPC_FAR * pdwStatus)
+    /* [in] */ DWORD dwAspect,
+    /* [out] */ DWORD __RPC_FAR *pdwStatus)
 {
-	PY_GATEWAY_METHOD;
-	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("GetMiscStatus", &result, "i", dwAspect);
-	if (FAILED(hr)) return hr;
-	// Process the Python results, and convert back to the real params
-	if (!PyArg_Parse(result, "i" , pdwStatus)) return PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
-	Py_DECREF(result);
-	return hr;
+    PY_GATEWAY_METHOD;
+    PyObject *result;
+    HRESULT hr = InvokeViaPolicy("GetMiscStatus", &result, "i", dwAspect);
+    if (FAILED(hr))
+        return hr;
+    // Process the Python results, and convert back to the real params
+    if (!PyArg_Parse(result, "i", pdwStatus))
+        return PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
+    Py_DECREF(result);
+    return hr;
 }
 
 STDMETHODIMP PyGOleObject::SetColorScheme(
-		/* [in] */ LOGPALETTE __RPC_FAR * pLogpal)
+    /* [in] */ LOGPALETTE __RPC_FAR *pLogpal)
 {
-	PY_GATEWAY_METHOD;
-// *** The input argument pLogpal of type "LOGPALETTE __RPC_FAR *" was not processed ***
-//   - None will always be passed to the Python function as a placeholder
-//   - The type 'LOGPALETTE' (pLogpal) is unknown.
-	HRESULT hr=InvokeViaPolicy("SetColorScheme", NULL, "z", NULL);
-	return hr;
+    PY_GATEWAY_METHOD;
+    // *** The input argument pLogpal of type "LOGPALETTE __RPC_FAR *" was not processed ***
+    //   - None will always be passed to the Python function as a placeholder
+    //   - The type 'LOGPALETTE' (pLogpal) is unknown.
+    HRESULT hr = InvokeViaPolicy("SetColorScheme", NULL, "z", NULL);
+    return hr;
 }
-

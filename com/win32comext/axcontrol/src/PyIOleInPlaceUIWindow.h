@@ -4,52 +4,42 @@
 //
 // Interface Declaration
 
-class PyIOleInPlaceUIWindow : public PyIOleWindow
-{
-public:
-	MAKE_PYCOM_CTOR(PyIOleInPlaceUIWindow);
-	static IOleInPlaceUIWindow *GetI(PyObject *self);
-	static PyComTypeObject type;
+class PyIOleInPlaceUIWindow : public PyIOleWindow {
+   public:
+    MAKE_PYCOM_CTOR(PyIOleInPlaceUIWindow);
+    static IOleInPlaceUIWindow *GetI(PyObject *self);
+    static PyComTypeObject type;
 
-	// The Python methods
-	static PyObject *GetBorder(PyObject *self, PyObject *args);
-	static PyObject *RequestBorderSpace(PyObject *self, PyObject *args);
-	static PyObject *SetBorderSpace(PyObject *self, PyObject *args);
-	static PyObject *SetActiveObject(PyObject *self, PyObject *args);
+    // The Python methods
+    static PyObject *GetBorder(PyObject *self, PyObject *args);
+    static PyObject *RequestBorderSpace(PyObject *self, PyObject *args);
+    static PyObject *SetBorderSpace(PyObject *self, PyObject *args);
+    static PyObject *SetActiveObject(PyObject *self, PyObject *args);
 
-protected:
-	PyIOleInPlaceUIWindow(IUnknown *pdisp);
-	~PyIOleInPlaceUIWindow();
+   protected:
+    PyIOleInPlaceUIWindow(IUnknown *pdisp);
+    ~PyIOleInPlaceUIWindow();
 };
 // ---------------------------------------------------
 //
 // Gateway Declaration
 
-class PyGOleInPlaceUIWindow : public PyGOleWindow, public IOleInPlaceUIWindow
-{
-protected:
-	PyGOleInPlaceUIWindow(PyObject *instance) : PyGOleWindow(instance) { ; }
-	PYGATEWAY_MAKE_SUPPORT2(PyGOleInPlaceUIWindow, IOleInPlaceUIWindow, IID_IOleInPlaceUIWindow, PyGOleWindow)
+class PyGOleInPlaceUIWindow : public PyGOleWindow, public IOleInPlaceUIWindow {
+   protected:
+    PyGOleInPlaceUIWindow(PyObject *instance) : PyGOleWindow(instance) { ; }
+    PYGATEWAY_MAKE_SUPPORT2(PyGOleInPlaceUIWindow, IOleInPlaceUIWindow, IID_IOleInPlaceUIWindow, PyGOleWindow)
 
-	// IOleWindow
-	STDMETHOD(GetWindow)(
-		HWND __RPC_FAR * phwnd);
+    // IOleWindow
+    STDMETHOD(GetWindow)(HWND __RPC_FAR *phwnd);
 
-	STDMETHOD(ContextSensitiveHelp)(
-		BOOL fEnterMode);
+    STDMETHOD(ContextSensitiveHelp)(BOOL fEnterMode);
 
-	// IOleInPlaceUIWindow
-	STDMETHOD(GetBorder)(
-		LPRECT lprectBorder);
+    // IOleInPlaceUIWindow
+    STDMETHOD(GetBorder)(LPRECT lprectBorder);
 
-	STDMETHOD(RequestBorderSpace)(
-		LPCBORDERWIDTHS pborderwidths);
+    STDMETHOD(RequestBorderSpace)(LPCBORDERWIDTHS pborderwidths);
 
-	STDMETHOD(SetBorderSpace)(
-		LPCBORDERWIDTHS pborderwidths);
+    STDMETHOD(SetBorderSpace)(LPCBORDERWIDTHS pborderwidths);
 
-	STDMETHOD(SetActiveObject)(
-		IOleInPlaceActiveObject * pActiveObject,
-		LPCOLESTR pszObjName);
-
+    STDMETHOD(SetActiveObject)(IOleInPlaceActiveObject *pActiveObject, LPCOLESTR pszObjName);
 };

@@ -10,199 +10,205 @@
 //
 // Interface Implementation
 
-PyIActiveScriptDebug::PyIActiveScriptDebug(IUnknown *pdisp):
-	PyIUnknown(pdisp)
-{
-	ob_type = &type;
-}
+PyIActiveScriptDebug::PyIActiveScriptDebug(IUnknown *pdisp) : PyIUnknown(pdisp) { ob_type = &type; }
 
-PyIActiveScriptDebug::~PyIActiveScriptDebug()
-{
-}
+PyIActiveScriptDebug::~PyIActiveScriptDebug() {}
 
 /* static */ IActiveScriptDebug *PyIActiveScriptDebug::GetI(PyObject *self)
 {
-	return (IActiveScriptDebug *)PyIUnknown::GetI(self);
+    return (IActiveScriptDebug *)PyIUnknown::GetI(self);
 }
 
-// @pymethod (int,...)|PyIActiveScriptDebug|GetScriptTextAttributes|Returns the text attributes for an arbitrary block of script text.
+// @pymethod (int,...)|PyIActiveScriptDebug|GetScriptTextAttributes|Returns the text attributes for an arbitrary block
+// of script text.
 // @comm Smart hosts use this call to delegate GetText calls made on their <om axscript.PyIDebugDocumentText>
 PyObject *PyIActiveScriptDebug::GetScriptTextAttributes(PyObject *self, PyObject *args)
 {
-	PY_INTERFACE_METHOD;
-	IActiveScriptDebug *pIASD = GetI(self);
-	if ( pIASD == NULL )
-		return NULL;
-	// @pyparm string|pstrCode||The script block text.
-	// @pyparm string|pstrDelimiter||See <om PyIActiveScriptParse::ParseScriptText> for a description of this argument.
-	// @pyparm int|dwFlags||See <om PyIActiveScriptParse::ParseScriptText> for a description of this argument.
-	DWORD dwFlags;
-	PyObject *obCode;
-	PyObject *obDelim;
-	if ( !PyArg_ParseTuple(args, "OOi:GetScriptTextAttributes", &obCode, &obDelim, &dwFlags) )
-		return NULL;
-	BOOL bPythonIsHappy = TRUE;
-	WCHAR *pstrDelimiter;
-	BSTR bstr;
-	if (!PyWinObject_AsWCHAR(obDelim, &pstrDelimiter)) bPythonIsHappy = FALSE;
-	if (!PyCom_BstrFromPyObject(obCode, &bstr)) bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) return NULL;
-	ULONG uNumCodeChars = SysStringLen(bstr);
-	SOURCE_TEXT_ATTR *pattr = new SOURCE_TEXT_ATTR[uNumCodeChars];
-	PY_INTERFACE_PRECALL;
-	HRESULT hr = pIASD->GetScriptTextAttributes( bstr, uNumCodeChars, pstrDelimiter, dwFlags, pattr );
-	PY_INTERFACE_POSTCALL;
-	SysFreeString(bstr);
-	PyWinObject_FreeWCHAR(pstrDelimiter);
-	if ( FAILED(hr) ) {
-		delete [] pattr;
-		return SetPythonCOMError(self,hr);
-	}
-	return PyAXDebug_PyObject_FromSOURCE_TEXT_ATTR(pattr, uNumCodeChars);
+    PY_INTERFACE_METHOD;
+    IActiveScriptDebug *pIASD = GetI(self);
+    if (pIASD == NULL)
+        return NULL;
+    // @pyparm string|pstrCode||The script block text.
+    // @pyparm string|pstrDelimiter||See <om PyIActiveScriptParse::ParseScriptText> for a description of this argument.
+    // @pyparm int|dwFlags||See <om PyIActiveScriptParse::ParseScriptText> for a description of this argument.
+    DWORD dwFlags;
+    PyObject *obCode;
+    PyObject *obDelim;
+    if (!PyArg_ParseTuple(args, "OOi:GetScriptTextAttributes", &obCode, &obDelim, &dwFlags))
+        return NULL;
+    BOOL bPythonIsHappy = TRUE;
+    WCHAR *pstrDelimiter;
+    BSTR bstr;
+    if (!PyWinObject_AsWCHAR(obDelim, &pstrDelimiter))
+        bPythonIsHappy = FALSE;
+    if (!PyCom_BstrFromPyObject(obCode, &bstr))
+        bPythonIsHappy = FALSE;
+    if (!bPythonIsHappy)
+        return NULL;
+    ULONG uNumCodeChars = SysStringLen(bstr);
+    SOURCE_TEXT_ATTR *pattr = new SOURCE_TEXT_ATTR[uNumCodeChars];
+    PY_INTERFACE_PRECALL;
+    HRESULT hr = pIASD->GetScriptTextAttributes(bstr, uNumCodeChars, pstrDelimiter, dwFlags, pattr);
+    PY_INTERFACE_POSTCALL;
+    SysFreeString(bstr);
+    PyWinObject_FreeWCHAR(pstrDelimiter);
+    if (FAILED(hr)) {
+        delete[] pattr;
+        return SetPythonCOMError(self, hr);
+    }
+    return PyAXDebug_PyObject_FromSOURCE_TEXT_ATTR(pattr, uNumCodeChars);
 }
 
 // @pymethod |PyIActiveScriptDebug|GetScriptletTextAttributes|Description of GetScriptletTextAttributes.
 PyObject *PyIActiveScriptDebug::GetScriptletTextAttributes(PyObject *self, PyObject *args)
 {
-	PY_INTERFACE_METHOD;
-	IActiveScriptDebug *pIASD = GetI(self);
-	if ( pIASD == NULL )
-		return NULL;
-	// @pyparm string|pstrCode||The script block text.
-	// @pyparm string|pstrDelimiter||See <om PyIActiveScriptParse::ParseScriptText> for a description of this argument.
-	// @pyparm int|dwFlags||See <om PyIActiveScriptParse::ParseScriptText> for a description of this argument.
-	DWORD dwFlags;
-	PyObject *obCode, *obDelim;
-	if ( !PyArg_ParseTuple(args, "OOi:GetScriptletTextAttributes", &obCode, &obDelim, &dwFlags) )
-		return NULL;
-	BOOL bPythonIsHappy = TRUE;
-	WCHAR *pstrDelimiter;
-	BSTR bstr;
-	if (!PyWinObject_AsWCHAR(obDelim, &pstrDelimiter)) bPythonIsHappy = FALSE;
-	if (!PyCom_BstrFromPyObject(obCode, &bstr)) bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) return NULL;
-	ULONG uNumCodeChars = SysStringLen(bstr);
-	SOURCE_TEXT_ATTR *pattr = new SOURCE_TEXT_ATTR[uNumCodeChars];
-	PY_INTERFACE_PRECALL;
-	HRESULT hr = pIASD->GetScriptletTextAttributes( bstr, uNumCodeChars, pstrDelimiter, dwFlags, pattr );
-	PY_INTERFACE_POSTCALL;
-	SysFreeString(bstr);
-	PyWinObject_FreeWCHAR(pstrDelimiter);
-	if ( FAILED(hr) )
-		return SetPythonCOMError(self,hr);
+    PY_INTERFACE_METHOD;
+    IActiveScriptDebug *pIASD = GetI(self);
+    if (pIASD == NULL)
+        return NULL;
+    // @pyparm string|pstrCode||The script block text.
+    // @pyparm string|pstrDelimiter||See <om PyIActiveScriptParse::ParseScriptText> for a description of this argument.
+    // @pyparm int|dwFlags||See <om PyIActiveScriptParse::ParseScriptText> for a description of this argument.
+    DWORD dwFlags;
+    PyObject *obCode, *obDelim;
+    if (!PyArg_ParseTuple(args, "OOi:GetScriptletTextAttributes", &obCode, &obDelim, &dwFlags))
+        return NULL;
+    BOOL bPythonIsHappy = TRUE;
+    WCHAR *pstrDelimiter;
+    BSTR bstr;
+    if (!PyWinObject_AsWCHAR(obDelim, &pstrDelimiter))
+        bPythonIsHappy = FALSE;
+    if (!PyCom_BstrFromPyObject(obCode, &bstr))
+        bPythonIsHappy = FALSE;
+    if (!bPythonIsHappy)
+        return NULL;
+    ULONG uNumCodeChars = SysStringLen(bstr);
+    SOURCE_TEXT_ATTR *pattr = new SOURCE_TEXT_ATTR[uNumCodeChars];
+    PY_INTERFACE_PRECALL;
+    HRESULT hr = pIASD->GetScriptletTextAttributes(bstr, uNumCodeChars, pstrDelimiter, dwFlags, pattr);
+    PY_INTERFACE_POSTCALL;
+    SysFreeString(bstr);
+    PyWinObject_FreeWCHAR(pstrDelimiter);
+    if (FAILED(hr))
+        return SetPythonCOMError(self, hr);
 
-	return PyAXDebug_PyObject_FromSOURCE_TEXT_ATTR(pattr, uNumCodeChars);
+    return PyAXDebug_PyObject_FromSOURCE_TEXT_ATTR(pattr, uNumCodeChars);
 }
 
 // @pymethod |PyIActiveScriptDebug|EnumCodeContextsOfPosition|Description of EnumCodeContextsOfPosition.
 PyObject *PyIActiveScriptDebug::EnumCodeContextsOfPosition(PyObject *self, PyObject *args)
 {
-	PY_INTERFACE_METHOD;
-	IActiveScriptDebug *pIASD = GetI(self);
-	if ( pIASD == NULL )
-		return NULL;
-	// @pyparm int|dwSourceContext||Description for dwSourceContext
-	// @pyparm int|uCharacterOffset||Description for uCharacterOffset
-	// @pyparm int|uNumChars||Description for uNumChars
-	DWORD dwSourceContext;
-	ULONG uCharacterOffset;
-	ULONG uNumChars;
-	if ( !PyArg_ParseTuple(args, "iii:EnumCodeContextsOfPosition", &dwSourceContext, &uCharacterOffset, &uNumChars) )
-		return NULL;
-	IEnumDebugCodeContexts *ppescc;
-	PY_INTERFACE_PRECALL;
-	HRESULT hr = pIASD->EnumCodeContextsOfPosition( dwSourceContext, uCharacterOffset, uNumChars, &ppescc );
-	PY_INTERFACE_POSTCALL;
-	if ( FAILED(hr) )
-		return SetPythonCOMError(self,hr);
+    PY_INTERFACE_METHOD;
+    IActiveScriptDebug *pIASD = GetI(self);
+    if (pIASD == NULL)
+        return NULL;
+    // @pyparm int|dwSourceContext||Description for dwSourceContext
+    // @pyparm int|uCharacterOffset||Description for uCharacterOffset
+    // @pyparm int|uNumChars||Description for uNumChars
+    DWORD dwSourceContext;
+    ULONG uCharacterOffset;
+    ULONG uNumChars;
+    if (!PyArg_ParseTuple(args, "iii:EnumCodeContextsOfPosition", &dwSourceContext, &uCharacterOffset, &uNumChars))
+        return NULL;
+    IEnumDebugCodeContexts *ppescc;
+    PY_INTERFACE_PRECALL;
+    HRESULT hr = pIASD->EnumCodeContextsOfPosition(dwSourceContext, uCharacterOffset, uNumChars, &ppescc);
+    PY_INTERFACE_POSTCALL;
+    if (FAILED(hr))
+        return SetPythonCOMError(self, hr);
 
-	return PyCom_PyObjectFromIUnknown(ppescc, IID_IEnumDebugCodeContexts, FALSE);
+    return PyCom_PyObjectFromIUnknown(ppescc, IID_IEnumDebugCodeContexts, FALSE);
 }
 
-
 // @object PyIActiveScriptDebug|Description of the interface
-static struct PyMethodDef PyIActiveScriptDebug_methods[] =
-{
-	{ "GetScriptTextAttributes", PyIActiveScriptDebug::GetScriptTextAttributes, 1 }, // @pymeth GetScriptTextAttributes|Description of GetScriptTextAttributes
-	{ "GetScriptletTextAttributes", PyIActiveScriptDebug::GetScriptletTextAttributes, 1 }, // @pymeth GetScriptletTextAttributes|Description of GetScriptletTextAttributes
-	{ "EnumCodeContextsOfPosition", PyIActiveScriptDebug::EnumCodeContextsOfPosition, 1 }, // @pymeth EnumCodeContextsOfPosition|Description of EnumCodeContextsOfPosition
-	{ NULL }
-};
+static struct PyMethodDef PyIActiveScriptDebug_methods[] = {
+    {"GetScriptTextAttributes", PyIActiveScriptDebug::GetScriptTextAttributes,
+     1},  // @pymeth GetScriptTextAttributes|Description of GetScriptTextAttributes
+    {"GetScriptletTextAttributes", PyIActiveScriptDebug::GetScriptletTextAttributes,
+     1},  // @pymeth GetScriptletTextAttributes|Description of GetScriptletTextAttributes
+    {"EnumCodeContextsOfPosition", PyIActiveScriptDebug::EnumCodeContextsOfPosition,
+     1},  // @pymeth EnumCodeContextsOfPosition|Description of EnumCodeContextsOfPosition
+    {NULL}};
 
-PyComTypeObject PyIActiveScriptDebug::type("PyIActiveScriptDebug",
-		&PyIUnknown::type,
-		sizeof(PyIActiveScriptDebug),
-		PyIActiveScriptDebug_methods,
-		GET_PYCOM_CTOR(PyIActiveScriptDebug));
+PyComTypeObject PyIActiveScriptDebug::type("PyIActiveScriptDebug", &PyIUnknown::type, sizeof(PyIActiveScriptDebug),
+                                           PyIActiveScriptDebug_methods, GET_PYCOM_CTOR(PyIActiveScriptDebug));
 // ---------------------------------------------------
 //
 // Gateway Implementation
 
 STDMETHODIMP PyGActiveScriptDebug::GetScriptTextAttributes(
-		/* [size_is][in] */ LPCOLESTR pstrCode,
-		/* [in] */ ULONG uNumCodeChars,
-		/* [in] */ LPCOLESTR pstrDelimiter,
-		/* [in] */ DWORD dwFlags,
-		/* [size_is][out][in] */ SOURCE_TEXT_ATTR __RPC_FAR * pattr)
+    /* [size_is][in] */ LPCOLESTR pstrCode,
+    /* [in] */ ULONG uNumCodeChars,
+    /* [in] */ LPCOLESTR pstrDelimiter,
+    /* [in] */ DWORD dwFlags,
+    /* [size_is][out][in] */ SOURCE_TEXT_ATTR __RPC_FAR *pattr)
 {
-	PY_GATEWAY_METHOD;
-	PyObject *obCode = PyWinObject_FromOLECHAR(pstrCode,uNumCodeChars);
-	PyObject *obszpstrDelimiter = PyWinObject_FromOLECHAR(pstrDelimiter);
-	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("GetScriptTextAttributes", &result, "OOi", obCode, obszpstrDelimiter, dwFlags);
-	Py_XDECREF(obCode);
-	Py_XDECREF(obszpstrDelimiter);
-	if (FAILED(hr)) return hr;
-	if (!PyAXDebug_PyObject_AsSOURCE_TEXT_ATTR(result, pattr, uNumCodeChars))
-		hr = PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
-	Py_DECREF(result);
-	return hr;
+    PY_GATEWAY_METHOD;
+    PyObject *obCode = PyWinObject_FromOLECHAR(pstrCode, uNumCodeChars);
+    PyObject *obszpstrDelimiter = PyWinObject_FromOLECHAR(pstrDelimiter);
+    PyObject *result;
+    HRESULT hr = InvokeViaPolicy("GetScriptTextAttributes", &result, "OOi", obCode, obszpstrDelimiter, dwFlags);
+    Py_XDECREF(obCode);
+    Py_XDECREF(obszpstrDelimiter);
+    if (FAILED(hr))
+        return hr;
+    if (!PyAXDebug_PyObject_AsSOURCE_TEXT_ATTR(result, pattr, uNumCodeChars))
+        hr = PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
+    Py_DECREF(result);
+    return hr;
 }
 
 STDMETHODIMP PyGActiveScriptDebug::GetScriptletTextAttributes(
-		/* [size_is][in] */ LPCOLESTR pstrCode,
-		/* [in] */ ULONG uNumCodeChars,
-		/* [in] */ LPCOLESTR pstrDelimiter,
-		/* [in] */ DWORD dwFlags,
-		/* [size_is][out][in] */ SOURCE_TEXT_ATTR __RPC_FAR * pattr)
+    /* [size_is][in] */ LPCOLESTR pstrCode,
+    /* [in] */ ULONG uNumCodeChars,
+    /* [in] */ LPCOLESTR pstrDelimiter,
+    /* [in] */ DWORD dwFlags,
+    /* [size_is][out][in] */ SOURCE_TEXT_ATTR __RPC_FAR *pattr)
 {
-	PY_GATEWAY_METHOD;
-	PyObject *obCode = PyWinObject_FromOLECHAR(pstrCode, uNumCodeChars);
-	PyObject *obszpstrDelimiter = PyWinObject_FromOLECHAR(pstrDelimiter);
-	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("GetScriptletTextAttributes", &result, "OOi", obCode, obszpstrDelimiter, dwFlags);
-	Py_XDECREF(obCode);
-	Py_XDECREF(obszpstrDelimiter);
-	if (FAILED(hr)) return hr;
-	// Process the Python results, and convert back to the real params
-	if (!PyAXDebug_PyObject_AsSOURCE_TEXT_ATTR(result, pattr, uNumCodeChars))
-		hr = PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
-	Py_DECREF(result);
-	return hr;
+    PY_GATEWAY_METHOD;
+    PyObject *obCode = PyWinObject_FromOLECHAR(pstrCode, uNumCodeChars);
+    PyObject *obszpstrDelimiter = PyWinObject_FromOLECHAR(pstrDelimiter);
+    PyObject *result;
+    HRESULT hr = InvokeViaPolicy("GetScriptletTextAttributes", &result, "OOi", obCode, obszpstrDelimiter, dwFlags);
+    Py_XDECREF(obCode);
+    Py_XDECREF(obszpstrDelimiter);
+    if (FAILED(hr))
+        return hr;
+    // Process the Python results, and convert back to the real params
+    if (!PyAXDebug_PyObject_AsSOURCE_TEXT_ATTR(result, pattr, uNumCodeChars))
+        hr = PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
+    Py_DECREF(result);
+    return hr;
 }
 
 STDMETHODIMP PyGActiveScriptDebug::EnumCodeContextsOfPosition(
 #ifdef _WIN64
-		/* [in] */ DWORDLONG dwSourceContext,
+    /* [in] */ DWORDLONG dwSourceContext,
 #else
-		/* [in] */ DWORD dwSourceContext,
+    /* [in] */ DWORD dwSourceContext,
 #endif
-		/* [in] */ ULONG uCharacterOffset,
-		/* [in] */ ULONG uNumChars,
-		/* [out] */ IEnumDebugCodeContexts __RPC_FAR *__RPC_FAR * ppescc)
+    /* [in] */ ULONG uCharacterOffset,
+    /* [in] */ ULONG uNumChars,
+    /* [out] */ IEnumDebugCodeContexts __RPC_FAR *__RPC_FAR *ppescc)
 {
-	PY_GATEWAY_METHOD;
-	if (ppescc==NULL) return E_POINTER;
-	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("EnumCodeContextsOfPosition", &result, "iii", dwSourceContext, uCharacterOffset, uNumChars);
-	if (FAILED(hr)) return hr;
-	// Process the Python results, and convert back to the real params
-	PyObject *obppescc;
-	if (!PyArg_Parse(result, "O" , &obppescc)) return PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
-	BOOL bPythonIsHappy = TRUE;
-	if (!PyCom_InterfaceFromPyInstanceOrObject(obppescc, IID_IEnumDebugCodeContexts, (void **)ppescc, FALSE /* bNoneOK */))
-		 bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) hr = PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
-	Py_DECREF(result);
-	return hr;
+    PY_GATEWAY_METHOD;
+    if (ppescc == NULL)
+        return E_POINTER;
+    PyObject *result;
+    HRESULT hr =
+        InvokeViaPolicy("EnumCodeContextsOfPosition", &result, "iii", dwSourceContext, uCharacterOffset, uNumChars);
+    if (FAILED(hr))
+        return hr;
+    // Process the Python results, and convert back to the real params
+    PyObject *obppescc;
+    if (!PyArg_Parse(result, "O", &obppescc))
+        return PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
+    BOOL bPythonIsHappy = TRUE;
+    if (!PyCom_InterfaceFromPyInstanceOrObject(obppescc, IID_IEnumDebugCodeContexts, (void **)ppescc,
+                                               FALSE /* bNoneOK */))
+        bPythonIsHappy = FALSE;
+    if (!bPythonIsHappy)
+        hr = PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
+    Py_DECREF(result);
+    return hr;
 }

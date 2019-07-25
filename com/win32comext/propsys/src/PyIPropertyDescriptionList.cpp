@@ -8,110 +8,100 @@
 //
 // Interface Implementation
 
-PyIPropertyDescriptionList::PyIPropertyDescriptionList(IUnknown *pdisp):
-	PyIUnknown(pdisp)
-{
-	ob_type = &type;
-}
+PyIPropertyDescriptionList::PyIPropertyDescriptionList(IUnknown *pdisp) : PyIUnknown(pdisp) { ob_type = &type; }
 
-PyIPropertyDescriptionList::~PyIPropertyDescriptionList()
-{
-}
+PyIPropertyDescriptionList::~PyIPropertyDescriptionList() {}
 
 /* static */ IPropertyDescriptionList *PyIPropertyDescriptionList::GetI(PyObject *self)
 {
-	return (IPropertyDescriptionList *)PyIUnknown::GetI(self);
+    return (IPropertyDescriptionList *)PyIUnknown::GetI(self);
 }
 
 // @pymethod int|PyIPropertyDescriptionList|GetCount|Gets the number of properties in the list
 PyObject *PyIPropertyDescriptionList::GetCount(PyObject *self, PyObject *args)
 {
-	IPropertyDescriptionList *pIPDL = GetI(self);
-	if ( pIPDL == NULL )
-		return NULL;
-	if ( !PyArg_ParseTuple(args, ":GetCount"))
-		return NULL;
-	UINT cnt;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIPDL->GetCount(&cnt);
-	PY_INTERFACE_POSTCALL;
+    IPropertyDescriptionList *pIPDL = GetI(self);
+    if (pIPDL == NULL)
+        return NULL;
+    if (!PyArg_ParseTuple(args, ":GetCount"))
+        return NULL;
+    UINT cnt;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIPDL->GetCount(&cnt);
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pIPDL, IID_IPropertyDescriptionList );
-	return PyLong_FromUnsignedLong(cnt);
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pIPDL, IID_IPropertyDescriptionList);
+    return PyLong_FromUnsignedLong(cnt);
 }
 
 // @pymethod <o PyIPropertyDescription>|PyIPropertyDescriptionList|GetAt|Retrieves a description from the list
 PyObject *PyIPropertyDescriptionList::GetAt(PyObject *self, PyObject *args)
 {
-	IPropertyDescriptionList *pIPDL = GetI(self);
-	if ( pIPDL == NULL )
-		return NULL;
-	// @pyparm int|Elem||Index of the element to return
-	// @pyparm <o PyIID>|riid|IID_IPropertyDescription|The interface to return
-	UINT i;
-	IID riid=IID_IPropertyDescription;
-	void *ret;
-	if ( !PyArg_ParseTuple(args, "i|O&:GetAt", &i, PyWinObject_AsIID, &riid))
-		return NULL;
+    IPropertyDescriptionList *pIPDL = GetI(self);
+    if (pIPDL == NULL)
+        return NULL;
+    // @pyparm int|Elem||Index of the element to return
+    // @pyparm <o PyIID>|riid|IID_IPropertyDescription|The interface to return
+    UINT i;
+    IID riid = IID_IPropertyDescription;
+    void *ret;
+    if (!PyArg_ParseTuple(args, "i|O&:GetAt", &i, PyWinObject_AsIID, &riid))
+        return NULL;
 
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIPDL->GetAt(i, riid, &ret);
-	PY_INTERFACE_POSTCALL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIPDL->GetAt(i, riid, &ret);
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pIPDL, IID_IPropertyDescriptionList );
-	return PyCom_PyObjectFromIUnknown((IUnknown *)ret, riid);
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pIPDL, IID_IPropertyDescriptionList);
+    return PyCom_PyObjectFromIUnknown((IUnknown *)ret, riid);
 }
 
 // @object PyIPropertyDescriptionList|Container for a number of property descriptions
-static struct PyMethodDef PyIPropertyDescriptionList_methods[] =
-{
-	{ "GetCount", PyIPropertyDescriptionList::GetCount, 1 }, // @pymeth GetCount|Gets the number of properties in the list
-	{ "GetAt", PyIPropertyDescriptionList::GetAt, 1 }, // @pymeth GetAt|Retrieves a description from the list
-	{ NULL }
-};
+static struct PyMethodDef PyIPropertyDescriptionList_methods[] = {
+    {"GetCount", PyIPropertyDescriptionList::GetCount,
+     1},                                              // @pymeth GetCount|Gets the number of properties in the list
+    {"GetAt", PyIPropertyDescriptionList::GetAt, 1},  // @pymeth GetAt|Retrieves a description from the list
+    {NULL}};
 
-PyComTypeObject PyIPropertyDescriptionList::type("PyIPropertyDescriptionList",
-		&PyIUnknown::type,
-		sizeof(PyIPropertyDescriptionList),
-		PyIPropertyDescriptionList_methods,
-		GET_PYCOM_CTOR(PyIPropertyDescriptionList));
-
+PyComTypeObject PyIPropertyDescriptionList::type("PyIPropertyDescriptionList", &PyIUnknown::type,
+                                                 sizeof(PyIPropertyDescriptionList), PyIPropertyDescriptionList_methods,
+                                                 GET_PYCOM_CTOR(PyIPropertyDescriptionList));
 
 // ---------------------------------------------------
 //
 // Gateway Implementation
-STDMETHODIMP PyGPropertyDescriptionList::GetCount(UINT * pcElem)
+STDMETHODIMP PyGPropertyDescriptionList::GetCount(UINT *pcElem)
 {
-	PY_GATEWAY_METHOD;
-	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("GetCount", &result);
-	if (FAILED(hr)) return hr;
-	*pcElem = PyLong_AsUnsignedLong(result);
-	if (*pcElem == (UINT)-1 && PyErr_Occurred())
-		hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("GetCount");
-	Py_DECREF(result);
-	return hr;
+    PY_GATEWAY_METHOD;
+    PyObject *result;
+    HRESULT hr = InvokeViaPolicy("GetCount", &result);
+    if (FAILED(hr))
+        return hr;
+    *pcElem = PyLong_AsUnsignedLong(result);
+    if (*pcElem == (UINT)-1 && PyErr_Occurred())
+        hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("GetCount");
+    Py_DECREF(result);
+    return hr;
 }
 
-STDMETHODIMP PyGPropertyDescriptionList::GetAt(
-	UINT iElem,
-	REFIID riid,
-	void ** ppv)
+STDMETHODIMP PyGPropertyDescriptionList::GetAt(UINT iElem, REFIID riid, void **ppv)
 {
-	PY_GATEWAY_METHOD;
+    PY_GATEWAY_METHOD;
 
-	PyObject *obriid = PyWinObject_FromIID(riid);
-	if (obriid==NULL) return MAKE_PYCOM_GATEWAY_FAILURE_CODE("GetAt");
-	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("GetAt", &result, "kO", iElem, obriid);
-	Py_DECREF(obriid);
-	if (FAILED(hr)) return hr;
-	if (!PyCom_InterfaceFromPyObject(result, riid, ppv, FALSE))
-		hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("GetAt");
-	Py_DECREF(result);
-	return hr;
+    PyObject *obriid = PyWinObject_FromIID(riid);
+    if (obriid == NULL)
+        return MAKE_PYCOM_GATEWAY_FAILURE_CODE("GetAt");
+    PyObject *result;
+    HRESULT hr = InvokeViaPolicy("GetAt", &result, "kO", iElem, obriid);
+    Py_DECREF(obriid);
+    if (FAILED(hr))
+        return hr;
+    if (!PyCom_InterfaceFromPyObject(result, riid, ppv, FALSE))
+        hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("GetAt");
+    Py_DECREF(result);
+    return hr;
 }

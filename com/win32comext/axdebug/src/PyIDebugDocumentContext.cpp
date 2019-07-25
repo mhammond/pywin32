@@ -11,109 +11,108 @@
 //
 // Interface Implementation
 
-PyIDebugDocumentContext::PyIDebugDocumentContext(IUnknown *pdisp):
-	PyIUnknown(pdisp)
-{
-	ob_type = &type;
-}
+PyIDebugDocumentContext::PyIDebugDocumentContext(IUnknown *pdisp) : PyIUnknown(pdisp) { ob_type = &type; }
 
-PyIDebugDocumentContext::~PyIDebugDocumentContext()
-{
-}
+PyIDebugDocumentContext::~PyIDebugDocumentContext() {}
 
 /* static */ IDebugDocumentContext *PyIDebugDocumentContext::GetI(PyObject *self)
 {
-	return (IDebugDocumentContext *)PyIUnknown::GetI(self);
+    return (IDebugDocumentContext *)PyIUnknown::GetI(self);
 }
 
 // @pymethod |PyIDebugDocumentContext|GetDocument|Description of GetDocument.
 PyObject *PyIDebugDocumentContext::GetDocument(PyObject *self, PyObject *args)
 {
-	PY_INTERFACE_METHOD;
-	IDebugDocumentContext *pIDDC = GetI(self);
-	if ( pIDDC == NULL )
-		return NULL;
-	IDebugDocument *ppsd;
-	if ( !PyArg_ParseTuple(args, ":GetDocument") )
-		return NULL;
-	PY_INTERFACE_PRECALL;
-	HRESULT hr = pIDDC->GetDocument( &ppsd );
-	PY_INTERFACE_POSTCALL;
-	if ( FAILED(hr) )
-		return SetPythonCOMError(self,hr);
-	return PyCom_PyObjectFromIUnknown(ppsd, IID_IDebugDocument, FALSE);
+    PY_INTERFACE_METHOD;
+    IDebugDocumentContext *pIDDC = GetI(self);
+    if (pIDDC == NULL)
+        return NULL;
+    IDebugDocument *ppsd;
+    if (!PyArg_ParseTuple(args, ":GetDocument"))
+        return NULL;
+    PY_INTERFACE_PRECALL;
+    HRESULT hr = pIDDC->GetDocument(&ppsd);
+    PY_INTERFACE_POSTCALL;
+    if (FAILED(hr))
+        return SetPythonCOMError(self, hr);
+    return PyCom_PyObjectFromIUnknown(ppsd, IID_IDebugDocument, FALSE);
 }
 
 // @pymethod |PyIDebugDocumentContext|EnumCodeContexts|Description of EnumCodeContexts.
 PyObject *PyIDebugDocumentContext::EnumCodeContexts(PyObject *self, PyObject *args)
 {
-	PY_INTERFACE_METHOD;
-	IDebugDocumentContext *pIDDC = GetI(self);
-	if ( pIDDC == NULL )
-		return NULL;
-	IEnumDebugCodeContexts *ppescc;
-	if ( !PyArg_ParseTuple(args, ":EnumCodeContexts") )
-		return NULL;
-	PY_INTERFACE_PRECALL;
-	HRESULT hr = pIDDC->EnumCodeContexts( &ppescc );
-	PY_INTERFACE_POSTCALL;
-	if ( FAILED(hr) )
-		return SetPythonCOMError(self,hr);
-	return PyCom_PyObjectFromIUnknown(ppescc, IID_IEnumDebugCodeContexts, FALSE);
+    PY_INTERFACE_METHOD;
+    IDebugDocumentContext *pIDDC = GetI(self);
+    if (pIDDC == NULL)
+        return NULL;
+    IEnumDebugCodeContexts *ppescc;
+    if (!PyArg_ParseTuple(args, ":EnumCodeContexts"))
+        return NULL;
+    PY_INTERFACE_PRECALL;
+    HRESULT hr = pIDDC->EnumCodeContexts(&ppescc);
+    PY_INTERFACE_POSTCALL;
+    if (FAILED(hr))
+        return SetPythonCOMError(self, hr);
+    return PyCom_PyObjectFromIUnknown(ppescc, IID_IEnumDebugCodeContexts, FALSE);
 }
 
 // @object PyIDebugDocumentContext|Description of the interface
-static struct PyMethodDef PyIDebugDocumentContext_methods[] =
-{
-	{ "GetDocument", PyIDebugDocumentContext::GetDocument, 1 }, // @pymeth GetDocument|Description of GetDocument
-	{ "EnumCodeContexts", PyIDebugDocumentContext::EnumCodeContexts, 1 }, // @pymeth EnumCodeContexts|Description of EnumCodeContexts
-	{ NULL }
-};
+static struct PyMethodDef PyIDebugDocumentContext_methods[] = {
+    {"GetDocument", PyIDebugDocumentContext::GetDocument, 1},  // @pymeth GetDocument|Description of GetDocument
+    {"EnumCodeContexts", PyIDebugDocumentContext::EnumCodeContexts,
+     1},  // @pymeth EnumCodeContexts|Description of EnumCodeContexts
+    {NULL}};
 
-PyComTypeObject PyIDebugDocumentContext::type("PyIDebugDocumentContext",
-		&PyIUnknown::type,
-		sizeof(PyIDebugDocumentContext),
-		PyIDebugDocumentContext_methods,
-		GET_PYCOM_CTOR(PyIDebugDocumentContext));
+PyComTypeObject PyIDebugDocumentContext::type("PyIDebugDocumentContext", &PyIUnknown::type,
+                                              sizeof(PyIDebugDocumentContext), PyIDebugDocumentContext_methods,
+                                              GET_PYCOM_CTOR(PyIDebugDocumentContext));
 // ---------------------------------------------------
 //
 // Gateway Implementation
 
 STDMETHODIMP PyGDebugDocumentContext::GetDocument(
-		/* [out] */ IDebugDocument __RPC_FAR *__RPC_FAR * ppsd)
+    /* [out] */ IDebugDocument __RPC_FAR *__RPC_FAR *ppsd)
 {
-	PY_GATEWAY_METHOD;
-	if (ppsd==NULL) return E_POINTER;
-	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("GetDocument", &result);
-	if (FAILED(hr)) return hr;
-	// Process the Python results, and convert back to the real params
-	PyObject *obppsd;
-	if (!PyArg_Parse(result, "O" , &obppsd)) return PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
-	BOOL bPythonIsHappy = TRUE;
-	if (!PyCom_InterfaceFromPyInstanceOrObject(obppsd, IID_IDebugDocument, (void **)ppsd, FALSE /* bNoneOK */))
-		 bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) hr = PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
-	Py_DECREF(result);
-	return hr;
+    PY_GATEWAY_METHOD;
+    if (ppsd == NULL)
+        return E_POINTER;
+    PyObject *result;
+    HRESULT hr = InvokeViaPolicy("GetDocument", &result);
+    if (FAILED(hr))
+        return hr;
+    // Process the Python results, and convert back to the real params
+    PyObject *obppsd;
+    if (!PyArg_Parse(result, "O", &obppsd))
+        return PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
+    BOOL bPythonIsHappy = TRUE;
+    if (!PyCom_InterfaceFromPyInstanceOrObject(obppsd, IID_IDebugDocument, (void **)ppsd, FALSE /* bNoneOK */))
+        bPythonIsHappy = FALSE;
+    if (!bPythonIsHappy)
+        hr = PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
+    Py_DECREF(result);
+    return hr;
 }
 
 STDMETHODIMP PyGDebugDocumentContext::EnumCodeContexts(
-		/* [out] */ IEnumDebugCodeContexts __RPC_FAR *__RPC_FAR * ppescc)
+    /* [out] */ IEnumDebugCodeContexts __RPC_FAR *__RPC_FAR *ppescc)
 {
-	PY_GATEWAY_METHOD;
-	if (ppescc==NULL) return E_POINTER;
-	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("EnumCodeContexts", &result);
-	if (FAILED(hr)) return hr;
-	// Process the Python results, and convert back to the real params
-	PyObject *obppescc;
-	if (!PyArg_Parse(result, "O" , &obppescc)) return PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
-	BOOL bPythonIsHappy = TRUE;
-	if (!PyCom_InterfaceFromPyInstanceOrObject(obppescc, IID_IEnumDebugCodeContexts, (void **)ppescc, FALSE /* bNoneOK */))
-		 bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) hr = PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
-	Py_DECREF(result);
-	return hr;
+    PY_GATEWAY_METHOD;
+    if (ppescc == NULL)
+        return E_POINTER;
+    PyObject *result;
+    HRESULT hr = InvokeViaPolicy("EnumCodeContexts", &result);
+    if (FAILED(hr))
+        return hr;
+    // Process the Python results, and convert back to the real params
+    PyObject *obppescc;
+    if (!PyArg_Parse(result, "O", &obppescc))
+        return PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
+    BOOL bPythonIsHappy = TRUE;
+    if (!PyCom_InterfaceFromPyInstanceOrObject(obppescc, IID_IEnumDebugCodeContexts, (void **)ppescc,
+                                               FALSE /* bNoneOK */))
+        bPythonIsHappy = FALSE;
+    if (!bPythonIsHappy)
+        hr = PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
+    Py_DECREF(result);
+    return hr;
 }
-

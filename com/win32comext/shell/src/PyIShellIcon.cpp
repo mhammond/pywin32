@@ -9,81 +9,70 @@
 //
 // Interface Implementation
 
-PyIShellIcon::PyIShellIcon(IUnknown *pdisp):
-	PyIUnknown(pdisp)
-{
-	ob_type = &type;
-}
+PyIShellIcon::PyIShellIcon(IUnknown *pdisp) : PyIUnknown(pdisp) { ob_type = &type; }
 
-PyIShellIcon::~PyIShellIcon()
-{
-}
+PyIShellIcon::~PyIShellIcon() {}
 
-/* static */ IShellIcon *PyIShellIcon::GetI(PyObject *self)
-{
-	return (IShellIcon *)PyIUnknown::GetI(self);
-}
+/* static */ IShellIcon *PyIShellIcon::GetI(PyObject *self) { return (IShellIcon *)PyIUnknown::GetI(self); }
 
 // @pymethod |PyIShellIcon|GetIconOf|Description of GetIconOf.
 PyObject *PyIShellIcon::GetIconOf(PyObject *self, PyObject *args)
 {
-	IShellIcon *pISI = GetI(self);
-	if ( pISI == NULL )
-		return NULL;
-	// @pyparm <o PyIDL>|pidl||Description for pidl
-	PyObject *obpidl;
-	LPITEMIDLIST pidl;
-	UINT flags;
-	int index;
-	if ( !PyArg_ParseTuple(args, "Oi:GetIconOf", &obpidl, &flags) )
-		return NULL;
-	BOOL bPythonIsHappy = TRUE;
-	if (bPythonIsHappy && !PyObject_AsPIDL(obpidl, &pidl)) bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pISI->GetIconOf( pidl, flags, &index );
-	PyObject_FreePIDL(pidl);
+    IShellIcon *pISI = GetI(self);
+    if (pISI == NULL)
+        return NULL;
+    // @pyparm <o PyIDL>|pidl||Description for pidl
+    PyObject *obpidl;
+    LPITEMIDLIST pidl;
+    UINT flags;
+    int index;
+    if (!PyArg_ParseTuple(args, "Oi:GetIconOf", &obpidl, &flags))
+        return NULL;
+    BOOL bPythonIsHappy = TRUE;
+    if (bPythonIsHappy && !PyObject_AsPIDL(obpidl, &pidl))
+        bPythonIsHappy = FALSE;
+    if (!bPythonIsHappy)
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pISI->GetIconOf(pidl, flags, &index);
+    PyObject_FreePIDL(pidl);
 
-	PY_INTERFACE_POSTCALL;
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pISI, IID_IShellIcon );
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pISI, IID_IShellIcon);
 
-	PyObject *pyretval = Py_BuildValue("i", index);
-	return pyretval;
+    PyObject *pyretval = Py_BuildValue("i", index);
+    return pyretval;
 }
 
 // @object PyIShellIcon|Description of the interface
-static struct PyMethodDef PyIShellIcon_methods[] =
-{
-	{ "GetIconOf", PyIShellIcon::GetIconOf, 1 }, // @pymeth GetIconOf|Description of GetIconOf
-	{ NULL }
-};
+static struct PyMethodDef PyIShellIcon_methods[] = {
+    {"GetIconOf", PyIShellIcon::GetIconOf, 1},  // @pymeth GetIconOf|Description of GetIconOf
+    {NULL}};
 
-PyComTypeObject PyIShellIcon::type("PyIShellIcon",
-		&PyIUnknown::type,
-		sizeof(PyIShellIcon),
-		PyIShellIcon_methods,
-		GET_PYCOM_CTOR(PyIShellIcon));
+PyComTypeObject PyIShellIcon::type("PyIShellIcon", &PyIUnknown::type, sizeof(PyIShellIcon), PyIShellIcon_methods,
+                                   GET_PYCOM_CTOR(PyIShellIcon));
 // ---------------------------------------------------
 //
 // Gateway Implementation
 STDMETHODIMP PyGShellIcon::GetIconOf(
-		/* [unique][in] */ LPCITEMIDLIST pidl,
-		/* [int] */ UINT flags,
-		/* [unique][out] */ int __RPC_FAR * index)
+    /* [unique][in] */ LPCITEMIDLIST pidl,
+    /* [int] */ UINT flags,
+    /* [unique][out] */ int __RPC_FAR *index)
 {
-	PY_GATEWAY_METHOD;
-	PyObject *obpidl;
-	obpidl = PyObject_FromPIDL(pidl, FALSE);
-	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("GetIconOf", &result, "O", obpidl);
-	Py_XDECREF(obpidl);
-	if (FAILED(hr)) return hr;
-	// Process the Python results, and convert back to the real params
-	if (!PyArg_Parse(result, "i" , index)) return PyCom_SetAndLogCOMErrorFromPyException("GetIconOf", GetIID());
-	Py_DECREF(result);
-	return hr;
+    PY_GATEWAY_METHOD;
+    PyObject *obpidl;
+    obpidl = PyObject_FromPIDL(pidl, FALSE);
+    PyObject *result;
+    HRESULT hr = InvokeViaPolicy("GetIconOf", &result, "O", obpidl);
+    Py_XDECREF(obpidl);
+    if (FAILED(hr))
+        return hr;
+    // Process the Python results, and convert back to the real params
+    if (!PyArg_Parse(result, "i", index))
+        return PyCom_SetAndLogCOMErrorFromPyException("GetIconOf", GetIID());
+    Py_DECREF(result);
+    return hr;
 }
-

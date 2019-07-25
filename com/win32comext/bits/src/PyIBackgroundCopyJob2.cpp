@@ -10,204 +10,203 @@
 //
 // Interface Implementation
 
-PyIBackgroundCopyJob2::PyIBackgroundCopyJob2(IUnknown *pdisp):
-	PyIBackgroundCopyJob(pdisp)
-{
-	ob_type = &type;
-}
+PyIBackgroundCopyJob2::PyIBackgroundCopyJob2(IUnknown *pdisp) : PyIBackgroundCopyJob(pdisp) { ob_type = &type; }
 
-PyIBackgroundCopyJob2::~PyIBackgroundCopyJob2()
-{
-}
+PyIBackgroundCopyJob2::~PyIBackgroundCopyJob2() {}
 
 /* static */ IBackgroundCopyJob2 *PyIBackgroundCopyJob2::GetI(PyObject *self)
 {
-	return (IBackgroundCopyJob2 *)PyIBackgroundCopyJob::GetI(self);
+    return (IBackgroundCopyJob2 *)PyIBackgroundCopyJob::GetI(self);
 }
 
 // @pymethod |PyIBackgroundCopyJob2|SetNotifyCmdLine|Description of SetNotifyCmdLine.
 PyObject *PyIBackgroundCopyJob2::SetNotifyCmdLine(PyObject *self, PyObject *args)
 {
-	IBackgroundCopyJob2 *pIBCJ2 = GetI(self);
-	if ( pIBCJ2 == NULL )
-		return NULL;
-	// @pyparm <o unicode>|Program||Description for Program
-	// @pyparm <o unicode>|Parameters||Description for Parameters
-	PyObject *obProgram;
-	PyObject *obParameters;
-	LPWSTR Program;
-	LPWSTR Parameters;
-	if ( !PyArg_ParseTuple(args, "OO:SetNotifyCmdLine", &obProgram, &obParameters) )
-		return NULL;
-	BOOL bPythonIsHappy = TRUE;
-	if (bPythonIsHappy && !PyWinObject_AsBstr(obProgram, &Program)) bPythonIsHappy = FALSE;
-	if (bPythonIsHappy && !PyWinObject_AsBstr(obParameters, &Parameters)) bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIBCJ2->SetNotifyCmdLine( Program, Parameters );
-	SysFreeString(Program);
-	SysFreeString(Parameters);
-	PY_INTERFACE_POSTCALL;
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pIBCJ2, IID_IBackgroundCopyJob2 );
-	Py_INCREF(Py_None);
-	return Py_None;
+    IBackgroundCopyJob2 *pIBCJ2 = GetI(self);
+    if (pIBCJ2 == NULL)
+        return NULL;
+    // @pyparm <o unicode>|Program||Description for Program
+    // @pyparm <o unicode>|Parameters||Description for Parameters
+    PyObject *obProgram;
+    PyObject *obParameters;
+    LPWSTR Program;
+    LPWSTR Parameters;
+    if (!PyArg_ParseTuple(args, "OO:SetNotifyCmdLine", &obProgram, &obParameters))
+        return NULL;
+    BOOL bPythonIsHappy = TRUE;
+    if (bPythonIsHappy && !PyWinObject_AsBstr(obProgram, &Program))
+        bPythonIsHappy = FALSE;
+    if (bPythonIsHappy && !PyWinObject_AsBstr(obParameters, &Parameters))
+        bPythonIsHappy = FALSE;
+    if (!bPythonIsHappy)
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIBCJ2->SetNotifyCmdLine(Program, Parameters);
+    SysFreeString(Program);
+    SysFreeString(Parameters);
+    PY_INTERFACE_POSTCALL;
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pIBCJ2, IID_IBackgroundCopyJob2);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @pymethod |PyIBackgroundCopyJob2|GetNotifyCmdLine|Description of GetNotifyCmdLine.
 PyObject *PyIBackgroundCopyJob2::GetNotifyCmdLine(PyObject *self, PyObject *args)
 {
-	IBackgroundCopyJob2 *pIBCJ2 = GetI(self);
-	if ( pIBCJ2 == NULL )
-		return NULL;
-	if ( !PyArg_ParseTuple(args, ":GetNotifyCmdLine") )
-		return NULL;
-	LPWSTR pProgram;
-	LPWSTR pParameters;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIBCJ2->GetNotifyCmdLine( &pProgram, &pParameters );
-	PY_INTERFACE_POSTCALL;
+    IBackgroundCopyJob2 *pIBCJ2 = GetI(self);
+    if (pIBCJ2 == NULL)
+        return NULL;
+    if (!PyArg_ParseTuple(args, ":GetNotifyCmdLine"))
+        return NULL;
+    LPWSTR pProgram;
+    LPWSTR pParameters;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIBCJ2->GetNotifyCmdLine(&pProgram, &pParameters);
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pIBCJ2, IID_IBackgroundCopyJob2 );
-	PyObject *ret = Py_BuildValue("NN", PyWinObject_FromWCHAR(pProgram), PyWinObject_FromWCHAR(pParameters));
-	CoTaskMemFree(pProgram);
-	CoTaskMemFree(pParameters);
-	return ret;
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pIBCJ2, IID_IBackgroundCopyJob2);
+    PyObject *ret = Py_BuildValue("NN", PyWinObject_FromWCHAR(pProgram), PyWinObject_FromWCHAR(pParameters));
+    CoTaskMemFree(pProgram);
+    CoTaskMemFree(pParameters);
+    return ret;
 }
 
 // @pymethod |PyIBackgroundCopyJob2|GetReplyProgress|Description of GetReplyProgress.
 PyObject *PyIBackgroundCopyJob2::GetReplyProgress(PyObject *self, PyObject *args)
 {
-	IBackgroundCopyJob2 *pIBCJ2 = GetI(self);
-	if ( pIBCJ2 == NULL )
-		return NULL;
-	if ( !PyArg_ParseTuple(args, ":GetReplyProgress") )
-		return NULL;
-	HRESULT hr;
-	BG_JOB_REPLY_PROGRESS progress;
-	PY_INTERFACE_PRECALL;
-	hr = pIBCJ2->GetReplyProgress( &progress );
-	PY_INTERFACE_POSTCALL;
+    IBackgroundCopyJob2 *pIBCJ2 = GetI(self);
+    if (pIBCJ2 == NULL)
+        return NULL;
+    if (!PyArg_ParseTuple(args, ":GetReplyProgress"))
+        return NULL;
+    HRESULT hr;
+    BG_JOB_REPLY_PROGRESS progress;
+    PY_INTERFACE_PRECALL;
+    hr = pIBCJ2->GetReplyProgress(&progress);
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pIBCJ2, IID_IBackgroundCopyJob2 );
-	return PyObject_FromBG_JOB_REPLY_PROGRESS(&progress);
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pIBCJ2, IID_IBackgroundCopyJob2);
+    return PyObject_FromBG_JOB_REPLY_PROGRESS(&progress);
 }
 
 // @pymethod |PyIBackgroundCopyJob2|GetReplyData|Description of GetReplyData.
 PyObject *PyIBackgroundCopyJob2::GetReplyData(PyObject *self, PyObject *args)
 {
-	IBackgroundCopyJob2 *pIBCJ2 = GetI(self);
-	if ( pIBCJ2 == NULL )
-		return NULL;
-	byte *pBuffer;
-	UINT64 length;
-	if ( !PyArg_ParseTuple(args, ":GetReplyData") )
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIBCJ2->GetReplyData( &pBuffer, &length );
-	PY_INTERFACE_POSTCALL;
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pIBCJ2, IID_IBackgroundCopyJob2 );
-	PyObject *ret;
-	if (pBuffer == NULL) {
-		ret = Py_None;
-		Py_INCREF(ret);
-	} else {
-		// MS docs the max size is 1MB - so why use an int64?
-		ret = PyString_FromStringAndSize((char *)pBuffer, (Py_ssize_t)length);
-		CoTaskMemFree(pBuffer);
-	}
-	return ret;
+    IBackgroundCopyJob2 *pIBCJ2 = GetI(self);
+    if (pIBCJ2 == NULL)
+        return NULL;
+    byte *pBuffer;
+    UINT64 length;
+    if (!PyArg_ParseTuple(args, ":GetReplyData"))
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIBCJ2->GetReplyData(&pBuffer, &length);
+    PY_INTERFACE_POSTCALL;
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pIBCJ2, IID_IBackgroundCopyJob2);
+    PyObject *ret;
+    if (pBuffer == NULL) {
+        ret = Py_None;
+        Py_INCREF(ret);
+    }
+    else {
+        // MS docs the max size is 1MB - so why use an int64?
+        ret = PyString_FromStringAndSize((char *)pBuffer, (Py_ssize_t)length);
+        CoTaskMemFree(pBuffer);
+    }
+    return ret;
 }
 
 // @pymethod |PyIBackgroundCopyJob2|SetReplyFileName|Description of SetReplyFileName.
 PyObject *PyIBackgroundCopyJob2::SetReplyFileName(PyObject *self, PyObject *args)
 {
-	IBackgroundCopyJob2 *pIBCJ2 = GetI(self);
-	if ( pIBCJ2 == NULL )
-		return NULL;
-	// @pyparm <o unicode>|ReplyFileName||Description for ReplyFileName
-	PyObject *obReplyFileName;
-	LPWSTR ReplyFileName;
-	if ( !PyArg_ParseTuple(args, "O:SetReplyFileName", &obReplyFileName) )
-		return NULL;
-	if (!PyWinObject_AsBstr(obReplyFileName, &ReplyFileName))
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIBCJ2->SetReplyFileName( ReplyFileName );
-	SysFreeString(ReplyFileName);
-	PY_INTERFACE_POSTCALL;
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pIBCJ2, IID_IBackgroundCopyJob2 );
-	Py_INCREF(Py_None);
-	return Py_None;
-
+    IBackgroundCopyJob2 *pIBCJ2 = GetI(self);
+    if (pIBCJ2 == NULL)
+        return NULL;
+    // @pyparm <o unicode>|ReplyFileName||Description for ReplyFileName
+    PyObject *obReplyFileName;
+    LPWSTR ReplyFileName;
+    if (!PyArg_ParseTuple(args, "O:SetReplyFileName", &obReplyFileName))
+        return NULL;
+    if (!PyWinObject_AsBstr(obReplyFileName, &ReplyFileName))
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIBCJ2->SetReplyFileName(ReplyFileName);
+    SysFreeString(ReplyFileName);
+    PY_INTERFACE_POSTCALL;
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pIBCJ2, IID_IBackgroundCopyJob2);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @pymethod |PyIBackgroundCopyJob2|GetReplyFileName|Description of GetReplyFileName.
 PyObject *PyIBackgroundCopyJob2::GetReplyFileName(PyObject *self, PyObject *args)
 {
-	IBackgroundCopyJob2 *pIBCJ2 = GetI(self);
-	if ( pIBCJ2 == NULL )
-		return NULL;
-	if ( !PyArg_ParseTuple(args, ":GetReplyFileName") )
-		return NULL;
-	HRESULT hr;
-	WCHAR *rfn;
-	PY_INTERFACE_PRECALL;
-	hr = pIBCJ2->GetReplyFileName(&rfn);
-	PY_INTERFACE_POSTCALL;
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pIBCJ2, IID_IBackgroundCopyJob2 );
-	PyObject *ret = PyWinObject_FromWCHAR(rfn);
-	CoTaskMemFree(rfn);
-	return ret;
+    IBackgroundCopyJob2 *pIBCJ2 = GetI(self);
+    if (pIBCJ2 == NULL)
+        return NULL;
+    if (!PyArg_ParseTuple(args, ":GetReplyFileName"))
+        return NULL;
+    HRESULT hr;
+    WCHAR *rfn;
+    PY_INTERFACE_PRECALL;
+    hr = pIBCJ2->GetReplyFileName(&rfn);
+    PY_INTERFACE_POSTCALL;
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pIBCJ2, IID_IBackgroundCopyJob2);
+    PyObject *ret = PyWinObject_FromWCHAR(rfn);
+    CoTaskMemFree(rfn);
+    return ret;
 }
 
 // @pymethod |PyIBackgroundCopyJob2|SetCredentials|Description of SetCredentials.
 PyObject *PyIBackgroundCopyJob2::SetCredentials(PyObject *self, PyObject *args)
 {
-	IBackgroundCopyJob2 *pIBCJ2 = GetI(self);
-	if ( pIBCJ2 == NULL )
-		return NULL;
-	// @pyparm <o BG_AUTH_CREDENTIALS>|creds||Description for creds
-	PyObject *obCreds;
-	if ( !PyArg_ParseTuple(args, "O:SetCredentials", &obCreds) )
-		return NULL;
-	BG_AUTH_CREDENTIALS creds;
-	if (!PyObject_AsBG_AUTH_CREDENTIALS(obCreds, &creds))
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIBCJ2->SetCredentials(&creds);
-	PY_INTERFACE_POSTCALL;
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pIBCJ2, IID_IBackgroundCopyJob2 );
-	Py_INCREF(Py_None);
-	return Py_None;
+    IBackgroundCopyJob2 *pIBCJ2 = GetI(self);
+    if (pIBCJ2 == NULL)
+        return NULL;
+    // @pyparm <o BG_AUTH_CREDENTIALS>|creds||Description for creds
+    PyObject *obCreds;
+    if (!PyArg_ParseTuple(args, "O:SetCredentials", &obCreds))
+        return NULL;
+    BG_AUTH_CREDENTIALS creds;
+    if (!PyObject_AsBG_AUTH_CREDENTIALS(obCreds, &creds))
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIBCJ2->SetCredentials(&creds);
+    PY_INTERFACE_POSTCALL;
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pIBCJ2, IID_IBackgroundCopyJob2);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @object PyIBackgroundCopyJob2|Description of the interface
-static struct PyMethodDef PyIBackgroundCopyJob2_methods[] =
-{
-	{ "SetNotifyCmdLine", PyIBackgroundCopyJob2::SetNotifyCmdLine, 1 }, // @pymeth SetNotifyCmdLine|Description of SetNotifyCmdLine
-	{ "GetNotifyCmdLine", PyIBackgroundCopyJob2::GetNotifyCmdLine, 1 }, // @pymeth GetNotifyCmdLine|Description of GetNotifyCmdLine
-	{ "GetReplyProgress", PyIBackgroundCopyJob2::GetReplyProgress, 1 }, // @pymeth GetReplyProgress|Description of GetReplyProgress
-	{ "GetReplyData", PyIBackgroundCopyJob2::GetReplyData, 1 }, // @pymeth GetReplyData|Description of GetReplyData
-	{ "SetReplyFileName", PyIBackgroundCopyJob2::SetReplyFileName, 1 }, // @pymeth SetReplyFileName|Description of SetReplyFileName
-	{ "GetReplyFileName", PyIBackgroundCopyJob2::GetReplyFileName, 1 }, // @pymeth GetReplyFileName|Description of GetReplyFileName
-	{ "SetCredentials", PyIBackgroundCopyJob2::SetCredentials, 1 }, // @pymeth SetCredentials|Description of SetCredentials
-	{ NULL }
-};
+static struct PyMethodDef PyIBackgroundCopyJob2_methods[] = {
+    {"SetNotifyCmdLine", PyIBackgroundCopyJob2::SetNotifyCmdLine,
+     1},  // @pymeth SetNotifyCmdLine|Description of SetNotifyCmdLine
+    {"GetNotifyCmdLine", PyIBackgroundCopyJob2::GetNotifyCmdLine,
+     1},  // @pymeth GetNotifyCmdLine|Description of GetNotifyCmdLine
+    {"GetReplyProgress", PyIBackgroundCopyJob2::GetReplyProgress,
+     1},  // @pymeth GetReplyProgress|Description of GetReplyProgress
+    {"GetReplyData", PyIBackgroundCopyJob2::GetReplyData, 1},  // @pymeth GetReplyData|Description of GetReplyData
+    {"SetReplyFileName", PyIBackgroundCopyJob2::SetReplyFileName,
+     1},  // @pymeth SetReplyFileName|Description of SetReplyFileName
+    {"GetReplyFileName", PyIBackgroundCopyJob2::GetReplyFileName,
+     1},  // @pymeth GetReplyFileName|Description of GetReplyFileName
+    {"SetCredentials", PyIBackgroundCopyJob2::SetCredentials,
+     1},  // @pymeth SetCredentials|Description of SetCredentials
+    {NULL}};
 
-PyComTypeObject PyIBackgroundCopyJob2::type("PyIBackgroundCopyJob2",
-		&PyIBackgroundCopyJob::type,
-		sizeof(PyIBackgroundCopyJob2),
-		PyIBackgroundCopyJob2_methods,
-		GET_PYCOM_CTOR(PyIBackgroundCopyJob2));
+PyComTypeObject PyIBackgroundCopyJob2::type("PyIBackgroundCopyJob2", &PyIBackgroundCopyJob::type,
+                                            sizeof(PyIBackgroundCopyJob2), PyIBackgroundCopyJob2_methods,
+                                            GET_PYCOM_CTOR(PyIBackgroundCopyJob2));

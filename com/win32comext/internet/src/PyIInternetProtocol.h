@@ -4,72 +4,52 @@
 //
 // Interface Declaration
 
-class PyIInternetProtocol : public PyIInternetProtocolRoot
-{
-public:
-	MAKE_PYCOM_CTOR(PyIInternetProtocol);
-	static IInternetProtocol *GetI(PyObject *self);
-	static PyComTypeObject type;
+class PyIInternetProtocol : public PyIInternetProtocolRoot {
+   public:
+    MAKE_PYCOM_CTOR(PyIInternetProtocol);
+    static IInternetProtocol *GetI(PyObject *self);
+    static PyComTypeObject type;
 
-	// The Python methods
-	static PyObject *Read(PyObject *self, PyObject *args);
-	static PyObject *Seek(PyObject *self, PyObject *args);
-	static PyObject *LockRequest(PyObject *self, PyObject *args);
-	static PyObject *UnlockRequest(PyObject *self, PyObject *args);
+    // The Python methods
+    static PyObject *Read(PyObject *self, PyObject *args);
+    static PyObject *Seek(PyObject *self, PyObject *args);
+    static PyObject *LockRequest(PyObject *self, PyObject *args);
+    static PyObject *UnlockRequest(PyObject *self, PyObject *args);
 
-protected:
-	PyIInternetProtocol(IUnknown *pdisp);
-	~PyIInternetProtocol();
+   protected:
+    PyIInternetProtocol(IUnknown *pdisp);
+    ~PyIInternetProtocol();
 };
 // ---------------------------------------------------
 //
 // Gateway Declaration
 
-class PyGInternetProtocol : public PyGInternetProtocolRoot, public IInternetProtocol
-{
-protected:
-	PyGInternetProtocol(PyObject *instance) : PyGInternetProtocolRoot(instance) { ; }
-	PYGATEWAY_MAKE_SUPPORT2(PyGInternetProtocol, IInternetProtocol, IID_IInternetProtocol, PyGInternetProtocolRoot)
+class PyGInternetProtocol : public PyGInternetProtocolRoot, public IInternetProtocol {
+   protected:
+    PyGInternetProtocol(PyObject *instance) : PyGInternetProtocolRoot(instance) { ; }
+    PYGATEWAY_MAKE_SUPPORT2(PyGInternetProtocol, IInternetProtocol, IID_IInternetProtocol, PyGInternetProtocolRoot)
 
-	// IInternetProtocolRoot
-	STDMETHOD(Start)(
-		LPCWSTR szUrl,
-		IInternetProtocolSink __RPC_FAR * pOIProtSink,
-		IInternetBindInfo __RPC_FAR * pOIBindInfo,
-		DWORD grfPI,
-		HANDLE_PTR dwReserved);
+    // IInternetProtocolRoot
+    STDMETHOD(Start)
+    (LPCWSTR szUrl, IInternetProtocolSink __RPC_FAR *pOIProtSink, IInternetBindInfo __RPC_FAR *pOIBindInfo, DWORD grfPI,
+     HANDLE_PTR dwReserved);
 
-	STDMETHOD(Continue)(
-		PROTOCOLDATA __RPC_FAR * pProtocolData);
+    STDMETHOD(Continue)(PROTOCOLDATA __RPC_FAR *pProtocolData);
 
-	STDMETHOD(Abort)(
-		HRESULT hrReason,
-		DWORD dwOptions);
+    STDMETHOD(Abort)(HRESULT hrReason, DWORD dwOptions);
 
-	STDMETHOD(Terminate)(
-		DWORD dwOptions);
+    STDMETHOD(Terminate)(DWORD dwOptions);
 
-	STDMETHOD(Suspend)(
-		void);
+    STDMETHOD(Suspend)(void);
 
-	STDMETHOD(Resume)(
-		void);
+    STDMETHOD(Resume)(void);
 
-	// IInternetProtocol
-	STDMETHOD(Read)(
-		void __RPC_FAR * pv,
-		ULONG cb,
-		ULONG __RPC_FAR * pcbRead);
+    // IInternetProtocol
+    STDMETHOD(Read)(void __RPC_FAR *pv, ULONG cb, ULONG __RPC_FAR *pcbRead);
 
-	STDMETHOD(Seek)(
-		LARGE_INTEGER dlibMove,
-		DWORD dwOrigin,
-		ULARGE_INTEGER __RPC_FAR * plibNewPosition);
+    STDMETHOD(Seek)(LARGE_INTEGER dlibMove, DWORD dwOrigin, ULARGE_INTEGER __RPC_FAR *plibNewPosition);
 
-	STDMETHOD(LockRequest)(
-		DWORD dwOptions);
+    STDMETHOD(LockRequest)(DWORD dwOptions);
 
-	STDMETHOD(UnlockRequest)(
-		void);
-
+    STDMETHOD(UnlockRequest)(void);
 };
