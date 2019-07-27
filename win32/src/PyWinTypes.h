@@ -385,8 +385,8 @@ PYWINTYPES_EXPORT PyObject *PyWinLong_FromVoidPtr(const void *ptr);
 //AsLARGE_INTEGER takes either int or long
 PYWINTYPES_EXPORT BOOL PyWinObject_AsLARGE_INTEGER(PyObject *ob, LARGE_INTEGER *pResult);
 PYWINTYPES_EXPORT BOOL PyWinObject_AsULARGE_INTEGER(PyObject *ob, ULARGE_INTEGER *pResult);
-PYWINTYPES_EXPORT PyObject *PyWinObject_FromLARGE_INTEGER(LARGE_INTEGER &val);
-PYWINTYPES_EXPORT PyObject *PyWinObject_FromULARGE_INTEGER(ULARGE_INTEGER &val);
+PYWINTYPES_EXPORT PyObject *PyWinObject_FromLARGE_INTEGER(const LARGE_INTEGER &val);
+PYWINTYPES_EXPORT PyObject *PyWinObject_FromULARGE_INTEGER(const ULARGE_INTEGER &val);
 // Helpers that take a Py_LONG_LONG, but (a) have pywin32 consistent signatures
 // and (b) handle int *and* long (where Python only starts doing that in the
 // PyLong_* APIs post 2.4)
