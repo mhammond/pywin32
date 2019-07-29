@@ -9,60 +9,47 @@
 //
 // Interface Implementation
 
-PyIDebugExpressionCallBack::PyIDebugExpressionCallBack(IUnknown *pdisp):
-	PyIUnknown(pdisp)
-{
-	ob_type = &type;
-}
+PyIDebugExpressionCallBack::PyIDebugExpressionCallBack(IUnknown *pdisp) : PyIUnknown(pdisp) { ob_type = &type; }
 
-PyIDebugExpressionCallBack::~PyIDebugExpressionCallBack()
-{
-}
+PyIDebugExpressionCallBack::~PyIDebugExpressionCallBack() {}
 
 /* static */ IDebugExpressionCallBack *PyIDebugExpressionCallBack::GetI(PyObject *self)
 {
-	return (IDebugExpressionCallBack *)PyIUnknown::GetI(self);
+    return (IDebugExpressionCallBack *)PyIUnknown::GetI(self);
 }
 
 // @pymethod |PyIDebugExpressionCallBack|onComplete|Description of onComplete.
 PyObject *PyIDebugExpressionCallBack::onComplete(PyObject *self, PyObject *args)
 {
-	IDebugExpressionCallBack *pIDECB = GetI(self);
-	if ( pIDECB == NULL )
-		return NULL;
-	if ( !PyArg_ParseTuple(args, ":onComplete") )
-		return NULL;
-	PY_INTERFACE_PRECALL;
-	HRESULT hr = pIDECB->onComplete( );
-	PY_INTERFACE_POSTCALL;
-	if ( FAILED(hr) )
-		return SetPythonCOMError(self,hr);
-	Py_INCREF(Py_None);
-	return Py_None;
-
+    IDebugExpressionCallBack *pIDECB = GetI(self);
+    if (pIDECB == NULL)
+        return NULL;
+    if (!PyArg_ParseTuple(args, ":onComplete"))
+        return NULL;
+    PY_INTERFACE_PRECALL;
+    HRESULT hr = pIDECB->onComplete();
+    PY_INTERFACE_POSTCALL;
+    if (FAILED(hr))
+        return SetPythonCOMError(self, hr);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @object PyIDebugExpressionCallBack|Description of the interface
-static struct PyMethodDef PyIDebugExpressionCallBack_methods[] =
-{
-	{ "onComplete", PyIDebugExpressionCallBack::onComplete, 1 }, // @pymeth onComplete|Description of onComplete
-	{ NULL }
-};
+static struct PyMethodDef PyIDebugExpressionCallBack_methods[] = {
+    {"onComplete", PyIDebugExpressionCallBack::onComplete, 1},  // @pymeth onComplete|Description of onComplete
+    {NULL}};
 
-PyComTypeObject PyIDebugExpressionCallBack::type("PyIDebugExpressionCallBack",
-		&PyIUnknown::type,
-		sizeof(PyIDebugExpressionCallBack),
-		PyIDebugExpressionCallBack_methods,
-		GET_PYCOM_CTOR(PyIDebugExpressionCallBack));
+PyComTypeObject PyIDebugExpressionCallBack::type("PyIDebugExpressionCallBack", &PyIUnknown::type,
+                                                 sizeof(PyIDebugExpressionCallBack), PyIDebugExpressionCallBack_methods,
+                                                 GET_PYCOM_CTOR(PyIDebugExpressionCallBack));
 // ---------------------------------------------------
 //
 // Gateway Implementation
 
-STDMETHODIMP PyGDebugExpressionCallBack::onComplete(
-		void)
+STDMETHODIMP PyGDebugExpressionCallBack::onComplete(void)
 {
-	PY_GATEWAY_METHOD;
-	HRESULT hr=InvokeViaPolicy("onComplete", NULL);
-	return hr;
+    PY_GATEWAY_METHOD;
+    HRESULT hr = InvokeViaPolicy("onComplete", NULL);
+    return hr;
 }
-

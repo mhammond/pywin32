@@ -4,46 +4,38 @@
 //
 // Interface Declaration
 
-class PyIEnumRemoteDebugApplications : public PyIUnknown
-{
-public:
-	MAKE_PYCOM_CTOR_ERRORINFO(PyIEnumRemoteDebugApplications, IID_IEnumRemoteDebugApplications);
-	static IEnumRemoteDebugApplications *GetI(PyObject *self);
-	static PyComTypeObject type;
+class PyIEnumRemoteDebugApplications : public PyIUnknown {
+   public:
+    MAKE_PYCOM_CTOR_ERRORINFO(PyIEnumRemoteDebugApplications, IID_IEnumRemoteDebugApplications);
+    static IEnumRemoteDebugApplications *GetI(PyObject *self);
+    static PyComTypeObject type;
 
-	// The Python methods
-	static PyObject *Next(PyObject *self, PyObject *args);
-	static PyObject *Skip(PyObject *self, PyObject *args);
-	static PyObject *Reset(PyObject *self, PyObject *args);
-	static PyObject *Clone(PyObject *self, PyObject *args);
+    // The Python methods
+    static PyObject *Next(PyObject *self, PyObject *args);
+    static PyObject *Skip(PyObject *self, PyObject *args);
+    static PyObject *Reset(PyObject *self, PyObject *args);
+    static PyObject *Clone(PyObject *self, PyObject *args);
 
-protected:
-	PyIEnumRemoteDebugApplications(IUnknown *pdisp);
-	~PyIEnumRemoteDebugApplications();
+   protected:
+    PyIEnumRemoteDebugApplications(IUnknown *pdisp);
+    ~PyIEnumRemoteDebugApplications();
 };
 // ---------------------------------------------------
 //
 // Gateway Declaration
 
-class PyGEnumRemoteDebugApplications : public PyGatewayBase, public IEnumRemoteDebugApplications
-{
-protected:
-	PyGEnumRemoteDebugApplications(PyObject *instance) : PyGatewayBase(instance) { ; }
-	PYGATEWAY_MAKE_SUPPORT(PyGEnumRemoteDebugApplications, IEnumRemoteDebugApplications, IID_IEnumRemoteDebugApplications)
+class PyGEnumRemoteDebugApplications : public PyGatewayBase, public IEnumRemoteDebugApplications {
+   protected:
+    PyGEnumRemoteDebugApplications(PyObject *instance) : PyGatewayBase(instance) { ; }
+    PYGATEWAY_MAKE_SUPPORT(PyGEnumRemoteDebugApplications, IEnumRemoteDebugApplications,
+                           IID_IEnumRemoteDebugApplications)
 
-	// IEnumRemoteDebugApplications
-	STDMETHOD(Next)(
-		ULONG celt,
-		IRemoteDebugApplication __RPC_FAR *__RPC_FAR * ppda,
-		ULONG __RPC_FAR * pceltFetched);
+    // IEnumRemoteDebugApplications
+    STDMETHOD(Next)(ULONG celt, IRemoteDebugApplication __RPC_FAR *__RPC_FAR *ppda, ULONG __RPC_FAR *pceltFetched);
 
-	STDMETHOD(Skip)(
-		ULONG celt);
+    STDMETHOD(Skip)(ULONG celt);
 
-	STDMETHOD(Reset)(
-		void);
+    STDMETHOD(Reset)(void);
 
-	STDMETHOD(Clone)(
-		IEnumRemoteDebugApplications __RPC_FAR *__RPC_FAR * ppessd);
-
+    STDMETHOD(Clone)(IEnumRemoteDebugApplications __RPC_FAR *__RPC_FAR *ppessd);
 };

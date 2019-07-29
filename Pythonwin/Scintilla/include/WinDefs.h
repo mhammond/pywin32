@@ -20,50 +20,50 @@
 
 //#if 0
 /* RTF control */
-#define EM_CANPASTE	(1074)
-#define EM_CANUNDO	(198)
-#define EM_CHARFROMPOS	(215)
-#define EM_EMPTYUNDOBUFFER	(205)
-#define EM_EXGETSEL	(1076)
-#define EM_EXLINEFROMCHAR	(1078)
-#define EM_EXSETSEL	(1079)
-#define EM_FINDTEXT	(1080)
-#define EM_FINDTEXTEX	(1103)
-#define EM_FORMATRANGE	(1081)
-#define EM_GETFIRSTVISIBLELINE	(206)
-#define EM_GETLINE	(196)
-#define EM_GETLINECOUNT	(186)
-#define EM_GETMARGINS	(212)
-#define EM_GETMODIFY	(184)
-#define EM_GETRECT	(178)
-#define EM_GETSEL	(176)
-#define EM_GETSELTEXT	(1086)
-#define EM_GETTEXTRANGE	(1099)
-#define EM_HIDESELECTION	(1087)
-#define EM_LINEFROMCHAR	(201)
-#define EM_LINEINDEX	(187)
-#define EM_LINELENGTH	(193)
-#define EM_LINESCROLL	(182)
-#define EM_POSFROMCHAR	(214)
-#define EM_REPLACESEL	(194)
-#define EM_SCROLLCARET	(183)
-#define EM_SELECTIONTYPE	(1090)
-#define EM_SETMARGINS	(211)
-#define EM_SETREADONLY	(207)
-#define EM_SETSEL	(177)
-#define EM_UNDO	(199)
+#define EM_CANPASTE (1074)
+#define EM_CANUNDO (198)
+#define EM_CHARFROMPOS (215)
+#define EM_EMPTYUNDOBUFFER (205)
+#define EM_EXGETSEL (1076)
+#define EM_EXLINEFROMCHAR (1078)
+#define EM_EXSETSEL (1079)
+#define EM_FINDTEXT (1080)
+#define EM_FINDTEXTEX (1103)
+#define EM_FORMATRANGE (1081)
+#define EM_GETFIRSTVISIBLELINE (206)
+#define EM_GETLINE (196)
+#define EM_GETLINECOUNT (186)
+#define EM_GETMARGINS (212)
+#define EM_GETMODIFY (184)
+#define EM_GETRECT (178)
+#define EM_GETSEL (176)
+#define EM_GETSELTEXT (1086)
+#define EM_GETTEXTRANGE (1099)
+#define EM_HIDESELECTION (1087)
+#define EM_LINEFROMCHAR (201)
+#define EM_LINEINDEX (187)
+#define EM_LINELENGTH (193)
+#define EM_LINESCROLL (182)
+#define EM_POSFROMCHAR (214)
+#define EM_REPLACESEL (194)
+#define EM_SCROLLCARET (183)
+#define EM_SELECTIONTYPE (1090)
+#define EM_SETMARGINS (211)
+#define EM_SETREADONLY (207)
+#define EM_SETSEL (177)
+#define EM_UNDO (199)
 
-#define WM_NULL		(0)
-#define WM_CLEAR	(771)
-#define WM_COPY	(769)
-#define WM_CUT	(768)
-#define WM_GETTEXT	(13)
-#define WM_GETTEXTLENGTH	(14)
-#define WM_PASTE	(770)
-#define WM_SETTEXT	(12)
-#define WM_UNDO	(772)
+#define WM_NULL (0)
+#define WM_CLEAR (771)
+#define WM_COPY (769)
+#define WM_CUT (768)
+#define WM_GETTEXT (13)
+#define WM_GETTEXTLENGTH (14)
+#define WM_PASTE (770)
+#define WM_SETTEXT (12)
+#define WM_UNDO (772)
 
-#define EN_CHANGE	(768)
+#define EN_CHANGE (768)
 #define EN_KILLFOCUS (512)
 #define EN_SETFOCUS (256)
 
@@ -95,24 +95,24 @@
 #endif
 
 #if PLAT_WX
-#define VK_DOWN         WXK_DOWN
-#define VK_UP           WXK_UP
-#define VK_LEFT         WXK_LEFT
-#define VK_RIGHT        WXK_RIGHT
-#define VK_HOME         WXK_HOME
-#define VK_END          WXK_END
-#define VK_PRIOR        WXK_PRIOR
-#define VK_NEXT         WXK_NEXT
-#define VK_DELETE       WXK_DELETE
-#define VK_INSERT       WXK_INSERT
-#define VK_ESCAPE       WXK_ESCAPE
-#define VK_BACK         WXK_BACK
-#define VK_TAB          WXK_TAB
-#define VK_RETURN       WXK_RETURN
-#define VK_ADD          WXK_ADD
-#define VK_SUBTRACT     WXK_SUBTRACT
+#define VK_DOWN WXK_DOWN
+#define VK_UP WXK_UP
+#define VK_LEFT WXK_LEFT
+#define VK_RIGHT WXK_RIGHT
+#define VK_HOME WXK_HOME
+#define VK_END WXK_END
+#define VK_PRIOR WXK_PRIOR
+#define VK_NEXT WXK_NEXT
+#define VK_DELETE WXK_DELETE
+#define VK_INSERT WXK_INSERT
+#define VK_ESCAPE WXK_ESCAPE
+#define VK_BACK WXK_BACK
+#define VK_TAB WXK_TAB
+#define VK_RETURN WXK_RETURN
+#define VK_ADD WXK_ADD
+#define VK_SUBTRACT WXK_SUBTRACT
 //TODO:
-#define VK_DIVIDE	WXK_DIVIDE
+#define VK_DIVIDE WXK_DIVIDE
 #endif
 
 #define SHIFT_PRESSED 1
@@ -125,11 +125,11 @@
 #define LPDWORD (long *)
 
 /* SELCHANGE structure */
-#define SEL_EMPTY	(0)
-#define SEL_TEXT	(1)
-#define SEL_OBJECT	(2)
-#define SEL_MULTICHAR	(4)
-#define SEL_MULTIOBJECT	(8)
+#define SEL_EMPTY (0)
+#define SEL_TEXT (1)
+#define SEL_OBJECT (2)
+#define SEL_MULTICHAR (4)
+#define SEL_MULTIOBJECT (8)
 
 struct RECT {
 	LONG left;
@@ -140,9 +140,9 @@ struct RECT {
 
 /* FINDREPLACE structure */
 
-#define FR_MATCHCASE	(0x4)
-#define FR_WHOLEWORD	(0x2)
-#define FR_DOWN		(0x1)
+#define FR_MATCHCASE (0x4)
+#define FR_WHOLEWORD (0x2)
+#define FR_DOWN (0x1)
 
 #endif
 

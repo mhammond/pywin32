@@ -12,49 +12,50 @@ namespace Scintilla {
 #endif
 
 class Decoration {
-public:
-	Decoration *next;
-	RunStyles rs;
-	int indicator;
+   public:
+    Decoration *next;
+    RunStyles rs;
+    int indicator;
 
-	Decoration(int indicator_);
-	~Decoration();
+    Decoration(int indicator_);
+    ~Decoration();
 
-	bool Empty();
+    bool Empty();
 };
 
 class DecorationList {
-	int currentIndicator;
-	int currentValue;
-	Decoration *current;
-	int lengthDocument;
-	Decoration *DecorationFromIndicator(int indicator);
-	Decoration *Create(int indicator, int length);
-	void Delete(int indicator);
-	void DeleteAnyEmpty();
-public:
-	Decoration *root;
-	bool clickNotified;
+    int currentIndicator;
+    int currentValue;
+    Decoration *current;
+    int lengthDocument;
+    Decoration *DecorationFromIndicator(int indicator);
+    Decoration *Create(int indicator, int length);
+    void Delete(int indicator);
+    void DeleteAnyEmpty();
 
-	DecorationList();
-	~DecorationList();
+   public:
+    Decoration *root;
+    bool clickNotified;
 
-	void SetCurrentIndicator(int indicator);
-	int GetCurrentIndicator() { return currentIndicator; }
+    DecorationList();
+    ~DecorationList();
 
-	void SetCurrentValue(int value);
-	int GetCurrentValue() { return currentValue; }
+    void SetCurrentIndicator(int indicator);
+    int GetCurrentIndicator() { return currentIndicator; }
 
-	// Returns true if some values may have changed
-	bool FillRange(int &position, int value, int &fillLength);
+    void SetCurrentValue(int value);
+    int GetCurrentValue() { return currentValue; }
 
-	void InsertSpace(int position, int insertLength);
-	void DeleteRange(int position, int deleteLength);
+    // Returns true if some values may have changed
+    bool FillRange(int &position, int value, int &fillLength);
 
-	int AllOnFor(int position);
-	int ValueAt(int indicator, int position);
-	int Start(int indicator, int position);
-	int End(int indicator, int position);
+    void InsertSpace(int position, int insertLength);
+    void DeleteRange(int position, int deleteLength);
+
+    int AllOnFor(int position);
+    int ValueAt(int indicator, int position);
+    int Start(int indicator, int position);
+    int End(int indicator, int position);
 };
 
 #ifdef SCI_NAMESPACE

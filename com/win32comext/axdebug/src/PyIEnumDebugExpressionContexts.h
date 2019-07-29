@@ -4,46 +4,38 @@
 //
 // Interface Declaration
 
-class PyIEnumDebugExpressionContexts : public PyIUnknown
-{
-public:
-	MAKE_PYCOM_CTOR(PyIEnumDebugExpressionContexts);
-	static IEnumDebugExpressionContexts *GetI(PyObject *self);
-	static PyComTypeObject type;
+class PyIEnumDebugExpressionContexts : public PyIUnknown {
+   public:
+    MAKE_PYCOM_CTOR(PyIEnumDebugExpressionContexts);
+    static IEnumDebugExpressionContexts *GetI(PyObject *self);
+    static PyComTypeObject type;
 
-	// The Python methods
-	static PyObject *Next(PyObject *self, PyObject *args);
-	static PyObject *Skip(PyObject *self, PyObject *args);
-	static PyObject *Reset(PyObject *self, PyObject *args);
-	static PyObject *Clone(PyObject *self, PyObject *args);
+    // The Python methods
+    static PyObject *Next(PyObject *self, PyObject *args);
+    static PyObject *Skip(PyObject *self, PyObject *args);
+    static PyObject *Reset(PyObject *self, PyObject *args);
+    static PyObject *Clone(PyObject *self, PyObject *args);
 
-protected:
-	PyIEnumDebugExpressionContexts(IUnknown *pdisp);
-	~PyIEnumDebugExpressionContexts();
+   protected:
+    PyIEnumDebugExpressionContexts(IUnknown *pdisp);
+    ~PyIEnumDebugExpressionContexts();
 };
 // ---------------------------------------------------
 //
 // Gateway Declaration
 
-class PyGEnumDebugExpressionContexts : public PyGatewayBase, public IEnumDebugExpressionContexts
-{
-protected:
-	PyGEnumDebugExpressionContexts(PyObject *instance) : PyGatewayBase(instance) { ; }
-	PYGATEWAY_MAKE_SUPPORT(PyGEnumDebugExpressionContexts, IEnumDebugExpressionContexts, IID_IEnumDebugExpressionContexts)
+class PyGEnumDebugExpressionContexts : public PyGatewayBase, public IEnumDebugExpressionContexts {
+   protected:
+    PyGEnumDebugExpressionContexts(PyObject *instance) : PyGatewayBase(instance) { ; }
+    PYGATEWAY_MAKE_SUPPORT(PyGEnumDebugExpressionContexts, IEnumDebugExpressionContexts,
+                           IID_IEnumDebugExpressionContexts)
 
-	// IEnumDebugExpressionContexts
-	STDMETHOD(Next)(
-		ULONG celt,
-		IDebugExpressionContext __RPC_FAR *__RPC_FAR * ppdec,
-		ULONG __RPC_FAR * pceltFetched);
+    // IEnumDebugExpressionContexts
+    STDMETHOD(Next)(ULONG celt, IDebugExpressionContext __RPC_FAR *__RPC_FAR *ppdec, ULONG __RPC_FAR *pceltFetched);
 
-	STDMETHOD(Skip)(
-		ULONG celt);
+    STDMETHOD(Skip)(ULONG celt);
 
-	STDMETHOD(Reset)(
-		void);
+    STDMETHOD(Reset)(void);
 
-	STDMETHOD(Clone)(
-		IEnumDebugExpressionContexts __RPC_FAR *__RPC_FAR * ppedec);
-
+    STDMETHOD(Clone)(IEnumDebugExpressionContexts __RPC_FAR *__RPC_FAR *ppedec);
 };

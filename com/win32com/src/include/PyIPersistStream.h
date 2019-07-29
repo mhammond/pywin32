@@ -6,46 +6,45 @@
 
 #include "PyIPersist.h"
 
-class PYCOM_EXPORT PyIPersistStream : public PyIPersist
-{
-public:
-	MAKE_PYCOM_CTOR(PyIPersistStream);
-	static PyComTypeObject type;
-	static IPersistStream *GetI(PyObject *self);
+class PYCOM_EXPORT PyIPersistStream : public PyIPersist {
+   public:
+    MAKE_PYCOM_CTOR(PyIPersistStream);
+    static PyComTypeObject type;
+    static IPersistStream *GetI(PyObject *self);
 
-	static PyObject *IsDirty(PyObject *self, PyObject *args);
-	static PyObject *Load(PyObject *self, PyObject *args);
-	static PyObject *Save(PyObject *self, PyObject *args);
-	static PyObject *GetSizeMax(PyObject *self, PyObject *args);
+    static PyObject *IsDirty(PyObject *self, PyObject *args);
+    static PyObject *Load(PyObject *self, PyObject *args);
+    static PyObject *Save(PyObject *self, PyObject *args);
+    static PyObject *GetSizeMax(PyObject *self, PyObject *args);
 
-protected:
-	PyIPersistStream(IUnknown *);
-	~PyIPersistStream();
+   protected:
+    PyIPersistStream(IUnknown *);
+    ~PyIPersistStream();
 };
 
-class PyGPersistStream : public PyGPersist, public IPersistStream
-{
-protected:
-	PyGPersistStream(PyObject *instance) : PyGPersist(instance) { ; }
-	PYGATEWAY_MAKE_SUPPORT2(PyGPersistStream, IPersistStream, IID_IPersistStream, PyGPersist)
+class PyGPersistStream : public PyGPersist, public IPersistStream {
+   protected:
+    PyGPersistStream(PyObject *instance) : PyGPersist(instance) { ; }
+    PYGATEWAY_MAKE_SUPPORT2(PyGPersistStream, IPersistStream, IID_IPersistStream, PyGPersist)
 
-	// IPersist
-	STDMETHOD(GetClassID)(CLSID FAR *pClassID) {return PyGPersist::GetClassID(pClassID);}
+    // IPersist
+    STDMETHOD(GetClassID)(CLSID FAR *pClassID) { return PyGPersist::GetClassID(pClassID); }
 
-	// IPersistStream
-	STDMETHOD(IsDirty)(
-		void);
+    // IPersistStream
+    STDMETHOD(IsDirty)(void);
 
-	STDMETHOD(Load)(
-            /* [unique][in] */ IStream __RPC_FAR *pStm);
+    STDMETHOD(Load)
+    (
+        /* [unique][in] */ IStream __RPC_FAR *pStm);
 
-	STDMETHOD(Save)(
-            /* [unique][in] */ IStream __RPC_FAR *pStm,
-            /* [in] */ BOOL fClearDirty);
+    STDMETHOD(Save)
+    (
+        /* [unique][in] */ IStream __RPC_FAR *pStm,
+        /* [in] */ BOOL fClearDirty);
 
-	STDMETHOD(GetSizeMax)(
-            /* [out] */ ULARGE_INTEGER __RPC_FAR *pcbSize);
-
+    STDMETHOD(GetSizeMax)
+    (
+        /* [out] */ ULARGE_INTEGER __RPC_FAR *pcbSize);
 };
 
-#endif // __PYIPERSISTSTREAM_H__
+#endif  // __PYIPERSISTSTREAM_H__

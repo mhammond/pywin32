@@ -7,17 +7,16 @@
 #include "PythonCOM.h"
 #include "mstask.h"
 
-class PyIProvideTaskPage : public PyIUnknown
-{
-public:
-	MAKE_PYCOM_CTOR(PyIProvideTaskPage);
-	static IProvideTaskPage *GetI(PyObject *self);
-	static PyComTypeObject type;
+class PyIProvideTaskPage : public PyIUnknown {
+   public:
+    MAKE_PYCOM_CTOR(PyIProvideTaskPage);
+    static IProvideTaskPage *GetI(PyObject *self);
+    static PyComTypeObject type;
 
-	// The Python methods
-	static PyObject *GetPage(PyObject *self, PyObject *args);
+    // The Python methods
+    static PyObject *GetPage(PyObject *self, PyObject *args);
 
-protected:
-	PyIProvideTaskPage(IUnknown *pdisp);
-	~PyIProvideTaskPage();
+   protected:
+    PyIProvideTaskPage(IUnknown *pdisp);
+    ~PyIProvideTaskPage();
 };

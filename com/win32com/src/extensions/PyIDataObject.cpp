@@ -16,482 +16,506 @@
 // @tupleitem 4|int|tymed|One of pythoncom.TYMED_* values indicating how the data is stored
 BOOL PyObject_AsFORMATETC(PyObject *ob, FORMATETC *petc)
 {
-	PyObject *obtd;
-	if (!PyArg_ParseTuple(ob, "HOiii:FORMATETC",
-			&petc->cfFormat,
-			&obtd,
-			&petc->dwAspect,
-			&petc->lindex,
-			&petc->tymed))
-			return FALSE;
-	if (obtd!=Py_None) {
-		PyErr_SetString(PyExc_ValueError, "td must be None");
-		return FALSE;
-	}
-	petc->ptd = NULL;
-	return TRUE;
+    PyObject *obtd;
+    if (!PyArg_ParseTuple(ob, "HOiii:FORMATETC", &petc->cfFormat, &obtd, &petc->dwAspect, &petc->lindex, &petc->tymed))
+        return FALSE;
+    if (obtd != Py_None) {
+        PyErr_SetString(PyExc_ValueError, "td must be None");
+        return FALSE;
+    }
+    petc->ptd = NULL;
+    return TRUE;
 }
 
 PyObject *PyObject_FromFORMATETC(FORMATETC *petc)
 {
-	return Py_BuildValue("Hziii",
-			petc->cfFormat,
-			NULL,
-			petc->dwAspect,
-			petc->lindex,
-			petc->tymed);
+    return Py_BuildValue("Hziii", petc->cfFormat, NULL, petc->dwAspect, petc->lindex, petc->tymed);
 }
 
 BOOL PyObject_AsPySTGMEDIUM(PyObject *obmedium, PySTGMEDIUM **pp)
 {
-	if (!PySTGMEDIUM_Check(obmedium)) {
-		PyErr_Format(PyExc_TypeError, "Object must be a PySTGMEDIUM (not a '%s')", obmedium->ob_type->tp_name);
-		return FALSE;
-	}
-	*pp = (PySTGMEDIUM *)obmedium;
-	return TRUE;
+    if (!PySTGMEDIUM_Check(obmedium)) {
+        PyErr_Format(PyExc_TypeError, "Object must be a PySTGMEDIUM (not a '%s')", obmedium->ob_type->tp_name);
+        return FALSE;
+    }
+    *pp = (PySTGMEDIUM *)obmedium;
+    return TRUE;
 }
 
 // ---------------------------------------------------
 //
 // Interface Implementation
 
-PyIDataObject::PyIDataObject(IUnknown *pdisp):
-	PyIUnknown(pdisp)
-{
-	ob_type = &type;
-}
+PyIDataObject::PyIDataObject(IUnknown *pdisp) : PyIUnknown(pdisp) { ob_type = &type; }
 
-PyIDataObject::~PyIDataObject()
-{
-}
+PyIDataObject::~PyIDataObject() {}
 
-/* static */ IDataObject *PyIDataObject::GetI(PyObject *self)
-{
-	return (IDataObject *)PyIUnknown::GetI(self);
-}
+/* static */ IDataObject *PyIDataObject::GetI(PyObject *self) { return (IDataObject *)PyIUnknown::GetI(self); }
 
 // @pymethod <o PySTGMEDIUM>|PyIDataObject|GetData|Retrieves data from the object in specified format
 PyObject *PyIDataObject::GetData(PyObject *self, PyObject *args)
 {
-	IDataObject *pIDO = GetI(self);
-	if ( pIDO == NULL )
-		return NULL;
-	FORMATETC formatetcIn;
-	PyObject *obpformatetcIn;
-	// @pyparm <o PyFORMATETC>|pformatetcIn||Tuple representing a FORMATETC struct describing how the data should be returned
-	if ( !PyArg_ParseTuple(args, "O:GetData", &obpformatetcIn) )
-		return NULL;
+    IDataObject *pIDO = GetI(self);
+    if (pIDO == NULL)
+        return NULL;
+    FORMATETC formatetcIn;
+    PyObject *obpformatetcIn;
+    // @pyparm <o PyFORMATETC>|pformatetcIn||Tuple representing a FORMATETC struct describing how the data should be
+    // returned
+    if (!PyArg_ParseTuple(args, "O:GetData", &obpformatetcIn))
+        return NULL;
 
-	PySTGMEDIUM *pymedium = PyObject_FromSTGMEDIUM();
-	BOOL bPythonIsHappy = TRUE;
-	if (bPythonIsHappy && !PyObject_AsFORMATETC( obpformatetcIn, &formatetcIn )) bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIDO->GetData( &formatetcIn, &pymedium->medium);
-	PY_INTERFACE_POSTCALL;
-	if ( FAILED(hr) ) {
-		Py_DECREF(pymedium);
-		return PyCom_BuildPyException(hr, pIDO, IID_IDataObject );
-	}
-	return pymedium;
+    PySTGMEDIUM *pymedium = PyObject_FromSTGMEDIUM();
+    BOOL bPythonIsHappy = TRUE;
+    if (bPythonIsHappy && !PyObject_AsFORMATETC(obpformatetcIn, &formatetcIn))
+        bPythonIsHappy = FALSE;
+    if (!bPythonIsHappy)
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIDO->GetData(&formatetcIn, &pymedium->medium);
+    PY_INTERFACE_POSTCALL;
+    if (FAILED(hr)) {
+        Py_DECREF(pymedium);
+        return PyCom_BuildPyException(hr, pIDO, IID_IDataObject);
+    }
+    return pymedium;
 }
 
 // @pymethod <o PySTGMEDIUM>|PyIDataObject|GetDataHere|Retunrs a copy of the object's data in specified format
 PyObject *PyIDataObject::GetDataHere(PyObject *self, PyObject *args)
 {
-	IDataObject *pIDO = GetI(self);
-	if ( pIDO == NULL )
-		return NULL;
-	FORMATETC formatetc;
-	PyObject *obpformatetc;
-	// @pyparm <o PyFORMATETC>|pformatetcIn||Tuple representing a FORMATETC struct describing how the data should be returned
-	if ( !PyArg_ParseTuple(args, "O:GetDataHere", &obpformatetc) )
-		return NULL;
-	BOOL bPythonIsHappy = TRUE;
-	if (bPythonIsHappy && !PyObject_AsFORMATETC( obpformatetc, &formatetc )) bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) return NULL;
-	PySTGMEDIUM *pymedium = PyObject_FromSTGMEDIUM();
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIDO->GetDataHere( &formatetc, &pymedium->medium);
-	PY_INTERFACE_POSTCALL;
-	if ( FAILED(hr) ) {
-		Py_DECREF(pymedium);
-		return PyCom_BuildPyException(hr, pIDO, IID_IDataObject );
-	}
-	return pymedium;
+    IDataObject *pIDO = GetI(self);
+    if (pIDO == NULL)
+        return NULL;
+    FORMATETC formatetc;
+    PyObject *obpformatetc;
+    // @pyparm <o PyFORMATETC>|pformatetcIn||Tuple representing a FORMATETC struct describing how the data should be
+    // returned
+    if (!PyArg_ParseTuple(args, "O:GetDataHere", &obpformatetc))
+        return NULL;
+    BOOL bPythonIsHappy = TRUE;
+    if (bPythonIsHappy && !PyObject_AsFORMATETC(obpformatetc, &formatetc))
+        bPythonIsHappy = FALSE;
+    if (!bPythonIsHappy)
+        return NULL;
+    PySTGMEDIUM *pymedium = PyObject_FromSTGMEDIUM();
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIDO->GetDataHere(&formatetc, &pymedium->medium);
+    PY_INTERFACE_POSTCALL;
+    if (FAILED(hr)) {
+        Py_DECREF(pymedium);
+        return PyCom_BuildPyException(hr, pIDO, IID_IDataObject);
+    }
+    return pymedium;
 }
 
 // @pymethod |PyIDataObject|QueryGetData|Checks if the objects supports returning data in a particular format.
 // @rdesc Returns None if the object supports the specified format, otherwise an error is raised.
 PyObject *PyIDataObject::QueryGetData(PyObject *self, PyObject *args)
 {
-	IDataObject *pIDO = GetI(self);
-	if ( pIDO == NULL )
-		return NULL;
-	FORMATETC formatetc;
-	PyObject *obpformatetc;
-	// @pyparm <o PyFORMATETC>|pformatetc||Tuple representing a FORMATETC struct describing how the data should be returned
-	if ( !PyArg_ParseTuple(args, "O:QueryGetData", &obpformatetc) )
-		return NULL;
-	BOOL bPythonIsHappy = TRUE;
-	if (bPythonIsHappy && !PyObject_AsFORMATETC( obpformatetc, &formatetc )) bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIDO->QueryGetData( &formatetc );
-	PY_INTERFACE_POSTCALL;
+    IDataObject *pIDO = GetI(self);
+    if (pIDO == NULL)
+        return NULL;
+    FORMATETC formatetc;
+    PyObject *obpformatetc;
+    // @pyparm <o PyFORMATETC>|pformatetc||Tuple representing a FORMATETC struct describing how the data should be
+    // returned
+    if (!PyArg_ParseTuple(args, "O:QueryGetData", &obpformatetc))
+        return NULL;
+    BOOL bPythonIsHappy = TRUE;
+    if (bPythonIsHappy && !PyObject_AsFORMATETC(obpformatetc, &formatetc))
+        bPythonIsHappy = FALSE;
+    if (!bPythonIsHappy)
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIDO->QueryGetData(&formatetc);
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pIDO, IID_IDataObject );
-	Py_INCREF(Py_None);
-	return Py_None;
-
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pIDO, IID_IDataObject);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
-// @pymethod <o PyFORMATETC>|PyIDataObject|GetCanonicalFormatEtc|Transforms a FORMATECT data description into a general format that the object supports
+// @pymethod <o PyFORMATETC>|PyIDataObject|GetCanonicalFormatEtc|Transforms a FORMATECT data description into a general
+// format that the object supports
 PyObject *PyIDataObject::GetCanonicalFormatEtc(PyObject *self, PyObject *args)
 {
-	IDataObject *pIDO = GetI(self);
-	if ( pIDO == NULL )
-		return NULL;
-	FORMATETC formatectIn;
-	PyObject *obpformatectIn;
-	// @pyparm <o PyFORMATETC>|pformatectIn||Tuple representing a FORMATETC struct describing how the data should be returned
-	if ( !PyArg_ParseTuple(args, "O:GetCanonicalFormatEtc", &obpformatectIn) )
-		return NULL;
-	BOOL bPythonIsHappy = TRUE;
-	if (bPythonIsHappy && !PyObject_AsFORMATETC( obpformatectIn, &formatectIn )) bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) return NULL;
-	FORMATETC formatetcOut;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIDO->GetCanonicalFormatEtc( &formatectIn, &formatetcOut );
-	PY_INTERFACE_POSTCALL;
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pIDO, IID_IDataObject );
-	return PyObject_FromFORMATETC(&formatetcOut);
+    IDataObject *pIDO = GetI(self);
+    if (pIDO == NULL)
+        return NULL;
+    FORMATETC formatectIn;
+    PyObject *obpformatectIn;
+    // @pyparm <o PyFORMATETC>|pformatectIn||Tuple representing a FORMATETC struct describing how the data should be
+    // returned
+    if (!PyArg_ParseTuple(args, "O:GetCanonicalFormatEtc", &obpformatectIn))
+        return NULL;
+    BOOL bPythonIsHappy = TRUE;
+    if (bPythonIsHappy && !PyObject_AsFORMATETC(obpformatectIn, &formatectIn))
+        bPythonIsHappy = FALSE;
+    if (!bPythonIsHappy)
+        return NULL;
+    FORMATETC formatetcOut;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIDO->GetCanonicalFormatEtc(&formatectIn, &formatetcOut);
+    PY_INTERFACE_POSTCALL;
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pIDO, IID_IDataObject);
+    return PyObject_FromFORMATETC(&formatetcOut);
 }
 
 // @pymethod |PyIDataObject|SetData|Sets the data that the object will return.
 PyObject *PyIDataObject::SetData(PyObject *self, PyObject *args)
 {
-	IDataObject *pIDO = GetI(self);
-	if ( pIDO == NULL )
-		return NULL;
-	FORMATETC formatetc;
-	PyObject *obpformatetc;
-	// @pyparm <o PyFORMATETC>|pformatetc||Tuple representing a FORMATETC struct describing the type of data to be set
-	PyObject *obmedium;
-	PySTGMEDIUM *pymedium;
-	// @pyparm <o PySTGMEDIUM>|pmedium||The data to be placed in the object
-	// @pyparm boolean|fRelease||If True, transfers ownership of the data to the object.  If False, caller is responsible for releasing the STGMEDIUM.
-	BOOL fRelease;
-	if ( !PyArg_ParseTuple(args, "OOi:SetData", &obpformatetc, &obmedium, &fRelease) )
-		return NULL;
-	BOOL bPythonIsHappy = TRUE;
-	if (bPythonIsHappy && !PyObject_AsFORMATETC( obpformatetc, &formatetc )) bPythonIsHappy = FALSE;
-	if (bPythonIsHappy && !PyObject_AsPySTGMEDIUM( obmedium, &pymedium )) bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIDO->SetData( &formatetc, &pymedium->medium, fRelease );
-	PY_INTERFACE_POSTCALL;
-	if (fRelease)
-		pymedium->DropOwnership();
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pIDO, IID_IDataObject );
-	Py_INCREF(Py_None);
-	return Py_None;
+    IDataObject *pIDO = GetI(self);
+    if (pIDO == NULL)
+        return NULL;
+    FORMATETC formatetc;
+    PyObject *obpformatetc;
+    // @pyparm <o PyFORMATETC>|pformatetc||Tuple representing a FORMATETC struct describing the type of data to be set
+    PyObject *obmedium;
+    PySTGMEDIUM *pymedium;
+    // @pyparm <o PySTGMEDIUM>|pmedium||The data to be placed in the object
+    // @pyparm boolean|fRelease||If True, transfers ownership of the data to the object.  If False, caller is
+    // responsible for releasing the STGMEDIUM.
+    BOOL fRelease;
+    if (!PyArg_ParseTuple(args, "OOi:SetData", &obpformatetc, &obmedium, &fRelease))
+        return NULL;
+    BOOL bPythonIsHappy = TRUE;
+    if (bPythonIsHappy && !PyObject_AsFORMATETC(obpformatetc, &formatetc))
+        bPythonIsHappy = FALSE;
+    if (bPythonIsHappy && !PyObject_AsPySTGMEDIUM(obmedium, &pymedium))
+        bPythonIsHappy = FALSE;
+    if (!bPythonIsHappy)
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIDO->SetData(&formatetc, &pymedium->medium, fRelease);
+    PY_INTERFACE_POSTCALL;
+    if (fRelease)
+        pymedium->DropOwnership();
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pIDO, IID_IDataObject);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
-// @pymethod <o PyIEnumFORMATETC>|PyIDataObject|EnumFormatEtc|Returns an enumerator to list the data formats that the object supports.
+// @pymethod <o PyIEnumFORMATETC>|PyIDataObject|EnumFormatEtc|Returns an enumerator to list the data formats that the
+// object supports.
 PyObject *PyIDataObject::EnumFormatEtc(PyObject *self, PyObject *args)
 {
-	IDataObject *pIDO = GetI(self);
-	if ( pIDO == NULL )
-		return NULL;
-	// @pyparm int|dwDirection|DATADIR_GET|Indicates whether to return formats that can be queried or set (pythoncom.DATADIR_GET or DATADIR_SET)
-	DWORD dwDirection = DATADIR_GET;
-	IEnumFORMATETC * ppenumFormatEtc;
-	if ( !PyArg_ParseTuple(args, "|l:EnumFormatEtc", &dwDirection) )
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIDO->EnumFormatEtc( dwDirection, &ppenumFormatEtc );
-	PY_INTERFACE_POSTCALL;
+    IDataObject *pIDO = GetI(self);
+    if (pIDO == NULL)
+        return NULL;
+    // @pyparm int|dwDirection|DATADIR_GET|Indicates whether to return formats that can be queried or set
+    // (pythoncom.DATADIR_GET or DATADIR_SET)
+    DWORD dwDirection = DATADIR_GET;
+    IEnumFORMATETC *ppenumFormatEtc;
+    if (!PyArg_ParseTuple(args, "|l:EnumFormatEtc", &dwDirection))
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIDO->EnumFormatEtc(dwDirection, &ppenumFormatEtc);
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pIDO, IID_IDataObject );
-	return PyCom_PyObjectFromIUnknown(ppenumFormatEtc, IID_IEnumFORMATETC, FALSE);
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pIDO, IID_IDataObject);
+    return PyCom_PyObjectFromIUnknown(ppenumFormatEtc, IID_IEnumFORMATETC, FALSE);
 }
 
-// @pymethod int|PyIDataObject|DAdvise|Connects the object to an interface that will receive notifications when its data changes
+// @pymethod int|PyIDataObject|DAdvise|Connects the object to an interface that will receive notifications when its data
+// changes
 // @rdesc Returns a unique number that is used to identify the connection
 PyObject *PyIDataObject::DAdvise(PyObject *self, PyObject *args)
 {
-	IDataObject *pIDO = GetI(self);
-	if ( pIDO == NULL )
-		return NULL;
-	FORMATETC formatetc;
-	PyObject *obpformatetc;
-	// @pyparm <o PyFORMATETC>|pformatetc||Defines the type of data for which the sink will receive notifications.
-	// @pyparm int|advf||Combination of values from ADVF enum. (which currently do not appear in any of the constants modules!)
-	// @pyparm <o PyIAdviseSink>|pAdvSink||Currently this interface is not wrapped.
-	PyObject *obpAdvSink;
-	DWORD advf;
-	IAdviseSink *pAdvSink;
-	if ( !PyArg_ParseTuple(args, "OlO:DAdvise", &obpformatetc, &advf, &obpAdvSink) )
-		return NULL;
-	BOOL bPythonIsHappy = TRUE;
-	if (bPythonIsHappy && !PyObject_AsFORMATETC( obpformatetc, &formatetc )) bPythonIsHappy = FALSE;
-	if (bPythonIsHappy && !PyCom_InterfaceFromPyInstanceOrObject(obpAdvSink, IID_IAdviseSink, (void **)&pAdvSink, TRUE /* bNoneOK */))
-		 bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) return NULL;
-	DWORD dwConnection;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIDO->DAdvise( &formatetc, advf, pAdvSink, &dwConnection );
-	PY_INTERFACE_POSTCALL;
-	if (pAdvSink) pAdvSink->Release();
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pIDO, IID_IDataObject );
-	return PyInt_FromLong(dwConnection);
+    IDataObject *pIDO = GetI(self);
+    if (pIDO == NULL)
+        return NULL;
+    FORMATETC formatetc;
+    PyObject *obpformatetc;
+    // @pyparm <o PyFORMATETC>|pformatetc||Defines the type of data for which the sink will receive notifications.
+    // @pyparm int|advf||Combination of values from ADVF enum. (which currently do not appear in any of the constants
+    // modules!)
+    // @pyparm <o PyIAdviseSink>|pAdvSink||Currently this interface is not wrapped.
+    PyObject *obpAdvSink;
+    DWORD advf;
+    IAdviseSink *pAdvSink;
+    if (!PyArg_ParseTuple(args, "OlO:DAdvise", &obpformatetc, &advf, &obpAdvSink))
+        return NULL;
+    BOOL bPythonIsHappy = TRUE;
+    if (bPythonIsHappy && !PyObject_AsFORMATETC(obpformatetc, &formatetc))
+        bPythonIsHappy = FALSE;
+    if (bPythonIsHappy &&
+        !PyCom_InterfaceFromPyInstanceOrObject(obpAdvSink, IID_IAdviseSink, (void **)&pAdvSink, TRUE /* bNoneOK */))
+        bPythonIsHappy = FALSE;
+    if (!bPythonIsHappy)
+        return NULL;
+    DWORD dwConnection;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIDO->DAdvise(&formatetc, advf, pAdvSink, &dwConnection);
+    PY_INTERFACE_POSTCALL;
+    if (pAdvSink)
+        pAdvSink->Release();
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pIDO, IID_IDataObject);
+    return PyInt_FromLong(dwConnection);
 }
 
 // @pymethod |PyIDataObject|DUnadvise|Disconnects a notification sink.
 PyObject *PyIDataObject::DUnadvise(PyObject *self, PyObject *args)
 {
-	IDataObject *pIDO = GetI(self);
-	if ( pIDO == NULL )
-		return NULL;
-	// @pyparm int|dwConnection||Identifier of the connection as returned by DAdvise.
-	DWORD dwConnection;
-	if ( !PyArg_ParseTuple(args, "l:DUnadvise", &dwConnection) )
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIDO->DUnadvise( dwConnection );
-	PY_INTERFACE_POSTCALL;
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pIDO, IID_IDataObject );
-	Py_INCREF(Py_None);
-	return Py_None;
+    IDataObject *pIDO = GetI(self);
+    if (pIDO == NULL)
+        return NULL;
+    // @pyparm int|dwConnection||Identifier of the connection as returned by DAdvise.
+    DWORD dwConnection;
+    if (!PyArg_ParseTuple(args, "l:DUnadvise", &dwConnection))
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIDO->DUnadvise(dwConnection);
+    PY_INTERFACE_POSTCALL;
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pIDO, IID_IDataObject);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @pymethod <o PyIEnumSTATDATA>|PyIDataObject|EnumDAdvise|Creates an enumerator to list connected notification sinks.
 PyObject *PyIDataObject::EnumDAdvise(PyObject *self, PyObject *args)
 {
-	IDataObject *pIDO = GetI(self);
-	if ( pIDO == NULL )
-		return NULL;
-	IEnumSTATDATA *ppenumAdvise;
-	if ( !PyArg_ParseTuple(args, ":EnumDAdvise") )
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIDO->EnumDAdvise( &ppenumAdvise );
-	PY_INTERFACE_POSTCALL;
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pIDO, IID_IDataObject );
-	return PyCom_PyObjectFromIUnknown(ppenumAdvise, IID_IEnumSTATDATA, FALSE);
+    IDataObject *pIDO = GetI(self);
+    if (pIDO == NULL)
+        return NULL;
+    IEnumSTATDATA *ppenumAdvise;
+    if (!PyArg_ParseTuple(args, ":EnumDAdvise"))
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIDO->EnumDAdvise(&ppenumAdvise);
+    PY_INTERFACE_POSTCALL;
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pIDO, IID_IDataObject);
+    return PyCom_PyObjectFromIUnknown(ppenumAdvise, IID_IEnumSTATDATA, FALSE);
 }
 
 // @object PyIDataObject|Used to transfer data in various formats throughout the shell
 // @comm Can be enumerated to return a series of <o PyFORMATETC> describing the formats
 //   that the object can render.
-static struct PyMethodDef PyIDataObject_methods[] =
-{
-	{ "GetData", PyIDataObject::GetData, 1 }, // @pymeth GetData|Retrieves data from the object in specified format
-	{ "GetDataHere", PyIDataObject::GetDataHere, 1 }, // @pymeth GetDataHere|Returns a copy of the object's data in specified format
-	{ "QueryGetData", PyIDataObject::QueryGetData, 1 }, // @pymeth QueryGetData|Checks if the object supports returning data in a particular format
-	{ "GetCanonicalFormatEtc", PyIDataObject::GetCanonicalFormatEtc, 1 }, // @pymeth GetCanonicalFormatEtc|Transforms a FORMATECT data description into a general format that the object supports
-	{ "SetData", PyIDataObject::SetData, 1 }, // @pymeth SetData|Sets the data that the object will return.
-	{ "EnumFormatEtc", PyIDataObject::EnumFormatEtc, 1 }, // @pymeth EnumFormatEtc|Returns an enumerator to list the data formats that the object supports.
-	{ "DAdvise", PyIDataObject::DAdvise, 1 }, // @pymeth DAdvise|Connects the object to an interface that will receive notifications when its data changes
-	{ "DUnadvise", PyIDataObject::DUnadvise, 1 }, // @pymeth DUnadvise|Disconnects a notification sink.
-	{ "EnumDAdvise", PyIDataObject::EnumDAdvise, 1 }, // @pymeth EnumDAdvise|Creates an enumerator to list connected notification sinks.
-	{ NULL }
-};
+static struct PyMethodDef PyIDataObject_methods[] = {
+    {"GetData", PyIDataObject::GetData, 1},  // @pymeth GetData|Retrieves data from the object in specified format
+    {"GetDataHere", PyIDataObject::GetDataHere,
+     1},  // @pymeth GetDataHere|Returns a copy of the object's data in specified format
+    {"QueryGetData", PyIDataObject::QueryGetData,
+     1},  // @pymeth QueryGetData|Checks if the object supports returning data in a particular format
+    {"GetCanonicalFormatEtc", PyIDataObject::GetCanonicalFormatEtc,
+     1},  // @pymeth GetCanonicalFormatEtc|Transforms a FORMATECT data description into a general format that the object
+          // supports
+    {"SetData", PyIDataObject::SetData, 1},  // @pymeth SetData|Sets the data that the object will return.
+    {"EnumFormatEtc", PyIDataObject::EnumFormatEtc,
+     1},  // @pymeth EnumFormatEtc|Returns an enumerator to list the data formats that the object supports.
+    {"DAdvise", PyIDataObject::DAdvise,
+     1},  // @pymeth DAdvise|Connects the object to an interface that will receive notifications when its data changes
+    {"DUnadvise", PyIDataObject::DUnadvise, 1},  // @pymeth DUnadvise|Disconnects a notification sink.
+    {"EnumDAdvise", PyIDataObject::EnumDAdvise,
+     1},  // @pymeth EnumDAdvise|Creates an enumerator to list connected notification sinks.
+    {NULL}};
 
-PyComEnumProviderTypeObject PyIDataObject::type("PyIDataObject",
-		&PyIUnknown::type,
-		sizeof(PyIDataObject),
-		PyIDataObject_methods,
-		GET_PYCOM_CTOR(PyIDataObject),
-		"EnumFormatEtc");
+PyComEnumProviderTypeObject PyIDataObject::type("PyIDataObject", &PyIUnknown::type, sizeof(PyIDataObject),
+                                                PyIDataObject_methods, GET_PYCOM_CTOR(PyIDataObject), "EnumFormatEtc");
 // ---------------------------------------------------
 //
 // Gateway Implementation
 STDMETHODIMP PyGDataObject::GetData(
-		/* [unique][in] */ FORMATETC * pformatetcIn,
-		/* [out] */ STGMEDIUM * pmedium)
+    /* [unique][in] */ FORMATETC *pformatetcIn,
+    /* [out] */ STGMEDIUM *pmedium)
 {
-	static const char *method_name = "GetData";
-	if (!pmedium)
-		return E_POINTER;
-	PY_GATEWAY_METHOD;
-	PyObject *obpformatetcIn = PyObject_FromFORMATETC(pformatetcIn);
-	if (obpformatetcIn==NULL) return MAKE_PYCOM_GATEWAY_FAILURE_CODE(method_name);
-	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("GetData", &result, "(O)", obpformatetcIn);
-	Py_DECREF(obpformatetcIn);
-	if (FAILED(hr)) return hr;
-	// Process the Python results, and convert back to the real params
-	if (PySTGMEDIUM_Check(result)) {
-		PySTGMEDIUM *pym = (PySTGMEDIUM *)result;
-		// Documentation says pmedium is 'out' - generally it will have empty
-		// data, but not always.
-		memset(pmedium, 0, sizeof(*pmedium));
-		pym->CopyTo(pmedium);
-	}
-	hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE(method_name);
-	Py_DECREF(result);
-	return hr;
+    static const char *method_name = "GetData";
+    if (!pmedium)
+        return E_POINTER;
+    PY_GATEWAY_METHOD;
+    PyObject *obpformatetcIn = PyObject_FromFORMATETC(pformatetcIn);
+    if (obpformatetcIn == NULL)
+        return MAKE_PYCOM_GATEWAY_FAILURE_CODE(method_name);
+    PyObject *result;
+    HRESULT hr = InvokeViaPolicy("GetData", &result, "(O)", obpformatetcIn);
+    Py_DECREF(obpformatetcIn);
+    if (FAILED(hr))
+        return hr;
+    // Process the Python results, and convert back to the real params
+    if (PySTGMEDIUM_Check(result)) {
+        PySTGMEDIUM *pym = (PySTGMEDIUM *)result;
+        // Documentation says pmedium is 'out' - generally it will have empty
+        // data, but not always.
+        memset(pmedium, 0, sizeof(*pmedium));
+        pym->CopyTo(pmedium);
+    }
+    hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE(method_name);
+    Py_DECREF(result);
+    return hr;
 }
 
 STDMETHODIMP PyGDataObject::GetDataHere(
-		/* [unique][in] */ FORMATETC * pformatetc,
-		/* [out][in] */ STGMEDIUM * pmedium)
+    /* [unique][in] */ FORMATETC *pformatetc,
+    /* [out][in] */ STGMEDIUM *pmedium)
 {
-	static const char *method_name = "GetDataHere";
-	PY_GATEWAY_METHOD;
-	PyObject *obpformatetc = PyObject_FromFORMATETC(pformatetc);
-	if (obpformatetc==NULL) return MAKE_PYCOM_GATEWAY_FAILURE_CODE(method_name);
-	PyObject *result;
-	HRESULT hr=InvokeViaPolicy(method_name, &result, "(O)", obpformatetc);
-	Py_DECREF(obpformatetc);
-	if (FAILED(hr)) return hr;
-	// Process the Python results, and convert back to the real params
-	if (PySTGMEDIUM_Check(result)) {
-		PySTGMEDIUM *pym = (PySTGMEDIUM *)result;
-		memcpy(pmedium, &pym->medium, sizeof(STGMEDIUM));
-		pym->DropOwnership();
-	}
-	hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE(method_name);
-	Py_DECREF(result);
-	return hr;
+    static const char *method_name = "GetDataHere";
+    PY_GATEWAY_METHOD;
+    PyObject *obpformatetc = PyObject_FromFORMATETC(pformatetc);
+    if (obpformatetc == NULL)
+        return MAKE_PYCOM_GATEWAY_FAILURE_CODE(method_name);
+    PyObject *result;
+    HRESULT hr = InvokeViaPolicy(method_name, &result, "(O)", obpformatetc);
+    Py_DECREF(obpformatetc);
+    if (FAILED(hr))
+        return hr;
+    // Process the Python results, and convert back to the real params
+    if (PySTGMEDIUM_Check(result)) {
+        PySTGMEDIUM *pym = (PySTGMEDIUM *)result;
+        memcpy(pmedium, &pym->medium, sizeof(STGMEDIUM));
+        pym->DropOwnership();
+    }
+    hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE(method_name);
+    Py_DECREF(result);
+    return hr;
 }
 
 STDMETHODIMP PyGDataObject::QueryGetData(
-		/* [unique][in] */ FORMATETC * pformatetc)
+    /* [unique][in] */ FORMATETC *pformatetc)
 {
-	static const char *method_name = "QueryGetData";
-	PY_GATEWAY_METHOD;
-	PyObject *obpformatetc = PyObject_FromFORMATETC(pformatetc);
-	if (obpformatetc==NULL) return MAKE_PYCOM_GATEWAY_FAILURE_CODE(method_name);
-	HRESULT hr=InvokeViaPolicy(method_name, NULL, "(O)", obpformatetc);
-	Py_DECREF(obpformatetc);
-	return hr;
+    static const char *method_name = "QueryGetData";
+    PY_GATEWAY_METHOD;
+    PyObject *obpformatetc = PyObject_FromFORMATETC(pformatetc);
+    if (obpformatetc == NULL)
+        return MAKE_PYCOM_GATEWAY_FAILURE_CODE(method_name);
+    HRESULT hr = InvokeViaPolicy(method_name, NULL, "(O)", obpformatetc);
+    Py_DECREF(obpformatetc);
+    return hr;
 }
 
 STDMETHODIMP PyGDataObject::GetCanonicalFormatEtc(
-		/* [unique][in] */ FORMATETC * pformatectIn,
-		/* [out] */ FORMATETC * pformatetcOut)
+    /* [unique][in] */ FORMATETC *pformatectIn,
+    /* [out] */ FORMATETC *pformatetcOut)
 {
-	static const char *method_name = "GetCanonicalFormatEtc";
-	PY_GATEWAY_METHOD;
-	PyObject *obpformatectIn = PyObject_FromFORMATETC(pformatectIn);
-	if (obpformatectIn==NULL) return MAKE_PYCOM_GATEWAY_FAILURE_CODE(method_name);
-	PyObject *result;
-	HRESULT hr=InvokeViaPolicy(method_name, &result, "(O)", obpformatectIn);
-	Py_DECREF(obpformatectIn);
-	if (FAILED(hr)) return hr;
-	// Process the Python results, and convert back to the real params
-	PyObject_AsFORMATETC(result, pformatetcOut);
-	Py_DECREF(result);
-	return hr;
+    static const char *method_name = "GetCanonicalFormatEtc";
+    PY_GATEWAY_METHOD;
+    PyObject *obpformatectIn = PyObject_FromFORMATETC(pformatectIn);
+    if (obpformatectIn == NULL)
+        return MAKE_PYCOM_GATEWAY_FAILURE_CODE(method_name);
+    PyObject *result;
+    HRESULT hr = InvokeViaPolicy(method_name, &result, "(O)", obpformatectIn);
+    Py_DECREF(obpformatectIn);
+    if (FAILED(hr))
+        return hr;
+    // Process the Python results, and convert back to the real params
+    PyObject_AsFORMATETC(result, pformatetcOut);
+    Py_DECREF(result);
+    return hr;
 }
 
 STDMETHODIMP PyGDataObject::SetData(
-		/* [unique][in] */ FORMATETC * pformatetc,
-		/* [unique][in] */ STGMEDIUM * pmedium,
-		/* [in] */ BOOL fRelease)
+    /* [unique][in] */ FORMATETC *pformatetc,
+    /* [unique][in] */ STGMEDIUM *pmedium,
+    /* [in] */ BOOL fRelease)
 {
-	static const char *method_name = "SetData";
-	PY_GATEWAY_METHOD;
-	PyObject *obpformatetc = PyObject_FromFORMATETC(pformatetc);
-	if (obpformatetc==NULL) return MAKE_PYCOM_GATEWAY_FAILURE_CODE(method_name);
-	PySTGMEDIUM *obmedium = PyObject_FromSTGMEDIUM(pmedium);
-	if (obmedium==NULL) return MAKE_PYCOM_GATEWAY_FAILURE_CODE(method_name);
-        // PySTGMEDIUM should be the exact same pointer as PyObject
-        assert((void *)(PyObject *)obmedium==(void *)obmedium);
-	HRESULT hr=InvokeViaPolicy(method_name, NULL, "OOi", obpformatetc, (PyObject *)obmedium, fRelease);
-	if (!fRelease)
-		obmedium->DropOwnership();
-	Py_DECREF(obpformatetc);
-	Py_DECREF(obmedium);
-	return hr;
+    static const char *method_name = "SetData";
+    PY_GATEWAY_METHOD;
+    PyObject *obpformatetc = PyObject_FromFORMATETC(pformatetc);
+    if (obpformatetc == NULL)
+        return MAKE_PYCOM_GATEWAY_FAILURE_CODE(method_name);
+    PySTGMEDIUM *obmedium = PyObject_FromSTGMEDIUM(pmedium);
+    if (obmedium == NULL)
+        return MAKE_PYCOM_GATEWAY_FAILURE_CODE(method_name);
+    // PySTGMEDIUM should be the exact same pointer as PyObject
+    assert((void *)(PyObject *)obmedium == (void *)obmedium);
+    HRESULT hr = InvokeViaPolicy(method_name, NULL, "OOi", obpformatetc, (PyObject *)obmedium, fRelease);
+    if (!fRelease)
+        obmedium->DropOwnership();
+    Py_DECREF(obpformatetc);
+    Py_DECREF(obmedium);
+    return hr;
 }
 
 STDMETHODIMP PyGDataObject::EnumFormatEtc(
-		/* [in] */ DWORD dwDirection,
-		/* [out] */ IEnumFORMATETC ** ppenumFormatEtc)
+    /* [in] */ DWORD dwDirection,
+    /* [out] */ IEnumFORMATETC **ppenumFormatEtc)
 {
-	static const char *method_name = "EnumFormatEtc";
-	PY_GATEWAY_METHOD;
-	PyObject *result;
-	HRESULT hr=InvokeViaPolicy(method_name, &result, "l", dwDirection);
-	if (FAILED(hr)) return hr;
-	// Process the Python results, and convert back to the real params
-	PyObject *obppenumFormatEtc;
-	if (!PyArg_Parse(result, "O" , &obppenumFormatEtc)) return MAKE_PYCOM_GATEWAY_FAILURE_CODE(method_name);
-	BOOL bPythonIsHappy = TRUE;
-	if (bPythonIsHappy && !PyCom_InterfaceFromPyInstanceOrObject(obppenumFormatEtc, IID_IEnumFORMATETC, (void **)ppenumFormatEtc, TRUE /* bNoneOK */))
-		 bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE(method_name);
-	Py_DECREF(result);
-	return hr;
+    static const char *method_name = "EnumFormatEtc";
+    PY_GATEWAY_METHOD;
+    PyObject *result;
+    HRESULT hr = InvokeViaPolicy(method_name, &result, "l", dwDirection);
+    if (FAILED(hr))
+        return hr;
+    // Process the Python results, and convert back to the real params
+    PyObject *obppenumFormatEtc;
+    if (!PyArg_Parse(result, "O", &obppenumFormatEtc))
+        return MAKE_PYCOM_GATEWAY_FAILURE_CODE(method_name);
+    BOOL bPythonIsHappy = TRUE;
+    if (bPythonIsHappy && !PyCom_InterfaceFromPyInstanceOrObject(obppenumFormatEtc, IID_IEnumFORMATETC,
+                                                                 (void **)ppenumFormatEtc, TRUE /* bNoneOK */))
+        bPythonIsHappy = FALSE;
+    if (!bPythonIsHappy)
+        hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE(method_name);
+    Py_DECREF(result);
+    return hr;
 }
 
 STDMETHODIMP PyGDataObject::DAdvise(
-		/* [in] */ FORMATETC * pformatetc,
-		/* [in] */ DWORD advf,
-		/* [unique][in] */ IAdviseSink * pAdvSink,
-		/* [out] */ DWORD * pdwConnection)
+    /* [in] */ FORMATETC *pformatetc,
+    /* [in] */ DWORD advf,
+    /* [unique][in] */ IAdviseSink *pAdvSink,
+    /* [out] */ DWORD *pdwConnection)
 {
-	static const char *method_name = "DAdvise";
-	PY_GATEWAY_METHOD;
-	PyObject *obpformatetc = PyObject_FromFORMATETC(pformatetc);
-	if (obpformatetc==NULL) return MAKE_PYCOM_GATEWAY_FAILURE_CODE(method_name);
-	PyObject *obpAdvSink;
-	obpAdvSink = PyCom_PyObjectFromIUnknown(pAdvSink, IID_IAdviseSink, TRUE);
-	PyObject *result;
-	HRESULT hr=InvokeViaPolicy(method_name, &result, "OlO", obpformatetc, advf, obpAdvSink);
-	Py_DECREF(obpformatetc);
-	Py_XDECREF(obpAdvSink);
-	if (FAILED(hr)) return hr;
-	*pdwConnection = PyInt_AsLong(result);
-	Py_DECREF(result);
-	return hr;
+    static const char *method_name = "DAdvise";
+    PY_GATEWAY_METHOD;
+    PyObject *obpformatetc = PyObject_FromFORMATETC(pformatetc);
+    if (obpformatetc == NULL)
+        return MAKE_PYCOM_GATEWAY_FAILURE_CODE(method_name);
+    PyObject *obpAdvSink;
+    obpAdvSink = PyCom_PyObjectFromIUnknown(pAdvSink, IID_IAdviseSink, TRUE);
+    PyObject *result;
+    HRESULT hr = InvokeViaPolicy(method_name, &result, "OlO", obpformatetc, advf, obpAdvSink);
+    Py_DECREF(obpformatetc);
+    Py_XDECREF(obpAdvSink);
+    if (FAILED(hr))
+        return hr;
+    *pdwConnection = PyInt_AsLong(result);
+    Py_DECREF(result);
+    return hr;
 }
 
 STDMETHODIMP PyGDataObject::DUnadvise(
-		/* [in] */ DWORD dwConnection)
+    /* [in] */ DWORD dwConnection)
 {
-	PY_GATEWAY_METHOD;
-	HRESULT hr=InvokeViaPolicy("DUnadvise", NULL, "l", dwConnection);
-	return hr;
+    PY_GATEWAY_METHOD;
+    HRESULT hr = InvokeViaPolicy("DUnadvise", NULL, "l", dwConnection);
+    return hr;
 }
 
 STDMETHODIMP PyGDataObject::EnumDAdvise(
-		/* [out] */ IEnumSTATDATA ** ppenumAdvise)
+    /* [out] */ IEnumSTATDATA **ppenumAdvise)
 {
-	static const char *method_name = "EnumDAdvise";
-	PY_GATEWAY_METHOD;
-	PyObject *result;
-	HRESULT hr=InvokeViaPolicy(method_name, &result);
-	if (FAILED(hr)) return hr;
-	// Process the Python results, and convert back to the real params
-	PyObject *obppenumAdvise;
-	if (!PyArg_Parse(result, "O" , &obppenumAdvise)) return MAKE_PYCOM_GATEWAY_FAILURE_CODE(method_name);
-	BOOL bPythonIsHappy = TRUE;
-	if (bPythonIsHappy && !PyCom_InterfaceFromPyInstanceOrObject(obppenumAdvise, IID_IEnumSTATDATA, (void **)ppenumAdvise, TRUE /* bNoneOK */))
-		 bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE(method_name);
-	Py_DECREF(result);
-	return hr;
+    static const char *method_name = "EnumDAdvise";
+    PY_GATEWAY_METHOD;
+    PyObject *result;
+    HRESULT hr = InvokeViaPolicy(method_name, &result);
+    if (FAILED(hr))
+        return hr;
+    // Process the Python results, and convert back to the real params
+    PyObject *obppenumAdvise;
+    if (!PyArg_Parse(result, "O", &obppenumAdvise))
+        return MAKE_PYCOM_GATEWAY_FAILURE_CODE(method_name);
+    BOOL bPythonIsHappy = TRUE;
+    if (bPythonIsHappy && !PyCom_InterfaceFromPyInstanceOrObject(obppenumAdvise, IID_IEnumSTATDATA,
+                                                                 (void **)ppenumAdvise, TRUE /* bNoneOK */))
+        bPythonIsHappy = FALSE;
+    if (!bPythonIsHappy)
+        hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE(method_name);
+    Py_DECREF(result);
+    return hr;
 }
-

@@ -10,154 +10,138 @@
 //
 // Interface Implementation
 
-PyIEnumObjects::PyIEnumObjects(IUnknown *pdisp):
-	PyIUnknown(pdisp)
-{
-	ob_type = &type;
-}
+PyIEnumObjects::PyIEnumObjects(IUnknown *pdisp) : PyIUnknown(pdisp) { ob_type = &type; }
 
-PyIEnumObjects::~PyIEnumObjects()
-{
-}
+PyIEnumObjects::~PyIEnumObjects() {}
 
-/* static */ IEnumObjects *PyIEnumObjects::GetI(PyObject *self)
-{
-	return (IEnumObjects *)PyIUnknown::GetI(self);
-}
+/* static */ IEnumObjects *PyIEnumObjects::GetI(PyObject *self) { return (IEnumObjects *)PyIUnknown::GetI(self); }
 
 // @pymethod (<o PyIUnknown>,...)|PyIEnumObjects|Next|Retrieves a specified number of items in the enumeration sequence.
 PyObject *PyIEnumObjects::Next(PyObject *self, PyObject *args)
 {
-	long celt = 1;
-	IID riid = IID_IUnknown;
-	// @pyparm int|num|1|Number of items to retrieve.
-	// @pyparm <o PyIID>|riid|IID_IUnknown|The interfaces to return
-	if (!PyArg_ParseTuple(args, "|lO&:Next", &celt, PyWinObject_AsIID, &riid))
-		return NULL;
+    long celt = 1;
+    IID riid = IID_IUnknown;
+    // @pyparm int|num|1|Number of items to retrieve.
+    // @pyparm <o PyIID>|riid|IID_IUnknown|The interfaces to return
+    if (!PyArg_ParseTuple(args, "|lO&:Next", &celt, PyWinObject_AsIID, &riid))
+        return NULL;
 
-	IEnumObjects *pIEObjects = GetI(self);
-	if ( pIEObjects == NULL )
-		return NULL;
+    IEnumObjects *pIEObjects = GetI(self);
+    if (pIEObjects == NULL)
+        return NULL;
 
-	IUnknown **rgVar = new IUnknown *[celt];
-	if ( rgVar == NULL ) {
-		PyErr_SetString(PyExc_MemoryError, "allocating result Objects");
-		return NULL;
-	}
+    IUnknown **rgVar = new IUnknown *[celt];
+    if (rgVar == NULL) {
+        PyErr_SetString(PyExc_MemoryError, "allocating result Objects");
+        return NULL;
+    }
 
-	int i;
-/*	for ( i = celt; i--; )
-		// *** possibly init each structure element???
-*/
+    int i;
+    /*	for ( i = celt; i--; )
+            // *** possibly init each structure element???
+    */
 
-	ULONG celtFetched = 0;
-	PY_INTERFACE_PRECALL;
-	HRESULT hr = pIEObjects->Next(celt, riid, (void **)rgVar, &celtFetched);
-	PY_INTERFACE_POSTCALL;
-	if (  HRESULT_CODE(hr) != ERROR_NO_MORE_ITEMS && FAILED(hr) )
-	{
-		delete [] rgVar;
-		return PyCom_BuildPyException(hr,pIEObjects, IID_IEnumObjects);
-	}
+    ULONG celtFetched = 0;
+    PY_INTERFACE_PRECALL;
+    HRESULT hr = pIEObjects->Next(celt, riid, (void **)rgVar, &celtFetched);
+    PY_INTERFACE_POSTCALL;
+    if (HRESULT_CODE(hr) != ERROR_NO_MORE_ITEMS && FAILED(hr)) {
+        delete[] rgVar;
+        return PyCom_BuildPyException(hr, pIEObjects, IID_IEnumObjects);
+    }
 
-	PyObject *result = PyTuple_New(celtFetched);
-	if ( result != NULL )
-	{
-		for ( i = celtFetched; i--; )
-		{
-			PyObject *ob = PyCom_PyObjectFromIUnknown(rgVar[i], riid, FALSE);
-			if ( ob == NULL )
-			{
-				Py_DECREF(result);
-				result = NULL;
-				break;
-			}
-			PyTuple_SET_ITEM(result, i, ob);
-			rgVar[i] = NULL;
-		}
-	}
+    PyObject *result = PyTuple_New(celtFetched);
+    if (result != NULL) {
+        for (i = celtFetched; i--;) {
+            PyObject *ob = PyCom_PyObjectFromIUnknown(rgVar[i], riid, FALSE);
+            if (ob == NULL) {
+                Py_DECREF(result);
+                result = NULL;
+                break;
+            }
+            PyTuple_SET_ITEM(result, i, ob);
+            rgVar[i] = NULL;
+        }
+    }
 
-	if (result == NULL)
-		for ( i = celtFetched; i--; )
-			PYCOM_RELEASE(rgVar[i]);
+    if (result == NULL)
+        for (i = celtFetched; i--;) PYCOM_RELEASE(rgVar[i]);
 
-	delete [] rgVar;
-	return result;
+    delete[] rgVar;
+    return result;
 }
 
 // @pymethod |PyIEnumObjects|Skip|Skips over the next specified elementes.
 PyObject *PyIEnumObjects::Skip(PyObject *self, PyObject *args)
 {
-	long celt;
-	if ( !PyArg_ParseTuple(args, "l:Skip", &celt) )
-		return NULL;
+    long celt;
+    if (!PyArg_ParseTuple(args, "l:Skip", &celt))
+        return NULL;
 
-	IEnumObjects *pIEObjects = GetI(self);
-	if ( pIEObjects == NULL )
-		return NULL;
+    IEnumObjects *pIEObjects = GetI(self);
+    if (pIEObjects == NULL)
+        return NULL;
 
-	PY_INTERFACE_PRECALL;
-	HRESULT hr = pIEObjects->Skip(celt);
-	PY_INTERFACE_POSTCALL;
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pIEObjects, IID_IEnumObjects);
+    PY_INTERFACE_PRECALL;
+    HRESULT hr = pIEObjects->Skip(celt);
+    PY_INTERFACE_POSTCALL;
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pIEObjects, IID_IEnumObjects);
 
-	Py_INCREF(Py_None);
-	return Py_None;
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @pymethod |PyIEnumObjects|Reset|Resets the enumeration sequence to the beginning.
 PyObject *PyIEnumObjects::Reset(PyObject *self, PyObject *args)
 {
-	if ( !PyArg_ParseTuple(args, ":Reset") )
-		return NULL;
+    if (!PyArg_ParseTuple(args, ":Reset"))
+        return NULL;
 
-	IEnumObjects *pIEObjects = GetI(self);
-	if ( pIEObjects == NULL )
-		return NULL;
+    IEnumObjects *pIEObjects = GetI(self);
+    if (pIEObjects == NULL)
+        return NULL;
 
-	PY_INTERFACE_PRECALL;
-	HRESULT hr = pIEObjects->Reset();
-	PY_INTERFACE_POSTCALL;
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pIEObjects, IID_IEnumObjects);
+    PY_INTERFACE_PRECALL;
+    HRESULT hr = pIEObjects->Reset();
+    PY_INTERFACE_POSTCALL;
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pIEObjects, IID_IEnumObjects);
 
-	Py_INCREF(Py_None);
-	return Py_None;
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
-// @pymethod <o PyIEnumObjects>|PyIEnumObjects|Clone|Creates another enumerator that contains the same enumeration state as the current one
+// @pymethod <o PyIEnumObjects>|PyIEnumObjects|Clone|Creates another enumerator that contains the same enumeration state
+// as the current one
 PyObject *PyIEnumObjects::Clone(PyObject *self, PyObject *args)
 {
-	if ( !PyArg_ParseTuple(args, ":Clone") )
-		return NULL;
+    if (!PyArg_ParseTuple(args, ":Clone"))
+        return NULL;
 
-	IEnumObjects *pIEObjects = GetI(self);
-	if ( pIEObjects == NULL )
-		return NULL;
+    IEnumObjects *pIEObjects = GetI(self);
+    if (pIEObjects == NULL)
+        return NULL;
 
-	IEnumObjects *pClone;
-	PY_INTERFACE_PRECALL;
-	HRESULT hr = pIEObjects->Clone(&pClone);
-	PY_INTERFACE_POSTCALL;
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pIEObjects, IID_IEnumObjects);
+    IEnumObjects *pClone;
+    PY_INTERFACE_PRECALL;
+    HRESULT hr = pIEObjects->Clone(&pClone);
+    PY_INTERFACE_POSTCALL;
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pIEObjects, IID_IEnumObjects);
 
-	return PyCom_PyObjectFromIUnknown(pClone, IID_IEnumObjects, FALSE);
+    return PyCom_PyObjectFromIUnknown(pClone, IID_IEnumObjects, FALSE);
 }
 
 // @object PyIEnumObjects|Iterates through a number of arbitrary interfaces
-static struct PyMethodDef PyIEnumObjects_methods[] =
-{
-	{ "Next", PyIEnumObjects::Next, 1 },    // @pymeth Next|Retrieves a specified number of items in the enumeration sequence.
-	{ "Skip", PyIEnumObjects::Skip, 1 },	// @pymeth Skip|Skips over the next specified elementes.
-	{ "Reset", PyIEnumObjects::Reset, 1 },	// @pymeth Reset|Resets the enumeration sequence to the beginning.
-	{ "Clone", PyIEnumObjects::Clone, 1 },	// @pymeth Clone|Creates another enumerator that contains the same enumeration state as the current one.
-	{ NULL }
-};
+static struct PyMethodDef PyIEnumObjects_methods[] = {
+    {"Next", PyIEnumObjects::Next,
+     1},  // @pymeth Next|Retrieves a specified number of items in the enumeration sequence.
+    {"Skip", PyIEnumObjects::Skip, 1},    // @pymeth Skip|Skips over the next specified elementes.
+    {"Reset", PyIEnumObjects::Reset, 1},  // @pymeth Reset|Resets the enumeration sequence to the beginning.
+    {"Clone", PyIEnumObjects::Clone,
+     1},  // @pymeth Clone|Creates another enumerator that contains the same enumeration state as the current one.
+    {NULL}};
 
-PyComEnumTypeObject PyIEnumObjects::type("PyIEnumObjects",
-		&PyIUnknown::type,
-		sizeof(PyIEnumObjects),
-		PyIEnumObjects_methods,
-		GET_PYCOM_CTOR(PyIEnumObjects));
+PyComEnumTypeObject PyIEnumObjects::type("PyIEnumObjects", &PyIUnknown::type, sizeof(PyIEnumObjects),
+                                         PyIEnumObjects_methods, GET_PYCOM_CTOR(PyIEnumObjects));

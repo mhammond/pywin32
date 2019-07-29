@@ -14,8 +14,7 @@
 #pragma once
 #endif
 
-
-#if defined (WIN64) && !defined (_WIN64)
+#if defined(WIN64) && !defined(_WIN64)
 #define _WIN64
 #endif
 
@@ -23,7 +22,7 @@
  *	Under Win64 systems Win32 is also defined for backwards compatibility.
  */
 
-#if defined (WIN32) && !defined (_WIN32)
+#if defined(WIN32) && !defined(_WIN32)
 #define _WIN32
 #endif
 
@@ -39,63 +38,41 @@ extern "C" {
 #define BEGIN_INTERFACE
 #endif
 
-
 /* IMAPITable in memory */
 
 /* ITableData Interface ---------------------------------------------------- */
 
 DECLARE_MAPI_INTERFACE_PTR(ITableData, LPTABLEDATA);
 
-typedef void (STDAPICALLTYPE CALLERRELEASE)(
-	ULONG_PTR		ulCallerData,
-	LPTABLEDATA	lpTblData,
-	LPMAPITABLE	lpVue
-);
+typedef void(STDAPICALLTYPE CALLERRELEASE)(ULONG_PTR ulCallerData, LPTABLEDATA lpTblData, LPMAPITABLE lpVue);
 
-#define MAPI_ITABLEDATA_METHODS(IPURE)									\
-	MAPIMETHOD(HrGetView)												\
-		(THIS_	LPSSortOrderSet				lpSSortOrderSet,			\
-				CALLERRELEASE FAR *			lpfCallerRelease,			\
-				ULONG_PTR					ulCallerData,				\
-				LPMAPITABLE FAR *			lppMAPITable) IPURE;		\
-	MAPIMETHOD(HrModifyRow)												\
-		(THIS_	LPSRow) IPURE;											\
-	MAPIMETHOD(HrDeleteRow)												\
-		(THIS_	LPSPropValue				lpSPropValue) IPURE;		\
-	MAPIMETHOD(HrQueryRow)												\
-		(THIS_	LPSPropValue				lpsPropValue,				\
-				LPSRow FAR *				lppSRow,					\
-				ULONG FAR *					lpuliRow) IPURE;			\
-	MAPIMETHOD(HrEnumRow)												\
-		(THIS_	ULONG						ulRowNumber,				\
-				LPSRow FAR *				lppSRow) IPURE;				\
-	MAPIMETHOD(HrNotify)												\
-		(THIS_	ULONG						ulFlags,					\
-				ULONG						cValues,					\
-				LPSPropValue				lpSPropValue) IPURE;		\
-	MAPIMETHOD(HrInsertRow)												\
-		(THIS_	ULONG						uliRow,						\
-				LPSRow						lpSRow) IPURE;				\
-	MAPIMETHOD(HrModifyRows)											\
-		(THIS_	ULONG						ulFlags,					\
-				LPSRowSet					lpSRowSet) IPURE;			\
-	MAPIMETHOD(HrDeleteRows)											\
-		(THIS_	ULONG						ulFlags,					\
-				LPSRowSet					lprowsetToDelete,			\
-				ULONG FAR *					cRowsDeleted) IPURE;		\
+#define MAPI_ITABLEDATA_METHODS(IPURE)                                                                    \
+    MAPIMETHOD(HrGetView)                                                                                 \
+    (THIS_ LPSSortOrderSet lpSSortOrderSet, CALLERRELEASE FAR * lpfCallerRelease, ULONG_PTR ulCallerData, \
+     LPMAPITABLE FAR * lppMAPITable) IPURE;                                                               \
+    MAPIMETHOD(HrModifyRow)                                                                               \
+    (THIS_ LPSRow) IPURE;                                                                                 \
+    MAPIMETHOD(HrDeleteRow)                                                                               \
+    (THIS_ LPSPropValue lpSPropValue) IPURE;                                                              \
+    MAPIMETHOD(HrQueryRow)                                                                                \
+    (THIS_ LPSPropValue lpsPropValue, LPSRow FAR * lppSRow, ULONG FAR * lpuliRow) IPURE;                  \
+    MAPIMETHOD(HrEnumRow)                                                                                 \
+    (THIS_ ULONG ulRowNumber, LPSRow FAR * lppSRow) IPURE;                                                \
+    MAPIMETHOD(HrNotify)                                                                                  \
+    (THIS_ ULONG ulFlags, ULONG cValues, LPSPropValue lpSPropValue) IPURE;                                \
+    MAPIMETHOD(HrInsertRow)                                                                               \
+    (THIS_ ULONG uliRow, LPSRow lpSRow) IPURE;                                                            \
+    MAPIMETHOD(HrModifyRows)                                                                              \
+    (THIS_ ULONG ulFlags, LPSRowSet lpSRowSet) IPURE;                                                     \
+    MAPIMETHOD(HrDeleteRows)                                                                              \
+    (THIS_ ULONG ulFlags, LPSRowSet lprowsetToDelete, ULONG FAR * cRowsDeleted) IPURE;
 
-#undef		 INTERFACE
-#define		 INTERFACE	ITableData
-DECLARE_MAPI_INTERFACE_(ITableData, IUnknown)
-{
-	BEGIN_INTERFACE
-	MAPI_IUNKNOWN_METHODS(PURE)
-	MAPI_ITABLEDATA_METHODS(PURE)
-};
-
+#undef INTERFACE
+#define INTERFACE ITableData
+DECLARE_MAPI_INTERFACE_(ITableData,
+                        IUnknown){BEGIN_INTERFACE MAPI_IUNKNOWN_METHODS(PURE) MAPI_ITABLEDATA_METHODS(PURE)};
 
 /* Entry Point for in memory ITable */
-
 
 /*	CreateTable()
  *		Creates the internal memory structures and object handle
@@ -121,15 +98,9 @@ DECLARE_MAPI_INTERFACE_(ITableData, IUnknown)
  */
 
 STDAPI_(SCODE)
-CreateTable( LPCIID					lpInterface,
-			 ALLOCATEBUFFER FAR *	lpAllocateBuffer,
-			 ALLOCATEMORE FAR *		lpAllocateMore,
-			 FREEBUFFER FAR *		lpFreeBuffer,
-			 LPVOID					lpvReserved,
-			 ULONG					ulTableType,
-			 ULONG					ulPropTagIndexColumn,
-			 LPSPropTagArray		lpSPropTagArrayColumns,
-			 LPTABLEDATA FAR *		lppTableData );
+CreateTable(LPCIID lpInterface, ALLOCATEBUFFER FAR *lpAllocateBuffer, ALLOCATEMORE FAR *lpAllocateMore,
+            FREEBUFFER FAR *lpFreeBuffer, LPVOID lpvReserved, ULONG ulTableType, ULONG ulPropTagIndexColumn,
+            LPSPropTagArray lpSPropTagArrayColumns, LPTABLEDATA FAR *lppTableData);
 
 /*	HrGetView()
  *		This function obtains a new view on the underlying data
@@ -189,7 +160,7 @@ CreateTable( LPCIID					lpInterface,
  *		The properties do not have to be in the same order as the
  *		columns in the current table
  */
-#define	TAD_ALL_ROWS	1
+#define TAD_ALL_ROWS 1
 
 /*	HrDeleteRow()
  *		Delete a row in the table.
@@ -236,41 +207,28 @@ CreateTable( LPCIID					lpInterface,
  *		columns in the current table
  */
 
-
 /* IMAPIProp in memory */
 
 /* IPropData Interface ---------------------------------------------------- */
 
+#define MAPI_IPROPDATA_METHODS(IPURE)                                                    \
+    MAPIMETHOD(HrSetObjAccess)                                                           \
+    (THIS_ ULONG ulAccess) IPURE;                                                        \
+    MAPIMETHOD(HrSetPropAccess)                                                          \
+    (THIS_ LPSPropTagArray lpPropTagArray, ULONG FAR * rgulAccess) IPURE;                \
+    MAPIMETHOD(HrGetPropAccess)                                                          \
+    (THIS_ LPSPropTagArray FAR * lppPropTagArray, ULONG FAR * FAR * lprgulAccess) IPURE; \
+    MAPIMETHOD(HrAddObjProps)                                                            \
+    (THIS_ LPSPropTagArray lppPropTagArray, LPSPropProblemArray FAR * lprgulAccess) IPURE;
 
-#define MAPI_IPROPDATA_METHODS(IPURE)									\
-	MAPIMETHOD(HrSetObjAccess)											\
-		(THIS_	ULONG						ulAccess) IPURE;			\
-	MAPIMETHOD(HrSetPropAccess)											\
-		(THIS_	LPSPropTagArray				lpPropTagArray,				\
-				ULONG FAR *					rgulAccess) IPURE;			\
-	MAPIMETHOD(HrGetPropAccess)											\
-		(THIS_	LPSPropTagArray FAR *		lppPropTagArray,			\
-				ULONG FAR * FAR *			lprgulAccess) IPURE;		\
-	MAPIMETHOD(HrAddObjProps)											\
-		(THIS_	LPSPropTagArray				lppPropTagArray,			\
-				LPSPropProblemArray FAR *	lprgulAccess) IPURE;
-
-
-#undef		 INTERFACE
-#define		 INTERFACE	IPropData
-DECLARE_MAPI_INTERFACE_(IPropData, IMAPIProp)
-{
-	BEGIN_INTERFACE
-	MAPI_IUNKNOWN_METHODS(PURE)
-	MAPI_IMAPIPROP_METHODS(PURE)
-	MAPI_IPROPDATA_METHODS(PURE)
-};
+#undef INTERFACE
+#define INTERFACE IPropData
+DECLARE_MAPI_INTERFACE_(IPropData, IMAPIProp){BEGIN_INTERFACE MAPI_IUNKNOWN_METHODS(PURE) MAPI_IMAPIPROP_METHODS(PURE)
+                                                  MAPI_IPROPDATA_METHODS(PURE)};
 
 DECLARE_MAPI_INTERFACE_PTR(IPropData, LPPROPDATA);
 
-
 /* Entry Point for in memory IMAPIProp */
-
 
 /*	CreateIProp()
  *		Creates the internal memory structures and object handle
@@ -289,20 +247,16 @@ DECLARE_MAPI_INTERFACE_PTR(IPropData, LPPROPDATA);
  */
 
 STDAPI_(SCODE)
-CreateIProp( LPCIID					lpInterface,
-			 ALLOCATEBUFFER FAR *	lpAllocateBuffer,
-			 ALLOCATEMORE FAR *		lpAllocateMore,
-			 FREEBUFFER FAR *		lpFreeBuffer,
-			 LPVOID					lpvReserved,
-			 LPPROPDATA FAR *		lppPropData );
+CreateIProp(LPCIID lpInterface, ALLOCATEBUFFER FAR *lpAllocateBuffer, ALLOCATEMORE FAR *lpAllocateMore,
+            FREEBUFFER FAR *lpFreeBuffer, LPVOID lpvReserved, LPPROPDATA FAR *lppPropData);
 
 /*
  *	Defines for prop/obj access
  */
-#define IPROP_READONLY		((ULONG) 0x00000001)
-#define IPROP_READWRITE		((ULONG) 0x00000002)
-#define IPROP_CLEAN			((ULONG) 0x00010000)
-#define IPROP_DIRTY			((ULONG) 0x00020000)
+#define IPROP_READONLY ((ULONG)0x00000001)
+#define IPROP_READWRITE ((ULONG)0x00000002)
+#define IPROP_CLEAN ((ULONG)0x00010000)
+#define IPROP_DIRTY ((ULONG)0x00020000)
 
 /*
  -	HrSetPropAccess
@@ -333,9 +287,9 @@ CreateIProp( LPCIID					lpInterface,
  *	round-robin.
  */
 
-#define PRILOWEST	-32768
-#define PRIHIGHEST	32767
-#define PRIUSER		0
+#define PRILOWEST -32768
+#define PRIHIGHEST 32767
+#define PRIUSER 0
 
 /*
  *	IRO
@@ -364,12 +318,12 @@ CreateIProp( LPCIID					lpInterface,
  *						  deregistered automatically.
  */
 
-#define IRONULL			((USHORT) 0x0000)
-#define FIROWAIT		((USHORT) 0x0001)
-#define FIROINTERVAL	((USHORT) 0x0002)
-#define FIROPERBLOCK	((USHORT) 0x0004)
-#define FIRODISABLED	((USHORT) 0x0020)
-#define FIROONCEONLY	((USHORT) 0x0040)
+#define IRONULL ((USHORT)0x0000)
+#define FIROWAIT ((USHORT)0x0001)
+#define FIROINTERVAL ((USHORT)0x0002)
+#define FIROPERBLOCK ((USHORT)0x0004)
+#define FIRODISABLED ((USHORT)0x0020)
+#define FIROONCEONLY ((USHORT)0x0040)
 
 /*
  *	IRC
@@ -380,19 +334,19 @@ CreateIProp( LPCIID					lpInterface,
  *
  */
 
-#define IRCNULL			((USHORT) 0x0000)
-#define FIRCPFN			((USHORT) 0x0001)	/* change function pointer */
-#define FIRCPV			((USHORT) 0x0002)	/* change parameter block  */
-#define FIRCPRI			((USHORT) 0x0004)	/* change priority		   */
-#define FIRCCSEC		((USHORT) 0x0008)	/* change time			   */
-#define FIRCIRO			((USHORT) 0x0010)	/* change routine options  */
+#define IRCNULL ((USHORT)0x0000)
+#define FIRCPFN ((USHORT)0x0001)  /* change function pointer */
+#define FIRCPV ((USHORT)0x0002)   /* change parameter block  */
+#define FIRCPRI ((USHORT)0x0004)  /* change priority		   */
+#define FIRCCSEC ((USHORT)0x0008) /* change time			   */
+#define FIRCIRO ((USHORT)0x0010)  /* change routine options  */
 
 /*
  *	Type definition for idle functions.	 An idle function takes one
  *	parameter, an PV, and returns a BOOL value.
  */
 
-typedef BOOL (STDAPICALLTYPE FNIDLE) (LPVOID);
+typedef BOOL(STDAPICALLTYPE FNIDLE)(LPVOID);
 typedef FNIDLE FAR *PFNIDLE;
 
 /*
@@ -403,8 +357,8 @@ typedef FNIDLE FAR *PFNIDLE;
  */
 
 typedef void FAR *FTG;
-typedef FTG  FAR *PFTG;
-#define FTGNULL			((FTG) NULL)
+typedef FTG FAR *PFTG;
+#define FTGNULL ((FTG)NULL)
 
 /*
  -	MAPIInitIdle/MAPIDeinitIdle
@@ -418,11 +372,10 @@ typedef FTG  FAR *PFTG;
  */
 
 STDAPI_(LONG)
-MAPIInitIdle (LPVOID lpvReserved);
+MAPIInitIdle(LPVOID lpvReserved);
 
 STDAPI_(VOID)
-MAPIDeinitIdle (VOID);
-
+MAPIDeinitIdle(VOID);
 
 /*
  *	FtgRegisterIdleRoutine
@@ -436,8 +389,7 @@ MAPIDeinitIdle (VOID);
  */
 
 STDAPI_(FTG)
-FtgRegisterIdleRoutine (PFNIDLE lpfnIdle, LPVOID lpvIdleParam,
-	short priIdle, ULONG csecIdle, USHORT iroIdle);
+FtgRegisterIdleRoutine(PFNIDLE lpfnIdle, LPVOID lpvIdleParam, short priIdle, ULONG csecIdle, USHORT iroIdle);
 
 /*
  *	DeregisterIdleRoutine
@@ -449,7 +401,7 @@ FtgRegisterIdleRoutine (PFNIDLE lpfnIdle, LPVOID lpvIdleParam,
  */
 
 STDAPI_(void)
-DeregisterIdleRoutine (FTG ftg);
+DeregisterIdleRoutine(FTG ftg);
 
 /*
  *	EnableIdleRoutine
@@ -458,7 +410,7 @@ DeregisterIdleRoutine (FTG ftg);
  */
 
 STDAPI_(void)
-EnableIdleRoutine (FTG ftg, BOOL fEnable);
+EnableIdleRoutine(FTG ftg, BOOL fEnable);
 
 /*
  *	ChangeIdleRoutine
@@ -469,17 +421,14 @@ EnableIdleRoutine (FTG ftg, BOOL fEnable);
  */
 
 STDAPI_(void)
-ChangeIdleRoutine (FTG ftg, PFNIDLE lpfnIdle, LPVOID lpvIdleParam,
-	short priIdle, ULONG csecIdle, USHORT iroIdle, USHORT ircIdle);
+ChangeIdleRoutine(FTG ftg, PFNIDLE lpfnIdle, LPVOID lpvIdleParam, short priIdle, ULONG csecIdle, USHORT iroIdle,
+                  USHORT ircIdle);
 
-
-#endif	/* ! NOIDLEENGINE */
-
+#endif /* ! NOIDLEENGINE */
 
 /* IMalloc Utilities */
 
 STDAPI_(LPMALLOC) MAPIGetDefaultMalloc(VOID);
-
 
 /* StreamOnFile (SOF) */
 
@@ -488,30 +437,20 @@ STDAPI_(LPMALLOC) MAPIGetDefaultMalloc(VOID);
  *	(as defined in the OLE 2.0 specs) on top of a system file.
  */
 
-#define SOF_UNIQUEFILENAME	((ULONG) 0x80000000)
+#define SOF_UNIQUEFILENAME ((ULONG)0x80000000)
 
-STDMETHODIMP OpenStreamOnFile(
-	LPALLOCATEBUFFER	lpAllocateBuffer,
-	LPFREEBUFFER		lpFreeBuffer,
-	ULONG				ulFlags,
-	__in LPCTSTR		lpszFileName,
-	__in_opt LPCTSTR	lpszPrefix,
-	LPSTREAM FAR *		lppStream);
+STDMETHODIMP OpenStreamOnFile(LPALLOCATEBUFFER lpAllocateBuffer, LPFREEBUFFER lpFreeBuffer, ULONG ulFlags,
+                              __in LPCTSTR lpszFileName, __in_opt LPCTSTR lpszPrefix, LPSTREAM FAR *lppStream);
 
-typedef HRESULT (STDMETHODCALLTYPE FAR * LPOPENSTREAMONFILE) (
-	LPALLOCATEBUFFER	lpAllocateBuffer,
-	LPFREEBUFFER		lpFreeBuffer,
-	ULONG				ulFlags,
-	__in LPCTSTR		lpszFileName,
-	__in_opt LPCTSTR	lpszPrefix,
-	LPSTREAM FAR *		lppStream);
+typedef HRESULT(STDMETHODCALLTYPE FAR *LPOPENSTREAMONFILE)(LPALLOCATEBUFFER lpAllocateBuffer, LPFREEBUFFER lpFreeBuffer,
+                                                           ULONG ulFlags, __in LPCTSTR lpszFileName,
+                                                           __in_opt LPCTSTR lpszPrefix, LPSTREAM FAR *lppStream);
 
 #if defined(_WIN64) || defined(_WIN32)
 #define OPENSTREAMONFILE "OpenStreamOnFile"
 #else
-#error	"Unknown Platform: MAPI is currently supported on Win32 and Win64"
+#error "Unknown Platform: MAPI is currently supported on Win32 and Win64"
 #endif
-
 
 /* Property interface utilities */
 
@@ -521,21 +460,17 @@ typedef HRESULT (STDMETHODCALLTYPE FAR * LPOPENSTREAMONFILE) (
  *	allocation object and an allocate more function.
  */
 STDAPI_(SCODE)
-PropCopyMore( LPSPropValue		lpSPropValueDest,
-			  LPSPropValue		lpSPropValueSrc,
-			  ALLOCATEMORE *	lpfAllocMore,
-			  LPVOID			lpvObject );
+PropCopyMore(LPSPropValue lpSPropValueDest, LPSPropValue lpSPropValueSrc, ALLOCATEMORE *lpfAllocMore, LPVOID lpvObject);
 
 /*
  *	Returns the size in bytes of structure at lpSPropValue, including the
  *	Value.
  */
 STDAPI_(ULONG)
-UlPropSize(	LPSPropValue	lpSPropValue );
-
+UlPropSize(LPSPropValue lpSPropValue);
 
 STDAPI_(BOOL)
-FEqualNames( LPMAPINAMEID lpName1, LPMAPINAMEID lpName2 );
+FEqualNames(LPMAPINAMEID lpName1, LPMAPINAMEID lpName2);
 
 #if (defined(_WIN64) || defined(_WIN32)) && !defined(_WINNT) && !defined(_WIN95) && !defined(_MAC)
 #define _WINNT
@@ -550,32 +485,21 @@ extern char rgchCsdi[];
 extern char rgchCidi[];
 
 STDAPI_(BOOL)
-FPropContainsProp( LPSPropValue	lpSPropValueDst,
-				   LPSPropValue	lpSPropValueSrc,
-				   ULONG		ulFuzzyLevel );
+FPropContainsProp(LPSPropValue lpSPropValueDst, LPSPropValue lpSPropValueSrc, ULONG ulFuzzyLevel);
 
 STDAPI_(BOOL)
-FPropCompareProp( LPSPropValue	lpSPropValue1,
-				  ULONG			ulRelOp,
-				  LPSPropValue	lpSPropValue2 );
+FPropCompareProp(LPSPropValue lpSPropValue1, ULONG ulRelOp, LPSPropValue lpSPropValue2);
 
 STDAPI_(LONG)
-LPropCompareProp( LPSPropValue	lpSPropValueA,
-				  LPSPropValue	lpSPropValueB );
+LPropCompareProp(LPSPropValue lpSPropValueA, LPSPropValue lpSPropValueB);
 
 STDAPI_(HRESULT)
-HrAddColumns(	LPMAPITABLE			lptbl,
-				LPSPropTagArray		lpproptagColumnsNew,
-				LPALLOCATEBUFFER	lpAllocateBuffer,
-				LPFREEBUFFER		lpFreeBuffer);
+HrAddColumns(LPMAPITABLE lptbl, LPSPropTagArray lpproptagColumnsNew, LPALLOCATEBUFFER lpAllocateBuffer,
+             LPFREEBUFFER lpFreeBuffer);
 
 STDAPI_(HRESULT)
-HrAddColumnsEx(	LPMAPITABLE			lptbl,
-				LPSPropTagArray		lpproptagColumnsNew,
-				LPALLOCATEBUFFER	lpAllocateBuffer,
-				LPFREEBUFFER		lpFreeBuffer,
-				void				(FAR *lpfnFilterColumns)(LPSPropTagArray ptaga));
-
+HrAddColumnsEx(LPMAPITABLE lptbl, LPSPropTagArray lpproptagColumnsNew, LPALLOCATEBUFFER lpAllocateBuffer,
+               LPFREEBUFFER lpFreeBuffer, void(FAR *lpfnFilterColumns)(LPSPropTagArray ptaga));
 
 /* Notification utilities */
 
@@ -585,10 +509,7 @@ HrAddColumnsEx(	LPMAPITABLE			lptbl,
  */
 
 STDAPI
-HrAllocAdviseSink( LPNOTIFCALLBACK lpfnCallback,
-				   LPVOID lpvContext,
-				   LPMAPIADVISESINK FAR *lppAdviseSink );
-
+HrAllocAdviseSink(LPNOTIFCALLBACK lpfnCallback, LPVOID lpvContext, LPMAPIADVISESINK FAR *lppAdviseSink);
 
 /*
  *	Wraps an existing advise sink with another one which guarantees
@@ -597,10 +518,7 @@ HrAllocAdviseSink( LPNOTIFCALLBACK lpfnCallback,
  */
 
 STDAPI
-HrThisThreadAdviseSink( LPMAPIADVISESINK lpAdviseSink,
-						LPMAPIADVISESINK FAR *lppAdviseSink);
-
-
+HrThisThreadAdviseSink(LPMAPIADVISESINK lpAdviseSink, LPMAPIADVISESINK FAR *lppAdviseSink);
 
 /*
  *	Allows a client and/or provider to force notifications
@@ -608,8 +526,7 @@ HrThisThreadAdviseSink( LPMAPIADVISESINK lpAdviseSink,
  *	to be dispatched without doing a message dispatch.
  */
 
-STDAPI HrDispatchNotifications (ULONG ulFlags);
-
+STDAPI HrDispatchNotifications(ULONG ulFlags);
 
 /* Service Provider Utilities */
 
@@ -619,53 +536,43 @@ STDAPI HrDispatchNotifications (ULONG ulFlags);
  */
 
 typedef struct {
-	ULONG			ulCtlType;			/* DTCT_LABEL, etc. */
-	ULONG			ulCtlFlags;			/* DT_REQUIRED, etc. */
-	LPBYTE			lpbNotif;			/*	pointer to notification data */
-	ULONG			cbNotif;			/* count of bytes of notification data */
-	LPTSTR			lpszFilter;			/* character filter for edit/combobox */
-	ULONG			ulItemID;			/* to validate parallel dlg template entry */
-	union {								/* ulCtlType discriminates */
-		LPVOID			lpv;			/* Initialize this to avoid warnings */
-		LPDTBLLABEL		lplabel;
-		LPDTBLEDIT		lpedit;
-		LPDTBLLBX		lplbx;
-		LPDTBLCOMBOBOX	lpcombobox;
-		LPDTBLDDLBX		lpddlbx;
-		LPDTBLCHECKBOX	lpcheckbox;
-		LPDTBLGROUPBOX	lpgroupbox;
-		LPDTBLBUTTON	lpbutton;
-		LPDTBLRADIOBUTTON lpradiobutton;
-		LPDTBLMVLISTBOX	lpmvlbx;
-		LPDTBLMVDDLBX	lpmvddlbx;
-		LPDTBLPAGE		lppage;
-	} ctl;
+    ULONG ulCtlType;   /* DTCT_LABEL, etc. */
+    ULONG ulCtlFlags;  /* DT_REQUIRED, etc. */
+    LPBYTE lpbNotif;   /*	pointer to notification data */
+    ULONG cbNotif;     /* count of bytes of notification data */
+    LPTSTR lpszFilter; /* character filter for edit/combobox */
+    ULONG ulItemID;    /* to validate parallel dlg template entry */
+    union {            /* ulCtlType discriminates */
+        LPVOID lpv;    /* Initialize this to avoid warnings */
+        LPDTBLLABEL lplabel;
+        LPDTBLEDIT lpedit;
+        LPDTBLLBX lplbx;
+        LPDTBLCOMBOBOX lpcombobox;
+        LPDTBLDDLBX lpddlbx;
+        LPDTBLCHECKBOX lpcheckbox;
+        LPDTBLGROUPBOX lpgroupbox;
+        LPDTBLBUTTON lpbutton;
+        LPDTBLRADIOBUTTON lpradiobutton;
+        LPDTBLMVLISTBOX lpmvlbx;
+        LPDTBLMVDDLBX lpmvddlbx;
+        LPDTBLPAGE lppage;
+    } ctl;
 } DTCTL, FAR *LPDTCTL;
 
 typedef struct {
-	ULONG			cctl;
-	LPTSTR			lpszResourceName;	/* as usual, may be an integer ID */
-	union {								/* as usual, may be an integer ID */
-		LPTSTR			lpszComponent;
-		ULONG			ulItemID;
-	};
-	LPDTCTL			lpctl;
+    ULONG cctl;
+    LPTSTR lpszResourceName; /* as usual, may be an integer ID */
+    union {                  /* as usual, may be an integer ID */
+        LPTSTR lpszComponent;
+        ULONG ulItemID;
+    };
+    LPDTCTL lpctl;
 } DTPAGE, FAR *LPDTPAGE;
 
-
-
 STDAPI
-BuildDisplayTable(	LPALLOCATEBUFFER	lpAllocateBuffer,
-					LPALLOCATEMORE		lpAllocateMore,
-					LPFREEBUFFER		lpFreeBuffer,
-					LPMALLOC			lpMalloc,
-					HINSTANCE			hInstance,
-					UINT				cPages,
-					LPDTPAGE			lpPage,
-					ULONG				ulFlags,
-					LPMAPITABLE *		lppTable,
-					LPTABLEDATA	*		lppTblData );
-
+BuildDisplayTable(LPALLOCATEBUFFER lpAllocateBuffer, LPALLOCATEMORE lpAllocateMore, LPFREEBUFFER lpFreeBuffer,
+                  LPMALLOC lpMalloc, HINSTANCE hInstance, UINT cPages, LPDTPAGE lpPage, ULONG ulFlags,
+                  LPMAPITABLE *lppTable, LPTABLEDATA *lppTblData);
 
 /* MAPI structure validation/copy utilities */
 
@@ -677,17 +584,14 @@ BuildDisplayTable(	LPALLOCATEBUFFER	lpAllocateBuffer,
  */
 
 STDAPI_(SCODE)
-ScCountNotifications(int cNotifications, LPNOTIFICATION lpNotifications,
-		ULONG FAR *lpcb);
+ScCountNotifications(int cNotifications, LPNOTIFICATION lpNotifications, ULONG FAR *lpcb);
 
 STDAPI_(SCODE)
-ScCopyNotifications(int cNotification, LPNOTIFICATION lpNotifications,
-		LPVOID lpvDst, ULONG FAR *lpcb);
+ScCopyNotifications(int cNotification, LPNOTIFICATION lpNotifications, LPVOID lpvDst, ULONG FAR *lpcb);
 
 STDAPI_(SCODE)
-ScRelocNotifications(int cNotification, LPNOTIFICATION lpNotifications,
-		LPVOID lpvBaseOld, LPVOID lpvBaseNew, ULONG FAR *lpcb);
-
+ScRelocNotifications(int cNotification, LPNOTIFICATION lpNotifications, LPVOID lpvBaseOld, LPVOID lpvBaseNew,
+                     ULONG FAR *lpcb);
 
 STDAPI_(SCODE)
 ScCountProps(int cValues, LPSPropValue lpPropArray, ULONG FAR *lpcb);
@@ -696,126 +600,94 @@ STDAPI_(LPSPropValue)
 LpValFindProp(ULONG ulPropTag, ULONG cValues, LPSPropValue lpPropArray);
 
 STDAPI_(SCODE)
-ScCopyProps(int cValues, LPSPropValue lpPropArray, LPVOID lpvDst,
-		ULONG FAR *lpcb);
+ScCopyProps(int cValues, LPSPropValue lpPropArray, LPVOID lpvDst, ULONG FAR *lpcb);
 
 STDAPI_(SCODE)
-ScRelocProps(int cValues, LPSPropValue lpPropArray,
-		LPVOID lpvBaseOld, LPVOID lpvBaseNew, ULONG FAR *lpcb);
+ScRelocProps(int cValues, LPSPropValue lpPropArray, LPVOID lpvBaseOld, LPVOID lpvBaseNew, ULONG FAR *lpcb);
 
 STDAPI_(SCODE)
-ScDupPropset(int cValues, LPSPropValue lpPropArray,
-		LPALLOCATEBUFFER lpAllocateBuffer, LPSPropValue FAR *lppPropArray);
-
+ScDupPropset(int cValues, LPSPropValue lpPropArray, LPALLOCATEBUFFER lpAllocateBuffer, LPSPropValue FAR *lppPropArray);
 
 /* General utility functions */
 
 /* Related to the OLE Component object model */
 
-STDAPI_(ULONG)			UlAddRef(LPVOID lpunk);
-STDAPI_(ULONG)			UlRelease(LPVOID lpunk);
+STDAPI_(ULONG) UlAddRef(LPVOID lpunk);
+STDAPI_(ULONG) UlRelease(LPVOID lpunk);
 
 /* Related to the MAPI interface */
 
-STDAPI					HrGetOneProp(LPMAPIPROP lpMapiProp, ULONG ulPropTag,
-						LPSPropValue FAR *lppProp);
-STDAPI					HrSetOneProp(LPMAPIPROP lpMapiProp,
-						LPSPropValue lpProp);
-STDAPI_(BOOL)			FPropExists(LPMAPIPROP lpMapiProp, ULONG ulPropTag);
-STDAPI_(LPSPropValue)	PpropFindProp(LPSPropValue lpPropArray, ULONG cValues,
-						ULONG ulPropTag);
-STDAPI_(void)			FreePadrlist(LPADRLIST lpAdrlist);
-STDAPI_(void)			FreeProws(LPSRowSet lpRows);
-STDAPI					HrQueryAllRows(LPMAPITABLE lpTable,
-						LPSPropTagArray lpPropTags,
-						LPSRestriction lpRestriction,
-						LPSSortOrderSet lpSortOrderSet,
-						LONG crowsMax,
-						LPSRowSet FAR *lppRows);
+STDAPI HrGetOneProp(LPMAPIPROP lpMapiProp, ULONG ulPropTag, LPSPropValue FAR *lppProp);
+STDAPI HrSetOneProp(LPMAPIPROP lpMapiProp, LPSPropValue lpProp);
+STDAPI_(BOOL) FPropExists(LPMAPIPROP lpMapiProp, ULONG ulPropTag);
+STDAPI_(LPSPropValue) PpropFindProp(LPSPropValue lpPropArray, ULONG cValues, ULONG ulPropTag);
+STDAPI_(void) FreePadrlist(LPADRLIST lpAdrlist);
+STDAPI_(void) FreeProws(LPSRowSet lpRows);
+STDAPI HrQueryAllRows(LPMAPITABLE lpTable, LPSPropTagArray lpPropTags, LPSRestriction lpRestriction,
+                      LPSSortOrderSet lpSortOrderSet, LONG crowsMax, LPSRowSet FAR *lppRows);
 
 /* Create or validate the IPM folder tree in a message store */
 
-#define MAPI_FORCE_CREATE	1
-#define MAPI_FULL_IPM_TREE	2
+#define MAPI_FORCE_CREATE 1
+#define MAPI_FULL_IPM_TREE 2
 
-STDAPI					HrValidateIPMSubtree(LPMDB lpMDB, ULONG ulFlags,
-						ULONG FAR *lpcValues, LPSPropValue FAR *lppValues,
-						LPMAPIERROR FAR *lpperr);
+STDAPI HrValidateIPMSubtree(LPMDB lpMDB, ULONG ulFlags, ULONG FAR *lpcValues, LPSPropValue FAR *lppValues,
+                            LPMAPIERROR FAR *lpperr);
 
 /* Encoding and decoding strings */
 
-STDAPI_(BOOL)			FBinFromHex(__in LPTSTR lpsz, LPBYTE lpb);
-STDAPI_(SCODE)			ScBinFromHexBounded(__in LPTSTR lpsz, LPBYTE lpb, ULONG cb);
-STDAPI_(void)			HexFromBin(LPBYTE lpb, int cb, __in LPTSTR lpsz);
-STDAPI_(ULONG)			UlFromSzHex(LPCTSTR lpsz);
+STDAPI_(BOOL) FBinFromHex(__in LPTSTR lpsz, LPBYTE lpb);
+STDAPI_(SCODE) ScBinFromHexBounded(__in LPTSTR lpsz, LPBYTE lpb, ULONG cb);
+STDAPI_(void) HexFromBin(LPBYTE lpb, int cb, __in LPTSTR lpsz);
+STDAPI_(ULONG) UlFromSzHex(LPCTSTR lpsz);
 
 /* Encoding and decoding entry IDs */
-STDAPI					HrEntryIDFromSz(__in LPTSTR lpsz, ULONG FAR *lpcb,
-						LPENTRYID FAR *lppEntryID);
-STDAPI					HrSzFromEntryID(ULONG cb, LPENTRYID lpEntryID,
-						__in LPTSTR FAR *lpsz);
-STDAPI					HrComposeEID(LPMAPISESSION lpSession,
-						ULONG cbStoreRecordKey, LPBYTE lpStoreRecordKey,
-						ULONG cbMsgEntryID, LPENTRYID lpMsgEntryID,
-						ULONG FAR *lpcbEID, LPENTRYID FAR *lppEntryID);
-STDAPI					HrDecomposeEID(LPMAPISESSION lpSession,
-						ULONG cbEntryID, LPENTRYID lpEntryID,
-						ULONG FAR *lpcbStoreEntryID,
-						LPENTRYID FAR *lppStoreEntryID,
-						ULONG FAR *lpcbMsgEntryID,
-						LPENTRYID FAR *lppMsgEntryID);
-STDAPI					HrComposeMsgID(LPMAPISESSION lpSession,
-						ULONG cbStoreSearchKey, LPBYTE pStoreSearchKey,
-						ULONG cbMsgEntryID, LPENTRYID lpMsgEntryID,
-						__in LPTSTR FAR *lpszMsgID);
-STDAPI					HrDecomposeMsgID(LPMAPISESSION lpSession,
-						__in LPTSTR lpszMsgID,
-						ULONG FAR *lpcbStoreEntryID,
-						LPENTRYID FAR *lppStoreEntryID,
-						ULONG FAR *lppcbMsgEntryID,
-						LPENTRYID FAR *lppMsgEntryID);
+STDAPI HrEntryIDFromSz(__in LPTSTR lpsz, ULONG FAR *lpcb, LPENTRYID FAR *lppEntryID);
+STDAPI HrSzFromEntryID(ULONG cb, LPENTRYID lpEntryID, __in LPTSTR FAR *lpsz);
+STDAPI HrComposeEID(LPMAPISESSION lpSession, ULONG cbStoreRecordKey, LPBYTE lpStoreRecordKey, ULONG cbMsgEntryID,
+                    LPENTRYID lpMsgEntryID, ULONG FAR *lpcbEID, LPENTRYID FAR *lppEntryID);
+STDAPI HrDecomposeEID(LPMAPISESSION lpSession, ULONG cbEntryID, LPENTRYID lpEntryID, ULONG FAR *lpcbStoreEntryID,
+                      LPENTRYID FAR *lppStoreEntryID, ULONG FAR *lpcbMsgEntryID, LPENTRYID FAR *lppMsgEntryID);
+STDAPI HrComposeMsgID(LPMAPISESSION lpSession, ULONG cbStoreSearchKey, LPBYTE pStoreSearchKey, ULONG cbMsgEntryID,
+                      LPENTRYID lpMsgEntryID, __in LPTSTR FAR *lpszMsgID);
+STDAPI HrDecomposeMsgID(LPMAPISESSION lpSession, __in LPTSTR lpszMsgID, ULONG FAR *lpcbStoreEntryID,
+                        LPENTRYID FAR *lppStoreEntryID, ULONG FAR *lppcbMsgEntryID, LPENTRYID FAR *lppMsgEntryID);
 
 /* C runtime substitutes */
 
+STDAPI_(LPTSTR) SzFindCh(LPCTSTR lpsz, USHORT ch);       /* strchr */
+STDAPI_(LPTSTR) SzFindLastCh(LPCTSTR lpsz, USHORT ch);   /* strrchr */
+STDAPI_(LPTSTR) SzFindSz(LPCTSTR lpsz, LPCTSTR lpszKey); /*strstr */
+STDAPI_(unsigned int) UFromSz(LPCTSTR lpsz);             /* atoi */
 
-STDAPI_(LPTSTR)			SzFindCh(LPCTSTR lpsz, USHORT ch);		/* strchr */
-STDAPI_(LPTSTR)			SzFindLastCh(LPCTSTR lpsz, USHORT ch);	/* strrchr */
-STDAPI_(LPTSTR)			SzFindSz(LPCTSTR lpsz, LPCTSTR lpszKey); /*strstr */
-STDAPI_(unsigned int)	UFromSz(LPCTSTR lpsz);					/* atoi */
-
-STDAPI_(SCODE)			ScUNCFromLocalPath(__in LPSTR lpszLocal, __in LPSTR lpszUNC,
-						UINT cchUNC);
-STDAPI_(SCODE)			ScLocalPathFromUNC(__in LPSTR lpszUNC, __in LPSTR lpszLocal,
-						UINT cchLocal);
+STDAPI_(SCODE) ScUNCFromLocalPath(__in LPSTR lpszLocal, __in LPSTR lpszUNC, UINT cchUNC);
+STDAPI_(SCODE) ScLocalPathFromUNC(__in LPSTR lpszUNC, __in LPSTR lpszLocal, UINT cchLocal);
 
 /* 64-bit arithmetic with times */
 
-STDAPI_(FILETIME)		FtAddFt(FILETIME ftAddend1, FILETIME ftAddend2);
-STDAPI_(FILETIME)		FtMulDwDw(DWORD ftMultiplicand, DWORD ftMultiplier);
-STDAPI_(FILETIME)		FtMulDw(DWORD ftMultiplier, FILETIME ftMultiplicand);
-STDAPI_(FILETIME)		FtSubFt(FILETIME ftMinuend, FILETIME ftSubtrahend);
-STDAPI_(FILETIME)		FtNegFt(FILETIME ft);
+STDAPI_(FILETIME) FtAddFt(FILETIME ftAddend1, FILETIME ftAddend2);
+STDAPI_(FILETIME) FtMulDwDw(DWORD ftMultiplicand, DWORD ftMultiplier);
+STDAPI_(FILETIME) FtMulDw(DWORD ftMultiplier, FILETIME ftMultiplicand);
+STDAPI_(FILETIME) FtSubFt(FILETIME ftMinuend, FILETIME ftSubtrahend);
+STDAPI_(FILETIME) FtNegFt(FILETIME ft);
 
 /* Message composition */
 
-STDAPI_(SCODE)			ScCreateConversationIndex (ULONG cbParent,
-							LPBYTE lpbParent,
-							ULONG FAR *	lpcbConvIndex,
-							LPBYTE FAR * lppbConvIndex);
+STDAPI_(SCODE)
+ScCreateConversationIndex(ULONG cbParent, LPBYTE lpbParent, ULONG FAR *lpcbConvIndex, LPBYTE FAR *lppbConvIndex);
 
 /* Store support */
 
-STDAPI WrapStoreEntryID (ULONG ulFlags, __in LPTSTR lpszDLLName, ULONG cbOrigEntry,
-	LPENTRYID lpOrigEntry, ULONG *lpcbWrappedEntry, LPENTRYID *lppWrappedEntry);
+STDAPI WrapStoreEntryID(ULONG ulFlags, __in LPTSTR lpszDLLName, ULONG cbOrigEntry, LPENTRYID lpOrigEntry,
+                        ULONG *lpcbWrappedEntry, LPENTRYID *lppWrappedEntry);
 
 /* RTF Sync Utilities */
 
-#define RTF_SYNC_RTF_CHANGED	((ULONG) 0x00000001)
-#define RTF_SYNC_BODY_CHANGED	((ULONG) 0x00000002)
+#define RTF_SYNC_RTF_CHANGED ((ULONG)0x00000001)
+#define RTF_SYNC_BODY_CHANGED ((ULONG)0x00000002)
 
 STDAPI_(HRESULT)
-RTFSync (LPMESSAGE lpMessage, ULONG ulFlags, __out BOOL FAR * lpfMessageUpdated);
-
+RTFSync(LPMESSAGE lpMessage, ULONG ulFlags, __out BOOL FAR *lpfMessageUpdated);
 
 /* Flags for WrapCompressedRTFStream() */
 
@@ -823,17 +695,15 @@ RTFSync (LPMESSAGE lpMessage, ULONG ulFlags, __out BOOL FAR * lpfMessageUpdated)
 /****** STORE_UNCOMPRESSED_RTF	((ULONG) 0x00008000) mapidefs.h */
 
 STDAPI_(HRESULT)
-WrapCompressedRTFStream (__in LPSTREAM lpCompressedRTFStream,
-		ULONG ulFlags, __out LPSTREAM FAR * lpUncompressedRTFStream);
+WrapCompressedRTFStream(__in LPSTREAM lpCompressedRTFStream, ULONG ulFlags,
+                        __out LPSTREAM FAR *lpUncompressedRTFStream);
 
 /* Storage on Stream */
 
 #if defined(_WIN64) || defined(_WIN32) || defined(WIN16)
 STDAPI_(HRESULT)
-HrIStorageFromStream (LPUNKNOWN lpUnkIn,
-	LPCIID lpInterface, ULONG ulFlags, LPSTORAGE FAR * lppStorageOut);
+HrIStorageFromStream(LPUNKNOWN lpUnkIn, LPCIID lpInterface, ULONG ulFlags, LPSTORAGE FAR *lppStorageOut);
 #endif
-
 
 /*
  * Setup and cleanup.
@@ -848,39 +718,38 @@ HrIStorageFromStream (LPUNKNOWN lpUnkIn,
 
 /* All flags are reserved for ScInitMapiUtil. */
 
-STDAPI_(SCODE)			ScInitMapiUtil(ULONG ulFlags);
-STDAPI_(VOID)			DeinitMapiUtil(VOID);
-
+STDAPI_(SCODE) ScInitMapiUtil(ULONG ulFlags);
+STDAPI_(VOID) DeinitMapiUtil(VOID);
 
 /*
  *	Entry point names.
- *	
+ *
  *	These are for new entry points defined since MAPI first shipped
  *	in Windows 95. Using these names in a GetProcAddress call makes
  *	it easier to write code which uses them optionally.
  */
 
-#if defined (_WIN64) && defined(_AMD64_)
+#if defined(_WIN64) && defined(_AMD64_)
 #define szHrDispatchNotifications "HrDispatchNotifications"
-#elif defined (_WIN32) && defined (_X86_)
+#elif defined(_WIN32) && defined(_X86_)
 #define szHrDispatchNotifications "_HrDispatchNotifications@4"
 #else
-#error	"Unknown Platform: MAPI is currently supported on Win32/X86 and Win64/AMD64"
+#error "Unknown Platform: MAPI is currently supported on Win32/X86 and Win64/AMD64"
 #endif
 
-typedef HRESULT (STDAPICALLTYPE DISPATCHNOTIFICATIONS)(ULONG ulFlags);
-typedef DISPATCHNOTIFICATIONS FAR * LPDISPATCHNOTIFICATIONS;
+typedef HRESULT(STDAPICALLTYPE DISPATCHNOTIFICATIONS)(ULONG ulFlags);
+typedef DISPATCHNOTIFICATIONS FAR *LPDISPATCHNOTIFICATIONS;
 
-#if defined (_WIN64) && defined (_AMD64_)
+#if defined(_WIN64) && defined(_AMD64_)
 #define szScCreateConversationIndex "ScCreateConversationIndex"
-#elif defined (_WIN32) && defined (_X86_)
+#elif defined(_WIN32) && defined(_X86_)
 #define szScCreateConversationIndex "_ScCreateConversationIndex@16"
 #else
-#error	"Unknown Platform: MAPI is currently supported on Win32/X86 and Win64/AMD64"
+#error "Unknown Platform: MAPI is currently supported on Win32/X86 and Win64/AMD64"
 #endif
 
-typedef SCODE (STDAPICALLTYPE CREATECONVERSATIONINDEX)(ULONG cbParent,
-	LPBYTE lpbParent, ULONG FAR *lpcbConvIndex, LPBYTE FAR *lppbConvIndex);
+typedef SCODE(STDAPICALLTYPE CREATECONVERSATIONINDEX)(ULONG cbParent, LPBYTE lpbParent, ULONG FAR *lpcbConvIndex,
+                                                      LPBYTE FAR *lppbConvIndex);
 typedef CREATECONVERSATIONINDEX FAR *LPCREATECONVERSATIONINDEX;
 
 #ifdef __cplusplus
@@ -888,4 +757,3 @@ typedef CREATECONVERSATIONINDEX FAR *LPCREATECONVERSATIONINDEX;
 #endif
 
 #endif /* _MAPIUTIL_H_ */
-

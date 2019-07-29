@@ -62,7 +62,7 @@
 #pragma once
 #endif
 
-#if defined (WIN32) && !defined (_WIN32)
+#if defined(WIN32) && !defined(_WIN32)
 #define _WIN32
 #endif
 
@@ -72,40 +72,38 @@
 extern "C" {
 #endif
 
+#if defined(_MAC)
 
-#if defined(_MAC)	
+#define MULDIV(x, y, z) MulDiv(x, y, z)
 
-#define	MULDIV(x,y,z)				MulDiv(x,y,z)
-
-LPVOID FAR PASCAL	PvGetInstanceGlobals(WORD wDataSet);
-LONG FAR PASCAL		ScSetInstanceGlobals(LPVOID pv, WORD wDataSet);
-LONG FAR PASCAL		ScSetVerifyInstanceGlobals(LPVOID pv, DWORD dwPid,
-						WORD wDataSet);
-LPVOID FAR PASCAL	PvGetVerifyInstanceGlobals(DWORD dwPid, DWORD wDataSet);
-LPVOID FAR PASCAL	PvSlowGetInstanceGlobals(DWORD dwPid, DWORD wDataSet);
-BOOL FAR PASCAL		FCleanupInstanceGlobals(WORD, DWORD);
+LPVOID FAR PASCAL PvGetInstanceGlobals(WORD wDataSet);
+LONG FAR PASCAL ScSetInstanceGlobals(LPVOID pv, WORD wDataSet);
+LONG FAR PASCAL ScSetVerifyInstanceGlobals(LPVOID pv, DWORD dwPid, WORD wDataSet);
+LPVOID FAR PASCAL PvGetVerifyInstanceGlobals(DWORD dwPid, DWORD wDataSet);
+LPVOID FAR PASCAL PvSlowGetInstanceGlobals(DWORD dwPid, DWORD wDataSet);
+BOOL FAR PASCAL FCleanupInstanceGlobals(WORD, DWORD);
 
 #elif defined(_WIN64) || defined(_WIN32)
 
-#define	MULDIV(x,y,z)				MulDiv(x,y,z)
+#define MULDIV(x, y, z) MulDiv(x, y, z)
 
 extern LPVOID pinstX;
-#define PvGetInstanceGlobals()					pinstX
-#define ScSetInstanceGlobals(_pv)				(pinstX = _pv, 0)
-#define PvGetVerifyInstanceGlobals(_pid)		pinstX
-#define ScSetVerifyInstanceGlobals(_pv,_pid)	(pinstX = _pv, 0)
-#define PvSlowGetInstanceGlobals(_pid)			pinstX
+#define PvGetInstanceGlobals() pinstX
+#define ScSetInstanceGlobals(_pv) (pinstX = _pv, 0)
+#define PvGetVerifyInstanceGlobals(_pid) pinstX
+#define ScSetVerifyInstanceGlobals(_pv, _pid) (pinstX = _pv, 0)
+#define PvSlowGetInstanceGlobals(_pid) pinstX
 
 #else
-#error	"Unknown Platform: MAPI is currently supported on Win32 and Win64"
-#endif	
+#error "Unknown Platform: MAPI is currently supported on Win32 and Win64"
+#endif
 
 #if (defined(_WIN64) || defined(_WIN32)) && !defined(_MAC)
-#define szMAPIDLLSuffix		"32"
+#define szMAPIDLLSuffix "32"
 #elif defined(DOS)
-#define szMAPIDLLSuffix		""
-#elif  defined(_MAC)
-#define szMAPIDLLSuffix		"M"
+#define szMAPIDLLSuffix ""
+#elif defined(_MAC)
+#define szMAPIDLLSuffix "M"
 #else
 #error "Don't know the suffix for DLLs on this platform"
 #endif
@@ -117,15 +115,15 @@ extern LPVOID pinstX;
 /********************************/
 
 #if !defined(_WIN64) && !defined(_WIN32)
-#define	ZeroMemory(pb,cb)			memset((pb),0,(cb))
-#define FillMemory(pb,cb,b)			memset((pb),(b),(cb))
-#define CopyMemory(pbDst,pbSrc,cb)	do								\
-									{								\
-										size_t _cb = (size_t)(cb);	\
-										if (_cb)					\
-											memcpy(pbDst,pbSrc,_cb);\
-									} while (FALSE)
-#define MoveMemory(pbDst,pbSrc,cb)	memmove((pbDst),(pbSrc),(cb))
+#define ZeroMemory(pb, cb) memset((pb), 0, (cb))
+#define FillMemory(pb, cb, b) memset((pb), (b), (cb))
+#define CopyMemory(pbDst, pbSrc, cb)   \
+    do {                               \
+        size_t _cb = (size_t)(cb);     \
+        if (_cb)                       \
+            memcpy(pbDst, pbSrc, _cb); \
+    } while (FALSE)
+#define MoveMemory(pbDst, pbSrc, cb) memmove((pbDst), (pbSrc), (cb))
 
 #define UNALIGNED
 
@@ -133,125 +131,113 @@ extern LPVOID pinstX;
 
 #if defined(_MAC)
 
-typedef	int					INT;
-typedef	unsigned long		ULONG;
-typedef	short				SHORT;
-typedef	unsigned short		USHORT;
-typedef double 				LONGLONG;
-typedef double 				DWORDLONG;
-typedef unsigned char		UCHAR;
-typedef unsigned char FAR*	PUCHAR;
-typedef int					BOOL;
-
+typedef int INT;
+typedef unsigned long ULONG;
+typedef short SHORT;
+typedef unsigned short USHORT;
+typedef double LONGLONG;
+typedef double DWORDLONG;
+typedef unsigned char UCHAR;
+typedef unsigned char FAR *PUCHAR;
+typedef int BOOL;
 
 /* Synchronization */
-#define InterlockedIncrement(plong)	(++(*(plong)))
+#define InterlockedIncrement(plong) (++(*(plong)))
 #define InterlockedDecrement(plong) (--(*(plong)))
 
 #ifndef CreateMutex
-#define CreateMutexA	CreateMutex
-#define CreateMutexW	CreateMutex
-#define CreateMutex(pv, bool, sz)	(INVALID_HANDLE_VALUE)
+#define CreateMutexA CreateMutex
+#define CreateMutexW CreateMutex
+#define CreateMutex(pv, bool, sz) (INVALID_HANDLE_VALUE)
 #endif
 
-#define WaitForSingleObject(hObj, dw)	((void)0)
-#define ReleaseMutex(hObj)				((BOOL)1)
-#define CloseMutexHandle(hObj)			TRUE
+#define WaitForSingleObject(hObj, dw) ((void)0)
+#define ReleaseMutex(hObj) ((BOOL)1)
+#define CloseMutexHandle(hObj) TRUE
 
-#define	CRITICAL_SECTION			ULONG
-#define	InitializeCriticalSection(_pcs)	((void)0)
-#define	DeleteCriticalSection(_pcs)		((void)0)
-#define	EnterCriticalSection(_pcs)		((void)0)
-#define	LeaveCriticalSection(_pcs)		((void)0)
+#define CRITICAL_SECTION ULONG
+#define InitializeCriticalSection(_pcs) ((void)0)
+#define DeleteCriticalSection(_pcs) ((void)0)
+#define EnterCriticalSection(_pcs) ((void)0)
+#define LeaveCriticalSection(_pcs) ((void)0)
 
-#define MAX_PATH					260
+#define MAX_PATH 260
 
-#define FILE_FLAG_SEQUENTIAL_SCAN	0x08000000
+#define FILE_FLAG_SEQUENTIAL_SCAN 0x08000000
 
-#define CREATE_NEW          1
-#define CREATE_ALWAYS       2
-#define OPEN_EXISTING       3
-#define OPEN_ALWAYS         4
-#define TRUNCATE_EXISTING   5
+#define CREATE_NEW 1
+#define CREATE_ALWAYS 2
+#define OPEN_EXISTING 3
+#define OPEN_ALWAYS 4
+#define TRUNCATE_EXISTING 5
 
-#define FILE_ATTRIBUTE_READONLY         0x00000001
-#define FILE_ATTRIBUTE_HIDDEN           0x00000002
-#define FILE_ATTRIBUTE_SYSTEM           0x00000004
-#define FILE_ATTRIBUTE_DIRECTORY        0x00000010
-#define FILE_ATTRIBUTE_ARCHIVE          0x00000020
-#define FILE_ATTRIBUTE_NORMAL           0x00000080
-#define	FILE_ATTRIBUTE_TEMPORARY		0x00000100
+#define FILE_ATTRIBUTE_READONLY 0x00000001
+#define FILE_ATTRIBUTE_HIDDEN 0x00000002
+#define FILE_ATTRIBUTE_SYSTEM 0x00000004
+#define FILE_ATTRIBUTE_DIRECTORY 0x00000010
+#define FILE_ATTRIBUTE_ARCHIVE 0x00000020
+#define FILE_ATTRIBUTE_NORMAL 0x00000080
+#define FILE_ATTRIBUTE_TEMPORARY 0x00000100
 
-#define FILE_FLAG_WRITE_THROUGH     0x80000000
-#define FILE_FLAG_RANDOM_ACCESS     0x10000000
+#define FILE_FLAG_WRITE_THROUGH 0x80000000
+#define FILE_FLAG_RANDOM_ACCESS 0x10000000
 
-#define TIME_ZONE_ID_UNKNOWN		0
-#define TIME_ZONE_ID_STANDARD		1
-#define TIME_ZONE_ID_DAYLIGHT		2
+#define TIME_ZONE_ID_UNKNOWN 0
+#define TIME_ZONE_ID_STANDARD 1
+#define TIME_ZONE_ID_DAYLIGHT 2
 
+DWORD WINAPI GetLastError(void);
+DWORD WINAPI GetFileAttributes(LPCSTR lpFileName);
+DWORD WINAPI GetFileSize(HANDLE hFile, LPDWORD lpFileSizeHigh);
+BOOL WINAPI GetFileTime(HANDLE hFile, FILETIME FAR *lpftCreation, FILETIME FAR *lpftLastAccess,
+                        FILETIME FAR *lpftLastWrite);
+BOOL WINAPI SetFileTime(HANDLE hFile, const FILETIME FAR *lpftCreation, const FILETIME FAR *lpftLastAccess,
+                        const FILETIME FAR *lpftLastWrite);
+DWORD WINAPI SetFilePointer(HANDLE hFile, LONG lDistanceToMove, LONG FAR *lpDistanceToMoveHigh, DWORD dwMoveMethod);
+BOOL WINAPI SetEndOfFile(HANDLE hFile);
+BOOL WINAPI CloseHandle(HANDLE hObject);
+DWORD WINAPI GetTempPath(DWORD nBufferLength, LPSTR lpBuffer);
+UINT WINAPI GetTempFileName32(LPCSTR lpPathName, LPCSTR lpPrefixString, UINT uUnique, LPSTR lpTempFileName);
+BOOL WINAPI DeleteFile(LPCSTR lpFileName);
+BOOL WINAPI RemoveDirectory(LPCSTR lpPathName);
+BOOL WINAPI CopyFile(LPCSTR szSrc, LPCSTR szDst, BOOL fFailIfExists);
+BOOL WINAPI MoveFile(LPCSTR lpExistingFileName, LPCSTR lpNewFileName);
+HANDLE WINAPI FindFirstFile(LPCSTR lpFileName, LPWIN32_FIND_DATA lpFindFileData);
+BOOL WINAPI FindNextFile(HANDLE hFindFile, LPWIN32_FIND_DATA lpFindFileData);
+BOOL WINAPI FindClose(HANDLE hFindFile);
+DWORD WINAPI GetFullPathName(LPCSTR lpFileName, DWORD nBufferLength, LPSTR lpBuffer, LPSTR *lpFilePart);
+void WINAPI Sleep(DWORD dwMilliseconds);
+LONG WINAPI CompareFileTime(const FILETIME FAR *, const FILETIME FAR *);
+BOOL WINAPI LocalFileTimeToFileTime(const FILETIME FAR *, FILETIME FAR *);
+BOOL WINAPI FileTimeToLocalFileTime(const FILETIME FAR *, FILETIME FAR *);
+BOOL WINAPI FileTimeToSystemTime(const FILETIME FAR *, SYSTEMTIME FAR *);
+BOOL WINAPI SystemTimeToFileTime(const SYSTEMTIME FAR *, FILETIME FAR *);
+void WINAPI GetSystemTime(SYSTEMTIME FAR *);
+void WINAPI GetLocalTime(SYSTEMTIME FAR *);
+BOOL WINAPI FileTimeToDosDateTime(const FILETIME FAR *lpFileTime, WORD FAR *lpFatDate, WORD FAR *lpFatTime);
+BOOL WINAPI DosDateTimeToFileTime(WORD wFatDate, WORD wFatTime, FILETIME FAR *lpFileTime);
+DWORD WINAPI GetTimeZoneInformation(LPTIME_ZONE_INFORMATION lpTimeZoneInformation);
+BOOL WINAPI SetTimeZoneInformation(const TIME_ZONE_INFORMATION FAR *lpTimeZoneInformation);
 
+DWORD WINAPI GetCurrentProcessId(void);
+long WINAPI MulDiv32(long, long, long);
 
-DWORD WINAPI	GetLastError(void);
-DWORD WINAPI	GetFileAttributes(LPCSTR lpFileName);
-DWORD WINAPI	GetFileSize(HANDLE hFile, LPDWORD lpFileSizeHigh);
-BOOL WINAPI		GetFileTime(HANDLE hFile, FILETIME FAR *lpftCreation,
-				FILETIME FAR *lpftLastAccess, FILETIME FAR *lpftLastWrite);
-BOOL WINAPI		SetFileTime(HANDLE hFile, const FILETIME FAR *lpftCreation,
-				const FILETIME FAR *lpftLastAccess,
-				const FILETIME FAR *lpftLastWrite);
-DWORD WINAPI	SetFilePointer(HANDLE hFile, LONG lDistanceToMove,
-				LONG FAR *lpDistanceToMoveHigh, DWORD dwMoveMethod);
-BOOL WINAPI		SetEndOfFile(HANDLE hFile);
-BOOL WINAPI		CloseHandle(HANDLE hObject);
-DWORD WINAPI	GetTempPath(DWORD nBufferLength, LPSTR lpBuffer);
-UINT WINAPI		GetTempFileName32 (LPCSTR lpPathName, LPCSTR lpPrefixString,
-				UINT uUnique, LPSTR lpTempFileName);
-BOOL WINAPI		DeleteFile(LPCSTR lpFileName);
-BOOL WINAPI		RemoveDirectory(LPCSTR lpPathName);
-BOOL WINAPI		CopyFile(LPCSTR szSrc, LPCSTR szDst, BOOL fFailIfExists);
-BOOL WINAPI		MoveFile(LPCSTR lpExistingFileName, LPCSTR lpNewFileName);
-HANDLE WINAPI	FindFirstFile(LPCSTR lpFileName, LPWIN32_FIND_DATA lpFindFileData);
-BOOL WINAPI		FindNextFile(HANDLE hFindFile, LPWIN32_FIND_DATA lpFindFileData);
-BOOL WINAPI		FindClose(HANDLE hFindFile);
-DWORD WINAPI	GetFullPathName(LPCSTR lpFileName, DWORD nBufferLength,
-			    LPSTR lpBuffer, LPSTR *lpFilePart);
-void WINAPI		Sleep(DWORD dwMilliseconds);
-LONG WINAPI		CompareFileTime(const FILETIME FAR *, const FILETIME FAR *);
-BOOL WINAPI		LocalFileTimeToFileTime(const FILETIME FAR *, FILETIME FAR *);
-BOOL WINAPI		FileTimeToLocalFileTime(const FILETIME FAR *, FILETIME FAR *);
-BOOL WINAPI		FileTimeToSystemTime(const FILETIME FAR *, SYSTEMTIME FAR *);
-BOOL WINAPI		SystemTimeToFileTime(const SYSTEMTIME FAR *, FILETIME FAR *);
-void WINAPI		GetSystemTime(SYSTEMTIME FAR *);
-void WINAPI		GetLocalTime(SYSTEMTIME FAR *);
-BOOL WINAPI		FileTimeToDosDateTime(const FILETIME FAR * lpFileTime,
-			    WORD FAR *lpFatDate, WORD FAR *lpFatTime);
-BOOL WINAPI		DosDateTimeToFileTime(WORD wFatDate, WORD wFatTime,
-			    FILETIME FAR * lpFileTime);
-DWORD WINAPI	GetTimeZoneInformation(
-				LPTIME_ZONE_INFORMATION lpTimeZoneInformation);
-BOOL WINAPI		SetTimeZoneInformation(
-				const TIME_ZONE_INFORMATION FAR *lpTimeZoneInformation);
-
-DWORD WINAPI	GetCurrentProcessId(void);
-long WINAPI		MulDiv32(long, long, long);
-
-#else	/* _MAC */
+#else /* _MAC */
 
 /* Remaps GetTempFileName32() to the real 32bit version */
 
-#define GetTempFileName32(_szPath,_szPfx,_n,_lpbuf)	GetTempFileName(_szPath,_szPfx,_n,_lpbuf)
+#define GetTempFileName32(_szPath, _szPfx, _n, _lpbuf) GetTempFileName(_szPath, _szPfx, _n, _lpbuf)
 
-#define CloseMutexHandle	CloseHandle
+#define CloseMutexHandle CloseHandle
 
-#endif	/* _MAC */
-
+#endif /* _MAC */
 
 #ifdef _MAC
-#define	CRITICAL_SECTION			ULONG
-#define	InitializeCriticalSection(_pcs)	((void)0)
-#define	DeleteCriticalSection(_pcs)		((void)0)
-#define	EnterCriticalSection(_pcs)		((void)0)
-#define	LeaveCriticalSection(_pcs)		((void)0)
+#define CRITICAL_SECTION ULONG
+#define InitializeCriticalSection(_pcs) ((void)0)
+#define DeleteCriticalSection(_pcs) ((void)0)
+#define EnterCriticalSection(_pcs) ((void)0)
+#define LeaveCriticalSection(_pcs) ((void)0)
 #endif
 
 /********************************/
@@ -259,13 +245,13 @@ long WINAPI		MulDiv32(long, long, long);
 /*	(common to WIN32/WIN64)		*/
 /********************************/
 
-#define	Cbtszsize(_a)	((lstrlen(_a)+1)*sizeof(TCHAR))
-#define	CbtszsizeA(_a)	((lstrlenA(_a) + 1))
-#define	CbtszsizeW(_a)	((lstrlenW(_a) + 1) * sizeof(WCHAR))
-#define HexCchOf(_s)	(sizeof(_s)*2+1)
-#define HexSizeOf(_s)	(HexCchOf(_s)*sizeof(TCHAR))
+#define Cbtszsize(_a) ((lstrlen(_a) + 1) * sizeof(TCHAR))
+#define CbtszsizeA(_a) ((lstrlenA(_a) + 1))
+#define CbtszsizeW(_a) ((lstrlenW(_a) + 1) * sizeof(WCHAR))
+#define HexCchOf(_s) (sizeof(_s) * 2 + 1)
+#define HexSizeOf(_s) (HexCchOf(_s) * sizeof(TCHAR))
 
-BOOL WINAPI IsBadBoundedStringPtr(const void FAR* lpsz, UINT cchMax);
+BOOL WINAPI IsBadBoundedStringPtr(const void FAR *lpsz, UINT cchMax);
 
 #ifdef __cplusplus
 }

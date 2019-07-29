@@ -4,35 +4,34 @@
 //
 // Interface Declaration
 
-class PyINameSpaceTreeControl : public PyIUnknown
-{
-public:
-	MAKE_PYCOM_CTOR(PyINameSpaceTreeControl);
-	static INameSpaceTreeControl *GetI(PyObject *self);
-	static PyComTypeObject type;
+class PyINameSpaceTreeControl : public PyIUnknown {
+   public:
+    MAKE_PYCOM_CTOR(PyINameSpaceTreeControl);
+    static INameSpaceTreeControl *GetI(PyObject *self);
+    static PyComTypeObject type;
 
-	// The Python methods
-	static PyObject *Initialize(PyObject *self, PyObject *args);
-	static PyObject *TreeAdvise(PyObject *self, PyObject *args);
-	static PyObject *TreeUnadvise(PyObject *self, PyObject *args);
-	static PyObject *AppendRoot(PyObject *self, PyObject *args);
-	static PyObject *InsertRoot(PyObject *self, PyObject *args);
-	static PyObject *RemoveRoot(PyObject *self, PyObject *args);
-	static PyObject *RemoveAllRoots(PyObject *self, PyObject *args);
-	static PyObject *GetRootItems(PyObject *self, PyObject *args);
-	static PyObject *SetItemState(PyObject *self, PyObject *args);
-	static PyObject *GetItemState(PyObject *self, PyObject *args);
-	static PyObject *GetSelectedItems(PyObject *self, PyObject *args);
-	static PyObject *GetItemCustomState(PyObject *self, PyObject *args);
-	static PyObject *SetItemCustomState(PyObject *self, PyObject *args);
-	static PyObject *EnsureItemVisible(PyObject *self, PyObject *args);
-	static PyObject *SetTheme(PyObject *self, PyObject *args);
-	static PyObject *GetNextItem(PyObject *self, PyObject *args);
-	static PyObject *HitTest(PyObject *self, PyObject *args);
-	static PyObject *GetItemRect(PyObject *self, PyObject *args);
-	static PyObject *CollapseAll(PyObject *self, PyObject *args);
+    // The Python methods
+    static PyObject *Initialize(PyObject *self, PyObject *args);
+    static PyObject *TreeAdvise(PyObject *self, PyObject *args);
+    static PyObject *TreeUnadvise(PyObject *self, PyObject *args);
+    static PyObject *AppendRoot(PyObject *self, PyObject *args);
+    static PyObject *InsertRoot(PyObject *self, PyObject *args);
+    static PyObject *RemoveRoot(PyObject *self, PyObject *args);
+    static PyObject *RemoveAllRoots(PyObject *self, PyObject *args);
+    static PyObject *GetRootItems(PyObject *self, PyObject *args);
+    static PyObject *SetItemState(PyObject *self, PyObject *args);
+    static PyObject *GetItemState(PyObject *self, PyObject *args);
+    static PyObject *GetSelectedItems(PyObject *self, PyObject *args);
+    static PyObject *GetItemCustomState(PyObject *self, PyObject *args);
+    static PyObject *SetItemCustomState(PyObject *self, PyObject *args);
+    static PyObject *EnsureItemVisible(PyObject *self, PyObject *args);
+    static PyObject *SetTheme(PyObject *self, PyObject *args);
+    static PyObject *GetNextItem(PyObject *self, PyObject *args);
+    static PyObject *HitTest(PyObject *self, PyObject *args);
+    static PyObject *GetItemRect(PyObject *self, PyObject *args);
+    static PyObject *CollapseAll(PyObject *self, PyObject *args);
 
-protected:
-	PyINameSpaceTreeControl(IUnknown *pdisp);
-	~PyINameSpaceTreeControl();
+   protected:
+    PyINameSpaceTreeControl(IUnknown *pdisp);
+    ~PyINameSpaceTreeControl();
 };

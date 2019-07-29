@@ -6,12 +6,12 @@
 #include <limits.h>
 
 #if defined(MAINWIN) && defined(_POSIX_C_SOURCE)
-#	undef _POSIX_C_SOURCE
+#undef _POSIX_C_SOURCE
 #endif
 
 #include <Python.h>
 
-#ifndef MS_WINCE // win32 wont need that soon?
+#ifndef MS_WINCE  // win32 wont need that soon?
 // Must come after Python headers.
 #include <windows.h>
 #endif
@@ -26,4 +26,3 @@
 #include "activscp.h"
 #include "objsafe.h"
 #include "AXScript.h"
-

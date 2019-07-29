@@ -4,52 +4,40 @@
 //
 // Interface Declaration
 
-class PyIEnumDebugPropertyInfo : public PyIUnknown
-{
-public:
-	MAKE_PYCOM_CTOR(PyIEnumDebugPropertyInfo);
-	static IEnumDebugPropertyInfo *GetI(PyObject *self);
-	static PyComTypeObject type;
+class PyIEnumDebugPropertyInfo : public PyIUnknown {
+   public:
+    MAKE_PYCOM_CTOR(PyIEnumDebugPropertyInfo);
+    static IEnumDebugPropertyInfo *GetI(PyObject *self);
+    static PyComTypeObject type;
 
-	// The Python methods
-	static PyObject *Next(PyObject *self, PyObject *args);
-	static PyObject *Skip(PyObject *self, PyObject *args);
-	static PyObject *Reset(PyObject *self, PyObject *args);
-	static PyObject *Clone(PyObject *self, PyObject *args);
-	static PyObject *GetCount(PyObject *self, PyObject *args);
+    // The Python methods
+    static PyObject *Next(PyObject *self, PyObject *args);
+    static PyObject *Skip(PyObject *self, PyObject *args);
+    static PyObject *Reset(PyObject *self, PyObject *args);
+    static PyObject *Clone(PyObject *self, PyObject *args);
+    static PyObject *GetCount(PyObject *self, PyObject *args);
 
-protected:
-	PyIEnumDebugPropertyInfo(IUnknown *pdisp);
-	~PyIEnumDebugPropertyInfo();
+   protected:
+    PyIEnumDebugPropertyInfo(IUnknown *pdisp);
+    ~PyIEnumDebugPropertyInfo();
 };
 // ---------------------------------------------------
 //
 // Gateway Declaration
 
-class PyGEnumDebugPropertyInfo : public PyGatewayBase, public IEnumDebugPropertyInfo
-{
-protected:
-	PyGEnumDebugPropertyInfo(PyObject *instance) : PyGatewayBase(instance) { ; }
-	PYGATEWAY_MAKE_SUPPORT2(PyGEnumDebugPropertyInfo, IEnumDebugPropertyInfo, IID_IEnumDebugPropertyInfo, PyGatewayBase)
+class PyGEnumDebugPropertyInfo : public PyGatewayBase, public IEnumDebugPropertyInfo {
+   protected:
+    PyGEnumDebugPropertyInfo(PyObject *instance) : PyGatewayBase(instance) { ; }
+    PYGATEWAY_MAKE_SUPPORT2(PyGEnumDebugPropertyInfo, IEnumDebugPropertyInfo, IID_IEnumDebugPropertyInfo, PyGatewayBase)
 
+    // IEnumDebugPropertyInfo
+    STDMETHOD(Next)(ULONG celt, DebugPropertyInfo __RPC_FAR *pi, ULONG __RPC_FAR *pcEltsfetched);
 
+    STDMETHOD(Skip)(ULONG celt);
 
-	// IEnumDebugPropertyInfo
-	STDMETHOD(Next)(
-		ULONG celt,
-		DebugPropertyInfo __RPC_FAR * pi,
-		ULONG __RPC_FAR * pcEltsfetched);
+    STDMETHOD(Reset)(void);
 
-	STDMETHOD(Skip)(
-		ULONG celt);
+    STDMETHOD(Clone)(IEnumDebugPropertyInfo __RPC_FAR *__RPC_FAR *ppepi);
 
-	STDMETHOD(Reset)(
-		void);
-
-	STDMETHOD(Clone)(
-		IEnumDebugPropertyInfo __RPC_FAR *__RPC_FAR * ppepi);
-
-	STDMETHOD(GetCount)(
-		ULONG __RPC_FAR * pcelt);
-
+    STDMETHOD(GetCount)(ULONG __RPC_FAR *pcelt);
 };

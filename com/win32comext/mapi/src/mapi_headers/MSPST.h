@@ -1,9 +1,9 @@
 /*
  *  M S P S T . H
- *	
+ *
  *  This file lists internal properties of the Microsoft Personal
  *  Information Store
- *	
+ *
  *  Copyright (c) 2009 Microsoft Corporation. All Rights Reserved.
  */
 
@@ -13,7 +13,6 @@
 #if _MSC_VER > 1000
 #pragma once
 #endif
-
 
 /*  The following is a list of properties that may be passed in
     as the properties in the array of SPropValue structure on the
@@ -75,27 +74,27 @@
     PR_PST_PW_SZ_NEW    password to use for future access to the PST
 */
 
-#define PST_EXTERN_PROPID_BASE          (0x6700)
-#define PR_PST_PATH                     PROP_TAG(PT_STRING8, PST_EXTERN_PROPID_BASE + 0)
-#define PR_PST_REMEMBER_PW              PROP_TAG(PT_BOOLEAN, PST_EXTERN_PROPID_BASE + 1)
-#define PR_PST_ENCRYPTION               PROP_TAG(PT_LONG, PST_EXTERN_PROPID_BASE + 2)
-#define PR_PST_PW_SZ_OLD                PROP_TAG(PT_STRING8, PST_EXTERN_PROPID_BASE + 3)
-#define PR_PST_PW_SZ_NEW                PROP_TAG(PT_STRING8, PST_EXTERN_PROPID_BASE + 4)
+#define PST_EXTERN_PROPID_BASE (0x6700)
+#define PR_PST_PATH PROP_TAG(PT_STRING8, PST_EXTERN_PROPID_BASE + 0)
+#define PR_PST_REMEMBER_PW PROP_TAG(PT_BOOLEAN, PST_EXTERN_PROPID_BASE + 1)
+#define PR_PST_ENCRYPTION PROP_TAG(PT_LONG, PST_EXTERN_PROPID_BASE + 2)
+#define PR_PST_PW_SZ_OLD PROP_TAG(PT_STRING8, PST_EXTERN_PROPID_BASE + 3)
+#define PR_PST_PW_SZ_NEW PROP_TAG(PT_STRING8, PST_EXTERN_PROPID_BASE + 4)
 
-#define PSTF_NO_ENCRYPTION              ((DWORD)0x80000000)
-#define PSTF_COMPRESSABLE_ENCRYPTION    ((DWORD)0x40000000)
-#define PSTF_BEST_ENCRYPTION            ((DWORD)0x20000000)
+#define PSTF_NO_ENCRYPTION ((DWORD)0x80000000)
+#define PSTF_COMPRESSABLE_ENCRYPTION ((DWORD)0x40000000)
+#define PSTF_BEST_ENCRYPTION ((DWORD)0x20000000)
 
 /*
  *  PR_MDB_PROVIDER is the GUID that represent the Microsoft Personal
  *  Information Store.  This guid is available as a property in the stores
  *  table and on the message store and status objects.
  */
-#define MSPST_UID_PROVIDER  {   0x4e, 0x49, 0x54, 0x41, \
-                                0xf9, 0xbf, 0xb8, 0x01, \
-                                0x00, 0xaa, 0x00, 0x37, \
-                                0xd9, 0x6e, 0x00, 0x00 }
+#define MSPST_UID_PROVIDER                                                                             \
+    {                                                                                                  \
+        0x4e, 0x49, 0x54, 0x41, 0xf9, 0xbf, 0xb8, 0x01, 0x00, 0xaa, 0x00, 0x37, 0xd9, 0x6e, 0x00, 0x00 \
+    }
 
-#endif  /* _MSPST_H_ */
+#endif /* _MSPST_H_ */
 
 

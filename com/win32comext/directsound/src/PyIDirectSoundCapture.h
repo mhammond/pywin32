@@ -3,23 +3,22 @@
 //
 // Interface Declaration
 
-class PyIDirectSoundCapture : public PyIUnknown
-{
-public:
-	MAKE_PYCOM_CTOR(PyIDirectSoundCapture);
-	static IDirectSoundCapture *GetI(PyObject *self);
-	static PyComTypeObject type;
+class PyIDirectSoundCapture : public PyIUnknown {
+   public:
+    MAKE_PYCOM_CTOR(PyIDirectSoundCapture);
+    static IDirectSoundCapture *GetI(PyObject *self);
+    static PyComTypeObject type;
 
-	static PyObject *QueryInterface(PyObject *self, PyObject *args);
+    static PyObject *QueryInterface(PyObject *self, PyObject *args);
 
-	// The Python methods
+    // The Python methods
 
-	static PyObject *Initialize(PyObject *self, PyObject *args);
-	static PyObject *CreateCaptureBuffer(PyObject *self, PyObject *args);
-	static PyObject *GetCaps(PyObject *self, PyObject *args);
+    static PyObject *Initialize(PyObject *self, PyObject *args);
+    static PyObject *CreateCaptureBuffer(PyObject *self, PyObject *args);
+    static PyObject *GetCaps(PyObject *self, PyObject *args);
 
-	PyIDirectSoundCapture(IUnknown *pdisp);
-	~PyIDirectSoundCapture();
+    PyIDirectSoundCapture(IUnknown *pdisp);
+    ~PyIDirectSoundCapture();
 
-	PyObject *m_DS;
+    PyObject *m_DS;
 };

@@ -4,57 +4,38 @@
 //
 // Interface Declaration
 
-class PyIClientSecurity : public PyIUnknown
-{
-public:
-	MAKE_PYCOM_CTOR(PyIClientSecurity);
-	static IClientSecurity *GetI(PyObject *self);
-	static PyComTypeObject type;
+class PyIClientSecurity : public PyIUnknown {
+   public:
+    MAKE_PYCOM_CTOR(PyIClientSecurity);
+    static IClientSecurity *GetI(PyObject *self);
+    static PyComTypeObject type;
 
-	// The Python methods
-	static PyObject *QueryBlanket(PyObject *self, PyObject *args);
-	static PyObject *SetBlanket(PyObject *self, PyObject *args);
-	static PyObject *CopyProxy(PyObject *self, PyObject *args);
+    // The Python methods
+    static PyObject *QueryBlanket(PyObject *self, PyObject *args);
+    static PyObject *SetBlanket(PyObject *self, PyObject *args);
+    static PyObject *CopyProxy(PyObject *self, PyObject *args);
 
-protected:
-	PyIClientSecurity(IUnknown *pdisp);
-	~PyIClientSecurity();
+   protected:
+    PyIClientSecurity(IUnknown *pdisp);
+    ~PyIClientSecurity();
 };
 // ---------------------------------------------------
 //
 // Gateway Declaration
 
-class PyGClientSecurity : public PyGatewayBase, public IClientSecurity
-{
-protected:
-	PyGClientSecurity(PyObject *instance) : PyGatewayBase(instance) { ; }
-	PYGATEWAY_MAKE_SUPPORT2(PyGClientSecurity, IClientSecurity, IID_IClientSecurity, PyGatewayBase)
+class PyGClientSecurity : public PyGatewayBase, public IClientSecurity {
+   protected:
+    PyGClientSecurity(PyObject *instance) : PyGatewayBase(instance) { ; }
+    PYGATEWAY_MAKE_SUPPORT2(PyGClientSecurity, IClientSecurity, IID_IClientSecurity, PyGatewayBase)
 
+    // IClientSecurity
+    STDMETHOD(QueryBlanket)
+    (IUnknown *pProxy, DWORD *pAuthnSvc, DWORD *pAuthzSvc, OLECHAR **pServerPrincName, DWORD *pAuthnLevel,
+     DWORD *pImpLevel, void **pAuthInfo, DWORD *pCapabilites);
 
+    STDMETHOD(SetBlanket)
+    (IUnknown *pProxy, DWORD dwAuthnSvc, DWORD dwAuthzSvc, OLECHAR *pServerPrincName, DWORD dwAuthnLevel,
+     DWORD dwImpLevel, void *pAuthInfo, DWORD dwCapabilities);
 
-	// IClientSecurity
-	STDMETHOD(QueryBlanket)(
-		IUnknown * pProxy,
-		DWORD * pAuthnSvc,
-		DWORD * pAuthzSvc,
-		OLECHAR ** pServerPrincName,
-		DWORD * pAuthnLevel,
-		DWORD * pImpLevel,
-		void ** pAuthInfo,
-		DWORD * pCapabilites);
-
-	STDMETHOD(SetBlanket)(
-		IUnknown * pProxy,
-		DWORD dwAuthnSvc,
-		DWORD dwAuthzSvc,
-		OLECHAR * pServerPrincName,
-		DWORD dwAuthnLevel,
-		DWORD dwImpLevel,
-		void * pAuthInfo,
-		DWORD dwCapabilities);
-
-	STDMETHOD(CopyProxy)(
-		IUnknown * pProxy,
-		IUnknown ** ppCopy);
-
+    STDMETHOD(CopyProxy)(IUnknown *pProxy, IUnknown **ppCopy);
 };

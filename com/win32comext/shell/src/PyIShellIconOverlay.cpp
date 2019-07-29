@@ -9,126 +9,124 @@
 //
 // Interface Implementation
 
-PyIShellIconOverlay::PyIShellIconOverlay(IUnknown *pdisp):
-	PyIUnknown(pdisp)
-{
-	ob_type = &type;
-}
+PyIShellIconOverlay::PyIShellIconOverlay(IUnknown *pdisp) : PyIUnknown(pdisp) { ob_type = &type; }
 
-PyIShellIconOverlay::~PyIShellIconOverlay()
-{
-}
+PyIShellIconOverlay::~PyIShellIconOverlay() {}
 
 /* static */ IShellIconOverlay *PyIShellIconOverlay::GetI(PyObject *self)
 {
-	return (IShellIconOverlay *)PyIUnknown::GetI(self);
+    return (IShellIconOverlay *)PyIUnknown::GetI(self);
 }
 
 // @pymethod |PyIShellIconOverlay|GetOverlayIndex|Description of GetOverlayIndex.
 PyObject *PyIShellIconOverlay::GetOverlayIndex(PyObject *self, PyObject *args)
 {
-	IShellIconOverlay *pISIO = GetI(self);
-	if ( pISIO == NULL )
-		return NULL;
-	// @pyparm <o PyIDL>|pidl||Description for pidl
-	PyObject *obpidl;
-	LPITEMIDLIST pidl;
-	int index;
-	if ( !PyArg_ParseTuple(args, "O:GetOverlayIndex", &obpidl) )
-		return NULL;
-	BOOL bPythonIsHappy = TRUE;
-	if (bPythonIsHappy && !PyObject_AsPIDL(obpidl, &pidl)) bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pISIO->GetOverlayIndex( pidl, &index );
-	PyObject_FreePIDL(pidl);
+    IShellIconOverlay *pISIO = GetI(self);
+    if (pISIO == NULL)
+        return NULL;
+    // @pyparm <o PyIDL>|pidl||Description for pidl
+    PyObject *obpidl;
+    LPITEMIDLIST pidl;
+    int index;
+    if (!PyArg_ParseTuple(args, "O:GetOverlayIndex", &obpidl))
+        return NULL;
+    BOOL bPythonIsHappy = TRUE;
+    if (bPythonIsHappy && !PyObject_AsPIDL(obpidl, &pidl))
+        bPythonIsHappy = FALSE;
+    if (!bPythonIsHappy)
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pISIO->GetOverlayIndex(pidl, &index);
+    PyObject_FreePIDL(pidl);
 
-	PY_INTERFACE_POSTCALL;
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pISIO, IID_IShellIconOverlay );
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pISIO, IID_IShellIconOverlay);
 
-	PyObject *pyretval = Py_BuildValue("i", index);
-	return pyretval;
+    PyObject *pyretval = Py_BuildValue("i", index);
+    return pyretval;
 }
 
 // @pymethod |PyIShellIconOverlay|GetOverlayIconIndex|Description of GetOverlayIconIndex.
 PyObject *PyIShellIconOverlay::GetOverlayIconIndex(PyObject *self, PyObject *args)
 {
-	IShellIconOverlay *pISIO = GetI(self);
-	if ( pISIO == NULL )
-		return NULL;
-	// @pyparm <o PyIDL>|pidl||Description for pidl
-	PyObject *obpidl;
-	LPITEMIDLIST pidl;
-	int index;
-	if ( !PyArg_ParseTuple(args, "O:GetOverlayIconIndex", &obpidl) )
-		return NULL;
-	BOOL bPythonIsHappy = TRUE;
-	if (bPythonIsHappy && !PyObject_AsPIDL(obpidl, &pidl)) bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pISIO->GetOverlayIconIndex( pidl, &index );
-	PyObject_FreePIDL(pidl);
+    IShellIconOverlay *pISIO = GetI(self);
+    if (pISIO == NULL)
+        return NULL;
+    // @pyparm <o PyIDL>|pidl||Description for pidl
+    PyObject *obpidl;
+    LPITEMIDLIST pidl;
+    int index;
+    if (!PyArg_ParseTuple(args, "O:GetOverlayIconIndex", &obpidl))
+        return NULL;
+    BOOL bPythonIsHappy = TRUE;
+    if (bPythonIsHappy && !PyObject_AsPIDL(obpidl, &pidl))
+        bPythonIsHappy = FALSE;
+    if (!bPythonIsHappy)
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pISIO->GetOverlayIconIndex(pidl, &index);
+    PyObject_FreePIDL(pidl);
 
-	PY_INTERFACE_POSTCALL;
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pISIO, IID_IShellIconOverlay );
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pISIO, IID_IShellIconOverlay);
 
-	PyObject *pyretval = Py_BuildValue("i", index);
-	return pyretval;
+    PyObject *pyretval = Py_BuildValue("i", index);
+    return pyretval;
 }
 
 // @object PyIShellIconOverlay|Description of the interface
-static struct PyMethodDef PyIShellIconOverlay_methods[] =
-{
-	{ "GetOverlayIndex", PyIShellIconOverlay::GetOverlayIndex, 1 }, // @pymeth GetOverlayIndex|Description of GetOverlayIndex
-	{ "GetOverlayIconIndex", PyIShellIconOverlay::GetOverlayIconIndex, 1 }, // @pymeth GetOverlayIconIndex|Description of GetOverlayIconIndex
-	{ NULL }
-};
+static struct PyMethodDef PyIShellIconOverlay_methods[] = {
+    {"GetOverlayIndex", PyIShellIconOverlay::GetOverlayIndex,
+     1},  // @pymeth GetOverlayIndex|Description of GetOverlayIndex
+    {"GetOverlayIconIndex", PyIShellIconOverlay::GetOverlayIconIndex,
+     1},  // @pymeth GetOverlayIconIndex|Description of GetOverlayIconIndex
+    {NULL}};
 
-PyComTypeObject PyIShellIconOverlay::type("PyIShellIconOverlay",
-		&PyIUnknown::type,
-		sizeof(PyIShellIconOverlay),
-		PyIShellIconOverlay_methods,
-		GET_PYCOM_CTOR(PyIShellIconOverlay));
+PyComTypeObject PyIShellIconOverlay::type("PyIShellIconOverlay", &PyIUnknown::type, sizeof(PyIShellIconOverlay),
+                                          PyIShellIconOverlay_methods, GET_PYCOM_CTOR(PyIShellIconOverlay));
 // ---------------------------------------------------
 //
 // Gateway Implementation
 STDMETHODIMP PyGShellIconOverlay::GetOverlayIndex(
-		/* [unique][in] */ LPCITEMIDLIST pidl,
-		/* [out] */ int __RPC_FAR * index)
+    /* [unique][in] */ LPCITEMIDLIST pidl,
+    /* [out] */ int __RPC_FAR *index)
 {
-	PY_GATEWAY_METHOD;
-	PyObject *obpidl;
-	obpidl = PyObject_FromPIDL(pidl, FALSE);
-	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("GetOverlayIndex", &result, "O", obpidl);
-	Py_XDECREF(obpidl);
-	if (FAILED(hr)) return hr;
-	// Process the Python results, and convert back to the real params
-	if (!PyArg_Parse(result, "i" , index)) return PyCom_SetAndLogCOMErrorFromPyException("GetOverlayIndex", GetIID());
-	Py_DECREF(result);
-	return hr;
+    PY_GATEWAY_METHOD;
+    PyObject *obpidl;
+    obpidl = PyObject_FromPIDL(pidl, FALSE);
+    PyObject *result;
+    HRESULT hr = InvokeViaPolicy("GetOverlayIndex", &result, "O", obpidl);
+    Py_XDECREF(obpidl);
+    if (FAILED(hr))
+        return hr;
+    // Process the Python results, and convert back to the real params
+    if (!PyArg_Parse(result, "i", index))
+        return PyCom_SetAndLogCOMErrorFromPyException("GetOverlayIndex", GetIID());
+    Py_DECREF(result);
+    return hr;
 }
 
 STDMETHODIMP PyGShellIconOverlay::GetOverlayIconIndex(
-		/* [unique][in] */ LPCITEMIDLIST pidl,
-		/* [out] */ int __RPC_FAR * index)
+    /* [unique][in] */ LPCITEMIDLIST pidl,
+    /* [out] */ int __RPC_FAR *index)
 {
-	PY_GATEWAY_METHOD;
-	PyObject *obpidl;
-	obpidl = PyObject_FromPIDL(pidl, FALSE);
-	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("GetOverlayIconIndex", &result, "O", obpidl);
-	Py_XDECREF(obpidl);
-	if (FAILED(hr)) return hr;
-	// Process the Python results, and convert back to the real params
-	if (!PyArg_Parse(result, "i" , index)) return PyCom_SetAndLogCOMErrorFromPyException("GetOverlayIconIndex", GetIID());
-	Py_DECREF(result);
-	return hr;
+    PY_GATEWAY_METHOD;
+    PyObject *obpidl;
+    obpidl = PyObject_FromPIDL(pidl, FALSE);
+    PyObject *result;
+    HRESULT hr = InvokeViaPolicy("GetOverlayIconIndex", &result, "O", obpidl);
+    Py_XDECREF(obpidl);
+    if (FAILED(hr))
+        return hr;
+    // Process the Python results, and convert back to the real params
+    if (!PyArg_Parse(result, "i", index))
+        return PyCom_SetAndLogCOMErrorFromPyException("GetOverlayIconIndex", GetIID());
+    Py_DECREF(result);
+    return hr;
 }
-

@@ -9,37 +9,36 @@
 #include "propsys.h"
 #include "Shobjidl.h"
 
-class PyIPropertyDescription : public PyIUnknown
-{
-public:
-	MAKE_PYCOM_CTOR(PyIPropertyDescription);
-	static IPropertyDescription *GetI(PyObject *self);
-	static PyComTypeObject type;
+class PyIPropertyDescription : public PyIUnknown {
+   public:
+    MAKE_PYCOM_CTOR(PyIPropertyDescription);
+    static IPropertyDescription *GetI(PyObject *self);
+    static PyComTypeObject type;
 
-	// The Python methods
-	static PyObject *GetPropertyKey(PyObject *self, PyObject *args);
-	static PyObject *GetCanonicalName(PyObject *self, PyObject *args);
-	static PyObject *GetPropertyType(PyObject *self, PyObject *args);
-	static PyObject *GetDisplayName(PyObject *self, PyObject *args);
-	static PyObject *GetEditInvitation(PyObject *self, PyObject *args);
-	static PyObject *GetTypeFlags(PyObject *self, PyObject *args);
-	static PyObject *GetViewFlags(PyObject *self, PyObject *args);
-	static PyObject *GetDefaultColumnWidth(PyObject *self, PyObject *args);
-	static PyObject *GetDisplayType(PyObject *self, PyObject *args);
-	static PyObject *GetColumnState(PyObject *self, PyObject *args);
-	static PyObject *GetGroupingRange(PyObject *self, PyObject *args);
-	static PyObject *GetRelativeDescriptionType(PyObject *self, PyObject *args);
-	static PyObject *GetRelativeDescription(PyObject *self, PyObject *args);
-	static PyObject *GetSortDescription(PyObject *self, PyObject *args);
-	static PyObject *GetSortDescriptionLabel(PyObject *self, PyObject *args);
-	static PyObject *GetAggregationType(PyObject *self, PyObject *args);
-	static PyObject *GetConditionType(PyObject *self, PyObject *args);
-	static PyObject *GetEnumTypeList(PyObject *self, PyObject *args);
-	static PyObject *CoerceToCanonicalValue(PyObject *self, PyObject *args);
-	static PyObject *FormatForDisplay(PyObject *self, PyObject *args);
-	static PyObject *IsValueCanonical(PyObject *self, PyObject *args);
+    // The Python methods
+    static PyObject *GetPropertyKey(PyObject *self, PyObject *args);
+    static PyObject *GetCanonicalName(PyObject *self, PyObject *args);
+    static PyObject *GetPropertyType(PyObject *self, PyObject *args);
+    static PyObject *GetDisplayName(PyObject *self, PyObject *args);
+    static PyObject *GetEditInvitation(PyObject *self, PyObject *args);
+    static PyObject *GetTypeFlags(PyObject *self, PyObject *args);
+    static PyObject *GetViewFlags(PyObject *self, PyObject *args);
+    static PyObject *GetDefaultColumnWidth(PyObject *self, PyObject *args);
+    static PyObject *GetDisplayType(PyObject *self, PyObject *args);
+    static PyObject *GetColumnState(PyObject *self, PyObject *args);
+    static PyObject *GetGroupingRange(PyObject *self, PyObject *args);
+    static PyObject *GetRelativeDescriptionType(PyObject *self, PyObject *args);
+    static PyObject *GetRelativeDescription(PyObject *self, PyObject *args);
+    static PyObject *GetSortDescription(PyObject *self, PyObject *args);
+    static PyObject *GetSortDescriptionLabel(PyObject *self, PyObject *args);
+    static PyObject *GetAggregationType(PyObject *self, PyObject *args);
+    static PyObject *GetConditionType(PyObject *self, PyObject *args);
+    static PyObject *GetEnumTypeList(PyObject *self, PyObject *args);
+    static PyObject *CoerceToCanonicalValue(PyObject *self, PyObject *args);
+    static PyObject *FormatForDisplay(PyObject *self, PyObject *args);
+    static PyObject *IsValueCanonical(PyObject *self, PyObject *args);
 
-protected:
-	PyIPropertyDescription(IUnknown *pdisp);
-	~PyIPropertyDescription();
+   protected:
+    PyIPropertyDescription(IUnknown *pdisp);
+    ~PyIPropertyDescription();
 };

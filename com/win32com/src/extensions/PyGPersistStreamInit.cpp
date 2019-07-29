@@ -4,6 +4,6 @@
 
 STDMETHODIMP PyGPersistStreamInit::InitNew(void)
 {
-	PY_GATEWAY_METHOD;
-	return InvokeViaPolicy("InitNew");
+    PY_GATEWAY_METHOD;
+    return InvokeViaPolicy("InitNew");
 }

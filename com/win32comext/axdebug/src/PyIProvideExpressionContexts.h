@@ -4,31 +4,28 @@
 //
 // Interface Declaration
 
-class PyIProvideExpressionContexts : public PyIUnknown
-{
-public:
-	MAKE_PYCOM_CTOR(PyIProvideExpressionContexts);
-	static IProvideExpressionContexts *GetI(PyObject *self);
-	static PyComTypeObject type;
+class PyIProvideExpressionContexts : public PyIUnknown {
+   public:
+    MAKE_PYCOM_CTOR(PyIProvideExpressionContexts);
+    static IProvideExpressionContexts *GetI(PyObject *self);
+    static PyComTypeObject type;
 
-	// The Python methods
-	static PyObject *EnumExpressionContexts(PyObject *self, PyObject *args);
+    // The Python methods
+    static PyObject *EnumExpressionContexts(PyObject *self, PyObject *args);
 
-protected:
-	PyIProvideExpressionContexts(IUnknown *pdisp);
-	~PyIProvideExpressionContexts();
+   protected:
+    PyIProvideExpressionContexts(IUnknown *pdisp);
+    ~PyIProvideExpressionContexts();
 };
 // ---------------------------------------------------
 //
 // Gateway Declaration
 
-class PyGProvideExpressionContexts : public PyGatewayBase, public IProvideExpressionContexts
-{
-protected:
-	PyGProvideExpressionContexts(PyObject *instance) : PyGatewayBase(instance) { ; }
-	PYGATEWAY_MAKE_SUPPORT(PyGProvideExpressionContexts, IProvideExpressionContexts, IID_IProvideExpressionContexts)
+class PyGProvideExpressionContexts : public PyGatewayBase, public IProvideExpressionContexts {
+   protected:
+    PyGProvideExpressionContexts(PyObject *instance) : PyGatewayBase(instance) { ; }
+    PYGATEWAY_MAKE_SUPPORT(PyGProvideExpressionContexts, IProvideExpressionContexts, IID_IProvideExpressionContexts)
 
-	// IProvideExpressionContexts
-	STDMETHOD(EnumExpressionContexts)(
-		IEnumDebugExpressionContexts __RPC_FAR *__RPC_FAR * ppedsf);
+    // IProvideExpressionContexts
+    STDMETHOD(EnumExpressionContexts)(IEnumDebugExpressionContexts __RPC_FAR *__RPC_FAR *ppedsf);
 };

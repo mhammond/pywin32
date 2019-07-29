@@ -11,86 +11,73 @@
 //
 // Interface Implementation
 
-PyICancelMethodCalls::PyICancelMethodCalls(IUnknown *pdisp):
-	PyIUnknown(pdisp)
-{
-	ob_type = &type;
-}
+PyICancelMethodCalls::PyICancelMethodCalls(IUnknown *pdisp) : PyIUnknown(pdisp) { ob_type = &type; }
 
-PyICancelMethodCalls::~PyICancelMethodCalls()
-{
-}
+PyICancelMethodCalls::~PyICancelMethodCalls() {}
 
 /* static */ ICancelMethodCalls *PyICancelMethodCalls::GetI(PyObject *self)
 {
-	return (ICancelMethodCalls *)PyIUnknown::GetI(self);
+    return (ICancelMethodCalls *)PyIUnknown::GetI(self);
 }
 
 // @pymethod |PyICancelMethodCalls|Cancel|Cancels a pending call
 PyObject *PyICancelMethodCalls::Cancel(PyObject *self, PyObject *args)
 {
-	ICancelMethodCalls *pICMC = GetI(self);
-	if ( pICMC == NULL )
-		return NULL;
-	// @pyparm int|Seconds||Wait timeout in seconds
-	ULONG ulSeconds;
-	if ( !PyArg_ParseTuple(args, "k:Cancel", &ulSeconds) )
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pICMC->Cancel( ulSeconds );
-	PY_INTERFACE_POSTCALL;
+    ICancelMethodCalls *pICMC = GetI(self);
+    if (pICMC == NULL)
+        return NULL;
+    // @pyparm int|Seconds||Wait timeout in seconds
+    ULONG ulSeconds;
+    if (!PyArg_ParseTuple(args, "k:Cancel", &ulSeconds))
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pICMC->Cancel(ulSeconds);
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pICMC, IID_ICancelMethodCalls );
-	Py_INCREF(Py_None);
-	return Py_None;
-
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pICMC, IID_ICancelMethodCalls);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @pymethod int|PyICancelMethodCalls|TestCancel|Checks if a request has been made to cancel a call
 // @rdesc Can return RPC_S_CALLPENDING or RPC_E_CALL_CANCELED
 PyObject *PyICancelMethodCalls::TestCancel(PyObject *self, PyObject *args)
 {
-	ICancelMethodCalls *pICMC = GetI(self);
-	if ( pICMC == NULL )
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pICMC->TestCancel( );
-	PY_INTERFACE_POSTCALL;
-	return PyLong_FromLong(hr);
+    ICancelMethodCalls *pICMC = GetI(self);
+    if (pICMC == NULL)
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pICMC->TestCancel();
+    PY_INTERFACE_POSTCALL;
+    return PyLong_FromLong(hr);
 }
 
 // @object PyICancelMethodCalls|Interface to request cancellation of a call. See <om pythoncom.CoGetCancelObject>.
-static struct PyMethodDef PyICancelMethodCalls_methods[] =
-{
-	{ "Cancel", PyICancelMethodCalls::Cancel, 1 }, // @pymeth Cancel|Cancels a pending call
-	{ "TestCancel", PyICancelMethodCalls::TestCancel, METH_NOARGS}, // @pymeth TestCancel|Checks if a request has been made to cancel a call
-	{ NULL }
-};
+static struct PyMethodDef PyICancelMethodCalls_methods[] = {
+    {"Cancel", PyICancelMethodCalls::Cancel, 1},  // @pymeth Cancel|Cancels a pending call
+    {"TestCancel", PyICancelMethodCalls::TestCancel,
+     METH_NOARGS},  // @pymeth TestCancel|Checks if a request has been made to cancel a call
+    {NULL}};
 
-PyComTypeObject PyICancelMethodCalls::type("PyICancelMethodCalls",
-		&PyIUnknown::type,
-		sizeof(PyICancelMethodCalls),
-		PyICancelMethodCalls_methods,
-		GET_PYCOM_CTOR(PyICancelMethodCalls));
+PyComTypeObject PyICancelMethodCalls::type("PyICancelMethodCalls", &PyIUnknown::type, sizeof(PyICancelMethodCalls),
+                                           PyICancelMethodCalls_methods, GET_PYCOM_CTOR(PyICancelMethodCalls));
 // ---------------------------------------------------
 //
 // Gateway Implementation
 STDMETHODIMP PyGCancelMethodCalls::Cancel(
-		/* [in] */ ULONG ulSeconds)
+    /* [in] */ ULONG ulSeconds)
 {
-	PY_GATEWAY_METHOD;
-	HRESULT hr=InvokeViaPolicy("Cancel", NULL, "l", ulSeconds);
-	return hr;
+    PY_GATEWAY_METHOD;
+    HRESULT hr = InvokeViaPolicy("Cancel", NULL, "l", ulSeconds);
+    return hr;
 }
 
-STDMETHODIMP PyGCancelMethodCalls::TestCancel(
-		void)
+STDMETHODIMP PyGCancelMethodCalls::TestCancel(void)
 {
-	PY_GATEWAY_METHOD;
-	HRESULT hr=InvokeViaPolicy("TestCancel", NULL);
-	return hr;
+    PY_GATEWAY_METHOD;
+    HRESULT hr = InvokeViaPolicy("TestCancel", NULL);
+    return hr;
 }
-

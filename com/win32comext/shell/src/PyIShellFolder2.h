@@ -4,126 +4,70 @@
 //
 // Interface Declaration
 
-class PyIShellFolder2 : public PyIShellFolder
-{
-public:
-	MAKE_PYCOM_CTOR(PyIShellFolder2);
-	static IShellFolder2 *GetI(PyObject *self);
-	static PyComEnumProviderTypeObject type;
+class PyIShellFolder2 : public PyIShellFolder {
+   public:
+    MAKE_PYCOM_CTOR(PyIShellFolder2);
+    static IShellFolder2 *GetI(PyObject *self);
+    static PyComEnumProviderTypeObject type;
 
-	// The Python methods
-	static PyObject *GetDefaultSearchGUID(PyObject *self, PyObject *args);
-	static PyObject *EnumSearches(PyObject *self, PyObject *args);
-	static PyObject *GetDefaultColumn(PyObject *self, PyObject *args);
-	static PyObject *GetDefaultColumnState(PyObject *self, PyObject *args);
-	static PyObject *GetDetailsEx(PyObject *self, PyObject *args);
-	static PyObject *GetDetailsOf(PyObject *self, PyObject *args);
-	static PyObject *MapColumnToSCID(PyObject *self, PyObject *args);
+    // The Python methods
+    static PyObject *GetDefaultSearchGUID(PyObject *self, PyObject *args);
+    static PyObject *EnumSearches(PyObject *self, PyObject *args);
+    static PyObject *GetDefaultColumn(PyObject *self, PyObject *args);
+    static PyObject *GetDefaultColumnState(PyObject *self, PyObject *args);
+    static PyObject *GetDetailsEx(PyObject *self, PyObject *args);
+    static PyObject *GetDetailsOf(PyObject *self, PyObject *args);
+    static PyObject *MapColumnToSCID(PyObject *self, PyObject *args);
 
-protected:
-	PyIShellFolder2(IUnknown *pdisp);
-	~PyIShellFolder2();
+   protected:
+    PyIShellFolder2(IUnknown *pdisp);
+    ~PyIShellFolder2();
 };
 // ---------------------------------------------------
 //
 // Gateway Declaration
 
-class PyGShellFolder2 : public PyGShellFolder, public IShellFolder2
-{
-protected:
-	PyGShellFolder2(PyObject *instance) : PyGShellFolder(instance) { ; }
-	PYGATEWAY_MAKE_SUPPORT2(PyGShellFolder2, IShellFolder2, IID_IShellFolder2, PyGShellFolder)
+class PyGShellFolder2 : public PyGShellFolder, public IShellFolder2 {
+   protected:
+    PyGShellFolder2(PyObject *instance) : PyGShellFolder(instance) { ; }
+    PYGATEWAY_MAKE_SUPPORT2(PyGShellFolder2, IShellFolder2, IID_IShellFolder2, PyGShellFolder)
 
-	// IShellFolder
-	STDMETHOD(ParseDisplayName)(
-		HWND hwndOwner,
-		LPBC pbcReserved,
-		LPOLESTR lpszDisplayName,
-		ULONG * pchEaten,
-		LPITEMIDLIST *ppidl,
-		ULONG __RPC_FAR * pdwAttributes);
+    // IShellFolder
+    STDMETHOD(ParseDisplayName)
+    (HWND hwndOwner, LPBC pbcReserved, LPOLESTR lpszDisplayName, ULONG *pchEaten, LPITEMIDLIST *ppidl,
+     ULONG __RPC_FAR *pdwAttributes);
 
-	STDMETHOD(EnumObjects)(
-		HWND hwndOwner,
-		DWORD grfFlags,
-		IEnumIDList __RPC_FAR ** ppeidl);
+    STDMETHOD(EnumObjects)(HWND hwndOwner, DWORD grfFlags, IEnumIDList __RPC_FAR **ppeidl);
 
-	STDMETHOD(BindToObject)(
-		LPCITEMIDLIST pidl,
-		LPBC pbcReserved,
-		REFIID riid,
-		void ** out);
+    STDMETHOD(BindToObject)(LPCITEMIDLIST pidl, LPBC pbcReserved, REFIID riid, void **out);
 
-	STDMETHOD(BindToStorage)(
-		LPCITEMIDLIST pidl,
-		LPBC pbcReserved,
-		REFIID riid,
-		void **out);
+    STDMETHOD(BindToStorage)(LPCITEMIDLIST pidl, LPBC pbcReserved, REFIID riid, void **out);
 
-	STDMETHOD(CompareIDs)(
-		LPARAM lparam,
-		LPCITEMIDLIST pidl1,
-		LPCITEMIDLIST pidl2);
+    STDMETHOD(CompareIDs)(LPARAM lparam, LPCITEMIDLIST pidl1, LPCITEMIDLIST pidl2);
 
-	STDMETHOD(CreateViewObject)(
-		HWND hwndOwner,
-		REFIID riid,
-		void ** out);
+    STDMETHOD(CreateViewObject)(HWND hwndOwner, REFIID riid, void **out);
 
-	STDMETHOD(GetAttributesOf)(
-		UINT cidl,
-		LPCITEMIDLIST *apidl,
-		ULONG __RPC_FAR * rgfInOut);
+    STDMETHOD(GetAttributesOf)(UINT cidl, LPCITEMIDLIST *apidl, ULONG __RPC_FAR *rgfInOut);
 
-	STDMETHOD(GetUIObjectOf)(
-		HWND hwndOwner,
-		UINT cidl,
-		LPCITEMIDLIST *apidl,
-		REFIID riid,
-		UINT *rgfReserved,
-		void ** out);
+    STDMETHOD(GetUIObjectOf)
+    (HWND hwndOwner, UINT cidl, LPCITEMIDLIST *apidl, REFIID riid, UINT *rgfReserved, void **out);
 
-	STDMETHOD(GetDisplayNameOf)(
-		LPCITEMIDLIST pidl,
-		SHGDNF uFlags,
-		STRRET __RPC_FAR * out);
+    STDMETHOD(GetDisplayNameOf)(LPCITEMIDLIST pidl, SHGDNF uFlags, STRRET __RPC_FAR *out);
 
-	STDMETHOD(SetNameOf)(
-		HWND hwnd,
-		LPCITEMIDLIST pidl,
-		LPCOLESTR pszName,
-		SHGDNF uFlags,
-		LPITEMIDLIST *ppidlOut);
+    STDMETHOD(SetNameOf)(HWND hwnd, LPCITEMIDLIST pidl, LPCOLESTR pszName, SHGDNF uFlags, LPITEMIDLIST *ppidlOut);
 
+    // IShellFolder2
+    STDMETHOD(GetDefaultSearchGUID)(GUID *pguid);
 
-	// IShellFolder2
-	STDMETHOD(GetDefaultSearchGUID)(
-		GUID * pguid);
+    STDMETHOD(EnumSearches)(IEnumExtraSearch **ppenum);
 
-	STDMETHOD(EnumSearches)(
-		IEnumExtraSearch ** ppenum);
+    STDMETHOD(GetDefaultColumn)(DWORD dwRes, ULONG *pSort, ULONG *pDisplay);
 
-	STDMETHOD(GetDefaultColumn)(
-		DWORD dwRes,
-		ULONG * pSort,
-		ULONG * pDisplay);
+    STDMETHOD(GetDefaultColumnState)(UINT iColumn, SHCOLSTATEF *pcsFlags);
 
-	STDMETHOD(GetDefaultColumnState)(
-		UINT iColumn,
-		SHCOLSTATEF * pcsFlags);
+    STDMETHOD(GetDetailsEx)(LPCITEMIDLIST pidl, const SHCOLUMNID *pscid, VARIANT *pv);
 
-	STDMETHOD(GetDetailsEx)(
-		LPCITEMIDLIST pidl,
-		const SHCOLUMNID * pscid,
-		VARIANT * pv);
+    STDMETHOD(GetDetailsOf)(LPCITEMIDLIST pidl, UINT iColumn, SHELLDETAILS *psd);
 
-	STDMETHOD(GetDetailsOf)(
-		LPCITEMIDLIST pidl,
-		UINT iColumn,
-		SHELLDETAILS * psd);
-
-	STDMETHOD(MapColumnToSCID)(
-		UINT iColumn,
-		SHCOLUMNID * pscid);
-
+    STDMETHOD(MapColumnToSCID)(UINT iColumn, SHCOLUMNID *pscid);
 };
