@@ -58,7 +58,7 @@ PyObject *PyICategoryProvider::GetDefaultCategory(PyObject *self, PyObject *args
 	if ( !PyArg_ParseTuple(args, ":GetDefaultCategory") )
 		return NULL;
 	HRESULT hr;
-	GUID guid = __uuidof(NULL);
+	GUID guid = IID_NULL;
 	SHCOLUMNID scid;
 	PY_INTERFACE_PRECALL;
 	hr = pICP->GetDefaultCategory( &guid, &scid );
