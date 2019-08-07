@@ -62,15 +62,15 @@ PyObject *PyDoGroupDelMembers(PyObject *self, PyObject *args);
 
 #if WINVER >= 0x0500
 typedef NET_API_STATUS (NET_API_FUNCTION *NetValidateNamefunc)(LPCWSTR, LPCWSTR, LPCWSTR, LPCWSTR, NETSETUP_NAME_TYPE);
-extern NetValidateNamefunc pfnNetValidateName;
+extern "C" NetValidateNamefunc pfnNetValidateName;
 
 typedef NET_API_STATUS (NET_API_FUNCTION *NetGetJoinInformationfunc)(LPCWSTR, LPWSTR *, PNETSETUP_JOIN_STATUS);
-extern NetGetJoinInformationfunc pfnNetGetJoinInformation;
+extern "C" NetGetJoinInformationfunc pfnNetGetJoinInformation;
 
 typedef NET_API_STATUS (NET_API_FUNCTION *NetValidatePasswordPolicyfunc)(LPCWSTR, LPVOID, NET_VALIDATE_PASSWORD_TYPE, LPVOID, LPVOID *);
-extern NetValidatePasswordPolicyfunc pfnNetValidatePasswordPolicy;
+extern "C" NetValidatePasswordPolicyfunc pfnNetValidatePasswordPolicy;
 
 typedef NET_API_STATUS (NET_API_FUNCTION *NetValidatePasswordPolicyFreefunc)(LPVOID *);
-extern NetValidatePasswordPolicyFreefunc pfnNetValidatePasswordPolicyFree;
+extern "C" NetValidatePasswordPolicyFreefunc pfnNetValidatePasswordPolicyFree;
 
 #endif // WINVER
