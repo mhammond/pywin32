@@ -797,7 +797,7 @@ private:
 
 // A helper for simple exception handling.
 // try/__try
-#ifdef MAINWIN
+#if defined(__MINGW32__) || defined(MAINWIN)
 #define PYWINTYPES_TRY try
 #else
 #define PYWINTYPES_TRY __try
