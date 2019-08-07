@@ -438,18 +438,19 @@ class WinExt (Extension):
                         break
                 if found_mfc:
                     break
-            # Handle Unicode - if unicode_mode is None, then it means True
-            # for py3k, false for py2
-            unicode_mode = self.unicode_mode
-            if unicode_mode is None:
-                unicode_mode = is_py3k
-            if unicode_mode:
-                self.extra_compile_args.append("/DUNICODE")
-                self.extra_compile_args.append("/D_UNICODE")
-                self.extra_compile_args.append("/DWINNT")
-                # Unicode, Windows executables seem to need this magic:
-                if "/SUBSYSTEM:WINDOWS" in self.extra_link_args:
-                    self.extra_link_args.append("/ENTRY:wWinMainCRTStartup")
+
+        # Handle Unicode - if unicode_mode is None, then it means True
+        # for py3k, false for py2
+        unicode_mode = self.unicode_mode
+        if unicode_mode is None:
+            unicode_mode = is_py3k
+        if unicode_mode:
+            self.extra_compile_args.append("-DUNICODE")
+            self.extra_compile_args.append("-D_UNICODE")
+            self.extra_compile_args.append("-DWINNT")
+            # Unicode, Windows executables seem to need this magic:
+            if "/SUBSYSTEM:WINDOWS" in self.extra_link_args:
+                self.extra_link_args.append("/ENTRY:wWinMainCRTStartup")
 
 class WinExt_pythonwin(WinExt):
     def __init__ (self, name, **kw):
