@@ -22,7 +22,7 @@ static PyObject *PyVariant_Type;
 #if (PY_VERSION_HEX < 0x03000000)
 #define PYWIN_BUFFER_CHECK PyBuffer_Check
 #else
-#define PYWIN_BUFFER_CHECK PyObject_CheckBuffer
+#define PYWIN_BUFFER_CHECK(obj) (PyBytes_Check(obj) || PyByteArray_Check(obj))
 #endif
 
 // A little helper just for this file
@@ -294,6 +294,10 @@ BOOL PyCom_VariantFromPyObject(PyObject *obj, VARIANT *var)
         if (!PyObject_AsCurrency(obj, &V_CY(var)))
             return FALSE;
         V_VT(var) = VT_CY;
+    }
+    else if (obj->ob_type->tp_as_number) {
+        V_VT(var) = VT_R8;
+        V_R8(var) = PyFloat_AsDouble(obj);
     }
 
     if (V_VT(var) == VT_EMPTY && !bGoodEmpty) {
