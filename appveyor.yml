@@ -71,10 +71,14 @@ test_script:
   - set PYWIN32_TESTINSTALL=%cd%\test-base
   - set PYTHONUSERBASE=%PYWIN32_TESTINSTALL%
   - python setup.py install --user
-  - python %PYWIN32_TESTINSTALL%\Python%PYTHON_MAJOR%%PYTHON_MINOR%\Scripts\pywin32_testall.py
+  - python -m site --user-site > tmpFile
+  - set /p PYTHONSCRIPTSDIR= < tmpFile
+  - del tmpFile
+  - python %PYTHONSCRIPTSDIR%\pywin32_testall.py
   - rmdir %PYWIN32_TESTINSTALL% /s /q
-  - set PYWIN32_TESTINSTALL=
+  - set PYTHONSCRIPTSDIR=
   - set PYTHONUSERBASE=
+  - set PYWIN32_TESTINSTALL=
 
 after_test:
   # This step builds your wheels.
