@@ -1,13 +1,13 @@
 """A test runner for pywin32"""
 import sys
 import os
-import distutils.sysconfig
+import site
 import win32api
 
 # locate the dirs based on where this script is - it may be either in the
 # source tree, or in an installed Python 'Scripts' tree.
 this_dir = os.path.dirname(__file__)
-site_packages = distutils.sysconfig.get_python_lib(plat_specific=1)
+site_packages = site.site.getusersitepackages() + site.getsitepackages()
 
 if hasattr(os, 'popen3'):
     def run_test(script, cmdline_rest=""):
@@ -62,22 +62,18 @@ def find_and_run(possible_locations, script, cmdline_rest=""):
                            % (script, possible_locations))
 
 if __name__=='__main__':
+    code_directories = [this_dir, ] + site_packages
+
     # win32
-    maybes = [os.path.join(this_dir, "win32", "test"),
-              os.path.join(site_packages, "win32", "test"),
-             ]
+    maybes = [os.path.join(directory, "win32", "test") for directory in code_directories]
     find_and_run(maybes, 'testall.py')
 
     # win32com
-    maybes = [os.path.join(this_dir, "com", "win32com", "test"),
-              os.path.join(site_packages, "win32com", "test"),
-             ]
+    maybes = [os.path.join(directory, "com", "win32com", "test") for directory in code_directories]
     find_and_run(maybes, 'testall.py', "2")
 
     # adodbapi
-    maybes = [os.path.join(this_dir, "adodbapi", "tests"),
-              os.path.join(site_packages, "adodbapi", "tests"),
-             ]
+    maybes = [os.path.join(directory, "adodbapi", "tests") for directory in code_directories]
     find_and_run(maybes, 'adodbapitest.py')
     # This script has a hard-coded sql server name in it, (and markh typically
     # doesn't have a different server to test on) so don't bother trying to
