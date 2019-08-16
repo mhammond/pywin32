@@ -69,9 +69,12 @@ test_script:
   # to put the Python version you want to use on PATH.
   #- if "%PYTHON_MAJOR%"=="2" python pywin32_testall.py
   - set PYWIN32_TESTINSTALL=%cd%\test-install
-  - python setup.py install --prefix %PYWIN32_TESTINSTALL%
   - set PYTHONPATH=%PYWIN32_TESTINSTALL%\Lib\site-packages
+  - python setup.py install --prefix %PYWIN32_TESTINSTALL%
   - python %PYWIN32_TESTINSTALL%\Scripts\pywin32_testall.py
+  - rmdir %PYWIN32_TESTINSTALL% /s /q
+  - set PYWIN32_TESTINSTALL=
+  - set PYTHONPATH=
 
 after_test:
   # This step builds your wheels.
