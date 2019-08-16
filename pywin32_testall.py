@@ -7,7 +7,7 @@ import win32api
 # locate the dirs based on where this script is - it may be either in the
 # source tree, or in an installed Python 'Scripts' tree.
 this_dir = os.path.dirname(__file__)
-site_packages = site.site.getusersitepackages() + site.getsitepackages()
+site_packages = [site.getusersitepackages(), ] + site.getsitepackages()
 
 if hasattr(os, 'popen3'):
     def run_test(script, cmdline_rest=""):
