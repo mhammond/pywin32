@@ -74,7 +74,7 @@ test_script:
   - python %PYWIN32_TESTINSTALL%\Python%PYTHON_MAJOR%%PYTHON_MINOR%\Scripts\pywin32_testall.py
   - rmdir %PYWIN32_TESTINSTALL% /s /q
   - set PYWIN32_TESTINSTALL=
-  - set PYTHONPATH=
+  - set PYTHONUSERBASE=
 
 after_test:
   # This step builds your wheels.
