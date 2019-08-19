@@ -77,12 +77,12 @@ BOOL PyWinObject_AsULARGE_INTEGER(PyObject *ob, ULARGE_INTEGER *pResult)
 	return TRUE;
 }
 
-PyObject *PyWinObject_FromLARGE_INTEGER(LARGE_INTEGER &val)
+PYWINTYPES_EXPORT PyObject *PyWinObject_FromLARGE_INTEGER(const LARGE_INTEGER &val)
 {
 	return PyLong_FromLongLong(val.QuadPart);
 }
 
-PyObject *PyWinObject_FromULARGE_INTEGER(ULARGE_INTEGER &val)
+PYWINTYPES_EXPORT PyObject *PyWinObject_FromULARGE_INTEGER(const ULARGE_INTEGER &val)
 {
 	return PyLong_FromUnsignedLongLong(val.QuadPart);
 }

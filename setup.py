@@ -80,11 +80,12 @@ except ImportError:
 # The rest of our imports.
 from setuptools import setup
 from distutils.core import Extension
-from distutils.command.install import install
-from distutils.command.build_ext import build_ext
+from setuptools.command.install import install
+from setuptools.command.install_lib import install_lib
+from setuptools.command.build_ext import build_ext
+from setuptools.command.build_py import build_py
 from distutils.command.build import build
 from distutils.command.install_data import install_data
-from distutils.command.build_py import build_py
 from distutils.command.build_scripts import build_scripts
 
 try:
@@ -437,18 +438,19 @@ class WinExt (Extension):
                         break
                 if found_mfc:
                     break
-            # Handle Unicode - if unicode_mode is None, then it means True
-            # for py3k, false for py2
-            unicode_mode = self.unicode_mode
-            if unicode_mode is None:
-                unicode_mode = is_py3k
-            if unicode_mode:
-                self.extra_compile_args.append("/DUNICODE")
-                self.extra_compile_args.append("/D_UNICODE")
-                self.extra_compile_args.append("/DWINNT")
-                # Unicode, Windows executables seem to need this magic:
-                if "/SUBSYSTEM:WINDOWS" in self.extra_link_args:
-                    self.extra_link_args.append("/ENTRY:wWinMainCRTStartup")
+
+        # Handle Unicode - if unicode_mode is None, then it means True
+        # for py3k, false for py2
+        unicode_mode = self.unicode_mode
+        if unicode_mode is None:
+            unicode_mode = is_py3k
+        if unicode_mode:
+            self.extra_compile_args.append("-DUNICODE")
+            self.extra_compile_args.append("-D_UNICODE")
+            self.extra_compile_args.append("-DWINNT")
+            # Unicode, Windows executables seem to need this magic:
+            if "/SUBSYSTEM:WINDOWS" in self.extra_link_args:
+                self.extra_link_args.append("/ENTRY:wWinMainCRTStartup")
 
 class WinExt_pythonwin(WinExt):
     def __init__ (self, name, **kw):
@@ -1883,6 +1885,7 @@ com_extensions += [
                     depends=["%(internet)s/internet_pch.h" % dirs]),
     WinExt_win32com('mapi', libraries="advapi32", pch_header="PythonCOM.h",
                     include_dirs=["%(mapi)s/mapi_headers" % dirs],
+                    optional_headers=['edkmdb.h', 'edkguid.h'],
                     sources=("""
                         %(mapi)s/mapi.i                 %(mapi)s/mapi.cpp
                         %(mapi)s/PyIABContainer.i       %(mapi)s/PyIABContainer.cpp
@@ -1911,6 +1914,7 @@ com_extensions += [
                         """ % dirs).split()),
     WinExt_win32com_mapi('exchange', libraries="advapi32",
                          include_dirs=["%(mapi)s/mapi_headers" % dirs],
+                         optional_headers=['edkmdb.h', 'edkguid.h'],
                          sources=("""
                                   %(mapi)s/exchange.i         %(mapi)s/exchange.cpp
                                   %(mapi)s/PyIExchangeManageStore.i %(mapi)s/PyIExchangeManageStore.cpp
@@ -2438,6 +2442,17 @@ cmdclass = { 'install': my_install,
              'build_scripts' : my_build_scripts,
            }
 
+classifiers = [ 'Environment :: Win32 (MS Windows)',
+	            'Intended Audience :: Developers',
+	            'License :: OSI Approved :: Python Software Foundation License',
+	            'Operating System :: Microsoft :: Windows',
+	            'Programming Language :: Python :: 2.7',
+	            'Programming Language :: Python :: 3.5',
+	            'Programming Language :: Python :: 3.6',
+	            'Programming Language :: Python :: 3.7',
+	            'Programming Language :: Python :: Implementation :: CPython',
+	          ]
+
 dist = setup(name="pywin32",
       version=str(build_id),
       description="Python for Window Extensions",
@@ -2449,6 +2464,7 @@ dist = setup(name="pywin32",
       author_email = "mhammond@skippinet.com.au",
       url="https://github.com/mhammond/pywin32",
       license="PSF",
+      classifiers = classifiers,
       cmdclass = cmdclass,
       options = {"bdist_wininst":
                     {"install_script": "pywin32_postinstall.py",

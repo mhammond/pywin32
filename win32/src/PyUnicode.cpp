@@ -83,7 +83,7 @@ void PyWinObject_FreeTaskAllocatedWCHAR(WCHAR * str)
 
 // non-unicode version of PyWinObject_FromTCHAR; returned object depends on
 // if we are running py3k or not.
-PyObject *PyWinObject_FromTCHAR(const char *str, Py_ssize_t len /*=(Py_ssize_t)-1*/)
+PYWINTYPES_EXPORT PyObject *PyWinObject_FromTCHAR(const char *str, Py_ssize_t len /*=(Py_ssize_t)-1*/)
 {
 	if (str==NULL) {
 		Py_INCREF(Py_None);

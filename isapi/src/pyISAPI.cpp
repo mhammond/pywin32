@@ -52,7 +52,7 @@ char g_CallbackModuleName[_MAX_PATH + _MAX_FNAME] = "";
 #define TRACE(x) OutputDebugString(_T(x))
 
 // This is an entry point for py2exe.
-void WINAPI PyISAPISetOptions(const char *modname, BOOL is_frozen)
+extern "C" void WINAPI PyISAPISetOptions(const char *modname, BOOL is_frozen)
 {
 	strncpy(g_CallbackModuleName, modname,
 	         sizeof(g_CallbackModuleName)/sizeof(g_CallbackModuleName[0]));

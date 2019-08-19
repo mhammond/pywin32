@@ -15,6 +15,7 @@
 #define _WIN32_DCOM
 
 #include "PyWinTypes.h"
+#include "direct.h"
 #include "objbase.h"
 #include "tchar.h"
 
@@ -302,7 +303,7 @@ static PyObject *PySetEventSourceName(PyObject *self, PyObject *args)
 	if (!PyWinObject_AsTCHAR(obName, &msg))
 		return NULL;
 	_tcsncpy(g_szEventSourceName, msg,
-			 sizeof g_szEventSourceName/sizeof TCHAR);
+			 sizeof g_szEventSourceName/sizeof(TCHAR));
 	PyWinObject_FreeTCHAR(msg);
 	g_bRegisteredEventSource = FALSE; // so this name re-registered.
 	if (registerNow)
@@ -680,10 +681,10 @@ BOOL PythonService_Initialize( const TCHAR *evtsrc_name, const TCHAR *evtsrc_fil
 {
 	if (evtsrc_name && *evtsrc_name)
 		_tcsncpy(g_szEventSourceName, evtsrc_name,
-				 sizeof g_szEventSourceName/sizeof TCHAR);
+				 sizeof g_szEventSourceName/sizeof(TCHAR));
 	if (evtsrc_file && *evtsrc_file)
 		_tcsncpy(g_szEventSourceFileName, evtsrc_file,
-				 sizeof g_szEventSourceFileName/sizeof TCHAR);
+				 sizeof g_szEventSourceFileName/sizeof(TCHAR));
 	return TRUE;
 }
 
@@ -1443,7 +1444,7 @@ static void CheckRegisterEventSourceFile()
 
 	if (!g_szEventSourceFileName[0])
 		GetModuleFileName(g_hdll, g_szEventSourceFileName,
-		                  sizeof g_szEventSourceFileName/sizeof TCHAR);
+		                  sizeof g_szEventSourceFileName/sizeof(TCHAR));
 
 	HKEY hkey;
 	TCHAR keyName[MAX_PATH];
