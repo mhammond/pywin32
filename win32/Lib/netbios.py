@@ -167,7 +167,7 @@ FIND_NAME_BUFFER_ITEMS = [
     (UCHAR,   "access_control"),
     (UCHAR,   "frame_control"),
     ("6s",   "destination_addr"),
-    ("6s", "source_addr"), 
+    ("6s", "source_addr"),
     ("18s", "routing_info"),
 ]
 
@@ -176,10 +176,12 @@ ACTION_HEADER_ITEMS = [
     (USHORT,  "action_code"),
     (USHORT,  "reserved"),
 ]
-    
+
 del UCHAR, WORD, DWORD, USHORT, ULONG
 
 NCB = win32wnet.NCB
+
+
 def Netbios(ncb):
     ob = ncb.Buffer
     is_ours = hasattr(ob, "_pack")
@@ -190,7 +192,8 @@ def Netbios(ncb):
     finally:
         if is_ours:
             ob._unpack()
-        
+
+
 class NCBStruct:
     def __init__(self, items):
         self._format = "".join([item[0] for item in items])
@@ -198,7 +201,7 @@ class NCBStruct:
         self._buffer_ = win32wnet.NCBBuffer(struct.calcsize(self._format))
 
         for format, name in self._items:
-            if len(format)==1:
+            if len(format) == 1:
                 if format == 'c':
                     val = '\0'
                 else:
@@ -215,78 +218,92 @@ class NCBStruct:
                 vals.append(self.__dict__[name])
             except KeyError:
                 vals.append(None)
-        
+
         self._buffer_[:] = struct.pack(*(self._format,) + tuple(vals))
 
     def _unpack(self):
         items = struct.unpack(self._format, self._buffer_)
-        assert len(items)==len(self._items), "unexpected number of items to unpack!"
+        assert len(items) == len(
+            self._items), "unexpected number of items to unpack!"
         for (format, name), val in zip(self._items, items):
             self.__dict__[name] = val
 
     def __setattr__(self, attr, val):
-        if attr not in self.__dict__ and attr[0]!='_':
+        if attr not in self.__dict__ and attr[0] != '_':
             for format, attr_name in self._items:
-                if attr==attr_name:
+                if attr == attr_name:
                     break
             else:
                 raise AttributeError(attr)
         self.__dict__[attr] = val
 
+
 def ADAPTER_STATUS():
     return NCBStruct(ADAPTER_STATUS_ITEMS)
+
 
 def NAME_BUFFER():
     return NCBStruct(NAME_BUFFER_ITEMS)
 
+
 def SESSION_HEADER():
     return NCBStruct(SESSION_HEADER_ITEMS)
+
 
 def SESSION_BUFFER():
     return NCBStruct(SESSION_BUFFER_ITEMS)
 
+
 def LANA_ENUM():
     return NCBStruct(LANA_ENUM_ITEMS)
+
 
 def FIND_NAME_HEADER():
     return NCBStruct(FIND_NAME_HEADER_ITEMS)
 
+
 def FIND_NAME_BUFFER():
     return NCBStruct(FIND_NAME_BUFFER_ITEMS)
+
 
 def ACTION_HEADER():
     return NCBStruct(ACTION_HEADER_ITEMS)
 
+
 def byte_to_int(b):
     """Given an element in a binary buffer, return its integer value"""
-    if sys.version_info >= (3,0):
+    if sys.version_info >= (3, 0):
         # a byte is already an int in py3k
         return b
-    return ord(b) # its a char from a string in py2k.
+    return ord(b)  # its a char from a string in py2k.
 
-if __name__=='__main__':
+
+if __name__ == '__main__':
     # code ported from "HOWTO: Get the MAC Address for an Ethernet Adapter"
-    # MS KB ID: Q118623 
+    # MS KB ID: Q118623
     ncb = NCB()
     ncb.Command = NCBENUM
     la_enum = LANA_ENUM()
     ncb.Buffer = la_enum
     rc = Netbios(ncb)
-    if rc != 0: raise RuntimeError("Unexpected result %d" % (rc,))
+    if rc != 0:
+        raise RuntimeError("Unexpected result %d" % (rc,))
     for i in range(la_enum.length):
         ncb.Reset()
         ncb.Command = NCBRESET
         ncb.Lana_num = byte_to_int(la_enum.lana[i])
         rc = Netbios(ncb)
-        if rc != 0: raise RuntimeError("Unexpected result %d" % (rc,))
+        if rc != 0:
+            raise RuntimeError("Unexpected result %d" % (rc,))
         ncb.Reset()
         ncb.Command = NCBASTAT
         ncb.Lana_num = byte_to_int(la_enum.lana[i])
-        ncb.Callname = "*               ".encode("ascii") # ensure bytes on py2x and 3k
+        # ensure bytes on py2x and 3k
+        ncb.Callname = "*               ".encode("ascii")
         adapter = ADAPTER_STATUS()
         ncb.Buffer = adapter
         Netbios(ncb)
         print "Adapter address:",
         for ch in adapter.adapter_address:
-            print "%02x" % (byte_to_int(ch),) ,
+            print "%02x" % (byte_to_int(ch),),
         print

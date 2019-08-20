@@ -1,9 +1,10 @@
 import string
 import re
 
-###$ event <<expand-word>>
-###$ win <Alt-slash>
-###$ unix <Alt-slash>
+# $ event <<expand-word>>
+# $ win <Alt-slash>
+# $ unix <Alt-slash>
+
 
 class AutoExpand:
 
@@ -18,14 +19,14 @@ class AutoExpand:
     menudefs = [
         ('edit', [
             ('E_xpand word', '<<expand-word>>'),
-         ]),
+        ]),
     ]
 
     wordchars = string.ascii_letters + string.digits + "_"
 
     def __init__(self, editwin):
         self.text = editwin.text
-        self.text.wordlist = None # XXX what is this?
+        self.text.wordlist = None  # XXX what is this?
         self.state = None
 
     def expand_word_event(self, event):

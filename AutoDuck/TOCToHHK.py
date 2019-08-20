@@ -8,6 +8,7 @@ TOCToHHK.py
 Converts an AutoDuck .IDX file into a HTML Help index file.
 """
 
+
 def main():
     file = sys.argv[1]
     output = sys.argv[2]
@@ -45,6 +46,7 @@ def main():
 </UL>
 </BODY></HTML>
 """)
-    
+
+
 if __name__ == "__main__":
     main()

@@ -2,7 +2,7 @@
 #
 # Demo/test of the win32clipboard module.
 from win32clipboard import *
-from pywin32_testutil import str2bytes # py3k-friendly helper
+from pywin32_testutil import str2bytes  # py3k-friendly helper
 import win32con
 import types
 
@@ -13,16 +13,19 @@ if not __debug__:
 cf_names = {}
 # Build map of CF_* constants to names.
 for name, val in win32con.__dict__.items():
-    if name[:3]=="CF_" and name != "CF_SCREENFONTS": # CF_SCREEN_FONTS==CF_TEXT!?!?
+    if name[:3] == "CF_" and name != "CF_SCREENFONTS":  # CF_SCREEN_FONTS==CF_TEXT!?!?
         cf_names[val] = name
+
 
 def TestEmptyClipboard():
     OpenClipboard()
     try:
         EmptyClipboard()
-        assert EnumClipboardFormats(0)==0, "Clipboard formats were available after emptying it!"
+        assert EnumClipboardFormats(
+            0) == 0, "Clipboard formats were available after emptying it!"
     finally:
         CloseClipboard()
+
 
 def TestText():
     OpenClipboard()
@@ -32,7 +35,8 @@ def TestText():
         SetClipboardText(text)
         got = GetClipboardData(win32con.CF_TEXT)
         # CF_TEXT always gives us 'bytes' back .
-        assert  got == text_bytes, "Didnt get the correct result back - '%r'." % (got,)
+        assert got == text_bytes, "Didnt get the correct result back - '%r'." % (
+            got,)
     finally:
         CloseClipboard()
 
@@ -40,12 +44,15 @@ def TestText():
     try:
         # CF_UNICODE text always gives unicode objects back.
         got = GetClipboardData(win32con.CF_UNICODETEXT)
-        assert  got == text, "Didnt get the correct result back - '%r'." % (got,)
-        assert type(got)==types.UnicodeType, "Didnt get the correct result back - '%r'." % (got,)
+        assert got == text, "Didnt get the correct result back - '%r'." % (
+            got,)
+        assert type(
+            got) == types.UnicodeType, "Didnt get the correct result back - '%r'." % (got,)
 
         # CF_OEMTEXT is a bytes-based format.
         got = GetClipboardData(win32con.CF_OEMTEXT)
-        assert  got == text_bytes, "Didnt get the correct result back - '%r'." % (got,)
+        assert got == text_bytes, "Didnt get the correct result back - '%r'." % (
+            got,)
 
         # Unicode tests
         EmptyClipboard()
@@ -55,8 +62,10 @@ def TestText():
         SetClipboardData(win32con.CF_UNICODETEXT, text)
         # Get it in Unicode.
         got = GetClipboardData(win32con.CF_UNICODETEXT)
-        assert  got == text, "Didnt get the correct result back - '%r'." % (got,)
-        assert type(got)==types.UnicodeType, "Didnt get the correct result back - '%r'." % (got,)
+        assert got == text, "Didnt get the correct result back - '%r'." % (
+            got,)
+        assert type(
+            got) == types.UnicodeType, "Didnt get the correct result back - '%r'." % (got,)
 
         # Close and open the clipboard to ensure auto-conversions take place.
     finally:
@@ -67,15 +76,19 @@ def TestText():
 
         # Make sure I can still get the text as bytes
         got = GetClipboardData(win32con.CF_TEXT)
-        assert  got == text_bytes, "Didnt get the correct result back - '%r'." % (got,)
+        assert got == text_bytes, "Didnt get the correct result back - '%r'." % (
+            got,)
         # Make sure we get back the correct types.
         got = GetClipboardData(win32con.CF_UNICODETEXT)
-        assert type(got)==types.UnicodeType, "Didnt get the correct result back - '%r'." % (got,)
+        assert type(
+            got) == types.UnicodeType, "Didnt get the correct result back - '%r'." % (got,)
         got = GetClipboardData(win32con.CF_OEMTEXT)
-        assert  got == text_bytes, "Didnt get the correct result back - '%r'." % (got,)
+        assert got == text_bytes, "Didnt get the correct result back - '%r'." % (
+            got,)
         print "Clipboard text tests worked correctly"
     finally:
         CloseClipboard()
+
 
 def TestClipboardEnum():
     OpenClipboard()
@@ -84,10 +97,11 @@ def TestClipboardEnum():
         enum = 0
         while 1:
             enum = EnumClipboardFormats(enum)
-            if enum==0:
+            if enum == 0:
                 break
-            assert IsClipboardFormatAvailable(enum), "Have format, but clipboard says it is not available!"
-            n = cf_names.get(enum,"")
+            assert IsClipboardFormatAvailable(
+                enum), "Have format, but clipboard says it is not available!"
+            n = cf_names.get(enum, "")
             if not n:
                 try:
                     n = GetClipboardFormatName(enum)
@@ -99,13 +113,17 @@ def TestClipboardEnum():
     finally:
         CloseClipboard()
 
+
 class Foo:
     def __init__(self, **kw):
         self.__dict__.update(kw)
+
     def __cmp__(self, other):
         return cmp(self.__dict__, other.__dict__)
+
     def __eq__(self, other):
-        return self.__dict__==other.__dict__
+        return self.__dict__ == other.__dict__
+
 
 def TestCustomFormat():
     OpenClipboard()
@@ -114,18 +132,19 @@ def TestCustomFormat():
         fmt = RegisterClipboardFormat("Python Pickle Format")
         import cPickle
         pickled_object = Foo(a=1, b=2, Hi=3)
-        SetClipboardData(fmt, cPickle.dumps( pickled_object ) )
+        SetClipboardData(fmt, cPickle.dumps(pickled_object))
         # Now read it back.
         data = GetClipboardData(fmt)
         loaded_object = cPickle.loads(data)
-        assert cPickle.loads(data) == pickled_object, "Didnt get the correct data!"
+        assert cPickle.loads(
+            data) == pickled_object, "Didnt get the correct data!"
 
         print "Clipboard custom format tests worked correctly"
     finally:
         CloseClipboard()
 
 
-if __name__=='__main__':
+if __name__ == '__main__':
     TestEmptyClipboard()
     TestText()
     TestCustomFormat()

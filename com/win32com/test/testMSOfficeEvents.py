@@ -1,26 +1,35 @@
 # OfficeEvents - test/demonstrate events with Word and Excel.
 from win32com.client import DispatchWithEvents, Dispatch
-import msvcrt, pythoncom
-import time, sys
+import msvcrt
+import pythoncom
+import time
+import sys
 import types
 
 import threading
 stopEvent = threading.Event()
 
+
 def TestExcel():
     class ExcelEvents:
         def OnNewWorkbook(self, wb):
             if type(wb) != types.InstanceType:
-                raise RuntimeError("The transformer doesnt appear to have translated this for us!")
+                raise RuntimeError(
+                    "The transformer doesnt appear to have translated this for us!")
             self.seen_events["OnNewWorkbook"] = None
+
         def OnWindowActivate(self, wb, wn):
             if type(wb) != types.InstanceType or type(wn) != types.InstanceType:
-                raise RuntimeError("The transformer doesnt appear to have translated this for us!")
+                raise RuntimeError(
+                    "The transformer doesnt appear to have translated this for us!")
             self.seen_events["OnWindowActivate"] = None
+
         def OnWindowDeactivate(self, wb, wn):
             self.seen_events["OnWindowDeactivate"] = None
+
         def OnSheetDeactivate(self, sh):
             self.seen_events["OnSheetDeactivate"] = None
+
         def OnSheetBeforeDoubleClick(self, Sh, Target, Cancel):
             if Target.Column % 2 == 0:
                 print "You can double-click there..."
@@ -33,18 +42,19 @@ def TestExcel():
     class WorkbookEvents:
         def OnActivate(self):
             print "workbook OnActivate"
+
         def OnBeforeRightClick(self, Target, Cancel):
             print "It's a Worksheet Event"
 
     e = DispatchWithEvents("Excel.Application", ExcelEvents)
     e.seen_events = {}
-    e.Visible=1
+    e.Visible = 1
     book = e.Workbooks.Add()
     book = DispatchWithEvents(book, WorkbookEvents)
     print "Have book", book
 #    sheet = e.Worksheets(1)
 #    sheet = DispatchWithEvents(sheet, WorksheetEvents)
-    
+
     print "Double-click in a few of the Excel cells..."
     print "Press any key when finished with Excel, or wait 10 seconds..."
     if not _WaitForFinish(e, 10):
@@ -52,12 +62,15 @@ def TestExcel():
     if not _CheckSeenEvents(e, ["OnNewWorkbook", "OnWindowActivate"]):
         sys.exit(1)
 
+
 def TestWord():
     class WordEvents:
         def OnDocumentChange(self):
             self.seen_events["OnDocumentChange"] = None
+
         def OnWindowActivate(self, doc, wn):
             self.seen_events["OnWindowActivate"] = None
+
         def OnQuit(self):
             self.seen_events["OnQuit"] = None
             stopEvent.set()
@@ -71,6 +84,7 @@ def TestWord():
         w.Quit()
     if not _CheckSeenEvents(w, ["OnDocumentChange", "OnWindowActivate"]):
         sys.exit(1)
+
 
 def _WaitForFinish(ob, timeout):
     end = time.time() + timeout
@@ -95,6 +109,7 @@ def _WaitForFinish(ob, timeout):
             return 0
     return 1
 
+
 def _CheckSeenEvents(o, events):
     rc = 1
     for e in events:
@@ -102,6 +117,7 @@ def _CheckSeenEvents(o, events):
             print "ERROR: Expected event did not trigger", e
             rc = 0
     return rc
+
 
 def test():
     import sys
@@ -111,5 +127,6 @@ def test():
         TestExcel()
     print "Word and Excel event tests passed."
 
-if __name__=='__main__':
+
+if __name__ == '__main__':
     test()

@@ -18,9 +18,11 @@ if hasattr(sys, "isapidllhandle"):
 proxy = "http://www.python.org"
 
 # We synchronously read chunks of this size then asynchronously write them.
-CHUNK_SIZE=8192
+CHUNK_SIZE = 8192
 
 # The callback made when IIS completes the asynch write.
+
+
 def io_callback(ecb, fp, cbIO, errcode):
     print "IO callback", ecb, fp, cbIO, errcode
     chunk = fp.read(CHUNK_SIZE)
@@ -33,8 +35,11 @@ def io_callback(ecb, fp, cbIO, errcode):
         ecb.DoneWithSession()
 
 # The ISAPI extension - handles all requests in the site.
+
+
 class Extension(threaded_extension.ThreadPoolExtension):
     "Python sample proxy server - asynch version."
+
     def Dispatch(self, ecb):
         print 'IIS dispatching "%s"' % (ecb.GetServerVariable("URL"),)
         url = ecb.GetServerVariable("URL")
@@ -55,10 +60,13 @@ class Extension(threaded_extension.ThreadPoolExtension):
         return isapicon.HSE_STATUS_SUCCESS
 
 # The entry points for the ISAPI extension.
+
+
 def __ExtensionFactory__():
     return Extension()
 
-if __name__=='__main__':
+
+if __name__ == '__main__':
     # If run from the command-line, install ourselves.
     from isapi.install import *
     params = ISAPIParameters()
@@ -70,9 +78,9 @@ if __name__=='__main__':
         ScriptMapParams(Extension="*", Flags=0)
     ]
     vd = VirtualDirParameters(Name="/",
-                              Description = Extension.__doc__,
-                              ScriptMaps = sm,
-                              ScriptMapUpdate = "replace"
+                              Description=Extension.__doc__,
+                              ScriptMaps=sm,
+                              ScriptMapUpdate="replace"
                               )
     params.VirtualDirs = [vd]
     HandleCommandLine(params)

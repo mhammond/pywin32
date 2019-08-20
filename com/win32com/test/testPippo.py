@@ -4,6 +4,7 @@ import pythoncom
 from win32com.client import Dispatch
 from win32com.client.gencache import EnsureDispatch
 
+
 class PippoTester(unittest.TestCase):
     def setUp(self):
         from win32com.test.util import RegisterPythonServer
@@ -17,7 +18,7 @@ class PippoTester(unittest.TestCase):
             gtrc = sys.gettotalrefcount
         except AttributeError:
             print "Please run this with python_d for leak tests"
-            gtrc = lambda: 0
+            def gtrc(): return 0
         # note creating self.object() should have consumed our "one time" leaks
         self.object.Method1()
         start = gtrc()
@@ -39,7 +40,7 @@ class PippoTester(unittest.TestCase):
             gtrc = sys.gettotalrefcount
         except AttributeError:
             print "Please run this with python_d for leak tests"
-            gtrc = lambda: 0
+            def gtrc(): return 0
         # note creating self.object() should have consumed our "one time" leaks
         object = EnsureDispatch("Python.Test.Pippo")
         start = gtrc()
@@ -51,5 +52,6 @@ class PippoTester(unittest.TestCase):
         if end-start > 10:
             self.fail("We lost %d references!" % (end-start,))
 
-if __name__=='__main__':
+
+if __name__ == '__main__':
     unittest.main()

@@ -5,7 +5,10 @@ ISSP_LEVEL = 32
 ISSP_MODE = 0
 ISSP_LEVEL = 32
 ISSP_MODE = 1
+
+
 def SEC_SUCCESS(Status): return ((Status) >= 0)
+
 
 SECPKG_FLAG_INTEGRITY = 1
 SECPKG_FLAG_PRIVACY = 2
@@ -171,7 +174,7 @@ SECPKG_ATTR_ACCESS_TOKEN = 18
 SECPKG_ATTR_TARGET = 19
 SECPKG_ATTR_AUTHENTICATION_ID = 20
 
-## attributes from schannel.h
+# attributes from schannel.h
 SECPKG_ATTR_REMOTE_CERT_CONTEXT = 83
 SECPKG_ATTR_LOCAL_CERT_CONTEXT = 84
 SECPKG_ATTR_ROOT_STORE = 85
@@ -440,7 +443,7 @@ CRYPT_E_NO_TRUSTED_SIGNER = ((-2146885589))
 CRYPT_E_MISSING_PUBKEY_PARA = ((-2146885588))
 CRYPT_E_OSS_ERROR = ((-2146881536))
 
-## Kerberos message types for LsaCallAuthenticationPackage (from ntsecapi.h)
+# Kerberos message types for LsaCallAuthenticationPackage (from ntsecapi.h)
 KerbDebugRequestMessage = 0
 KerbQueryTicketCacheMessage = 1
 KerbChangeMachinePasswordMessage = 2
@@ -461,7 +464,7 @@ KerbRefreshSmartcardCredentialsMessage = 16
 KerbAddExtraCredentialsMessage = 17
 KerbQuerySupplementalCredentialsMessage = 18
 
-## messages used with msv1_0 from ntsecapi.h
+# messages used with msv1_0 from ntsecapi.h
 MsV1_0Lm20ChallengeRequest = 0
 MsV1_0Lm20GetChallengeResponse = 1
 MsV1_0EnumerateUsers = 2

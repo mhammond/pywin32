@@ -2,7 +2,7 @@
 
 # This sample demonstrates how to use COM events in a free-threaded world.
 # In this world, there is no need to marshall calls across threads, so
-# no message loops are needed at all.  This means regular cross-thread 
+# no message loops are needed at all.  This means regular cross-thread
 # sychronization can be used.  In this sample we just wait on win32 event
 # objects.
 
@@ -18,15 +18,16 @@
 #   running this sample you will see an IE Windows briefly appear, but
 #   vanish without ever being repainted.
 
-import sys
-sys.coinit_flags=0          # specify free threading
-
-import os
-import win32api
-import win32event
-import win32com.client
-import pythoncom
 import time
+import pythoncom
+import win32com.client
+import win32event
+import win32api
+import os
+import sys
+
+sys.coinit_flags = 0          # specify free threading
+
 
 # The print statements indicate that COM has actually started another thread
 # and will deliver the events to that thread (ie, the events do not actually
@@ -35,6 +36,7 @@ class ExplorerEvents:
     def __init__(self):
         # We reuse this event for all events.
         self.event = win32event.CreateEvent(None, 0, 0, None)
+
     def OnDocumentComplete(self,
                            pDisp=pythoncom.Empty,
                            URL=pythoncom.Empty):
@@ -45,20 +47,22 @@ class ExplorerEvents:
         # situation may be different.   Caveat programmer.
         #
         thread = win32api.GetCurrentThreadId()
-        print "OnDocumentComplete event processed on thread %d"%thread
+        print "OnDocumentComplete event processed on thread %d" % thread
         # Set the event our main thread is waiting on.
         win32event.SetEvent(self.event)
+
     def OnQuit(self):
         thread = win32api.GetCurrentThreadId()
-        print "OnQuit event processed on thread %d"%thread
+        print "OnQuit event processed on thread %d" % thread
         win32event.SetEvent(self.event)
+
 
 def TestExplorerEvents():
     iexplore = win32com.client.DispatchWithEvents(
         "InternetExplorer.Application", ExplorerEvents)
 
     thread = win32api.GetCurrentThreadId()
-    print 'TestExplorerEvents created IE object on thread %d'%thread
+    print 'TestExplorerEvents created IE object on thread %d' % thread
 
     iexplore.Visible = 1
     try:
@@ -66,7 +70,7 @@ def TestExplorerEvents():
     except pythoncom.com_error, details:
         print "Warning - could not open the test HTML file", details
 
-    # In this free-threaded example, we can simply wait until an event has 
+    # In this free-threaded example, we can simply wait until an event has
     # been set - we will give it 2 seconds before giving up.
     rc = win32event.WaitForSingleObject(iexplore.event, 2000)
     if rc != win32event.WAIT_OBJECT_0:
@@ -84,5 +88,6 @@ def TestExplorerEvents():
     iexplore = None
     print "Finished the IE event sample!"
 
-if __name__=='__main__':
+
+if __name__ == '__main__':
     TestExplorerEvents()

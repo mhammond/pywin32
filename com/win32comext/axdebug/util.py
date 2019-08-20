@@ -1,6 +1,7 @@
 # Utility function for wrapping objects.  Centralising allows me to turn
 # debugging on and off for the entire package in a single spot.
 
+import win32com.server.policy
 import sys
 import win32com.server.util
 from win32com.server.exception import Exception
@@ -14,8 +15,10 @@ try:
 except KeyError:
     debugging = 0
 
+
 def trace(*args):
-    if not debugging: return
+    if not debugging:
+        return
     print str(win32api.GetCurrentThreadId()) + ":",
     for arg in args:
         print arg,
@@ -30,24 +33,30 @@ def trace(*args):
 # (Now this is only true for Document objects, and Python
 # now does ensure this.
 
+
 all_wrapped = {}
+
 
 def _wrap_nodebug(object, iid):
     return win32com.server.util.wrap(object, iid)
 
+
 def _wrap_debug(object, iid):
     import win32com.server.policy
     dispatcher = win32com.server.policy.DispatcherWin32trace
-    return win32com.server.util.wrap(object, iid, useDispatcher = dispatcher)
+    return win32com.server.util.wrap(object, iid, useDispatcher=dispatcher)
+
 
 if debugging:
     _wrap = _wrap_debug
 else:
     _wrap = _wrap_nodebug
 
-def _wrap_remove(object, iid = None):
+
+def _wrap_remove(object, iid=None):
     # Old - no longer used or necessary!
     return
+
 
 def _dump_wrapped():
     from win32com.server.util import unwrap
@@ -61,7 +70,7 @@ def _dump_wrapped():
             print "<error>"
 
 
-def RaiseNotImpl(who = None):
+def RaiseNotImpl(who=None):
     if who is not None:
         print "********* Function %s Raising E_NOTIMPL  ************" % (who)
 
@@ -78,11 +87,11 @@ def RaiseNotImpl(who = None):
     raise Exception(scode=winerror.E_NOTIMPL)
 
 
-import win32com.server.policy
 class Dispatcher(win32com.server.policy.DispatcherWin32trace):
     def __init__(self, policyClass, object):
-        win32com.server.policy.DispatcherTrace.__init__(self, policyClass, object)
-        import win32traceutil # Sets up everything.
+        win32com.server.policy.DispatcherTrace.__init__(
+            self, policyClass, object)
+        import win32traceutil  # Sets up everything.
 #               print "Object with win32trace dispatcher created (object=%s)" % `object`
 
     def _QueryInterface_(self, iid):
@@ -92,14 +101,15 @@ class Dispatcher(win32com.server.policy.DispatcherWin32trace):
         return rc
 
     def _Invoke_(self, dispid, lcid, wFlags, args):
-        print "In Invoke with", dispid, lcid, wFlags, args, "with object",self.policy._obj_
+        print "In Invoke with", dispid, lcid, wFlags, args, "with object", self.policy._obj_
         try:
-            rc = win32com.server.policy.DispatcherBase._Invoke_(self, dispid, lcid, wFlags, args)
+            rc = win32com.server.policy.DispatcherBase._Invoke_(
+                self, dispid, lcid, wFlags, args)
 #                       print "Invoke of", dispid, "returning", rc
             return rc
         except Exception:
             t, v, tb = sys.exc_info()
-            tb = None # A cycle
+            tb = None  # A cycle
             scode = v.scode
             try:
                 desc = " (" + str(v.description) + ")"

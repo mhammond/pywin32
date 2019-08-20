@@ -4,10 +4,11 @@ from __future__ import print_function
 # It exists only to allow trapping exceptions using the "except [exception list] as e" format
 # which is a syntax error in Python 2.5
 
+
 def try_connection(verbose, *args, **kwargs):
     import adodbapi
 
-    if "proxy_host" in kwargs or "pyro_connection" in  kwargs or "proxy_host" in args:
+    if "proxy_host" in kwargs or "pyro_connection" in kwargs or "proxy_host" in args:
         import adodbapi.remote
         import Pyro4
         pyroError = Pyro4.errors.PyroError
@@ -18,21 +19,21 @@ def try_connection(verbose, *args, **kwargs):
         pyroError = NotImplementedError  # (will not occur)
         remote = False
     try:
-        s = dbconnect(*args, **kwargs) # connect to server
+        s = dbconnect(*args, **kwargs)  # connect to server
         if verbose:
             print('Connected to:', s.connection_string)
             print('which has tables:', s.get_table_names())
         s.close()  # thanks, it worked, goodbye
     except adodbapi.DatabaseError as inst:
         print(inst.args[0])    # should be the error message
-        print('***Failed getting connection using=',repr(args),repr(kwargs))
+        print('***Failed getting connection using=', repr(args), repr(kwargs))
         if remote:
             print('** Are you running a *Python3* ado.connection server? **')
             print('* Have you run "setuptestframework.py" to create server_test.mdb?')
         return False, (args, kwargs), None
 
     if remote:
-        print("   (remote)",end="")
+        print("   (remote)", end="")
     print("  (successful)")
 
     return True, (args, kwargs, remote), dbconnect

@@ -14,8 +14,13 @@ This code is free for any purpose, with no warranty of any kind.
 -- John B. Dell'Aquila <jbd@alum.mit.edu>
 """
 
-import win32api, win32process, win32security
-import win32event, win32con, msvcrt, win32gui
+import win32api
+import win32process
+import win32security
+import win32event
+import win32con
+import msvcrt
+import win32gui
 import os
 
 
@@ -33,7 +38,7 @@ def logonUser(loginString):
         passwd,
         win32con.LOGON32_LOGON_INTERACTIVE,
         win32con.LOGON32_PROVIDER_DEFAULT
-        )
+    )
 
 
 class Process:
@@ -127,7 +132,7 @@ class Process:
         win32gui.EnumWindows(self.__close__, 0)
         if self.wait(gracePeriod) != win32event.WAIT_OBJECT_0:
             win32process.TerminateProcess(self.hProcess, 0)
-            win32api.Sleep(100) # wait for resources to be released
+            win32api.Sleep(100)  # wait for resources to be released
 
     def __close__(self, hwnd, dummy):
         """

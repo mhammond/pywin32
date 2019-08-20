@@ -10,7 +10,7 @@ if is64:
     driver = "Microsoft.ACE.OLEDB.12.0"
 else:
     driver = "Microsoft.Jet.OLEDB.4.0"
-extended =  'Extended Properties="Excel 8.0;HDR=Yes;IMEX=1;"'
+extended = 'Extended Properties="Excel 8.0;HDR=Yes;IMEX=1;"'
 
 try:  # first command line argument will be xls file name -- default to the one written by xls_write.py
     filename = sys.argv[1]

@@ -3,7 +3,10 @@
 #
 # * Execute this script to register the handler
 # * Start the "disk cleanup" tool - look for "pywin32 compiled files"
-import sys, os, stat, time
+import sys
+import os
+import stat
+import time
 import pythoncom
 from win32com.shell import shell, shellcon
 from win32com.server.exception import COMException
@@ -22,12 +25,14 @@ if not os.path.isfile(ico):
     ico = None
     print "Can't find python.ico - no icon will be installed"
 
+
 class EmptyVolumeCache:
     _reg_progid_ = "Python.ShellExtension.EmptyVolumeCache"
     _reg_desc_ = "Python Sample Shell Extension (disk cleanup)"
     _reg_clsid_ = "{EADD0777-2968-4c72-A999-2BF5F756259C}"
     _reg_icon_ = ico
-    _com_interfaces_ = [shell.IID_IEmptyVolumeCache, shell.IID_IEmptyVolumeCache2]
+    _com_interfaces_ = [shell.IID_IEmptyVolumeCache,
+                        shell.IID_IEmptyVolumeCache2]
     _public_methods_ = IEmptyVolumeCache_Methods + IEmptyVolumeCache2_Methods
 
     def Initialize(self, hkey, volume, flags):
@@ -47,7 +52,7 @@ class EmptyVolumeCache:
             # should be touched. You should ignore the initialization
             # method's pcwszVolume parameter and clean unneeded files
             # regardless of what drive they are on."
-            self.volume = None # flag as 'any disk will do'
+            self.volume = None  # flag as 'any disk will do'
         elif flags & shellcon.EVCF_OUTOFDISKSPACE:
             # In this case, "the handler should be aggressive about deleting
             # files, even if it results in a performance loss. However, the
@@ -70,7 +75,8 @@ class EmptyVolumeCache:
                 )
 
     def _GetDirectories(self):
-        root_dir = os.path.abspath(os.path.dirname(os.path.dirname(win32gui.__file__)))
+        root_dir = os.path.abspath(os.path.dirname(
+            os.path.dirname(win32gui.__file__)))
         if self.volume is not None and \
            not root_dir.lower().startswith(self.volume.lower()):
             return []
@@ -100,14 +106,14 @@ class EmptyVolumeCache:
                         # we take longer than we need to...
                         # ACK - for some bizarre reason this screws up the XP
                         # cleanup manager - clues welcome!! :)
-                        ## print "Looking in", directory, ", but waiting a while..."
-                        ## time.sleep(3)
+                        # print "Looking in", directory, ", but waiting a while..."
+                        # time.sleep(3)
                         # now do it
                         used = total_list[0]
                         callback.ScanProgress(used, 0, "Looking at " + fqn)
 
     def GetSpaceUsed(self, callback):
-        total = [0] # See _WalkCallback above
+        total = [0]  # See _WalkCallback above
         try:
             for d in self._GetDirectories():
                 os.path.walk(d, self._WalkCallback, (callback, total))
@@ -115,7 +121,7 @@ class EmptyVolumeCache:
         except pythoncom.error, (hr, msg, exc, arg):
             # This will be raised by the callback when the user selects 'cancel'.
             if hr != winerror.E_ABORT:
-                raise # that's the documented error code!
+                raise  # that's the documented error code!
             print "User cancelled the operation"
         return total[0]
 
@@ -129,7 +135,7 @@ class EmptyVolumeCache:
         except pythoncom.error, (hr, msg, exc, arg):
             # This will be raised by the callback when the user selects 'cancel'.
             if hr != winerror.E_ABORT:
-                raise # that's the documented error code!
+                raise  # that's the documented error code!
             print "User cancelled the operation"
 
     def ShowProperties(self, hwnd):
@@ -139,6 +145,7 @@ class EmptyVolumeCache:
         print "Deactivate called"
         return 0
 
+
 def DllRegisterServer():
     # Also need to register specially in:
     # HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\Explorer\VolumeCaches
@@ -147,7 +154,9 @@ def DllRegisterServer():
     kn = r"Software\Microsoft\Windows\CurrentVersion\Explorer\VolumeCaches\%s" \
          % (EmptyVolumeCache._reg_desc_,)
     key = _winreg.CreateKey(_winreg.HKEY_LOCAL_MACHINE, kn)
-    _winreg.SetValueEx(key, None, 0, _winreg.REG_SZ, EmptyVolumeCache._reg_clsid_)
+    _winreg.SetValueEx(key, None, 0, _winreg.REG_SZ,
+                       EmptyVolumeCache._reg_clsid_)
+
 
 def DllUnregisterServer():
     import _winreg
@@ -161,8 +170,9 @@ def DllUnregisterServer():
             raise
     print EmptyVolumeCache._reg_desc_, "unregistration complete."
 
-if __name__=='__main__':
+
+if __name__ == '__main__':
     from win32com.server import register
     register.UseCommandLine(EmptyVolumeCache,
-                   finalize_register = DllRegisterServer,
-                   finalize_unregister = DllUnregisterServer)
+                            finalize_register=DllRegisterServer,
+                            finalize_unregister=DllUnregisterServer)

@@ -1,7 +1,11 @@
 # Magic utility that "redirects" to pywintypesxx.dll
-import imp, sys, os
+import imp
+import sys
+import os
+
+
 def __import_pywin32_system_module__(modname, globs):
-    # This has been through a number of iterations.  The problem: how to 
+    # This has been through a number of iterations.  The problem: how to
     # locate pywintypesXX.dll when it may be in a number of places, and how
     # to avoid ever loading it twice.  This problem is compounded by the
     # fact that the "right" way to do this requires win32api, but this
@@ -23,7 +27,7 @@ def __import_pywin32_system_module__(modname, globs):
         # NOTE: The _win32sysloader module will probably build in this
         # environment, so it may be better to use that here too.
         for ext, mode, ext_type in imp.get_suffixes():
-            if ext_type==imp.C_EXTENSION:
+            if ext_type == imp.C_EXTENSION:
                 for path in sys.path:
                     look = os.path.join(path, "lib" + modname + ext)
                     if os.path.isfile(look):
@@ -37,7 +41,7 @@ def __import_pywin32_system_module__(modname, globs):
         raise ImportError("No dynamic module " + modname)
     # See if this is a debug build.
     for suffix_item in imp.get_suffixes():
-        if suffix_item[0]=='_d.pyd':
+        if suffix_item[0] == '_d.pyd':
             suffix = '_d'
             break
     else:
@@ -51,20 +55,21 @@ def __import_pywin32_system_module__(modname, globs):
         # MarkH has never seen the DLL load problem with py2exe programs...
         for look in sys.path:
             # If the sys.path entry is a (presumably) .zip file, use the
-            # directory 
+            # directory
             if os.path.isfile(look):
-                look = os.path.dirname(look)            
+                look = os.path.dirname(look)
             found = os.path.join(look, filename)
             if os.path.isfile(found):
                 break
         else:
-            raise ImportError("Module '%s' isn't in frozen sys.path %s" % (modname, sys.path))
+            raise ImportError(
+                "Module '%s' isn't in frozen sys.path %s" % (modname, sys.path))
     else:
         # First see if it already in our process - if so, we must use that.
         import _win32sysloader
         found = _win32sysloader.GetModuleFilename(filename)
         if found is None:
-            # We ask Windows to load it next.  This is in an attempt to 
+            # We ask Windows to load it next.  This is in an attempt to
             # get the exact same module loaded should pywintypes be imported
             # first (which is how we are here) or if, eg, win32api was imported
             # first thereby implicitly loading the DLL.
@@ -78,9 +83,9 @@ def __import_pywin32_system_module__(modname, globs):
             # get one loaded.
             found = _win32sysloader.LoadModule(filename)
         if found is None:
-            # Windows can't find it - which although isn't relevent here, 
+            # Windows can't find it - which although isn't relevent here,
             # means that we *must* be the first win32 import, as an attempt
-            # to import win32api etc would fail when Windows attempts to 
+            # to import win32api etc would fail when Windows attempts to
             # locate the DLL.
             # This is most likely to happen for "non-admin" installs, where
             # we can't put the files anywhere else on the global path.
@@ -107,7 +112,8 @@ def __import_pywin32_system_module__(modname, globs):
                 found = maybe
         if found is None:
             # give up in disgust.
-            raise ImportError("No system module '%s' (%s)" % (modname, filename))
+            raise ImportError("No system module '%s' (%s)" %
+                              (modname, filename))
     # py2k and py3k differences:
     # On py2k, after doing "imp.load_module('pywintypes')", sys.modules
     # is unchanged - ie, sys.modules['pywintypes'] still refers to *this*
@@ -122,7 +128,7 @@ def __import_pywin32_system_module__(modname, globs):
     # Python can load the module
     mod = imp.load_dynamic(modname, found)
     # Check the sys.modules[] behaviour we describe above is true...
-    if sys.version_info < (3,0):
+    if sys.version_info < (3, 0):
         assert sys.modules[modname] is old_mod
         assert mod is old_mod
     else:

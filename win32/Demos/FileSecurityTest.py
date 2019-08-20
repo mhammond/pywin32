@@ -1,38 +1,43 @@
 # Contributed by Kelly Kranabetter.
-import os, sys
-import win32security, ntsecuritycon
+import os
+import sys
+import win32security
+import ntsecuritycon
 
 # get security information
-#name=r"c:\autoexec.bat"
+# name=r"c:\autoexec.bat"
 #name= r"g:\!workgrp\lim"
-name=sys.argv[0]
+name = sys.argv[0]
 
 if not os.path.exists(name):
     print name, "does not exist!"
     sys.exit()
 
-print "On file " , name, "\n"
+print "On file ", name, "\n"
 
 # get owner SID
 print "OWNER"
-sd= win32security.GetFileSecurity(name, win32security.OWNER_SECURITY_INFORMATION)
-sid= sd.GetSecurityDescriptorOwner()
+sd = win32security.GetFileSecurity(
+    name, win32security.OWNER_SECURITY_INFORMATION)
+sid = sd.GetSecurityDescriptorOwner()
 print "  ", win32security.LookupAccountSid(None, sid)
 
 # get group SID
 print "GROUP"
-sd= win32security.GetFileSecurity(name, win32security.GROUP_SECURITY_INFORMATION)
-sid= sd.GetSecurityDescriptorGroup()
+sd = win32security.GetFileSecurity(
+    name, win32security.GROUP_SECURITY_INFORMATION)
+sid = sd.GetSecurityDescriptorGroup()
 print "  ", win32security.LookupAccountSid(None, sid)
 
 # get ACEs
-sd= win32security.GetFileSecurity(name, win32security.DACL_SECURITY_INFORMATION)
-dacl= sd.GetSecurityDescriptorDacl()
+sd = win32security.GetFileSecurity(
+    name, win32security.DACL_SECURITY_INFORMATION)
+dacl = sd.GetSecurityDescriptorDacl()
 if dacl == None:
     print "No Discretionary ACL"
 else:
     for ace_no in range(0, dacl.GetAceCount()):
-        ace= dacl.GetAce(ace_no)
+        ace = dacl.GetAce(ace_no)
         print "ACE", ace_no
 
         print "  -Type"
@@ -48,21 +53,24 @@ else:
         print "  -mask", hex(ace[1])
 
         # files and directories do permissions differently
-        permissions_file= ("DELETE", "READ_CONTROL", "WRITE_DAC", "WRITE_OWNER", "SYNCHRONIZE", "FILE_GENERIC_READ", "FILE_GENERIC_WRITE", "FILE_GENERIC_EXECUTE", "FILE_DELETE_CHILD")
-        permissions_dir= ("DELETE", "READ_CONTROL", "WRITE_DAC", "WRITE_OWNER", "SYNCHRONIZE", "FILE_ADD_SUBDIRECTORY", "FILE_ADD_FILE", "FILE_DELETE_CHILD", "FILE_LIST_DIRECTORY", "FILE_TRAVERSE", "FILE_READ_ATTRIBUTES", "FILE_WRITE_ATTRIBUTES", "FILE_READ_EA", "FILE_WRITE_EA")
-        permissions_dir_inherit= ("DELETE", "READ_CONTROL", "WRITE_DAC", "WRITE_OWNER", "SYNCHRONIZE", "GENERIC_READ", "GENERIC_WRITE", "GENERIC_EXECUTE", "GENERIC_ALL")
+        permissions_file = ("DELETE", "READ_CONTROL", "WRITE_DAC", "WRITE_OWNER", "SYNCHRONIZE",
+                            "FILE_GENERIC_READ", "FILE_GENERIC_WRITE", "FILE_GENERIC_EXECUTE", "FILE_DELETE_CHILD")
+        permissions_dir = ("DELETE", "READ_CONTROL", "WRITE_DAC", "WRITE_OWNER", "SYNCHRONIZE", "FILE_ADD_SUBDIRECTORY", "FILE_ADD_FILE",
+                           "FILE_DELETE_CHILD", "FILE_LIST_DIRECTORY", "FILE_TRAVERSE", "FILE_READ_ATTRIBUTES", "FILE_WRITE_ATTRIBUTES", "FILE_READ_EA", "FILE_WRITE_EA")
+        permissions_dir_inherit = ("DELETE", "READ_CONTROL", "WRITE_DAC", "WRITE_OWNER",
+                                   "SYNCHRONIZE", "GENERIC_READ", "GENERIC_WRITE", "GENERIC_EXECUTE", "GENERIC_ALL")
         if os.path.isfile(name):
-            permissions= permissions_file
+            permissions = permissions_file
         else:
-            permissions= permissions_dir
+            permissions = permissions_dir
             # directories also contain an ACE that is inherited by children (files) within them
             if ace[0][1] & ntsecuritycon.OBJECT_INHERIT_ACE == ntsecuritycon.OBJECT_INHERIT_ACE and ace[0][1] & ntsecuritycon.INHERIT_ONLY_ACE == ntsecuritycon.INHERIT_ONLY_ACE:
-                permissions= permissions_dir_inherit
+                permissions = permissions_dir_inherit
 
-        calc_mask= 0  # calculate the mask so we can see if we are printing all of the permissions
+        calc_mask = 0  # calculate the mask so we can see if we are printing all of the permissions
         for i in permissions:
             if getattr(ntsecuritycon, i) & ace[1] == getattr(ntsecuritycon, i):
-                calc_mask= calc_mask | getattr(ntsecuritycon, i)
+                calc_mask = calc_mask | getattr(ntsecuritycon, i)
                 print "    ", i
         print "  ", "Calculated Check Mask=", hex(calc_mask)
         print "  -SID\n    ", win32security.LookupAccountSid(None, ace[2])

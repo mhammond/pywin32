@@ -28,11 +28,13 @@ import httplib
 import traceback
 
 import win32security
-import sspi, sspicon
+import sspi
+import sspicon
 
-import optparse # sorry, this demo needs 2.3+
+import optparse  # sorry, this demo needs 2.3+
 
-options = None # set to optparse object.
+options = None  # set to optparse object.
+
 
 def GetUserName():
     try:
@@ -44,12 +46,15 @@ def GetUserName():
         # is a lack of Python codecs - so printing the Unicode value fails.
         # So just return the repr(), and avoid codecs completely.
         return repr(win32api.GetUserNameEx(win32api.NameSamCompatible))
-    
+
 # Send a simple "message" over a socket - send the number of bytes first,
 # then the string.  Ditto for receive.
+
+
 def _send_msg(s, m):
     s.send(struct.pack("i", len(m)))
     s.send(m)
+
 
 def _get_msg(s):
     size_data = s.recv(struct.calcsize("i"))
@@ -57,6 +62,7 @@ def _get_msg(s):
         return None
     cb = struct.unpack("i", size_data)[0]
     return s.recv(cb)
+
 
 class SSPISocketServer(SocketServer.TCPServer):
     def __init__(self, *args, **kw):
@@ -75,8 +81,8 @@ class SSPISocketServer(SocketServer.TCPServer):
             except sspi.error, details:
                 print "FAILED to authorize client:", details
                 return False
-                
-            if err==0:
+
+            if err == 0:
                 break
             _send_msg(sock, sec_buffer[0].Buffer)
         return True
@@ -101,10 +107,12 @@ class SSPISocketServer(SocketServer.TCPServer):
         self.close_request(request)
         print "The server is back to user", GetUserName()
 
+
 def serve():
     s = SSPISocketServer(("localhost", options.port), None)
     print "Running test server..."
     s.serve_forever()
+
 
 def sspi_client():
     c = httplib.HTTPConnection("localhost", options.port)
@@ -115,7 +123,7 @@ def sspi_client():
     while 1:
         err, out_buf = ca.authorize(data)
         _send_msg(c.sock, out_buf[0].Buffer)
-        if err==0:
+        if err == 0:
             break
         data = _get_msg(c.sock)
     print "Auth dance complete - sending a few encryted messages"
@@ -127,10 +135,11 @@ def sspi_client():
     c.sock.close()
     print "Client completed."
 
-if __name__=='__main__':
+
+if __name__ == '__main__':
     parser = optparse.OptionParser("%prog [options] client|server",
                                    description=__doc__)
-    
+
     parser.add_option("", "--package", action="store", default="NTLM",
                       help="The SSPI package to use (eg, Kerberos) - default is NTLM")
 
@@ -160,12 +169,12 @@ if __name__=='__main__':
         try:
             if not args:
                 args = ['']
-            if args[0]=="client":
+            if args[0] == "client":
                 sspi_client()
-            elif args[0]=="server":
+            elif args[0] == "server":
                 serve()
             else:
-                parser.error("You must supply 'client' or 'server' - " \
+                parser.error("You must supply 'client' or 'server' - "
                              "use --help for details")
         except KeyboardInterrupt:
             pass

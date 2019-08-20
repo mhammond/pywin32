@@ -1,11 +1,14 @@
 from win32com.adsi import adsi
 from win32com.adsi.adsicon import *
 from win32com.adsi import adsicon
-import pythoncom, pywintypes, win32security
+import pythoncom
+import pywintypes
+import win32security
 
-options = None # set to optparse options object
+options = None  # set to optparse options object
 
 ADsTypeNameMap = {}
+
 
 def getADsTypeName(type_val):
     # convert integer type to the 'typename' as known in the headerfiles.
@@ -15,26 +18,33 @@ def getADsTypeName(type_val):
                 ADsTypeNameMap[v] = n
     return ADsTypeNameMap.get(type_val, hex(type_val))
 
+
 def _guid_from_buffer(b):
     return pywintypes.IID(b, True)
+
 
 def _sid_from_buffer(b):
     return str(pywintypes.SID(b))
 
-_null_converter = lambda x: x
+
+def _null_converter(x): return x
+
 
 converters = {
-    'objectGUID' : _guid_from_buffer,
-    'objectSid' : _sid_from_buffer,
-    'instanceType' : getADsTypeName,
+    'objectGUID': _guid_from_buffer,
+    'objectSid': _sid_from_buffer,
+    'instanceType': getADsTypeName,
 }
+
 
 def log(level, msg, *args):
     if options.verbose >= level:
         print "log:", msg % args
 
+
 def getGC():
-    cont = adsi.ADsOpenObject("GC:", options.user, options.password, 0, adsi.IID_IADsContainer)
+    cont = adsi.ADsOpenObject(
+        "GC:", options.user, options.password, 0, adsi.IID_IADsContainer)
     enum = adsi.ADsBuildEnumerator(cont)
     # Only 1 child of the global catalog.
     for e in enum:
@@ -42,16 +52,20 @@ def getGC():
         return gc
     return None
 
+
 def print_attribute(col_data):
     prop_name, prop_type, values = col_data
     if values is not None:
-        log(2, "property '%s' has type '%s'", prop_name, getADsTypeName(prop_type))
-        value = [converters.get(prop_name, _null_converter)(v[0]) for v in values]
+        log(2, "property '%s' has type '%s'",
+            prop_name, getADsTypeName(prop_type))
+        value = [converters.get(prop_name, _null_converter)(v[0])
+                 for v in values]
         if len(value) == 1:
             value = value[0]
         print " %s=%r" % (prop_name, value)
     else:
         print " %s is None" % (prop_name,)
+
 
 def search():
     gc = getGC()
@@ -62,7 +76,7 @@ def search():
     prefs = [(ADS_SEARCHPREF_SEARCH_SCOPE, (ADS_SCOPE_SUBTREE,))]
     hr, statuses = gc.SetSearchPreference(prefs)
     log(3, "SetSearchPreference returned %d/%r", hr, statuses)
-    
+
     if options.attributes:
         attributes = options.attributes.split(",")
     else:
@@ -89,10 +103,11 @@ def search():
                 except adsi.error, details:
                     if details[0] != E_ADS_COLUMN_NOT_SET:
                         raise
-                    print_attribute( (a, None, None) )
+                    print_attribute((a, None, None))
         hr = gc.GetNextRow(h)
     gc.CloseSearchHandle(h)
-   
+
+
 def main():
     global options
     from optparse import OptionParser
@@ -112,11 +127,11 @@ def main():
     parser.add_option("-P", "--password",
                       help="specify the password used to connect")
     parser.add_option("", "--filter",
-                      default = "(&(objectCategory=person)(objectClass=User))",
+                      default="(&(objectCategory=person)(objectClass=User))",
                       help="specify the search filter")
     parser.add_option("", "--attributes",
                       help="comma sep'd list of attribute names to print")
-    
+
     options, args = parser.parse_args()
     if options.quiet:
         if options.verbose != 1:
@@ -128,5 +143,6 @@ def main():
 
     search()
 
-if __name__=='__main__':
+
+if __name__ == '__main__':
     main()

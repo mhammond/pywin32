@@ -7,10 +7,10 @@ states = dict([(val, (name[13:]))
                if name.startswith('BG_JOB_STATE_')])
 
 job_types = dict([(val, (name[12:]))
-               for name, val in vars(bits).iteritems()
-               if name.startswith('BG_JOB_TYPE_')])
+                  for name, val in vars(bits).iteritems()
+                  if name.startswith('BG_JOB_TYPE_')])
 
-bcm = pythoncom.CoCreateInstance(bits.CLSID_BackgroundCopyManager, 
+bcm = pythoncom.CoCreateInstance(bits.CLSID_BackgroundCopyManager,
                                  None,
                                  pythoncom.CLSCTX_LOCAL_SERVER,
                                  bits.IID_IBackgroundCopyManager)

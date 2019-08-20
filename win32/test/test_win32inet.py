@@ -1,9 +1,10 @@
 from win32inet import *
 from win32inetcon import *
 import winerror
-from pywin32_testutil import str2bytes # py3k-friendly helper
+from pywin32_testutil import str2bytes  # py3k-friendly helper
 
 import unittest
+
 
 class CookieTests(unittest.TestCase):
     def testCookies(self):
@@ -19,6 +20,7 @@ class CookieTests(unittest.TestCase):
         except error, exc:
             self.failUnlessEqual(exc.winerror, winerror.ERROR_NO_MORE_ITEMS)
 
+
 class UrlTests(unittest.TestCase):
     def testSimpleCanonicalize(self):
         ret = InternetCanonicalizeUrl("foo bar")
@@ -30,11 +32,18 @@ class UrlTests(unittest.TestCase):
         ret = InternetCanonicalizeUrl(big + " " + big)
         self.assertEqual(ret, big + "%20" + big)
 
+
 class TestNetwork(unittest.TestCase):
     def setUp(self):
-        self.hi = InternetOpen("test", INTERNET_OPEN_TYPE_DIRECT, None, None, 0)
+        self.hi = InternetOpen("test",
+                               INTERNET_OPEN_TYPE_DIRECT,
+                               None,
+                               None,
+                               0)
+
     def tearDown(self):
         self.hi.Close()
+
     def testPythonDotOrg(self):
         hdl = InternetOpenUrl(self.hi, "http://www.python.org", None,
                               INTERNET_FLAG_EXISTING_CONNECT)
@@ -45,17 +54,21 @@ class TestNetwork(unittest.TestCase):
                 break
             chunks.append(chunk)
         data = str2bytes('').join(chunks)
-        assert data.find(str2bytes("Python"))>0, repr(data) # This must appear somewhere on the main page!
+        # This must appear somewhere on the main page!
+        assert data.find(str2bytes("Python")) > 0, repr(data)
 
     def testFtpCommand(self):
         # ftp.python.org doesn't exist.  ftp.gnu.org is what Python's urllib
         # test code uses.
-        hcon = InternetConnect(self.hi, "ftp.gnu.org", INTERNET_INVALID_PORT_NUMBER,
-                               None, None, # username/password
+        hcon = InternetConnect(self.hi, "ftp.gnu.org",
+                               INTERNET_INVALID_PORT_NUMBER,
+                               None, None,  # username/password
                                INTERNET_SERVICE_FTP, 0, 0)
         try:
             try:
-                hftp = FtpCommand(hcon, True, FTP_TRANSFER_TYPE_ASCII, 'NLST', 0)
+                hftp = FtpCommand(hcon, True,
+                                  FTP_TRANSFER_TYPE_ASCII,
+                                  'NLST', 0)
             except error:
                 print "Error info is", InternetGetLastResponseInfo()
             InternetReadFile(hftp, 2048)
@@ -63,5 +76,6 @@ class TestNetwork(unittest.TestCase):
         finally:
             hcon.Close()
 
-if __name__=='__main__':
+
+if __name__ == '__main__':
     unittest.main()

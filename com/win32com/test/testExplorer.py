@@ -15,14 +15,17 @@ from win32com.test.util import CheckClean
 
 bVisibleEventFired = 0
 
+
 class ExplorerEvents:
     def OnVisible(self, visible):
         global bVisibleEventFired
         bVisibleEventFired = 1
 
+
 def TestExplorerEvents():
     global bVisibleEventFired
-    iexplore = win32com.client.DispatchWithEvents("InternetExplorer.Application", ExplorerEvents)
+    iexplore = win32com.client.DispatchWithEvents(
+        "InternetExplorer.Application", ExplorerEvents)
     iexplore.Visible = 1
     if not bVisibleEventFired:
         raise RuntimeError("The IE event did not appear to fire!")
@@ -39,6 +42,7 @@ def TestExplorerEvents():
     ie = None
     print "IE Event tests worked."
 
+
 def TestObjectFromWindow():
     # Check we can use ObjectFromLresult to get the COM object from the
     # HWND - see KB Q249232
@@ -54,16 +58,24 @@ def TestObjectFromWindow():
     # But here is the point - once you have an 'Internet Explorer_Server',
     # you can send a message and use ObjectFromLresult to get it back.
     msg = win32gui.RegisterWindowMessage("WM_HTML_GETOBJECT")
-    rc, result = win32gui.SendMessageTimeout(hwnd, msg, 0, 0, win32con.SMTO_ABORTIFHUNG, 1000)
+    rc, result = win32gui.SendMessageTimeout(hwnd,
+                                             msg,
+                                             0,
+                                             0,
+                                             win32con.SMTO_ABORTIFHUNG,
+                                             1000
+                                             )
     ob = pythoncom.ObjectFromLresult(result, pythoncom.IID_IDispatch, 0)
     doc = Dispatch(ob)
     # just to prove it works, set the background color of the document.
     for color in "red green blue orange white".split():
         doc.bgColor = color
         time.sleep(0.2)
-    
+
+
 def TestExplorer(iexplore):
-    if not iexplore.Visible: iexplore.Visible = -1
+    if not iexplore.Visible:
+        iexplore.Visible = -1
     iexplore.Navigate(win32api.GetFullPathName('..\\readme.htm'))
     win32api.Sleep(1000)
     TestObjectFromWindow()
@@ -74,10 +86,12 @@ def TestExplorer(iexplore):
         # User got sick of waiting :)
         pass
 
+
 def TestAll():
     try:
         try:
-            iexplore = win32com.client.dynamic.Dispatch("InternetExplorer.Application")
+            iexplore = win32com.client.dynamic.Dispatch(
+                "InternetExplorer.Application")
             TestExplorer(iexplore)
 
             win32api.Sleep(1000)
@@ -85,22 +99,29 @@ def TestAll():
 
             # Test IE events.
             TestExplorerEvents()
-            # Give IE a chance to shutdown, else it can get upset on fast machines.
+            # Give IE a chance to shutdown,
+            # else it can get upset on fast machines.
             time.sleep(2)
 
             # Note that the TextExplorerEvents will force makepy - hence
             # this gencache is really no longer needed.
 
             from win32com.client import gencache
-            gencache.EnsureModule("{EAB22AC0-30C1-11CF-A7EB-0000C05BAE0B}", 0, 1, 1)
+            gencache.EnsureModule("{EAB22AC0-30C1-11CF-A7EB-0000C05BAE0B}",
+                                  0,
+                                  1,
+                                  1
+                                  )
             iexplore = win32com.client.Dispatch("InternetExplorer.Application")
             TestExplorer(iexplore)
         except pythoncom.com_error, exc:
-            if exc.hresult!=winerror.RPC_E_DISCONNECTED: # user closed the app!
+            # user closed the app!
+            if exc.hresult != winerror.RPC_E_DISCONNECTED:
                 raise
     finally:
         iexplore = None
 
-if __name__=='__main__':
+
+if __name__ == '__main__':
     TestAll()
     CheckClean()

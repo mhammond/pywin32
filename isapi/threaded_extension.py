@@ -6,7 +6,7 @@ import time
 from isapi import isapicon, ExtensionError
 import isapi.simple
 from win32file import GetQueuedCompletionStatus, CreateIoCompletionPort, \
-                      PostQueuedCompletionStatus, CloseHandle
+    PostQueuedCompletionStatus, CloseHandle
 from win32security import SetThreadToken
 from win32event import INFINITE
 from pywintypes import OVERLAPPED
@@ -16,6 +16,7 @@ import traceback
 
 ISAPI_REQUEST = 1
 ISAPI_SHUTDOWN = 2
+
 
 class WorkerThread(threading.Thread):
     def __init__(self, extension, io_req_port):
@@ -39,7 +40,7 @@ class WorkerThread(threading.Thread):
             dispatcher = self.extension.dispatch_map.get(key)
             if dispatcher is None:
                 raise RuntimeError("Bad request '%s'" % (key,))
-            
+
             dispatcher(errCode, bytes, key, overlapped)
 
     def call_handler(self, cblock):
@@ -49,15 +50,18 @@ class WorkerThread(threading.Thread):
 # Sub-classes can override one method to implement a simple extension, or
 # may leverage the CompletionPort to queue their own requests, and implement a
 # fully asynch extension.
+
+
 class ThreadPoolExtension(isapi.simple.SimpleExtension):
     "Base class for an ISAPI extension based around a thread-pool"
     max_workers = 20
-    worker_shutdown_wait = 15000 # 15 seconds for workers to quit...
+    worker_shutdown_wait = 15000  # 15 seconds for workers to quit...
+
     def __init__(self):
         self.workers = []
         # extensible dispatch map, for sub-classes that need to post their
         # own requests to the completion port.
-        # Each of these functions is called with the result of 
+        # Each of these functions is called with the result of
         # GetQueuedCompletionStatus for our port.
         self.dispatch_map = {
             ISAPI_REQUEST: self.DispatchConnection,
@@ -79,14 +83,16 @@ class ThreadPoolExtension(isapi.simple.SimpleExtension):
     def HttpExtensionProc(self, control_block):
         overlapped = OVERLAPPED()
         overlapped.object = control_block
-        PostQueuedCompletionStatus(self.io_req_port, 0, ISAPI_REQUEST, overlapped)
+        PostQueuedCompletionStatus(
+            self.io_req_port, 0, ISAPI_REQUEST, overlapped)
         return isapicon.HSE_STATUS_PENDING
 
     def TerminateExtension(self, status):
         for worker in self.workers:
             worker.running = False
         for worker in self.workers:
-            PostQueuedCompletionStatus(self.io_req_port, 0, ISAPI_SHUTDOWN, None)
+            PostQueuedCompletionStatus(
+                self.io_req_port, 0, ISAPI_SHUTDOWN, None)
         # wait for them to terminate - pity we aren't using 'native' threads
         # as then we could do a smart wait - but now we need to poll....
         end_time = time.time() + self.worker_shutdown_wait/1000
@@ -97,7 +103,7 @@ class ThreadPoolExtension(isapi.simple.SimpleExtension):
                 break
             time.sleep(0.2)
             alive = [w for w in alive if w.isAlive()]
-        self.dispatch_map = {} # break circles
+        self.dispatch_map = {}  # break circles
         CloseHandle(self.io_req_port)
 
     # This is the one operation the base class supports - a simple
@@ -119,23 +125,23 @@ class ThreadPoolExtension(isapi.simple.SimpleExtension):
 
     def Dispatch(self, ecb):
         """Overridden by the sub-class to handle connection requests.
-        
+
         This class creates a thread-pool using a Windows completion port,
         and dispatches requests via this port.  Sub-classes can generally
         implement each connection request using blocking reads and writes, and
         the thread-pool will still provide decent response to the end user.
-        
+
         The sub-class can set a max_workers attribute (default is 20).  Note
         that this generally does *not* mean 20 threads will all be concurrently
         running, via the magic of Windows completion ports.
-        
+
         There is no default implementation - sub-classes must implement this.
         """
         raise NotImplementedError("sub-classes should override Dispatch")
 
     def HandleDispatchError(self, ecb):
         """Handles errors in the Dispatch method.
-        
+
         When a Dispatch method call fails, this method is called to handle
         the exception.  The default implementation formats the traceback
         in the browser.
@@ -147,12 +153,12 @@ class ThreadPoolExtension(isapi.simple.SimpleExtension):
         try:
             try:
                 import cgi
-                ecb.SendResponseHeaders("200 OK", "Content-type: text/html\r\n\r\n", 
+                ecb.SendResponseHeaders("200 OK", "Content-type: text/html\r\n\r\n",
                                         False)
                 print >> ecb
                 print >> ecb, "<H3>Traceback (most recent call last):</H3>"
                 list = traceback.format_tb(exc_tb, limit) + \
-                       traceback.format_exception_only(exc_typ, exc_val)
+                    traceback.format_exception_only(exc_typ, exc_val)
                 print >> ecb, "<PRE>%s<B>%s</B></PRE>" % (
                     cgi.escape("".join(list[:-1])), cgi.escape(list[-1]),)
             except ExtensionError:
@@ -165,7 +171,7 @@ class ThreadPoolExtension(isapi.simple.SimpleExtension):
                 print "ORIGINAL extension error:"
                 traceback.print_exception(exc_typ, exc_val, exc_tb)
         finally:
-            # holding tracebacks in a local of a frame that may itself be 
+            # holding tracebacks in a local of a frame that may itself be
             # part of a traceback used to be evil and cause leaks!
             exc_tb = None
             ecb.DoneWithSession()

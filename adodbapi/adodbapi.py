@@ -28,16 +28,15 @@ or IronPython version 2.6 and later,
 or, after running through 2to3.py, CPython 3.0 or later.
 """
 __version__ = '2.6.0.6'
+from . import apibase as api
+from . import ado_consts as adc
+from . import process_connect_string
+import os
+import decimal
+import copy
+import sys
 version = 'adodbapi v' + __version__
 
-import sys
-import copy
-import decimal
-import os
-
-from . import process_connect_string
-from . import ado_consts as adc
-from . import apibase as api
 
 try:
     verbose = int(os.environ['ADODBAPI_VERBOSE'])
@@ -52,24 +51,29 @@ if api.onIronPython:
     from System import Activator, Type, DBNull, DateTime, Array, Byte
     from System import Decimal as SystemDecimal
     from clr import Reference
+
     def Dispatch(dispatch):
         type = Type.GetTypeFromProgID(dispatch)
         return Activator.CreateInstance(type)
-    def getIndexedValue(obj,index):
+
+    def getIndexedValue(obj, index):
         return obj.Item[index]
-else: # try pywin32
+else:  # try pywin32
     try:
         import win32com.client
         import pythoncom
         import pywintypes
         onWin32 = True
+
         def Dispatch(dispatch):
             return win32com.client.Dispatch(dispatch)
     except ImportError:
         import warnings
-        warnings.warn("pywin32 package (or IronPython) required for adodbapi.",ImportWarning)
-    def getIndexedValue(obj,index):
-        return obj(index) 
+        warnings.warn(
+            "pywin32 package (or IronPython) required for adodbapi.", ImportWarning)
+
+    def getIndexedValue(obj, index):
+        return obj(index)
 
 try:
     from collections import Mapping
@@ -77,26 +81,31 @@ except ImportError:  # Python 2.5
     Mapping = dict   # this will handle the most common case
 
 # --- define objects to smooth out Python3000 <-> Python 2.x differences
-unicodeType = unicode  #this line will be altered by 2to3.py to '= str'
-longType = long        #this line will be altered by 2to3.py to '= int'
-if sys.version_info >= (3,0): #python 3.x
+unicodeType = unicode  # this line will be altered by 2to3.py to '= str'
+longType = long  # this line will be altered by 2to3.py to '= int'
+if sys.version_info >= (3, 0):  # python 3.x
     StringTypes = str
     maxint = sys.maxsize
-else:                   #python 2.x
-    StringTypes = (str,unicode)  # will be messed up by 2to3 but never used
+else:  # python 2.x
+    StringTypes = (str, unicode)  # will be messed up by 2to3 but never used
     maxint = sys.maxint
 
 # -----------------  The .connect method -----------------
+
+
 def make_COM_connecter():
     try:
         if onWin32:
-            pythoncom.CoInitialize()             #v2.1 Paj
-        c = Dispatch('ADODB.Connection') #connect _after_ CoIninialize v2.1.1 adamvan
+            pythoncom.CoInitialize()  # v2.1 Paj
+        # connect _after_ CoIninialize v2.1.1 adamvan
+        c = Dispatch('ADODB.Connection')
     except:
-        raise api.InterfaceError ("Windows COM Error: Dispatch('ADODB.Connection') failed.")
+        raise api.InterfaceError(
+            "Windows COM Error: Dispatch('ADODB.Connection') failed.")
     return c
 
-def connect(*args, **kwargs): # --> a db-api connection object
+
+def connect(*args, **kwargs):  # --> a db-api connection object
     """Connect to a database.
 
     call using:
@@ -105,15 +114,15 @@ def connect(*args, **kwargs): # --> a db-api connection object
          * http://www.asp101.com/articles/john/connstring/default.asp
     :timeout -- A command timeout value, in seconds (default 30 seconds)
     """
-    co = Connection() # make an empty connection object
+    co = Connection()  # make an empty connection object
 
     kwargs = process_connect_string.process(args, kwargs, True)
 
     try:  # connect to the database, using the connection information in kwargs
-       co.connect(kwargs)
-       return co
+        co.connect(kwargs)
+        return co
     except (Exception), e:
-        message =  'Error opening connection to "%s"' % co.connection_string
+        message = 'Error opening connection to "%s"' % co.connection_string
         raise api.OperationalError(e, message)
 
 # so you could use something like:
@@ -122,6 +131,7 @@ def connect(*args, **kwargs): # --> a db-api connection object
 #   For example, if I were using django, I would say:
 #     import adodbapi as Database
 #     Database.adodbapi.paramstyle = 'format'
+
 
 # ------- other module level defaults --------
 defaultIsolationLevel = adc.adXactReadCommitted
@@ -132,9 +142,11 @@ defaultIsolationLevel = adc.adXactReadCommitted
 #
 #  Set defaultCursorLocation on module level before creating the connection.
 # It may be one of the "adUse..." consts.
-defaultCursorLocation = adc.adUseClient   # changed from adUseServer as of v 2.3.0
+# changed from adUseServer as of v 2.3.0
+defaultCursorLocation = adc.adUseClient
 
-dateconverter = api.pythonDateTimeConverter() # default
+dateconverter = api.pythonDateTimeConverter()  # default
+
 
 def format_parameters(ADOparameters, show_value=False):
     """Format a collection of ADO Command Parameters.
@@ -144,17 +156,20 @@ def format_parameters(ADOparameters, show_value=False):
     try:
         if show_value:
             desc = [
-                "Name: %s, Dir.: %s, Type: %s, Size: %s, Value: \"%s\", Precision: %s, NumericScale: %s" %\
-                (p.Name, adc.directions[p.Direction], adc.adTypeNames.get(p.Type, str(p.Type)+' (unknown type)'), p.Size, p.Value, p.Precision, p.NumericScale)
-                for p in ADOparameters ]
+                "Name: %s, Dir.: %s, Type: %s, Size: %s, Value: \"%s\", Precision: %s, NumericScale: %s" %
+                (p.Name, adc.directions[p.Direction], adc.adTypeNames.get(p.Type, str(
+                    p.Type)+' (unknown type)'), p.Size, p.Value, p.Precision, p.NumericScale)
+                for p in ADOparameters]
         else:
             desc = [
-                "Name: %s, Dir.: %s, Type: %s, Size: %s, Precision: %s, NumericScale: %s" %\
-                (p.Name, adc.directions[p.Direction], adc.adTypeNames.get(p.Type, str(p.Type)+' (unknown type)'), p.Size, p.Precision, p.NumericScale)
-                for p in ADOparameters ]
+                "Name: %s, Dir.: %s, Type: %s, Size: %s, Precision: %s, NumericScale: %s" %
+                (p.Name, adc.directions[p.Direction], adc.adTypeNames.get(
+                    p.Type, str(p.Type)+' (unknown type)'), p.Size, p.Precision, p.NumericScale)
+                for p in ADOparameters]
         return '[' + '\n'.join(desc) + ']'
     except:
         return '[]'
+
 
 def _configure_parameter(p, value, adotype, settings_known):
     """Configure the given ADO Parameter 'p' with the Python 'value'."""
@@ -163,15 +178,16 @@ def _configure_parameter(p, value, adotype, settings_known):
         p.Size = len(value)
         p.AppendChunk(value)
 
-    elif isinstance(value,StringTypes):            #v2.1 Jevon
+    elif isinstance(value, StringTypes):  # v2.1 Jevon
         L = len(value)
-        if adotype in api.adoStringTypes: #v2.2.1 Cole
-            if settings_known: L = min(L,p.Size) #v2.1 Cole limit data to defined size
-            p.Value = value[:L]       #v2.1 Jevon & v2.1 Cole
+        if adotype in api.adoStringTypes:  # v2.2.1 Cole
+            if settings_known:
+                L = min(L, p.Size)  # v2.1 Cole limit data to defined size
+            p.Value = value[:L]  # v2.1 Jevon & v2.1 Cole
         else:
             p.Value = value    # dont limit if db column is numeric
-        if L>0:   #v2.1 Cole something does not like p.Size as Zero
-            p.Size = L           #v2.1 Jevon
+        if L > 0:  # v2.1 Cole something does not like p.Size as Zero
+            p.Size = L  # v2.1 Jevon
 
     elif isinstance(value, decimal.Decimal):
         if api.onIronPython:
@@ -182,13 +198,13 @@ def _configure_parameter(p, value, adotype, settings_known):
             p.Value = value
         exponent = value.as_tuple()[2]
         digit_count = len(value.as_tuple()[1])
-        p.Precision =  digit_count
+        p.Precision = digit_count
         if exponent == 0:
             p.NumericScale = 0
         elif exponent < 0:
             p.NumericScale = -exponent
             if p.Precision < p.NumericScale:
-                p.Precision = p.NumericScale            
+                p.Precision = p.NumericScale
         else:  # exponent > 0:
             p.NumericScale = 0
             p.Precision = digit_count + exponent
@@ -196,20 +212,21 @@ def _configure_parameter(p, value, adotype, settings_known):
     elif type(value) in dateconverter.types:
         if settings_known and adotype in api.adoDateTimeTypes:
             p.Value = dateconverter.COMDate(value)
-        else: #probably a string
+        else:  # probably a string
             # provide the date as a string in the format 'YYYY-MM-dd'
             s = dateconverter.DateObjectToIsoFormatString(value)
             p.Value = s
             p.Size = len(s)
 
-    elif api.onIronPython and isinstance(value, longType): # Iron Python Long
-       s = str(value)  # feature workaround for IPy 2.0
-       p.Value = s
+    elif api.onIronPython and isinstance(value, longType):  # Iron Python Long
+        s = str(value)  # feature workaround for IPy 2.0
+        p.Value = s
 
-    elif adotype == adc.adEmpty: # ADO will not let you specify a null column
-        p.Type = adc.adInteger   # so we will fake it to be an integer (just to have something)
+    elif adotype == adc.adEmpty:  # ADO will not let you specify a null column
+        # so we will fake it to be an integer (just to have something)
+        p.Type = adc.adInteger
         p.Value = None           # and pass in a Null *value*
-    
+
         # For any other type, set the value and let pythoncom do the right thing.
     else:
         p.Value = value
@@ -221,7 +238,9 @@ def counter():
         yield i
         i += 1
 
-# # # # # ----- the Class that defines a connection ----- # # # # # 
+# # # # # ----- the Class that defines a connection ----- # # # # #
+
+
 class Connection(object):
     # include connection attributes as class attributes required by api definition.
     Warning = api.Warning
@@ -234,16 +253,16 @@ class Connection(object):
     InternalError = api.InternalError
     NotSupportedError = api.NotSupportedError
     ProgrammingError = api.ProgrammingError
-    FetchFailedError = api.FetchFailedError # (special for django)
+    FetchFailedError = api.FetchFailedError  # (special for django)
     # ...class attributes... (can be overridden by instance attributes)
     verbose = api.verbose
 
     @property
-    def dbapi(self): # a proposed db-api version 3 extension.
+    def dbapi(self):  # a proposed db-api version 3 extension.
         "Return a reference to the DBAPI module for this Connection."
         return api
 
-    def __init__(self): # now define the instance attributes
+    def __init__(self):  # now define the instance attributes
         self.connector = None
         self.paramstyle = api.paramstyle
         self.supportsTransactions = False
@@ -252,17 +271,19 @@ class Connection(object):
         self.cursor_counter = counter()
         self.dbms_name = ''
         self.dbms_version = ''
-        self.errorhandler = None # use the standard error handler for this instance
-        self.transaction_level = 0 # 0 == Not in a transaction, at the top level
+        self.errorhandler = None  # use the standard error handler for this instance
+        self.transaction_level = 0  # 0 == Not in a transaction, at the top level
         self._autocommit = False
 
     def connect(self, kwargs, connection_maker=make_COM_connecter):
         if verbose > 9:
             print('kwargs=', repr(kwargs))
         try:
-            self.connection_string = kwargs['connection_string'] % kwargs # insert keyword arguments
+            # insert keyword arguments
+            self.connection_string = kwargs['connection_string'] % kwargs
         except (Exception), e:
-            self._raiseConnectionError(KeyError,'Python string format error in connection string->')
+            self._raiseConnectionError(
+                KeyError, 'Python string format error in connection string->')
         self.timeout = kwargs.get('timeout', 30)
         self.kwargs = kwargs
         if verbose:
@@ -274,23 +295,28 @@ class Connection(object):
         try:
             self.connector.Open()  # Open the ADO connection
         except api.Error:
-            self._raiseConnectionError(api.DatabaseError, 'ADO error trying to Open=%s' % self.connection_string)
+            self._raiseConnectionError(
+                api.DatabaseError, 'ADO error trying to Open=%s' % self.connection_string)
 
-        if getIndexedValue(self.connector.Properties,'Transaction DDL').Value != 0:
-            self.supportsTransactions=True
-        self.dbms_name = getIndexedValue(self.connector.Properties,'DBMS Name').Value
-        self.dbms_version = getIndexedValue(self.connector.Properties,'DBMS Version').Value
-        self.connector.CursorLocation = defaultCursorLocation #v2.1 Rose
+        if getIndexedValue(self.connector.Properties, 'Transaction DDL').Value != 0:
+            self.supportsTransactions = True
+        self.dbms_name = getIndexedValue(
+            self.connector.Properties, 'DBMS Name').Value
+        self.dbms_version = getIndexedValue(
+            self.connector.Properties, 'DBMS Version').Value
+        self.connector.CursorLocation = defaultCursorLocation  # v2.1 Rose
         if self.supportsTransactions:
-            self.connector.IsolationLevel=defaultIsolationLevel
+            self.connector.IsolationLevel = defaultIsolationLevel
             self._autocommit = bool(kwargs.get('autocommit', False))
             if not self._autocommit:
-                self.transaction_level = self.connector.BeginTrans() #Disables autocommit & inits transaction_level
+                # Disables autocommit & inits transaction_level
+                self.transaction_level = self.connector.BeginTrans()
         else:
             self._autocommit = True
         if 'paramstyle' in kwargs:
-            self.paramstyle = kwargs['paramstyle'] # let setattr do the error checking
-        self.messages=[]
+            # let setattr do the error checking
+            self.paramstyle = kwargs['paramstyle']
+        self.messages = []
         if verbose:
             print 'adodbapi New connection at %X' % id(self)
 
@@ -300,15 +326,17 @@ class Connection(object):
             eh = api.standardErrorHandler
         eh(self, None, errorclass, errorvalue)
 
-    def _closeAdoConnection(self):                  #all v2.1 Rose
+    def _closeAdoConnection(self):  # all v2.1 Rose
         """close the underlying ADO Connection object,
            rolling it back first if it supports transactions."""
         if self.connector is None:
             return
         if not self._autocommit:
             if self.transaction_level:
-                try: self.connector.RollbackTrans()
-                except: pass
+                try:
+                    self.connector.RollbackTrans()
+                except:
+                    pass
         self.connector.Close()
         if verbose:
             print 'adodbapi Closed connection at %X' % id(self)
@@ -322,13 +350,13 @@ class Connection(object):
         """
         for crsr in self.cursors.values()[:]:  # copy the list, then close each one
             crsr.close(dont_tell_me=True)
-        self.messages=[]
+        self.messages = []
         try:
-            self._closeAdoConnection()                      #v2.1 Rose
+            self._closeAdoConnection()  # v2.1 Rose
         except (Exception), e:
             self._raiseConnectionError(sys.exc_info()[0], sys.exc_info()[1])
 
-        self.connector = None                             #v2.4.2.2 fix subtle timeout bug
+        self.connector = None  # v2.4.2.2 fix subtle timeout bug
         # per M.Hammond: "I expect the benefits of uninitializing are probably fairly small,
         #    so never uninitializing will probably not cause any problems."
 
@@ -348,9 +376,9 @@ class Connection(object):
             if verbose > 1:
                 print 'commit done on connection at %X' % id(self)
             if not (self._autocommit or (self.connector.Attributes & adc.adXactAbortRetaining)):
-                #If attributes has adXactCommitRetaining it performs retaining commits that is,
-                #calling CommitTrans automatically starts a new transaction. Not all providers support this.
-                #If not, we will have to start a new transaction by this command:
+                # If attributes has adXactCommitRetaining it performs retaining commits that is,
+                # calling CommitTrans automatically starts a new transaction. Not all providers support this.
+                # If not, we will have to start a new transaction by this command:
                 self.transaction_level = self.connector.BeginTrans()
         except Exception, e:
             self._raiseConnectionError(api.ProgrammingError, e)
@@ -370,16 +398,16 @@ class Connection(object):
         the method available. These interfaces should then raise a NotSupportedError to indicate the
         non-ability to perform the roll back when the method is invoked. 
         """
-        self.messages=[]
+        self.messages = []
         if self.transaction_level:  # trying to roll back with no open transaction causes an error
             try:
                 self.transaction_level = self.connector.RollbackTrans()
                 if verbose > 1:
                     print 'rollback done on connection at %X' % id(self)
-                if not self._autocommit and  not(self.connector.Attributes & adc.adXactAbortRetaining):
-                    #If attributes has adXactAbortRetaining it performs retaining aborts that is,
-                    #calling RollbackTrans automatically starts a new transaction. Not all providers support this.
-                    #If not, we will have to start a new transaction by this command:
+                if not self._autocommit and not(self.connector.Attributes & adc.adXactAbortRetaining):
+                    # If attributes has adXactAbortRetaining it performs retaining aborts that is,
+                    # calling RollbackTrans automatically starts a new transaction. Not all providers support this.
+                    # If not, we will have to start a new transaction by this command:
                     if self.transaction_level == 0:
                         self.transaction_level = self.connector.BeginTrans()
             except Exception, e:
@@ -389,27 +417,33 @@ class Connection(object):
         if name == 'autocommit':  # extension: allow user to turn autocommit on or off
             if self.supportsTransactions:
                 object.__setattr__(self, '_autocommit', bool(value))
-                try: self._rollback()  # must clear any outstanding transactions
-                except: pass
+                try:
+                    self._rollback()  # must clear any outstanding transactions
+                except:
+                    pass
             return
         elif name == 'paramstyle':
             if value not in api.accepted_paramstyles:
                 self._raiseConnectionError(api.NotSupportedError,
-                        'paramstyle="%s" not in:%s' % (value, repr(api.accepted_paramstyles)))
+                                           'paramstyle="%s" not in:%s' % (value, repr(api.accepted_paramstyles)))
         elif name == 'variantConversions':
-            value = copy.copy(value)  # make a new copy -- no changes in the default, please
+            # make a new copy -- no changes in the default, please
+            value = copy.copy(value)
         object.__setattr__(self, name, value)
 
     def __getattr__(self, item):
         if item == 'rollback':  # the rollback method only appears if the database supports transactions
             if self.supportsTransactions:
-                return self._rollback  # return the rollback method so the caller can execute it.
+                # return the rollback method so the caller can execute it.
+                return self._rollback
             else:
-                raise AttributeError ('this data provider does not support Rollback')
+                raise AttributeError(
+                    'this data provider does not support Rollback')
         elif item == 'autocommit':
             return self._autocommit
         else:
-            raise AttributeError('no such attribute in ADO connection object as="%s"' % item)
+            raise AttributeError(
+                'no such attribute in ADO connection object as="%s"' % item)
 
     def cursor(self):
         "Return a new Cursor Object using the connection."
@@ -422,8 +456,8 @@ class Connection(object):
         i = self.cursor_counter.next()
         self.cursors[i] = crsr
         crsr.id = i
-        
-    def _i_am_closing(self,crsr):
+
+    def _i_am_closing(self, crsr):
         "message from a cursor giving connection a chance to clean up"
         try:
             del self.cursors[crsr.id]
@@ -431,7 +465,7 @@ class Connection(object):
             pass
 
     def printADOerrors(self):
-        j=self.connector.Errors.Count
+        j = self.connector.Errors.Count
         if j:
             print 'ADO Errors:(%i)' % j
         for e in self.connector.Errors:
@@ -455,75 +489,77 @@ class Connection(object):
         if self.connector is not None:
             for e in self.connector.Errors:
                 state = str(e.SQLState)
-                if state.startswith('23') or state=='40002':
+                if state.startswith('23') or state == '40002':
                     return api.IntegrityError
         return api.DatabaseError
 
     def __del__(self):
         try:
-            self._closeAdoConnection()                  #v2.1 Rose
+            self._closeAdoConnection()  # v2.1 Rose
         except:
             pass
         self.connector = None
 
-    def __enter__(self): # Connections are context managers
+    def __enter__(self):  # Connections are context managers
         return(self)
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         if exc_type:
-            self._rollback()  #automatic rollback on errors
+            self._rollback()  # automatic rollback on errors
         else:
             self.commit()
-    
+
     def get_table_names(self):
-        schema = self.connector.OpenSchema(20) # constant = adSchemaTables
+        schema = self.connector.OpenSchema(20)  # constant = adSchemaTables
 
         tables = []
         while not schema.EOF:
-            name = getIndexedValue(schema.Fields,'TABLE_NAME').Value
+            name = getIndexedValue(schema.Fields, 'TABLE_NAME').Value
             tables.append(name)
             schema.MoveNext()
         del schema
         return tables
-    
+
 # # # # # ----- the Class that defines a cursor ----- # # # # #
+
+
 class Cursor(object):
-## ** api required attributes:
-## description...
-##    This read-only attribute is a sequence of 7-item sequences.
-##    Each of these sequences contains information describing one result column:
-##        (name, type_code, display_size, internal_size, precision, scale, null_ok).
-##    This attribute will be None for operations that do not return rows or if the
-##    cursor has not had an operation invoked via the executeXXX() method yet.
-##    The type_code can be interpreted by comparing it to the Type Objects specified in the section below.
-## rowcount...
-##    This read-only attribute specifies the number of rows that the last executeXXX() produced
-##    (for DQL statements like select) or affected (for DML statements like update or insert). 
-##    The attribute is -1 in case no executeXXX() has been performed on the cursor or
-##    the rowcount of the last operation is not determinable by the interface.[7]
-## arraysize...
-##    This read/write attribute specifies the number of rows to fetch at a time with fetchmany().
-##    It defaults to 1 meaning to fetch a single row at a time. 
-##    Implementations must observe this value with respect to the fetchmany() method,
-##    but are free to interact with the database a single row at a time.
-##    It may also be used in the implementation of executemany(). 
-## ** extension attributes:
-## paramstyle...
-##   allows the programmer to override the connection's default paramstyle
-## errorhandler...
-##   allows the programmer to override the connection's default error handler
-    
-    def __init__(self,connection):
+    # ** api required attributes:
+    # description...
+    # This read-only attribute is a sequence of 7-item sequences.
+    # Each of these sequences contains information describing one result column:
+    # (name, type_code, display_size, internal_size, precision, scale, null_ok).
+    # This attribute will be None for operations that do not return rows or if the
+    # cursor has not had an operation invoked via the executeXXX() method yet.
+    # The type_code can be interpreted by comparing it to the Type Objects specified in the section below.
+    # rowcount...
+    # This read-only attribute specifies the number of rows that the last executeXXX() produced
+    # (for DQL statements like select) or affected (for DML statements like update or insert).
+    # The attribute is -1 in case no executeXXX() has been performed on the cursor or
+    # the rowcount of the last operation is not determinable by the interface.[7]
+    # arraysize...
+    # This read/write attribute specifies the number of rows to fetch at a time with fetchmany().
+    # It defaults to 1 meaning to fetch a single row at a time.
+    # Implementations must observe this value with respect to the fetchmany() method,
+    # but are free to interact with the database a single row at a time.
+    # It may also be used in the implementation of executemany().
+    # ** extension attributes:
+    # paramstyle...
+    # allows the programmer to override the connection's default paramstyle
+    # errorhandler...
+    # allows the programmer to override the connection's default error handler
+
+    def __init__(self, connection):
         self.command = None
         self._ado_prepared = False
-        self.messages=[]
+        self.messages = []
         self.connection = connection
         self.paramstyle = connection.paramstyle  # used for overriding the paramstyle
         self._parameter_names = []
         self.recordset_is_remote = False
         self.rs = None  # the ADO recordset for this cursor
         self.converters = []  # conversion function for each column
-        self.columnNames = {} # names of columns {lowercase name : number,...}
+        self.columnNames = {}  # names of columns {lowercase name : number,...}
         self.numberOfColumns = 0
         self._description = None
         self.rowcount = -1
@@ -563,7 +599,7 @@ class Cursor(object):
 
     def build_column_info(self, recordset):
         self.converters = []  # convertion function for each column
-        self.columnNames = {} # names of columns {lowercase name : number,...}
+        self.columnNames = {}  # names of columns {lowercase name : number,...}
         self._description = None
 
         # if EOF and BOF are true at the same time, there are no records in the recordset
@@ -571,7 +607,7 @@ class Cursor(object):
             self.rs = None
             self.numberOfColumns = 0
             return
-        self.rs = recordset        #v2.1.1 bkline
+        self.rs = recordset  # v2.1.1 bkline
         self.recordset_format = api.RS_ARRAY if api.onIronPython else api.RS_WIN_32
         self.numberOfColumns = recordset.Fields.Count
         try:
@@ -581,9 +617,11 @@ class Cursor(object):
         for i in range(self.numberOfColumns):
             f = getIndexedValue(self.rs.Fields, i)
             try:
-                self.converters.append(varCon[f.Type])  # conversion function for this column
+                # conversion function for this column
+                self.converters.append(varCon[f.Type])
             except KeyError:
-                self._raiseCursorError(api.InternalError, 'Data column of Unknown ADO type=%s' % f.Type)
+                self._raiseCursorError(
+                    api.InternalError, 'Data column of Unknown ADO type=%s' % f.Type)
             self.columnNames[f.Name.lower()] = i  # columnNames lookup
 
     def _makeDescriptionFromRS(self):
@@ -595,11 +633,13 @@ class Cursor(object):
         for i in range(self.numberOfColumns):
             f = getIndexedValue(self.rs.Fields, i)
             if self.rs.EOF or self.rs.BOF:
-                display_size=None
+                display_size = None
             else:
-                display_size=f.ActualSize #TODO: Is this the correct defintion according to the DB API 2 Spec ?
-            null_ok= bool(f.Attributes & adc.adFldMayBeNull)          #v2.1 Cole
-            desc.append((f.Name, f.Type, display_size, f.DefinedSize, f.Precision, f.NumericScale, null_ok))
+                # TODO: Is this the correct defintion according to the DB API 2 Spec ?
+                display_size = f.ActualSize
+            null_ok = bool(f.Attributes & adc.adFldMayBeNull)  # v2.1 Cole
+            desc.append((f.Name, f.Type, display_size, f.DefinedSize,
+                         f.Precision, f.NumericScale, null_ok))
         self._description = desc
 
     def get_description(self):
@@ -610,13 +650,14 @@ class Cursor(object):
     def __getattr__(self, item):
         if item == 'description':
             return self.get_description()
-        getattr(self, item)  # may get here on Remote attribute calls for existing attributes
+        # may get here on Remote attribute calls for existing attributes
+        getattr(self, item)
 
-    def format_description(self,d):
+    def format_description(self, d):
         """Format db_api description tuple for printing."""
         if self.description is None:
             self._makeDescriptionFromRS()
-        if isinstance(d,int):
+        if isinstance(d, int):
             d = self.description[d]
         desc = "Name= %s, Type= %s, DispSize= %s, IntSize= %s, Precision= %s, Scale= %s NullOK=%s" % \
                (d[0], adc.adTypeNames.get(d[1], str(d[1])+' (unknown type)'),
@@ -631,12 +672,13 @@ class Cursor(object):
         if self.connection is None:
             return
         if not dont_tell_me:
-            self.connection._i_am_closing(self) # take me off the connection's cursors list
+            # take me off the connection's cursors list
+            self.connection._i_am_closing(self)
         self.messages = []
-        if self.rs and self.rs.State != adc.adStateClosed: # rs exists and is open      #v2.1 Rose
-            self.rs.Close()                                                         #v2.1 Rose
-            self.rs = None # let go of the recordset so ADO will let it be disposed #v2.1 Rose
-        self.connection = None    #this will make all future method calls on me throw an exception
+        if self.rs and self.rs.State != adc.adStateClosed:  # rs exists and is open      #v2.1 Rose
+            self.rs.Close()  # v2.1 Rose
+            self.rs = None  # let go of the recordset so ADO will let it be disposed #v2.1 Rose
+        self.connection = None  # this will make all future method calls on me throw an exception
         if verbose:
             print 'adodbapi Closed cursor at %X' % id(self)
 
@@ -668,23 +710,24 @@ class Cursor(object):
         # Stored procedures may have an integer return value
         self.return_value = None
         recordset = None
-        count = -1 #default value
+        count = -1  # default value
         if verbose:
-            print 'Executing command="%s"'%self.command
+            print 'Executing command="%s"' % self.command
         try:
             # ----- the actual SQL is executed here ---
             if api.onIronPython:
                 ra = Reference[int]()
                 recordset = self.cmd.Execute(ra)
                 count = ra.Value
-            else: #pywin32
+            else:  # pywin32
                 recordset, count = self.cmd.Execute()
             # ----- ------------------------------- ---
         except (Exception), e:
             _message = ""
-            if hasattr(e, 'args'): _message += str(e.args)+"\n"
-            _message += "Command:\n%s\nParameters:\n%s" %  (self.cmd.CommandText,
-                                                            format_parameters(self.cmd.Parameters, True))
+            if hasattr(e, 'args'):
+                _message += str(e.args)+"\n"
+            _message += "Command:\n%s\nParameters:\n%s" % (self.cmd.CommandText,
+                                                           format_parameters(self.cmd.Parameters, True))
             klass = self.connection._suggest_error_class()
             self._raiseCursorError(klass, _message)
         try:
@@ -706,23 +749,26 @@ class Cursor(object):
         """with some providers, returned parameters and the .return_value are not available until
         after the last recordset has been read.  In that case, you must coll nextset() until it
         returns None, then call this method to get your returned information."""
-        
-        retLst=[]  # store procedures may return altered parameters, including an added "return value" item
+
+        retLst = []  # store procedures may return altered parameters, including an added "return value" item
         for p in tuple(self.cmd.Parameters):
             if verbose > 2:
                 print 'Returned=Name: %s, Dir.: %s, Type: %s, Size: %s, Value: "%s",' \
                       " Precision: %s, NumericScale: %s" % \
-                        (p.Name, adc.directions[p.Direction],
-                         adc.adTypeNames.get(p.Type, str(p.Type)+' (unknown type)'),
-                         p.Size, p.Value, p.Precision, p.NumericScale)
-            pyObject = api.convert_to_python(p.Value, api.variantConversions[p.Type])
+                    (p.Name, adc.directions[p.Direction],
+                     adc.adTypeNames.get(p.Type, str(
+                         p.Type)+' (unknown type)'),
+                     p.Size, p.Value, p.Precision, p.NumericScale)
+            pyObject = api.convert_to_python(
+                p.Value, api.variantConversions[p.Type])
             if p.Direction == adc.adParamReturnValue:
-                self.returnValue = pyObject  # also load the undocumented attribute (Vernon's Error!)
+                # also load the undocumented attribute (Vernon's Error!)
+                self.returnValue = pyObject
                 self.return_value = pyObject
             else:
                 retLst.append(pyObject)
         return retLst   # return the parameter list to the caller
-        
+
     def callproc(self, procname, parameters=None):
         """Call a stored database procedure with the given name.
         The sequence of parameters must contain one entry for each
@@ -745,10 +791,12 @@ class Cursor(object):
         return self.get_returned_parameters()
 
     def _reformat_operation(self, operation, parameters):
-        if self.paramstyle in ('format', 'pyformat'): # convert %s to ?
-            operation, self._parameter_names = api.changeFormatToQmark(operation)
+        if self.paramstyle in ('format', 'pyformat'):  # convert %s to ?
+            operation, self._parameter_names = api.changeFormatToQmark(
+                operation)
         elif self.paramstyle == 'named' or (self.paramstyle == 'dynamic' and isinstance(parameters, Mapping)):
-            operation, self._parameter_names = api.changeNamedToQmark(operation) # convert :name to ?
+            operation, self._parameter_names = api.changeNamedToQmark(
+                operation)  # convert :name to ?
         return operation
 
     def _buildADOparameterList(self, parameters, sproc=False):
@@ -758,7 +806,7 @@ class Cursor(object):
 
         parameters_known = False
         if sproc:  # needed only if we are calling a stored procedure
-            try: # attempt to use ADO's parameter list
+            try:  # attempt to use ADO's parameter list
                 self.cmd.Parameters.Refresh()
                 if verbose > 2:
                     print 'ADO detected Params=', format_parameters(self.cmd.Parameters, True)
@@ -770,7 +818,7 @@ class Cursor(object):
                 pass
             else:
                 if len(parameters) != self.cmd.Parameters.Count - 1:
-                    raise api.ProgrammingError('You must supply %d parameters for this stored procedure' % \
+                    raise api.ProgrammingError('You must supply %d parameters for this stored procedure' %
                                                (self.cmd.Parameters.Count - 1))
         if sproc or parameters != []:
             i = 0
@@ -779,53 +827,69 @@ class Cursor(object):
                     for i, pm_name in enumerate(self._parameter_names):
                         p = getIndexedValue(self.cmd.Parameters, i)
                         try:
-                            _configure_parameter(p, parameters[pm_name], p.Type, parameters_known)
+                            _configure_parameter(
+                                p, parameters[pm_name], p.Type, parameters_known)
                         except (Exception), e:
                             _message = u'Error Converting Parameter %s: %s, %s <- %s\n' % \
-                                           (p.Name, adc.ado_type_name(p.Type), p.Value, repr(parameters[pm_name]))
-                            self._raiseCursorError(api.DataError, _message+'->'+repr(e.args))
+                                (p.Name, adc.ado_type_name(p.Type),
+                                 p.Value, repr(parameters[pm_name]))
+                            self._raiseCursorError(
+                                api.DataError, _message+'->'+repr(e.args))
                 else:  # regular sequence of parameters
                     for value in parameters:
-                        p = getIndexedValue(self.cmd.Parameters,i)
+                        p = getIndexedValue(self.cmd.Parameters, i)
                         if p.Direction == adc.adParamReturnValue:  # this is an extra parameter added by ADO
                             i += 1   # skip the extra
-                            p=getIndexedValue(self.cmd.Parameters,i)
+                            p = getIndexedValue(self.cmd.Parameters, i)
                         try:
-                            _configure_parameter(p, value, p.Type, parameters_known)
+                            _configure_parameter(
+                                p, value, p.Type, parameters_known)
                         except (Exception), e:
                             _message = u'Error Converting Parameter %s: %s, %s <- %s\n' % \
-                                           (p.Name, adc.ado_type_name(p.Type), p.Value, repr(value))
-                            self._raiseCursorError(api.DataError, _message+'->'+repr(e.args))
+                                (p.Name, adc.ado_type_name(
+                                    p.Type), p.Value, repr(value))
+                            self._raiseCursorError(
+                                api.DataError, _message+'->'+repr(e.args))
                         i += 1
-            else: #-- build own parameter list
+            else:  # -- build own parameter list
                 if self._parameter_names:  # we expect a dictionary of parameters, this is the list of expected names
                     for parm_name in self._parameter_names:
                         elem = parameters[parm_name]
                         adotype = api.pyTypeToADOType(elem)
-                        p = self.cmd.CreateParameter(parm_name, adotype, adc.adParamInput)
-                        _configure_parameter(p, elem, adotype, parameters_known)
+                        p = self.cmd.CreateParameter(
+                            parm_name, adotype, adc.adParamInput)
+                        _configure_parameter(
+                            p, elem, adotype, parameters_known)
                         try:
                             self.cmd.Parameters.Append(p)
                         except (Exception), e:
                             _message = u'Error Building Parameter %s: %s, %s <- %s\n' % \
-                                           (p.Name, adc.ado_type_name(p.Type), p.Value, repr(elem))
-                            self._raiseCursorError(api.DataError, _message+'->'+repr(e.args))
-                else :  # expecting the usual sequence of parameters
+                                (p.Name, adc.ado_type_name(
+                                    p.Type), p.Value, repr(elem))
+                            self._raiseCursorError(
+                                api.DataError, _message+'->'+repr(e.args))
+                else:  # expecting the usual sequence of parameters
                     if sproc:
-                        p = self.cmd.CreateParameter('@RETURN_VALUE', adc.adInteger, adc.adParamReturnValue)
+                        p = self.cmd.CreateParameter(
+                            '@RETURN_VALUE', adc.adInteger, adc.adParamReturnValue)
                         self.cmd.Parameters.Append(p)
 
                     for elem in parameters:
-                        name='p%i' % i
+                        name = 'p%i' % i
                         adotype = api.pyTypeToADOType(elem)
-                        p=self.cmd.CreateParameter(name, adotype, adc.adParamInput) # Name, Type, Direction, Size, Value
-                        _configure_parameter(p, elem, adotype, parameters_known)
+                        # Name, Type, Direction, Size, Value
+                        p = self.cmd.CreateParameter(
+                            name, adotype, adc.adParamInput)
+                        _configure_parameter(
+                            p, elem, adotype, parameters_known)
                         try:
                             self.cmd.Parameters.Append(p)
                         except (Exception), e:
                             _message = u'Error Building Parameter %s: %s, %s <- %s\n' % \
-                                           (p.Name, adc.ado_type_name(p.Type), p.Value, repr(elem))
-                            self._raiseCursorError(api.DataError, _message+'->'+repr(e.args))
+                                (p.Name, adc.ado_type_name(
+                                    p.Type), p.Value, repr(elem))
+                            self._raiseCursorError(
+                                api.DataError, _message+'->'+repr(e.args))
                         i += 1
                 if self._ado_prepared == 'setup':
                     self._ado_prepared = True  # parameters will be known next loop
@@ -864,7 +928,8 @@ class Cursor(object):
             self.command = operation
             self._parameter_names = []
             if parameters and self.paramstyle != 'qmark':
-                operation = self._reformat_operation(operation, parameters)  # if 'named' will set self._parameter_names
+                # if 'named' will set self._parameter_names
+                operation = self._reformat_operation(operation, parameters)
         self._new_command(operation)
         self._buildADOparameterList(parameters)
         if verbose > 3:
@@ -877,7 +942,7 @@ class Cursor(object):
 
             Return values are not defined.
         """
-        self.messages = list()                
+        self.messages = list()
         total_recordcount = 0
 
         self.prepare(operation)
@@ -895,20 +960,24 @@ class Cursor(object):
         limit -- Number of rows to fetch, or None (default) to fetch all rows.
         """
         if self.connection is None or self.rs is None:
-            self._raiseCursorError(api.FetchFailedError, 'fetch() on closed connection or empty query set')
+            self._raiseCursorError(
+                api.FetchFailedError, 'fetch() on closed connection or empty query set')
             return
 
         if self.rs.State == adc.adStateClosed or self.rs.BOF or self.rs.EOF:
             return list()
-        if limit: # limit number of rows retrieved
+        if limit:  # limit number of rows retrieved
             ado_results = self.rs.GetRows(limit)
         else:    # get all rows
             ado_results = self.rs.GetRows()
         if self.recordset_format == api.RS_ARRAY:  # result of GetRows is a two-dimension array
-            length = len(ado_results) // self.numberOfColumns # length of first dimension
-        else: #pywin32
-            length = len(ado_results[0]) #result of GetRows is tuples in a tuple
-        fetchObject = api.SQLrows(ado_results, length, self) # new object to hold the results of the fetch
+            # length of first dimension
+            length = len(ado_results) // self.numberOfColumns
+        else:  # pywin32
+            # result of GetRows is tuples in a tuple
+            length = len(ado_results[0])
+        # new object to hold the results of the fetch
+        fetchObject = api.SQLrows(ado_results, length, self)
         return fetchObject
 
     def fetchone(self):
@@ -918,9 +987,9 @@ class Cursor(object):
             An Error (or subclass) exception is raised if the previous call to executeXXX()
             did not produce any result set or no call was issued yet. 
         """
-        self.messages = []                
+        self.messages = []
         result = self._fetch(1)
-        if result: # return record (not list of records)
+        if result:  # return record (not list of records)
             return result[0]
         return None
 
@@ -941,7 +1010,7 @@ class Cursor(object):
         If the size parameter is used, then it is best for it to retain the same value from
         one fetchmany() call to the next. 
         """
-        self.messages=[]                
+        self.messages = []
         if size is None:
             size = self.arraysize
         return self._fetch(size)
@@ -954,7 +1023,7 @@ class Cursor(object):
             An Error (or subclass) exception is raised if the previous call to executeXXX()
             did not produce any result set or no call was issued yet. 
         """
-        self.messages=[]                
+        self.messages = []
         return self._fetch()
 
     def nextset(self):
@@ -966,9 +1035,10 @@ class Cursor(object):
             An Error (or subclass) exception is raised if the previous call to executeXXX()
             did not produce any result set or no call was issued yet.
         """
-        self.messages=[]                
+        self.messages = []
         if self.connection is None or self.rs is None:
-            self._raiseCursorError(api.OperationalError, ('nextset() on closed connection or empty query set'))
+            self._raiseCursorError(
+                api.OperationalError, ('nextset() on closed connection or empty query set'))
             return None
 
         if api.onIronPython:
@@ -978,18 +1048,19 @@ class Cursor(object):
                 recordset = None
             except api.Error, exc:
                 self._raiseCursorError(api.NotSupportedError, exc.args)
-        else: #pywin32
-            try:                                               #[begin 2.1 ekelund]
-                rsTuple=self.rs.NextRecordset()                # 
+        else:  # pywin32
+            try:  # [begin 2.1 ekelund]
+                rsTuple = self.rs.NextRecordset()                #
             except pywintypes.com_error, exc:                  # return appropriate error
-                self._raiseCursorError(api.NotSupportedError, exc.args)#[end 2.1 ekelund]
+                self._raiseCursorError(
+                    api.NotSupportedError, exc.args)  # [end 2.1 ekelund]
             recordset = rsTuple[0]
         if recordset is None:
             return None
         self.build_column_info(recordset)
         return True
 
-    def setinputsizes(self,sizes):
+    def setinputsizes(self, sizes):
         pass
 
     def setoutputsize(self, size, column=None):
@@ -1000,12 +1071,14 @@ class Cursor(object):
             if self.parameters == None:
                 ret = self.cmd.CommandText
             else:
-                ret = "%s,parameters=%s" % (self.cmd.CommandText,repr(self.parameters))
+                ret = "%s,parameters=%s" % (
+                    self.cmd.CommandText, repr(self.parameters))
         except:
             ret = None
         return ret
     query = property(_last_query, None, None,
-                         "returns the last query executed")
-    
+                     "returns the last query executed")
+
+
 if __name__ == '__main__':
     raise api.ProgrammingError(version + ' cannot be run as a main program.')

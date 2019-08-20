@@ -23,8 +23,11 @@ except win32api.error:
 
 # The ISAPI extension - handles requests in our virtual dir, and sends the
 # response to the client.
+
+
 class Extension(threaded_extension.ThreadPoolExtension):
     "Python ISAPI Tester"
+
     def Dispatch(self, ecb):
         print 'Tester dispatching "%s"' % (ecb.GetServerVariable("URL"),)
         url = ecb.GetServerVariable("URL")
@@ -36,7 +39,7 @@ class Extension(threaded_extension.ThreadPoolExtension):
         if result is None:
             # This means the test finalized everything
             return
-        ecb.SendResponseHeaders("200 OK", "Content-type: text/html\r\n\r\n", 
+        ecb.SendResponseHeaders("200 OK", "Content-type: text/html\r\n\r\n",
                                 False)
         print >> ecb, "<HTML><BODY>Finished running test <i>", test_name, "</i>"
         print >> ecb, "<pre>"
@@ -59,11 +62,11 @@ class Extension(threaded_extension.ThreadPoolExtension):
         # the code that handles an overflow by ensuring there are more
         # than 8k worth of chars in the URL.
         expected_query = ('x' * 8500)
-        if len(qs)==0:
+        if len(qs) == 0:
             # Just the URL with no query part - redirect to myself, but with
             # a huge query portion.
             me = ecb.GetServerVariable("URL")
-            headers = "Location: " +  me + "?" + expected_query + "\r\n\r\n"
+            headers = "Location: " + me + "?" + expected_query + "\r\n\r\n"
             ecb.SendResponseHeaders("301 Moved", headers)
             ecb.DoneWithSession()
             return None
@@ -88,10 +91,13 @@ class Extension(threaded_extension.ThreadPoolExtension):
         return "worked!"
 
 # The entry points for the ISAPI extension.
+
+
 def __ExtensionFactory__():
     return Extension()
 
-if __name__=='__main__':
+
+if __name__ == '__main__':
     # If run from the command-line, install ourselves.
     from isapi.install import *
     params = ISAPIParameters()
@@ -103,9 +109,9 @@ if __name__=='__main__':
         ScriptMapParams(Extension="*", Flags=0)
     ]
     vd = VirtualDirParameters(Name="pyisapi_test",
-                              Description = Extension.__doc__,
-                              ScriptMaps = sm,
-                              ScriptMapUpdate = "replace"
+                              Description=Extension.__doc__,
+                              ScriptMaps=sm,
+                              ScriptMapUpdate="replace"
                               )
     params.VirtualDirs = [vd]
     HandleCommandLine(params)

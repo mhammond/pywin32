@@ -17,6 +17,7 @@ except win32api.error:
     # Probably not running XP.
     def IsAppThemed():
         return False
+
     def IsThemeActive():
         return False
 

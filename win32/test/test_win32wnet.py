@@ -32,14 +32,14 @@ NETRESOURCE_attributes = [
     ("lpRemoteName", str),
     ("lpComment", str),
     ("lpProvider", str),
-    ]
+]
 
 NCB_attributes = [
     ("Command", int),
     ("Retcode", int),
     ("Lsn", int),
     ("Num", int),
-#    ("Bufflen", int), - read-only
+    # ("Bufflen", int), - read-only
     ("Callname", str),
     ("Name", str),
     ("Rto", int),
@@ -48,7 +48,8 @@ NCB_attributes = [
     ("Cmd_cplt", int),
     ("Event", int),
     ("Post", int),
-    ]
+]
+
 
 class TestCase(unittest.TestCase):
     def testGetUser(self):
@@ -83,11 +84,11 @@ class TestCase(unittest.TestCase):
                                         0, None)
         try:
             while 1:
-                    items = win32wnet.WNetEnumResource(handle, 0)
-                    if len(items)==0:
-                            break
-                    for item in items:
-                        self._checkItemAttributes(item, NETRESOURCE_attributes)
+                items = win32wnet.WNetEnumResource(handle, 0)
+                if len(items) == 0:
+                    break
+                for item in items:
+                    self._checkItemAttributes(item, NETRESOURCE_attributes)
         finally:
             handle.Close()
 
@@ -112,7 +113,8 @@ class TestCase(unittest.TestCase):
             ncb.Reset()
             ncb.Command = netbios.NCBASTAT
             ncb.Lana_num = byte_to_int(la_enum.lana[i])
-            ncb.Callname = str2bytes("*               ") # ensure bytes on py2x and 3k
+            # ensure bytes on py2x and 3k
+            ncb.Callname = str2bytes("*               ")
             adapter = netbios.ADAPTER_STATUS()
             ncb.Buffer = adapter
             Netbios(ncb)
@@ -122,34 +124,39 @@ class TestCase(unittest.TestCase):
     def iterConnectableShares(self):
         nr = win32wnet.NETRESOURCE()
         nr.dwScope = RESOURCE_GLOBALNET
-        nr.dwUsage = RESOURCEUSAGE_CONTAINER 
+        nr.dwUsage = RESOURCEUSAGE_CONTAINER
         nr.lpRemoteName = "\\\\" + win32api.GetComputerName()
 
         handle = win32wnet.WNetOpenEnum(RESOURCE_GLOBALNET, RESOURCETYPE_ANY,
                                         0, nr)
         while 1:
             items = win32wnet.WNetEnumResource(handle, 0)
-            if len(items)==0:
+            if len(items) == 0:
                 break
             for item in items:
                 if item.dwDisplayType == RESOURCEDISPLAYTYPE_SHARE:
                     yield item
 
     def findUnusedDriveLetter(self):
-        existing = [x[0].lower() for x in win32api.GetLogicalDriveStrings().split('\0') if x]
-        handle = win32wnet.WNetOpenEnum(RESOURCE_REMEMBERED,RESOURCETYPE_DISK,0,None)
+        existing = [x[0].lower()
+                    for x in win32api.GetLogicalDriveStrings().split('\0') if x]
+        handle = win32wnet.WNetOpenEnum(RESOURCE_REMEMBERED,
+                                        RESOURCETYPE_DISK,
+                                        0,
+                                        None)
         try:
-                while 1:
-                        items = win32wnet.WNetEnumResource(handle, 0)
-                        if len(items)==0:
-                                break
-                        xtra = [i.lpLocalName[0].lower() for i in items if i.lpLocalName]
-                        existing.extend(xtra)
+            while 1:
+                items = win32wnet.WNetEnumResource(handle, 0)
+                if len(items) == 0:
+                    break
+                xtra = [i.lpLocalName[0].lower()
+                        for i in items if i.lpLocalName]
+                existing.extend(xtra)
         finally:
-                handle.Close()
+            handle.Close()
         for maybe in 'defghijklmnopqrstuvwxyz':
-                if maybe not in existing:
-                        return maybe
+            if maybe not in existing:
+                return maybe
         self.fail("All drive mappings are taken?")
 
     def testAddConnection(self):
@@ -163,7 +170,9 @@ class TestCase(unittest.TestCase):
     def testAddConnectionOld(self):
         localName = self.findUnusedDriveLetter() + ':'
         for share in self.iterConnectableShares():
-            win32wnet.WNetAddConnection2(share.dwType, localName, share.lpRemoteName)
+            win32wnet.WNetAddConnection2(share.dwType,
+                                         localName,
+                                         share.lpRemoteName)
             win32wnet.WNetCancelConnection2(localName, 0, 0)
             break
 

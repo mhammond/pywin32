@@ -108,6 +108,7 @@ for ch in "\"'\\\n#":
 _tran = u''.join(_tran)
 del ch
 
+
 class Parser:
 
     def __init__(self, indentwidth, tabwidth):
@@ -346,7 +347,7 @@ class Parser:
     #         if continuation is C_BRACKET, index of last open bracket
 
     def _study2(self):
-        _ws=string.whitespace
+        _ws = string.whitespace
         if self.study_level >= 2:
             return
         self._study1()
@@ -366,7 +367,7 @@ class Parser:
                 p = str.rfind('\n', 0, p-1) + 1
             # The stmt str[p:q] isn't a continuation, but may be blank
             # or a non-indenting comment line.
-            if  _junkre(str, p):
+            if _junkre(str, p):
                 i = i-1
             else:
                 break
@@ -514,8 +515,8 @@ class Parser:
             elif ch == '#':
                 break
             elif level == 0 and ch == '=' and \
-                   (i == 0 or str[i-1] not in "=<>!") and \
-                   str[i+1] != '=':
+                (i == 0 or str[i-1] not in "=<>!") and \
+                    str[i+1] != '=':
                 found = 1
                 break
             else:
@@ -534,7 +535,7 @@ class Parser:
             while str[i] not in " \t\n":
                 i = i+1
 
-        return len(str[self.stmt_start : i].expandtabs(self.tabwidth)) + 1
+        return len(str[self.stmt_start: i].expandtabs(self.tabwidth)) + 1
 
     # Return the leading whitespace on the initial line of the last
     # interesting stmt.

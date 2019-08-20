@@ -14,5 +14,5 @@ on the machine.  It is likely some tests will refuse to run due to objects not
 being locally available - this is normal.
 
 The win32com source tree has source code to a C++ and VB component used purely
-for testing.  You may like to build and register these, particularly if you 
+for testing.  You may like to build and register these, particularly if you
 are doing anything related to argument/result handling.
