@@ -12,13 +12,13 @@ class CPippo:
     #
     # COM declarations    
     #
-    _reg_clsid_ = "{05AC1CCE-3F9B-4d9a-B0B5-DFE8BE45AFA8}"
+    _reg_clsid_ = "{1F0F75D6-BD63-41B9-9F88-2D9D2E1AA5C3}"
     _reg_desc_ = "Pippo Python test object"
     _reg_progid_ = "Python.Test.Pippo"
     #_reg_clsctx_ = pythoncom.CLSCTX_LOCAL_SERVER    
     ###
     ### Link to typelib
-    _typelib_guid_ = '{41059C57-975F-4B36-8FF3-C5117426647A}'
+    _typelib_guid_ = '{7783054E-9A20-4584-8C62-6ED2A08F6AC6}'
     _typelib_version_ = 1, 0
     _com_interfaces_ = ['IPippo']
 
@@ -31,13 +31,18 @@ class CPippo:
     def Method2(self, in1, inout1):
         return in1, inout1 * 2
 
+    def Method3(self, in1):
+        # in1 will be a tuple, not a list.
+        # Yet, we are not allowed to return a tuple, but need to convert it to a list first. (Bug?)
+        return list(in1)
+
 def BuildTypelib():
     from distutils.dep_util import newer
     this_dir = os.path.dirname(__file__)
     idl = os.path.abspath(os.path.join(this_dir, "pippo.idl"))
     tlb=os.path.splitext(idl)[0] + '.tlb'
     if newer(idl, tlb):
-        print "Compiling %s" % (idl,)
+        print("Compiling %s" % (idl,))
         rc = os.system ('midl "%s"' % (idl,))
         if rc:
             raise RuntimeError("Compiling MIDL failed!")
@@ -46,7 +51,7 @@ def BuildTypelib():
         for fname in "dlldata.c pippo_i.c pippo_p.c pippo.h".split():
             os.remove(os.path.join(this_dir, fname))
     
-    print "Registering %s" % (tlb,)
+    print("Registering %s" % (tlb,))
     tli=pythoncom.LoadTypeLib(tlb)
     pythoncom.RegisterTypeLib(tli,tlb)
 
@@ -58,8 +63,8 @@ def UnregisterTypelib():
                                     k._typelib_version_[1], 
                                     0, 
                                     pythoncom.SYS_WIN32)
-        print "Unregistered typelib"
-    except pythoncom.error, details:
+        print("Unregistered typelib")
+    except pythoncom.error as details:
         if details[0]==winerror.TYPE_E_REGISTRYACCESS:
             pass
         else:
