@@ -7,6 +7,7 @@ import sys
 import glob
 import shutil
 import time
+import distutils.sysconfig
 try:
     import _winreg as winreg
 except:
@@ -210,7 +211,7 @@ def RegisterPythonwin(register=True):
         Also need to remove these keys on uninstall, but there's no function
             like file_created to add registry entries to uninstall log ???
     """
-    import os, distutils.sysconfig
+    import os
 
     lib_dir = distutils.sysconfig.get_python_lib(plat_specific=1)
     classes_root=get_root_hkey()
@@ -305,12 +306,10 @@ def fixup_dbi():
             except os.error as exc:
                 print("FAILED to rename '%s': %s" % (this_pyd, exc))
 
-def install():
-    import distutils.sysconfig
+def install(lib_dir):
     import traceback
     # The .pth file is now installed as a regular file.
     # Create the .pth file in the site-packages dir, and use only relative paths
-    lib_dir = distutils.sysconfig.get_python_lib(plat_specific=1)
     # We used to write a .pth directly to sys.prefix - clobber it.
     if os.path.isfile(os.path.join(sys.prefix, "pywin32.pth")):
         os.unlink(os.path.join(sys.prefix, "pywin32.pth"))
@@ -471,9 +470,7 @@ def install():
         pass
     print("The pywin32 extensions were successfully installed.")
 
-def uninstall():
-    import distutils.sysconfig
-    lib_dir = distutils.sysconfig.get_python_lib(plat_specific=1)
+def uninstall(lib_dir):
     # First ensure our system modules are loaded from pywin32_system, so
     # we can remove the ones we copied...
     LoadSystemModule(lib_dir, "pywintypes")
@@ -549,32 +546,6 @@ def uninstall():
                         print("FAILED to remove", dst)
             if worked:
                 break
-
-def usage():
-    msg = \
-"""%s: A post-install script for the pywin32 extensions.
-
-Typical usage:
-
-> python pywin32_postinstall.py -install
-
-If you installed pywin32 via a .exe installer, this should be run
-automatically after installation, but if it fails you can run it again.
-
-If you installed pywin32 via PIP, you almost certainly need to run this to
-setup the environment correctly.
-
-Execute with script with a '-install' parameter, to ensure the environment
-is setup correctly.
-
-Options:
-  -install  : Configure the Python environment correctly for pywin32.
-  -remove   : Try and remove everything that was installed or copied.
-  -wait pid : Wait for the specified process to terminate before starting.
-  -silent   : Don't display the "Abort/Retry/Ignore" dialog for files in use.
-  -quiet    : Don't display progress messages.
-"""
-    print msg.strip() % os.path.basename(sys.argv[0])
     except Exception as why:
         print("FAILED to remove system files:", why)
 
@@ -587,41 +558,77 @@ Options:
 # but also the installer will terminate! (Is there a way to prevent
 # this from the bdist_wininst C code?)
 
-if __name__=='__main__':
-    if len(sys.argv)==1:
-        usage()
-        sys.exit(1)
+def verify_destination(location):
+    if not os.path.isdir(location):
+        raise argparse.ArgumentTypeError(msg)
+    return location
 
-    arg_index = 1
-    while arg_index < len(sys.argv):
-        arg = sys.argv[arg_index]
-        # Hack for installing while we are in use.  Just a simple wait so the
-        # parent process can terminate.
-        if arg == "-wait":
-            arg_index += 1
-            pid = int(sys.argv[arg_index])
-            try:
-                os.waitpid(pid, 0)
-            except AttributeError:
-                # Python 2.2 - no waitpid - just sleep.
-                time.sleep(3)
-            except os.error:
-                # child already dead
-                pass
-        elif arg == "-install":
-            install()
-        elif arg == "-silent":
-            silent = 1
-        elif arg == "-quiet":
-            verbose = 0
-        elif arg == "-remove":
-            # bdist_msi calls us before uninstall, so we can undo what we
-            # previously did.  Sadly, bdist_wininst calls us *after*, so
-            # we can't do much at all.
-            if not is_bdist_wininst:
-                uninstall()
-        else:
-            print "Unknown option:", arg
-            usage()
-            sys.exit(0)
-        arg_index += 1
+if __name__=='__main__':
+    import argparse
+
+    parser = argparse.ArgumentParser(description="""A post-install script for the pywin32 extensions.
+
+    * Typical usage:
+
+    > python pywin32_postinstall.py -install
+
+    If you installed pywin32 via a .exe installer, this should be run
+    automatically after installation, but if it fails you can run it again.
+
+    If you installed pywin32 via PIP, you almost certainly need to run this to
+    setup the environment correctly.
+
+    Execute with script with a '-install' parameter, to ensure the environment
+    is setup correctly.
+    """)
+    parser.add_argument("-install",
+                        default=False,
+                        action='store_true',
+                        help="Configure the Python environment correctly for pywin32.")
+    parser.add_argument("-remove",
+                        default=False,
+                        action='store_true',
+                        help="Try and remove everything that was installed or copied.")
+    parser.add_argument("-wait",
+                        type=int,
+                        help="Wait for the specified process to terminate before starting.")
+    parser.add_argument("-silent",
+                        default=False,
+                        action='store_true',
+                        help="Don't display the \"Abort/Retry/Ignore\" dialog for files in use.")
+    parser.add_argument("-quiet",
+                        default=False,
+                        action='store_true',
+                        help="Don't display progress messages.")
+    parser.add_argument("-destination",
+                        default=distutils.sysconfig.get_python_lib(plat_specific=1),
+                        type=verify_destination,
+                        help="Location of the PyWin32 installation")
+
+    args = parser.parse_args()
+
+    if not args.quiet:
+        print("Parsed arguments are: {}".format(args))
+
+    if not (args.install or args.remove):
+        parser.error('You need to either choose to -install or -remove')
+
+    if args.wait:
+        try:
+            os.waitpid(pid, 0)
+        except AttributeError:
+            # Python 2.2 - no waitpid - just sleep.
+            time.sleep(3)
+        except os.error:
+            # child already dead
+            pass
+
+    silent = args.silent
+    verbose = not args.quiet
+
+    if args.install:
+        install(args.destination)
+
+    if args.remove:
+        if not is_bdist_wininst:
+            uninstall(args.destination)
