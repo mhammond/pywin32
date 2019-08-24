@@ -560,7 +560,7 @@ def uninstall(lib_dir):
 
 def verify_destination(location):
     if not os.path.isdir(location):
-        raise argparse.ArgumentTypeError(msg)
+        raise argparse.ArgumentTypeError("Path \"{}\" does not exist!".format(location))
     return location
 
 if __name__=='__main__':
