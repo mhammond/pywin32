@@ -613,9 +613,9 @@ if __name__=='__main__':
     if not (args.install or args.remove):
         parser.error('You need to either choose to -install or -remove')
 
-    if args.wait:
+    if args.wait is not None:
         try:
-            os.waitpid(pid, 0)
+            os.waitpid(args.wait, 0)
         except AttributeError:
             # Python 2.2 - no waitpid - just sleep.
             time.sleep(3)
