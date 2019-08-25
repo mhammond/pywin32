@@ -69,7 +69,7 @@ if __name__=='__main__':
     #find_and_run(maybes, 'testall.py')
 
     # win32com
-    maybes = [os.path.join(directory, "com", "win32com", "test") for directory in code_directories]
+    maybes = [os.path.join(directory, "win32com", "test") for directory in [os.path.join(this_dir, "com"), ] + site_packages]
     find_and_run(maybes, 'testall.py', "2")
 
     # adodbapi
