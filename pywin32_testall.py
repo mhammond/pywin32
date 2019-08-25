@@ -65,8 +65,8 @@ if __name__=='__main__':
     code_directories = [this_dir, ] + site_packages
 
     # win32
-    maybes = [os.path.join(directory, "win32", "test") for directory in code_directories]
-    find_and_run(maybes, 'testall.py')
+    #maybes = [os.path.join(directory, "win32", "test") for directory in code_directories]
+    #find_and_run(maybes, 'testall.py')
 
     # win32com
     maybes = [os.path.join(directory, "com", "win32com", "test") for directory in code_directories]
