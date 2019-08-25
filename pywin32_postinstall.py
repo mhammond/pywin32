@@ -566,7 +566,8 @@ def verify_destination(location):
 if __name__=='__main__':
     import argparse
 
-    parser = argparse.ArgumentParser(description="""A post-install script for the pywin32 extensions.
+    parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter,
+                                     description="""A post-install script for the pywin32 extensions.
 
     * Typical usage:
 
