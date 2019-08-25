@@ -611,8 +611,8 @@ if __name__=='__main__':
     if not args.quiet:
         print("Parsed arguments are: {}".format(args))
 
-    if not (args.install or args.remove):
-        parser.error('You need to either choose to -install or -remove')
+    if args.install ^ args.remove:
+        parser.error("You need to either choose to -install or -remove!")
 
     if args.wait is not None:
         try:
