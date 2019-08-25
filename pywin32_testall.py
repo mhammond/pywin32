@@ -73,7 +73,7 @@ if __name__=='__main__':
     find_and_run(maybes, 'testall.py', "2")
 
     # adodbapi
-    maybes = [os.path.join(directory, "adodbapi", "tests") for directory in code_directories]
+    maybes = [os.path.join(directory, "adodbapi", "test") for directory in code_directories]
     find_and_run(maybes, 'adodbapitest.py')
     # This script has a hard-coded sql server name in it, (and markh typically
     # doesn't have a different server to test on) so don't bother trying to
