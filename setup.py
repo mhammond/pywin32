@@ -330,7 +330,7 @@ class WinExt (Extension):
             line = line.rstrip()
             if line and line[0] in string.whitespace:
                 tokens = line.split()
-                if not tokens[0][0] in string.ascii_letters:
+                if not tokens[0][0] in string.ascii_letters or 'PRIVATE' in tokens[1:]:
                     continue
                 result.append(','.join(tokens))
         return result
