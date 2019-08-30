@@ -62,11 +62,22 @@ def find_and_run(possible_locations, script, cmdline_rest=""):
                            % (script, possible_locations))
 
 if __name__=='__main__':
+    import argparse
+
     code_directories = [this_dir] + site_packages
 
-    # win32
-    #maybes = [os.path.join(directory, "win32", "test") for directory in code_directories]
-    #find_and_run(maybes, 'testall.py')
+    parser = argparse.ArgumentParser(description="A script to trigger tests in all subprojects.")
+    parser.add_argument("-no-user-interaction",
+                        default=False,
+                        action='store_true',
+                        help="Configure the Python environment correctly for pywin32.")
+
+    args = parser.parse_args()
+
+    if not args.no_user_interaction:
+        # win32
+        maybes = [os.path.join(directory, "win32", "test") for directory in code_directories]
+        find_and_run(maybes, 'testall.py')
 
     # win32com
     maybes = [os.path.join(directory, "win32com", "test") for directory in [os.path.join(this_dir, "com"), ] + site_packages]

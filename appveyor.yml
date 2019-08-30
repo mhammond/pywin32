@@ -35,7 +35,7 @@ install:
 
   # Install setuptools/wheel so that we can e.g. use bdist_wheel
   - pip install --upgrade setuptools wheel
-  
+
   ## Use Chocolatey to install SWIG.
   #- set SWIG=C:\ProgramData\chocolatey\bin\swig.exe
   #- if not exist %SWIG% choco install swig --version 3.0.9 --yes --limit-output
@@ -52,7 +52,7 @@ init:
   - if "%PYTHON_MAJOR%"=="2" if "%PYTHON_MINOR%"=="7" set VC_VERSION=9.0
   - if "%PYTHON_MAJOR%"=="2" if "%PYTHON_MINOR%"=="6" set VC_VERSION=9.0
   - call "C:\Program Files (x86)\Microsoft Visual Studio %VC_VERSION%\VC\vcvarsall.bat" %VC_ARCH%
-  
+
   # RDP session for debugging
   #- ps: iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
 
@@ -70,8 +70,8 @@ test_script:
   #- if "%PYTHON_MAJOR%"=="2" python pywin32_testall.py
   - set PYTHONUSERBASE=%cd%\test-base
   - python setup.py install --user
-  - if "%PYTHON_MAJOR%"=="2" python %PYTHONUSERBASE%\Scripts\pywin32_testall.py
-  - if "%PYTHON_MAJOR%"=="3" python %PYTHONUSERBASE%\Python%PYTHON_MAJOR%%PYTHON_MINOR%\Scripts\pywin32_testall.py
+  - if "%PYTHON_MAJOR%"=="2" python %PYTHONUSERBASE%\Scripts\pywin32_testall.py -no-user-interaction
+  - if "%PYTHON_MAJOR%"=="3" python %PYTHONUSERBASE%\Python%PYTHON_MAJOR%%PYTHON_MINOR%\Scripts\pywin32_testall.py -no-user-interaction
   - set PYTHONUSERBASE=
   - rmdir %PYTHONUSERBASE% /s /q
 
