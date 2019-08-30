@@ -1377,7 +1377,7 @@ class my_install(install):
             os.spawnl(os.P_NOWAIT, sys.executable,
                       sys.executable, filename,
                       "-install",
-                      "-destination {}".format(self.install_lib),
+                      "-destination \"{}\"".format(self.install_lib),
                       "-quiet",
                       "-wait {}".format(os.getpid()),
                       )
