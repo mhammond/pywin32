@@ -62,7 +62,7 @@ def find_and_run(possible_locations, script, cmdline_rest=""):
                            % (script, possible_locations))
 
 if __name__=='__main__':
-    code_directories = [this_dir, ] + site_packages
+    code_directories = [this_dir] + site_packages
 
     # win32
     #maybes = [os.path.join(directory, "win32", "test") for directory in code_directories]
