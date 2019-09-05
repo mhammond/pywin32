@@ -292,9 +292,9 @@ class WinExt (Extension):
         self.delay_load_libraries=delay_load_libraries.split()
         libraries.extend(self.delay_load_libraries)
 
+	extra_link_args = extra_link_args or []
         if export_symbol_file:
-            export_symbols = export_symbols or []
-            export_symbols.extend(self.parse_def_file(export_symbol_file))
+	    extra_link_args.append("/DEF:" + export_symbol_file)
 
         # Some of our swigged files behave differently in distutils vs
         # MSVC based builds.  Always define DISTUTILS_BUILD so they can tell.
@@ -322,18 +322,6 @@ class WinExt (Extension):
                             export_symbols)
         self.depends = depends or [] # stash it here, as py22 doesn't have it.
         self.unicode_mode = unicode_mode
-
-    def parse_def_file(self, path):
-        # Extract symbols to export from a def-file
-        result = []
-        for line in open(path).readlines():
-            line = line.rstrip()
-            if line and line[0] in string.whitespace:
-                tokens = line.split()
-                if not tokens[0][0] in string.ascii_letters or 'PRIVATE' in tokens[1:]:
-                    continue
-                result.append(','.join(tokens))
-        return result
 
     def get_source_files(self, dsp):
         result = []
