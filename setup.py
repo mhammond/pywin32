@@ -292,9 +292,9 @@ class WinExt (Extension):
         self.delay_load_libraries=delay_load_libraries.split()
         libraries.extend(self.delay_load_libraries)
 
-	extra_link_args = extra_link_args or []
+        extra_link_args = extra_link_args or []
         if export_symbol_file:
-	    extra_link_args.append("/DEF:" + export_symbol_file)
+            extra_link_args.append("/DEF:" + export_symbol_file)
 
         # Some of our swigged files behave differently in distutils vs
         # MSVC based builds.  Always define DISTUTILS_BUILD so they can tell.
