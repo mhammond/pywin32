@@ -330,7 +330,7 @@ class WinExt (Extension):
             line = line.rstrip()
             if line and line[0] in string.whitespace:
                 tokens = line.split()
-                if not tokens[0][0] in string.ascii_letters:
+                if not tokens[0][0] in string.ascii_letters or 'PRIVATE' in tokens[1:]:
                     continue
                 result.append(','.join(tokens))
         return result
@@ -1370,7 +1370,7 @@ class my_install(install):
         if not self.dry_run and not self.root:
             # We must run the script we just installed into Scripts, as it
             # may have had 2to3 run over it.
-            filename = os.path.join(self.prefix, "Scripts", "pywin32_postinstall.py")
+            filename = os.path.join(self.install_scripts, "pywin32_postinstall.py")
             if not os.path.isfile(filename):
                 raise RuntimeError("Can't find '%s'" % (filename,))
             print("Executing post install script...")
