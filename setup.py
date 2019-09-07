@@ -429,16 +429,10 @@ class WinExt (Extension):
 
         # Handle Unicode - if unicode_mode is None, then it means True
         # for py3k, false for py2
-        unicode_mode = self.unicode_mode
-        if unicode_mode is None:
-            unicode_mode = is_py3k
-        if unicode_mode:
+        if self.unicode_mode or self.unicode_mode is None and is_py3k:
             self.extra_compile_args.append("-DUNICODE")
             self.extra_compile_args.append("-D_UNICODE")
             self.extra_compile_args.append("-DWINNT")
-            # Unicode, Windows executables seem to need this magic:
-            if "/SUBSYSTEM:WINDOWS" in self.extra_link_args:
-                self.extra_link_args.append("/ENTRY:wWinMainCRTStartup")
 
 class WinExt_pythonwin(WinExt):
     def __init__ (self, name, **kw):
@@ -451,11 +445,35 @@ class WinExt_pythonwin(WinExt):
     def get_pywin32_dir(self):
         return "pythonwin"
 
+class WinExt_pythonwin_subsys_win(WinExt_pythonwin):
+    def finalize_options(self, build_ext):
+        WinExt_pythonwin.finalize_options(self, build_ext)
+
+        if build_ext.mingw32:
+            self.extra_link_args.append('-mwindows')
+        else:
+            self.extra_link_args.append('/SUBSYSTEM:WINDOWS')
+
+            if self.unicode_mode or self.unicode_mode is None and is_py3k:
+                # Unicode, Windows executables seem to need this magic:
+                self.extra_link_args.append('/ENTRY:wWinMainCRTStartup')
+
 class WinExt_win32(WinExt):
     def __init__ (self, name, **kw):
         WinExt.__init__(self, name, **kw)
     def get_pywin32_dir(self):
         return "win32"
+
+class WinExt_win32_subsys_con(WinExt_win32):
+    def finalize_options(self, build_ext):
+        WinExt_win32.finalize_options(self, build_ext)
+
+        if build_ext.mingw32:
+            self.extra_link_args.append('-mconsole')
+            if self.unicode_mode:
+                self.extra_link_args.append('-municode')
+        else:
+            self.extra_link_args.append('/SUBSYSTEM:CONSOLE')
 
 class WinExt_ISAPI(WinExt):
     def get_pywin32_dir(self):
@@ -2245,19 +2263,17 @@ other_extensions.append(
 )
 
 W32_exe_files = [
-    WinExt_win32("pythonservice",
+    WinExt_win32_subsys_con("pythonservice",
          sources=[os.path.join("win32", "src", s) for s in
                   "PythonService.cpp PythonService.rc".split()],
          unicode_mode = True,
-         extra_link_args=["/SUBSYSTEM:CONSOLE"],
          libraries = "user32 advapi32 ole32 shell32"),
-    WinExt_pythonwin("Pythonwin",
+    WinExt_pythonwin_subsys_win("Pythonwin",
         sources = [
             "Pythonwin/pythonwin.cpp",
             "Pythonwin/pythonwin.rc",
             "Pythonwin/stdafxpw.cpp",
             ],
-        extra_link_args=["/SUBSYSTEM:WINDOWS"],
         optional_headers=['afxres.h']),
 ]
 
