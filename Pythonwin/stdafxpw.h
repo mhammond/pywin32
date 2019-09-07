@@ -6,9 +6,9 @@
 #define WIN32_LEAN_AND_MEAN
 #define _USING_V110_SDK71_
 
-#include <afxwin.h>			// MFC core and standard components
-#include <afxext.h> 		// MFC extensions
-#include "afxpriv.h"	// for mru class.
+#include <afxwin.h>   // MFC core and standard components
+#include <afxext.h>   // MFC extensions
+#include "afxpriv.h"  // for mru class.
 
 #include "limits.h"
 

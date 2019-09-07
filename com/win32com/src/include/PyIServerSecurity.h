@@ -4,52 +4,39 @@
 //
 // Interface Declaration
 
-class PyIServerSecurity : public PyIUnknown
-{
-public:
-	MAKE_PYCOM_CTOR(PyIServerSecurity);
-	static IServerSecurity *GetI(PyObject *self);
-	static PyComTypeObject type;
+class PyIServerSecurity : public PyIUnknown {
+   public:
+    MAKE_PYCOM_CTOR(PyIServerSecurity);
+    static IServerSecurity *GetI(PyObject *self);
+    static PyComTypeObject type;
 
-	// The Python methods
-	static PyObject *QueryBlanket(PyObject *self, PyObject *args);
-	static PyObject *ImpersonateClient(PyObject *self, PyObject *args);
-	static PyObject *RevertToSelf(PyObject *self, PyObject *args);
-	static PyObject *IsImpersonating(PyObject *self, PyObject *args);
+    // The Python methods
+    static PyObject *QueryBlanket(PyObject *self, PyObject *args);
+    static PyObject *ImpersonateClient(PyObject *self, PyObject *args);
+    static PyObject *RevertToSelf(PyObject *self, PyObject *args);
+    static PyObject *IsImpersonating(PyObject *self, PyObject *args);
 
-protected:
-	PyIServerSecurity(IUnknown *pdisp);
-	~PyIServerSecurity();
+   protected:
+    PyIServerSecurity(IUnknown *pdisp);
+    ~PyIServerSecurity();
 };
 // ---------------------------------------------------
 //
 // Gateway Declaration
 
-class PyGServerSecurity : public PyGatewayBase, public IServerSecurity
-{
-protected:
-	PyGServerSecurity(PyObject *instance) : PyGatewayBase(instance) { ; }
-	PYGATEWAY_MAKE_SUPPORT2(PyGServerSecurity, IServerSecurity, IID_IServerSecurity, PyGatewayBase)
+class PyGServerSecurity : public PyGatewayBase, public IServerSecurity {
+   protected:
+    PyGServerSecurity(PyObject *instance) : PyGatewayBase(instance) { ; }
+    PYGATEWAY_MAKE_SUPPORT2(PyGServerSecurity, IServerSecurity, IID_IServerSecurity, PyGatewayBase)
 
+    // IServerSecurity
+    STDMETHOD(QueryBlanket)
+    (DWORD *pAuthnSvc, DWORD *pAuthzSvc, OLECHAR **pServerPrincName, DWORD *pAuthnLevel, DWORD *pImpLevel,
+     void **pPrivs, DWORD *pCapabilities);
 
+    STDMETHOD(ImpersonateClient)(void);
 
-	// IServerSecurity
-	STDMETHOD(QueryBlanket)(
-		DWORD * pAuthnSvc,
-		DWORD * pAuthzSvc,
-		OLECHAR ** pServerPrincName,
-		DWORD * pAuthnLevel,
-		DWORD * pImpLevel,
-		void ** pPrivs,
-		DWORD * pCapabilities);
+    STDMETHOD(RevertToSelf)(void);
 
-	STDMETHOD(ImpersonateClient)(
-		void);
-
-	STDMETHOD(RevertToSelf)(
-		void);
-
-	virtual BOOL STDMETHODCALLTYPE IsImpersonating(
-		void);
-
+    virtual BOOL STDMETHODCALLTYPE IsImpersonating(void);
 };

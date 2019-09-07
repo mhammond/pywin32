@@ -9,136 +9,124 @@
 //
 // Interface Implementation
 
-PyITaskbarList::PyITaskbarList(IUnknown *pdisp):
-	PyIUnknown(pdisp)
-{
-	ob_type = &type;
-}
+PyITaskbarList::PyITaskbarList(IUnknown *pdisp) : PyIUnknown(pdisp) { ob_type = &type; }
 
-PyITaskbarList::~PyITaskbarList()
-{
-}
+PyITaskbarList::~PyITaskbarList() {}
 
-/* static */ ITaskbarList *PyITaskbarList::GetI(PyObject *self)
-{
-	return (ITaskbarList *)PyIUnknown::GetI(self);
-}
+/* static */ ITaskbarList *PyITaskbarList::GetI(PyObject *self) { return (ITaskbarList *)PyIUnknown::GetI(self); }
 
 // @pymethod |PyITaskbarList|HrInit|Intializes the interface before use
 PyObject *PyITaskbarList::HrInit(PyObject *self, PyObject *args)
 {
-	ITaskbarList *pITL = GetI(self);
-	if ( pITL == NULL )
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pITL->HrInit( );
-	PY_INTERFACE_POSTCALL;
+    ITaskbarList *pITL = GetI(self);
+    if (pITL == NULL)
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pITL->HrInit();
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pITL, IID_ITaskbarList );
-	Py_INCREF(Py_None);
-	return Py_None;
-
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pITL, IID_ITaskbarList);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @pymethod |PyITaskbarList|AddTab|Places a window on the taskbar
 PyObject *PyITaskbarList::AddTab(PyObject *self, PyObject *args)
 {
-	ITaskbarList *pITL = GetI(self);
-	if ( pITL == NULL )
-		return NULL;
-	HWND hwnd;
-	// @pyparm <o PyHANDLE>|hwnd||Handle to window, should have WS_CAPTION style
-	if ( !PyArg_ParseTuple(args, "O&:AddTab", PyWinObject_AsHANDLE, &hwnd))
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pITL->AddTab( hwnd );
-	PY_INTERFACE_POSTCALL;
+    ITaskbarList *pITL = GetI(self);
+    if (pITL == NULL)
+        return NULL;
+    HWND hwnd;
+    // @pyparm <o PyHANDLE>|hwnd||Handle to window, should have WS_CAPTION style
+    if (!PyArg_ParseTuple(args, "O&:AddTab", PyWinObject_AsHANDLE, &hwnd))
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pITL->AddTab(hwnd);
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pITL, IID_ITaskbarList );
-	Py_INCREF(Py_None);
-	return Py_None;
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pITL, IID_ITaskbarList);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @pymethod |PyITaskbarList|DeleteTab|Removes a window from the taskbar
 PyObject *PyITaskbarList::DeleteTab(PyObject *self, PyObject *args)
 {
-	ITaskbarList *pITL = GetI(self);
-	if ( pITL == NULL )
-		return NULL;
-	HWND hwnd;
-	// @pyparm <o PyHANDLE>|hwnd||Handle to window, should have WS_CAPTION style
-	if ( !PyArg_ParseTuple(args, "O&:DeleteTab", PyWinObject_AsHANDLE, &hwnd))
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pITL->DeleteTab( hwnd );
-	PY_INTERFACE_POSTCALL;
+    ITaskbarList *pITL = GetI(self);
+    if (pITL == NULL)
+        return NULL;
+    HWND hwnd;
+    // @pyparm <o PyHANDLE>|hwnd||Handle to window, should have WS_CAPTION style
+    if (!PyArg_ParseTuple(args, "O&:DeleteTab", PyWinObject_AsHANDLE, &hwnd))
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pITL->DeleteTab(hwnd);
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pITL, IID_ITaskbarList );
-	Py_INCREF(Py_None);
-	return Py_None;
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pITL, IID_ITaskbarList);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @pymethod |PyITaskbarList|ActivateTab|Marks a window as the active tab on the taskbar
 PyObject *PyITaskbarList::ActivateTab(PyObject *self, PyObject *args)
 {
-	ITaskbarList *pITL = GetI(self);
-	if ( pITL == NULL )
-		return NULL;
-	HWND hwnd;
-	// @pyparm <o PyHANDLE>|hwnd||Handle to window, should have WS_CAPTION style
-	if ( !PyArg_ParseTuple(args, "O&:ActivateTab", PyWinObject_AsHANDLE, &hwnd))
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pITL->ActivateTab( hwnd );
-	PY_INTERFACE_POSTCALL;
+    ITaskbarList *pITL = GetI(self);
+    if (pITL == NULL)
+        return NULL;
+    HWND hwnd;
+    // @pyparm <o PyHANDLE>|hwnd||Handle to window, should have WS_CAPTION style
+    if (!PyArg_ParseTuple(args, "O&:ActivateTab", PyWinObject_AsHANDLE, &hwnd))
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pITL->ActivateTab(hwnd);
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pITL, IID_ITaskbarList );
-	Py_INCREF(Py_None);
-	return Py_None;
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pITL, IID_ITaskbarList);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
-// @pymethod |PyITaskbarList|SetActiveAlt|Sets the window as the active tab, without displaying it as pressed on the taskbar
+// @pymethod |PyITaskbarList|SetActiveAlt|Sets the window as the active tab, without displaying it as pressed on the
+// taskbar
 PyObject *PyITaskbarList::SetActiveAlt(PyObject *self, PyObject *args)
 {
-	ITaskbarList *pITL = GetI(self);
-	if ( pITL == NULL )
-		return NULL;
-	HWND hwnd;
-	// @pyparm <o PyHANDLE>|hwnd||Handle to window, should have WS_CAPTION style
-	if ( !PyArg_ParseTuple(args, "O&:SetActiveAlt", PyWinObject_AsHANDLE, &hwnd))
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pITL->SetActiveAlt( hwnd );
-	PY_INTERFACE_POSTCALL;
+    ITaskbarList *pITL = GetI(self);
+    if (pITL == NULL)
+        return NULL;
+    HWND hwnd;
+    // @pyparm <o PyHANDLE>|hwnd||Handle to window, should have WS_CAPTION style
+    if (!PyArg_ParseTuple(args, "O&:SetActiveAlt", PyWinObject_AsHANDLE, &hwnd))
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pITL->SetActiveAlt(hwnd);
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pITL, IID_ITaskbarList );
-	Py_INCREF(Py_None);
-	return Py_None;
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pITL, IID_ITaskbarList);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @object PyITaskbarList|Description of the interface
-static struct PyMethodDef PyITaskbarList_methods[] =
-{
-	{ "HrInit", PyITaskbarList::HrInit, METH_NOARGS }, // @pymeth HrInit|Intializes the interface before use
-	{ "AddTab", PyITaskbarList::AddTab, 1 }, // @pymeth AddTab|Places a window on the taskbar
-	{ "DeleteTab", PyITaskbarList::DeleteTab, 1 }, // @pymeth DeleteTab|Removes a window from the taskbar
-	{ "ActivateTab", PyITaskbarList::ActivateTab, 1 }, // @pymeth ActivateTab|Marks a window as the active tab on the taskbar
-	{ "SetActiveAlt", PyITaskbarList::SetActiveAlt, 1 }, // @pymeth SetActiveAlt|Sets the window as the active tab, without displaying it as pressed on the taskbar
-	{ NULL }
-};
+static struct PyMethodDef PyITaskbarList_methods[] = {
+    {"HrInit", PyITaskbarList::HrInit, METH_NOARGS},  // @pymeth HrInit|Intializes the interface before use
+    {"AddTab", PyITaskbarList::AddTab, 1},            // @pymeth AddTab|Places a window on the taskbar
+    {"DeleteTab", PyITaskbarList::DeleteTab, 1},      // @pymeth DeleteTab|Removes a window from the taskbar
+    {"ActivateTab", PyITaskbarList::ActivateTab,
+     1},  // @pymeth ActivateTab|Marks a window as the active tab on the taskbar
+    {"SetActiveAlt", PyITaskbarList::SetActiveAlt,
+     1},  // @pymeth SetActiveAlt|Sets the window as the active tab, without displaying it as pressed on the taskbar
+    {NULL}};
 
-PyComTypeObject PyITaskbarList::type("PyITaskbarList",
-		&PyIUnknown::type,
-		sizeof(PyITaskbarList),
-		PyITaskbarList_methods,
-		GET_PYCOM_CTOR(PyITaskbarList));
+PyComTypeObject PyITaskbarList::type("PyITaskbarList", &PyIUnknown::type, sizeof(PyITaskbarList),
+                                     PyITaskbarList_methods, GET_PYCOM_CTOR(PyITaskbarList));

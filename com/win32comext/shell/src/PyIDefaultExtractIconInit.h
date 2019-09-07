@@ -4,22 +4,21 @@
 //
 // Interface Declaration
 
-class PyIDefaultExtractIconInit : public PyIUnknown
-{
-public:
-	MAKE_PYCOM_CTOR(PyIDefaultExtractIconInit);
-	static IDefaultExtractIconInit *GetI(PyObject *self);
-	static PyComTypeObject type;
+class PyIDefaultExtractIconInit : public PyIUnknown {
+   public:
+    MAKE_PYCOM_CTOR(PyIDefaultExtractIconInit);
+    static IDefaultExtractIconInit *GetI(PyObject *self);
+    static PyComTypeObject type;
 
-	// The Python methods
-	static PyObject *SetFlags(PyObject *self, PyObject *args);
-	static PyObject *SetKey(PyObject *self, PyObject *args);
-	static PyObject *SetNormalIcon(PyObject *self, PyObject *args);
-	static PyObject *SetOpenIcon(PyObject *self, PyObject *args);
-	static PyObject *SetShortcutIcon(PyObject *self, PyObject *args);
-	static PyObject *SetDefaultIcon(PyObject *self, PyObject *args);
+    // The Python methods
+    static PyObject *SetFlags(PyObject *self, PyObject *args);
+    static PyObject *SetKey(PyObject *self, PyObject *args);
+    static PyObject *SetNormalIcon(PyObject *self, PyObject *args);
+    static PyObject *SetOpenIcon(PyObject *self, PyObject *args);
+    static PyObject *SetShortcutIcon(PyObject *self, PyObject *args);
+    static PyObject *SetDefaultIcon(PyObject *self, PyObject *args);
 
-protected:
-	PyIDefaultExtractIconInit(IUnknown *pdisp);
-	~PyIDefaultExtractIconInit();
+   protected:
+    PyIDefaultExtractIconInit(IUnknown *pdisp);
+    ~PyIDefaultExtractIconInit();
 };

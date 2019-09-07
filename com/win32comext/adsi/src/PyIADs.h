@@ -4,23 +4,22 @@
 //
 // Interface Declaration
 
-class PyIADs : public PyIDispatch
-{
-public:
-	MAKE_PYCOM_CTOR(PyIADs);
-	static IADs *GetI(PyObject *self);
-	static PyComTypeObject type;
+class PyIADs : public PyIDispatch {
+   public:
+    MAKE_PYCOM_CTOR(PyIADs);
+    static IADs *GetI(PyObject *self);
+    static PyComTypeObject type;
 
-	// The Python methods
-	static PyObject *GetInfo(PyObject *self, PyObject *args);
-	static PyObject *SetInfo(PyObject *self, PyObject *args);
-	static PyObject *Get(PyObject *self, PyObject *args);
-	static PyObject *Put(PyObject *self, PyObject *args);
-	static PyObject *GetEx(PyObject *self, PyObject *args);
-	static PyObject *PutEx(PyObject *self, PyObject *args);
-	static PyObject *GetInfoEx(PyObject *self, PyObject *args);
+    // The Python methods
+    static PyObject *GetInfo(PyObject *self, PyObject *args);
+    static PyObject *SetInfo(PyObject *self, PyObject *args);
+    static PyObject *Get(PyObject *self, PyObject *args);
+    static PyObject *Put(PyObject *self, PyObject *args);
+    static PyObject *GetEx(PyObject *self, PyObject *args);
+    static PyObject *PutEx(PyObject *self, PyObject *args);
+    static PyObject *GetInfoEx(PyObject *self, PyObject *args);
 
-protected:
-	PyIADs(IUnknown *pdisp);
-	~PyIADs();
+   protected:
+    PyIADs(IUnknown *pdisp);
+    ~PyIADs();
 };

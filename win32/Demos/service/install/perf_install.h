@@ -1,6 +1,6 @@
-# All these simply list the counters in order.
-# Important that you add these in this order in
-# the Python code.
+#All these simply list the counters in order.
+#Important that you add these in this order in
+#the Python code.
 
 #define SERVICE 0
 #define HEARTBEAT 2

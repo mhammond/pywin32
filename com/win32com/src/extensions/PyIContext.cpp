@@ -8,134 +8,119 @@
 //
 // Interface Implementation
 
-PyIContext::PyIContext(IUnknown *pdisp):
-	PyIUnknown(pdisp)
-{
-	ob_type = &type;
-}
+PyIContext::PyIContext(IUnknown *pdisp) : PyIUnknown(pdisp) { ob_type = &type; }
 
-PyIContext::~PyIContext()
-{
-}
+PyIContext::~PyIContext() {}
 
-/* static */ IContext *PyIContext::GetI(PyObject *self)
-{
-	return (IContext *)PyIUnknown::GetI(self);
-}
+/* static */ IContext *PyIContext::GetI(PyObject *self) { return (IContext *)PyIUnknown::GetI(self); }
 
 // @pymethod |PyIContext|SetProperty|Sets a property on the context
 PyObject *PyIContext::SetProperty(PyObject *self, PyObject *args)
 {
-	IContext *pIC = GetI(self);
-	if ( pIC == NULL )
-		return NULL;
-	// @pyparm <o PyIID>|rpolicyId||GUID identifying the property to be set
-	// @pyparm int|flags||Reserved, use only 0
-	// @pyparm <o PyIUnknown>|pUnk||The property value
-	CPFLAGS flags;
-	PyObject *obrpolicyId;
-	PyObject *obUnk;
-	IID rpolicyId;
-	IUnknown * pUnk;
-	if ( !PyArg_ParseTuple(args, "OkO:SetProperty", &obrpolicyId, &flags, &obUnk) )
-		return NULL;
-	if (!PyWinObject_AsIID(obrpolicyId, &rpolicyId))
-		return NULL;
-	if (!PyCom_InterfaceFromPyInstanceOrObject(obUnk, IID_IUnknown, (void **)&pUnk, FALSE))
-		return NULL;
+    IContext *pIC = GetI(self);
+    if (pIC == NULL)
+        return NULL;
+    // @pyparm <o PyIID>|rpolicyId||GUID identifying the property to be set
+    // @pyparm int|flags||Reserved, use only 0
+    // @pyparm <o PyIUnknown>|pUnk||The property value
+    CPFLAGS flags;
+    PyObject *obrpolicyId;
+    PyObject *obUnk;
+    IID rpolicyId;
+    IUnknown *pUnk;
+    if (!PyArg_ParseTuple(args, "OkO:SetProperty", &obrpolicyId, &flags, &obUnk))
+        return NULL;
+    if (!PyWinObject_AsIID(obrpolicyId, &rpolicyId))
+        return NULL;
+    if (!PyCom_InterfaceFromPyInstanceOrObject(obUnk, IID_IUnknown, (void **)&pUnk, FALSE))
+        return NULL;
 
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIC->SetProperty( rpolicyId, flags, pUnk );
-	pUnk->Release();
-	PY_INTERFACE_POSTCALL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIC->SetProperty(rpolicyId, flags, pUnk);
+    pUnk->Release();
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pIC, IID_IContext );
-	Py_INCREF(Py_None);
-	return Py_None;
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pIC, IID_IContext);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @pymethod |PyIContext|RemoveProperty|Removes a property from the context
 PyObject *PyIContext::RemoveProperty(PyObject *self, PyObject *args)
 {
-	IContext *pIC = GetI(self);
-	if ( pIC == NULL )
-		return NULL;
-	// @pyparm <o PyIID>|rPolicyId||GUID that identifies a context property
-	PyObject *obrPolicyId;
-	IID rPolicyId;
-	if ( !PyArg_ParseTuple(args, "O:RemoveProperty", &obrPolicyId) )
-		return NULL;
-	if (!PyWinObject_AsIID(obrPolicyId, &rPolicyId))
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIC->RemoveProperty( rPolicyId );
-	PY_INTERFACE_POSTCALL;
+    IContext *pIC = GetI(self);
+    if (pIC == NULL)
+        return NULL;
+    // @pyparm <o PyIID>|rPolicyId||GUID that identifies a context property
+    PyObject *obrPolicyId;
+    IID rPolicyId;
+    if (!PyArg_ParseTuple(args, "O:RemoveProperty", &obrPolicyId))
+        return NULL;
+    if (!PyWinObject_AsIID(obrPolicyId, &rPolicyId))
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIC->RemoveProperty(rPolicyId);
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pIC, IID_IContext );
-	Py_INCREF(Py_None);
-	return Py_None;
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pIC, IID_IContext);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @pymethod (int, <o PyIUnknown>)|PyIContext|GetProperty|Retrieves a context property
-// @rdesc Returns flags (CPFLAGS is reserved, no defined values) and the IUnknown interface set for the property 
+// @rdesc Returns flags (CPFLAGS is reserved, no defined values) and the IUnknown interface set for the property
 PyObject *PyIContext::GetProperty(PyObject *self, PyObject *args)
 {
-	IContext *pIC = GetI(self);
-	if ( pIC == NULL )
-		return NULL;
-	// @pyparm <o PyIID>|rGuid||GUID that identifies a context property
-	CPFLAGS flags;
-	PyObject *obGuid;
-	IID rGuid;
-	IUnknown * pUnk;
-	if ( !PyArg_ParseTuple(args, "O:GetProperty", &obGuid))
-		return NULL;
-	if (!PyWinObject_AsIID(obGuid, &rGuid))
-		return NULL;
+    IContext *pIC = GetI(self);
+    if (pIC == NULL)
+        return NULL;
+    // @pyparm <o PyIID>|rGuid||GUID that identifies a context property
+    CPFLAGS flags;
+    PyObject *obGuid;
+    IID rGuid;
+    IUnknown *pUnk;
+    if (!PyArg_ParseTuple(args, "O:GetProperty", &obGuid))
+        return NULL;
+    if (!PyWinObject_AsIID(obGuid, &rGuid))
+        return NULL;
 
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIC->GetProperty( rGuid, &flags, &pUnk );
-	PY_INTERFACE_POSTCALL;
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pIC, IID_IContext );
-	return Py_BuildValue("kN", flags, PyCom_PyObjectFromIUnknown(pUnk, IID_IUnknown, FALSE));
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIC->GetProperty(rGuid, &flags, &pUnk);
+    PY_INTERFACE_POSTCALL;
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pIC, IID_IContext);
+    return Py_BuildValue("kN", flags, PyCom_PyObjectFromIUnknown(pUnk, IID_IUnknown, FALSE));
 }
 
 // @pymethod <o PyIEnumContextProps>|PyIContext|EnumContextProps|Returns an enumerator for the context properties
 PyObject *PyIContext::EnumContextProps(PyObject *self, PyObject *args)
 {
-	IContext *pIC = GetI(self);
-	if ( pIC == NULL )
-		return NULL;
-	IEnumContextProps * pEnumContextProps;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIC->EnumContextProps( &pEnumContextProps );
-	PY_INTERFACE_POSTCALL;
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pIC, IID_IContext );
-	return PyCom_PyObjectFromIUnknown(pEnumContextProps, IID_IEnumContextProps, FALSE);
+    IContext *pIC = GetI(self);
+    if (pIC == NULL)
+        return NULL;
+    IEnumContextProps *pEnumContextProps;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIC->EnumContextProps(&pEnumContextProps);
+    PY_INTERFACE_POSTCALL;
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pIC, IID_IContext);
+    return PyCom_PyObjectFromIUnknown(pEnumContextProps, IID_IEnumContextProps, FALSE);
 }
 
 // @object PyIContext|Allows access to properties defined for the current context (Requires win2k or later)
-static struct PyMethodDef PyIContext_methods[] =
-{
-	{ "SetProperty", PyIContext::SetProperty, 1 }, // @pymeth SetProperty|Sets a property on the context
-	{ "RemoveProperty", PyIContext::RemoveProperty, 1 }, // @pymeth RemoveProperty|Removes a property from the context
-	{ "GetProperty", PyIContext::GetProperty, 1 }, // @pymeth GetProperty|Retrieves a context property
-	{ "EnumContextProps", PyIContext::EnumContextProps, METH_NOARGS}, // @pymeth EnumContextProps|Returns an enumerator for the context properties
-	{ NULL }
-};
+static struct PyMethodDef PyIContext_methods[] = {
+    {"SetProperty", PyIContext::SetProperty, 1},        // @pymeth SetProperty|Sets a property on the context
+    {"RemoveProperty", PyIContext::RemoveProperty, 1},  // @pymeth RemoveProperty|Removes a property from the context
+    {"GetProperty", PyIContext::GetProperty, 1},        // @pymeth GetProperty|Retrieves a context property
+    {"EnumContextProps", PyIContext::EnumContextProps,
+     METH_NOARGS},  // @pymeth EnumContextProps|Returns an enumerator for the context properties
+    {NULL}};
 
-PyComEnumProviderTypeObject PyIContext::type("PyIContext",
-		&PyIUnknown::type,
-		sizeof(PyIContext),
-		PyIContext_methods,
-		GET_PYCOM_CTOR(PyIContext),
-		"EnumContextProps"
-		);
+PyComEnumProviderTypeObject PyIContext::type("PyIContext", &PyIUnknown::type, sizeof(PyIContext), PyIContext_methods,
+                                             GET_PYCOM_CTOR(PyIContext), "EnumContextProps");

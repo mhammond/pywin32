@@ -13,368 +13,353 @@
 extern BOOL PyObject_AsOLEINPLACEFRAMEINFO(PyObject *ob, OLEINPLACEFRAMEINFO *pfi);
 extern PyObject *PyObject_FromOLEINPLACEFRAMEINFO(const OLEINPLACEFRAMEINFO *pfi);
 
+PyIOleInPlaceSite::PyIOleInPlaceSite(IUnknown *pdisp) : PyIOleWindow(pdisp) { ob_type = &type; }
 
-PyIOleInPlaceSite::PyIOleInPlaceSite(IUnknown *pdisp):
-	PyIOleWindow(pdisp)
-{
-	ob_type = &type;
-}
-
-PyIOleInPlaceSite::~PyIOleInPlaceSite()
-{
-}
+PyIOleInPlaceSite::~PyIOleInPlaceSite() {}
 
 /* static */ IOleInPlaceSite *PyIOleInPlaceSite::GetI(PyObject *self)
 {
-	return (IOleInPlaceSite *)PyIOleWindow::GetI(self);
+    return (IOleInPlaceSite *)PyIOleWindow::GetI(self);
 }
 
 // @pymethod |PyIOleInPlaceSite|CanInPlaceActivate|Description of CanInPlaceActivate.
 PyObject *PyIOleInPlaceSite::CanInPlaceActivate(PyObject *self, PyObject *args)
 {
-	IOleInPlaceSite *pIOIPS = GetI(self);
-	if ( pIOIPS == NULL )
-		return NULL;
-	if ( !PyArg_ParseTuple(args, ":CanInPlaceActivate") )
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIOIPS->CanInPlaceActivate( );
-	PY_INTERFACE_POSTCALL;
+    IOleInPlaceSite *pIOIPS = GetI(self);
+    if (pIOIPS == NULL)
+        return NULL;
+    if (!PyArg_ParseTuple(args, ":CanInPlaceActivate"))
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIOIPS->CanInPlaceActivate();
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return OleSetOleError(hr);
-	Py_INCREF(Py_None);
-	return Py_None;
-
+    if (FAILED(hr))
+        return OleSetOleError(hr);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @pymethod |PyIOleInPlaceSite|OnInPlaceActivate|Description of OnInPlaceActivate.
 PyObject *PyIOleInPlaceSite::OnInPlaceActivate(PyObject *self, PyObject *args)
 {
-	IOleInPlaceSite *pIOIPS = GetI(self);
-	if ( pIOIPS == NULL )
-		return NULL;
-	if ( !PyArg_ParseTuple(args, ":OnInPlaceActivate") )
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIOIPS->OnInPlaceActivate( );
-	PY_INTERFACE_POSTCALL;
+    IOleInPlaceSite *pIOIPS = GetI(self);
+    if (pIOIPS == NULL)
+        return NULL;
+    if (!PyArg_ParseTuple(args, ":OnInPlaceActivate"))
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIOIPS->OnInPlaceActivate();
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return OleSetOleError(hr);
-	Py_INCREF(Py_None);
-	return Py_None;
-
+    if (FAILED(hr))
+        return OleSetOleError(hr);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @pymethod |PyIOleInPlaceSite|OnUIActivate|Description of OnUIActivate.
 PyObject *PyIOleInPlaceSite::OnUIActivate(PyObject *self, PyObject *args)
 {
-	IOleInPlaceSite *pIOIPS = GetI(self);
-	if ( pIOIPS == NULL )
-		return NULL;
-	if ( !PyArg_ParseTuple(args, ":OnUIActivate") )
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIOIPS->OnUIActivate( );
-	PY_INTERFACE_POSTCALL;
+    IOleInPlaceSite *pIOIPS = GetI(self);
+    if (pIOIPS == NULL)
+        return NULL;
+    if (!PyArg_ParseTuple(args, ":OnUIActivate"))
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIOIPS->OnUIActivate();
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return OleSetOleError(hr);
-	Py_INCREF(Py_None);
-	return Py_None;
-
+    if (FAILED(hr))
+        return OleSetOleError(hr);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @pymethod |PyIOleInPlaceSite|GetWindowContext|Description of GetWindowContext.
 PyObject *PyIOleInPlaceSite::GetWindowContext(PyObject *self, PyObject *args)
 {
-	IOleInPlaceSite *pIOIPS = GetI(self);
-	if ( pIOIPS == NULL )
-		return NULL;
-	IOleInPlaceFrame * ppFrame;
-	IOleInPlaceUIWindow * ppDoc;
-	if ( !PyArg_ParseTuple(args, ":GetWindowContext") )
-		return NULL;
-	HRESULT hr;
-	RECT posRect;
-	RECT clipRect;
-	OLEINPLACEFRAMEINFO fi;
-	PY_INTERFACE_PRECALL;
-	hr = pIOIPS->GetWindowContext( &ppFrame, &ppDoc, &posRect, &clipRect, &fi );
-	PY_INTERFACE_POSTCALL;
+    IOleInPlaceSite *pIOIPS = GetI(self);
+    if (pIOIPS == NULL)
+        return NULL;
+    IOleInPlaceFrame *ppFrame;
+    IOleInPlaceUIWindow *ppDoc;
+    if (!PyArg_ParseTuple(args, ":GetWindowContext"))
+        return NULL;
+    HRESULT hr;
+    RECT posRect;
+    RECT clipRect;
+    OLEINPLACEFRAMEINFO fi;
+    PY_INTERFACE_PRECALL;
+    hr = pIOIPS->GetWindowContext(&ppFrame, &ppDoc, &posRect, &clipRect, &fi);
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return OleSetOleError(hr);
+    if (FAILED(hr))
+        return OleSetOleError(hr);
 
-	return Py_BuildValue("NN(llll)(llll)N",
-		PyCom_PyObjectFromIUnknown(ppFrame, IID_IOleInPlaceFrame, FALSE),
-		PyCom_PyObjectFromIUnknown(ppDoc, IID_IOleInPlaceUIWindow, FALSE),
-		posRect.left, posRect.top, posRect.right, posRect.bottom,
-		clipRect.left, clipRect.top, clipRect.right, clipRect.bottom,
-		PyObject_FromOLEINPLACEFRAMEINFO(&fi));
+    return Py_BuildValue("NN(llll)(llll)N", PyCom_PyObjectFromIUnknown(ppFrame, IID_IOleInPlaceFrame, FALSE),
+                         PyCom_PyObjectFromIUnknown(ppDoc, IID_IOleInPlaceUIWindow, FALSE), posRect.left, posRect.top,
+                         posRect.right, posRect.bottom, clipRect.left, clipRect.top, clipRect.right, clipRect.bottom,
+                         PyObject_FromOLEINPLACEFRAMEINFO(&fi));
 }
 
 // @pymethod |PyIOleInPlaceSite|Scroll|Description of Scroll.
 PyObject *PyIOleInPlaceSite::Scroll(PyObject *self, PyObject *args)
 {
-	IOleInPlaceSite *pIOIPS = GetI(self);
-	if ( pIOIPS == NULL )
-		return NULL;
-	SIZE scrollExtant;
-	if ( !PyArg_ParseTuple(args, "ll:Scroll", &scrollExtant.cx, &scrollExtant.cy) )
-		return NULL;
-	BOOL bPythonIsHappy = TRUE;
-	if (!bPythonIsHappy) return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIOIPS->Scroll( scrollExtant );
-	PY_INTERFACE_POSTCALL;
+    IOleInPlaceSite *pIOIPS = GetI(self);
+    if (pIOIPS == NULL)
+        return NULL;
+    SIZE scrollExtant;
+    if (!PyArg_ParseTuple(args, "ll:Scroll", &scrollExtant.cx, &scrollExtant.cy))
+        return NULL;
+    BOOL bPythonIsHappy = TRUE;
+    if (!bPythonIsHappy)
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIOIPS->Scroll(scrollExtant);
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return OleSetOleError(hr);
-	Py_INCREF(Py_None);
-	return Py_None;
-
+    if (FAILED(hr))
+        return OleSetOleError(hr);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @pymethod |PyIOleInPlaceSite|OnUIDeactivate|Description of OnUIDeactivate.
 PyObject *PyIOleInPlaceSite::OnUIDeactivate(PyObject *self, PyObject *args)
 {
-	IOleInPlaceSite *pIOIPS = GetI(self);
-	if ( pIOIPS == NULL )
-		return NULL;
-	// @pyparm int|fUndoable||Description for fUndoable
-	BOOL fUndoable;
-	if ( !PyArg_ParseTuple(args, "i:OnUIDeactivate", &fUndoable) )
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIOIPS->OnUIDeactivate( fUndoable );
-	PY_INTERFACE_POSTCALL;
+    IOleInPlaceSite *pIOIPS = GetI(self);
+    if (pIOIPS == NULL)
+        return NULL;
+    // @pyparm int|fUndoable||Description for fUndoable
+    BOOL fUndoable;
+    if (!PyArg_ParseTuple(args, "i:OnUIDeactivate", &fUndoable))
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIOIPS->OnUIDeactivate(fUndoable);
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return OleSetOleError(hr);
-	Py_INCREF(Py_None);
-	return Py_None;
-
+    if (FAILED(hr))
+        return OleSetOleError(hr);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @pymethod |PyIOleInPlaceSite|OnInPlaceDeactivate|Description of OnInPlaceDeactivate.
 PyObject *PyIOleInPlaceSite::OnInPlaceDeactivate(PyObject *self, PyObject *args)
 {
-	IOleInPlaceSite *pIOIPS = GetI(self);
-	if ( pIOIPS == NULL )
-		return NULL;
-	if ( !PyArg_ParseTuple(args, ":OnInPlaceDeactivate") )
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIOIPS->OnInPlaceDeactivate( );
-	PY_INTERFACE_POSTCALL;
+    IOleInPlaceSite *pIOIPS = GetI(self);
+    if (pIOIPS == NULL)
+        return NULL;
+    if (!PyArg_ParseTuple(args, ":OnInPlaceDeactivate"))
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIOIPS->OnInPlaceDeactivate();
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return OleSetOleError(hr);
-	Py_INCREF(Py_None);
-	return Py_None;
-
+    if (FAILED(hr))
+        return OleSetOleError(hr);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @pymethod |PyIOleInPlaceSite|DiscardUndoState|Description of DiscardUndoState.
 PyObject *PyIOleInPlaceSite::DiscardUndoState(PyObject *self, PyObject *args)
 {
-	IOleInPlaceSite *pIOIPS = GetI(self);
-	if ( pIOIPS == NULL )
-		return NULL;
-	if ( !PyArg_ParseTuple(args, ":DiscardUndoState") )
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIOIPS->DiscardUndoState( );
-	PY_INTERFACE_POSTCALL;
+    IOleInPlaceSite *pIOIPS = GetI(self);
+    if (pIOIPS == NULL)
+        return NULL;
+    if (!PyArg_ParseTuple(args, ":DiscardUndoState"))
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIOIPS->DiscardUndoState();
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return OleSetOleError(hr);
-	Py_INCREF(Py_None);
-	return Py_None;
-
+    if (FAILED(hr))
+        return OleSetOleError(hr);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @pymethod |PyIOleInPlaceSite|DeactivateAndUndo|Description of DeactivateAndUndo.
 PyObject *PyIOleInPlaceSite::DeactivateAndUndo(PyObject *self, PyObject *args)
 {
-	IOleInPlaceSite *pIOIPS = GetI(self);
-	if ( pIOIPS == NULL )
-		return NULL;
-	if ( !PyArg_ParseTuple(args, ":DeactivateAndUndo") )
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIOIPS->DeactivateAndUndo( );
-	PY_INTERFACE_POSTCALL;
+    IOleInPlaceSite *pIOIPS = GetI(self);
+    if (pIOIPS == NULL)
+        return NULL;
+    if (!PyArg_ParseTuple(args, ":DeactivateAndUndo"))
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIOIPS->DeactivateAndUndo();
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return OleSetOleError(hr);
-	Py_INCREF(Py_None);
-	return Py_None;
-
+    if (FAILED(hr))
+        return OleSetOleError(hr);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @pymethod |PyIOleInPlaceSite|OnPosRectChange|Description of OnPosRectChange.
 PyObject *PyIOleInPlaceSite::OnPosRectChange(PyObject *self, PyObject *args)
 {
-	IOleInPlaceSite *pIOIPS = GetI(self);
-	if ( pIOIPS == NULL )
-		return NULL;
-	RECT r;
-	if ( !PyArg_ParseTuple(args, "(llll):OnPosRectChange", &r.left, &r.top, &r.right, &r.bottom) )
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIOIPS->OnPosRectChange( &r );
-	PY_INTERFACE_POSTCALL;
+    IOleInPlaceSite *pIOIPS = GetI(self);
+    if (pIOIPS == NULL)
+        return NULL;
+    RECT r;
+    if (!PyArg_ParseTuple(args, "(llll):OnPosRectChange", &r.left, &r.top, &r.right, &r.bottom))
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIOIPS->OnPosRectChange(&r);
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return OleSetOleError(hr);
-	Py_INCREF(Py_None);
-	return Py_None;
+    if (FAILED(hr))
+        return OleSetOleError(hr);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @object PyIOleInPlaceSite|Description of the interface
-static struct PyMethodDef PyIOleInPlaceSite_methods[] =
-{
-	{ "CanInPlaceActivate", PyIOleInPlaceSite::CanInPlaceActivate, 1 }, // @pymeth CanInPlaceActivate|Description of CanInPlaceActivate
-	{ "OnInPlaceActivate", PyIOleInPlaceSite::OnInPlaceActivate, 1 }, // @pymeth OnInPlaceActivate|Description of OnInPlaceActivate
-	{ "OnUIActivate", PyIOleInPlaceSite::OnUIActivate, 1 }, // @pymeth OnUIActivate|Description of OnUIActivate
-	{ "GetWindowContext", PyIOleInPlaceSite::GetWindowContext, 1 }, // @pymeth GetWindowContext|Description of GetWindowContext
-	{ "Scroll", PyIOleInPlaceSite::Scroll, 1 }, // @pymeth Scroll|Description of Scroll
-	{ "OnUIDeactivate", PyIOleInPlaceSite::OnUIDeactivate, 1 }, // @pymeth OnUIDeactivate|Description of OnUIDeactivate
-	{ "OnInPlaceDeactivate", PyIOleInPlaceSite::OnInPlaceDeactivate, 1 }, // @pymeth OnInPlaceDeactivate|Description of OnInPlaceDeactivate
-	{ "DiscardUndoState", PyIOleInPlaceSite::DiscardUndoState, 1 }, // @pymeth DiscardUndoState|Description of DiscardUndoState
-	{ "DeactivateAndUndo", PyIOleInPlaceSite::DeactivateAndUndo, 1 }, // @pymeth DeactivateAndUndo|Description of DeactivateAndUndo
-	{ "OnPosRectChange", PyIOleInPlaceSite::OnPosRectChange, 1 }, // @pymeth OnPosRectChange|Description of OnPosRectChange
-	{ NULL }
-};
+static struct PyMethodDef PyIOleInPlaceSite_methods[] = {
+    {"CanInPlaceActivate", PyIOleInPlaceSite::CanInPlaceActivate,
+     1},  // @pymeth CanInPlaceActivate|Description of CanInPlaceActivate
+    {"OnInPlaceActivate", PyIOleInPlaceSite::OnInPlaceActivate,
+     1},                                                   // @pymeth OnInPlaceActivate|Description of OnInPlaceActivate
+    {"OnUIActivate", PyIOleInPlaceSite::OnUIActivate, 1},  // @pymeth OnUIActivate|Description of OnUIActivate
+    {"GetWindowContext", PyIOleInPlaceSite::GetWindowContext,
+     1},                                       // @pymeth GetWindowContext|Description of GetWindowContext
+    {"Scroll", PyIOleInPlaceSite::Scroll, 1},  // @pymeth Scroll|Description of Scroll
+    {"OnUIDeactivate", PyIOleInPlaceSite::OnUIDeactivate, 1},  // @pymeth OnUIDeactivate|Description of OnUIDeactivate
+    {"OnInPlaceDeactivate", PyIOleInPlaceSite::OnInPlaceDeactivate,
+     1},  // @pymeth OnInPlaceDeactivate|Description of OnInPlaceDeactivate
+    {"DiscardUndoState", PyIOleInPlaceSite::DiscardUndoState,
+     1},  // @pymeth DiscardUndoState|Description of DiscardUndoState
+    {"DeactivateAndUndo", PyIOleInPlaceSite::DeactivateAndUndo,
+     1},  // @pymeth DeactivateAndUndo|Description of DeactivateAndUndo
+    {"OnPosRectChange", PyIOleInPlaceSite::OnPosRectChange,
+     1},  // @pymeth OnPosRectChange|Description of OnPosRectChange
+    {NULL}};
 
-PyComTypeObject PyIOleInPlaceSite::type("PyIOleInPlaceSite",
-		&PyIOleWindow::type,
-		sizeof(PyIOleInPlaceSite),
-		PyIOleInPlaceSite_methods,
-		GET_PYCOM_CTOR(PyIOleInPlaceSite));
+PyComTypeObject PyIOleInPlaceSite::type("PyIOleInPlaceSite", &PyIOleWindow::type, sizeof(PyIOleInPlaceSite),
+                                        PyIOleInPlaceSite_methods, GET_PYCOM_CTOR(PyIOleInPlaceSite));
 // ---------------------------------------------------
 //
 // Gateway Implementation
 // IOleWindow
-STDMETHODIMP PyGOleInPlaceSite::GetWindow(HWND __RPC_FAR * phwnd) {return PyGOleWindow::GetWindow(phwnd);}
+STDMETHODIMP PyGOleInPlaceSite::GetWindow(HWND __RPC_FAR *phwnd) { return PyGOleWindow::GetWindow(phwnd); }
 
-STDMETHODIMP PyGOleInPlaceSite::ContextSensitiveHelp(BOOL fEnterMode) {return PyGOleWindow::ContextSensitiveHelp(fEnterMode);}
-
-STDMETHODIMP PyGOleInPlaceSite::CanInPlaceActivate(
-		void)
+STDMETHODIMP PyGOleInPlaceSite::ContextSensitiveHelp(BOOL fEnterMode)
 {
-	PY_GATEWAY_METHOD;
-	HRESULT hr=InvokeViaPolicy("CanInPlaceActivate", NULL);
-	return hr;
+    return PyGOleWindow::ContextSensitiveHelp(fEnterMode);
 }
 
-STDMETHODIMP PyGOleInPlaceSite::OnInPlaceActivate(
-		void)
+STDMETHODIMP PyGOleInPlaceSite::CanInPlaceActivate(void)
 {
-	PY_GATEWAY_METHOD;
-	HRESULT hr=InvokeViaPolicy("OnInPlaceActivate", NULL);
-	return hr;
+    PY_GATEWAY_METHOD;
+    HRESULT hr = InvokeViaPolicy("CanInPlaceActivate", NULL);
+    return hr;
 }
 
-STDMETHODIMP PyGOleInPlaceSite::OnUIActivate(
-		void)
+STDMETHODIMP PyGOleInPlaceSite::OnInPlaceActivate(void)
 {
-	PY_GATEWAY_METHOD;
-	HRESULT hr=InvokeViaPolicy("OnUIActivate", NULL);
-	return hr;
+    PY_GATEWAY_METHOD;
+    HRESULT hr = InvokeViaPolicy("OnInPlaceActivate", NULL);
+    return hr;
+}
+
+STDMETHODIMP PyGOleInPlaceSite::OnUIActivate(void)
+{
+    PY_GATEWAY_METHOD;
+    HRESULT hr = InvokeViaPolicy("OnUIActivate", NULL);
+    return hr;
 }
 
 STDMETHODIMP PyGOleInPlaceSite::GetWindowContext(
-		/* [out] */ IOleInPlaceFrame __RPC_FAR *__RPC_FAR * ppFrame,
-		/* [out] */ IOleInPlaceUIWindow __RPC_FAR *__RPC_FAR * ppDoc,
-		/* [out] */ LPRECT lprcPosRect,
-		/* [out] */ LPRECT lprcClipRect,
-		/* [out][in] */ LPOLEINPLACEFRAMEINFO lpFrameInfo)
+    /* [out] */ IOleInPlaceFrame __RPC_FAR *__RPC_FAR *ppFrame,
+    /* [out] */ IOleInPlaceUIWindow __RPC_FAR *__RPC_FAR *ppDoc,
+    /* [out] */ LPRECT lprcPosRect,
+    /* [out] */ LPRECT lprcClipRect,
+    /* [out][in] */ LPOLEINPLACEFRAMEINFO lpFrameInfo)
 {
-	PY_GATEWAY_METHOD;
-	if (ppFrame==NULL) return E_POINTER;
-	if (ppDoc==NULL) return E_POINTER;
-	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("GetWindowContext", &result);
-	if (FAILED(hr)) return hr;
-	// Process the Python results, and convert back to the real params
-	PyObject *obppFrame;
-	PyObject *obppDoc;
-	PyObject *obfi;
-	if (!PyArg_ParseTuple(result, "OO(llll)(llll)O" , &obppFrame, &obppDoc,
-		&lprcPosRect->left, &lprcPosRect->top, &lprcPosRect->right, &lprcPosRect->bottom,
-		&lprcClipRect->left, &lprcClipRect->top, &lprcClipRect->right, &lprcClipRect->bottom,
-		&obfi))
-		return PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
-	BOOL bPythonIsHappy = TRUE;
-	if (!PyCom_InterfaceFromPyInstanceOrObject(obppFrame, IID_IOleInPlaceFrame, (void **)ppFrame, TRUE /* bNoneOK */))
-		bPythonIsHappy = FALSE;
-	if (!PyCom_InterfaceFromPyInstanceOrObject(obppDoc, IID_IOleInPlaceUIWindow, (void **)ppDoc, TRUE /* bNoneOK */))
-		bPythonIsHappy = FALSE;
-	if (bPythonIsHappy && !PyObject_AsOLEINPLACEFRAMEINFO(obfi, lpFrameInfo))
-		bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) hr = PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
-	Py_DECREF(result);
-	return hr;
+    PY_GATEWAY_METHOD;
+    if (ppFrame == NULL)
+        return E_POINTER;
+    if (ppDoc == NULL)
+        return E_POINTER;
+    PyObject *result;
+    HRESULT hr = InvokeViaPolicy("GetWindowContext", &result);
+    if (FAILED(hr))
+        return hr;
+    // Process the Python results, and convert back to the real params
+    PyObject *obppFrame;
+    PyObject *obppDoc;
+    PyObject *obfi;
+    if (!PyArg_ParseTuple(result, "OO(llll)(llll)O", &obppFrame, &obppDoc, &lprcPosRect->left, &lprcPosRect->top,
+                          &lprcPosRect->right, &lprcPosRect->bottom, &lprcClipRect->left, &lprcClipRect->top,
+                          &lprcClipRect->right, &lprcClipRect->bottom, &obfi))
+        return PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
+    BOOL bPythonIsHappy = TRUE;
+    if (!PyCom_InterfaceFromPyInstanceOrObject(obppFrame, IID_IOleInPlaceFrame, (void **)ppFrame, TRUE /* bNoneOK */))
+        bPythonIsHappy = FALSE;
+    if (!PyCom_InterfaceFromPyInstanceOrObject(obppDoc, IID_IOleInPlaceUIWindow, (void **)ppDoc, TRUE /* bNoneOK */))
+        bPythonIsHappy = FALSE;
+    if (bPythonIsHappy && !PyObject_AsOLEINPLACEFRAMEINFO(obfi, lpFrameInfo))
+        bPythonIsHappy = FALSE;
+    if (!bPythonIsHappy)
+        hr = PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
+    Py_DECREF(result);
+    return hr;
 }
 
 STDMETHODIMP PyGOleInPlaceSite::Scroll(
-		/* [in] */ SIZE scrollExtant)
+    /* [in] */ SIZE scrollExtant)
 {
-	PY_GATEWAY_METHOD;
-	HRESULT hr=InvokeViaPolicy("Scroll", NULL, "(ll)", scrollExtant.cx, scrollExtant.cy);
-	return hr;
+    PY_GATEWAY_METHOD;
+    HRESULT hr = InvokeViaPolicy("Scroll", NULL, "(ll)", scrollExtant.cx, scrollExtant.cy);
+    return hr;
 }
 
 STDMETHODIMP PyGOleInPlaceSite::OnUIDeactivate(
-		/* [in] */ BOOL fUndoable)
+    /* [in] */ BOOL fUndoable)
 {
-	PY_GATEWAY_METHOD;
-	HRESULT hr=InvokeViaPolicy("OnUIDeactivate", NULL, "i", fUndoable);
-	return hr;
+    PY_GATEWAY_METHOD;
+    HRESULT hr = InvokeViaPolicy("OnUIDeactivate", NULL, "i", fUndoable);
+    return hr;
 }
 
-STDMETHODIMP PyGOleInPlaceSite::OnInPlaceDeactivate(
-		void)
+STDMETHODIMP PyGOleInPlaceSite::OnInPlaceDeactivate(void)
 {
-	PY_GATEWAY_METHOD;
-	HRESULT hr=InvokeViaPolicy("OnInPlaceDeactivate", NULL);
-	return hr;
+    PY_GATEWAY_METHOD;
+    HRESULT hr = InvokeViaPolicy("OnInPlaceDeactivate", NULL);
+    return hr;
 }
 
-STDMETHODIMP PyGOleInPlaceSite::DiscardUndoState(
-		void)
+STDMETHODIMP PyGOleInPlaceSite::DiscardUndoState(void)
 {
-	PY_GATEWAY_METHOD;
-	HRESULT hr=InvokeViaPolicy("DiscardUndoState", NULL);
-	return hr;
+    PY_GATEWAY_METHOD;
+    HRESULT hr = InvokeViaPolicy("DiscardUndoState", NULL);
+    return hr;
 }
 
-STDMETHODIMP PyGOleInPlaceSite::DeactivateAndUndo(
-		void)
+STDMETHODIMP PyGOleInPlaceSite::DeactivateAndUndo(void)
 {
-	PY_GATEWAY_METHOD;
-	HRESULT hr=InvokeViaPolicy("DeactivateAndUndo", NULL);
-	return hr;
+    PY_GATEWAY_METHOD;
+    HRESULT hr = InvokeViaPolicy("DeactivateAndUndo", NULL);
+    return hr;
 }
 
 STDMETHODIMP PyGOleInPlaceSite::OnPosRectChange(
-		/* [in] */ LPCRECT pr)
+    /* [in] */ LPCRECT pr)
 {
-	PY_GATEWAY_METHOD;
-	HRESULT hr=InvokeViaPolicy("OnPosRectChange", NULL, "((llll))", pr->left, pr->top, pr->right, pr->bottom);
-	return hr;
+    PY_GATEWAY_METHOD;
+    HRESULT hr = InvokeViaPolicy("OnPosRectChange", NULL, "((llll))", pr->left, pr->top, pr->right, pr->bottom);
+    return hr;
 }
-

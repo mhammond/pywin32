@@ -5,38 +5,23 @@
 #include "PyIRelatedItem.h"
 #include "PyIDisplayItem.h"
 
-
 // @doc - This file contains autoduck documentation
 // ---------------------------------------------------
 //
 // Interface Implementation
 
-PyIDisplayItem::PyIDisplayItem(IUnknown *pdisp):
-	PyIRelatedItem(pdisp)
-{
-	ob_type = &type;
-}
+PyIDisplayItem::PyIDisplayItem(IUnknown *pdisp) : PyIRelatedItem(pdisp) { ob_type = &type; }
 
-PyIDisplayItem::~PyIDisplayItem()
-{
-}
+PyIDisplayItem::~PyIDisplayItem() {}
 
-/* static */ IDisplayItem *PyIDisplayItem::GetI(PyObject *self)
-{
-	return (IDisplayItem *)PyIRelatedItem::GetI(self);
-}
+/* static */ IDisplayItem *PyIDisplayItem::GetI(PyObject *self) { return (IDisplayItem *)PyIRelatedItem::GetI(self); }
 
 // @object PyIDisplayItem|Description of the interface
-static struct PyMethodDef PyIDisplayItem_methods[] =
-{
-	{ NULL }
-};
+static struct PyMethodDef PyIDisplayItem_methods[] = {{NULL}};
 
 PyComTypeObject PyIDisplayItem::type("PyIDisplayItem",
-		&PyIRelatedItem::type,	// @base PyIDisplayItem|PyIRelatedItem
-		sizeof(PyIDisplayItem),
-		PyIDisplayItem_methods,
-		GET_PYCOM_CTOR(PyIDisplayItem));
+                                     &PyIRelatedItem::type,  // @base PyIDisplayItem|PyIRelatedItem
+                                     sizeof(PyIDisplayItem), PyIDisplayItem_methods, GET_PYCOM_CTOR(PyIDisplayItem));
 // ---------------------------------------------------
 //
 // Gateway Implementation

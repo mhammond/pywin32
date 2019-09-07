@@ -4,48 +4,37 @@
 //
 // Interface Declaration
 
-class PyIEnumString : public PyIUnknown
-{
-public:
-	MAKE_PYCOM_CTOR(PyIEnumString);
-	static IEnumString *GetI(PyObject *self);
-	static PyComEnumTypeObject type;
+class PyIEnumString : public PyIUnknown {
+   public:
+    MAKE_PYCOM_CTOR(PyIEnumString);
+    static IEnumString *GetI(PyObject *self);
+    static PyComEnumTypeObject type;
 
-	// The Python methods
-	static PyObject *Next(PyObject *self, PyObject *args);
-	static PyObject *Skip(PyObject *self, PyObject *args);
-	static PyObject *Reset(PyObject *self, PyObject *args);
-	static PyObject *Clone(PyObject *self, PyObject *args);
+    // The Python methods
+    static PyObject *Next(PyObject *self, PyObject *args);
+    static PyObject *Skip(PyObject *self, PyObject *args);
+    static PyObject *Reset(PyObject *self, PyObject *args);
+    static PyObject *Clone(PyObject *self, PyObject *args);
 
-protected:
-	PyIEnumString(IUnknown *pdisp);
-	~PyIEnumString();
+   protected:
+    PyIEnumString(IUnknown *pdisp);
+    ~PyIEnumString();
 };
 // ---------------------------------------------------
 //
 // Gateway Declaration
 
+class PyGEnumString : public PyGatewayBase, public IEnumString {
+   protected:
+    PyGEnumString(PyObject *instance) : PyGatewayBase(instance) { ; }
+    PYGATEWAY_MAKE_SUPPORT(PyGEnumString, IEnumString, IID_IEnumString)
 
-class PyGEnumString : public PyGatewayBase, public IEnumString
-{
-protected:
-	PyGEnumString(PyObject *instance) : PyGatewayBase(instance) { ; }
-	PYGATEWAY_MAKE_SUPPORT(PyGEnumString, IEnumString, IID_IEnumString)
+    // IEnumString
+    STDMETHOD(Next)(ULONG celt, LPOLESTR __RPC_FAR *rgelt, ULONG __RPC_FAR *pceltFetched);
 
-	// IEnumString
-	STDMETHOD(Next)(
-		ULONG celt,
-		LPOLESTR __RPC_FAR * rgelt,
-		ULONG __RPC_FAR * pceltFetched);
+    STDMETHOD(Skip)(ULONG celt);
 
-	STDMETHOD(Skip)(
-		ULONG celt);
+    STDMETHOD(Reset)(void);
 
-	STDMETHOD(Reset)(
-		void);
-
-	STDMETHOD(Clone)(
-		IEnumString __RPC_FAR *__RPC_FAR * ppenum);
-
+    STDMETHOD(Clone)(IEnumString __RPC_FAR *__RPC_FAR *ppenum);
 };
-

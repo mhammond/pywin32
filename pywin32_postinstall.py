@@ -558,15 +558,18 @@ def uninstall(lib_dir):
 # but also the installer will terminate! (Is there a way to prevent
 # this from the bdist_wininst C code?)
 
+
 def verify_destination(location):
     if not os.path.isdir(location):
         raise argparse.ArgumentTypeError("Path \"{}\" does not exist!".format(location))
     return location
 
-if __name__=='__main__':
+
+if __name__ == '__main__':
     import argparse
 
-    parser = argparse.ArgumentParser(description="""A post-install script for the pywin32 extensions.
+    parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter,
+                                     description="""A post-install script for the pywin32 extensions.
 
     * Typical usage:
 
@@ -610,8 +613,8 @@ if __name__=='__main__':
     if not args.quiet:
         print("Parsed arguments are: {}".format(args))
 
-    if not (args.install or args.remove):
-        parser.error('You need to either choose to -install or -remove')
+    if not args.install ^ args.remove:
+        parser.error("You need to either choose to -install or -remove!")
 
     if args.wait is not None:
         try:

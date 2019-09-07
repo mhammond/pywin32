@@ -6,7 +6,7 @@
 #include "PyIBrowserFrameOptions.h"
 
 #ifdef NEED_IID_IBrowserFrameOptions
-const GUID IID_IBrowserFrameOptions = { 0x10DF43C8, 0x1DBE, 0x11d3, { 0x8b, 0x34, 0x00, 0x60, 0x97, 0xdf, 0x5b, 0xd4 } };
+const GUID IID_IBrowserFrameOptions = {0x10DF43C8, 0x1DBE, 0x11d3, {0x8b, 0x34, 0x00, 0x60, 0x97, 0xdf, 0x5b, 0xd4}};
 #endif
 
 // @doc - This file contains autoduck documentation
@@ -14,65 +14,56 @@ const GUID IID_IBrowserFrameOptions = { 0x10DF43C8, 0x1DBE, 0x11d3, { 0x8b, 0x34
 //
 // Interface Implementation
 
-PyIBrowserFrameOptions::PyIBrowserFrameOptions(IUnknown *pdisp):
-	PyIUnknown(pdisp)
-{
-	ob_type = &type;
-}
+PyIBrowserFrameOptions::PyIBrowserFrameOptions(IUnknown *pdisp) : PyIUnknown(pdisp) { ob_type = &type; }
 
-PyIBrowserFrameOptions::~PyIBrowserFrameOptions()
-{
-}
+PyIBrowserFrameOptions::~PyIBrowserFrameOptions() {}
 
 /* static */ IBrowserFrameOptions *PyIBrowserFrameOptions::GetI(PyObject *self)
 {
-	return (IBrowserFrameOptions *)PyIUnknown::GetI(self);
+    return (IBrowserFrameOptions *)PyIUnknown::GetI(self);
 }
 
 // @pymethod |PyIBrowserFrameOptions|GetFrameOptions|Description of GetFrameOptions.
 PyObject *PyIBrowserFrameOptions::GetFrameOptions(PyObject *self, PyObject *args)
 {
-	IBrowserFrameOptions *pIBFO = GetI(self);
-	if ( pIBFO == NULL )
-		return NULL;
-	int dwMask;
-	// @pyparm int|dwMask||Description for dwMask
-	if ( !PyArg_ParseTuple(args, "i:GetFrameOptions", &dwMask))
-		return NULL;
-	DWORD dwOptions;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIBFO->GetFrameOptions( (BROWSERFRAMEOPTIONS )dwMask, &dwOptions );
-	PY_INTERFACE_POSTCALL;
-	return PyInt_FromLong(dwOptions);
+    IBrowserFrameOptions *pIBFO = GetI(self);
+    if (pIBFO == NULL)
+        return NULL;
+    int dwMask;
+    // @pyparm int|dwMask||Description for dwMask
+    if (!PyArg_ParseTuple(args, "i:GetFrameOptions", &dwMask))
+        return NULL;
+    DWORD dwOptions;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIBFO->GetFrameOptions((BROWSERFRAMEOPTIONS)dwMask, &dwOptions);
+    PY_INTERFACE_POSTCALL;
+    return PyInt_FromLong(dwOptions);
 }
 
 // @object PyIBrowserFrameOptions|Description of the interface
-static struct PyMethodDef PyIBrowserFrameOptions_methods[] =
-{
-	{ "GetFrameOptions", PyIBrowserFrameOptions::GetFrameOptions, 1 }, // @pymeth GetFrameOptions|Description of GetFrameOptions
-	{ NULL }
-};
+static struct PyMethodDef PyIBrowserFrameOptions_methods[] = {
+    {"GetFrameOptions", PyIBrowserFrameOptions::GetFrameOptions,
+     1},  // @pymeth GetFrameOptions|Description of GetFrameOptions
+    {NULL}};
 
-PyComTypeObject PyIBrowserFrameOptions::type("PyIBrowserFrameOptions",
-		&PyIUnknown::type,
-		sizeof(PyIBrowserFrameOptions),
-		PyIBrowserFrameOptions_methods,
-		GET_PYCOM_CTOR(PyIBrowserFrameOptions));
+PyComTypeObject PyIBrowserFrameOptions::type("PyIBrowserFrameOptions", &PyIUnknown::type,
+                                             sizeof(PyIBrowserFrameOptions), PyIBrowserFrameOptions_methods,
+                                             GET_PYCOM_CTOR(PyIBrowserFrameOptions));
 // ---------------------------------------------------
 //
 // Gateway Implementation
 STDMETHODIMP PyGBrowserFrameOptions::GetFrameOptions(
-		/* [in] */ BROWSERFRAMEOPTIONS dwMask,
-		/* [out] */ BROWSERFRAMEOPTIONS * pdwOptions)
+    /* [in] */ BROWSERFRAMEOPTIONS dwMask,
+    /* [out] */ BROWSERFRAMEOPTIONS *pdwOptions)
 {
-	PY_GATEWAY_METHOD;
-	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("GetFrameOptions", &result, "i", dwMask);
-	if (FAILED(hr)) return hr;
-	if (PyInt_Check(result))
-		*pdwOptions = PyInt_AsLong(result);
-	Py_DECREF(result);
-	return hr;
+    PY_GATEWAY_METHOD;
+    PyObject *result;
+    HRESULT hr = InvokeViaPolicy("GetFrameOptions", &result, "i", dwMask);
+    if (FAILED(hr))
+        return hr;
+    if (PyInt_Check(result))
+        *pdwOptions = PyInt_AsLong(result);
+    Py_DECREF(result);
+    return hr;
 }
-

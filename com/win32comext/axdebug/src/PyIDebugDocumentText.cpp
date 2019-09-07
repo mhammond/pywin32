@@ -11,348 +11,366 @@
 //
 // Interface Implementation
 
-PyIDebugDocumentText::PyIDebugDocumentText(IUnknown *pdisp):
-	PyIDebugDocument(pdisp)
-{
-	ob_type = &type;
-}
+PyIDebugDocumentText::PyIDebugDocumentText(IUnknown *pdisp) : PyIDebugDocument(pdisp) { ob_type = &type; }
 
-PyIDebugDocumentText::~PyIDebugDocumentText()
-{
-}
+PyIDebugDocumentText::~PyIDebugDocumentText() {}
 
 /* static */ IDebugDocumentText *PyIDebugDocumentText::GetI(PyObject *self)
 {
-	return (IDebugDocumentText *)PyIDebugDocument::GetI(self);
+    return (IDebugDocumentText *)PyIDebugDocument::GetI(self);
 }
 
 // @pymethod |PyIDebugDocumentText|GetDocumentAttributes|Description of GetDocumentAttributes.
 PyObject *PyIDebugDocumentText::GetDocumentAttributes(PyObject *self, PyObject *args)
 {
-	IDebugDocumentText *pIDDT = GetI(self);
-	if ( pIDDT == NULL )
-		return NULL;
-	TEXT_DOC_ATTR ptextdocattr;
-	if ( !PyArg_ParseTuple(args, ":GetDocumentAttributes") )
-		return NULL;
-	PY_INTERFACE_PRECALL;
-	HRESULT hr = pIDDT->GetDocumentAttributes( &ptextdocattr );
-	PY_INTERFACE_POSTCALL;
-	if ( FAILED(hr) )
-		return SetPythonCOMError(self,hr);
+    IDebugDocumentText *pIDDT = GetI(self);
+    if (pIDDT == NULL)
+        return NULL;
+    TEXT_DOC_ATTR ptextdocattr;
+    if (!PyArg_ParseTuple(args, ":GetDocumentAttributes"))
+        return NULL;
+    PY_INTERFACE_PRECALL;
+    HRESULT hr = pIDDT->GetDocumentAttributes(&ptextdocattr);
+    PY_INTERFACE_POSTCALL;
+    if (FAILED(hr))
+        return SetPythonCOMError(self, hr);
 
-	PyObject *pyretval = Py_BuildValue("i", ptextdocattr);
-	return pyretval;
+    PyObject *pyretval = Py_BuildValue("i", ptextdocattr);
+    return pyretval;
 }
 
 // @pymethod |PyIDebugDocumentText|GetSize|Description of GetSize.
 PyObject *PyIDebugDocumentText::GetSize(PyObject *self, PyObject *args)
 {
-	IDebugDocumentText *pIDDT = GetI(self);
-	if ( pIDDT == NULL )
-		return NULL;
-	ULONG pcNumLines;
-	ULONG pcNumChars;
-	if ( !PyArg_ParseTuple(args, ":GetSize") )
-		return NULL;
-	PY_INTERFACE_PRECALL;
-	HRESULT hr = pIDDT->GetSize( &pcNumLines, &pcNumChars );
-	PY_INTERFACE_POSTCALL;
-	if ( FAILED(hr) )
-		return SetPythonCOMError(self,hr);
+    IDebugDocumentText *pIDDT = GetI(self);
+    if (pIDDT == NULL)
+        return NULL;
+    ULONG pcNumLines;
+    ULONG pcNumChars;
+    if (!PyArg_ParseTuple(args, ":GetSize"))
+        return NULL;
+    PY_INTERFACE_PRECALL;
+    HRESULT hr = pIDDT->GetSize(&pcNumLines, &pcNumChars);
+    PY_INTERFACE_POSTCALL;
+    if (FAILED(hr))
+        return SetPythonCOMError(self, hr);
 
-	PyObject *pyretval = Py_BuildValue("ii", pcNumLines, pcNumChars);
-	return pyretval;
+    PyObject *pyretval = Py_BuildValue("ii", pcNumLines, pcNumChars);
+    return pyretval;
 }
 
 // @pymethod |PyIDebugDocumentText|GetPositionOfLine|Description of GetPositionOfLine.
 PyObject *PyIDebugDocumentText::GetPositionOfLine(PyObject *self, PyObject *args)
 {
-	IDebugDocumentText *pIDDT = GetI(self);
-	if ( pIDDT == NULL )
-		return NULL;
-	// @pyparm int|cLineNumber||Description for cLineNumber
-	ULONG cLineNumber;
-	ULONG pcCharacterPosition;
-	if ( !PyArg_ParseTuple(args, "i:GetPositionOfLine", &cLineNumber) )
-		return NULL;
-	PY_INTERFACE_PRECALL;
-	HRESULT hr = pIDDT->GetPositionOfLine( cLineNumber, &pcCharacterPosition );
-	PY_INTERFACE_POSTCALL;
-	if ( FAILED(hr) )
-		return SetPythonCOMError(self,hr);
+    IDebugDocumentText *pIDDT = GetI(self);
+    if (pIDDT == NULL)
+        return NULL;
+    // @pyparm int|cLineNumber||Description for cLineNumber
+    ULONG cLineNumber;
+    ULONG pcCharacterPosition;
+    if (!PyArg_ParseTuple(args, "i:GetPositionOfLine", &cLineNumber))
+        return NULL;
+    PY_INTERFACE_PRECALL;
+    HRESULT hr = pIDDT->GetPositionOfLine(cLineNumber, &pcCharacterPosition);
+    PY_INTERFACE_POSTCALL;
+    if (FAILED(hr))
+        return SetPythonCOMError(self, hr);
 
-	PyObject *pyretval = Py_BuildValue("i", pcCharacterPosition);
-	return pyretval;
+    PyObject *pyretval = Py_BuildValue("i", pcCharacterPosition);
+    return pyretval;
 }
 
 // @pymethod |PyIDebugDocumentText|GetLineOfPosition|Description of GetLineOfPosition.
 PyObject *PyIDebugDocumentText::GetLineOfPosition(PyObject *self, PyObject *args)
 {
-	IDebugDocumentText *pIDDT = GetI(self);
-	if ( pIDDT == NULL )
-		return NULL;
-	// @pyparm int|cCharacterPosition||Description for cCharacterPosition
-	ULONG cCharacterPosition;
-	ULONG pcLineNumber;
-	ULONG pcCharacterOffsetInLine;
-	if ( !PyArg_ParseTuple(args, "i:GetLineOfPosition", &cCharacterPosition) )
-		return NULL;
-	PY_INTERFACE_PRECALL;
-	HRESULT hr = pIDDT->GetLineOfPosition( cCharacterPosition, &pcLineNumber, &pcCharacterOffsetInLine );
-	PY_INTERFACE_POSTCALL;
-	if ( FAILED(hr) )
-		return SetPythonCOMError(self,hr);
+    IDebugDocumentText *pIDDT = GetI(self);
+    if (pIDDT == NULL)
+        return NULL;
+    // @pyparm int|cCharacterPosition||Description for cCharacterPosition
+    ULONG cCharacterPosition;
+    ULONG pcLineNumber;
+    ULONG pcCharacterOffsetInLine;
+    if (!PyArg_ParseTuple(args, "i:GetLineOfPosition", &cCharacterPosition))
+        return NULL;
+    PY_INTERFACE_PRECALL;
+    HRESULT hr = pIDDT->GetLineOfPosition(cCharacterPosition, &pcLineNumber, &pcCharacterOffsetInLine);
+    PY_INTERFACE_POSTCALL;
+    if (FAILED(hr))
+        return SetPythonCOMError(self, hr);
 
-	PyObject *pyretval = Py_BuildValue("ii", pcLineNumber, pcCharacterOffsetInLine);
-	return pyretval;
+    PyObject *pyretval = Py_BuildValue("ii", pcLineNumber, pcCharacterOffsetInLine);
+    return pyretval;
 }
 
 // @pymethod |PyIDebugDocumentText|GetText|Description of GetText.
 PyObject *PyIDebugDocumentText::GetText(PyObject *self, PyObject *args)
 {
-	IDebugDocumentText *pIDDT = GetI(self);
-	if ( pIDDT == NULL )
-		return NULL;
-	PyObject *obpcharText;
-	ULONG cCharacterPosition;
-	ULONG cMaxChars;
-	BOOL bWantAttr = 1;
-	// @pyparm int|cCharacterPosition||
-	// @pyparm int|cMaxChars||Max chars to return
-	// @pyparm int|bWantAttr|1|Should the attributes be returned?
-	if ( !PyArg_ParseTuple(args, "ii|i:GetText", &cCharacterPosition, &cMaxChars, &bWantAttr) )
-		return NULL;
-	OLECHAR *buf = new OLECHAR [cMaxChars+1];
-	SOURCE_TEXT_ATTR *attrbuf = bWantAttr ? new SOURCE_TEXT_ATTR [cMaxChars+1] : NULL;
-	ULONG cNumChars = 0;
-	PY_INTERFACE_PRECALL;
-	HRESULT hr = pIDDT->GetText( cCharacterPosition, buf, attrbuf, &cNumChars, cMaxChars );
-	PY_INTERFACE_POSTCALL;
-	if ( FAILED(hr) )
-		return SetPythonCOMError(self, hr);
-	obpcharText = PyWinObject_FromOLECHAR(buf, cNumChars);
-	PyObject *obattr;
-	if (attrbuf) {
-		obattr = PyAXDebug_PyObject_FromSOURCE_TEXT_ATTR(attrbuf, cNumChars);
-	} else {
-		obattr = Py_None;
-		Py_INCREF(Py_None);
-	}
-	PyObject *pyretval = Py_BuildValue("OO", obpcharText, obattr);
-	Py_XDECREF(obpcharText);
-	Py_XDECREF(obattr);
-	delete [] buf;
-	delete [] attrbuf;
-	return pyretval;
+    IDebugDocumentText *pIDDT = GetI(self);
+    if (pIDDT == NULL)
+        return NULL;
+    PyObject *obpcharText;
+    ULONG cCharacterPosition;
+    ULONG cMaxChars;
+    BOOL bWantAttr = 1;
+    // @pyparm int|cCharacterPosition||
+    // @pyparm int|cMaxChars||Max chars to return
+    // @pyparm int|bWantAttr|1|Should the attributes be returned?
+    if (!PyArg_ParseTuple(args, "ii|i:GetText", &cCharacterPosition, &cMaxChars, &bWantAttr))
+        return NULL;
+    OLECHAR *buf = new OLECHAR[cMaxChars + 1];
+    SOURCE_TEXT_ATTR *attrbuf = bWantAttr ? new SOURCE_TEXT_ATTR[cMaxChars + 1] : NULL;
+    ULONG cNumChars = 0;
+    PY_INTERFACE_PRECALL;
+    HRESULT hr = pIDDT->GetText(cCharacterPosition, buf, attrbuf, &cNumChars, cMaxChars);
+    PY_INTERFACE_POSTCALL;
+    if (FAILED(hr))
+        return SetPythonCOMError(self, hr);
+    obpcharText = PyWinObject_FromOLECHAR(buf, cNumChars);
+    PyObject *obattr;
+    if (attrbuf) {
+        obattr = PyAXDebug_PyObject_FromSOURCE_TEXT_ATTR(attrbuf, cNumChars);
+    }
+    else {
+        obattr = Py_None;
+        Py_INCREF(Py_None);
+    }
+    PyObject *pyretval = Py_BuildValue("OO", obpcharText, obattr);
+    Py_XDECREF(obpcharText);
+    Py_XDECREF(obattr);
+    delete[] buf;
+    delete[] attrbuf;
+    return pyretval;
 }
 
 // @pymethod |PyIDebugDocumentText|GetPositionOfContext|Description of GetPositionOfContext.
 PyObject *PyIDebugDocumentText::GetPositionOfContext(PyObject *self, PyObject *args)
 {
-	IDebugDocumentText *pIDDT = GetI(self);
-	if ( pIDDT == NULL )
-		return NULL;
-	// @pyparm <o PyIDebugDocumentContext>|psc||Description for psc
-	PyObject *obpsc;
-	IDebugDocumentContext *psc;
-	ULONG pcCharacterPosition;
-	ULONG cNumChars;
-	if ( !PyArg_ParseTuple(args, "O:GetPositionOfContext", &obpsc) )
-		return NULL;
-	BOOL bPythonIsHappy = TRUE;
-	if (!PyCom_InterfaceFromPyInstanceOrObject(obpsc, IID_IDebugDocumentContext, (void **)&psc, FALSE /* bNoneOK */))
-		 bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) return NULL;
-	PY_INTERFACE_PRECALL;
-	HRESULT hr = pIDDT->GetPositionOfContext( psc, &pcCharacterPosition, &cNumChars );
-	psc->Release();
-	PY_INTERFACE_POSTCALL;
-	if ( FAILED(hr) )
-		return SetPythonCOMError(self,hr);
+    IDebugDocumentText *pIDDT = GetI(self);
+    if (pIDDT == NULL)
+        return NULL;
+    // @pyparm <o PyIDebugDocumentContext>|psc||Description for psc
+    PyObject *obpsc;
+    IDebugDocumentContext *psc;
+    ULONG pcCharacterPosition;
+    ULONG cNumChars;
+    if (!PyArg_ParseTuple(args, "O:GetPositionOfContext", &obpsc))
+        return NULL;
+    BOOL bPythonIsHappy = TRUE;
+    if (!PyCom_InterfaceFromPyInstanceOrObject(obpsc, IID_IDebugDocumentContext, (void **)&psc, FALSE /* bNoneOK */))
+        bPythonIsHappy = FALSE;
+    if (!bPythonIsHappy)
+        return NULL;
+    PY_INTERFACE_PRECALL;
+    HRESULT hr = pIDDT->GetPositionOfContext(psc, &pcCharacterPosition, &cNumChars);
+    psc->Release();
+    PY_INTERFACE_POSTCALL;
+    if (FAILED(hr))
+        return SetPythonCOMError(self, hr);
 
-	PyObject *pyretval = Py_BuildValue("ii", pcCharacterPosition, cNumChars);
-	return pyretval;
+    PyObject *pyretval = Py_BuildValue("ii", pcCharacterPosition, cNumChars);
+    return pyretval;
 }
 
 // @pymethod |PyIDebugDocumentText|GetContextOfPosition|Description of GetContextOfPosition.
 PyObject *PyIDebugDocumentText::GetContextOfPosition(PyObject *self, PyObject *args)
 {
-	IDebugDocumentText *pIDDT = GetI(self);
-	if ( pIDDT == NULL )
-		return NULL;
-	// @pyparm int|cCharacterPosition||Description for cCharacterPosition
-	// @pyparm int|cNumChars||Description for cNumChars
-	ULONG cCharacterPosition;
-	ULONG cNumChars;
-	IDebugDocumentContext *ppsc;
-	if ( !PyArg_ParseTuple(args, "ii:GetContextOfPosition", &cCharacterPosition, &cNumChars) )
-		return NULL;
-	PY_INTERFACE_PRECALL;
-	HRESULT hr = pIDDT->GetContextOfPosition( cCharacterPosition, cNumChars, &ppsc );
-	PY_INTERFACE_POSTCALL;
-	if ( FAILED(hr) )
-		return SetPythonCOMError(self,hr);
-	return PyCom_PyObjectFromIUnknown(ppsc, IID_IDebugDocumentContext, FALSE);
+    IDebugDocumentText *pIDDT = GetI(self);
+    if (pIDDT == NULL)
+        return NULL;
+    // @pyparm int|cCharacterPosition||Description for cCharacterPosition
+    // @pyparm int|cNumChars||Description for cNumChars
+    ULONG cCharacterPosition;
+    ULONG cNumChars;
+    IDebugDocumentContext *ppsc;
+    if (!PyArg_ParseTuple(args, "ii:GetContextOfPosition", &cCharacterPosition, &cNumChars))
+        return NULL;
+    PY_INTERFACE_PRECALL;
+    HRESULT hr = pIDDT->GetContextOfPosition(cCharacterPosition, cNumChars, &ppsc);
+    PY_INTERFACE_POSTCALL;
+    if (FAILED(hr))
+        return SetPythonCOMError(self, hr);
+    return PyCom_PyObjectFromIUnknown(ppsc, IID_IDebugDocumentContext, FALSE);
 }
 
 // @object PyIDebugDocumentText|The interface to a text only debug document. Derived from <o PyIDebugDocument>
-static struct PyMethodDef PyIDebugDocumentText_methods[] =
-{
-	{ "GetDocumentAttributes", PyIDebugDocumentText::GetDocumentAttributes, 1 }, // @pymeth GetDocumentAttributes|Description of GetDocumentAttributes
-	{ "GetSize", PyIDebugDocumentText::GetSize, 1 }, // @pymeth GetSize|Description of GetSize
-	{ "GetPositionOfLine", PyIDebugDocumentText::GetPositionOfLine, 1 }, // @pymeth GetPositionOfLine|Description of GetPositionOfLine
-	{ "GetLineOfPosition", PyIDebugDocumentText::GetLineOfPosition, 1 }, // @pymeth GetLineOfPosition|Description of GetLineOfPosition
-	{ "GetText", PyIDebugDocumentText::GetText, 1 }, // @pymeth GetText|Description of GetText
-	{ "GetPositionOfContext", PyIDebugDocumentText::GetPositionOfContext, 1 }, // @pymeth GetPositionOfContext|Description of GetPositionOfContext
-	{ "GetContextOfPosition", PyIDebugDocumentText::GetContextOfPosition, 1 }, // @pymeth GetContextOfPosition|Description of GetContextOfPosition
-	{ NULL }
-};
+static struct PyMethodDef PyIDebugDocumentText_methods[] = {
+    {"GetDocumentAttributes", PyIDebugDocumentText::GetDocumentAttributes,
+     1},  // @pymeth GetDocumentAttributes|Description of GetDocumentAttributes
+    {"GetSize", PyIDebugDocumentText::GetSize, 1},  // @pymeth GetSize|Description of GetSize
+    {"GetPositionOfLine", PyIDebugDocumentText::GetPositionOfLine,
+     1},  // @pymeth GetPositionOfLine|Description of GetPositionOfLine
+    {"GetLineOfPosition", PyIDebugDocumentText::GetLineOfPosition,
+     1},                                            // @pymeth GetLineOfPosition|Description of GetLineOfPosition
+    {"GetText", PyIDebugDocumentText::GetText, 1},  // @pymeth GetText|Description of GetText
+    {"GetPositionOfContext", PyIDebugDocumentText::GetPositionOfContext,
+     1},  // @pymeth GetPositionOfContext|Description of GetPositionOfContext
+    {"GetContextOfPosition", PyIDebugDocumentText::GetContextOfPosition,
+     1},  // @pymeth GetContextOfPosition|Description of GetContextOfPosition
+    {NULL}};
 
-PyComTypeObject PyIDebugDocumentText::type("PyIDebugDocumentText",
-		&PyIDebugDocument::type,
-		sizeof(PyIDebugDocumentText),
-		PyIDebugDocumentText_methods,
-		GET_PYCOM_CTOR(PyIDebugDocumentText));
+PyComTypeObject PyIDebugDocumentText::type("PyIDebugDocumentText", &PyIDebugDocument::type,
+                                           sizeof(PyIDebugDocumentText), PyIDebugDocumentText_methods,
+                                           GET_PYCOM_CTOR(PyIDebugDocumentText));
 // ---------------------------------------------------
 //
 // Gateway Implementation
 
 // Std delegation
 // IDebugDocumentInfo
-STDMETHODIMP PyGDebugDocumentText::GetName(DOCUMENTNAMETYPE dnt, BSTR *pbstrName) {return PyGDebugDocument::GetName(dnt, pbstrName);}
-STDMETHODIMP PyGDebugDocumentText::GetDocumentClassId(CLSID *pclsidDocument) {return PyGDebugDocument::GetDocumentClassId(pclsidDocument);}
+STDMETHODIMP PyGDebugDocumentText::GetName(DOCUMENTNAMETYPE dnt, BSTR *pbstrName)
+{
+    return PyGDebugDocument::GetName(dnt, pbstrName);
+}
+STDMETHODIMP PyGDebugDocumentText::GetDocumentClassId(CLSID *pclsidDocument)
+{
+    return PyGDebugDocument::GetDocumentClassId(pclsidDocument);
+}
 
 // IDebugDocument
 
-
 STDMETHODIMP PyGDebugDocumentText::GetDocumentAttributes(
-		/* [out] */ TEXT_DOC_ATTR __RPC_FAR * ptextdocattr)
+    /* [out] */ TEXT_DOC_ATTR __RPC_FAR *ptextdocattr)
 {
-	PY_GATEWAY_METHOD;
-	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("GetDocumentAttributes", &result);
-	if (FAILED(hr)) return hr;
-	// Process the Python results, and convert back to the real params
-	if (!PyArg_Parse(result, "i" , ptextdocattr)) return PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
-	Py_DECREF(result);
-	return hr;
+    PY_GATEWAY_METHOD;
+    PyObject *result;
+    HRESULT hr = InvokeViaPolicy("GetDocumentAttributes", &result);
+    if (FAILED(hr))
+        return hr;
+    // Process the Python results, and convert back to the real params
+    if (!PyArg_Parse(result, "i", ptextdocattr))
+        return PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
+    Py_DECREF(result);
+    return hr;
 }
 
 STDMETHODIMP PyGDebugDocumentText::GetSize(
-		/* [out] */ ULONG __RPC_FAR * pcNumLines,
-		/* [out] */ ULONG __RPC_FAR * pcNumChars)
+    /* [out] */ ULONG __RPC_FAR *pcNumLines,
+    /* [out] */ ULONG __RPC_FAR *pcNumChars)
 {
-	PY_GATEWAY_METHOD;
-	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("GetSize", &result);
-	if (FAILED(hr)) return hr;
-	// Process the Python results, and convert back to the real params
-	if (!PyArg_ParseTuple(result, "ii" , pcNumLines, pcNumChars)) return PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
-	Py_DECREF(result);
-	return hr;
+    PY_GATEWAY_METHOD;
+    PyObject *result;
+    HRESULT hr = InvokeViaPolicy("GetSize", &result);
+    if (FAILED(hr))
+        return hr;
+    // Process the Python results, and convert back to the real params
+    if (!PyArg_ParseTuple(result, "ii", pcNumLines, pcNumChars))
+        return PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
+    Py_DECREF(result);
+    return hr;
 }
 
 STDMETHODIMP PyGDebugDocumentText::GetPositionOfLine(
-		/* [in] */ ULONG cLineNumber,
-		/* [out] */ ULONG __RPC_FAR * pcCharacterPosition)
+    /* [in] */ ULONG cLineNumber,
+    /* [out] */ ULONG __RPC_FAR *pcCharacterPosition)
 {
-	PY_GATEWAY_METHOD;
-	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("GetPositionOfLine", &result, "i", cLineNumber);
-	if (FAILED(hr)) return hr;
-	// Process the Python results, and convert back to the real params
-	if (!PyArg_Parse(result, "i" , pcCharacterPosition)) return PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
-	Py_DECREF(result);
-	return hr;
+    PY_GATEWAY_METHOD;
+    PyObject *result;
+    HRESULT hr = InvokeViaPolicy("GetPositionOfLine", &result, "i", cLineNumber);
+    if (FAILED(hr))
+        return hr;
+    // Process the Python results, and convert back to the real params
+    if (!PyArg_Parse(result, "i", pcCharacterPosition))
+        return PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
+    Py_DECREF(result);
+    return hr;
 }
 
 STDMETHODIMP PyGDebugDocumentText::GetLineOfPosition(
-		/* [in] */ ULONG cCharacterPosition,
-		/* [out] */ ULONG __RPC_FAR * pcLineNumber,
-		/* [out] */ ULONG __RPC_FAR * pcCharacterOffsetInLine)
+    /* [in] */ ULONG cCharacterPosition,
+    /* [out] */ ULONG __RPC_FAR *pcLineNumber,
+    /* [out] */ ULONG __RPC_FAR *pcCharacterOffsetInLine)
 {
-	PY_GATEWAY_METHOD;
-	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("GetLineOfPosition", &result, "i", cCharacterPosition);
-	if (FAILED(hr)) return hr;
-	// Process the Python results, and convert back to the real params
-	ULONG cLineNumber, cCharacterOffsetInLine;
-	if (!PyArg_ParseTuple(result, "ii" , &cLineNumber, &cCharacterOffsetInLine)) return PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
-	if (pcLineNumber) *pcLineNumber = cLineNumber;
-	if (pcCharacterOffsetInLine) *pcCharacterOffsetInLine = cCharacterOffsetInLine;
-	Py_DECREF(result);
-	return hr;
+    PY_GATEWAY_METHOD;
+    PyObject *result;
+    HRESULT hr = InvokeViaPolicy("GetLineOfPosition", &result, "i", cCharacterPosition);
+    if (FAILED(hr))
+        return hr;
+    // Process the Python results, and convert back to the real params
+    ULONG cLineNumber, cCharacterOffsetInLine;
+    if (!PyArg_ParseTuple(result, "ii", &cLineNumber, &cCharacterOffsetInLine))
+        return PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
+    if (pcLineNumber)
+        *pcLineNumber = cLineNumber;
+    if (pcCharacterOffsetInLine)
+        *pcCharacterOffsetInLine = cCharacterOffsetInLine;
+    Py_DECREF(result);
+    return hr;
 }
 
 STDMETHODIMP PyGDebugDocumentText::GetText(
-		/* [in] */ ULONG cCharacterPosition,
-		/* [size_is][length_is][out][in] */ WCHAR __RPC_FAR * pcharText,
-		/* [size_is][length_is][out][in] */ SOURCE_TEXT_ATTR __RPC_FAR * pstaTextAttr,
-		/* [out][in] */ ULONG __RPC_FAR * pcNumChars,
-		/* [in] */ ULONG cMaxChars)
+    /* [in] */ ULONG cCharacterPosition,
+    /* [size_is][length_is][out][in] */ WCHAR __RPC_FAR *pcharText,
+    /* [size_is][length_is][out][in] */ SOURCE_TEXT_ATTR __RPC_FAR *pstaTextAttr,
+    /* [out][in] */ ULONG __RPC_FAR *pcNumChars,
+    /* [in] */ ULONG cMaxChars)
 {
-	PY_GATEWAY_METHOD;
-	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("GetText", &result, "iii", cCharacterPosition, cMaxChars, (pstaTextAttr!=NULL));
-	if (FAILED(hr)) return hr;
-	// Process the Python results, and convert back to the real params
-	PyObject *obText, *obAttr;
-	if (!PyArg_ParseTuple(result, "OO" , &obText, &obAttr))
-		 return PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
-	BSTR bstr;
-	BOOL ok = TRUE;
-	ok = PyCom_BstrFromPyObject(obText, &bstr);
-	if (ok) {
-		*pcNumChars = SysStringLen(bstr);
-		wcsncpy(pcharText, bstr, *pcNumChars);
-		SysFreeString(bstr);
-	}
-	if (ok && pstaTextAttr) {
-		ok = PyAXDebug_PyObject_AsSOURCE_TEXT_ATTR(obAttr, pstaTextAttr, *pcNumChars);
-	}
-	Py_DECREF(result);
-	if (!ok)
-		 return PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
-	return hr;
+    PY_GATEWAY_METHOD;
+    PyObject *result;
+    HRESULT hr = InvokeViaPolicy("GetText", &result, "iii", cCharacterPosition, cMaxChars, (pstaTextAttr != NULL));
+    if (FAILED(hr))
+        return hr;
+    // Process the Python results, and convert back to the real params
+    PyObject *obText, *obAttr;
+    if (!PyArg_ParseTuple(result, "OO", &obText, &obAttr))
+        return PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
+    BSTR bstr;
+    BOOL ok = TRUE;
+    ok = PyCom_BstrFromPyObject(obText, &bstr);
+    if (ok) {
+        *pcNumChars = SysStringLen(bstr);
+        wcsncpy(pcharText, bstr, *pcNumChars);
+        SysFreeString(bstr);
+    }
+    if (ok && pstaTextAttr) {
+        ok = PyAXDebug_PyObject_AsSOURCE_TEXT_ATTR(obAttr, pstaTextAttr, *pcNumChars);
+    }
+    Py_DECREF(result);
+    if (!ok)
+        return PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
+    return hr;
 }
 
 STDMETHODIMP PyGDebugDocumentText::GetPositionOfContext(
-		/* [in] */ IDebugDocumentContext __RPC_FAR * psc,
-		/* [out] */ ULONG __RPC_FAR * pcCharacterPosition,
-		/* [out] */ ULONG __RPC_FAR * cNumChars)
+    /* [in] */ IDebugDocumentContext __RPC_FAR *psc,
+    /* [out] */ ULONG __RPC_FAR *pcCharacterPosition,
+    /* [out] */ ULONG __RPC_FAR *cNumChars)
 {
-	PY_GATEWAY_METHOD;
-	PyObject *obpsc;
-	obpsc = PyCom_PyObjectFromIUnknown(psc, IID_IDebugDocumentContext, TRUE);
-	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("GetPositionOfContext", &result, "O", obpsc);
-	Py_XDECREF(obpsc);
-	if (FAILED(hr)) return hr;
-	// Process the Python results, and convert back to the real params
-	if (!PyArg_ParseTuple(result, "ii" , pcCharacterPosition, cNumChars)) return PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
-	Py_DECREF(result);
-	return hr;
+    PY_GATEWAY_METHOD;
+    PyObject *obpsc;
+    obpsc = PyCom_PyObjectFromIUnknown(psc, IID_IDebugDocumentContext, TRUE);
+    PyObject *result;
+    HRESULT hr = InvokeViaPolicy("GetPositionOfContext", &result, "O", obpsc);
+    Py_XDECREF(obpsc);
+    if (FAILED(hr))
+        return hr;
+    // Process the Python results, and convert back to the real params
+    if (!PyArg_ParseTuple(result, "ii", pcCharacterPosition, cNumChars))
+        return PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
+    Py_DECREF(result);
+    return hr;
 }
 
 STDMETHODIMP PyGDebugDocumentText::GetContextOfPosition(
-		/* [in] */ ULONG cCharacterPosition,
-		/* [in] */ ULONG cNumChars,
-		/* [out] */ IDebugDocumentContext __RPC_FAR *__RPC_FAR * ppsc)
+    /* [in] */ ULONG cCharacterPosition,
+    /* [in] */ ULONG cNumChars,
+    /* [out] */ IDebugDocumentContext __RPC_FAR *__RPC_FAR *ppsc)
 {
-	PY_GATEWAY_METHOD;
-	if (ppsc==NULL) return E_POINTER;
-	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("GetContextOfPosition", &result, "ii", cCharacterPosition, cNumChars);
-	if (FAILED(hr)) return hr;
-	// Process the Python results, and convert back to the real params
-	PyObject *obppsc;
-	if (!PyArg_Parse(result, "O" , &obppsc)) return PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
-	BOOL bPythonIsHappy = TRUE;
-	if (!PyCom_InterfaceFromPyInstanceOrObject(obppsc, IID_IDebugDocumentContext, (void **)ppsc, FALSE /* bNoneOK */))
-		 bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) hr = PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
-	Py_DECREF(result);
-	return hr;
+    PY_GATEWAY_METHOD;
+    if (ppsc == NULL)
+        return E_POINTER;
+    PyObject *result;
+    HRESULT hr = InvokeViaPolicy("GetContextOfPosition", &result, "ii", cCharacterPosition, cNumChars);
+    if (FAILED(hr))
+        return hr;
+    // Process the Python results, and convert back to the real params
+    PyObject *obppsc;
+    if (!PyArg_Parse(result, "O", &obppsc))
+        return PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
+    BOOL bPythonIsHappy = TRUE;
+    if (!PyCom_InterfaceFromPyInstanceOrObject(obppsc, IID_IDebugDocumentContext, (void **)ppsc, FALSE /* bNoneOK */))
+        bPythonIsHappy = FALSE;
+    if (!bPythonIsHappy)
+        hr = PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
+    Py_DECREF(result);
+    return hr;
 }
-

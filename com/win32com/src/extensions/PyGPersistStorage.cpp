@@ -6,60 +6,57 @@
 #include "PyIPersist.h"
 #include "PyGPersistStorage.h"
 
-STDMETHODIMP PyGPersistStorage::IsDirty(
-		void)
+STDMETHODIMP PyGPersistStorage::IsDirty(void)
 {
-	PY_GATEWAY_METHOD;
-	HRESULT hr=InvokeViaPolicy("IsDirty", NULL, NULL);
-	return hr;
+    PY_GATEWAY_METHOD;
+    HRESULT hr = InvokeViaPolicy("IsDirty", NULL, NULL);
+    return hr;
 }
 
 STDMETHODIMP PyGPersistStorage::InitNew(
-		/* [unique][in] */ IStorage __RPC_FAR * pStg)
+    /* [unique][in] */ IStorage __RPC_FAR *pStg)
 {
-	PY_GATEWAY_METHOD;
-	PyObject *obIStorage = PyCom_PyObjectFromIUnknown(pStg, IID_IStorage, TRUE);
-	HRESULT hr=InvokeViaPolicy("InitNew", NULL, "O",obIStorage);
-	Py_XDECREF(obIStorage);
-	return hr;
+    PY_GATEWAY_METHOD;
+    PyObject *obIStorage = PyCom_PyObjectFromIUnknown(pStg, IID_IStorage, TRUE);
+    HRESULT hr = InvokeViaPolicy("InitNew", NULL, "O", obIStorage);
+    Py_XDECREF(obIStorage);
+    return hr;
 }
 
 STDMETHODIMP PyGPersistStorage::Load(
-		/* [unique][in] */ IStorage __RPC_FAR * pStg)
+    /* [unique][in] */ IStorage __RPC_FAR *pStg)
 {
-	PY_GATEWAY_METHOD;
-	PyObject *obIStorage = PyCom_PyObjectFromIUnknown(pStg, IID_IStorage, TRUE);
-	HRESULT hr=InvokeViaPolicy("Load", NULL, "O",obIStorage);
-	Py_XDECREF(obIStorage);
-	return hr;
+    PY_GATEWAY_METHOD;
+    PyObject *obIStorage = PyCom_PyObjectFromIUnknown(pStg, IID_IStorage, TRUE);
+    HRESULT hr = InvokeViaPolicy("Load", NULL, "O", obIStorage);
+    Py_XDECREF(obIStorage);
+    return hr;
 }
 
 STDMETHODIMP PyGPersistStorage::Save(
-		/* [unique][in] */ IStorage __RPC_FAR * pStgSave,
-		/* [in] */ BOOL fSameAsLoad)
+    /* [unique][in] */ IStorage __RPC_FAR *pStgSave,
+    /* [in] */ BOOL fSameAsLoad)
 {
-	PY_GATEWAY_METHOD;
-	PyObject *obIStorage = PyCom_PyObjectFromIUnknown(pStgSave, IID_IStorage, TRUE);
-	HRESULT hr=InvokeViaPolicy("Save", NULL, "Oi",obIStorage,fSameAsLoad);
-	Py_XDECREF(obIStorage);
-	return hr;
+    PY_GATEWAY_METHOD;
+    PyObject *obIStorage = PyCom_PyObjectFromIUnknown(pStgSave, IID_IStorage, TRUE);
+    HRESULT hr = InvokeViaPolicy("Save", NULL, "Oi", obIStorage, fSameAsLoad);
+    Py_XDECREF(obIStorage);
+    return hr;
 }
 
 STDMETHODIMP PyGPersistStorage::SaveCompleted(
-		/* [unique][in] */ IStorage __RPC_FAR * pStgNew)
+    /* [unique][in] */ IStorage __RPC_FAR *pStgNew)
 {
-	PY_GATEWAY_METHOD;
-	PyObject *obIStorage = PyCom_PyObjectFromIUnknown(pStgNew, IID_IStorage, TRUE);
-	HRESULT hr=InvokeViaPolicy("SaveCompleted", NULL, "O",obIStorage);
-	Py_XDECREF(obIStorage);
-	return hr;
+    PY_GATEWAY_METHOD;
+    PyObject *obIStorage = PyCom_PyObjectFromIUnknown(pStgNew, IID_IStorage, TRUE);
+    HRESULT hr = InvokeViaPolicy("SaveCompleted", NULL, "O", obIStorage);
+    Py_XDECREF(obIStorage);
+    return hr;
 }
 
-STDMETHODIMP PyGPersistStorage::HandsOffStorage(
-		void)
+STDMETHODIMP PyGPersistStorage::HandsOffStorage(void)
 {
-	PY_GATEWAY_METHOD;
-	HRESULT hr=InvokeViaPolicy("HandsOffStorage", NULL, NULL);
-	return hr;
+    PY_GATEWAY_METHOD;
+    HRESULT hr = InvokeViaPolicy("HandsOffStorage", NULL, NULL);
+    return hr;
 }
-

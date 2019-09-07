@@ -4,36 +4,35 @@
 //
 // Interface Declaration
 
-class PyIFileOperation : public PyIUnknown
-{
-public:
-	MAKE_PYCOM_CTOR(PyIFileOperation);
-	static IFileOperation *GetI(PyObject *self);
-	static PyComTypeObject type;
+class PyIFileOperation : public PyIUnknown {
+   public:
+    MAKE_PYCOM_CTOR(PyIFileOperation);
+    static IFileOperation *GetI(PyObject *self);
+    static PyComTypeObject type;
 
-	// The Python methods
-	static PyObject *Advise(PyObject *self, PyObject *args);
-	static PyObject *Unadvise(PyObject *self, PyObject *args);
-	static PyObject *SetOperationFlags(PyObject *self, PyObject *args);
-	static PyObject *SetProgressMessage(PyObject *self, PyObject *args);
-	static PyObject *SetProgressDialog(PyObject *self, PyObject *args);
-	static PyObject *SetProperties(PyObject *self, PyObject *args);
-	static PyObject *SetOwnerWindow(PyObject *self, PyObject *args);
-	static PyObject *ApplyPropertiesToItem(PyObject *self, PyObject *args);
-	static PyObject *ApplyPropertiesToItems(PyObject *self, PyObject *args);
-	static PyObject *RenameItem(PyObject *self, PyObject *args);
-	static PyObject *RenameItems(PyObject *self, PyObject *args);
-	static PyObject *MoveItem(PyObject *self, PyObject *args);
-	static PyObject *MoveItems(PyObject *self, PyObject *args);
-	static PyObject *CopyItem(PyObject *self, PyObject *args);
-	static PyObject *CopyItems(PyObject *self, PyObject *args);
-	static PyObject *DeleteItem(PyObject *self, PyObject *args);
-	static PyObject *DeleteItems(PyObject *self, PyObject *args);
-	static PyObject *NewItem(PyObject *self, PyObject *args);
-	static PyObject *PerformOperations(PyObject *self, PyObject *args);
-	static PyObject *GetAnyOperationsAborted(PyObject *self, PyObject *args);
+    // The Python methods
+    static PyObject *Advise(PyObject *self, PyObject *args);
+    static PyObject *Unadvise(PyObject *self, PyObject *args);
+    static PyObject *SetOperationFlags(PyObject *self, PyObject *args);
+    static PyObject *SetProgressMessage(PyObject *self, PyObject *args);
+    static PyObject *SetProgressDialog(PyObject *self, PyObject *args);
+    static PyObject *SetProperties(PyObject *self, PyObject *args);
+    static PyObject *SetOwnerWindow(PyObject *self, PyObject *args);
+    static PyObject *ApplyPropertiesToItem(PyObject *self, PyObject *args);
+    static PyObject *ApplyPropertiesToItems(PyObject *self, PyObject *args);
+    static PyObject *RenameItem(PyObject *self, PyObject *args);
+    static PyObject *RenameItems(PyObject *self, PyObject *args);
+    static PyObject *MoveItem(PyObject *self, PyObject *args);
+    static PyObject *MoveItems(PyObject *self, PyObject *args);
+    static PyObject *CopyItem(PyObject *self, PyObject *args);
+    static PyObject *CopyItems(PyObject *self, PyObject *args);
+    static PyObject *DeleteItem(PyObject *self, PyObject *args);
+    static PyObject *DeleteItems(PyObject *self, PyObject *args);
+    static PyObject *NewItem(PyObject *self, PyObject *args);
+    static PyObject *PerformOperations(PyObject *self, PyObject *args);
+    static PyObject *GetAnyOperationsAborted(PyObject *self, PyObject *args);
 
-protected:
-	PyIFileOperation(IUnknown *pdisp);
-	~PyIFileOperation();
+   protected:
+    PyIFileOperation(IUnknown *pdisp);
+    ~PyIFileOperation();
 };

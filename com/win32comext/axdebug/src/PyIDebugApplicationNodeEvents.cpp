@@ -11,179 +11,171 @@
 //
 // Interface Implementation
 
-PyIDebugApplicationNodeEvents::PyIDebugApplicationNodeEvents(IUnknown *pdisp):
-	PyIUnknown(pdisp)
-{
-	ob_type = &type;
-}
+PyIDebugApplicationNodeEvents::PyIDebugApplicationNodeEvents(IUnknown *pdisp) : PyIUnknown(pdisp) { ob_type = &type; }
 
-PyIDebugApplicationNodeEvents::~PyIDebugApplicationNodeEvents()
-{
-}
+PyIDebugApplicationNodeEvents::~PyIDebugApplicationNodeEvents() {}
 
 /* static */ IDebugApplicationNodeEvents *PyIDebugApplicationNodeEvents::GetI(PyObject *self)
 {
-	return (IDebugApplicationNodeEvents *)PyIUnknown::GetI(self);
+    return (IDebugApplicationNodeEvents *)PyIUnknown::GetI(self);
 }
 
 // @pymethod |PyIDebugApplicationNodeEvents|onAddChild|Description of onAddChild.
 PyObject *PyIDebugApplicationNodeEvents::onAddChild(PyObject *self, PyObject *args)
 {
-	PY_INTERFACE_METHOD;
-	IDebugApplicationNodeEvents *pIDANE = GetI(self);
-	if ( pIDANE == NULL )
-		return NULL;
-	// @pyparm <o PyIDebugApplicationNode>|prddpChild||Description for prddpChild
-	PyObject *obprddpChild;
-	IDebugApplicationNode *prddpChild;
-	if ( !PyArg_ParseTuple(args, "O:onAddChild", &obprddpChild) )
-		return NULL;
-	BOOL bPythonIsHappy = TRUE;
-	if (!PyCom_InterfaceFromPyInstanceOrObject(obprddpChild, IID_IDebugApplicationNode, (void **)&prddpChild, FALSE /* bNoneOK */))
-		 bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) return NULL;
-	PY_INTERFACE_PRECALL;
-	HRESULT hr = pIDANE->onAddChild( prddpChild );
-	prddpChild->Release();
-	PY_INTERFACE_POSTCALL;
-	if ( FAILED(hr) )
-		return OleSetOleError(hr);
-	Py_INCREF(Py_None);
-	return Py_None;
-
+    PY_INTERFACE_METHOD;
+    IDebugApplicationNodeEvents *pIDANE = GetI(self);
+    if (pIDANE == NULL)
+        return NULL;
+    // @pyparm <o PyIDebugApplicationNode>|prddpChild||Description for prddpChild
+    PyObject *obprddpChild;
+    IDebugApplicationNode *prddpChild;
+    if (!PyArg_ParseTuple(args, "O:onAddChild", &obprddpChild))
+        return NULL;
+    BOOL bPythonIsHappy = TRUE;
+    if (!PyCom_InterfaceFromPyInstanceOrObject(obprddpChild, IID_IDebugApplicationNode, (void **)&prddpChild,
+                                               FALSE /* bNoneOK */))
+        bPythonIsHappy = FALSE;
+    if (!bPythonIsHappy)
+        return NULL;
+    PY_INTERFACE_PRECALL;
+    HRESULT hr = pIDANE->onAddChild(prddpChild);
+    prddpChild->Release();
+    PY_INTERFACE_POSTCALL;
+    if (FAILED(hr))
+        return OleSetOleError(hr);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @pymethod |PyIDebugApplicationNodeEvents|onRemoveChild|Description of onRemoveChild.
 PyObject *PyIDebugApplicationNodeEvents::onRemoveChild(PyObject *self, PyObject *args)
 {
-	PY_INTERFACE_METHOD;
-	IDebugApplicationNodeEvents *pIDANE = GetI(self);
-	if ( pIDANE == NULL )
-		return NULL;
-	// @pyparm <o PyIDebugApplicationNode>|prddpChild||Description for prddpChild
-	PyObject *obprddpChild;
-	IDebugApplicationNode *prddpChild;
-	if ( !PyArg_ParseTuple(args, "O:onRemoveChild", &obprddpChild) )
-		return NULL;
-	BOOL bPythonIsHappy = TRUE;
-	if (!PyCom_InterfaceFromPyInstanceOrObject(obprddpChild, IID_IDebugApplicationNode, (void **)&prddpChild, FALSE /* bNoneOK */))
-		 bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) return NULL;
-	PY_INTERFACE_PRECALL;
-	HRESULT hr = pIDANE->onRemoveChild( prddpChild );
-	prddpChild->Release();
-	PY_INTERFACE_POSTCALL;
-	if ( FAILED(hr) )
-		return OleSetOleError(hr);
-	Py_INCREF(Py_None);
-	return Py_None;
-
+    PY_INTERFACE_METHOD;
+    IDebugApplicationNodeEvents *pIDANE = GetI(self);
+    if (pIDANE == NULL)
+        return NULL;
+    // @pyparm <o PyIDebugApplicationNode>|prddpChild||Description for prddpChild
+    PyObject *obprddpChild;
+    IDebugApplicationNode *prddpChild;
+    if (!PyArg_ParseTuple(args, "O:onRemoveChild", &obprddpChild))
+        return NULL;
+    BOOL bPythonIsHappy = TRUE;
+    if (!PyCom_InterfaceFromPyInstanceOrObject(obprddpChild, IID_IDebugApplicationNode, (void **)&prddpChild,
+                                               FALSE /* bNoneOK */))
+        bPythonIsHappy = FALSE;
+    if (!bPythonIsHappy)
+        return NULL;
+    PY_INTERFACE_PRECALL;
+    HRESULT hr = pIDANE->onRemoveChild(prddpChild);
+    prddpChild->Release();
+    PY_INTERFACE_POSTCALL;
+    if (FAILED(hr))
+        return OleSetOleError(hr);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @pymethod |PyIDebugApplicationNodeEvents|onDetach|Description of onDetach.
 PyObject *PyIDebugApplicationNodeEvents::onDetach(PyObject *self, PyObject *args)
 {
-	PY_INTERFACE_METHOD;
-	IDebugApplicationNodeEvents *pIDANE = GetI(self);
-	if ( pIDANE == NULL )
-		return NULL;
-	if ( !PyArg_ParseTuple(args, ":onDetach") )
-		return NULL;
-	PY_INTERFACE_PRECALL;
-	HRESULT hr = pIDANE->onDetach( );
-	PY_INTERFACE_POSTCALL;
-	if ( FAILED(hr) )
-		return OleSetOleError(hr);
-	Py_INCREF(Py_None);
-	return Py_None;
-
+    PY_INTERFACE_METHOD;
+    IDebugApplicationNodeEvents *pIDANE = GetI(self);
+    if (pIDANE == NULL)
+        return NULL;
+    if (!PyArg_ParseTuple(args, ":onDetach"))
+        return NULL;
+    PY_INTERFACE_PRECALL;
+    HRESULT hr = pIDANE->onDetach();
+    PY_INTERFACE_POSTCALL;
+    if (FAILED(hr))
+        return OleSetOleError(hr);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @pymethod |PyIDebugApplicationNodeEvents|onAttach|Description of onAttach.
 PyObject *PyIDebugApplicationNodeEvents::onAttach(PyObject *self, PyObject *args)
 {
-	PY_INTERFACE_METHOD;
-	IDebugApplicationNodeEvents *pIDANE = GetI(self);
-	if ( pIDANE == NULL )
-		return NULL;
-	// @pyparm <o PyIDebugApplicationNode>|prddpParent||Description for prddpParent
-	PyObject *obprddpParent;
-	IDebugApplicationNode *prddpParent;
-	if ( !PyArg_ParseTuple(args, "O:onAttach", &obprddpParent) )
-		return NULL;
-	BOOL bPythonIsHappy = TRUE;
-	if (!PyCom_InterfaceFromPyInstanceOrObject(obprddpParent, IID_IDebugApplicationNode, (void **)&prddpParent, FALSE /* bNoneOK */))
-		 bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) return NULL;
-	PY_INTERFACE_PRECALL;
-	HRESULT hr = pIDANE->onAttach( prddpParent );
-	prddpParent->Release();
-	PY_INTERFACE_POSTCALL;
-	if ( FAILED(hr) )
-		return OleSetOleError(hr);
-	Py_INCREF(Py_None);
-	return Py_None;
-
+    PY_INTERFACE_METHOD;
+    IDebugApplicationNodeEvents *pIDANE = GetI(self);
+    if (pIDANE == NULL)
+        return NULL;
+    // @pyparm <o PyIDebugApplicationNode>|prddpParent||Description for prddpParent
+    PyObject *obprddpParent;
+    IDebugApplicationNode *prddpParent;
+    if (!PyArg_ParseTuple(args, "O:onAttach", &obprddpParent))
+        return NULL;
+    BOOL bPythonIsHappy = TRUE;
+    if (!PyCom_InterfaceFromPyInstanceOrObject(obprddpParent, IID_IDebugApplicationNode, (void **)&prddpParent,
+                                               FALSE /* bNoneOK */))
+        bPythonIsHappy = FALSE;
+    if (!bPythonIsHappy)
+        return NULL;
+    PY_INTERFACE_PRECALL;
+    HRESULT hr = pIDANE->onAttach(prddpParent);
+    prddpParent->Release();
+    PY_INTERFACE_POSTCALL;
+    if (FAILED(hr))
+        return OleSetOleError(hr);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @object PyIDebugApplicationNodeEvents|Description of the interface
-static struct PyMethodDef PyIDebugApplicationNodeEvents_methods[] =
-{
-	{ "onAddChild", PyIDebugApplicationNodeEvents::onAddChild, 1 }, // @pymeth onAddChild|Description of onAddChild
-	{ "onRemoveChild", PyIDebugApplicationNodeEvents::onRemoveChild, 1 }, // @pymeth onRemoveChild|Description of onRemoveChild
-	{ "onDetach", PyIDebugApplicationNodeEvents::onDetach, 1 }, // @pymeth onDetach|Description of onDetach
-	{ "onAttach", PyIDebugApplicationNodeEvents::onAttach, 1 }, // @pymeth onAttach|Description of onAttach
-	{ NULL }
-};
+static struct PyMethodDef PyIDebugApplicationNodeEvents_methods[] = {
+    {"onAddChild", PyIDebugApplicationNodeEvents::onAddChild, 1},  // @pymeth onAddChild|Description of onAddChild
+    {"onRemoveChild", PyIDebugApplicationNodeEvents::onRemoveChild,
+     1},                                                       // @pymeth onRemoveChild|Description of onRemoveChild
+    {"onDetach", PyIDebugApplicationNodeEvents::onDetach, 1},  // @pymeth onDetach|Description of onDetach
+    {"onAttach", PyIDebugApplicationNodeEvents::onAttach, 1},  // @pymeth onAttach|Description of onAttach
+    {NULL}};
 
-PyComTypeObject PyIDebugApplicationNodeEvents::type("PyIDebugApplicationNodeEvents",
-		&PyIUnknown::type,
-		sizeof(PyIDebugApplicationNodeEvents),
-		PyIDebugApplicationNodeEvents_methods,
-		GET_PYCOM_CTOR(PyIDebugApplicationNodeEvents));
+PyComTypeObject PyIDebugApplicationNodeEvents::type("PyIDebugApplicationNodeEvents", &PyIUnknown::type,
+                                                    sizeof(PyIDebugApplicationNodeEvents),
+                                                    PyIDebugApplicationNodeEvents_methods,
+                                                    GET_PYCOM_CTOR(PyIDebugApplicationNodeEvents));
 // ---------------------------------------------------
 //
 // Gateway Implementation
 
 // Std delegation
 STDMETHODIMP PyGDebugApplicationNodeEvents::onAddChild(
-		/* [in] */ IDebugApplicationNode __RPC_FAR * prddpChild)
+    /* [in] */ IDebugApplicationNode __RPC_FAR *prddpChild)
 {
-	PY_GATEWAY_METHOD;
-	PyObject *obprddpChild;
-	obprddpChild = PyCom_PyObjectFromIUnknown(prddpChild, IID_IDebugApplicationNode, TRUE);
-	HRESULT hr=InvokeViaPolicy("onAddChild", NULL, "O", obprddpChild);
-	Py_XDECREF(obprddpChild);
-	return hr;
+    PY_GATEWAY_METHOD;
+    PyObject *obprddpChild;
+    obprddpChild = PyCom_PyObjectFromIUnknown(prddpChild, IID_IDebugApplicationNode, TRUE);
+    HRESULT hr = InvokeViaPolicy("onAddChild", NULL, "O", obprddpChild);
+    Py_XDECREF(obprddpChild);
+    return hr;
 }
 
 STDMETHODIMP PyGDebugApplicationNodeEvents::onRemoveChild(
-		/* [in] */ IDebugApplicationNode __RPC_FAR * prddpChild)
+    /* [in] */ IDebugApplicationNode __RPC_FAR *prddpChild)
 {
-	PY_GATEWAY_METHOD;
-	PyObject *obprddpChild;
-	obprddpChild = PyCom_PyObjectFromIUnknown(prddpChild, IID_IDebugApplicationNode, TRUE);
-	HRESULT hr=InvokeViaPolicy("onRemoveChild", NULL, "O", obprddpChild);
-	Py_XDECREF(obprddpChild);
-	return hr;
+    PY_GATEWAY_METHOD;
+    PyObject *obprddpChild;
+    obprddpChild = PyCom_PyObjectFromIUnknown(prddpChild, IID_IDebugApplicationNode, TRUE);
+    HRESULT hr = InvokeViaPolicy("onRemoveChild", NULL, "O", obprddpChild);
+    Py_XDECREF(obprddpChild);
+    return hr;
 }
 
-STDMETHODIMP PyGDebugApplicationNodeEvents::onDetach(
-		void)
+STDMETHODIMP PyGDebugApplicationNodeEvents::onDetach(void)
 {
-	PY_GATEWAY_METHOD;
-	HRESULT hr=InvokeViaPolicy("onDetach", NULL);
-	return hr;
+    PY_GATEWAY_METHOD;
+    HRESULT hr = InvokeViaPolicy("onDetach", NULL);
+    return hr;
 }
 
 STDMETHODIMP PyGDebugApplicationNodeEvents::onAttach(
-		/* [in] */ IDebugApplicationNode __RPC_FAR * prddpParent)
+    /* [in] */ IDebugApplicationNode __RPC_FAR *prddpParent)
 {
-	PY_GATEWAY_METHOD;
-	PyObject *obprddpParent;
-	obprddpParent = PyCom_PyObjectFromIUnknown(prddpParent, IID_IDebugApplicationNode, TRUE);
-	HRESULT hr=InvokeViaPolicy("onAttach", NULL, "O", obprddpParent);
-	Py_XDECREF(obprddpParent);
-	return hr;
+    PY_GATEWAY_METHOD;
+    PyObject *obprddpParent;
+    obprddpParent = PyCom_PyObjectFromIUnknown(prddpParent, IID_IDebugApplicationNode, TRUE);
+    HRESULT hr = InvokeViaPolicy("onAttach", NULL, "O", obprddpParent);
+    Py_XDECREF(obprddpParent);
+    return hr;
 }
-

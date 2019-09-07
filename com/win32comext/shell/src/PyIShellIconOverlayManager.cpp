@@ -9,236 +9,234 @@
 //
 // Interface Implementation
 
-PyIShellIconOverlayManager::PyIShellIconOverlayManager(IUnknown *pdisp):
-	PyIUnknown(pdisp)
-{
-	ob_type = &type;
-}
+PyIShellIconOverlayManager::PyIShellIconOverlayManager(IUnknown *pdisp) : PyIUnknown(pdisp) { ob_type = &type; }
 
-PyIShellIconOverlayManager::~PyIShellIconOverlayManager()
-{
-}
+PyIShellIconOverlayManager::~PyIShellIconOverlayManager() {}
 
 /* static */ IShellIconOverlayManager *PyIShellIconOverlayManager::GetI(PyObject *self)
 {
-	return (IShellIconOverlayManager *)PyIUnknown::GetI(self);
+    return (IShellIconOverlayManager *)PyIUnknown::GetI(self);
 }
 
-// @pymethod int|PyIShellIconOverlayManager|GetFileOverlayInfo|Returns an index into the system image list for the icon image or overlay image
+// @pymethod int|PyIShellIconOverlayManager|GetFileOverlayInfo|Returns an index into the system image list for the icon
+// image or overlay image
 PyObject *PyIShellIconOverlayManager::GetFileOverlayInfo(PyObject *self, PyObject *args)
 {
-	IShellIconOverlayManager *pISIOM = GetI(self);
-	if ( pISIOM == NULL )
-		return NULL;
-	// @pyparm str|path||Full path to the file
-	// @pyparm int|attrib||File attributes (win32com.FILE_ATTRIBUTE_*)
-	// @pyparm int|flags||SIOM_OVERLAYINDEX (1) or SIOM_ICONINDEX (2)
-	PyObject *obpath;
-	TmpWCHAR path;
-	DWORD attrib;
-	int index;
-	DWORD flags;
-	if ( !PyArg_ParseTuple(args, "Oll:GetFileOverlayInfo", &obpath, &attrib, &flags) )
-		return NULL;
-	if (!PyWinObject_AsWCHAR(obpath, &path))
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pISIOM->GetFileOverlayInfo( path, attrib, &index, flags );
-	PY_INTERFACE_POSTCALL;
+    IShellIconOverlayManager *pISIOM = GetI(self);
+    if (pISIOM == NULL)
+        return NULL;
+    // @pyparm str|path||Full path to the file
+    // @pyparm int|attrib||File attributes (win32com.FILE_ATTRIBUTE_*)
+    // @pyparm int|flags||SIOM_OVERLAYINDEX (1) or SIOM_ICONINDEX (2)
+    PyObject *obpath;
+    TmpWCHAR path;
+    DWORD attrib;
+    int index;
+    DWORD flags;
+    if (!PyArg_ParseTuple(args, "Oll:GetFileOverlayInfo", &obpath, &attrib, &flags))
+        return NULL;
+    if (!PyWinObject_AsWCHAR(obpath, &path))
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pISIOM->GetFileOverlayInfo(path, attrib, &index, flags);
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pISIOM, IID_IShellIconOverlayManager );
-	return PyInt_FromLong(index);
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pISIOM, IID_IShellIconOverlayManager);
+    return PyInt_FromLong(index);
 }
 
 // @pymethod |PyIShellIconOverlayManager|GetReservedOverlayInfo|Description of GetReservedOverlayInfo.
 PyObject *PyIShellIconOverlayManager::GetReservedOverlayInfo(PyObject *self, PyObject *args)
 {
-	IShellIconOverlayManager *pISIOM = GetI(self);
-	if ( pISIOM == NULL )
-		return NULL;
-	// @pyparm str|path||Description for path
-	// @pyparm int|attrib||Description for attrib
-	// @pyparm int|flags||Description for flags
-	// @pyparm int|ireservedID||Description for ireservedID
-	PyObject *obpath;
-	TmpWCHAR path;
-	DWORD attrib;
-	int index;
-	DWORD flags;
-	int ireservedID;
-	if ( !PyArg_ParseTuple(args, "Olli:GetReservedOverlayInfo", &obpath, &attrib, &flags, &ireservedID) )
-		return NULL;
-	if (!PyWinObject_AsWCHAR(obpath, &path))
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pISIOM->GetReservedOverlayInfo( path, attrib, &index, flags, ireservedID );
-	PY_INTERFACE_POSTCALL;
+    IShellIconOverlayManager *pISIOM = GetI(self);
+    if (pISIOM == NULL)
+        return NULL;
+    // @pyparm str|path||Description for path
+    // @pyparm int|attrib||Description for attrib
+    // @pyparm int|flags||Description for flags
+    // @pyparm int|ireservedID||Description for ireservedID
+    PyObject *obpath;
+    TmpWCHAR path;
+    DWORD attrib;
+    int index;
+    DWORD flags;
+    int ireservedID;
+    if (!PyArg_ParseTuple(args, "Olli:GetReservedOverlayInfo", &obpath, &attrib, &flags, &ireservedID))
+        return NULL;
+    if (!PyWinObject_AsWCHAR(obpath, &path))
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pISIOM->GetReservedOverlayInfo(path, attrib, &index, flags, ireservedID);
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pISIOM, IID_IShellIconOverlayManager );
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pISIOM, IID_IShellIconOverlayManager);
 
-	return PyInt_FromLong(index);
+    return PyInt_FromLong(index);
 }
 
 // @pymethod |PyIShellIconOverlayManager|RefreshOverlayImages|Description of RefreshOverlayImages.
 PyObject *PyIShellIconOverlayManager::RefreshOverlayImages(PyObject *self, PyObject *args)
 {
-	IShellIconOverlayManager *pISIOM = GetI(self);
-	if ( pISIOM == NULL )
-		return NULL;
-	// @pyparm int|flags||Description for flags
-	DWORD flags;
-	if ( !PyArg_ParseTuple(args, "l:RefreshOverlayImages", &flags) )
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pISIOM->RefreshOverlayImages( flags );
+    IShellIconOverlayManager *pISIOM = GetI(self);
+    if (pISIOM == NULL)
+        return NULL;
+    // @pyparm int|flags||Description for flags
+    DWORD flags;
+    if (!PyArg_ParseTuple(args, "l:RefreshOverlayImages", &flags))
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pISIOM->RefreshOverlayImages(flags);
 
-	PY_INTERFACE_POSTCALL;
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pISIOM, IID_IShellIconOverlayManager );
-	Py_INCREF(Py_None);
-	return Py_None;
-
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pISIOM, IID_IShellIconOverlayManager);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @pymethod |PyIShellIconOverlayManager|LoadNonloadedOverlayIdentifiers|Description of LoadNonloadedOverlayIdentifiers.
 PyObject *PyIShellIconOverlayManager::LoadNonloadedOverlayIdentifiers(PyObject *self, PyObject *args)
 {
-	IShellIconOverlayManager *pISIOM = GetI(self);
-	if ( pISIOM == NULL )
-		return NULL;
-	if ( !PyArg_ParseTuple(args, ":LoadNonloadedOverlayIdentifiers") )
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pISIOM->LoadNonloadedOverlayIdentifiers( );
+    IShellIconOverlayManager *pISIOM = GetI(self);
+    if (pISIOM == NULL)
+        return NULL;
+    if (!PyArg_ParseTuple(args, ":LoadNonloadedOverlayIdentifiers"))
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pISIOM->LoadNonloadedOverlayIdentifiers();
 
-	PY_INTERFACE_POSTCALL;
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pISIOM, IID_IShellIconOverlayManager );
-	Py_INCREF(Py_None);
-	return Py_None;
-
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pISIOM, IID_IShellIconOverlayManager);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @pymethod |PyIShellIconOverlayManager|OverlayIndexFromImageIndex|Description of OverlayIndexFromImageIndex.
 PyObject *PyIShellIconOverlayManager::OverlayIndexFromImageIndex(PyObject *self, PyObject *args)
 {
-	IShellIconOverlayManager *pISIOM = GetI(self);
-	if ( pISIOM == NULL )
-		return NULL;
-	// @pyparm int|iImage||Description for iImage
-	// @pyparm int|fAdd||Description for fAdd
-	int iImage;
-	int index;
-	BOOL fAdd;
-	if ( !PyArg_ParseTuple(args, "ii:OverlayIndexFromImageIndex", &iImage, &fAdd) )
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pISIOM->OverlayIndexFromImageIndex( iImage, &index, fAdd );
+    IShellIconOverlayManager *pISIOM = GetI(self);
+    if (pISIOM == NULL)
+        return NULL;
+    // @pyparm int|iImage||Description for iImage
+    // @pyparm int|fAdd||Description for fAdd
+    int iImage;
+    int index;
+    BOOL fAdd;
+    if (!PyArg_ParseTuple(args, "ii:OverlayIndexFromImageIndex", &iImage, &fAdd))
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pISIOM->OverlayIndexFromImageIndex(iImage, &index, fAdd);
 
-	PY_INTERFACE_POSTCALL;
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pISIOM, IID_IShellIconOverlayManager );
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pISIOM, IID_IShellIconOverlayManager);
 
-	PyObject *pyretval = Py_BuildValue("i", index);
-	return pyretval;
+    PyObject *pyretval = Py_BuildValue("i", index);
+    return pyretval;
 }
 
 // @object PyIShellIconOverlayManager|Description of the interface
-static struct PyMethodDef PyIShellIconOverlayManager_methods[] =
-{
-	{ "GetFileOverlayInfo", PyIShellIconOverlayManager::GetFileOverlayInfo, 1 }, // @pymeth GetFileOverlayInfo|Description of GetFileOverlayInfo
-	{ "GetReservedOverlayInfo", PyIShellIconOverlayManager::GetReservedOverlayInfo, 1 }, // @pymeth GetReservedOverlayInfo|Description of GetReservedOverlayInfo
-	{ "RefreshOverlayImages", PyIShellIconOverlayManager::RefreshOverlayImages, 1 }, // @pymeth RefreshOverlayImages|Description of RefreshOverlayImages
-	{ "LoadNonloadedOverlayIdentifiers", PyIShellIconOverlayManager::LoadNonloadedOverlayIdentifiers, 1 }, // @pymeth LoadNonloadedOverlayIdentifiers|Description of LoadNonloadedOverlayIdentifiers
-	{ "OverlayIndexFromImageIndex", PyIShellIconOverlayManager::OverlayIndexFromImageIndex, 1 }, // @pymeth OverlayIndexFromImageIndex|Description of OverlayIndexFromImageIndex
-	{ NULL }
-};
+static struct PyMethodDef PyIShellIconOverlayManager_methods[] = {
+    {"GetFileOverlayInfo", PyIShellIconOverlayManager::GetFileOverlayInfo,
+     1},  // @pymeth GetFileOverlayInfo|Description of GetFileOverlayInfo
+    {"GetReservedOverlayInfo", PyIShellIconOverlayManager::GetReservedOverlayInfo,
+     1},  // @pymeth GetReservedOverlayInfo|Description of GetReservedOverlayInfo
+    {"RefreshOverlayImages", PyIShellIconOverlayManager::RefreshOverlayImages,
+     1},  // @pymeth RefreshOverlayImages|Description of RefreshOverlayImages
+    {"LoadNonloadedOverlayIdentifiers", PyIShellIconOverlayManager::LoadNonloadedOverlayIdentifiers,
+     1},  // @pymeth LoadNonloadedOverlayIdentifiers|Description of LoadNonloadedOverlayIdentifiers
+    {"OverlayIndexFromImageIndex", PyIShellIconOverlayManager::OverlayIndexFromImageIndex,
+     1},  // @pymeth OverlayIndexFromImageIndex|Description of OverlayIndexFromImageIndex
+    {NULL}};
 
-PyComTypeObject PyIShellIconOverlayManager::type("PyIShellIconOverlayManager",
-		&PyIUnknown::type,
-		sizeof(PyIShellIconOverlayManager),
-		PyIShellIconOverlayManager_methods,
-		GET_PYCOM_CTOR(PyIShellIconOverlayManager));
+PyComTypeObject PyIShellIconOverlayManager::type("PyIShellIconOverlayManager", &PyIUnknown::type,
+                                                 sizeof(PyIShellIconOverlayManager), PyIShellIconOverlayManager_methods,
+                                                 GET_PYCOM_CTOR(PyIShellIconOverlayManager));
 // ---------------------------------------------------
 //
 // Gateway Implementation
 STDMETHODIMP PyGShellIconOverlayManager::GetFileOverlayInfo(
-		/* [unique][in] */ LPCWSTR path,
-		/* [unique][in] */ DWORD attrib,
-		/* [out] */ int __RPC_FAR * index,
-		/* [in] */ DWORD flags)
+    /* [unique][in] */ LPCWSTR path,
+    /* [unique][in] */ DWORD attrib,
+    /* [out] */ int __RPC_FAR *index,
+    /* [in] */ DWORD flags)
 {
-	PY_GATEWAY_METHOD;
-	PyObject *obpath;
-	obpath = MakeOLECHARToObj(path);
-	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("GetFileOverlayInfo", &result, "Oll", obpath, attrib, flags);
-	Py_XDECREF(obpath);
-	if (FAILED(hr)) return hr;
-	// Process the Python results, and convert back to the real params
-	if (!PyArg_Parse(result, "i" , index)) return PyCom_SetAndLogCOMErrorFromPyException("GetFileOverlayInfo", GetIID());
-	Py_DECREF(result);
-	return hr;
+    PY_GATEWAY_METHOD;
+    PyObject *obpath;
+    obpath = MakeOLECHARToObj(path);
+    PyObject *result;
+    HRESULT hr = InvokeViaPolicy("GetFileOverlayInfo", &result, "Oll", obpath, attrib, flags);
+    Py_XDECREF(obpath);
+    if (FAILED(hr))
+        return hr;
+    // Process the Python results, and convert back to the real params
+    if (!PyArg_Parse(result, "i", index))
+        return PyCom_SetAndLogCOMErrorFromPyException("GetFileOverlayInfo", GetIID());
+    Py_DECREF(result);
+    return hr;
 }
 
 STDMETHODIMP PyGShellIconOverlayManager::GetReservedOverlayInfo(
-		/* [unique][in] */ LPCWSTR path,
-		/* [unique][in] */ DWORD attrib,
-		/* [out] */ int __RPC_FAR * index,
-		/* [in] */ DWORD flags,
-		/* [in] */ int ireservedID)
+    /* [unique][in] */ LPCWSTR path,
+    /* [unique][in] */ DWORD attrib,
+    /* [out] */ int __RPC_FAR *index,
+    /* [in] */ DWORD flags,
+    /* [in] */ int ireservedID)
 {
-	PY_GATEWAY_METHOD;
-	PyObject *obpath;
-	obpath = MakeOLECHARToObj(path);
-	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("GetReservedOverlayInfo", &result, "Olli", obpath, attrib, flags, ireservedID);
-	Py_XDECREF(obpath);
-	if (FAILED(hr)) return hr;
-	// Process the Python results, and convert back to the real params
-	if (!PyArg_Parse(result, "i" , index)) return PyCom_SetAndLogCOMErrorFromPyException("GetReservedOverlayInfo", GetIID());
-	Py_DECREF(result);
-	return hr;
+    PY_GATEWAY_METHOD;
+    PyObject *obpath;
+    obpath = MakeOLECHARToObj(path);
+    PyObject *result;
+    HRESULT hr = InvokeViaPolicy("GetReservedOverlayInfo", &result, "Olli", obpath, attrib, flags, ireservedID);
+    Py_XDECREF(obpath);
+    if (FAILED(hr))
+        return hr;
+    // Process the Python results, and convert back to the real params
+    if (!PyArg_Parse(result, "i", index))
+        return PyCom_SetAndLogCOMErrorFromPyException("GetReservedOverlayInfo", GetIID());
+    Py_DECREF(result);
+    return hr;
 }
 
 STDMETHODIMP PyGShellIconOverlayManager::RefreshOverlayImages(
-		/* [in] */ DWORD flags)
+    /* [in] */ DWORD flags)
 {
-	PY_GATEWAY_METHOD;
-	HRESULT hr=InvokeViaPolicy("RefreshOverlayImages", NULL, "l", flags);
-	return hr;
+    PY_GATEWAY_METHOD;
+    HRESULT hr = InvokeViaPolicy("RefreshOverlayImages", NULL, "l", flags);
+    return hr;
 }
 
-STDMETHODIMP PyGShellIconOverlayManager::LoadNonloadedOverlayIdentifiers(
-		void)
+STDMETHODIMP PyGShellIconOverlayManager::LoadNonloadedOverlayIdentifiers(void)
 {
-	PY_GATEWAY_METHOD;
-	HRESULT hr=InvokeViaPolicy("LoadNonloadedOverlayIdentifiers", NULL);
-	return hr;
+    PY_GATEWAY_METHOD;
+    HRESULT hr = InvokeViaPolicy("LoadNonloadedOverlayIdentifiers", NULL);
+    return hr;
 }
 
 STDMETHODIMP PyGShellIconOverlayManager::OverlayIndexFromImageIndex(
-		/* [unique][in] */ int iImage,
-		/* [out] */ int __RPC_FAR * index,
-		/* [in] */ BOOL fAdd)
+    /* [unique][in] */ int iImage,
+    /* [out] */ int __RPC_FAR *index,
+    /* [in] */ BOOL fAdd)
 {
-	PY_GATEWAY_METHOD;
-	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("OverlayIndexFromImageIndex", &result, "ii", iImage, fAdd);
-	if (FAILED(hr)) return hr;
-	// Process the Python results, and convert back to the real params
-	if (!PyArg_Parse(result, "i" , index)) return PyCom_SetAndLogCOMErrorFromPyException("OverlayIndexFromImageIndex", GetIID());
-	Py_DECREF(result);
-	return hr;
+    PY_GATEWAY_METHOD;
+    PyObject *result;
+    HRESULT hr = InvokeViaPolicy("OverlayIndexFromImageIndex", &result, "ii", iImage, fAdd);
+    if (FAILED(hr))
+        return hr;
+    // Process the Python results, and convert back to the real params
+    if (!PyArg_Parse(result, "i", index))
+        return PyCom_SetAndLogCOMErrorFromPyException("OverlayIndexFromImageIndex", GetIID());
+    Py_DECREF(result);
+    return hr;
 }
-

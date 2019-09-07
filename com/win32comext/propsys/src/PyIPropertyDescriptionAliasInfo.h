@@ -8,18 +8,17 @@
 #include "PythonCOMServer.h"
 #include "propsys.h"
 
-class PyIPropertyDescriptionAliasInfo : public PyIPropertyDescription
-{
-public:
-	MAKE_PYCOM_CTOR(PyIPropertyDescriptionAliasInfo);
-	static IPropertyDescriptionAliasInfo *GetI(PyObject *self);
-	static PyComTypeObject type;
+class PyIPropertyDescriptionAliasInfo : public PyIPropertyDescription {
+   public:
+    MAKE_PYCOM_CTOR(PyIPropertyDescriptionAliasInfo);
+    static IPropertyDescriptionAliasInfo *GetI(PyObject *self);
+    static PyComTypeObject type;
 
-	// The Python methods
-	static PyObject *GetSortByAlias(PyObject *self, PyObject *args);
-	static PyObject *GetAdditionalSortByAliases(PyObject *self, PyObject *args);
+    // The Python methods
+    static PyObject *GetSortByAlias(PyObject *self, PyObject *args);
+    static PyObject *GetAdditionalSortByAliases(PyObject *self, PyObject *args);
 
-protected:
-	PyIPropertyDescriptionAliasInfo(IUnknown *pdisp);
-	~PyIPropertyDescriptionAliasInfo();
+   protected:
+    PyIPropertyDescriptionAliasInfo(IUnknown *pdisp);
+    ~PyIPropertyDescriptionAliasInfo();
 };

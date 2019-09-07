@@ -7,115 +7,114 @@
 #include "PythonCOMServer.h"
 #include "propsys.h"
 
-
 // @doc - This file contains autoduck documentation
 // ---------------------------------------------------
 //
 // Interface Implementation
 
-PyIPropertyDescriptionSearchInfo::PyIPropertyDescriptionSearchInfo(IUnknown *pdisp):
-	PyIPropertyDescription(pdisp)
+PyIPropertyDescriptionSearchInfo::PyIPropertyDescriptionSearchInfo(IUnknown *pdisp) : PyIPropertyDescription(pdisp)
 {
-	ob_type = &type;
+    ob_type = &type;
 }
 
-PyIPropertyDescriptionSearchInfo::~PyIPropertyDescriptionSearchInfo()
-{
-}
+PyIPropertyDescriptionSearchInfo::~PyIPropertyDescriptionSearchInfo() {}
 
 /* static */ IPropertyDescriptionSearchInfo *PyIPropertyDescriptionSearchInfo::GetI(PyObject *self)
 {
-	return (IPropertyDescriptionSearchInfo *)PyIPropertyDescription::GetI(self);
+    return (IPropertyDescriptionSearchInfo *)PyIPropertyDescription::GetI(self);
 }
 
 // @pymethod int|PyIPropertyDescriptionSearchInfo|GetSearchInfoFlags|Returns flags controlling how property is indexed
 // @rdesc Returns a combination of PROPDESC_SEARCHINFO_FLAGS values
 PyObject *PyIPropertyDescriptionSearchInfo::GetSearchInfoFlags(PyObject *self, PyObject *args)
 {
-	IPropertyDescriptionSearchInfo *pIPDSI = GetI(self);
-	if ( pIPDSI == NULL )
-		return NULL;
-	PROPDESC_SEARCHINFO_FLAGS flags;
+    IPropertyDescriptionSearchInfo *pIPDSI = GetI(self);
+    if (pIPDSI == NULL)
+        return NULL;
+    PROPDESC_SEARCHINFO_FLAGS flags;
 
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIPDSI->GetSearchInfoFlags(&flags );
-	PY_INTERFACE_POSTCALL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIPDSI->GetSearchInfoFlags(&flags);
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pIPDSI, IID_IPropertyDescriptionSearchInfo );
-	return PyLong_FromUnsignedLong(flags);
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pIPDSI, IID_IPropertyDescriptionSearchInfo);
+    return PyLong_FromUnsignedLong(flags);
 }
 
 // @pymethod int|PyIPropertyDescriptionSearchInfo|GetColumnIndexType|Returns flags indicating type of property
 // @rdesc Returns a value from the PROPDESC_COLUMNINDEX_TYPE enum
 PyObject *PyIPropertyDescriptionSearchInfo::GetColumnIndexType(PyObject *self, PyObject *args)
 {
-	IPropertyDescriptionSearchInfo *pIPDSI = GetI(self);
-	if ( pIPDSI == NULL )
-		return NULL;
-	PROPDESC_COLUMNINDEX_TYPE coltype;
+    IPropertyDescriptionSearchInfo *pIPDSI = GetI(self);
+    if (pIPDSI == NULL)
+        return NULL;
+    PROPDESC_COLUMNINDEX_TYPE coltype;
 
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIPDSI->GetColumnIndexType(&coltype);
-	PY_INTERFACE_POSTCALL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIPDSI->GetColumnIndexType(&coltype);
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pIPDSI, IID_IPropertyDescriptionSearchInfo );
-	return PyLong_FromUnsignedLong(coltype);
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pIPDSI, IID_IPropertyDescriptionSearchInfo);
+    return PyLong_FromUnsignedLong(coltype);
 }
 
 // @pymethod str|PyIPropertyDescriptionSearchInfo|GetProjectionString|Returns the canonical name of the property
 PyObject *PyIPropertyDescriptionSearchInfo::GetProjectionString(PyObject *self, PyObject *args)
 {
-	IPropertyDescriptionSearchInfo *pIPDSI = GetI(self);
-	if ( pIPDSI == NULL )
-		return NULL;
-	LPWSTR colname;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIPDSI->GetProjectionString(&colname);
-	PY_INTERFACE_POSTCALL;
+    IPropertyDescriptionSearchInfo *pIPDSI = GetI(self);
+    if (pIPDSI == NULL)
+        return NULL;
+    LPWSTR colname;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIPDSI->GetProjectionString(&colname);
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pIPDSI, IID_IPropertyDescriptionSearchInfo );
-	PyObject *ret = PyWinObject_FromWCHAR(colname);
-	CoTaskMemFree(colname);
-	return ret;
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pIPDSI, IID_IPropertyDescriptionSearchInfo);
+    PyObject *ret = PyWinObject_FromWCHAR(colname);
+    CoTaskMemFree(colname);
+    return ret;
 }
 
 // @pymethod int|PyIPropertyDescriptionSearchInfo|GetMaxSize|Returns the maximum size specified in search options
 PyObject *PyIPropertyDescriptionSearchInfo::GetMaxSize(PyObject *self, PyObject *args)
 {
-	IPropertyDescriptionSearchInfo *pIPDSI = GetI(self);
-	if ( pIPDSI == NULL )
-		return NULL;
-	UINT maxsize;
+    IPropertyDescriptionSearchInfo *pIPDSI = GetI(self);
+    if (pIPDSI == NULL)
+        return NULL;
+    UINT maxsize;
 
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIPDSI->GetMaxSize(&maxsize );
-	PY_INTERFACE_POSTCALL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIPDSI->GetMaxSize(&maxsize);
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pIPDSI, IID_IPropertyDescriptionSearchInfo );
-	return PyLong_FromUnsignedLong(maxsize);
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pIPDSI, IID_IPropertyDescriptionSearchInfo);
+    return PyLong_FromUnsignedLong(maxsize);
 }
 
-// @object PyIPropertyDescriptionSearchInfo|Interface that retrieves indexing options defined in a property's searchinfo XML element
+// @object PyIPropertyDescriptionSearchInfo|Interface that retrieves indexing options defined in a property's searchinfo
+// XML element
 //	Inhererits all methods of <o PyIPropertyDescription>
-static struct PyMethodDef PyIPropertyDescriptionSearchInfo_methods[] =
-{
-	{ "GetSearchInfoFlags", PyIPropertyDescriptionSearchInfo::GetSearchInfoFlags, METH_NOARGS}, // @pymeth GetSearchInfoFlags|Returns flags controlling how property is indexed
-	{ "GetColumnIndexType", PyIPropertyDescriptionSearchInfo::GetColumnIndexType, METH_NOARGS}, // @pymeth GetColumnIndexType|Returns flags indicating type of property
-	{ "GetProjectionString", PyIPropertyDescriptionSearchInfo::GetProjectionString, METH_NOARGS}, // @pymeth GetProjectionString|Returns the canonical name of the property
-	{ "GetMaxSize", PyIPropertyDescriptionSearchInfo::GetMaxSize, METH_NOARGS}, // @pymeth GetMaxSize|Returns the maximum size specified in search options
-	{ NULL }
-};
+static struct PyMethodDef PyIPropertyDescriptionSearchInfo_methods[] = {
+    {"GetSearchInfoFlags", PyIPropertyDescriptionSearchInfo::GetSearchInfoFlags,
+     METH_NOARGS},  // @pymeth GetSearchInfoFlags|Returns flags controlling how property is indexed
+    {"GetColumnIndexType", PyIPropertyDescriptionSearchInfo::GetColumnIndexType,
+     METH_NOARGS},  // @pymeth GetColumnIndexType|Returns flags indicating type of property
+    {"GetProjectionString", PyIPropertyDescriptionSearchInfo::GetProjectionString,
+     METH_NOARGS},  // @pymeth GetProjectionString|Returns the canonical name of the property
+    {"GetMaxSize", PyIPropertyDescriptionSearchInfo::GetMaxSize,
+     METH_NOARGS},  // @pymeth GetMaxSize|Returns the maximum size specified in search options
+    {NULL}};
 
 PyComTypeObject PyIPropertyDescriptionSearchInfo::type("PyIPropertyDescriptionSearchInfo",
-		&PyIPropertyDescription::type,
-		sizeof(PyIPropertyDescriptionSearchInfo),
-		PyIPropertyDescriptionSearchInfo_methods,
-		GET_PYCOM_CTOR(PyIPropertyDescriptionSearchInfo));
+                                                       &PyIPropertyDescription::type,
+                                                       sizeof(PyIPropertyDescriptionSearchInfo),
+                                                       PyIPropertyDescriptionSearchInfo_methods,
+                                                       GET_PYCOM_CTOR(PyIPropertyDescriptionSearchInfo));

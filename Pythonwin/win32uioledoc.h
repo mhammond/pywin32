@@ -3,22 +3,23 @@
 #include "win32doc.h"
 
 class PyCOleDocument : public PyCDocument {
-protected:
-public:
-	static COleDocument *GetDoc(PyObject *self);
-	static PyObject *Create(PyObject *self, PyObject *args);
+   protected:
+   public:
+    static COleDocument *GetDoc(PyObject *self);
+    static PyObject *Create(PyObject *self, PyObject *args);
 
-	MAKE_PY_CTOR(PyCOleDocument);
-	static ui_type_CObject type;
+    MAKE_PY_CTOR(PyCOleDocument);
+    static ui_type_CObject type;
 };
 
 class PyCOleClientItem : public PyCCmdTarget {
-protected:
-	PyCOleClientItem() {;}
-	~PyCOleClientItem() {;}
-public:
-	static COleClientItem *GetOleClientItem(PyObject *self);
+   protected:
+    PyCOleClientItem() { ; }
+    ~PyCOleClientItem() { ; }
 
-	MAKE_PY_CTOR(PyCOleClientItem);
-	static ui_type_CObject type;
+   public:
+    static COleClientItem *GetOleClientItem(PyObject *self);
+
+    MAKE_PY_CTOR(PyCOleClientItem);
+    static ui_type_CObject type;
 };

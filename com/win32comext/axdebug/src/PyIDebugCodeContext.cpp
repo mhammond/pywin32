@@ -9,102 +9,94 @@
 //
 // Interface Implementation
 
-PyIDebugCodeContext::PyIDebugCodeContext(IUnknown *pdisp):
-	PyIUnknown(pdisp)
-{
-	ob_type = &type;
-}
+PyIDebugCodeContext::PyIDebugCodeContext(IUnknown *pdisp) : PyIUnknown(pdisp) { ob_type = &type; }
 
-PyIDebugCodeContext::~PyIDebugCodeContext()
-{
-}
+PyIDebugCodeContext::~PyIDebugCodeContext() {}
 
 /* static */ IDebugCodeContext *PyIDebugCodeContext::GetI(PyObject *self)
 {
-	return (IDebugCodeContext *)PyIUnknown::GetI(self);
+    return (IDebugCodeContext *)PyIUnknown::GetI(self);
 }
 
 // @pymethod |PyIDebugCodeContext|GetDocumentContext|Description of GetDocumentContext.
 PyObject *PyIDebugCodeContext::GetDocumentContext(PyObject *self, PyObject *args)
 {
-	PY_INTERFACE_METHOD;
-	IDebugCodeContext *pIDCC = GetI(self);
-	if ( pIDCC == NULL )
-		return NULL;
-	IDebugDocumentContext *ppsc;
-	if ( !PyArg_ParseTuple(args, ":GetDocumentContext") )
-		return NULL;
-	PY_INTERFACE_PRECALL;
-	HRESULT hr = pIDCC->GetDocumentContext( &ppsc );
-	PY_INTERFACE_POSTCALL;
-	if ( FAILED(hr) )
-		return SetPythonCOMError(self,hr);
-	return PyCom_PyObjectFromIUnknown(ppsc, IID_IDebugDocumentContext, FALSE);
+    PY_INTERFACE_METHOD;
+    IDebugCodeContext *pIDCC = GetI(self);
+    if (pIDCC == NULL)
+        return NULL;
+    IDebugDocumentContext *ppsc;
+    if (!PyArg_ParseTuple(args, ":GetDocumentContext"))
+        return NULL;
+    PY_INTERFACE_PRECALL;
+    HRESULT hr = pIDCC->GetDocumentContext(&ppsc);
+    PY_INTERFACE_POSTCALL;
+    if (FAILED(hr))
+        return SetPythonCOMError(self, hr);
+    return PyCom_PyObjectFromIUnknown(ppsc, IID_IDebugDocumentContext, FALSE);
 }
 
 // @pymethod |PyIDebugCodeContext|SetBreakPoint|Description of SetBreakPoint.
 PyObject *PyIDebugCodeContext::SetBreakPoint(PyObject *self, PyObject *args)
 {
-	PY_INTERFACE_METHOD;
-	IDebugCodeContext *pIDCC = GetI(self);
-	if ( pIDCC == NULL )
-		return NULL;
-	// @pyparm int|bps||Description for bps
-	BREAKPOINT_STATE bps;
-	if ( !PyArg_ParseTuple(args, "i:SetBreakPoint", &bps) )
-		return NULL;
-	PY_INTERFACE_PRECALL;
-	HRESULT hr = pIDCC->SetBreakPoint( bps );
-	PY_INTERFACE_POSTCALL;
-	if ( FAILED(hr) )
-		return SetPythonCOMError(self,hr);
-	Py_INCREF(Py_None);
-	return Py_None;
-
+    PY_INTERFACE_METHOD;
+    IDebugCodeContext *pIDCC = GetI(self);
+    if (pIDCC == NULL)
+        return NULL;
+    // @pyparm int|bps||Description for bps
+    BREAKPOINT_STATE bps;
+    if (!PyArg_ParseTuple(args, "i:SetBreakPoint", &bps))
+        return NULL;
+    PY_INTERFACE_PRECALL;
+    HRESULT hr = pIDCC->SetBreakPoint(bps);
+    PY_INTERFACE_POSTCALL;
+    if (FAILED(hr))
+        return SetPythonCOMError(self, hr);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @object PyIDebugCodeContext|Description of the interface
-static struct PyMethodDef PyIDebugCodeContext_methods[] =
-{
-	{ "GetDocumentContext", PyIDebugCodeContext::GetDocumentContext, 1 }, // @pymeth GetDocumentContext|Description of GetDocumentContext
-	{ "SetBreakPoint", PyIDebugCodeContext::SetBreakPoint, 1 }, // @pymeth SetBreakPoint|Description of SetBreakPoint
-	{ NULL }
-};
+static struct PyMethodDef PyIDebugCodeContext_methods[] = {
+    {"GetDocumentContext", PyIDebugCodeContext::GetDocumentContext,
+     1},  // @pymeth GetDocumentContext|Description of GetDocumentContext
+    {"SetBreakPoint", PyIDebugCodeContext::SetBreakPoint, 1},  // @pymeth SetBreakPoint|Description of SetBreakPoint
+    {NULL}};
 
-PyComTypeObject PyIDebugCodeContext::type("PyIDebugCodeContext",
-		&PyIUnknown::type,
-		sizeof(PyIDebugCodeContext),
-		PyIDebugCodeContext_methods,
-		GET_PYCOM_CTOR(PyIDebugCodeContext));
+PyComTypeObject PyIDebugCodeContext::type("PyIDebugCodeContext", &PyIUnknown::type, sizeof(PyIDebugCodeContext),
+                                          PyIDebugCodeContext_methods, GET_PYCOM_CTOR(PyIDebugCodeContext));
 // ---------------------------------------------------
 //
 // Gateway Implementation
 
 // Std delegation
 STDMETHODIMP PyGDebugCodeContext::GetDocumentContext(
-		/* [out] */ IDebugDocumentContext __RPC_FAR *__RPC_FAR * ppsc)
+    /* [out] */ IDebugDocumentContext __RPC_FAR *__RPC_FAR *ppsc)
 {
-	PY_GATEWAY_METHOD;
-	if (ppsc==NULL) return E_POINTER;
-	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("GetDocumentContext", &result);
-	if (FAILED(hr)) return hr;
-	// Process the Python results, and convert back to the real params
-	PyObject *obppsc;
-	if (!PyArg_Parse(result, "O" , &obppsc)) return PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
-	BOOL bPythonIsHappy = TRUE;
-	if (!PyCom_InterfaceFromPyInstanceOrObject(obppsc, IID_IDebugDocumentContext, (void **)ppsc, FALSE /* bNoneOK */))
-		 bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) hr = PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
-	Py_DECREF(result);
-	return hr;
+    PY_GATEWAY_METHOD;
+    if (ppsc == NULL)
+        return E_POINTER;
+    PyObject *result;
+    HRESULT hr = InvokeViaPolicy("GetDocumentContext", &result);
+    if (FAILED(hr))
+        return hr;
+    // Process the Python results, and convert back to the real params
+    PyObject *obppsc;
+    if (!PyArg_Parse(result, "O", &obppsc))
+        return PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
+    BOOL bPythonIsHappy = TRUE;
+    if (!PyCom_InterfaceFromPyInstanceOrObject(obppsc, IID_IDebugDocumentContext, (void **)ppsc, FALSE /* bNoneOK */))
+        bPythonIsHappy = FALSE;
+    if (!bPythonIsHappy)
+        hr = PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
+    Py_DECREF(result);
+    return hr;
 }
 
 STDMETHODIMP PyGDebugCodeContext::SetBreakPoint(
-		/* [in] */ BREAKPOINT_STATE bps)
+    /* [in] */ BREAKPOINT_STATE bps)
 {
-	PY_GATEWAY_METHOD;
-	HRESULT hr=InvokeViaPolicy("SetBreakPoint", NULL, "i", bps);
-	return hr;
+    PY_GATEWAY_METHOD;
+    HRESULT hr = InvokeViaPolicy("SetBreakPoint", NULL, "i", bps);
+    return hr;
 }
-

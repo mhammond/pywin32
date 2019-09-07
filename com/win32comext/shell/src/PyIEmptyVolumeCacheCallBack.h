@@ -3,18 +3,17 @@
 //
 // Interface Declaration
 
-class PyIEmptyVolumeCacheCallBack : public PyIUnknown
-{
-public:
-	MAKE_PYCOM_CTOR(PyIEmptyVolumeCacheCallBack);
-	static IEmptyVolumeCacheCallBack *GetI(PyObject *self);
-	static PyComTypeObject type;
+class PyIEmptyVolumeCacheCallBack : public PyIUnknown {
+   public:
+    MAKE_PYCOM_CTOR(PyIEmptyVolumeCacheCallBack);
+    static IEmptyVolumeCacheCallBack *GetI(PyObject *self);
+    static PyComTypeObject type;
 
-	// The Python methods
-	static PyObject *ScanProgress(PyObject *self, PyObject *args);
-	static PyObject *PurgeProgress(PyObject *self, PyObject *args);
+    // The Python methods
+    static PyObject *ScanProgress(PyObject *self, PyObject *args);
+    static PyObject *PurgeProgress(PyObject *self, PyObject *args);
 
-protected:
-	PyIEmptyVolumeCacheCallBack(IUnknown *pdisp);
-	~PyIEmptyVolumeCacheCallBack();
+   protected:
+    PyIEmptyVolumeCacheCallBack(IUnknown *pdisp);
+    ~PyIEmptyVolumeCacheCallBack();
 };

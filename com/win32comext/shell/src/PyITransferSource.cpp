@@ -9,120 +9,114 @@
 //
 // Interface Implementation
 
-PyITransferSource::PyITransferSource(IUnknown *pdisp):
-	PyIUnknown(pdisp)
-{
-	ob_type = &type;
-}
+PyITransferSource::PyITransferSource(IUnknown *pdisp) : PyIUnknown(pdisp) { ob_type = &type; }
 
-PyITransferSource::~PyITransferSource()
-{
-}
+PyITransferSource::~PyITransferSource() {}
 
 /* static */ ITransferSource *PyITransferSource::GetI(PyObject *self)
 {
-	return (ITransferSource *)PyIUnknown::GetI(self);
+    return (ITransferSource *)PyIUnknown::GetI(self);
 }
 
 // @pymethod int|PyITransferSource|Advise|Connects an advise sink to receive notifications
 PyObject *PyITransferSource::Advise(PyObject *self, PyObject *args)
 {
-	ITransferSource *pITS = GetI(self);
-	if ( pITS == NULL )
-		return NULL;
-	// @pyparm <o PyITransferAdviseSink>|Sink||Event sink to respond to notifications
-	PyObject *obpsink;
-	ITransferAdviseSink * psink;
-	DWORD dwCookie;
-	if ( !PyArg_ParseTuple(args, "O:Advise", &obpsink) )
-		return NULL;
-	if (!PyCom_InterfaceFromPyInstanceOrObject(obpsink, IID_ITransferAdviseSink, (void **)&psink, FALSE))
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pITS->Advise( psink, &dwCookie );
-	psink->Release();
-	PY_INTERFACE_POSTCALL;
+    ITransferSource *pITS = GetI(self);
+    if (pITS == NULL)
+        return NULL;
+    // @pyparm <o PyITransferAdviseSink>|Sink||Event sink to respond to notifications
+    PyObject *obpsink;
+    ITransferAdviseSink *psink;
+    DWORD dwCookie;
+    if (!PyArg_ParseTuple(args, "O:Advise", &obpsink))
+        return NULL;
+    if (!PyCom_InterfaceFromPyInstanceOrObject(obpsink, IID_ITransferAdviseSink, (void **)&psink, FALSE))
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pITS->Advise(psink, &dwCookie);
+    psink->Release();
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pITS, IID_ITransferSource );
-	return PyLong_FromUnsignedLong(dwCookie);
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pITS, IID_ITransferSource);
+    return PyLong_FromUnsignedLong(dwCookie);
 }
 
 // @pymethod |PyITransferSource|Unadvise|Disconnects an event sink
 PyObject *PyITransferSource::Unadvise(PyObject *self, PyObject *args)
 {
-	ITransferSource *pITS = GetI(self);
-	if ( pITS == NULL )
-		return NULL;
-	// @pyparm int|Cookie||Connection id as returned by <om PyITransferSource.Advise>
-	DWORD dwCookie;
-	if ( !PyArg_ParseTuple(args, "k:Unadvise", &dwCookie) )
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pITS->Unadvise( dwCookie );
-	PY_INTERFACE_POSTCALL;
+    ITransferSource *pITS = GetI(self);
+    if (pITS == NULL)
+        return NULL;
+    // @pyparm int|Cookie||Connection id as returned by <om PyITransferSource.Advise>
+    DWORD dwCookie;
+    if (!PyArg_ParseTuple(args, "k:Unadvise", &dwCookie))
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pITS->Unadvise(dwCookie);
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pITS, IID_ITransferSource );
-	Py_INCREF(Py_None);
-	return Py_None;
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pITS, IID_ITransferSource);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @pymethod |PyITransferSource|SetProperties|Specifies changes to be applied to items' properties
 PyObject *PyITransferSource::SetProperties(PyObject *self, PyObject *args)
 {
-	ITransferSource *pITS = GetI(self);
-	if ( pITS == NULL )
-		return NULL;
-	// @pyparm <o PyIPropertyChangeArray>|proparray||Property changes to be applied by <om PyITransferSource.ApplyPropertiesToItem>
-	PyObject *obpproparray;
-	IPropertyChangeArray * pproparray;
-	if ( !PyArg_ParseTuple(args, "O:SetProperties", &obpproparray) )
-		return NULL;
-	if (!PyCom_InterfaceFromPyObject(obpproparray, IID_IPropertyChangeArray, (void **)&pproparray, FALSE))
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pITS->SetProperties( pproparray );
-	pproparray->Release();
-	PY_INTERFACE_POSTCALL;
+    ITransferSource *pITS = GetI(self);
+    if (pITS == NULL)
+        return NULL;
+    // @pyparm <o PyIPropertyChangeArray>|proparray||Property changes to be applied by <om
+    // PyITransferSource.ApplyPropertiesToItem>
+    PyObject *obpproparray;
+    IPropertyChangeArray *pproparray;
+    if (!PyArg_ParseTuple(args, "O:SetProperties", &obpproparray))
+        return NULL;
+    if (!PyCom_InterfaceFromPyObject(obpproparray, IID_IPropertyChangeArray, (void **)&pproparray, FALSE))
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pITS->SetProperties(pproparray);
+    pproparray->Release();
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pITS, IID_ITransferSource );
-	Py_INCREF(Py_None);
-	return Py_None;
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pITS, IID_ITransferSource);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @pymethod (int, <o PyIShellItemResources>)|PyITransferSource|OpenItem|Initiates the copying of an item
 PyObject *PyITransferSource::OpenItem(PyObject *self, PyObject *args)
 {
-	ITransferSource *pITS = GetI(self);
-	if ( pITS == NULL )
-		return NULL;
-	// @pyparm <o PyIShellItem>|Item||The item to be copied.
-	TRANSFER_SOURCE_FLAGS flags;
-	// @pyparm int|flags||Combination of shellcon.TSF_* flags
-	// @pyparm <o PyIID>|riid|IID_IShellItemResources|The interface to return
-	void *pv;
-	PyObject *obpsi;
-	IShellItem * psi;
-	IID riid = IID_IShellItemResources;
-	if ( !PyArg_ParseTuple(args, "Oi|O&:OpenItem", &obpsi, &flags,
-		PyWinObject_AsIID, &riid))
-		return NULL;
-	if (!PyCom_InterfaceFromPyInstanceOrObject(obpsi, IID_IShellItem, (void **)&psi, FALSE))
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pITS->OpenItem( psi, flags, riid, &pv);
-	psi->Release();
-	PY_INTERFACE_POSTCALL;
+    ITransferSource *pITS = GetI(self);
+    if (pITS == NULL)
+        return NULL;
+    // @pyparm <o PyIShellItem>|Item||The item to be copied.
+    TRANSFER_SOURCE_FLAGS flags;
+    // @pyparm int|flags||Combination of shellcon.TSF_* flags
+    // @pyparm <o PyIID>|riid|IID_IShellItemResources|The interface to return
+    void *pv;
+    PyObject *obpsi;
+    IShellItem *psi;
+    IID riid = IID_IShellItemResources;
+    if (!PyArg_ParseTuple(args, "Oi|O&:OpenItem", &obpsi, &flags, PyWinObject_AsIID, &riid))
+        return NULL;
+    if (!PyCom_InterfaceFromPyInstanceOrObject(obpsi, IID_IShellItem, (void **)&psi, FALSE))
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pITS->OpenItem(psi, flags, riid, &pv);
+    psi->Release();
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pITS, IID_ITransferSource );
-	return Py_BuildValue("lN", hr, PyCom_PyObjectFromIUnknown((IUnknown *)pv, riid, FALSE));
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pITS, IID_ITransferSource);
+    return Py_BuildValue("lN", hr, PyCom_PyObjectFromIUnknown((IUnknown *)pv, riid, FALSE));
 }
 
 // @pymethod (int, <o PyIShellItem>|PyITransferSource|MoveItem|Moves a shell item into another folder
@@ -131,573 +125,593 @@ PyObject *PyITransferSource::OpenItem(PyObject *self, PyObject *args)
 //  of expected actions for specific error codes.
 PyObject *PyITransferSource::MoveItem(PyObject *self, PyObject *args)
 {
-	ITransferSource *pITS = GetI(self);
-	if ( pITS == NULL )
-		return NULL;
-	// @pyparm <o PyIShellItem>|Item||Item to be moved
-	// @pyparm <o PyIShellItem>|ParentDst||The folder into which it will be moved
-	// @pyparm <o unicode>|NameDst||New name for item after move, None to keep same name
-	TRANSFER_SOURCE_FLAGS flags;
-	// @pyparm int|flags||Combination of shellcon.TSF_* flags
-	PyObject *obpsi;
-	PyObject *obpsiParentDst;
-	PyObject *obNameDst;
-	IShellItem * psi;
-	IShellItem * psiParentDst;
-	TmpWCHAR NameDst;
-	IShellItem * ppsiNew;
-	if ( !PyArg_ParseTuple(args, "OOOi:MoveItem", &obpsi, &obpsiParentDst, &obNameDst, &flags) )
-		return NULL;
-	if (!PyWinObject_AsWCHAR(obNameDst, &NameDst, TRUE))
-		return NULL;
-	if (!PyCom_InterfaceFromPyInstanceOrObject(obpsi, IID_IShellItem, (void **)&psi, FALSE))
-		return NULL;
-	if (!PyCom_InterfaceFromPyInstanceOrObject(obpsiParentDst, IID_IShellItem, (void **)&psiParentDst, FALSE)){
-		 PYCOM_RELEASE(psi);
-		 return NULL;
-		}
+    ITransferSource *pITS = GetI(self);
+    if (pITS == NULL)
+        return NULL;
+    // @pyparm <o PyIShellItem>|Item||Item to be moved
+    // @pyparm <o PyIShellItem>|ParentDst||The folder into which it will be moved
+    // @pyparm <o unicode>|NameDst||New name for item after move, None to keep same name
+    TRANSFER_SOURCE_FLAGS flags;
+    // @pyparm int|flags||Combination of shellcon.TSF_* flags
+    PyObject *obpsi;
+    PyObject *obpsiParentDst;
+    PyObject *obNameDst;
+    IShellItem *psi;
+    IShellItem *psiParentDst;
+    TmpWCHAR NameDst;
+    IShellItem *ppsiNew;
+    if (!PyArg_ParseTuple(args, "OOOi:MoveItem", &obpsi, &obpsiParentDst, &obNameDst, &flags))
+        return NULL;
+    if (!PyWinObject_AsWCHAR(obNameDst, &NameDst, TRUE))
+        return NULL;
+    if (!PyCom_InterfaceFromPyInstanceOrObject(obpsi, IID_IShellItem, (void **)&psi, FALSE))
+        return NULL;
+    if (!PyCom_InterfaceFromPyInstanceOrObject(obpsiParentDst, IID_IShellItem, (void **)&psiParentDst, FALSE)) {
+        PYCOM_RELEASE(psi);
+        return NULL;
+    }
 
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pITS->MoveItem( psi, psiParentDst, NameDst, flags, &ppsiNew );
-	psi->Release();
-	psiParentDst->Release();
-	PY_INTERFACE_POSTCALL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pITS->MoveItem(psi, psiParentDst, NameDst, flags, &ppsiNew);
+    psi->Release();
+    psiParentDst->Release();
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pITS, IID_ITransferSource );
-	return Py_BuildValue("lN", hr, PyCom_PyObjectFromIUnknown(ppsiNew, IID_IShellItem, FALSE));
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pITS, IID_ITransferSource);
+    return Py_BuildValue("lN", hr, PyCom_PyObjectFromIUnknown(ppsiNew, IID_IShellItem, FALSE));
 }
 
 // @pymethod (int, <o PyIShellItem>|PyITransferSource|RecycleItem|Moves an item to the recycle bin
 PyObject *PyITransferSource::RecycleItem(PyObject *self, PyObject *args)
 {
-	ITransferSource *pITS = GetI(self);
-	if ( pITS == NULL )
-		return NULL;
-	// @pyparm <o PyIShellItem>|Source||The item to be recycled
-	// @pyparm <o PyIShellItem>|ParentDest||Shell item representing the recycle bin
-	TRANSFER_SOURCE_FLAGS flags;
-	// @pyparm int|flags||Combination of shellcon.TSF_* flags
-	PyObject *obpsiSource;
-	PyObject *obpsiParentDest;
-	IShellItem * psiSource;
-	IShellItem * psiParentDest;
-	IShellItem * ppsiNewDest;
-	if ( !PyArg_ParseTuple(args, "OOi:RecycleItem", &obpsiSource, &obpsiParentDest, &flags) )
-		return NULL;
-	if (!PyCom_InterfaceFromPyInstanceOrObject(obpsiSource, IID_IShellItem, (void **)&psiSource, FALSE))
-		return NULL;
-	if (!PyCom_InterfaceFromPyInstanceOrObject(obpsiParentDest, IID_IShellItem, (void **)&psiParentDest, FALSE)){
-		PYCOM_RELEASE(psiSource);
-		return NULL;
-		}
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pITS->RecycleItem( psiSource, psiParentDest, flags, &ppsiNewDest );
-	psiSource->Release();
-	psiParentDest->Release();
-	PY_INTERFACE_POSTCALL;
+    ITransferSource *pITS = GetI(self);
+    if (pITS == NULL)
+        return NULL;
+    // @pyparm <o PyIShellItem>|Source||The item to be recycled
+    // @pyparm <o PyIShellItem>|ParentDest||Shell item representing the recycle bin
+    TRANSFER_SOURCE_FLAGS flags;
+    // @pyparm int|flags||Combination of shellcon.TSF_* flags
+    PyObject *obpsiSource;
+    PyObject *obpsiParentDest;
+    IShellItem *psiSource;
+    IShellItem *psiParentDest;
+    IShellItem *ppsiNewDest;
+    if (!PyArg_ParseTuple(args, "OOi:RecycleItem", &obpsiSource, &obpsiParentDest, &flags))
+        return NULL;
+    if (!PyCom_InterfaceFromPyInstanceOrObject(obpsiSource, IID_IShellItem, (void **)&psiSource, FALSE))
+        return NULL;
+    if (!PyCom_InterfaceFromPyInstanceOrObject(obpsiParentDest, IID_IShellItem, (void **)&psiParentDest, FALSE)) {
+        PYCOM_RELEASE(psiSource);
+        return NULL;
+    }
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pITS->RecycleItem(psiSource, psiParentDest, flags, &ppsiNewDest);
+    psiSource->Release();
+    psiParentDest->Release();
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pITS, IID_ITransferSource );
-	return Py_BuildValue("lO", hr, PyCom_PyObjectFromIUnknown(ppsiNewDest, IID_IShellItem, FALSE));
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pITS, IID_ITransferSource);
+    return Py_BuildValue("lO", hr, PyCom_PyObjectFromIUnknown(ppsiNewDest, IID_IShellItem, FALSE));
 }
 
 // @pymethod int|PyITransferSource|RemoveItem|Deletes an item without recycling
 // @rdesc Returns the HRESULT of the operation
 PyObject *PyITransferSource::RemoveItem(PyObject *self, PyObject *args)
 {
-	ITransferSource *pITS = GetI(self);
-	if ( pITS == NULL )
-		return NULL;
-	// @pyparm <o PyIShellItem>|Source||The item to be deleted
-	TRANSFER_SOURCE_FLAGS flags;
-	// @pyparm int|flags||Combination of shellcon.TSF_* flags
-	PyObject *obpsiSource;
-	IShellItem * psiSource;
-	if ( !PyArg_ParseTuple(args, "Oi:RemoveItem", &obpsiSource, &flags) )
-		return NULL;
-	if (!PyCom_InterfaceFromPyInstanceOrObject(obpsiSource, IID_IShellItem, (void **)&psiSource, FALSE))
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pITS->RemoveItem( psiSource, flags );
-	psiSource->Release();
-	PY_INTERFACE_POSTCALL;
+    ITransferSource *pITS = GetI(self);
+    if (pITS == NULL)
+        return NULL;
+    // @pyparm <o PyIShellItem>|Source||The item to be deleted
+    TRANSFER_SOURCE_FLAGS flags;
+    // @pyparm int|flags||Combination of shellcon.TSF_* flags
+    PyObject *obpsiSource;
+    IShellItem *psiSource;
+    if (!PyArg_ParseTuple(args, "Oi:RemoveItem", &obpsiSource, &flags))
+        return NULL;
+    if (!PyCom_InterfaceFromPyInstanceOrObject(obpsiSource, IID_IShellItem, (void **)&psiSource, FALSE))
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pITS->RemoveItem(psiSource, flags);
+    psiSource->Release();
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pITS, IID_ITransferSource );
-	return PyInt_FromLong(hr);
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pITS, IID_ITransferSource);
+    return PyInt_FromLong(hr);
 }
 
 // @pymethod (int, <o PyIShellItem>)|PyITransferSource|RenameItem|Renames a shell item
 PyObject *PyITransferSource::RenameItem(PyObject *self, PyObject *args)
 {
-	ITransferSource *pITS = GetI(self);
-	if ( pITS == NULL )
-		return NULL;
-	// @pyparm <o PyIShellItem>|Source||Item to be renamed
-	// @pyparm str|NewName||The name to be given to the item
-	TRANSFER_SOURCE_FLAGS flags;
-	// @pyparm int|flags||Combination of shellcon.TSF_* flags
-	PyObject *obpsiSource;
-	PyObject *obNewName;
-	IShellItem * psiSource;
-	TmpWCHAR NewName;
-	IShellItem * ppsiNewDest;
-	if ( !PyArg_ParseTuple(args, "OOi:RenameItem", &obpsiSource, &obNewName, &flags) )
-		return NULL;
-	if (!PyWinObject_AsWCHAR(obNewName, &NewName, FALSE))
-		return NULL;
-	if (!PyCom_InterfaceFromPyInstanceOrObject(obpsiSource, IID_IShellItem, (void **)&psiSource, FALSE))
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pITS->RenameItem( psiSource, NewName, flags, &ppsiNewDest );
-	psiSource->Release();
-	PY_INTERFACE_POSTCALL;
+    ITransferSource *pITS = GetI(self);
+    if (pITS == NULL)
+        return NULL;
+    // @pyparm <o PyIShellItem>|Source||Item to be renamed
+    // @pyparm str|NewName||The name to be given to the item
+    TRANSFER_SOURCE_FLAGS flags;
+    // @pyparm int|flags||Combination of shellcon.TSF_* flags
+    PyObject *obpsiSource;
+    PyObject *obNewName;
+    IShellItem *psiSource;
+    TmpWCHAR NewName;
+    IShellItem *ppsiNewDest;
+    if (!PyArg_ParseTuple(args, "OOi:RenameItem", &obpsiSource, &obNewName, &flags))
+        return NULL;
+    if (!PyWinObject_AsWCHAR(obNewName, &NewName, FALSE))
+        return NULL;
+    if (!PyCom_InterfaceFromPyInstanceOrObject(obpsiSource, IID_IShellItem, (void **)&psiSource, FALSE))
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pITS->RenameItem(psiSource, NewName, flags, &ppsiNewDest);
+    psiSource->Release();
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pITS, IID_ITransferSource );
-	return Py_BuildValue("lN", hr, PyCom_PyObjectFromIUnknown(ppsiNewDest, IID_IShellItem, FALSE));
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pITS, IID_ITransferSource);
+    return Py_BuildValue("lN", hr, PyCom_PyObjectFromIUnknown(ppsiNewDest, IID_IShellItem, FALSE));
 }
 
 // @pymethod (int, <o PyIShellItem>|PyITransferSource|LinkItem|Not implemented, according to MSDN
 PyObject *PyITransferSource::LinkItem(PyObject *self, PyObject *args)
 {
-	ITransferSource *pITS = GetI(self);
-	if ( pITS == NULL )
-		return NULL;
-	// @pyparm <o PyIShellItem>|Source||Description for psiSource
-	// @pyparm <o PyIShellItem>|ParentDest||Description for psiParentDest
-	// @pyparm str|NewName||Description for NewName
-	TRANSFER_SOURCE_FLAGS flags;
-	// @pyparm int|flags||Combination of shellcon.TSF_* flags
-	PyObject *obpsiSource;
-	PyObject *obpsiParentDest;
-	PyObject *obNewName;
-	IShellItem * psiSource;
-	IShellItem * psiParentDest;
-	TmpWCHAR NewName;
-	IShellItem * ppsiNewDest;
-	if ( !PyArg_ParseTuple(args, "OOOi:LinkItem", &obpsiSource, &obpsiParentDest, &obNewName, &flags) )
-		return NULL;
-	if (!PyWinObject_AsWCHAR(obNewName, &NewName))
-		return NULL;
+    ITransferSource *pITS = GetI(self);
+    if (pITS == NULL)
+        return NULL;
+    // @pyparm <o PyIShellItem>|Source||Description for psiSource
+    // @pyparm <o PyIShellItem>|ParentDest||Description for psiParentDest
+    // @pyparm str|NewName||Description for NewName
+    TRANSFER_SOURCE_FLAGS flags;
+    // @pyparm int|flags||Combination of shellcon.TSF_* flags
+    PyObject *obpsiSource;
+    PyObject *obpsiParentDest;
+    PyObject *obNewName;
+    IShellItem *psiSource;
+    IShellItem *psiParentDest;
+    TmpWCHAR NewName;
+    IShellItem *ppsiNewDest;
+    if (!PyArg_ParseTuple(args, "OOOi:LinkItem", &obpsiSource, &obpsiParentDest, &obNewName, &flags))
+        return NULL;
+    if (!PyWinObject_AsWCHAR(obNewName, &NewName))
+        return NULL;
 
-	if (!PyCom_InterfaceFromPyInstanceOrObject(obpsiSource, IID_IShellItem, (void **)&psiSource, FALSE))
-		return NULL;
-	if (!PyCom_InterfaceFromPyInstanceOrObject(obpsiParentDest, IID_IShellItem, (void **)&psiParentDest, FALSE)){
-		PYCOM_RELEASE(psiSource);
-		return NULL;
-		}
+    if (!PyCom_InterfaceFromPyInstanceOrObject(obpsiSource, IID_IShellItem, (void **)&psiSource, FALSE))
+        return NULL;
+    if (!PyCom_InterfaceFromPyInstanceOrObject(obpsiParentDest, IID_IShellItem, (void **)&psiParentDest, FALSE)) {
+        PYCOM_RELEASE(psiSource);
+        return NULL;
+    }
 
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pITS->LinkItem( psiSource, psiParentDest, NewName, flags, &ppsiNewDest );
-	psiSource->Release();
-	psiParentDest->Release();
-	PY_INTERFACE_POSTCALL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pITS->LinkItem(psiSource, psiParentDest, NewName, flags, &ppsiNewDest);
+    psiSource->Release();
+    psiParentDest->Release();
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pITS, IID_ITransferSource );
-	return Py_BuildValue("lN", hr, PyCom_PyObjectFromIUnknown(ppsiNewDest, IID_IShellItem, FALSE));
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pITS, IID_ITransferSource);
+    return Py_BuildValue("lN", hr, PyCom_PyObjectFromIUnknown(ppsiNewDest, IID_IShellItem, FALSE));
 }
 
-// @pymethod <o PyIShellItem>|PyITransferSource|ApplyPropertiesToItem|Changes an item's properties as specified by <om PyITransferSource::SetProperties>
+// @pymethod <o PyIShellItem>|PyITransferSource|ApplyPropertiesToItem|Changes an item's properties as specified by <om
+// PyITransferSource::SetProperties>
 PyObject *PyITransferSource::ApplyPropertiesToItem(PyObject *self, PyObject *args)
 {
-	ITransferSource *pITS = GetI(self);
-	if ( pITS == NULL )
-		return NULL;
-	// @pyparm <o PyIShellItem>|Source||Item whose properties are to be changed
-	PyObject *obpsiSource;
-	IShellItem * psiSource;
-	IShellItem * ppsiNew;
-	if ( !PyArg_ParseTuple(args, "O:ApplyPropertiesToItem", &obpsiSource) )
-		return NULL;
-	if (!PyCom_InterfaceFromPyInstanceOrObject(obpsiSource, IID_IShellItem, (void **)&psiSource, FALSE))
-		return NULL;
+    ITransferSource *pITS = GetI(self);
+    if (pITS == NULL)
+        return NULL;
+    // @pyparm <o PyIShellItem>|Source||Item whose properties are to be changed
+    PyObject *obpsiSource;
+    IShellItem *psiSource;
+    IShellItem *ppsiNew;
+    if (!PyArg_ParseTuple(args, "O:ApplyPropertiesToItem", &obpsiSource))
+        return NULL;
+    if (!PyCom_InterfaceFromPyInstanceOrObject(obpsiSource, IID_IShellItem, (void **)&psiSource, FALSE))
+        return NULL;
 
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pITS->ApplyPropertiesToItem( psiSource, &ppsiNew );
-	psiSource->Release();
-	PY_INTERFACE_POSTCALL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pITS->ApplyPropertiesToItem(psiSource, &ppsiNew);
+    psiSource->Release();
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pITS, IID_ITransferSource );
-	return PyCom_PyObjectFromIUnknown(ppsiNew, IID_IShellItem, FALSE);
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pITS, IID_ITransferSource);
+    return PyCom_PyObjectFromIUnknown(ppsiNew, IID_IShellItem, FALSE);
 }
 
-// @pymethod str|PyITransferSource|GetDefaultDestinationName|Determines the name of an item as it would appear in a given folder
+// @pymethod str|PyITransferSource|GetDefaultDestinationName|Determines the name of an item as it would appear in a
+// given folder
 PyObject *PyITransferSource::GetDefaultDestinationName(PyObject *self, PyObject *args)
 {
-	ITransferSource *pITS = GetI(self);
-	if ( pITS == NULL )
-		return NULL;
-	// @pyparm <o PyIShellItem>|Source||The item whose name is wanted
-	// @pyparm <o PyIShellItem>|ParentDest||The destination folder
-	PyObject *obpsiSource;
-	PyObject *obpsiParentDest;
-	IShellItem * psiSource;
-	IShellItem * psiParentDest;
-	LPWSTR pszDestinationName;
-	if ( !PyArg_ParseTuple(args, "OO:GetDefaultDestinationName", &obpsiSource, &obpsiParentDest) )
-		return NULL;
-	if (!PyCom_InterfaceFromPyInstanceOrObject(obpsiSource, IID_IShellItem, (void **)&psiSource, FALSE))
-		return NULL;
-	if (!PyCom_InterfaceFromPyInstanceOrObject(obpsiParentDest, IID_IShellItem, (void **)&psiParentDest, FALSE)){
-		PYCOM_RELEASE(psiSource);
-		return NULL;
-		}
+    ITransferSource *pITS = GetI(self);
+    if (pITS == NULL)
+        return NULL;
+    // @pyparm <o PyIShellItem>|Source||The item whose name is wanted
+    // @pyparm <o PyIShellItem>|ParentDest||The destination folder
+    PyObject *obpsiSource;
+    PyObject *obpsiParentDest;
+    IShellItem *psiSource;
+    IShellItem *psiParentDest;
+    LPWSTR pszDestinationName;
+    if (!PyArg_ParseTuple(args, "OO:GetDefaultDestinationName", &obpsiSource, &obpsiParentDest))
+        return NULL;
+    if (!PyCom_InterfaceFromPyInstanceOrObject(obpsiSource, IID_IShellItem, (void **)&psiSource, FALSE))
+        return NULL;
+    if (!PyCom_InterfaceFromPyInstanceOrObject(obpsiParentDest, IID_IShellItem, (void **)&psiParentDest, FALSE)) {
+        PYCOM_RELEASE(psiSource);
+        return NULL;
+    }
 
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pITS->GetDefaultDestinationName( psiSource, psiParentDest, &pszDestinationName );
-	psiSource->Release();
-	psiParentDest->Release();
-	PY_INTERFACE_POSTCALL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pITS->GetDefaultDestinationName(psiSource, psiParentDest, &pszDestinationName);
+    psiSource->Release();
+    psiParentDest->Release();
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pITS, IID_ITransferSource );
-	PyObject *ret = PyWinObject_FromWCHAR(pszDestinationName);
-	CoTaskMemFree(pszDestinationName);
-	return ret;
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pITS, IID_ITransferSource);
+    PyObject *ret = PyWinObject_FromWCHAR(pszDestinationName);
+    CoTaskMemFree(pszDestinationName);
+    return ret;
 }
 
-// @pymethod int|PyITransferSource|EnterFolder|Informs the copy engine that a folder will be the target of a file operation
+// @pymethod int|PyITransferSource|EnterFolder|Informs the copy engine that a folder will be the target of a file
+// operation
 PyObject *PyITransferSource::EnterFolder(PyObject *self, PyObject *args)
 {
-	ITransferSource *pITS = GetI(self);
-	if ( pITS == NULL )
-		return NULL;
-	// @pyparm <o PyIShellItem>|ChildFolderDest||The destination folder for the operation
-	PyObject *obpsiChildFolderDest;
-	IShellItem * psiChildFolderDest;
-	if ( !PyArg_ParseTuple(args, "O:EnterFolder", &obpsiChildFolderDest) )
-		return NULL;
-	if (!PyCom_InterfaceFromPyInstanceOrObject(obpsiChildFolderDest, IID_IShellItem, (void **)&psiChildFolderDest, FALSE))
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pITS->EnterFolder( psiChildFolderDest );
-	psiChildFolderDest->Release();
-	PY_INTERFACE_POSTCALL;
+    ITransferSource *pITS = GetI(self);
+    if (pITS == NULL)
+        return NULL;
+    // @pyparm <o PyIShellItem>|ChildFolderDest||The destination folder for the operation
+    PyObject *obpsiChildFolderDest;
+    IShellItem *psiChildFolderDest;
+    if (!PyArg_ParseTuple(args, "O:EnterFolder", &obpsiChildFolderDest))
+        return NULL;
+    if (!PyCom_InterfaceFromPyInstanceOrObject(obpsiChildFolderDest, IID_IShellItem, (void **)&psiChildFolderDest,
+                                               FALSE))
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pITS->EnterFolder(psiChildFolderDest);
+    psiChildFolderDest->Release();
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pITS, IID_ITransferSource );
-	return PyInt_FromLong(hr);
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pITS, IID_ITransferSource);
+    return PyInt_FromLong(hr);
 }
 
-// @pymethod int|PyITransferSource|LeaveFolder|Informs the copy engine that the operation on a destination folder is finished
+// @pymethod int|PyITransferSource|LeaveFolder|Informs the copy engine that the operation on a destination folder is
+// finished
 PyObject *PyITransferSource::LeaveFolder(PyObject *self, PyObject *args)
 {
-	ITransferSource *pITS = GetI(self);
-	if ( pITS == NULL )
-		return NULL;
-	// @pyparm <o PyIShellItem>|ChildFolderDest||Destination folder
-	PyObject *obpsiChildFolderDest;
-	IShellItem * psiChildFolderDest;
-	if ( !PyArg_ParseTuple(args, "O:LeaveFolder", &obpsiChildFolderDest) )
-		return NULL;
-	if (!PyCom_InterfaceFromPyInstanceOrObject(obpsiChildFolderDest, IID_IShellItem, (void **)&psiChildFolderDest, FALSE))
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pITS->LeaveFolder( psiChildFolderDest );
-	psiChildFolderDest->Release();
-	PY_INTERFACE_POSTCALL;
+    ITransferSource *pITS = GetI(self);
+    if (pITS == NULL)
+        return NULL;
+    // @pyparm <o PyIShellItem>|ChildFolderDest||Destination folder
+    PyObject *obpsiChildFolderDest;
+    IShellItem *psiChildFolderDest;
+    if (!PyArg_ParseTuple(args, "O:LeaveFolder", &obpsiChildFolderDest))
+        return NULL;
+    if (!PyCom_InterfaceFromPyInstanceOrObject(obpsiChildFolderDest, IID_IShellItem, (void **)&psiChildFolderDest,
+                                               FALSE))
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pITS->LeaveFolder(psiChildFolderDest);
+    psiChildFolderDest->Release();
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pITS, IID_ITransferSource );
-	return PyInt_FromLong(hr);
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pITS, IID_ITransferSource);
+    return PyInt_FromLong(hr);
 }
 
 // @object PyITransferSource|Implemented by shell folders that can act as the source of shell item operations
-static struct PyMethodDef PyITransferSource_methods[] =
-{
-	{ "Advise", PyITransferSource::Advise, 1 }, // @pymeth Advise|Connects an advise sink to receive notifications
-	{ "Unadvise", PyITransferSource::Unadvise, 1 }, // @pymeth Unadvise|Disconnects an event sink
-	{ "SetProperties", PyITransferSource::SetProperties, 1 }, // @pymeth SetProperties|Specifies changes to be applied to items' properties
-	{ "OpenItem", PyITransferSource::OpenItem, 1 }, // @pymeth OpenItem|Initiates the copying of an item
-	{ "MoveItem", PyITransferSource::MoveItem, 1 }, // @pymeth MoveItem|Moves a shell item into another folder
-	{ "RecycleItem", PyITransferSource::RecycleItem, 1 }, // @pymeth RecycleItem|Moves an item to the recycle bin
-	{ "RemoveItem", PyITransferSource::RemoveItem, 1 }, // @pymeth RemoveItem|Deletes an item without recycling
-	{ "RenameItem", PyITransferSource::RenameItem, 1 }, // @pymeth RenameItem|Renames a shell item
-	{ "LinkItem", PyITransferSource::LinkItem, 1 }, // @pymeth LinkItem|Not implemented, according to MSDN
-	{ "ApplyPropertiesToItem", PyITransferSource::ApplyPropertiesToItem, 1 }, // @pymeth ApplyPropertiesToItem|Changes an item's properties as specified by <om PyITransferSource::SetProperties>
-	{ "GetDefaultDestinationName", PyITransferSource::GetDefaultDestinationName, 1 }, // @pymeth GetDefaultDestinationName|Determines the name of an item as it would appear in a given folder
-	{ "EnterFolder", PyITransferSource::EnterFolder, 1 }, // @pymeth EnterFolder|Informs the copy engine that a folder will be the target of a file operation
-	{ "LeaveFolder", PyITransferSource::LeaveFolder, 1 }, // @pymeth LeaveFolder|Informs the copy engine that the operation on a destination folder is finished
-	{ NULL }
-};
+static struct PyMethodDef PyITransferSource_methods[] = {
+    {"Advise", PyITransferSource::Advise, 1},      // @pymeth Advise|Connects an advise sink to receive notifications
+    {"Unadvise", PyITransferSource::Unadvise, 1},  // @pymeth Unadvise|Disconnects an event sink
+    {"SetProperties", PyITransferSource::SetProperties,
+     1},  // @pymeth SetProperties|Specifies changes to be applied to items' properties
+    {"OpenItem", PyITransferSource::OpenItem, 1},        // @pymeth OpenItem|Initiates the copying of an item
+    {"MoveItem", PyITransferSource::MoveItem, 1},        // @pymeth MoveItem|Moves a shell item into another folder
+    {"RecycleItem", PyITransferSource::RecycleItem, 1},  // @pymeth RecycleItem|Moves an item to the recycle bin
+    {"RemoveItem", PyITransferSource::RemoveItem, 1},    // @pymeth RemoveItem|Deletes an item without recycling
+    {"RenameItem", PyITransferSource::RenameItem, 1},    // @pymeth RenameItem|Renames a shell item
+    {"LinkItem", PyITransferSource::LinkItem, 1},        // @pymeth LinkItem|Not implemented, according to MSDN
+    {"ApplyPropertiesToItem", PyITransferSource::ApplyPropertiesToItem,
+     1},  // @pymeth ApplyPropertiesToItem|Changes an item's properties as specified by <om
+          // PyITransferSource::SetProperties>
+    {"GetDefaultDestinationName", PyITransferSource::GetDefaultDestinationName,
+     1},  // @pymeth GetDefaultDestinationName|Determines the name of an item as it would appear in a given folder
+    {"EnterFolder", PyITransferSource::EnterFolder,
+     1},  // @pymeth EnterFolder|Informs the copy engine that a folder will be the target of a file operation
+    {"LeaveFolder", PyITransferSource::LeaveFolder,
+     1},  // @pymeth LeaveFolder|Informs the copy engine that the operation on a destination folder is finished
+    {NULL}};
 
-PyComTypeObject PyITransferSource::type("PyITransferSource",
-		&PyIUnknown::type,
-		sizeof(PyITransferSource),
-		PyITransferSource_methods,
-		GET_PYCOM_CTOR(PyITransferSource));
+PyComTypeObject PyITransferSource::type("PyITransferSource", &PyIUnknown::type, sizeof(PyITransferSource),
+                                        PyITransferSource_methods, GET_PYCOM_CTOR(PyITransferSource));
 // ---------------------------------------------------
 //
 // Gateway Implementation
 STDMETHODIMP PyGTransferSource::Advise(
-		/* [in] */ ITransferAdviseSink * psink,
-		/* [out] */ DWORD * pdwCookie)
+    /* [in] */ ITransferAdviseSink *psink,
+    /* [out] */ DWORD *pdwCookie)
 {
-	PY_GATEWAY_METHOD;
-	PyObject *obpsink;
-	obpsink = PyCom_PyObjectFromIUnknown(psink, IID_ITransferAdviseSink, TRUE);
-	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("Advise", &result, "O", obpsink);
-	Py_XDECREF(obpsink);
-	if (FAILED(hr)) return hr;
-	// Process the Python results, and convert back to the real params
-	*pdwCookie = PyLong_AsUnsignedLong(result);
-	if (*pdwCookie == -1)
-		hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("Advise");
-	Py_DECREF(result);
-	return hr;
+    PY_GATEWAY_METHOD;
+    PyObject *obpsink;
+    obpsink = PyCom_PyObjectFromIUnknown(psink, IID_ITransferAdviseSink, TRUE);
+    PyObject *result;
+    HRESULT hr = InvokeViaPolicy("Advise", &result, "O", obpsink);
+    Py_XDECREF(obpsink);
+    if (FAILED(hr))
+        return hr;
+    // Process the Python results, and convert back to the real params
+    *pdwCookie = PyLong_AsUnsignedLong(result);
+    if (*pdwCookie == -1)
+        hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("Advise");
+    Py_DECREF(result);
+    return hr;
 }
 
 STDMETHODIMP PyGTransferSource::Unadvise(
-		/* [in] */ DWORD dwCookie)
+    /* [in] */ DWORD dwCookie)
 {
-	PY_GATEWAY_METHOD;
-	HRESULT hr=InvokeViaPolicy("Unadvise", NULL, "k", dwCookie);
-	return hr;
+    PY_GATEWAY_METHOD;
+    HRESULT hr = InvokeViaPolicy("Unadvise", NULL, "k", dwCookie);
+    return hr;
 }
 
 STDMETHODIMP PyGTransferSource::SetProperties(
-		/* [in] */ IPropertyChangeArray * pproparray)
+    /* [in] */ IPropertyChangeArray *pproparray)
 {
-	PY_GATEWAY_METHOD;
-	PyObject *obpproparray;
-	obpproparray = PyCom_PyObjectFromIUnknown(pproparray, IID_IPropertyChangeArray, TRUE);
-	HRESULT hr=InvokeViaPolicy("SetProperties", NULL, "O", obpproparray);
-	Py_XDECREF(obpproparray);
-	return hr;
+    PY_GATEWAY_METHOD;
+    PyObject *obpproparray;
+    obpproparray = PyCom_PyObjectFromIUnknown(pproparray, IID_IPropertyChangeArray, TRUE);
+    HRESULT hr = InvokeViaPolicy("SetProperties", NULL, "O", obpproparray);
+    Py_XDECREF(obpproparray);
+    return hr;
 }
 
 STDMETHODIMP PyGTransferSource::OpenItem(
-		/* [in] */ IShellItem * psi,
-		/* [in] */ TRANSFER_SOURCE_FLAGS flags,
-		/* [in] */ REFIID riid,
-		/* [out] */ void ** ppv)
+    /* [in] */ IShellItem *psi,
+    /* [in] */ TRANSFER_SOURCE_FLAGS flags,
+    /* [in] */ REFIID riid,
+    /* [out] */ void **ppv)
 {
-	PY_GATEWAY_METHOD;
-	if (ppv==NULL) return E_POINTER;
-	PyObject *obpsi;
-	PyObject *obriid;
-	obpsi = PyCom_PyObjectFromIUnknown(psi, IID_IShellItem, TRUE);
-	obriid = PyWinObject_FromIID(riid);
-	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("OpenItem", &result, "OiO", obpsi, flags, obriid);
-	Py_XDECREF(obpsi);
-	Py_XDECREF(obriid);
-	if (FAILED(hr)) return hr;
-	PyObject *obresources;
-	if (!PyArg_ParseTuple(result, "lO", &hr, &obresources))
-		hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("OpenItem");
-	else if (!PyCom_InterfaceFromPyInstanceOrObject(obresources, riid, ppv, FALSE))
-		hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("OpenItem");
-	return hr;
+    PY_GATEWAY_METHOD;
+    if (ppv == NULL)
+        return E_POINTER;
+    PyObject *obpsi;
+    PyObject *obriid;
+    obpsi = PyCom_PyObjectFromIUnknown(psi, IID_IShellItem, TRUE);
+    obriid = PyWinObject_FromIID(riid);
+    PyObject *result;
+    HRESULT hr = InvokeViaPolicy("OpenItem", &result, "OiO", obpsi, flags, obriid);
+    Py_XDECREF(obpsi);
+    Py_XDECREF(obriid);
+    if (FAILED(hr))
+        return hr;
+    PyObject *obresources;
+    if (!PyArg_ParseTuple(result, "lO", &hr, &obresources))
+        hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("OpenItem");
+    else if (!PyCom_InterfaceFromPyInstanceOrObject(obresources, riid, ppv, FALSE))
+        hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("OpenItem");
+    return hr;
 }
 
 STDMETHODIMP PyGTransferSource::MoveItem(
-		/* [in] */ IShellItem * psi,
-		/* [in] */ IShellItem * psiParentDst,
-		/* [in] */ LPCWSTR pszNameDst,
-		/* [in] */ TRANSFER_SOURCE_FLAGS flags,
-		/* [out] */ IShellItem ** ppsiNew)
+    /* [in] */ IShellItem *psi,
+    /* [in] */ IShellItem *psiParentDst,
+    /* [in] */ LPCWSTR pszNameDst,
+    /* [in] */ TRANSFER_SOURCE_FLAGS flags,
+    /* [out] */ IShellItem **ppsiNew)
 {
-	PY_GATEWAY_METHOD;
-	if (ppsiNew==NULL) return E_POINTER;
-	PyObject *obpsi;
-	PyObject *obpsiParentDst;
-	PyObject *obpszNameDst;
-	obpsi = PyCom_PyObjectFromIUnknown(psi, IID_IShellItem, TRUE);
-	obpsiParentDst = PyCom_PyObjectFromIUnknown(psiParentDst, IID_IShellItem, TRUE);
-	obpszNameDst = PyWinObject_FromWCHAR(pszNameDst);
-	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("MoveItem", &result, "OOOi", obpsi, obpsiParentDst, obpszNameDst, flags);
-	Py_XDECREF(obpsi);
-	Py_XDECREF(obpsiParentDst);
-	Py_XDECREF(obpszNameDst);
-	if (FAILED(hr)) return hr;
-	// Process the Python results, and convert back to the real params
-	PyObject *obppsiNew;
-	if (!PyArg_Parse(result, "lO" , &hr, &obppsiNew))
-		hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("MoveItem");
-	else if (!PyCom_InterfaceFromPyInstanceOrObject(obppsiNew, IID_IShellItem, (void **)ppsiNew, TRUE))
-		hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("MoveItem");
-	Py_DECREF(result);
-	return hr;
+    PY_GATEWAY_METHOD;
+    if (ppsiNew == NULL)
+        return E_POINTER;
+    PyObject *obpsi;
+    PyObject *obpsiParentDst;
+    PyObject *obpszNameDst;
+    obpsi = PyCom_PyObjectFromIUnknown(psi, IID_IShellItem, TRUE);
+    obpsiParentDst = PyCom_PyObjectFromIUnknown(psiParentDst, IID_IShellItem, TRUE);
+    obpszNameDst = PyWinObject_FromWCHAR(pszNameDst);
+    PyObject *result;
+    HRESULT hr = InvokeViaPolicy("MoveItem", &result, "OOOi", obpsi, obpsiParentDst, obpszNameDst, flags);
+    Py_XDECREF(obpsi);
+    Py_XDECREF(obpsiParentDst);
+    Py_XDECREF(obpszNameDst);
+    if (FAILED(hr))
+        return hr;
+    // Process the Python results, and convert back to the real params
+    PyObject *obppsiNew;
+    if (!PyArg_Parse(result, "lO", &hr, &obppsiNew))
+        hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("MoveItem");
+    else if (!PyCom_InterfaceFromPyInstanceOrObject(obppsiNew, IID_IShellItem, (void **)ppsiNew, TRUE))
+        hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("MoveItem");
+    Py_DECREF(result);
+    return hr;
 }
 
 STDMETHODIMP PyGTransferSource::RecycleItem(
-		/* [in] */ IShellItem * psiSource,
-		/* [in] */ IShellItem * psiParentDest,
-		/* [in] */ TRANSFER_SOURCE_FLAGS flags,
-		/* [out] */ IShellItem ** ppsiNewDest)
+    /* [in] */ IShellItem *psiSource,
+    /* [in] */ IShellItem *psiParentDest,
+    /* [in] */ TRANSFER_SOURCE_FLAGS flags,
+    /* [out] */ IShellItem **ppsiNewDest)
 {
-	PY_GATEWAY_METHOD;
-	if (ppsiNewDest==NULL) return E_POINTER;
-	PyObject *obpsiSource;
-	PyObject *obpsiParentDest;
-	obpsiSource = PyCom_PyObjectFromIUnknown(psiSource, IID_IShellItem, TRUE);
-	obpsiParentDest = PyCom_PyObjectFromIUnknown(psiParentDest, IID_IShellItem, TRUE);
-	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("RecycleItem", &result, "OOi", obpsiSource, obpsiParentDest, flags);
-	Py_XDECREF(obpsiSource);
-	Py_XDECREF(obpsiParentDest);
-	if (FAILED(hr)) return hr;
-	// Process the Python results, and convert back to the real params
-	PyObject *obppsiNewDest;
-	if (!PyArg_Parse(result, "lO" , hr, &obppsiNewDest))
-		hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("RecycleItem");
-	else if (!PyCom_InterfaceFromPyInstanceOrObject(obppsiNewDest, IID_IShellItem, (void **)ppsiNewDest, TRUE))
-		hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("RecycleItem");
-	Py_DECREF(result);
-	return hr;
+    PY_GATEWAY_METHOD;
+    if (ppsiNewDest == NULL)
+        return E_POINTER;
+    PyObject *obpsiSource;
+    PyObject *obpsiParentDest;
+    obpsiSource = PyCom_PyObjectFromIUnknown(psiSource, IID_IShellItem, TRUE);
+    obpsiParentDest = PyCom_PyObjectFromIUnknown(psiParentDest, IID_IShellItem, TRUE);
+    PyObject *result;
+    HRESULT hr = InvokeViaPolicy("RecycleItem", &result, "OOi", obpsiSource, obpsiParentDest, flags);
+    Py_XDECREF(obpsiSource);
+    Py_XDECREF(obpsiParentDest);
+    if (FAILED(hr))
+        return hr;
+    // Process the Python results, and convert back to the real params
+    PyObject *obppsiNewDest;
+    if (!PyArg_Parse(result, "lO", hr, &obppsiNewDest))
+        hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("RecycleItem");
+    else if (!PyCom_InterfaceFromPyInstanceOrObject(obppsiNewDest, IID_IShellItem, (void **)ppsiNewDest, TRUE))
+        hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("RecycleItem");
+    Py_DECREF(result);
+    return hr;
 }
 
 STDMETHODIMP PyGTransferSource::RemoveItem(
-		/* [in] */ IShellItem * psiSource,
-		/* [in] */ TRANSFER_SOURCE_FLAGS flags)
+    /* [in] */ IShellItem *psiSource,
+    /* [in] */ TRANSFER_SOURCE_FLAGS flags)
 {
-	PY_GATEWAY_METHOD;
-	PyObject *obpsiSource, *result;
-	obpsiSource = PyCom_PyObjectFromIUnknown(psiSource, IID_IShellItem, TRUE);
-	HRESULT hr=InvokeViaPolicy("RemoveItem", &result, "Oi", obpsiSource, flags);
-	Py_XDECREF(obpsiSource);
-	if (FAILED(hr))
-		return hr;
-	hr = PyLong_AsLong(result);
-	if (hr == -1 && PyErr_Occurred())
-		hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("RemoveItem");
-	return hr;
+    PY_GATEWAY_METHOD;
+    PyObject *obpsiSource, *result;
+    obpsiSource = PyCom_PyObjectFromIUnknown(psiSource, IID_IShellItem, TRUE);
+    HRESULT hr = InvokeViaPolicy("RemoveItem", &result, "Oi", obpsiSource, flags);
+    Py_XDECREF(obpsiSource);
+    if (FAILED(hr))
+        return hr;
+    hr = PyLong_AsLong(result);
+    if (hr == -1 && PyErr_Occurred())
+        hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("RemoveItem");
+    return hr;
 }
 
 STDMETHODIMP PyGTransferSource::RenameItem(
-		/* [in] */ IShellItem * psiSource,
-		/* [in] */ LPCWSTR pszNewName,
-		/* [in] */ TRANSFER_SOURCE_FLAGS flags,
-		/* [out] */ IShellItem ** ppsiNewDest)
+    /* [in] */ IShellItem *psiSource,
+    /* [in] */ LPCWSTR pszNewName,
+    /* [in] */ TRANSFER_SOURCE_FLAGS flags,
+    /* [out] */ IShellItem **ppsiNewDest)
 {
-	PY_GATEWAY_METHOD;
-	if (ppsiNewDest==NULL) return E_POINTER;
-	PyObject *obpsiSource;
-	PyObject *obpszNewName;
-	obpsiSource = PyCom_PyObjectFromIUnknown(psiSource, IID_IShellItem, TRUE);
-	obpszNewName = PyWinObject_FromWCHAR(pszNewName);
-	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("RenameItem", &result, "OOi", obpsiSource, obpszNewName, flags);
-	Py_XDECREF(obpsiSource);
-	Py_XDECREF(obpszNewName);
-	if (FAILED(hr)) return hr;
-	// Process the Python results, and convert back to the real params
-	PyObject *obppsiNewDest;
-	if (!PyArg_Parse(result, "lO" , &hr, &obppsiNewDest))
-		hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("RenameItem");
-	else if (!PyCom_InterfaceFromPyInstanceOrObject(obppsiNewDest, IID_IShellItem, (void **)ppsiNewDest, TRUE))
-		hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("RenameItem");
-	Py_DECREF(result);
-	return hr;
+    PY_GATEWAY_METHOD;
+    if (ppsiNewDest == NULL)
+        return E_POINTER;
+    PyObject *obpsiSource;
+    PyObject *obpszNewName;
+    obpsiSource = PyCom_PyObjectFromIUnknown(psiSource, IID_IShellItem, TRUE);
+    obpszNewName = PyWinObject_FromWCHAR(pszNewName);
+    PyObject *result;
+    HRESULT hr = InvokeViaPolicy("RenameItem", &result, "OOi", obpsiSource, obpszNewName, flags);
+    Py_XDECREF(obpsiSource);
+    Py_XDECREF(obpszNewName);
+    if (FAILED(hr))
+        return hr;
+    // Process the Python results, and convert back to the real params
+    PyObject *obppsiNewDest;
+    if (!PyArg_Parse(result, "lO", &hr, &obppsiNewDest))
+        hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("RenameItem");
+    else if (!PyCom_InterfaceFromPyInstanceOrObject(obppsiNewDest, IID_IShellItem, (void **)ppsiNewDest, TRUE))
+        hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("RenameItem");
+    Py_DECREF(result);
+    return hr;
 }
 
 STDMETHODIMP PyGTransferSource::LinkItem(
-		/* [in] */ IShellItem * psiSource,
-		/* [in] */ IShellItem * psiParentDest,
-		/* [in] */ LPCWSTR pszNewName,
-		/* [in] */ TRANSFER_SOURCE_FLAGS flags,
-		/* [out] */ IShellItem ** ppsiNewDest)
+    /* [in] */ IShellItem *psiSource,
+    /* [in] */ IShellItem *psiParentDest,
+    /* [in] */ LPCWSTR pszNewName,
+    /* [in] */ TRANSFER_SOURCE_FLAGS flags,
+    /* [out] */ IShellItem **ppsiNewDest)
 {
-	PY_GATEWAY_METHOD;
-	if (ppsiNewDest==NULL) return E_POINTER;
-	PyObject *obpsiSource;
-	PyObject *obpsiParentDest;
-	PyObject *obpszNewName;
-	obpsiSource = PyCom_PyObjectFromIUnknown(psiSource, IID_IShellItem, TRUE);
-	obpsiParentDest = PyCom_PyObjectFromIUnknown(psiParentDest, IID_IShellItem, TRUE);
-	obpszNewName = PyWinObject_FromWCHAR(pszNewName);
-	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("LinkItem", &result, "OOOi", obpsiSource, obpsiParentDest, obpszNewName, flags);
-	Py_XDECREF(obpsiSource);
-	Py_XDECREF(obpsiParentDest);
-	Py_XDECREF(obpszNewName);
-	if (FAILED(hr)) return hr;
-	// Process the Python results, and convert back to the real params
-	PyObject *obppsiNewDest;
-	if (!PyArg_Parse(result, "lO" , &hr, &obppsiNewDest))
-		hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("LinkItem");
-	else if (!PyCom_InterfaceFromPyInstanceOrObject(obppsiNewDest, IID_IShellItem, (void **)ppsiNewDest, TRUE))
-		hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("LinkItem");
-	Py_DECREF(result);
-	return hr;
+    PY_GATEWAY_METHOD;
+    if (ppsiNewDest == NULL)
+        return E_POINTER;
+    PyObject *obpsiSource;
+    PyObject *obpsiParentDest;
+    PyObject *obpszNewName;
+    obpsiSource = PyCom_PyObjectFromIUnknown(psiSource, IID_IShellItem, TRUE);
+    obpsiParentDest = PyCom_PyObjectFromIUnknown(psiParentDest, IID_IShellItem, TRUE);
+    obpszNewName = PyWinObject_FromWCHAR(pszNewName);
+    PyObject *result;
+    HRESULT hr = InvokeViaPolicy("LinkItem", &result, "OOOi", obpsiSource, obpsiParentDest, obpszNewName, flags);
+    Py_XDECREF(obpsiSource);
+    Py_XDECREF(obpsiParentDest);
+    Py_XDECREF(obpszNewName);
+    if (FAILED(hr))
+        return hr;
+    // Process the Python results, and convert back to the real params
+    PyObject *obppsiNewDest;
+    if (!PyArg_Parse(result, "lO", &hr, &obppsiNewDest))
+        hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("LinkItem");
+    else if (!PyCom_InterfaceFromPyInstanceOrObject(obppsiNewDest, IID_IShellItem, (void **)ppsiNewDest, TRUE))
+        hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("LinkItem");
+    Py_DECREF(result);
+    return hr;
 }
 
 STDMETHODIMP PyGTransferSource::ApplyPropertiesToItem(
-		/* [in] */ IShellItem * psiSource,
-		/* [out] */ IShellItem ** ppsiNew)
+    /* [in] */ IShellItem *psiSource,
+    /* [out] */ IShellItem **ppsiNew)
 {
-	PY_GATEWAY_METHOD;
-	if (ppsiNew==NULL) return E_POINTER;
-	PyObject *obpsiSource;
-	obpsiSource = PyCom_PyObjectFromIUnknown(psiSource, IID_IShellItem, TRUE);
-	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("ApplyPropertiesToItem", &result, "O", obpsiSource);
-	Py_XDECREF(obpsiSource);
-	if (FAILED(hr)) return hr;
-	// Process the Python results, and convert back to the real params
-	if (!PyCom_InterfaceFromPyInstanceOrObject(result, IID_IShellItem, (void **)ppsiNew, FALSE))
-		hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("ApplyPropertiesToItem");
-	Py_DECREF(result);
-	return hr;
+    PY_GATEWAY_METHOD;
+    if (ppsiNew == NULL)
+        return E_POINTER;
+    PyObject *obpsiSource;
+    obpsiSource = PyCom_PyObjectFromIUnknown(psiSource, IID_IShellItem, TRUE);
+    PyObject *result;
+    HRESULT hr = InvokeViaPolicy("ApplyPropertiesToItem", &result, "O", obpsiSource);
+    Py_XDECREF(obpsiSource);
+    if (FAILED(hr))
+        return hr;
+    // Process the Python results, and convert back to the real params
+    if (!PyCom_InterfaceFromPyInstanceOrObject(result, IID_IShellItem, (void **)ppsiNew, FALSE))
+        hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("ApplyPropertiesToItem");
+    Py_DECREF(result);
+    return hr;
 }
 
 STDMETHODIMP PyGTransferSource::GetDefaultDestinationName(
-		/* [in] */ IShellItem * psiSource,
-		/* [in] */ IShellItem * psiParentDest,
-		/* [out] */ LPWSTR * ppszDestinationName)
+    /* [in] */ IShellItem *psiSource,
+    /* [in] */ IShellItem *psiParentDest,
+    /* [out] */ LPWSTR *ppszDestinationName)
 {
-	PY_GATEWAY_METHOD;
-	PyObject *obpsiSource;
-	PyObject *obpsiParentDest;
-	obpsiSource = PyCom_PyObjectFromIUnknown(psiSource, IID_IShellItem, FALSE);
-	obpsiParentDest = PyCom_PyObjectFromIUnknown(psiParentDest, IID_IShellItem, FALSE);
-	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("GetDefaultDestinationName", &result, "OO", obpsiSource, obpsiParentDest);
-	Py_XDECREF(obpsiSource);
-	Py_XDECREF(obpsiParentDest);
-	if (FAILED(hr)) return hr;
-	// Process the Python results, and convert back to the real params
-	if (!PyWinObject_AsTaskAllocatedWCHAR(result, ppszDestinationName))
-		hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("GetDefaultDestinationName");
-	Py_DECREF(result);
-	return hr;
+    PY_GATEWAY_METHOD;
+    PyObject *obpsiSource;
+    PyObject *obpsiParentDest;
+    obpsiSource = PyCom_PyObjectFromIUnknown(psiSource, IID_IShellItem, FALSE);
+    obpsiParentDest = PyCom_PyObjectFromIUnknown(psiParentDest, IID_IShellItem, FALSE);
+    PyObject *result;
+    HRESULT hr = InvokeViaPolicy("GetDefaultDestinationName", &result, "OO", obpsiSource, obpsiParentDest);
+    Py_XDECREF(obpsiSource);
+    Py_XDECREF(obpsiParentDest);
+    if (FAILED(hr))
+        return hr;
+    // Process the Python results, and convert back to the real params
+    if (!PyWinObject_AsTaskAllocatedWCHAR(result, ppszDestinationName))
+        hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("GetDefaultDestinationName");
+    Py_DECREF(result);
+    return hr;
 }
 
 STDMETHODIMP PyGTransferSource::EnterFolder(
-		/* [in] */ IShellItem * psiChildFolderDest)
+    /* [in] */ IShellItem *psiChildFolderDest)
 {
-	PY_GATEWAY_METHOD;
-	PyObject *obpsiChildFolderDest;
-	obpsiChildFolderDest = PyCom_PyObjectFromIUnknown(psiChildFolderDest, IID_IShellItem, TRUE);
-	HRESULT hr=InvokeViaPolicy("EnterFolder", NULL, "O", obpsiChildFolderDest);
-	Py_XDECREF(obpsiChildFolderDest);
-	return hr;
+    PY_GATEWAY_METHOD;
+    PyObject *obpsiChildFolderDest;
+    obpsiChildFolderDest = PyCom_PyObjectFromIUnknown(psiChildFolderDest, IID_IShellItem, TRUE);
+    HRESULT hr = InvokeViaPolicy("EnterFolder", NULL, "O", obpsiChildFolderDest);
+    Py_XDECREF(obpsiChildFolderDest);
+    return hr;
 }
 
 STDMETHODIMP PyGTransferSource::LeaveFolder(
-		/* [in] */ IShellItem * psiChildFolderDest)
+    /* [in] */ IShellItem *psiChildFolderDest)
 {
-	PY_GATEWAY_METHOD;
-	PyObject *obpsiChildFolderDest;
-	obpsiChildFolderDest = PyCom_PyObjectFromIUnknown(psiChildFolderDest, IID_IShellItem, TRUE);
-	HRESULT hr=InvokeViaPolicy("LeaveFolder", NULL, "O", obpsiChildFolderDest);
-	Py_XDECREF(obpsiChildFolderDest);
-	return hr;
+    PY_GATEWAY_METHOD;
+    PyObject *obpsiChildFolderDest;
+    obpsiChildFolderDest = PyCom_PyObjectFromIUnknown(psiChildFolderDest, IID_IShellItem, TRUE);
+    HRESULT hr = InvokeViaPolicy("LeaveFolder", NULL, "O", obpsiChildFolderDest);
+    Py_XDECREF(obpsiChildFolderDest);
+    return hr;
 }
-

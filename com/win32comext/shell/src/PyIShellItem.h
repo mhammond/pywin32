@@ -4,57 +4,40 @@
 //
 // Interface Declaration
 
-class PyIShellItem : public PyIUnknown
-{
-public:
-	MAKE_PYCOM_CTOR(PyIShellItem);
-	static IShellItem *GetI(PyObject *self);
-	static PyComTypeObject type;
+class PyIShellItem : public PyIUnknown {
+   public:
+    MAKE_PYCOM_CTOR(PyIShellItem);
+    static IShellItem *GetI(PyObject *self);
+    static PyComTypeObject type;
 
-	// The Python methods
-	static PyObject *BindToHandler(PyObject *self, PyObject *args);
-	static PyObject *GetParent(PyObject *self, PyObject *args);
-	static PyObject *GetDisplayName(PyObject *self, PyObject *args);
-	static PyObject *GetAttributes(PyObject *self, PyObject *args);
-	static PyObject *Compare(PyObject *self, PyObject *args);
+    // The Python methods
+    static PyObject *BindToHandler(PyObject *self, PyObject *args);
+    static PyObject *GetParent(PyObject *self, PyObject *args);
+    static PyObject *GetDisplayName(PyObject *self, PyObject *args);
+    static PyObject *GetAttributes(PyObject *self, PyObject *args);
+    static PyObject *Compare(PyObject *self, PyObject *args);
 
-protected:
-	PyIShellItem(IUnknown *pdisp);
-	~PyIShellItem();
+   protected:
+    PyIShellItem(IUnknown *pdisp);
+    ~PyIShellItem();
 };
 // ---------------------------------------------------
 //
 // Gateway Declaration
 
-class PyGShellItem : public PyGatewayBase, public IShellItem
-{
-protected:
-	PyGShellItem(PyObject *instance) : PyGatewayBase(instance) { ; }
-	PYGATEWAY_MAKE_SUPPORT2(PyGShellItem, IShellItem, IID_IShellItem, PyGatewayBase)
+class PyGShellItem : public PyGatewayBase, public IShellItem {
+   protected:
+    PyGShellItem(PyObject *instance) : PyGatewayBase(instance) { ; }
+    PYGATEWAY_MAKE_SUPPORT2(PyGShellItem, IShellItem, IID_IShellItem, PyGatewayBase)
 
+    // IShellItem
+    STDMETHOD(BindToHandler)(IBindCtx *pbc, REFGUID bhid, REFIID riid, void **ppv);
 
+    STDMETHOD(GetParent)(IShellItem **ppsi);
 
-	// IShellItem
-	STDMETHOD(BindToHandler)(
-		IBindCtx * pbc,
-		REFGUID bhid,
-		REFIID riid,
-		void ** ppv);
+    STDMETHOD(GetDisplayName)(SIGDN sigdnName, LPWSTR *ppszName);
 
-	STDMETHOD(GetParent)(
-		IShellItem ** ppsi);
+    STDMETHOD(GetAttributes)(SFGAOF sfgaoMask, SFGAOF *psfgaoAttribs);
 
-	STDMETHOD(GetDisplayName)(
-		SIGDN sigdnName,
-		LPWSTR * ppszName);
-
-	STDMETHOD(GetAttributes)(
-		SFGAOF sfgaoMask,
-		SFGAOF * psfgaoAttribs);
-
-	STDMETHOD(Compare)(
-		IShellItem * psi,
-		SICHINTF hint,
-		int * piOrder);
-
+    STDMETHOD(Compare)(IShellItem *psi, SICHINTF hint, int *piOrder);
 };
