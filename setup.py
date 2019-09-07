@@ -69,6 +69,7 @@ import re
 from tempfile import gettempdir
 import platform
 import shutil
+import subprocess
 
 is_py3k = sys.version_info > (3,) # get this out of the way early on...
 
@@ -1381,13 +1382,13 @@ class my_install(install):
                 raise RuntimeError("Can't find '%s'" % (filename,))
             print("Executing post install script...")
             # What executable to use?  This one I guess.
-            os.spawnl(os.P_NOWAIT, sys.executable,
-                      sys.executable, filename,
-                      "-install",
-                      "-destination \"{}\"".format(self.install_lib),
-                      "-quiet",
-                      "-wait {}".format(os.getpid()),
-                      )
+            subprocess.Popen([
+                sys.executable, filename,
+                "-install",
+                "-destination", self.install_lib,
+                "-quiet",
+                "-wait", str(os.getpid()),
+            ])
 
 # As per get_source_files, we need special handling so .mc file is
 # processed first.  It appears there was an intention to fix distutils
