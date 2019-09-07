@@ -1365,7 +1365,11 @@ class my_install(install):
             # What executable to use?  This one I guess.
             os.spawnl(os.P_NOWAIT, sys.executable,
                       sys.executable, filename,
-                      "-quiet", "-wait", str(os.getpid()), "-install")
+                      "-install",
+                      "-destination \"{}\"".format(self.install_lib),
+                      "-quiet",
+                      "-wait {}".format(os.getpid()),
+                      )
 
 # As per get_source_files, we need special handling so .mc file is
 # processed first.  It appears there was an intention to fix distutils
