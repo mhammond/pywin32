@@ -24,7 +24,7 @@ usageHelp = """ \
 
 Usage:
 
-  makepy.py [-i] [-v|q] [-h] [-u] [-e] [-f] [-t] [-o output_file] [-d] [typelib, ...]
+  makepy.py [-i] [-v|q] [-h] [-u] [-e] [-t] [-o output_file] [-d] [typelib, ...]
   
   -i    -- Show information for the specified typelib.
   
