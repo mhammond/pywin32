@@ -152,11 +152,24 @@ def find_platform_sdk_dir():
     # Windows SDKs up to version 7 use a reg key SOFTWARE\Microsoft\Microsoft SDKs\Windows
     # SDKs 8 and later use SOFTWARE\Microsoft\Windows Kits\Installed Roots
     # We currently target version 8.1
+    # (and strangely, via  #1293, it appears there may be a 32 bit version of
+    # the SDK available which works OK on 64 bit machines!)
+    flags_variants = [winreg.KEY_READ]
     try:
-        key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE,
-                              r"SOFTWARE\Microsoft\Windows Kits\Installed Roots")
-        installRoot = winreg.QueryValueEx(key, "KitsRoot81")[0]
-    except EnvironmentError:
+        flags_variants.append(winreg.KEY_READ | winreg.KEY_WOW64_32KEY)
+    except AttributeError:
+        pass
+    for flags in flags_variants:
+        try:
+            key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE,
+                                r"SOFTWARE\Microsoft\Windows Kits\Installed Roots",
+                                0,
+                                flags)
+            installRoot = winreg.QueryValueEx(key, "KitsRoot81")[0]
+            break
+        except EnvironmentError:
+            pass
+    else:
         print("Can't find a windows 8.1 sdk")
         return None
 
@@ -1896,7 +1909,6 @@ com_extensions += [
                     depends=["%(internet)s/internet_pch.h" % dirs]),
     WinExt_win32com('mapi', libraries="advapi32", pch_header="PythonCOM.h",
                     include_dirs=["%(mapi)s/mapi_headers" % dirs],
-                    optional_headers=['edkmdb.h', 'edkguid.h'],
                     sources=("""
                         %(mapi)s/mapi.i                 %(mapi)s/mapi.cpp
                         %(mapi)s/PyIABContainer.i       %(mapi)s/PyIABContainer.cpp
@@ -1925,7 +1937,6 @@ com_extensions += [
                         """ % dirs).split()),
     WinExt_win32com_mapi('exchange', libraries="advapi32",
                          include_dirs=["%(mapi)s/mapi_headers" % dirs],
-                         optional_headers=['edkmdb.h', 'edkguid.h'],
                          sources=("""
                                   %(mapi)s/exchange.i         %(mapi)s/exchange.cpp
                                   %(mapi)s/PyIExchangeManageStore.i %(mapi)s/PyIExchangeManageStore.cpp

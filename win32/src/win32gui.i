@@ -2141,7 +2141,6 @@ static PyObject *PyEnumThreadWindows(PyObject *self, PyObject *args)
 // @pyswig |EnumChildWindows|Enumerates the child windows that belong to the specified parent window by passing the handle to each child window, in turn, to an application-defined callback function. EnumChildWindows continues until the last child window is enumerated or the callback function returns FALSE.
 static PyObject *PyEnumChildWindows(PyObject *self, PyObject *args)
 {
-	BOOL rc;
 	PyObject *obhwnd, *obFunc, *obOther;
 	HWND hwnd;
 	// @pyparm <o PyHANDLE>|hwnd||The handle to the window to enumerate.
@@ -2159,10 +2158,10 @@ static PyObject *PyEnumChildWindows(PyObject *self, PyObject *args)
 	cb.func = obFunc;
 	cb.extra = obOther;
     Py_BEGIN_ALLOW_THREADS
-	rc = EnumChildWindows(hwnd, PyEnumWindowsProc, (LPARAM)&cb);
+	// According to MSDN, the return value is not used, and according to
+	// #1350, may cause spurious exceptions.
+	EnumChildWindows(hwnd, PyEnumWindowsProc, (LPARAM)&cb);
     Py_END_ALLOW_THREADS
-	if (!rc)
-		return PyWin_SetAPIError("EnumChildWindows");
 	Py_INCREF(Py_None);
 	return Py_None;
 }

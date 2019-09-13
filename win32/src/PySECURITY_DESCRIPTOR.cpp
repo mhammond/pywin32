@@ -506,7 +506,7 @@ PyObject *PySECURITY_DESCRIPTOR::SetSecurityDescriptorGroup(PyObject *self, PyOb
         return NULL;
     if (!PyWinObject_AsSID(obNewGroupSid, &NewGroupSid, TRUE))
         return NULL;
-    if (!IsValidSid(NewGroupSid))
+    if (NewGroupSid && !IsValidSid(NewGroupSid))
         return PyWin_SetAPIError("SetSecurityDescriptorGroup - invalid sid");
     if (!_MakeAbsoluteSD(This->GetSD(), &psd))
         goto done;
