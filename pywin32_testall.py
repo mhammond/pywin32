@@ -66,11 +66,11 @@ if __name__=='__main__':
 
     code_directories = [this_dir] + site_packages
 
-    parser = argparse.ArgumentParser(description="A script to trigger tests in all subprojects.")
+    parser = argparse.ArgumentParser(description="A script to trigger tests in all subprojects of PyWin32.")
     parser.add_argument("-no-user-interaction",
                         default=False,
                         action='store_true',
-                        help="Configure the Python environment correctly for pywin32.")
+                        help="Run all tests without user interaction")
 
     args = parser.parse_args()
 
