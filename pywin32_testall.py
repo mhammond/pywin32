@@ -61,7 +61,7 @@ def find_and_run(possible_locations, script, cmdline_rest=""):
         raise RuntimeError("Failed to locate the test script '%s' in one of %s"
                            % (script, possible_locations))
 
-if __name__=='__main__':
+if __name__ == '__main__':
     import argparse
 
     code_directories = [this_dir] + site_packages
@@ -74,10 +74,12 @@ if __name__=='__main__':
 
     args = parser.parse_args()
 
-    if not args.no_user_interaction:
-        # win32
-        maybes = [os.path.join(directory, "win32", "test") for directory in code_directories]
-        find_and_run(maybes, 'testall.py')
+    # win32
+    maybes = [os.path.join(directory, "win32", "test") for directory in code_directories]
+    command = ('testall.py', )
+    if args.no_user_interaction:
+        command += ("-no-user-interaction", )
+    find_and_run(maybes, *command)
 
     # win32com
     maybes = [os.path.join(directory, "win32com", "test") for directory in [os.path.join(this_dir, "com"), ] + site_packages]
