@@ -180,8 +180,8 @@ if __name__ == '__main__':
                         action='store_true',
                         help="Run all tests without user interaction")
 
-    args = parser.parse_args()
+    parsed_args, sys.argv = parser.parse_known_args()
 
-    no_user_interaction = args.no_user_interaction
+    no_user_interaction = parsed_args.no_user_interaction
 
     pywin32_testutil.testmain(testLoader=CustomLoader())
