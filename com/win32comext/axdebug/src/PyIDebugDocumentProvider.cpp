@@ -11,77 +11,78 @@
 //
 // Interface Implementation
 
-PyIDebugDocumentProvider::PyIDebugDocumentProvider(IUnknown *pdisp):
-	PyIDebugDocumentInfo(pdisp)
-{
-	ob_type = &type;
-}
+PyIDebugDocumentProvider::PyIDebugDocumentProvider(IUnknown *pdisp) : PyIDebugDocumentInfo(pdisp) { ob_type = &type; }
 
-PyIDebugDocumentProvider::~PyIDebugDocumentProvider()
-{
-}
+PyIDebugDocumentProvider::~PyIDebugDocumentProvider() {}
 
 /* static */ IDebugDocumentProvider *PyIDebugDocumentProvider::GetI(PyObject *self)
 {
-	return (IDebugDocumentProvider *)PyIUnknown::GetI(self);
+    return (IDebugDocumentProvider *)PyIUnknown::GetI(self);
 }
 
-// @pymethod <o PyIDebugDocument>|PyIDebugDocumentProvider|GetDocument|Causes the document to be instantiated if it does not already exist.
+// @pymethod <o PyIDebugDocument>|PyIDebugDocumentProvider|GetDocument|Causes the document to be instantiated if it does
+// not already exist.
 PyObject *PyIDebugDocumentProvider::GetDocument(PyObject *self, PyObject *args)
 {
-	IDebugDocumentProvider *pIDDP = GetI(self);
-	if ( pIDDP == NULL )
-		return NULL;
-	if ( !PyArg_ParseTuple(args, ":GetDocument") )
-		return NULL;
-	IDebugDocument *ppssd;
-	PY_INTERFACE_PRECALL;
-	HRESULT hr = pIDDP->GetDocument( &ppssd );
-	PY_INTERFACE_POSTCALL;
-	if ( FAILED(hr) )
-		return SetPythonCOMError(self,hr);
+    IDebugDocumentProvider *pIDDP = GetI(self);
+    if (pIDDP == NULL)
+        return NULL;
+    if (!PyArg_ParseTuple(args, ":GetDocument"))
+        return NULL;
+    IDebugDocument *ppssd;
+    PY_INTERFACE_PRECALL;
+    HRESULT hr = pIDDP->GetDocument(&ppssd);
+    PY_INTERFACE_POSTCALL;
+    if (FAILED(hr))
+        return SetPythonCOMError(self, hr);
 
-	return PyCom_PyObjectFromIUnknown(ppssd, IID_IDebugDocument, FALSE);
+    return PyCom_PyObjectFromIUnknown(ppssd, IID_IDebugDocument, FALSE);
 }
 
-// @object PyIDebugDocumentProvider|Provides the means for instanciating a document on demand.  Derived from <o PyIDebugDocumentInfo>.
-static struct PyMethodDef PyIDebugDocumentProvider_methods[] =
-{
-	{ "GetDocument", PyIDebugDocumentProvider::GetDocument, 1 }, // @pymeth GetDocument|Causes the document to be instantiated if it does not already exist.
-	{ NULL }
-};
+// @object PyIDebugDocumentProvider|Provides the means for instanciating a document on demand.  Derived from <o
+// PyIDebugDocumentInfo>.
+static struct PyMethodDef PyIDebugDocumentProvider_methods[] = {
+    {"GetDocument", PyIDebugDocumentProvider::GetDocument,
+     1},  // @pymeth GetDocument|Causes the document to be instantiated if it does not already exist.
+    {NULL}};
 
-PyComTypeObject PyIDebugDocumentProvider::type("PyIDebugDocumentProvider",
-		&PyIDebugDocumentInfo::type,
-		sizeof(PyIDebugDocumentProvider),
-		PyIDebugDocumentProvider_methods,
-		GET_PYCOM_CTOR(PyIDebugDocumentProvider));
+PyComTypeObject PyIDebugDocumentProvider::type("PyIDebugDocumentProvider", &PyIDebugDocumentInfo::type,
+                                               sizeof(PyIDebugDocumentProvider), PyIDebugDocumentProvider_methods,
+                                               GET_PYCOM_CTOR(PyIDebugDocumentProvider));
 // ---------------------------------------------------
 //
 // Gateway Implementation
 
 // Std delegation
 // PyIDebugDocumentInfo
-STDMETHODIMP PyGDebugDocumentProvider::GetName(DOCUMENTNAMETYPE dnt, BSTR __RPC_FAR * pbstrName) {return PyGDebugDocumentInfo::GetName(dnt, pbstrName);}
-STDMETHODIMP PyGDebugDocumentProvider::GetDocumentClassId(GUID __RPC_FAR * pclsidDocument) {return PyGDebugDocumentInfo::GetDocumentClassId(pclsidDocument);}
-
-
-STDMETHODIMP PyGDebugDocumentProvider::GetDocument(
-		/* [out] */ IDebugDocument __RPC_FAR *__RPC_FAR * ppssd)
+STDMETHODIMP PyGDebugDocumentProvider::GetName(DOCUMENTNAMETYPE dnt, BSTR __RPC_FAR *pbstrName)
 {
-	PY_GATEWAY_METHOD;
-	if (ppssd==NULL) return E_POINTER;
-	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("GetDocument", &result);
-	if (FAILED(hr)) return hr;
-	// Process the Python results, and convert back to the real params
-	PyObject *obppssd;
-	if (!PyArg_Parse(result, "O" , &obppssd)) return PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
-	BOOL bPythonIsHappy = TRUE;
-	if (!PyCom_InterfaceFromPyInstanceOrObject(obppssd, IID_IDebugDocument, (void **)ppssd, FALSE /* bNoneOK */))
-		 bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) hr = PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
-	Py_DECREF(result);
-	return hr;
+    return PyGDebugDocumentInfo::GetName(dnt, pbstrName);
+}
+STDMETHODIMP PyGDebugDocumentProvider::GetDocumentClassId(GUID __RPC_FAR *pclsidDocument)
+{
+    return PyGDebugDocumentInfo::GetDocumentClassId(pclsidDocument);
 }
 
+STDMETHODIMP PyGDebugDocumentProvider::GetDocument(
+    /* [out] */ IDebugDocument __RPC_FAR *__RPC_FAR *ppssd)
+{
+    PY_GATEWAY_METHOD;
+    if (ppssd == NULL)
+        return E_POINTER;
+    PyObject *result;
+    HRESULT hr = InvokeViaPolicy("GetDocument", &result);
+    if (FAILED(hr))
+        return hr;
+    // Process the Python results, and convert back to the real params
+    PyObject *obppssd;
+    if (!PyArg_Parse(result, "O", &obppssd))
+        return PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
+    BOOL bPythonIsHappy = TRUE;
+    if (!PyCom_InterfaceFromPyInstanceOrObject(obppssd, IID_IDebugDocument, (void **)ppssd, FALSE /* bNoneOK */))
+        bPythonIsHappy = FALSE;
+    if (!bPythonIsHappy)
+        hr = PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
+    Py_DECREF(result);
+    return hr;
+}

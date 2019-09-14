@@ -18,240 +18,235 @@ extern __declspec(dllexport) PyTypeObject PyCERTSTOREType;
 extern __declspec(dllexport) PyTypeObject PyCERT_CONTEXTType;
 extern __declspec(dllexport) PyTypeObject PyCTL_CONTEXTType;
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
-class __declspec(dllexport) PyCERT_CONTEXT : public PyObject
-{
-public:
-	PyCERT_CONTEXT(PCCERT_CONTEXT pccert_context);
-	~PyCERT_CONTEXT(void);
+class __declspec(dllexport) PyCERT_CONTEXT : public PyObject {
+   public:
+    PyCERT_CONTEXT(PCCERT_CONTEXT pccert_context);
+    ~PyCERT_CONTEXT(void);
 
-	static void deallocFunc(PyObject *ob);
-	static PyObject *getattro(PyObject *self, PyObject *obname);
-	static int setattro(PyObject *, PyObject *, PyObject *);
-	static PyObject *PyCertFreeCertificateContext(PyObject *self, PyObject *args);
-	static PyObject *PyCertEnumCertificateContextProperties(PyObject *self, PyObject *args);
-	static PyObject *PyCryptAcquireCertificatePrivateKey(PyObject *self, PyObject *args, PyObject *kwargs);
-	static PyObject *PyCertGetIntendedKeyUsage(PyObject *self, PyObject *args);
-	static PyObject *PyCertGetEnhancedKeyUsage(PyObject *self, PyObject *args, PyObject *kwargs);
-	static PyObject *PyCertSerializeCertificateStoreElement(PyObject *self, PyObject *args, PyObject *kwargs);
-	static PyObject *PyCertVerifySubjectCertificateContext(PyObject *self, PyObject *args, PyObject *kwargs);
-	static PyObject *PyCertDeleteCertificateFromStore(PyObject *self, PyObject *args);
-	static PyObject *PyCertGetCertificateContextProperty(PyObject *self, PyObject *args, PyObject *kwargs);
-	static PyObject *PyCertSetCertificateContextProperty(PyObject *self, PyObject *args, PyObject *kwargs);
-	PCCERT_CONTEXT GetPCCERT_CONTEXT(void) {return pccert_context;};
+    static void deallocFunc(PyObject *ob);
+    static PyObject *getattro(PyObject *self, PyObject *obname);
+    static int setattro(PyObject *, PyObject *, PyObject *);
+    static PyObject *PyCertFreeCertificateContext(PyObject *self, PyObject *args);
+    static PyObject *PyCertEnumCertificateContextProperties(PyObject *self, PyObject *args);
+    static PyObject *PyCryptAcquireCertificatePrivateKey(PyObject *self, PyObject *args, PyObject *kwargs);
+    static PyObject *PyCertGetIntendedKeyUsage(PyObject *self, PyObject *args);
+    static PyObject *PyCertGetEnhancedKeyUsage(PyObject *self, PyObject *args, PyObject *kwargs);
+    static PyObject *PyCertSerializeCertificateStoreElement(PyObject *self, PyObject *args, PyObject *kwargs);
+    static PyObject *PyCertVerifySubjectCertificateContext(PyObject *self, PyObject *args, PyObject *kwargs);
+    static PyObject *PyCertDeleteCertificateFromStore(PyObject *self, PyObject *args);
+    static PyObject *PyCertGetCertificateContextProperty(PyObject *self, PyObject *args, PyObject *kwargs);
+    static PyObject *PyCertSetCertificateContextProperty(PyObject *self, PyObject *args, PyObject *kwargs);
+    PCCERT_CONTEXT GetPCCERT_CONTEXT(void) { return pccert_context; };
 #ifdef _MSC_VER
-#pragma warning( disable : 4251 )
-#endif // _MSC_VER
-	static struct PyMemberDef members[];
+#pragma warning(disable : 4251)
+#endif  // _MSC_VER
+    static struct PyMemberDef members[];
 #ifdef _MSC_VER
-#pragma warning( default : 4251 )
-#endif // _MSC_VER
-	static struct PyMethodDef methods[];
-protected:
-	PCCERT_CONTEXT pccert_context;
-	PyObject *obdummy;
+#pragma warning(default : 4251)
+#endif  // _MSC_VER
+    static struct PyMethodDef methods[];
+
+   protected:
+    PCCERT_CONTEXT pccert_context;
+    PyObject *obdummy;
 };
 
 // #define OFF(e) offsetof(PyCERT_CONTEXT, e)
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class __declspec(dllexport) PyCERTSTORE : public PyObject
-{
-public:
-	PyCERTSTORE(HCERTSTORE hcertstore);
-	~PyCERTSTORE(void);
+class __declspec(dllexport) PyCERTSTORE : public PyObject {
+   public:
+    PyCERTSTORE(HCERTSTORE hcertstore);
+    ~PyCERTSTORE(void);
 
-	PyObject *obcertstore;
-	static void deallocFunc(PyObject *ob);
-	static PyObject *getattro(PyObject *self, PyObject *obname);
-	static int setattro(PyObject *self, PyObject *obname, PyObject *v);
-	static PyObject *PyCertCloseStore(PyObject *self, PyObject *args, PyObject *kwargs);
-	static PyObject *PyCertControlStore(PyObject *self, PyObject *args, PyObject *kwargs);
-	static PyObject *PyCertEnumCertificatesInStore(PyObject *self, PyObject *args);
-	static PyObject *PyCertEnumCTLsInStore(PyObject *self, PyObject *args);
-	static PyObject *PyCertSaveStore(PyObject *self, PyObject *args, PyObject *kwargs);
-	static PyObject *PyCertAddEncodedCertificateToStore(PyObject *self, PyObject *args, PyObject *kwargs);
-	static PyObject *PyCertAddCertificateContextToStore(PyObject *self, PyObject *args, PyObject *kwargs);
-	static PyObject *PyCertAddCertificateLinkToStore(PyObject *self, PyObject *args, PyObject *kwargs);
-	static PyObject *PyCertAddCTLContextToStore(PyObject *self, PyObject *args, PyObject *kwargs);
-	static PyObject *PyCertAddCTLLinkToStore(PyObject *self, PyObject *args, PyObject *kwargs);
-	static PyObject *PyCertAddStoreToCollection(PyObject *self, PyObject *args, PyObject *kwargs);
-	static PyObject *PyCertRemoveStoreFromCollection(PyObject *self, PyObject *args, PyObject *kwargs);
-	static PyObject *PyPFXExportCertStoreEx(PyObject *self, PyObject *args, PyObject *kwargs);
-	// static PyObject *PyCertGetStoreProperty(PyObject *self, PyObject *args, PyObject *kwargs);
-	// static PyObject *PyCertSetStoreProperty(PyObject *self, PyObject *args, PyObject *kwargs);
-	HCERTSTORE GetHCERTSTORE(void) {return hcertstore;};
+    PyObject *obcertstore;
+    static void deallocFunc(PyObject *ob);
+    static PyObject *getattro(PyObject *self, PyObject *obname);
+    static int setattro(PyObject *self, PyObject *obname, PyObject *v);
+    static PyObject *PyCertCloseStore(PyObject *self, PyObject *args, PyObject *kwargs);
+    static PyObject *PyCertControlStore(PyObject *self, PyObject *args, PyObject *kwargs);
+    static PyObject *PyCertEnumCertificatesInStore(PyObject *self, PyObject *args);
+    static PyObject *PyCertEnumCTLsInStore(PyObject *self, PyObject *args);
+    static PyObject *PyCertSaveStore(PyObject *self, PyObject *args, PyObject *kwargs);
+    static PyObject *PyCertAddEncodedCertificateToStore(PyObject *self, PyObject *args, PyObject *kwargs);
+    static PyObject *PyCertAddCertificateContextToStore(PyObject *self, PyObject *args, PyObject *kwargs);
+    static PyObject *PyCertAddCertificateLinkToStore(PyObject *self, PyObject *args, PyObject *kwargs);
+    static PyObject *PyCertAddCTLContextToStore(PyObject *self, PyObject *args, PyObject *kwargs);
+    static PyObject *PyCertAddCTLLinkToStore(PyObject *self, PyObject *args, PyObject *kwargs);
+    static PyObject *PyCertAddStoreToCollection(PyObject *self, PyObject *args, PyObject *kwargs);
+    static PyObject *PyCertRemoveStoreFromCollection(PyObject *self, PyObject *args, PyObject *kwargs);
+    static PyObject *PyPFXExportCertStoreEx(PyObject *self, PyObject *args, PyObject *kwargs);
+    // static PyObject *PyCertGetStoreProperty(PyObject *self, PyObject *args, PyObject *kwargs);
+    // static PyObject *PyCertSetStoreProperty(PyObject *self, PyObject *args, PyObject *kwargs);
+    HCERTSTORE GetHCERTSTORE(void) { return hcertstore; };
 #ifdef _MSC_VER
-#pragma warning( disable : 4251 )
-#endif // _MSC_VER
-	static struct PyMemberDef members[];
+#pragma warning(disable : 4251)
+#endif  // _MSC_VER
+    static struct PyMemberDef members[];
 #ifdef _MSC_VER
-#pragma warning( default : 4251 )
-#endif // _MSC_VER
-	static struct PyMethodDef methods[];
-protected:
-	HCERTSTORE hcertstore;
+#pragma warning(default : 4251)
+#endif  // _MSC_VER
+    static struct PyMethodDef methods[];
+
+   protected:
+    HCERTSTORE hcertstore;
 };
 
-
 ///////////////////////////////////////////////////////////////////////////////////////////////
-class __declspec(dllexport) PyCRYPTHASH : public PyObject
-{
-public:
+class __declspec(dllexport) PyCRYPTHASH : public PyObject {
+   public:
+    PyCRYPTHASH(HCRYPTHASH hcrypthash);
+    ~PyCRYPTHASH(void);
 
-	PyCRYPTHASH(HCRYPTHASH hcrypthash);
-	~PyCRYPTHASH(void);
-
-	static void deallocFunc(PyObject *ob);
-	static PyObject *getattro(PyObject *self, PyObject *name);
-	static int setattro(PyObject *self, PyObject *obname, PyObject *v);
-	static PyObject *PyCryptDestroyHash(PyObject *self, PyObject *args);
-	static PyObject *PyCryptDuplicateHash(PyObject *self, PyObject *args, PyObject *kwargs);
-	static PyObject *PyCryptSignHash(PyObject *self, PyObject *args, PyObject *kwargs);
-	static PyObject *PyCryptHashData(PyObject *self, PyObject *args, PyObject *kwargs);
-	static PyObject *PyCryptHashSessionKey(PyObject *self, PyObject *args, PyObject *kwargs);
-	static PyObject *PyCryptVerifySignature(PyObject *self, PyObject *args, PyObject *kwargs);
-	static PyObject *PyCryptGetHashParam(PyObject *self, PyObject *args, PyObject *kwargs);
-	HCRYPTHASH GetHCRYPTHASH(void) {return hcrypthash;};
+    static void deallocFunc(PyObject *ob);
+    static PyObject *getattro(PyObject *self, PyObject *name);
+    static int setattro(PyObject *self, PyObject *obname, PyObject *v);
+    static PyObject *PyCryptDestroyHash(PyObject *self, PyObject *args);
+    static PyObject *PyCryptDuplicateHash(PyObject *self, PyObject *args, PyObject *kwargs);
+    static PyObject *PyCryptSignHash(PyObject *self, PyObject *args, PyObject *kwargs);
+    static PyObject *PyCryptHashData(PyObject *self, PyObject *args, PyObject *kwargs);
+    static PyObject *PyCryptHashSessionKey(PyObject *self, PyObject *args, PyObject *kwargs);
+    static PyObject *PyCryptVerifySignature(PyObject *self, PyObject *args, PyObject *kwargs);
+    static PyObject *PyCryptGetHashParam(PyObject *self, PyObject *args, PyObject *kwargs);
+    HCRYPTHASH GetHCRYPTHASH(void) { return hcrypthash; };
 
 #ifdef _MSC_VER
-#pragma warning( disable : 4251 )
-#endif // _MSC_VER
-	static struct PyMemberDef members[];
+#pragma warning(disable : 4251)
+#endif  // _MSC_VER
+    static struct PyMemberDef members[];
 #ifdef _MSC_VER
-#pragma warning( default : 4251 )
-#endif // _MSC_VER
-	static struct PyMethodDef methods[];
-protected:
-	HCRYPTHASH hcrypthash;
+#pragma warning(default : 4251)
+#endif  // _MSC_VER
+    static struct PyMethodDef methods[];
+
+   protected:
+    HCRYPTHASH hcrypthash;
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
-class __declspec(dllexport) PyCRYPTKEY : public PyObject
-{
-public:
+class __declspec(dllexport) PyCRYPTKEY : public PyObject {
+   public:
+    PyCRYPTKEY(HCRYPTKEY hcryptkey, PyObject *obcryptprov);
+    ~PyCRYPTKEY(void);
 
-	PyCRYPTKEY(HCRYPTKEY hcryptkey,PyObject *obcryptprov);
-	~PyCRYPTKEY(void);
-
-	PyObject *obcryptprov, *obcryptkey, *obdummy;
-	static void deallocFunc(PyObject *ob);
-	static PyObject *getattro(PyObject *self, PyObject *name);
-	static int setattro(PyObject *self, PyObject *name, PyObject *v);
-	static PyObject *PyCryptDestroyKey(PyObject *self, PyObject *args);
-	static PyObject *PyCryptExportKey(PyObject *self, PyObject *args, PyObject *kwargs);
-	static PyObject *PyCryptGetKeyParam(PyObject *self, PyObject *args, PyObject *kwargs);
-	static PyObject *PyCryptDuplicateKey(PyObject *self, PyObject *args, PyObject *kwargs);
-	static PyObject *PyCryptEncrypt(PyObject *self, PyObject *args, PyObject *kwargs);
-	static PyObject *PyCryptDecrypt(PyObject *self, PyObject *args, PyObject *kwargs);
-	HCRYPTKEY GetHCRYPTKEY(void) {return hcryptkey;};
+    PyObject *obcryptprov, *obcryptkey, *obdummy;
+    static void deallocFunc(PyObject *ob);
+    static PyObject *getattro(PyObject *self, PyObject *name);
+    static int setattro(PyObject *self, PyObject *name, PyObject *v);
+    static PyObject *PyCryptDestroyKey(PyObject *self, PyObject *args);
+    static PyObject *PyCryptExportKey(PyObject *self, PyObject *args, PyObject *kwargs);
+    static PyObject *PyCryptGetKeyParam(PyObject *self, PyObject *args, PyObject *kwargs);
+    static PyObject *PyCryptDuplicateKey(PyObject *self, PyObject *args, PyObject *kwargs);
+    static PyObject *PyCryptEncrypt(PyObject *self, PyObject *args, PyObject *kwargs);
+    static PyObject *PyCryptDecrypt(PyObject *self, PyObject *args, PyObject *kwargs);
+    HCRYPTKEY GetHCRYPTKEY(void) { return hcryptkey; };
 
 #ifdef _MSC_VER
-#pragma warning( disable : 4251 )
-#endif // _MSC_VER
-	static struct PyMemberDef members[];
+#pragma warning(disable : 4251)
+#endif  // _MSC_VER
+    static struct PyMemberDef members[];
 #ifdef _MSC_VER
-#pragma warning( default : 4251 )
-#endif // _MSC_VER
-	static struct PyMethodDef methods[];
-protected:
-	HCRYPTKEY hcryptkey;
+#pragma warning(default : 4251)
+#endif  // _MSC_VER
+    static struct PyMethodDef methods[];
+
+   protected:
+    HCRYPTKEY hcryptkey;
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class __declspec(dllexport) PyCRYPTPROV : public PyObject
-{
-public:
-	PyCRYPTPROV(HCRYPTPROV hcryptprov);
-	~PyCRYPTPROV(void);
+class __declspec(dllexport) PyCRYPTPROV : public PyObject {
+   public:
+    PyCRYPTPROV(HCRYPTPROV hcryptprov);
+    ~PyCRYPTPROV(void);
 
-	static void deallocFunc(PyObject *ob);
-	static PyObject *getattro(PyObject *, PyObject *);
-	static int setattro(PyObject *, PyObject *, PyObject *);
-	static PyObject *PyCryptReleaseContext(PyObject *self, PyObject *args, PyObject *kwargs);
-	static PyObject *PyCryptGenKey(PyObject *self, PyObject *args, PyObject *kwargs);
-	static PyObject *PyCryptGetProvParam(PyObject *self, PyObject *args, PyObject *kwargs);
-	static PyObject *PyCryptGetUserKey(PyObject *self, PyObject *args, PyObject *kwargs);
-	static PyObject *PyCryptGenRandom(PyObject *self, PyObject *args, PyObject *kwargs);
-	static PyObject *PyCryptCreateHash(PyObject *self, PyObject *args, PyObject *kwargs);
-	static PyObject *PyCryptImportKey(PyObject *self, PyObject *args, PyObject *kwargs);
-	static PyObject *PyCryptExportPublicKeyInfo(PyObject *self, PyObject *args, PyObject *kwargs);
-	static PyObject *PyCryptImportPublicKeyInfo(PyObject *self, PyObject *args, PyObject *kwargs);
-	HCRYPTPROV GetHCRYPTPROV(void) {return hcryptprov;};
+    static void deallocFunc(PyObject *ob);
+    static PyObject *getattro(PyObject *, PyObject *);
+    static int setattro(PyObject *, PyObject *, PyObject *);
+    static PyObject *PyCryptReleaseContext(PyObject *self, PyObject *args, PyObject *kwargs);
+    static PyObject *PyCryptGenKey(PyObject *self, PyObject *args, PyObject *kwargs);
+    static PyObject *PyCryptGetProvParam(PyObject *self, PyObject *args, PyObject *kwargs);
+    static PyObject *PyCryptGetUserKey(PyObject *self, PyObject *args, PyObject *kwargs);
+    static PyObject *PyCryptGenRandom(PyObject *self, PyObject *args, PyObject *kwargs);
+    static PyObject *PyCryptCreateHash(PyObject *self, PyObject *args, PyObject *kwargs);
+    static PyObject *PyCryptImportKey(PyObject *self, PyObject *args, PyObject *kwargs);
+    static PyObject *PyCryptExportPublicKeyInfo(PyObject *self, PyObject *args, PyObject *kwargs);
+    static PyObject *PyCryptImportPublicKeyInfo(PyObject *self, PyObject *args, PyObject *kwargs);
+    HCRYPTPROV GetHCRYPTPROV(void) { return hcryptprov; };
 #ifdef _MSC_VER
-#pragma warning( disable : 4251 )
-#endif // _MSC_VER
-	static struct PyMemberDef members[];
+#pragma warning(disable : 4251)
+#endif  // _MSC_VER
+    static struct PyMemberDef members[];
 #ifdef _MSC_VER
-#pragma warning( default : 4251 )
-#endif // _MSC_VER
-	static struct PyMethodDef methods[];
-protected:
-	HCRYPTPROV hcryptprov;
+#pragma warning(default : 4251)
+#endif  // _MSC_VER
+    static struct PyMethodDef methods[];
+
+   protected:
+    HCRYPTPROV hcryptprov;
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
-class __declspec(dllexport) PyCRYPTMSG : public PyObject
-{
-public:
+class __declspec(dllexport) PyCRYPTMSG : public PyObject {
+   public:
+    PyCRYPTMSG(HCRYPTMSG hcryptmsg);
+    ~PyCRYPTMSG(void);
 
-	PyCRYPTMSG(HCRYPTMSG hcryptmsg);
-	~PyCRYPTMSG(void);
-
-	PyObject *obcryptmsg, *obdummy;
-	static void deallocFunc(PyObject *ob);
-	static PyObject *getattro(PyObject *self, PyObject *name);
-	static int setattro(PyObject *self, PyObject *name, PyObject *v);
-	static PyObject *PyCryptMsgClose(PyObject *self, PyObject *args);
-	HCRYPTMSG GetHCRYPTMSG(void) {return hcryptmsg;};
+    PyObject *obcryptmsg, *obdummy;
+    static void deallocFunc(PyObject *ob);
+    static PyObject *getattro(PyObject *self, PyObject *name);
+    static int setattro(PyObject *self, PyObject *name, PyObject *v);
+    static PyObject *PyCryptMsgClose(PyObject *self, PyObject *args);
+    HCRYPTMSG GetHCRYPTMSG(void) { return hcryptmsg; };
 
 #ifdef _MSC_VER
-#pragma warning( disable : 4251 )
-#endif // _MSC_VER
-	static struct PyMemberDef members[];
+#pragma warning(disable : 4251)
+#endif  // _MSC_VER
+    static struct PyMemberDef members[];
 #ifdef _MSC_VER
-#pragma warning( default : 4251 )
-#endif // _MSC_VER
-	static struct PyMethodDef methods[];
-protected:
-	HCRYPTMSG hcryptmsg;
+#pragma warning(default : 4251)
+#endif  // _MSC_VER
+    static struct PyMethodDef methods[];
+
+   protected:
+    HCRYPTMSG hcryptmsg;
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
-class __declspec(dllexport) PyCTL_CONTEXT : public PyObject
-{
-public:
+class __declspec(dllexport) PyCTL_CONTEXT : public PyObject {
+   public:
+    PyCTL_CONTEXT(PCCTL_CONTEXT);
+    ~PyCTL_CONTEXT(void);
 
-	PyCTL_CONTEXT(PCCTL_CONTEXT);
-	~PyCTL_CONTEXT(void);
-
-	PyObject *obctl_context, *obdummy;
-	static void deallocFunc(PyObject *ob);
-	static PyObject *getattro(PyObject *self, PyObject *name);
-	static int setattro(PyObject *self, PyObject *name, PyObject *v);
-	static PyObject *PyCertFreeCTLContext(PyObject *self, PyObject *args);
-	static PyObject *PyCertEnumCTLContextProperties(PyObject *self, PyObject *args);
-	static PyObject *PyCertEnumSubjectInSortedCTL(PyObject *self, PyObject *args);
-	static PyObject *PyCertDeleteCTLFromStore(PyObject *self, PyObject *args);
-	static PyObject *PyCertSerializeCTLStoreElement(PyObject *self, PyObject *args, PyObject *kwargs);
-	PCCTL_CONTEXT GetCTL_CONTEXT(void) {return pctl_context;};
+    PyObject *obctl_context, *obdummy;
+    static void deallocFunc(PyObject *ob);
+    static PyObject *getattro(PyObject *self, PyObject *name);
+    static int setattro(PyObject *self, PyObject *name, PyObject *v);
+    static PyObject *PyCertFreeCTLContext(PyObject *self, PyObject *args);
+    static PyObject *PyCertEnumCTLContextProperties(PyObject *self, PyObject *args);
+    static PyObject *PyCertEnumSubjectInSortedCTL(PyObject *self, PyObject *args);
+    static PyObject *PyCertDeleteCTLFromStore(PyObject *self, PyObject *args);
+    static PyObject *PyCertSerializeCTLStoreElement(PyObject *self, PyObject *args, PyObject *kwargs);
+    PCCTL_CONTEXT GetCTL_CONTEXT(void) { return pctl_context; };
 
 #ifdef _MSC_VER
-#pragma warning( disable : 4251 )
-#endif // _MSC_VER
-	static struct PyMemberDef members[];
+#pragma warning(disable : 4251)
+#endif  // _MSC_VER
+    static struct PyMemberDef members[];
 #ifdef _MSC_VER
-#pragma warning( default : 4251 )
-#endif // _MSC_VER
-	static struct PyMethodDef methods[];
-protected:
-	PCCTL_CONTEXT pctl_context;
+#pragma warning(default : 4251)
+#endif  // _MSC_VER
+    static struct PyMethodDef methods[];
+
+   protected:
+    PCCTL_CONTEXT pctl_context;
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 BOOL PyWinObject_AsDATA_BLOB(PyObject *ob, DATA_BLOB *b);
 PyObject *PyWinObject_FromDATA_BLOB(DATA_BLOB *b);
 
-BOOL PyWinObject_AsCRYPTPROTECT_PROMPTSTRUCT(PyObject *ob, CRYPTPROTECT_PROMPTSTRUCT* PromptStruct);
+BOOL PyWinObject_AsCRYPTPROTECT_PROMPTSTRUCT(PyObject *ob, CRYPTPROTECT_PROMPTSTRUCT *PromptStruct);
 
 BOOL PyWinObject_AsCERTSTORE(PyObject *obhcertstore, HCERTSTORE *hcertstore, BOOL bNoneOK);
 PyObject *PyWinObject_FromCERTSTORE(HCERTSTORE certstore);
@@ -264,7 +259,6 @@ PyObject *PyWinObject_FromCERT_CONTEXT(PCCERT_CONTEXT);
 
 BOOL PyWinObject_AsCTL_CONTEXT(PyObject *, PCCTL_CONTEXT *, BOOL);
 PyObject *PyWinObject_FromCTL_CONTEXT(PCCTL_CONTEXT);
-
 
 BOOL PyWinObject_AsCTL_USAGE(PyObject *ob, CTL_USAGE *pcu);
 PyObject *PyWinObject_FromCTL_USAGE(PCTL_USAGE pUsage);
@@ -325,30 +319,28 @@ BOOL PyWinObject_AsOIDArray(PyObject *str_seq, LPSTR **str_array, DWORD *str_cnt
 void PyWinObject_FreeOIDArray(LPSTR *str_array, DWORD str_cnt);
 
 typedef struct _ENUM_ARG {
-    BOOL        fAll;
-    BOOL        fVerbose;
-    DWORD       dwFlags;
-    const void  *pvStoreLocationPara;
-    HKEY        hKeyBase;
+    BOOL fAll;
+    BOOL fVerbose;
+    DWORD dwFlags;
+    const void *pvStoreLocationPara;
+    HKEY hKeyBase;
 } ENUM_ARG, *PENUM_ARG;
 
-class PyCRYPT_VERIFY_MESSAGE_PARA : public CRYPT_VERIFY_MESSAGE_PARA{
-public:
-	PyCRYPT_VERIFY_MESSAGE_PARA(){
-		ZeroMemory((CRYPT_VERIFY_MESSAGE_PARA *)this, sizeof(CRYPT_VERIFY_MESSAGE_PARA));
-	}
-	~PyCRYPT_VERIFY_MESSAGE_PARA(){
-		if (pvGetArg)
-			free(pvGetArg);
-	}
+class PyCRYPT_VERIFY_MESSAGE_PARA : public CRYPT_VERIFY_MESSAGE_PARA {
+   public:
+    PyCRYPT_VERIFY_MESSAGE_PARA() { ZeroMemory((CRYPT_VERIFY_MESSAGE_PARA *)this, sizeof(CRYPT_VERIFY_MESSAGE_PARA)); }
+    ~PyCRYPT_VERIFY_MESSAGE_PARA()
+    {
+        if (pvGetArg)
+            free(pvGetArg);
+    }
 };
 
-class PyCRYPT_DECRYPT_MESSAGE_PARA : public CRYPT_DECRYPT_MESSAGE_PARA{
-public:
-	PyCRYPT_DECRYPT_MESSAGE_PARA(){
-		ZeroMemory((CRYPT_DECRYPT_MESSAGE_PARA *)this, sizeof(CRYPT_DECRYPT_MESSAGE_PARA));
-	}
-	~PyCRYPT_DECRYPT_MESSAGE_PARA(){
-		PyWinObject_FreeCRYPT_DECRYPT_MESSAGE_PARA(this);
-	}
+class PyCRYPT_DECRYPT_MESSAGE_PARA : public CRYPT_DECRYPT_MESSAGE_PARA {
+   public:
+    PyCRYPT_DECRYPT_MESSAGE_PARA()
+    {
+        ZeroMemory((CRYPT_DECRYPT_MESSAGE_PARA *)this, sizeof(CRYPT_DECRYPT_MESSAGE_PARA));
+    }
+    ~PyCRYPT_DECRYPT_MESSAGE_PARA() { PyWinObject_FreeCRYPT_DECRYPT_MESSAGE_PARA(this); }
 };

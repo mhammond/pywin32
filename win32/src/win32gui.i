@@ -2141,7 +2141,6 @@ static PyObject *PyEnumThreadWindows(PyObject *self, PyObject *args)
 // @pyswig |EnumChildWindows|Enumerates the child windows that belong to the specified parent window by passing the handle to each child window, in turn, to an application-defined callback function. EnumChildWindows continues until the last child window is enumerated or the callback function returns FALSE.
 static PyObject *PyEnumChildWindows(PyObject *self, PyObject *args)
 {
-	BOOL rc;
 	PyObject *obhwnd, *obFunc, *obOther;
 	HWND hwnd;
 	// @pyparm <o PyHANDLE>|hwnd||The handle to the window to enumerate.
@@ -2159,10 +2158,10 @@ static PyObject *PyEnumChildWindows(PyObject *self, PyObject *args)
 	cb.func = obFunc;
 	cb.extra = obOther;
     Py_BEGIN_ALLOW_THREADS
-	rc = EnumChildWindows(hwnd, PyEnumWindowsProc, (LPARAM)&cb);
+	// According to MSDN, the return value is not used, and according to
+	// #1350, may cause spurious exceptions.
+	EnumChildWindows(hwnd, PyEnumWindowsProc, (LPARAM)&cb);
     Py_END_ALLOW_THREADS
-	if (!rc)
-		return PyWin_SetAPIError("EnumChildWindows");
 	Py_INCREF(Py_None);
 	return Py_None;
 }
@@ -4596,29 +4595,29 @@ BOOL GetOpenFileName(OPENFILENAME *INPUT);
 %typemap (python, in) MENUITEMINFO *INPUT (Py_ssize_t target_size){
 	if (0 != PyObject_AsReadBuffer($source, (const void **)&$target, &target_size))
 		return NULL;
-	if (sizeof MENUITEMINFO != target_size)
-		return PyErr_Format(PyExc_TypeError, "Argument must be a %d-byte string/buffer (got %d bytes)", sizeof MENUITEMINFO, target_size);
+	if (sizeof(MENUITEMINFO) != target_size)
+		return PyErr_Format(PyExc_TypeError, "Argument must be a %d-byte string/buffer (got %d bytes)", sizeof(MENUITEMINFO), target_size);
 }
 
 %typemap (python,in) MENUITEMINFO *BOTH(Py_ssize_t target_size) {
 	if (0 != PyObject_AsWriteBuffer($source, (void **)&$target, &target_size))
 		return NULL;
-	if (sizeof MENUITEMINFO != target_size)
-		return PyErr_Format(PyExc_TypeError, "Argument must be a %d-byte buffer (got %d bytes)", sizeof MENUITEMINFO, target_size);
+	if (sizeof(MENUITEMINFO) != target_size)
+		return PyErr_Format(PyExc_TypeError, "Argument must be a %d-byte buffer (got %d bytes)", sizeof(MENUITEMINFO), target_size);
 }
 
 %typemap (python, in) MENUINFO *INPUT (Py_ssize_t target_size){
 	if (0 != PyObject_AsReadBuffer($source, (const void **)&$target, &target_size))
 		return NULL;
-	if (sizeof MENUINFO != target_size)
-		return PyErr_Format(PyExc_TypeError, "Argument must be a %d-byte string/buffer (got %d bytes)", sizeof MENUINFO, target_size);
+	if (sizeof(MENUINFO) != target_size)
+		return PyErr_Format(PyExc_TypeError, "Argument must be a %d-byte string/buffer (got %d bytes)", sizeof(MENUINFO), target_size);
 }
 
 %typemap (python,in) MENUINFO *BOTH(Py_ssize_t target_size) {
 	if (0 != PyObject_AsWriteBuffer($source, (void **)&$target, &target_size))
 		return NULL;
-	if (sizeof MENUINFO != target_size)
-		return PyErr_Format(PyExc_TypeError, "Argument must be a %d-byte buffer (got %d bytes)", sizeof MENUINFO, target_size);
+	if (sizeof(MENUINFO) != target_size)
+		return PyErr_Format(PyExc_TypeError, "Argument must be a %d-byte buffer (got %d bytes)", sizeof(MENUINFO), target_size);
 }
 
 // @pyswig |InsertMenuItem|Inserts a menu item
@@ -4750,8 +4749,8 @@ PyObject *PySetMenuInfo(PyObject *self, PyObject *args)
 
 	if (0 != PyObject_AsReadBuffer(obInfo, (const void **)&pInfo, &cbInfo))
 		return NULL;
-	if (sizeof MENUINFO != cbInfo)
-		return PyErr_Format(PyExc_TypeError, "Argument must be a %d byte string/buffer (got %d bytes)", sizeof MENUINFO, cbInfo);
+	if (sizeof(MENUINFO) != cbInfo)
+		return PyErr_Format(PyExc_TypeError, "Argument must be a %d byte string/buffer (got %d bytes)", sizeof(MENUINFO), cbInfo);
 
 	Py_BEGIN_ALLOW_THREADS
 	result = (*pfnSetMenuInfo)(hmenu, pInfo);
@@ -4787,8 +4786,8 @@ PyObject *PyGetMenuInfo(PyObject *self, PyObject *args)
 
 	if (0 != PyObject_AsWriteBuffer(obInfo, (void **)&pInfo, &cbInfo))
 		return NULL;
-	if (sizeof MENUINFO != cbInfo)
-		return PyErr_Format(PyExc_TypeError, "Argument must be a %d byte buffer (got %d bytes)", sizeof MENUINFO, cbInfo);
+	if (sizeof(MENUINFO) != cbInfo)
+		return PyErr_Format(PyExc_TypeError, "Argument must be a %d byte buffer (got %d bytes)", sizeof(MENUINFO), cbInfo);
 
 	Py_BEGIN_ALLOW_THREADS
 	result = (*pfnGetMenuInfo)(hmenu, pInfo);

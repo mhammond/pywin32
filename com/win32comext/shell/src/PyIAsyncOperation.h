@@ -8,52 +8,40 @@
 #define IAsyncOperation IDataObjectAsyncCapability
 #define IID_IAsyncOperation IID_IDataObjectAsyncCapability
 
-class PyIAsyncOperation : public PyIUnknown
-{
-public:
-	MAKE_PYCOM_CTOR(PyIAsyncOperation);
-	static IAsyncOperation *GetI(PyObject *self);
-	static PyComTypeObject type;
+class PyIAsyncOperation : public PyIUnknown {
+   public:
+    MAKE_PYCOM_CTOR(PyIAsyncOperation);
+    static IAsyncOperation *GetI(PyObject *self);
+    static PyComTypeObject type;
 
-	// The Python methods
-	static PyObject *SetAsyncMode(PyObject *self, PyObject *args);
-	static PyObject *GetAsyncMode(PyObject *self, PyObject *args);
-	static PyObject *StartOperation(PyObject *self, PyObject *args);
-	static PyObject *InOperation(PyObject *self, PyObject *args);
-	static PyObject *EndOperation(PyObject *self, PyObject *args);
+    // The Python methods
+    static PyObject *SetAsyncMode(PyObject *self, PyObject *args);
+    static PyObject *GetAsyncMode(PyObject *self, PyObject *args);
+    static PyObject *StartOperation(PyObject *self, PyObject *args);
+    static PyObject *InOperation(PyObject *self, PyObject *args);
+    static PyObject *EndOperation(PyObject *self, PyObject *args);
 
-protected:
-	PyIAsyncOperation(IUnknown *pdisp);
-	~PyIAsyncOperation();
+   protected:
+    PyIAsyncOperation(IUnknown *pdisp);
+    ~PyIAsyncOperation();
 };
 // ---------------------------------------------------
 //
 // Gateway Declaration
 
-class PyGAsyncOperation : public PyGatewayBase, public IAsyncOperation
-{
-protected:
-	PyGAsyncOperation(PyObject *instance) : PyGatewayBase(instance) { ; }
-	PYGATEWAY_MAKE_SUPPORT2(PyGAsyncOperation, IAsyncOperation, IID_IAsyncOperation, PyGatewayBase)
+class PyGAsyncOperation : public PyGatewayBase, public IAsyncOperation {
+   protected:
+    PyGAsyncOperation(PyObject *instance) : PyGatewayBase(instance) { ; }
+    PYGATEWAY_MAKE_SUPPORT2(PyGAsyncOperation, IAsyncOperation, IID_IAsyncOperation, PyGatewayBase)
 
+    // IAsyncOperation
+    STDMETHOD(SetAsyncMode)(BOOL fDoOpAsync);
 
+    STDMETHOD(GetAsyncMode)(BOOL *pfIsOpAsync);
 
-	// IAsyncOperation
-	STDMETHOD(SetAsyncMode)(
-		BOOL fDoOpAsync);
+    STDMETHOD(StartOperation)(IBindCtx *pbcReserved);
 
-	STDMETHOD(GetAsyncMode)(
-		BOOL * pfIsOpAsync);
+    STDMETHOD(InOperation)(BOOL *pfInAsyncOp);
 
-	STDMETHOD(StartOperation)(
-		IBindCtx * pbcReserved);
-
-	STDMETHOD(InOperation)(
-		BOOL * pfInAsyncOp);
-
-	STDMETHOD(EndOperation)(
-		HRESULT hResult,
-		IBindCtx * pbcReserved,
-		DWORD dwEffects);
-
+    STDMETHOD(EndOperation)(HRESULT hResult, IBindCtx *pbcReserved, DWORD dwEffects);
 };

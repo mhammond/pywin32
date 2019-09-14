@@ -64,32 +64,28 @@ HMODULE GetMAPIHandle() { return g_hinstMAPI; }
 
 void SetMAPIHandle(HMODULE hinstMAPI)
 {
-	const HMODULE hinstNULL = nullptr;
-	HMODULE hinstToFree = nullptr;
+    const HMODULE hinstNULL = nullptr;
+    HMODULE hinstToFree = nullptr;
 
-	if (hinstMAPI == nullptr)
-	{
-		hinstToFree = static_cast<HMODULE>(InterlockedExchangePointer(
-			const_cast<PVOID*>(reinterpret_cast<PVOID volatile*>(&g_hinstMAPI)), static_cast<PVOID>(hinstNULL)));
-	}
-	else
-	{
-		// Set the value only if the global is nullptr
-		const HMODULE hinstPrev = static_cast<HMODULE>(InterlockedExchangePointer(
-			const_cast<PVOID*>(reinterpret_cast<PVOID volatile*>(&g_hinstMAPI)), static_cast<PVOID>(hinstMAPI)));
-		if (nullptr != hinstPrev)
-		{
-			hinstToFree = hinstMAPI;
-		}
+    if (hinstMAPI == nullptr) {
+        hinstToFree = static_cast<HMODULE>(InterlockedExchangePointer(
+            const_cast<PVOID *>(reinterpret_cast<PVOID volatile *>(&g_hinstMAPI)), static_cast<PVOID>(hinstNULL)));
+    }
+    else {
+        // Set the value only if the global is nullptr
+        const HMODULE hinstPrev = static_cast<HMODULE>(InterlockedExchangePointer(
+            const_cast<PVOID *>(reinterpret_cast<PVOID volatile *>(&g_hinstMAPI)), static_cast<PVOID>(hinstMAPI)));
+        if (nullptr != hinstPrev) {
+            hinstToFree = hinstMAPI;
+        }
 
-		// If we've updated our MAPI handle, any previous addressed fetched via GetProcAddress are invalid, so we
-		// have to increment a sequence number to signal that they need to be re-fetched
-		InterlockedIncrement(reinterpret_cast<volatile LONG*>(&g_ulDllSequenceNum));
-	}
-	if (nullptr != hinstToFree)
-	{
-		FreeLibrary(hinstToFree);
-	}
+        // If we've updated our MAPI handle, any previous addressed fetched via GetProcAddress are invalid, so we
+        // have to increment a sequence number to signal that they need to be re-fetched
+        InterlockedIncrement(reinterpret_cast<volatile LONG *>(&g_ulDllSequenceNum));
+    }
+    if (nullptr != hinstToFree) {
+        FreeLibrary(hinstToFree);
+    }
 }
 
 /*
@@ -98,31 +94,27 @@ void SetMAPIHandle(HMODULE hinstMAPI)
  */
 DWORD RegQueryWszExpand(HKEY hKey, LPCWSTR lpValueName, LPWSTR lpValue, DWORD cchValueLen)
 {
-	DWORD dwType = 0;
+    DWORD dwType = 0;
 
-	WCHAR rgchValue[MAX_PATH] = {0};
-	DWORD dwSize = sizeof rgchValue;
+    WCHAR rgchValue[MAX_PATH] = {0};
+    DWORD dwSize = sizeof rgchValue;
 
-	DWORD dwErr = RegQueryValueExW(hKey, lpValueName, nullptr, &dwType, reinterpret_cast<LPBYTE>(&rgchValue), &dwSize);
+    DWORD dwErr = RegQueryValueExW(hKey, lpValueName, nullptr, &dwType, reinterpret_cast<LPBYTE>(&rgchValue), &dwSize);
 
-	if (dwErr == ERROR_SUCCESS)
-	{
-		if (dwType == REG_EXPAND_SZ)
-		{
-			// Expand the strings
-			DWORD cch = ExpandEnvironmentStringsW(rgchValue, lpValue, cchValueLen);
-			if ((0 == cch) || (cch > cchValueLen))
-			{
-				dwErr = ERROR_INSUFFICIENT_BUFFER;
-			}
-		}
-		else if (dwType == REG_SZ)
-		{
-			wcscpy_s(lpValue, cchValueLen, rgchValue);
-		}
-	}
+    if (dwErr == ERROR_SUCCESS) {
+        if (dwType == REG_EXPAND_SZ) {
+            // Expand the strings
+            DWORD cch = ExpandEnvironmentStringsW(rgchValue, lpValue, cchValueLen);
+            if ((0 == cch) || (cch > cchValueLen)) {
+                dwErr = ERROR_INSUFFICIENT_BUFFER;
+            }
+        }
+        else if (dwType == REG_SZ) {
+            wcscpy_s(lpValue, cchValueLen, rgchValue);
+        }
+    }
 
-	return dwErr;
+    return dwErr;
 }
 
 /*
@@ -133,24 +125,24 @@ DWORD RegQueryWszExpand(HKEY hKey, LPCWSTR lpValueName, LPWSTR lpValue, DWORD cc
  */
 bool GetComponentPath(LPCSTR szComponent, LPSTR szQualifier, LPSTR szDllPath, DWORD cchBufferSize, bool fInstall)
 {
-	bool fReturn = false;
+    bool fReturn = false;
 
-	typedef bool(STDAPICALLTYPE * FGetComponentPathType)(LPCSTR, LPSTR, LPSTR, DWORD, bool);
+    typedef bool(STDAPICALLTYPE * FGetComponentPathType)(LPCSTR, LPSTR, LPSTR, DWORD, bool);
 
-	HMODULE hMapiStub = LoadLibraryW(WszMapi32);
-	if (!hMapiStub) hMapiStub = LoadLibraryW(WszMapiStub);
+    HMODULE hMapiStub = LoadLibraryW(WszMapi32);
+    if (!hMapiStub)
+        hMapiStub = LoadLibraryW(WszMapiStub);
 
-	if (hMapiStub)
-	{
-		const FGetComponentPathType pFGetCompPath =
-			reinterpret_cast<FGetComponentPathType>(GetProcAddress(hMapiStub, SzFGetComponentPath));
+    if (hMapiStub) {
+        const FGetComponentPathType pFGetCompPath =
+            reinterpret_cast<FGetComponentPathType>(GetProcAddress(hMapiStub, SzFGetComponentPath));
 
-		fReturn = pFGetCompPath(szComponent, szQualifier, szDllPath, cchBufferSize, fInstall);
+        fReturn = pFGetCompPath(szComponent, szQualifier, szDllPath, cchBufferSize, fInstall);
 
-		FreeLibrary(hMapiStub);
-	}
+        FreeLibrary(hMapiStub);
+    }
 
-	return fReturn;
+    return fReturn;
 }
 
 /*
@@ -159,37 +151,25 @@ bool GetComponentPath(LPCSTR szComponent, LPSTR szQualifier, LPSTR szDllPath, DW
  */
 HMODULE LoadMailClientFromMSIData(HKEY hkeyMapiClient)
 {
-	HMODULE hinstMapi = nullptr;
-	CHAR rgchMSIComponentID[MAX_PATH] = {0};
-	CHAR rgchMSIApplicationLCID[MAX_PATH] = {0};
-	CHAR rgchComponentPath[MAX_PATH] = {0};
-	DWORD dwType = 0;
+    HMODULE hinstMapi = nullptr;
+    CHAR rgchMSIComponentID[MAX_PATH] = {0};
+    CHAR rgchMSIApplicationLCID[MAX_PATH] = {0};
+    CHAR rgchComponentPath[MAX_PATH] = {0};
+    DWORD dwType = 0;
 
-	DWORD dwSizeComponentID = sizeof rgchMSIComponentID;
-	DWORD dwSizeLCID = sizeof rgchMSIApplicationLCID;
+    DWORD dwSizeComponentID = sizeof rgchMSIComponentID;
+    DWORD dwSizeLCID = sizeof rgchMSIApplicationLCID;
 
-	if (ERROR_SUCCESS == RegQueryValueExA(
-							 hkeyMapiClient,
-							 SzValueNameMSI,
-							 nullptr,
-							 &dwType,
-							 reinterpret_cast<LPBYTE>(&rgchMSIComponentID),
-							 &dwSizeComponentID) &&
-		ERROR_SUCCESS == RegQueryValueExA(
-							 hkeyMapiClient,
-							 SzValueNameLCID,
-							 nullptr,
-							 &dwType,
-							 reinterpret_cast<LPBYTE>(&rgchMSIApplicationLCID),
-							 &dwSizeLCID))
-	{
-		if (GetComponentPath(
-				rgchMSIComponentID, rgchMSIApplicationLCID, rgchComponentPath, _countof(rgchComponentPath), false))
-		{
-			hinstMapi = LoadLibraryA(rgchComponentPath);
-		}
-	}
-	return hinstMapi;
+    if (ERROR_SUCCESS == RegQueryValueExA(hkeyMapiClient, SzValueNameMSI, nullptr, &dwType,
+                                          reinterpret_cast<LPBYTE>(&rgchMSIComponentID), &dwSizeComponentID) &&
+        ERROR_SUCCESS == RegQueryValueExA(hkeyMapiClient, SzValueNameLCID, nullptr, &dwType,
+                                          reinterpret_cast<LPBYTE>(&rgchMSIApplicationLCID), &dwSizeLCID)) {
+        if (GetComponentPath(rgchMSIComponentID, rgchMSIApplicationLCID, rgchComponentPath, _countof(rgchComponentPath),
+                             false)) {
+            hinstMapi = LoadLibraryA(rgchComponentPath);
+        }
+    }
+    return hinstMapi;
 }
 
 /*
@@ -198,16 +178,15 @@ HMODULE LoadMailClientFromMSIData(HKEY hkeyMapiClient)
  */
 HMODULE LoadMAPIFromSystemDir()
 {
-	WCHAR szSystemDir[MAX_PATH] = {0};
+    WCHAR szSystemDir[MAX_PATH] = {0};
 
-	if (GetSystemDirectoryW(szSystemDir, MAX_PATH))
-	{
-		WCHAR szDLLPath[MAX_PATH] = {0};
-		swprintf_s(szDLLPath, _countof(szDLLPath), WszMAPISystemPath, szSystemDir, WszMapi32);
-		return LoadLibraryW(szDLLPath);
-	}
+    if (GetSystemDirectoryW(szSystemDir, MAX_PATH)) {
+        WCHAR szDLLPath[MAX_PATH] = {0};
+        swprintf_s(szDLLPath, _countof(szDLLPath), WszMAPISystemPath, szSystemDir, WszMapi32);
+        return LoadLibraryW(szDLLPath);
+    }
 
-	return nullptr;
+    return nullptr;
 }
 
 /*
@@ -216,25 +195,22 @@ HMODULE LoadMAPIFromSystemDir()
  */
 HMODULE LoadMailClientFromDllPath(HKEY hkeyMapiClient)
 {
-	HMODULE hinstMapi = nullptr;
-	WCHAR rgchDllPath[MAX_PATH];
+    HMODULE hinstMapi = nullptr;
+    WCHAR rgchDllPath[MAX_PATH];
 
-	DWORD dwSizeDllPath = _countof(rgchDllPath);
+    DWORD dwSizeDllPath = _countof(rgchDllPath);
 
-	if (ERROR_SUCCESS == RegQueryWszExpand(hkeyMapiClient, WszValueNameDllPathEx, rgchDllPath, dwSizeDllPath))
-	{
-		hinstMapi = LoadLibraryW(rgchDllPath);
-	}
+    if (ERROR_SUCCESS == RegQueryWszExpand(hkeyMapiClient, WszValueNameDllPathEx, rgchDllPath, dwSizeDllPath)) {
+        hinstMapi = LoadLibraryW(rgchDllPath);
+    }
 
-	if (!hinstMapi)
-	{
-		dwSizeDllPath = _countof(rgchDllPath);
-		if (ERROR_SUCCESS == RegQueryWszExpand(hkeyMapiClient, WszValueNameDllPath, rgchDllPath, dwSizeDllPath))
-		{
-			hinstMapi = LoadLibraryW(rgchDllPath);
-		}
-	}
-	return hinstMapi;
+    if (!hinstMapi) {
+        dwSizeDllPath = _countof(rgchDllPath);
+        if (ERROR_SUCCESS == RegQueryWszExpand(hkeyMapiClient, WszValueNameDllPath, rgchDllPath, dwSizeDllPath)) {
+            hinstMapi = LoadLibraryW(rgchDllPath);
+        }
+    }
+    return hinstMapi;
 }
 
 /*
@@ -246,119 +222,112 @@ HMODULE LoadMailClientFromDllPath(HKEY hkeyMapiClient)
  */
 HMODULE LoadRegisteredMapiClient(LPCWSTR pwzProviderOverride)
 {
-	HMODULE hinstMapi = nullptr;
-	DWORD dwType;
-	HKEY hkey = nullptr, hkeyMapiClient = nullptr;
-	WCHAR rgchMailClient[MAX_PATH];
-	LPCWSTR pwzProvider = pwzProviderOverride;
+    HMODULE hinstMapi = nullptr;
+    DWORD dwType;
+    HKEY hkey = nullptr, hkeyMapiClient = nullptr;
+    WCHAR rgchMailClient[MAX_PATH];
+    LPCWSTR pwzProvider = pwzProviderOverride;
 
-	// Open HKLM\Software\Clients\Mail
-	if (ERROR_SUCCESS == RegOpenKeyExW(HKEY_LOCAL_MACHINE, WszKeyNameMailClient, 0, KEY_READ, &hkey))
-	{
-		// If a specific provider wasn't specified, load the name of the default MAPI provider
-		if (!pwzProvider)
-		{
-			// Get Outlook application path registry value
-			DWORD dwSize = sizeof(rgchMailClient);
-			if
-				SUCCEEDED(RegQueryValueExW(hkey, nullptr, 0, &dwType, (LPBYTE) &rgchMailClient, &dwSize))
+    // Open HKLM\Software\Clients\Mail
+    if (ERROR_SUCCESS == RegOpenKeyExW(HKEY_LOCAL_MACHINE, WszKeyNameMailClient, 0, KEY_READ, &hkey)) {
+        // If a specific provider wasn't specified, load the name of the default MAPI provider
+        if (!pwzProvider) {
+            // Get Outlook application path registry value
+            DWORD dwSize = sizeof(rgchMailClient);
+            if
+                SUCCEEDED(RegQueryValueExW(hkey, nullptr, 0, &dwType, (LPBYTE)&rgchMailClient, &dwSize))
 
-			if (dwType != REG_SZ) goto Error;
+            if (dwType != REG_SZ)
+                goto Error;
 
-			pwzProvider = rgchMailClient;
-		}
+            pwzProvider = rgchMailClient;
+        }
 
-		if (pwzProvider)
-		{
-			if
-				SUCCEEDED(RegOpenKeyExW(hkey, pwzProvider, 0, KEY_READ, &hkeyMapiClient))
-				{
-					hinstMapi = LoadMailClientFromMSIData(hkeyMapiClient);
+        if (pwzProvider) {
+            if
+                SUCCEEDED(RegOpenKeyExW(hkey, pwzProvider, 0, KEY_READ, &hkeyMapiClient))
+                {
+                    hinstMapi = LoadMailClientFromMSIData(hkeyMapiClient);
 
-					if (!hinstMapi) hinstMapi = LoadMailClientFromDllPath(hkeyMapiClient);
-				}
-		}
-	}
+                    if (!hinstMapi)
+                        hinstMapi = LoadMailClientFromDllPath(hkeyMapiClient);
+                }
+        }
+    }
 
 Error:
-	return hinstMapi;
+    return hinstMapi;
 }
 
 HMODULE GetDefaultMapiHandle()
 {
-	HMODULE hinstMapi = nullptr;
+    HMODULE hinstMapi = nullptr;
 
-	// Try to respect the machine's default MAPI client settings.  If the active MAPI provider
-	//  is Outlook, don't load and instead run the logic below
-	if (s_fForceOutlookMAPI)
-		hinstMapi = LoadRegisteredMapiClient(WszOutlookMapiClientName);
-	else
-		hinstMapi = LoadRegisteredMapiClient(nullptr);
+    // Try to respect the machine's default MAPI client settings.  If the active MAPI provider
+    //  is Outlook, don't load and instead run the logic below
+    if (s_fForceOutlookMAPI)
+        hinstMapi = LoadRegisteredMapiClient(WszOutlookMapiClientName);
+    else
+        hinstMapi = LoadRegisteredMapiClient(nullptr);
 
-	// If MAPI still isn't loaded, load the stub from the system directory
-	if (!hinstMapi && !s_fForceOutlookMAPI)
-	{
-		hinstMapi = LoadMAPIFromSystemDir();
-	}
+    // If MAPI still isn't loaded, load the stub from the system directory
+    if (!hinstMapi && !s_fForceOutlookMAPI) {
+        hinstMapi = LoadMAPIFromSystemDir();
+    }
 
-	return hinstMapi;
+    return hinstMapi;
 }
 
 /*------------------------------------------------------------------------------
-	Attach to wzMapiDll(olmapi32.dll/msmapi32.dll) if it is already loaded in the
-	current process.
+    Attach to wzMapiDll(olmapi32.dll/msmapi32.dll) if it is already loaded in the
+    current process.
 ------------------------------------------------------------------------------*/
-HMODULE AttachToMAPIDll(const WCHAR* wzMapiDll)
+HMODULE AttachToMAPIDll(const WCHAR *wzMapiDll)
 {
-	HMODULE hinstPrivateMAPI = nullptr;
-	GetModuleHandleExW(0UL, wzMapiDll, &hinstPrivateMAPI);
-	return hinstPrivateMAPI;
+    HMODULE hinstPrivateMAPI = nullptr;
+    GetModuleHandleExW(0UL, wzMapiDll, &hinstPrivateMAPI);
+    return hinstPrivateMAPI;
 }
 
 void UnloadPrivateMAPI()
 {
-	const HMODULE hinstPrivateMAPI = GetMAPIHandle();
-	if (nullptr != hinstPrivateMAPI)
-	{
-		SetMAPIHandle(nullptr);
-	}
+    const HMODULE hinstPrivateMAPI = GetMAPIHandle();
+    if (nullptr != hinstPrivateMAPI) {
+        SetMAPIHandle(nullptr);
+    }
 }
 
 void ForceOutlookMAPI(bool fForce) { s_fForceOutlookMAPI = fForce; }
 
 HMODULE GetPrivateMAPI()
 {
-	HMODULE hinstPrivateMAPI = GetMAPIHandle();
+    HMODULE hinstPrivateMAPI = GetMAPIHandle();
 
-	if (nullptr == hinstPrivateMAPI)
-	{
-		// First, try to attach to olmapi32.dll if it's loaded in the process
-		hinstPrivateMAPI = AttachToMAPIDll(WszOlMAPI32DLL);
+    if (nullptr == hinstPrivateMAPI) {
+        // First, try to attach to olmapi32.dll if it's loaded in the process
+        hinstPrivateMAPI = AttachToMAPIDll(WszOlMAPI32DLL);
 
-		// If that fails try msmapi32.dll, for Outlook 11 and below
-		//  Only try this in the static lib, otherwise msmapi32.dll will attach to itself.
-		if (nullptr == hinstPrivateMAPI)
-		{
-			hinstPrivateMAPI = AttachToMAPIDll(WszMSMAPI32DLL);
-		}
+        // If that fails try msmapi32.dll, for Outlook 11 and below
+        //  Only try this in the static lib, otherwise msmapi32.dll will attach to itself.
+        if (nullptr == hinstPrivateMAPI) {
+            hinstPrivateMAPI = AttachToMAPIDll(WszMSMAPI32DLL);
+        }
 
-		// If MAPI isn't loaded in the process yet, then find the path to the DLL and
-		// load it manually.
-		if (nullptr == hinstPrivateMAPI)
-		{
-			hinstPrivateMAPI = GetDefaultMapiHandle();
-		}
+        // If MAPI isn't loaded in the process yet, then find the path to the DLL and
+        // load it manually.
+        if (nullptr == hinstPrivateMAPI) {
+            hinstPrivateMAPI = GetDefaultMapiHandle();
+        }
 
-		if (nullptr != hinstPrivateMAPI)
-		{
-			SetMAPIHandle(hinstPrivateMAPI);
-		}
+        if (nullptr != hinstPrivateMAPI) {
+            SetMAPIHandle(hinstPrivateMAPI);
+        }
 
-		// Reason - if for any reason there is an instance already loaded, SetMAPIHandle()
-		// will free the new one and reuse the old one
-		// So we fetch the instance from the global again
-		return GetMAPIHandle();
-	}
+        // Reason - if for any reason there is an instance already loaded, SetMAPIHandle()
+        // will free the new one and reuse the old one
+        // So we fetch the instance from the global again
+        return GetMAPIHandle();
+    }
 
-	return hinstPrivateMAPI;
+    return hinstPrivateMAPI;
 }

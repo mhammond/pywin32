@@ -7,163 +7,151 @@
 //
 // Interface Implementation
 
-PyIExtractIcon::PyIExtractIcon(IUnknown *pdisp):
-	PyIUnknown(pdisp)
-{
-	ob_type = &type;
-}
+PyIExtractIcon::PyIExtractIcon(IUnknown *pdisp) : PyIUnknown(pdisp) { ob_type = &type; }
 
-PyIExtractIcon::~PyIExtractIcon()
-{
-}
+PyIExtractIcon::~PyIExtractIcon() {}
 
-/* static */ IExtractIconA *PyIExtractIcon::GetI(PyObject *self)
-{
-	return (IExtractIconA *)PyIUnknown::GetI(self);
-}
+/* static */ IExtractIconA *PyIExtractIcon::GetI(PyObject *self) { return (IExtractIconA *)PyIUnknown::GetI(self); }
 
 // @pymethod |PyIExtractIcon|Extract|Description of Extract.
 PyObject *PyIExtractIcon::Extract(PyObject *self, PyObject *args)
 {
-	IExtractIconA *pIEI = GetI(self);
-	if ( pIEI == NULL )
-		return NULL;
-	// @pyparm <o unicode>|pszFile||Description for pszFile
-	// @pyparm int|nIconIndex||Description for nIconIndex
-	// @pyparm int|nIconSize||Description for nIconIndex
-	HICON hiconLarge;
-	HICON hiconSmall;
-	PyObject *obpszFile;
-	char *pszFile;
-	UINT nIconIndex;
-	UINT nIconSize;
-	if ( !PyArg_ParseTuple(args, "Oii:Extract", &obpszFile, &nIconIndex, &nIconSize) )
-		return NULL;
-	BOOL bPythonIsHappy = TRUE;
-	if (!PyWinObject_AsString(obpszFile, &pszFile)) bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIEI->Extract( pszFile, nIconIndex, &hiconLarge, &hiconSmall, nIconSize );
-	PyWinObject_FreeString(pszFile);
-	PY_INTERFACE_POSTCALL;
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pIEI, IID_IExtractIcon );
-	if (hr==S_FALSE)
-		return Py_BuildValue("OO", Py_None, Py_None);
-	return Py_BuildValue("NN", PyWinLong_FromHANDLE(hiconLarge),
-			           PyWinLong_FromHANDLE(hiconSmall));
-	// @rdesc The result is (hicon_large, hicon_small), or
-	// (None,None) if the underlying function returns S_FALSE, indicating
-	// the calling application should extract it.
+    IExtractIconA *pIEI = GetI(self);
+    if (pIEI == NULL)
+        return NULL;
+    // @pyparm <o unicode>|pszFile||Description for pszFile
+    // @pyparm int|nIconIndex||Description for nIconIndex
+    // @pyparm int|nIconSize||Description for nIconIndex
+    HICON hiconLarge;
+    HICON hiconSmall;
+    PyObject *obpszFile;
+    char *pszFile;
+    UINT nIconIndex;
+    UINT nIconSize;
+    if (!PyArg_ParseTuple(args, "Oii:Extract", &obpszFile, &nIconIndex, &nIconSize))
+        return NULL;
+    BOOL bPythonIsHappy = TRUE;
+    if (!PyWinObject_AsString(obpszFile, &pszFile))
+        bPythonIsHappy = FALSE;
+    if (!bPythonIsHappy)
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIEI->Extract(pszFile, nIconIndex, &hiconLarge, &hiconSmall, nIconSize);
+    PyWinObject_FreeString(pszFile);
+    PY_INTERFACE_POSTCALL;
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pIEI, IID_IExtractIcon);
+    if (hr == S_FALSE)
+        return Py_BuildValue("OO", Py_None, Py_None);
+    return Py_BuildValue("NN", PyWinLong_FromHANDLE(hiconLarge), PyWinLong_FromHANDLE(hiconSmall));
+    // @rdesc The result is (hicon_large, hicon_small), or
+    // (None,None) if the underlying function returns S_FALSE, indicating
+    // the calling application should extract it.
 }
 
 // @pymethod |PyIExtractIcon|GetIconLocation|Description of GetIconLocation.
 PyObject *PyIExtractIcon::GetIconLocation(PyObject *self, PyObject *args)
 {
-	IExtractIconA *pIEI = GetI(self);
-	if ( pIEI == NULL )
-		return NULL;
-	// @pyparm int|uFlags||Description for uFlags
-	// @pyparm int|cchMax|MAX_PATH+MAX_FNAME|Buffer size to allocate for file name
-	UINT uFlags;
-	INT cchMax = MAX_PATH + _MAX_FNAME;
-	if ( !PyArg_ParseTuple(args, "i|i:GetIconLocation", &uFlags, &cchMax))
-		return NULL;
-	char *buf = (char *)malloc(cchMax * sizeof(char));
-	if (!buf)
-		return PyErr_NoMemory();
-	INT iIndex;
-	UINT flags;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIEI->GetIconLocation( uFlags, buf, cchMax, &iIndex, &flags);
-	PY_INTERFACE_POSTCALL;
-	if ( FAILED(hr) ) {
-		free(buf);
-		return PyCom_BuildPyException(hr, pIEI, IID_IExtractIcon );
-	}
-	PyObject *retStr = PyString_FromString(buf);
-	free(buf);
-	return Py_BuildValue("iNii", hr, retStr, iIndex, flags);
+    IExtractIconA *pIEI = GetI(self);
+    if (pIEI == NULL)
+        return NULL;
+    // @pyparm int|uFlags||Description for uFlags
+    // @pyparm int|cchMax|MAX_PATH+MAX_FNAME|Buffer size to allocate for file name
+    UINT uFlags;
+    INT cchMax = MAX_PATH + _MAX_FNAME;
+    if (!PyArg_ParseTuple(args, "i|i:GetIconLocation", &uFlags, &cchMax))
+        return NULL;
+    char *buf = (char *)malloc(cchMax * sizeof(char));
+    if (!buf)
+        return PyErr_NoMemory();
+    INT iIndex;
+    UINT flags;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIEI->GetIconLocation(uFlags, buf, cchMax, &iIndex, &flags);
+    PY_INTERFACE_POSTCALL;
+    if (FAILED(hr)) {
+        free(buf);
+        return PyCom_BuildPyException(hr, pIEI, IID_IExtractIcon);
+    }
+    PyObject *retStr = PyString_FromString(buf);
+    free(buf);
+    return Py_BuildValue("iNii", hr, retStr, iIndex, flags);
 }
 
 // @object PyIExtractIcon|Description of the interface
-static struct PyMethodDef PyIExtractIcon_methods[] =
-{
-	{ "Extract", PyIExtractIcon::Extract, 1 }, // @pymeth Extract|Description of Extract
-	{ "GetIconLocation", PyIExtractIcon::GetIconLocation, 1 }, // @pymeth GetIconLocation|Description of GetIconLocation
-	{ NULL }
-};
+static struct PyMethodDef PyIExtractIcon_methods[] = {
+    {"Extract", PyIExtractIcon::Extract, 1},                  // @pymeth Extract|Description of Extract
+    {"GetIconLocation", PyIExtractIcon::GetIconLocation, 1},  // @pymeth GetIconLocation|Description of GetIconLocation
+    {NULL}};
 
-PyComTypeObject PyIExtractIcon::type("PyIExtractIcon",
-		&PyIUnknown::type,
-		sizeof(PyIExtractIcon),
-		PyIExtractIcon_methods,
-		GET_PYCOM_CTOR(PyIExtractIcon));
+PyComTypeObject PyIExtractIcon::type("PyIExtractIcon", &PyIUnknown::type, sizeof(PyIExtractIcon),
+                                     PyIExtractIcon_methods, GET_PYCOM_CTOR(PyIExtractIcon));
 // ---------------------------------------------------
 //
 // Gateway Implementation
 STDMETHODIMP PyGExtractIcon::Extract(
-		/* [unique][in] */ LPCSTR pszFile,
-		/* [unique][in] */ UINT nIconIndex,
-		/* [out] */ HICON * phiconLarge,
-		/* [out] */ HICON * phiconSmall,
-		/* [unique][in] */ UINT nIconSize)
+    /* [unique][in] */ LPCSTR pszFile,
+    /* [unique][in] */ UINT nIconIndex,
+    /* [out] */ HICON *phiconLarge,
+    /* [out] */ HICON *phiconSmall,
+    /* [unique][in] */ UINT nIconSize)
 {
-	PY_GATEWAY_METHOD;
-	PyObject *obpszFile;
-	obpszFile = PyString_FromString(pszFile);
-	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("Extract", &result, "Oii", obpszFile, nIconIndex, nIconSize);
-	Py_XDECREF(obpszFile);
-	if (FAILED(hr)) return hr;
-	if (PyInt_Check(result) || PyLong_Check(result))
-		hr = PyInt_AsLong(result);
-	else {
-		PyObject *oblarge, *obsmall;
-		if (PyArg_ParseTuple(result, "OO", &oblarge, &obsmall) &&
-		    PyWinObject_AsHANDLE(oblarge, (HANDLE *)phiconLarge) &&
-		    PyWinObject_AsHANDLE(obsmall, (HANDLE *)phiconSmall)) {
-			// we worked - no error should be present!
-			assert(!PyErr_Occurred());
-		}
-		hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("Extract");
-	}
-	Py_DECREF(result);
-	return hr;
+    PY_GATEWAY_METHOD;
+    PyObject *obpszFile;
+    obpszFile = PyString_FromString(pszFile);
+    PyObject *result;
+    HRESULT hr = InvokeViaPolicy("Extract", &result, "Oii", obpszFile, nIconIndex, nIconSize);
+    Py_XDECREF(obpszFile);
+    if (FAILED(hr))
+        return hr;
+    if (PyInt_Check(result) || PyLong_Check(result))
+        hr = PyInt_AsLong(result);
+    else {
+        PyObject *oblarge, *obsmall;
+        if (PyArg_ParseTuple(result, "OO", &oblarge, &obsmall) &&
+            PyWinObject_AsHANDLE(oblarge, (HANDLE *)phiconLarge) &&
+            PyWinObject_AsHANDLE(obsmall, (HANDLE *)phiconSmall)) {
+            // we worked - no error should be present!
+            assert(!PyErr_Occurred());
+        }
+        hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("Extract");
+    }
+    Py_DECREF(result);
+    return hr;
 }
 
 STDMETHODIMP PyGExtractIcon::GetIconLocation(
-		/* [unique][in] */ UINT uFlags,
-		/* [unique][out] */ LPSTR szIconFile,
-		/* [unique][in] */ UINT cchMax,
-		/* [unique][out] */ LPINT piIndex,
-		/* [unique][out] */ UINT *pflags)
+    /* [unique][in] */ UINT uFlags,
+    /* [unique][out] */ LPSTR szIconFile,
+    /* [unique][in] */ UINT cchMax,
+    /* [unique][out] */ LPINT piIndex,
+    /* [unique][out] */ UINT *pflags)
 {
-	PY_GATEWAY_METHOD;
-	if (cchMax && szIconFile)
-		szIconFile[0] = 0;
-	*piIndex = 0;
-	*pflags = 0;
-	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("GetIconLocation", &result, "i", uFlags);
-	if (FAILED(hr)) return hr;
-	PyObject *obFileName;
-	// Process the Python results, and convert back to the real params
-	if (PyInt_Check(result) || PyLong_Check(result))
-		hr = PyInt_AsLong(result);
-	else {
-		if (PyArg_ParseTuple(result, "Oii", &obFileName, piIndex, pflags)) {
-			char *filename;
-			if (PyWinObject_AsString(obFileName, &filename)) {
-				strncpy(szIconFile, filename, cchMax);
-				PyWinObject_FreeString(filename);
-			}
-		}
-		hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("GetIconLocation");
-	}
-	Py_DECREF(result);
-	return hr;
+    PY_GATEWAY_METHOD;
+    if (cchMax && szIconFile)
+        szIconFile[0] = 0;
+    *piIndex = 0;
+    *pflags = 0;
+    PyObject *result;
+    HRESULT hr = InvokeViaPolicy("GetIconLocation", &result, "i", uFlags);
+    if (FAILED(hr))
+        return hr;
+    PyObject *obFileName;
+    // Process the Python results, and convert back to the real params
+    if (PyInt_Check(result) || PyLong_Check(result))
+        hr = PyInt_AsLong(result);
+    else {
+        if (PyArg_ParseTuple(result, "Oii", &obFileName, piIndex, pflags)) {
+            char *filename;
+            if (PyWinObject_AsString(obFileName, &filename)) {
+                strncpy(szIconFile, filename, cchMax);
+                PyWinObject_FreeString(filename);
+            }
+        }
+        hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("GetIconLocation");
+    }
+    Py_DECREF(result);
+    return hr;
 }
-

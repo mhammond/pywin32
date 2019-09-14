@@ -4,60 +4,44 @@
 //
 // Interface Declaration
 
-class PyICategoryProvider : public PyIUnknown
-{
-public:
-	MAKE_PYCOM_CTOR(PyICategoryProvider);
-	static ICategoryProvider *GetI(PyObject *self);
-	static PyComTypeObject type;
+class PyICategoryProvider : public PyIUnknown {
+   public:
+    MAKE_PYCOM_CTOR(PyICategoryProvider);
+    static ICategoryProvider *GetI(PyObject *self);
+    static PyComTypeObject type;
 
-	// The Python methods
-	static PyObject *CanCategorizeOnSCID(PyObject *self, PyObject *args);
-	static PyObject *GetDefaultCategory(PyObject *self, PyObject *args);
-	static PyObject *GetCategoryForSCID(PyObject *self, PyObject *args);
-	static PyObject *EnumCategories(PyObject *self, PyObject *args);
-	static PyObject *GetCategoryName(PyObject *self, PyObject *args);
-	static PyObject *CreateCategory(PyObject *self, PyObject *args);
+    // The Python methods
+    static PyObject *CanCategorizeOnSCID(PyObject *self, PyObject *args);
+    static PyObject *GetDefaultCategory(PyObject *self, PyObject *args);
+    static PyObject *GetCategoryForSCID(PyObject *self, PyObject *args);
+    static PyObject *EnumCategories(PyObject *self, PyObject *args);
+    static PyObject *GetCategoryName(PyObject *self, PyObject *args);
+    static PyObject *CreateCategory(PyObject *self, PyObject *args);
 
-protected:
-	PyICategoryProvider(IUnknown *pdisp);
-	~PyICategoryProvider();
+   protected:
+    PyICategoryProvider(IUnknown *pdisp);
+    ~PyICategoryProvider();
 };
 // ---------------------------------------------------
 //
 // Gateway Declaration
 
-class PyGCategoryProvider : public PyGatewayBase, public ICategoryProvider
-{
-protected:
-	PyGCategoryProvider(PyObject *instance) : PyGatewayBase(instance) { ; }
-	PYGATEWAY_MAKE_SUPPORT2(PyGCategoryProvider, ICategoryProvider, IID_ICategoryProvider, PyGatewayBase)
+class PyGCategoryProvider : public PyGatewayBase, public ICategoryProvider {
+   protected:
+    PyGCategoryProvider(PyObject *instance) : PyGatewayBase(instance) { ; }
+    PYGATEWAY_MAKE_SUPPORT2(PyGCategoryProvider, ICategoryProvider, IID_ICategoryProvider, PyGatewayBase)
 
+    // ICategoryProvider
+    STDMETHOD(CanCategorizeOnSCID)(__RPC__in const SHCOLUMNID *pscid);
 
+    STDMETHOD(GetDefaultCategory)(__RPC__out GUID *pguid, __RPC__out SHCOLUMNID *pscid);
 
-	// ICategoryProvider
-	STDMETHOD(CanCategorizeOnSCID)(
-		__RPC__in const SHCOLUMNID * pscid);
+    STDMETHOD(GetCategoryForSCID)(__RPC__in const SHCOLUMNID *pscid, __RPC__out GUID *pguid);
 
-	STDMETHOD(GetDefaultCategory)(
-		__RPC__out GUID * pguid,
-		__RPC__out SHCOLUMNID * pscid);
+    STDMETHOD(EnumCategories)(__RPC__deref_out_opt IEnumGUID **penum);
 
-	STDMETHOD(GetCategoryForSCID)(
-		__RPC__in const SHCOLUMNID * pscid,
-		__RPC__out GUID * pguid);
+    STDMETHOD(GetCategoryName)
+    (__RPC__in const GUID *pguid, __RPC__out_ecount_full_string(cch) LPWSTR pszName, UINT cch);
 
-	STDMETHOD(EnumCategories)(
-		__RPC__deref_out_opt IEnumGUID ** penum);
-
-	STDMETHOD(GetCategoryName)(
-		__RPC__in const GUID * pguid,
-		__RPC__out_ecount_full_string(cch) LPWSTR pszName,
-		UINT cch);
-
-	STDMETHOD(CreateCategory)(
-		__RPC__in const GUID * pguid,
-		__RPC__in REFIID riid,
-		__RPC__deref_out_opt void ** ppv);
-
+    STDMETHOD(CreateCategory)(__RPC__in const GUID *pguid, __RPC__in REFIID riid, __RPC__deref_out_opt void **ppv);
 };

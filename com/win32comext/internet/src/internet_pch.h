@@ -3,9 +3,8 @@
 #include <PythonCOM.h>
 #include <PythonCOMServer.h>
 #include <oleauto.h>
-#include <ocidl.h> // Used to be <multinfo.h>
+#include <ocidl.h>  // Used to be <multinfo.h>
 #include <urlmon.h>
-
 
 BOOL PyObject_AsPROTOCOLDATA(PyObject *ob, PROTOCOLDATA *pPD);
 PyObject *PyObject_FromPROTOCOLDATA(PROTOCOLDATA *pPD);

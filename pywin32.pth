@@ -6,4 +6,4 @@ Pythonwin
 # isn't run, which would normally copy the pywin32 core DLL files to either
 # the top of the python directory.
 # We just stick the source of these DLLs directly on the PATH.
-import os;os.environ["PATH"]+=(';'+os.path.join(sitedir,"pywin32_system32"))
+import os;pywin32_system32=os.path.join(sitedir,"pywin32_system32");os.environ["PATH"]+=('' if pywin32_system32 in os.environ["PATH"] else (';'+pywin32_system32))

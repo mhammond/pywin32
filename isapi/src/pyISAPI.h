@@ -8,7 +8,7 @@
  its documentation for any purpose and without fee is hereby
  granted, provided that the above copyright notice appear in all
  copies and that both that copyright notice and this permission
- notice appear in supporting documentation, and that the name of 
+ notice appear in supporting documentation, and that the name of
  Blackdog Software not be used in advertising or publicity pertaining to
  distribution of the software without specific, written prior
  permission.
@@ -34,5 +34,4 @@ BOOL WINAPI GetExtensionVersion(HSE_VERSION_INFO *pVer);
 DWORD WINAPI HttpExtensionProc(EXTENSION_CONTROL_BLOCK *pECB);
 BOOL WINAPI TerminateExtension(DWORD dwFlags);
 
-
-#endif // __PYISAPI_H__
+#endif  // __PYISAPI_H__

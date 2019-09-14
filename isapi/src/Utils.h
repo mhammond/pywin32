@@ -8,7 +8,7 @@
  its documentation for any purpose and without fee is hereby
  granted, provided that the above copyright notice appear in all
  copies and that both that copyright notice and this permission
- notice appear in supporting documentation, and that the name of 
+ notice appear in supporting documentation, and that the name of
  Blackdog Software not be used in advertising or publicity pertaining to
  distribution of the software without specific, written prior
  permission.
@@ -30,22 +30,14 @@
 // Class: CSLock
 // Locking class which handles the serialisation of objects using CSingleLock.
 //
-class CSLock
-{
-public:
-	inline CSLock(CRITICAL_SECTION &sem)
-		: m_Lock(sem)
-	{
-		::EnterCriticalSection(&m_Lock);
-	}
-	~CSLock()
-	{
-		::LeaveCriticalSection(&m_Lock);
-	}
-private:
-	CRITICAL_SECTION &m_Lock;
-}; // CSLock
+class CSLock {
+   public:
+    inline CSLock(CRITICAL_SECTION &sem) : m_Lock(sem) { ::EnterCriticalSection(&m_Lock); }
+    ~CSLock() { ::LeaveCriticalSection(&m_Lock); }
 
+   private:
+    CRITICAL_SECTION &m_Lock;
+};  // CSLock
 
 // Formats a system error code
 
@@ -58,7 +50,6 @@ char *HTMLErrorResp(const char *msg);
 TCHAR *GetModulePath(void);
 
 // Write entry to the event log
-BOOL WriteEventLogMessage(WORD eventType, DWORD eventID, WORD num_inserts,
-                          const char **inserts);
+extern "C" BOOL WriteEventLogMessage(WORD eventType, DWORD eventID, WORD num_inserts, const char **inserts);
 
-#endif // __UTILS_H
+#endif  // __UTILS_H

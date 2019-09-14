@@ -10,161 +10,158 @@
 //
 // Interface Implementation
 
-PyIShellFolder2::PyIShellFolder2(IUnknown *pdisp):
-	PyIShellFolder(pdisp)
-{
-	ob_type = &type;
-}
+PyIShellFolder2::PyIShellFolder2(IUnknown *pdisp) : PyIShellFolder(pdisp) { ob_type = &type; }
 
-PyIShellFolder2::~PyIShellFolder2()
-{
-}
+PyIShellFolder2::~PyIShellFolder2() {}
 
 /* static */ IShellFolder2 *PyIShellFolder2::GetI(PyObject *self)
 {
-	return (IShellFolder2 *)PyIShellFolder::GetI(self);
+    return (IShellFolder2 *)PyIShellFolder::GetI(self);
 }
 
 // @pymethod <o PyIID>|PyIShellFolder2|GetDefaultSearchGUID|Retrieves the default search for the folder
 PyObject *PyIShellFolder2::GetDefaultSearchGUID(PyObject *self, PyObject *args)
 {
-	IShellFolder2 *pISF2 = GetI(self);
-	if ( pISF2 == NULL )
-		return NULL;
-	GUID guid;
-	// @pyparm <o PyIID>|pguid||Description for pguid
-	if ( !PyArg_ParseTuple(args, ":GetDefaultSearchGUID") )
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pISF2->GetDefaultSearchGUID( &guid );
-	PY_INTERFACE_POSTCALL;
+    IShellFolder2 *pISF2 = GetI(self);
+    if (pISF2 == NULL)
+        return NULL;
+    GUID guid;
+    // @pyparm <o PyIID>|pguid||Description for pguid
+    if (!PyArg_ParseTuple(args, ":GetDefaultSearchGUID"))
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pISF2->GetDefaultSearchGUID(&guid);
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pISF2, IID_IShellFolder2 );
-	return PyWinObject_FromIID(guid);
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pISF2, IID_IShellFolder2);
+    return PyWinObject_FromIID(guid);
 }
 
-// @pymethod <o PyIEnumExtraSearch>|PyIShellFolder2|EnumSearches|Returns an interface that lists searches defined for the folder
+// @pymethod <o PyIEnumExtraSearch>|PyIShellFolder2|EnumSearches|Returns an interface that lists searches defined for
+// the folder
 // @comm IEnumExtraSearch is not yet wrapped by Pywin32
 PyObject *PyIShellFolder2::EnumSearches(PyObject *self, PyObject *args)
 {
-	IShellFolder2 *pISF2 = GetI(self);
-	if ( pISF2 == NULL )
-		return NULL;
-	IEnumExtraSearch *penum;
-	if ( !PyArg_ParseTuple(args, ":EnumSearches") )
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pISF2->EnumSearches( &penum );
-	PY_INTERFACE_POSTCALL;
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pISF2, IID_IShellFolder2 );
+    IShellFolder2 *pISF2 = GetI(self);
+    if (pISF2 == NULL)
+        return NULL;
+    IEnumExtraSearch *penum;
+    if (!PyArg_ParseTuple(args, ":EnumSearches"))
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pISF2->EnumSearches(&penum);
+    PY_INTERFACE_POSTCALL;
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pISF2, IID_IShellFolder2);
 
-	return PyCom_PyObjectFromIUnknown(penum, IID_IEnumExtraSearch, FALSE);
+    return PyCom_PyObjectFromIUnknown(penum, IID_IEnumExtraSearch, FALSE);
 }
 
 // @pymethod (int, int)|PyIShellFolder2|GetDefaultColumn|Returns the columns used for sorting and display
 PyObject *PyIShellFolder2::GetDefaultColumn(PyObject *self, PyObject *args)
 {
-	IShellFolder2 *pISF2 = GetI(self);
-	if ( pISF2 == NULL )
-		return NULL;
-	DWORD reserved = 0;
-	if ( !PyArg_ParseTuple(args, "|l:GetDefaultColumn", &reserved) )
-		return NULL;
-	ULONG sort, display;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pISF2->GetDefaultColumn( reserved, &sort, &display);
-	PY_INTERFACE_POSTCALL;
+    IShellFolder2 *pISF2 = GetI(self);
+    if (pISF2 == NULL)
+        return NULL;
+    DWORD reserved = 0;
+    if (!PyArg_ParseTuple(args, "|l:GetDefaultColumn", &reserved))
+        return NULL;
+    ULONG sort, display;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pISF2->GetDefaultColumn(reserved, &sort, &display);
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pISF2, IID_IShellFolder2 );
-	return Py_BuildValue("ii", sort, display);
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pISF2, IID_IShellFolder2);
+    return Py_BuildValue("ii", sort, display);
 }
 
 // @pymethod int|PyIShellFolder2|GetDefaultColumnState|Returns flags indicating the default behaviour of the column
 // @rdesc Returns a combination of shellcon.SHCOLSTATE_* flags
 PyObject *PyIShellFolder2::GetDefaultColumnState(PyObject *self, PyObject *args)
 {
-	IShellFolder2 *pISF2 = GetI(self);
-	if ( pISF2 == NULL )
-		return NULL;
-	// @pyparm int|iColumn||Zero-based index of the column
-	UINT iColumn;
-	if ( !PyArg_ParseTuple(args, "k:GetDefaultColumnState", &iColumn) )
-		return NULL;
-	SHCOLSTATEF flags;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pISF2->GetDefaultColumnState( iColumn, &flags);
-	PY_INTERFACE_POSTCALL;
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pISF2, IID_IShellFolder2 );
-	return PyLong_FromUnsignedLong(flags);
+    IShellFolder2 *pISF2 = GetI(self);
+    if (pISF2 == NULL)
+        return NULL;
+    // @pyparm int|iColumn||Zero-based index of the column
+    UINT iColumn;
+    if (!PyArg_ParseTuple(args, "k:GetDefaultColumnState", &iColumn))
+        return NULL;
+    SHCOLSTATEF flags;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pISF2->GetDefaultColumnState(iColumn, &flags);
+    PY_INTERFACE_POSTCALL;
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pISF2, IID_IShellFolder2);
+    return PyLong_FromUnsignedLong(flags);
 }
 
 // @pymethod object|PyIShellFolder2|GetDetailsEx|Returns the details of an item by Column ID
 // @rdesc The type of returned object is determined by the variant type of the requested column
 PyObject *PyIShellFolder2::GetDetailsEx(PyObject *self, PyObject *args)
 {
-	IShellFolder2 *pISF2 = GetI(self);
-	if ( pISF2 == NULL )
-		return NULL;
-	// @pyparm <o PyIDL>|pidl||Relative id list of an item in the folder
-	// @pyparm <o SHCOLUMNID>|pscid||The Column id/property key of a column in the folder's Details view
-	SHCOLUMNID scid;
-	PyObject *obpidl;
-	LPITEMIDLIST pidl;
-	if (!PyArg_ParseTuple(args, "OO&:GetDetailsEx", &obpidl, PyObject_AsSHCOLUMNID, &scid))
-		return NULL;
-	if (!PyObject_AsPIDL(obpidl, &pidl))
-		return NULL;
-	HRESULT hr;
-	VARIANT var;
-	PY_INTERFACE_PRECALL;
-	VariantInit(&var);
-	hr = pISF2->GetDetailsEx( pidl, &scid, &var );
-	PyObject_FreePIDL(pidl);
-	PY_INTERFACE_POSTCALL;
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pISF2, IID_IShellFolder2 );
-	PyObject *obRet = PyCom_PyObjectFromVariant(&var);
-	VariantClear(&var);
-	return obRet;
+    IShellFolder2 *pISF2 = GetI(self);
+    if (pISF2 == NULL)
+        return NULL;
+    // @pyparm <o PyIDL>|pidl||Relative id list of an item in the folder
+    // @pyparm <o SHCOLUMNID>|pscid||The Column id/property key of a column in the folder's Details view
+    SHCOLUMNID scid;
+    PyObject *obpidl;
+    LPITEMIDLIST pidl;
+    if (!PyArg_ParseTuple(args, "OO&:GetDetailsEx", &obpidl, PyObject_AsSHCOLUMNID, &scid))
+        return NULL;
+    if (!PyObject_AsPIDL(obpidl, &pidl))
+        return NULL;
+    HRESULT hr;
+    VARIANT var;
+    PY_INTERFACE_PRECALL;
+    VariantInit(&var);
+    hr = pISF2->GetDetailsEx(pidl, &scid, &var);
+    PyObject_FreePIDL(pidl);
+    PY_INTERFACE_POSTCALL;
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pISF2, IID_IShellFolder2);
+    PyObject *obRet = PyCom_PyObjectFromVariant(&var);
+    VariantClear(&var);
+    return obRet;
 }
 
-// @pymethod (int, int, str)|PyIShellFolder2|GetDetailsOf|Returns the value or title of a column in the folder's Details view.
-// @rdesc Returns a tuple representing a SHELLDETAILS struct, containing the formst (LVCFMT_*), column width in characters,
+// @pymethod (int, int, str)|PyIShellFolder2|GetDetailsOf|Returns the value or title of a column in the folder's Details
+// view.
+// @rdesc Returns a tuple representing a SHELLDETAILS struct, containing the formst (LVCFMT_*), column width in
+// characters,
 //   and string representation of the requested value
 PyObject *PyIShellFolder2::GetDetailsOf(PyObject *self, PyObject *args)
 {
-	IShellFolder2 *pISF2 = GetI(self);
-	if ( pISF2 == NULL )
-		return NULL;
-	// @pyparm <o PyIDL>|pidl||The relative idl of an item in the folder.  Use None to retrieve column title.
-	// @pyparm int|iColumn||Zero based index of column
-	SHELLDETAILS sd;
-	PyObject *obpidl;
-	ITEMIDLIST *pidl;
-	UINT iColumn;
-	if (!PyArg_ParseTuple(args, "Oi:GetDetailsOf", &obpidl, &iColumn))
-		return NULL;
-	if (!PyObject_AsPIDL(obpidl, &pidl, TRUE))
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pISF2->GetDetailsOf( pidl, iColumn, &sd );
-	PY_INTERFACE_POSTCALL;
-	PyObject *ret;
-	if ( FAILED(hr) )
-		ret = PyCom_BuildPyException(hr, pISF2, IID_IShellFolder2);
-	else
-		ret = Py_BuildValue("(iiN)", sd.fmt, sd.cxChar, PyObject_FromSTRRET(&sd.str, pidl, TRUE));
-	PyObject_FreePIDL(pidl);
-	return ret;
+    IShellFolder2 *pISF2 = GetI(self);
+    if (pISF2 == NULL)
+        return NULL;
+    // @pyparm <o PyIDL>|pidl||The relative idl of an item in the folder.  Use None to retrieve column title.
+    // @pyparm int|iColumn||Zero based index of column
+    SHELLDETAILS sd;
+    PyObject *obpidl;
+    ITEMIDLIST *pidl;
+    UINT iColumn;
+    if (!PyArg_ParseTuple(args, "Oi:GetDetailsOf", &obpidl, &iColumn))
+        return NULL;
+    if (!PyObject_AsPIDL(obpidl, &pidl, TRUE))
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pISF2->GetDetailsOf(pidl, iColumn, &sd);
+    PY_INTERFACE_POSTCALL;
+    PyObject *ret;
+    if (FAILED(hr))
+        ret = PyCom_BuildPyException(hr, pISF2, IID_IShellFolder2);
+    else
+        ret = Py_BuildValue("(iiN)", sd.fmt, sd.cxChar, PyObject_FromSTRRET(&sd.str, pidl, TRUE));
+    PyObject_FreePIDL(pidl);
+    return ret;
 }
 
 // @pymethod <o SHCOLUMNID>|PyIShellFolder2|MapColumnToSCID|Returns the unique identifier (FMTID, pid) of a column
@@ -172,258 +169,269 @@ PyObject *PyIShellFolder2::GetDetailsOf(PyObject *self, PyObject *args)
 //	For Vista and later, this is the Property Key used with the property system interfaces.
 PyObject *PyIShellFolder2::MapColumnToSCID(PyObject *self, PyObject *args)
 {
-	IShellFolder2 *pISF2 = GetI(self);
-	if ( pISF2 == NULL )
-		return NULL;
-	// @pyparm int|Column||The zero-based index of the column as presented by the folder's Details view
-	SHCOLUMNID scid;
-	UINT iColumn;
-	if ( !PyArg_ParseTuple(args, "i:MapColumnToSCID", &iColumn) )
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pISF2->MapColumnToSCID( iColumn, &scid );
-	PY_INTERFACE_POSTCALL;
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pISF2, IID_IShellFolder2 );
-	return PyObject_FromSHCOLUMNID(&scid);
+    IShellFolder2 *pISF2 = GetI(self);
+    if (pISF2 == NULL)
+        return NULL;
+    // @pyparm int|Column||The zero-based index of the column as presented by the folder's Details view
+    SHCOLUMNID scid;
+    UINT iColumn;
+    if (!PyArg_ParseTuple(args, "i:MapColumnToSCID", &iColumn))
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pISF2->MapColumnToSCID(iColumn, &scid);
+    PY_INTERFACE_POSTCALL;
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pISF2, IID_IShellFolder2);
+    return PyObject_FromSHCOLUMNID(&scid);
 }
 
 // @object PyIShellFolder2|Represents an explorer folder, giving access to details of items in the folder.
 //	Inherits all methods of <o PyIShellFolder>.
-static struct PyMethodDef PyIShellFolder2_methods[] =
-{
-	{ "GetDefaultSearchGUID", PyIShellFolder2::GetDefaultSearchGUID, 1 }, // @pymeth GetDefaultSearchGUID|Retrieves the default search for the folder
-	{ "EnumSearches", PyIShellFolder2::EnumSearches, 1 }, // @pymeth EnumSearches|Returns an interface that lists searches defined for the folder
-	{ "GetDefaultColumn", PyIShellFolder2::GetDefaultColumn, 1 }, // @pymeth GetDefaultColumn|Returns the columns used for sorting and display
-	{ "GetDefaultColumnState", PyIShellFolder2::GetDefaultColumnState, 1 }, // @pymeth GetDefaultColumnState|Returns flags indicating the default behaviour of the column
-	{ "GetDetailsEx", PyIShellFolder2::GetDetailsEx, 1 }, // @pymeth GetDetailsEx|Returns the details of an item by Column ID
-	{ "GetDetailsOf", PyIShellFolder2::GetDetailsOf, 1 }, // @pymeth GetDetailsOf|Returns the value or title of a column in the folder's Details view.
-	{ "MapColumnToSCID", PyIShellFolder2::MapColumnToSCID, 1 }, // @pymeth MapColumnToSCID|Returns the unique identifier (FMTID, pid) of a column
-	{ NULL }
-};
+static struct PyMethodDef PyIShellFolder2_methods[] = {
+    {"GetDefaultSearchGUID", PyIShellFolder2::GetDefaultSearchGUID,
+     1},  // @pymeth GetDefaultSearchGUID|Retrieves the default search for the folder
+    {"EnumSearches", PyIShellFolder2::EnumSearches,
+     1},  // @pymeth EnumSearches|Returns an interface that lists searches defined for the folder
+    {"GetDefaultColumn", PyIShellFolder2::GetDefaultColumn,
+     1},  // @pymeth GetDefaultColumn|Returns the columns used for sorting and display
+    {"GetDefaultColumnState", PyIShellFolder2::GetDefaultColumnState,
+     1},  // @pymeth GetDefaultColumnState|Returns flags indicating the default behaviour of the column
+    {"GetDetailsEx", PyIShellFolder2::GetDetailsEx,
+     1},  // @pymeth GetDetailsEx|Returns the details of an item by Column ID
+    {"GetDetailsOf", PyIShellFolder2::GetDetailsOf,
+     1},  // @pymeth GetDetailsOf|Returns the value or title of a column in the folder's Details view.
+    {"MapColumnToSCID", PyIShellFolder2::MapColumnToSCID,
+     1},  // @pymeth MapColumnToSCID|Returns the unique identifier (FMTID, pid) of a column
+    {NULL}};
 
 // @pymeth __iter__|Enumerates all objects in this folder.
-PyComEnumProviderTypeObject PyIShellFolder2::type("PyIShellFolder2",
-		&PyIShellFolder::type,
-		sizeof(PyIShellFolder2),
-		PyIShellFolder2_methods,
-		GET_PYCOM_CTOR(PyIShellFolder2),
-		"EnumObjects");
+PyComEnumProviderTypeObject PyIShellFolder2::type("PyIShellFolder2", &PyIShellFolder::type, sizeof(PyIShellFolder2),
+                                                  PyIShellFolder2_methods, GET_PYCOM_CTOR(PyIShellFolder2),
+                                                  "EnumObjects");
 // ---------------------------------------------------
 //
 // Gateway Implementation
 STDMETHODIMP PyGShellFolder2::ParseDisplayName(
-		/* [unique][in] */ HWND hwndOwner,
-		/* [unique][in] */ LPBC pbcReserved,
-		/* [unique][in] */ LPOLESTR lpszDisplayName,
-		/* [out] */ ULONG __RPC_FAR * pchEaten,
-		/* [out] */ LPITEMIDLIST *ppidl,
-		/* [out] */ ULONG __RPC_FAR * pdwAttributes)
+    /* [unique][in] */ HWND hwndOwner,
+    /* [unique][in] */ LPBC pbcReserved,
+    /* [unique][in] */ LPOLESTR lpszDisplayName,
+    /* [out] */ ULONG __RPC_FAR *pchEaten,
+    /* [out] */ LPITEMIDLIST *ppidl,
+    /* [out] */ ULONG __RPC_FAR *pdwAttributes)
 {
-	return PyGShellFolder::ParseDisplayName(hwndOwner, pbcReserved, lpszDisplayName, pchEaten, ppidl, pdwAttributes);
+    return PyGShellFolder::ParseDisplayName(hwndOwner, pbcReserved, lpszDisplayName, pchEaten, ppidl, pdwAttributes);
 }
 
 STDMETHODIMP PyGShellFolder2::EnumObjects(
-		/* [unique][in] */ HWND hwndOwner,
-		/* [unique][in] */ DWORD grfFlags,
-		/* [out] */ IEnumIDList __RPC_FAR ** ppeidl)
+    /* [unique][in] */ HWND hwndOwner,
+    /* [unique][in] */ DWORD grfFlags,
+    /* [out] */ IEnumIDList __RPC_FAR **ppeidl)
 {
-	return PyGShellFolder::EnumObjects(hwndOwner, grfFlags, ppeidl);
+    return PyGShellFolder::EnumObjects(hwndOwner, grfFlags, ppeidl);
 }
 
 STDMETHODIMP PyGShellFolder2::BindToObject(
-		/* [unique][in] */ LPCITEMIDLIST pidl,
-		/* [unique][in] */ LPBC pbcReserved,
-		/* [unique][in] */ REFIID riid,
-		/* [out] */ void ** out)
+    /* [unique][in] */ LPCITEMIDLIST pidl,
+    /* [unique][in] */ LPBC pbcReserved,
+    /* [unique][in] */ REFIID riid,
+    /* [out] */ void **out)
 {
-	return PyGShellFolder::BindToObject(pidl, pbcReserved, riid, out);
+    return PyGShellFolder::BindToObject(pidl, pbcReserved, riid, out);
 }
 
 STDMETHODIMP PyGShellFolder2::BindToStorage(
-		/* [unique][in] */ LPCITEMIDLIST pidl,
-		/* [unique][in] */ LPBC pbcReserved,
-		/* [unique][in] */ REFIID riid,
-		/* [out] */ void **ppRet)
+    /* [unique][in] */ LPCITEMIDLIST pidl,
+    /* [unique][in] */ LPBC pbcReserved,
+    /* [unique][in] */ REFIID riid,
+    /* [out] */ void **ppRet)
 {
-	return PyGShellFolder::BindToStorage(pidl, pbcReserved, riid, ppRet);
+    return PyGShellFolder::BindToStorage(pidl, pbcReserved, riid, ppRet);
 }
 
 STDMETHODIMP PyGShellFolder2::CompareIDs(
-		/* [unique][in] */ LPARAM lparam,
-		/* [unique][in] */ LPCITEMIDLIST pidl1,
-		/* [unique][in] */ LPCITEMIDLIST pidl2)
+    /* [unique][in] */ LPARAM lparam,
+    /* [unique][in] */ LPCITEMIDLIST pidl1,
+    /* [unique][in] */ LPCITEMIDLIST pidl2)
 {
-	return PyGShellFolder::CompareIDs(lparam, pidl1, pidl2);
+    return PyGShellFolder::CompareIDs(lparam, pidl1, pidl2);
 }
 
 STDMETHODIMP PyGShellFolder2::CreateViewObject(
-		/* [unique][in] */ HWND hwndOwner,
-		/* [unique][in] */ REFIID riid,
-		/* [out] */ void **ppRet)
+    /* [unique][in] */ HWND hwndOwner,
+    /* [unique][in] */ REFIID riid,
+    /* [out] */ void **ppRet)
 {
-	return PyGShellFolder::CreateViewObject(hwndOwner, riid, ppRet);
+    return PyGShellFolder::CreateViewObject(hwndOwner, riid, ppRet);
 }
 
 STDMETHODIMP PyGShellFolder2::GetAttributesOf(
-		/* [unique][in] */ UINT cidl,
-		/* [unique][in] */ LPCITEMIDLIST *apidl,
-		/* [unique][in][out] */ ULONG __RPC_FAR * rgfInOut)
+    /* [unique][in] */ UINT cidl,
+    /* [unique][in] */ LPCITEMIDLIST *apidl,
+    /* [unique][in][out] */ ULONG __RPC_FAR *rgfInOut)
 {
-	return PyGShellFolder::GetAttributesOf(cidl, apidl, rgfInOut);
+    return PyGShellFolder::GetAttributesOf(cidl, apidl, rgfInOut);
 }
 
 STDMETHODIMP PyGShellFolder2::GetUIObjectOf(
-		/* [unique][in] */ HWND hwndOwner,
-		/* [unique][in] */ UINT cidl,
-		/* [unique][in] */ LPCITEMIDLIST *apidl,
-		/* [unique][in] */ REFIID riid,
-		/* [unique][in][out] */ UINT * rgfInOut,
-		/* [out] */ void ** ppRet)
+    /* [unique][in] */ HWND hwndOwner,
+    /* [unique][in] */ UINT cidl,
+    /* [unique][in] */ LPCITEMIDLIST *apidl,
+    /* [unique][in] */ REFIID riid,
+    /* [unique][in][out] */ UINT *rgfInOut,
+    /* [out] */ void **ppRet)
 {
-	return PyGShellFolder::GetUIObjectOf(hwndOwner, cidl, apidl, riid, rgfInOut, ppRet);
+    return PyGShellFolder::GetUIObjectOf(hwndOwner, cidl, apidl, riid, rgfInOut, ppRet);
 }
 
 STDMETHODIMP PyGShellFolder2::GetDisplayNameOf(
-		/* [unique][in] */ LPCITEMIDLIST pidl,
-		/* [unique][in] */ SHGDNF uFlags,
-		/* [out] */ STRRET __RPC_FAR * out)
+    /* [unique][in] */ LPCITEMIDLIST pidl,
+    /* [unique][in] */ SHGDNF uFlags,
+    /* [out] */ STRRET __RPC_FAR *out)
 {
-	return PyGShellFolder::GetDisplayNameOf(pidl, uFlags, out);
+    return PyGShellFolder::GetDisplayNameOf(pidl, uFlags, out);
 }
 
 STDMETHODIMP PyGShellFolder2::SetNameOf(
-		/* [in] */ HWND hwnd,
-		/* [in] */ LPCITEMIDLIST pidl,
-		/* [string][in] */ LPCOLESTR pszName,
-		/* [in] */ SHGDNF uFlags,
-		/* [out] */ LPITEMIDLIST *ppidlOut)
+    /* [in] */ HWND hwnd,
+    /* [in] */ LPCITEMIDLIST pidl,
+    /* [string][in] */ LPCOLESTR pszName,
+    /* [in] */ SHGDNF uFlags,
+    /* [out] */ LPITEMIDLIST *ppidlOut)
 {
-	return PyGShellFolder::SetNameOf(hwnd, pidl, pszName, uFlags, ppidlOut);
+    return PyGShellFolder::SetNameOf(hwnd, pidl, pszName, uFlags, ppidlOut);
 }
 
 // IShellFolder2 methods.
 STDMETHODIMP PyGShellFolder2::GetDefaultSearchGUID(
-		/* [out] */ GUID * pguid)
+    /* [out] */ GUID *pguid)
 {
-	PY_GATEWAY_METHOD;
-	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("GetDefaultSearchGUID", &result);
-	if (FAILED(hr)) return hr;
-	// Process the Python results, and convert back to the real params
-	if (!PyWinObject_AsIID(result, pguid))
-		hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("GetDefaultSearchGUID");
-	Py_DECREF(result);
-	return hr;
+    PY_GATEWAY_METHOD;
+    PyObject *result;
+    HRESULT hr = InvokeViaPolicy("GetDefaultSearchGUID", &result);
+    if (FAILED(hr))
+        return hr;
+    // Process the Python results, and convert back to the real params
+    if (!PyWinObject_AsIID(result, pguid))
+        hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("GetDefaultSearchGUID");
+    Py_DECREF(result);
+    return hr;
 }
 
 STDMETHODIMP PyGShellFolder2::EnumSearches(
-		/* [out] */ IEnumExtraSearch ** ppenum)
+    /* [out] */ IEnumExtraSearch **ppenum)
 {
-	PY_GATEWAY_METHOD;
-	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("EnumSearches", &result);
-	if (FAILED(hr)) return hr;
-	// Process the Python results, and convert back to the real params
-	PyObject *obppenum;
-	if (!PyArg_Parse(result, "O" , &obppenum))
-		return MAKE_PYCOM_GATEWAY_FAILURE_CODE("EnumSearches");
-	if (result == Py_None) {
-		hr = S_FALSE;
-		*ppenum = NULL;
-	} else {
-		if (!PyCom_InterfaceFromPyInstanceOrObject(obppenum, IID_IEnumExtraSearch, (void **)ppenum, TRUE /* bNoneOK */))
-			hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("EnumSearches");
-	}
-	Py_DECREF(result);
-	return hr;
+    PY_GATEWAY_METHOD;
+    PyObject *result;
+    HRESULT hr = InvokeViaPolicy("EnumSearches", &result);
+    if (FAILED(hr))
+        return hr;
+    // Process the Python results, and convert back to the real params
+    PyObject *obppenum;
+    if (!PyArg_Parse(result, "O", &obppenum))
+        return MAKE_PYCOM_GATEWAY_FAILURE_CODE("EnumSearches");
+    if (result == Py_None) {
+        hr = S_FALSE;
+        *ppenum = NULL;
+    }
+    else {
+        if (!PyCom_InterfaceFromPyInstanceOrObject(obppenum, IID_IEnumExtraSearch, (void **)ppenum, TRUE /* bNoneOK */))
+            hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("EnumSearches");
+    }
+    Py_DECREF(result);
+    return hr;
 }
 
 STDMETHODIMP PyGShellFolder2::GetDefaultColumn(
-		/* [in] */ DWORD dwRes,
-		/* [out] */ ULONG * pSort,
-		/* [out] */ ULONG * pDisplay)
+    /* [in] */ DWORD dwRes,
+    /* [out] */ ULONG *pSort,
+    /* [out] */ ULONG *pDisplay)
 {
-	PY_GATEWAY_METHOD;
-	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("GetDefaultColumn", &result, "l", dwRes);
-	if (FAILED(hr)) return hr;
-	if (!PyArg_ParseTuple(result, "ll:GetDefaultColumn result", pSort, pDisplay))
-		hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("GetDefaultColumn");
-	Py_DECREF(result);
-	return hr;
+    PY_GATEWAY_METHOD;
+    PyObject *result;
+    HRESULT hr = InvokeViaPolicy("GetDefaultColumn", &result, "l", dwRes);
+    if (FAILED(hr))
+        return hr;
+    if (!PyArg_ParseTuple(result, "ll:GetDefaultColumn result", pSort, pDisplay))
+        hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("GetDefaultColumn");
+    Py_DECREF(result);
+    return hr;
 }
 
 STDMETHODIMP PyGShellFolder2::GetDefaultColumnState(
-		/* [in] */ UINT iColumn,
-		/* [out] */ SHCOLSTATEF * pcsFlags)
+    /* [in] */ UINT iColumn,
+    /* [out] */ SHCOLSTATEF *pcsFlags)
 {
-	PY_GATEWAY_METHOD;
-	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("GetDefaultColumnState", &result, "i", iColumn);
-	if (FAILED(hr)) return hr;
-	*pcsFlags = PyLong_AsUnsignedLongMask(result);
-	hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("GetDefaultColumnState");
-	Py_DECREF(result);
-	return hr;
+    PY_GATEWAY_METHOD;
+    PyObject *result;
+    HRESULT hr = InvokeViaPolicy("GetDefaultColumnState", &result, "i", iColumn);
+    if (FAILED(hr))
+        return hr;
+    *pcsFlags = PyLong_AsUnsignedLongMask(result);
+    hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("GetDefaultColumnState");
+    Py_DECREF(result);
+    return hr;
 }
 
 STDMETHODIMP PyGShellFolder2::GetDetailsEx(
-		/* [in] */ LPCITEMIDLIST pidl,
-		/* [in] */ const SHCOLUMNID * pscid,
-		/* [out] */ VARIANT * pv)
+    /* [in] */ LPCITEMIDLIST pidl,
+    /* [in] */ const SHCOLUMNID *pscid,
+    /* [out] */ VARIANT *pv)
 {
-	PY_GATEWAY_METHOD;
-	PyObject *obpscid = PyObject_FromSHCOLUMNID(pscid);
-	if (obpscid==NULL) return MAKE_PYCOM_GATEWAY_FAILURE_CODE("GetDetailsEx");
-	PyObject *obpidl;
-	obpidl = PyObject_FromPIDL(pidl, FALSE);
-	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("GetDetailsEx", &result, "OO", obpidl, obpscid);
-	Py_XDECREF(obpidl);
-	Py_DECREF(obpscid);
-	if (FAILED(hr)) return hr;
-	if (!PyCom_VariantFromPyObject(result, pv))
-		hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("GetDetailsEx");
-	Py_DECREF(result);
-	return hr;
+    PY_GATEWAY_METHOD;
+    PyObject *obpscid = PyObject_FromSHCOLUMNID(pscid);
+    if (obpscid == NULL)
+        return MAKE_PYCOM_GATEWAY_FAILURE_CODE("GetDetailsEx");
+    PyObject *obpidl;
+    obpidl = PyObject_FromPIDL(pidl, FALSE);
+    PyObject *result;
+    HRESULT hr = InvokeViaPolicy("GetDetailsEx", &result, "OO", obpidl, obpscid);
+    Py_XDECREF(obpidl);
+    Py_DECREF(obpscid);
+    if (FAILED(hr))
+        return hr;
+    if (!PyCom_VariantFromPyObject(result, pv))
+        hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("GetDetailsEx");
+    Py_DECREF(result);
+    return hr;
 }
 
 STDMETHODIMP PyGShellFolder2::GetDetailsOf(
-		/* [in] */ LPCITEMIDLIST pidl,
-		/* [in] */ UINT iColumn,
-		/* [out] */ SHELLDETAILS * psd)
+    /* [in] */ LPCITEMIDLIST pidl,
+    /* [in] */ UINT iColumn,
+    /* [out] */ SHELLDETAILS *psd)
 {
-	PY_GATEWAY_METHOD;
-	PyObject *obpidl;
-	obpidl = PyObject_FromPIDL(pidl, FALSE);
-	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("GetDetailsOf", &result, "Oi", obpidl, iColumn);
-	Py_XDECREF(obpidl);
-	if (FAILED(hr)) return hr;
-	PyObject *obstr;
-	if (!PyArg_ParseTuple(result, "iiO:GetDetailsOf result", &psd->fmt, &psd->cxChar, &obstr))
-		hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("GetDetailsOf");
-	else {
-		psd->str.uType = STRRET_WSTR;
-		if (!PyWinObject_AsTaskAllocatedWCHAR(obstr, &psd->str.pOleStr))
-			hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("GetDetailsOf");
-	}
-	Py_DECREF(result);
-	return hr;
+    PY_GATEWAY_METHOD;
+    PyObject *obpidl;
+    obpidl = PyObject_FromPIDL(pidl, FALSE);
+    PyObject *result;
+    HRESULT hr = InvokeViaPolicy("GetDetailsOf", &result, "Oi", obpidl, iColumn);
+    Py_XDECREF(obpidl);
+    if (FAILED(hr))
+        return hr;
+    PyObject *obstr;
+    if (!PyArg_ParseTuple(result, "iiO:GetDetailsOf result", &psd->fmt, &psd->cxChar, &obstr))
+        hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("GetDetailsOf");
+    else {
+        psd->str.uType = STRRET_WSTR;
+        if (!PyWinObject_AsTaskAllocatedWCHAR(obstr, &psd->str.pOleStr))
+            hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("GetDetailsOf");
+    }
+    Py_DECREF(result);
+    return hr;
 }
 
 STDMETHODIMP PyGShellFolder2::MapColumnToSCID(
-		/* [in] */ UINT iColumn,
-		/* [in] */ SHCOLUMNID * pscid)
+    /* [in] */ UINT iColumn,
+    /* [in] */ SHCOLUMNID *pscid)
 {
-	PY_GATEWAY_METHOD;
-	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("MapColumnToSCID", &result, "i", iColumn);
-	if (FAILED(hr)) return hr;
-	if (!PyObject_AsSHCOLUMNID(result, pscid))
-		hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("MapColumnToSCID");
-	Py_DECREF(result);
-	return hr;
+    PY_GATEWAY_METHOD;
+    PyObject *result;
+    HRESULT hr = InvokeViaPolicy("MapColumnToSCID", &result, "i", iColumn);
+    if (FAILED(hr))
+        return hr;
+    if (!PyObject_AsSHCOLUMNID(result, pscid))
+        hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("MapColumnToSCID");
+    Py_DECREF(result);
+    return hr;
 }

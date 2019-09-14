@@ -1420,11 +1420,11 @@ static PyObject *PyObject_FromFILE_NOTIFY_INFORMATION(void *buffer, DWORD nbytes
 	// the filename is exactly 1 byte!  Not clear the best way to
 	// check this, but this works for now - is it at least the size of
 	// the *head* of the struct.
-	if (nbytes < sizeof DWORD*3+2)
+	if (nbytes < sizeof(DWORD)*3+2)
 		return ret;
 	DWORD nbytes_read = 0;
 	while (1) {
-		PyObject *fname = PyWinObject_FromOLECHAR(p->FileName, p->FileNameLength/sizeof WCHAR);
+		PyObject *fname = PyWinObject_FromOLECHAR(p->FileName, p->FileNameLength/sizeof(WCHAR));
 		if (!fname) {
 			Py_DECREF(ret);
 			return NULL;

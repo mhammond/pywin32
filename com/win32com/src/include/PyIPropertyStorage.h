@@ -4,92 +4,63 @@
 //
 // Interface Declaration
 
-class PyIPropertyStorage : public PyIUnknown
-{
-public:
-	MAKE_PYCOM_CTOR(PyIPropertyStorage);
-	static IPropertyStorage *GetI(PyObject *self);
-	static PyComEnumProviderTypeObject type;
+class PyIPropertyStorage : public PyIUnknown {
+   public:
+    MAKE_PYCOM_CTOR(PyIPropertyStorage);
+    static IPropertyStorage *GetI(PyObject *self);
+    static PyComEnumProviderTypeObject type;
 
-	// The Python methods
-	static PyObject *ReadMultiple(PyObject *self, PyObject *args);
-	static PyObject *WriteMultiple(PyObject *self, PyObject *args);
-	static PyObject *DeleteMultiple(PyObject *self, PyObject *args);
-	static PyObject *ReadPropertyNames(PyObject *self, PyObject *args);
-	static PyObject *WritePropertyNames(PyObject *self, PyObject *args);
-	static PyObject *DeletePropertyNames(PyObject *self, PyObject *args);
-	static PyObject *Commit(PyObject *self, PyObject *args);
-	static PyObject *Revert(PyObject *self, PyObject *args);
-	static PyObject *Enum(PyObject *self, PyObject *args);
-	static PyObject *SetTimes(PyObject *self, PyObject *args);
-	static PyObject *SetClass(PyObject *self, PyObject *args);
-	static PyObject *Stat(PyObject *self, PyObject *args);
+    // The Python methods
+    static PyObject *ReadMultiple(PyObject *self, PyObject *args);
+    static PyObject *WriteMultiple(PyObject *self, PyObject *args);
+    static PyObject *DeleteMultiple(PyObject *self, PyObject *args);
+    static PyObject *ReadPropertyNames(PyObject *self, PyObject *args);
+    static PyObject *WritePropertyNames(PyObject *self, PyObject *args);
+    static PyObject *DeletePropertyNames(PyObject *self, PyObject *args);
+    static PyObject *Commit(PyObject *self, PyObject *args);
+    static PyObject *Revert(PyObject *self, PyObject *args);
+    static PyObject *Enum(PyObject *self, PyObject *args);
+    static PyObject *SetTimes(PyObject *self, PyObject *args);
+    static PyObject *SetClass(PyObject *self, PyObject *args);
+    static PyObject *Stat(PyObject *self, PyObject *args);
 
-protected:
-	PyIPropertyStorage(IUnknown *pdisp);
-	~PyIPropertyStorage();
+   protected:
+    PyIPropertyStorage(IUnknown *pdisp);
+    ~PyIPropertyStorage();
 };
 
 // ---------------------------------------------------
 //
 // Gateway Declaration
 
-class PyGPropertyStorage : public PyGatewayBase, public IPropertyStorage
-{
-protected:
-	PyGPropertyStorage(PyObject *instance) : PyGatewayBase(instance) { ; }
-	PYGATEWAY_MAKE_SUPPORT2(PyGPropertyStorage, IPropertyStorage, IID_IPropertyStorage, PyGatewayBase)
+class PyGPropertyStorage : public PyGatewayBase, public IPropertyStorage {
+   protected:
+    PyGPropertyStorage(PyObject *instance) : PyGatewayBase(instance) { ; }
+    PYGATEWAY_MAKE_SUPPORT2(PyGPropertyStorage, IPropertyStorage, IID_IPropertyStorage, PyGatewayBase)
 
+    // IPropertyStorage
+    STDMETHOD(ReadMultiple)(ULONG cpspec, const PROPSPEC rgpspec[], PROPVARIANT rgpropvar[]);
 
+    STDMETHOD(WriteMultiple)
+    (ULONG cpspec, const PROPSPEC rgpspec[], const PROPVARIANT rgpropvar[], PROPID propidNameFirst);
 
-	// IPropertyStorage
-	STDMETHOD(ReadMultiple)(
-		ULONG cpspec,
-		const PROPSPEC rgpspec[],
-		PROPVARIANT rgpropvar[]);
+    STDMETHOD(DeleteMultiple)(ULONG cpspec, const PROPSPEC rgpspec[]);
 
-	STDMETHOD(WriteMultiple)(
-		ULONG cpspec,
-		const PROPSPEC rgpspec[],
-		const PROPVARIANT rgpropvar[],
-		PROPID propidNameFirst);
+    STDMETHOD(ReadPropertyNames)(ULONG cpropid, const PROPID rgpropid[], LPOLESTR rglpwstrName[]);
 
-	STDMETHOD(DeleteMultiple)(
-		ULONG cpspec,
-		const PROPSPEC rgpspec[]);
+    STDMETHOD(WritePropertyNames)(ULONG cpropid, const PROPID rgpropid[], const LPOLESTR rglpwstrName[]);
 
-	STDMETHOD(ReadPropertyNames)(
-		ULONG cpropid,
-		const PROPID rgpropid[],
-		LPOLESTR rglpwstrName[]);
+    STDMETHOD(DeletePropertyNames)(ULONG cpropid, const PROPID rgpropid[]);
 
-	STDMETHOD(WritePropertyNames)(
-		ULONG cpropid,
-		const PROPID rgpropid[],
-		const LPOLESTR rglpwstrName[]);
+    STDMETHOD(Commit)(DWORD grfCommitFlags);
 
-	STDMETHOD(DeletePropertyNames)(
-		ULONG cpropid,
-		const PROPID rgpropid[]);
+    STDMETHOD(Revert)(void);
 
-	STDMETHOD(Commit)(
-		DWORD grfCommitFlags);
+    STDMETHOD(Enum)(IEnumSTATPROPSTG **ppenum);
 
-	STDMETHOD(Revert)(
-		void);
+    STDMETHOD(SetTimes)(const FILETIME *pctime, const FILETIME *patime, const FILETIME *pmtime);
 
-	STDMETHOD(Enum)(
-		IEnumSTATPROPSTG ** ppenum);
+    STDMETHOD(SetClass)(REFCLSID clsid);
 
-	STDMETHOD(SetTimes)(
-		const FILETIME * pctime,
-		const FILETIME * patime,
-		const FILETIME * pmtime);
-
-	STDMETHOD(SetClass)(
-		REFCLSID clsid);
-
-	STDMETHOD(Stat)(
-		STATPROPSETSTG * pstatpsstg);
-
+    STDMETHOD(Stat)(STATPROPSETSTG *pstatpsstg);
 };

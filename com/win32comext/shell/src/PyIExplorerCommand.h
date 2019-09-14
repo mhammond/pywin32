@@ -4,68 +4,49 @@
 //
 // Interface Declaration
 
-class PyIExplorerCommand : public PyIUnknown
-{
-public:
-	MAKE_PYCOM_CTOR(PyIExplorerCommand);
-	static IExplorerCommand *GetI(PyObject *self);
-	static PyComTypeObject type;
+class PyIExplorerCommand : public PyIUnknown {
+   public:
+    MAKE_PYCOM_CTOR(PyIExplorerCommand);
+    static IExplorerCommand *GetI(PyObject *self);
+    static PyComTypeObject type;
 
-	// The Python methods
-	static PyObject *GetTitle(PyObject *self, PyObject *args);
-	static PyObject *GetIcon(PyObject *self, PyObject *args);
-	static PyObject *GetToolTip(PyObject *self, PyObject *args);
-	static PyObject *GetCanonicalName(PyObject *self, PyObject *args);
-	static PyObject *GetState(PyObject *self, PyObject *args);
-	static PyObject *Invoke(PyObject *self, PyObject *args);
-	static PyObject *GetFlags(PyObject *self, PyObject *args);
-	static PyObject *EnumSubCommands(PyObject *self, PyObject *args);
+    // The Python methods
+    static PyObject *GetTitle(PyObject *self, PyObject *args);
+    static PyObject *GetIcon(PyObject *self, PyObject *args);
+    static PyObject *GetToolTip(PyObject *self, PyObject *args);
+    static PyObject *GetCanonicalName(PyObject *self, PyObject *args);
+    static PyObject *GetState(PyObject *self, PyObject *args);
+    static PyObject *Invoke(PyObject *self, PyObject *args);
+    static PyObject *GetFlags(PyObject *self, PyObject *args);
+    static PyObject *EnumSubCommands(PyObject *self, PyObject *args);
 
-protected:
-	PyIExplorerCommand(IUnknown *pdisp);
-	~PyIExplorerCommand();
+   protected:
+    PyIExplorerCommand(IUnknown *pdisp);
+    ~PyIExplorerCommand();
 };
 // ---------------------------------------------------
 //
 // Gateway Declaration
 
-class PyGExplorerCommand : public PyGatewayBase, public IExplorerCommand
-{
-protected:
-	PyGExplorerCommand(PyObject *instance) : PyGatewayBase(instance) { ; }
-	PYGATEWAY_MAKE_SUPPORT2(PyGExplorerCommand, IExplorerCommand, IID_IExplorerCommand, PyGatewayBase)
+class PyGExplorerCommand : public PyGatewayBase, public IExplorerCommand {
+   protected:
+    PyGExplorerCommand(PyObject *instance) : PyGatewayBase(instance) { ; }
+    PYGATEWAY_MAKE_SUPPORT2(PyGExplorerCommand, IExplorerCommand, IID_IExplorerCommand, PyGatewayBase)
 
+    // IExplorerCommand
+    STDMETHOD(GetTitle)(IShellItemArray *psiItemArray, LPWSTR *ppszName);
 
+    STDMETHOD(GetIcon)(IShellItemArray *psiItemArray, LPWSTR *ppszIcon);
 
-	// IExplorerCommand
-	STDMETHOD(GetTitle)(
-		IShellItemArray * psiItemArray,
-		LPWSTR * ppszName);
+    STDMETHOD(GetToolTip)(IShellItemArray *psiItemArray, LPWSTR *ppszInfotip);
 
-	STDMETHOD(GetIcon)(
-		IShellItemArray * psiItemArray,
-		LPWSTR * ppszIcon);
+    STDMETHOD(GetCanonicalName)(GUID *pguidCommandName);
 
-	STDMETHOD(GetToolTip)(
-		IShellItemArray * psiItemArray,
-		LPWSTR * ppszInfotip);
+    STDMETHOD(GetState)(IShellItemArray *psiItemArray, BOOL fOkToBeSlow, EXPCMDSTATE *pCmdState);
 
-	STDMETHOD(GetCanonicalName)(
-		GUID * pguidCommandName);
+    STDMETHOD(Invoke)(IShellItemArray *psiItemArray, IBindCtx *pbc);
 
-	STDMETHOD(GetState)(
-		IShellItemArray * psiItemArray,
-		BOOL fOkToBeSlow,
-		EXPCMDSTATE * pCmdState);
+    STDMETHOD(GetFlags)(EXPCMDFLAGS *pFlags);
 
-	STDMETHOD(Invoke)(
-		IShellItemArray * psiItemArray,
-		IBindCtx * pbc);
-
-	STDMETHOD(GetFlags)(
-		EXPCMDFLAGS * pFlags);
-
-	STDMETHOD(EnumSubCommands)(
-		IEnumExplorerCommand ** ppEnum);
-
+    STDMETHOD(EnumSubCommands)(IEnumExplorerCommand **ppEnum);
 };

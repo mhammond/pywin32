@@ -9,12 +9,16 @@ import pywin32_testutil
 ui_demos = """GetSaveFileName print_desktop win32cred_demo win32gui_demo
               win32gui_dialog win32gui_menu win32gui_taskbar
               win32rcparser_demo winprocess win32console_demo
+              win32clipboard_bitmapdemo
               win32gui_devicenotify
               NetValidatePasswordPolicy""".split()
 # Other demos known as 'bad' (or at least highly unlikely to work)
 # cerapi: no CE module is built (CE via pywin32 appears dead)
 # desktopmanager: hangs (well, hangs for 60secs or so...)
-bad_demos = "cerapi desktopmanager win32comport_demo".split()
+# EvtSubscribe_*: must be run together
+bad_demos = """cerapi desktopmanager win32comport_demo
+               EvtSubscribe_pull EvtSubscribe_push
+            """.split()
 
 argvs = {
     "rastest": ("-l",),
@@ -72,6 +76,8 @@ def find_exception_in_output(data):
 class TestRunner:
     def __init__(self, argv):
         self.argv = argv
+        self.__name__ = "Test Runner for cmdline {}".format(argv)
+
     def __call__(self):
         import subprocess
         p = subprocess.Popen(self.argv,

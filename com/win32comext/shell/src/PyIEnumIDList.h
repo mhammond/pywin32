@@ -4,45 +4,37 @@
 //
 // Interface Declaration
 
-class PyIEnumIDList : public PyIUnknown
-{
-public:
-	MAKE_PYCOM_CTOR(PyIEnumIDList);
-	static IEnumIDList *GetI(PyObject *self);
-	static PyComEnumTypeObject type;
+class PyIEnumIDList : public PyIUnknown {
+   public:
+    MAKE_PYCOM_CTOR(PyIEnumIDList);
+    static IEnumIDList *GetI(PyObject *self);
+    static PyComEnumTypeObject type;
 
-	// The Python methods
-	static PyObject *Next(PyObject *self, PyObject *args);
-	static PyObject *Skip(PyObject *self, PyObject *args);
-	static PyObject *Reset(PyObject *self, PyObject *args);
-	static PyObject *Clone(PyObject *self, PyObject *args);
+    // The Python methods
+    static PyObject *Next(PyObject *self, PyObject *args);
+    static PyObject *Skip(PyObject *self, PyObject *args);
+    static PyObject *Reset(PyObject *self, PyObject *args);
+    static PyObject *Clone(PyObject *self, PyObject *args);
 
-protected:
-	PyIEnumIDList(IUnknown *pdisp);
-	~PyIEnumIDList();
+   protected:
+    PyIEnumIDList(IUnknown *pdisp);
+    ~PyIEnumIDList();
 };
 // ---------------------------------------------------
 //
 // Gateway Declaration
 
-class PyGEnumIDList : public PyGatewayBase, public IEnumIDList
-{
-protected:
-	PyGEnumIDList(PyObject *instance) : PyGatewayBase(instance) { ; }
-	PYGATEWAY_MAKE_SUPPORT2(PyGEnumIDList, IEnumIDList, IID_IEnumIDList, PyGatewayBase)
+class PyGEnumIDList : public PyGatewayBase, public IEnumIDList {
+   protected:
+    PyGEnumIDList(PyObject *instance) : PyGatewayBase(instance) { ; }
+    PYGATEWAY_MAKE_SUPPORT2(PyGEnumIDList, IEnumIDList, IID_IEnumIDList, PyGatewayBase)
 
-	// IEnumIDList
-	STDMETHOD(Next)(
-		ULONG celt,
-		LPITEMIDLIST *pi,
-		ULONG __RPC_FAR * pcEltsfetched);
+    // IEnumIDList
+    STDMETHOD(Next)(ULONG celt, LPITEMIDLIST *pi, ULONG __RPC_FAR *pcEltsfetched);
 
-	STDMETHOD(Skip)(
-		ULONG celt);
+    STDMETHOD(Skip)(ULONG celt);
 
-	STDMETHOD(Reset)(
-		void);
+    STDMETHOD(Reset)(void);
 
-	STDMETHOD(Clone)(
-		IEnumIDList __RPC_FAR *__RPC_FAR * ppepi);
+    STDMETHOD(Clone)(IEnumIDList __RPC_FAR *__RPC_FAR *ppepi);
 };

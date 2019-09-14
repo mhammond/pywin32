@@ -4,4 +4,3 @@
 //	stdafxpw.obj will contain the pre-compiled type information
 
 #include "stdafxpw.h"
-

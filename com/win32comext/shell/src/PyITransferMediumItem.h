@@ -4,33 +4,29 @@
 //
 // Interface Declaration
 
-class PyITransferMediumItem : public PyIRelatedItem
-{
-public:
-	MAKE_PYCOM_CTOR(PyITransferMediumItem);
-	static ITransferMediumItem *GetI(PyObject *self);
-	static PyComTypeObject type;
+class PyITransferMediumItem : public PyIRelatedItem {
+   public:
+    MAKE_PYCOM_CTOR(PyITransferMediumItem);
+    static ITransferMediumItem *GetI(PyObject *self);
+    static PyComTypeObject type;
 
-	// The Python methods
+    // The Python methods
 
-protected:
-	PyITransferMediumItem(IUnknown *pdisp);
-	~PyITransferMediumItem();
+   protected:
+    PyITransferMediumItem(IUnknown *pdisp);
+    ~PyITransferMediumItem();
 };
 // ---------------------------------------------------
 //
 // Gateway Declaration
 
-class PyGTransferMediumItem : public PyGRelatedItem, public ITransferMediumItem
-{
-protected:
-	PyGTransferMediumItem(PyObject *instance) : PyGRelatedItem(instance) { ; }
-	PYGATEWAY_MAKE_SUPPORT2(PyGTransferMediumItem, ITransferMediumItem, IID_ITransferMediumItem, PyGRelatedItem)
+class PyGTransferMediumItem : public PyGRelatedItem, public ITransferMediumItem {
+   protected:
+    PyGTransferMediumItem(PyObject *instance) : PyGRelatedItem(instance) { ; }
+    PYGATEWAY_MAKE_SUPPORT2(PyGTransferMediumItem, ITransferMediumItem, IID_ITransferMediumItem, PyGRelatedItem)
 
-	// Only has IRelatedItem methods
-	STDMETHOD(GetItemIDList)(PIDLIST_ABSOLUTE * ppidl)
-		{return PyGRelatedItem::GetItemIDList(ppidl);}
+    // Only has IRelatedItem methods
+    STDMETHOD(GetItemIDList)(PIDLIST_ABSOLUTE *ppidl) { return PyGRelatedItem::GetItemIDList(ppidl); }
 
-	STDMETHOD(GetItem)(IShellItem ** ppsi)
-		{return PyGRelatedItem::GetItem(ppsi);}
+    STDMETHOD(GetItem)(IShellItem **ppsi) { return PyGRelatedItem::GetItem(ppsi); }
 };

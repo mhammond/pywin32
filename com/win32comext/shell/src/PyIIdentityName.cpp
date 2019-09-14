@@ -10,32 +10,22 @@
 //
 // Interface Implementation
 
-PyIIdentityName::PyIIdentityName(IUnknown *pdisp):
-	PyIRelatedItem(pdisp)
-{
-	ob_type = &type;
-}
+PyIIdentityName::PyIIdentityName(IUnknown *pdisp) : PyIRelatedItem(pdisp) { ob_type = &type; }
 
-PyIIdentityName::~PyIIdentityName()
-{
-}
+PyIIdentityName::~PyIIdentityName() {}
 
 /* static */ IIdentityName *PyIIdentityName::GetI(PyObject *self)
 {
-	return (IIdentityName *)PyIRelatedItem::GetI(self);
+    return (IIdentityName *)PyIRelatedItem::GetI(self);
 }
 
 // @object PyIIdentityName|Description of the interface
-static struct PyMethodDef PyIIdentityName_methods[] =
-{
-	{ NULL }
-};
+static struct PyMethodDef PyIIdentityName_methods[] = {{NULL}};
 
 PyComTypeObject PyIIdentityName::type("PyIIdentityName",
-		&PyIRelatedItem::type, // @base PyIIdentityName|PyIRelatedItem
-		sizeof(PyIIdentityName),
-		PyIIdentityName_methods,
-		GET_PYCOM_CTOR(PyIIdentityName));
+                                      &PyIRelatedItem::type,  // @base PyIIdentityName|PyIRelatedItem
+                                      sizeof(PyIIdentityName), PyIIdentityName_methods,
+                                      GET_PYCOM_CTOR(PyIIdentityName));
 // ---------------------------------------------------
 //
 // Gateway Implementation

@@ -11,107 +11,117 @@
 //
 // Interface Implementation
 
-PyIActiveScriptErrorDebug::PyIActiveScriptErrorDebug(IUnknown *pdisp):
-	PyIActiveScriptError(pdisp)
-{
-	ob_type = &type;
-}
+PyIActiveScriptErrorDebug::PyIActiveScriptErrorDebug(IUnknown *pdisp) : PyIActiveScriptError(pdisp) { ob_type = &type; }
 
-PyIActiveScriptErrorDebug::~PyIActiveScriptErrorDebug()
-{
-}
+PyIActiveScriptErrorDebug::~PyIActiveScriptErrorDebug() {}
 
 /* static */ IActiveScriptErrorDebug *PyIActiveScriptErrorDebug::GetI(PyObject *self)
 {
-	return (IActiveScriptErrorDebug *)PyIActiveScriptError::GetI(self);
+    return (IActiveScriptErrorDebug *)PyIActiveScriptError::GetI(self);
 }
 
 // @pymethod |PyIActiveScriptErrorDebug|GetDocumentContext|Description of GetDocumentContext.
 PyObject *PyIActiveScriptErrorDebug::GetDocumentContext(PyObject *self, PyObject *args)
 {
-	IActiveScriptErrorDebug *pIASED = GetI(self);
-	if ( pIASED == NULL )
-		return NULL;
-	IDebugDocumentContext *ppssc;
-	if ( !PyArg_ParseTuple(args, ":GetDocumentContext") )
-		return NULL;
-	HRESULT hr = pIASED->GetDocumentContext( &ppssc );
-	if ( FAILED(hr) )
-		return OleSetOleError(hr);
-	return PyCom_PyObjectFromIUnknown(ppssc, IID_IDebugDocumentContext, FALSE);
+    IActiveScriptErrorDebug *pIASED = GetI(self);
+    if (pIASED == NULL)
+        return NULL;
+    IDebugDocumentContext *ppssc;
+    if (!PyArg_ParseTuple(args, ":GetDocumentContext"))
+        return NULL;
+    HRESULT hr = pIASED->GetDocumentContext(&ppssc);
+    if (FAILED(hr))
+        return OleSetOleError(hr);
+    return PyCom_PyObjectFromIUnknown(ppssc, IID_IDebugDocumentContext, FALSE);
 }
 
 // @pymethod |PyIActiveScriptErrorDebug|GetStackFrame|Description of GetStackFrame.
 PyObject *PyIActiveScriptErrorDebug::GetStackFrame(PyObject *self, PyObject *args)
 {
-	IActiveScriptErrorDebug *pIASED = GetI(self);
-	if ( pIASED == NULL )
-		return NULL;
-	IDebugStackFrame *ppdsf;
-	if ( !PyArg_ParseTuple(args, ":GetStackFrame") )
-		return NULL;
-	HRESULT hr = pIASED->GetStackFrame( &ppdsf );
-	if ( FAILED(hr) )
-		return OleSetOleError(hr);
-	return PyCom_PyObjectFromIUnknown(ppdsf, IID_IDebugStackFrame, FALSE);
+    IActiveScriptErrorDebug *pIASED = GetI(self);
+    if (pIASED == NULL)
+        return NULL;
+    IDebugStackFrame *ppdsf;
+    if (!PyArg_ParseTuple(args, ":GetStackFrame"))
+        return NULL;
+    HRESULT hr = pIASED->GetStackFrame(&ppdsf);
+    if (FAILED(hr))
+        return OleSetOleError(hr);
+    return PyCom_PyObjectFromIUnknown(ppdsf, IID_IDebugStackFrame, FALSE);
 }
 
 // @object PyIActiveScriptErrorDebug|Description of the interface
-static struct PyMethodDef PyIActiveScriptErrorDebug_methods[] =
-{
-	{ "GetDocumentContext", PyIActiveScriptErrorDebug::GetDocumentContext, 1 }, // @pymeth GetDocumentContext|Description of GetDocumentContext
-	{ "GetStackFrame", PyIActiveScriptErrorDebug::GetStackFrame, 1 }, // @pymeth GetStackFrame|Description of GetStackFrame
-	{ NULL }
-};
+static struct PyMethodDef PyIActiveScriptErrorDebug_methods[] = {
+    {"GetDocumentContext", PyIActiveScriptErrorDebug::GetDocumentContext,
+     1},  // @pymeth GetDocumentContext|Description of GetDocumentContext
+    {"GetStackFrame", PyIActiveScriptErrorDebug::GetStackFrame,
+     1},  // @pymeth GetStackFrame|Description of GetStackFrame
+    {NULL}};
 
-PyComTypeObject PyIActiveScriptErrorDebug::type("PyIActiveScriptErrorDebug",
-		&PyIActiveScriptError::type,
-		sizeof(PyIActiveScriptErrorDebug),
-		PyIActiveScriptErrorDebug_methods,
-		GET_PYCOM_CTOR(PyIActiveScriptErrorDebug));
+PyComTypeObject PyIActiveScriptErrorDebug::type("PyIActiveScriptErrorDebug", &PyIActiveScriptError::type,
+                                                sizeof(PyIActiveScriptErrorDebug), PyIActiveScriptErrorDebug_methods,
+                                                GET_PYCOM_CTOR(PyIActiveScriptErrorDebug));
 // ---------------------------------------------------
 //
 // Gateway Implementation
 
-STDMETHODIMP PyGActiveScriptErrorDebug::GetExceptionInfo(EXCEPINFO __RPC_FAR *pexcepinfo) {return PyGActiveScriptError::GetExceptionInfo(pexcepinfo);}
-STDMETHODIMP PyGActiveScriptErrorDebug::GetSourcePosition(DWORD __RPC_FAR *pdwSourceContext, ULONG __RPC_FAR *pulLineNumber, LONG __RPC_FAR *plCharacterPosition) {return PyGActiveScriptError::GetSourcePosition(pdwSourceContext,pulLineNumber,plCharacterPosition);}
-STDMETHODIMP PyGActiveScriptErrorDebug::GetSourceLineText(BSTR __RPC_FAR *pbstrSourceLine) {return PyGActiveScriptError::GetSourceLineText(pbstrSourceLine);}
+STDMETHODIMP PyGActiveScriptErrorDebug::GetExceptionInfo(EXCEPINFO __RPC_FAR *pexcepinfo)
+{
+    return PyGActiveScriptError::GetExceptionInfo(pexcepinfo);
+}
+STDMETHODIMP PyGActiveScriptErrorDebug::GetSourcePosition(DWORD __RPC_FAR *pdwSourceContext,
+                                                          ULONG __RPC_FAR *pulLineNumber,
+                                                          LONG __RPC_FAR *plCharacterPosition)
+{
+    return PyGActiveScriptError::GetSourcePosition(pdwSourceContext, pulLineNumber, plCharacterPosition);
+}
+STDMETHODIMP PyGActiveScriptErrorDebug::GetSourceLineText(BSTR __RPC_FAR *pbstrSourceLine)
+{
+    return PyGActiveScriptError::GetSourceLineText(pbstrSourceLine);
+}
 
 STDMETHODIMP PyGActiveScriptErrorDebug::GetDocumentContext(
-		/* [out] */ IDebugDocumentContext __RPC_FAR *__RPC_FAR * ppssc)
+    /* [out] */ IDebugDocumentContext __RPC_FAR *__RPC_FAR *ppssc)
 {
-	PY_GATEWAY_METHOD;
-	if (ppssc==NULL) return E_POINTER;
-	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("GetDocumentContext", &result);
-	if (FAILED(hr)) return hr;
-	// Process the Python results, and convert back to the real params
-	PyObject *obppssc;
-	if (!PyArg_Parse(result, "O" , &obppssc)) return PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
-	BOOL bPythonIsHappy = TRUE;
-	if (!PyCom_InterfaceFromPyInstanceOrObject(obppssc, IID_IDebugDocumentContext, (void **)ppssc, FALSE /* bNoneOK */))
-		 bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) hr = PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
-	Py_DECREF(result);
-	return hr;
+    PY_GATEWAY_METHOD;
+    if (ppssc == NULL)
+        return E_POINTER;
+    PyObject *result;
+    HRESULT hr = InvokeViaPolicy("GetDocumentContext", &result);
+    if (FAILED(hr))
+        return hr;
+    // Process the Python results, and convert back to the real params
+    PyObject *obppssc;
+    if (!PyArg_Parse(result, "O", &obppssc))
+        return PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
+    BOOL bPythonIsHappy = TRUE;
+    if (!PyCom_InterfaceFromPyInstanceOrObject(obppssc, IID_IDebugDocumentContext, (void **)ppssc, FALSE /* bNoneOK */))
+        bPythonIsHappy = FALSE;
+    if (!bPythonIsHappy)
+        hr = PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
+    Py_DECREF(result);
+    return hr;
 }
 
 STDMETHODIMP PyGActiveScriptErrorDebug::GetStackFrame(
-		/* [out] */ IDebugStackFrame __RPC_FAR *__RPC_FAR * ppdsf)
+    /* [out] */ IDebugStackFrame __RPC_FAR *__RPC_FAR *ppdsf)
 {
-	PY_GATEWAY_METHOD;
-	if (ppdsf==NULL) return E_POINTER;
-	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("GetStackFrame", &result);
-	if (FAILED(hr)) return hr;
-	// Process the Python results, and convert back to the real params
-	PyObject *obppdsf;
-	if (!PyArg_Parse(result, "O" , &obppdsf)) return PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
-	BOOL bPythonIsHappy = TRUE;
-	if (!PyCom_InterfaceFromPyInstanceOrObject(obppdsf, IID_IDebugStackFrame, (void **)ppdsf, FALSE /* bNoneOK */))
-		 bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) hr = PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
-	Py_DECREF(result);
-	return hr;
+    PY_GATEWAY_METHOD;
+    if (ppdsf == NULL)
+        return E_POINTER;
+    PyObject *result;
+    HRESULT hr = InvokeViaPolicy("GetStackFrame", &result);
+    if (FAILED(hr))
+        return hr;
+    // Process the Python results, and convert back to the real params
+    PyObject *obppdsf;
+    if (!PyArg_Parse(result, "O", &obppdsf))
+        return PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
+    BOOL bPythonIsHappy = TRUE;
+    if (!PyCom_InterfaceFromPyInstanceOrObject(obppdsf, IID_IDebugStackFrame, (void **)ppdsf, FALSE /* bNoneOK */))
+        bPythonIsHappy = FALSE;
+    if (!bPythonIsHappy)
+        hr = PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
+    Py_DECREF(result);
+    return hr;
 }
-

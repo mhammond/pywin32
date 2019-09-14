@@ -4,42 +4,31 @@
 //
 // Interface Declaration
 
-class PyIInternetBindInfo : public PyIUnknown
-{
-public:
-	MAKE_PYCOM_CTOR(PyIInternetBindInfo);
-	static IInternetBindInfo *GetI(PyObject *self);
-	static PyComTypeObject type;
+class PyIInternetBindInfo : public PyIUnknown {
+   public:
+    MAKE_PYCOM_CTOR(PyIInternetBindInfo);
+    static IInternetBindInfo *GetI(PyObject *self);
+    static PyComTypeObject type;
 
-	// The Python methods
-	static PyObject *GetBindInfo(PyObject *self, PyObject *args);
-	static PyObject *GetBindString(PyObject *self, PyObject *args);
+    // The Python methods
+    static PyObject *GetBindInfo(PyObject *self, PyObject *args);
+    static PyObject *GetBindString(PyObject *self, PyObject *args);
 
-protected:
-	PyIInternetBindInfo(IUnknown *pdisp);
-	~PyIInternetBindInfo();
+   protected:
+    PyIInternetBindInfo(IUnknown *pdisp);
+    ~PyIInternetBindInfo();
 };
 // ---------------------------------------------------
 //
 // Gateway Declaration
 
-class PyGInternetBindInfo : public PyGatewayBase, public IInternetBindInfo
-{
-protected:
-	PyGInternetBindInfo(PyObject *instance) : PyGatewayBase(instance) { ; }
-	PYGATEWAY_MAKE_SUPPORT(PyGInternetBindInfo, IInternetBindInfo, IID_IInternetBindInfo)
+class PyGInternetBindInfo : public PyGatewayBase, public IInternetBindInfo {
+   protected:
+    PyGInternetBindInfo(PyObject *instance) : PyGatewayBase(instance) { ; }
+    PYGATEWAY_MAKE_SUPPORT(PyGInternetBindInfo, IInternetBindInfo, IID_IInternetBindInfo)
 
+    // IInternetBindInfo
+    STDMETHOD(GetBindInfo)(DWORD __RPC_FAR *grfBINDF, BINDINFO __RPC_FAR *pbindinfo);
 
-
-	// IInternetBindInfo
-	STDMETHOD(GetBindInfo)(
-		DWORD __RPC_FAR * grfBINDF,
-		BINDINFO __RPC_FAR * pbindinfo);
-
-	STDMETHOD(GetBindString)(
-		ULONG ulStringType,
-		LPOLESTR __RPC_FAR * ppwzStr,
-		ULONG cEl,
-		ULONG __RPC_FAR * pcElFetched);
-
+    STDMETHOD(GetBindString)(ULONG ulStringType, LPOLESTR __RPC_FAR *ppwzStr, ULONG cEl, ULONG __RPC_FAR *pcElFetched);
 };

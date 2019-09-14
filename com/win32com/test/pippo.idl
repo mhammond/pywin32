@@ -21,7 +21,7 @@ import "ocidl.idl";
 	};
 	[
 		object,
-		uuid(F1A3CC2E-4B2A-4A81-992D-67862076949B),
+		uuid(618DB2A3-D5BD-4850-B66A-828727EB37E5),
 		dual,
 		helpstring("IPippo Interface"),
 		pointer_default(unique)
@@ -32,10 +32,12 @@ import "ocidl.idl";
 		[propget, id(2), helpstring("property MyProp1")] HRESULT MyProp1([out, retval] long *pVal);
 		[id(3), helpstring("method Method2")] HRESULT Method2([in] long in1, [in, out] long *inout1,
 		                                                      [out, retval] long *val);
+		[id(4), helpstring("method Method3")] HRESULT Method3([in] VARIANT in1,
+		                                                      [out, retval] VARIANT *val);
 	};
 
 [
-	uuid(41059C57-975F-4B36-8FF3-C5117426647A),
+	uuid(7783054E-9A20-4584-8C62-6ED2A08F6AC6),
 	version(1.0),
 	helpstring("TestServer 1.0 Type Library")
 ]
@@ -54,7 +56,7 @@ library TESTSERVERLib
 		[default] interface ITestServerApp;
 	};
 	[
-		uuid(E19C0A68-F61C-450B-A974-A7BA6957829C),
+		uuid(1F0F75D6-BD63-41B9-9F88-2D9D2E1AA5C3),
 		helpstring("Pippo Class")
 	]
 	coclass Pippo

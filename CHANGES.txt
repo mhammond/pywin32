@@ -6,7 +6,12 @@ However contributors are encouraged to add their own entries for their work.
 
 Since build 224:
 ----------------
+* Better support for numpy objects in COM methods (#1388, @panikc and
+  @SReicheltPTV)
+
 * PythonWin is now able to start with non-English active keyboard layout.
+
+* Corrected wMilliseconds truncation in PyTime::getattro (Dorian Bivolaru)
 
 * Implement PdhGetFormattedCounterArray (#1306, konserw)
 

@@ -6,84 +6,54 @@
 
 #include "internet_pch.h"
 
-class PyIInternetSecurityManager : public PyIUnknown
-{
-public:
-	MAKE_PYCOM_CTOR(PyIInternetSecurityManager);
-	static IInternetSecurityManager *GetI(PyObject *self);
-	static PyComTypeObject type;
+class PyIInternetSecurityManager : public PyIUnknown {
+   public:
+    MAKE_PYCOM_CTOR(PyIInternetSecurityManager);
+    static IInternetSecurityManager *GetI(PyObject *self);
+    static PyComTypeObject type;
 
-	// The Python methods
-	static PyObject *SetSecuritySite(PyObject *self, PyObject *args);
-	static PyObject *GetSecuritySite(PyObject *self, PyObject *args);
-	static PyObject *MapUrlToZone(PyObject *self, PyObject *args);
-	static PyObject *GetSecurityId(PyObject *self, PyObject *args);
-	static PyObject *ProcessUrlAction(PyObject *self, PyObject *args);
-	static PyObject *QueryCustomPolicy(PyObject *self, PyObject *args);
-	static PyObject *SetZoneMapping(PyObject *self, PyObject *args);
-	static PyObject *GetZoneMappings(PyObject *self, PyObject *args);
+    // The Python methods
+    static PyObject *SetSecuritySite(PyObject *self, PyObject *args);
+    static PyObject *GetSecuritySite(PyObject *self, PyObject *args);
+    static PyObject *MapUrlToZone(PyObject *self, PyObject *args);
+    static PyObject *GetSecurityId(PyObject *self, PyObject *args);
+    static PyObject *ProcessUrlAction(PyObject *self, PyObject *args);
+    static PyObject *QueryCustomPolicy(PyObject *self, PyObject *args);
+    static PyObject *SetZoneMapping(PyObject *self, PyObject *args);
+    static PyObject *GetZoneMappings(PyObject *self, PyObject *args);
 
-protected:
-	PyIInternetSecurityManager(IUnknown *pdisp);
-	~PyIInternetSecurityManager();
+   protected:
+    PyIInternetSecurityManager(IUnknown *pdisp);
+    ~PyIInternetSecurityManager();
 };
 // ---------------------------------------------------
 //
 // Gateway Declaration
 
-class PyGInternetSecurityManager : public PyGatewayBase, public IInternetSecurityManager
-{
-protected:
-	PyGInternetSecurityManager(PyObject *instance) : PyGatewayBase(instance) { ; }
-	PYGATEWAY_MAKE_SUPPORT2(PyGInternetSecurityManager, IInternetSecurityManager, IID_IInternetSecurityManager, PyGatewayBase)
+class PyGInternetSecurityManager : public PyGatewayBase, public IInternetSecurityManager {
+   protected:
+    PyGInternetSecurityManager(PyObject *instance) : PyGatewayBase(instance) { ; }
+    PYGATEWAY_MAKE_SUPPORT2(PyGInternetSecurityManager, IInternetSecurityManager, IID_IInternetSecurityManager,
+                            PyGatewayBase)
 
+    // IInternetSecurityManager
+    STDMETHOD(SetSecuritySite)(IInternetSecurityMgrSite *pSite);
 
+    STDMETHOD(GetSecuritySite)(IInternetSecurityMgrSite **ppSite);
 
-	// IInternetSecurityManager
-	STDMETHOD(SetSecuritySite)(
-		IInternetSecurityMgrSite * pSite);
+    STDMETHOD(MapUrlToZone)(LPCWSTR pwszUrl, DWORD *pdwZone, DWORD dwFlags);
 
-	STDMETHOD(GetSecuritySite)(
-		IInternetSecurityMgrSite ** ppSite);
+    STDMETHOD(GetSecurityId)(LPCWSTR pwszUrl, BYTE *pbSecurityId, DWORD *pcbSecurityId, DWORD_PTR dwReserved);
 
-	STDMETHOD(MapUrlToZone)(
-		LPCWSTR pwszUrl,
-		DWORD * pdwZone,
-		DWORD dwFlags);
+    STDMETHOD(ProcessUrlAction)
+    (LPCWSTR pwszUrl, DWORD dwAction, BYTE *pPolicy, DWORD cbPolicy, BYTE *pContext, DWORD cbContext, DWORD dwFlags,
+     DWORD dwReserved);
 
-	STDMETHOD(GetSecurityId)(
-		LPCWSTR pwszUrl,
-		BYTE * pbSecurityId,
-		DWORD * pcbSecurityId,
-		DWORD_PTR dwReserved);
+    STDMETHOD(QueryCustomPolicy)
+    (LPCWSTR pwszUrl, REFGUID guidKey, BYTE **ppPolicy, DWORD *pcbPolicy, BYTE *pContext, DWORD cbContext,
+     DWORD dwReserved);
 
-	STDMETHOD(ProcessUrlAction)(
-		LPCWSTR pwszUrl,
-		DWORD dwAction,
-		BYTE * pPolicy,
-		DWORD cbPolicy,
-		BYTE * pContext,
-		DWORD cbContext,
-		DWORD dwFlags,
-		DWORD dwReserved);
+    STDMETHOD(SetZoneMapping)(DWORD dwZone, LPCWSTR lpszPattern, DWORD dwFlags);
 
-	STDMETHOD(QueryCustomPolicy)(
-		LPCWSTR pwszUrl,
-		REFGUID guidKey,
-		BYTE ** ppPolicy,
-		DWORD * pcbPolicy,
-		BYTE * pContext,
-		DWORD cbContext,
-		DWORD dwReserved);
-
-	STDMETHOD(SetZoneMapping)(
-		DWORD dwZone,
-		LPCWSTR lpszPattern,
-		DWORD dwFlags);
-
-	STDMETHOD(GetZoneMappings)(
-		DWORD dwZone,
-		IEnumString ** ppenumString,
-		DWORD dwFlags);
-
+    STDMETHOD(GetZoneMappings)(DWORD dwZone, IEnumString **ppenumString, DWORD dwFlags);
 };

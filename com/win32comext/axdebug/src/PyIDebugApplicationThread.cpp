@@ -12,233 +12,241 @@
 //
 // Interface Implementation
 
-PyIDebugApplicationThread::PyIDebugApplicationThread(IUnknown *pdisp):
-	PyIRemoteDebugApplicationThread(pdisp)
+PyIDebugApplicationThread::PyIDebugApplicationThread(IUnknown *pdisp) : PyIRemoteDebugApplicationThread(pdisp)
 {
-	ob_type = &type;
+    ob_type = &type;
 }
 
-PyIDebugApplicationThread::~PyIDebugApplicationThread()
-{
-}
+PyIDebugApplicationThread::~PyIDebugApplicationThread() {}
 
 /* static */ IDebugApplicationThread *PyIDebugApplicationThread::GetI(PyObject *self)
 {
-	return (IDebugApplicationThread *)PyIRemoteDebugApplicationThread::GetI(self);
+    return (IDebugApplicationThread *)PyIRemoteDebugApplicationThread::GetI(self);
 }
 
 // @pymethod |PyIDebugApplicationThread|SynchronousCallIntoThread|Description of SynchronousCallIntoThread.
 PyObject *PyIDebugApplicationThread::SynchronousCallIntoThread(PyObject *self, PyObject *args)
 {
-	PY_INTERFACE_METHOD;
-	IDebugApplicationThread *pIDAT = GetI(self);
-	if ( pIDAT == NULL )
-		return NULL;
-	// @pyparm <o PyIDebugThreadCall>|pstcb||Description for pstcb
-	// @pyparm int|dwParam1||Description for dwParam1
-	// @pyparm int|dwParam2||Description for dwParam2
-	// @pyparm int|dwParam3||Description for dwParam3
-	PyObject *obpstcb;
-	IDebugThreadCall32 *pstcb;
-	DWORD dwParam1;
-	DWORD dwParam2;
-	DWORD dwParam3;
-	if ( !PyArg_ParseTuple(args, "Oiii:SynchronousCallIntoThread", &obpstcb, &dwParam1, &dwParam2, &dwParam3) )
-		return NULL;
-	BOOL bPythonIsHappy = TRUE;
-	if (!PyCom_InterfaceFromPyInstanceOrObject(obpstcb, IID_IDebugThreadCall, (void **)&pstcb, FALSE /* bNoneOK */))
-		 bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) return NULL;
-	PY_INTERFACE_PRECALL;
-	HRESULT hr = pIDAT->SynchronousCallIntoThread32( pstcb, dwParam1, dwParam2, dwParam3 );
-	pstcb->Release();
-	PY_INTERFACE_POSTCALL;
-	if ( FAILED(hr) )
-		return SetPythonCOMError(self,hr);
-	Py_INCREF(Py_None);
-	return Py_None;
-
+    PY_INTERFACE_METHOD;
+    IDebugApplicationThread *pIDAT = GetI(self);
+    if (pIDAT == NULL)
+        return NULL;
+    // @pyparm <o PyIDebugThreadCall>|pstcb||Description for pstcb
+    // @pyparm int|dwParam1||Description for dwParam1
+    // @pyparm int|dwParam2||Description for dwParam2
+    // @pyparm int|dwParam3||Description for dwParam3
+    PyObject *obpstcb;
+    IDebugThreadCall32 *pstcb;
+    DWORD dwParam1;
+    DWORD dwParam2;
+    DWORD dwParam3;
+    if (!PyArg_ParseTuple(args, "Oiii:SynchronousCallIntoThread", &obpstcb, &dwParam1, &dwParam2, &dwParam3))
+        return NULL;
+    BOOL bPythonIsHappy = TRUE;
+    if (!PyCom_InterfaceFromPyInstanceOrObject(obpstcb, IID_IDebugThreadCall, (void **)&pstcb, FALSE /* bNoneOK */))
+        bPythonIsHappy = FALSE;
+    if (!bPythonIsHappy)
+        return NULL;
+    PY_INTERFACE_PRECALL;
+    HRESULT hr = pIDAT->SynchronousCallIntoThread32(pstcb, dwParam1, dwParam2, dwParam3);
+    pstcb->Release();
+    PY_INTERFACE_POSTCALL;
+    if (FAILED(hr))
+        return SetPythonCOMError(self, hr);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @pymethod |PyIDebugApplicationThread|QueryIsCurrentThread|Description of QueryIsCurrentThread.
 PyObject *PyIDebugApplicationThread::QueryIsCurrentThread(PyObject *self, PyObject *args)
 {
-	PY_INTERFACE_METHOD;
-	IDebugApplicationThread *pIDAT = GetI(self);
-	if ( pIDAT == NULL )
-		return NULL;
-	if ( !PyArg_ParseTuple(args, ":QueryIsCurrentThread") )
-		return NULL;
-	PY_INTERFACE_PRECALL;
-	HRESULT hr = pIDAT->QueryIsCurrentThread( );
-	PY_INTERFACE_POSTCALL;
-	if ( FAILED(hr) )
-		return SetPythonCOMError(self,hr);
-	Py_INCREF(Py_None);
-	return Py_None;
-
+    PY_INTERFACE_METHOD;
+    IDebugApplicationThread *pIDAT = GetI(self);
+    if (pIDAT == NULL)
+        return NULL;
+    if (!PyArg_ParseTuple(args, ":QueryIsCurrentThread"))
+        return NULL;
+    PY_INTERFACE_PRECALL;
+    HRESULT hr = pIDAT->QueryIsCurrentThread();
+    PY_INTERFACE_POSTCALL;
+    if (FAILED(hr))
+        return SetPythonCOMError(self, hr);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @pymethod |PyIDebugApplicationThread|QueryIsDebuggerThread|Description of QueryIsDebuggerThread.
 PyObject *PyIDebugApplicationThread::QueryIsDebuggerThread(PyObject *self, PyObject *args)
 {
-	PY_INTERFACE_METHOD;
-	IDebugApplicationThread *pIDAT = GetI(self);
-	if ( pIDAT == NULL )
-		return NULL;
-	if ( !PyArg_ParseTuple(args, ":QueryIsDebuggerThread") )
-		return NULL;
-	PY_INTERFACE_PRECALL;
-	HRESULT hr = pIDAT->QueryIsDebuggerThread( );
-	PY_INTERFACE_POSTCALL;
-	if ( FAILED(hr) )
-		return SetPythonCOMError(self,hr);
-	Py_INCREF(Py_None);
-	return Py_None;
-
+    PY_INTERFACE_METHOD;
+    IDebugApplicationThread *pIDAT = GetI(self);
+    if (pIDAT == NULL)
+        return NULL;
+    if (!PyArg_ParseTuple(args, ":QueryIsDebuggerThread"))
+        return NULL;
+    PY_INTERFACE_PRECALL;
+    HRESULT hr = pIDAT->QueryIsDebuggerThread();
+    PY_INTERFACE_POSTCALL;
+    if (FAILED(hr))
+        return SetPythonCOMError(self, hr);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @pymethod |PyIDebugApplicationThread|SetDescription|Description of SetDescription.
 PyObject *PyIDebugApplicationThread::SetDescription(PyObject *self, PyObject *args)
 {
-	PY_INTERFACE_METHOD;
-	IDebugApplicationThread *pIDAT = GetI(self);
-	if ( pIDAT == NULL )
-		return NULL;
-	PyObject *obDesc;
-	if ( !PyArg_ParseTuple(args, "O:SetDescription", &obDesc) )
-		return NULL;
-	BSTR pbstrName;
-	if (!PyCom_BstrFromPyObject(obDesc, &pbstrName))
-		return NULL;
-	PY_INTERFACE_PRECALL;
-	HRESULT hr = pIDAT->SetDescription(pbstrName);
-	SysFreeString(pbstrName);
-	PY_INTERFACE_POSTCALL;
-	if ( FAILED(hr) )
-		return SetPythonCOMError(self,hr);
-	Py_INCREF(Py_None);
-	return Py_None;
+    PY_INTERFACE_METHOD;
+    IDebugApplicationThread *pIDAT = GetI(self);
+    if (pIDAT == NULL)
+        return NULL;
+    PyObject *obDesc;
+    if (!PyArg_ParseTuple(args, "O:SetDescription", &obDesc))
+        return NULL;
+    BSTR pbstrName;
+    if (!PyCom_BstrFromPyObject(obDesc, &pbstrName))
+        return NULL;
+    PY_INTERFACE_PRECALL;
+    HRESULT hr = pIDAT->SetDescription(pbstrName);
+    SysFreeString(pbstrName);
+    PY_INTERFACE_POSTCALL;
+    if (FAILED(hr))
+        return SetPythonCOMError(self, hr);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @pymethod |PyIDebugApplicationThread|SetStateString|Description of SetStateString.
 PyObject *PyIDebugApplicationThread::SetStateString(PyObject *self, PyObject *args)
 {
-	PY_INTERFACE_METHOD;
-	IDebugApplicationThread *pIDAT = GetI(self);
-	if ( pIDAT == NULL )
-		return NULL;
-	PyObject *obDesc;
-	if ( !PyArg_ParseTuple(args, "O:SetStateString", &obDesc) )
-		return NULL;
-	BSTR pbstrName;
-	if (!PyCom_BstrFromPyObject(obDesc, &pbstrName))
-		return NULL;
-	PY_INTERFACE_PRECALL;
-	HRESULT hr = pIDAT->SetStateString(pbstrName);
-	SysFreeString(pbstrName);
-	PY_INTERFACE_POSTCALL;
-	if ( FAILED(hr) )
-		return SetPythonCOMError(self,hr);
-	Py_INCREF(Py_None);
-	return Py_None;
+    PY_INTERFACE_METHOD;
+    IDebugApplicationThread *pIDAT = GetI(self);
+    if (pIDAT == NULL)
+        return NULL;
+    PyObject *obDesc;
+    if (!PyArg_ParseTuple(args, "O:SetStateString", &obDesc))
+        return NULL;
+    BSTR pbstrName;
+    if (!PyCom_BstrFromPyObject(obDesc, &pbstrName))
+        return NULL;
+    PY_INTERFACE_PRECALL;
+    HRESULT hr = pIDAT->SetStateString(pbstrName);
+    SysFreeString(pbstrName);
+    PY_INTERFACE_POSTCALL;
+    if (FAILED(hr))
+        return SetPythonCOMError(self, hr);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @object PyIDebugApplicationThread|Description of the interface
-static struct PyMethodDef PyIDebugApplicationThread_methods[] =
-{
-	{ "SynchronousCallIntoThread", PyIDebugApplicationThread::SynchronousCallIntoThread, 1 }, // @pymeth SynchronousCallIntoThread|Description of SynchronousCallIntoThread
-	{ "QueryIsCurrentThread", PyIDebugApplicationThread::QueryIsCurrentThread, 1 }, // @pymeth QueryIsCurrentThread|Description of QueryIsCurrentThread
-	{ "QueryIsDebuggerThread", PyIDebugApplicationThread::QueryIsDebuggerThread, 1 }, // @pymeth QueryIsDebuggerThread|Description of QueryIsDebuggerThread
-	{ "SetDescription", PyIDebugApplicationThread::SetDescription, 1 }, // @pymeth QueryIsDebuggerThread|Description of SetDescription
-	{ "SetStateString", PyIDebugApplicationThread::SetStateString, 1 }, // @pymeth QueryIsDebuggerThread|Description of SetStateString
-	{ NULL }
-};
+static struct PyMethodDef PyIDebugApplicationThread_methods[] = {
+    {"SynchronousCallIntoThread", PyIDebugApplicationThread::SynchronousCallIntoThread,
+     1},  // @pymeth SynchronousCallIntoThread|Description of SynchronousCallIntoThread
+    {"QueryIsCurrentThread", PyIDebugApplicationThread::QueryIsCurrentThread,
+     1},  // @pymeth QueryIsCurrentThread|Description of QueryIsCurrentThread
+    {"QueryIsDebuggerThread", PyIDebugApplicationThread::QueryIsDebuggerThread,
+     1},  // @pymeth QueryIsDebuggerThread|Description of QueryIsDebuggerThread
+    {"SetDescription", PyIDebugApplicationThread::SetDescription,
+     1},  // @pymeth QueryIsDebuggerThread|Description of SetDescription
+    {"SetStateString", PyIDebugApplicationThread::SetStateString,
+     1},  // @pymeth QueryIsDebuggerThread|Description of SetStateString
+    {NULL}};
 
-PyComTypeObject PyIDebugApplicationThread::type("PyIDebugApplicationThread",
-		&PyIRemoteDebugApplicationThread::type,
-		sizeof(PyIDebugApplicationThread),
-		PyIDebugApplicationThread_methods,
-		GET_PYCOM_CTOR(PyIDebugApplicationThread));
+PyComTypeObject PyIDebugApplicationThread::type("PyIDebugApplicationThread", &PyIRemoteDebugApplicationThread::type,
+                                                sizeof(PyIDebugApplicationThread), PyIDebugApplicationThread_methods,
+                                                GET_PYCOM_CTOR(PyIDebugApplicationThread));
 // ---------------------------------------------------
 //
 // Gateway Implementation
 
 // Std delegation
-STDMETHODIMP PyGDebugApplicationThread::GetSystemThreadId(DWORD __RPC_FAR * dwThreadId) {return PyGRemoteDebugApplicationThread::GetSystemThreadId(dwThreadId);}
-STDMETHODIMP PyGDebugApplicationThread::GetApplication(IRemoteDebugApplication __RPC_FAR *__RPC_FAR * ppda) {return PyGRemoteDebugApplicationThread::GetApplication(ppda);}
-STDMETHODIMP PyGDebugApplicationThread::EnumStackFrames(IEnumDebugStackFrames __RPC_FAR *__RPC_FAR * ppedsf) {return PyGRemoteDebugApplicationThread::EnumStackFrames(ppedsf);}
-STDMETHODIMP PyGDebugApplicationThread::GetDescription(BSTR  __RPC_FAR * desc, BSTR __RPC_FAR * state) {return PyGRemoteDebugApplicationThread::GetDescription(desc, state);}
+STDMETHODIMP PyGDebugApplicationThread::GetSystemThreadId(DWORD __RPC_FAR *dwThreadId)
+{
+    return PyGRemoteDebugApplicationThread::GetSystemThreadId(dwThreadId);
+}
+STDMETHODIMP PyGDebugApplicationThread::GetApplication(IRemoteDebugApplication __RPC_FAR *__RPC_FAR *ppda)
+{
+    return PyGRemoteDebugApplicationThread::GetApplication(ppda);
+}
+STDMETHODIMP PyGDebugApplicationThread::EnumStackFrames(IEnumDebugStackFrames __RPC_FAR *__RPC_FAR *ppedsf)
+{
+    return PyGRemoteDebugApplicationThread::EnumStackFrames(ppedsf);
+}
+STDMETHODIMP PyGDebugApplicationThread::GetDescription(BSTR __RPC_FAR *desc, BSTR __RPC_FAR *state)
+{
+    return PyGRemoteDebugApplicationThread::GetDescription(desc, state);
+}
 
-STDMETHODIMP PyGDebugApplicationThread::SetNextStatement(
-		IDebugStackFrame __RPC_FAR * pStackFrame,
-		IDebugCodeContext __RPC_FAR * pCodeContext)
-{return PyGRemoteDebugApplicationThread::SetNextStatement(pStackFrame,pCodeContext);}
+STDMETHODIMP PyGDebugApplicationThread::SetNextStatement(IDebugStackFrame __RPC_FAR *pStackFrame,
+                                                         IDebugCodeContext __RPC_FAR *pCodeContext)
+{
+    return PyGRemoteDebugApplicationThread::SetNextStatement(pStackFrame, pCodeContext);
+}
 
-STDMETHODIMP PyGDebugApplicationThread::GetState(
-		DWORD __RPC_FAR * pState)
-{return PyGRemoteDebugApplicationThread::GetState(pState);}
+STDMETHODIMP PyGDebugApplicationThread::GetState(DWORD __RPC_FAR *pState)
+{
+    return PyGRemoteDebugApplicationThread::GetState(pState);
+}
 
-STDMETHODIMP PyGDebugApplicationThread::Suspend(
-		DWORD __RPC_FAR * pdwCount)
-{return PyGRemoteDebugApplicationThread::Suspend(pdwCount);}
+STDMETHODIMP PyGDebugApplicationThread::Suspend(DWORD __RPC_FAR *pdwCount)
+{
+    return PyGRemoteDebugApplicationThread::Suspend(pdwCount);
+}
 
-STDMETHODIMP PyGDebugApplicationThread::Resume(
-		DWORD __RPC_FAR * pdwCount)
-{return PyGRemoteDebugApplicationThread::Resume(pdwCount);}
+STDMETHODIMP PyGDebugApplicationThread::Resume(DWORD __RPC_FAR *pdwCount)
+{
+    return PyGRemoteDebugApplicationThread::Resume(pdwCount);
+}
 
-STDMETHODIMP PyGDebugApplicationThread::GetSuspendCount(
-		DWORD __RPC_FAR * pdwCount)
-{return PyGRemoteDebugApplicationThread::GetSuspendCount(pdwCount);}
-
+STDMETHODIMP PyGDebugApplicationThread::GetSuspendCount(DWORD __RPC_FAR *pdwCount)
+{
+    return PyGRemoteDebugApplicationThread::GetSuspendCount(pdwCount);
+}
 
 STDMETHODIMP PyGDebugApplicationThread::SynchronousCallIntoThread32(
-		/* [in] */ IDebugThreadCall32 __RPC_FAR * pstcb,
-		/* [in] */ DWORD dwParam1,
-		/* [in] */ DWORD dwParam2,
-		/* [in] */ DWORD dwParam3)
+    /* [in] */ IDebugThreadCall32 __RPC_FAR *pstcb,
+    /* [in] */ DWORD dwParam1,
+    /* [in] */ DWORD dwParam2,
+    /* [in] */ DWORD dwParam3)
 {
-	PY_GATEWAY_METHOD;
-	PyObject *obpstcb;
-	obpstcb = PyCom_PyObjectFromIUnknown(pstcb, IID_IDebugThreadCall, TRUE);
-	HRESULT hr=InvokeViaPolicy("SynchronousCallIntoThread", NULL, "Oiii", obpstcb, dwParam1, dwParam2, dwParam3);
-	Py_XDECREF(obpstcb);
-	return hr;
+    PY_GATEWAY_METHOD;
+    PyObject *obpstcb;
+    obpstcb = PyCom_PyObjectFromIUnknown(pstcb, IID_IDebugThreadCall, TRUE);
+    HRESULT hr = InvokeViaPolicy("SynchronousCallIntoThread", NULL, "Oiii", obpstcb, dwParam1, dwParam2, dwParam3);
+    Py_XDECREF(obpstcb);
+    return hr;
 }
 
-STDMETHODIMP PyGDebugApplicationThread::QueryIsCurrentThread(
-		void)
+STDMETHODIMP PyGDebugApplicationThread::QueryIsCurrentThread(void)
 {
-	PY_GATEWAY_METHOD;
-	HRESULT hr=InvokeViaPolicy("QueryIsCurrentThread", NULL);
-	return hr;
+    PY_GATEWAY_METHOD;
+    HRESULT hr = InvokeViaPolicy("QueryIsCurrentThread", NULL);
+    return hr;
 }
 
-STDMETHODIMP PyGDebugApplicationThread::QueryIsDebuggerThread(
-		void)
+STDMETHODIMP PyGDebugApplicationThread::QueryIsDebuggerThread(void)
 {
-	PY_GATEWAY_METHOD;
-	HRESULT hr=InvokeViaPolicy("QueryIsDebuggerThread", NULL);
-	return hr;
+    PY_GATEWAY_METHOD;
+    HRESULT hr = InvokeViaPolicy("QueryIsDebuggerThread", NULL);
+    return hr;
 }
 
-STDMETHODIMP PyGDebugApplicationThread::SetDescription(
-		LPCOLESTR pstrDescription)
+STDMETHODIMP PyGDebugApplicationThread::SetDescription(LPCOLESTR pstrDescription)
 {
-	PY_GATEWAY_METHOD;
-	PyObject *obpstrName;
-	obpstrName = PyWinObject_FromOLECHAR(pstrDescription);
-	HRESULT hr=InvokeViaPolicy("SetDescription", NULL, "O", obpstrName);
-	Py_XDECREF(obpstrName);
-	return hr;
+    PY_GATEWAY_METHOD;
+    PyObject *obpstrName;
+    obpstrName = PyWinObject_FromOLECHAR(pstrDescription);
+    HRESULT hr = InvokeViaPolicy("SetDescription", NULL, "O", obpstrName);
+    Py_XDECREF(obpstrName);
+    return hr;
 }
 
-STDMETHODIMP PyGDebugApplicationThread::SetStateString(
-		LPCOLESTR pstrState)
+STDMETHODIMP PyGDebugApplicationThread::SetStateString(LPCOLESTR pstrState)
 {
-	PY_GATEWAY_METHOD;
-	PyObject *obpstrState = PyWinObject_FromOLECHAR(pstrState);
-	HRESULT hr=InvokeViaPolicy("SetStateString", NULL, "O", obpstrState);
-	Py_XDECREF(obpstrState);
-	return hr;
+    PY_GATEWAY_METHOD;
+    PyObject *obpstrState = PyWinObject_FromOLECHAR(pstrState);
+    HRESULT hr = InvokeViaPolicy("SetStateString", NULL, "O", obpstrState);
+    Py_XDECREF(obpstrState);
+    return hr;
 }
