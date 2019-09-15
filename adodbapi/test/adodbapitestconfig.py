@@ -1,5 +1,5 @@
 # Configure this to _YOUR_ environment in order to run the testcases.
-"testADOdbapiConfig.py v 2.6.1.2"
+"testADOdbapiConfig.py v 2.6.2.A00"
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # #
@@ -17,10 +17,7 @@ import random
 
 import is64bit
 import setuptestframework
-if sys.version_info >= (3,0):
-    import tryconnection3 as tryconnection
-else:
-    import tryconnection2 as tryconnection
+import tryconnection
 
 print(sys.version)
 node = platform.node()
@@ -70,16 +67,14 @@ for a in sys.argv:
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # # start your environment setup here v v v
-SQL_HOST_NODE = 'win19'  # platform.node() of machine running SQL server
+SQL_HOST_NODE = 'testsql.2txt.us,1430'
 doAllTests = '--all' in sys.argv
-doAccessTest = not ('--nojet' in sys.argv)  # --nojet is used to disable ACCESS tests
-doSqlServerTest = node == SQL_HOST_NODE or '--mssql' in  sys.argv or doAllTests
+doAccessTest = not ('--nojet' in sys.argv)
+doSqlServerTest = '--mssql' in  sys.argv or doAllTests
 doMySqlTest = '--mysql' in sys.argv or doAllTests
-doPostgresTest = '--pg' in sys.argv or doAllTests
+doPostgresTest = '--postgres' in sys.argv or doAllTests
 iterateOverTimeTests = ('--time' in sys.argv or doAllTests) and onWindows
-
-# remote proxy testing is disabled by default until a better test bed is set up
-THE_PROXY_HOST = None  # if not onWindows else '::1' # -- change this
+remote = False  # automatic tests for remote access are no longer included here.
 
 try: #If mx extensions are installed, use mxDateTime
     import mx.DateTime
@@ -90,11 +85,10 @@ except:
 doTimeTest = True # obsolete python time format
 
 if doAccessTest:
-    if onWindows:
+    if onWindows and (node == SQL_HOST_NODE or not is64bit.Python()):
         c = {'mdb': setuptestframework.makemdb(testfolder, mdb_name)}
     else:
-        c = {'macro_find_temp_test_path' : ['mdb', 'server_test.mdb'],
-            'proxy_host' : THE_PROXY_HOST}
+        c = {'macro_find_temp_test_path' : ['mdb', 'server_test.mdb']}
 
     # macro definition for keyword "driver"  using macro "is64bit" -- see documentation
     # is64bit will return true for 64 bit versions of Python, so the macro will select the ACE driver
@@ -104,43 +98,27 @@ if doAccessTest:
     doAccessTest, connStrAccess, dbAccessconnect = tryconnection.try_connection(verbose, connStrAccess, 10, **c)
 
 if doSqlServerTest:
-    c = {
-        'host': 'testsql.2txt.us',  # default value, may be changed below
+    c = {'host': SQL_HOST_NODE,  # name of computer with SQL Server
         'database': "adotest",
         'user' : 'adotestuser',   # None implies Windows security
-        'password' : "12345678",
+        'password' : "Sq1234567",
         # macro definition for keyword "security" using macro "auto_security"
         'macro_auto_security' : 'security',
-        'provider' : 'SQLNCLI11; MARS Connection=True'
+        'provider' : 'MSOLEDBSQL; MARS Connection=True'
          }
     connStr = "Provider=%(provider)s; Initial Catalog=%(database)s; Data Source=%(host)s; %(security)s;"
-
-    if node == SQL_HOST_NODE:
-        c['macro_getnode'] = ['host', r"%s\SQLExpress"]  # "host" will come from name of computer with SQL Server
-    elif not onWindows:
-        del c['host']
-        if THE_PROXY_HOST:
-            c["proxy_host"] = THE_PROXY_HOST  # the SQL server runs a proxy for this test
-        else:
-            c["pyro_connection"] = "PYRONAME:ado.connection"
     print('    ...Testing MS-SQL login...')
     doSqlServerTest, connStrSQLServer, dbSqlServerconnect = tryconnection.try_connection(verbose, connStr, 30, **c)
 
 if doMySqlTest:
-    c = {'host' : "maria.2txt.us",
+    c = {'host' : "testmysql.2txt.us",
         'database' : 'test',
-        'user' : 'adotest',
-        'password' : '12345678',
+        'user' : 'adotestuser',
+        'password' : 'My1234567',
         'driver' : "MySQL ODBC 5.3 Unicode Driver"}    # or _driver="MySQL ODBC 3.51 Driver
 
-    if not onWindows:
-        if THE_PROXY_HOST:
-            c["proxy_host"] = THE_PROXY_HOST
-        else:
-            c["pyro_connection"] = "PYRONAME:ado.connection"
-
     c['macro_is64bit'] = ['provider', 'Provider=MSDASQL;']
-    cs = '%(provider)sDriver={%(driver)s};Server=%(host)s;Port=3306;' + \
+    cs = '%(provider)sDriver={%(driver)s};Server=%(host)s;Port=3330;' + \
         'Database=%(database)s;user=%(user)s;password=%(password)s;Option=3;'
     print('    ...Testing MySql login...')
     doMySqlTest, connStrMySql, dbMySqlconnect = tryconnection.try_connection(verbose, cs, 5, **c)
@@ -149,15 +127,10 @@ if doPostgresTest:
     _computername = "testpg.2txt.us"
     _databasename='adotest'
     _username = 'adotestuser'
-    _password = '12345678'
-    kws = {'timeout' : 4}
+    _password = 'Po1234567'
+    kws = {'timeout': 4, 'port': 5430}
     kws['macro_is64bit'] = ['prov_drv', 'Provider=MSDASQL;Driver={PostgreSQL Unicode(x64)}',
         'Driver=PostgreSQL Unicode']
-    if not onWindows:
-        if THE_PROXY_HOST:
-            kws['proxy_host'] = THE_PROXY_HOST
-        else:
-            kws['pyro_connection'] = 'PYRONAME:ado.connection'
     # get driver from http://www.postgresql.org/ftp/odbc/versions/
     # test using positional and keyword arguments (bad example for real code)
     print('    ...Testing PostgreSQL login...')

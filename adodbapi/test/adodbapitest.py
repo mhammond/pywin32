@@ -1,6 +1,5 @@
 """ Unit tests version 2.6.1.0 for adodbapi"""
-from __future__ import with_statement
-# when Python 2.5 is retired, change that to: from __future__ import print_function
+from __future__ import print_function
 """
     adodbapi - A python DB API 2.0 interface to Microsoft ADO
 
@@ -40,6 +39,7 @@ except ImportError:
 # run the configuration module.
 import adodbapitestconfig as config # will set sys.path to find correct version of adodbapi
 # in our code below, all our switches are from config.whatever
+import tryconnection
 
 import adodbapi
 import adodbapi.apibase as api
@@ -54,13 +54,11 @@ except ImportError: #we are doing a shortcut import as a module -- so
         from adodbapi import ado_consts
 
 if sys.version_info >= (3,0):
-    import tryconnection3 as tryconnection
     def str2bytes(sval):
         return sval.encode("latin1")
     unicode = str
     long = int
 else:
-    import tryconnection2 as tryconnection
     def str2bytes(sval):
         if isinstance(sval, str):
             return sval
