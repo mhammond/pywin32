@@ -6,6 +6,19 @@ However contributors are encouraged to add their own entries for their work.
 
 Since build 224:
 ----------------
+* Huge shout-out to @thopiekar for helping with github triage, getting CI
+  working and sane, and other general help and patches!
+
+* Significant work by @joankaradimov in porting pywin32 so that it works in a
+  MingGW/msys2 environment.
+
+* ntsecuritycon.FILE_ALL_ACCESS had an incorrect value (#1354)
+
+* SetSecurityDescriptorGroup now accepts None as group value (#1382)
+
+* Fix an issue where win32gui.EnumChildWindows may throw a spurious exception.
+  (#1350)
+
 * Better support for numpy objects in COM methods (#1388, @panikc and
   @SReicheltPTV)
 
