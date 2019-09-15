@@ -1,6 +1,6 @@
 from __future__ import print_function
 
-build_id="224" # may optionally include a ".{patchno}" suffix.
+build_id="225" # may optionally include a ".{patchno}" suffix.
 # Putting build_id at the top prevents automatic __doc__ assignment, and
 # I *want* the build number at the top :)
 __doc__="""This is a distutils setup-script for the pywin32 extensions
