@@ -272,5 +272,3 @@ BOOL WINAPI IsBadBoundedStringPtr(const void FAR* lpsz, UINT cchMax);
 #endif
 
 #endif /* __MAPIWIN_H__ */
-
-

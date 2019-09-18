@@ -2728,5 +2728,3 @@ DECLARE_MAPI_INTERFACE_(IMAPIProviderShutdown, IUnknown)
 #endif
 
 #endif /* MAPIDEFS_H */
-
-

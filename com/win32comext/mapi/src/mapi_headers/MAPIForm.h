@@ -630,6 +630,3 @@ DECLARE_MAPI_INTERFACE_(IMAPIFormFactory, IUnknown)
 };
 
 #endif							/* MAPIFORM_H */
-
-
-
