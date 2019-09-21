@@ -2,6 +2,7 @@
 import sys
 import os
 import site
+import subprocess
 import win32api
 
 # locate the dirs based on where this script is - it may be either in the
@@ -9,47 +10,21 @@ import win32api
 this_dir = os.path.dirname(__file__)
 site_packages = [site.getusersitepackages(), ] + site.getsitepackages()
 
-if hasattr(os, 'popen3'):
-    def run_test(script, cmdline_rest=""):
-        dirname, scriptname = os.path.split(script)
-        # some tests prefer to be run from their directory.
-        cwd = os.getcwd()
-        os.chdir(dirname)
-        try:
-            executable = win32api.GetShortPathName(sys.executable)
-            cmd = '%s "%s" %s' % (sys.executable, scriptname, cmdline_rest)
-            print script
-            stdin, stdout, stderr = os.popen3(cmd)
-            stdin.close()
-            while 1:
-                char = stderr.read(1)
-                if not char:
-                    break
-                sys.stdout.write(char)
-            for line in stdout.readlines():
-                print line
-            stdout.close()
-            result = stderr.close()
-            if result is not None:
-                print "****** %s failed: %s" % (script, result)
-        finally:
-            os.chdir(cwd)
-else:
-    # a subprocess version - but we prefer the popen one if we can as we can
-    # see test results as they are run (whereas this one waits until the test
-    # is finished...)
-    import subprocess
-    def run_test(script, cmdline_rest=""):
-        dirname, scriptname = os.path.split(script)
-        # some tests prefer to be run from their directory.
-        cmd = [sys.executable, "-u", scriptname] + cmdline_rest.split()
-        print script
-        popen = subprocess.Popen(cmd, shell=True, cwd=dirname,
-                                 stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        data = popen.communicate()[0]
-        sys.stdout.buffer.write(data)
-        if popen.returncode:
-            print "****** %s failed: %s" % (script, popen.returncode)
+# a subprocess version - but we prefer the popen one if we can as we can
+# see test results as they are run (whereas this one waits until the test
+# is finished...)
+def run_test(script, cmdline_rest=""):
+    dirname, scriptname = os.path.split(script)
+    # some tests prefer to be run from their directory.
+    cmd = [sys.executable, "-u", scriptname] + cmdline_rest.split()
+    print script
+    popen = subprocess.Popen(cmd, shell=True, cwd=dirname,
+                             stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    data = popen.communicate()[0]
+    sys.stdout.buffer.write(data)
+    if popen.returncode:
+        print "****** %s failed: %s" % (script, popen.returncode)
+        sys.exit(popen.returncode)
 
 
 def find_and_run(possible_locations, script, cmdline_rest=""):
