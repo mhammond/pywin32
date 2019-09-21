@@ -1924,6 +1924,7 @@ com_extensions += [
                         %(mapi)s/PyIMAPITable.i         %(mapi)s/PyIMAPITable.cpp
                         %(mapi)s/PyIMessage.i           %(mapi)s/PyIMessage.cpp
                         %(mapi)s/PyIMsgServiceAdmin.i   %(mapi)s/PyIMsgServiceAdmin.cpp
+                        %(mapi)s/PyIMsgServiceAdmin2.i  %(mapi)s/PyIMsgServiceAdmin2.cpp
                         %(mapi)s/PyIProviderAdmin.i     %(mapi)s/PyIProviderAdmin.cpp
                         %(mapi)s/PyIMsgStore.i          %(mapi)s/PyIMsgStore.cpp
                         %(mapi)s/PyIProfAdmin.i         %(mapi)s/PyIProfAdmin.cpp
@@ -2307,6 +2308,7 @@ swig_interface_parents = {
     'PyIMAPITable':         '',
     'PyIMessage':           'IMAPIProp',
     'PyIMsgServiceAdmin':   '',
+    'PyIMsgServiceAdmin2':  'IMsgServiceAdmin',
     'PyIProviderAdmin':     '',
     'PyIMsgStore':          'IMAPIProp',
     'PyIProfAdmin':         '',

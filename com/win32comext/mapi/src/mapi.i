@@ -24,6 +24,8 @@
 %include "mapilib.i"
 
 %{
+#include "mapiaux.h"
+
 #include "PythonCOMServer.h"
 #include "PythonCOMRegister.h"
 #include <mapiutil.h>
@@ -43,6 +45,7 @@
 #include "PyIABContainer.h"
 #include "PyIProfSect.h"
 #include "PyIMsgServiceAdmin.h"
+#include "PyIMsgServiceAdmin2.h"
 #include "PyIProviderAdmin.h"
 #include "PyIMAPIAdviseSink.h"
 #include "IConverterSession.h"
@@ -175,6 +178,9 @@ static PyObject *PyMAPIUninitialize(PyObject *self, PyObject *args)
 
 	if ( PyCom_RegisterClientType(&PyIMsgServiceAdmin::type, &IID_IMsgServiceAdmin) != 0 ) return MODINIT_ERROR_RETURN;
 	ADD_IID(IID_IMsgServiceAdmin);
+
+	if ( PyCom_RegisterClientType(&PyIMsgServiceAdmin2::type, &IID_IMsgServiceAdmin2) != 0 ) return MODINIT_ERROR_RETURN;
+	ADD_IID(IID_IMsgServiceAdmin2);
 
 	if ( PyCom_RegisterClientType(&PyIProviderAdmin::type, &IID_IProviderAdmin) != 0 ) return MODINIT_ERROR_RETURN;
 	ADD_IID(IID_IProviderAdmin);
