@@ -32,3 +32,5 @@
 #include "windows.h"
 #include "mapiguid.h"
 #include "extraMAPIGuids.h"
+#define USES_IID_IMsgServiceAdmin2
+#include "mapiaux.h"
