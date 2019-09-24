@@ -943,6 +943,59 @@ PyObject *PyOpenStreamOnFile(PyObject *self, PyObject *args)
 }
 %}
 
+// @pyswig <o PyIStream>|OpenStreamOnFileW|Allocates and initializes an OLE IStream object to access the contents of a file.
+%native(OpenStreamOnFileW) PyOpenStreamOnFileW;
+%{
+
+// Missing declaration copied from MFCMAPI
+_Check_return_ STDAPI OpenStreamOnFileW(
+	_In_ LPALLOCATEBUFFER lpAllocateBuffer,
+	_In_ LPFREEBUFFER lpFreeBuffer,
+	ULONG ulFlags,
+	_In_z_ LPCWSTR lpszFileName,
+	_In_opt_z_ LPCWSTR lpszPrefix,
+	_Out_ LPSTREAM FAR* lppStream);
+
+PyObject *PyOpenStreamOnFileW(PyObject *self, PyObject *args)
+{
+		HRESULT hRes;
+		unsigned long flags = 0;
+		IStream *pStream;
+		PyObject *obFileName;
+		WCHAR *filename = NULL;
+		PyObject *obPrefix = Py_None;
+		WCHAR *prefix = NULL;
+
+		if (!PyArg_ParseTuple(args, "O|lO:OpenStreamOnFileW",
+			&obFileName, // @pyparm unicode|filename||
+			&flags, // @pyparm int|flags|0|
+			&obPrefix)) // @pyparm unicode|prefix|None|
+			return NULL;
+
+		if (!PyWinObject_AsWCHAR(obFileName, &filename, TRUE))
+			goto done;
+
+		if (!PyWinObject_AsWCHAR(obPrefix, &prefix, TRUE))
+			goto done;
+
+		PY_INTERFACE_PRECALL;
+		hRes = OpenStreamOnFileW(MAPIAllocateBuffer, MAPIFreeBuffer, flags, filename, prefix, &pStream);
+		PY_INTERFACE_POSTCALL;
+
+	done:
+		PyWinObject_FreeWCHAR(filename);
+		PyWinObject_FreeWCHAR(prefix);
+
+		if (PyErr_Occurred())
+			return NULL;
+
+		if (FAILED(hRes))
+			return OleSetOleError(hRes);
+
+		return PyCom_PyObjectFromIUnknown(pStream, IID_IStream, FALSE);
+}
+%}
+
 // @pyswig item|HrGetOneProp|Retrieves the value of a single property from an IMAPIProp object.
 %native(HrGetOneProp) PyHrGetOneProp;
 %{
