@@ -1,0 +1,9 @@
+# .pth file for the PyWin32 extensions
+win32
+win32\lib
+Pythonwin
+# Entries needed for a "portable" installations, where the post_install script
+# isn't run, which would normally copy the pywin32 core DLL files to either
+# %windir%\system32 or the top of the python directory.
+# Add the source of these DLLs to the DLL search path.
+import os;os.add_dll_directory(os.path.join(sitedir,"pywin32_system32"))

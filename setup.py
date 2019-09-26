@@ -2473,6 +2473,11 @@ classifiers = [ 'Environment :: Win32 (MS Windows)',
 	            'Programming Language :: Python :: Implementation :: CPython',
 	          ]
 
+if sys.version_info >= (3, 8, 0):
+    pywin32_pth = 'pywin32_38.pth'
+else:
+    pywin32_pth = 'pywin32.pth'
+
 dist = setup(name="pywin32",
       version=str(build_id),
       description="Python for Window Extensions",
@@ -2578,7 +2583,7 @@ dist = setup(name="pywin32",
                     # pythoncom.py doesn't quite fit anywhere else.
                     # Note we don't get an auto .pyc - but who cares?
                     ('', ('com/pythoncom.py',)),
-                    ('', ('pywin32.pth',)),
+                    ('', (pywin32_pth,)),
                 ],
       )
 
