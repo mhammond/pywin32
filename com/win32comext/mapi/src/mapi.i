@@ -51,6 +51,8 @@
 #include "MAPISPI.H"
 #include "MAPISPI.H"
 #include "IMESSAGE.H"
+
+#include "extraMAPIGuids.h"
 %}
 
 %{
@@ -197,6 +199,24 @@ static PyObject *PyMAPIUninitialize(PyObject *self, PyObject *args)
 	ADD_IID(PS_ROUTING_DISPLAY_NAME);
 	ADD_IID(PS_ROUTING_ENTRYID);
 	ADD_IID(PS_ROUTING_SEARCH_KEY);
+
+	// From extraMAPIGuids.h
+	ADD_IID(CLSID_MailMessage);
+	ADD_IID(PSETID_Appointment);
+	ADD_IID(PSETID_Meeting);
+	ADD_IID(PSETID_Common);
+	ADD_IID(PSETID_Address);
+	ADD_IID(PS_INTERNET_HEADERS);
+	ADD_IID(PSETID_Report);
+	ADD_IID(PSETID_Log);
+	ADD_IID(PSETID_Messaging);
+	ADD_IID(PSETID_Remote);
+	ADD_IID(PSETID_PostRss);
+	ADD_IID(PSETID_Sharing);
+	ADD_IID(PSETID_Note);
+	ADD_IID(PSETID_AirSync);
+	ADD_IID(PSETID_Task);
+	ADD_IID(PSETID_UnifiedMessaging);
 %}
 
 #define NO_ATTACHMENT NO_ATTACHMENT // The attachment has just been created. 
