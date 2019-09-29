@@ -716,7 +716,7 @@ static PyObject *PyFormatMessageA(PyObject *self, PyObject *args)
         if (errCode == 0)
             // @pyseeapi GetLastError
             errCode = GetLastError();
-        const int bufSize = 512;
+        const int bufSize = 4096;
         char buf[bufSize];
         DWORD flags = FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS;
         HMODULE hmodule = PyWin_GetErrorMessageModule(errCode);
@@ -777,7 +777,7 @@ static PyObject *PyFormatMessageA(PyObject *self, PyObject *args)
             PyErr_NoMemory();
             goto cleanup;
         }
-        for (i = 0; i < numInserts + 2; i++)  // Make sure clean for cleanup
+        for (i = 0; i < numInserts + 8; i++)  // Make sure clean for cleanup
             pInserts[i] = NULL;
         for (i = 0; i < numInserts; i++) {
             PyObject *subObject = PyTuple_GET_ITEM(Inserts_tuple, i);
@@ -830,7 +830,7 @@ static PyObject *PyFormatMessageW(PyObject *self, PyObject *args)
         if (errCode == 0)
             // @pyseeapi GetLastError
             errCode = GetLastError();
-        const int bufSize = 512;
+        const int bufSize = 4096;
         WCHAR buf[bufSize];
         DWORD flags = FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS;
         HMODULE hmodule = PyWin_GetErrorMessageModule(errCode);
@@ -2457,7 +2457,7 @@ static PyObject *PyGetTimeZoneInformation(PyObject *self, PyObject *args)
     // @tupleitem 6|int|daylightBias|Specifies a bias value to be used during local time translations that occur during
     // daylight saving time. This member is ignored if a value for the DaylightDate member is not supplied. <nl>This
     // value is added to the value of the Bias member to form the bias used during daylight saving time. In most time
-    // zones, the value of this member is – 60.
+    // zones, the value of this member is 60.
 }
 
 // @pymethod tuple|win32api|SetTimeZoneInformation|Sets the system time-zone information.
