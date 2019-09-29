@@ -31,3 +31,4 @@
 
 #include "windows.h"
 #include "mapiguid.h"
+#include "MoreMAPIGuids.h"
