@@ -767,18 +767,16 @@ static PyObject *PyFormatMessageA(PyObject *self, PyObject *args)
     if (obInserts != Py_None) {
         if ((Inserts_tuple = PyWinSequence_Tuple(obInserts, &numInserts)) == NULL)
             goto cleanup;
-        /* Allocate 2 extra pointers, in case string inserts are missing.
-            This can still cause an access violation if 3 or more are missing.
+        /* Allocate 8 extra pointers, in case string inserts are missing.
+            This can still cause an access violation if 9 or more are missing.
             This should also accept numeric values, but that would require actually
             parsing the message format to see what inserts are expected.
         */
-        pInserts = (char **)malloc(sizeof(char *) * (numInserts + 2));
+        pInserts = (char **)calloc((numInserts + 8), sizeof(char *));
         if (pInserts == NULL) {
             PyErr_NoMemory();
             goto cleanup;
         }
-        for (i = 0; i < numInserts + 8; i++)  // Make sure clean for cleanup
-            pInserts[i] = NULL;
         for (i = 0; i < numInserts; i++) {
             PyObject *subObject = PyTuple_GET_ITEM(Inserts_tuple, i);
             if (!PyWinObject_AsString(subObject, pInserts + i))
