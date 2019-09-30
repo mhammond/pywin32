@@ -53,6 +53,7 @@
 #include "IMESSAGE.H"
 
 #include "extraMAPIGuids.h"
+#include "extraMAPIDefs.h"
 %}
 
 %{
@@ -554,6 +555,17 @@ static PyObject *PyMAPIUninitialize(PyObject *self, PyObject *args)
 #define CLEAR_RN_PENDING CLEAR_RN_PENDING // The MSGFLAG_RN_PENDING flag should be cleared in PR_MESSAGE_FLAGS and a read report should not be sent.
 #define GENERATE_RECEIPT_ONLY GENERATE_RECEIPT_ONLY // A read report should be sent if one is pending, but there should be no change in the state of the MSGFLAG_READ flag.
 #define SUPPRESS_RECEIPT SUPPRESS_RECEIPT // A pending read report should be cancelled if a read report had been requested and this call changes the state of the message from unread to read.
+
+// From extraMAPIDefs.h
+#define MAIL_E_NAMENOTFOUND MAIL_E_NAMENOTFOUND
+#define MAPI_E_STORE_FULL MAPI_E_STORE_FULL
+#define MAPI_E_LOCKID_LIMIT MAPI_E_LOCKID_LIMIT
+#define MAPI_E_NAMED_PROP_QUOTA_EXCEEDED MAPI_E_NAMED_PROP_QUOTA_EXCEEDED
+#define MAPI_E_PROFILE_DELETED MAPI_E_PROFILE_DELETED
+#define MAPI_E_RECONNECTED MAPI_E_RECONNECTED
+#define MAPI_E_OFFLINE MAPI_E_OFFLINE
+
+#define MAPI_FORCE_ACCESS MAPI_FORCE_ACCESS
 
 // @object MAPIINIT_0|A MAPIINIT_0 is represented as a tuple of:
 // @tupleitem 0|int|version|This must be MAPI_INIT_VERSION.
