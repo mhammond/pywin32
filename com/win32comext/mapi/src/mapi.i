@@ -51,6 +51,7 @@
 #include "MAPISPI.H"
 #include "MAPISPI.H"
 #include "IMESSAGE.H"
+#include "MSPST.h"
 
 #include "extraMAPIGuids.h"
 #include "extraMAPIDefs.h"
@@ -218,6 +219,9 @@ static PyObject *PyMAPIUninitialize(PyObject *self, PyObject *args)
 	ADD_IID(PSETID_AirSync);
 	ADD_IID(PSETID_Task);
 	ADD_IID(PSETID_UnifiedMessaging);
+
+	MAPIUID uid = MSPST_UID_PROVIDER;
+	AddIID(d, "MSPST_UID_PROVIDER", reinterpret_cast<GUID &>(uid));
 %}
 
 #define NO_ATTACHMENT NO_ATTACHMENT // The attachment has just been created. 
@@ -566,6 +570,11 @@ static PyObject *PyMAPIUninitialize(PyObject *self, PyObject *args)
 #define MAPI_E_OFFLINE MAPI_E_OFFLINE
 
 #define MAPI_FORCE_ACCESS MAPI_FORCE_ACCESS
+
+// MSPST.h
+#define PSTF_NO_ENCRYPTION PSTF_NO_ENCRYPTION
+#define PSTF_COMPRESSABLE_ENCRYPTION PSTF_COMPRESSABLE_ENCRYPTION
+#define PSTF_BEST_ENCRYPTION PSTF_BEST_ENCRYPTION
 
 // @object MAPIINIT_0|A MAPIINIT_0 is represented as a tuple of:
 // @tupleitem 0|int|version|This must be MAPI_INIT_VERSION.
