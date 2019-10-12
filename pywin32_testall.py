@@ -10,9 +10,8 @@ import win32api
 this_dir = os.path.dirname(__file__)
 site_packages = [site.getusersitepackages(), ] + site.getsitepackages()
 
-# a subprocess version - but we prefer the popen one if we can as we can
-# see test results as they are run (whereas this one waits until the test
-# is finished...)
+# Run a test using subprocess and wait for the result.
+# If we get an returncode != 0, we know that there was an error.
 def run_test(script, cmdline_rest=""):
     dirname, scriptname = os.path.split(script)
     # some tests prefer to be run from their directory.
