@@ -24,6 +24,8 @@ argvs = {
     "rastest": ("-l",),
 }
 
+no_user_interaction = False
+
 # re to pull apart an exception line into the exception type and the args.
 re_exception = re.compile("([a-zA-Z0-9_.]*): (.*)$")
 def find_exception_in_output(data):
@@ -101,7 +103,10 @@ def get_demo_tests():
     assert os.path.isdir(demo_dir), demo_dir
     for name in os.listdir(demo_dir):
         base, ext = os.path.splitext(name)
-        if ext != ".py" or base in ui_demos or base in bad_demos:
+        if base in ui_demos and no_user_interaction:
+            continue
+        # Skip any other files than .py and bad tests in any case
+        if ext != ".py" or base in bad_demos:
             continue
         argv = (sys.executable, os.path.join(demo_dir, base+".py")) + \
                argvs.get(base, ())
@@ -114,7 +119,7 @@ def import_all():
         import win32ui
     except ImportError:
         pass # 'what-ev-a....'
-    
+
     import win32api
     dir = os.path.dirname(win32api.__file__)
     num = 0
@@ -160,9 +165,25 @@ def suite():
         suite.addTest(test)
     return suite
 
+
 class CustomLoader(pywin32_testutil.TestLoader):
     def loadTestsFromModule(self, module):
         return self.fixupTestsForLeakTests(suite())
 
-if __name__=='__main__':
+
+if __name__ == '__main__':
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Test runner for PyWin32/win32")
+    parser.add_argument("-no-user-interaction",
+                        default=no_user_interaction,
+                        action='store_true',
+                        help="Run all tests without user interaction")
+
+    parsed_args, remains = parser.parse_known_args()
+
+    no_user_interaction = parsed_args.no_user_interaction
+
+    sys.argv = [sys.argv[0]] + remains
+
     pywin32_testutil.testmain(testLoader=CustomLoader())
