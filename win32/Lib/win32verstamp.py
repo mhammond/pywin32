@@ -6,6 +6,7 @@ from win32api import BeginUpdateResource, UpdateResource, EndUpdateResource
 import os
 import struct
 import glob
+import sys
 
 import optparse
 
