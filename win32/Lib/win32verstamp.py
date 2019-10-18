@@ -51,13 +51,7 @@ def nullterm(s):
   if sys.version_info[:2] < (3, 8):
     return (str(s) + '\0').encode('unicode-internal')
   else:
-    bytes_ = b''
-    for c in str(s):
-      bytes_ += bytes(c, 'unicode_escape')
-      bytes_ += b'\x00'
-
-    bytes_ += b'\x00\x00'
-    return bytes_
+    return (str(s) + '\0').encode('utf-16le')
 
 def pad32(s, extra=2):
   # extra is normally 2 to deal with wLength
