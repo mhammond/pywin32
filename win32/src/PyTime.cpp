@@ -962,6 +962,13 @@ PyObject *PyWin_NewTime(PyObject *timeOb)
         SYSTEMTIME st;
         if (!VariantTimeToSystemTime(t, &st))
             return PyWin_SetAPIError("VariantTimeToSystemTime");
+        
+        double fraction = t - (int)t;
+        int timeStamp = fraction * 24 * 60 * 60 * 1000 + 0.5;
+        // The number that we received, in addition to milliseconds, contains
+        // many values, milliseconds are the first 3 digits of the number.
+        st.wMilliseconds = timeStamp - timeStamp / 1000 * 1000;
+        
         return PyWinObject_FromSYSTEMTIME(st);
 #endif  // PYWIN_HAVE_DATETIME_CAPI
 
