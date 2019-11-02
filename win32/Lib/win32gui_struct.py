@@ -66,7 +66,7 @@ if win32gui.UNICODE:
         # and in py3k is makes sense to reject bytes.
         if not isinstance(text, unicode):
             raise TypeError('MENUITEMINFO text must be unicode')
-        data = (text+'\0').encode("unicode-internal")
+        data = (text+'\0').encode("utf-16le")
         return array.array("b", data)
 
 else:
@@ -675,7 +675,7 @@ def PackDEV_BROADCAST_DEVICEINTERFACE(classguid, name=""):
         # This really means "is py3k?" - so not accepting bytes is OK
         if not isinstance(name, unicode):
             raise TypeError("Must provide unicode for the name")
-        name = name.encode('unicode-internal')
+        name = name.encode('utf-16le')
     else:
         # py2k was passed a unicode object - encode as mbcs.
         if isinstance(name, unicode):
