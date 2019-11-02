@@ -671,6 +671,72 @@ HRESULT WrapCompressedRTFStream(
   IStream **OUTPUT
 );
 
+
+// WrapCompressedRTFStreamEx
+#define MAPI_NATIVE_BODY ((ULONG) 0x00010000) // Indicates whether the decompressed stream is also converted to its native body.
+#define MAPI_NATIVE_BODY_TYPE_RTF ((ULONG) 1) // Native body is RTF.
+#define MAPI_NATIVE_BODY_TYPE_HTML ((ULONG) 2) // Native body is plain text.
+#define MAPI_NATIVE_BODY_TYPE_PLAINTEXT ((ULONG) 4) // Native body is HTML.
+
+// @pyswig (<o PyIStream>, ULONG)|WrapCompressedRTFStreamEx|
+// @rdesc Result is a tuple of (bodyStream, bodyType);
+%native(WrapCompressedRTFStreamEx) PyWrapCompressedRTFStreamEx;
+%{
+// @object RTF_WCSINFO|A tuple representing a RTF_WCSINFO structure
+struct RTF_WCSINFO
+{
+	ULONG size;
+	ULONG Flags; // @tupleitem 0|ULONG|flags|
+	ULONG ulInCodePage; // @tupleitem 1|ULONG|incodepage|
+	ULONG ulOutCodePage; // @tupleitem 2|ULONG|outcodepage|
+};
+
+struct RTF_WCSRETINFO
+{
+	ULONG size;
+	ULONG ulStreamFlags;
+};
+
+STDAPI WrapCompressedRTFStreamEx(
+	LPSTREAM            lpCompressedRTFStream,
+	CONST RTF_WCSINFO   *pWCSInfo,
+	LPSTREAM            *lppUncompressedRTFStream,
+	RTF_WCSRETINFO      *pRetInfo);
+
+PyObject *PyWrapCompressedRTFStreamEx(PyObject *self, PyObject *args)
+{
+	HRESULT hRes;
+	PyObject *obCompressedStream = NULL;
+	PyObject *obUncompressedStream = NULL;
+
+	LPSTREAM lpCompressedStream = NULL; // @pyparm <o PyIStream>|stream||Message stream
+	RTF_WCSINFO wcsinfo = {0}; // @pyparm <o RTF_WCSINFO>|wcsinfo|(0, 0, 0)|function options
+	LPSTREAM lpUncompressedStream = NULL;
+	RTF_WCSRETINFO retinfo = {0};
+
+	wcsinfo.size = sizeof(RTF_WCSINFO);
+	retinfo.size = sizeof(RTF_WCSRETINFO);
+
+	if (!PyArg_ParseTuple(args, "O|(kkk):PyWrapCompressedRTFStreamEx", &obCompressedStream,
+						  &wcsinfo.Flags, &wcsinfo.ulInCodePage, &wcsinfo.ulOutCodePage))
+		return NULL;
+
+	if (!PyCom_InterfaceFromPyObject(obCompressedStream, IID_IStream, (void **)&lpCompressedStream, FALSE))
+		return NULL;
+
+	Py_BEGIN_ALLOW_THREADS
+	hRes = WrapCompressedRTFStreamEx(lpCompressedStream, &wcsinfo, &lpUncompressedStream, &retinfo);
+	lpCompressedStream->Release();
+	Py_END_ALLOW_THREADS
+
+	if (FAILED(hRes))
+		return OleSetOleError(hRes);
+
+	return Py_BuildValue("Nk", PyCom_PyObjectFromIUnknown(lpUncompressedStream, IID_IStream, FALSE),
+						 retinfo.ulStreamFlags);
+}
+%}
+
 %native(MAPIUIDFromBinary) MAPIUIDFromBinary;
 %{
 PyObject *MAPIUIDFromBinary(PyObject *self, PyObject *args)
