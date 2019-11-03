@@ -3508,12 +3508,13 @@ static BOOL PyWinObject_AsRegistryValue(PyObject *value, DWORD typ, BYTE **retDa
                 *(ULONGLONG *)*retDataBuf = 0;
                 return true;
             }
-            *(ULONGLONG *)*retDataBuf = PyLong_AsUnsignedLongLong(value);
-            if (*(ULONGLONG *)*retDataBuf == -1 && PyErr_Occurred()) {
+            ULARGE_INTEGER uli;
+            if (!PyWinObject_AsULARGE_INTEGER(value, &uli)) {
                 PyMem_Free(*retDataBuf);
                 *retDataBuf = NULL;
                 return false;
             }
+            *(ULONGLONG *)*retDataBuf = uli.QuadPart;
             return true;
         case REG_SZ:
         case REG_EXPAND_SZ: {
