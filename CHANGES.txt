@@ -6,6 +6,11 @@ However contributors are encouraged to add their own entries for their work.
 
 Since build 225:
 ----------------
+* The directory with the pywin32 system DLLs is now added to the start of PATH
+  for version 3.7 and earlier, and passed to os.add_dll_directory() on 3.8 and
+  later. This will hopefully work around problems loading pywintypes.dll in
+  various situations.
+
 * Conversions to and from COM VT_DATE types should no longer lose milliseconds.
 
 Since build 224:
