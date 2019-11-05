@@ -13,6 +13,9 @@
 #include "tchar.h"
 #include "math.h"
 
+// Each second as stored in a DATE.
+const double ONETHOUSANDMILLISECONDS = 0.00001157407407407407407407407407;
+
 PyObject *PyWin_NewTime(PyObject *timeOb);
 
 BOOL PyWinTime_Check(PyObject *ob)
@@ -737,10 +740,22 @@ BOOL PyWinObject_AsDATE(PyObject *ob, DATE *pDate)
     SYSTEMTIME st;
     if (!PyWinObject_AsSYSTEMTIME(ob, &st))
         return FALSE;
-    if (!SystemTimeToVariantTime(&st, pDate)) {
+    // Extra work to get milliseconds, via
+    // https://www.codeproject.com/Articles/17576/SystemTime-to-VariantTime-with-Milliseconds
+    WORD wMilliseconds = st.wMilliseconds;
+    // not clear why we need to zero this since we always seem to get ms ignored
+    // but...
+    st.wMilliseconds = 0;
+
+    double dWithoutms;
+    if (!SystemTimeToVariantTime(&st, &dWithoutms)) {
         PyWin_SetAPIError("SystemTimeToVariantTime");
         return FALSE;
     }
+    // manually convert the millisecond information into variant
+    // fraction and add it to system converted value
+    double OneMilliSecond = ONETHOUSANDMILLISECONDS / 1000;
+    *pDate = dWithoutms + (OneMilliSecond * wMilliseconds);
     return TRUE;
 }
 
@@ -956,12 +971,41 @@ PyObject *PyWin_NewTime(PyObject *timeOb)
         return new PyTime(t);
 #endif
     }
+
+#ifdef PYWIN_HAVE_DATETIME_CAPI
+    static double round(double Value, int Digits)
+    {
+        assert(Digits >= -4 && Digits <= 4);
+        int Idx = Digits + 4;
+        double v[] = {1e-4, 1e-3, 1e-2, 1e-1, 1, 10, 1e2, 1e3, 1e4};
+        return floor(Value * v[Idx] + 0.5) / (v[Idx]);
+    }
+#endif
+
     PyObject *PyWinObject_FromDATE(DATE t)
     {
 #ifdef PYWIN_HAVE_DATETIME_CAPI
+        // via https://www.codeproject.com/Articles/17576/SystemTime-to-VariantTime-with-Milliseconds
+        // (in particular, see the comments)
+        double fraction = t - (int)t;  // extracts the fraction part
+        double hours = (fraction - (int)fraction) * 24.0;
+        double minutes = (hours - (int)hours) * 60.0;
+        double seconds = round((minutes - (int)minutes) * 60.0, 4);
+        double milliseconds = round((seconds - (int)seconds) * 1000.0, 0);
+        // assert(milliseconds>=0.0 && milliseconds<=999.0);
+
+        // Strip off the msec part of time
+        double TimeWithoutMsecs = t - (ONETHOUSANDMILLISECONDS / 1000.0 * milliseconds);
+
+        // Let the OS translate the variant date/time
         SYSTEMTIME st;
-        if (!VariantTimeToSystemTime(t, &st))
+        if (!VariantTimeToSystemTime(TimeWithoutMsecs, &st)) {
             return PyWin_SetAPIError("VariantTimeToSystemTime");
+        }
+        if (milliseconds > 0.0) {
+            // add the msec part to the systemtime object
+            st.wMilliseconds = (WORD)milliseconds;
+        }
         return PyWinObject_FromSYSTEMTIME(st);
 #endif  // PYWIN_HAVE_DATETIME_CAPI
 
