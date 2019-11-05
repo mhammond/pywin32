@@ -3,6 +3,7 @@ import win32api
 import tempfile
 import unittest
 import gc
+import pywintypes
 import pythoncom
 import winerror
 from pythoncom import _GetInterfaceCount, _GetGatewayCount
@@ -37,18 +38,13 @@ def RegisterPythonServer(filename, progids=None, verbose=0):
         # exist and the DLL points at our version, assume it already is.
         why_not = None
         for progid in progids:
-            try:
-                clsid = pythoncom.MakeIID(progid)
-            except pythoncom.com_error:
-                # no progid - not registered.
-                break
-            # have a CLSID - open it.
+            clsid = pywintypes.IID(progid)
             try:
                 HKCR = _winreg.HKEY_CLASSES_ROOT
                 hk = _winreg.OpenKey(HKCR, "CLSID\\%s" % clsid)
                 dll = _winreg.QueryValue(hk, "InprocServer32")
             except WindowsError:
-                # no CLSID or InProcServer32 - not good!
+                # no CLSID or InProcServer32 - not registered
                 break
             ok_files = [os.path.basename(pythoncom.__file__),
                         'pythoncomloader%d%d.dll' % (sys.version_info[0], sys.version_info[1])]
