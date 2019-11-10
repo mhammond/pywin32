@@ -64,8 +64,10 @@ static PyObject *PyWinHelp(PyObject *self, PyObject *args)
     }
     if (!PyWinObject_AsTCHAR(obhlpFile, &hlpFile, FALSE))
         return NULL;
-    PyW32_BEGIN_ALLOW_THREADS BOOL ok = ::WinHelp(hwnd, hlpFile, cmd, data);
-    PyW32_END_ALLOW_THREADS PyWinObject_FreeTCHAR(hlpFile);
+    PyW32_BEGIN_ALLOW_THREADS
+    BOOL ok = ::WinHelp(hwnd, hlpFile, cmd, data);
+    PyW32_END_ALLOW_THREADS
+    PyWinObject_FreeTCHAR(hlpFile);
     if (!ok)
         return ReturnAPIError("WinHelp");
     Py_INCREF(Py_None);
@@ -2285,6 +2287,7 @@ static PyObject *PyHtmlHelp(PyObject *self, PyObject *args)
     PyObject *fileOb;
     PyObject *dataOb = Py_None;
     DWORD_PTR data;
+    TCHAR *dataObAsTCHAR = NULL;
     HH_AKLINK *pAKLink;
     HH_FTS_QUERY *pFTS_Query;
     HH_POPUP *pPopup;
@@ -2319,7 +2322,7 @@ file must be a string");
 cmd data must be a PyHH_AKLINK object");
                 return NULL;
             }
-            data = (DWORD)pAKLink;
+            data = (DWORD_PTR)pAKLink;
             break;
 
         case HH_CLOSE_ALL:
@@ -2337,13 +2340,9 @@ cmd data must be a PyHH_AKLINK object");
 file must be a string");
                 return NULL;
             }
-            if (!PyString_Check(dataOb)) {
-                PyErr_SetString(PyExc_TypeError,
-                                "HH_DISPLAY_INDEX, HH_GET_WIN_HANDLE and HH_SYNC \
-cmd data must be a string");
+            if (!PyWinObject_AsTCHAR(dataOb, &dataObAsTCHAR, FALSE, NULL))
                 return NULL;
-            }
-            data = (DWORD)PyString_AsString(dataOb);
+            data = (DWORD_PTR)dataObAsTCHAR;
             break;
 
         case HH_DISPLAY_SEARCH:
@@ -2355,7 +2354,7 @@ cmd data must be a string");
                 PyErr_SetString(PyExc_TypeError, "HH_DISPLAY_SEARCH data must be a PyHH_FTS_QUERY object");
                 return NULL;
             }
-            data = (DWORD)pFTS_Query;
+            data = (DWORD_PTR)pFTS_Query;
             break;
 
         case HH_DISPLAY_TEXT_POPUP:
@@ -2363,7 +2362,7 @@ cmd data must be a string");
                 PyErr_SetString(PyExc_TypeError, "HH_DISPLAY_TEXT_POPUP data must be a PyHH_POPUP object");
                 return NULL;
             }
-            data = (DWORD)pPopup;
+            data = (DWORD_PTR)pPopup;
             break;
 
         case HH_DISPLAY_TOC:
@@ -2376,15 +2375,10 @@ file must be a string");
             }
             if (dataOb == Py_None) {
                 data = 0;
-            }
-            else if (PyString_Check(dataOb)) {
-                data = (DWORD)PyString_AsString(dataOb);
-            }
-            else {
-                PyErr_SetString(PyExc_TypeError,
-                                "HH_DISPLAY_TOC and HH_DISPLAY_TOPIC \
-cmd data must be None or a string");
-                return NULL;
+            } else {
+                if (!PyWinObject_AsTCHAR(dataOb, &dataObAsTCHAR, FALSE, NULL))
+                    return NULL;
+                data = (DWORD_PTR)dataObAsTCHAR;
             }
             break;
 
@@ -2400,7 +2394,7 @@ in the Html Help engine yet.");
                 PyErr_SetString(PyExc_TypeError, "HH_GET_WIN_TYPE file must be a string");
                 return NULL;
             }
-            data = (DWORD)&pWinType;
+            data = (DWORD_PTR)&pWinType;
             break;
 
         case HH_HELP_CONTEXT:
@@ -2412,12 +2406,12 @@ in the Html Help engine yet.");
                 PyErr_SetString(PyExc_TypeError, "HH_HELP_CONTEXT data must be an integer");
                 return NULL;
             }
-            data = (DWORD)PyInt_AsLong(dataOb);
+            data = (DWORD_PTR)PyInt_AsLong(dataOb);
             break;
 
         case HH_INITIALIZE:
             file = NULL;
-            data = (DWORD)&dwCookie;
+            data = (DWORD_PTR)&dwCookie;
             break;
 
         case HH_PRETRANSLATEMESSAGE:
@@ -2434,7 +2428,7 @@ in the Html Help engine yet.");
                 PyErr_SetString(PyExc_TypeError, "HH_SET_WIN_TYPE data must be a PyHH_WINTYPE object");
                 return NULL;
             }
-            data = (DWORD)pWinType;
+            data = (DWORD_PTR)pWinType;
             break;
 
         case HH_TP_HELP_CONTEXTMENU:
@@ -2473,7 +2467,7 @@ in the Html Help engine yet.");
 data tuple items must be integers");
                 return NULL;
             }
-            data = (DWORD)ctlIDs;
+            data = (DWORD_PTR)ctlIDs;
             break;
 
         case HH_UNINITIALIZE:
@@ -2482,7 +2476,7 @@ data tuple items must be integers");
                 PyErr_SetString(PyExc_TypeError, "HH_UNINITIALIZE data must be an integer");
                 return NULL;
             }
-            data = (DWORD)PyInt_AsLong(dataOb);
+            data = (DWORD_PTR)PyInt_AsLong(dataOb);
             break;
 
         default:
@@ -2492,10 +2486,14 @@ data tuple items must be integers");
     }
 
     HWND helpWnd;
-    PyW32_BEGIN_ALLOW_THREADS helpWnd = ::HtmlHelp(hwnd, file, cmd, data);
+    PyW32_BEGIN_ALLOW_THREADS
+    helpWnd = ::HtmlHelp(hwnd, file, cmd, data);
     PyW32_END_ALLOW_THREADS
 
-        PyObject *ret;
+    PyWinObject_FreeTCHAR(dataObAsTCHAR);
+    PyWinObject_FreeTCHAR(file);
+
+    PyObject *ret;
 
     switch (cmd) {
         case HH_GET_WIN_TYPE:
@@ -3139,7 +3137,6 @@ PYWIN_MODULE_INIT_FUNC(win32help)
     PYWIN_MODULE_INIT_PREPARE(win32help, win32help_functions, "A module, encapsulating the Win32 help API's.");
     if (AddConstants(module) != 0)
         PYWIN_MODULE_INIT_RETURN_ERROR;
-    PyDict_SetItemString(dict, "__version__", PyString_FromString("$Revision$"));
 
     if (PyType_Ready(&PyHH_AKLINKType) == -1 || PyType_Ready(&PyHH_FTS_QUERYType) == -1 ||
         PyType_Ready(&PyHH_POPUPType) == -1 || PyType_Ready(&PyHH_WINTYPEType) == -1 ||
