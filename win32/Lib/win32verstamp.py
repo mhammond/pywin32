@@ -48,7 +48,7 @@ def VS_FIXEDFILEINFO(maj, min, sub, build, debug=0, is_dll=1):
 
 def nullterm(s):
   # get raw bytes for a NULL terminated unicode string.
-  if sys.version_info[:2] < (3, 8):
+  if sys.version_info[:2] < (3, 7):
     return (str(s) + '\0').encode('unicode-internal')
   else:
     return (str(s) + '\0').encode('utf-16le')
