@@ -16,6 +16,8 @@ Since build 225:
 * Formatting eventlog messages should now handle larger messages and inserts
   (Ofek Lev via #1421)
 
+* Fixed that win32help was very broken everywhere except 32bit 2.7 (#1434)
+
 * A number of MAPI improvements from Nick Czeczulin.
 
 Since build 224:
