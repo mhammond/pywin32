@@ -13,6 +13,11 @@ Since build 225:
 
 * Conversions to and from COM VT_DATE types should no longer lose milliseconds.
 
+* Formatting eventlog messages should now handle larger messages and inserts
+  (Ofek Lev via #1421)
+
+* A number of MAPI improvements from Nick Czeczulin.
+
 Since build 224:
 ----------------
 * Huge shout-out to @thopiekar for helping with github triage, getting CI
