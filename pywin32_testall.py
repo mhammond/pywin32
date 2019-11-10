@@ -20,7 +20,10 @@ def run_test(script, cmdline_rest=""):
     popen = subprocess.Popen(cmd, shell=True, cwd=dirname,
                              stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     data = popen.communicate()[0]
-    sys.stdout.buffer.write(data)
+    if "buffer" in dir(sys.stdout):
+        sys.stdout.buffer.write(data)
+    else:
+        sys.stdout.write(data)
     if popen.returncode:
         print "****** %s failed: %s" % (script, popen.returncode)
         sys.exit(popen.returncode)
