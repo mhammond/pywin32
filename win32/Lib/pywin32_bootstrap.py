@@ -12,9 +12,14 @@ import site
 # The directory should be installed under site-packages.
 
 dirname = os.path.dirname
+level3_up_dir = dirname(dirname(dirname(__file__)))
 
-for site_dir in getattr(site, "getsitepackages", lambda: [dirname(dirname(dirname(__file__)))])():
-    pywin32_system32 = os.path.join(site_dir, "pywin32_system32")
+site_packages_dirs = getattr(site, "getsitepackages", lambda: [level3_up_dir])()
+if level3_up_dir not in site_packages_dirs:
+    site_packages_dirs.append(level3_up_dir)
+
+for site_packages_dir in site_packages_dirs:
+    pywin32_system32 = os.path.join(site_packages_dir, "pywin32_system32")
     if os.path.isdir(pywin32_system32):
         if hasattr(os, "add_dll_directory"):
             os.add_dll_directory(pywin32_system32)
