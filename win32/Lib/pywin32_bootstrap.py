@@ -12,6 +12,9 @@ import site
 # The directory should be installed under site-packages.
 
 dirname = os.path.dirname
+# This is to get the "...\Lib\site-packages" directory
+# out of this file name: "...\Lib\site-packages\win32\Lib\pywin32_bootstrap.py".
+# It needs to be searched when installed in VirtualEnv or Python's venv.
 level3_up_dir = dirname(dirname(dirname(__file__)))
 
 site_packages_dirs = getattr(site, "getsitepackages", lambda: [level3_up_dir])()
