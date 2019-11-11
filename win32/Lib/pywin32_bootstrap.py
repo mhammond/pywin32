@@ -8,14 +8,15 @@
 # Otherwise, we add this path to PATH.
 import os
 import site
-import sys
 
 # The directory should be installed under site-packages.
-for maybe in site.getsitepackages():
-	pywin32_system32=os.path.join(maybe,"pywin32_system32")
-	if os.path.isdir(pywin32_system32):
-		if hasattr(os, "add_dll_directory"):
-			os.add_dll_directory(pywin32_system32)
-		else:
-			os.environ["PATH"] = pywin32_system32 + ";" + os.environ["PATH"]
 
+dirname = os.path.dirname
+
+for site_dir in getattr(site, "getsitepackages", lambda: [dirname(dirname(dirname(__file__)))])():
+    pywin32_system32 = os.path.join(site_dir, "pywin32_system32")
+    if os.path.isdir(pywin32_system32):
+        if hasattr(os, "add_dll_directory"):
+            os.add_dll_directory(pywin32_system32)
+        else:
+            os.environ["PATH"] = pywin32_system32 + os.pathsep + os.environ["PATH"]
