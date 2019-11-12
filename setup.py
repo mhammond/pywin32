@@ -315,6 +315,8 @@ class WinExt (Extension):
         define_macros = define_macros or []
         define_macros.append(("DISTUTILS_BUILD", None))
         define_macros.append(("_CRT_SECURE_NO_WARNINGS", None))
+        # CRYPT_DECRYPT_MESSAGE_PARA.dwflags is in an ifdef for some unknown reason
+        define_macros.append(("CRYPT_DECRYPT_MESSAGE_PARA_HAS_EXTRA_FIELDS", None))
         self.pch_header = pch_header
         self.extra_swig_commands = extra_swig_commands or []
         self.windows_h_version = windows_h_version
