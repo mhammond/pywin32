@@ -4,6 +4,11 @@ Generally created by hand after running:
    hg log -rb2xx: > log.out
 However contributors are encouraged to add their own entries for their work.
 
+Since build 227:
+----------------
+* Improved the search for pywin32 system DLLs logic. Useful when installed
+  in virtual environments (#1442, @CristiFati)
+
 Since build 225:
 ----------------
 * The directory with the pywin32 system DLLs is now added to the start of PATH
