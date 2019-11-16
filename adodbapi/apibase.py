@@ -148,12 +148,12 @@ class TimeConverter(object):  # this is a generic time converter skeleton
     def __init__(self):       # the details will be filled in by instances
         self._ordinal_1899_12_31=datetime.date(1899,12,31).toordinal()-1
                     # Use cls.types to compare if an input parameter is a datetime
-        self.types = set([type(self.Date(2000,1,1)),  # TODO make this a set literal when Python 2.6 is dropped
+        self.types = {[type(self.Date(2000,1,1)),
                       type(self.Time(12,1,1)),
                       type(self.Timestamp(2000,1,1,12,1,1)),
                       datetime.datetime,
                       datetime.time,
-                      datetime.date])
+                      datetime.date]}
     def COMDate(self,obj):
         '''Returns a ComDate from a date-time'''
         try: # most likely a datetime
@@ -503,7 +503,7 @@ class SQLrow(object): # a single database row
             return self._getValue(self.rows.columnNames[key.lower()])  # extension row[columnName] designation
         except (KeyError, TypeError):
             er, st, tr = sys.exc_info()
-            raise er('No such key as "%s" in %s' % (repr(key), self.__repr__())).with_traceback(tr)
+            raise er,'No such key as "%s" in %s'%(repr(key),self.__repr__()),tr
     def __iter__(self):
         return iter(self.__next__())
     def __next__(self):
@@ -557,7 +557,7 @@ class SQLrows(object):
                 try:
                     j = self.columnNames[j.lower()] # convert named column to numeric
                 except KeyError:
-                    raise KeyError('adodbapi: no such column name as "%s"' % repr(j))
+                    raise KeyError, 'adodbapi: no such column name as "%s"'%repr(j)
             if self.recordset_format == RS_ARRAY: # retrieve from two-dimensional array
                 v = self.ado_results[j,i]
             elif self.recordset_format == RS_REMOTE:
