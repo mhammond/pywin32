@@ -147,8 +147,13 @@ static PyNumberMethods PyHANDLE_NumberMethods = {
 
 PYWINTYPES_EXPORT PyTypeObject PyHANDLEType = {
     PYWIN_OBJECT_HEAD "PyHANDLE", sizeof(PyHANDLE), 0, PyHANDLE::deallocFunc, /* tp_dealloc */
+#if (PY_VERSION_HEX < 0x03000000)
+    // tp_print is 2.x only.
     // @pymeth __print__|Used when the object is printed.
     PyHANDLE::printFunc,     /* tp_print */
+#else
+    0,
+#endif
     0,                       /* tp_getattr */
     0,                       /* tp_setattr */
     0,                       /* tp_compare */

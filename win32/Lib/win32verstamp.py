@@ -6,6 +6,7 @@ from win32api import BeginUpdateResource, UpdateResource, EndUpdateResource
 import os
 import struct
 import glob
+import sys
 
 import optparse
 
@@ -47,7 +48,10 @@ def VS_FIXEDFILEINFO(maj, min, sub, build, debug=0, is_dll=1):
 
 def nullterm(s):
   # get raw bytes for a NULL terminated unicode string.
-  return (unicode(s) + u'\0').encode('unicode-internal')
+  if sys.version_info[:2] < (3, 7):
+    return (str(s) + '\0').encode('unicode-internal')
+  else:
+    return (str(s) + '\0').encode('utf-16le')
 
 def pad32(s, extra=2):
   # extra is normally 2 to deal with wLength

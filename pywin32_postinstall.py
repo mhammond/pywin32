@@ -430,7 +430,7 @@ def install(lib_dir):
     make_dir = os.path.join(lib_dir, "win32com", "gen_py")
     if not os.path.isdir(make_dir):
         if verbose:
-            print("Creating directory", make_dir)
+            print("Creating directory %s" % (make_dir,))
         directory_created(make_dir)
         os.mkdir(make_dir)
 
@@ -479,12 +479,12 @@ def uninstall(lib_dir):
     try:
         RegisterCOMObjects(False)
     except Exception as why:
-        print("Failed to unregister COM objects:", why)
+        print("Failed to unregister COM objects: %s" % (why,))
 
     try:
         RegisterPythonwin(False)
     except Exception as why:
-        print("Failed to unregister Pythonwin:", why)
+        print("Failed to unregister Pythonwin: %s" % (why,))
     else:
         if verbose:
             print('Unregistered Pythonwin')
@@ -495,7 +495,7 @@ def uninstall(lib_dir):
         if os.path.isdir(gen_dir):
             shutil.rmtree(gen_dir)
             if verbose:
-                print("Removed directory", gen_dir)
+                print("Removed directory %s" % (gen_dir,))
 
         # Remove pythonwin compiled "config" files.
         pywin_dir = os.path.join(lib_dir, "Pythonwin", "pywin")
@@ -513,7 +513,7 @@ def uninstall(lib_dir):
             pass
 
     except Exception as why:
-        print("Failed to remove misc files:", why)
+        print("Failed to remove misc files: %s" % (why,))
 
     try:
         fldr = get_shortcuts_folder()
@@ -522,9 +522,9 @@ def uninstall(lib_dir):
             if os.path.isfile(fqlink):
                 os.remove(fqlink)
                 if verbose:
-                    print("Removed", link)
+                    print("Removed %s" % (link,))
     except Exception as why:
-        print("Failed to remove shortcuts:", why)
+        print("Failed to remove shortcuts: %s" % (why,))
     # Now remove the system32 files.
     files = glob.glob(os.path.join(lib_dir, "pywin32_system32\\*.*"))
     # Try the system32 directory first - if that fails due to "access denied",
@@ -543,11 +543,11 @@ def uninstall(lib_dir):
                         if verbose:
                             print("Removed file %s" % (dst))
                     except Exception:
-                        print("FAILED to remove", dst)
+                        print("FAILED to remove %s" % (dst,))
             if worked:
                 break
     except Exception as why:
-        print("FAILED to remove system files:", why)
+        print("FAILED to remove system files: %s" % (why,))
 
 # NOTE: If this script is run from inside the bdist_wininst created
 # binary installer or uninstaller, the command line args are either

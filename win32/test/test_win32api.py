@@ -71,6 +71,7 @@ class Registry(unittest.TestCase):
             ('REG_MULTI_SZ', win32con.REG_MULTI_SZ, ['string 1','string 2','string 3','string 4']),
             ('REG_MULTI_SZ_empty', win32con.REG_MULTI_SZ, []),
             ('REG_DWORD', win32con.REG_DWORD, 666),
+            ('REG_QWORD_INT', win32con.REG_QWORD, 99),
             ('REG_QWORD', win32con.REG_QWORD, 2**33),
             ('REG_BINARY', win32con.REG_BINARY, str2bytes('\x00\x01\x02\x03\x04\x05\x06\x07\x08\x01\x00')),
             )

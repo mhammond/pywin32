@@ -1,3 +1,4 @@
+from __future__ import print_function
 import unittest
 from pywin32_testutil import str2bytes, TestSkipped, testmain
 import win32api, win32file, win32pipe, pywintypes, winerror, win32event
@@ -142,7 +143,9 @@ class TestSimpleOps(unittest.TestCase):
             # there is nothing you can do to avoid it being skipped!
             return
         filename = tempfile.mktemp("-testFileTimes")
-        now_utc = win32timezone.utcnow()
+        # now() is always returning a timestamp with microseconds but the
+        # file APIs all have zero microseconds, so some comparisons fail.
+        now_utc = win32timezone.utcnow().replace(microsecond=0)
         now_local = now_utc.astimezone(win32timezone.TimeZoneInfo.local())
         h = win32file.CreateFile(filename,
                                  win32file.GENERIC_READ|win32file.GENERIC_WRITE,
@@ -166,7 +169,9 @@ class TestSimpleOps(unittest.TestCase):
     def testFileTimes(self):
         if issubclass(pywintypes.TimeType, datetime.datetime):
             from win32timezone import TimeZoneInfo
-            now = datetime.datetime.now(tz=TimeZoneInfo.local())
+            # now() is always returning a timestamp with microseconds but the
+            # file APIs all have zero microseconds, so some comparisons fail.
+            now = datetime.datetime.now(tz=TimeZoneInfo.utc()).replace(microsecond=0)
             nowish = now + datetime.timedelta(seconds=1)
             later = now + datetime.timedelta(seconds=120)
         else:
@@ -195,15 +200,14 @@ class TestSimpleOps(unittest.TestCase):
             self.failUnless( now <= wt <= nowish, (now, wt))
 
             # Now set the times.
-            win32file.SetFileTime(f, later, later, later)
+            win32file.SetFileTime(f, later, later, later, UTCTimes=True)
             # Get them back.
             ct, at, wt = win32file.GetFileTime(f)
             # XXX - the builtin PyTime type appears to be out by a dst offset.
             # just ignore that type here...
-            if issubclass(pywintypes.TimeType, datetime.datetime):
-                self.failUnlessEqual(ct, later)
-                self.failUnlessEqual(at, later)
-                self.failUnlessEqual(wt, later)
+            self.failUnlessEqual(ct, later)
+            self.failUnlessEqual(at, later)
+            self.failUnlessEqual(wt, later)
 
         finally:
             f.Close()
@@ -300,7 +304,7 @@ class TestOverlapped(unittest.TestCase):
         try:
             win32file.CloseHandle(hv)
             raise RuntimeError("Expected close to fail!")
-        except win32file.error, details:
+        except win32file.error as details:
             self.failUnlessEqual(details.winerror, winerror.ERROR_INVALID_HANDLE)
 
     def testCompletionPortsQueued(self):
@@ -550,12 +554,12 @@ class TestDirectoryChanges(unittest.TestCase):
         flags = win32con.FILE_NOTIFY_CHANGE_FILE_NAME
         while 1:
             try:
-                print "waiting", dh
+                print("waiting", dh)
                 changes = win32file.ReadDirectoryChangesW(dh,
                                                           8192,
                                                           False, #sub-tree
                                                           flags)
-                print "got", changes
+                print("got", changes)
             except:
                 raise
             changes.extend(changes)
@@ -588,7 +592,7 @@ class TestDirectoryChanges(unittest.TestCase):
                     # print "looks like dir handle was closed!"
                     return
             else:
-                print "ERROR: Watcher thread timed-out!"
+                print("ERROR: Watcher thread timed-out!")
                 return # kill the thread!
 
     def tearDown(self):
@@ -602,13 +606,13 @@ class TestDirectoryChanges(unittest.TestCase):
             try:
                 shutil.rmtree(dn)
             except OSError:
-                print "FAILED to remove directory", dn
+                print("FAILED to remove directory", dn)
 
         for t in self.watcher_threads:
             # closing dir handle should have killed threads!
             t.join(5)
             if t.isAlive():
-                print "FAILED to wait for thread termination"
+                print("FAILED to wait for thread termination")
 
     def stablize(self):
         time.sleep(0.5)
@@ -643,10 +647,10 @@ class TestEncrypt(unittest.TestCase):
         try:
             try:
                 win32file.EncryptFile(fname)
-            except win32file.error, details:
+            except win32file.error as details:
                 if details.winerror != winerror.ERROR_ACCESS_DENIED:
                     raise
-                print "It appears this is not NTFS - cant encrypt/decrypt"
+                print("It appears this is not NTFS - cant encrypt/decrypt")
             win32file.DecryptFile(fname)
         finally:
             if f is not None:
@@ -703,7 +707,7 @@ class TestConnect(unittest.TestCase):
         s2.bind(('0.0.0.0', 0)) # connectex requires the socket be bound beforehand
         try:
             win32file.ConnectEx(s2, self.addr, ol, str2bytes("some expected request"))
-        except win32file.error, exc:
+        except win32file.error as exc:
             win32event.SetEvent(giveup_event)
             if exc.winerror == 10022: # WSAEINVAL
                 raise TestSkipped("ConnectEx is not available on this platform")
@@ -730,7 +734,7 @@ class TestConnect(unittest.TestCase):
         s2.bind(('0.0.0.0', 0)) # connectex requires the socket be bound beforehand
         try:
             win32file.ConnectEx(s2, self.addr, ol)
-        except win32file.error, exc:
+        except win32file.error as exc:
             win32event.SetEvent(giveup_event)
             if exc.winerror == 10022: # WSAEINVAL
                 raise TestSkipped("ConnectEx is not available on this platform")
@@ -830,11 +834,11 @@ class TestWSAEnumNetworkEvents(unittest.TestCase):
         self.assertRaises(win32file.error, win32file.WSAEnumNetworkEvents, s, h)
         try:
             win32file.WSAEnumNetworkEvents(h)
-        except win32file.error, e:
+        except win32file.error as e:
             self.assertEquals(e.winerror, win32file.WSAENOTSOCK)
         try:
             win32file.WSAEnumNetworkEvents(s, h)
-        except win32file.error, e:
+        except win32file.error as e:
             # According to the docs it would seem reasonable that
             # this would fail with WSAEINVAL, but it doesn't.
             self.assertEquals(e.winerror, win32file.WSAENOTSOCK)
@@ -890,7 +894,7 @@ class TestWSAEnumNetworkEvents(unittest.TestCase):
         while sent < 16 * 1024 * 1024:
             try:
                 sent += client.send(data)
-            except socket.error, e:
+            except socket.error as e:
                 if e.args[0] == win32file.WSAEINTR:
                     continue
                 elif e.args[0] in (win32file.WSAEWOULDBLOCK, win32file.WSAENOBUFS):
@@ -912,7 +916,7 @@ class TestWSAEnumNetworkEvents(unittest.TestCase):
         while received < sent:
             try:
                 received += len(server.recv(16 * 1024))
-            except socket.error, e:
+            except socket.error as e:
                 if e.args[0] in [win32file.WSAEINTR, win32file.WSAEWOULDBLOCK]:
                     continue
                 else:

@@ -716,7 +716,7 @@ static PyObject *PyFormatMessageA(PyObject *self, PyObject *args)
         if (errCode == 0)
             // @pyseeapi GetLastError
             errCode = GetLastError();
-        const int bufSize = 512;
+        const int bufSize = 4096;
         char buf[bufSize];
         DWORD flags = FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS;
         HMODULE hmodule = PyWin_GetErrorMessageModule(errCode);
@@ -767,18 +767,16 @@ static PyObject *PyFormatMessageA(PyObject *self, PyObject *args)
     if (obInserts != Py_None) {
         if ((Inserts_tuple = PyWinSequence_Tuple(obInserts, &numInserts)) == NULL)
             goto cleanup;
-        /* Allocate 2 extra pointers, in case string inserts are missing.
-            This can still cause an access violation if 3 or more are missing.
+        /* Allocate 8 extra pointers, in case string inserts are missing.
+            This can still cause an access violation if 9 or more are missing.
             This should also accept numeric values, but that would require actually
             parsing the message format to see what inserts are expected.
         */
-        pInserts = (char **)malloc(sizeof(char *) * (numInserts + 2));
+        pInserts = (char **)calloc((numInserts + 8), sizeof(char *));
         if (pInserts == NULL) {
             PyErr_NoMemory();
             goto cleanup;
         }
-        for (i = 0; i < numInserts + 2; i++)  // Make sure clean for cleanup
-            pInserts[i] = NULL;
         for (i = 0; i < numInserts; i++) {
             PyObject *subObject = PyTuple_GET_ITEM(Inserts_tuple, i);
             if (!PyWinObject_AsString(subObject, pInserts + i))
@@ -830,7 +828,7 @@ static PyObject *PyFormatMessageW(PyObject *self, PyObject *args)
         if (errCode == 0)
             // @pyseeapi GetLastError
             errCode = GetLastError();
-        const int bufSize = 512;
+        const int bufSize = 4096;
         WCHAR buf[bufSize];
         DWORD flags = FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS;
         HMODULE hmodule = PyWin_GetErrorMessageModule(errCode);
@@ -2457,7 +2455,7 @@ static PyObject *PyGetTimeZoneInformation(PyObject *self, PyObject *args)
     // @tupleitem 6|int|daylightBias|Specifies a bias value to be used during local time translations that occur during
     // daylight saving time. This member is ignored if a value for the DaylightDate member is not supplied. <nl>This
     // value is added to the value of the Bias member to form the bias used during daylight saving time. In most time
-    // zones, the value of this member is – 60.
+    // zones, the value of this member is 60.
 }
 
 // @pymethod tuple|win32api|SetTimeZoneInformation|Sets the system time-zone information.
@@ -3510,12 +3508,13 @@ static BOOL PyWinObject_AsRegistryValue(PyObject *value, DWORD typ, BYTE **retDa
                 *(ULONGLONG *)*retDataBuf = 0;
                 return true;
             }
-            *(ULONGLONG *)*retDataBuf = PyLong_AsUnsignedLongLong(value);
-            if (*(ULONGLONG *)*retDataBuf == -1 && PyErr_Occurred()) {
+            ULARGE_INTEGER uli;
+            if (!PyWinObject_AsULARGE_INTEGER(value, &uli)) {
                 PyMem_Free(*retDataBuf);
                 *retDataBuf = NULL;
                 return false;
             }
+            *(ULONGLONG *)*retDataBuf = uli.QuadPart;
             return true;
         case REG_SZ:
         case REG_EXPAND_SZ: {

@@ -24,6 +24,8 @@
 %include "mapilib.i"
 
 %{
+#include "mapiaux.h"
+
 #include "PythonCOMServer.h"
 #include "PythonCOMRegister.h"
 #include <mapiutil.h>
@@ -43,6 +45,7 @@
 #include "PyIABContainer.h"
 #include "PyIProfSect.h"
 #include "PyIMsgServiceAdmin.h"
+#include "PyIMsgServiceAdmin2.h"
 #include "PyIProviderAdmin.h"
 #include "PyIMAPIAdviseSink.h"
 #include "IConverterSession.h"
@@ -51,6 +54,10 @@
 #include "MAPISPI.H"
 #include "MAPISPI.H"
 #include "IMESSAGE.H"
+#include "MSPST.h"
+
+#include "extraMAPIGuids.h"
+#include "extraMAPIDefs.h"
 %}
 
 %{
@@ -176,6 +183,9 @@ static PyObject *PyMAPIUninitialize(PyObject *self, PyObject *args)
 	if ( PyCom_RegisterClientType(&PyIMsgServiceAdmin::type, &IID_IMsgServiceAdmin) != 0 ) return MODINIT_ERROR_RETURN;
 	ADD_IID(IID_IMsgServiceAdmin);
 
+	if ( PyCom_RegisterClientType(&PyIMsgServiceAdmin2::type, &IID_IMsgServiceAdmin2) != 0 ) return MODINIT_ERROR_RETURN;
+	ADD_IID(IID_IMsgServiceAdmin2);
+
 	if ( PyCom_RegisterClientType(&PyIProviderAdmin::type, &IID_IProviderAdmin) != 0 ) return MODINIT_ERROR_RETURN;
 	ADD_IID(IID_IProviderAdmin);
 
@@ -197,6 +207,27 @@ static PyObject *PyMAPIUninitialize(PyObject *self, PyObject *args)
 	ADD_IID(PS_ROUTING_DISPLAY_NAME);
 	ADD_IID(PS_ROUTING_ENTRYID);
 	ADD_IID(PS_ROUTING_SEARCH_KEY);
+
+	// From extraMAPIGuids.h
+	ADD_IID(CLSID_MailMessage);
+	ADD_IID(PSETID_Appointment);
+	ADD_IID(PSETID_Meeting);
+	ADD_IID(PSETID_Common);
+	ADD_IID(PSETID_Address);
+	ADD_IID(PS_INTERNET_HEADERS);
+	ADD_IID(PSETID_Report);
+	ADD_IID(PSETID_Log);
+	ADD_IID(PSETID_Messaging);
+	ADD_IID(PSETID_Remote);
+	ADD_IID(PSETID_PostRss);
+	ADD_IID(PSETID_Sharing);
+	ADD_IID(PSETID_Note);
+	ADD_IID(PSETID_AirSync);
+	ADD_IID(PSETID_Task);
+	ADD_IID(PSETID_UnifiedMessaging);
+
+	MAPIUID uid = MSPST_UID_PROVIDER;
+	AddIID(d, "MSPST_UID_PROVIDER", reinterpret_cast<GUID &>(uid));
 %}
 
 #define NO_ATTACHMENT NO_ATTACHMENT // The attachment has just been created. 
@@ -535,6 +566,22 @@ static PyObject *PyMAPIUninitialize(PyObject *self, PyObject *args)
 #define GENERATE_RECEIPT_ONLY GENERATE_RECEIPT_ONLY // A read report should be sent if one is pending, but there should be no change in the state of the MSGFLAG_READ flag.
 #define SUPPRESS_RECEIPT SUPPRESS_RECEIPT // A pending read report should be cancelled if a read report had been requested and this call changes the state of the message from unread to read.
 
+// From extraMAPIDefs.h
+#define MAIL_E_NAMENOTFOUND MAIL_E_NAMENOTFOUND
+#define MAPI_E_STORE_FULL MAPI_E_STORE_FULL
+#define MAPI_E_LOCKID_LIMIT MAPI_E_LOCKID_LIMIT
+#define MAPI_E_NAMED_PROP_QUOTA_EXCEEDED MAPI_E_NAMED_PROP_QUOTA_EXCEEDED
+#define MAPI_E_PROFILE_DELETED MAPI_E_PROFILE_DELETED
+#define MAPI_E_RECONNECTED MAPI_E_RECONNECTED
+#define MAPI_E_OFFLINE MAPI_E_OFFLINE
+
+#define MAPI_FORCE_ACCESS MAPI_FORCE_ACCESS
+
+// MSPST.h
+#define PSTF_NO_ENCRYPTION PSTF_NO_ENCRYPTION
+#define PSTF_COMPRESSABLE_ENCRYPTION PSTF_COMPRESSABLE_ENCRYPTION
+#define PSTF_BEST_ENCRYPTION PSTF_BEST_ENCRYPTION
+
 // @object MAPIINIT_0|A MAPIINIT_0 is represented as a tuple of:
 // @tupleitem 0|int|version|This must be MAPI_INIT_VERSION.
 // @tupleitem 1|int|flags|MAPI initlization flags.
@@ -629,6 +676,72 @@ HRESULT WrapCompressedRTFStream(
   unsigned long ulflags, // @pyparm int|flags||
   IStream **OUTPUT
 );
+
+
+// WrapCompressedRTFStreamEx
+#define MAPI_NATIVE_BODY ((ULONG) 0x00010000) // Indicates whether the decompressed stream is also converted to its native body.
+#define MAPI_NATIVE_BODY_TYPE_RTF ((ULONG) 1) // Native body is RTF.
+#define MAPI_NATIVE_BODY_TYPE_HTML ((ULONG) 2) // Native body is plain text.
+#define MAPI_NATIVE_BODY_TYPE_PLAINTEXT ((ULONG) 4) // Native body is HTML.
+
+// @pyswig (<o PyIStream>, ULONG)|WrapCompressedRTFStreamEx|
+// @rdesc Result is a tuple of (bodyStream, bodyType);
+%native(WrapCompressedRTFStreamEx) PyWrapCompressedRTFStreamEx;
+%{
+// @object RTF_WCSINFO|A tuple representing a RTF_WCSINFO structure
+struct RTF_WCSINFO
+{
+	ULONG size;
+	ULONG Flags; // @tupleitem 0|ULONG|flags|
+	ULONG ulInCodePage; // @tupleitem 1|ULONG|incodepage|
+	ULONG ulOutCodePage; // @tupleitem 2|ULONG|outcodepage|
+};
+
+struct RTF_WCSRETINFO
+{
+	ULONG size;
+	ULONG ulStreamFlags;
+};
+
+STDAPI WrapCompressedRTFStreamEx(
+	LPSTREAM            lpCompressedRTFStream,
+	CONST RTF_WCSINFO   *pWCSInfo,
+	LPSTREAM            *lppUncompressedRTFStream,
+	RTF_WCSRETINFO      *pRetInfo);
+
+PyObject *PyWrapCompressedRTFStreamEx(PyObject *self, PyObject *args)
+{
+	HRESULT hRes;
+	PyObject *obCompressedStream = NULL;
+	PyObject *obUncompressedStream = NULL;
+
+	LPSTREAM lpCompressedStream = NULL; // @pyparm <o PyIStream>|stream||Message stream
+	RTF_WCSINFO wcsinfo = {0}; // @pyparm <o RTF_WCSINFO>|wcsinfo|(0, 0, 0)|function options
+	LPSTREAM lpUncompressedStream = NULL;
+	RTF_WCSRETINFO retinfo = {0};
+
+	wcsinfo.size = sizeof(RTF_WCSINFO);
+	retinfo.size = sizeof(RTF_WCSRETINFO);
+
+	if (!PyArg_ParseTuple(args, "O|(kkk):PyWrapCompressedRTFStreamEx", &obCompressedStream,
+						  &wcsinfo.Flags, &wcsinfo.ulInCodePage, &wcsinfo.ulOutCodePage))
+		return NULL;
+
+	if (!PyCom_InterfaceFromPyObject(obCompressedStream, IID_IStream, (void **)&lpCompressedStream, FALSE))
+		return NULL;
+
+	Py_BEGIN_ALLOW_THREADS
+	hRes = WrapCompressedRTFStreamEx(lpCompressedStream, &wcsinfo, &lpUncompressedStream, &retinfo);
+	lpCompressedStream->Release();
+	Py_END_ALLOW_THREADS
+
+	if (FAILED(hRes))
+		return OleSetOleError(hRes);
+
+	return Py_BuildValue("Nk", PyCom_PyObjectFromIUnknown(lpUncompressedStream, IID_IStream, FALSE),
+						 retinfo.ulStreamFlags);
+}
+%}
 
 %native(MAPIUIDFromBinary) MAPIUIDFromBinary;
 %{
@@ -940,6 +1053,59 @@ PyObject *PyOpenStreamOnFile(PyObject *self, PyObject *args)
 			return OleSetOleError(hRes);	
 				
 		return PyCom_PyObjectFromIUnknown(pStream, IID_IStream, FALSE);	
+}
+%}
+
+// @pyswig <o PyIStream>|OpenStreamOnFileW|Allocates and initializes an OLE IStream object to access the contents of a file.
+%native(OpenStreamOnFileW) PyOpenStreamOnFileW;
+%{
+
+// Missing declaration copied from MFCMAPI
+_Check_return_ STDAPI OpenStreamOnFileW(
+	_In_ LPALLOCATEBUFFER lpAllocateBuffer,
+	_In_ LPFREEBUFFER lpFreeBuffer,
+	ULONG ulFlags,
+	_In_z_ LPCWSTR lpszFileName,
+	_In_opt_z_ LPCWSTR lpszPrefix,
+	_Out_ LPSTREAM FAR* lppStream);
+
+PyObject *PyOpenStreamOnFileW(PyObject *self, PyObject *args)
+{
+		HRESULT hRes;
+		unsigned long flags = 0;
+		IStream *pStream;
+		PyObject *obFileName;
+		WCHAR *filename = NULL;
+		PyObject *obPrefix = Py_None;
+		WCHAR *prefix = NULL;
+
+		if (!PyArg_ParseTuple(args, "O|lO:OpenStreamOnFileW",
+			&obFileName, // @pyparm unicode|filename||
+			&flags, // @pyparm int|flags|0|
+			&obPrefix)) // @pyparm unicode|prefix|None|
+			return NULL;
+
+		if (!PyWinObject_AsWCHAR(obFileName, &filename, TRUE))
+			goto done;
+
+		if (!PyWinObject_AsWCHAR(obPrefix, &prefix, TRUE))
+			goto done;
+
+		PY_INTERFACE_PRECALL;
+		hRes = OpenStreamOnFileW(MAPIAllocateBuffer, MAPIFreeBuffer, flags, filename, prefix, &pStream);
+		PY_INTERFACE_POSTCALL;
+
+	done:
+		PyWinObject_FreeWCHAR(filename);
+		PyWinObject_FreeWCHAR(prefix);
+
+		if (PyErr_Occurred())
+			return NULL;
+
+		if (FAILED(hRes))
+			return OleSetOleError(hRes);
+
+		return PyCom_PyObjectFromIUnknown(pStream, IID_IStream, FALSE);
 }
 %}
 

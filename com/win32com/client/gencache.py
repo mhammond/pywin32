@@ -104,7 +104,7 @@ def _LoadDicts():
 			# for these apps is to call EnsureModule, rather than freezing
 			# the dict)
 			return
-		f = io.StringIO(data)
+		f = io.BytesIO(data)
 	else:
 		# NOTE: IOError on file open must be caught by caller.
 		f = open(os.path.join(win32com.__gen_path__, "dicts.dat"), "rb")
