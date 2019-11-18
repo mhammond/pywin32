@@ -39,12 +39,12 @@ import datetime
 # Pyro4 is required for server and remote operation --> https://pypi.python.org/pypi/Pyro4/
 import Pyro4
 
-import apibase as api
-import process_connect_string
-from apibase import apilevel, threadsafety, paramstyle
-from apibase import Warning, Error, InterfaceError, DatabaseError, DataError, OperationalError, IntegrityError
-from apibase import InternalError, ProgrammingError, NotSupportedError, FetchFailedError
-from apibase import NUMBER, STRING, BINARY, DATETIME, ROWID
+import adodbapi.apibase as api
+import adodbapi.process_connect_string
+from adodbapi.apibase import apilevel, threadsafety, paramstyle
+from adodbapi.apibase import Warning, Error, InterfaceError, DatabaseError, DataError, OperationalError, IntegrityError
+from adodbapi.apibase import InternalError, ProgrammingError, NotSupportedError, FetchFailedError
+from adodbapi.apibase import NUMBER, STRING, BINARY, DATETIME, ROWID
 
 _BaseException = api._BaseException
 
@@ -95,7 +95,7 @@ def TimestampFromTicks(ticks):
 def connect(*args, **kwargs): # --> a remote db-api connection object
     """Create and open a remote db-api database connection object"""
     # process the argument list the programmer gave us
-    kwargs = process_connect_string.process(args, kwargs)
+    kwargs = adodbapi.process_connect_string.process(args, kwargs)
     # the "proxy_xxx" keys tell us where to find the PyRO proxy server
     kwargs.setdefault('pyro_connection', 'PYRO:ado.connection@%(proxy_host)s:%(proxy_port)s')
     if not 'proxy_port' in kwargs:

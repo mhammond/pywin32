@@ -4,7 +4,7 @@ from __future__ import with_statement #needed for Python 2.5
 import sys
 import adodbapi.ado_consts as adc
 
-cmd_args = ('proxy_host', 'proxy_port', 'filename', 'table_name')
+cmd_args = ('filename', 'table_name')
 if 'help' in sys.argv:
     print('possible settings keywords are:',cmd_args)
     sys.exit()
@@ -25,10 +25,7 @@ provider_switch = ['provider', 'Microsoft.ACE.OLEDB.12.0', "Microsoft.Jet.OLEDB.
 # ------------------------ START HERE -------------------------------------
 #create the connection
 constr = "Provider=%(provider)s;Data Source=%(filename)s"
-if 'proxy_host' in kw_args:
-    import adodbapi.remote as db
-else:
-    import adodbapi as db
+import adodbapi as db
 con = db.connect(constr, kw_args, macro_is64bit=provider_switch)
 
 if kw_args['table_name'] == '?':

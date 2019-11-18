@@ -13,7 +13,6 @@ Features:
 * Includes pyunit testcases that describe how to use the module.  
 * Fully implemented in Python. -- runs in Python 2.5+ Python 3.0+ and IronPython 2.6+
 * Licensed under the LGPL license, which means that it can be used freely even in commercial programs subject to certain restrictions. 
-* Includes SERVER and REMOTE modules so that a Windows proxy can serve ADO databases to a Linux client using PyRO.
 * The user can choose between paramstyles: 'qmark' 'named' 'format' 'pyformat' 'dynamic'
 * Supports data retrieval by column name e.g.:
   for row in myCurser.execute("select name,age from students"):
@@ -27,12 +26,10 @@ or
  Iron Python 2.7 or higher.  (works in IPy2.0 for all data types except BUFFER)
 
 Installation:
-* (C-Python on Windows): Download pywin32 from http://sf.net/projects/pywin32 and install from .msi (adodbapi is included)
-* ((to use Windows as a server, also download and install Pyro4 )) https://pypi.python.org/pypi/Pyro4
+* (C-Python on Windows): Install pywin32 ("pip install pywin32") which includes adodbapi.
 * (IronPython on Windows): Download adodbapi from http://sf.net/projects/adodbapi.  Unpack the zip.
      Open a command window as an administrator. CD to the folder containing the unzipped files.
      Run "setup.py install" using the IronPython of your choice.
-* (Linux, as a client): download and install from PyPi: "pip install adodbapi Pyro4"
 
 NOTE: ...........
 If you do not like the new default operation of returning Numeric columns as decimal.Decimal,
@@ -79,11 +76,11 @@ LGPL, see http://www.opensource.org/licenses/lgpl-license.php
 
 Documentation
 -------------
-Start with:
 
+Look at adodbapi/quick_reference.md
 http://www.python.org/topics/database/DatabaseAPI-2.0.html
 read the examples in adodbapi/examples
-and look at the test cases in adodbapi/test directory. 
+and look at the test cases in adodbapi/test directory.
 
 Mailing lists
 -------------

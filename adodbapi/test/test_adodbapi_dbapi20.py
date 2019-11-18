@@ -68,8 +68,8 @@ elif node == "yyy":  # ACCESS data base is known to fail some tests.
     connStr = r"Provider=%s;Data Source=%s" % (driver, testmdb)
 else: # try a remote connection to an SQL server
     conn_kws['proxy_host'] = '25.44.77.176'
-    import adodbapi.remote
-    db = adodbapi.remote
+    import adodbapi.remote.remote
+    db = adodbapi.remote.remote
 
 print('Using Connection String like=%s' % connStr)
 print('Keywords=%s' % repr(conn_kws))
