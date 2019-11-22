@@ -82,9 +82,10 @@ it](http://www.microsoft.com/en-us/download/details.aspx?id=20065) [from
 Microsoft.]{lang="en-US"}
 
 - MySQL driver <http://dev.mysql.com/downloads/connector/odbc/>
-
+or MariaDB driver <https://downloads.mariadb.org/connector-odbc/>
+or `choco install mysql.odbc`
 - PostgreSQL driver <http://www.postgresql.org/ftp/odbc/versions/msi/>
-(scroll all the way to the bottom.)
+(scroll all the way to the bottom) or `choco install psqlodbc`. 
 
 
 \-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\--

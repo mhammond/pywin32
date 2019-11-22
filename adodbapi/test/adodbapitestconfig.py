@@ -17,7 +17,6 @@ import random
 
 import is64bit
 import setuptestframework
-import tryconnection
 
 print(sys.version)
 node = platform.node()
@@ -65,6 +64,36 @@ for a in sys.argv:
         adodbapi.adodbapi.verbose = arg
         verbose = arg
 
+def try_connection(verbose, *args, **kwargs):
+    import adodbapi
+
+    dbconnect = adodbapi.connect
+    try:
+        s = dbconnect(*args, **kwargs) # connect to server
+        if verbose:
+            print('Connected to:', s.connection_string)
+            print('which has tables:', s.get_table_names())
+        s.close()  # thanks, it worked, goodbye
+    except adodbapi.DatabaseError as inst:
+        for arg in inst.args:
+            print(arg)    # should be the error message
+        print('***Failed getting connection using=',repr(args),repr(kwargs))
+        return False, (args, kwargs), None
+
+    print("  (successful)")
+
+    return True, (args, kwargs, remote), dbconnect
+
+
+def try_operation_with_expected_exception(expected_exception_list, some_function, *args, **kwargs):
+    try:
+        some_function(*args, **kwargs)
+    except expected_exception_list as e:
+        return True, e
+    except:
+        raise  # an exception other than the expected occurred
+    return False, 'The expected exception did not occur'
+
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # # start your environment setup here v v v
 SQL_HOST_NODE = 'testsql.2txt.us,1430'
@@ -72,7 +101,7 @@ doAllTests = '--all' in sys.argv
 doAccessTest = not ('--nojet' in sys.argv)
 doSqlServerTest = '--mssql' in  sys.argv or doAllTests
 doMySqlTest = '--mysql' in sys.argv or doAllTests
-doPostgresTest = '--postgres' in sys.argv or doAllTests
+doPostgresTest = '--pg' in sys.argv or doAllTests
 iterateOverTimeTests = ('--time' in sys.argv or doAllTests) and onWindows
 remote = False  # automatic tests for remote access are no longer included here.
 
@@ -95,7 +124,7 @@ if doAccessTest:
     c['macro_is64bit'] = ['driver', "Microsoft.ACE.OLEDB.12.0", "Microsoft.Jet.OLEDB.4.0"]
     connStrAccess = "Provider=%(driver)s;Data Source=%(mdb)s"  # ;Mode=ReadWrite;Persist Security Info=False;Jet OLEDB:Bypass UserInfo Validation=True"
     print('    ...Testing ACCESS connection...')
-    doAccessTest, connStrAccess, dbAccessconnect = tryconnection.try_connection(verbose, connStrAccess, 10, **c)
+    doAccessTest, connStrAccess, dbAccessconnect = try_connection(verbose, connStrAccess, 10, **c)
 
 if doSqlServerTest:
     c = {'host': SQL_HOST_NODE,  # name of computer with SQL Server
@@ -108,34 +137,37 @@ if doSqlServerTest:
          }
     connStr = "Provider=%(provider)s; Initial Catalog=%(database)s; Data Source=%(host)s; %(security)s;"
     print('    ...Testing MS-SQL login...')
-    doSqlServerTest, connStrSQLServer, dbSqlServerconnect = tryconnection.try_connection(verbose, connStr, 30, **c)
+    doSqlServerTest, connStrSQLServer, dbSqlServerconnect = try_connection(verbose, connStr, 30, **c)
 
 if doMySqlTest:
     c = {'host' : "testmysql.2txt.us",
-        'database' : 'test',
-        'user' : 'adotestuser',
-        'password' : 'My1234567',
-        'driver' : "MySQL ODBC 5.3 Unicode Driver"}    # or _driver="MySQL ODBC 3.51 Driver
+        'database' : 'adodbapitest',
+        'user' : 'adotest',
+        'password' : '12345678',
+         'port'    : '3330',  # note the nonstandard port for obfuscation
+        'driver' : "MySQL ODBC 5.1 Driver"}    # or _driver="MySQL ODBC 3.51 Driver
 
     c['macro_is64bit'] = ['provider', 'Provider=MSDASQL;']
     cs = '%(provider)sDriver={%(driver)s};Server=%(host)s;Port=3330;' + \
         'Database=%(database)s;user=%(user)s;password=%(password)s;Option=3;'
     print('    ...Testing MySql login...')
-    doMySqlTest, connStrMySql, dbMySqlconnect = tryconnection.try_connection(verbose, cs, 5, **c)
+    doMySqlTest, connStrMySql, dbMySqlconnect = try_connection(verbose, cs, 5, **c)
+
+
 
 if doPostgresTest:
     _computername = "testpg.2txt.us"
     _databasename='adotest'
     _username = 'adotestuser'
-    _password = 'Po1234567'
-    kws = {'timeout': 4, 'port': 5430}
+    _password = '12345678'
+    kws = {'timeout': 4}
     kws['macro_is64bit'] = ['prov_drv', 'Provider=MSDASQL;Driver={PostgreSQL Unicode(x64)}',
         'Driver=PostgreSQL Unicode']
     # get driver from http://www.postgresql.org/ftp/odbc/versions/
     # test using positional and keyword arguments (bad example for real code)
     print('    ...Testing PostgreSQL login...')
-    doPostgresTest, connStrPostgres, dbPostgresConnect = tryconnection.try_connection(verbose,
-        '%(prov_drv)s;Server=%(host)s;Database=%(database)s;uid=%(user)s;pwd=%(password)s;',
+    doPostgresTest, connStrPostgres, dbPostgresConnect = try_connection(verbose,
+        '%(prov_drv)s;Server=%(host)s;Database=%(database)s;uid=%(user)s;pwd=%(password)s;port=5430;',  # note nonstandard port
          _username, _password, _computername, _databasename, **kws)
 
 assert doAccessTest or doSqlServerTest or doMySqlTest or doPostgresTest, 'No database engine found for testing'

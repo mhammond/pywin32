@@ -135,9 +135,8 @@ include isapi/src/*.h
 include adodbapi/*.py
 exclude adodbapi/setup.py
 exclude adodbapi/remote/*
-include adodbapi/quick_reference.md
+#include adodbapi/quick_reference.md
 include adodbapi/*.txt
-include adodbapi/*.md
 include adodbapi/test/*.py
 include adodbapi/test/*.bat
 include adodbapi/examples/*.py

@@ -101,7 +101,7 @@ def makemdb(testfolder, mdb_name):
             newdb.Close()
         else:
             print('    ...copying test ACCESS db to '+_accessdatasource)
-            mdbName = os.path.normpath(os.path.dirname(__file__) + '/../examples/test.mdb')
+            mdbName = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'examples', 'test.mdb'))
             import shutil
             shutil.copy(mdbName, _accessdatasource)
 
