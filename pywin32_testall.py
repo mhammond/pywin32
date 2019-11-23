@@ -63,9 +63,9 @@ if __name__ == '__main__':
     maybes = [os.path.join(directory, "adodbapi", "test") for directory in code_directories]
     find_and_run(maybes, 'adodbapitest.py')
     # This script has a hard-coded sql server name in it, (and markh typically
-    # doesn't have a different server to test on) so don't bother trying to
-    # run it...
-    # find_and_run(maybes, 'test_adodbapi_dbapi20.py')
+    # doesn't have a different server to test on) but there is now supposed to be a server out there on the Internet
+    # just to run these tests, so try it...
+    find_and_run(maybes, 'test_adodbapi_dbapi20.py')
 
     if sys.version_info > (3,):
         print "** The tests have some issues on py3k - not all failures are a problem..."
