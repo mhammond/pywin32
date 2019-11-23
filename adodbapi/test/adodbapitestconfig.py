@@ -18,6 +18,7 @@ import random
 
 import is64bit
 import setuptestframework
+import tryconnection
 
 print("\nPython", sys.version)
 node = platform.node()
@@ -78,35 +79,6 @@ for a in sys.argv:
         adodbapi.adodbapi.verbose = arg
         verbose = arg
 
-def try_connection(verbose, *args, **kwargs):
-
-    dbconnect = adodbapi.connect
-    try:
-        s = dbconnect(*args, **kwargs) # connect to server
-        if verbose:
-            print('Connected to:', s.connection_string)
-            print('which has tables:', s.get_table_names())
-        s.close()  # thanks, it worked, goodbye
-    except adodbapi.DatabaseError as inst:
-        for arg in inst.args:
-            print(arg)    # should be the error message
-        print('***Failed getting connection using=',repr(args),repr(kwargs))
-        return False, (args, kwargs), None
-
-    print("  (successful)")
-
-    return True, (args, kwargs, remote), dbconnect
-
-
-def try_operation_with_expected_exception(expected_exception_list, some_function, *args, **kwargs):
-    try:
-        some_function(*args, **kwargs)
-    except expected_exception_list as e:
-        return True, e
-    except:
-        raise  # an exception other than the expected occurred
-    return False, 'The expected exception did not occur'
-
 doAllTests = '--all' in sys.argv
 doAccessTest = not ('--nojet' in sys.argv)
 doSqlServerTest = '--mssql' in  sys.argv or doAllTests
@@ -142,7 +114,7 @@ if doAccessTest:
                           "Microsoft.Jet.OLEDB.4.0"]   # 32 bit provider
     connStrAccess = "Provider=%(provider)s;Data Source=%(mdb)s"  # ;Mode=ReadWrite;Persist Security Info=False;Jet OLEDB:Bypass UserInfo Validation=True"
     print('    ...Testing ACCESS connection to {} file...'.format(c.get('mdb', 'remote .mdb')))
-    doAccessTest, connStrAccess, dbAccessconnect = try_connection(verbose, connStrAccess, 10, **c)
+    doAccessTest, connStrAccess, dbAccessconnect = tryconnection.try_connection(verbose, connStrAccess, 10, **c)
 
 if doSqlServerTest:
     c = {'host': SQL_HOST_NODE,  # name of computer with SQL Server
@@ -155,7 +127,7 @@ if doSqlServerTest:
          }
     connStr = "Provider=%(provider)s; Initial Catalog=%(database)s; Data Source=%(host)s; %(security)s;"
     print('    ...Testing MS-SQL login to {}...'.format(c['host']))
-    doSqlServerTest, connStrSQLServer, dbSqlServerconnect = try_connection(verbose, connStr, 30, **c)
+    doSqlServerTest, connStrSQLServer, dbSqlServerconnect = tryconnection.try_connection(verbose, connStr, 30, **c)
 
 if doMySqlTest:
     c = {'host' : "testmysql.2txt.us",
@@ -169,7 +141,7 @@ if doMySqlTest:
     cs = '%(provider)sDriver={%(driver)s};Server=%(host)s;Port=3330;' + \
         'Database=%(database)s;user=%(user)s;password=%(password)s;Option=3;'
     print('    ...Testing MySql login to {}...'.format(c['host']))
-    doMySqlTest, connStrMySql, dbMySqlconnect = try_connection(verbose, cs, 5, **c)
+    doMySqlTest, connStrMySql, dbMySqlconnect = tryconnection.try_connection(verbose, cs, 5, **c)
 
 
 
@@ -185,7 +157,7 @@ if doPostgresTest:
     # get driver from http://www.postgresql.org/ftp/odbc/versions/
     # test using positional and keyword arguments (bad example for real code)
     print('    ...Testing PostgreSQL login to {}...'.format(_computername))
-    doPostgresTest, connStrPostgres, dbPostgresConnect = try_connection(verbose,
+    doPostgresTest, connStrPostgres, dbPostgresConnect = tryconnection.try_connection(verbose,
         '%(prov_drv)s;Server=%(host)s;Database=%(database)s;uid=%(user)s;pwd=%(password)s;port=5430;',  # note nonstandard port
          _username, _password, _computername, _databasename, **kws)
 
