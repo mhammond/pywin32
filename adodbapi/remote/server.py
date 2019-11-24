@@ -23,9 +23,9 @@ This module source should run correctly in CPython versions 2.6 and later,
 or IronPython version 2.6 and later,
 or, after running through 2to3.py, CPython 3.2 or later.
 """
-# from __future__ import print_function
+from __future__ import print_function, absolute_import
 
-__version__ = '2.6.0.1'
+__version__ = '2.6.2.0'
 version = 'adodbapi.server v' + __version__
 
 PYRO_HOST = '::0' # '::0' or '0.0.0.0' means any network
@@ -40,10 +40,13 @@ import array
 import datetime
 
 # Pyro4 is required for server and remote operation --> https://pypi.python.org/pypi/Pyro4/
-import Pyro4
-import adodbapi.adodbapi.apibase as api
-import adodbapi.adodbapi.adodbapi
-
+try:
+    import Pyro4
+except ImportError:
+    print('* * * Sorry, server operation requires Pyro4. Please "pip import" it.')
+    exit(11)
+import adodbapi.apibase as api
+import adodbapi
 import adodbapi.process_connect_string
 
 if sys.version[0] >= '3': #python 3.x
@@ -92,7 +95,6 @@ for arg in sys.argv[1:]:
         verbose = False
 
 print(adodbapi.adodbapi.version)
-
 print(version)
 Pyro4.config.DETAILED_TRACEBACK = True
 Pyro4.config.COMMTIMEOUT = PYRO_COMMTIMEOUT

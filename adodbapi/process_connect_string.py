@@ -85,9 +85,9 @@ def process(args, kwargs, expand_macros=False): # --> connection string with key
     elif isinstance(a1, dict):
         kwargs.update(a1)
     try:
-        kwargs['password'] = args[2] # the third positional argument is password
-        kwargs['host'] = args[3]     # the fourth positional argument is host name
-        kwargs['database'] = args[4] # the fifth positional argument is database name
+        kwargs['password'] = args[2]  # the third positional argument is password
+        kwargs['host'] = args[3]      # the fourth positional argument is host name
+        kwargs['database'] = args[4]  # the fifth positional argument is database name
     except IndexError:
         pass
 
@@ -102,17 +102,17 @@ def process(args, kwargs, expand_macros=False): # --> connection string with key
                 raise TypeError ("Must define 'connection_string' for ado connections")
     if expand_macros:
         for kwarg in kwargs.keys():
-            if kwarg.startswith('macro_'): # If a key defines a macro
+            if kwarg.startswith('macro_'):  # If a key defines a macro
                 macro_name = kwarg[6:]  # name without the "macro_"
-                macro_code = kwargs.pop(kwarg) # we remove the macro_key and get the code to execute
-                new_key, rslt = macro_call(macro_name, macro_code, kwargs) # run the code in the local context, with keys available
-                kwargs[new_key] = rslt # put the result back in the keywords dict
+                macro_code = kwargs.pop(kwarg)  # we remove the macro_key and get the code to execute
+                new_key, rslt = macro_call(macro_name, macro_code, kwargs)  # run the code in the local context
+                kwargs[new_key] = rslt  # put the result back in the keywords dict
     # special processing for PyRO IPv6 host address
     try:
         s = kwargs['proxy_host']
         if ':' in s:  # it is an IPv6 address
-            if s[0] != '[':  # is not surrounded by bracketss
-                kwargs['proxy_host'] = s.join(('[',']')) # put it in brackets
+            if s[0] != '[':  # is not surrounded by brackets
+                kwargs['proxy_host'] = s.join(('[',']'))  # put it in brackets
     except KeyError:
         pass
     return kwargs

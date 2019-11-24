@@ -34,6 +34,7 @@ if '--help' in sys.argv:
     --mssql - test against Microsoft SQL server
     --pg - test against PostgreSQL
     --mysql - test against MariaDB
+    --remote= - test unsing remote server at= (experimental) 
     """)
     exit()
 try:
@@ -56,6 +57,14 @@ else:
 if pth not in sys.path:
     #  look here _first_ to find modules
     sys.path.insert(1,pth)
+
+proxy_host = None
+for arg in sys.argv:
+    if arg.startswith('--remote='):
+        proxy_host = arg.split("=")[1]
+        import adodbapi.remote as remote
+        break
+
 
 # function to clean up the temporary folder -- calling program must run this function before exit.
 cleanup = setuptestframework.getcleanupfunction()
@@ -90,8 +99,6 @@ iterateOverTimeTests = ('--time' in sys.argv or doAllTests) and onWindows
 # # start your environment setup here v v v
 SQL_HOST_NODE = 'testsql.2txt.us,1430'
 
-remote = False  # automatic tests for remote access are no longer included here.
-
 try: #If mx extensions are installed, use mxDateTime
     import mx.DateTime
     doMxDateTimeTest=True
@@ -101,10 +108,11 @@ except:
 doTimeTest = True # obsolete python time format
 
 if doAccessTest:
-    if not remote:
+    if proxy_host:  # determine the (probably remote) database file folder
+        c = {'macro_find_temp_test_path': ['mdb', mdb_name],
+             'proxy_host': proxy_host }
+    else:
         c = {'mdb': setuptestframework.makemdb(testfolder, mdb_name)}
-    else:  # determine the (possibly remote) database file folder
-        c = {'macro_find_temp_test_path' : ['mdb', mdb_name]}
 
     # macro definition for keyword "provider"  using macro "is64bit" -- see documentation
     # is64bit will return true for 64 bit versions of Python, so the macro will select the ACE provider
@@ -125,6 +133,8 @@ if doSqlServerTest:
         'macro_auto_security' : 'security',
         'provider' : 'MSOLEDBSQL; MARS Connection=True'
          }
+    if proxy_host:
+        c['proxy_host'] = proxy_host
     connStr = "Provider=%(provider)s; Initial Catalog=%(database)s; Data Source=%(host)s; %(security)s;"
     print('    ...Testing MS-SQL login to {}...'.format(c['host']))
     doSqlServerTest, connStrSQLServer, dbSqlServerconnect = tryconnection.try_connection(verbose, connStr, 30, **c)
@@ -136,7 +146,8 @@ if doMySqlTest:
         'password' : '12345678',
          'port'    : '3330',  # note the nonstandard port for obfuscation
         'driver' : "MySQL ODBC 5.1 Driver"}    # or _driver="MySQL ODBC 3.51 Driver
-
+    if proxy_host:
+        c['proxy_host'] = proxy_host
     c['macro_is64bit'] = ['provider', 'Provider=MSDASQL;']  # turn on the 64 bit ODBC adapter only if needed
     cs = '%(provider)sDriver={%(driver)s};Server=%(host)s;Port=3330;' + \
         'Database=%(database)s;user=%(user)s;password=%(password)s;Option=3;'
@@ -156,6 +167,8 @@ if doPostgresTest:
                             'Driver=PostgreSQL Unicode']
     # get driver from http://www.postgresql.org/ftp/odbc/versions/
     # test using positional and keyword arguments (bad example for real code)
+    if proxy_host:
+        kws['proxy_host'] = proxy_host
     print('    ...Testing PostgreSQL login to {}...'.format(_computername))
     doPostgresTest, connStrPostgres, dbPostgresConnect = tryconnection.try_connection(verbose,
         '%(prov_drv)s;Server=%(host)s;Database=%(database)s;uid=%(user)s;pwd=%(password)s;port=5430;',  # note nonstandard port

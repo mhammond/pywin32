@@ -26,6 +26,7 @@ This module source should run correctly in CPython versions 2.5 and later,
 or IronPython version 2.7 and later,
 or, after running through 2to3.py, CPython 3.0 or later.
 """
+from __future__ import absolute_import
 
 __version__ = '2.6.0.4'
 version = 'adodbapi.remote v' + __version__
@@ -37,14 +38,16 @@ import time
 import datetime
 
 # Pyro4 is required for server and remote operation --> https://pypi.python.org/pypi/Pyro4/
-import Pyro4
+try:
+    import Pyro4
+except ImportError:
+    print('* * * Sorry, server operation requires Pyro4. Please "pip import" it.')
+    exit(11)
 
+import adodbapi
 import adodbapi.apibase as api
 import adodbapi.process_connect_string
-from adodbapi.apibase import apilevel, threadsafety, paramstyle
-from adodbapi.apibase import Warning, Error, InterfaceError, DatabaseError, DataError, OperationalError, IntegrityError
-from adodbapi.apibase import InternalError, ProgrammingError, NotSupportedError, FetchFailedError
-from adodbapi.apibase import NUMBER, STRING, BINARY, DATETIME, ROWID
+from adodbapi.apibase import ProgrammingError
 
 _BaseException = api._BaseException
 

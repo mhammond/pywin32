@@ -1,9 +1,9 @@
 """A test runner for pywin32"""
+from __future__ import print_function
 import sys
 import os
 import site
 import subprocess
-import win32api
 
 # locate the dirs based on where this script is - it may be either in the
 # source tree, or in an installed Python 'Scripts' tree.
@@ -16,13 +16,17 @@ def run_test(script, cmdline_rest=""):
     dirname, scriptname = os.path.split(script)
     # some tests prefer to be run from their directory.
     cmd = [sys.executable, "-u", scriptname] + cmdline_rest.split()
-    print script
+    print(script)
     popen = subprocess.Popen(cmd, shell=True, cwd=dirname,
                              stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     data = popen.communicate()[0]
-    sys.stdout.buffer.write(data)
+    if sys.version_info > (3,):
+        sys.stdout.write(data.decode('latin-1'))
+    else:
+        sys.stdout.write(data)
+    sys.stdout.flush()
     if popen.returncode:
-        print "****** %s failed: %s" % (script, popen.returncode)
+        print("****** %s failed: %s" % (script, popen.returncode))
         sys.exit(popen.returncode)
 
 
@@ -68,4 +72,4 @@ if __name__ == '__main__':
     find_and_run(maybes, 'test_adodbapi_dbapi20.py')
 
     if sys.version_info > (3,):
-        print "** The tests have some issues on py3k - not all failures are a problem..."
+        print("** The tests have some issues on py3k - not all failures are a problem...")

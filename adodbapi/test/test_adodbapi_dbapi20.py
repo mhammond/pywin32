@@ -37,7 +37,7 @@ node = platform.node()
 
 conn_kws = {}
 host = 'testsql.2txt.us,1430' # if None, will use macro to fill in node name
-instance = r'%s\\SQLEXPRESS'
+instance = r'%s\SQLEXPRESS'
 conn_kws['name'] = 'adotest'
 
 conn_kws['user'] = 'adotestuser'  # None implies Windows security
