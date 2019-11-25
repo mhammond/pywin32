@@ -41,6 +41,10 @@ or:
 or:
         adodbapi.apibase.variantConversions[adodbapi.ado_consts.adNumeric] = write_your_own_convertion_function
 		............
+notes for 2.6.2:
+    The definitive source has been moved to https://github.com/mhammond/pywin32/tree/master/adodbapi.
+    Remote has proven too hard to configure and test with Pyro4. I am moving it to unsupported status
+    until I can change to a different connection method.
 whats new in version 2.6
    A cursor.prepare() method and support for prepared SQL statements.
    Lots of refactoring, especially of the Remote and Server modules (still to be treated as Beta code).
@@ -68,8 +72,6 @@ whats new in version 2.5
          oldconverter=adodbapi.variantConversions[adodbapi.adoStringTypes]
       Refactor as: oldconverter=adodbapi.variantConversions[adodbapi.adoStringTypes[0]]
 
-(( More information like this in older_whatsnew.txt ))
-	  
 License
 -------
 LGPL, see http://www.opensource.org/licenses/lgpl-license.php
@@ -86,4 +88,5 @@ Mailing lists
 -------------
 The adodbapi mailing lists have been deactivated. Submit comments to the 
 pywin32 or IronPython mailing lists.
-  -- the bug tracker on sourceforge.net/projects/adodbapi will be checked, (infrequently).
+  -- the bug tracker on sourceforge.net/projects/adodbapi may be checked, (infrequently).
+  -- please use: https://github.com/mhammond/pywin32/issues
