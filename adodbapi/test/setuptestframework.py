@@ -1,7 +1,7 @@
 #!/usr/bin/python2
 # Configure this in order to run the testcases.
-"setuptestframework.py v 2.5.0.c9"
-
+"setuptestframework.py v 2.6.0.8"
+from __future__ import print_function
 import os
 import sys
 import tempfile
@@ -15,9 +15,6 @@ except NameError:  # not running on Windows
 def maketemp():
     temphome = tempfile.gettempdir()
     tempdir = os.path.join(temphome, 'adodbapi_test')
-    ## try:  ## if running simultanous test, don't erase the other thread's work
-    ##    shutil.rmtree(tempdir) # kill off an old copy
-    ## except: pass
     try: os.mkdir(tempdir)
     except: pass
     return tempdir
@@ -25,7 +22,9 @@ def maketemp():
 def _cleanup_function(testfolder, mdb_name):
     try: os.unlink(os.path.join(testfolder, mdb_name))
     except: pass  # mdb database not present
-    try: shutil.rmtree(os.path.join(testfolder, 'adodbapi'))
+    try:
+        shutil.rmtree(testfolder)
+        print('   cleaned up folder', testfolder)
     except: pass # test package not present
 
 def getcleanupfunction():
@@ -65,7 +64,9 @@ def makemdb(testfolder, mdb_name):
     import os
 
     _accessdatasource = os.path.join(testfolder, mdb_name)
-    if not os.path.isfile(_accessdatasource):
+    if os.path.isfile(_accessdatasource):
+        print('using JET database=', _accessdatasource)
+    else:
         try:
             from win32com.client.gencache import EnsureDispatch
             from win32com.client import constants
@@ -95,13 +96,13 @@ def makemdb(testfolder, mdb_name):
                 workspace = dbe.Workspaces(0)
                 newdb = workspace.CreateDatabase(_accessdatasource,
                                                 constants.dbLangGeneral,
-                                                constants.dbEncrypt)
+                                                constants.dbVersion40)
             else:
                 newdb = dbe.CreateDatabase(_accessdatasource,';LANGID=0x0409;CP=1252;COUNTRY=0')
             newdb.Close()
         else:
             print('    ...copying test ACCESS db to '+_accessdatasource)
-            mdbName = os.path.normpath(os.getcwd() + '/../examples/test.mdb')
+            mdbName = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'examples', 'test.mdb'))
             import shutil
             shutil.copy(mdbName, _accessdatasource)
 

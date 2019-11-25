@@ -11,7 +11,7 @@
     -- Ian Bicking
 '''
 
-__version__ = '$Revision: 1.14.3 $'[11:-2]
+__version__ = '$Revision: 1.15.0 $'[11:-2]
 __author__ = 'Stuart Bishop <stuart@stuartbishop.net>'
 
 import unittest
@@ -28,7 +28,10 @@ else:                   #python 2.x
         self.failUnless(expr, msg)  ## deprecated since Python 2.6
 
 # set this to "True" to follow API 2.0 to the letter
-TEST_FOR_NON_IDEMPOTENT_CLOSE = True
+TEST_FOR_NON_IDEMPOTENT_CLOSE = False
+
+# Revision 1.15  2019/11/22 00:50:00  kf7xm
+# Make Turn off IDEMPOTENT_CLOSE a proper skipTest
 
 # Revision 1.14  2013/05/20 11:02:05  kf7xm
 # Add a literal string to the format insertion test to catch trivial re-format algorithms
@@ -402,7 +405,9 @@ class DatabaseAPI20Test(unittest.TestCase):
         # connection.close should raise an Error if called more than once
         #!!! reasonable persons differ about the usefulness of this test and this feature !!!
         if TEST_FOR_NON_IDEMPOTENT_CLOSE:
-            self.assertRaises(self.driver.Error,con.close)
+            self.assertRaises(self.driver.Error, con.close)
+        else:
+            self.skipTest("Non-idempotent close is considered a bad thing by some people.")
 
     def test_execute(self):
         con = self._connect()
