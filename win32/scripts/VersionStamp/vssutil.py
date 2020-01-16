@@ -12,7 +12,7 @@ error = "vssutil error"
 
 def GetSS():
 	ss=win32com.client.Dispatch("SourceSafe")
-	# SS seems a bit wierd.  It defaults the arguments as empty strings, but
+	# SS seems a bit weird.  It defaults the arguments as empty strings, but
 	# then complains when they are used - so we pass "Missing"
 	ss.Open(pythoncom.Missing, pythoncom.Missing, pythoncom.Missing)
 	return ss

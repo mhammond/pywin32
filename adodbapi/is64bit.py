@@ -22,7 +22,7 @@ def os():
             return True  # 32 bit program running on 64 bit Windows
         try:
             return os.environ['PROCESSOR_ARCHITECTURE'].endswith('64')  # 64 bit Windows 64 bit program
-        except IndexError:
+        except (IndexError, KeyError):
             pass  # not Windows
         try:
             return '64' in platform.architecture()[0]  # this often works in Linux

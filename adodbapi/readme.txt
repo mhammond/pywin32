@@ -13,7 +13,6 @@ Features:
 * Includes pyunit testcases that describe how to use the module.  
 * Fully implemented in Python. -- runs in Python 2.5+ Python 3.0+ and IronPython 2.6+
 * Licensed under the LGPL license, which means that it can be used freely even in commercial programs subject to certain restrictions. 
-* Includes SERVER and REMOTE modules so that a Windows proxy can serve ADO databases to a Linux client using PyRO.
 * The user can choose between paramstyles: 'qmark' 'named' 'format' 'pyformat' 'dynamic'
 * Supports data retrieval by column name e.g.:
   for row in myCurser.execute("select name,age from students"):
@@ -21,18 +20,16 @@ Features:
 * Supports user-definable system-to-Python data conversion functions (selected by ADO data type, or by column)
 
 Prerequisites:
-* C Python 2.5 or higher
+* C Python 2.7 or 3.5 or higher
  and pywin32 (Mark Hammond's python for windows extensions.)
 or
- Iron Python 2.6 or higher.  (works in IPy2.0 for all data types except BUFFER)
+ Iron Python 2.7 or higher.  (works in IPy2.0 for all data types except BUFFER)
 
 Installation:
-* (C-Python on Windows): Download pywin32 from http://sf.net/projects/pywin32 and install from .msi (adodbapi is included)
-* ((to use Windows as a server, also download and install Pyro4 (requires Python 2.6 or later))) https://pypi.python.org/pypi/Pyro4
+* (C-Python on Windows): Install pywin32 ("pip install pywin32") which includes adodbapi.
 * (IronPython on Windows): Download adodbapi from http://sf.net/projects/adodbapi.  Unpack the zip.
      Open a command window as an administrator. CD to the folder containing the unzipped files.
      Run "setup.py install" using the IronPython of your choice.
-* (Linux, as a client): download and install from PyPi: "pip install adodbapi Pyro4"
 
 NOTE: ...........
 If you do not like the new default operation of returning Numeric columns as decimal.Decimal,
@@ -44,6 +41,10 @@ or:
 or:
         adodbapi.apibase.variantConversions[adodbapi.ado_consts.adNumeric] = write_your_own_convertion_function
 		............
+notes for 2.6.2:
+    The definitive source has been moved to https://github.com/mhammond/pywin32/tree/master/adodbapi.
+    Remote has proven too hard to configure and test with Pyro4. I am moving it to unsupported status
+    until I can change to a different connection method.
 whats new in version 2.6
    A cursor.prepare() method and support for prepared SQL statements.
    Lots of refactoring, especially of the Remote and Server modules (still to be treated as Beta code).
@@ -71,22 +72,21 @@ whats new in version 2.5
          oldconverter=adodbapi.variantConversions[adodbapi.adoStringTypes]
       Refactor as: oldconverter=adodbapi.variantConversions[adodbapi.adoStringTypes[0]]
 
-(( More information like this in older_whatsnew.txt ))
-	  
 License
 -------
 LGPL, see http://www.opensource.org/licenses/lgpl-license.php
 
 Documentation
 -------------
-Start with:
 
+Look at adodbapi/quick_reference.md
 http://www.python.org/topics/database/DatabaseAPI-2.0.html
 read the examples in adodbapi/examples
-and look at the test cases in adodbapi/test directory. 
+and look at the test cases in adodbapi/test directory.
 
 Mailing lists
 -------------
 The adodbapi mailing lists have been deactivated. Submit comments to the 
 pywin32 or IronPython mailing lists.
-  -- the bug tracker on sourceforge.net/projects/adodbapi will be checked, (infrequently).
+  -- the bug tracker on sourceforge.net/projects/adodbapi may be checked, (infrequently).
+  -- please use: https://github.com/mhammond/pywin32/issues

@@ -6,6 +6,10 @@ However contributors are encouraged to add their own entries for their work.
 
 Since build 226:
 ----------------
+* Adodbapi corrected and updated to version 2.6.2. With this change the pywin32
+  repo will become the definitive source code for adodbapi, so files should never
+  be missing again. Includes bug fix for 'named' paramstyle SF#28.
+
 * Improved the search for pywin32 system DLLs logic. Useful when installed
   in virtual environments (#1442, @CristiFati)
 
