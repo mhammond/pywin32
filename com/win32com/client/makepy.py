@@ -366,7 +366,7 @@ def main():
 
 	if outputName is not None:
 		path = os.path.dirname(outputName)
-		if path is not '' and not os.path.exists(path):
+		if path != '' and not os.path.exists(path):
 			os.makedirs(path)
 		if sys.version_info > (3,0):
 			f = open(outputName, "wt", encoding="mbcs")
