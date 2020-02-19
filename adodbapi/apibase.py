@@ -474,7 +474,10 @@ class SQLrow(object): # a single database row
         self.rows = rows # parent 'fetch' container object
         self.index = index # my row number within parent
     def __getattr__(self, name): # used for row.columnName type of value access
-        return self._getValue(self.rows.columnNames[name.lower()])
+        try:
+            return self._getValue(self.rows.columnNames[name.lower()])
+        except KeyError:
+            raise AttributeError('Unknown column name "{}"'.format(name))
     def _getValue(self,key):  # key must be an integer
         if self.rows.recordset_format == RS_ARRAY: # retrieve from two-dimensional array
             v = self.rows.ado_results[key,self.index]
