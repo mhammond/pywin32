@@ -65,4 +65,4 @@ venv.bak/
 # other IDEs, MacOS, etc
 .idea/
 .DS_Store
-vagrant_helpers/bootstrap-salt.ps1
+vgr.bat
