@@ -5495,6 +5495,12 @@ DWORD GetSysColor(int Index);	// @pyparm int|Index||One of win32con.COLOR_* valu
 // @pyswig <o PyGdiHANDLE>|GetSysColorBrush|Creates a handle to a system color brush
 HBRUSH GetSysColorBrush(int nIndex);	// @pyparm int|Index||Index of a window element color (win32con.COLOR_*)
 
+// @pyswig |ValidateRect|Validates the client area within a rectangle by removing the rectangle from the update region of the specified window.
+BOOLAPI ValidateRect(HWND hWnd,            // @pyparm <o PyHANDLE>|hWnd||Handle to the window
+                     RECT *INPUT_NULLOK);  // @pyparm <o PyRECT>|Rect||Client coordinates of the
+                                           // rectangle to be removed from the update region. If this parameter is Nonr,
+                                           // the entire client area is removed.
+
 // @pyswig |InvalidateRect|Invalidates a rectangular area of a window and adds it to the window's update region
 BOOLAPI InvalidateRect(
 	HWND hWnd,			// @pyparm <o PyHANDLE>|hWnd||Handle to the window
