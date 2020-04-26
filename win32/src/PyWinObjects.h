@@ -1,6 +1,5 @@
-
 #ifndef __PYWINOBJECTS_H__
-#define __PYWINTYPES_H__
+#define __PYWINOBJECTS_H__
 
 #ifndef NO_PYWINTYPES_IID
 // NOTE - In general, you should not use "new PyIID", but use the
@@ -174,7 +173,6 @@ class PYWINTYPES_EXPORT PyHKEY : public PyHANDLE {
     virtual BOOL Close(void);
     virtual const char *GetTypeName() { return "PyHKEY"; }
 };
-#endif /* __PYWINTYPES_H__ */
 
 class PYWINTYPES_EXPORT PyDEVMODEA : public PyObject {
    public:
@@ -244,3 +242,5 @@ class PYWINTYPES_EXPORT PyDEVMODEW : public PyObject {
 #else
 #define PyDEVMODE PyDEVMODEA
 #endif
+
+#endif /* __PYWINOBJECTS_H__ */
