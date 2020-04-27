@@ -51,6 +51,7 @@ class PySecBuffer : public PyObject {
     static PyObject *getattro(PyObject *self, PyObject *name);
     static int setattro(PyObject *self, PyObject *obname, PyObject *obvalue);
     static PyObject *tp_new(PyTypeObject *, PyObject *, PyObject *);
+    static PyObject *tp_repr(PyObject * obj);
     static PyObject *Clear(PyObject *self, PyObject *args);
 
     PSecBuffer GetSecBuffer(void);
@@ -81,6 +82,7 @@ class PySecBufferDesc : public PyObject {
     static PyObject *getattro(PyObject *self, PyObject *name);
     static int setattro(PyObject *self, PyObject *obname, PyObject *obvalue);
     static PyObject *tp_new(PyTypeObject *, PyObject *, PyObject *);
+    static PyObject *tp_repr(PyObject * obj);
     static PySequenceMethods sequencemethods;
     PSecBufferDesc GetSecBufferDesc(void);
     PyObject **obBuffers;

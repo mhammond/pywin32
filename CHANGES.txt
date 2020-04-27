@@ -11,6 +11,7 @@ Since build 227:
 * Adodbapi corrected and updated to version 2.6.2. With this change the pywin32
   repo will become the definitive source code for adodbapi, so files should never
   be missing again. Includes bug fix for 'named' paramstyle SF#28.
+* Added a __repr__ implementation for PySecBufferDesc and PySecBuffer.
 
 Since build 226:
 ----------------

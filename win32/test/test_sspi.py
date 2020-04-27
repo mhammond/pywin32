@@ -1,6 +1,7 @@
 # Some tests of the win32security sspi functions.
 # Stolen from Roger's original test_sspi.c, a version of which is in "Demos"
 # See also the other SSPI demos.
+import re
 import win32security, sspi, sspicon, win32api
 from pywin32_testutil import TestSkipped, testmain, str2bytes
 import unittest
@@ -136,6 +137,23 @@ class TestSSPI(unittest.TestCase):
 
     def testSequenceEncrypt(self):
         applyHandlingSkips(self._testSequenceEncrypt)
+
+    def testSecBufferRepr(self):
+        desc = win32security.PySecBufferDescType()
+        assert re.match('PySecBufferDesc\(ulVersion: 0 \| cBuffers: 0 \| pBuffers: 0x[\da-fA-F]{8,16}\)', repr(desc))
+
+        buffer1 = win32security.PySecBufferType(0, sspicon.SECBUFFER_TOKEN)
+        assert re.match('PySecBuffer\(cbBuffer: 0 \| BufferType: 2 \| pvBuffer: 0x[\da-fA-F]{8,16}\)', repr(buffer1))
+        'PySecBuffer(cbBuffer: 0 | BufferType: 2 | pvBuffer: 0x000001B8CC6D8020)'
+        desc.append(buffer1)
+
+        assert re.match('PySecBufferDesc\(ulVersion: 0 \| cBuffers: 1 \| pBuffers: 0x[\da-fA-F]{8,16}\)', repr(desc))
+
+        buffer2 = win32security.PySecBufferType(4, sspicon.SECBUFFER_DATA)
+        assert re.match('PySecBuffer\(cbBuffer: 4 \| BufferType: 1 \| pvBuffer: 0x[\da-fA-F]{8,16}\)', repr(buffer2))
+        desc.append(buffer2)
+
+        assert re.match('PySecBufferDesc\(ulVersion: 0 \| cBuffers: 2 \| pBuffers: 0x[\da-fA-F]{8,16}\)', repr(desc))
 
 if __name__=='__main__':
     testmain()

@@ -89,7 +89,7 @@ PyTypeObject PySecBufferDescType = {
     0,                                         // tp_getattr
     0,                                         // tp_setattr
     0,                                         // tp_compare
-    0,                                         // tp_repr
+    PySecBufferDesc::tp_repr,                  // tp_repr
     0,                                         // PyNumberMethods *tp_as_number
     &PySecBufferDesc_sequencemethods,          // PySequenceMethods *tp_as_sequence
     0,                                         // PyMappingMethods *tp_as_mapping
@@ -190,6 +190,13 @@ PyObject *PySecBufferDesc::tp_new(PyTypeObject *typ, PyObject *args, PyObject *k
     if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|l:PySecBufferDescType", keywords, &ulVersion))
         return NULL;
     return new PySecBufferDesc(ulVersion);
+}
+
+PyObject * PySecBufferDesc::tp_repr(PyObject * obj)
+{
+    PSecBufferDesc psecbufferdesc = ((PySecBufferDesc *)obj)->GetSecBufferDesc();
+    return PyUnicode_FromFormat("PySecBufferDesc(ulVersion: %i | cBuffers: %i | pBuffers: %p)",
+        psecbufferdesc->ulVersion, psecbufferdesc->cBuffers, psecbufferdesc->pBuffers);
 }
 
 BOOL PyWinObject_AsSecBufferDesc(PyObject *ob, PSecBufferDesc *ppSecBufferDesc, BOOL bNoneOk)
@@ -304,7 +311,7 @@ PyTypeObject PySecBufferType = {
     0,                                         // tp_getattr
     0,                                         // tp_setattr
     0,                                         // tp_compare
-    0,                                         // tp_repr
+    PySecBuffer::tp_repr,                      // tp_repr
     0,                                         // PyNumberMethods *tp_as_number
     0,                                         // PySequenceMethods *tp_as_sequence
     0,                                         // PyMappingMethods *tp_as_mapping
@@ -430,6 +437,13 @@ PyObject *PySecBuffer::tp_new(PyTypeObject *typ, PyObject *args, PyObject *kwarg
     if (!PyArg_ParseTupleAndKeywords(args, kwargs, "ll", keywords, &cbBuffer, &BufferType))
         return NULL;
     return new PySecBuffer(cbBuffer, BufferType);
+}
+
+PyObject * PySecBuffer::tp_repr(PyObject * obj)
+{
+    PSecBuffer psecbuffer = ((PySecBuffer *)obj)->GetSecBuffer();
+    return PyUnicode_FromFormat("PySecBuffer(cbBuffer: %i | BufferType: %i | pvBuffer: %p)", psecbuffer->cbBuffer,
+        psecbuffer->BufferType, psecbuffer->pvBuffer);
 }
 
 // @pymethod |PySecBuffer|Clear|Resets the buffer to all NULL's, and set the current size to maximum
