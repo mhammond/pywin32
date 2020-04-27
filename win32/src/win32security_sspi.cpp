@@ -89,7 +89,7 @@ PyTypeObject PySecBufferDescType = {
     0,                                         // tp_getattr
     0,                                         // tp_setattr
     0,                                         // tp_compare
-    (reprfunc)PySecBufferDesc::tp_repr,        // tp_repr
+    PySecBufferDesc::tp_repr,                  // tp_repr
     0,                                         // PyNumberMethods *tp_as_number
     &PySecBufferDesc_sequencemethods,          // PySequenceMethods *tp_as_sequence
     0,                                         // PyMappingMethods *tp_as_mapping
@@ -311,7 +311,7 @@ PyTypeObject PySecBufferType = {
     0,                                         // tp_getattr
     0,                                         // tp_setattr
     0,                                         // tp_compare
-    (reprfunc)PySecBuffer::tp_repr,            // tp_repr
+    PySecBuffer::tp_repr,                      // tp_repr
     0,                                         // PyNumberMethods *tp_as_number
     0,                                         // PySequenceMethods *tp_as_sequence
     0,                                         // PyMappingMethods *tp_as_mapping
