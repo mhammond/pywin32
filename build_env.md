@@ -16,26 +16,33 @@
 - Restart
 ## MFC v140
 - Install the [Build Tools for Visual Studio 2017 (version 15.9)](https://my.visualstudio.com) (`vs_BuildTools.exe` ~ 1 MB)
-- In the Visual Studio installer:
+- Maybe stop your virus scanner
+- In `Visual Studio installer`:
   - Select `Visual Studio Build Tools 2017 (15.9.21)`
     - Press `Modify`
       - In the `Visual Studio Build Tools 2017`
         - Check `C++ build tools`
-          - In the menue to the right, at the bottom of the “Optional” section, check:
+          - In the menue to the right, at the bottom of the “Optional” section, additionally check:
             - `VC++ 2015.3 v14.00 (v140) toolset for desktop`
-    - Press `Install` (~ 2 GB)
+    - Press `Install` 
 ## Microsoft Message Compiler
 Search the executable
 
-    cd "c:\Program Files (x86)"
+    cd "c:\Program Files (x86)\Windows Kits"
     dir /b /s mc.exe
 
 Append location to the `path` (example)
 
     set "path=%path%;c:\Program Files (x86)\Windows Kits\10\bin\10.0.18362.0\x64"
 
-## Build
+Test with 
 
+    where mc
+
+## Build
+Install Python 3.7.7 with all optional components
+
+    cd \git\pywin32
     python setup.py -q build
 
 
