@@ -363,19 +363,33 @@ PySecBuffer::PySecBuffer(ULONG cbBuffer, ULONG BufferType)
     ob_type = &PySecBufferType;
     secbuffer.cbBuffer = cbBuffer;
     secbuffer.BufferType = BufferType;
-    secbuffer.pvBuffer = malloc(cbBuffer);
-    // Any code that creates instances should check that buffer is not NULL !
-    if (secbuffer.pvBuffer == NULL)
-        PyErr_Format(PyExc_MemoryError, "PySecBuffer::PySecBuffer - cannot allocate buffer of %d bytes", cbBuffer);
-    else
-        ZeroMemory(secbuffer.pvBuffer, cbBuffer);
+
+    allocBuffer = NULL;
+    if (cbBuffer > 0)
+    {
+        // Stores our allocated memory in a class property so we don't try and free memory that wasn't allocated by us.
+        // Windows could change where pvBuffer points to after a function call and we should only be concerned about
+        // freeing memory that we have allocated ourselves.
+        allocBuffer = malloc(cbBuffer);
+
+        // Any code that creates instances should check that buffer is not NULL !
+        if (allocBuffer == NULL)
+            PyErr_Format(PyExc_MemoryError, "PySecBuffer::PySecBuffer - cannot allocate buffer of %d bytes", cbBuffer);
+        else
+            ZeroMemory(allocBuffer, cbBuffer);
+    }
+
+    secbuffer.pvBuffer = allocBuffer;
+
     _Py_NewReference(this);
 }
 
 PySecBuffer::~PySecBuffer()
 {
-    if (secbuffer.pvBuffer != NULL)
-        free(secbuffer.pvBuffer);
+    // We don't check secbuffer.pvBuffer as that could be a pointer set by Windows and not our originally allocated
+    // block of memory.
+    if (allocBuffer != NULL)
+        free(allocBuffer);
 }
 
 BOOL PySecBuffer_Check(PyObject *ob)

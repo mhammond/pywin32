@@ -73,11 +73,44 @@ class TestSSPI(unittest.TestCase):
         data, sig = sspiserver.encrypt(data_in)
         self.assertEqual(sspiclient.decrypt(data, sig), data_in)
 
+    def _doTestEncryptStream(self, pkg_name):
+        # Test out the SSPI/GSSAPI interop wrapping examples at
+        # https://docs.microsoft.com/en-us/windows/win32/secauthn/sspi-kerberos-interoperability-with-gssapi
+
+        sspiclient, sspiserver = self._doAuth(pkg_name)
+
+        pkg_size_info=sspiclient.ctxt.QueryContextAttributes(sspicon.SECPKG_ATTR_SIZES)
+        msg=str2bytes('some data to be encrypted ......')
+
+        trailersize=pkg_size_info['SecurityTrailer']
+        blocksize=pkg_size_info['BlockSize']
+        encbuf=win32security.PySecBufferDescType()
+        encbuf.append(win32security.PySecBufferType(trailersize, sspicon.SECBUFFER_TOKEN))
+        encbuf.append(win32security.PySecBufferType(len(msg), sspicon.SECBUFFER_DATA))
+        encbuf.append(win32security.PySecBufferType(blocksize, sspicon.SECBUFFER_PADDING))
+        encbuf[1].Buffer=msg
+        sspiclient.ctxt.EncryptMessage(0,encbuf,1)
+
+        encmsg = encbuf[0].Buffer + encbuf[1].Buffer + encbuf[2].Buffer
+        decbuf=win32security.PySecBufferDescType()
+        decbuf.append(win32security.PySecBufferType(len(encmsg), sspicon.SECBUFFER_STREAM))
+        decbuf.append(win32security.PySecBufferType(0, sspicon.SECBUFFER_DATA))
+        decbuf[0].Buffer = encmsg
+
+        sspiserver.ctxt.DecryptMessage(decbuf,1)
+        self.failUnlessEqual(msg, decbuf[1].Buffer)
+
     def testEncryptNTLM(self):
         self._doTestEncrypt("NTLM")
-    
+
+    def testEncryptStreamNTLM(self):
+        self._doTestEncryptStream("NTLM")
+
     def testEncryptKerberos(self):
         applyHandlingSkips(self._doTestEncrypt, "Kerberos")
+
+    def testEncryptStreamKerberos(self):
+        applyHandlingSkips(self._doTestEncryptStream, "Kerberos")
 
     def _doTestSign(self, pkg_name):
 
