@@ -1609,6 +1609,43 @@ PyObject *PyIsWow64Process(PyObject *self, PyObject *args)
 }
 %}
 
+%typedef VOID *LONG_VOIDPTR;
+%typemap(python,except) LONG_VOIDPTR {
+	Py_BEGIN_ALLOW_THREADS
+	$function
+	Py_END_ALLOW_THREADS
+	if ($source==0)  {
+		$cleanup;
+		return PyWin_SetAPIError("$name");
+	}
+}
+
+%typemap(python, in) LONG_VOIDPTR {
+	if (!PyWinLong_AsVoidPtr($source, &$target))
+		return NULL;
+}
+%typemap(python, out) LONG_VOIDPTR
+{
+	$target = PyWinLong_FromVoidPtr($source);
+}
+
+
+// @pyswig long|VirtualAllocEx|
+LONG_VOIDPTR VirtualAllocEx(
+	HANDLE hProcess, // @pyparm <o PyHANDLE>|hProcess||
+	LONG_VOIDPTR lpAddress, // @pyparm|long|address||
+	ULONG_PTR dwSize, // @pyparm|long|size||
+	DWORD flAllocationType, // @pyparm|long|allocationType||
+	DWORD flProtect // @pyparm|long|flProtect||
+);
+
+BOOLAPI VirtualFreeEx(
+	HANDLE hProcess, // @pyparm <o PyHANDLE>|hProcess||
+	LONG_VOIDPTR lpAddress, // @pyparm|long|address||
+	ULONG_PTR dwSize, // @pyparm|long|size||
+	DWORD dwFreeType // @pyparm|long|freeType||
+);
+
 #endif	// MS_WINCE
 
 %init %{
