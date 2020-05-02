@@ -517,21 +517,21 @@ def ParseStreams(rc_file, h_file):
     
 def Parse(rc_name, h_name = None):
     if h_name:
-        h_file = open(h_name, "rU")
+        h_file = open(h_name, "r")
     else:
         # See if same basename as the .rc
         h_name = rc_name[:-2]+"h"
         try:
-            h_file = open(h_name, "rU")
+            h_file = open(h_name, "r")
         except IOError:
             # See if MSVC default of 'resource.h' in the same dir.
             h_name = os.path.join(os.path.dirname(rc_name), "resource.h")
             try:
-                h_file = open(h_name, "rU")
+                h_file = open(h_name, "r")
             except IOError:
                 # .h files are optional anyway
                 h_file = None
-    rc_file = open(rc_name, "rU")
+    rc_file = open(rc_name, "r")
     try:
         return ParseStreams(rc_file, h_file)
     finally:
