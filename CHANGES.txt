@@ -17,6 +17,10 @@ Since build 227:
   be missing again. Includes bug fix for 'named' paramstyle SF#28.
 * Added a __repr__ implementation for PySecBufferDesc and PySecBuffer.
 
+* Fix bug when trying to free a PySecBuffer object when the buffer was not
+  allocated by the caller. This can occur when decrypting a message with a
+  SECBUFFER_STREAM and SECBUFFER_DATA buffer when calling DecryptMessage().
+
 Since build 226:
 ----------------
 * Improved the search for pywin32 system DLLs logic. Useful when installed

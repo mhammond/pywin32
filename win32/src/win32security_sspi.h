@@ -62,6 +62,7 @@ class PySecBuffer : public PyObject {
 
    protected:
     SecBuffer secbuffer;
+    void *allocBuffer;
 };
 
 class PySecBufferDesc : public PyObject {
