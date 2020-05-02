@@ -12,7 +12,14 @@ This is the readme for the Python for Win32 (pywin32) extensions, which provides
 
 See [CHANGES.txt](https://github.com/mhammond/pywin32/blob/master/CHANGES.txt) for recent notable changes.
 
-Note that as of build 222, pywin32 has a new home at [github](https://github.com/mhammond/pywin32).
+Build 228 is the last build supporting Python 2, and as part of this transition,
+all code in the repository is now using Python 3 syntax.
+To highlight and celebrate this change, build 228 is the last numbered 2XX - the
+following build numbers start at 300.
+
+In other words, there is no build 229 - the build numbers jump from 228 to 300.
+
+As of build 222, pywin32 has a new home at [github](https://github.com/mhammond/pywin32).
 You can find build 221 and later on github and older versions can be found on
 the old project home at [sourceforge](https://sourceforge.net/projects/pywin32/)
 

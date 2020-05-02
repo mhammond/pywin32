@@ -9,8 +9,7 @@ or
   python setup.py -q install
 to build and install into your current Python installation.
 
-Note that Python 2.7 is the only version of Python 2.x which is supported, and
-that Python 3.5 is the earliest Python 3.x supported.
+Note that Python 3.5 is the earliest Python supported.
 
 These extensions require a number of libraries to build, some of which may
 require you to install special SDKs or toolkits.  This script will attempt
@@ -69,12 +68,7 @@ import platform
 import shutil
 import subprocess
 
-is_py3k = sys.version_info > (3,) # get this out of the way early on...
-
-try:
-    import winreg # py3k
-except ImportError:
-    import winreg as winreg # py2k
+import winreg
 
 # The rest of our imports.
 from setuptools import setup
@@ -87,11 +81,7 @@ from distutils.command.build import build
 from distutils.command.install_data import install_data
 from distutils.command.build_scripts import build_scripts
 
-try:
-    from distutils.command.bdist_msi import bdist_msi
-except ImportError:
-    # py24 and earlier
-    bdist_msi = None
+from distutils.command.bdist_msi import bdist_msi
 
 from distutils.msvccompiler import get_build_version
 from distutils import log
@@ -190,11 +180,9 @@ def find_platform_sdk_dir():
 # Some nasty hacks to prevent most of our extensions using a manifest, as
 # the manifest - even without a reference to the CRT assembly - is enough
 # to prevent the extension from loading.  For more details, see
-# http://bugs.python.org/issue7833 (which has landed for Python 2.7 and on 3.2
-# and later, which are all we care about currently)
+# http://bugs.python.org/issue7833
 from distutils.msvc9compiler import MSVCCompiler
 MSVCCompiler._orig_spawn = MSVCCompiler.spawn
-MSVCCompiler._orig_link = MSVCCompiler.link
 
 # We need to override this method for versions where issue7833 *has* landed
 # (ie, 2.7 and 3.2+)
@@ -212,18 +200,16 @@ def manifest_get_embed_info(self, target_desc, ld_args):
             return orig_manifest, rid
     return None
 
-# always monkeypatch it in even though it will only be called in 2.7
-# and 3.2+.
 MSVCCompiler.manifest_get_embed_info = manifest_get_embed_info
 
 def monkeypatched_spawn(self, cmd):
     is_link = cmd[0].endswith("link.exe") or cmd[0].endswith('"link.exe"')
     is_mt = cmd[0].endswith("mt.exe") or cmd[0].endswith('"mt.exe"')
     _want_assembly_kept = getattr(self, '_want_assembly_kept', False)
-    if not _want_assembly_kept and is_mt:
+    if is_mt:
         # We don't want mt.exe run...
         return
-    if not _want_assembly_kept and is_link:
+    if is_link:
         # remove /MANIFESTFILE:... and add MANIFEST:NO
         # (but note that for winxpgui, which specifies a manifest via a
         # .rc file, this is ignored by the linker - the manifest specified
@@ -232,14 +218,14 @@ def monkeypatched_spawn(self, cmd):
             if cmd[i].startswith("/MANIFESTFILE:"):
                 cmd[i] = "/MANIFEST:NO"
                 break
-    if _want_assembly_kept and is_mt:
+    if is_mt:
         # We want mt.exe run with the original manifest
         for i in range(len(cmd)):
             if cmd[i] == "-manifest":
                 cmd[i+1] = cmd[i+1] + ".orig"
                 break
     self._orig_spawn(cmd)
-    if _want_assembly_kept and is_link:
+    if is_link:
         # We want a copy of the original manifest so we can use it later.
         for i in range(len(cmd)):
             if cmd[i].startswith("/MANIFESTFILE:"):
@@ -247,19 +233,7 @@ def monkeypatched_spawn(self, cmd):
                 shutil.copyfile(mfname, mfname + ".orig")
                 break
 
-def monkeypatched_link(self, target_desc, objects, output_filename, *args, **kw):
-    # no manifests for 3.3+
-    self._want_assembly_kept = sys.version_info < (3,3) and \
-                               (os.path.basename(output_filename).startswith("PyISAPI_loader.dll") or \
-                                os.path.basename(output_filename).startswith("perfmondata.dll") or \
-                                os.path.basename(output_filename).startswith("win32ui.pyd") or \
-                                target_desc==self.EXECUTABLE)
-    try:
-        return self._orig_link(target_desc, objects, output_filename, *args, **kw)
-    finally:
-        delattr(self, '_want_assembly_kept')
 MSVCCompiler.spawn = monkeypatched_spawn
-MSVCCompiler.link = monkeypatched_link
 
 
 sdk_info = find_platform_sdk_dir()
@@ -300,7 +274,6 @@ class WinExt (Extension):
                   base_address = None,
                   depends=None,
                   platforms=None, # none means 'all platforms'
-                  unicode_mode=None, # 'none'==default or specifically true/false.
                   implib_name=None,
                   delay_load_libraries="",
                  ):
@@ -342,7 +315,6 @@ class WinExt (Extension):
                             extra_link_args,
                             export_symbols)
         self.depends = depends or [] # stash it here, as py22 doesn't have it.
-        self.unicode_mode = unicode_mode
 
     def get_source_files(self, dsp):
         result = []
@@ -448,17 +420,12 @@ class WinExt (Extension):
                 if found_mfc:
                     break
 
-        # Handle Unicode - if unicode_mode is None, then it means True
-        # for py3k, false for py2
-        if self.unicode_mode or self.unicode_mode is None and is_py3k:
-            self.extra_compile_args.append("-DUNICODE")
-            self.extra_compile_args.append("-D_UNICODE")
-            self.extra_compile_args.append("-DWINNT")
+        self.extra_compile_args.append("-DUNICODE")
+        self.extra_compile_args.append("-D_UNICODE")
+        self.extra_compile_args.append("-DWINNT")
 
 class WinExt_pythonwin(WinExt):
     def __init__ (self, name, **kw):
-        if 'unicode_mode' not in kw:
-            kw['unicode_mode']=None
         kw.setdefault("extra_compile_args", []).extend(
                             ['-D_AFXDLL', '-D_AFXEXT','-D_MBCS'])
 
@@ -475,9 +442,8 @@ class WinExt_pythonwin_subsys_win(WinExt_pythonwin):
         else:
             self.extra_link_args.append('/SUBSYSTEM:WINDOWS')
 
-            if self.unicode_mode or self.unicode_mode is None and is_py3k:
-                # Unicode, Windows executables seem to need this magic:
-                self.extra_link_args.append('/ENTRY:wWinMainCRTStartup')
+            # Unicode, Windows executables seem to need this magic:
+            self.extra_link_args.append('/ENTRY:wWinMainCRTStartup')
 
 class WinExt_win32(WinExt):
     def __init__ (self, name, **kw):
@@ -491,8 +457,7 @@ class WinExt_win32_subsys_con(WinExt_win32):
 
         if build_ext.mingw32:
             self.extra_link_args.append('-mconsole')
-            if self.unicode_mode:
-                self.extra_link_args.append('-municode')
+            self.extra_link_args.append('-municode')
         else:
             self.extra_link_args.append('/SUBSYSTEM:CONSOLE')
 
@@ -570,84 +535,6 @@ class WinExt_system32(WinExt):
 
 ################################################################
 # Extensions to the distutils commands.
-
-# Start with 2to3 related stuff for py3k.
-do_2to3 = is_py3k
-if do_2to3:
-    def refactor_filenames(filenames):
-        from lib2to3.refactor import RefactoringTool
-        # we only need some fixers.
-        fixers = """basestring exec except dict import imports next nonzero
-                    print raise raw_input long standarderror types unicode
-                    urllib xrange""".split()
-        fqfixers = ['lib2to3.fixes.fix_' + f for f in fixers]
-
-        options = dict(doctests_only=False, fix=[], list_fixes=[],
-                       print_function=False, verbose=False,
-                       write=True)
-        r = RefactoringTool(fqfixers, options)
-        for updated_file in filenames:
-            if os.path.splitext(updated_file)[1] not in ['.py', '.pys']:
-                continue
-            log.info("Refactoring %s" % updated_file)
-            try:
-                r.refactor_file(updated_file, write=True, doctests_only=False)
-                if os.path.exists(updated_file + ".bak"):
-                    os.unlink(updated_file + ".bak")
-            except Exception:
-                log.warn("WARNING: Failed to 2to3 %s: %s" % (updated_file, sys.exc_info()[1]))
-else:
-    # py2k - nothing to do.
-    def refactor_filenames(filenames):
-        pass
-
-# 'build_py' command
-if do_2to3:
-    # Force 2to3 to be run for py3k versions.
-    class my_build_py(build_py):
-        def finalize_options(self):
-            build_py.finalize_options(self)
-            # must force as the 2to3 conversion happens in place so an
-            # interrupted build can cause py2 syntax files in a py3k build.
-            self.force = True
-
-        def run(self):
-            self.updated_files = []
-
-            # Base class code
-            if self.py_modules:
-                self.build_modules()
-            if self.packages:
-                self.build_packages()
-                self.build_package_data()
-
-            # 2to3
-            refactor_filenames(self.updated_files)
-
-            # Remaining base class code
-            self.byte_compile(self.get_outputs(include_bytecode=0))
-
-        def build_module(self, module, module_file, package):
-            res = build_py.build_module(self, module, module_file, package)
-            if res[1]:
-                # file was copied
-                self.updated_files.append(res[0])
-            return res
-else:
-    my_build_py = build_py # default version.
-
-# 'build_scripts' command
-if do_2to3:
-    class my_build_scripts(build_scripts):
-        def copy_file(self, src, dest):
-            dest, copied = build_scripts.copy_file(self, src, dest)
-            # 2to3
-            if not self.dry_run and copied:
-                refactor_filenames([dest])
-            return dest, copied
-
-else:
-    my_build_scripts = build_scripts
 
 # 'build' command
 class my_build(build):
@@ -882,19 +769,11 @@ class my_build_ext(build_ext):
         plat_dir_64 = "x64"
         mfc_dir = "Microsoft.{}.MFC".format(mfc_version.upper())
         mfc_contents = []
-        # 2.7, 3.0, 3.1 and 3.2 all use(d) vs2008 (compiler version 1500)
-        if sys.version_info < (3, 3):
-            product_key = "SOFTWARE\\Microsoft\\VisualStudio\\9.0\\Setup\\VC"
-            plat_dir_64 = "amd64"
-            mfc_files = mfc_libraries + ["Microsoft.VC90.MFC.manifest", ]
-        # 3.3 and 3.4 use(d) vs2010 (compiler version 1600, crt=10)
-        elif sys.version_info < (3, 5):
-            product_key = "SOFTWARE\\Microsoft\\VisualStudio\\10.0\\Setup\\VC"
-            mfc_files = mfc_libraries
+        # Here is where we'd match the Python version aganst the MSVC version,
+        # but all supported versions use the same compiler at the moment!
         # 3.5 and later on vs2015 (compiler version 1900, crt=14)
-        else:
-            product_key = "SOFTWARE\\Microsoft\\VisualStudio\\14.0\\Setup\\VC"
-            mfc_files = mfc_libraries
+        product_key = "SOFTWARE\\Microsoft\\VisualStudio\\14.0\\Setup\\VC"
+        mfc_files = mfc_libraries
 
         # On a 64bit host, the value we are looking for is actually in
         # SysWow64Node - but that is only available on xp and later.
@@ -920,7 +799,7 @@ class my_build_ext(build_ext):
             # Should have the same length - if not we lost a file!
             if len(mfc_files) is not len(mfc_contents):
                 mfc_contents = []
-        
+
         return mfc_contents
 
     def lookupMfcInWinSxS(self, mfc_version, mfc_libraries):
@@ -961,12 +840,8 @@ class my_build_ext(build_ext):
 
         self.found_libraries = {}
 
-        if not hasattr(self.compiler, 'initialized'):
-            # 2.3 and earlier initialized at construction
-            self.compiler.initialized = True
-        else:
-            if not self.compiler.initialized:
-                self.compiler.initialize()
+        if not self.compiler.initialized:
+            self.compiler.initialize()
 
         self._fixup_sdk_dirs()
 
@@ -998,9 +873,6 @@ class my_build_ext(build_ext):
 
         # Not sure how to make this completely generic, and there is no
         # need at this stage.
-        if sys.version_info > (2, 7) and sys.version_info < (3, 3):
-            # only stuff built with msvc9 needs this loader.
-            self._build_pycom_loader()
         self._build_scintilla()
         # Copy cpp lib files needed to create Python COM extensions
         clib_files = (['win32', 'pywintypes%s.lib'],
@@ -1021,17 +893,9 @@ class my_build_ext(build_ext):
         target_dir = os.path.join(self.build_lib, "pythonwin")
 
         # Common values for the MFC lookup over the Visual Studio installation and redist installation.
-        if sys.version_info < (3, 3):
-            mfc_version = "vc90"
-            mfc_libraries = ["mfc90.dll", "mfc90u.dll", "mfcm90.dll", "mfcm90u.dll"]
-        # 3.3 and 3.4 use(d) vs2010 (compiler version 1600, crt=10)
-        elif sys.version_info < (3, 5):
-            mfc_version = "vc100"
-            mfc_libraries = ["mfc100u.dll", "mfcm100u.dll"]
         # 3.5 and later on vs2015 (compiler version 1900, crt=14)
-        else:
-            mfc_version = "vc140"
-            mfc_libraries = ["mfc140u.dll", "mfcm140u.dll"]
+        mfc_version = "vc140"
+        mfc_libraries = ["mfc140u.dll", "mfcm140u.dll"]
 
         mfc_contents = self.lookupMfcInVisualStudio(mfc_version, mfc_libraries)
         if not mfc_contents:
@@ -1189,7 +1053,7 @@ class my_build_ext(build_ext):
         # with special defines. So we cannot use a shared
         # directory for objects, we must use a special one for each extension.
         old_build_temp = self.build_temp
-        want_static_crt = sys.version_info > (2,6) and ext.name in static_crt_modules
+        want_static_crt = ext.name in static_crt_modules
         if want_static_crt:
             self.compiler.compile_options.remove('/MD')
             self.compiler.compile_options.append('/MT')
@@ -1241,33 +1105,16 @@ class my_build_ext(build_ext):
         # So in the fixed versions we only get the base name, and if the
         # output name is simply 'dir\name' we need to nothing.
 
-        # The pre 3.1 pywintypes
-        if name == "pywin32_system32.pywintypes":
-            return "pywin32_system32\\pywintypes%d%d%s" % (sys.version_info[0], sys.version_info[1], extra_dll)
-        # 3.1+ pywintypes
-        elif name == "pywintypes":
+        if name == "pywintypes":
             return "pywintypes%d%d%s" % (sys.version_info[0], sys.version_info[1], extra_dll)
-        # pre 3.1 pythoncom
-        elif name == "pywin32_system32.pythoncom":
-            return "pywin32_system32\\pythoncom%d%d%s" % (sys.version_info[0], sys.version_info[1], extra_dll)
-        # 3.1+ pythoncom
         elif name == "pythoncom":
             return "pythoncom%d%d%s" % (sys.version_info[0], sys.version_info[1], extra_dll)
-        # Pre 3.1 rest.
-        elif name.endswith("win32.perfmondata"):
-            return "win32\\perfmondata" + extra_dll
+        elif name in ['perfmondata', 'PyISAPI_loader']:
+            return name + extra_dll
         elif name.endswith("win32.pythonservice"):
             return "win32\\pythonservice" + extra_exe
         elif name.endswith("pythonwin.Pythonwin"):
             return "pythonwin\\Pythonwin" + extra_exe
-        elif name.endswith("isapi.PyISAPI_loader"):
-            return "isapi\\PyISAPI_loader" + extra_dll
-        # The post 3.1 rest
-        elif name in ['perfmondata', 'PyISAPI_loader']:
-            return name + extra_dll
-        elif name in ['pythonservice', 'Pythonwin']:
-            return name + extra_exe
-
         return build_ext.get_ext_filename(self, name)
 
     def get_export_symbols(self, ext):
@@ -1328,8 +1175,6 @@ class my_build_ext(build_ext):
             swig_cmd = [swig, "-python", "-c++"]
             swig_cmd.append("-dnone",) # we never use the .doc files.
             swig_cmd.extend(self.current_extension.extra_swig_commands)
-            if not is_py3k:
-                swig_cmd.append("-DSWIG_PY2K")
             if distutils.util.get_platform() == 'win-amd64':
                 swig_cmd.append("-DSWIG_PY64BIT")
             else:
@@ -1493,13 +1338,6 @@ class my_install_data(install_data):
         print('Installing data files to %s' % self.install_dir)
         install_data.finalize_options(self)
 
-    def copy_file(self, src, dest):
-        dest, copied = install_data.copy_file(self, src, dest)
-        # 2to3
-        if not self.dry_run and copied:
-            refactor_filenames([dest])
-        return dest, copied
-
 ################################################################
 
 pywintypes = WinExt_system32('pywintypes',
@@ -1538,7 +1376,6 @@ win32_extensions.append(
             "win32/src/PerfMon/perfmondata.cpp",
             ],
         libraries="advapi32",
-        unicode_mode=True,
         export_symbol_file = "win32/src/PerfMon/perfmondata.def",
         is_regular_dll = 1,
         depends = [
@@ -1549,19 +1386,19 @@ win32_extensions.append(
     )
 
 for info in (
-        # (name, libraries, UNICODE, WINVER, sources)
-        ("mmapfile", "", None, None, "win32/src/mmapfilemodule.cpp"),
-        ("odbc", "odbc32 odbccp32", None, None, "win32/src/odbc.cpp"),
-        ("perfmon", "", True, None, """
+        # (name, libraries, WINVER, sources)
+        ("mmapfile", "", None, "win32/src/mmapfilemodule.cpp"),
+        ("odbc", "odbc32 odbccp32", None, "win32/src/odbc.cpp"),
+        ("perfmon", "", None, """
             win32/src/PerfMon/MappingManager.cpp
             win32/src/PerfMon/PerfCounterDefn.cpp
             win32/src/PerfMon/PerfObjectType.cpp
             win32/src/PerfMon/PyPerfMon.cpp
             """),
-        ("timer", "user32", None, None, "win32/src/timermodule.cpp"),
-        ("win2kras", "rasapi32", None, 0x0500, "win32/src/win2krasmodule.cpp"),
-        ("win32cred", "AdvAPI32 credui", True, 0x0501, 'win32/src/win32credmodule.cpp'),
-        ("win32crypt", "Crypt32 Advapi32", True, 0x0500, """
+        ("timer", "user32", None, "win32/src/timermodule.cpp"),
+        ("win2kras", "rasapi32", 0x0500, "win32/src/win2krasmodule.cpp"),
+        ("win32cred", "AdvAPI32 credui", 0x0501, 'win32/src/win32credmodule.cpp'),
+        ("win32crypt", "Crypt32 Advapi32", 0x0500, """
             win32/src/win32crypt/win32cryptmodule.cpp
             win32/src/win32crypt/win32crypt_structs.cpp
             win32/src/win32crypt/PyCERTSTORE.cpp
@@ -1572,68 +1409,65 @@ for info in (
             win32/src/win32crypt/PyCRYPTPROV.cpp
             win32/src/win32crypt/PyCTL_CONTEXT.cpp
             """),
-        ("win32file", "", None, 0x0500, """
+        ("win32file", "", 0x0500, """
               win32/src/win32file.i
               win32/src/win32file_comm.cpp
               """),
-        ("win32event", "user32", None, None, "win32/src/win32event.i"),
-        ("win32clipboard", "gdi32 user32 shell32", None, None, "win32/src/win32clipboardmodule.cpp"),
+        ("win32event", "user32", None, "win32/src/win32event.i"),
+        ("win32clipboard", "gdi32 user32 shell32", None, "win32/src/win32clipboardmodule.cpp"),
 
         # win32gui handled below
-        ("win32job", "user32", True, 0x0500, 'win32/src/win32job.i'),
-        ("win32lz", "lz32", None, None, "win32/src/win32lzmodule.cpp"),
-        ("win32net", "netapi32 advapi32", True, None, """
+        ("win32job", "user32", 0x0500, 'win32/src/win32job.i'),
+        ("win32lz", "lz32", None, "win32/src/win32lzmodule.cpp"),
+        ("win32net", "netapi32 advapi32", None, """
               win32/src/win32net/win32netfile.cpp    win32/src/win32net/win32netgroup.cpp
               win32/src/win32net/win32netmisc.cpp    win32/src/win32net/win32netmodule.cpp
               win32/src/win32net/win32netsession.cpp win32/src/win32net/win32netuse.cpp
               win32/src/win32net/win32netuser.cpp
               """),
-        ("win32pdh", "", True, None, "win32/src/win32pdhmodule.cpp"),
-        ("win32pipe", "", None, None, 'win32/src/win32pipe.i win32/src/win32popen.cpp'),
-        ("win32print", "winspool user32 gdi32", None, 0x0500, "win32/src/win32print/win32print.cpp"),
-        ("win32process", "advapi32 user32", None, 0x0500, "win32/src/win32process.i"),
-        ("win32profile", "Userenv", True, None, 'win32/src/win32profilemodule.cpp'),
-        ("win32ras", "rasapi32 user32", None, 0x0500, "win32/src/win32rasmodule.cpp"),
-        ("win32security", "advapi32 user32 netapi32", True, 0x0500, """
+        ("win32pdh", "", None, "win32/src/win32pdhmodule.cpp"),
+        ("win32pipe", "", None, 'win32/src/win32pipe.i win32/src/win32popen.cpp'),
+        ("win32print", "winspool user32 gdi32", 0x0500, "win32/src/win32print/win32print.cpp"),
+        ("win32process", "advapi32 user32", 0x0500, "win32/src/win32process.i"),
+        ("win32profile", "Userenv", None, 'win32/src/win32profilemodule.cpp'),
+        ("win32ras", "rasapi32 user32", 0x0500, "win32/src/win32rasmodule.cpp"),
+        ("win32security", "advapi32 user32 netapi32", 0x0500, """
             win32/src/win32security.i
             win32/src/win32security_sspi.cpp win32/src/win32security_ds.cpp
             """),
-        ("win32service", "advapi32 oleaut32 user32", True, 0x0501, """
+        ("win32service", "advapi32 oleaut32 user32", 0x0501, """
             win32/src/win32service_messages.mc
             win32/src/win32service.i
             """),
-        ("win32trace", "advapi32", None, None, "win32/src/win32trace.cpp"),
-        ("win32wnet", "netapi32 mpr", None, None, """
+        ("win32trace", "advapi32", None, "win32/src/win32trace.cpp"),
+        ("win32wnet", "netapi32 mpr", None, """
             win32/src/win32wnet/PyNCB.cpp
             win32/src/win32wnet/PyNetresource.cpp
             win32/src/win32wnet/win32wnet.cpp
             """),
-        ("win32inet", "wininet", None, 0x500, """
+        ("win32inet", "wininet", 0x500, """
             win32/src/win32inet.i
             win32/src/win32inet_winhttp.cpp
             """),
-        ("win32console", "kernel32", True, 0x0501, "win32/src/win32consolemodule.cpp"),
-        ("win32ts", "WtsApi32", True, 0x0501, "win32/src/win32tsmodule.cpp"),
-        ("_win32sysloader", "", None, 0x0501, "win32/src/_win32sysloader.cpp"),
-        ("win32transaction", "kernel32", True, 0x0501, "win32/src/win32transactionmodule.cpp"),
+        ("win32console", "kernel32", 0x0501, "win32/src/win32consolemodule.cpp"),
+        ("win32ts", "WtsApi32", 0x0501, "win32/src/win32tsmodule.cpp"),
+        ("_win32sysloader", "", 0x0501, "win32/src/_win32sysloader.cpp"),
+        ("win32transaction", "kernel32", 0x0501, "win32/src/win32transactionmodule.cpp"),
 
     ):
 
-    name, lib_names, unicode_mode = info[:3]
-    # unicode_mode == None means "not on py2.6, yes on py3", True means everywhere
-    # False means nowhere.
+    name, lib_names = info[:2]
     windows_h_ver = sources = None
+    if len(info)>2:
+        windows_h_ver = info[2]
     if len(info)>3:
-        windows_h_ver = info[3]
-    if len(info)>4:
-        sources = info[4].split()
+        sources = info[3].split()
     extra_compile_args = []
     ext = WinExt_win32(name,
                  libraries=lib_names,
                  extra_compile_args = extra_compile_args,
                  windows_h_version = windows_h_ver,
-                 sources = sources,
-                 unicode_mode = unicode_mode)
+                 sources = sources)
     win32_extensions.append(ext)
 
 # The few that need slightly special treatment
@@ -1687,8 +1521,7 @@ win32_extensions += [
            sources = ["win32/src/PythonServiceMessages.mc", "win32/src/PythonService.cpp"],
            extra_compile_args = ['-DPYSERVICE_BUILD_DLL'],
            libraries = "user32 ole32 advapi32 shell32",
-           windows_h_version = 0x500,
-           unicode_mode=True,),
+           windows_h_version = 0x500),
 ]
 
 win32_extensions += [
@@ -2027,7 +1860,6 @@ com_extensions += [
                         """ % dirs).split()),
 
     WinExt_win32com('propsys', libraries='propsys', delay_load_libraries='shell32',
-                    unicode_mode=True,
                     sources=("""
                         %(propsys)s/propsys.cpp
                         %(propsys)s/PyIInitializeWithFile.cpp
@@ -2275,7 +2107,6 @@ W32_exe_files = [
     WinExt_win32_subsys_con("pythonservice",
          sources=[os.path.join("win32", "src", s) for s in
                   "PythonService.cpp PythonService.rc".split()],
-         unicode_mode = True,
          libraries = "user32 advapi32 ole32 shell32"),
     WinExt_pythonwin_subsys_win("Pythonwin",
         sources = [
@@ -2456,15 +2287,14 @@ cmdclass = { 'install': my_install,
              'build': my_build,
              'build_ext': my_build_ext,
              'install_data': my_install_data,
-             'build_py' : my_build_py,
-             'build_scripts' : my_build_scripts,
+#             'build_py' : build_py,
+#             'build_scripts' : build_scripts,
            }
 
 classifiers = [ 'Environment :: Win32 (MS Windows)',
 	            'Intended Audience :: Developers',
 	            'License :: OSI Approved :: Python Software Foundation License',
 	            'Operating System :: Microsoft :: Windows',
-	            'Programming Language :: Python :: 2.7',
 	            'Programming Language :: Python :: 3.5',
 	            'Programming Language :: Python :: 3.6',
 	            'Programming Language :: Python :: 3.7',
