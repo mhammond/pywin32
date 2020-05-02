@@ -4,7 +4,7 @@ import win32ui
 import win32con
 import afxres
 
-import ModuleBrowser
+from . import ModuleBrowser
 
 class EditorFrame(pywin.framework.window.MDIChildWnd):
     def OnCreateClient(self, cp, context):

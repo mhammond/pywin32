@@ -27,7 +27,7 @@ class PyHandleTestCase(unittest.TestCase):
             """ This function should throw an IOError. """
             try:
                 f1(invalidate)
-            except ZeroDivisionError, exc:
+            except ZeroDivisionError as exc:
                 raise IOError("raise 2")
 
         self.assertRaises(IOError, f2, False)

@@ -29,37 +29,37 @@ def ReadLog(computer, logType="Application", dumpEachRecord = 0):
             else:
                 user_desc = None
             if dumpEachRecord:
-                print "Event record from %r generated at %s" % (object.SourceName, object.TimeGenerated.Format())
+                print("Event record from %r generated at %s" % (object.SourceName, object.TimeGenerated.Format()))
                 if user_desc:
-                    print user_desc
+                    print(user_desc)
                 try:
-                    print msg
+                    print(msg)
                 except UnicodeError:
-                    print "(unicode error printing message: repr() follows...)"
-                    print repr(msg)
+                    print("(unicode error printing message: repr() follows...)")
+                    print(repr(msg))
 
         num = num + len(objects)
 
     if numRecords == num:
-        print "Successfully read all", numRecords, "records"
+        print("Successfully read all", numRecords, "records")
     else:
-        print "Couldn't get all records - reported %d, but found %d" % (numRecords, num)
-        print "(Note that some other app may have written records while we were running!)"
+        print("Couldn't get all records - reported %d, but found %d" % (numRecords, num))
+        print("(Note that some other app may have written records while we were running!)")
     win32evtlog.CloseEventLog(h)
 
 def usage():
-    print "Writes an event to the event log."
-    print "-w : Dont write any test records."
-    print "-r : Dont read the event log"
-    print "-c : computerName : Process the log on the specified computer"
-    print "-v : Verbose"
-    print "-t : LogType - Use the specified log - default = 'Application'"
+    print("Writes an event to the event log.")
+    print("-w : Dont write any test records.")
+    print("-r : Dont read the event log")
+    print("-c : computerName : Process the log on the specified computer")
+    print("-v : Verbose")
+    print("-t : LogType - Use the specified log - default = 'Application'")
 
 
 def test():
     # check if running on Windows NT, if not, display notice and terminate
     if win32api.GetVersion() & 0x80000000:
-        print "This sample only runs on NT"
+        print("This sample only runs on NT")
         return
 
     import sys, getopt
@@ -71,7 +71,7 @@ def test():
     verbose = 0
 
     if len(args)>0:
-        print "Invalid args"
+        print("Invalid args")
         usage()
         return 1
     for opt, val in opts:

@@ -7,12 +7,12 @@ import win32con
 import types
 
 if not __debug__:
-    print "WARNING: The test code in this module uses assert"
-    print "This instance of Python has asserts disabled, so many tests will be skipped"
+    print("WARNING: The test code in this module uses assert")
+    print("This instance of Python has asserts disabled, so many tests will be skipped")
 
 cf_names = {}
 # Build map of CF_* constants to names.
-for name, val in win32con.__dict__.items():
+for name, val in list(win32con.__dict__.items()):
     if name[:3]=="CF_" and name != "CF_SCREENFONTS": # CF_SCREEN_FONTS==CF_TEXT!?!?
         cf_names[val] = name
 
@@ -41,7 +41,7 @@ def TestText():
         # CF_UNICODE text always gives unicode objects back.
         got = GetClipboardData(win32con.CF_UNICODETEXT)
         assert  got == text, "Didnt get the correct result back - '%r'." % (got,)
-        assert type(got)==types.UnicodeType, "Didnt get the correct result back - '%r'." % (got,)
+        assert type(got)==str, "Didnt get the correct result back - '%r'." % (got,)
 
         # CF_OEMTEXT is a bytes-based format.
         got = GetClipboardData(win32con.CF_OEMTEXT)
@@ -49,14 +49,14 @@ def TestText():
 
         # Unicode tests
         EmptyClipboard()
-        text = u"Hello from Python unicode"
+        text = "Hello from Python unicode"
         text_bytes = str2bytes(text)
         # Now set the Unicode value
         SetClipboardData(win32con.CF_UNICODETEXT, text)
         # Get it in Unicode.
         got = GetClipboardData(win32con.CF_UNICODETEXT)
         assert  got == text, "Didnt get the correct result back - '%r'." % (got,)
-        assert type(got)==types.UnicodeType, "Didnt get the correct result back - '%r'." % (got,)
+        assert type(got)==str, "Didnt get the correct result back - '%r'." % (got,)
 
         # Close and open the clipboard to ensure auto-conversions take place.
     finally:
@@ -70,10 +70,10 @@ def TestText():
         assert  got == text_bytes, "Didnt get the correct result back - '%r'." % (got,)
         # Make sure we get back the correct types.
         got = GetClipboardData(win32con.CF_UNICODETEXT)
-        assert type(got)==types.UnicodeType, "Didnt get the correct result back - '%r'." % (got,)
+        assert type(got)==str, "Didnt get the correct result back - '%r'." % (got,)
         got = GetClipboardData(win32con.CF_OEMTEXT)
         assert  got == text_bytes, "Didnt get the correct result back - '%r'." % (got,)
-        print "Clipboard text tests worked correctly"
+        print("Clipboard text tests worked correctly")
     finally:
         CloseClipboard()
 
@@ -94,8 +94,8 @@ def TestClipboardEnum():
                 except error:
                     n = "unknown (%s)" % (enum,)
 
-            print "Have format", n
-        print "Clipboard enumerator tests worked correctly"
+            print("Have format", n)
+        print("Clipboard enumerator tests worked correctly")
     finally:
         CloseClipboard()
 
@@ -112,15 +112,15 @@ def TestCustomFormat():
     try:
         # Just for the fun of it pickle Python objects through the clipboard
         fmt = RegisterClipboardFormat("Python Pickle Format")
-        import cPickle
+        import pickle
         pickled_object = Foo(a=1, b=2, Hi=3)
-        SetClipboardData(fmt, cPickle.dumps( pickled_object ) )
+        SetClipboardData(fmt, pickle.dumps( pickled_object ) )
         # Now read it back.
         data = GetClipboardData(fmt)
-        loaded_object = cPickle.loads(data)
-        assert cPickle.loads(data) == pickled_object, "Didnt get the correct data!"
+        loaded_object = pickle.loads(data)
+        assert pickle.loads(data) == pickled_object, "Didnt get the correct data!"
 
-        print "Clipboard custom format tests worked correctly"
+        print("Clipboard custom format tests worked correctly")
     finally:
         CloseClipboard()
 

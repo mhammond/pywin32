@@ -1,6 +1,6 @@
 import axdebug, gateways
-from util import _wrap, _wrap_remove, RaiseNotImpl
-import cStringIO, traceback
+from .util import _wrap, _wrap_remove, RaiseNotImpl
+import io, traceback
 from pprint import pprint
 from win32com.server.exception import COMException
 import winerror
@@ -9,7 +9,7 @@ import sys
 
 # Given an object, return a nice string
 def MakeNiceString(ob):
-    stream = cStringIO.StringIO()
+    stream = io.StringIO()
     pprint(ob, stream)
     return string.strip(stream.getvalue())
 
@@ -42,7 +42,7 @@ class Expression(gateways.DebugExpression):
                 try:
                     self.result = eval(self.code, self.frame.f_globals, self.frame.f_locals)
                 except SyntaxError:
-                    exec self.code in self.frame.f_globals, self.frame.f_locals
+                    exec(self.code, self.frame.f_globals, self.frame.f_locals)
                     self.result = ""
                 self.hresult = 0
             except:
@@ -54,7 +54,7 @@ class Expression(gateways.DebugExpression):
             self.isComplete = 1
             callback.onComplete()
     def Abort(self):
-        print "** ABORT **"
+        print("** ABORT **")
 
     def QueryIsComplete(self):
         return self.isComplete
@@ -70,10 +70,10 @@ class Expression(gateways.DebugExpression):
 def MakeEnumDebugProperty(object, dwFieldSpec, nRadix, iid, stackFrame = None):
     name_vals = []
     if hasattr(object, "items") and hasattr(object, "keys"): # If it is a dict.
-        name_vals = object.iteritems()
+        name_vals = iter(object.items())
         dictionary = object
     elif hasattr(object, "__dict__"):  #object with dictionary, module
-        name_vals = object.__dict__.iteritems()
+        name_vals = iter(object.__dict__.items())
         dictionary = object.__dict__
     infos = []
     for name, val in name_vals:

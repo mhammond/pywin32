@@ -7,11 +7,11 @@ to color the text, and also how to translate lines into offsets, and back.
 import sys
 from win32com.axdebug import axdebug
 import tokenize
-from util import RaiseNotImpl, _wrap
+from .util import RaiseNotImpl, _wrap
 
 from win32com.server.exception import Exception
 import win32api, winerror
-import contexts
+from . import contexts
 
 _keywords = {}                          # set of Python keywords
 for name in """
@@ -204,7 +204,7 @@ class SourceModuleContainer(SourceCodeContainer):
             if fname:
                 try:
                     self.text = open(fname, "r").read()
-                except IOError, details:
+                except IOError as details:
                     self.text = "# Exception opening file\n# %s" % (repr(details))
             else:
                 self.text = "# No file available for module '%s'" % (self.module)
@@ -245,10 +245,10 @@ if __name__=='__main__':
             attrlen = attrlen + 1
     text = sc.GetText()
     if attrlen!=len(text):
-        print "Lengths dont match!!! (%d/%d)" % (attrlen, len(text))
+        print("Lengths dont match!!! (%d/%d)" % (attrlen, len(text)))
 
 #       print "Attributes:"
 #       print attrs
-    print "GetLineOfPos=", sc.GetLineOfPosition(0)
-    print "GetLineOfPos=", sc.GetLineOfPosition(4)
-    print "GetLineOfPos=", sc.GetLineOfPosition(10)
+    print("GetLineOfPos=", sc.GetLineOfPosition(0))
+    print("GetLineOfPos=", sc.GetLineOfPosition(4))
+    print("GetLineOfPos=", sc.GetLineOfPosition(10))

@@ -12,7 +12,7 @@ import unittest
 def applyHandlingSkips(func, *args):
     try:
         return func(*args)
-    except win32api.error, exc:
+    except win32api.error as exc:
         if exc.winerror == sspicon.SEC_E_NO_CREDENTIALS:
             raise TestSkipped(exc)
         raise
@@ -24,7 +24,7 @@ class TestSSPI(unittest.TestCase):
         try:
             return func(*args)
             raise RuntimeError("expecting %s failure" % (hr,))
-        except win32security.error, exc:
+        except win32security.error as exc:
             self.failUnlessEqual(exc.winerror, hr)
 
     def _doAuth(self, pkg_name):

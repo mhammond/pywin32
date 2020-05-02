@@ -20,13 +20,13 @@ def TestWord():
     # Office 97 - _totally_ different object model!
     try:
         # NOTE - using "client.Dispatch" would return an msword8.py instance!
-        print "Starting Word 8 for dynamic test"
+        print("Starting Word 8 for dynamic test")
         word = win32com.client.dynamic.Dispatch("Word.Application")
         TestWord8(word)
 
         word = None
         # Now we will test Dispatch without the new "lazy" capabilities
-        print "Starting Word 8 for non-lazy dynamic test"
+        print("Starting Word 8 for non-lazy dynamic test")
         dispatch = win32com.client.dynamic._GetGoodDispatch("Word.Application")
         typeinfo = dispatch.GetTypeInfo()
         attr = typeinfo.GetTypeAttr()
@@ -36,11 +36,11 @@ def TestWord():
         TestWord8(word)
 
     except pythoncom.com_error:
-        print "Starting Word 7 for dynamic test"
+        print("Starting Word 7 for dynamic test")
         word = win32com.client.Dispatch("Word.Basic")
         TestWord7(word)
 
-    print "Starting MSWord for generated test"
+    print("Starting MSWord for generated test")
     from win32com.client import gencache
     word = gencache.EnsureDispatch("Word.Application.8")
     TestWord8(word)
@@ -50,7 +50,7 @@ def TestWord7(word):
     # If not shown, show the app.
     if not word.AppShow(): word._proc_("AppShow")
 
-    for i in xrange(12):
+    for i in range(12):
         word.FormatFont(Color=i+1, Points=i+12)
         word.Insert("Hello from Python %d\n" % i)
 
@@ -81,7 +81,7 @@ def TestWord8OldStyle():
     try:
         import win32com.test.Generated4Test.msword8
     except ImportError:
-        print "Can not do old style test"
+        print("Can not do old style test")
 
 
 def TextExcel(xl):
@@ -100,7 +100,7 @@ def TextExcel(xl):
     xl.Range("A2:C2").Value = ('x','y','z')
     xl.Range("A3:C3").Value = ('3','2','1')
 
-    for i in xrange(20):
+    for i in range(20):
         xl.Cells(i+1,i+1).Value = "Hi %d" % i
 
     if xl.Range("A1").Value != "Hi 0":
@@ -136,26 +136,26 @@ def TextExcel(xl):
 def TestAll():
     TestWord()
 
-    print "Starting Excel for Dynamic test..."
+    print("Starting Excel for Dynamic test...")
     xl = win32com.client.dynamic.Dispatch("Excel.Application")
     TextExcel(xl)
 
     try:
-        print "Starting Excel 8 for generated excel8.py test..."
+        print("Starting Excel 8 for generated excel8.py test...")
         mod = gencache.EnsureModule("{00020813-0000-0000-C000-000000000046}", 0, 1, 2, bForDemand=1)
         xl = win32com.client.Dispatch("Excel.Application")
         TextExcel(xl)
     except ImportError:
-        print "Could not import the generated Excel 97 wrapper"
+        print("Could not import the generated Excel 97 wrapper")
 
     try:
         import xl5en32
         mod = gencache.EnsureModule("{00020813-0000-0000-C000-000000000046}", 9, 1, 0)
         xl = win32com.client.Dispatch("Excel.Application.5")
-        print "Starting Excel 95 for makepy test..."
+        print("Starting Excel 95 for makepy test...")
         TextExcel(xl)
     except ImportError:
-        print "Could not import the generated Excel 95 wrapper"
+        print("Could not import the generated Excel 95 wrapper")
 
 if __name__=='__main__':
     TestAll()

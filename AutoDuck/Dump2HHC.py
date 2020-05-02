@@ -143,7 +143,7 @@ def parseTopics(cat, input):
                 raise RuntimeError("What is '%s'" % (top.type,))
 
             if top.name in d:
-                print("Duplicate named %s detected: %s" % (top.type, top.name))
+                print(("Duplicate named %s detected: %s" % (top.type, top.name)))
 
             # Skip the property fields line for module/object
             line = input.readline()

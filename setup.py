@@ -76,7 +76,7 @@ is_py3k = sys.version_info > (3,) # get this out of the way early on...
 try:
     import winreg # py3k
 except ImportError:
-    import _winreg as winreg # py2k
+    import winreg as winreg # py2k
 
 # The rest of our imports.
 from setuptools import setup

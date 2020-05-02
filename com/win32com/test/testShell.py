@@ -41,7 +41,7 @@ class ShellTester(win32com.test.util.TestCase):
             num += 1
         if num == 0:
             # This isn't a fatal error, but is unlikely.
-            print "Could not find any links on your desktop or programs dir, which is unusual"
+            print("Could not find any links on your desktop or programs dir, which is unusual")
 
     def testShellFolder(self):
         sf = shell.SHGetDesktopFolder()
@@ -177,7 +177,7 @@ class FILEGROUPDESCRIPTORTester(win32com.test.util.TestCase):
                  ftLastAccessTime=atime,
                  ftLastWriteTime=wtime,
                  nFileSize=sys_maxsize + 1),
-            dict(cFileName=u"foo\xa9.txt",
+            dict(cFileName="foo\xa9.txt",
                  sizel=(1,2),
                  pointl=(3,4),
                  dwFileAttributes = win32con.FILE_ATTRIBUTE_NORMAL,

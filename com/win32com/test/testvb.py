@@ -277,10 +277,10 @@ def TestArrays(vbtest, bUseGenerated):
     
     # byref safearray results with incorrect size.
     callback_ob = wrap(TestObject(), useDispatcher = useDispatcher)
-    print "** Expecting a 'ValueError' exception to be printed next:"
+    print("** Expecting a 'ValueError' exception to be printed next:")
     try:
         vbtest.DoCallbackSafeArraySizeFail(callback_ob)
-    except pythoncom.com_error, exc:
+    except pythoncom.com_error as exc:
         assert exc.excepinfo[1] == "Python COM Server Internal Error", "Didnt get the correct exception - '%s'" % (exc,)
         
     if bUseGenerated:
@@ -304,17 +304,17 @@ def TestArrays(vbtest, bUseGenerated):
         assert testData == list(resultData), "Expected '%s', got '%s'" % (testData, list(resultData))
         # This time, instead of an explicit str() for 1.5, we just
         # pass Unicode, so the result should compare equal
-        testData = [1, 2.0, u"3"]
+        testData = [1, 2.0, "3"]
         resultData, byRefParam = vbtest.PassSAFEARRAYVariant(testData)
         assert testData == list(byRefParam)
         assert testData == list(resultData)
-    print "Array tests passed"
+    print("Array tests passed")
 
 def TestStructs(vbtest):
     try:
         vbtest.IntProperty = "One"
         raise error("Should have failed by now")
-    except pythoncom.com_error, exc:
+    except pythoncom.com_error as exc:
         if exc.hresult != winerror.DISP_E_TYPEMISMATCH:
             raise error("Expected DISP_E_TYPEMISMATCH")
 
@@ -331,21 +331,21 @@ def TestStructs(vbtest):
     sub = s.sub_val
     sub.int_val = 22
     if sub.int_val != 22:
-        print sub.int_val
+        print(sub.int_val)
         raise error("The sub-struct value didnt persist!")
 
     if s.sub_val.int_val != 22:
-        print s.sub_val.int_val
+        print(s.sub_val.int_val)
         raise error("The sub-struct value (re-fetched) didnt persist!")
 
     if s.sub_val.array_val[0].int_val != 0 or str(s.sub_val.array_val[0].str_val) != "zero":
-        print s.sub_val.array_val[0].int_val
+        print(s.sub_val.array_val[0].int_val)
         raise error("The array element wasnt correct")
     s.sub_val.array_val[0].int_val = 99
     s.sub_val.array_val[1].int_val = 66
     if s.sub_val.array_val[0].int_val != 99 or \
        s.sub_val.array_val[1].int_val != 66:
-        print s.sub_val.array_val[0].int_val
+        print(s.sub_val.array_val[0].int_val)
         raise error("The array element didnt persist.")
     # Now pass the struct back to VB
     vbtest.StructProperty = s
@@ -414,17 +414,17 @@ def TestStructs(vbtest):
     try:
         s.foo
         raise RuntimeError("Expected attribute error")
-    except AttributeError, exc:
+    except AttributeError as exc:
         assert "foo" in str(exc), exc
 
     # test repr - it uses repr() of the sub-objects, so check it matches.
     expected = "com_struct(int_val=%r, str_val=%r, ob_val=%r, sub_val=%r)" % (s.int_val, s.str_val, s.ob_val, s.sub_val)
     if repr(s) != expected:
-        print "Expected repr:", expected
-        print "Actual repr  :", repr(s)
+        print("Expected repr:", expected)
+        print("Actual repr  :", repr(s))
         raise RuntimeError("repr() of record object failed")
     
-    print "Struct/Record tests passed"
+    print("Struct/Record tests passed")
 
 def TestVBInterface(ob):
     t = ob.GetInterfaceTester(2)
@@ -471,7 +471,7 @@ def TestObjectSemantics(ob):
     assert ob._oleobj_.QueryInterface(pythoncom.IID_IDispatch)==ob._oleobj_
     assert not ob._oleobj_.QueryInterface(pythoncom.IID_IDispatch)!=ob._oleobj_
 
-    print "Object semantic tests passed"
+    print("Object semantic tests passed")
 
 def DoTestAll():
     o = win32com.client.Dispatch("PyCOMVBTest.Tester")
@@ -491,10 +491,10 @@ def TestAll():
         raise RuntimeError("This must be run in debug mode - we use assert!")
     try:
         DoTestAll()
-        print "All tests appear to have worked!"
+        print("All tests appear to have worked!")
     except:
         # ?????
-        print "TestAll() failed!!"
+        print("TestAll() failed!!")
         traceback.print_exc()
         raise
 

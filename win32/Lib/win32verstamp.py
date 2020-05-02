@@ -75,7 +75,7 @@ def StringTable(key, data):
   key = nullterm(key)
   result = struct.pack('hh', 0, 1)	# wValueLength, wType
   result = result + key
-  for k, v in data.iteritems():
+  for k, v in data.items():
     result = result + String(k, v)
     result = pad32(result)
   return addlen(result)
@@ -97,7 +97,7 @@ def VarFileInfo(data):
   result = struct.pack('hh', 0, 1)	# wValueLength, wType
   result = result + nullterm('VarFileInfo')
   result = pad32(result)
-  for k, v in data.iteritems():
+  for k, v in data.items():
     result = result + Var(k, v)
   return addlen(result)
 
@@ -116,8 +116,8 @@ def stamp(pathname, options):
   try:
     f = open(pathname, "a+b")
     f.close()
-  except IOError, why:
-    print "WARNING: File %s could not be opened - %s" % (pathname, why)
+  except IOError as why:
+    print("WARNING: File %s could not be opened - %s" % (pathname, why))
 
   ver = options.version
   try:
@@ -155,7 +155,7 @@ def stamp(pathname, options):
   if is_debug is None:
     is_debug = os.path.splitext(pathname)[0].lower().endswith("_d")
   # convert None to blank strings
-  for k, v in sdata.items():
+  for k, v in list(sdata.items()):
     if v is None:
       sdata[k] = ""
   vs = VS_VERSION_INFO(vmaj, vmin, vsub, vbuild, sdata, vdata, is_debug, is_dll)
@@ -165,7 +165,7 @@ def stamp(pathname, options):
   EndUpdateResource(h, 0)
 
   if options.verbose:
-    print "Stamped:", pathname
+    print("Stamped:", pathname)
 
 if __name__ == '__main__':
   parser = optparse.OptionParser("%prog [options] filespec ...",

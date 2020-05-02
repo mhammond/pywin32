@@ -27,7 +27,7 @@ import win32event, win32api
 import pythoncom
 import unittest
 
-from testServers import InterpCase
+from .testServers import InterpCase
 
 freeThreaded = 1
 
@@ -116,7 +116,7 @@ class ThreadInterpCase(InterpCase):
                     # This is critical - whole apartment model demo will hang.
                     pythoncom.PumpWaitingMessages()
                 else: # Timeout
-                    print "Waiting for thread to stop with interfaces=%d, gateways=%d" % (pythoncom._GetInterfaceCount(), pythoncom._GetGatewayCount())
+                    print("Waiting for thread to stop with interfaces=%d, gateways=%d" % (pythoncom._GetInterfaceCount(), pythoncom._GetGatewayCount()))
             except KeyboardInterrupt:
                 break
         for t in threads:

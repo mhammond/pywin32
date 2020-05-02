@@ -17,7 +17,7 @@ except NameError:
     this_file = sys.argv[0]
 
 def GenerateAndRunOldStyle():
-    import GenTestScripts
+    from . import GenTestScripts
     GenTestScripts.GenerateAll()
     try:
         pass #
@@ -28,7 +28,7 @@ def CleanGenerated():
     import win32com, shutil
     if os.path.isdir(win32com.__gen_path__):
         if verbosity > 1:
-            print "Deleting files from %s" % (win32com.__gen_path__)
+            print("Deleting files from %s" % (win32com.__gen_path__))
         shutil.rmtree(win32com.__gen_path__)
     import win32com.client.gencache
     win32com.client.gencache.__init__() # Reset
@@ -50,7 +50,7 @@ def ExecuteSilentlyIfOK(cmd, testcase):
     data = f.read().strip()
     rc = f.close()
     if rc:
-        print data
+        print(data)
         testcase.fail("Executing '%s' failed (%d)" % (cmd, rc))
     # for "_d" builds, strip the '[xxx refs]' line
     return RemoveRefCountOutput(data)
@@ -205,18 +205,18 @@ def make_test_suite(test_level = 1):
     return suite, import_failures
 
 def usage(why):
-    print why
-    print
-    print "win32com test suite"
-    print "usage: testall [-v] test_level"
-    print "  where test_level is an integer 1-3.  Level 1 tests are quick,"
-    print "  level 2 tests invoke Word, IE etc, level 3 take ages!"
+    print(why)
+    print()
+    print("win32com test suite")
+    print("usage: testall [-v] test_level")
+    print("  where test_level is an integer 1-3.  Level 1 tests are quick,")
+    print("  level 2 tests invoke Word, IE etc, level 3 take ages!")
     sys.exit(1)
     
 if __name__=='__main__':
     try:
         opts, args = getopt.getopt(sys.argv[1:], "v")
-    except getopt.error, why:
+    except getopt.error as why:
         usage(why)
     for opt, val in opts:
         if opt=='-v':
@@ -237,14 +237,14 @@ if __name__=='__main__':
     suite, import_failures = make_test_suite(testLevel)
     if verbosity:
         if hasattr(sys, "gettotalrefcount"):
-            print "This is a debug build - memory leak tests will also be run."
-            print "These tests may take *many* minutes to run - be patient!"
-            print "(running from python.exe will avoid these leak tests)"
-        print "Executing level %d tests - %d test cases will be run" \
-                % (testLevel, suite.countTestCases())
+            print("This is a debug build - memory leak tests will also be run.")
+            print("These tests may take *many* minutes to run - be patient!")
+            print("(running from python.exe will avoid these leak tests)")
+        print("Executing level %d tests - %d test cases will be run" \
+                % (testLevel, suite.countTestCases()))
         if verbosity==1 and suite.countTestCases() < 70:
             # A little row of markers so the dots show how close to finished
-            print '|' * suite.countTestCases()
+            print('|' * suite.countTestCases())
     testRunner = TestRunner(verbosity=verbosity)
     testResult = testRunner.run(suite)
     if import_failures:
@@ -256,7 +256,7 @@ if __name__=='__main__':
     
     # re-print unit-test error here so it is noticed
     if not testResult.wasSuccessful():
-        print "*" * 20, "- unittest tests FAILED"
+        print("*" * 20, "- unittest tests FAILED")
     
     CheckClean()
     pythoncom.CoUninitialize()

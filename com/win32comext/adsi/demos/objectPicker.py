@@ -47,12 +47,12 @@ def main():
     data = adsi.StringAsDS_SELECTION_LIST(medium.data)
     for item in data:
         name, klass, adspath, upn, attrs, flags = item
-        print "Item", name
-        print " Class:", klass
-        print " AdsPath:", adspath
-        print " UPN:", upn
-        print " Attrs:", attrs
-        print " Flags:", flags
+        print("Item", name)
+        print(" Class:", klass)
+        print(" AdsPath:", adspath)
+        print(" UPN:", upn)
+        print(" Attrs:", attrs)
+        print(" Flags:", flags)
  
 if __name__=='__main__':
     main()

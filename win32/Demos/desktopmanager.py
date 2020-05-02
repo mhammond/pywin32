@@ -2,8 +2,8 @@
 
 import win32api, win32con, win32gui, win32service, win32process
 import pywintypes
-import traceback, thread, time
-import cStringIO
+import traceback, _thread, time
+import io
 
 ## "Shell_TrayWnd" is class of system tray window, broadcasts "TaskbarCreated" when initialized
 
@@ -14,7 +14,7 @@ def desktop_name_dlgproc(hwnd,msg,wparam,lparam):
     elif msg == win32con.WM_COMMAND:
         if wparam == win32con.IDOK:
             desktop_name=win32gui.GetDlgItemText(hwnd, 72)
-            print 'new desktop name: ',desktop_name
+            print('new desktop name: ',desktop_name)
             win32gui.DestroyWindow(hwnd)
             create_desktop(desktop_name)
             
@@ -87,7 +87,7 @@ def create_desktop(desktop_name, start_explorer=1):
         hdesk=win32service.CreateDesktop(desktop_name, 0, win32con.MAXIMUM_ALLOWED, sa)
     except win32service.error:
         traceback.print_exc()
-        errbuf=cStringIO.StringIO()
+        errbuf=io.StringIO()
         traceback.print_exc(None,errbuf)
         win32api.MessageBox(0, errbuf.getvalue(), 'Desktop creation failed')
         return
@@ -96,7 +96,7 @@ def create_desktop(desktop_name, start_explorer=1):
         s.lpDesktop=desktop_name
         prc_info=win32process.CreateProcess(None, "Explorer.exe",None,None,True,win32con.CREATE_NEW_CONSOLE,None,'c:\\',s)
 
-    th=thread.start_new_thread(new_icon,(hdesk,desktop_name))
+    th=_thread.start_new_thread(new_icon,(hdesk,desktop_name))
     hdesk.SwitchDesktop()
 
 def icon_wndproc(hwnd, msg, wp, lp):

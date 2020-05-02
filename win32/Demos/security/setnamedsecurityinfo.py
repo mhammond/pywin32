@@ -1,6 +1,6 @@
 import win32security,win32api,win32con, win32process
 fname, tmp = win32api.GetTempFileName(win32api.GetTempPath(),'tmp')
-print fname
+print(fname)
 ## You need SE_RESTORE_NAME to be able to set the owner of a security descriptor to anybody
 ## other than yourself or your primary group.  Most admin logins don't have it by default, so
 ## enabling it may fail
@@ -46,15 +46,15 @@ new_sd=win32security.GetNamedSecurityInfo(fname,win32security.SE_FILE_OBJECT,all
 
 ## could do additional checking to make sure added ACE contains expected info
 if new_sd.GetSecurityDescriptorDacl().GetAceCount()!=dacl_ace_cnt+1:
-    print 'New dacl doesn''t contain extra ace ????'
+    print('New dacl doesn''t contain extra ace ????')
 if new_sd.GetSecurityDescriptorSacl().GetAceCount()!=sacl_ace_cnt+1:
-    print 'New Sacl doesn''t contain extra ace ????'
+    print('New Sacl doesn''t contain extra ace ????')
 if win32security.LookupAccountSid('',new_sd.GetSecurityDescriptorOwner())[0]!='Power Users':
-    print 'Owner not successfully set to Power Users !!!!!'
+    print('Owner not successfully set to Power Users !!!!!')
 if win32security.LookupAccountSid('',new_sd.GetSecurityDescriptorGroup())[0]!='Power Users':
-    print 'Group not successfully set to Power Users !!!!!'
+    print('Group not successfully set to Power Users !!!!!')
 
 win32security.SetNamedSecurityInfo(fname,win32security.SE_FILE_OBJECT,win32security.SACL_SECURITY_INFORMATION, None, None, None, None)
 new_sd_1=win32security.GetNamedSecurityInfo(fname,win32security.SE_FILE_OBJECT,win32security.SACL_SECURITY_INFORMATION)
 if new_sd_1.GetSecurityDescriptorSacl() is not None:
-    print 'Unable to set Sacl to NULL !!!!!!!!'
+    print('Unable to set Sacl to NULL !!!!!!!!')

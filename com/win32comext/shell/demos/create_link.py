@@ -23,7 +23,7 @@ class PyShortcut:
 if __name__=='__main__':
 	import sys
 	if len(sys.argv)<2:
-		print "Usage: %s LinkFile [path [, args[, description[, working_dir]]]]\n\nIf LinkFile does not exist, it will be created using the other args"
+		print("Usage: %s LinkFile [path [, args[, description[, working_dir]]]]\n\nIf LinkFile does not exist, it will be created using the other args")
 		sys.exit(1)
 	file = sys.argv[1]
 	shortcut = PyShortcut()
@@ -31,17 +31,17 @@ if __name__=='__main__':
 		# load and dump info from file...
 		shortcut.load( file )
 		# now print data...
-		print 'Shortcut in file %s to file:\n\t%s\nArguments:\n\t%s\nDescription:\n\t%s\nWorking Directory:\n\t%s\nItemIDs:\n\t<skipped>'%(
+		print('Shortcut in file %s to file:\n\t%s\nArguments:\n\t%s\nDescription:\n\t%s\nWorking Directory:\n\t%s\nItemIDs:\n\t<skipped>'%(
 			file,
 			shortcut.GetPath(shell.SLGP_SHORTPATH)[0],
 			shortcut.GetArguments(),
 			shortcut.GetDescription(),
 			shortcut.GetWorkingDirectory(),
 			#shortcut.GetIDList(),
-		)
+		))
 	else:
 		if len(sys.argv) <3:
-			print "Link file does not exist\nYou must supply the path, args, description and working_dir as args"
+			print("Link file does not exist\nYou must supply the path, args, description and working_dir as args")
 			sys.exit(1)
 		# create the shortcut using rest of args...
 		data = map( None, sys.argv[2:], ("SetPath", "SetArguments", "SetDescription", "SetWorkingDirectory") )

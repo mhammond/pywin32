@@ -128,7 +128,7 @@ class SecurityInformation(win32com.server.policy.DesignatedWrapPolicy):
 ## folder permissions
 temp_dir=win32api.GetTempPath()
 dir_name=win32api.GetTempFileName(temp_dir,'isi')[0]
-print dir_name
+print(dir_name)
 os.remove(dir_name)
 os.mkdir(dir_name)
 si=SecurityInformation(dir_name)

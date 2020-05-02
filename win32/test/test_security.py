@@ -64,7 +64,7 @@ class SecurityTests(unittest.TestCase):
         if admin_sid is not None:
             sacl.AddAuditAccessAce(win32security.ACL_REVISION,win32con.DELETE,admin_sid,1,1)
         sacl.AddAuditAccessAce(win32security.ACL_REVISION,win32con.GENERIC_ALL,pwr_sid,1,1)
-        for x in xrange(0,200000):
+        for x in range(0,200000):
             if admin_sid is not None:
                 sd1.SetSecurityDescriptorOwner(admin_sid,0)
             sd2.SetSecurityDescriptorGroup(pwr_sid,0)
@@ -77,7 +77,7 @@ class DomainTests(unittest.TestCase):
         try:
             # saving the handle means the other test itself should bind faster.
             self.ds_handle = win32security.DsBind()
-        except win32security.error, exc:
+        except win32security.error as exc:
             if exc.winerror != winerror.ERROR_NO_SUCH_DOMAIN:
                 raise
             raise TestSkipped(exc)

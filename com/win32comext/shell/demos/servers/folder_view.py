@@ -218,7 +218,7 @@ class ExplorerCommand:
         if self.cmd.callback:
             self.cmd.callback(items, bind_ctx)
         else:
-            print "No callback for command ", LoadString(self.cmd.ids)
+            print("No callback for command ", LoadString(self.cmd.ids))
     def EnumSubCommands(self):
         if not self.cmd.children:
             return None
@@ -676,48 +676,48 @@ def get_schema_fname():
     return sc
 
 def DllRegisterServer():
-    import _winreg
+    import winreg
     if sys.getwindowsversion()[0] < 6:
-        print "This sample only works on Vista"
+        print("This sample only works on Vista")
         sys.exit(1)
 
-    key = _winreg.CreateKey(_winreg.HKEY_LOCAL_MACHINE,
+    key = winreg.CreateKey(winreg.HKEY_LOCAL_MACHINE,
                             "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\" \
                             "Explorer\\Desktop\\Namespace\\" + \
                             ShellFolder._reg_clsid_)
-    _winreg.SetValueEx(key, None, 0, _winreg.REG_SZ, ShellFolder._reg_desc_)
+    winreg.SetValueEx(key, None, 0, winreg.REG_SZ, ShellFolder._reg_desc_)
     # And special shell keys under our CLSID
-    key = _winreg.CreateKey(_winreg.HKEY_CLASSES_ROOT,
+    key = winreg.CreateKey(winreg.HKEY_CLASSES_ROOT,
                         "CLSID\\" + ShellFolder._reg_clsid_ + "\\ShellFolder")
     # 'Attributes' is an int stored as a binary! use struct
     attr = shellcon.SFGAO_FOLDER | shellcon.SFGAO_HASSUBFOLDER | \
            shellcon.SFGAO_BROWSABLE
     import struct
     s = struct.pack("i", attr)
-    _winreg.SetValueEx(key, "Attributes", 0, _winreg.REG_BINARY, s)
+    winreg.SetValueEx(key, "Attributes", 0, winreg.REG_BINARY, s)
     # register the context menu handler under the FolderViewSampleType type.
     keypath = "%s\\shellex\\ContextMenuHandlers\\%s" % (ContextMenu._context_menu_type_, ContextMenu._reg_desc_)
-    key = _winreg.CreateKey(_winreg.HKEY_CLASSES_ROOT, keypath)
-    _winreg.SetValueEx(key, None, 0, _winreg.REG_SZ, ContextMenu._reg_clsid_)
+    key = winreg.CreateKey(winreg.HKEY_CLASSES_ROOT, keypath)
+    winreg.SetValueEx(key, None, 0, winreg.REG_SZ, ContextMenu._reg_clsid_)
     propsys.PSRegisterPropertySchema(get_schema_fname())
-    print ShellFolder._reg_desc_, "registration complete."
+    print(ShellFolder._reg_desc_, "registration complete.")
 
 def DllUnregisterServer():
-    import _winreg
+    import winreg
     paths = [
         "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Desktop\\Namespace\\" + ShellFolder._reg_clsid_,
         "%s\\shellex\\ContextMenuHandlers\\%s" % (ContextMenu._context_menu_type_, ContextMenu._reg_desc_),
     ]
     for path in paths:
         try:
-            _winreg.DeleteKey(_winreg.HKEY_LOCAL_MACHINE, path)
-        except WindowsError, details:
+            winreg.DeleteKey(winreg.HKEY_LOCAL_MACHINE, path)
+        except WindowsError as details:
             import errno
             if details.errno != errno.ENOENT:
-                print "FAILED to remove %s: %s" % (path, details)
+                print("FAILED to remove %s: %s" % (path, details))
 
     propsys.PSUnregisterPropertySchema(get_schema_fname())
-    print ShellFolder._reg_desc_, "unregistration complete."
+    print(ShellFolder._reg_desc_, "unregistration complete.")
 
 if __name__=='__main__':
     from win32com.server import register

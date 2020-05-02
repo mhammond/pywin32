@@ -58,7 +58,7 @@ def CheckEvent(server, client, val, verbose):
 	if client.last_event_arg != val:
 		raise RuntimeError("Sent %r, but got back %r" % (val, client.last_event_arg))
 	if verbose:
-		print "Sent and received %r" % val
+		print("Sent and received %r" % val)
 
 # A simple test script for all this.
 # In the real world, it is likely that the code controlling the server
@@ -72,11 +72,11 @@ def test(verbose=0):
 	connection.Connect(server, client, IID_IConnectDemoEvents)
 	CheckEvent(server, client, "Hello", verbose)
 	CheckEvent(server, client, str2bytes("Here is a null>\x00<"), verbose)
-	CheckEvent(server, client, u"Here is a null>\x00<", verbose)
-	val = u"test-\xe0\xf2" # 2 extended characters.
+	CheckEvent(server, client, "Here is a null>\x00<", verbose)
+	val = "test-\xe0\xf2" # 2 extended characters.
 	CheckEvent(server, client, val, verbose)
 	if verbose:
-		print "Everything seemed to work!"
+		print("Everything seemed to work!")
 	# Aggressive memory leak checking (ie, do nothing!) :-)  All should cleanup OK???
 
 if __name__=='__main__':

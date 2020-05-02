@@ -40,10 +40,10 @@ class MyDialog(dialog.Dialog):
 		return rc
 
 	def OnSliderMove(self, params):
-		print "Slider moved"
+		print("Slider moved")
 
 	def OnCancel(self):
-		print "The slider control is at position", self.slider.GetPos()
+		print("The slider control is at position", self.slider.GetPos())
 		self._obj_.OnCancel()
 ###
 def demo():

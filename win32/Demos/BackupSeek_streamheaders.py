@@ -18,7 +18,7 @@ stream_types={
 
 tempdir=win32api.GetTempPath()
 tempfile=win32api.GetTempFileName(tempdir,'bkr')[0]
-print 'Filename:',tempfile
+print('Filename:',tempfile)
 
 f=open(tempfile,'w')
 f.write('some random junk'+'x'*100)
@@ -58,14 +58,14 @@ win32_stream_id_size=struct.calcsize(win32_stream_id_format)
 
 def parse_stream_header(h,ctxt,data):
     stream_type, stream_attributes, stream_size, stream_name_size=struct.unpack(win32_stream_id_format,data)
-    print '\nType:',stream_type,stream_types[stream_type], 'Attributes:', stream_attributes, 'Size:', stream_size, 'Name len:',stream_name_size
+    print('\nType:',stream_type,stream_types[stream_type], 'Attributes:', stream_attributes, 'Size:', stream_size, 'Name len:',stream_name_size)
     if stream_name_size>0:
         ## ??? sdk says this size is in characters, but it appears to be number of bytes ???
         bytes_read, stream_name_buf, ctxt=win32file.BackupRead(h, stream_name_size, None, False, True, ctxt)
         stream_name=pywintypes.UnicodeFromRaw(stream_name_buf[:])
     else:
         stream_name='Unnamed'
-    print 'Name:'+stream_name
+    print('Name:'+stream_name)
     return ctxt, stream_type, stream_attributes, stream_size, stream_name_size, stream_name
 
 ctxt=0
@@ -78,7 +78,7 @@ while 1:
         parse_stream_header(h, ctxt, win32_stream_id_buf[:])
     if stream_size>0:
         bytes_moved=win32file.BackupSeek(h, stream_size, ctxt)
-        print 'Moved: ',bytes_moved
+        print('Moved: ',bytes_moved)
 
 win32file.BackupRead(h, win32_stream_id_size, win32_stream_id_buf, True, True, ctxt)
 win32file.CloseHandle(h)

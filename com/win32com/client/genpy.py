@@ -19,7 +19,7 @@ import time
 import win32com
 
 import pythoncom
-import build
+from . import build
 
 error = "makepy.error"
 makepy_version = "0.5.01" # Written to generated file.
@@ -80,11 +80,11 @@ def MakeEventMethodName(eventName):
         return "On"+eventName
 
 def WriteSinkEventMap(obj, stream):
-    print >> stream, '\t_dispid_to_func_ = {'
-    for name, entry in obj.propMapGet.items() + obj.propMapPut.items() + obj.mapFuncs.items():
+    print('\t_dispid_to_func_ = {', file=stream)
+    for name, entry in list(obj.propMapGet.items()) + list(obj.propMapPut.items()) + list(obj.mapFuncs.items()):
         fdesc = entry.desc
-        print >> stream, '\t\t%9d : "%s",' % (entry.desc[0], MakeEventMethodName(entry.names[0]))
-    print >> stream, '\t\t}'
+        print('\t\t%9d : "%s",' % (entry.desc[0], MakeEventMethodName(entry.names[0])), file=stream)
+    print('\t\t}', file=stream)
     
 
 # MI is used to join my writable helpers, and the OLE
@@ -126,7 +126,7 @@ class RecordItem(build.OleItem, WritableItem):
 # Given an enum, write all aliases for it.
 # (no longer necessary for new style code, but still used for old code.
 def WriteAliasesForItem(item, aliasItems, stream):
-  for alias in aliasItems.itervalues():
+  for alias in aliasItems.values():
     if item.doc and alias.aliasDoc and (alias.aliasDoc[0]==item.doc[0]):
       alias.WriteAliasItem(aliasItems, stream)
       
@@ -158,16 +158,16 @@ class AliasItem(build.OleItem, WritableItem):
       depName = self.aliasDoc[0]
       if depName in aliasDict:
         aliasDict[depName].WriteAliasItem(aliasDict, stream)
-      print >> stream, self.doc[0] + " = " + depName
+      print(self.doc[0] + " = " + depName, file=stream)
     else:
       ai = self.attr[14]
       if type(ai) == type(0):
         try:
           typeStr = mapVTToTypeString[ai]
-          print >> stream, "# %s=%s" % (self.doc[0], typeStr)
+          print("# %s=%s" % (self.doc[0], typeStr), file=stream)
         except KeyError:
-          print >> stream, self.doc[0] + " = None # Can't convert alias info " + str(ai)
-    print >> stream
+          print(self.doc[0] + " = None # Can't convert alias info " + str(ai), file=stream)
+    print(file=stream)
     self.bWritten = 1
 
 class EnumerationItem(build.OleItem, WritableItem):
@@ -216,8 +216,8 @@ class EnumerationItem(build.OleItem, WritableItem):
             # Sanitize it, in case the repr contains its own quotes.  (??? line breaks too ???)
             use = use.replace('"',"'")
             use = '"' + use + '"' + ' # This VARIANT type cannot be converted automatically'
-        print >> stream, "\t%-30s=%-10s # from enum %s" % \
-                      (build.MakePublicAttributeName(name, True), use, enumName)
+        print("\t%-30s=%-10s # from enum %s" % \
+                      (build.MakePublicAttributeName(name, True), use, enumName), file=stream)
         num += 1
     return num
 
@@ -230,8 +230,8 @@ class VTableItem(build.VTableItem, WritableItem):
 
     def WriteVTableMap(self, generator):
         stream = generator.file
-        print >> stream, "%s_vtables_dispatch_ = %d" % (self.python_name, self.bIsDispatch)
-        print >> stream, "%s_vtables_ = [" % (self.python_name, ) 
+        print("%s_vtables_dispatch_ = %d" % (self.python_name, self.bIsDispatch), file=stream)
+        print("%s_vtables_ = [" % (self.python_name, ), file=stream) 
         for v in self.vtableFuncs:
             names, dispid, desc = v
             arg_desc = desc[2]
@@ -239,29 +239,29 @@ class VTableItem(build.VTableItem, WritableItem):
             arg_reprs = []
             # more hoops so we don't generate huge lines.
             item_num = 0
-            print >> stream, "\t((",
+            print("\t((", end=' ', file=stream)
             for name in names:
-                print >> stream, repr(name), ",",
+                print(repr(name), ",", end=' ', file=stream)
                 item_num = item_num + 1
                 if item_num % 5 == 0:
-                    print >> stream, "\n\t\t\t",
-            print >> stream, "), %d, (%r, %r, [" % (dispid, desc[0], desc[1]),
+                    print("\n\t\t\t", end=' ', file=stream)
+            print("), %d, (%r, %r, [" % (dispid, desc[0], desc[1]), end=' ', file=stream)
             for arg in arg_desc:
                 item_num = item_num + 1
                 if item_num % 5 == 0:
-                    print >> stream, "\n\t\t\t",
+                    print("\n\t\t\t", end=' ', file=stream)
                 defval = build.MakeDefaultArgRepr(arg)
                 if arg[3] is None:
                     arg3_repr = None
                 else:
                     arg3_repr = repr(arg[3])
-                print >> stream, repr((arg[0], arg[1], defval, arg3_repr)), ",",
-            print >> stream, "],",
+                print(repr((arg[0], arg[1], defval, arg3_repr)), ",", end=' ', file=stream)
+            print("],", end=' ', file=stream)
             for d in desc[3:]:
-                print >> stream, repr(d), ",", 
-            print >> stream, ")),"
-        print >> stream, "]"
-        print >> stream
+                print(repr(d), ",", end=' ', file=stream) 
+            print(")),", file=stream)
+        print("]", file=stream)
+        print(file=stream)
 
 class DispatchItem(build.DispatchItem, WritableItem):
     order = 3
@@ -282,83 +282,83 @@ class DispatchItem(build.DispatchItem, WritableItem):
       else:
           self.WriteClassHeader(generator)
           self.WriteClassBody(generator)
-      print >> generator.file
+      print(file=generator.file)
       self.bWritten = 1
 
     def WriteClassHeader(self, generator):
         generator.checkWriteDispatchBaseClass()
         doc = self.doc
         stream = generator.file
-        print >> stream, 'class ' + self.python_name + '(DispatchBaseClass):'
-        if doc[1]: print >> stream, '\t' + build._makeDocString(doc[1])
+        print('class ' + self.python_name + '(DispatchBaseClass):', file=stream)
+        if doc[1]: print('\t' + build._makeDocString(doc[1]), file=stream)
         try:
             progId = pythoncom.ProgIDFromCLSID(self.clsid)
-            print >> stream, "\t# This class is creatable by the name '%s'" % (progId)
+            print("\t# This class is creatable by the name '%s'" % (progId), file=stream)
         except pythoncom.com_error:
             pass
-        print >> stream, "\tCLSID = " + repr(self.clsid)
+        print("\tCLSID = " + repr(self.clsid), file=stream)
         if self.coclass_clsid is None:
-            print >> stream, "\tcoclass_clsid = None"
+            print("\tcoclass_clsid = None", file=stream)
         else:
-            print >> stream, "\tcoclass_clsid = " + repr(self.coclass_clsid)
-        print >> stream
+            print("\tcoclass_clsid = " + repr(self.coclass_clsid), file=stream)
+        print(file=stream)
         self.bWritten = 1
 
     def WriteEventSinkClassHeader(self, generator):
         generator.checkWriteEventBaseClass()
         doc = self.doc
         stream = generator.file
-        print >> stream, 'class ' + self.python_name + ':'
-        if doc[1]: print >> stream, '\t' + build._makeDocString(doc[1])
+        print('class ' + self.python_name + ':', file=stream)
+        if doc[1]: print('\t' + build._makeDocString(doc[1]), file=stream)
         try:
             progId = pythoncom.ProgIDFromCLSID(self.clsid)
-            print >> stream, "\t# This class is creatable by the name '%s'" % (progId)
+            print("\t# This class is creatable by the name '%s'" % (progId), file=stream)
         except pythoncom.com_error:
             pass
-        print >> stream, '\tCLSID = CLSID_Sink = ' + repr(self.clsid)
+        print('\tCLSID = CLSID_Sink = ' + repr(self.clsid), file=stream)
         if self.coclass_clsid is None:
-            print >> stream, "\tcoclass_clsid = None"
+            print("\tcoclass_clsid = None", file=stream)
         else:
-            print >> stream, "\tcoclass_clsid = " + repr(self.coclass_clsid)
-        print >> stream, '\t_public_methods_ = [] # For COM Server support'
+            print("\tcoclass_clsid = " + repr(self.coclass_clsid), file=stream)
+        print('\t_public_methods_ = [] # For COM Server support', file=stream)
         WriteSinkEventMap(self, stream)
-        print >> stream
-        print >> stream, '\tdef __init__(self, oobj = None):'
-        print >> stream, "\t\tif oobj is None:"
-        print >> stream, "\t\t\tself._olecp = None"
-        print >> stream, "\t\telse:"
-        print >> stream, '\t\t\timport win32com.server.util'
-        print >> stream, '\t\t\tfrom win32com.server.policy import EventHandlerPolicy'
-        print >> stream, '\t\t\tcpc=oobj._oleobj_.QueryInterface(pythoncom.IID_IConnectionPointContainer)'
-        print >> stream, '\t\t\tcp=cpc.FindConnectionPoint(self.CLSID_Sink)'
-        print >> stream, '\t\t\tcookie=cp.Advise(win32com.server.util.wrap(self, usePolicy=EventHandlerPolicy))'
-        print >> stream, '\t\t\tself._olecp,self._olecp_cookie = cp,cookie'
-        print >> stream, '\tdef __del__(self):'
-        print >> stream, '\t\ttry:'
-        print >> stream, '\t\t\tself.close()'
-        print >> stream, '\t\texcept pythoncom.com_error:'
-        print >> stream, '\t\t\tpass'
-        print >> stream, '\tdef close(self):'
-        print >> stream, '\t\tif self._olecp is not None:'
-        print >> stream, '\t\t\tcp,cookie,self._olecp,self._olecp_cookie = self._olecp,self._olecp_cookie,None,None'
-        print >> stream, '\t\t\tcp.Unadvise(cookie)'
-        print >> stream, '\tdef _query_interface_(self, iid):'
-        print >> stream, '\t\timport win32com.server.util'
-        print >> stream, '\t\tif iid==self.CLSID_Sink: return win32com.server.util.wrap(self)'
-        print >> stream
+        print(file=stream)
+        print('\tdef __init__(self, oobj = None):', file=stream)
+        print("\t\tif oobj is None:", file=stream)
+        print("\t\t\tself._olecp = None", file=stream)
+        print("\t\telse:", file=stream)
+        print('\t\t\timport win32com.server.util', file=stream)
+        print('\t\t\tfrom win32com.server.policy import EventHandlerPolicy', file=stream)
+        print('\t\t\tcpc=oobj._oleobj_.QueryInterface(pythoncom.IID_IConnectionPointContainer)', file=stream)
+        print('\t\t\tcp=cpc.FindConnectionPoint(self.CLSID_Sink)', file=stream)
+        print('\t\t\tcookie=cp.Advise(win32com.server.util.wrap(self, usePolicy=EventHandlerPolicy))', file=stream)
+        print('\t\t\tself._olecp,self._olecp_cookie = cp,cookie', file=stream)
+        print('\tdef __del__(self):', file=stream)
+        print('\t\ttry:', file=stream)
+        print('\t\t\tself.close()', file=stream)
+        print('\t\texcept pythoncom.com_error:', file=stream)
+        print('\t\t\tpass', file=stream)
+        print('\tdef close(self):', file=stream)
+        print('\t\tif self._olecp is not None:', file=stream)
+        print('\t\t\tcp,cookie,self._olecp,self._olecp_cookie = self._olecp,self._olecp_cookie,None,None', file=stream)
+        print('\t\t\tcp.Unadvise(cookie)', file=stream)
+        print('\tdef _query_interface_(self, iid):', file=stream)
+        print('\t\timport win32com.server.util', file=stream)
+        print('\t\tif iid==self.CLSID_Sink: return win32com.server.util.wrap(self)', file=stream)
+        print(file=stream)
         self.bWritten = 1
 
     def WriteCallbackClassBody(self, generator):
         stream = generator.file
-        print >> stream, "\t# Event Handlers"
-        print >> stream, "\t# If you create handlers, they should have the following prototypes:"
-        for name, entry in self.propMapGet.items() + self.propMapPut.items() + self.mapFuncs.items():
+        print("\t# Event Handlers", file=stream)
+        print("\t# If you create handlers, they should have the following prototypes:", file=stream)
+        for name, entry in list(self.propMapGet.items()) + list(self.propMapPut.items()) + list(self.mapFuncs.items()):
             fdesc = entry.desc
             methName = MakeEventMethodName(entry.names[0])
-            print >> stream, '#\tdef ' + methName + '(self' + build.BuildCallList(fdesc, entry.names, "defaultNamedOptArg", "defaultNamedNotOptArg","defaultUnnamedArg", "pythoncom.Missing", is_comment = True) + '):'
+            print('#\tdef ' + methName + '(self' + build.BuildCallList(fdesc, entry.names, "defaultNamedOptArg", "defaultNamedNotOptArg","defaultUnnamedArg", "pythoncom.Missing", is_comment = True) + '):', file=stream)
             if entry.doc and entry.doc[1]:
-                print >> stream, '#\t\t' + build._makeDocString(entry.doc[1])
-        print >> stream
+                print('#\t\t' + build._makeDocString(entry.doc[1]), file=stream)
+        print(file=stream)
         self.bWritten = 1
 
     def WriteClassBody(self, generator):
@@ -391,20 +391,20 @@ class DispatchItem(build.DispatchItem, WritableItem):
                 specialItems[lkey] = (entry, entry.desc[4], None)
             if generator.bBuildHidden or not entry.hidden:
                 if entry.GetResultName():
-                    print >> stream, '\t# Result is of type ' + entry.GetResultName()
+                    print('\t# Result is of type ' + entry.GetResultName(), file=stream)
                 if entry.wasProperty:
-                    print >> stream, '\t# The method %s is actually a property, but must be used as a method to correctly pass the arguments' % name
+                    print('\t# The method %s is actually a property, but must be used as a method to correctly pass the arguments' % name, file=stream)
                 ret = self.MakeFuncMethod(entry,build.MakePublicAttributeName(name))
                 for line in ret:
-                    print >> stream, line
-        print >> stream, "\t_prop_map_get_ = {"
-        names = self.propMap.keys(); names.sort()
+                    print(line, file=stream)
+        print("\t_prop_map_get_ = {", file=stream)
+        names = list(self.propMap.keys()); names.sort()
         for key in names:
             entry = self.propMap[key]
             if generator.bBuildHidden or not entry.hidden:
                 resultName = entry.GetResultName()
                 if resultName:
-                    print >> stream, "\t\t# Property '%s' is an object of type '%s'" % (key, resultName)
+                    print("\t\t# Property '%s' is an object of type '%s'" % (key, resultName), file=stream)
                 lkey = key.lower()
                 details = entry.desc
                 resultDesc = details[2]
@@ -424,13 +424,13 @@ class DispatchItem(build.DispatchItem, WritableItem):
                     if entry.desc[0]==pythoncom.DISPID_NEWENUM:
                         continue 
 
-                print >> stream, '\t\t"%s": %s,' % (build.MakePublicAttributeName(key), mapEntry)
-        names = self.propMapGet.keys(); names.sort()
+                print('\t\t"%s": %s,' % (build.MakePublicAttributeName(key), mapEntry), file=stream)
+        names = list(self.propMapGet.keys()); names.sort()
         for key in names:
             entry = self.propMapGet[key]
             if generator.bBuildHidden or not entry.hidden:
                 if entry.GetResultName():
-                    print >> stream, "\t\t# Method '%s' returns object of type '%s'" % (key, entry.GetResultName())
+                    print("\t\t# Method '%s' returns object of type '%s'" % (key, entry.GetResultName()), file=stream)
                 details = entry.desc
                 lkey = key.lower()
                 argDesc = details[2]
@@ -448,11 +448,11 @@ class DispatchItem(build.DispatchItem, WritableItem):
                     # "normally".  This is a mess!
                     if entry.desc[0]==pythoncom.DISPID_NEWENUM:
                         continue 
-                print >> stream, '\t\t"%s": %s,' % (build.MakePublicAttributeName(key), mapEntry)
+                print('\t\t"%s": %s,' % (build.MakePublicAttributeName(key), mapEntry), file=stream)
 
-        print >> stream, "\t}"
+        print("\t}", file=stream)
 
-        print >> stream, "\t_prop_map_put_ = {"
+        print("\t_prop_map_put_ = {", file=stream)
         # These are "Invoke" args
         names = list(self.propMap.keys()); names.sort()
         for key in names:
@@ -466,7 +466,7 @@ class DispatchItem(build.DispatchItem, WritableItem):
                     defArgDesc = ""
                 else:
                     defArgDesc = defArgDesc + ","
-                print >> stream, '\t\t"%s" : ((%s, LCID, %d, 0),(%s)),' % (build.MakePublicAttributeName(key), details[0], pythoncom.DISPATCH_PROPERTYPUT, defArgDesc)
+                print('\t\t"%s" : ((%s, LCID, %d, 0),(%s)),' % (build.MakePublicAttributeName(key), details[0], pythoncom.DISPATCH_PROPERTYPUT, defArgDesc), file=stream)
 
         names = list(self.propMapPut.keys()); names.sort()
         for key in names:
@@ -474,8 +474,8 @@ class DispatchItem(build.DispatchItem, WritableItem):
             if generator.bBuildHidden or not entry.hidden:
                 details = entry.desc
                 defArgDesc = MakeDefaultArgsForPropertyPut(details[2])
-                print >> stream, '\t\t"%s": ((%s, LCID, %d, 0),%s),' % (build.MakePublicAttributeName(key), details[0], details[4], defArgDesc)
-        print >> stream, "\t}"
+                print('\t\t"%s": ((%s, LCID, %d, 0),%s),' % (build.MakePublicAttributeName(key), details[0], details[4], defArgDesc), file=stream)
+        print("\t}", file=stream)
         
         if specialItems["value"]:
             entry, invoketype, propArgs = specialItems["value"]
@@ -485,22 +485,22 @@ class DispatchItem(build.DispatchItem, WritableItem):
             else:
                 typename = "property"
                 ret = [ "\tdef __call__(self):\n\t\treturn self._ApplyTypes_(*%s)" % propArgs]
-            print >> stream, "\t# Default %s for this class is '%s'" % (typename, entry.names[0])
+            print("\t# Default %s for this class is '%s'" % (typename, entry.names[0]), file=stream)
             for line in ret:
-                print >> stream, line
+                print(line, file=stream)
             if sys.version_info > (3,0):
-                print >> stream, "\tdef __str__(self, *args):"
-                print >> stream, "\t\treturn str(self.__call__(*args))"
+                print("\tdef __str__(self, *args):", file=stream)
+                print("\t\treturn str(self.__call__(*args))", file=stream)
             else:
-                print >> stream, "\tdef __unicode__(self, *args):"
-                print >> stream, "\t\ttry:"
-                print >> stream, "\t\t\treturn unicode(self.__call__(*args))"
-                print >> stream, "\t\texcept pythoncom.com_error:"
-                print >> stream, "\t\t\treturn repr(self)"
-                print >> stream, "\tdef __str__(self, *args):"
-                print >> stream, "\t\treturn str(self.__unicode__(*args))"
-            print >> stream, "\tdef __int__(self, *args):"
-            print >> stream, "\t\treturn int(self.__call__(*args))"
+                print("\tdef __unicode__(self, *args):", file=stream)
+                print("\t\ttry:", file=stream)
+                print("\t\t\treturn unicode(self.__call__(*args))", file=stream)
+                print("\t\texcept pythoncom.com_error:", file=stream)
+                print("\t\t\treturn repr(self)", file=stream)
+                print("\tdef __str__(self, *args):", file=stream)
+                print("\t\treturn str(self.__unicode__(*args))", file=stream)
+            print("\tdef __int__(self, *args):", file=stream)
+            print("\t\treturn int(self.__call__(*args))", file=stream)
             
         # _NewEnum (DISPID_NEWENUM) does not appear in typelib for many office objects,
         # but it can still be retrieved at runtime, so  always create __iter__.
@@ -518,24 +518,24 @@ class DispatchItem(build.DispatchItem, WritableItem):
         # If we dont have a good CLSID for the enum result, assume it is the same as the Item() method.
         if resultCLSID == "None" and "Item" in self.mapFuncs:
             resultCLSID = self.mapFuncs["Item"].GetResultCLSIDStr()
-        print >> stream, '\tdef __iter__(self):'
-        print >> stream, '\t\t"Return a Python iterator for this object"'
-        print >> stream, '\t\ttry:'
-        print >> stream, '\t\t\tob = self._oleobj_.InvokeTypes(%d,LCID,%d,(13, 10),())' % (pythoncom.DISPID_NEWENUM, invkind)
-        print >> stream, '\t\texcept pythoncom.error:'
-        print >> stream, '\t\t\traise TypeError("This object does not support enumeration")'
+        print('\tdef __iter__(self):', file=stream)
+        print('\t\t"Return a Python iterator for this object"', file=stream)
+        print('\t\ttry:', file=stream)
+        print('\t\t\tob = self._oleobj_.InvokeTypes(%d,LCID,%d,(13, 10),())' % (pythoncom.DISPID_NEWENUM, invkind), file=stream)
+        print('\t\texcept pythoncom.error:', file=stream)
+        print('\t\t\traise TypeError("This object does not support enumeration")', file=stream)
         # Iterator is wrapped as PyIEnumVariant, and each result of __next__ is Dispatch'ed if necessary
-        print >> stream, '\t\treturn win32com.client.util.Iterator(ob, %s)' %resultCLSID
+        print('\t\treturn win32com.client.util.Iterator(ob, %s)' %resultCLSID, file=stream)
         
         if specialItems["item"]:
             entry, invoketype, propArgs = specialItems["item"]
             resultCLSID = entry.GetResultCLSIDStr()
-            print >> stream, '\t#This class has Item property/method which allows indexed access with the object[key] syntax.'
-            print >> stream, '\t#Some objects will accept a string or other type of key in addition to integers.'
-            print >> stream, '\t#Note that many Office objects do not use zero-based indexing.'
-            print >> stream, '\tdef __getitem__(self, key):'
-            print >> stream, '\t\treturn self._get_good_object_(self._oleobj_.Invoke(*(%d, LCID, %d, 1, key)), "Item", %s)' \
-                    % (entry.desc[0], invoketype, resultCLSID)
+            print('\t#This class has Item property/method which allows indexed access with the object[key] syntax.', file=stream)
+            print('\t#Some objects will accept a string or other type of key in addition to integers.', file=stream)
+            print('\t#Note that many Office objects do not use zero-based indexing.', file=stream)
+            print('\tdef __getitem__(self, key):', file=stream)
+            print('\t\treturn self._get_good_object_(self._oleobj_.Invoke(*(%d, LCID, %d, 1, key)), "Item", %s)' \
+                    % (entry.desc[0], invoketype, resultCLSID), file=stream)
 
         if specialItems["count"]:
             entry, invoketype, propArgs = specialItems["count"]
@@ -545,13 +545,13 @@ class DispatchItem(build.DispatchItem, WritableItem):
             else:
                 typename = "property"
                 ret = [ "\tdef __len__(self):\n\t\treturn self._ApplyTypes_(*%s)" % propArgs]
-            print >> stream, "\t#This class has Count() %s - allow len(ob) to provide this" % (typename)
+            print("\t#This class has Count() %s - allow len(ob) to provide this" % (typename), file=stream)
             for line in ret:
-                print >> stream, line
+                print(line, file=stream)
             # Also include a __nonzero__
-            print >> stream, "\t#This class has a __len__ - this is needed so 'if object:' always returns TRUE."
-            print >> stream, "\tdef __nonzero__(self):"
-            print >> stream, "\t\treturn True"
+            print("\t#This class has a __len__ - this is needed so 'if object:' always returns TRUE.", file=stream)
+            print("\tdef __nonzero__(self):", file=stream)
+            print("\t\treturn True", file=stream)
 
 class CoClassItem(build.OleItem, WritableItem):
   order = 5
@@ -575,21 +575,21 @@ class CoClassItem(build.OleItem, WritableItem):
         referenced_items.append(ref)
       for ref, flag in self.interfaces:
         referenced_items.append(ref)
-      print >> stream, "import sys"
+      print("import sys", file=stream)
       for ref in referenced_items:
-        print >> stream, "__import__('%s.%s')" % (generator.base_mod_name, ref.python_name)
-        print >> stream, "%s = sys.modules['%s.%s'].%s" % (ref.python_name, generator.base_mod_name, ref.python_name, ref.python_name)
+        print("__import__('%s.%s')" % (generator.base_mod_name, ref.python_name), file=stream)
+        print("%s = sys.modules['%s.%s'].%s" % (ref.python_name, generator.base_mod_name, ref.python_name, ref.python_name), file=stream)
         # And pretend we have written it - the name is now available as if we had!
         ref.bWritten = 1
     try:
       progId = pythoncom.ProgIDFromCLSID(self.clsid)
-      print >> stream, "# This CoClass is known by the name '%s'" % (progId)
+      print("# This CoClass is known by the name '%s'" % (progId), file=stream)
     except pythoncom.com_error:
       pass
-    print >> stream, 'class %s(CoClassBaseClass): # A CoClass' % (self.python_name)
-    if doc and doc[1]: print >> stream, '\t# ' + doc[1]
-    print >> stream, '\tCLSID = %r' % (self.clsid,)
-    print >> stream, '\tcoclass_sources = ['
+    print('class %s(CoClassBaseClass): # A CoClass' % (self.python_name), file=stream)
+    if doc and doc[1]: print('\t# ' + doc[1], file=stream)
+    print('\tCLSID = %r' % (self.clsid,), file=stream)
+    print('\tcoclass_sources = [', file=stream)
     defItem = None
     for item, flag in self.sources:
       if flag & pythoncom.IMPLTYPEFLAG_FDEFAULT:
@@ -598,13 +598,13 @@ class CoClassItem(build.OleItem, WritableItem):
       # otherwise just the IID.
       if item.bWritten: key = item.python_name
       else: key = repr(str(item.clsid)) # really the iid.
-      print >> stream, '\t\t%s,' % (key)
-    print >> stream, '\t]'
+      print('\t\t%s,' % (key), file=stream)
+    print('\t]', file=stream)
     if defItem:
       if defItem.bWritten: defName = defItem.python_name
       else: defName = repr(str(defItem.clsid)) # really the iid.
-      print >> stream, '\tdefault_source = %s' % (defName,)
-    print >> stream, '\tcoclass_interfaces = ['
+      print('\tdefault_source = %s' % (defName,), file=stream)
+    print('\tcoclass_interfaces = [', file=stream)
     defItem = None
     for item, flag in self.interfaces:
       if flag & pythoncom.IMPLTYPEFLAG_FDEFAULT: # and dual:
@@ -612,14 +612,14 @@ class CoClassItem(build.OleItem, WritableItem):
       # If we have written a class, refeence its name, otherwise the IID
       if item.bWritten: key = item.python_name
       else: key = repr(str(item.clsid)) # really the iid.
-      print >> stream, '\t\t%s,' % (key,)
-    print >> stream, '\t]'
+      print('\t\t%s,' % (key,), file=stream)
+    print('\t]', file=stream)
     if defItem:
       if defItem.bWritten: defName = defItem.python_name
       else: defName = repr(str(defItem.clsid)) # really the iid.
-      print >> stream, '\tdefault_interface = %s' % (defName,)
+      print('\tdefault_interface = %s' % (defName,), file=stream)
     self.bWritten = 1
-    print >> stream
+    print(file=stream)
 
 class GeneratorProgress:
     def __init__(self):
@@ -664,7 +664,7 @@ class Generator:
 
   def CollectOleItemInfosFromType(self):
     ret = []
-    for i in xrange(self.typelib.GetTypeInfoCount()):
+    for i in range(self.typelib.GetTypeInfoCount()):
       info = self.typelib.GetTypeInfo(i)
       infotype = self.typelib.GetTypeInfoType(i)
       doc = self.typelib.GetDocumentation(i)
@@ -829,36 +829,36 @@ class Generator:
     assert self.file.encoding, self.file
     encoding = self.file.encoding # or "mbcs"
 
-    print >> self.file, '# -*- coding: %s -*-' % (encoding,)
-    print >> self.file, '# Created by makepy.py version %s' % (makepy_version,)
-    print >> self.file, '# By python version %s' % \
-                        (sys.version.replace("\n", "-"),)
+    print('# -*- coding: %s -*-' % (encoding,), file=self.file)
+    print('# Created by makepy.py version %s' % (makepy_version,), file=self.file)
+    print('# By python version %s' % \
+                        (sys.version.replace("\n", "-"),), file=self.file)
     if self.sourceFilename:
-        print >> self.file, "# From type library '%s'" % (os.path.split(self.sourceFilename)[1],)
-    print >> self.file, '# On %s' % time.ctime(time.time())
+        print("# From type library '%s'" % (os.path.split(self.sourceFilename)[1],), file=self.file)
+    print('# On %s' % time.ctime(time.time()), file=self.file)
 
-    print >> self.file, build._makeDocString(docDesc)
+    print(build._makeDocString(docDesc), file=self.file)
 
-    print >> self.file, 'makepy_version =', repr(makepy_version)
-    print >> self.file, 'python_version = 0x%x' % (sys.hexversion,)
-    print >> self.file
-    print >> self.file, 'import win32com.client.CLSIDToClass, pythoncom, pywintypes'
-    print >> self.file, 'import win32com.client.util'
-    print >> self.file, 'from pywintypes import IID'
-    print >> self.file, 'from win32com.client import Dispatch'
-    print >> self.file
-    print >> self.file, '# The following 3 lines may need tweaking for the particular server'
-    print >> self.file, '# Candidates are pythoncom.Missing, .Empty and .ArgNotFound'
-    print >> self.file, 'defaultNamedOptArg=pythoncom.Empty'
-    print >> self.file, 'defaultNamedNotOptArg=pythoncom.Empty'
-    print >> self.file, 'defaultUnnamedArg=pythoncom.Empty'
-    print >> self.file
-    print >> self.file, 'CLSID = ' + repr(la[0])
-    print >> self.file, 'MajorVersion = ' + str(la[3])
-    print >> self.file, 'MinorVersion = ' + str(la[4])
-    print >> self.file, 'LibraryFlags = ' + str(la[5])
-    print >> self.file, 'LCID = ' + hex(la[1])
-    print >> self.file
+    print('makepy_version =', repr(makepy_version), file=self.file)
+    print('python_version = 0x%x' % (sys.hexversion,), file=self.file)
+    print(file=self.file)
+    print('import win32com.client.CLSIDToClass, pythoncom, pywintypes', file=self.file)
+    print('import win32com.client.util', file=self.file)
+    print('from pywintypes import IID', file=self.file)
+    print('from win32com.client import Dispatch', file=self.file)
+    print(file=self.file)
+    print('# The following 3 lines may need tweaking for the particular server', file=self.file)
+    print('# Candidates are pythoncom.Missing, .Empty and .ArgNotFound', file=self.file)
+    print('defaultNamedOptArg=pythoncom.Empty', file=self.file)
+    print('defaultNamedNotOptArg=pythoncom.Empty', file=self.file)
+    print('defaultUnnamedArg=pythoncom.Empty', file=self.file)
+    print(file=self.file)
+    print('CLSID = ' + repr(la[0]), file=self.file)
+    print('MajorVersion = ' + str(la[3]), file=self.file)
+    print('MinorVersion = ' + str(la[4]), file=self.file)
+    print('LibraryFlags = ' + str(la[5]), file=self.file)
+    print('LCID = ' + hex(la[1]), file=self.file)
+    print(file=self.file)
 
   def do_generate(self):
     moduleDoc = self.typelib.GetDocumentation(-1)
@@ -877,25 +877,25 @@ class Generator:
 
     # Generate the constants and their support.
     if enumItems:
-        print >> stream, "class constants:"
-        items = enumItems.values()
+        print("class constants:", file=stream)
+        items = list(enumItems.values())
         items.sort()
         num_written = 0
         for oleitem in items:
             num_written += oleitem.WriteEnumerationItems(stream)
             self.progress.Tick()
         if not num_written:
-            print >> stream, "\tpass"
-        print >> stream
+            print("\tpass", file=stream)
+        print(file=stream)
 
     if self.generate_type == GEN_FULL:
-      items = [l for l in oleItems.itervalues() if l is not None]
+      items = [l for l in oleItems.values() if l is not None]
       items.sort()
       for oleitem in items:
         self.progress.Tick()
         oleitem.WriteClass(self)
 
-      items = vtableItems.values()
+      items = list(vtableItems.values())
       items.sort()
       for oleitem in items:
         self.progress.Tick()
@@ -903,63 +903,63 @@ class Generator:
     else:
         self.progress.Tick(len(oleItems)+len(vtableItems))
 
-    print >> stream, 'RecordMap = {'
-    for record in recordItems.itervalues():
+    print('RecordMap = {', file=stream)
+    for record in recordItems.values():
         if record.clsid == pythoncom.IID_NULL:
-            print >> stream, "\t###%s: %s, # Record disabled because it doesn't have a non-null GUID" % (repr(record.doc[0]), repr(str(record.clsid)))
+            print("\t###%s: %s, # Record disabled because it doesn't have a non-null GUID" % (repr(record.doc[0]), repr(str(record.clsid))), file=stream)
         else:
-            print >> stream, "\t%s: %s," % (repr(record.doc[0]), repr(str(record.clsid)))
-    print >> stream, "}"
-    print >> stream
+            print("\t%s: %s," % (repr(record.doc[0]), repr(str(record.clsid))), file=stream)
+    print("}", file=stream)
+    print(file=stream)
 
     # Write out _all_ my generated CLSID's in the map
     if self.generate_type == GEN_FULL:
-      print >> stream, 'CLSIDToClassMap = {'
-      for item in oleItems.itervalues():
+      print('CLSIDToClassMap = {', file=stream)
+      for item in oleItems.values():
           if item is not None and item.bWritten:
-              print >> stream, "\t'%s' : %s," % (str(item.clsid), item.python_name)
-      print >> stream, '}'
-      print >> stream, 'CLSIDToPackageMap = {}'
-      print >> stream, 'win32com.client.CLSIDToClass.RegisterCLSIDsFromDict( CLSIDToClassMap )'
-      print >> stream, "VTablesToPackageMap = {}"
-      print >> stream, "VTablesToClassMap = {"
-      for item in vtableItems.itervalues():
-        print >> stream, "\t'%s' : '%s'," % (item.clsid,item.python_name)
-      print >> stream, '}'
-      print >> stream
+              print("\t'%s' : %s," % (str(item.clsid), item.python_name), file=stream)
+      print('}', file=stream)
+      print('CLSIDToPackageMap = {}', file=stream)
+      print('win32com.client.CLSIDToClass.RegisterCLSIDsFromDict( CLSIDToClassMap )', file=stream)
+      print("VTablesToPackageMap = {}", file=stream)
+      print("VTablesToClassMap = {", file=stream)
+      for item in vtableItems.values():
+        print("\t'%s' : '%s'," % (item.clsid,item.python_name), file=stream)
+      print('}', file=stream)
+      print(file=stream)
 
     else:
-      print >> stream, 'CLSIDToClassMap = {}'
-      print >> stream, 'CLSIDToPackageMap = {'
-      for item in oleItems.itervalues():
+      print('CLSIDToClassMap = {}', file=stream)
+      print('CLSIDToPackageMap = {', file=stream)
+      for item in oleItems.values():
         if item is not None:
-          print >> stream, "\t'%s' : %s," % (str(item.clsid), repr(item.python_name))
-      print >> stream, '}'
-      print >> stream, "VTablesToClassMap = {}"
-      print >> stream, "VTablesToPackageMap = {"
-      for item in vtableItems.itervalues():
-        print >> stream, "\t'%s' : '%s'," % (item.clsid,item.python_name)
-      print >> stream, '}'
-      print >> stream
+          print("\t'%s' : %s," % (str(item.clsid), repr(item.python_name)), file=stream)
+      print('}', file=stream)
+      print("VTablesToClassMap = {}", file=stream)
+      print("VTablesToPackageMap = {", file=stream)
+      for item in vtableItems.values():
+        print("\t'%s' : '%s'," % (item.clsid,item.python_name), file=stream)
+      print('}', file=stream)
+      print(file=stream)
 
-    print >> stream
+    print(file=stream)
     # Bit of a hack - build a temp map of iteItems + vtableItems - coClasses
     map = {}
-    for item in oleItems.itervalues():
+    for item in oleItems.values():
         if item is not None and not isinstance(item, CoClassItem):
             map[item.python_name] = item.clsid
-    for item in vtableItems.itervalues(): # No nones or CoClasses in this map
+    for item in vtableItems.values(): # No nones or CoClasses in this map
         map[item.python_name] = item.clsid
             
-    print >> stream, "NamesToIIDMap = {"
-    for name, iid in map.iteritems():
-        print >> stream, "\t'%s' : '%s'," % (name, iid)
-    print >> stream, '}'
-    print >> stream
+    print("NamesToIIDMap = {", file=stream)
+    for name, iid in map.items():
+        print("\t'%s' : '%s'," % (name, iid), file=stream)
+    print('}', file=stream)
+    print(file=stream)
 
     if enumItems:
-      print >> stream, 'win32com.client.constants.__dicts__.append(constants.__dict__)'
-    print >> stream
+      print('win32com.client.constants.__dicts__.append(constants.__dict__)', file=stream)
+    print(file=stream)
 
   def generate_child(self, child, dir):
     "Generate a single child.  May force a few children to be built as we generate deps"
@@ -1010,9 +1010,9 @@ class Generator:
       assert found, "Cant find the '%s' interface in the CoClasses, or the interfaces" % (child,)
       # Make a map of iid: dispitem, vtableitem)
       items = {}
-      for key, value in oleItems.iteritems():
+      for key, value in oleItems.items():
           items[key] = (value,None)
-      for key, value in vtableItems.iteritems():
+      for key, value in vtableItems.items():
           existing = items.get(key, None)
           if existing is not None:
               new_val = existing[0], value
@@ -1021,7 +1021,7 @@ class Generator:
           items[key] = new_val
 
       self.progress.SetDescription("Generating...", len(items))
-      for oleitem, vtableitem in items.itervalues():
+      for oleitem, vtableitem in items.values():
         an_item = oleitem or vtableitem
         assert not self.file, "already have a file?"
         # like makepy.py, we gen to a .temp file so failure doesn't
@@ -1052,16 +1052,16 @@ class Generator:
     self.do_gen_file_header()
     oleitem.WriteClass(self)
     if oleitem.bWritten:
-        print >> self.file, 'win32com.client.CLSIDToClass.RegisterCLSID( "%s", %s )' % (oleitem.clsid, oleitem.python_name)
+        print('win32com.client.CLSIDToClass.RegisterCLSID( "%s", %s )' % (oleitem.clsid, oleitem.python_name), file=self.file)
 
   def checkWriteDispatchBaseClass(self):
     if not self.bHaveWrittenDispatchBaseClass:
-      print >> self.file, "from win32com.client import DispatchBaseClass"
+      print("from win32com.client import DispatchBaseClass", file=self.file)
       self.bHaveWrittenDispatchBaseClass = 1
 
   def checkWriteCoClassBaseClass(self):
     if not self.bHaveWrittenCoClassBaseClass:
-      print >> self.file, "from win32com.client import CoClassBaseClass"
+      print("from win32com.client import CoClassBaseClass", file=self.file)
       self.bHaveWrittenCoClassBaseClass = 1
 
   def checkWriteEventBaseClass(self):
@@ -1071,4 +1071,4 @@ class Generator:
         self.bHaveWrittenEventBaseClass = 1
 
 if __name__=='__main__':
-  print "This is a worker module.  Please use makepy to generate Python files."
+  print("This is a worker module.  Please use makepy to generate Python files.")

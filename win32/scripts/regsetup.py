@@ -12,7 +12,7 @@ def FileExists(fname):
     try:
         os.stat(fname)
         return 1
-    except os.error, details:
+    except os.error as details:
         return 0
 
 def IsPackageDir(path, packageName, knownFileName):
@@ -255,11 +255,11 @@ def FindRegisterPackage(packageName, knownFile, searchPaths, registryAppName = N
                 pathAdd = ""
             regutil.RegisterNamedPath(registryAppName, pathAdd)
         return pathLook
-    except error, details:
-        print "*** The %s package could not be registered - %s" % (packageName, details)
-        print "*** Please ensure you have passed the correct paths on the command line."
-        print "*** - For packages, you should pass a path to the packages parent directory,"
-        print "*** - and not the package directory itself..."
+    except error as details:
+        print("*** The %s package could not be registered - %s" % (packageName, details))
+        print("*** Please ensure you have passed the correct paths on the command line.")
+        print("*** - For packages, you should pass a path to the packages parent directory,")
+        print("*** - and not the package directory itself...")
 
 
 def FindRegisterApp(appName, knownFiles, searchPaths):
@@ -277,8 +277,8 @@ def FindRegisterApp(appName, knownFiles, searchPaths):
             pathLook = FindAppPath(appName, knownFile, searchPaths)
             if pathLook:
                 paths.append(pathLook)
-    except error, details:
-        print "*** ", details
+    except error as details:
+        print("*** ", details)
         return
 
     regutil.RegisterNamedPath(appName, ";".join(paths))
@@ -300,8 +300,8 @@ def FindRegisterHelpFile(helpFile, searchPaths, helpDesc = None ):
 
     try:
         pathLook = FindHelpPath(helpFile, helpDesc, searchPaths)
-    except error, details:
-        print "*** ", details
+    except error as details:
+        print("*** ", details)
         return
 #       print "%s found at %s" % (helpFile, pathLook)
     regutil.RegisterHelpFile(helpFile, pathLook, helpDesc)
@@ -324,7 +324,7 @@ def SetupCore(searchPaths):
 
     installPath, corePaths = LocatePythonCore(searchPaths)
     # Register the core Pythonpath.
-    print corePaths
+    print(corePaths)
     regutil.RegisterNamedPath(None, ';'.join(corePaths))
 
     # Register the install path.
@@ -444,7 +444,7 @@ for that module.
 
 if __name__=='__main__':
     if len(sys.argv)>1 and sys.argv[1] in ['/?','-?','-help','-h']:
-        print usage
+        print(usage)
     elif len(sys.argv)==1 or not sys.argv[1][0] in ['/','-']:
         # No args, or useful args.
         searchPath = sys.path[:]
@@ -467,13 +467,13 @@ if __name__=='__main__':
         else:
             searchPath.append("..\\..\\pcbuild")
 
-        print "Attempting to setup/repair the Python core"
+        print("Attempting to setup/repair the Python core")
 
         SetupCore(searchPath)
         RegisterShellInfo(searchPath)
         FindRegisterHelpFile("PyWin32.chm", searchPath, "Pythonwin Reference")
         # Check the registry.
-        print "Registration complete - checking the registry..."
+        print("Registration complete - checking the registry...")
         import regcheck
         regcheck.CheckRegistry()
     else:
@@ -485,23 +485,23 @@ if __name__=='__main__':
             searchPaths.append(arg)
         for o,a in opts:
             if o=='--description':
-                print description
+                print(description)
             if o=='--examples':
-                print examples
+                print(examples)
             if o=='--shell':
-                print "Registering the Python core."
+                print("Registering the Python core.")
                 RegisterShellInfo(searchPaths)
             if o=='-p':
-                print "Registering package", a
+                print("Registering package", a)
                 FindRegisterPackage(a,None,searchPaths)
             if o in ['--upackage', '--uapp']:
                 import regutil
-                print "Unregistering application/package", a
+                print("Unregistering application/package", a)
                 regutil.UnregisterNamedPath(a)
             if o=='-a':
                 import regutil
                 path = ";".join(searchPaths)
-                print "Registering application", a,"to path",path
+                print("Registering application", a,"to path",path)
                 regutil.RegisterNamedPath(a,path)
             if o=='-c':
                 if not len(searchPaths):
@@ -513,7 +513,7 @@ if __name__=='__main__':
                     if newPath not in currentPaths:
                         currentPaths.append(newPath)
                 if len(currentPaths)!=oldLen:
-                    print "Registering %d new core paths" % (len(currentPaths)-oldLen)
+                    print("Registering %d new core paths" % (len(currentPaths)-oldLen))
                     regutil.RegisterNamedPath(None,";".join(currentPaths))
                 else:
-                    print "All specified paths are already registered."
+                    print("All specified paths are already registered.")

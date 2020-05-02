@@ -120,7 +120,7 @@ class FileNames(unittest.TestCase):
                         "Expected long name ('%s') to be original name ('%s')" % (long_name, fname))
         self.failUnlessEqual(long_name, win32api.GetLongPathNameW(short_name).lower())
         long_name = win32api.GetLongPathNameW(short_name).lower()
-        self.failUnless(type(long_name)==unicode, "GetLongPathNameW returned type '%s'" % (type(long_name),))
+        self.failUnless(type(long_name)==str, "GetLongPathNameW returned type '%s'" % (type(long_name),))
         self.failUnless(long_name==fname, \
                         "Expected long name ('%s') to be original name ('%s')" % (long_name, fname))
 
@@ -131,14 +131,14 @@ class FileNames(unittest.TestCase):
             me = sys.argv[0]
         fname = os.path.abspath(me).lower()
         # passing unicode should cause GetShortPathNameW to be called.
-        short_name = win32api.GetShortPathName(unicode(fname)).lower()
-        self.failUnless(isinstance(short_name, unicode))
+        short_name = win32api.GetShortPathName(str(fname)).lower()
+        self.failUnless(isinstance(short_name, str))
         long_name = win32api.GetLongPathName(short_name).lower()
         self.failUnless(long_name==fname, \
                         "Expected long name ('%s') to be original name ('%s')" % (long_name, fname))
         self.failUnlessEqual(long_name, win32api.GetLongPathNameW(short_name).lower())
         long_name = win32api.GetLongPathNameW(short_name).lower()
-        self.failUnless(type(long_name)==unicode, "GetLongPathNameW returned type '%s'" % (type(long_name),))
+        self.failUnless(type(long_name)==str, "GetLongPathNameW returned type '%s'" % (type(long_name),))
         self.failUnless(long_name==fname, \
                         "Expected long name ('%s') to be original name ('%s')" % (long_name, fname))
 
@@ -154,7 +154,7 @@ class FileNames(unittest.TestCase):
         fname = "\\\\?\\" + os.path.join(long_temp_dir, basename)
         try:
             win32file.CreateDirectoryW(fname, None)
-        except win32api.error, details:
+        except win32api.error as details:
             if details.winerror!=winerror.ERROR_ALREADY_EXISTS:
                 raise
         try:
@@ -162,11 +162,11 @@ class FileNames(unittest.TestCase):
             # passed unicode
             try:
                 attr = win32api.GetFileAttributes(fname)
-            except win32api.error, details:
+            except win32api.error as details:
                 if details.winerror != winerror.ERROR_FILENAME_EXCED_RANGE:
                     raise
         
-            attr = win32api.GetFileAttributes(unicode(fname))
+            attr = win32api.GetFileAttributes(str(fname))
             self.failUnless(attr & win32con.FILE_ATTRIBUTE_DIRECTORY, attr)
 
             long_name = win32api.GetLongPathNameW(fname)

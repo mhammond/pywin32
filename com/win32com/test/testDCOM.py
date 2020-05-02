@@ -18,7 +18,7 @@ import pythoncom, win32com.client, win32api, string, sys
 
 def test(serverName):
     if string.lower(serverName)==string.lower(win32api.GetComputerName()):
-        print "You must specify a remote server name, not the local machine!"
+        print("You must specify a remote server name, not the local machine!")
         return
 
     # Hack to overcome a DCOM limitation.  As the Python.Interpreter object
@@ -29,12 +29,12 @@ def test(serverName):
     ob.Exec("import win32api")
     actualName = ob.Eval("win32api.GetComputerName()")
     if string.lower(serverName) != string.lower(actualName):
-        print "Error: The object created on server '%s' reported its name as '%s'" % (serverName, actualName)
+        print("Error: The object created on server '%s' reported its name as '%s'" % (serverName, actualName))
     else:
-        print "Object created and tested OK on server '%s'" % serverName
+        print("Object created and tested OK on server '%s'" % serverName)
 
 if __name__=='__main__':
     if len(sys.argv) == 2:
         test(sys.argv[1])
     else:
-        print usage
+        print(usage)

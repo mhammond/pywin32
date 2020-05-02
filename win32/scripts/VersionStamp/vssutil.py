@@ -22,7 +22,7 @@ def test(projectName):
 	project = ss.VSSItem(projectName)
 
 	for item in project.GetVersions(constants.VSSFLAG_RECURSYES):
-		print item.VSSItem.Name, item.VersionNumber, item.Action
+		print(item.VSSItem.Name, item.VersionNumber, item.Action)
 		
 
 #	item=i.Versions[0].VSSItem
@@ -44,7 +44,7 @@ def SubstituteInString(inString, evalEnv):
 				didSubst = 1
 			except:
 				traceback.print_exc()
-				print "Could not substitute", strVal
+				print("Could not substitute", strVal)
 		if not didSubst:
 			newFields.append(strVal)
 	return string.join(map(str, newFields), "")
@@ -99,7 +99,7 @@ def SubstituteVSSInFile(projectName, inName, outName):
 		if version.Label:
 			break
 	else:
-		print "Couldnt find a label in the sourcesafe project!"
+		print("Couldnt find a label in the sourcesafe project!")
 		return
 	# Setup some local helpers for the conversion strings.
 	vss_label = version.Label
@@ -157,7 +157,7 @@ def MakeNewBuildNo(project, buildDesc = None, auto=0, bRebrand = 0):
 		if buildNo is None: return
 	i.Label(buildNo, "Build %s: %s" % (buildNo,buildDesc))
 	if auto:
-		print "Branded project %s with label %s" % (project, buildNo)
+		print("Branded project %s with label %s" % (project, buildNo))
 	return buildNo
 
 if __name__=='__main__':

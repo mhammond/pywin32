@@ -20,7 +20,7 @@ if not os.path.isfile(ico):
     ico = os.path.join(sys.prefix, "PC", "py.ico")
 if not os.path.isfile(ico):
     ico = None
-    print "Can't find python.ico - no icon will be installed"
+    print("Can't find python.ico - no icon will be installed")
 
 class EmptyVolumeCache:
     _reg_progid_ = "Python.ShellExtension.EmptyVolumeCache"
@@ -32,16 +32,16 @@ class EmptyVolumeCache:
 
     def Initialize(self, hkey, volume, flags):
         # This should never be called, except on win98.
-        print "Unless we are on 98, Initialize call is unexpected!"
+        print("Unless we are on 98, Initialize call is unexpected!")
         raise COMException(hresult=winerror.E_NOTIMPL)
 
     def InitializeEx(self, hkey, volume, key_name, flags):
         # Must return a tuple of:
         # (display_name, description, button_name, flags)
-        print "InitializeEx called with", hkey, volume, key_name, flags
+        print("InitializeEx called with", hkey, volume, key_name, flags)
         self.volume = volume
         if flags & shellcon.EVCF_SETTINGSMODE:
-            print "We are being run on a schedule"
+            print("We are being run on a schedule")
             # In this case, "because there is no opportunity for user
             # feedback, only those files that are extremely safe to clean up
             # should be touched. You should ignore the initialization
@@ -53,10 +53,10 @@ class EmptyVolumeCache:
             # files, even if it results in a performance loss. However, the
             # handler obviously should not delete files that would cause an
             # application to fail or the user to lose data."
-            print "We are being run as we are out of disk-space"
+            print("We are being run as we are out of disk-space")
         else:
             # This case is not documented - we are guessing :)
-            print "We are being run because the user asked"
+            print("We are being run because the user asked")
 
         # For the sake of demo etc, we tell the shell to only show us when
         # there are > 0 bytes available.  Our GetSpaceUsed will check the
@@ -89,7 +89,7 @@ class EmptyVolumeCache:
                 # list simply due to the way os.walk works - only [0] is
                 # referenced
                 if total_list is None:
-                    print "Deleting file", fqn
+                    print("Deleting file", fqn)
                     # Should do callback.PurgeProcess - left as an exercise :)
                     os.remove(fqn)
                 else:
@@ -111,55 +111,59 @@ class EmptyVolumeCache:
         try:
             for d in self._GetDirectories():
                 os.path.walk(d, self._WalkCallback, (callback, total))
-                print "After looking in", d, "we have", total[0], "bytes"
-        except pythoncom.error, (hr, msg, exc, arg):
+                print("After looking in", d, "we have", total[0], "bytes")
+        except pythoncom.error as xxx_todo_changeme:
+            # This will be raised by the callback when the user selects 'cancel'.
+            (hr, msg, exc, arg) = xxx_todo_changeme.args
             # This will be raised by the callback when the user selects 'cancel'.
             if hr != winerror.E_ABORT:
                 raise # that's the documented error code!
-            print "User cancelled the operation"
+            print("User cancelled the operation")
         return total[0]
 
     def Purge(self, amt_to_free, callback):
-        print "Purging", amt_to_free, "bytes..."
+        print("Purging", amt_to_free, "bytes...")
         # we ignore amt_to_free - it is generally what we returned for
         # GetSpaceUsed
         try:
             for d in self._GetDirectories():
                 os.path.walk(d, self._WalkCallback, (callback, None))
-        except pythoncom.error, (hr, msg, exc, arg):
+        except pythoncom.error as xxx_todo_changeme1:
+            # This will be raised by the callback when the user selects 'cancel'.
+            (hr, msg, exc, arg) = xxx_todo_changeme1.args
             # This will be raised by the callback when the user selects 'cancel'.
             if hr != winerror.E_ABORT:
                 raise # that's the documented error code!
-            print "User cancelled the operation"
+            print("User cancelled the operation")
 
     def ShowProperties(self, hwnd):
         raise COMException(hresult=winerror.E_NOTIMPL)
 
     def Deactivate(self):
-        print "Deactivate called"
+        print("Deactivate called")
         return 0
 
 def DllRegisterServer():
     # Also need to register specially in:
     # HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\Explorer\VolumeCaches
     # See link at top of file.
-    import _winreg
+    import winreg
     kn = r"Software\Microsoft\Windows\CurrentVersion\Explorer\VolumeCaches\%s" \
          % (EmptyVolumeCache._reg_desc_,)
-    key = _winreg.CreateKey(_winreg.HKEY_LOCAL_MACHINE, kn)
-    _winreg.SetValueEx(key, None, 0, _winreg.REG_SZ, EmptyVolumeCache._reg_clsid_)
+    key = winreg.CreateKey(winreg.HKEY_LOCAL_MACHINE, kn)
+    winreg.SetValueEx(key, None, 0, winreg.REG_SZ, EmptyVolumeCache._reg_clsid_)
 
 def DllUnregisterServer():
-    import _winreg
+    import winreg
     kn = r"Software\Microsoft\Windows\CurrentVersion\Explorer\VolumeCaches\%s" \
          % (EmptyVolumeCache._reg_desc_,)
     try:
-        key = _winreg.DeleteKey(_winreg.HKEY_LOCAL_MACHINE, kn)
-    except WindowsError, details:
+        key = winreg.DeleteKey(winreg.HKEY_LOCAL_MACHINE, kn)
+    except WindowsError as details:
         import errno
         if details.errno != errno.ENOENT:
             raise
-    print EmptyVolumeCache._reg_desc_, "unregistration complete."
+    print(EmptyVolumeCache._reg_desc_, "unregistration complete.")
 
 if __name__=='__main__':
     from win32com.server import register

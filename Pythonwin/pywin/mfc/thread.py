@@ -1,6 +1,6 @@
 # Thread and application objects
 
-import object
+from . import object
 import win32ui
 
 class WinThread(object.CmdTarget):

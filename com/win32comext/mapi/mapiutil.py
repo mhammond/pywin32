@@ -10,7 +10,7 @@ from . import mapi, mapitags
 prTable = {}
 def GetPropTagName(pt):
 	if not prTable:
-		for name, value in mapitags.__dict__.iteritems():
+		for name, value in mapitags.__dict__.items():
 			if name[:3] == 'PR_':
 				# Store both the full ID (including type) and just the ID.
 				# This is so PR_FOO_A and PR_FOO_W are still differentiated,
@@ -48,7 +48,7 @@ def GetPropTagName(pt):
 	except KeyError:
 		# god-damn bullshit hex() warnings: I don't see a way to get the
 		# old behaviour without a warning!!
-		ret = hex(long(pt))
+		ret = hex(int(pt))
 		# -0x8000000L -> 0x80000000
 		if ret[0]=='-': ret = ret[1:]
 		if ret[-1]=='L': ret = ret[:-1]
@@ -57,7 +57,7 @@ def GetPropTagName(pt):
 mapiErrorTable = {}
 def GetScodeString(hr):
 	if not mapiErrorTable:
-		for name, value in mapi.__dict__.iteritems():
+		for name, value in mapi.__dict__.items():
 			if name[:7] in ['MAPI_E_', 'MAPI_W_']:
 				mapiErrorTable[value] = name
 	return mapiErrorTable.get(hr, pythoncom.GetScodeString(hr))
@@ -67,7 +67,7 @@ ptTable = {}
 def GetMapiTypeName(propType, rawType=True):
 	"""Given a mapi type flag, return a string description of the type"""
 	if not ptTable:
-		for name, value in mapitags.__dict__.iteritems():
+		for name, value in mapitags.__dict__.items():
 			if name[:3] == 'PT_':
 				# PT_TSTRING is a conditional assignment
 				# for either PT_UNICODE or PT_STRING8 and
@@ -119,7 +119,7 @@ def GetAllProperties(obj, make_tag_names = True):
 	for tag, val in data:
 		if make_tag_names:
 			hr, tags, array = obj.GetNamesFromIDs( (tag,) )
-			if type(array[0][1])==type(u''):
+			if type(array[0][1])==type(''):
 				name = array[0][1]
 			else:
 				name = GetPropTagName(tag)
@@ -132,7 +132,7 @@ _MapiTypeMap = {
     type(0.0): mapitags.PT_DOUBLE,
     type(0): mapitags.PT_I4,
     type(''.encode('ascii')): mapitags.PT_STRING8, # str in py2x, bytes in 3x
-    type(u''): mapitags.PT_UNICODE, # unicode in py2x, str in 3x
+    type(''): mapitags.PT_UNICODE, # unicode in py2x, str in 3x
     type(None): mapitags.PT_UNSPECIFIED,
     # In Python 2.2.2, bool isn't a distinct type (type(1==1) is type(0)).
 }
@@ -167,17 +167,17 @@ def SetProperties( msg, propDict):
 
 	newProps = []
 	# First pass over the properties we should get IDs for.
-	for key, val in propDict.iteritems():
-		if type(key) in [str, unicode]:
+	for key, val in propDict.items():
+		if type(key) in [str, str]:
 			newProps.append((mapi.PS_PUBLIC_STRINGS, key))
 	# Query for the new IDs
 	if newProps: newIds = msg.GetIDsFromNames(newProps, mapi.MAPI_CREATE)
 	newIdNo = 0
 	newProps = []
-	for key, val in propDict.iteritems():
-		if type(key) in [str, unicode]:
+	for key, val in propDict.items():
+		if type(key) in [str, str]:
 			type_val=type(val)
-			if type_val in [str, unicode]:
+			if type_val in [str, str]:
 				tagType = mapitags.PT_UNICODE
 			elif type_val==IntType:
 				tagType = mapitags.PT_I4

@@ -82,18 +82,18 @@ def main():
             fields, status = win32net.NetValidatePasswordPolicy(options.server,
                                                          None, val_type, input)
         except NotImplementedError:
-            print "NetValidatePasswordPolicy not implemented on this platform."
+            print("NetValidatePasswordPolicy not implemented on this platform.")
             return 1
-        except win32net.error, exc:
-            print "NetValidatePasswordPolicy failed: ", exc
+        except win32net.error as exc:
+            print("NetValidatePasswordPolicy failed: ", exc)
             return 1
 
         if options.show_fields:
-            print "NET_VALIDATE_PERSISTED_FIELDS fields:"
+            print("NET_VALIDATE_PERSISTED_FIELDS fields:")
             pprint(fields)
 
-        print "Result of %r validation is %d: %s" % \
-                    (arg, status, win32api.FormatMessage(status).strip())
+        print("Result of %r validation is %d: %s" % \
+                    (arg, status, win32api.FormatMessage(status).strip()))
 
     return 0
 

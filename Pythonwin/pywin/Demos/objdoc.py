@@ -14,7 +14,7 @@ class object_template (docview.DocTemplate):
 	def OpenObject(self, object): # Use this instead of OpenDocumentFile.
 		# Look for existing open document
 		for doc in self.GetDocumentList():
-			print "document is ", doc
+			print("document is ", doc)
 			if doc.object is object:
 				doc.GetFirstView().ActivateFrame()
 				return doc

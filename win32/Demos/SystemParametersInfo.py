@@ -14,19 +14,19 @@ for pname in(
     ## below are winxp only:
     "SPI_GETFONTSMOOTHINGCONTRAST", "SPI_GETFONTSMOOTHINGTYPE", "SPI_GETFOCUSBORDERHEIGHT",
     "SPI_GETFOCUSBORDERWIDTH",      "SPI_GETMOUSECLICKLOCKTIME"):
-    print pname
+    print(pname)
     cget=getattr(win32con,pname)
     cset=getattr(win32con,pname.replace('_GET','_SET'))
     orig_value=win32gui.SystemParametersInfo(cget)
-    print '\toriginal setting:',orig_value
+    print('\toriginal setting:',orig_value)
     win32gui.SystemParametersInfo(cset, orig_value+1)
     new_value=win32gui.SystemParametersInfo(cget)
-    print '\tnew value:',new_value
+    print('\tnew value:',new_value)
     # On Vista, some of these values seem to be ignored.  So only "fail" if
     # the new value isn't what we set or the original
     if new_value!=orig_value+1:
         assert new_value == orig_value
-        print "Strange - setting %s seems to have been ignored" % (pname,)
+        print("Strange - setting %s seems to have been ignored" % (pname,))
     win32gui.SystemParametersInfo(cset, orig_value)
     assert win32gui.SystemParametersInfo(cget)==orig_value
 
@@ -39,14 +39,14 @@ for pname in ("SPI_GETFLATMENU","SPI_GETDROPSHADOW","SPI_GETKEYBOARDCUES","SPI_G
     "SPI_GETLISTBOXSMOOTHSCROLLING", "SPI_GETMENUANIMATION", "SPI_GETSELECTIONFADE",
     "SPI_GETTOOLTIPANIMATION", "SPI_GETTOOLTIPFADE", "SPI_GETUIEFFECTS", "SPI_GETACTIVEWINDOWTRACKING",
     "SPI_GETACTIVEWNDTRKZORDER"):
-    print pname
+    print(pname)
     cget=getattr(win32con,pname)
     cset=getattr(win32con,pname.replace('_GET','_SET'))
     orig_value=win32gui.SystemParametersInfo(cget)
-    print orig_value
+    print(orig_value)
     win32gui.SystemParametersInfo(cset, not orig_value)
     new_value=win32gui.SystemParametersInfo(cget)
-    print new_value
+    print(new_value)
     assert orig_value!=new_value
     win32gui.SystemParametersInfo(cset, orig_value)
     assert win32gui.SystemParametersInfo(cget)==orig_value
@@ -66,24 +66,24 @@ for pname in ("SPI_GETFONTSMOOTHING","SPI_GETICONTITLEWRAP","SPI_GETBEEP","SPI_G
     # Some of these also can't be changed (eg, SPI_GETSCREENSAVEACTIVE) so
     # don't actually get upset.
     if orig_value!=new_value:
-        print "successfully toggled", pname, "from", orig_value, "to", new_value
+        print("successfully toggled", pname, "from", orig_value, "to", new_value)
     else:
-        print "couldn't toggle", pname, "from", orig_value
+        print("couldn't toggle", pname, "from", orig_value)
     win32gui.SystemParametersInfo(cset, orig_value)
     assert win32gui.SystemParametersInfo(cget)==orig_value
 
 
 
-print "SPI_GETICONTITLELOGFONT"
+print("SPI_GETICONTITLELOGFONT")
 lf=win32gui.SystemParametersInfo(win32con.SPI_GETICONTITLELOGFONT)
 orig_height=lf.lfHeight
 orig_italic=lf.lfItalic
-print 'Height:', orig_height, 'Italic:',orig_italic
+print('Height:', orig_height, 'Italic:',orig_italic)
 lf.lfHeight+=2
 lf.lfItalic=not lf.lfItalic
 win32gui.SystemParametersInfo(win32con.SPI_SETICONTITLELOGFONT, lf)
 new_lf=win32gui.SystemParametersInfo(win32con.SPI_GETICONTITLELOGFONT)
-print 'New Height:', new_lf.lfHeight, 'New Italic:',new_lf.lfItalic
+print('New Height:', new_lf.lfHeight, 'New Italic:',new_lf.lfItalic)
 assert new_lf.lfHeight==orig_height+2
 assert new_lf.lfItalic!=orig_italic
 
@@ -96,11 +96,11 @@ assert new_lf.lfItalic==orig_italic
 
 
 
-print "SPI_GETMOUSEHOVERWIDTH, SPI_GETMOUSEHOVERHEIGHT, SPI_GETMOUSEHOVERTIME"
+print("SPI_GETMOUSEHOVERWIDTH, SPI_GETMOUSEHOVERHEIGHT, SPI_GETMOUSEHOVERTIME")
 w=win32gui.SystemParametersInfo(win32con.SPI_GETMOUSEHOVERWIDTH)
 h=win32gui.SystemParametersInfo(win32con.SPI_GETMOUSEHOVERHEIGHT)
 t=win32gui.SystemParametersInfo(win32con.SPI_GETMOUSEHOVERTIME)
-print 'w,h,t:', w,h,t
+print('w,h,t:', w,h,t)
 
 win32gui.SystemParametersInfo(win32con.SPI_SETMOUSEHOVERWIDTH,w+1)
 win32gui.SystemParametersInfo(win32con.SPI_SETMOUSEHOVERHEIGHT,h+2)
@@ -108,7 +108,7 @@ win32gui.SystemParametersInfo(win32con.SPI_SETMOUSEHOVERTIME,t+3)
 new_w=win32gui.SystemParametersInfo(win32con.SPI_GETMOUSEHOVERWIDTH)
 new_h=win32gui.SystemParametersInfo(win32con.SPI_GETMOUSEHOVERHEIGHT)
 new_t=win32gui.SystemParametersInfo(win32con.SPI_GETMOUSEHOVERTIME)
-print 'new w,h,t:', new_w, new_h, new_t
+print('new w,h,t:', new_w, new_h, new_t)
 assert new_w==w+1
 assert new_h==h+2
 assert new_t==t+3
@@ -125,15 +125,15 @@ assert new_t==t
 
 
 
-print "SPI_SETDOUBLECLKWIDTH, SPI_SETDOUBLECLKHEIGHT"
+print("SPI_SETDOUBLECLKWIDTH, SPI_SETDOUBLECLKHEIGHT")
 x=win32api.GetSystemMetrics(win32con.SM_CXDOUBLECLK)
 y=win32api.GetSystemMetrics(win32con.SM_CYDOUBLECLK)
-print 'x,y:', x, y
+print('x,y:', x, y)
 win32gui.SystemParametersInfo(win32con.SPI_SETDOUBLECLKWIDTH, x+1)
 win32gui.SystemParametersInfo(win32con.SPI_SETDOUBLECLKHEIGHT, y+2)
 new_x=win32api.GetSystemMetrics(win32con.SM_CXDOUBLECLK)
 new_y=win32api.GetSystemMetrics(win32con.SM_CYDOUBLECLK)
-print 'new x,y:', new_x, new_y
+print('new x,y:', new_x, new_y)
 assert new_x==x+1
 assert new_y==y+2
 win32gui.SystemParametersInfo(win32con.SPI_SETDOUBLECLKWIDTH, x)
@@ -145,15 +145,15 @@ assert new_y==y
 
 
 
-print "SPI_SETDRAGWIDTH, SPI_SETDRAGHEIGHT"
+print("SPI_SETDRAGWIDTH, SPI_SETDRAGHEIGHT")
 dw=win32api.GetSystemMetrics(win32con.SM_CXDRAG)
 dh=win32api.GetSystemMetrics(win32con.SM_CYDRAG)
-print 'dw,dh:', dw, dh
+print('dw,dh:', dw, dh)
 win32gui.SystemParametersInfo(win32con.SPI_SETDRAGWIDTH,dw+1)
 win32gui.SystemParametersInfo(win32con.SPI_SETDRAGHEIGHT,dh+2)
 new_dw=win32api.GetSystemMetrics(win32con.SM_CXDRAG)
 new_dh=win32api.GetSystemMetrics(win32con.SM_CYDRAG)
-print 'new dw,dh:', new_dw, new_dh
+print('new dw,dh:', new_dw, new_dh)
 assert new_dw==dw+1
 assert new_dh==dh+2
 win32gui.SystemParametersInfo(win32con.SPI_SETDRAGWIDTH,dw)
@@ -166,11 +166,11 @@ assert new_dh==dh
 
 
 orig_wallpaper=win32gui.SystemParametersInfo(Action=win32con.SPI_GETDESKWALLPAPER)
-print 'Original: ',orig_wallpaper
+print('Original: ',orig_wallpaper)
 for bmp in glob.glob(os.path.join(os.environ['windir'],'*.bmp')):
-    print bmp
+    print(bmp)
     win32gui.SystemParametersInfo(win32con.SPI_SETDESKWALLPAPER, Param=bmp)
-    print win32gui.SystemParametersInfo(Action=win32con.SPI_GETDESKWALLPAPER)
+    print(win32gui.SystemParametersInfo(Action=win32con.SPI_GETDESKWALLPAPER))
     time.sleep(1)
 
 win32gui.SystemParametersInfo(win32con.SPI_SETDESKWALLPAPER, Param=orig_wallpaper)

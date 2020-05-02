@@ -2,7 +2,7 @@ import win32security,win32file,win32api,ntsecuritycon,win32con
 policy_handle = win32security.GetPolicyHandle('rupole',win32security.POLICY_ALL_ACCESS)
 
 event_audit_info=win32security.LsaQueryInformationPolicy(policy_handle,win32security.PolicyAuditEventsInformation)
-print event_audit_info
+print(event_audit_info)
 
 new_audit_info=list(event_audit_info[1])
 new_audit_info[win32security.AuditCategoryPolicyChange]= \

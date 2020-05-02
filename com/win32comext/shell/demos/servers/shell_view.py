@@ -47,7 +47,7 @@
 # string content)
 
 import sys, os
-import thread
+import _thread
 import pyclbr
 import pythoncom
 import win32gui, win32gui_struct, win32api, win32con, winerror
@@ -115,10 +115,10 @@ class ShellFolderBase:
         #print "GetFrameOptions", self, mask
         return 0
     def ParseDisplayName(self, hwnd, reserved, displayName, attr):
-        print "ParseDisplayName", displayName
+        print("ParseDisplayName", displayName)
         # return cchEaten, pidl, attr
     def BindToStorage(self, pidl, bc, iid):
-        print "BTS", iid, IIDToInterfaceName(iid)
+        print("BTS", iid, IIDToInterfaceName(iid))
     def BindToObject(self, pidl, bc, iid):
         # We may be passed a set of relative PIDLs here - ie
         # [pidl_of_dir, pidl_of_child_dir, pidl_of_file, pidl_of_function]
@@ -160,7 +160,8 @@ class ShellFolderFileSystem(ShellFolderBase):
         try:
             inout, ret = folder.GetUIObjectOf(hwndOwner, [child_pidl], iid,
                                               inout, iid)
-        except pythoncom.com_error, (hr, desc, exc, arg):
+        except pythoncom.com_error as xxx_todo_changeme:
+            (hr, desc, exc, arg) = xxx_todo_changeme.args
             raise COMException(hresult=hr)
         return inout, ret
         # return object of IID
@@ -227,7 +228,7 @@ class ShellFolderFile(ShellFolderBase):
     def EnumObjects(self, hwndOwner, flags):
         objects = get_clbr_for_file(self.path)
         pidls = []
-        for name, ob in objects.iteritems():
+        for name, ob in objects.items():
             pidls.append( ["object\0" + self.path + "\0" + name] )
         return NewEnum(pidls, iid=shell.IID_IEnumIDList,
                        useDispatcher=(debug>0))
@@ -284,7 +285,7 @@ class ShellFolderObject(ShellFolderBase):
         mod_objects = get_clbr_for_file(self.path)
         my_objects = mod_objects[self.class_name]
         pidls = []
-        for func_name, lineno in my_objects.methods.iteritems():
+        for func_name, lineno in my_objects.methods.items():
             pidl = ["object\0" + self.path + "\0" +
                     self.class_name + "." + func_name]
             pidls.append(pidl)
@@ -366,7 +367,7 @@ class FileSystemView:
 
    # IShellView
     def CreateViewWindow(self, prev, settings, browser, rect):
-        print "FileSystemView.CreateViewWindow", prev, settings, browser, rect
+        print("FileSystemView.CreateViewWindow", prev, settings, browser, rect)
         self.cur_foldersettings = settings
         self.browser = browser
         self._CreateMainWindow(prev, settings, browser, rect)
@@ -394,7 +395,7 @@ class FileSystemView:
         wc.style = win32con.CS_VREDRAW | win32con.CS_HREDRAW
         try:
             win32gui.RegisterClass(wc)
-        except win32gui.error, details:
+        except win32gui.error as details:
             # Should only happen when this module is reloaded
             if details[0] != winerror.ERROR_CLASS_ALREADY_EXISTS:
                 raise
@@ -411,7 +412,7 @@ class FileSystemView:
                 rect[0], rect[1], rect[2]-rect[0], rect[3]-rect[1],
                 self.hwnd_parent, 0, win32gui.dllhandle, None)
         win32gui.SetWindowLong(self.hwnd, win32con.GWL_WNDPROC, message_map)
-        print "View 's hwnd is", self.hwnd
+        print("View 's hwnd is", self.hwnd)
         return self.hwnd
 
     def _CreateChildWindow(self, prev):
@@ -476,7 +477,7 @@ class FileSystemView:
         return self.cur_foldersettings
 
     def UIActivate(self, activate_state):
-        print "OnActivate"
+        print("OnActivate")
 
     def _OnActivate(self, activate_state):
         if self.activate_state == activate_state:
@@ -517,7 +518,7 @@ class FileSystemView:
                                  buf)
         data = win32gui_struct.UnpackMENUITEMINFO(buf)
         submenu = data[3]
-        print "Do someting with the file menu!"
+        print("Do someting with the file menu!")
 
     def Refresh(self):
         stateMask = commctrl.LVIS_SELECTED | commctrl.LVIS_DROPHILITED
@@ -559,7 +560,7 @@ class FileSystemView:
         # For the sake of brevity, we don't implement this yet.
         # You would need to locate the index of the item in the shell-view
         # with that PIDL, then ask the list-view to select it.
-        print "Please implement SelectItem for PIDL", pidl
+        print("Please implement SelectItem for PIDL", pidl)
 
     def GetItemObject(self, item_num, iid):
         raise COMException(hresult=winerror.E_NOTIMPL)
@@ -570,14 +571,14 @@ class FileSystemView:
     def DestroyViewWindow(self):
         win32gui.DestroyWindow(self.hwnd)
         self.hwnd = None
-        print "Destroyed view window"
+        print("Destroyed view window")
 
     # Message handlers.
     def OnDestroy(self, hwnd, msg, wparam, lparam):
-        print "OnDestory"
+        print("OnDestory")
 
     def OnCommand(self, hwnd, msg, wparam, lparam):
-        print "OnCommand"
+        print("OnCommand")
 
     def OnNotify(self, hwnd, msg, wparam, lparam):
         hwndFrom, idFrom, code = win32gui_struct.UnpackWMNOTIFY(lparam)
@@ -609,7 +610,7 @@ class FileSystemView:
                 if n==-1:
                     break
                 sel.append(self.children[n][-1:])
-            print "Selection is", sel
+            print("Selection is", sel)
             hmenu = win32gui.CreateMenu()
             try:
                 # Get the IContextMenu for the items.
@@ -641,7 +642,7 @@ class FileSystemView:
                     # Find the default item in the returned menu.
                     cmd = win32gui.GetMenuDefaultItem(hmenu, False, 0)
                     if cmd == -1:
-                        print "Oops: _doDefaultActionFor found no default menu"
+                        print("Oops: _doDefaultActionFor found no default menu")
                     else:
                         ci = 0, self.hwnd_parent, cmd-id_cmd_first, None, None, 0, 0, 0
                         cm.InvokeCommand(ci)
@@ -652,7 +653,7 @@ class FileSystemView:
                                 lpClass="folder", 
                                 lpVerb="explore", 
                                 lpIDList=sel[0])
-                    print "ShellExecuteEx returned", rv
+                    print("ShellExecuteEx returned", rv)
             finally:
                 win32gui.DestroyMenu(hmenu)
 
@@ -671,7 +672,7 @@ class FileSystemView:
         
         spt = win32api.GetCursorPos()
         if not pidls:
-            print "Ignoring background click"
+            print("Ignoring background click")
             return
         # Get the IContextMenu for the items.
         inout, cm = self.folder.GetUIObjectOf(self.hwnd_parent, pidls, shell.IID_IContextMenu, 0)
@@ -694,7 +695,7 @@ class FileSystemView:
                                           tpm_flags,
                                           spt[0], spt[1],
                                           0, self.hwnd, None)
-            print "TrackPopupMenu returned", sel
+            print("TrackPopupMenu returned", sel)
         finally:
             win32gui.DestroyMenu(hmenu)
         if sel:
@@ -724,7 +725,7 @@ class ScintillaShellView:
         return win32gui.SendMessage(self.hwnd, msg, wparam, lparam)
    # IShellView
     def CreateViewWindow(self, prev, settings, browser, rect):
-        print "ScintillaShellView.CreateViewWindow", prev, settings, browser, rect
+        print("ScintillaShellView.CreateViewWindow", prev, settings, browser, rect)
         # Make sure scintilla.dll is loaded.  If not, find it on sys.path
         # (which it generally is for Pythonwin)
         try:
@@ -758,7 +759,7 @@ class ScintillaShellView:
         self._SendSci(scintillacon.SCI_ADDTEXT, len(file_data), file_data)
         if self.lineno != None:
             self._SendSci(scintillacon.SCI_GOTOLINE, self.lineno)
-        print "Scintilla's hwnd is", self.hwnd
+        print("Scintilla's hwnd is", self.hwnd)
 
     def _SetupLexer(self):
         h = self.hwnd
@@ -798,12 +799,12 @@ class ScintillaShellView:
         return self.hwnd
 
     def UIActivate(self, activate_state):
-        print "OnActivate"
+        print("OnActivate")
 
     def DestroyViewWindow(self):
         win32gui.DestroyWindow(self.hwnd)
         self.hwnd = None
-        print "Destroyed scintilla window"
+        print("Destroyed scintilla window")
 
     def TranslateAccelerator(self, msg):
         return winerror.S_FALSE
@@ -814,35 +815,35 @@ class ScintillaShellView:
         win32gui.MoveWindow(self.hwnd, 0, 0, x, y, False)
 
 def DllRegisterServer():
-    import _winreg
-    key = _winreg.CreateKey(_winreg.HKEY_LOCAL_MACHINE,
+    import winreg
+    key = winreg.CreateKey(winreg.HKEY_LOCAL_MACHINE,
                             "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\" \
                             "Explorer\\Desktop\\Namespace\\" + \
                             ShellFolderRoot._reg_clsid_)
-    _winreg.SetValueEx(key, None, 0, _winreg.REG_SZ, ShellFolderRoot._reg_desc_)
+    winreg.SetValueEx(key, None, 0, winreg.REG_SZ, ShellFolderRoot._reg_desc_)
     # And special shell keys under our CLSID
-    key = _winreg.CreateKey(_winreg.HKEY_CLASSES_ROOT,
+    key = winreg.CreateKey(winreg.HKEY_CLASSES_ROOT,
                         "CLSID\\" + ShellFolderRoot._reg_clsid_ + "\\ShellFolder")
     # 'Attributes' is an int stored as a binary! use struct
     attr = shellcon.SFGAO_FOLDER | shellcon.SFGAO_HASSUBFOLDER | \
            shellcon.SFGAO_BROWSABLE
     import struct
     s = struct.pack("i", attr)
-    _winreg.SetValueEx(key, "Attributes", 0, _winreg.REG_BINARY, s)
-    print ShellFolderRoot._reg_desc_, "registration complete."
+    winreg.SetValueEx(key, "Attributes", 0, winreg.REG_BINARY, s)
+    print(ShellFolderRoot._reg_desc_, "registration complete.")
 
 def DllUnregisterServer():
-    import _winreg
+    import winreg
     try:
-        key = _winreg.DeleteKey(_winreg.HKEY_LOCAL_MACHINE,
+        key = winreg.DeleteKey(winreg.HKEY_LOCAL_MACHINE,
                             "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\" \
                             "Explorer\\Desktop\\Namespace\\" + \
                             ShellFolderRoot._reg_clsid_)
-    except WindowsError, details:
+    except WindowsError as details:
         import errno
         if details.errno != errno.ENOENT:
             raise
-    print ShellFolderRoot._reg_desc_, "unregistration complete."
+    print(ShellFolderRoot._reg_desc_, "unregistration complete.")
 
 if __name__=='__main__':
     from win32com.server import register

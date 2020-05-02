@@ -13,7 +13,7 @@ import pythoncom
 
 def yield_iter(iter):
     while 1:
-        yield iter.next()
+        yield next(iter)
 
 class _BaseTestCase(win32com.test.util.TestCase):
     def test_enumvariant_vb(self):
@@ -65,7 +65,7 @@ class _BaseTestCase(win32com.test.util.TestCase):
         # So either the 'iter(); will raise a type error, or an attempt to
         # fetch it
         try:
-            iter(ob).next()
+            next(iter(ob))
             self.fail("Expected a TypeError fetching this iterator")
         except TypeError:
             pass
@@ -121,7 +121,7 @@ class WrappedPythonCOMServerTestCase(_BaseTestCase):
 def suite():
     # We dont want our base class run
     suite = unittest.TestSuite()
-    for item in globals().itervalues():
+    for item in globals().values():
         if type(item)==type(unittest.TestCase) and \
            issubclass(item, unittest.TestCase) and \
            item != _BaseTestCase:

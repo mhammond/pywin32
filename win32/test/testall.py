@@ -133,7 +133,7 @@ def import_all():
             try:
                 __import__(base)
             except:
-                print("FAILED to import", name)
+                print(("FAILED to import", name))
                 raise
             num += 1
 
@@ -153,7 +153,7 @@ def suite():
             try:
                 mod = __import__(base)
             except:
-                print "FAILED to import test module %r" % base
+                print("FAILED to import test module %r" % base)
                 traceback.print_exc()
                 continue
             if hasattr(mod, "suite"):

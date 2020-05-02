@@ -10,7 +10,7 @@
 # config manager.
 import sys
 import string
-import keycodes
+from . import keycodes
 import marshal
 import stat
 import os
@@ -38,7 +38,7 @@ def split_line(line, lineno):
     sep_pos = line.rfind("=")
     if sep_pos == -1:
         if line.strip():
-            print "Warning: Line %d: %s is an invalid entry" % (lineno, repr(line))
+            print("Warning: Line %d: %s is an invalid entry" % (lineno, repr(line)))
             return None, None
         return "", ""
     return line[:sep_pos].strip(), line[sep_pos+1:].strip()
@@ -167,14 +167,14 @@ class ConfigManager:
         if codeob is not None:
             ns = {}
             try:
-                exec codeob in ns
+                exec(codeob, ns)
             except:
                 traceback.print_exc()
                 self.report_error("Executing extension code failed")
                 ns = None
             if ns:
                 num = 0
-                for name, func in ns.items():
+                for name, func in list(ns.items()):
                     if type(func)==types.FunctionType and name[:1] != '_':
                         bindings.bind(name, func)
                         num = num + 1
@@ -207,7 +207,7 @@ class ConfigManager:
             if map is None: # Build it
                 map = {}
                 keymap = subsection_keymap.get(subsection, {})
-                for key_info, map_event in keymap.items():
+                for key_info, map_event in list(keymap.items()):
                     map[map_event] = key_info
                 self.key_to_events[subsection] = map
 
@@ -218,9 +218,9 @@ class ConfigManager:
 
     def report_error(self, msg):
         self.last_error = msg
-        print "Error in %s: %s" % (self.filename, msg)
+        print("Error in %s: %s" % (self.filename, msg))
     def report_warning(self, msg):
-        print "Warning in %s: %s" % (self.filename, msg)
+        print("Warning in %s: %s" % (self.filename, msg))
 
     def _readline(self, fp, lineno, bStripComments = 1):
         line = fp.readline()
@@ -288,7 +288,7 @@ class ConfigManager:
                 "\n" * start_lineno +        # produces correct tracebacks
                 "".join(lines), self.filename, "exec")
             self._save_data("extension code", c)
-        except SyntaxError, details:
+        except SyntaxError as details:
             errlineno = details.lineno + start_lineno
             # Should handle syntax errors better here, and offset the lineno.
             self.report_error("Compiling extension code failed:\r\nFile: %s\r\nLine %d\r\n%s" \
@@ -316,7 +316,7 @@ def test():
     cm = ConfigManager(f)
     map = cm.get_data("keys")
     took = time.clock()-start
-    print "Loaded %s items in %.4f secs" % (len(map), took)
+    print("Loaded %s items in %.4f secs" % (len(map), took))
 
 if __name__=='__main__':
     test()

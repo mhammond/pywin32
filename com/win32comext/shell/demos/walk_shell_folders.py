@@ -11,7 +11,7 @@ def walk(folder, depth=2, indent=""):
     for pidl in pidls:
         dn = folder.GetDisplayNameOf(pidl, 
                                      shellcon.SHGDN_NORMAL)
-        print indent, dn
+        print(indent, dn)
         if depth:
             try:
                 child = folder.BindToObject(pidl, None, 

@@ -8,7 +8,7 @@ def c(reason, context, evt):
 	elif reason==win32evtlog.EvtSubscribeActionDeliver:
 		print ('EvtSubscribeActionDeliver')
 	else:
-		print ('??? Unknown action ???', reason)
+		print(('??? Unknown action ???', reason))
 	context.append(win32evtlog.EvtRender(evt, win32evtlog.EvtRenderEventXml))
 	return 0
 

@@ -1,9 +1,9 @@
-import IDLEenvironment
+from . import IDLEenvironment
 import string
 import win32ui
 import win32api
 import win32con
-import keycodes
+from . import keycodes
 import sys
 import traceback
 
@@ -50,7 +50,7 @@ class BindingsManager:
 		self.keymap = {}
 
 	def complete_configure(self):
-		for id in command_to_events.iterkeys():
+		for id in command_to_events.keys():
 			self.parent_view.HookCommand(self._OnCommand, id)
 
 	def close(self):
@@ -61,7 +61,7 @@ class BindingsManager:
 			win32ui.SetStatusText(problem, 1)
 		except win32ui.error:
 			# No status bar!
-			print problem
+			print(problem)
 
 	def update_keymap(self, keymap):
 		self.keymap.update(keymap)
@@ -148,7 +148,7 @@ class BindingsManager:
 					rc = 1
 		except:
 			message = "Firing event '%s' failed." % event
-			print message
+			print(message)
 			traceback.print_exc()
 			self.report_error(message)
 			rc = 1 # Let any default handlers have a go!

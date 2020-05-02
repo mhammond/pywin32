@@ -149,20 +149,20 @@ class ThreadPoolExtension(isapi.simple.SimpleExtension):
                 import cgi
                 ecb.SendResponseHeaders("200 OK", "Content-type: text/html\r\n\r\n", 
                                         False)
-                print >> ecb
-                print >> ecb, "<H3>Traceback (most recent call last):</H3>"
+                print(file=ecb)
+                print("<H3>Traceback (most recent call last):</H3>", file=ecb)
                 list = traceback.format_tb(exc_tb, limit) + \
                        traceback.format_exception_only(exc_typ, exc_val)
-                print >> ecb, "<PRE>%s<B>%s</B></PRE>" % (
-                    cgi.escape("".join(list[:-1])), cgi.escape(list[-1]),)
+                print("<PRE>%s<B>%s</B></PRE>" % (
+                    cgi.escape("".join(list[:-1])), cgi.escape(list[-1]),), file=ecb)
             except ExtensionError:
                 # The client disconnected without reading the error body -
                 # its probably not a real browser at the other end, ignore it.
                 pass
             except:
-                print "FAILED to render the error message!"
+                print("FAILED to render the error message!")
                 traceback.print_exc()
-                print "ORIGINAL extension error:"
+                print("ORIGINAL extension error:")
                 traceback.print_exception(exc_typ, exc_val, exc_tb)
         finally:
             # holding tracebacks in a local of a frame that may itself be 

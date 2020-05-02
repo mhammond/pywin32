@@ -9,4 +9,4 @@ if __name__=='__main__':
 		menu=win.GetSystemMenu()
 		id=menu.GetMenuItemID(6)
 		menu.EnableMenuItem(id,win32con.MF_BYCOMMAND|win32con.MF_GRAYED)
-		print "The interactive window's 'Close' menu item is now disabled."
+		print("The interactive window's 'Close' menu item is now disabled.")

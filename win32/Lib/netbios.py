@@ -286,7 +286,7 @@ if __name__=='__main__':
         adapter = ADAPTER_STATUS()
         ncb.Buffer = adapter
         Netbios(ncb)
-        print "Adapter address:",
+        print("Adapter address:", end=' ')
         for ch in adapter.adapter_address:
-            print "%02x" % (byte_to_int(ch),) ,
-        print
+            print("%02x" % (byte_to_int(ch),), end=' ')
+        print()

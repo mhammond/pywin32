@@ -18,7 +18,7 @@ def MakeTestDictionary():
     return win32com.client.Dispatch("Python.Dictionary")
 
 def TestDictAgainst(dict,check):
-    for key, value in check.items():
+    for key, value in list(check.items()):
         if dict(key) != value:
             raise Exception("Indexing for '%s' gave the incorrect value - %s/%s" % (repr(key), repr(dict[key]), repr(check[key])))
 

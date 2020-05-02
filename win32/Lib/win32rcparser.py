@@ -138,7 +138,7 @@ class RCParser:
 
     def debug(self, *args):
         if self.debugEnabled:
-            print args
+            print(args)
 
     def getToken(self):
         if self.ungot:
@@ -507,11 +507,11 @@ def ParseStreams(rc_file, h_file):
     except:
         lex = getattr(rcp, "lex", None)
         if lex:
-            print "ERROR parsing dialogs at line", lex.lineno
-            print "Next 10 tokens are:"
+            print("ERROR parsing dialogs at line", lex.lineno)
+            print("Next 10 tokens are:")
             for i in range(10):
-                print lex.get_token(),
-            print
+                print(lex.get_token(), end=' ')
+            print()
         raise
     return rcp
     
@@ -576,27 +576,27 @@ def GenerateFrozenResource(rc_name, output_name, h_name = None):
 
 if __name__=='__main__':
     if len(sys.argv) <= 1:
-        print __doc__
-        print
-        print "See test_win32rcparser.py, and the win32rcparser directory (both"
-        print "in the test suite) for an example of this module's usage."
+        print(__doc__)
+        print()
+        print("See test_win32rcparser.py, and the win32rcparser directory (both")
+        print("in the test suite) for an example of this module's usage.")
     else:
         import pprint
         filename = sys.argv[1]
         if "-v" in sys.argv:
             RCParser.debugEnabled = 1
-        print "Dumping all resources in '%s'" % filename
+        print("Dumping all resources in '%s'" % filename)
         resources = Parse(filename)
-        for id, ddef in resources.dialogs.iteritems():
-            print "Dialog %s (%d controls)" % (id, len(ddef))
+        for id, ddef in resources.dialogs.items():
+            print("Dialog %s (%d controls)" % (id, len(ddef)))
             pprint.pprint(ddef)
-            print
-        for id, sdef in resources.stringTable.iteritems():
-            print "String %s=%r" % (id, sdef.value)
-            print
-        for id, sdef in resources.bitmaps.iteritems():
-            print "Bitmap %s=%r" % (id, sdef)
-            print
-        for id, sdef in resources.icons.iteritems():
-            print "Icon %s=%r" % (id, sdef)
-            print
+            print()
+        for id, sdef in resources.stringTable.items():
+            print("String %s=%r" % (id, sdef.value))
+            print()
+        for id, sdef in resources.bitmaps.items():
+            print("Bitmap %s=%r" % (id, sdef))
+            print()
+        for id, sdef in resources.icons.items():
+            print("Icon %s=%r" % (id, sdef))
+            print()

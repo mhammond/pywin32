@@ -42,7 +42,7 @@ def BuildTypelib():
     idl = os.path.abspath(os.path.join(this_dir, "pippo.idl"))
     tlb=os.path.splitext(idl)[0] + '.tlb'
     if newer(idl, tlb):
-        print("Compiling %s" % (idl,))
+        print(("Compiling %s" % (idl,)))
         rc = os.system ('midl "%s"' % (idl,))
         if rc:
             raise RuntimeError("Compiling MIDL failed!")
@@ -51,7 +51,7 @@ def BuildTypelib():
         for fname in "dlldata.c pippo_i.c pippo_p.c pippo.h".split():
             os.remove(os.path.join(this_dir, fname))
     
-    print("Registering %s" % (tlb,))
+    print(("Registering %s" % (tlb,)))
     tli=pythoncom.LoadTypeLib(tlb)
     pythoncom.RegisterTypeLib(tli,tlb)
 

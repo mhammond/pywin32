@@ -8,12 +8,12 @@ import pythoncom
 class TestBase(unittest.TestCase):
     def assertDictEquals(self, d, **kw):
         checked = dict()
-        for n, v in kw.iteritems():
+        for n, v in kw.items():
             self.failUnlessEqual(v, d[n],
                                  "'%s' doesn't match: %r != %r" % (n, v, d[n]))
             checked[n] = True
-        checked_keys = checked.keys()
-        passed_keys = kw.keys()
+        checked_keys = list(checked.keys())
+        passed_keys = list(kw.keys())
         checked_keys.sort()
         passed_keys.sort()
         self.failUnlessEqual(checked_keys, passed_keys)

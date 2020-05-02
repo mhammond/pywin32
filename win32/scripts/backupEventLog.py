@@ -22,15 +22,15 @@ def BackupClearLog(logType):
 	# OK - have unique file name.
 	try:
 		hlog = win32evtlog.OpenEventLog(None, logType)
-	except win32evtlogutil.error, details:
-		print "Could not open the event log", details
+	except win32evtlogutil.error as details:
+		print("Could not open the event log", details)
 		return
 	try:
 		if win32evtlog.GetNumberOfEventLogRecords(hlog)==0:
-			print "No records in event log %s - not backed up" % logType
+			print("No records in event log %s - not backed up" % logType)
 			return
 		win32evtlog.ClearEventLog(hlog, fname)
-		print "Backed up %s log to %s" % (logType, fname)
+		print("Backed up %s log to %s" % (logType, fname))
 	finally:
 		win32evtlog.CloseEventLog(hlog)
 		

@@ -1,5 +1,5 @@
 from pywin.mfc import dialog
-import document
+from . import document
 import win32ui
 import win32con
 import win32api

@@ -36,7 +36,7 @@
 
 from win32com.server.util import wrap
 import pythoncom
-from util import CheckClean
+from .util import CheckClean
 
 numErrors = 0
 
@@ -56,7 +56,7 @@ def FailObjectIdentity(ob1, ob2, when):
     if not CheckObjectIdentity(ob1, ob2):
         global numErrors
         numErrors = numErrors + 1
-        print when, "are not identical (%s, %s)" % (repr(ob1), repr(ob2))
+        print(when, "are not identical (%s, %s)" % (repr(ob1), repr(ob2)))
 
 
 class Dummy:
@@ -123,9 +123,9 @@ def test():
     TestGatewayInheritance()
     TestMultiInterface()
     if numErrors==0:
-        print "Worked ok"
+        print("Worked ok")
     else:
-        print "There were", numErrors, "errors."
+        print("There were", numErrors, "errors.")
 
 
 if __name__=='__main__':

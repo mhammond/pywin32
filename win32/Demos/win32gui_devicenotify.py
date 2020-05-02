@@ -14,10 +14,10 @@ def OnDeviceChange(hwnd, msg, wp, lp):
     # Unpack the 'lp' into the appropriate DEV_BROADCAST_* structure,
     # using the self-identifying data inside the DEV_BROADCAST_HDR.
     info = win32gui_struct.UnpackDEV_BROADCAST(lp)
-    print "Device change notification:", wp, str(info)
+    print("Device change notification:", wp, str(info))
     if wp==win32con.DBT_DEVICEQUERYREMOVE and info.devicetype==win32con.DBT_DEVTYP_HANDLE:
         # Our handle is stored away in the structure - just close it
-        print "Device being removed - closing handle"
+        print("Device being removed - closing handle")
         win32file.CloseHandle(info.handle)
         # and cancel our notifications - if it gets plugged back in we get
         # the same notification and try and close the same handle...
@@ -62,12 +62,12 @@ def TestDeviceNotifications(dir_names):
         hdevs.append(hdev)
 
     # now start a message pump and wait for messages to be delivered.
-    print "Watching", len(hdevs), "handles - press Ctrl+C to terminate, or"
-    print "add and remove some USB devices..."
+    print("Watching", len(hdevs), "handles - press Ctrl+C to terminate, or")
+    print("add and remove some USB devices...")
     if not dir_names:
-        print "(Note you can also pass paths to watch on the command-line - eg,"
-        print "pass the root of an inserted USB stick to see events specific to"
-        print "that volume)"
+        print("(Note you can also pass paths to watch on the command-line - eg,")
+        print("pass the root of an inserted USB stick to see events specific to")
+        print("that volume)")
     while 1:
         win32gui.PumpWaitingMessages()
         time.sleep(0.01)

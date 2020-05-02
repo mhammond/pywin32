@@ -55,29 +55,29 @@ def TestEnumAgainst(o,check):
 def TestEnum(quiet=None):
     if quiet is None:
         quiet = not "-v" in sys.argv
-    if not quiet: print "Simple enum test"
+    if not quiet: print("Simple enum test")
     o = MakeTestEnum()
     check = [1,'Two',3]
     TestEnumAgainst(o, check)
 
-    if not quiet: print "sub-collection test"
+    if not quiet: print("sub-collection test")
     sub = o[3]
     TestEnumAgainst(sub ,['Sub1', 2, 'Sub3'])
 
     # Remove the sublist for this test!
     o.Remove(o.Count()-1)
 
-    if not quiet: print "Remove item test"
+    if not quiet: print("Remove item test")
     del check[1]
     o.Remove(1)
     TestEnumAgainst(o, check)
 
-    if not quiet: print "Add item test"
+    if not quiet: print("Add item test")
     o.Add('New Item')
     check.append('New Item')
     TestEnumAgainst(o, check)
 
-    if not quiet: print "Insert item test"
+    if not quiet: print("Insert item test")
     o.Insert(2, -1)
     check.insert(2, -1)
     TestEnumAgainst(o, check)
@@ -91,14 +91,16 @@ def TestEnum(quiet=None):
     try:
         o()
         raise error("default method with no args worked when it shouldnt have!")
-    except pythoncom.com_error, (hr, desc, exc, argErr):
+    except pythoncom.com_error as xxx_todo_changeme:
+        (hr, desc, exc, argErr) = xxx_todo_changeme.args
         if hr != winerror.DISP_E_BADPARAMCOUNT:
             raise error("Expected DISP_E_BADPARAMCOUNT - got %d (%s)" % (hr, desc))
 
     try:
         o.Insert("foo", 2)
         raise error("Insert worked when it shouldnt have!")
-    except pythoncom.com_error, (hr, desc, exc, argErr):
+    except pythoncom.com_error as xxx_todo_changeme1:
+        (hr, desc, exc, argErr) = xxx_todo_changeme1.args
         if hr != winerror.DISP_E_TYPEMISMATCH:
             raise error("Expected DISP_E_TYPEMISMATCH - got %d (%s)" % (hr, desc))
 
@@ -106,12 +108,13 @@ def TestEnum(quiet=None):
     try:
         o.Remove(o.Count())
         raise error("Remove worked when it shouldnt have!")
-    except pythoncom.com_error, (hr, desc, exc, argErr):
+    except pythoncom.com_error as xxx_todo_changeme2:
+        (hr, desc, exc, argErr) = xxx_todo_changeme2.args
         if hr != winerror.DISP_E_BADINDEX:
             raise error("Expected DISP_E_BADINDEX - got %d (%s)" % (hr, desc))
 
     # Test an empty collection
-    if not quiet: print "Empty collection test"
+    if not quiet: print("Empty collection test")
     o = MakeEmptyEnum()
     for item in o:
         raise error("Empty list performed an iteration")
@@ -131,7 +134,8 @@ def TestEnum(quiet=None):
     try:
         ob = o(0)
         raise error("Empty list could be indexed")
-    except pythoncom.com_error, (hr, fn, desc, arg):
+    except pythoncom.com_error as xxx_todo_changeme3:
+        (hr, fn, desc, arg) = xxx_todo_changeme3.args
         if hr != winerror.DISP_E_BADINDEX:
             raise error("Expected DISP_E_BADINDEX - got %d (%s)" % (hr, desc))
 

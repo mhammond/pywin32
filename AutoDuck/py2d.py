@@ -7,16 +7,16 @@ def ad_escape(s):
 
 if sys.version_info[0] >= 3:
     # Python3 specific code
-    types.ClassType = type
+    type = type
     Print = __builtins__.__dict__['print']
     long = int
 else:
     # Python2 specific code
     def Print(value, file=sys.stdout):
-        print >>file, value
+        print(value, file=file)
     def next(iter):
         # Python3's global next() function
-        return iter.next()
+        return iter.__next__()
         
 class DocInfo:
     def __init__(self, name, ob):
@@ -102,12 +102,12 @@ def build_module(fp, mod_name):
     functions = []
     classes = []
     constants = []
-    for name, ob in mod.__dict__.items():
+    for name, ob in list(mod.__dict__.items()):
         if name.startswith("_"):
             continue
         if hasattr(ob, "__module__") and ob.__module__ != mod_name:
             continue
-        if type(ob) in [types.ClassType, type]:
+        if type(ob) in [type, type]:
             classes.append(BuildInfo(name, ob))
         elif type(ob)==types.FunctionType:
             functions.append(BuildInfo(name, ob))
@@ -138,7 +138,7 @@ def build_module(fp, mod_name):
         func_infos = []
         # We need to iter the keys then to a getattr() so the funky descriptor
         # things work.
-        for n in ob.ob.__dict__.keys():
+        for n in list(ob.ob.__dict__.keys()):
             o = getattr(ob.ob, n)
             if isinstance(o, (types.FunctionType, types.MethodType)):
                 info = BuildInfo(n, o)
@@ -156,7 +156,7 @@ def build_module(fp, mod_name):
                 
     for (name, val) in constants:
         desc = "%s = %r" % (name, val)
-        if type(val) in (int, long):
+        if type(val) in (int, int):
             desc += " (0x%x)" % (val,)
         Print("// @const %s|%s|%s" % (mod_name, name, desc), file=fp)
 

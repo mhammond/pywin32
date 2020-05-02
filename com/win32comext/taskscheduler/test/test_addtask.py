@@ -5,9 +5,9 @@ ts=pythoncom.CoCreateInstance(taskscheduler.CLSID_CTaskScheduler,None,
                               pythoncom.CLSCTX_INPROC_SERVER,taskscheduler.IID_ITaskScheduler)
 tasks=ts.Enum()
 for task in tasks:
-    print task
+    print(task)
 if task_name in tasks:
-    print 'Deleting existing task '+task_name
+    print('Deleting existing task '+task_name)
     ts.Delete(task_name)
     
 t=ts.NewWorkItem(task_name)
@@ -44,7 +44,7 @@ tt.MonthlyDate_Months=1<<(int(time.strftime('%m',run_time))-1) ## corresponds to
 #days too
 tt.MonthlyDate_Days=1<<(int(time.strftime('%d',run_time))-1)
 tr.SetTrigger(tt)
-print t.GetTriggerString(tr_ind)
+print(t.GetTriggerString(tr_ind))
 
 pf=t.QueryInterface(pythoncom.IID_IPersistFile)
 pf.Save(None,1)

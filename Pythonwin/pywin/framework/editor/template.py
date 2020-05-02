@@ -4,7 +4,7 @@ import win32api
 from pywin.mfc import docview
 import pywin.framework.window
 import os
-import frame
+from . import frame
 
 ParentEditorTemplate=docview.DocTemplate
 class EditorTemplateBase(ParentEditorTemplate):
@@ -33,7 +33,7 @@ class EditorTemplateBase(ParentEditorTemplate):
 	def GetPythonPropertyPages(self):
 		"""Returns a list of property pages
 		"""
-		import configui
+		from . import configui
 		return [configui.EditorPropertyPage(), configui.EditorWhitespacePropertyPage()]
 
 	def OpenDocumentFile(self, filename, bMakeVisible = 1):
@@ -44,7 +44,7 @@ class EditorTemplateBase(ParentEditorTemplate):
 				filename = win32api.FindFiles(filename)[0][8]
 				filename = os.path.join(path, filename)
 #				print `filename`
-			except (win32api.error, IndexError), details:
+			except (win32api.error, IndexError) as details:
 				pass
 #				print "Couldnt get the full filename!", details
 		return self._obj_.OpenDocumentFile(filename, bMakeVisible)
