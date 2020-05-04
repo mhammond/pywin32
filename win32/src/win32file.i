@@ -5139,7 +5139,13 @@ static PyObject *py_FindFileNames(PyObject *self, PyObject *args, PyObject *kwar
 		else
 			bsuccess=(*pfnFindNextFileName)(hfind, &ret_size, linkname);
 		if (bsuccess){
-			ret_item=PyWinObject_FromWCHAR(linkname, ret_size);
+			// There seems to be some confusion around ret_size - the MS docs
+			// don't say whether this includes the trailing \0 or not. #1511
+			// reports there's a trailing \0 on filenames, but that was opened
+			// many many years after this code was added - so has it changed?
+			// Regardless, we just ignore the size when creating the result
+			// string so it stops at the first \0.
+			ret_item=PyWinObject_FromWCHAR(linkname);
 			if ((ret_item==NULL) || (PyList_Append(ret, ret_item)==-1)){
 				Py_XDECREF(ret_item);
 				bsuccess=FALSE;

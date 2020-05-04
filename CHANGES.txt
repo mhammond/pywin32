@@ -6,6 +6,8 @@ However contributors are encouraged to add their own entries for their work.
 
 Since build 227:
 ----------------
+* Remove trailing \0 char from win32file.FindFileNames results (#1511)
+
 * Added win32process.ReadProcessMemory/WriteProcessMemory (#1502)
 
 * Added win32process.VirtualAllocEx/VirtualFreeEx (#1509)
