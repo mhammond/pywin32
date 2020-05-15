@@ -18,7 +18,7 @@
    and running COM objects.  The display is similar to the Pythonwin object
    browser, and displays the objects in a hierarchical window.
 
-   Note that this module requires the win32ui (ie, Pythonwin) diestribution to
+   Note that this module requires the win32ui (ie, Pythonwin) distribution to
    work.
 
 """
