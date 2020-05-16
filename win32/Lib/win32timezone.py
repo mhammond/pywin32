@@ -60,7 +60,7 @@ registry.
 
 >>> gmt = win32timezone.TimeZoneInfo('GMT Standard Time', True)
 >>> str(gmt.displayName)
-'(UTC) Dublin, Edinburgh, Lisbon, London'
+'(UTC+00:00) Dublin, Edinburgh, Lisbon, London'
 
 To get the complete list of available time zone keys,
 >>> zones = win32timezone.TimeZoneInfo.get_all_time_zones()
