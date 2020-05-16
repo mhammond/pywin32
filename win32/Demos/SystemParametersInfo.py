@@ -58,15 +58,17 @@ for pname in ("SPI_GETFLATMENU","SPI_GETDROPSHADOW","SPI_GETKEYBOARDCUES","SPI_G
 for pname in ("SPI_GETFONTSMOOTHING","SPI_GETICONTITLEWRAP","SPI_GETBEEP","SPI_GETBLOCKSENDINPUTRESETS",
     "SPI_GETKEYBOARDPREF","SPI_GETSCREENSAVEACTIVE","SPI_GETMENUDROPALIGNMENT",
     "SPI_GETDRAGFULLWINDOWS", "SPI_GETSHOWIMEUI"):
-    print pname
     cget=getattr(win32con,pname)
     cset=getattr(win32con,pname.replace('_GET','_SET'))
     orig_value=win32gui.SystemParametersInfo(cget)
-    print orig_value
     win32gui.SystemParametersInfo(cset, not orig_value)
     new_value=win32gui.SystemParametersInfo(cget)
-    print new_value
-    assert orig_value!=new_value
+    # Some of these also can't be changed (eg, SPI_GETSCREENSAVEACTIVE) so
+    # don't actually get upset.
+    if orig_value!=new_value:
+        print "successfully toggled", pname, "from", orig_value, "to", new_value
+    else:
+        print "couldn't toggle", pname, "from", orig_value
     win32gui.SystemParametersInfo(cset, orig_value)
     assert win32gui.SystemParametersInfo(cget)==orig_value
 
