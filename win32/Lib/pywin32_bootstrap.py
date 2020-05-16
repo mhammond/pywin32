@@ -26,6 +26,9 @@ for site_packages_dir in site_packages_dirs:
     if os.path.isdir(pywin32_system32):
         if hasattr(os, "add_dll_directory"):
             os.add_dll_directory(pywin32_system32)
-        else:
+        # This is to ensure the pywin32 path is in the beginning to find the
+        # pywin32 DLLs first and prevent other PATH entries to shadow them
+        elif not os.environ["PATH"].startswith(pywin32_system32):
+            os.environ["PATH"] = os.environ["PATH"].replace(os.pathsep + pywin32_system32, "")
             os.environ["PATH"] = pywin32_system32 + os.pathsep + os.environ["PATH"]
         break
