@@ -70,8 +70,8 @@ test_script:
   #- if "%PYTHON_MAJOR%"=="2" python pywin32_testall.py
   - set PYTHONUSERBASE=%cd%\test-base
   - python setup.py install --user
-  - if "%PYTHON_MAJOR%"=="2" python %PYTHONUSERBASE%\Scripts\pywin32_testall.py -no-user-interaction
-  - if "%PYTHON_MAJOR%"=="3" python %PYTHONUSERBASE%\Python%PYTHON_MAJOR%%PYTHON_MINOR%\Scripts\pywin32_testall.py -no-user-interaction
+  - if "%PYTHON_MAJOR%"=="2" python %PYTHONUSERBASE%\Scripts\pywin32_testall.py -no-user-interaction -skip-adodbapi
+  - if "%PYTHON_MAJOR%"=="3" python %PYTHONUSERBASE%\Python%PYTHON_MAJOR%%PYTHON_MINOR%\Scripts\pywin32_testall.py -no-user-interaction -skip-adodbapi
   - set PYTHONUSERBASE=
   - rmdir %PYTHONUSERBASE% /s /q
 
