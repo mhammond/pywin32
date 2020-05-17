@@ -2,6 +2,7 @@ from win32inet import *
 from win32inetcon import *
 import winerror
 from pywin32_testutil import str2bytes # py3k-friendly helper
+from pywin32_testutil import TestSkipped
 
 import unittest
 
@@ -50,18 +51,25 @@ class TestNetwork(unittest.TestCase):
     def testFtpCommand(self):
         # ftp.python.org doesn't exist.  ftp.gnu.org is what Python's urllib
         # test code uses.
-        hcon = InternetConnect(self.hi, "ftp.gnu.org", INTERNET_INVALID_PORT_NUMBER,
-                               None, None, # username/password
-                               INTERNET_SERVICE_FTP, 0, 0)
+        # (As of 2020 it doesn't! Unsurprisingly, it's difficult to find a good
+        # test server. This test sometimes works, but often doesn't - so handle
+        # failure here as a "skip")
         try:
+            hcon = InternetConnect(self.hi, "ftp.gnu.org", INTERNET_INVALID_PORT_NUMBER,
+                                None, None, # username/password
+                                INTERNET_SERVICE_FTP, 0, 0)
             try:
                 hftp = FtpCommand(hcon, True, FTP_TRANSFER_TYPE_ASCII, 'NLST', 0)
-            except error:
-                print "Error info is", InternetGetLastResponseInfo()
-            InternetReadFile(hftp, 2048)
-            hftp.Close()
-        finally:
-            hcon.Close()
+                try:
+                    print "Connected - response info is", InternetGetLastResponseInfo()
+                    got = InternetReadFile(hftp, 2048)
+                    print "Read", len(got), "bytes"
+                finally:
+                    hftp.Close()
+            finally:
+                hcon.Close()
+        except error as e:
+            raise TestSkipped(e)
 
 if __name__=='__main__':
     unittest.main()

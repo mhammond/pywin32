@@ -1,5 +1,7 @@
 """ Finds any disconnected terminal service sessions and logs them off"""
 import win32ts
+import pywintypes
+import winerror
 sessions=win32ts.WTSEnumerateSessions(win32ts.WTS_CURRENT_SERVER_HANDLE)
 for session in sessions:
     """
@@ -10,4 +12,10 @@ for session in sessions:
         sessionid=session['SessionId']
         username=win32ts.WTSQuerySessionInformation(win32ts.WTS_CURRENT_SERVER_HANDLE, sessionid, win32ts.WTSUserName)
         print 'Logging off disconnected user:',username
-        win32ts.WTSLogoffSession(win32ts.WTS_CURRENT_SERVER_HANDLE, sessionid, True)
+        try:
+            win32ts.WTSLogoffSession(win32ts.WTS_CURRENT_SERVER_HANDLE, sessionid, True)
+        except pywintypes.error as e:
+            if e.winerror == winerror.ERROR_ACCESS_DENIED:
+                print "Can't kill that session:", e.strerror
+            else:
+                raise
