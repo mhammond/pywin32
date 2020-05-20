@@ -1291,7 +1291,7 @@ PyObject *PyList_FromEVT_VARIANTArray(PEVT_VARIANT val)
 				obval = PyWinObject_FromWCHAR(val->XmlValArr[i]);
 				break;
 			default:
-				PyErr_Format(PyExc_NotImplementedError, "EVT_VARIANT_TYPE %d not supported yet", val_type);
+				return PyErr_Format(PyExc_NotImplementedError, "EVT_VARIANT_TYPE %d not supported yet", val_type);
 				break;
 		    }
 
