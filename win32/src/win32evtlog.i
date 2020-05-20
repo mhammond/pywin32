@@ -1005,8 +1005,8 @@ static PyObject *RenderEventValues(EVT_HANDLE render_context, EVT_HANDLE event)
 
 cleanup:
 
-	if ( variants ) {
-		free( variants );
+	if (variants) {
+		free(variants);
 	}
 
 	return ret;
