@@ -1,5 +1,13 @@
 # pywin32
 
+[![CI - Build](https://github.com/mhammond/pywin32/workflows/build/badge.svg)](https://github.com/mhammond/pywin32/actions?query=workflow%3Abuild)
+[![PyPI - Version](https://img.shields.io/pypi/v/pywin32.svg)](https://pypi.org/project/pywin32)
+[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/pywin32.svg)](https://pypi.org/project/pywin32)
+[![PyPI - Downloads](https://img.shields.io/pypi/dm/pywin32.svg)](https://pypi.org/project/pywin32)
+[![License - PSF-2.0](https://img.shields.io/badge/license-PSF--2.0-9400d3.svg)](https://spdx.org/licenses/PSF-2.0.html)
+
+-----
+
 This is the readme for the Python for Win32 (pywin32) extensions, which provides access to many of the Windows APIs from Python.
 
 See [CHANGES.txt](https://github.com/mhammond/pywin32/blob/master/CHANGES.txt) for recent notable changes.
