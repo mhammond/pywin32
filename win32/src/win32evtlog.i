@@ -996,6 +996,7 @@ static PyObject *RenderEventValues(EVT_HANDLE render_context, EVT_HANDLE event)
 	for (DWORD i = 0; i < prop_count; ++i) {
 		PyObject* item = PyWinObject_FromEVT_VARIANT(&variants[i]);
 		if (!item) {
+			PyErr_Clear();
 			Py_INCREF(Py_None);
 			item = Py_None;
 		}
