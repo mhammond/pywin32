@@ -345,8 +345,8 @@ PyObject *MyReadEventLog(PyObject *self, PyObject *args) {
 }
 
 PyObject * MyReportEvent( HANDLE hEventLog,
-    WORD wType,	// event type to log 
-    WORD wCategory,	// event category 
+    WORD wType,	// event type to log
+    WORD wCategory,	// event category
     DWORD dwEventID,	// event identifier
     PyObject *obSID,    // user security identifier object (optional)
     PyObject *obStrings,  // insert strings
@@ -457,7 +457,7 @@ GetOldestEventLogRecord (
 // @pyswig <o PyEVTLOG_HANDLE>|OpenEventLog|Opens an event log.
 %name (OpenEventLog) PyEVTLOG_HANDLE OpenEventLogW (
     WCHAR *INPUT_NULLOK, // @pyparm <o PyUnicode>|serverName||The server name, or None
-    WCHAR *sourceName    // @pyparm <o PyUnicode>|sourceName||specifies the name of the source that the returned handle will reference. The source name must be a subkey of a logfile entry under the EventLog key in the registry. 
+    WCHAR *sourceName    // @pyparm <o PyUnicode>|sourceName||specifies the name of the source that the returned handle will reference. The source name must be a subkey of a logfile entry under the EventLog key in the registry.
     );
 
 // @pyswig int|RegisterEventSource|Registers an Event Source
@@ -482,7 +482,7 @@ RegisterEventSourceW (
      WORD       wType,		// @pyparm int|Type||win32con.EVENTLOG_* value
      WORD       wCategory,	// @pyparm int|Category||Source-specific event category
      DWORD      dwEventID,	// @pyparm int|EventID||Source-specific event identifier
-     PyObject   *obUserSid,	// @pyparm <o PySID>|UserSid||Sid of current user, can be None 
+     PyObject   *obUserSid,	// @pyparm <o PySID>|UserSid||Sid of current user, can be None
      PyObject   *obStrings,	// @pyparm sequence|Strings||Sequence of unicode strings to be inserted in message
      PyObject   *obRawData	// @pyparm str|RawData||Binary data for event, can be None
     );
@@ -640,7 +640,7 @@ static PyObject *PyEvtNextChannelPath(PyObject *self, PyObject *args, PyObject *
 		WCHAR *buf=(WCHAR *)malloc(allocated_size * sizeof(WCHAR));
 		if (!buf)
 			return NULL;
-		
+
 		Py_BEGIN_ALLOW_THREADS
 		bsuccess = EvtNextChannelPath(enum_handle, allocated_size, buf, &returned_size);
 		Py_END_ALLOW_THREADS
@@ -776,7 +776,7 @@ static PyObject *PyEvtArchiveExportedLog(PyObject *self, PyObject *args, PyObjec
 		return NULL;
 	if (!PyWinObject_AsWCHAR(obpath, &path, FALSE))
 		return NULL;
-	
+
 	BOOL bsuccess;
 	Py_BEGIN_ALLOW_THREADS
 	bsuccess = EvtArchiveExportedLog(session, path, lcid, flags);
@@ -1036,7 +1036,7 @@ static PyObject *PyEvtRender(PyObject *self, PyObject *args, PyObject *kwargs)
 	void *buf=NULL;
 	DWORD flags, bufsize=2048, bufneeded, propcount;
 	PyObject *ret=NULL;
-	
+
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O&k|O&:EvtRender", keywords,
 		PyWinObject_AsHANDLE, &event,	// @pyparm <o PyEVT_HANDLE>|Event||Handle to an event or bookmark
 		&flags,	// @pyparm int|Flags||EvtRenderEventValues or EvtRenderEventXml or EvtRenderBookmark indicating type of handle
@@ -1079,7 +1079,7 @@ PyCFunction pfnPyEvtRender = (PyCFunction) PyEvtRender;
 
 DWORD CALLBACK PyEvtSubscribe_callback(
 	EVT_SUBSCRIBE_NOTIFY_ACTION action,
-	void *context, 
+	void *context,
 	EVT_HANDLE event)
 {
 	CEnterLeavePython celp;
@@ -1107,7 +1107,7 @@ DWORD CALLBACK PyEvtSubscribe_callback(
 			err = 0;
 			}
 		}
-		
+
 	Py_DECREF(args);
 	Py_XDECREF(ret);
 	return err;
@@ -1138,7 +1138,7 @@ static PyObject *PyEvtSubscribe(PyObject *self, PyObject *args, PyObject *kwargs
 	EVT_SUBSCRIBE_CALLBACK pfncallback=NULL;
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "Ok|O&OOOO&O&:EvtSubscribe", keywords,
 		&obpath,	// @pyparm str|ChannelPath||Name of an event log channel
-		&flags,		// @pyparm int|Flags||Combination of EvtSubscribe* flags determining how subscription is initiated 
+		&flags,		// @pyparm int|Flags||Combination of EvtSubscribe* flags determining how subscription is initiated
 		PyWinObject_AsHANDLE, &signalevent,	// @pyparm <o Py_HANDLE>|SignalEvent|None|An event handle to be set when events are available (see <om win32event.CreateEvent>)
 		&obcallback,	// @pyparm function|Callback|None|Python function to be called with each event
 		&obcontext,		// @pyparm object|Context|None|Arbitrary object to be passed to the callback function
@@ -1590,7 +1590,7 @@ static PyObject *PyEvtNextPublisherId(PyObject *self, PyObject *args, PyObject *
 		WCHAR *buf=(WCHAR *)malloc(allocated_size * sizeof(WCHAR));
 		if (!buf)
 			return NULL;
-		
+
 		Py_BEGIN_ALLOW_THREADS
 		bsuccess = EvtNextPublisherId(enum_handle, allocated_size, buf, &returned_size);
 		Py_END_ALLOW_THREADS
@@ -1780,7 +1780,7 @@ static PyObject *PyEvtGetEventMetadataProperty(PyObject *self, PyObject *args, P
 }
 PyCFunction pfnPyEvtGetEventMetadataProperty = (PyCFunction) PyEvtGetEventMetadataProperty;
 
-// @pyswig (object, int)|EvtGetLogInfo|Retrieves log file or channel information 
+// @pyswig (object, int)|EvtGetLogInfo|Retrieves log file or channel information
 // @comm Accepts keyword args
 // @comm Returns the value and type of value (EvtVarType*)
 static PyObject *PyEvtGetLogInfo(PyObject *self, PyObject *args, PyObject *kwargs)
@@ -1958,7 +1958,7 @@ PyCFunction pfnPyEvtGetObjectArrayProperty = (PyCFunction) PyEvtGetObjectArrayPr
         if   ((strcmp(pmd->ml_name, "EvtOpenChannelEnum")==0)
 			||(strcmp(pmd->ml_name, "EvtCreateRenderContext")==0)
 			||(strcmp(pmd->ml_name, "EvtFormatMessage")==0)
-			||(strcmp(pmd->ml_name, "EvtNextChannelPath")==0) 
+			||(strcmp(pmd->ml_name, "EvtNextChannelPath")==0)
 			||(strcmp(pmd->ml_name, "EvtOpenLog")==0)
 			||(strcmp(pmd->ml_name, "EvtClearLog")==0)
 			||(strcmp(pmd->ml_name, "EvtOpenSession")==0)
