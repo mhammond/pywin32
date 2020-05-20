@@ -513,26 +513,26 @@ static PyObject *PyEvtOpenChannelEnum(PyObject *self, PyObject *args, PyObject *
 PyCFunction pfnPyEvtOpenChannelEnum = (PyCFunction) PyEvtOpenChannelEnum;
 
 
-//Helper function to convert a list of strings double zero terminated
-//into a Python list of strings.
-//e.g. hello\0world\0\0 -> [ "hello", "world" ]
-static PyObject* PyList_FromDoubleTerminatedWSTR( LPWSTR strings )
+// Helper function to convert a list of strings double zero terminated
+// into a Python list of strings.
+// e.g. hello\0world\0\0 -> [ "hello", "world" ]
+static PyObject* PyList_FromDoubleTerminatedWSTR(LPWSTR strings)
 {
-	PyObject* ret = PyList_New( 0 );
+	PyObject* ret = PyList_New(0);
 	WCHAR* cur = strings;
-	while ( *cur ) {
-		PyObject* keyword = PyWinObject_FromWCHAR( cur );
-		PyList_Append( ret, keyword );
-		Py_DECREF( keyword );
-		cur += wcslen( cur ) + 1;
+	while (*cur) {
+		PyObject* keyword = PyWinObject_FromWCHAR(cur);
+		PyList_Append(ret, keyword);
+		Py_DECREF(keyword);
+		cur += wcslen(cur) + 1;
 	}
 
 	return ret;
 }
 
-//Used internally to format event messages
-//Caller must free the returned value
-static LPWSTR FormatMessageInternal( EVT_HANDLE metadata, EVT_HANDLE event, DWORD flags, DWORD resourceId )
+// Used internally to format event messages
+// Caller must free the returned value
+static LPWSTR FormatMessageInternal(EVT_HANDLE metadata, EVT_HANDLE event, DWORD flags, DWORD resourceId)
 {
 	LPWSTR buf = NULL;
 	DWORD allocated_size = 0;
@@ -542,41 +542,39 @@ static LPWSTR FormatMessageInternal( EVT_HANDLE metadata, EVT_HANDLE event, DWOR
 
 	BOOL bsuccess = 0;
 	Py_BEGIN_ALLOW_THREADS
-	//Get the size of the buffer
+	// Get the size of the buffer
 	bsuccess = EvtFormatMessage(metadata, event, resourceId, 0, NULL, flags, allocated_size, buf, &returned_size);
 	Py_END_ALLOW_THREADS
 
 	err = GetLastError();
-	//The above call should always return ERROR_INSUFFICIENT_BUFFER
+	// The above call should always return ERROR_INSUFFICIENT_BUFFER
 	if (!bsuccess && err == ERROR_INSUFFICIENT_BUFFER) {
 		allocated_size = returned_size;
-		if ( flags == EvtFormatMessageKeyword ) {
-			allocated_size += 1; //+1 to double terminate the keyword list
+		if (flags == EvtFormatMessageKeyword) {
+			allocated_size += 1; // +1 to double terminate the keyword list
 		}
 
 		allocated_size *= sizeof(WCHAR);
-		buf=(WCHAR *)malloc(allocated_size);
-		if (buf==NULL){
+		buf = (WCHAR *)malloc(allocated_size);
+		if (buf == NULL) {
 			PyErr_NoMemory();
 			return NULL;
-			}
+		}
 
 		Py_BEGIN_ALLOW_THREADS
 		bsuccess = EvtFormatMessage(metadata, event, resourceId, 0, NULL, flags, allocated_size, buf, &returned_size);
 		Py_END_ALLOW_THREADS
 
-		if ( bsuccess ) {
-			if ( flags == EvtFormatMessageKeyword ) {
+		if (bsuccess) {
+			if (flags == EvtFormatMessageKeyword) {
 				buf[returned_size] = L'\0';
 			}
-		}
-		else {
+		} else {
 			char buf[2048];
-			sprintf( buf, "EvtFormatMessage: allocated %d, need buffer of size %d", allocated_size, returned_size );
+			sprintf(buf, "EvtFormatMessage: allocated %d, need buffer of size %d", allocated_size, returned_size);
 			PyWin_SetAPIError(buf, err);
 		}
-	}
-	else {
+	} else {
 		PyWin_SetAPIError("EvtFormatMessage" );
 	}
 
@@ -588,7 +586,7 @@ static LPWSTR FormatMessageInternal( EVT_HANDLE metadata, EVT_HANDLE event, DWOR
 // @comm Accepts keyword args
 static PyObject *PyEvtFormatMessage(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-	static char *keywords[]={"Metadata", "Event", "Flags", "ResourceId", NULL};
+	static char *keywords[] = {"Metadata", "Event", "Flags", "ResourceId", NULL};
 	EVT_HANDLE metadata_handle = NULL;
 	EVT_HANDLE event_handle = NULL;
 	DWORD flags = 0;
@@ -597,27 +595,25 @@ static PyObject *PyEvtFormatMessage(PyObject *self, PyObject *args, PyObject *kw
 		PyWinObject_AsHANDLE, &metadata_handle,	// @pyparm <o PyEVT_HANDLE>|Metadata||Handle to provider metadata returned by <om win32evtlog.EvtOpenPublisherMetadata>
 		PyWinObject_AsHANDLE, &event_handle,	// @pyparm <o PyEVT_HANDLE>|Event||Handle to an event
 		&flags,	// @pyparm int|Flags||Type of message to format. EvtFormatMessageEvent or EvtFormatMessageLevel or EvtFormatMessageTask or EvtFormatMessageOpcode or EvtFormatMessageKeyword or EvtFormatMessageChannel or EvtFormatMessageProvider or EvtFormatMessageId or EvtFormatMessageXml.  If set to EvtFormatMessageId, callers should also set the 'ResourceId' parameter
-                &resourceId ))  // @pyparm int|ResourceId|0|The resource identifier of a message string returned by <om win32evtlog.EvtGetPublisherMetadataProperty>.  Only set this if flags = EvtFormatMessageId.
-
+        &resourceId))  // @pyparm int|ResourceId|0|The resource identifier of a message string returned by <om win32evtlog.EvtGetPublisherMetadataProperty>.  Only set this if flags = EvtFormatMessageId.
 		return NULL;
 
-	PyObject *ret=NULL;
+	PyObject *ret = NULL;
 
-	LPWSTR buf = FormatMessageInternal( metadata_handle, event_handle, flags, resourceId );
+	LPWSTR buf = FormatMessageInternal(metadata_handle, event_handle, flags, resourceId);
 
-	if ( buf ) {
-		if ( flags == EvtFormatMessageKeyword ) {
-			ret=PyList_FromDoubleTerminatedWSTR( buf );
+	if (buf) {
+		if (flags == EvtFormatMessageKeyword) {
+			ret = PyList_FromDoubleTerminatedWSTR(buf);
+		} else {
+			ret = PyWinObject_FromWCHAR(buf);
 		}
-		else {
-			ret=PyWinObject_FromWCHAR(buf);
-		}
 
-		free( buf );
+		free(buf);
 	}
 	return ret;
 }
-PyCFunction pfnPyEvtFormatMessage = (PyCFunction)PyEvtFormatMessage;
+PyCFunction pfnPyEvtFormatMessage = (PyCFunction) PyEvtFormatMessage;
 
 // @pyswig str|EvtNextChannelPath|Retrieves a channel path from an enumeration
 // @rdesc Returns None at end of enumeration
@@ -934,34 +930,34 @@ PyCFunction pfnPyEvtSeek = (PyCFunction) PyEvtSeek;
 
 // @pyswig o|EvtCreateRenderContext|Creates a render context
 // @comm Accepts keyword args
-static PyObject* PyEvtCreateRenderContext( PyObject *self, PyObject *args, PyObject *kwargs )
+static PyObject* PyEvtCreateRenderContext(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-	static char *keywords[]={"Flags", NULL};
+	static char *keywords[] = {"Flags", NULL};
 	DWORD flags = EvtRenderContextSystem;
 
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "k:EvtCreateRenderContext", keywords,
-		&flags))	// @pyparm int|Flags||EvtRenderContextSystem or EvtRenderContextUser.  EvtRenderContextValues not currently supported
+		&flags))	// @pyparm int|Flags||EvtRenderContextSystem or EvtRenderContextUser. EvtRenderContextValues not currently supported
 		return NULL;
 
 	EVT_HANDLE ret = NULL;
 	Py_BEGIN_ALLOW_THREADS
-	ret = EvtCreateRenderContext( 0, NULL, flags );
+	ret = EvtCreateRenderContext(0, NULL, flags);
 	Py_END_ALLOW_THREADS
 
-	if ( ret == NULL) {
-		return PyWin_SetAPIError("EvtCreateRenderContext", GetLastError() );
+	if (ret == NULL) {
+		return PyWin_SetAPIError("EvtCreateRenderContext", GetLastError());
 	}
 
 	return PyWinObject_FromEVT_HANDLE(ret);
 }
 PyCFunction pfnPyEvtCreateRenderContext = (PyCFunction) PyEvtCreateRenderContext;
 
-//Returns a list of Event Values in the same order as returned by the EvtRender function
-static PyObject *RenderEventValues( EVT_HANDLE render_context, EVT_HANDLE event )
+// Returns a list of Event Values in the same order as returned by the EvtRender function
+static PyObject *RenderEventValues(EVT_HANDLE render_context, EVT_HANDLE event)
 {
 	PyObject* ret = NULL;
-	if ( render_context == NULL ) {
-		PyWin_SetAPIError( "EvtRender - Invalid render context for EvtRenderEventValues" );
+	if (render_context == NULL) {
+		PyWin_SetAPIError("EvtRender - Invalid render context for EvtRenderEventValues");
 		return NULL;
 	}
 
@@ -973,46 +969,45 @@ static PyObject *RenderEventValues( EVT_HANDLE render_context, EVT_HANDLE event 
 	DWORD err = ERROR_SUCCESS;
 
 	Py_BEGIN_ALLOW_THREADS
-	bsuccess = EvtRender( render_context, event, EvtRenderEventValues, allocated_size, variants, &returned_size, &prop_count);
+	bsuccess = EvtRender(render_context, event, EvtRenderEventValues, allocated_size, variants, &returned_size, &prop_count);
 	Py_END_ALLOW_THREADS
 
-	//bsuccess should always be false here, because we call it initially to get
-	//the size of the buffer
+	// bsuccess should always be false here, because we call it initially to get
+	// the size of the buffer
 	if (!bsuccess) {
 		err = GetLastError();
-		if ( err != ERROR_INSUFFICIENT_BUFFER ) {
-			PyWin_SetAPIError( "EvtRender", err );
+		if (err != ERROR_INSUFFICIENT_BUFFER) {
+			PyWin_SetAPIError("EvtRender", err);
 			goto cleanup;
-		}
-		else {
-			//allocate buffer size
+		} else {
+			// allocate buffer size
 			allocated_size = returned_size;
-			variants = (PEVT_VARIANT)malloc( allocated_size );
-			if (variants==NULL){
+			variants = (PEVT_VARIANT)malloc(allocated_size);
+			if (variants == NULL) {
 				PyErr_NoMemory();
 				goto cleanup;
 			}
 
 			Py_BEGIN_ALLOW_THREADS
-			bsuccess = EvtRender( render_context, event, EvtRenderEventValues, allocated_size, variants, &returned_size, &prop_count);
+			bsuccess = EvtRender(render_context, event, EvtRenderEventValues, allocated_size, variants, &returned_size, &prop_count);
 			Py_END_ALLOW_THREADS
 		}
 	}
 
-	if ( !bsuccess ) {
+	if (!bsuccess) {
 		err = GetLastError();
-		PyWin_SetAPIError( "EvtRender", err );
+		PyWin_SetAPIError("EvtRender", err);
 		goto cleanup;
 	}
 
-	ret = PyList_New( prop_count );
-	for ( DWORD i = 0; i < prop_count; ++i ) {
-		PyObject* item = PyWinObject_FromEVT_VARIANT( &variants[i] );
-		if ( !item ) {
+	ret = PyList_New(prop_count);
+	for (DWORD i = 0; i < prop_count; ++i) {
+		PyObject* item = PyWinObject_FromEVT_VARIANT(&variants[i]);
+		if (!item) {
 			Py_INCREF(Py_None);
 			item = Py_None;
 		}
-		PyList_SetItem( ret, i, item );
+		PyList_SetItem(ret, i, item);
 	}
 
 cleanup:
@@ -1043,9 +1038,9 @@ static PyObject *PyEvtRender(PyObject *self, PyObject *args, PyObject *kwargs)
         PyWinObject_AsHANDLE, &render_context)) // @pyparm <o PyEVT_HANDLE>|Context|None|Handle to a render context returned by <om win32evtlog.EvtCreateRenderContext>
 		return NULL;
 	if (flags==EvtRenderEventValues){
-		//pass this off to an internal function
-		return RenderEventValues( render_context, event );
-		}
+		// pass this off to an internal function
+		return RenderEventValues(render_context, event);
+	}
 	BOOL bsuccess;
 	while(1){
 		if (buf)
@@ -1212,18 +1207,18 @@ static PyObject *PyEvtUpdateBookmark(PyObject *self, PyObject *args, PyObject *k
 }
 PyCFunction pfnPyEvtUpdateBookmark = (PyCFunction) PyEvtUpdateBookmark;
 
-PyObject *PyList_FromEVT_VARIANTArray( PEVT_VARIANT val )
+PyObject *PyList_FromEVT_VARIANTArray(PEVT_VARIANT val)
 {
-	if ( (val->Type & EVT_VARIANT_TYPE_ARRAY) == 0){
+	if ((val->Type & EVT_VARIANT_TYPE_ARRAY) == 0) {
 		PyErr_SetString(PyExc_RuntimeError, "Trying to create a list from an EVT_VARIANT that is not an array");
 		return NULL;
 	}
 
-	PyObject* ret = PyList_New( val->Count );
+	PyObject* ret = PyList_New(val->Count);
 	DWORD val_type = val->Type & EVT_VARIANT_TYPE_MASK;
-	for ( DWORD i = 0; i < val->Count; ++i ) {
+	for (DWORD i = 0; i < val->Count; ++i) {
 		PyObject *obval = NULL;
-		switch (val_type){
+		switch (val_type) {
 			case EvtVarTypeString:
 				obval = PyWinObject_FromWCHAR(val->StringArr[i]);
 				break;
@@ -1287,16 +1282,16 @@ PyObject *PyList_FromEVT_VARIANTArray( PEVT_VARIANT val )
 				break;
 			case EvtVarTypeHexInt32:
 				{
-				PyObject* number = PyLong_FromUnsignedLong( val->UInt32Arr[i] );
-				obval = PyNumber_ToBase( number, 16 );
-				Py_XDECREF( number );
+				PyObject* number = PyLong_FromUnsignedLong(val->UInt32Arr[i]);
+				obval = PyNumber_ToBase(number, 16);
+				Py_XDECREF(number);
 				break;
 				}
 			case EvtVarTypeHexInt64:
 				{
-				PyObject* number = PyLong_FromUnsignedLongLong( val->UInt64Arr[i] );
-				obval = PyNumber_ToBase( number, 16 );
-				Py_XDECREF( number );
+				PyObject* number = PyLong_FromUnsignedLongLong(val->UInt64Arr[i]);
+				obval = PyNumber_ToBase(number, 16);
+				Py_XDECREF(number);
 				break;
 				}
 			case EvtVarTypeEvtXml:
@@ -1312,7 +1307,7 @@ PyObject *PyList_FromEVT_VARIANTArray( PEVT_VARIANT val )
 			obval = Py_None;
 		}
 
-		PyList_SetItem( ret, i, obval );
+		PyList_SetItem(ret, i, obval);
 	}
 
 	return ret;
@@ -1320,9 +1315,9 @@ PyObject *PyList_FromEVT_VARIANTArray( PEVT_VARIANT val )
 
 PyObject *PyWinObject_FromEVT_VARIANT(PEVT_VARIANT val)
 {
-	if (val->Type & EVT_VARIANT_TYPE_ARRAY){
-		return PyList_FromEVT_VARIANTArray( val );
-		}
+	if (val->Type & EVT_VARIANT_TYPE_ARRAY) {
+		return PyList_FromEVT_VARIANTArray(val);
+	}
 	DWORD val_type = val->Type & EVT_VARIANT_TYPE_MASK;
 	PyObject *obval = NULL;
 	switch (val_type){
@@ -1394,16 +1389,16 @@ PyObject *PyWinObject_FromEVT_VARIANT(PEVT_VARIANT val)
 			break;
 		case EvtVarTypeHexInt32:
 			{
-			PyObject* number = PyLong_FromUnsignedLong( val->UInt32Val );
-			obval = PyNumber_ToBase( number, 16 );
-			Py_XDECREF( number );
+			PyObject* number = PyLong_FromUnsignedLong(val->UInt32Val);
+			obval = PyNumber_ToBase(number, 16);
+			Py_XDECREF(number);
 			break;
 			}
 		case EvtVarTypeHexInt64:
 			{
-			PyObject* number = PyLong_FromUnsignedLongLong( val->UInt64Val );
-			obval = PyNumber_ToBase( number, 16 );
-			Py_XDECREF( number );
+			PyObject* number = PyLong_FromUnsignedLongLong(val->UInt64Val);
+			obval = PyNumber_ToBase(number, 16);
+			Py_XDECREF(number);
 			break;
 			}
 		case EvtVarTypeEvtHandle:
