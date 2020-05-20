@@ -519,11 +519,15 @@ PyCFunction pfnPyEvtOpenChannelEnum = (PyCFunction) PyEvtOpenChannelEnum;
 static PyObject* PyList_FromDoubleTerminatedWSTR(LPWSTR strings)
 {
 	PyObject* ret = PyList_New(0);
+	if (ret == NULL) {
+		return NULL;
+	}
+
 	WCHAR* cur = strings;
 	while (*cur) {
 		PyObject* keyword = PyWinObject_FromWCHAR(cur);
 		PyList_Append(ret, keyword);
-		Py_DECREF(keyword);
+		Py_XDECREF(keyword);
 		cur += wcslen(cur) + 1;
 	}
 
