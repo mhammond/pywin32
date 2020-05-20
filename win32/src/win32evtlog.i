@@ -928,7 +928,7 @@ static PyObject *PyEvtSeek(PyObject *self, PyObject *args, PyObject *kwargs)
 }
 PyCFunction pfnPyEvtSeek = (PyCFunction) PyEvtSeek;
 
-// @pyswig o|EvtCreateRenderContext|Creates a render context
+// @pyswig <o PyEVT_HANDLE>|EvtCreateRenderContext|Creates a render context
 // @comm Accepts keyword args
 static PyObject* PyEvtCreateRenderContext(PyObject *self, PyObject *args, PyObject *kwargs)
 {
