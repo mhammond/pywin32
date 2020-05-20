@@ -979,18 +979,6 @@ static PyObject *RenderEventValues(EVT_HANDLE render_context, EVT_HANDLE event)
 		if (err != ERROR_INSUFFICIENT_BUFFER) {
 			PyWin_SetAPIError("EvtRender", err);
 			goto cleanup;
-		} else {
-			// allocate buffer size
-			allocated_size = returned_size;
-			variants = (PEVT_VARIANT)malloc(allocated_size);
-			if (variants == NULL) {
-				PyErr_NoMemory();
-				goto cleanup;
-			}
-
-			Py_BEGIN_ALLOW_THREADS
-			bsuccess = EvtRender(render_context, event, EvtRenderEventValues, allocated_size, variants, &returned_size, &prop_count);
-			Py_END_ALLOW_THREADS
 		}
 	}
 
