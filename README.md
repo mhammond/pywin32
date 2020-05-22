@@ -1,6 +1,6 @@
 # pywin32
 
-[![CI - Build](https://github.com/mhammond/pywin32/workflows/build/badge.svg)](https://github.com/mhammond/pywin32/actions?query=workflow%3Abuild)
+[![CI](https://github.com/mhammond/pywin32/workflows/CI/badge.svg)](https://github.com/mhammond/pywin32/actions?query=workflow%3ACI)
 [![PyPI - Version](https://img.shields.io/pypi/v/pywin32.svg)](https://pypi.org/project/pywin32)
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/pywin32.svg)](https://pypi.org/project/pywin32)
 [![PyPI - Downloads](https://img.shields.io/pypi/dm/pywin32.svg)](https://pypi.org/project/pywin32)
