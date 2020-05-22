@@ -536,9 +536,10 @@ static PyObject* PyList_FromDoubleTerminatedWSTR(LPWSTR strings)
 
 // Used internally to format event messages
 // Caller must free the returned value
-static LPWSTR FormatMessageInternal(EVT_HANDLE metadata, EVT_HANDLE event, DWORD flags, DWORD resourceId)
+static PyObject FormatMessageInternal(EVT_HANDLE metadata, EVT_HANDLE event, DWORD flags, DWORD resourceId)
 {
 	LPWSTR buf = NULL;
+	PyObject *ret = NULL;
 	DWORD allocated_size = 0;
 	DWORD returned_size = 0;
 	DWORD status = 0;
@@ -585,7 +586,17 @@ static LPWSTR FormatMessageInternal(EVT_HANDLE metadata, EVT_HANDLE event, DWORD
 		buf[returned_size * sizeof(WCHAR)] = L'\0';
 	}
 
-	return buf;
+	if (buf) {
+		if (flags == EvtFormatMessageKeyword) {
+			ret = PyList_FromDoubleTerminatedWSTR(buf);
+		} else {
+			ret = PyWinObject_FromWCHAR(buf);
+		}
+
+		free(buf);
+	}
+
+	return ret;
 }
 
 // @pyswig str,list|EvtFormatMessage|Formats a message string.
@@ -605,19 +616,8 @@ static PyObject *PyEvtFormatMessage(PyObject *self, PyObject *args, PyObject *kw
         &resourceId))  // @pyparm int|ResourceId|0|The resource identifier of a message string returned by <om win32evtlog.EvtGetPublisherMetadataProperty>.  Only set this if flags = EvtFormatMessageId.
 		return NULL;
 
-	PyObject *ret = NULL;
+	PyObject *ret = FormatMessageInternal(metadata_handle, event_handle, flags, resourceId);
 
-	LPWSTR buf = FormatMessageInternal(metadata_handle, event_handle, flags, resourceId);
-
-	if (buf) {
-		if (flags == EvtFormatMessageKeyword) {
-			ret = PyList_FromDoubleTerminatedWSTR(buf);
-		} else {
-			ret = PyWinObject_FromWCHAR(buf);
-		}
-
-		free(buf);
-	}
 	return ret;
 }
 PyCFunction pfnPyEvtFormatMessage = (PyCFunction) PyEvtFormatMessage;
