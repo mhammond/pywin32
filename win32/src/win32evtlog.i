@@ -575,7 +575,7 @@ static LPWSTR FormatMessageInternal(EVT_HANDLE metadata, EVT_HANDLE event, DWORD
 
 	if (bsuccess) {
 		if (flags == EvtFormatMessageKeyword) {
-			buf[returned_size] = L'\0';
+			buf[returned_size * sizeof(WCHAR)] = L'\0';
 		}
 	} else {
 		char buf[2048];
