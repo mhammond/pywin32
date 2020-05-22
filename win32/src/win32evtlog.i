@@ -1218,7 +1218,7 @@ PyCFunction pfnPyEvtUpdateBookmark = (PyCFunction) PyEvtUpdateBookmark;
 PyObject *PyList_FromEVT_VARIANTArray(PEVT_VARIANT val)
 {
 	if ((val->Type & EVT_VARIANT_TYPE_ARRAY) == 0) {
-		PyErr_SetString(PyExc_RuntimeError, "Trying to create a list from an EVT_VARIANT that is not an array");
+		PyErr_SetString(PyExc_TypeError, "Trying to create a list from an EVT_VARIANT that is not an array");
 		return NULL;
 	}
 
