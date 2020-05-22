@@ -551,35 +551,36 @@ static LPWSTR FormatMessageInternal(EVT_HANDLE metadata, EVT_HANDLE event, DWORD
 	Py_END_ALLOW_THREADS
 
 	err = GetLastError();
+
 	// The above call should always return ERROR_INSUFFICIENT_BUFFER
-	if (!bsuccess && err == ERROR_INSUFFICIENT_BUFFER) {
-		allocated_size = returned_size;
+	if (!bsuccess && err != ERROR_INSUFFICIENT_BUFFER) {
+		PyWin_SetAPIError("EvtFormatMessage");
+	}
+
+	allocated_size = returned_size;
+	if (flags == EvtFormatMessageKeyword) {
+		allocated_size += 1; // +1 to double terminate the keyword list
+	}
+
+	allocated_size *= sizeof(WCHAR);
+	buf = (WCHAR *)malloc(allocated_size);
+	if (buf == NULL) {
+		PyErr_NoMemory();
+		return NULL;
+	}
+
+	Py_BEGIN_ALLOW_THREADS
+	bsuccess = EvtFormatMessage(metadata, event, resourceId, 0, NULL, flags, allocated_size, buf, &returned_size);
+	Py_END_ALLOW_THREADS
+
+	if (bsuccess) {
 		if (flags == EvtFormatMessageKeyword) {
-			allocated_size += 1; // +1 to double terminate the keyword list
-		}
-
-		allocated_size *= sizeof(WCHAR);
-		buf = (WCHAR *)malloc(allocated_size);
-		if (buf == NULL) {
-			PyErr_NoMemory();
-			return NULL;
-		}
-
-		Py_BEGIN_ALLOW_THREADS
-		bsuccess = EvtFormatMessage(metadata, event, resourceId, 0, NULL, flags, allocated_size, buf, &returned_size);
-		Py_END_ALLOW_THREADS
-
-		if (bsuccess) {
-			if (flags == EvtFormatMessageKeyword) {
-				buf[returned_size] = L'\0';
-			}
-		} else {
-			char buf[2048];
-			sprintf(buf, "EvtFormatMessage: allocated %d, need buffer of size %d", allocated_size, returned_size);
-			PyWin_SetAPIError(buf, err);
+			buf[returned_size] = L'\0';
 		}
 	} else {
-		PyWin_SetAPIError("EvtFormatMessage" );
+		char buf[2048];
+		sprintf(buf, "EvtFormatMessage: allocated %d, need buffer of size %d", allocated_size, returned_size);
+		PyWin_SetAPIError(buf, err);
 	}
 
 	return buf;
