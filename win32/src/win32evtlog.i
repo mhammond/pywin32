@@ -577,6 +577,8 @@ static LPWSTR FormatMessageInternal(EVT_HANDLE metadata, EVT_HANDLE event, DWORD
 		char buf[2048];
 		sprintf(buf, "EvtFormatMessage: allocated %d, need buffer of size %d", allocated_size, returned_size);
 		PyWin_SetAPIError(buf, err);
+		free(buf);
+		return NULL;
 	}
 
 	if (flags == EvtFormatMessageKeyword) {
