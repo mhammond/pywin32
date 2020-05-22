@@ -575,9 +575,9 @@ static PyObject FormatMessageInternal(EVT_HANDLE metadata, EVT_HANDLE event, DWO
 	Py_END_ALLOW_THREADS
 
 	if (!bsuccess) {
-		char buf[2048];
-		sprintf(buf, "EvtFormatMessage: allocated %d, need buffer of size %d", allocated_size, returned_size);
-		PyWin_SetAPIError(buf, err);
+		char errorMessage[2048];
+		sprintf(errorMessage, "EvtFormatMessage: allocated %d, need buffer of size %d", allocated_size, returned_size);
+		PyWin_SetAPIError(errorMessage, err);
 		free(buf);
 		return NULL;
 	}
