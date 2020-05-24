@@ -55,7 +55,6 @@ jobs:
       run: python ${env:USER_DIR}\Scripts\pywin32_testall.py -no-user-interaction
 
     - name: Build wheels
-      if: ${{ always() }}
       run: |
         python setup.py bdist_wheel --skip-build
         python setup.py bdist_wininst --skip-build --target-version=${{ matrix.python-version }}
