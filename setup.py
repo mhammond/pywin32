@@ -138,6 +138,9 @@ if os.path.dirname(this_file):
 # dll_base_address later in this file...
 dll_base_address = 0x1e200000
 
+# Optionally build a text only package
+pywin32_text_only = os.getenv('pywin32_text_only') == 'True'
+
 # We need to know the platform SDK dir before we can list the extensions.
 def find_platform_sdk_dir():
     # The user might have their current environment setup for the
@@ -997,7 +1000,8 @@ class my_build_ext(build_ext):
         if sys.version_info > (2, 7) and sys.version_info < (3, 3):
             # only stuff built with msvc9 needs this loader.
             self._build_pycom_loader()
-        self._build_scintilla()
+        if not pywin32_text_only:
+            self._build_scintilla()
         # Copy cpp lib files needed to create Python COM extensions
         clib_files = (['win32', 'pywintypes%s.lib'],
                       ['win32com', 'pythoncom%s.lib'],
@@ -1014,6 +1018,8 @@ class my_build_ext(build_ext):
                            target_dir
                            )
         # The MFC DLLs.
+        if pywin32_text_only:
+            return
         target_dir = os.path.join(self.build_lib, "pythonwin")
 
         # Common values for the MFC lookup over the Visual Studio installation and redist installation.
@@ -1661,6 +1667,8 @@ win32_extensions += [
            delay_load_libraries="powrprof",
            windows_h_version=0x0500,
         ),
+]
+if not pywin32_text_only: win32_extensions += [
     WinExt_win32("win32gui",
            sources = """
                 win32/src/win32dynamicdialog.cpp
@@ -2284,6 +2292,8 @@ W32_exe_files = [
                   "PythonService.cpp PythonService.rc".split()],
          unicode_mode = True,
          libraries = "user32 advapi32 ole32 shell32"),
+]
+if not pywin32_text_only: W32_exe_files += [
     WinExt_pythonwin_subsys_win("Pythonwin",
         sources = [
             "Pythonwin/pythonwin.cpp",
@@ -2425,7 +2435,7 @@ packages=['win32com',
           'win32comext.directsound.test',
           'win32comext.authorization',
           'win32comext.bits',
-
+            ] + ([] if pywin32_text_only else [
           'pythonwin.pywin',
           'pythonwin.pywin.debugger',
           'pythonwin.pywin.dialogs',
@@ -2436,13 +2446,13 @@ packages=['win32com',
           'pythonwin.pywin.idle',
           'pythonwin.pywin.mfc',
           'pythonwin.pywin.scintilla',
-          'pythonwin.pywin.tools',
+          'pythonwin.pywin.tools', ]) + [
           'isapi',
           'adodbapi',
           ]
 
 py_modules = expand_modules("win32\\lib")
-ext_modules = win32_extensions + com_extensions + pythonwin_extensions + \
+ext_modules = win32_extensions + com_extensions + ([] if pywin32_text_only else pythonwin_extensions) + \
                     other_extensions
 
 # Build a map of DLL base addresses.  According to Python's PC\dllbase_nt.txt,
@@ -2480,7 +2490,7 @@ classifiers = [ 'Environment :: Win32 (MS Windows)',
 	            'Programming Language :: Python :: Implementation :: CPython',
 	          ]
 
-dist = setup(name="pywin32",
+dist = setup(name="pywin32" if not pywin32_text_only else "pywin32textonly",
       version=str(build_id),
       description="Python for Window Extensions",
       long_description="Python extensions for Microsoft Windows\n"
@@ -2517,12 +2527,12 @@ dist = setup(name="pywin32",
         convert_optional_data_files([
                 'PyWin32.chm',
                 ]) +
-        convert_data_files([
+        convert_data_files(([] if pywin32_text_only else [
                 'pythonwin/pywin/*.cfg',
                 'pythonwin/pywin/Demos/*.py',
                 'pythonwin/pywin/Demos/app/*.py',
                 'pythonwin/pywin/Demos/ocx/*.py',
-                'pythonwin/license.txt',
+                'pythonwin/license.txt', ]) + [
                 'win32/license.txt',
                 'win32/scripts/*.py',
                 'win32/test/*.py',
