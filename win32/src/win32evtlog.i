@@ -535,7 +535,6 @@ static PyObject* PyList_FromDoubleTerminatedWSTR(LPWSTR strings)
 }
 
 // Used internally to format event messages
-// Caller must free the returned value
 static PyObject *FormatMessageInternal(EVT_HANDLE metadata, EVT_HANDLE event, DWORD flags, DWORD resourceId)
 {
 	LPWSTR buf = NULL;
@@ -555,7 +554,7 @@ static PyObject *FormatMessageInternal(EVT_HANDLE metadata, EVT_HANDLE event, DW
 
 	// The above call should always return ERROR_INSUFFICIENT_BUFFER
 	if (!bsuccess && err != ERROR_INSUFFICIENT_BUFFER) {
-		PyWin_SetAPIError("EvtFormatMessage");
+		return PyWin_SetAPIError("EvtFormatMessage");
 	}
 
 	allocated_size = returned_size;
@@ -575,26 +574,21 @@ static PyObject *FormatMessageInternal(EVT_HANDLE metadata, EVT_HANDLE event, DW
 	Py_END_ALLOW_THREADS
 
 	if (!bsuccess) {
-		char errorMessage[2048];
-		sprintf(errorMessage, "EvtFormatMessage: allocated %d, need buffer of size %d", allocated_size, returned_size);
-		PyWin_SetAPIError(errorMessage, err);
 		free(buf);
-		return NULL;
+		return PyWin_SetAPIError("EvtFormatMessage");
 	}
 
 	if (flags == EvtFormatMessageKeyword) {
 		buf[returned_size * sizeof(WCHAR)] = L'\0';
 	}
 
-	if (buf) {
-		if (flags == EvtFormatMessageKeyword) {
-			ret = PyList_FromDoubleTerminatedWSTR(buf);
-		} else {
-			ret = PyWinObject_FromWCHAR(buf);
-		}
-
-		free(buf);
+	if (flags == EvtFormatMessageKeyword) {
+		ret = PyList_FromDoubleTerminatedWSTR(buf);
+	} else {
+		ret = PyWinObject_FromWCHAR(buf);
 	}
+
+	free(buf);
 
 	return ret;
 }
@@ -1000,8 +994,7 @@ static PyObject *RenderEventValues(EVT_HANDLE render_context, EVT_HANDLE event)
 	}
 
 	if (!bsuccess) {
-		err = GetLastError();
-		PyWin_SetAPIError("EvtRender", err);
+		PyWin_SetAPIError("EvtRender");
 		goto cleanup;
 	}
 
@@ -1041,7 +1034,7 @@ static PyObject *PyEvtRender(PyObject *self, PyObject *args, PyObject *kwargs)
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O&k|O&:EvtRender", keywords,
 		PyWinObject_AsHANDLE, &event,	// @pyparm <o PyEVT_HANDLE>|Event||Handle to an event or bookmark
 		&flags,	// @pyparm int|Flags||EvtRenderEventValues or EvtRenderEventXml or EvtRenderBookmark indicating type of handle
-        PyWinObject_AsHANDLE, &render_context)) // @pyparm <o PyEVT_HANDLE>|Context|None|Handle to a render context returned by <om win32evtlog.EvtCreateRenderContext>
+		PyWinObject_AsHANDLE, &render_context)) // @pyparm <o PyEVT_HANDLE>|Context|None|Handle to a render context returned by <om win32evtlog.EvtCreateRenderContext>
 		return NULL;
 	if (flags==EvtRenderEventValues){
 		// pass this off to an internal function
