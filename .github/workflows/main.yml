@@ -31,6 +31,10 @@ jobs:
         python --version
         pip --version
 
+    # Need wheel so that we can use bdist_wheel
+    - name: Upgrade Python packaging tools
+      run: pip install --upgrade setuptools wheel
+
     - name: Set Python user directory
       run: echo "::set-env name=USER_DIR::$(python -c 'import os,site;print(os.path.dirname(site.USER_SITE))', end='')"
 
