@@ -352,7 +352,7 @@ PyObject *PyICreateTypeInfo::SetFuncAndParamNames(PyObject *self, PyObject *args
     }
     UINT cNames = PySequence_Length(obrgszNames);
     OLECHAR **pNames = new OLECHAR *[cNames];
-    memset(pNames, sizeof(OLECHAR *) * cNames, 0);
+    memset(pNames, 0, sizeof(OLECHAR *) * cNames);
     UINT i;
     for (i = 0; bPythonIsHappy && i < cNames; i++) {
         PyObject *item = PySequence_GetItem(obrgszNames, i);
