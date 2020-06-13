@@ -4,8 +4,16 @@ Generally created by hand after running:
    hg log -rb2xx: > log.out
 However contributors are encouraged to add their own entries for their work.
 
+Note that, baring some major issue building and cutting the release, build
+228 will be the last version supporting Python 2.
+
+So long, Python 2, you served us well!
+
 Since build 227:
 ----------------
+* Support for for win32evtlog.EvtFormatMessage and EvtCreateRenderContext
+ (#1308)
+
 * Support more elements in the SECURITY_LOGON_SESSION_DATA struct
   returned by win32security.LsaGetLogonSession (#1515)
 
