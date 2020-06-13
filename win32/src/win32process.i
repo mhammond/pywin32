@@ -1633,17 +1633,18 @@ PyObject *PyIsWow64Process(PyObject *self, PyObject *args)
 // @pyswig long|VirtualAllocEx|
 LONG_VOIDPTR VirtualAllocEx(
 	HANDLE hProcess, // @pyparm <o PyHANDLE>|hProcess||
-	LONG_VOIDPTR lpAddress, // @pyparm|long|address||
-	ULONG_PTR dwSize, // @pyparm|long|size||
-	DWORD flAllocationType, // @pyparm|long|allocationType||
-	DWORD flProtect // @pyparm|long|flProtect||
+	LONG_VOIDPTR lpAddress, // @pyparm long|address||
+	ULONG_PTR dwSize, // @pyparm long|size||
+	DWORD flAllocationType, // @pyparm long|allocationType||
+	DWORD flProtect // @pyparm long|flProtect||
 );
 
+// @pyswig |VirtualFreeEx|
 BOOLAPI VirtualFreeEx(
 	HANDLE hProcess, // @pyparm <o PyHANDLE>|hProcess||
-	LONG_VOIDPTR lpAddress, // @pyparm|long|address||
-	ULONG_PTR dwSize, // @pyparm|long|size||
-	DWORD dwFreeType // @pyparm|long|freeType||
+	LONG_VOIDPTR lpAddress, // @pyparm long|address||
+	ULONG_PTR dwSize, // @pyparm long|size||
+	DWORD dwFreeType // @pyparm long|freeType||
 );
 
 %native(ReadProcessMemory) PyReadProcessMemory;
