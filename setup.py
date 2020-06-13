@@ -124,6 +124,12 @@ pywin32_version="%d.%d.%s" % (sys.version_info[0], sys.version_info[1],
 print("Building pywin32", pywin32_version)
 
 try:
+    sys.argv.remove("--skip-verstamp")
+    skip_verstamp = True
+except ValueError:
+    skip_verstamp = False
+
+try:
     this_file = __file__
 except NameError:
     this_file = sys.argv[0]
@@ -1455,22 +1461,17 @@ class my_compiler(base_compiler):
         # target.  Do this externally to avoid suddenly dragging in the
         # modules needed by this process, and which we will soon try and
         # update.
-        try:
-            ok = True
-        except ImportError:
-            ok = False
-        if ok:
-            stamp_script = os.path.join(sys.prefix,
-                                        "Lib",
-                                        "site-packages",
-                                        "win32",
-                                        "lib",
-                                        "win32verstamp.py",
-                                        )
-            ok = os.path.isfile(stamp_script)
-        if ok:
-            args = [sys.executable]
-            args.append(stamp_script)
+        # Further, we don't really want to use sys.executable, because that
+        # means the build environment must have a current pywin32 installed
+        # in every version, which is a bit of a burden only for this.
+        # So we assume the "default" Python version (ie, the version run by
+        # py.exe) has pywin32 installed.
+        # (This creates a chicken-and-egg problem though! We used to work around
+        # this by ignoring failure to verstamp, but that's easy to miss. So now
+        # allow --skip-verstamp on the cmdline - but if it's not there, the
+        # verstamp must work.)
+        if not skip_verstamp:
+            args = ["py.exe", "-m" "win32verstamp"]
             args.append("--version=%s" % (pywin32_version,))
             args.append("--comments=https://github.com/mhammond/pywin32")
             args.append("--original-filename=%s" % (os.path.basename(output_filename),))
@@ -1478,13 +1479,7 @@ class my_compiler(base_compiler):
             if '-v' not in sys.argv:
                 args.append("--quiet")
             args.append(output_filename)
-            try:
-                self.spawn(args)
-            except DistutilsExecError as msg:
-                log.info("VersionStamp failed: %s", msg)
-                ok = False
-        if not ok:
-            log.info('Unable to import verstamp, no version info will be added')
+            self.spawn(args)
 
 
 ################################################################
