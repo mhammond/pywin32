@@ -182,9 +182,9 @@ class PyScript(framework.COMScript):
 
 	def InitNew(self):
 		framework.COMScript.InitNew(self)
-		import imp
+		import types
 		self.scriptDispatch = None
-		self.globalNameSpaceModule = imp.new_module("__ax_main__")
+		self.globalNameSpaceModule = types.ModuleType("__ax_main__")
 		self.globalNameSpaceModule.__dict__['ax'] = AXScriptAttribute(self)
 		
 		self.codeBlocks = []

@@ -437,7 +437,7 @@ def ImportFile():
 				## The interpreter sees this import as a local assignment, so Python 2.x throws
 				##	UnboundLocalError: local variable 'reload' referenced before assignment
 				## when you try to use reload after this fails
-				from imp import reload as my_reload # py3k
+				from importlib import reload as my_reload # py3k
 			except ImportError:
 				my_reload = reload # reload a builtin in py2k
 			mod = my_reload(sys.modules[modName])

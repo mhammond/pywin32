@@ -18,7 +18,7 @@ import types
 import traceback
 import pywin
 import glob
-import imp
+import importlib
 
 import win32api
 
@@ -94,7 +94,7 @@ class ConfigManager:
                         magic = marshal.load(cf)
                         size = marshal.load(cf)
                         mtime = marshal.load(cf)
-                        if magic == imp.get_magic() and \
+                        if magic == importlib.util.MAGIC_NUMBER and \
                            win32api.GetKeyboardLayoutName() == kblayoutname and \
                            src_stat[stat.ST_MTIME] == mtime and \
                            src_stat[stat.ST_SIZE] == size:
@@ -139,7 +139,7 @@ class ConfigManager:
                 cf = open(compiled_name, "wb")
                 marshal.dump(compiled_config_version, cf)
                 marshal.dump(win32api.GetKeyboardLayoutName(), cf)
-                marshal.dump(imp.get_magic(), cf)
+                marshal.dump(importlib.util.MAGIC_NUMBER, cf)
                 marshal.dump(src_stat[stat.ST_SIZE], cf)
                 marshal.dump(src_stat[stat.ST_MTIME], cf)
                 marshal.dump(self.cache, cf)

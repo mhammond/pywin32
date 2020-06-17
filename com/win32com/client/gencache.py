@@ -28,7 +28,7 @@ import traceback
 import CLSIDToClass
 import operator
 try:
-	from imp import reload # exported by the imp module in py3k.
+	from importlib import reload # exported by the importlib module in py3k.
 except:
 	pass # a builtin on py2k.
 

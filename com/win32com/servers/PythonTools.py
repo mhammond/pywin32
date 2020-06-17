@@ -7,7 +7,7 @@ class Tools:
   def reload(self, module):
     if module in sys.modules:
       try:
-        from imp import reload
+        from importlib import reload
       except ImportError:
         pass # builtin in py2k
       reload(sys.modules[module])
