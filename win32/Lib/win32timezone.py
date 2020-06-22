@@ -187,9 +187,9 @@ datetime.timedelta(-1, 50400)
 datetime.timedelta(0)
 
 >>> dt_hi = datetime.datetime(2011, 11, 5, 16, 0, 0, 0, tzinfo=tz_hi)
->>> print dt_hi.timetuple()
+>>> print(dt_hi.timetuple())
 time.struct_time(tm_year=2011, tm_mon=11, tm_mday=5, tm_hour=16, tm_min=0, tm_sec=0, tm_wday=5, tm_yday=309, tm_isdst=0)
->>> print dt_hi.utctimetuple()
+>>> print(dt_hi.utctimetuple())
 time.struct_time(tm_year=2011, tm_mon=11, tm_mday=6, tm_hour=2, tm_min=0, tm_sec=0, tm_wday=6, tm_yday=310, tm_isdst=0)
 
 According to the docs, this is what astimezone does.
