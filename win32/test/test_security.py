@@ -4,7 +4,7 @@ import unittest
 import winerror
 from pywin32_testutil import testmain, TestSkipped, ob2memory
 
-import win32api, win32con, win32security, ntsecuritycon
+import win32api, win32con, win32security, ntsecuritycon, pywintypes
 
 class SecurityTests(unittest.TestCase):
     def setUp(self):
