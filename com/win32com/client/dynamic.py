@@ -62,22 +62,14 @@ def debug_attr_print(*args):
 			print(arg, end=' ')
 		print()
 
-# A helper to create method objects on the fly
-py3k = sys.version_info > (3,0)
-if py3k:
-	def MakeMethod(func, inst, cls):
-		return types.MethodType(func, inst) # class not needed in py3k
-else:
-	MakeMethod = types.MethodType # all args used in py2k.
+def MakeMethod(func, inst, cls):
+	return types.MethodType(func, inst)
 
 # get the type objects for IDispatch and IUnknown
 PyIDispatchType = pythoncom.TypeIIDs[pythoncom.IID_IDispatch]
 PyIUnknownType = pythoncom.TypeIIDs[pythoncom.IID_IUnknown]
 
-if py3k:
-	_GoodDispatchTypes=(str, IIDType)
-else:
-	_GoodDispatchTypes=(str, IIDType, str)
+_GoodDispatchTypes=(str, IIDType)
 _defaultDispatchItem=build.DispatchItem
 
 def _GetGoodDispatch(IDispatch, clsctx = pythoncom.CLSCTX_SERVER):
@@ -98,17 +90,9 @@ def _GetGoodDispatchAndUserName(IDispatch, userName, clsctx):
 	# Get a dispatch object, and a 'user name' (ie, the name as
 	# displayed to the user in repr() etc.
 	if userName is None:
-		# Displayed name should be a plain string in py2k, and unicode in py3k
 		if isinstance(IDispatch, str):
 			userName = IDispatch
-		elif not py3k and isinstance(IDispatch, str):
-			# 2to3 converts the above 'unicode' to 'str', but this will never be executed in py3k
-			userName = IDispatch.encode("ascii", "replace")
 		## ??? else userName remains None ???
-	elif not py3k and isinstance(userName, str):
-		# 2to3 converts the above 'unicode' to 'str', but this will never be executed in py3k
-		# As above - always a plain string in py2k
-		userName = userName.encode("ascii", "replace")
 	else:
 		userName = str(userName)
 	return (_GetGoodDispatch(IDispatch, clsctx), userName)

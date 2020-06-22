@@ -1,5 +1,3 @@
-from __future__ import generators
-
 # Some raw iter tests.  Some "high-level" iterator tests can be found in
 # testvb.py and testOutlook.py
 import sys

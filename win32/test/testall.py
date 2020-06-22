@@ -133,7 +133,7 @@ def import_all():
             try:
                 __import__(base)
             except:
-                print(("FAILED to import", name))
+                print("FAILED to import", name)
                 raise
             num += 1
 

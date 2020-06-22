@@ -263,7 +263,7 @@ class HLIString(HLIPythonObject):
     def IsExpandable(self):
         return 0
 
-TypeMap = { type : HLIClass, 
+TypeMap = { type : HLIClass,
             types.FunctionType: HLIFunction,
             tuple: HLITuple,
             dict: HLIDict,
@@ -274,8 +274,6 @@ TypeMap = { type : HLIClass,
             types.FrameType : HLIFrame,
             types.TracebackType : HLITraceback,
             str : HLIString,
-            str : HLIString,
-            int: HLIPythonObject,
             int: HLIPythonObject,
             bool: HLIPythonObject,
             float: HLIPythonObject,

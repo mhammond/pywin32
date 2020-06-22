@@ -1,4 +1,3 @@
-from __future__ import print_function
 import unittest
 from pywin32_testutil import str2bytes, TestSkipped, testmain
 import win32api, win32file, win32pipe, pywintypes, winerror, win32event

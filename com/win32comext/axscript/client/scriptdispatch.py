@@ -44,12 +44,8 @@ class ScriptDispatch:
 						realArgs.append(Dispatch(arg))
 					else:
 						realArgs.append(arg)
-				try:
-					# xxx - todo - work out what code block to pass???
-					return self.engine.ApplyInScriptedSection(None, func, tuple(realArgs))
-				except COMException as xxx_todo_changeme:
-					(hr, msg, exc, arg) = xxx_todo_changeme.args
-					raise
+				# xxx - todo - work out what code block to pass???
+				return self.engine.ApplyInScriptedSection(None, func, tuple(realArgs))
 
 			except AttributeError:
 				if not wFlags & pythoncom.DISPATCH_PROPERTYGET:

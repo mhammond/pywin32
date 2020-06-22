@@ -32,14 +32,14 @@ class Interpreter:
     def Eval(self, exp):
         """Evaluate an expression.
         """
-        if type(exp) not in [str, str]:
+        if type(exp) != str:
             raise Exception(desc="Must be a string",scode=winerror.DISP_E_TYPEMISMATCH)
 
         return eval(str(exp), self.dict)
     def Exec(self, exp):
         """Execute a statement.
         """
-        if type(exp) not in [str, str]:
+        if type(exp) != str:
             raise Exception(desc="Must be a string",scode=winerror.DISP_E_TYPEMISMATCH)
         exec(str(exp), self.dict)
 

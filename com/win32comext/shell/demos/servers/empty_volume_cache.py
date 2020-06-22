@@ -112,11 +112,9 @@ class EmptyVolumeCache:
             for d in self._GetDirectories():
                 os.path.walk(d, self._WalkCallback, (callback, total))
                 print("After looking in", d, "we have", total[0], "bytes")
-        except pythoncom.error as xxx_todo_changeme:
+        except pythoncom.error as exc:
             # This will be raised by the callback when the user selects 'cancel'.
-            (hr, msg, exc, arg) = xxx_todo_changeme.args
-            # This will be raised by the callback when the user selects 'cancel'.
-            if hr != winerror.E_ABORT:
+            if exc.hresult != winerror.E_ABORT:
                 raise # that's the documented error code!
             print("User cancelled the operation")
         return total[0]
@@ -128,11 +126,9 @@ class EmptyVolumeCache:
         try:
             for d in self._GetDirectories():
                 os.path.walk(d, self._WalkCallback, (callback, None))
-        except pythoncom.error as xxx_todo_changeme1:
+        except pythoncom.error as exc:
             # This will be raised by the callback when the user selects 'cancel'.
-            (hr, msg, exc, arg) = xxx_todo_changeme1.args
-            # This will be raised by the callback when the user selects 'cancel'.
-            if hr != winerror.E_ABORT:
+            if exc.hresult != winerror.E_ABORT:
                 raise # that's the documented error code!
             print("User cancelled the operation")
 

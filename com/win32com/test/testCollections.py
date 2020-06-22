@@ -91,27 +91,24 @@ def TestEnum(quiet=None):
     try:
         o()
         raise error("default method with no args worked when it shouldnt have!")
-    except pythoncom.com_error as xxx_todo_changeme:
-        (hr, desc, exc, argErr) = xxx_todo_changeme.args
-        if hr != winerror.DISP_E_BADPARAMCOUNT:
-            raise error("Expected DISP_E_BADPARAMCOUNT - got %d (%s)" % (hr, desc))
+    except pythoncom.com_error as exc:
+        if exc.hresult != winerror.DISP_E_BADPARAMCOUNT:
+            raise error("Expected DISP_E_BADPARAMCOUNT - got %s" % (exc,))
 
     try:
         o.Insert("foo", 2)
         raise error("Insert worked when it shouldnt have!")
-    except pythoncom.com_error as xxx_todo_changeme1:
-        (hr, desc, exc, argErr) = xxx_todo_changeme1.args
-        if hr != winerror.DISP_E_TYPEMISMATCH:
-            raise error("Expected DISP_E_TYPEMISMATCH - got %d (%s)" % (hr, desc))
+    except pythoncom.com_error as exc:
+        if exc.hresult != winerror.DISP_E_TYPEMISMATCH:
+            raise error("Expected DISP_E_TYPEMISMATCH - got %s" % (exc,))
 
     # Remove the sublist for this test!
     try:
         o.Remove(o.Count())
         raise error("Remove worked when it shouldnt have!")
-    except pythoncom.com_error as xxx_todo_changeme2:
-        (hr, desc, exc, argErr) = xxx_todo_changeme2.args
-        if hr != winerror.DISP_E_BADINDEX:
-            raise error("Expected DISP_E_BADINDEX - got %d (%s)" % (hr, desc))
+    except pythoncom.com_error as exc:
+        if exc.hresult != winerror.DISP_E_BADINDEX:
+            raise error("Expected DISP_E_BADINDEX - got %s" % (exc,))
 
     # Test an empty collection
     if not quiet: print("Empty collection test")
@@ -134,10 +131,9 @@ def TestEnum(quiet=None):
     try:
         ob = o(0)
         raise error("Empty list could be indexed")
-    except pythoncom.com_error as xxx_todo_changeme3:
-        (hr, fn, desc, arg) = xxx_todo_changeme3.args
-        if hr != winerror.DISP_E_BADINDEX:
-            raise error("Expected DISP_E_BADINDEX - got %d (%s)" % (hr, desc))
+    except pythoncom.com_error as exc:
+        if exc.hresult != winerror.DISP_E_BADINDEX:
+            raise error("Expected DISP_E_BADINDEX - got %s" % (exc,))
 
 class TestCase(win32com.test.util.TestCase):
     def testEnum(self):

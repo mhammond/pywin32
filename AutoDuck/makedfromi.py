@@ -80,11 +80,11 @@ def make_doc_summary(inFile, outFile):
 								extra_tags.append("// " + doc + '\n')
 		except:
 			_, msg, _ = sys.exc_info()
-			print(("Line %d is badly formed - %s" % (lineNo, msg)))
+			print("Line %d is badly formed - %s" % (lineNo, msg))
 			
 		lineNo = lineNo + 1
 
-	# autoduck seems to crash when > ~97 methods.  Loop multiple times, 
+	# autoduck seems to crash when > ~97 methods.  Loop multiple times,
 	# creating a synthetic module name when this happens.
 	# Hrmph - maybe this was related to the way we generate -
 	# see rev 1.80 of win32gui.i for a change that prevents this!
@@ -109,7 +109,7 @@ def make_doc_summary(inFile, outFile):
 		for (meth, extras) in these_methods:
 			fields = meth.split('|')
 			if len(fields)!=3:
-				print(("**Error - %s does not have enough fields" % meth))
+				print("**Error - %s does not have enough fields" % meth)
 			else:
 				outFile.write("// @pymethod %s|%s|%s|%s\n" % (fields[0],thisModName,fields[1], fields[2]))
 			for extra in extras:
@@ -146,7 +146,7 @@ def doit():
 	except getopt.error:
 		_, msg, _ = sys.exc_info()
 		print(msg)
-		print(("Usage: %s [-o output_name] [-p com_parent] filename" % sys.argv[0]))
+		print("Usage: %s [-o output_name] [-p com_parent] filename" % sys.argv[0])
 		return
 
 	inName = args[0]

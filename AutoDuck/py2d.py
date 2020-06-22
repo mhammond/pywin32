@@ -5,19 +5,9 @@ import re
 def ad_escape(s):
     return re.sub(r"([^<]*)<([^>]*)>", r"\g<1>\\<\g<2>\\>", s)
 
-if sys.version_info[0] >= 3:
-    # Python3 specific code
-    type = type
-    Print = __builtins__.__dict__['print']
-    long = int
-else:
-    # Python2 specific code
-    def Print(value, file=sys.stdout):
-        print(value, file=file)
-    def next(iter):
-        # Python3's global next() function
-        return iter.__next__()
-        
+Print = __builtins__.__dict__['print']
+long = int
+
 class DocInfo:
     def __init__(self, name, ob):
         self.name = name

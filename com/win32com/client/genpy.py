@@ -476,7 +476,7 @@ class DispatchItem(build.DispatchItem, WritableItem):
                 defArgDesc = MakeDefaultArgsForPropertyPut(details[2])
                 print('\t\t"%s": ((%s, LCID, %d, 0),%s),' % (build.MakePublicAttributeName(key), details[0], details[4], defArgDesc), file=stream)
         print("\t}", file=stream)
-        
+
         if specialItems["value"]:
             entry, invoketype, propArgs = specialItems["value"]
             if propArgs is None:
@@ -488,20 +488,11 @@ class DispatchItem(build.DispatchItem, WritableItem):
             print("\t# Default %s for this class is '%s'" % (typename, entry.names[0]), file=stream)
             for line in ret:
                 print(line, file=stream)
-            if sys.version_info > (3,0):
-                print("\tdef __str__(self, *args):", file=stream)
-                print("\t\treturn str(self.__call__(*args))", file=stream)
-            else:
-                print("\tdef __unicode__(self, *args):", file=stream)
-                print("\t\ttry:", file=stream)
-                print("\t\t\treturn unicode(self.__call__(*args))", file=stream)
-                print("\t\texcept pythoncom.com_error:", file=stream)
-                print("\t\t\treturn repr(self)", file=stream)
-                print("\tdef __str__(self, *args):", file=stream)
-                print("\t\treturn str(self.__unicode__(*args))", file=stream)
+            print("\tdef __str__(self, *args):", file=stream)
+            print("\t\treturn str(self.__call__(*args))", file=stream)
             print("\tdef __int__(self, *args):", file=stream)
             print("\t\treturn int(self.__call__(*args))", file=stream)
-            
+
         # _NewEnum (DISPID_NEWENUM) does not appear in typelib for many office objects,
         # but it can still be retrieved at runtime, so  always create __iter__.
         # Also, some of those same objects use 1-based indexing, causing the old-style
@@ -772,7 +763,7 @@ class Generator:
         oleItems[newItem.clsid] = newItem
       else:
         self.progress.LogWarning("Unknown TKIND found: %d" % infotype)
-  
+
     return oleItems, enumItems, recordItems, vtableItems
 
   def open_writer(self, filename, encoding="mbcs"):
@@ -788,12 +779,7 @@ class Generator:
     except os.error:
       pass
     filename = filename + ".temp"
-    if sys.version_info > (3,0):
-      ret = open(filename, "wt", encoding=encoding)
-    else:
-      import codecs # not available in py3k.
-      ret = codecs.open(filename, "w", encoding)
-    return ret
+    return open(filename, "wt", encoding=encoding)
 
   def finish_writer(self, filename, f, worked):
     f.close()

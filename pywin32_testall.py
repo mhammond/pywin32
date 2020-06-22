@@ -1,5 +1,4 @@
 """A test runner for pywin32"""
-from __future__ import print_function
 import sys
 import os
 import site

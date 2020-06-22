@@ -160,9 +160,8 @@ class ShellFolderFileSystem(ShellFolderBase):
         try:
             inout, ret = folder.GetUIObjectOf(hwndOwner, [child_pidl], iid,
                                               inout, iid)
-        except pythoncom.com_error as xxx_todo_changeme:
-            (hr, desc, exc, arg) = xxx_todo_changeme.args
-            raise COMException(hresult=hr)
+        except pythoncom.com_error as exc:
+            raise COMException(hresult=exc.hresult)
         return inout, ret
         # return object of IID
     def GetDisplayNameOf(self, pidl, flags):
