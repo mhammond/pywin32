@@ -22,6 +22,8 @@ class SecurityTests(unittest.TestCase):
         pass
 
     def testEqual(self):
+        if self.admin_sid is None:
+            raise TestSkipped("No 'Administrator' account is available")
         self.failUnlessEqual(win32security.LookupAccountName('','Administrator')[0],
                              win32security.LookupAccountName('','Administrator')[0])
 
@@ -42,6 +44,8 @@ class SecurityTests(unittest.TestCase):
         self.failUnlessEqual(d['foo'], self.pwr_sid)
 
     def testBuffer(self):
+        if self.admin_sid is None:
+            raise TestSkipped("No 'Administrator' account is available")
         self.failUnlessEqual(ob2memory(win32security.LookupAccountName('','Administrator')[0]),
                              ob2memory(win32security.LookupAccountName('','Administrator')[0]))
 
@@ -81,7 +85,7 @@ class DomainTests(unittest.TestCase):
     def tearDown(self):
         if self.ds_handle is not None:
             self.ds_handle.close()
-    
+
 class TestDS(DomainTests):
     def testDsGetDcName(self):
         # Not sure what we can actually test here!  At least calling it
