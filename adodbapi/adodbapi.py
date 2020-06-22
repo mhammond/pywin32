@@ -28,7 +28,6 @@ or IronPython version 2.7 and later,
 or, after running through 2to3.py, CPython 3.4 or later.
 """
 
-
 __version__ = '2.6.2.0'
 version = 'adodbapi v' + __version__
 
@@ -80,14 +79,10 @@ except ImportError:  # Python 2.5
     Mapping = dict   # this will handle the most common case
 
 # --- define objects to smooth out Python3000 <-> Python 2.x differences
-unicodeType = str  #this line will be altered by 2to3.py to '= str'
-longType = int        #this line will be altered by 2to3.py to '= int'
-if sys.version_info >= (3,0): #python 3.x
-    StringTypes = str
-    maxint = sys.maxsize
-else:                   #python 2.x
-    StringTypes = (str,str)  # will be messed up by 2to3 but never used
-    maxint = sys.maxint
+unicodeType = str
+longType = int
+StringTypes = str
+maxint = sys.maxsize
 
 # -----------------  The .connect method -----------------
 def make_COM_connecter():

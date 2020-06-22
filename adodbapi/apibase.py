@@ -25,19 +25,12 @@ else:
     NullTypes = type(None)
 
 # --- define objects to smooth out Python3 <-> Python 2.x differences
-unicodeType = str  #this line will be altered by 2to3.py to '= str'
-longType = int        #this line will be altered by 2to3.py to '= int'
-if sys.version[0] >= '3': #python 3.x
-    StringTypes = str
-    makeByteBuffer = bytes
-    memoryViewType = memoryview
-    _BaseException = Exception
-else:                   #python 2.x
-    # noinspection PyUnresolvedReferences
-    from exceptions import Exception as _BaseException
-    memoryViewType = type(buffer(''))
-    makeByteBuffer = buffer
-    StringTypes = (str,str)  # will be messed up by 2to3 but never used
+unicodeType = str
+longType = int
+StringTypes = str
+makeByteBuffer = bytes
+memoryViewType = memoryview
+_BaseException = Exception
 
 try:                #jdhardy -- handle bytes under IronPython & Py3
     bytes
@@ -345,17 +338,11 @@ OTHER = DBAPITypeObject(adoRemainingTypes)
 typeMap = { memoryViewType : adc.adVarBinary,
            float : adc.adDouble,
            type(None) : adc.adEmpty,
-           str : adc.adBSTR, # this line will be altered by 2to3 to 'str:'
+           str : adc.adBSTR,
            bool :adc.adBoolean,          #v2.1 Cole
-           decimal.Decimal : adc.adDecimal }
-if longType != int: #not Python 3
-    typeMap[longType] = adc.adBigInt  #works in python 2.x
-    typeMap[int] = adc.adInteger
-    typeMap[bytes] = adc.adBSTR     # 2.x string type
-else:             #python 3.0 integrated integers
-    ## Should this differentiate between an int that fits in a long and one that requires 64 bit datatype?
-    typeMap[int] = adc.adBigInt
-    typeMap[bytes] = adc.adVarBinary
+           decimal.Decimal : adc.adDecimal,
+           int: adc.adBigInt,
+           bytes: adc.adVarBinary }
 
 def pyTypeToADOType(d):
     tp=type(d)
@@ -418,7 +405,7 @@ def cvtBuffer(variant):
     return bytes(variant)
 
 def cvtUnicode(variant):
-    return str(variant) # will be altered by 2to3 to 'str(variant)'
+    return str(variant)
 
 def identity(x): return x
 

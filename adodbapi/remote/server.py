@@ -24,7 +24,6 @@ or IronPython version 2.6 and later,
 or, after running through 2to3.py, CPython 3.2 or later.
 """
 
-
 __version__ = '2.6.2.0'
 version = 'adodbapi.server v' + __version__
 
@@ -49,14 +48,9 @@ import adodbapi.apibase as api
 import adodbapi
 import adodbapi.process_connect_string
 
-if sys.version[0] >= '3': #python 3.x
-    makeByteBuffer = bytes
-    _BaseException = Exception
-    Binary = bytes
-else:                   #python 2.x
-    from exceptions import Exception as _BaseException
-    makeByteBuffer = buffer
-    Binary = buffer
+makeByteBuffer = bytes
+_BaseException = Exception
+Binary = bytes
 try:
     pyro_host = os.environ['PYRO_HOST']
 except:

@@ -1,5 +1,4 @@
 """ Unit tests version 2.6.1.0 for adodbapi"""
-
 """
     adodbapi - A python DB API 2.0 interface to Microsoft ADO
 
@@ -53,20 +52,9 @@ except ImportError: #we are doing a shortcut import as a module -- so
     except ImportError:
         from adodbapi import ado_consts
 
-if sys.version_info >= (3,0):
-    def str2bytes(sval):
-        return sval.encode("latin1")
-    str = str
-    long = int
-else:
-    def str2bytes(sval):
-        if isinstance(sval, str):
-            return sval
-        return sval.encode("latin1")
-try:
-    bytes
-except NameError:
-    bytes = str
+def str2bytes(sval):
+    return sval.encode("latin1")
+long = int
 
 def randomstring(length):
     return ''.join([random.choice(string.ascii_letters) for n in range(32)])
@@ -78,7 +66,7 @@ class CommonDBTests(unittest.TestCase):
 
     def getEngine(self):
         return self.engine
-    
+
     def getConnection(self):
         raise NotImplementedError #"This method must be overriden by a subclass"  
 
@@ -276,8 +264,7 @@ class CommonDBTests(unittest.TestCase):
         inputs=[pyData]
         if pyDataInputAlternatives:
             inputs.extend(pyDataInputAlternatives)
-        if str is str:
-            inputs = set(inputs)  # removes redundant string==unicode tests
+        inputs = set(inputs)  # removes redundant string==unicode tests
         fldId=1
         for inParam in inputs:
             fldId+=1

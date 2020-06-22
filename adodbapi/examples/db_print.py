@@ -1,5 +1,4 @@
 """ db_print.py -- a simple demo for ADO database reads."""
- #needed for Python 2.5
 
 import sys
 import adodbapi.ado_consts as adc
@@ -15,7 +14,7 @@ for arg in sys.argv:
     if len(s) > 1:
         if s[0] in cmd_args:
             kw_args[s[0]] = s[1]
-            
+
 kw_args.setdefault('filename', "test.mdb") # assumes server is running from examples folder
 kw_args.setdefault('table_name', 'Products') # the name of the demo table
 

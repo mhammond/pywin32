@@ -6,24 +6,16 @@ Copyright (C) 2002 Henrik Ekelund, version 2.1 by Vernon Cole
 import sys
 import time
 
-if sys.version_info < (3,0): # in Python 2, define all symbols, just like the bad old way
-    from .apibase import *
-    VariantConversionMap = MultiMap # old name. Should use apibase.MultiMap
-    from .ado_consts import *
-    _makeByteBuffer = buffer
-else:
-    # but if the user is running Python 3, then keep the dictionary clean
-    from .apibase import apilevel, threadsafety, paramstyle
-    from .apibase import Warning, Error, InterfaceError, DatabaseError, DataError, OperationalError, IntegrityError
-    from .apibase import InternalError, ProgrammingError, NotSupportedError, FetchFailedError
-    from .apibase import NUMBER, STRING, BINARY, DATETIME, ROWID
-    _makeByteBuffer = bytes
+from .apibase import apilevel, threadsafety, paramstyle
+from .apibase import Warning, Error, InterfaceError, DatabaseError, DataError, OperationalError, IntegrityError
+from .apibase import InternalError, ProgrammingError, NotSupportedError, FetchFailedError
+from .apibase import NUMBER, STRING, BINARY, DATETIME, ROWID
 
 from .adodbapi import connect, Connection, __version__, dateconverter, Cursor
 
 def Binary(aString):
     """This function constructs an object capable of holding a binary (long) string value. """
-    return _makeByteBuffer(aString)
+    return bytes(aString)
 
 def Date(year,month,day):
     "This function constructs an object holding a date value. "

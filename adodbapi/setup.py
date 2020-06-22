@@ -34,7 +34,7 @@ a = open('adodbapi.py') # find the version string in the source code
 for line in a:
     if '__version__' in line:
         VERSION = line.split("'")[1]
-        print ('adodbapi version="%s"' % VERSION)
+        print('adodbapi version="%s"' % VERSION)
         break
 a.close()
 

@@ -27,7 +27,6 @@ or IronPython version 2.7 and later,
 or, after running through 2to3.py, CPython 3.0 or later.
 """
 
-
 __version__ = '2.6.0.4'
 version = 'adodbapi.remote v' + __version__
 
@@ -66,19 +65,10 @@ if verbose:
 # --- define objects to smooth out Python3 <-> Python 2.x differences
 unicodeType = str  #this line will be altered by 2to3.py to '= str'
 longType = int        #this line will be altered by 2to3.py to '= int'
-if sys.version[0] >= '3': #python 3.x
-    StringTypes = str
-    makeByteBuffer = bytes
-    memoryViewType = memoryview
-else:                   #python 2.x
-    memoryViewType = type(buffer(''))
-    def makeByteBuffer(x): # special for remote to be pickle-able
-        return bytes(x)
-    try:                #jdhardy -- handle bytes under IronPython
-        bytes
-    except NameError:
-        bytes = str
-    StringTypes = (str,str)  # will be messed up by 2to3 but never used
+StringTypes = str
+makeByteBuffer = bytes
+memoryViewType = memoryview
+
 # -----------------------------------------------------------
 # conversion functions mandated by PEP 249
 Binary = makeByteBuffer # override the function from apibase.py

@@ -1,4 +1,3 @@
-  # needed only if running Python 2.5
 import adodbapi
 import datetime
 try:
