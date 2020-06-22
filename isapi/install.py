@@ -2,7 +2,7 @@
 
 # this code adapted from "Tomcat JK2 ISAPI redirector", part of Apache
 # Created July 2004, Mark Hammond.
-import sys, os, imp, shutil, stat
+import sys, os, importlib, shutil, stat
 import operator
 from win32com.client import GetObject, Dispatch
 from win32com.client.gencache import EnsureModule, EnsureDispatch
@@ -35,8 +35,7 @@ _DEFAULT_CONTENT_INDEXED = False
 _DEFAULT_ENABLE_DIR_BROWSING = False
 _DEFAULT_ENABLE_DEFAULT_DOC = False
 
-_extensions = [ext for ext, _, _ in imp.get_suffixes()]
-is_debug_build = '_d.pyd' in _extensions
+is_debug_build = '_d.pyd' in importlib.machinery.EXTENSION_SUFFIXES
 
 this_dir = os.path.abspath(os.path.dirname(__file__))
 

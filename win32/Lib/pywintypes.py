@@ -1,5 +1,12 @@
 # Magic utility that "redirects" to pywintypesxx.dll
-import imp, sys, os
+import importlib, sys, os
+
+def _load_dynamic(name, path, file=None):
+    loader = importlib.machinery.ExtensionFileLoader(name, path)
+    spec = importlib.machinery.ModuleSpec(name=name, loader=loader, origin=path)
+    return importlib._bootstrap._load(spec)
+
+
 def __import_pywin32_system_module__(modname, globs):
     # This has been through a number of iterations.  The problem: how to 
     # locate pywintypesXX.dll when it may be in a number of places, and how
@@ -17,29 +24,26 @@ def __import_pywin32_system_module__(modname, globs):
     # rely on a _win32sysloader module, implemented in C but not relying
     # on pywintypesXX.dll.  It then can check if the DLL we are looking for
     # lib is already loaded.
+    suffixes = importlib.machinery.EXTENSION_SUFFIXES
     if not sys.platform.startswith("win32"):
         # These extensions can be built on Linux via the 'mainwin' toolkit.
         # Look for a native 'lib{modname}.so'
         # NOTE: The _win32sysloader module will probably build in this
         # environment, so it may be better to use that here too.
-        for ext, mode, ext_type in imp.get_suffixes():
-            if ext_type==imp.C_EXTENSION:
-                for path in sys.path:
-                    look = os.path.join(path, "lib" + modname + ext)
-                    if os.path.isfile(look):
-                        mod = imp.load_module(modname, None, look,
-                                              (ext, mode, ext_type))
-                        # and fill our namespace with it.
-                        # XXX - if this ever moves to py3k, this will probably
-                        # need similar adjustments as below...
-                        globs.update(mod.__dict__)
-                        return
+        for ext in suffixes:
+            for path in sys.path:
+                look = os.path.join(path, "lib" + modname + ext)
+                if os.path.isfile(look):
+                    mod = _load_dynamic(modname, look)
+                    # and fill our namespace with it.
+                    # XXX - if this ever moves to py3k, this will probably
+                    # need similar adjustments as below...
+                    globs.update(mod.__dict__)
+                    return
         raise ImportError("No dynamic module " + modname)
     # See if this is a debug build.
-    for suffix_item in imp.get_suffixes():
-        if suffix_item[0]=='_d.pyd':
-            suffix = '_d'
-            break
+    if "_d.pyd" in suffixes:
+        suffix = "_d"
     else:
         suffix = ""
     filename = "%s%d%d%s.dll" % \
@@ -120,7 +124,7 @@ def __import_pywin32_system_module__(modname, globs):
     #       copy its globals to ours.
     old_mod = sys.modules[modname]
     # Python can load the module
-    mod = imp.load_dynamic(modname, found)
+    mod = _load_dynamic(modname, found)
     # Check the sys.modules[] behaviour we describe above is true...
     if sys.version_info < (3,0):
         assert sys.modules[modname] is old_mod
