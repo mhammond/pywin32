@@ -9,7 +9,14 @@ import win32api, win32con, win32security, ntsecuritycon
 class SecurityTests(unittest.TestCase):
     def setUp(self):
         self.pwr_sid=win32security.LookupAccountName('','Power Users')[0]
-        self.admin_sid=win32security.LookupAccountName('','Administrator')[0]
+        try:
+            self.admin_sid=win32security.LookupAccountName('','Administrator')[0]
+        except pywintypes.error as exc:
+            # in automation we see:
+            # pywintypes.error: (1332, 'LookupAccountName', 'No mapping between account names and security IDs was done.')
+            if exc.winerror != winerror.ERROR_NONE_MAPPED:
+                raise
+            self.admin_sid = None
 
     def tearDown(self):
         pass
@@ -20,7 +27,8 @@ class SecurityTests(unittest.TestCase):
 
     def testNESID(self):
         self.failUnless(self.pwr_sid==self.pwr_sid)
-        self.failUnless(self.pwr_sid!=self.admin_sid)
+        if self.admin_sid:
+            self.failUnless(self.pwr_sid!=self.admin_sid)
 
     def testNEOther(self):
         self.failUnless(self.pwr_sid!=None)
@@ -45,13 +53,16 @@ class SecurityTests(unittest.TestCase):
         sd3=win32security.SECURITY_DESCRIPTOR()
         dacl=win32security.ACL()
         dacl.AddAccessAllowedAce(win32security.ACL_REVISION,win32con.GENERIC_READ,pwr_sid)
-        dacl.AddAccessAllowedAce(win32security.ACL_REVISION,win32con.GENERIC_ALL,admin_sid)
+        if admin_sid is not None:
+            dacl.AddAccessAllowedAce(win32security.ACL_REVISION,win32con.GENERIC_ALL,admin_sid)
         sd4=win32security.SECURITY_DESCRIPTOR()
         sacl=win32security.ACL()
-        sacl.AddAuditAccessAce(win32security.ACL_REVISION,win32con.DELETE,admin_sid,1,1)
+        if admin_sid is not None:
+            sacl.AddAuditAccessAce(win32security.ACL_REVISION,win32con.DELETE,admin_sid,1,1)
         sacl.AddAuditAccessAce(win32security.ACL_REVISION,win32con.GENERIC_ALL,pwr_sid,1,1)
         for x in xrange(0,200000):
-            sd1.SetSecurityDescriptorOwner(admin_sid,0)
+            if admin_sid is not None:
+                sd1.SetSecurityDescriptorOwner(admin_sid,0)
             sd2.SetSecurityDescriptorGroup(pwr_sid,0)
             sd3.SetSecurityDescriptorDacl(1,dacl,0)
             sd4.SetSecurityDescriptorSacl(1,sacl,0)
