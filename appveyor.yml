@@ -51,7 +51,7 @@ init:
   #- ps: iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
 
 build_script:
-  - python setup.py build
+  - python setup.py --skip-verstamp build
 
 test_script:
   # Put your test command here.
