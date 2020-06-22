@@ -67,7 +67,9 @@ class TestCase(unittest.TestCase):
         pt = pywintypes.Time(tt)
         # we can't compare if using the old type, as it loses all sub-second res.
         if isinstance(pt, datetime.datetime):
-            self.failUnlessEqual(now, pt)
+            # but even with datetime, we lose sub-millisecond.
+            expectedDelta = datetime.timedelta(milliseconds=1)
+            self.assertTrue(-expectedDelta < (now - pt) < expectedDelta)
 
     def testPyTimeFromTime(self):
         t1 = pywintypes.Time(time.time())

@@ -1021,6 +1021,12 @@ PyObject *PyWin_NewTime(PyObject *timeOb)
         if (!args)
             return NULL;
         PyObject *ret = PyDateTimeAPI->DateTime_FromTimestamp((PyObject *)(&PyWinDateTimeType), args, NULL);
+        if (ret == NULL) {
+            // datetime throws an OSError on failure, but for compatibility with
+            // Python 2.x, we turn that into a ValueError.
+            PyErr_Clear();
+            PyErr_SetString(PyExc_ValueError, "invalid timestamp");
+        }
         Py_DECREF(args);
         return ret;
 #endif  // PYWIN_HAVE_DATETIME_CAPI
