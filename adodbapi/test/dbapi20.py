@@ -23,7 +23,7 @@ if sys.version[0] >= '3': #python 3.x
     def _failUnless(self, expr, msg=None):
         self.assertTrue(expr, msg)
 else:                   #python 2.x
-    from exceptions import StandardError as _BaseException
+    from exceptions import Exception as _BaseException
     def _failUnless(self, expr, msg=None):
         self.failUnless(expr, msg)  ## deprecated since Python 2.6
 
@@ -216,8 +216,8 @@ class DatabaseAPI20Test(unittest.TestCase):
             self.assertTrue(issubclass(self.driver.Warning,Exception))
             self.assertTrue(issubclass(self.driver.Error,Exception))
         else:
-            self.failUnless(issubclass(self.driver.Warning,StandardError))
-            self.failUnless(issubclass(self.driver.Error,StandardError))
+            self.failUnless(issubclass(self.driver.Warning,Exception))
+            self.failUnless(issubclass(self.driver.Error,Exception))
 
         _failUnless(self,
             issubclass(self.driver.InterfaceError,self.driver.Error)

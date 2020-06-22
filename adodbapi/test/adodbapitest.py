@@ -1,5 +1,5 @@
 """ Unit tests version 2.6.1.0 for adodbapi"""
-from __future__ import print_function
+
 """
     adodbapi - A python DB API 2.0 interface to Microsoft ADO
 
@@ -56,7 +56,7 @@ except ImportError: #we are doing a shortcut import as a module -- so
 if sys.version_info >= (3,0):
     def str2bytes(sval):
         return sval.encode("latin1")
-    unicode = str
+    str = str
     long = int
 else:
     def str2bytes(sval):
@@ -163,7 +163,7 @@ class CommonDBTests(unittest.TestCase):
             return
         try:
             duplicatingConverter=lambda aStringField: aStringField*2
-            assert duplicatingConverter(u'gabba') == u'gabbagabba'
+            assert duplicatingConverter('gabba') == 'gabbagabba'
 
             self.helpForceDropOnTblTemp()
             conn=self.getConnection()
@@ -189,7 +189,7 @@ class CommonDBTests(unittest.TestCase):
                 self.assertEqual(row[1],'yoyo')
 
                 upcaseConverter=lambda aStringField: aStringField.upper()
-                assert upcaseConverter(u'upThis') == u'UPTHIS'
+                assert upcaseConverter('upThis') == 'UPTHIS'
 
                 # now use a single column converter
                 rows.converters[1] = upcaseConverter  # convert second column
@@ -222,9 +222,9 @@ class CommonDBTests(unittest.TestCase):
                 adodbapi.variantConversions[ado_consts.adNumeric] = adodbapi.cvtString
                 self.helpTestDataType("numeric(18,2)",'NUMBER','3.45')
                     # now a completly weird user defined convertion
-                adodbapi.variantConversions[ado_consts.adNumeric] = lambda x: u'!!This function returns a funny unicode string %s!!'%x
+                adodbapi.variantConversions[ado_consts.adNumeric] = lambda x: '!!This function returns a funny unicode string %s!!'%x
                 self.helpTestDataType("numeric(18,2)",'NUMBER','3.45',
-                                          allowedReturnValues=[u'!!This function returns a funny unicode string 3.45!!'])
+                                          allowedReturnValues=['!!This function returns a funny unicode string 3.45!!'])
             finally:
                 # now reset the converter to its original function
                 adodbapi.variantConversions[ado_consts.adNumeric]=oldconverter #Restore the original convertion function
@@ -276,7 +276,7 @@ class CommonDBTests(unittest.TestCase):
         inputs=[pyData]
         if pyDataInputAlternatives:
             inputs.extend(pyDataInputAlternatives)
-        if str is unicode:
+        if str is str:
             inputs = set(inputs)  # removes redundant string==unicode tests
         fldId=1
         for inParam in inputs:
@@ -324,15 +324,15 @@ class CommonDBTests(unittest.TestCase):
 
     def testDataTypeDecmal(self):
         self.helpTestDataType("decimal(18,2)",'NUMBER',3.45,
-                              allowedReturnValues=[u'3.45',u'3,45',decimal.Decimal('3.45')])
+                              allowedReturnValues=['3.45','3,45',decimal.Decimal('3.45')])
         self.helpTestDataType("numeric(18,2)",'NUMBER',3.45,
-                              allowedReturnValues=[u'3.45',u'3,45',decimal.Decimal('3.45')])
+                              allowedReturnValues=['3.45','3,45',decimal.Decimal('3.45')])
         self.helpTestDataType("decimal(20,2)",'NUMBER',444444444444444444,
-                              allowedReturnValues=[u'444444444444444444.00', u'444444444444444444,00',
+                              allowedReturnValues=['444444444444444444.00', '444444444444444444,00',
                                                    decimal.Decimal('444444444444444444')])
         if self.getEngine() == 'MSSQL':
             self.helpTestDataType("uniqueidentifier",'UUID','{71A4F49E-39F3-42B1-A41E-48FF154996E6}',
-                              allowedReturnValues=[u'{71A4F49E-39F3-42B1-A41E-48FF154996E6}'])
+                              allowedReturnValues=['{71A4F49E-39F3-42B1-A41E-48FF154996E6}'])
 
     def testDataTypeMoney(self):    #v2.1 Cole -- use decimal for money
         if self.getEngine() == 'MySQL':
@@ -354,12 +354,12 @@ class CommonDBTests(unittest.TestCase):
             self.helpTestDataType("bit",'NUMBER',1) #Does not work correctly with access        
         if self.getEngine() in ['MSSQL','PostgreSQL']:
             self.helpTestDataType("bigint",'NUMBER',3000000000,
-                      allowedReturnValues=[3000000000, long(3000000000)])
+                      allowedReturnValues=[3000000000, int(3000000000)])
         self.helpTestDataType("int",'NUMBER',2147483647)
 
     def testDataTypeChar(self):
         for sqlDataType in ("char(6)","nchar(6)"):
-            self.helpTestDataType(sqlDataType,'STRING',u'spam  ',allowedReturnValues=[u'spam','spam',u'spam  ','spam  '])
+            self.helpTestDataType(sqlDataType,'STRING','spam  ',allowedReturnValues=['spam','spam','spam  ','spam  '])
 
     def testDataTypeVarChar(self):
         if self.getEngine() == 'MySQL':
@@ -370,7 +370,7 @@ class CommonDBTests(unittest.TestCase):
             stringKinds = ["varchar(10)","nvarchar(10)","text","ntext"] #,"varchar(max)"]
 
         for sqlDataType in stringKinds:
-            self.helpTestDataType(sqlDataType,'STRING',u'spam',['spam'])
+            self.helpTestDataType(sqlDataType,'STRING','spam',['spam'])
             
     def testDataTypeDate(self):
         if self.getEngine() == 'PostgreSQL':
@@ -610,7 +610,7 @@ class CommonDBTests(unittest.TestCase):
                 """ % config.tmp
         crsr.execute(tabdef)
 
-        inputs = [u'one',u'two',u'three']
+        inputs = ['one','two','three']
         fldId=2
         for inParam in inputs:
             fldId+=1
@@ -629,7 +629,7 @@ class CommonDBTests(unittest.TestCase):
             crsr.execute("SELECT fldData, fldConst FROM xx_" + config.tmp + " WHERE %s=fldID", [fldId])
             rec = crsr.fetchone()
             self.assertEqual(rec[0], inParam, 'returned value:"%s" != test value:"%s"' % (rec[0],inParam))
-            self.assertEqual(rec[1], u"thi%s :may cause? trouble")
+            self.assertEqual(rec[1], "thi%s :may cause? trouble")
 
         # now try an operation with a "%s" as part of a literal
         sel = "insert into xx_" + config.tmp + " (fldId,fldData) VALUES (%s,'four%sfive')"
@@ -661,7 +661,7 @@ class CommonDBTests(unittest.TestCase):
                 """ % config.tmp
         crsr.execute(tabdef)
 
-        inputs = [u'four',u'five',u'six']
+        inputs = ['four','five','six']
         fldId=10
         for inParam in inputs:
             fldId+=1
@@ -697,7 +697,7 @@ class CommonDBTests(unittest.TestCase):
                 """ % config.tmp
         crsr.execute(tabdef)
 
-        inputs = [u'four', u'five', u'six']
+        inputs = ['four', 'five', 'six']
         fldId=10
         for inParam in inputs:
             fldId+=1
@@ -732,7 +732,7 @@ class CommonDBTests(unittest.TestCase):
                 fldConst varchar(30))
                 """ % config.tmp
         crsr.execute(tabdef)
-        inputs = [u'one', u'two', u'three']
+        inputs = ['one', 'two', 'three']
         fldId=2
         for inParam in inputs:
             fldId+=1

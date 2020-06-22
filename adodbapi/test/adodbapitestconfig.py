@@ -11,7 +11,7 @@
 # #  Skip down to the next "# #" line --
 # #  -- the things you need to change are below it.
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-from __future__ import print_function
+
 import platform
 import sys
 import random

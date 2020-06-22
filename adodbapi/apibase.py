@@ -11,7 +11,7 @@ import datetime
 import decimal
 import numbers
 # noinspection PyUnresolvedReferences
-import ado_consts as adc
+from . import ado_consts as adc
 
 verbose = False  # debugging flag
 
@@ -25,8 +25,8 @@ else:
     NullTypes = type(None)
 
 # --- define objects to smooth out Python3 <-> Python 2.x differences
-unicodeType = unicode  #this line will be altered by 2to3.py to '= str'
-longType = long        #this line will be altered by 2to3.py to '= int'
+unicodeType = str  #this line will be altered by 2to3.py to '= str'
+longType = int        #this line will be altered by 2to3.py to '= int'
 if sys.version[0] >= '3': #python 3.x
     StringTypes = str
     makeByteBuffer = bytes
@@ -34,10 +34,10 @@ if sys.version[0] >= '3': #python 3.x
     _BaseException = Exception
 else:                   #python 2.x
     # noinspection PyUnresolvedReferences
-    from exceptions import StandardError as _BaseException
+    from exceptions import Exception as _BaseException
     memoryViewType = type(buffer(''))
     makeByteBuffer = buffer
-    StringTypes = (str,unicode)  # will be messed up by 2to3 but never used
+    StringTypes = (str,str)  # will be messed up by 2to3 but never used
 
 try:                #jdhardy -- handle bytes under IronPython & Py3
     bytes
@@ -345,7 +345,7 @@ OTHER = DBAPITypeObject(adoRemainingTypes)
 typeMap = { memoryViewType : adc.adVarBinary,
            float : adc.adDouble,
            type(None) : adc.adEmpty,
-           unicode : adc.adBSTR, # this line will be altered by 2to3 to 'str:'
+           str : adc.adBSTR, # this line will be altered by 2to3 to 'str:'
            bool :adc.adBoolean,          #v2.1 Cole
            decimal.Decimal : adc.adDecimal }
 if longType != int: #not Python 3
@@ -412,13 +412,13 @@ def cvtInt(variant):
     return int(variant)
 
 def cvtLong(variant):  # only important in old versions where long and int differ
-    return long(variant)
+    return int(variant)
 
 def cvtBuffer(variant):
     return bytes(variant)
 
 def cvtUnicode(variant):
-    return unicode(variant) # will be altered by 2to3 to 'str(variant)'
+    return str(variant) # will be altered by 2to3 to 'str(variant)'
 
 def identity(x): return x
 
@@ -426,7 +426,7 @@ def cvtUnusual(variant):
     if verbose > 1:
         sys.stderr.write('Conversion called for Unusual data=%s\n' % repr(variant))
     if isinstance(variant, DateTime):  # COMdate or System.Date
-        from adodbapi import dateconverter  # this will only be called when adodbapi is in use, and very rarely
+        from .adodbapi import dateconverter  # this will only be called when adodbapi is in use, and very rarely
         return dateconverter.DateObjectFromCOMDate(variant)
     return variant  # cannot find conversion function -- just give the data to the user
 
@@ -439,7 +439,7 @@ class MultiMap(dict): #builds a dictionary from {(sequence,of,keys) : function}
     """A dictionary of ado.type : function -- but you can set multiple items by passing a sequence of keys"""
     #useful for defining conversion functions for groups of similar data types.
     def __init__(self, aDict):
-        for k, v in aDict.items():
+        for k, v in list(aDict.items()):
             self[k] = v # we must call __setitem__
     def __setitem__(self, adoType, cvtFn):
         "set a single item, or a whole sequence of items"
@@ -466,7 +466,7 @@ variantConversions = MultiMap( {
 
 # # # # # classes to emulate the result of cursor.fetchxxx() as a sequence of sequences # # # # #
     # "an ENUM of how my low level records are laid out"
-RS_WIN_32, RS_ARRAY, RS_REMOTE = range(1,4)
+RS_WIN_32, RS_ARRAY, RS_REMOTE = list(range(1,4))
 
 class SQLrow(object): # a single database row
     # class to emulate a sequence, so that a column may be retrieved by either number or name
@@ -506,14 +506,14 @@ class SQLrow(object): # a single database row
             return self._getValue(self.rows.columnNames[key.lower()])  # extension row[columnName] designation
         except (KeyError, TypeError):
             er, st, tr = sys.exc_info()
-            raise er,'No such key as "%s" in %s'%(repr(key),self.__repr__()),tr
+            raise er('No such key as "%s" in %s'%(repr(key),self.__repr__())).with_traceback(tr)
     def __iter__(self):
         return iter(self.__next__())
     def __next__(self):
         for n in range(self.rows.numberOfColumns):
             yield self._getValue(n)
     def __repr__(self): # create a human readable representation
-        taglist = sorted(self.rows.columnNames.items(), key=lambda x: x[1])
+        taglist = sorted(list(self.rows.columnNames.items()), key=lambda x: x[1])
         s = "<SQLrow={"
         for name, i in taglist:
             s += name + ':' + repr(self._getValue(i)) + ', '
@@ -560,7 +560,7 @@ class SQLrows(object):
                 try:
                     j = self.columnNames[j.lower()] # convert named column to numeric
                 except KeyError:
-                    raise KeyError, 'adodbapi: no such column name as "%s"'%repr(j)
+                    raise KeyError('adodbapi: no such column name as "%s"'%repr(j))
             if self.recordset_format == RS_ARRAY: # retrieve from two-dimensional array
                 v = self.ado_results[j,i]
             elif self.recordset_format == RS_REMOTE:

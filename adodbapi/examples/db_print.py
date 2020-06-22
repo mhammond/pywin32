@@ -1,5 +1,5 @@
 """ db_print.py -- a simple demo for ADO database reads."""
-from __future__ import with_statement #needed for Python 2.5
+ #needed for Python 2.5
 
 import sys
 import adodbapi.ado_consts as adc

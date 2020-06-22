@@ -1,4 +1,4 @@
-from __future__ import with_statement  # needed only if running Python 2.5
+  # needed only if running Python 2.5
 import adodbapi
 import datetime
 try:

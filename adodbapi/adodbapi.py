@@ -27,7 +27,7 @@ This module source should run correctly in CPython versions 2.7 and later,
 or IronPython version 2.7 and later,
 or, after running through 2to3.py, CPython 3.4 or later.
 """
-from __future__ import print_function
+
 
 __version__ = '2.6.2.0'
 version = 'adodbapi v' + __version__
@@ -80,13 +80,13 @@ except ImportError:  # Python 2.5
     Mapping = dict   # this will handle the most common case
 
 # --- define objects to smooth out Python3000 <-> Python 2.x differences
-unicodeType = unicode  #this line will be altered by 2to3.py to '= str'
-longType = long        #this line will be altered by 2to3.py to '= int'
+unicodeType = str  #this line will be altered by 2to3.py to '= str'
+longType = int        #this line will be altered by 2to3.py to '= int'
 if sys.version_info >= (3,0): #python 3.x
     StringTypes = str
     maxint = sys.maxsize
 else:                   #python 2.x
-    StringTypes = (str,unicode)  # will be messed up by 2to3 but never used
+    StringTypes = (str,str)  # will be messed up by 2to3 but never used
     maxint = sys.maxint
 
 # -----------------  The .connect method -----------------
@@ -322,7 +322,7 @@ class Connection(object):
         an Error (or subclass) exception will be raised if any operation is attempted with the connection.
         The same applies to all cursor objects trying to use the connection. 
         """
-        for crsr in self.cursors.values()[:]:  # copy the list, then close each one
+        for crsr in list(self.cursors.values())[:]:  # copy the list, then close each one
             crsr.close(dont_tell_me=True)  # close without back-link clearing
         self.messages = []
         try:
@@ -542,7 +542,7 @@ class Cursor(object):
         self._description = None
         self._ado_prepared = 'setup'
 
-    def next(self):
+    def __next__(self):
         r = self.fetchone()
         if r:
             return r
@@ -784,7 +784,7 @@ class Cursor(object):
                         try:
                             _configure_parameter(p, parameters[pm_name], p.Type, parameters_known)
                         except (Exception) as e:
-                            _message = u'Error Converting Parameter %s: %s, %s <- %s\n' % \
+                            _message = 'Error Converting Parameter %s: %s, %s <- %s\n' % \
                                            (p.Name, adc.ado_type_name(p.Type), p.Value, repr(parameters[pm_name]))
                             self._raiseCursorError(api.DataError, _message+'->'+repr(e.args))
                 else:  # regular sequence of parameters
@@ -796,7 +796,7 @@ class Cursor(object):
                         try:
                             _configure_parameter(p, value, p.Type, parameters_known)
                         except Exception as e:
-                            _message = u'Error Converting Parameter %s: %s, %s <- %s\n' % \
+                            _message = 'Error Converting Parameter %s: %s, %s <- %s\n' % \
                                            (p.Name, adc.ado_type_name(p.Type), p.Value, repr(value))
                             self._raiseCursorError(api.DataError, _message+'->'+repr(e.args))
                         i += 1
@@ -810,7 +810,7 @@ class Cursor(object):
                         try:
                             self.cmd.Parameters.Append(p)
                         except Exception as e:
-                            _message = u'Error Building Parameter %s: %s, %s <- %s\n' % \
+                            _message = 'Error Building Parameter %s: %s, %s <- %s\n' % \
                                            (p.Name, adc.ado_type_name(p.Type), p.Value, repr(elem))
                             self._raiseCursorError(api.DataError, _message+'->'+repr(e.args))
                 else :  # expecting the usual sequence of parameters
@@ -826,7 +826,7 @@ class Cursor(object):
                         try:
                             self.cmd.Parameters.Append(p)
                         except Exception as e:
-                            _message = u'Error Building Parameter %s: %s, %s <- %s\n' % \
+                            _message = 'Error Building Parameter %s: %s, %s <- %s\n' % \
                                            (p.Name, adc.ado_type_name(p.Type), p.Value, repr(elem))
                             self._raiseCursorError(api.DataError, _message+'->'+repr(e.args))
                         i += 1

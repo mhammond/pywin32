@@ -23,7 +23,7 @@ This module source should run correctly in CPython versions 2.6 and later,
 or IronPython version 2.6 and later,
 or, after running through 2to3.py, CPython 3.2 or later.
 """
-from __future__ import print_function, absolute_import
+
 
 __version__ = '2.6.2.0'
 version = 'adodbapi.server v' + __version__
@@ -54,7 +54,7 @@ if sys.version[0] >= '3': #python 3.x
     _BaseException = Exception
     Binary = bytes
 else:                   #python 2.x
-    from exceptions import StandardError as _BaseException
+    from exceptions import Exception as _BaseException
     makeByteBuffer = buffer
     Binary = buffer
 try:
@@ -120,7 +120,7 @@ def unfixpickle(x):
     if isinstance(x,dict):
         # for 'named' paramstyle user will pass a mapping
         newargs = {}
-        for arg,val in x.items():
+        for arg,val in list(x.items()):
             if isinstance(arg, type(array.array('B'))):
                 newargs[arg] = Binary(val)
             else:
@@ -156,7 +156,7 @@ class ServerConnection(object):
 
     def close(self, remember=False):
         global connection_list
-        for c in self.cursors.values()[:]:
+        for c in list(self.cursors.values())[:]:
             c.close()
         self.server_connection.close()
         self._pyroDaemon.unregister(self)
@@ -177,19 +177,19 @@ class ServerConnection(object):
             self.server_connection = conn
             connection_list.append(self)
             return True
-        except api.Error, e:
+        except api.Error as e:
             return e
 
     def commit(self):
         try:
             self.server_connection.commit()
-        except api.Error, e:
+        except api.Error as e:
             return str(e)
 
     def rollback(self):
         try:
             self.server_connection.rollback()
-        except api.Error, e:
+        except api.Error as e:
             return str(e)
 
     def get_table_names(self):
@@ -215,7 +215,7 @@ class ServerConnection(object):
         fp = unfixpickle(parameters)
         try:
             self.cursors[cid].execute(operation, fp)
-        except api.Error, e:
+        except api.Error as e:
             try: errorclass = self.server_connection.messages[0][0]
             except: errorclass = api.Error
             return errorclass, str(e) # the error class should have been stored by the standard error handler

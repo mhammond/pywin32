@@ -1,5 +1,5 @@
 """ a clumsy attempt at a macro language to let the programmer execute code on the server (ex: determine 64bit)"""
-import is64bit as is64bit
+from . import is64bit as is64bit
 
 def macro_call(macro_name, args, kwargs):
     """ allow the programmer to perform limited processing on the server by passing macro names and args
@@ -11,7 +11,7 @@ def macro_call(macro_name, args, kwargs):
     :kwargs - the connection keyword dictionary. ??key has been removed
     --> the value to put in for kwargs['name'] = value
     """
-    if isinstance(args, (str, unicode)):
+    if isinstance(args, (str, str)):
         args = [args] # the user forgot to pass a sequence, so make a string into args[0]
     new_key = args[0]
     try:
@@ -79,7 +79,7 @@ def process(args, kwargs, expand_macros=False): # --> connection string with key
     if isinstance(a1, int):
         kwargs['timeout'] = a1
     # if the second positional argument is a string, then it is user
-    elif isinstance(a1, basestring):
+    elif isinstance(a1, str):
         kwargs['user'] = a1
     # if the second positional argument is a dictionary, use it as keyword arguments, too
     elif isinstance(a1, dict):
@@ -101,7 +101,7 @@ def process(args, kwargs, expand_macros=False): # --> connection string with key
             except KeyError:
                 raise TypeError ("Must define 'connection_string' for ado connections")
     if expand_macros:
-        for kwarg in kwargs.keys():
+        for kwarg in list(kwargs.keys()):
             if kwarg.startswith('macro_'):  # If a key defines a macro
                 macro_name = kwarg[6:]  # name without the "macro_"
                 macro_code = kwargs.pop(kwarg)  # we remove the macro_key and get the code to execute

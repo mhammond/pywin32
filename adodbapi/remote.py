@@ -26,7 +26,7 @@ This module source should run correctly in CPython versions 2.5 and later,
 or IronPython version 2.7 and later,
 or, after running through 2to3.py, CPython 3.0 or later.
 """
-from __future__ import absolute_import
+
 
 __version__ = '2.6.0.4'
 version = 'adodbapi.remote v' + __version__
@@ -64,8 +64,8 @@ if verbose:
     print(version)
 
 # --- define objects to smooth out Python3 <-> Python 2.x differences
-unicodeType = unicode  #this line will be altered by 2to3.py to '= str'
-longType = long        #this line will be altered by 2to3.py to '= int'
+unicodeType = str  #this line will be altered by 2to3.py to '= str'
+longType = int        #this line will be altered by 2to3.py to '= int'
 if sys.version[0] >= '3': #python 3.x
     StringTypes = str
     makeByteBuffer = bytes
@@ -78,7 +78,7 @@ else:                   #python 2.x
         bytes
     except NameError:
         bytes = str
-    StringTypes = (str,unicode)  # will be messed up by 2to3 but never used
+    StringTypes = (str,str)  # will be messed up by 2to3 but never used
 # -----------------------------------------------------------
 # conversion functions mandated by PEP 249
 Binary = makeByteBuffer # override the function from apibase.py
@@ -155,7 +155,7 @@ def connect(*args, **kwargs): # --> a remote db-api connection object
                 time.sleep(1)
             else:
                 raise api.DatabaseError ('Pyro error creating connection to/thru=%s' % repr(kwargs))
-        except _BaseException, e:
+        except _BaseException as e:
             raise api.DatabaseError('Error creating remote connection to=%s, e=%s, %s' % (repr(kwargs), repr(e),sys.exc_info()[2]))
     return myConn
 
@@ -231,7 +231,7 @@ class Connection(object):
         an Error (or subclass) exception will be raised if any operation is attempted with the connection.
         The same applies to all cursor objects trying to use the connection.
         """
-        for crsr in self.cursors.values()[:]:  # copy the list, then close each one
+        for crsr in list(self.cursors.values())[:]:  # copy the list, then close each one
             crsr.close()
         try:
             """close the underlying remote Connection object"""
@@ -328,7 +328,7 @@ def fixpickle(x):
     if isinstance(x, dict):
         # for 'named' paramstyle user will pass a mapping
         newargs = {}
-        for arg,val in x.items():
+        for arg,val in list(x.items()):
             if isinstance(val, memoryViewType):
                 newval = array.array('B')
                 newval.fromstring(val)
@@ -370,7 +370,7 @@ class Cursor(object):
     def __iter__(self):                   # [2.1 Zamarev]
         return iter(self.fetchone, None)  # [2.1 Zamarev]
 
-    def next(self):
+    def __next__(self):
         r = self.fetchone()
         if r:
             return r
@@ -481,7 +481,7 @@ class Cursor(object):
     def fetchone(self):
         try:
             f1 = self.proxy.crsr_fetchone(self.id)
-        except _BaseException, e:
+        except _BaseException as e:
             self._raiseCursorError(api.DatabaseError, e)
         else:
             if f1 is None:
@@ -496,7 +496,7 @@ class Cursor(object):
                 return []
             r = api.SQLrows(self.rs, len(self.rs), self)
             return r
-        except Exception, e:
+        except Exception as e:
             self._raiseCursorError(api.DatabaseError, e)
 
     def fetchall(self):
@@ -505,7 +505,7 @@ class Cursor(object):
             if not self.rs:
                 return []
             return api.SQLrows(self.rs, len(self.rs), self)
-        except Exception, e:
+        except Exception as e:
             self._raiseCursorError(api.DatabaseError, e)
 
     def close(self):

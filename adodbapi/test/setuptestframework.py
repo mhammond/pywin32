@@ -1,7 +1,7 @@
 #!/usr/bin/python2
 # Configure this in order to run the testcases.
 "setuptestframework.py v 2.6.0.8"
-from __future__ import print_function
+
 import os
 import sys
 import tempfile
