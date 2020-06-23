@@ -24,10 +24,9 @@ class TestReadBuffer(unittest.TestCase):
         self.failUnlessEqual(len(buffer), 1)
 
     def testSimpleIndex(self):
-        val = str2bytes('\xFF')
         buffer = win32file.AllocateReadBuffer(1)
-        buffer[0] = val
-        self.failUnlessEqual(buffer[0], val)
+        buffer[0] = 0xFF
+        self.assertEqual(buffer[0], 0xFF)
 
     def testSimpleSlice(self):
         buffer = win32file.AllocateReadBuffer(2)
