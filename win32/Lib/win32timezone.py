@@ -34,7 +34,7 @@ generated, unless standard time is always used)
 
 >>> now = datetime.datetime.now(TimeZoneInfo('Mountain Standard Time', True))
 >>> now.utcoffset()
-datetime.timedelta(-1, 61200)
+datetime.timedelta(days=-1, seconds=61200)
 
 >>> aug2 = datetime.datetime(2003, 8, 2, tzinfo = MST)
 >>> tuple(aug2.utctimetuple())
@@ -154,7 +154,7 @@ Test conversion from one time zone to another at a DST boundary
 >>> tz_pac = TimeZoneInfo('Pacific Standard Time')
 >>> time_before = datetime.datetime(2011, 11, 5, 15, 59, 59, tzinfo=tz_hi)
 >>> tz_hi.utcoffset(time_before)
-datetime.timedelta(-1, 50400)
+datetime.timedelta(days=-1, seconds=50400)
 >>> tz_hi.dst(time_before)
 datetime.timedelta(0)
 
@@ -182,7 +182,7 @@ time.struct_time(tm_year=2011, tm_mon=11, tm_mday=6, tm_hour=1, tm_min=59, tm_se
 Now do the same tests one minute later in Hawaii.
 >>> time_after = datetime.datetime(2011, 11, 5, 16, 0, 0, 0, tzinfo=tz_hi)
 >>> tz_hi.utcoffset(time_after)
-datetime.timedelta(-1, 50400)
+datetime.timedelta(days=-1, seconds=50400)
 >>> tz_hi.dst(time_before)
 datetime.timedelta(0)
 
@@ -210,9 +210,9 @@ time.struct_time(tm_year=2011, tm_mon=11, tm_mday=6, tm_hour=2, tm_min=0, tm_sec
 
 Check some internal methods
 >>> tz_pac._getStandardBias(datetime.datetime(2011, 1, 1))
-datetime.timedelta(0, 28800)
+datetime.timedelta(seconds=28800)
 >>> tz_pac._getDaylightBias(datetime.datetime(2011, 1, 1))
-datetime.timedelta(0, 25200)
+datetime.timedelta(seconds=25200)
 
 Test the offsets
 >>> offset = tz_pac.utcoffset(datetime.datetime(2011, 11, 6, 2, 0))
