@@ -1,6 +1,6 @@
 # Contributed by Kelly Kranabetter.
 import os, sys
-import win32security, ntsecuritycon
+import win32security, ntsecuritycon, pywintypes, winerror
 
 # get security information
 #name=r"c:\autoexec.bat"
@@ -15,15 +15,27 @@ print "On file " , name, "\n"
 
 # get owner SID
 print "OWNER"
-sd= win32security.GetFileSecurity(name, win32security.OWNER_SECURITY_INFORMATION)
-sid= sd.GetSecurityDescriptorOwner()
-print "  ", win32security.LookupAccountSid(None, sid)
+try:
+    sd= win32security.GetFileSecurity(name, win32security.OWNER_SECURITY_INFORMATION)
+    sid= sd.GetSecurityDescriptorOwner()
+    print "  ", win32security.LookupAccountSid(None, sid)
+except pywintypes.error as exc:
+    # in automation and network shares we see:
+    # pywintypes.error: (1332, 'LookupAccountName', 'No mapping between account names and security IDs was done.')
+    if exc.winerror != winerror.ERROR_NONE_MAPPED:
+        raise
+    print("No owner information is available")
 
 # get group SID
-print "GROUP"
-sd= win32security.GetFileSecurity(name, win32security.GROUP_SECURITY_INFORMATION)
-sid= sd.GetSecurityDescriptorGroup()
-print "  ", win32security.LookupAccountSid(None, sid)
+try:
+    print "GROUP"
+    sd= win32security.GetFileSecurity(name, win32security.GROUP_SECURITY_INFORMATION)
+    sid= sd.GetSecurityDescriptorGroup()
+    print "  ", win32security.LookupAccountSid(None, sid)
+except pywintypes.error as exc:
+    if exc.winerror != winerror.ERROR_NONE_MAPPED:
+        raise
+    print("No group information is available")
 
 # get ACEs
 sd= win32security.GetFileSecurity(name, win32security.DACL_SECURITY_INFORMATION)
