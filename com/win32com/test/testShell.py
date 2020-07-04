@@ -49,7 +49,7 @@ class ShellTester(win32com.test.util.TestCase):
         for i in sf: # Magically calls EnumObjects
             name = sf.GetDisplayNameOf(i, SHGDN_NORMAL)
             names_1.append(name)
-        
+
         # And get the enumerator manually    
         enum = sf.EnumObjects(0, SHCONTF_FOLDERS | SHCONTF_NONFOLDERS | SHCONTF_INCLUDEHIDDEN)
         names_2 = []
@@ -103,6 +103,8 @@ class FILEGROUPDESCRIPTORTester(win32com.test.util.TestCase):
     def _getTestTimes(self):
         if issubclass(pywintypes.TimeType, datetime.datetime):
             ctime = win32timezone.now()
+            # FILETIME only has ms precision...
+            ctime = ctime.replace(microsecond=ctime.microsecond // 1000 * 1000)
             atime = ctime + datetime.timedelta(seconds=1)
             wtime = atime + datetime.timedelta(seconds=1)
         else:
@@ -114,10 +116,10 @@ class FILEGROUPDESCRIPTORTester(win32com.test.util.TestCase):
     def _testRT(self, fd):
         fgd_string = shell.FILEGROUPDESCRIPTORAsString([fd])
         fd2 = shell.StringAsFILEGROUPDESCRIPTOR(fgd_string)[0]
-        
+
         fd = fd.copy()
         fd2 = fd2.copy()
-        
+
         # The returned objects *always* have dwFlags and cFileName.
         if 'dwFlags' not in fd:
             del fd2['dwFlags']
