@@ -493,8 +493,12 @@ static void _DoLogger(PyObject *logProvider, char *log_method, const char *fmt, 
     strncat(prefix, log_method, 100);
     strncat(prefix, ": ", 2);
 
-    if (logProvider)
+    if (logProvider) {
         logger = PyObject_CallMethod(logProvider, "_GetLogger_", NULL);
+        if (!logger) {
+            PyErr_Clear();
+        }
+    }
     if (logger == NULL) {
         PyObject *mod = PyImport_ImportModule("win32com");
         if (mod) {
