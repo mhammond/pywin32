@@ -352,8 +352,8 @@ PYWIN_MODULE_INIT_FUNC(directsound)
     // in an IDirectSound::CreateSoundBuffer call. With this flag set, an application using DirectSound can continue to
     // play its sticky focus buffers if the user switches to another application not using DirectSound. In this
     // situation, the application's normal buffers are muted, but the sticky focus buffers are still audible. This is
-    // useful for nongame applications, such as movie playback (DirectShow™), when the user wants to hear the soundtrack
-    // while typing in Microsoft Word or Microsoft® Excel, for example. However, if the user switches to another
+    // useful for nongame applications, such as movie playback (DirectShowï¿½), when the user wants to hear the soundtrack
+    // while typing in Microsoft Word or Microsoftï¿½ Excel, for example. However, if the user switches to another
     // DirectSound application, all sound buffers, both normal and sticky focus, in the previous application are muted.
     ADD_CONSTANT(DSBCAPS_STICKYFOCUS);
     // @const directsound|DSBCAPS_GLOBALFOCUS|The buffer is a global sound buffer. With this flag set, an application
@@ -418,6 +418,33 @@ PYWIN_MODULE_INIT_FUNC(directsound)
     ADD_CONSTANT(DSCBSTATUS_LOOPING);
     ADD_CONSTANT(DSCBSTART_LOOPING);
     ADD_CONSTANT(DSBPN_OFFSETSTOP);
+
+    ADD_CONSTANT(DS_OK);
+    ADD_CONSTANT(DS_NO_VIRTUALIZATION);
+//    ADD_CONSTANT(DS_INCOMPLETE); not sure why this can't be found?
+    ADD_CONSTANT(DSERR_ACCESSDENIED);
+    ADD_CONSTANT(DSERR_ALLOCATED);
+    ADD_CONSTANT(DSERR_ALREADYINITIALIZED);
+    ADD_CONSTANT(DSERR_BADFORMAT);
+    ADD_CONSTANT(DSERR_BADSENDBUFFERGUID);
+    ADD_CONSTANT(DSERR_BUFFERLOST);
+    ADD_CONSTANT(DSERR_BUFFERTOOSMALL);
+    ADD_CONSTANT(DSERR_CONTROLUNAVAIL);
+    ADD_CONSTANT(DSERR_DS8_REQUIRED);
+    ADD_CONSTANT(DSERR_FXUNAVAILABLE);
+    ADD_CONSTANT(DSERR_GENERIC);
+    ADD_CONSTANT(DSERR_INVALIDCALL);
+    ADD_CONSTANT(DSERR_INVALIDPARAM);
+    ADD_CONSTANT(DSERR_NOAGGREGATION);
+    ADD_CONSTANT(DSERR_NODRIVER);
+    ADD_CONSTANT(DSERR_NOINTERFACE);
+    ADD_CONSTANT(DSERR_OBJECTNOTFOUND);
+    ADD_CONSTANT(DSERR_OTHERAPPHASPRIO);
+    ADD_CONSTANT(DSERR_OUTOFMEMORY);
+    ADD_CONSTANT(DSERR_PRIOLEVELNEEDED);
+    ADD_CONSTANT(DSERR_SENDLOOP);
+    ADD_CONSTANT(DSERR_UNINITIALIZED);
+    ADD_CONSTANT(DSERR_UNSUPPORTED);
 
     if (PyType_Ready(&PyDSCAPSType) == -1 || PyType_Ready(&PyDSBCAPSType) == -1 ||
         PyType_Ready(&PyDSBUFFERDESCType) == -1 || PyType_Ready(&PyDSCCAPSType) == -1 ||
