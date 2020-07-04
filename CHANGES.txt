@@ -7,7 +7,19 @@ However contributors are encouraged to add their own entries for their work.
 Note that, baring some major issue building and cutting the release, build
 228 will be the last version supporting Python 2.
 
-So long, Python 2, you served us well!
+
+Since build 228:
+----------------
+
+Python 2 is no longer supported - so long, Python 2, you served us well!
+
+Notable changes in this transition:
+
+* Python 3 builds used to erroneously turn "bytes" into a tuple of integers
+  instead of a buffer type object. Because this special-casing is important for
+  performance when using massive buffers, this has been fixed in Python 3 so
+  it matches the old Python 2 behavior. If you use arrays of VT_UI1 and expect
+  get back tuples of integers, your code may break.
 
 Since build 227:
 ----------------
