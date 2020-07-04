@@ -16,9 +16,7 @@ require you to install special SDKs or toolkits.  This script will attempt
 to build as many as it can, and at the end of the build will report any
 extension modules that could not be built and why.
 
-At a minimum, you must have the same version of Microsoft Visual C++ that is
-used for the Python version you are building, plus the Windows 8.1 SDK. Note
-that the Windows 8.1 SDK is often bundled with Microsoft Visual C++.
+See build_env.md for information about setting up your build environment.
 
 Building:
 ---------
