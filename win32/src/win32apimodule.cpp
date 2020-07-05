@@ -2394,9 +2394,18 @@ static PyObject *PyGetTempFileName(PyObject *self, PyObject *args)
 // @pymethod tuple|win32api|GetTimeZoneInformation|Retrieves the system time-zone information.
 static PyObject *PyGetTimeZoneInformation(PyObject *self, PyObject *args)
 {
-    int bTimesAsTuples = 0;
-    // @pyparm bool|times_as_tuples|False|If true, the SYSTEMTIME elements are returned as tuples instead of a time
-    // object.
+    int bTimesAsTuples =
+#if (PY_VERSION_HEX > 0x03060000)
+        1
+#else
+        0
+#endif
+        ;
+    // @pyparm bool|times_as_tuples|?|If true, the SYSTEMTIME elements are returned as tuples instead of a time
+    // object. Defaults to False on 3.5 and earlier, True otherwise, because this function
+    // returns SYSTEMTIME information with members which datetime on 3.6 and later treats as
+    // invalid. In other words, using False on 3.6 and later will result in ValueErrors
+    // instead of returning.
     if (!PyArg_ParseTuple(args, "|i:GetTimeZoneInformation", &bTimesAsTuples))
         return NULL;
     TIME_ZONE_INFORMATION tzinfo;

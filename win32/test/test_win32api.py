@@ -25,7 +25,7 @@ class TestTime(unittest.TestCase):
             tz_time = tzinfo[2]
         # for the sake of code exercise but don't output
         tz_str.encode()
-        if not isinstance(tz_time, datetime.datetime):
+        if not isinstance(tz_time, datetime.datetime) and not isinstance(tz_time, tuple):
             tz_time.Format()
     def TestDateFormat(self):
         DATE_LONGDATE = 2
