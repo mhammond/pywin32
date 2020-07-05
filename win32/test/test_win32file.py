@@ -710,7 +710,14 @@ class TestConnect(unittest.TestCase):
             if exc.winerror == 10022: # WSAEINVAL
                 raise TestSkipped("ConnectEx is not available on this platform")
             raise # some error error we don't expect.
-        win32file.GetOverlappedResult(s2.fileno(), ol, 1)
+        # We occasionally see ERROR_CONNECTION_REFUSED in automation
+        try:
+            win32file.GetOverlappedResult(s2.fileno(), ol, 1)
+        except win32file.error as exc:
+            win32event.SetEvent(giveup_event)
+            if exc.winerror == winerror.ERROR_CONNECTION_REFUSED:
+                raise TestSkipped("Assuming ERROR_CONNECTION_REFUSED is transient")
+            raise
         ol = pywintypes.OVERLAPPED()
         buff = win32file.AllocateReadBuffer(1024)
         win32file.WSARecv(s2, buff, ol, 0)
@@ -737,7 +744,15 @@ class TestConnect(unittest.TestCase):
             if exc.winerror == 10022: # WSAEINVAL
                 raise TestSkipped("ConnectEx is not available on this platform")
             raise # some error error we don't expect.
-        win32file.GetOverlappedResult(s2.fileno(), ol, 1)
+        # We occasionally see ERROR_CONNECTION_REFUSED in automation
+        try:
+            win32file.GetOverlappedResult(s2.fileno(), ol, 1)
+        except win32file.error as exc:
+            win32event.SetEvent(giveup_event)
+            if exc.winerror == winerror.ERROR_CONNECTION_REFUSED:
+                raise TestSkipped("Assuming ERROR_CONNECTION_REFUSED is transient")
+            raise
+
         ol = pywintypes.OVERLAPPED()
         buff = win32file.AllocateReadBuffer(1024)
         win32file.WSARecv(s2, buff, ol, 0)
