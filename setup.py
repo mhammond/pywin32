@@ -922,7 +922,7 @@ class my_build_ext(build_ext):
             # Should have the same length - if not we lost a file!
             if len(mfc_files) is not len(mfc_contents):
                 mfc_contents = []
-        
+
         return mfc_contents
 
     def lookupMfcInWinSxS(self, mfc_version, mfc_libraries):
@@ -954,7 +954,7 @@ class my_build_ext(build_ext):
                 print("Could not find WinSxS directory in %WINDIR%.")
         else:
             print("Windows directory not found!")
-        
+
         return mfc_contents
 
     def build_extensions(self):
@@ -1384,8 +1384,7 @@ class my_build_ext(build_ext):
 class my_install(install):
     def run(self):
         install.run(self)
-        # Custom script we run at the end of installing - this is the same script
-        # run by bdist_wininst
+        # Custom script we run at the end of installing
         # This child process won't be able to install the system DLLs until our
         # process has terminated (as distutils imports win32api!), so we must use
         # some 'no wait' executor - spawn seems fine!  We pass the PID of this
@@ -1393,9 +1392,8 @@ class my_install(install):
         # XXX - hmm - a closer look at distutils shows it only uses win32api
         # if _winreg fails - and this never should.  Need to revisit this!
         # If self.root has a value, it means we are being "installed" into
-        # some other directory than Python itself (eg, into a temp directory
-        # for bdist_wininst to use) - in which case we must *not* run our
-        # installer
+        # some other directory than Python itself (eg, into a temp directory)
+        # - in which case we must *not* run our installer
         if not self.dry_run and not self.root:
             # We must run the script we just installed into Scripts, as it
             # may have had 2to3 run over it.
@@ -2488,12 +2486,7 @@ dist = setup(name="pywin32",
       license="PSF",
       classifiers = classifiers,
       cmdclass = cmdclass,
-      options = {"bdist_wininst":
-                    {"install_script": "pywin32_postinstall.py",
-                     "title": "pywin32-%s" % (build_id,),
-                     "user_access_control": "auto",
-                    },
-                 "bdist_msi":
+      options = {"bdist_msi":
                     {"install_script": "pywin32_postinstall.py",
                     },
                 },

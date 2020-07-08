@@ -34,13 +34,6 @@ class Tee:
                 pass
         tee_f.flush()
 
-# For some unknown reason, when running under bdist_wininst we will start up
-# with sys.stdout as None but stderr is hooked up. This work-around allows
-# bdist_wininst to see the output we write and display it at the end of
-# the install.
-if sys.stdout is None:
-    sys.stdout = sys.stderr
-
 sys.stderr = Tee(sys.stderr)
 sys.stdout = Tee(sys.stdout)
 
@@ -61,70 +54,50 @@ verbose = 1
 ver_string = "%d.%d" % (sys.version_info[0], sys.version_info[1])
 root_key_name = "Software\\Python\\PythonCore\\" + ver_string
 
-try:
-    # When this script is run from inside the bdist_wininst installer,
-    # file_created() and directory_created() are additional builtin
-    # functions which write lines to Python23\pywin32-install.log. This is
-    # a list of actions for the uninstaller, the format is inspired by what
-    # the Wise installer also creates.
-    file_created
-    is_bdist_wininst = True
-except NameError:
-    is_bdist_wininst = False # we know what it is not - but not what it is :)
-    def file_created(file):
-        pass
-    def directory_created(directory):
-        pass
-    def get_root_hkey():
-        try:
-            winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE,
-                           root_key_name, 0, winreg.KEY_CREATE_SUB_KEY)
-            return winreg.HKEY_LOCAL_MACHINE
-        except OSError as details:
-            # Either not exist, or no permissions to create subkey means
-            # must be HKCU
-            return winreg.HKEY_CURRENT_USER
+def get_root_hkey():
+    try:
+        winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE,
+                       root_key_name, 0, winreg.KEY_CREATE_SUB_KEY)
+        return winreg.HKEY_LOCAL_MACHINE
+    except OSError as details:
+        # Either not exist, or no permissions to create subkey means
+        # must be HKCU
+        return winreg.HKEY_CURRENT_USER
 
-try:
-    create_shortcut
-except NameError:
-    # Create a function with the same signature as create_shortcut provided
-    # by bdist_wininst
-    def create_shortcut(path, description, filename,
-                        arguments="", workdir="", iconpath="", iconindex=0):
-        import pythoncom
-        from win32com.shell import shell, shellcon
+def create_shortcut(path, description, filename,
+                    arguments="", workdir="", iconpath="", iconindex=0):
+    import pythoncom
+    from win32com.shell import shell, shellcon
 
-        ilink = pythoncom.CoCreateInstance(shell.CLSID_ShellLink, None,
-                                           pythoncom.CLSCTX_INPROC_SERVER,
-                                           shell.IID_IShellLink)
-        ilink.SetPath(path)
-        ilink.SetDescription(description)
-        if arguments:
-            ilink.SetArguments(arguments)
-        if workdir:
-            ilink.SetWorkingDirectory(workdir)
-        if iconpath or iconindex:
-            ilink.SetIconLocation(iconpath, iconindex)
-        # now save it.
-        ipf = ilink.QueryInterface(pythoncom.IID_IPersistFile)
-        ipf.Save(filename, 0)
+    ilink = pythoncom.CoCreateInstance(shell.CLSID_ShellLink, None,
+                                       pythoncom.CLSCTX_INPROC_SERVER,
+                                       shell.IID_IShellLink)
+    ilink.SetPath(path)
+    ilink.SetDescription(description)
+    if arguments:
+        ilink.SetArguments(arguments)
+    if workdir:
+        ilink.SetWorkingDirectory(workdir)
+    if iconpath or iconindex:
+        ilink.SetIconLocation(iconpath, iconindex)
+    # now save it.
+    ipf = ilink.QueryInterface(pythoncom.IID_IPersistFile)
+    ipf.Save(filename, 0)
 
-    # Support the same list of "path names" as bdist_wininst.
-    def get_special_folder_path(path_name):
-        import pythoncom
-        from win32com.shell import shell, shellcon
+def get_special_folder_path(path_name):
+    import pythoncom
+    from win32com.shell import shell, shellcon
 
-        for maybe in """
-            CSIDL_COMMON_STARTMENU CSIDL_STARTMENU CSIDL_COMMON_APPDATA
-            CSIDL_LOCAL_APPDATA CSIDL_APPDATA CSIDL_COMMON_DESKTOPDIRECTORY
-            CSIDL_DESKTOPDIRECTORY CSIDL_COMMON_STARTUP CSIDL_STARTUP
-            CSIDL_COMMON_PROGRAMS CSIDL_PROGRAMS CSIDL_PROGRAM_FILES_COMMON
-            CSIDL_PROGRAM_FILES CSIDL_FONTS""".split():
-            if maybe == path_name:
-                csidl = getattr(shellcon, maybe)
-                return shell.SHGetSpecialFolderPath(0, csidl, False)
-        raise ValueError("%s is an unknown path ID" % (path_name,))
+    for maybe in """
+        CSIDL_COMMON_STARTMENU CSIDL_STARTMENU CSIDL_COMMON_APPDATA
+        CSIDL_LOCAL_APPDATA CSIDL_APPDATA CSIDL_COMMON_DESKTOPDIRECTORY
+        CSIDL_DESKTOPDIRECTORY CSIDL_COMMON_STARTUP CSIDL_STARTUP
+        CSIDL_COMMON_PROGRAMS CSIDL_PROGRAMS CSIDL_PROGRAM_FILES_COMMON
+        CSIDL_PROGRAM_FILES CSIDL_FONTS""".split():
+        if maybe == path_name:
+            csidl = getattr(shellcon, maybe)
+            return shell.SHGetSpecialFolderPath(0, csidl, False)
+    raise ValueError("%s is an unknown path ID" % (path_name,))
 
 def CopyTo(desc, src, dest):
     import win32api, win32con
@@ -209,7 +182,7 @@ def RegisterPythonwin(register=True):
     """ Add (or remove) Pythonwin to context menu for python scripts.
         ??? Should probably also add Edit command for pys files also.
         Also need to remove these keys on uninstall, but there's no function
-            like file_created to add registry entries to uninstall log ???
+            to add registry entries to uninstall log ???
     """
     import os
 
@@ -302,7 +275,6 @@ def fixup_dbi():
                 else:
                     os.rename(this_pyd, this_dest)
                     print("renamed '%s'->'%s.old'" % (this_pyd, this_pyd))
-                    file_created(this_pyd+".old")
             except os.error as exc:
                 print("FAILED to rename '%s': %s" % (this_pyd, exc))
 
@@ -350,8 +322,6 @@ def install(lib_dir):
                 CopyTo("installing %s" % base, fname, dst)
                 if verbose:
                     print("Copied %s to %s" % (base, dst))
-                # Register the files with the uninstaller
-                file_created(dst)
                 worked = 1
                 # If this isn't sys.prefix (ie, System32), then nuke
                 # any versions that may exist in sys.prefix - having
@@ -380,11 +350,6 @@ def install(lib_dir):
     else:
         raise RuntimeError(
               "You don't have enough permissions to install the system files")
-
-    # Pythonwin 'compiles' config files - record them for uninstall.
-    pywin_dir = os.path.join(lib_dir, "Pythonwin", "pywin")
-    for fname in glob.glob(os.path.join(pywin_dir, "*.cfg")):
-        file_created(fname[:-1] + "c") # .cfg->.cfc
 
     # Register our demo COM objects.
     try:
@@ -431,7 +396,6 @@ def install(lib_dir):
     if not os.path.isdir(make_dir):
         if verbose:
             print("Creating directory %s" % (make_dir,))
-        directory_created(make_dir)
         os.mkdir(make_dir)
 
     try:
@@ -445,14 +409,12 @@ def install(lib_dir):
             dst = os.path.join(fldr, "PythonWin.lnk")
             create_shortcut(os.path.join(lib_dir, "Pythonwin\\Pythonwin.exe"),
                             "The Pythonwin IDE", dst, "", sys.prefix)
-            file_created(dst)
             if verbose:
                 print("Shortcut for Pythonwin created")
             # And the docs.
             dst = os.path.join(fldr, "Python for Windows Documentation.lnk")
             doc = "Documentation for the PyWin32 extensions"
             create_shortcut(chm_file, doc, dst)
-            file_created(dst)
             if verbose:
                 print("Shortcut to documentation created")
         else:
@@ -549,15 +511,6 @@ def uninstall(lib_dir):
     except Exception as why:
         print("FAILED to remove system files: %s" % (why,))
 
-# NOTE: If this script is run from inside the bdist_wininst created
-# binary installer or uninstaller, the command line args are either
-# '-install' or '-remove'.
-
-# Important: From inside the binary installer this script MUST NOT
-# call sys.exit() or raise SystemExit, otherwise not only this script
-# but also the installer will terminate! (Is there a way to prevent
-# this from the bdist_wininst C code?)
-
 
 def verify_destination(location):
     if not os.path.isdir(location):
@@ -633,5 +586,4 @@ if __name__ == '__main__':
         install(args.destination)
 
     if args.remove:
-        if not is_bdist_wininst:
-            uninstall(args.destination)
+        uninstall(args.destination)
