@@ -152,6 +152,8 @@ BOOL PyCom_VariantFromPyObject(PyObject *obj, VARIANT *var)
             // too big for 64 bits!  Use a double.
             V_VT(var) = VT_R8;
             V_R8(var) = PyLong_AsDouble(obj);
+            if (V_R8(var) == -1.0 && PyErr_Occurred())
+                return FALSE;
         }
         else if (32 < nbits) {
             // between 32 and 64 use longlong
@@ -159,18 +161,22 @@ BOOL PyCom_VariantFromPyObject(PyObject *obj, VARIANT *var)
             if (sign > 0 && 64 == nbits) {
                 V_VT(var) = VT_UI8;
                 V_UI8(var) = PyLong_AsUnsignedLongLong(obj);
+                if (V_UI8(var) == (unsigned long long)-1 && PyErr_Occurred())
+                    return FALSE;
             }
             else {
                 // Negative so use signed
                 V_VT(var) = VT_I8;
                 V_I8(var) = PyLong_AsLongLong(obj);
                 // Problem if value is between LLONG_MIN and -ULLONG_MAX
-                if (PyErr_Occurred()) {
+                if (V_I8(var) == -1 && PyErr_Occurred()) {
                     if (PyErr_ExceptionMatches(PyExc_OverflowError)) {
                         // Take now double
                         PyErr_Clear();
                         V_VT(var) = VT_R8;
                         V_R8(var) = PyLong_AsDouble(obj);
+                        if (V_R8(var) == -1.0 && PyErr_Occurred())
+                            return FALSE;
                     }
                     else {
                         return FALSE;
@@ -184,18 +190,22 @@ BOOL PyCom_VariantFromPyObject(PyObject *obj, VARIANT *var)
             if (sign > 0 && 32 == nbits) {
                 V_VT(var) = VT_UI4;
                 V_UI4(var) = PyLong_AsUnsignedLong(obj);
+                if (V_UI4(var) == (unsigned long)-1 && PyErr_Occurred())
+                    return FALSE;
             }
             else {
                 // Negative so use signed
                 V_VT(var) = VT_I4;
                 V_I4(var) = PyLong_AsLong(obj);
                 // Problem if value is between LONG_MIN and -ULONG_MAX
-                if (PyErr_Occurred()) {
+                if (V_I4(var) == -1 && PyErr_Occurred()) {
                     if (PyErr_ExceptionMatches(PyExc_OverflowError)) {
                         // Take now double
                         PyErr_Clear();
                         V_VT(var) = VT_I8;
                         V_I8(var) = PyLong_AsLongLong(obj);
+                        if (V_I8(var) == -1 && PyErr_Occurred())
+                            return FALSE;
                     }
                     else {
                         return FALSE;
@@ -207,6 +217,8 @@ BOOL PyCom_VariantFromPyObject(PyObject *obj, VARIANT *var)
     else if (PyFloat_Check(obj)) {
         V_VT(var) = VT_R8;
         V_R8(var) = PyFloat_AsDouble(obj);
+        if (V_R8(var) == -1.0 && PyErr_Occurred())
+            return FALSE;
     }
     else if (obj == Py_None) {
         V_VT(var) = VT_NULL;
@@ -216,6 +228,8 @@ BOOL PyCom_VariantFromPyObject(PyObject *obj, VARIANT *var)
     else if (PyInt_Check(obj)) {
         V_VT(var) = VT_I4;
         V_I4(var) = PyInt_AsLong(obj);
+        if (V_I4(var) == -1 && PyErr_Occurred())
+            return FALSE;
     }
 #endif
     else if (PyObject_HasAttrString(obj, "_oleobj_")) {
@@ -298,6 +312,8 @@ BOOL PyCom_VariantFromPyObject(PyObject *obj, VARIANT *var)
     else if (obj->ob_type->tp_as_number) {
         V_VT(var) = VT_R8;
         V_R8(var) = PyFloat_AsDouble(obj);
+        if (V_R8(var) == -1.0 && PyErr_Occurred())
+            return FALSE;
     }
 
     if (V_VT(var) == VT_EMPTY && !bGoodEmpty) {
