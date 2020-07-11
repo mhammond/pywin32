@@ -1320,8 +1320,12 @@ class my_compiler(base_compiler):
             if '-v' not in sys.argv:
                 args.append("--quiet")
             args.append(output_filename)
-            self.spawn(args)
-
+            try:
+                self.spawn(args)
+            except Exception:
+                print("** Failed to versionstamp the binaries.")
+                print("** If you want to skip this step, pass '--skip-verstamp' on the command-line")
+                raise
 
 ################################################################
 
