@@ -932,8 +932,8 @@ static int bindInput(cursorObject *cur, PyObject *vars, int columns)
                 rv = 0;
             else if (PyString_Check(sitem))
                 rv = ibindString(cur, iCol, sitem);
-            else if
-                PyUnicode_Check(sitem) rv = ibindUnicode(cur, iCol, sitem);
+            else if (PyUnicode_Check(sitem))
+                rv = ibindUnicode(cur, iCol, sitem);
             else {  // Just in case some object doesn't follow the rules
                 PyErr_Format(PyExc_SystemError, "??? Repr for type '%s' returned type '%s' ???", item->ob_type,
                              sitem->ob_type);

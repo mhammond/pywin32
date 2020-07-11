@@ -1483,14 +1483,10 @@ static BOOL PyObject_AsAUTH_INPUT(PyObject *ob, NET_VALIDATE_AUTHENTICATION_INPU
         kw = ob;
         args = PyTuple_New(0);
         BOOL decref_args = (args != 0);
-    }
-    else if
-        PyTuple_Check(ob)
-        {
-            kw = NULL;
-            args = ob;
-        }
-    else {
+    } else if (PyTuple_Check(ob)) {
+        kw = NULL;
+        args = ob;
+    } else {
         PyErr_SetString(PyExc_TypeError, "Must be tuple or dict");
         return FALSE;
     }
@@ -1539,14 +1535,10 @@ static BOOL PyObject_AsCHANGE_INPUT(PyObject *ob, NET_VALIDATE_PASSWORD_CHANGE_I
         kw = ob;
         args = PyTuple_New(0);
         BOOL decref_args = (args != 0);
-    }
-    else if
-        PyTuple_Check(ob)
-        {
-            kw = NULL;
-            args = ob;
-        }
-    else {
+    } else if (PyTuple_Check(ob)) {
+        kw = NULL;
+        args = ob;
+    } else {
         PyErr_SetString(PyExc_TypeError, "Must be tuple or dict");
         return FALSE;
     }

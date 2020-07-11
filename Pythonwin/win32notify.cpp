@@ -374,22 +374,19 @@ BOOL Python_OnNotify(CWnd *pFrom, WPARAM, LPARAM lParam, LRESULT *pResult)
         PyErr_Warn(PyExc_Warning, "Exception in OnNotify() handler");
     else if (result == Py_None)  // allow for None "dont pass on", else result to windows
         bPassOn = TRUE;
-    else if
-        PyTuple_Check(result)
-        {
-            // Result should be a tuple of the LRESULT and a tuple to fill the appropriate
-            //	struct for this particular message
-            if (PyArg_ParseTuple(result, "O&O", PyWinLong_AsVoidPtr, &rc, &obOther))
-                PyNotifyParseExtraTuple(pHdr, obOther, fmt);
-            if (PyErr_Occurred()) {
-                gui_print_error();
-                PyErr_Format(ui_module_error, "Error parsing OnNotify() extra return info for code %d, fmt='%s'", code,
-                             fmt);
-                gui_print_error();
-            }
+    else if (PyTuple_Check(result)) {
+        // Result should be a tuple of the LRESULT and a tuple to fill the appropriate
+        //	struct for this particular message
+        if (PyArg_ParseTuple(result, "O&O", PyWinLong_AsVoidPtr, &rc, &obOther))
+            PyNotifyParseExtraTuple(pHdr, obOther, fmt);
+        if (PyErr_Occurred()) {
+            gui_print_error();
+            PyErr_Format(ui_module_error, "Error parsing OnNotify() extra return info for code %d, fmt='%s'", code,
+                            fmt);
+            gui_print_error();
         }
     // Otherwise result is just the LRESULT, which can be anything that fits in pointer size
-    else if (!PyWinObject_AsPARAM(result, (LPARAM *)&rc)) {
+    } else if (!PyWinObject_AsPARAM(result, (LPARAM *)&rc)) {
         gui_print_error();
         PyErr_SetString(ui_module_error,
                         "OnNotify did not return an LRESULT, or a tuple of (LRESULT, notify info tuple)");
