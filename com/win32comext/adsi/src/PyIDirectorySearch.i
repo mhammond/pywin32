@@ -113,25 +113,130 @@ PyObject *PyIDirectorySearch::ExecuteSearch(PyObject *self, PyObject *args)
 %}
 %native(ExecuteSearch) ExecuteSearch;
 
+%{
 // @pyswig int|GetNextRow|
 // @pyparm int|handle||
 // @rdesc The result is the HRESULT from the call - no exceptions are thrown
-HRESULT_KEEP_INFO GetNextRow(ADS_SEARCH_HANDLE handle);
+PyObject *PyIDirectorySearch::GetNextRow(PyObject *self, PyObject *args) {
+    HRESULT_KEEP_INFO  _result;
+    ADS_SEARCH_HANDLE  _arg0;
+
+    IDirectorySearch *_swig_self;
+    if ((_swig_self=GetI(self))==NULL) return NULL;
+    if (!PyArg_ParseTuple(args,"l:GetNextRow",&_arg0))
+        return NULL;
+
+    Py_BEGIN_ALLOW_THREADS
+    _result = (HRESULT_KEEP_INFO )_swig_self->GetNextRow(_arg0);
+    Py_END_ALLOW_THREADS
+
+    if (FAILED(_result)) {
+        return OleSetADSIError(_result, _swig_self,  SWIG_THIS_IID);
+    }
+    return PyInt_FromLong(_result);
+}
+%}
+%native(GetNextRow) GetNextRow;
+
+%{
 // @pyswig int|GetFirstRow|
 // @pyparm int|handle||
 // @rdesc The result is the HRESULT from the call - no exceptions are thrown
-HRESULT_KEEP_INFO GetFirstRow(ADS_SEARCH_HANDLE handle);
+PyObject *PyIDirectorySearch::GetFirstRow(PyObject *self, PyObject *args) {
+    HRESULT_KEEP_INFO  _result;
+    ADS_SEARCH_HANDLE  _arg0;
+
+    IDirectorySearch *_swig_self;
+    if ((_swig_self=GetI(self))==NULL) return NULL;
+    if (!PyArg_ParseTuple(args,"l:GetFirstRow",&_arg0))
+        return NULL;
+
+    Py_BEGIN_ALLOW_THREADS
+    _result = (HRESULT_KEEP_INFO )_swig_self->GetFirstRow(_arg0);
+    Py_END_ALLOW_THREADS
+
+    if (FAILED(_result)) {
+        return OleSetADSIError(_result, _swig_self,  SWIG_THIS_IID);
+    }
+    return PyInt_FromLong(_result);
+}
+%}
+%native(GetFirstRow) GetFirstRow;
+
+%{
 // @pyswig int|GetPreviousRow|
 // @pyparm int|handle||
 // @rdesc The result is the HRESULT from the call - no exceptions are thrown
-HRESULT_KEEP_INFO GetPreviousRow(ADS_SEARCH_HANDLE handle);
+PyObject *PyIDirectorySearch::GetPreviousRow(PyObject *self, PyObject *args) {
+    HRESULT_KEEP_INFO  _result;
+    ADS_SEARCH_HANDLE  _arg0;
 
+    IDirectorySearch *_swig_self;
+    if ((_swig_self=GetI(self))==NULL) return NULL;
+    if (!PyArg_ParseTuple(args,"l:GetPreviousRow",&_arg0))
+        return NULL;
+
+    Py_BEGIN_ALLOW_THREADS
+    _result = (HRESULT_KEEP_INFO )_swig_self->GetPreviousRow(_arg0);
+    Py_END_ALLOW_THREADS
+
+    if (FAILED(_result)) {
+        return OleSetADSIError(_result, _swig_self,  SWIG_THIS_IID);
+    }
+    return PyInt_FromLong(_result);
+}
+%}
+%native(GetPreviousRow) GetPreviousRow;
+
+%{
 // @pyswig |CloseSearchHandle|Closes a previously opened search handle.
 // @pyparm int|handle||
-HRESULT CloseSearchHandle(ADS_SEARCH_HANDLE handle);
+PyObject *PyIDirectorySearch::CloseSearchHandle(PyObject *self, PyObject *args) {
+    HRESULT  _result;
+    ADS_SEARCH_HANDLE  _arg0;
+
+    IDirectorySearch *_swig_self;
+      if ((_swig_self=GetI(self))==NULL) return NULL;
+    if (!PyArg_ParseTuple(args,"l:CloseSearchHandle",&_arg0))
+        return NULL;
+
+    Py_BEGIN_ALLOW_THREADS
+    _result = (HRESULT )_swig_self->CloseSearchHandle(_arg0);
+    Py_END_ALLOW_THREADS
+
+    if (FAILED(_result)) {
+        return OleSetADSIError(_result, _swig_self, SWIG_THIS_IID);
+    }
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+%}
+%native(CloseSearchHandle) CloseSearchHandle;
+
+%{
 // @pyswig |AdandonSearch|
 // @pyparm int|handle||
-HRESULT AbandonSearch(ADS_SEARCH_HANDLE handle);
+PyObject *PyIDirectorySearch::AbandonSearch(PyObject *self, PyObject *args) {
+    HRESULT  _result;
+    ADS_SEARCH_HANDLE  _arg0;
+
+    IDirectorySearch *_swig_self;
+    if ((_swig_self=GetI(self))==NULL) return NULL;
+    if (!PyArg_ParseTuple(args,"l:AbandonSearch",&_arg0))
+        return NULL;
+
+    Py_BEGIN_ALLOW_THREADS
+    _result = (HRESULT )_swig_self->AbandonSearch(_arg0);
+    Py_END_ALLOW_THREADS
+
+    if (FAILED(_result))  {
+        return OleSetADSIError(_result, _swig_self,  SWIG_THIS_IID);
+    }
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+%}
+%native(AbandonSearch) AbandonSearch;
 
 %{
 // @pyswig (name, type, values)|GetColumn|
