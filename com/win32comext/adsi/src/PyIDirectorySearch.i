@@ -103,7 +103,7 @@ PyObject *PyIDirectorySearch::ExecuteSearch(PyObject *self, PyObject *args)
 	if (FAILED(_result))
 		PyCom_BuildPyException(_result, _swig_self, IID_IDirectoryObject);
 	else {
-        ret = PyInt_FromLong((long)handle);
+        ret = PyLong_FromSsize_t((Py_ssize_t)handle);
 	} 
 	PyADSI_FreeNames(names, cnames);
     PyWinObject_FreeWCHAR(szFilter);
@@ -123,7 +123,7 @@ PyObject *PyIDirectorySearch::GetNextRow(PyObject *self, PyObject *args) {
 
     IDirectorySearch *_swig_self;
     if ((_swig_self=GetI(self))==NULL) return NULL;
-    if (!PyArg_ParseTuple(args,"l:GetNextRow",&_arg0))
+    if (!PyArg_ParseTuple(args,"n:GetNextRow",&_arg0))
         return NULL;
 
     Py_BEGIN_ALLOW_THREADS
@@ -148,7 +148,7 @@ PyObject *PyIDirectorySearch::GetFirstRow(PyObject *self, PyObject *args) {
 
     IDirectorySearch *_swig_self;
     if ((_swig_self=GetI(self))==NULL) return NULL;
-    if (!PyArg_ParseTuple(args,"l:GetFirstRow",&_arg0))
+    if (!PyArg_ParseTuple(args,"n:GetFirstRow",&_arg0))
         return NULL;
 
     Py_BEGIN_ALLOW_THREADS
@@ -173,7 +173,7 @@ PyObject *PyIDirectorySearch::GetPreviousRow(PyObject *self, PyObject *args) {
 
     IDirectorySearch *_swig_self;
     if ((_swig_self=GetI(self))==NULL) return NULL;
-    if (!PyArg_ParseTuple(args,"l:GetPreviousRow",&_arg0))
+    if (!PyArg_ParseTuple(args,"n:GetPreviousRow",&_arg0))
         return NULL;
 
     Py_BEGIN_ALLOW_THREADS
@@ -197,7 +197,7 @@ PyObject *PyIDirectorySearch::CloseSearchHandle(PyObject *self, PyObject *args) 
 
     IDirectorySearch *_swig_self;
       if ((_swig_self=GetI(self))==NULL) return NULL;
-    if (!PyArg_ParseTuple(args,"l:CloseSearchHandle",&_arg0))
+    if (!PyArg_ParseTuple(args,"n:CloseSearchHandle",&_arg0))
         return NULL;
 
     Py_BEGIN_ALLOW_THREADS
@@ -222,7 +222,7 @@ PyObject *PyIDirectorySearch::AbandonSearch(PyObject *self, PyObject *args) {
 
     IDirectorySearch *_swig_self;
     if ((_swig_self=GetI(self))==NULL) return NULL;
-    if (!PyArg_ParseTuple(args,"l:AbandonSearch",&_arg0))
+    if (!PyArg_ParseTuple(args,"n:AbandonSearch",&_arg0))
         return NULL;
 
     Py_BEGIN_ALLOW_THREADS
@@ -243,12 +243,12 @@ PyObject *PyIDirectorySearch::AbandonSearch(PyObject *self, PyObject *args) {
 PyObject *PyIDirectorySearch::GetColumn(PyObject *self, PyObject *args)
 {
 	PyObject *obName;
-    long handle;
+    Py_ssize_t handle;
 	IDirectorySearch *_swig_self;
 	if ((_swig_self=GetI(self))==NULL) return NULL;
 	// @pyparm int|handle||Handle to a search
 	// @pyparm <o PyUnicode>|name||The column name to fetch
-	if (!PyArg_ParseTuple(args, "lO:GetColumn", &handle, &obName))
+	if (!PyArg_ParseTuple(args, "nO:GetColumn", &handle, &obName))
 		return NULL;
     WCHAR *szName= NULL;
     if (!PyWinObject_AsWCHAR(obName, &szName, FALSE))
@@ -286,10 +286,10 @@ PyObject *PyIDirectorySearch::GetColumn(PyObject *self, PyObject *args)
 // @rdesc Returns None when the underlying ADSI function return S_ADS_NOMORE_COLUMNS.
 PyObject *PyIDirectorySearch::GetNextColumnName(PyObject *self, PyObject *args)
 {
-    long handle;
+    Py_ssize_t handle;
 	IDirectorySearch *_swig_self;
 	if ((_swig_self=GetI(self))==NULL) return NULL;
-	if (!PyArg_ParseTuple(args, "l:GetNextColumnName", &handle))
+	if (!PyArg_ParseTuple(args, "n:GetNextColumnName", &handle))
 		return NULL;
 	HRESULT _result;
     PyObject *ret = NULL;
