@@ -143,36 +143,51 @@ def find_platform_sdk_dir():
 
     # Windows SDKs up to version 7 use a reg key SOFTWARE\Microsoft\Microsoft SDKs\Windows
     # SDKs 8 and later use SOFTWARE\Microsoft\Windows Kits\Installed Roots
-    # We currently target version 8.1
-    # (and strangely, via  #1293, it appears there may be a 32 bit version of
-    # the SDK available which works OK on 64 bit machines!)
+    # We currently target version 10.*
     flags_variants = [winreg.KEY_READ]
     try:
         flags_variants.append(winreg.KEY_READ | winreg.KEY_WOW64_32KEY)
     except AttributeError:
         pass
+    installedVersions = []
     for flags in flags_variants:
         try:
             key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE,
                                 r"SOFTWARE\Microsoft\Windows Kits\Installed Roots",
                                 0,
                                 flags)
-            installRoot = winreg.QueryValueEx(key, "KitsRoot81")[0]
+            installRoot = winreg.QueryValueEx(key, "KitsRoot10")[0]
+            keyNo = 0
+            while 1:
+                try:
+                    installedVersions.append(winreg.EnumKey(key, keyNo))
+                    keyNo += 1
+                except winreg.error:
+                    break
             break
         except EnvironmentError:
             pass
-    else:
-        print("Can't find a windows 8.1 sdk")
+    if not installedVersions:
+        print("Can't find a windows 10 sdk")
         return None
 
+    # We don't want to automatically used the latest as that's going to always
+    # be a moving target. Github's automation has "10.0.16299.0", so we target
+    # that if it exists, otherwise we use the earliest installed version.
+    ver = "10.0.16299.0"
+    if ver not in installedVersions:
+        print("Windows 10 SDK version", ver, "is preferred, but that's not installed")
+        print("Installed versions are", installedVersions)
+        ver = installedVersions[0]
+        print("Using", ver)
     # no idea what these 'um' and 'winv6.3' paths actually mean and whether
     # hard-coding them is appropriate, but here we are...
-    include = [os.path.join(installRoot, "include", "um")]
+    include = [os.path.join(installRoot, "include", ver, "um")]
     if not os.path.exists(os.path.join(include[0], "windows.h")):
-        print("Found Windows 8.1 sdk in", include, "but it doesn't appear to have windows.h")
+        print("Found Windows sdk in", include, "but it doesn't appear to have windows.h")
         return None
-    include.append(os.path.join(installRoot, "include", "shared"))
-    lib = [os.path.join(installRoot, "lib", "winv6.3", "um")]
+    include.append(os.path.join(installRoot, "include", ver, "shared"))
+    lib = [os.path.join(installRoot, "lib", ver, "um")]
     return {"include": include, "lib": lib}
 
 # Some nasty hacks to prevent most of our extensions using a manifest, as

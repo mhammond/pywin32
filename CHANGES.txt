@@ -24,6 +24,9 @@ Since build 228:
   Connection. See "ConnectModeEnum" for valid values.
   (Lincoln Puzey)
 
+* The Windows 10 SDK is now used to build the project. This shouldn't cause any
+  visible changes, but should make it much easier to build the project yourself.
+
 Python 2 is no longer supported - so long, Python 2, you served us well!
 
 Notable changes in this transition:
