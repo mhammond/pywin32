@@ -38,11 +38,7 @@ jobs:
     - name: Set Python user directory
       run: echo "::set-env name=USER_DIR::$(python -c 'import os,site;print(os.path.dirname(site.USER_SITE))', end='')"
 
-    - name: Install Windows 8.1 SDK
-      run: choco install windows-sdk-8.1
-
-    - name: Install Windows 10 SDK for Python 3.5
-      if: matrix.python-version == '3.5'
+    - name: Install Windows 10 SDK
       run: choco install windows-sdk-10.0
 
     - name: Build package
