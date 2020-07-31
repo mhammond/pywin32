@@ -75,10 +75,12 @@ PyObject *PyIConverterSession::MIMEToMAPI(PyObject *self, PyObject *args)
 		goto done;
 	if (!PyCom_InterfaceFromPyObject(obMsg, IID_IMessage, (void **)&pMsg, FALSE))
 		goto done;
-		
-	PY_INTERFACE_PRECALL;
-	hRes = _swig_self->MIMEToMAPI(pStream, pMsg, NULL, flags);
-	PY_INTERFACE_POSTCALL;
+
+	{
+		PY_INTERFACE_PRECALL;
+		hRes = _swig_self->MIMEToMAPI(pStream, pMsg, NULL, flags);
+		PY_INTERFACE_POSTCALL;
+	}
 	
 	if (FAILED(hRes))
 		result = OleSetOleError(hRes);
@@ -118,10 +120,12 @@ PyObject *PyIConverterSession::MAPIToMIMEStm(PyObject *self, PyObject *args)
 		goto done;	
 	if (!PyCom_InterfaceFromPyObject(obStream, IID_IStream, (void **)&pStream, FALSE))
 		goto done;
-		
-	PY_INTERFACE_PRECALL;
-	hRes = _swig_self->MAPIToMIMEStm(pMsg, pStream, flags);
-	PY_INTERFACE_POSTCALL;
+
+	{
+		PY_INTERFACE_PRECALL;
+		hRes = _swig_self->MAPIToMIMEStm(pMsg, pStream, flags);
+		PY_INTERFACE_POSTCALL;
+	}
 	
 	if (FAILED(hRes))
 		result = OleSetOleError(hRes);

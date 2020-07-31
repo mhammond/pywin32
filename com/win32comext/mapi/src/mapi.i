@@ -1037,10 +1037,12 @@ PyObject *PyOpenStreamOnFile(PyObject *self, PyObject *args)
 		if (!PyWinObject_AsString(obPrefix, &prefix, TRUE))
 			goto done;
 
-		PY_INTERFACE_PRECALL;
-		// mapiutil.h incorrectly declares OpenStreamOnFile taking type LPTSTR
-		hRes = OpenStreamOnFile(MAPIAllocateBuffer, MAPIFreeBuffer, flags, (LPTSTR)filename, (LPTSTR)prefix, &pStream);
-		PY_INTERFACE_POSTCALL;
+		{
+			PY_INTERFACE_PRECALL;
+			// mapiutil.h incorrectly declares OpenStreamOnFile taking type LPTSTR
+			hRes = OpenStreamOnFile(MAPIAllocateBuffer, MAPIFreeBuffer, flags, (LPTSTR)filename, (LPTSTR)prefix, &pStream);
+			PY_INTERFACE_POSTCALL;
+		}
 
 	done:
 		PyWinObject_FreeString(filename);
@@ -1091,9 +1093,11 @@ PyObject *PyOpenStreamOnFileW(PyObject *self, PyObject *args)
 		if (!PyWinObject_AsWCHAR(obPrefix, &prefix, TRUE))
 			goto done;
 
-		PY_INTERFACE_PRECALL;
-		hRes = OpenStreamOnFileW(MAPIAllocateBuffer, MAPIFreeBuffer, flags, filename, prefix, &pStream);
-		PY_INTERFACE_POSTCALL;
+		{
+			PY_INTERFACE_PRECALL;
+			hRes = OpenStreamOnFileW(MAPIAllocateBuffer, MAPIFreeBuffer, flags, filename, prefix, &pStream);
+			PY_INTERFACE_POSTCALL;
+		}
 
 	done:
 		PyWinObject_FreeWCHAR(filename);
@@ -1128,10 +1132,12 @@ PyObject *PyHrGetOneProp(PyObject *self, PyObject *args)
 		
 	if (!PyCom_InterfaceFromPyObject(obProp, IID_IMAPIProp, (void **)&pProp, FALSE))
 		goto done;
-	
-	PY_INTERFACE_PRECALL;
-	hRes = HrGetOneProp(pProp, propTag, &pPV);
-	PY_INTERFACE_POSTCALL;
+
+	{
+		PY_INTERFACE_PRECALL;
+		hRes = HrGetOneProp(pProp, propTag, &pPV);
+		PY_INTERFACE_POSTCALL;
+	}
 	if (FAILED(hRes))
 	{
 		OleSetOleError(hRes);
@@ -1186,10 +1192,12 @@ PyObject *PyHrSetOneProp(PyObject *self, PyObject *args)
 	}
 	if (!PyMAPIObject_AsSPropValue(obPropValue, pPV, pPV))
 		goto done;
-	
-	PY_INTERFACE_PRECALL;
-	hRes = HrSetOneProp(pProp, pPV);
-	PY_INTERFACE_POSTCALL;
+
+	{
+		PY_INTERFACE_PRECALL;
+		hRes = HrSetOneProp(pProp, pPV);
+		PY_INTERFACE_POSTCALL;
+	}
 	if (FAILED(hRes))
 	{
 		OleSetOleError(hRes);
