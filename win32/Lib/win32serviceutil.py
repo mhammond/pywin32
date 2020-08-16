@@ -835,6 +835,14 @@ class ServiceFramework:
             return self.SvcOtherEx(control, event_type, data)
 
     def SvcRun(self):
+        # This is the entry point the C framework calls when the Service is
+        # started. Your Service class should implement SvcDoRun().
+        # Or you can override this method for more control over the Service
+        # statuses reported to the SCM.
+
+        # If this method raises an exception, the C framework will detect this
+        # and report a SERVICE_STOPPED status with a non-zero error code.
+
         self.ReportServiceStatus(win32service.SERVICE_RUNNING)
         self.SvcDoRun()
         # Once SvcDoRun terminates, the service has stopped.
