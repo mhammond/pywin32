@@ -146,6 +146,17 @@ SERVICE_STATUS stoppedStatus = {SERVICE_WIN32_OWN_PROCESS,
                                 0,  // dwCheckPoint;
                                 0};
 
+SERVICE_STATUS stoppedErrorStatus = {SERVICE_WIN32_OWN_PROCESS,
+                                     SERVICE_STOPPED,
+                                     0,                            // dwControlsAccepted
+                                     ERROR_SERVICE_SPECIFIC_ERROR, // dwWin32ExitCode
+                                     0x20000001,                   // dwServiceSpecificExitCode
+                                     0,                            // dwCheckPoint
+                                     0};
+// The Service Control Manager/Event Log seems to interpret dwServiceSpecificExitCode as a Win32 Error code
+// (https://docs.microsoft.com/en-us/windows/win32/debug/system-error-codes)
+// So stoppedErrorStatus has dwServiceSpecificExitCode with bit 29 set to indicate an application-defined error code.
+
 ///////////////////////////////////////////////////////////////////////
 //
 //
@@ -818,6 +829,10 @@ void WINAPI service_main(DWORD dwArgc, LPTSTR *lpszArgv)
     PyObject *instance = NULL;
     PyObject *start = NULL;
 
+    // set this to true if the final SERVICE_STOPPED status reported
+    // should be with a non-zero error code.
+    bool stopWithError = false;
+
     bServiceRunning = TRUE;
     if (bServiceDebug)
         SetConsoleCtrlHandler(DebugControlHandler, TRUE);
@@ -893,10 +908,14 @@ void WINAPI service_main(DWORD dwArgc, LPTSTR *lpszArgv)
         // Call the Python service entry point - when this returns, the
         // service has stopped!
         PyObject *result = PyObject_CallObject(start, NULL);
-        if (result == NULL)
+        if (result == NULL) {
+            // SvcRun() raised an Exception so we stop with an error code.
+            stopWithError = true;
             ReportPythonError(E_PYS_START_FAILED);
-        else
+        }
+        else {
             Py_DECREF(result);
+        }
     }
     // We are all done.
 cleanup:
@@ -904,7 +923,7 @@ cleanup:
     Py_XDECREF(start);
     Py_XDECREF(instance);
     if (pe && pe->sshStatusHandle) {  // Wont be true if debugging.
-        if (!SetServiceStatus(pe->sshStatusHandle, &stoppedStatus))
+        if (!SetServiceStatus(pe->sshStatusHandle, (stopWithError ? &stoppedErrorStatus : &stoppedStatus)))
             ReportAPIError(PYS_E_API_CANT_SET_STOPPED);
     }
     return;

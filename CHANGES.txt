@@ -11,6 +11,14 @@ Note that, baring some major issue building and cutting the release, build
 Since build 228:
 ----------------
 
+* Changed how Services implemented with win32serviceutil.ServiceFramework
+  report that they have stopped. Now if the SvcRun() method (or the SvcDoRun()
+  method, which is called by SvcRun() by default) raises on Exception,
+  the Service will report a final SERVICE_STOPPED status with a non-zero error
+  code. This will cause the Service's recovery actions to be triggered if the
+  Service has the "Enable actions for stops with errors" option enabled.
+  (#1563, Lincoln Puzey)
+
 Python 2 is no longer supported - so long, Python 2, you served us well!
 
 Notable changes in this transition:
