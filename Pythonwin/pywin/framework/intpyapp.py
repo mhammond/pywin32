@@ -447,13 +447,13 @@ class InteractivePythonApp(app.CApp):
         showDlg = win32api.GetKeyState(win32con.VK_SHIFT) >= 0
         scriptutils.RunScript(None, None, showDlg)
 
-    def OnFileLocate(self, id, code):
+    def OnFileLocate(self, id, code, expr=""):
         from . import scriptutils
 
         global lastLocateFileName  # save the new version away for next time...
 
         name = dialog.GetSimpleInput(
-            "File name", lastLocateFileName, "Locate Python File"
+            "File name", expr or lastLocateFileName, "Locate Python File"
         )
         if name is None:  # Cancelled.
             return
