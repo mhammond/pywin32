@@ -4,6 +4,7 @@ DBGSTATE_NOT_DEBUGGING = 0
 DBGSTATE_RUNNING = 1
 DBGSTATE_BREAK = 2
 DBGSTATE_QUITTING = 3  # Attempting to back out of the debug session.
+DBGSTATE_FREETRACING = 4
 
 LINESTATE_CURRENT = 0x1  # This line is where we are stopped
 LINESTATE_BREAKPOINT = 0x2  # This line is a breakpoint
