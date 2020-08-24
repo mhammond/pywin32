@@ -84,10 +84,11 @@ IDR_MAINFRAME MENU PRELOAD DISCARDABLE
 BEGIN
     POPUP "&File"
     BEGIN
-        MENUITEM "&New\tCtrl+N",                ID_FILE_NEW
+        MENUITEM "&New...\tCtrl+N",                ID_FILE_NEW
         MENUITEM "&Open...\tCtrl+O",            ID_FILE_OPEN
-        MENUITEM "&Locate...\tCtrl+L",          ID_FILE_LOCATE
         MENUITEM "&Run...\tCtrl+R",             ID_FILE_RUN
+        MENUITEM SEPARATOR
+        MENUITEM "&Locate...\tCtrl+L",          ID_FILE_LOCATE
         POPUP "&Debug"
         BEGIN
             MENUITEM "&Go\tF5",                     IDC_DBG_GO
@@ -132,14 +133,14 @@ IDR_TEXTTYPE MENU DISCARDABLE
 BEGIN
     POPUP "&File"
     BEGIN
-        MENUITEM "&New\tCtrl+N",                ID_FILE_NEW
+        MENUITEM "&New...\tCtrl+N",                ID_FILE_NEW
         MENUITEM "&Open...\tCtrl+O",            ID_FILE_OPEN
-        MENUITEM "&Locate...\tCtrl+L",          ID_FILE_LOCATE
         MENUITEM "&Close",                      ID_FILE_CLOSE
         MENUITEM "&Save\tCtrl+S",               ID_FILE_SAVE
         MENUITEM "Save &As...",                 ID_FILE_SAVE_AS
         MENUITEM "Sa&ve All\tCtrl+Shift+S",     ID_FILE_SAVE_ALL
         MENUITEM SEPARATOR
+        MENUITEM "&Locate...\tCtrl+L",          ID_FILE_LOCATE
         MENUITEM "&Run...\tCtrl+R",             ID_FILE_RUN
         POPUP "&Debug"
         BEGIN
@@ -228,14 +229,14 @@ IDR_PYTHONTYPE MENU DISCARDABLE
 BEGIN
     POPUP "&File"
     BEGIN
-        MENUITEM "&New\tCtrl+N",                ID_FILE_NEW
+        MENUITEM "&New...\tCtrl+N",                ID_FILE_NEW
         MENUITEM "&Open...\tCtrl+O",            ID_FILE_OPEN
-        MENUITEM "&Locate...\tCtrl+L",          ID_FILE_LOCATE
         MENUITEM "&Close",                      ID_FILE_CLOSE
         MENUITEM "&Save\tCtrl+S",               ID_FILE_SAVE
         MENUITEM "Save &As...",                 ID_FILE_SAVE_AS
         MENUITEM "Sa&ve All\tCtrl+Shift+S",     ID_FILE_SAVE_ALL
         MENUITEM SEPARATOR
+        MENUITEM "&Locate Origin/File\tCtrl+L",          ID_FILE_LOCATE
         MENUITEM "&Run...\tCtrl+R",             ID_FILE_RUN
         POPUP "&Debug"
         BEGIN
@@ -314,12 +315,12 @@ IDR_PYTHONTYPE_CNTR_IP MENU DISCARDABLE
 BEGIN
     POPUP "&File"
     BEGIN
-        MENUITEM "&New\tCtrl+N",                ID_FILE_NEW
+        MENUITEM "&New...\tCtrl+N",                ID_FILE_NEW
         MENUITEM "&Open...\tCtrl+O",            ID_FILE_OPEN
-        MENUITEM "&Locate...\tCtrl+L",          ID_FILE_LOCATE
         MENUITEM "&Close",                      ID_FILE_CLOSE
         MENUITEM "Save &As...",                 ID_FILE_SAVE_AS
         MENUITEM SEPARATOR
+        MENUITEM "&Locate...\tCtrl+L",          ID_FILE_LOCATE
         MENUITEM "&Run...\tCtrl+R",             ID_FILE_RUN
         MENUITEM "&Import..\tCtrl+I",           ID_FILE_IMPORT
         MENUITEM "&Print...\tCtrl+P",           ID_FILE_PRINT
@@ -353,7 +354,7 @@ IDR_CNTR_INPLACE MENU PRELOAD DISCARDABLE
 BEGIN
     POPUP "&File"
     BEGIN
-        MENUITEM "&New\tCtrl+N",                ID_FILE_NEW
+        MENUITEM "&New...\tCtrl+N",                ID_FILE_NEW
         MENUITEM "&Open...\tCtrl+O",            ID_FILE_OPEN
         MENUITEM "&Save\tCtrl+S",               ID_FILE_SAVE
         MENUITEM "Save &As...",                 ID_FILE_SAVE_AS
@@ -374,10 +375,11 @@ IDR_DEBUGGER MENU PRELOAD DISCARDABLE
 BEGIN
     POPUP "&File"
     BEGIN
-        MENUITEM "&New\tCtrl+N",                ID_FILE_NEW
+        MENUITEM "&New...\tCtrl+N",                ID_FILE_NEW
         MENUITEM "&Open...\tCtrl+O",            ID_FILE_OPEN
-        MENUITEM "&Locate...\tCtrl+L",          ID_FILE_LOCATE
         MENUITEM "&Run...\tCtrl+R",             ID_FILE_RUN
+        MENUITEM SEPARATOR
+        MENUITEM "&Locate Origin/File\tCtrl+L",          ID_FILE_LOCATE
         POPUP "&Debug"
         BEGIN
             MENUITEM "&Go\tF5",                     IDC_DBG_GO
@@ -719,7 +721,7 @@ BEGIN
     CONTROL         "Show &calltips",IDC_CALLTIPS,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,74,12,54,9
     LTEXT           "&Keyboard",IDC_STATIC,12,29,32,10
-    COMBOBOX        IDC_KEYBOARD_CONFIG,73,26,55,37,CBS_DROPDOWNLIST | 
+    COMBOBOX        IDC_KEYBOARD_CONFIG,53,26,75,80,CBS_DROPDOWNLIST | 
                     CBS_SORT | WS_VSCROLL | WS_TABSTOP
     GROUPBOX        "Margins Widths",IDC_STATIC,136,1,109,91
     LTEXT           "Line Numbers",IDC_STATIC,142,12,51,8
