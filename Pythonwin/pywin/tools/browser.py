@@ -8,6 +8,8 @@
 import sys
 import types
 import __main__
+import inspect
+
 import win32ui
 from pywin.mfc import dialog
 
@@ -17,7 +19,7 @@ special_names = ["__doc__", "__name__", "__self__"]
 
 #
 # HierList items
-class HLIPythonObject(hierlist.HierListItem):
+class HLIPythonObject(hierlist.HierListItem, object):
     def __init__(self, myobject=None, name=None):
         hierlist.HierListItem.__init__(self)
         self.myobject = myobject
@@ -40,27 +42,28 @@ class HLIPythonObject(hierlist.HierListItem):
         return self.name < other.name
 
     def __eq__(self, other):
-        return self.name == other.name
+        return self.name == other.name and self.myobject is other.myobject
 
     def __repr__(self):
         try:
             type = self.GetHLIType()
         except:
             type = "Generic"
-        return (
-            "HLIPythonObject("
-            + type
-            + ") - name: "
-            + self.name
-            + " object: "
-            + repr(self.myobject)
+        return "<%s(%s) - name: %s  object: %r" % (
+            self.__class__.__name__,
+            type,
+            self.name,
+            self.myobject,
         )
 
     def GetText(self):
         try:
             return str(self.name) + " (" + self.GetHLIType() + ")"
         except AttributeError:
-            return str(self.name) + " = " + repr(self.myobject)
+            s = repr(self.myobject)
+            if len(s) > 80:
+                s = s[:77] + " ..."
+            return str(self.name) + " = " + s
 
     def InsertDocString(self, lst):
         ob = None
@@ -77,25 +80,20 @@ class HLIPythonObject(hierlist.HierListItem):
 
     def GetSubList(self):
         ret = []
+        d_inst = {}
         try:
+            # Note: using dir() would yield too much with all class attrs
+            # REQ: handle __slots__ , self.__dir__()
             for (key, ob) in self.myobject.__dict__.items():
                 if key not in special_names:
                     ret.append(MakeHLI(ob, key))
+                    d_inst[key] = 1
         except (AttributeError, TypeError):
             pass
-        try:
-            for name in self.myobject.__methods__:
-                ret.append(HLIMethod(name))  # no MakeHLI, as cant auto detect
-        except (AttributeError, TypeError):
-            pass
-        try:
-            for member in self.myobject.__members__:
-                if not member in special_names:
-                    ret.append(MakeHLI(getattr(self.myobject, member), member))
-        except (AttributeError, TypeError):
-            pass
+
         ret.sort()
-        self.InsertDocString(ret)
+        if ret:
+            self.InsertDocString(ret)
         return ret
 
     # if the has a dict, it is expandable.
@@ -105,22 +103,9 @@ class HLIPythonObject(hierlist.HierListItem):
         return self.knownExpandable
 
     def CalculateIsExpandable(self):
-        if hasattr(self.myobject, "__doc__"):
-            return 1
         try:
             for key in self.myobject.__dict__.keys():
                 if key not in special_names:
-                    return 1
-        except (AttributeError, TypeError):
-            pass
-        try:
-            self.myobject.__methods__
-            return 1
-        except (AttributeError, TypeError):
-            pass
-        try:
-            for item in self.myobject.__members__:
-                if item not in special_names:
                     return 1
         except (AttributeError, TypeError):
             pass
@@ -133,6 +118,23 @@ class HLIPythonObject(hierlist.HierListItem):
             return 4
 
     def TakeDefaultAction(self):
+        ShowObject(self.myobject, self.name)
+
+    def LocateObject(self):
+        from pywin.framework import scriptutils
+
+        loc = scriptutils.LocateObject(self.myobject, self.name)
+        if loc.fn:
+            ed = scriptutils.JumpToDocument(loc.fn, loc.lineno, loc.col)
+            ed.ActivateFrame()
+            return ed  # unfortunately the focus still comes back to this browser window (?)
+        else:
+            ShowObject(self.myobject, self.name)
+
+
+class CLocateObject:
+    def TakeDefaultAction(self):
+        self.LocateObject()
         ShowObject(self.myobject, self.name)
 
 
@@ -155,9 +157,34 @@ class HLIModule(HLIPythonObject):
         return "Module"
 
 
-class HLIFrame(HLIPythonObject):
+class HLIPythonDirObject(HLIPythonObject):
+    def IsExpandable(self):
+        return 1
+
+    def GetSubList(self, classtext=None):
+        ret = []
+        ret.append(MakeHLI(self.myobject.__class__, classtext))
+        for name in dir(self.myobject):
+            if name.startswith("__"):
+                continue
+            ret.append(MakeHLI(getattr(self.myobject, name), name))
+        return ret
+
+
+class HLIFrame(CLocateObject, HLIPythonDirObject):  # TODO: no effect
     def GetHLIType(self):
         return "Stack Frame"
+
+    def GetText(self):
+        return str(self.name) + " (%s of %r)" % (
+            self.GetHLIType(),
+            self.myobject.f_code.co_name,
+        )
+
+    def GetSubList(self):
+        return HLIPythonDirObject.GetSubList(
+            self, "Frame of %r" % self.myobject.f_code.co_name
+        )
 
 
 class HLITraceback(HLIPythonObject):
@@ -165,7 +192,7 @@ class HLITraceback(HLIPythonObject):
         return "Traceback"
 
 
-class HLIClass(HLIPythonObject):
+class HLIClass(CLocateObject, HLIPythonObject):
     def GetHLIType(self):
         return "Class"
 
@@ -177,34 +204,21 @@ class HLIClass(HLIPythonObject):
         return ret
 
 
-class HLIMethod(HLIPythonObject):
-    # myobject is just a string for methods.
-    def GetHLIType(self):
-        return "Method"
-
-    def GetText(self):
-        return "Method: " + self.myobject + "()"
-
-
-class HLICode(HLIPythonObject):
+class HLICode(CLocateObject, HLIPythonDirObject):
     def GetHLIType(self):
         return "Code"
+
+    def GetText(self):
+        return str(self.name) + " (%s of %r)" % (
+            self.GetHLIType(),
+            self.myobject.co_name,
+        )
 
     def IsExpandable(self):
         return self.myobject
 
-    def GetSubList(self):
-        ret = []
-        ret.append(MakeHLI(self.myobject.co_consts, "Constants (co_consts)"))
-        ret.append(MakeHLI(self.myobject.co_names, "Names (co_names)"))
-        ret.append(MakeHLI(self.myobject.co_filename, "Filename (co_filename)"))
-        ret.append(MakeHLI(self.myobject.co_argcount, "Number of args (co_argcount)"))
-        ret.append(MakeHLI(self.myobject.co_varnames, "Param names (co_varnames)"))
 
-        return ret
-
-
-class HLIInstance(HLIPythonObject):
+class HLIInstance(CLocateObject, HLIPythonObject):
     def GetHLIType(self):
         return "Instance"
 
@@ -226,23 +240,33 @@ class HLIInstance(HLIPythonObject):
         return ret
 
 
-class HLIBuiltinFunction(HLIPythonObject):
+class HLIBuiltinFunction(HLIPythonDirObject):
     def GetHLIType(self):
         return "Builtin Function"
 
 
-class HLIFunction(HLIPythonObject):
+class HLIFunction(CLocateObject, HLIPythonDirObject):
     def GetHLIType(self):
         return "Function"
+
+    def GetText(self):
+        return str(self.name) + " (%s %r)" % (
+            self.GetHLIType(),
+            self.myobject.__code__.co_name,
+        )
 
     def IsExpandable(self):
         return 1
 
     def GetSubList(self):
-        ret = []
+        ret = HLIPythonDirObject.GetSubList(self)
         # 		ret.append( MakeHLI( self.myobject.func_argcount, "Arg Count" ))
         try:
-            ret.append(MakeHLI(self.myobject.func_argdefs, "Arg Defs"))
+            spec = inspect.getargspec(self.myobject)
+            ret.append(MakeHLI(spec.args, ":Args"))
+            ret.append(MakeHLI(spec.defaults, ":Defaults"))
+            ret.append(MakeHLI(spec.varargs, ":Varargs"))
+            ret.append(MakeHLI(spec.keywords, ":Keywords"))
         except AttributeError:
             pass
         try:
@@ -250,12 +274,19 @@ class HLIFunction(HLIPythonObject):
             globs = self.myobject.__globals__
         except AttributeError:
             # must be py2.5 or earlier...
-            code = self.myobject.func_code
-            globs = self.myobject.func_globals
-        ret.append(MakeHLI(code, "Code"))
-        ret.append(MakeHLI(globs, "Globals"))
+            code = self.myobject.__code__
+            globs = self.myobject.__globals__
         self.InsertDocString(ret)
         return ret
+
+
+class HLIMethod(CLocateObject, HLIPythonObject):
+    # myobject is just a string for methods.
+    def GetHLIType(self):
+        return "Method"
+
+    def GetText(self):
+        return "Method: " + str(self.myobject) + "()"
 
 
 class HLISeq(HLIPythonObject):
@@ -316,6 +347,7 @@ class HLIString(HLIPythonObject):
 TypeMap = {
     type: HLIClass,
     types.FunctionType: HLIFunction,
+    types.MethodType: HLIMethod,  # types.MethodType is types.UnboundMethodType
     tuple: HLITuple,
     dict: HLIDict,
     list: HLIList,
@@ -325,20 +357,45 @@ TypeMap = {
     types.FrameType: HLIFrame,
     types.TracebackType: HLITraceback,
     str: HLIString,
+    str: HLIString,
+    int: HLIPythonObject,
     int: HLIPythonObject,
     bool: HLIPythonObject,
     float: HLIPythonObject,
+    type(None): HLIPythonObject,
 }
+if sys.version_info < (3, 0):
+    TypeMap[type] = HLIClass
+
+
+class HLIListBased(HLIInstance, HLIList):
+    def GetHLIType(self):
+        return "List based Instance"
+
+    def GetSubList(self):
+        return HLIInstance.GetSubList(self) + HLIList.GetSubList(self)
+
+
+class HLIDictBased(HLIInstance, HLIDict):
+    def GetHLIType(self):
+        return "Dict based Instance"
+
+    def GetSubList(self):
+        return HLIInstance.GetSubList(self) + HLIDict.GetSubList(self)
 
 
 def MakeHLI(ob, name=None):
     try:
         cls = TypeMap[type(ob)]
     except KeyError:
+        if isinstance(ob, (list, tuple)):
+            cls = HLIListBased
+        elif isinstance(ob, dict):
+            cls = HLIDictBased
         # hrmph - this check gets more and more bogus as Python
         # improves.  Its possible we should just *always* use
         # HLIInstance?
-        if hasattr(ob, "__class__"):  # 'new style' class
+        elif hasattr(ob, "__class__"):  # 'new style' class
             cls = HLIInstance
         else:
             cls = HLIPythonObject
@@ -425,7 +482,7 @@ class dynamic_browser(dialog.Dialog):
 
 def Browse(ob=__main__):
     "Browse the argument, or the main dictionary"
-    root = MakeHLI(ob, "root")
+    root = MakeHLI(ob, repr(ob))
     if not root.IsExpandable():
         raise TypeError(
             "Browse() argument must have __dict__ attribute, or be a Browser supported type"
@@ -433,6 +490,8 @@ def Browse(ob=__main__):
 
     dlg = dynamic_browser(root)
     dlg.CreateWindow()
+    dlg.SetWindowText(root.GetText())
+    return dlg
 
 
 #
