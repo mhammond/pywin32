@@ -1,4 +1,5 @@
 # The MFCish window classes.
+from __future__ import absolute_import
 from . import object
 import win32ui
 import win32con

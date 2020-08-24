@@ -2,6 +2,7 @@
 
 # Most Pythonwin windows should use these classes rather than
 # the raw MFC ones if they want Pythonwin specific functionality.
+from __future__ import absolute_import
 import pywin.mfc.window
 import win32con
 

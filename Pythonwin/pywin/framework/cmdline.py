@@ -1,4 +1,5 @@
 # cmdline - command line utilities.
+from __future__ import absolute_import
 import sys
 import win32ui
 import string

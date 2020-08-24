@@ -1,3 +1,5 @@
+from __future__ import absolute_import
+from __future__ import print_function
 from . import IDLEenvironment
 import string
 import win32ui

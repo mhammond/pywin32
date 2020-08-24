@@ -5,6 +5,7 @@
 
 # It does nothing useful, and it even doesnt do that!
 
+from __future__ import absolute_import
 import pywin.debugger, sys, time
 import traceback
 

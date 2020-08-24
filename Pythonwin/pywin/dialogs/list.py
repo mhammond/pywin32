@@ -1,5 +1,8 @@
+from __future__ import absolute_import
+from __future__ import print_function
 from pywin.mfc import dialog
 import win32ui, win32con, commctrl, win32api
+from pywin.xtypes.moves import range
 
 class ListDialog (dialog.Dialog):
 	

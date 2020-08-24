@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 import regutil, os
 from . import hierlist
 import win32con, win32ui, win32api
@@ -7,6 +8,7 @@ import glob
 import pyclbr
 import pywin.framework.scriptutils
 import afxres
+from pywin.xtypes.moves import map
 
 class HLIErrorItem(hierlist.HierListItem):
 	def __init__(self, text):

@@ -1,4 +1,6 @@
 # Does Python source formatting for Scintilla controls.
+from __future__ import absolute_import
+from __future__ import print_function
 import win32ui
 import win32api
 import win32con
@@ -6,6 +8,7 @@ import winerror
 import string
 import array
 from . import scintillacon
+from pywin.xtypes.moves import map
 
 WM_KICKIDLE = 0x036A
 

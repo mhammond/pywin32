@@ -23,6 +23,8 @@ Jim Eggleston, 28 August 1996
 Merged with dlgpass and moved to pywin.dialogs by Mark Hammond Jan 1998.
 '''
 
+from __future__ import absolute_import
+from __future__ import print_function
 import win32ui
 import win32api
 import win32con

@@ -1,4 +1,5 @@
 # document and view classes for MFC.
+from __future__ import absolute_import
 import win32ui
 import win32con
 from . import object

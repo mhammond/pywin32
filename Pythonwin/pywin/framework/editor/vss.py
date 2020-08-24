@@ -16,6 +16,7 @@
 # Database=??
 
 
+from __future__ import absolute_import
 import win32ui, win32api, win32con, os, string, sys
 
 import traceback

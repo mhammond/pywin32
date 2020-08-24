@@ -1,6 +1,8 @@
 # Code that allows Pythonwin to pretend it is IDLE
 # (at least as far as most IDLE extensions are concerned)
 
+from __future__ import absolute_import
+from __future__ import print_function
 import string
 import win32api
 import win32ui
