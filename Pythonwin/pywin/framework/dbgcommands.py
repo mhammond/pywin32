@@ -3,6 +3,8 @@
 # Not in the debugger package, as I always want these interfaces to be
 # available, even if the debugger has not yet been (or can not be)
 # imported
+from __future__ import absolute_import
+from __future__ import print_function
 import win32ui, win32con
 from . import scriptutils
 import warnings
@@ -19,6 +21,7 @@ class DebuggerCommandHandler:
 		commands = ( (self.OnStep, None, win32ui.IDC_DBG_STEP),
 		                  (self.OnStepOut, self.OnUpdateOnlyBreak, win32ui.IDC_DBG_STEPOUT),
 		                  (self.OnStepOver, None, win32ui.IDC_DBG_STEPOVER),
+		                  (self.OnStepUntil, None, 13403),
 		                  (self.OnGo, None, win32ui.IDC_DBG_GO),
 		                  (self.OnClose, self.OnUpdateClose, win32ui.IDC_DBG_CLOSE),
 		                  (self.OnAdd, self.OnUpdateAddBreakpoints, win32ui.IDC_DBG_ADD),
@@ -53,11 +56,15 @@ class DebuggerCommandHandler:
 			return None
 
 	def _DoOrStart(self, doMethod, startFlag):
-		d=self._GetDebugger()
-		if d is not None and d.IsDebugging():
+		d = self._GetDebugger()
+		if d is not None and d.IsBreak():
 			method = getattr(d, doMethod)
 			method()
 		else:
+			import sys
+			sys.settrace(None)  # we could be in dd.DBGSTATE_FREETRACING /
+				# dd.DBGSTATE_RUNNING, and are about to DEBUG
+				# normally from here
 			scriptutils.RunScript(defName=None, defArgs=None, bShowDialog = 0, debuggingType=startFlag)
 
 	def OnStep(self, msg, code):
@@ -66,23 +73,50 @@ class DebuggerCommandHandler:
 	def OnStepOver(self, msg, code):
 		self._DoOrStart("do_set_next", scriptutils.RS_DEBUGGER_STEP)
 
+	def OnStepUntil(self, msg, code):
+		self._DoOrStart("do_set_until", scriptutils.RS_DEBUGGER_STEP)
+
 	def OnStepOut(self, msg, code):
-		d=self._GetDebugger()
+		d = self._GetDebugger()
 		if d is not None and d.IsDebugging():
 			d.do_set_return()
 
+	# default handles F5 key
 	def OnGo(self, msg, code):
 		self._DoOrStart("do_set_continue", scriptutils.RS_DEBUGGER_GO)
 
+	# default handles Shift+F5
 	def OnClose(self, msg, code):
-		d=self._GetDebugger()
+		d = self._GetDebugger()
 		if d is not None:
 			if d.IsDebugging():
-				d.set_quit()
+				if d.pumping:
+					d.do_set_quit()	# trigger 'normal' debugger exit while .cmdloop() / pump
+				else:
+					d.done_run()	# force GUI state non-debugging and debugger down
 			else:
-				d.close()
+				# Already in non-debugging mode - then "Shift+F5" enters
+				# DBGSTATE_FREETRACING: bottomless free tracing mode: fires on breakpoints
+				# during event handlers, timers, idle handlers, on normal interactive
+				# execution ... and for debugging PythonWin itself 
+				# (This code should perhaps become debugger method d.set_continue_freetracing() ?)
+								
+				d.reset()				
+				d.botframe = d.dummyframe  				# blocks adoption of first frame as botframe
+				d._set_stopinfo(d.dummyframe, None, -1)
+				
+				d.GUICheckInit()
+				import sys, pywin.debugger.debugger as deb
+				d.RespondDebuggerState(deb.DBGSTATE_FREETRACING)
+				print("-- Debugger in free-tracing mode! Disable it by Shift-F5 again. Trace-overhead=%s" % (
+					d.breaks and "ON" or "OFF (0 breakpoints)"))
+				if d.breaks:
+					sys.settrace(d.trace_dispatch)  # trace ON
+				d.SetInteractiveContext(None, None)
 
 	def OnUpdateClose(self, cmdui):
+		cmdui.Enable(1)
+		return
 		d=self._GetDebugger()
 		if d is not None and d.inited:
 			cmdui.Enable(1)
