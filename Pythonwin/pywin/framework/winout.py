@@ -98,7 +98,9 @@ class WindowOutputFrame(window.MDIChildWnd):
 
 class WindowOutputViewImpl:
     def __init__(self):
-        self.patErrorMessage = re.compile('\W*File "(.*)", line ([0-9]+)')
+        self.patErrorMessage = re.compile(
+            r'\s+(?:[Ff]ile "|\b)([^"]+\.\w+)(?:", line |:)([0-9]+)'
+        )  # ('\W*File "(.*)", line ([0-9]+)')
         self.template = self.GetDocument().GetDocTemplate()
 
     def HookHandlers(self):
@@ -128,7 +130,10 @@ class WindowOutputViewImpl:
         for appendParams in paramsList:
             if type(appendParams) != type(()):
                 appendParams = (appendParams,)
-            menu.AppendMenu(*appendParams)
+            if len(appendParams) >= 3 and isinstance(appendParams[1], str):
+                self.AppendMenu(menu, appendParams[2], appendParams[1])
+            else:
+                menu.AppendMenu(*appendParams)
         menu.TrackPopupMenu(params[5])  # track at mouse position.
         return 0
 
@@ -162,7 +167,7 @@ class WindowOutputViewImpl:
                     "Line is a COM error, but no WinHelp details can be parsed"
                 )
         # Look for a Python traceback.
-        matchResult = self.patErrorMessage.match(line)
+        matchResult = self.patErrorMessage.search(line)
         if matchResult is None:
             # No match - try the previous line
             lineNo = self.LineFromChar()
@@ -205,6 +210,9 @@ class WindowOutputViewImpl:
 
     def flush(self):
         self.template.flush()
+
+    def isatty(self):
+        return False
 
 
 class WindowOutputViewRTF(docview.RichEditView, WindowOutputViewImpl):
@@ -302,10 +310,12 @@ class WindowOutputViewScintilla(
     def SaveKillBuffer(self):
         self.template.killBuffer = [self.GetTextRange(0, -1)]
 
-    def dowrite(self, str):
+    def dowrite(self, s):
         end = self.GetTextLength()
         atEnd = end == self.GetSel()[0]
-        self.SCIInsertText(str, end)
+        if not isinstance(s, str):
+            s = s.decode(sys.getdefaultencoding(), "replace")
+        self.SCIInsertText(s.encode("utf8"), end)
         if atEnd:
             self.SetSel(self.GetTextLength())
 

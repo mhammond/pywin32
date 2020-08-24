@@ -210,7 +210,7 @@ class CApp(WinApp):
                         pass
                     thisRet = 0
                 ret = ret or thisRet
-            return ret
+            return ret  # Nonzero to receive more idle processing time
         except KeyboardInterrupt:
             pass
 
