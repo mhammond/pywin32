@@ -1,3 +1,5 @@
+from __future__ import absolute_import
+from __future__ import print_function
 import win32ui
 from pywin.mfc import docview
 from pywin import default_scintilla_encoding
@@ -113,10 +115,9 @@ class CScintillaDocument(ParentScintillaDocument):
 
 		# Translate from source encoding to UTF-8 bytes for Scintilla
 		source_encoding = self.source_encoding
-		# If we don't know an encoding, just use latin-1 to treat
-		# it as bytes...
+		# If we don't know an encoding, try utf-8 (PY3 default) first
 		if source_encoding is None:
-			source_encoding = 'latin1'
+			source_encoding = 'utf-8'
 		# we could optimize this by avoiding utf8 to-ing and from-ing,
 		# but then we would lose the ability to handle invalid utf8
 		# (and even then, the use of encoding aliases makes this tricky)
@@ -154,7 +155,7 @@ class CScintillaDocument(ParentScintillaDocument):
 				source_encoding = self.source_encoding
 			else:
 				# no BOM - look for an encoding.
-				bits = re.split("[\r\n]*", s, 3)
+				bits = re.split("[\r\n]+", s, 3)
 				for look in bits[:-1]:
 					match = re_encoding_text.search(look)
 					if match is not None:
@@ -163,7 +164,7 @@ class CScintillaDocument(ParentScintillaDocument):
 						break
 	
 			if source_encoding is None:
-				source_encoding = 'latin1'
+				source_encoding = 'utf-8'
 
 		## encode data before opening file so script is not lost if encoding fails
 		file_contents = s.encode(source_encoding)
@@ -207,8 +208,8 @@ class CScintillaDocument(ParentScintillaDocument):
 		self.MakeDocumentWritable()
 
 	# All Marker functions are 1 based.
-	def MarkerAdd( self, lineNo, marker ):
-		self.GetEditorView().SCIMarkerAdd(lineNo-1, marker)
+	def MarkerAdd( self, lineNo, marker ):	# returns marker handle
+		return self.GetEditorView().SCIMarkerAdd(lineNo-1, marker)
 
 	def MarkerCheck(self, lineNo, marker ):
 		v = self.GetEditorView()
@@ -228,6 +229,8 @@ class CScintillaDocument(ParentScintillaDocument):
 		self.GetEditorView().SCIMarkerDeleteAll(marker)
 	def MarkerGetNext(self, lineNo, marker):
 		return self.GetEditorView().SCIMarkerNext( lineNo-1, 1 << marker )+1
+	def MarkerGetPrev(self, lineNo, marker):
+		return self.GetEditorView().SCIMarkerPrev( lineNo-1, 1 << marker )+1
 	def MarkerAtLine(self, lineNo, marker):
 		markerState = self.GetEditorView().SCIMarkerGet(lineNo-1)
 		return markerState & (1<<marker)
