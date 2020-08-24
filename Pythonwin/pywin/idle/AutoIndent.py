@@ -1,7 +1,9 @@
+from __future__ import absolute_import
 import sys
 import string, tokenize
 from . import PyParse
 from pywin import default_scintilla_encoding
+from pywin.xtypes.moves import range
 
 if sys.version_info < (3,):
     # in py2k, tokenize() takes a 'token eater' callback, while
@@ -138,6 +140,10 @@ class AutoIndent:
             else:
                 text.bell()     # at start of buffer
             return "break"
+        if  chars[-1] in '([{':
+            next = text.get("insert", "insert+1c")
+            if next in ')]}':
+                text.delete('insert', 'insert+1c')
         if  chars[-1] not in " \t":
             # easy: delete preceding real char
             text.delete("insert-1c")
