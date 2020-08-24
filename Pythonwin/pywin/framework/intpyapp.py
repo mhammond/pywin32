@@ -368,7 +368,7 @@ class InteractivePythonApp(app.CApp):
     def LoadUserModules(self, moduleNames=None):
         # Load the users modules.
         if moduleNames is None:
-            default = "pywin.framework.sgrepmdi,pywin.framework.mdi_pychecker"
+            default = "pywin.framework.sgrepmdi,pywin.framework.mdi_runtool"
             moduleNames = win32ui.GetProfileVal("Python", "Startup Modules", default)
         self.DoLoadModules(moduleNames)
 

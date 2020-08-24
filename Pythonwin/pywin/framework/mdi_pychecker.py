@@ -39,6 +39,7 @@ from pywin.mfc import docview, dialog, window
 import win32con
 import sys, string, re, glob, os, stat, time
 from . import scriptutils
+from functools import reduce
 
 
 def getsubdirs(d):

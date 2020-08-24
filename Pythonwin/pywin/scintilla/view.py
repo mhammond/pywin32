@@ -260,7 +260,9 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
         # Load the configuration information.
         self.OnWinIniChange(None)
 
-        self.SetSel()
+        # .SetSel() moved to doc loader; some views (runtool) may have
+        # already changed the pos earlier in OnNewDocument()
+        ##self.SetSel()
 
         self.GetDocument().FinalizeViewCreation(
             self

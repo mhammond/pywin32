@@ -641,6 +641,7 @@ source_formatter_extensions = [
     (".err".split(), scintillacon.SCLEX_ERRORLIST),
     (".mak".split(), scintillacon.SCLEX_MAKEFILE),
     (".bat .cmd".split(), scintillacon.SCLEX_BATCH),
+    (".patch .diff".split(), scintillacon.SCLEX_DIFF),
 ]
 
 

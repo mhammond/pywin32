@@ -154,6 +154,7 @@ class CScintillaDocument(ParentScintillaDocument):
             view.SetReadOnly(0)
             view.SendScintilla(scintillacon.SCI_CLEARALL)
             view.SendMessage(scintillacon.SCI_ADDTEXT, text)
+            view.SendScintilla(scintillacon.SCI_SETSEL, 0, 0)
             view.SendScintilla(scintillacon.SCI_SETUNDOCOLLECTION, 1, 0)
             view.SendScintilla(win32con.EM_EMPTYUNDOBUFFER, 0, 0)
             # set EOL mode
