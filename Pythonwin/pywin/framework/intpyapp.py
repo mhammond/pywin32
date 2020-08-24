@@ -116,8 +116,15 @@ class MainFrame(app.MainFrame):
             if v.OnCommand(wparam, lparam):
                 return 1
         except (win32ui.error, AttributeError):
-            pass
-        return self._obj_.OnCommand(wparam, lparam)
+            v = None
+
+        self.cmd_active_view.append(v)
+        try:
+            return self._obj_.OnCommand(wparam, lparam)
+        finally:
+            self.cmd_active_view.pop()
+
+    cmd_active_view = []  # one instance
 
 
 class InteractivePythonApp(app.CApp):

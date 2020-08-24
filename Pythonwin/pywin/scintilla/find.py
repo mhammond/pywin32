@@ -196,7 +196,6 @@ def _ReplaceIt(control):
 class FindReplaceDialog(dialog.Dialog):
     def __init__(self):
         dialog.Dialog.__init__(self, self._GetDialogTemplate())
-        self.HookCommand(self.OnFindNext, 109)
 
     def OnInitDialog(self):
         self.editFindText = self.GetDlgItem(102)
@@ -230,6 +229,9 @@ class FindReplaceDialog(dialog.Dialog):
         self.butKeepDialogOpen.SetCheck(defaultSearch.keepDialogOpen)
         self.butAcrossFiles.SetCheck(defaultSearch.acrossFiles)
         self.butRemember.SetCheck(defaultSearch.remember)
+
+        self.HookCommand(self.OnFindNext, 109)
+
         return dialog.Dialog.OnInitDialog(self)
 
     def OnDestroy(self, msg):
@@ -311,7 +313,7 @@ class FindDialog(FindReplaceDialog):
             ],
             [
                 "Button",
-                "&Remember as default search",
+                "Re&member as default search",
                 117,
                 (5, 61, 150, 10),
                 visible | win32con.BS_AUTOCHECKBOX | win32con.WS_TABSTOP,
@@ -403,7 +405,7 @@ class ReplaceDialog(FindReplaceDialog):
             ],
             [
                 "Button",
-                "&Remember as default search",
+                "Re&member as default search",
                 117,
                 (5, 81, 150, 10),
                 visible | win32con.BS_AUTOCHECKBOX | win32con.WS_TABSTOP,
@@ -475,12 +477,16 @@ class ReplaceDialog(FindReplaceDialog):
     def OnFindNext(self, id, code):
         self.DoFindNext()
         self.CheckButtonStates()
+        self.SetFocus()  # so we can repeatedly press Alt+R here in the dialog
 
     def OnReplace(self, id, code):
         lastSearch.replaceText = self.editReplaceText.GetWindowText()
         _ReplaceIt(None)
+        self.SetFocus()  # so we can repeatedly press Alt+R here in the dialog
 
     def OnReplaceAll(self, id, code):
+        if code != 0:
+            return 1
         control = _GetControl(None)
         if control is not None:
             control.SetSel(0)
