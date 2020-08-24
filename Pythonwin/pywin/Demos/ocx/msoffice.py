@@ -4,6 +4,7 @@
 # It is not comlpete yet, but it _does_ show an Excel spreadsheet in a frame!
 #
 
+from __future__ import absolute_import
 import win32ui, win32uiole, win32con, regutil
 from pywin.mfc import window, activex, object, docview
 from win32com.client import gencache

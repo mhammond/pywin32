@@ -1,5 +1,6 @@
 # Utilities for the demos
 
+from __future__ import absolute_import
 import sys, win32api, win32con, win32ui
 
 NotScriptMsg = """\

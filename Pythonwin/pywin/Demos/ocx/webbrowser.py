@@ -3,6 +3,7 @@
 # It catches an "OnNavigate" event, and updates the frame title.
 # (event stuff by Neil Hodgson)
 
+from __future__ import absolute_import
 import win32ui, win32con, win32api, regutil
 from pywin.mfc import window, activex
 from win32com.client import gencache

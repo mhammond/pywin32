@@ -19,6 +19,7 @@
 #	Parameter 6 - Extra data
 
 
+from __future__ import absolute_import
 import win32ui
 import win32con
 from pywin.mfc import dialog, window

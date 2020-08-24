@@ -5,6 +5,8 @@
 # http://pages.cpsc.ucalgary.ca/~saul/vb_examples/tutorial12/
 
 # Update to the path of the .swf file (note it could be a true URL)
+from __future__ import absolute_import
+from __future__ import print_function
 flash_url = "c:\\bounce.swf"
 
 import win32ui, win32con, win32api, regutil

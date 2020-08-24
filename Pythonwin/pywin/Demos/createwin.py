@@ -7,6 +7,7 @@
 #	the parameters to OnPaint are.
 #
 
+from __future__ import absolute_import
 from pywin.mfc import dialog, window
 import win32ui
 import win32con

@@ -1,4 +1,6 @@
 # Run this as a python script, to gray "close" off the edit window system menu.
+from __future__ import absolute_import
+from __future__ import print_function
 from pywin.framework import interact
 import win32con
 

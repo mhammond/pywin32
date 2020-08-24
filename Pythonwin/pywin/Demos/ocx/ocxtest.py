@@ -5,6 +5,8 @@
 #
 # The .py files behind the OCXs will be automatically generated and imported.
 
+from __future__ import absolute_import
+from __future__ import print_function
 from pywin.mfc import dialog, window, activex
 import win32ui, win32uiole
 import win32con

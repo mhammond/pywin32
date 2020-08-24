@@ -5,6 +5,8 @@
 # In the example below, the OpenObject() method is used instead of OpenDocumentFile,
 # and all the core MFC document open functionality is retained.
 
+from __future__ import absolute_import
+from __future__ import print_function
 import win32ui
 from pywin.mfc import docview
 

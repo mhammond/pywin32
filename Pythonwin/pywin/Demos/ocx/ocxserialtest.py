@@ -5,6 +5,8 @@
 
 # Very simple -  queries a modem for ATI responses
 
+from __future__ import absolute_import
+from __future__ import print_function
 import win32ui, win32uiole
 import win32con
 from pywin.mfc import dialog, activex

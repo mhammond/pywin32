@@ -1,7 +1,10 @@
 # Ported from the win32 and MFC OpenGL Samples.
 
+from __future__ import absolute_import
+from __future__ import print_function
 from pywin.mfc import docview
 import sys
+from pywin.xtypes.moves import range
 try:
 	from OpenGL.GL import *
 	from OpenGL.GLU import *

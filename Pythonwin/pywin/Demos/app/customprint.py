@@ -5,6 +5,7 @@
 
 # This sample was contributed by Roger Burnham.
 
+from __future__ import absolute_import
 from pywin.mfc import docview, dialog, afxres
 from pywin.framework import app
 

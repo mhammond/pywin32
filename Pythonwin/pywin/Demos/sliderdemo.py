@@ -1,6 +1,8 @@
 # sliderdemo.py
 # Demo of the slider control courtesy of Mike Fletcher.
 
+from __future__ import absolute_import
+from __future__ import print_function
 import win32con, win32ui
 from pywin.mfc import dialog
 

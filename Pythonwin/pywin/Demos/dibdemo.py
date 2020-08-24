@@ -1,6 +1,8 @@
 # A demo which creates a view and a frame which displays a PPM format bitmap
 #
 # This hasnnt been run in a while, as I dont have many of that format around!
+from __future__ import absolute_import
+from __future__ import print_function
 import win32ui
 import win32con
 import win32api

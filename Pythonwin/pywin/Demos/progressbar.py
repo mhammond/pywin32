@@ -17,6 +17,7 @@
 # Example and progress bar code courtesy of KDL Technologies, Ltd., Hong Kong SAR, China.
 #
 
+from __future__ import absolute_import
 from pywin.mfc import dialog
 import win32ui
 import win32con

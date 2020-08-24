@@ -1,4 +1,6 @@
 # GUI Demo - just a worker script to invoke all the other demo/test scripts.
+from __future__ import absolute_import
+from __future__ import print_function
 import win32ui
 import __main__
 import sys

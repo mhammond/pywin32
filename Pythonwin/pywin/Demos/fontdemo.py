@@ -10,6 +10,7 @@
 # >>> f2 = {'name':'Courier New', 'height':24, 'italic':1}
 # >>> d.SetFont (f2)
 
+from __future__ import absolute_import
 import win32ui
 import win32con
 import win32api
