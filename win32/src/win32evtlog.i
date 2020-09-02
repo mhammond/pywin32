@@ -562,8 +562,7 @@ static PyObject *FormatMessageInternal(EVT_HANDLE metadata, EVT_HANDLE event, DW
 		allocated_size += 1; // +1 to double terminate the keyword list
 	}
 
-	allocated_size *= sizeof(WCHAR);
-	buf = (WCHAR *)malloc(allocated_size);
+	buf = (WCHAR *)malloc(allocated_size * sizeof(WCHAR));
 	if (buf == NULL) {
 		PyErr_NoMemory();
 		return NULL;
@@ -579,7 +578,7 @@ static PyObject *FormatMessageInternal(EVT_HANDLE metadata, EVT_HANDLE event, DW
 	}
 
 	if (flags == EvtFormatMessageKeyword) {
-		buf[returned_size * sizeof(WCHAR)] = L'\0';
+		buf[returned_size - 1] = L'\0';
 	}
 
 	if (flags == EvtFormatMessageKeyword) {
