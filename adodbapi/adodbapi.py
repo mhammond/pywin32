@@ -255,12 +255,14 @@ class Connection(object):
         except (Exception) as e:
             self._raiseConnectionError(KeyError,'Python string format error in connection string->')
         self.timeout = kwargs.get('timeout', 30)
+        self.mode = kwargs.get("mode", adc.adModeUnknown)
         self.kwargs = kwargs
         if verbose:
             print('%s attempting: "%s"' % (version, self.connection_string))
         self.connector = connection_maker()
         self.connector.ConnectionTimeout = self.timeout
         self.connector.ConnectionString = self.connection_string
+        self.connector.Mode = self.mode
 
         try:
             self.connector.Open()  # Open the ADO connection

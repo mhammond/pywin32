@@ -19,6 +19,11 @@ Since build 228:
   Service has the "Enable actions for stops with errors" option enabled.
   (#1563, Lincoln Puzey)
 
+* adodbapi connect() method now accepts a "mode" keyword argument which is the
+  "Mode" property to set on the ADO "Connection" object before opening the
+  Connection. See "ConnectModeEnum" for valid values.
+  (Lincoln Puzey)
+
 Python 2 is no longer supported - so long, Python 2, you served us well!
 
 Notable changes in this transition:
