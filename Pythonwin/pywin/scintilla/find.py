@@ -1,4 +1,6 @@
 # find.py - Find and Replace
+from __future__ import absolute_import
+from __future__ import print_function
 import win32con, win32api
 import win32ui
 from pywin.mfc import dialog
@@ -243,7 +245,7 @@ class FindDialog(FindReplaceDialog):
 			["Button", "Match &case", 107, (5, 33, 100, 10), visible | win32con.BS_AUTOCHECKBOX | win32con.WS_TABSTOP],
 			["Button", "Keep &dialog open", 115, (5, 43, 100, 10), visible | win32con.BS_AUTOCHECKBOX | win32con.WS_TABSTOP],
 			["Button", "Across &open files", 116, (5, 52, 100, 10), visible | win32con.BS_AUTOCHECKBOX | win32con.WS_TABSTOP],
-			["Button", "&Remember as default search", 117, (5, 61, 150, 10), visible | win32con.BS_AUTOCHECKBOX | win32con.WS_TABSTOP],
+			["Button", "Re&member as default search", 117, (5, 61, 150, 10), visible | win32con.BS_AUTOCHECKBOX | win32con.WS_TABSTOP],
 			["Button", "&Find Next", 109, (185, 5, 50, 14), visible | win32con.BS_DEFPUSHBUTTON | win32con.WS_TABSTOP],
 			["Button", "Cancel", win32con.IDCANCEL, (185, 23, 50, 14), visible | win32con.WS_TABSTOP],
 		]
@@ -265,7 +267,7 @@ class ReplaceDialog(FindReplaceDialog):
 			["Button", "Match &case", 107, (5, 52, 100, 10), visible | win32con.BS_AUTOCHECKBOX | win32con.WS_TABSTOP],
 			["Button", "Keep &dialog open", 115, (5, 62, 100, 10), visible | win32con.BS_AUTOCHECKBOX | win32con.WS_TABSTOP],
 			["Button", "Across &open files", 116, (5, 72, 100, 10), visible | win32con.BS_AUTOCHECKBOX | win32con.WS_TABSTOP],
-			["Button", "&Remember as default search", 117, (5, 81, 150, 10), visible | win32con.BS_AUTOCHECKBOX | win32con.WS_TABSTOP],
+			["Button", "Re&member as default search", 117, (5, 81, 150, 10), visible | win32con.BS_AUTOCHECKBOX | win32con.WS_TABSTOP],
 			["Button", "&Find Next", 109, (185, 5, 50, 14), visible | win32con.BS_DEFPUSHBUTTON | win32con.WS_TABSTOP],
 			["Button", "&Replace", 110, (185, 23, 50, 14), visible | win32con.WS_TABSTOP],
 			["Button", "Replace &All", 111, (185, 41, 50, 14), visible | win32con.WS_TABSTOP],
@@ -310,10 +312,12 @@ class ReplaceDialog(FindReplaceDialog):
 	def OnFindNext(self, id, code):
 		self.DoFindNext()
 		self.CheckButtonStates()
+		self.SetFocus()		# so we can repeatedly press Alt+R here in the dialog
 
 	def OnReplace(self, id, code):
 		lastSearch.replaceText = self.editReplaceText.GetWindowText()
 		_ReplaceIt(None)
+		self.SetFocus()		# so we can repeatedly press Alt+R here in the dialog
 
 	def OnReplaceAll(self, id, code):
 		control = _GetControl(None)

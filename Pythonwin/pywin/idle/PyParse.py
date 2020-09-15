@@ -1,6 +1,8 @@
+from __future__ import absolute_import
 import string
 import re
 import sys
+from pywin.xtypes.moves import map, range
 
 # Reason last stmt is continued (or C_NONE if it's not).
 C_NONE, C_BACKSLASH, C_STRING, C_BRACKET = list(range(4))
@@ -105,7 +107,7 @@ for ch in "\"'\\\n#":
 # We are called with unicode strings, and str.translate is one of the few
 # py2k functions which can't 'do the right thing' - so take care to ensure
 # _tran is full of unicode...
-_tran = ''.join(_tran)
+_tran = u''.join(_tran)
 del ch
 
 class Parser:

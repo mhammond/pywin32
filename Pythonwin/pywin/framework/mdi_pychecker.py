@@ -33,12 +33,17 @@
 ## 
 ######################################################################
 
+from __future__ import absolute_import
+from __future__ import print_function
 import win32ui
 import win32api
 from pywin.mfc import docview, dialog, window
 import win32con
 import sys, string, re, glob, os, stat, time
 from . import scriptutils
+from pywin.xtypes.moves import map
+from pywin.xtypes.moves import range
+from functools import reduce
 
 def getsubdirs(d):
     dlist = []
@@ -275,7 +280,7 @@ class TheDocument(docview.RichEditDoc):
         self.result=None
         old=win32api.SetCursor(win32api.LoadCursor(0, win32con.IDC_APPSTARTING))
         win32ui.GetApp().AddIdleHandler(self.idleHandler)
-        import _thread
+        from pywin.xtypes.moves import _thread
         _thread.start_new(self.threadPycheckerRun,())
         ##win32api.SetCursor(old)
     def threadPycheckerRun(self):

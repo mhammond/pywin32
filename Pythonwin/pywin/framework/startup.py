@@ -8,8 +8,22 @@
 # Keep this as short as possible, cos error output is only redirected if
 # this runs OK.  Errors in imported modules are much better - the messages go somewhere (not any more :-)
 
+from __future__ import absolute_import
 import sys
 import win32ui
+
+if not sys.argv:
+	# work around for a bug in PY3.5+ win32ui.pyd/PythonWin.exe (at least until
+	# build 228) : wenn sys.argv is empty list (not ['']), then C bootstraping
+	# failed to initialize sys.argv - and we hereby make up for it :
+	assert sys.version > '3'
+	import win32api
+	from ctypes import wintypes, windll, c_int, POINTER
+	windll.shell32.CommandLineToArgvW.restype = POINTER(wintypes.LPWSTR)
+	windll.shell32.CommandLineToArgvW.argtypes = (wintypes.LPCWSTR, wintypes.LPINT)
+	argc = c_int() 
+	argv = windll.shell32.CommandLineToArgvW(win32api.GetCommandLine(), argc)
+	sys.argv = argv[1:argc.value]
 
 # You may wish to redirect error output somewhere useful if you have startup errors.
 # eg, 'import win32traceutil' will do this for you.
@@ -37,7 +51,7 @@ moduleName = "pywin.framework.intpyapp"
 sys.appargvoffset = 0
 sys.appargv = sys.argv[:]
 # Must check for /app param here.
-if len(sys.argv)>=2 and sys.argv[0].lower()=='/app':
+if len(sys.argv) >= 2 and sys.argv[0].lower() in ('/app', '-app'):
 	from . import cmdline
 	moduleName = cmdline.FixArgFileName(sys.argv[1])
 	sys.appargvoffset = 2

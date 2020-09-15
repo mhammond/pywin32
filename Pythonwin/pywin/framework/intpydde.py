@@ -5,6 +5,8 @@
 # is open.  Strange, but true.  If you have problems with this, close all Command Prompts!
 
 
+from __future__ import absolute_import
+from __future__ import print_function
 import win32ui
 import win32api, win32con
 from pywin.mfc import object

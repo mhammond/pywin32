@@ -8,6 +8,8 @@
 # >>> import pywin.debugger
 # >>> pywin.debugger.GetDebugger().run("command")
 
+from __future__ import absolute_import
+from __future__ import print_function
 import pdb
 import bdb
 import sys
@@ -25,6 +27,8 @@ from pywin.framework.editor.color.coloreditor import MARKER_CURRENT, MARKER_BREA
 from pywin.tools import browser, hierlist
 import commctrl
 import traceback
+from pywin.xtypes import string_types
+from pywin.xtypes.moves import range
 
 #import win32traceutil
 if win32ui.UNICODE:
@@ -32,13 +36,11 @@ if win32ui.UNICODE:
 else:
 	LVN_ENDLABELEDIT = commctrl.LVN_ENDLABELEDITA
 
-from .dbgcon import *
+##from dbgcon import *  # flake8 doesn't see
+from .dbgcon import DBGSTATE_NOT_DEBUGGING, DBGSTATE_BREAK, DBGSTATE_RUNNING, DBGSTATE_QUITTING, DBGSTATE_FREETRACING, \
+	 LINESTATE_BREAKPOINT, LINESTATE_CURRENT, OPT_STOP_EXCEPTIONS, OPT_HIDE, LoadDebuggerOptions
 
 error = "pywin.debugger.error"
-
-def SetInteractiveContext(globs, locs):
-	if interact.edit is not None and interact.edit.currentView is not None:
-		interact.edit.currentView.SetContext(globs, locs)
 
 def _LineStateToMarker(ls):
 	if ls==LINESTATE_CURRENT:
@@ -102,8 +104,6 @@ class HierStackRoot(HierListItem):
 	def __init__( self, debugger ):
 		HierListItem.__init__(self, debugger, None)
 		self.last_stack = []
-##	def __del__(self):
-##		print "HierStackRoot dieing"
 	def GetSubList(self):
 		debugger = self.myobject
 #		print self.debugger.stack, self.debugger.curframe
@@ -113,15 +113,13 @@ class HierStackRoot(HierListItem):
 			stackUse.reverse()
 			self.last_stack = []
 			for frame, lineno in stackUse:
+				if frame.f_locals.get('__debuggerframe__'):
+					continue
 				self.last_stack.append( (frame, lineno) )
 				if frame is debugger.userbotframe: # Dont bother showing frames below our bottom frame.
 					break
 		for frame, lineno in self.last_stack:
 			ret.append( HierFrameItem( frame, debugger ) )
-##		elif debugger.debuggerState==DBGSTATE_NOT_DEBUGGING:
-##			ret.append(NoStackAvailableItem('<nothing is being debugged>'))
-##		else:
-##			ret.append(NoStackAvailableItem('<stack not available while running>'))
 		return ret
 	def GetText(self):
 		return 'root item'
@@ -137,6 +135,23 @@ class HierListDebugger(hierlist.HierListWithItems):
 		self.AcceptRoot(root)
 #	def Refresh(self):
 #		self.Setup()
+	def OnTreeItemExpanding(self, info, extra):
+		(hwndFrom, idFrom, code) = info
+		if idFrom != self.listBoxId: 
+			return None
+		action, itemOld, itemNew, pt = extra
+		itemHandle = itemNew[0]
+		if itemHandle not in self.filledItemHandlesMap:
+			item = self.itemHandleMap[itemHandle]
+			subItems = self.GetSubList(item)
+			lh = []
+			for item in subItems:
+				lh.append(self.AddItem(itemHandle, item))
+			self.filledItemHandlesMap[itemHandle] = None
+			if subItems and isinstance(subItems[0], HierFrameDict):
+				self.Expand(lh[0], commctrl.TVE_EXPAND)
+		return 0
+		
 
 class DebuggerWindow(window.Wnd):
 	def __init__(self, ob):
@@ -277,14 +292,17 @@ class DebuggerListViewWindow(DebuggerWindow):
 			return None
 		self.SetItemState(hItem, commctrl.LVIS_SELECTED, commctrl.LVIS_SELECTED)
 
-		menu = win32ui.CreatePopupMenu()
-		menu.AppendMenu(win32con.MF_STRING|win32con.MF_ENABLED,1000, "Edit item")
-		menu.AppendMenu(win32con.MF_STRING|win32con.MF_ENABLED,1001, "Delete item")
 		dockbar = self.GetParent()
 		if dockbar.IsFloating():
 			hook_parent = win32ui.GetMainFrame()
 		else:
 			hook_parent = self.GetParentFrame()
+		menu = win32ui.CreatePopupMenu()
+		if hasattr(self, "OnJumpToSource"):
+			menu.AppendMenu(win32con.MF_STRING|win32con.MF_ENABLED,1002, "Jump to Source")
+			hook_parent.HookCommand(self.OnJumpToSource, 1002)
+		menu.AppendMenu(win32con.MF_STRING|win32con.MF_ENABLED,1000, "Edit item")
+		menu.AppendMenu(win32con.MF_STRING|win32con.MF_ENABLED,1001, "Delete item")
 		hook_parent.HookCommand(self.OnEditItem, 1000)
 		hook_parent.HookCommand(self.OnDeleteItem, 1001)
 		menu.TrackPopupMenu(win32api.GetCursorPos()) # track at mouse position.
@@ -299,6 +317,19 @@ class DebuggerBreakpointsWindow(DebuggerListViewWindow):
 	title = "Breakpoints"
 	columns = [ ("Condition", 70), ("Location", 1024)]
 
+	def OnJumpToSource(self,command, code):
+		try:
+			num = self.GetNextItem(-1, commctrl.LVNI_SELECTED)
+			item_id = self.GetItem(num)[6]
+			from bdb import Breakpoint
+			for bplist in list(Breakpoint.bplist.values()):
+				for bp in bplist:
+					if id(bp) == item_id:
+						scriptutils.JumpToDocument(bp.file, bp.line)
+						break
+		except win32ui.error:
+			win32api.MessageBeep()
+		
 	def SaveState(self):
 		items = []
 		for i in range(self.GetItemCount()):
@@ -381,7 +412,7 @@ class DebuggerWatchWindow(DebuggerListViewWindow):
 		self.SetItemText(itemno, 0, text)
 		if itemno == self.GetItemCount()-1:
 			self.InsertItem(itemno+1, "<New Item>")
-		self.RespondDebuggerState(self.debugger.debuggerState)
+		self.RespondDebuggerData()
 
 	def DeleteSelected(self):
 		try:
@@ -391,15 +422,15 @@ class DebuggerWatchWindow(DebuggerListViewWindow):
 		except win32ui.error:
 			win32api.MessageBeep()
 
-	def RespondDebuggerState(self, state):
+	def RespondDebuggerData(self):
+		state = self.debugger.debuggerState
 		globs = locs = None
 		if state==DBGSTATE_BREAK:
 			if self.debugger.curframe:
 				globs = self.debugger.curframe.f_globals
 				locs = self.debugger.curframe.f_locals
-		elif state==DBGSTATE_NOT_DEBUGGING:
-			import __main__
-			globs = locs = __main__.__dict__
+		else:
+			globs, locs = interact.edit.currentView.GetContext()			
 		for i in range(self.GetItemCount()-1):
 			text = self.GetItemText(i, 0)
 			if globs is None:
@@ -456,15 +487,12 @@ def PrepareControlBars(frame):
 		else:
 			frame.FloatControlBar(bar, float, afxres.CBRS_ALIGN_ANY)
 
-		## frame.ShowControlBar(bar, 0, 1)
-
-
 SKIP_NONE=0
 SKIP_STEP=1
 SKIP_RUN=2
 
 debugger_parent=pdb.Pdb
-class Debugger(debugger_parent):
+class Debugger(pdb.Pdb):
 	def __init__(self):
 		self.inited = 0
 		self.skipBotFrame = SKIP_NONE
@@ -477,6 +505,7 @@ class Debugger(debugger_parent):
 		self.last_cmd_debugged = ""
 		self.abortClosed = 0
 		self.isInitialBreakpoint = 0
+		self.bAtException = self.bAtPostMortem = 0
 		debugger_parent.__init__(self)
 
 		# See if any break-points have been set in the editor
@@ -490,25 +519,39 @@ class Debugger(debugger_parent):
 		self.reset()
 		self.inForcedGUI = win32ui.GetApp().IsInproc()
 		self.options = LoadDebuggerOptions()
-		self.bAtException = self.bAtPostMortem = 0
+		self.dummyframe = sys._getframe()	# will never match in the future
 
 	def __del__(self):
 		self.close()
+		
+	curframe = None
+	def SetInteractiveContext(self, globs=None, locs=None, curframe=None):
+		if interact.edit is not None and interact.edit.currentView is not None:
+			ia = interact.edit.currentView
+			if globs == 'current':
+				globs, locs = ia.GetContext()
+			ia.SetContext(globs, locs, name = (				
+				'D' * (self.pumping)) + 	# depth of recursive debugging
+				(self.debuggerState == DBGSTATE_BREAK) * 'B' +
+				(self.debuggerState == DBGSTATE_FREETRACING) * 'F' +
+				(sys.version_info >= (2, 6) and bool(sys.gettrace()) * 'T' or '') +
+				self.bAtPostMortem * 'P' +
+				self.bAtException * 'E',
+						  curframe=self.curframe)
+
 	def close(self, frameShutdown = 0):
 		# abortClose indicates if we have total shutdown
 		# (ie, main window is dieing)
 		if self.pumping:
 			# Can stop pump here, as it only posts a message, and
 			# returns immediately.
-			if not self.StopDebuggerPump(): # User cancelled close.
+			if not self.GUIAboutToFinishInteract(): # User cancelled close.
 				return 0
 			# NOTE - from this point on the close can not be
 			# stopped - the WM_QUIT message is already in the queue.
 		self.frameShutdown = frameShutdown
 		if not self.inited: return 1
 		self.inited = 0
-
-		SetInteractiveContext(None, None)
 
 		frame = win32ui.GetMainFrame()
 		# Hide the debuger toolbars (as they wont normally form part of the main toolbar state.
@@ -523,16 +566,18 @@ class Debugger(debugger_parent):
 
 		self._UnshowCurrentLine()
 		self.set_quit()
+		self.SetInteractiveContext(None, None)
+		if self.pumping:
+			# send WM_QUIT - must be last to not be disturbed by messages (bug fix)
+			self.StopDebuggerPump()
 		return 1
 
 	def StopDebuggerPump(self):
-		assert self.pumping, "Can't stop the debugger pump if Im not pumping!"
+		assert self.pumping, "Can't stop the debugger pump if I'm not pumping!"
 		# After stopping a pump, I may never return.
-		if self.GUIAboutToFinishInteract():
-			self.pumping = 0
-			win32ui.StopDebuggerPump() # Posts a message, so we do return.
-			return 1
-		return 0
+		##if self.GUIAboutToFinishInteract():
+		win32api.PostQuitMessage()
+		return 1
 
 	def get_option(self, option):
 		"""Public interface into debugger options
@@ -555,7 +600,6 @@ class Debugger(debugger_parent):
 		self.UpdateAllLineStates()
 		self._UnshowCurrentLine()
 
-
 	def setup(self, f, t):
 		debugger_parent.setup(self, f, t)
 		self.bAtException = t is not None
@@ -563,12 +607,22 @@ class Debugger(debugger_parent):
 	def set_break(self, filename, lineno, temporary=0, cond = None):
 		filename = self.canonic(filename)
 		self.SetLineState(filename, lineno, LINESTATE_BREAKPOINT)
+		if not self.breaks and self.debuggerState == DBGSTATE_FREETRACING:
+			print("-- debugger free-tracing: reactivation of tracing overhead --")
+			sys.settrace(self.trace_dispatch)
+		self.SetInteractiveContext('current')
 		return debugger_parent.set_break(self, filename, lineno, temporary, cond)
 
 	def clear_break(self, filename, lineno):
 		filename = self.canonic(filename)
 		self.ResetLineState(filename, lineno, LINESTATE_BREAKPOINT)
-		return debugger_parent.clear_break(self, filename, lineno)
+		r = debugger_parent.clear_break(self, filename, lineno)
+		##if not self.breaks and self.debuggerState != DBGSTATE_BREAK and sys.gettrace():	# py2.6+
+		if not self.breaks and self.debuggerState == DBGSTATE_FREETRACING:
+			print("-- debugger: deactivation of tracing overhead (0 breakpoints) --")
+			sys.settrace(None)
+		self.SetInteractiveContext('current')
+		return r
 
 	def cmdloop(self):
 		if self.frameShutdown: return # App in the process of closing - never break in!
@@ -609,27 +663,50 @@ class Debugger(debugger_parent):
 				exc_value = exc_type(*exc_value)
 
 			traceback.print_exception(exc_type, exc_value, exc_traceback)
+			self.frame_returning = frame  # so set_next etc. take care about falling down
 			self.interaction(frame, exc_traceback)
+			self.frame_returning = None
 
 	def user_line(self, frame):
 		if frame.f_lineno==0: return
 		debugger_parent.user_line(self, frame)
-
-	def stop_here(self, frame):
-		if self.isInitialBreakpoint:
-			self.isInitialBreakpoint = 0
-			self.set_continue()
-			return 0
-		if frame is self.botframe and self.skipBotFrame == SKIP_RUN:
-			self.set_continue()
-			return 0
-		if frame is self.botframe and self.skipBotFrame == SKIP_STEP:
-			self.set_step()
-			return 0
-		return debugger_parent.stop_here(self, frame)
-
+	
+	def run_recursive(self, code, globs=None, locs=None):
+		# enter recursive debugging (on same instance / GUI)
+		d = self
+		print("-- enter recursive debugging --")
+		old_debstate = d.debuggerState, d.bAtPostMortem, d.bAtException, d.stack, \
+					   d.curindex, d.curframe, getattr(d, 'curframe_locals', None), d.frame_returning,
+		def _recursive_debugging_func():
+			f = sys._getframe()
+			while f and f != d.curframe:
+				# hide debugger internal frames in stack view
+				f.f_locals['__debuggerframe__'] = True	# hides theses fames
+				f = f.f_back
+			d.set_step()
+			sys.settrace(d.trace_dispatch)
+			exec(code, globs, locs)
+		sys.settrace(None)
+		try:
+			sys.call_tracing(_recursive_debugging_func, ())
+		finally:
+			print("-- leave recursive debugging --")
+			sys.settrace(d.trace_dispatch)
+			
+			# now we need to restore the debugger state for as if
+			# entered d.interact() .				
+			d.bAtPostMortem, d.bAtException, d.stack, d.curindex, d.curframe, \
+							 d.curframe_locals, d.frame_returning,  = old_debstate[1:]
+			d.quitting = 0
+									
+			# like GUIAboutToBreak()
+			d.GUICheckInit()
+			d.RespondDebuggerState(old_debstate[0])
+			d.GUIAboutToInteract()	# window showing, interactive context, RespondDebuggerData
+			d.ShowCurrentLine()
+		
 	def run(self, cmd,globals=None, locals=None, start_stepping = 1):
-		if not isinstance(cmd, (str, types.CodeType)):
+		if not isinstance(cmd, (string_types, types.CodeType)):
 			raise TypeError("Only strings can be run")
 		self.last_cmd_debugged = cmd
 		if start_stepping:
@@ -642,15 +719,25 @@ class Debugger(debugger_parent):
 				globals = __main__.__dict__
 			if locals is None:
 				locals = globals
+			sys.settrace(None)			# because DBGSTATE_FREETRACING could be active
 			self.reset()
 			self.prep_run(cmd)
+			_frame = sys._getframe()
+			if hasattr(_frame, '_frame'):
+				_frame = _frame._frame	# original frame from psyco proxy frame
+			__debuggerframe__ = True  # blocks set_step() and stack view etc out here # noqa 
+			self.userbotframe = _frame	# -> hidding FW in stack & detecting DBGSTATE_FREETRACING
 			sys.settrace(self.trace_dispatch)
 			if type(cmd) != types.CodeType:
 				cmd = cmd+'\n'
 			try:
 				try:
-					if start_stepping: self.skipBotFrame = SKIP_STEP
-					else: self.skipBotFrame = SKIP_RUN
+					if start_stepping:
+						self.skipBotFrame = SKIP_STEP
+					else:
+						self.skipBotFrame = SKIP_RUN
+						##self.set_continue()		# sets .stopframe = .botframe # which may not exist 
+						self.stopframe = _frame
 					exec(cmd, globals, locals)
 				except bdb.BdbQuit:
 					pass
@@ -658,7 +745,7 @@ class Debugger(debugger_parent):
 				self.skipBotFrame = SKIP_NONE
 				self.quitting = 1
 				sys.settrace(None)
-
+				self.userbotframe = None
 		finally:
 			self.done_run(cmd)
 
@@ -681,6 +768,10 @@ class Debugger(debugger_parent):
 			self.quitting = 1
 			sys.settrace(None)
 
+	def do_set_quit(self):
+		if self.GUIAboutToRun():	# stop msgpump-> return to previous pump/mainloop
+			self.set_quit()
+
 	def do_set_step(self):
 		if self.GUIAboutToRun():
 			self.set_step()
@@ -689,6 +780,10 @@ class Debugger(debugger_parent):
 		if self.GUIAboutToRun():
 			self.set_next(self.curframe)
 
+	def do_set_until(self):
+		if self.GUIAboutToRun():
+			self.set_until(self.curframe)
+
 	def do_set_return(self):
 		if self.GUIAboutToRun():
 			self.set_return(self.curframe)
@@ -696,13 +791,102 @@ class Debugger(debugger_parent):
 	def do_set_continue(self):
 		if self.GUIAboutToRun():
 			self.set_continue()
+			
+	skip = None		# support PY2.6-
+	def stop_here(self, frame):  # Bdb speed optimized: 
+		# (CT) stopframe may now also be None, see dispatch_call.
+		# (CT) the former test for None is therefore removed from here.
+		if self.stopframe is self.dummyframe: # highest probability
+			# fast continue, just breakpoints
+			return False
+		if frame is self.stopframe:  # next / returning step
+			if self.stoplineno == -1:
+				return False
+			if frame.f_lineno >= self.stoplineno:
+				if self.skip and \
+					   self.is_skipped_module(frame.f_globals.get('__name__')):
+					return False
+				return True
+			return False
+			
+		if self.stopframe is None:
+			if self.skip and \
+				   self.is_skipped_module(frame.f_globals.get('__name__')):
+				return False
+			return True
+		return False
 
-	def set_quit(self):
-		ok = 1
-		if self.pumping:
-			ok = self.StopDebuggerPump()
-		if ok:
-			debugger_parent.set_quit(self)
+	if sys.version_info < (2, 6):
+		def _set_stopinfo(self, stopframe, returnframe, stoplineno=0):
+			self.stopframe = stopframe
+			self.returnframe = returnframe
+			self.quitting = 0
+			# stoplineno >= 0 means: stop at line >= the stoplineno
+			# stoplineno -1 means: don't stop at all
+			self.stoplineno = stoplineno
+
+	def set_step(self):
+		"""Stop after one line of code."""
+		# Bdb copy PLUS: warn & block stepping into bottomless abyss (free tracing / event handler)
+		# Issue #13183: pdb skips frames after hitting a breakpoint and running
+		# step commands.
+		# Restore the trace function in the caller (that may not have been set
+		# for performance reasons) when returning from the current frame.
+		if self.frame_returning:
+			caller_frame = self.frame_returning.f_back
+			if caller_frame and not caller_frame.f_trace and not caller_frame.f_locals.get('__debuggerframe__'):
+				caller_frame.f_trace = self.trace_dispatch
+			if not caller_frame:
+				print("-- left bottom frame -- ")
+			self._set_stopinfo(None, None)	# bottomless -> re-appear on next emerging frame
+		else:
+			self._set_stopinfo(None, None)
+
+	frame_returning = None	# support PY2.6-
+	def set_next(self, frame):
+		"""Stop on the next line in or below the given frame."""
+		if self.frame_returning and frame is self.curframe:
+			self.set_step()	  # same care about caller_frame stop & .f_trace
+		else:
+			self._set_stopinfo(frame, None)
+
+	def set_return(self, frame): # caller_frame aware
+		"""Stop when returning from the given frame."""
+		if self.frame_returning and frame is self.curframe:
+			self.set_step()	  # same care about caller_frame.f_trace
+		else:
+			self._set_stopinfo(frame.f_back, frame, 0)
+
+	def set_until(self, frame, lineno=None):
+		if self.frame_returning and frame is self.curframe:
+			self.set_step()	
+		else:
+			pdb.Pdb.set_until(self, self.curframe)
+				
+	def do_set_untilline(self, frame, lineno=None):
+		if self.GUIAboutToRun():
+			if self.frame_returning and frame is self.curframe:
+				self.set_step()	
+			else:
+				self._set_stopinfo(frame, frame, lineno)
+			
+	def set_continue(self):
+		# fast continue mode. And don't clear sys.settrace() when in free
+		# tracing mode - hot state is visible in mainframe caption
+		
+		# Don't stop except at breakpoints or when finished
+		self._set_stopinfo(self.dummyframe, None, -1)	# NotImplemented -> fast continue
+		if not self.breaks:
+			# No breakpoints - run without debugger overhead.
+			# TODO: DBGSTATE_FREETRACING: With more coding we could switch off trace 
+			# too and re-activate it on next .set_break() .
+			print("-- debugger continue: deactivation of tracing overhead (0 breakpoints) --")
+			sys.settrace(None)
+			self.SetInteractiveContext(None, None)			
+			frame = sys._getframe().f_back
+			while frame and frame is not self.botframe:
+				del frame.f_trace
+				frame = frame.f_back
 
 	def _dump_frame_(self, frame,name=None):
 		if name is None: name = ""
@@ -715,12 +899,13 @@ class Debugger(debugger_parent):
 		else:
 			print(repr(name), "None")
 
-	def set_trace(self):
-		# Start debugging from _2_ levels up!
-		try:
-			1 + ''
-		except:
-			frame = sys.exc_info()[2].tb_frame.f_back.f_back
+	def set_trace(self, frame=None):
+		if frame is None:
+			frame = sys._getframe(1)
+			if hasattr(frame, '_frame'):
+				# get original frame from psyco proxy as the .trace_dispatch is fed with
+				# real frames and will compare against .botframe
+				frame = frame._frame	
 		self.reset()
 		self.userbotframe = None
 		while frame:
@@ -748,8 +933,8 @@ class Debugger(debugger_parent):
 				self.curindex = index
 				break
 		else:
-			assert 0, "Can't find the frame in the stack."
-		SetInteractiveContext(frame.f_globals, frame.f_locals)
+			print("--  this stack frame is a goner from the past retained for inspection --")
+		self.SetInteractiveContext(frame.f_globals, frame.f_locals)
 		self.GUIRespondDebuggerData()
 		self.ShowCurrentLine()
 
@@ -763,6 +948,8 @@ class Debugger(debugger_parent):
 		if state == self.debuggerState: return
 		if state==DBGSTATE_NOT_DEBUGGING: # Debugger exists, but not doing anything
 			title = ""
+		elif state==DBGSTATE_FREETRACING: # Code is running under the debugger.
+			title = " - debugger is free-tracing breakpoints"
 		elif state==DBGSTATE_RUNNING: # Code is running under the debugger.
 			title = " - running"
 		elif state==DBGSTATE_BREAK: # We are at a breakpoint or stepping or whatever.
@@ -833,60 +1020,86 @@ class Debugger(debugger_parent):
 			cb.RespondDebuggerData()
 
 	def GUIAboutToRun(self):
-		if not self.StopDebuggerPump():
+		if not self.GUIAboutToFinishInteract():
 			return 0
+		self.RespondDebuggerState(self.userbotframe and DBGSTATE_RUNNING or DBGSTATE_FREETRACING)
 		self._UnshowCurrentLine()
-		self.RespondDebuggerState(DBGSTATE_RUNNING)
-		SetInteractiveContext(None, None)
+		self.bAtException = self.bAtPostMortem = 0
+		# StopDebuggerPump / WM_QUIT - must be last to not be disturbed by other
+		# messages. The move fixed bug: SetInteractiveContext() etc. w further
+		# message handling somehow eliminated WM_QUIT from the msg queue when last
+		# line in interactive was not clean at debugger steps - which terribly
+		# mixed up the debugging call stack & state.
+		self.StopDebuggerPump()
 		return 1
 
 	def GUIAboutToBreak(self):
 		"Called as the GUI debugger is about to get context, and take control of the running program."
+		if self.pumping > 2:	# allow 3 recursive debuggers
+			print("!!! GUIAboutToBreak: too many recursive debuggings - outa here")
+			self.set_continue()
+			return
 		self.GUICheckInit()
 		self.RespondDebuggerState(DBGSTATE_BREAK)
-		self.GUIAboutToInteract()
-		if self.pumping:
-			print("!!! Already pumping - outa here")
-			return
-		self.pumping = 1
-		win32ui.StartDebuggerPump() # NOTE - This will NOT return until the user is finished interacting
-		assert not self.pumping, "Should not be pumping once the pump has finished"
-		if self.frameShutdown: # User shut down app while debugging
-			win32ui.GetMainFrame().PostMessage(win32con.WM_CLOSE)
+		
+		# run a nested Windows message loop right here on top of the call stack
+		# during the debugger user interaction
 
+		last_pumping = self.pumping
+		self.pumping += 1
+		self.GUIAboutToInteract()
+
+		# Run a message loop until a WM_QUIT message is received.
+		##print "-- Start PumpMessages --", self.pumping
+		win32ui.GetApp().PumpMessages() # NOTE - This will NOT return until the user is finished interacting
+		##print "-- Return PumpMessages --", self.pumping	# levels should match!
+		self.pumping -= 1
+		assert self.pumping == last_pumping, "Fatal: debugger pump level mixed up!"
+		self.SetInteractiveContext(None, None)		
+		if self.frameShutdown: 	# User shut down app while debugging
+			print("-- SHUT DOWN DEBUGGER INTERACTION --")
+		if self.quitting:
+			if self.debuggerState == DBGSTATE_FREETRACING:
+				self.quitting = 0  
+				print("-- debugger KeyboardInterrupt (FREETRACING) --")
+				# When KeyboardInterrupt breaks down through the .trace_dispatch
+				# handler, inevitably sys.gettrace() becomes None by Python internals!
+				# So we file a CallAfter (run from message loop below the trace) which
+				# re-activates the trace, so that free-tracing can continue.
+				win32ui.GetApp().CallAfter(lambda:sys.settrace(self.trace_dispatch))
+				raise KeyboardInterrupt("Debugger KeyboardInterrupt (FREETRACING)")
+			raise bdb.BdbQuit		# as this could not be raised from beyond the pump by do_set_quit
+			
+		
 	def GUIAboutToInteract(self):
 		"Called as the GUI is about to perform any interaction with the user"
 		frame = win32ui.GetMainFrame()
 		# Remember the enabled state of our main frame
 		# may be disabled primarily if a modal dialog is displayed.
 		# Only get at enabled via GetWindowLong.
-		self.bFrameEnabled = frame.IsWindowEnabled()
-		self.oldForeground = None
-		fw = win32ui.GetForegroundWindow()
-		if fw is not frame:
-			self.oldForeground = fw
+		self.oldFrameEnableState = frame.IsWindowEnabled()
+		self.oldForeground = win32ui.GetForegroundWindow()
+		if not self.oldFrameEnableState:			
 #			fw.EnableWindow(0) Leave enabled for now?
-			self.oldFrameEnableState = frame.IsWindowEnabled()
 			frame.EnableWindow(1)
 		if self.inForcedGUI and not frame.IsWindowVisible():
 			frame.ShowWindow(win32con.SW_SHOW)
 			frame.UpdateWindow()
 		if self.curframe:
-			SetInteractiveContext(self.curframe.f_globals, self.curframe.f_locals)
+			self.SetInteractiveContext(self.curframe.f_globals, self.curframe.f_locals)
 		else:
-			SetInteractiveContext(None, None)
+			self.SetInteractiveContext(None, None)
 		self.GUIRespondDebuggerData()
 
 	def GUIAboutToFinishInteract(self):
 		"""Called as the GUI is about to finish any interaction with the user
 		   Returns non zero if we are allowed to stop interacting"""
-		if self.oldForeground is not None:
-			try:
-				win32ui.GetMainFrame().EnableWindow(self.oldFrameEnableState)
-				self.oldForeground.EnableWindow(1)
-			except win32ui.error:
-				# old window may be dead.
-				pass
+		try:
+			win32ui.GetMainFrame().EnableWindow(self.oldFrameEnableState)
+			self.oldForeground.EnableWindow(1)
+		except win32ui.error:
+			# old window may be dead.
+			pass
 #			self.oldForeground.SetForegroundWindow() - fails??
 		if not self.inForcedGUI:
 			return 1 # Never a problem, and nothing else to do.
@@ -983,3 +1196,14 @@ class Debugger(debugger_parent):
 			line = linecache.getline(filename, lineno)
 			print("%s(%d): %s" % (os.path.basename(filename), lineno, line[:-1].expandtabs(4)))
 			return 0
+
+try: _reload += 1  # noqa
+except NameError:
+	_reload = 0
+else:  
+	# dev reload support : changes effective mostly immediately
+	exec("from .. import debugger")	 # SyntaxError in old Pythons
+	obj = debugger.currentDebugger  # noqa
+	if obj:
+		obj.__class__ = getattr(sys.modules[obj.__class__.__module__], obj.__class__.__name__)
+		print("reload-reclassed %s" % obj)

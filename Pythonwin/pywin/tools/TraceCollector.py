@@ -1,5 +1,7 @@
 # win32traceutil like utility for Pythonwin
-import _thread
+from __future__ import absolute_import
+from __future__ import print_function
+from pywin.xtypes.moves import _thread
 import win32trace, win32event, win32api
 from pywin.framework import winout
 

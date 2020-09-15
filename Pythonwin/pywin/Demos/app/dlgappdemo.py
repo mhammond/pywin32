@@ -6,6 +6,8 @@
 # This module must be specified on the commandline to PythonWin only.
 # eg, PythonWin /app dlgappdemo.py
 
+from __future__ import absolute_import
+from __future__ import print_function
 from pywin.framework import dlgappcore, app
 import win32ui
 import sys

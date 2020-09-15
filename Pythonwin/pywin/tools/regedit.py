@@ -1,4 +1,5 @@
 # Regedit - a Registry Editor for Python
+from __future__ import absolute_import
 import win32api, win32ui, win32con, commctrl
 from pywin.mfc import window, docview, dialog
 from . import hierlist

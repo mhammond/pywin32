@@ -1,14 +1,16 @@
 # intpyapp.py  - Interactive Python application class
 #
+from __future__ import absolute_import
+from __future__ import print_function
 import win32con
 import win32api
 import win32ui
 import __main__
 import sys
-import string
+import os
 from . import app
 import traceback
-from pywin.mfc import window, afxres, dialog
+from pywin.mfc import afxres, dialog
 import commctrl
 from . import dbgcommands
 
@@ -104,7 +106,8 @@ class InteractivePythonApp(app.CApp):
 
 	def HookCommands(self):
 		app.CApp.HookCommands(self)
-		dbgcommands.DebuggerCommandHandler().HookCommands()
+		self.dbgcmds = dbgcommands.DebuggerCommandHandler()
+		self.dbgcmds.HookCommands()
 		self.HookCommand(self.OnViewBrowse,win32ui.ID_VIEW_BROWSE)
 		self.HookCommand(self.OnFileImport,win32ui.ID_FILE_IMPORT)
 		self.HookCommand(self.OnFileCheck,win32ui.ID_FILE_CHECK)
@@ -162,7 +165,7 @@ class InteractivePythonApp(app.CApp):
 
 	def InitInstance(self):
 		# Allow "/nodde" and "/new" to optimize this!
-		if "/nodde" not in sys.argv and "/new" not in sys.argv:
+		if "/nodde" not in sys.argv and "/new" not in sys.argv and "-nodde" not in sys.argv and "-new" not in sys.argv:
 			if self.InitDDE():
 				return 1 # A remote DDE client is doing it for us!
 		else:
@@ -226,46 +229,67 @@ class InteractivePythonApp(app.CApp):
 		# If we are going to talk to a remote app via DDE, then
 		# activate it!
 		if dde is not None: dde.Exec("self.Activate()")
-		if len(args) and args[0] in ['/nodde','/new']: del args[0] # already handled.
+		if len(args) and args[0] in ['/nodde', '/new', '-nodde', '-new']: del args[0] # already handled.
 		if len(args)<1 or not args[0]: # argv[0]=='' when started without args, just like Python.exe!
 			return
 		try:
-			if args[0] and args[0][0]!='/':
-				argStart = 0
-				argType = win32ui.GetProfileVal("Python","Default Arg Type","/edit").lower()
-			else:
-				argStart = 1
-				argType = args[0]
-			if argStart >= len(args):
-				raise TypeError("The command line requires an additional arg.")
-			if argType=="/edit":
-				# Load up the default application.
-				if dde:
+			i = 0
+			while i < len(args):
+				if args[i].startswith('-'):
+					# support dash options - slash options mix up sys.path as python init
+					# thinks its a file and wants to add its dir as #1 in sys.path
+					args[i] = '/' + args[i][1:]
+				if args[i] and args[i][0] != '/':
+					argStart = 0
+					argType = win32ui.GetProfileVal("Python","Default Arg Type","/edit").lower()
+					i += 1
+				else:
+					argStart = 1 + i
+					argType = args[i]
+					i += 2
+				if argType == "/edit":
+					# Load up the default application.
 					fname = win32api.GetFullPathName(args[argStart])
-					dde.Exec("win32ui.GetApp().OpenDocumentFile(%s)" % (repr(fname)))
+					if not os.path.isfile(fname):
+						# if we don't catch this, OpenDocumentFile() (actually
+						# PyCDocument.SetPathName() in
+						# pywin.scintilla.document.CScintillaDocument.OnOpenDocument) crashes
+						# hard on recent PY3 builds (b228)
+						win32ui.MessageBox("No such file: %s\n\nCommand Line: %s" % (fname, win32api.GetCommandLine()),
+										   "Open file for edit", win32con.MB_ICONERROR)
+						continue
+					if dde:
+						dde.Exec("win32ui.GetApp().OpenDocumentFile(%s)" % (repr(fname)))
+					else:
+						win32ui.GetApp().OpenDocumentFile(args[argStart])
+				elif argType.startswith('/goto:'):
+					gotoline = int(argType[len('/goto:'):])
+					if dde:
+						dde.Exec("import scriptutils; ed = scriptutils.GetActiveEditControl(); ed.SetSel(ed.LineIndex(%s - 1))" % gotoline)
+					else:
+						from . import scriptutils; ed = scriptutils.GetActiveEditControl(); ed.SetSel(ed.LineIndex(gotoline - 1))
+					i -= 1
+				elif argType=="/rundlg":
+					if dde:
+						dde.Exec("from pywin.framework import scriptutils;scriptutils.RunScript('%s', '%s', 1)" % (args[argStart], ' '.join(args[argStart+1:])))
+					else:
+						from . import scriptutils
+						scriptutils.RunScript(args[argStart], ' '.join(args[argStart+1:]))
+				elif argType=="/run":
+					if dde:
+						dde.Exec("from pywin.framework import scriptutils;scriptutils.RunScript('%s', '%s', 0)" % (args[argStart], ' '.join(args[argStart+1:])))
+					else:
+						from . import scriptutils
+						scriptutils.RunScript(args[argStart], ' '.join(args[argStart+1:]), 0)
+				elif argType=="/app":
+					raise RuntimeError("/app only supported for new instances of Pythonwin.exe")
+				elif argType=='/dde': # Send arbitary command
+					if dde is not None:
+						dde.Exec(args[argStart])
+					else:
+						win32ui.MessageBox("The /dde command can only be used\r\nwhen Pythonwin is already running")
 				else:
-					win32ui.GetApp().OpenDocumentFile(args[argStart])
-			elif argType=="/rundlg":
-				if dde:
-					dde.Exec("from pywin.framework import scriptutils;scriptutils.RunScript('%s', '%s', 1)" % (args[argStart], ' '.join(args[argStart+1:])))
-				else:
-					from . import scriptutils
-					scriptutils.RunScript(args[argStart], ' '.join(args[argStart+1:]))
-			elif argType=="/run":
-				if dde:
-					dde.Exec("from pywin.framework import scriptutils;scriptutils.RunScript('%s', '%s', 0)" % (args[argStart], ' '.join(args[argStart+1:])))
-				else:
-					from . import scriptutils
-					scriptutils.RunScript(args[argStart], ' '.join(args[argStart+1:]), 0)
-			elif argType=="/app":
-				raise RuntimeError("/app only supported for new instances of Pythonwin.exe")
-			elif argType=='/dde': # Send arbitary command
-				if dde is not None:
-					dde.Exec(args[argStart])
-				else:
-					win32ui.MessageBox("The /dde command can only be used\r\nwhen Pythonwin is already running")
-			else:
-				raise TypeError("Command line arguments not recognised")
+					raise TypeError("Command line arguments not recognised")
 		except:
 			# too early for print anything.
 			win32ui.DisplayTraceback(sys.exc_info(), " - error processing command line args")
@@ -277,7 +301,8 @@ class InteractivePythonApp(app.CApp):
 	def LoadUserModules(self, moduleNames = None):
 		# Load the users modules.
 		if moduleNames is None:
-			default = "pywin.framework.sgrepmdi,pywin.framework.mdi_pychecker"
+			# pywin.framework.mdi_pychecker (flake8) obsolete (multi RunTool instances)
+			default = "pywin.framework.sgrepmdi,pywin.framework.mdi_runtool"
 			moduleNames=win32ui.GetProfileVal('Python','Startup Modules',default)
 		self.DoLoadModules(moduleNames)
 
@@ -309,7 +334,6 @@ class InteractivePythonApp(app.CApp):
 	#
 	def OnViewBrowse( self, id, code ):
 		" Called when ViewBrowse message is received "
-		from pywin.mfc import dialog
 		from pywin.tools import browser
 		obName = dialog.GetSimpleInput('Object', '__builtins__', 'Browse Python Object')
 		if obName is None:
@@ -345,9 +369,7 @@ class InteractivePythonApp(app.CApp):
 		scriptutils.RunScript(None, None, showDlg)
 
 	def OnFileLocate( self, id, code ):
-		from pywin.mfc import dialog
 		from . import scriptutils
-		import os
 		global lastLocateFileName # save the new version away for next time...
 
 		name = dialog.GetSimpleInput('File name', lastLocateFileName, 'Locate Python File')

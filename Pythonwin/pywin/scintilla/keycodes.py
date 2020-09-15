@@ -1,7 +1,10 @@
+from __future__ import absolute_import
+from __future__ import print_function
 import string
 import win32con
 import win32api
 import win32ui
+from pywin.xtypes import unichr
 
 MAPVK_VK_TO_CHAR = 2
 
@@ -130,7 +133,7 @@ def make_key_name(vk, flags):
             # Not in our virtual key map - ask Windows what character this
             # key corresponds to.
             scancode = win32api.MapVirtualKey(vk, MAPVK_VK_TO_CHAR)
-            parts.append(chr(scancode))
+            parts.append(unichr(scancode))
     sep = "+"
     if sep in parts: sep = "-"
     return sep.join([p.capitalize() for p in parts])

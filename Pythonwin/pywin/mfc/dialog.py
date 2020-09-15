@@ -4,6 +4,7 @@ Base class for Dialogs.  Also contains a few useful utility functions
 # dialog.py
 # Python class for Dialog Boxes in PythonWin.
 
+from __future__ import absolute_import
 import win32ui
 import win32con
 # sob - 2to3 doesn't see this as a relative import :(
@@ -62,6 +63,7 @@ class Dialog(window.Wnd):
 	# Make a dialog object look like a dictionary for the DDX support
 	def __bool__(self):
 		return True
+	__nonzero__ = __bool__
 	def __len__(self): return len(self.data)
 	def __getitem__(self, key): return self.data[key]
 	def __setitem__(self, key, item): self._obj_.data[key] = item# self.UpdateData(0)

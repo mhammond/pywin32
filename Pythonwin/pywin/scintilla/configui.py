@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 from pywin.mfc import dialog
 import win32api
 import win32con

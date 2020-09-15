@@ -1,4 +1,5 @@
 # frame.py - The MDI frame window for an editor.
+from __future__ import absolute_import
 import pywin.framework.window
 import win32ui
 import win32con

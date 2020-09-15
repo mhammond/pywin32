@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 from . import dbgcon
 from pywin.mfc import dialog
 import win32ui

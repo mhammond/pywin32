@@ -1,5 +1,7 @@
 # We no longer support the old, non-colour editor!
 
+from __future__ import absolute_import
+from __future__ import print_function
 from pywin.mfc import docview, object
 from pywin.framework.editor import GetEditorOption
 import win32ui
@@ -9,6 +11,7 @@ import string
 import traceback
 import win32api
 import shutil
+from pywin.xtypes.moves import zip
 
 BAK_NONE=0
 BAK_DOT_BAK=1

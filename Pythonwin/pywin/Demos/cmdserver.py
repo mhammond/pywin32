@@ -2,11 +2,13 @@
 
 # Demo code that is not Pythonwin related, but too good to throw away...
 
+from __future__ import absolute_import
+from __future__ import print_function
 import win32api
 import sys
 from pywin.framework import winout
 
-import _thread, sys
+from pywin.xtypes.moves import _thread
 
 import traceback
 

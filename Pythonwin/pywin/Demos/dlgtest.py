@@ -7,6 +7,8 @@
 #
 # ID's for the tabstop dialog - out test.
 #
+from __future__ import absolute_import
+from __future__ import print_function
 from win32ui import IDD_SET_TABSTOPS
 from win32ui import IDC_EDIT_TABS
 from win32ui import IDC_PROMPT_TABS

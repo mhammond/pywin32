@@ -1,6 +1,8 @@
 # MFC base classes.
+from __future__ import absolute_import
 import sys
 import win32ui
+from pywin.xtypes.moves import range
 
 class Object:
 	def __init__(self, initObj = None):

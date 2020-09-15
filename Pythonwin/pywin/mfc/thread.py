@@ -1,5 +1,6 @@
 # Thread and application objects
 
+from __future__ import absolute_import
 from . import object
 import win32ui
 

@@ -1,5 +1,6 @@
 # No cancel button.
 
+from __future__ import absolute_import
 from pywin.mfc import dialog
 from pywin.mfc.thread import WinThread
 import threading
@@ -7,6 +8,7 @@ import win32ui
 import win32con
 import win32api
 import time
+from pywin.xtypes.moves import range
 
 def MakeProgressDlgTemplate(caption, staticText = ""):
     style = (win32con.DS_MODALFRAME |

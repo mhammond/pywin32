@@ -1,6 +1,8 @@
 # basictimerapp - a really simple timer application.
 # This should be run using the command line:
 # pythonwin /app demos\basictimerapp.py
+from __future__ import absolute_import
+from __future__ import print_function
 import win32ui
 import win32api
 import win32con
@@ -9,6 +11,7 @@ from pywin.framework import app, cmdline, dlgappcore, cmdline
 import timer
 import time
 import string
+from pywin.xtypes.moves import range
 
 class TimerAppDialog(dlgappcore.AppDialog):
 	softspace=1

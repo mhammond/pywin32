@@ -1,5 +1,6 @@
 # dbgpyapp.py  - Debugger Python application class
 #
+from __future__ import absolute_import
 import win32con
 import win32ui
 import sys

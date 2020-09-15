@@ -4,6 +4,8 @@
 #
 # We also grab the FileOpen command, to invoke our Python editor
 " The PythonWin application code. Manages most aspects of MDI, etc "
+from __future__ import absolute_import
+from __future__ import print_function
 import win32con
 import win32api
 import win32ui
@@ -16,6 +18,7 @@ import traceback
 import regutil
 
 from . import scriptutils
+from pywin.xtypes.moves import range, input
 
 ## NOTE: App and AppBuild should NOT be used - instead, you should contruct your
 ## APP class manually whenever you like (just ensure you leave these 2 params None!)
@@ -158,6 +161,15 @@ class CApp(WinApp):
 		AppBuilder = None
 		return 0
 
+	def CallAfter(self, func, *args, **kw):
+		# execute `func` after pending messages have been handled - like
+		# wx.CallAfter
+		def _ca_handler(handler, count):
+			try: func(*args, **kw)
+			finally:
+				self.DeleteIdleHandler(_ca_handler)
+		self.AddIdleHandler(_ca_handler)
+		return _ca_handler
 	def HaveIdleHandler(self, handler):
 		return handler in self.idleHandlers
 	def AddIdleHandler(self, handler):
@@ -181,7 +193,7 @@ class CApp(WinApp):
 						pass
 					thisRet = 0
 				ret = ret or thisRet
-			return ret
+			return ret	# Nonzero to receive more idle processing time
 		except KeyboardInterrupt:
 			pass
 	def CreateMainFrame(self):

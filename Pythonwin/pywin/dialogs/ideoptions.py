@@ -1,5 +1,6 @@
 # The property page to define generic IDE options for Pythonwin
 
+from __future__ import absolute_import
 from pywin.mfc import dialog
 from pywin.framework import interact
 import win32ui

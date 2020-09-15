@@ -1,4 +1,5 @@
 # ModuleBrowser.py - A view that provides a module browser for an editor document.
+from __future__ import absolute_import
 import pywin.mfc.docview
 import win32ui
 import win32con

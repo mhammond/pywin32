@@ -12,6 +12,7 @@
 ## Originally by Willy Heineman <wheineman@uconect.net>
 
 
+from __future__ import absolute_import
 import win32con
 import win32ui
 from pywin.mfc import window, dialog, afxres

@@ -2,6 +2,7 @@
 #
 # base classes for dialog based apps.
 
+from __future__ import absolute_import
 from . import app
 import win32ui
 import win32con

@@ -2,6 +2,7 @@
 
 # Also demo of a GUI thread, pretty much direct from the MFC C++ sample MTMDI.
 
+from __future__ import absolute_import
 import win32ui
 import win32con
 import win32api
@@ -9,6 +10,7 @@ import timer
 
 from pywin.mfc import window, docview, thread
 from pywin.mfc.thread import WinThread
+from pywin.xtypes.moves import range
 
 
 WM_USER_PREPARE_TO_CLOSE = win32con.WM_USER + 32

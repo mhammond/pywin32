@@ -17,6 +17,7 @@
 # Note that it will _always_ prompt you if the file in the editor has been modified.
 
 
+from __future__ import absolute_import
 import win32ui
 import win32api
 import win32con
@@ -28,6 +29,7 @@ import traceback
 from pywin.mfc import docview, dialog, afxres
 
 from pywin.framework.editor import GetEditorOption, SetEditorOption, GetEditorFontOption, SetEditorFontOption, defaultCharacterFormat
+from pywin.xtypes.moves import range, input
 
 patImport=regex.symcomp('import \(<name>.*\)')
 patIndent=regex.compile('^\\([ \t]*[~ \t]\\)')

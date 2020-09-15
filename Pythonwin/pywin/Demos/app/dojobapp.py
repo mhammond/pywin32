@@ -5,6 +5,7 @@
 # This should be run using the command line:
 # pythonwin /app demos\dojobapp.py
 
+from __future__ import absolute_import
 import win32ui
 import win32api
 import win32con

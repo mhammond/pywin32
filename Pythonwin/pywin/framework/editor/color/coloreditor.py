@@ -1,5 +1,7 @@
 # Color Editor originally by Neil Hodgson, but restructured by mh to integrate
 # even tighter into Pythonwin.
+from __future__ import absolute_import
+from __future__ import print_function
 import win32ui
 import win32con
 import win32api
@@ -9,6 +11,7 @@ import pywin.scintilla.keycodes
 from pywin.scintilla import bindings
 
 from pywin.framework.editor import GetEditorOption, SetEditorOption, GetEditorFontOption, SetEditorFontOption, defaultCharacterFormat
+from pywin.xtypes.moves import range
 #from pywin.framework.editor import EditorPropertyPage
 
 MSG_CHECK_EXTERNAL_FILE = win32con.WM_USER+1999 ## WARNING: Duplicated in document.py and editor.py
@@ -17,6 +20,7 @@ MSG_CHECK_EXTERNAL_FILE = win32con.WM_USER+1999 ## WARNING: Duplicated in docume
 MARKER_BOOKMARK = 0
 MARKER_BREAKPOINT = 1
 MARKER_CURRENT = 2
+MARKER_LASTPOS = 3
 
 from pywin.debugger import dbgcon
 from pywin.scintilla.document import CScintillaDocument
@@ -39,9 +43,11 @@ class SyntEditDocument(EditorDocumentBase):
 SyntEditViewParent=pywin.scintilla.view.CScintillaView
 class SyntEditView(SyntEditViewParent):
 	"A view of a SyntEdit.  Obtains data from document."
+	
 	def __init__(self, doc):
 		SyntEditViewParent.__init__(self, doc)
 		self.bCheckingFile = 0
+		self.list_lastpos = []
 
 	def OnInitialUpdate(self):
 		SyntEditViewParent.OnInitialUpdate(self)
@@ -61,6 +67,8 @@ class SyntEditView(SyntEditViewParent):
 
 		self.SCIMarkerDefine(MARKER_CURRENT, scintillacon.SC_MARK_ARROW)
 		self.SCIMarkerSetBack(MARKER_CURRENT, win32api.RGB(0xff, 0xff, 0x00))
+
+		self.SCIMarkerDefineAll(MARKER_LASTPOS, scintillacon.SC_MARK_ARROWS, win32api.RGB(0x00, 0x0, 0xC0), win32api.RGB(0x40, 0x00, 0x00))
 
 		# Define the folding markers
 		if 1: #traditional markers
@@ -231,7 +239,14 @@ class SyntEditView(SyntEditViewParent):
 
 	def OnRClick(self,params):
 		menu = win32ui.CreatePopupMenu()
-		self.AppendMenu(menu, "&Locate module", "LocateModule")
+		from pywin.debugger import currentDebugger as d
+		self.AppendMenu(menu, "&Locate object\tCtrl+L", "LocateObject")	 # Ctrl+L set in win32ui.rc
+		self.AppendMenu(menu, "&Locate object / external viewer", "LocateObjectEx")
+		if d and d.IsBreak():
+			lineno = self.GetCurLineNumber() + 1
+			self.AppendMenu(menu, flags=win32con.MF_SEPARATOR)
+			self.AppendMenu(menu, "&Debugger continue to line %s" % lineno, "OnDebuggerContinueToLine")
+			self.AppendMenu(menu, "&Debugger jump to line %s" % lineno, "OnDebuggerJumpToLine")
 		self.AppendMenu(menu, flags=win32con.MF_SEPARATOR)
 		self.AppendMenu(menu, "&Undo", "EditUndo")
 		self.AppendMenu(menu, '&Redo', 'EditRedo')
@@ -294,6 +309,91 @@ class SyntEditView(SyntEditViewParent):
 	#######################################
 	# The Events
 	#######################################
+	
+	def GotoStartOfFileEvent(self, event):
+		line0 = self.GetCurLineNumber()
+		if line0 > 25 and line0 < self.GetLineCount() - 10:
+			# frequently we check/change the top of doc and then return to last edit pos
+			self.AddLastPosEvent()
+		self.SetSel(0)
+	def GotoEndOfFileEvent(self, event):
+		line0 = self.GetCurLineNumber()
+		if line0 > 15 and line0 < self.GetLineCount() - 25:
+			# frequently we check/change the top of doc and then return to last edit pos
+			self.AddLastPosEvent()
+		self.SetSel(-1)
+
+	def GotoNextPosEvent(self, event, fromPos=-1):
+		""" Move to the next edit position (big jumps by locate/search...)
+		"""
+		##print "::GotoNextPosEvent", event
+		if fromPos==-1:
+			fromPos, end = self.GetSel()
+		startLine = self.LineFromChar(fromPos)+1 # Zero based line to start
+		nextLine = self.GetDocument().MarkerGetNext(startLine+1, MARKER_LASTPOS)-1
+		if nextLine<0:
+			nextLine = self.GetDocument().MarkerGetNext(0, MARKER_LASTPOS)-1
+		if nextLine <0 or nextLine == startLine-1:
+			win32api.MessageBeep()
+		else:
+			self.SCIEnsureVisible(nextLine)
+			self.SCIGotoLine(nextLine)
+		
+	def GotoPrevPosEvent(self, event, fromPos=-1):
+		""" Move to the prev edit position (big jumps by locate/search...)
+		"""
+		if fromPos==-1:
+			fromPos, end = self.GetSel()
+		startLine = self.LineFromChar(fromPos)+1 # Zero based line to start
+		nextLine = self.GetDocument().MarkerGetPrev(startLine-1, MARKER_LASTPOS)-1
+		if nextLine<0:
+			nextLine = self.GetDocument().MarkerGetPrev(99999, MARKER_LASTPOS)-1
+		if nextLine <0 or nextLine == startLine-1:
+			win32api.MessageBeep()
+		else:
+			self.SCIEnsureVisible(nextLine)
+			self.SCIGotoLine(nextLine)
+	
+	def GotoFollowingPosEvent(self, event, reverse=False):
+		return self.GotoLastPosEvent(event, reverse=True)
+	def GotoLastPosEvent(self, event, reverse=False):
+		""" Move to the last edit position (before big jumps by locate/search ...)
+		"""
+		lst = self.list_lastpos
+		for h in (reverse and lst or lst[::-1]):
+			line = self.SCIMarkerLineFromHandle(h)
+			if line >= 0:
+				# first valid marker from the end of the list
+				self.SCIEnsureVisible(line)
+				self.SCIGotoLine(line)
+				# move last to first for cylcing the list
+				self.list_lastpos.remove(h)
+				self.list_lastpos.insert(reverse and len(self.list_lastpos) or 0, h)
+				break
+			# remove dead invalid handle
+			self.list_lastpos.remove(h)
+		else:
+			win32api.MessageBeep()
+		
+	def AddLastPosEvent(self, event='add', pos = -1):
+		"""Add/Toggle a last pos marker at the specified or current position
+		"""
+		if pos==-1:
+			pos, end = self.GetSel()
+		startLine = self.LineFromChar(pos)
+		doc = self.GetDocument()
+		if doc.MarkerCheck(startLine+1, MARKER_LASTPOS):
+			# SCI_MARKERHANDLEFROMLINE not in DLL so far -> rely on "remove dead
+			# invalid handle"
+			##h = self.SCIMarkerHandleFromLine(startLine)
+			##if h in self.list_lastpos:
+			##	self.list_lastpos.remove(h)
+			doc.MarkerDelete(startLine+1, MARKER_LASTPOS)
+			if event != 'add':
+				return	# toggle (key event)
+		h = doc.MarkerAdd(startLine+1, MARKER_LASTPOS)
+		self.list_lastpos.append(h)
+
 	def ToggleBookmarkEvent(self, event, pos = -1):
 		"""Toggle a bookmark at the specified or current position
 		"""
@@ -318,6 +418,23 @@ class SyntEditView(SyntEditViewParent):
 			self.SCIEnsureVisible(nextLine)
 			self.SCIGotoLine(nextLine)
 		return 0
+	
+	def GotoPrevBookmarkEvent(self, event, fromPos=-1):
+		""" Move to the prev bookmark
+		"""
+		if fromPos==-1:
+			fromPos, end = self.GetSel()
+		startLine = self.LineFromChar(fromPos)+1 # Zero based line to start
+		nextLine = self.GetDocument().MarkerGetPrev(startLine-1, MARKER_BOOKMARK)-1
+		if nextLine<0:
+			nextLine = self.GetDocument().MarkerGetPrev(99999, MARKER_BOOKMARK)-1
+		if nextLine <0 or nextLine == startLine-1:
+			win32api.MessageBeep()
+		else:
+			self.SCIEnsureVisible(nextLine)
+			self.SCIGotoLine(nextLine)
+		return 0
+	
 
 	def TabKeyEvent(self, event):
 		"""Insert an indent.  If no selection, a single indent, otherwise a block indent

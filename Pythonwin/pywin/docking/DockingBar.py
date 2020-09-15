@@ -6,6 +6,7 @@
 # Currently we support only one child per DockingBar.  Later we need to add
 # support for multiple children.
 
+from __future__ import absolute_import
 import win32api, win32con, win32ui
 from pywin.mfc import afxres, window
 import struct

@@ -13,6 +13,7 @@
 # choice.  However, you should investigate using the tree control directly
 # to provide maximum flexibility (but with extra work).
 
+from __future__ import absolute_import
 import sys
 import win32ui 
 import win32con
@@ -21,6 +22,7 @@ from win32api import RGB
 
 from pywin.mfc import object, window, docview, dialog
 import commctrl
+from pywin.xtypes.moves import map, range
 
 # helper to get the text of an arbitary item
 def GetItemText(item):
@@ -216,6 +218,7 @@ class HierList(object.Object):
 				hold = old_handles[iold]
 				if hold in self.filledItemHandlesMap:
 					self.Refresh(hold)
+				hAfter = old_handles[iold]
 			else:
 				# Remove the deleted items.
 #				print "Deleting %d (%s)" % (iold, old_items[iold])
@@ -226,7 +229,6 @@ class HierList(object.Object):
 					if hchild in self.filledItemHandlesMap:
 						del self.filledItemHandlesMap[hchild]
 				self.listControl.DeleteItem(hdelete)
-			hAfter = old_handles[iold]
 		# Fill any remaining new items:
 		for newItem in new_items[inew:]:
 #			print "Inserting new item", newItem
