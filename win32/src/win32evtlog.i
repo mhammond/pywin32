@@ -579,7 +579,7 @@ static PyObject *FormatMessageInternal(EVT_HANDLE metadata, EVT_HANDLE event, DW
 	}
 
 	if (flags == EvtFormatMessageKeyword) {
-		buf[returned_size * sizeof(WCHAR)] = L'\0';
+		buf[returned_size] = L'\0';
 	}
 
 	if (flags == EvtFormatMessageKeyword) {
