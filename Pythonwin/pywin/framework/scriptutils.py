@@ -398,7 +398,7 @@ def ImportFile():
 	# module.__file__ - so we must take a copy (ie, items() in py2k,
 	# list(items()) in py3k)
 	for key, mod in list(sys.modules.items()):
-		if hasattr(mod, '__file__'):
+		if getattr(mod, '__file__', None):
 			fname = mod.__file__
 			base, ext = os.path.splitext(fname)
 			if ext.lower() in ['.pyo', '.pyc']:
