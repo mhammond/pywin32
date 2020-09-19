@@ -37,6 +37,8 @@ Notable changes in this transition:
   it matches the old Python 2 behavior. If you use arrays of VT_UI1 and expect
   get back tuples of integers, your code may break.
 
+* Pythonwin's default encoding is now utf-8 (#1559)
+
 Since build 227:
 ----------------
 * Support for for win32evtlog.EvtFormatMessage and EvtCreateRenderContext

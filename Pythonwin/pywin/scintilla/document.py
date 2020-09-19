@@ -113,10 +113,10 @@ class CScintillaDocument(ParentScintillaDocument):
 
 		# Translate from source encoding to UTF-8 bytes for Scintilla
 		source_encoding = self.source_encoding
-		# If we don't know an encoding, just use latin-1 to treat
-		# it as bytes...
+		# If we don't know an encoding, try utf-8 - if that fails we will
+		# fallback to latin-1 to treat it as bytes...
 		if source_encoding is None:
-			source_encoding = 'latin1'
+			source_encoding = 'utf-8'
 		# we could optimize this by avoiding utf8 to-ing and from-ing,
 		# but then we would lose the ability to handle invalid utf8
 		# (and even then, the use of encoding aliases makes this tricky)
@@ -154,16 +154,16 @@ class CScintillaDocument(ParentScintillaDocument):
 				source_encoding = self.source_encoding
 			else:
 				# no BOM - look for an encoding.
-				bits = re.split("[\r\n]*", s, 3)
+				bits = re.split("[\r\n]+", s, 3)
 				for look in bits[:-1]:
 					match = re_encoding_text.search(look)
 					if match is not None:
 						source_encoding = match.group(1)
 						self.source_encoding = source_encoding
 						break
-	
+
 			if source_encoding is None:
-				source_encoding = 'latin1'
+				source_encoding = 'utf-8'
 
 		## encode data before opening file so script is not lost if encoding fails
 		file_contents = s.encode(source_encoding)
