@@ -598,13 +598,6 @@ static struct PyMethodDef propsys_methods[] = {
     {NULL, NULL},
 };
 
-// MSDN says CLSID_PropertyChangeArray can be used to create IPropertyChangeArray, but
-// I get "Class not registered".  Plus, it doesn't appear in any headers, although
-// it's contained in uuid.lib.
-#ifndef CLSID_PropertyChangeArray
-EXTERN_C const CLSID CLSID_PropertyChangeArray;
-#endif
-
 static const PyCom_InterfaceSupportInfo g_interfaceSupportData[] = {
     PYCOM_INTERFACE_FULL(InitializeWithFile),
     PYCOM_INTERFACE_FULL(InitializeWithStream),
@@ -623,7 +616,6 @@ static const PyCom_InterfaceSupportInfo g_interfaceSupportData[] = {
     PYCOM_INTERFACE_CLIENT_ONLY(ObjectWithPropertyKey),
     PYCOM_INTERFACE_CLIENT_ONLY(PropertyChange),
     PYCOM_INTERFACE_CLIENT_ONLY(PropertyChangeArray),
-    PYCOM_INTERFACE_CLSID_ONLY(PropertyChangeArray),
 };
 
 /* Module initialisation */
