@@ -73,10 +73,7 @@ else: # try pywin32
     def getIndexedValue(obj,index):
         return obj(index) 
 
-try:
-    from collections import Mapping
-except ImportError:  # Python 2.5
-    Mapping = dict   # this will handle the most common case
+from collections.abc import Mapping
 
 # --- define objects to smooth out Python3000 <-> Python 2.x differences
 unicodeType = str
