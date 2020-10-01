@@ -550,7 +550,7 @@ static PyObject *PyFindExecutable(PyObject *self, PyObject *args)
             if (rc == (HINSTANCE)31)
                 PyErr_SetString(PyWinExc_ApiError, "FindExecutable: There is no association for the file");
             else
-                PyWin_SetAPIError("FindExecutable", (int)rc);
+                PyWin_SetAPIError("FindExecutable", (INT_PTR)rc);
         }
         else ret = Py_BuildValue("(NN)", PyWinLong_FromHANDLE(rc), PyWinObject_FromTCHAR(res));
     }
@@ -1306,7 +1306,7 @@ static PyObject *PyLoadCursor(PyObject *self, PyObject *args)
     if (!PyWinObject_AsResourceId(obid, &id))
         return NULL;
     // @pyseeapi LoadCursor
-    PyW32_BEGIN_ALLOW_THREADS HCURSOR ret = ::LoadCursor(hInstance, MAKEINTRESOURCE(id));
+    PyW32_BEGIN_ALLOW_THREADS HCURSOR ret = ::LoadCursor(hInstance, MAKEINTRESOURCE((ULONG_PTR)id));
     PyW32_END_ALLOW_THREADS PyWinObject_FreeResourceId(id);
     if (ret == NULL)
         ReturnAPIError("LoadCursor");
@@ -1937,7 +1937,7 @@ static PyObject *PyGetProcAddress(PyObject *self, PyObject *args)
     if (proc == NULL)
         return ReturnAPIError("GetProcAddress");
     // @pyseeapi GetProcAddress
-    return PyWinLong_FromVoidPtr(proc);
+    return PyWinLong_FromVoidPtr((PVOID)proc);
 }
 
 // @pymethod <o PyUnicode>|win32api|GetDllDirectory|Returns the DLL search path
@@ -4569,7 +4569,7 @@ static PyObject *PyShellExecute(PyObject *self, PyObject *args)
         PyW32_BEGIN_ALLOW_THREADS HINSTANCE rc = ::ShellExecute(hwnd, op, file, params, dir, show);
         PyW32_END_ALLOW_THREADS
             // @pyseeapi ShellExecute
-            if (rc <= (HINSTANCE)32) PyWin_SetAPIError("ShellExecute", (int)rc);
+            if (rc <= (HINSTANCE)32) PyWin_SetAPIError("ShellExecute", (INT_PTR)rc);
         else ret = PyWinLong_FromVoidPtr(rc);
     }
     PyWinObject_FreeTCHAR(op);
@@ -5533,8 +5533,8 @@ static PyObject *PyApply(PyObject *self, PyObject *args)
     }
     PyThreadState *stateSave = PyThreadState_Swap(NULL);
     PyThreadState_Swap(stateSave);
-    _try { ret = PyObject_CallObject(obFunc, obArgs); }
-    _except(PyApplyExceptionFilter(GetExceptionCode(), GetExceptionInformation(), obHandler, &exc_type, &exc_value))
+    __try { ret = PyObject_CallObject(obFunc, obArgs); }
+    __except(PyApplyExceptionFilter(GetExceptionCode(), GetExceptionInformation(), obHandler, &exc_type, &exc_value))
     {
         // Do my best to restore the thread state to a sane spot.
         PyThreadState *stateCur = PyThreadState_Swap(NULL);

@@ -188,8 +188,8 @@ static struct PyMethodDef win2kras_functions[] = {
     {NULL, NULL}};
 
 #define ADD_CONSTANT(tok)                                \
-    if (rc = PyModule_AddIntConstant(module, #tok, tok)) \
-    return rc
+    if (int rc = PyModule_AddIntConstant(module, #tok, tok)) \
+    { return rc; }
 
 static int AddConstants(PyObject *module)
 {

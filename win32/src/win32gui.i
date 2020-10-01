@@ -14,8 +14,12 @@
 %{
 // #define UNICODE
 // #define _UNICODE // for CRT string functions
+#ifndef _WIN32_IE
 #define _WIN32_IE 0x0501 // to enable balloon notifications in Shell_NotifyIcon
+#endif
+#ifndef _WIN32_WINNT
 #define _WIN32_WINNT 0x0501
+#endif
 #ifdef WINXPGUI
 // This changes the entire world for XP!
 #define ISOLATION_AWARE_ENABLED 1
@@ -24,6 +28,17 @@
 %}
 %include "typemaps.i"
 %include "pywintypes.i"
+
+%typedef POINT POINT;
+%typedef RECT RECT;
+%typedef MSG MSG;
+%typedef TRACKMOUSEEVENT TRACKMOUSEEVENT;
+%typedef PAINTSTRUCT PAINTSTRUCT;
+%typedef ICONINFO ICONINFO;
+%typedef LOGFONT LOGFONT;
+%typedef MENUITEMINFO MENUITEMINFO;
+%typedef NOTIFYICONDATA NOTIFYICONDATA;
+%typedef OPENFILENAME OPENFILENAME;
 
 %{
 #undef PyHANDLE
@@ -373,14 +388,14 @@ typedef float HDC, HCURSOR, HINSTANCE, HMENU, HICON, HGDIOBJ, HIMAGELIST, HACCEL
 }
 
 %apply COLORREF {long};
-typedef long COLORREF
+typedef long COLORREF;
 
 typedef HANDLE WPARAM;
 typedef HANDLE LPARAM;
 typedef HANDLE LRESULT;
 typedef int UINT;
 
-%typedef void *NULL_ONLY
+%typedef void *NULL_ONLY;
 
 %typemap(python,in) NULL_ONLY {
 	if ($source != Py_None) {
@@ -1767,9 +1782,9 @@ static PyObject *PyGetBufferAddressAndLen(PyObject *self, PyObject *args)
 %native (PyGetBufferAddressAndLen) PyGetBufferAddressAndLen;
 
 
-%typedef TCHAR *STRING_OR_ATOM_CW
-%typedef TCHAR *RESOURCE_ID
-%typedef TCHAR *RESOURCE_ID_NULLOK
+%typedef TCHAR *STRING_OR_ATOM_CW;
+%typedef TCHAR *RESOURCE_ID;
+%typedef TCHAR *RESOURCE_ID_NULLOK;
 
 %typemap(python,arginit) STRING_OR_ATOM_CW, RESOURCE_ID, RESOURCE_ID_NULLOK{
 	$target=NULL;
@@ -7511,13 +7526,13 @@ PyObject *PyRegisterDeviceNotification(PyObject *self, PyObject *args)
 				"structure says it has %d bytes, but %d was provided",
 				(int)struct_bytes, (int)nbytes);
 	// @pyseeapi RegisterDeviceNotification
-	HDEVNOTIFY not;
+	HDEVNOTIFY notify;
 	Py_BEGIN_ALLOW_THREADS
-	not = RegisterDeviceNotification(handle, (void *)filter, flags);
+	notify = RegisterDeviceNotification(handle, (void *)filter, flags);
 	Py_END_ALLOW_THREADS
-	if (not == NULL)
+	if (notify == NULL)
 		return PyWin_SetAPIError("RegisterDeviceNotification");
-	return PyWinObject_FromHDEVNOTIFY(not);
+	return PyWinObject_FromHDEVNOTIFY(notify);
 }
 %}
 %native(RegisterDeviceNotification) PyRegisterDeviceNotification;

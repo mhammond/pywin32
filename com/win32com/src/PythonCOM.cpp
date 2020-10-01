@@ -713,7 +713,7 @@ static PyObject *pythoncom_UnwrapObject(PyObject *self, PyObject *args)
     IInternalUnwrapPythonObject *pUnwrapper;
     if (S_OK !=
         (hr = ((PyIUnknown *)ob)->m_obj->QueryInterface(IID_IInternalUnwrapPythonObject, (void **)&pUnwrapper))) {
-        PyErr_Format(PyExc_ValueError, "argument is not a Python gateway (0x%x)", hr);
+        PyErr_Format(PyExc_ValueError, "argument is not a Python gateway (0x%X)", hr);
         return NULL;
     }
     PyObject *retval;

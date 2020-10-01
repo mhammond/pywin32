@@ -54,7 +54,7 @@
 #endif
 
 #include "win32dynamicdialog.h"
-static void DwordAlign(PCHAR *ptr)
+void DwordAlign(PCHAR *ptr)
 {
     size_t offset = ((ULONG_PTR)*ptr) & 0x03;
     if (offset > 0) {
@@ -599,7 +599,7 @@ static BOOL ParseDlgItemList(CPythonDialogTemplate *dlg, PyObject *tmpl)
         goto cleanup;
 
     if (IS_INTRESOURCE(wclass))
-        ret = dlg->Add((WORD)wclass, &tpl, caption);
+        ret = dlg->Add((LPWSTR)wclass, &tpl, caption);
     else
         ret = dlg->Add(wclass, &tpl, caption, datalen, data);
 

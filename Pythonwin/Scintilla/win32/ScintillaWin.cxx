@@ -12,6 +12,7 @@
 #include <assert.h>
 #include <limits.h>
 
+#undef _WIN32_WINNT
 #define _WIN32_WINNT  0x0500
 #include <windows.h>
 #include <commctrl.h>
@@ -1028,7 +1029,7 @@ sptr_t ScintillaWin::WndProc(unsigned int iMessage, uptr_t wParam, sptr_t lParam
 #endif
 
 	default:
-		return ScintillaBase::WndProc(iMessage, wParam, lParam);
+		return WndProc(iMessage, wParam, lParam);
 	}
 	return 0l;
 }
@@ -2323,7 +2324,7 @@ bool ScintillaWin::Unregister() {
 bool ScintillaWin::HasCaretSizeChanged() {
 	if (
 		( (0 != vs.caretWidth) && (sysCaretWidth != vs.caretWidth) )
-		|| (0 != vs.lineHeight) && (sysCaretHeight != vs.lineHeight)
+		|| ( (0 != vs.lineHeight) && (sysCaretHeight != vs.lineHeight) )
 		) {
 		return true;
 	}

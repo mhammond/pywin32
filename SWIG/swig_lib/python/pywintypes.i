@@ -33,6 +33,8 @@ typedef long LONG;
 typedef unsigned long ULONG;
 %apply unsigned long {ULONG};
 
+typedef STARTUPINFO STARTUPINFO;
+%apply STARTUPINFO {STARTUPINFO};
 
 %{
 #include "PyWinTypes.h"
@@ -53,6 +55,7 @@ typedef unsigned long ULONG;
 }
 
 // Override the SWIG default for this.
+%typedef PyObject PyObject;
 %typemap(python,out) PyObject *{
 	if ($source==NULL) return NULL; // get out now!
 	$target = $source;
@@ -62,7 +65,7 @@ typedef unsigned long ULONG;
 // Map API functions that return BOOL to
 // functions that return None, but raise exceptions.
 // These functions must set the win32 LastError.
-%typedef BOOL BOOLAPI
+%typedef BOOL BOOLAPI;
 
 %typemap(python,out) BOOLAPI {
 	$target = Py_None;
@@ -79,7 +82,7 @@ typedef unsigned long ULONG;
       }
 }
 
-%typedef DWORD DWORDAPI
+%typedef DWORD DWORDAPI;
 
 %typemap(python,out) DWORDAPI {
 	$target = Py_None;
@@ -108,11 +111,13 @@ typedef unsigned long ULONG;
 	}
 }
 
+%typedef TCHAR TCHAR;
 %typemap(python,in) TCHAR * {
 	if (!PyWinObject_AsTCHAR($source, &$target, FALSE))
 		return NULL;
 }
 
+%typedef WCHAR WCHAR;
 %typemap(python,arginit) TCHAR *,OLECHAR *, WCHAR *
 {
 	$target = NULL;
@@ -198,6 +203,7 @@ typedef unsigned long ULONG;
 		return NULL;
 }
 
+%typedef OVERLAPPED OVERLAPPED;
 %typemap(python,in) OVERLAPPED *
 {
 	if (!PyWinObject_AsOVERLAPPED($source, &$target, TRUE))
@@ -252,6 +258,7 @@ typedef unsigned long ULONG;
 }
 
 
+%typedef SECURITY_ATTRIBUTES SECURITY_ATTRIBUTES;
 
 %typemap(python,in) SECURITY_ATTRIBUTES *{
 	if (!PyWinObject_AsSECURITY_ATTRIBUTES($source, &$target))
@@ -406,6 +413,7 @@ typedef float HWND;
 // LARGE_INTEGER support
 //
 //---------------------------------------------------------------------------
+%typedef LARGE_INTEGER LARGE_INTEGER;
 %typemap(python,in) LARGE_INTEGER {
 	if (!PyWinObject_AsLARGE_INTEGER($source, &$target))
 		return NULL;
@@ -415,6 +423,7 @@ typedef float HWND;
 	if (!PyWinObject_AsLARGE_INTEGER($source, $target))
 		return NULL;
 }
+%typedef ULARGE_INTEGER ULARGE_INTEGER;
 %typemap(python,in) ULARGE_INTEGER {
 	if (!PyWinObject_AsULARGE_INTEGER($source, &$target))
 		return NULL;
@@ -529,6 +538,7 @@ typedef float HWND;
 // TIME
 //
 //---------------------------------------------------------------------------
+%typedef FILETIME FILETIME;
 %typemap(python,in) FILETIME * {
 	if (!PyWinObject_AsFILETIME($source, $target, FALSE))
 		return NULL;
@@ -567,6 +577,7 @@ typedef float HWND;
 // SOCKET support.
 //
 //---------------------------------------------------------------------------
+%typedef UINT_PTR SOCKET;
 %typemap(python,in) SOCKET *(SOCKET sockettemp)
 {
 	$target = &sockettemp;
@@ -596,6 +607,6 @@ typedef float HWND;
 #endif
   PyWinGlobals_Ensure();
   PyDict_SetItemString(d, "error", PyWinExc_ApiError);
-#endif SWIG_PYTHONCOM
+#endif // SWIG_PYTHONCOM
 %}
 

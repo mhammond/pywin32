@@ -4,8 +4,17 @@
 // <nl>The Evt* functions are only available on Vista and later.  Attempting to call
 //	them on XP will result in the process exiting, rather than a python exception.
 
+%{
+#ifndef _MSC_VER
+#undef _WIN32_WINNT
+#define _WIN32_WINNT 0x0600 // for EVT_SUBSCRIBE_NOTIFY_ACTION
+#endif
+%}
+
 %include "typemaps.i"
 %include "pywin32.i"
+
+%typedef HANDLE EVT_HANDLE;
 
 %{
 
@@ -14,6 +23,12 @@
 #undef PyHANDLE
 #include "PyWinObjects.h"
 #include "WinEvt.h"
+
+#ifndef _MSC_VER
+// http://msdn.microsoft.com/en-us/library/windows/desktop/aa385781%28v=vs.85%29.aspx
+#define EVT_VARIANT_TYPE_ARRAY  128
+#define EVT_VARIANT_TYPE_MASK   0x7F
+#endif
 
 // @object PyEVTLOG_HANDLE|Object representing a handle to the windows event log.
 //   Identical to <o PyHANDLE>, but calls CloseEventLog() on destruction

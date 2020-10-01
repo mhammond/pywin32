@@ -15,7 +15,9 @@
 %include "pywintypes.i"
 
 %{
+#undef _WIN32_IE
 #define _WIN32_IE 0x0501 // to enable balloon notifications in Shell_NotifyIcon
+#undef _WIN32_WINNT
 #define _WIN32_WINNT 0x0501
 //#define ISOLATION_AWARE_ENABLED 1
 
@@ -92,6 +94,8 @@ typedef float HDC;
 	if (!PyWinObject_AsHANDLE($source, (HANDLE *)&$target))
 		return NULL;
 }
+
+%typedef RECT RECT;
 
 %typemap(python,ignore) RECT *OUTPUT(RECT temp)
 {

@@ -256,7 +256,7 @@ STDMETHODIMP PyGViewObject::Draw(
         Py_BuildValue("llll", lprcWBounds->left, lprcWBounds->top, lprcWBounds->right, lprcWBounds->bottom);
     if (oblprcWBounds == NULL)
         return PyCom_HandlePythonFailureToCOM();
-    PyObject *obFuncContinue = PyLong_FromVoidPtr(pfnContinue);
+    PyObject *obFuncContinue = PyLong_FromVoidPtr((void*)pfnContinue);
     if (obFuncContinue == NULL)
         return PyCom_HandlePythonFailureToCOM();
     PyObject *obContinue = PyWinObject_FromULONG_PTR(dwContinue);

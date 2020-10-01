@@ -394,7 +394,7 @@ STDMETHODIMP PyGOleInPlaceSiteWindowless::InvalidateRgn(
     /* [in] */ BOOL fErase)
 {
     PY_GATEWAY_METHOD;
-    HRESULT hr = InvokeViaPolicy("InvalidateRgn", NULL, "li", (long)hRGN, fErase);
+    HRESULT hr = InvokeViaPolicy("InvalidateRgn", NULL, "li", (long*)hRGN, fErase);
     return hr;
 }
 

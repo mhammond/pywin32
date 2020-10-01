@@ -449,11 +449,12 @@ const char *RESearch::Compile(const char *pattern, int length, bool caseSensitiv
 	char mask;             /* xor mask -CCL/NCL */
 	int c1, c2, prevChar;
 
-	if (!pattern || !length)
+	if (!pattern || !length) {
 		if (sta)
 			return 0;
 		else
 			return badpat("No previous regular expression");
+	}
 	sta = NOP;
 
 	const char *p=pattern;     /* pattern pointer   */

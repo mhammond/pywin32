@@ -17,7 +17,7 @@ generates Windows .hlp files.
 #include "PyWinTypes.h"
 #include "htmlhelp.h"
 
-#define DllExport _declspec(dllexport)
+#define DllExport __declspec(dllexport)
 
 #if _MSC_VER == 1500
 // This uses htmlhelp.lib, which causes an unresolved external for
@@ -2544,13 +2544,11 @@ data tuple items must be integers");
 
 // Module constants:
 #define ADD_CONSTANT(tok)                                \
-    if (rc = PyModule_AddIntConstant(module, #tok, tok)) \
+    if (int rc = PyModule_AddIntConstant(module, #tok, tok)) \
     return rc
 
 int AddConstants(PyObject *module)
 {
-    int rc;
-
 #ifdef _DEBUG
     int debug = 1;
 #else
@@ -3090,8 +3088,6 @@ int AddConstants(PyObject *module)
     ADD_CONSTANT(HH_GPROPID_CONTENT_LANGUAGE);
     // @const win32help|HH_GPROPID_CONTENT_LANGUAGE|long: LandId for desired
     // content.
-
-    return rc;
 }
 
 /* List of functions exported by this module */

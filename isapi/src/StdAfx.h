@@ -45,6 +45,10 @@
 // avoid anyone accidently using the wrong WRITE_RESTRICTED...
 #undef WRITE_RESTRICTED
 
+#ifndef _MSC_VER
+#define HSE_REQ_SET_FLUSH_FLAG (HSE_REQ_END_RESERVED+43)
+#endif
+
 // See PEP-353 - this is the "official" test...
 #if PY_VERSION_HEX < 0x02050000 && !defined(PY_SSIZE_T_MIN)
 // 2.3 and before have no Py_ssize_t

@@ -16,6 +16,13 @@
 #undef PyHANDLE // undef earlier define, so we are back to the class.
 #include "pywinobjects.h"
 
+#ifndef _MSC_VER
+#define INTERNET_OPTION_HTTP_DECODING		 65
+#define INTERNET_OPTION_CODEPAGE_PATH		100
+#define INTERNET_OPTION_CODEPAGE_EXTRA		101
+#define INTERNET_OPTION_IDN			102
+#endif
+
 void CALLBACK PyHINTERNET_StatusChange(
 	HINTERNET hInternet,
 	DWORD_PTR dwContext,

@@ -1005,7 +1005,7 @@ PDH_STATUS __stdcall PyCounterPathCallback(DWORD_PTR dwArg)
     {                                                             \
         if (i < seqLen) {                                         \
             PyObject *subItem = PyTuple_GET_ITEM(flags_tuple, i); \
-            myCfg.cfg.##r = PyObject_IsTrue(subItem);             \
+            myCfg.cfg.r = PyObject_IsTrue(subItem);             \
         }                                                         \
     }
 

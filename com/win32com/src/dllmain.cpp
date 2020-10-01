@@ -133,7 +133,7 @@ BOOL WINAPI DllMain(HANDLE hInstance, DWORD dwReason, LPVOID lpReserved)
         **       tell us).
         */
 
-        /* We don't assume anything about Python's init state here!
+        /* We don't assume anything about Python's init state here! */
 
         /*
         ** we don't need to be notified about threads
@@ -309,7 +309,7 @@ HRESULT DoRegisterUnregister(LPCSTR fileName, int argc, char **argv)
         PySys_SetArgv(argc, argv);
 #else
         PySys_SetArgv(argc, __wargv);
-#endif;
+#endif
 
         if (PyRun_SimpleFile(fp, (char *)fileName) != 0) {
             // Convert the Python error to a HRESULT.

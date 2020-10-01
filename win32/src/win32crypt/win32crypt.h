@@ -1,6 +1,6 @@
 #define Py_USE_NEW_NAMES
 
-#define DllExport _declspec(dllexport)
+#define DllExport __declspec(dllexport)
 #include "windows.h"
 #include "Python.h"
 #include "structmember.h"

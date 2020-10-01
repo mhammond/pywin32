@@ -495,10 +495,12 @@ static PyObject *PyCertEnumSystemStore(PyObject *self, PyObject *args, PyObject 
     }
 
     if (pvSystemStoreLocationPara != NULL)
+    {
         if (dwFlags & CERT_SYSTEM_STORE_RELOCATE_FLAG)
             PyWinObject_FreeWCHAR((WCHAR *)cssrp.pwszSystemStore);
         else
             PyWinObject_FreeWCHAR((WCHAR *)pvSystemStoreLocationPara);
+    }
     return ret;
 }
 
@@ -582,34 +584,34 @@ static PyObject *PyCertOpenStore(PyObject *self, PyObject *args, PyObject *kwarg
     }
     else {
         switch ((ULONG_PTR)StoreProvider) {
-            case CERT_STORE_PROV_PHYSICAL:
-            case CERT_STORE_PROV_FILENAME:
-            case CERT_STORE_PROV_SYSTEM:
-            case CERT_STORE_PROV_SYSTEM_REGISTRY:
-            case CERT_STORE_PROV_LDAP: {
+            case (ULONG_PTR)CERT_STORE_PROV_PHYSICAL:
+            case (ULONG_PTR)CERT_STORE_PROV_FILENAME:
+            case (ULONG_PTR)CERT_STORE_PROV_SYSTEM:
+            case (ULONG_PTR)CERT_STORE_PROV_SYSTEM_REGISTRY:
+            case (ULONG_PTR)CERT_STORE_PROV_LDAP: {
                 if (!PyWinObject_AsWCHAR(obpvPara, (WCHAR **)&pvPara))
                     return NULL;
                 free_wchar = TRUE;
                 break;
             }
-            case CERT_STORE_PROV_REG: {
+            case (ULONG_PTR)CERT_STORE_PROV_REG: {
                 if (!PyWinObject_AsHKEY(obpvPara, (HKEY *)&pvPara))
                     return NULL;
                 break;
             }
-            case CERT_STORE_PROV_FILE: {
+            case (ULONG_PTR)CERT_STORE_PROV_FILE: {
                 if (!PyWinObject_AsHANDLE(obpvPara, (HANDLE *)&pvPara))
                     return NULL;
                 break;
             }
-            case CERT_STORE_PROV_SERIALIZED:
-            case CERT_STORE_PROV_PKCS7: {
+            case (ULONG_PTR)CERT_STORE_PROV_SERIALIZED:
+            case (ULONG_PTR)CERT_STORE_PROV_PKCS7: {
                 if (!PyWinObject_AsReadBuffer(obpvPara, (void **)&crypt_data_blob.pbData, &crypt_data_blob.cbData))
                     return NULL;
                 pvPara = (void *)&crypt_data_blob;
                 break;
             }
-            case CERT_STORE_PROV_MEMORY: {
+            case (ULONG_PTR)CERT_STORE_PROV_MEMORY: {
                 // pvPara is not used, warn if something passed in
                 if (obpvPara != Py_None)
                     PyErr_Warn(PyExc_RuntimeWarning, "Para ignored for CERT_STORE_PROV_MEMORY");

@@ -24,9 +24,8 @@
 %{
 #ifndef MS_WINCE
 //#define FAR
-#ifndef _WIN32_WINNT
+#undef _WIN32_WINNT
 #define _WIN32_WINNT 0x0600
-#endif
 
 // bug #752
 // Include windows.h before winsock2 because with older SDKs the latter may
@@ -69,6 +68,9 @@
 
 %include "typemaps.i"
 %include "pywin32.i"
+
+%typedef DCB DCB;
+%typedef COMMTIMEOUTS COMMTIMEOUTS;
 
 %{
 
@@ -5375,7 +5377,7 @@ static PyObject *py_GetFullPathName(PyObject *self, PyObject *args, PyObject *kw
 		return NULL;
 
 	WCHAR *wpathin;
-	if (wpathin=PyUnicode_AsUnicode(obpathin)){
+	if (wpathin==PyUnicode_AsUnicode(obpathin)){
 		if (htrans)
 			CHECK_PFN(GetFullPathNameTransactedW);
 		WCHAR *wpathret=NULL, *wfilepart, *wpathsave=NULL;
@@ -5414,7 +5416,7 @@ static PyObject *py_GetFullPathName(PyObject *self, PyObject *args, PyObject *kw
 
 	PyErr_Clear();
 	char *cpathin;
-	if (cpathin=PyString_AsString(obpathin)){
+	if (cpathin==PyString_AsString(obpathin)){
 		if (htrans)
 			CHECK_PFN(GetFullPathNameTransactedA);
 		char *cpathret=NULL, *cfilepart, *cpathsave=NULL;

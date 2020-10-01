@@ -72,9 +72,12 @@ PyObject *PyIConverterSession::MIMEToMAPI(PyObject *self, PyObject *args)
 	IMessage *pMsg = NULL;
 		
 	if (!PyCom_InterfaceFromPyObject(obStream, IID_IStream, (void **)&pStream, FALSE))
-		goto done;
+		if (pStream)
+			pStream->Release();
+
 	if (!PyCom_InterfaceFromPyObject(obMsg, IID_IMessage, (void **)&pMsg, FALSE))
-		goto done;
+		if (pMsg)
+			pMsg->Release();
 
 	{
 		PY_INTERFACE_PRECALL;
@@ -90,12 +93,6 @@ PyObject *PyIConverterSession::MIMEToMAPI(PyObject *self, PyObject *args)
 		result = Py_None;
 	}
 	
-done:
-	if (pStream)
-		pStream->Release();
-	if (pMsg)
-		pMsg->Release();
-		
 	return result;
 }
 
@@ -117,9 +114,12 @@ PyObject *PyIConverterSession::MAPIToMIMEStm(PyObject *self, PyObject *args)
 	IMessage *pMsg = NULL;
 
 	if (!PyCom_InterfaceFromPyObject(obMsg, IID_IMessage, (void **)&pMsg, FALSE))
-		goto done;	
+		if (pStream)
+			pStream->Release();
+	
 	if (!PyCom_InterfaceFromPyObject(obStream, IID_IStream, (void **)&pStream, FALSE))
-		goto done;
+		if (pMsg)
+			pMsg->Release();
 
 	{
 		PY_INTERFACE_PRECALL;
@@ -134,12 +134,6 @@ PyObject *PyIConverterSession::MAPIToMIMEStm(PyObject *self, PyObject *args)
 		Py_INCREF(Py_None);
 		result = Py_None;
 	}
-		
-done:
-	if (pStream)
-		pStream->Release();
-	if (pMsg)
-		pMsg->Release();
 		
 	return result;
 }
