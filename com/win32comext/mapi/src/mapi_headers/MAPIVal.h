@@ -1957,13 +1957,13 @@ __ValidateParameters(METHODS eMethod, LPVOID ppThis);
 #define CheckParameters_IMAPIAdviseSink_OnNotify( a1, a2, a3 ) \
 			 CheckParameters3( IMAPIAdviseSink_OnNotify, a1, a2, a3 )
 
-#if defined (_AMD64_) || defined(_X86_)
+#if defined(_AMD64_) || defined(_ARM64_)|| defined(_X86_)
 STDAPI	HrValidateParameters( METHODS eMethod, LPVOID FAR *ppFirstArg );
 #elif defined(DOS) || defined(_MAC) 
 STDAPIV	HrValidateParametersV( METHODS eMethod, ... );
 STDAPIV HrValidateParametersValist( METHODS eMethod, va_list arglist );
 #else
-#error	"Unknown Platform: MAPI is currently supported on Win32 and Win64"
+#error	"Unknown Platform: MAPI is currently supported on Win32, Win64 and WinArm64"
 #endif
 
 #ifdef __cplusplus

@@ -25,7 +25,7 @@
 #error Outlook 2010 MAPI headers or higher must be installed
 #endif
 
-#if defined(_M_X64) || defined(_M_ARM)
+#if defined(_M_X64) || defined(_M_ARM) || defined(_M_ARM64)
 #define ExpandFunction(fn, c) #fn
 #elif defined(_M_IX86)
 #define ExpandFunction(fn, c) #fn "@" #c
