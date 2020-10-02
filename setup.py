@@ -452,7 +452,7 @@ class WinExt (Extension):
 
             # MinGW doesn't define these
             self.extra_compile_args.append("-D__WIN32__")
-            if build_ext.plat_name == "win-x86_64":
+            if '64' in sys.version:
                 self.extra_compile_args.append("-D_M_AMD64")
                 self.extra_compile_args.append("-D_M_X64")
             else:
@@ -473,7 +473,7 @@ class WinExt (Extension):
                 self.extra_link_args.append("-static-libstdc++")
 
             self.extra_link_args.append("-municode")
-            if build_ext.plat_name == "win-x86_64":
+            if '64' in sys.version:
                 self.extra_link_args.append("-m64")
             else:
                 self.extra_link_args.append("-m32")
@@ -1342,7 +1342,7 @@ class mingw_build_ext(build_ext):
         self.library_dirs.append(self.build_temp)
 
         # Add extra SDK include dir & library dir
-        if self.plat_name == 'win-x86_64':
+        if '64' in sys.version:
             amd64_dir = "/amd64"
             x64_dir = "/x64"
         else:
@@ -1360,7 +1360,7 @@ class mingw_build_ext(build_ext):
 
     def _why_cant_build_extension(self, ext):
         # Return None, or a reason it can't be built.
-        if self.plat_name == 'win-x86_64' and ext.name in ['mapi', 'exchange', 'exchdapi']:
+        if '64' in sys.version and ext.name in ['mapi', 'exchange', 'exchdapi']:
             return "No 64-bit library for utility functions available."
 
         if ext.name in ['win32ui', 'win32uiole', 'dde', 'Pythonwin']:
@@ -1501,7 +1501,7 @@ class mingw_build_ext(build_ext):
             target_dir = os.path.join(self.build_lib, "pythonwin")
             mfc_files = ["mfc100mu.dll"]
 
-            if self.plat_name == 'win-x86_64':
+            if '64' in sys.version:
                 plat_dir = "x64"
             else:
                 plat_dir = "x86"
@@ -1744,7 +1744,7 @@ class mingw_build_ext(build_ext):
             swig_cmd.append("-dnone",) # we never use the .doc files.
             swig_cmd.extend(self.current_extension.extra_swig_commands)
 
-            if distutils.util.get_platform() == 'win-x86_64':
+            if '64' in sys.version:
                 swig_cmd.append("-DSWIG_PY64BIT")
             else:
                 swig_cmd.append("-DSWIG_PY32BIT")
