@@ -24,6 +24,10 @@
 %include "mapilib.i"
 
 %{
+#ifndef _MSC_VER
+#define USES_IID_IMsgServiceAdmin2
+#endif
+
 #include "mapiaux.h"
 
 #include "PythonCOMServer.h"
@@ -1050,6 +1054,7 @@ PyObject *PyOpenStreamOnFile(PyObject *self, PyObject *args)
 }
 %}
 
+#ifdef _MSC_VER
 // @pyswig <o PyIStream>|OpenStreamOnFileW|Allocates and initializes an OLE IStream object to access the contents of a file.
 %native(OpenStreamOnFileW) PyOpenStreamOnFileW;
 %{
@@ -1100,6 +1105,7 @@ PyObject *PyOpenStreamOnFileW(PyObject *self, PyObject *args)
 		return PyCom_PyObjectFromIUnknown(pStream, IID_IStream, FALSE);
 }
 %}
+#endif
 
 // @pyswig item|HrGetOneProp|Retrieves the value of a single property from an IMAPIProp object.
 %native(HrGetOneProp) PyHrGetOneProp;

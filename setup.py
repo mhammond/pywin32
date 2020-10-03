@@ -555,7 +555,6 @@ class WinExt_win32_subsys_con(WinExt_win32):
 
         if 'GCC' in sys.version:
             self.extra_link_args.append('-mconsole')
-            self.extra_link_args.append('-municode')
             self.extra_link_args.append('-nostartfiles')
         else:
             self.extra_link_args.append('/SUBSYSTEM:CONSOLE')
@@ -625,7 +624,8 @@ class WinExt_win32com_mapi(WinExt_win32com):
             if 'MSC' in sys.version:
                 libs += " version user32 advapi32 Ex2KSdk sadapi netapi32"
             else:
-                libs += " ex2ksdk version mapi32 advapi32 user32 netapi32"
+                if name == 'exchdapi':
+                    libs += " ex2ksdk version mapi32 advapi32 user32 netapi32"
         kw["libraries"] = libs
         if 'GCC' in sys.version:
             kw.setdefault('extra_compile_args', []).append("-DEXCHANGE_RE")
@@ -1360,7 +1360,7 @@ class mingw_build_ext(build_ext):
 
     def _why_cant_build_extension(self, ext):
         # Return None, or a reason it can't be built.
-        if '64' in sys.version and ext.name in ['mapi', 'exchange', 'exchdapi']:
+        if '64' in sys.version and ext.name == 'exchdapi':
             return "No 64-bit library for utility functions available."
 
         if ext.name in ['win32ui', 'win32uiole', 'dde', 'Pythonwin']:
@@ -1560,7 +1560,7 @@ class mingw_build_ext(build_ext):
                 if self.force or newer_group([source], obj, 'newer'):
                     try:
                         self.spawn(["windres", "-i", source, "-o", obj, incdir])
-                    except DistutilsSetupError:
+                    except DistutilsExecError:
                         raise
 
         # First, scan the sources for SWIG definition files (.i), run
@@ -1641,7 +1641,7 @@ class mingw_build_ext(build_ext):
                 if self.force or newer_group([source], obj, 'newer'):
                     try:
                         self.spawn(["windres", "-i", source, "-o", obj, incdir])
-                    except CCompilerError:
+                    except Exception:
                         raise
 
         # ensure the SWIG .i files are treated as dependencies.
@@ -1657,7 +1657,7 @@ class mingw_build_ext(build_ext):
 
         try:
             build_ext.build_extension(self, ext)
-        except Exception:
+        except DistutilsExecError:
             print ("WARNING: building of extension '%s' failed" % (ext.name))
             print ("")
             raise
@@ -1668,26 +1668,18 @@ class mingw_build_ext(build_ext):
         extra_exe = self.debug and "_d.exe" or ".exe"
         # *sob* - python fixed this bug in python 3.1 (bug 6403)
         # So in the fixed versions we only get the base name, and if the
-        # output name is simply 'dir\name' we need to do nothing.
+        # output name is simply 'dir\name' we need to nothing.
 
-        # The pre 3.1 pywintypes
-        if name == "pywin32_system32.pywintypes":
-            return r"pywin32_system32/pywintypes%d%d%s" % (sys.version_info[0], sys.version_info[1], extra_dll)
-        # 3.1+ pywintypes
-        elif name == "pywintypes":
-            return r"pywintypes%d%d%s" % (sys.version_info[0], sys.version_info[1], extra_dll)
-        # pre 3.1 pythoncom
-        elif name == "pywin32_system32.pythoncom":
-            return r"pywin32_system32/pythoncom%d%d%s" % (sys.version_info[0], sys.version_info[1], extra_dll)
-        # 3.1+ pythoncom
+        if name == "pywintypes":
+            return "pywintypes%d%d%s" % (sys.version_info[0], sys.version_info[1], extra_dll)
         elif name == "pythoncom":
-            return r"pythoncom%d%d%s" % (sys.version_info[0], sys.version_info[1], extra_dll)
-        # The post 3.1 rest
+            return "pythoncom%d%d%s" % (sys.version_info[0], sys.version_info[1], extra_dll)
         elif name in ['perfmondata', 'PyISAPI_loader']:
             return name + extra_dll
-        elif name in ['pythonservice', 'Pythonwin']:
-            return name + extra_exe
-
+        elif name.endswith("win32.pythonservice"):
+            return "win32\\pythonservice" + extra_exe
+        elif name.endswith("pythonwin.Pythonwin"):
+            return "pythonwin\\Pythonwin" + extra_exe
         return build_ext.get_ext_filename(self, name)
 
     def get_export_symbols(self, ext):
@@ -1857,7 +1849,7 @@ class my_compiler(base_compiler):
     # though, as we can just specify the lowercase name in the module def.
     if 'MSC' in sys.version:
         _cpp_extensions = base_compiler._cpp_extensions + [".CPP"]
-        src_extensions = base_compiler.src_extensions + [".CPP"]
+    src_extensions = base_compiler.src_extensions + [".CPP"]
 
     def link(self,
               target_desc,
@@ -2255,7 +2247,7 @@ com_extensions += [
     WinExt_win32com('axscript',
                     sources=("""
                         %(axscript)s/AXScript.cpp
-                        %(axscript)s/GUIDS.cpp                   %(axscript)s/PyGActiveScript.cpp
+                        %(axscript)s/GUIDS.CPP                   %(axscript)s/PyGActiveScript.cpp
                         %(axscript)s/PyGActiveScriptError.cpp    %(axscript)s/PyGActiveScriptParse.cpp
                         %(axscript)s/PyGActiveScriptSite.cpp     %(axscript)s/PyGObjectSafety.cpp
                         %(axscript)s/PyIActiveScript.cpp         %(axscript)s/PyIActiveScriptError.cpp
