@@ -36,7 +36,7 @@ class PYWINTYPES_EXPORT PySECURITY_ATTRIBUTES : public PyObject {
     static void deallocFunc(PyObject *ob);
     static PyObject *getattro(PyObject *self, PyObject *obname);
     static int setattro(PyObject *self, PyObject *obname, PyObject *v);
-    static struct PYWINTYPES_EXPORT PyMemberDef members[];//
+    static struct PYWINTYPES_EXPORT PyMemberDef members[];
     static struct PyMethodDef methods[];
 
     static PyObject *get_SECURITY_DESCRIPTOR(PyObject *self, void *unused);

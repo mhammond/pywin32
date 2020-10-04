@@ -807,13 +807,13 @@ static struct PyMethodDef win32ras_functions[] = {
 
 #define ADD_CONSTANT(tok)                                \
     if (int rc = PyModule_AddIntConstant(module, #tok, tok)) \
-    return rc
+    return rc;
 #define ADD_ENUM(parta, partb)                                                 \
     if (rc == PyModule_AddIntConstant(module, #parta "_" #partb, parta::partb)) \
-    return rc
+    return rc;
 #define ADD_ENUM3(parta, partb, partc)                                                           \
     if (rc == PyModule_AddIntConstant(module, #parta "_" #partb "_" #partc, parta::partb::partc)) \
-    return rc
+    return rc;
 
 static int AddConstants(PyObject *module)
 {

@@ -2545,7 +2545,7 @@ data tuple items must be integers");
 // Module constants:
 #define ADD_CONSTANT(tok)                                \
     if (int rc = PyModule_AddIntConstant(module, #tok, tok)) \
-    return rc
+    return rc;
 
 int AddConstants(PyObject *module)
 {

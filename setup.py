@@ -555,7 +555,6 @@ class WinExt_win32_subsys_con(WinExt_win32):
 
         if 'GCC' in sys.version:
             self.extra_link_args.append('-mconsole')
-            self.extra_link_args.append('-nostartfiles')
         else:
             self.extra_link_args.append('/SUBSYSTEM:CONSOLE')
 

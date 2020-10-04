@@ -1126,7 +1126,7 @@ extern "C" __declspec(dllexport)
 #else
 #define GPEM_ERROR(what)                                     \
     {                                                        \
-        errorMsg = "<Error getting traceback - "/**/what/**/">"; \
+        errorMsg = "<Error getting traceback - " what ">"; \
         goto done;                                           \
     }
 #endif
