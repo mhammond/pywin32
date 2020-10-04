@@ -65,7 +65,7 @@ def MakeDefaultArgsForPropertyPut(argsDesc):
             break
         ret.append(default)
     return tuple(ret)
-                            
+
 
 def MakeMapLineEntry(dispid, wFlags, retType, argTypes, user, resultCLSID):
     # Strip the default value
@@ -85,14 +85,14 @@ def WriteSinkEventMap(obj, stream):
         fdesc = entry.desc
         print('\t\t%9d : "%s",' % (entry.desc[0], MakeEventMethodName(entry.names[0])), file=stream)
     print('\t\t}', file=stream)
-    
+
 
 # MI is used to join my writable helpers, and the OLE
 # classes.
 class WritableItem:
     # __cmp__ used for sorting in py2x...
     def __cmp__(self, other):
-        "Compare for sorting"   
+        "Compare for sorting"
         ret = cmp(self.order, other.order)
         if ret==0 and self.doc: ret = cmp(self.doc[0], other.doc[0])
         return ret
@@ -129,7 +129,7 @@ def WriteAliasesForItem(item, aliasItems, stream):
   for alias in aliasItems.values():
     if item.doc and alias.aliasDoc and (alias.aliasDoc[0]==item.doc[0]):
       alias.WriteAliasItem(aliasItems, stream)
-      
+
 class AliasItem(build.OleItem, WritableItem):
   order = 2
   typename = "ALIAS"
@@ -192,7 +192,7 @@ class EnumerationItem(build.OleItem, WritableItem):
 ##    enumName = self.doc[0]
 ##    print >> stream "%s=constants # Compatibility with previous versions." % (enumName)
 ##    WriteAliasesForItem(self, aliasItems)
-    
+
   def WriteEnumerationItems(self, stream):
     num = 0
     enumName = self.doc[0]
@@ -204,7 +204,7 @@ class EnumerationItem(build.OleItem, WritableItem):
       vdesc = entry.desc
       if vdesc[4] == pythoncom.VAR_CONST:
         val = vdesc[1]
-        
+
         use = repr(val)
         # Make sure the repr of the value is valid python syntax
         # still could cause an error on import if it contains a module or type name
@@ -258,7 +258,7 @@ class VTableItem(build.VTableItem, WritableItem):
                 print(repr((arg[0], arg[1], defval, arg3_repr)), ",", end=' ', file=stream)
             print("],", end=' ', file=stream)
             for d in desc[3:]:
-                print(repr(d), ",", end=' ', file=stream) 
+                print(repr(d), ",", end=' ', file=stream)
             print(")),", file=stream)
         print("]", file=stream)
         print(file=stream)
@@ -410,7 +410,7 @@ class DispatchItem(build.DispatchItem, WritableItem):
                 resultDesc = details[2]
                 argDesc = ()
                 mapEntry = MakeMapLineEntry(details[0], pythoncom.DISPATCH_PROPERTYGET, resultDesc, argDesc, key, entry.GetResultCLSIDStr())
-            
+
                 if entry.desc[0]==pythoncom.DISPID_VALUE:
                     lkey = "value"
                 elif entry.desc[0]==pythoncom.DISPID_NEWENUM:
@@ -422,7 +422,7 @@ class DispatchItem(build.DispatchItem, WritableItem):
                     # All special methods, except _newenum, are written
                     # "normally".  This is a mess!
                     if entry.desc[0]==pythoncom.DISPID_NEWENUM:
-                        continue 
+                        continue
 
                 print('\t\t"%s": %s,' % (build.MakePublicAttributeName(key), mapEntry), file=stream)
         names = list(self.propMapGet.keys()); names.sort()
@@ -447,7 +447,7 @@ class DispatchItem(build.DispatchItem, WritableItem):
                     # All special methods, except _newenum, are written
                     # "normally".  This is a mess!
                     if entry.desc[0]==pythoncom.DISPID_NEWENUM:
-                        continue 
+                        continue
                 print('\t\t"%s": %s,' % (build.MakePublicAttributeName(key), mapEntry), file=stream)
 
         print("\t}", file=stream)
@@ -517,7 +517,7 @@ class DispatchItem(build.DispatchItem, WritableItem):
         print('\t\t\traise TypeError("This object does not support enumeration")', file=stream)
         # Iterator is wrapped as PyIEnumVariant, and each result of __next__ is Dispatch'ed if necessary
         print('\t\treturn win32com.client.util.Iterator(ob, %s)' %resultCLSID, file=stream)
-        
+
         if specialItems["item"]:
             entry, invoketype, propArgs = specialItems["item"]
             resultCLSID = entry.GetResultCLSIDStr()
@@ -585,7 +585,7 @@ class CoClassItem(build.OleItem, WritableItem):
     for item, flag in self.sources:
       if flag & pythoncom.IMPLTYPEFLAG_FDEFAULT:
         defItem = item
-      # If we have written a Python class, reference the name - 
+      # If we have written a Python class, reference the name -
       # otherwise just the IID.
       if item.bWritten: key = item.python_name
       else: key = repr(str(item.clsid)) # really the iid.
@@ -676,7 +676,7 @@ class Generator:
         continue
       refAttr = refType.GetTypeAttr()
       child_infos.append( (info, refAttr.typekind, refType, refType.GetDocumentation(-1), refAttr, flags) )
-      
+
     # Done generating children - now the CoClass itself.
     newItem = CoClassItem(info, attr, doc)
     return newItem, child_infos
@@ -736,7 +736,7 @@ class Generator:
     enumItems = {}
     recordItems = {}
     vtableItems = {}
-    
+
     for type_info_tuple in self.CollectOleItemInfosFromType():
       info, infotype, doc, attr = type_info_tuple
       clsid = attr[0]
@@ -936,7 +936,7 @@ class Generator:
             map[item.python_name] = item.clsid
     for item in vtableItems.values(): # No nones or CoClasses in this map
         map[item.python_name] = item.clsid
-            
+
     print("NamesToIIDMap = {", file=stream)
     for name, iid in map.items():
         print("\t'%s' : '%s'," % (name, iid), file=stream)
@@ -992,7 +992,7 @@ class Generator:
               oleItems[clsid] = oleItem # Even "None" goes in here.
               if vtableItem is not None:
                 vtableItems[clsid] = vtableItem
-                
+
       assert found, "Cant find the '%s' interface in the CoClasses, or the interfaces" % (child,)
       # Make a map of iid: dispitem, vtableitem)
       items = {}

@@ -214,7 +214,7 @@ class DispatchItem(OleItem):
 			map = self.mapFuncs
 		else:
 			map = None
-		if not map is None: 
+		if not map is None:
 #				if map.has_key(name):
 #					sys.stderr.write("Warning - overwriting existing method/attribute %s\n" % name)
 			map[name] = MapEntry(tuple(fdesc), names, doc, resultCLSID, resultDoc, hidden)
@@ -266,13 +266,13 @@ class DispatchItem(OleItem):
 		for j in range(attr[7]):
 			fdesc = typeinfo.GetVarDesc(j)
 			self._AddVar_(typeinfo,fdesc,bForUser)
-		
+
 		# Now post-process the maps.  For any "Get" or "Set" properties
 		# that have arguments, we must turn them into methods.  If a method
 		# of the same name already exists, change the name.
 		for key, item in list(self.propMapGet.items()):
 			self._propMapGetCheck_(key,item)
-					
+
 		for key, item in list(self.propMapPut.items()):
 			self._propMapPutCheck_(key,item)
 
@@ -584,7 +584,7 @@ def BuildCallList(fdesc, names, defNamedOptArg, defNamedNotOptArg, defUnnamedArg
     firstOptArg = numArgs - numOptArgs
   for arg in range(numArgs):
     try:
-      argName = names[arg+1] 
+      argName = names[arg+1]
       namedArg = argName is not None
     except IndexError:
       namedArg = 0
@@ -596,7 +596,7 @@ def BuildCallList(fdesc, names, defNamedOptArg, defNamedNotOptArg, defUnnamedArg
       # Out params always get their special default
       if thisdesc[1] & (pythoncom.PARAMFLAG_FOUT | pythoncom.PARAMFLAG_FIN) == pythoncom.PARAMFLAG_FOUT:
         defArgVal = defOutArg
-      else:          
+      else:
         # Unnamed arg - always allow default values.
         if namedArg:
           # Is a named argument

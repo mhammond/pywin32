@@ -1,21 +1,21 @@
 """Manages the cache of generated Python code.
 
 Description
-  This file manages the cache of generated Python code.  When run from the 
+  This file manages the cache of generated Python code.  When run from the
   command line, it also provides a number of options for managing that cache.
-  
+
 Implementation
   Each typelib is generated into a filename of format "{guid}x{lcid}x{major}x{minor}.py"
-  
+
   An external persistant dictionary maps from all known IIDs in all known type libraries
   to the type library itself.
-  
+
   Thus, whenever Python code knows the IID of an object, it can find the IID, LCID and version of
   the type library which supports it.  Given this information, it can find the Python module
   with the support.
-  
+
   If necessary, this support can be generated on the fly.
-  
+
 Hacks, to do, etc
   Currently just uses a pickled dictionary, but should used some sort of indexed file.
   Maybe an OLE2 compound file, or a bsddb file?
@@ -127,7 +127,7 @@ def SplitGeneratedFileName(fname):
 	"""Reverse of GetGeneratedFileName()
 	"""
 	return tuple(fname.split('x',4))
-	
+
 def GetGeneratePath():
 	"""Returns the name of the path to generate to.
 	Checks the directory is OK.
@@ -147,7 +147,7 @@ def GetGeneratePath():
 		f.write('import win32com\n')
 		f.write('if __path__[:-1] != win32com.__gen_path__: __path__.append(win32com.__gen_path__)\n')
 		f.close()
-	
+
 	return win32com.__gen_path__
 
 #
@@ -155,11 +155,11 @@ def GetGeneratePath():
 #
 def GetClassForProgID(progid):
 	"""Get a Python class for a Program ID
-	
+
 	Given a Program ID, return a Python class which wraps the COM object
-	
+
 	Returns the Python class, or None if no module is available.
-	
+
 	Params
 	progid -- A COM ProgramID or IID (eg, "Word.Application")
 	"""
@@ -168,11 +168,11 @@ def GetClassForProgID(progid):
 
 def GetClassForCLSID(clsid):
 	"""Get a Python class for a CLSID
-	
+
 	Given a CLSID, return a Python class which wraps the COM object
-	
+
 	Returns the Python class, or None if no module is available.
-	
+
 	Params
 	clsid -- A COM CLSID (or string repr of one)
 	"""
@@ -190,12 +190,12 @@ def GetClassForCLSID(clsid):
 
 def GetModuleForProgID(progid):
 	"""Get a Python module for a Program ID
-	
+
 	Given a Program ID, return a Python module which contains the
 	class which wraps the COM object.
-	
+
 	Returns the Python module, or None if no module is available.
-	
+
 	Params
 	progid -- A COM ProgramID or IID (eg, "Word.Application")
 	"""
@@ -204,15 +204,15 @@ def GetModuleForProgID(progid):
 	except pywintypes.com_error:
 		return None
 	return GetModuleForCLSID(iid)
-	
+
 def GetModuleForCLSID(clsid):
 	"""Get a Python module for a CLSID
-	
+
 	Given a CLSID, return a Python module which contains the
 	class which wraps the COM object.
-	
+
 	Returns the Python module, or None if no module is available.
-	
+
 	Params
 	progid -- A COM CLSID (ie, not the description)
 	"""
@@ -248,10 +248,10 @@ def GetModuleForCLSID(clsid):
 
 def GetModuleForTypelib(typelibCLSID, lcid, major, minor):
 	"""Get a Python module for a type library ID
-	
+
 	Given the CLSID of a typelibrary, return an imported Python module, 
 	else None
-	
+
 	Params
 	typelibCLSID -- IID of the type library.
 	major -- Integer major version.
@@ -269,10 +269,10 @@ def GetModuleForTypelib(typelibCLSID, lcid, major, minor):
 
 def MakeModuleForTypelib(typelibCLSID, lcid, major, minor, progressInstance = None, bForDemand = bForDemandDefault, bBuildHidden = 1):
 	"""Generate support for a type library.
-	
+
 	Given the IID, LCID and version information for a type library, generate
 	and import the necessary support files.
-	
+
 	Returns the Python module.  No exceptions are caught.
 
 	Params
@@ -289,11 +289,11 @@ def MakeModuleForTypelib(typelibCLSID, lcid, major, minor, progressInstance = No
 
 def MakeModuleForTypelibInterface(typelib_ob, progressInstance = None, bForDemand = bForDemandDefault, bBuildHidden = 1):
 	"""Generate support for a type library.
-	
+
 	Given a PyITypeLib interface generate and import the necessary support files.  This is useful
 	for getting makepy support for a typelibrary that is not registered - the caller can locate
 	and load the type library itself, rather than relying on COM to find it.
-	
+
 	Returns the Python module.
 
 	Params
@@ -315,12 +315,12 @@ def MakeModuleForTypelibInterface(typelib_ob, progressInstance = None, bForDeman
 
 def EnsureModuleForTypelibInterface(typelib_ob, progressInstance = None, bForDemand = bForDemandDefault, bBuildHidden = 1):
 	"""Check we have support for a type library, generating if not.
-	
+
 	Given a PyITypeLib interface generate and import the necessary
 	support files if necessary. This is useful for getting makepy support
 	for a typelibrary that is not registered - the caller can locate and
 	load the type library itself, rather than relying on COM to find it.
-	
+
 	Returns the Python module.
 
 	Params
@@ -365,13 +365,13 @@ def ForgetAboutTypelibInterface(typelib_ob):
 
 def EnsureModule(typelibCLSID, lcid, major, minor, progressInstance = None, bValidateFile=not is_readonly, bForDemand = bForDemandDefault, bBuildHidden = 1):
 	"""Ensure Python support is loaded for a type library, generating if necessary.
-	
+
 	Given the IID, LCID and version information for a type library, check and if
 	necessary (re)generate, then import the necessary support files. If we regenerate the file, there
 	is no way to totally snuff out all instances of the old module in Python, and thus we will regenerate the file more than necessary,
 	unless makepy/genpy is modified accordingly.
-	
-	
+
+
 	Returns the Python module.  No exceptions are caught during the generate process.
 
 	Params
@@ -485,7 +485,7 @@ def EnsureModule(typelibCLSID, lcid, major, minor, progressInstance = None, bVal
 				if fModTimeSet and (typLibModTime > pyModTime):
 					bReloadNeeded = 1
 					module = None
-	except (ImportError, os.error):	
+	except (ImportError, os.error):
 		module = None
 	if module is None:
 		# We need to build an item.  If we are in a read-only cache, we
@@ -662,7 +662,7 @@ __init__()
 def usage():
 	usageString = """\
 	  Usage: gencache [-q] [-d] [-r]
-	  
+
 			 -q         - Quiet
 			 -d         - Dump the cache (typelibrary description and filename).
 			 -r         - Rebuild the cache dictionary from the existing .py files
@@ -681,7 +681,7 @@ if __name__=='__main__':
 	# we only have options - complain about real args, or none at all!
 	if len(sys.argv)==1 or args:
 		print(usage())
-		
+
 	verbose = 1
 	for opt, val in opts:
 		if opt=='-d': # Dump

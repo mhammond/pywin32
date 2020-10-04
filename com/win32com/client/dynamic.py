@@ -4,9 +4,9 @@ Introduction
  Dynamic COM client support is the ability to use a COM server without
  prior knowledge of the server.  This can be used to talk to almost all
  COM servers, including much of MS Office.
- 
+
  In general, you should not use this module directly - see below.
- 
+
 Example
  >>> import win32com.client
  >>> xl = win32com.client.Dispatch("Excel.Application")
@@ -288,7 +288,7 @@ class CDispatch:
 				return ob
 			return self._wrap_dispatch_(ob, userName, ReturnCLSID)
 		return ob
-		
+
 	def _get_good_object_(self,ob,userName = None, ReturnCLSID=None):
 		"""Given an object (usually the retval from a method), make it a good object to return.
 		   Basically checks if it is a COM object, and wraps it up.
@@ -324,9 +324,9 @@ class CDispatch:
 			debug_print("Error building OLE definition for code ", methodCode)
 			traceback.print_exc()
 		return None
-		
+
 	def _Release_(self):
-		"""Cleanup object - like a close - to force cleanup when you dont 
+		"""Cleanup object - like a close - to force cleanup when you dont
 		   want to rely on Python's reference counting."""
 		for childCont in self._mapCachedItems_.values():
 			childCont._Release_()
@@ -347,7 +347,7 @@ class CDispatch:
 			return self._get_good_object_(self._oleobj_.Invoke(*(dispId, LCID, item.desc[4], 0) + (args) ))
 		except KeyError:
 			raise AttributeError(name)
-		
+
 	def _print_details_(self):
 		"Debug routine - dumps what it knows about an object."
 		print("AxDispatch container",self._username_)
@@ -447,7 +447,7 @@ class CDispatch:
 					import win32com.client.util
 					return win32com.client.util.Iterator(self.ob)
 			return Factory(enum)
-			
+
 		if attr.startswith('_') and attr.endswith('_'): # Fast-track.
 			raise AttributeError(attr)
 		# If a known method, create new instance and return.

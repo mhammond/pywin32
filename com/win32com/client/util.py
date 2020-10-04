@@ -9,7 +9,7 @@ from win32com.client import Dispatch, _get_good_object_
 PyIDispatchType = pythoncom.TypeIIDs[pythoncom.IID_IDispatch]
 
 def WrapEnum(ob, resultCLSID = None):
-	"""Wrap an object in a VARIANT enumerator.  
+	"""Wrap an object in a VARIANT enumerator.
 
 	All VT_DISPATCHs returned by the enumerator are converted to wrapper objects
 	(which may be either a class instance, or a dynamic.Dispatch type object).
@@ -25,8 +25,8 @@ class Enumerator:
 	By wrapping a PyIEnum* object in this class, you can perform
 	natural looping and indexing into the Enumerator.
 
-	Looping is very efficient, but it should be noted that although random 
-	access is supported, the underlying object is still an enumerator, so 
+	Looping is very efficient, but it should be noted that although random
+	access is supported, the underlying object is still an enumerator, so
 	this will force many reset-and-seek operations to find the requested index.
 
 	"""
@@ -37,11 +37,11 @@ class Enumerator:
 		return self.__GetIndex(index)
 	def __call__(self, index):
 		return self.__GetIndex(index)
-	
+
 	def __GetIndex(self, index):
 		if type(index)!=type(0): raise TypeError("Only integer indexes are supported for enumerators")
 		# NOTE
-		# In this context, self.index is users purely as a flag to say 
+		# In this context, self.index is users purely as a flag to say
 		# "am I still in sequence".  The user may call Next() or Reset() if they
 		# so choose, in which case self.index will not be correct (although we
 		# still want to stay in sequence)

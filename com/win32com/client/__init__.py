@@ -49,19 +49,19 @@ def GetObject(Pathname = None, Class = None, clsctx = None):
 
     ob = GetObject(Class = "ProgID") or GetObject(Class = clsid) will
     connect to an already running instance of the COM object.
-    
+
     ob = GetObject(r"c:\blah\blah\foo.xls") (aka the COM moniker syntax)
     will return a ready to use Python wrapping of the required COM object.
 
     Note: You must specifiy one or the other of these arguments. I know
     this isn't pretty, but it is what VB does. Blech. If you don't
     I'll throw ValueError at you. :)
-    
+
     This will most likely throw pythoncom.com_error if anything fails.
   """
   if clsctx is None:
     clsctx = pythoncom.CLSCTX_ALL
-    
+
   if (Pathname is None and Class is None) or \
      (Pathname is not None and Class is not None):
     raise ValueError("You must specify a value for Pathname or Class, but not both.")
@@ -69,12 +69,12 @@ def GetObject(Pathname = None, Class = None, clsctx = None):
   if Class is not None:
     return GetActiveObject(Class, clsctx)
   else:
-    return Moniker(Pathname, clsctx)    
+    return Moniker(Pathname, clsctx)
 
 def GetActiveObject(Class, clsctx = pythoncom.CLSCTX_ALL):
   """
     Python friendly version of GetObject's ProgID/CLSID functionality.
-  """  
+  """
   resultCLSID = pywintypes.IID(Class)
   dispatch = pythoncom.GetActiveObject(resultCLSID)
   dispatch = dispatch.QueryInterface(pythoncom.IID_IDispatch)
@@ -87,7 +87,7 @@ def Moniker(Pathname, clsctx = pythoncom.CLSCTX_ALL):
   moniker, i, bindCtx = pythoncom.MkParseDisplayName(Pathname)
   dispatch = moniker.BindToObject(bindCtx, None, pythoncom.IID_IDispatch)
   return __WrapDispatch(dispatch, Pathname, clsctx=clsctx)
-  
+
 def Dispatch(dispatch, userName = None, resultCLSID = None, typeinfo = None, UnicodeToString=None, clsctx = pythoncom.CLSCTX_SERVER):
   """Creates a Dispatch based COM object.
   """
@@ -99,7 +99,7 @@ def DispatchEx(clsid, machine=None, userName = None, resultCLSID = None, typeinf
   """Creates a Dispatch based COM object on a specific machine.
   """
   assert UnicodeToString is None, "this is deprecated and will go away"
-  # If InProc is registered, DCOM will use it regardless of the machine name 
+  # If InProc is registered, DCOM will use it regardless of the machine name
   # (and regardless of the DCOM config for the object.)  So unless the user
   # specifies otherwise, we exclude inproc apps when a remote machine is used.
   if clsctx is None:
@@ -108,7 +108,7 @@ def DispatchEx(clsid, machine=None, userName = None, resultCLSID = None, typeinf
   if machine is None:
     serverInfo = None
   else:
-    serverInfo = (machine,)          
+    serverInfo = (machine,)
   if userName is None: userName = clsid
   dispatch = pythoncom.CoCreateInstanceEx(clsid, None, clsctx, serverInfo, (pythoncom.IID_IDispatch,))[0]
   return Dispatch(dispatch, userName, resultCLSID, typeinfo, clsctx=clsctx)
@@ -247,7 +247,7 @@ def DispatchWithEvents(clsid, user_event_class):
   >>> ie = DispatchWithEvents("InternetExplorer.Application", IEEvents)
   >>> ie.Visible = 1
   Visible changed: 1
-  >>> 
+  >>>
   """
   # Create/Get the object.
   disp = Dispatch(clsid)
@@ -362,7 +362,7 @@ def getevents(clsid):
     Beware of creating Python circular references: this will happen if your
     handler has a reference to an object that has a reference back to
     the event source. Call the 'close' method to break the chain.
-    
+
     Example:
 
     >>>win32com.client.gencache.EnsureModule('{EAB22AC0-30C1-11CF-A7EB-0000C05BAE0B}',0,1,1)
@@ -374,7 +374,7 @@ def getevents(clsid):
     ...
     >>>
     >>> ie=win32com.client.Dispatch("InternetExplorer.Application.1")
-    >>> events=InternetExplorerEvents(ie) 
+    >>> events=InternetExplorerEvents(ie)
     >>> ie.Visible=1
     Visibility changed:  1
     >>>
