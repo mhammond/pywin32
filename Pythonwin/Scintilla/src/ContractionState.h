@@ -8,44 +8,59 @@
 #ifndef CONTRACTIONSTATE_H
 #define CONTRACTIONSTATE_H
 
+#ifdef SCI_NAMESPACE
 namespace Scintilla {
+#endif
 
 /**
-*/
-class IContractionState {
+ */
+class ContractionState {
+	// These contain 1 element for every document line.
+	RunStyles *visible;
+	RunStyles *expanded;
+	RunStyles *heights;
+	Partitioning *displayLines;
+	int linesInDocument;
+
+	void EnsureData();
+
+	bool OneToOne() const {
+		// True when each document line is exactly one display line so need for
+		// complex data structures.
+		return visible == 0;
+	}
+
 public:
-	virtual ~IContractionState() {};
+	ContractionState();
+	virtual ~ContractionState();
 
-	virtual void Clear()=0;
+	void Clear();
 
-	virtual Sci::Line LinesInDoc() const=0;
-	virtual Sci::Line LinesDisplayed() const=0;
-	virtual Sci::Line DisplayFromDoc(Sci::Line lineDoc) const=0;
-	virtual Sci::Line DisplayLastFromDoc(Sci::Line lineDoc) const=0;
-	virtual Sci::Line DocFromDisplay(Sci::Line lineDisplay) const=0;
+	int LinesInDoc() const;
+	int LinesDisplayed() const;
+	int DisplayFromDoc(int lineDoc) const;
+	int DocFromDisplay(int lineDisplay) const;
 
-	virtual void InsertLines(Sci::Line lineDoc, Sci::Line lineCount)=0;
-	virtual void DeleteLines(Sci::Line lineDoc, Sci::Line lineCount)=0;
+	void InsertLine(int lineDoc);
+	void InsertLines(int lineDoc, int lineCount);
+	void DeleteLine(int lineDoc);
+	void DeleteLines(int lineDoc, int lineCount);
 
-	virtual bool GetVisible(Sci::Line lineDoc) const=0;
-	virtual bool SetVisible(Sci::Line lineDocStart, Sci::Line lineDocEnd, bool isVisible)=0;
-	virtual bool HiddenLines() const=0;
+	bool GetVisible(int lineDoc) const;
+	bool SetVisible(int lineDocStart, int lineDocEnd, bool visible);
 
-	virtual const char *GetFoldDisplayText(Sci::Line lineDoc) const=0;
-	virtual bool SetFoldDisplayText(Sci::Line lineDoc, const char *text)=0;
+	bool GetExpanded(int lineDoc) const;
+	bool SetExpanded(int lineDoc, bool expanded);
 
-	virtual bool GetExpanded(Sci::Line lineDoc) const=0;
-	virtual bool SetExpanded(Sci::Line lineDoc, bool isExpanded)=0;
-	virtual Sci::Line ContractedNext(Sci::Line lineDocStart) const=0;
+	int GetHeight(int lineDoc) const;
+	bool SetHeight(int lineDoc, int height);
 
-	virtual int GetHeight(Sci::Line lineDoc) const=0;
-	virtual bool SetHeight(Sci::Line lineDoc, int height)=0;
-
-	virtual void ShowAll()=0;
+	void ShowAll();
+	void Check() const;
 };
 
-std::unique_ptr<IContractionState> ContractionStateCreate(bool largeDocument);
-
+#ifdef SCI_NAMESPACE
 }
+#endif
 
 #endif
