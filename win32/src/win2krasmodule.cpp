@@ -193,12 +193,10 @@ static struct PyMethodDef win2kras_functions[] = {
 
 static int AddConstants(PyObject *module)
 {
-    int rc;
     ADD_CONSTANT(RASEAPF_NonInteractive);  // @const win2kras|RASEAPF_NonInteractive|Specifies that the authentication
                                            // protocol should not bring up a graphical user-interface. If this flag is
                                            // not present, it is okay for the protocol to display a user interface.
-    ADD_CONSTANT(
-        RASEAPF_Logon);  // @const win2kras|RASEAPF_Logon|Specifies that the user data is obtained from Winlogon.
+    ADD_CONSTANT(RASEAPF_Logon);  // @const win2kras|RASEAPF_Logon|Specifies that the user data is obtained from Winlogon.
     ADD_CONSTANT(RASEAPF_Preview);  // @const win2kras|RASEAPF_Preview|Specifies that the user should be prompted for
                                     // identity information before dialing.
     return 0;

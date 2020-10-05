@@ -715,7 +715,7 @@ static PyObject *PyRasGetErrorString(PyObject *self, PyObject *args)
 
     TCHAR buf[512];
     // @pyseeapi RasGetErrorString
-    if (rc == RasGetErrorString(error, buf, sizeof(buf) / sizeof(buf[0])))
+    if (rc = RasGetErrorString(error, buf, sizeof(buf) / sizeof(buf[0])))
         return ReturnRasError("RasGetErrorString");
     return PyWinObject_FromTCHAR(buf);
 }
@@ -730,7 +730,7 @@ static PyObject *PyRasHangUp(PyObject *self, PyObject *args)
         return NULL;
 
     // @pyseeapi RasHangUp
-    if (rc == RasHangUp(hras))
+    if (rc = RasHangUp(hras))
         return ReturnRasError("RasHangup");
     Py_INCREF(Py_None);
     return Py_None;
@@ -809,10 +809,10 @@ static struct PyMethodDef win32ras_functions[] = {
     if (int rc = PyModule_AddIntConstant(module, #tok, tok)) \
     return rc;
 #define ADD_ENUM(parta, partb)                                                 \
-    if (rc == PyModule_AddIntConstant(module, #parta "_" #partb, parta::partb)) \
+    if (rc = PyModule_AddIntConstant(module, #parta "_" #partb, parta::partb)) \
     return rc;
 #define ADD_ENUM3(parta, partb, partc)                                                           \
-    if (rc == PyModule_AddIntConstant(module, #parta "_" #partb "_" #partc, parta::partb::partc)) \
+    if (rc = PyModule_AddIntConstant(module, #parta "_" #partb "_" #partc, parta::partb::partc)) \
     return rc;
 
 static int AddConstants(PyObject *module)

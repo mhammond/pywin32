@@ -3088,6 +3088,8 @@ int AddConstants(PyObject *module)
     ADD_CONSTANT(HH_GPROPID_CONTENT_LANGUAGE);
     // @const win32help|HH_GPROPID_CONTENT_LANGUAGE|long: LandId for desired
     // content.
+
+    return 0;
 }
 
 /* List of functions exported by this module */
