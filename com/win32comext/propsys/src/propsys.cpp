@@ -326,7 +326,7 @@ static PyObject *PyStgDeserializePropVariant(PyObject *self, PyObject *args)
     if (!PyWinObject_AsReadBuffer(ob, (void **)&pspv, &bufsize))
         return NULL;
     PY_INTERFACE_PRECALL;
-    hr = StgDeserializePropVariant(pspv, &bufsize, &pv);
+    hr = StgDeserializePropVariant(pspv, bufsize, &pv);
     PY_INTERFACE_POSTCALL;
     if (FAILED(hr))
         return PyCom_BuildPyException(hr);
