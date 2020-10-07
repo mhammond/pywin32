@@ -259,8 +259,9 @@ else:
 if 'MSC' in sys.version:
     sdk_info = find_platform_sdk_dir()
 else:
-    sdk_info = os.environ.get("SDKDIR")
+    sdk_dir = os.environ.get("SDKDIR")
     mfc_dir = os.environ.get("MFCDIR")
+    sdk_info = sdk_dir
 
 if not sdk_info:
     print()
@@ -450,9 +451,10 @@ class WinExt (Extension):
             # Set our C++ standard
             self.extra_compile_args.append("-std=c++14")
 
-            # MinGW doesn't define these
+            # MinGW-w64 doesn't define these.
             self.extra_compile_args.append("-D__WIN32__")
-            if '64' in sys.version:
+            # Why this python doesn't have plat_name?
+            if '64 bit' in sys.version:
                 self.extra_compile_args.append("-D_M_AMD64")
                 self.extra_compile_args.append("-D_M_X64")
             else:
@@ -470,10 +472,11 @@ class WinExt (Extension):
             # Avoid dll hell please
             if "static-libstdc++" not in get_config_vars()["LDSHARED"]:
                 self.extra_link_args.append("-static-libgcc")
-                self.extra_link_args.append("-static-libstdc++")
+                # Using just '-static-libstdc++' will still depends on libwinpthread-*.dll
+                self.extra_link_args.append("-Wl,-Bstatic,-lstdc++,-lwinpthread")
 
             self.extra_link_args.append("-municode")
-            if '64' in sys.version:
+            if '64 bit' in sys.version:
                 self.extra_link_args.append("-m64")
             else:
                 self.extra_link_args.append("-m32")
@@ -514,15 +517,14 @@ class WinExt_pythonwin(WinExt):
                 kw["libraries"] = kw.get("libraries", "") + " win32ui"
             kw["libraries"] = kw.get("libraries", "") + " pywintypes"
 
-            kw.setdefault("extra_link_args", []).extend(['-mthreads', '-nodefaultlibs'])
-
             # Allow multiple definition of _Unwind_Resume *fix this*
             kw.setdefault("extra_link_args", []).extend(['-Wl,--allow-multiple-definition'])
 
+            # Had to do this to disable dependency of msvcrt.dll
             kw.setdefault("extra_link_args", []).extend([
-                    '-Wl,-Bstatic,-lstdc++,-lmingw32,-lgcc,-lgcc_eh,-lmoldname,-lmingwex',
+                    '-Wl,-Bstatic,-lstdc++,-lpthread,-lmingw32,-lgcc,-lgcc_eh,-lmoldname,-lmingwex',
                     '-Wl,-Bdynamic,-loleaut32,-lgdi32,-lcomdlg32,-ladvapi32,-lshell32,-luser32,-lkernel32',
-                    '-Wl,-Bstatic,-liconv,-lmingwthrd,-lmingw32,-lgcc,-lgcc_eh,-lmoldname,-lmingwex,-lmsvcr100'])
+                    '-Wl,-Bstatic,-lmingw32,-lgcc,-lgcc_eh,-lmoldname,-lmingwex,-lmsvcr100'])
 
         WinExt.__init__(self, name, **kw)
     def get_pywin32_dir(self):
@@ -1341,15 +1343,15 @@ class mingw_build_ext(build_ext):
         self.library_dirs.append(self.build_temp)
 
         # Add extra SDK include dir & library dir
-        if '64' in sys.version:
+        if '64 bit' in sys.version:
             amd64_dir = "/amd64"
             x64_dir = "/x64"
         else:
             amd64_dir = ""
             x64_dir = ""
         # Windows SDK & Exchange SDK dirs
-        self.include_dirs.append(sdk_info + '/include')
-        self.library_dirs.append(sdk_info + '/lib' + x64_dir)
+        self.include_dirs.append(sdk_dir + '/include')
+        self.library_dirs.append(sdk_dir + '/lib' + x64_dir)
         # VC++ dirs
         self.include_dirs.append(mfc_dir + '/atlmfc/include')
         self.library_dirs.append(mfc_dir + '/atlmfc/lib' + amd64_dir)
@@ -1359,11 +1361,12 @@ class mingw_build_ext(build_ext):
 
     def _why_cant_build_extension(self, ext):
         # Return None, or a reason it can't be built.
-        if '64' in sys.version and ext.name == 'exchdapi':
+        if '64 bit' in sys.version and ext.name == 'exchdapi':
             return "No 64-bit library for utility functions available."
 
-        if ext.name in ['win32ui', 'win32uiole', 'dde', 'Pythonwin']:
-            return "Unsupported due to different ABI implementations."
+        # Remove the '#' below to disable Pythonwin extensions
+        #if ext.name in ['win32ui', 'win32uiole', 'dde', 'Pythonwin']:
+            #return "Unsupported due to different ABI implementations."
 
     def _build_scintilla(self):
         path = 'Pythonwin/Scintilla/win32'
@@ -1477,7 +1480,7 @@ class mingw_build_ext(build_ext):
             self.build_exefile(ext)
 
         # Only build scintilla if Pythonwin extensions are enabled
-        pythonwin_dir = os.path.join(self.build_temp, "pythonwin")
+        pythonwin_dir = os.path.join(self.build_temp, "Pythonwin")
         if os.path.exists(pythonwin_dir):
             self._build_scintilla()
         # Copy cpp lib files needed to create Python COM extensions
@@ -1500,7 +1503,7 @@ class mingw_build_ext(build_ext):
             target_dir = os.path.join(self.build_lib, "pythonwin")
             mfc_files = ["mfc100mu.dll"]
 
-            if '64' in sys.version:
+            if '64 bit' in sys.version:
                 plat_dir = "x64"
             else:
                 plat_dir = "x86"
@@ -1508,7 +1511,7 @@ class mingw_build_ext(build_ext):
             # Find the redist directory.
             target_file = os.path.join(target_dir, "Pythonwin.exe")
             if os.path.exists(target_file):
-                mfcdll_dir = os.path.join(mfc_dir, "redist", plat_dir, "Microsoft.VC100.MFC")
+                mfcdll_dir = os.path.join(mfc_dir, "redist", plat_dir)
                 if not os.path.isdir(mfcdll_dir):
                     raise RuntimeError("Can't find the redist dir at %r" % (mfcdll_dir))
                 for f in mfc_files:
@@ -1549,18 +1552,6 @@ class mingw_build_ext(build_ext):
             return
         else:
             log.info("building '%s' executable", ext.name)
-
-        for source in ext.sources:
-            if "Pythonwin" in ext.name and source.endswith(".rc"):
-                build_temp = os.path.join(self.build_temp, ext.name)
-                self.mkpath(os.path.join(build_temp, ext.name))
-                obj = os.path.join(build_temp, os.path.splitext(source)[0]+".rc.o")
-                incdir = "-I" + mfc_dir + "/atlmfc/include"
-                if self.force or newer_group([source], obj, 'newer'):
-                    try:
-                        self.spawn(["windres", "-i", source, "-o", obj, incdir])
-                    except DistutilsExecError:
-                        raise
 
         # First, scan the sources for SWIG definition files (.i), run
         # SWIG on 'em to create .c files, and modify the sources list
@@ -1630,18 +1621,6 @@ class mingw_build_ext(build_ext):
         self.current_extension = ext
 
         ext.finalize_options(self)
-
-        for source in ext.sources:
-            if "win32ui" in ext.name and source.endswith(".rc"):
-                build_temp = os.path.abspath(self.build_temp)
-                self.mkpath(os.path.join(build_temp, "Pythonwin"))
-                obj = os.path.join(build_temp, os.path.splitext(source)[0]+".rc.o")
-                incdir = "-I" + sdk_info + "/atlmfc/include"
-                if self.force or newer_group([source], obj, 'newer'):
-                    try:
-                        self.spawn(["windres", "-i", source, "-o", obj, incdir])
-                    except Exception:
-                        raise
 
         # ensure the SWIG .i files are treated as dependencies.
         for source in ext.sources:
@@ -1735,7 +1714,7 @@ class mingw_build_ext(build_ext):
             swig_cmd.append("-dnone",) # we never use the .doc files.
             swig_cmd.extend(self.current_extension.extra_swig_commands)
 
-            if '64' in sys.version:
+            if '64 bit' in sys.version:
                 swig_cmd.append("-DSWIG_PY64BIT")
             else:
                 swig_cmd.append("-DSWIG_PY32BIT")
@@ -2103,13 +2082,10 @@ win32_extensions += [
            windows_h_version = 0x500),
 ]
 
-win32help_libs = "htmlhelp user32 advapi32"
-if 'GCC' in sys.version:
-    win32help_libs += " runtmchk"
 win32_extensions += [
     WinExt_win32('win32help',
                  sources = ["win32/src/win32helpmodule.cpp"],
-                 libraries=win32help_libs,
+                 libraries="htmlhelp user32 advapi32",
                  windows_h_version = 0x500),
 ]
 
