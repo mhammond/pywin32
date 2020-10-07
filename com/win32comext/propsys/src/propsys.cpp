@@ -41,8 +41,17 @@
 #ifndef _MSC_VER
 DEFINE_GUID(CLSID_PropertyChangeArray, 0x380f5cad, 0x1b5e, 0x42f2, 0x80,0x5d, 0x63,0x7f,0xd3,0x92,0xd3,0x1e);
 
-PSSTDAPI StgSerializePropVariant(const PROPVARIANT *pvar, SERIALIZEDPROPERTYVALUE **ppProp, ULONG *pcb);
-PSSTDAPI StgDeserializePropVariant(const SERIALIZEDPROPERTYVALUE *pprop, ULONG *cbMax, PROPVARIANT *pvar);
+PSSTDAPI StgSerializePropVariant(
+    const PROPVARIANT       *ppropvar,
+    SERIALIZEDPROPERTYVALUE **ppProp,
+    ULONG                   *pcb
+);
+
+PSSTDAPI StgDeserializePropVariant(
+    const SERIALIZEDPROPERTYVALUE *pprop,
+    ULONG                         cbMax,
+    PROPVARIANT                   *ppropvar
+);
 #endif
 
 #define CHECK_PFN(fname)    \
