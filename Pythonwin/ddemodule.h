@@ -84,7 +84,7 @@ class PyDDEServerSystemTopic : public PyDDETopic {
 
 class PythonDDEStringItem : public CDDEStringItem {
    public:
-    ~PythonDDEStringItem() { Python_delete_assoc(this); }
+    PythonDDEStringItem::~PythonDDEStringItem() { Python_delete_assoc(this); }
 };
 
 class PyDDEStringItem : public ui_assoc_CObject {
@@ -97,7 +97,7 @@ class PyDDEStringItem : public ui_assoc_CObject {
 class PythonDDEConv : public CDDEConv {
    public:
     PythonDDEConv(CDDEServer *pServer) : CDDEConv(pServer) { ; }
-    ~PythonDDEConv() { Python_delete_assoc(this); }
+    PythonDDEConv::~PythonDDEConv() { Python_delete_assoc(this); }
 };
 
 class PyDDEConv : public ui_assoc_CObject {
