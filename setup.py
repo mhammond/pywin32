@@ -470,10 +470,10 @@ class WinExt (Extension):
                 self.extra_link_args.append("-Wl,--out-implib,%s%s.dll.a" % (implib, suffix))
    
             # Avoid dll hell please
-            if "static-libstdc++" not in get_config_vars()["LDSHARED"]:
+            if "static-libgcc" not in get_config_vars()["LDSHARED"]:
                 self.extra_link_args.append("-static-libgcc")
-                # Using just '-static-libstdc++' will still depends on libwinpthread-*.dll
-                self.extra_link_args.append("-Wl,-Bstatic,-lstdc++,-lwinpthread")
+            # Using just '-static-libstdc++' will still depends on libwinpthread-*.dll
+            self.extra_link_args.append("-Wl,-Bstatic,-lstdc++,-lwinpthread")
 
             self.extra_link_args.append("-municode")
             if '64 bit' in sys.version:
@@ -504,9 +504,9 @@ class WinExt_pythonwin(WinExt):
 
         if 'GCC' in sys.version:
             kw.setdefault("extra_compile_args", []).extend(
-                    ['-D_MD', '-D_WINDLL', '-DMINGW_HAS_SECURE_API=1'])
+                    ['-DMINGW_HAS_SECURE_API=1'])
             kw.setdefault("extra_compile_args", []).extend(
-                    ['-mthreads', '-fexceptions', '-frtti'])
+                    ['-mthreads', '-fexceptions'])
 
             kw["libraries"] = kw.get("libraries", "") + " mfc100u"
             if name == 'win32ui':
@@ -517,14 +517,15 @@ class WinExt_pythonwin(WinExt):
                 kw["libraries"] = kw.get("libraries", "") + " win32ui"
             kw["libraries"] = kw.get("libraries", "") + " pywintypes"
 
+            kw.setdefault("extra_link_args", []).extend(['-mthreads'])
             # Allow multiple definition of _Unwind_Resume *fix this*
             kw.setdefault("extra_link_args", []).extend(['-Wl,--allow-multiple-definition'])
 
             # Had to do this to disable dependency of msvcrt.dll
             kw.setdefault("extra_link_args", []).extend([
-                    '-Wl,-Bstatic,-lstdc++,-lpthread,-lmingw32,-lgcc,-lgcc_eh,-lmoldname,-lmingwex',
+                    '-Wl,-Bstatic,-lstdc++,-lwinpthread,-lmingw32,-lgcc,-lgcc_eh,-lmoldname,-lmingwex',
                     '-Wl,-Bdynamic,-loleaut32,-lgdi32,-lcomdlg32,-ladvapi32,-lshell32,-luser32,-lkernel32',
-                    '-Wl,-Bstatic,-lmingw32,-lgcc,-lgcc_eh,-lmoldname,-lmingwex,-lmsvcr100'])
+                    '-Wl,-Bstatic,-liconv,-lmingwthrd,-lmingw32,-lgcc,-lgcc_eh,-lmoldname,-lmingwex,-lmsvcr100'])
 
         WinExt.__init__(self, name, **kw)
     def get_pywin32_dir(self):
@@ -1364,9 +1365,9 @@ class mingw_build_ext(build_ext):
         if '64 bit' in sys.version and ext.name == 'exchdapi':
             return "No 64-bit library for utility functions available."
 
-        # Remove the '#' below to disable Pythonwin extensions
-        #if ext.name in ['win32ui', 'win32uiole', 'dde', 'Pythonwin']:
-            #return "Unsupported due to different ABI implementations."
+        # Comment out below to enable Pythonwin extensions
+        if ext.name in ['win32ui', 'win32uiole', 'dde', 'Pythonwin']:
+            return "Unsupported due to different ABI implementations."
 
     def _build_scintilla(self):
         path = 'Pythonwin/Scintilla/win32'
