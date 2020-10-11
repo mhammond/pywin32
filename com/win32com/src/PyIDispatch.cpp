@@ -232,7 +232,7 @@ static BOOL PyCom_FinishUntypedDISPPARAMS(DISPPARAMS *pParm, PythonOleArgHelper 
         for (UINT i = 0; i < pParm->cArgs; ++i) {
             // Do magic so PyVariant objects get updated if appropriate.
             if (pHelpers[i].m_bIsOut && pHelpers[i].m_pyVariant) {
-                PyObject *tmp = pHelpers[i].MakeVariantToObj(pParm->rgvarg + (pParm->cArgs - i - 1));
+                PyObject *tmp = pHelpers[i].MakeVariantToObj(pParm->rgvarg + i);
                 if (!tmp) {
                     ok = FALSE;
                     break;

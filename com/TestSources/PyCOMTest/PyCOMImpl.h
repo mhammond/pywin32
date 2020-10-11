@@ -55,6 +55,7 @@ class CPyCOMTest : public IDispatchImpl<IPyCOMTest, &IID_IPyCOMTest, &LIBID_PyCO
     STDMETHOD(Test4)(TestAttributes2, TestAttributes2 *);
     STDMETHOD(Test5)(TestAttributes1 *);
     STDMETHOD(Test6)(QsAttributeWide, QsAttributeWide *);
+    STDMETHOD(TestInOut)(float *, QsBoolean *, long *);
     STDMETHOD(GetSetInterface)(IPyCOMTest *ininterface, IPyCOMTest **outinterface);
     STDMETHOD(GetSetInterfaceArray)(SAFEARRAY *pin, SAFEARRAY **pout);
 

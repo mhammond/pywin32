@@ -391,6 +391,14 @@ def TestDynamic():
         if exc.hresult != winerror.DISP_E_TYPEMISMATCH:
             raise
 
+    arg1 = VARIANT(pythoncom.VT_R4 | pythoncom.VT_BYREF, 2.0)
+    arg2 = VARIANT(pythoncom.VT_BOOL | pythoncom.VT_BYREF, True)
+    arg3 = VARIANT(pythoncom.VT_I4 | pythoncom.VT_BYREF, 4)
+    o.TestInOut(arg1, arg2, arg3)
+    assert arg1.value == 4.0, arg1
+    assert arg2.value == False
+    assert arg3.value == 8
+
     # damn - props with params don't work for dynamic objects :(
     # o.SetParamProp(0, 1)
     # if o.ParamProp(0) != 1:
@@ -458,6 +466,8 @@ def TestGenerated():
     TestApplyResult(o.Test6, (constants.WideAttr3,), constants.WideAttr3)
     TestApplyResult(o.Test6, (constants.WideAttr4,), constants.WideAttr4)
     TestApplyResult(o.Test6, (constants.WideAttr5,), constants.WideAttr5)
+
+    TestApplyResult(o.TestInOut, (2.0, True, 4), (4.0, False, 8))
 
     o.SetParamProp(0, 1)
     if o.ParamProp(0) != 1:

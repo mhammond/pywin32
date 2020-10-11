@@ -10,6 +10,16 @@ Note that, baring some major issue building and cutting the release, build
 
 Since build 228:
 ----------------
+* Fixed a bug where win32com.client.VARIANT params were returned in the reverse
+  order. This only happened when win32com.client.VARIANT was explicitly used
+  (ie, not when normal params were passed) For example:
+  ```python
+      arg1 = VARIANT(pythoncom.VT_R4 | pythoncom.VT_BYREF, 2.0)
+      arg2 = VARIANT(pythoncom.VT_BOOL | pythoncom.VT_BYREF, True)
+      object.SomeFunction(arg1, arg2)
+  ```
+  after this call, `arg1.value` was actually the value for `arg2`, and
+  vice-versa (#1303, #622).
 
 * Changed how Services implemented with win32serviceutil.ServiceFramework
   report that they have stopped. Now if the SvcRun() method (or the SvcDoRun()

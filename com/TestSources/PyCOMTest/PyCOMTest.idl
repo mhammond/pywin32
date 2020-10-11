@@ -199,6 +199,8 @@ library PyCOMTestLib
 		HRESULT Test5([in, out] TestAttributes1 *inout);
 		HRESULT Test6([in] QsAttributeWide inval, [out, retval] QsAttributeWide* retval);
 
+		HRESULT TestInOut([in, out] float *fval, [in, out] QsBoolean *bval, [in, out] long *lval);
+
 		// Test IDispatch in and byref.
 		HRESULT GetSetInterface([in] IPyCOMTest *ininterface, [out, retval] IPyCOMTest **outinterface);
 		HRESULT GetSetInterfaceArray([in] SAFEARRAY(IPyCOMTest) ininterface, [out, retval] SAFEARRAY(IPyCOMTest) *outinterface);
