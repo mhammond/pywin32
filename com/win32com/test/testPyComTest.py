@@ -262,8 +262,8 @@ def TestCommon(o, is_generated):
     TestConstant("LongTest2", ensure_long(0x7FFFFFFF))
     TestConstant("UCharTest", 255)
     TestConstant("CharTest", -1)
-    # 'Hello Loraine', but the 'r' is the "Registered" sign (\xae)
-    TestConstant("StringTest", "Hello Lo\xaeaine")
+    # 'Hello World', but the 'r' is the "Registered" sign (\xae)
+    TestConstant("StringTest", "Hello Wo\xaeld")
 
     progress("Checking dates and times")
     if issubclass(pywintypes.TimeType, datetime.datetime):
