@@ -11,9 +11,7 @@ jobs:
       fail-fast: false
       matrix:
         include: [
-          { msystem: MINGW64, arch: x86_64 },
-          { msystem: MINGW32, arch: i686   }
-        ]
+          { msystem: MINGW64, arch: x86_64 }]
     steps:
 
       - uses: actions/checkout@v2
