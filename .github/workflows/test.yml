@@ -25,6 +25,9 @@ jobs:
           install: git base-devel mingw-w64-${{ matrix.arch }}-toolchain
           update: true
 
+      - name: Build package
+        run: python setup.py --skip-verstamp build
+
       - name: Move Checkout
         run: |
           Copy-Item -Path ".\temp" -Destination "C:\_" -Recurse
