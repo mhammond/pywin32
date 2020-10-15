@@ -1,8 +1,12 @@
-name: main
+name: MinGW-w64
 
 on:
   push:
+    branches:
+    - master
   pull_request:
+    branches:
+    - master
 
 jobs:
   build:
@@ -25,26 +29,15 @@ jobs:
           install: git base-devel mingw-w64-${{ matrix.arch }}-toolchain
           update: true
 
+      - name: Show runner information
+        run: |
+          python --version
+
+      - name: Set Python user directory
+        run: echo "::set-env name=USER_DIR::$(python -c 'import os,site;print(os.path.dirname(site.USER_SITE))', end='')"
+
       - name: Build package
         run: python setup.py --skip-verstamp build
 
-      - name: Move Checkout
-        run: |
-          Copy-Item -Path ".\temp" -Destination "C:\_" -Recurse
-      - name: CI-Build
-        shell: msys2 {0}
-        run: |
-          cd /C/_
-          MINGW_INSTALLS=${{ matrix.msystem }} ./ci-build.sh
-      - name: "Upload binaries"
-        uses: actions/upload-artifact@v2
-        with:
-          name: ${{ matrix.msystem }}-packages
-          path: C:/_/artifacts/*.pkg.tar.*
-
-      - name: "Upload sources"
-        uses: actions/upload-artifact@v2
-        with:
-          name: sources
-          path: C:/_/artifacts/*.src.tar.*
-
+      - name: Install package
+        run: python setup.py install --user
