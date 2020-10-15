@@ -259,8 +259,8 @@ else:
 if 'MSC' in sys.version:
     sdk_info = find_platform_sdk_dir()
 else:
-    sdk_dir = os.environ.get("SDKDIR")
-    mfc_dir = os.environ.get("MFCDIR")
+    sdk_dir = os.environ.get("SDKDIR") or ""
+    mfc_dir = os.environ.get("MFCDIR") or ""
     sdk_info = sdk_dir
 
 if not sdk_info:
@@ -523,9 +523,9 @@ class WinExt_pythonwin(WinExt):
 
             # Had to do this to disable dependency of msvcrt.dll
             kw.setdefault("extra_link_args", []).extend([
-                    '-Wl,-Bstatic,-lstdc++,-lwinpthread,-lmingw32,-lgcc,-lgcc_eh,-lmoldname,-lmingwex',
+                    '-Wl,-Bstatic,-lstdc++,-lwinpthread -Wl,-Bdynamic,-lmingwthrd,-lmingw32,-lgcc,-lgcc_eh,-lmoldname,-lmingwex',
                     '-Wl,-Bdynamic,-loleaut32,-lgdi32,-lcomdlg32,-ladvapi32,-lshell32,-luser32,-lkernel32',
-                    '-Wl,-Bstatic,-liconv,-lmingwthrd,-lmingw32,-lgcc,-lgcc_eh,-lmoldname,-lmingwex,-lmsvcr100'])
+                    '-Wl,-Bdynamic,-lmingwthrd,-lmingw32,-lgcc,-lgcc_eh,-lmoldname,-lmingwex,-lmsvcr100,-lkernel32'])
 
         WinExt.__init__(self, name, **kw)
     def get_pywin32_dir(self):

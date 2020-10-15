@@ -27,7 +27,7 @@ jobs:
         with:
           msystem: ${{ matrix.msystem }}
           install: git base-devel mingw-w64-${{ matrix.arch }}-toolchain
-          update: true
+          update: false
 
       - name: Show runner information
         run: |

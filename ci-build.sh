@@ -27,9 +27,9 @@ test -z "${packages}" && success 'No changes in package recipes'
 define_build_order || failure 'Could not determine build order'
 
 # Build
-message 'Building packages' "${packages[@]}"
+message 'Building packages' "${packages[@mingw-w64-python-pywin32]}"
 execute 'Approving recipe quality' check_recipe_quality
-for package in "${packages[@]}"; do
+for package in "${packages[@mingw-w64-python-pywin32]}"; do
     execute 'Building binary' makepkg-mingw --noconfirm --noprogressbar --nocheck --syncdeps --rmdeps --cleanbuild
     execute 'Building source' makepkg --noconfirm --noprogressbar --allsource --config '/etc/makepkg_mingw64.conf'
     execute 'Installing' yes:pacman --noprogressbar --upgrade *"${PKGEXT}"
