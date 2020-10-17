@@ -260,7 +260,6 @@ if 'MSC' in sys.version:
     sdk_info = find_platform_sdk_dir()
 else:
     sdk_dir = os.environ.get("SDKDIR") or ""
-    mfc_dir = os.environ.get("MFCDIR") or ""
     sdk_info = sdk_dir
 
 if not sdk_info:
@@ -500,32 +499,7 @@ class WinExt (Extension):
 class WinExt_pythonwin(WinExt):
     def __init__ (self, name, **kw):
         kw.setdefault("extra_compile_args", []).extend(
-                            ['-D_AFXDLL', '-D_AFXEXT'])
-
-        if 'GCC' in sys.version:
-            kw.setdefault("extra_compile_args", []).extend(
-                    ['-DMINGW_HAS_SECURE_API=1'])
-            kw.setdefault("extra_compile_args", []).extend(
-                    ['-mthreads', '-fexceptions'])
-
-            kw["libraries"] = kw.get("libraries", "") + " mfc100u"
-            if name == 'win32ui':
-                kw["libraries"] = kw.get("libraries", "") + " winspool"
-            elif name == 'win32uiole':
-                kw["libraries"] = kw.get("libraries", "") + " win32ui pythoncom"
-            elif name == 'dde':
-                kw["libraries"] = kw.get("libraries", "") + " win32ui"
-            kw["libraries"] = kw.get("libraries", "") + " pywintypes"
-
-            kw.setdefault("extra_link_args", []).extend(['-mthreads'])
-            # Allow multiple definition of _Unwind_Resume *fix this*
-            kw.setdefault("extra_link_args", []).extend(['-Wl,--allow-multiple-definition'])
-
-            # Had to do this to disable dependency of msvcrt.dll
-            kw.setdefault("extra_link_args", []).extend([
-                    '-Wl,-Bstatic,-lstdc++,-lwinpthread -Wl,-Bdynamic,-lmingwthrd,-lmingw32,-lgcc,-lgcc_eh,-lmoldname,-lmingwex',
-                    '-Wl,-Bdynamic,-loleaut32,-lgdi32,-lcomdlg32,-ladvapi32,-lshell32,-luser32,-lkernel32',
-                    '-Wl,-Bdynamic,-lmingwthrd,-lmingw32,-lgcc,-lgcc_eh,-lmoldname,-lmingwex,-lmsvcr100,-lkernel32'])
+                            ['-D_AFXDLL', '-D_AFXEXT','-D_MBCS'])
 
         WinExt.__init__(self, name, **kw)
     def get_pywin32_dir(self):
@@ -1345,17 +1319,12 @@ class mingw_build_ext(build_ext):
 
         # Add extra SDK include dir & library dir
         if '64 bit' in sys.version:
-            amd64_dir = "/amd64"
             x64_dir = "/x64"
         else:
-            amd64_dir = ""
             x64_dir = ""
-        # Windows SDK & Exchange SDK dirs
+        # Windows SDK & Exchange SDK custom dirs
         self.include_dirs.append(sdk_dir + '/include')
         self.library_dirs.append(sdk_dir + '/lib' + x64_dir)
-        # VC++ dirs
-        self.include_dirs.append(mfc_dir + '/atlmfc/include')
-        self.library_dirs.append(mfc_dir + '/atlmfc/lib' + amd64_dir)
 
         self.excluded_extensions = [] # list of (ext, why)
         self.swig_cpp = True
@@ -1481,7 +1450,7 @@ class mingw_build_ext(build_ext):
             self.build_exefile(ext)
 
         # Only build scintilla if Pythonwin extensions are enabled
-        pythonwin_dir = os.path.join(self.build_temp, "Pythonwin")
+        pythonwin_dir = os.path.join(self.build_temp, "pythonwin")
         if os.path.exists(pythonwin_dir):
             self._build_scintilla()
         # Copy cpp lib files needed to create Python COM extensions
@@ -1636,10 +1605,10 @@ class mingw_build_ext(build_ext):
 
         try:
             build_ext.build_extension(self, ext)
-        except DistutilsExecError:
+        except:
             print ("WARNING: building of extension '%s' failed" % (ext.name))
             print ("")
-            raise
+            pass
 
     def get_ext_filename(self, name):
         # The pywintypes and pythoncom extensions have special names
