@@ -329,40 +329,6 @@ class WinExt (Extension):
                             export_symbols)
         self.depends = depends or [] # stash it here, as py22 doesn't have it.
 
-    def get_source_files(self, dsp):
-        result = []
-        if dsp is None:
-            return result
-        dsp_path = os.path.dirname(dsp)
-        seen_swigs = []
-        for line in open(dsp, "r"):
-            fields = line.strip().split("=", 2)
-            if fields[0]=="SOURCE":
-                ext = os.path.splitext(fields[1])[1].lower()
-                if ext in ['.cpp', '.c', '.i', '.rc', '.mc']:
-                    pathname = os.path.normpath(os.path.join(dsp_path, fields[1]))
-                    result.append(pathname)
-                    if ext == '.i':
-                        seen_swigs.append(pathname)
-
-        # ack - .dsp files may have references to the generated 'foomodule.cpp'
-        # from 'foo.i' - but we now do things differently...
-        for ss in seen_swigs:
-            base, ext = os.path.splitext(ss)
-            nuke = base + "module.cpp"
-            try:
-                result.remove(nuke)
-            except ValueError:
-                pass
-        # Sort the sources so that (for example) the .mc file is processed first,
-        # building this may create files included by other source files.
-        build_order = ".i .mc .rc .cpp".split()
-        decorated = [(build_order.index(os.path.splitext(fname)[-1].lower()), fname)
-                     for fname in result]
-        decorated.sort()
-        result = [item[1] for item in decorated]
-        return result
-
     def finalize_options(self, build_ext):
         # distutils doesn't define this function for an Extension - it is
         # our own invention, and called just before the extension is built.
@@ -844,7 +810,7 @@ class my_build_ext(build_ext):
                 print("Could not find WinSxS directory in %WINDIR%.")
         else:
             print("Windows directory not found!")
-        
+
         return mfc_contents
 
     def build_extensions(self):
@@ -1268,11 +1234,6 @@ class my_install(install):
                 "-wait", str(os.getpid()),
             ])
 
-# As per get_source_files, we need special handling so .mc file is
-# processed first.  It appears there was an intention to fix distutils
-# itself, but as at 2.4 that hasn't happened.  We need yet more vile
-# hacks to get a subclassed compiler in.
-# (otherwise we replace all of build_extension!)
 def my_new_compiler(**kw):
     if 'compiler' in kw and kw['compiler'] in (None, 'msvc'):
         return my_compiler()
