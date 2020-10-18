@@ -38,7 +38,11 @@ def RegisterPythonServer(filename, progids=None, verbose=0):
         # exist and the DLL points at our version, assume it already is.
         why_not = None
         for progid in progids:
-            clsid = pywintypes.IID(progid)
+            try:
+                clsid = pywintypes.IID(progid)
+            except pythoncom.com_error:
+                # not registered.
+                break
             try:
                 HKCR = winreg.HKEY_CLASSES_ROOT
                 hk = winreg.OpenKey(HKCR, "CLSID\\%s" % clsid)
