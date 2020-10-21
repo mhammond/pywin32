@@ -70,6 +70,13 @@ import sys, os, pythoncom
 from win32com.client import genpy, selecttlb, gencache
 from win32com.client import Dispatch
 
+try:
+	import importlib
+except:
+	# We only need importlib for invalidate_caches.
+	# In old Python versions without importlib, there is nothing to invalidate.
+	pass
+
 bForDemandDefault = 0 # Default value of bForDemand - toggle this to change the world - see also gencache.py
 
 error = "makepy.error"
@@ -281,6 +288,8 @@ def GenerateFromTypeLibSpec(typelibInfo, file = None, verboseLevel = None, progr
 		finally:
 			if file is None:
 				gen.finish_writer(outputName, fileUse, worked)
+		if 'importlib' in sys.modules and hasattr(importlib, 'invalidate_caches'):
+			importlib.invalidate_caches()
 		if bToGenDir:
 			progress.SetDescription("Importing module")
 			gencache.AddModuleToCache(info.clsid, info.lcid, info.major, info.minor)
@@ -317,6 +326,8 @@ def GenerateChildFromTypeLibSpec(child, typelibInfo, verboseLevel = None, progre
 		gen = genpy.Generator(typelib, info.dll, progress)
 		gen.generate_child(child, dir_path_name)
 		progress.SetDescription("Importing module")
+		if 'importlib' in sys.modules and hasattr(importlib, 'invalidate_caches'):
+			importlib.invalidate_caches()
 		__import__("win32com.gen_py." + dir_name + "." + child)
 	progress.Close()
 
