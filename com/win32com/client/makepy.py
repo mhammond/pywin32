@@ -66,7 +66,7 @@ Examples:
 
 """
 
-import sys, os, pythoncom
+import sys, os, importlib, pythoncom
 from win32com.client import genpy, selecttlb, gencache
 from win32com.client import Dispatch
 
@@ -281,6 +281,7 @@ def GenerateFromTypeLibSpec(typelibInfo, file = None, verboseLevel = None, progr
 		finally:
 			if file is None:
 				gen.finish_writer(outputName, fileUse, worked)
+		importlib.invalidate_caches()
 		if bToGenDir:
 			progress.SetDescription("Importing module")
 			gencache.AddModuleToCache(info.clsid, info.lcid, info.major, info.minor)
@@ -317,6 +318,7 @@ def GenerateChildFromTypeLibSpec(child, typelibInfo, verboseLevel = None, progre
 		gen = genpy.Generator(typelib, info.dll, progress)
 		gen.generate_child(child, dir_path_name)
 		progress.SetDescription("Importing module")
+		importlib.invalidate_caches()
 		__import__("win32com.gen_py." + dir_name + "." + child)
 	progress.Close()
 
