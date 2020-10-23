@@ -26,8 +26,10 @@ inline PyCCtrlView_Type::PyCCtrlView_Type(const char *name, ui_type *pBaseType, 
     /* Some types also inherit from the control type (if different from itself).
         tp_base will already have been set in ui_type_CObject constructor.
     */
-    if (pControlType != this)
+    if (pControlType != this) {
+        CEnterLeavePython celp;
         tp_bases = Py_BuildValue("OO", pBaseType, pControlType);
+    }
 }
 
 class PYW_EXPORT PyCCtrlView : public PyCView {
