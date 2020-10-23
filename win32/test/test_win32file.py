@@ -375,7 +375,7 @@ class TestOverlapped(unittest.TestCase):
             if not test_overlapped_death:
                 handle.Close()
             t.join(3)
-            self.failIf(t.isAlive(), "thread didn't finish")
+            self.failIf(t.is_alive(), "thread didn't finish")
 
     def testCompletionPortsNonQueuedBadReference(self):
         self.testCompletionPortsNonQueued(True)
@@ -609,7 +609,7 @@ class TestDirectoryChanges(unittest.TestCase):
         for t in self.watcher_threads:
             # closing dir handle should have killed threads!
             t.join(5)
-            if t.isAlive():
+            if t.is_alive():
                 print("FAILED to wait for thread termination")
 
     def stablize(self):
@@ -726,7 +726,7 @@ class TestConnect(unittest.TestCase):
         self.assertEqual(self.response, str2bytes('some expected response'))
         self.assertEqual(self.request, str2bytes('some expected request'))
         t.join(5)
-        self.failIf(t.isAlive(), "worker thread didn't terminate")
+        self.failIf(t.is_alive(), "worker thread didn't terminate")
 
     def test_connect_without_payload(self):
         giveup_event = win32event.CreateEvent(None, 0, 0, None)
@@ -760,7 +760,7 @@ class TestConnect(unittest.TestCase):
         self.response = buff[:length]
         self.assertEqual(self.response, str2bytes('some expected response'))
         t.join(5)
-        self.failIf(t.isAlive(), "worker thread didn't terminate")
+        self.failIf(t.is_alive(), "worker thread didn't terminate")
 
 class TestTransmit(unittest.TestCase):
     def test_transmit(self):
