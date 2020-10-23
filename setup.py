@@ -1303,6 +1303,18 @@ class my_compiler(base_compiler):
                 print("** If you want to skip this step, pass '--skip-verstamp' on the command-line")
                 raise
 
+    # Work around bpo-36302/bpo-42009 - it sorts sources but this breaks
+    # support for building .mc files etc :(
+    def compile(self, sources, **kwargs):
+        # re-sort the list of source files but ensure all .mc files come first.
+        def key_reverse_mc(a):
+            b, e = os.path.splitext(a)
+            e = "" if e == ".mc" else e
+            return (e, b)
+
+        sources = sorted(sources, key=key_reverse_mc)
+        return msvccompiler.MSVCCompiler.compile(self, sources, **kwargs)
+
 ################################################################
 
 class my_install_data(install_data):
