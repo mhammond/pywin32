@@ -69,6 +69,7 @@ done:
 
 BOOL CALLBACK dsEnumCallback(LPGUID guid, LPCTSTR desc, LPCTSTR module, LPVOID context)
 {
+    CEnterLeavePython celp;
     PyObject *list = (PyObject *)context;
     PyObject *item = PyTuple_New(3);
     PyObject *oguid;
