@@ -121,7 +121,7 @@ class ThreadInterpCase(InterpCase):
                 break
         for t in threads:
             t.join(2)
-            self.failIf(t.isAlive(), "thread failed to stop!?")
+            self.failIf(t.is_alive(), "thread failed to stop!?")
         threads = None # threads hold references to args
         # Seems to be a leak here I can't locate :(
         #self.failUnlessEqual(pythoncom._GetInterfaceCount(), 0)

@@ -96,7 +96,7 @@ class ThreadPoolExtension(isapi.simple.SimpleExtension):
                 # xxx - might be nice to log something here.
                 break
             time.sleep(0.2)
-            alive = [w for w in alive if w.isAlive()]
+            alive = [w for w in alive if w.is_alive()]
         self.dispatch_map = {} # break circles
         CloseHandle(self.io_req_port)
 
