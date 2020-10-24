@@ -318,11 +318,11 @@ static PyObject *pythoncom_CoInitializeSecurity(PyObject *self, PyObject *args)
             &obReserved1,   // @pyparm object|reserved1||Must be None
             &dwAuthnLevel,  // @pyparm int|authnLevel||One of pythoncom.RPC_C_AUTHN_LEVEL_* values. The default
                             // authentication level for proxies. On the server side, COM will fail calls that arrive at
-                            // a lower level. All calls to AddRef and Release are made at this level.
+                            // a lower level. All calls to AddRef and Release are made at this level.
             &dwImpLevel,  // @pyparm int|impLevel||One of pythoncom.RPC_C_IMP_LEVEL_* values.  The default impersonation
-                          // level for proxies. This value is not checked on the server side. AddRef and Release calls
+                          // level for proxies. This value is not checked on the server side. AddRef and Release calls
                           // are made with this impersonation level so even security aware apps should set this
-                          // carefully. Setting IUnknown security only affects calls to QueryInterface, not AddRef or
+                          // carefully. Setting IUnknown security only affects calls to QueryInterface, not AddRef or
                           // Release.
             &obAuthInfo,  // @pyparm object|authInfo||Must be None
             &dwCapabilities,  // @pyparm int|capabilities||Authentication capabilities, combination of pythoncom.EOAC_*
@@ -621,7 +621,7 @@ static PyObject *pythoncom_createguid(PyObject *self, PyObject *args)
     PY_INTERFACE_POSTCALL;
     // @comm Use the CreateGuid function when you need an absolutely unique number that you will use as a persistent
     // identifier in a distributed environment.To a very high degree of certainty, this function returns a unique value
-    // – no other invocation, on the same or any other system (networked or not), should return the same value.
+    // - no other invocation, on the same or any other system (networked or not), should return the same value.
     return PyWinObject_FromIID(guid);
 }
 
@@ -1135,7 +1135,7 @@ static PyObject *pythoncom_RegisterActiveObject(PyObject *self, PyObject *args)
     // @rdesc The result is a handle which should be pass to <om pythoncom.RevokeActiveObject>
 }
 
-// @pymethod |pythoncom|RevokeActiveObject|Ends an object’s status as active.
+// @pymethod |pythoncom|RevokeActiveObject|Ends an object's status as active.
 static PyObject *pythoncom_RevokeActiveObject(PyObject *self, PyObject *args)
 {
     DWORD dw_x = 0;
@@ -2127,7 +2127,7 @@ static struct PyMethodDef pythoncom_methods[] = {
     {"RegisterActiveObject", pythoncom_RegisterActiveObject,
      1},  // @pymeth RegisterActiveObject|Register an object as the active object for its class
     {"RevokeActiveObject", pythoncom_RevokeActiveObject,
-     1},  // @pymeth RevokeActiveObject|Ends an object’s status as active.
+     1},  // @pymeth RevokeActiveObject|Ends an object's status as active.
     {"RegisterDragDrop", pythoncom_RegisterDragDrop,
      1},  // @pymeth RegisterDragDrop|Registers the specified window as one that can be the target of an OLE
           // drag-and-drop operation.
@@ -2465,10 +2465,10 @@ PYWIN_MODULE_INIT_FUNC(pythoncom)
                                      // anonymous to the server. The server process cannot obtain identification
                                      // information about the client and it cannot impersonate the client.
     ADD_CONSTANT(
-        RPC_C_IMP_LEVEL_IDENTIFY);  // RPC_C_IMP_LEVEL_IDENTIFY|The server can obtain the client’s identity. The server
+        RPC_C_IMP_LEVEL_IDENTIFY);  // RPC_C_IMP_LEVEL_IDENTIFY|The server can obtain the client's identity. The server
                                     // can impersonate the client for ACL checking, but cannot access system objects as
                                     // the client. This information is obtained when the connection is established, not
-                                    // on every call.<nl>Note  GetUserName will fail while impersonating at identify
+                                    // on every call.<nl>Note: GetUserName will fail while impersonating at identify
                                     // level. The workaround is to impersonate, OpenThreadToken, revert, call
                                     // GetTokenInformation, and finally, call LookupAccountSid.
     ADD_CONSTANT(
