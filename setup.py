@@ -98,7 +98,7 @@ import distutils.util
 # prevent the new in 3.5 suffix of "cpXX-win32" from being added.
 # (adjusting both .cp35-win_amd64.pyd and .cp35-win32.pyd to .pyd)
 try:
-    get_config_vars()["EXT_SUFFIX"] = re.sub("\\.cp\d\d-win((32)|(_amd64))", "", get_config_vars()["EXT_SUFFIX"])
+    get_config_vars()["EXT_SUFFIX"] = re.sub("\\.cp\\d\\d-win((32)|(_amd64))", "", get_config_vars()["EXT_SUFFIX"])
 except KeyError:
     pass # no EXT_SUFFIX in this build.
 
@@ -357,10 +357,10 @@ class WinExt (Extension):
             pch_dir = os.path.join(build_ext.build_temp)
             if not build_ext.debug:
                 self.extra_compile_args.append("/Zi")
-            self.extra_compile_args.append("/Fd%s\%s_vc.pdb" %
+            self.extra_compile_args.append("/Fd%s\\%s_vc.pdb" %
                                           (pch_dir, self.name))
             self.extra_link_args.append("/DEBUG")
-            self.extra_link_args.append("/PDB:%s\%s.pdb" %
+            self.extra_link_args.append("/PDB:%s\\%s.pdb" %
                                        (pch_dir, self.name))
             # enable unwind semantics - some stuff needs it and I can't see
             # it hurting
@@ -2178,7 +2178,7 @@ def convert_data_files(files):
             # files with a leading dot upset bdist_msi, and '.*' doesn't
             # work - it matches from the start of the string and we have
             # dir names.  So any '\.' gets the boot.
-            flist.exclude_pattern(re.compile(".*\\\\\."), is_regex=1, anchor=0)
+            flist.exclude_pattern(re.compile(".*\\\\\\."), is_regex=1, anchor=0)
             if not flist.files:
                 raise RuntimeError("No files match '%s'" % file)
             files_use = flist.files
