@@ -2237,8 +2237,10 @@ PYWIN_MODULE_INIT_FUNC(pythoncom)
     PyDict_SetItemString(dict, "ServerInterfaces", g_obPyCom_MapGatewayIIDToName);
     PyDict_SetItemString(dict, "InterfaceNames", g_obPyCom_MapInterfaceNameToIID);
 
-    if (PyType_Ready(&PyOleEmptyType) == -1 || PyType_Ready(&PyOleMissingType) == -1 ||
-        PyType_Ready(&PyOleArgNotFoundType) == -1)
+    if (PyType_Ready(&PyOleEmptyType) == -1 ||
+        PyType_Ready(&PyOleMissingType) == -1 ||
+        PyType_Ready(&PyOleArgNotFoundType) == -1 ||
+        PyType_Ready(&PyOleNothingType) == -1)
         PYWIN_MODULE_INIT_RETURN_ERROR;
     g_obEmpty = new PyOleEmpty;
     PyDict_SetItemString(dict, "Empty", g_obEmpty);

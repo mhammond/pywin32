@@ -201,7 +201,7 @@ static void nothing_dealloc(PyOleNothing *o) { delete o; }
 
 PyTypeObject PyOleNothingType = {
     PYWIN_OBJECT_HEAD "PyOleNothing",
-    sizeof(PyOleNothingType),
+    sizeof(PyOleNothing),
     0,
     (destructor)nothing_dealloc, /*tp_dealloc*/
     0,                           /*tp_print*/
