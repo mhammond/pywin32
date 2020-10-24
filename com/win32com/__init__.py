@@ -109,11 +109,11 @@ if not __gen_path__:
 # set that up.
 if "win32com.gen_py" not in sys.modules:
 	# Create a "win32com.gen_py", but with a custom __path__
-	import imp
-	gen_py = imp.new_module("win32com.gen_py")
+	import types
+	gen_py = types.ModuleType("win32com.gen_py")
 	gen_py.__path__ = [ __gen_path__ ]
-	sys.modules[gen_py.__name__]=gen_py
-	del imp
+	sys.modules[gen_py.__name__] = gen_py
+	del types
 gen_py = sys.modules["win32com.gen_py"]
 
 # get rid of these for module users

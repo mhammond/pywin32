@@ -6,10 +6,7 @@ class Tools:
 
   def reload(self, module):
     if module in sys.modules:
-      try:
-        from imp import reload
-      except ImportError:
-        pass # builtin in py2k
+      from importlib import reload
       reload(sys.modules[module])
       return "reload succeeded."
     return "no reload performed."

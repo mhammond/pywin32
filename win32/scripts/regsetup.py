@@ -29,11 +29,8 @@ def IsDebug():
 
     This is to be used within DLL names when locating them.
     """
-    import imp
-    for suffix_item in imp.get_suffixes():
-        if suffix_item[0]=='_d.pyd':
-            return '_d'
-    return ''
+    import importlib.machinery
+    return '_d' if '_d.pyd' in importlib.machinery.EXTENSION_SUFFIXES else ''
 
 def FindPackagePath(packageName, knownFileName, searchPaths):
     """Find a package.

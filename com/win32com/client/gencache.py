@@ -27,10 +27,7 @@ import glob
 import traceback
 from . import CLSIDToClass
 import operator
-try:
-	from imp import reload # exported by the imp module in py3k.
-except:
-	pass # a builtin on py2k.
+from importlib import reload
 
 bForDemandDefault = 0 # Default value of bForDemand - toggle this to change the world - see also makepy.py
 

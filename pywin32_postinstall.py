@@ -161,18 +161,15 @@ def CopyTo(desc, src, dest):
 # our pywintypes_system32 directory.
 def LoadSystemModule(lib_dir, modname):
     # See if this is a debug build.
-    import imp
-    for suffix_item in imp.get_suffixes():
-        if suffix_item[0]=='_d.pyd':
-            suffix = '_d'
-            break
-    else:
-        suffix = ""
+    import importlib.util, importlib.machinery
+    suffix = '_d' if '_d.pyd' in importlib.machinery.EXTENSION_SUFFIXES else ''
     filename = "%s%d%d%s.dll" % \
                (modname, sys.version_info[0], sys.version_info[1], suffix)
     filename = os.path.join(lib_dir, "pywin32_system32", filename)
-    mod = imp.load_dynamic(modname, filename)
-
+    loader = importlib.machinery.ExtensionFileLoader(modname, filename)
+    spec = importlib.machinery.ModuleSpec(name=modname, loader=loader, origin=filename)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
 
 def SetPyKeyVal(key_name, value_name, value):
     root_hkey = get_root_hkey()

@@ -433,14 +433,8 @@ def ImportFile():
 		exec(codeObj, __main__.__dict__)
 		mod = sys.modules.get(modName)
 		if bNeedReload:
-			try:
-				## The interpreter sees this import as a local assignment, so Python 2.x throws
-				##	UnboundLocalError: local variable 'reload' referenced before assignment
-				## when you try to use reload after this fails
-				from imp import reload as my_reload # py3k
-			except ImportError:
-				my_reload = reload # reload a builtin in py2k
-			mod = my_reload(sys.modules[modName])
+			from importlib import reload
+			mod = reload(sys.modules[modName])
 		win32ui.SetStatusText('Successfully ' + what + "ed module '"+modName+"': %s" % getattr(mod,'__file__',"<unkown file>"))
 	except:
 		_HandlePythonFailure(what)
