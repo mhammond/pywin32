@@ -34,7 +34,7 @@ paletteVGA = (
     ("DarkGrey", win32api.RGB(64, 64, 64)),
     ("PurpleBlue", win32api.RGB(64, 64, 192)),
     ("DarkGreen", win32api.RGB(0, 96, 0)),
-    ("DarkOlive", win32api.RGB(128, 128, 64)),
+    ("DarkOlive", win32api.RGB(104, 104, 0)),
     ("MediumBlue", win32api.RGB(0, 0, 192)),
     ("DarkNavy", win32api.RGB(0, 0, 96)),
     ("Magenta", win32api.RGB(96, 0, 96)),

@@ -122,15 +122,53 @@ class FormatterBase:
             return self.baseFormatFixed
         return self.baseFormatProp
 
+    invert_color_mask = 0x0  # .. 0xFFFFFF
+    bk_add = 0x00  # 0 .. 255
+
+    @classmethod
+    def SetDarkMode(cls, v=0xFFFFFF, update=True):
+        if v is not None:
+            if v < 0:
+                cls.invert_color_mask ^= 0xFFFFFF
+            else:
+                cls.invert_color_mask = int(v) & 0xFFFFFF
+                cls.bk_add = v >> 24 & 0xFF
+            if update:
+                win32ui.GetMainFrame().SendMessageToDescendants(
+                    win32con.WM_WININICHANGE, 0, 0
+                )
+        return cls.invert_color_mask + (cls.bk_add << 24)
+
     # Update the control with the new style format.
     def _ReformatStyle(self, style):
-        ## Selection (background only for now)
-        ## Passing False for WPARAM to SCI_SETSELBACK is documented as resetting to scintilla default,
-        ## but does not work - selection background is not visible at all.
-        ## Default value in SPECIAL_STYLES taken from scintilla source.
+        imask = self.invert_color_mask
+        bg = style.background
+        bk_add = self.bk_add
+        if bk_add:
+            rgb = [(bg >> bits) + bk_add & 0xFF for bits in (0, 8, 16)]
+            bg = win32api.RGB(*rgb)
+        dark = bool(imask & 0x808080 or bk_add)
+
+        # Selection (background only for now)
+        # Passing False for WPARAM to SCI_SETSELBACK is documented as resetting to scintilla default,
+        # but does not work - selection background is not visible at all.
+        # Default value in SPECIAL_STYLES taken from scintilla source.
         if style.name == STYLE_SELECTION:
-            clr = style.background
-            self.scintilla.SendScintilla(scintillacon.SCI_SETSELBACK, True, clr)
+            bg_clb = imask ^ 0xF8F8F8 | 0x202020
+            if imask:
+                bg_sel = ((imask & 0x808080) and 0x9F9F9F or bg) ^ imask
+            elif bk_add:
+                bg_sel = 0x404040
+                bg_clb = bg_sel // 2
+            else:
+                bg_sel = bg
+            self.scintilla.SendScintilla(scintillacon.SCI_SETSELBACK, True, bg_sel)
+            ##			self.scintilla.SendScintilla(scintillacon.SCI_SETCARETFORE, imask)
+            self.scintilla.SendScintilla(scintillacon.SCI_SETCARETFORE, dark * 0xFFFFFF)
+            self.scintilla.SendScintilla(scintillacon.SCI_SETCARETWIDTH, 2)
+            self.scintilla.SendScintilla(scintillacon.SCI_SETCARETLINEVISIBLE, True)
+            self.scintilla.SendScintilla(scintillacon.SCI_SETCARETLINEBACK, bg_clb)
+            ##self.scintilla.SendScintilla(scintillacon.SCI_SETCARETLINEBACK, bg_sel ^ 0x080808 | 0x202020)
 
             ## Can't change font for selection, but could set color
             ## However, the font color dropbox has no option for default, and thus would
@@ -151,7 +189,18 @@ class FormatterBase:
             baseFormat = self.GetDefaultFormat()
         else:
             baseFormat = f
-        scintilla.SCIStyleSetFore(stylenum, f[4])
+        fore = f[4]
+        if bk_add:
+            x = (not fore) * 0x1A
+            rgb = [(((fore >> bits) - x) & 0xFF) // 2 + 0x60 for bits in (0, 8, 16)]
+            fore = win32api.RGB(*rgb)
+        if imask:
+            fore ^= imask
+            if f[1] & 1:  # bold
+                # tame extremly bright & bold colors when dark mode
+                rgb = [min((fore >> _bs) & 0xFF, 0xC8) for _bs in (0, 8, 16)]
+                fore = win32api.RGB(*rgb)
+        scintilla.SCIStyleSetFore(stylenum, fore)
         scintilla.SCIStyleSetFont(stylenum, baseFormat[7], baseFormat[5])
         if f[1] & 1:
             scintilla.SCIStyleSetBold(stylenum, 1)
@@ -166,12 +215,11 @@ class FormatterBase:
 
         ## Default style background to whitespace background if set,
         ##	otherwise use system window color
-        bg = style.background
         if bg == CLR_INVALID:
             bg = self.styles[STYLE_DEFAULT].background
-        if bg == CLR_INVALID:
-            bg = win32api.GetSysColor(win32con.COLOR_WINDOW)
-        scintilla.SCIStyleSetBack(stylenum, bg)
+            if bg == CLR_INVALID:
+                bg = win32api.GetSysColor(win32con.COLOR_WINDOW)
+        scintilla.SCIStyleSetBack(stylenum, bg ^ imask)
 
     def GetStyleByNum(self, stylenum):
         return self.styles_by_id[stylenum]
@@ -419,12 +467,7 @@ SPECIAL_STYLES = [
         scintillacon.STYLE_INDENTGUIDE,
     ),
     ## Not actually a style; requires special handling to send appropriate messages to scintilla
-    (
-        STYLE_SELECTION,
-        (0, 0, 200, 0, CLR_INVALID),
-        win32api.RGB(0xC0, 0xC0, 0xC0),
-        999999,
-    ),
+    (STYLE_SELECTION, (0, 0, 200, 0, CLR_INVALID), 0xDFDFDF, 999999),
 ]
 
 PythonSampleCode = """\
