@@ -235,8 +235,8 @@ class CScintillaDocument(ParentScintillaDocument):
         self.MakeDocumentWritable()
 
     # All Marker functions are 1 based.
-    def MarkerAdd(self, lineNo, marker):
-        self.GetEditorView().SCIMarkerAdd(lineNo - 1, marker)
+    def MarkerAdd(self, lineNo, marker):  # returns marker handle
+        return self.GetEditorView().SCIMarkerAdd(lineNo - 1, marker)
 
     def MarkerCheck(self, lineNo, marker):
         v = self.GetEditorView()
@@ -259,6 +259,9 @@ class CScintillaDocument(ParentScintillaDocument):
 
     def MarkerGetNext(self, lineNo, marker):
         return self.GetEditorView().SCIMarkerNext(lineNo - 1, 1 << marker) + 1
+
+    def MarkerGetPrev(self, lineNo, marker):
+        return self.GetEditorView().SCIMarkerPrev(lineNo - 1, 1 << marker) + 1
 
     def MarkerAtLine(self, lineNo, marker):
         markerState = self.GetEditorView().SCIMarkerGet(lineNo - 1)

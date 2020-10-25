@@ -44,7 +44,6 @@ EM_GETTEXTRANGE = 1099
 EM_EXLINEFROMCHAR = 1078
 EM_FINDTEXTEX = 1103
 EM_GETSELTEXT = 1086
-EM_EXSETSEL = win32con.WM_USER + 55
 
 
 class ScintillaNotification:
@@ -104,6 +103,11 @@ class ScintillaControlInterface:
         self.SendMessage(
             scintillacon.SCI_ADDSTYLEDTEXT, text.encode(default_scintilla_encoding)
         )
+
+    def SCIAppendText(self, text):
+        if isinstance(text, unicode_type):
+            text = text.encode(default_scintilla_encoding)
+        self.SendScintilla(scintillacon.SCI_APPENDTEXT, len(text), text)
 
     def SCIInsertText(self, text, pos=-1):
         # SCIInsertText allows unicode or bytes - but if they are bytes,
@@ -240,7 +244,17 @@ class ScintillaControlInterface:
         self.SendScintilla(scintillacon.SCI_MARKERSETBACK, markerNum, back)
 
     def SCIMarkerAdd(self, lineNo, markerNum):
-        self.SendScintilla(scintillacon.SCI_MARKERADD, lineNo, markerNum)
+        return self.SendScintilla(scintillacon.SCI_MARKERADD, lineNo, markerNum)
+
+    def SCIMarkerLineFromHandle(self, h):
+        # SCI_MARKERLINEFROMHANDLE(int markerHandle) -> int
+        return self.SendScintilla(scintillacon.SCI_MARKERLINEFROMHANDLE, h)
+
+    def SCIMarkerHandleFromLine(self, lineNo, which=0):
+        # SCI_MARKERHANDLEFROMLINE(line line, int which) -> int
+        # SCI_MARKERHANDLEFROMLINE = 2732
+        raise NotImplementedError("will be available soon?")
+        return self.SendScintilla(scintillacon.SCI_MARKERHANDLEFROMLINE, lineNo, which)
 
     def SCIMarkerDelete(self, lineNo, markerNum):
         self.SendScintilla(scintillacon.SCI_MARKERDELETE, lineNo, markerNum)
@@ -253,6 +267,9 @@ class ScintillaControlInterface:
 
     def SCIMarkerNext(self, lineNo, markerNum):
         return self.SendScintilla(scintillacon.SCI_MARKERNEXT, lineNo, markerNum)
+
+    def SCIMarkerPrev(self, lineNo, markerNum):
+        return self.SendScintilla(scintillacon.SCI_MARKERPREVIOUS, lineNo, markerNum)
 
     def SCICancel(self):
         self.SendScintilla(scintillacon.SCI_CANCEL)
@@ -431,22 +448,7 @@ class CScintillaEditInterface(ScintillaControlInterface):
             start, end = start
         elif end is None:
             end = start
-        if start < 0:
-            start = self.GetTextLength()
-        if end < 0:
-            end = self.GetTextLength()
-        assert start <= self.GetTextLength(), "The start postion is invalid (%d/%d)" % (
-            start,
-            self.GetTextLength(),
-        )
-        assert end <= self.GetTextLength(), "The end postion is invalid (%d/%d)" % (
-            end,
-            self.GetTextLength(),
-        )
-        cr = struct.pack("ll", start, end)
-        crBuff = array.array("b", cr)
-        addressCrBuff = crBuff.buffer_info()[0]
-        rc = self.SendScintilla(EM_EXSETSEL, 0, addressCrBuff)
+        self.SendScintilla(scintillacon.SCI_SETSEL, start, end)
 
     def GetLineCount(self):
         return self.SendScintilla(win32con.EM_GETLINECOUNT)
