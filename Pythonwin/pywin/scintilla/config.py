@@ -18,7 +18,7 @@ import types
 import traceback
 import pywin
 import glob
-import importlib
+import importlib.util
 
 import win32api
 
