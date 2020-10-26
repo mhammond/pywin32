@@ -342,7 +342,7 @@ def _GetMaskAndVal(val, default, mask, flag):
 
 def PackTVINSERTSTRUCT(parent, insertAfter, tvitem):
     tvitem_buf, extra = PackTVITEM(*tvitem)
-    tvitem_buf = tvitem_buf.tostring()
+    tvitem_buf = tvitem_buf.tobytes()
     format = "PP%ds" % len(tvitem_buf)
     return struct.pack(format, parent, insertAfter, tvitem_buf), extra
 
