@@ -10,6 +10,7 @@ from pywin.mfc import dialog
 from pywin.mfc.docview import TreeView
 import os
 import string
+import re
 import traceback
 import linecache
 import bdb
@@ -87,7 +88,9 @@ def IsOnPythonPath(path):
     for syspath in sys.path:
         try:
             # Python 1.5 and later allows an empty sys.path entry.
-            if syspath and win32ui.FullPath(syspath) == path:
+            if syspath and os.path.normcase(
+                win32ui.FullPath(syspath)
+            ) == os.path.normcase(path):
                 return 1
         except win32ui.error as details:
             print(
@@ -311,8 +314,8 @@ def RunScript(defName=None, defArgs=None, bShowDialog=1, debuggingType=None):
         )
         return
 
-    # Get the source-code - as above, normalize \r\n
-    code = f.read().replace(byte_crlf, byte_lf).replace(byte_cr, byte_lf) + byte_lf
+    # Get the source-code - as above	##, normalize \r\n
+    code = f.read()  ##.replace(byte_crlf, byte_lf).replace(byte_cr, byte_lf) + byte_lf
 
     # Remember and hack sys.argv for the script.
     oldArgv = sys.argv
@@ -346,7 +349,7 @@ def RunScript(defName=None, defArgs=None, bShowDialog=1, debuggingType=None):
     # Get a code object - ignore the debugger for this, as it is probably a syntax error
     # at this point
     try:
-        codeObject = compile(code, script, "exec")
+        codeObject = compile(code, script, "exec", dont_inherit=True)
     except:
         # Almost certainly a syntax error!
         _HandlePythonFailure("run script", script)
@@ -356,7 +359,7 @@ def RunScript(defName=None, defArgs=None, bShowDialog=1, debuggingType=None):
     try:
         if debuggingType == RS_DEBUGGER_STEP:
             debugger.run(codeObject, __main__.__dict__, start_stepping=1)
-        elif debuggingType == RS_DEBUGGER_GO:
+        elif debuggingType == RS_DEBUGGER_GO and debugger._GetCurrentDebugger().breaks:
             debugger.run(codeObject, __main__.__dict__, start_stepping=0)
         else:
             # Post mortem or no debugging
@@ -379,15 +382,19 @@ def RunScript(defName=None, defArgs=None, bShowDialog=1, debuggingType=None):
         if interact.edit and interact.edit.currentView:
             interact.edit.currentView.AppendToPrompt([])
         bWorked = 1
+        sys.last_type, sys.last_value, sys.last_traceback = sys.exc_info()
     except:
         if interact.edit and interact.edit.currentView:
             interact.edit.currentView.EnsureNoPrompt()
         traceback.print_exc()
         if interact.edit and interact.edit.currentView:
             interact.edit.currentView.AppendToPrompt([])
-        if debuggingType == RS_DEBUGGER_PM:
+
+        sys.last_type, sys.last_value, sys.last_traceback = sys.exc_info()
+        if debuggingType != RS_DEBUGGER_NONE:
             debugger.pm()
-    del __main__.__file__
+
+    ##del __main__.__file__   # last run __file__ should better stay for interaction
     sys.argv = oldArgv
     if insertedPath0:
         del sys.path[0]
@@ -444,7 +451,7 @@ def ImportFile():
             if ext.lower() in [".pyo", ".pyc"]:
                 ext = ".py"
             fname = base + ext
-            if win32ui.ComparePath(fname, pathName):
+            if win32ui.ComparePath(fname, pathName) and mod.__name__ != "__main__":
                 modName = key
                 break
     else:  # for not broken
@@ -474,8 +481,10 @@ def ImportFile():
         exec(codeObj, __main__.__dict__)
         mod = sys.modules.get(modName)
         if bNeedReload:
-            from importlib import reload
-
+            if sys.version_info < (3,):
+                from __builtin__ import reload
+            else:
+                from importlib import reload
             mod = reload(sys.modules[modName])
         win32ui.SetStatusText(
             "Successfully "
@@ -502,16 +511,16 @@ def CheckFile():
     win32ui.SetStatusText(what.capitalize() + "ing module...", 1)
     win32ui.DoWaitCursor(1)
     try:
-        f = open(pathName)
+        f = open(pathName, "rb")
     except IOError as details:
         print("Cant open file '%s' - %s" % (pathName, details))
         return
     try:
-        code = f.read() + "\n"
+        code = f.read()
     finally:
         f.close()
     try:
-        codeObj = compile(code, pathName, "exec")
+        codeObj = compile(code, pathName, "exec", dont_inherit=True)
         if RunTabNanny(pathName):
             win32ui.SetStatusText(
                 "Python and the TabNanny successfully checked the file '"
@@ -586,7 +595,7 @@ def JumpToDocument(fileName, lineno=0, col=1, nChars=0, bScrollToTop=0):
         view = doc.GetFirstView()
     if lineno > 0:
         charNo = view.LineIndex(lineno - 1)
-        start = charNo + col - 1
+        start = charNo + (col or 1) - 1
         size = view.GetTextLength()
         try:
             view.EnsureCharsVisible(charNo)
@@ -602,16 +611,24 @@ def JumpToDocument(fileName, lineno=0, col=1, nChars=0, bScrollToTop=0):
 
 
 def _HandlePythonFailure(what, syntaxErrorPathName=None):
-    typ, details, tb = sys.exc_info()
+    typ, details, tb = (
+        sys.last_type,
+        sys.last_value,
+        sys.last_traceback,
+    ) = sys.exc_info()
     if isinstance(details, SyntaxError):
         try:
-            msg, (fileName, line, col, text) = details
-            if (not fileName or fileName == "<string>") and syntaxErrorPathName:
+            if (
+                not details.filename or details.filename == "<string>"
+            ) and syntaxErrorPathName:
                 fileName = syntaxErrorPathName
-            _JumpToPosition(fileName, line, col)
+            _JumpToPosition(details.filename, details.lineno, details.offset or 1)
         except (TypeError, ValueError):
             msg = str(details)
-        win32ui.SetStatusText("Failed to " + what + " - syntax error - %s" % msg)
+        traceback.print_exc()
+        win32ui.SetStatusText(
+            "Failed to " + what + " - syntax error - %s" % details.msg
+        )
     else:
         traceback.print_exc()
         win32ui.SetStatusText("Failed to " + what + " - " + str(details))
