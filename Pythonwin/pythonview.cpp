@@ -76,6 +76,7 @@ CPythonListViewImpl::~CPythonListViewImpl() {}
 
 void CPythonListViewImpl::DrawItem(LPDRAWITEMSTRUCT lpDIS)
 {
+    CEnterLeavePython celp;
     CVirtualHelper helper("DrawItem", this);
     PyObject *obData = PyWin_GetPythonObjectFromLong(lpDIS->itemData);
     if (obData == NULL) {
@@ -122,6 +123,7 @@ CPythonTreeViewImpl::~CPythonTreeViewImpl() {}
 
 void CPythonTreeViewImpl::DrawItem(LPDRAWITEMSTRUCT lpDIS)
 {
+    CEnterLeavePython celp;
     CVirtualHelper helper("DrawItem", this);
     PyObject *obData = PyWin_GetPythonObjectFromLong(lpDIS->itemData);
     if (obData == NULL) {

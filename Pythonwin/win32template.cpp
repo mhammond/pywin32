@@ -424,6 +424,7 @@ void CPythonDocTemplate::InitialUpdateFrame(CFrameWnd *pFrame, CDocument *pDoc, 
         CMultiDocTemplate::InitialUpdateFrame(pFrame, pDoc, bMakeVisible);
         return;
     }
+    CEnterLeavePython celp;
     PyObject *frame = (PyObject *)ui_assoc_object::make(PyCFrameWnd::type, pFrame)->GetGoodRet();
     PyObject *doc = (PyObject *)ui_assoc_object::make(PyCDocument::type, pDoc)->GetGoodRet();
 

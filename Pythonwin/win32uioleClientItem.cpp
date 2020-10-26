@@ -53,6 +53,7 @@ class PythonOleClientItem : public COleClientItem {
         // @pyvirtual int|PyCOleClientItem|OnChangeItemPosition|
         // @pyparm (int, int, int, int)|(left, top, right, bottom)||The new position
         CVirtualHelper helper("OnChangeItemPosition", this);
+        CEnterLeavePython celp;
         BOOL bRet;
         PyObject *args = Py_BuildValue("(iiii)", rectPos.left, rectPos.top, rectPos.right, rectPos.bottom);
         if (helper.HaveHandler() && helper.call_args(args)) {

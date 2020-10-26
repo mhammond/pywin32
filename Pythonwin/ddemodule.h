@@ -30,6 +30,7 @@ class PythonDDETopicFramework : public T {
     ~PythonDDETopicFramework() { Python_delete_assoc(this); }
     virtual BOOL Exec(void *pData, DWORD dwSize)
     {
+        CEnterLeavePython celp;
         PyObject *args = Py_BuildValue("(N)", PyWinObject_FromTCHAR((TCHAR *)pData));
         BOOL rc = TRUE;
         CVirtualHelper helper("Exec", this);
@@ -39,6 +40,7 @@ class PythonDDETopicFramework : public T {
     }
     virtual BOOL NSRequest(const TCHAR *szItem, CDDEAllocator &allocr)
     {
+        CEnterLeavePython celp;
         PyObject *args = Py_BuildValue("(N)", PyWinObject_FromTCHAR(szItem));
         BOOL rc = TRUE;
         CVirtualHelper helper("Request", this);
@@ -55,6 +57,7 @@ class PythonDDETopicFramework : public T {
 
     virtual BOOL NSPoke(const TCHAR *szItem, void *pData, DWORD dwSize)
     {
+        CEnterLeavePython celp;
         PyObject *args = Py_BuildValue("(Nz#)", PyWinObject_FromTCHAR(szItem), pData, dwSize);
         BOOL rc = TRUE;
         CVirtualHelper helper("Poke", this);

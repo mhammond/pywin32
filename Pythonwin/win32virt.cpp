@@ -127,7 +127,9 @@ BOOL CVirtualHelper::call_args(PyObject *arglst)
 {
     if (!handler)
         return FALSE;
-    CEnterLeavePython _celp;
+    // NOTE no CEnterLeavePython here - the caller must do that (the entire
+    // point of this function is to allow the consumer to build `arglst`, and
+    // by definition that means calling into Python!
     return do_call(arglst);
 }
 
