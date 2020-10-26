@@ -769,24 +769,49 @@ class Generator:
   def open_writer(self, filename, encoding="mbcs"):
     # A place to put code to open a file with the appropriate encoding.
     # Does *not* set self.file - just opens and returns a file.
-    # Actually *deletes* the filename asked for and returns a handle to a
-    # temp file - finish_writer then puts everything back in place.  This
+    # Actually returns a handle to a temp file - finish_writer then deletes
+    # the filename asked for and puts everything back in place.  This
     # is so errors don't leave a 1/2 generated file around causing bizarre
-    # errors later.
+    # errors later, and so that multiple processes writing the same file
+    # don't step on each others' toes.
     # Could be a classmethod one day...
+    temp_filename = self.get_temp_filename(filename)
+    return open(temp_filename, "wt", encoding=encoding)
+
+  def finish_writer(self, filename, f, worked):
+    f.close()
     try:
       os.unlink(filename)
     except os.error:
       pass
-    filename = filename + ".temp"
-    return open(filename, "wt", encoding=encoding)
-
-  def finish_writer(self, filename, f, worked):
-    f.close()
+    temp_filename = self.get_temp_filename(filename)
     if worked:
-        os.rename(filename + ".temp", filename)
+      try:
+        os.rename(temp_filename, filename)
+      except os.error:
+        # If we are really unlucky, another process may have written the
+        # file in between our calls to os.unlink and os.rename. So try
+        # again, but only once.
+        # There are still some race conditions, but they seem difficult to
+        # fix, and they probably occur much less frequently:
+        # * The os.rename failure could occur more than once if more than
+        #   two processes are involved.
+        # * In between os.unlink and os.rename, another process could try
+        #   to import the module, having seen that it already exists.
+        # * If another process starts a COM server while we are still
+        #   generating __init__.py, that process sees that the folder
+        #   already exists and assumes that __init__.py is already there
+        #   as well.
+        try:
+          os.unlink(filename)
+        except os.error:
+          pass
+        os.rename(temp_filename, filename)
     else:
-        os.unlink(filename + ".temp")
+      os.unlink(temp_filename)
+
+  def get_temp_filename(self, filename):
+    return '%s.%d.temp' % (filename, os.getpid())
 
   def generate(self, file, is_for_demand = 0):
     if is_for_demand:
