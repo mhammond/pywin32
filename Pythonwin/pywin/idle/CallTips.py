@@ -92,15 +92,9 @@ class CallTips:
             i = i - 1
         word = chars[i:]
         if word:
-            # How is this for a hack!
-            import sys, __main__
+            from pywin.framework import scriptutils
 
-            namespace = sys.modules.copy()
-            namespace.update(__main__.__dict__)
-            try:
-                return eval(word, namespace)
-            except:
-                pass
+            return scriptutils.GetXNamespace(word)
         return None  # Can't find an object.
 
 
@@ -108,7 +102,10 @@ def _find_constructor(class_ob):
     # Given a class object, return a function object used for the
     # constructor (ie, __init__() ) or None if we can't find one.
     try:
-        return class_ob.__init__
+        if sys.version_info < (3,):
+            return class_ob.__init__.im_func
+        else:
+            return class_ob.__init__
     except AttributeError:
         for base in class_ob.__bases__:
             rc = _find_constructor(base)
@@ -135,8 +132,11 @@ def get_arg_text(ob):
                 arg_getter = getattr(inspect, "getfullargspec", inspect.getargspec)
                 argText = inspect.formatargspec(*arg_getter(fob))
             except:
-                print("Failed to format the args")
-                traceback.print_exc()
+                import win32ui
+
+                win32ui.SetStatusText(
+                    "Failed to format the args - %s" % (repr(sys.exc_info()[0]),)
+                )
         # See if we can use the docstring
         if hasattr(ob, "__doc__"):
             doc = ob.__doc__

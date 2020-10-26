@@ -146,6 +146,10 @@ class AutoIndent:
             else:
                 text.bell()  # at start of buffer
             return "break"
+        if chars[-1] in "([{":
+            next = text.get("insert", "insert+1c")
+            if next in ")]}":
+                text.delete("insert", "insert+1c")
         if chars[-1] not in " \t":
             # easy: delete preceding real char
             text.delete("insert-1c")

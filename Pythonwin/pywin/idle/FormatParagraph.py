@@ -43,7 +43,7 @@ class FormatParagraph:
     def close(self):
         self.editwin = None
 
-    def format_paragraph_event(self, event):
+    def format_paragraph_event(self, event, limit=76):
         text = self.editwin.text
         first, last = self.editwin.get_selection_indices()
         if first and last:
@@ -58,8 +58,8 @@ class FormatParagraph:
             lines = data.split("\n")
             lines = map(lambda st, l=len(comment_header): st[l:], lines)
             data = "\n".join(lines)
-            # Reformat to 70 chars or a 20 char width, whichever is greater.
-            format_width = max(70 - len(comment_header), 20)
+            # Reformat to e.g. 70 chars or a 20 char width, whichever is greater.
+            format_width = max(limit - len(comment_header), 20)
             newdata = reformat_paragraph(data, format_width)
             # re-split and re-insert the comment header.
             newdata = newdata.split("\n")

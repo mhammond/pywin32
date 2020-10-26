@@ -68,8 +68,6 @@ class AutoExpand:
         after = self.text.get("insert wordend", "end")
         wafter = re.findall(r"\b" + word + r"\w+\b", after)
         del after
-        if not wbefore and not wafter:
-            return []
         words = []
         dict = {}
         # search backwards through words before
@@ -85,12 +83,42 @@ class AutoExpand:
                 continue
             words.append(w)
             dict[w] = w
-        words.append(word)
+
+        # add words from interactive context
+        prevexpr = self.getprevword(
+            self.wordchars + "."
+        )  # faster may be: self.get_prevexpr()
+        if "." in prevexpr:
+            ppos = prevexpr.rfind(".")
+            prevexpr, word = prevexpr[:ppos], prevexpr[ppos + 1 :]  ## .rsplit('.', 1)
+        else:
+            prevexpr, word = "", prevexpr
+        ns = self.get_auto_namespace(prevexpr)  # dict or list
+        if ns:
+            for w in ns:  # sorted() ?
+                if w.startswith(word) and w not in dict:
+                    words.append(w)  # TODO: prepend when prevexpr found?
+                    dict[w] = w
+
+        words.append(word)  # fall back to word itself finally
+
         return words
 
-    def getprevword(self):
+    def getprevword(self, chars=wordchars):
         line = self.text.get("insert linestart", "insert")
         i = len(line)
-        while i > 0 and line[i - 1] in self.wordchars:
+        while i > 0 and line[i - 1] in chars:
             i = i - 1
         return line[i:]
+
+    def get_auto_namespace(self, predot=""):
+        # return namespace dict/list with potential expansion candidates
+        from pywin.framework import scriptutils
+
+        o = scriptutils.GetXNamespace(predot)
+        if predot:
+            return dir(o)
+        else:
+            nslist = list(o)
+            nslist.sort()
+            return nslist
