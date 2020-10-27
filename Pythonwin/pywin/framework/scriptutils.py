@@ -594,6 +594,13 @@ def JumpToDocument(fileName, lineno=0, col=1, nChars=0, bScrollToTop=0):
     except AttributeError:  # Not an editor frame??
         view = doc.GetFirstView()
     if lineno > 0:
+        curlineno = view.GetCurLineNumber() + 1
+        if (
+            curlineno > 15
+            and abs(curlineno - lineno) > 15
+            and hasattr(view, "AddLastPosEvent")
+        ):
+            view.AddLastPosEvent()
         charNo = view.LineIndex(lineno - 1)
         start = charNo + (col or 1) - 1
         size = view.GetTextLength()
@@ -606,6 +613,7 @@ def JumpToDocument(fileName, lineno=0, col=1, nChars=0, bScrollToTop=0):
         curTop = view.GetFirstVisibleLine()
         nScroll = (lineno - 1) - curTop
         view.LineScroll(nScroll, 0)
+    view.GetParentFrame().SetActiveView(view)
     view.SetFocus()
     return view
 

@@ -539,6 +539,8 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
             def jump_to(tpath, lineno=0, col=0):
                 tpath = os.path.abspath(tpath)
                 if tpath == path:
+                    # force add last pos always in locate jump - JumpToDocument() would do
+                    # it only on far jump
                     ed.AddLastPosEvent()
                 return not scriptutils.JumpToDocument(tpath, lineno, col)
 

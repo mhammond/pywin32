@@ -500,8 +500,9 @@ class SyntEditView(SyntEditViewParent):
     def AddLastPosEvent(self, event="add", pos=-1):
         """Add/Toggle a last pos marker at the specified or current position"""
         if pos == -1:
-            pos, end = self.GetSel()
-        startLine = self.LineFromChar(pos)
+            startLine = self.GetCurLineNumber()
+        else:
+            startLine = self.LineFromChar(pos)
         doc = self.GetDocument()
         if doc.MarkerCheck(startLine + 1, MARKER_LASTPOS):
             # SCI_MARKERHANDLEFROMLINE not in DLL so far -> rely on "remove dead

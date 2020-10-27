@@ -125,17 +125,18 @@ class HLIPythonObject(hierlist.HierListItem, object):
 
         loc = scriptutils.LocateObject(self.myobject, self.name)
         if loc.fn:
-            ed = scriptutils.JumpToDocument(loc.fn, loc.lineno, loc.col)
-            ed.ActivateFrame()
-            return ed  # unfortunately the focus still comes back to this browser window (?)
-        else:
-            ShowObject(self.myobject, self.name)
+
+            def _jump():
+                scriptutils.JumpToDocument(loc.fn, loc.lineno, loc.col, bScrollToTop=0)
+
+            win32ui.GetApp().CallAfter(_jump)
+            return True
 
 
 class CLocateObject:
     def TakeDefaultAction(self):
-        self.LocateObject()
-        ShowObject(self.myobject, self.name)
+        if not self.LocateObject():
+            ShowObject(self.myobject, self.name)
 
 
 class HLIDocString(HLIPythonObject):
