@@ -392,9 +392,9 @@ unsigned __stdcall ThreadEntryPoint( void *arg )
 static PyObject *mybeginthreadex(PyObject *self, PyObject *args)
 {
 	PyObject *obFunc, *obArgs, *obSA;
-	SIZE_T stackSize
+	unsigned stackSize;
 	unsigned long flags;
-	if (!PyArg_ParseTuple(args, "OnOOk:beginthreadex",
+	if (!PyArg_ParseTuple(args, "OIOOk:beginthreadex",
 		&obSA, // @pyparm <o PySECURITY_ATTRIBUTES>|sa||The security attributes, or None
 		&stackSize, // @pyparm int|stackSize||Stack size for the new thread, or zero for the default size.
 		&obFunc, // @pyparm function|entryPoint||The thread function.
