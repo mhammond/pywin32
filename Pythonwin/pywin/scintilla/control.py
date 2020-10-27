@@ -306,7 +306,7 @@ class CScintillaEditInterface(ScintillaControlInterface):
 		# but we just blindly assume that the last char is \0 and
 		# strip it.
 		self.SendScintilla(EM_GETSELTEXT, 0, addressTxtBuf)
-		return txtBuf.tostring()[:-1].decode(default_scintilla_encoding)
+		return txtBuf.tobytes()[:-1].decode(default_scintilla_encoding)
 
 	def SetSel(self, start=0, end=None):
 		if type(start)==type(()):
@@ -357,7 +357,7 @@ class CScintillaEditInterface(ScintillaControlInterface):
 		trBuff = array.array('b', tr)
 		addressTrBuff = trBuff.buffer_info()[0]
 		num_bytes = self.SendScintilla(EM_GETTEXTRANGE, 0, addressTrBuff)
-		ret = buff.tostring()[:num_bytes]
+		ret = buff.tobytes()[:num_bytes]
 		if decode:
 			ret = ret.decode(default_scintilla_encoding)
 		return ret

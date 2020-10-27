@@ -273,6 +273,7 @@ class CPythonWndFramework : public T {
     {
         // @pyvirtual |PyCWnd|OnNcCalcSize|Called for the WM_NCCALCSIZE message.
         CVirtualHelper helper("OnNcCalcSize", this);
+        CEnterLeavePython celp;
         if (helper.HaveHandler()) {
             if (bCalcValidRects) {
                 PyObject *rc1 = PyWinObject_FromRECT(&lpncsp->rgrc[0], false);
@@ -317,6 +318,7 @@ class CPythonWndFramework : public T {
         CVirtualHelper helper("OnNcHitTest", this);
         // @pyparm int, int|x,y||The point to test.
         if (helper.HaveHandler()) {
+            CEnterLeavePython celp;
             PyObject *args = Py_BuildValue("((ii))", pt.x, pt.y);
             if (helper.call_args(args)) {
                 int ret;
@@ -351,6 +353,7 @@ class CPythonWndFramework : public T {
         // @pyparm <o PyCWnd>|wndDeactivate||
         T::OnMDIActivate(bActivate, pAc, pDe);
         if (helper.HaveHandler()) {
+            CEnterLeavePython celp;
             PyObject *oba, *obd;
             if (pAc) {
                 oba = PyWinObject_FromCWnd(pAc);
