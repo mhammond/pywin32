@@ -8,7 +8,14 @@ up by the MAPI module */
 
 #define USES_IID_IMsgStore
 #define USES_IID_IMAPISession
-
+#define USES_IID_IAttachment
+#define USES_IID_IProfSect
+#define USES_IID_IMAPIStatus
+#define USES_IID_IMailUser
+#define USES_IID_IDistList
+#define USES_IID_IABContainer
+#define USES_IID_IProfSect
+#define USES_IID_IMessage
 #define USES_IID_IMAPIFolder
 #define USES_IID_IAddrBook
 #define USES_IID_IMAPIProp

@@ -6,8 +6,8 @@ try:
 	from OpenGL.GL import *
 	from OpenGL.GLU import *
 except ImportError:
-	print "The OpenGL extensions do not appear to be installed."
-	print "This Pythonwin demo can not run"
+	print("The OpenGL extensions do not appear to be installed.")
+	print("This Pythonwin demo can not run")
 	sys.exit(1)
 
 import win32con

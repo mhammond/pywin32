@@ -67,11 +67,21 @@ class TestCase(unittest.TestCase):
         pt = pywintypes.Time(tt)
         # we can't compare if using the old type, as it loses all sub-second res.
         if isinstance(pt, datetime.datetime):
-            self.failUnlessEqual(now, pt)
+            # but even with datetime, we lose sub-millisecond.
+            expectedDelta = datetime.timedelta(milliseconds=1)
+            self.assertTrue(-expectedDelta < (now - pt) < expectedDelta)
 
     def testPyTimeFromTime(self):
         t1 = pywintypes.Time(time.time())
         self.failUnless(pywintypes.Time(t1) is t1)
+
+    def testPyTimeTooLarge(self):
+        # We only do this special thing for python 3.x
+        if not issubclass(pywintypes.TimeType, datetime.datetime):
+            return
+        MAX_TIMESTAMP = 0x7FFFFFFFFFFFFFFF # used by some API function to mean "never"
+        ts = pywintypes.TimeStamp(MAX_TIMESTAMP)
+        self.failUnlessEqual(ts, datetime.datetime.max)
 
     def testGUID(self):
         s = "{00020400-0000-0000-C000-000000000046}"

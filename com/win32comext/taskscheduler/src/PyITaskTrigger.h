@@ -11,36 +11,31 @@ BOOL PyTASK_TRIGGER_check(PyObject *ob);
 
 extern __declspec(dllexport) PyTypeObject PyTASK_TRIGGERType;
 
-class PyITaskTrigger : public PyIUnknown
-{
-public:
-	MAKE_PYCOM_CTOR(PyITaskTrigger);
-	static ITaskTrigger *GetI(PyObject *self);
-	static PyComTypeObject type;
-	// The Python methods
-	static PyObject *SetTrigger(PyObject *self, PyObject *args);
-	static PyObject *GetTrigger(PyObject *self, PyObject *args);
-	static PyObject *GetTriggerString(PyObject *self, PyObject *args);
+class PyITaskTrigger : public PyIUnknown {
+   public:
+    MAKE_PYCOM_CTOR(PyITaskTrigger);
+    static ITaskTrigger *GetI(PyObject *self);
+    static PyComTypeObject type;
+    // The Python methods
+    static PyObject *SetTrigger(PyObject *self, PyObject *args);
+    static PyObject *GetTrigger(PyObject *self, PyObject *args);
+    static PyObject *GetTriggerString(PyObject *self, PyObject *args);
 
-protected:
-	PyITaskTrigger(IUnknown *pdisp);
-	~PyITaskTrigger();
-
+   protected:
+    PyITaskTrigger(IUnknown *pdisp);
+    ~PyITaskTrigger();
 };
 
-class __declspec(dllexport) PyTASK_TRIGGER : public PyObject
-{
-public:
-	// The Python methods
-	// static int setattr(PyObject *self, char *name, PyObject *value);
-	static struct PyMemberDef memberdef[];
-	static void deallocFunc(PyObject *ob);
-	TASK_TRIGGER task_trigger;
-	PyTASK_TRIGGER(PTASK_TRIGGER);
-	PyTASK_TRIGGER(void);
-protected:
-	~PyTASK_TRIGGER();
+class __declspec(dllexport) PyTASK_TRIGGER : public PyObject {
+   public:
+    // The Python methods
+    // static int setattr(PyObject *self, char *name, PyObject *value);
+    static struct PyMemberDef memberdef[];
+    static void deallocFunc(PyObject *ob);
+    TASK_TRIGGER task_trigger;
+    PyTASK_TRIGGER(PTASK_TRIGGER);
+    PyTASK_TRIGGER(void);
 
+   protected:
+    ~PyTASK_TRIGGER();
 };
-
-

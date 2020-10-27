@@ -39,7 +39,7 @@ def test():
     try:
         com_server.Clone()
         raise error("Expecting this call to fail!")
-    except pythoncom.com_error, com_exc:
+    except pythoncom.com_error as com_exc:
         if com_exc.hresult != winerror.E_UNEXPECTED:
             raise error("Calling the object natively did not yield the correct scode", com_exc)
         exc = com_exc.excepinfo
@@ -55,7 +55,7 @@ def test():
         finally:
             cap.release()
         raise error("Expecting this call to fail!")
-    except pythoncom.com_error, com_exc:
+    except pythoncom.com_error as com_exc:
         if com_exc.hresult != winerror.E_FAIL:
             raise error("The hresult was not E_FAIL for an internal error", com_exc)
         if com_exc.excepinfo[1] != "Python COM Server Internal Error":
@@ -69,7 +69,7 @@ def test():
     try:
         com_server.Clone()
         raise error("Expecting this call to fail!")
-    except pythoncom.com_error, com_exc:
+    except pythoncom.com_error as com_exc:
         if com_exc.hresult != winerror.DISP_E_EXCEPTION:
             raise error("Calling the object via IDispatch did not yield the correct scode", com_exc)
         exc = com_exc.excepinfo
@@ -86,7 +86,7 @@ def test():
         finally:
             cap.release()
         raise error("Expecting this call to fail!")
-    except pythoncom.com_error, com_exc:
+    except pythoncom.com_error as com_exc:
         if com_exc.hresult != winerror.DISP_E_EXCEPTION:
             raise error("Calling the object via IDispatch did not yield the correct scode", com_exc)
         exc = com_exc.excepinfo
@@ -111,9 +111,9 @@ if logging is not None:
         def emit(self, record):
             self.num_emits += 1
             return
-            print "--- record start"
-            print self.format(record)
-            print "--- record end"
+            print("--- record start")
+            print(self.format(record))
+            print("--- record end")
     
     def testLogger():
         assert not hasattr(win32com, "logger")
@@ -146,6 +146,6 @@ if __name__=='__main__':
     test()
     if logging is not None:
         testLogger()
-    from util import CheckClean
+    from .util import CheckClean
     CheckClean()
-    print "error semantic tests worked"
+    print("error semantic tests worked")

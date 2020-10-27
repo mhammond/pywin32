@@ -4,25 +4,23 @@
 #include <windows.h>
 #include <mmsystem.h>
 
-class PYWINTYPES_EXPORT PyWAVEFORMATEX : public PyObject
-{
-public:
+class PYWINTYPES_EXPORT PyWAVEFORMATEX : public PyObject {
+   public:
+    PyWAVEFORMATEX(void);
+    PyWAVEFORMATEX(const WAVEFORMATEX &);
+    ~PyWAVEFORMATEX();
 
-	PyWAVEFORMATEX(void);
-	PyWAVEFORMATEX(const WAVEFORMATEX &);
-	~PyWAVEFORMATEX();
-
-	/* Python support */
-	static void deallocFunc(PyObject *ob);
+    /* Python support */
+    static void deallocFunc(PyObject *ob);
 
 #ifdef _MSC_VER
-#pragma warning( disable : 4251 )
-#endif // _MSC_VER
-	static struct PyMemberDef members[];
+#pragma warning(disable : 4251)
+#endif  // _MSC_VER
+    static struct PyMemberDef members[];
 #ifdef _MSC_VER
-#pragma warning( default : 4251 )
-#endif // _MSC_VER
-	WAVEFORMATEX m_wfx;
+#pragma warning(default : 4251)
+#endif  // _MSC_VER
+    WAVEFORMATEX m_wfx;
 };
 
 #endif

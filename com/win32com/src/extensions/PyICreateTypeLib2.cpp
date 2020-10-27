@@ -11,283 +11,274 @@
 //
 // Interface Implementation
 
-PyICreateTypeLib2::PyICreateTypeLib2(IUnknown *pdisp):
-	PyIUnknown(pdisp)
-{
-	ob_type = &type;
-}
+PyICreateTypeLib2::PyICreateTypeLib2(IUnknown *pdisp) : PyIUnknown(pdisp) { ob_type = &type; }
 
-PyICreateTypeLib2::~PyICreateTypeLib2()
-{
-}
+PyICreateTypeLib2::~PyICreateTypeLib2() {}
 
 /* static */ ICreateTypeLib2 *PyICreateTypeLib2::GetI(PyObject *self)
 {
-	return (ICreateTypeLib2 *)PyIUnknown::GetI(self);
+    return (ICreateTypeLib2 *)PyIUnknown::GetI(self);
 }
 
 // @pymethod |PyICreateTypeLib2|CreateTypeInfo|Description of CreateTypeInfo.
 PyObject *PyICreateTypeLib2::CreateTypeInfo(PyObject *self, PyObject *args)
 {
-	ICreateTypeLib2 *pICTL = GetI(self);
-	if ( pICTL == NULL )
-		return NULL;
-	// @pyparm <o unicode>|szName||Description for szName
+    ICreateTypeLib2 *pICTL = GetI(self);
+    if (pICTL == NULL)
+        return NULL;
+    // @pyparm <o unicode>|szName||Description for szName
 
-	long tkind;
-	PyObject *obszName;
-	LPOLESTR szName;
-	ICreateTypeInfo * ppCTInfo;
-	if ( !PyArg_ParseTuple(args, "Ol:CreateTypeInfo", &obszName, &tkind) )
-		return NULL;
-	BOOL bPythonIsHappy = TRUE;
-	if (!PyWinObject_AsBstr(obszName, &szName)) bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pICTL->CreateTypeInfo( szName, (TYPEKIND)tkind, &ppCTInfo );
-	PY_INTERFACE_POSTCALL;
-	SysFreeString(szName);
+    long tkind;
+    PyObject *obszName;
+    LPOLESTR szName;
+    ICreateTypeInfo *ppCTInfo;
+    if (!PyArg_ParseTuple(args, "Ol:CreateTypeInfo", &obszName, &tkind))
+        return NULL;
+    BOOL bPythonIsHappy = TRUE;
+    if (!PyWinObject_AsBstr(obszName, &szName))
+        bPythonIsHappy = FALSE;
+    if (!bPythonIsHappy)
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pICTL->CreateTypeInfo(szName, (TYPEKIND)tkind, &ppCTInfo);
+    PY_INTERFACE_POSTCALL;
+    SysFreeString(szName);
 
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pICTL, IID_ICreateTypeLib2);
-	return PyCom_PyObjectFromIUnknown(ppCTInfo, IID_ICreateTypeInfo, FALSE);
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pICTL, IID_ICreateTypeLib2);
+    return PyCom_PyObjectFromIUnknown(ppCTInfo, IID_ICreateTypeInfo, FALSE);
 }
 
 // @pymethod |PyICreateTypeLib2|SetName|Description of SetName.
 PyObject *PyICreateTypeLib2::SetName(PyObject *self, PyObject *args)
 {
-	ICreateTypeLib2 *pICTL = GetI(self);
-	if ( pICTL == NULL )
-		return NULL;
-	// @pyparm <o unicode>|szName||Description for szName
-	PyObject *obszName;
-	LPOLESTR szName;
-	if ( !PyArg_ParseTuple(args, "O:SetName", &obszName) )
-		return NULL;
-	BOOL bPythonIsHappy = TRUE;
-	if (!PyWinObject_AsBstr(obszName, &szName)) bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pICTL->SetName( szName );
-	PY_INTERFACE_POSTCALL;
-	SysFreeString(szName);
+    ICreateTypeLib2 *pICTL = GetI(self);
+    if (pICTL == NULL)
+        return NULL;
+    // @pyparm <o unicode>|szName||Description for szName
+    PyObject *obszName;
+    LPOLESTR szName;
+    if (!PyArg_ParseTuple(args, "O:SetName", &obszName))
+        return NULL;
+    BOOL bPythonIsHappy = TRUE;
+    if (!PyWinObject_AsBstr(obszName, &szName))
+        bPythonIsHappy = FALSE;
+    if (!bPythonIsHappy)
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pICTL->SetName(szName);
+    PY_INTERFACE_POSTCALL;
+    SysFreeString(szName);
 
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pICTL, IID_ICreateTypeLib2);
-	Py_INCREF(Py_None);
-	return Py_None;
-
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pICTL, IID_ICreateTypeLib2);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @pymethod |PyICreateTypeLib2|SetVersion|Description of SetVersion.
 PyObject *PyICreateTypeLib2::SetVersion(PyObject *self, PyObject *args)
 {
-	ICreateTypeLib2 *pICTL = GetI(self);
-	if ( pICTL == NULL )
-		return NULL;
-	// @pyparm int|wMajorVerNum||Description for wMajorVerNum
-	// @pyparm int|wMinorVerNum||Description for wMinorVerNum
-	WORD wMajorVerNum;
-	WORD wMinorVerNum;
-	if ( !PyArg_ParseTuple(args, "ii:SetVersion", &wMajorVerNum, &wMinorVerNum) )
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pICTL->SetVersion( wMajorVerNum, wMinorVerNum );
-	PY_INTERFACE_POSTCALL;
+    ICreateTypeLib2 *pICTL = GetI(self);
+    if (pICTL == NULL)
+        return NULL;
+    // @pyparm int|wMajorVerNum||Description for wMajorVerNum
+    // @pyparm int|wMinorVerNum||Description for wMinorVerNum
+    WORD wMajorVerNum;
+    WORD wMinorVerNum;
+    if (!PyArg_ParseTuple(args, "ii:SetVersion", &wMajorVerNum, &wMinorVerNum))
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pICTL->SetVersion(wMajorVerNum, wMinorVerNum);
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pICTL, IID_ICreateTypeLib2);
-	Py_INCREF(Py_None);
-	return Py_None;
-
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pICTL, IID_ICreateTypeLib2);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @pymethod |PyICreateTypeLib2|SetGuid|Description of SetGuid.
 PyObject *PyICreateTypeLib2::SetGuid(PyObject *self, PyObject *args)
 {
-	ICreateTypeLib2 *pICTL = GetI(self);
-	if ( pICTL == NULL )
-		return NULL;
-	// @pyparm <o PyIID>|guid||Description for guid
-	PyObject *obguid;
-	IID guid;
-	if ( !PyArg_ParseTuple(args, "O:SetGuid", &obguid) )
-		return NULL;
-	BOOL bPythonIsHappy = TRUE;
-	if (!PyWinObject_AsIID(obguid, &guid)) bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pICTL->SetGuid( guid );
-	PY_INTERFACE_POSTCALL;
+    ICreateTypeLib2 *pICTL = GetI(self);
+    if (pICTL == NULL)
+        return NULL;
+    // @pyparm <o PyIID>|guid||Description for guid
+    PyObject *obguid;
+    IID guid;
+    if (!PyArg_ParseTuple(args, "O:SetGuid", &obguid))
+        return NULL;
+    BOOL bPythonIsHappy = TRUE;
+    if (!PyWinObject_AsIID(obguid, &guid))
+        bPythonIsHappy = FALSE;
+    if (!bPythonIsHappy)
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pICTL->SetGuid(guid);
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pICTL, IID_ICreateTypeLib2);
-	Py_INCREF(Py_None);
-	return Py_None;
-
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pICTL, IID_ICreateTypeLib2);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @pymethod |PyICreateTypeLib2|SetDocString|Description of SetDocString.
 PyObject *PyICreateTypeLib2::SetDocString(PyObject *self, PyObject *args)
 {
-	ICreateTypeLib2 *pICTL = GetI(self);
-	if ( pICTL == NULL )
-		return NULL;
-	// @pyparm <o unicode>|szDoc||Description for szDoc
-	PyObject *obszDoc;
-	LPOLESTR szDoc;
-	if ( !PyArg_ParseTuple(args, "O:SetDocString", &obszDoc) )
-		return NULL;
-	BOOL bPythonIsHappy = TRUE;
-	if (!PyWinObject_AsBstr(obszDoc, &szDoc)) bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pICTL->SetDocString( szDoc );
-	PY_INTERFACE_POSTCALL;
-	SysFreeString(szDoc);
+    ICreateTypeLib2 *pICTL = GetI(self);
+    if (pICTL == NULL)
+        return NULL;
+    // @pyparm <o unicode>|szDoc||Description for szDoc
+    PyObject *obszDoc;
+    LPOLESTR szDoc;
+    if (!PyArg_ParseTuple(args, "O:SetDocString", &obszDoc))
+        return NULL;
+    BOOL bPythonIsHappy = TRUE;
+    if (!PyWinObject_AsBstr(obszDoc, &szDoc))
+        bPythonIsHappy = FALSE;
+    if (!bPythonIsHappy)
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pICTL->SetDocString(szDoc);
+    PY_INTERFACE_POSTCALL;
+    SysFreeString(szDoc);
 
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pICTL, IID_ICreateTypeLib2);
-	Py_INCREF(Py_None);
-	return Py_None;
-
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pICTL, IID_ICreateTypeLib2);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @pymethod |PyICreateTypeLib2|SetHelpFileName|Description of SetHelpFileName.
 PyObject *PyICreateTypeLib2::SetHelpFileName(PyObject *self, PyObject *args)
 {
-	ICreateTypeLib2 *pICTL = GetI(self);
-	if ( pICTL == NULL )
-		return NULL;
-	// @pyparm <o unicode>|szHelpFileName||Description for szHelpFileName
-	PyObject *obszHelpFileName;
-	LPOLESTR szHelpFileName;
-	if ( !PyArg_ParseTuple(args, "O:SetHelpFileName", &obszHelpFileName) )
-		return NULL;
-	BOOL bPythonIsHappy = TRUE;
-	if (!PyWinObject_AsBstr(obszHelpFileName, &szHelpFileName)) bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pICTL->SetHelpFileName( szHelpFileName );
-	PY_INTERFACE_POSTCALL;
-	SysFreeString(szHelpFileName);
+    ICreateTypeLib2 *pICTL = GetI(self);
+    if (pICTL == NULL)
+        return NULL;
+    // @pyparm <o unicode>|szHelpFileName||Description for szHelpFileName
+    PyObject *obszHelpFileName;
+    LPOLESTR szHelpFileName;
+    if (!PyArg_ParseTuple(args, "O:SetHelpFileName", &obszHelpFileName))
+        return NULL;
+    BOOL bPythonIsHappy = TRUE;
+    if (!PyWinObject_AsBstr(obszHelpFileName, &szHelpFileName))
+        bPythonIsHappy = FALSE;
+    if (!bPythonIsHappy)
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pICTL->SetHelpFileName(szHelpFileName);
+    PY_INTERFACE_POSTCALL;
+    SysFreeString(szHelpFileName);
 
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pICTL, IID_ICreateTypeLib2);
-	Py_INCREF(Py_None);
-	return Py_None;
-
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pICTL, IID_ICreateTypeLib2);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @pymethod |PyICreateTypeLib2|SetHelpContext|Description of SetHelpContext.
 PyObject *PyICreateTypeLib2::SetHelpContext(PyObject *self, PyObject *args)
 {
-	ICreateTypeLib2 *pICTL = GetI(self);
-	if ( pICTL == NULL )
-		return NULL;
-	// @pyparm int|dwHelpContext||Description for dwHelpContext
-	DWORD dwHelpContext;
-	if ( !PyArg_ParseTuple(args, "l:SetHelpContext", &dwHelpContext) )
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pICTL->SetHelpContext( dwHelpContext );
-	PY_INTERFACE_POSTCALL;
+    ICreateTypeLib2 *pICTL = GetI(self);
+    if (pICTL == NULL)
+        return NULL;
+    // @pyparm int|dwHelpContext||Description for dwHelpContext
+    DWORD dwHelpContext;
+    if (!PyArg_ParseTuple(args, "l:SetHelpContext", &dwHelpContext))
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pICTL->SetHelpContext(dwHelpContext);
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pICTL, IID_ICreateTypeLib2);
-	Py_INCREF(Py_None);
-	return Py_None;
-
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pICTL, IID_ICreateTypeLib2);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @pymethod |PyICreateTypeLib2|SetLcid|Description of SetLcid.
 PyObject *PyICreateTypeLib2::SetLcid(PyObject *self, PyObject *args)
 {
-	ICreateTypeLib2 *pICTL = GetI(self);
-	if ( pICTL == NULL )
-		return NULL;
-	long lcid;
-	if ( !PyArg_ParseTuple(args, "l:SetLcid", &lcid) )
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pICTL->SetLcid( lcid );
-	PY_INTERFACE_POSTCALL;
+    ICreateTypeLib2 *pICTL = GetI(self);
+    if (pICTL == NULL)
+        return NULL;
+    long lcid;
+    if (!PyArg_ParseTuple(args, "l:SetLcid", &lcid))
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pICTL->SetLcid(lcid);
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pICTL, IID_ICreateTypeLib2);
-	Py_INCREF(Py_None);
-	return Py_None;
-
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pICTL, IID_ICreateTypeLib2);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @pymethod |PyICreateTypeLib2|SetLibFlags|Description of SetLibFlags.
 PyObject *PyICreateTypeLib2::SetLibFlags(PyObject *self, PyObject *args)
 {
-	ICreateTypeLib2 *pICTL = GetI(self);
-	if ( pICTL == NULL )
-		return NULL;
-	// @pyparm int|uLibFlags||Description for uLibFlags
-	UINT uLibFlags;
-	if ( !PyArg_ParseTuple(args, "i:SetLibFlags", &uLibFlags) )
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pICTL->SetLibFlags( uLibFlags );
-	PY_INTERFACE_POSTCALL;
+    ICreateTypeLib2 *pICTL = GetI(self);
+    if (pICTL == NULL)
+        return NULL;
+    // @pyparm int|uLibFlags||Description for uLibFlags
+    UINT uLibFlags;
+    if (!PyArg_ParseTuple(args, "i:SetLibFlags", &uLibFlags))
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pICTL->SetLibFlags(uLibFlags);
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pICTL, IID_ICreateTypeLib2);
-	Py_INCREF(Py_None);
-	return Py_None;
-
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pICTL, IID_ICreateTypeLib2);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @pymethod |PyICreateTypeLib2|SaveAllChanges|Description of SaveAllChanges.
 PyObject *PyICreateTypeLib2::SaveAllChanges(PyObject *self, PyObject *args)
 {
-	ICreateTypeLib2 *pICTL = GetI(self);
-	if ( pICTL == NULL )
-		return NULL;
-	if ( !PyArg_ParseTuple(args, ":SaveAllChanges") )
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pICTL->SaveAllChanges( );
-	PY_INTERFACE_POSTCALL;
+    ICreateTypeLib2 *pICTL = GetI(self);
+    if (pICTL == NULL)
+        return NULL;
+    if (!PyArg_ParseTuple(args, ":SaveAllChanges"))
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pICTL->SaveAllChanges();
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pICTL, IID_ICreateTypeLib2);
-	Py_INCREF(Py_None);
-	return Py_None;
-
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pICTL, IID_ICreateTypeLib2);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @object PyICreateTypeLib2|Description of the interface
-static struct PyMethodDef PyICreateTypeLib2_methods[] =
-{
-	{ "CreateTypeInfo", PyICreateTypeLib2::CreateTypeInfo, 1 }, // @pymeth CreateTypeInfo|Description of CreateTypeInfo
-	{ "SetName", PyICreateTypeLib2::SetName, 1 }, // @pymeth SetName|Description of SetName
-	{ "SetVersion", PyICreateTypeLib2::SetVersion, 1 }, // @pymeth SetVersion|Description of SetVersion
-	{ "SetGuid", PyICreateTypeLib2::SetGuid, 1 }, // @pymeth SetGuid|Description of SetGuid
-	{ "SetDocString", PyICreateTypeLib2::SetDocString, 1 }, // @pymeth SetDocString|Description of SetDocString
-	{ "SetHelpFileName", PyICreateTypeLib2::SetHelpFileName, 1 }, // @pymeth SetHelpFileName|Description of SetHelpFileName
-	{ "SetHelpContext", PyICreateTypeLib2::SetHelpContext, 1 }, // @pymeth SetHelpContext|Description of SetHelpContext
-	{ "SetLcid", PyICreateTypeLib2::SetLcid, 1 }, // @pymeth SetLcid|Description of SetLcid
-	{ "SetLibFlags", PyICreateTypeLib2::SetLibFlags, 1 }, // @pymeth SetLibFlags|Description of SetLibFlags
-	{ "SaveAllChanges", PyICreateTypeLib2::SaveAllChanges, 1 }, // @pymeth SaveAllChanges|Description of SaveAllChanges
-	{ NULL }
-};
+static struct PyMethodDef PyICreateTypeLib2_methods[] = {
+    {"CreateTypeInfo", PyICreateTypeLib2::CreateTypeInfo, 1},  // @pymeth CreateTypeInfo|Description of CreateTypeInfo
+    {"SetName", PyICreateTypeLib2::SetName, 1},                // @pymeth SetName|Description of SetName
+    {"SetVersion", PyICreateTypeLib2::SetVersion, 1},          // @pymeth SetVersion|Description of SetVersion
+    {"SetGuid", PyICreateTypeLib2::SetGuid, 1},                // @pymeth SetGuid|Description of SetGuid
+    {"SetDocString", PyICreateTypeLib2::SetDocString, 1},      // @pymeth SetDocString|Description of SetDocString
+    {"SetHelpFileName", PyICreateTypeLib2::SetHelpFileName,
+     1},                                                       // @pymeth SetHelpFileName|Description of SetHelpFileName
+    {"SetHelpContext", PyICreateTypeLib2::SetHelpContext, 1},  // @pymeth SetHelpContext|Description of SetHelpContext
+    {"SetLcid", PyICreateTypeLib2::SetLcid, 1},                // @pymeth SetLcid|Description of SetLcid
+    {"SetLibFlags", PyICreateTypeLib2::SetLibFlags, 1},        // @pymeth SetLibFlags|Description of SetLibFlags
+    {"SaveAllChanges", PyICreateTypeLib2::SaveAllChanges, 1},  // @pymeth SaveAllChanges|Description of SaveAllChanges
+    {NULL}};
 
-PyComTypeObject PyICreateTypeLib2::type("PyICreateTypeLib2",
-		&PyIUnknown::type,
-		sizeof(PyICreateTypeLib2),
-		PyICreateTypeLib2_methods,
-		GET_PYCOM_CTOR(PyICreateTypeLib2));
+PyComTypeObject PyICreateTypeLib2::type("PyICreateTypeLib2", &PyIUnknown::type, sizeof(PyICreateTypeLib2),
+                                        PyICreateTypeLib2_methods, GET_PYCOM_CTOR(PyICreateTypeLib2));

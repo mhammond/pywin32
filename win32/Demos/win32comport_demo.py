@@ -70,7 +70,7 @@ class SerialTTY:
         dcb.Parity = NOPARITY
         dcb.StopBits = ONESTOPBIT
         SetCommState(self.handle, dcb)
-        print "Connected to %s at %s baud" % (port, dcb.BaudRate)
+        print("Connected to %s at %s baud" % (port, dcb.BaudRate))
 
     def _UserInputReaderThread(self):
         overlapped = OVERLAPPED()
@@ -119,12 +119,12 @@ class SerialTTY:
         com_thread.join()
 
 if __name__=='__main__':
-    print "Serial port terminal demo - press Ctrl+C to exit"
+    print("Serial port terminal demo - press Ctrl+C to exit")
     if len(sys.argv)<=1:
         port = FindModem()
         if port is None:
-            print "No COM port specified, and no modem could be found"
-            print "Please re-run this script with the name of a COM port (eg COM3)"
+            print("No COM port specified, and no modem could be found")
+            print("Please re-run this script with the name of a COM port (eg COM3)")
             sys.exit(1)
     else:
         port = sys.argv[1]

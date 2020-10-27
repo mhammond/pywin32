@@ -134,8 +134,8 @@ class DispatcherBase:
       self.logger.debug(record)
     else:
       for arg in args[:-1]:
-        print arg,
-      print args[-1]
+        print(arg, end=' ')
+      print(args[-1])
 
 class DispatcherTrace(DispatcherBase):
   """A dispatcher, which causes a 'print' line for each COM function called.
@@ -230,9 +230,9 @@ class DispatcherWin32dbg(DispatcherBase):
     # pythonwin in.
     #import pywin.debugger 
     pywin.debugger.brk()
-    print "The DispatcherWin32dbg dispatcher is deprecated!"
-    print "Please let me know if this is a problem."
-    print "Uncomment the relevant lines in dispatcher.py to re-enable"
+    print("The DispatcherWin32dbg dispatcher is deprecated!")
+    print("Please let me know if this is a problem.")
+    print("Uncomment the relevant lines in dispatcher.py to re-enable")
     # DEBUGGER Note - You can either:
     # * Hit Run and wait for a (non Exception class) exception to occur!
     # * Set a breakpoint and hit run.

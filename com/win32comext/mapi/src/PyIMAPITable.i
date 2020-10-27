@@ -66,7 +66,7 @@ PyObject *PyIMAPITable::GetLastError(PyObject *self, PyObject *args)
 HRESULT Advise(
 	unsigned long ulEventMask, // @pyparm int|eventMask||
 	IMAPIAdviseSink *INPUT,	   // @pyparm <o PyIMAPIAdviseSink>|adviseSink||	
-	unsigned long *OUTPUT );
+	ULONG_PTR *OUTPUT );
 
 // @pyswig int|SeekRow|Moves the cursor to a specific position in the table.
 HRESULT SeekRow(
@@ -132,7 +132,7 @@ HRESULT FreeBookmark(
 
 // @pyswig int|CreateBookmark|Marks the table's current position. 
 HRESULT CreateBookmark(
-	unsigned long *OUTPUT
+	ULONG_PTR *OUTPUT
 );
 
 // @pyswig |Restrict|Applies a filter to a table, reducing the row set to only those rows matching the specified criteria. 

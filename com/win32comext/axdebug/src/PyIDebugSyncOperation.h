@@ -4,40 +4,34 @@
 //
 // Interface Declaration
 
-class PyIDebugSyncOperation : public PyIUnknown
-{
-public:
-	MAKE_PYCOM_CTOR(PyIDebugSyncOperation);
-	static IDebugSyncOperation *GetI(PyObject *self);
-	static PyComTypeObject type;
+class PyIDebugSyncOperation : public PyIUnknown {
+   public:
+    MAKE_PYCOM_CTOR(PyIDebugSyncOperation);
+    static IDebugSyncOperation *GetI(PyObject *self);
+    static PyComTypeObject type;
 
-	// The Python methods
-	static PyObject *GetTargetThread(PyObject *self, PyObject *args);
-	static PyObject *Execute(PyObject *self, PyObject *args);
-	static PyObject *InProgressAbort(PyObject *self, PyObject *args);
+    // The Python methods
+    static PyObject *GetTargetThread(PyObject *self, PyObject *args);
+    static PyObject *Execute(PyObject *self, PyObject *args);
+    static PyObject *InProgressAbort(PyObject *self, PyObject *args);
 
-protected:
-	PyIDebugSyncOperation(IUnknown *pdisp);
-	~PyIDebugSyncOperation();
+   protected:
+    PyIDebugSyncOperation(IUnknown *pdisp);
+    ~PyIDebugSyncOperation();
 };
 // ---------------------------------------------------
 //
 // Gateway Declaration
 
-class PyGDebugSyncOperation : public PyGatewayBase, public IDebugSyncOperation
-{
-protected:
-	PyGDebugSyncOperation(PyObject *instance) : PyGatewayBase(instance) { ; }
-	PYGATEWAY_MAKE_SUPPORT(PyGDebugSyncOperation, IDebugSyncOperation, IID_IDebugSyncOperation)
+class PyGDebugSyncOperation : public PyGatewayBase, public IDebugSyncOperation {
+   protected:
+    PyGDebugSyncOperation(PyObject *instance) : PyGatewayBase(instance) { ; }
+    PYGATEWAY_MAKE_SUPPORT(PyGDebugSyncOperation, IDebugSyncOperation, IID_IDebugSyncOperation)
 
-	// IDebugSyncOperation
-	STDMETHOD(GetTargetThread)(
-		IDebugApplicationThread __RPC_FAR *__RPC_FAR * ppatTarget);
+    // IDebugSyncOperation
+    STDMETHOD(GetTargetThread)(IDebugApplicationThread __RPC_FAR *__RPC_FAR *ppatTarget);
 
-	STDMETHOD(Execute)(
-		IUnknown __RPC_FAR *__RPC_FAR * ppunkResult);
+    STDMETHOD(Execute)(IUnknown __RPC_FAR *__RPC_FAR *ppunkResult);
 
-	STDMETHOD(InProgressAbort)(
-		void);
-
+    STDMETHOD(InProgressAbort)(void);
 };

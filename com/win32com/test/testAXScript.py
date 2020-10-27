@@ -20,14 +20,14 @@ class AXScript(win32com.test.util.TestCase):
         file = win32api.GetFullPathName(os.path.join(win32com.axscript.__path__[0], "test\\testHost.py"))
         cmd = '%s "%s"' % (win32api.GetModuleFileName(0), file)
         if verbose:
-            print "Testing Python Scripting host"
+            print("Testing Python Scripting host")
         win32com.test.util.ExecuteShellCommand(cmd, self)
 
     def testCScript(self):
         file = win32api.GetFullPathName(os.path.join(win32com.axscript.__path__[0], "Demos\\Client\\wsh\\test.pys"))
         cmd = 'cscript.exe "%s"' % (file)
         if verbose:
-            print "Testing Windows Scripting host with Python script"
+            print("Testing Windows Scripting host with Python script")
         win32com.test.util.ExecuteShellCommand(cmd, self)
 
 if __name__=='__main__':

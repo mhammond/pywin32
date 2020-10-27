@@ -17,7 +17,7 @@ def EnumServices():
 
     statuses = win32service.EnumServicesStatus(hscm, typeFilter, stateFilter)
     for (short_name, desc, status) in statuses:
-        print short_name, desc, status
+        print(short_name, desc, status)
 
 
 EnumServices()

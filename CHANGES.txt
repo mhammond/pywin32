@@ -4,11 +4,173 @@ Generally created by hand after running:
    hg log -rb2xx: > log.out
 However contributors are encouraged to add their own entries for their work.
 
+Note that, baring some major issue building and cutting the release, build
+228 will be the last version supporting Python 2.
+
+
+Since build 228:
+----------------
+* Fixed a bug where win32com.client.VARIANT params were returned in the reverse
+  order. This only happened when win32com.client.VARIANT was explicitly used
+  (ie, not when normal params were passed) For example:
+  ```python
+      arg1 = VARIANT(pythoncom.VT_R4 | pythoncom.VT_BYREF, 2.0)
+      arg2 = VARIANT(pythoncom.VT_BOOL | pythoncom.VT_BYREF, True)
+      object.SomeFunction(arg1, arg2)
+  ```
+  after this call, `arg1.value` was actually the value for `arg2`, and
+  vice-versa (#1303, #622).
+
+* Changed how Services implemented with win32serviceutil.ServiceFramework
+  report that they have stopped. Now if the SvcRun() method (or the SvcDoRun()
+  method, which is called by SvcRun() by default) raises on Exception,
+  the Service will report a final SERVICE_STOPPED status with a non-zero error
+  code. This will cause the Service's recovery actions to be triggered if the
+  Service has the "Enable actions for stops with errors" option enabled.
+  (#1563, Lincoln Puzey)
+
+* adodbapi connect() method now accepts a "mode" keyword argument which is the
+  "Mode" property to set on the ADO "Connection" object before opening the
+  Connection. See "ConnectModeEnum" for valid values.
+  (Lincoln Puzey)
+
+* The Windows 10 SDK is now used to build the project. This shouldn't cause any
+  visible changes, but should make it much easier to build the project yourself.
+
+Python 2 is no longer supported - so long, Python 2, you served us well!
+
+Notable changes in this transition:
+
+* Python 3 builds used to erroneously turn "bytes" into a tuple of integers
+  instead of a buffer type object. Because this special-casing is important for
+  performance when using massive buffers, this has been fixed in Python 3 so
+  it matches the old Python 2 behavior. If you use arrays of VT_UI1 and expect
+  get back tuples of integers, your code may break.
+
+* Pythonwin's default encoding is now utf-8 (#1559)
+
+Since build 227:
+----------------
+* Support for for win32evtlog.EvtFormatMessage and EvtCreateRenderContext
+ (#1308)
+
+* Support more elements in the SECURITY_LOGON_SESSION_DATA struct
+  returned by win32security.LsaGetLogonSession (#1515)
+
+* Remove trailing \0 char from win32file.FindFileNames results (#1511)
+
+* Added win32process.ReadProcessMemory/WriteProcessMemory (#1502)
+
+* Added win32process.VirtualAllocEx/VirtualFreeEx (#1509)
+
+* Added win32gui.ValidateRect (#1504)
+
+* Adodbapi corrected and updated to version 2.6.2. With this change the pywin32
+  repo will become the definitive source code for adodbapi, so files should never
+  be missing again. Includes bug fix for 'named' paramstyle SF#28.
+* Added a __repr__ implementation for PySecBufferDesc and PySecBuffer.
+
+* Fix bug when trying to free a PySecBuffer object when the buffer was not
+  allocated by the caller. This can occur when decrypting a message with a
+  SECBUFFER_STREAM and SECBUFFER_DATA buffer when calling DecryptMessage().
+
+Since build 226:
+----------------
+* Improved the search for pywin32 system DLLs logic. Useful when installed
+  in virtual environments (#1442, @CristiFati)
+
+* Added MAPI IMsgServiceAdmin2 interface (Nick Czeczulin, #1411)
+
+Since build 225:
+----------------
+* The directory with the pywin32 system DLLs is now added to the start of PATH
+  for version 3.7 and earlier, and passed to os.add_dll_directory() on 3.8 and
+  later. This will hopefully work around problems loading pywintypes.dll in
+  various situations.
+
+* Conversions to and from COM VT_DATE types should no longer lose milliseconds.
+
+* Formatting eventlog messages should now handle larger messages and inserts
+  (Ofek Lev via #1421)
+
+* Fixed that win32help was very broken everywhere except 32bit 2.7 (#1434)
+
+* A number of MAPI improvements from Nick Czeczulin.
+
+Since build 224:
+----------------
+* Huge shout-out to @thopiekar for helping with github triage, getting CI
+  working and sane, and other general help and patches!
+
+* Significant work by @joankaradimov in porting pywin32 so that it works in a
+  MingGW/msys2 environment.
+
+* ntsecuritycon.FILE_ALL_ACCESS had an incorrect value (#1354)
+
+* SetSecurityDescriptorGroup now accepts None as group value (#1382)
+
+* Fix an issue where win32gui.EnumChildWindows may throw a spurious exception.
+  (#1350)
+
+* Better support for numpy objects in COM methods (#1388, @panikc and
+  @SReicheltPTV)
+
+* PythonWin is now able to start with non-English active keyboard layout.
+
+* Corrected wMilliseconds truncation in PyTime::getattro (Dorian Bivolaru)
+
+* Implement PdhGetFormattedCounterArray (#1306, konserw)
+
+Since build 223:
+----------------
+* Built with a released version of Python 3.7, which fixes various date related
+  issues with Python 3.7
+
+* Fix a regression introduced in build 220 around how some COM properties are
+  handled (#1211 and #1199)
+
+* Everything is now build with the Windows 8.1 SDK. While this should typically
+  be invisible, it is mentioned because it might explain obscure issues that
+  creep in, so it should be explicitly called out as a change.
+  On the plus side, this makes building the extensions far simpler.
+
+* win32serviceutil - in GetServiceClassString, skip rewrite of file name (fname)
+  when win32api.FindFiles returns an empty list, e.g., if the service has been
+  packaged in a zip or exe. (fixes issue #642)
+
+Since build 222:
+----------------
+* pywin32.pth now arranges for the pywin32_system32 directory to be on
+  PATH to help with pypi installations (thanks to @xovian via #1153)
+
 Since build 221:
 ----------------
-* Moved to github for development. As a part of this, I've changed every issue
-  in this file from "#xxx" to "#sfxxx to indicate they refer to the old
-  sourceforge issue numbers.
+* !! Moved to github for development !!. https://github.com/mhammond/pywin32
+  is the new home of pywin32 and all builds will be released there.
+  The build process now also builds "wheels", so "pip install pywin32" should
+  also work (but see README.md for some limitiations of using pip)
+
+  Particular thanks to @xoviat, who helped with prompting me to make the
+  change, imported all the issues from sourceforge, and helped with the
+  process for creating the wheels.
+
+  As a part of this, I've changed every issue in this file from "#xxx" to
+  "#sfxxx" to indicate they refer to the old sourceforge issue numbers.
+
+* Older Python versions are no longer supported - builds are only made
+  available for Python 2.7 and Python 3.5+.
+
+* For Python 3.x, a win32 FILETIME or TimeStamp which is greater than the
+  datetime module can handle will return datetime.datetime.max instead of
+  throwing (fixes issue #748)
+
+* win32file - fix ERROR_BAD_LENGTH in GetFileInformationByHandleEx
+  in x86 builds(issue #752, rbschk)
+
+* MakeModuleForTypelib no longer catches COM exceptions, so no longer can
+  return None. This is what the docstring always claimed the behaviour was
+  and makes things less error prone. If you explicitly call this function and
+  handle None, you will need to wrap the call in an exception handler.
 
 * Change PyIMAPIFolder CopyMessages, DeleteMessages, and EmptyFolder to return
   the HRESULT (Nick Czeczulin via patch #sf162)

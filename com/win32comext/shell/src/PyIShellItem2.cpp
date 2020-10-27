@@ -10,579 +10,592 @@
 //
 // Interface Implementation
 
-PyIShellItem2::PyIShellItem2(IUnknown *pdisp):
-	PyIShellItem(pdisp)
-{
-	ob_type = &type;
-}
+PyIShellItem2::PyIShellItem2(IUnknown *pdisp) : PyIShellItem(pdisp) { ob_type = &type; }
 
-PyIShellItem2::~PyIShellItem2()
-{
-}
+PyIShellItem2::~PyIShellItem2() {}
 
-/* static */ IShellItem2 *PyIShellItem2::GetI(PyObject *self)
-{
-	return (IShellItem2 *)PyIShellItem::GetI(self);
-}
+/* static */ IShellItem2 *PyIShellItem2::GetI(PyObject *self) { return (IShellItem2 *)PyIShellItem::GetI(self); }
 
 // @pymethod <o PyIPropertyStore>|PyIShellItem2|GetPropertyStore|Returns a collection of the item's properties
 PyObject *PyIShellItem2::GetPropertyStore(PyObject *self, PyObject *args)
 {
-	IShellItem2 *pISI2 = GetI(self);
-	if ( pISI2 == NULL )
-		return NULL;
+    IShellItem2 *pISI2 = GetI(self);
+    if (pISI2 == NULL)
+        return NULL;
 
-	void *ret;
-	GETPROPERTYSTOREFLAGS flags = GPS_DEFAULT;
-	IID riid = IID_IPropertyStore;
-	// @pyparm int|Flags|GPS_DEFAULT|Combination of GETPROPERTYSTOREFLAGS values (shellcon.GPS_*)
-	// @pyparm <o PyIID>|riid|IID_IPropertyStore|The interface to return
-	if ( !PyArg_ParseTuple(args, "|kO&:GetPropertyStore", &flags, PyWinObject_AsIID, &riid))
-		return NULL;
+    void *ret;
+    GETPROPERTYSTOREFLAGS flags = GPS_DEFAULT;
+    IID riid = IID_IPropertyStore;
+    // @pyparm int|Flags|GPS_DEFAULT|Combination of GETPROPERTYSTOREFLAGS values (shellcon.GPS_*)
+    // @pyparm <o PyIID>|riid|IID_IPropertyStore|The interface to return
+    if (!PyArg_ParseTuple(args, "|kO&:GetPropertyStore", &flags, PyWinObject_AsIID, &riid))
+        return NULL;
 
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pISI2->GetPropertyStore( flags, riid, &ret);
-	PY_INTERFACE_POSTCALL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pISI2->GetPropertyStore(flags, riid, &ret);
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pISI2, IID_IShellItem2 );
-	return PyCom_PyObjectFromIUnknown((IUnknown *)ret, riid);
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pISI2, IID_IShellItem2);
+    return PyCom_PyObjectFromIUnknown((IUnknown *)ret, riid);
 }
 
-// @pymethod <o PyIPropertyStore>|PyIShellItem2|GetPropertyStoreWithCreateObject|Returns the property store for the item, with alternate handler instantiation
+// @pymethod <o PyIPropertyStore>|PyIShellItem2|GetPropertyStoreWithCreateObject|Returns the property store for the
+// item, with alternate handler instantiation
 // @comm Primarily used to create a handler in a separate process with reduced privileges
 PyObject *PyIShellItem2::GetPropertyStoreWithCreateObject(PyObject *self, PyObject *args)
 {
-	IShellItem2 *pISI2 = GetI(self);
-	if ( pISI2 == NULL )
-		return NULL;
+    IShellItem2 *pISI2 = GetI(self);
+    if (pISI2 == NULL)
+        return NULL;
 
-	void *ret;
-	GETPROPERTYSTOREFLAGS flags;
-	IUnknown *punkCreateObject;
-	PyObject *obCreateObject;
-	IID riid = IID_IPropertyStore;
-	// @pyparm int|Flags||Combination of GETPROPERTYSTOREFLAGS values (shellcon.GPS_*)
-	// @pyparm <o PyIUnknown>|CreateObject||An interface that implements ICreateObject, used to create the property handler
-	// @pyparm <o PyIID>|riid|IID_IPropertyStore|The interface to be created
-	if ( !PyArg_ParseTuple(args, "kO|O&:GetPropertyStoreWithCreateObject", &flags,
-		&obCreateObject, PyWinObject_AsIID, &riid))
-		return NULL;
-	if (!PyCom_InterfaceFromPyObject(obCreateObject, IID_IUnknown, (void **)&punkCreateObject))
-		return NULL;
+    void *ret;
+    GETPROPERTYSTOREFLAGS flags;
+    IUnknown *punkCreateObject;
+    PyObject *obCreateObject;
+    IID riid = IID_IPropertyStore;
+    // @pyparm int|Flags||Combination of GETPROPERTYSTOREFLAGS values (shellcon.GPS_*)
+    // @pyparm <o PyIUnknown>|CreateObject||An interface that implements ICreateObject, used to create the property
+    // handler
+    // @pyparm <o PyIID>|riid|IID_IPropertyStore|The interface to be created
+    if (!PyArg_ParseTuple(args, "kO|O&:GetPropertyStoreWithCreateObject", &flags, &obCreateObject, PyWinObject_AsIID,
+                          &riid))
+        return NULL;
+    if (!PyCom_InterfaceFromPyObject(obCreateObject, IID_IUnknown, (void **)&punkCreateObject))
+        return NULL;
 
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pISI2->GetPropertyStoreWithCreateObject( flags, punkCreateObject, riid, &ret);
-	PY_INTERFACE_POSTCALL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pISI2->GetPropertyStoreWithCreateObject(flags, punkCreateObject, riid, &ret);
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pISI2, IID_IShellItem2 );
-	return PyCom_PyObjectFromIUnknown((IUnknown *)ret, riid);
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pISI2, IID_IShellItem2);
+    return PyCom_PyObjectFromIUnknown((IUnknown *)ret, riid);
 }
 
-// @pymethod <o PyIPropertyStore>|PyIShellItem2|GetPropertyStoreForKeys|Creates a property store containing just the specified properties of the item
+// @pymethod <o PyIPropertyStore>|PyIShellItem2|GetPropertyStoreForKeys|Creates a property store containing just the
+// specified properties of the item
 PyObject *PyIShellItem2::GetPropertyStoreForKeys(PyObject *self, PyObject *args)
 {
-	IShellItem2 *pISI2 = GetI(self);
-	if ( pISI2 == NULL )
-		return NULL;
+    IShellItem2 *pISI2 = GetI(self);
+    if (pISI2 == NULL)
+        return NULL;
 
-	void *ret;
-	PROPERTYKEY *pkeys;
-	ULONG ckeys;
-	GETPROPERTYSTOREFLAGS flags = GPS_DEFAULT;
-	IID riid = IID_IPropertyStore;
-	PyObject *obkeys;
-	// @pyparm (<o SHCOLUMNID>,...))|Keys||A sequence of property identifiers
-	// @pyparm int|Flags|GPS_DEFAULT|Combination of GETPROPERTYSTOREFLAGS values (shellcon.GPS_*)
-	// @pyparm <o PyIID>|riid|IID_IPropertyStore|The interface to return
-	if (!PyArg_ParseTuple(args, "O|kO&:GetPropertyStoreForKeys", &obkeys, &flags, PyWinObject_AsIID, &riid))
-		return NULL;
-	if (!SeqToVector(obkeys, &pkeys, &ckeys, PyObject_AsSHCOLUMNID))
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pISI2->GetPropertyStoreForKeys(pkeys, ckeys, flags, riid, &ret);
-	PY_INTERFACE_POSTCALL;
-	CoTaskMemFree(pkeys);
+    void *ret;
+    PROPERTYKEY *pkeys;
+    ULONG ckeys;
+    GETPROPERTYSTOREFLAGS flags = GPS_DEFAULT;
+    IID riid = IID_IPropertyStore;
+    PyObject *obkeys;
+    // @pyparm (<o SHCOLUMNID>,...))|Keys||A sequence of property identifiers
+    // @pyparm int|Flags|GPS_DEFAULT|Combination of GETPROPERTYSTOREFLAGS values (shellcon.GPS_*)
+    // @pyparm <o PyIID>|riid|IID_IPropertyStore|The interface to return
+    if (!PyArg_ParseTuple(args, "O|kO&:GetPropertyStoreForKeys", &obkeys, &flags, PyWinObject_AsIID, &riid))
+        return NULL;
+    if (!SeqToVector(obkeys, &pkeys, &ckeys, PyObject_AsSHCOLUMNID))
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pISI2->GetPropertyStoreForKeys(pkeys, ckeys, flags, riid, &ret);
+    PY_INTERFACE_POSTCALL;
+    CoTaskMemFree(pkeys);
 
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pISI2, IID_IShellItem2 );
-	return PyCom_PyObjectFromIUnknown((IUnknown *)ret, riid);
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pISI2, IID_IShellItem2);
+    return PyCom_PyObjectFromIUnknown((IUnknown *)ret, riid);
 }
 
-// @pymethod <o PyIPropertyDescriptionList>|PyIShellItem2|GetPropertyDescriptionList|Retrieves descriptions of properties in a particular group
+// @pymethod <o PyIPropertyDescriptionList>|PyIShellItem2|GetPropertyDescriptionList|Retrieves descriptions of
+// properties in a particular group
 PyObject *PyIShellItem2::GetPropertyDescriptionList(PyObject *self, PyObject *args)
 {
-	IShellItem2 *pISI2 = GetI(self);
-	if ( pISI2 == NULL )
-		return NULL;
-	void *ret;
-	PROPERTYKEY pType;
-	IID riid = IID_IPropertyDescriptionList;
-	// @pyparm <o PyPROPERTYKEY>|Type||Property list identifier (pscon.PKEY_PropList_*)
-	// @pyparm <o PyIID>|riid|IID_IPropertyDescriptionList|The interface to return
-	if ( !PyArg_ParseTuple(args, "O&|O&:GetPropertyDescriptionList",
-		PyObject_AsSHCOLUMNID, &pType,
-		PyWinObject_AsIID, &riid))
-		return NULL;
+    IShellItem2 *pISI2 = GetI(self);
+    if (pISI2 == NULL)
+        return NULL;
+    void *ret;
+    PROPERTYKEY pType;
+    IID riid = IID_IPropertyDescriptionList;
+    // @pyparm <o PyPROPERTYKEY>|Type||Property list identifier (pscon.PKEY_PropList_*)
+    // @pyparm <o PyIID>|riid|IID_IPropertyDescriptionList|The interface to return
+    if (!PyArg_ParseTuple(args, "O&|O&:GetPropertyDescriptionList", PyObject_AsSHCOLUMNID, &pType, PyWinObject_AsIID,
+                          &riid))
+        return NULL;
 
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pISI2->GetPropertyDescriptionList( pType, riid, &ret);
-	PY_INTERFACE_POSTCALL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pISI2->GetPropertyDescriptionList(pType, riid, &ret);
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pISI2, IID_IShellItem2 );
-	return PyCom_PyObjectFromIUnknown((IUnknown *)ret, riid);
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pISI2, IID_IShellItem2);
+    return PyCom_PyObjectFromIUnknown((IUnknown *)ret, riid);
 }
 
 // @pymethod |PyIShellItem2|Update|Refreshes properties that have been modified since interface was created
 PyObject *PyIShellItem2::Update(PyObject *self, PyObject *args)
 {
-	IShellItem2 *pISI2 = GetI(self);
-	if ( pISI2 == NULL )
-		return NULL;
-	IBindCtx *ibindctx = NULL;
-	PyObject *obbindctx = Py_None;
-	// @pyparm <o PyIBindCxt>|BindCtx|None|Bind context used when requesting the interface, or None
-	if (!PyArg_ParseTuple(args, "|O:Update", &obbindctx))
-		return NULL;
-	if (!PyCom_InterfaceFromPyObject(obbindctx, IID_IBindCtx, (void **)&ibindctx, TRUE))
-		return NULL;
+    IShellItem2 *pISI2 = GetI(self);
+    if (pISI2 == NULL)
+        return NULL;
+    IBindCtx *ibindctx = NULL;
+    PyObject *obbindctx = Py_None;
+    // @pyparm <o PyIBindCxt>|BindCtx|None|Bind context used when requesting the interface, or None
+    if (!PyArg_ParseTuple(args, "|O:Update", &obbindctx))
+        return NULL;
+    if (!PyCom_InterfaceFromPyObject(obbindctx, IID_IBindCtx, (void **)&ibindctx, TRUE))
+        return NULL;
 
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pISI2->Update(ibindctx);
-	if (ibindctx)
-		ibindctx->Release();
-	PY_INTERFACE_POSTCALL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pISI2->Update(ibindctx);
+    if (ibindctx)
+        ibindctx->Release();
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pISI2, IID_IShellItem2 );
-	Py_INCREF(Py_None);
-	return Py_None;
-
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pISI2, IID_IShellItem2);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @pymethod object|PyIShellItem2|GetProperty|Retrieves the value of a property, converted to an appropriate python type
 // @rdesc Type of returned object is determined by the variant type of the property
 PyObject *PyIShellItem2::GetProperty(PyObject *self, PyObject *args)
 {
-	IShellItem2 *pISI2 = GetI(self);
-	if ( pISI2 == NULL )
-		return NULL;
-	PROPERTYKEY key;
-	PROPVARIANT val;
-	// @pyparm <o PyPROPERTYKEY>|key||The id of the property to retrieve
-	if (!PyArg_ParseTuple(args, "O&:GetProperty", PyObject_AsSHCOLUMNID, &key))
-		return NULL;
-	PropVariantInit(&val);
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pISI2->GetProperty(key, &val);
-	PY_INTERFACE_POSTCALL;
+    IShellItem2 *pISI2 = GetI(self);
+    if (pISI2 == NULL)
+        return NULL;
+    PROPERTYKEY key;
+    PROPVARIANT val;
+    // @pyparm <o PyPROPERTYKEY>|key||The id of the property to retrieve
+    if (!PyArg_ParseTuple(args, "O&:GetProperty", PyObject_AsSHCOLUMNID, &key))
+        return NULL;
+    PropVariantInit(&val);
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pISI2->GetProperty(key, &val);
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pISI2, IID_IShellItem2 );
-	PyObject *ret = PyObject_FromPROPVARIANT(&val);
-	PropVariantClear(&val);
-	return ret;
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pISI2, IID_IShellItem2);
+    PyObject *ret = PyObject_FromPROPVARIANT(&val);
+    PropVariantClear(&val);
+    return ret;
 }
 
 // @pymethod <o PyIID>|PyIShellItem2|GetCLSID|Retrieves the value of a property as a CLSID (VT_CLSID)
 PyObject *PyIShellItem2::GetCLSID(PyObject *self, PyObject *args)
 {
-	IShellItem2 *pISI2 = GetI(self);
-	if ( pISI2 == NULL )
-		return NULL;
-	CLSID val;
-	PROPERTYKEY key;
-	// @pyparm <o PyPROPERTYKEY>|key||The id of the property to retrieve
-	if (!PyArg_ParseTuple(args, "O&:GetCLSID", PyObject_AsSHCOLUMNID, &key))
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pISI2->GetCLSID(key, &val);
-	PY_INTERFACE_POSTCALL;
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pISI2, IID_IShellItem2 );
-	return PyWinObject_FromIID(val);
+    IShellItem2 *pISI2 = GetI(self);
+    if (pISI2 == NULL)
+        return NULL;
+    CLSID val;
+    PROPERTYKEY key;
+    // @pyparm <o PyPROPERTYKEY>|key||The id of the property to retrieve
+    if (!PyArg_ParseTuple(args, "O&:GetCLSID", PyObject_AsSHCOLUMNID, &key))
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pISI2->GetCLSID(key, &val);
+    PY_INTERFACE_POSTCALL;
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pISI2, IID_IShellItem2);
+    return PyWinObject_FromIID(val);
 }
 
 // @pymethod <o PyTime>|PyIShellItem2|GetFileTime|Retrieves the value of a property as a FILETIME
 PyObject *PyIShellItem2::GetFileTime(PyObject *self, PyObject *args)
 {
-	IShellItem2 *pISI2 = GetI(self);
-	if ( pISI2 == NULL )
-		return NULL;
+    IShellItem2 *pISI2 = GetI(self);
+    if (pISI2 == NULL)
+        return NULL;
 
-	FILETIME val;
-	PROPERTYKEY key;
-	// @pyparm <o PyPROPERTYKEY>|key||The id of the property to retrieve
-	if (!PyArg_ParseTuple(args, "O&:GetFileTime", PyObject_AsSHCOLUMNID, &key))
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pISI2->GetFileTime(key, &val);
-	PY_INTERFACE_POSTCALL;
+    FILETIME val;
+    PROPERTYKEY key;
+    // @pyparm <o PyPROPERTYKEY>|key||The id of the property to retrieve
+    if (!PyArg_ParseTuple(args, "O&:GetFileTime", PyObject_AsSHCOLUMNID, &key))
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pISI2->GetFileTime(key, &val);
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pISI2, IID_IShellItem2 );
-	return PyWinObject_FromFILETIME(val);
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pISI2, IID_IShellItem2);
+    return PyWinObject_FromFILETIME(val);
 }
 
 // @pymethod int|PyIShellItem2|GetInt32|Retrieves the value of a property as a 32 bit int.
 PyObject *PyIShellItem2::GetInt32(PyObject *self, PyObject *args)
 {
-	IShellItem2 *pISI2 = GetI(self);
-	if ( pISI2 == NULL )
-		return NULL;
-	int val;
-	PROPERTYKEY key;
-	// @pyparm <o PyPROPERTYKEY>|key||The id of the property to retrieve
-	if (!PyArg_ParseTuple(args, "O&:GetInt32", PyObject_AsSHCOLUMNID, &key))
-		return NULL;
+    IShellItem2 *pISI2 = GetI(self);
+    if (pISI2 == NULL)
+        return NULL;
+    int val;
+    PROPERTYKEY key;
+    // @pyparm <o PyPROPERTYKEY>|key||The id of the property to retrieve
+    if (!PyArg_ParseTuple(args, "O&:GetInt32", PyObject_AsSHCOLUMNID, &key))
+        return NULL;
 
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pISI2->GetInt32(key, &val);
-	PY_INTERFACE_POSTCALL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pISI2->GetInt32(key, &val);
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pISI2, IID_IShellItem2 );
-	return PyInt_FromLong(val);
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pISI2, IID_IShellItem2);
+    return PyInt_FromLong(val);
 }
 
 // @pymethod str|PyIShellItem2|GetString|Retrieves the value of a property as a string
 PyObject *PyIShellItem2::GetString(PyObject *self, PyObject *args)
 {
-	IShellItem2 *pISI2 = GetI(self);
-	if ( pISI2 == NULL )
-		return NULL;
-	LPWSTR val;
-	PROPERTYKEY key;
-	// @pyparm <o PyPROPERTYKEY>|key||The id of the property to retrieve
-	if (!PyArg_ParseTuple(args, "O&:GetString", PyObject_AsSHCOLUMNID, &key))
-		return NULL;
+    IShellItem2 *pISI2 = GetI(self);
+    if (pISI2 == NULL)
+        return NULL;
+    LPWSTR val;
+    PROPERTYKEY key;
+    // @pyparm <o PyPROPERTYKEY>|key||The id of the property to retrieve
+    if (!PyArg_ParseTuple(args, "O&:GetString", PyObject_AsSHCOLUMNID, &key))
+        return NULL;
 
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pISI2->GetString(key, &val);
-	PY_INTERFACE_POSTCALL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pISI2->GetString(key, &val);
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pISI2, IID_IShellItem2 );
-	PyObject *ret = PyWinObject_FromWCHAR(val);
-	CoTaskMemFree(val);
-	return ret;
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pISI2, IID_IShellItem2);
+    PyObject *ret = PyWinObject_FromWCHAR(val);
+    CoTaskMemFree(val);
+    return ret;
 }
 
 // @pymethod int|PyIShellItem2|GetUInt32|Returns the value of a property as a 32 bit unsigned int
 PyObject *PyIShellItem2::GetUInt32(PyObject *self, PyObject *args)
 {
-	IShellItem2 *pISI2 = GetI(self);
-	if ( pISI2 == NULL )
-		return NULL;
-	ULONG val;
-	PROPERTYKEY key;
-	// @pyparm <o PyPROPERTYKEY>|key||The id of the property to retrieve
-	if (!PyArg_ParseTuple(args, "O&:GetUInt32", PyObject_AsSHCOLUMNID, &key))
-		return NULL;
+    IShellItem2 *pISI2 = GetI(self);
+    if (pISI2 == NULL)
+        return NULL;
+    ULONG val;
+    PROPERTYKEY key;
+    // @pyparm <o PyPROPERTYKEY>|key||The id of the property to retrieve
+    if (!PyArg_ParseTuple(args, "O&:GetUInt32", PyObject_AsSHCOLUMNID, &key))
+        return NULL;
 
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pISI2->GetUInt32(key, &val);
-	PY_INTERFACE_POSTCALL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pISI2->GetUInt32(key, &val);
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pISI2, IID_IShellItem2 );
-	return PyLong_FromUnsignedLong(val);
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pISI2, IID_IShellItem2);
+    return PyLong_FromUnsignedLong(val);
 }
 
 // @pymethod int|PyIShellItem2|GetUInt64|Returns the value of a property as an unsigned 64-bit int
 PyObject *PyIShellItem2::GetUInt64(PyObject *self, PyObject *args)
 {
-	IShellItem2 *pISI2 = GetI(self);
-	if ( pISI2 == NULL )
-		return NULL;
-	ULONGLONG val;
-	PROPERTYKEY key;
-	// @pyparm <o PyPROPERTYKEY>|key||The id of the property to retrieve
-	if (!PyArg_ParseTuple(args, "O&:GetUInt64", PyObject_AsSHCOLUMNID, &key))
-		return NULL;
+    IShellItem2 *pISI2 = GetI(self);
+    if (pISI2 == NULL)
+        return NULL;
+    ULONGLONG val;
+    PROPERTYKEY key;
+    // @pyparm <o PyPROPERTYKEY>|key||The id of the property to retrieve
+    if (!PyArg_ParseTuple(args, "O&:GetUInt64", PyObject_AsSHCOLUMNID, &key))
+        return NULL;
 
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pISI2->GetUInt64(key, &val);
-	PY_INTERFACE_POSTCALL;
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pISI2, IID_IShellItem2 );
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pISI2->GetUInt64(key, &val);
+    PY_INTERFACE_POSTCALL;
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pISI2, IID_IShellItem2);
 
-	return PyLong_FromUnsignedLongLong(val);
+    return PyLong_FromUnsignedLongLong(val);
 }
 
 // @pymethod boolean|PyIShellItem2|GetBool|Returns the value of a property as a boolean
 PyObject *PyIShellItem2::GetBool(PyObject *self, PyObject *args)
 {
-	IShellItem2 *pISI2 = GetI(self);
-	if ( pISI2 == NULL )
-		return NULL;
-	BOOL val;
-	PROPERTYKEY key;
-	// @pyparm <o PyPROPERTYKEY>|key||The id of the property to retrieve
-	if (!PyArg_ParseTuple(args, "O&:GetBool", PyObject_AsSHCOLUMNID, &key))
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pISI2->GetBool(key, &val);
-	PY_INTERFACE_POSTCALL;
+    IShellItem2 *pISI2 = GetI(self);
+    if (pISI2 == NULL)
+        return NULL;
+    BOOL val;
+    PROPERTYKEY key;
+    // @pyparm <o PyPROPERTYKEY>|key||The id of the property to retrieve
+    if (!PyArg_ParseTuple(args, "O&:GetBool", PyObject_AsSHCOLUMNID, &key))
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pISI2->GetBool(key, &val);
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pISI2, IID_IShellItem2 );
-	return PyBool_FromLong(val);
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pISI2, IID_IShellItem2);
+    return PyBool_FromLong(val);
 }
 
 // @object PyIShellItem2|Extends the IShellItem interface, giving access to an item's properties
-static struct PyMethodDef PyIShellItem2_methods[] =
-{
-	{ "GetPropertyStore", PyIShellItem2::GetPropertyStore, 1 }, // @pymeth GetPropertyStore|Returns a collection of the item's properties
-	{ "GetPropertyStoreForKeys", PyIShellItem2::GetPropertyStoreForKeys, 1 }, // @pymeth GetPropertyStoreForKeys|Creates a property store containing just the specified properties of the item
-	{ "GetPropertyStoreWithCreateObject", PyIShellItem2::GetPropertyStoreWithCreateObject, 1 }, // @pymeth GetPropertyStoreWithCreateObject|Returns the property store for the item, with alternate handler instantiation
-	{ "GetPropertyDescriptionList", PyIShellItem2::GetPropertyDescriptionList, 1 }, // @pymeth GetPropertyDescriptionList|Retrieves descriptions of properties in a particular group
-	{ "Update", PyIShellItem2::Update, 1 }, // @pymeth Update|Refreshes properties that have been modified since interface was created
-	{ "GetProperty", PyIShellItem2::GetProperty, 1 }, // @pymeth GetProperty|DRetrieves the value of a property, converted to an appropriate python type
-	{ "GetCLSID", PyIShellItem2::GetCLSID, 1 }, // @pymeth GetCLSID|Retrieves the value of a property as a GUID
-	{ "GetFileTime", PyIShellItem2::GetFileTime, 1 }, // @pymeth GetFileTime|Retrieves the value of a property as a file time.
-	{ "GetInt32", PyIShellItem2::GetInt32, 1 }, // @pymeth GetInt32|Retrieves the value of a property as a 32 bit int.
-	{ "GetString", PyIShellItem2::GetString, 1 }, // @pymeth GetString|Retrieves the value of a property as a string
-	{ "GetUInt32", PyIShellItem2::GetUInt32, 1 }, // @pymeth GetUInt32|Returns the value of a property as a 32 bit unsigned int
-	{ "GetUInt64", PyIShellItem2::GetUInt64, 1 }, // @pymeth GetUInt64|Returns the value of a property as an unsigned 64-bit int
-	{ "GetBool", PyIShellItem2::GetBool, 1 }, // @pymeth GetBool|Returns the value of a property as a boolean
-	{ NULL }
-};
+static struct PyMethodDef PyIShellItem2_methods[] = {
+    {"GetPropertyStore", PyIShellItem2::GetPropertyStore,
+     1},  // @pymeth GetPropertyStore|Returns a collection of the item's properties
+    {"GetPropertyStoreForKeys", PyIShellItem2::GetPropertyStoreForKeys,
+     1},  // @pymeth GetPropertyStoreForKeys|Creates a property store containing just the specified properties of the
+          // item
+    {"GetPropertyStoreWithCreateObject", PyIShellItem2::GetPropertyStoreWithCreateObject,
+     1},  // @pymeth GetPropertyStoreWithCreateObject|Returns the property store for the item, with alternate handler
+          // instantiation
+    {"GetPropertyDescriptionList", PyIShellItem2::GetPropertyDescriptionList,
+     1},  // @pymeth GetPropertyDescriptionList|Retrieves descriptions of properties in a particular group
+    {"Update", PyIShellItem2::Update,
+     1},  // @pymeth Update|Refreshes properties that have been modified since interface was created
+    {"GetProperty", PyIShellItem2::GetProperty,
+     1},  // @pymeth GetProperty|DRetrieves the value of a property, converted to an appropriate python type
+    {"GetCLSID", PyIShellItem2::GetCLSID, 1},  // @pymeth GetCLSID|Retrieves the value of a property as a GUID
+    {"GetFileTime", PyIShellItem2::GetFileTime,
+     1},                                       // @pymeth GetFileTime|Retrieves the value of a property as a file time.
+    {"GetInt32", PyIShellItem2::GetInt32, 1},  // @pymeth GetInt32|Retrieves the value of a property as a 32 bit int.
+    {"GetString", PyIShellItem2::GetString, 1},  // @pymeth GetString|Retrieves the value of a property as a string
+    {"GetUInt32", PyIShellItem2::GetUInt32,
+     1},  // @pymeth GetUInt32|Returns the value of a property as a 32 bit unsigned int
+    {"GetUInt64", PyIShellItem2::GetUInt64,
+     1},  // @pymeth GetUInt64|Returns the value of a property as an unsigned 64-bit int
+    {"GetBool", PyIShellItem2::GetBool, 1},  // @pymeth GetBool|Returns the value of a property as a boolean
+    {NULL}};
 
-PyComTypeObject PyIShellItem2::type("PyIShellItem2",
-		&PyIShellItem::type,
-		sizeof(PyIShellItem2),
-		PyIShellItem2_methods,
-		GET_PYCOM_CTOR(PyIShellItem2));
-
+PyComTypeObject PyIShellItem2::type("PyIShellItem2", &PyIShellItem::type, sizeof(PyIShellItem2), PyIShellItem2_methods,
+                                    GET_PYCOM_CTOR(PyIShellItem2));
 
 // ---------------------------------------------------
 //
 // Gateway Implementation
 STDMETHODIMP PyGShellItem2::GetPropertyStore(
-		/* [in] */ GETPROPERTYSTOREFLAGS flags,
-		/* [in] */ __RPC__in REFIID riid,
-		/* [iid_is][out] */ __RPC__deref_out_opt void ** ppv)
+    /* [in] */ GETPROPERTYSTOREFLAGS flags,
+    /* [in] */ __RPC__in REFIID riid,
+    /* [iid_is][out] */ __RPC__deref_out_opt void **ppv)
 {
-	PY_GATEWAY_METHOD;
-	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("GetPropertyStore", &result, "kN", flags, PyWinObject_FromIID(riid));
-	if (FAILED(hr)) return hr;
-	if (!PyCom_InterfaceFromPyObject(result, riid, ppv))
-		hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("GetPropertyStore");
-	Py_DECREF(result);
-	return hr;
+    PY_GATEWAY_METHOD;
+    PyObject *result;
+    HRESULT hr = InvokeViaPolicy("GetPropertyStore", &result, "kN", flags, PyWinObject_FromIID(riid));
+    if (FAILED(hr))
+        return hr;
+    if (!PyCom_InterfaceFromPyObject(result, riid, ppv))
+        hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("GetPropertyStore");
+    Py_DECREF(result);
+    return hr;
 }
 
 STDMETHODIMP PyGShellItem2::GetPropertyStoreWithCreateObject(
-		/* [in] */ GETPROPERTYSTOREFLAGS flags,
-		/* [in] */ __RPC__in_opt IUnknown * punkCreateObject,
-		/* [in] */ __RPC__in REFIID riid,
-		/* [iid_is][out] */ __RPC__deref_out_opt void ** ppv)
+    /* [in] */ GETPROPERTYSTOREFLAGS flags,
+    /* [in] */ __RPC__in_opt IUnknown *punkCreateObject,
+    /* [in] */ __RPC__in REFIID riid,
+    /* [iid_is][out] */ __RPC__deref_out_opt void **ppv)
 {
-	PY_GATEWAY_METHOD;
-	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("GetPropertyStoreWithCreateObject", &result, "kN", flags, PyWinObject_FromIID(riid));
-	if (FAILED(hr)) return hr;
-	if (!PyCom_InterfaceFromPyObject(result, riid, ppv))
-		hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("GetPropertyStoreWithCreateObject");
-	Py_DECREF(result);
-	return hr;
+    PY_GATEWAY_METHOD;
+    PyObject *result;
+    HRESULT hr = InvokeViaPolicy("GetPropertyStoreWithCreateObject", &result, "kN", flags, PyWinObject_FromIID(riid));
+    if (FAILED(hr))
+        return hr;
+    if (!PyCom_InterfaceFromPyObject(result, riid, ppv))
+        hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("GetPropertyStoreWithCreateObject");
+    Py_DECREF(result);
+    return hr;
 }
 
 // ??? Should be able to use VectorToSeq for this ???
-PyObject* PyWinObject_FromSHCOLUMNIDArray(const PROPERTYKEY *keys, UINT count)
+PyObject *PyWinObject_FromSHCOLUMNIDArray(const PROPERTYKEY *keys, UINT count)
 {
-	PyObject *ret = PyList_New(count);
-	if (ret==NULL)
-		return NULL;
-	for (UINT i=0; i<count; i++){
-		PyObject *subitem=PyObject_FromSHCOLUMNID(&keys[i]);
-		if (subitem == NULL){
-			Py_DECREF(ret);
-			return NULL;
-			}
-		PyList_SET_ITEM(ret, i, subitem);
-		}
-	return ret;
+    PyObject *ret = PyList_New(count);
+    if (ret == NULL)
+        return NULL;
+    for (UINT i = 0; i < count; i++) {
+        PyObject *subitem = PyObject_FromSHCOLUMNID(&keys[i]);
+        if (subitem == NULL) {
+            Py_DECREF(ret);
+            return NULL;
+        }
+        PyList_SET_ITEM(ret, i, subitem);
+    }
+    return ret;
 }
 
-
 STDMETHODIMP PyGShellItem2::GetPropertyStoreForKeys(
-		/* [size_is][in] */ __RPC__in_ecount_full(cKeys) const PROPERTYKEY * rgKeys,
-		/* [in] */ UINT cKeys,
-		/* [in] */ GETPROPERTYSTOREFLAGS flags,
-		/* [in] */ __RPC__in REFIID riid,
-		/* [iid_is][out] */ __RPC__deref_out_opt void ** ppv)
+    /* [size_is][in] */ __RPC__in_ecount_full(cKeys) const PROPERTYKEY *rgKeys,
+    /* [in] */ UINT cKeys,
+    /* [in] */ GETPROPERTYSTOREFLAGS flags,
+    /* [in] */ __RPC__in REFIID riid,
+    /* [iid_is][out] */ __RPC__deref_out_opt void **ppv)
 {
-	PY_GATEWAY_METHOD;
-	PyObject *obkeys = PyWinObject_FromSHCOLUMNIDArray(rgKeys, cKeys);
-	if (obkeys==NULL) return MAKE_PYCOM_GATEWAY_FAILURE_CODE("GetPropertyStoreForKeys");
-	if (ppv==NULL) return E_POINTER;
-	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("GetPropertyStoreForKeys", &result, "OkN", obkeys, flags, PyWinObject_FromIID(riid));
-	Py_DECREF(obkeys);
-	if (FAILED(hr)) return hr;
-	if (!PyCom_InterfaceFromPyObject(result, riid, ppv))
-		hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("GetPropertyStoreForKeys");
-	Py_DECREF(result);
-	return hr;
+    PY_GATEWAY_METHOD;
+    PyObject *obkeys = PyWinObject_FromSHCOLUMNIDArray(rgKeys, cKeys);
+    if (obkeys == NULL)
+        return MAKE_PYCOM_GATEWAY_FAILURE_CODE("GetPropertyStoreForKeys");
+    if (ppv == NULL)
+        return E_POINTER;
+    PyObject *result;
+    HRESULT hr = InvokeViaPolicy("GetPropertyStoreForKeys", &result, "OkN", obkeys, flags, PyWinObject_FromIID(riid));
+    Py_DECREF(obkeys);
+    if (FAILED(hr))
+        return hr;
+    if (!PyCom_InterfaceFromPyObject(result, riid, ppv))
+        hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("GetPropertyStoreForKeys");
+    Py_DECREF(result);
+    return hr;
 }
 
 STDMETHODIMP PyGShellItem2::GetPropertyDescriptionList(
-		/* [in] */ __RPC__in REFPROPERTYKEY keyType,
-		/* [in] */ __RPC__in REFIID riid,
-		/* [iid_is][out] */ __RPC__deref_out_opt void ** ppv)
+    /* [in] */ __RPC__in REFPROPERTYKEY keyType,
+    /* [in] */ __RPC__in REFIID riid,
+    /* [iid_is][out] */ __RPC__deref_out_opt void **ppv)
 {
-	PY_GATEWAY_METHOD;
-	if (ppv==NULL) return E_POINTER;
-	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("GetPropertyDescriptionList", &result, "NN",
-		PyObject_FromSHCOLUMNID(&keyType), PyWinObject_FromIID(riid));
-	if (FAILED(hr)) return hr;
-	if (!PyCom_InterfaceFromPyObject(result, riid, ppv))
-		hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("GetPropertyDescriptionList");
-	Py_DECREF(result);
-	return hr;
+    PY_GATEWAY_METHOD;
+    if (ppv == NULL)
+        return E_POINTER;
+    PyObject *result;
+    HRESULT hr = InvokeViaPolicy("GetPropertyDescriptionList", &result, "NN", PyObject_FromSHCOLUMNID(&keyType),
+                                 PyWinObject_FromIID(riid));
+    if (FAILED(hr))
+        return hr;
+    if (!PyCom_InterfaceFromPyObject(result, riid, ppv))
+        hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("GetPropertyDescriptionList");
+    Py_DECREF(result);
+    return hr;
 }
 
 STDMETHODIMP PyGShellItem2::Update(
-		/* [unique][in] */ __RPC__in_opt IBindCtx * pbc)
+    /* [unique][in] */ __RPC__in_opt IBindCtx *pbc)
 {
-	PY_GATEWAY_METHOD;
-	PyObject *obpbc = PyCom_PyObjectFromIUnknown(pbc, IID_IBindCtx);
-	if (obpbc==NULL) return MAKE_PYCOM_GATEWAY_FAILURE_CODE("Update");
-	HRESULT hr=InvokeViaPolicy("Update", NULL, "O", obpbc);
-	Py_DECREF(obpbc);
-	return hr;
+    PY_GATEWAY_METHOD;
+    PyObject *obpbc = PyCom_PyObjectFromIUnknown(pbc, IID_IBindCtx);
+    if (obpbc == NULL)
+        return MAKE_PYCOM_GATEWAY_FAILURE_CODE("Update");
+    HRESULT hr = InvokeViaPolicy("Update", NULL, "O", obpbc);
+    Py_DECREF(obpbc);
+    return hr;
 }
 
 STDMETHODIMP PyGShellItem2::GetProperty(
-		/* [in] */ __RPC__in REFPROPERTYKEY key,
-		/* [out] */ __RPC__out PROPVARIANT * ppropvar)
+    /* [in] */ __RPC__in REFPROPERTYKEY key,
+    /* [out] */ __RPC__out PROPVARIANT *ppropvar)
 {
-	PY_GATEWAY_METHOD;
-	PyObject *result;
-	/* ??? Something strange with the format:
-		If passing only a single object, and it's a tuple,
-		and you don't explicitely add the parens,
-		the tuple gets unpacked and passed as separate args ???
-	*/
-	HRESULT hr=InvokeViaPolicy("GetProperty", &result, "(N)", PyObject_FromSHCOLUMNID(&key));
-	if (FAILED(hr)) return hr;
-	if (!PyObject_AsPROPVARIANT(result, ppropvar))
-		hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("GetProperty");
-	Py_DECREF(result);
-	return hr;
+    PY_GATEWAY_METHOD;
+    PyObject *result;
+    /* ??? Something strange with the format:
+        If passing only a single object, and it's a tuple,
+        and you don't explicitely add the parens,
+        the tuple gets unpacked and passed as separate args ???
+    */
+    HRESULT hr = InvokeViaPolicy("GetProperty", &result, "(N)", PyObject_FromSHCOLUMNID(&key));
+    if (FAILED(hr))
+        return hr;
+    if (!PyObject_AsPROPVARIANT(result, ppropvar))
+        hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("GetProperty");
+    Py_DECREF(result);
+    return hr;
 }
 
 STDMETHODIMP PyGShellItem2::GetCLSID(
-		/* [in] */ __RPC__in REFPROPERTYKEY key,
-		/* [out] */ __RPC__out CLSID * pclsid)
+    /* [in] */ __RPC__in REFPROPERTYKEY key,
+    /* [out] */ __RPC__out CLSID *pclsid)
 {
-	PY_GATEWAY_METHOD;
+    PY_GATEWAY_METHOD;
 
-	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("GetCLSID", &result, "(N)", PyObject_FromSHCOLUMNID(&key));
-	if (FAILED(hr)) return hr;
-	if (!PyWinObject_AsIID(result, pclsid))
-		hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("GetCLSID");
-	Py_DECREF(result);
-	return hr;
+    PyObject *result;
+    HRESULT hr = InvokeViaPolicy("GetCLSID", &result, "(N)", PyObject_FromSHCOLUMNID(&key));
+    if (FAILED(hr))
+        return hr;
+    if (!PyWinObject_AsIID(result, pclsid))
+        hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("GetCLSID");
+    Py_DECREF(result);
+    return hr;
 }
 
 STDMETHODIMP PyGShellItem2::GetFileTime(
-		/* [in] */ __RPC__in REFPROPERTYKEY key,
-		/* [out] */ __RPC__out FILETIME * pft)
+    /* [in] */ __RPC__in REFPROPERTYKEY key,
+    /* [out] */ __RPC__out FILETIME *pft)
 {
-	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("GetFileTime", &result, "(N)", PyObject_FromSHCOLUMNID(&key));
-	if (FAILED(hr)) return hr;
-	if (!PyWinObject_AsFILETIME(result, pft))
-		hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("GetFileTime");
-	Py_DECREF(result);
-	return hr;
+    PyObject *result;
+    HRESULT hr = InvokeViaPolicy("GetFileTime", &result, "(N)", PyObject_FromSHCOLUMNID(&key));
+    if (FAILED(hr))
+        return hr;
+    if (!PyWinObject_AsFILETIME(result, pft))
+        hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("GetFileTime");
+    Py_DECREF(result);
+    return hr;
 }
 
 STDMETHODIMP PyGShellItem2::GetInt32(
-		/* [in] */ __RPC__in REFPROPERTYKEY key,
-		/* [out] */ __RPC__out int * pi)
+    /* [in] */ __RPC__in REFPROPERTYKEY key,
+    /* [out] */ __RPC__out int *pi)
 {
-	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("GetInt32", &result, "(N)", PyObject_FromSHCOLUMNID(&key));
-	if (FAILED(hr)) return hr;
-	*pi = PyInt_AsLong(result);
-	if (*pi == -1 && PyErr_Occurred())
-		hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("GetInt32");
-	Py_DECREF(result);
-	return hr;
+    PyObject *result;
+    HRESULT hr = InvokeViaPolicy("GetInt32", &result, "(N)", PyObject_FromSHCOLUMNID(&key));
+    if (FAILED(hr))
+        return hr;
+    *pi = PyInt_AsLong(result);
+    if (*pi == -1 && PyErr_Occurred())
+        hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("GetInt32");
+    Py_DECREF(result);
+    return hr;
 }
 
 STDMETHODIMP PyGShellItem2::GetString(
-		/* [in] */ __RPC__in REFPROPERTYKEY key,
-		/* [string][out] */ __RPC__deref_out_opt_string LPWSTR * ppsz)
+    /* [in] */ __RPC__in REFPROPERTYKEY key,
+    /* [string][out] */ __RPC__deref_out_opt_string LPWSTR *ppsz)
 {
-	PY_GATEWAY_METHOD;
-	PyObject *result;
-	HRESULT hr = InvokeViaPolicy("GetString", &result, "(N)", PyObject_FromSHCOLUMNID(&key));
-	if (FAILED(hr)) return hr;
-	if (!PyWinObject_AsTaskAllocatedWCHAR(result, ppsz, FALSE, NULL))
-		hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("GetString");
-	Py_DECREF(result);
-	return hr;
+    PY_GATEWAY_METHOD;
+    PyObject *result;
+    HRESULT hr = InvokeViaPolicy("GetString", &result, "(N)", PyObject_FromSHCOLUMNID(&key));
+    if (FAILED(hr))
+        return hr;
+    if (!PyWinObject_AsTaskAllocatedWCHAR(result, ppsz, FALSE, NULL))
+        hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("GetString");
+    Py_DECREF(result);
+    return hr;
 }
 
 STDMETHODIMP PyGShellItem2::GetUInt32(
-		/* [in] */ __RPC__in REFPROPERTYKEY key,
-		/* [out] */ __RPC__out ULONG * pui)
+    /* [in] */ __RPC__in REFPROPERTYKEY key,
+    /* [out] */ __RPC__out ULONG *pui)
 {
-	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("GetUInt32", &result, "(N)", PyObject_FromSHCOLUMNID(&key));
-	if (FAILED(hr)) return hr;
-	*pui = PyLong_AsUnsignedLong(result);
-	if (*pui == (ULONG)-1 && PyErr_Occurred())
-		hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("GetUInt32");
-	Py_DECREF(result);
-	return hr;
+    PyObject *result;
+    HRESULT hr = InvokeViaPolicy("GetUInt32", &result, "(N)", PyObject_FromSHCOLUMNID(&key));
+    if (FAILED(hr))
+        return hr;
+    *pui = PyLong_AsUnsignedLong(result);
+    if (*pui == (ULONG)-1 && PyErr_Occurred())
+        hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("GetUInt32");
+    Py_DECREF(result);
+    return hr;
 }
 
 STDMETHODIMP PyGShellItem2::GetUInt64(
-		/* [in] */ __RPC__in REFPROPERTYKEY key,
-		/* [out] */ __RPC__out ULONGLONG * pull)
+    /* [in] */ __RPC__in REFPROPERTYKEY key,
+    /* [out] */ __RPC__out ULONGLONG *pull)
 {
-	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("GetUInt64", &result, "(N)", PyObject_FromSHCOLUMNID(&key));
-	if (FAILED(hr)) return hr;
-	*pull = PyLong_AsUnsignedLongLong(result);
-	if (*pull == (ULONGLONG)-1 && PyErr_Occurred())
-		hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("GetUInt64");
-	Py_DECREF(result);
-	return hr;
+    PyObject *result;
+    HRESULT hr = InvokeViaPolicy("GetUInt64", &result, "(N)", PyObject_FromSHCOLUMNID(&key));
+    if (FAILED(hr))
+        return hr;
+    *pull = PyLong_AsUnsignedLongLong(result);
+    if (*pull == (ULONGLONG)-1 && PyErr_Occurred())
+        hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("GetUInt64");
+    Py_DECREF(result);
+    return hr;
 }
 
 STDMETHODIMP PyGShellItem2::GetBool(
-		/* [in] */ __RPC__in REFPROPERTYKEY key,
-		/* [out] */ __RPC__out BOOL * pf)
+    /* [in] */ __RPC__in REFPROPERTYKEY key,
+    /* [out] */ __RPC__out BOOL *pf)
 {
-	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("GetBool", &result, "(N)", PyObject_FromSHCOLUMNID(&key));
-	if (FAILED(hr)) return hr;
-	*pf = PyObject_IsTrue(result);
-	Py_DECREF(result);
-	return hr;
+    PyObject *result;
+    HRESULT hr = InvokeViaPolicy("GetBool", &result, "(N)", PyObject_FromSHCOLUMNID(&key));
+    if (FAILED(hr))
+        return hr;
+    *pf = PyObject_IsTrue(result);
+    Py_DECREF(result);
+    return hr;
 }

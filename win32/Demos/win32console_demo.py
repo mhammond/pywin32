@@ -2,14 +2,14 @@ import win32console, win32con
 import traceback, time
 
 virtual_keys={}
-for k,v in win32con.__dict__.items():
+for k,v in list(win32con.__dict__.items()):
     if k.startswith('VK_'):
         virtual_keys[v]=k 
 
 free_console=True
 try:
     win32console.AllocConsole()
-except win32console.error, exc:
+except win32console.error as exc:
     if exc.winerror!=5:
         raise
     ## only free console if one was created successfully
@@ -35,14 +35,14 @@ newbuffer.SetConsoleWindowInfo(Absolute=True,ConsoleWindow=window_size)
 
 ## write some records to the input queue 
 x=win32console.PyINPUT_RECORDType(win32console.KEY_EVENT)
-x.Char=u'X'
+x.Char='X'
 x.KeyDown=True
 x.RepeatCount=1
 x.VirtualKeyCode=0x58
 x.ControlKeyState=win32con.SHIFT_PRESSED
 
 z=win32console.PyINPUT_RECORDType(win32console.KEY_EVENT)
-z.Char=u'Z'
+z.Char='Z'
 z.KeyDown=True
 z.RepeatCount=1
 z.VirtualKeyCode=0x5a

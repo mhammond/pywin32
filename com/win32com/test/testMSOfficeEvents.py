@@ -23,30 +23,30 @@ def TestExcel():
             self.seen_events["OnSheetDeactivate"] = None
         def OnSheetBeforeDoubleClick(self, Sh, Target, Cancel):
             if Target.Column % 2 == 0:
-                print "You can double-click there..."
+                print("You can double-click there...")
             else:
-                print "You can not double-click there..."
+                print("You can not double-click there...")
             # This function is a void, so the result ends up in
             # the only ByRef - Cancel.
                 return 1
 
     class WorkbookEvents:
         def OnActivate(self):
-            print "workbook OnActivate"
+            print("workbook OnActivate")
         def OnBeforeRightClick(self, Target, Cancel):
-            print "It's a Worksheet Event"
+            print("It's a Worksheet Event")
 
     e = DispatchWithEvents("Excel.Application", ExcelEvents)
     e.seen_events = {}
     e.Visible=1
     book = e.Workbooks.Add()
     book = DispatchWithEvents(book, WorkbookEvents)
-    print "Have book", book
+    print("Have book", book)
 #    sheet = e.Worksheets(1)
 #    sheet = DispatchWithEvents(sheet, WorksheetEvents)
     
-    print "Double-click in a few of the Excel cells..."
-    print "Press any key when finished with Excel, or wait 10 seconds..."
+    print("Double-click in a few of the Excel cells...")
+    print("Press any key when finished with Excel, or wait 10 seconds...")
     if not _WaitForFinish(e, 10):
         e.Quit()
     if not _CheckSeenEvents(e, ["OnNewWorkbook", "OnWindowActivate"]):
@@ -66,7 +66,7 @@ def TestWord():
     w.seen_events = {}
     w.Visible = 1
     w.Documents.Add()
-    print "Press any key when finished with Word, or wait 10 seconds..."
+    print("Press any key when finished with Word, or wait 10 seconds...")
     if not _WaitForFinish(w, 10):
         w.Quit()
     if not _CheckSeenEvents(w, ["OnDocumentChange", "OnWindowActivate"]):
@@ -99,7 +99,7 @@ def _CheckSeenEvents(o, events):
     rc = 1
     for e in events:
         if e not in o.seen_events:
-            print "ERROR: Expected event did not trigger", e
+            print("ERROR: Expected event did not trigger", e)
             rc = 0
     return rc
 
@@ -109,7 +109,7 @@ def test():
         TestWord()
     if "noexcel" not in sys.argv[1:]:
         TestExcel()
-    print "Word and Excel event tests passed."
+    print("Word and Excel event tests passed.")
 
 if __name__=='__main__':
     test()

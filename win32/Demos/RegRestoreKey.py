@@ -4,7 +4,7 @@ import os
 
 temp_dir=win32api.GetTempPath()
 fname=win32api.GetTempFileName(temp_dir,'rsk')[0]
-print fname
+print(fname)
 ## file can't exist
 os.remove(fname)
 

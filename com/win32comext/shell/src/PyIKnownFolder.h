@@ -4,25 +4,24 @@
 //
 // Interface Declaration
 
-class PyIKnownFolder : public PyIUnknown
-{
-public:
-	MAKE_PYCOM_CTOR(PyIKnownFolder);
-	static IKnownFolder *GetI(PyObject *self);
-	static PyComTypeObject type;
+class PyIKnownFolder : public PyIUnknown {
+   public:
+    MAKE_PYCOM_CTOR(PyIKnownFolder);
+    static IKnownFolder *GetI(PyObject *self);
+    static PyComTypeObject type;
 
-	// The Python methods
-	static PyObject *GetId(PyObject *self, PyObject *args);
-	static PyObject *GetCategory(PyObject *self, PyObject *args);
-	static PyObject *GetShellItem(PyObject *self, PyObject *args);
-	static PyObject *GetPath(PyObject *self, PyObject *args);
-	static PyObject *SetPath(PyObject *self, PyObject *args);
-	static PyObject *GetIDList(PyObject *self, PyObject *args);
-	static PyObject *GetFolderType(PyObject *self, PyObject *args);
-	static PyObject *GetRedirectionCapabilities(PyObject *self, PyObject *args);
-	static PyObject *GetFolderDefinition(PyObject *self, PyObject *args);
+    // The Python methods
+    static PyObject *GetId(PyObject *self, PyObject *args);
+    static PyObject *GetCategory(PyObject *self, PyObject *args);
+    static PyObject *GetShellItem(PyObject *self, PyObject *args);
+    static PyObject *GetPath(PyObject *self, PyObject *args);
+    static PyObject *SetPath(PyObject *self, PyObject *args);
+    static PyObject *GetIDList(PyObject *self, PyObject *args);
+    static PyObject *GetFolderType(PyObject *self, PyObject *args);
+    static PyObject *GetRedirectionCapabilities(PyObject *self, PyObject *args);
+    static PyObject *GetFolderDefinition(PyObject *self, PyObject *args);
 
-protected:
-	PyIKnownFolder(IUnknown *pdisp);
-	~PyIKnownFolder();
+   protected:
+    PyIKnownFolder(IUnknown *pdisp);
+    ~PyIKnownFolder();
 };

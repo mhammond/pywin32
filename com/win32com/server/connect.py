@@ -3,7 +3,7 @@
   A collection of helpers for server side connection points.
 """
 import pythoncom
-from exception import Exception
+from .exception import Exception
 import winerror
 from win32com import olectl
 import win32com.server.util
@@ -53,13 +53,13 @@ class ConnectableServer:
 	def _BroadcastNotify(self, broadcaster, extraArgs):
 		# Broadcasts a notification to all connections.
 		# Ignores clients that fail.
-		for interface in self.connections.itervalues():
+		for interface in self.connections.values():
 			try:
 				broadcaster(*(interface,)+extraArgs)
-			except pythoncom.com_error, details:
+			except pythoncom.com_error as details:
 				self._OnNotifyFail(interface, details)
 
 	def _OnNotifyFail(self, interface, details):
-		print "Ignoring COM error to connection - %s" % (repr(details))
+		print("Ignoring COM error to connection - %s" % (repr(details)))
 		
 

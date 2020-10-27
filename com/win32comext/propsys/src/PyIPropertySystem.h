@@ -7,25 +7,24 @@
 #include "PythonCOM.h"
 #include "propsys.h"
 
-class PyIPropertySystem : public PyIUnknown
-{
-public:
-	MAKE_PYCOM_CTOR(PyIPropertySystem);
-	static IPropertySystem *GetI(PyObject *self);
-	static PyComTypeObject type;
+class PyIPropertySystem : public PyIUnknown {
+   public:
+    MAKE_PYCOM_CTOR(PyIPropertySystem);
+    static IPropertySystem *GetI(PyObject *self);
+    static PyComTypeObject type;
 
-	// The Python methods
-	static PyObject *GetPropertyDescription(PyObject *self, PyObject *args);
-	static PyObject *GetPropertyDescriptionByName(PyObject *self, PyObject *args);
-	static PyObject *GetPropertyDescriptionListFromString(PyObject *self, PyObject *args);
-	static PyObject *EnumeratePropertyDescriptions(PyObject *self, PyObject *args);
-	static PyObject *FormatForDisplay(PyObject *self, PyObject *args);
-	// static PyObject *FormatForDisplayAlloc(PyObject *self, PyObject *args);
-	static PyObject *RegisterPropertySchema(PyObject *self, PyObject *args);
-	static PyObject *UnregisterPropertySchema(PyObject *self, PyObject *args);
-	static PyObject *RefreshPropertySchema(PyObject *self, PyObject *args);
+    // The Python methods
+    static PyObject *GetPropertyDescription(PyObject *self, PyObject *args);
+    static PyObject *GetPropertyDescriptionByName(PyObject *self, PyObject *args);
+    static PyObject *GetPropertyDescriptionListFromString(PyObject *self, PyObject *args);
+    static PyObject *EnumeratePropertyDescriptions(PyObject *self, PyObject *args);
+    static PyObject *FormatForDisplay(PyObject *self, PyObject *args);
+    // static PyObject *FormatForDisplayAlloc(PyObject *self, PyObject *args);
+    static PyObject *RegisterPropertySchema(PyObject *self, PyObject *args);
+    static PyObject *UnregisterPropertySchema(PyObject *self, PyObject *args);
+    static PyObject *RefreshPropertySchema(PyObject *self, PyObject *args);
 
-protected:
-	PyIPropertySystem(IUnknown *pdisp);
-	~PyIPropertySystem();
+   protected:
+    PyIPropertySystem(IUnknown *pdisp);
+    ~PyIPropertySystem();
 };

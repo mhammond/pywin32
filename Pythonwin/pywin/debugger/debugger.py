@@ -32,7 +32,7 @@ if win32ui.UNICODE:
 else:
 	LVN_ENDLABELEDIT = commctrl.LVN_ENDLABELEDITA
 
-from dbgcon import *
+from .dbgcon import *
 
 error = "pywin.debugger.error"
 
@@ -316,7 +316,7 @@ class DebuggerBreakpointsWindow(DebuggerListViewWindow):
 		item_id = self.GetItem(item[0])[6]
 
 		from bdb import Breakpoint
-		for bplist in Breakpoint.bplist.itervalues():
+		for bplist in Breakpoint.bplist.values():
 			for bp in bplist:
 				if id(bp)==item_id:
 					if text.strip().lower()=="none":
@@ -330,7 +330,7 @@ class DebuggerBreakpointsWindow(DebuggerListViewWindow):
 			num = self.GetNextItem(-1, commctrl.LVNI_SELECTED)
 			item_id = self.GetItem(num)[6]
 			from bdb import Breakpoint
-			for bplist in Breakpoint.bplist.values():
+			for bplist in list(Breakpoint.bplist.values()):
 				for bp in bplist:
 					if id(bp)==item_id:
 						self.debugger.clear_break(bp.file, bp.line)
@@ -344,7 +344,7 @@ class DebuggerBreakpointsWindow(DebuggerListViewWindow):
 		l.DeleteAllItems()
 		index = -1
 		from bdb import Breakpoint
-		for bplist in Breakpoint.bplist.itervalues():
+		for bplist in Breakpoint.bplist.values():
 			for bp in bplist:
 				baseName = os.path.split(bp.file)[1]
 				cond = bp.cond
@@ -595,7 +595,7 @@ class Debugger(debugger_parent):
 		(exc_type, exc_value, exc_traceback) = exc_info
 		if self.get_option(OPT_STOP_EXCEPTIONS):
 			frame.f_locals['__exception__'] = exc_type, exc_value
-			print "Unhandled exception while debugging..."
+			print("Unhandled exception while debugging...")
 			# on both py2k and py3k, we may be called with exc_value
 			# being the args to the exception, or it may already be
 			# instantiated (IOW, PyErr_Normalize() hasn't been
@@ -629,7 +629,7 @@ class Debugger(debugger_parent):
 		return debugger_parent.stop_here(self, frame)
 
 	def run(self, cmd,globals=None, locals=None, start_stepping = 1):
-		if not isinstance(cmd, (basestring, types.CodeType)):
+		if not isinstance(cmd, (str, types.CodeType)):
 			raise TypeError("Only strings can be run")
 		self.last_cmd_debugged = cmd
 		if start_stepping:
@@ -651,7 +651,7 @@ class Debugger(debugger_parent):
 				try:
 					if start_stepping: self.skipBotFrame = SKIP_STEP
 					else: self.skipBotFrame = SKIP_RUN
-					exec cmd in globals, locals
+					exec(cmd, globals, locals)
 				except bdb.BdbQuit:
 					pass
 			finally:
@@ -674,7 +674,7 @@ class Debugger(debugger_parent):
 		sys.settrace(self.trace_dispatch)
 		try:
 			try:
-				exec what in globs, locs
+				exec(what, globs, locs)
 			except bdb.BdbQuit:
 				pass
 		finally:
@@ -711,9 +711,9 @@ class Debugger(debugger_parent):
 				fname = os.path.split(frame.f_code.co_filename)[1]
 			else:
 				fname = "??"
-			print repr(name), fname, frame.f_lineno, frame
+			print(repr(name), fname, frame.f_lineno, frame)
 		else:
-			print repr(name), "None"
+			print(repr(name), "None")
 
 	def set_trace(self):
 		# Start debugging from _2_ levels up!
@@ -777,7 +777,7 @@ class Debugger(debugger_parent):
 			raise error("Invalid debugger state passed!")
 		win32ui.GetMainFrame().SetWindowText(win32ui.LoadString(win32ui.IDR_MAINFRAME) + title)
 		if self.debuggerState == DBGSTATE_QUITTING and state != DBGSTATE_NOT_DEBUGGING:
-			print "Ignoring state change cos Im trying to stop!", state
+			print("Ignoring state change cos Im trying to stop!", state)
 			return
 		self.debuggerState = state
 		try:
@@ -846,7 +846,7 @@ class Debugger(debugger_parent):
 		self.RespondDebuggerState(DBGSTATE_BREAK)
 		self.GUIAboutToInteract()
 		if self.pumping:
-			print "!!! Already pumping - outa here"
+			print("!!! Already pumping - outa here")
 			return
 		self.pumping = 1
 		win32ui.StartDebuggerPump() # NOTE - This will NOT return until the user is finished interacting
@@ -981,5 +981,5 @@ class Debugger(debugger_parent):
 			# Can't find the source file - linecache may have it?
 			import linecache
 			line = linecache.getline(filename, lineno)
-			print "%s(%d): %s" % (os.path.basename(filename), lineno, line[:-1].expandtabs(4))
+			print("%s(%d): %s" % (os.path.basename(filename), lineno, line[:-1].expandtabs(4)))
 			return 0

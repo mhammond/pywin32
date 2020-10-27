@@ -61,7 +61,7 @@ class TestStrings(unittest.TestCase):
     def tearDown(self):
         CloseClipboard()
     def test_unicode(self):
-        val = u"test-\a9har"
+        val = "test-\a9har"
         SetClipboardData(win32con.CF_UNICODETEXT, val)
         self.failUnlessEqual(GetClipboardData(win32con.CF_UNICODETEXT), val)
     def test_unicode_text(self):

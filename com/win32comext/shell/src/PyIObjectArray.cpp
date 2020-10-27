@@ -13,73 +13,59 @@
 //
 // Interface Implementation
 
-PyIObjectArray::PyIObjectArray(IUnknown *pdisp):
-	PyIUnknown(pdisp)
-{
-	ob_type = &type;
-}
+PyIObjectArray::PyIObjectArray(IUnknown *pdisp) : PyIUnknown(pdisp) { ob_type = &type; }
 
-PyIObjectArray::~PyIObjectArray()
-{
-}
+PyIObjectArray::~PyIObjectArray() {}
 
-/* static */ IObjectArray *PyIObjectArray::GetI(PyObject *self)
-{
-	return (IObjectArray *)PyIUnknown::GetI(self);
-}
+/* static */ IObjectArray *PyIObjectArray::GetI(PyObject *self) { return (IObjectArray *)PyIUnknown::GetI(self); }
 
 // @pymethod int|PyIObjectArray|GetCount|Returns number of objects in collection
 PyObject *PyIObjectArray::GetCount(PyObject *self, PyObject *args)
 {
-	IObjectArray *pIOA = GetI(self);
-	if ( pIOA == NULL )
-		return NULL;
-	UINT cObjects;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIOA->GetCount( &cObjects );
-	PY_INTERFACE_POSTCALL;
+    IObjectArray *pIOA = GetI(self);
+    if (pIOA == NULL)
+        return NULL;
+    UINT cObjects;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIOA->GetCount(&cObjects);
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pIOA, IID_IObjectArray );
-	return PyLong_FromUnsignedLong(cObjects);
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pIOA, IID_IObjectArray);
+    return PyLong_FromUnsignedLong(cObjects);
 }
 
 // @pymethod <o PyIUnknown>|PyIObjectArray|GetAt|Retrieves an item  by zero-based index
 PyObject *PyIObjectArray::GetAt(PyObject *self, PyObject *args)
 {
-	IObjectArray *pIOA = GetI(self);
-	if ( pIOA == NULL )
-		return NULL;
-	// @pyparm int|Index||Index of item to retrieve
-	// @pyparm <o PyIID>|riid|IID_IUnknown|The interface to return
-	REFIID riid = IID_IUnknown;
-	UINT Index;
-	void *pv;
-	if ( !PyArg_ParseTuple(args, "k|O&:GetAt", &Index, PyWinObject_AsIID, &riid))
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIOA->GetAt(Index, riid, &pv );
-	PY_INTERFACE_POSTCALL;
+    IObjectArray *pIOA = GetI(self);
+    if (pIOA == NULL)
+        return NULL;
+    // @pyparm int|Index||Index of item to retrieve
+    // @pyparm <o PyIID>|riid|IID_IUnknown|The interface to return
+    REFIID riid = IID_IUnknown;
+    UINT Index;
+    void *pv;
+    if (!PyArg_ParseTuple(args, "k|O&:GetAt", &Index, PyWinObject_AsIID, &riid))
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIOA->GetAt(Index, riid, &pv);
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pIOA, IID_IObjectArray );
-	return PyCom_PyObjectFromIUnknown((IUnknown *)pv, IID_IUnknown, FALSE);
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pIOA, IID_IObjectArray);
+    return PyCom_PyObjectFromIUnknown((IUnknown *)pv, IID_IUnknown, FALSE);
 }
 
 // @object PyIObjectArray|Holds a collection of interface objects
-static struct PyMethodDef PyIObjectArray_methods[] =
-{
-	{ "GetCount", PyIObjectArray::GetCount, METH_NOARGS }, // @pymeth GetCount|Returns number of objects in collection
-	{ "GetAt", PyIObjectArray::GetAt, 1 }, // @pymeth GetAt|Retrieves an item  by zero-based index
-	{ NULL }
-};
+static struct PyMethodDef PyIObjectArray_methods[] = {
+    {"GetCount", PyIObjectArray::GetCount, METH_NOARGS},  // @pymeth GetCount|Returns number of objects in collection
+    {"GetAt", PyIObjectArray::GetAt, 1},                  // @pymeth GetAt|Retrieves an item  by zero-based index
+    {NULL}};
 
-PyComTypeObject PyIObjectArray::type("PyIObjectArray",
-		&PyIUnknown::type,
-		sizeof(PyIObjectArray),
-		PyIObjectArray_methods,
-		GET_PYCOM_CTOR(PyIObjectArray));
+PyComTypeObject PyIObjectArray::type("PyIObjectArray", &PyIUnknown::type, sizeof(PyIObjectArray),
+                                     PyIObjectArray_methods, GET_PYCOM_CTOR(PyIObjectArray));
 
-#endif // WINVER
+#endif  // WINVER

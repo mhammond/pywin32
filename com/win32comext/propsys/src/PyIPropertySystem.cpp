@@ -9,251 +9,246 @@
 //
 // Interface Implementation
 
-PyIPropertySystem::PyIPropertySystem(IUnknown *pdisp):
-	PyIUnknown(pdisp)
-{
-	ob_type = &type;
-}
+PyIPropertySystem::PyIPropertySystem(IUnknown *pdisp) : PyIUnknown(pdisp) { ob_type = &type; }
 
-PyIPropertySystem::~PyIPropertySystem()
-{
-}
+PyIPropertySystem::~PyIPropertySystem() {}
 
 /* static */ IPropertySystem *PyIPropertySystem::GetI(PyObject *self)
 {
-	return (IPropertySystem *)PyIUnknown::GetI(self);
+    return (IPropertySystem *)PyIUnknown::GetI(self);
 }
 
-// @pymethod <o PyIPropertyDescription>|PyIPropertySystem|GetPropertyDescription|Returns an interface used to describe a property
+// @pymethod <o PyIPropertyDescription>|PyIPropertySystem|GetPropertyDescription|Returns an interface used to describe a
+// property
 PyObject *PyIPropertySystem::GetPropertyDescription(PyObject *self, PyObject *args)
 {
-	IPropertySystem *pIPS = GetI(self);
-	if ( pIPS == NULL )
-		return NULL;
-	PROPERTYKEY key;
-	IID riid = IID_IPropertyDescription;
-	void *ret;
-	// @pyparm <o PyPROPERTYKEY>|Key||Fmtid and propertyid that uniquely identifies a property
-	// @pyparm <o PyIID>|riid|IID_IPropertyDescription|The interface to return
+    IPropertySystem *pIPS = GetI(self);
+    if (pIPS == NULL)
+        return NULL;
+    PROPERTYKEY key;
+    IID riid = IID_IPropertyDescription;
+    void *ret;
+    // @pyparm <o PyPROPERTYKEY>|Key||Fmtid and propertyid that uniquely identifies a property
+    // @pyparm <o PyIID>|riid|IID_IPropertyDescription|The interface to return
 
-	if ( !PyArg_ParseTuple(args, "O&|O&:GetPropertyDescription",
-		PyWinObject_AsPROPERTYKEY, &key,
-		PyWinObject_AsIID, &riid))
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIPS->GetPropertyDescription(key, riid, &ret);
-	PY_INTERFACE_POSTCALL;
+    if (!PyArg_ParseTuple(args, "O&|O&:GetPropertyDescription", PyWinObject_AsPROPERTYKEY, &key, PyWinObject_AsIID,
+                          &riid))
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIPS->GetPropertyDescription(key, riid, &ret);
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pIPS, IID_IPropertySystem );
-	return PyCom_PyObjectFromIUnknown((IUnknown *)ret, riid);
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pIPS, IID_IPropertySystem);
+    return PyCom_PyObjectFromIUnknown((IUnknown *)ret, riid);
 }
 
-// @pymethod <o PyIPropertyDescription>|PyIPropertySystem|GetPropertyDescriptionByName|Returns an interface used to describe a property
+// @pymethod <o PyIPropertyDescription>|PyIPropertySystem|GetPropertyDescriptionByName|Returns an interface used to
+// describe a property
 PyObject *PyIPropertySystem::GetPropertyDescriptionByName(PyObject *self, PyObject *args)
 {
-	IPropertySystem *pIPS = GetI(self);
-	if ( pIPS == NULL )
-		return NULL;
-	PyObject *obcanonicalname;
-	WCHAR *canonicalname;
-	IID riid = IID_IPropertyDescription;
-	void *ret;
-	// @pyparm str|CanonicalName||Registered name of the property
-	// @pyparm <o PyIID>|riid|IID_IPropertyDescription|The interface to return
-	if ( !PyArg_ParseTuple(args, "O|O&:GetPropertyDescriptionByName",
-		&obcanonicalname,
-		PyWinObject_AsIID, &riid))
-		return NULL;
-	if (!PyWinObject_AsWCHAR(obcanonicalname, &canonicalname, FALSE))
-		return NULL;
+    IPropertySystem *pIPS = GetI(self);
+    if (pIPS == NULL)
+        return NULL;
+    PyObject *obcanonicalname;
+    WCHAR *canonicalname;
+    IID riid = IID_IPropertyDescription;
+    void *ret;
+    // @pyparm str|CanonicalName||Registered name of the property
+    // @pyparm <o PyIID>|riid|IID_IPropertyDescription|The interface to return
+    if (!PyArg_ParseTuple(args, "O|O&:GetPropertyDescriptionByName", &obcanonicalname, PyWinObject_AsIID, &riid))
+        return NULL;
+    if (!PyWinObject_AsWCHAR(obcanonicalname, &canonicalname, FALSE))
+        return NULL;
 
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIPS->GetPropertyDescriptionByName(canonicalname, riid, &ret);
-	PY_INTERFACE_POSTCALL;
-	PyWinObject_FreeWCHAR(canonicalname);
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pIPS, IID_IPropertySystem );
-	return PyCom_PyObjectFromIUnknown((IUnknown *)ret, riid);
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIPS->GetPropertyDescriptionByName(canonicalname, riid, &ret);
+    PY_INTERFACE_POSTCALL;
+    PyWinObject_FreeWCHAR(canonicalname);
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pIPS, IID_IPropertySystem);
+    return PyCom_PyObjectFromIUnknown((IUnknown *)ret, riid);
 }
 
-// @pymethod <o PyIPropertyDescriptionList>|PyIPropertySystem|GetPropertyDescriptionListFromString|Retrieves property descriptions from a string of property names
+// @pymethod <o PyIPropertyDescriptionList>|PyIPropertySystem|GetPropertyDescriptionListFromString|Retrieves property
+// descriptions from a string of property names
 PyObject *PyIPropertySystem::GetPropertyDescriptionListFromString(PyObject *self, PyObject *args)
 {
-	IPropertySystem *pIPS = GetI(self);
-	if ( pIPS == NULL )
-		return NULL;
-	WCHAR *proplist;
-	PyObject *obproplist;
-	void *ret;
-	IID riid = IID_IPropertyDescriptionList;
-	// @pyparm str|PropList||String containing a list of properties and flags
-	// @pyparm <o PyIID>|riid|IPropertyDescriptionList|The interface to return
-	if ( !PyArg_ParseTuple(args, "O|O&:GetPropertyDescriptionListFromString",
-		&obproplist, PyWinObject_AsIID, &riid))
-		return NULL;
-	if (!PyWinObject_AsWCHAR(obproplist, &proplist, FALSE))
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIPS->GetPropertyDescriptionListFromString(proplist, riid, &ret);
-	PY_INTERFACE_POSTCALL;
-	PyWinObject_FreeWCHAR(proplist);
+    IPropertySystem *pIPS = GetI(self);
+    if (pIPS == NULL)
+        return NULL;
+    WCHAR *proplist;
+    PyObject *obproplist;
+    void *ret;
+    IID riid = IID_IPropertyDescriptionList;
+    // @pyparm str|PropList||String containing a list of properties and flags
+    // @pyparm <o PyIID>|riid|IPropertyDescriptionList|The interface to return
+    if (!PyArg_ParseTuple(args, "O|O&:GetPropertyDescriptionListFromString", &obproplist, PyWinObject_AsIID, &riid))
+        return NULL;
+    if (!PyWinObject_AsWCHAR(obproplist, &proplist, FALSE))
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIPS->GetPropertyDescriptionListFromString(proplist, riid, &ret);
+    PY_INTERFACE_POSTCALL;
+    PyWinObject_FreeWCHAR(proplist);
 
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pIPS, IID_IPropertySystem );
-	return PyCom_PyObjectFromIUnknown((IUnknown *)ret, riid);
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pIPS, IID_IPropertySystem);
+    return PyCom_PyObjectFromIUnknown((IUnknown *)ret, riid);
 }
 
-// @pymethod <o PyIPropertyDescriptionList>|PyIPropertySystem|EnumeratePropertyDescriptions|Returns an interface used to list defined properties
+// @pymethod <o PyIPropertyDescriptionList>|PyIPropertySystem|EnumeratePropertyDescriptions|Returns an interface used to
+// list defined properties
 PyObject *PyIPropertySystem::EnumeratePropertyDescriptions(PyObject *self, PyObject *args)
 {
-	IPropertySystem *pIPS = GetI(self);
-	if ( pIPS == NULL )
-		return NULL;
-	void *ret;
-	PROPDESC_ENUMFILTER filter=PDEF_ALL;
-	IID riid=IID_IPropertyDescriptionList;
-	// @pyparm int|Filter|PDEF_ALL|Value from PROPDESC_ENUMFILTER (pscon.PDEF_*) that limits what types of properties are listed
-	// @pyparm <o PyIID>|riid|IID_IPropertyDescriptionList|The interface to return
-	if ( !PyArg_ParseTuple(args, "|iO&:EnumeratePropertyDescriptions",
-		&filter, PyWinObject_AsIID, &riid))
-		return NULL;
+    IPropertySystem *pIPS = GetI(self);
+    if (pIPS == NULL)
+        return NULL;
+    void *ret;
+    PROPDESC_ENUMFILTER filter = PDEF_ALL;
+    IID riid = IID_IPropertyDescriptionList;
+    // @pyparm int|Filter|PDEF_ALL|Value from PROPDESC_ENUMFILTER (pscon.PDEF_*) that limits what types of properties
+    // are listed
+    // @pyparm <o PyIID>|riid|IID_IPropertyDescriptionList|The interface to return
+    if (!PyArg_ParseTuple(args, "|iO&:EnumeratePropertyDescriptions", &filter, PyWinObject_AsIID, &riid))
+        return NULL;
 
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIPS->EnumeratePropertyDescriptions(filter, riid, &ret);
-	PY_INTERFACE_POSTCALL;
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pIPS, IID_IPropertySystem );
-	return PyCom_PyObjectFromIUnknown((IUnknown *)ret, riid);
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIPS->EnumeratePropertyDescriptions(filter, riid, &ret);
+    PY_INTERFACE_POSTCALL;
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pIPS, IID_IPropertySystem);
+    return PyCom_PyObjectFromIUnknown((IUnknown *)ret, riid);
 }
 
 // @pymethod str|PyIPropertySystem|FormatForDisplay|Formats a property into a string
 PyObject *PyIPropertySystem::FormatForDisplay(PyObject *self, PyObject *args)
 {
-	IPropertySystem *pIPS = GetI(self);
-	if ( pIPS == NULL )
-		return NULL;
-	PROPERTYKEY key;
-	PROPVARIANT *val;
-	PROPDESC_FORMAT_FLAGS flags = PDFF_DEFAULT;
-	WCHAR *buf=NULL;
+    IPropertySystem *pIPS = GetI(self);
+    if (pIPS == NULL)
+        return NULL;
+    PROPERTYKEY key;
+    PROPVARIANT *val;
+    PROPDESC_FORMAT_FLAGS flags = PDFF_DEFAULT;
+    WCHAR *buf = NULL;
 
-	// @pyparm <o PyPROPERTYKEY>|Key||Fmtid and property id that identifies the property
-	// @pyparm <o PyPROPVARIANT>|Value||The value to format
-	// @pyparm int|Flags|PDFF_DEFAULT|Combination of PROPDESC_FORMAT_FLAGS (pscon.PDFF_*) indicating formatting options
+    // @pyparm <o PyPROPERTYKEY>|Key||Fmtid and property id that identifies the property
+    // @pyparm <o PyPROPVARIANT>|Value||The value to format
+    // @pyparm int|Flags|PDFF_DEFAULT|Combination of PROPDESC_FORMAT_FLAGS (pscon.PDFF_*) indicating formatting options
 
-	if (!PyArg_ParseTuple(args, "O&O&|i:FormatForDisplay",
-		PyWinObject_AsPROPERTYKEY, &key,
-		PyWinObject_AsPROPVARIANT, &val,
-		&flags))
-		return NULL;
+    if (!PyArg_ParseTuple(args, "O&O&|i:FormatForDisplay", PyWinObject_AsPROPERTYKEY, &key, PyWinObject_AsPROPVARIANT,
+                          &val, &flags))
+        return NULL;
 
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIPS->FormatForDisplayAlloc(key, *val, flags, &buf);
-	PY_INTERFACE_POSTCALL;
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pIPS, IID_IPropertySystem );
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIPS->FormatForDisplayAlloc(key, *val, flags, &buf);
+    PY_INTERFACE_POSTCALL;
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pIPS, IID_IPropertySystem);
 
-	PyObject *ret=PyWinObject_FromWCHAR(buf);
-	CoTaskMemFree(buf);
-	return ret;
+    PyObject *ret = PyWinObject_FromWCHAR(buf);
+    CoTaskMemFree(buf);
+    return ret;
 }
 
 // @pymethod |PyIPropertySystem|RegisterPropertySchema|Registers a set of properties defined in a .propdesc file
 PyObject *PyIPropertySystem::RegisterPropertySchema(PyObject *self, PyObject *args)
 {
-	IPropertySystem *pIPS = GetI(self);
-	if ( pIPS == NULL )
-		return NULL;
-	WCHAR *path;
-	PyObject *obpath;
-	// @pyparm str|Path||Path to a property schema XML file (.propdesc)
-	if ( !PyArg_ParseTuple(args, "O:UnregisterPropertySchema", &obpath))
-		return NULL;
-	if (!PyWinObject_AsWCHAR(obpath, &path, FALSE))
-		return NULL;
+    IPropertySystem *pIPS = GetI(self);
+    if (pIPS == NULL)
+        return NULL;
+    WCHAR *path;
+    PyObject *obpath;
+    // @pyparm str|Path||Path to a property schema XML file (.propdesc)
+    if (!PyArg_ParseTuple(args, "O:UnregisterPropertySchema", &obpath))
+        return NULL;
+    if (!PyWinObject_AsWCHAR(obpath, &path, FALSE))
+        return NULL;
 
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIPS->RegisterPropertySchema(path );
-	PY_INTERFACE_POSTCALL;
-	PyWinObject_FreeWCHAR(path);
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pIPS, IID_IPropertySystem );
-	Py_INCREF(Py_None);
-	return Py_None;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIPS->RegisterPropertySchema(path);
+    PY_INTERFACE_POSTCALL;
+    PyWinObject_FreeWCHAR(path);
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pIPS, IID_IPropertySystem);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @pymethod |PyIPropertySystem|UnregisterPropertySchema|Removes a set of registered properties
 PyObject *PyIPropertySystem::UnregisterPropertySchema(PyObject *self, PyObject *args)
 {
-	IPropertySystem *pIPS = GetI(self);
-	if ( pIPS == NULL )
-		return NULL;
+    IPropertySystem *pIPS = GetI(self);
+    if (pIPS == NULL)
+        return NULL;
 
-	WCHAR *path;
-	PyObject *obpath;
-	// @pyparm str|Path||Path to a property schema XML file (.propdesc)
-	if ( !PyArg_ParseTuple(args, "O:UnregisterPropertySchema", &obpath))
-		return NULL;
-	if (!PyWinObject_AsWCHAR(obpath, &path, FALSE))
-		return NULL;
+    WCHAR *path;
+    PyObject *obpath;
+    // @pyparm str|Path||Path to a property schema XML file (.propdesc)
+    if (!PyArg_ParseTuple(args, "O:UnregisterPropertySchema", &obpath))
+        return NULL;
+    if (!PyWinObject_AsWCHAR(obpath, &path, FALSE))
+        return NULL;
 
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIPS->UnregisterPropertySchema(path);
-	PY_INTERFACE_POSTCALL;
-	PyWinObject_FreeWCHAR(path);
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIPS->UnregisterPropertySchema(path);
+    PY_INTERFACE_POSTCALL;
+    PyWinObject_FreeWCHAR(path);
 
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pIPS, IID_IPropertySystem );
-	Py_INCREF(Py_None);
-	return Py_None;
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pIPS, IID_IPropertySystem);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @pymethod |PyIPropertySystem|RefreshPropertySchema|Not currently implemented by the OS
 PyObject *PyIPropertySystem::RefreshPropertySchema(PyObject *self, PyObject *args)
 {
-	// @comm Not currently implemented, according to MSDN
-	IPropertySystem *pIPS = GetI(self);
-	if ( pIPS == NULL )
-		return NULL;
-	if ( !PyArg_ParseTuple(args, ":RefreshPropertySchema") )
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIPS->RefreshPropertySchema( );
+    // @comm Not currently implemented, according to MSDN
+    IPropertySystem *pIPS = GetI(self);
+    if (pIPS == NULL)
+        return NULL;
+    if (!PyArg_ParseTuple(args, ":RefreshPropertySchema"))
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIPS->RefreshPropertySchema();
 
-	PY_INTERFACE_POSTCALL;
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pIPS, IID_IPropertySystem );
-	Py_INCREF(Py_None);
-	return Py_None;
-
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pIPS, IID_IPropertySystem);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @object PyIPropertySystem|Wraps the IPropertySystem interface
-static struct PyMethodDef PyIPropertySystem_methods[] =
-{
-	{ "GetPropertyDescription", PyIPropertySystem::GetPropertyDescription, 1 }, // @pymeth GetPropertyDescription|Returns an interface used to describe a property
-	{ "GetPropertyDescriptionByName", PyIPropertySystem::GetPropertyDescriptionByName, 1 }, // @pymeth GetPropertyDescriptionByName|Returns an interface used to describe a property
-	{ "GetPropertyDescriptionListFromString", PyIPropertySystem::GetPropertyDescriptionListFromString, 1 }, // @pymeth GetPropertyDescriptionListFromString|Retrieves property descriptions from a string of property names
-	{ "EnumeratePropertyDescriptions", PyIPropertySystem::EnumeratePropertyDescriptions, 1 }, // @pymeth EnumeratePropertyDescriptions|Returns an interface used to list defined properties
-	{ "FormatForDisplay", PyIPropertySystem::FormatForDisplay, 1 }, // @pymeth FormatForDisplay|Formats a property into a string
-	{ "RegisterPropertySchema", PyIPropertySystem::RegisterPropertySchema, 1 }, // @pymeth RegisterPropertySchema|Registers a set of properties defined in a .propdesc file
-	{ "UnregisterPropertySchema", PyIPropertySystem::UnregisterPropertySchema, 1 }, // @pymeth UnregisterPropertySchema|Removes a set of registered properties
-	{ "RefreshPropertySchema", PyIPropertySystem::RefreshPropertySchema, 1 }, // @pymeth RefreshPropertySchema|Not currently implemented by the OS
-	{ NULL }
-};
+static struct PyMethodDef PyIPropertySystem_methods[] = {
+    {"GetPropertyDescription", PyIPropertySystem::GetPropertyDescription,
+     1},  // @pymeth GetPropertyDescription|Returns an interface used to describe a property
+    {"GetPropertyDescriptionByName", PyIPropertySystem::GetPropertyDescriptionByName,
+     1},  // @pymeth GetPropertyDescriptionByName|Returns an interface used to describe a property
+    {"GetPropertyDescriptionListFromString", PyIPropertySystem::GetPropertyDescriptionListFromString,
+     1},  // @pymeth GetPropertyDescriptionListFromString|Retrieves property descriptions from a string of property
+          // names
+    {"EnumeratePropertyDescriptions", PyIPropertySystem::EnumeratePropertyDescriptions,
+     1},  // @pymeth EnumeratePropertyDescriptions|Returns an interface used to list defined properties
+    {"FormatForDisplay", PyIPropertySystem::FormatForDisplay,
+     1},  // @pymeth FormatForDisplay|Formats a property into a string
+    {"RegisterPropertySchema", PyIPropertySystem::RegisterPropertySchema,
+     1},  // @pymeth RegisterPropertySchema|Registers a set of properties defined in a .propdesc file
+    {"UnregisterPropertySchema", PyIPropertySystem::UnregisterPropertySchema,
+     1},  // @pymeth UnregisterPropertySchema|Removes a set of registered properties
+    {"RefreshPropertySchema", PyIPropertySystem::RefreshPropertySchema,
+     1},  // @pymeth RefreshPropertySchema|Not currently implemented by the OS
+    {NULL}};
 
-PyComTypeObject PyIPropertySystem::type("PyIPropertySystem",
-		&PyIUnknown::type,
-		sizeof(PyIPropertySystem),
-		PyIPropertySystem_methods,
-		GET_PYCOM_CTOR(PyIPropertySystem));
+PyComTypeObject PyIPropertySystem::type("PyIPropertySystem", &PyIUnknown::type, sizeof(PyIPropertySystem),
+                                        PyIPropertySystem_methods, GET_PYCOM_CTOR(PyIPropertySystem));

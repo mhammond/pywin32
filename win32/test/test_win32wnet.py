@@ -64,7 +64,7 @@ class TestCase(unittest.TestCase):
             elif typ is str:
                 if val is not None:
                     # on py2k, must be string or unicode.  py3k must be string or bytes.
-                    self.failUnless(type(val) in (str, unicode),
+                    self.failUnless(type(val) in (str, str),
                                     "Attr %r has value %r" % (attr, val))
                     new_val = val + " new value"
                 else:

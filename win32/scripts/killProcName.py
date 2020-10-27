@@ -47,10 +47,10 @@ if __name__ == '__main__':
 		for procname in sys.argv[1:]:
 			result = killProcName(procname)
 			if result:
-				print result
-				print "Dumping all processes..."
+				print(result)
+				print("Dumping all processes...")
 				win32pdhutil.ShowAllProcesses()
 			else:
-				print "Killed %s" % procname
+				print("Killed %s" % procname)
 	else:
-		print "Usage: killProcName.py procname ..."
+		print("Usage: killProcName.py procname ...")

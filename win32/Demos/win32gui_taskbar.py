@@ -25,7 +25,7 @@ class MainWindow:
         # Don't blow up if class already registered to make testing easier
         try:
             classAtom = win32gui.RegisterClass(wc)
-        except win32gui.error, err_info:
+        except win32gui.error as err_info:
             if err_info.winerror!=winerror.ERROR_CLASS_ALREADY_EXISTS:
                 raise
 
@@ -50,7 +50,7 @@ class MainWindow:
             icon_flags = win32con.LR_LOADFROMFILE | win32con.LR_DEFAULTSIZE
             hicon = win32gui.LoadImage(hinst, iconPathName, win32con.IMAGE_ICON, 0, 0, icon_flags)
         else:
-            print "Can't find a Python icon file - using default"
+            print("Can't find a Python icon file - using default")
             hicon = win32gui.LoadIcon(0, win32con.IDI_APPLICATION)
 
         flags = win32gui.NIF_ICON | win32gui.NIF_MESSAGE | win32gui.NIF_TIP
@@ -60,7 +60,7 @@ class MainWindow:
         except win32gui.error:
             # This is common when windows is starting, and this code is hit
             # before the taskbar has been created.
-            print "Failed to add the taskbar icon - is explorer running?"
+            print("Failed to add the taskbar icon - is explorer running?")
             # but keep running anyway - when explorer starts, we get the
             # TaskbarCreated message.
 
@@ -74,12 +74,12 @@ class MainWindow:
 
     def OnTaskbarNotify(self, hwnd, msg, wparam, lparam):
         if lparam==win32con.WM_LBUTTONUP:
-            print "You clicked me."
+            print("You clicked me.")
         elif lparam==win32con.WM_LBUTTONDBLCLK:
-            print "You double-clicked me - goodbye"
+            print("You double-clicked me - goodbye")
             win32gui.DestroyWindow(self.hwnd)
         elif lparam==win32con.WM_RBUTTONUP:
-            print "You right clicked me."
+            print("You right clicked me.")
             menu = win32gui.CreatePopupMenu()
             win32gui.AppendMenu( menu, win32con.MF_STRING, 1023, "Display Dialog")
             win32gui.AppendMenu( menu, win32con.MF_STRING, 1024, "Say Hello")
@@ -97,12 +97,12 @@ class MainWindow:
             import win32gui_dialog
             win32gui_dialog.DemoModal()
         elif id == 1024:
-            print "Hello"
+            print("Hello")
         elif id == 1025:
-            print "Goodbye"
+            print("Goodbye")
             win32gui.DestroyWindow(self.hwnd)
         else:
-            print "Unknown command -", id
+            print("Unknown command -", id)
 
 def main():
     w=MainWindow()

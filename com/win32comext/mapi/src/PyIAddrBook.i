@@ -60,7 +60,7 @@ PyObject *PyIAddrBook::OpenEntry(PyObject *self, PyObject *args)
 	if (obEntry==Py_None) {
 		entryString = NULL;
 		entryStrLen = 0;
-	} else if PyString_Check(obEntry) {
+	} else if (PyString_Check(obEntry)) {
 		entryString = PyString_AsString(obEntry);
 		entryStrLen = PyString_Size(obEntry);
 	} else {

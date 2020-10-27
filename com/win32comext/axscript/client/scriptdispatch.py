@@ -44,11 +44,8 @@ class ScriptDispatch:
 						realArgs.append(Dispatch(arg))
 					else:
 						realArgs.append(arg)
-				try:
-					# xxx - todo - work out what code block to pass???
-					return self.engine.ApplyInScriptedSection(None, func, tuple(realArgs))
-				except COMException, (hr, msg, exc, arg):
-					raise
+				# xxx - todo - work out what code block to pass???
+				return self.engine.ApplyInScriptedSection(None, func, tuple(realArgs))
 
 			except AttributeError:
 				if not wFlags & pythoncom.DISPATCH_PROPERTYGET:
@@ -61,7 +58,7 @@ class ScriptDispatch:
 					raise AttributeError(name) # Not a property.
 			except AttributeError:
 				raise COMException(scode=winerror.DISP_E_MEMBERNOTFOUND)
-			except COMException, instance:
+			except COMException as instance:
 				raise
 			except:
 				ret = self.engine.HandleException()

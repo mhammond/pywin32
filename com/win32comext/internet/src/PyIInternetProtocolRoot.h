@@ -4,57 +4,45 @@
 //
 // Interface Declaration
 
-class PyIInternetProtocolRoot : public PyIUnknown
-{
-public:
-	MAKE_PYCOM_CTOR(PyIInternetProtocolRoot);
-	static IInternetProtocolRoot *GetI(PyObject *self);
-	static PyComTypeObject type;
+class PyIInternetProtocolRoot : public PyIUnknown {
+   public:
+    MAKE_PYCOM_CTOR(PyIInternetProtocolRoot);
+    static IInternetProtocolRoot *GetI(PyObject *self);
+    static PyComTypeObject type;
 
-	// The Python methods
-	static PyObject *Start(PyObject *self, PyObject *args);
-	static PyObject *Continue(PyObject *self, PyObject *args);
-	static PyObject *Abort(PyObject *self, PyObject *args);
-	static PyObject *Terminate(PyObject *self, PyObject *args);
-	static PyObject *Suspend(PyObject *self, PyObject *args);
-	static PyObject *Resume(PyObject *self, PyObject *args);
+    // The Python methods
+    static PyObject *Start(PyObject *self, PyObject *args);
+    static PyObject *Continue(PyObject *self, PyObject *args);
+    static PyObject *Abort(PyObject *self, PyObject *args);
+    static PyObject *Terminate(PyObject *self, PyObject *args);
+    static PyObject *Suspend(PyObject *self, PyObject *args);
+    static PyObject *Resume(PyObject *self, PyObject *args);
 
-protected:
-	PyIInternetProtocolRoot(IUnknown *pdisp);
-	~PyIInternetProtocolRoot();
+   protected:
+    PyIInternetProtocolRoot(IUnknown *pdisp);
+    ~PyIInternetProtocolRoot();
 };
 // ---------------------------------------------------
 //
 // Gateway Declaration
 
-class PyGInternetProtocolRoot : public PyGatewayBase, public IInternetProtocolRoot
-{
-protected:
-	PyGInternetProtocolRoot(PyObject *instance) : PyGatewayBase(instance) { ; }
-	PYGATEWAY_MAKE_SUPPORT(PyGInternetProtocolRoot, IInternetProtocolRoot, IID_IInternetProtocolRoot)
+class PyGInternetProtocolRoot : public PyGatewayBase, public IInternetProtocolRoot {
+   protected:
+    PyGInternetProtocolRoot(PyObject *instance) : PyGatewayBase(instance) { ; }
+    PYGATEWAY_MAKE_SUPPORT(PyGInternetProtocolRoot, IInternetProtocolRoot, IID_IInternetProtocolRoot)
 
-	// IInternetProtocolRoot
-	STDMETHOD(Start)(
-		LPCWSTR szUrl,
-		IInternetProtocolSink __RPC_FAR * pOIProtSink,
-		IInternetBindInfo __RPC_FAR * pOIBindInfo,
-		DWORD grfPI,
-		HANDLE_PTR dwReserved);
+    // IInternetProtocolRoot
+    STDMETHOD(Start)
+    (LPCWSTR szUrl, IInternetProtocolSink __RPC_FAR *pOIProtSink, IInternetBindInfo __RPC_FAR *pOIBindInfo, DWORD grfPI,
+     HANDLE_PTR dwReserved);
 
-	STDMETHOD(Continue)(
-		PROTOCOLDATA __RPC_FAR * pProtocolData);
+    STDMETHOD(Continue)(PROTOCOLDATA __RPC_FAR *pProtocolData);
 
-	STDMETHOD(Abort)(
-		HRESULT hrReason,
-		DWORD dwOptions);
+    STDMETHOD(Abort)(HRESULT hrReason, DWORD dwOptions);
 
-	STDMETHOD(Terminate)(
-		DWORD dwOptions);
+    STDMETHOD(Terminate)(DWORD dwOptions);
 
-	STDMETHOD(Suspend)(
-		void);
+    STDMETHOD(Suspend)(void);
 
-	STDMETHOD(Resume)(
-		void);
-
+    STDMETHOD(Resume)(void);
 };

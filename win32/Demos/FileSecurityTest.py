@@ -1,6 +1,6 @@
 # Contributed by Kelly Kranabetter.
 import os, sys
-import win32security, ntsecuritycon
+import win32security, ntsecuritycon, pywintypes, winerror
 
 # get security information
 #name=r"c:\autoexec.bat"
@@ -8,44 +8,56 @@ import win32security, ntsecuritycon
 name=sys.argv[0]
 
 if not os.path.exists(name):
-    print name, "does not exist!"
+    print(name, "does not exist!")
     sys.exit()
 
-print "On file " , name, "\n"
+print("On file " , name, "\n")
 
 # get owner SID
-print "OWNER"
-sd= win32security.GetFileSecurity(name, win32security.OWNER_SECURITY_INFORMATION)
-sid= sd.GetSecurityDescriptorOwner()
-print "  ", win32security.LookupAccountSid(None, sid)
+print("OWNER")
+try:
+    sd= win32security.GetFileSecurity(name, win32security.OWNER_SECURITY_INFORMATION)
+    sid= sd.GetSecurityDescriptorOwner()
+    print("  ", win32security.LookupAccountSid(None, sid))
+except pywintypes.error as exc:
+    # in automation and network shares we see:
+    # pywintypes.error: (1332, 'LookupAccountName', 'No mapping between account names and security IDs was done.')
+    if exc.winerror != winerror.ERROR_NONE_MAPPED:
+        raise
+    print("No owner information is available")
 
 # get group SID
-print "GROUP"
-sd= win32security.GetFileSecurity(name, win32security.GROUP_SECURITY_INFORMATION)
-sid= sd.GetSecurityDescriptorGroup()
-print "  ", win32security.LookupAccountSid(None, sid)
+try:
+    print("GROUP")
+    sd= win32security.GetFileSecurity(name, win32security.GROUP_SECURITY_INFORMATION)
+    sid= sd.GetSecurityDescriptorGroup()
+    print("  ", win32security.LookupAccountSid(None, sid))
+except pywintypes.error as exc:
+    if exc.winerror != winerror.ERROR_NONE_MAPPED:
+        raise
+    print("No group information is available")
 
 # get ACEs
 sd= win32security.GetFileSecurity(name, win32security.DACL_SECURITY_INFORMATION)
 dacl= sd.GetSecurityDescriptorDacl()
 if dacl == None:
-    print "No Discretionary ACL"
+    print("No Discretionary ACL")
 else:
     for ace_no in range(0, dacl.GetAceCount()):
         ace= dacl.GetAce(ace_no)
-        print "ACE", ace_no
+        print("ACE", ace_no)
 
-        print "  -Type"
+        print("  -Type")
         for i in ("ACCESS_ALLOWED_ACE_TYPE", "ACCESS_DENIED_ACE_TYPE", "SYSTEM_AUDIT_ACE_TYPE", "SYSTEM_ALARM_ACE_TYPE"):
             if getattr(ntsecuritycon, i) == ace[0][0]:
-                print "    ", i
+                print("    ", i)
 
-        print "  -Flags", hex(ace[0][1])
+        print("  -Flags", hex(ace[0][1]))
         for i in ("OBJECT_INHERIT_ACE", "CONTAINER_INHERIT_ACE", "NO_PROPAGATE_INHERIT_ACE", "INHERIT_ONLY_ACE", "SUCCESSFUL_ACCESS_ACE_FLAG", "FAILED_ACCESS_ACE_FLAG"):
             if getattr(ntsecuritycon, i) & ace[0][1] == getattr(ntsecuritycon, i):
-                print "    ", i
+                print("    ", i)
 
-        print "  -mask", hex(ace[1])
+        print("  -mask", hex(ace[1]))
 
         # files and directories do permissions differently
         permissions_file= ("DELETE", "READ_CONTROL", "WRITE_DAC", "WRITE_OWNER", "SYNCHRONIZE", "FILE_GENERIC_READ", "FILE_GENERIC_WRITE", "FILE_GENERIC_EXECUTE", "FILE_DELETE_CHILD")
@@ -63,6 +75,6 @@ else:
         for i in permissions:
             if getattr(ntsecuritycon, i) & ace[1] == getattr(ntsecuritycon, i):
                 calc_mask= calc_mask | getattr(ntsecuritycon, i)
-                print "    ", i
-        print "  ", "Calculated Check Mask=", hex(calc_mask)
-        print "  -SID\n    ", win32security.LookupAccountSid(None, ace[2])
+                print("    ", i)
+        print("  ", "Calculated Check Mask=", hex(calc_mask))
+        print("  -SID\n    ", win32security.LookupAccountSid(None, ace[2]))

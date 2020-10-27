@@ -101,10 +101,7 @@ def _find_constructor(class_ob):
     # Given a class object, return a function object used for the
     # constructor (ie, __init__() ) or None if we can't find one.
     try:
-        if sys.version_info < (3,):
-            return class_ob.__init__.im_func
-        else:
-            return class_ob.__init__.__func__
+        return class_ob.__init__
     except AttributeError:
         for base in class_ob.__bases__:
             rc = _find_constructor(base)
@@ -129,7 +126,7 @@ def get_arg_text(ob):
                 arg_getter = getattr(inspect, "getfullargspec", inspect.getargspec)
                 argText = inspect.formatargspec(*arg_getter(fob))
             except:
-                print "Failed to format the args"
+                print("Failed to format the args")
                 traceback.print_exc()
         # See if we can use the docstring
         if hasattr(ob, "__doc__"):
@@ -177,8 +174,8 @@ if __name__=='__main__':
             expected = t.__doc__ + "\n" + t.__doc__
             if get_arg_text(t) != expected:
                 failed.append(t)
-                print "%s - expected %s, but got %s" % (t, repr(expected), repr(get_arg_text(t)))
-        print "%d of %d tests failed" % (len(failed), len(tests))
+                print("%s - expected %s, but got %s" % (t, repr(expected), repr(get_arg_text(t))))
+        print("%d of %d tests failed" % (len(failed), len(tests)))
 
     tc = TC()
     tests = t1, t2, t3, t4, t5, t6, \

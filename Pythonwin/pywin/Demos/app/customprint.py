@@ -33,7 +33,7 @@ class PrintDemoView(docview.ScrollView):
                        'Yellow' : (0xff<<0) + (0xff<<8) + (0x00<<16),
                        }
         self.pens = {}
-        for name, color in self.colors.iteritems():
+        for name, color in self.colors.items():
             self.pens[name] = win32ui.CreatePen(win32con.PS_SOLID,
                                                  5, color)
         self.pen = None

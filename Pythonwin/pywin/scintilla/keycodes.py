@@ -35,7 +35,9 @@ def get_vk(chardesc):
         # it is a character.
         info = win32api.VkKeyScan(chardesc)
         if info==-1:
-            return None, None
+            # Note: returning None, None causes an error when keyboard layout is non-English, see the report below
+            # https://stackoverflow.com/questions/45138084/pythonwin-occasionally-gives-an-error-on-opening
+            return 0, 0
         vk = win32api.LOBYTE(info)
         state = win32api.HIBYTE(info)
         modifiers = 0
@@ -128,14 +130,14 @@ def make_key_name(vk, flags):
             # Not in our virtual key map - ask Windows what character this
             # key corresponds to.
             scancode = win32api.MapVirtualKey(vk, MAPVK_VK_TO_CHAR)
-            parts.append(unichr(scancode))
+            parts.append(chr(scancode))
     sep = "+"
     if sep in parts: sep = "-"
     return sep.join([p.capitalize() for p in parts])
 
 def _psc(char):
     sc, mods = get_vk(char)
-    print "Char %s -> %d -> %s" % (repr(char), sc, key_code_to_name.get(sc))
+    print("Char %s -> %d -> %s" % (repr(char), sc, key_code_to_name.get(sc)))
 
 def test1():
     for ch in """aA0/?[{}];:'"`~_-+=\\|,<.>/?""":
@@ -145,7 +147,7 @@ def test1():
 
 def _pkn(n):
     vk, flags = parse_key_name(n)
-    print "%s -> %s,%s -> %s" % (n, vk, flags, make_key_name(vk, flags))
+    print("%s -> %s,%s -> %s" % (n, vk, flags, make_key_name(vk, flags)))
 
 def test2():
     _pkn("ctrl+alt-shift+x")

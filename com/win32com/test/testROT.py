@@ -15,7 +15,7 @@ class TestROT(win32com.test.util.TestCase):
             try:
                 for sub in mk:
                     num += 1
-            except pythoncom.com_error, exc:
+            except pythoncom.com_error as exc:
                 if exc.hresult != winerror.E_NOTIMPL:
                     raise
 

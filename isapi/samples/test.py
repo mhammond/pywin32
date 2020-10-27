@@ -34,14 +34,14 @@ class ReloadWatcherThread(threading.Thread):
                 rc = win32event.WaitForSingleObject(self.handle, 
                                                     win32event.INFINITE)
                 win32file.FindNextChangeNotification(self.handle)
-            except win32event.error, details:
+            except win32event.error as details:
                 # handle closed - thread should terminate.
                 if details.winerror != winerror.ERROR_INVALID_HANDLE:
                     raise
                 break
             this_time = os.stat(self.filename)[stat.ST_MTIME]
             if this_time != last_time:
-                print "Detected file change - flagging for reload."
+                print("Detected file change - flagging for reload.")
                 self.change_detected = True
                 last_time = this_time
     
@@ -49,7 +49,7 @@ class ReloadWatcherThread(threading.Thread):
         win32file.FindCloseChangeNotification(self.handle)
 
 def TransmitFileCallback(ecb, hFile, cbIO, errCode):
-    print "Transmit complete!"
+    print("Transmit complete!")
     ecb.close()
     
 # The ISAPI extension - handles requests in our virtual dir, and sends the
@@ -66,7 +66,7 @@ class Extension(SimpleExtension):
         # The "Dispatch" method will just cause the exception to be
         # rendered to the browser.
         if self.reload_watcher.change_detected:
-            print "Doing reload"
+            print("Doing reload")
             raise InternalReloadException
 
         if ecb.GetServerVariable("UNICODE_URL").endswith("test.py"):
@@ -90,9 +90,9 @@ class Extension(SimpleExtension):
         else:
             # default response
             ecb.SendResponseHeaders("200 OK", "Content-Type: text/html\r\n\r\n", 0)
-            print >> ecb, "<HTML><BODY>"
-            print >> ecb, "The root of this site is at", ecb.MapURLToPath("/")
-            print >> ecb, "</BODY></HTML>"
+            print("<HTML><BODY>", file=ecb)
+            print("The root of this site is at", ecb.MapURLToPath("/"), file=ecb)
+            print("</BODY></HTML>", file=ecb)
             ecb.close()
         return isapicon.HSE_STATUS_SUCCESS
     
@@ -113,14 +113,14 @@ def PreInstallDirectory(params, options):
 
 # Post install hook for our entire script
 def PostInstall(params, options):
-    print
-    print "The sample has been installed."
-    print "Point your browser to /PyISAPITest"
+    print()
+    print("The sample has been installed.")
+    print("Point your browser to /PyISAPITest")
 
 # Handler for our custom 'status' argument.
 def status_handler(options, log, arg):
     "Query the status of something"
-    print "Everything seems to be fine!"
+    print("Everything seems to be fine!")
 
 custom_arg_handlers = {"status": status_handler}
 

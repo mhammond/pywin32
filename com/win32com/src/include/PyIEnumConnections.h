@@ -4,48 +4,37 @@
 //
 // Interface Declaration
 
-class PyIEnumConnections : public PyIUnknown
-{
-public:
-	MAKE_PYCOM_CTOR(PyIEnumConnections);
-	static IEnumConnections *GetI(PyObject *self);
-	static PyComEnumTypeObject type;
+class PyIEnumConnections : public PyIUnknown {
+   public:
+    MAKE_PYCOM_CTOR(PyIEnumConnections);
+    static IEnumConnections *GetI(PyObject *self);
+    static PyComEnumTypeObject type;
 
-	// The Python methods
-	static PyObject *Next(PyObject *self, PyObject *args);
-	static PyObject *Skip(PyObject *self, PyObject *args);
-	static PyObject *Reset(PyObject *self, PyObject *args);
-	static PyObject *Clone(PyObject *self, PyObject *args);
+    // The Python methods
+    static PyObject *Next(PyObject *self, PyObject *args);
+    static PyObject *Skip(PyObject *self, PyObject *args);
+    static PyObject *Reset(PyObject *self, PyObject *args);
+    static PyObject *Clone(PyObject *self, PyObject *args);
 
-protected:
-	PyIEnumConnections(IUnknown *pdisp);
-	~PyIEnumConnections();
+   protected:
+    PyIEnumConnections(IUnknown *pdisp);
+    ~PyIEnumConnections();
 };
 // ---------------------------------------------------
 //
 // Gateway Declaration
 
-class PyGEnumConnections : public PyGatewayBase, public IEnumConnections
-{
-protected:
-	PyGEnumConnections(PyObject *instance) : PyGatewayBase(instance) { ; }
-	PYGATEWAY_MAKE_SUPPORT2(PyGEnumConnections, IEnumConnections, IID_IEnumConnections, PyGatewayBase)
+class PyGEnumConnections : public PyGatewayBase, public IEnumConnections {
+   protected:
+    PyGEnumConnections(PyObject *instance) : PyGatewayBase(instance) { ; }
+    PYGATEWAY_MAKE_SUPPORT2(PyGEnumConnections, IEnumConnections, IID_IEnumConnections, PyGatewayBase)
 
+    // IEnumConnections
+    STDMETHOD(Next)(ULONG cConnections, LPCONNECTDATA rgcd, ULONG __RPC_FAR *pcFetched);
 
+    STDMETHOD(Skip)(ULONG cConnections);
 
-	// IEnumConnections
-	STDMETHOD(Next)(
-		ULONG cConnections,
-		LPCONNECTDATA rgcd,
-		ULONG __RPC_FAR * pcFetched);
+    STDMETHOD(Reset)(void);
 
-	STDMETHOD(Skip)(
-		ULONG cConnections);
-
-	STDMETHOD(Reset)(
-		void);
-
-	STDMETHOD(Clone)(
-		IEnumConnections __RPC_FAR *__RPC_FAR * ppEnum);
-
+    STDMETHOD(Clone)(IEnumConnections __RPC_FAR *__RPC_FAR *ppEnum);
 };

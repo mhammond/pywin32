@@ -109,11 +109,11 @@ class TimerManager:
 				self.CaptureOutput()
 				try:
 					exec(self.dlg.doWork)
-					print "The last operation completed successfully."
+					print("The last operation completed successfully.")
 				except:
 					t, v, tb = sys.exc_info()
 					str = "Failed: %s: %s" % (t, repr(v))
-					print str
+					print(str)
 					self.oldErr.write(str)
 					tb = None # Prevent cycle
 			finally:
@@ -195,17 +195,17 @@ class TimerDialogApp(dlgappcore.DialogApp):
 		return TimerAppDialog()
 
 def DoDemoWork():
-	print "Doing the work..."
-	print "About to connect"
+	print("Doing the work...")
+	print("About to connect")
 	win32api.MessageBeep(win32con.MB_ICONASTERISK)
 	win32api.Sleep(2000)
-	print "Doing something else..."
+	print("Doing something else...")
 	win32api.MessageBeep(win32con.MB_ICONEXCLAMATION)
 	win32api.Sleep(2000)
-	print "More work."
+	print("More work.")
 	win32api.MessageBeep(win32con.MB_ICONHAND)
 	win32api.Sleep(2000)
-	print "The last bit."
+	print("The last bit.")
 	win32api.MessageBeep(win32con.MB_OK)
 	win32api.Sleep(2000)
 

@@ -7,35 +7,28 @@
 #include "PythonCOMServer.h"
 #include "propsys.h"
 
-class PyIInitializeWithFile : public PyIUnknown
-{
-public:
-	MAKE_PYCOM_CTOR(PyIInitializeWithFile);
-	static IInitializeWithFile *GetI(PyObject *self);
-	static PyComTypeObject type;
+class PyIInitializeWithFile : public PyIUnknown {
+   public:
+    MAKE_PYCOM_CTOR(PyIInitializeWithFile);
+    static IInitializeWithFile *GetI(PyObject *self);
+    static PyComTypeObject type;
 
-	// The Python methods
-	static PyObject *Initialize(PyObject *self, PyObject *args);
+    // The Python methods
+    static PyObject *Initialize(PyObject *self, PyObject *args);
 
-protected:
-	PyIInitializeWithFile(IUnknown *pdisp);
-	~PyIInitializeWithFile();
+   protected:
+    PyIInitializeWithFile(IUnknown *pdisp);
+    ~PyIInitializeWithFile();
 };
 // ---------------------------------------------------
 //
 // Gateway Declaration
 
-class PyGInitializeWithFile : public PyGatewayBase, public IInitializeWithFile
-{
-protected:
-	PyGInitializeWithFile(PyObject *instance) : PyGatewayBase(instance) { ; }
-	PYGATEWAY_MAKE_SUPPORT2(PyGInitializeWithFile, IInitializeWithFile, IID_IInitializeWithFile, PyGatewayBase)
+class PyGInitializeWithFile : public PyGatewayBase, public IInitializeWithFile {
+   protected:
+    PyGInitializeWithFile(PyObject *instance) : PyGatewayBase(instance) { ; }
+    PYGATEWAY_MAKE_SUPPORT2(PyGInitializeWithFile, IInitializeWithFile, IID_IInitializeWithFile, PyGatewayBase)
 
-
-
-	// IInitializeWithFile
-	STDMETHOD(Initialize)(
-		__RPC__in LPCWSTR pszFilePath,
-		DWORD grfMode);
-
+    // IInitializeWithFile
+    STDMETHOD(Initialize)(__RPC__in LPCWSTR pszFilePath, DWORD grfMode);
 };

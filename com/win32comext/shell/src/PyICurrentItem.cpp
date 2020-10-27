@@ -10,32 +10,18 @@
 //
 // Interface Implementation
 
-PyICurrentItem::PyICurrentItem(IUnknown *pdisp):
-	PyIRelatedItem(pdisp)
-{
-	ob_type = &type;
-}
+PyICurrentItem::PyICurrentItem(IUnknown *pdisp) : PyIRelatedItem(pdisp) { ob_type = &type; }
 
-PyICurrentItem::~PyICurrentItem()
-{
-}
+PyICurrentItem::~PyICurrentItem() {}
 
-/* static */ ICurrentItem *PyICurrentItem::GetI(PyObject *self)
-{
-	return (ICurrentItem *)PyIRelatedItem::GetI(self);
-}
+/* static */ ICurrentItem *PyICurrentItem::GetI(PyObject *self) { return (ICurrentItem *)PyIRelatedItem::GetI(self); }
 
 // @object PyICurrentItem|Description of the interface
-static struct PyMethodDef PyICurrentItem_methods[] =
-{
-	{ NULL }
-};
+static struct PyMethodDef PyICurrentItem_methods[] = {{NULL}};
 
 PyComTypeObject PyICurrentItem::type("PyICurrentItem",
-		&PyIRelatedItem::type,	// @base PyICurrentItem|PyIRelatedItem
-		sizeof(PyICurrentItem),
-		PyICurrentItem_methods,
-		GET_PYCOM_CTOR(PyICurrentItem));
+                                     &PyIRelatedItem::type,  // @base PyICurrentItem|PyIRelatedItem
+                                     sizeof(PyICurrentItem), PyICurrentItem_methods, GET_PYCOM_CTOR(PyICurrentItem));
 // ---------------------------------------------------
 //
 // Gateway Implementation

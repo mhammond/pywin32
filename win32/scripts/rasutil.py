@@ -18,23 +18,23 @@ def Connect(rasEntryName, numRetries = 5):
 	assert numRetries > 0
 	for info in win32ras.EnumConnections():
 		if info[1].lower()==rasEntryName.lower():
-			print "Already connected to", rasEntryName
+			print("Already connected to", rasEntryName)
 			return 0, info[0]
 
 	dial_params, have_pw = win32ras.GetEntryDialParams(None, rasEntryName)
 	if not have_pw:
-		print "Error: The password is not saved for this connection"
-		print "Please connect manually selecting the 'save password' option and try again"
+		print("Error: The password is not saved for this connection")
+		print("Please connect manually selecting the 'save password' option and try again")
 		sys.exit(1)
 
-	print "Connecting to", rasEntryName, "..."
+	print("Connecting to", rasEntryName, "...")
 	retryCount = numRetries
 	while retryCount > 0:
 		rasHandle, errCode = win32ras.Dial(None, None, dial_params, None)
 		if win32ras.IsHandleValid(rasHandle):
 			bValid = 1
 			break
-		print "Retrying..."
+		print("Retrying...")
 		win32api.Sleep(5000)
 		retryCount = retryCount - 1
 	
@@ -64,15 +64,15 @@ Usage:
 """
 
 def Usage(why):
-	print why
-	print usage
+	print(why)
+	print(usage)
 	sys.exit(1)
 	
 if __name__=='__main__':
 	import getopt
 	try:
 		opts, args = getopt.getopt(sys.argv[1:], "r:c:d:")
-	except getopt.error, why:
+	except getopt.error as why:
 		Usage(why)
 	retries = 5
 	if len(args) != 0:

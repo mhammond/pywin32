@@ -4,100 +4,69 @@
 //
 // Interface Declaration
 
-class PyIShellBrowser : public PyIOleWindow
-{
-public:
-	MAKE_PYCOM_CTOR(PyIShellBrowser);
-	static IShellBrowser *GetI(PyObject *self);
-	static PyComTypeObject type;
+class PyIShellBrowser : public PyIOleWindow {
+   public:
+    MAKE_PYCOM_CTOR(PyIShellBrowser);
+    static IShellBrowser *GetI(PyObject *self);
+    static PyComTypeObject type;
 
-	// The Python methods
-	static PyObject *InsertMenusSB(PyObject *self, PyObject *args);
-	static PyObject *SetMenuSB(PyObject *self, PyObject *args);
-	static PyObject *RemoveMenusSB(PyObject *self, PyObject *args);
-	static PyObject *SetStatusTextSB(PyObject *self, PyObject *args);
-	static PyObject *EnableModelessSB(PyObject *self, PyObject *args);
-	static PyObject *TranslateAcceleratorSB(PyObject *self, PyObject *args);
-	static PyObject *BrowseObject(PyObject *self, PyObject *args);
-	static PyObject *GetViewStateStream(PyObject *self, PyObject *args);
-	static PyObject *GetControlWindow(PyObject *self, PyObject *args);
-	static PyObject *SendControlMsg(PyObject *self, PyObject *args);
-	static PyObject *QueryActiveShellView(PyObject *self, PyObject *args);
-	static PyObject *OnViewWindowActive(PyObject *self, PyObject *args);
-	static PyObject *SetToolbarItems(PyObject *self, PyObject *args);
+    // The Python methods
+    static PyObject *InsertMenusSB(PyObject *self, PyObject *args);
+    static PyObject *SetMenuSB(PyObject *self, PyObject *args);
+    static PyObject *RemoveMenusSB(PyObject *self, PyObject *args);
+    static PyObject *SetStatusTextSB(PyObject *self, PyObject *args);
+    static PyObject *EnableModelessSB(PyObject *self, PyObject *args);
+    static PyObject *TranslateAcceleratorSB(PyObject *self, PyObject *args);
+    static PyObject *BrowseObject(PyObject *self, PyObject *args);
+    static PyObject *GetViewStateStream(PyObject *self, PyObject *args);
+    static PyObject *GetControlWindow(PyObject *self, PyObject *args);
+    static PyObject *SendControlMsg(PyObject *self, PyObject *args);
+    static PyObject *QueryActiveShellView(PyObject *self, PyObject *args);
+    static PyObject *OnViewWindowActive(PyObject *self, PyObject *args);
+    static PyObject *SetToolbarItems(PyObject *self, PyObject *args);
 
-protected:
-	PyIShellBrowser(IUnknown *pdisp);
-	~PyIShellBrowser();
+   protected:
+    PyIShellBrowser(IUnknown *pdisp);
+    ~PyIShellBrowser();
 };
 // ---------------------------------------------------
 //
 // Gateway Declaration
 
-class PyGShellBrowser : public PyGOleWindow, public IShellBrowser
-{
-protected:
-	PyGShellBrowser(PyObject *instance) : PyGOleWindow(instance) { ; }
-	PYGATEWAY_MAKE_SUPPORT2(PyGShellBrowser, IShellBrowser, IID_IShellBrowser, PyGOleWindow)
+class PyGShellBrowser : public PyGOleWindow, public IShellBrowser {
+   protected:
+    PyGShellBrowser(PyObject *instance) : PyGOleWindow(instance) { ; }
+    PYGATEWAY_MAKE_SUPPORT2(PyGShellBrowser, IShellBrowser, IID_IShellBrowser, PyGOleWindow)
 
-	// IOleWindow
-	STDMETHOD(GetWindow)(
-		HWND __RPC_FAR * phwnd);
+    // IOleWindow
+    STDMETHOD(GetWindow)(HWND __RPC_FAR *phwnd);
 
-	STDMETHOD(ContextSensitiveHelp)(
-		BOOL fEnterMode);
+    STDMETHOD(ContextSensitiveHelp)(BOOL fEnterMode);
 
-	// IShellBrowser
-	STDMETHOD(InsertMenusSB)(
-		HMENU hmenuShared,
-		LPOLEMENUGROUPWIDTHS lpMenuWidths);
+    // IShellBrowser
+    STDMETHOD(InsertMenusSB)(HMENU hmenuShared, LPOLEMENUGROUPWIDTHS lpMenuWidths);
 
-	STDMETHOD(SetMenuSB)(
-		HMENU hmenuShared,
-		HOLEMENU holemenuRes,
-		HWND hwndActiveObject);
+    STDMETHOD(SetMenuSB)(HMENU hmenuShared, HOLEMENU holemenuRes, HWND hwndActiveObject);
 
-	STDMETHOD(RemoveMenusSB)(
-		HMENU hmenuShared);
+    STDMETHOD(RemoveMenusSB)(HMENU hmenuShared);
 
-	STDMETHOD(SetStatusTextSB)(
-		LPCOLESTR pszStatusText);
+    STDMETHOD(SetStatusTextSB)(LPCOLESTR pszStatusText);
 
-	STDMETHOD(EnableModelessSB)(
-		BOOL fEnable);
+    STDMETHOD(EnableModelessSB)(BOOL fEnable);
 
-	STDMETHOD(TranslateAcceleratorSB)(
-		MSG * pmsg,
-		WORD wID);
+    STDMETHOD(TranslateAcceleratorSB)(MSG *pmsg, WORD wID);
 
-	STDMETHOD(BrowseObject)(
-		LPCITEMIDLIST pidl,
-		UINT wFlags);
+    STDMETHOD(BrowseObject)(LPCITEMIDLIST pidl, UINT wFlags);
 
-	STDMETHOD(GetViewStateStream)(
-		DWORD grfMode,
-		IStream ** ppStrm);
+    STDMETHOD(GetViewStateStream)(DWORD grfMode, IStream **ppStrm);
 
-	STDMETHOD(GetControlWindow)(
-		UINT id,
-		HWND * phwnd);
+    STDMETHOD(GetControlWindow)(UINT id, HWND *phwnd);
 
-	STDMETHOD(SendControlMsg)(
-		UINT id,
-		UINT uMsg,
-		WPARAM wParam,
-		LPARAM lParam,
-		LRESULT * pret);
+    STDMETHOD(SendControlMsg)(UINT id, UINT uMsg, WPARAM wParam, LPARAM lParam, LRESULT *pret);
 
-	STDMETHOD(QueryActiveShellView)(
-		IShellView ** ppshv);
+    STDMETHOD(QueryActiveShellView)(IShellView **ppshv);
 
-	STDMETHOD(OnViewWindowActive)(
-		IShellView * pshv);
+    STDMETHOD(OnViewWindowActive)(IShellView *pshv);
 
-	STDMETHOD(SetToolbarItems)(
-		LPTBBUTTONSB lpButtons,
-		UINT nButtons,
-		UINT uFlags);
-
+    STDMETHOD(SetToolbarItems)(LPTBBUTTONSB lpButtons, UINT nButtons, UINT uFlags);
 };

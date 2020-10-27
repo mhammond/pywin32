@@ -24,7 +24,7 @@ class glork:
         self.event = win32event.CreateEvent(None, 0, 0, None)
 
     def increment (self, id, time):
-        print 'x = %d' % self.x
+        print('x = %d' % self.x)
         self.x = self.x + 1
         # if we've reached the max count,
         # kill off the timer.

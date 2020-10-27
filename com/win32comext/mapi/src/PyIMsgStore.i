@@ -54,7 +54,7 @@ PyObject *PyIMsgStore::OpenEntry(PyObject *self, PyObject *args)
 	if (obEntry==Py_None) {
 		entryString = NULL;
 		entryStrLen = 0;
-	} else if PyString_Check(obEntry) {
+	} else if (PyString_Check(obEntry)) {
 		entryString = PyString_AsString(obEntry);
 		entryStrLen = PyString_Size(obEntry);
 	} else {
@@ -250,7 +250,7 @@ PyObject *PyIMsgStore::Advise(PyObject *self, PyObject *args)
 	LPENTRYID eid;
 	ULONG ulEventMask;
 	LPMAPIADVISESINK lpAdviseSink;
-	ULONG lpulConnection;
+	ULONG_PTR lpulConnection;
 
 	IMsgStore *_swig_self;
 	if ((_swig_self=GetI(self))==NULL) return NULL;
@@ -264,7 +264,7 @@ PyObject *PyIMsgStore::Advise(PyObject *self, PyObject *args)
 	{
 		eid = NULL;
 		cbEID = 0;
-	} else if PyString_Check(obEntryId) {
+	} else if (PyString_Check(obEntryId)) {
 		eid = (LPENTRYID)PyString_AsString(obEntryId);
 		cbEID = PyString_Size(obEntryId);
 	} else {
@@ -284,7 +284,7 @@ PyObject *PyIMsgStore::Advise(PyObject *self, PyObject *args)
 	if (FAILED(hRes))
 		return OleSetOleError(hRes);
 
-	return PyLong_FromUnsignedLong(lpulConnection);
+	return PyWinObject_FromULONG_PTR(lpulConnection);
 }
 %}
 

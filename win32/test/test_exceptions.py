@@ -17,7 +17,7 @@ class TestAPISimple(TestBase):
     def _getInvalidHandleException(self):
         try:
             win32api.CloseHandle(1)
-        except win32api.error, exc:
+        except win32api.error as exc:
             return exc
         self.fail("Didn't get invalid-handle exception.")
 
@@ -41,7 +41,7 @@ class TestAPISimple(TestBase):
         try:
             win32api.CloseHandle(1)
             self.fail("expected exception!")
-        except win32api.error, exc:
+        except win32api.error as exc:
             self.failUnlessEqual(exc.winerror, winerror.ERROR_INVALID_HANDLE)
             self.failUnlessEqual(exc.funcname, "CloseHandle")
             expected_msg = win32api.FormatMessage(winerror.ERROR_INVALID_HANDLE).rstrip()
@@ -88,7 +88,7 @@ class TestAPISimple(TestBase):
         try:
             raise pywintypes.error()
             self.fail("Expected exception")
-        except pywintypes.error, exc:
+        except pywintypes.error as exc:
             self.failUnlessEqual(exc.args, ())
             self.failUnlessEqual(exc.winerror, None)
             self.failUnlessEqual(exc.funcname, None)
@@ -98,7 +98,7 @@ class TestAPISimple(TestBase):
         try:
             raise pywintypes.error("foo")
             self.fail("Expected exception")
-        except pywintypes.error, exc:
+        except pywintypes.error as exc:
             assert exc.args[0] == "foo"
             # 'winerror' always args[0]
             self.failUnlessEqual(exc.winerror, "foo")
@@ -109,7 +109,7 @@ class TestAPISimple(TestBase):
         try:
             raise pywintypes.error("foo", "bar", "you", "never", "kn", 0)
             self.fail("Expected exception")
-        except pywintypes.error, exc:
+        except pywintypes.error as exc:
             self.failUnlessEqual(exc.args[0], "foo")
             self.failUnlessEqual(exc.args[-1], 0)
             self.failUnlessEqual(exc.winerror, "foo")
@@ -120,7 +120,7 @@ class TestCOMSimple(TestBase):
     def _getException(self):
         try:
             pythoncom.StgOpenStorage("foo", None, 0)
-        except pythoncom.com_error, exc:
+        except pythoncom.com_error as exc:
             return exc
         self.fail("Didn't get storage exception.")
 
@@ -180,7 +180,7 @@ class TestCOMSimple(TestBase):
         try:
             raise pywintypes.com_error()
             self.fail("Expected exception")
-        except pywintypes.com_error, exc:
+        except pywintypes.com_error as exc:
             self.failUnlessEqual(exc.args, ())
             self.failUnlessEqual(exc.hresult, None)
             self.failUnlessEqual(exc.strerror, None)
@@ -191,7 +191,7 @@ class TestCOMSimple(TestBase):
         try:
             raise pywintypes.com_error("foo")
             self.fail("Expected exception")
-        except pywintypes.com_error, exc:
+        except pywintypes.com_error as exc:
             self.failUnlessEqual(exc.args[0], "foo")
             self.failUnlessEqual(exc.hresult, "foo")
             self.failUnlessEqual(exc.strerror, None)
@@ -202,7 +202,7 @@ class TestCOMSimple(TestBase):
         try:
             raise pywintypes.com_error("foo", "bar", "you", "never", "kn", 0)
             self.fail("Expected exception")
-        except pywintypes.com_error, exc:
+        except pywintypes.com_error as exc:
             self.failUnlessEqual(exc.args[0], "foo")
             self.failUnlessEqual(exc.args[-1], 0)
             self.failUnlessEqual(exc.hresult, "foo")

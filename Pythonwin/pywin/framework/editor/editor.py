@@ -58,7 +58,7 @@ MODIFYING_VK_KEYS_ALT = [win32con.VK_BACK, win32con.VK_RETURN, win32con.VK_SPACE
 isRichText=1 # We are using the Rich Text control.  This has not been tested with value "0" for quite some time!
 
 #ParentEditorDocument=docview.Document
-from document import EditorDocumentBase
+from .document import EditorDocumentBase
 ParentEditorDocument=EditorDocumentBase
 class EditorDocument(ParentEditorDocument):
 	#
@@ -303,7 +303,7 @@ class EditorView(ParentEditorView):
 	def GotoLine(self, lineNo = None):
 		try:
 			if lineNo is None:
-				lineNo = int(raw_input("Enter Line Number"))
+				lineNo = int(input("Enter Line Number"))
 		except (ValueError, KeyboardInterrupt):
 			return 0
 		self.GetLineCount() # Seems to be needed when file first opened???
@@ -435,7 +435,7 @@ class EditorView(ParentEditorView):
 		self.GetDocument().CheckExternalDocumentUpdated()
 		self.bCheckingFile = 0
 
-from template import EditorTemplateBase
+from .template import EditorTemplateBase
 class EditorTemplate(EditorTemplateBase):
 	def __init__(self, res=win32ui.IDR_TEXTTYPE, makeDoc=None, makeFrame=None, makeView=None):
 		if makeDoc is None: makeDoc = EditorDocument

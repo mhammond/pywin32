@@ -7,38 +7,33 @@
 #include "PythonCOMServer.h"
 #include "propsys.h"
 
-class PyIPropertyDescriptionList : public PyIUnknown
-{
-public:
-	MAKE_PYCOM_CTOR(PyIPropertyDescriptionList);
-	static IPropertyDescriptionList *GetI(PyObject *self);
-	static PyComTypeObject type;
+class PyIPropertyDescriptionList : public PyIUnknown {
+   public:
+    MAKE_PYCOM_CTOR(PyIPropertyDescriptionList);
+    static IPropertyDescriptionList *GetI(PyObject *self);
+    static PyComTypeObject type;
 
-	// The Python methods
-	static PyObject *GetCount(PyObject *self, PyObject *args);
-	static PyObject *GetAt(PyObject *self, PyObject *args);
+    // The Python methods
+    static PyObject *GetCount(PyObject *self, PyObject *args);
+    static PyObject *GetAt(PyObject *self, PyObject *args);
 
-protected:
-	PyIPropertyDescriptionList(IUnknown *pdisp);
-	~PyIPropertyDescriptionList();
+   protected:
+    PyIPropertyDescriptionList(IUnknown *pdisp);
+    ~PyIPropertyDescriptionList();
 };
 
 // ---------------------------------------------------
 //
 // Gateway Declaration
 
-class PyGPropertyDescriptionList : public PyGatewayBase, public IPropertyDescriptionList
-{
-protected:
-	PyGPropertyDescriptionList(PyObject *instance) : PyGatewayBase(instance) { ; }
-	PYGATEWAY_MAKE_SUPPORT2(PyGPropertyDescriptionList, IPropertyDescriptionList, IID_IPropertyDescriptionList, PyGatewayBase)
+class PyGPropertyDescriptionList : public PyGatewayBase, public IPropertyDescriptionList {
+   protected:
+    PyGPropertyDescriptionList(PyObject *instance) : PyGatewayBase(instance) { ; }
+    PYGATEWAY_MAKE_SUPPORT2(PyGPropertyDescriptionList, IPropertyDescriptionList, IID_IPropertyDescriptionList,
+                            PyGatewayBase)
 
-	// IPropertyDescriptionList
-	STDMETHOD(GetCount)(UINT * pcElem);
+    // IPropertyDescriptionList
+    STDMETHOD(GetCount)(UINT *pcElem);
 
-	STDMETHOD(GetAt)(
-		UINT iElem,
-		REFIID riid,
-		void ** ppv);
-
+    STDMETHOD(GetAt)(UINT iElem, REFIID riid, void **ppv);
 };

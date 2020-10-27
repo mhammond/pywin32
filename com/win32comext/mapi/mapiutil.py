@@ -5,12 +5,12 @@ ListType=list
 IntType=int
 from pywintypes import TimeType
 import pythoncom
-import mapi, mapitags
+from . import mapi, mapitags
 
 prTable = {}
 def GetPropTagName(pt):
 	if not prTable:
-		for name, value in mapitags.__dict__.iteritems():
+		for name, value in mapitags.__dict__.items():
 			if name[:3] == 'PR_':
 				# Store both the full ID (including type) and just the ID.
 				# This is so PR_FOO_A and PR_FOO_W are still differentiated,
@@ -48,7 +48,7 @@ def GetPropTagName(pt):
 	except KeyError:
 		# god-damn bullshit hex() warnings: I don't see a way to get the
 		# old behaviour without a warning!!
-		ret = hex(long(pt))
+		ret = hex(int(pt))
 		# -0x8000000L -> 0x80000000
 		if ret[0]=='-': ret = ret[1:]
 		if ret[-1]=='L': ret = ret[:-1]
@@ -57,7 +57,7 @@ def GetPropTagName(pt):
 mapiErrorTable = {}
 def GetScodeString(hr):
 	if not mapiErrorTable:
-		for name, value in mapi.__dict__.iteritems():
+		for name, value in mapi.__dict__.items():
 			if name[:7] in ['MAPI_E_', 'MAPI_W_']:
 				mapiErrorTable[value] = name
 	return mapiErrorTable.get(hr, pythoncom.GetScodeString(hr))
@@ -67,7 +67,7 @@ ptTable = {}
 def GetMapiTypeName(propType, rawType=True):
 	"""Given a mapi type flag, return a string description of the type"""
 	if not ptTable:
-		for name, value in mapitags.__dict__.iteritems():
+		for name, value in mapitags.__dict__.items():
 			if name[:3] == 'PT_':
 				# PT_TSTRING is a conditional assignment
 				# for either PT_UNICODE or PT_STRING8 and
@@ -82,12 +82,12 @@ def GetMapiTypeName(propType, rawType=True):
 
 def GetProperties(obj, propList):
 	"""Given a MAPI object and a list of properties, return a list of property values.
-	
+
 	Allows a single property to be passed, and the result is a single object.
-	
+
 	Each request property can be an integer or a string.  Of a string, it is 
 	automatically converted to an integer via the GetIdsFromNames function.
-	
+
 	If the property fetch fails, the result is None.
 	"""
 	bRetList = 1
@@ -102,7 +102,7 @@ def GetProperties(obj, propList):
 			propIds = obj.GetIDsFromNames(props, 0)
 			prop = mapitags.PROP_TAG( mapitags.PT_UNSPECIFIED, mapitags.PROP_ID(propIds[0]))
 		realPropList.append(prop)
-		
+
 	hr, data = obj.GetProps(realPropList,0)
 	if hr != 0:
 		data = None
@@ -119,7 +119,7 @@ def GetAllProperties(obj, make_tag_names = True):
 	for tag, val in data:
 		if make_tag_names:
 			hr, tags, array = obj.GetNamesFromIDs( (tag,) )
-			if type(array[0][1])==type(u''):
+			if type(array[0][1])==type(''):
 				name = array[0][1]
 			else:
 				name = GetPropTagName(tag)
@@ -131,10 +131,12 @@ def GetAllProperties(obj, make_tag_names = True):
 _MapiTypeMap = {
     type(0.0): mapitags.PT_DOUBLE,
     type(0): mapitags.PT_I4,
-    type(''.encode('ascii')): mapitags.PT_STRING8, # str in py2x, bytes in 3x
-    type(u''): mapitags.PT_UNICODE, # unicode in py2x, str in 3x
+    type(''.encode('ascii')): mapitags.PT_STRING8, # bytes
+    type(''): mapitags.PT_UNICODE, # str
     type(None): mapitags.PT_UNSPECIFIED,
     # In Python 2.2.2, bool isn't a distinct type (type(1==1) is type(0)).
+    # (markh thinks the above is trying to say that in 2020, we probably *do*
+    # want bool in this map? :)
 }
 
 def SetPropertyValue(obj, prop, val):
@@ -156,10 +158,10 @@ def SetPropertyValue(obj, prop, val):
 
 def SetProperties( msg, propDict):
 	""" Given a Python dictionary, set the objects properties.
-	
+
 	If the dictionary key is a string, then a property ID is queried
 	otherwise the ID is assumed native.
-	
+
 	Coded for maximum efficiency wrt server calls - ie, maximum of
 	2 calls made to the object, regardless of the dictionary contents
 	(only 1 if dictionary full of int keys)
@@ -167,17 +169,17 @@ def SetProperties( msg, propDict):
 
 	newProps = []
 	# First pass over the properties we should get IDs for.
-	for key, val in propDict.iteritems():
-		if type(key) in [str, unicode]:
+	for key, val in propDict.items():
+		if type(key) == str:
 			newProps.append((mapi.PS_PUBLIC_STRINGS, key))
 	# Query for the new IDs
 	if newProps: newIds = msg.GetIDsFromNames(newProps, mapi.MAPI_CREATE)
 	newIdNo = 0
 	newProps = []
-	for key, val in propDict.iteritems():
-		if type(key) in [str, unicode]:
+	for key, val in propDict.items():
+		if type(key) == str:
 			type_val=type(val)
-			if type_val in [str, unicode]:
+			if type_val == str:
 				tagType = mapitags.PT_UNICODE
 			elif type_val==IntType:
 				tagType = mapitags.PT_I4

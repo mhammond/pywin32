@@ -1,5 +1,5 @@
 # win32traceutil like utility for Pythonwin
-import thread
+import _thread
 import win32trace, win32event, win32api
 from pywin.framework import winout
 
@@ -24,13 +24,13 @@ def CollectorThread(stopEvent, file):
 				break
 	finally:
 		win32trace.TermRead()
-		print "Thread dieing"
+		print("Thread dieing")
 
 class WindowOutput(winout.WindowOutput):
 	def __init__(self, *args):
 		winout.WindowOutput.__init__(*(self,)+args)
 		self.hStopThread = win32event.CreateEvent(None, 0, 0, None)
-		thread.start_new(CollectorThread, (self.hStopThread, self))
+		_thread.start_new(CollectorThread, (self.hStopThread, self))
 	def _StopThread(self):
 		win32event.SetEvent(self.hStopThread)
 		self.hStopThread = None

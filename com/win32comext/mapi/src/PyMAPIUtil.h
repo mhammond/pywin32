@@ -5,14 +5,13 @@
 // We should not be using this!
 #define OleSetOleError PyCom_BuildPyException
 
-PyObject *PyMAPIObject_FromTypedUnknown( ULONG typ, IUnknown *pUnk, BOOL bAddRef);
+PyObject *PyMAPIObject_FromTypedUnknown(ULONG typ, IUnknown *pUnk, BOOL bAddRef);
 
 PyObject *PyObject_FromMAPIERROR(MAPIERROR *e, BOOL bIsUnicode, BOOL free_buffer);
 
 /* Create (and free) a SBinaryArray from a PyObject */
 BOOL PyMAPIObject_AsSBinaryArray(PyObject *ob, SBinaryArray *pv);
 void PyMAPIObject_FreeSBinaryArray(SBinaryArray *pv);
-
 
 /* Create (and free) a SPropValue from a PyObject */
 BOOL PyMAPIObject_AsSPropValue(PyObject *ob, SPropValue *pv, void *pAllocMoreLinkBlock);
@@ -21,7 +20,6 @@ PyObject *PyMAPIObject_FromSPropValue(SPropValue *pv);
 /* Create a PyObject to/from a SPropValue Array*/
 BOOL PyMAPIObject_AsSPropValueArray(PyObject *ob, SPropValue **ppv, ULONG *pcValues);
 PyObject *PyMAPIObject_FromSPropValueArray(SPropValue *pv, ULONG nvalues);
-
 
 /* Create a PyObject from a SRow/SRowSet */
 PyObject *PyMAPIObject_FromSRow(SRow *pr);
@@ -41,11 +39,9 @@ void PyMAPIObject_FreeSRowSet(SRowSet *pResult);
 BOOL PyMAPIObject_AsSSortOrderSet(PyObject *obsos, SSortOrderSet **ppsos, BOOL bNoneOK = TRUE);
 void PyMAPIObject_FreeSSortOrderSet(SSortOrderSet *ppsos);
 
-
 /* Create (and free) a SRestriction from a PyObject */
 BOOL PyMAPIObject_AsSRestriction(PyObject *ob, SRestriction **pRest, BOOL bNoneOK = TRUE);
-void PyMAPIObject_FreeSRestriction(SRestriction *pr) ;
-
+void PyMAPIObject_FreeSRestriction(SRestriction *pr);
 
 /* Create (and free) a SPropTagArray from a PyObject */
 BOOL PyMAPIObject_AsSPropTagArray(PyObject *obsos, SPropTagArray **ppta);
@@ -65,4 +61,5 @@ PyObject *PyMAPIObject_FromMAPINAMEIDArray(MAPINAMEID **ppNameId, ULONG numIds);
 PyObject *PyMAPIObject_FromSPropProblemArray(SPropProblemArray *ppa);
 
 PyObject *PyWinObject_FromMAPIStr(LPTSTR str, BOOL isUnicode);
-BOOL PyWinObject_AsMAPIStr(PyObject *stringObject, LPTSTR * pResult, BOOL asUnicode, BOOL bNoneOK = FALSE, DWORD *pResultLen = NULL);
+BOOL PyWinObject_AsMAPIStr(PyObject *stringObject, LPTSTR *pResult, BOOL asUnicode, BOOL bNoneOK = FALSE,
+                           DWORD *pResultLen = NULL);

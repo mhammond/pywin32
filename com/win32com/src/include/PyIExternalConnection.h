@@ -4,39 +4,31 @@
 //
 // Interface Declaration
 
-class PyIExternalConnection : public PyIUnknown
-{
-public:
-	MAKE_PYCOM_CTOR(PyIExternalConnection);
-	static IExternalConnection *GetI(PyObject *self);
-	static PyComTypeObject type;
+class PyIExternalConnection : public PyIUnknown {
+   public:
+    MAKE_PYCOM_CTOR(PyIExternalConnection);
+    static IExternalConnection *GetI(PyObject *self);
+    static PyComTypeObject type;
 
-	// The Python methods
-	static PyObject *AddConnection(PyObject *self, PyObject *args);
-	static PyObject *ReleaseConnection(PyObject *self, PyObject *args);
+    // The Python methods
+    static PyObject *AddConnection(PyObject *self, PyObject *args);
+    static PyObject *ReleaseConnection(PyObject *self, PyObject *args);
 
-protected:
-	PyIExternalConnection(IUnknown *pdisp);
-	~PyIExternalConnection();
+   protected:
+    PyIExternalConnection(IUnknown *pdisp);
+    ~PyIExternalConnection();
 };
 // ---------------------------------------------------
 //
 // Gateway Declaration
 
-class PyGExternalConnection : public PyGatewayBase, public IExternalConnection
-{
-protected:
-	PyGExternalConnection(PyObject *instance) : PyGatewayBase(instance) { ; }
-	PYGATEWAY_MAKE_SUPPORT(PyGExternalConnection, IExternalConnection, IID_IExternalConnection)
+class PyGExternalConnection : public PyGatewayBase, public IExternalConnection {
+   protected:
+    PyGExternalConnection(PyObject *instance) : PyGatewayBase(instance) { ; }
+    PYGATEWAY_MAKE_SUPPORT(PyGExternalConnection, IExternalConnection, IID_IExternalConnection)
 
-	// IExternalConnection
-	virtual DWORD STDMETHODCALLTYPE AddConnection(
-		DWORD extconn,
-		DWORD reserved);
+    // IExternalConnection
+    virtual DWORD STDMETHODCALLTYPE AddConnection(DWORD extconn, DWORD reserved);
 
-	virtual DWORD STDMETHODCALLTYPE ReleaseConnection(
-		DWORD extconn,
-		DWORD reserved,
-		BOOL fLastReleaseCloses);
-
+    virtual DWORD STDMETHODCALLTYPE ReleaseConnection(DWORD extconn, DWORD reserved, BOOL fLastReleaseCloses);
 };

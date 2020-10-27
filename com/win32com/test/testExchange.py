@@ -24,7 +24,7 @@ def GetDefaultProfileName():
 # Recursive dump of folders.
 #
 def DumpFolder(folder, indent = 0):
-    print " " * indent, folder.Name
+    print(" " * indent, folder.Name)
     folders = folder.Folders
     folder = folders.GetFirst()
     while folder:
@@ -41,18 +41,18 @@ def DumpFolders(session):
         DumpFolder(folder)
         return
 
-    print infostores
-    print "There are %d infostores" % infostores.Count
+    print(infostores)
+    print("There are %d infostores" % infostores.Count)
     for i in range(infostores.Count):
         infostore = infostores[i+1]
-        print "Infostore = ", infostore.Name
+        print("Infostore = ", infostore.Name)
         try:
             folder = infostore.RootFolder
-        except pythoncom.com_error, details:
+        except pythoncom.com_error as details:
             hr, msg, exc, arg = details
             # -2147221219 == MAPI_E_FAILONEPROVIDER - a single provider temporarily not available.
             if exc and exc[-1]==-2147221219:
-                print "This info store is currently not available"
+                print("This info store is currently not available")
                 continue
         DumpFolder(folder)
 
@@ -60,7 +60,7 @@ def DumpFolders(session):
 #
 PropTagsById={}
 if ammodule:
-    for name, val in ammodule.constants.__dict__.iteritems():
+    for name, val in ammodule.constants.__dict__.items():
         PropTagsById[val] = name
 
 
@@ -73,14 +73,14 @@ def TestAddress(session):
 def TestUser(session):
     ae = session.CurrentUser
     fields = getattr(ae, "Fields", [])
-    print "User has %d fields" % len(fields)
+    print("User has %d fields" % len(fields))
     for f in range(len(fields)):
         field = fields[f+1]
         try:
             id = PropTagsById[field.ID]
         except KeyError:
             id = field.ID
-        print "%s/%s=%s" % (field.Name, id, field.Value)
+        print("%s/%s=%s" % (field.Name, id, field.Value))
 
 def test():
     import win32com.client
@@ -89,8 +89,8 @@ def test():
         session = gencache.EnsureDispatch("MAPI.Session")
         try:
             session.Logon(GetDefaultProfileName())
-        except pythoncom.com_error, details:
-            print "Could not log on to MAPI:", details
+        except pythoncom.com_error as details:
+            print("Could not log on to MAPI:", details)
             return
     except pythoncom.error:
         # no mapi.session - let's try outlook
@@ -107,6 +107,6 @@ def test():
         os.chdir(oldcwd)
 
 if __name__=='__main__':
-    from util import CheckClean
+    from .util import CheckClean
     test()
     CheckClean()

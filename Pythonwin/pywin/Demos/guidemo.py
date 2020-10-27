@@ -30,7 +30,7 @@ def demo():
 		try:
 			instPath = regutil.GetRegistryDefaultValue(regutil.BuildDefaultPythonKey() + "\\InstallPath")
 		except win32api.error:
-			print "The InstallPath can not be located, and the Demos directory is not on the path"
+			print("The InstallPath can not be located, and the Demos directory is not on the path")
 			instPath="."
 			
 		demosDir = win32ui.FullPath(instPath + "\\Demos")
@@ -45,9 +45,9 @@ def demo():
 	if "/go" in sys.argv:
 		for name, cmd in demos:		
 			try:
-				exec cmd
+				exec(cmd)
 			except:
-				print "Demo of %s failed - %s:%s" % (cmd,sys.exc_info()[0], sys.exc_info()[1])
+				print("Demo of %s failed - %s:%s" % (cmd,sys.exc_info()[0], sys.exc_info()[1]))
 		return
 	# Otherwise allow the user to select the demo to run
 
@@ -58,9 +58,9 @@ def demo():
 			break
 		title, cmd = demos[rc]
 		try:
-			exec cmd
+			exec(cmd)
 		except:
-			print "Demo of %s failed - %s:%s" % (title,sys.exc_info()[0], sys.exc_info()[1])
+			print("Demo of %s failed - %s:%s" % (title,sys.exc_info()[0], sys.exc_info()[1]))
 
 if __name__==__main__.__name__:
 	import demoutils

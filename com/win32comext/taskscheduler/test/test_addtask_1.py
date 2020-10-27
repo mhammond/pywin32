@@ -7,9 +7,9 @@ ts=pythoncom.CoCreateInstance(taskscheduler.CLSID_CTaskScheduler,None,
 
 tasks=ts.Enum()
 for task in tasks:
-    print task
+    print(task)
 if test_task_name in tasks:
-    print 'Deleting existing task '+test_task_name
+    print('Deleting existing task '+test_task_name)
     ts.Delete(test_task_name)
 
 new_task=pythoncom.CoCreateInstance(taskscheduler.CLSID_CTask,None,
@@ -47,7 +47,7 @@ tt.EndMonth=int(time.strftime('%m',end_time))
 tt.EndDay=int(time.strftime('%d',end_time))
 
 tr.SetTrigger(tt)
-print  new_task.GetTriggerString(tr_ind)
+print(new_task.GetTriggerString(tr_ind))
 
 pf=new_task.QueryInterface(pythoncom.IID_IPersistFile)
 pf.Save(None,1)

@@ -4,68 +4,46 @@
 //
 // Interface Declaration
 
-class PyIShellItemArray : public PyIUnknown
-{
-public:
-	MAKE_PYCOM_CTOR(PyIShellItemArray);
-	static IShellItemArray *GetI(PyObject *self);
-	static PyComEnumProviderTypeObject type;
+class PyIShellItemArray : public PyIUnknown {
+   public:
+    MAKE_PYCOM_CTOR(PyIShellItemArray);
+    static IShellItemArray *GetI(PyObject *self);
+    static PyComEnumProviderTypeObject type;
 
-	// The Python methods
-	static PyObject *BindToHandler(PyObject *self, PyObject *args);
-	static PyObject *GetPropertyStore(PyObject *self, PyObject *args);
-	static PyObject *GetPropertyDescriptionList(PyObject *self, PyObject *args);
-	static PyObject *GetAttributes(PyObject *self, PyObject *args);
-	static PyObject *GetCount(PyObject *self, PyObject *args);
-	static PyObject *GetItemAt(PyObject *self, PyObject *args);
-	static PyObject *EnumItems(PyObject *self, PyObject *args);
+    // The Python methods
+    static PyObject *BindToHandler(PyObject *self, PyObject *args);
+    static PyObject *GetPropertyStore(PyObject *self, PyObject *args);
+    static PyObject *GetPropertyDescriptionList(PyObject *self, PyObject *args);
+    static PyObject *GetAttributes(PyObject *self, PyObject *args);
+    static PyObject *GetCount(PyObject *self, PyObject *args);
+    static PyObject *GetItemAt(PyObject *self, PyObject *args);
+    static PyObject *EnumItems(PyObject *self, PyObject *args);
 
-protected:
-	PyIShellItemArray(IUnknown *pdisp);
-	~PyIShellItemArray();
+   protected:
+    PyIShellItemArray(IUnknown *pdisp);
+    ~PyIShellItemArray();
 };
 // ---------------------------------------------------
 //
 // Gateway Declaration
 
-class PyGShellItemArray : public PyGatewayBase, public IShellItemArray
-{
-protected:
-	PyGShellItemArray(PyObject *instance) : PyGatewayBase(instance) { ; }
-	PYGATEWAY_MAKE_SUPPORT2(PyGShellItemArray, IShellItemArray, IID_IShellItemArray, PyGatewayBase)
+class PyGShellItemArray : public PyGatewayBase, public IShellItemArray {
+   protected:
+    PyGShellItemArray(PyObject *instance) : PyGatewayBase(instance) { ; }
+    PYGATEWAY_MAKE_SUPPORT2(PyGShellItemArray, IShellItemArray, IID_IShellItemArray, PyGatewayBase)
 
+    // IShellItemArray
+    STDMETHOD(BindToHandler)(IBindCtx *pbc, REFGUID rbhid, REFIID riid, void **ppvOut);
 
+    STDMETHOD(GetPropertyStore)(GETPROPERTYSTOREFLAGS flags, REFIID riid, void **ppv);
 
-	// IShellItemArray
-	STDMETHOD(BindToHandler)(
-		IBindCtx * pbc,
-		REFGUID rbhid,
-		REFIID riid,
-		void ** ppvOut);
+    STDMETHOD(GetPropertyDescriptionList)(REFPROPERTYKEY keyType, REFIID riid, void **ppv);
 
-	STDMETHOD(GetPropertyStore)(
-		GETPROPERTYSTOREFLAGS flags,
-		REFIID riid,
-		void ** ppv);
+    STDMETHOD(GetAttributes)(SIATTRIBFLAGS dwAttribFlags, SFGAOF sfgaoMask, SFGAOF *psfgaoAttribs);
 
-	STDMETHOD(GetPropertyDescriptionList)(
-		REFPROPERTYKEY keyType,
-		REFIID riid,
-		void ** ppv);
+    STDMETHOD(GetCount)(DWORD *pdwNumItems);
 
-	STDMETHOD(GetAttributes)(
-		SIATTRIBFLAGS dwAttribFlags,
-		SFGAOF sfgaoMask,
-		SFGAOF * psfgaoAttribs);
+    STDMETHOD(GetItemAt)(DWORD dwIndex, IShellItem **ppsi);
 
-	STDMETHOD(GetCount)(
-		DWORD * pdwNumItems);
-
-	STDMETHOD(GetItemAt)(
-		DWORD dwIndex,
-		IShellItem ** ppsi);
-
-	STDMETHOD(EnumItems)(
-		IEnumShellItems ** ppenumShellItems);
-
+    STDMETHOD(EnumItems)(IEnumShellItems **ppenumShellItems);
 };

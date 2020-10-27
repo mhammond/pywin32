@@ -37,32 +37,32 @@ class LockBytes:
         self.atime = now
 
     def ReadAt(self, offset, cb):
-        print "ReadAt"
+        print("ReadAt")
         result = self.data[offset:offset + cb]
         return result
 
     def WriteAt(self, offset, data):
-        print "WriteAt " +str(offset)
-        print "len " + str(len(data))
-        print "data:"
+        print("WriteAt " +str(offset))
+        print("len " + str(len(data)))
+        print("data:")
         #print data
         if len(self.data) >= offset:
             newdata = self.data[0:offset] + data
-        print len(newdata)
+        print(len(newdata))
         if len(self.data) >= offset + len(data):
             newdata = newdata + self.data[offset +  len(data):]
-        print len(newdata)
+        print(len(newdata))
         self.data = newdata
         return len(data)
 
     def Flush(self, whatsthis=0):
-        print "Flush" + str(whatsthis)
+        print("Flush" + str(whatsthis))
         fname = os.path.join(win32api.GetTempPath(), "persist.doc")
         open(fname, "wb").write(self.data)
         return S_OK
 
     def SetSize(self, size):
-        print "Set Size" + str(size)
+        print("Set Size" + str(size))
         if size > len(self.data):
             self.data = self.data +  str2bytes("\000" * (size - len(self.data)))
         else:
@@ -70,15 +70,15 @@ class LockBytes:
         return S_OK
 
     def LockRegion(self, offset, size, locktype):
-        print "LockRegion"
+        print("LockRegion")
         pass
 
     def UnlockRegion(self, offset, size, locktype):
-        print "UnlockRegion"
+        print("UnlockRegion")
         pass
 
     def Stat(self, statflag):
-        print "returning Stat " + str(statflag)
+        print("returning Stat " + str(statflag))
         return (
           "PyMemBytes",
           storagecon.STGTY_LOCKBYTES,
@@ -109,26 +109,26 @@ class OleClientSite:
         self.IStorage = IStorage
 
     def SaveObject(self):
-        print "SaveObject"
+        print("SaveObject")
         if self.IPersistStorage != None and self.IStorage != None:
             self.IPersistStorage.Save(self.IStorage,1)
             self.IStorage.Commit(0)
         return S_OK
 
     def GetMoniker(self, dwAssign, dwWhichMoniker):
-        print "GetMoniker " + str(dwAssign) + " " + str(dwWhichMoniker)
+        print("GetMoniker " + str(dwAssign) + " " + str(dwWhichMoniker))
 
     def GetContainer(self):
-        print "GetContainer"
+        print("GetContainer")
 
     def ShowObject(self):
-        print "ShowObject"
+        print("ShowObject")
 
     def OnShowWindow(self, fShow):
-        print "ShowObject" + str(fShow)
+        print("ShowObject" + str(fShow))
 
     def RequestNewObjectLayout(self):
-        print "RequestNewObjectLayout"
+        print("RequestNewObjectLayout")
 
 
 def test():

@@ -1,10 +1,9 @@
 """ db_print.py -- a simple demo for ADO database reads."""
-from __future__ import with_statement #needed for Python 2.5
 
 import sys
 import adodbapi.ado_consts as adc
 
-cmd_args = ('proxy_host', 'proxy_port', 'filename', 'table_name')
+cmd_args = ('filename', 'table_name')
 if 'help' in sys.argv:
     print('possible settings keywords are:',cmd_args)
     sys.exit()
@@ -15,7 +14,7 @@ for arg in sys.argv:
     if len(s) > 1:
         if s[0] in cmd_args:
             kw_args[s[0]] = s[1]
-            
+
 kw_args.setdefault('filename', "test.mdb") # assumes server is running from examples folder
 kw_args.setdefault('table_name', 'Products') # the name of the demo table
 
@@ -25,10 +24,7 @@ provider_switch = ['provider', 'Microsoft.ACE.OLEDB.12.0', "Microsoft.Jet.OLEDB.
 # ------------------------ START HERE -------------------------------------
 #create the connection
 constr = "Provider=%(provider)s;Data Source=%(filename)s"
-if 'proxy_host' in kw_args:
-    import adodbapi.remote as db
-else:
-    import adodbapi as db
+import adodbapi as db
 con = db.connect(constr, kw_args, macro_is64bit=provider_switch)
 
 if kw_args['table_name'] == '?':

@@ -4,20 +4,19 @@
 //
 // Interface Declaration
 
-class PyIPropertyEnumTypeList : public PyIUnknown
-{
-public:
-	MAKE_PYCOM_CTOR(PyIPropertyEnumTypeList);
-	static IPropertyEnumTypeList *GetI(PyObject *self);
-	static PyComTypeObject type;
+class PyIPropertyEnumTypeList : public PyIUnknown {
+   public:
+    MAKE_PYCOM_CTOR(PyIPropertyEnumTypeList);
+    static IPropertyEnumTypeList *GetI(PyObject *self);
+    static PyComTypeObject type;
 
-	// The Python methods
-	static PyObject *GetCount(PyObject *self, PyObject *args);
-	static PyObject *GetAt(PyObject *self, PyObject *args);
-	static PyObject *GetConditionAt(PyObject *self, PyObject *args);
-	static PyObject *FindMatchingIndex(PyObject *self, PyObject *args);
+    // The Python methods
+    static PyObject *GetCount(PyObject *self, PyObject *args);
+    static PyObject *GetAt(PyObject *self, PyObject *args);
+    static PyObject *GetConditionAt(PyObject *self, PyObject *args);
+    static PyObject *FindMatchingIndex(PyObject *self, PyObject *args);
 
-protected:
-	PyIPropertyEnumTypeList(IUnknown *pdisp);
-	~PyIPropertyEnumTypeList();
+   protected:
+    PyIPropertyEnumTypeList(IUnknown *pdisp);
+    ~PyIPropertyEnumTypeList();
 };

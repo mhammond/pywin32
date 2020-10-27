@@ -15,20 +15,20 @@
 // MFC support for mbcs is going away, but no need for us to constantly be told...
 #define NO_WARN_MBCS_MFC_DEPRECATION
 
-#include <afxwin.h>			// MFC core and standard components
+#include <afxwin.h>  // MFC core and standard components
 
 #if (_MFC_VER < 0x0600)
 // See pythonpsheet.cpp for more details!
-#define _WIN32_IE 0x0300 // Screw up with header sizes and MFC!!
+#define _WIN32_IE 0x0300  // Screw up with header sizes and MFC!!
 #endif
 
-#include <afxext.h> 		// MFC extensions
-#include <afxcmn.h>         // common controls.
-#include <afxrich.h>        // rich edit support.
-#include <afxcview.h>		// control view support.
-#include <afxpriv.h> 		// private MFC stuff!
-#include <afxtempl.h> 		// for collection templates.
-#include <afxmt.h>			// multi-threading
+#include <afxext.h>    // MFC extensions
+#include <afxcmn.h>    // common controls.
+#include <afxrich.h>   // rich edit support.
+#include <afxcview.h>  // control view support.
+#include <afxpriv.h>   // private MFC stuff!
+#include <afxtempl.h>  // for collection templates.
+#include <afxmt.h>     // multi-threading
 #include "limits.h"
 
 // allow memory leaks to give me the line number.
@@ -44,7 +44,7 @@ programmers who forget to use the new names. */
 #include "modsupport.h"
 #include "traceback.h"
 #include "pythonrun.h"
-#include "import.h"	// Python: for dynamicattach routines.
+#include "import.h"  // Python: for dynamicattach routines.
 #include "graminit.h"
 
 #include "pywintypes.h"
@@ -54,8 +54,8 @@ programmers who forget to use the new names. */
 
 #include "win32uiExt.h"
 
-#include "pythonframe.h" 
-#include "pythonview.h" // App: Edit View.
+#include "pythonframe.h"
+#include "pythonview.h"  // App: Edit View.
 #include "pythondoc.h"
 
 #include "win32assoc.h"

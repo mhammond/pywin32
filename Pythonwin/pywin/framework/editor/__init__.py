@@ -81,7 +81,7 @@ def GetEditorFontOption(option, default = None):
 	try:
 		return eval(fmt)
 	except:
-		print "WARNING: Invalid font setting in registry - setting ignored"
+		print("WARNING: Invalid font setting in registry - setting ignored")
 		return default
 		
 def SetEditorFontOption(option, newValue):
