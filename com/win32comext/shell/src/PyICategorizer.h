@@ -4,31 +4,19 @@
 //
 // Gateway Declaration
 
-class PyGCategorizer : public PyGatewayBase, public ICategorizer
-{
-protected:
-	PyGCategorizer(PyObject *instance) : PyGatewayBase(instance) { ; }
-	PYGATEWAY_MAKE_SUPPORT2(PyGCategorizer, ICategorizer, IID_ICategorizer, PyGatewayBase)
+class PyGCategorizer : public PyGatewayBase, public ICategorizer {
+   protected:
+    PyGCategorizer(PyObject *instance) : PyGatewayBase(instance) { ; }
+    PYGATEWAY_MAKE_SUPPORT2(PyGCategorizer, ICategorizer, IID_ICategorizer, PyGatewayBase)
 
+    // ICategorizer
+    STDMETHOD(GetDescription)(__RPC__out_ecount_full_string(cch) LPWSTR pszDesc, UINT cch);
 
+    STDMETHOD(GetCategory)
+    (UINT cidl, __RPC__in_ecount_full(cidl) PCUITEMID_CHILD_ARRAY apidl,
+     __RPC__out_ecount_full(cidl) DWORD *rgCategoryIds);
 
-	// ICategorizer
-	STDMETHOD(GetDescription)(
-		__RPC__out_ecount_full_string(cch) LPWSTR pszDesc,
-		UINT cch);
+    STDMETHOD(GetCategoryInfo)(DWORD dwCategoryId, __RPC__out CATEGORY_INFO *pci);
 
-	STDMETHOD(GetCategory)(
-		UINT cidl,
-		__RPC__in_ecount_full(cidl) PCUITEMID_CHILD_ARRAY apidl,
-		__RPC__out_ecount_full(cidl) DWORD * rgCategoryIds);
-
-	STDMETHOD(GetCategoryInfo)(
-		DWORD dwCategoryId,
-		__RPC__out CATEGORY_INFO * pci);
-
-	STDMETHOD(CompareCategory)(
-		CATSORT_FLAGS csfFlags,
-		DWORD dwCategoryId1,
-		DWORD dwCategoryId2);
-
+    STDMETHOD(CompareCategory)(CATSORT_FLAGS csfFlags, DWORD dwCategoryId1, DWORD dwCategoryId2);
 };

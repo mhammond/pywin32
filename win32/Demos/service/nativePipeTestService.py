@@ -34,14 +34,14 @@ def main():
         # for the sake of debugging etc, we use win32traceutil to see
         # any unhandled exceptions and print statements.
         import win32traceutil
-        print "service is starting..."
-        print "(execute this script with '--help' if that isn't what you want)"
+        print("service is starting...")
+        print("(execute this script with '--help' if that isn't what you want)")
         
         servicemanager.Initialize()
         servicemanager.PrepareToHostSingle(NativeTestPipeService)
         # Now ask the service manager to fire things up for us...
         servicemanager.StartServiceCtrlDispatcher()
-        print "service done!"
+        print("service done!")
     else:
         win32serviceutil.HandleCommandLine(NativeTestPipeService)
 
@@ -51,6 +51,6 @@ if __name__=='__main__':
     except (SystemExit, KeyboardInterrupt):
         raise
     except:
-        print "Something went bad!"
+        print("Something went bad!")
         import traceback
         traceback.print_exc()

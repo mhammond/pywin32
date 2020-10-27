@@ -87,7 +87,7 @@ def UnregisterPythonExe(exeAlias):
 	"""
 	try:
 		win32api.RegDeleteKey(GetRootKey(), GetAppPathsKey() + "\\" + exeAlias)
-	except win32api.error, exc:
+	except win32api.error as exc:
 		import winerror
 		if exc.winerror!=winerror.ERROR_FILE_NOT_FOUND:
 			raise
@@ -106,7 +106,7 @@ def UnregisterNamedPath(name):
 	keyStr = BuildDefaultPythonKey() + "\\PythonPath\\" + name
 	try:
 		win32api.RegDeleteKey(GetRootKey(), keyStr)
-	except win32api.error, exc:
+	except win32api.error as exc:
 		import winerror
 		if exc.winerror!=winerror.ERROR_FILE_NOT_FOUND:
 			raise
@@ -119,7 +119,7 @@ def GetRegisteredNamedPath(name):
 	if name: keyStr = keyStr + "\\" + name
 	try:
 		return win32api.RegQueryValue(GetRootKey(), keyStr)
-	except win32api.error, exc:
+	except win32api.error as exc:
 		import winerror
 		if exc.winerror!=winerror.ERROR_FILE_NOT_FOUND:
 			raise
@@ -138,7 +138,7 @@ def RegisterModule(modName, modPath):
 		import os
 		os.stat(modPath)
 	except os.error:
-		print "Warning: Registering non-existant module %s" % modPath
+		print("Warning: Registering non-existant module %s" % modPath)
 	win32api.RegSetValue(GetRootKey(), 
 	                     BuildDefaultPythonKey() + "\\Modules\\%s" % modName,
 		win32con.REG_SZ, modPath)
@@ -151,7 +151,7 @@ def UnregisterModule(modName):
 	try:
 		win32api.RegDeleteKey(GetRootKey(), 
 		                     BuildDefaultPythonKey() + "\\Modules\\%s" % modName)
-	except win32api.error, exc:
+	except win32api.error as exc:
 		import winerror
 		if exc.winerror!=winerror.ERROR_FILE_NOT_FOUND:
 			raise
@@ -199,7 +199,7 @@ def UnregisterHelpFile(helpFile, helpDesc = None):
 	try:
 		try:
 			win32api.RegDeleteValue(key, helpFile)
-		except win32api.error, exc:
+		except win32api.error as exc:
 			import winerror
 			if exc.winerror!=winerror.ERROR_FILE_NOT_FOUND:
 				raise
@@ -211,7 +211,7 @@ def UnregisterHelpFile(helpFile, helpDesc = None):
 	try:
 		win32api.RegDeleteKey(GetRootKey(), 
 		                     BuildDefaultPythonKey() + "\\Help\\%s" % helpDesc)	
-	except win32api.error, exc:
+	except win32api.error as exc:
 		import winerror
 		if exc.winerror!=winerror.ERROR_FILE_NOT_FOUND:
 			raise
@@ -229,7 +229,7 @@ def RegisterCoreDLL(coredllName = None):
 		try:
 			os.stat(coredllName)
 		except os.error:
-			print "Warning: Registering non-existant core DLL %s" % coredllName
+			print("Warning: Registering non-existant core DLL %s" % coredllName)
 
 	hKey = win32api.RegCreateKey(GetRootKey() , BuildDefaultPythonKey())
 	try:

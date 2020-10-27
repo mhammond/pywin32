@@ -5,7 +5,7 @@
     </important>
     <links>
         <item name="Python Web Site" href="http://www.python.org"/>
-        <item name="Python for Win32 Extensions Site" href="http://starship.python.net/crew/mhammond"/>
+        <item name="Python for Win32 Extensions Site" href="https://github.com/mhammond/pywin32"/>
         <item name="Python for Win32 mailing list" href="http://mail.python.org/mailman/listinfo/python-win32"/>
         <item name="Tim Golden's Python pages" href="http://timgolden.me.uk/python/"/>
         <item name="Paul Boddie's Python COM tutorial" href="http://thor.prohosting.com/~pboddie/Python/COM.html"/>

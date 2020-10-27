@@ -5,7 +5,7 @@ import win32con
 import winerror
 import string
 import array
-import scintillacon
+from . import scintillacon
 
 WM_KICKIDLE = 0x036A
 
@@ -163,7 +163,7 @@ class FormatterBase:
 		defaultStyle = Style("default", baseFormat)
 		defaultStyle.stylenum = scintillacon.STYLE_DEFAULT
 		self._ReformatStyle(defaultStyle)
-		for style in self.styles.values():
+		for style in list(self.styles.values()):
 			if style.aliased is None:
 				style.NormalizeAgainstDefault(baseFormat)
 			self._ReformatStyle(style)
@@ -176,12 +176,12 @@ class FormatterBase:
 		self.baseFormatProp = eval(self.LoadPreference("Base Format Proportional", str(self.baseFormatProp)))
 		self.bUseFixed = int(self.LoadPreference("Use Fixed", 1))
 
-		for style in self.styles.values():
+		for style in list(self.styles.values()):
 			new = self.LoadPreference(style.name, str(style.format))
 			try:
 				style.format = eval(new)
 			except:
-				print "Error loading style data for", style.name
+				print("Error loading style data for", style.name)
 			# Use "vanilla" background hardcoded in PYTHON_STYLES if no settings in registry
 			style.background = int(self.LoadPreference(style.name + " background", style.default_background))
 
@@ -192,7 +192,7 @@ class FormatterBase:
 		self.SavePreference("Base Format Fixed", str(self.baseFormatFixed))
 		self.SavePreference("Base Format Proportional", str(self.baseFormatProp))
 		self.SavePreference("Use Fixed", self.bUseFixed)
-		for style in self.styles.values():
+		for style in list(self.styles.values()):
 			if style.aliased is None:
 				self.SavePreference(style.name, str(style.format))
 				bg_name = style.name + " background"

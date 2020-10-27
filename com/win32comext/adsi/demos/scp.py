@@ -10,7 +10,7 @@ is also a little command-line-interface to try these functions out.
 
 For example:
 
-scp.py --account-name=domain\user --service-class=PythonScpTest \\
+scp.py --account-name=domain\\user --service-class=PythonScpTest \\
        --keyword=foo --keyword=bar --binding-string=bind_info \\
        ScpCreate SpnCreate SpnRegister
 
@@ -23,7 +23,7 @@ would:
 
 to undo those changes, you could execute:
 
-scp.py --account-name=domain\user --service-class=PythonScpTest \\
+scp.py --account-name=domain\\user --service-class=PythonScpTest \\
        SpnCreate SpnUnregister ScpDelete
 
 which will:
@@ -196,7 +196,7 @@ def SpnRegister(
         spns,             # List of SPNs to register
         operation,         # Add, replace, or delete SPNs
            ):
-    assert type(spns) not in [str, unicode] and hasattr(spns, "__iter__"), \
+    assert type(spns) not in [str, str] and hasattr(spns, "__iter__"), \
            "spns must be a sequence of strings (got %r)" % spns
     # Bind to a domain controller. 
     # Get the domain for the current user.
@@ -240,7 +240,7 @@ def UserChangePassword(username_dn, new_password):
 # functions related to the command-line interface
 def log(level, msg, *args):
     if verbose >= level:
-        print msg % args
+        print(msg % args)
 
 class _NoDefault: pass
 
@@ -272,7 +272,7 @@ def do_ScpDelete(po):
     sc = _get_option(po, "service_class")
     try:
         ScpDelete(sc)
-    except adsi.error, details:
+    except adsi.error as details:
         if details[0] != winerror.ERROR_DS_OBJ_NOT_FOUND:
             raise
         log(2, "ScpDelete ignoring ERROR_DS_OBJ_NOT_FOUND for service-class '%s'",
@@ -467,10 +467,11 @@ def main():
                 log(1, "%s: %s", arg, result)
             except:
                 if options.show_tracebacks:
-                    print "--show-tracebacks specified - dumping exception"
+                    print("--show-tracebacks specified - dumping exception")
                     traceback.print_exc()
                 raise
-        except adsi.error, (hr, desc, exc, argerr):
+        except adsi.error as xxx_todo_changeme:
+            (hr, desc, exc, argerr) = xxx_todo_changeme.args
             if exc:
                 extra_desc = exc[2]
             else:
@@ -478,7 +479,8 @@ def main():
             err_msg = desc
             if extra_desc:
                 err_msg += "\n\t" + extra_desc
-        except win32api.error, (hr, func, msg):
+        except win32api.error as xxx_todo_changeme1:
+            (hr, func, msg) = xxx_todo_changeme1.args
             err_msg = msg
         if err_msg:
             log(1, "Command '%s' failed: %s", arg, err_msg)
@@ -487,4 +489,4 @@ if __name__=='__main__':
     try:
         main()
     except KeyboardInterrupt:
-        print "*** Interrupted"
+        print("*** Interrupted")

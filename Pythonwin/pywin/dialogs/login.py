@@ -107,15 +107,15 @@ if __name__ == "__main__":
 		def_userid = sys.argv[2]
 	userid, password = GetLogin(title, def_user)
 	if userid == password == None:
-		print "User pressed Cancel"
+		print("User pressed Cancel")
 	else:
-		print "User ID: ", userid
-		print "Password:", password
+		print("User ID: ", userid)
+		print("Password:", password)
 		newpassword = GetPassword("Reenter just for fun", password)
 		if newpassword is None:
-			print "User cancelled"
+			print("User cancelled")
 		else:
 			what = ""
 			if newpassword != password:
 				what = "not "
-			print "The passwords did %smatch" % (what)
+			print("The passwords did %smatch" % (what))

@@ -22,7 +22,7 @@ class DDESystemTopic(object.Object):
 		except:
 			t,v,tb = sys.exc_info()
 			# The DDE Execution failed.
-			print "Error executing DDE command."
+			print("Error executing DDE command.")
 			traceback.print_exception(t,v,tb)
 			return 0
 

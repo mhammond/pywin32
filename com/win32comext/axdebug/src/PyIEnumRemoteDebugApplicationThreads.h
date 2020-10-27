@@ -4,46 +4,39 @@
 //
 // Interface Declaration
 
-class PyIEnumRemoteDebugApplicationThreads : public PyIUnknown
-{
-public:
-	MAKE_PYCOM_CTOR_ERRORINFO(PyIEnumRemoteDebugApplicationThreads, IID_IEnumRemoteDebugApplicationThreads);
-	static IEnumRemoteDebugApplicationThreads *GetI(PyObject *self);
-	static PyComTypeObject type;
+class PyIEnumRemoteDebugApplicationThreads : public PyIUnknown {
+   public:
+    MAKE_PYCOM_CTOR_ERRORINFO(PyIEnumRemoteDebugApplicationThreads, IID_IEnumRemoteDebugApplicationThreads);
+    static IEnumRemoteDebugApplicationThreads *GetI(PyObject *self);
+    static PyComTypeObject type;
 
-	// The Python methods
-	static PyObject *Next(PyObject *self, PyObject *args);
-	static PyObject *Skip(PyObject *self, PyObject *args);
-	static PyObject *Reset(PyObject *self, PyObject *args);
-	static PyObject *Clone(PyObject *self, PyObject *args);
+    // The Python methods
+    static PyObject *Next(PyObject *self, PyObject *args);
+    static PyObject *Skip(PyObject *self, PyObject *args);
+    static PyObject *Reset(PyObject *self, PyObject *args);
+    static PyObject *Clone(PyObject *self, PyObject *args);
 
-protected:
-	PyIEnumRemoteDebugApplicationThreads(IUnknown *pdisp);
-	~PyIEnumRemoteDebugApplicationThreads();
+   protected:
+    PyIEnumRemoteDebugApplicationThreads(IUnknown *pdisp);
+    ~PyIEnumRemoteDebugApplicationThreads();
 };
 // ---------------------------------------------------
 //
 // Gateway Declaration
 
-class PyGEnumRemoteDebugApplicationThreads : public PyGatewayBase, public IEnumRemoteDebugApplicationThreads
-{
-protected:
-	PyGEnumRemoteDebugApplicationThreads(PyObject *instance) : PyGatewayBase(instance) { ; }
-	PYGATEWAY_MAKE_SUPPORT(PyGEnumRemoteDebugApplicationThreads, IEnumRemoteDebugApplicationThreads, IID_IEnumRemoteDebugApplicationThreads)
+class PyGEnumRemoteDebugApplicationThreads : public PyGatewayBase, public IEnumRemoteDebugApplicationThreads {
+   protected:
+    PyGEnumRemoteDebugApplicationThreads(PyObject *instance) : PyGatewayBase(instance) { ; }
+    PYGATEWAY_MAKE_SUPPORT(PyGEnumRemoteDebugApplicationThreads, IEnumRemoteDebugApplicationThreads,
+                           IID_IEnumRemoteDebugApplicationThreads)
 
-	// IEnumRemoteDebugApplicationThreads
-	STDMETHOD(Next)(
-		ULONG celt,
-		IRemoteDebugApplicationThread __RPC_FAR *__RPC_FAR * pprdat,
-		ULONG __RPC_FAR * pceltFetched);
+    // IEnumRemoteDebugApplicationThreads
+    STDMETHOD(Next)
+    (ULONG celt, IRemoteDebugApplicationThread __RPC_FAR *__RPC_FAR *pprdat, ULONG __RPC_FAR *pceltFetched);
 
-	STDMETHOD(Skip)(
-		ULONG celt);
+    STDMETHOD(Skip)(ULONG celt);
 
-	STDMETHOD(Reset)(
-		void);
+    STDMETHOD(Reset)(void);
 
-	STDMETHOD(Clone)(
-		IEnumRemoteDebugApplicationThreads __RPC_FAR *__RPC_FAR * pperdat);
-
+    STDMETHOD(Clone)(IEnumRemoteDebugApplicationThreads __RPC_FAR *__RPC_FAR *pperdat);
 };

@@ -45,23 +45,23 @@ def GetTestCalendarClass():
 		
 			class MyCal(activex.Control, calendarParentModule.Calendar):
 				def OnAfterUpdate(self):
-					print "OnAfterUpdate"
+					print("OnAfterUpdate")
 				def OnClick(self):
-					print "OnClick"
+					print("OnClick")
 				def OnDblClick(self):
-					print "OnDblClick"
+					print("OnDblClick")
 				def OnKeyDown(self, KeyCode, Shift):
-					print "OnKeyDown", KeyCode, Shift
+					print("OnKeyDown", KeyCode, Shift)
 				def OnKeyPress(self, KeyAscii):
-					print "OnKeyPress", KeyAscii
+					print("OnKeyPress", KeyAscii)
 				def OnKeyUp(self, KeyCode, Shift):
-					print "OnKeyUp", KeyCode, Shift
+					print("OnKeyUp", KeyCode, Shift)
 				def OnBeforeUpdate(self, Cancel):
-					print "OnBeforeUpdate", Cancel
+					print("OnBeforeUpdate", Cancel)
 				def OnNewMonth(self):
-					print "OnNewMonth"
+					print("OnNewMonth")
 				def OnNewYear(self):
-					print "OnNewYear"
+					print("OnNewYear")
 
 			rc = dialog.Dialog.OnInitDialog(self)
 			self.olectl = MyCal()
@@ -92,7 +92,7 @@ def GetTestVideoModule():
 		return None
 	fnames = glob.glob(os.path.join(win32api.GetWindowsDirectory(), "*.avi"))
 	if not fnames:
-		print "No AVI files available in system directory"
+		print("No AVI files available in system directory")
 		return None
 	videoControlFileName = fnames[0]
 	return videoControlModule
@@ -141,9 +141,9 @@ def MDITest():
 	calendarParentModule = gencache.EnsureModule("{8E27C92E-1264-101C-8A2F-040224009C02}", 0, 7, 0)
 	class MyCal(activex.Control, calendarParentModule.Calendar):
 		def OnAfterUpdate(self):
-			print "OnAfterUpdate"
+			print("OnAfterUpdate")
 		def OnClick(self):
-			print "OnClick"
+			print("OnClick")
 	
 	f = OCXFrame()
 	f.Create(MyCal, "Calendar Test")
@@ -152,7 +152,7 @@ def MDITest():
 def test1():
 	klass = GetTestCalendarClass()
 	if klass is None:
-		print "Can not test the MSAccess Calendar control - it does not appear to be installed"
+		print("Can not test the MSAccess Calendar control - it does not appear to be installed")
 		return
 
 	d = klass(MakeDlgTemplate() )
@@ -161,8 +161,8 @@ def test1():
 def test2():
 	klass = GetTestVideoDialogClass()
 	if klass is None:
-		print "Can not test the Video OCX - it does not appear to be installed,"
-		print "or no AVI files can be found."
+		print("Can not test the Video OCX - it does not appear to be installed,")
+		print("or no AVI files can be found.")
 		return
 	d = klass(MakeDlgTemplate() )
 	d.DoModal()
@@ -181,6 +181,6 @@ def demo():
 	testall()
 
 if __name__=='__main__':
-	import demoutils
+	from . import demoutils
 	if demoutils.NeedGoodGUI():
 		testall()

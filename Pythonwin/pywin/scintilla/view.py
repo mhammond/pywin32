@@ -1,10 +1,10 @@
 # A general purpose MFC CCtrlView view that uses Scintilla.
 
-import control
-import IDLEenvironment # IDLE emulation.
+from . import control
+from . import IDLEenvironment # IDLE emulation.
 from pywin.mfc import docview
 from pywin.mfc import dialog
-import scintillacon
+from . import scintillacon
 import win32con
 import win32ui
 import afxres
@@ -13,8 +13,8 @@ import array
 import sys
 import types
 import __main__ # for attribute lookup
-import bindings
-import keycodes
+from . import bindings
+from . import keycodes
 import struct
 import re
 import os
@@ -136,7 +136,7 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
 
 	def _MakeColorizer(self):
 		ext = os.path.splitext(self.GetDocument().GetPathName())[1]
-		import formatter
+		from . import formatter
 		return formatter.BuiltinPythonSourceFormatter(self, ext)
 
 	
@@ -282,7 +282,7 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
 			cmdid = self.bindings.get_command_id(event)
 			if cmdid is None:
 				# No event of that name - no point displaying it.
-				print 'View.AppendMenu(): Unknown event "%s" specified for menu text "%s" - ignored' % (event, text)
+				print('View.AppendMenu(): Unknown event "%s" specified for menu text "%s" - ignored' % (event, text))
 				return 
 			keyname = configManager.get_key_binding( event, self._GetSubConfigNames() )
 			if keyname is not None:
@@ -348,13 +348,13 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
 		cmdui.Enable(c is not None)
 
 	def OnCmdEditFind(self, cmd, code):
-		import find
+		from . import find
 		find.ShowFindDialog()
 	def OnCmdEditRepeat(self, cmd, code):
-		import find
+		from . import find
 		find.FindNext()
 	def OnCmdEditReplace(self, cmd, code):
-		import find
+		from . import find
 		find.ShowReplaceDialog()
 
 	def OnCmdFileLocate(self, cmd, id):
@@ -377,7 +377,7 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
 
 	def OnCmdGotoLine(self, cmd, id):
 		try:
-			lineNo = int(raw_input("Enter Line Number"))-1
+			lineNo = int(input("Enter Line Number"))-1
 		except (ValueError, KeyboardInterrupt):
 			return 0
 		self.SCIEnsureVisible(lineNo)
@@ -434,7 +434,7 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
 				# The object might be a pure COM dynamic dispatch with typelib support - lets see if we can get its props.
 				if hasattr(ob, "_oleobj_"):
 					try:
-						for iTI in xrange(0,ob._oleobj_.GetTypeInfoCount()):
+						for iTI in range(0,ob._oleobj_.GetTypeInfoCount()):
 							typeInfo = ob._oleobj_.GetTypeInfo(iTI)
 							self._UpdateWithITypeInfo (items_dict, typeInfo)
 					except:
@@ -443,7 +443,7 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
 				win32ui.SetStatusText("Error attempting to get object attributes - %s" % (repr(sys.exc_info()[0]),))
 
 		# ensure all keys are strings.
-		items = [str(k) for k in items_dict.iterkeys()]
+		items = [str(k) for k in items_dict.keys()]
 		# All names that start with "_" go!
 		items = [k for k in items if not k.startswith('_')]
 
@@ -475,7 +475,7 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
 			if curclass and left=="self":
 				self._UpdateWithClassMethods(unique,curclass)
 
-			items = [word for word in unique.iterkeys() if word[:2]!='__' or word[-2:]!='__']
+			items = [word for word in unique.keys() if word[:2]!='__' or word[-2:]!='__']
 			# Ignore the word currently to the right of the dot - probably a red-herring.
 			try:
 				items.remove(right[1:])
@@ -498,7 +498,7 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
 
 			if typeAttr.iid not in inspectedIIDs:
 				inspectedIIDs[typeAttr.iid] = None
-				for iFun in xrange(0,typeAttr.cFuncs):
+				for iFun in range(0,typeAttr.cFuncs):
 					funDesc = typeInfo.GetFuncDesc(iFun)
 					funName = typeInfo.GetNames(funDesc.memid)[0]
 					if funName not in items_dict:
@@ -506,7 +506,7 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
 
 				# Inspect the type info of all implemented types
 				# E.g. IShellDispatch5 implements IShellDispatch4 which implements IShellDispatch3 ...
-				for iImplType in xrange(0,typeAttr.cImplTypes):
+				for iImplType in range(0,typeAttr.cImplTypes):
 					iRefType = typeInfo.GetRefTypeOfImplType(iImplType)
 					refTypeInfo = typeInfo.GetRefTypeInfo(iRefType)
 					typeInfos.append(refTypeInfo)
@@ -551,7 +551,7 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
 		curline = self.LineFromChar(pos)
 		curclass = None
 		# Find out which class we are in
-		for item in clbrdata.itervalues():
+		for item in clbrdata.values():
 			if item.module==curmodule:
 				item_lineno = item.lineno - 1 # Scintilla counts lines from 0, whereas pyclbr - from 1
 				if minline < item_lineno <= curline:
@@ -703,7 +703,7 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
 def LoadConfiguration():
 	global configManager
 	# Bit of a hack I dont kow what to do about?
-	from config import ConfigManager
+	from .config import ConfigManager
 	configName = rc = win32ui.GetProfileVal("Editor", "Keyboard Config", "default")
 	configManager = ConfigManager(configName)
 	if configManager.last_error:

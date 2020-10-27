@@ -20,19 +20,13 @@
 // just these 3 prototypes.
 // See http://forums.microsoft.com/MSDN/ShowPost.aspx?PostID=508254&SiteID=1
 
-STDAPI LoadIFilter( PCWSTR pwcsPath,
-                    __in IUnknown * pUnkOuter,
-                    __deref_out void ** ppIUnk );
-STDAPI BindIFilterFromStorage(__in IStorage * pStg,
-                              __in IUnknown * pUnkOuter,
-                              __deref_out void ** ppIUnk );
+STDAPI LoadIFilter(PCWSTR pwcsPath, __in IUnknown *pUnkOuter, __deref_out void **ppIUnk);
+STDAPI BindIFilterFromStorage(__in IStorage *pStg, __in IUnknown *pUnkOuter, __deref_out void **ppIUnk);
 
-STDAPI BindIFilterFromStream(__in IStream * pStm,
-                             __in IUnknown * pUnkOuter,
-                             __deref_out void ** ppIUnk );
+STDAPI BindIFilterFromStream(__in IStream *pStm, __in IUnknown *pUnkOuter, __deref_out void **ppIUnk);
 #else
 #include <ntquery.h>
 #endif
 
 #include <oleauto.h>
-#include <ocidl.h> // Used to be <multinfo.h>
+#include <ocidl.h>  // Used to be <multinfo.h>

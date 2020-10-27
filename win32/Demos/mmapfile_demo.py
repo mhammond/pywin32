@@ -10,7 +10,7 @@ alloc_size=system_info[7]
 fname=tempfile.mktemp()
 mapping_name=os.path.split(fname)[1]
 fsize=8*page_size
-print fname, fsize, mapping_name
+print(fname, fsize, mapping_name)
 
 m1=mmapfile.mmapfile(File=fname, Name=mapping_name, MaximumSize=fsize)
 m1.seek(100)
@@ -72,11 +72,11 @@ m2=None
 try:
     try:
         m1=mmapfile.mmapfile(fname_large, mapping_name, fsize, 0, offset*2)
-    except mmapfile.error, exc:
+    except mmapfile.error as exc:
         # if we don't have enough disk-space, that's OK.
         if exc.winerror!=winerror.ERROR_DISK_FULL:
             raise
-        print "skipping large file test - need", fsize, "available bytes."
+        print("skipping large file test - need", fsize, "available bytes.")
     else:
         m1.seek(offset)
         m1.write(offsetdata)

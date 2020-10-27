@@ -83,7 +83,7 @@ class TypeBrowseDialog(TypeBrowseDialog_Parent):
 		self.memberlb = self.GetDlgItem(self.IDC_MEMBERLIST)
 		self.paramlb = self.GetDlgItem(self.IDC_PARAMLIST)
 		self.listview = self.GetDlgItem(self.IDC_LISTVIEW)
-		
+
 		# Setup the listview columns
 		itemDetails = (commctrl.LVCFMT_LEFT, 100, "Item", 0)
 		self.listview.InsertColumn(0, itemDetails)
@@ -131,11 +131,11 @@ class TypeBrowseDialog(TypeBrowseDialog_Parent):
 			infos.append(('Type Kind', typekindmap[self.tlb.GetTypeInfoType(pos)]))
 		except:
 			pass
-			
+
 		info = self.tlb.GetTypeInfo(pos)
 		attr = info.GetTypeAttr()
 		infos.append(('Attributes', str(attr)))
-			
+
 		for j in range(attr[8]):
 			flags = info.GetImplTypeFlags(j)
 			refInfo = info.GetRefTypeInfo(info.GetRefTypeOfImplType(j))
@@ -164,7 +164,7 @@ class TypeBrowseDialog(TypeBrowseDialog_Parent):
 			ret.append(("Func Desc", str(funcDesc)))
 		else:
 			id = self.typeinfo.GetVarDesc(realPos)[0]
-		
+
 		docinfo = self.typeinfo.GetDocumentation(id)
 		ret.append(('Help String', docinfo[1]))
 		ret.append(('Help Context', str(docinfo[2])))
@@ -194,7 +194,7 @@ class TypeBrowseDialog(TypeBrowseDialog_Parent):
 			return pos, 0
 		else:
 			raise error("The position is not valid")
-			
+
 	def CmdMemberListbox(self, id, code):
 		if code == win32con.LBN_SELCHANGE:
 			self.paramlb.ResetContent()
@@ -222,7 +222,7 @@ class TypeBrowseDialog(TypeBrowseDialog_Parent):
 		template.append([131, None, self.IDC_MEMBERLIST, (100, 20, 80, 80), LBS_STD])
 		template.append([130, "&Parameters", -1, (190, 10, 62, 9), SS_STD | win32con.SS_LEFT])
 		template.append([131, None, self.IDC_PARAMLIST, (190, 20, 75, 80), LBS_STD])
-		
+
 		lvStyle = SS_STD | commctrl.LVS_REPORT | commctrl.LVS_AUTOARRANGE | commctrl.LVS_ALIGNLEFT | win32con.WS_BORDER | win32con.WS_TABSTOP
 		template.append(["SysListView32", "", self.IDC_LISTVIEW, (10, 110, 255, 65), lvStyle])
 

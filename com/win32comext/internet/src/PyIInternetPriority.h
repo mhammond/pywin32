@@ -4,38 +4,31 @@
 //
 // Interface Declaration
 
-class PyIInternetPriority : public PyIUnknown
-{
-public:
-	MAKE_PYCOM_CTOR(PyIInternetPriority);
-	static IInternetPriority *GetI(PyObject *self);
-	static PyComTypeObject type;
+class PyIInternetPriority : public PyIUnknown {
+   public:
+    MAKE_PYCOM_CTOR(PyIInternetPriority);
+    static IInternetPriority *GetI(PyObject *self);
+    static PyComTypeObject type;
 
-	// The Python methods
-	static PyObject *SetPriority(PyObject *self, PyObject *args);
-	static PyObject *GetPriority(PyObject *self, PyObject *args);
+    // The Python methods
+    static PyObject *SetPriority(PyObject *self, PyObject *args);
+    static PyObject *GetPriority(PyObject *self, PyObject *args);
 
-protected:
-	PyIInternetPriority(IUnknown *pdisp);
-	~PyIInternetPriority();
+   protected:
+    PyIInternetPriority(IUnknown *pdisp);
+    ~PyIInternetPriority();
 };
 // ---------------------------------------------------
 //
 // Gateway Declaration
 
-class PyGInternetPriority : public PyGatewayBase, public IInternetPriority
-{
-protected:
-	PyGInternetPriority(PyObject *instance) : PyGatewayBase(instance) { ; }
-	PYGATEWAY_MAKE_SUPPORT(PyGInternetPriority, IInternetPriority, IID_IInternetPriority)
+class PyGInternetPriority : public PyGatewayBase, public IInternetPriority {
+   protected:
+    PyGInternetPriority(PyObject *instance) : PyGatewayBase(instance) { ; }
+    PYGATEWAY_MAKE_SUPPORT(PyGInternetPriority, IInternetPriority, IID_IInternetPriority)
 
+    // IInternetPriority
+    STDMETHOD(SetPriority)(LONG nPriority);
 
-
-	// IInternetPriority
-	STDMETHOD(SetPriority)(
-		LONG nPriority);
-
-	STDMETHOD(GetPriority)(
-		LONG __RPC_FAR * pnPriority);
-
+    STDMETHOD(GetPriority)(LONG __RPC_FAR *pnPriority);
 };

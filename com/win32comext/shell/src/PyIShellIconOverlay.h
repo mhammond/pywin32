@@ -4,40 +4,31 @@
 //
 // Interface Declaration
 
-class PyIShellIconOverlay : public PyIUnknown
-{
-public:
-	MAKE_PYCOM_CTOR(PyIShellIconOverlay);
-	static IShellIconOverlay *GetI(PyObject *self);
-	static PyComTypeObject type;
+class PyIShellIconOverlay : public PyIUnknown {
+   public:
+    MAKE_PYCOM_CTOR(PyIShellIconOverlay);
+    static IShellIconOverlay *GetI(PyObject *self);
+    static PyComTypeObject type;
 
-	// The Python methods
-	static PyObject *GetOverlayIndex(PyObject *self, PyObject *args);
-	static PyObject *GetOverlayIconIndex(PyObject *self, PyObject *args);
+    // The Python methods
+    static PyObject *GetOverlayIndex(PyObject *self, PyObject *args);
+    static PyObject *GetOverlayIconIndex(PyObject *self, PyObject *args);
 
-protected:
-	PyIShellIconOverlay(IUnknown *pdisp);
-	~PyIShellIconOverlay();
+   protected:
+    PyIShellIconOverlay(IUnknown *pdisp);
+    ~PyIShellIconOverlay();
 };
 // ---------------------------------------------------
 //
 // Gateway Declaration
 
-class PyGShellIconOverlay : public PyGatewayBase, public IShellIconOverlay
-{
-protected:
-	PyGShellIconOverlay(PyObject *instance) : PyGatewayBase(instance) { ; }
-	PYGATEWAY_MAKE_SUPPORT2(PyGShellIconOverlay, IShellIconOverlay, IID_IShellIconOverlay, PyGatewayBase)
+class PyGShellIconOverlay : public PyGatewayBase, public IShellIconOverlay {
+   protected:
+    PyGShellIconOverlay(PyObject *instance) : PyGatewayBase(instance) { ; }
+    PYGATEWAY_MAKE_SUPPORT2(PyGShellIconOverlay, IShellIconOverlay, IID_IShellIconOverlay, PyGatewayBase)
 
+    // IShellIconOverlay
+    STDMETHOD(GetOverlayIndex)(LPCITEMIDLIST pidl, int __RPC_FAR *index);
 
-
-	// IShellIconOverlay
-	STDMETHOD(GetOverlayIndex)(
-		LPCITEMIDLIST pidl,
-		int __RPC_FAR * index);
-
-	STDMETHOD(GetOverlayIconIndex)(
-		LPCITEMIDLIST pidl,
-		int __RPC_FAR * index);
-
+    STDMETHOD(GetOverlayIconIndex)(LPCITEMIDLIST pidl, int __RPC_FAR *index);
 };

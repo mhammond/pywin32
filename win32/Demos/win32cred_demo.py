@@ -13,7 +13,7 @@ target, pwd, save=win32cred.CredUIPromptForCredentials(TargetName=win32api.GetCo
     Save=False, UiInfo=uiinfo)
 
 attrs=[
-    {'Keyword':'attr1', 'Flags':0, 'Value':u'unicode data'},
+    {'Keyword':'attr1', 'Flags':0, 'Value':'unicode data'},
     {'Keyword':'attr2', 'Flags':0, 'Value':'character data'}
     ]
 cred={'Comment':'Created by win32cred_demo.py', 'UserName':target, 'TargetAlias': None,
@@ -22,13 +22,13 @@ cred={'Comment':'Created by win32cred_demo.py', 'UserName':target, 'TargetAlias'
       'Attributes':attrs}
 win32cred.CredWrite(cred)
 pwd=None
-print win32cred.CredRead(target, win32cred.CRED_TYPE_DOMAIN_PASSWORD)
+print(win32cred.CredRead(target, win32cred.CRED_TYPE_DOMAIN_PASSWORD))
 
 ## Marshal saved credential and use it to log on
 mc=win32cred.CredMarshalCredential(win32cred.UsernameTargetCredential, target)
 th=win32security.LogonUser(mc,None,'',win32con.LOGON32_LOGON_INTERACTIVE, win32con.LOGON32_PROVIDER_DEFAULT)
 win32security.ImpersonateLoggedOnUser(th)
-print 'GetUserName:',win32api.GetUserName()
+print('GetUserName:',win32api.GetUserName())
 win32security.RevertToSelf()
 
 ## Load user's profile.  (first check if user has a roaming profile)

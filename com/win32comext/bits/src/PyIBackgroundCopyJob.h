@@ -6,48 +6,47 @@
 
 #pragma once
 
-class PyIBackgroundCopyJob : public PyIUnknown
-{
-public:
-	MAKE_PYCOM_CTOR(PyIBackgroundCopyJob);
-	static IBackgroundCopyJob *GetI(PyObject *self);
-	static PyComTypeObject type;
+class PyIBackgroundCopyJob : public PyIUnknown {
+   public:
+    MAKE_PYCOM_CTOR(PyIBackgroundCopyJob);
+    static IBackgroundCopyJob *GetI(PyObject *self);
+    static PyComTypeObject type;
 
-	// The Python methods
-	static PyObject *AddFileSet(PyObject *self, PyObject *args);
-	static PyObject *AddFile(PyObject *self, PyObject *args);
-	static PyObject *EnumFiles(PyObject *self, PyObject *args);
-	static PyObject *Suspend(PyObject *self, PyObject *args);
-	static PyObject *Resume(PyObject *self, PyObject *args);
-	static PyObject *Cancel(PyObject *self, PyObject *args);
-	static PyObject *Complete(PyObject *self, PyObject *args);
-	static PyObject *GetId(PyObject *self, PyObject *args);
-	static PyObject *GetType(PyObject *self, PyObject *args);
-	static PyObject *GetProgress(PyObject *self, PyObject *args);
-	static PyObject *GetTimes(PyObject *self, PyObject *args);
-	static PyObject *GetState(PyObject *self, PyObject *args);
-	static PyObject *GetError(PyObject *self, PyObject *args);
-	static PyObject *GetOwner(PyObject *self, PyObject *args);
-	static PyObject *SetDisplayName(PyObject *self, PyObject *args);
-	static PyObject *GetDisplayName(PyObject *self, PyObject *args);
-	static PyObject *SetDescription(PyObject *self, PyObject *args);
-	static PyObject *GetDescription(PyObject *self, PyObject *args);
-	static PyObject *SetPriority(PyObject *self, PyObject *args);
-	static PyObject *GetPriority(PyObject *self, PyObject *args);
-	static PyObject *SetNotifyFlags(PyObject *self, PyObject *args);
-	static PyObject *GetNotifyFlags(PyObject *self, PyObject *args);
-	static PyObject *SetNotifyInterface(PyObject *self, PyObject *args);
-	static PyObject *GetNotifyInterface(PyObject *self, PyObject *args);
-	static PyObject *SetMinimumRetryDelay(PyObject *self, PyObject *args);
-	static PyObject *GetMinimumRetryDelay(PyObject *self, PyObject *args);
-	static PyObject *SetNoProgressTimeout(PyObject *self, PyObject *args);
-	static PyObject *GetNoProgressTimeout(PyObject *self, PyObject *args);
-	static PyObject *GetErrorCount(PyObject *self, PyObject *args);
-	static PyObject *SetProxySettings(PyObject *self, PyObject *args);
-	static PyObject *GetProxySettings(PyObject *self, PyObject *args);
-	static PyObject *TakeOwnership(PyObject *self, PyObject *args);
+    // The Python methods
+    static PyObject *AddFileSet(PyObject *self, PyObject *args);
+    static PyObject *AddFile(PyObject *self, PyObject *args);
+    static PyObject *EnumFiles(PyObject *self, PyObject *args);
+    static PyObject *Suspend(PyObject *self, PyObject *args);
+    static PyObject *Resume(PyObject *self, PyObject *args);
+    static PyObject *Cancel(PyObject *self, PyObject *args);
+    static PyObject *Complete(PyObject *self, PyObject *args);
+    static PyObject *GetId(PyObject *self, PyObject *args);
+    static PyObject *GetType(PyObject *self, PyObject *args);
+    static PyObject *GetProgress(PyObject *self, PyObject *args);
+    static PyObject *GetTimes(PyObject *self, PyObject *args);
+    static PyObject *GetState(PyObject *self, PyObject *args);
+    static PyObject *GetError(PyObject *self, PyObject *args);
+    static PyObject *GetOwner(PyObject *self, PyObject *args);
+    static PyObject *SetDisplayName(PyObject *self, PyObject *args);
+    static PyObject *GetDisplayName(PyObject *self, PyObject *args);
+    static PyObject *SetDescription(PyObject *self, PyObject *args);
+    static PyObject *GetDescription(PyObject *self, PyObject *args);
+    static PyObject *SetPriority(PyObject *self, PyObject *args);
+    static PyObject *GetPriority(PyObject *self, PyObject *args);
+    static PyObject *SetNotifyFlags(PyObject *self, PyObject *args);
+    static PyObject *GetNotifyFlags(PyObject *self, PyObject *args);
+    static PyObject *SetNotifyInterface(PyObject *self, PyObject *args);
+    static PyObject *GetNotifyInterface(PyObject *self, PyObject *args);
+    static PyObject *SetMinimumRetryDelay(PyObject *self, PyObject *args);
+    static PyObject *GetMinimumRetryDelay(PyObject *self, PyObject *args);
+    static PyObject *SetNoProgressTimeout(PyObject *self, PyObject *args);
+    static PyObject *GetNoProgressTimeout(PyObject *self, PyObject *args);
+    static PyObject *GetErrorCount(PyObject *self, PyObject *args);
+    static PyObject *SetProxySettings(PyObject *self, PyObject *args);
+    static PyObject *GetProxySettings(PyObject *self, PyObject *args);
+    static PyObject *TakeOwnership(PyObject *self, PyObject *args);
 
-protected:
-	PyIBackgroundCopyJob(IUnknown *pdisp);
-	~PyIBackgroundCopyJob();
+   protected:
+    PyIBackgroundCopyJob(IUnknown *pdisp);
+    ~PyIBackgroundCopyJob();
 };

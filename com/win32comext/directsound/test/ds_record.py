@@ -23,8 +23,8 @@ sdesc.lpwfxFormat.nAvgBytesPerSec = 176400
 sdesc.lpwfxFormat.nBlockAlign = 4
 sdesc.lpwfxFormat.wBitsPerSample = 16
 
-print sdesc
-print d
+print(sdesc)
+print(d)
 buffer = d.CreateCaptureBuffer(sdesc)
 
 event = win32event.CreateEvent(None, 0, 0, None)

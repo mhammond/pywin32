@@ -4,44 +4,34 @@
 //
 // Interface Declaration
 
-class PyIColumnProvider : public PyIUnknown
-{
-public:
-	MAKE_PYCOM_CTOR(PyIColumnProvider);
-	static IColumnProvider *GetI(PyObject *self);
-	static PyComTypeObject type;
+class PyIColumnProvider : public PyIUnknown {
+   public:
+    MAKE_PYCOM_CTOR(PyIColumnProvider);
+    static IColumnProvider *GetI(PyObject *self);
+    static PyComTypeObject type;
 
-	// The Python methods
-	static PyObject *Initialize(PyObject *self, PyObject *args);
-	static PyObject *GetColumnInfo(PyObject *self, PyObject *args);
-	static PyObject *GetItemData(PyObject *self, PyObject *args);
+    // The Python methods
+    static PyObject *Initialize(PyObject *self, PyObject *args);
+    static PyObject *GetColumnInfo(PyObject *self, PyObject *args);
+    static PyObject *GetItemData(PyObject *self, PyObject *args);
 
-protected:
-	PyIColumnProvider(IUnknown *pdisp);
-	~PyIColumnProvider();
+   protected:
+    PyIColumnProvider(IUnknown *pdisp);
+    ~PyIColumnProvider();
 };
 // ---------------------------------------------------
 //
 // Gateway Declaration
 
-class PyGColumnProvider : public PyGatewayBase, public IColumnProvider
-{
-protected:
-	PyGColumnProvider(PyObject *instance) : PyGatewayBase(instance) { ; }
-	PYGATEWAY_MAKE_SUPPORT2(PyGColumnProvider, IColumnProvider, IID_IColumnProvider, PyGatewayBase)
+class PyGColumnProvider : public PyGatewayBase, public IColumnProvider {
+   protected:
+    PyGColumnProvider(PyObject *instance) : PyGatewayBase(instance) { ; }
+    PYGATEWAY_MAKE_SUPPORT2(PyGColumnProvider, IColumnProvider, IID_IColumnProvider, PyGatewayBase)
 
+    // IColumnProvider
+    STDMETHOD(Initialize)(LPCSHCOLUMNINIT psci);
 
+    STDMETHOD(GetColumnInfo)(DWORD dwIndex, LPSHCOLUMNINFO psci);
 
-	// IColumnProvider
-	STDMETHOD(Initialize)(
-		LPCSHCOLUMNINIT psci);
-
-	STDMETHOD(GetColumnInfo)(
-		DWORD dwIndex,
-		LPSHCOLUMNINFO psci);
-
-	STDMETHOD(GetItemData)(
-		LPCSHCOLUMNID pscid,
-		LPCSHCOLUMNDATA pscd,
-		VARIANT *pvarData);
+    STDMETHOD(GetItemData)(LPCSHCOLUMNID pscid, LPCSHCOLUMNDATA pscd, VARIANT *pvarData);
 };

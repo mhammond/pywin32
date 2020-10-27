@@ -166,7 +166,7 @@ class DebugDocumentText(DebugDocument):
         """Params are integers.
         Return value must be PyIDebugDocumentContext object
         """
-        print self
+        print(self)
         RaiseNotImpl("GetContextOfPosition")
 
 class DebugDocumentTextExternalAuthor:

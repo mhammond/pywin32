@@ -3,268 +3,259 @@
 
 #include "internet_pch.h"
 #include "PyIInternetProtocolRoot.h"
-								 
+
 // @doc - This file contains autoduck documentation
 // ---------------------------------------------------
 //
 // Interface Implementation
 
-PyIInternetProtocolRoot::PyIInternetProtocolRoot(IUnknown *pdisp):
-	PyIUnknown(pdisp)
-{
-	ob_type = &type;
-}
+PyIInternetProtocolRoot::PyIInternetProtocolRoot(IUnknown *pdisp) : PyIUnknown(pdisp) { ob_type = &type; }
 
-PyIInternetProtocolRoot::~PyIInternetProtocolRoot()
-{
-}
+PyIInternetProtocolRoot::~PyIInternetProtocolRoot() {}
 
 /* static */ IInternetProtocolRoot *PyIInternetProtocolRoot::GetI(PyObject *self)
 {
-	return (IInternetProtocolRoot *)PyIUnknown::GetI(self);
+    return (IInternetProtocolRoot *)PyIUnknown::GetI(self);
 }
 
 // @pymethod |PyIInternetProtocolRoot|Start|Description of Start.
 PyObject *PyIInternetProtocolRoot::Start(PyObject *self, PyObject *args)
 {
-	IInternetProtocolRoot *pIIPR = GetI(self);
-	if ( pIIPR == NULL )
-		return NULL;
-	// @pyparm <o unicode>|szUrl||Description for szUrl
-	// @pyparm <o PyIInternetProtocolSink>|pOIProtSink||Description for pOIProtSink
-	// @pyparm <o PyIInternetBindInfo>|pOIBindInfo||Description for pOIBindInfo
-	// @pyparm int|grfPI||Description for grfPI
-	// @pyparm int|dwReserved||Description for dwReserved
-	PyObject *obszUrl;
-	PyObject *obpOIProtSink;
-	PyObject *obpOIBindInfo;
-	LPWSTR szUrl;
-	IInternetProtocolSink * pOIProtSink;
-	IInternetBindInfo * pOIBindInfo;
-	DWORD grfPI;
-	DWORD dwReserved;
-	if ( !PyArg_ParseTuple(args, "OOOii:Start", &obszUrl, &obpOIProtSink, &obpOIBindInfo, &grfPI, &dwReserved) )
-		return NULL;
-	BOOL bPythonIsHappy = TRUE;
-	if (!PyCom_BstrFromPyObject(obszUrl, &szUrl)) bPythonIsHappy = FALSE;
-	if (!PyCom_InterfaceFromPyInstanceOrObject(obpOIProtSink, IID_IInternetProtocolSink, (void **)&pOIProtSink, TRUE /* bNoneOK */))
-		 bPythonIsHappy = FALSE;
-	if (!PyCom_InterfaceFromPyInstanceOrObject(obpOIBindInfo, IID_IInternetBindInfo, (void **)&pOIBindInfo, TRUE /* bNoneOK */))
-		 bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIIPR->Start( szUrl, pOIProtSink, pOIBindInfo, grfPI, dwReserved );
-	if (pOIProtSink) pOIProtSink->Release();
-	if (pOIBindInfo) pOIBindInfo->Release();
-	PY_INTERFACE_POSTCALL;
-	SysFreeString(szUrl);
+    IInternetProtocolRoot *pIIPR = GetI(self);
+    if (pIIPR == NULL)
+        return NULL;
+    // @pyparm <o unicode>|szUrl||Description for szUrl
+    // @pyparm <o PyIInternetProtocolSink>|pOIProtSink||Description for pOIProtSink
+    // @pyparm <o PyIInternetBindInfo>|pOIBindInfo||Description for pOIBindInfo
+    // @pyparm int|grfPI||Description for grfPI
+    // @pyparm int|dwReserved||Description for dwReserved
+    PyObject *obszUrl;
+    PyObject *obpOIProtSink;
+    PyObject *obpOIBindInfo;
+    LPWSTR szUrl;
+    IInternetProtocolSink *pOIProtSink;
+    IInternetBindInfo *pOIBindInfo;
+    DWORD grfPI;
+    DWORD dwReserved;
+    if (!PyArg_ParseTuple(args, "OOOii:Start", &obszUrl, &obpOIProtSink, &obpOIBindInfo, &grfPI, &dwReserved))
+        return NULL;
+    BOOL bPythonIsHappy = TRUE;
+    if (!PyCom_BstrFromPyObject(obszUrl, &szUrl))
+        bPythonIsHappy = FALSE;
+    if (!PyCom_InterfaceFromPyInstanceOrObject(obpOIProtSink, IID_IInternetProtocolSink, (void **)&pOIProtSink,
+                                               TRUE /* bNoneOK */))
+        bPythonIsHappy = FALSE;
+    if (!PyCom_InterfaceFromPyInstanceOrObject(obpOIBindInfo, IID_IInternetBindInfo, (void **)&pOIBindInfo,
+                                               TRUE /* bNoneOK */))
+        bPythonIsHappy = FALSE;
+    if (!bPythonIsHappy)
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIIPR->Start(szUrl, pOIProtSink, pOIBindInfo, grfPI, dwReserved);
+    if (pOIProtSink)
+        pOIProtSink->Release();
+    if (pOIBindInfo)
+        pOIBindInfo->Release();
+    PY_INTERFACE_POSTCALL;
+    SysFreeString(szUrl);
 
-	if ( FAILED(hr) )
-		return OleSetOleError(hr);
-	Py_INCREF(Py_None);
-	return Py_None;
-
+    if (FAILED(hr))
+        return OleSetOleError(hr);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @pymethod |PyIInternetProtocolRoot|Continue|Description of Continue.
 PyObject *PyIInternetProtocolRoot::Continue(PyObject *self, PyObject *args)
 {
-	IInternetProtocolRoot *pIIPR = GetI(self);
-	if ( pIIPR == NULL )
-		return NULL;
-// *** The input argument pProtocolData of type "PROTOCOLDATA __RPC_FAR *" was not processed ***
-//     Please check the conversion function is appropriate and exists!
-	PROTOCOLDATA pProtocolData;
-	PyObject *obpProtocolData;
-	if ( !PyArg_ParseTuple(args, "O:Continue", &obpProtocolData) )
-		return NULL;
-	BOOL bPythonIsHappy = TRUE;
-	if (bPythonIsHappy && !PyObject_AsPROTOCOLDATA( obpProtocolData, &pProtocolData )) bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIIPR->Continue( &pProtocolData );
-	PY_INTERFACE_POSTCALL;
+    IInternetProtocolRoot *pIIPR = GetI(self);
+    if (pIIPR == NULL)
+        return NULL;
+    // *** The input argument pProtocolData of type "PROTOCOLDATA __RPC_FAR *" was not processed ***
+    //     Please check the conversion function is appropriate and exists!
+    PROTOCOLDATA pProtocolData;
+    PyObject *obpProtocolData;
+    if (!PyArg_ParseTuple(args, "O:Continue", &obpProtocolData))
+        return NULL;
+    BOOL bPythonIsHappy = TRUE;
+    if (bPythonIsHappy && !PyObject_AsPROTOCOLDATA(obpProtocolData, &pProtocolData))
+        bPythonIsHappy = FALSE;
+    if (!bPythonIsHappy)
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIIPR->Continue(&pProtocolData);
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return OleSetOleError(hr);
-	Py_INCREF(Py_None);
-	return Py_None;
-
+    if (FAILED(hr))
+        return OleSetOleError(hr);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @pymethod |PyIInternetProtocolRoot|Abort|Description of Abort.
 PyObject *PyIInternetProtocolRoot::Abort(PyObject *self, PyObject *args)
 {
-	IInternetProtocolRoot *pIIPR = GetI(self);
-	if ( pIIPR == NULL )
-		return NULL;
-	// @pyparm int|hrReason||Description for hrReason
-	// @pyparm int|dwOptions||Description for dwOptions
-	HRESULT hrReason;
-	DWORD dwOptions;
-	if ( !PyArg_ParseTuple(args, "ii:Abort", &hrReason, &dwOptions) )
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIIPR->Abort( hrReason, dwOptions );
-	PY_INTERFACE_POSTCALL;
+    IInternetProtocolRoot *pIIPR = GetI(self);
+    if (pIIPR == NULL)
+        return NULL;
+    // @pyparm int|hrReason||Description for hrReason
+    // @pyparm int|dwOptions||Description for dwOptions
+    HRESULT hrReason;
+    DWORD dwOptions;
+    if (!PyArg_ParseTuple(args, "ii:Abort", &hrReason, &dwOptions))
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIIPR->Abort(hrReason, dwOptions);
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return OleSetOleError(hr);
-	Py_INCREF(Py_None);
-	return Py_None;
-
+    if (FAILED(hr))
+        return OleSetOleError(hr);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @pymethod |PyIInternetProtocolRoot|Terminate|Description of Terminate.
 PyObject *PyIInternetProtocolRoot::Terminate(PyObject *self, PyObject *args)
 {
-	IInternetProtocolRoot *pIIPR = GetI(self);
-	if ( pIIPR == NULL )
-		return NULL;
-	// @pyparm int|dwOptions||Description for dwOptions
-	DWORD dwOptions;
-	if ( !PyArg_ParseTuple(args, "i:Terminate", &dwOptions) )
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIIPR->Terminate( dwOptions );
-	PY_INTERFACE_POSTCALL;
+    IInternetProtocolRoot *pIIPR = GetI(self);
+    if (pIIPR == NULL)
+        return NULL;
+    // @pyparm int|dwOptions||Description for dwOptions
+    DWORD dwOptions;
+    if (!PyArg_ParseTuple(args, "i:Terminate", &dwOptions))
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIIPR->Terminate(dwOptions);
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return OleSetOleError(hr);
-	Py_INCREF(Py_None);
-	return Py_None;
-
+    if (FAILED(hr))
+        return OleSetOleError(hr);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @pymethod |PyIInternetProtocolRoot|Suspend|Description of Suspend.
 PyObject *PyIInternetProtocolRoot::Suspend(PyObject *self, PyObject *args)
 {
-	IInternetProtocolRoot *pIIPR = GetI(self);
-	if ( pIIPR == NULL )
-		return NULL;
-	if ( !PyArg_ParseTuple(args, ":Suspend") )
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIIPR->Suspend( );
-	PY_INTERFACE_POSTCALL;
+    IInternetProtocolRoot *pIIPR = GetI(self);
+    if (pIIPR == NULL)
+        return NULL;
+    if (!PyArg_ParseTuple(args, ":Suspend"))
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIIPR->Suspend();
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return OleSetOleError(hr);
-	Py_INCREF(Py_None);
-	return Py_None;
-
+    if (FAILED(hr))
+        return OleSetOleError(hr);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @pymethod |PyIInternetProtocolRoot|Resume|Description of Resume.
 PyObject *PyIInternetProtocolRoot::Resume(PyObject *self, PyObject *args)
 {
-	IInternetProtocolRoot *pIIPR = GetI(self);
-	if ( pIIPR == NULL )
-		return NULL;
-	if ( !PyArg_ParseTuple(args, ":Resume") )
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIIPR->Resume( );
-	PY_INTERFACE_POSTCALL;
+    IInternetProtocolRoot *pIIPR = GetI(self);
+    if (pIIPR == NULL)
+        return NULL;
+    if (!PyArg_ParseTuple(args, ":Resume"))
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIIPR->Resume();
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return OleSetOleError(hr);
-	Py_INCREF(Py_None);
-	return Py_None;
-
+    if (FAILED(hr))
+        return OleSetOleError(hr);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @object PyIInternetProtocolRoot|Description of the interface
-static struct PyMethodDef PyIInternetProtocolRoot_methods[] =
-{
-	{ "Start", PyIInternetProtocolRoot::Start, 1 }, // @pymeth Start|Description of Start
-	{ "Continue", PyIInternetProtocolRoot::Continue, 1 }, // @pymeth Continue|Description of Continue
-	{ "Abort", PyIInternetProtocolRoot::Abort, 1 }, // @pymeth Abort|Description of Abort
-	{ "Terminate", PyIInternetProtocolRoot::Terminate, 1 }, // @pymeth Terminate|Description of Terminate
-	{ "Suspend", PyIInternetProtocolRoot::Suspend, 1 }, // @pymeth Suspend|Description of Suspend
-	{ "Resume", PyIInternetProtocolRoot::Resume, 1 }, // @pymeth Resume|Description of Resume
-	{ NULL }
-};
+static struct PyMethodDef PyIInternetProtocolRoot_methods[] = {
+    {"Start", PyIInternetProtocolRoot::Start, 1},          // @pymeth Start|Description of Start
+    {"Continue", PyIInternetProtocolRoot::Continue, 1},    // @pymeth Continue|Description of Continue
+    {"Abort", PyIInternetProtocolRoot::Abort, 1},          // @pymeth Abort|Description of Abort
+    {"Terminate", PyIInternetProtocolRoot::Terminate, 1},  // @pymeth Terminate|Description of Terminate
+    {"Suspend", PyIInternetProtocolRoot::Suspend, 1},      // @pymeth Suspend|Description of Suspend
+    {"Resume", PyIInternetProtocolRoot::Resume, 1},        // @pymeth Resume|Description of Resume
+    {NULL}};
 
-PyComTypeObject PyIInternetProtocolRoot::type("PyIInternetProtocolRoot",
-		&PyIUnknown::type,
-		sizeof(PyIInternetProtocolRoot),
-		PyIInternetProtocolRoot_methods,
-		GET_PYCOM_CTOR(PyIInternetProtocolRoot));
+PyComTypeObject PyIInternetProtocolRoot::type("PyIInternetProtocolRoot", &PyIUnknown::type,
+                                              sizeof(PyIInternetProtocolRoot), PyIInternetProtocolRoot_methods,
+                                              GET_PYCOM_CTOR(PyIInternetProtocolRoot));
 // ---------------------------------------------------
 //
 // Gateway Implementation
 STDMETHODIMP PyGInternetProtocolRoot::Start(
-		/* [in] */ LPCWSTR szUrl,
-		/* [in] */ IInternetProtocolSink __RPC_FAR * pOIProtSink,
-		/* [in] */ IInternetBindInfo __RPC_FAR * pOIBindInfo,
-		/* [in] */ DWORD grfPI,
-		/* [in] */ HANDLE_PTR dwReserved)
+    /* [in] */ LPCWSTR szUrl,
+    /* [in] */ IInternetProtocolSink __RPC_FAR *pOIProtSink,
+    /* [in] */ IInternetBindInfo __RPC_FAR *pOIBindInfo,
+    /* [in] */ DWORD grfPI,
+    /* [in] */ HANDLE_PTR dwReserved)
 {
-	PY_GATEWAY_METHOD;
-	PyObject *obszUrl;
-	PyObject *obpOIProtSink;
-	PyObject *obpOIBindInfo;
-	obszUrl = MakeOLECHARToObj(szUrl);
-	obpOIProtSink = PyCom_PyObjectFromIUnknown(pOIProtSink, IID_IInternetProtocolSink, TRUE);
-	obpOIBindInfo = PyCom_PyObjectFromIUnknown(pOIBindInfo, IID_IInternetBindInfo, TRUE);
-	HRESULT hr=InvokeViaPolicy("Start", NULL, "OOOiN", obszUrl, obpOIProtSink, obpOIBindInfo, grfPI, PyLong_FromVoidPtr((void *)dwReserved));
-	Py_XDECREF(obszUrl);
-	Py_XDECREF(obpOIProtSink);
-	Py_XDECREF(obpOIBindInfo);
-	return hr;
+    PY_GATEWAY_METHOD;
+    PyObject *obszUrl;
+    PyObject *obpOIProtSink;
+    PyObject *obpOIBindInfo;
+    obszUrl = MakeOLECHARToObj(szUrl);
+    obpOIProtSink = PyCom_PyObjectFromIUnknown(pOIProtSink, IID_IInternetProtocolSink, TRUE);
+    obpOIBindInfo = PyCom_PyObjectFromIUnknown(pOIBindInfo, IID_IInternetBindInfo, TRUE);
+    HRESULT hr = InvokeViaPolicy("Start", NULL, "OOOiN", obszUrl, obpOIProtSink, obpOIBindInfo, grfPI,
+                                 PyLong_FromVoidPtr((void *)dwReserved));
+    Py_XDECREF(obszUrl);
+    Py_XDECREF(obpOIProtSink);
+    Py_XDECREF(obpOIBindInfo);
+    return hr;
 }
 
 STDMETHODIMP PyGInternetProtocolRoot::Continue(
-		/* [in] */ PROTOCOLDATA __RPC_FAR * pProtocolData)
+    /* [in] */ PROTOCOLDATA __RPC_FAR *pProtocolData)
 {
-	PY_GATEWAY_METHOD;
-// *** The input argument pProtocolData of type "PROTOCOLDATA __RPC_FAR *" was not processed ***
-//   - Please ensure this conversion function exists, and is appropriate
-//   - The type 'PROTOCOLDATA' (pProtocolData) is unknown.
-	PyObject *obpProtocolData = PyObject_FromPROTOCOLDATA(pProtocolData);
-	if (obpProtocolData==NULL) return PyCom_HandlePythonFailureToCOM();
-	HRESULT hr=InvokeViaPolicy("Continue", NULL, "O", obpProtocolData);
-	Py_DECREF(obpProtocolData);
-	return hr;
+    PY_GATEWAY_METHOD;
+    // *** The input argument pProtocolData of type "PROTOCOLDATA __RPC_FAR *" was not processed ***
+    //   - Please ensure this conversion function exists, and is appropriate
+    //   - The type 'PROTOCOLDATA' (pProtocolData) is unknown.
+    PyObject *obpProtocolData = PyObject_FromPROTOCOLDATA(pProtocolData);
+    if (obpProtocolData == NULL)
+        return PyCom_HandlePythonFailureToCOM();
+    HRESULT hr = InvokeViaPolicy("Continue", NULL, "O", obpProtocolData);
+    Py_DECREF(obpProtocolData);
+    return hr;
 }
 
 STDMETHODIMP PyGInternetProtocolRoot::Abort(
-		/* [in] */ HRESULT hrReason,
-		/* [in] */ DWORD dwOptions)
+    /* [in] */ HRESULT hrReason,
+    /* [in] */ DWORD dwOptions)
 {
-	PY_GATEWAY_METHOD;
-	HRESULT hr=InvokeViaPolicy("Abort", NULL, "ii", hrReason, dwOptions);
-	return hr;
+    PY_GATEWAY_METHOD;
+    HRESULT hr = InvokeViaPolicy("Abort", NULL, "ii", hrReason, dwOptions);
+    return hr;
 }
 
 STDMETHODIMP PyGInternetProtocolRoot::Terminate(
-		/* [in] */ DWORD dwOptions)
+    /* [in] */ DWORD dwOptions)
 {
-	PY_GATEWAY_METHOD;
-	HRESULT hr=InvokeViaPolicy("Terminate", NULL, "i", dwOptions);
-	return hr;
+    PY_GATEWAY_METHOD;
+    HRESULT hr = InvokeViaPolicy("Terminate", NULL, "i", dwOptions);
+    return hr;
 }
 
-STDMETHODIMP PyGInternetProtocolRoot::Suspend(
-		void)
+STDMETHODIMP PyGInternetProtocolRoot::Suspend(void)
 {
-	PY_GATEWAY_METHOD;
-	HRESULT hr=InvokeViaPolicy("Suspend", NULL);
-	return hr;
+    PY_GATEWAY_METHOD;
+    HRESULT hr = InvokeViaPolicy("Suspend", NULL);
+    return hr;
 }
 
-STDMETHODIMP PyGInternetProtocolRoot::Resume(
-		void)
+STDMETHODIMP PyGInternetProtocolRoot::Resume(void)
 {
-	PY_GATEWAY_METHOD;
-	HRESULT hr=InvokeViaPolicy("Resume", NULL);
-	return hr;
+    PY_GATEWAY_METHOD;
+    HRESULT hr = InvokeViaPolicy("Resume", NULL);
+    return hr;
 }
-

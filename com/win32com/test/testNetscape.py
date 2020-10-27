@@ -13,13 +13,13 @@ if __name__=='__main__':
     if not rc: raise error("Open method of Netscape failed")
     while 1:
         num, str = n.Read(None, 0)
-        print "Got ", num, str
+        print("Got ", num, str)
         if num==0:
             break # used to be continue - no idea!!
         if num==-1:
             break
 #               sys.stdout.write(str)
     n.Close()
-    print "Done!"
+    print("Done!")
     del n
     sys.last_type = sys.last_value = sys.last_traceback = None

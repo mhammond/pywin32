@@ -4,36 +4,31 @@
 //
 // Interface Declaration
 
-class PyIDebugDocumentContext : public PyIUnknown
-{
-public:
-	MAKE_PYCOM_CTOR_ERRORINFO(PyIDebugDocumentContext, IID_IDebugDocumentContext);
-	static IDebugDocumentContext *GetI(PyObject *self);
-	static PyComTypeObject type;
+class PyIDebugDocumentContext : public PyIUnknown {
+   public:
+    MAKE_PYCOM_CTOR_ERRORINFO(PyIDebugDocumentContext, IID_IDebugDocumentContext);
+    static IDebugDocumentContext *GetI(PyObject *self);
+    static PyComTypeObject type;
 
-	// The Python methods
-	static PyObject *GetDocument(PyObject *self, PyObject *args);
-	static PyObject *EnumCodeContexts(PyObject *self, PyObject *args);
+    // The Python methods
+    static PyObject *GetDocument(PyObject *self, PyObject *args);
+    static PyObject *EnumCodeContexts(PyObject *self, PyObject *args);
 
-protected:
-	PyIDebugDocumentContext(IUnknown *pdisp);
-	~PyIDebugDocumentContext();
+   protected:
+    PyIDebugDocumentContext(IUnknown *pdisp);
+    ~PyIDebugDocumentContext();
 };
 // ---------------------------------------------------
 //
 // Gateway Declaration
 
-class PyGDebugDocumentContext : public PyGatewayBase, public IDebugDocumentContext
-{
-protected:
-	PyGDebugDocumentContext(PyObject *instance) : PyGatewayBase(instance) { ; }
-	PYGATEWAY_MAKE_SUPPORT(PyGDebugDocumentContext, IDebugDocumentContext, IID_IDebugDocumentContext)
+class PyGDebugDocumentContext : public PyGatewayBase, public IDebugDocumentContext {
+   protected:
+    PyGDebugDocumentContext(PyObject *instance) : PyGatewayBase(instance) { ; }
+    PYGATEWAY_MAKE_SUPPORT(PyGDebugDocumentContext, IDebugDocumentContext, IID_IDebugDocumentContext)
 
-	// IDebugDocumentContext
-	STDMETHOD(GetDocument)(
-		IDebugDocument __RPC_FAR *__RPC_FAR * ppsd);
+    // IDebugDocumentContext
+    STDMETHOD(GetDocument)(IDebugDocument __RPC_FAR *__RPC_FAR *ppsd);
 
-	STDMETHOD(EnumCodeContexts)(
-		IEnumDebugCodeContexts __RPC_FAR *__RPC_FAR * ppescc);
-
+    STDMETHOD(EnumCodeContexts)(IEnumDebugCodeContexts __RPC_FAR *__RPC_FAR *ppescc);
 };

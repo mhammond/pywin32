@@ -4,50 +4,36 @@
 //
 // Interface Declaration
 
-class PyITransferDestination : public PyIUnknown
-{
-public:
-	MAKE_PYCOM_CTOR(PyITransferDestination);
-	static ITransferDestination *GetI(PyObject *self);
-	static PyComTypeObject type;
+class PyITransferDestination : public PyIUnknown {
+   public:
+    MAKE_PYCOM_CTOR(PyITransferDestination);
+    static ITransferDestination *GetI(PyObject *self);
+    static PyComTypeObject type;
 
-	// The Python methods
-	static PyObject *Advise(PyObject *self, PyObject *args);
-	static PyObject *Unadvise(PyObject *self, PyObject *args);
-	static PyObject *CreateItem(PyObject *self, PyObject *args);
+    // The Python methods
+    static PyObject *Advise(PyObject *self, PyObject *args);
+    static PyObject *Unadvise(PyObject *self, PyObject *args);
+    static PyObject *CreateItem(PyObject *self, PyObject *args);
 
-protected:
-	PyITransferDestination(IUnknown *pdisp);
-	~PyITransferDestination();
+   protected:
+    PyITransferDestination(IUnknown *pdisp);
+    ~PyITransferDestination();
 };
 // ---------------------------------------------------
 //
 // Gateway Declaration
 
-class PyGTransferDestination : public PyGatewayBase, public ITransferDestination
-{
-protected:
-	PyGTransferDestination(PyObject *instance) : PyGatewayBase(instance) { ; }
-	PYGATEWAY_MAKE_SUPPORT2(PyGTransferDestination, ITransferDestination, IID_ITransferDestination, PyGatewayBase)
+class PyGTransferDestination : public PyGatewayBase, public ITransferDestination {
+   protected:
+    PyGTransferDestination(PyObject *instance) : PyGatewayBase(instance) { ; }
+    PYGATEWAY_MAKE_SUPPORT2(PyGTransferDestination, ITransferDestination, IID_ITransferDestination, PyGatewayBase)
 
+    // ITransferDestination
+    STDMETHOD(Advise)(ITransferAdviseSink *psink, DWORD *pdwCookie);
 
+    STDMETHOD(Unadvise)(DWORD dwCookie);
 
-	// ITransferDestination
-	STDMETHOD(Advise)(
-		ITransferAdviseSink * psink,
-		DWORD * pdwCookie);
-
-	STDMETHOD(Unadvise)(
-		DWORD dwCookie);
-
-	STDMETHOD(CreateItem)(
-		LPCWSTR pszName,
-		DWORD dwAttributes,
-		ULONGLONG ullSize,
-		TRANSFER_SOURCE_FLAGS flags,
-		REFIID riidItem,
-		void ** ppvItem,
-		REFIID riidResources,
-		void ** ppvResources);
-
+    STDMETHOD(CreateItem)
+    (LPCWSTR pszName, DWORD dwAttributes, ULONGLONG ullSize, TRANSFER_SOURCE_FLAGS flags, REFIID riidItem,
+     void **ppvItem, REFIID riidResources, void **ppvResources);
 };

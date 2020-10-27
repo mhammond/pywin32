@@ -16,21 +16,21 @@ class EventHandler:
     _public_methods_ = IExplorerBrowserEvents_Methods
 
     def OnNavigationComplete(self, pidl):
-        print "OnNavComplete", pidl
+        print("OnNavComplete", pidl)
 
     def OnNavigationFailed(self, pidl):
-        print "OnNavigationFailed", pidl
+        print("OnNavigationFailed", pidl)
 
     def OnNavigationPending(self, pidl):
-        print "OnNavigationPending", pidl
+        print("OnNavigationPending", pidl)
 
     def OnViewCreated(self, view):
-        print "OnViewCreated", view
+        print("OnViewCreated", view)
         # And if our demo view has been registered, it may well
         # be that view!
         try:
             pyview = unwrap(view)
-            print "and look - its a Python implemented view!", pyview
+            print("and look - its a Python implemented view!", pyview)
         except ValueError:
             pass
 
@@ -78,11 +78,11 @@ class MainWindow:
         try:
             tree = sp.QueryService(shell.IID_INameSpaceTreeControl,
                                    shell.IID_INameSpaceTreeControl)
-        except pythoncom.com_error, exc:
+        except pythoncom.com_error as exc:
             # this should really only fail if no "nav" frame exists...
-            print "Strange - failed to get the tree control even though " \
-                  "we asked for a EBO_SHOWFRAMES"
-            print exc
+            print("Strange - failed to get the tree control even though " \
+                  "we asked for a EBO_SHOWFRAMES")
+            print(exc)
         else:
             # get the IShellItem for the selection.
             si = shell.SHCreateItemFromIDList(pidl, shell.IID_IShellItem)
@@ -97,11 +97,11 @@ class MainWindow:
         pass
 
     def OnDestroy(self, hwnd, msg, wparam, lparam):
-        print "tearing down ExplorerBrowser..."
+        print("tearing down ExplorerBrowser...")
         self.eb.Unadvise(self.event_cookie)
         self.eb.Destroy()
         self.eb = None
-        print "shutting down app..."
+        print("shutting down app...")
         win32gui.PostQuitMessage(0)
 
     def OnSize(self, hwnd, msg, wparam, lparam):

@@ -136,7 +136,7 @@ class ExcelRTDServer(object):
     """Creates a new topic out of the Strings excel gives us."""
     try:
       self.topics[TopicID] = self.CreateTopic(Strings)
-    except Exception, why:
+    except Exception as why:
       raise COMException(desc=str(why))
     GetNewValues = True
     result = self.topics[TopicID]
@@ -186,7 +186,7 @@ class ExcelRTDServer(object):
     # which looks like:
     #   ( (topic_num1, topic_num2, ..., topic_numN), \
     #     (topic_val1, topic_val2, ..., topic_valN) )
-    for idx, topicdata in enumerate(self.topics.iteritems()):
+    for idx, topicdata in enumerate(self.topics.items()):
       topicNum, topic = topicdata
       results[0][idx] = topicNum
       results[1][idx] = topic.GetValue()
@@ -334,7 +334,7 @@ class TimeServer(ExcelRTDServer):
       # Check if any of our topics have new info to pass on
       if len(self.topics):     
         refresh = False
-        for topic in self.topics.itervalues():
+        for topic in self.topics.values():
           topic.Update(self)
           if topic.HasChanged():
             refresh = True
@@ -363,7 +363,7 @@ class TimeTopic(RTDTopic):
     super(TimeTopic, self).__init__(TopicStrings)
     try:
       self.cmd, self.delay = self.TopicStrings
-    except Exception, E:
+    except Exception as E:
       # We could simply return a "# ERROR" type string as the 
       # topic value, but explosions like this should be able to get handled by 
       # the VBA-side "On Error" stuff. 

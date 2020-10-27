@@ -22,7 +22,7 @@ def os():
             return True  # 32 bit program running on 64 bit Windows
         try:
             return os.environ['PROCESSOR_ARCHITECTURE'].endswith('64')  # 64 bit Windows 64 bit program
-        except IndexError:
+        except (IndexError, KeyError):
             pass  # not Windows
         try:
             return '64' in platform.architecture()[0]  # this often works in Linux
@@ -30,4 +30,4 @@ def os():
             return False     # is an older version of Python, assume also an older os (best we can guess)
 
 if __name__ == "__main__":
-    print ("is64bit.Python() =", Python(), "is64bit.os() =", os())
+    print("is64bit.Python() =", Python(), "is64bit.os() =", os())

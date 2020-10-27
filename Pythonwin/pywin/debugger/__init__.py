@@ -17,7 +17,7 @@ def _CheckNeedGUI():
 		need = 0
 	if need:
 		import pywin.framework.app
-		import dbgpyapp
+		from . import dbgpyapp
 		pywin.framework.app.CreateDefaultGUI(dbgpyapp.DebuggerPythonApp)
 
 	else:
@@ -33,7 +33,7 @@ def _GetCurrentDebugger():
 	global currentDebugger
 	if currentDebugger is None:
 		_CheckNeedGUI()
-		import debugger
+		from . import debugger
 		currentDebugger = debugger.Debugger()
 	return currentDebugger
 
@@ -47,7 +47,7 @@ def GetDebugger():
 		rc.GUICheckInit()
 		return rc
 	except:
-		print "Could not create the debugger!"
+		print("Could not create the debugger!")
 		import traceback
 		traceback.print_exc()
 		return None
@@ -91,8 +91,8 @@ def post_mortem(t=None):
 		try:
 			t = sys.last_traceback
 		except AttributeError:
-			print "No traceback can be found from which to perform post-mortem debugging!"
-			print "No debugging can continue"
+			print("No traceback can be found from which to perform post-mortem debugging!")
+			print("No debugging can continue")
 			return
 	p = _GetCurrentDebugger()
 	if p.frameShutdown: return # App closing

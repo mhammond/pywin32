@@ -4,21 +4,20 @@
 //
 // Interface Declaration
 
-class PyIEnumContextProps : public PyIUnknown
-{
-public:
-	MAKE_PYCOM_CTOR(PyIEnumContextProps);
-	static IEnumContextProps *GetI(PyObject *self);
-	static PyComEnumTypeObject type;
+class PyIEnumContextProps : public PyIUnknown {
+   public:
+    MAKE_PYCOM_CTOR(PyIEnumContextProps);
+    static IEnumContextProps *GetI(PyObject *self);
+    static PyComEnumTypeObject type;
 
-	// The Python methods
-	static PyObject *Next(PyObject *self, PyObject *args);
-	static PyObject *Skip(PyObject *self, PyObject *args);
-	static PyObject *Reset(PyObject *self, PyObject *args);
-	static PyObject *Clone(PyObject *self, PyObject *args);
-	static PyObject *Count(PyObject *self, PyObject *args);
+    // The Python methods
+    static PyObject *Next(PyObject *self, PyObject *args);
+    static PyObject *Skip(PyObject *self, PyObject *args);
+    static PyObject *Reset(PyObject *self, PyObject *args);
+    static PyObject *Clone(PyObject *self, PyObject *args);
+    static PyObject *Count(PyObject *self, PyObject *args);
 
-protected:
-	PyIEnumContextProps(IUnknown *pdisp);
-	~PyIEnumContextProps();
+   protected:
+    PyIEnumContextProps(IUnknown *pdisp);
+    ~PyIEnumContextProps();
 };

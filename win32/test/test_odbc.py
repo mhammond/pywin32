@@ -74,8 +74,8 @@ class TestStuff(unittest.TestCase):
         if self.cur is not None:
             try:
                 self.cur.execute("""drop table %s""" %self.tablename)
-            except (odbc.error, odbc.progError), why:
-                print "Failed to delete test table %s" %self.tablename, why
+            except (odbc.error, odbc.progError) as why:
+                print("Failed to delete test table %s" %self.tablename, why)
 
             self.cur.close()
             self.cur = None
@@ -96,7 +96,7 @@ class TestStuff(unittest.TestCase):
         self.assertEqual(self.cur.execute("select * from %s \
             where username = ?" %self.tablename, [username.lower()]),0)
 
-    def test_insert_select_unicode(self, userid=u'Frank', username=u"Frank Millman"):
+    def test_insert_select_unicode(self, userid='Frank', username="Frank Millman"):
         self.assertEqual(self.cur.execute("insert into %s (userid, username)\
             values (?,?)" %self.tablename, [userid, username]),1)
         self.assertEqual(self.cur.execute("select * from %s \
@@ -105,8 +105,8 @@ class TestStuff(unittest.TestCase):
             where username = ?" %self.tablename, [username.lower()]),0)
 
     def test_insert_select_unicode_ext(self):
-        userid = u"t-\xe0\xf2"
-        username = u"test-\xe0\xf2 name"
+        userid = "t-\xe0\xf2"
+        username = "test-\xe0\xf2 name"
         self.test_insert_select_unicode(userid, username)
 
     def _test_val(self, fieldName, value):
@@ -158,7 +158,7 @@ class TestStuff(unittest.TestCase):
         """Test a unicode character that would be mangled if bound as plain character.
             For example, previously the below was returned as ascii 'a'
         """
-        self._test_val('username', u'\u0101')
+        self._test_val('username', '\u0101')
 
     def testDates(self):
         import datetime
@@ -184,7 +184,7 @@ class TestStuff(unittest.TestCase):
 
     def test_set_zero_length_unicode(self):
         self.assertEqual(self.cur.execute("insert into %s (userid,username) "
-            "values (?,?)" %self.tablename, [u'Frank', u'']),1)
+            "values (?,?)" %self.tablename, ['Frank', '']),1)
         self.assertEqual(self.cur.execute("select * from %s" %self.tablename), 0)
         self.assertEqual(len(self.cur.fetchone()[1]),0)
 

@@ -84,7 +84,7 @@ def make_doc_summary(inFile, outFile):
 			
 		lineNo = lineNo + 1
 
-	# autoduck seems to crash when > ~97 methods.  Loop multiple times, 
+	# autoduck seems to crash when > ~97 methods.  Loop multiple times,
 	# creating a synthetic module name when this happens.
 	# Hrmph - maybe this was related to the way we generate -
 	# see rev 1.80 of win32gui.i for a change that prevents this!

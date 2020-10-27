@@ -4,7 +4,7 @@
 # available, even if the debugger has not yet been (or can not be)
 # imported
 import win32ui, win32con
-import scriptutils
+from . import scriptutils
 import warnings
 from pywin.scintilla.control import CScintillaEditInterface
 
@@ -33,7 +33,7 @@ class DebuggerCommandHandler:
 			if not methUpdate is None:
 				frame.HookCommandUpdate(methUpdate, id)
 
-		for id in IdToBarNames.keys():
+		for id in list(IdToBarNames.keys()):
 			frame.HookCommand( self.OnDebuggerBar, id)
 			frame.HookCommandUpdate(self.OnUpdateDebuggerBar, id)
 

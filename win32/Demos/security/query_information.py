@@ -6,7 +6,7 @@ def GetDomainName():
     try:
         tok = win32security.OpenThreadToken(win32api.GetCurrentThread(),
                                             TOKEN_QUERY, 1)
-    except win32api.error, details:
+    except win32api.error as details:
         if details[0] != winerror.ERROR_NO_TOKEN:
             raise
         # attempt to open the process token, since no thread token
@@ -20,6 +20,6 @@ def GetDomainName():
     return dom
 
 if __name__=='__main__':
-    print "Domain name is", GetDomainName()
+    print("Domain name is", GetDomainName())
 
     

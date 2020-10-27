@@ -33,7 +33,7 @@ win32security.SetNamedSecurityInfo(dir_name, SE_FILE_OBJECT,
 
 ## Create a file in the dir and add some specific permissions to it
 fname=win32api.GetTempFileName(dir_name,'sfa')[0]
-print fname
+print(fname)
 file_sd=win32security.GetNamedSecurityInfo(fname, SE_FILE_OBJECT, DACL_SECURITY_INFORMATION|SACL_SECURITY_INFORMATION)
 file_dacl=file_sd.GetSecurityDescriptorDacl()
 file_sacl=file_sd.GetSecurityDescriptorSacl()

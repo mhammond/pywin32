@@ -37,7 +37,7 @@ def CallPipe(fn, args):
         retryCount = retryCount + 1
         try:
             return fn(*args)
-        except win32api.error, exc:
+        except win32api.error as exc:
             if exc.winerror==winerror.ERROR_PIPE_BUSY:
                 win32api.Sleep(5000)
                 continue
@@ -48,40 +48,40 @@ def CallPipe(fn, args):
 
 def testClient(server,msg):
     if verbose:
-        print "Sending", msg
+        print("Sending", msg)
     data = CallPipe(CallNamedPipe, ("\\\\%s\\pipe\\PyPipeTest" % server, msg, 256, NMPWAIT_WAIT_FOREVER))
     if verbose:
-        print "Server sent back '%s'" % data
-    print "Sent and received a message!"
+        print("Server sent back '%s'" % data)
+    print("Sent and received a message!")
 
 def testLargeMessage(server, size = 4096):
     if verbose:
-        print "Sending message of size %d" % (size)
+        print("Sending message of size %d" % (size))
     msg = "*" * size
     data = CallPipe(CallNamedPipe, ("\\\\%s\\pipe\\PyPipeTest" % server, msg, 512, NMPWAIT_WAIT_FOREVER))
     if len(data)-size:
-        print "Sizes are all wrong - send %d, got back %d" % (size, len(data))
+        print("Sizes are all wrong - send %d, got back %d" % (size, len(data)))
 
 def stressThread(server, numMessages, wait):
     try:
         try:
-            for i in xrange(numMessages):
+            for i in range(numMessages):
                 r = CallPipe(CallNamedPipe, ("\\\\%s\\pipe\\PyPipeTest" % server, "#" * 512, 1024, NMPWAIT_WAIT_FOREVER))
         except:
             traceback.print_exc()
-            print "Failed after %d messages" % i
+            print("Failed after %d messages" % i)
     finally:
         SetEvent(wait)
 
 def stressTestClient(server, numThreads, numMessages):
-    import thread
+    import _thread
     thread_waits = []
-    for t_num in xrange(numThreads):
+    for t_num in range(numThreads):
         # Note I could just wait on thread handles (after calling DuplicateHandle)
         # See the service itself for an example of waiting for the clients...
         wait = CreateEvent(None, 0, 0, None)
         thread_waits.append(wait)
-        thread.start_new_thread(stressThread, (server,numMessages, wait))
+        _thread.start_new_thread(stressThread, (server,numMessages, wait))
     # Wait for all threads to finish.
     WaitForMultipleObjects(thread_waits, 1, INFINITE)
 
@@ -105,16 +105,16 @@ def main():
             if o=='-l':
                 testLargeMessage(server)
         msg = " ".join(args).encode("mbcs")
-    except getopt.error, msg:
-        print msg
+    except getopt.error as msg:
+        print(msg)
         my_name = os.path.split(sys.argv[0])[1]
-        print "Usage: %s [-v] [-s server] [-t thread_count=0] [-m msg_count=500] msg ..." % my_name
-        print "       -v = verbose"
-        print "       Specifying a value for -t will stress test using that many threads."
+        print("Usage: %s [-v] [-s server] [-t thread_count=0] [-m msg_count=500] msg ..." % my_name)
+        print("       -v = verbose")
+        print("       Specifying a value for -t will stress test using that many threads.")
         return
     testClient(server, msg)
     if thread_count > 0:
-        print "Spawning %d threads each sending %d messages..." % (thread_count, msg_count)
+        print("Spawning %d threads each sending %d messages..." % (thread_count, msg_count))
         stressTestClient(server, thread_count, msg_count)
 
 if __name__=='__main__':

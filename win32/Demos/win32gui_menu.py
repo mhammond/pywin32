@@ -56,7 +56,7 @@ class MainWindow:
             hicon = LoadImage(hinst, iconPathName, win32con.IMAGE_ICON, 0, 0, icon_flags)
         else:
             iconPathName = None
-            print "Can't find a Python icon file - using default"
+            print("Can't find a Python icon file - using default")
             hicon = LoadIcon(0, win32con.IDI_APPLICATION)
         self.iconPathName = iconPathName
 
@@ -80,7 +80,7 @@ class MainWindow:
         flags = NIF_ICON | NIF_MESSAGE | NIF_TIP
         nid = (self.hwnd, 0, flags, win32con.WM_USER+20, hicon, "Python Demo")
         Shell_NotifyIcon(NIM_ADD, nid)
-        print "Please right-click on the Python icon in the taskbar"
+        print("Please right-click on the Python icon in the taskbar")
 
     def createMenu(self):
         self.hmenu = menu = CreatePopupMenu()
@@ -207,18 +207,18 @@ class MainWindow:
 
     def OnTaskbarNotify(self, hwnd, msg, wparam, lparam):
         if lparam==win32con.WM_RBUTTONUP:
-            print "You right clicked me."
+            print("You right clicked me.")
             # display the menu at the cursor pos.
             pos = GetCursorPos()
             SetForegroundWindow(self.hwnd)
             TrackPopupMenu(self.hmenu, win32con.TPM_LEFTALIGN, pos[0], pos[1], 0, self.hwnd, None)
             PostMessage(self.hwnd, win32con.WM_NULL, 0, 0)
         elif lparam==win32con.WM_LBUTTONDBLCLK:
-            print "You double-clicked me"
+            print("You double-clicked me")
             # find the default menu item and fire it.
             cmd = GetMenuDefaultItem(self.hmenu, False, 0)
             if cmd == -1:
-                print "Can't find a default!"
+                print("Can't find a default!")
             # and just pretend it came from the menu
             self.OnCommand(hwnd, win32con.WM_COMMAND, cmd, 0)
         return 1
@@ -226,7 +226,7 @@ class MainWindow:
     def OnCommand(self, hwnd, msg, wparam, lparam):
         id = LOWORD(wparam)
         if id == 1000:
-            print "Goodbye"
+            print("Goodbye")
             DestroyWindow(self.hwnd)
         elif id in (1003, 1004, 1005):
             # Our 'checkbox' and 'radio' items
@@ -235,10 +235,10 @@ class MainWindow:
                 raise RuntimeError("No item found")
             if state & win32con.MF_CHECKED:
                 check_flags = win32con.MF_UNCHECKED
-                print "Menu was checked - unchecking"
+                print("Menu was checked - unchecking")
             else:
                 check_flags = win32con.MF_CHECKED
-                print "Menu was unchecked - checking"
+                print("Menu was unchecked - checking")
 
             if id == 1003:
                 # simple checkbox
@@ -262,7 +262,7 @@ class MainWindow:
             if fState & win32con.MF_CHECKED != check_flags:
                 raise RuntimeError("The new item didn't get the new checked state!")
         else:
-            print "OnCommand for ID", id
+            print("OnCommand for ID", id)
 
     # Owner-draw related functions.  We only have 1 owner-draw item, but
     # we pretend we have more than that :)

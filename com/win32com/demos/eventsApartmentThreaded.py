@@ -36,12 +36,12 @@ class ExplorerEvents:
                            pDisp=pythoncom.Empty,
                            URL=pythoncom.Empty):
         thread = win32api.GetCurrentThreadId()
-        print "OnDocumentComplete event processed on thread %d"%thread
+        print("OnDocumentComplete event processed on thread %d"%thread)
         # Set the event our main thread is waiting on.
         win32event.SetEvent(self.event)
     def OnQuit(self):
         thread = win32api.GetCurrentThreadId()
-        print "OnQuit event processed on thread %d"%thread
+        print("OnQuit event processed on thread %d"%thread)
         win32event.SetEvent(self.event)
 
 def WaitWhileProcessingMessages(event, timeout = 2):
@@ -67,17 +67,17 @@ def TestExplorerEvents():
         "InternetExplorer.Application", ExplorerEvents)
 
     thread = win32api.GetCurrentThreadId()
-    print 'TestExplorerEvents created IE object on thread %d'%thread
+    print('TestExplorerEvents created IE object on thread %d'%thread)
 
     iexplore.Visible = 1
     try:
         iexplore.Navigate(win32api.GetFullPathName('..\\readme.htm'))
-    except pythoncom.com_error, details:
-        print "Warning - could not open the test HTML file", details
+    except pythoncom.com_error as details:
+        print("Warning - could not open the test HTML file", details)
 
     # Wait for the event to be signalled while pumping messages.
     if not WaitWhileProcessingMessages(iexplore.event):
-        print "Document load event FAILED to fire!!!"
+        print("Document load event FAILED to fire!!!")
 
     iexplore.Quit()
     #
@@ -86,7 +86,7 @@ def TestExplorerEvents():
     # it is NECESSARY to pump messages here instead of a sleep so that the Quit
     # happens properly!
     if not WaitWhileProcessingMessages(iexplore.event):
-        print "OnQuit event FAILED to fire!!!"
+        print("OnQuit event FAILED to fire!!!")
 
     iexplore = None
 

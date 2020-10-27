@@ -27,7 +27,7 @@ class MyFlashComponent(activex.Control, FlashModule.ShockwaveFlash):
   self.started = 0
 
  def OnFSCommand(self, command, args):
-  print "FSCommend" , command, args
+  print("FSCommend" , command, args)
   self.x = self.x + 20
   self.y = self.y + 20
   self.angle = self.angle + 20
@@ -42,10 +42,10 @@ class MyFlashComponent(activex.Control, FlashModule.ShockwaveFlash):
   self.TPlay("_root.mikeBall")
 
  def OnProgress(self, percentDone):
-  print "PercentDone", percentDone
+  print("PercentDone", percentDone)
  def OnReadyStateChange(self, newState):
   # 0=Loading, 1=Uninitialized, 2=Loaded, 3=Interactive, 4=Complete
-  print "State", newState
+  print("State", newState)
 
 
 class BrowserFrame(window.MDIChildWnd):

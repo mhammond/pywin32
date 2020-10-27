@@ -10,87 +10,86 @@
 //
 // Interface Implementation
 
-PyIDebugStackFrameSnifferEx::PyIDebugStackFrameSnifferEx(IUnknown *pdisp):
-	PyIDebugStackFrameSniffer(pdisp)
+PyIDebugStackFrameSnifferEx::PyIDebugStackFrameSnifferEx(IUnknown *pdisp) : PyIDebugStackFrameSniffer(pdisp)
 {
-	ob_type = &type;
+    ob_type = &type;
 }
 
-PyIDebugStackFrameSnifferEx::~PyIDebugStackFrameSnifferEx()
-{
-}
+PyIDebugStackFrameSnifferEx::~PyIDebugStackFrameSnifferEx() {}
 
 /* static */ IDebugStackFrameSnifferEx *PyIDebugStackFrameSnifferEx::GetI(PyObject *self)
 {
-	return (IDebugStackFrameSnifferEx *)PyIUnknown::GetI(self);
+    return (IDebugStackFrameSnifferEx *)PyIUnknown::GetI(self);
 }
 
 // @pymethod |PyIDebugStackFrameSnifferEx|EnumStackFramesEx|Description of EnumStackFrames.
 PyObject *PyIDebugStackFrameSnifferEx::EnumStackFramesEx(PyObject *self, PyObject *args)
 {
-	IDebugStackFrameSnifferEx *pIDSFS = GetI(self);
-	if ( pIDSFS == NULL )
-		return NULL;
+    IDebugStackFrameSnifferEx *pIDSFS = GetI(self);
+    if (pIDSFS == NULL)
+        return NULL;
 #ifdef _WIN64
-	IEnumDebugStackFrames64 *ppedsf;
+    IEnumDebugStackFrames64 *ppedsf;
 #else
-	IEnumDebugStackFrames *ppedsf;
+    IEnumDebugStackFrames *ppedsf;
 #endif
-	DWORD spMin;
-	if ( !PyArg_ParseTuple(args, "l:EnumStackFramesEx", &spMin) )
-		return NULL;
-	PY_INTERFACE_PRECALL;
-	HRESULT hr = pIDSFS->EnumStackFramesEx( spMin, &ppedsf );
-	PY_INTERFACE_POSTCALL;
-	if ( FAILED(hr) )
-		return SetPythonCOMError(self,hr);
-	PyObject *obppedsf;
+    DWORD spMin;
+    if (!PyArg_ParseTuple(args, "l:EnumStackFramesEx", &spMin))
+        return NULL;
+    PY_INTERFACE_PRECALL;
+    HRESULT hr = pIDSFS->EnumStackFramesEx(spMin, &ppedsf);
+    PY_INTERFACE_POSTCALL;
+    if (FAILED(hr))
+        return SetPythonCOMError(self, hr);
+    PyObject *obppedsf;
 
-	obppedsf = PyCom_PyObjectFromIUnknown(ppedsf, IID_IEnumDebugStackFrames, FALSE);
-	PyObject *pyretval = Py_BuildValue("O", obppedsf);
-	Py_XDECREF(obppedsf);
-	return pyretval;
+    obppedsf = PyCom_PyObjectFromIUnknown(ppedsf, IID_IEnumDebugStackFrames, FALSE);
+    PyObject *pyretval = Py_BuildValue("O", obppedsf);
+    Py_XDECREF(obppedsf);
+    return pyretval;
 }
 
 // @object PyIDebugStackFrameSnifferEx|Derived from <o PyIDebugStackFrameSniffer>
-static struct PyMethodDef PyIDebugStackFrameSnifferEx_methods[] =
-{
-	{ "EnumStackFramesEx", PyIDebugStackFrameSnifferEx::EnumStackFramesEx, 1 }, // @pymeth EnumStackFramesEx|Description of EnumStackFramesEx
-	{ NULL }
-};
+static struct PyMethodDef PyIDebugStackFrameSnifferEx_methods[] = {
+    {"EnumStackFramesEx", PyIDebugStackFrameSnifferEx::EnumStackFramesEx,
+     1},  // @pymeth EnumStackFramesEx|Description of EnumStackFramesEx
+    {NULL}};
 
-PyComTypeObject PyIDebugStackFrameSnifferEx::type("PyIDebugStackFrameSnifferEx",
-		&PyIDebugStackFrameSniffer::type,
-		sizeof(PyIDebugStackFrameSnifferEx),
-		PyIDebugStackFrameSnifferEx_methods,
-		GET_PYCOM_CTOR(PyIDebugStackFrameSnifferEx));
+PyComTypeObject PyIDebugStackFrameSnifferEx::type("PyIDebugStackFrameSnifferEx", &PyIDebugStackFrameSniffer::type,
+                                                  sizeof(PyIDebugStackFrameSnifferEx),
+                                                  PyIDebugStackFrameSnifferEx_methods,
+                                                  GET_PYCOM_CTOR(PyIDebugStackFrameSnifferEx));
 // ---------------------------------------------------
 //
 // Gateway Implementation
 
 #ifdef _WIN64
 STDMETHODIMP PyGDebugStackFrameSnifferEx::EnumStackFramesEx64(
-		/* [in]  */ DWORDLONG dwSpMin,
-		/* [out] */ IEnumDebugStackFrames64 __RPC_FAR *__RPC_FAR * ppedsf)
+    /* [in]  */ DWORDLONG dwSpMin,
+    /* [out] */ IEnumDebugStackFrames64 __RPC_FAR *__RPC_FAR *ppedsf)
 #else
 STDMETHODIMP PyGDebugStackFrameSnifferEx::EnumStackFramesEx(
-		/* [in]  */ DWORD dwSpMin,
-		/* [out] */ IEnumDebugStackFrames __RPC_FAR *__RPC_FAR * ppedsf)
+    /* [in]  */ DWORD dwSpMin,
+    /* [out] */ IEnumDebugStackFrames __RPC_FAR *__RPC_FAR *ppedsf)
 #endif
 {
-	PY_GATEWAY_METHOD;
-	if (ppedsf==NULL) return E_POINTER;
-	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("EnumStackFrames", &result, "l", dwSpMin);
-	if (FAILED(hr)) return hr;
-	// Process the Python results, and convert back to the real params
-	PyObject *obppedsf;
-	if (!PyArg_Parse(result, "O" , &obppedsf)) return PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
-	BOOL bPythonIsHappy = TRUE;
-	if (!PyCom_InterfaceFromPyInstanceOrObject(obppedsf, IID_IEnumDebugStackFrames, (void **)ppedsf, FALSE /* bNoneOK */))
-		 bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) hr = PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
-	Py_DECREF(result);
-	return hr;
+    PY_GATEWAY_METHOD;
+    if (ppedsf == NULL)
+        return E_POINTER;
+    PyObject *result;
+    HRESULT hr = InvokeViaPolicy("EnumStackFrames", &result, "l", dwSpMin);
+    if (FAILED(hr))
+        return hr;
+    // Process the Python results, and convert back to the real params
+    PyObject *obppedsf;
+    if (!PyArg_Parse(result, "O", &obppedsf))
+        return PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
+    BOOL bPythonIsHappy = TRUE;
+    if (!PyCom_InterfaceFromPyInstanceOrObject(obppedsf, IID_IEnumDebugStackFrames, (void **)ppedsf,
+                                               FALSE /* bNoneOK */))
+        bPythonIsHappy = FALSE;
+    if (!bPythonIsHappy)
+        hr = PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
+    Py_DECREF(result);
+    return hr;
 }
-

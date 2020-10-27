@@ -4,77 +4,57 @@
 //
 // Interface Declaration
 
-class PyIOleInPlaceFrame : public PyIOleInPlaceUIWindow
-{
-public:
-	MAKE_PYCOM_CTOR(PyIOleInPlaceFrame);
-	static IOleInPlaceFrame *GetI(PyObject *self);
-	static PyComTypeObject type;
+class PyIOleInPlaceFrame : public PyIOleInPlaceUIWindow {
+   public:
+    MAKE_PYCOM_CTOR(PyIOleInPlaceFrame);
+    static IOleInPlaceFrame *GetI(PyObject *self);
+    static PyComTypeObject type;
 
-	// The Python methods
-	static PyObject *InsertMenus(PyObject *self, PyObject *args);
-	static PyObject *SetMenu(PyObject *self, PyObject *args);
-	static PyObject *RemoveMenus(PyObject *self, PyObject *args);
-	static PyObject *SetStatusText(PyObject *self, PyObject *args);
-	static PyObject *EnableModeless(PyObject *self, PyObject *args);
-	static PyObject *TranslateAccelerator(PyObject *self, PyObject *args);
+    // The Python methods
+    static PyObject *InsertMenus(PyObject *self, PyObject *args);
+    static PyObject *SetMenu(PyObject *self, PyObject *args);
+    static PyObject *RemoveMenus(PyObject *self, PyObject *args);
+    static PyObject *SetStatusText(PyObject *self, PyObject *args);
+    static PyObject *EnableModeless(PyObject *self, PyObject *args);
+    static PyObject *TranslateAccelerator(PyObject *self, PyObject *args);
 
-protected:
-	PyIOleInPlaceFrame(IUnknown *pdisp);
-	~PyIOleInPlaceFrame();
+   protected:
+    PyIOleInPlaceFrame(IUnknown *pdisp);
+    ~PyIOleInPlaceFrame();
 };
 // ---------------------------------------------------
 //
 // Gateway Declaration
 
-class PyGOleInPlaceFrame : public PyGOleInPlaceUIWindow, public IOleInPlaceFrame
-{
-protected:
-	PyGOleInPlaceFrame(PyObject *instance) : PyGOleInPlaceUIWindow(instance) { ; }
-	PYGATEWAY_MAKE_SUPPORT2(PyGOleInPlaceFrame, IOleInPlaceFrame, IID_IOleInPlaceFrame, PyGOleInPlaceUIWindow)
+class PyGOleInPlaceFrame : public PyGOleInPlaceUIWindow, public IOleInPlaceFrame {
+   protected:
+    PyGOleInPlaceFrame(PyObject *instance) : PyGOleInPlaceUIWindow(instance) { ; }
+    PYGATEWAY_MAKE_SUPPORT2(PyGOleInPlaceFrame, IOleInPlaceFrame, IID_IOleInPlaceFrame, PyGOleInPlaceUIWindow)
 
-	// IOleWindow
-	STDMETHOD(GetWindow)(
-		HWND __RPC_FAR * phwnd);
+    // IOleWindow
+    STDMETHOD(GetWindow)(HWND __RPC_FAR *phwnd);
 
-	STDMETHOD(ContextSensitiveHelp)(
-		BOOL fEnterMode);
+    STDMETHOD(ContextSensitiveHelp)(BOOL fEnterMode);
 
-	// IOleInPlaceUIWindow
-	STDMETHOD(GetBorder)(
-		LPRECT lprectBorder);
+    // IOleInPlaceUIWindow
+    STDMETHOD(GetBorder)(LPRECT lprectBorder);
 
-	STDMETHOD(RequestBorderSpace)(
-		LPCBORDERWIDTHS pborderwidths);
+    STDMETHOD(RequestBorderSpace)(LPCBORDERWIDTHS pborderwidths);
 
-	STDMETHOD(SetBorderSpace)(
-		LPCBORDERWIDTHS pborderwidths);
+    STDMETHOD(SetBorderSpace)(LPCBORDERWIDTHS pborderwidths);
 
-	STDMETHOD(SetActiveObject)(
-		IOleInPlaceActiveObject * pActiveObject,
-		LPCOLESTR pszObjName);
+    STDMETHOD(SetActiveObject)(IOleInPlaceActiveObject *pActiveObject, LPCOLESTR pszObjName);
 
-	// IOleInPlaceFrame
-	STDMETHOD(InsertMenus)(
-		HMENU hmenuShared,
-		LPOLEMENUGROUPWIDTHS lpMenuWidths);
+    // IOleInPlaceFrame
+    STDMETHOD(InsertMenus)(HMENU hmenuShared, LPOLEMENUGROUPWIDTHS lpMenuWidths);
 
-	STDMETHOD(SetMenu)(
-		HMENU hmenuShared,
-		HOLEMENU holemenu,
-		HWND hwndActiveObject);
+    STDMETHOD(SetMenu)(HMENU hmenuShared, HOLEMENU holemenu, HWND hwndActiveObject);
 
-	STDMETHOD(RemoveMenus)(
-		HMENU hmenuShared);
+    STDMETHOD(RemoveMenus)(HMENU hmenuShared);
 
-	STDMETHOD(SetStatusText)(
-		LPCOLESTR pszStatusText);
+    STDMETHOD(SetStatusText)(LPCOLESTR pszStatusText);
 
-	STDMETHOD(EnableModeless)(
-		BOOL fEnable);
+    STDMETHOD(EnableModeless)(BOOL fEnable);
 
-	STDMETHOD(TranslateAccelerator)(
-		LPMSG lpmsg,
-		WORD wID);
-
+    STDMETHOD(TranslateAccelerator)(LPMSG lpmsg, WORD wID);
 };

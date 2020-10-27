@@ -70,7 +70,7 @@ if __name__=='__main__':
     print("Important Notes")
     for link in doc.important:
         print(" ", link.name, link.href)
-    
+
     print("Doc links")
     for link in doc.links:
         print(" ", link.name, link.href)

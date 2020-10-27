@@ -70,7 +70,7 @@ library PyCOMTestLib
 		const long LongTest2 = 0x7FFFFFFFL;
 		const unsigned char UCharTest = 255;
 		const char CharTest = -1;
-		const LPWSTR StringTest = L"Hello Lo®aine";
+		const LPWSTR StringTest = L"Hello Wo®ld";
 	};
 
 	enum TestAttributes3{ // Note missing the enum name.
@@ -198,6 +198,8 @@ library PyCOMTestLib
 		HRESULT Test4([in] TestAttributes2 inval, [out, retval] TestAttributes2* retval);
 		HRESULT Test5([in, out] TestAttributes1 *inout);
 		HRESULT Test6([in] QsAttributeWide inval, [out, retval] QsAttributeWide* retval);
+
+		HRESULT TestInOut([in, out] float *fval, [in, out] QsBoolean *bval, [in, out] long *lval);
 
 		// Test IDispatch in and byref.
 		HRESULT GetSetInterface([in] IPyCOMTest *ininterface, [out, retval] IPyCOMTest **outinterface);

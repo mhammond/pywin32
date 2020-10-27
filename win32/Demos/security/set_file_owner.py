@@ -25,7 +25,7 @@ old_sacl=sd.GetSecurityDescriptorSacl()
 old_group=sd.GetSecurityDescriptorGroup()
 
 new_sd=win32security.SECURITY_DESCRIPTOR()
-print "relative, valid, size: ",new_sd.IsSelfRelative(), new_sd.IsValid(), new_sd.GetLength()
+print("relative, valid, size: ",new_sd.IsSelfRelative(), new_sd.IsValid(), new_sd.GetLength())
 
 my_sid = win32security.GetTokenInformation(th,ntsecuritycon.TokenUser)[0]
 tmp_sid = win32security.LookupAccountName('','tmp')[0]

@@ -18,7 +18,7 @@ class TestShellItem(unittest.TestCase):
         sf = shell.SHGetDesktopFolder()
         flags = shellcon.SHCONTF_FOLDERS | shellcon.SHCONTF_NONFOLDERS
         children = sf.EnumObjects(0, flags)
-        child_pidl = children.next()
+        child_pidl = next(children)
         name = sf.GetDisplayNameOf(child_pidl, shellcon.SHGDN_FORPARSING)
 
         item = shell.SHCreateItemFromParsingName(name, None, shell.IID_IShellItem)
@@ -32,7 +32,7 @@ class TestShellItem(unittest.TestCase):
         sf = shell.SHGetDesktopFolder()
         flags = shellcon.SHCONTF_FOLDERS | shellcon.SHCONTF_NONFOLDERS
         children = sf.EnumObjects(0, flags)
-        child_pidl = children.next()
+        child_pidl = next(children)
         name_flags = shellcon.SHGDN_FORPARSING | shellcon.SHGDN_INFOLDER
         name = sf.GetDisplayNameOf(child_pidl, name_flags)
 
@@ -53,7 +53,7 @@ class TestShellItem(unittest.TestCase):
         sf = shell.SHGetDesktopFolder()
         flags = shellcon.SHCONTF_FOLDERS | shellcon.SHCONTF_NONFOLDERS
         children = sf.EnumObjects(0, flags)
-        child_pidl = children.next()
+        child_pidl = next(children)
         item1 = shell.SHCreateItemWithParent(desktop_pidl, None, child_pidl, shell.IID_IShellItem)
         item2 = shell.SHCreateItemWithParent(None, sf, child_pidl, shell.IID_IShellItem)
         self.assertShellItemsEqual(item1, item2)

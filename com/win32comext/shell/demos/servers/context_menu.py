@@ -21,11 +21,11 @@ class ShellExtension:
     _public_methods_ = shellcon.IContextMenu_Methods + shellcon.IShellExtInit_Methods
 
     def Initialize(self, folder, dataobj, hkey):
-        print "Init", folder, dataobj, hkey
+        print("Init", folder, dataobj, hkey)
         self.dataobj = dataobj
 
     def QueryContextMenu(self, hMenu, indexMenu, idCmdFirst, idCmdLast, uFlags):
-        print "QCM", hMenu, indexMenu, idCmdFirst, idCmdLast, uFlags
+        print("QCM", hMenu, indexMenu, idCmdFirst, idCmdLast, uFlags)
         # Query the items clicked on
         format_etc = win32con.CF_HDROP, None, 1, -1, pythoncom.TYMED_HGLOBAL
         sm = self.dataobj.GetData(format_etc)
@@ -38,18 +38,18 @@ class ShellExtension:
         idCmd = idCmdFirst
         items = ['First Python content menu item']
         if (uFlags & 0x000F) == shellcon.CMF_NORMAL: # Check == here, since CMF_NORMAL=0
-            print "CMF_NORMAL..."
+            print("CMF_NORMAL...")
             items.append(msg)
         elif uFlags & shellcon.CMF_VERBSONLY:
-            print "CMF_VERBSONLY..."
+            print("CMF_VERBSONLY...")
             items.append(msg + " - shortcut")
         elif uFlags & shellcon.CMF_EXPLORE:
-            print "CMF_EXPLORE..."
+            print("CMF_EXPLORE...")
             items.append(msg + " - normal file, right-click in Explorer")
         elif uFlags & CMF_DEFAULTONLY:
-            print "CMF_DEFAULTONLY...\r\n"
+            print("CMF_DEFAULTONLY...\r\n")
         else:
-            print "** unknown flags", uFlags
+            print("** unknown flags", uFlags)
         win32gui.InsertMenu(hMenu, indexMenu,
                             win32con.MF_SEPARATOR|win32con.MF_BYPOSITION,
                             0, None)
@@ -79,24 +79,24 @@ class ShellExtension:
         return "Hello from Python (cmd=%d)!!" % (cmd,)
 
 def DllRegisterServer():
-    import _winreg
-    key = _winreg.CreateKey(_winreg.HKEY_CLASSES_ROOT,
+    import winreg
+    key = winreg.CreateKey(winreg.HKEY_CLASSES_ROOT,
                             "Python.File\\shellex")
-    subkey = _winreg.CreateKey(key, "ContextMenuHandlers")
-    subkey2 = _winreg.CreateKey(subkey, "PythonSample")
-    _winreg.SetValueEx(subkey2, None, 0, _winreg.REG_SZ, ShellExtension._reg_clsid_)
-    print ShellExtension._reg_desc_, "registration complete."
+    subkey = winreg.CreateKey(key, "ContextMenuHandlers")
+    subkey2 = winreg.CreateKey(subkey, "PythonSample")
+    winreg.SetValueEx(subkey2, None, 0, winreg.REG_SZ, ShellExtension._reg_clsid_)
+    print(ShellExtension._reg_desc_, "registration complete.")
 
 def DllUnregisterServer():
-    import _winreg
+    import winreg
     try:
-        key = _winreg.DeleteKey(_winreg.HKEY_CLASSES_ROOT,
+        key = winreg.DeleteKey(winreg.HKEY_CLASSES_ROOT,
                                 "Python.File\\shellex\\ContextMenuHandlers\\PythonSample")
-    except WindowsError, details:
+    except WindowsError as details:
         import errno
         if details.errno != errno.ENOENT:
             raise
-    print ShellExtension._reg_desc_, "unregistration complete."
+    print(ShellExtension._reg_desc_, "unregistration complete.")
 
 if __name__=='__main__':
     from win32com.server import register

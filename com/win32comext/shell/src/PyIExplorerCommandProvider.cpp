@@ -11,37 +11,36 @@
 
 // Gateway Implementation
 STDMETHODIMP PyGExplorerCommandProvider::GetCommands(
-		/* [in] */ __RPC__in_opt IUnknown * punkSite,
-		/* [in] */ __RPC__in REFIID riid,
-		/* [iid_is][out] */ __RPC__deref_out_opt void ** ppv)
+    /* [in] */ __RPC__in_opt IUnknown *punkSite,
+    /* [in] */ __RPC__in REFIID riid,
+    /* [iid_is][out] */ __RPC__deref_out_opt void **ppv)
 {
-	PY_GATEWAY_METHOD;
-	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("GetCommands", &result, "NN",
-				   PyCom_PyObjectFromIUnknown(punkSite, IID_IUnknown, TRUE),
-				   PyWinObject_FromIID(riid));
-	if (FAILED(hr)) return hr;
-	// Process the Python results, and convert back to the real params
-	if (!PyCom_InterfaceFromPyInstanceOrObject(result, riid, ppv, FALSE /* bNoneOK */))
-		hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("GetCommands");
-	Py_DECREF(result);
-	return hr;
+    PY_GATEWAY_METHOD;
+    PyObject *result;
+    HRESULT hr = InvokeViaPolicy("GetCommands", &result, "NN", PyCom_PyObjectFromIUnknown(punkSite, IID_IUnknown, TRUE),
+                                 PyWinObject_FromIID(riid));
+    if (FAILED(hr))
+        return hr;
+    // Process the Python results, and convert back to the real params
+    if (!PyCom_InterfaceFromPyInstanceOrObject(result, riid, ppv, FALSE /* bNoneOK */))
+        hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("GetCommands");
+    Py_DECREF(result);
+    return hr;
 }
 
 STDMETHODIMP PyGExplorerCommandProvider::GetCommand(
-		/* [in] */ __RPC__in REFGUID rguidCommandId,
-		/* [in] */ __RPC__in REFIID riid,
-		/* [iid_is][out] */ __RPC__deref_out_opt void ** ppv)
+    /* [in] */ __RPC__in REFGUID rguidCommandId,
+    /* [in] */ __RPC__in REFIID riid,
+    /* [iid_is][out] */ __RPC__deref_out_opt void **ppv)
 {
-	PY_GATEWAY_METHOD;
-	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("GetCommand", &result, "NN",
-				   PyWinObject_FromIID(rguidCommandId),
-				   PyWinObject_FromIID(riid));
-	if (FAILED(hr)) return hr;
-	if (!PyCom_InterfaceFromPyInstanceOrObject(result, riid, ppv, FALSE /* bNoneOK */))
-		hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("GetCommand");
-	Py_DECREF(result);
-	return hr;
+    PY_GATEWAY_METHOD;
+    PyObject *result;
+    HRESULT hr =
+        InvokeViaPolicy("GetCommand", &result, "NN", PyWinObject_FromIID(rguidCommandId), PyWinObject_FromIID(riid));
+    if (FAILED(hr))
+        return hr;
+    if (!PyCom_InterfaceFromPyInstanceOrObject(result, riid, ppv, FALSE /* bNoneOK */))
+        hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("GetCommand");
+    Py_DECREF(result);
+    return hr;
 }
-

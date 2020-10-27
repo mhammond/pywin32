@@ -13,7 +13,7 @@ import array
 import struct
 import string
 import os
-import scintillacon
+from . import scintillacon
 
 # Load Scintilla.dll to get access to the control.
 # We expect to find this in the same directory as win32ui.pyd
@@ -74,7 +74,7 @@ class ScintillaControlInterface:
 	def SCIInsertText(self, text, pos=-1):
 		# SCIInsertText allows unicode or bytes - but if they are bytes,
 		# the caller must ensure it is encoded correctly.
-		if isinstance(text, unicode):
+		if isinstance(text, str):
 			text = text.encode(default_scintilla_encoding)
 		self.SendScintilla(scintillacon.SCI_INSERTTEXT, pos, text + null_byte)
 	def SCISetSavePoint(self):
@@ -397,7 +397,7 @@ class CScintillaColorEditInterface(CScintillaEditInterface):
 		parent_func = getattr(self.GetParentFrame(), "_MakeColorizer", None)
 		if parent_func is not None:
 			return parent_func()
-		import formatter
+		from . import formatter
 ##		return formatter.PythonSourceFormatter(self)
 		return formatter.BuiltinPythonSourceFormatter(self)
 

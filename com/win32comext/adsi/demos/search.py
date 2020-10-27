@@ -10,7 +10,7 @@ ADsTypeNameMap = {}
 def getADsTypeName(type_val):
     # convert integer type to the 'typename' as known in the headerfiles.
     if not ADsTypeNameMap:
-        for n, v in adsicon.__dict__.iteritems():
+        for n, v in adsicon.__dict__.items():
             if n.startswith("ADSTYPE_"):
                 ADsTypeNameMap[v] = n
     return ADsTypeNameMap.get(type_val, hex(type_val))
@@ -31,7 +31,7 @@ converters = {
 
 def log(level, msg, *args):
     if options.verbose >= level:
-        print "log:", msg % args
+        print("log:", msg % args)
 
 def getGC():
     cont = adsi.ADsOpenObject("GC:", options.user, options.password, 0, adsi.IID_IADsContainer)
@@ -49,9 +49,9 @@ def print_attribute(col_data):
         value = [converters.get(prop_name, _null_converter)(v[0]) for v in values]
         if len(value) == 1:
             value = value[0]
-        print " %s=%r" % (prop_name, value)
+        print(" %s=%r" % (prop_name, value))
     else:
-        print " %s is None" % (prop_name,)
+        print(" %s is None" % (prop_name,))
 
 def search():
     gc = getGC()
@@ -71,7 +71,7 @@ def search():
     h = gc.ExecuteSearch(options.filter, attributes)
     hr = gc.GetNextRow(h)
     while hr != S_ADS_NOMORE_ROWS:
-        print "-- new row --"
+        print("-- new row --")
         if attributes is None:
             # Loop over all columns returned
             while 1:
@@ -86,7 +86,7 @@ def search():
                 try:
                     data = gc.GetColumn(h, a)
                     print_attribute(data)
-                except adsi.error, details:
+                except adsi.error as details:
                     if details[0] != E_ADS_COLUMN_NOT_SET:
                         raise
                     print_attribute( (a, None, None) )

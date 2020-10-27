@@ -10,36 +10,35 @@
 // See these sources for detailed information regarding the
 // Microsoft Foundation Classes product.
 
-
 #ifndef _INC_DIBAPI
 #define _INC_DIBAPI
 
 /* DIB constants */
-#define PALVERSION   0x300
+#define PALVERSION 0x300
 
 /* DIB Macros*/
 
-#define IS_WIN30_DIB(lpbi)  ((*(LPDWORD)(lpbi)) == sizeof(BITMAPINFOHEADER))
-#define RECTWIDTH(lpRect)     ((lpRect)->right - (lpRect)->left)
-#define RECTHEIGHT(lpRect)    ((lpRect)->bottom - (lpRect)->top)
+#define IS_WIN30_DIB(lpbi) ((*(LPDWORD)(lpbi)) == sizeof(BITMAPINFOHEADER))
+#define RECTWIDTH(lpRect) ((lpRect)->right - (lpRect)->left)
+#define RECTHEIGHT(lpRect) ((lpRect)->bottom - (lpRect)->top)
 
 // WIDTHBYTES performs DWORD-aligning of DIB scanlines.  The "bits"
 // parameter is the bit count for the scanline (biWidth * biBitCount),
 // and this macro returns the number of DWORD-aligned bytes needed
 // to hold those bits.
 
-#define WIDTHBYTES(bits)    (((bits) + 31) / 32 * 4)
+#define WIDTHBYTES(bits) (((bits) + 31) / 32 * 4)
 
 /* Function prototypes */
-BOOL      WINAPI  PaintDIB (HDC, LPRECT, LPSTR, LPRECT, CPalette*, DWORD);
-BOOL	  WINAPI  PaintDDB (HDC, LPRECT, HBITMAP, LPRECT, CPalette*, DWORD);
-HBITMAP   WINAPI  DIBToBitmap (LPSTR lpDIBHdr, CPalette *pPal);
-BOOL      WINAPI  CreateDIBPalette(LPSTR lpbi, CPalette* cPal);
-LPSTR     WINAPI  FindDIBBits (LPSTR lpbi);
-DWORD     WINAPI  DIBWidth (LPSTR lpDIB);
-DWORD     WINAPI  DIBHeight (LPSTR lpDIB);
-WORD      WINAPI  PaletteSize (LPSTR lpbi);
-WORD      WINAPI  DIBNumColors (LPSTR lpbi);
-HANDLE    WINAPI  CopyHandle (HANDLE h);
+BOOL WINAPI PaintDIB(HDC, LPRECT, LPSTR, LPRECT, CPalette *, DWORD);
+BOOL WINAPI PaintDDB(HDC, LPRECT, HBITMAP, LPRECT, CPalette *, DWORD);
+HBITMAP WINAPI DIBToBitmap(LPSTR lpDIBHdr, CPalette *pPal);
+BOOL WINAPI CreateDIBPalette(LPSTR lpbi, CPalette *cPal);
+LPSTR WINAPI FindDIBBits(LPSTR lpbi);
+DWORD WINAPI DIBWidth(LPSTR lpDIB);
+DWORD WINAPI DIBHeight(LPSTR lpDIB);
+WORD WINAPI PaletteSize(LPSTR lpbi);
+WORD WINAPI DIBNumColors(LPSTR lpbi);
+HANDLE WINAPI CopyHandle(HANDLE h);
 
-#endif //!_INC_DIBAPI
+#endif  //!_INC_DIBAPI

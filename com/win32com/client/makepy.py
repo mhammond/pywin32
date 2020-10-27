@@ -3,7 +3,7 @@
 # a go too :-)
 
 # Note that the main worker code has been moved to genpy.py
-# As this is normally run from the command line, it reparses the code each time.  
+# As this is normally run from the command line, it reparses the code each time.
 # Now this is nothing more than the command line handler and public interface.
 
 # XXX - TO DO
@@ -16,57 +16,57 @@
 
 
  This module is concerned only with the actual writing of
- a .py file.  It draws on the @build@ module, which builds 
+ a .py file.  It draws on the @build@ module, which builds
  the knowledge of a COM interface.
- 
+
 """
 usageHelp = """ \
 
 Usage:
 
   makepy.py [-i] [-v|q] [-h] [-u] [-o output_file] [-d] [typelib, ...]
-  
+
   -i    -- Show information for the specified typelib.
-  
+
   -v    -- Verbose output.
-  
+
   -q    -- Quiet output.
-  
+
   -h    -- Do not generate hidden methods.
-  
-  -u    -- Python 1.5 and earlier: Do NOT convert all Unicode objects to 
+
+  -u    -- Python 1.5 and earlier: Do NOT convert all Unicode objects to
            strings.
-                                   
+
            Python 1.6 and later: Convert all Unicode objects to strings.
-  
+
   -o    -- Create output in a specified output file.  If the path leading
            to the file does not exist, any missing directories will be
            created.
            NOTE: -o cannot be used with -d.  This will generate an error.
-  
+
   -d    -- Generate the base code now and the class code on demand.
            Recommended for large type libraries.
-           
+
   typelib -- A TLB, DLL, OCX or anything containing COM type information.
              If a typelib is not specified, a window containing a textbox
              will open from which you can select a registered type
              library.
-               
+
 Examples:
 
   makepy.py -d
-  
+
     Presents a list of registered type libraries from which you can make
     a selection.
-    
+
   makepy.py -d "Microsoft Excel 8.0 Object Library"
-  
+
     Generate support for the type library with the specified description
     (in this case, the MS Excel object model).
 
 """
 
-import sys, os, pythoncom
+import sys, os, importlib, pythoncom
 from win32com.client import genpy, selecttlb, gencache
 from win32com.client import Dispatch
 
@@ -88,7 +88,7 @@ def ShowInfo(spec):
 		except pythoncom.com_error: # May be badly registered.
 			sys.stderr.write("Warning - could not load registered typelib '%s'\n" % (tlbSpec.clsid))
 			tlb = None
-		
+
 		infos = [(tlb, tlbSpec)]
 	else:
 		infos = GetTypeLibsForSpec(spec)
@@ -99,11 +99,11 @@ def ShowInfo(spec):
 				desc = "<Could not load typelib %s>" % (tlbSpec.dll)
 			else:
 				desc = tlb.GetDocumentation(-1)[0]
-		print desc
-		print " %s, lcid=%s, major=%s, minor=%s" % (tlbSpec.clsid, tlbSpec.lcid, tlbSpec.major, tlbSpec.minor)
-		print " >>> # Use these commands in Python code to auto generate .py support"
-		print " >>> from win32com.client import gencache"
-		print " >>> gencache.EnsureModule('%s', %s, %s, %s)" % (tlbSpec.clsid, tlbSpec.lcid, tlbSpec.major, tlbSpec.minor)
+		print(desc)
+		print(" %s, lcid=%s, major=%s, minor=%s" % (tlbSpec.clsid, tlbSpec.lcid, tlbSpec.major, tlbSpec.minor))
+		print(" >>> # Use these commands in Python code to auto generate .py support")
+		print(" >>> from win32com.client import gencache")
+		print(" >>> gencache.EnsureModule('%s', %s, %s, %s)" % (tlbSpec.clsid, tlbSpec.lcid, tlbSpec.major, tlbSpec.minor))
 
 class SimpleProgress(genpy.GeneratorProgress):
 	"""A simple progress class prints its output to stderr
@@ -127,7 +127,7 @@ class SimpleProgress(genpy.GeneratorProgress):
 
 	def LogBeginGenerate(self, filename):
 		self.VerboseProgress("Generating to %s" % filename, 1)
-	
+
 	def LogWarning(self, desc):
 		self.VerboseProgress("WARNING: " + desc, 1)
 
@@ -137,7 +137,7 @@ class GUIProgress(SimpleProgress):
 		import win32ui, pywin
 		SimpleProgress.__init__(self, verboseLevel)
 		self.dialog = None
-		
+
 	def Close(self):
 		if self.dialog is not None:
 			self.dialog.Close()
@@ -150,7 +150,7 @@ class GUIProgress(SimpleProgress):
 			self.dialog=status.ThreadedStatusProgressDialog(tlb_desc)
 		else:
 			self.dialog.SetTitle(tlb_desc)
-		
+
 	def SetDescription(self, desc, maxticks = None):
 		self.dialog.SetText(desc)
 		if maxticks:
@@ -187,7 +187,7 @@ def GetTypeLibsForSpec(arg):
 				except pythoncom.com_error:
 					pass
 			if len(tlbs)==0:
-				print "Could not locate a type library matching '%s'" % (arg)
+				print("Could not locate a type library matching '%s'" % (arg))
 			for spec in tlbs:
 				# Version numbers not always reliable if enumerated from registry.
 				# (as some libs use hex, other's dont.  Both examples from MS, of course.)
@@ -195,7 +195,7 @@ def GetTypeLibsForSpec(arg):
 					tlb = pythoncom.LoadRegTypeLib(spec.clsid, spec.major, spec.minor, spec.lcid)
 				else:
 					tlb = pythoncom.LoadTypeLib(spec.dll)
-				
+
 				# We have a typelib, but it may not be exactly what we specified
 				# (due to automatic version matching of COM).  So we query what we really have!
 				attr = tlb.GetLibAttr()
@@ -281,6 +281,7 @@ def GenerateFromTypeLibSpec(typelibInfo, file = None, verboseLevel = None, progr
 		finally:
 			if file is None:
 				gen.finish_writer(outputName, fileUse, worked)
+		importlib.invalidate_caches()
 		if bToGenDir:
 			progress.SetDescription("Importing module")
 			gencache.AddModuleToCache(info.clsid, info.lcid, info.major, info.minor)
@@ -317,6 +318,7 @@ def GenerateChildFromTypeLibSpec(child, typelibInfo, verboseLevel = None, progre
 		gen = genpy.Generator(typelib, info.dll, progress)
 		gen.generate_child(child, dir_path_name)
 		progress.SetDescription("Importing module")
+		importlib.invalidate_caches()
 		__import__("win32com.gen_py." + dir_name + "." + child)
 	progress.Close()
 
@@ -348,7 +350,7 @@ def main():
 			elif o=='-d':
 				bForDemand = not bForDemand
 
-	except (getopt.error, error), msg:
+	except (getopt.error, error) as msg:
 		sys.stderr.write (str(msg) + "\n")
 		usage()
 
@@ -357,7 +359,7 @@ def main():
 		usage()
 
 	if not doit:
-		return 0		
+		return 0
 	if len(args)==0:
 		rc = selecttlb.SelectTlb()
 		if rc is None:
@@ -366,20 +368,20 @@ def main():
 
 	if outputName is not None:
 		path = os.path.dirname(outputName)
-		if path is not '' and not os.path.exists(path):
+		if path != '' and not os.path.exists(path):
 			os.makedirs(path)
 		if sys.version_info > (3,0):
 			f = open(outputName, "wt", encoding="mbcs")
 		else:
 			import codecs # not available in py3k.
-			f = codecs.open(outputName, "w", "mbcs")			
+			f = codecs.open(outputName, "w", "mbcs")
 	else:
 		f = None
 
 	for arg in args:
 		GenerateFromTypeLibSpec(arg, f, verboseLevel = verboseLevel, bForDemand = bForDemand, bBuildHidden = hiddenSpec)
 
-	if f:	
+	if f:
 		f.close()
 
 

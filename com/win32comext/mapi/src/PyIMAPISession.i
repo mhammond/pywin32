@@ -53,7 +53,7 @@ PyObject *PyIMAPISession::OpenEntry(PyObject *self, PyObject *args)
 	if (obEntry==Py_None) {
 		entryString = NULL;
 		entryStrLen = 0;
-	} else if PyString_Check(obEntry) {
+	} else if (PyString_Check(obEntry)) {
 		entryString = PyString_AsString(obEntry);
 		entryStrLen = PyString_Size(obEntry);
 	} else {
@@ -170,7 +170,7 @@ PyObject *PyIMAPISession::Advise(PyObject *self, PyObject *args)
 	if (obEntry==Py_None) {
 		entryString = NULL;
 		entryStrLen = 0;
-	} else if PyString_Check(obEntry) {
+	} else if (PyString_Check(obEntry)) {
 		entryString = PyString_AsString(obEntry);
 		entryStrLen = PyString_Size(obEntry);
 	} else {
@@ -180,7 +180,7 @@ PyObject *PyIMAPISession::Advise(PyObject *self, PyObject *args)
 	IMAPIAdviseSink *psink = NULL;
 	if (!PyCom_InterfaceFromPyObject(obSink, IID_IMAPIAdviseSink, (void **)&psink, FALSE))
 		return NULL;
-	unsigned long connection;
+	ULONG_PTR connection;
 	HRESULT _result;
 	PyObject *rc;
 	Py_BEGIN_ALLOW_THREADS
@@ -190,7 +190,7 @@ PyObject *PyIMAPISession::Advise(PyObject *self, PyObject *args)
 	if (FAILED(_result))
 		rc = OleSetOleError(_result);
 	else
-		rc = PyLong_FromUnsignedLong(connection);
+		rc = PyWinObject_FromULONG_PTR(connection);
 	{
 	Py_BEGIN_ALLOW_THREADS
 	psink->Release();

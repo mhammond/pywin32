@@ -73,7 +73,7 @@ class DictionaryPolicy(policy.BasicWrapPolicy):
         raise COMException(desc="not enough parameters", scode=winerror.DISP_E_BADPARAMCOUNT)
 
       key = args[0]
-      if type(key) not in [str, unicode]:
+      if type(key) not in [str, str]:
         ### the nArgErr thing should be 0-based, not reversed... sigh
         raise COMException(desc="Key must be a string", scode=winerror.DISP_E_TYPEMISMATCH)
 
@@ -107,7 +107,7 @@ class DictionaryPolicy(policy.BasicWrapPolicy):
       return len(self._obj_)
 
     if dispid == pythoncom.DISPID_NEWENUM:
-      return util.NewEnum(self._obj_.keys())
+      return util.NewEnum(list(self._obj_.keys()))
 
     raise COMException(scode=winerror.DISP_E_MEMBERNOTFOUND)
 

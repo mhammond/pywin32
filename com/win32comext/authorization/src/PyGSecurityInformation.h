@@ -10,66 +10,50 @@
 //
 // Gateway Declaration
 // @object PyGSecurityInformation|Gateway wrapper for the implement-only ISecurityInformation interface
-class PyGSecurityInformation : private PyGatewayBase, public ISecurityInformation
-{
-protected:
-	PyGSecurityInformation(PyObject *instance) : PyGatewayBase(instance){
-		ZeroMemory(&ObjectInfo, sizeof(ObjectInfo));
-		AccessRights=NULL;
-		cAccessRights=0;
-		InheritTypes=NULL;
-		cInheritTypes=0;
-		ObjectInfoAcquired=FALSE;
-		}
-	PYGATEWAY_MAKE_SUPPORT2(PyGSecurityInformation, ISecurityInformation, IID_ISecurityInformation, PyGatewayBase)
-	PyGSecurityInformation::~PyGSecurityInformation(void);
+class PyGSecurityInformation : private PyGatewayBase, public ISecurityInformation {
+   protected:
+    PyGSecurityInformation(PyObject *instance) : PyGatewayBase(instance)
+    {
+        ZeroMemory(&ObjectInfo, sizeof(ObjectInfo));
+        AccessRights = NULL;
+        cAccessRights = 0;
+        InheritTypes = NULL;
+        cInheritTypes = 0;
+        ObjectInfoAcquired = FALSE;
+    }
+    PYGATEWAY_MAKE_SUPPORT2(PyGSecurityInformation, ISecurityInformation, IID_ISecurityInformation, PyGatewayBase)
+    PyGSecurityInformation::~PyGSecurityInformation(void);
 
-	// ISecurityInformation
-	// @pymeth GetObjectInformation|Returns information identifying the object
-	STDMETHOD(GetObjectInformation)(PSI_OBJECT_INFO pObjectInfo);
+    // ISecurityInformation
+    // @pymeth GetObjectInformation|Returns information identifying the object
+    STDMETHOD(GetObjectInformation)(PSI_OBJECT_INFO pObjectInfo);
 
-	// @pymeth GetSecurity|Requests the object's current security descriptor
-	STDMETHOD(GetSecurity)(
-		SECURITY_INFORMATION RequestedInformation,
-		PSECURITY_DESCRIPTOR * ppSecurityDescriptor,
-		BOOL fDefault);
+    // @pymeth GetSecurity|Requests the object's current security descriptor
+    STDMETHOD(GetSecurity)
+    (SECURITY_INFORMATION RequestedInformation, PSECURITY_DESCRIPTOR *ppSecurityDescriptor, BOOL fDefault);
 
-	// @pymeth SetSecurity|Applies the modified security information to the object
-	STDMETHOD(SetSecurity)(
-		SECURITY_INFORMATION SecurityInformation,
-		PSECURITY_DESCRIPTOR pSecurityDescriptor);
+    // @pymeth SetSecurity|Applies the modified security information to the object
+    STDMETHOD(SetSecurity)(SECURITY_INFORMATION SecurityInformation, PSECURITY_DESCRIPTOR pSecurityDescriptor);
 
-	// @pymeth GetAccessRights|Requests the permission flags that will be available for user to set
-	STDMETHOD(GetAccessRights)(
-		const GUID* pguidObjectType,
-		DWORD dwFlags,
-		PSI_ACCESS * ppAccess,
-		ULONG * pcAccesses,
-		ULONG* piDefaultAccess);
+    // @pymeth GetAccessRights|Requests the permission flags that will be available for user to set
+    STDMETHOD(GetAccessRights)
+    (const GUID *pguidObjectType, DWORD dwFlags, PSI_ACCESS *ppAccess, ULONG *pcAccesses, ULONG *piDefaultAccess);
 
-	// @pymeth MapGeneric|Translates generic permission flags into specific flags
-	STDMETHOD(MapGeneric)(
-		const GUID * pguidObjectType,
-		UCHAR * pAceFlags,
-		ACCESS_MASK* pMask);
+    // @pymeth MapGeneric|Translates generic permission flags into specific flags
+    STDMETHOD(MapGeneric)(const GUID *pguidObjectType, UCHAR *pAceFlags, ACCESS_MASK *pMask);
 
-	// @pymeth GetInheritTypes|Retrieves inheritance flags that will be shown in dialog for containers
-	STDMETHOD(GetInheritTypes)(
-		PSI_INHERIT_TYPE* ppInheritTypes,
-		ULONG* pcInheritTypes);
+    // @pymeth GetInheritTypes|Retrieves inheritance flags that will be shown in dialog for containers
+    STDMETHOD(GetInheritTypes)(PSI_INHERIT_TYPE *ppInheritTypes, ULONG *pcInheritTypes);
 
-	// @pymeth PropertySheetPageCallback|Invoked each time a property sheet page is created or destroyed
-	STDMETHOD(PropertySheetPageCallback)(
-		HWND hwnd,
-		UINT uMsg,
-		SI_PAGE_TYPE uPage);
-	void FreeObjectInfo(void);
-	void FreeAccessRights(void);
-	void FreeInheritTypes(void);
-	BOOL ObjectInfoAcquired;
-	// allocated memory for info passed to system, structs and members freed by class destructor
-	SI_OBJECT_INFO ObjectInfo;
-	PSI_ACCESS AccessRights;
-	PSI_INHERIT_TYPE InheritTypes;
-	ULONG cAccessRights, cInheritTypes;
+    // @pymeth PropertySheetPageCallback|Invoked each time a property sheet page is created or destroyed
+    STDMETHOD(PropertySheetPageCallback)(HWND hwnd, UINT uMsg, SI_PAGE_TYPE uPage);
+    void FreeObjectInfo(void);
+    void FreeAccessRights(void);
+    void FreeInheritTypes(void);
+    BOOL ObjectInfoAcquired;
+    // allocated memory for info passed to system, structs and members freed by class destructor
+    SI_OBJECT_INFO ObjectInfo;
+    PSI_ACCESS AccessRights;
+    PSI_INHERIT_TYPE InheritTypes;
+    ULONG cAccessRights, cInheritTypes;
 };

@@ -109,7 +109,7 @@ def UpdateFile(filename, updated):
         out = open(filename, "wb")
         out.write(updated)
         out.close()
-        print "New", filename
+        print("New", filename)
         return
     original = infile.read()
     infile.close()
@@ -118,7 +118,7 @@ def UpdateFile(filename, updated):
         out = open(filename, "wb")
         out.write(updated)
         out.close()
-        print "Changed", filename
+        print("Changed", filename)
     #~ else:
         #~ print "Unchanged", filename
 
@@ -134,7 +134,7 @@ def Generate(inpath, outpath, commentPrefix, eolType, *lists):
     try:
         infile = open(inpath, "r")
     except IOError:
-        print "Can not open", inpath
+        print("Can not open", inpath)
         return
     original = infile.read()
     infile.close()
@@ -198,7 +198,7 @@ def RegenerateAll():
     # Find all the lexer source code files
     lexFilePaths = glob.glob(root + "scintilla/src/Lex*.cxx")
     lexFiles = [os.path.basename(f)[:-4] for f in lexFilePaths]
-    print lexFiles
+    print(lexFiles)
     lexerModules = []
     lexerProperties = set()
     for lexFile in lexFilePaths:
@@ -215,7 +215,7 @@ def RegenerateAll():
         propFilePaths = glob.glob(root + "scite/src/*.properties")
         propFiles = [os.path.basename(f) for f in propFilePaths if os.path.basename(f) not in otherProps]
         propFiles.sort(ciCompare)
-        print propFiles
+        print(propFiles)
 
     Regenerate(root + "scintilla/src/KeyWords.cxx", "//", NATIVE, lexerModules)
     Regenerate(root + "scintilla/win32/makefile", "#", NATIVE, lexFiles)

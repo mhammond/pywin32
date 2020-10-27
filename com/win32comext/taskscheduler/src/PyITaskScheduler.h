@@ -6,24 +6,23 @@
 #include "PythonCOM.h"
 #include "mstask.h"
 
-class PyITaskScheduler : public PyIUnknown
-{
-public:
-	MAKE_PYCOM_CTOR(PyITaskScheduler);
-	static ITaskScheduler *GetI(PyObject *self);
-	static PyComTypeObject type;
+class PyITaskScheduler : public PyIUnknown {
+   public:
+    MAKE_PYCOM_CTOR(PyITaskScheduler);
+    static ITaskScheduler *GetI(PyObject *self);
+    static PyComTypeObject type;
 
-	// The Python methods
-	static PyObject *SetTargetComputer(PyObject *self, PyObject *args);
-	static PyObject *GetTargetComputer(PyObject *self, PyObject *args);
-	static PyObject *Enum(PyObject *self, PyObject *args);
-	static PyObject *Activate(PyObject *self, PyObject *args);
-	static PyObject *Delete(PyObject *self, PyObject *args);
-	static PyObject *NewWorkItem(PyObject *self, PyObject *args);
-	static PyObject *AddWorkItem(PyObject *self, PyObject *args);
-	static PyObject *IsOfType(PyObject *self, PyObject *args);
+    // The Python methods
+    static PyObject *SetTargetComputer(PyObject *self, PyObject *args);
+    static PyObject *GetTargetComputer(PyObject *self, PyObject *args);
+    static PyObject *Enum(PyObject *self, PyObject *args);
+    static PyObject *Activate(PyObject *self, PyObject *args);
+    static PyObject *Delete(PyObject *self, PyObject *args);
+    static PyObject *NewWorkItem(PyObject *self, PyObject *args);
+    static PyObject *AddWorkItem(PyObject *self, PyObject *args);
+    static PyObject *IsOfType(PyObject *self, PyObject *args);
 
-protected:
-	PyITaskScheduler(IUnknown *pdisp);
-	~PyITaskScheduler();
+   protected:
+    PyITaskScheduler(IUnknown *pdisp);
+    ~PyITaskScheduler();
 };

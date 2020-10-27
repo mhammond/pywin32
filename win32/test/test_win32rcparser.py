@@ -59,7 +59,7 @@ class TestGenerated(TestParser):
             
         # poor-man's import :)
         globs = {}
-        exec py_source in globs, globs
+        exec(py_source, globs, globs)
         self.resources = globs["FakeParser"]()
 
 if __name__=='__main__':

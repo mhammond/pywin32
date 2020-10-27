@@ -125,7 +125,7 @@ if you use it, you accept the risk of using it, etceteras.
 '''
 # Feb 12, 98 - MH added "rawaddcounter" so caller can get exception details.
 
-import win32pdh, win32api,time, thread,copy
+import win32pdh, win32api,time, _thread,copy
 
 class BaseQuery:
 	'''
@@ -445,7 +445,7 @@ class Query(BaseQuery):
 		tempresults = []
 		try:
 			self.open()
-			for ind in xrange(totalperiod/period):
+			for ind in range(totalperiod/period):
 				tempresults.append(self.collectdata())
 				time.sleep(period)
 			self.curresults = tempresults
@@ -474,7 +474,7 @@ class Query(BaseQuery):
 			query.curpaths
 		'''
 		self.collectdatawhile_active = 1
-		thread.start_new_thread(self.collectdatawhile_slave,(period,))
+		_thread.start_new_thread(self.collectdatawhile_slave,(period,))
 	def collectdatawhile_stop(self):
 		'''
 		Signals the collectdatawhile slave thread to stop collecting data

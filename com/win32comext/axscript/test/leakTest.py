@@ -11,7 +11,7 @@ class MySite(axsite.AXSite):
   def OnScriptError(self, error):
     exc = error.GetExceptionInfo()
     context, line, char = error.GetSourcePosition()
-    print " >Exception:", exc[1]
+    print(" >Exception:", exc[1])
     try:
       st = error.GetSourceLineText()
     except pythoncom.com_error:
@@ -19,11 +19,11 @@ class MySite(axsite.AXSite):
     if st is None: st = ""
     text = st + "\n" + (" " * (char-1)) + "^" + "\n" + exc[2]
     for line in text.splitlines():
-      print "  >" + line
+      print("  >" + line)
 
 class MyCollection(util.Collection):
 	def _NewEnum(self):
-		print "Making new Enumerator"
+		print("Making new Enumerator")
 		return util.Collection._NewEnum(self)
 
 class Test:
@@ -39,8 +39,8 @@ class Test:
     self.last = ''.join(map(str, args))
     if self.verbose:
       for arg in args:
-        print arg,
-      print
+        print(arg, end=' ')
+      print()
 #    self._connect_server_.Broadcast(last)
 
 
@@ -119,7 +119,7 @@ def TestEngine(engineName, code, bShouldWork = 1):
   # re-transition the engine back to the UNINITIALIZED state, a-la ASP.
   engine.eScript.SetScriptState(axscript.SCRIPTSTATE_UNINITIALIZED)
   engine.eScript.SetScriptSite(util.wrap(site))
-  print "restarting"
+  print("restarting")
   engine.Start()
   # all done!
   engine.Close()
@@ -130,26 +130,26 @@ def doTestEngine(engine, echoer):
   ob = Dispatch(engine.GetScriptDispatch())
   try:
     ob.hello("Goober")
-  except pythoncom.com_error, exc:
-    print "***** Calling 'hello' failed", exc
+  except pythoncom.com_error as exc:
+    print("***** Calling 'hello' failed", exc)
     return
   if echoer.last != "Goober":
-    print "***** Function call didnt set value correctly", repr(echoer.last)
+    print("***** Function call didnt set value correctly", repr(echoer.last))
     
   if str(ob.prop) != "Property Value":
-    print "***** Property Value not correct - ", repr(ob.prop)
+    print("***** Property Value not correct - ", repr(ob.prop))
 
   ob.testcollection()
 
   # Now make sure my engines can evaluate stuff.
   result = engine.eParse.ParseScriptText("1+1", None, None, None, 0, 0, axscript.SCRIPTTEXT_ISEXPRESSION)
   if result != 2:
-    print "Engine could not evaluate '1+1' - said the result was", result
+    print("Engine could not evaluate '1+1' - said the result was", result)
 
 def dotestall():
-  for i in xrange(10):
+  for i in range(10):
     TestEngine("Python", PyScript)
-    print sys.gettotalrefcount()
+    print(sys.gettotalrefcount())
 ##  print "Testing Exceptions"
 ##  try:
 ##    TestEngine("Python", ErrScript, 0)
@@ -160,7 +160,7 @@ def dotestall():
 def testall():
   dotestall()
   pythoncom.CoUninitialize()
-  print "AXScript Host worked correctly - %d/%d COM objects left alive." % (pythoncom._GetInterfaceCount(), pythoncom._GetGatewayCount())
+  print("AXScript Host worked correctly - %d/%d COM objects left alive." % (pythoncom._GetInterfaceCount(), pythoncom._GetGatewayCount()))
 
 if __name__ == '__main__':
 	testall()

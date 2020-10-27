@@ -4,17 +4,16 @@
 //
 // Interface Declaration
 
-class PyIExplorerPaneVisibility : public PyIUnknown
-{
-public:
-	MAKE_PYCOM_CTOR(PyIExplorerPaneVisibility);
-	static IExplorerPaneVisibility *GetI(PyObject *self);
-	static PyComTypeObject type;
+class PyIExplorerPaneVisibility : public PyIUnknown {
+   public:
+    MAKE_PYCOM_CTOR(PyIExplorerPaneVisibility);
+    static IExplorerPaneVisibility *GetI(PyObject *self);
+    static PyComTypeObject type;
 
-	// The Python methods
-	static PyObject *GetPaneState(PyObject *self, PyObject *args);
+    // The Python methods
+    static PyObject *GetPaneState(PyObject *self, PyObject *args);
 
-protected:
-	PyIExplorerPaneVisibility(IUnknown *pdisp);
-	~PyIExplorerPaneVisibility();
+   protected:
+    PyIExplorerPaneVisibility(IUnknown *pdisp);
+    ~PyIExplorerPaneVisibility();
 };

@@ -9,137 +9,128 @@
 //
 // Interface Implementation
 
-PyIFileOperation::PyIFileOperation(IUnknown *pdisp):
-	PyIUnknown(pdisp)
-{
-	ob_type = &type;
-}
+PyIFileOperation::PyIFileOperation(IUnknown *pdisp) : PyIUnknown(pdisp) { ob_type = &type; }
 
-PyIFileOperation::~PyIFileOperation()
-{
-}
+PyIFileOperation::~PyIFileOperation() {}
 
-/* static */ IFileOperation *PyIFileOperation::GetI(PyObject *self)
-{
-	return (IFileOperation *)PyIUnknown::GetI(self);
-}
+/* static */ IFileOperation *PyIFileOperation::GetI(PyObject *self) { return (IFileOperation *)PyIUnknown::GetI(self); }
 
 // @pymethod int|PyIFileOperation|Advise|Connects an event sink to receive updates
 // @rdesc Returns a cookie to be passed to <om PyIFileOperation.Unadvise> to disconnect
 PyObject *PyIFileOperation::Advise(PyObject *self, PyObject *args)
 {
-	IFileOperation *pIFO = GetI(self);
-	if ( pIFO == NULL )
-		return NULL;
-	// @pyparm <o PyGFileOperationProgressSink>|Sink||Interface that receives progress updates
-	PyObject *obpfops;
-	IFileOperationProgressSink * pfops;
-	DWORD Cookie;
-	if ( !PyArg_ParseTuple(args, "O:Advise", &obpfops) )
-		return NULL;
-	if (!PyCom_InterfaceFromPyInstanceOrObject(obpfops, IID_IFileOperationProgressSink, (void **)&pfops, FALSE))
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIFO->Advise( pfops, &Cookie );
-	pfops->Release();
-	PY_INTERFACE_POSTCALL;
+    IFileOperation *pIFO = GetI(self);
+    if (pIFO == NULL)
+        return NULL;
+    // @pyparm <o PyGFileOperationProgressSink>|Sink||Interface that receives progress updates
+    PyObject *obpfops;
+    IFileOperationProgressSink *pfops;
+    DWORD Cookie;
+    if (!PyArg_ParseTuple(args, "O:Advise", &obpfops))
+        return NULL;
+    if (!PyCom_InterfaceFromPyInstanceOrObject(obpfops, IID_IFileOperationProgressSink, (void **)&pfops, FALSE))
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIFO->Advise(pfops, &Cookie);
+    pfops->Release();
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pIFO, IID_IFileOperation );
-	return PyLong_FromUnsignedLong(Cookie);
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pIFO, IID_IFileOperation);
+    return PyLong_FromUnsignedLong(Cookie);
 }
 
 // @pymethod |PyIFileOperation|Unadvise|Disconnects a progress sink
 PyObject *PyIFileOperation::Unadvise(PyObject *self, PyObject *args)
 {
-	IFileOperation *pIFO = GetI(self);
-	if ( pIFO == NULL )
-		return NULL;
-	// @pyparm int|Cookie||Identifies the sink to disconnect, as returned by <om PyIFileOperation.Advise>
-	DWORD dwCookie;
-	if ( !PyArg_ParseTuple(args, "k:Unadvise", &dwCookie) )
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIFO->Unadvise( dwCookie );
-	PY_INTERFACE_POSTCALL;
+    IFileOperation *pIFO = GetI(self);
+    if (pIFO == NULL)
+        return NULL;
+    // @pyparm int|Cookie||Identifies the sink to disconnect, as returned by <om PyIFileOperation.Advise>
+    DWORD dwCookie;
+    if (!PyArg_ParseTuple(args, "k:Unadvise", &dwCookie))
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIFO->Unadvise(dwCookie);
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pIFO, IID_IFileOperation );
-	Py_INCREF(Py_None);
-	return Py_None;
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pIFO, IID_IFileOperation);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @pymethod |PyIFileOperation|SetOperationFlags|Sets option flags for the operation
 PyObject *PyIFileOperation::SetOperationFlags(PyObject *self, PyObject *args)
 {
-	IFileOperation *pIFO = GetI(self);
-	if ( pIFO == NULL )
-		return NULL;
-	// @pyparm int|OperationFlags||Combination of shellcon.FOF_* and FOFX_* flags
-	DWORD OperationFlags;
-	if ( !PyArg_ParseTuple(args, "k:SetOperationFlags", &OperationFlags) )
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIFO->SetOperationFlags(OperationFlags);
-	PY_INTERFACE_POSTCALL;
+    IFileOperation *pIFO = GetI(self);
+    if (pIFO == NULL)
+        return NULL;
+    // @pyparm int|OperationFlags||Combination of shellcon.FOF_* and FOFX_* flags
+    DWORD OperationFlags;
+    if (!PyArg_ParseTuple(args, "k:SetOperationFlags", &OperationFlags))
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIFO->SetOperationFlags(OperationFlags);
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pIFO, IID_IFileOperation );
-	Py_INCREF(Py_None);
-	return Py_None;
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pIFO, IID_IFileOperation);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @pymethod |PyIFileOperation|SetProgressMessage|Not implemented.
 PyObject *PyIFileOperation::SetProgressMessage(PyObject *self, PyObject *args)
 {
-	IFileOperation *pIFO = GetI(self);
-	if ( pIFO == NULL )
-		return NULL;
-	// @pyparm str|Message||Description for Message
-	PyObject *obMessage;
-	TmpWCHAR Message;
-	if ( !PyArg_ParseTuple(args, "O:SetProgressMessage", &obMessage) )
-		return NULL;
-	if (!PyWinObject_AsWCHAR(obMessage, &Message))
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIFO->SetProgressMessage(Message);
-	PY_INTERFACE_POSTCALL;
+    IFileOperation *pIFO = GetI(self);
+    if (pIFO == NULL)
+        return NULL;
+    // @pyparm str|Message||Description for Message
+    PyObject *obMessage;
+    TmpWCHAR Message;
+    if (!PyArg_ParseTuple(args, "O:SetProgressMessage", &obMessage))
+        return NULL;
+    if (!PyWinObject_AsWCHAR(obMessage, &Message))
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIFO->SetProgressMessage(Message);
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pIFO, IID_IFileOperation );
-	Py_INCREF(Py_None);
-	return Py_None;
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pIFO, IID_IFileOperation);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @pymethod |PyIFileOperation|SetProgressDialog|Provides an interface used to display a progress dialog
 // @comm IOperationsProgressDialog is not yet supported
 PyObject *PyIFileOperation::SetProgressDialog(PyObject *self, PyObject *args)
 {
-	IFileOperation *pIFO = GetI(self);
-	if ( pIFO == NULL )
-		return NULL;
-	// @pyparm <o PyIOperationsProgressDialog>|popd||Progress dialog interface
-	PyObject *obpopd;
-	IOperationsProgressDialog * popd;
-	if ( !PyArg_ParseTuple(args, "O:SetProgressDialog", &obpopd) )
-		return NULL;
-	if (!PyCom_InterfaceFromPyInstanceOrObject(obpopd, IID_IOperationsProgressDialog, (void **)&popd, FALSE))
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIFO->SetProgressDialog( popd );
-	popd->Release();
-	PY_INTERFACE_POSTCALL;
+    IFileOperation *pIFO = GetI(self);
+    if (pIFO == NULL)
+        return NULL;
+    // @pyparm <o PyIOperationsProgressDialog>|popd||Progress dialog interface
+    PyObject *obpopd;
+    IOperationsProgressDialog *popd;
+    if (!PyArg_ParseTuple(args, "O:SetProgressDialog", &obpopd))
+        return NULL;
+    if (!PyCom_InterfaceFromPyInstanceOrObject(obpopd, IID_IOperationsProgressDialog, (void **)&popd, FALSE))
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIFO->SetProgressDialog(popd);
+    popd->Release();
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pIFO, IID_IFileOperation );
-	Py_INCREF(Py_None);
-	return Py_None;
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pIFO, IID_IFileOperation);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @pymethod |PyIFileOperation|SetProperties|Specifies a set of properties to be changed.
@@ -150,476 +141,488 @@ PyObject *PyIFileOperation::SetProgressDialog(PyObject *self, PyObject *args)
 // even though the given file operation was actually performed.
 PyObject *PyIFileOperation::SetProperties(PyObject *self, PyObject *args)
 {
-	IFileOperation *pIFO = GetI(self);
-	if ( pIFO == NULL )
-		return NULL;
-	// @pyparm <o PyIPropertyChangeArray>|proparray||Sequence of property changes to be performed (see <om propsys.PSCreatePropertyChangeArray>)
-	PyObject *obpproparray;
-	IPropertyChangeArray * pproparray;
-	if ( !PyArg_ParseTuple(args, "O:SetProperties", &obpproparray) )
-		return NULL;
-	if (!PyCom_InterfaceFromPyInstanceOrObject(obpproparray, IID_IPropertyChangeArray, (void **)&pproparray, FALSE))
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIFO->SetProperties( pproparray );
-	pproparray->Release();
-	PY_INTERFACE_POSTCALL;
+    IFileOperation *pIFO = GetI(self);
+    if (pIFO == NULL)
+        return NULL;
+    // @pyparm <o PyIPropertyChangeArray>|proparray||Sequence of property changes to be performed (see <om
+    // propsys.PSCreatePropertyChangeArray>)
+    PyObject *obpproparray;
+    IPropertyChangeArray *pproparray;
+    if (!PyArg_ParseTuple(args, "O:SetProperties", &obpproparray))
+        return NULL;
+    if (!PyCom_InterfaceFromPyInstanceOrObject(obpproparray, IID_IPropertyChangeArray, (void **)&pproparray, FALSE))
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIFO->SetProperties(pproparray);
+    pproparray->Release();
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pIFO, IID_IFileOperation );
-	Py_INCREF(Py_None);
-	return Py_None;
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pIFO, IID_IFileOperation);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @pymethod |PyIFileOperation|SetOwnerWindow|Sets the parent window for any UI displayed.
 PyObject *PyIFileOperation::SetOwnerWindow(PyObject *self, PyObject *args)
 {
-	IFileOperation *pIFO = GetI(self);
-	if ( pIFO == NULL )
-		return NULL;
-	// @pyparm <o PyHANDLE>|Owner||Handle to parent window
-	HWND Owner;
-	if ( !PyArg_ParseTuple(args, "O&:SetOwnerWindow", PyWinObject_AsHANDLE, &Owner))
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIFO->SetOwnerWindow(Owner);
-	PY_INTERFACE_POSTCALL;
+    IFileOperation *pIFO = GetI(self);
+    if (pIFO == NULL)
+        return NULL;
+    // @pyparm <o PyHANDLE>|Owner||Handle to parent window
+    HWND Owner;
+    if (!PyArg_ParseTuple(args, "O&:SetOwnerWindow", PyWinObject_AsHANDLE, &Owner))
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIFO->SetOwnerWindow(Owner);
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pIFO, IID_IFileOperation );
-	Py_INCREF(Py_None);
-	return Py_None;
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pIFO, IID_IFileOperation);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @pymethod |PyIFileOperation|ApplyPropertiesToItem|Specifies the item that will receive property changes
 PyObject *PyIFileOperation::ApplyPropertiesToItem(PyObject *self, PyObject *args)
 {
-	IFileOperation *pIFO = GetI(self);
-	if ( pIFO == NULL )
-		return NULL;
-	// @pyparm <o PyIShellItem>|Item||The item to which property changes will be applied
-	PyObject *obpsiItem;
-	IShellItem * psiItem;
-	if ( !PyArg_ParseTuple(args, "O:ApplyPropertiesToItem", &obpsiItem) )
-		return NULL;
-	if (!PyCom_InterfaceFromPyInstanceOrObject(obpsiItem, IID_IShellItem, (void **)&psiItem, FALSE))
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIFO->ApplyPropertiesToItem( psiItem );
-	psiItem->Release();
-	PY_INTERFACE_POSTCALL;
+    IFileOperation *pIFO = GetI(self);
+    if (pIFO == NULL)
+        return NULL;
+    // @pyparm <o PyIShellItem>|Item||The item to which property changes will be applied
+    PyObject *obpsiItem;
+    IShellItem *psiItem;
+    if (!PyArg_ParseTuple(args, "O:ApplyPropertiesToItem", &obpsiItem))
+        return NULL;
+    if (!PyCom_InterfaceFromPyInstanceOrObject(obpsiItem, IID_IShellItem, (void **)&psiItem, FALSE))
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIFO->ApplyPropertiesToItem(psiItem);
+    psiItem->Release();
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pIFO, IID_IFileOperation );
-	Py_INCREF(Py_None);
-	return Py_None;
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pIFO, IID_IFileOperation);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @pymethod |PyIFileOperation|ApplyPropertiesToItems|Specifies multiple items that will receive property changes
 PyObject *PyIFileOperation::ApplyPropertiesToItems(PyObject *self, PyObject *args)
 {
-	IFileOperation *pIFO = GetI(self);
-	if ( pIFO == NULL )
-		return NULL;
-	// @pyparm <o PyIUnknown>|Items||<o PyIShellItemArray>, <o PyIDataObject>, or <o PyIEnumShellItems> containing the target items
-	PyObject *obpunkItems;
-	IUnknown * punkItems;
-	if ( !PyArg_ParseTuple(args, "O:ApplyPropertiesToItems", &obpunkItems) )
-		return NULL;
-	if (!PyCom_InterfaceFromPyInstanceOrObject(obpunkItems, IID_IUnknown, (void **)&punkItems, FALSE))
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIFO->ApplyPropertiesToItems( punkItems );
-	punkItems->Release();
-	PY_INTERFACE_POSTCALL;
+    IFileOperation *pIFO = GetI(self);
+    if (pIFO == NULL)
+        return NULL;
+    // @pyparm <o PyIUnknown>|Items||<o PyIShellItemArray>, <o PyIDataObject>, or <o PyIEnumShellItems> containing the
+    // target items
+    PyObject *obpunkItems;
+    IUnknown *punkItems;
+    if (!PyArg_ParseTuple(args, "O:ApplyPropertiesToItems", &obpunkItems))
+        return NULL;
+    if (!PyCom_InterfaceFromPyInstanceOrObject(obpunkItems, IID_IUnknown, (void **)&punkItems, FALSE))
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIFO->ApplyPropertiesToItems(punkItems);
+    punkItems->Release();
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pIFO, IID_IFileOperation );
-	Py_INCREF(Py_None);
-	return Py_None;
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pIFO, IID_IFileOperation);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @pymethod |PyIFileOperation|RenameItem|Adds a rename to the operation sequence
 PyObject *PyIFileOperation::RenameItem(PyObject *self, PyObject *args)
 {
-	IFileOperation *pIFO = GetI(self);
-	if ( pIFO == NULL )
-		return NULL;
-	// @pyparm <o PyIShellItem>|Item||The item to be renamed
-	// @pyparm str|NewName||The new name
-	// @pyparm <o PyGFileOperationProgressSink>|Sink|None|Progress sink for this operation only.
-	PyObject *obItem, *obNewName, *obSink = Py_None;
-	IShellItem * pItem;
-	TmpWCHAR NewName;
-	IFileOperationProgressSink * pSink;
+    IFileOperation *pIFO = GetI(self);
+    if (pIFO == NULL)
+        return NULL;
+    // @pyparm <o PyIShellItem>|Item||The item to be renamed
+    // @pyparm str|NewName||The new name
+    // @pyparm <o PyGFileOperationProgressSink>|Sink|None|Progress sink for this operation only.
+    PyObject *obItem, *obNewName, *obSink = Py_None;
+    IShellItem *pItem;
+    TmpWCHAR NewName;
+    IFileOperationProgressSink *pSink;
 
-	if ( !PyArg_ParseTuple(args, "OO|O:RenameItem", &obItem, &obNewName, &obSink))
-		return NULL;
-	if (!PyWinObject_AsWCHAR(obNewName, &NewName, FALSE))
-		return NULL;
-	if (!PyCom_InterfaceFromPyInstanceOrObject(obItem, IID_IShellItem, (void **)&pItem, FALSE))
-		return NULL;
-	if (!PyCom_InterfaceFromPyInstanceOrObject(obSink, IID_IFileOperationProgressSink, (void **)&pSink, TRUE)){
-		PYCOM_RELEASE(pItem);
-		return NULL;
-		}
+    if (!PyArg_ParseTuple(args, "OO|O:RenameItem", &obItem, &obNewName, &obSink))
+        return NULL;
+    if (!PyWinObject_AsWCHAR(obNewName, &NewName, FALSE))
+        return NULL;
+    if (!PyCom_InterfaceFromPyInstanceOrObject(obItem, IID_IShellItem, (void **)&pItem, FALSE))
+        return NULL;
+    if (!PyCom_InterfaceFromPyInstanceOrObject(obSink, IID_IFileOperationProgressSink, (void **)&pSink, TRUE)) {
+        PYCOM_RELEASE(pItem);
+        return NULL;
+    }
 
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIFO->RenameItem(pItem, NewName, pSink);
-	pItem->Release();
-	if (pSink) pSink->Release();
-	PY_INTERFACE_POSTCALL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIFO->RenameItem(pItem, NewName, pSink);
+    pItem->Release();
+    if (pSink)
+        pSink->Release();
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pIFO, IID_IFileOperation );
-	Py_INCREF(Py_None);
-	return Py_None;
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pIFO, IID_IFileOperation);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @pymethod |PyIFileOperation|RenameItems|Adds multiple renames to the operation sequence
 PyObject *PyIFileOperation::RenameItems(PyObject *self, PyObject *args)
 {
-	IFileOperation *pIFO = GetI(self);
-	if ( pIFO == NULL )
-		return NULL;
-	// @pyparm <o PyIUnknown>|pUnkItems||<o PyIShellItemArray>, <o PyIDataObject>, or <o PyIEnumShellItems> containing items to be renamed
-	// @pyparm str|NewName||New name for all items.  Collisions handled automatically.
-	PyObject *obItems;
-	PyObject *obNewName;
-	IUnknown * pItems;
-	TmpWCHAR NewName;
-	if (!PyArg_ParseTuple(args, "OO:RenameItems", &obItems, &obNewName))
-		return NULL;
-	if (!PyWinObject_AsWCHAR(obNewName, &NewName, FALSE))
-		return NULL;
-	if (!PyCom_InterfaceFromPyInstanceOrObject(obItems, IID_IUnknown, (void **)&pItems, FALSE))
-		return NULL;
+    IFileOperation *pIFO = GetI(self);
+    if (pIFO == NULL)
+        return NULL;
+    // @pyparm <o PyIUnknown>|pUnkItems||<o PyIShellItemArray>, <o PyIDataObject>, or <o PyIEnumShellItems> containing
+    // items to be renamed
+    // @pyparm str|NewName||New name for all items.  Collisions handled automatically.
+    PyObject *obItems;
+    PyObject *obNewName;
+    IUnknown *pItems;
+    TmpWCHAR NewName;
+    if (!PyArg_ParseTuple(args, "OO:RenameItems", &obItems, &obNewName))
+        return NULL;
+    if (!PyWinObject_AsWCHAR(obNewName, &NewName, FALSE))
+        return NULL;
+    if (!PyCom_InterfaceFromPyInstanceOrObject(obItems, IID_IUnknown, (void **)&pItems, FALSE))
+        return NULL;
 
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIFO->RenameItems(pItems, NewName);
-	pItems->Release();
-	PY_INTERFACE_POSTCALL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIFO->RenameItems(pItems, NewName);
+    pItems->Release();
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pIFO, IID_IFileOperation );
-	Py_INCREF(Py_None);
-	return Py_None;
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pIFO, IID_IFileOperation);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @pymethod |PyIFileOperation|MoveItem|Adds a move operation to the configuration
 PyObject *PyIFileOperation::MoveItem(PyObject *self, PyObject *args)
 {
-	IFileOperation *pIFO = GetI(self);
-	if ( pIFO == NULL )
-		return NULL;
-	// @pyparm <o PyIShellItem>|Item||The item to be moved
-	// @pyparm <o PyIShellItem>|DestinationFolder||The folder into which it will be moved
-	// @pyparm str|pszNewName|None|Name to be given to moved item, use None to keep original name
-	// @pyparm <o PyGFileOperationProgressSink>|Sink|None|Progress sink to receive notification for just this operation
-	PyObject *obItem;
-	PyObject *obDestinationFolder;
-	PyObject *obNewName = Py_None;
-	PyObject *obSink = Py_None;
-	IShellItem * pItem;
-	IShellItem * pDestinationFolder;
-	TmpWCHAR NewName;
-	IFileOperationProgressSink * pSink;
-	if ( !PyArg_ParseTuple(args, "OO|OO:MoveItem", &obItem, &obDestinationFolder, &obNewName, &obSink))
-		return NULL;
-	if (!PyWinObject_AsWCHAR(obNewName, &NewName, TRUE))
-		return NULL;
-	if (!PyCom_InterfaceFromPyInstanceOrObject(obItem, IID_IShellItem, (void **)&pItem, FALSE))
-		return NULL;
-	if (!PyCom_InterfaceFromPyInstanceOrObject(obDestinationFolder, IID_IShellItem, (void **)&pDestinationFolder, FALSE)){
-		PYCOM_RELEASE(pItem);
-		return NULL;
-		}
-	if (!PyCom_InterfaceFromPyInstanceOrObject(obSink, IID_IFileOperationProgressSink, (void **)&pSink, TRUE)){
-		PYCOM_RELEASE(pItem);
-		PYCOM_RELEASE(pDestinationFolder);
-		return NULL;
-		}
+    IFileOperation *pIFO = GetI(self);
+    if (pIFO == NULL)
+        return NULL;
+    // @pyparm <o PyIShellItem>|Item||The item to be moved
+    // @pyparm <o PyIShellItem>|DestinationFolder||The folder into which it will be moved
+    // @pyparm str|pszNewName|None|Name to be given to moved item, use None to keep original name
+    // @pyparm <o PyGFileOperationProgressSink>|Sink|None|Progress sink to receive notification for just this operation
+    PyObject *obItem;
+    PyObject *obDestinationFolder;
+    PyObject *obNewName = Py_None;
+    PyObject *obSink = Py_None;
+    IShellItem *pItem;
+    IShellItem *pDestinationFolder;
+    TmpWCHAR NewName;
+    IFileOperationProgressSink *pSink;
+    if (!PyArg_ParseTuple(args, "OO|OO:MoveItem", &obItem, &obDestinationFolder, &obNewName, &obSink))
+        return NULL;
+    if (!PyWinObject_AsWCHAR(obNewName, &NewName, TRUE))
+        return NULL;
+    if (!PyCom_InterfaceFromPyInstanceOrObject(obItem, IID_IShellItem, (void **)&pItem, FALSE))
+        return NULL;
+    if (!PyCom_InterfaceFromPyInstanceOrObject(obDestinationFolder, IID_IShellItem, (void **)&pDestinationFolder,
+                                               FALSE)) {
+        PYCOM_RELEASE(pItem);
+        return NULL;
+    }
+    if (!PyCom_InterfaceFromPyInstanceOrObject(obSink, IID_IFileOperationProgressSink, (void **)&pSink, TRUE)) {
+        PYCOM_RELEASE(pItem);
+        PYCOM_RELEASE(pDestinationFolder);
+        return NULL;
+    }
 
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIFO->MoveItem(pItem, pDestinationFolder, NewName, pSink);
-	pItem->Release();
-	pDestinationFolder->Release();
-	if (pSink)
-		pSink->Release();
-	PY_INTERFACE_POSTCALL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIFO->MoveItem(pItem, pDestinationFolder, NewName, pSink);
+    pItem->Release();
+    pDestinationFolder->Release();
+    if (pSink)
+        pSink->Release();
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pIFO, IID_IFileOperation );
-	Py_INCREF(Py_None);
-	return Py_None;
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pIFO, IID_IFileOperation);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @pymethod |PyIFileOperation|MoveItems|Adds multiple move operations to the configuration
 PyObject *PyIFileOperation::MoveItems(PyObject *self, PyObject *args)
 {
-	IFileOperation *pIFO = GetI(self);
-	if ( pIFO == NULL )
-		return NULL;
-	// @pyparm <o PyIUnknown>|Items||<o PyIShellItemArray>, <o PyIDataObject>, or <o PyIEnumShellItems> containing the items to be moved
-	// @pyparm <o PyIShellItem>|DestinationFolder||Folder into which all items will be moved
-	PyObject *obItems;
-	PyObject *obDestinationFolder;
-	IUnknown * pItems;
-	IShellItem * pDestinationFolder;
-	if ( !PyArg_ParseTuple(args, "OO:MoveItems", &obItems, &obDestinationFolder) )
-		return NULL;	
-	if (!PyCom_InterfaceFromPyInstanceOrObject(obItems, IID_IUnknown, (void **)&pItems, FALSE))
-		return NULL;
-	if (!PyCom_InterfaceFromPyInstanceOrObject(obDestinationFolder, IID_IShellItem, (void **)&pDestinationFolder, FALSE)){
-		PYCOM_RELEASE(pItems);
-		return NULL;
-		}
+    IFileOperation *pIFO = GetI(self);
+    if (pIFO == NULL)
+        return NULL;
+    // @pyparm <o PyIUnknown>|Items||<o PyIShellItemArray>, <o PyIDataObject>, or <o PyIEnumShellItems> containing the
+    // items to be moved
+    // @pyparm <o PyIShellItem>|DestinationFolder||Folder into which all items will be moved
+    PyObject *obItems;
+    PyObject *obDestinationFolder;
+    IUnknown *pItems;
+    IShellItem *pDestinationFolder;
+    if (!PyArg_ParseTuple(args, "OO:MoveItems", &obItems, &obDestinationFolder))
+        return NULL;
+    if (!PyCom_InterfaceFromPyInstanceOrObject(obItems, IID_IUnknown, (void **)&pItems, FALSE))
+        return NULL;
+    if (!PyCom_InterfaceFromPyInstanceOrObject(obDestinationFolder, IID_IShellItem, (void **)&pDestinationFolder,
+                                               FALSE)) {
+        PYCOM_RELEASE(pItems);
+        return NULL;
+    }
 
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIFO->MoveItems( pItems, pDestinationFolder );
-	pItems->Release();
-	pDestinationFolder->Release();
-	PY_INTERFACE_POSTCALL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIFO->MoveItems(pItems, pDestinationFolder);
+    pItems->Release();
+    pDestinationFolder->Release();
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pIFO, IID_IFileOperation );
-	Py_INCREF(Py_None);
-	return Py_None;
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pIFO, IID_IFileOperation);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @pymethod |PyIFileOperation|CopyItem|Adds a copy operation to the configuration
 PyObject *PyIFileOperation::CopyItem(PyObject *self, PyObject *args)
 {
-	IFileOperation *pIFO = GetI(self);
-	if ( pIFO == NULL )
-		return NULL;
-	// @pyparm <o PyIShellItem>|Item||Item to be copied
-	// @pyparm <o PyIShellItem>|DestinationFolder||Folder into which it will be copied
-	// @pyparm str|CopyName|None|New name for the copied file, use None to keep original name
-	// @pyparm <o PyGFileOperationProgressSink>|Sink|None|Progress sink for just this operation
-	PyObject *obItem;
-	PyObject *obDestinationFolder;
-	PyObject *obCopyName = Py_None;
-	PyObject *obSink = Py_None;
-	IShellItem * pItem;
-	IShellItem * pDestinationFolder;
-	TmpWCHAR CopyName;
-	IFileOperationProgressSink * pSink;
+    IFileOperation *pIFO = GetI(self);
+    if (pIFO == NULL)
+        return NULL;
+    // @pyparm <o PyIShellItem>|Item||Item to be copied
+    // @pyparm <o PyIShellItem>|DestinationFolder||Folder into which it will be copied
+    // @pyparm str|CopyName|None|New name for the copied file, use None to keep original name
+    // @pyparm <o PyGFileOperationProgressSink>|Sink|None|Progress sink for just this operation
+    PyObject *obItem;
+    PyObject *obDestinationFolder;
+    PyObject *obCopyName = Py_None;
+    PyObject *obSink = Py_None;
+    IShellItem *pItem;
+    IShellItem *pDestinationFolder;
+    TmpWCHAR CopyName;
+    IFileOperationProgressSink *pSink;
 
-	if (!PyArg_ParseTuple(args, "OO|OO:CopyItem", &obItem, &obDestinationFolder, &obCopyName, &obSink))
-		return NULL;
-	if (!PyWinObject_AsWCHAR(obCopyName, &CopyName, TRUE))
-		return NULL;
-	if (!PyCom_InterfaceFromPyInstanceOrObject(obItem, IID_IShellItem, (void **)&pItem, FALSE))
-		return NULL;
-	if (!PyCom_InterfaceFromPyInstanceOrObject(obDestinationFolder, IID_IShellItem, (void **)&pDestinationFolder, FALSE)){
-		PYCOM_RELEASE(pItem);
-		return NULL;
-		}
-	if (!PyCom_InterfaceFromPyInstanceOrObject(obSink, IID_IFileOperationProgressSink, (void **)&pSink, TRUE)){
-		PYCOM_RELEASE(pItem);
-		PYCOM_RELEASE(pDestinationFolder);
-		return NULL;
-		}
+    if (!PyArg_ParseTuple(args, "OO|OO:CopyItem", &obItem, &obDestinationFolder, &obCopyName, &obSink))
+        return NULL;
+    if (!PyWinObject_AsWCHAR(obCopyName, &CopyName, TRUE))
+        return NULL;
+    if (!PyCom_InterfaceFromPyInstanceOrObject(obItem, IID_IShellItem, (void **)&pItem, FALSE))
+        return NULL;
+    if (!PyCom_InterfaceFromPyInstanceOrObject(obDestinationFolder, IID_IShellItem, (void **)&pDestinationFolder,
+                                               FALSE)) {
+        PYCOM_RELEASE(pItem);
+        return NULL;
+    }
+    if (!PyCom_InterfaceFromPyInstanceOrObject(obSink, IID_IFileOperationProgressSink, (void **)&pSink, TRUE)) {
+        PYCOM_RELEASE(pItem);
+        PYCOM_RELEASE(pDestinationFolder);
+        return NULL;
+    }
 
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIFO->CopyItem( pItem, pDestinationFolder, CopyName, pSink);
-	pItem->Release();
-	pDestinationFolder->Release();
-	if (pSink)
-		pSink->Release();
-	PY_INTERFACE_POSTCALL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIFO->CopyItem(pItem, pDestinationFolder, CopyName, pSink);
+    pItem->Release();
+    pDestinationFolder->Release();
+    if (pSink)
+        pSink->Release();
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pIFO, IID_IFileOperation );
-	Py_INCREF(Py_None);
-	return Py_None;
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pIFO, IID_IFileOperation);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @pymethod |PyIFileOperation|CopyItems|Adds multiple copy operations to the configuration
 PyObject *PyIFileOperation::CopyItems(PyObject *self, PyObject *args)
 {
-	IFileOperation *pIFO = GetI(self);
-	if ( pIFO == NULL )
-		return NULL;
-	// @pyparm <o PyIUnknown>|Items||<o PyIShellItemArray>, <o PyIDataObject>, or <o PyIEnumShellItems> containing items to be copied
-	// @pyparm <o PyIShellItem>|DestinationFolder||Folder into which they will be copied
-	PyObject *obItems;
-	PyObject *obDestinationFolder;
-	IUnknown * pItems;
-	IShellItem * pDestinationFolder;
-	if ( !PyArg_ParseTuple(args, "OO:CopyItems", &obItems, &obDestinationFolder) )
-		return NULL;
-	if (!PyCom_InterfaceFromPyInstanceOrObject(obItems, IID_IUnknown, (void **)&pItems, FALSE))
-		return NULL;
-	if (!PyCom_InterfaceFromPyInstanceOrObject(obDestinationFolder, IID_IShellItem, (void **)&pDestinationFolder, FALSE)){
-		PYCOM_RELEASE(pItems);
-		return NULL;
-		}
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIFO->CopyItems( pItems, pDestinationFolder );
-	pItems->Release();
-	pDestinationFolder->Release();
-	PY_INTERFACE_POSTCALL;
+    IFileOperation *pIFO = GetI(self);
+    if (pIFO == NULL)
+        return NULL;
+    // @pyparm <o PyIUnknown>|Items||<o PyIShellItemArray>, <o PyIDataObject>, or <o PyIEnumShellItems> containing items
+    // to be copied
+    // @pyparm <o PyIShellItem>|DestinationFolder||Folder into which they will be copied
+    PyObject *obItems;
+    PyObject *obDestinationFolder;
+    IUnknown *pItems;
+    IShellItem *pDestinationFolder;
+    if (!PyArg_ParseTuple(args, "OO:CopyItems", &obItems, &obDestinationFolder))
+        return NULL;
+    if (!PyCom_InterfaceFromPyInstanceOrObject(obItems, IID_IUnknown, (void **)&pItems, FALSE))
+        return NULL;
+    if (!PyCom_InterfaceFromPyInstanceOrObject(obDestinationFolder, IID_IShellItem, (void **)&pDestinationFolder,
+                                               FALSE)) {
+        PYCOM_RELEASE(pItems);
+        return NULL;
+    }
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIFO->CopyItems(pItems, pDestinationFolder);
+    pItems->Release();
+    pDestinationFolder->Release();
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pIFO, IID_IFileOperation );
-	Py_INCREF(Py_None);
-	return Py_None;
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pIFO, IID_IFileOperation);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @pymethod |PyIFileOperation|DeleteItem|Adds a delete operation to the configuration
 PyObject *PyIFileOperation::DeleteItem(PyObject *self, PyObject *args)
 {
-	IFileOperation *pIFO = GetI(self);
-	if ( pIFO == NULL )
-		return NULL;
-	// @pyparm <o PyIShellItem>|Item||Description for psiItem
-	// @pyparm <o PyGFileOperationProgressSink>|Sink|None|Progress sink for just this operation
-	PyObject *obItem;
-	PyObject *obSink = Py_None;
-	IShellItem * pItem;
-	IFileOperationProgressSink * pSink;
-	if (!PyArg_ParseTuple(args, "O|O:DeleteItem", &obItem, &obSink))
-		return NULL;
-	if (!PyCom_InterfaceFromPyInstanceOrObject(obItem, IID_IShellItem, (void **)&pItem, FALSE))
-		return NULL;
-	if (!PyCom_InterfaceFromPyInstanceOrObject(obSink, IID_IFileOperationProgressSink, (void **)&pSink, TRUE)){
-		PYCOM_RELEASE(pItem);
-		return NULL;
-		}
+    IFileOperation *pIFO = GetI(self);
+    if (pIFO == NULL)
+        return NULL;
+    // @pyparm <o PyIShellItem>|Item||Description for psiItem
+    // @pyparm <o PyGFileOperationProgressSink>|Sink|None|Progress sink for just this operation
+    PyObject *obItem;
+    PyObject *obSink = Py_None;
+    IShellItem *pItem;
+    IFileOperationProgressSink *pSink;
+    if (!PyArg_ParseTuple(args, "O|O:DeleteItem", &obItem, &obSink))
+        return NULL;
+    if (!PyCom_InterfaceFromPyInstanceOrObject(obItem, IID_IShellItem, (void **)&pItem, FALSE))
+        return NULL;
+    if (!PyCom_InterfaceFromPyInstanceOrObject(obSink, IID_IFileOperationProgressSink, (void **)&pSink, TRUE)) {
+        PYCOM_RELEASE(pItem);
+        return NULL;
+    }
 
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIFO->DeleteItem(pItem, pSink);
-	pItem->Release();
-	if (pSink)
-		pSink->Release();
-	PY_INTERFACE_POSTCALL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIFO->DeleteItem(pItem, pSink);
+    pItem->Release();
+    if (pSink)
+        pSink->Release();
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pIFO, IID_IFileOperation );
-	Py_INCREF(Py_None);
-	return Py_None;
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pIFO, IID_IFileOperation);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @pymethod |PyIFileOperation|DeleteItems|Adds multiple delete operations to the configuration
 PyObject *PyIFileOperation::DeleteItems(PyObject *self, PyObject *args)
 {
-	IFileOperation *pIFO = GetI(self);
-	if ( pIFO == NULL )
-		return NULL;
-	// @pyparm <o PyIUnknown>|Items||<o PyIShellItemArray>, <o PyIDataObject>, or <o PyIEnumShellItems> containing the items to be deleted
-	PyObject *obItems;
-	IUnknown * pItems;
-	if ( !PyArg_ParseTuple(args, "O:DeleteItems", &obItems) )
-		return NULL;
-	if (!PyCom_InterfaceFromPyInstanceOrObject(obItems, IID_IUnknown, (void **)&pItems, FALSE))
-		return NULL;
+    IFileOperation *pIFO = GetI(self);
+    if (pIFO == NULL)
+        return NULL;
+    // @pyparm <o PyIUnknown>|Items||<o PyIShellItemArray>, <o PyIDataObject>, or <o PyIEnumShellItems> containing the
+    // items to be deleted
+    PyObject *obItems;
+    IUnknown *pItems;
+    if (!PyArg_ParseTuple(args, "O:DeleteItems", &obItems))
+        return NULL;
+    if (!PyCom_InterfaceFromPyInstanceOrObject(obItems, IID_IUnknown, (void **)&pItems, FALSE))
+        return NULL;
 
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIFO->DeleteItems(pItems);
-	pItems->Release();
-	PY_INTERFACE_POSTCALL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIFO->DeleteItems(pItems);
+    pItems->Release();
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pIFO, IID_IFileOperation );
-	Py_INCREF(Py_None);
-	return Py_None;
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pIFO, IID_IFileOperation);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @pymethod |PyIFileOperation|NewItem|Creates a new file as part of the operation
 PyObject *PyIFileOperation::NewItem(PyObject *self, PyObject *args)
 {
-	IFileOperation *pIFO = GetI(self);
-	if ( pIFO == NULL )
-		return NULL;
-	// @pyparm <o PyIShellItem>|DestinationFolder||Folder in which to create the file
-	// @pyparm int|FileAttributes||Combination of win32con.FILE_ATTRIBUTE_* flags
-	// @pyparm str|Name||Name of the new file
-	// @pyparm str|TemplateName|None|Template file used to initialize the new file
-	// @pyparm <o PyGFileOperationProgressSink>|Sink|None|Progress sink for just this operation
-	PyObject *obDestinationFolder;
-	PyObject *obName;
-	PyObject *obTemplateName = Py_None;
-	PyObject *obSink = Py_None;
-	IShellItem * pDestinationFolder;
-	DWORD FileAttributes;
-	TmpWCHAR Name;
-	TmpWCHAR TemplateName;
-	IFileOperationProgressSink * pSink;
+    IFileOperation *pIFO = GetI(self);
+    if (pIFO == NULL)
+        return NULL;
+    // @pyparm <o PyIShellItem>|DestinationFolder||Folder in which to create the file
+    // @pyparm int|FileAttributes||Combination of win32con.FILE_ATTRIBUTE_* flags
+    // @pyparm str|Name||Name of the new file
+    // @pyparm str|TemplateName|None|Template file used to initialize the new file
+    // @pyparm <o PyGFileOperationProgressSink>|Sink|None|Progress sink for just this operation
+    PyObject *obDestinationFolder;
+    PyObject *obName;
+    PyObject *obTemplateName = Py_None;
+    PyObject *obSink = Py_None;
+    IShellItem *pDestinationFolder;
+    DWORD FileAttributes;
+    TmpWCHAR Name;
+    TmpWCHAR TemplateName;
+    IFileOperationProgressSink *pSink;
 
-	if (!PyArg_ParseTuple(args, "OkO|OO:NewItem", &obDestinationFolder, &FileAttributes, &obName,
-		&obTemplateName, &obSink))
-		return NULL;
-	if (!PyWinObject_AsWCHAR(obName, &Name, FALSE))
-		return NULL;
-	if (!PyWinObject_AsWCHAR(obTemplateName, &TemplateName, TRUE))
-		return NULL;
-	if (!PyCom_InterfaceFromPyInstanceOrObject(obDestinationFolder, IID_IShellItem, (void **)&pDestinationFolder, FALSE))
-		return NULL;
-	if (!PyCom_InterfaceFromPyInstanceOrObject(obSink, IID_IFileOperationProgressSink, (void **)&pSink, TRUE)){
-		PYCOM_RELEASE(pDestinationFolder);
-		return NULL;
-		}
+    if (!PyArg_ParseTuple(args, "OkO|OO:NewItem", &obDestinationFolder, &FileAttributes, &obName, &obTemplateName,
+                          &obSink))
+        return NULL;
+    if (!PyWinObject_AsWCHAR(obName, &Name, FALSE))
+        return NULL;
+    if (!PyWinObject_AsWCHAR(obTemplateName, &TemplateName, TRUE))
+        return NULL;
+    if (!PyCom_InterfaceFromPyInstanceOrObject(obDestinationFolder, IID_IShellItem, (void **)&pDestinationFolder,
+                                               FALSE))
+        return NULL;
+    if (!PyCom_InterfaceFromPyInstanceOrObject(obSink, IID_IFileOperationProgressSink, (void **)&pSink, TRUE)) {
+        PYCOM_RELEASE(pDestinationFolder);
+        return NULL;
+    }
 
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIFO->NewItem(pDestinationFolder, FileAttributes, Name, TemplateName, pSink);
-	pDestinationFolder->Release();
-	if (pSink)
-		pSink->Release();
-	PY_INTERFACE_POSTCALL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIFO->NewItem(pDestinationFolder, FileAttributes, Name, TemplateName, pSink);
+    pDestinationFolder->Release();
+    if (pSink)
+        pSink->Release();
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pIFO, IID_IFileOperation );
-	Py_INCREF(Py_None);
-	return Py_None;
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pIFO, IID_IFileOperation);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @pymethod |PyIFileOperation|PerformOperations|Effects all configured file system modifications
 PyObject *PyIFileOperation::PerformOperations(PyObject *self, PyObject *args)
 {
-	IFileOperation *pIFO = GetI(self);
-	if ( pIFO == NULL )
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIFO->PerformOperations( );
-	PY_INTERFACE_POSTCALL;
+    IFileOperation *pIFO = GetI(self);
+    if (pIFO == NULL)
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIFO->PerformOperations();
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pIFO, IID_IFileOperation );
-	Py_INCREF(Py_None);
-	return Py_None;
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pIFO, IID_IFileOperation);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
-// @pymethod boolean|PyIFileOperation|GetAnyOperationsAborted|Determines if any operations were terminated 
+// @pymethod boolean|PyIFileOperation|GetAnyOperationsAborted|Determines if any operations were terminated
 PyObject *PyIFileOperation::GetAnyOperationsAborted(PyObject *self, PyObject *args)
 {
-	IFileOperation *pIFO = GetI(self);
-	if ( pIFO == NULL )
-		return NULL;
-	BOOL AnyOperationsAborted;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIFO->GetAnyOperationsAborted( &AnyOperationsAborted );
-	PY_INTERFACE_POSTCALL;
+    IFileOperation *pIFO = GetI(self);
+    if (pIFO == NULL)
+        return NULL;
+    BOOL AnyOperationsAborted;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIFO->GetAnyOperationsAborted(&AnyOperationsAborted);
+    PY_INTERFACE_POSTCALL;
 
-	if (FAILED(hr))
-		return PyCom_BuildPyException(hr, pIFO, IID_IFileOperation );
-	return PyBool_FromLong(AnyOperationsAborted);
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pIFO, IID_IFileOperation);
+    return PyBool_FromLong(AnyOperationsAborted);
 }
 
 // @object PyIFileOperation|Interface used to build a collection of file system modifications to be
@@ -627,33 +630,39 @@ PyObject *PyIFileOperation::GetAnyOperationsAborted(PyObject *self, PyObject *ar
 // <nl>No changes are actually made until PerformOperations is called.
 // <nl>Progress can be monitored by implementing <o PyGFileOperationProgressSink>.
 // <nl>Requires Vista or later.
-static struct PyMethodDef PyIFileOperation_methods[] =
-{
-	{ "Advise", PyIFileOperation::Advise, 1 }, // @pymeth Advise|Connects an event sink to receive updates
-	{ "Unadvise", PyIFileOperation::Unadvise, 1 }, // @pymeth Unadvise|Disconnects a progress sink
-	{ "SetOperationFlags", PyIFileOperation::SetOperationFlags, 1 }, // @pymeth SetOperationFlags|Sets option flags
-	{ "SetProgressMessage", PyIFileOperation::SetProgressMessage, 1 }, // @pymeth SetProgressMessage|Not implemented
-	{ "SetProgressDialog", PyIFileOperation::SetProgressDialog, 1 }, // @pymeth SetProgressDialog|Provides an interface used to display progress
-	{ "SetProperties", PyIFileOperation::SetProperties, 1 }, // @pymeth SetProperties|Specifies a set of properties to be changed
-	{ "SetOwnerWindow", PyIFileOperation::SetOwnerWindow, 1 }, // @pymeth SetOwnerWindow|Sets the parent window for any UI displayed.
-	{ "ApplyPropertiesToItem", PyIFileOperation::ApplyPropertiesToItem, 1 }, // @pymeth ApplyPropertiesToItem|Specifies the item that will receive property changes
-	{ "ApplyPropertiesToItems", PyIFileOperation::ApplyPropertiesToItems, 1 }, // @pymeth ApplyPropertiesToItems|Specifies multiple items that will receive property changes
-	{ "RenameItem", PyIFileOperation::RenameItem, 1 }, // @pymeth RenameItem|Adds a rename to the operation sequence
-	{ "RenameItems", PyIFileOperation::RenameItems, 1 }, // @pymeth RenameItems|Adds multiple renames to the operation sequence
-	{ "MoveItem", PyIFileOperation::MoveItem, 1 }, // @pymeth MoveItem|Adds a move operation to the configuration
-	{ "MoveItems", PyIFileOperation::MoveItems, 1 }, // @pymeth MoveItems|Adds multiple move operations to the configuration
-	{ "CopyItem", PyIFileOperation::CopyItem, 1 }, // @pymeth CopyItem|Adds a copy operation to the configuration
-	{ "CopyItems", PyIFileOperation::CopyItems, 1 }, // @pymeth CopyItems|Adds multiple copy operations to the configuration
-	{ "DeleteItem", PyIFileOperation::DeleteItem, 1 }, // @pymeth DeleteItem|Adds a delete operation to the configuration
-	{ "DeleteItems", PyIFileOperation::DeleteItems, 1 }, // @pymeth DeleteItems|Adds multiple delete operations to the configuration
-	{ "NewItem", PyIFileOperation::NewItem, 1 }, // @pymeth NewItem|Creates a new file as part of the operation
-	{ "PerformOperations", PyIFileOperation::PerformOperations, METH_NOARGS }, // @pymeth PerformOperations|Effects all configured file system modifications
-	{ "GetAnyOperationsAborted", PyIFileOperation::GetAnyOperationsAborted, METH_NOARGS }, // @pymeth GetAnyOperationsAborted|Determines if any operations were terminated
-	{ NULL }
-};
+static struct PyMethodDef PyIFileOperation_methods[] = {
+    {"Advise", PyIFileOperation::Advise, 1},      // @pymeth Advise|Connects an event sink to receive updates
+    {"Unadvise", PyIFileOperation::Unadvise, 1},  // @pymeth Unadvise|Disconnects a progress sink
+    {"SetOperationFlags", PyIFileOperation::SetOperationFlags, 1},    // @pymeth SetOperationFlags|Sets option flags
+    {"SetProgressMessage", PyIFileOperation::SetProgressMessage, 1},  // @pymeth SetProgressMessage|Not implemented
+    {"SetProgressDialog", PyIFileOperation::SetProgressDialog,
+     1},  // @pymeth SetProgressDialog|Provides an interface used to display progress
+    {"SetProperties", PyIFileOperation::SetProperties,
+     1},  // @pymeth SetProperties|Specifies a set of properties to be changed
+    {"SetOwnerWindow", PyIFileOperation::SetOwnerWindow,
+     1},  // @pymeth SetOwnerWindow|Sets the parent window for any UI displayed.
+    {"ApplyPropertiesToItem", PyIFileOperation::ApplyPropertiesToItem,
+     1},  // @pymeth ApplyPropertiesToItem|Specifies the item that will receive property changes
+    {"ApplyPropertiesToItems", PyIFileOperation::ApplyPropertiesToItems,
+     1},  // @pymeth ApplyPropertiesToItems|Specifies multiple items that will receive property changes
+    {"RenameItem", PyIFileOperation::RenameItem, 1},  // @pymeth RenameItem|Adds a rename to the operation sequence
+    {"RenameItems", PyIFileOperation::RenameItems,
+     1},                                          // @pymeth RenameItems|Adds multiple renames to the operation sequence
+    {"MoveItem", PyIFileOperation::MoveItem, 1},  // @pymeth MoveItem|Adds a move operation to the configuration
+    {"MoveItems", PyIFileOperation::MoveItems,
+     1},  // @pymeth MoveItems|Adds multiple move operations to the configuration
+    {"CopyItem", PyIFileOperation::CopyItem, 1},  // @pymeth CopyItem|Adds a copy operation to the configuration
+    {"CopyItems", PyIFileOperation::CopyItems,
+     1},  // @pymeth CopyItems|Adds multiple copy operations to the configuration
+    {"DeleteItem", PyIFileOperation::DeleteItem, 1},  // @pymeth DeleteItem|Adds a delete operation to the configuration
+    {"DeleteItems", PyIFileOperation::DeleteItems,
+     1},  // @pymeth DeleteItems|Adds multiple delete operations to the configuration
+    {"NewItem", PyIFileOperation::NewItem, 1},  // @pymeth NewItem|Creates a new file as part of the operation
+    {"PerformOperations", PyIFileOperation::PerformOperations,
+     METH_NOARGS},  // @pymeth PerformOperations|Effects all configured file system modifications
+    {"GetAnyOperationsAborted", PyIFileOperation::GetAnyOperationsAborted,
+     METH_NOARGS},  // @pymeth GetAnyOperationsAborted|Determines if any operations were terminated
+    {NULL}};
 
-PyComTypeObject PyIFileOperation::type("PyIFileOperation",
-		&PyIUnknown::type,
-		sizeof(PyIFileOperation),
-		PyIFileOperation_methods,
-		GET_PYCOM_CTOR(PyIFileOperation));
+PyComTypeObject PyIFileOperation::type("PyIFileOperation", &PyIUnknown::type, sizeof(PyIFileOperation),
+                                       PyIFileOperation_methods, GET_PYCOM_CTOR(PyIFileOperation));

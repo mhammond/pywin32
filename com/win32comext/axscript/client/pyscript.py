@@ -67,7 +67,7 @@ class AXScriptAttribute:
 		except KeyError:
 			pass
 		# Check out the sub-items
-		for item in obj.subItems.itervalues():
+		for item in obj.subItems.values():
 			try:
 				return self._DoFindAttribute_(item, attr)
 			except AttributeError:
@@ -75,7 +75,7 @@ class AXScriptAttribute:
 		raise AttributeError(attr)
 
 	def _FindAttribute_(self, attr):
-		for item in self._scriptEngine_.subItems.itervalues():
+		for item in self._scriptEngine_.subItems.values():
 			try:
 				return self._DoFindAttribute_(item, attr)
 			except AttributeError:
@@ -222,10 +222,10 @@ class PyScript(framework.COMScript):
 				self.globalNameSpaceModule.__dict__[item.name] = item.attributeObject
 			if item.IsGlobal():
 				# Global items means sub-items are also added...
-				for subitem in item.subItems.itervalues():
+				for subitem in item.subItems.values():
 					self.globalNameSpaceModule.__dict__[subitem.name] = subitem.attributeObject
 				# Also add all methods
-				for name, entry in item.dispatchContainer._olerepr_.mapFuncs.iteritems():
+				for name, entry in item.dispatchContainer._olerepr_.mapFuncs.items():
 					if not entry.hidden:
 						self.globalNameSpaceModule.__dict__[name] = getattr(item.dispatchContainer,name)
 
@@ -302,7 +302,7 @@ class PyScript(framework.COMScript):
 			except KeyError:
 				# Not there _exactly_ - do case ins search.
 				funcNameLook = funcName.lower()
-				for attr in self.globalNameSpaceModule.__dict__.iterkeys():
+				for attr in self.globalNameSpaceModule.__dict__.keys():
 					if funcNameLook==attr.lower():
 						function = self.globalNameSpaceModule.__dict__[attr]
 						# cache back in scriptlets, to avoid this overhead next time

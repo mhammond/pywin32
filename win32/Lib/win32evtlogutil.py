@@ -59,7 +59,7 @@ def RemoveSourceFromRegistry(appName, eventLogType = "Application"):
     try:
         win32api.RegDeleteKey(win32con.HKEY_LOCAL_MACHINE, \
                      "SYSTEM\\CurrentControlSet\\Services\\EventLog\\%s\\%s" % (eventLogType, appName))
-    except win32api.error, exc:
+    except win32api.error as exc:
         if exc.winerror != winerror.ERROR_FILE_NOT_FOUND:
             raise
 
@@ -121,7 +121,7 @@ def FormatMessage( eventLogRecord, logType="Application" ):
                 break
     finally:
         win32api.RegCloseKey(handle)
-    return data or u'' # Don't want "None" ever being returned.
+    return data or '' # Don't want "None" ever being returned.
 
 def SafeFormatMessage( eventLogRecord, logType=None ):
     """As for FormatMessage, except returns an error message if
@@ -134,8 +134,8 @@ def SafeFormatMessage( eventLogRecord, logType=None ):
         if eventLogRecord.StringInserts is None:
             desc = ""
         else:
-            desc = u", ".join(eventLogRecord.StringInserts)
-        return u"<The description for Event ID ( %d ) in Source ( %r ) could not be found. It contains the following insertion string(s):%r.>" % (winerror.HRESULT_CODE(eventLogRecord.EventID), eventLogRecord.SourceName, desc)
+            desc = ", ".join(eventLogRecord.StringInserts)
+        return "<The description for Event ID ( %d ) in Source ( %r ) could not be found. It contains the following insertion string(s):%r.>" % (winerror.HRESULT_CODE(eventLogRecord.EventID), eventLogRecord.SourceName, desc)
 
 def FeedEventLogRecords(feeder, machineName = None, logName = "Application", readFlags = None):
     if readFlags is None:

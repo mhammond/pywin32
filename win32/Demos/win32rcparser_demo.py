@@ -57,8 +57,8 @@ class DemoWindow:
 def DemoModal():
     # Load the .rc file.
     resources = win32rcparser.Parse(g_rcname)
-    for id, ddef in resources.dialogs.iteritems():
-        print "Displaying dialog", id
+    for id, ddef in resources.dialogs.items():
+        print("Displaying dialog", id)
         w=DemoWindow(ddef)
         w.DoModal()
 
