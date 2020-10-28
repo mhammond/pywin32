@@ -140,32 +140,23 @@ def find_platform_sdk_dir():
             "lib": os.environ["MSSDK_LIB"].split(os.path.pathsep),
         }
 
-    # Windows SDKs up to version 7 use a reg key SOFTWARE\Microsoft\Microsoft SDKs\Windows
-    # SDKs 8 and later use SOFTWARE\Microsoft\Windows Kits\Installed Roots
-    # We currently target version 10.*
-    flags_variants = [winreg.KEY_READ]
-    try:
-        flags_variants.append(winreg.KEY_READ | winreg.KEY_WOW64_32KEY)
-    except AttributeError:
-        pass
+    # Find the win 10 SDKs installed.
     installedVersions = []
-    for flags in flags_variants:
-        try:
-            key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE,
-                                r"SOFTWARE\Microsoft\Windows Kits\Installed Roots",
-                                0,
-                                flags)
-            installRoot = winreg.QueryValueEx(key, "KitsRoot10")[0]
-            keyNo = 0
-            while 1:
-                try:
-                    installedVersions.append(winreg.EnumKey(key, keyNo))
-                    keyNo += 1
-                except winreg.error:
-                    break
-            break
-        except EnvironmentError:
-            pass
+    try:
+        key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE,
+                            r"SOFTWARE\Microsoft\Windows Kits\Installed Roots",
+                            0,
+                            winreg.KEY_READ | winreg.KEY_WOW64_32KEY)
+        installRoot = winreg.QueryValueEx(key, "KitsRoot10")[0]
+        keyNo = 0
+        while 1:
+            try:
+                installedVersions.append(winreg.EnumKey(key, keyNo))
+                keyNo += 1
+            except winreg.error:
+                break
+    except EnvironmentError:
+        pass
     if not installedVersions:
         print("Can't find a windows 10 sdk")
         return None

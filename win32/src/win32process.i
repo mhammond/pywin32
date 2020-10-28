@@ -392,8 +392,9 @@ unsigned __stdcall ThreadEntryPoint( void *arg )
 static PyObject *mybeginthreadex(PyObject *self, PyObject *args)
 {
 	PyObject *obFunc, *obArgs, *obSA;
-	unsigned stackSize, flags;
-	if (!PyArg_ParseTuple(args, "OiOOi:beginthreadex",
+	unsigned stackSize;
+	unsigned long flags;
+	if (!PyArg_ParseTuple(args, "OIOOk:beginthreadex",
 		&obSA, // @pyparm <o PySECURITY_ATTRIBUTES>|sa||The security attributes, or None
 		&stackSize, // @pyparm int|stackSize||Stack size for the new thread, or zero for the default size.
 		&obFunc, // @pyparm function|entryPoint||The thread function.
@@ -433,12 +434,7 @@ static PyObject *mybeginthreadex(PyObject *self, PyObject *args)
 static PyObject *myCreateRemoteThread(PyObject *self, PyObject *args)
 {
 	CHECK_PFN(CreateRemoteThread);
-#ifdef _WIN64
-	static char *fmt="OOLOOk:CreateRemoteThread";
-#else
-	static char *fmt="OOlOOk:CreateRemoteThread";
-#endif
-
+	static char *fmt="OOnOOk:CreateRemoteThread";
 	PyObject *obhprocess, *obFunc, *obParameter, *obSA;
 	SIZE_T stackSize;
 	DWORD flags;
@@ -1497,11 +1493,7 @@ PyObject *PySetProcessWorkingSetSize(PyObject *self, PyObject *args)
 	HANDLE hProcess;
 	PyObject *obhProcess;
 
-#ifdef _WIN64
-	static char *fmt="OLL:SetProcessWorkingSetSize";
-#else
-	static char *fmt="Oll:SetProcessWorkingSetSize";
-#endif
+	static char *fmt="Onn:SetProcessWorkingSetSize";
 	if (!PyArg_ParseTuple(args, fmt,
 		&obhProcess,				// @pyparm <o PyHANDLE>|hProcess||Process handle as returned by OpenProcess
 		&MinimumWorkingSetSize,		// @pyparm int|MinimumWorkingSetSize||Minimum number of bytes to keep in physical memory
@@ -1653,21 +1645,18 @@ PyObject *PyReadProcessMemory(PyObject *self, PyObject *args)
 {
 	PyObject *obhprocess;
 	PyObject *obAddress;
-	PyObject *obSize;
+	SIZE_T size;
 	// @pyswig bytes|ReadProcessMemory|
 	// @pyparm <o PyHANDLE>|hProcess||
 	// @pyparm int|address||
 	// @pyparm int|size||
-	if (!PyArg_ParseTuple(args, "OOk:ReadProcessMemory", &obhprocess, &obAddress, &obSize))
+	if (!PyArg_ParseTuple(args, "OOn:ReadProcessMemory", &obhprocess, &obAddress, &size))
 		return NULL;
 	HANDLE hprocess;
 	if (!PyWinObject_AsHANDLE(obhprocess, &hprocess))
 		return NULL;
 	LPVOID address;
 	if (!PyWinLong_AsVoidPtr(obAddress, &address))
-		return NULL;
-	SIZE_T size = PyLong_AsSsize_t(obSize);
-	if (size == -1 && PyErr_Occurred())
 		return NULL;
 	VOID *buffer = malloc(size);
 	if (buffer == NULL) {

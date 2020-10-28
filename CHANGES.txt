@@ -21,6 +21,9 @@ Since build 228:
   after this call, `arg1.value` was actually the value for `arg2`, and
   vice-versa (#1303, #622).
 
+* Fixed a bug that prevented win32process.ReadProcessMemory() from working
+  in all scenarios (#1599)
+
 * Changed how Services implemented with win32serviceutil.ServiceFramework
   report that they have stopped. Now if the SvcRun() method (or the SvcDoRun()
   method, which is called by SvcRun() by default) raises on Exception,
