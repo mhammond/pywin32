@@ -424,14 +424,13 @@ void CPythonDocTemplate::InitialUpdateFrame(CFrameWnd *pFrame, CDocument *pDoc, 
         CMultiDocTemplate::InitialUpdateFrame(pFrame, pDoc, bMakeVisible);
         return;
     }
-    CEnterLeavePython celp;
     PyObject *frame = (PyObject *)ui_assoc_object::make(PyCFrameWnd::type, pFrame)->GetGoodRet();
     PyObject *doc = (PyObject *)ui_assoc_object::make(PyCDocument::type, pDoc)->GetGoodRet();
 
     // @pyparm <o PyCFrameWnd>|frame||The frame window.
     // @pyparm <o PyCDocument>|frame||The document attached to the frame.
     // @pyparm int|bMakeVisible||Indicates if the frame should be made visible.
-    PyObject *arglst = Py_BuildValue("(OOi)", frame, doc, bMakeVisible);
+    PyObject *arglst = helper.build_args("(OOi)", frame, doc, bMakeVisible);
     XDODECREF(frame);
     XDODECREF(doc);
     helper.call_args(arglst);

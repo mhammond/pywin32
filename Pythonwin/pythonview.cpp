@@ -76,7 +76,6 @@ CPythonListViewImpl::~CPythonListViewImpl() {}
 
 void CPythonListViewImpl::DrawItem(LPDRAWITEMSTRUCT lpDIS)
 {
-    CEnterLeavePython celp;
     CVirtualHelper helper("DrawItem", this);
     PyObject *obData = PyWin_GetPythonObjectFromLong(lpDIS->itemData);
     if (obData == NULL) {
@@ -96,7 +95,7 @@ void CPythonListViewImpl::DrawItem(LPDRAWITEMSTRUCT lpDIS)
         obDC = Py_None;
     }
 
-    PyObject *args = Py_BuildValue("iiiiiiO(iiii)O", lpDIS->CtlType, lpDIS->CtlID, lpDIS->itemID, lpDIS->itemAction,
+    PyObject *args = helper.build_args("iiiiiiO(iiii)O", lpDIS->CtlType, lpDIS->CtlID, lpDIS->itemID, lpDIS->itemAction,
                                    lpDIS->itemState, lpDIS->hwndItem, obDC, lpDIS->rcItem.left, lpDIS->rcItem.top,
                                    lpDIS->rcItem.right, lpDIS->rcItem.bottom, obData);
     ASSERT(args);
@@ -123,7 +122,6 @@ CPythonTreeViewImpl::~CPythonTreeViewImpl() {}
 
 void CPythonTreeViewImpl::DrawItem(LPDRAWITEMSTRUCT lpDIS)
 {
-    CEnterLeavePython celp;
     CVirtualHelper helper("DrawItem", this);
     PyObject *obData = PyWin_GetPythonObjectFromLong(lpDIS->itemData);
     if (obData == NULL) {
@@ -143,7 +141,7 @@ void CPythonTreeViewImpl::DrawItem(LPDRAWITEMSTRUCT lpDIS)
         obDC = Py_None;
     }
 
-    PyObject *args = Py_BuildValue("iiiiiiO(iiii)O", lpDIS->CtlType, lpDIS->CtlID, lpDIS->itemID, lpDIS->itemAction,
+    PyObject *args = helper.build_args("iiiiiiO(iiii)O", lpDIS->CtlType, lpDIS->CtlID, lpDIS->itemID, lpDIS->itemAction,
                                    lpDIS->itemState, lpDIS->hwndItem, obDC, lpDIS->rcItem.left, lpDIS->rcItem.top,
                                    lpDIS->rcItem.right, lpDIS->rcItem.bottom, obData);
     ASSERT(args);

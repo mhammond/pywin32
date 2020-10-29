@@ -70,6 +70,19 @@ CVirtualHelper::~CVirtualHelper()
         XDODECREF(py_ob);
     }
 }
+
+PyObject* CVirtualHelper::build_args(const char* format, ...)
+{
+    // Helper to create Python objects when called outside the GIL.
+    CEnterLeavePython _celp;
+    va_list va;
+    PyObject* retval;
+    va_start(va, format);
+    retval = Py_VaBuildValue(format, va);
+    va_end(va);
+    return retval;
+}
+
 PyObject *CVirtualHelper::GetHandler() { return handler; }
 BOOL CVirtualHelper::do_call(PyObject *args)
 {

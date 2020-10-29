@@ -273,7 +273,6 @@ class CPythonWndFramework : public T {
     {
         // @pyvirtual |PyCWnd|OnNcCalcSize|Called for the WM_NCCALCSIZE message.
         CVirtualHelper helper("OnNcCalcSize", this);
-        CEnterLeavePython celp;
         if (helper.HaveHandler()) {
             if (bCalcValidRects) {
                 PyObject *rc1 = PyWinObject_FromRECT(&lpncsp->rgrc[0], false);
@@ -286,9 +285,10 @@ class CPythonWndFramework : public T {
                     Py_INCREF(obPos);
                 }
                 else
-                    obPos = Py_BuildValue("iiiiiii", pwp->hwnd, pwp->hwndInsertAfter, pwp->x, pwp->y, pwp->cx, pwp->cy,
+                    obPos = helper.build_args("iiiiiii", pwp->hwnd, pwp->hwndInsertAfter, pwp->x, pwp->y, pwp->cx, pwp->cy,
                                           pwp->flags);
-                PyObject *args = Py_BuildValue("i(OOOO)", bCalcValidRects, rc1, rc2, rc3, obPos);
+                                  
+                PyObject *args = helper.build_args("i(OOOO)", bCalcValidRects, rc1, rc2, rc3, obPos);
                 Py_XDECREF(rc1);
                 Py_XDECREF(rc2);
                 Py_XDECREF(rc3);
@@ -297,7 +297,7 @@ class CPythonWndFramework : public T {
             }
             else {
                 PyObject *rc1 = PyWinObject_FromRECT((RECT *)lpncsp, false);
-                PyObject *args = Py_BuildValue("i(Ozzz)", bCalcValidRects, rc1, NULL, NULL, NULL);
+                PyObject *args = helper.build_args("i(Ozzz)", bCalcValidRects, rc1, NULL, NULL, NULL);
                 Py_XDECREF(rc1);
                 helper.call_args(args);
             }
@@ -318,8 +318,7 @@ class CPythonWndFramework : public T {
         CVirtualHelper helper("OnNcHitTest", this);
         // @pyparm int, int|x,y||The point to test.
         if (helper.HaveHandler()) {
-            CEnterLeavePython celp;
-            PyObject *args = Py_BuildValue("((ii))", pt.x, pt.y);
+            PyObject *args = helper.build_args("((ii))", pt.x, pt.y);
             if (helper.call_args(args)) {
                 int ret;
                 if (helper.retval(ret))
@@ -353,7 +352,6 @@ class CPythonWndFramework : public T {
         // @pyparm <o PyCWnd>|wndDeactivate||
         T::OnMDIActivate(bActivate, pAc, pDe);
         if (helper.HaveHandler()) {
-            CEnterLeavePython celp;
             PyObject *oba, *obd;
             if (pAc) {
                 oba = PyWinObject_FromCWnd(pAc);
@@ -369,7 +367,7 @@ class CPythonWndFramework : public T {
                 obd = Py_None;
                 Py_INCREF(Py_None);
             }
-            PyObject *args = Py_BuildValue("(iOO)", bActivate, oba, obd);
+            PyObject *args = helper.build_args("(iOO)", bActivate, oba, obd);
             Py_XDECREF(oba);
             Py_XDECREF(obd);
             helper.call_args(args);
