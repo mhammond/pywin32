@@ -30,20 +30,18 @@ class PythonDDETopicFramework : public T {
     ~PythonDDETopicFramework() { Python_delete_assoc(this); }
     virtual BOOL Exec(void *pData, DWORD dwSize)
     {
-        CEnterLeavePython celp;
-        PyObject *args = Py_BuildValue("(N)", PyWinObject_FromTCHAR((TCHAR *)pData));
-        BOOL rc = TRUE;
         CVirtualHelper helper("Exec", this);
+        PyObject *args = helper.build_args("(N)", PyWinObject_FromTCHAR((TCHAR *)pData));
+        BOOL rc = TRUE;
         if (helper.call_args(args))
             helper.retval(rc);
         return !rc;
     }
     virtual BOOL NSRequest(const TCHAR *szItem, CDDEAllocator &allocr)
     {
-        CEnterLeavePython celp;
-        PyObject *args = Py_BuildValue("(N)", PyWinObject_FromTCHAR(szItem));
-        BOOL rc = TRUE;
         CVirtualHelper helper("Request", this);
+        PyObject *args = helper.build_args("(N)", PyWinObject_FromTCHAR(szItem));
+        BOOL rc = TRUE;
         if (helper.call_args(args)) {
             CString strret;
             if (helper.retval(strret)) {
@@ -57,10 +55,9 @@ class PythonDDETopicFramework : public T {
 
     virtual BOOL NSPoke(const TCHAR *szItem, void *pData, DWORD dwSize)
     {
-        CEnterLeavePython celp;
-        PyObject *args = Py_BuildValue("(Nz#)", PyWinObject_FromTCHAR(szItem), pData, dwSize);
-        BOOL rc = TRUE;
         CVirtualHelper helper("Poke", this);
+        PyObject *args = helper.build_args("(Nz#)", PyWinObject_FromTCHAR(szItem), pData, dwSize);
+        BOOL rc = TRUE;
         if (helper.call_args(args)) {
             return TRUE;
         }
