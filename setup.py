@@ -69,7 +69,8 @@ import subprocess
 import winreg
 
 # The rest of our imports.
-from distutils.core import setup, Extension
+from setuptools import setup
+from distutils.core import Extension
 from distutils.command.install import install
 from distutils.command.install_lib import install_lib
 from distutils.command.build_ext import build_ext
