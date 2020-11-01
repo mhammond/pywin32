@@ -296,7 +296,8 @@ class InteractiveCore:
 		if rcfile:
 			import __main__
 			try:
-				execfile(rcfile, __main__.__dict__, __main__.__dict__)
+				exec(compile(open(rcfile, "rb").read(), rcfile, 'exec', dont_inherit=True),
+					 __main__.__dict__, __main__.__dict__)
 			except:
 				sys.stderr.write(">>> \nError executing PYTHONSTARTUP script %r\n" % (rcfile))
 				traceback.print_exc(file=sys.stderr)
