@@ -104,21 +104,6 @@ if not __gen_path__:
 			__gen_path__ = os.path.join(
 								win32api.GetTempPath(), "gen_py",
 								"%d.%d" % (sys.version_info[0], sys.version_info[1]))
-	# Check if the user could write into the directory if not frozen, or otherwise later 
-	# the creation of the __init__.py, dicts.dat or just the modules will fail
-	try:
-		f = open(os.path.join(__gen_path__, ".tst"), "w")
-		f.close()
-		os.remove(os.path.join(__gen_path__, ".tst"))
-	except IOError:
-		# Use the temp directory 
-		__gen_path__ = os.path.join(
-							win32api.GetTempPath(), "gen_py",
-							"%d.%d" % (sys.version_info[0], sys.version_info[1]))
-		# since path has changed remove a reference to the possibly imported module
-		if "win32com.gen_py" in sys.modules:
-			del sys.modules["win32com.gen_py"]
-
 # set that up.
 if "win32com.gen_py" not in sys.modules:
 	# Create a "win32com.gen_py", but with a custom __path__
