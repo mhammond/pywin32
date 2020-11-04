@@ -393,16 +393,18 @@ class GrepView(docview.RichEditView):
     def __init__(self, doc):
         docview.RichEditView.__init__(self, doc)
         self.SetWordWrap(win32ui.CRichEditView_WrapNone)
-        self.HookHandlers()
 
     def OnInitialUpdate(self):
         rc = self._obj_.OnInitialUpdate()
         format = (-402653169, 0, 200, 0, 0, 0, 49, "Courier New")
         self.SetDefaultCharFormat(format)
+        self.HookHandlers()
         return rc
 
     def HookHandlers(self):
-        self.HookMessage(self.OnRClick, win32con.WM_RBUTTONDOWN)
+        self.HookMessage(self.OnRClick, win32con.WM_CONTEXTMENU)
+        # RichEditView seems to not auto-generate WM_CONTEXTMENU upon WM_RBUTTONUP
+        self.HookMessage(self.OnRClick, win32con.WM_RBUTTONUP)
         self.HookCommand(self.OnCmdOpenFile, ID_OPEN_FILE)
         self.HookCommand(self.OnCmdGrep, ID_GREP)
         self.HookCommand(self.OnCmdExplore, ID_EXPLORE)
@@ -446,21 +448,22 @@ class GrepView(docview.RichEditView):
         menu.AppendMenu(flags, win32ui.ID_EDIT_SELECT_ALL, "&Select all")
         menu.AppendMenu(flags, win32con.MF_SEPARATOR)
         menu.AppendMenu(flags, ID_SAVERESULTS, "Sa&ve results")
-        menu.TrackPopupMenu(params[5])
+        if params[3] == -1:
+            # context key -> caret pos
+            import win32gui
+
+            ctxpos = self.ClientToScreen(win32gui.GetCaretPos())
+        else:
+            # mouse pos
+            ctxpos = params[5]
+        menu.TrackPopupMenu(ctxpos)
         return 0
 
     def OnCmdExplore(self, cmd, code):
         os.startfile(os.path.dirname(self.fnm))
 
     def OnCmdOpenFile(self, cmd, code):
-        doc = win32ui.GetApp().OpenDocumentFile(self.fnm)
-        if doc:
-            vw = doc.GetFirstView()
-            # hope you have an editor that implements GotoLine()!
-            try:
-                vw.GotoLine(int(self.lnnum))
-            except:
-                pass
+        scriptutils.JumpToDocument(self.fnm, self.lnnum)
         return 0
 
     def OnCmdGrep(self, cmd, code):
