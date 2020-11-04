@@ -2614,7 +2614,7 @@ extern "C" PYW_EXPORT BOOL Win32uiApplicationInit(Win32uiHostGlue *pGlue, TCHAR 
         PySys_SetArgv(__argc - 1, __targv + 1);
 #else
     PyInit_win32ui();
-    if (argv == NULL) {
+    if (argv == NULL || !PyList_Check(argv) || !PyList_Size(argv)) {
         int myargc;
         LPWSTR *myargv = CommandLineToArgvW(GetCommandLineW(), &myargc);
         if (myargv) {
