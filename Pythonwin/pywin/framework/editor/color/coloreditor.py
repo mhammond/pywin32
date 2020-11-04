@@ -63,20 +63,7 @@ class SyntEditView(SyntEditViewParent):
         self.list_lastpos = []
 
     def OnInitialUpdate(self):
-        SyntEditViewParent.OnInitialUpdate(self)
-
-        self.HookMessage(self.OnRClick, win32con.WM_RBUTTONDOWN)
-
-        for id in [
-            win32ui.ID_VIEW_FOLD_COLLAPSE,
-            win32ui.ID_VIEW_FOLD_COLLAPSE_ALL,
-            win32ui.ID_VIEW_FOLD_EXPAND,
-            win32ui.ID_VIEW_FOLD_EXPAND_ALL,
-        ]:
-
-            self.HookCommand(self.OnCmdViewFold, id)
-            self.HookCommandUpdate(self.OnUpdateViewFold, id)
-        self.HookCommand(self.OnCmdViewFoldTopLevel, win32ui.ID_VIEW_FOLD_TOPLEVEL)
+        SyntEditViewParent.OnInitialUpdate(self)  # -> HookHandlers()
 
         # Define the markers
         # 		self.SCIMarkerDeleteAll()
@@ -302,7 +289,23 @@ class SyntEditView(SyntEditViewParent):
 
     def HookHandlers(self):
         SyntEditViewParent.HookHandlers(self)
+
         self.HookMessage(self.OnSetFocus, win32con.WM_SETFOCUS)
+        self.HookMessage(self.OnRClick, win32con.WM_CONTEXTMENU)
+        # After WM_RBUTTONUP win32ui seems to always propagate WM_CONTEXTMENU to
+        # another 2nd default context menu pop-up - no matter the return value of
+        # our WM_CONTEXTMENU handler. So we need to handle WM_RBUTTONUP in
+        # addition (which then stops things via return 0)
+        self.HookMessage(self.OnRClick, win32con.WM_RBUTTONUP)
+        for id in [
+            win32ui.ID_VIEW_FOLD_COLLAPSE,
+            win32ui.ID_VIEW_FOLD_COLLAPSE_ALL,
+            win32ui.ID_VIEW_FOLD_EXPAND,
+            win32ui.ID_VIEW_FOLD_EXPAND_ALL,
+        ]:
+            self.HookCommand(self.OnCmdViewFold, id)
+            self.HookCommandUpdate(self.OnUpdateViewFold, id)
+        self.HookCommand(self.OnCmdViewFoldTopLevel, win32ui.ID_VIEW_FOLD_TOPLEVEL)
 
     def _PrepareUserStateChange(self):
         return self.GetSel(), self.GetFirstVisibleLine()
@@ -389,7 +392,16 @@ class SyntEditView(SyntEditViewParent):
         flags = (
             win32con.TPM_LEFTALIGN | win32con.TPM_LEFTBUTTON | win32con.TPM_RIGHTBUTTON
         )
-        menu.TrackPopupMenu(params[5], flags, self)
+        if params[3] == -1:
+            # context key -> caret pos
+            import win32gui
+
+            ctxpos = self.ClientToScreen(win32gui.GetCaretPos())
+        else:
+            # mouse pos
+            ##pos = params[3] & 0xffff, params[3] >> 16
+            ctxpos = win32api.GetCursorPos()
+        menu.TrackPopupMenu(ctxpos, flags, self)
         return 0
 
     def OnCmdViewFold(self, cid, code):  # Handle the menu command
