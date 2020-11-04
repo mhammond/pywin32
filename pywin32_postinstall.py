@@ -214,7 +214,7 @@ def RegisterPythonwin(register=True):
     classes_root=get_root_hkey()
     ## Installer executable doesn't seem to pass anything to postinstall script indicating if it's a debug build,
     pythonwin_exe = os.path.join(lib_dir, "Pythonwin", "Pythonwin.exe")
-    pythonwin_edit_command=pythonwin_exe + ' /edit "%1"'
+    pythonwin_edit_command=pythonwin_exe + ' -edit "%1"'
 
     keys_vals = [
         ('Software\\Microsoft\\Windows\\CurrentVersion\\App Paths\\Pythonwin.exe', '', pythonwin_exe),
