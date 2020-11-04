@@ -148,7 +148,7 @@ class AutoIndent:
             return "break"
         if chars[-1] in "([{":
             next = text.get("insert", "insert+1c")
-            if next in ")]}":
+            if next == ")]}"["([{".index(chars[-1])]:
                 text.delete("insert", "insert+1c")
         if chars[-1] not in " \t":
             # easy: delete preceding real char
