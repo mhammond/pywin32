@@ -69,7 +69,8 @@ import subprocess
 import winreg
 
 # The rest of our imports.
-from distutils.core import setup, Extension
+from setuptools import setup
+from distutils.core import Extension
 from distutils.command.install import install
 from distutils.command.install_lib import install_lib
 from distutils.command.build_ext import build_ext
@@ -2283,13 +2284,15 @@ classifiers = [ 'Environment :: Win32 (MS Windows)',
 	            'Programming Language :: Python :: Implementation :: CPython',
 	          ]
 
+my_dir = os.path.abspath(os.path.dirname(__file__))
+with open(os.path.join(my_dir, 'README.md')) as f:
+    long_description = f.read()
+
 dist = setup(name="pywin32",
       version=str(build_id),
       description="Python for Window Extensions",
-      long_description="Python extensions for Microsoft Windows\n"
-                       "Provides access to much of the Win32 API, the\n"
-                       "ability to create and use COM objects, and the\n"
-                       "Pythonwin environment.",
+      long_description=long_description,
+      long_description_content_type='text/markdown',
       author="Mark Hammond (et al)",
       author_email = "mhammond@skippinet.com.au",
       url="https://github.com/mhammond/pywin32",

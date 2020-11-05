@@ -125,6 +125,7 @@ inline BOOL Win32uiHostGlue::DynamicApplicationInit(const TCHAR *cmd, const TCHA
     TCHAR fname[MAX_PATH * 2];
 
     HMODULE hModCore = NULL;
+    HMODULE hModWin32ui = NULL;
     // There are 2 cases we care about:
     // * pythonwin.exe next to win32ui, in lib\site-packages\pythonwin
     // * pythonwin.exe next to python.exe, in sys.home - this is for
@@ -151,89 +152,92 @@ inline BOOL Win32uiHostGlue::DynamicApplicationInit(const TCHAR *cmd, const TCHA
 #else
     wsprintf(py_dll, _T("Python%d%d.dll"), PY_MAJOR_VERSION, PY_MINOR_VERSION);
 #endif
-    // try it simple - if we can load the module we are done.
-    HMODULE hModWin32ui = LoadLibrary(szWinui_Name);
-    if (hModWin32ui == NULL) {
+    TCHAR err_buf[256];
+    // It's critical Python is loaded *and initialized* before we load win32ui
+    // as just loading win32ui will cause it to call into Python.
+    const int ncandidates = sizeof(py_dll_candidates) / sizeof(py_dll_candidates[0]);
+    for (int i = 0; i < ncandidates && hModCore == NULL; i++) {
+        wsprintf(fname, _T("%s\\%s\\%s"), app_dir, py_dll_candidates[i], py_dll);
+        hModCore = LoadLibrary(fname);
+    }
+    if (hModCore == NULL) {
+        wsprintf(err_buf, _T("The application can not locate %s (%d)\n"), py_dll, GetLastError());
+        goto fail_with_error_dlg;
+    }
+
+    // Now Python is loaded we can initialize it.
+    int(__cdecl * pfnIsInit)(void);
+    pfnIsInit = (int(__cdecl *)(void))GetProcAddress(hModCore, "Py_IsInitialized");
+    BOOL bShouldInitPython;
+
+    if (!pfnIsInit) {
+        wsprintf(err_buf, _T("Failed to load 'Py_IsInitialized' - %d\n"), GetLastError());
+        goto fail_with_error_dlg;
+    }
+
+    bShouldFinalizePython = bShouldInitPython = !(*pfnIsInit)();
+
+    if (bShouldInitPython) {
+        void(__cdecl * pfnPyInit)(void);
+        pfnPyInit = (void(__cdecl *)(void))GetProcAddress(hModCore, "Py_Initialize");
+        if (!pfnIsInit) {
+            wsprintf(err_buf, _T("Failed to load 'Py_Initialize' - %d\n"), GetLastError());
+            goto fail_with_error_dlg;
+        }
+        (*pfnPyInit)();
+    }
+
+// In 3.7 and up it's not necessary to call PyEval_InitThreads. In all versions
+// it's safe to call multiple times.
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION < 7
+    void(__cdecl * pfnPyEval_InitThreads)(void);
+    pfnPyEval_InitThreads = (void(__cdecl *)(void))GetProcAddress(hModCore, "PyEval_InitThreads");
+    if (!pfnPyEval_InitThreads) {
+        wsprintf(err_buf, _T("Failed to load 'PyEval_InitThreads' - %d\n"), GetLastError());
+        goto fail_with_error_dlg;
+    }
+    pfnPyEval_InitThreads();
+#endif
+
+    hModWin32ui = LoadLibrary(szWinui_Name);
+    if (!hModWin32ui) {
         // try an installed version (old versions installed pythonwin.exe next
         // to python.exe - but we shouldn't get here if pythonwin.exe is next
         // to win32ui)
         wsprintf(fname, _T("%s\\%s\\%s"), app_dir, _T("lib\\site-packages\\pythonwin"), szWinui_Name);
         hModWin32ui = LoadLibrary(fname);
     }
-    if (hModWin32ui == NULL) {
-        // 2 main reasons we get here: can't load MFC, or can't load
-        // Python itself.  We try and handle the latter now...
-        int i;
-        const int ncandidates = sizeof(py_dll_candidates) / sizeof(py_dll_candidates[0]);
-        for (i = 0; i < ncandidates && hModCore == 0; i++) {
-            wsprintf(fname, _T("%s\\%s\\%s"), app_dir, py_dll_candidates[i], py_dll);
-            hModCore = LoadLibrary(fname);
-        }
-        if (hModCore) {
-            hModWin32ui = LoadLibrary(szWinui_Name);
-        }
-    }
-    else {
-        hModCore = GetModuleHandle(py_dll);
-        ASSERT(hModCore);  // loaded win32ui, how can I not have a handle to python?
-    }
-    if (!hModCore) {
-        // No Python, no win32ui :(
-        TCHAR buf[256];
-        wsprintf(buf, _T("The application can not locate %s (or Python) (%d)\n"), szWinui_Name, GetLastError());
-        Py_ssize_t len = _tcslen(buf);
-        Py_ssize_t bufLeft = sizeof(buf) / sizeof(TCHAR) - len;
-        FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, NULL, GetLastError(), MAKELANGID(LANG_NEUTRAL, SUBLANG_NEUTRAL),
-                      buf + len, PyWin_SAFE_DOWNCAST(bufLeft, Py_ssize_t, DWORD), NULL);
-        AfxMessageBox(buf);
-        return FALSE;
-    }
-    // Now the modules are loaded, call the Python init functions.
-    int(__cdecl * pfnIsInit)(void);
-    pfnIsInit = (int(__cdecl *)(void))GetProcAddress(hModCore, "Py_IsInitialized");
-    BOOL bShouldInitPython;
-    if (pfnIsInit)
-        bShouldFinalizePython = bShouldInitPython = !(*pfnIsInit)();
-    else {
-        bShouldFinalizePython = FALSE;  // Dont cleanup if we cant tell (this wont happen - Im paranoid :-)
-        bShouldInitPython = TRUE;
-    }
-
-    void(__cdecl * pfnPyInit)(void);
-    pfnPyInit = (void(__cdecl *)(void))GetProcAddress(hModCore, "Py_Initialize");
-    if (pfnPyInit && bShouldInitPython) {
-        (*pfnPyInit)();
-        void(__cdecl * pfnPyEval_InitThreads)(void);
-        pfnPyEval_InitThreads = (void(__cdecl *)(void))GetProcAddress(hModCore, "PyEval_InitThreads");
-        ASSERT(pfnPyEval_InitThreads);
-        if (pfnPyEval_InitThreads)
-            pfnPyEval_InitThreads();
-    }
-
     if (!hModWin32ui) {  // sigh - try and import it
         int(__cdecl * pfnPyRun_SimpleString)(const char *);
         pfnPyRun_SimpleString = (int(__cdecl *)(const char *))GetProcAddress(hModCore, "PyRun_SimpleString");
         if (pfnPyRun_SimpleString)
             pfnPyRun_SimpleString("import win32ui");
         hModWin32ui = GetModuleHandle(szWinui_Name);
-        if (!hModWin32ui)
-            AfxMessageBox(_T("Still can't get my hands on win32ui"));
+        wsprintf(err_buf, _T("Failed to load win32ui after attempting an import' - %d\n"), GetLastError());
+        goto fail_with_error_dlg;
     }
 
     BOOL(__cdecl * pfnWin32uiInit)(Win32uiHostGlue *, TCHAR *, const TCHAR *);
 
     pfnWin32uiInit = (BOOL(__cdecl *)(Win32uiHostGlue *, TCHAR *, const TCHAR *))GetProcAddress(
         hModWin32ui, "Win32uiApplicationInit");
-    BOOL rc;
-    if (pfnWin32uiInit)
-        rc = (*pfnWin32uiInit)(this, (TCHAR *)cmd, (TCHAR *)additionalPaths);
-    else {
-        OutputDebugString(_T("WARNING - win32uiHostGlue could not load the entry point for ApplicationInit\n"));
-        rc = FALSE;
+    if (!pfnWin32uiInit) {
+        wsprintf(err_buf, _T("Failed to load 'Win32uiApplicationInit' - %d\n"), GetLastError());
+        goto fail_with_error_dlg;
     }
     // We must not free the win32ui module, as we
     // still hold function pointers to it!
-    return rc;
+    return (*pfnWin32uiInit)(this, (TCHAR *)cmd, (TCHAR *)additionalPaths);
+
+fail_with_error_dlg:
+    // Assumes err_buf has already had the "core" message, will then add
+    // detailed error info from windows.
+    Py_ssize_t len = _tcslen(err_buf);
+    Py_ssize_t bufLeft = sizeof(err_buf) / sizeof(TCHAR) - len;
+    FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, NULL, GetLastError(), MAKELANGID(LANG_NEUTRAL, SUBLANG_NEUTRAL),
+                    err_buf + len, PyWin_SAFE_DOWNCAST(bufLeft, Py_ssize_t, DWORD), NULL);
+    AfxMessageBox(err_buf);
+    return FALSE;
 }
 #else  // LINK_WITH_WIN32UI defined
 
