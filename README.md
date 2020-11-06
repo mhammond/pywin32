@@ -56,7 +56,7 @@ the following command from an elevated command prompt:
 ## Building from source
 Building from source is extremely complicated due to the fact we support building
 old versions of Python using old versions of Windows SDKs. If you just want to
-build the most recent version, you can probably get away with installing th
+build the most recent version, you can probably get away with installing the
 same MSVC version used to build that version of Python, grabbing a recent
 Windows SDK and running `setup.py`
 
