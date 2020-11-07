@@ -1313,6 +1313,35 @@ static PyObject *PyLoadCursor(PyObject *self, PyObject *args)
     return PyWinLong_FromHANDLE(ret);
 }
 
+// @pymethod [string]|win32api|CommandLineToArgv|Parses a Unicode command line string and returns a list of command line arguments, in a way that is similar to sys.argv.
+static PyObject *PyCommandLineToArgv(PyObject *self, PyObject *args)
+{
+    const Py_UNICODE *cmdLine;
+    if (!PyArg_ParseTuple(args, "u", &cmdLine)) // @pyparm string|cmdLine||A string that contains the full command line. If this parameter is an empty string the function returns the path to the current executable file.
+        return NULL;
+    int numArgs = 0;
+    LPWSTR *szArglist = CommandLineToArgvW(cmdLine, &numArgs);
+    if (szArglist == NULL)
+        ReturnAPIError("CommandLineToArgvW");
+
+    PyObject *result = PyList_New(numArgs);
+    if (!result)
+        goto done;
+
+    for (int i=0; i < numArgs; i++) {
+        PyObject *ob = PyWinObject_FromWCHAR(szArglist[i]);
+        if (ob == NULL) {
+            Py_DECREF(result);
+            result = NULL;
+            goto done;
+        }
+        PyList_SET_ITEM(result, i, ob);
+    }
+done:
+    LocalFree(szArglist);
+    return result;
+}
+
 // @pymethod string|win32api|GetCommandLine|Retrieves the current application's command line.
 static PyObject *PyGetCommandLine(PyObject *self, PyObject *args)
 {
@@ -6105,6 +6134,7 @@ static struct PyMethodDef win32api_functions[] = {
      METH_VARARGS | METH_KEYWORDS},     // @pymeth ChangeDisplaySettingsEx|Changes video mode for specified display
     {"ClipCursor", PyClipCursor, 1},    // @pymeth ClipCursor|Confines the cursor to a rectangular area on the screen.
     {"CloseHandle", PyCloseHandle, 1},  // @pymeth CloseHandle|Closes an open handle.
+    {"CommandLineToArgv", PyCommandLineToArgv, 1}, // @pymeth CommandLineToArgv|Parses a Unicode command line string and returns a list of command line arguments, in a way that is similar to sys.argv.
     {"CopyFile", PyCopyFile, 1},        // @pymeth CopyFile|Copy a file.
     {"DebugBreak", PyDebugBreak, 1},    // @pymeth DebugBreak|Breaks into the C debugger.
     {"DeleteFile", PyDeleteFile, 1},    // @pymeth DeleteFile|Deletes the specified file.
