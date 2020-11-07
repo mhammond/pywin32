@@ -5131,16 +5131,37 @@ static PyObject *PyOpenProcess(PyObject *self, PyObject *args)
     DWORD pid, reqdAccess;
     BOOL inherit;
     if (!PyArg_ParseTuple(
-            args, "iil:OpenProcess",
+            args, "kik:OpenProcess",
             &reqdAccess,  // @pyparm int|reqdAccess||The required access.
             &inherit,  // @pyparm int|bInherit||Specifies whether the returned handle can be inherited by a new process
                        // created by the current process. If TRUE, the handle is inheritable.
             &pid))     // @pyparm int|pid||The process ID
         return NULL;
-    PyW32_BEGIN_ALLOW_THREADS HANDLE handle = OpenProcess(reqdAccess, inherit, pid);
+    PyW32_BEGIN_ALLOW_THREADS;
+    HANDLE handle = OpenProcess(reqdAccess, inherit, pid);
     PyW32_END_ALLOW_THREADS;
     if (handle == NULL)
         return ReturnAPIError("OpenProcess");
+    return PyWinObject_FromHANDLE(handle);
+}
+
+// @pymethod <o PyHANDLE>|win32api|OpenThread|Retrieves a handle to an existing thread
+static PyObject *PyOpenThread(PyObject *self, PyObject *args)
+{
+    DWORD pid, reqdAccess;
+    BOOL inherit;
+    if (!PyArg_ParseTuple(
+            args, "kik:OpenThread",
+            &reqdAccess,  // @pyparm int|reqdAccess||The required access.
+            &inherit,  // @pyparm int|bInherit||Specifies whether the returned handle can be inherited by a new process
+                       // created by the current process. If TRUE, the handle is inheritable.
+            &pid))     // @pyparm int|pid||The thread ID
+        return NULL;
+    PyW32_BEGIN_ALLOW_THREADS;
+    HANDLE handle = OpenThread(reqdAccess, inherit, pid);
+    PyW32_END_ALLOW_THREADS;
+    if (handle == NULL)
+        return ReturnAPIError("OpenThread");
     return PyWinObject_FromHANDLE(handle);
 }
 
@@ -6345,6 +6366,7 @@ static struct PyMethodDef win32api_functions[] = {
     {"MoveFile", PyMoveFile, 1},                    // @pymeth MoveFile|Moves or renames a file.
     {"MoveFileEx", PyMoveFileEx, 1},                // @pymeth MoveFileEx|Moves or renames a file.
     {"OpenProcess", PyOpenProcess, 1},              // @pymeth OpenProcess|Retrieves a handle to an existing process.
+    {"OpenThread", PyOpenThread, 1},              // @pymeth OpenProcess|Retrieves a handle to an existing thread.
     {"OutputDebugString", PyOutputDebugString, 1},  // @pymeth OutputDebugString|Writes output to the Windows debugger.
     {"PostMessage", PyPostMessage, 1},              // @pymeth PostMessage|Post a message to a window.
     {"PostQuitMessage", PyPostQuitMessage, 1},      // @pymeth PostQuitMessage|Posts a quit message.
