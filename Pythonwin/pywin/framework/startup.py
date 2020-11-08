@@ -20,8 +20,8 @@ if not sys.argv:
     # sys.argv and it will be done here. ( This was a workaround for a bug in
     # win32ui but is retained for other situations. )
     argv = win32api.CommandLineToArgv(win32api.GetCommandLine())
-    sys.argv = argv[1:]
-    if os.getcwd() not in sys.path and "." not in sys.path:
+    sys.argv = argv[1:] or [""]
+    if sys.path[0] not in ("", ".", os.getcwd()):
         sys.path.insert(0, os.getcwd())
 
 # You may wish to redirect error output somewhere useful if you have startup errors.
