@@ -54,7 +54,9 @@ class DlgRunScript(dialog.Dialog):
         if not self.bHaveDebugger:
             cbo.EnableWindow(0)
 
-    def OnBrowse(self, id, cmd):
+    def OnBrowse(self, id, code):
+        if code != 0:  # BN_CLICKED
+            return 1
         openFlags = win32con.OFN_OVERWRITEPROMPT | win32con.OFN_FILEMUSTEXIST
         dlg = win32ui.CreateFileDialog(
             1, None, None, openFlags, "Python Scripts (*.py)|*.py||", self

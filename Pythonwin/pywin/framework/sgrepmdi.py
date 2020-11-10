@@ -460,13 +460,21 @@ class GrepView(docview.RichEditView):
         return 0
 
     def OnCmdExplore(self, cmd, code):
+        if code != 0:  # BN_CLICKED
+            # 3d controls (python.exe + start_pythonwin.pyw) send
+            # other notification codes
+            return 1  # propagate
         os.startfile(os.path.dirname(self.fnm))
 
     def OnCmdOpenFile(self, cmd, code):
+        if code != 0:
+            return 1
         scriptutils.JumpToDocument(self.fnm, self.lnnum)
         return 0
 
     def OnCmdGrep(self, cmd, code):
+        if code != 0:
+            return 1
         curparamsstr = self.GetDocument().GetParams()
         params = curparamsstr.split("\t")
         params[2] = self.sel
@@ -475,11 +483,15 @@ class GrepView(docview.RichEditView):
         return 0
 
     def OnTryAgain(self, cmd, code):
+        if code != 0:
+            return 1
         greptemplate.setParams(self.GetDocument().GetParams())
         greptemplate.OpenDocumentFile()
         return 0
 
     def OnCmdSave(self, cmd, code):
+        if code != 0:
+            return 1
         flags = win32con.OFN_OVERWRITEPROMPT
         dlg = win32ui.CreateFileDialog(
             0, None, None, flags, "Text Files (*.txt)|*.txt||", self
@@ -630,9 +642,13 @@ class GrepDialog(dialog.Dialog):
         self.HookCommand(self.OnMoreFiles, 111)
 
     def OnMoreDirectories(self, cmd, code):
+        if code != 0:
+            return 1
         self.getMore("Grep\\Directories", "dirpattern")
 
     def OnMoreFiles(self, cmd, code):
+        if code != 0:
+            return 1
         self.getMore("Grep\\File Types", "filpattern")
 
     def getMore(self, section, key):
@@ -750,6 +766,8 @@ class GrepParamsDialog(dialog.Dialog):
         return self._obj_.OnInitDialog()
 
     def OnAddItem(self, cmd, code):
+        if code != 0:
+            return 1
         eb = self.GetDlgItem(108)
         item = eb.GetLine(0)
         self.newitems.append(item)

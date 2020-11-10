@@ -220,10 +220,9 @@ class FindReplaceDialog(dialog.Dialog):
             self.editFindText.AddString(hist)
 
         if hasattr(self.editFindText, "SetEditSel"):
-            self.editFindText.SetEditSel(0, -2)
+            self.editFindText.SetEditSel(0, -1)
         else:
-            self.editFindText.SetSel(0, -2)
-        self.editFindText.SetFocus()
+            self.editFindText.SetSel(0, -1)
         self.butMatchWords.SetCheck(defaultSearch.matchWords)
         self.butMatchCase.SetCheck(defaultSearch.matchCase)
         self.butKeepDialogOpen.SetCheck(defaultSearch.keepDialogOpen)
@@ -231,7 +230,6 @@ class FindReplaceDialog(dialog.Dialog):
         self.butRemember.SetCheck(defaultSearch.remember)
 
         self.HookCommand(self.OnFindNext, 109)
-
         return dialog.Dialog.OnInitDialog(self)
 
     def OnDestroy(self, msg):
@@ -249,9 +247,13 @@ class FindReplaceDialog(dialog.Dialog):
         return _FindIt(None, params)
 
     def OnFindNext(self, id, code):
+        if code != 0:  # BN_CLICKED
+            # 3d controls (python.exe + start_pythonwin.pyw) send
+            # other notification codes
+            return 1  #
         if not self.editFindText.GetWindowText():
             win32api.MessageBeep()
-            return
+            return 1
         if self.DoFindNext() != FOUND_NOTHING:
             if not self.butKeepDialogOpen.GetCheck():
                 self.DestroyWindow()
@@ -449,13 +451,13 @@ class ReplaceDialog(FindReplaceDialog):
         self.editReplaceText = self.GetDlgItem(104)
         self.editReplaceText.SetWindowText(lastSearch.replaceText)
         if hasattr(self.editReplaceText, "SetEditSel"):
-            self.editReplaceText.SetEditSel(0, -2)
+            self.editReplaceText.SetEditSel(0, -1)
         else:
-            self.editReplaceText.SetSel(0, -2)
+            self.editReplaceText.SetSel(0, -1)
         self.butReplace = self.GetDlgItem(110)
         self.butReplaceAll = self.GetDlgItem(111)
         self.CheckButtonStates()
-        return rc
+        return rc  # 0 when focus set
 
     def CheckButtonStates(self):
         # We can do a "Replace" or "Replace All" if the current selection
@@ -475,11 +477,15 @@ class ReplaceDialog(FindReplaceDialog):
             self.CheckButtonStates()
 
     def OnFindNext(self, id, code):
+        if code != 0:
+            return 1
         self.DoFindNext()
         self.CheckButtonStates()
         self.SetFocus()  # so we can repeatedly press Alt+R here in the dialog
 
     def OnReplace(self, id, code):
+        if code != 0:
+            return 1
         lastSearch.replaceText = self.editReplaceText.GetWindowText()
         _ReplaceIt(None)
         self.SetFocus()  # so we can repeatedly press Alt+R here in the dialog
