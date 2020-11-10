@@ -177,6 +177,11 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
 
     def OnDestroy(self, msg):
         self.SendScintilla = None
+        self.bindings.close()
+        self.bindings = None
+        self.idle.close()
+        self.idle = None
+        control.CScintillaColorEditInterface.close(self)
         return docview.CtrlView.OnDestroy(self, msg)
 
     def _MakeColorizer(self):
@@ -300,14 +305,6 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
             win32ui.MessageBox(configManager.last_error, "Configuration Error")
         self.bMatchBraces = GetEditorOption("Match Braces", 1)
         self.ApplyFormattingStyles(1)
-
-    def OnDestroy(self, msg):
-        self.bindings.close()
-        self.bindings = None
-        self.idle.close()
-        self.idle = None
-        control.CScintillaColorEditInterface.close(self)
-        return docview.CtrlView.OnDestroy(self, msg)
 
     def OnMouseWheel(self, msg):
         zDelta = msg[2] >> 16
