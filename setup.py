@@ -259,7 +259,7 @@ else:
 if 'MSC' in sys.version:
     sdk_info = find_platform_sdk_dir()
 else:
-    sdk_dir = os.environ.get("SDKDIR") or ""
+    sdk_dir = os.environ.get("SDKDIR")
     sdk_info = sdk_dir
 
 if not sdk_info:
@@ -454,7 +454,6 @@ class WinExt (Extension):
             self.extra_compile_args.append("-D__WIN32__")
             # Why this python doesn't have plat_name?
             if '64 bit' in sys.version:
-                self.extra_compile_args.append("-D_M_AMD64")
                 self.extra_compile_args.append("-D_M_X64")
             else:
                 self.extra_compile_args.append("-D_M_IX86")
@@ -481,7 +480,6 @@ class WinExt (Extension):
                 self.extra_link_args.append("-m32")
 
             # Silenced some annoying warnings
-            self.extra_compile_args.append("-Wno-attributes")
             self.extra_compile_args.append("-Wno-conversion-null")
             self.extra_compile_args.append("-Wno-invalid-offsetof")
             self.extra_compile_args.append("-Wno-maybe-uninitialized")
@@ -641,9 +639,6 @@ class my_build_ext(build_ext):
         # The pywintypes library is created in the build_temp
         # directory, so we need to add this to library_dirs
         self.library_dirs.append(self.build_temp)
-        self.mingw32 = (self.compiler == "mingw32")
-        if self.mingw32:
-            self.libraries.append("stdc++")
 
         self.excluded_extensions = [] # list of (ext, why)
         self.swig_cpp = True # hrm - deprecated - should use swig_opts=-c++??
@@ -1468,29 +1463,6 @@ class mingw_build_ext(build_ext):
             self.copy_file(
                     os.path.join(self.build_temp, fname), target_dir)
 
-        # Search for the MFC dll.
-        try:
-            target_dir = os.path.join(self.build_lib, "pythonwin")
-            mfc_files = ["mfc100mu.dll"]
-
-            if '64 bit' in sys.version:
-                plat_dir = "x64"
-            else:
-                plat_dir = "x86"
-
-            # Find the redist directory.
-            target_file = os.path.join(target_dir, "Pythonwin.exe")
-            if os.path.exists(target_file):
-                mfcdll_dir = os.path.join(mfc_dir, "redist", plat_dir)
-                if not os.path.isdir(mfcdll_dir):
-                    raise RuntimeError("Can't find the redist dir at %r" % (mfcdll_dir))
-                for f in mfc_files:
-                    self.copy_file(os.path.join(mfcdll_dir, f), target_dir)
-        except (EnvironmentError, RuntimeError) as exc:
-            if os.path.exists(target_file):
-                print ("Can't find the right MFC DLL:", exc)
-            pass
-
     def build_exefile(self, ext):
         sources = ext.sources
         if sources is None or type(sources) not in (list, tuple):
@@ -1605,7 +1577,7 @@ class mingw_build_ext(build_ext):
 
         try:
             build_ext.build_extension(self, ext)
-        except:
+        except DistutilsExecError:
             print ("WARNING: building of extension '%s' failed" % (ext.name))
             print ("")
             pass
@@ -2472,6 +2444,10 @@ com_extensions += [
                         """ % dirs).split()),
 ]
 
+win32ui_lib = ""
+if 'GCC' in sys.version:
+    win32ui_lib = "win32ui"
+
 pythonwin_extensions = [
     WinExt_pythonwin("win32ui",
         sources = [
@@ -2575,7 +2551,7 @@ pythonwin_extensions = [
             "Pythonwin/Win32uiHostGlue.h",
             "Pythonwin/win32win.h",
             ],
-        implib_name="win32ui",
+        implib_name=win32ui_lib,
         optional_headers=['afxres.h']),
     WinExt_pythonwin("win32uiole",
         sources = [
