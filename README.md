@@ -42,8 +42,6 @@ By far the easiest way to use pywin32 is to grab binaries from the [most recent 
 
 ## Installing via PIP
 
-Note that PIP support is experimental.
-
 You can install pywin32 via pip:
 > pip install pywin32
 
@@ -54,11 +52,10 @@ the following command from an elevated command prompt:
 > python Scripts/pywin32_postinstall.py -install
 
 ## Building from source
-Building from source is extremely complicated due to the fact we support building
-old versions of Python using old versions of Windows SDKs. If you just want to
-build the most recent version, you can probably get away with installing the
-same MSVC version used to build that version of Python, grabbing a recent
-Windows SDK and running `setup.py`
+
+Building from source has been simplified recently - you just need Visual Studio
+and the Windows 10 SDK installed (the free compilers probably work too, but
+  haven't been tested - let me know your experiences!)
 
 `setup.py` is a standard distutils build script.  You probably want:
 

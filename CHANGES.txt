@@ -21,6 +21,8 @@ Since build 228:
   after this call, `arg1.value` was actually the value for `arg2`, and
   vice-versa (#1303, #622).
 
+* Fixed a bug that Pythonwin had an empty `sys.argv` (@kxrob in #1607)
+
 * Fixed a bug that prevented win32process.ReadProcessMemory() from working
   in all scenarios (#1599)
 
@@ -51,6 +53,10 @@ Notable changes in this transition:
   get back tuples of integers, your code may break.
 
 * Pythonwin's default encoding is now utf-8 (#1559)
+
+* The build environment has been greatly simplified - you just need Visual
+  Studio and a Windows 10 SDK. (The free compilers probably work too, but
+  haven't been tested - let me know your experiences!)
 
 Since build 227:
 ----------------
