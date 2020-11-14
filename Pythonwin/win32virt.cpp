@@ -136,14 +136,21 @@ BOOL CVirtualHelper::do_call(PyObject *args)
     return TRUE;
 }
 
-BOOL CVirtualHelper::call_args(PyObject *arglst)
+BOOL CVirtualHelper::call_args(const char* format, ...)
 {
     if (!handler)
         return FALSE;
-    // NOTE no CEnterLeavePython here - the caller must do that (the entire
-    // point of this function is to allow the consumer to build `arglst`, and
-    // by definition that means calling into Python!
-    return do_call(arglst);
+    CEnterLeavePython _celp;
+    // Duplicate build_args
+    va_list va;
+    PyObject* args;
+    va_start(va, format);
+    args = Py_VaBuildValue(format, va);
+    va_end(va);
+    if (!args) {
+        return FALSE;
+    }
+    return do_call(args);
 }
 
 BOOL CVirtualHelper::call()

@@ -286,20 +286,12 @@ class CPythonWndFramework : public T {
                 }
                 else
                     obPos = helper.build_args("iiiiiii", pwp->hwnd, pwp->hwndInsertAfter, pwp->x, pwp->y, pwp->cx, pwp->cy,
-                                          pwp->flags);
-                                  
-                PyObject *args = helper.build_args("i(OOOO)", bCalcValidRects, rc1, rc2, rc3, obPos);
-                Py_XDECREF(rc1);
-                Py_XDECREF(rc2);
-                Py_XDECREF(rc3);
-                Py_XDECREF(obPos);
-                helper.call_args(args);
+                                              pwp->flags);
+                helper.call_args("i(NNNN)", bCalcValidRects, rc1, rc2, rc3, obPos);
             }
             else {
                 PyObject *rc1 = PyWinObject_FromRECT((RECT *)lpncsp, false);
-                PyObject *args = helper.build_args("i(Ozzz)", bCalcValidRects, rc1, NULL, NULL, NULL);
-                Py_XDECREF(rc1);
-                helper.call_args(args);
+                helper.call_args("i(Nzzz)", bCalcValidRects, rc1, NULL, NULL, NULL);
             }
         }
         else
@@ -318,8 +310,7 @@ class CPythonWndFramework : public T {
         CVirtualHelper helper("OnNcHitTest", this);
         // @pyparm int, int|x,y||The point to test.
         if (helper.HaveHandler()) {
-            PyObject *args = helper.build_args("((ii))", pt.x, pt.y);
-            if (helper.call_args(args)) {
+            if (helper.call_args("((ii))", pt.x, pt.y)) {
                 int ret;
                 if (helper.retval(ret))
                     return ret;
@@ -367,11 +358,7 @@ class CPythonWndFramework : public T {
                 obd = Py_None;
                 Py_INCREF(Py_None);
             }
-            PyObject *args = helper.build_args("(iOO)", bActivate, oba, obd);
-            Py_XDECREF(oba);
-            Py_XDECREF(obd);
-            helper.call_args(args);
-            // decref by helper.
+            helper.call_args("(iNN)", bActivate, oba, obd);
         }
     }
     afx_msg int OnMouseActivate(CWnd *pDesktopWnd, UINT nHitTest, UINT message)

@@ -54,12 +54,9 @@ class PythonOleClientItem : public COleClientItem {
         // @pyparm (int, int, int, int)|(left, top, right, bottom)||The new position
         CVirtualHelper helper("OnChangeItemPosition", this);
         BOOL bRet;
-        PyObject *args = helper.build_args("(iiii)", rectPos.left, rectPos.top, rectPos.right, rectPos.bottom);
-        if (helper.HaveHandler() && helper.call_args(args)) {
-            // Note = args decref'd by caller
+        if (helper.call_args("(iiii)", rectPos.left, rectPos.top, rectPos.right, rectPos.bottom)) {
             helper.retval(bRet);
-        }
-        else
+        } else
             bRet = COleClientItem::OnChangeItemPosition(rectPos);
         return bRet;
     }

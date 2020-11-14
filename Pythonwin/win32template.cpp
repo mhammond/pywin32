@@ -430,11 +430,7 @@ void CPythonDocTemplate::InitialUpdateFrame(CFrameWnd *pFrame, CDocument *pDoc, 
     // @pyparm <o PyCFrameWnd>|frame||The frame window.
     // @pyparm <o PyCDocument>|frame||The document attached to the frame.
     // @pyparm int|bMakeVisible||Indicates if the frame should be made visible.
-    PyObject *arglst = helper.build_args("(OOi)", frame, doc, bMakeVisible);
-    XDODECREF(frame);
-    XDODECREF(doc);
-    helper.call_args(arglst);
-    return;
+    helper.call_args("(NNi)", frame, doc, bMakeVisible);
 }
 
 CFrameWnd *CPythonDocTemplate::CreateNewFrame(CDocument *pDoc, CFrameWnd *pOther)

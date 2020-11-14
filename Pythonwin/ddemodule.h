@@ -31,18 +31,16 @@ class PythonDDETopicFramework : public T {
     virtual BOOL Exec(void *pData, DWORD dwSize)
     {
         CVirtualHelper helper("Exec", this);
-        PyObject *args = helper.build_args("(N)", PyWinObject_FromTCHAR((TCHAR *)pData));
         BOOL rc = TRUE;
-        if (helper.call_args(args))
+        if (helper.call_args("(N)", PyWinObject_FromTCHAR((TCHAR *)pData)))
             helper.retval(rc);
         return !rc;
     }
     virtual BOOL NSRequest(const TCHAR *szItem, CDDEAllocator &allocr)
     {
         CVirtualHelper helper("Request", this);
-        PyObject *args = helper.build_args("(N)", PyWinObject_FromTCHAR(szItem));
         BOOL rc = TRUE;
-        if (helper.call_args(args)) {
+        if (helper.call_args("(N)", PyWinObject_FromTCHAR(szItem))) {
             CString strret;
             if (helper.retval(strret)) {
                 // seems strange we can't use DdeCreateStringHandle, but that is
@@ -56,9 +54,8 @@ class PythonDDETopicFramework : public T {
     virtual BOOL NSPoke(const TCHAR *szItem, void *pData, DWORD dwSize)
     {
         CVirtualHelper helper("Poke", this);
-        PyObject *args = helper.build_args("(Nz#)", PyWinObject_FromTCHAR(szItem), pData, dwSize);
         BOOL rc = TRUE;
-        if (helper.call_args(args)) {
+        if (helper.call_args("(Nz#)", PyWinObject_FromTCHAR(szItem), pData, dwSize)) {
             return TRUE;
         }
         return !rc;

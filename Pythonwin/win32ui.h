@@ -299,7 +299,6 @@ class PYW_EXPORT CVirtualHelper {
     CVirtualHelper(const char *iname, void *iassoc, EnumVirtualErrorHandling veh = VEH_PRINT_ERROR);
     ~CVirtualHelper();
 
-    PyObject* build_args(const char* format, ...);
     BOOL HaveHandler() { return handler != NULL; }
     // All the "call" functions return FALSE if the call failed, or no handler exists.
     BOOL call();
@@ -332,7 +331,8 @@ class PYW_EXPORT CVirtualHelper {
     BOOL call(const MSG *);
     BOOL call(WPARAM, LPARAM);
     BOOL call(UINT nID, int nCode, void *pExtra, AFX_CMDHANDLERINFO *pHandlerInfo);
-    BOOL call_args(PyObject *arglst);
+    PyObject* build_args(const char* format, ...);
+    BOOL call_args(const char* format, ...);
     // All the retval functions will ASSERT if the call failed!
     BOOL retval(int &ret);
     BOOL retval(long &ret);
