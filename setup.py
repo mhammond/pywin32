@@ -2095,6 +2095,10 @@ W32_exe_files = [
             "Pythonwin/pythonwin.rc",
             "Pythonwin/stdafxpw.cpp",
             ],
+        depends = [
+            "Pythonwin/Win32uiHostGlue.h",
+            "Pythonwin/pythonwin.h",
+        ],
         optional_headers=['afxres.h']),
 ]
 
