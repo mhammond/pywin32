@@ -2284,15 +2284,27 @@ classifiers = [ 'Environment :: Win32 (MS Windows)',
 	            'Programming Language :: Python :: Implementation :: CPython',
 	          ]
 
-my_dir = os.path.abspath(os.path.dirname(__file__))
-with open(os.path.join(my_dir, 'README.md')) as f:
-    long_description = f.read()
+if "bdist_wininst" in sys.argv:
+    # It doesn't really make sense to put README.md as the long description, so
+    # keep it short and sweet as it's the first thing shown by the UI.
+    long_description = ("Python extensions for Microsoft Windows\n"
+                        "Provides access to much of the Win32 API, the\n"
+                        "ability to create and use COM objects, and the\n"
+                        "Pythonwin environment.")
+    long_description_content_type = "text/plain"
+else:
+    # For wheels, the readme makes more sense as pypi does something sane
+    # with it.
+    my_dir = os.path.abspath(os.path.dirname(__file__))
+    with open(os.path.join(my_dir, 'README.md')) as f:
+        long_description = f.read()
+    long_description_content_type='text/markdown',
 
 dist = setup(name="pywin32",
       version=str(build_id),
       description="Python for Window Extensions",
-      long_description=long_description,
-      long_description_content_type='text/markdown',
+      long_description = long_description,
+      long_description_content_type = long_description_content_type,
       author="Mark Hammond (et al)",
       author_email = "mhammond@skippinet.com.au",
       url="https://github.com/mhammond/pywin32",
