@@ -213,8 +213,10 @@ inline BOOL Win32uiHostGlue::DynamicApplicationInit(const TCHAR *cmd, const TCHA
         if (pfnPyRun_SimpleString)
             pfnPyRun_SimpleString("import win32ui");
         hModWin32ui = GetModuleHandle(szWinui_Name);
-        wsprintf(err_buf, _T("Failed to load win32ui after attempting an import' - %d\n"), GetLastError());
-        goto fail_with_error_dlg;
+        if (!hModWin32ui) {
+            wsprintf(err_buf, _T("Failed to load win32ui after attempting an import' - %d\n"), GetLastError());
+            goto fail_with_error_dlg;
+        }
     }
 
     BOOL(__cdecl * pfnWin32uiInit)(Win32uiHostGlue *, TCHAR *, const TCHAR *);
