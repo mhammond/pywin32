@@ -89,8 +89,10 @@ class CPythonWndFramework : public T {
     {
         LRESULT res;
         CVirtualHelper helper("WindowProc", this);
-        if (!helper.HaveHandler() || !helper.call(message, wParam, lParam) || !helper.retval(res))
+        if (!helper.HaveHandler() || !helper.call(message, wParam, lParam) || !helper.retval(res)) {
+            helper.release_full();
             return T::WindowProc(message, wParam, lParam);
+        }
         return res;
     }
 #endif
@@ -105,6 +107,7 @@ class CPythonWndFramework : public T {
         // is called.
         if (helper.HaveHandler() && helper.call(pMsg) && !helper.retnone() && helper.retval(pMsg))
             return TRUE;
+        helper.release_full();
         return _BasePreTranslateMessage(pMsg);
     }
     BOOL _BasePreTranslateMessage(MSG *pMsg) { return T::PreTranslateMessage(pMsg); }
@@ -120,6 +123,7 @@ class CPythonWndFramework : public T {
         CVirtualHelper helper("OnCommand", this);
         if (helper.HaveHandler() && helper.call(wparam, lparam) && helper.retval(ret))
             return ret;
+        helper.release_full();
         return _BaseOnCommand(wparam, lparam);
     }
     BOOL _BaseOnCommand(WPARAM wparam, LPARAM lparam) { return T::OnCommand(wparam, lparam); }
@@ -136,6 +140,7 @@ class CPythonWndFramework : public T {
             return TRUE;
         }
         else {
+            helper.release_full();
             return T::PreCreateWindow(cs);
         }
     }
@@ -145,8 +150,10 @@ class CPythonWndFramework : public T {
         // @comm The default calls DestroyWindow().  If you supply a handler, the default is not called.
         // @xref <om PyCWnd.OnClose>
         CVirtualHelper helper("OnClose", this);
-        if (!helper.HaveHandler() || !helper.call())
+        if (!helper.HaveHandler() || !helper.call()) {
+            helper.release_full();
             _BaseOnClose();
+        }
     }
     void _BaseOnClose() { T::OnClose(); }
     afx_msg void OnPaletteChanged(CWnd *pFocusWnd)
@@ -189,6 +196,7 @@ class CPythonWndFramework : public T {
         HANDLE hRet;
         if (helper.HaveHandler() && helper.call(pDC, pWnd, nCtlColor) && helper.retval(hRet))
             return (HBRUSH)hRet;
+        helper.release_full();
         return T::OnCtlColor(pDC, pWnd, nCtlColor);
     }
     afx_msg void OnSysColorChange()
@@ -206,8 +214,10 @@ class CPythonWndFramework : public T {
         // @rdesc Nonzero if it erases the background; otherwise 0.
         // @xref <om PyCWnd.OnEraseBkgnd>
         CVirtualHelper helper("OnEraseBkgnd", this);
-        if (!helper.HaveHandler())
+        if (!helper.HaveHandler()) {
+            helper.release_full();
             return T::OnEraseBkgnd(pDC);
+        }
         BOOL bRet = FALSE;
         // @pyparm <o PyCDC>|dc||The device context.
         if (helper.call(pDC))
@@ -231,16 +241,20 @@ class CPythonWndFramework : public T {
         // @pyvirtual int|PyCWnd|OnPaint|Default message handler.
         // @xref <om Wnd.OnPaint>
         CVirtualHelper helper("OnPaint", this);
-        if (!helper.HaveHandler() || !helper.call())
+        if (!helper.HaveHandler() || !helper.call()) {
+            helper.release_full();
             T::OnPaint();
+        }
     }
     afx_msg void OnTimer(UINT_PTR nIDEvent)
     {
         // @pyvirtual void|PyCWnd|OnTimer|Called for the WM_TIMER message.
         // @pyparm int|nIDEvent||Specifies the identifier of the timer.
         CVirtualHelper helper("OnTimer", this);
-        if (!helper.HaveHandler() || !helper.call(nIDEvent))
+        if (!helper.HaveHandler() || !helper.call(nIDEvent)) {
+            helper.release_full();
             T::OnTimer(nIDEvent);
+        }
     }
     afx_msg HCURSOR OnQueryDragIcon()
     {
@@ -248,8 +262,10 @@ class CPythonWndFramework : public T {
         // @rdesc The result is an integer containing a HCURSOR for the icon.
         // @xref <om PyCWnd.OnQueryDragIcon>
         CVirtualHelper helper("OnQueryDragIcon", this);
-        if (!helper.HaveHandler())
+        if (!helper.HaveHandler()) {
+            helper.release_full();
             return T::OnQueryDragIcon();
+        }
         HANDLE ret;
         if (!helper.call())
             return NULL;
@@ -294,8 +310,10 @@ class CPythonWndFramework : public T {
                 helper.call_args("i(Nzzz)", bCalcValidRects, rc1, NULL, NULL, NULL);
             }
         }
-        else
+        else {
+            helper.release_full();
             T::OnNcCalcSize(bCalcValidRects, lpncsp);
+        }
     }
     afx_msg
 #ifdef _M_X64  // add one more thing to things I don't understand..
@@ -316,6 +334,7 @@ class CPythonWndFramework : public T {
                     return ret;
             }
         }
+        helper.release_full();
         return T::OnNcHitTest(pt);
     }
     afx_msg BOOL OnSetCursor(CWnd *pWnd, UINT ht, UINT msg)
@@ -329,19 +348,21 @@ class CPythonWndFramework : public T {
         // @pyparm int|msg||
         if (helper.HaveHandler() && helper.call(pWnd, ht, msg))
             helper.retval(ret);
-        else
+        else {
+            helper.release_full();
             ret = T::OnSetCursor(pWnd, ht, msg);
+        }
         return ret;
     }
     afx_msg void OnMDIActivate(BOOL bActivate, CWnd *pAc, CWnd *pDe)
     {
         // @pyvirtual int|PyCWnd|OnMDIActivate|
         // @comm The MFC implementation is always called before this.
-        CVirtualHelper helper("OnMDIActivate", this);
         // @pyparm int|bActivate||
         // @pyparm <o PyCWnd>|wndActivate||
         // @pyparm <o PyCWnd>|wndDeactivate||
         T::OnMDIActivate(bActivate, pAc, pDe);
+        CVirtualHelper helper("OnMDIActivate", this);
         if (helper.HaveHandler()) {
             PyObject *oba, *obd;
             if (pAc) {
@@ -372,8 +393,10 @@ class CPythonWndFramework : public T {
         // @pyparm int|msg||
         if (helper.HaveHandler() && helper.call(pDesktopWnd, nHitTest, message))
             helper.retval(ret);
-        else
+        else {
+            helper.release_full();
             ret = _BaseOnMouseActivate(pDesktopWnd, nHitTest, message);
+        }
         return ret;
     }
     int _BaseOnMouseActivate(CWnd *pDesktopWnd, UINT nHitTest, UINT message)
@@ -473,6 +496,7 @@ class CPythonDlgFramework : public CPythonWndFramework<T> {
         // @xref <om PyCDialog.OnOK>
         CVirtualHelper helper("OnOK", this);
         if (!helper.HaveHandler()) {
+            helper.release_full();
             if (m_lpDialogTemplate == NULL && m_hDialogTemplate == NULL)
                 // non modal dialog.
                 DestroyWindow();
@@ -499,6 +523,7 @@ class CPythonDlgFramework : public CPythonWndFramework<T> {
             bCallDefault = !helper.call();  // DO call default on exception, else dialog may never come down!
         }
         if (bCallDefault) {
+            helper.release_full();
             DoOnCancel();
         }
     }
@@ -539,6 +564,7 @@ class CPythonPropertySheetFramework : public CPythonWndFramework<T> {
         BOOL result = FALSE;
         CVirtualHelper helper("OnInitDialog", this);
         if (!helper.HaveHandler()) {
+            helper.release_full();
             result = T::OnInitDialog();
         }
         else {
@@ -570,8 +596,10 @@ class CPythonPropertyPageFramework : public CPythonDlgFramework<T> {
         // PyCPropertyPage.OnKillActive>) yourself
         // @xref <om PyCPropertyPage.OnKillActive>
         CVirtualHelper helper("OnKillActive", this);
-        if (!helper.HaveHandler())
+        if (!helper.HaveHandler()) {
+            helper.release_full();
             return T::OnKillActive();
+        }
         BOOL bOK = TRUE;
         if (helper.call())
             helper.retval(bOK);
@@ -586,8 +614,10 @@ class CPythonPropertyPageFramework : public CPythonDlgFramework<T> {
         // PyCPropertyPage.OnSetActive>) yourself
         // @xref <om PyCPropertyPage.OnSetActive>
         CVirtualHelper helper("OnSetActive", this);
-        if (!helper.HaveHandler())
+        if (!helper.HaveHandler()) {
+            helper.release_full();
             return T::OnSetActive();
+        }
         BOOL bOK = TRUE;
         if (helper.call())
             helper.retval(bOK);
@@ -603,8 +633,10 @@ class CPythonPropertyPageFramework : public CPythonDlgFramework<T> {
         // yourself
         // @xref <om PyCPropertyPage.OnApply>
         CVirtualHelper helper("OnApply", this);
-        if (!helper.HaveHandler())
+        if (!helper.HaveHandler()) {
+            helper.release_full();
             return T::OnApply();
+        }
         BOOL bOK = TRUE;
         if (helper.call())
             helper.retval(bOK);
@@ -619,6 +651,7 @@ class CPythonPropertyPageFramework : public CPythonDlgFramework<T> {
         // @xref <om PyCPropertyPage.OnReset>
         CVirtualHelper helper("OnReset", this);
         if (!helper.HaveHandler()) {
+            helper.release_full();
             T::OnReset();
         }
         else {
@@ -635,8 +668,10 @@ class CPythonPropertyPageFramework : public CPythonDlgFramework<T> {
         // PyCPropertyPage.OnQueryCancel>) yourself
         // @xref <om PyCPropertyPage.OnQueryCancel>
         CVirtualHelper helper("OnQueryCancel", this);
-        if (!helper.HaveHandler())
+        if (!helper.HaveHandler()) {
+            helper.release_full();
             return T::OnQueryCancel();
+        }
         BOOL bOK = TRUE;
         if (helper.call())
             helper.retval(bOK);
@@ -653,8 +688,9 @@ class CPythonPropertyPageFramework : public CPythonDlgFramework<T> {
         // PyCPropertyPage.OnWizardBack>) yourself
         // @xref <om PyCPropertyPage.OnWizardBack>
         CVirtualHelper helper("OnWizardBack", this);
-        if (!helper.HaveHandler())
+        if (!helper.HaveHandler()) {
             return T::OnWizardBack();
+        }
         long result = TRUE;
         if (helper.call())
             helper.retval(result);
@@ -671,8 +707,10 @@ class CPythonPropertyPageFramework : public CPythonDlgFramework<T> {
         // PyCPropertyPage.OnWizardNext>) yourself
         // @xref <om PyCPropertyPage.OnWizardNext>
         CVirtualHelper helper("OnWizardNext", this);
-        if (!helper.HaveHandler())
+        if (!helper.HaveHandler()) {
+            helper.release_full();
             return T::OnWizardNext();
+        }
         long result = TRUE;
         if (helper.call())
             helper.retval(result);
@@ -688,8 +726,10 @@ class CPythonPropertyPageFramework : public CPythonDlgFramework<T> {
         // PyCPropertyPage.OnWizardFinish>) yourself
         // @xref <om PyCPropertyPage.OnWizardFinish>
         CVirtualHelper helper("OnWizardFinish", this);
-        if (!helper.HaveHandler())
+        if (!helper.HaveHandler()) {
+            helper.release_full();
             return T::OnWizardFinish();
+        }
         BOOL bOK = TRUE;
         if (helper.call())
             helper.retval(bOK);
@@ -715,6 +755,7 @@ class CPythonViewFramework : public CPythonWndFramework<T> {
         CVirtualHelper helper("OnPreparePrinting", this);
         BOOL result;
         if (!helper.HaveHandler()) {
+            helper.release_full();
             result = T::OnPreparePrinting(pInfo);
         }
         else {
@@ -731,6 +772,7 @@ class CPythonViewFramework : public CPythonWndFramework<T> {
         // @xref <om PyCView.OnBeginPrinting>
         CVirtualHelper helper("OnBeginPrinting", this);
         if (!helper.HaveHandler()) {
+            helper.release_full();
             T::OnBeginPrinting(pDC, pInfo);
             return;
         }
@@ -744,6 +786,7 @@ class CPythonViewFramework : public CPythonWndFramework<T> {
         // @xref <om PyCView.OnEndPrinting>
         CVirtualHelper helper("OnEndPrinting", this);
         if (!helper.HaveHandler()) {
+            helper.release_full();
             T::OnEndPrinting(pDC, pInfo);
             return;
         }
@@ -757,6 +800,7 @@ class CPythonViewFramework : public CPythonWndFramework<T> {
         // @xref <om PyCWnd.OnPrepareDC>
         CVirtualHelper helper("OnPrepareDC", this);
         if (!helper.HaveHandler()) {
+            helper.release_full();
             T::OnPrepareDC(pDC, pInfo);
             return;
         }
@@ -772,16 +816,20 @@ class CPythonViewFramework : public CPythonWndFramework<T> {
         CVirtualHelper helper("OnInitialUpdate", this);
         if (helper.HaveHandler())
             helper.call();
-        else
+        else {
+            helper.release_full();
             T::OnInitialUpdate();
+        }
     }
     virtual void OnActivateView(BOOL bActivate, CView *pActivateView, CView *pDeactiveView)
     {
         // @pyvirtual |PyCView|OnActivateView|Called by the framework when a view is activated or deactivated.
         // @xref <om PyCView.OnActivateView>
         CVirtualHelper helper("OnActivateView", this);
-        if (!helper.HaveHandler())
+        if (!helper.HaveHandler()) {
+            helper.release_full();
             T::OnActivateView(bActivate, pActivateView, pDeactiveView);
+        }
         else {
             // @pyparm int|bActivate||Indicates whether the view is being activated or deactivated.
             // @pyparm <o PyCWnd>|activateView||The view object that is being activated.
@@ -823,12 +871,13 @@ class CPythonViewFramework : public CPythonWndFramework<T> {
         // You can then paint the update next <om PyCView.OnDraw>
         // @xref <om PyCView.OnUpdate>
         CVirtualHelper helper("OnUpdate", this);
-        if (!helper.HaveHandler())
+        if (!helper.HaveHandler()) {
             // @pyparm <o PyCView>|sender||
             // @pyparm int|lHint||
             // @pyparm object|hint||
+            helper.release_full();
             T::OnUpdate(pSender, lHint, pHint);
-        else
+        } else
             helper.call(pSender, (PyObject *)lHint);
     }
 };
@@ -849,6 +898,7 @@ class CPythonFrameFramework : public CPythonWndFramework<T> {
         if (helper.HaveHandler() && !helper.call(cs, pCC ? pCC->GetPythonObject() : NULL))
             return FALSE;
         // @rdesc The return value from this method is ignored, but an exception will prevent window creation.
+        helper.release_full();
         return T::OnCreateClient(cs, pContext);
     }
     virtual void GetMessageString(UINT nID, CString &rMessage) const
@@ -860,8 +910,10 @@ class CPythonFrameFramework : public CPythonWndFramework<T> {
         if (helper.call((int &)nID)) {
             helper.retval(rMessage);
         }
-        else
+        else {
+            helper.release_full();
             T::GetMessageString(nID, rMessage);
+        }
     }
     virtual void ActivateFrame(int nCmdShow)
     {
@@ -876,6 +928,7 @@ class CPythonFrameFramework : public CPythonWndFramework<T> {
             helper.call(nCmdShow);
         }
         else {
+            helper.release_full();
             T::ActivateFrame(nCmdShow);
         }
     }
@@ -960,6 +1013,7 @@ class CPythonPrtDlgFramework : public CPythonDlgFramework<T> {
         if (helper.HaveHandler()) {
             helper.call();
         }
+        helper.release_full();
         T::OnCancel();
     }
 

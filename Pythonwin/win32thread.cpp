@@ -58,8 +58,10 @@ class CPythonWinThread : public CWinThread {
             // The main app InitInstance assumes a zero return.
             return (ret == 0);
         }
-        else
+        else {
+            helper.release_full();
             return CWinThread::InitInstance();
+        }
     }
     virtual int ExitInstance()
     {
@@ -69,16 +71,19 @@ class CPythonWinThread : public CWinThread {
             helper.retval(ret);
             return ret;
         }
-        else
+        else {
+            helper.release_full();
             return CWinThread::ExitInstance();
+        }
     }
     virtual int Run()
     {
         int ret;
         CVirtualHelper helper("Run", this);
-        if (!helper.HaveHandler())
+        if (!helper.HaveHandler()) {
+            helper.release_full();  // important
             ret = CWinThread::Run();
-        else {
+        } else {
             helper.call();
             helper.retval(ret);
         }
