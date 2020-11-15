@@ -624,9 +624,11 @@ extern PYWINTYPES_EXPORT void PyWin_MakePendingCalls();
 
 class CEnterLeavePython {
    public:
-    CEnterLeavePython() { acquire(); }
+    CEnterLeavePython() : released(TRUE) { acquire(); }
     void acquire(void)
     {
+        if (!released)
+            return;
         state = PyGILState_Ensure();
         released = FALSE;
     }
