@@ -516,7 +516,7 @@ class HLIHeadingRegisterdTypeLibs(HLICOM):
         ret.sort()
         return ret
 
-def main():
+def main(modal=False):
     from pywin.tools import hierlist
     root = HLIRoot("COM Browser")
     if "app" in sys.modules:
@@ -527,7 +527,11 @@ def main():
 #               list=hierlist.HierListWithItems( root, win32ui.IDB_BROWSER_HIER )
 #               dlg=hierlist.HierDialog("COM Browser",list)
         dlg = browser.dynamic_browser(root)
-        dlg.DoModal()
+        if modal:
+            dlg.DoModal()
+        else:
+            dlg.CreateWindow()
+            dlg.ShowWindow()
 
 
 
