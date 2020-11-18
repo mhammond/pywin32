@@ -199,6 +199,44 @@ class CDispatch:
 				raise
 			return self.__repr__()
 
+	def __dir__(self):
+		lst = list(self.__dict__.keys()) + dir(self.__class__) + self._dir_ole_()
+		try: lst += [p.Name for p in self.Properties_]
+		except AttributeError:
+			pass
+		return list(set(lst))
+
+	def _dir_ole_(self):
+		items_dict = {}
+		for iTI in range(0, self._oleobj_.GetTypeInfoCount()):
+			typeInfo = self._oleobj_.GetTypeInfo(iTI)
+			self._UpdateWithITypeInfo_(items_dict, typeInfo)
+		return list(items_dict.keys())
+
+	def _UpdateWithITypeInfo_ (self, items_dict, typeInfo):
+		typeInfos = [typeInfo]
+		# suppress IDispatch and IUnknown methods
+		inspectedIIDs = {pythoncom.IID_IDispatch:None}
+
+		while len(typeInfos)>0:
+			typeInfo = typeInfos.pop()
+			typeAttr = typeInfo.GetTypeAttr()
+
+			if typeAttr.iid not in inspectedIIDs:
+				inspectedIIDs[typeAttr.iid] = None
+				for iFun in range(0,typeAttr.cFuncs):
+					funDesc = typeInfo.GetFuncDesc(iFun)
+					funName = typeInfo.GetNames(funDesc.memid)[0]
+					if funName not in items_dict:
+						items_dict[funName] = None
+
+				# Inspect the type info of all implemented types
+				# E.g. IShellDispatch5 implements IShellDispatch4 which implements IShellDispatch3 ...
+				for iImplType in range(0,typeAttr.cImplTypes):
+					iRefType = typeInfo.GetRefTypeOfImplType(iImplType)
+					refTypeInfo = typeInfo.GetRefTypeInfo(iRefType)
+					typeInfos.append(refTypeInfo)
+
 	# Delegate comparison to the oleobjs, as they know how to do identity.
 	def __eq__(self, other):
 		other = getattr(other, "_oleobj_", other)
