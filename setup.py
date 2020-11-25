@@ -2340,6 +2340,7 @@ dist = setup(name="pywin32",
                 'PyWin32.chm',
                 ]) +
         convert_data_files([
+                'Pythonwin/start_pythonwin.pyw',
                 'pythonwin/pywin/*.cfg',
                 'pythonwin/pywin/Demos/*.py',
                 'pythonwin/pywin/Demos/app/*.py',
