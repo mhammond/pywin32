@@ -58,8 +58,7 @@ silent = 0
 # Verbosity of output messages.
 verbose = 1
 
-ver_string = "%d.%d" % (sys.version_info[0], sys.version_info[1])
-root_key_name = "Software\\Python\\PythonCore\\" + ver_string
+root_key_name = "Software\\Python\\PythonCore\\" + sys.winver
 
 try:
     # When this script is run from inside the bdist_wininst installer,
