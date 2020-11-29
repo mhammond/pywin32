@@ -65,7 +65,7 @@ def MakeDefaultArgsForPropertyPut(argsDesc):
             break
         ret.append(default)
     return tuple(ret)
-                            
+
 
 def MakeMapLineEntry(dispid, wFlags, retType, argTypes, user, resultCLSID):
     # Strip the default value
@@ -85,14 +85,14 @@ def WriteSinkEventMap(obj, stream):
         fdesc = entry.desc
         print('\t\t%9d : "%s",' % (entry.desc[0], MakeEventMethodName(entry.names[0])), file=stream)
     print('\t\t}', file=stream)
-    
+
 
 # MI is used to join my writable helpers, and the OLE
 # classes.
 class WritableItem:
     # __cmp__ used for sorting in py2x...
     def __cmp__(self, other):
-        "Compare for sorting"   
+        "Compare for sorting"
         ret = cmp(self.order, other.order)
         if ret==0 and self.doc: ret = cmp(self.doc[0], other.doc[0])
         return ret
@@ -129,7 +129,7 @@ def WriteAliasesForItem(item, aliasItems, stream):
   for alias in aliasItems.values():
     if item.doc and alias.aliasDoc and (alias.aliasDoc[0]==item.doc[0]):
       alias.WriteAliasItem(aliasItems, stream)
-      
+
 class AliasItem(build.OleItem, WritableItem):
   order = 2
   typename = "ALIAS"
@@ -192,7 +192,7 @@ class EnumerationItem(build.OleItem, WritableItem):
 ##    enumName = self.doc[0]
 ##    print >> stream "%s=constants # Compatibility with previous versions." % (enumName)
 ##    WriteAliasesForItem(self, aliasItems)
-    
+
   def WriteEnumerationItems(self, stream, iCreateEnum = 0):
     num = 0
     enumName = self.doc[0]
@@ -213,7 +213,7 @@ class EnumerationItem(build.OleItem, WritableItem):
       vdesc = entry.desc
       if vdesc[4] == pythoncom.VAR_CONST:
         val = vdesc[1]
-        
+
         use = repr(val)
         # Make sure the repr of the value is valid python syntax
         # still could cause an error on import if it contains a module or type name
@@ -276,7 +276,7 @@ class VTableItem(build.VTableItem, WritableItem):
                 print(repr((arg[0], arg[1], defval, arg3_repr)), ",", end=' ', file=stream)
             print("],", end=' ', file=stream)
             for d in desc[3:]:
-                print(repr(d), ",", end=' ', file=stream) 
+                print(repr(d), ",", end=' ', file=stream)
             print(")),", file=stream)
         print("]", file=stream)
         print(file=stream)
@@ -436,7 +436,7 @@ class DispatchItem(build.DispatchItem, WritableItem):
                 resultDesc = details[2]
                 argDesc = ()
                 mapEntry = MakeMapLineEntry(details[0], pythoncom.DISPATCH_PROPERTYGET, resultDesc, argDesc, key, resultCLSID)
-            
+
                 if entry.desc[0]==pythoncom.DISPID_VALUE:
                     lkey = "value"
                 elif entry.desc[0]==pythoncom.DISPID_NEWENUM:
@@ -448,7 +448,7 @@ class DispatchItem(build.DispatchItem, WritableItem):
                     # All special methods, except _newenum, are written
                     # "normally".  This is a mess!
                     if entry.desc[0]==pythoncom.DISPID_NEWENUM:
-                        continue 
+                        continue
 
                 print('\t\t"%s": %s,' % (build.MakePublicAttributeName(key), mapEntry), file=stream)
         names = list(self.propMapGet.keys()); names.sort()
@@ -481,7 +481,7 @@ class DispatchItem(build.DispatchItem, WritableItem):
                     # All special methods, except _newenum, are written
                     # "normally".  This is a mess!
                     if entry.desc[0]==pythoncom.DISPID_NEWENUM:
-                        continue 
+                        continue
                 print('\t\t"%s": %s,' % (build.MakePublicAttributeName(key), mapEntry), file=stream)
 
         print("\t}", file=stream)
@@ -510,7 +510,7 @@ class DispatchItem(build.DispatchItem, WritableItem):
                 defArgDesc = MakeDefaultArgsForPropertyPut(details[2])
                 print('\t\t"%s": ((%s, LCID, %d, 0),%s),' % (build.MakePublicAttributeName(key), details[0], details[4], defArgDesc), file=stream)
         print("\t}", file=stream)
-        
+
         if specialItems["value"]:
             entry, invoketype, propArgs = specialItems["value"]
             if propArgs is None:
@@ -522,10 +522,10 @@ class DispatchItem(build.DispatchItem, WritableItem):
             print("\t# Default %s for this class is '%s'" % (typename, entry.names[0]), file=stream)
             for line in ret:
                 print(line, file=stream)
-            if sys.version_info > (3,0):
+            print("\tdef __str__(self, *args):", file=stream)
                 print("\tdef __str__(self, *args):", file=stream)
                 print("\t\treturn str(self.__call__(*args))", file=stream)
-            else:
+            print("\t\treturn int(self.__call__(*args))", file=stream)
                 print("\tdef __unicode__(self, *args):", file=stream)
                 print("\t\ttry:", file=stream)
                 print("\t\t\treturn unicode(self.__call__(*args))", file=stream)
@@ -535,7 +535,7 @@ class DispatchItem(build.DispatchItem, WritableItem):
                 print("\t\treturn str(self.__unicode__(*args))", file=stream)
             print("\tdef __int__(self, *args):", file=stream)
             print("\t\treturn int(self.__call__(*args))", file=stream)
-            
+
         # _NewEnum (DISPID_NEWENUM) does not appear in typelib for many office objects,
         # but it can still be retrieved at runtime, so  always create __iter__.
         # Also, some of those same objects use 1-based indexing, causing the old-style
@@ -560,7 +560,7 @@ class DispatchItem(build.DispatchItem, WritableItem):
         print('\t\t\traise TypeError("This object does not support enumeration")', file=stream)
         # Iterator is wrapped as PyIEnumVariant, and each result of __next__ is Dispatch'ed if necessary
         print('\t\treturn win32com.client.util.Iterator(ob, %s)' %resultCLSID, file=stream)
-        
+
         if specialItems["item"]:
             entry, invoketype, propArgs = specialItems["item"]
             resultCLSID = entry.GetResultCLSIDStr()
@@ -628,7 +628,7 @@ class CoClassItem(build.OleItem, WritableItem):
     for item, flag in self.sources:
       if flag & pythoncom.IMPLTYPEFLAG_FDEFAULT:
         defItem = item
-      # If we have written a Python class, reference the name - 
+      # If we have written a Python class, reference the name -
       # otherwise just the IID.
       if item.bWritten: key = item.python_name
       else: key = repr(str(item.clsid)) # really the iid.
@@ -721,7 +721,7 @@ class Generator:
         continue
       refAttr = refType.GetTypeAttr()
       child_infos.append( (info, refAttr.typekind, refType, refType.GetDocumentation(-1), refAttr, flags) )
-      
+
     # Done generating children - now the CoClass itself.
     newItem = CoClassItem(info, attr, doc)
     return newItem, child_infos
@@ -781,7 +781,7 @@ class Generator:
     enumItems = {}
     recordItems = {}
     vtableItems = {}
-    
+
     for type_info_tuple in self.CollectOleItemInfosFromType():
       info, infotype, doc, attr = type_info_tuple
       clsid = attr[0]
@@ -808,35 +808,55 @@ class Generator:
         oleItems[newItem.clsid] = newItem
       else:
         self.progress.LogWarning("Unknown TKIND found: %d" % infotype)
-  
+
     return oleItems, enumItems, recordItems, vtableItems
 
   def open_writer(self, filename, encoding="mbcs"):
     # A place to put code to open a file with the appropriate encoding.
     # Does *not* set self.file - just opens and returns a file.
-    # Actually *deletes* the filename asked for and returns a handle to a
-    # temp file - finish_writer then puts everything back in place.  This
+    # Actually returns a handle to a temp file - finish_writer then deletes
+    # the filename asked for and puts everything back in place.  This
     # is so errors don't leave a 1/2 generated file around causing bizarre
-    # errors later.
+    # errors later, and so that multiple processes writing the same file
+    # don't step on each others' toes.
     # Could be a classmethod one day...
+    temp_filename = self.get_temp_filename(filename)
+    return open(temp_filename, "wt", encoding=encoding)
+
+  def finish_writer(self, filename, f, worked):
+    f.close()
     try:
       os.unlink(filename)
     except os.error:
       pass
-    filename = filename + ".temp"
-    if sys.version_info > (3,0):
-      ret = open(filename, "wt", encoding=encoding)
-    else:
-      import codecs # not available in py3k.
-      ret = codecs.open(filename, "w", encoding)
-    return ret
-
-  def finish_writer(self, filename, f, worked):
-    f.close()
+    temp_filename = self.get_temp_filename(filename)
     if worked:
-        os.rename(filename + ".temp", filename)
+      try:
+        os.rename(temp_filename, filename)
+      except os.error:
+        # If we are really unlucky, another process may have written the
+        # file in between our calls to os.unlink and os.rename. So try
+        # again, but only once.
+        # There are still some race conditions, but they seem difficult to
+        # fix, and they probably occur much less frequently:
+        # * The os.rename failure could occur more than once if more than
+        #   two processes are involved.
+        # * In between os.unlink and os.rename, another process could try
+        #   to import the module, having seen that it already exists.
+        # * If another process starts a COM server while we are still
+        #   generating __init__.py, that process sees that the folder
+        #   already exists and assumes that __init__.py is already there
+        #   as well.
+        try:
+          os.unlink(filename)
+        except os.error:
+          pass
+        os.rename(temp_filename, filename)
     else:
-        os.unlink(filename + ".temp")
+      os.unlink(temp_filename)
+
+  def get_temp_filename(self, filename):
+    return '%s.%d.temp' % (filename, os.getpid())
 
   def generate(self, file, is_for_demand = 0):
     if is_for_demand:
@@ -999,7 +1019,7 @@ class Generator:
             map[item.python_name] = item.clsid
     for item in vtableItems.values(): # No nones or CoClasses in this map
         map[item.python_name] = item.clsid
-            
+
     print("NamesToIIDMap = {", file=stream)
     for name, iid in map.items():
         print("\t'%s' : '%s'," % (name, iid), file=stream)
@@ -1055,7 +1075,7 @@ class Generator:
               oleItems[clsid] = oleItem # Even "None" goes in here.
               if vtableItem is not None:
                 vtableItems[clsid] = vtableItem
-                
+
       assert found, "Cant find the '%s' interface in the CoClasses, or the interfaces" % (child,)
       # Make a map of iid: dispitem, vtableitem)
       items = {}

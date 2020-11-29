@@ -51,17 +51,17 @@ win32security.SetKernelObjectSecurity(ph,all_info,sd)
 new_sd=win32security.GetKernelObjectSecurity(ph,all_info)
 
 if new_sd.GetSecurityDescriptorDacl().GetAceCount()!=dacl_ace_cnt+1:
-    print 'New dacl doesn''t contain extra ace ????'
+    print('New dacl doesn''t contain extra ace ????')
 if new_sd.GetSecurityDescriptorSacl().GetAceCount()!=sacl_ace_cnt+1:
-    print 'New Sacl doesn''t contain extra ace ????'
+    print('New Sacl doesn''t contain extra ace ????')
 if win32security.LookupAccountSid('',new_sd.GetSecurityDescriptorOwner())[0]!='Power Users':
-    print 'Owner not successfully set to Power Users !!!!!'
+    print('Owner not successfully set to Power Users !!!!!')
 if win32security.LookupAccountSid('',new_sd.GetSecurityDescriptorGroup())[0]!='Power Users':
-    print 'Group not successfully set to Power Users !!!!!'
+    print('Group not successfully set to Power Users !!!!!')
 
 sd.SetSecurityDescriptorSacl(0,None,0)
 win32security.SetKernelObjectSecurity(ph, win32security.SACL_SECURITY_INFORMATION, sd)
 new_sd_1=win32security.GetKernelObjectSecurity(ph,win32security.SACL_SECURITY_INFORMATION)
 if new_sd_1.GetSecurityDescriptorSacl() is not None:
-    print 'Unable to set Sacl to NULL !!!!!!!!'
+    print('Unable to set Sacl to NULL !!!!!!!!')
 

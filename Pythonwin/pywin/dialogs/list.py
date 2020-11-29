@@ -116,7 +116,7 @@ def SelectFromLists (title, lists, headings):
 
 def test():
 #	print SelectFromList('Single list',  [1,2,3])
-	print SelectFromLists('Multi-List', [ ('1',1, 'a'), ('2',2, 'b'), ('3',3, 'c' )], ['Col 1', 'Col 2'])
+	print(SelectFromLists('Multi-List', [ ('1',1, 'a'), ('2',2, 'b'), ('3',3, 'c' )], ['Col 1', 'Col 2']))
 
 if __name__=='__main__':	
 	test()

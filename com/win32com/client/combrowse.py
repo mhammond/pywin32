@@ -18,7 +18,7 @@
    and running COM objects.  The display is similar to the Pythonwin object
    browser, and displays the objects in a hierarchical window.
 
-   Note that this module requires the win32ui (ie, Pythonwin) diestribution to
+   Note that this module requires the win32ui (ie, Pythonwin) distribution to
    work.
 
 """
@@ -537,4 +537,4 @@ if __name__=='__main__':
     ni = pythoncom._GetInterfaceCount()
     ng = pythoncom._GetGatewayCount()
     if ni or ng:
-        print "Warning - exiting with %d/%d objects alive" % (ni,ng)
+        print("Warning - exiting with %d/%d objects alive" % (ni,ng))

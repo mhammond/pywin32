@@ -4,46 +4,37 @@
 //
 // Interface Declaration
 
-class PyIExplorerBrowserEvents : public PyIUnknown
-{
-public:
-	MAKE_PYCOM_CTOR(PyIExplorerBrowserEvents);
-	static IExplorerBrowserEvents *GetI(PyObject *self);
-	static PyComTypeObject type;
+class PyIExplorerBrowserEvents : public PyIUnknown {
+   public:
+    MAKE_PYCOM_CTOR(PyIExplorerBrowserEvents);
+    static IExplorerBrowserEvents *GetI(PyObject *self);
+    static PyComTypeObject type;
 
-	// The Python methods
-	static PyObject *OnNavigationPending(PyObject *self, PyObject *args);
-	static PyObject *OnViewCreated(PyObject *self, PyObject *args);
-	static PyObject *OnNavigationComplete(PyObject *self, PyObject *args);
-	static PyObject *OnNavigationFailed(PyObject *self, PyObject *args);
+    // The Python methods
+    static PyObject *OnNavigationPending(PyObject *self, PyObject *args);
+    static PyObject *OnViewCreated(PyObject *self, PyObject *args);
+    static PyObject *OnNavigationComplete(PyObject *self, PyObject *args);
+    static PyObject *OnNavigationFailed(PyObject *self, PyObject *args);
 
-protected:
-	PyIExplorerBrowserEvents(IUnknown *pdisp);
-	~PyIExplorerBrowserEvents();
+   protected:
+    PyIExplorerBrowserEvents(IUnknown *pdisp);
+    ~PyIExplorerBrowserEvents();
 };
 // ---------------------------------------------------
 //
 // Gateway Declaration
 
-class PyGExplorerBrowserEvents : public PyGatewayBase, public IExplorerBrowserEvents
-{
-protected:
-	PyGExplorerBrowserEvents(PyObject *instance) : PyGatewayBase(instance) { ; }
-	PYGATEWAY_MAKE_SUPPORT2(PyGExplorerBrowserEvents, IExplorerBrowserEvents, IID_IExplorerBrowserEvents, PyGatewayBase)
+class PyGExplorerBrowserEvents : public PyGatewayBase, public IExplorerBrowserEvents {
+   protected:
+    PyGExplorerBrowserEvents(PyObject *instance) : PyGatewayBase(instance) { ; }
+    PYGATEWAY_MAKE_SUPPORT2(PyGExplorerBrowserEvents, IExplorerBrowserEvents, IID_IExplorerBrowserEvents, PyGatewayBase)
 
+    // IExplorerBrowserEvents
+    STDMETHOD(OnNavigationPending)(PCIDLIST_ABSOLUTE pidlFolder);
 
+    STDMETHOD(OnViewCreated)(IShellView *psv);
 
-	// IExplorerBrowserEvents
-	STDMETHOD(OnNavigationPending)(
-		PCIDLIST_ABSOLUTE pidlFolder);
+    STDMETHOD(OnNavigationComplete)(PCIDLIST_ABSOLUTE pidlFolder);
 
-	STDMETHOD(OnViewCreated)(
-		IShellView * psv);
-
-	STDMETHOD(OnNavigationComplete)(
-		PCIDLIST_ABSOLUTE pidlFolder);
-
-	STDMETHOD(OnNavigationFailed)(
-		PCIDLIST_ABSOLUTE pidlFolder);
-
+    STDMETHOD(OnNavigationFailed)(PCIDLIST_ABSOLUTE pidlFolder);
 };

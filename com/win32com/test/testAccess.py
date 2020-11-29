@@ -24,7 +24,7 @@ def CreateTestAccessDatabase(dbname = None):
     try:
         os.unlink(dbname)
     except os.error:
-        print "WARNING - Unable to delete old test database - expect a COM exception RSN!"
+        print("WARNING - Unable to delete old test database - expect a COM exception RSN!")
 
     newdb = workspace.CreateDatabase( dbname, constants.dbLangGeneral, constants.dbEncrypt )
 
@@ -100,22 +100,22 @@ def CreateTestAccessDatabase(dbname = None):
 
 
 def DoDumpAccessInfo(dbname):
-    import daodump
+    from . import daodump
     a = forms = None
     try:
         sys.stderr.write("Creating Access Application...\n")
         a=Dispatch("Access.Application")
-        print "Opening database %s" % dbname
+        print("Opening database %s" % dbname)
         a.OpenCurrentDatabase(dbname)
         db = a.CurrentDb()
         daodump.DumpDB(db,1)
         forms = a.Forms
-        print "There are %d forms open." % (len(forms))
+        print("There are %d forms open." % (len(forms)))
 # Uncommenting these lines means Access remains open.
 #               for form in forms:
 #                       print " %s" % form.Name
         reports = a.Reports
-        print "There are %d reports open" % (len(reports))
+        print("There are %d reports open" % (len(reports)))
     finally:
         if not a is None:
             sys.stderr.write("Closing database\n")
@@ -150,16 +150,16 @@ def test(dbname = None):
         try:
             GenerateSupport()
         except pythoncom.com_error:
-            print "*** Can not import the MSAccess type libraries - tests skipped"
+            print("*** Can not import the MSAccess type libraries - tests skipped")
             return
         dbname = CreateTestAccessDatabase()
-        print "A test database at '%s' was created" % dbname
+        print("A test database at '%s' was created" % dbname)
 
     DumpAccessInfo(dbname)
 
 if __name__=='__main__':
     import sys
-    from util import CheckClean
+    from .util import CheckClean
     dbname = None
     if len(sys.argv)>1:
         dbname = sys.argv[1]

@@ -392,8 +392,9 @@ unsigned __stdcall ThreadEntryPoint( void *arg )
 static PyObject *mybeginthreadex(PyObject *self, PyObject *args)
 {
 	PyObject *obFunc, *obArgs, *obSA;
-	unsigned stackSize, flags;
-	if (!PyArg_ParseTuple(args, "OiOOi:beginthreadex",
+	unsigned stackSize;
+	unsigned long flags;
+	if (!PyArg_ParseTuple(args, "OIOOk:beginthreadex",
 		&obSA, // @pyparm <o PySECURITY_ATTRIBUTES>|sa||The security attributes, or None
 		&stackSize, // @pyparm int|stackSize||Stack size for the new thread, or zero for the default size.
 		&obFunc, // @pyparm function|entryPoint||The thread function.
@@ -433,12 +434,7 @@ static PyObject *mybeginthreadex(PyObject *self, PyObject *args)
 static PyObject *myCreateRemoteThread(PyObject *self, PyObject *args)
 {
 	CHECK_PFN(CreateRemoteThread);
-#ifdef _WIN64
-	static char *fmt="OOLOOk:CreateRemoteThread";
-#else
-	static char *fmt="OOlOOk:CreateRemoteThread";
-#endif
-
+	static char *fmt="OOnOOk:CreateRemoteThread";
 	PyObject *obhprocess, *obFunc, *obParameter, *obSA;
 	SIZE_T stackSize;
 	DWORD flags;
@@ -1497,11 +1493,7 @@ PyObject *PySetProcessWorkingSetSize(PyObject *self, PyObject *args)
 	HANDLE hProcess;
 	PyObject *obhProcess;
 
-#ifdef _WIN64
-	static char *fmt="OLL:SetProcessWorkingSetSize";
-#else
-	static char *fmt="Oll:SetProcessWorkingSetSize";
-#endif
+	static char *fmt="Onn:SetProcessWorkingSetSize";
 	if (!PyArg_ParseTuple(args, fmt,
 		&obhProcess,				// @pyparm <o PyHANDLE>|hProcess||Process handle as returned by OpenProcess
 		&MinimumWorkingSetSize,		// @pyparm int|MinimumWorkingSetSize||Minimum number of bytes to keep in physical memory
@@ -1606,6 +1598,108 @@ PyObject *PyIsWow64Process(PyObject *self, PyObject *args)
 	if (!ok)
 		return PyWin_SetAPIError("IsWow64Process");
 	return PyBool_FromLong(ret);
+}
+%}
+
+%typedef VOID *LONG_VOIDPTR;
+%typemap(python,except) LONG_VOIDPTR {
+	Py_BEGIN_ALLOW_THREADS
+	$function
+	Py_END_ALLOW_THREADS
+	if ($source==0)  {
+		$cleanup;
+		return PyWin_SetAPIError("$name");
+	}
+}
+
+%typemap(python, in) LONG_VOIDPTR {
+	if (!PyWinLong_AsVoidPtr($source, &$target))
+		return NULL;
+}
+%typemap(python, out) LONG_VOIDPTR
+{
+	$target = PyWinLong_FromVoidPtr($source);
+}
+
+
+// @pyswig long|VirtualAllocEx|
+LONG_VOIDPTR VirtualAllocEx(
+	HANDLE hProcess, // @pyparm <o PyHANDLE>|hProcess||
+	LONG_VOIDPTR lpAddress, // @pyparm long|address||
+	ULONG_PTR dwSize, // @pyparm long|size||
+	DWORD flAllocationType, // @pyparm long|allocationType||
+	DWORD flProtect // @pyparm long|flProtect||
+);
+
+// @pyswig |VirtualFreeEx|
+BOOLAPI VirtualFreeEx(
+	HANDLE hProcess, // @pyparm <o PyHANDLE>|hProcess||
+	LONG_VOIDPTR lpAddress, // @pyparm long|address||
+	ULONG_PTR dwSize, // @pyparm long|size||
+	DWORD dwFreeType // @pyparm long|freeType||
+);
+
+%native(ReadProcessMemory) PyReadProcessMemory;
+%{
+PyObject *PyReadProcessMemory(PyObject *self, PyObject *args)
+{
+	PyObject *obhprocess;
+	PyObject *obAddress;
+	SIZE_T size;
+	// @pyswig bytes|ReadProcessMemory|
+	// @pyparm <o PyHANDLE>|hProcess||
+	// @pyparm int|address||
+	// @pyparm int|size||
+	if (!PyArg_ParseTuple(args, "OOn:ReadProcessMemory", &obhprocess, &obAddress, &size))
+		return NULL;
+	HANDLE hprocess;
+	if (!PyWinObject_AsHANDLE(obhprocess, &hprocess))
+		return NULL;
+	LPVOID address;
+	if (!PyWinLong_AsVoidPtr(obAddress, &address))
+		return NULL;
+	VOID *buffer = malloc(size);
+	if (buffer == NULL) {
+		PyErr_SetString(PyExc_MemoryError, "Can't allocate buffer");
+		return NULL;
+	}
+	SIZE_T sizeWritten = 0;
+	PyObject *result = NULL;
+	if (ReadProcessMemory(hprocess, address, buffer, size, &sizeWritten)) {
+		result = PyBytes_FromStringAndSize((const char *)buffer, sizeWritten);
+	} else {
+		PyWin_SetAPIError("ReadProcessMemory");
+	}
+	free(buffer);
+	return result;
+}
+%}
+
+%native(WriteProcessMemory) PyWriteProcessMemory;
+%{
+PyObject *PyWriteProcessMemory(PyObject *self, PyObject *args)
+{
+	PyObject *obhprocess;
+	PyObject *obAddress;
+	void *buf;
+	Py_ssize_t size;
+	// @pyswig int|WriteProcessMemory|
+	// @pyparm <o PyHANDLE>|hProcess||
+	// @pyparm int|address||
+	// @pyparm buffer|buf||
+	if (!PyArg_ParseTuple(args, "OOs#:WriteProcessMemory", &obhprocess, &obAddress, &buf, &size))
+		return NULL;
+	HANDLE hprocess;
+	if (!PyWinObject_AsHANDLE(obhprocess, &hprocess))
+		return NULL;
+	LPVOID address;
+	if (!PyWinLong_AsVoidPtr(obAddress, &address))
+		return NULL;
+	SIZE_T sizeWritten = 0;
+	if (!WriteProcessMemory(hprocess, address, buf, size, &sizeWritten)) {
+		return PyWin_SetAPIError("WriteProcessMemory");
+	}
+	return PyLong_FromSsize_t(sizeWritten);
 }
 %}
 

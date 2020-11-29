@@ -1,5 +1,5 @@
 import regutil, os
-import hierlist
+from . import hierlist
 import win32con, win32ui, win32api
 import commctrl
 from pywin.mfc import dialog
@@ -59,7 +59,7 @@ class HLICLBRClass(HLICLBRItem):
 		 ret = []
 		 for c in self.super:
 			 ret.append(HLICLBRClass(c, " (Parent class)"))
-		 for meth, lineno in self.methods.iteritems():
+		 for meth, lineno in self.methods.items():
 			 ret.append(HLICLBRMethod(meth, self.file, lineno, " (method)"))
 		 return ret
 	def IsExpandable(self):
@@ -106,7 +106,7 @@ class HLIModuleItem(hierlist.HierListItem):
 			data = reader(mod, [path])
 			if data:
 				ret = []
-				for item in data.itervalues():
+				for item in data.values():
 					if item.__class__ != pyclbr.Class: # ie, it is a pyclbr Function instance (only introduced post 1.5.2)
 						ret.append(HLICLBRFunction( item, " (function)" ) )
 					else:

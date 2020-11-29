@@ -22,7 +22,7 @@ else:
 # derive from IDispatch - thus, you get the custome methods from the
 # interface, as well as via IDispatch.
 import pythoncom
-from adsi import *
+from .adsi import *
 
 LCID = 0
 

@@ -1,10 +1,25 @@
 # pywin32
 
+[![CI](https://github.com/mhammond/pywin32/workflows/CI/badge.svg)](https://github.com/mhammond/pywin32/actions?query=workflow%3ACI)
+[![PyPI - Version](https://img.shields.io/pypi/v/pywin32.svg)](https://pypi.org/project/pywin32)
+[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/pywin32.svg)](https://pypi.org/project/pywin32)
+[![PyPI - Downloads](https://img.shields.io/pypi/dm/pywin32.svg)](https://pypi.org/project/pywin32)
+[![License - PSF-2.0](https://img.shields.io/badge/license-PSF--2.0-9400d3.svg)](https://spdx.org/licenses/PSF-2.0.html)
+
+-----
+
 This is the readme for the Python for Win32 (pywin32) extensions, which provides access to many of the Windows APIs from Python.
 
 See [CHANGES.txt](https://github.com/mhammond/pywin32/blob/master/CHANGES.txt) for recent notable changes.
 
-Note that as of build 222, pywin32 has a new home at [github](https://github.com/mhammond/pywin32).
+Build 228 is the last build supporting Python 2, and as part of this transition,
+all code in the repository is now using Python 3 syntax.
+To highlight and celebrate this change, build 228 is the last numbered 2XX - the
+following build numbers start at 300.
+
+In other words, there is no build 229 - the build numbers jump from 228 to 300.
+
+As of build 222, pywin32 has a new home at [github](https://github.com/mhammond/pywin32).
 You can find build 221 and later on github and older versions can be found on
 the old project home at [sourceforge](https://sourceforge.net/projects/pywin32/)
 
@@ -27,8 +42,6 @@ By far the easiest way to use pywin32 is to grab binaries from the [most recent 
 
 ## Installing via PIP
 
-Note that PIP support is experimental.
-
 You can install pywin32 via pip:
 > pip install pywin32
 
@@ -39,11 +52,10 @@ the following command from an elevated command prompt:
 > python Scripts/pywin32_postinstall.py -install
 
 ## Building from source
-Building from source is extremely complicated due to the fact we support building
-old versions of Python using old versions of Windows SDKs. If you just want to
-build the most recent version, you can probably get away with installing th
-same MSVC version used to build that version of Python, grabbing a recent
-Windows SDK and running `setup.py`
+
+Building from source has been simplified recently - you just need Visual Studio
+and the Windows 10 SDK installed (the free compilers probably work too, but
+  haven't been tested - let me know your experiences!)
 
 `setup.py` is a standard distutils build script.  You probably want:
 
@@ -72,9 +84,14 @@ to form a checklist so mhammond doesn't forget what to do :)
 
 * Commit setup.py (so the new build number is in the repo), create a new git tag
 
-* Upload the .exe installers to github, the .whl files to pypi.
-
 * Update setup.py with the new build number + ".1" (eg, 123.1), to ensure
   future test builds aren't mistaken for the real release.
+
+* Make sure everything is pushed to github, including the tag (ie,
+  `git push --tags`)
+
+* Upload the .exe installers to github (using the web UI), the .whl files to
+  pypi (using `py -3.5 -m twine upload dist/*XXX*.whl` where `XXX` is the build
+  number).
 
 * Send mail to python-win32

@@ -4,38 +4,31 @@
 //
 // Interface Declaration
 
-class PyICancelMethodCalls : public PyIUnknown
-{
-public:
-	MAKE_PYCOM_CTOR(PyICancelMethodCalls);
-	static ICancelMethodCalls *GetI(PyObject *self);
-	static PyComTypeObject type;
+class PyICancelMethodCalls : public PyIUnknown {
+   public:
+    MAKE_PYCOM_CTOR(PyICancelMethodCalls);
+    static ICancelMethodCalls *GetI(PyObject *self);
+    static PyComTypeObject type;
 
-	// The Python methods
-	static PyObject *Cancel(PyObject *self, PyObject *args);
-	static PyObject *TestCancel(PyObject *self, PyObject *args);
+    // The Python methods
+    static PyObject *Cancel(PyObject *self, PyObject *args);
+    static PyObject *TestCancel(PyObject *self, PyObject *args);
 
-protected:
-	PyICancelMethodCalls(IUnknown *pdisp);
-	~PyICancelMethodCalls();
+   protected:
+    PyICancelMethodCalls(IUnknown *pdisp);
+    ~PyICancelMethodCalls();
 };
 // ---------------------------------------------------
 //
 // Gateway Declaration
 
-class PyGCancelMethodCalls : public PyGatewayBase, public ICancelMethodCalls
-{
-protected:
-	PyGCancelMethodCalls(PyObject *instance) : PyGatewayBase(instance) { ; }
-	PYGATEWAY_MAKE_SUPPORT2(PyGCancelMethodCalls, ICancelMethodCalls, IID_ICancelMethodCalls, PyGatewayBase)
+class PyGCancelMethodCalls : public PyGatewayBase, public ICancelMethodCalls {
+   protected:
+    PyGCancelMethodCalls(PyObject *instance) : PyGatewayBase(instance) { ; }
+    PYGATEWAY_MAKE_SUPPORT2(PyGCancelMethodCalls, ICancelMethodCalls, IID_ICancelMethodCalls, PyGatewayBase)
 
+    // ICancelMethodCalls
+    STDMETHOD(Cancel)(ULONG ulSeconds);
 
-
-	// ICancelMethodCalls
-	STDMETHOD(Cancel)(
-		ULONG ulSeconds);
-
-	STDMETHOD(TestCancel)(
-		void);
-
+    STDMETHOD(TestCancel)(void);
 };

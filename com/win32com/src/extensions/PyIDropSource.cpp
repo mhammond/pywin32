@@ -11,109 +11,95 @@
 //
 // Interface Implementation
 
-PyIDropSource::PyIDropSource(IUnknown *pdisp):
-	PyIUnknown(pdisp)
-{
-	ob_type = &type;
-}
+PyIDropSource::PyIDropSource(IUnknown *pdisp) : PyIUnknown(pdisp) { ob_type = &type; }
 
-PyIDropSource::~PyIDropSource()
-{
-}
+PyIDropSource::~PyIDropSource() {}
 
-/* static */ IDropSource *PyIDropSource::GetI(PyObject *self)
-{
-	return (IDropSource *)PyIUnknown::GetI(self);
-}
+/* static */ IDropSource *PyIDropSource::GetI(PyObject *self) { return (IDropSource *)PyIUnknown::GetI(self); }
 
 // @pymethod |PyIDropSource|QueryContinueDrag|Description of QueryContinueDrag.
 PyObject *PyIDropSource::QueryContinueDrag(PyObject *self, PyObject *args)
 {
-	IDropSource *pIDS = GetI(self);
-	if ( pIDS == NULL )
-		return NULL;
-	// @pyparm int|fEscapePressed||Description for fEscapePressed
-	// @pyparm int|grfKeyState||Description for grfKeyState
-	BOOL fEscapePressed;
-	DWORD grfKeyState;
-	if ( !PyArg_ParseTuple(args, "il:QueryContinueDrag", &fEscapePressed, &grfKeyState) )
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIDS->QueryContinueDrag( fEscapePressed, grfKeyState );
+    IDropSource *pIDS = GetI(self);
+    if (pIDS == NULL)
+        return NULL;
+    // @pyparm int|fEscapePressed||Description for fEscapePressed
+    // @pyparm int|grfKeyState||Description for grfKeyState
+    BOOL fEscapePressed;
+    DWORD grfKeyState;
+    if (!PyArg_ParseTuple(args, "il:QueryContinueDrag", &fEscapePressed, &grfKeyState))
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIDS->QueryContinueDrag(fEscapePressed, grfKeyState);
 
-	PY_INTERFACE_POSTCALL;
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pIDS, IID_IDropSource );
-	Py_INCREF(Py_None);
-	return Py_None;
-
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pIDS, IID_IDropSource);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @pymethod |PyIDropSource|GiveFeedback|Description of GiveFeedback.
 PyObject *PyIDropSource::GiveFeedback(PyObject *self, PyObject *args)
 {
-	IDropSource *pIDS = GetI(self);
-	if ( pIDS == NULL )
-		return NULL;
-	// @pyparm int|dwEffect||Description for dwEffect
-	DWORD dwEffect;
-	if ( !PyArg_ParseTuple(args, "l:GiveFeedback", &dwEffect) )
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIDS->GiveFeedback( dwEffect );
+    IDropSource *pIDS = GetI(self);
+    if (pIDS == NULL)
+        return NULL;
+    // @pyparm int|dwEffect||Description for dwEffect
+    DWORD dwEffect;
+    if (!PyArg_ParseTuple(args, "l:GiveFeedback", &dwEffect))
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIDS->GiveFeedback(dwEffect);
 
-	PY_INTERFACE_POSTCALL;
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pIDS, IID_IDropSource );
-	Py_INCREF(Py_None);
-	return Py_None;
-
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pIDS, IID_IDropSource);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @object PyIDropSource|Description of the interface
-static struct PyMethodDef PyIDropSource_methods[] =
-{
-	{ "QueryContinueDrag", PyIDropSource::QueryContinueDrag, 1 }, // @pymeth QueryContinueDrag|Description of QueryContinueDrag
-	{ "GiveFeedback", PyIDropSource::GiveFeedback, 1 }, // @pymeth GiveFeedback|Description of GiveFeedback
-	{ NULL }
-};
+static struct PyMethodDef PyIDropSource_methods[] = {
+    {"QueryContinueDrag", PyIDropSource::QueryContinueDrag,
+     1},                                               // @pymeth QueryContinueDrag|Description of QueryContinueDrag
+    {"GiveFeedback", PyIDropSource::GiveFeedback, 1},  // @pymeth GiveFeedback|Description of GiveFeedback
+    {NULL}};
 
-PyComTypeObject PyIDropSource::type("PyIDropSource",
-		&PyIUnknown::type,
-		sizeof(PyIDropSource),
-		PyIDropSource_methods,
-		GET_PYCOM_CTOR(PyIDropSource));
+PyComTypeObject PyIDropSource::type("PyIDropSource", &PyIUnknown::type, sizeof(PyIDropSource), PyIDropSource_methods,
+                                    GET_PYCOM_CTOR(PyIDropSource));
 // ---------------------------------------------------
 //
 // Gateway Implementation
 STDMETHODIMP PyGDropSource::QueryContinueDrag(
-		/* [in] */ BOOL fEscapePressed,
-		/* [in] */ DWORD grfKeyState)
+    /* [in] */ BOOL fEscapePressed,
+    /* [in] */ DWORD grfKeyState)
 {
-	PY_GATEWAY_METHOD;
-	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("QueryContinueDrag", &result, "il", fEscapePressed, grfKeyState);
-	if (FAILED(hr)) return hr;
-	if (PyInt_Check(result))
-		hr = PyInt_AsLong(result);
-	Py_DECREF(result);
-	return hr;
+    PY_GATEWAY_METHOD;
+    PyObject *result;
+    HRESULT hr = InvokeViaPolicy("QueryContinueDrag", &result, "il", fEscapePressed, grfKeyState);
+    if (FAILED(hr))
+        return hr;
+    if (PyInt_Check(result))
+        hr = PyInt_AsLong(result);
+    Py_DECREF(result);
+    return hr;
 }
 
 STDMETHODIMP PyGDropSource::GiveFeedback(
-		/* [in] */ DWORD dwEffect)
+    /* [in] */ DWORD dwEffect)
 {
-	PY_GATEWAY_METHOD;
-	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("GiveFeedback", &result, "l", dwEffect);
-	if (FAILED(hr)) return hr;
-	if (PyInt_Check(result))
-		hr = PyInt_AsLong(result);
-	Py_DECREF(result);
-	return hr;
+    PY_GATEWAY_METHOD;
+    PyObject *result;
+    HRESULT hr = InvokeViaPolicy("GiveFeedback", &result, "l", dwEffect);
+    if (FAILED(hr))
+        return hr;
+    if (PyInt_Check(result))
+        hr = PyInt_AsLong(result);
+    Py_DECREF(result);
+    return hr;
 }
-

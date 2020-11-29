@@ -18,14 +18,14 @@ win32security.LsaAddAccountRights(policy_handle,tmp_sid,privs)
 
 privlist=win32security.LsaEnumerateAccountRights(policy_handle,tmp_sid)
 for priv in privlist:
-    print priv
+    print(priv)
     
 privs=[ntsecuritycon.SE_DEBUG_NAME,ntsecuritycon.SE_TCB_NAME]
 win32security.LsaRemoveAccountRights(policy_handle,tmp_sid,0,privs)
 
 privlist=win32security.LsaEnumerateAccountRights(policy_handle,tmp_sid)
 for priv in privlist:
-    print priv
+    print(priv)
 
 win32security.LsaClose(policy_handle)
 

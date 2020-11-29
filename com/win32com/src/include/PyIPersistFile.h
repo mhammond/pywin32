@@ -4,52 +4,42 @@
 //
 // Interface Declaration
 
-class PyIPersistFile : public PyIPersist
-{
-public:
-	MAKE_PYCOM_CTOR(PyIPersistFile);
-	static IPersistFile *GetI(PyObject *self);
-	static PyComTypeObject type;
+class PyIPersistFile : public PyIPersist {
+   public:
+    MAKE_PYCOM_CTOR(PyIPersistFile);
+    static IPersistFile *GetI(PyObject *self);
+    static PyComTypeObject type;
 
-	// The Python methods
-	static PyObject *IsDirty(PyObject *self, PyObject *args);
-	static PyObject *Load(PyObject *self, PyObject *args);
-	static PyObject *Save(PyObject *self, PyObject *args);
-	static PyObject *SaveCompleted(PyObject *self, PyObject *args);
-	static PyObject *GetCurFile(PyObject *self, PyObject *args);
+    // The Python methods
+    static PyObject *IsDirty(PyObject *self, PyObject *args);
+    static PyObject *Load(PyObject *self, PyObject *args);
+    static PyObject *Save(PyObject *self, PyObject *args);
+    static PyObject *SaveCompleted(PyObject *self, PyObject *args);
+    static PyObject *GetCurFile(PyObject *self, PyObject *args);
 
-protected:
-	PyIPersistFile(IUnknown *pdisp);
-	~PyIPersistFile();
+   protected:
+    PyIPersistFile(IUnknown *pdisp);
+    ~PyIPersistFile();
 };
 // ---------------------------------------------------
 //
 // Gateway Declaration
 
-class PyGPersistFile : public PyGPersist, public IPersistFile
-{
-protected:
-	PYGATEWAY_MAKE_SUPPORT2(PyGPersistFile, IPersistFile, IID_IPersistFile, PyGPersist)
-	PyGPersistFile(PyObject *instance) : PyGPersist(instance) {;}
-	// IPersist
-	STDMETHOD(GetClassID)(CLSID FAR *pClassID) {return PyGPersist::GetClassID(pClassID);}
+class PyGPersistFile : public PyGPersist, public IPersistFile {
+   protected:
+    PYGATEWAY_MAKE_SUPPORT2(PyGPersistFile, IPersistFile, IID_IPersistFile, PyGPersist)
+    PyGPersistFile(PyObject *instance) : PyGPersist(instance) { ; }
+    // IPersist
+    STDMETHOD(GetClassID)(CLSID FAR *pClassID) { return PyGPersist::GetClassID(pClassID); }
 
-	// IPersistFile
-	STDMETHOD(IsDirty)(
-		void);
+    // IPersistFile
+    STDMETHOD(IsDirty)(void);
 
-	STDMETHOD(Load)(
-		LPCOLESTR pszFileName,
-		DWORD dwMode);
+    STDMETHOD(Load)(LPCOLESTR pszFileName, DWORD dwMode);
 
-	STDMETHOD(Save)(
-		LPCOLESTR pszFileName,
-		BOOL fRemember);
+    STDMETHOD(Save)(LPCOLESTR pszFileName, BOOL fRemember);
 
-	STDMETHOD(SaveCompleted)(
-		LPCOLESTR pszFileName);
+    STDMETHOD(SaveCompleted)(LPCOLESTR pszFileName);
 
-	STDMETHOD(GetCurFile)(
-		LPOLESTR __RPC_FAR * ppszFileName);
-
+    STDMETHOD(GetCurFile)(LPOLESTR __RPC_FAR *ppszFileName);
 };

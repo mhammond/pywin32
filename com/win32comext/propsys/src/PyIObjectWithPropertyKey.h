@@ -4,18 +4,17 @@
 //
 // Interface Declaration
 
-class PyIObjectWithPropertyKey : public PyIUnknown
-{
-public:
-	MAKE_PYCOM_CTOR(PyIObjectWithPropertyKey);
-	static IObjectWithPropertyKey *GetI(PyObject *self);
-	static PyComTypeObject type;
+class PyIObjectWithPropertyKey : public PyIUnknown {
+   public:
+    MAKE_PYCOM_CTOR(PyIObjectWithPropertyKey);
+    static IObjectWithPropertyKey *GetI(PyObject *self);
+    static PyComTypeObject type;
 
-	// The Python methods
-	static PyObject *SetPropertyKey(PyObject *self, PyObject *args);
-	static PyObject *GetPropertyKey(PyObject *self, PyObject *args);
+    // The Python methods
+    static PyObject *SetPropertyKey(PyObject *self, PyObject *args);
+    static PyObject *GetPropertyKey(PyObject *self, PyObject *args);
 
-protected:
-	PyIObjectWithPropertyKey(IUnknown *pdisp);
-	~PyIObjectWithPropertyKey();
+   protected:
+    PyIObjectWithPropertyKey(IUnknown *pdisp);
+    ~PyIObjectWithPropertyKey();
 };

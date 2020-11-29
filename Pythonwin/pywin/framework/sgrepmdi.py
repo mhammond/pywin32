@@ -28,7 +28,7 @@ import glob
 import os
 import stat
 import glob
-import scriptutils
+from . import scriptutils
 
 def getsubdirs(d):
 	dlist = []
@@ -88,7 +88,7 @@ class dirpath:
 									if sd not in dirs:
 										dirs[sd] = None
 		self.dirs = []
-		for d in dirs.keys():
+		for d in list(dirs.keys()):
 			self.dirs.append(d)
 
 	def __getitem__(self, key):

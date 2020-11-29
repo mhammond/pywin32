@@ -1,6 +1,7 @@
 # Some tests of the win32security sspi functions.
 # Stolen from Roger's original test_sspi.c, a version of which is in "Demos"
 # See also the other SSPI demos.
+import re
 import win32security, sspi, sspicon, win32api
 from pywin32_testutil import TestSkipped, testmain, str2bytes
 import unittest
@@ -11,7 +12,7 @@ import unittest
 def applyHandlingSkips(func, *args):
     try:
         return func(*args)
-    except win32api.error, exc:
+    except win32api.error as exc:
         if exc.winerror == sspicon.SEC_E_NO_CREDENTIALS:
             raise TestSkipped(exc)
         raise
@@ -23,7 +24,7 @@ class TestSSPI(unittest.TestCase):
         try:
             return func(*args)
             raise RuntimeError("expecting %s failure" % (hr,))
-        except win32security.error, exc:
+        except win32security.error as exc:
             self.failUnlessEqual(exc.winerror, hr)
 
     def _doAuth(self, pkg_name):
@@ -72,11 +73,44 @@ class TestSSPI(unittest.TestCase):
         data, sig = sspiserver.encrypt(data_in)
         self.assertEqual(sspiclient.decrypt(data, sig), data_in)
 
+    def _doTestEncryptStream(self, pkg_name):
+        # Test out the SSPI/GSSAPI interop wrapping examples at
+        # https://docs.microsoft.com/en-us/windows/win32/secauthn/sspi-kerberos-interoperability-with-gssapi
+
+        sspiclient, sspiserver = self._doAuth(pkg_name)
+
+        pkg_size_info=sspiclient.ctxt.QueryContextAttributes(sspicon.SECPKG_ATTR_SIZES)
+        msg=str2bytes('some data to be encrypted ......')
+
+        trailersize=pkg_size_info['SecurityTrailer']
+        blocksize=pkg_size_info['BlockSize']
+        encbuf=win32security.PySecBufferDescType()
+        encbuf.append(win32security.PySecBufferType(trailersize, sspicon.SECBUFFER_TOKEN))
+        encbuf.append(win32security.PySecBufferType(len(msg), sspicon.SECBUFFER_DATA))
+        encbuf.append(win32security.PySecBufferType(blocksize, sspicon.SECBUFFER_PADDING))
+        encbuf[1].Buffer=msg
+        sspiclient.ctxt.EncryptMessage(0,encbuf,1)
+
+        encmsg = encbuf[0].Buffer + encbuf[1].Buffer + encbuf[2].Buffer
+        decbuf=win32security.PySecBufferDescType()
+        decbuf.append(win32security.PySecBufferType(len(encmsg), sspicon.SECBUFFER_STREAM))
+        decbuf.append(win32security.PySecBufferType(0, sspicon.SECBUFFER_DATA))
+        decbuf[0].Buffer = encmsg
+
+        sspiserver.ctxt.DecryptMessage(decbuf,1)
+        self.failUnlessEqual(msg, decbuf[1].Buffer)
+
     def testEncryptNTLM(self):
         self._doTestEncrypt("NTLM")
-    
+
+    def testEncryptStreamNTLM(self):
+        self._doTestEncryptStream("NTLM")
+
     def testEncryptKerberos(self):
         applyHandlingSkips(self._doTestEncrypt, "Kerberos")
+
+    def testEncryptStreamKerberos(self):
+        applyHandlingSkips(self._doTestEncryptStream, "Kerberos")
 
     def _doTestSign(self, pkg_name):
 
@@ -136,6 +170,23 @@ class TestSSPI(unittest.TestCase):
 
     def testSequenceEncrypt(self):
         applyHandlingSkips(self._testSequenceEncrypt)
+
+    def testSecBufferRepr(self):
+        desc = win32security.PySecBufferDescType()
+        assert re.match('PySecBufferDesc\(ulVersion: 0 \| cBuffers: 0 \| pBuffers: 0x[\da-fA-F]{8,16}\)', repr(desc))
+
+        buffer1 = win32security.PySecBufferType(0, sspicon.SECBUFFER_TOKEN)
+        assert re.match('PySecBuffer\(cbBuffer: 0 \| BufferType: 2 \| pvBuffer: 0x[\da-fA-F]{8,16}\)', repr(buffer1))
+        'PySecBuffer(cbBuffer: 0 | BufferType: 2 | pvBuffer: 0x000001B8CC6D8020)'
+        desc.append(buffer1)
+
+        assert re.match('PySecBufferDesc\(ulVersion: 0 \| cBuffers: 1 \| pBuffers: 0x[\da-fA-F]{8,16}\)', repr(desc))
+
+        buffer2 = win32security.PySecBufferType(4, sspicon.SECBUFFER_DATA)
+        assert re.match('PySecBuffer\(cbBuffer: 4 \| BufferType: 1 \| pvBuffer: 0x[\da-fA-F]{8,16}\)', repr(buffer2))
+        desc.append(buffer2)
+
+        assert re.match('PySecBufferDesc\(ulVersion: 0 \| cBuffers: 2 \| pBuffers: 0x[\da-fA-F]{8,16}\)', repr(desc))
 
 if __name__=='__main__':
     testmain()

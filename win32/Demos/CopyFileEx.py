@@ -4,8 +4,8 @@ import os
 
 def ProgressRoutine(TotalFileSize, TotalBytesTransferred, StreamSize, StreamBytesTransferred,
     StreamNumber, CallbackReason, SourceFile, DestinationFile, Data):
-    print Data
-    print TotalFileSize, TotalBytesTransferred, StreamSize, StreamBytesTransferred, StreamNumber, CallbackReason, SourceFile, DestinationFile
+    print(Data)
+    print(TotalFileSize, TotalBytesTransferred, StreamSize, StreamBytesTransferred, StreamNumber, CallbackReason, SourceFile, DestinationFile)
     ##if TotalBytesTransferred > 100000:
     ##    return win32file.PROGRESS_STOP
     return win32file.PROGRESS_CONTINUE
@@ -13,7 +13,7 @@ def ProgressRoutine(TotalFileSize, TotalBytesTransferred, StreamSize, StreamByte
 temp_dir=win32api.GetTempPath()
 fsrc=win32api.GetTempFileName(temp_dir,'cfe')[0]
 fdst=win32api.GetTempFileName(temp_dir,'cfe')[0]
-print fsrc, fdst
+print(fsrc, fdst)
 
 f=open(fsrc,'w')
 f.write('xxxxxxxxxxxxxxxx\n'*32768)

@@ -47,7 +47,7 @@
 """
 
 import re
-import makegwparse
+from . import makegwparse
 
 def make_framework_support(header_file_name, interface_name, bMakeInterface = 1, bMakeGateway = 1):
   """Generate C++ code for a Python Interface and Gateway
@@ -205,7 +205,7 @@ PyObject *Py%(interfacename)s::%(method)s(PyObject *self, PyObject *args)
         if comArgDeclString: # If we should declare a variable
           codeCobjects = codeCobjects + "\t%s;\n" % (comArgDeclString)
         argsCOM = argsCOM + ", " + comArgName
-      except makegwparse.error_not_supported, why:
+      except makegwparse.error_not_supported as why:
         f.write('// *** The input argument %s of type "%s" was not processed ***\n//     Please check the conversion function is appropriate and exists!\n' % (arg.name, arg.raw_type))
 
         f.write('\t%s %s;\n\tPyObject *ob%s;\n' % (arg.type, arg.name, arg.name))
@@ -252,7 +252,7 @@ PyObject *Py%(interfacename)s::%(method)s(PyObject *self, PyObject *args)
           codePost = codePost + argCvt.GetBuildForInterfacePostCode()
           codeVarsPass = codeVarsPass + ", " + argCvt.GetBuildValueArg()
           codeDecl = codeDecl + argCvt.DeclareParseArgTupleInputConverter()
-      except makegwparse.error_not_supported, why:
+      except makegwparse.error_not_supported as why:
         f.write('// *** The output argument %s of type "%s" was not processed ***\n//     %s\n' % (arg.name, arg.raw_type, why))
         continue
     if formatChars:
@@ -385,7 +385,7 @@ STDMETHODIMP %s::%s(
               argStr = argStr + ", " + argCvt.GetBuildValueArg()
             codePre = codePre + argCvt.GetBuildForGatewayPreCode()
             codePost = codePost + argCvt.GetBuildForGatewayPostCode()
-          except makegwparse.error_not_supported, why:
+          except makegwparse.error_not_supported as why:
             f.write('// *** The input argument %s of type "%s" was not processed ***\n//   - Please ensure this conversion function exists, and is appropriate\n//   - %s\n' % (arg.name, arg.raw_type, why))
             f.write('\tPyObject *ob%s = PyObject_From%s(%s);\n' % (arg.name, arg.type, arg.name))
             f.write('\tif (ob%s==NULL) return MAKE_PYCOM_GATEWAY_FAILURE_CODE("%s");\n' % (arg.name, method.name))
@@ -428,7 +428,7 @@ STDMETHODIMP %s::%s(
             codePobjects = codePobjects + argCvt.DeclareParseArgTupleInputConverter()
             codePost = codePost + argCvt.GetParsePostCode()
             needConversion = needConversion or argCvt.NeedUSES_CONVERSION()
-        except makegwparse.error_not_supported, why:
+        except makegwparse.error_not_supported as why:
           f.write('// *** The output argument %s of type "%s" was not processed ***\n//     %s\n' % (arg.name, arg.raw_type, why))
 
       if formatChars: # If I have any to actually process.

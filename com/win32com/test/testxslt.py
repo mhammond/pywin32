@@ -15,8 +15,8 @@ class XSLT(win32com.test.util.TestCase):
             try:
                 got = f.read()
                 if got != expected_output:
-                    print "ERROR: XSLT expected output of %r" % (expected_output,)
-                    print "but got %r" % (got,)
+                    print("ERROR: XSLT expected output of %r" % (expected_output,))
+                    print("but got %r" % (got,))
             finally:
                 f.close()
         finally:

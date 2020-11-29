@@ -11,117 +11,110 @@
 //
 // Interface Implementation
 
-PyIPropertyEnumType::PyIPropertyEnumType(IUnknown *pdisp):
-	PyIUnknown(pdisp)
-{
-	ob_type = &type;
-}
+PyIPropertyEnumType::PyIPropertyEnumType(IUnknown *pdisp) : PyIUnknown(pdisp) { ob_type = &type; }
 
-PyIPropertyEnumType::~PyIPropertyEnumType()
-{
-}
+PyIPropertyEnumType::~PyIPropertyEnumType() {}
 
 /* static */ IPropertyEnumType *PyIPropertyEnumType::GetI(PyObject *self)
 {
-	return (IPropertyEnumType *)PyIUnknown::GetI(self);
+    return (IPropertyEnumType *)PyIUnknown::GetI(self);
 }
 
 // @pymethod int|PyIPropertyEnumType|GetEnumType|Retrieves the type (PROPENUMTYPE)
 // @rdesc pscon.PET_*
 PyObject *PyIPropertyEnumType::GetEnumType(PyObject *self, PyObject *args)
 {
-	IPropertyEnumType *pIPET = GetI(self);
-	if ( pIPET == NULL )
-		return NULL;
-	PROPENUMTYPE pet;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIPET->GetEnumType(&pet);
-	PY_INTERFACE_POSTCALL;
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pIPET, IID_IPropertyEnumType );
-	return PyLong_FromLong(pet);
+    IPropertyEnumType *pIPET = GetI(self);
+    if (pIPET == NULL)
+        return NULL;
+    PROPENUMTYPE pet;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIPET->GetEnumType(&pet);
+    PY_INTERFACE_POSTCALL;
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pIPET, IID_IPropertyEnumType);
+    return PyLong_FromLong(pet);
 }
 
 // @pymethod <o PyPROPVARIANT>|PyIPropertyEnumType|GetValue|Retrieves the defined value
 PyObject *PyIPropertyEnumType::GetValue(PyObject *self, PyObject *args)
 {
-	IPropertyEnumType *pIPET = GetI(self);
-	if ( pIPET == NULL )
-		return NULL;
-	PROPVARIANT val;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIPET->GetValue(&val);
-	PY_INTERFACE_POSTCALL;
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pIPET, IID_IPropertyEnumType );
-	return PyWinObject_FromPROPVARIANT(&val);
+    IPropertyEnumType *pIPET = GetI(self);
+    if (pIPET == NULL)
+        return NULL;
+    PROPVARIANT val;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIPET->GetValue(&val);
+    PY_INTERFACE_POSTCALL;
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pIPET, IID_IPropertyEnumType);
+    return PyWinObject_FromPROPVARIANT(&val);
 }
 
 // @pymethod <o PyPROPVARIANT>|PyIPropertyEnumType|GetRangeMinValue|Returns the minimum allowed value for the property
 PyObject *PyIPropertyEnumType::GetRangeMinValue(PyObject *self, PyObject *args)
 {
-	IPropertyEnumType *pIPET = GetI(self);
-	if ( pIPET == NULL )
-		return NULL;
-	PROPVARIANT val;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIPET->GetRangeMinValue(&val);
-	PY_INTERFACE_POSTCALL;
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pIPET, IID_IPropertyEnumType );
-	return PyWinObject_FromPROPVARIANT(&val);
+    IPropertyEnumType *pIPET = GetI(self);
+    if (pIPET == NULL)
+        return NULL;
+    PROPVARIANT val;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIPET->GetRangeMinValue(&val);
+    PY_INTERFACE_POSTCALL;
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pIPET, IID_IPropertyEnumType);
+    return PyWinObject_FromPROPVARIANT(&val);
 }
 
 // @pymethod <o PyPROPVARIANT>|PyIPropertyEnumType|GetRangeSetValue|Returns a fixed value defined for the property
 PyObject *PyIPropertyEnumType::GetRangeSetValue(PyObject *self, PyObject *args)
 {
-	IPropertyEnumType *pIPET = GetI(self);
-	if ( pIPET == NULL )
-		return NULL;
-	PROPVARIANT val;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIPET->GetRangeSetValue(&val);
-	PY_INTERFACE_POSTCALL;
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pIPET, IID_IPropertyEnumType);
-	return PyWinObject_FromPROPVARIANT(&val);
+    IPropertyEnumType *pIPET = GetI(self);
+    if (pIPET == NULL)
+        return NULL;
+    PROPVARIANT val;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIPET->GetRangeSetValue(&val);
+    PY_INTERFACE_POSTCALL;
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pIPET, IID_IPropertyEnumType);
+    return PyWinObject_FromPROPVARIANT(&val);
 }
 
 // @pymethod |PyIPropertyEnumType|GetDisplayText|Returns the display text for the enumerated type
 PyObject *PyIPropertyEnumType::GetDisplayText(PyObject *self, PyObject *args)
 {
-	IPropertyEnumType *pIPET = GetI(self);
-	if ( pIPET == NULL )
-		return NULL;
-	LPWSTR dt;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIPET->GetDisplayText(&dt);
-	PY_INTERFACE_POSTCALL;
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pIPET, IID_IPropertyEnumType );
-	PyObject *ret=PyWinObject_FromWCHAR(dt);
-	CoTaskMemFree(dt);
-	return ret;
+    IPropertyEnumType *pIPET = GetI(self);
+    if (pIPET == NULL)
+        return NULL;
+    LPWSTR dt;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIPET->GetDisplayText(&dt);
+    PY_INTERFACE_POSTCALL;
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pIPET, IID_IPropertyEnumType);
+    PyObject *ret = PyWinObject_FromWCHAR(dt);
+    CoTaskMemFree(dt);
+    return ret;
 }
 
 // @object PyIPropertyEnumType|Contains information about an allowable value or range for a property
-static struct PyMethodDef PyIPropertyEnumType_methods[] =
-{
-	{ "GetEnumType", PyIPropertyEnumType::GetEnumType, METH_NOARGS }, // @pymeth GetEnumType|Retrieves the type (PROPENUMTYPE)
-	{ "GetValue", PyIPropertyEnumType::GetValue, METH_NOARGS }, // @pymeth GetValue|Retrieves the defined value
-	{ "GetRangeMinValue", PyIPropertyEnumType::GetRangeMinValue, METH_NOARGS }, // @pymeth GetRangeMinValue|Returns the minimum allowed value for the property
-	{ "GetRangeSetValue", PyIPropertyEnumType::GetRangeSetValue, METH_NOARGS }, // @pymeth GetRangeSetValue|Returns a fixed value defined for the property
-	{ "GetDisplayText", PyIPropertyEnumType::GetDisplayText, METH_NOARGS }, // @pymeth GetDisplayText|Returns the display text for the enumerated type
-	{ NULL }
-};
+static struct PyMethodDef PyIPropertyEnumType_methods[] = {
+    {"GetEnumType", PyIPropertyEnumType::GetEnumType,
+     METH_NOARGS},                                             // @pymeth GetEnumType|Retrieves the type (PROPENUMTYPE)
+    {"GetValue", PyIPropertyEnumType::GetValue, METH_NOARGS},  // @pymeth GetValue|Retrieves the defined value
+    {"GetRangeMinValue", PyIPropertyEnumType::GetRangeMinValue,
+     METH_NOARGS},  // @pymeth GetRangeMinValue|Returns the minimum allowed value for the property
+    {"GetRangeSetValue", PyIPropertyEnumType::GetRangeSetValue,
+     METH_NOARGS},  // @pymeth GetRangeSetValue|Returns a fixed value defined for the property
+    {"GetDisplayText", PyIPropertyEnumType::GetDisplayText,
+     METH_NOARGS},  // @pymeth GetDisplayText|Returns the display text for the enumerated type
+    {NULL}};
 
-PyComTypeObject PyIPropertyEnumType::type("PyIPropertyEnumType",
-		&PyIUnknown::type,
-		sizeof(PyIPropertyEnumType),
-		PyIPropertyEnumType_methods,
-		GET_PYCOM_CTOR(PyIPropertyEnumType));
+PyComTypeObject PyIPropertyEnumType::type("PyIPropertyEnumType", &PyIUnknown::type, sizeof(PyIPropertyEnumType),
+                                          PyIPropertyEnumType_methods, GET_PYCOM_CTOR(PyIPropertyEnumType));

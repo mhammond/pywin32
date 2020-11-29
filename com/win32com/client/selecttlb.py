@@ -64,7 +64,7 @@ def EnumKeys(root):
 			val = win32api.RegQueryValue(root, item)
 		except win32api.error:
 			val = "" # code using this assumes a string.
-			
+
 		ret.append((item, val))
 		index = index + 1
 	return ret
@@ -157,4 +157,4 @@ def SelectTlb(title="Select Library", excludeFlags = 0):
 
 # Test code.
 if __name__=='__main__':
-	print SelectTlb().__dict__
+	print(SelectTlb().__dict__)

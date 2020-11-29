@@ -17,8 +17,8 @@ class ADOEvents: # event handler class
         # connection to my data source
         # Do the "something" from (2). For now, just
         # print the connection data source
-        print "connection is", connection
-        print "Connected to", connection.Properties("Data Source")
+        print("connection is", connection)
+        print("Connected to", connection.Properties("Data Source"))
         # OK, our work is done. Let the main loop know
         global finished
         finished = 1
@@ -55,14 +55,14 @@ def TestConnection(dbname):
         # Pump messages so that COM gets a look in
         pythoncom.PumpWaitingMessages()
     if not finished:
-        print "XXX - Failed to connect!"
+        print("XXX - Failed to connect!")
 
 def Test():
-    import testAccess
+    from . import testAccess
     try:
         testAccess.GenerateSupport()
     except pythoncom.com_error:
-        print "*** Can not import the MSAccess type libraries - tests skipped"
+        print("*** Can not import the MSAccess type libraries - tests skipped")
         return
     dbname = testAccess.CreateTestAccessDatabase()
     try:

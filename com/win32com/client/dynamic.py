@@ -4,9 +4,9 @@ Introduction
  Dynamic COM client support is the ability to use a COM server without
  prior knowledge of the server.  This can be used to talk to almost all
  COM servers, including much of MS Office.
- 
+
  In general, you should not use this module directly - see below.
- 
+
 Example
  >>> import win32com.client
  >>> xl = win32com.client.Dispatch("Excel.Application")
@@ -21,7 +21,7 @@ import types
 
 import pythoncom
 import winerror
-import build
+from . import build
 
 from pywintypes import IIDType
 
@@ -53,31 +53,23 @@ ALL_INVOKE_TYPES = [
 def debug_print(*args):
 	if debugging:
 		for arg in args:
-			print arg,
-		print
+			print(arg, end=' ')
+		print()
 
 def debug_attr_print(*args):
 	if debugging_attr:
 		for arg in args:
-			print arg,
-		print
+			print(arg, end=' ')
+		print()
 
-# A helper to create method objects on the fly
-py3k = sys.version_info > (3,0)
-if py3k:
-	def MakeMethod(func, inst, cls):
-		return types.MethodType(func, inst) # class not needed in py3k
-else:
-	MakeMethod = types.MethodType # all args used in py2k.
+def MakeMethod(func, inst, cls):
+	return types.MethodType(func, inst)
 
 # get the type objects for IDispatch and IUnknown
 PyIDispatchType = pythoncom.TypeIIDs[pythoncom.IID_IDispatch]
 PyIUnknownType = pythoncom.TypeIIDs[pythoncom.IID_IUnknown]
 
-if py3k:
-	_GoodDispatchTypes=(str, IIDType)
-else:
-	_GoodDispatchTypes=(str, IIDType, unicode)
+_GoodDispatchTypes=(str, IIDType)
 _defaultDispatchItem=build.DispatchItem
 
 def _GetGoodDispatch(IDispatch, clsctx = pythoncom.CLSCTX_SERVER):
@@ -98,17 +90,9 @@ def _GetGoodDispatchAndUserName(IDispatch, userName, clsctx):
 	# Get a dispatch object, and a 'user name' (ie, the name as
 	# displayed to the user in repr() etc.
 	if userName is None:
-		# Displayed name should be a plain string in py2k, and unicode in py3k
 		if isinstance(IDispatch, str):
 			userName = IDispatch
-		elif not py3k and isinstance(IDispatch, unicode):
-			# 2to3 converts the above 'unicode' to 'str', but this will never be executed in py3k
-			userName = IDispatch.encode("ascii", "replace")
 		## ??? else userName remains None ???
-	elif not py3k and isinstance(userName, unicode):
-		# 2to3 converts the above 'unicode' to 'str', but this will never be executed in py3k
-		# As above - always a plain string in py2k
-		userName = userName.encode("ascii", "replace")
 	else:
 		userName = str(userName)
 	return (_GetGoodDispatch(IDispatch, clsctx), userName)
@@ -197,7 +181,7 @@ class CDispatch:
 			return self._get_good_object_(self._oleobj_.Invoke(*allArgs),self._olerepr_.defaultDispatchName,None)
 		raise TypeError("This dispatch object does not define a default method")
 
-	def __nonzero__(self):
+	def __bool__(self):
 		return True # ie "if object:" should always be "true" - without this, __len__ is tried.
 		# _Possibly_ want to defer to __len__ if available, but Im not sure this is
 		# desirable???
@@ -210,7 +194,7 @@ class CDispatch:
 		# fall back to the __repr__ if the object has no default method.
 		try:
 			return str(self.__call__())
-		except pythoncom.com_error, details:
+		except pythoncom.com_error as details:
 			if details.hresult not in ERRORS_BAD_CONTEXT:
 				raise
 			return self.__repr__()
@@ -239,7 +223,7 @@ class CDispatch:
 			enum = self._oleobj_.InvokeTypes(pythoncom.DISPID_NEWENUM,LCID,invkind,(13, 10),())
 		except pythoncom.com_error:
 			return None # no enumerator for this object.
-		import util
+		from . import util
 		return util.WrapEnum(enum, None)
 
 	def __getitem__(self, index): # syver modified
@@ -304,7 +288,7 @@ class CDispatch:
 				return ob
 			return self._wrap_dispatch_(ob, userName, ReturnCLSID)
 		return ob
-		
+
 	def _get_good_object_(self,ob,userName = None, ReturnCLSID=None):
 		"""Given an object (usually the retval from a method), make it a good object to return.
 		   Basically checks if it is a COM object, and wraps it up.
@@ -330,7 +314,7 @@ class CDispatch:
 			# "Dispatch" in the exec'd code is win32com.client.Dispatch, not ours.
 			globNameSpace = globals().copy()
 			globNameSpace["Dispatch"] = win32com.client.Dispatch
-			exec codeObject in globNameSpace, tempNameSpace # self.__dict__, self.__dict__
+			exec(codeObject, globNameSpace, tempNameSpace) # self.__dict__, self.__dict__
 			name = methodName
 			# Save the function in map.
 			fn = self._builtMethods_[name] = tempNameSpace[name]
@@ -340,11 +324,11 @@ class CDispatch:
 			debug_print("Error building OLE definition for code ", methodCode)
 			traceback.print_exc()
 		return None
-		
+
 	def _Release_(self):
-		"""Cleanup object - like a close - to force cleanup when you dont 
+		"""Cleanup object - like a close - to force cleanup when you dont
 		   want to rely on Python's reference counting."""
-		for childCont in self._mapCachedItems_.itervalues():
+		for childCont in self._mapCachedItems_.values():
 			childCont._Release_()
 		self._mapCachedItems_ = {}
 		if self._oleobj_:
@@ -363,23 +347,23 @@ class CDispatch:
 			return self._get_good_object_(self._oleobj_.Invoke(*(dispId, LCID, item.desc[4], 0) + (args) ))
 		except KeyError:
 			raise AttributeError(name)
-		
+
 	def _print_details_(self):
 		"Debug routine - dumps what it knows about an object."
-		print "AxDispatch container",self._username_
+		print("AxDispatch container",self._username_)
 		try:
-			print "Methods:"
-			for method in self._olerepr_.mapFuncs.iterkeys():
-				print "\t", method
-			print "Props:"
-			for prop, entry in self._olerepr_.propMap.iteritems():
-				print "\t%s = 0x%x - %s" % (prop, entry.dispid, repr(entry))
-			print "Get Props:"
-			for prop, entry in self._olerepr_.propMapGet.iteritems():
-				print "\t%s = 0x%x - %s" % (prop, entry.dispid, repr(entry))
-			print "Put Props:"
-			for prop, entry in self._olerepr_.propMapPut.iteritems():
-				print "\t%s = 0x%x - %s" % (prop, entry.dispid, repr(entry))
+			print("Methods:")
+			for method in self._olerepr_.mapFuncs.keys():
+				print("\t", method)
+			print("Props:")
+			for prop, entry in self._olerepr_.propMap.items():
+				print("\t%s = 0x%x - %s" % (prop, entry.dispid, repr(entry)))
+			print("Get Props:")
+			for prop, entry in self._olerepr_.propMapGet.items():
+				print("\t%s = 0x%x - %s" % (prop, entry.dispid, repr(entry)))
+			print("Put Props:")
+			for prop, entry in self._olerepr_.propMapPut.items():
+				print("\t%s = 0x%x - %s" % (prop, entry.dispid, repr(entry)))
 		except:
 			traceback.print_exc()
 
@@ -463,7 +447,7 @@ class CDispatch:
 					import win32com.client.util
 					return win32com.client.util.Iterator(self.ob)
 			return Factory(enum)
-			
+
 		if attr.startswith('_') and attr.endswith('_'): # Fast-track.
 			raise AttributeError(attr)
 		# If a known method, create new instance and return.
@@ -514,7 +498,7 @@ class CDispatch:
 			debug_attr_print("Getting property Id 0x%x from OLE object" % retEntry.dispid)
 			try:
 				ret = self._oleobj_.Invoke(retEntry.dispid,0,invoke_type,1)
-			except pythoncom.com_error, details:
+			except pythoncom.com_error as details:
 				if details.hresult in ERRORS_BAD_CONTEXT:
 					# May be a method.
 					self._olerepr_.mapFuncs[attr] = retEntry

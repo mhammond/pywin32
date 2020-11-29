@@ -30,7 +30,7 @@ def testSHNAMEMAPPINGS(file_cnt):
         shellcon.FOF_MULTIDESTFILES|shellcon.FOF_NOCONFIRMATION|shellcon.FOF_RENAMEONCOLLISION|shellcon.FOF_WANTMAPPINGHANDLE))
 
     for old_fname, new_fname in NameMappings:
-        print 'Old:',old_fname, 'New:', new_fname
+        print('Old:',old_fname, 'New:', new_fname)
     assert len(NameMappings)==file_cnt
 testSHFileOperation(10)
 testSHFileOperation(1)

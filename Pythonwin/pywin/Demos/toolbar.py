@@ -64,13 +64,13 @@ class GenericFrame(window.MDIChildWnd):
 			return self._obj_.GetMessageString(id)
 
 	def OnSize (self, params):
-		print 'OnSize called with ', params
+		print('OnSize called with ', params)
 
 	def OnNext (self, id, cmd):
-		print 'OnNext called'
+		print('OnNext called')
 	
 	def OnPrevious (self, id, cmd):
-		print 'OnPrevious called'
+		print('OnPrevious called')
 	
 msg = """\
 This toolbar was dynamically created.\r

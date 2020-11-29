@@ -22,10 +22,10 @@ class TestAppDialog(dlgappcore.AppDialog):
 	def OnInitDialog(self):
 		self.SetWindowText('Test dialog application')
 		self.edit = self.GetDlgItem(win32ui.IDC_EDIT1)
-		print "Hello from Python"
-		print "args are:", 
+		print("Hello from Python")
+		print("args are:", end=' ') 
 		for arg in sys.argv:
-			print arg
+			print(arg)
 		return 1
 
 	def PreDoModal(self):

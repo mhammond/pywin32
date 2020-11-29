@@ -15,5 +15,5 @@ conversation.Exec("DoSomethingElse")
 conversation.ConnectTo("RunAny", "ComputeStringLength")
 s = 'abcdefghi'
 sl = conversation.Request(s)
-print 'length of "%s" is %s'%(s,sl)
+print('length of "%s" is %s'%(s,sl))
 

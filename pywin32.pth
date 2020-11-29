@@ -2,8 +2,6 @@
 win32
 win32\lib
 Pythonwin
-# Entries needed for a "portable" installations, where the post_install script
-# isn't run, which would normally copy the pywin32 core DLL files to either
-# the top of the python directory.
-# We just stick the source of these DLLs directly on the PATH.
-import os;os.environ["PATH"]+=(';'+os.path.join(sitedir,"pywin32_system32"))
+# And some hackery to deal with environments where the post_install script
+# isn't run.
+import pywin32_bootstrap

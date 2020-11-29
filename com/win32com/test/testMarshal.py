@@ -27,7 +27,7 @@ import win32event, win32api
 import pythoncom
 import unittest
 
-from testServers import InterpCase
+from .testServers import InterpCase
 
 freeThreaded = 1
 
@@ -116,12 +116,12 @@ class ThreadInterpCase(InterpCase):
                     # This is critical - whole apartment model demo will hang.
                     pythoncom.PumpWaitingMessages()
                 else: # Timeout
-                    print "Waiting for thread to stop with interfaces=%d, gateways=%d" % (pythoncom._GetInterfaceCount(), pythoncom._GetGatewayCount())
+                    print("Waiting for thread to stop with interfaces=%d, gateways=%d" % (pythoncom._GetInterfaceCount(), pythoncom._GetGatewayCount()))
             except KeyboardInterrupt:
                 break
         for t in threads:
             t.join(2)
-            self.failIf(t.isAlive(), "thread failed to stop!?")
+            self.failIf(t.is_alive(), "thread failed to stop!?")
         threads = None # threads hold references to args
         # Seems to be a leak here I can't locate :(
         #self.failUnlessEqual(pythoncom._GetInterfaceCount(), 0)

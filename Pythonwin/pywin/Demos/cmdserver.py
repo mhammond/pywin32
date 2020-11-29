@@ -6,7 +6,7 @@ import win32api
 import sys
 from pywin.framework import winout
 
-import thread, sys
+import _thread, sys
 
 import traceback
 
@@ -18,7 +18,7 @@ class ThreadWriter:
 		self.origStdOut = None
 	def register(self, writer):
 		"Register the writer for the current thread"
-		self.writers[thread.get_ident()] = writer
+		self.writers[_thread.get_ident()] = writer
 		if self.origStdOut is None:
 			self.origStdOut = sys.stdout
 			sys.stdout = self		
@@ -26,7 +26,7 @@ class ThreadWriter:
 	def unregister(self):
 		"Remove the writer for the current thread, if any"
 		try:
-			del self.writers[thread.get_ident()]
+			del self.writers[_thread.get_ident()]
 		except KeyError:
 			pass
 		if len(self.writers)==0:
@@ -36,7 +36,7 @@ class ThreadWriter:
 	def getwriter(self):
 		"Return the current thread's writer, default sys.stdout"
 		try:
-			return self.writers[thread.get_ident()]
+			return self.writers[_thread.get_ident()]
 		except KeyError:
 			return self.origStdOut
 
@@ -47,7 +47,7 @@ class ThreadWriter:
 def Test():
 	num=1
 	while num<1000:
-		print 'Hello there no ' + str(num)
+		print('Hello there no ' + str(num))
 		win32api.Sleep(50)
 		num = num + 1
 
@@ -64,12 +64,12 @@ def StartServer( cmd, title=None, bCloseOnEnd=0, serverFlags = flags.SERVER_BEST
 	out.Create(title)
 #	ServerThread((out, cmd, title, bCloseOnEnd))
 #	out = sys.stdout
-	thread.start_new_thread( ServerThread, (out, cmd, title, bCloseOnEnd) )
+	_thread.start_new_thread( ServerThread, (out, cmd, title, bCloseOnEnd) )
 
 def ServerThread(myout, cmd, title, bCloseOnEnd):
 	try:
 		writer.register(myout)
-		print 'Executing "%s"\n' % cmd
+		print('Executing "%s"\n' % cmd)
 		bOK = 1
 		try:
 			import __main__
@@ -77,13 +77,13 @@ def ServerThread(myout, cmd, title, bCloseOnEnd):
 		except:
 			bOK = 0
 		if bOK:
-			print "Command terminated without errors."
+			print("Command terminated without errors.")
 		else:
 			t, v, tb = sys.exc_info()
-			print t, ': ', v
+			print(t, ': ', v)
 			traceback.print_tb(tb)
 			tb = None # prevent a cycle
-			print "Command terminated with an unhandled exception"
+			print("Command terminated with an unhandled exception")
 		writer.unregister()
 		if bOK and bCloseOnEnd:
 			myout.frame.DestroyWindow()
@@ -91,10 +91,10 @@ def ServerThread(myout, cmd, title, bCloseOnEnd):
 	# Unhandled exception of any kind in a thread kills the gui!
 	except:
 		t, v, tb = sys.exc_info()
-		print t, ': ', v
+		print(t, ': ', v)
 		traceback.print_tb(tb)
 		tb = None
-		print "Thread failed"
+		print("Thread failed")
 
 # assist for reloading (when debugging) - use only 1 tracer object,
 # else a large chain of tracer objects will exist.

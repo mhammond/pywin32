@@ -1,9 +1,9 @@
 """ General Server side utilities 
 """
 import pythoncom
-import policy
+from . import policy
 import winerror
-from exception import COMException
+from .exception import COMException
 
 def wrap(ob, iid=None, usePolicy=None, useDispatcher=None):
   """Wraps an object in a PyGDispatch gateway.
@@ -145,7 +145,7 @@ class Collection:
 
     try:
       return self.data[args[0]]
-    except IndexError, desc:
+    except IndexError as desc:
       raise COMException(scode=winerror.DISP_E_BADINDEX, desc=str(desc))
 
     
@@ -160,7 +160,7 @@ class Collection:
   def Remove(self, index):
     try:
       del self.data[index]
-    except IndexError, desc:
+    except IndexError as desc:
       raise COMException(scode=winerror.DISP_E_BADINDEX, desc=str(desc))
 
   def Insert(self, index, value):

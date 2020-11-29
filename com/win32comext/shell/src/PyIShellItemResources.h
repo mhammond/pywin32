@@ -4,79 +4,55 @@
 //
 // Interface Declaration
 
-class PyIShellItemResources : public PyIUnknown
-{
-public:
-	MAKE_PYCOM_CTOR(PyIShellItemResources);
-	static IShellItemResources *GetI(PyObject *self);
-	static PyComTypeObject type;
+class PyIShellItemResources : public PyIUnknown {
+   public:
+    MAKE_PYCOM_CTOR(PyIShellItemResources);
+    static IShellItemResources *GetI(PyObject *self);
+    static PyComTypeObject type;
 
-	// The Python methods
-	static PyObject *GetAttributes(PyObject *self, PyObject *args);
-	static PyObject *GetSize(PyObject *self, PyObject *args);
-	static PyObject *GetTimes(PyObject *self, PyObject *args);
-	static PyObject *SetTimes(PyObject *self, PyObject *args);
-	static PyObject *GetResourceDescription(PyObject *self, PyObject *args);
-	static PyObject *EnumResources(PyObject *self, PyObject *args);
-	static PyObject *SupportsResource(PyObject *self, PyObject *args);
-	static PyObject *OpenResource(PyObject *self, PyObject *args);
-	static PyObject *CreateResource(PyObject *self, PyObject *args);
-	static PyObject *MarkForDelete(PyObject *self, PyObject *args);
+    // The Python methods
+    static PyObject *GetAttributes(PyObject *self, PyObject *args);
+    static PyObject *GetSize(PyObject *self, PyObject *args);
+    static PyObject *GetTimes(PyObject *self, PyObject *args);
+    static PyObject *SetTimes(PyObject *self, PyObject *args);
+    static PyObject *GetResourceDescription(PyObject *self, PyObject *args);
+    static PyObject *EnumResources(PyObject *self, PyObject *args);
+    static PyObject *SupportsResource(PyObject *self, PyObject *args);
+    static PyObject *OpenResource(PyObject *self, PyObject *args);
+    static PyObject *CreateResource(PyObject *self, PyObject *args);
+    static PyObject *MarkForDelete(PyObject *self, PyObject *args);
 
-protected:
-	PyIShellItemResources(IUnknown *pdisp);
-	~PyIShellItemResources();
+   protected:
+    PyIShellItemResources(IUnknown *pdisp);
+    ~PyIShellItemResources();
 };
 // ---------------------------------------------------
 //
 // Gateway Declaration
 
-class PyGShellItemResources : public PyGatewayBase, public IShellItemResources
-{
-protected:
-	PyGShellItemResources(PyObject *instance) : PyGatewayBase(instance) { ; }
-	PYGATEWAY_MAKE_SUPPORT2(PyGShellItemResources, IShellItemResources, IID_IShellItemResources, PyGatewayBase)
+class PyGShellItemResources : public PyGatewayBase, public IShellItemResources {
+   protected:
+    PyGShellItemResources(PyObject *instance) : PyGatewayBase(instance) { ; }
+    PYGATEWAY_MAKE_SUPPORT2(PyGShellItemResources, IShellItemResources, IID_IShellItemResources, PyGatewayBase)
 
+    // IShellItemResources
+    STDMETHOD(GetAttributes)(DWORD *pdwAttributes);
 
+    STDMETHOD(GetSize)(ULONGLONG *pullSize);
 
-	// IShellItemResources
-	STDMETHOD(GetAttributes)(
-		DWORD * pdwAttributes);
+    STDMETHOD(GetTimes)(FILETIME *pftCreation, FILETIME *pftWrite, FILETIME *pftAccess);
 
-	STDMETHOD(GetSize)(
-		ULONGLONG * pullSize);
+    STDMETHOD(SetTimes)(const FILETIME *pftCreation, const FILETIME *pftWrite, const FILETIME *pftAccess);
 
-	STDMETHOD(GetTimes)(
-		FILETIME * pftCreation,
-		FILETIME * pftWrite,
-		FILETIME * pftAccess);
+    STDMETHOD(GetResourceDescription)(const SHELL_ITEM_RESOURCE *pcsir, LPWSTR *ppszDescription);
 
-	STDMETHOD(SetTimes)(
-		const FILETIME * pftCreation,
-		const FILETIME * pftWrite,
-		const FILETIME * pftAccess);
+    STDMETHOD(EnumResources)(IEnumResources **ppenumr);
 
-	STDMETHOD(GetResourceDescription)(
-		const SHELL_ITEM_RESOURCE * pcsir,
-		LPWSTR * ppszDescription);
+    STDMETHOD(SupportsResource)(const SHELL_ITEM_RESOURCE *pcsir);
 
-	STDMETHOD(EnumResources)(
-		IEnumResources ** ppenumr);
+    STDMETHOD(OpenResource)(const SHELL_ITEM_RESOURCE *pcsir, REFIID riid, void **ppv);
 
-	STDMETHOD(SupportsResource)(
-		const SHELL_ITEM_RESOURCE * pcsir);
+    STDMETHOD(CreateResource)(const SHELL_ITEM_RESOURCE *pcsir, REFIID riid, void **ppv);
 
-	STDMETHOD(OpenResource)(
-		const SHELL_ITEM_RESOURCE * pcsir,
-		REFIID riid,
-		void ** ppv);
-
-	STDMETHOD(CreateResource)(
-		const SHELL_ITEM_RESOURCE * pcsir,
-		REFIID riid,
-		void ** ppv);
-
-	STDMETHOD(MarkForDelete)(
-		void);
-
+    STDMETHOD(MarkForDelete)(void);
 };

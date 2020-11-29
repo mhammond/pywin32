@@ -102,7 +102,7 @@ class TestModuleOps(BasicSetupTearDown):
         self.assertEquals('Syver Enstad', syverEnstad)
 
     def testRoundTripUnicode(self):
-        win32trace.write(u'\xa9opyright Syver Enstad')
+        win32trace.write('\xa9opyright Syver Enstad')
         syverEnstad = win32trace.read()
         # str objects are always returned in py2k (latin-1 encoding was used
         # on unicode objects)
@@ -113,7 +113,7 @@ class TestModuleOps(BasicSetupTearDown):
         self.assertEquals('Syver Enstad', win32trace.blockingread())
 
     def testBlockingReadUnicode(self):
-        win32trace.write(u'\xa9opyright Syver Enstad')
+        win32trace.write('\xa9opyright Syver Enstad')
         # str objects are always returned in py2k (latin-1 encoding was used
         # on unicode objects)
         self.assertEquals('\xa9opyright Syver Enstad', win32trace.blockingread())
@@ -169,7 +169,7 @@ class TestMultipleThreadsWriting(unittest.TestCase):
         win32trace.InitWrite()
         CheckNoOtherReaders()
         self.threads = [WriterThread() for each in range(self.FullBucket)]
-        self.buckets = range(self.BucketCount)
+        self.buckets = list(range(self.BucketCount))
         for each in self.buckets:
             self.buckets[each] = 0
 
@@ -267,7 +267,7 @@ class TestOutofProcess(unittest.TestCase):
         win32trace.InitRead()
         TraceWriteProcess.BucketCount = self.BucketCount
         self.setUpWriters()
-        self.buckets = range(self.BucketCount)
+        self.buckets = list(range(self.BucketCount))
         for each in self.buckets:
             self.buckets[each] = 0
 

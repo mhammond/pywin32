@@ -7,49 +7,40 @@
 #include "PythonCOMServer.h"
 #include "propsys.h"
 
-class PyIPropertyStore : public PyIUnknown
-{
-public:
-	MAKE_PYCOM_CTOR(PyIPropertyStore);
-	static IPropertyStore *GetI(PyObject *self);
-	static PyComTypeObject type;
+class PyIPropertyStore : public PyIUnknown {
+   public:
+    MAKE_PYCOM_CTOR(PyIPropertyStore);
+    static IPropertyStore *GetI(PyObject *self);
+    static PyComTypeObject type;
 
-	// The Python methods
-	static PyObject *GetCount(PyObject *self, PyObject *args);
-	static PyObject *GetAt(PyObject *self, PyObject *args);
-	static PyObject *GetValue(PyObject *self, PyObject *args);
-	static PyObject *SetValue(PyObject *self, PyObject *args);
-	static PyObject *Commit(PyObject *self, PyObject *args);
+    // The Python methods
+    static PyObject *GetCount(PyObject *self, PyObject *args);
+    static PyObject *GetAt(PyObject *self, PyObject *args);
+    static PyObject *GetValue(PyObject *self, PyObject *args);
+    static PyObject *SetValue(PyObject *self, PyObject *args);
+    static PyObject *Commit(PyObject *self, PyObject *args);
 
-protected:
-	PyIPropertyStore(IUnknown *pdisp);
-	~PyIPropertyStore();
+   protected:
+    PyIPropertyStore(IUnknown *pdisp);
+    ~PyIPropertyStore();
 };
-
 
 // ---------------------------------------------------
 //
 // Gateway Declaration
-class PyGPropertyStore : public PyGatewayBase, public IPropertyStore
-{
-protected:
-	PyGPropertyStore(PyObject *instance) : PyGatewayBase(instance) { ; }
-	PYGATEWAY_MAKE_SUPPORT2(PyGPropertyStore, IPropertyStore, IID_IPropertyStore, PyGatewayBase)
+class PyGPropertyStore : public PyGatewayBase, public IPropertyStore {
+   protected:
+    PyGPropertyStore(PyObject *instance) : PyGatewayBase(instance) { ; }
+    PYGATEWAY_MAKE_SUPPORT2(PyGPropertyStore, IPropertyStore, IID_IPropertyStore, PyGatewayBase)
 
-	// IPropertyStore
-	STDMETHOD(GetCount)(DWORD * cProps);
+    // IPropertyStore
+    STDMETHOD(GetCount)(DWORD *cProps);
 
-	STDMETHOD(GetAt)(
-		DWORD iProp,
-		PROPERTYKEY * pkey);
+    STDMETHOD(GetAt)(DWORD iProp, PROPERTYKEY *pkey);
 
-	STDMETHOD(GetValue)(
-		REFPROPERTYKEY key,
-		PROPVARIANT * pv);
+    STDMETHOD(GetValue)(REFPROPERTYKEY key, PROPVARIANT *pv);
 
-	STDMETHOD(SetValue)(
-		REFPROPERTYKEY key,
-		REFPROPVARIANT propvar);
+    STDMETHOD(SetValue)(REFPROPERTYKEY key, REFPROPVARIANT propvar);
 
-	STDMETHOD(Commit)(void);
+    STDMETHOD(Commit)(void);
 };

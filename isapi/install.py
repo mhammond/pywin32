@@ -119,7 +119,7 @@ class ISAPIParameters:
 verbose = 1 # The level - 0 is quiet.
 def log(level, what):
     if verbose >= level:
-        print what
+        print(what)
 
 # Convert an ADSI COM exception to the Win32 error code embedded in it.
 def _GetWin32ErrorCode(com_exc):
@@ -181,7 +181,7 @@ def GetWebServer(description = None):
 def LoadWebServer(path):
     try:
         server = GetObject(path)
-    except pythoncom.com_error, details:
+    except pythoncom.com_error as details:
         msg = details.strerror
         if exc.excepinfo and exc.excepinfo[2]:
             msg = exc.excepinfo[2]
@@ -198,7 +198,7 @@ def FindWebServer(options, server_desc):
     server_desc = options.server or server_desc
     # make sure server_desc is unicode (could be mbcs if passed in
     #  sys.argv).
-    if server_desc and not isinstance(server_desc, unicode):
+    if server_desc and not isinstance(server_desc, str):
         server_desc = server_desc.decode('mbcs')
     
     # get the server (if server_desc is None, the default site is acquired)
@@ -340,7 +340,7 @@ def CreateISAPIFilter(filterParams, options):
     _CallHook(filterParams, "PreInstall", options)
     try:
         filters = GetObject(server+"/Filters")
-    except pythoncom.com_error, exc:
+    except pythoncom.com_error as exc:
         # Brand new sites don't have the '/Filters' collection - create it.
         # Any errors other than 'not found' we shouldn't ignore.
         if winerror.HRESULT_FACILITY(exc.hresult) != winerror.FACILITY_WIN32 or \
@@ -379,7 +379,7 @@ def DeleteISAPIFilter(filterParams, options):
     ob_path = server+"/Filters"
     try:
         filters = GetObject(ob_path)
-    except pythoncom.com_error, details:
+    except pythoncom.com_error as details:
         # failure to open the filters just means a totally clean IIS install
         # (IIS5 at least has no 'Filters' key when freshly installed).
         log(2, "ISAPI filter path '%s' did not exist." % (ob_path,))
@@ -388,7 +388,7 @@ def DeleteISAPIFilter(filterParams, options):
         assert filterParams.Name.strip("/"), "mustn't delete the root!"
         filters.Delete(_IIS_FILTER, filterParams.Name)
         log(2, "Deleted ISAPI filter '%s'" % (filterParams.Name,))
-    except pythoncom.com_error, details:
+    except pythoncom.com_error as details:
         rc = _GetWin32ErrorCode(details)
         if rc != winerror.ERROR_PATH_NOT_FOUND:
             raise
@@ -413,7 +413,7 @@ def _AddExtensionFile(module, def_groupid, def_desc, params, options):
                             params.AddExtensionFile_CanDelete,
                             desc)
         log(2, "Added extension file '%s' (%s)" % (module, desc))
-    except (pythoncom.com_error, AttributeError), details:
+    except (pythoncom.com_error, AttributeError) as details:
         # IIS5 always fails.  Probably should upgrade this to
         # complain more loudly if IIS6 fails.
         log(2, "Failed to add extension file '%s': %s" % (module, details))
@@ -440,7 +440,7 @@ def _DeleteExtensionFileRecord(module, options):
         ob = GetObject(_IIS_OBJECT)
         ob.DeleteExtensionFileRecord(module)
         log(2, "Deleted extension file record for '%s'" % module)
-    except (pythoncom.com_error, AttributeError), details:
+    except (pythoncom.com_error, AttributeError) as details:
         log(2, "Failed to remove extension file '%s': %s" % (module, details))
 
 def DeleteExtensionFileRecords(params, options):
@@ -505,7 +505,7 @@ def RemoveDirectory(params, options):
         return
     try:
         directory = GetObject(FindPath(options, params.Server, params.Name))
-    except pythoncom.com_error, details:
+    except pythoncom.com_error as details:
         rc = _GetWin32ErrorCode(details)
         if rc != winerror.ERROR_PATH_NOT_FOUND:
             raise
@@ -628,12 +628,12 @@ standard_arguments = {
 }
 
 def build_usage(handler_map):
-    docstrings = [handler.__doc__ for handler in handler_map.itervalues()]
-    all_args = dict(zip(handler_map.iterkeys(), docstrings))
-    arg_names = "|".join(all_args.iterkeys())
+    docstrings = [handler.__doc__ for handler in handler_map.values()]
+    all_args = dict(zip(iter(handler_map.keys()), docstrings))
+    arg_names = "|".join(iter(all_args.keys()))
     usage_string = "%prog [options] [" + arg_names + "]\n"
     usage_string += "commands:\n"
-    for arg, desc in all_args.iteritems():
+    for arg, desc in all_args.items():
         usage_string += " %-10s: %s" % (arg, desc) + "\n"
     return usage_string[:-1]
 
@@ -681,7 +681,7 @@ def HandleCommandLine(params, argv=None, conf_module_name = None,
         # started)
         try:
             conf_module_name = win32api.GetLongPathName(conf_module_name)
-        except win32api.error, exc:
+        except win32api.error as exc:
             log(2, "Couldn't determine the long name for %r: %s" %
                 (conf_module_name, exc))
 
@@ -722,9 +722,9 @@ def HandleCommandLine(params, argv=None, conf_module_name = None,
         for arg in args:
             handler = all_handlers[arg]
             handler(conf_module_name, params, options, log)
-    except (ItemNotFound, InstallationError), details:
+    except (ItemNotFound, InstallationError) as details:
         if options.verbose > 1:
             traceback.print_exc()
-        print "%s: %s" % (details.__class__.__name__, details)
+        print("%s: %s" % (details.__class__.__name__, details))
     except KeyError:
         parser.error("Invalid arg '%s'" % arg)

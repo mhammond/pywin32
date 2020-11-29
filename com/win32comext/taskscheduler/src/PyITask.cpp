@@ -8,321 +8,307 @@
 //
 // Interface Implementation
 
-PyITask::PyITask(IUnknown *pdisp):
-	PyIScheduledWorkItem(pdisp)
-{
-	ob_type = &type;
-}
+PyITask::PyITask(IUnknown *pdisp) : PyIScheduledWorkItem(pdisp) { ob_type = &type; }
 
-PyITask::~PyITask()
-{
-}
+PyITask::~PyITask() {}
 
-/* static */ ITask *PyITask::GetI(PyObject *self)
-{
-	return (ITask *)PyIScheduledWorkItem::GetI(self);
-}
+/* static */ ITask *PyITask::GetI(PyObject *self) { return (ITask *)PyIScheduledWorkItem::GetI(self); }
 
 // @pymethod |PyITask|SetApplicationName|Specify which program the task will run
 PyObject *PyITask::SetApplicationName(PyObject *self, PyObject *args)
 {
-	ITask *pIT = GetI(self);
-	if ( pIT == NULL )
-		return NULL;
-	// @pyparm <o unicode>|ApplicationName||Program to execute
-	PyObject *obpwszApplicationName;
-	LPWSTR pwszApplicationName;
-	if ( !PyArg_ParseTuple(args, "O:SetApplicationName", &obpwszApplicationName) )
-		return NULL;
-	if (!PyWinObject_AsWCHAR(obpwszApplicationName, &pwszApplicationName))
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIT->SetApplicationName( pwszApplicationName );
-	PyWinObject_FreeWCHAR(pwszApplicationName);
+    ITask *pIT = GetI(self);
+    if (pIT == NULL)
+        return NULL;
+    // @pyparm <o unicode>|ApplicationName||Program to execute
+    PyObject *obpwszApplicationName;
+    LPWSTR pwszApplicationName;
+    if (!PyArg_ParseTuple(args, "O:SetApplicationName", &obpwszApplicationName))
+        return NULL;
+    if (!PyWinObject_AsWCHAR(obpwszApplicationName, &pwszApplicationName))
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIT->SetApplicationName(pwszApplicationName);
+    PyWinObject_FreeWCHAR(pwszApplicationName);
 
-	PY_INTERFACE_POSTCALL;
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pIT, IID_ITask );
-	Py_INCREF(Py_None);
-	return Py_None;
-
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pIT, IID_ITask);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @pymethod <o PyUNICODE>|PyITask|GetApplicationName|Retrieve name of program that task will run
 PyObject *PyITask::GetApplicationName(PyObject *self, PyObject *args)
 {
-	ITask *pIT = GetI(self);
-	if ( pIT == NULL )
-		return NULL;
-	LPWSTR ApplicationName=NULL;
-	PyObject *ret=NULL;
-	if (!PyArg_ParseTuple(args, ":PyITask::GetApplicationName"))
-		return NULL;
+    ITask *pIT = GetI(self);
+    if (pIT == NULL)
+        return NULL;
+    LPWSTR ApplicationName = NULL;
+    PyObject *ret = NULL;
+    if (!PyArg_ParseTuple(args, ":PyITask::GetApplicationName"))
+        return NULL;
 
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIT->GetApplicationName(&ApplicationName);
-	PY_INTERFACE_POSTCALL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIT->GetApplicationName(&ApplicationName);
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		PyCom_BuildPyException(hr, pIT, IID_ITask );
-	else
-		ret=PyWinObject_FromWCHAR(ApplicationName);
-	CoTaskMemFree(ApplicationName);
-	return ret;
+    if (FAILED(hr))
+        PyCom_BuildPyException(hr, pIT, IID_ITask);
+    else
+        ret = PyWinObject_FromWCHAR(ApplicationName);
+    CoTaskMemFree(ApplicationName);
+    return ret;
 }
 
 // @pymethod |PyITask|SetParameters|Sets command line parameters
 PyObject *PyITask::SetParameters(PyObject *self, PyObject *args)
 {
-	ITask *pIT = GetI(self);
-	if ( pIT == NULL )
-		return NULL;
-	// @pyparm <o unicode>|Parameters||String containing command line parameters
-	PyObject *obpwszParameters;
-	LPWSTR pwszParameters;
-	if ( !PyArg_ParseTuple(args, "O:SetParameters", &obpwszParameters) )
-		return NULL;
-	if (!PyWinObject_AsWCHAR(obpwszParameters, &pwszParameters))
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIT->SetParameters( pwszParameters );
-	PyWinObject_FreeWCHAR(pwszParameters);
+    ITask *pIT = GetI(self);
+    if (pIT == NULL)
+        return NULL;
+    // @pyparm <o unicode>|Parameters||String containing command line parameters
+    PyObject *obpwszParameters;
+    LPWSTR pwszParameters;
+    if (!PyArg_ParseTuple(args, "O:SetParameters", &obpwszParameters))
+        return NULL;
+    if (!PyWinObject_AsWCHAR(obpwszParameters, &pwszParameters))
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIT->SetParameters(pwszParameters);
+    PyWinObject_FreeWCHAR(pwszParameters);
 
-	PY_INTERFACE_POSTCALL;
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pIT, IID_ITask );
-	Py_INCREF(Py_None);
-	return Py_None;
-
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pIT, IID_ITask);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @pymethod <o PyUNICODE>|PyITask|GetParameters|Returns command line parameters for task
 PyObject *PyITask::GetParameters(PyObject *self, PyObject *args)
 {
-	ITask *pIT = GetI(self);
-	if ( pIT == NULL )
-		return NULL;
+    ITask *pIT = GetI(self);
+    if (pIT == NULL)
+        return NULL;
 
-	LPWSTR Parameters;
-	PyObject *ret=NULL;
-	if (!PyArg_ParseTuple(args, ":PyITask::GetParameters"))
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIT->GetParameters(&Parameters);
-	PY_INTERFACE_POSTCALL;
+    LPWSTR Parameters;
+    PyObject *ret = NULL;
+    if (!PyArg_ParseTuple(args, ":PyITask::GetParameters"))
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIT->GetParameters(&Parameters);
+    PY_INTERFACE_POSTCALL;
 
-	if (FAILED(hr))
-		PyCom_BuildPyException(hr, pIT, IID_ITask);
-	else
-		ret=PyWinObject_FromWCHAR(Parameters);
-	CoTaskMemFree(Parameters);
-	return ret;
+    if (FAILED(hr))
+        PyCom_BuildPyException(hr, pIT, IID_ITask);
+    else
+        ret = PyWinObject_FromWCHAR(Parameters);
+    CoTaskMemFree(Parameters);
+    return ret;
 }
 
 // @pymethod |PyITask|SetWorkingDirectory|Sets initial working directory for task
 PyObject *PyITask::SetWorkingDirectory(PyObject *self, PyObject *args)
 {
-	ITask *pIT = GetI(self);
-	if ( pIT == NULL )
-		return NULL;
-	// @pyparm <o unicode>|WorkingDirectory||Initial working directory
-	PyObject *obpwszWorkingDirectory;
-	LPWSTR pwszWorkingDirectory;
-	if ( !PyArg_ParseTuple(args, "O:SetWorkingDirectory", &obpwszWorkingDirectory) )
-		return NULL;
-	if (!PyWinObject_AsWCHAR(obpwszWorkingDirectory, &pwszWorkingDirectory))
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIT->SetWorkingDirectory( pwszWorkingDirectory );
-	PyWinObject_FreeWCHAR(pwszWorkingDirectory);
+    ITask *pIT = GetI(self);
+    if (pIT == NULL)
+        return NULL;
+    // @pyparm <o unicode>|WorkingDirectory||Initial working directory
+    PyObject *obpwszWorkingDirectory;
+    LPWSTR pwszWorkingDirectory;
+    if (!PyArg_ParseTuple(args, "O:SetWorkingDirectory", &obpwszWorkingDirectory))
+        return NULL;
+    if (!PyWinObject_AsWCHAR(obpwszWorkingDirectory, &pwszWorkingDirectory))
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIT->SetWorkingDirectory(pwszWorkingDirectory);
+    PyWinObject_FreeWCHAR(pwszWorkingDirectory);
 
-	PY_INTERFACE_POSTCALL;
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pIT, IID_ITask );
-	Py_INCREF(Py_None);
-	return Py_None;
-
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pIT, IID_ITask);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @pymethod <o PyUNICODE>|PyITask|GetWorkingDirectory|Return working directory that the task will start out in
 PyObject *PyITask::GetWorkingDirectory(PyObject *self, PyObject *args)
 {
-	ITask *pIT = GetI(self);
-	if ( pIT == NULL )
-		return NULL;
-	LPWSTR WorkingDirectory=NULL;
-	PyObject *ret=NULL;
-	if ( !PyArg_ParseTuple(args, ":PyITask::GetWorkingDirectory"))
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIT->GetWorkingDirectory(&WorkingDirectory);
-	PY_INTERFACE_POSTCALL;
-	if (FAILED(hr))
-		PyCom_BuildPyException(hr, pIT, IID_ITask);
-	else
-		ret=PyWinObject_FromWCHAR(WorkingDirectory);
-	CoTaskMemFree(WorkingDirectory);
-	return ret;
+    ITask *pIT = GetI(self);
+    if (pIT == NULL)
+        return NULL;
+    LPWSTR WorkingDirectory = NULL;
+    PyObject *ret = NULL;
+    if (!PyArg_ParseTuple(args, ":PyITask::GetWorkingDirectory"))
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIT->GetWorkingDirectory(&WorkingDirectory);
+    PY_INTERFACE_POSTCALL;
+    if (FAILED(hr))
+        PyCom_BuildPyException(hr, pIT, IID_ITask);
+    else
+        ret = PyWinObject_FromWCHAR(WorkingDirectory);
+    CoTaskMemFree(WorkingDirectory);
+    return ret;
 }
 
 // @pymethod |PyITask|SetPriority|Sets priority for task
 PyObject *PyITask::SetPriority(PyObject *self, PyObject *args)
 {
-	ITask *pIT = GetI(self);
-	if ( pIT == NULL )
-		return NULL;
-	// @pyparm int|Priority||One of REALTIME_PRIORITY_CLASS, HIGH_PRIORITY_CLASS, NORMAL_PRIORITY_CLASS, IDLE_PRIORITY_CLASS
-	DWORD dwPriority;
-	if ( !PyArg_ParseTuple(args, "l:SetPriority", &dwPriority) )
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIT->SetPriority( dwPriority );
+    ITask *pIT = GetI(self);
+    if (pIT == NULL)
+        return NULL;
+    // @pyparm int|Priority||One of REALTIME_PRIORITY_CLASS, HIGH_PRIORITY_CLASS, NORMAL_PRIORITY_CLASS,
+    // IDLE_PRIORITY_CLASS
+    DWORD dwPriority;
+    if (!PyArg_ParseTuple(args, "l:SetPriority", &dwPriority))
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIT->SetPriority(dwPriority);
 
-	PY_INTERFACE_POSTCALL;
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pIT, IID_ITask );
-	Py_INCREF(Py_None);
-	return Py_None;
-
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pIT, IID_ITask);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @pymethod int|PyITask|GetPriority|Gets priority that will be assigned to process when task starts
 PyObject *PyITask::GetPriority(PyObject *self, PyObject *args)
 {
-	ITask *pIT = GetI(self);
-	if ( pIT == NULL )
-		return NULL;
-	DWORD dwPriority;
-	if (!PyArg_ParseTuple(args, ":PyITask::GetPriority"))
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIT->GetPriority(&dwPriority);
-	PY_INTERFACE_POSTCALL;
+    ITask *pIT = GetI(self);
+    if (pIT == NULL)
+        return NULL;
+    DWORD dwPriority;
+    if (!PyArg_ParseTuple(args, ":PyITask::GetPriority"))
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIT->GetPriority(&dwPriority);
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pIT, IID_ITask);
-	return Py_BuildValue("l",dwPriority);
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pIT, IID_ITask);
+    return Py_BuildValue("l", dwPriority);
 }
 
 // @pymethod |PyITask|SetTaskFlags|Sets flag for task.
 PyObject *PyITask::SetTaskFlags(PyObject *self, PyObject *args)
 {
-	ITask *pIT = GetI(self);
-	if ( pIT == NULL )
-		return NULL;
-	// @pyparm int|dwFlags||None currently defined
-	DWORD dwFlags;
-	if ( !PyArg_ParseTuple(args, "l:SetTaskFlags", &dwFlags) )
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIT->SetTaskFlags(dwFlags);
-	PY_INTERFACE_POSTCALL;
+    ITask *pIT = GetI(self);
+    if (pIT == NULL)
+        return NULL;
+    // @pyparm int|dwFlags||None currently defined
+    DWORD dwFlags;
+    if (!PyArg_ParseTuple(args, "l:SetTaskFlags", &dwFlags))
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIT->SetTaskFlags(dwFlags);
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pIT, IID_ITask );
-	Py_INCREF(Py_None);
-	return Py_None;
-
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pIT, IID_ITask);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @pymethod int|PyITask|GetTaskFlags|Retrieve task flags (None currently defined)
 PyObject *PyITask::GetTaskFlags(PyObject *self, PyObject *args)
 {
-	ITask *pIT = GetI(self);
-	if ( pIT == NULL )
-		return NULL;
-	DWORD dwFlags;
-	if ( !PyArg_ParseTuple(args, ":PyITask::GetTaskFlags"))
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIT->GetTaskFlags(&dwFlags);
-	PY_INTERFACE_POSTCALL;
+    ITask *pIT = GetI(self);
+    if (pIT == NULL)
+        return NULL;
+    DWORD dwFlags;
+    if (!PyArg_ParseTuple(args, ":PyITask::GetTaskFlags"))
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIT->GetTaskFlags(&dwFlags);
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pIT, IID_ITask );
-	return Py_BuildValue("l", dwFlags);
-
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pIT, IID_ITask);
+    return Py_BuildValue("l", dwFlags);
 }
 
 // @pymethod |PyITask|SetMaxRunTime|Sets maximun run time for task, use -1 to disable
 PyObject *PyITask::SetMaxRunTime(PyObject *self, PyObject *args)
 {
-	ITask *pIT = GetI(self);
-	if ( pIT == NULL )
-		return NULL;
-	// @pyparm int|MaxRunTimeMS||Specified in milliseconds (use -1 to disable, not 0)
-	DWORD dwMaxRunTimeMS;
-	if ( !PyArg_ParseTuple(args, "l:SetMaxRunTime", &dwMaxRunTimeMS) )
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIT->SetMaxRunTime( dwMaxRunTimeMS );
+    ITask *pIT = GetI(self);
+    if (pIT == NULL)
+        return NULL;
+    // @pyparm int|MaxRunTimeMS||Specified in milliseconds (use -1 to disable, not 0)
+    DWORD dwMaxRunTimeMS;
+    if (!PyArg_ParseTuple(args, "l:SetMaxRunTime", &dwMaxRunTimeMS))
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIT->SetMaxRunTime(dwMaxRunTimeMS);
 
-	PY_INTERFACE_POSTCALL;
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pIT, IID_ITask );
-	Py_INCREF(Py_None);
-	return Py_None;
-
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pIT, IID_ITask);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @pymethod int|PyITask|GetMaxRunTime|Returns maximun run time for task
 PyObject *PyITask::GetMaxRunTime(PyObject *self, PyObject *args)
 {
-	ITask *pIT = GetI(self);
-	if ( pIT == NULL )
-		return NULL;
-	DWORD dwMaxRunTimeMS=0;
-	if ( !PyArg_ParseTuple(args, ":PyITask::GetMaxRunTime"))
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIT->GetMaxRunTime(&dwMaxRunTimeMS);
-	PY_INTERFACE_POSTCALL;
+    ITask *pIT = GetI(self);
+    if (pIT == NULL)
+        return NULL;
+    DWORD dwMaxRunTimeMS = 0;
+    if (!PyArg_ParseTuple(args, ":PyITask::GetMaxRunTime"))
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIT->GetMaxRunTime(&dwMaxRunTimeMS);
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pIT, IID_ITask);
-	return Py_BuildValue("l",dwMaxRunTimeMS);
-	Py_INCREF(Py_None);
-	return Py_None;
-
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pIT, IID_ITask);
+    return Py_BuildValue("l", dwMaxRunTimeMS);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
-// @object PyITask|Python object that encapsulates the ITask interface, inherits all the methods of PyIScheduledWorkItem 
-static struct PyMethodDef PyITask_methods[] =
-{
-	{ "SetApplicationName", PyITask::SetApplicationName, 1 }, // @pymeth SetApplicationName|Specify which program the task will run
-	{ "GetApplicationName", PyITask::GetApplicationName, 1 }, // @pymeth GetApplicationName|Retrieve name of program that task will run
-	{ "SetParameters", PyITask::SetParameters, 1 }, // @pymeth SetParameters|Sets command line parameters
-	{ "GetParameters", PyITask::GetParameters, 1 }, // @pymeth GetParameters|Returns command line parameters for task
-	{ "SetWorkingDirectory", PyITask::SetWorkingDirectory, 1 }, // @pymeth SetWorkingDirectory|Sets initial working directory for task
-	{ "GetWorkingDirectory", PyITask::GetWorkingDirectory, 1 }, // @pymeth GetWorkingDirectory|Return working directory that the task will start out in
-	{ "SetPriority", PyITask::SetPriority, 1 }, // @pymeth SetPriority|Sets priority for task
-	{ "GetPriority", PyITask::GetPriority, 1 }, // @pymeth GetPriority|Gets priority that will be assigned to process when task starts
-	{ "SetTaskFlags", PyITask::SetTaskFlags, 1 }, // @pymeth SetTaskFlags|Sets flag for task
-	{ "GetTaskFlags", PyITask::GetTaskFlags, 1 }, // @pymeth GetTaskFlags|Retrieve task flags (None currently defined)
-	{ "SetMaxRunTime", PyITask::SetMaxRunTime, 1 }, // @pymeth SetMaxRunTime|Sets maximun run time for task, use -1 to disable
-	{ "GetMaxRunTime", PyITask::GetMaxRunTime, 1 }, // @pymeth GetMaxRunTime|Returns maximun run time for task
-	{ NULL }
-};
+// @object PyITask|Python object that encapsulates the ITask interface, inherits all the methods of PyIScheduledWorkItem
+static struct PyMethodDef PyITask_methods[] = {
+    {"SetApplicationName", PyITask::SetApplicationName,
+     1},  // @pymeth SetApplicationName|Specify which program the task will run
+    {"GetApplicationName", PyITask::GetApplicationName,
+     1},  // @pymeth GetApplicationName|Retrieve name of program that task will run
+    {"SetParameters", PyITask::SetParameters, 1},  // @pymeth SetParameters|Sets command line parameters
+    {"GetParameters", PyITask::GetParameters, 1},  // @pymeth GetParameters|Returns command line parameters for task
+    {"SetWorkingDirectory", PyITask::SetWorkingDirectory,
+     1},  // @pymeth SetWorkingDirectory|Sets initial working directory for task
+    {"GetWorkingDirectory", PyITask::GetWorkingDirectory,
+     1},  // @pymeth GetWorkingDirectory|Return working directory that the task will start out in
+    {"SetPriority", PyITask::SetPriority, 1},  // @pymeth SetPriority|Sets priority for task
+    {"GetPriority", PyITask::GetPriority,
+     1},  // @pymeth GetPriority|Gets priority that will be assigned to process when task starts
+    {"SetTaskFlags", PyITask::SetTaskFlags, 1},  // @pymeth SetTaskFlags|Sets flag for task
+    {"GetTaskFlags", PyITask::GetTaskFlags, 1},  // @pymeth GetTaskFlags|Retrieve task flags (None currently defined)
+    {"SetMaxRunTime", PyITask::SetMaxRunTime,
+     1},  // @pymeth SetMaxRunTime|Sets maximun run time for task, use -1 to disable
+    {"GetMaxRunTime", PyITask::GetMaxRunTime, 1},  // @pymeth GetMaxRunTime|Returns maximun run time for task
+    {NULL}};
 
 PyComTypeObject PyITask::type("PyITask",
-		&PyIScheduledWorkItem::type,	// @base PyITask|PyIScheduledWorkItem
-		sizeof(PyITask),
-		PyITask_methods,
-		GET_PYCOM_CTOR(PyITask));
+                              &PyIScheduledWorkItem::type,  // @base PyITask|PyIScheduledWorkItem
+                              sizeof(PyITask), PyITask_methods, GET_PYCOM_CTOR(PyITask));

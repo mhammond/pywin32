@@ -1,5 +1,5 @@
 """call using an open ADO connection --> list of table names"""
-import adodbapi
+from . import adodbapi
 
 def names(connection_object):
     ado = connection_object.adoConn

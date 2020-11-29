@@ -1,4 +1,4 @@
-import dbgcon
+from . import dbgcon
 from pywin.mfc import dialog
 import win32ui
 

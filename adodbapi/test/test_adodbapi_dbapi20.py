@@ -36,17 +36,22 @@ except:
 node = platform.node()
 
 conn_kws = {}
-host = None # if None, will use macro to fill in node name
-instance = r'%s\SQLExpress'
+host = 'testsql.2txt.us,1430' # if None, will use macro to fill in node name
+instance = r'%s\SQLEXPRESS'
 conn_kws['name'] = 'adotest'
+
+conn_kws['user'] = 'adotestuser'  # None implies Windows security
+conn_kws['password'] = "Sq1234567"
+# macro definition for keyword "security" using macro "auto_security"
+conn_kws['macro_auto_security'] = 'security'
 
 if host is None:
     conn_kws['macro_getnode'] = ['host', instance]
 else:
     conn_kws['host'] = host
 
-conn_kws['provider'] = 'Provider=SQLNCLI11;DataTypeCompatibility=80;MARS Connection=True;'
-connStr = "%(provider)s; Integrated Security=SSPI; Initial Catalog=%(name)s;Data Source=%(host)s"
+conn_kws['provider'] = 'Provider=MSOLEDBSQL;DataTypeCompatibility=80;MARS Connection=True;'
+connStr = "%(provider)s; %(security)s; Initial Catalog=%(name)s;Data Source=%(host)s"
 
 if onWindows and node != "z-PC":
     pass # default should make a local SQL Server connection

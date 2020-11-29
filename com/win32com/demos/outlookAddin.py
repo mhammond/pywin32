@@ -49,9 +49,9 @@ class ButtonEvent:
 class FolderEvent:
     def OnItemAdd(self, item):
         try:
-            print "An item was added to the inbox with subject:", item.Subject
+            print("An item was added to the inbox with subject:", item.Subject)
         except AttributeError:
-            print "An item was added to the inbox, but it has no subject! - ", repr(item)
+            print("An item was added to the inbox, but it has no subject! - ", repr(item))
 
 
 
@@ -63,7 +63,7 @@ class OutlookAddin:
     _reg_progid_ = "Python.Test.OutlookAddin"
     _reg_policy_spec_ = "win32com.server.policy.EventHandlerPolicy"
     def OnConnection(self, application, connectMode, addin, custom):
-        print "OnConnection", application, connectMode, addin, custom
+        print("OnConnection", application, connectMode, addin, custom)
         # ActiveExplorer may be none when started without a UI (eg, WinCE synchronisation)
         activeExplorer = application.ActiveExplorer()
         if activeExplorer is not None:
@@ -81,27 +81,27 @@ class OutlookAddin:
         self.inboxItems = DispatchWithEvents(inbox.Items, FolderEvent)
 
     def OnDisconnection(self, mode, custom):
-        print "OnDisconnection"
+        print("OnDisconnection")
     def OnAddInsUpdate(self, custom):
-        print "OnAddInsUpdate", custom
+        print("OnAddInsUpdate", custom)
     def OnStartupComplete(self, custom):
-        print "OnStartupComplete", custom
+        print("OnStartupComplete", custom)
     def OnBeginShutdown(self, custom):
-        print "OnBeginShutdown", custom
+        print("OnBeginShutdown", custom)
 
 def RegisterAddin(klass):
-    import _winreg
-    key = _winreg.CreateKey(_winreg.HKEY_CURRENT_USER, "Software\\Microsoft\\Office\\Outlook\\Addins")
-    subkey = _winreg.CreateKey(key, klass._reg_progid_)
-    _winreg.SetValueEx(subkey, "CommandLineSafe", 0, _winreg.REG_DWORD, 0)
-    _winreg.SetValueEx(subkey, "LoadBehavior", 0, _winreg.REG_DWORD, 3)
-    _winreg.SetValueEx(subkey, "Description", 0, _winreg.REG_SZ, klass._reg_progid_)
-    _winreg.SetValueEx(subkey, "FriendlyName", 0, _winreg.REG_SZ, klass._reg_progid_)
+    import winreg
+    key = winreg.CreateKey(winreg.HKEY_CURRENT_USER, "Software\\Microsoft\\Office\\Outlook\\Addins")
+    subkey = winreg.CreateKey(key, klass._reg_progid_)
+    winreg.SetValueEx(subkey, "CommandLineSafe", 0, winreg.REG_DWORD, 0)
+    winreg.SetValueEx(subkey, "LoadBehavior", 0, winreg.REG_DWORD, 3)
+    winreg.SetValueEx(subkey, "Description", 0, winreg.REG_SZ, klass._reg_progid_)
+    winreg.SetValueEx(subkey, "FriendlyName", 0, winreg.REG_SZ, klass._reg_progid_)
 
 def UnregisterAddin(klass):
-    import _winreg
+    import winreg
     try:
-        _winreg.DeleteKey(_winreg.HKEY_CURRENT_USER, "Software\\Microsoft\\Office\\Outlook\\Addins\\" + klass._reg_progid_)
+        winreg.DeleteKey(winreg.HKEY_CURRENT_USER, "Software\\Microsoft\\Office\\Outlook\\Addins\\" + klass._reg_progid_)
     except WindowsError:
         pass
 

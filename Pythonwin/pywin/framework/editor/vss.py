@@ -81,7 +81,7 @@ def CheckoutFile(fileName):
 		item = g_sourceSafe.VSSItem("$/%s/%s" % (project, vssFname))
 		item.Checkout(None, fileName)
 		ok = 1
-	except pythoncom.com_error, exc:
+	except pythoncom.com_error as exc:
 		win32ui.MessageBox(exc.strerror, "Error checking out file")
 	except:
 		typ, val, tb = sys.exc_info()

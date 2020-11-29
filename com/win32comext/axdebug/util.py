@@ -16,10 +16,10 @@ except KeyError:
 
 def trace(*args):
     if not debugging: return
-    print str(win32api.GetCurrentThreadId()) + ":",
+    print(str(win32api.GetCurrentThreadId()) + ":", end=' ')
     for arg in args:
-        print arg,
-    print
+        print(arg, end=' ')
+    print()
 
 # The AXDebugging implementation assumes that the returned COM pointers are in
 # some cases identical.  Eg, from a C++ perspective:
@@ -51,19 +51,19 @@ def _wrap_remove(object, iid = None):
 
 def _dump_wrapped():
     from win32com.server.util import unwrap
-    print "Wrapped items:"
-    for key, items in all_wrapped.iteritems():
-        print key,
+    print("Wrapped items:")
+    for key, items in all_wrapped.items():
+        print(key, end=' ')
         try:
             ob = unwrap(key)
-            print ob, sys.getrefcount(ob)
+            print(ob, sys.getrefcount(ob))
         except:
-            print "<error>"
+            print("<error>")
 
 
 def RaiseNotImpl(who = None):
     if who is not None:
-        print "********* Function %s Raising E_NOTIMPL  ************" % (who)
+        print("********* Function %s Raising E_NOTIMPL  ************" % (who))
 
     # Print a sort-of "traceback", dumping all the frames leading to here.
     try:
@@ -71,7 +71,7 @@ def RaiseNotImpl(who = None):
     except:
         frame = sys.exc_info()[2].tb_frame
     while frame:
-        print "File: %s, Line: %d" % (frame.f_code.co_filename, frame.f_lineno)
+        print("File: %s, Line: %d" % (frame.f_code.co_filename, frame.f_lineno))
         frame = frame.f_back
 
     # and raise the exception for COM
@@ -92,7 +92,7 @@ class Dispatcher(win32com.server.policy.DispatcherWin32trace):
         return rc
 
     def _Invoke_(self, dispid, lcid, wFlags, args):
-        print "In Invoke with", dispid, lcid, wFlags, args, "with object",self.policy._obj_
+        print("In Invoke with", dispid, lcid, wFlags, args, "with object",self.policy._obj_)
         try:
             rc = win32com.server.policy.DispatcherBase._Invoke_(self, dispid, lcid, wFlags, args)
 #                       print "Invoke of", dispid, "returning", rc
@@ -105,9 +105,9 @@ class Dispatcher(win32com.server.policy.DispatcherWin32trace):
                 desc = " (" + str(v.description) + ")"
             except AttributeError:
                 desc = ""
-            print "*** Invoke of %s raised COM exception 0x%x%s" % (dispid, scode, desc)
+            print("*** Invoke of %s raised COM exception 0x%x%s" % (dispid, scode, desc))
         except:
-            print "*** Invoke of %s failed:" % dispid
+            print("*** Invoke of %s failed:" % dispid)
             typ, val, tb = sys.exc_info()
             import traceback
             traceback.print_exception(typ, val, tb)

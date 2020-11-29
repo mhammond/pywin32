@@ -21,11 +21,11 @@ tmp_dir=win32api.GetTempPath()
 dst_dir=win32api.GetTempFileName(tmp_dir,'oef')[0]
 os.remove(dst_dir)
 os.mkdir(dst_dir)
-print 'Destination dir:', dst_dir
+print('Destination dir:', dst_dir)
 
 ## create an encrypted file
 fname=win32api.GetTempFileName(dst_dir,'ref')[0]
-print 'orig file:',fname
+print('orig file:',fname)
 f=open(fname,'w')
 f.write('xxxxxxxxxxxxxxxx\n'*32768)
 f.close()
@@ -40,7 +40,7 @@ win32file.EncryptFile(fname)
 
 ## backup raw data of encrypted file
 bkup_fname=win32api.GetTempFileName(dst_dir,'bef')[0]
-print 'backup file:', bkup_fname
+print('backup file:', bkup_fname)
 f=open(bkup_fname,'wb')
 ctxt=win32file.OpenEncryptedFileRaw(fname,0)
 try:
@@ -52,7 +52,7 @@ finally:
 
 ## restore data from backup to new encrypted file
 dst_fname=win32api.GetTempFileName(dst_dir,'wef')[0]
-print 'restored file:', dst_fname
+print('restored file:', dst_fname)
 f=open(bkup_fname,'rb')
 ctxtout=win32file.OpenEncryptedFileRaw(dst_fname, win32file.CREATE_FOR_IMPORT)
 try:

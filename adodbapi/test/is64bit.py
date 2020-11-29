@@ -30,4 +30,4 @@ def os():
             return False     # is an older version of Python, assume also an older os (best we can guess)
 
 if __name__ == "__main__":
-    print ("is64bit.Python() =", Python(), "is64bit.os() =", os())
+    print("is64bit.Python() =", Python(), "is64bit.os() =", os())

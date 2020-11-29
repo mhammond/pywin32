@@ -1,9 +1,9 @@
 import win32print, pywintypes, win32con, win32gui, win32api
 
 pname=win32print.GetDefaultPrinter()
-print pname
+print(pname)
 p=win32print.OpenPrinter(pname)
-print 'Printer handle: ',p
+print('Printer handle: ',p)
 print_processor=win32print.GetPrinter(p,2)['pPrintProcessor']
 ## call with last parm set to 0 to get total size needed for printer's DEVMODE
 dmsize=win32print.DocumentProperties(0, p, pname, None, None, 0)

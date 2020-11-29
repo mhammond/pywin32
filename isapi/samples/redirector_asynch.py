@@ -7,7 +7,7 @@
 from isapi import isapicon, threaded_extension
 import sys
 import traceback
-import urllib
+import urllib.request, urllib.parse, urllib.error
 
 # sys.isapidllhandle will exist when we are loaded by the IIS framework.
 # In this case we redirect our output to the win32traceutil collector.
@@ -22,7 +22,7 @@ CHUNK_SIZE=8192
 
 # The callback made when IIS completes the asynch write.
 def io_callback(ecb, fp, cbIO, errcode):
-    print "IO callback", ecb, fp, cbIO, errcode
+    print("IO callback", ecb, fp, cbIO, errcode)
     chunk = fp.read(CHUNK_SIZE)
     if chunk:
         ecb.WriteClient(chunk, isapicon.HSE_IO_ASYNC)
@@ -36,12 +36,12 @@ def io_callback(ecb, fp, cbIO, errcode):
 class Extension(threaded_extension.ThreadPoolExtension):
     "Python sample proxy server - asynch version."
     def Dispatch(self, ecb):
-        print 'IIS dispatching "%s"' % (ecb.GetServerVariable("URL"),)
+        print('IIS dispatching "%s"' % (ecb.GetServerVariable("URL"),))
         url = ecb.GetServerVariable("URL")
 
         new_url = proxy + url
-        print "Opening %s" % new_url
-        fp = urllib.urlopen(new_url)
+        print("Opening %s" % new_url)
+        fp = urllib.request.urlopen(new_url)
         headers = fp.info()
         ecb.SendResponseHeaders("200 OK", str(headers) + "\r\n", False)
         # now send the first chunk asynchronously

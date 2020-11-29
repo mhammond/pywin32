@@ -162,7 +162,7 @@ PyObject *PyIMAPIFolder::DeleteFolder(PyObject *self, PyObject *args)
 		&obProgress, // @pyparm <o PyIMAPIProgress>|progress||A progress object, or None
 		&flags)) 
         return NULL;
-	if PyString_Check(obEntryId) {
+	if (PyString_Check(obEntryId)) {
 		eid = (LPENTRYID)PyString_AsString(obEntryId);
 		cbEID = PyString_Size(obEntryId);
 	} else {

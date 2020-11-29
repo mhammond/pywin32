@@ -10,197 +10,190 @@
 //
 // Interface Implementation
 
-PyIOleInPlaceActiveObject::PyIOleInPlaceActiveObject(IUnknown *pdisp):
-	PyIOleWindow(pdisp)
-{
-	ob_type = &type;
-}
+PyIOleInPlaceActiveObject::PyIOleInPlaceActiveObject(IUnknown *pdisp) : PyIOleWindow(pdisp) { ob_type = &type; }
 
-PyIOleInPlaceActiveObject::~PyIOleInPlaceActiveObject()
-{
-}
+PyIOleInPlaceActiveObject::~PyIOleInPlaceActiveObject() {}
 
 /* static */ IOleInPlaceActiveObject *PyIOleInPlaceActiveObject::GetI(PyObject *self)
 {
-	return (IOleInPlaceActiveObject *)PyIOleWindow::GetI(self);
+    return (IOleInPlaceActiveObject *)PyIOleWindow::GetI(self);
 }
 
 // @pymethod |PyIOleInPlaceActiveObject|TranslateAccelerator|Description of TranslateAccelerator.
 PyObject *PyIOleInPlaceActiveObject::TranslateAccelerator(PyObject *self, PyObject *args)
 {
-	IOleInPlaceActiveObject *pIOIPAO = GetI(self);
-	if ( pIOIPAO == NULL )
-		return NULL;
-	MSG msg;
-	PyObject *obmsg;
-	// @pyparm <o PyMSG>|lpmsg||Description for lpmsg
-	if ( !PyArg_ParseTuple(args, "O:TranslateAccelerator", &obmsg) )
-		return NULL;
-	if (!PyWinObject_AsMSG(obmsg, &msg))
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIOIPAO->TranslateAccelerator(&msg);
-	PY_INTERFACE_POSTCALL;
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pIOIPAO, IID_IOleInPlaceActiveObject );
-	Py_INCREF(Py_None);
-	return Py_None;
+    IOleInPlaceActiveObject *pIOIPAO = GetI(self);
+    if (pIOIPAO == NULL)
+        return NULL;
+    MSG msg;
+    PyObject *obmsg;
+    // @pyparm <o PyMSG>|lpmsg||Description for lpmsg
+    if (!PyArg_ParseTuple(args, "O:TranslateAccelerator", &obmsg))
+        return NULL;
+    if (!PyWinObject_AsMSG(obmsg, &msg))
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIOIPAO->TranslateAccelerator(&msg);
+    PY_INTERFACE_POSTCALL;
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pIOIPAO, IID_IOleInPlaceActiveObject);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @pymethod |PyIOleInPlaceActiveObject|OnFrameWindowActivate|Description of OnFrameWindowActivate.
 PyObject *PyIOleInPlaceActiveObject::OnFrameWindowActivate(PyObject *self, PyObject *args)
 {
-	IOleInPlaceActiveObject *pIOIPAO = GetI(self);
-	if ( pIOIPAO == NULL )
-		return NULL;
-	// @pyparm int|fActivate||Description for fActivate
-	BOOL fActivate;
-	if ( !PyArg_ParseTuple(args, "i:OnFrameWindowActivate", &fActivate) )
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIOIPAO->OnFrameWindowActivate( fActivate );
-	PY_INTERFACE_POSTCALL;
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pIOIPAO, IID_IOleInPlaceActiveObject );
-	Py_INCREF(Py_None);
-	return Py_None;
-
+    IOleInPlaceActiveObject *pIOIPAO = GetI(self);
+    if (pIOIPAO == NULL)
+        return NULL;
+    // @pyparm int|fActivate||Description for fActivate
+    BOOL fActivate;
+    if (!PyArg_ParseTuple(args, "i:OnFrameWindowActivate", &fActivate))
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIOIPAO->OnFrameWindowActivate(fActivate);
+    PY_INTERFACE_POSTCALL;
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pIOIPAO, IID_IOleInPlaceActiveObject);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @pymethod |PyIOleInPlaceActiveObject|OnDocWindowActivate|Description of OnDocWindowActivate.
 PyObject *PyIOleInPlaceActiveObject::OnDocWindowActivate(PyObject *self, PyObject *args)
 {
-	IOleInPlaceActiveObject *pIOIPAO = GetI(self);
-	if ( pIOIPAO == NULL )
-		return NULL;
-	// @pyparm int|fActivate||Description for fActivate
-	BOOL fActivate;
-	if ( !PyArg_ParseTuple(args, "i:OnDocWindowActivate", &fActivate) )
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIOIPAO->OnDocWindowActivate( fActivate );
-	PY_INTERFACE_POSTCALL;
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pIOIPAO, IID_IOleInPlaceActiveObject );
-	Py_INCREF(Py_None);
-	return Py_None;
+    IOleInPlaceActiveObject *pIOIPAO = GetI(self);
+    if (pIOIPAO == NULL)
+        return NULL;
+    // @pyparm int|fActivate||Description for fActivate
+    BOOL fActivate;
+    if (!PyArg_ParseTuple(args, "i:OnDocWindowActivate", &fActivate))
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIOIPAO->OnDocWindowActivate(fActivate);
+    PY_INTERFACE_POSTCALL;
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pIOIPAO, IID_IOleInPlaceActiveObject);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @pymethod |PyIOleInPlaceActiveObject|ResizeBorder|Description of ResizeBorder.
 PyObject *PyIOleInPlaceActiveObject::ResizeBorder(PyObject *self, PyObject *args)
 {
-	IOleInPlaceActiveObject *pIOIPAO = GetI(self);
-	if ( pIOIPAO == NULL )
-		return NULL;
-	RECT rcb;
-	// @pyparm (int, int, int, int)|rcBorder||Description for prcBorder
-	// @pyparm <o PyIOleInPlaceUIWindow>|pUIWindow||Description for pUIWindow
-	// @pyparm int|fFrameWindow||Description for fFrameWindow
-	PyObject *obpUIWindow;
-	IOleInPlaceUIWindow * pUIWindow;
-	BOOL fFrameWindow;
-	if ( !PyArg_ParseTuple(args, "(iiii)Oi:ResizeBorder",
-			       &rcb.left, &rcb.top, &rcb.right, &rcb.bottom,
-			       &obpUIWindow, &fFrameWindow) )
-		return NULL;
-	if (!PyCom_InterfaceFromPyInstanceOrObject(obpUIWindow, IID_IOleInPlaceUIWindow, (void **)&pUIWindow, TRUE /* bNoneOK */))
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIOIPAO->ResizeBorder( &rcb, pUIWindow, fFrameWindow );
-	if (pUIWindow) pUIWindow->Release();
-	PY_INTERFACE_POSTCALL;
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pIOIPAO, IID_IOleInPlaceActiveObject );
-	Py_INCREF(Py_None);
-	return Py_None;
+    IOleInPlaceActiveObject *pIOIPAO = GetI(self);
+    if (pIOIPAO == NULL)
+        return NULL;
+    RECT rcb;
+    // @pyparm (int, int, int, int)|rcBorder||Description for prcBorder
+    // @pyparm <o PyIOleInPlaceUIWindow>|pUIWindow||Description for pUIWindow
+    // @pyparm int|fFrameWindow||Description for fFrameWindow
+    PyObject *obpUIWindow;
+    IOleInPlaceUIWindow *pUIWindow;
+    BOOL fFrameWindow;
+    if (!PyArg_ParseTuple(args, "(iiii)Oi:ResizeBorder", &rcb.left, &rcb.top, &rcb.right, &rcb.bottom, &obpUIWindow,
+                          &fFrameWindow))
+        return NULL;
+    if (!PyCom_InterfaceFromPyInstanceOrObject(obpUIWindow, IID_IOleInPlaceUIWindow, (void **)&pUIWindow,
+                                               TRUE /* bNoneOK */))
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIOIPAO->ResizeBorder(&rcb, pUIWindow, fFrameWindow);
+    if (pUIWindow)
+        pUIWindow->Release();
+    PY_INTERFACE_POSTCALL;
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pIOIPAO, IID_IOleInPlaceActiveObject);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @pymethod |PyIOleInPlaceActiveObject|EnableModeless|Description of EnableModeless.
 PyObject *PyIOleInPlaceActiveObject::EnableModeless(PyObject *self, PyObject *args)
 {
-	IOleInPlaceActiveObject *pIOIPAO = GetI(self);
-	if ( pIOIPAO == NULL )
-		return NULL;
-	// @pyparm int|fEnable||Description for fEnable
-	BOOL fEnable;
-	if ( !PyArg_ParseTuple(args, "i:EnableModeless", &fEnable) )
-		return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pIOIPAO->EnableModeless( fEnable );
-	PY_INTERFACE_POSTCALL;
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pIOIPAO, IID_IOleInPlaceActiveObject );
-	Py_INCREF(Py_None);
-	return Py_None;
+    IOleInPlaceActiveObject *pIOIPAO = GetI(self);
+    if (pIOIPAO == NULL)
+        return NULL;
+    // @pyparm int|fEnable||Description for fEnable
+    BOOL fEnable;
+    if (!PyArg_ParseTuple(args, "i:EnableModeless", &fEnable))
+        return NULL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pIOIPAO->EnableModeless(fEnable);
+    PY_INTERFACE_POSTCALL;
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pIOIPAO, IID_IOleInPlaceActiveObject);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @object PyIOleInPlaceActiveObject|Description of the interface
-static struct PyMethodDef PyIOleInPlaceActiveObject_methods[] =
-{
-	{ "TranslateAccelerator", PyIOleInPlaceActiveObject::TranslateAccelerator, 1 }, // @pymeth TranslateAccelerator|Description of TranslateAccelerator
-	{ "OnFrameWindowActivate", PyIOleInPlaceActiveObject::OnFrameWindowActivate, 1 }, // @pymeth OnFrameWindowActivate|Description of OnFrameWindowActivate
-	{ "OnDocWindowActivate", PyIOleInPlaceActiveObject::OnDocWindowActivate, 1 }, // @pymeth OnDocWindowActivate|Description of OnDocWindowActivate
-	{ "ResizeBorder", PyIOleInPlaceActiveObject::ResizeBorder, 1 }, // @pymeth ResizeBorder|Description of ResizeBorder
-	{ "EnableModeless", PyIOleInPlaceActiveObject::EnableModeless, 1 }, // @pymeth EnableModeless|Description of EnableModeless
-	{ NULL }
-};
+static struct PyMethodDef PyIOleInPlaceActiveObject_methods[] = {
+    {"TranslateAccelerator", PyIOleInPlaceActiveObject::TranslateAccelerator,
+     1},  // @pymeth TranslateAccelerator|Description of TranslateAccelerator
+    {"OnFrameWindowActivate", PyIOleInPlaceActiveObject::OnFrameWindowActivate,
+     1},  // @pymeth OnFrameWindowActivate|Description of OnFrameWindowActivate
+    {"OnDocWindowActivate", PyIOleInPlaceActiveObject::OnDocWindowActivate,
+     1},  // @pymeth OnDocWindowActivate|Description of OnDocWindowActivate
+    {"ResizeBorder", PyIOleInPlaceActiveObject::ResizeBorder, 1},  // @pymeth ResizeBorder|Description of ResizeBorder
+    {"EnableModeless", PyIOleInPlaceActiveObject::EnableModeless,
+     1},  // @pymeth EnableModeless|Description of EnableModeless
+    {NULL}};
 
-PyComTypeObject PyIOleInPlaceActiveObject::type("PyIOleInPlaceActiveObject",
-		&PyIOleWindow::type,
-		sizeof(PyIOleInPlaceActiveObject),
-		PyIOleInPlaceActiveObject_methods,
-		GET_PYCOM_CTOR(PyIOleInPlaceActiveObject));
+PyComTypeObject PyIOleInPlaceActiveObject::type("PyIOleInPlaceActiveObject", &PyIOleWindow::type,
+                                                sizeof(PyIOleInPlaceActiveObject), PyIOleInPlaceActiveObject_methods,
+                                                GET_PYCOM_CTOR(PyIOleInPlaceActiveObject));
 // ---------------------------------------------------
 //
 // Gateway Implementation
 // IOleWindow
-STDMETHODIMP PyGOleInPlaceActiveObject::GetWindow(HWND __RPC_FAR * phwnd) {return PyGOleWindow::GetWindow(phwnd);}
-STDMETHODIMP PyGOleInPlaceActiveObject::ContextSensitiveHelp(BOOL fEnterMode) {return PyGOleWindow::ContextSensitiveHelp(fEnterMode);}
+STDMETHODIMP PyGOleInPlaceActiveObject::GetWindow(HWND __RPC_FAR *phwnd) { return PyGOleWindow::GetWindow(phwnd); }
+STDMETHODIMP PyGOleInPlaceActiveObject::ContextSensitiveHelp(BOOL fEnterMode)
+{
+    return PyGOleWindow::ContextSensitiveHelp(fEnterMode);
+}
 
 // IOleInPlaceActiveObject
 STDMETHODIMP PyGOleInPlaceActiveObject::TranslateAccelerator(
-		/* [in] */ LPMSG lpmsg)
+    /* [in] */ LPMSG lpmsg)
 {
-	PY_GATEWAY_METHOD;
-	return InvokeViaPolicy("TranslateAccelerator", NULL, "N",
-				PyWinObject_FromMSG(lpmsg));
+    PY_GATEWAY_METHOD;
+    return InvokeViaPolicy("TranslateAccelerator", NULL, "N", PyWinObject_FromMSG(lpmsg));
 }
 
 STDMETHODIMP PyGOleInPlaceActiveObject::OnFrameWindowActivate(
-		/* [in] */ BOOL fActivate)
+    /* [in] */ BOOL fActivate)
 {
-	PY_GATEWAY_METHOD;
-	return InvokeViaPolicy("OnFrameWindowActivate", NULL, "i", fActivate);
+    PY_GATEWAY_METHOD;
+    return InvokeViaPolicy("OnFrameWindowActivate", NULL, "i", fActivate);
 }
 
 STDMETHODIMP PyGOleInPlaceActiveObject::OnDocWindowActivate(
-		/* [in] */ BOOL fActivate)
+    /* [in] */ BOOL fActivate)
 {
-	PY_GATEWAY_METHOD;
-	return InvokeViaPolicy("OnDocWindowActivate", NULL, "i", fActivate);
+    PY_GATEWAY_METHOD;
+    return InvokeViaPolicy("OnDocWindowActivate", NULL, "i", fActivate);
 }
 
 STDMETHODIMP PyGOleInPlaceActiveObject::ResizeBorder(
-		/* [in] */ LPCRECT prc,
-		/* [unique][in] */ IOleInPlaceUIWindow * pUIWindow,
-		/* [in] */ BOOL fFrameWindow)
+    /* [in] */ LPCRECT prc,
+    /* [unique][in] */ IOleInPlaceUIWindow *pUIWindow,
+    /* [in] */ BOOL fFrameWindow)
 {
-	PY_GATEWAY_METHOD;
-	return InvokeViaPolicy("ResizeBorder", NULL, "(iiii)Oi",
-				prc->left, prc->top, prc->right, prc->bottom,
-				PyCom_PyObjectFromIUnknown(pUIWindow, IID_IOleInPlaceUIWindow, TRUE),
-				fFrameWindow);
+    PY_GATEWAY_METHOD;
+    return InvokeViaPolicy("ResizeBorder", NULL, "(iiii)Oi", prc->left, prc->top, prc->right, prc->bottom,
+                           PyCom_PyObjectFromIUnknown(pUIWindow, IID_IOleInPlaceUIWindow, TRUE), fFrameWindow);
 }
 
 STDMETHODIMP PyGOleInPlaceActiveObject::EnableModeless(
-		/* [in] */ BOOL fEnable)
+    /* [in] */ BOOL fEnable)
 {
-	PY_GATEWAY_METHOD;
-	return InvokeViaPolicy("EnableModeless", NULL, "i", fEnable);
+    PY_GATEWAY_METHOD;
+    return InvokeViaPolicy("EnableModeless", NULL, "i", fEnable);
 }
-

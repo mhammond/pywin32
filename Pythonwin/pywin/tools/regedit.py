@@ -1,7 +1,7 @@
 # Regedit - a Registry Editor for Python
 import win32api, win32ui, win32con, commctrl
 from pywin.mfc import window, docview, dialog
-import hierlist
+from . import hierlist
 import regutil
 import string
 
@@ -9,7 +9,7 @@ def SafeApply( fn, args, err_desc = "" ):
 	try:
 		fn(*args)
 		return 1
-	except win32api.error, exc:
+	except win32api.error as exc:
 		msg = "Error " + err_desc + "\r\n\r\n" + exc.strerror
 		win32ui.MessageBox(msg)
 		return 0
@@ -210,7 +210,7 @@ class RegistryValueView(docview.ListView):
 		# Query for a new value.
 		try:
 			newVal = self.GetItemsCurrentValue(item, keyVal)
-		except TypeError, details:
+		except TypeError as details:
 			win32ui.MessageBox(details)
 			return
 		
@@ -218,7 +218,7 @@ class RegistryValueView(docview.ListView):
 		if d.DoModal()==win32con.IDOK:
 			try:
 				self.SetItemsCurrentValue(item, keyVal, d.newvalue)
-			except win32api.error, exc:
+			except win32api.error as exc:
 				win32ui.MessageBox("Error setting value\r\n\n%s" % exc.strerror)
 			self.UpdateForRegItem(item)
 

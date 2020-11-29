@@ -132,9 +132,15 @@ include isapi/test/*.txt
 include isapi/src/*.h
 
 # adodbapi
+include adodbapi/*.py
+exclude adodbapi/setup.py
+exclude adodbapi/remote/*
+include adodbapi/*.md
 include adodbapi/*.txt
-include adodbapi/tests/*.py
-include adodbapi/tests/*.bat
+include adodbapi/test/*.py
+include adodbapi/test/*.bat
+include adodbapi/examples/*.py
+include adodbapi/examples/test.mdb
 
 # Other tools
 include SWIG/swig.exe

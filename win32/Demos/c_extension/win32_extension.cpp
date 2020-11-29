@@ -4,18 +4,15 @@
 #include "Python.h"
 #include "PyWinTypes.h"
 
-static struct PyMethodDef win32extension_functions[] = {
-    0
-};
+static struct PyMethodDef win32extension_functions[] = {0};
 
-extern "C" __declspec(dllexport)
-void initwin32_extension(void)
+extern "C" __declspec(dllexport) void initwin32_extension(void)
 {
-  // Initialize PyWin32 globals (such as error objects etc)
-  PyWinGlobals_Ensure();
+    // Initialize PyWin32 globals (such as error objects etc)
+    PyWinGlobals_Ensure();
 
-  PyObject *module;
-  module = Py_InitModule("win32_extension", win32extension_functions);
-  if (!module)
-    return;
+    PyObject *module;
+    module = Py_InitModule("win32_extension", win32extension_functions);
+    if (!module)
+        return;
 }

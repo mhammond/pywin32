@@ -40,4 +40,4 @@ class SimpleConnection:
 			if self.cookie:
 				self.cp.Unadvise(self.cookie)
 				self.cookie = None
-			self.cp = None		
+			self.cp = None

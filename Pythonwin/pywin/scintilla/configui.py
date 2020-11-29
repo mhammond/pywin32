@@ -4,7 +4,7 @@ import win32con
 import win32ui
 import copy
 import string
-import scintillacon
+from . import scintillacon
 
 # Used to indicate that style should use default color
 from win32con import CLR_INVALID
@@ -51,7 +51,7 @@ class ScintillaFormatPropertyPage(dialog.PropertyPage):
 	def OnInitDialog(self):
 		try:
 			if self.scintillaClass is None:
-				import control
+				from . import control
 				sc = control.CScintillaEdit
 			else:
 				sc = self.scintillaClass
@@ -87,7 +87,7 @@ class ScintillaFormatPropertyPage(dialog.PropertyPage):
 			self.butIsDefaultBackground = self.GetDlgItem(win32ui.IDC_CHECK2)
 			self.listbox = self.GetDlgItem(win32ui.IDC_LIST1)
 			self.HookCommand(self.OnListCommand, win32ui.IDC_LIST1)
-			names = self.styles.keys()
+			names = list(self.styles.keys())
 			names.sort()
 			for name in names:
 				if self.styles[name].aliased is None:

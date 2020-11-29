@@ -5,7 +5,7 @@
 %module win32security // An interface to the win32 security API's
 
 %{
-#define _WIN32_WINNT 0x0501 // We are 2k specific
+#define _WIN32_WINNT 0x0600 // Vista!
 %}
 
 %include "typemaps.i"
@@ -3488,9 +3488,21 @@ static PyObject *PyLsaEnumerateLogonSessions(PyObject *self, PyObject *args)
 // @rdesc Returns a dictionary representing a SECURITY_LOGON_SESSION_DATA structure
 %native(LsaGetLogonSessionData) PyLsaGetLogonSessionData;
 %{
+
+#define HANDLE_OPT_ELT(Elt, Maker) PyObject *ob##Elt; if (pdata->Size > offsetof(SECURITY_LOGON_SESSION_DATA, Elt)) { ob##Elt = Maker(pdata->Elt); } else { ob##Elt = Py_None; Py_INCREF(Py_None); }
+#define HANDLE_OPT_ELT_PTR(Elt, Maker) PyObject *ob##Elt; if (pdata->Size > offsetof(SECURITY_LOGON_SESSION_DATA, Elt)) { ob##Elt = Maker(&pdata->Elt); } else { ob##Elt = Py_None; Py_INCREF(Py_None); }
+#define INSERT_ELT(Elt) #Elt, ob##Elt
+
+static PyObject *PyObject_FromLSA_LAST_INTER_LOGON_INFO(LSA_LAST_INTER_LOGON_INFO *p) {
+	return Py_BuildValue("{s:N,s:N,s:N}",
+		"LastSuccessfulLogon", PyWinObject_FromTimeStamp(p->LastSuccessfulLogon),
+		"LastFailedLogon", PyWinObject_FromTimeStamp(p->LastFailedLogon),
+		"FailedAttemptCountSinceLastSuccessfulLogon", PyLong_FromUnsignedLong(p->FailedAttemptCountSinceLastSuccessfulLogon));
+}
+
 static PyObject *PyLsaGetLogonSessionData(PyObject *self, PyObject *args)
 {
-	PyObject *obluid, *obLogonServer, *obDnsDomainName, *obUpn;
+	PyObject *obluid;
 	LUID logonid;
 	NTSTATUS err;
 	PSECURITY_LOGON_SESSION_DATA pdata=NULL;
@@ -3507,23 +3519,24 @@ static PyObject *PyLsaGetLogonSessionData(PyObject *self, PyObject *args)
 	err=(*pfnLsaGetLogonSessionData)(&logonid, &pdata);
 	if (err!=STATUS_SUCCESS)
 		PyWin_SetAPIError("LsaGetLogonSessionData", LsaNtStatusToWinError(err));
-	else{
-		// Last 3 members of SECURITY_LOGON_SESSION_DATA don't exist on Win2k
-		if (pdata->Size>offsetof(SECURITY_LOGON_SESSION_DATA,LogonServer)){
-			obLogonServer=PyWinObject_FromLSA_UNICODE_STRING(pdata->LogonServer);
-			obDnsDomainName=PyWinObject_FromLSA_UNICODE_STRING(pdata->DnsDomainName);
-			obUpn=PyWinObject_FromLSA_UNICODE_STRING(pdata->Upn);
-			}
-		else{
-			obLogonServer=Py_None;
-			Py_INCREF(Py_None);
-			obDnsDomainName=Py_None;
-			Py_INCREF(Py_None);
-			obUpn=Py_None;
-			Py_INCREF(Py_None);
-			}
+	else {
+		// We need to use the size of the struct to work out optional items.
+		HANDLE_OPT_ELT(LogonServer, PyWinObject_FromLSA_UNICODE_STRING)
+		HANDLE_OPT_ELT(DnsDomainName, PyWinObject_FromLSA_UNICODE_STRING)
+		HANDLE_OPT_ELT(Upn, PyWinObject_FromLSA_UNICODE_STRING)
+		HANDLE_OPT_ELT(UserFlags, PyLong_FromUnsignedLong)
+		HANDLE_OPT_ELT_PTR(LastLogonInfo, PyObject_FromLSA_LAST_INTER_LOGON_INFO)
+		HANDLE_OPT_ELT(LogonScript, PyWinObject_FromLSA_UNICODE_STRING)
+		HANDLE_OPT_ELT(ProfilePath, PyWinObject_FromLSA_UNICODE_STRING)
+		HANDLE_OPT_ELT(HomeDirectory, PyWinObject_FromLSA_UNICODE_STRING)
+		HANDLE_OPT_ELT(HomeDirectoryDrive, PyWinObject_FromLSA_UNICODE_STRING)
+		HANDLE_OPT_ELT(LogoffTime, PyWinObject_FromTimeStamp)
+		HANDLE_OPT_ELT(KickOffTime, PyWinObject_FromTimeStamp)
+		HANDLE_OPT_ELT(PasswordLastSet, PyWinObject_FromTimeStamp)
+		HANDLE_OPT_ELT(PasswordCanChange, PyWinObject_FromTimeStamp)
+		HANDLE_OPT_ELT(PasswordMustChange, PyWinObject_FromTimeStamp)
 
-		ret=Py_BuildValue("{s:N,s:N,s:N,s:N,s:l,s:l,s:N,s:N,s:N,s:N,s:N}",
+		ret=Py_BuildValue("{s:N,s:N,s:N,s:N,s:l,s:l,s:N,s:N,s:N,s:N,s:N,s:N,s:N,s:N,s:N,s:N,s:N,s:N,s:N,s:N,s:N,s:N}",
 			"LogonId", PyWinObject_FromLARGE_INTEGER(*((LARGE_INTEGER *)&pdata->LogonId)),
 			"UserName", PyWinObject_FromLSA_UNICODE_STRING(pdata->UserName),
 			"LogonDomain", PyWinObject_FromLSA_UNICODE_STRING(pdata->LogonDomain),
@@ -3534,8 +3547,20 @@ static PyObject *PyLsaGetLogonSessionData(PyObject *self, PyObject *args)
 			"LogonTime", PyWinObject_FromTimeStamp(pdata->LogonTime),
 			"LogonServer", obLogonServer,
 			"DnsDomainName", obDnsDomainName,
-			"Upn", obUpn);
-		}
+			"Upn", obUpn,
+			INSERT_ELT(UserFlags),
+			INSERT_ELT(LastLogonInfo),
+			INSERT_ELT(LogonScript),
+			INSERT_ELT(ProfilePath),
+			INSERT_ELT(HomeDirectory),
+			INSERT_ELT(HomeDirectoryDrive),
+			INSERT_ELT(LogoffTime),
+			INSERT_ELT(KickOffTime),
+			INSERT_ELT(PasswordLastSet),
+			INSERT_ELT(PasswordCanChange),
+			INSERT_ELT(PasswordMustChange)
+		);
+	}
 
 	if (pdata!=NULL)
 		(*pfnLsaFreeReturnBuffer)(pdata);

@@ -1,7 +1,7 @@
 """Support for ActiveX control hosting in Pythonwin.
 """
 import win32ui, win32uiole
-import window
+from . import window
 # XXX - we are still "classic style" classes in py2x, so we need can't yet
 # use 'type()' everywhere - revisit soon, as py2x will move to new-style too...
 try:
@@ -34,7 +34,7 @@ class Control(window.Wnd):
 
 	def HookOleEvents(self):
 		dict = self._GetEventMap()
-		for dispid, methodName in dict.iteritems():
+		for dispid, methodName in dict.items():
 			if hasattr(self, methodName):
 				self._obj_.HookOleEvent( getattr(self, methodName), dispid )
 

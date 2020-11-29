@@ -737,6 +737,8 @@ static PyObject *PySetFileTime (PyObject *self, PyObject *args, PyObject *kwargs
 	PyObject *obLastWriteTime = Py_None;  // @pyparm <o PyTime>|LastWriteTime|None|File written time. None for no change.
 	BOOL UTCTimes = FALSE;    // @pyparm boolean|UTCTimes|False|If True, input times are treated as UTC and no conversion is done, 
 							  // otherwise they are treated as local times.  Defaults to False for backward compatibility.
+							  // This parameter is ignored in Python 3.x, where you should always pass datetime objects
+							  // with timezone information.
 
 	static char *keywords[] = {"File", "CreationTime", "LastAccessTime", "LastWriteTime", "UTCTimes", NULL};
 	HANDLE hHandle;
@@ -1420,11 +1422,11 @@ static PyObject *PyObject_FromFILE_NOTIFY_INFORMATION(void *buffer, DWORD nbytes
 	// the filename is exactly 1 byte!  Not clear the best way to
 	// check this, but this works for now - is it at least the size of
 	// the *head* of the struct.
-	if (nbytes < sizeof DWORD*3+2)
+	if (nbytes < sizeof(DWORD)*3+2)
 		return ret;
 	DWORD nbytes_read = 0;
 	while (1) {
-		PyObject *fname = PyWinObject_FromOLECHAR(p->FileName, p->FileNameLength/sizeof WCHAR);
+		PyObject *fname = PyWinObject_FromOLECHAR(p->FileName, p->FileNameLength/sizeof(WCHAR));
 		if (!fname) {
 			Py_DECREF(ret);
 			return NULL;
@@ -5137,7 +5139,13 @@ static PyObject *py_FindFileNames(PyObject *self, PyObject *args, PyObject *kwar
 		else
 			bsuccess=(*pfnFindNextFileName)(hfind, &ret_size, linkname);
 		if (bsuccess){
-			ret_item=PyWinObject_FromWCHAR(linkname, ret_size);
+			// There seems to be some confusion around ret_size - the MS docs
+			// don't say whether this includes the trailing \0 or not. #1511
+			// reports there's a trailing \0 on filenames, but that was opened
+			// many many years after this code was added - so has it changed?
+			// Regardless, we just ignore the size when creating the result
+			// string so it stops at the first \0.
+			ret_item=PyWinObject_FromWCHAR(linkname);
 			if ((ret_item==NULL) || (PyList_Append(ret, ret_item)==-1)){
 				Py_XDECREF(ret_item);
 				bsuccess=FALSE;

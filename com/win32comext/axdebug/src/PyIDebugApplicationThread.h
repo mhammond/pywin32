@@ -4,79 +4,60 @@
 //
 // Interface Declaration
 
-class PyIDebugApplicationThread : public PyIRemoteDebugApplicationThread
-{
-public:
-	MAKE_PYCOM_CTOR_ERRORINFO(PyIDebugApplicationThread, IID_IDebugApplicationThread);
-	static IDebugApplicationThread *GetI(PyObject *self);
-	static PyComTypeObject type;
+class PyIDebugApplicationThread : public PyIRemoteDebugApplicationThread {
+   public:
+    MAKE_PYCOM_CTOR_ERRORINFO(PyIDebugApplicationThread, IID_IDebugApplicationThread);
+    static IDebugApplicationThread *GetI(PyObject *self);
+    static PyComTypeObject type;
 
-	// The Python methods
-	static PyObject *SynchronousCallIntoThread(PyObject *self, PyObject *args);
-	static PyObject *QueryIsCurrentThread(PyObject *self, PyObject *args);
-	static PyObject *QueryIsDebuggerThread(PyObject *self, PyObject *args);
-	static PyObject *SetDescription(PyObject *self, PyObject *args);
-	static PyObject *SetStateString(PyObject *self, PyObject *args);
+    // The Python methods
+    static PyObject *SynchronousCallIntoThread(PyObject *self, PyObject *args);
+    static PyObject *QueryIsCurrentThread(PyObject *self, PyObject *args);
+    static PyObject *QueryIsDebuggerThread(PyObject *self, PyObject *args);
+    static PyObject *SetDescription(PyObject *self, PyObject *args);
+    static PyObject *SetStateString(PyObject *self, PyObject *args);
 
-protected:
-	PyIDebugApplicationThread(IUnknown *pdisp);
-	~PyIDebugApplicationThread();
+   protected:
+    PyIDebugApplicationThread(IUnknown *pdisp);
+    ~PyIDebugApplicationThread();
 };
 // ---------------------------------------------------
 //
 // Gateway Declaration
 
-class PyGDebugApplicationThread : public PyGRemoteDebugApplicationThread, public IDebugApplicationThread
-{
-protected:
-	PyGDebugApplicationThread(PyObject *instance) : PyGRemoteDebugApplicationThread(instance) { ; }
-	PYGATEWAY_MAKE_SUPPORT2(PyGDebugApplicationThread, IDebugApplicationThread, IID_IDebugApplicationThread, PyGRemoteDebugApplicationThread)
+class PyGDebugApplicationThread : public PyGRemoteDebugApplicationThread, public IDebugApplicationThread {
+   protected:
+    PyGDebugApplicationThread(PyObject *instance) : PyGRemoteDebugApplicationThread(instance) { ; }
+    PYGATEWAY_MAKE_SUPPORT2(PyGDebugApplicationThread, IDebugApplicationThread, IID_IDebugApplicationThread,
+                            PyGRemoteDebugApplicationThread)
 
-	// IRemoteDebugApplicationThread
-	STDMETHOD(GetSystemThreadId)(
-		DWORD __RPC_FAR * dwThreadId);
+    // IRemoteDebugApplicationThread
+    STDMETHOD(GetSystemThreadId)(DWORD __RPC_FAR *dwThreadId);
 
-	STDMETHOD(GetApplication)(
-		IRemoteDebugApplication __RPC_FAR *__RPC_FAR * ppda);
+    STDMETHOD(GetApplication)(IRemoteDebugApplication __RPC_FAR *__RPC_FAR *ppda);
 
-	STDMETHOD(EnumStackFrames)(
-		IEnumDebugStackFrames __RPC_FAR *__RPC_FAR * ppedsf);
+    STDMETHOD(EnumStackFrames)(IEnumDebugStackFrames __RPC_FAR *__RPC_FAR *ppedsf);
 
-	STDMETHOD(GetDescription)(
-		BSTR __RPC_FAR *pbstrDescription,  
-		BSTR __RPC_FAR *pbstrState);  
+    STDMETHOD(GetDescription)(BSTR __RPC_FAR *pbstrDescription, BSTR __RPC_FAR *pbstrState);
 
-	STDMETHOD(SetNextStatement)(
-		IDebugStackFrame __RPC_FAR * pStackFrame,
-		IDebugCodeContext __RPC_FAR * pCodeContext);
+    STDMETHOD(SetNextStatement)(IDebugStackFrame __RPC_FAR *pStackFrame, IDebugCodeContext __RPC_FAR *pCodeContext);
 
-	STDMETHOD(GetState)(
-		DWORD __RPC_FAR * pState);
+    STDMETHOD(GetState)(DWORD __RPC_FAR *pState);
 
-	STDMETHOD(Suspend)(
-		DWORD __RPC_FAR * pdwCount);
+    STDMETHOD(Suspend)(DWORD __RPC_FAR *pdwCount);
 
-	STDMETHOD(Resume)(
-		DWORD __RPC_FAR * pdwCount);
+    STDMETHOD(Resume)(DWORD __RPC_FAR *pdwCount);
 
-	STDMETHOD(GetSuspendCount)(
-		DWORD __RPC_FAR * pdwCount);
+    STDMETHOD(GetSuspendCount)(DWORD __RPC_FAR *pdwCount);
 
-	// IDebugApplicationThread
-	STDMETHOD(SynchronousCallIntoThread32)(
-		IDebugThreadCall32 __RPC_FAR * pstcb,
-		DWORD dwParam1,
-		DWORD dwParam2,
-		DWORD dwParam3);
+    // IDebugApplicationThread
+    STDMETHOD(SynchronousCallIntoThread32)
+    (IDebugThreadCall32 __RPC_FAR *pstcb, DWORD dwParam1, DWORD dwParam2, DWORD dwParam3);
 
-	STDMETHOD(QueryIsCurrentThread)(
-		void);
+    STDMETHOD(QueryIsCurrentThread)(void);
 
-	STDMETHOD(QueryIsDebuggerThread)(
-		void);
+    STDMETHOD(QueryIsDebuggerThread)(void);
 
-	STDMETHOD(SetDescription)(
-		LPCOLESTR pstrDescription);  
-	STDMETHOD(SetStateString)(
-		LPCOLESTR pstrState);  
+    STDMETHOD(SetDescription)(LPCOLESTR pstrDescription);
+    STDMETHOD(SetStateString)(LPCOLESTR pstrState);
 };

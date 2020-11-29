@@ -6,20 +6,19 @@
 #include "PythonCOM.h"
 #include "PyIPropertyStore.h"
 #include "propsys.h"
-class PyIPropertyStoreCache : public PyIPropertyStore
-{
-public:
-	MAKE_PYCOM_CTOR(PyIPropertyStoreCache);
-	static IPropertyStoreCache *GetI(PyObject *self);
-	static PyComTypeObject type;
+class PyIPropertyStoreCache : public PyIPropertyStore {
+   public:
+    MAKE_PYCOM_CTOR(PyIPropertyStoreCache);
+    static IPropertyStoreCache *GetI(PyObject *self);
+    static PyComTypeObject type;
 
-	// The Python methods
-	static PyObject *GetState(PyObject *self, PyObject *args);
-	static PyObject *GetValueAndState(PyObject *self, PyObject *args);
-	static PyObject *SetState(PyObject *self, PyObject *args);
-	static PyObject *SetValueAndState(PyObject *self, PyObject *args);
+    // The Python methods
+    static PyObject *GetState(PyObject *self, PyObject *args);
+    static PyObject *GetValueAndState(PyObject *self, PyObject *args);
+    static PyObject *SetState(PyObject *self, PyObject *args);
+    static PyObject *SetValueAndState(PyObject *self, PyObject *args);
 
-protected:
-	PyIPropertyStoreCache(IUnknown *pdisp);
-	~PyIPropertyStoreCache();
+   protected:
+    PyIPropertyStoreCache(IUnknown *pdisp);
+    ~PyIPropertyStoreCache();
 };

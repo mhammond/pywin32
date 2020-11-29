@@ -4,46 +4,39 @@
 //
 // Interface Declaration
 
-class PyIEnumExplorerCommand : public PyIUnknown
-{
-public:
-	MAKE_PYCOM_CTOR(PyIEnumExplorerCommand);
-	static IEnumExplorerCommand *GetI(PyObject *self);
-	static PyComEnumTypeObject type;
+class PyIEnumExplorerCommand : public PyIUnknown {
+   public:
+    MAKE_PYCOM_CTOR(PyIEnumExplorerCommand);
+    static IEnumExplorerCommand *GetI(PyObject *self);
+    static PyComEnumTypeObject type;
 
-	// The Python methods
-	static PyObject *Next(PyObject *self, PyObject *args);
-	static PyObject *Skip(PyObject *self, PyObject *args);
-	static PyObject *Reset(PyObject *self, PyObject *args);
-	static PyObject *Clone(PyObject *self, PyObject *args);
+    // The Python methods
+    static PyObject *Next(PyObject *self, PyObject *args);
+    static PyObject *Skip(PyObject *self, PyObject *args);
+    static PyObject *Reset(PyObject *self, PyObject *args);
+    static PyObject *Clone(PyObject *self, PyObject *args);
 
-protected:
-	PyIEnumExplorerCommand(IUnknown *pdisp);
-	~PyIEnumExplorerCommand();
+   protected:
+    PyIEnumExplorerCommand(IUnknown *pdisp);
+    ~PyIEnumExplorerCommand();
 };
 // ---------------------------------------------------
 //
 // Gateway Declaration
 
-class PyGEnumExplorerCommand : public PyGatewayBase, public IEnumExplorerCommand
-{
-protected:
-	PyGEnumExplorerCommand(PyObject *instance) : PyGatewayBase(instance) { ; }
-	PYGATEWAY_MAKE_SUPPORT2(PyGEnumExplorerCommand, IEnumExplorerCommand, IID_IEnumExplorerCommand, PyGatewayBase)
+class PyGEnumExplorerCommand : public PyGatewayBase, public IEnumExplorerCommand {
+   protected:
+    PyGEnumExplorerCommand(PyObject *instance) : PyGatewayBase(instance) { ; }
+    PYGATEWAY_MAKE_SUPPORT2(PyGEnumExplorerCommand, IEnumExplorerCommand, IID_IEnumExplorerCommand, PyGatewayBase)
 
-	// IEnumExplorerCommand
-	STDMETHOD(Next)(
-		ULONG celt,
-		__RPC__out_ecount_part(celt, *pceltFetched) IExplorerCommand ** pUICommand,
-		__RPC__out ULONG * pceltFetched);
+    // IEnumExplorerCommand
+    STDMETHOD(Next)
+    (ULONG celt, __RPC__out_ecount_part(celt, *pceltFetched) IExplorerCommand **pUICommand,
+     __RPC__out ULONG *pceltFetched);
 
-	STDMETHOD(Skip)(
-		ULONG celt);
+    STDMETHOD(Skip)(ULONG celt);
 
-	STDMETHOD(Reset)(
-		void);
+    STDMETHOD(Reset)(void);
 
-	STDMETHOD(Clone)(
-		__RPC__deref_out_opt IEnumExplorerCommand ** ppenum);
-
+    STDMETHOD(Clone)(__RPC__deref_out_opt IEnumExplorerCommand **ppenum);
 };

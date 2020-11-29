@@ -4,26 +4,25 @@
 //
 // Interface Declaration
 
-class PyIKnownFolderManager : public PyIUnknown
-{
-public:
-	MAKE_PYCOM_CTOR(PyIKnownFolderManager);
-	static IKnownFolderManager *GetI(PyObject *self);
-	static PyComTypeObject type;
+class PyIKnownFolderManager : public PyIUnknown {
+   public:
+    MAKE_PYCOM_CTOR(PyIKnownFolderManager);
+    static IKnownFolderManager *GetI(PyObject *self);
+    static PyComTypeObject type;
 
-	// The Python methods
-	static PyObject *FolderIdFromCsidl(PyObject *self, PyObject *args);
-	static PyObject *FolderIdToCsidl(PyObject *self, PyObject *args);
-	static PyObject *GetFolderIds(PyObject *self, PyObject *args);
-	static PyObject *GetFolder(PyObject *self, PyObject *args);
-	static PyObject *GetFolderByName(PyObject *self, PyObject *args);
-	static PyObject *RegisterFolder(PyObject *self, PyObject *args);
-	static PyObject *UnregisterFolder(PyObject *self, PyObject *args);
-	static PyObject *FindFolderFromPath(PyObject *self, PyObject *args);
-	static PyObject *FindFolderFromIDList(PyObject *self, PyObject *args);
-	static PyObject *Redirect(PyObject *self, PyObject *args);
+    // The Python methods
+    static PyObject *FolderIdFromCsidl(PyObject *self, PyObject *args);
+    static PyObject *FolderIdToCsidl(PyObject *self, PyObject *args);
+    static PyObject *GetFolderIds(PyObject *self, PyObject *args);
+    static PyObject *GetFolder(PyObject *self, PyObject *args);
+    static PyObject *GetFolderByName(PyObject *self, PyObject *args);
+    static PyObject *RegisterFolder(PyObject *self, PyObject *args);
+    static PyObject *UnregisterFolder(PyObject *self, PyObject *args);
+    static PyObject *FindFolderFromPath(PyObject *self, PyObject *args);
+    static PyObject *FindFolderFromIDList(PyObject *self, PyObject *args);
+    static PyObject *Redirect(PyObject *self, PyObject *args);
 
-protected:
-	PyIKnownFolderManager(IUnknown *pdisp);
-	~PyIKnownFolderManager();
+   protected:
+    PyIKnownFolderManager(IUnknown *pdisp);
+    ~PyIKnownFolderManager();
 };

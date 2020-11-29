@@ -10,450 +10,484 @@
 //
 // Interface Implementation
 
-PyIRemoteDebugApplication::PyIRemoteDebugApplication(IUnknown *pdisp):
-	PyIUnknown(pdisp)
-{
-	ob_type = &type;
-}
+PyIRemoteDebugApplication::PyIRemoteDebugApplication(IUnknown *pdisp) : PyIUnknown(pdisp) { ob_type = &type; }
 
-PyIRemoteDebugApplication::~PyIRemoteDebugApplication()
-{
-}
+PyIRemoteDebugApplication::~PyIRemoteDebugApplication() {}
 
 /* static */ IRemoteDebugApplication *PyIRemoteDebugApplication::GetI(PyObject *self)
 {
-	return (IRemoteDebugApplication *)PyIUnknown::GetI(self);
+    return (IRemoteDebugApplication *)PyIUnknown::GetI(self);
 }
 
 // @pymethod |PyIRemoteDebugApplication|ResumeFromBreakPoint|Continue an application which is currently in a breakpoint.
 PyObject *PyIRemoteDebugApplication::ResumeFromBreakPoint(PyObject *self, PyObject *args)
 {
-	IRemoteDebugApplication *pIRDA = GetI(self);
-	if ( pIRDA == NULL )
-		return NULL;
-	// @pyparm <o PyIRemoteDebugApplicationThread>|prptFocus||Description for prptFocus
-	// @pyparm int|bra||Break resume action
-	// @pyparm int|era||Error resume action
-	PyObject *obprptFocus;
-	BREAKRESUMEACTION bra;
-	ERRORRESUMEACTION era;
-	if ( !PyArg_ParseTuple(args, "Oii:ResumeFromBreakPoint", &obprptFocus, &bra, &era) )
-		return NULL;
-	IRemoteDebugApplicationThread *prptFocus;
-	BOOL bPythonIsHappy = TRUE;
-	if (!PyCom_InterfaceFromPyInstanceOrObject(obprptFocus, IID_IRemoteDebugApplicationThread, (void **)&prptFocus, FALSE /* bNoneOK */))
-		 bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) return NULL;
-	PY_INTERFACE_PRECALL;
-	HRESULT hr = pIRDA->ResumeFromBreakPoint( prptFocus, bra, era );
-	prptFocus->Release();
-	PY_INTERFACE_POSTCALL;
-	if ( FAILED(hr) )
-		return SetPythonCOMError(self,hr);
-	Py_INCREF(Py_None);
-	return Py_None;
+    IRemoteDebugApplication *pIRDA = GetI(self);
+    if (pIRDA == NULL)
+        return NULL;
+    // @pyparm <o PyIRemoteDebugApplicationThread>|prptFocus||Description for prptFocus
+    // @pyparm int|bra||Break resume action
+    // @pyparm int|era||Error resume action
+    PyObject *obprptFocus;
+    BREAKRESUMEACTION bra;
+    ERRORRESUMEACTION era;
+    if (!PyArg_ParseTuple(args, "Oii:ResumeFromBreakPoint", &obprptFocus, &bra, &era))
+        return NULL;
+    IRemoteDebugApplicationThread *prptFocus;
+    BOOL bPythonIsHappy = TRUE;
+    if (!PyCom_InterfaceFromPyInstanceOrObject(obprptFocus, IID_IRemoteDebugApplicationThread, (void **)&prptFocus,
+                                               FALSE /* bNoneOK */))
+        bPythonIsHappy = FALSE;
+    if (!bPythonIsHappy)
+        return NULL;
+    PY_INTERFACE_PRECALL;
+    HRESULT hr = pIRDA->ResumeFromBreakPoint(prptFocus, bra, era);
+    prptFocus->Release();
+    PY_INTERFACE_POSTCALL;
+    if (FAILED(hr))
+        return SetPythonCOMError(self, hr);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
-// @pymethod |PyIRemoteDebugApplication|CauseBreak|Causes the application to break into the debugger at the earliest opportunity.
+// @pymethod |PyIRemoteDebugApplication|CauseBreak|Causes the application to break into the debugger at the earliest
+// opportunity.
 PyObject *PyIRemoteDebugApplication::CauseBreak(PyObject *self, PyObject *args)
 {
-	// @comm  Note that a long time may elapse before the application actually breaks, particularly if
-	// the application is not currently executing script code.
-	IRemoteDebugApplication *pIRDA = GetI(self);
-	if ( pIRDA == NULL )
-		return NULL;
-	if ( !PyArg_ParseTuple(args, ":CauseBreak") )
-		return NULL;
-	PY_INTERFACE_PRECALL;
-	HRESULT hr = pIRDA->CauseBreak( );
-	PY_INTERFACE_POSTCALL;
-	if ( FAILED(hr) )
-		return SetPythonCOMError(self,hr);
-	Py_INCREF(Py_None);
-	return Py_None;
-
+    // @comm  Note that a long time may elapse before the application actually breaks, particularly if
+    // the application is not currently executing script code.
+    IRemoteDebugApplication *pIRDA = GetI(self);
+    if (pIRDA == NULL)
+        return NULL;
+    if (!PyArg_ParseTuple(args, ":CauseBreak"))
+        return NULL;
+    PY_INTERFACE_PRECALL;
+    HRESULT hr = pIRDA->CauseBreak();
+    PY_INTERFACE_POSTCALL;
+    if (FAILED(hr))
+        return SetPythonCOMError(self, hr);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @pymethod |PyIRemoteDebugApplication|ConnectDebugger|Connects a debugger to the application.
 PyObject *PyIRemoteDebugApplication::ConnectDebugger(PyObject *self, PyObject *args)
 {
-	// @comm Only one debugger may be connected at a  
-	// time; this method fails if there is already a debugger connected.
-	IRemoteDebugApplication *pIRDA = GetI(self);
-	if ( pIRDA == NULL )
-		return NULL;
-	// @pyparm <o PyIApplicationDebugger>|pad||Description for pad
-	PyObject *obpad;
-	if ( !PyArg_ParseTuple(args, "O:ConnectDebugger", &obpad) )
-		return NULL;
-	IApplicationDebugger *pad;
-	BOOL bPythonIsHappy = TRUE;
-	if (!PyCom_InterfaceFromPyInstanceOrObject(obpad, IID_IApplicationDebugger, (void **)&pad, FALSE /* bNoneOK */))
-		 bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) return NULL;
-	PY_INTERFACE_PRECALL;
-	HRESULT hr = pIRDA->ConnectDebugger( pad );
-	pad->Release();
-	PY_INTERFACE_POSTCALL;
-	if ( FAILED(hr) )
-		return SetPythonCOMError(self,hr);
-	Py_INCREF(Py_None);
-	return Py_None;
-
+    // @comm Only one debugger may be connected at a
+    // time; this method fails if there is already a debugger connected.
+    IRemoteDebugApplication *pIRDA = GetI(self);
+    if (pIRDA == NULL)
+        return NULL;
+    // @pyparm <o PyIApplicationDebugger>|pad||Description for pad
+    PyObject *obpad;
+    if (!PyArg_ParseTuple(args, "O:ConnectDebugger", &obpad))
+        return NULL;
+    IApplicationDebugger *pad;
+    BOOL bPythonIsHappy = TRUE;
+    if (!PyCom_InterfaceFromPyInstanceOrObject(obpad, IID_IApplicationDebugger, (void **)&pad, FALSE /* bNoneOK */))
+        bPythonIsHappy = FALSE;
+    if (!bPythonIsHappy)
+        return NULL;
+    PY_INTERFACE_PRECALL;
+    HRESULT hr = pIRDA->ConnectDebugger(pad);
+    pad->Release();
+    PY_INTERFACE_POSTCALL;
+    if (FAILED(hr))
+        return SetPythonCOMError(self, hr);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @pymethod |PyIRemoteDebugApplication|DisconnectDebugger|Disconnects the current debugger from the application.
 PyObject *PyIRemoteDebugApplication::DisconnectDebugger(PyObject *self, PyObject *args)
 {
-	IRemoteDebugApplication *pIRDA = GetI(self);
-	if ( pIRDA == NULL )
-		return NULL;
-	if ( !PyArg_ParseTuple(args, ":DisconnectDebugger") )
-		return NULL;
-	PY_INTERFACE_PRECALL;
-	HRESULT hr = pIRDA->DisconnectDebugger( );
-	PY_INTERFACE_POSTCALL;
-	if ( FAILED(hr) )
-		return SetPythonCOMError(self,hr);
-	Py_INCREF(Py_None);
-	return Py_None;
+    IRemoteDebugApplication *pIRDA = GetI(self);
+    if (pIRDA == NULL)
+        return NULL;
+    if (!PyArg_ParseTuple(args, ":DisconnectDebugger"))
+        return NULL;
+    PY_INTERFACE_PRECALL;
+    HRESULT hr = pIRDA->DisconnectDebugger();
+    PY_INTERFACE_POSTCALL;
+    if (FAILED(hr))
+        return SetPythonCOMError(self, hr);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
-// @pymethod <o PyIApplicationDebugger>|PyIRemoteDebugApplication|GetDebugger|Returns the current debugger connected to the application.
+// @pymethod <o PyIApplicationDebugger>|PyIRemoteDebugApplication|GetDebugger|Returns the current debugger connected to
+// the application.
 PyObject *PyIRemoteDebugApplication::GetDebugger(PyObject *self, PyObject *args)
 {
-	IRemoteDebugApplication *pIRDA = GetI(self);
-	if ( pIRDA == NULL )
-		return NULL;
-	if ( !PyArg_ParseTuple(args, ":GetDebugger") )
-		return NULL;
-	IApplicationDebugger *pad;
-	PY_INTERFACE_PRECALL;
-	HRESULT hr = pIRDA->GetDebugger( &pad );
-	PY_INTERFACE_POSTCALL;
-	if ( FAILED(hr) )
-		return SetPythonCOMError(self,hr);
-	return PyCom_PyObjectFromIUnknown(pad, IID_IApplicationDebugger, FALSE);
+    IRemoteDebugApplication *pIRDA = GetI(self);
+    if (pIRDA == NULL)
+        return NULL;
+    if (!PyArg_ParseTuple(args, ":GetDebugger"))
+        return NULL;
+    IApplicationDebugger *pad;
+    PY_INTERFACE_PRECALL;
+    HRESULT hr = pIRDA->GetDebugger(&pad);
+    PY_INTERFACE_POSTCALL;
+    if (FAILED(hr))
+        return SetPythonCOMError(self, hr);
+    return PyCom_PyObjectFromIUnknown(pad, IID_IApplicationDebugger, FALSE);
 }
 
-// @pymethod <o PyIUnknown>|PyIRemoteDebugApplication|CreateInstanceAtApplication|Create objects in the application process address space.
+// @pymethod <o PyIUnknown>|PyIRemoteDebugApplication|CreateInstanceAtApplication|Create objects in the application
+// process address space.
 PyObject *PyIRemoteDebugApplication::CreateInstanceAtApplication(PyObject *self, PyObject *args)
 {
-	// @comm Provides a mechanism for the debugger IDE, running out-of-process to the  
-	// application, to create objects in the application process.  
-	// This method simply delegates to CoCreateInstance.  
-	IRemoteDebugApplication *pIRDA = GetI(self);
-	if ( pIRDA == NULL )
-		return NULL;
-	// @pyparm <o PyIID>|rclsid||Description for rclsid
-	// @pyparm <o PyIUnknown>|pUnkOuter||Description for pUnkOuter
-	// @pyparm int|dwClsContext||Description for dwClsContext
-	// @pyparm <o PyIID>|riid||Description for riid
-	PyObject *obrclsid;
-	PyObject *obpUnkOuter;
-	DWORD dwClsContext;
-	PyObject *obriid;
-	if ( !PyArg_ParseTuple(args, "OOiO:CreateInstanceAtApplication", &obrclsid, &obpUnkOuter, &dwClsContext, &obriid) )
-		return NULL;
-	IID rclsid;
-	IUnknown *pUnkOuter;
-	IID riid;
-	IUnknown *ppvObject;
-	BOOL bPythonIsHappy = TRUE;
-	if (!PyWinObject_AsIID(obrclsid, &rclsid)) bPythonIsHappy = FALSE;
-	if (!PyWinObject_AsIID(obriid, &riid)) bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) return NULL;
-	if (!PyCom_InterfaceFromPyInstanceOrObject(obpUnkOuter, IID_IUnknown, (void **)&pUnkOuter, FALSE /* bNoneOK */))
-		 bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) return NULL;
-	PY_INTERFACE_PRECALL;
-	HRESULT hr = pIRDA->CreateInstanceAtApplication( rclsid, pUnkOuter, dwClsContext, riid, &ppvObject );
-	pUnkOuter->Release();
-	PY_INTERFACE_POSTCALL;
-	if ( FAILED(hr) )
-		return SetPythonCOMError(self,hr);
+    // @comm Provides a mechanism for the debugger IDE, running out-of-process to the
+    // application, to create objects in the application process.
+    // This method simply delegates to CoCreateInstance.
+    IRemoteDebugApplication *pIRDA = GetI(self);
+    if (pIRDA == NULL)
+        return NULL;
+    // @pyparm <o PyIID>|rclsid||Description for rclsid
+    // @pyparm <o PyIUnknown>|pUnkOuter||Description for pUnkOuter
+    // @pyparm int|dwClsContext||Description for dwClsContext
+    // @pyparm <o PyIID>|riid||Description for riid
+    PyObject *obrclsid;
+    PyObject *obpUnkOuter;
+    DWORD dwClsContext;
+    PyObject *obriid;
+    if (!PyArg_ParseTuple(args, "OOiO:CreateInstanceAtApplication", &obrclsid, &obpUnkOuter, &dwClsContext, &obriid))
+        return NULL;
+    IID rclsid;
+    IUnknown *pUnkOuter;
+    IID riid;
+    IUnknown *ppvObject;
+    BOOL bPythonIsHappy = TRUE;
+    if (!PyWinObject_AsIID(obrclsid, &rclsid))
+        bPythonIsHappy = FALSE;
+    if (!PyWinObject_AsIID(obriid, &riid))
+        bPythonIsHappy = FALSE;
+    if (!bPythonIsHappy)
+        return NULL;
+    if (!PyCom_InterfaceFromPyInstanceOrObject(obpUnkOuter, IID_IUnknown, (void **)&pUnkOuter, FALSE /* bNoneOK */))
+        bPythonIsHappy = FALSE;
+    if (!bPythonIsHappy)
+        return NULL;
+    PY_INTERFACE_PRECALL;
+    HRESULT hr = pIRDA->CreateInstanceAtApplication(rclsid, pUnkOuter, dwClsContext, riid, &ppvObject);
+    pUnkOuter->Release();
+    PY_INTERFACE_POSTCALL;
+    if (FAILED(hr))
+        return SetPythonCOMError(self, hr);
 
-	return PyCom_PyObjectFromIUnknown(ppvObject, IID_IUnknown, FALSE);
+    return PyCom_PyObjectFromIUnknown(ppvObject, IID_IUnknown, FALSE);
 }
 
 // @pymethod |PyIRemoteDebugApplication|QueryAlive|Returns True if alive, else False.
 PyObject *PyIRemoteDebugApplication::QueryAlive(PyObject *self, PyObject *args)
 {
-	IRemoteDebugApplication *pIRDA = GetI(self);
-	if ( pIRDA == NULL )
-		return NULL;
-	if ( !PyArg_ParseTuple(args, ":QueryAlive") )
-		return NULL;
-	PY_INTERFACE_PRECALL;
-	HRESULT hr = pIRDA->QueryAlive( );
-	PY_INTERFACE_POSTCALL;
-	return PyInt_FromLong(hr==S_OK);
+    IRemoteDebugApplication *pIRDA = GetI(self);
+    if (pIRDA == NULL)
+        return NULL;
+    if (!PyArg_ParseTuple(args, ":QueryAlive"))
+        return NULL;
+    PY_INTERFACE_PRECALL;
+    HRESULT hr = pIRDA->QueryAlive();
+    PY_INTERFACE_POSTCALL;
+    return PyInt_FromLong(hr == S_OK);
 }
 
-// @pymethod <o PyIEnumRemoteDebugApplicationThreads>|PyIRemoteDebugApplication|EnumThreads|Enumerates all threads known to be associated with the application.
+// @pymethod <o PyIEnumRemoteDebugApplicationThreads>|PyIRemoteDebugApplication|EnumThreads|Enumerates all threads known
+// to be associated with the application.
 PyObject *PyIRemoteDebugApplication::EnumThreads(PyObject *self, PyObject *args)
 {
-	// @comm New threads may be added at any time.  
-	IRemoteDebugApplication *pIRDA = GetI(self);
-	if ( pIRDA == NULL )
-		return NULL;
-	if ( !PyArg_ParseTuple(args, ":EnumThreads") )
-		return NULL;
-	IEnumRemoteDebugApplicationThreads *perdat;
-	PY_INTERFACE_PRECALL;
-	HRESULT hr = pIRDA->EnumThreads( &perdat );
-	PY_INTERFACE_POSTCALL;
-	if ( FAILED(hr) )
-		return SetPythonCOMError(self,hr);
-	return PyCom_PyObjectFromIUnknown(perdat, IID_IEnumRemoteDebugApplicationThreads, FALSE);
+    // @comm New threads may be added at any time.
+    IRemoteDebugApplication *pIRDA = GetI(self);
+    if (pIRDA == NULL)
+        return NULL;
+    if (!PyArg_ParseTuple(args, ":EnumThreads"))
+        return NULL;
+    IEnumRemoteDebugApplicationThreads *perdat;
+    PY_INTERFACE_PRECALL;
+    HRESULT hr = pIRDA->EnumThreads(&perdat);
+    PY_INTERFACE_POSTCALL;
+    if (FAILED(hr))
+        return SetPythonCOMError(self, hr);
+    return PyCom_PyObjectFromIUnknown(perdat, IID_IEnumRemoteDebugApplicationThreads, FALSE);
 }
 
 // @pymethod |PyIRemoteDebugApplication|GetName|Description of GetName.
 PyObject *PyIRemoteDebugApplication::GetName(PyObject *self, PyObject *args)
 {
-	IRemoteDebugApplication *pIRDA = GetI(self);
-	if ( pIRDA == NULL )
-		return NULL;
-	if ( !PyArg_ParseTuple(args, ":GetName") )
-		return NULL;
-	BSTR pbstrName;
-	PY_INTERFACE_PRECALL;
-	HRESULT hr = pIRDA->GetName( &pbstrName );
-	PY_INTERFACE_POSTCALL;
-	if ( FAILED(hr) )
-		return SetPythonCOMError(self,hr);
+    IRemoteDebugApplication *pIRDA = GetI(self);
+    if (pIRDA == NULL)
+        return NULL;
+    if (!PyArg_ParseTuple(args, ":GetName"))
+        return NULL;
+    BSTR pbstrName;
+    PY_INTERFACE_PRECALL;
+    HRESULT hr = pIRDA->GetName(&pbstrName);
+    PY_INTERFACE_POSTCALL;
+    if (FAILED(hr))
+        return SetPythonCOMError(self, hr);
 
-	PyObject *obpbstrName = MakeBstrToObj(pbstrName);
-	PyObject *pyretval = Py_BuildValue("O", obpbstrName);
-	Py_XDECREF(obpbstrName);
-	SysFreeString(pbstrName);
-	return pyretval;
+    PyObject *obpbstrName = MakeBstrToObj(pbstrName);
+    PyObject *pyretval = Py_BuildValue("O", obpbstrName);
+    Py_XDECREF(obpbstrName);
+    SysFreeString(pbstrName);
+    return pyretval;
 }
 
-// @pymethod <o PyIDebugApplicationNode>|PyIRemoteDebugApplication|GetRootNode|Returns the application node under which all nodes associated with the application are added.
+// @pymethod <o PyIDebugApplicationNode>|PyIRemoteDebugApplication|GetRootNode|Returns the application node under which
+// all nodes associated with the application are added.
 PyObject *PyIRemoteDebugApplication::GetRootNode(PyObject *self, PyObject *args)
 {
-	IRemoteDebugApplication *pIRDA = GetI(self);
-	if ( pIRDA == NULL )
-		return NULL;
-	if ( !PyArg_ParseTuple(args, ":GetRootNode") )
-		return NULL;
-	IDebugApplicationNode *pNode;
-	PY_INTERFACE_PRECALL;
-	HRESULT hr = pIRDA->GetRootNode( &pNode );
-	PY_INTERFACE_POSTCALL;
-	if ( FAILED(hr) )
-		return SetPythonCOMError(self,hr);
-	return PyCom_PyObjectFromIUnknown(pNode, IID_IDebugApplicationNode, FALSE);
+    IRemoteDebugApplication *pIRDA = GetI(self);
+    if (pIRDA == NULL)
+        return NULL;
+    if (!PyArg_ParseTuple(args, ":GetRootNode"))
+        return NULL;
+    IDebugApplicationNode *pNode;
+    PY_INTERFACE_PRECALL;
+    HRESULT hr = pIRDA->GetRootNode(&pNode);
+    PY_INTERFACE_POSTCALL;
+    if (FAILED(hr))
+        return SetPythonCOMError(self, hr);
+    return PyCom_PyObjectFromIUnknown(pNode, IID_IDebugApplicationNode, FALSE);
 }
 
-
-// @pymethod <o IEnumDebugExpressionContexts>|PyIRemoteDebugApplication|EnumGlobalExpressionContexts|Enumerates all global expression contexts
+// @pymethod <o IEnumDebugExpressionContexts>|PyIRemoteDebugApplication|EnumGlobalExpressionContexts|Enumerates all
+// global expression contexts
 PyObject *PyIRemoteDebugApplication::EnumGlobalExpressionContexts(PyObject *self, PyObject *args)
 {
-	IRemoteDebugApplication *pIRDA = GetI(self);
-	if ( pIRDA == NULL )
-		return NULL;
-	if ( !PyArg_ParseTuple(args, ":EnumGlobalExpressionContexts") )
-		return NULL;
-	IEnumDebugExpressionContexts *perdat;
-	PY_INTERFACE_PRECALL;
-	HRESULT hr = pIRDA->EnumGlobalExpressionContexts( &perdat );
-	PY_INTERFACE_POSTCALL;
-	if ( FAILED(hr) )
-		return SetPythonCOMError(self,hr);
-	return PyCom_PyObjectFromIUnknown(perdat, IID_IEnumDebugExpressionContexts, FALSE);
+    IRemoteDebugApplication *pIRDA = GetI(self);
+    if (pIRDA == NULL)
+        return NULL;
+    if (!PyArg_ParseTuple(args, ":EnumGlobalExpressionContexts"))
+        return NULL;
+    IEnumDebugExpressionContexts *perdat;
+    PY_INTERFACE_PRECALL;
+    HRESULT hr = pIRDA->EnumGlobalExpressionContexts(&perdat);
+    PY_INTERFACE_POSTCALL;
+    if (FAILED(hr))
+        return SetPythonCOMError(self, hr);
+    return PyCom_PyObjectFromIUnknown(perdat, IID_IEnumDebugExpressionContexts, FALSE);
 }
 
 // @object PyIRemoteDebugApplication|Description of the interface
-static struct PyMethodDef PyIRemoteDebugApplication_methods[] =
-{
-	{ "ResumeFromBreakPoint", PyIRemoteDebugApplication::ResumeFromBreakPoint, 1 }, // @pymeth ResumeFromBreakPoint|Continue an application which is currently in a breakpoint.
-	{ "CauseBreak", PyIRemoteDebugApplication::CauseBreak, 1 }, // @pymeth CauseBreak|Causes the application to break into the debugger at the earliest opportunity.
-	{ "ConnectDebugger", PyIRemoteDebugApplication::ConnectDebugger, 1 }, // @pymeth ConnectDebugger|Connects a debugger to the application.
-	{ "DisconnectDebugger", PyIRemoteDebugApplication::DisconnectDebugger, 1 }, // @pymeth DisconnectDebugger|Disconnects the current debugger from the application.
-	{ "GetDebugger", PyIRemoteDebugApplication::GetDebugger, 1 }, // @pymeth GetDebugger|Returns the current debugger connected to the application.
-	{ "CreateInstanceAtApplication", PyIRemoteDebugApplication::CreateInstanceAtApplication, 1 }, // @pymeth CreateInstanceAtApplication|Create objects in the application process address space.
-	{ "QueryAlive", PyIRemoteDebugApplication::QueryAlive, 1 }, // @pymeth QueryAlive|Indicates if the application is alive.
-	{ "EnumThreads", PyIRemoteDebugApplication::EnumThreads, 1 }, // @pymeth EnumThreads|Enumerates all threads known to be associated with the application.
-	{ "GetName", PyIRemoteDebugApplication::GetName, 1 }, // @pymeth GetName|Description of GetName
-	{ "GetRootNode", PyIRemoteDebugApplication::GetRootNode, 1 }, // @pymeth GetRootNode|Returns the application node under which all nodes associated with the application are added.
-	{ "EnumGlobalExpressionContexts", PyIRemoteDebugApplication::EnumGlobalExpressionContexts, 1 }, // @pymeth EnumGlobalExpressionContexts|Enumerates all global expression contexts.
-	{ NULL }
-};
+static struct PyMethodDef PyIRemoteDebugApplication_methods[] = {
+    {"ResumeFromBreakPoint", PyIRemoteDebugApplication::ResumeFromBreakPoint,
+     1},  // @pymeth ResumeFromBreakPoint|Continue an application which is currently in a breakpoint.
+    {"CauseBreak", PyIRemoteDebugApplication::CauseBreak,
+     1},  // @pymeth CauseBreak|Causes the application to break into the debugger at the earliest opportunity.
+    {"ConnectDebugger", PyIRemoteDebugApplication::ConnectDebugger,
+     1},  // @pymeth ConnectDebugger|Connects a debugger to the application.
+    {"DisconnectDebugger", PyIRemoteDebugApplication::DisconnectDebugger,
+     1},  // @pymeth DisconnectDebugger|Disconnects the current debugger from the application.
+    {"GetDebugger", PyIRemoteDebugApplication::GetDebugger,
+     1},  // @pymeth GetDebugger|Returns the current debugger connected to the application.
+    {"CreateInstanceAtApplication", PyIRemoteDebugApplication::CreateInstanceAtApplication,
+     1},  // @pymeth CreateInstanceAtApplication|Create objects in the application process address space.
+    {"QueryAlive", PyIRemoteDebugApplication::QueryAlive,
+     1},  // @pymeth QueryAlive|Indicates if the application is alive.
+    {"EnumThreads", PyIRemoteDebugApplication::EnumThreads,
+     1},  // @pymeth EnumThreads|Enumerates all threads known to be associated with the application.
+    {"GetName", PyIRemoteDebugApplication::GetName, 1},  // @pymeth GetName|Description of GetName
+    {"GetRootNode", PyIRemoteDebugApplication::GetRootNode,
+     1},  // @pymeth GetRootNode|Returns the application node under which all nodes associated with the application are
+          // added.
+    {"EnumGlobalExpressionContexts", PyIRemoteDebugApplication::EnumGlobalExpressionContexts,
+     1},  // @pymeth EnumGlobalExpressionContexts|Enumerates all global expression contexts.
+    {NULL}};
 
-PyComTypeObject PyIRemoteDebugApplication::type("PyIRemoteDebugApplication",
-		&PyIUnknown::type,
-		sizeof(PyIRemoteDebugApplication),
-		PyIRemoteDebugApplication_methods,
-		GET_PYCOM_CTOR(PyIRemoteDebugApplication));
+PyComTypeObject PyIRemoteDebugApplication::type("PyIRemoteDebugApplication", &PyIUnknown::type,
+                                                sizeof(PyIRemoteDebugApplication), PyIRemoteDebugApplication_methods,
+                                                GET_PYCOM_CTOR(PyIRemoteDebugApplication));
 // ---------------------------------------------------
 //
 // Gateway Implementation
 
 STDMETHODIMP PyGRemoteDebugApplication::ResumeFromBreakPoint(
-		/* [in] */ IRemoteDebugApplicationThread __RPC_FAR * prptFocus,
-		/* [in] */ BREAKRESUMEACTION bra,
-		/* [in] */ ERRORRESUMEACTION era)
+    /* [in] */ IRemoteDebugApplicationThread __RPC_FAR *prptFocus,
+    /* [in] */ BREAKRESUMEACTION bra,
+    /* [in] */ ERRORRESUMEACTION era)
 {
-	PY_GATEWAY_METHOD;
-	PyObject *obprptFocus = PyCom_PyObjectFromIUnknown(prptFocus, IID_IRemoteDebugApplicationThread, TRUE);
-	HRESULT hr=InvokeViaPolicy("ResumeFromBreakPoint", NULL, "Oii", obprptFocus, bra, era);
-	Py_XDECREF(obprptFocus);
-	return hr;
+    PY_GATEWAY_METHOD;
+    PyObject *obprptFocus = PyCom_PyObjectFromIUnknown(prptFocus, IID_IRemoteDebugApplicationThread, TRUE);
+    HRESULT hr = InvokeViaPolicy("ResumeFromBreakPoint", NULL, "Oii", obprptFocus, bra, era);
+    Py_XDECREF(obprptFocus);
+    return hr;
 }
 
-STDMETHODIMP PyGRemoteDebugApplication::CauseBreak(
-		void)
+STDMETHODIMP PyGRemoteDebugApplication::CauseBreak(void)
 {
-	PY_GATEWAY_METHOD;
-	HRESULT hr=InvokeViaPolicy("CauseBreak", NULL);
-	return hr;
+    PY_GATEWAY_METHOD;
+    HRESULT hr = InvokeViaPolicy("CauseBreak", NULL);
+    return hr;
 }
 
 STDMETHODIMP PyGRemoteDebugApplication::ConnectDebugger(
-		/* [in] */ IApplicationDebugger __RPC_FAR * pad)
+    /* [in] */ IApplicationDebugger __RPC_FAR *pad)
 {
-	PY_GATEWAY_METHOD;
-	PyObject *obpad = PyCom_PyObjectFromIUnknown(pad, IID_IApplicationDebugger, TRUE);
-	HRESULT hr=InvokeViaPolicy("ConnectDebugger", NULL, "O", obpad);
-	Py_XDECREF(obpad);
-	return hr;
+    PY_GATEWAY_METHOD;
+    PyObject *obpad = PyCom_PyObjectFromIUnknown(pad, IID_IApplicationDebugger, TRUE);
+    HRESULT hr = InvokeViaPolicy("ConnectDebugger", NULL, "O", obpad);
+    Py_XDECREF(obpad);
+    return hr;
 }
 
-STDMETHODIMP PyGRemoteDebugApplication::DisconnectDebugger(
-		void)
+STDMETHODIMP PyGRemoteDebugApplication::DisconnectDebugger(void)
 {
-	PY_GATEWAY_METHOD;
-	HRESULT hr=InvokeViaPolicy("DisconnectDebugger", NULL);
-	return hr;
+    PY_GATEWAY_METHOD;
+    HRESULT hr = InvokeViaPolicy("DisconnectDebugger", NULL);
+    return hr;
 }
 
 STDMETHODIMP PyGRemoteDebugApplication::GetDebugger(
-		/* [out] */ IApplicationDebugger __RPC_FAR *__RPC_FAR * pad)
+    /* [out] */ IApplicationDebugger __RPC_FAR *__RPC_FAR *pad)
 {
-	PY_GATEWAY_METHOD;
-	if (pad==NULL) return E_POINTER;
-	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("GetDebugger", &result);
-	if (FAILED(hr)) return hr;
-	// Process the Python results, and convert back to the real params
-	PyObject *obpad;
-	if (!PyArg_Parse(result, "O" , &obpad)) return PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
-	BOOL bPythonIsHappy = TRUE;
-	if (!PyCom_InterfaceFromPyInstanceOrObject(obpad, IID_IApplicationDebugger, (void **)pad, FALSE /* bNoneOK */))
-		 bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) hr = PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
-	Py_DECREF(result);
-	return hr;
+    PY_GATEWAY_METHOD;
+    if (pad == NULL)
+        return E_POINTER;
+    PyObject *result;
+    HRESULT hr = InvokeViaPolicy("GetDebugger", &result);
+    if (FAILED(hr))
+        return hr;
+    // Process the Python results, and convert back to the real params
+    PyObject *obpad;
+    if (!PyArg_Parse(result, "O", &obpad))
+        return PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
+    BOOL bPythonIsHappy = TRUE;
+    if (!PyCom_InterfaceFromPyInstanceOrObject(obpad, IID_IApplicationDebugger, (void **)pad, FALSE /* bNoneOK */))
+        bPythonIsHappy = FALSE;
+    if (!bPythonIsHappy)
+        hr = PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
+    Py_DECREF(result);
+    return hr;
 }
 
 STDMETHODIMP PyGRemoteDebugApplication::CreateInstanceAtApplication(
-		/* [in] */ REFCLSID rclsid,
-		/* [in] */ IUnknown __RPC_FAR * pUnkOuter,
-		/* [in] */ DWORD dwClsContext,
-		/* [in] */ REFIID riid,
-		/* [iid_is][out] */ IUnknown __RPC_FAR *__RPC_FAR * ppvObject)
+    /* [in] */ REFCLSID rclsid,
+    /* [in] */ IUnknown __RPC_FAR *pUnkOuter,
+    /* [in] */ DWORD dwClsContext,
+    /* [in] */ REFIID riid,
+    /* [iid_is][out] */ IUnknown __RPC_FAR *__RPC_FAR *ppvObject)
 {
-	PY_GATEWAY_METHOD;
-	if (ppvObject==NULL) return E_POINTER;
-	PyObject *obrclsid = PyWinObject_FromIID(rclsid);
-	PyObject *obpUnkOuter = PyCom_PyObjectFromIUnknown(pUnkOuter, IID_IUnknown, TRUE);
-	PyObject *obriid = PyWinObject_FromIID(riid);
-	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("CreateInstanceAtApplication", &result, "OOiO", obrclsid, obpUnkOuter, dwClsContext, obriid);
-	Py_XDECREF(obrclsid);
-	Py_XDECREF(obpUnkOuter);
-	Py_XDECREF(obriid);
-	if (FAILED(hr)) return hr;
-	// Process the Python results, and convert back to the real params
-	PyObject *obppvObject;
-	if (!PyArg_Parse(result, "O" , &obppvObject)) return PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
-	BOOL bPythonIsHappy = TRUE;
-	if (!PyCom_InterfaceFromPyInstanceOrObject(obppvObject, IID_IUnknown, (void **)ppvObject, FALSE /* bNoneOK */))
-		 bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) hr = PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
-	Py_DECREF(result);
-	return hr;
+    PY_GATEWAY_METHOD;
+    if (ppvObject == NULL)
+        return E_POINTER;
+    PyObject *obrclsid = PyWinObject_FromIID(rclsid);
+    PyObject *obpUnkOuter = PyCom_PyObjectFromIUnknown(pUnkOuter, IID_IUnknown, TRUE);
+    PyObject *obriid = PyWinObject_FromIID(riid);
+    PyObject *result;
+    HRESULT hr =
+        InvokeViaPolicy("CreateInstanceAtApplication", &result, "OOiO", obrclsid, obpUnkOuter, dwClsContext, obriid);
+    Py_XDECREF(obrclsid);
+    Py_XDECREF(obpUnkOuter);
+    Py_XDECREF(obriid);
+    if (FAILED(hr))
+        return hr;
+    // Process the Python results, and convert back to the real params
+    PyObject *obppvObject;
+    if (!PyArg_Parse(result, "O", &obppvObject))
+        return PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
+    BOOL bPythonIsHappy = TRUE;
+    if (!PyCom_InterfaceFromPyInstanceOrObject(obppvObject, IID_IUnknown, (void **)ppvObject, FALSE /* bNoneOK */))
+        bPythonIsHappy = FALSE;
+    if (!bPythonIsHappy)
+        hr = PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
+    Py_DECREF(result);
+    return hr;
 }
 
-STDMETHODIMP PyGRemoteDebugApplication::EnumThreads(
-		IEnumRemoteDebugApplicationThreads __RPC_FAR * __RPC_FAR *pperdat)
+STDMETHODIMP PyGRemoteDebugApplication::EnumThreads(IEnumRemoteDebugApplicationThreads __RPC_FAR *__RPC_FAR *pperdat)
 {
-	PY_GATEWAY_METHOD;
-	if (pperdat==NULL) return E_POINTER;
-	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("EnumThreads", &result);
-	if (FAILED(hr)) return hr;
-	// Process the Python results, and convert back to the real params
-	PyObject *oberdat;
-	if (!PyArg_Parse(result, "O" , &oberdat)) return PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
-	BOOL bPythonIsHappy = TRUE;
-	if (!PyCom_InterfaceFromPyInstanceOrObject(oberdat, IID_IEnumRemoteDebugApplicationThreads, (void **)pperdat, FALSE /* bNoneOK */))
-		 bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) hr = PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
-	Py_DECREF(result);
-	return hr;
+    PY_GATEWAY_METHOD;
+    if (pperdat == NULL)
+        return E_POINTER;
+    PyObject *result;
+    HRESULT hr = InvokeViaPolicy("EnumThreads", &result);
+    if (FAILED(hr))
+        return hr;
+    // Process the Python results, and convert back to the real params
+    PyObject *oberdat;
+    if (!PyArg_Parse(result, "O", &oberdat))
+        return PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
+    BOOL bPythonIsHappy = TRUE;
+    if (!PyCom_InterfaceFromPyInstanceOrObject(oberdat, IID_IEnumRemoteDebugApplicationThreads, (void **)pperdat,
+                                               FALSE /* bNoneOK */))
+        bPythonIsHappy = FALSE;
+    if (!bPythonIsHappy)
+        hr = PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
+    Py_DECREF(result);
+    return hr;
 }
-STDMETHODIMP PyGRemoteDebugApplication::QueryAlive(
-		void)
+STDMETHODIMP PyGRemoteDebugApplication::QueryAlive(void)
 {
-	PY_GATEWAY_METHOD;
-	HRESULT hr=InvokeViaPolicy("QueryAlive", NULL);
-	return hr;
+    PY_GATEWAY_METHOD;
+    HRESULT hr = InvokeViaPolicy("QueryAlive", NULL);
+    return hr;
 }
 
 STDMETHODIMP PyGRemoteDebugApplication::GetName(
-		/* [out] */ BSTR __RPC_FAR * pbstrName)
+    /* [out] */ BSTR __RPC_FAR *pbstrName)
 {
-	PY_GATEWAY_METHOD;
-	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("GetName", &result);
-	if (FAILED(hr)) return hr;
-	// Process the Python results, and convert back to the real params
-	PyObject *obpbstrName;
-	if (!PyArg_Parse(result, "O" , &obpbstrName)) return PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
-	BOOL bPythonIsHappy = TRUE;
-	if (!PyCom_BstrFromPyObject(obpbstrName, pbstrName)) bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) hr = PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
-	Py_DECREF(result);
-	return hr;
+    PY_GATEWAY_METHOD;
+    PyObject *result;
+    HRESULT hr = InvokeViaPolicy("GetName", &result);
+    if (FAILED(hr))
+        return hr;
+    // Process the Python results, and convert back to the real params
+    PyObject *obpbstrName;
+    if (!PyArg_Parse(result, "O", &obpbstrName))
+        return PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
+    BOOL bPythonIsHappy = TRUE;
+    if (!PyCom_BstrFromPyObject(obpbstrName, pbstrName))
+        bPythonIsHappy = FALSE;
+    if (!bPythonIsHappy)
+        hr = PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
+    Py_DECREF(result);
+    return hr;
 }
 
-STDMETHODIMP PyGRemoteDebugApplication::GetRootNode(
-		IDebugApplicationNode __RPC_FAR * __RPC_FAR *ppdanRoot)
+STDMETHODIMP PyGRemoteDebugApplication::GetRootNode(IDebugApplicationNode __RPC_FAR *__RPC_FAR *ppdanRoot)
 {
-	PY_GATEWAY_METHOD;
-	if (ppdanRoot==NULL) return E_POINTER;
-	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("GetRootNode", &result);
-	if (FAILED(hr)) return hr;
-	// Process the Python results, and convert back to the real params
-	PyObject *obnode;
-	if (!PyArg_Parse(result, "O" , &obnode)) return PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
-	BOOL bPythonIsHappy = TRUE;
-	if (!PyCom_InterfaceFromPyInstanceOrObject(obnode, IID_IDebugApplicationNode, (void **)ppdanRoot, FALSE /* bNoneOK */))
-		 bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) hr = PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
-	Py_DECREF(result);
-	return hr;
+    PY_GATEWAY_METHOD;
+    if (ppdanRoot == NULL)
+        return E_POINTER;
+    PyObject *result;
+    HRESULT hr = InvokeViaPolicy("GetRootNode", &result);
+    if (FAILED(hr))
+        return hr;
+    // Process the Python results, and convert back to the real params
+    PyObject *obnode;
+    if (!PyArg_Parse(result, "O", &obnode))
+        return PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
+    BOOL bPythonIsHappy = TRUE;
+    if (!PyCom_InterfaceFromPyInstanceOrObject(obnode, IID_IDebugApplicationNode, (void **)ppdanRoot,
+                                               FALSE /* bNoneOK */))
+        bPythonIsHappy = FALSE;
+    if (!bPythonIsHappy)
+        hr = PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
+    Py_DECREF(result);
+    return hr;
 }
 
 STDMETHODIMP PyGRemoteDebugApplication::EnumGlobalExpressionContexts(
-		IEnumDebugExpressionContexts __RPC_FAR * __RPC_FAR *ppedec)
+    IEnumDebugExpressionContexts __RPC_FAR *__RPC_FAR *ppedec)
 {
-	PY_GATEWAY_METHOD;
-	if (ppedec==NULL) return E_POINTER;
-	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("EnumGlobalExpressionContexts", &result);
-	if (FAILED(hr)) return hr;
-	// Process the Python results, and convert back to the real params
-	PyObject *oberdat;
-	if (!PyArg_Parse(result, "O" , &oberdat)) return PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
-	BOOL bPythonIsHappy = TRUE;
-	if (!PyCom_InterfaceFromPyInstanceOrObject(oberdat, IID_IEnumDebugExpressionContexts, (void **)ppedec, TRUE /* bNoneOK */))
-		 bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) hr = PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
-	Py_DECREF(result);
-	return hr;
+    PY_GATEWAY_METHOD;
+    if (ppedec == NULL)
+        return E_POINTER;
+    PyObject *result;
+    HRESULT hr = InvokeViaPolicy("EnumGlobalExpressionContexts", &result);
+    if (FAILED(hr))
+        return hr;
+    // Process the Python results, and convert back to the real params
+    PyObject *oberdat;
+    if (!PyArg_Parse(result, "O", &oberdat))
+        return PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
+    BOOL bPythonIsHappy = TRUE;
+    if (!PyCom_InterfaceFromPyInstanceOrObject(oberdat, IID_IEnumDebugExpressionContexts, (void **)ppedec,
+                                               TRUE /* bNoneOK */))
+        bPythonIsHappy = FALSE;
+    if (!bPythonIsHappy)
+        hr = PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
+    Py_DECREF(result);
+    return hr;
 }

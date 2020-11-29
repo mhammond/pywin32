@@ -4,50 +4,40 @@
 //
 // Interface Declaration
 
-class PyIProcessDebugManager : public PyIUnknown
-{
-public:
-	MAKE_PYCOM_CTOR_ERRORINFO(PyIProcessDebugManager, IID_IProcessDebugManager);
-	static IProcessDebugManager *GetI(PyObject *self);
-	static PyComTypeObject type;
+class PyIProcessDebugManager : public PyIUnknown {
+   public:
+    MAKE_PYCOM_CTOR_ERRORINFO(PyIProcessDebugManager, IID_IProcessDebugManager);
+    static IProcessDebugManager *GetI(PyObject *self);
+    static PyComTypeObject type;
 
-	// The Python methods
-	static PyObject *CreateApplication(PyObject *self, PyObject *args);
-	static PyObject *GetDefaultApplication(PyObject *self, PyObject *args);
-	static PyObject *AddApplication(PyObject *self, PyObject *args);
-	static PyObject *RemoveApplication(PyObject *self, PyObject *args);
-	static PyObject *CreateDebugDocumentHelper(PyObject *self, PyObject *args);
+    // The Python methods
+    static PyObject *CreateApplication(PyObject *self, PyObject *args);
+    static PyObject *GetDefaultApplication(PyObject *self, PyObject *args);
+    static PyObject *AddApplication(PyObject *self, PyObject *args);
+    static PyObject *RemoveApplication(PyObject *self, PyObject *args);
+    static PyObject *CreateDebugDocumentHelper(PyObject *self, PyObject *args);
 
-protected:
-	PyIProcessDebugManager(IUnknown *pdisp);
-	~PyIProcessDebugManager();
+   protected:
+    PyIProcessDebugManager(IUnknown *pdisp);
+    ~PyIProcessDebugManager();
 };
 // ---------------------------------------------------
 //
 // Gateway Declaration
 
-class PyGProcessDebugManager : public PyGatewayBase, public IProcessDebugManager
-{
-protected:
-	PyGProcessDebugManager(PyObject *instance) : PyGatewayBase(instance) { ; }
-	PYGATEWAY_MAKE_SUPPORT(PyGProcessDebugManager, IProcessDebugManager, __uuidof(IProcessDebugManager))
+class PyGProcessDebugManager : public PyGatewayBase, public IProcessDebugManager {
+   protected:
+    PyGProcessDebugManager(PyObject *instance) : PyGatewayBase(instance) { ; }
+    PYGATEWAY_MAKE_SUPPORT(PyGProcessDebugManager, IProcessDebugManager, __uuidof(IProcessDebugManager))
 
-	// IProcessDebugManager
-	STDMETHOD(CreateApplication)(
-		IDebugApplication __RPC_FAR *__RPC_FAR * ppda);
+    // IProcessDebugManager
+    STDMETHOD(CreateApplication)(IDebugApplication __RPC_FAR *__RPC_FAR *ppda);
 
-	STDMETHOD(GetDefaultApplication)(
-		IDebugApplication __RPC_FAR *__RPC_FAR * ppda);
+    STDMETHOD(GetDefaultApplication)(IDebugApplication __RPC_FAR *__RPC_FAR *ppda);
 
-	STDMETHOD(AddApplication)(
-		IDebugApplication __RPC_FAR * pda,
-		DWORD __RPC_FAR * pdwAppCookie);
+    STDMETHOD(AddApplication)(IDebugApplication __RPC_FAR *pda, DWORD __RPC_FAR *pdwAppCookie);
 
-	STDMETHOD(RemoveApplication)(
-		DWORD dwAppCookie);
+    STDMETHOD(RemoveApplication)(DWORD dwAppCookie);
 
-	STDMETHOD(CreateDebugDocumentHelper)(
-		IUnknown *punkOuter,  
-		IDebugDocumentHelper** pddh);
-
+    STDMETHOD(CreateDebugDocumentHelper)(IUnknown *punkOuter, IDebugDocumentHelper **pddh);
 };

@@ -4,18 +4,17 @@
 //
 // Interface Declaration
 
-class PyIBackgroundCopyFile2 : public PyIBackgroundCopyFile
-{
-public:
-	MAKE_PYCOM_CTOR(PyIBackgroundCopyFile2);
-	static IBackgroundCopyFile2 *GetI(PyObject *self);
-	static PyComTypeObject type;
+class PyIBackgroundCopyFile2 : public PyIBackgroundCopyFile {
+   public:
+    MAKE_PYCOM_CTOR(PyIBackgroundCopyFile2);
+    static IBackgroundCopyFile2 *GetI(PyObject *self);
+    static PyComTypeObject type;
 
-	// The Python methods
-	static PyObject *GetFileRanges(PyObject *self, PyObject *args);
-	static PyObject *SetRemoteName(PyObject *self, PyObject *args);
+    // The Python methods
+    static PyObject *GetFileRanges(PyObject *self, PyObject *args);
+    static PyObject *SetRemoteName(PyObject *self, PyObject *args);
 
-protected:
-	PyIBackgroundCopyFile2(IUnknown *pdisp);
-	~PyIBackgroundCopyFile2();
+   protected:
+    PyIBackgroundCopyFile2(IUnknown *pdisp);
+    ~PyIBackgroundCopyFile2();
 };

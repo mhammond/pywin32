@@ -21,7 +21,6 @@
 #define USES_IID_IMsgServiceAdmin
 #define USES_IID_IProviderAdmin
 
-
 #define USES_PS_PUBLIC_STRINGS
 #define USES_PS_MAPI
 #define USES_PS_ROUTING_EMAIL_ADDRESSES
@@ -30,7 +29,8 @@
 #define USES_PS_ROUTING_ENTRYID
 #define USES_PS_ROUTING_SEARCH_KEY
 
-
-
 #include "windows.h"
 #include "mapiguid.h"
+#include "extraMAPIGuids.h"
+#define USES_IID_IMsgServiceAdmin2
+#include "mapiaux.h"

@@ -11,238 +11,238 @@
 //
 // Interface Implementation
 
-PyIClientSecurity::PyIClientSecurity(IUnknown *pdisp):
-	PyIUnknown(pdisp)
-{
-	ob_type = &type;
-}
+PyIClientSecurity::PyIClientSecurity(IUnknown *pdisp) : PyIUnknown(pdisp) { ob_type = &type; }
 
-PyIClientSecurity::~PyIClientSecurity()
-{
-}
+PyIClientSecurity::~PyIClientSecurity() {}
 
 /* static */ IClientSecurity *PyIClientSecurity::GetI(PyObject *self)
 {
-	return (IClientSecurity *)PyIUnknown::GetI(self);
+    return (IClientSecurity *)PyIUnknown::GetI(self);
 }
 
 // @pymethod dict|PyIClientSecurity|QueryBlanket|Retrieves the authentication settings for an interface
 PyObject *PyIClientSecurity::QueryBlanket(PyObject *self, PyObject *args)
 {
-	IClientSecurity *pICS = GetI(self);
-	if ( pICS == NULL )
-		return NULL;
-	// @pyparm <o PyIUnknown>|Proxy||An interface created through a proxy 
-	void *pAuthInfo;
-	PyObject *obProxy;
-	IUnknown * pProxy;
-	DWORD AuthnSvc;
-	DWORD AuthzSvc;
-	WCHAR *pServerPrincipalName;
-	DWORD AuthnLevel;
-	DWORD ImpLevel;
-	DWORD Capabilities;
-	if ( !PyArg_ParseTuple(args, "O:QueryBlanket", &obProxy))
-		return NULL;
-	if (!PyCom_InterfaceFromPyInstanceOrObject(obProxy, IID_IUnknown, (void **)&pProxy, FALSE))
-		return NULL;
+    IClientSecurity *pICS = GetI(self);
+    if (pICS == NULL)
+        return NULL;
+    // @pyparm <o PyIUnknown>|Proxy||An interface created through a proxy
+    void *pAuthInfo;
+    PyObject *obProxy;
+    IUnknown *pProxy;
+    DWORD AuthnSvc;
+    DWORD AuthzSvc;
+    WCHAR *pServerPrincipalName;
+    DWORD AuthnLevel;
+    DWORD ImpLevel;
+    DWORD Capabilities;
+    if (!PyArg_ParseTuple(args, "O:QueryBlanket", &obProxy))
+        return NULL;
+    if (!PyCom_InterfaceFromPyInstanceOrObject(obProxy, IID_IUnknown, (void **)&pProxy, FALSE))
+        return NULL;
 
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pICS->QueryBlanket(pProxy, &AuthnSvc, &AuthzSvc, &pServerPrincipalName,
-		&AuthnLevel, &ImpLevel, &pAuthInfo, &Capabilities );
-	pProxy->Release();
-	PY_INTERFACE_POSTCALL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pICS->QueryBlanket(pProxy, &AuthnSvc, &AuthzSvc, &pServerPrincipalName, &AuthnLevel, &ImpLevel, &pAuthInfo,
+                            &Capabilities);
+    pProxy->Release();
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pICS, IID_IClientSecurity );
-	PyObject *pyretval = Py_BuildValue("{s:k, s:k, s:N, s:k, s:k, s:O, s:k}",
-		"AuthnSvc", AuthnSvc, "AuthzSvc", AuthzSvc,
-		"ServerPrincipalName", PyWinObject_FromWCHAR(pServerPrincipalName),
-		"AuthnLevel", AuthnLevel, "ImpLevel", ImpLevel,
-		"AuthInfo", Py_None, // not sure how to interpret this buffer
-		"Capabilities", Capabilities);
-	CoTaskMemFree(pServerPrincipalName);
-	return pyretval;
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pICS, IID_IClientSecurity);
+    PyObject *pyretval =
+        Py_BuildValue("{s:k, s:k, s:N, s:k, s:k, s:O, s:k}", "AuthnSvc", AuthnSvc, "AuthzSvc", AuthzSvc,
+                      "ServerPrincipalName", PyWinObject_FromWCHAR(pServerPrincipalName), "AuthnLevel", AuthnLevel,
+                      "ImpLevel", ImpLevel, "AuthInfo", Py_None,  // not sure how to interpret this buffer
+                      "Capabilities", Capabilities);
+    CoTaskMemFree(pServerPrincipalName);
+    return pyretval;
 }
 
 // @pymethod |PyIClientSecurity|SetBlanket|Changes the authentication options used with an interface
 PyObject *PyIClientSecurity::SetBlanket(PyObject *self, PyObject *args)
 {
-	IClientSecurity *pICS = GetI(self);
-	if ( pICS == NULL )
-		return NULL;
-	// @pyparm <o PyIUnknown>|Proxy||The proxy interface for which to set security options
-	// @pyparm int|AuthnSvc||Authentication service identifier, pythoncom.RPC_C_AUTHN_* (but not RPC_C_AUTHN_LEVEL_*)
-	// @pyparm int|AuthzSvc||Authorization service identifier, pythoncom.RPC_C_AUTHZ_*
-	// @pyparm <o PyUnicode>|ServerPrincipalName||SPN that identifies the server, can be None
-	// @pyparm int|AuthnLevel||Authentication level, pythoncom.RPC_C_AUTHN_LEVEL_*
-	// @pyparm int|ImpLevel||Impersonation level, pythoncom.RPC_C_IMP_LEVEL_*
-	// @pyparm None|AuthInfo||Not supported yet, use only None
-	// @pyparm int|Capabilities||Combination of pythoncom.EOAC_* flags.  Must be a subset of the
-	//	capabilities of the specified authentication service.
-	PyObject *obProxy, *obAuthInfo, *obServerPrincName;
-	IUnknown * pProxy;
-	DWORD dwAuthnSvc;
-	DWORD dwAuthzSvc;
-	WCHAR *pServerPrincName;
-	DWORD dwAuthnLevel;
-	DWORD dwImpLevel;
-	DWORD dwCapabilities;
-	void *pAuthInfo = NULL;
+    IClientSecurity *pICS = GetI(self);
+    if (pICS == NULL)
+        return NULL;
+    // @pyparm <o PyIUnknown>|Proxy||The proxy interface for which to set security options
+    // @pyparm int|AuthnSvc||Authentication service identifier, pythoncom.RPC_C_AUTHN_* (but not RPC_C_AUTHN_LEVEL_*)
+    // @pyparm int|AuthzSvc||Authorization service identifier, pythoncom.RPC_C_AUTHZ_*
+    // @pyparm <o PyUnicode>|ServerPrincipalName||SPN that identifies the server, can be None
+    // @pyparm int|AuthnLevel||Authentication level, pythoncom.RPC_C_AUTHN_LEVEL_*
+    // @pyparm int|ImpLevel||Impersonation level, pythoncom.RPC_C_IMP_LEVEL_*
+    // @pyparm None|AuthInfo||Not supported yet, use only None
+    // @pyparm int|Capabilities||Combination of pythoncom.EOAC_* flags.  Must be a subset of the
+    //	capabilities of the specified authentication service.
+    PyObject *obProxy, *obAuthInfo, *obServerPrincName;
+    IUnknown *pProxy;
+    DWORD dwAuthnSvc;
+    DWORD dwAuthzSvc;
+    WCHAR *pServerPrincName;
+    DWORD dwAuthnLevel;
+    DWORD dwImpLevel;
+    DWORD dwCapabilities;
+    void *pAuthInfo = NULL;
 
-	if ( !PyArg_ParseTuple(args, "OkkOkkOk:SetBlanket", &obProxy, &dwAuthnSvc, &dwAuthzSvc,
-		&obServerPrincName, &dwAuthnLevel, &dwImpLevel, &obAuthInfo, &dwCapabilities) )
-		return NULL;
-	/* pAuthInfo can point to several types of structs:
-		Can be special value COLE_DEFAULT_AUTHINFO, which is defined as (void *) -1
-		CERT_CONTEXT for SChannel (\cryptoapi\PyCERT_CONTEXT.cpp)
-		SEC_WINNT_AUTH_IDENTITY for NTLM or Kerberos (PyWinObject_AsSEC_WINNT_AUTH_IDENTITY from win32security)
-		SEC_WINNT_AUTH_IDENTITY_EX for Negotiate
-	*/
-	if (obAuthInfo != Py_None){
-		PyErr_SetString(PyExc_ValueError, "AuthInfo is not yet supported");
-		return NULL;
-		}
-	// ??? Server principal name can also be special value COLE_DEFAULT_PRINCIPAL
-	// which is -1 cast as WCHAR, need to figure out how to accept that as input ??? 
-	if (!PyWinObject_AsWCHAR(obServerPrincName, &pServerPrincName, TRUE))
-		return NULL;
+    if (!PyArg_ParseTuple(args, "OkkOkkOk:SetBlanket", &obProxy, &dwAuthnSvc, &dwAuthzSvc, &obServerPrincName,
+                          &dwAuthnLevel, &dwImpLevel, &obAuthInfo, &dwCapabilities))
+        return NULL;
+    /* pAuthInfo can point to several types of structs:
+        Can be special value COLE_DEFAULT_AUTHINFO, which is defined as (void *) -1
+        CERT_CONTEXT for SChannel (\cryptoapi\PyCERT_CONTEXT.cpp)
+        SEC_WINNT_AUTH_IDENTITY for NTLM or Kerberos (PyWinObject_AsSEC_WINNT_AUTH_IDENTITY from win32security)
+        SEC_WINNT_AUTH_IDENTITY_EX for Negotiate
+    */
+    if (obAuthInfo != Py_None) {
+        PyErr_SetString(PyExc_ValueError, "AuthInfo is not yet supported");
+        return NULL;
+    }
+    // ??? Server principal name can also be special value COLE_DEFAULT_PRINCIPAL
+    // which is -1 cast as WCHAR, need to figure out how to accept that as input ???
+    if (!PyWinObject_AsWCHAR(obServerPrincName, &pServerPrincName, TRUE))
+        return NULL;
 
-	if (!PyCom_InterfaceFromPyInstanceOrObject(obProxy, IID_IUnknown, (void **)&pProxy, FALSE))
-		return NULL;
+    if (!PyCom_InterfaceFromPyInstanceOrObject(obProxy, IID_IUnknown, (void **)&pProxy, FALSE))
+        return NULL;
 
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pICS->SetBlanket( pProxy, dwAuthnSvc, dwAuthzSvc, pServerPrincName, dwAuthnLevel, dwImpLevel, pAuthInfo, dwCapabilities );
-	pProxy->Release();
-	PY_INTERFACE_POSTCALL;
-	if (pServerPrincName && (pServerPrincName != COLE_DEFAULT_PRINCIPAL))
-		PyWinObject_FreeWCHAR(pServerPrincName);
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pICS, IID_IClientSecurity );
-	Py_INCREF(Py_None);
-	return Py_None;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pICS->SetBlanket(pProxy, dwAuthnSvc, dwAuthzSvc, pServerPrincName, dwAuthnLevel, dwImpLevel, pAuthInfo,
+                          dwCapabilities);
+    pProxy->Release();
+    PY_INTERFACE_POSTCALL;
+    if (pServerPrincName && (pServerPrincName != COLE_DEFAULT_PRINCIPAL))
+        PyWinObject_FreeWCHAR(pServerPrincName);
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pICS, IID_IClientSecurity);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 // @pymethod <o PyIUnknown>|PyIClientSecurity|CopyProxy|Makes a private copy of a proxy interface
 PyObject *PyIClientSecurity::CopyProxy(PyObject *self, PyObject *args)
 {
-	IClientSecurity *pICS = GetI(self);
-	if ( pICS == NULL )
-		return NULL;
-	// @pyparm <o PyIUnknown>|Proxy||The remote interface to be copied
-	PyObject *obpProxy;
-	IUnknown * pProxy;
-	IUnknown * ppCopy;
-	if ( !PyArg_ParseTuple(args, "O:CopyProxy", &obpProxy) )
-		return NULL;
-	if (!PyCom_InterfaceFromPyInstanceOrObject(obpProxy, IID_IUnknown, (void **)&pProxy, FALSE))
-		return NULL;
+    IClientSecurity *pICS = GetI(self);
+    if (pICS == NULL)
+        return NULL;
+    // @pyparm <o PyIUnknown>|Proxy||The remote interface to be copied
+    PyObject *obpProxy;
+    IUnknown *pProxy;
+    IUnknown *ppCopy;
+    if (!PyArg_ParseTuple(args, "O:CopyProxy", &obpProxy))
+        return NULL;
+    if (!PyCom_InterfaceFromPyInstanceOrObject(obpProxy, IID_IUnknown, (void **)&pProxy, FALSE))
+        return NULL;
 
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pICS->CopyProxy( pProxy, &ppCopy );
-	if (pProxy) pProxy->Release();
-	PY_INTERFACE_POSTCALL;
+    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = pICS->CopyProxy(pProxy, &ppCopy);
+    if (pProxy)
+        pProxy->Release();
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pICS, IID_IClientSecurity );
-	return PyCom_PyObjectFromIUnknown(ppCopy, IID_IUnknown, FALSE);
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr, pICS, IID_IClientSecurity);
+    return PyCom_PyObjectFromIUnknown(ppCopy, IID_IUnknown, FALSE);
 }
 
 // @object PyIClientSecurity|Description of the interface
-static struct PyMethodDef PyIClientSecurity_methods[] =
-{
-	{ "QueryBlanket", PyIClientSecurity::QueryBlanket, 1 }, // @pymeth QueryBlanket|Retrieves the authentication settings for an interface
-	{ "SetBlanket", PyIClientSecurity::SetBlanket, 1 }, // @pymeth SetBlanket|Changes the authentication options used with an interface
-	{ "CopyProxy", PyIClientSecurity::CopyProxy, 1 }, // @pymeth CopyProxy|Makes a private copy of a proxy interface
-	{ NULL }
-};
+static struct PyMethodDef PyIClientSecurity_methods[] = {
+    {"QueryBlanket", PyIClientSecurity::QueryBlanket,
+     1},  // @pymeth QueryBlanket|Retrieves the authentication settings for an interface
+    {"SetBlanket", PyIClientSecurity::SetBlanket,
+     1},  // @pymeth SetBlanket|Changes the authentication options used with an interface
+    {"CopyProxy", PyIClientSecurity::CopyProxy, 1},  // @pymeth CopyProxy|Makes a private copy of a proxy interface
+    {NULL}};
 
-PyComTypeObject PyIClientSecurity::type("PyIClientSecurity",
-		&PyIUnknown::type,
-		sizeof(PyIClientSecurity),
-		PyIClientSecurity_methods,
-		GET_PYCOM_CTOR(PyIClientSecurity));
+PyComTypeObject PyIClientSecurity::type("PyIClientSecurity", &PyIUnknown::type, sizeof(PyIClientSecurity),
+                                        PyIClientSecurity_methods, GET_PYCOM_CTOR(PyIClientSecurity));
 // ---------------------------------------------------
 //
 // Gateway Implementation
 STDMETHODIMP PyGClientSecurity::QueryBlanket(
-		/* [in] */ IUnknown * pProxy,
-		/* [out] */ DWORD * pAuthnSvc,
-		/* [out] */ DWORD * pAuthzSvc,
-		/* [out] */ OLECHAR ** pServerPrincName,
-		/* [out] */ DWORD * pAuthnLevel,
-		/* [out] */ DWORD * pImpLevel,
-		/* [out] */ void ** pAuthInfo,
-		/* [out] */ DWORD * pCapabilites)
+    /* [in] */ IUnknown *pProxy,
+    /* [out] */ DWORD *pAuthnSvc,
+    /* [out] */ DWORD *pAuthzSvc,
+    /* [out] */ OLECHAR **pServerPrincName,
+    /* [out] */ DWORD *pAuthnLevel,
+    /* [out] */ DWORD *pImpLevel,
+    /* [out] */ void **pAuthInfo,
+    /* [out] */ DWORD *pCapabilites)
 {
-	PY_GATEWAY_METHOD;
-	if (pServerPrincName==NULL) return E_POINTER;
-	if (pAuthInfo==NULL) return E_POINTER;
-	PyObject *obpProxy;
-	obpProxy = PyCom_PyObjectFromIUnknown(pProxy, IID_IUnknown, TRUE);
-	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("QueryBlanket", &result, "O", obpProxy);
-	Py_XDECREF(obpProxy);
-	if (FAILED(hr)) return hr;
-	// Process the Python results, and convert back to the real params
-// *** The output argument pAuthInfo of type "void **" was not processed ***
-//     The type 'void' (pAuthInfo) is unknown.
-	PyObject *obpServerPrincName;
-	if (!PyArg_ParseTuple(result, "llOlll" , pAuthnSvc, pAuthzSvc, &obpServerPrincName, pAuthnLevel, pImpLevel, pCapabilites))
-		return MAKE_PYCOM_GATEWAY_FAILURE_CODE("QueryBlanket");
-	if (!PyWinObject_AsTaskAllocatedWCHAR(obpServerPrincName, pServerPrincName))
-		hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("QueryBlanket");
-	Py_DECREF(result);
-	return hr;
+    PY_GATEWAY_METHOD;
+    if (pServerPrincName == NULL)
+        return E_POINTER;
+    if (pAuthInfo == NULL)
+        return E_POINTER;
+    PyObject *obpProxy;
+    obpProxy = PyCom_PyObjectFromIUnknown(pProxy, IID_IUnknown, TRUE);
+    PyObject *result;
+    HRESULT hr = InvokeViaPolicy("QueryBlanket", &result, "O", obpProxy);
+    Py_XDECREF(obpProxy);
+    if (FAILED(hr))
+        return hr;
+    // Process the Python results, and convert back to the real params
+    // *** The output argument pAuthInfo of type "void **" was not processed ***
+    //     The type 'void' (pAuthInfo) is unknown.
+    PyObject *obpServerPrincName;
+    if (!PyArg_ParseTuple(result, "llOlll", pAuthnSvc, pAuthzSvc, &obpServerPrincName, pAuthnLevel, pImpLevel,
+                          pCapabilites))
+        return MAKE_PYCOM_GATEWAY_FAILURE_CODE("QueryBlanket");
+    if (!PyWinObject_AsTaskAllocatedWCHAR(obpServerPrincName, pServerPrincName))
+        hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("QueryBlanket");
+    Py_DECREF(result);
+    return hr;
 }
 
 STDMETHODIMP PyGClientSecurity::SetBlanket(
-		/* [in] */ IUnknown * pProxy,
-		/* [in] */ DWORD dwAuthnSvc,
-		/* [in] */ DWORD dwAuthzSvc,
-		/* [in] */ OLECHAR * pServerPrincName,
-		/* [in] */ DWORD dwAuthnLevel,
-		/* [in] */ DWORD dwImpLevel,
-		/* [in] */ void * pAuthInfo,
-		/* [in] */ DWORD dwCapabilities)
+    /* [in] */ IUnknown *pProxy,
+    /* [in] */ DWORD dwAuthnSvc,
+    /* [in] */ DWORD dwAuthzSvc,
+    /* [in] */ OLECHAR *pServerPrincName,
+    /* [in] */ DWORD dwAuthnLevel,
+    /* [in] */ DWORD dwImpLevel,
+    /* [in] */ void *pAuthInfo,
+    /* [in] */ DWORD dwCapabilities)
 {
-	PY_GATEWAY_METHOD;
-	// pAuthInfo not supported yet, docs are unclear on how to determine which type it should be interpreted as
-	Py_INCREF(Py_None);
-	PyObject *obAuthInfo = Py_None;
-	PyObject *obProxy = PyCom_PyObjectFromIUnknown(pProxy, IID_IUnknown, TRUE);
-	PyObject *obServerPrincName = PyWinObject_FromWCHAR(pServerPrincName);
-	HRESULT hr=InvokeViaPolicy("SetBlanket", NULL, "OkkOkkOk", obProxy, dwAuthnSvc, dwAuthzSvc, obServerPrincName, dwAuthnLevel, dwImpLevel, obAuthInfo, dwCapabilities);
-	Py_XDECREF(obProxy);
-	Py_XDECREF(obServerPrincName);
-	Py_DECREF(obAuthInfo);
-	return hr;
+    PY_GATEWAY_METHOD;
+    // pAuthInfo not supported yet, docs are unclear on how to determine which type it should be interpreted as
+    Py_INCREF(Py_None);
+    PyObject *obAuthInfo = Py_None;
+    PyObject *obProxy = PyCom_PyObjectFromIUnknown(pProxy, IID_IUnknown, TRUE);
+    PyObject *obServerPrincName = PyWinObject_FromWCHAR(pServerPrincName);
+    HRESULT hr = InvokeViaPolicy("SetBlanket", NULL, "OkkOkkOk", obProxy, dwAuthnSvc, dwAuthzSvc, obServerPrincName,
+                                 dwAuthnLevel, dwImpLevel, obAuthInfo, dwCapabilities);
+    Py_XDECREF(obProxy);
+    Py_XDECREF(obServerPrincName);
+    Py_DECREF(obAuthInfo);
+    return hr;
 }
 
 STDMETHODIMP PyGClientSecurity::CopyProxy(
-		/* [in] */ IUnknown * pProxy,
-		/* [out] */ IUnknown ** ppCopy)
+    /* [in] */ IUnknown *pProxy,
+    /* [out] */ IUnknown **ppCopy)
 {
-	PY_GATEWAY_METHOD;
-	if (ppCopy==NULL) return E_POINTER;
-	PyObject *obpProxy;
-	obpProxy = PyCom_PyObjectFromIUnknown(pProxy, IID_IUnknown, TRUE);
-	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("CopyProxy", &result, "O", obpProxy);
-	Py_XDECREF(obpProxy);
-	if (FAILED(hr)) return hr;
-	// Process the Python results, and convert back to the real params
-	PyObject *obppCopy;
-	if (!PyArg_Parse(result, "O" , &obppCopy))
-		return MAKE_PYCOM_GATEWAY_FAILURE_CODE("CopyProxy");
-	BOOL bPythonIsHappy = TRUE;
-	if (bPythonIsHappy && !PyCom_InterfaceFromPyInstanceOrObject(obppCopy, IID_IUnknown, (void **)ppCopy, TRUE /* bNoneOK */))
-		 bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("CopyProxy");
-	Py_DECREF(result);
-	return hr;
+    PY_GATEWAY_METHOD;
+    if (ppCopy == NULL)
+        return E_POINTER;
+    PyObject *obpProxy;
+    obpProxy = PyCom_PyObjectFromIUnknown(pProxy, IID_IUnknown, TRUE);
+    PyObject *result;
+    HRESULT hr = InvokeViaPolicy("CopyProxy", &result, "O", obpProxy);
+    Py_XDECREF(obpProxy);
+    if (FAILED(hr))
+        return hr;
+    // Process the Python results, and convert back to the real params
+    PyObject *obppCopy;
+    if (!PyArg_Parse(result, "O", &obppCopy))
+        return MAKE_PYCOM_GATEWAY_FAILURE_CODE("CopyProxy");
+    BOOL bPythonIsHappy = TRUE;
+    if (bPythonIsHappy &&
+        !PyCom_InterfaceFromPyInstanceOrObject(obppCopy, IID_IUnknown, (void **)ppCopy, TRUE /* bNoneOK */))
+        bPythonIsHappy = FALSE;
+    if (!bPythonIsHappy)
+        hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("CopyProxy");
+    Py_DECREF(result);
+    return hr;
 }
-

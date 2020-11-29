@@ -5,8 +5,9 @@ import os
 import pywintypes
 import win32event, win32api
 import os
-from pywin32_testutil import str2bytes, TestSkipped
+from pywin32_testutil import TestSkipped
 import win32com.directsound.directsound as ds
+import pythoncom
 # next two lines are for for debugging:
 # import win32com
 # import directsound as ds
@@ -19,10 +20,10 @@ def wav_header_unpack(data):
      datarate, blockalign, bitspersample, data, datalength) \
      = struct.unpack('<4sl4s4slhhllhh4sl', data)
 
-    if riff != str2bytes('RIFF'):
+    if riff != b'RIFF':
         raise ValueError('invalid wav header')
-    
-    if fmtsize != 16 or fmt != str2bytes('fmt ') or str2bytes(data) != 'data':
+
+    if fmtsize != 16 or fmt != b'fmt ' or data != b'data':
         # fmt chuck is not first chunk, directly followed by data chuck
         # It is nowhere required that they are, it is just very common
         raise ValueError('cannot understand wav header')
@@ -38,17 +39,17 @@ def wav_header_unpack(data):
     return wfx, datalength
 
 def wav_header_pack(wfx, datasize):
-    return struct.pack('<4sl4s4slhhllhh4sl', 'RIFF', 36 + datasize,
-                       'WAVE', 'fmt ', 16,
+    return struct.pack('<4sl4s4slhhllhh4sl', b'RIFF', 36 + datasize,
+                       b'WAVE', b'fmt ', 16,
                        wfx.wFormatTag, wfx.nChannels, wfx.nSamplesPerSec,
                        wfx.nAvgBytesPerSec, wfx.nBlockAlign,
-                       wfx.wBitsPerSample, 'data', datasize);
+                       wfx.wBitsPerSample, b'data', datasize);
 
 class WAVEFORMATTest(unittest.TestCase):
     def test_1_Type(self):
         'WAVEFORMATEX type'
         w = pywintypes.WAVEFORMATEX()
-        self.failUnless(type(w) == pywintypes.WAVEFORMATEXType)
+        self.assertTrue(type(w) == pywintypes.WAVEFORMATEXType)
 
     def test_2_Attr(self):
         'WAVEFORMATEX attribute access'
@@ -61,18 +62,18 @@ class WAVEFORMATTest(unittest.TestCase):
         w.nBlockAlign = 4
         w.wBitsPerSample = 16
 
-        self.failUnless(w.wFormatTag == 1)
-        self.failUnless(w.nChannels == 2)
-        self.failUnless(w.nSamplesPerSec == 44100)
-        self.failUnless(w.nAvgBytesPerSec == 176400)
-        self.failUnless(w.nBlockAlign == 4)
-        self.failUnless(w.wBitsPerSample == 16)
+        self.assertTrue(w.wFormatTag == 1)
+        self.assertTrue(w.nChannels == 2)
+        self.assertTrue(w.nSamplesPerSec == 44100)
+        self.assertTrue(w.nAvgBytesPerSec == 176400)
+        self.assertTrue(w.nBlockAlign == 4)
+        self.assertTrue(w.wBitsPerSample == 16)
 
 class DSCAPSTest(unittest.TestCase):
     def test_1_Type(self):
         'DSCAPS type'
         c = ds.DSCAPS()
-        self.failUnless(type(c) == ds.DSCAPSType)
+        self.assertTrue(type(c) == ds.DSCAPSType)
 
     def test_2_Attr(self):
         'DSCAPS attribute access'
@@ -99,33 +100,33 @@ class DSCAPSTest(unittest.TestCase):
         c.dwUnlockTransferRateHwBuffers = 20
         c.dwPlayCpuOverheadSwBuffers = 21
 
-        self.failUnless(c.dwFlags == 1)
-        self.failUnless(c.dwMinSecondarySampleRate == 2)
-        self.failUnless(c.dwMaxSecondarySampleRate == 3)
-        self.failUnless(c.dwPrimaryBuffers == 4)
-        self.failUnless(c.dwMaxHwMixingAllBuffers == 5)
-        self.failUnless(c.dwMaxHwMixingStaticBuffers == 6)
-        self.failUnless(c.dwMaxHwMixingStreamingBuffers == 7)
-        self.failUnless(c.dwFreeHwMixingAllBuffers == 8)
-        self.failUnless(c.dwFreeHwMixingStaticBuffers == 9)
-        self.failUnless(c.dwFreeHwMixingStreamingBuffers == 10)
-        self.failUnless(c.dwMaxHw3DAllBuffers == 11)
-        self.failUnless(c.dwMaxHw3DStaticBuffers == 12)
-        self.failUnless(c.dwMaxHw3DStreamingBuffers == 13)
-        self.failUnless(c.dwFreeHw3DAllBuffers == 14)
-        self.failUnless(c.dwFreeHw3DStaticBuffers == 15)
-        self.failUnless(c.dwFreeHw3DStreamingBuffers == 16)
-        self.failUnless(c.dwTotalHwMemBytes == 17)
-        self.failUnless(c.dwFreeHwMemBytes == 18)
-        self.failUnless(c.dwMaxContigFreeHwMemBytes == 19)
-        self.failUnless(c.dwUnlockTransferRateHwBuffers == 20)
-        self.failUnless(c.dwPlayCpuOverheadSwBuffers == 21)
+        self.assertTrue(c.dwFlags == 1)
+        self.assertTrue(c.dwMinSecondarySampleRate == 2)
+        self.assertTrue(c.dwMaxSecondarySampleRate == 3)
+        self.assertTrue(c.dwPrimaryBuffers == 4)
+        self.assertTrue(c.dwMaxHwMixingAllBuffers == 5)
+        self.assertTrue(c.dwMaxHwMixingStaticBuffers == 6)
+        self.assertTrue(c.dwMaxHwMixingStreamingBuffers == 7)
+        self.assertTrue(c.dwFreeHwMixingAllBuffers == 8)
+        self.assertTrue(c.dwFreeHwMixingStaticBuffers == 9)
+        self.assertTrue(c.dwFreeHwMixingStreamingBuffers == 10)
+        self.assertTrue(c.dwMaxHw3DAllBuffers == 11)
+        self.assertTrue(c.dwMaxHw3DStaticBuffers == 12)
+        self.assertTrue(c.dwMaxHw3DStreamingBuffers == 13)
+        self.assertTrue(c.dwFreeHw3DAllBuffers == 14)
+        self.assertTrue(c.dwFreeHw3DStaticBuffers == 15)
+        self.assertTrue(c.dwFreeHw3DStreamingBuffers == 16)
+        self.assertTrue(c.dwTotalHwMemBytes == 17)
+        self.assertTrue(c.dwFreeHwMemBytes == 18)
+        self.assertTrue(c.dwMaxContigFreeHwMemBytes == 19)
+        self.assertTrue(c.dwUnlockTransferRateHwBuffers == 20)
+        self.assertTrue(c.dwPlayCpuOverheadSwBuffers == 21)
 
 class DSBCAPSTest(unittest.TestCase):
     def test_1_Type(self):
         'DSBCAPS type'
         c = ds.DSBCAPS()
-        self.failUnless(type(c) == ds.DSBCAPSType)
+        self.assertTrue(type(c) == ds.DSBCAPSType)
 
     def test_2_Attr(self):
         'DSBCAPS attribute access'
@@ -135,16 +136,16 @@ class DSBCAPSTest(unittest.TestCase):
         c.dwUnlockTransferRate = 3
         c.dwPlayCpuOverhead = 4
 
-        self.failUnless(c.dwFlags == 1)
-        self.failUnless(c.dwBufferBytes == 2)
-        self.failUnless(c.dwUnlockTransferRate == 3)
-        self.failUnless(c.dwPlayCpuOverhead == 4)
+        self.assertTrue(c.dwFlags == 1)
+        self.assertTrue(c.dwBufferBytes == 2)
+        self.assertTrue(c.dwUnlockTransferRate == 3)
+        self.assertTrue(c.dwPlayCpuOverhead == 4)
 
 class DSCCAPSTest(unittest.TestCase):
     def test_1_Type(self):
         'DSCCAPS type'
         c = ds.DSCCAPS()
-        self.failUnless(type(c) == ds.DSCCAPSType)
+        self.assertTrue(type(c) == ds.DSCCAPSType)
 
     def test_2_Attr(self):
         'DSCCAPS attribute access'
@@ -153,15 +154,15 @@ class DSCCAPSTest(unittest.TestCase):
         c.dwFormats = 2
         c.dwChannels = 4
 
-        self.failUnless(c.dwFlags == 1)
-        self.failUnless(c.dwFormats == 2)
-        self.failUnless(c.dwChannels == 4)
+        self.assertTrue(c.dwFlags == 1)
+        self.assertTrue(c.dwFormats == 2)
+        self.assertTrue(c.dwChannels == 4)
 
 class DSCBCAPSTest(unittest.TestCase):
     def test_1_Type(self):
         'DSCBCAPS type'
         c = ds.DSCBCAPS()
-        self.failUnless(type(c) == ds.DSCBCAPSType)
+        self.assertTrue(type(c) == ds.DSCBCAPSType)
 
     def test_2_Attr(self):
         'DSCBCAPS attribute access'
@@ -169,14 +170,14 @@ class DSCBCAPSTest(unittest.TestCase):
         c.dwFlags = 1
         c.dwBufferBytes = 2
 
-        self.failUnless(c.dwFlags == 1)
-        self.failUnless(c.dwBufferBytes == 2)
+        self.assertTrue(c.dwFlags == 1)
+        self.assertTrue(c.dwBufferBytes == 2)
 
 class DSBUFFERDESCTest(unittest.TestCase):
     def test_1_Type(self):
         'DSBUFFERDESC type'
         c = ds.DSBUFFERDESC()
-        self.failUnless(type(c) == ds.DSBUFFERDESCType)
+        self.assertTrue(type(c) == ds.DSBUFFERDESCType)
 
     def test_2_Attr(self):
         'DSBUFFERDESC attribute access'
@@ -191,14 +192,14 @@ class DSBUFFERDESCTest(unittest.TestCase):
         c.lpwfxFormat.nBlockAlign = 4
         c.lpwfxFormat.wBitsPerSample = 16
 
-        self.failUnless(c.dwFlags == 1)
-        self.failUnless(c.dwBufferBytes == 2)
-        self.failUnless(c.lpwfxFormat.wFormatTag == 1)
-        self.failUnless(c.lpwfxFormat.nChannels == 2)
-        self.failUnless(c.lpwfxFormat.nSamplesPerSec == 44100)
-        self.failUnless(c.lpwfxFormat.nAvgBytesPerSec == 176400)
-        self.failUnless(c.lpwfxFormat.nBlockAlign == 4)
-        self.failUnless(c.lpwfxFormat.wBitsPerSample == 16)
+        self.assertTrue(c.dwFlags == 1)
+        self.assertTrue(c.dwBufferBytes == 2)
+        self.assertTrue(c.lpwfxFormat.wFormatTag == 1)
+        self.assertTrue(c.lpwfxFormat.nChannels == 2)
+        self.assertTrue(c.lpwfxFormat.nSamplesPerSec == 44100)
+        self.assertTrue(c.lpwfxFormat.nAvgBytesPerSec == 176400)
+        self.assertTrue(c.lpwfxFormat.nBlockAlign == 4)
+        self.assertTrue(c.lpwfxFormat.wBitsPerSample == 16)
 
     def invalid_format(self, c):
         c.lpwfxFormat = 17
@@ -206,13 +207,13 @@ class DSBUFFERDESCTest(unittest.TestCase):
     def test_3_invalid_format(self):
         'DSBUFFERDESC invalid lpwfxFormat assignment'
         c = ds.DSBUFFERDESC()
-        self.failUnlessRaises(ValueError, self.invalid_format, c)
+        self.assertRaises(ValueError, self.invalid_format, c)
 
 class DSCBUFFERDESCTest(unittest.TestCase):
     def test_1_Type(self):
         'DSCBUFFERDESC type'
         c = ds.DSCBUFFERDESC()
-        self.failUnless(type(c) == ds.DSCBUFFERDESCType)
+        self.assertTrue(type(c) == ds.DSCBUFFERDESCType)
 
     def test_2_Attr(self):
         'DSCBUFFERDESC attribute access'
@@ -227,14 +228,14 @@ class DSCBUFFERDESCTest(unittest.TestCase):
         c.lpwfxFormat.nBlockAlign = 4
         c.lpwfxFormat.wBitsPerSample = 16
 
-        self.failUnless(c.dwFlags == 1)
-        self.failUnless(c.dwBufferBytes == 2)
-        self.failUnless(c.lpwfxFormat.wFormatTag == 1)
-        self.failUnless(c.lpwfxFormat.nChannels == 2)
-        self.failUnless(c.lpwfxFormat.nSamplesPerSec == 44100)
-        self.failUnless(c.lpwfxFormat.nAvgBytesPerSec == 176400)
-        self.failUnless(c.lpwfxFormat.nBlockAlign == 4)
-        self.failUnless(c.lpwfxFormat.wBitsPerSample == 16)
+        self.assertTrue(c.dwFlags == 1)
+        self.assertTrue(c.dwBufferBytes == 2)
+        self.assertTrue(c.lpwfxFormat.wFormatTag == 1)
+        self.assertTrue(c.lpwfxFormat.nChannels == 2)
+        self.assertTrue(c.lpwfxFormat.nSamplesPerSec == 44100)
+        self.assertTrue(c.lpwfxFormat.nAvgBytesPerSec == 176400)
+        self.assertTrue(c.lpwfxFormat.nBlockAlign == 4)
+        self.assertTrue(c.lpwfxFormat.wBitsPerSample == 16)
 
     def invalid_format(self, c):
         c.lpwfxFormat = 17
@@ -242,23 +243,27 @@ class DSCBUFFERDESCTest(unittest.TestCase):
     def test_3_invalid_format(self):
         'DSCBUFFERDESC invalid lpwfxFormat assignment'
         c = ds.DSCBUFFERDESC()
-        self.failUnlessRaises(ValueError, self.invalid_format, c)
+        self.assertRaises(ValueError, self.invalid_format, c)
 
 class DirectSoundTest(unittest.TestCase):
     # basic tests - mostly just exercise the functions
-    
     def testEnumerate(self):
         '''DirectSoundEnumerate() sanity tests'''
 
         devices = ds.DirectSoundEnumerate()
         # this might fail on machines without a sound card
-        self.failUnless(len(devices))
+        self.assertTrue(len(devices))
         # if we have an entry, it must be a tuple of size 3
-        self.failUnless(len(devices[0]) == 3)
-        
+        self.assertTrue(len(devices[0]) == 3)
+
     def testCreate(self):
         '''DirectSoundCreate()'''
-        d = ds.DirectSoundCreate(None, None)
+        try:
+            d = ds.DirectSoundCreate(None, None)
+        except pythoncom.com_error as exc:
+            if exc.hresult != ds.DSERR_NODRIVER:
+                raise
+            raise TestSkipped(exc)
 
     def testPlay(self):
         '''Mesdames et Messieurs, la cour de Devin Dazzle'''
@@ -278,49 +283,58 @@ class DirectSoundTest(unittest.TestCase):
         else:
             raise TestSkipped("Can't find test .wav file to play")
 
-        f = open(fname, 'rb')
-        hdr = f.read(WAV_HEADER_SIZE)
-        wfx, size = wav_header_unpack(hdr)
+        with open(fname, 'rb') as f:
+            hdr = f.read(WAV_HEADER_SIZE)
+            wfx, size = wav_header_unpack(hdr)
 
-        d = ds.DirectSoundCreate(None, None)
-        d.SetCooperativeLevel(None, ds.DSSCL_PRIORITY)
+            d = ds.DirectSoundCreate(None, None)
+            d.SetCooperativeLevel(None, ds.DSSCL_PRIORITY)
 
-        sdesc = ds.DSBUFFERDESC()
-        sdesc.dwFlags = ds.DSBCAPS_STICKYFOCUS | ds.DSBCAPS_CTRLPOSITIONNOTIFY
-        sdesc.dwBufferBytes = size
-        sdesc.lpwfxFormat = wfx
+            sdesc = ds.DSBUFFERDESC()
+            sdesc.dwFlags = ds.DSBCAPS_STICKYFOCUS | ds.DSBCAPS_CTRLPOSITIONNOTIFY
+            sdesc.dwBufferBytes = size
+            sdesc.lpwfxFormat = wfx
 
-        buffer = d.CreateSoundBuffer(sdesc, None)
+            buffer = d.CreateSoundBuffer(sdesc, None)
 
-        event = win32event.CreateEvent(None, 0, 0, None)
-        notify = buffer.QueryInterface(ds.IID_IDirectSoundNotify)
+            event = win32event.CreateEvent(None, 0, 0, None)
+            notify = buffer.QueryInterface(ds.IID_IDirectSoundNotify)
 
-        notify.SetNotificationPositions((ds.DSBPN_OFFSETSTOP, event))
+            notify.SetNotificationPositions((ds.DSBPN_OFFSETSTOP, event))
 
-        buffer.Update(0, f.read(size))
+            buffer.Update(0, f.read(size))
 
-        buffer.Play(0)
+            buffer.Play(0)
 
-        win32event.WaitForSingleObject(event, -1)
+            win32event.WaitForSingleObject(event, -1)
 
 class DirectSoundCaptureTest(unittest.TestCase):
     # basic tests - mostly just exercise the functions
-    
     def testEnumerate(self):
         '''DirectSoundCaptureEnumerate() sanity tests'''
 
         devices = ds.DirectSoundCaptureEnumerate()
         # this might fail on machines without a sound card
-        self.failUnless(len(devices))
+        self.assertTrue(len(devices))
         # if we have an entry, it must be a tuple of size 3
-        self.failUnless(len(devices[0]) == 3)
-        
+        self.assertTrue(len(devices[0]) == 3)
+
     def testCreate(self):
         '''DirectSoundCreate()'''
-        d = ds.DirectSoundCaptureCreate(None, None)
+        try:
+            d = ds.DirectSoundCaptureCreate(None, None)
+        except pythoncom.com_error as exc:
+            if exc.hresult != ds.DSERR_NODRIVER:
+                raise
+            raise TestSkipped(exc)
 
     def testRecord(self):
-        d = ds.DirectSoundCaptureCreate(None, None)
+        try:
+            d = ds.DirectSoundCaptureCreate(None, None)
+        except pythoncom.com_error as exc:
+            if exc.hresult != ds.DSERR_NODRIVER:
+                raise
+            raise TestSkipped(exc)
 
         sdesc = ds.DSCBUFFERDESC()
         sdesc.dwBufferBytes = 352800 # 2 seconds

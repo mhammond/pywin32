@@ -12,14 +12,14 @@ server = None # Run on local machine.
 
 def verbose(msg):
     if verbose_level:
-        print msg
+        print(msg)
 
 def CreateUser():
     "Creates a new test user, then deletes the user"
     testName = "PyNetTestUser"
     try:
         win32net.NetUserDel(server, testName)
-        print "Warning - deleted user before creating it!"
+        print("Warning - deleted user before creating it!")
     except win32net.error:
         pass
 
@@ -33,13 +33,13 @@ def CreateUser():
     try:
         try:
             win32net.NetUserChangePassword(server, testName, "wrong", "new")
-            print "ERROR: NetUserChangePassword worked with a wrong password!"
+            print("ERROR: NetUserChangePassword worked with a wrong password!")
         except win32net.error:
             pass
         win32net.NetUserChangePassword(server, testName, "deleteme", "new")
     finally:
         win32net.NetUserDel(server, testName)
-    print "Created a user, changed their password, and deleted them!"
+    print("Created a user, changed their password, and deleted them!")
 
 def UserEnum():
     "Enumerates all the local users"
@@ -54,7 +54,7 @@ def UserEnum():
         if not resume:
             break
     assert nuser, "Could not find any users!"
-    print "Enumerated all the local users"
+    print("Enumerated all the local users")
 
 def GroupEnum():
     "Enumerates all the domain groups"
@@ -76,7 +76,7 @@ def GroupEnum():
         if not resume:
             break
     assert nmembers, "Couldnt find a single member in a single group!"
-    print "Enumerated all the groups"
+    print("Enumerated all the groups")
 
 def LocalGroupEnum():
     "Enumerates all the local groups"
@@ -99,7 +99,7 @@ def LocalGroupEnum():
         if not resume:
             break
     assert nmembers, "Couldnt find a single member in a single group!"
-    print "Enumerated all the local groups"
+    print("Enumerated all the local groups")
 
 def ServerEnum():
     "Enumerates all servers on the network"
@@ -118,7 +118,7 @@ def ServerEnum():
                     break
         if not resume:
             break
-    print "Enumerated all the servers on the network"
+    print("Enumerated all the servers on the network")
 
 def LocalGroup(uname=None):
     "Creates a local group, adds some members, deletes them, then removes the group"
@@ -130,7 +130,7 @@ def LocalGroup(uname=None):
     # delete the group if it already exists
     try:
         win32net.NetLocalGroupDel(server, group)
-        print "WARNING: existing local group '%s' has been deleted."
+        print("WARNING: existing local group '%s' has been deleted.")
     except win32net.error:
         pass
     group_data = {'name': group}
@@ -139,21 +139,21 @@ def LocalGroup(uname=None):
         u={'domainandname': uname}
         win32net.NetLocalGroupAddMembers(server, group, level, [u])
         mem, tot, res = win32net.NetLocalGroupGetMembers(server, group, level)
-        print "members are", mem
+        print("members are", mem)
         if mem[0]['domainandname'] != uname:
-            print "ERROR: LocalGroup just added %s, but members are %r" % (uname, mem)
+            print("ERROR: LocalGroup just added %s, but members are %r" % (uname, mem))
         # Convert the list of dicts to a list of strings.
         win32net.NetLocalGroupDelMembers(server, group, [m['domainandname'] for m in mem])
     finally:
         win32net.NetLocalGroupDel(server, group)
-    print "Created a local group, added and removed members, then deleted the group"
+    print("Created a local group, added and removed members, then deleted the group")
 
 def GetInfo(userName=None):
     "Dumps level 3 information about the current user"
     if userName is None: userName=win32api.GetUserName()
-    print "Dumping level 3 information about user"
+    print("Dumping level 3 information about user")
     info = win32net.NetUserGetInfo(server, userName, 3)
-    for key, val in info.items():
+    for key, val in list(info.items()):
         verbose("%s=%s" % (key,val))
 
 def SetInfo(userName=None):
@@ -167,7 +167,7 @@ def SetInfo(userName=None):
         new = win32net.NetUserGetInfo(server, userName, 3)['usr_comment']
         if  str(new) != "Test comment":
             raise RuntimeError("Could not read the same comment back - got %s" % new)
-        print "Changed the data for the user"
+        print("Changed the data for the user")
     finally:
         win32net.NetUserSetInfo(server, userName, 3, oldData)
 
@@ -179,20 +179,20 @@ def SetComputerInfo():
 
 def usage(tests):
     import os
-    print "Usage: %s [-s server ] [-v] [Test ...]" % os.path.basename(sys.argv[0])
-    print "  -v : Verbose - print more information"
-    print "  -s : server - execute the tests against the named server"
-    print "  -c : include the CreateUser test by default"
-    print "where Test is one of:"
+    print("Usage: %s [-s server ] [-v] [Test ...]" % os.path.basename(sys.argv[0]))
+    print("  -v : Verbose - print more information")
+    print("  -s : server - execute the tests against the named server")
+    print("  -c : include the CreateUser test by default")
+    print("where Test is one of:")
     for t in tests:
-        print t.__name__,":", t.__doc__
-    print
-    print "If not tests are specified, all tests are run"
+        print(t.__name__,":", t.__doc__)
+    print()
+    print("If not tests are specified, all tests are run")
     sys.exit(1)
 
 def main():
     tests = []
-    for ob in globals().values():
+    for ob in list(globals().values()):
         if type(ob)==type(main) and ob.__doc__:
             tests.append(ob)
     opts, args = getopt.getopt(sys.argv[1:], "s:hvc")
@@ -210,7 +210,7 @@ def main():
             create_user = True
 
     if len(args)==0:
-        print "Running all tests - use '-h' to see command-line options..."
+        print("Running all tests - use '-h' to see command-line options...")
         dotests = tests
         if not create_user:
             dotests.remove(CreateUser)
@@ -222,15 +222,15 @@ def main():
                     dotests.append(t)
                     break
             else:
-                print "Test '%s' unknown - skipping" % arg
+                print("Test '%s' unknown - skipping" % arg)
     if not len(dotests):
-        print "Nothing to do!"
+        print("Nothing to do!")
         usage(tests)
     for test in dotests:
         try:
             test()
         except:
-            print "Test %s failed" % test.__name__
+            print("Test %s failed" % test.__name__)
             traceback.print_exc()
 
 if __name__=='__main__':

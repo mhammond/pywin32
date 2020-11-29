@@ -9,7 +9,7 @@ StopEvent = win32event.CreateEvent(None, 0, 0, None)
 
 job_name = 'bits-pywin32-test'
 states = dict([(val, (name[13:]))
-               for name, val in vars(bits).iteritems()
+               for name, val in vars(bits).items()
                if name.startswith('BG_JOB_STATE_')])
 
 bcm = pythoncom.CoCreateInstance(bits.CLSID_BackgroundCopyManager, 
@@ -22,22 +22,22 @@ class BackgroundJobCallback:
     _public_methods_ = ["JobTransferred", "JobError", "JobModification"]
     
     def JobTransferred(self, job):
-        print 'Job Transferred', job
+        print('Job Transferred', job)
         job.Complete()
         win32event.SetEvent(StopEvent) # exit msg pump
 
     def JobError(self, job, error):
-        print 'Job Error', job, error
+        print('Job Error', job, error)
         f = error.GetFile()
-        print 'While downloading', f.GetRemoteName()
-        print 'To', f.GetLocalName()
-        print 'The following error happened:'
+        print('While downloading', f.GetRemoteName())
+        print('To', f.GetLocalName())
+        print('The following error happened:')
         self._print_error(error)
         if f.GetRemoteName().endswith('missing-favicon.ico'):
-            print 'Changing to point to correct file'
+            print('Changing to point to correct file')
             f2 = f.QueryInterface(bits.IID_IBackgroundCopyFile2)
             favicon = 'http://www.python.org/favicon.ico'
-            print 'Changing RemoteName from', f2.GetRemoteName(), 'to', favicon
+            print('Changing RemoteName from', f2.GetRemoteName(), 'to', favicon)
             f2.SetRemoteName(favicon)
             job.Resume()
         else:
@@ -49,16 +49,16 @@ class BackgroundJobCallback:
             hresult_msg = win32api.FormatMessage(hresult)
         except win32api.error:
             hresult_msg  = ""
-        print "Context=0x%x, hresult=0x%x (%s)" % (ctx, hresult, hresult_msg)
-        print err.GetErrorDescription()
+        print("Context=0x%x, hresult=0x%x (%s)" % (ctx, hresult, hresult_msg))
+        print(err.GetErrorDescription())
 
     def JobModification(self, job, reserved):
         state = job.GetState()
-        print 'Job Modification', job.GetDisplayName(), states.get(state)
+        print('Job Modification', job.GetDisplayName(), states.get(state))
         # Need to catch TRANSIENT_ERROR here, as JobError doesn't get
         # called (apparently) when the error is transient.
         if state == bits.BG_JOB_STATE_TRANSIENT_ERROR:
-            print "Error details:"
+            print("Error details:")
             err = job.GetError()
             self._print_error(err)
 
@@ -85,8 +85,8 @@ job.AddFile('http://www.python.org/favicon.ico', os.path.join(tempfile.gettempdi
 job.AddFile('http://www.python.org/missing-favicon.ico', os.path.join(tempfile.gettempdir(), 'bits-missing-favicon.ico'))
 
 for f in job.EnumFiles():
-    print 'Downloading', f.GetRemoteName()
-    print 'To', f.GetLocalName()
+    print('Downloading', f.GetRemoteName())
+    print('To', f.GetLocalName())
 
 job.Resume()
 

@@ -15,6 +15,11 @@ from win32com.test.util import CheckClean
 
 bVisibleEventFired = 0
 
+# These are errors we might see when this is run in automation (eg, on github)
+# Not sure exactly what -2125463506 is, but google shows it's a common error
+# possibly related to how IE is configured WRT site permissions etc.
+HRESULTS_IN_AUTOMATION = [-2125463506, winerror.MK_E_UNAVAILABLE]
+
 class ExplorerEvents:
     def OnVisible(self, visible):
         global bVisibleEventFired
@@ -22,7 +27,17 @@ class ExplorerEvents:
 
 def TestExplorerEvents():
     global bVisibleEventFired
-    iexplore = win32com.client.DispatchWithEvents("InternetExplorer.Application", ExplorerEvents)
+    try:
+        iexplore = win32com.client.DispatchWithEvents("InternetExplorer.Application", ExplorerEvents)
+    except pythoncom.com_error as exc:
+        # In automation we see this error trying to connect to events
+        # It's a little surprising that the non-event tests seem to work, but
+        # whatever...
+        if exc.hresult not in HRESULTS_IN_AUTOMATION:
+            raise
+        print("IE events appear to not be available, so skipping this test")
+        return
+
     iexplore.Visible = 1
     if not bVisibleEventFired:
         raise RuntimeError("The IE event did not appear to fire!")
@@ -37,7 +52,7 @@ def TestExplorerEvents():
         raise RuntimeError("The IE event did not appear to fire!")
     ie.Quit()
     ie = None
-    print "IE Event tests worked."
+    print("IE Event tests worked.")
 
 def TestObjectFromWindow():
     # Check we can use ObjectFromLresult to get the COM object from the
@@ -61,10 +76,11 @@ def TestObjectFromWindow():
     for color in "red green blue orange white".split():
         doc.bgColor = color
         time.sleep(0.2)
-    
+
 def TestExplorer(iexplore):
     if not iexplore.Visible: iexplore.Visible = -1
-    iexplore.Navigate(win32api.GetFullPathName('..\\readme.htm'))
+    filename = os.path.join(os.path.dirname(__file__), '..\\readme.htm')
+    iexplore.Navigate(win32api.GetFullPathName(filename))
     win32api.Sleep(1000)
     TestObjectFromWindow()
     win32api.Sleep(3000)
@@ -77,7 +93,14 @@ def TestExplorer(iexplore):
 def TestAll():
     try:
         try:
-            iexplore = win32com.client.dynamic.Dispatch("InternetExplorer.Application")
+            try:
+                iexplore = win32com.client.dynamic.Dispatch("InternetExplorer.Application")
+            except pythoncom.com_error as exc:
+                if exc.hresult not in HRESULTS_IN_AUTOMATION:
+                    raise
+                print("IE appears to not be available, so skipping this test")
+                return
+
             TestExplorer(iexplore)
 
             win32api.Sleep(1000)
@@ -95,7 +118,7 @@ def TestAll():
             gencache.EnsureModule("{EAB22AC0-30C1-11CF-A7EB-0000C05BAE0B}", 0, 1, 1)
             iexplore = win32com.client.Dispatch("InternetExplorer.Application")
             TestExplorer(iexplore)
-        except pythoncom.com_error, exc:
+        except pythoncom.com_error as exc:
             if exc.hresult!=winerror.RPC_E_DISCONNECTED: # user closed the app!
                 raise
     finally:

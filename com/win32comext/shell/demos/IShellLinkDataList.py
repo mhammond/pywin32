@@ -5,7 +5,7 @@ temp_dir=win32api.GetTempPath()
 linkname=win32api.GetTempFileName(temp_dir,'cmd')[0]
 os.remove(linkname)
 linkname+='.lnk'
-print 'Link name:',linkname
+print('Link name:',linkname)
 ish=pythoncom.CoCreateInstance(shell.CLSID_ShellLink, None,
 	pythoncom.CLSCTX_INPROC_SERVER, shell.IID_IShellLink)
 ish.SetPath(os.environ['cOMSPEC'])
@@ -21,7 +21,7 @@ console_props={
 	'ScreenBufferSize':(152, 256),
 	'AutoPosition':False,
 	'FontSize':(4, 5),
-	'FaceName':u'',
+	'FaceName':'',
 	'HistoryBufferSize':32,
 	'InputBufferSize':0,
 	'QuickEdit':True,

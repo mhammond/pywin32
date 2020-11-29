@@ -45,7 +45,7 @@ class RegistrySheet(dialog.PropertySheet):
 		dialog.PropertySheet.__init__(self, title)
 		self.HookMessage(self.OnActivate, win32con.WM_ACTIVATE)
 	def OnActivate(self, msg):
-		print "OnAcivate"
+		print("OnAcivate")
 
 def t():
 	ps=RegistrySheet('Registry Settings')

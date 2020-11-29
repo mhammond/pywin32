@@ -11,60 +11,51 @@
 //
 // Interface Implementation
 
-PyISpecifyPropertyPages::PyISpecifyPropertyPages(IUnknown *pdisp):
-	PyIUnknown(pdisp)
-{
-	ob_type = &type;
-}
+PyISpecifyPropertyPages::PyISpecifyPropertyPages(IUnknown *pdisp) : PyIUnknown(pdisp) { ob_type = &type; }
 
-PyISpecifyPropertyPages::~PyISpecifyPropertyPages()
-{
-}
+PyISpecifyPropertyPages::~PyISpecifyPropertyPages() {}
 
 /* static */ ISpecifyPropertyPages *PyISpecifyPropertyPages::GetI(PyObject *self)
 {
-	return (ISpecifyPropertyPages *)PyIUnknown::GetI(self);
+    return (ISpecifyPropertyPages *)PyIUnknown::GetI(self);
 }
 
 // @pymethod |PyISpecifyPropertyPages|GetPages|Description of GetPages.
 PyObject *PyISpecifyPropertyPages::GetPages(PyObject *self, PyObject *args)
 {
-	ISpecifyPropertyPages *pISPP = GetI(self);
-	if ( pISPP == NULL )
-		return NULL;
+    ISpecifyPropertyPages *pISPP = GetI(self);
+    if (pISPP == NULL)
+        return NULL;
 
-	if ( !PyArg_ParseTuple(args, ":GetPages") )
-		return NULL;
+    if (!PyArg_ParseTuple(args, ":GetPages"))
+        return NULL;
 
-	CAUUID pages;
-    pages.cElems=0;
-    pages.pElems=NULL;
+    CAUUID pages;
+    pages.cElems = 0;
+    pages.pElems = NULL;
 
     HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pISPP->GetPages( &pages );
-	PY_INTERFACE_POSTCALL;
+    PY_INTERFACE_PRECALL;
+    hr = pISPP->GetPages(&pages);
+    PY_INTERFACE_POSTCALL;
 
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr);
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr);
 
-	PyObject *opages=PyTuple_New(pages.cElems);
-    if(!opages)
-    {
+    PyObject *opages = PyTuple_New(pages.cElems);
+    if (!opages) {
         ::CoTaskMemFree(pages.pElems);
         return NULL;
     }
 
-    for(unsigned i=0;i<pages.cElems;++i)
-    {
-        PyObject *sub=PyWinObject_FromIID(pages.pElems[i]);
-        if(!sub)
-        {
+    for (unsigned i = 0; i < pages.cElems; ++i) {
+        PyObject *sub = PyWinObject_FromIID(pages.pElems[i]);
+        if (!sub) {
             Py_DECREF(opages);
             ::CoTaskMemFree(pages.pElems);
             return NULL;
         }
-		PyTuple_SET_ITEM(opages, i, sub);
+        PyTuple_SET_ITEM(opages, i, sub);
     }
 
     ::CoTaskMemFree(pages.pElems);
@@ -72,55 +63,47 @@ PyObject *PyISpecifyPropertyPages::GetPages(PyObject *self, PyObject *args)
 }
 
 // @object PyISpecifyPropertyPages|Description of the interface
-static struct PyMethodDef PyISpecifyPropertyPages_methods[] =
-{
-	{ "GetPages", PyISpecifyPropertyPages::GetPages, 1 }, // @pymeth GetPages|Description of GetPages
-	{ NULL }
-};
+static struct PyMethodDef PyISpecifyPropertyPages_methods[] = {
+    {"GetPages", PyISpecifyPropertyPages::GetPages, 1},  // @pymeth GetPages|Description of GetPages
+    {NULL}};
 
-PyComTypeObject PyISpecifyPropertyPages::type("PyISpecifyPropertyPages",
-		&PyIUnknown::type,
-		sizeof(PyISpecifyPropertyPages),
-		PyISpecifyPropertyPages_methods,
-		GET_PYCOM_CTOR(PyISpecifyPropertyPages));
+PyComTypeObject PyISpecifyPropertyPages::type("PyISpecifyPropertyPages", &PyIUnknown::type,
+                                              sizeof(PyISpecifyPropertyPages), PyISpecifyPropertyPages_methods,
+                                              GET_PYCOM_CTOR(PyISpecifyPropertyPages));
 // ---------------------------------------------------
 //
 // Gateway Implementation
 STDMETHODIMP PyGSpecifyPropertyPages::GetPages(
-		/* [out] */ CAUUID __RPC_FAR * pPages)
+    /* [out] */ CAUUID __RPC_FAR *pPages)
 {
-	PY_GATEWAY_METHOD;
-	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("GetPages", &result);
-	if (FAILED(hr)) return hr;
+    PY_GATEWAY_METHOD;
+    PyObject *result;
+    HRESULT hr = InvokeViaPolicy("GetPages", &result);
+    if (FAILED(hr))
+        return hr;
 
-    int length=PyObject_Length(result);
+    int length = PyObject_Length(result);
 
-    if(length<1 || !PySequence_Check(result) )
-    {
+    if (length < 1 || !PySequence_Check(result)) {
         // Python implementation did not return a sequence
         PyErr_Clear();
         return E_NOTIMPL;
     }
 
-    pPages->cElems=0;
-    pPages->pElems=(GUID *)CoTaskMemAlloc(length*sizeof(GUID)); // Not all may be used
+    pPages->cElems = 0;
+    pPages->pElems = (GUID *)CoTaskMemAlloc(length * sizeof(GUID));  // Not all may be used
 
-    for(int i=0;i<length;++i)
-    {
-        if(PyWinObject_AsIID(PySequence_GetItem(result,i),pPages->pElems+pPages->cElems))
-        {
+    for (int i = 0; i < length; ++i) {
+        if (PyWinObject_AsIID(PySequence_GetItem(result, i), pPages->pElems + pPages->cElems)) {
             // Sucessfully converted, so put the next GUID in the next slot
             pPages->cElems++;
         }
-        else
-        {
+        else {
             // Could not convert this GUID; ignore it and continue.
             PyErr_Clear();
         }
     }
 
-	Py_DECREF(result);
-	return hr;
+    Py_DECREF(result);
+    return hr;
 }
-
