@@ -155,10 +155,13 @@ inline BOOL Win32uiHostGlue::DynamicApplicationInit(const TCHAR *cmd, const TCHA
     TCHAR err_buf[256];
     // It's critical Python is loaded *and initialized* before we load win32ui
     // as just loading win32ui will cause it to call into Python.
-    const int ncandidates = sizeof(py_dll_candidates) / sizeof(py_dll_candidates[0]);
-    for (int i = 0; i < ncandidates && hModCore == NULL; i++) {
-        wsprintf(fname, _T("%s\\%s\\%s"), app_dir, py_dll_candidates[i], py_dll);
-        hModCore = LoadLibrary(fname);
+    hModCore = GetModuleHandle(py_dll);  // Check if Python is already loaded
+    if (hModCore == NULL) {
+        const int ncandidates = sizeof(py_dll_candidates) / sizeof(py_dll_candidates[0]);
+        for (int i = 0; i < ncandidates && hModCore == NULL; i++) {
+            wsprintf(fname, _T("%s\\%s\\%s"), app_dir, py_dll_candidates[i], py_dll);
+            hModCore = LoadLibrary(fname);
+        }
     }
     if (hModCore == NULL) {
         wsprintf(err_buf, _T("The application can not locate %s (%d)\n"), py_dll, GetLastError());
