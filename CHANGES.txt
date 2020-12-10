@@ -4,9 +4,6 @@ Generally created by hand after running:
    hg log -rb2xx: > log.out
 However contributors are encouraged to add their own entries for their work.
 
-Note that, baring some major issue building and cutting the release, build
-228 will be the last version supporting Python 2.
-
 
 Since build 228:
 ----------------
