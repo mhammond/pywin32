@@ -123,6 +123,8 @@ class CDispatch(dynamic.CDispatch):
   def _wrap_dispatch_(self, ob, userName = None, returnCLSID = None, UnicodeToString=None):
     assert UnicodeToString is None, "this is deprecated and will go away"
     return Dispatch(ob, userName, returnCLSID,None)
+  def __dir__(self):
+    return dynamic.CDispatch.__dir__(self)
 
 def CastTo(ob, target, typelib = None):
     """'Cast' a COM object to another interface"""
@@ -441,6 +443,15 @@ class DispatchBaseClass:
 					raise
 				oobj = oobj._oleobj_
 		self.__dict__["_oleobj_"] = oobj # so we dont call __setattr__
+
+	def __dir__(self):
+		lst = list(self.__dict__.keys()) + dir(self.__class__) \
+			  + list(self._prop_map_get_.keys()) + list(self._prop_map_put_.keys())
+		try: lst += [p.Name for p in self.Properties_]
+		except AttributeError:
+			pass
+		return list(set(lst))
+
 	# Provide a prettier name than the CLSID
 	def __repr__(self):
 		# Need to get the docstring for the module for this class.

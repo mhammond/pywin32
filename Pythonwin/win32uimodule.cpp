@@ -2614,7 +2614,16 @@ extern "C" PYW_EXPORT BOOL Win32uiApplicationInit(Win32uiHostGlue *pGlue, TCHAR 
         PySys_SetArgv(__argc - 1, __targv + 1);
 #else
     PyInit_win32ui();
-    if (argv == NULL || !PyList_Check(argv) || !PyList_Size(argv)) {
+    // Decide if we render sys.argv from command line.
+    // PY3.6- Py_Initialize sets sys.argv=NULL .
+    // PY3.7 Py_Initialize or intentional script triggers set sys.argv=[] .
+    // PY3.8+ Py_Initialize sets sys.argv=[''] - cannot be distinguished
+    //   from a pre-existing command line setup anymore. So we need to check
+    //   another flag regarding the intended type of invokation, e.g. `cmd`
+    //   (or untangle all that crossover startup + module + app init here)
+    // `cmd` is non-NULL upon Pythonwin.exe / C++ embedded glue startup and
+    //   always NULL during "import win32ui" from normal Python.
+    if (argv == NULL || !PyList_Check(argv) || !PyList_Size(argv) || cmd) {
         int myargc;
         LPWSTR *myargv = CommandLineToArgvW(GetCommandLineW(), &myargc);
         if (myargv) {
