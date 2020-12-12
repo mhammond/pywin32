@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30717.126
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "PyCOMTest", "PyCOMTest.vcxproj", "{AD5B0DA3-5E8E-4300-A668-C62BCDB6EFAF}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x86 = Debug|x86
+		Release|x86 = Release|x86
+		Unicode Debug|x86 = Unicode Debug|x86
+		Unicode Release|x86 = Unicode Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{AD5B0DA3-5E8E-4300-A668-C62BCDB6EFAF}.Debug|x86.ActiveCfg = Debug|Win32
+		{AD5B0DA3-5E8E-4300-A668-C62BCDB6EFAF}.Debug|x86.Build.0 = Debug|Win32
+		{AD5B0DA3-5E8E-4300-A668-C62BCDB6EFAF}.Release|x86.ActiveCfg = Release|Win32
+		{AD5B0DA3-5E8E-4300-A668-C62BCDB6EFAF}.Release|x86.Build.0 = Release|Win32
+		{AD5B0DA3-5E8E-4300-A668-C62BCDB6EFAF}.Unicode Debug|x86.ActiveCfg = Unicode Debug|Win32
+		{AD5B0DA3-5E8E-4300-A668-C62BCDB6EFAF}.Unicode Debug|x86.Build.0 = Unicode Debug|Win32
+		{AD5B0DA3-5E8E-4300-A668-C62BCDB6EFAF}.Unicode Release|x86.ActiveCfg = Unicode Release|Win32
+		{AD5B0DA3-5E8E-4300-A668-C62BCDB6EFAF}.Unicode Release|x86.Build.0 = Unicode Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {5C6FEC31-F2C3-4E03-A0F2-70E7D41B6489}
+	EndGlobalSection
+EndGlobal
