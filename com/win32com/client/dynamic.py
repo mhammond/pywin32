@@ -121,6 +121,8 @@ def _GetDescInvokeType(entry, invoke_type):
 	# BUT - it's apparently important for an INVKIND, and working that out is TBD!
 	if varkind == pythoncom.VAR_DISPATCH and invoke_type == pythoncom.INVOKE_PROPERTYGET:
 		return pythoncom.INVOKE_FUNC | invoke_type # DISPATCH_METHOD & DISPATCH_PROPERTYGET can be combined in IDispatch::Invoke
+	elif entry.desc.desckind == pythoncom.DESCKIND_VARDESC and varkind == pythoncom.VAR_DISPATCH and invoke_type == pythoncom.INVOKE_PROPERTYPUT:
+		return pythoncom.INVOKE_PROPERTYPUT
 	else:
 		return varkind
 
