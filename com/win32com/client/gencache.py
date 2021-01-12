@@ -546,27 +546,25 @@ def AddModuleToCache(typelibclsid, lcid, major, minor, verbose = 1, bFlushNow = 
 	# if mod._in_gencache_ is already true, then we are reloading this
 	# module - this doesn't mean anything special though!
 	mod._in_gencache_ = 1
-	dict = mod.CLSIDToClassMap
 	info = str(typelibclsid), lcid, major, minor
-	for clsid, cls in dict.items():
-		clsidToTypelib[clsid] = info
+	dict_modified = False
 
-	dict = mod.CLSIDToPackageMap
-	for clsid, name in dict.items():
-		clsidToTypelib[clsid] = info
+	def SetTypelibForAllClsids(dict):
+		nonlocal dict_modified
+		for clsid, cls in dict.items():
+			if clsidToTypelib.get(clsid) != info:
+				clsidToTypelib[clsid] = info
+				dict_modified = True
 
-	dict = mod.VTablesToClassMap
-	for clsid, cls in dict.items():
-		clsidToTypelib[clsid] = info
-
-	dict = mod.VTablesToPackageMap
-	for clsid, cls in dict.items():
-		clsidToTypelib[clsid] = info
+	SetTypelibForAllClsids(mod.CLSIDToClassMap)
+	SetTypelibForAllClsids(mod.CLSIDToPackageMap)
+	SetTypelibForAllClsids(mod.VTablesToClassMap)
+	SetTypelibForAllClsids(mod.VTablesToPackageMap)
 
 	# If this lib was previously redirected, drop it
 	if info in versionRedirectMap:
 		del versionRedirectMap[info]
-	if bFlushNow:
+	if bFlushNow and dict_modified:
 		_SaveDicts()
 
 def GetGeneratedInfos():
