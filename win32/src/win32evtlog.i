@@ -877,7 +877,7 @@ static PyObject *PyEvtNext(PyObject *self, PyObject *args, PyObject *kwargs)
 	if (!bsuccess){
 		free(events);
 		DWORD err=GetLastError();
-		if (err == ERROR_NO_MORE_ITEMS)
+		if (err == ERROR_NO_MORE_ITEMS || (err == ERROR_INVALID_OPERATION && nbr_returned == 0))
 			return PyTuple_New(0);
 		return PyWin_SetAPIError("EvtNext", err);
 		}
