@@ -7,6 +7,10 @@ However contributors are encouraged to add their own entries for their work.
 Note that, baring some major issue building and cutting the release, build
 228 will be the last version supporting Python 2.
 
+Since build 300:
+----------------
+* Shifted work in win32.lib.pywin32_bootstrap to Python's import system from
+  manual path manipulations (@wkschwartz in #1651)
 
 Since build 228:
 ----------------
