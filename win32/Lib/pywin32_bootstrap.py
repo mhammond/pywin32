@@ -10,13 +10,8 @@ import os
 
 
 try:
-    Exc = ModuleNotFoundError  # Introduced in Python 3.6
-except NameError:
-    Exc = ImportError
-
-try:
     import pywin32_system32
-except Exc:
+except ImportError:  # Python ≥3.6: replace ImportError with ModuleNotFoundError
     pass
 else:
     # We're guaranteed only that __path__: Iterable[str]
