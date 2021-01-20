@@ -6,7 +6,6 @@
 # modules are imported.
 # If Python has `os.add_dll_directory()`, we need to call it with this path.
 # Otherwise, we add this path to PATH.
-import os
 
 
 try:
@@ -14,6 +13,7 @@ try:
 except ImportError:  # Python ≥3.6: replace ImportError with ModuleNotFoundError
     pass
 else:
+    import os
     # We're guaranteed only that __path__: Iterable[str]
     # https://docs.python.org/3/reference/import.html#__path__
     for path in pywin32_system32.__path__:
