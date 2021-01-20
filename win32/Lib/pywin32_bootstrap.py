@@ -17,22 +17,17 @@ except NameError:
 try:
     import pywin32_system32
 except Exc:
-    path_iterator = iter([])
+    pass
 else:
     # We're guaranteed only that __path__: Iterable[str]
     # https://docs.python.org/3/reference/import.html#__path__
-    path_iterator = iter(pywin32_system32.__path__)
-
-try:
-    path = next(path_iterator)
-except StopIteration:
-    pass
-else:
-    if os.path.isdir(path):
-        if hasattr(os, "add_dll_directory"):
-            os.add_dll_directory(path)
-        # This is to ensure the pywin32 path is in the beginning to find the
-        # pywin32 DLLs first and prevent other PATH entries to shadow them
-        elif not os.environ["PATH"].startswith(path):
-            os.environ["PATH"] = os.environ["PATH"].replace(os.pathsep + path, "")
-            os.environ["PATH"] = path + os.pathsep + os.environ["PATH"]
+    for path in pywin32_system32.__path__:
+        if os.path.isdir(path):
+            if hasattr(os, "add_dll_directory"):
+                os.add_dll_directory(path)
+            # This is to ensure the pywin32 path is in the beginning to find the
+            # pywin32 DLLs first and prevent other PATH entries to shadow them
+            elif not os.environ["PATH"].startswith(path):
+                os.environ["PATH"] = os.environ["PATH"].replace(os.pathsep + path, "")
+                os.environ["PATH"] = path + os.pathsep + os.environ["PATH"]
+            break
