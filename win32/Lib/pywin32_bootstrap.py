@@ -24,15 +24,15 @@ else:
     path_iterator = iter(pywin32_system32.__path__)
 
 try:
-    pywin32_system32 = next(path_iterator)
+    path = next(path_iterator)
 except StopIteration:
     pass
 else:
-    if os.path.isdir(pywin32_system32):
+    if os.path.isdir(path):
         if hasattr(os, "add_dll_directory"):
-            os.add_dll_directory(pywin32_system32)
+            os.add_dll_directory(path)
         # This is to ensure the pywin32 path is in the beginning to find the
         # pywin32 DLLs first and prevent other PATH entries to shadow them
-        elif not os.environ["PATH"].startswith(pywin32_system32):
-            os.environ["PATH"] = os.environ["PATH"].replace(os.pathsep + pywin32_system32, "")
-            os.environ["PATH"] = pywin32_system32 + os.pathsep + os.environ["PATH"]
+        elif not os.environ["PATH"].startswith(path):
+            os.environ["PATH"] = os.environ["PATH"].replace(os.pathsep + path, "")
+            os.environ["PATH"] = path + os.pathsep + os.environ["PATH"]
