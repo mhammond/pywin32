@@ -12,6 +12,10 @@ Since build 300:
 * Shifted work in win32.lib.pywin32_bootstrap to Python's import system from
   manual path manipulations (@wkschwartz in #1651)
 
+* Fixed a bug where win32print.DeviceCapabilities would return strings
+  containing the null character followed by junk characters.
+  (#1654, #1660, Lincoln Puzey)
+
 Since build 228:
 ----------------
 * Fixed a bug where win32com.client.VARIANT params were returned in the reverse
