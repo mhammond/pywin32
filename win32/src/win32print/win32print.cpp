@@ -1887,7 +1887,7 @@ static PyObject *PyDeviceCapabilities(PyObject *self, PyObject *args)
     static DWORD papernamesize = 64;    // same for DC_PAPERNAMES, DC_MEDIATYPENAMES, DC_MEDIAREADY, DC_FILEDEPENDENCIES
     static DWORD binnamesize = 24;      // DC_BINNAMES
     static DWORD personalitysize = 32;  // DC_PERSONALITY
-    DWORD retsize;
+    DWORD retsize, actual_ret_size ;
 
     if (!PyArg_ParseTuple(args, "OOh|O:DeviceCapabilities", &obdevice, &obport, &capability, &obdevmode))
         return NULL;
@@ -2048,19 +2048,24 @@ static PyObject *PyDeviceCapabilities(PyObject *self, PyObject *args)
                 PyErr_Format(PyExc_MemoryError, "DeviceCapabilites: Unable to allocate %d bytes", bufsize);
                 break;
             }
-            ZeroMemory(buf, bufsize);
             result = DeviceCapabilities(device, port, capability, buf, pdevmode);
+            // each string in buf can be null-terminated or take up all space and have length retsize.
+            // bytes after null character can be set to junk by DeviceCapabilities().
             if (result == -1)
                 break;
             ret = PyTuple_New(result);
             if (ret == NULL)
                 break;
             retname = (TCHAR *)buf;
+            // process each returned string
             for (bufindex = 0; bufindex < result; bufindex++) {
-                if (*(retname + retsize - 1) == 0)
-                    tuple_item = PyWinObject_FromTCHAR(retname);
-                else  // won't be null-terminated if string occupies entire space
-                    tuple_item = PyWinObject_FromTCHAR(retname, retsize);
+                // work out actual length of returned string
+                for (actual_ret_size = 0; actual_ret_size < retsize; actual_ret_size++) {
+                    if (*(retname + actual_ret_size) == 0) {
+                        break;
+                    }
+                }
+                tuple_item = PyWinObject_FromTCHAR(retname, actual_ret_size);
                 if (tuple_item == NULL) {
                     Py_DECREF(ret);
                     ret = NULL;
