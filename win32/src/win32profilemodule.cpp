@@ -54,7 +54,7 @@ PyObject *PyWinObject_FromEnvironmentBlock(WCHAR *multistring)
             Actually, there are names started with an equal sign, e.g. per-drive working dirs are stored in the form
             "=C:=C:\\somedir", "=D:=D:\\someotherdir". These are retrievable by win32api.GetEnvironmentVariable('=C:'),
             but don't appear in os.environ. Environment variable's value may contain an equal sign.
-            So we use the first equal sign from which the string is not started
+            So we use the first equal sign from which the string is not started as a separator
         */
         eq = wcschr(multistring + 1, '=');
         if (eq == NULL) {
