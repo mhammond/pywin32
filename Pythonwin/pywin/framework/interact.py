@@ -1060,7 +1060,7 @@ def CreateInteractiveWindowUserPreference(makeDoc=None, makeFrame=None):
 def CreateInteractiveWindow(makeDoc=None, makeFrame=None):
     """Create a standard or docked interactive window unconditionally"""
     assert edit is None, "Creating second interactive window!"
-    bDocking = LoadPreference("Docking", 0)
+    bDocking = LoadPreference("Docking", 1)
     if bDocking:
         CreateDockedInteractiveWindow()
     else:

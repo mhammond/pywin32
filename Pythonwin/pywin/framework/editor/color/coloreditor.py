@@ -216,7 +216,7 @@ class SyntEditView(SyntEditViewParent):
         self.SCISetMarginWidthN(1, width)
         width = GetEditorOption("Fold Margin Width", 12)
         self.SCISetMarginWidthN(2, width)
-        width = GetEditorOption("Line Number Margin Width", 0)
+        width = GetEditorOption("Line Number Margin Width", 40)
         self.SCISetMarginWidthN(0, width)
         self.bFolding = GetEditorOption("Enable Folding", 1)
         fold_flags = 0
