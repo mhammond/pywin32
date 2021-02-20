@@ -412,6 +412,7 @@ class CScintillaEditInterface(ScintillaControlInterface):
             findtextex_fmt, range[0], range[1], txt_array.buffer_info()[0], 0, 0
         )
         ft_array = array.array("b", ft_buff)
+        # EM_FINDTEXTEX (1103) and SCI_FINDTEXT (2150) both understand SCFIND_REGEXP etc. - probably identical
         rc = self.SendScintilla(EM_FINDTEXTEX, flags, ft_array.buffer_info()[0])
         ftUnpacked = struct.unpack(findtextex_fmt, ft_array)
         return rc, (ftUnpacked[3], ftUnpacked[4])

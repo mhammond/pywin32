@@ -4,6 +4,9 @@ import win32ui
 from pywin.mfc import dialog
 import afxres
 from pywin.framework import scriptutils
+from pywin.scintilla import scintillacon
+
+import re
 
 FOUND_NOTHING = 0
 FOUND_NORMAL = 1
@@ -12,6 +15,8 @@ FOUND_NEXT_FILE = 3
 
 
 class SearchParams:
+    regex = 0
+
     def __init__(self, other=None):
         if other is None:
             self.__dict__["findText"] = ""
@@ -32,9 +37,12 @@ class SearchParams:
         self.__dict__[attr] = val
 
 
-curDialog = None
-lastSearch = defaultSearch = SearchParams()
-searchHistory = []
+try:
+    lastSearch
+except NameError:
+    curDialog = None
+    lastSearch = defaultSearch = SearchParams()
+    searchHistory = [r"\s+$"]
 
 
 def ShowFindDialog():
@@ -73,7 +81,7 @@ def _GetControl(control=None):
     return control
 
 
-def _FindIt(control, searchParams):
+def _FindIt(control, searchParams, sel=None, _recurse=0):
     global lastSearch, defaultSearch
     control = _GetControl(control)
     if control is None:
@@ -85,7 +93,12 @@ def _FindIt(control, searchParams):
         flags = flags | win32con.FR_WHOLEWORD
     if searchParams.matchCase:
         flags = flags | win32con.FR_MATCHCASE
-    if searchParams.sel == (-1, -1):
+    if searchParams.regex:
+        flags |= scintillacon.SCFIND_REGEXP  ## SCFIND_CXX11REGEX
+    reverse = False
+    if sel:
+        pass
+    elif searchParams.sel == (-1, -1):
         sel = control.GetSel()
         # If the position is the same as we found last time,
         # then we assume it is a "FindNext"
@@ -96,6 +109,9 @@ def _FindIt(control, searchParams):
 
     if sel[0] == sel[1]:
         sel = sel[0], control.GetTextLength()
+    elif sel[1] < sel[0]:
+        # reverse search (Shift-F3)
+        reverse = True
 
     rc = FOUND_NOTHING
     # (Old edit control will fail here!)
@@ -107,7 +123,9 @@ def _FindIt(control, searchParams):
         control.SCIEnsureVisible(lineno)
         control.SetSel(foundSel)
         control.SetFocus()
-        win32ui.SetStatusText(win32ui.LoadString(afxres.AFX_IDS_IDLEMESSAGE))
+        win32ui.SetStatusText("Found!")
+    if _recurse:
+        return rc
     if rc == FOUND_NOTHING and lastSearch.acrossFiles:
         # Loop around all documents.  First find this document.
         try:
@@ -128,34 +146,32 @@ def _FindIt(control, searchParams):
                     if lookpos == mypos:
                         break
                     view = alldocs[lookpos].GetFirstView()
-                    posFind, foundSel = view.FindText(
-                        flags, (0, view.GetTextLength()), searchParams.findText
+                    rc = _FindIt(
+                        view,
+                        searchParams,
+                        _recurse=1,
+                        sel=reverse
+                        and (view.GetTextLength(), 0)
+                        or (0, view.GetTextLength()),
                     )
-                    if posFind >= 0:
-                        nChars = foundSel[1] - foundSel[0]
-                        lineNo = view.LineFromChar(posFind)  # zero based.
-                        lineStart = view.LineIndex(lineNo)
-                        colNo = posFind - lineStart  # zero based.
-                        scriptutils.JumpToDocument(
-                            alldocs[lookpos].GetPathName(),
-                            lineNo + 1,
-                            colNo + 1,
-                            nChars,
-                        )
+                    if rc:
+                        foundSel = view.GetSel()
+                        scriptutils.JumpToDocument(view.GetDocument().GetPathName())
                         rc = FOUND_NEXT_FILE
                         break
         except win32ui.error:
             pass
     if rc == FOUND_NOTHING:
         # Loop around this control - attempt to find from the start of the control.
-        posFind, foundSel = control.FindText(
-            flags, (0, sel[0] - 1), searchParams.findText
+        rc = _FindIt(
+            control,
+            searchParams,
+            _recurse=1,
+            sel=reverse and (control.GetTextLength(), sel[0]) or (0, sel[0] - 1),
         )
-        if posFind >= 0:
-            control.SCIEnsureVisible(control.LineFromChar(foundSel[0]))
-            control.SetSel(foundSel)
-            control.SetFocus()
-            win32ui.SetStatusText("Not found! Searching from the top of the file.")
+        if rc:
+            win32ui.SetStatusText("Found! Searching from the top of the file.")
+            foundSel = control.GetSel()
             rc = FOUND_LOOPED_BACK
         else:
             lastSearch.sel = -1, -1
@@ -185,10 +201,30 @@ def _ReplaceIt(control):
     statusText = "Can not find '%s'." % lastSearch.findText
     rc = FOUND_NOTHING
     if control is not None and lastSearch.sel != (-1, -1):
-        control.ReplaceSel(lastSearch.replaceText)
+        rtxt = lastSearch.replaceText
+        if lastSearch.regex:
+            txt = control.GetSelText()
+            # scintilla groups match like r'\(...\)'
+            def _subc(m):
+                s = m.group()
+                if s.startswith("\\"):
+                    return s[1:]
+                else:
+                    return "\\" + s
+
+            pat = re.sub(
+                r"\\\(|\(|\\\)|\)", _subc, lastSearch.findText
+            )  # .replace(r'\(', '(').replace(r'\)', ')')
+            try:
+                rtxt = re.sub(pat, rtxt.replace(r"\0", r"\g<0>"), txt)
+            except re.error as ev:
+                win32ui.SetStatusText("Invalid REGEX: %s : %s" % (rtxt, ev))
+                win32api.MessageBeep(win32con.MB_ICONHAND)
+                return FOUND_NOTHING
+        control.ReplaceSel(rtxt)
         rc = FindNext()
         if rc != FOUND_NOTHING:
-            statusText = win32ui.LoadString(afxres.AFX_IDS_IDLEMESSAGE)
+            statusText = "Replaced!"
     win32ui.SetStatusText(statusText)
     return rc
 
@@ -204,6 +240,7 @@ class FindReplaceDialog(dialog.Dialog):
         self.butKeepDialogOpen = self.GetDlgItem(115)
         self.butAcrossFiles = self.GetDlgItem(116)
         self.butRemember = self.GetDlgItem(117)
+        self.butRegex = self.GetDlgItem(118)
 
         self.editFindText.SetWindowText(defaultSearch.findText)
         control = _GetControl()
@@ -228,6 +265,7 @@ class FindReplaceDialog(dialog.Dialog):
         self.butKeepDialogOpen.SetCheck(defaultSearch.keepDialogOpen)
         self.butAcrossFiles.SetCheck(defaultSearch.acrossFiles)
         self.butRemember.SetCheck(defaultSearch.remember)
+        self.butRegex.SetCheck(defaultSearch.regex)
 
         self.HookCommand(self.OnFindNext, 109)
         return dialog.Dialog.OnInitDialog(self)
@@ -244,6 +282,7 @@ class FindReplaceDialog(dialog.Dialog):
         params.matchWords = self.butMatchWords.GetCheck()
         params.acrossFiles = self.butAcrossFiles.GetCheck()
         params.remember = self.butRemember.GetCheck()
+        params.regex = self.butRegex.GetCheck()
         return _FindIt(None, params)
 
     def OnFindNext(self, id, code):
@@ -287,9 +326,16 @@ class FindDialog(FindReplaceDialog):
             ],
             [
                 "Button",
-                "Match &whole word only",
+                "Match &whole word",
                 105,
-                (5, 23, 100, 10),
+                (5, 23, 80, 10),
+                visible | win32con.BS_AUTOCHECKBOX | win32con.WS_TABSTOP,
+            ],
+            [
+                "Button",
+                "Regular &Expression",
+                118,
+                (95, 23, 100, 10),
                 visible | win32con.BS_AUTOCHECKBOX | win32con.WS_TABSTOP,
             ],
             [
@@ -379,9 +425,16 @@ class ReplaceDialog(FindReplaceDialog):
             ],
             [
                 "Button",
-                "Match &whole word only",
+                "Match &whole word",
                 105,
-                (5, 42, 100, 10),
+                (5, 42, 80, 10),
+                visible | win32con.BS_AUTOCHECKBOX | win32con.WS_TABSTOP,
+            ],
+            [
+                "Button",
+                "Regular &Expression",
+                118,
+                (95, 42, 100, 10),
                 visible | win32con.BS_AUTOCHECKBOX | win32con.WS_TABSTOP,
             ],
             [
