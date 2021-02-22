@@ -45,7 +45,6 @@ programmers who forget to use the new names. */
 #include "traceback.h"
 #include "pythonrun.h"
 #include "import.h"  // Python: for dynamicattach routines.
-#include "graminit.h"
 
 #include "pywintypes.h"
 // dont need all of these for all, but it cant hurt (and keep the speed up!)

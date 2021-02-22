@@ -564,7 +564,7 @@ int Python_run_command_with_log(const char *command)
     if (m == NULL)
         return -1;
     d = PyModule_GetDict(m);
-    v = PyRun_String(command, file_input, d, d);
+    v = PyRun_String(command, Py_file_input, d, d);
     if (v == NULL) {
         ExceptionHandler(EHA_DISPLAY_DIALOG);
         return 1;  // indicate failure, with traceback correctly shown.
