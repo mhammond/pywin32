@@ -281,10 +281,7 @@ PyObject *CPythonHandler::Callback(HANDLER_TYPE typ, const char *format /* = NUL
         a = PyTuple_New(1);
         if (a == NULL)
             goto done;
-        if (PyTuple_SET_ITEM(a, 0, args) < 0) {
-            Py_DECREF(a);
-            goto done;
-        }
+        PyTuple_SET_ITEM(a, 0, args);
         // 'args' ref consumed by _SET_ITEM.
         args = a;
     }
