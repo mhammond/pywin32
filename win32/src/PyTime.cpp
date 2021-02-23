@@ -287,7 +287,11 @@ PyObject *PyWin_NewTime(PyObject *timeOb)
         if (PyNumber_Check(timeOb)) {
             // XXX - should possibly check for long_long, as sizeof(time_t) > sizeof(long)
             // on x64
-            long t = PyInt_AsLong(timeOb);
+            PyObject* o = PyNumber_Long(timeOb);  // required by Py3.10+
+            if (!o)
+                goto _exit;
+            long t = PyInt_AsLong(o);
+            Py_XDECREF(o);
             if (t == -1) {
                 if (!PyErr_Occurred())
                     PyErr_BadArgument();
@@ -328,6 +332,7 @@ PyObject *PyWin_NewTime(PyObject *timeOb)
             // result stays NULL.
             PyErr_Format(PyExc_TypeError, "Objects of type '%s' can not be used as a time object",
                          timeOb->ob_type->tp_name);
+    _exit:
         Py_XDECREF(cleanupOb);
         return result;
     }
