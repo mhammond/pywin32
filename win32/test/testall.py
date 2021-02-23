@@ -126,6 +126,8 @@ def import_all():
     is_debug = os.path.basename(win32api.__file__).endswith("_d")
     for name in os.listdir(dir):
         base, ext = os.path.splitext(name)
+        if '.' in base and sys.version_info >= (3, 10):
+            base = base.split('.')[0]
         if (ext==".pyd") and \
            name != "_winxptheme.pyd" and \
            (is_debug and base.endswith("_d") or \
