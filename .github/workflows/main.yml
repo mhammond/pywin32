@@ -36,7 +36,7 @@ jobs:
       run: pip install --upgrade setuptools wheel
 
     - name: Set Python user directory
-      run: python -c "import os,site;open(os.environ['GITHUB_ENV'], 'a').write('USER_DIR=%s\n' % os.path.dirname(site.USER_SITE))"
+      run: python -c "import os,site;open(os.environ['GITHUB_ENV'], 'a').write('USER_DIR=%s\n' % os.path.dirname(site.USER_SITE).rstrip('-32'))"
 
     - name: Build package
       run: python setup.py --skip-verstamp build
