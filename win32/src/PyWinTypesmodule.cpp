@@ -677,59 +677,6 @@ PyObject *PyWinObject_FromRECT(LPRECT prect)
     return Py_BuildValue("llll", prect->left, prect->top, prect->right, prect->bottom);
 }
 
-// Buffer conversion functions that use DWORD for length
-BOOL PyWinObject_AsReadBuffer(PyObject *ob, void **buf, DWORD *buf_len, BOOL bNoneOk)
-{
-    if (ob == Py_None) {
-        if (bNoneOk) {
-            *buf_len = 0;
-            *buf = NULL;
-            return TRUE;
-        }
-        PyErr_SetString(PyExc_TypeError, "Buffer cannot be None");
-        return FALSE;
-    }
-    Py_ssize_t py_len;
-    if (PyObject_AsReadBuffer(ob, (const void **)buf, &py_len) == -1)
-        return FALSE;
-
-#ifdef _WIN64
-    if (py_len > MAXDWORD) {
-        PyErr_Format(PyExc_ValueError, "Buffer length can be at most %d characters", MAXDWORD);
-        return FALSE;
-    }
-#endif
-
-    *buf_len = (DWORD)py_len;
-    return TRUE;
-}
-
-BOOL PyWinObject_AsWriteBuffer(PyObject *ob, void **buf, DWORD *buf_len, BOOL bNoneOk)
-{
-    if (ob == Py_None) {
-        if (bNoneOk) {
-            *buf_len = 0;
-            *buf = NULL;
-            return TRUE;
-        }
-        PyErr_SetString(PyExc_TypeError, "Buffer cannot be None");
-        return FALSE;
-    }
-    Py_ssize_t py_len;
-    if (PyObject_AsWriteBuffer(ob, buf, &py_len) == -1)
-        return FALSE;
-
-#ifdef _WIN64
-    if (py_len > MAXDWORD) {
-        PyErr_Format(PyExc_ValueError, "Buffer length can be at most %d characters", MAXDWORD);
-        return FALSE;
-    }
-#endif
-
-    *buf_len = (DWORD)py_len;
-    return TRUE;
-}
-
 // replacement for PyWinObject_AsReadBuffer and PyWinObject_AsWriteBuffer
 PyWinBufferView::PyWinBufferView()
 {

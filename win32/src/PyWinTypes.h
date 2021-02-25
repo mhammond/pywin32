@@ -270,20 +270,8 @@ class TmpWCHAR {
     ~TmpWCHAR() { PyWinObject_FreeWCHAR(tmp); }
 };
 
-// Buffer functions that can be used in place of 's#' input format or PyString_AsStringAndSize
-// for 64-bit compatibility and API consistency
-PYWINTYPES_EXPORT BOOL PyWinObject_AsReadBuffer(PyObject *ob, void **buf, DWORD *buf_len, BOOL bNoneOk = FALSE);
-PYWINTYPES_EXPORT BOOL PyWinObject_AsWriteBuffer(PyObject *ob, void **buf, DWORD *buf_len, BOOL bNoneOk = FALSE);
-
 // For 64-bit python compatibility, convert sequence to tuple and check length fits in a DWORD
 PYWINTYPES_EXPORT PyObject *PyWinSequence_Tuple(PyObject *obseq, DWORD *len);
-
-// an 'int' version (but aren't 'int' and 'DWORD' the same size?
-// Maybe a signed-ness issue?
-inline BOOL PyWinObject_AsReadBuffer(PyObject *ob, void **buf, int *buf_len, BOOL bNoneOk = FALSE)
-{
-    return PyWinObject_AsReadBuffer(ob, buf, (DWORD *)buf_len, bNoneOk);
-}
 
 // replacement for PyWinObject_AsReadBuffer and PyWinObject_AsWriteBuffer
 class PYWINTYPES_EXPORT PyWinBufferView
