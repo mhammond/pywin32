@@ -237,8 +237,6 @@ PyObject *MyConnectNamedPipe(PyObject *self, PyObject *args)
 PyObject *MyTransactNamedPipe(PyObject *self, PyObject *args)
 {
 	PyObject *obHandle, *obWriteData, *obReadData, *obOverlapped = Py_None;
-	void *writeData;
-	DWORD cbWriteData;
 	void *readData;
 	DWORD cbReadData;
 	HANDLE handle;
@@ -257,7 +255,8 @@ PyObject *MyTransactNamedPipe(PyObject *self, PyObject *args)
 	if (!PyWinObject_AsHANDLE(obHandle, &handle))
 		return NULL;
 
-	if (!PyWinObject_AsReadBuffer(obWriteData, &writeData, &cbWriteData, FALSE))
+	PyWinBufferView read_buf, write_buf(obWriteData);
+	if (!write_buf.ok())
 		return NULL;
 
 	if (obOverlapped!=Py_None && !PyWinObject_AsOVERLAPPED(obOverlapped, &pOverlapped))
@@ -273,9 +272,12 @@ PyObject *MyTransactNamedPipe(PyObject *self, PyObject *args)
 			if (obRet==NULL)
 				return NULL;
 			// This shouldn't fail for buffer just created, but new buffer interface is screwy ...
-			DWORD newbufsize;		// maybe also check new buffer size matched requested size ?
-			if (!PyWinObject_AsReadBuffer(obRet, &readData, &newbufsize))
-				return NULL;
+			// maybe also check new buffer size matched requested size ?
+			if (!read_buf.init(obRet, true)) {
+			    Py_DECREF(obRet);
+			    return NULL;
+			    }
+			readData = read_buf.ptr();
 		} else {
 			obRet=PyString_FromStringAndSize(NULL, cbReadData);
 			if (obRet==NULL)
@@ -285,10 +287,10 @@ PyObject *MyTransactNamedPipe(PyObject *self, PyObject *args)
 		}
 	} else {
 		PyErr_Clear();
-		if (!PyWinObject_AsWriteBuffer(obReadData, &readData, &cbReadData,FALSE)){
-			PyErr_SetString(PyExc_TypeError, "Third param must be an integer or writeable buffer object");
-			return NULL;
-			}
+		if (!read_buf.init(obReadData, true))
+		    return NULL;
+		readData = read_buf.ptr();
+		cbReadData = read_buf.len();
 		// If they didn't pass an overlapped, then we can't return the
 		// original buffer as they have no way to know how many bytes
 		// were read - so leave obRet NULL and the ret will be a new
@@ -301,7 +303,7 @@ PyObject *MyTransactNamedPipe(PyObject *self, PyObject *args)
 	BOOL ok;
 	DWORD numRead = 0;
 	Py_BEGIN_ALLOW_THREADS
-	ok = TransactNamedPipe(handle, writeData, cbWriteData, readData, cbReadData, &numRead, pOverlapped);
+	ok = TransactNamedPipe(handle, write_buf.ptr(), write_buf.len(), readData, cbReadData, &numRead, pOverlapped);
 	Py_END_ALLOW_THREADS
 	DWORD err = 0;
 	if (!ok) {
