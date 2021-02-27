@@ -3587,7 +3587,17 @@ static BOOL PyWinObject_AsRegistryValue(PyObject *value, DWORD typ, BYTE **retDa
         // ALSO handle ALL unknown data types here.  Even if we cant support
         // it natively, we should handle the bits.
         default:
-            return PyWinObject_AsReadBuffer(value, (void **)retDataBuf, retDataSize, TRUE);
+        {
+            PyWinBufferView pybuf(value, false, true); // None ok
+            if (!pybuf.ok())
+                return FALSE;
+
+            // note: this might be unsafe, as we give away the buffer pointer to a
+            // client outside of the scope where our RAII object 'pybuf' resides.
+            *retDataBuf = (BYTE*)pybuf.ptr();
+            *retDataSize = pybuf.len();
+            return TRUE;
+        }
     }
 }
 

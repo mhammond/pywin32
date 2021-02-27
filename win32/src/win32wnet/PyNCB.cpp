@@ -290,13 +290,13 @@ int PyNCB::setattro(PyObject *self, PyObject *obname, PyObject *v)
             Py_INCREF(ob_buf);
         }
 
-        void *buf;
-        DWORD buflen;
-        if (!PyWinObject_AsWriteBuffer(ob_buf, &buf, &buflen)) {
+        PyWinBufferView pybuf(ob_buf, true);
+        if (!pybuf.ok()) {
             Py_DECREF(ob_buf);
             return -1;
         }
-        if (buflen > USHRT_MAX) {
+        
+        if (pybuf.len() > USHRT_MAX) {
             Py_DECREF(ob_buf);
             PyErr_Format(PyExc_ValueError, "Buffer can be at most %d bytes", USHRT_MAX);
             return -1;
@@ -306,8 +306,10 @@ int PyNCB::setattro(PyObject *self, PyObject *obname, PyObject *v)
         Py_XDECREF(This->m_obuserbuffer);
         Py_INCREF(v);
         This->m_obuserbuffer = v;
-        This->m_ncb.ncb_length = (WORD)buflen;
-        This->m_ncb.ncb_buffer = (PUCHAR)buf;
+        // note: this might be unsafe, as we give away the buffer pointer to a
+        // client outside of the scope where our RAII object 'pybuf' resides.
+        This->m_ncb.ncb_length = (WORD)pybuf.len();
+        This->m_ncb.ncb_buffer = (PUCHAR)pybuf.ptr();
         return 0;
     }
     return PyObject_GenericSetAttr(self, obname, v);

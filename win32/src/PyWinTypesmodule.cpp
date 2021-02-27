@@ -640,9 +640,13 @@ BOOL PyWinObject_AsPARAM(PyObject *ob, WPARAM *pparam)
         return TRUE;
     }
 #endif
-    DWORD bufsize;
-    if (PyWinObject_AsReadBuffer(ob, (VOID **)pparam, &bufsize))
+    PyWinBufferView pybuf(ob);
+    if (pybuf.ok()) {
+        // note: this might be unsafe, as we give away the buffer pointer to a
+        // client outside of the scope where our RAII object 'pybuf' resides.
+        *pparam = (WPARAM)pybuf.ptr();
         return TRUE;
+    }
 
     PyErr_Clear();
     if (PyWinLong_AsVoidPtr(ob, (void **)pparam))

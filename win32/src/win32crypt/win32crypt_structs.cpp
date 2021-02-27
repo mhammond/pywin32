@@ -4,10 +4,13 @@ PyObject *dummy_tuple = PyTuple_New(0);
 
 BOOL PyWinObject_AsDATA_BLOB(PyObject *ob, DATA_BLOB *b)
 {
-    Py_ssize_t cb;
-    if (PyObject_AsReadBuffer(ob, (const void **)(&b->pbData), &cb) != 0)
+    PyWinBufferView pybuf(ob);
+    if (!pybuf.ok())
         return FALSE;
-    b->cbData = PyWin_SAFE_DOWNCAST(cb, Py_ssize_t, int);
+    // note: this might be unsafe, as we give away the buffer pointer to a
+    // client outside of the scope where our RAII object 'pybuf' resides.
+    b->pbData = (BYTE*)pybuf.ptr();
+    b->cbData = PyWin_SAFE_DOWNCAST(pybuf.len(), Py_ssize_t, int);
     return TRUE;
 }
 
@@ -268,11 +271,20 @@ BOOL PyWinObject_AsCRYPT_BIT_BLOB(PyObject *obcbb, PCRYPT_BIT_BLOB pcbb)
         return FALSE;
     }
     ZeroMemory(pcbb, sizeof(CRYPT_BIT_BLOB));
-    return PyArg_ParseTupleAndKeywords(
-               dummy_tuple, obcbb, "Ok:CRYPT_BIT_BLOB", cbb_keys,
-               &obdata,             // @prop buffer|Data|Binary data
-               &pcbb->cUnusedBits)  // @prop int|UnusedBits|Nbr of bits of last byte that are unused
-           && PyWinObject_AsReadBuffer(obdata, (void **)&pcbb->pbData, &pcbb->cbData, FALSE);
+    PyWinBufferView pybuf;
+    if (PyArg_ParseTupleAndKeywords(
+            dummy_tuple, obcbb, "Ok:CRYPT_BIT_BLOB", cbb_keys,
+            &obdata,             // @prop buffer|Data|Binary data
+            &pcbb->cUnusedBits)  // @prop int|UnusedBits|Nbr of bits of last byte that are unused
+            ) 
+        if (pybuf.init(obdata)) {
+            // note: this might be unsafe, as we give away the buffer pointer to a
+            // client outside of the scope where our RAII object 'pybuf' resides.
+            pcbb->pbData = (BYTE*)pybuf.ptr();
+            pcbb->cbData = pybuf.len();
+            return TRUE;
+        }
+    return FALSE;
 }
 
 // @object PyCERT_NAME_VALUE|Dict containing type (CERT_RDN_*) and a unicode string
@@ -812,8 +824,13 @@ BOOL PyWinObject_AsPBYTEArray(PyObject *str_seq, PBYTE **pbyte_array, DWORD **by
 
     for (tuple_index = 0; tuple_index < *str_cnt; tuple_index++) {
         PyObject *tuple_item = PyTuple_GET_ITEM((PyObject *)str_tuple, tuple_index);
-        if (!PyWinObject_AsReadBuffer(tuple_item, (void **)&((*pbyte_array)[tuple_index]), &(*byte_lens)[tuple_index]))
+        PyWinBufferView pybuf(tuple_item);
+        if (!pybuf.ok())
             goto cleanup;
+        // note: this might be unsafe, as we give away the buffer pointer to a
+        // client outside of the scope where our RAII object 'pybuf' resides.
+        (*pbyte_array)[tuple_index] = (BYTE*)pybuf.ptr();
+        (*byte_lens)[tuple_index] = pybuf.len();
     }
     ret = TRUE;
 
