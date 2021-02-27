@@ -528,14 +528,13 @@ static PyObject *rawCopy(const void *v, SQLLEN sz)
     PyObject *ret = PyBuffer_New(sz);
     if (!ret)
         return NULL;
-    void *buf;
-    DWORD buflen;
     // Should not fail, but check anyway
-    if (!PyWinObject_AsWriteBuffer(ret, &buf, &buflen)) {
+    PyWinBufferView pybuf(ret, true);
+    if (!pybuf.ok()) {
         Py_DECREF(ret);
         return NULL;
     }
-    memcpy(buf, v, sz);
+    memcpy(pybuf.ptr(), v, sz);
     return ret;
 }
 
@@ -743,21 +742,20 @@ static int ibindDate(cursorObject *cur, int column, PyObject *item)
 
 static int ibindRaw(cursorObject *cur, int column, PyObject *item)
 {
-    void *val;
-    DWORD len;
-    if (!PyWinObject_AsReadBuffer(item, &val, &len))
+    PyWinBufferView pybuf(item);
+    if (!pybuf.ok())
         return 0;
-    InputBinding *ib = initInputBinding(cur, len);
+    InputBinding *ib = initInputBinding(cur, pybuf.len());
     if (!ib)
         return 0;
     ib->bPutData = true;
 
-    memcpy(ib->bind_area, val, len);
+    memcpy(ib->bind_area, pybuf.ptr(), pybuf.len());
 
     RETCODE rc = SQL_SUCCESS;
     ib->sqlBytesAvailable = SQL_LEN_DATA_AT_EXEC(ib->len);
-    rc = SQLBindParameter(cur->hstmt, column, SQL_PARAM_INPUT, SQL_C_BINARY, SQL_LONGVARBINARY, len, 0, ib->bind_area,
-                          len, &ib->len);
+    rc = SQLBindParameter(cur->hstmt, column, SQL_PARAM_INPUT, SQL_C_BINARY, SQL_LONGVARBINARY, pybuf.len(), 0,
+                          ib->bind_area, pybuf.len(), &ib->len);
     if (unsuccessful(rc)) {
         cursorError(cur, _T("input-binding"));
         return 0;

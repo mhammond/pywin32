@@ -665,18 +665,19 @@ BOOL PyWinObject_AsCRYPT_ATTRIBUTE(PyObject *obca, PCRYPT_ATTRIBUTE pca)
     ZeroMemory(pca->rgValue, pca->cValue * sizeof(PCRYPT_ATTR_BLOB));
     for (value_ind = 0; value_ind < pca->cValue; value_ind++) {
         obvalue = PyTuple_GET_ITEM((PyObject *)tuple_values, value_ind);
-        if (!PyWinObject_AsReadBuffer(obvalue, (void **)&buf, &bufsize, FALSE)) {
+        PyWinBufferView pybuf(obvalue);
+        if (!pybuf.ok()) {
             ret = FALSE;
             break;
         }
         // Don't know if these blobs are modified anywhere, so copy the data instead of using python's internal buffer
-        pca->rgValue[value_ind].pbData = (BYTE *)malloc(bufsize);
+        pca->rgValue[value_ind].pbData = (BYTE *)malloc(pybuf.len());
         if (pca->rgValue[value_ind].pbData == NULL) {
             PyErr_NoMemory();
             ret = FALSE;
             break;
         }
-        memcpy(pca->rgValue[value_ind].pbData, buf, bufsize);
+        memcpy(pca->rgValue[value_ind].pbData, pybuf.ptr(), pybuf.len());
         pca->rgValue[value_ind].cbData = bufsize;
     }
     if (!ret)

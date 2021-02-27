@@ -524,12 +524,12 @@ static BOOL PyCom_SAFEARRAYFromPyObjectBuildDimension(PyObject *obj, SAFEARRAY *
     // so, we can copy the entire dimension in one hit
     // (only support single segment buffers for now)
     if (dimNo == nDims && vt == VT_UI1 && obj->ob_type->tp_as_buffer) {
-        DWORD bufSize;
-        void *ob_buf, *sa_buf;
-        if (!PyWinObject_AsReadBuffer(obj, &ob_buf, &bufSize))
+        void *sa_buf;
+        PyWinBufferView pybuf(obj);
+        if (!pybuf.ok())
             return FALSE;
 
-        if (bufSize != numElements) {
+        if (pybuf.len() != numElements) {
             OleSetTypeError(_T("Internal error - the buffer length is not the sequence length!"));
             return FALSE;
         }
@@ -539,7 +539,7 @@ static BOOL PyCom_SAFEARRAYFromPyObjectBuildDimension(PyObject *obj, SAFEARRAY *
             PyCom_BuildPyException(hr);
             return FALSE;
         }
-        memcpy(sa_buf, ob_buf, bufSize);
+        memcpy(sa_buf, pybuf.ptr(), pybuf.len());
         SafeArrayUnaccessData(pSA);
         // All done without a single loop :-)
         return TRUE;
@@ -1006,19 +1006,19 @@ PyObject *PyCom_PyObjectFromSAFEARRAYBuildDimension(SAFEARRAY *psa, VARENUM vt, 
         PyObject *ret = PyBuffer_New(dataSize);
         if (ret != NULL) {
             // Access the buffer object using the buffer interfaces.
-            DWORD count;
-            if (!PyWinObject_AsWriteBuffer(ret, &ob_buf, &count)) {
+            PyWinBufferView pybuf(ret, true);
+            if (!pybuf.ok()) {
                 SafeArrayUnaccessData(psa);
                 Py_DECREF(ret);
                 return NULL;
             }
-            if (count != cElems) {
+            if (pybuf.len() != cElems) {
                 PyErr_SetString(PyExc_RuntimeError, "buffer size is not what we created!");
                 SafeArrayUnaccessData(psa);
                 Py_DECREF(ret);
                 return NULL;
             }
-            memcpy(ob_buf, sa_buf, dataSize);
+            memcpy(pybuf.ptr(), sa_buf, dataSize);
         }
         SafeArrayUnaccessData(psa);
         return ret;

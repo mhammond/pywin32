@@ -420,24 +420,23 @@ int PySecBuffer::setattro(PyObject *self, PyObject *obname, PyObject *obvalue)
 {
     PySecBuffer *This = (PySecBuffer *)self;
     char *name;
-    void *value;
-    DWORD valuelen;
     name = PYWIN_ATTR_CONVERT(obname);
     if (name == NULL)
         return -1;
     if (strcmp(name, "Buffer") == 0) {
-        if (!PyWinObject_AsReadBuffer(obvalue, &value, &valuelen))
+        PyWinBufferView pybuf(obvalue);
+        if (!pybuf.ok())
             return -1;
         PSecBuffer psecbuffer = This->GetSecBuffer();
-        if (valuelen > This->maxbufsize) {
-            PyErr_Format(PyExc_ValueError, "Data size (%d) greater than allocated buffer size (%d)", valuelen,
+        if (pybuf.len() > This->maxbufsize) {
+            PyErr_Format(PyExc_ValueError, "Data size (%d) greater than allocated buffer size (%d)", pybuf.len(),
                          This->maxbufsize);
             return -1;
         }
         ZeroMemory(psecbuffer->pvBuffer, This->maxbufsize);
-        memcpy(psecbuffer->pvBuffer, value, valuelen);
+        memcpy(psecbuffer->pvBuffer, pybuf.ptr(), pybuf.len());
         // buffer length should be size of actual data, allocated size is kept in our own maxbufsize
-        psecbuffer->cbBuffer = valuelen;
+        psecbuffer->cbBuffer = pybuf.len();
         return 0;
     }
 

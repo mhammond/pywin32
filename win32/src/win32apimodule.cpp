@@ -5292,8 +5292,6 @@ static PyObject *PyUpdateResource(PyObject *self, PyObject *args)
     PyObject *obName;
     PyObject *ret = NULL;
     PyObject *obData;
-    LPVOID lpData;
-    DWORD cbData;
     WORD wLanguage = MAKELANGID(LANG_NEUTRAL, SUBLANG_NEUTRAL);
     LPWSTR lpType = NULL, lpName = NULL;
 
@@ -5306,9 +5304,10 @@ static PyObject *PyUpdateResource(PyObject *self, PyObject *args)
                           ))
         return NULL;
 
+    PyWinBufferView pybuf;
     if (PyWinObject_AsHANDLE(obhUpdate, (HANDLE *)&hUpdate) && PyWinObject_AsResourceIdW(obType, &lpType) &&
-        PyWinObject_AsResourceIdW(obName, &lpName) && PyWinObject_AsReadBuffer(obData, &lpData, &cbData, TRUE)) {
-        if (UpdateResourceW(hUpdate, lpType, lpName, wLanguage, lpData, cbData)) {
+        PyWinObject_AsResourceIdW(obName, &lpName) && pybuf.init(obData, false, true)) {
+        if (UpdateResourceW(hUpdate, lpType, lpName, wLanguage, pybuf.ptr(), pybuf.len())) {
             Py_INCREF(Py_None);
             ret = Py_None;
         }

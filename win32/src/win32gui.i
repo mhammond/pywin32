@@ -1698,24 +1698,23 @@ static PyObject *PySetString(PyObject *self, PyObject *args)
 static PyObject *PySetMemory(PyObject *self, PyObject *args)
 {
 	void *addr;
-	const void *src;
 	PyObject *obaddr, *obsrc;
-	Py_ssize_t nbytes;
 
-	// @pyparm int|addr||Address of the memory to reference 
+	// @pyparm int|addr||Address of the memory to reference
 	// @pyparm string or buffer|String||The string to copy
 	if (!PyArg_ParseTuple(args, "OO:PySetMemory", &obaddr, &obsrc))
 		return NULL;
 	if (!PyWinLong_AsVoidPtr(obaddr, &addr))
 		return NULL;
-	if (PyObject_AsReadBuffer(obsrc, &src, &nbytes)==-1)
+	PyWinBufferView pybuf(obsrc);
+	if (!pybuf.ok())
 		return NULL;
-	if (IsBadWritePtr(addr, nbytes)) {
+	if (IsBadWritePtr(addr, pybuf.len())) {
 		PyErr_SetString(PyExc_ValueError,
 		                "The value is not a valid address for writing");
 		return NULL;
 	}
-	memcpy(addr, src, nbytes);
+	memcpy(addr, pybuf.ptr(), pybuf.len());
 	Py_INCREF(Py_None);
 	return Py_None;
 }
@@ -1729,17 +1728,17 @@ static PyObject *PyGetArraySignedLong(PyObject *self, PyObject *args)
 {
 	PyObject *ob;
 	int offset;
-	Py_ssize_t maxlen;
 
 	// @pyparm array|array||array object to use
 	// @pyparm int|index||index of offset
 	if (!PyArg_ParseTuple(args, "Oi:PyGetArraySignedLong",&ob,&offset))
 		return NULL;
-	long *l;
-	if (PyObject_AsReadBuffer(ob, (const void **) &l, &maxlen)==-1)
+	PyWinBufferView pybuf(ob);
+	if (!pybuf.ok())
 		return NULL;
+	long *l = (long*)pybuf.ptr();
 
-	if(offset * sizeof(*l) > maxlen) {
+	if(offset * sizeof(*l) > pybuf.len()) {
 		PyErr_SetString(PyExc_ValueError,"array index out of bounds");
 		return NULL;
 		}
@@ -1759,9 +1758,10 @@ static PyObject *PyGetBufferAddressAndLen(PyObject *self, PyObject *args)
 	// @pyparm buffer|obj||the buffer object
 	if (!PyArg_ParseTuple(args, "O:PyGetBufferAddressAndLen", &ob))
 		return NULL;
-	if (PyObject_AsReadBuffer(ob, &addr, &len) == -1)
+	PyWinBufferView pybuf(ob);
+	if (!pybuf.ok())
 		return NULL;
-	return Py_BuildValue("NN", PyWinLong_FromVoidPtr(addr), PyInt_FromSsize_t(len));
+	return Py_BuildValue("NN", PyWinLong_FromVoidPtr(pybuf.ptr()), PyInt_FromSsize_t(pybuf.len()));
 }
 %}
 %native (PyGetBufferAddressAndLen) PyGetBufferAddressAndLen;
@@ -2643,9 +2643,10 @@ static PyObject *PyCreateIconFromResource(PyObject *self, PyObject *args)
 	PyObject *obbits;
 	if (!PyArg_ParseTuple(args, "Oi|i", &obbits, &isIcon, &ver))
 		return NULL;
-	if (!PyWinObject_AsReadBuffer(obbits, (void **)&bits, &nBits, FALSE))
+	PyWinBufferView pybuf(obbits);
+	if (!pybuf.ok())
 		return NULL;
-	HICON ret = CreateIconFromResource(bits, nBits, isIcon, ver);
+	HICON ret = CreateIconFromResource((PBYTE)pybuf.ptr(), pybuf.len(), isIcon, ver);
 	if (!ret)
 	    return PyWin_SetAPIError("CreateIconFromResource");
 	return PyWinLong_FromHANDLE(ret);
@@ -4592,56 +4593,137 @@ BOOL GetOpenFileName(OPENFILENAME *INPUT);
 
 #ifndef MS_WINCE
 
-%typemap (python, in) MENUITEMINFO *INPUT (Py_ssize_t target_size){
-	if (0 != PyObject_AsReadBuffer($source, (const void **)&$target, &target_size))
-		return NULL;
-	if (sizeof(MENUITEMINFO) != target_size)
-		return PyErr_Format(PyExc_TypeError, "Argument must be a %d-byte string/buffer (got %d bytes)", sizeof(MENUITEMINFO), target_size);
-}
-
-%typemap (python,in) MENUITEMINFO *BOTH(Py_ssize_t target_size) {
-	if (0 != PyObject_AsWriteBuffer($source, (void **)&$target, &target_size))
-		return NULL;
-	if (sizeof(MENUITEMINFO) != target_size)
-		return PyErr_Format(PyExc_TypeError, "Argument must be a %d-byte buffer (got %d bytes)", sizeof(MENUITEMINFO), target_size);
-}
-
-%typemap (python, in) MENUINFO *INPUT (Py_ssize_t target_size){
-	if (0 != PyObject_AsReadBuffer($source, (const void **)&$target, &target_size))
-		return NULL;
-	if (sizeof(MENUINFO) != target_size)
-		return PyErr_Format(PyExc_TypeError, "Argument must be a %d-byte string/buffer (got %d bytes)", sizeof(MENUINFO), target_size);
-}
-
-%typemap (python,in) MENUINFO *BOTH(Py_ssize_t target_size) {
-	if (0 != PyObject_AsWriteBuffer($source, (void **)&$target, &target_size))
-		return NULL;
-	if (sizeof(MENUINFO) != target_size)
-		return PyErr_Format(PyExc_TypeError, "Argument must be a %d-byte buffer (got %d bytes)", sizeof(MENUINFO), target_size);
-}
-
+%{
 // @pyswig |InsertMenuItem|Inserts a menu item
 // @pyparm int|hMenu||Handle to the menu
-// @pyparm int|uItem||The menu item identifier or the menu item position. 
+// @pyparm int|uItem||The menu item identifier or the menu item position.
 // @pyparm int|fByPosition||Boolean value of True if uItem is set to a menu item position. This parameter is set to False if uItem is set to a menu item identifier.
 // @pyparm buffer|menuItem||A string or buffer in the format of a <o MENUITEMINFO> structure.
-BOOLAPI InsertMenuItem(HMENU hMenu, UINT uItem, BOOL fByPosition, MENUITEMINFO *INPUT);
+static PyObject *PyInsertMenuItem(PyObject *self, PyObject *args)
+{
+	HMENU  hMenu;
+	UINT  uItem;
+	BOOL  fByPosition;
+	PyObject *info_obj;
+	PyObject * menu_obj;
+	if (!PyArg_ParseTuple(args, "OiiO:InsertMenuItem", &menu_obj, &uItem,
+		&fByPosition,
+		&info_obj))
+		return NULL;
 
+	if (!PyWinObject_AsHANDLE(menu_obj, (HANDLE*)&hMenu))
+		return NULL;
+
+	PyWinBufferView pybuf(info_obj);
+	if (!pybuf.ok())
+		return NULL;
+	if (sizeof(MENUITEMINFO) != pybuf.len())
+		return PyErr_Format(PyExc_TypeError,
+		                    "Argument must be a %d-byte string/buffer (got %d bytes)",
+		                    sizeof(MENUITEMINFO), pybuf.len());
+	MENUITEMINFO *pmii = (MENUITEMINFO*)pybuf.ptr();
+
+	BOOL result;
+	Py_BEGIN_ALLOW_THREADS
+	result = InsertMenuItem(hMenu,uItem,fByPosition,pmii);
+	Py_END_ALLOW_THREADS
+
+	if (!result)
+		return PyWin_SetAPIError("InsertMenuItem");
+
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+%}
+%native (InsertMenuItem) PyInsertMenuItem;
+
+%{
 // @pyswig |SetMenuItemInfo|Sets menu information
 // @pyparm int|hMenu||Handle to the menu
-// @pyparm int|uItem||The menu item identifier or the menu item position. 
+// @pyparm int|uItem||The menu item identifier or the menu item position.
 // @pyparm int|fByPosition||Boolean value of True if uItem is set to a menu item position. This parameter is set to False if uItem is set to a menu item identifier.
 // @pyparm buffer|menuItem||A string or buffer in the format of a <o MENUITEMINFO> structure.
-BOOLAPI SetMenuItemInfo(HMENU hMenu, UINT uItem, BOOL fByPosition, MENUITEMINFO *INPUT);
+static PyObject *PySetMenuItemInfo(PyObject *self, PyObject *args)
+{
+	HMENU hMenu;
+	UINT item;
+	BOOL fByPositon;
+	PyObject *menu_obj;
+	PyObject *info_obj;
+	if (!PyArg_ParseTuple(args, "OiiO:SetMenuItemInfo", &menu_obj, &item,
+		&fByPositon,
+		&info_obj))
+		return NULL;
+	if (!PyWinObject_AsHANDLE(menu_obj, (HANDLE*)&hMenu))
+		return NULL;
 
+	PyWinBufferView pybuf(info_obj);
+	if (!pybuf.ok())
+		return NULL;
+	if (sizeof(MENUITEMINFO) != pybuf.len())
+		return PyErr_Format(PyExc_TypeError,
+		                    "Argument must be a %d-byte string/buffer (got %d bytes)",
+		                    sizeof(MENUITEMINFO), pybuf.len());
+	MENUITEMINFO *pmii = (MENUITEMINFO*)pybuf.ptr();
+
+	BOOL result;
+	Py_BEGIN_ALLOW_THREADS
+	result = SetMenuItemInfo(hMenu, item, fByPositon, pmii);
+	Py_END_ALLOW_THREADS
+
+	if (!result)
+		return PyWin_SetAPIError("SetMenuItemInfo");
+
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+%}
+%native (SetMenuItemInfo) PySetMenuItemInfo;
+
+%{
 // @pyswig |GetMenuItemInfo|Gets menu information
 // @pyparm int|hMenu||Handle to the menu
 // @pyparm int|uItem||The menu item identifier or the menu item position. 
 // @pyparm int|fByPosition||Boolean value of True if uItem is set to a menu item position. This parameter is set to False if uItem is set to a menu item identifier.
-// @pyparm buffer|menuItem||A string or buffer in the format of a <o MENUITEMINFO> structure.
-BOOLAPI GetMenuItemInfo(HMENU hMenu, UINT uItem, BOOL fByPosition, MENUITEMINFO *BOTH);
+// @pyparm buffer|menuItem||A string or buffer that will receive the information in the format of a <o MENUITEMINFO> structure.
+static PyObject *PyGetMenuItemInfo(PyObject *self, PyObject *args)
+{
+	HMENU hMenu;
+	UINT item;
+	BOOL fByPosition;
+	PyObject* menu_obj;
+	PyObject* info_obj;
+	if (!PyArg_ParseTuple(args, "OiiO:GetMenuItemInfo", &menu_obj, &item,
+		&fByPosition,
+		&info_obj))
+		return NULL;
+	if (!PyWinObject_AsHANDLE(menu_obj, (HANDLE *)&hMenu))
+		return NULL;
 
-#endif
+	PyWinBufferView pybuf(info_obj, true);
+	if (!pybuf.ok())
+		return NULL;
+	if (sizeof(MENUITEMINFO) != pybuf.len())
+		return PyErr_Format(PyExc_TypeError,
+		                    "Argument must be a %d-byte string/buffer (got %d bytes)",
+		                    sizeof(MENUITEMINFO), pybuf.len());
+	MENUITEMINFO *pmii = (MENUITEMINFO*)pybuf.ptr();
+
+	BOOL result;
+	Py_BEGIN_ALLOW_THREADS
+	result = GetMenuItemInfo(hMenu, item, fByPosition, pmii);
+	Py_END_ALLOW_THREADS
+
+	if (!result)
+		return PyWin_SetAPIError("GetMenuItemInfo");
+
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+%}
+%native (GetMenuItemInfo) PyGetMenuItemInfo;
+
+#endif /* not MS_WINCE */
 
 #ifndef MS_WINCE
 // @pyswig int|GetMenuItemCount|
@@ -4736,8 +4818,6 @@ PyObject *PySetMenuInfo(PyObject *self, PyObject *args)
 	CHECK_PFN(SetMenuInfo);
 	PyObject *obMenu, *obInfo;
 	HMENU hmenu;
-	Py_ssize_t cbInfo;
-	MENUINFO *pInfo;
 	BOOL result;
 	// @pyparm int|hmenu||handle to menu
 	// @pyparm <o MENUINFO>|info||menu information in the format of a buffer.
@@ -4747,13 +4827,14 @@ PyObject *PySetMenuInfo(PyObject *self, PyObject *args)
 	if (!PyWinObject_AsHANDLE(obMenu, (HANDLE *)&hmenu))
 		return NULL;
 
-	if (0 != PyObject_AsReadBuffer(obInfo, (const void **)&pInfo, &cbInfo))
+	PyWinBufferView pybuf(obInfo);
+	if (!pybuf.ok())
 		return NULL;
-	if (sizeof(MENUINFO) != cbInfo)
-		return PyErr_Format(PyExc_TypeError, "Argument must be a %d byte string/buffer (got %d bytes)", sizeof(MENUINFO), cbInfo);
+	if (sizeof(MENUINFO) != pybuf.len())
+		return PyErr_Format(PyExc_TypeError, "Argument must be a %d byte string/buffer (got %d bytes)", sizeof(MENUINFO), pybuf.len());
 
 	Py_BEGIN_ALLOW_THREADS
-	result = (*pfnSetMenuInfo)(hmenu, pInfo);
+	result = (*pfnSetMenuInfo)(hmenu, (MENUINFO*)pybuf.ptr());
 	Py_END_ALLOW_THREADS
 	if (!result)
 		return PyWin_SetAPIError("SetMenuInfo");
@@ -4773,8 +4854,6 @@ PyObject *PyGetMenuInfo(PyObject *self, PyObject *args)
 	CHECK_PFN(GetMenuInfo);
 	PyObject *obMenu, *obInfo;
 	HMENU hmenu;
-	Py_ssize_t cbInfo;
-	MENUINFO *pInfo;
 	BOOL result;
 	// @pyparm int|hmenu||handle to menu
 	// @pyparm buffer|info||A buffer to fill with the information.
@@ -4784,13 +4863,14 @@ PyObject *PyGetMenuInfo(PyObject *self, PyObject *args)
 	if (!PyWinObject_AsHANDLE(obMenu, (HANDLE *)&hmenu))
 		return NULL;
 
-	if (0 != PyObject_AsWriteBuffer(obInfo, (void **)&pInfo, &cbInfo))
+	PyWinBufferView pybuf(obInfo, true);
+	if (!pybuf.ok())
 		return NULL;
-	if (sizeof(MENUINFO) != cbInfo)
-		return PyErr_Format(PyExc_TypeError, "Argument must be a %d byte buffer (got %d bytes)", sizeof(MENUINFO), cbInfo);
+	if (sizeof(MENUINFO) != pybuf.len())
+		return PyErr_Format(PyExc_TypeError, "Argument must be a %d byte buffer (got %d bytes)", sizeof(MENUINFO), pybuf.len());
 
 	Py_BEGIN_ALLOW_THREADS
-	result = (*pfnGetMenuInfo)(hmenu, pInfo);
+	result = (*pfnGetMenuInfo)(hmenu, (MENUINFO*)pybuf.ptr());
 	Py_END_ALLOW_THREADS
 	if (!result)
 		return PyWin_SetAPIError("GetMenuInfo");
@@ -7499,21 +7579,20 @@ PyObject *PyRegisterDeviceNotification(PyObject *self, PyObject *args)
 	HANDLE handle;
 	if (!PyWinObject_AsHANDLE(obh, &handle))
 		return NULL;
-	const void *filter;
-	Py_ssize_t nbytes;
-	if (PyObject_AsReadBuffer(obFilter, &filter, &nbytes)==-1)
+    PyWinBufferView pybuf(obFilter);
+	if (!pybuf.ok())
 		return NULL;
-	// basic sanity check.
-	Py_ssize_t struct_bytes = ((DEV_BROADCAST_HDR *)filter)->dbch_size;
-	if (nbytes != struct_bytes)
+    // basic sanity check.
+    Py_ssize_t struct_bytes = ((DEV_BROADCAST_HDR *)pybuf.ptr())->dbch_size;
+	if (pybuf.len() != struct_bytes)
 		return PyErr_Format(PyExc_ValueError,
 				"buffer isn't a DEV_BROADCAST_* structure: "
 				"structure says it has %d bytes, but %d was provided",
-				(int)struct_bytes, (int)nbytes);
+				(int)struct_bytes, (int)pybuf.len());
 	// @pyseeapi RegisterDeviceNotification
 	HDEVNOTIFY not;
 	Py_BEGIN_ALLOW_THREADS
-	not = RegisterDeviceNotification(handle, (void *)filter, flags);
+	not = RegisterDeviceNotification(handle, pybuf.ptr(), flags);
 	Py_END_ALLOW_THREADS
 	if (not == NULL)
 		return PyWin_SetAPIError("RegisterDeviceNotification");

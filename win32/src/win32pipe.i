@@ -324,8 +324,6 @@ PyObject *MyTransactNamedPipe(PyObject *self, PyObject *args)
 PyObject *MyCallNamedPipe(PyObject *self, PyObject *args)
 {
 	PyObject *obPipeName, *obdata;
-	void *data;
-	DWORD dataSize;
 	DWORD timeOut;
 	DWORD readBufSize;
 	TCHAR *szPipeName;
@@ -339,7 +337,8 @@ PyObject *MyCallNamedPipe(PyObject *self, PyObject *args)
 		// @flag win32pipe.NMPWAIT_WAIT_FOREVER|Waits indefinitely. 
 		// @flag win32pipe.NMPWAIT_USE_DEFAULT_WAIT|Uses the default time-out specified in a call to the CreateNamedPipe function. 
 		return NULL;
-	if (!PyWinObject_AsReadBuffer(obdata, &data, &dataSize, FALSE))
+	PyWinBufferView pybuf(obdata);
+	if (!pybuf.ok())
 		return NULL;
 	if (!PyWinObject_AsTCHAR(obPipeName, &szPipeName))
 		return NULL;
@@ -351,7 +350,7 @@ PyObject *MyCallNamedPipe(PyObject *self, PyObject *args)
 	DWORD numRead = 0;
 	BOOL ok;
 	Py_BEGIN_ALLOW_THREADS
-	ok = CallNamedPipe(szPipeName, data, dataSize, readBuf, readBufSize, &numRead, timeOut);
+	ok = CallNamedPipe(szPipeName, pybuf.ptr(), pybuf.len(), readBuf, readBufSize, &numRead, timeOut);
 	Py_END_ALLOW_THREADS
 	if (!ok) {
 		PyWinObject_FreeTCHAR(szPipeName);

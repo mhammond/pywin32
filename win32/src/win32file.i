@@ -1538,18 +1538,18 @@ PyObject *PyFILE_NOTIFY_INFORMATION(PyObject *self, PyObject *args)
 	// @pyparm int|size||The number of bytes to refer to.  Generally this
 	// will be smaller than the size of the buffer (and certainly never greater!)
 	// @comm See <om win32file.ReadDirectoryChangesW> for more information.
-	DWORD bufSize, size;
-	void *buf;
+	DWORD size;
 	PyObject *obbuf;
 	if (!PyArg_ParseTuple(args, "Oi", &obbuf, &size))
 		return NULL;
-	if (!PyWinObject_AsReadBuffer(obbuf, &buf, &bufSize, FALSE))
+	PyWinBufferView pybuf(obbuf);		
+	if (!pybuf.ok())
 		return NULL;
-	if (size > bufSize)
+	if (size > pybuf.len())
 		return PyErr_Format(PyExc_ValueError, "buffer is only %d bytes long, but %d bytes were requested",
-		                    bufSize, size);
+		                    pybuf.len(), size);
 
-	return PyObject_FromFILE_NOTIFY_INFORMATION((void *)buf, size);
+	return PyObject_FromFILE_NOTIFY_INFORMATION(pybuf.ptr(), size);
 }
 
 %}
@@ -2116,14 +2116,12 @@ PyObject *MyGetAcceptExSockaddrs
 	UINT cbSize = sizeof(wsProtInfo);
 	SOCKADDR *psaddrLocal = NULL;
 	SOCKADDR *psaddrRemote = NULL;
-	void *buf = NULL;
 	PyObject *pORB = NULL;
 	INT cbLocal = 0;
 	INT cbRemote = 0;
 	SOCKADDR_IN *psaddrIN = NULL;
 	PyObject *obTemp = NULL;
 	int rc;
-	DWORD dwBufSize;
 
 	if (!PyArg_ParseTuple(
 		args,
@@ -2155,10 +2153,11 @@ PyObject *MyGetAcceptExSockaddrs
 			return NULL;
 	}
 	iMinBufferSize = (wsProtInfo.iMaxSockAddr + 16) * 2;
-	if (!PyWinObject_AsReadBuffer(obBuf, &buf, &dwBufSize))
+	PyWinBufferView pybuf(obBuf);
+	if (!pybuf.ok())
 		return NULL;
 
-	if (dwBufSize < (DWORD)iMinBufferSize )
+	if (pybuf.len() < (DWORD)iMinBufferSize )
 	{
 		PyErr_Format(
 			PyExc_ValueError,
@@ -2170,8 +2169,8 @@ PyObject *MyGetAcceptExSockaddrs
 	cbRemote = cbLocal = wsProtInfo.iMaxSockAddr + 16;
 	Py_BEGIN_ALLOW_THREADS
 	GetAcceptExSockaddrs(
-		buf,
-		dwBufSize - iMinBufferSize,
+		pybuf.ptr(),
+		pybuf.len() - iMinBufferSize,
 		cbLocal,
 		cbRemote,
 		&psaddrLocal,
@@ -3855,8 +3854,7 @@ py_BackupRead(PyObject *self, PyObject *args)
 	// @pyparm int|bProcessSecurity||Indicates whether file's ACL stream should be read
 	// @pyparm int|lpContext||Pass 0 on first call, then pass back value returned from last call thereafter
 	HANDLE h;
-	BYTE *buf;
-	DWORD buflen, bytes_requested, bytes_read;
+	DWORD bytes_requested, bytes_read;
 	BOOL bAbort,bProcessSecurity;
 	LPVOID ctxt;
 	PyObject *obbuf=NULL, *obbufout=NULL, *obh, *obctxt;
@@ -3867,24 +3865,25 @@ py_BackupRead(PyObject *self, PyObject *args)
 		return NULL;
 	if (!PyWinLong_AsVoidPtr(obctxt, &ctxt))
 		return NULL;
+	PyWinBufferView pybuf;
 	if (obbuf==Py_None){
 		obbufout=PyBuffer_New(bytes_requested);
 		if (obbufout==NULL)
 			return NULL;
-		if (!PyWinObject_AsWriteBuffer(obbufout, (void **)&buf, &buflen)){
+		if (!pybuf.init(obbufout, true)) {
 			Py_DECREF(obbufout);
 			return NULL;
 			}
 		}
 	else{
 		obbufout=obbuf;
-		if (!PyWinObject_AsWriteBuffer(obbufout, (void **)&buf, &buflen))
+		if (!pybuf.init(obbufout, true))
 			return NULL;
-		if (buflen < bytes_requested)
-			return PyErr_Format(PyExc_ValueError,"Buffer size (%d) less than requested read size (%d)", buflen, bytes_requested);
+		if (pybuf.len() < bytes_requested)
+			return PyErr_Format(PyExc_ValueError,"Buffer size (%d) less than requested read size (%d)", pybuf.len(), bytes_requested);
 		Py_INCREF(obbufout);
 		}
-	if (!(*pfnBackupRead)(h, buf, bytes_requested, &bytes_read, bAbort, bProcessSecurity, &ctxt)){
+	if (!(*pfnBackupRead)(h, (PBYTE)pybuf.ptr(), bytes_requested, &bytes_read, bAbort, bProcessSecurity, &ctxt)){
 		PyWin_SetAPIError("BackupRead");
 		Py_DECREF(obbufout);
 		return NULL;
@@ -3943,8 +3942,6 @@ py_BackupWrite(PyObject *self, PyObject *args)
 	// @pyparm int|bProcessSecurity||Indicates whether ACL's should be restored
 	// @pyparm int|lpContext||Pass 0 on first call, then pass back value returned from last call thereafter
 	HANDLE h;
-	BYTE *buf;
-	Py_ssize_t buflen;
 	DWORD bytes_to_write, bytes_written;
 	BOOL bAbort, bProcessSecurity;
 	LPVOID ctxt;
@@ -3956,12 +3953,13 @@ py_BackupWrite(PyObject *self, PyObject *args)
 		return NULL;
 	if (!PyWinLong_AsVoidPtr(obctxt, &ctxt))
 		return NULL;
-	if (PyObject_AsReadBuffer(obbuf, (const void **)&buf, &buflen)==-1)
+	PyWinBufferView pybuf(obbuf);
+	if (!pybuf.ok())
 		return NULL;
-	if ((DWORD)buflen < bytes_to_write)
-		return PyErr_Format(PyExc_ValueError,"Buffer size (%d) less than requested write size (%d)", buflen, bytes_to_write);
+	if (pybuf.len() < bytes_to_write)
+		return PyErr_Format(PyExc_ValueError,"Buffer size (%d) less than requested write size (%d)", pybuf.len(), bytes_to_write);
 
-	if (!(*pfnBackupWrite)(h, buf, bytes_to_write, &bytes_written, bAbort, bProcessSecurity, &ctxt)){
+	if (!(*pfnBackupWrite)(h, (BYTE*)pybuf.ptr(), bytes_to_write, &bytes_written, bAbort, bProcessSecurity, &ctxt)){
 		PyWin_SetAPIError("BackupWrite");
 		return NULL;
 		}

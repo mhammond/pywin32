@@ -584,6 +584,7 @@ static BOOL ParseDlgItemList(CPythonDialogTemplate *dlg, PyObject *tmpl)
     DLGITEMTEMPLATE tpl = {0, 0, 0, 0, 0, 0, 0};
     BYTE *data = NULL;
     DWORD datalen = 0;
+    PyWinBufferView pybuf;
 
     PyObject *obitem = PySequence_Tuple(tmpl);
     if (obitem == NULL)
@@ -595,13 +596,13 @@ static BOOL ParseDlgItemList(CPythonDialogTemplate *dlg, PyObject *tmpl)
         goto cleanup;
     if (!PyWinObject_AsWCHAR(obcaption, &caption, TRUE))
         goto cleanup;
-    if (!PyWinObject_AsReadBuffer(obdata, (void **)&data, &datalen, TRUE))
+    if (!pybuf.init(obdata))
         goto cleanup;
 
     if (IS_INTRESOURCE(wclass))
         ret = dlg->Add((WORD)wclass, &tpl, caption);
     else
-        ret = dlg->Add(wclass, &tpl, caption, datalen, data);
+        ret = dlg->Add(wclass, &tpl, caption, pybuf.len(), (BYTE*)pybuf.ptr());
 
 cleanup:
     PyWinObject_FreeResourceId(wclass);

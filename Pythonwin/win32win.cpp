@@ -2188,6 +2188,7 @@ PyObject *ui_window_send_message(PyObject *self, PyObject *args)
     WPARAM wp = 0;
     LPARAM lp = 0;
     BOOL ok = FALSE;
+    PyWinBufferView pybuf;
     // Old code assumes the following behaviour:
     // (msg, buffer_ob) -> lparam==&buffer, wparam=len(buffer)
     // (msg, [int_arg, int_arg]) - lparam and wparam cast from ints
@@ -2196,18 +2197,16 @@ PyObject *ui_window_send_message(PyObject *self, PyObject *args)
     // for our special case before letting PyWinObject_AsPARAM at them.
     // Shortcut - our special case requires exactly 2 args be passed.
     if (args && PyTuple_Size(args) == 2) {
-        void *p;
         PyObject *obParam;
         ok = PyArg_ParseTuple(args, "iO",
                               &message,   // @pyparmalt1 int|idMessage||The ID of the message to send.
                               &obParam);  // @pyparmalt1 buffer|ob||A buffer whose size is passed in wParam, and address
                                           // is passed in lParam
         if (ok) {
-            int wParam;
-            ok = PyWinObject_AsReadBuffer(obParam, &p, &wParam);
+            ok = pybuf.init(obParam);
             if (ok) {
-                lp = (LPARAM)p;
-                wp = (WPARAM)wParam;
+                lp = (LPARAM)pybuf.ptr();
+                wp = (WPARAM)pybuf.len();
             }
         }
         // save unconditionally clearing it in the block below...

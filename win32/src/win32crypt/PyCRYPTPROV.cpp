@@ -381,8 +381,7 @@ PyObject *PyCRYPTPROV::PyCryptCreateHash(PyObject *self, PyObject *args, PyObjec
 PyObject *PyCRYPTPROV::PyCryptImportKey(PyObject *self, PyObject *args, PyObject *kwargs)
 {
     static char *keywords[] = {"Data", "PubKey", "Flags", NULL};
-    PBYTE buf;
-    DWORD buflen, flags = 0;
+    DWORD flags = 0;
     HCRYPTKEY retkey = NULL, pubkey = NULL;
     PyObject *obpubkey = Py_None, *obbuf;
     HCRYPTPROV hcryptprov = ((PyCRYPTPROV *)self)->GetHCRYPTPROV();
@@ -396,9 +395,11 @@ PyObject *PyCRYPTPROV::PyCryptImportKey(PyObject *self, PyObject *args, PyObject
         return NULL;
     if (!PyWinObject_AsHCRYPTKEY(obpubkey, &pubkey, TRUE))
         return NULL;
-    if (!PyWinObject_AsReadBuffer(obbuf, (void **)&buf, &buflen, FALSE))
+    PyWinBufferView pybuf(obbuf);
+    if (!pybuf.ok())
         return NULL;
-    if (!CryptImportKey(hcryptprov, buf, buflen, pubkey, flags, &retkey))
+
+    if (!CryptImportKey(hcryptprov, (BYTE*)pybuf.ptr(), pybuf.len(), pubkey, flags, &retkey))
         return PyWin_SetAPIError("PyCRYPTPROV::CryptImportKey");
     return new PyCRYPTKEY(retkey, self);
 }

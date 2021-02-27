@@ -101,15 +101,15 @@ PyObject *PyADSIObject_FromADSVALUE(ADSVALUE &v)
             ob = PyInt_FromLong(v.Integer);
             break;
         case ADSTYPE_OCTET_STRING: {
-            void *buf;
             DWORD bufSize = v.OctetString.dwLength;
             if (!(ob = PyBuffer_New(bufSize)))
                 return NULL;
-            if (!PyWinObject_AsWriteBuffer(ob, &buf, &bufSize)) {
+            PyWinBufferView pybuf(ob, true);
+            if (!pybuf.ok()) {
                 Py_DECREF(ob);
                 return NULL;
             }
-            memcpy(buf, v.OctetString.lpValue, bufSize);
+            memcpy(pybuf.ptr(), v.OctetString.lpValue, bufSize);
         } break;
         case ADSTYPE_UTC_TIME:
             ob = PyWinObject_FromSYSTEMTIME(v.UTCTime);
@@ -121,15 +121,15 @@ PyObject *PyADSIObject_FromADSVALUE(ADSVALUE &v)
             ob = PyWinObject_FromWCHAR(v.ClassName);
             break;
         case ADSTYPE_PROV_SPECIFIC: {
-            void *buf;
             DWORD bufSize = v.ProviderSpecific.dwLength;
             if (!(ob = PyBuffer_New(bufSize)))
                 return NULL;
-            if (!PyWinObject_AsWriteBuffer(ob, &buf, &bufSize)) {
+            PyWinBufferView pybuf(ob, true);
+            if (!pybuf.ok()) {
                 Py_DECREF(ob);
                 return NULL;
             }
-            memcpy(buf, v.ProviderSpecific.lpValue, bufSize);
+            memcpy(pybuf.ptr(), v.ProviderSpecific.lpValue, bufSize);    
             break;
         }
         case ADSTYPE_NT_SECURITY_DESCRIPTOR: {

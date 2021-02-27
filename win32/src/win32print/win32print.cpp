@@ -997,8 +997,6 @@ static PyObject *PyEndPage(PyObject *self, PyObject *args)
 static PyObject *PyWritePrinter(PyObject *self, PyObject *args)
 {
     HANDLE hprinter;
-    LPVOID buf;
-    DWORD buf_size;
     DWORD bufwritten_size;
     PyObject *obbuf;
     if (!PyArg_ParseTuple(args, "O&O:WritePrinter", PyWinObject_AsPrinterHANDLE,
@@ -1007,9 +1005,10 @@ static PyObject *PyWritePrinter(PyObject *self, PyObject *args)
                           &obbuf))  // @pyparm string|buf||String or buffer containing data to send to printer. Embedded
                                     // NULL bytes are allowed.
         return NULL;
-    if (!PyWinObject_AsReadBuffer(obbuf, &buf, &buf_size, FALSE))
+    PyWinBufferView pybuf(obbuf);
+    if (!pybuf.ok())
         return NULL;
-    if (!WritePrinter(hprinter, buf, buf_size, &bufwritten_size))
+    if (!WritePrinter(hprinter, pybuf.ptr(), pybuf.len(), &bufwritten_size))
         return PyWin_SetAPIError("WritePrinter");
     return PyLong_FromUnsignedLong(bufwritten_size);
 }

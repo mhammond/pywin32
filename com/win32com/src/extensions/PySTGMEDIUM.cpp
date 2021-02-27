@@ -51,6 +51,7 @@ PyObject *PySet(PyObject *self, PyObject *args)
         case TYMED_HGLOBAL: {
             const void *buf = NULL;
             Py_ssize_t cb = 0;
+            PyWinBufferView pybuf;
             // In py3k, unicode objects don't support the buffer
             // protocol, so explicitly check string types first.
             // We need to include the NULL for strings and unicode, as the
@@ -65,8 +66,10 @@ PyObject *PySet(PyObject *self, PyObject *args)
                 buf = (void *)PyUnicode_AS_UNICODE(ob);
             }
             else {
-                if (PyObject_AsReadBuffer(ob, &buf, &cb) == -1)
+                if (!pybuf.init(ob))
                     return PyErr_Format(PyExc_TypeError, "tymed value of %d requires a string/unicode/buffer", tymed);
+                buf = pybuf.ptr();
+                cb = pybuf.len();
                 // no extra nulls etc needed here.
             }
             ps->medium.hGlobal = GlobalAlloc(GMEM_FIXED, cb);

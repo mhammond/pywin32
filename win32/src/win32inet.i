@@ -770,10 +770,12 @@ PyObject *PyInternetWriteFile(PyObject *self, PyObject *args)
 		return NULL;
 	if (!PyWinObject_AsHANDLE(obFile, &hFile))
 		return NULL;
-	if (!PyWinObject_AsReadBuffer(obBuffer,	&buf, &bufsize,	FALSE))
+	PyWinBufferView pybuf(obBuffer);
+	if (!pybuf.ok())
 		return NULL;
+		
 	Py_BEGIN_ALLOW_THREADS
-	ok = InternetWriteFile(hFile, buf, bufsize, &bytes_written);
+	ok = InternetWriteFile(hFile, pybuf.ptr(), pybuf.len(), &bytes_written);
 	Py_END_ALLOW_THREADS
 	if (!ok)
 		return PyWin_SetAPIError("InternetWriteFile");

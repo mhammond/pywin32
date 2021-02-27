@@ -234,8 +234,8 @@ PyObject *PyCRYPTKEY::PyCryptEncrypt(PyObject *self, PyObject *args, PyObject *k
     static char *keywords[] = {"Final", "Data", "Hash", "Flags", NULL};
     PyObject *obdata, *ret = NULL, *obcrypthash = Py_None;
     BOOL Final;
-    DWORD err = 0, bytes_to_encrypt = 0, dwFlags = 0, dwDataLen = 0, dwBufLen = 0;
-    BYTE *pbData = NULL, *origdata;
+    DWORD err = 0, dwFlags = 0, dwDataLen = 0, dwBufLen = 0;
+    BYTE *pbData = NULL;
     HCRYPTHASH hcrypthash = NULL;
     HCRYPTKEY hcryptkey = ((PyCRYPTKEY *)self)->GetHCRYPTKEY();
 
@@ -248,10 +248,11 @@ PyObject *PyCRYPTKEY::PyCryptEncrypt(PyObject *self, PyObject *args, PyObject *k
         return NULL;
     if (!PyWinObject_AsHCRYPTHASH(obcrypthash, &hcrypthash, TRUE))
         return NULL;
-    if (!PyWinObject_AsReadBuffer(obdata, (void **)&origdata, &bytes_to_encrypt, FALSE))
+    PyWinBufferView pybuf(obdata);
+    if (!pybuf.ok())
         return NULL;
-    dwDataLen = bytes_to_encrypt;  // read/write - receives bytes needed for encrypted data
-    dwBufLen = bytes_to_encrypt;
+    dwDataLen = pybuf.len();  // read/write - receives bytes needed for encrypted data
+    dwBufLen = pybuf.len();
 
     // First call to get required buffer size - don't pass hash, or it will be updated twice
     if (!CryptEncrypt(hcryptkey, NULL, Final, dwFlags, NULL, &dwDataLen, dwBufLen))
@@ -259,9 +260,9 @@ PyObject *PyCRYPTKEY::PyCryptEncrypt(PyObject *self, PyObject *args, PyObject *k
     pbData = (BYTE *)malloc(dwDataLen);
     if (pbData == NULL)
         return PyErr_NoMemory();
-    memcpy(pbData, origdata, bytes_to_encrypt);
+    memcpy(pbData, pybuf.ptr(), pybuf.len());
     dwBufLen = dwDataLen;
-    dwDataLen = bytes_to_encrypt;
+    dwDataLen = pybuf.len();
     if (!CryptEncrypt(hcryptkey, hcrypthash, Final, dwFlags, pbData, &dwDataLen, dwBufLen))
         PyWin_SetAPIError("CryptEncrypt");
     else
@@ -290,15 +291,16 @@ PyObject *PyCRYPTKEY::PyCryptDecrypt(PyObject *self, PyObject *args, PyObject *k
         return NULL;
     if (!PyWinObject_AsHCRYPTHASH(obcrypthash, &hcrypthash, TRUE))
         return NULL;
-    if (!PyWinObject_AsReadBuffer(obdata, (void **)&origdata, &bytes_to_decrypt, FALSE))
+    PyWinBufferView pybuf(obdata);
+    if (!pybuf.ok())
         return NULL;
 
     // data buffer is read-write, do not pass in python's buffer
-    pbData = (BYTE *)malloc(bytes_to_decrypt);
+    pbData = (BYTE *)malloc(pybuf.len());
     if (pbData == NULL)
         return PyErr_NoMemory();
-    memcpy(pbData, origdata, bytes_to_decrypt);
-    dwDataLen = bytes_to_decrypt;  // read/write - receives length of plaintext
+    memcpy(pbData, pybuf.ptr(), pybuf.len());
+    dwDataLen = pybuf.len();  // read/write - receives length of plaintext
     // Due to padding, should never occur that buffer needed for plaintext is larger than encrypted data
     if (!CryptDecrypt(hcryptkey, hcrypthash, Final, dwFlags, pbData, &dwDataLen))
         PyWin_SetAPIError("CryptDecrypt");

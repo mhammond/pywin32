@@ -355,12 +355,12 @@ PyObject * MyReportEvent( HANDLE hEventLog,
 	PyObject *rc = NULL;
 	DWORD numStrings = 0;
 	WCHAR **pStrings = NULL;
-	DWORD dataSize = 0;
-	void *pData;
 	PSID sid;
 	if (!PyWinObject_AsSID(obSID, &sid, TRUE))
 		return NULL;
-	if (!PyWinObject_AsReadBuffer(obData, &pData, &dataSize, TRUE))
+
+	PyWinBufferView pybuf(obData);
+	if (!pybuf.ok())
 		return NULL;
 	if (!PyWinObject_AsWCHARArray(obStrings, &pStrings, &numStrings, TRUE))
 		return NULL;
@@ -370,7 +370,7 @@ PyObject * MyReportEvent( HANDLE hEventLog,
 		}
 	BOOL ok;
 	Py_BEGIN_ALLOW_THREADS
-	ok = ReportEventW(hEventLog, wType, wCategory,	dwEventID, sid, (WORD)numStrings, dataSize, (const WCHAR **)pStrings, pData);
+	ok = ReportEventW(hEventLog, wType, wCategory,	dwEventID, sid, (WORD)numStrings, pybuf.len(), (const WCHAR **)pStrings, pybuf.ptr());
 	Py_END_ALLOW_THREADS
 
 	if (!ok) {

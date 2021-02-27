@@ -1504,14 +1504,15 @@ static PyObject *PySHAddToRecentDocs(PyObject *self, PyObject *args)
             // @flag SHARD_PIDL|<o PyIDL>, or a buffer containing a PIDL (see <om shell.PIDLAsString>)
             LPITEMIDLIST buf;
             bool freepidl = FALSE;
+            PyWinBufferView pybuf;
             if (PyObject_AsPIDL(ob, &buf, FALSE))
                 freepidl = TRUE;
             else {
                 // Also accept a string containing a contiguous PIDL for backward compatibility
                 PyErr_Clear();
-                DWORD buflen;
-                if (!PyWinObject_AsReadBuffer(ob, (void **)&buf, &buflen, FALSE))
+                if (!pybuf.init(ob))
                     return NULL;
+                buf = (LPITEMIDLIST)pybuf.ptr();
             }
             PY_INTERFACE_PRECALL;
             SHAddToRecentDocs(flags, buf);

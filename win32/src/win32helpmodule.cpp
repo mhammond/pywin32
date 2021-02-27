@@ -50,18 +50,20 @@ static PyObject *PyWinHelp(PyObject *self, PyObject *args)
     UINT cmd;
     PyObject *obData = Py_None;
     ULONG_PTR data;
+    PyWinBufferView pybuf;
 
     if (!PyArg_ParseTuple(args, "O&Oi|O:WinHelp", PyWinObject_AsHANDLE, &hwnd, &obhlpFile, &cmd, &obData))
         return NULL;
 
-    DWORD data_len;
-    if (!PyWinObject_AsReadBuffer(obData, (void **)&data, &data_len, TRUE)) {
+    if (!pybuf.init(obData, false, true)) {
         PyErr_Clear();
         if (!PyWinLong_AsULONG_PTR(obData, &data)) {
             PyErr_SetString(PyExc_TypeError, "Data must be a buffer, None, or pointer-sized number");
             return NULL;
         }
     }
+    else
+        data = (ULONG_PTR)pybuf.ptr();
     if (!PyWinObject_AsTCHAR(obhlpFile, &hlpFile, FALSE))
         return NULL;
     PyW32_BEGIN_ALLOW_THREADS

@@ -57,18 +57,17 @@ PyObject *PyILockBytes::WriteAt(PyObject *self, PyObject *args)
     // @pyparm <o ULARGE_INTEGER>|ulOffset||Offset to write at.
     // @pyparm string|data||Data to write
     PyObject *obulOffset, *obpv;
-    void *pv;
-    ULONG cb;
     if (!PyArg_ParseTuple(args, "OO:WriteAt", &obulOffset, &obpv))
         return NULL;
     ULARGE_INTEGER ulOffset;
     if (!PyWinObject_AsULARGE_INTEGER(obulOffset, &ulOffset))
         return NULL;
-    if (!PyWinObject_AsReadBuffer(obpv, &pv, &cb, FALSE))
+    PyWinBufferView pybuf(obpv);
+    if (!pybuf.ok())
         return NULL;
     ULONG pcbWritten;
     PY_INTERFACE_PRECALL;
-    HRESULT hr = pILB->WriteAt(ulOffset, pv, cb, &pcbWritten);
+    HRESULT hr = pILB->WriteAt(ulOffset, pybuf.ptr(), pybuf.len(), &pcbWritten);
     PY_INTERFACE_POSTCALL;
     if (FAILED(hr))
         return PyCom_BuildPyException(hr, pILB, IID_ILockBytes);
@@ -257,15 +256,14 @@ STDMETHODIMP PyGLockBytes::ReadAt(
 
     // Process the Python results, and convert back to the real params
     // Length of returned object must fit in buffer !
-    DWORD resultlen;
-    VOID *buf;
-    if (PyWinObject_AsReadBuffer(result, &buf, &resultlen, FALSE)) {
-        if (resultlen > cb)
+    PyWinBufferView pybuf(result);
+    if (pybuf.ok()) {
+        if (pybuf.len() > cb)
             PyErr_SetString(PyExc_ValueError, "PyGLockBytes::ReadAt: returned data longer than requested");
         else {
-            memcpy(pv, buf, resultlen);
+            memcpy(pv, pybuf.ptr(), pybuf.len());
             if (pcbRead)
-                *pcbRead = resultlen;
+                *pcbRead = pybuf.len();
             hr = S_OK;
         }
     }

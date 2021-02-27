@@ -97,13 +97,15 @@ PyObject *PyWinMethod_NewSECURITY_DESCRIPTOR(PyObject *self, PyObject *args)
 
     PyErr_Clear();
     PyObject *obsd = NULL;
-    PSECURITY_DESCRIPTOR psd;
-    Py_ssize_t buf_len;
     // @pyparmalt1 buffer|data||A buffer (eg, a string) with the raw bytes for the security descriptor.
     if (!PyArg_ParseTuple(args, "O:SECURITY_DESCRIPTOR", &obsd))
         return NULL;
-    if (PyObject_AsReadBuffer(obsd, (const void **)&psd, &buf_len) == -1)
+
+    PyWinBufferView pybuf(obsd);
+    if (!pybuf.ok())
         return NULL;
+    PSECURITY_DESCRIPTOR psd = (PSECURITY_DESCRIPTOR)pybuf.ptr();
+
     if (!IsValidSecurityDescriptor(psd)) {
         PyErr_SetString(PyExc_ValueError, "Data is not a valid security descriptor");
         return NULL;

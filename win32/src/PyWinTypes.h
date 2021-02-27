@@ -285,6 +285,27 @@ inline BOOL PyWinObject_AsReadBuffer(PyObject *ob, void **buf, int *buf_len, BOO
     return PyWinObject_AsReadBuffer(ob, buf, (DWORD *)buf_len, bNoneOk);
 }
 
+// replacement for PyWinObject_AsReadBuffer and PyWinObject_AsWriteBuffer
+class PYWINTYPES_EXPORT PyWinBufferView
+{
+public:
+    PyWinBufferView();
+    PyWinBufferView(PyObject *ob, bool bWrite = false, bool bNoneOk = false);
+    ~PyWinBufferView();
+    bool init(PyObject *ob, bool bWrite = false, bool bNoneOk = false);
+    void release();
+    bool ok();
+    void* ptr();
+    DWORD len();
+private:
+    Py_buffer m_view;
+
+    // don't copy objects and don't use C++ >= 11 -> not implemented private
+    // copy ctor and assignment operator
+    PyWinBufferView(const PyWinBufferView& src);
+    PyWinBufferView& operator=(PyWinBufferView const &);
+};
+
 /* ANSI/Unicode Support */
 /* If UNICODE defined, will be a BSTR - otherwise a char *
    Either way - PyWinObject_FreeTCHAR() must be called

@@ -300,8 +300,7 @@ PyObject *PyCERTSTORE::PyCertAddEncodedCertificateToStore(PyObject *self, PyObje
 {
     static char *keywords[] = {"CertEncodingType", "CertEncoded", "AddDisposition", NULL};
     DWORD dwCertEncodingType = 0;
-    BYTE *pbCertEncoded = NULL;
-    DWORD cbCertEncoded = 0, dwAddDisposition = 0;
+    DWORD dwAddDisposition = 0;
     HCERTSTORE hcertstore = ((PyCERTSTORE *)self)->GetHCERTSTORE();
     PCERT_CONTEXT newcert_context = NULL;
     PyObject *obbuf;
@@ -313,12 +312,13 @@ PyObject *PyCERTSTORE::PyCertAddEncodedCertificateToStore(PyObject *self, PyObje
             &obbuf,               // @pyparm buffer|CertEncoded||Data containing a serialized certificate
             &dwAddDisposition))   // @pyparm int|AddDisposition||Combination of CERT_STORE_ADD_* flags
         return NULL;
-    if (!PyWinObject_AsReadBuffer(obbuf, (void **)&pbCertEncoded, &cbCertEncoded, FALSE))
+    PyWinBufferView pybuf(obbuf);
+    if (!pybuf.ok())
         return NULL;
     BOOL bsuccess;
     Py_BEGIN_ALLOW_THREADS bsuccess =
-        CertAddEncodedCertificateToStore(hcertstore, dwCertEncodingType, pbCertEncoded, cbCertEncoded, dwAddDisposition,
-                                         (const struct _CERT_CONTEXT **)&newcert_context);
+        CertAddEncodedCertificateToStore(hcertstore, dwCertEncodingType, (BYTE*)pybuf.ptr(), pybuf.len(),
+                                         dwAddDisposition, (const struct _CERT_CONTEXT **)&newcert_context);
     Py_END_ALLOW_THREADS if (!bsuccess) return PyWin_SetAPIError("PyCERTSTORE::CertAddEncodedCertificateToStore");
     return PyWinObject_FromCERT_CONTEXT(newcert_context);
 }
@@ -510,6 +510,7 @@ property id &obdata,	// @pyparm buffer|Data||The value for the property, use Non
 sizeof(WCHAR);
         }
     else
+        #error PyWinObject_AsReadBuffer has been removed!
         if (!PyWinObject_AsReadBuffer(obdata, (void **)&cdb.pbData, &cdb.cbData, TRUE))
             return NULL;
 
