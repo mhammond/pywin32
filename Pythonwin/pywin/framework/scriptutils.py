@@ -115,6 +115,8 @@ def GetPackageModuleName(fileName):
         # Module not directly on the search path - see if under a package.
         while len(path) > 3:  # ie 'C:\'
             path, modBit = os.path.split(path)
+            if not modBit:
+                break  # no endless loops with network share etc.
             modBits.append(modBit)
             # If on path, _and_ existing package of that name loaded.
             if (
