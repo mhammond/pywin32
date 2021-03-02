@@ -586,6 +586,9 @@ def JumpToDocument(fileName, lineno=0, col=1, nChars=0, bScrollToTop=0):
     #  (eg, bScrollToTop should be false when jumping to an error line to retain the
     #  context, but true when jumping to a method defn, where we want the full body.
     # Return the view which is editing the file, or None on error.
+    if not os.path.isfile(fileName):
+        # non-existing file causes OpenDocumentFile crash in MFC (mfc140, not mfc90)
+        return None
     doc = win32ui.GetApp().OpenDocumentFile(fileName)
     if doc is None:
         return None
