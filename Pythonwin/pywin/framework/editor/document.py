@@ -82,6 +82,8 @@ class EditorDocumentBase(ParentEditorDocument):
             pass
         try:
             self.SaveFile(fileName)
+        except KeyboardInterrupt:
+            return 0
         except IOError as details:
             win32ui.MessageBox("Error - could not save file\r\n\r\n%s" % details)
             return 0
@@ -106,7 +108,6 @@ class EditorDocumentBase(ParentEditorDocument):
                     return 0
             else:
                 return 0
-        self.SetModifiedFlag(0)  # No longer dirty
         self.bDeclinedReload = 0  # They probably want to know if it changes again!
         win32ui.AddToRecentFileList(fileName)
         self.SetPathName(fileName)

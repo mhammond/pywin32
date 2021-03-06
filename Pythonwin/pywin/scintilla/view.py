@@ -640,9 +640,7 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
 
     def SaveTextFile(self, filename, encoding=None):
         doc = self.GetDocument()
-        doc._SaveTextToFile(self, filename, encoding=encoding)
-        doc.SetModifiedFlag(0)
-        return 1
+        return doc._SaveTextToFile(self, filename, encoding=encoding)
 
     def _AutoComplete(self):
         def list2dict(l):
