@@ -81,40 +81,53 @@ def __PackageSupportBuildPath__(package_path):
 if not _frozen:
 	SetupEnvironment()
 
-# If we don't have a special __gen_path__, see if we have a gen_py as a
-# normal module and use that (ie, "win32com.gen_py" may already exist as
-# a package.
-if not __gen_path__:
-	try:
-		import win32com.gen_py
-		# hrmph - 3.3 throws: TypeError: '_NamespacePath' object does not support indexing
-		# attempting to get __path__[0] - but I can't quickly repro this stand-alone.
-		# Work around it by using an iterator.
-		__gen_path__ = next(iter(sys.modules["win32com.gen_py"].__path__))
-	except ImportError:
-		# If a win32com\gen_py directory already exists, then we use it
-		# (gencache doesn't insist it have an __init__, but our __import__ 
-		# above does!
+# Work out what directory we will use to save "makepy" generated sources.
+# There's a bit of history here...
+# * win32com often just uses `win32com.gen_py` as a normal package, and used
+#   to store the generated files directly in that path (ie, under the win32com
+#   directory in site-packages. This is problematic when the python install
+#   directory isn't writable, so:
+# * We also supported a special directory under %TEMP% - but this isn't ideal
+#   either as that directory may be cleaned up periodically.
+# * A slightly more deterministic location is now supported directly by Python,
+#   via `site.getusersitepackages()` - although according to google, this
+#   doesn't always exist in a virtualenv.
+# * For reasons that probably made sense at the time, we even allowed a special
+#   registry key to exist to indicate what path should be used.
+# We don't want to break existing installations, so what we now do is:
+# * Still support the registry - but please don't do this - it will probably be
+#   removed.
+# * Still support win32com/gen_py and the location under %TEMP%, but only if
+#   they already exist.
+# * If all else fails and site.getusersitepackages() exists, use a directory
+#   under that. If it doesn't exist, use the location under %TEMP%
+def setup_gen_py():
+	global __gen_path__, gen_py
+	if not __gen_path__:
 		__gen_path__ = os.path.abspath(os.path.join(__path__[0], "gen_py"))
 		if not os.path.isdir(__gen_path__):
-			# We used to dynamically create a directory under win32com -
-			# but this sucks.  If the dir doesn't already exist, we we 
-			# create a version specific directory under the user temp 
-			# directory.
 			__gen_path__ = os.path.join(
 								win32api.GetTempPath(), "gen_py",
 								"%d.%d" % (sys.version_info[0], sys.version_info[1]))
+		# apparently `site.getusersitepackages()` doesn't exist in a virtualenv
+		import site
+		if not os.path.isdir(__gen_path__) and hasattr(site, "getusersitepackages"):
+			# getusersitepackages() is already different for different Python
+			# versions, so no need for our path name to discriminate on that.
+			# But we still use a descriptive name
+			__gen_path__ = os.path.join(site.getusersitepackages(), "win32com_gen_py")
 
-# we must have a __gen_path__, but may not have a gen_py module -
-# set that up.
-if "win32com.gen_py" not in sys.modules:
-	# Create a "win32com.gen_py", but with a custom __path__
-	import types
-	gen_py = types.ModuleType("win32com.gen_py")
-	gen_py.__path__ = [ __gen_path__ ]
-	sys.modules[gen_py.__name__] = gen_py
-	del types
-gen_py = sys.modules["win32com.gen_py"]
+	# we must have a __gen_path__, but may not have a gen_py module -
+	# set that up.
+	if "win32com.gen_py" not in sys.modules:
+		# Create a "win32com.gen_py", but with a custom __path__
+		import types
+		gen_py = types.ModuleType("win32com.gen_py")
+		gen_py.__path__ = [ __gen_path__ ]
+		sys.modules[gen_py.__name__] = gen_py
+	gen_py = sys.modules["win32com.gen_py"]
+
+setup_gen_py()
 
 # get rid of these for module users
-del os, sys, win32api, pythoncom
+del os, sys, win32api, pythoncom, setup_gen_py

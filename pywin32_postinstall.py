@@ -422,14 +422,6 @@ def install(lib_dir):
         if verbose:
             print('Pythonwin has been registered in context menu')
 
-    # Create the win32com\gen_py directory.
-    make_dir = os.path.join(lib_dir, "win32com", "gen_py")
-    if not os.path.isdir(make_dir):
-        if verbose:
-            print("Creating directory %s" % (make_dir,))
-        directory_created(make_dir)
-        os.mkdir(make_dir)
-
     try:
         # create shortcuts
         # CSIDL_COMMON_PROGRAMS only available works on NT/2000/XP, and
