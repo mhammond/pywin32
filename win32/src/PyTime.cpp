@@ -301,8 +301,10 @@ static PyNumberMethods PyTime_NumberMethods = {
     PyTime::unaryFailureFunc, /* nb_hex */
 #endif
 };
-// @pymeth __int__|Used when an integer representation of the time object is required.
-// @pymeth __float__|Used when a floating point representation of the time object is required.
+// @comm Note that converting a PyTime object to a float will give a completely different
+// value from when converting it to an int.
+// @pymeth __int__|Returns the number of seconds since Jan 1 1970 - aka, "unix time"
+// @pymeth __float__|Returns the number of days since 30 December 1899 as a float, aka, the Windows DATE type.
 
 PYWINTYPES_EXPORT PyTypeObject PyTimeType = {
     PYWIN_OBJECT_HEAD "time", sizeof(PyTime), 0, PyTime::deallocFunc, /* tp_dealloc */
