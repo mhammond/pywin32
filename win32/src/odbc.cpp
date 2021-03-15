@@ -707,49 +707,29 @@ static int ibindDate(cursorObject *cur, int column, PyObject *item)
         return 0;
     TIMESTAMP_STRUCT *dt = (TIMESTAMP_STRUCT *)ib->bind_area;
     ZeroMemory(dt, len);
-    // Accept either a PyTime or datetime object
-#ifndef NO_PYWINTYPES_TIME
-    if (PyWinTime_CHECK(item)) {
-        SYSTEMTIME st;
-        if (!((PyTime *)item)->GetTime(&st))
-            return 0;
-        dt->year = st.wYear;
-        dt->month = st.wMonth;
-        dt->day = st.wDay;
-        dt->hour = st.wHour;
-        dt->minute = st.wMinute;
-        dt->second = st.wSecond;
-        // Fraction is in nanoseconds
-        dt->fraction = st.wMilliseconds * 1000000;
-    }
-    else {
-#endif  // NO_PYWINTYPES_TIME
-        // Python 2.3 doesn't have C Api for datetime
-        TmpPyObject timeseq = PyObject_CallMethod(item, "timetuple", NULL);
-        if (timeseq == NULL)
-            return 0;
-        timeseq = PySequence_Tuple(timeseq);
-        if (timeseq == NULL)
-            return 0;
-        // Last 3 items are ignored.
-        PyObject *obwday, *obyday, *obdst;
-        if (!PyArg_ParseTuple(timeseq, "hhh|hhhOOO:TIMESTAMP_STRUCT", &dt->year, &dt->month, &dt->day, &dt->hour,
-                              &dt->minute, &dt->second, &obwday, &obyday, &obdst))
-            return 0;
+    // Accept a datetime object
+    TmpPyObject timeseq = PyObject_CallMethod(item, "timetuple", NULL);
+    if (timeseq == NULL)
+        return 0;
+    timeseq = PySequence_Tuple(timeseq);
+    if (timeseq == NULL)
+        return 0;
+    // Last 3 items are ignored.
+    PyObject *obwday, *obyday, *obdst;
+    if (!PyArg_ParseTuple(timeseq, "hhh|hhhOOO:TIMESTAMP_STRUCT", &dt->year, &dt->month, &dt->day, &dt->hour,
+                            &dt->minute, &dt->second, &obwday, &obyday, &obdst))
+        return 0;
 
-        TmpPyObject usec = PyObject_GetAttrString(item, "microsecond");
-        if (usec == NULL)
-            PyErr_Clear();
-        else {
-            dt->fraction = PyLong_AsUnsignedLong(usec);
-            if (dt->fraction == -1 && PyErr_Occurred())
-                return 0;
-            // Convert to nanoseconds
-            dt->fraction *= 1000;
-        }
-#ifndef NO_PYWINTYPES_TIME
+    TmpPyObject usec = PyObject_GetAttrString(item, "microsecond");
+    if (usec == NULL) {
+        PyErr_Clear();
+    } else {
+        dt->fraction = PyLong_AsUnsignedLong(usec);
+        if (dt->fraction == -1 && PyErr_Occurred())
+            return 0;
+        // Convert to nanoseconds
+        dt->fraction *= 1000;
     }
-#endif  // NO_PYWINTYPES_TIME
 
     if (unsuccessful(SQLBindParameter(cur->hstmt, column, SQL_PARAM_INPUT, SQL_C_TIMESTAMP, SQL_TIMESTAMP, len,
                                       3,  // Decimal digits of precision, appears to be ignored for datetime

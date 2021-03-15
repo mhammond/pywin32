@@ -72,9 +72,7 @@
 
 %{
 
-#ifdef PYWIN_HAVE_DATETIME_CAPI
 #include "datetime.h" // python's datetime header.
-#endif
 
 // older python version's don't get the PyCObject structure definition
 // exposed, and we need it to cleanly zap our handles (see
@@ -721,11 +719,7 @@ BOOLAPI GetFileTime(
 // Helper for SetFileTime - see comments below.
 static BOOL PyWinTime_DateTimeCheck(PyObject *ob)
 {
-	return FALSE
-#ifdef PYWIN_HAVE_DATETIME_CAPI
-		|| (PyDateTimeAPI && PyDateTime_Check(ob))
-#endif
-		;
+	return PyDateTimeAPI && PyDateTime_Check(ob);
 }
 
 // @pyswig |SetFileTime|Sets the date and time that a file was created, last accessed, or last modified.
@@ -6013,9 +6007,7 @@ PyCFunction pfnpy_OpenFileById=(PyCFunction)py_OpenFileById;
 	if (PyDict_SetItemString(d, "INVALID_HANDLE_VALUE", PyWinLong_FromHANDLE(INVALID_HANDLE_VALUE)) == -1)
 		PYWIN_MODULE_INIT_RETURN_ERROR;
 
-#ifdef PYWIN_HAVE_DATETIME_CAPI
 	PyDateTime_IMPORT;
-#endif
 
 	for (PyMethodDef *pmd = win32fileMethods;pmd->ml_name;pmd++)
 		if   ((strcmp(pmd->ml_name, "CreateFileW")==0)

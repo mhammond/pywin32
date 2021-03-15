@@ -911,9 +911,6 @@ int PyWinGlobals_Ensure()
     if (PyType_Ready(&PyHANDLEType) == -1 || PyType_Ready(&PyOVERLAPPEDType) == -1 ||
         PyType_Ready(&PyDEVMODEAType) == -1 || PyType_Ready(&PyDEVMODEWType) == -1 ||
         PyType_Ready(&PyWAVEFORMATEXType) == -1
-#ifndef NO_PYWINTYPES_TIME
-        || PyType_Ready(&PyTimeType) == -1
-#endif  // NO_PYWINTYPES_TIME
 #ifndef NO_PYWINTYPES_IID
         || PyType_Ready(&PyIIDType) == -1
 #endif  // NO_PYWINTYPES_IID
