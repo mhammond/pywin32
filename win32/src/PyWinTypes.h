@@ -428,31 +428,9 @@ PYWINTYPES_EXPORT PyObject *PyWinMethod_NewIID(PyObject *self, PyObject *args);
 
 /*
 ** TIME support
+**
+** We use a subclass of the builtin datetime.
 */
-// The NO_PYWINTYPES_TIME define was initially used for CE builds.  We now
-// use that symbol to mean "do we include our old, crap, custom time object?"
-// If not defined, we exclusively support datetime objects via the C API.
-// (Note py2.3 doesn't have a C API, so will not currently build with
-// NO_PYWINTYPES_TIME defined.)
-// TODO: If both builtin and datetime objects are enabled, we will enable
-// some transitional period using something like
-// pywintypes.__future_datatime__, but for now this is defined purely at build
-// time.
-#if (PY_VERSION_HEX >= 0x03000000)
-#define NO_PYWINTYPES_TIME
-#endif
-
-// Python 2.3 doesn't have C Api for datetime, so can't have our new funky
-// support.
-#if (PY_VERSION_HEX >= 0x02040000)
-#define PYWIN_HAVE_DATETIME_CAPI
-#endif
-
-// XXX - fixme - ack - we don't yet like *both* defines existing - and for now
-// its only enabled in py3k
-#if (PY_VERSION_HEX < 0x03000000)
-#undef PYWIN_HAVE_DATETIME_CAPI
-#endif
 
 PYWINTYPES_EXPORT PyObject *PyWinObject_FromSYSTEMTIME(const SYSTEMTIME &t);
 PYWINTYPES_EXPORT PyObject *PyWinObject_FromFILETIME(const FILETIME &t);
@@ -474,13 +452,6 @@ PYWINTYPES_EXPORT PyObject *PyWinMethod_NewTime(PyObject *self, PyObject *args);
 PYWINTYPES_EXPORT PyObject *PyWinMethod_NewTimeStamp(PyObject *self, PyObject *args);
 
 PYWINTYPES_EXPORT BOOL PyWinTime_Check(PyObject *ob);
-
-#ifndef NO_PYWINTYPES_TIME
-
-extern PYWINTYPES_EXPORT PyTypeObject PyTimeType;  // the Type for PyTime
-#define PyWinTime_CHECK(ob) ((ob)->ob_type == &PyTimeType)
-
-#endif  // NO_PYWINTYPES_TIME
 
 // functions to return WIN32_FIND_DATA tuples, used in shell, win32api, and win32file
 PYWINTYPES_EXPORT PyObject *PyObject_FromWIN32_FIND_DATAA(WIN32_FIND_DATAA *pData);

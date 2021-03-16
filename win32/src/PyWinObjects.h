@@ -29,54 +29,6 @@ class PYWINTYPES_EXPORT PyIID : public PyObject {
 };
 #endif  // NO_PYWINTYPES_IID
 
-#ifndef NO_PYWINTYPES_TIME
-
-class PYWINTYPES_EXPORT PyTime : public PyObject {
-   public:
-    DATE m_time; /* the OLE type for representing date/times */
-
-    PyTime(DATE t);
-    PyTime(time_t t);
-    PyTime(const SYSTEMTIME &t);
-    PyTime(const FILETIME &t);
-
-    /* Conversion Helpers */
-    BOOL GetTime(DATE *pDate);
-    BOOL GetTime(FILETIME *pDate);
-    BOOL GetTime(SYSTEMTIME *pDate);
-
-    /* Python support */
-    PyObject *str();
-    PyObject *repr();
-    int compare(PyObject *ob);
-    PyObject *PyTime::richcompare(PyObject *other, int op);
-
-    int print(FILE *fp, int flags);
-    Py_hash_t hash(void);
-    // PyObject *str(void);
-    long asLong(void);
-
-    static PyObject *unaryFailureFunc(PyObject *ob);
-    static PyObject *binaryFailureFunc(PyObject *ob1, PyObject *ob2);
-    static PyObject *ternaryFailureFunc(PyObject *ob1, PyObject *ob2, PyObject *ob3);
-    static void deallocFunc(PyObject *ob);
-    static int printFunc(PyObject *ob, FILE *fp, int flags);
-    static PyObject *getattro(PyObject *self, PyObject *obname);
-    static int compareFunc(PyObject *ob1, PyObject *ob2);
-    static PyObject *richcompareFunc(PyObject *self, PyObject *other, int op);
-    static Py_hash_t hashFunc(PyObject *ob);
-    // static PyObject * strFunc(PyObject *ob);
-    static int nonzeroFunc(PyObject *ob);
-    static PyObject *intFunc(PyObject *ob);
-    static PyObject *floatFunc(PyObject *ob);
-    static PyObject *strFunc(PyObject *ob);
-    static PyObject *reprFunc(PyObject *ob);
-    static struct PyMethodDef methods[];
-    // Methods
-    static PyObject *Format(PyObject *self, PyObject *args);
-};
-#endif  // NO_PYWINTYPES_TIME
-
 class PYWINTYPES_EXPORT PyOVERLAPPED : public PyObject {
    public:
     class PYWINTYPES_EXPORT sMyOverlapped : public OVERLAPPED {
