@@ -11,7 +11,7 @@ class CookieTests(unittest.TestCase):
         data = "TestData=Test"
         InternetSetCookie("http://www.python.org", None, data)
         got = InternetGetCookie("http://www.python.org", None)
-        self.assertEqual(got, data)
+        self.assertEqual(got.split(';')[-1].strip(), data)
 
     def testCookiesEmpty(self):
         try:

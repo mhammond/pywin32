@@ -1,6 +1,6 @@
 #include "win32crypt.h"
 // @doc
-PyObject *dummy_tuple = PyTuple_New(0);
+extern PyObject *dummy_tuple;  // = PyTuple_New(0); // set up in win32cryptmodule init
 
 BOOL PyWinObject_AsDATA_BLOB(PyObject *ob, DATA_BLOB *b)
 {

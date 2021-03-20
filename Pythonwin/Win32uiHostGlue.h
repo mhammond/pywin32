@@ -183,7 +183,7 @@ inline BOOL Win32uiHostGlue::DynamicApplicationInit(const TCHAR *cmd, const TCHA
     if (bShouldInitPython) {
         void(__cdecl * pfnPyInit)(void);
         pfnPyInit = (void(__cdecl *)(void))GetProcAddress(hModCore, "Py_Initialize");
-        if (!pfnIsInit) {
+        if (!pfnPyInit) {
             wsprintf(err_buf, _T("Failed to load 'Py_Initialize' - %d\n"), GetLastError());
             goto fail_with_error_dlg;
         }
@@ -192,7 +192,7 @@ inline BOOL Win32uiHostGlue::DynamicApplicationInit(const TCHAR *cmd, const TCHA
 
 // In 3.7 and up it's not necessary to call PyEval_InitThreads. In all versions
 // it's safe to call multiple times.
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION < 7
+#if PY_VERSION_HEX < 0x03070000
     void(__cdecl * pfnPyEval_InitThreads)(void);
     pfnPyEval_InitThreads = (void(__cdecl *)(void))GetProcAddress(hModCore, "PyEval_InitThreads");
     if (!pfnPyEval_InitThreads) {
@@ -211,11 +211,32 @@ inline BOOL Win32uiHostGlue::DynamicApplicationInit(const TCHAR *cmd, const TCHA
         hModWin32ui = LoadLibrary(fname);
     }
     if (!hModWin32ui) {  // sigh - try and import it
+        PyObject* (*pPyImport_ImportModule)(const char *name) = (PyObject* (*)(const char *name))GetProcAddress(hModCore, "PyImport_ImportModule");
+        PyObject* (*pPyObject_GetAttrString)(PyObject *o, const char *attr_name) = (PyObject* (*)(PyObject *o, const char *attr_name))GetProcAddress(hModCore, "PyObject_GetAttrString");
+        Py_ssize_t (*pPyUnicode_AsWideChar)(PyObject *unicode, wchar_t *w, Py_ssize_t size) = (Py_ssize_t (*)(PyObject *unicode, wchar_t *w, Py_ssize_t size))GetProcAddress(hModCore, "PyUnicode_AsWideChar");
+
+        PyObject* win32ui = pPyImport_ImportModule("win32ui");
+        if (!win32ui) {
+            //pPyErr_Clear();  // not needed when we are dying :)
+            wsprintf(err_buf, _T("Failed to import win32ui\n"));
+            goto fail_with_error_dlg;
+        }
+        PyObject* pyfn = pPyObject_GetAttrString(win32ui, "__file__");
+        //pPy_XDECREF(win32ui);  // dies with the process
+        if (!pyfn) {
+            wsprintf(err_buf, _T("Failed to import win32ui\n"));
+            goto fail_with_error_dlg;
+        }
+        pPyUnicode_AsWideChar(pyfn, fname, MAX_PATH * 2);
+        //pPy_XDECREF(pyfn);  // dies with the process
+        hModWin32ui = GetModuleHandleW(fname);
+/*
         int(__cdecl * pfnPyRun_SimpleString)(const char *);
         pfnPyRun_SimpleString = (int(__cdecl *)(const char *))GetProcAddress(hModCore, "PyRun_SimpleString");
         if (pfnPyRun_SimpleString)
             pfnPyRun_SimpleString("import win32ui");
         hModWin32ui = GetModuleHandle(szWinui_Name);
+*/
         if (!hModWin32ui) {
             wsprintf(err_buf, _T("Failed to load win32ui after attempting an import' - %d\n"), GetLastError());
             goto fail_with_error_dlg;

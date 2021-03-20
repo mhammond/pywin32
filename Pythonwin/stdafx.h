@@ -45,7 +45,9 @@ programmers who forget to use the new names. */
 #include "traceback.h"
 #include "pythonrun.h"
 #include "import.h"  // Python: for dynamicattach routines.
+#if PY_VERSION_HEX < 0x030A0000
 #include "graminit.h"
+#endif
 
 #include "pywintypes.h"
 // dont need all of these for all, but it cant hurt (and keep the speed up!)

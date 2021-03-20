@@ -2153,6 +2153,8 @@ static struct PyMethodDef win32crypt_functions[] = {
     {"CryptStringToBinary", (PyCFunction)PyCryptStringToBinary, METH_VARARGS | METH_KEYWORDS},
     {NULL, NULL}};
 
+PyObject *dummy_tuple = NULL;
+
 PYWIN_MODULE_INIT_FUNC(win32crypt)
 {
     PYWIN_MODULE_INIT_PREPARE(win32crypt, win32crypt_functions, "Support for Windows cryptography functions");
@@ -2162,6 +2164,8 @@ PYWIN_MODULE_INIT_FUNC(win32crypt)
         PyType_Ready(&PyCERTSTOREType) == -1 || PyType_Ready(&PyCERT_CONTEXTType) == -1 ||
         PyType_Ready(&PyCTL_CONTEXTType) == -1)
         PYWIN_MODULE_INIT_RETURN_ERROR;
+
+    dummy_tuple = PyTuple_New(0);
 
 #if (PY_VERSION_HEX >= 0x03000000)
     return module;

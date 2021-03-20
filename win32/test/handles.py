@@ -89,7 +89,14 @@ class PyHandleTestCase(unittest.TestCase):
         # is passed to PyWinLong_AsVoidPtr() if its not a string.
         # passing a handle value of '1' should work - there is something
         # at that ordinal
-        win32api.GetProcAddress(sys.dllhandle, h)
+        if sys.version_info >= (3, 10):
+            # GetProcAddress/PyWinLong_AsVoidPtr uses UNSIGNED_CONVERTER
+            # uses PyLong_AsUnsignedLongLong
+            # Changed in version 3.10: This function will no longer use __int__().
+            # PyLong_AsUnsignedLongLong may not be a suitable UNSIGNED_CONVERTER anymore ?
+            assert int(h) == 1
+        else:
+            win32api.GetProcAddress(sys.dllhandle, h)
 
     def testHandleInDict(self):
         h=pywintypes.HANDLE(1)

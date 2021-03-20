@@ -270,6 +270,19 @@ class TmpWCHAR {
     ~TmpWCHAR() { PyWinObject_FreeWCHAR(tmp); }
 };
 
+#if PY_VERSION_HEX >= 0x030A0000
+// Substitutes for the classic buffer interface (assuming the
+// object buffer remains in place while the buffer is used)
+
+PyAPI_FUNC(int) PyObject_CheckReadBuffer(PyObject *obj);
+PyAPI_FUNC(int) PyObject_AsReadBuffer(PyObject *obj,
+                                      const void **buffer,
+                                      Py_ssize_t *buffer_len);
+PyAPI_FUNC(int) PyObject_AsWriteBuffer(PyObject *obj,
+                                       void **buffer,
+                                       Py_ssize_t *buffer_len);
+#endif
+
 // Buffer functions that can be used in place of 's#' input format or PyString_AsStringAndSize
 // for 64-bit compatibility and API consistency
 PYWINTYPES_EXPORT BOOL PyWinObject_AsReadBuffer(PyObject *ob, void **buf, DWORD *buf_len, BOOL bNoneOk = FALSE);

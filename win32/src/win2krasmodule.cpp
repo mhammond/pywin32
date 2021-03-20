@@ -222,12 +222,19 @@ PYWIN_MODULE_INIT_FUNC(win2kras)
 #endif
     // We insist on win32ras being imported - but the least we
     // can do is attempt the import ourselves!
-    HMODULE hmod = GetModuleHandle(modName);
+    HMODULE hmod = NULL; // GetModuleHandle(modName);
     if (hmod == NULL) {
-        PyObject *tempMod = PyImport_ImportModule("win32ras");
-        Py_XDECREF(tempMod);
-        hmod = GetModuleHandle(modName);
+        PyObject *win32ras = PyImport_ImportModule("win32ras");
+        TCHAR fname[MAX_PATH * 2];
+        if (!win32ras) goto _continue;
+        PyObject* pyfn = PyObject_GetAttrString(win32ras, "__file__");
+        if (!pyfn) goto _continue;
+        PyUnicode_AsWideChar(pyfn, fname, MAX_PATH * 2);
+        Py_XDECREF(pyfn);
+        hmod = GetModuleHandle(fname);
+        // Py_XDECREF(win32ras);  // better dies with process
     }
+_continue:
     if (hmod == NULL) {
         PyErr_SetString(PyExc_RuntimeError, "You must import 'win32ras' before importing this module");
         PYWIN_MODULE_INIT_RETURN_ERROR;

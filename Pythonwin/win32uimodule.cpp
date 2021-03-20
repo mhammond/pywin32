@@ -564,7 +564,11 @@ int Python_run_command_with_log(const char *command)
     if (m == NULL)
         return -1;
     d = PyModule_GetDict(m);
+#if PY_VERSION_HEX >= 0x030A0000   
+    v = PyRun_String(command, Py_file_input, d, d);
+#else
     v = PyRun_String(command, file_input, d, d);
+#endif
     if (v == NULL) {
         ExceptionHandler(EHA_DISPLAY_DIALOG);
         return 1;  // indicate failure, with traceback correctly shown.

@@ -1,6 +1,6 @@
 //
 // @doc
-
+#define PY_SSIZE_T_CLEAN
 #include "PyWinTypes.h"
 #include "PyWinObjects.h"
 #include "PySecurityObjects.h"
@@ -11,9 +11,9 @@
 PyObject *PyWinMethod_NewSID(PyObject *self, PyObject *args)
 {
     void *buf = NULL;
-    int bufSize = 32;  // xxxxxx64 - should be Py_ssize_t - but passed as 'i'
+    Py_ssize_t bufSize = 32;
     // @pyparm int|bufSize|32|Size for the SID buffer
-    if (!PyArg_ParseTuple(args, "|i:SID", &bufSize)) {
+    if (!PyArg_ParseTuple(args, "|n:SID", &bufSize)) {
         PyErr_Clear();
         // @pyparmalt1 string|buffer||A raw data buffer, assumed to hold the SID data.
         if (!PyArg_ParseTuple(args, "s#:SID", &buf, &bufSize)) {
@@ -53,6 +53,10 @@ PyObject *PyWinMethod_NewSID(PyObject *self, PyObject *args)
                 return PyWin_SetAPIError("AllocateAndInitializeSid");
             return new PySID(pNew);
         }
+    }
+    if (bufSize > INT_MAX) {
+        PyErr_SetString(PyExc_ValueError, "SID buffer size beyond INT_MAX");
+        return NULL;
     }
     return new PySID(bufSize, buf);
 }

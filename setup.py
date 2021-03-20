@@ -1042,7 +1042,13 @@ class my_build_ext(build_ext):
                 name1 = "%s%d%d%s" % (ext.name, sys.version_info[0], sys.version_info[1], extra)
                 name2 = "%s%s" % (ext.name, extra)
             elif ext.name in ("win32ui",):
-                name1 = name2 = ext.name + extra
+                if sys.version_info >= (3, 10):
+                    ##name1 = ext.name + '.cp%s%s-win_%s' % (sys.version_info[0], sys.version_info[1], platform.machine().lower()) + extra
+                    name1 = ext.name + distutils.sysconfig.get_config_var('EXT_SUFFIX').rsplit('.', 1)[0] + extra
+                    # -> e.g.: 'win32ui.cp310-win_amd64.lib'
+                    name2 = ext.name + extra
+                else:
+                    name1 = name2 = ext.name + extra
             else:
                 name1 = name2 = None
             if name1 is not None:
@@ -1978,6 +1984,7 @@ pythonwin_extensions = [
         depends = [
             "Pythonwin/stdafx.h",
             "Pythonwin/win32uiExt.h",
+            "win32/src/PyWinTypes.h",
             "Pythonwin/dibapi.h",
             "Pythonwin/pythoncbar.h",
             "Pythonwin/pythondoc.h",

@@ -126,6 +126,8 @@ def import_all():
     is_debug = os.path.basename(win32api.__file__).endswith("_d")
     for name in os.listdir(dir):
         base, ext = os.path.splitext(name)
+        if '.' in base and sys.version_info >= (3, 10):
+            base = base.split('.')[0]
         if (ext==".pyd") and \
            name != "_winxptheme.pyd" and \
            (is_debug and base.endswith("_d") or \
@@ -144,23 +146,29 @@ def suite():
     except NameError:
         me = sys.argv[0]
     me = os.path.abspath(me)
+    excludes = [os.path.basename(me)]
+    if sys.version_info[:2] == (3, 10) and sys.version_info.releaselevel == 'alpha':
+        excludes += [
+            ##'test_win32trace.py',  # was freezing before PY_SSIZE_T_CLEAN fix
+            ]
     files = os.listdir(os.path.dirname(me))
     suite = unittest.TestSuite()
     suite.addTest(unittest.FunctionTestCase(import_all))
     for file in files:
         base, ext = os.path.splitext(file)
-        if ext=='.py' and os.path.basename(me) != file:
-            try:
-                mod = __import__(base)
-            except:
-                print("FAILED to import test module %r" % base)
-                traceback.print_exc()
-                continue
-            if hasattr(mod, "suite"):
-                test = mod.suite()
-            else:
-                test = unittest.defaultTestLoader.loadTestsFromModule(mod)
-            suite.addTest(test)
+        if file in excludes:
+            continue
+        try:
+            mod = __import__(base)
+        except:
+            print("FAILED to import test module %r" % base)
+            traceback.print_exc()
+            continue
+        if hasattr(mod, "suite"):
+            test = mod.suite()
+        else:
+            test = unittest.defaultTestLoader.loadTestsFromModule(mod)
+        suite.addTest(test)
     for test in get_demo_tests():
         suite.addTest(test)
     return suite

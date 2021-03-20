@@ -2,6 +2,7 @@
 // Data conversion
 //
 
+#define PY_SSIZE_T_CLEAN
 #include "stdafx.h"
 #include "PythonCOM.h"
 #include "PythonCOMServer.h"
@@ -10,7 +11,7 @@
 PyObject *dataconv_L64(PyObject *self, PyObject *args)
 {
     void *pSrc;
-    int size;
+    Py_ssize_t size;
 
     if (!PyArg_ParseTuple(args, "s#:L64", &pSrc, &size))
         return NULL;
@@ -25,7 +26,7 @@ PyObject *dataconv_L64(PyObject *self, PyObject *args)
 PyObject *dataconv_UL64(PyObject *self, PyObject *args)
 {
     void *pSrc;
-    int size;
+    Py_ssize_t size;
 
     if (!PyArg_ParseTuple(args, "s#:UL64", &pSrc, &size))
         return NULL;
