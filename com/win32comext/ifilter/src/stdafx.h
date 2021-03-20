@@ -13,7 +13,9 @@
 #include <Filter.h>
 #include <Filterr.h>
 
+#ifdef _MSC_VER
 #define MISSING_PROPSTG
+#endif
 #ifdef MISSING_PROPSTG
 // Ack - NTQuery.h is failing with the Vista SDK - pull in what we need
 // Problem is missing propstg.h, and all the work-arounds are uglier than

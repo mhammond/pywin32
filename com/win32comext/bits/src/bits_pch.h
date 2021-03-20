@@ -1,7 +1,11 @@
 // bits_pch.h : header file for PCH generation for the BITS COM extension
 
 #include <PythonCOM.h>
+#ifdef _MSC_VER
 #include <Bits.h>
+#else
+#include <bits2_5.h>
+#endif
 
 BOOL PyObject_AsBG_FILE_INFO_LIST(PyObject *ob, ULONG *pnum, BG_FILE_INFO **fi);
 void PyObject_FreeBG_FILE_INFO_LIST(ULONG pnum, BG_FILE_INFO *fi);

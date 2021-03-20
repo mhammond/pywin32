@@ -612,7 +612,7 @@ PyObject *PyECB::SetFlushFlag(PyObject *self, PyObject *args)
     if (pecb->m_pcb) {
         BOOL bRes;
         Py_BEGIN_ALLOW_THREADS EXTENSION_CONTROL_BLOCK *ecb = pecb->m_pcb->GetECB();
-        bRes = ecb->ServerSupportFunction(ecb->ConnID, HSE_REQ_SET_FLUSH_FLAG, (LPVOID)f, NULL, NULL);
+        bRes = ecb->ServerSupportFunction(ecb->ConnID, HSE_REQ_SET_FLUSH_FLAG, (LPVOID&)f, NULL, NULL);
         Py_END_ALLOW_THREADS if (!bRes) return SetPyECBError("ServerSupportFunction(HSE_REQ_SET_FLUSH_FLAG)");
     }
     Py_INCREF(Py_None);
@@ -802,7 +802,7 @@ PyObject *PyECB::IOCompletion(PyObject *self, PyObject *args)
 
     BOOL bRes;
     Py_BEGIN_ALLOW_THREADS bRes =
-        ecb->ServerSupportFunction(ecb->ConnID, HSE_REQ_IO_COMPLETION, DoIOCallback, NULL, NULL);
+        ecb->ServerSupportFunction(ecb->ConnID, HSE_REQ_IO_COMPLETION, (LPVOID)DoIOCallback, NULL, NULL);
     Py_END_ALLOW_THREADS if (!bRes) return SetPyECBError("ServerSupportFunction(HSE_REQ_IO_COMPLETION)");
     Py_RETURN_NONE;
 }

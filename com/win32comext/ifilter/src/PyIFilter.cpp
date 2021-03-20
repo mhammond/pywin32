@@ -189,7 +189,7 @@ static PyObject *pyBindIFilterFromStorage(PyObject *self, PyObject *args)
 
     IStorage *pstgDest;
     BOOL bPythonIsHappy = TRUE;
-    if (!PyCom_InterfaceFromPyObject(obStg, IID_IStorage, (void **)&pstgDest, FALSE /* bNoneOK */))
+    if (!PyCom_InterfaceFromPyObject(obStg, __uuidof(IStorage), (void **)&pstgDest, FALSE /* bNoneOK */))
         bPythonIsHappy = FALSE;
 
     if (!bPythonIsHappy)
@@ -201,7 +201,6 @@ static PyObject *pyBindIFilterFromStorage(PyObject *self, PyObject *args)
     Py_END_ALLOW_THREADS;
     if (FAILED(hr))
         ret = OleSetOleError(hr);
-
     else
         ret = PyCom_PyObjectFromIUnknown(pOb, IID_IFilter, FALSE);
 
@@ -221,7 +220,7 @@ static PyObject *pyBindIFilterFromStream(PyObject *self, PyObject *args)
 
     IStream *pstm;
     BOOL bPythonIsHappy = TRUE;
-    if (!PyCom_InterfaceFromPyObject(obStg, IID_IStream, (void **)&pstm, FALSE /* bNoneOK */))
+    if (!PyCom_InterfaceFromPyObject(obStg, __uuidof(IStream), (void **)&pstm, FALSE /* bNoneOK */))
         bPythonIsHappy = FALSE;
 
     if (!bPythonIsHappy)

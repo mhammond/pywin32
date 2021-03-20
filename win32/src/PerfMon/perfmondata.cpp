@@ -414,7 +414,7 @@ HANDLE MonOpenEventLog(const TCHAR *szSourceName)
 --*/
 {
     HKEY hAppKey;
-    TCHAR LogLevelKeyName[] = _T("SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Perflib");
+    TCHAR LogLevelKeyName[] = _T("SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Perflib");
 
     TCHAR LogLevelValueName[] = _T("EventLogLevel");
     LONG lStatus;

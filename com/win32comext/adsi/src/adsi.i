@@ -179,7 +179,7 @@ static PyObject *PyADsEnumerateNext(PyObject *self, PyObject *args)
 		return NULL;
 
 	IEnumVARIANT *pev;
-	if (!PyCom_InterfaceFromPyInstanceOrObject(obEnum, IID_IEnumVARIANT, (LPVOID *)&pev, FALSE))
+	if (!PyCom_InterfaceFromPyInstanceOrObject(obEnum, __uuidof(IEnumVARIANT), (LPVOID *)&pev, FALSE))
 		return NULL;
 
 	VARIANT *rgVar = new VARIANT[celt];

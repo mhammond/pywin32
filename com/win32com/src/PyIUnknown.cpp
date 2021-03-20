@@ -87,7 +87,7 @@ PyString_AsString(((PyInstanceObject *)ob)->in_class->cl_name));
                                 }
                             }
 
-                            /* successful QI; need to release it
+                            // successful QI; need to release it
                             pdisp->Release();
                         }
                     }

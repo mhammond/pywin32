@@ -3,8 +3,36 @@
 
 #include "PythonCOM.h"
 #include "PyPROPVARIANT.h"
+#ifdef _MSC_VER
 #include "propvarutil.h"
+#endif
 #include "float.h"
+
+#ifndef _MSC_VER
+enum tagPROPVAR_CHANGE_FLAGS
+{
+    PVCHF_DEFAULT           = 0x00000000,
+    PVCHF_NOVALUEPROP       = 0x00000001,
+    PVCHF_ALPHABOOL         = 0x00000002,
+    PVCHF_NOUSEROVERRIDE    = 0x00000004,
+    PVCHF_LOCALBOOL         = 0x00000008,
+    PVCHF_NOHEXSTRING       = 0x00000010,
+};
+
+typedef int PROPVAR_CHANGE_FLAGS;
+
+PSSTDAPI PropVariantChangeType(
+    PROPVARIANT          *ppropvarDest,
+    REFPROPVARIANT       propvarSrc,
+    PROPVAR_CHANGE_FLAGS flags,
+    VARTYPE              vt
+);
+
+PSSTDAPI PropVariantToStringAlloc(
+    REFPROPVARIANT       propvar,
+    PWSTR                *ppszOut
+);
+#endif
 
 // @doc - This file contains autoduck documentation
 // ---------------------------------------------------

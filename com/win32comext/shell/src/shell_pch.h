@@ -8,6 +8,30 @@
 #include <wininet.h>
 #include <shlobj.h>
 
+#ifndef _MSC_VER
+DEFINE_GUID(IID_IAsyncOperation, 0x3d8b0590, 0xf691, 0x11d2, 0x8e,0xa9, 0x00,0x60,0x97,0xdf,0x5b,0xd4);
+class IAsyncOperation : public IUnknown
+{
+public:
+    virtual HRESULT STDMETHODCALLTYPE SetAsyncMode(
+        BOOL fDoOpAsync) = 0;
+
+    virtual HRESULT STDMETHODCALLTYPE GetAsyncMode(
+        BOOL *pfIsOpAsync) = 0;
+
+    virtual HRESULT STDMETHODCALLTYPE StartOperation(
+        IBindCtx *pbcReserved) = 0;
+
+    virtual HRESULT STDMETHODCALLTYPE InOperation(
+        BOOL *pfInAsyncOp) = 0;
+
+    virtual HRESULT STDMETHODCALLTYPE EndOperation(
+        HRESULT hResult,
+        IBindCtx *pbcReserved,
+        DWORD dwEffects) = 0;
+};
+#endif /* !_MSC_VER */
+
 BOOL PyObject_AsPIDL(PyObject *ob, LPITEMIDLIST *ppidl, BOOL bNoneOK = FALSE, UINT *pcb = NULL);
 PyObject *PyObject_FromPIDL(LPCITEMIDLIST pidl, BOOL bFreeSystemPIDL);
 void PyObject_FreePIDL(LPCITEMIDLIST pidl);

@@ -3,8 +3,17 @@
 %module win32service // An interface to the Windows NT Service API
 
 
+%{
+#ifndef _MSC_VER
+#undef _WIN32_WINNT
+#define _WIN32_WINNT 0x0600 // for SERVICE_*
+#endif
+%}
+
 %include "typemaps.i"
 %include "pywin32.i"
+
+%typedef SERVICE_STATUS SERVICE_STATUS;
 
 %{
 #undef PyHANDLE
@@ -24,6 +33,13 @@ EnumServicesStatusExfunc fpEnumServicesStatusEx=NULL;
 // according to msdn, 256 is limit for service names and service display names
 #define MAX_SERVICE_NAME_LEN 256   
 
+#ifndef _MSC_VER
+#define SERVICE_ACCEPT_PRESHUTDOWN	0x00000100
+#define SERVICE_CONTROL_PRESHUTDOWN	0x0000000F
+#define SERVICE_SID_TYPE_NONE		0x00000000
+#define SERVICE_SID_TYPE_RESTRICTED	0x00000003
+#define SERVICE_SID_TYPE_UNRESTRICTED	0x00000001
+#endif
 %}
 
 %init %{

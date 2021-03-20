@@ -1621,6 +1621,7 @@ PyObject *PyIsWow64Process(PyObject *self, PyObject *args)
 	$target = PyWinLong_FromVoidPtr($source);
 }
 
+%typedef ULONG_PTR ULONG_PTR;
 
 // @pyswig long|VirtualAllocEx|
 LONG_VOIDPTR VirtualAllocEx(

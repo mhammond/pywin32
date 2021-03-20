@@ -315,7 +315,7 @@ class PyADS_OBJECT_INFO : public PyObject {
     static void deallocFunc(PyObject *ob) { delete (PyADS_OBJECT_INFO *)ob; }
 
     static struct PyMemberDef memberlist[];
-    static PyTypeObject PyADS_OBJECT_INFO::Type;
+    static PyTypeObject Type;
 
    protected:
     PyObject *obRDN, *obObjectDN, *obParentDN, *obClassName;
@@ -473,7 +473,7 @@ class PyADS_ATTR_INFO : public PyObject {
     //#pragma warning( disable : 4251 )
     static struct PyMemberDef memberlist[];
     //#pragma warning( default : 4251 )
-    static PyTypeObject PyADS_ATTR_INFO::Type;
+    static PyTypeObject Type;
 
    protected:
     DWORD dwControlCode;
