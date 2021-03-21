@@ -8,6 +8,8 @@ Note that build 228 was the last version supporting Python 2.
 
 Since build 300:
 ----------------
+* Added win32com.shell.SHGetKnownFolderPath() and related constants.
+
 * Shifted work in win32.lib.pywin32_bootstrap to Python's import system from
   manual path manipulations (@wkschwartz in #1651)
 

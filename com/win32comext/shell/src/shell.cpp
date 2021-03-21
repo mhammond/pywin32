@@ -1269,6 +1269,32 @@ static PyObject *PySHGetSpecialFolderPath(PyObject *self, PyObject *args)
     return PyWinObject_FromWCHAR(buf);
 }
 
+// @pymethod <o PyUnicode>|shell|SHGetKnownFolderPath|Retrieves the full path of a known folder identified by the folder's KNOWNFOLDERID.
+static PyObject *PySHGetKnownFolderPath(PyObject *self, PyObject *args)
+{
+    PyObject *obfid;
+    PyObject *obHandle = Py_None;
+    long flags = 0;
+    if (!PyArg_ParseTuple(args, "O|lO:SHGetKnownFolderPath",
+                          &obfid,      // @pyparm <o IID>|fid||One of the  KNOWNFOLDERID constants.
+                          &flags,    // @pyparm int|flags|0|Flags that specify special retrieval options. This value can be 0; otherwise, one or more of the KNOWN_FOLDER_FLAG values.
+                          &obHandle))  // @pyparm <o PyHANDLE>|token|None|An access token that represents a particular user. If this parameter is NULL, which is the most common usage, the function requests the known folder for the current user.
+        return NULL;
+    KNOWNFOLDERID fid;
+    if (!PyWinObject_AsIID(obfid, &fid))
+        return NULL;
+    HANDLE handle;
+    if (!PyWinObject_AsHANDLE(obHandle, &handle))
+        return NULL;
+    PWSTR buf = NULL;
+    PY_INTERFACE_PRECALL;
+    HRESULT hr = SHGetKnownFolderPath(fid, flags, handle, &buf);
+    PY_INTERFACE_POSTCALL;
+    PyObject *result = SUCCEEDED(hr) ? PyWinObject_FromWCHAR(buf) : OleSetOleError(hr);
+    CoTaskMemFree(buf);
+    return result;
+}
+
 // @pymethod <o PyIDL>|shell|SHGetSpecialFolderLocation|Retrieves the PIDL of a special folder.
 static PyObject *PySHGetSpecialFolderLocation(PyObject *self, PyObject *args)
 {
@@ -3623,6 +3649,7 @@ static struct PyMethodDef shell_methods[] = {
      1},  // @pymeth SHGetSpecialFolderPath|Retrieves the path of a special folder.
     {"SHGetSpecialFolderLocation", PySHGetSpecialFolderLocation,
      1},  // @pymeth SHGetSpecialFolderLocation|Retrieves the <o PyIDL> of a special folder.
+    {"SHGetKnownFolderPath", PySHGetKnownFolderPath, 1}, // @pymeth SHGetKnownFolderPath|Retrieves the full path of a known folder identified by the folder's KNOWNFOLDERID.
     {"SHAddToRecentDocs", PySHAddToRecentDocs,
      1},  // @pymeth SHAddToRecentDocs|Adds a document to the shell's list of recently used documents or clears all
           // documents from the list. The user gains access to the list through the Start menu of the Windows taskbar.
@@ -3660,7 +3687,7 @@ static struct PyMethodDef shell_methods[] = {
      1},  // @pymeth SHGetIDListFromObject|Retrieves the PIDL of an object.
     {"SHGetInstanceExplorer", PySHGetInstanceExplorer,
      1},  // @pymeth SHGetInstanceExplorer|Allows components that run in a Web browser (Iexplore.exe) or a nondefault
-          // Windows® Explorer (Explorer.exe) process to hold a reference to the process. The components can use the
+          // Windows Explorer (Explorer.exe) process to hold a reference to the process. The components can use the
           // reference to prevent the process from closing prematurely.
     {"SHFileOperation", PySHFileOperation,
      1},  // @pymeth SHFileOperation|Copies, moves, renames, or deletes a file system object.
