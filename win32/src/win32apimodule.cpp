@@ -6025,7 +6025,7 @@ PyObject *PyMapVirtualKey(PyObject *self, PyObject *args)
     // @pyparm handle|hlayout|None|The keyboard layout to use.  If not
     // specified, the API function MapVirtualKey will be called.  If it
     // is specified MapVirtualKeyEx will be called.
-    if (!PyArg_ParseTuple(args, "ii|O", &vk, &typ, obhlayout))
+    if (!PyArg_ParseTuple(args, "ii|O", &vk, &typ, &obhlayout))
         return NULL;
     int rc;
     if (obhlayout == NULL) {
