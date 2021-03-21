@@ -493,18 +493,17 @@ BOOL PyWin_NewPROPVARIANT(PyObject *ob, VARTYPE vt, PROPVARIANT *ppv)
             break;
         case VT_BLOB:
         case VT_BLOB_OBJECT: {
-            void *buf;
-            DWORD buflen;
-            ret = PyWinObject_AsReadBuffer(ob, &buf, &buflen, FALSE);
+            PyWinBufferView pybuf(ob);
+            ret = pybuf.ok();
             if (ret) {
-                ppv->blob.cbSize = buflen;
-                ppv->blob.pBlobData = (BYTE *)CoTaskMemAlloc(buflen);
+                ppv->blob.cbSize = pybuf.len();
+                ppv->blob.pBlobData = (BYTE *)CoTaskMemAlloc(pybuf.len());
                 if (ppv->blob.pBlobData == NULL) {
                     PyErr_NoMemory();
                     ret = FALSE;
                 }
                 else
-                    memcpy(ppv->blob.pBlobData, buf, buflen);
+                    memcpy(ppv->blob.pBlobData, pybuf.ptr(), pybuf.len());
             }
             break;
         }

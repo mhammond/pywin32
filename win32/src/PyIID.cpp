@@ -20,16 +20,13 @@ PyObject *PyWinMethod_NewIID(PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "O|i", &obIID, &isBytes))
         return NULL;
     if (isBytes) {
-        const void *buf;
-        Py_ssize_t cb;
-        if (!PyObject_CheckReadBuffer(obIID))
-            return PyErr_Format(PyExc_TypeError, "object must be a read-buffer to read the CLSID bytes");
-        if (PyObject_AsReadBuffer(obIID, &buf, &cb))
+        PyWinBufferView pybuf(obIID);
+        if (!pybuf.ok())
             return NULL;
-        if (cb < sizeof(IID))
+        if (pybuf.len() < sizeof(IID))
             return PyErr_Format(PyExc_ValueError, "string too small - must be at least %d bytes (got %d)", sizeof(IID),
-                                cb);
-        iid = *((IID *)buf);
+                                pybuf.len());
+        iid = *((IID *)pybuf.ptr());
         return PyWinObject_FromIID(iid);
     }
     // Already an IID? Return self.

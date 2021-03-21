@@ -519,6 +519,7 @@ PyObject *PyCERT_CONTEXT::PyCertSetCertificateContextProperty(PyObject *self, Py
     PyObject *ret = NULL;
     CRYPT_DATA_BLOB cdb = {0, NULL};
     void *pvData = NULL;
+    PyWinBufferView pybuf;
     // @flagh PropId|Type of input
     switch (prop) {
         case CERT_ARCHIVED_PROP_ID:  // @flag CERT_ARCHIVED_PROP_ID|None causes Archived flag to be cleared, any other
@@ -568,8 +569,10 @@ PyObject *PyCERT_CONTEXT::PyCertSetCertificateContextProperty(PyObject *self, Py
         // cryptoapi.CryptEncodeObjectEx> with X509_ENHANCED_KEY_USAGE.
         // @flag CERT_CTL_USAGE_PROP_ID|Same as CERT_ENHKEY_USAGE_PROP_ID
         case CERT_CTL_USAGE_PROP_ID:
-            if (!PyWinObject_AsReadBuffer(obData, (void **)&cdb.pbData, &cdb.cbData))
+            if (!pybuf.init(obData))
                 goto cleanup;
+            cdb.pbData = (BYTE*)pybuf.ptr();
+            cdb.cbData = pybuf.len();
             pvData = &cdb;
             break;
         /*

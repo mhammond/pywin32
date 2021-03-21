@@ -43,8 +43,6 @@ BOOL PyWinObject_AsCREDENTIAL_ATTRIBUTE(PyObject *obattr, PCREDENTIAL_ATTRIBUTE 
 {
     static char *keywords[] = {"Keyword", "Flags", "Value", NULL};
     PyObject *obKeyword, *obValue, *args;
-    void *value;
-    DWORD valuelen;
     BOOL ret;
     ZeroMemory(attr, sizeof(CREDENTIAL_ATTRIBUTE));
     if (!PyDict_Check(obattr)) {
@@ -55,13 +53,14 @@ BOOL PyWinObject_AsCREDENTIAL_ATTRIBUTE(PyObject *obattr, PCREDENTIAL_ATTRIBUTE 
     if (args == NULL)
         return FALSE;
 
+    PyWinBufferView pybuf;
     ret = PyArg_ParseTupleAndKeywords(args, obattr, "OkO:CREDENTIAL_ATTRIBUTE", keywords, &obKeyword, &attr->Flags,
                                       &obValue) &&
           PyWinObject_AsWCHAR(obKeyword, &attr->Keyword, FALSE) &&
-          PyWinObject_AsReadBuffer(obValue, &value, &valuelen) && ((attr->Value = (LPBYTE)malloc(valuelen)) != NULL);
+          pybuf.init(obValue) && ((attr->Value = (LPBYTE)malloc(pybuf.len())) != NULL);
     if (ret) {
-        memcpy(attr->Value, value, valuelen);
-        attr->ValueSize = valuelen;
+        memcpy(attr->Value, pybuf.ptr(), pybuf.len());
+        attr->ValueSize = pybuf.len();
     }
     else
         PyWinObject_FreeCREDENTIAL_ATTRIBUTE(attr);

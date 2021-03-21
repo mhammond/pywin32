@@ -357,11 +357,10 @@ static PyObject *PyWin_NewUnicodeFromRaw(PyObject *self, PyObject *args)
     // @pyparm string/buffer|str||The string containing the binary data.
     if (!PyArg_ParseTuple(args, "O", &ob))
         return NULL;
-    void *buf;
-    DWORD nbytes;
-    if (!PyWinObject_AsReadBuffer(ob, &buf, &nbytes, FALSE))
+    PyWinBufferView pybuf(ob);
+    if (!pybuf.ok())
         return NULL;
-    return PyWinObject_FromWCHAR((WCHAR *)buf, nbytes / sizeof(OLECHAR));
+    return PyWinObject_FromWCHAR((WCHAR *)pybuf.ptr(), pybuf.len() / sizeof(OLECHAR));
 }
 
 #ifndef MS_WINCE /* This code is not available on Windows CE */
@@ -641,9 +640,13 @@ BOOL PyWinObject_AsPARAM(PyObject *ob, WPARAM *pparam)
         return TRUE;
     }
 #endif
-    DWORD bufsize;
-    if (PyWinObject_AsReadBuffer(ob, (VOID **)pparam, &bufsize))
+    PyWinBufferView pybuf(ob);
+    if (pybuf.ok()) {
+        // note: this might be unsafe, as we give away the buffer pointer to a
+        // client outside of the scope where our RAII object 'pybuf' resides.
+        *pparam = (WPARAM)pybuf.ptr();
         return TRUE;
+    }
 
     PyErr_Clear();
     if (PyWinLong_AsVoidPtr(ob, (void **)pparam))
@@ -674,57 +677,68 @@ PyObject *PyWinObject_FromRECT(LPRECT prect)
     return Py_BuildValue("llll", prect->left, prect->top, prect->right, prect->bottom);
 }
 
-// Buffer conversion functions that use DWORD for length
-BOOL PyWinObject_AsReadBuffer(PyObject *ob, void **buf, DWORD *buf_len, BOOL bNoneOk)
+// replacement for PyWinObject_AsReadBuffer and PyWinObject_AsWriteBuffer
+PyWinBufferView::PyWinBufferView()
 {
-    if (ob == Py_None) {
-        if (bNoneOk) {
-            *buf_len = 0;
-            *buf = NULL;
-            return TRUE;
-        }
-        PyErr_SetString(PyExc_TypeError, "Buffer cannot be None");
-        return FALSE;
-    }
-    Py_ssize_t py_len;
-    if (PyObject_AsReadBuffer(ob, (const void **)buf, &py_len) == -1)
-        return FALSE;
-
-#ifdef _WIN64
-    if (py_len > MAXDWORD) {
-        PyErr_Format(PyExc_ValueError, "Buffer length can be at most %d characters", MAXDWORD);
-        return FALSE;
-    }
-#endif
-
-    *buf_len = (DWORD)py_len;
-    return TRUE;
+    memset(&m_view, 0, sizeof(m_view));
 }
 
-BOOL PyWinObject_AsWriteBuffer(PyObject *ob, void **buf, DWORD *buf_len, BOOL bNoneOk)
+bool PyWinBufferView::init(PyObject *ob, bool bWrite, bool bNoneOk)
 {
+    release();
+    memset(&m_view, 0, sizeof(m_view));
     if (ob == Py_None) {
         if (bNoneOk) {
-            *buf_len = 0;
-            *buf = NULL;
-            return TRUE;
-        }
-        PyErr_SetString(PyExc_TypeError, "Buffer cannot be None");
-        return FALSE;
-    }
-    Py_ssize_t py_len;
-    if (PyObject_AsWriteBuffer(ob, buf, &py_len) == -1)
-        return FALSE;
+            // using Py_None as sentinel, leaving m_view's buf and len equal to 0
+            m_view.obj = Py_None;
+        } else
+            PyErr_SetString(PyExc_TypeError, "Buffer cannot be None");
+    } else if (ob != NULL) {
+        PyObject_GetBuffer(ob, &m_view, bWrite ? PyBUF_WRITABLE : PyBUF_SIMPLE);
 
 #ifdef _WIN64
-    if (py_len > MAXDWORD) {
-        PyErr_Format(PyExc_ValueError, "Buffer length can be at most %d characters", MAXDWORD);
-        return FALSE;
-    }
+        if (m_view.len > MAXDWORD) {
+            PyBuffer_Release(&m_view);
+            memset(&m_view, 0, sizeof(m_view));
+            PyErr_Format(PyExc_ValueError, "Buffer length can be at most %d characters", MAXDWORD);
+        }
 #endif
+    }
+    return ok();
+}
 
-    *buf_len = (DWORD)py_len;
-    return TRUE;
+PyWinBufferView::PyWinBufferView(PyObject *ob, bool bWrite, bool bNoneOk)
+{
+    memset(&m_view, 0, sizeof(m_view));
+    init(ob, bWrite, bNoneOk);
+}
+
+void PyWinBufferView::release()
+{
+    // don't call PyBuffer_Release on NULL or Py_None
+    if (m_view.obj != NULL && m_view.obj != Py_None) {
+        PyBuffer_Release(&m_view);
+    }
+}
+
+PyWinBufferView::~PyWinBufferView()
+{
+    release();
+}
+
+bool PyWinBufferView::ok()
+{
+    return m_view.obj != NULL;
+}
+
+void* PyWinBufferView::ptr()
+{
+    return m_view.buf;
+}
+
+DWORD PyWinBufferView::len()
+{
+    return static_cast<DWORD>(m_view.len);
 }
 
 // Converts sequence into a tuple and verifies that length fits in length variable

@@ -18,15 +18,14 @@ STDMETHODIMP PyGStream::Read(
         return hr;
 
     hr = E_FAIL;
-    VOID *buf = NULL;
-    DWORD resultlen;
-    if (PyWinObject_AsReadBuffer(result, &buf, &resultlen, FALSE)) {
-        if (resultlen > cb)
+    PyWinBufferView pybuf(result);
+    if (pybuf.ok()) {
+        if (pybuf.len() > cb)
             PyErr_SetString(PyExc_ValueError, "PyGStream::Read: returned data longer than requested");
         else {
-            memcpy(pv, buf, resultlen);
+            memcpy(pv, pybuf.ptr(), pybuf.len());
             if (pcbRead)
-                *pcbRead = resultlen;
+                *pcbRead = pybuf.len();
             hr = S_OK;
         }
     }

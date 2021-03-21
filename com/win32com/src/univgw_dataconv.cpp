@@ -434,10 +434,10 @@ PyObject *dataconv_WriteFromOutTuple(PyObject *self, PyObject *args)
                 }
                 // keep this after string check since string can act as buffers
                 else if (obOutValue->ob_type->tp_as_buffer) {
-                    DWORD cb;
-                    if (!PyWinObject_AsReadBuffer(obOutValue, (void **)&pbOutBuffer, &cb))
+                    PyWinBufferView pybuf(obOutValue);
+                    if (!pybuf.ok())
                         goto Error;
-                    memcpy(pb, pbOutBuffer, cb);
+                    memcpy(pb, pybuf.ptr(), pybuf.len());
                 }
                 else {
                     obUse = PyNumber_Int(obOutValue);

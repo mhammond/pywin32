@@ -330,14 +330,13 @@ STDMETHODIMP PyGInternetSecurityManager::GetSecurityId(
     if (FAILED(hr))
         return hr;
     // Process the Python results, and convert back to the real params
-    void *buf;
-    DWORD buf_len;
-    if (!PyWinObject_AsReadBuffer(result, &buf, &buf_len)) {
+    PyWinBufferView pybuf(result);
+    if (!pybuf.ok()) {
         Py_DECREF(result);
         return MAKE_PYCOM_GATEWAY_FAILURE_CODE("GetSecurityId");
     }
-    *pcbSecurityId = min(buf_len, *pcbSecurityId);
-    memcpy(pbSecurityId, buf, *pcbSecurityId);
+    *pcbSecurityId = min(pybuf.len(), *pcbSecurityId);
+    memcpy(pbSecurityId, pybuf.ptr(), *pcbSecurityId);
     Py_DECREF(result);
     return hr;
 }

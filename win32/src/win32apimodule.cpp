@@ -3587,7 +3587,17 @@ static BOOL PyWinObject_AsRegistryValue(PyObject *value, DWORD typ, BYTE **retDa
         // ALSO handle ALL unknown data types here.  Even if we cant support
         // it natively, we should handle the bits.
         default:
-            return PyWinObject_AsReadBuffer(value, (void **)retDataBuf, retDataSize, TRUE);
+        {
+            PyWinBufferView pybuf(value, false, true); // None ok
+            if (!pybuf.ok())
+                return FALSE;
+
+            // note: this might be unsafe, as we give away the buffer pointer to a
+            // client outside of the scope where our RAII object 'pybuf' resides.
+            *retDataBuf = (BYTE*)pybuf.ptr();
+            *retDataSize = pybuf.len();
+            return TRUE;
+        }
     }
 }
 
@@ -5292,8 +5302,6 @@ static PyObject *PyUpdateResource(PyObject *self, PyObject *args)
     PyObject *obName;
     PyObject *ret = NULL;
     PyObject *obData;
-    LPVOID lpData;
-    DWORD cbData;
     WORD wLanguage = MAKELANGID(LANG_NEUTRAL, SUBLANG_NEUTRAL);
     LPWSTR lpType = NULL, lpName = NULL;
 
@@ -5306,9 +5314,10 @@ static PyObject *PyUpdateResource(PyObject *self, PyObject *args)
                           ))
         return NULL;
 
+    PyWinBufferView pybuf;
     if (PyWinObject_AsHANDLE(obhUpdate, (HANDLE *)&hUpdate) && PyWinObject_AsResourceIdW(obType, &lpType) &&
-        PyWinObject_AsResourceIdW(obName, &lpName) && PyWinObject_AsReadBuffer(obData, &lpData, &cbData, TRUE)) {
-        if (UpdateResourceW(hUpdate, lpType, lpName, wLanguage, lpData, cbData)) {
+        PyWinObject_AsResourceIdW(obName, &lpName) && pybuf.init(obData, false, true)) {
+        if (UpdateResourceW(hUpdate, lpType, lpName, wLanguage, pybuf.ptr(), pybuf.len())) {
             Py_INCREF(Py_None);
             ret = Py_None;
         }
