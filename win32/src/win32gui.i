@@ -2976,7 +2976,7 @@ BOOLAPI MessageBeep(UINT type);
 // @pyswig int|CreateWindow|Creates a new window.
 HWND CreateWindow( 
 	STRING_OR_ATOM_CW lpClassName, // @pyparm int/string|className||
-	TCHAR *INPUT_NULLOK, // @pyparm string|windowTitle||
+	TCHAR *INPUT_NULLOK, // @pyparm string|windowName||
 	DWORD dwStyle, // @pyparm int|style||The style for the window.
 	int x,  // @pyparm int|x||
 	int y,  // @pyparm int|y||
@@ -5811,7 +5811,7 @@ HRGN CreateEllipticRgnIndirect(RECT *INPUT);	// @pyparm <o PyRECT>|rc||Coordinat
 HWND CreateWindowEx( 
 	DWORD dwExStyle,      // @pyparm int|dwExStyle||extended window style
 	STRING_OR_ATOM_CW lpClassName, // @pyparm int/string|className||
-	TCHAR *INPUT_NULLOK, // @pyparm string|windowTitle||
+	TCHAR *INPUT_NULLOK, // @pyparm string|windowName||
 	DWORD dwStyle, // @pyparm int|style||The style for the window.
 	int x,  // @pyparm int|x||
 	int y,  // @pyparm int|y||
