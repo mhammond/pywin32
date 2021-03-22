@@ -1592,13 +1592,13 @@ static PyObject *PyObject_FromNET_VALIDATE_PERSISTED_FIELDS(NET_VALIDATE_PERSIST
     PyObject *ret = PyDict_New();
     if (!ret)
         return NULL;
-    // @pyparm <o PyTime>|PasswordLastSet||
+    // @pyparm <o PyDateTime>|PasswordLastSet||
     if (f->PresentFields & NET_VALIDATE_PASSWORD_LAST_SET)
         SAFE_INSERT_NEW_REF(ret, "PasswordLastSet", PyWinObject_FromFILETIME(f->PasswordLastSet));
-    // @pyparm <o PyTime>|BadPasswordTime||
+    // @pyparm <o PyDateTime>|BadPasswordTime||
     if (f->PresentFields & NET_VALIDATE_BAD_PASSWORD_TIME)
         SAFE_INSERT_NEW_REF(ret, "BadPasswordTime", PyWinObject_FromFILETIME(f->BadPasswordTime));
-    // @pyparm <o PyTime>|LockoutTime||
+    // @pyparm <o PyDateTime>|LockoutTime||
     if (f->PresentFields & NET_VALIDATE_LOCKOUT_TIME)
         SAFE_INSERT_NEW_REF(ret, "LockoutTime", PyWinObject_FromFILETIME(f->LockoutTime));
     // @pyparm int|BadPasswordCount||

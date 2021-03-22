@@ -2477,7 +2477,7 @@ static PyObject *PyGetTimeZoneInformation(PyObject *self, PyObject *args)
     // example, this member could contain "EST" to indicate Eastern Standard Time. This string is not used by the
     // operating system, so anything stored there using the SetTimeZoneInformation function is returned unchanged by the
     // GetTimeZoneInformation function. This string can be empty.
-    // @tupleitem 2|<o PyTime>/tuple|standardTime|Specifies a SYSTEMTIME object that contains a date and local time when
+    // @tupleitem 2|<o PyDateTime>/tuple|standardTime|Specifies a SYSTEMTIME object that contains a date and local time when
     // the transition from daylight saving time to standard time occurs on this operating system. If this date is not
     // specified, the wMonth member in the SYSTEMTIME structure must be zero. If this date is specified, the
     // DaylightDate value in the TIME_ZONE_INFORMATION structure must also be specified. <nl>To select the correct day
@@ -2489,7 +2489,7 @@ static PyObject *PyGetTimeZoneInformation(PyObject *self, PyObject *args)
     // added to the value of the Bias member to form the bias used during standard time. In most time zones, the value
     // of this member is zero.
     // @tupleitem 4|unicode|daylightName|
-    // @tupleitem 5|<o PyTime>/tuple|daylightTime|
+    // @tupleitem 5|<o PyDateTime>/tuple|daylightTime|
     // @tupleitem 6|int|daylightBias|Specifies a bias value to be used during local time translations that occur during
     // daylight saving time. This member is ignored if a value for the DaylightDate member is not supplied. <nl>This
     // value is added to the value of the Bias member to form the bias used during daylight saving time. In most time
@@ -2555,7 +2555,7 @@ static PyObject *PyGetDateFormat(PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "iiO|O:GetDateFormat",
                           &locale,     // @pyparm int|locale||
                           &flags,      // @pyparm int|flags||
-                          &obTime,     // @pyparm <o PyTime>|time||The time to use, or None to use the current time.
+                          &obTime,     // @pyparm <o PyDateTime>|time||The time to use, or None to use the current time.
                           &obFormat))  // @pyparm string|format||May be None
         return NULL;
     SYSTEMTIME st, *pst = NULL;
@@ -2586,7 +2586,7 @@ static PyObject *PyGetTimeFormat(PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "iiO|O:GetTimeFormat",
                           &locale,     // @pyparm int|locale||
                           &flags,      // @pyparm int|flags||
-                          &obTime,     // @pyparm <o PyTime>|time||The time to use, or None to use the current time.
+                          &obTime,     // @pyparm <o PyDateTime>|time||The time to use, or None to use the current time.
                           &obFormat))  // @pyparm string|format||May be None
         return NULL;
 
@@ -5059,7 +5059,7 @@ static PyObject *PySetLocalTime(PyObject *self, PyObject *args)
     PyObject *obst;
     if (!PyArg_ParseTuple(
             args, "O:SetLocalTime",
-            &obst))  // @pyparm <o PyTime>|SystemTime||The local time to be set.  Can also be a time tuple.
+            &obst))  // @pyparm <o PyDateTime>|SystemTime||The local time to be set.  Can also be a time tuple.
         return NULL;
     if (!PyWinObject_AsSYSTEMTIME(obst, &st))
         return NULL;

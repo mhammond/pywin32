@@ -710,13 +710,13 @@ DWORD GetFileAttributes(
 DWORD GetFileAttributesW(
     WCHAR *fileName); // @pyparm <o PyUnicode>|fileName||Name of the file to retrieve attributes for.
 
-// @pyswig (<o PyTime>, <o PyTime>, <o PyTime>)|GetFileTime|Returns a file's creation, last access, and modification times.
+// @pyswig (<o PyDateTime>, <o PyDateTime>, <o PyDateTime>)|GetFileTime|Returns a file's creation, last access, and modification times.
 // @comm Times are returned in UTC time.
 BOOLAPI GetFileTime(
     HANDLE handle, // @pyparm <o PyHANDLE>|handle||Handle to the file.
-	FILETIME *OUTPUT, // @pyparm <o PyTime>|creationTime||
-	FILETIME *OUTPUT, // @pyparm <o PyTime>|accessTime||
-	FILETIME *OUTPUT // @pyparm <o PyTime>|writeTime||
+	FILETIME *OUTPUT, // @pyparm <o PyDateTime>|creationTime||
+	FILETIME *OUTPUT, // @pyparm <o PyDateTime>|accessTime||
+	FILETIME *OUTPUT // @pyparm <o PyDateTime>|writeTime||
 );
 
 
@@ -731,9 +731,9 @@ static BOOL PyWinTime_DateTimeCheck(PyObject *ob)
 static PyObject *PySetFileTime (PyObject *self, PyObject *args, PyObject *kwargs)
 {
 	PyObject *obHandle;       // @pyparm <o PyHANDLE>|File||Previously opened handle (opened with FILE_WRITE_ATTRIBUTES access).
-	PyObject *obCreationTime = Py_None;  // @pyparm <o PyTime>|CreationTime|None|File created time. None for no change.
-	PyObject *obLastAccessTime = Py_None; // @pyparm <o PyTime>|LastAccessTime|None|File access time. None for no change.
-	PyObject *obLastWriteTime = Py_None;  // @pyparm <o PyTime>|LastWriteTime|None|File written time. None for no change.
+	PyObject *obCreationTime = Py_None;  // @pyparm <o PyDateTime>|CreationTime|None|File created time. None for no change.
+	PyObject *obLastAccessTime = Py_None; // @pyparm <o PyDateTime>|LastAccessTime|None|File access time. None for no change.
+	PyObject *obLastWriteTime = Py_None;  // @pyparm <o PyDateTime>|LastWriteTime|None|File written time. None for no change.
 	BOOL UTCTimes = FALSE;    // @pyparm boolean|UTCTimes|False|If True, input times are treated as UTC and no conversion is done, 
 							  // otherwise they are treated as local times.  Defaults to False for backward compatibility.
 							  // This parameter is ignored in Python 3.x, where you should always pass datetime objects
@@ -811,9 +811,9 @@ static PyObject *PyGetFileInformationByHandle(PyObject *self, PyObject *args)
 	// @rdesc The result is a tuple of:
 	return Py_BuildValue("kNNNkkkkkk",
 		fi.dwFileAttributes, // @tupleitem 0|int|dwFileAttributes|
-		PyWinObject_FromFILETIME(fi.ftCreationTime), // @tupleitem 1|<o PyTime>|ftCreationTime|
-		PyWinObject_FromFILETIME(fi.ftLastAccessTime),// @tupleitem 2|<o PyTime>|ftLastAccessTime|
-		PyWinObject_FromFILETIME(fi.ftLastWriteTime),// @tupleitem 3|<o PyTime>|ftLastWriteTime|
+		PyWinObject_FromFILETIME(fi.ftCreationTime), // @tupleitem 1|<o PyDateTime>|ftCreationTime|
+		PyWinObject_FromFILETIME(fi.ftLastAccessTime),// @tupleitem 2|<o PyDateTime>|ftLastAccessTime|
+		PyWinObject_FromFILETIME(fi.ftLastWriteTime),// @tupleitem 3|<o PyDateTime>|ftLastWriteTime|
 		fi.dwVolumeSerialNumber,// @tupleitem 4|int|dwVolumeSerialNumber|
 		fi.nFileSizeHigh,// @tupleitem 5|int|nFileSizeHigh|
 		fi.nFileSizeLow,// @tupleitem 6|int|nFileSizeLow|
@@ -4668,12 +4668,12 @@ static PyObject *PyObject_FromFILEX_INFO(GET_FILEEX_INFO_LEVELS level, void *p)
 //  If this parameter is specified, GetFileAttributesTransacted will be called (requires Vista or later).
 // @rdesc The result is a tuple of:
 //	@tupleitem 0|int|attributes|File Attributes.  A combination of the win32com.FILE_ATTRIBUTE_* flags.
-//	@tupleitem 1|<o PyTime>|creationTime|Specifies when the file or directory was created. 
-//	@tupleitem 2|<o PyTime>|lastAccessTime|For a file, specifies when the file was last read from 
+//	@tupleitem 1|<o PyDateTime>|creationTime|Specifies when the file or directory was created. 
+//	@tupleitem 2|<o PyDateTime>|lastAccessTime|For a file, specifies when the file was last read from 
 //		or written to. For a directory, the structure specifies when the directory was created. For 
 //		both files and directories, the specified date will be correct, but the time of day will 
 //		always be set to midnight.
-//	@tupleitem 3|<o PyTime>|lastWriteTime|For a file, the structure specifies when the file was last 
+//	@tupleitem 3|<o PyDateTime>|lastWriteTime|For a file, the structure specifies when the file was last 
 //		written to. For a directory, the structure specifies when the directory was created.
 //	@tupleitem 4|int/long|fileSize|The size of the file. This member has no meaning for directories. 
 // @comm Not all file systems can record creation and last access time and not all file systems record 
@@ -5750,8 +5750,8 @@ static PyObject *py_SetFileInformationByHandle(PyObject *self, PyObject *args, P
 	// @flagh Class|Type of input
 	switch (info_class){
 		// @flag FileBasicInfo|Dict representing a FILE_BASIC_INFO struct, containing
-		// {"CreationTime":<o PyTime>, "LastAccessTime":<o PyTime>,  "LastWriteTime":<o PyTime>,
-		//		"ChangeTime":<o PyTime>, "FileAttributes":int}
+		// {"CreationTime":<o PyDateTime>, "LastAccessTime":<o PyDateTime>,  "LastWriteTime":<o PyDateTime>,
+		//		"ChangeTime":<o PyDateTime>, "FileAttributes":int}
 		case FileBasicInfo:{
 			TmpPyObject dummy_tuple = PyTuple_New(0);
 			if (dummy_tuple == NULL)

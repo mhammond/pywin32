@@ -3613,7 +3613,7 @@ void PyWinObject_FreeSEC_WINNT_AUTH_IDENTITY(PSEC_WINNT_AUTH_IDENTITY_W pAuthDat
 
 %}
 
-// @pyswig (<o PyCredHandle>,<o PyTime>)|AcquireCredentialsHandle|Creates a handle to credentials for use with SSPI
+// @pyswig (<o PyCredHandle>,<o PyDateTime>)|AcquireCredentialsHandle|Creates a handle to credentials for use with SSPI
 // @rdesc Returns credential handle and credential's expiration time
 %native(AcquireCredentialsHandle) PyAcquireCredentialsHandle;
 %{
@@ -3680,7 +3680,7 @@ done:
 }
 %}
 
-// @pyswig (int, int, <o PyTime>)|InitializeSecurityContext|Creates a security context based on credentials created by AcquireCredentialsHandle
+// @pyswig (int, int, <o PyDateTime>)|InitializeSecurityContext|Creates a security context based on credentials created by AcquireCredentialsHandle
 // @rdesc Return value is a tuple of (return code, attribute flags, expiration time)
 %native(InitializeSecurityContext) PyInitializeSecurityContext;
 %{

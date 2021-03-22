@@ -185,8 +185,8 @@ PyTypeObject PyEventLogRecordType =
 /*static*/ struct PyMemberDef PyEventLogRecord::members[] = {
 	{"Reserved",           T_INT,     OFF(Reserved)}, // @prop integer|Reserved|
 	{"RecordNumber",       T_INT,	  OFF(RecordNumber)}, // @prop integer|RecordNumber|
-	{"TimeGenerated",      T_OBJECT,  OFF(TimeGenerated)}, // @prop <o PyTime>|TimeGenerated|
-	{"TimeWritten",        T_OBJECT,  OFF(TimeWritten)}, // @prop <o PyTime>|TimeWritten|
+	{"TimeGenerated",      T_OBJECT,  OFF(TimeGenerated)}, // @prop <o PyDateTime>|TimeGenerated|
+	{"TimeWritten",        T_OBJECT,  OFF(TimeWritten)}, // @prop <o PyDateTime>|TimeWritten|
 	{"EventID",            T_INT,	  OFF(EventID)}, // @prop integer|EventID|
 	{"EventType",          T_SHORT,	  OFF(EventType)}, // @prop integer|EventType|
 	{"EventCategory",      T_SHORT,   OFF(EventCategory)}, // @prop integer|EventCategory|

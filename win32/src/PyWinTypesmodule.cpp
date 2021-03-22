@@ -395,7 +395,7 @@ static PyObject *PyWin_CreateGuid(PyObject *self, PyObject *args)
     CoCreateGuid(&guid);
     return PyWinObject_FromIID(guid);
 }
-// @pymethod <o PyTime>|pywintypes|DosDateTimeToTime|Converts an MS-DOS Date/Time to a standard Time object.
+// @pymethod <o PyDateTime>|pywintypes|DosDateTimeToTime|Converts an MS-DOS Date/Time to a standard Time object.
 static PyObject *PyWin_DosDateTimeToTime(PyObject *self, PyObject *args)
 {
     WORD wFatDate, wFatTime;
@@ -415,9 +415,9 @@ PyObject *PyObject_FromWIN32_FIND_DATAA(WIN32_FIND_DATAA *pData)
         "lNNNNNNNss",
         pData->dwFileAttributes,  // @tupleitem 0|int|attributes|File Attributes.  A combination of the
                                   // win32com.FILE_ATTRIBUTE_* flags.
-        PyWinObject_FromFILETIME(pData->ftCreationTime),    // @tupleitem 1|<o PyTime>|createTime|File creation time.
-        PyWinObject_FromFILETIME(pData->ftLastAccessTime),  // @tupleitem 2|<o PyTime>|accessTime|File access time.
-        PyWinObject_FromFILETIME(pData->ftLastWriteTime),   // @tupleitem 3|<o PyTime>|writeTime|Time of last file write
+        PyWinObject_FromFILETIME(pData->ftCreationTime),    // @tupleitem 1|<o PyDateTime>|createTime|File creation time.
+        PyWinObject_FromFILETIME(pData->ftLastAccessTime),  // @tupleitem 2|<o PyDateTime>|accessTime|File access time.
+        PyWinObject_FromFILETIME(pData->ftLastWriteTime),   // @tupleitem 3|<o PyDateTime>|writeTime|Time of last file write
         PyLong_FromUnsignedLong(pData->nFileSizeHigh),  // @tupleitem 4|int|nFileSizeHigh|high order DWORD of file size.
         PyLong_FromUnsignedLong(pData->nFileSizeLow),   // @tupleitem 5|int|nFileSizeLow|low order DWORD of file size.
         PyLong_FromUnsignedLong(
@@ -801,8 +801,8 @@ static struct PyMethodDef pywintypes_functions[] = {
 #ifndef NO_PYWINTYPES_IID
     {"IID", PyWinMethod_NewIID, 1},  // @pymeth IID|Makes an <o PyIID> object from a string.
 #endif
-    {"Time", PyWinMethod_NewTime, 1},            // @pymeth Time|Makes a <o PyTime> object from the argument.
-    {"TimeStamp", PyWinMethod_NewTimeStamp, 1},  // @pymeth Time|Makes a <o PyTime> object from the argument.
+    {"Time", PyWinMethod_NewTime, 1},            // @pymeth Time|Makes a <o PyDateTime> object from the argument.
+    {"TimeStamp", PyWinMethod_NewTimeStamp, 1},  // @pymeth Time|Makes a <o PyDateTime> object from the argument.
 #ifndef MS_WINCE
     {"CreateGuid", PyWin_CreateGuid, 1},  // @pymeth CreateGuid|Creates a new, unique GUIID.
 #endif                                    // MS_WINCE

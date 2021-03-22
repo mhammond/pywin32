@@ -644,9 +644,9 @@ PyCeFindFiles(PyObject *self, PyObject *args)
 		PyObject *newItem = Py_BuildValue("lOOOllllOz",
 		// @rdesc The return value is a list of tuples, in the same format as the WIN32_FIND_DATA structure:
 			findData.dwFileAttributes, // @tupleitem 0|int|attributes|File Attributes.  A combination of the win32com.FILE_ATTRIBUTE_* flags.
-			obCreateTime, // @tupleitem 1|<o PyTime>|createTime|File creation time.
-    		obAccessTime, // @tupleitem 2|<o PyTime>|accessTime|File access time.
-    		obWriteTime, // @tupleitem 3|<o PyTime>|writeTime|Time of last file write
+			obCreateTime, // @tupleitem 1|<o PyDateTime>|createTime|File creation time.
+    		obAccessTime, // @tupleitem 2|<o PyDateTime>|accessTime|File access time.
+    		obWriteTime, // @tupleitem 3|<o PyDateTime>|writeTime|Time of last file write
     		findData.nFileSizeHigh, // @tupleitem 4|int|nFileSizeHigh|high order word of file size.
     		findData.nFileSizeLow,	// @tupleitem 5|int|nFileSizeLow|low order word of file size.
     		findData.dwOID,			// @tupleitem 6|int|OID|The object identifier for the file

@@ -52,22 +52,22 @@ static PyObject *GetTZUTC()
     return got;
 }
 
-// @pymethod <o PyTime>|pywintypes|Time|Creates a new time object.
+// @pymethod <o PyDateTime>|pywintypes|Time|Creates a new time object.
 PyObject *PyWinMethod_NewTime(PyObject *self, PyObject *args)
 {
     PyObject *timeOb;
     // @pyparm object|timeRepr||An integer/float/tuple time representation.
     // @comm Note that the parameter can be any object that supports
-    // int(object) - for example , another PyTime object.
+    // int(object) or another PyDateTime object.
     // <nl>The integer should be as defined by the Python time module.
-    // See the description of the <o PyTime> object for more information.
+    // See the description of the <o PyDateTime> object for more information.
     if (!PyArg_ParseTuple(args, "O", &timeOb))
         return NULL;
 
     return PyWin_NewTime(timeOb);
 }
 
-// @pymethod <o PyTime>|pywintypes|TimeStamp|Creates a new time object.
+// @pymethod <o PyDateTime>|pywintypes|TimeStamp|Creates a new time object.
 PyObject *PyWinMethod_NewTimeStamp(PyObject *self, PyObject *args)
 {
     PyObject *obts;
@@ -106,11 +106,13 @@ done:
 }
 
 // @object PyDateTime|A Python object, representing an instant in time.
-// @comm pywin32 builds for Python 3.0 use datetime objects instead of the
-// old PyTime object.
 // @comm PyDateTime is a sub-class of the regular datetime.datetime object.
 // It is subclassed so it can provide a somewhat backwards compatible
-// <om PyDateTime.Format> method, but is otherwise identical.
+// <om PyDateTime.Format> method, but is otherwise identical. Functions accepting
+// a PyDateTime object also accept a datetime.datetime object. A PyDateTime
+// object can be created via <om pywintypes.Time>.
+// @comm Migration note: pywin32 builds for Python 2 used an (incompatible)
+// PyTime object instad of datetime.
 
 struct PyMethodDef PyWinDateTimeType_methods[] = {
     {"Format", PyWinDateTimeType_Format,

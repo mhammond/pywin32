@@ -274,11 +274,11 @@ PyObject *PyCom_PyObjectFromSTATSTG(STATSTG *pStat)
         pStat->type,  // @tupleitem 1|int|type|Indicates the type of storage object. This is one of the values from the
                       // storagecon.STGTY_* values.
         obSize,       // @tupleitem 2|<o ULARGE_INTEGER>|size|Specifies the size in bytes of the stream or byte array.
-        obmtime,      // @tupleitem 3|<o PyTime>|modificationTime|Indicates the last modification time for this storage,
+        obmtime,      // @tupleitem 3|<o PyDateTime>|modificationTime|Indicates the last modification time for this storage,
                       // stream, or byte array.
-        obctime,  // @tupleitem 4|<o PyTime>|creationTime|Indicates the creation time for this storage, stream, or byte
+        obctime,  // @tupleitem 4|<o PyDateTime>|creationTime|Indicates the creation time for this storage, stream, or byte
                   // array.
-        obatime,  // @tupleitem 5|<o PyTime>|accessTime|Indicates the last access time for this storage, stream or byte
+        obatime,  // @tupleitem 5|<o PyDateTime>|accessTime|Indicates the last access time for this storage, stream or byte
                   // array.
         pStat->grfMode,  // @tupleitem 6|int|mode|Indicates the access mode specified when the object was opened. This
                          // member is only valid in calls to Stat methods.
@@ -316,7 +316,7 @@ BOOL PyCom_PyObjectAsSTATSTG(PyObject *ob, STATSTG *pStat, DWORD flags /* = 0 */
     if (!PyWinObject_AsULARGE_INTEGER(obSize, &pStat->cbSize))
         return FALSE;
     if (!PyWinTime_Check(obmtime) || !PyWinTime_Check(obctime) || !PyWinTime_Check(obatime)) {
-        PyErr_SetString(PyExc_TypeError, "The time entries in a STATSTG tuple must be PyTime objects");
+        PyErr_SetString(PyExc_TypeError, "The time entries in a STATSTG tuple must be PyDateTime objects");
         return FALSE;
     }
     if (!PyWinObject_AsFILETIME(obmtime, &pStat->mtime))

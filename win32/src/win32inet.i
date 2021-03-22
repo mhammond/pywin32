@@ -1745,8 +1745,8 @@ PyObject *PyCommitUrlCacheEntry(PyObject *self, PyObject *args, PyObject *kwargs
 			&obUrlName,				// @pyparm str|UrlName||The Url for which to create an entry
 			&obLocalFileName,		// @pyparm str|LocalFileName||Filename returned from <om win32inet.CreateUrlCacheEntry>.
 									//	Can be None when creating a history entry.
-			&obExpireTime,			// @pyparm <o PyTime>|ExpireTime|None|Time at which entry expires
-			&obLastModifiedTime,	// @pyparm <o PyTime>|LastModifiedTime|None|Modification time of URL
+			&obExpireTime,			// @pyparm <o PyDateTime>|ExpireTime|None|Time at which entry expires
+			&obLastModifiedTime,	// @pyparm <o PyDateTime>|LastModifiedTime|None|Modification time of URL
 			&CacheEntryType,		// @pyparm int|CacheEntryType|NORMAL_CACHE_ENTRY|Combination of *_CACHE_ENTRY flags
 			&obHeaderInfo,			// @pyparm str|HeaderInfo|None|Header data used to request Url
 			&obOriginalUrl))		// @pyparm str|OriginalUrl|None|If redirected, original site requested

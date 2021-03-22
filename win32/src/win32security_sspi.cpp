@@ -890,13 +890,13 @@ PyObject *PyCtxtHandle::QueryContextAttributes(PyObject *self, PyObject *args)
             ret = Py_BuildValue("{s:l,s:l,s:l,s:l}", "MaxToken", sz->cbMaxToken, "MaxSignature", sz->cbMaxSignature,
                                 "BlockSize", sz->cbBlockSize, "SecurityTrailer", sz->cbSecurityTrailer);
             break;
-        // @flag SECPKG_ATTR_PASSWORD_EXPIRY|<o PyTime> - returns time password expires
+        // @flag SECPKG_ATTR_PASSWORD_EXPIRY|<o PyDateTime> - returns time password expires
         case SECPKG_ATTR_PASSWORD_EXPIRY:
             PSecPkgContext_PasswordExpiry pe;
             pe = (PSecPkgContext_PasswordExpiry)&buf;
             ret = PyWinObject_FromTimeStamp(pe->tsPasswordExpires);
             break;
-        // @flag SECPKG_ATTR_LIFESPAN|(<o PyTime>,<o PyTime>) - returns time period during which context is valid
+        // @flag SECPKG_ATTR_LIFESPAN|(<o PyDateTime>,<o PyDateTime>) - returns time period during which context is valid
         case SECPKG_ATTR_LIFESPAN:
             PSecPkgContext_Lifespan ls;
             ls = (PSecPkgContext_Lifespan)&buf;

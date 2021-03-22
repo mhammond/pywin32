@@ -372,7 +372,7 @@ class ArgFormatterTime(ArgFormatterPythonCOM):
 		ArgFormatterPythonCOM.__init__(self, arg, builtinIndirection, declaredIndirection)
 
 	def _GetPythonTypeDesc(self):
-		return "<o PyTime>"
+		return "<o PyDateTime>"
 	def GetParsePostCode(self):
 		# variable was declared with only the builtinIndirection
 		### NOTE: this is an [in] ... so use only builtin
