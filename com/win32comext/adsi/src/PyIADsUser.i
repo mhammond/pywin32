@@ -48,7 +48,7 @@ HRESULT put_AccountDisabled(short val);
 // @pyswig int|get_AccountExpirationDate|
 HRESULT get_AccountExpirationDate(DATE *OUTPUT);
 // @pyswig |put_AccountExpirationDate|
-// @pyparm <o PyTime>|val||
+// @pyparm <o PyDateTime>|val||
 HRESULT put_AccountExpirationDate(DATE val);
 **/
 // @pyswig unicode|get_BadLoginAddress|

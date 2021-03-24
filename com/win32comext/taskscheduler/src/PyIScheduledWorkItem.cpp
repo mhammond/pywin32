@@ -135,7 +135,7 @@ PyObject *PyIScheduledWorkItem::GetTriggerString(PyObject *self, PyObject *args)
     return ret;
 }
 
-// @pymethod (<o PyTime>,,,)|PyIScheduledWorkItem|GetRunTimes|Return specified number of run times within given time
+// @pymethod (<o PyDateTime>,,,)|PyIScheduledWorkItem|GetRunTimes|Return specified number of run times within given time
 // frame
 PyObject *PyIScheduledWorkItem::GetRunTimes(PyObject *self, PyObject *args)
 {
@@ -143,8 +143,8 @@ PyObject *PyIScheduledWorkItem::GetRunTimes(PyObject *self, PyObject *args)
     if (pISWI == NULL)
         return NULL;
     // @pyparm int|Count||Number of run times to retrieve
-    // @pyparm <o PyTime>|Begin||Start time, defaults to current time if not passed or None
-    // @pyparm <o PyTime>|End||End time, defaults to unlimited if not passed or None
+    // @pyparm <o PyDateTime>|Begin||Start time, defaults to current time if not passed or None
+    // @pyparm <o PyDateTime>|End||End time, defaults to unlimited if not passed or None
     WORD wCount = 0, time_ind = 0;
     SYSTEMTIME start_time, end_time;
     LPSYSTEMTIME run_time = NULL, first_run_time = NULL, lpend_time = NULL;
@@ -181,7 +181,7 @@ PyObject *PyIScheduledWorkItem::GetRunTimes(PyObject *self, PyObject *args)
     return ret;
 }
 
-// @pymethod <o PyTime>|PyIScheduledWorkItem|GetNextRunTime|Returns next time that task is scheduled to run
+// @pymethod <o PyDateTime>|PyIScheduledWorkItem|GetNextRunTime|Returns next time that task is scheduled to run
 PyObject *PyIScheduledWorkItem::GetNextRunTime(PyObject *self, PyObject *args)
 {
     IScheduledWorkItem *pISWI = GetI(self);
@@ -320,7 +320,7 @@ PyObject *PyIScheduledWorkItem::EditWorkItem(PyObject *self, PyObject *args)
     return Py_None;
 }
 
-// @pymethod <o PyTime>|PyIScheduledWorkItem|GetMostRecentRunTime|Returns last time task ran
+// @pymethod <o PyDateTime>|PyIScheduledWorkItem|GetMostRecentRunTime|Returns last time task ran
 PyObject *PyIScheduledWorkItem::GetMostRecentRunTime(PyObject *self, PyObject *args)
 {
     IScheduledWorkItem *pISWI = GetI(self);

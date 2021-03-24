@@ -78,9 +78,9 @@ struct PyMemberDef PyCERT_CONTEXT::members[] = {
     //	<om cryptoapi.CryptDecodeObjectEx> to decode into individual components, or <om cryptoapi.CertNameToStr> to
     //	return a single formatted string
     {"Issuer", T_OBJECT, offsetof(PyCERT_CONTEXT, obdummy), READONLY},
-    // @prop <o PyTime>|NotBefore|Beginning of certificate's period of validity
+    // @prop <o PyDateTime>|NotBefore|Beginning of certificate's period of validity
     {"NotBefore", T_OBJECT, offsetof(PyCERT_CONTEXT, obdummy), READONLY},
-    // @prop <o PyTime>|NotAfter|End of certificate's period of validity
+    // @prop <o PyDateTime>|NotAfter|End of certificate's period of validity
     {"NotAfter", T_OBJECT, offsetof(PyCERT_CONTEXT, obdummy), READONLY},
     // @prop str|SignatureAlgorithm|Object id of the certifcate's signature algorithm
     {"SignatureAlgorithm", T_OBJECT, offsetof(PyCERT_CONTEXT, obdummy), READONLY},
@@ -418,7 +418,7 @@ PyObject *PyCERT_CONTEXT::PyCertGetCertificateContextProperty(PyObject *self, Py
             Py_INCREF(Py_True);
             ret = Py_True;  // no data returned, success is only indicator
             break;
-        case CERT_DATE_STAMP_PROP_ID:  // @flag CERT_DATE_STAMP_PROP_ID|<o PyTime>
+        case CERT_DATE_STAMP_PROP_ID:  // @flag CERT_DATE_STAMP_PROP_ID|<o PyDateTime>
             ret = PyWinObject_FromFILETIME(*((FILETIME *)pvData));
             break;
         case CERT_ACCESS_STATE_PROP_ID:  // @flag CERT_ACCESS_STATE_PROP_ID|int
@@ -526,7 +526,7 @@ PyObject *PyCERT_CONTEXT::PyCertSetCertificateContextProperty(PyObject *self, Py
                                      // causes it to be set
             pvData = &cdb;           // no actual data, non-NULL pvData indicates presence of flag
             break;
-        case CERT_DATE_STAMP_PROP_ID:  // @flag CERT_DATE_STAMP_PROP_ID|<o PyTime> specifying when cert was added to
+        case CERT_DATE_STAMP_PROP_ID:  // @flag CERT_DATE_STAMP_PROP_ID|<o PyDateTime> specifying when cert was added to
                                        // store
             if (!PyWinObject_AsFILETIME(obData, &ftData))
                 goto cleanup;

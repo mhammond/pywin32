@@ -205,7 +205,7 @@ PyObject *PyIShellItem2::GetCLSID(PyObject *self, PyObject *args)
     return PyWinObject_FromIID(val);
 }
 
-// @pymethod <o PyTime>|PyIShellItem2|GetFileTime|Retrieves the value of a property as a FILETIME
+// @pymethod <o PyDateTime>|PyIShellItem2|GetFileTime|Retrieves the value of a property as a FILETIME
 PyObject *PyIShellItem2::GetFileTime(PyObject *self, PyObject *args)
 {
     IShellItem2 *pISI2 = GetI(self);

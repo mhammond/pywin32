@@ -118,7 +118,7 @@ BOOL PyWinObject_AsCREDENTIAL_ATTRIBUTEArray(PyObject *obattrs, PCREDENTIAL_ATTR
 // @prop int|Type|Type of credential, one of CRED_TYPE_* values
 // @prop <o PyUnicode>|TargetName|Target of credential, can end with * for wildcard matching
 // @prop <o PyUnicode>|Comment|Descriptive text
-// @prop <o PyTime>|LastWritten|Modification time, ignored on input
+// @prop <o PyDateTime>|LastWritten|Modification time, ignored on input
 // @prop <o PyUnicode>|CredentialBlob|Contains password for username credential, or PIN for certificate credential. This
 // member is write-only.
 // @prop int|Persist|Specifies scope of persistence, one of CRED_PERSIST_* values

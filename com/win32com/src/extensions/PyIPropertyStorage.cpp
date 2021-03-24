@@ -808,9 +808,9 @@ PyObject *PyIPropertyStorage::SetTimes(PyObject *self, PyObject *args)
     IPropertyStorage *pIPS = GetI(self);
     if (pIPS == NULL)
         return NULL;
-    // @pyparm <o PyTime>|ctime||Creation time, or None for no change
-    // @pyparm <o PyTime>|atime||Last access time, or None for no change
-    // @pyparm <o PyTime>|mtime||Modification time, or None for no change
+    // @pyparm <o PyDateTime>|ctime||Creation time, or None for no change
+    // @pyparm <o PyDateTime>|atime||Last access time, or None for no change
+    // @pyparm <o PyDateTime>|mtime||Modification time, or None for no change
     PyObject *obctime;
     PyObject *obatime;
     PyObject *obmtime;
