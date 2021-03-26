@@ -46,13 +46,10 @@ def TestDict(quiet=None):
     del checkDict["NewKey"]
     TestDictAgainst(dict, checkDict)
 
-    if issubclass(pywintypes.TimeType, datetime.datetime):
-        now = win32timezone.now()
-        # We want to keep the milliseconds but discard microseconds as they
-        # don't survive the conversion.
-        now = now.replace(microsecond = round(now.microsecond / 1000) * 1000)
-    else:
-        now = pythoncom.MakeTime(time.gmtime(time.time()))
+    now = win32timezone.now()
+    # We want to keep the milliseconds but discard microseconds as they
+    # don't survive the conversion.
+    now = now.replace(microsecond = round(now.microsecond / 1000) * 1000)
     dict["Now"] = now
     checkDict["Now"] = now
     TestDictAgainst(dict, checkDict)

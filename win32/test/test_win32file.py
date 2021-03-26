@@ -136,10 +136,6 @@ class TestSimpleOps(unittest.TestCase):
             os.unlink(filename)
 
     def testFileTimesTimezones(self):
-        if not issubclass(pywintypes.TimeType, datetime.datetime):
-            # maybe should report 'skipped', but that's not quite right as
-            # there is nothing you can do to avoid it being skipped!
-            return
         filename = tempfile.mktemp("-testFileTimes")
         # now() is always returning a timestamp with microseconds but the
         # file APIs all have zero microseconds, so some comparisons fail.
@@ -165,23 +161,12 @@ class TestSimpleOps(unittest.TestCase):
             os.unlink(filename)
 
     def testFileTimes(self):
-        if issubclass(pywintypes.TimeType, datetime.datetime):
-            from win32timezone import TimeZoneInfo
-            # now() is always returning a timestamp with microseconds but the
-            # file APIs all have zero microseconds, so some comparisons fail.
-            now = datetime.datetime.now(tz=TimeZoneInfo.utc()).replace(microsecond=0)
-            nowish = now + datetime.timedelta(seconds=1)
-            later = now + datetime.timedelta(seconds=120)
-        else:
-            rc, tzi = win32api.GetTimeZoneInformation()
-            bias = tzi[0]
-            if rc==2: # daylight-savings is in effect.
-                bias += tzi[-1]
-            bias *= 60 # minutes to seconds...
-            tick = int(time.time())
-            now = pywintypes.Time(tick+bias)
-            nowish = pywintypes.Time(tick+bias+1)
-            later = pywintypes.Time(tick+bias+120)
+        from win32timezone import TimeZoneInfo
+        # now() is always returning a timestamp with microseconds but the
+        # file APIs all have zero microseconds, so some comparisons fail.
+        now = datetime.datetime.now(tz=TimeZoneInfo.utc()).replace(microsecond=0)
+        nowish = now + datetime.timedelta(seconds=1)
+        later = now + datetime.timedelta(seconds=120)
 
         filename = tempfile.mktemp("-testFileTimes")
         # Windows docs the 'last time' isn't valid until the last write

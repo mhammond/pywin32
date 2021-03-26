@@ -20,11 +20,8 @@ from pywin32_testutil import str2bytes
 S_OK = 0
 
 import datetime
-if issubclass(pywintypes.TimeType, datetime.datetime):
-    import win32timezone
-    now = win32timezone.now()
-else:
-    now = pywintypes.Time(time.time())
+import win32timezone
+now = win32timezone.now()
 
 class LockBytes:
     _public_methods_ = [ 'ReadAt', 'WriteAt', 'Flush', 'SetSize', 'LockRegion', 'UnlockRegion', 'Stat' ]
