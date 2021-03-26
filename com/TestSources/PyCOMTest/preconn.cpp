@@ -4,4 +4,3 @@
 
 #include "preconn.h"
 
-#include "atlimpl.cpp"

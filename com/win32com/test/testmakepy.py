@@ -12,14 +12,14 @@ from win32com.client import makepy, selecttlb, gencache
 import pythoncom
 import winerror
 
-def TestBuildAll(verbose = 1):
+def TestBuildAll(verbose = 1, bCreateEnums=False, bTypeHints=False):
     num = 0
     tlbInfos = selecttlb.EnumTlbs()
     for info in tlbInfos:
         if verbose:
             print("%s (%s)" % (info.desc, info.dll))
         try:
-            makepy.GenerateFromTypeLibSpec(info)
+            makepy.GenerateFromTypeLibSpec(info, None, None, None, None, 0, 1, bCreateEnums, bTypeHints)
 #          sys.stderr.write("Attr typeflags for coclass referenced object %s=%d (%d), typekind=%d\n" % (name, refAttr.wTypeFlags, refAttr.wTypeFlags & pythoncom.TYPEFLAG_FDUAL,refAttr.typekind))
             num += 1
         except pythoncom.com_error as details:
@@ -47,6 +47,17 @@ def TestBuildAll(verbose = 1):
 def TestAll(verbose = 0):
     num = TestBuildAll(verbose)
     print("Generated and imported", num, "modules")
+
+    if sys.version_info >= (3, 4):
+        num = TestBuildAll(verbose, True)
+        print("Generated and imported", num, "modules with Python-Enums")
+        if sys.version_info >= (3, 7):
+            num = TestBuildAll(verbose, False, True)
+            print("Generated and imported", num, "modules with type-hints")
+            num = TestBuildAll(verbose, True, True)
+            print("Generated and imported", num, "modules with type-hints and Python-Enums")
+        
+
     win32com.test.util.CheckClean()
 
 if __name__=='__main__':
