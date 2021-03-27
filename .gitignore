@@ -18,13 +18,14 @@ Pythonwin/Scintilla/win32/*.pdb
 PyWin32.kpf
 
 # COM test bits
-com\TestSources\Build
-com\TestSources\PyCOMTest\PyCOMTest.h
-com\TestSources\PyCOMTest\PyCOMTest.sln
-com\TestSources\PyCOMTest\PyCOMTest.suo
-com\TestSources\PyCOMTest\PyCOMTest.tlb
-com\TestSources\PyCOMTest\PyCOMTest.vcproj*
-com\TestSources\PyCOMTest\PyCOMTest_i.c
+com/TestSources/Build
+com/TestSources/PyCOMTest/PyCOMTest.h
+com/TestSources/PyCOMTest/PyCOMTest.sln
+com/TestSources/PyCOMTest/PyCOMTest.suo
+com/TestSources/PyCOMTest/PyCOMTest.tlb
+com/TestSources/PyCOMTest/PyCOMTest.vc*proj*
+com/TestSources/PyCOMTest/PyCOMTest_i.c
+com/TestSources/PyCOMTest/.vs/
 
 
 # SWIG generated files.
