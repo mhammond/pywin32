@@ -107,6 +107,13 @@ static PySequenceMethods PyFUNCDESC_Sequence = {
     NULL,                   // sq_ass_slice;
 };
 
+static PyObject *PyFUNCDESC_Repr(PyObject *self) {
+    PyFUNCDESC *f = (PyFUNCDESC *)self;
+    return PyUnicode_FromFormat(
+        "PyFUNCDESC(memid=%d, scodeArray=%R, args=%R, funckind=%d, invkind=%d, callconv=%d, cParamsOpt=%d, oVft=%d, rettype=%R, wFuncFlags=%d)",
+                    f->memid, f->scodeArray, f->args, f->funckind, f->invkind, f->callconv, f->cParamsOpt, f->oVft, f->rettype, f->wFuncFlags);
+}
+
 PyTypeObject PyFUNCDESC::Type = {
     PYWIN_OBJECT_HEAD "PyFUNCDESC",
     sizeof(PyFUNCDESC),
@@ -116,7 +123,7 @@ PyTypeObject PyFUNCDESC::Type = {
     0,                       /* tp_getattr */
     0,                       /* tp_setattr */
     0,                       /* tp_compare */
-    0,                       /* tp_repr */
+    PyFUNCDESC_Repr,         /* tp_repr */
     0,                       /* tp_as_number */
     &PyFUNCDESC_Sequence,    /* tp_as_sequence */
     0,                       /* tp_as_mapping */
