@@ -380,10 +380,15 @@ PyObject *PyWin_NewTime(PyObject *timeOb)
         double minutes = (hours - (int)hours) * 60.0;
         double seconds = round((minutes - (int)minutes) * 60.0, 4);
         double milliseconds = round((seconds - (int)seconds) * 1000.0, 0);
-        // assert(milliseconds>=0.0 && milliseconds<=999.0);
-
         // Strip off the msec part of time
         double TimeWithoutMsecs = t - (ONETHOUSANDMILLISECONDS / 1000.0 * milliseconds);
+
+        // We might have rounded ms to 1000 which blows up datetime. Round up
+        // to the next second.
+        if (milliseconds >= 1000) {
+            TimeWithoutMsecs += ONETHOUSANDMILLISECONDS;
+            milliseconds = 0;
+        }
 
         // Let the OS translate the variant date/time
         SYSTEMTIME st;

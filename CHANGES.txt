@@ -11,6 +11,10 @@ Since build 300:
 * Fix a bug in `win32profile.GetEnvironmentStrings()` relating to environment
   variables with an equals sign (@maxim-krikun in #1661)
 
+* Fixed a bug where certain COM dates would fail to be converted to a Python
+  datetime object with `ValueError: microsecond must be in 0..999999`. Shoutout
+  to @hujiaxing for reporting and helping reproduce the issue (#1655)
+
 * Added win32com.shell.SHGetKnownFolderPath() and related constants.
 
 * Shifted work in win32.lib.pywin32_bootstrap to Python's import system from

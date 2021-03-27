@@ -273,6 +273,10 @@ def TestCommon(o, is_generated):
     later = now + datetime.timedelta(seconds=1)
     TestApplyResult(o.EarliestDate, (now, later), now)
 
+    # The below used to fail with `ValueError: microsecond must be in 0..999999` - see #1655
+    # https://planetcalc.com/7027/ says that float is: Sun, 25 Mar 1951 7:23:49 am
+    assert o.MakeDate(18712.308206013888) == datetime.datetime.fromisoformat("1951-03-25 07:23:49+00:00")
+
     progress("Checking currency")
     # currency.
     pythoncom.__future_currency__ = 1
