@@ -758,8 +758,21 @@ class TestTransmit(unittest.TestCase):
 
         def runner():
             s1 = socket.socket()
-            self.addr = ('localhost', random.randint(10000,64000))
-            s1.bind(self.addr)
+            # binding fails occasionally on github CI with:
+            # OSError: [WinError 10013] An attempt was made to access a socket in a way forbidden by its access permissions
+            # which probably just means the random port is already in use, so
+            # let that happen a few times.
+            for i in range(5):
+                self.addr = ('localhost', random.randint(10000,64000))
+                try:
+                    s1.bind(self.addr)
+                    break
+                except os.error as exc:
+                    if exc.winerror != 10013:
+                        raise
+                    print("Failed to use port", self.addr, "trying another random one")
+            else:
+                raise RuntimeError("Failed to find an available port to bind to.")
             s1.listen(1)
             cli, addr = s1.accept()
             buf = 1
