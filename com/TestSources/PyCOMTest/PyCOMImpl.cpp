@@ -808,6 +808,14 @@ HRESULT CPyCOMTest::EarliestDate(DATE first, DATE second, DATE *pResult)
     return S_OK;
 }
 
+HRESULT CPyCOMTest::MakeDate(double val, DATE *pResult)
+{
+    if (!pResult)
+        return E_POINTER;
+    *pResult = (DATE)val;
+    return S_OK;
+}
+
 HRESULT CPyCOMTest::TestQueryInterface()
 {
     IUnknown *pObj = 0;

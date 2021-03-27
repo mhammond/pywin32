@@ -80,7 +80,7 @@ library PyCOMTestLib
 	};
 	// Some test structures
 	typedef [uuid(7a4ce6a7-7959-4e85-a3c0-b41442ff0f67), version(1.0)]
-	struct tagTestStruct1 {
+	struct TestStruct1 {
 		int int_value;
 		BSTR str_value;
 	} TestStruct1;
@@ -261,11 +261,15 @@ library PyCOMTestLib
 
 		HRESULT TestMyInterface([in] IUnknown *tester);
 
-		// Test date objects.  From a bug-report from a user.
+		// Test date objects.
 		HRESULT EarliestDate(
 						[in] DATE First,
 						[in, optional, defaultvalue(0)] DATE Second,
 						[out, retval] Date* pResult);
+
+		HRESULT MakeDate(
+						[in] double val,
+						[out, retval] DATE* pResult);
 
 		HRESULT TestQueryInterface();
 		HRESULT AddCurrencies(
