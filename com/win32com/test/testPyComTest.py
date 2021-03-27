@@ -266,22 +266,12 @@ def TestCommon(o, is_generated):
     TestConstant("StringTest", "Hello Wo\xaeld")
 
     progress("Checking dates and times")
-    if issubclass(pywintypes.TimeType, datetime.datetime):
-        # For now *all* times passed must be tz-aware.
-        now = win32timezone.now()
-        # but conversion to and from a VARIANT loses sub-second...
-        now = now.replace(microsecond=0)
-        later = now + datetime.timedelta(seconds=1)
-        TestApplyResult(o.EarliestDate, (now, later), now)
-    else:
-        # old PyTime object
-        now = pythoncom.MakeTime(time.gmtime(time.time()))
-        later = pythoncom.MakeTime(time.gmtime(time.time()+1))
-        TestApplyResult(o.EarliestDate, (now, later), now)
-        # But it can still *accept* tz-naive datetime objects...
-        now = datetime.datetime.now()
-        expect = pythoncom.MakeTime(now)
-        TestApplyResult(o.EarliestDate, (now, now), expect)
+    # For now *all* times passed must be tz-aware.
+    now = win32timezone.now()
+    # but conversion to and from a VARIANT loses sub-second...
+    now = now.replace(microsecond=0)
+    later = now + datetime.timedelta(seconds=1)
+    TestApplyResult(o.EarliestDate, (now, later), now)
 
     progress("Checking currency")
     # currency.

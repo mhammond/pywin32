@@ -76,9 +76,6 @@ class TestCase(unittest.TestCase):
         self.failUnless(pywintypes.Time(t1) is t1)
 
     def testPyTimeTooLarge(self):
-        # We only do this special thing for python 3.x
-        if not issubclass(pywintypes.TimeType, datetime.datetime):
-            return
         MAX_TIMESTAMP = 0x7FFFFFFFFFFFFFFF # used by some API function to mean "never"
         ts = pywintypes.TimeStamp(MAX_TIMESTAMP)
         self.failUnlessEqual(ts, datetime.datetime.max)
