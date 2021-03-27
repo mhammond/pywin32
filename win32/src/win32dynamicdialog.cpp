@@ -596,7 +596,7 @@ static BOOL ParseDlgItemList(CPythonDialogTemplate *dlg, PyObject *tmpl)
         goto cleanup;
     if (!PyWinObject_AsWCHAR(obcaption, &caption, TRUE))
         goto cleanup;
-    if (!pybuf.init(obdata))
+    if (!pybuf.init(obdata, FALSE, TRUE))
         goto cleanup;
 
     if (IS_INTRESOURCE(wclass))
