@@ -59,7 +59,7 @@ def Test():
         if v != list(client.TestSequence):
             raise error("Dynamic sequences not working! %r/%r" % (repr(v), repr(client.testSequence)))
 
-        client.write("This","output","has","come","via","COM")
+        client.write("This","output","has","come","via","testDynamic.py")
         # Check our new "_FlagAsMethod" works (kinda!)
         client._FlagAsMethod("NotReallyAMethod")
         if not callable(client.NotReallyAMethod):
@@ -70,6 +70,7 @@ def Test():
     finally:
         if handle is not None:
             pythoncom.RevokeActiveObject(handle)
+    print("Test worked!")
 
 if __name__=='__main__':
     Test()
