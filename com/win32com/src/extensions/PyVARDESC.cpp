@@ -74,6 +74,13 @@ BOOL PyObject_AsVARDESC(PyObject *ob, VARDESC **pp)
     return rc;
 }
 
+static PyObject *PyVARDESC_Repr(PyObject *self) {
+    PyVARDESC *v = (PyVARDESC *)self;
+    return PyUnicode_FromFormat(
+        "PyVARDESC(memid=%d, value=%R, elemdescVar=%R, wVarFlags=%d, varkind=%d)",
+                   v->memid, v->value, v->elemdescVar, v->wVarFlags, v->varkind);
+}
+
 void PyObject_FreeVARDESC(VARDESC *p) { FreeMoreBuffer(p); }
 
 // Sequence stuff to provide compatibility with tuples.
@@ -96,7 +103,7 @@ PyTypeObject PyVARDESC::Type = {
     0,                       /* tp_getattr */
     0,                       /* tp_setattr */
     0,                       /* tp_compare */
-    0,                       /* tp_repr */
+    PyVARDESC_Repr,          /* tp_repr */
     0,                       /* tp_as_number */
     &PyVARDESC_Sequence,     /* tp_as_sequence */
     0,                       /* tp_as_mapping */
@@ -236,9 +243,9 @@ PyVARDESC::~PyVARDESC()
             rc = p->elemdescVar ? p->elemdescVar : Py_None;
             Py_INCREF(rc);
             return rc;
-        case 3:  // @tupleitem 3|int|varFlags|Variable flags
+        case 3:  // @tupleitem 3|int|wVarFlags|Variable flags
             return PyInt_FromLong(p->wVarFlags);
-        case 4:  // @tupleitem 4|int|varKind|Kind flags.
+        case 4:  // @tupleitem 4|int|varkind|Kind flags.
             return PyInt_FromLong(p->varkind);
     }
     PyErr_SetString(PyExc_IndexError, "index out of range");

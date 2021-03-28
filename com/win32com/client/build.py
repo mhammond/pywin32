@@ -69,6 +69,10 @@ class MapEntry:
 		self.resultDocumentation = resultDoc
 		self.wasProperty = 0 # Have I been transformed into a function so I can pass args?
 		self.hidden = hidden
+	def __repr__(self):
+		return ('MapEntry(dispid={s.dispid}, desc={s.desc}, names={s.names}, doc={s.doc!r}, '
+		        'resultCLSID={s.resultCLSID}, resultDocumentation={s.resultDocumentation}, '
+			    'wasProperty={s.wasProperty}, hidden={s.hidden}').format(s=self)
 	def GetResultCLSID(self):
 		rc = self.resultCLSID
 		if rc == pythoncom.IID_NULL: return None
