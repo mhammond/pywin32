@@ -231,7 +231,7 @@ class VTableItem(build.VTableItem, WritableItem):
     def WriteVTableMap(self, generator):
         stream = generator.file
         print("%s_vtables_dispatch_ = %d" % (self.python_name, self.bIsDispatch), file=stream)
-        print("%s_vtables_ = [" % (self.python_name, ), file=stream) 
+        print("%s_vtables_ = [" % (self.python_name, ), file=stream)
         for v in self.vtableFuncs:
             names, dispid, desc = v
             arg_desc = desc[2]

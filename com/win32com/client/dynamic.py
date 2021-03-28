@@ -99,8 +99,26 @@ def _GetGoodDispatchAndUserName(IDispatch, userName, clsctx):
 
 def _GetDescInvokeType(entry, invoke_type):
 	# determine the wFlags argument passed as input to IDispatch::Invoke
+	# Only ever called by __getattr__ and __setattr__ from dynamic objects!
+	# * `entry` is a MapEntry with whatever typeinfo we have about the property we are getting/setting.
+	# * `invoke_type` is either INVOKE_PROPERTYGET | INVOKE_PROPERTYSET and really just
+	#   means "called by __getattr__" or "called by __setattr__"
 	if not entry or not entry.desc: return invoke_type
+
+	# XXX - this is broken!
+	# We have a FUNCDESC or VARDESC which describes how the type info for the item wants to be accessed.
+	# This is where things get messy:
 	varkind = entry.desc[4] # from VARDESC struct returned by ITypeComp::Bind
+	# ^^ - the line above assumes entry.desc is a VARDESC (as vardesc[4] is `varkind`)
+	# However, in all "simple" tests, entry.desc is actually a FUNCDESC, and
+	# funcdesc[4] is `invkind` - subtly different!
+	# So - checking `varkind == pythoncom.VAR_DISPATCH` is *usually* doing
+	# `funcdesc.invkind == pythoncom.VAR_DISPATCH` - checking against the wrong
+	# enum. Converting to the correct enum (VAR_DISPATCH == INVOKE_FUNC | INVOKE_PROPERTYGET),
+	# this *actually* reads `funcdesc.invkind == INVOKE_FUNC | INVOKE_PROPERTYGET`
+	# which by pure chance, means we are still returning `invkind`, so for a
+	# FUNCDESC it's actually a no-op. Whew.
+	# BUT - it's apparently important for an INVKIND, and working that out is TBD!
 	if varkind == pythoncom.VAR_DISPATCH and invoke_type == pythoncom.INVOKE_PROPERTYGET:
 		return pythoncom.INVOKE_FUNC | invoke_type # DISPATCH_METHOD & DISPATCH_PROPERTYGET can be combined in IDispatch::Invoke
 	else:
@@ -455,7 +473,7 @@ class CDispatch:
 
 		Specifically, trying to say: ob.SomeFunc()
 		may yield an exception "None object is not callable"
-		In this case, an attempt to fetch the *property*has worked
+		In this case, an attempt to fetch the *property* has worked
 		and returned None, rather than indicating it is really a method.
 		Calling: ob._FlagAsMethod("SomeFunc")
 		should then allow this to work.
@@ -522,7 +540,7 @@ class CDispatch:
 				except pythoncom.ole_error:
 					pass # No prop by that name - retEntry remains None.
 
-		if not retEntry is None: # see if in my cache
+		if retEntry is not None: # see if in my cache
 			try:
 				ret = self._mapCachedItems_[retEntry.dispid]
 				debug_attr_print ("Cached items has attribute!", ret)
@@ -531,7 +549,7 @@ class CDispatch:
 				debug_attr_print("Attribute %s not in cache" % attr)
 
 		# If we are still here, and have a retEntry, get the OLE item
-		if not retEntry is None:
+		if retEntry is not None:
 			invoke_type = _GetDescInvokeType(retEntry, pythoncom.INVOKE_PROPERTYGET)
 			debug_attr_print("Getting property Id 0x%x from OLE object" % retEntry.dispid)
 			try:
