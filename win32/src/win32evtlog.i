@@ -359,7 +359,7 @@ PyObject * MyReportEvent( HANDLE hEventLog,
 	if (!PyWinObject_AsSID(obSID, &sid, TRUE))
 		return NULL;
 
-	PyWinBufferView pybuf(obData);
+	PyWinBufferView pybuf(obData, false, true);
 	if (!pybuf.ok())
 		return NULL;
 	if (!PyWinObject_AsWCHARArray(obStrings, &pStrings, &numStrings, TRUE))
