@@ -90,7 +90,7 @@ unittest_modules = [
           testAXScript testxslt testDictionary testCollections
           testServers errorSemantics.test testvb testArrays
           testClipboard testMarshal
-          testConversionsErrors
+          testConversionErrors
         """.split(),
         # Level 2 tests.
         """testMSOffice.TestAll testMSOfficeEvents.test testAccess.test
