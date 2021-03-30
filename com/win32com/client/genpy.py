@@ -83,7 +83,7 @@ def WriteSinkEventMap(obj, stream):
     print('\t_dispid_to_func_ = {', file=stream)
     for name, entry in list(obj.propMapGet.items()) + list(obj.propMapPut.items()) + list(obj.mapFuncs.items()):
         fdesc = entry.desc
-        print('\t\t%9d : "%s",' % (entry.desc[0], MakeEventMethodName(entry.names[0])), file=stream)
+        print('\t\t%9d : "%s",' % (fdesc.memid, MakeEventMethodName(entry.names[0])), file=stream)
     print('\t\t}', file=stream)
 
 
@@ -245,7 +245,7 @@ class VTableItem(build.VTableItem, WritableItem):
                 item_num = item_num + 1
                 if item_num % 5 == 0:
                     print("\n\t\t\t", end=' ', file=stream)
-            print("), %d, (%r, %r, [" % (dispid, desc[0], desc[1]), end=' ', file=stream)
+            print("), %d, (%r, %r, [" % (dispid, desc.memid, desc[1]), end=' ', file=stream)
             for arg in arg_desc:
                 item_num = item_num + 1
                 if item_num % 5 == 0:
@@ -257,7 +257,10 @@ class VTableItem(build.VTableItem, WritableItem):
                     arg3_repr = repr(arg[3])
                 print(repr((arg[0], arg[1], defval, arg3_repr)), ",", end=' ', file=stream)
             print("],", end=' ', file=stream)
-            for d in desc[3:]:
+            # XXX - upgrade below to using attributes once we are confident whether we
+            # are dealing with a TYPEDESC or FUNCDESC - it's almost certainly the
+            # latter, but...
+            for d in tuple(desc)[3:]:
                 print(repr(d), ",", end=' ', file=stream)
             print(")),", file=stream)
         print("]", file=stream)
@@ -373,7 +376,7 @@ class DispatchItem(build.DispatchItem, WritableItem):
             # skip [restricted] methods, unless it is the
             # enumerator (which, being part of the "system",
             # we know about and can use)
-            dispid = entry.desc[0]
+            dispid = entry.desc.memid
             if entry.desc[9] & pythoncom.FUNCFLAG_FRESTRICTED and \
                 dispid != pythoncom.DISPID_NEWENUM:
                 continue
@@ -409,11 +412,11 @@ class DispatchItem(build.DispatchItem, WritableItem):
                 details = entry.desc
                 resultDesc = details[2]
                 argDesc = ()
-                mapEntry = MakeMapLineEntry(details[0], pythoncom.DISPATCH_PROPERTYGET, resultDesc, argDesc, key, entry.GetResultCLSIDStr())
+                mapEntry = MakeMapLineEntry(details.memid, pythoncom.DISPATCH_PROPERTYGET, resultDesc, argDesc, key, entry.GetResultCLSIDStr())
 
-                if entry.desc[0]==pythoncom.DISPID_VALUE:
+                if details.memid==pythoncom.DISPID_VALUE:
                     lkey = "value"
-                elif entry.desc[0]==pythoncom.DISPID_NEWENUM:
+                elif details.memid==pythoncom.DISPID_NEWENUM:
                     lkey = "_newenum"
                 else:
                     lkey = key.lower()
@@ -421,7 +424,7 @@ class DispatchItem(build.DispatchItem, WritableItem):
                     specialItems[lkey] = (entry, pythoncom.DISPATCH_PROPERTYGET, mapEntry)
                     # All special methods, except _newenum, are written
                     # "normally".  This is a mess!
-                    if entry.desc[0]==pythoncom.DISPID_NEWENUM:
+                    if details.memid==pythoncom.DISPID_NEWENUM:
                         continue
 
                 print('\t\t"%s": %s,' % (build.MakePublicAttributeName(key), mapEntry), file=stream)
@@ -436,9 +439,9 @@ class DispatchItem(build.DispatchItem, WritableItem):
                 argDesc = details[2]
                 resultDesc = details[8]
                 mapEntry = MakeMapLineEntry(details[0], pythoncom.DISPATCH_PROPERTYGET, resultDesc, argDesc, key, entry.GetResultCLSIDStr())
-                if entry.desc[0]==pythoncom.DISPID_VALUE:
+                if details.memid==pythoncom.DISPID_VALUE:
                     lkey = "value"
-                elif entry.desc[0]==pythoncom.DISPID_NEWENUM:
+                elif details.memid==pythoncom.DISPID_NEWENUM:
                     lkey = "_newenum"
                 else:
                     lkey = key.lower()
@@ -446,7 +449,7 @@ class DispatchItem(build.DispatchItem, WritableItem):
                     specialItems[lkey]=(entry, pythoncom.DISPATCH_PROPERTYGET, mapEntry)
                     # All special methods, except _newenum, are written
                     # "normally".  This is a mess!
-                    if entry.desc[0]==pythoncom.DISPID_NEWENUM:
+                    if details.memid==pythoncom.DISPID_NEWENUM:
                         continue
                 print('\t\t"%s": %s,' % (build.MakePublicAttributeName(key), mapEntry), file=stream)
 
@@ -526,7 +529,7 @@ class DispatchItem(build.DispatchItem, WritableItem):
             print('\t#Note that many Office objects do not use zero-based indexing.', file=stream)
             print('\tdef __getitem__(self, key):', file=stream)
             print('\t\treturn self._get_good_object_(self._oleobj_.Invoke(*(%d, LCID, %d, 1, key)), "Item", %s)' \
-                    % (entry.desc[0], invoketype, resultCLSID), file=stream)
+                    % (entry.desc.memid, invoketype, resultCLSID), file=stream)
 
         if specialItems["count"]:
             entry, invoketype, propArgs = specialItems["count"]

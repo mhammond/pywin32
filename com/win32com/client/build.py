@@ -153,6 +153,7 @@ class DispatchItem(OleItem):
 				del self.propMapGet[key]
 
 	def	_AddFunc_(self,typeinfo,fdesc,bForUser):
+		assert(fdesc.desckind == pythoncom.DESCKIND_FUNCDESC)
 		id = fdesc.memid
 		funcflags = fdesc.wFuncFlags
 		try:
@@ -221,7 +222,7 @@ class DispatchItem(OleItem):
 		if not map is None:
 #				if map.has_key(name):
 #					sys.stderr.write("Warning - overwriting existing method/attribute %s\n" % name)
-			map[name] = MapEntry(tuple(fdesc), names, doc, resultCLSID, resultDoc, hidden)
+			map[name] = MapEntry(fdesc, names, doc, resultCLSID, resultDoc, hidden)
 			# any methods that can't be reached via DISPATCH we return None
 			# for, so dynamic dispatch doesnt see it.
 			if fdesc.funckind != pythoncom.FUNC_DISPATCH:
@@ -229,17 +230,18 @@ class DispatchItem(OleItem):
 			return (name,map)
 		return None
 
-	def _AddVar_(self,typeinfo,fdesc,bForUser):
+	def _AddVar_(self, typeinfo, vardesc, bForUser):
 		### need pythoncom.VARFLAG_FRESTRICTED ...
 		### then check it
+		assert(vardesc.desckind == pythoncom.DESCKIND_VARDESC)
 
-		if fdesc.varkind == pythoncom.VAR_DISPATCH:
-			id = fdesc.memid
+		if vardesc.varkind == pythoncom.VAR_DISPATCH:
+			id = vardesc.memid
 			names = typeinfo.GetNames(id)
 			# Translate any Alias or Enums in result.
-			typerepr, flags, defval = fdesc.elemdescVar
+			typerepr, flags, defval = vardesc.elemdescVar
 			typerepr, resultCLSID, resultDoc = _ResolveType(typerepr, typeinfo)
-			fdesc.elemdescVar = typerepr, flags, defval
+			vardesc.elemdescVar = typerepr, flags, defval
 			doc = None
 			try:
 				if bForUser: doc = typeinfo.GetDocumentation(id)
@@ -249,10 +251,8 @@ class DispatchItem(OleItem):
 			# handle the enumerator specially
 			map = self.propMap
 			# Check if the element is hidden.
-			hidden = 0
-			if hasattr(fdesc,"wVarFlags"):
-				hidden = (fdesc.wVarFlags & 0x40) != 0 # VARFLAG_FHIDDEN
-			map[names[0]] = MapEntry(tuple(fdesc), names, doc, resultCLSID, resultDoc, hidden)
+			hidden = (vardesc.wVarFlags & 0x40) != 0 # VARFLAG_FHIDDEN
+			map[names[0]] = MapEntry(vardesc, names, doc, resultCLSID, resultDoc, hidden)
 			return (names[0],map)
 		else:
 			return None
