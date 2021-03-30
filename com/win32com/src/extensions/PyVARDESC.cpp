@@ -143,6 +143,7 @@ PyTypeObject PyVARDESC::Type = {
     {"elemdescVar", T_OBJECT, OFF(elemdescVar)},  // @prop <o ELEMDESC>|elemdescVar|Object describing the member.
     {"wVarFlags", T_INT, OFF(wVarFlags)},         // @prop int|varFlags|Variable flags
     {"varkind", T_INT, OFF(varkind)},             // @prop int|varkind|Kind flags.
+    {"desckind", T_INT, OFF(desckind), READONLY}, // @prop int|desckind|Always DESCKIND_VARDESC
     {NULL}};
 
 PyVARDESC::PyVARDESC()
@@ -155,6 +156,7 @@ PyVARDESC::PyVARDESC()
     elemdescVar = NULL;
     wVarFlags = 0;
     varkind = 0;
+    desckind = DESCKIND_VARDESC;
 }
 
 PyVARDESC::PyVARDESC(const VARDESC *pVD)
@@ -165,6 +167,7 @@ PyVARDESC::PyVARDESC(const VARDESC *pVD)
     memid = pVD->memid;
     wVarFlags = pVD->wVarFlags;
     varkind = pVD->varkind;
+    desckind = DESCKIND_VARDESC;
 
     if (varkind == VAR_PERINSTANCE)
         value = PyInt_FromLong(pVD->oInst);

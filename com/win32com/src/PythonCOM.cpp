@@ -2666,6 +2666,8 @@ PYWIN_MODULE_INIT_FUNC(pythoncom)
     ADD_CONSTANT(fdexPropCannotSourceEvents);  // The member cannot fire events.
 #endif                                         // NO_PYCOM_IDISPATCHEX
 
+    ADD_CONSTANT(DESCKIND_FUNCDESC);
+    ADD_CONSTANT(DESCKIND_VARDESC);
     // Expose the frozen flag, as Python itself doesnt!!
     // @prop int|frozen|1 if the host is a frozen program, else 0
     AddConstant(dict, "frozen", Py_FrozenFlag);

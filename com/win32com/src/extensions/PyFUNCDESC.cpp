@@ -167,6 +167,7 @@ PyTypeObject PyFUNCDESC::Type = {
     {"oVft", T_INT, OFF(oVft)},                 // @prop int|oVft|
     {"rettype", T_OBJECT, OFF(rettype)},        // @prop <o ELEMDESC>|rettype|
     {"wFuncFlags", T_INT, OFF(wFuncFlags)},     // @prop int|wFuncFlags|
+    {"desckind", T_INT, OFF(desckind), READONLY}, // @prop int|desckind|Always DESCKIND_FUNCDESC
     {NULL}};
 
 PyFUNCDESC::PyFUNCDESC()
@@ -180,6 +181,7 @@ PyFUNCDESC::PyFUNCDESC()
     funckind = invkind = callconv = cParamsOpt = oVft = 0;
     rettype = NULL;
     wFuncFlags = 0;
+    desckind = DESCKIND_FUNCDESC;
 }
 
 PyFUNCDESC::PyFUNCDESC(const FUNCDESC *desc)
@@ -197,6 +199,7 @@ PyFUNCDESC::PyFUNCDESC(const FUNCDESC *desc)
     cParamsOpt = desc->cParamsOpt;
     oVft = desc->oVft;
     wFuncFlags = desc->wFuncFlags;
+    desckind = DESCKIND_FUNCDESC;
 }
 
 PyFUNCDESC::~PyFUNCDESC()
