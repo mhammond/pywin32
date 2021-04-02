@@ -40,10 +40,18 @@ def TestWord():
         word = win32com.client.Dispatch("Word.Basic")
         TestWord7(word)
 
+    except Exception as e:
+        print("Word dynamic tests failed", e)
+        traceback.print_exc()
+
     print("Starting MSWord for generated test")
-    from win32com.client import gencache
-    word = gencache.EnsureDispatch("Word.Application.8")
-    TestWord8(word)
+    try:
+        from win32com.client import gencache
+        word = gencache.EnsureDispatch("Word.Application.8")
+        TestWord8(word)
+    except Exception as e:
+        print("Word generated tests failed", e)
+        traceback.print_exc()
 
 def TestWord7(word):
     word.FileNew()
@@ -64,7 +72,10 @@ def TestWord8(word):
         wrange.InsertAfter("Hello from Python %d\n" % i)
     paras = doc.Paragraphs
     for i in range(len(paras)):
-        p = paras[i]()
+        # *sob* - in Word 2019, `p = paras(i+1)` seems to work to get a para
+        # but `p.Font` then blows up.
+#        p = paras[i]()
+        p = paras(i+1)
         p.Font.ColorIndex = i+1
         p.Font.Size = 12 + (4 * i)
     # XXX - note that
@@ -136,9 +147,14 @@ def TextExcel(xl):
 def TestAll():
     TestWord()
 
-    print("Starting Excel for Dynamic test...")
-    xl = win32com.client.dynamic.Dispatch("Excel.Application")
-    TextExcel(xl)
+    try:
+        print("Starting Excel for Dynamic test...")
+        xl = win32com.client.dynamic.Dispatch("Excel.Application")
+        TextExcel(xl)
+    except Exception as e:
+        worked = False
+        print("Excel tests failed", e)
+        traceback.print_exc()
 
     try:
         print("Starting Excel 8 for generated excel8.py test...")
@@ -147,6 +163,9 @@ def TestAll():
         TextExcel(xl)
     except ImportError:
         print("Could not import the generated Excel 97 wrapper")
+    except Exception as e:
+        print("Generated Excel tests failed", e)
+        traceback.print_exc()
 
     try:
         import xl5en32
@@ -156,6 +175,9 @@ def TestAll():
         TextExcel(xl)
     except ImportError:
         print("Could not import the generated Excel 95 wrapper")
+    except Exception as e:
+        print("Excel 95 tests failed", e)
+        traceback.print_exc()
 
 if __name__=='__main__':
     TestAll()
