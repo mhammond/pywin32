@@ -109,7 +109,7 @@ static PyObject *PyCryptUnprotectData(PyObject *self, PyObject *args, PyObject *
     BOOL bsuccess;
     Py_BEGIN_ALLOW_THREADS bsuccess =
         CryptUnprotectData(&DataIn, &DataDescr, pOptionalEntropy, pReserved, pPromptStruct, Flags, &DataOut);
-    Py_END_ALLOW_THREADS if (!bsuccess) PyWin_SetAPIError("CryptProtectData");
+    Py_END_ALLOW_THREADS if (!bsuccess) PyWin_SetAPIError("CryptUnprotectData");
     else
     {
         ret = Py_BuildValue("NN", PyWinObject_FromWCHAR(DataDescr), PyWinObject_FromDATA_BLOB(&DataOut));
