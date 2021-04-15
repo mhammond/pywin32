@@ -40,7 +40,7 @@ class _BaseAuth(object):
         return ret
 
     def encrypt(self, data):
-        """Encrypt a string, returning a tuple of (encrypted_data, encryption_data).
+        """Encrypt a string, returning a tuple of (encrypted_data, trailer).
         These can be passed to decrypt to get back the original string.
         """
         pkg_size_info=self.ctxt.QueryContextAttributes(sspicon.SECPKG_ATTR_SIZES)
@@ -184,13 +184,14 @@ class ClientAuth(_BaseAuth):
                 None, auth_info)
         _BaseAuth.__init__(self)
 
-    # Perform *one* step of the client authentication process.
+
     def authorize(self, sec_buffer_in):
+        """Perform *one* step of the client authentication process. Pass None for the first round"""
         if sec_buffer_in is not None and type(sec_buffer_in) != win32security.PySecBufferDescType:
             # User passed us the raw data - wrap it into a SecBufferDesc
             sec_buffer_new=win32security.PySecBufferDescType()
             tokenbuf=win32security.PySecBufferType(self.pkg_info['MaxToken'],
-                                                 sspicon.SECBUFFER_TOKEN)
+                                                   sspicon.SECBUFFER_TOKEN)
             tokenbuf.Buffer=sec_buffer_in
             sec_buffer_new.append(tokenbuf)
             sec_buffer_in = sec_buffer_new
@@ -249,13 +250,13 @@ class ServerAuth(_BaseAuth):
                 self.pkg_info['Name'], sspicon.SECPKG_CRED_INBOUND, None, None)
         _BaseAuth.__init__(self)
 
-    # Perform *one* step of the server authentication process.
     def authorize(self, sec_buffer_in):
+        """Perform *one* step of the server authentication process."""
         if sec_buffer_in is not None and type(sec_buffer_in) != win32security.PySecBufferDescType:
             # User passed us the raw data - wrap it into a SecBufferDesc
             sec_buffer_new=win32security.PySecBufferDescType()
             tokenbuf=win32security.PySecBufferType(self.pkg_info['MaxToken'],
-                                                 sspicon.SECBUFFER_TOKEN)
+                                                   sspicon.SECBUFFER_TOKEN)
             tokenbuf.Buffer=sec_buffer_in
             sec_buffer_new.append(tokenbuf)
             sec_buffer_in = sec_buffer_new
