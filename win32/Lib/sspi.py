@@ -286,22 +286,76 @@ class ServerAuth(_BaseAuth):
         return err, sec_buffer_out
 
 if __name__=='__main__':
-   # Setup the 2 contexts.
-    sspiclient=ClientAuth("NTLM")
-    sspiserver=ServerAuth("NTLM")
-    
+    # This is the security package (the security support provider / the security backend)
+    # we want to use for this example.
+    ssp = "Kerberos"  # or "NTLM" or "Negotiate" which enable negotiation between
+                      # Kerberos (prefered) and NTLM (if not supported on the other side).
+
+    flags = (
+        sspicon.ISC_REQ_MUTUAL_AUTH |      # mutual authentication
+        sspicon.ISC_REQ_INTEGRITY |        # check for integrity
+        sspicon.ISC_REQ_SEQUENCE_DETECT |  # enable out-of-order messages
+        sspicon.ISC_REQ_CONFIDENTIALITY |  # request confidentiality
+        sspicon.ISC_REQ_REPLAY_DETECT      # request replay detection
+    )
+
+    # Get our identity, mandatory for the Kerberos case *for this example*
+    # Kerberos cannot be used if we don't tell it the target we want
+    # to authenticate to.
+    cred_handle, exp = win32security.AcquireCredentialsHandle(
+        None, ssp, sspicon.SECPKG_CRED_INBOUND, None, None
+    )
+    cred = cred_handle.QueryCredentialsAttributes(sspicon.SECPKG_CRED_ATTR_NAMES)
+    print("We are:", cred)
+
+    # Setup the 2 contexts. In real life, only one is needed: the other one is
+    # created in the process we want to communicate with.
+    sspiclient=ClientAuth(ssp, scflags=flags, targetspn=cred)
+    sspiserver=ServerAuth(ssp, scflags=flags)
+
+    print("SSP : %s (%s)" % (sspiclient.pkg_info["Name"], sspiclient.pkg_info["Comment"]))
+
     # Perform the authentication dance, each loop exchanging more information
     # on the way to completing authentication.
     sec_buffer=None
-    while 1:
+    client_step = 0
+    server_step = 0
+    while not(sspiclient.authenticated) or len(sec_buffer[0].Buffer):
+        client_step += 1
         err, sec_buffer = sspiclient.authorize(sec_buffer)
-        err, sec_buffer = sspiserver.authorize(sec_buffer)
-        if err==0:
+        print("Client step %s" % client_step)
+        if sspiserver.authenticated and len(sec_buffer[0].Buffer) == 0:
             break
+
+        server_step += 1
+        err, sec_buffer = sspiserver.authorize(sec_buffer)
+        print("Server step %s" % server_step)
+
+    # Authentication process is finished.
+    print("Initiator name from the service side:", sspiserver.initiator_name)
+    print("Service name from the client side:   ", sspiclient.service_name)
+
     data = "hello".encode("ascii") # py3k-friendly
+
+    # Simple signature, not compatible with GSSAPI.
     sig = sspiclient.sign(data)
     sspiserver.verify(data, sig)
 
-    data, key = sspiclient.encrypt(data)
-    assert sspiserver.decrypt(data, key) == data
+    # Encryption
+    encrypted, sig = sspiclient.encrypt(data)
+    decrypted = sspiserver.decrypt(encrypted, sig)
+    assert decrypted == data
+
+    # GSSAPI wrapping, no encryption (NTLM always encrypts)
+    wrapped = sspiclient.wrap(data)
+    unwrapped, was_encrypted = sspiserver.unwrap(wrapped)
+    print("encrypted ?", was_encrypted)
+    assert data == unwrapped
+
+    # GSSAPI wrapping, with encryption
+    wrapped = sspiserver.wrap(data, encrypt=True)
+    unwrapped, was_encrypted = sspiclient.unwrap(wrapped)
+    print("encrypted ?", was_encrypted)
+    assert data == unwrapped
+
     print("cool!")
