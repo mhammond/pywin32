@@ -87,6 +87,63 @@ class _BaseAuth(object):
         sigbuf[1].Buffer=sig
         self.ctxt.VerifySignature(sigbuf,self._get_next_seq_num())
 
+    def unwrap(self, token):
+        """
+            GSSAPI's unwrap with SSPI.
+            https://docs.microsoft.com/en-us/windows/win32/secauthn/sspi-kerberos-interoperability-with-gssapi
+
+            Usable mainly with Kerberos SSPI package, but this is not enforced.
+
+            Return the clear text, and a boolean that is True if the token was encrypted.
+        """
+        buffer = win32security.PySecBufferDescType()
+        # This buffer will contain a "stream", which is the token coming from the other side
+        buffer.append(win32security.PySecBufferType(len(token), sspicon.SECBUFFER_STREAM))
+        buffer[0].Buffer = token
+
+        # This buffer will receive the clear, or just unwrapped text if no encryption was used.
+        # Will be resized by the lib.
+        buffer.append(win32security.PySecBufferType(0, sspicon.SECBUFFER_DATA))
+
+        pfQOP = self.ctxt.DecryptMessage(buffer, self._get_next_seq_num())
+
+        r = buffer[1].Buffer
+        return r, not (pfQOP == sspicon.SECQOP_WRAP_NO_ENCRYPT)
+
+    def wrap(self, msg, encrypt=False):
+        """
+            GSSAPI's wrap with SSPI.
+            https://docs.microsoft.com/en-us/windows/win32/secauthn/sspi-kerberos-interoperability-with-gssapi
+
+            Usable mainly with Kerberos SSPI package, but this is not enforced.
+
+            Wrap a message to be sent to the other side. Encrypted if encrypt is True.
+        """
+
+        size_info = self.ctxt.QueryContextAttributes(sspicon.SECPKG_ATTR_SIZES)
+        trailer_size = size_info['SecurityTrailer']
+        block_size = size_info['BlockSize']
+
+        buffer = win32security.PySecBufferDescType()
+
+        # This buffer will contain unencrypted data to wrap, and maybe encrypt.
+        buffer.append(win32security.PySecBufferType(len(msg), sspicon.SECBUFFER_DATA))
+        buffer[0].Buffer = msg
+
+        # Will receive the token that forms the beginning of the msg
+        buffer.append(win32security.PySecBufferType(trailer_size, sspicon.SECBUFFER_TOKEN))
+
+        # The trailer is needed in case of block encryption
+        buffer.append(win32security.PySecBufferType(block_size, sspicon.SECBUFFER_PADDING))
+
+        fQOP = 0 if encrypt else sspicon.SECQOP_WRAP_NO_ENCRYPT
+        self.ctxt.EncryptMessage(fQOP, buffer, self._get_next_seq_num())
+
+        # Sec token, then data, then padding
+        r = buffer[1].Buffer + buffer[0].Buffer + buffer[2].Buffer
+        return r
+
+
 class ClientAuth(_BaseAuth):
     """Manages the client side of an SSPI authentication handshake
     """
