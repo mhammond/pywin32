@@ -25,6 +25,9 @@ class _BaseAuth(object):
         """Reset everything to an unauthorized state"""
         self.ctxt = None
         self.authenticated = False
+        self.initiator_name = None
+        self.service_name = None
+
         # The next seq_num for an encrypt/sign operation
         self.next_seq_num = 0
 
@@ -143,6 +146,19 @@ class _BaseAuth(object):
         r = buffer[1].Buffer + buffer[0].Buffer + buffer[2].Buffer
         return r
 
+    def _amend_ctx_name(self):
+        """Adds initiator and service names in the security context for ease of use"""
+        if not self.authenticated:
+            raise ValueError("Sec context is not completely authenticated")
+
+        try:
+            names = self.ctxt.QueryContextAttributes(sspicon.SECPKG_ATTR_NATIVE_NAMES)
+        except error:
+            # The SSP doesn't provide these attributes.
+            pass
+        else:
+            self.initiator_name, self.service_name = names
+
 
 class ClientAuth(_BaseAuth):
     """Manages the client side of an SSPI authentication handshake
@@ -201,7 +217,11 @@ class ClientAuth(_BaseAuth):
         
         if err in (sspicon.SEC_I_COMPLETE_NEEDED,sspicon.SEC_I_COMPLETE_AND_CONTINUE):
             self.ctxt.CompleteAuthToken(sec_buffer_out)
+
         self.authenticated = err == 0
+        if self.authenticated:
+            self._amend_ctx_name()
+
         return err, sec_buffer_out
 
 class ServerAuth(_BaseAuth):
@@ -258,7 +278,11 @@ class ServerAuth(_BaseAuth):
 
         if err in (sspicon.SEC_I_COMPLETE_NEEDED,sspicon.SEC_I_COMPLETE_AND_CONTINUE):
             self.ctxt.CompleteAuthToken(sec_buffer_out)
+
         self.authenticated = err == 0
+        if self.authenticated:
+            self._amend_ctx_name()
+
         return err, sec_buffer_out
 
 if __name__=='__main__':
