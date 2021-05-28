@@ -1,4 +1,5 @@
-<HTML>
+<!DOCTYPE html>
+<html>
 <HEAD>
 <TITLE>Getting process info: Win32 and COM with python and C++</TITLE>
 </HEAD>
@@ -22,13 +23,13 @@
 	<LI><A HREF="#SUMMARY">SUMMARY</A></LI>
 	<UL>
 		<LI><A HREF="#Introduction">Introduction</A></LI>
-                <LI><A HREF="#PdhEnumObjectItems">Getting the process list: PdhEnumObjectItems</A>
-                <LI><A HREF="#Counters">Getting the process ids: Several Pdh Calls</A>
-                <LI><A HREF="#client">The COM client</A>
-                <LI><A HREF="#COM">Making the COM objects</A>
-                <LI><A HREF="#pythoncom">The Python COM object</A>
-                <LI><A HREF="#C++com">The C++ COM object</A>
-                <LI><A HREF="#Conclusion">In Conclusion</A>
+                <LI><A HREF="#PdhEnumObjectItems">Getting the process list: PdhEnumObjectItems</A></LI>
+                <LI><A HREF="#Counters">Getting the process ids: Several Pdh Calls</A></LI>
+                <LI><A HREF="#client">The COM client</A></LI>
+                <LI><A HREF="#COM">Making the COM objects</A></LI>
+                <LI><A HREF="#pythoncom">The Python COM object</A></LI>
+                <LI><A HREF="#C++com">The C++ COM object</A></LI>
+                <LI><A HREF="#Conclusion">In Conclusion</A></LI>
 	</UL>
 
 	<LI><A HREF="#Further Info">Further Info</A></LI>
@@ -79,13 +80,13 @@ processes is 'ID Process'.
 <p>
 The specific set of API called are the following:
 <ol>
-<li>PdhEnumObjectItems -- get the list of instances (processes) for the process object 
-<li>PdhOpenQuery -- initialize query handle which will contain all the counters (in our case only: ID Process)
-<li>PdhMakeCounterPath -- Each counter has a specific path, kind of like like a url 
-<li>PdhAddCounter -- convert the path to a handle and group the counters paths(in this case only one) together for the query
-<li>PdhCollectQueryData -- gathers the actual data 
-<li>PdhGetFormattedCounterValue -- call for each counter to convert the data to a typical format 
-<li>PdhCloseQuery -- close the counters and the query handle
+<li>PdhEnumObjectItems -- get the list of instances (processes) for the process object</li>
+<li>PdhOpenQuery -- initialize query handle which will contain all the counters (in our case only: ID Process)</li>
+<li>PdhMakeCounterPath -- Each counter has a specific path, kind of like like a url </li>
+<li>PdhAddCounter -- convert the path to a handle and group the counters paths(in this case only one) together for the query</li>
+<li>PdhCollectQueryData -- gathers the actual data </li>
+<li>PdhGetFormattedCounterValue -- call for each counter to convert the data to a typical format </li>
+<li>PdhCloseQuery -- close the counters and the query handle</li>
 </ol>
 
 </p>
@@ -153,9 +154,9 @@ The C++ call though essentially the same in spirit is much more
 involved. To help, I use map(like a python dictionary) and string from
 Standard C++. The additional things you need to manage are:
 <ul>
-<li>strings -- convert to TCHAR for ansi/unicode support using ATL macros
-<li>the memory for the buffers that PdhEnumObjectItems needs
-<li>Parse it's NULL padded results.
+<li>strings -- convert to TCHAR for ansi/unicode support using ATL macros</li>
+<li>the memory for the buffers that PdhEnumObjectItems needs</li>
+<li>Parse it's NULL padded results.</li>
 </ul>
 </p>
 <p>
@@ -241,12 +242,12 @@ HRESULT getinst (map &lt; string,int &gt; & m_inst) {
 <p>
 A whole sequence of calls are necessary once you get the process list. To refresh your memory, you need:
 <ol>
-<li>PdhOpenQuery -- initialize query handle which will contain all the counters (in our case only: ID Process)
-<li>PdhMakeCounterPath -- Each counter has a specific path, kind of like like a url 
-<li>PdhAddCounter -- convert the path to a handle and group the counters paths(in this case only one) together for the query
-<li>PdhCollectQueryData -- gathers the actual data 
-<li>PdhGetFormattedCounterValue -- call for each counter to convert the data to a typical format 
-<li>PdhCloseQuery -- close the counters and the query handle
+<li>PdhOpenQuery -- initialize query handle which will contain all the counters (in our case only: ID Process)</li>
+<li>PdhMakeCounterPath -- Each counter has a specific path, kind of like like a url </li>
+<li>PdhAddCounter -- convert the path to a handle and group the counters paths(in this case only one) together for the query</li>
+<li>PdhCollectQueryData -- gathers the actual data </li>
+<li>PdhGetFormattedCounterValue -- call for each counter to convert the data to a typical format </li>
+<li>PdhCloseQuery -- close the counters and the query handle</li>
 </ol>
 
 As usual the python code matches this very cleanly (like pseudocode that actually runs) -- you can figure
