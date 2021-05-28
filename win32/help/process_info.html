@@ -1,44 +1,44 @@
 <!DOCTYPE html>
 <html>
-<HEAD>
-<TITLE>Getting process info: Win32 and COM with python and C++</TITLE>
-</HEAD>
-	<BODY BGCOLOR="FFFFFF">
+<head>
+<title>Getting process info: Win32 and COM with python and C++</title>
+</head>
+	<body BGCOLOR="FFFFFF">
 	<!-- beginning of leaf header-->
 
-	<TABLE border=0  cellpadding=0 cellspacing=0 width=100%>
-	<TR>
-		<TD valign=middle width="100%"
+	<table border=0  cellpadding=0 cellspacing=0 width=100%>
+	<tr>
+		<td valign=middle width="100%"
 		bgcolor="#99ccff"> <font face="sans-serif" size="+1"
 		color="#111111">&nbsp;&nbsp;&nbsp;Getting process info: Win32 and COM with python and C++</font>
-		</TD>
-	</TR>
-	</TABLE>
+		</td>
+	</tr>
+	</table>
 	<p>&nbsp</p>
 	<!-- end of leaf content-->
 <!-- INDEX BEGIN -->
 
 <UL>
 
-	<LI><A HREF="#SUMMARY">SUMMARY</A></LI>
-	<UL>
-		<LI><A HREF="#Introduction">Introduction</A></LI>
-                <LI><A HREF="#PdhEnumObjectItems">Getting the process list: PdhEnumObjectItems</A></LI>
-                <LI><A HREF="#Counters">Getting the process ids: Several Pdh Calls</A></LI>
-                <LI><A HREF="#client">The COM client</A></LI>
-                <LI><A HREF="#COM">Making the COM objects</A></LI>
-                <LI><A HREF="#pythoncom">The Python COM object</A></LI>
-                <LI><A HREF="#C++com">The C++ COM object</A></LI>
-                <LI><A HREF="#Conclusion">In Conclusion</A></LI>
-	</UL>
+	<li><A HREF="#SUMMARY">SUMMARY</A></li>
+	<ul>
+		<li><a href="#Introduction">Introduction</a></li>
+                <li><a href="#PdhEnumObjectItems">Getting the process list: PdhEnumObjectItems</a></li>
+                <li><a href="#Counters">Getting the process ids: Several Pdh Calls</a></li>
+                <li><a href="#client">The COM client</a></li>
+                <li><a href="#COM">Making the COM objects</a></li>
+                <li><a href="#pythoncom">The Python COM object</a></li>
+                <li><a href="#C++com">The C++ COM object</a></li>
+                <li><a href="#Conclusion">In Conclusion</a></li>
+	</ul>
 
-	<LI><A HREF="#Further Info">Further Info</A></LI>
-	<LI><A HREF="#Author">Author</A></LI>
+	<li><a href="#Further Info">Further Info</a></li>
+	<li><a href="#Author">Author</a></li>
 </UL>
 <!-- INDEX END -->
 
-<HR>
-<H1><A NAME="SUMMARY">SUMMARY</A></H1>
+<hr>
+<h1><a NAME="SUMMARY">SUMMARY</a></h1>
 <P>
 Python is a rich scripting language offering a lot of the
 power of C++ while retaining the ease of use of VBscript. With it's
@@ -57,8 +57,8 @@ use both python and C++ to expose a list of processes and their
 corresponding ids with a COM object.
 </p>
 
-<HR>
-<H2><A NAME="Introduction">Introduction</A></H2>
+<hr>
+<h2><A NAME="Introduction">Introduction</A></h2>
 <p>
 
 To get process information for both NT and W2K (but not the 9x family)
@@ -93,13 +93,13 @@ The specific set of API called are the following:
 <p>
 We'll cover these points now in more depth.
 </p>
-<HR>
-<H2><A NAME="PdhEnumObjectItems">Getting the process list: PdhEnumObjectItems</A></H2>
+<hr>
+<h2><A NAME="PdhEnumObjectItems">Getting the process list: PdhEnumObjectItems</A></h2>
 <p>
 The MSDN describes the call as the following:
 </p>
 <p>
-<PRE> 
+<code> 
 PDH_STATUS PdhEnumObjectItems(
   LPCTSTR szDataSource,  
   LPCTSTR szMachineName, 
@@ -111,8 +111,8 @@ PDH_STATUS PdhEnumObjectItems(
   DWORD dwDetailLevel,  
   DWORD dwFlags       
 );
-</PRE>
-</P>
+</code>
+</p>
 <p>
 The python call is similar though simpler. For example, you do not
 need to bother with the list length -- it takes care of that for
@@ -121,14 +121,14 @@ components shown later.To call make with python would look like the
 following
 
 <p>
-<pre>
+<code>
     def proclist(self):
         try:
             junk, instances = win32pdh.EnumObjectItems(None,None,self.object, win32pdh.PERF_DETAIL_WIZARD)
             return instances
         except:
             raise COMException("Problem getting process list")
-</pre>
+</code>
 <p>
 The variable instances contains the list of processes, and you'll find the item or counter than we want
 'ID Process' present in the list of items. 
@@ -160,7 +160,7 @@ Standard C++. The additional things you need to manage are:
 </ul>
 </p>
 <p>
-<pre>
+<code>
 HRESULT getinst (map &lt; string,int &gt; & m_inst) {
 	
 	map&lt;string, int&gt;::iterator iter;
@@ -234,11 +234,11 @@ HRESULT getinst (map &lt; string,int &gt; & m_inst) {
 	return S_OK;		
 	
 }
-</pre>
+</code>
 </p>
 
-<HR>
-<H2><A NAME="Counters">Getting the process ids: Several Pdh Calls</A></H2>
+<hr>
+<h2><a NAME="Counters">Getting the process ids: Several Pdh Calls</a></h2>
 <p>
 A whole sequence of calls are necessary once you get the process list. To refresh your memory, you need:
 <ol>
@@ -254,7 +254,7 @@ As usual the python code matches this very cleanly (like pseudocode that actuall
 out the basic meanings and sequences of the win32 calls without having to deal with other details.
 
 <p>
-<pre>
+<code>
         for instance, max_instances in proc_dict.items():
             for inum in xrange(max_instances+1):
                 try:
@@ -267,7 +267,7 @@ out the basic meanings and sequences of the win32 calls without having to deal w
                     win32pdh.CloseQuery(hq) 
                 except:
                     raise COMException("Problem getting process id")
-</pre>
+</code>
 
 <p>
 Again, the C++ code is more involved and makes use of Standand C++, vector, map, and string.
@@ -276,7 +276,7 @@ has tab-delimited process id entry. Also, the process id info is returned in the
 is converted to a string.
 </p>
 <p>
-<pre>
+<code>
 HRESULT getprocid (map&lt;string,int&gt;& m_inst, vector&lt;string&gt; &v_ids) {
 	
 
@@ -347,20 +347,20 @@ HRESULT getprocid (map&lt;string,int&gt;& m_inst, vector&lt;string&gt; &v_ids) {
 	return S_OK;
 }
 
-</pre>
+</code>
 <p>
-<hr><H2><A NAME="client">The COM client.</A></H2> 
+<hr><h2><a name="client">The COM client.</a></h2> 
 The Python COM client which will call the C++ COM object and Python COM object does the following:
 </p>
 <p>
-<pre>
+<code>
      import win32com.client
-     a=win32com.client.Dispatch('NtPerf.process') #C++ com object
+     a=win32com.client.Dispatch('NtPerf.process') # C++ com object
      print a.procids()
 
-     b=win32com.client.Dispatch('PyPerf.process') #python com object
+     b=win32com.client.Dispatch('PyPerf.process') # python com object
      print b.procids()
-</pre>
+</code>
 </p>
 <p>
 As far as it is concerned, there is no difference between the 2 objects. Both returns a list of processes and their
@@ -370,7 +370,7 @@ respective id's seperated by tab.
 
 <p>
 <hr>
-<H2><A NAME="COM">Making the COM objects.</A></H2> 
+<h2><a name="COM">Making the COM objects.</a></h2> 
 
 <p>From a 1000 mile perspective, ATL C++ and python offer a class
 based COM object approach. In both approaches, the methods of the com
@@ -433,7 +433,7 @@ Now for some code:
 </p>
 
 <p>
-<hr><H2><A NAME="pythoncom">The Python COM object.</A></H2> The Python
+<hr><h2><a NAME="pythoncom">The Python COM object.</a></h2> The Python
 COM object has 2 methods proclist and procids. Proclist is trivial,
 simply returning the list of processes from EnumObjectItems. Procids
 calls proclist, constructs a dictionary to count the number of
@@ -448,7 +448,7 @@ object and a line to register it.
 </p>
 
 <p>
-<pre>
+<code>
 import win32pdh, string, win32api
 from win32com.server.exception import COMException
 import win32com.server.util
@@ -504,11 +504,11 @@ class pyperf:
 if __name__=='__main__':
     import win32com.server.register
     win32com.server.register.UseCommandLine(pyperf)
-</pre>
+</code>
 </p>
 
 
-<hr><H2><A NAME="C++com">The C++ COM object.</A></H2> 
+<hr><h2><a name="C++com">The C++ COM object.</a></h2> 
 
 <p>
 As you notice from the idl, C++ COM object also exposes 2 methods,
@@ -524,7 +524,7 @@ you store the values in a Variant pointer.
 </p>
 
 <p>
-<pre>
+<code>
 
 Here is the relevant excerpt from the IDL:
 	
@@ -819,11 +819,11 @@ STDMETHODIMP Cprocess::procids(VARIANT *pids)
 
 
 }
-</pre>
+</code>
 <p>
 
-<HR>
-<H2><A NAME="Conclusion">In Conclusion</A></H2>
+<hr>
+<h2><a NAME="Conclusion">In Conclusion</a></h2>
 <p>
 
 That was a quick tour of Python and C++ in the win32 and COM
@@ -840,38 +840,24 @@ into the details.
 <H1><A NAME="Further Info">Further Info</A></H1>
 <p>
 <ul>
-<li>Pdh stuff found at ftp://ftp.microsoft.com in something similar to /developr/platformsdk/april2000/x86/redist/pdh
-<li>Mirosoft MSDN references at http://msdn.microsoft.com
-<li>Relevant Pdh Python libraries: win32pdh.py, win32pdhutil.py
+<li>Pdh stuff found at ftp://ftp.microsoft.com in something similar to /developr/platformsdk/april2000/x86/redist/pdh</li>
+<li>Mirosoft MSDN references at http://msdn.microsoft.com</li>
+<li>Relevant Pdh Python libraries: win32pdh.py, win32pdhutil.py</li>
 </ul>
 </p>
-<HR><H1><A NAME="Author">Author</A></H1>
-John Nielsen, <A HREF="mailto:jn@who.net,">jn@who.net</A>
+<hr><h1><a name="Author">Author</a></h1>
+John Nielsen, <a href="mailto:jn@who.net,">jn@who.net</a>
 <br>-- Have a great time with programming with python! 
 		<!-- beginning of leaf footer-->
 		<p>&nbsp;</p>
-		<TABLE border=0  cellpadding=0 cellspacing=0 width=100%>
-		<TR>
-			<TD valign=middle
+		<table border=0  cellpadding=0 cellspacing=0 width=100%>
+		<tr>
+			<td valign=middle
 			bgcolor="#99ccff"> <font face="sans-serif" size="+1"
 			color="#111111">&nbsp;&nbsp;&nbsp;Getting process info: Win32 and COM with python and C++</font>
-			</TD>
-		</TR>
-		</TABLE>
+			</td>
+		</tr>
+		</table>
 		<!-- end of leaf footer-->
-</BODY>
-</HTML>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+</body>
+</html>
