@@ -105,24 +105,11 @@ def _GetDescInvokeType(entry, invoke_type):
 	#   means "called by __getattr__" or "called by __setattr__"
 	if not entry or not entry.desc: return invoke_type
 
-	# XXX - this is broken!
-	# We have a FUNCDESC or VARDESC which describes how the type info for the item wants to be accessed.
-	# This is where things get messy:
-	varkind = entry.desc[4] # from VARDESC struct returned by ITypeComp::Bind
-	# ^^ - the line above assumes entry.desc is a VARDESC (as vardesc[4] is `varkind`)
-	# However, in all "simple" tests, entry.desc is actually a FUNCDESC, and
-	# funcdesc[4] is `invkind` - subtly different!
-	# So - checking `varkind == pythoncom.VAR_DISPATCH` is *usually* doing
-	# `funcdesc.invkind == pythoncom.VAR_DISPATCH` - checking against the wrong
-	# enum. Converting to the correct enum (VAR_DISPATCH == INVOKE_FUNC | INVOKE_PROPERTYGET),
-	# this *actually* reads `funcdesc.invkind == INVOKE_FUNC | INVOKE_PROPERTYGET`
-	# which by pure chance, means we are still returning `invkind`, so for a
-	# FUNCDESC it's actually a no-op. Whew.
-	# BUT - it's apparently important for an INVKIND, and working that out is TBD!
-	if varkind == pythoncom.VAR_DISPATCH and invoke_type == pythoncom.INVOKE_PROPERTYGET:
-		return pythoncom.INVOKE_FUNC | invoke_type # DISPATCH_METHOD & DISPATCH_PROPERTYGET can be combined in IDispatch::Invoke
-	else:
-		return varkind
+	if entry.desc.desckind == pythoncom.DESCKIND_VARDESC:
+		return invoke_type
+
+	# So it's a FUNCDESC - just use what it specifies.
+	return entry.desc.invkind
 
 def Dispatch(IDispatch, userName = None, createClass = None, typeinfo = None, UnicodeToString=None, clsctx = pythoncom.CLSCTX_SERVER):
 	assert UnicodeToString is None, "this is deprecated and will go away"
