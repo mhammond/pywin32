@@ -651,7 +651,6 @@ BOOL PyWinObject_AsCRYPT_ATTRIBUTE(PyObject *obca, PCRYPT_ATTRIBUTE pca)
     static char *ca_keys[] = {"ObjId", "Value", NULL};
     PyObject *obvalues, *obvalue;
     BYTE *buf;
-    DWORD bufsize;
     DWORD value_ind;
     BOOL ret = TRUE;
 
@@ -689,7 +688,8 @@ BOOL PyWinObject_AsCRYPT_ATTRIBUTE(PyObject *obca, PCRYPT_ATTRIBUTE pca)
             ret = FALSE;
             break;
         }
-        memcpy(pca->rgValue[value_ind].pbData, pybuf.ptr(), pybuf.len());
+        DWORD bufsize = pybuf.len();
+        memcpy(pca->rgValue[value_ind].pbData, pybuf.ptr(), bufsize);
         pca->rgValue[value_ind].cbData = bufsize;
     }
     if (!ret)

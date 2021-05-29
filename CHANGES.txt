@@ -8,6 +8,8 @@ Note that build 228 was the last version supporting Python 2.
 
 Since build 300:
 ----------------
+* Creating a `win32crypt.CRYPT_ATTRIBUTE` object now correctly sets `cbData`.
+
 * COM objects are now registered with the full path to pythoncomXX.dll, fixes
   #1704.
 
