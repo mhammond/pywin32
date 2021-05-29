@@ -234,8 +234,7 @@ class VTableItem(build.VTableItem, WritableItem):
         print("%s_vtables_ = [" % (self.python_name, ), file=stream)
         for v in self.vtableFuncs:
             names, dispid, desc = v
-            arg_desc = desc[2]
-
+            assert(desc.desckind == pythoncom.DESCKIND_FUNCDESC)
             arg_reprs = []
             # more hoops so we don't generate huge lines.
             item_num = 0
@@ -245,8 +244,8 @@ class VTableItem(build.VTableItem, WritableItem):
                 item_num = item_num + 1
                 if item_num % 5 == 0:
                     print("\n\t\t\t", end=' ', file=stream)
-            print("), %d, (%r, %r, [" % (dispid, desc.memid, desc[1]), end=' ', file=stream)
-            for arg in arg_desc:
+            print("), %d, (%r, %r, [" % (dispid, desc.memid, desc.scodeArray), end=' ', file=stream)
+            for arg in desc.args:
                 item_num = item_num + 1
                 if item_num % 5 == 0:
                     print("\n\t\t\t", end=' ', file=stream)
@@ -257,11 +256,13 @@ class VTableItem(build.VTableItem, WritableItem):
                     arg3_repr = repr(arg[3])
                 print(repr((arg[0], arg[1], defval, arg3_repr)), ",", end=' ', file=stream)
             print("],", end=' ', file=stream)
-            # XXX - upgrade below to using attributes once we are confident whether we
-            # are dealing with a TYPEDESC or FUNCDESC - it's almost certainly the
-            # latter, but...
-            for d in tuple(desc)[3:]:
-                print(repr(d), ",", end=' ', file=stream)
+            print(repr(desc.funckind), ",", end=' ', file=stream)
+            print(repr(desc.invkind), ",", end=' ', file=stream)
+            print(repr(desc.callconv), ",", end=' ', file=stream)
+            print(repr(desc.cParamsOpt), ",", end=' ', file=stream)
+            print(repr(desc.oVft), ",", end=' ', file=stream)
+            print(repr(desc.rettype), ",", end=' ', file=stream)
+            print(repr(desc.wFuncFlags), ",", end=' ', file=stream)
             print(")),", file=stream)
         print("]", file=stream)
         print(file=stream)
@@ -373,25 +374,26 @@ class DispatchItem(build.DispatchItem, WritableItem):
         itemCount = None
         for name in names:
             entry=self.mapFuncs[name]
+            assert(entry.desc.desckind == pythoncom.DESCKIND_FUNCDESC)
             # skip [restricted] methods, unless it is the
             # enumerator (which, being part of the "system",
             # we know about and can use)
             dispid = entry.desc.memid
-            if entry.desc[9] & pythoncom.FUNCFLAG_FRESTRICTED and \
+            if entry.desc.wFuncFlags & pythoncom.FUNCFLAG_FRESTRICTED and \
                 dispid != pythoncom.DISPID_NEWENUM:
                 continue
             # If not accessible via IDispatch, then we can't use it here.
-            if entry.desc[3] != pythoncom.FUNC_DISPATCH:
+            if entry.desc.funckind != pythoncom.FUNC_DISPATCH:
                 continue
             if dispid==pythoncom.DISPID_VALUE:
                 lkey = "value"
             elif dispid==pythoncom.DISPID_NEWENUM:
-                specialItems["_newenum"] = (entry, entry.desc[4], None)
+                specialItems["_newenum"] = (entry, entry.desc.invkind, None)
                 continue # Dont build this one now!
             else:
                 lkey = name.lower()
             if lkey in specialItems and specialItems[lkey] is None: # remember if a special one.
-                specialItems[lkey] = (entry, entry.desc[4], None)
+                specialItems[lkey] = (entry, entry.desc.invkind, None)
             if generator.bBuildHidden or not entry.hidden:
                 if entry.GetResultName():
                     print('\t# Result is of type ' + entry.GetResultName(), file=stream)
@@ -435,6 +437,7 @@ class DispatchItem(build.DispatchItem, WritableItem):
                 if entry.GetResultName():
                     print("\t\t# Method '%s' returns object of type '%s'" % (key, entry.GetResultName()), file=stream)
                 details = entry.desc
+                assert(details.desckind == pythoncom.DESCKIND_FUNCDESC)
                 lkey = key.lower()
                 argDesc = details[2]
                 resultDesc = details[8]
@@ -502,7 +505,8 @@ class DispatchItem(build.DispatchItem, WritableItem):
         # __getitem__ iteration to fail for index 0 where the dynamic iteration succeeds.
         if specialItems["_newenum"]:
             enumEntry, invoketype, propArgs = specialItems["_newenum"]
-            invkind = enumEntry.desc[4]
+            assert(enumEntry.desc.desckind == pythoncom.DESCKIND_FUNCDESC)
+            invkind = enumEntry.desc.invkind
             # ??? Wouldn't this be the resultCLSID for the iterator itself, rather than the resultCLSID
             #  for the result of each Next() call, which is what it's used for ???
             resultCLSID = enumEntry.GetResultCLSIDStr()

@@ -327,8 +327,6 @@ class DispatchItem(OleItem):
 		if doc and doc[1]:
 			ret.append(linePrefix + '\t' + _makeDocString(doc[1]))
 
-#		print "fdesc is ", fdesc
-
 		resclsid = entry.GetResultCLSID()
 		if resclsid:
 			resclsid = "'%s'" % resclsid
