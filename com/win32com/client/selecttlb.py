@@ -112,11 +112,14 @@ def EnumTlbs(excludeFlags = 0):
 						lcid = int(lcid)
 					except ValueError: # not an LCID entry
 						continue
-					# Only care about "{lcid}\win32" key - jump straight there.
+					# Check for both "{lcid}\win32" and "{lcid}\win64" keys.
 					try:
 						key4 = win32api.RegOpenKey(key3, "%s\\win32" % (lcid,))
 					except win32api.error:
-						continue
+						try:
+							key4 = win32api.RegOpenKey(key3, "%s\\win64" % (lcid,))
+						except win32api.error:
+							continue
 					try:
 						dll, typ = win32api.RegQueryValueEx(key4, None)
 						if typ==win32con.REG_EXPAND_SZ:
