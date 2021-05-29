@@ -24,6 +24,10 @@ Since build 300:
   containing the null character followed by junk characters.
   (#1654, #1660, Lincoln Puzey)
 
+* Add wrap and unwrap operations defined in the GSSAPI to the sspi module
+  and enhance the examples given in this module.
+  (#1692, Emmanuel Coirier)
+
 Since build 228:
 ----------------
 * Fixed a bug where win32com.client.VARIANT params were returned in the reverse
