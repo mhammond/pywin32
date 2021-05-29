@@ -216,16 +216,13 @@ def RegisterServer(clsid,
       # Although now we prefer a 'loader' DLL if it exists to avoid some
       # manifest issues (the 'loader' DLL has a manifest, but pythoncom does not)
       pythoncom_dir = os.path.dirname(pythoncom.__file__)
-      if pythoncom.__file__.find("_d") < 0:
-        suffix = ""
-      else:
-        suffix = "_d"
-      loadername = "pythoncomloader%d%d%s.dll" % (sys.version_info[0], sys.version_info[1], suffix)
-      if os.path.isfile(os.path.join(pythoncom_dir, loadername)):
-        dllName = loadername
-      else:
-        # just use pythoncom.
-        dllName = os.path.basename(pythoncom.__file__)
+      suffix = "_d" if "_d" in pythoncom.__file__ else ""
+      # Always register with the full path to the DLLs.
+      loadername = os.path.join(
+        pythoncom_dir,
+        "pythoncomloader%d%d%s.dll" % (sys.version_info[0], sys.version_info[1], suffix)
+      )
+      dllName = loadername if os.path.isfile(loadername) else pythoncom.__file__
 
     _set_subkeys(keyNameRoot + "\\InprocServer32",
                  { None : dllName,

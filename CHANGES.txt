@@ -8,6 +8,9 @@ Note that build 228 was the last version supporting Python 2.
 
 Since build 300:
 ----------------
+* COM objects are now registered with the full path to pythoncomXX.dll, fixes
+  #1704.
+
 * Fix some confusion on how dynamic COM object properties work. The old
   code was confused, so there's a chance there will be some subtle
   regression here - please open a bug if you find anything, but this
