@@ -68,7 +68,7 @@ PyObject *g_obPyCom_MapServerIIDToGateway = NULL;  // map of IID's to gateways.
 // Register a Python on both the UID and Name maps.
 int PyCom_RegisterClientType(PyTypeObject *typeOb, const GUID *guid)
 {
-    if (guid == NULL)
+    if (guid == NULL || g_obPyCom_MapIIDToType == NULL)
         return 0;
 
     PyObject *obiid = PyWinObject_FromIID(*guid);
@@ -361,11 +361,11 @@ int PyCom_RegisterCoreIIDs(PyObject *dict)
 
 int PyCom_UnregisterCoreSupport(void)
 {
-    Py_DECREF(g_obPyCom_MapIIDToType);
+    Py_XDECREF(g_obPyCom_MapIIDToType);
     g_obPyCom_MapIIDToType = NULL;
-    Py_DECREF(g_obPyCom_MapGatewayIIDToName);
+    Py_XDECREF(g_obPyCom_MapGatewayIIDToName);
     g_obPyCom_MapGatewayIIDToName = NULL;
-    Py_DECREF(g_obPyCom_MapInterfaceNameToIID);
+    Py_XDECREF(g_obPyCom_MapInterfaceNameToIID);
     g_obPyCom_MapInterfaceNameToIID = NULL;
     return 0;
 }

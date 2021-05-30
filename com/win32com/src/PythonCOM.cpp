@@ -2230,9 +2230,11 @@ PYWIN_MODULE_INIT_FUNC(pythoncom)
     PYWIN_MODULE_INIT_PREPARE(pythoncom, pythoncom_methods, "A module, encapsulating the OLE automation API");
 
     // ensure the framework has valid state to work with.
-    // XXX - more error checking?
-    PyCom_RegisterCoreSupport();
+    if (PyCom_RegisterCoreSupport() != 0) {
+        PYWIN_MODULE_INIT_RETURN_ERROR;
+    }
 
+    // XXX - more error checking?
     PyDict_SetItemString(dict, "TypeIIDs", g_obPyCom_MapIIDToType);
     PyDict_SetItemString(dict, "ServerInterfaces", g_obPyCom_MapGatewayIIDToName);
     PyDict_SetItemString(dict, "InterfaceNames", g_obPyCom_MapInterfaceNameToIID);
