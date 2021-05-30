@@ -534,6 +534,23 @@ class CoClassBaseClass:
 			pass
 		self.__dict__[attr] = value
 
+  # Special methods don't use __getattr__ etc, so explicitly delegate here.
+  # Some wrapped objects might not have them, but that's OK - the attribute
+  # error can just bubble up.
+	def __call__(self, *args, **kwargs):
+		return self.__dict__["_dispobj_"].__call__(*args, **kwargs)
+	def __str__(self, *args):
+		return self.__dict__["_dispobj_"].__str__(*args)
+	def __int__(self, *args):
+		return self.__dict__["_dispobj_"].__int__(*args)
+	def __iter__(self):
+		return self.__dict__["_dispobj_"].__iter__()
+	def __len__(self):
+		return self.__dict__["_dispobj_"].__len__()
+	def __nonzero__(self):
+		return self.__dict__["_dispobj_"].__nonzero__()
+
+
 # A very simple VARIANT class.  Only to be used with poorly-implemented COM
 # objects.  If an object accepts an arg which is a simple "VARIANT", but still
 # is very pickly about the actual variant type (eg, isn't happy with a VT_I4,

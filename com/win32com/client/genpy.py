@@ -607,7 +607,7 @@ class CoClassItem(build.OleItem, WritableItem):
     for item, flag in self.interfaces:
       if flag & pythoncom.IMPLTYPEFLAG_FDEFAULT: # and dual:
         defItem = item
-      # If we have written a class, refeence its name, otherwise the IID
+      # If we have written a class, reference its name, otherwise the IID
       if item.bWritten: key = item.python_name
       else: key = repr(str(item.clsid)) # really the iid.
       print('\t\t%s,' % (key,), file=stream)

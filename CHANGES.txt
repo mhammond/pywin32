@@ -8,6 +8,9 @@ Note that build 228 was the last version supporting Python 2.
 
 Since build 300:
 ----------------
+* CoClass objects should work better with special methods like __len__ etc.
+  (#1699)
+
 * Creating a `win32crypt.CRYPT_ATTRIBUTE` object now correctly sets `cbData`.
 
 * COM objects are now registered with the full path to pythoncomXX.dll, fixes

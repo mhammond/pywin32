@@ -172,10 +172,17 @@ def TestCommon(o, is_generated):
     progress("Checking getting/passing IUnknown")
     check_get_set(o.GetSetUnknown, o)
     progress("Checking getting/passing IDispatch")
-    if not isinstance(o.GetSetDispatch(o), o.__class__):
+    # This might be called with either the interface or the CoClass - but these
+    # functions always return from the interface.
+    expected_class = o.__class__
+    # CoClass instances have `default_interface`
+    expected_class = getattr(expected_class, "default_interface", expected_class)
+    if not isinstance(o.GetSetDispatch(o), expected_class):
         raise error("GetSetDispatch failed: %r" % (o.GetSetDispatch(o),))
     progress("Checking getting/passing IDispatch of known type")
-    if o.GetSetInterface(o).__class__ != o.__class__:
+    expected_class = o.__class__
+    expected_class = getattr(expected_class, "default_interface", expected_class)
+    if o.GetSetInterface(o).__class__ != expected_class:
         raise error("GetSetDispatch failed")
 
     progress("Checking misc args")
@@ -407,6 +414,16 @@ def TestGenerated():
 
     counter = EnsureDispatch("PyCOMTest.SimpleCounter")
     TestCounter(counter, True)
+
+    # This dance lets us get a CoClass even though it's not explicitly registered.
+    # This is `CoPyComTest`
+    from win32com.client.CLSIDToClass import GetClass
+    coclass_o = GetClass("{8EE0C520-5605-11D0-AE5F-CADD4C000000}")()
+    TestCommon(coclass_o, True)
+
+    # This is `CoSimpleCounter` and the counter tests should work.
+    coclass = GetClass("{B88DD310-BAE8-11D0-AE86-76F2C1000000}")()
+    TestCounter(coclass, True)
 
     # XXX - this is failing in dynamic tests, but should work fine.
     i1, i2 = o.GetMultipleInterfaces()
