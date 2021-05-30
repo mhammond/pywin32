@@ -28,6 +28,9 @@
 #define _WIN32_WINNT 0x0600
 #endif
 
+// We use the deprecated API
+#define _WINSOCK_DEPRECATED_NO_WARNINGS
+
 // bug #752
 // Include windows.h before winsock2 because with older SDKs the latter may
 // include windows.h with wrong pragma pack directive in effect, making

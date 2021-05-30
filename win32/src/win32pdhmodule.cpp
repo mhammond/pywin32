@@ -695,8 +695,6 @@ static PyObject *PyPdhGetFormattedCounterArray(PyObject *self, PyObject *args)
         return NULL;
     if (!PyWinObject_AsHANDLE(obhandle, &handle))
         return NULL;
-    DWORD type;
-    PDH_FMT_COUNTERVALUE result;
     CHECK_PDH_PTR(pPdhGetFormattedCounterArray);
     PDH_STATUS pdhStatus;
     DWORD size = 0;

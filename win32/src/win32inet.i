@@ -751,8 +751,7 @@ done:
 PyObject *PyInternetWriteFile(PyObject *self, PyObject *args)
 {
     PyObject *obFile, *obBuffer;
-	void *buf;
-    DWORD bufsize, bytes_written;
+    DWORD bytes_written;
     HINTERNET hFile;
 	BOOL ok;
 	

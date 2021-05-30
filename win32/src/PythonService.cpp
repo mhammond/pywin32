@@ -1144,7 +1144,7 @@ int PythonService_main(int argc, TCHAR **argv)
         DWORD errCode = GetLastError();
         if (errCode == ERROR_FAILED_SERVICE_CONTROLLER_CONNECT) {
             // We are not being run by the SCM - print a debug message.
-            printf("%s - Python Service Manager\n", argv[0]);
+            _tprintf(_T("%s - Python Service Manager\n"), argv[0]);
             printf("Options:\n");
 #ifndef BUILD_FREEZE
             printf(" -register - register the EXE - this should generally not be necessary.\n");

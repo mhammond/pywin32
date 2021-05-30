@@ -332,7 +332,7 @@ int PyHANDLE::print(FILE *fp, int flags)
 PyObject *PyHANDLE::asStr(void)
 {
     WCHAR resBuf[160];
-    _snwprintf(resBuf, 160, L"<%hs:%Id>", GetTypeName(), m_handle);
+    _snwprintf(resBuf, 160, L"<%hs:%Id>", GetTypeName(), (size_t)m_handle);
     return PyWinCoreString_FromString(resBuf);
 }
 

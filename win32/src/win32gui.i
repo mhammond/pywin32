@@ -1752,7 +1752,6 @@ static PyObject *PyGetArraySignedLong(PyObject *self, PyObject *args)
 static PyObject *PyGetBufferAddressAndLen(PyObject *self, PyObject *args)
 {
 	PyObject *ob;
-	const void *addr;
 	Py_ssize_t len = 0;
 
 	// @pyparm buffer|obj||the buffer object
@@ -2636,8 +2635,6 @@ static PyObject *PyCreateIconFromResource(PyObject *self, PyObject *args)
 	// @pyparm int|ver|0x00030000|Specifies the version number of the icon or cursor
 	// format for the resource bits pointed to by the presbits parameter.
 	// This parameter can be 0x00030000.
-	PBYTE bits;
-	DWORD nBits;
 	int isIcon;
 	DWORD ver = 0x00030000;
 	PyObject *obbits;

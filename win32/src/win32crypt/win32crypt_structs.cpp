@@ -650,7 +650,6 @@ BOOL PyWinObject_AsCRYPT_ATTRIBUTE(PyObject *obca, PCRYPT_ATTRIBUTE pca)
 {
     static char *ca_keys[] = {"ObjId", "Value", NULL};
     PyObject *obvalues, *obvalue;
-    BYTE *buf;
     DWORD value_ind;
     BOOL ret = TRUE;
 
