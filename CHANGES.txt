@@ -8,18 +8,19 @@ Note that build 228 was the last version supporting Python 2.
 
 Since build 300:
 ----------------
-* CoClass objects should work better with special methods like __len__ etc.
-  (#1699)
-
-* Creating a `win32crypt.CRYPT_ATTRIBUTE` object now correctly sets `cbData`.
-
-* COM objects are now registered with the full path to pythoncomXX.dll, fixes
-  #1704.
-
 * Fix some confusion on how dynamic COM object properties work. The old
   code was confused, so there's a chance there will be some subtle
   regression here - please open a bug if you find anything, but this
   should fix #1427.
+
+* COM objects are now registered with the full path to pythoncomXX.dll, fixes
+  #1704.
+
+* Creating a `win32crypt.CRYPT_ATTRIBUTE` object now correctly sets `cbData`.
+
+* Add wrap and unwrap operations defined in the GSSAPI to the sspi module
+  and enhance the examples given in this module.
+  (#1692, Emmanuel Coirier)
 
 * Fix a bug in `win32profile.GetEnvironmentStrings()` relating to environment
   variables with an equals sign (@maxim-krikun in #1661)
@@ -30,16 +31,15 @@ Since build 300:
 
 * Added win32com.shell.SHGetKnownFolderPath() and related constants.
 
+* CoClass objects should work better with special methods like __len__ etc.
+  (#1699)
+
 * Shifted work in win32.lib.pywin32_bootstrap to Python's import system from
   manual path manipulations (@wkschwartz in #1651)
 
 * Fixed a bug where win32print.DeviceCapabilities would return strings
   containing the null character followed by junk characters.
   (#1654, #1660, Lincoln Puzey)
-
-* Add wrap and unwrap operations defined in the GSSAPI to the sspi module
-  and enhance the examples given in this module.
-  (#1692, Emmanuel Coirier)
 
 Since build 228:
 ----------------
