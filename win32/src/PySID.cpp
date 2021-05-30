@@ -1,6 +1,7 @@
 //
 // @doc
 
+#define PY_SSIZE_T_CLEAN
 #include "PyWinTypes.h"
 #include "PyWinObjects.h"
 #include "PySecurityObjects.h"
@@ -11,9 +12,9 @@
 PyObject *PyWinMethod_NewSID(PyObject *self, PyObject *args)
 {
     void *buf = NULL;
-    int bufSize = 32;  // xxxxxx64 - should be Py_ssize_t - but passed as 'i'
+    Py_ssize_t bufSize = 32;
     // @pyparm int|bufSize|32|Size for the SID buffer
-    if (!PyArg_ParseTuple(args, "|i:SID", &bufSize)) {
+    if (!PyArg_ParseTuple(args, "|n:SID", &bufSize)) {
         PyErr_Clear();
         // @pyparmalt1 string|buffer||A raw data buffer, assumed to hold the SID data.
         if (!PyArg_ParseTuple(args, "s#:SID", &buf, &bufSize)) {
@@ -53,6 +54,10 @@ PyObject *PyWinMethod_NewSID(PyObject *self, PyObject *args)
                 return PyWin_SetAPIError("AllocateAndInitializeSid");
             return new PySID(pNew);
         }
+    }
+     if (bufSize > INT_MAX) {
+        PyErr_SetString(PyExc_ValueError, "SID buffer size beyond INT_MAX");
+        return NULL;
     }
     return new PySID(bufSize, buf);
 }
@@ -192,34 +197,6 @@ struct PyMethodDef PySID::methods[] = {
           // SID_IDENTIFIER_AUTHORITY constants)
     {NULL}};
 
-#if (PY_VERSION_HEX < 0x03000000)
-/*static*/ Py_ssize_t PySID::getreadbuf(PyObject *self, Py_ssize_t index, void **ptr)
-{
-    if (index != 0) {
-        PyErr_SetString(PyExc_SystemError, "accessing non-existent SID segment");
-        return -1;
-    }
-    PySID *pysid = (PySID *)self;
-    *ptr = pysid->m_psid;
-    return GetLengthSid(pysid->m_psid);
-}
-
-/*static*/ Py_ssize_t PySID::getsegcount(PyObject *self, Py_ssize_t *lenp)
-{
-    if (lenp)
-        *lenp = GetLengthSid(((PySID *)self)->m_psid);
-    return 1;
-}
-
-static PyBufferProcs PySID_as_buffer = {
-    PySID::getreadbuf,
-    0,
-    PySID::getsegcount,
-    0,
-};
-
-#else  // New buffer interface in Py3k
-
 /*static*/ int PySID::getbufferinfo(PyObject *self, Py_buffer *view, int flags)
 {
     PySID *pysid = (PySID *)self;
@@ -230,8 +207,6 @@ static PyBufferProcs PySID_as_buffer = {
     PySID::getbufferinfo,
     NULL,  // Does not have any allocated mem in Py_buffer struct
 };
-
-#endif  // PY_VERSION_HEX < 0x03000000
 
 PYWINTYPES_EXPORT PyTypeObject PySIDType = {
     PYWIN_OBJECT_HEAD "PySID", sizeof(PySID), 0, PySID::deallocFunc, /* tp_dealloc */
