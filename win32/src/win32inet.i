@@ -405,14 +405,6 @@ PyObject *PyInternetGetCookie(PyObject *self, PyObject *args)
     if (!ok)
         PyWin_SetAPIError("InternetGetCookie");
     else {
-        // Note that on win2k only, and only when UNICODE is defined, we
-        // see 'cch' be one less than we expect - ie, it is the number of
-        // chars *not* including the NULL.
-#ifdef UNICODE
-        if (LOBYTE(LOWORD(GetVersion())) <= 5 && cch && cch < cchallocated &&
-            buf[cch-1] != _T('\0'))
-            cch += 1;
-#endif
         ret=PyWinObject_FromTCHAR(buf, cch-1);
     }
 done:

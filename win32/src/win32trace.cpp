@@ -593,29 +593,24 @@ PYWIN_MODULE_INIT_FUNC(win32trace)
     // CreateFileMapping - so we temporarily use that just to work out what
     // namespace to use for our objects.
 
-    // is the "Global\" namespace even possible?
-    OSVERSIONINFO info;
-    info.dwOSVersionInfoSize = sizeof(info);
-    GetVersionEx(&info);
-    BOOL global_ok = info.dwMajorVersion > 4;
-    if (global_ok) {
-        // see comments at top of file - if it exists locally, stick with
-        // local - use_global_namespace is still FALSE now, so that is the
-        // name we get.
-        HANDLE h = CreateFileMapping((HANDLE)-1, &sa, PAGE_READWRITE, 0, BUFFER_SIZE, FixupObjectName(MAP_OBJECT_NAME));
-        if (GetLastError() != ERROR_ALREADY_EXISTS) {
-            // no local one exists - see if we can create it globally - if
-            // we can, we go global, else we stick with local.
-            use_global_namespace = TRUE;
-            HANDLE h2 =
-                CreateFileMapping((HANDLE)-1, &sa, PAGE_READWRITE, 0, BUFFER_SIZE, FixupObjectName(MAP_OBJECT_NAME));
-            use_global_namespace = h2 != NULL;
-            if (h2)
-                CloseHandle(h2);
-        }
-        if (h)
-            CloseHandle(h);
+    // is the "Global\" namespace even possible? It was first made possible in
+    // win2k, so yes, it is!
+    // see comments at top of file - if it exists locally, stick with
+    // local - use_global_namespace is still FALSE now, so that is the
+    // name we get.
+    HANDLE h = CreateFileMapping((HANDLE)-1, &sa, PAGE_READWRITE, 0, BUFFER_SIZE, FixupObjectName(MAP_OBJECT_NAME));
+    if (GetLastError() != ERROR_ALREADY_EXISTS) {
+        // no local one exists - see if we can create it globally - if
+        // we can, we go global, else we stick with local.
+        use_global_namespace = TRUE;
+        HANDLE h2 =
+            CreateFileMapping((HANDLE)-1, &sa, PAGE_READWRITE, 0, BUFFER_SIZE, FixupObjectName(MAP_OBJECT_NAME));
+        use_global_namespace = h2 != NULL;
+        if (h2)
+            CloseHandle(h2);
     }
+    if (h)
+        CloseHandle(h);
     // use_global_namespace is now set and will not change - all objects
     // we use are in the same namespace.
 
