@@ -183,7 +183,7 @@ inline BOOL Win32uiHostGlue::DynamicApplicationInit(const TCHAR *cmd, const TCHA
     if (bShouldInitPython) {
         void(__cdecl * pfnPyInit)(void);
         pfnPyInit = (void(__cdecl *)(void))GetProcAddress(hModCore, "Py_Initialize");
-        if (!pfnIsInit) {
+        if (!pfnPyInit) {
             wsprintf(err_buf, _T("Failed to load 'Py_Initialize' - %d\n"), GetLastError());
             goto fail_with_error_dlg;
         }
