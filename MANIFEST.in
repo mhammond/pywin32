@@ -37,7 +37,7 @@ include com/win32com/src/include/*.h
 include com/win32com/src/PythonCOM.def
 include com/win32com/src/PythonCOMLoader.def
 include com/win32com/src/PythonCOMLoader.cpp
-include com/win32com/readme.htm
+include com/win32com/readme.html
 include com/win32com/HTML/*.html
 include com/win32com/HTML/image/*.gif
 include com/win32com/test/*.idl
