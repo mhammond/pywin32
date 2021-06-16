@@ -62,7 +62,7 @@ def TestExplorerEvents():
 
     iexplore.Visible = 1
     try:
-        iexplore.Navigate(win32api.GetFullPathName('..\\readme.htm'))
+        iexplore.Navigate(win32api.GetFullPathName('..\\readme.html'))
     except pythoncom.com_error as details:
         print("Warning - could not open the test HTML file", details)
 
