@@ -1,10 +1,10 @@
-# This module exists to create the "best" dispatch object for a given
-# object.  If "makepy" support for a given object is detected, it is
-# used, otherwise a dynamic dispatch object.
+"""This module exists to create the "best" dispatch object for a given
+object.  If "makepy" support for a given object is detected, it is
+used, otherwise a dynamic dispatch object.
 
-# Note that if the unknown dispatch object then returns a known
-# dispatch object, the known class will be used.  This contrasts
-# with dynamic.Dispatch behaviour, where dynamic objects are always used.
+Note that if the unknown dispatch object then returns a known
+dispatch object, the known class will be used.  This contrasts 
+with dynamic.Dispatch behaviour, where dynamic objects are always used."""
 
 import pythoncom
 from . import dynamic
@@ -15,14 +15,12 @@ import pywintypes
 _PyIDispatchType = pythoncom.TypeIIDs[pythoncom.IID_IDispatch]
 
 
-def __WrapDispatch(dispatch, userName = None, resultCLSID = None, typeinfo = None, \
-                  UnicodeToString=None, clsctx = pythoncom.CLSCTX_SERVER,
-                  WrapperClass = None):
-  """
-    Helper function to return a makepy generated class for a CLSID if it exists,
-    otherwise cope by using CDispatch.
-  """
-  assert UnicodeToString is None, "this is deprecated and will go away"
+def __WrapDispatch(dispatch, userName, resultCLSID, typeinfo, UnicodeToString, clsctx = pythoncom.CLSCTX_SERVER,
+                   WrapperClass = None):
+  """Helper function to return a makepy generated class for a CLSID if it exists,
+    otherwise cope by using CDispatch."""
+  if not UnicodeToString is None:
+      raise DeprecationWarning("this is deprecated and will go away")
   if resultCLSID is None:
     try:
       typeinfo = dispatch.GetTypeInfo()
@@ -43,20 +41,16 @@ def __WrapDispatch(dispatch, userName = None, resultCLSID = None, typeinfo = Non
   return dynamic.Dispatch(dispatch, userName, WrapperClass, typeinfo, clsctx=clsctx)
 
 
-def GetObject(Pathname = None, Class = None, clsctx = None):
+def GetObject(Pathname, Class, clsctx):
   """
     Mimic VB's GetObject() function.
-
     ob = GetObject(Class = "ProgID") or GetObject(Class = clsid) will
     connect to an already running instance of the COM object.
-
     ob = GetObject(r"c:\blah\blah\foo.xls") (aka the COM moniker syntax)
     will return a ready to use Python wrapping of the required COM object.
-
     Note: You must specifiy one or the other of these arguments. I know
     this isn't pretty, but it is what VB does. Blech. If you don't
     I'll throw ValueError at you. :)
-
     This will most likely throw pythoncom.com_error if anything fails.
   """
   if clsctx is None:
@@ -81,24 +75,22 @@ def GetActiveObject(Class, clsctx = pythoncom.CLSCTX_ALL):
   return __WrapDispatch(dispatch, Class, resultCLSID = resultCLSID, clsctx = clsctx)
 
 def Moniker(Pathname, clsctx = pythoncom.CLSCTX_ALL):
-  """
-    Python friendly version of GetObject's moniker functionality.
-  """
+  """Python friendly version of GetObject's moniker functionality."""
   moniker, i, bindCtx = pythoncom.MkParseDisplayName(Pathname)
   dispatch = moniker.BindToObject(bindCtx, None, pythoncom.IID_IDispatch)
   return __WrapDispatch(dispatch, Pathname, clsctx=clsctx)
 
-def Dispatch(dispatch, userName = None, resultCLSID = None, typeinfo = None, UnicodeToString=None, clsctx = pythoncom.CLSCTX_SERVER):
-  """Creates a Dispatch based COM object.
-  """
-  assert UnicodeToString is None, "this is deprecated and will go away"
+def Dispatch(dispatch, userName, resultCLSID, typeinfo, UnicodeToString, clsctx = pythoncom.CLSCTX_SERVER):
+  """Creates a Dispatch based COM object."""
+  if not UnicodeToString is None:
+      raise DeprecationWarning("This is deprecated and will go away")
   dispatch, userName = dynamic._GetGoodDispatchAndUserName(dispatch,userName,clsctx)
   return __WrapDispatch(dispatch, userName, resultCLSID, typeinfo, clsctx=clsctx)
 
-def DispatchEx(clsid, machine=None, userName = None, resultCLSID = None, typeinfo = None, UnicodeToString=None, clsctx = None):
-  """Creates a Dispatch based COM object on a specific machine.
-  """
-  assert UnicodeToString is None, "this is deprecated and will go away"
+def DispatchEx(clsid, machine, userName, resultCLSID, typeinfo, UnicodeToString, clsctx):
+  """Creates a Dispatch based COM object on a specific machine."""
+  if UnicodeToString is not None:
+      raise DeprecationWarning("this is deprecated and will go away")
   # If InProc is registered, DCOM will use it regardless of the machine name
   # (and regardless of the DCOM config for the object.)  So unless the user
   # specifies otherwise, we exclude inproc apps when a remote machine is used.
@@ -120,8 +112,9 @@ class CDispatch(dynamic.CDispatch):
     of using the makepy generated wrapper Python class instead of dynamic.CDispatch
     if/when possible.
   """
-  def _wrap_dispatch_(self, ob, userName = None, returnCLSID = None, UnicodeToString=None):
-    assert UnicodeToString is None, "this is deprecated and will go away"
+  def _wrap_dispatch_(self, ob, userName, returnCLSID, UnicodeToString):
+    if not UnicodeToString is None:
+        raise DeprecationWarning("this is deprecated and will go away")
     return Dispatch(ob, userName, returnCLSID,None)
   def __dir__(self):
     return dynamic.CDispatch.__dir__(self)
@@ -216,32 +209,25 @@ def DispatchWithEvents(clsid, user_event_class):
   """Create a COM object that can fire events to a user defined class.
   clsid -- The ProgID or CLSID of the object to create.
   user_event_class -- A Python class object that responds to the events.
-
   This requires makepy support for the COM object being created.  If
   this support does not exist it will be automatically generated by
   this function.  If the object does not support makepy, a TypeError
   exception will be raised.
-
   The result is a class instance that both represents the COM object
   and handles events from the COM object.
-
   It is important to note that the returned instance is not a direct
   instance of the user_event_class, but an instance of a temporary
   class object that derives from three classes:
   * The makepy generated class for the COM object
   * The makepy generated class for the COM events
   * The user_event_class as passed to this function.
-
   If this is not suitable, see the getevents function for an alternative
   technique of handling events.
-
   Object Lifetimes:  Whenever the object returned from this function is
   cleaned-up by Python, the events will be disconnected from
   the COM object.  This is almost always what should happen,
   but see the documentation for getevents() for more details.
-
   Example:
-
   >>> class IEEvents:
   ...    def OnVisible(self, visible):
   ...       print "Visible changed:", visible
@@ -289,9 +275,7 @@ def WithEvents(disp, user_event_class):
   """Similar to DispatchWithEvents - except that the returned
   object is *not* also usable as the original Dispatch object - that is
   the returned object is not dispatchable.
-
   The difference is best summarised by example.
-
   >>> class IEEvents:
   ...    def OnVisible(self, visible):
   ...       print "Visible changed:", visible
@@ -300,12 +284,10 @@ def WithEvents(disp, user_event_class):
   >>> ie_events = WithEvents(ie, IEEvents)
   >>> ie.Visible = 1
   Visible changed: 1
-
   Compare with the code sample for DispatchWithEvents, where you get a
   single object that is both the interface and the event handler.  Note that
   the event handler instance will *not* be able to use 'self.' to refer to
   IE's methods and properties.
-
   This is mainly useful where using DispatchWithEvents causes
   circular reference problems that the simple proxy doesn't deal with
   """
@@ -345,12 +327,10 @@ def getevents(clsid):
     either a clsid or progid. It returns a class - you can
     conveniently derive your own handler from this class and implement
     the appropriate methods.
-
     This method relies on the classes produced by makepy. You must use
     either makepy or the gencache module to ensure that the
     appropriate support classes have been generated for the com server
     that you will be handling events from.
-
     Beware of COM circular references.  When the Events class is connected
     to the COM object, the COM object itself keeps a reference to the Python
     events class.  Thus, neither the Events instance or the COM object will
@@ -360,13 +340,10 @@ def getevents(clsid):
     work around this problem by the use of a proxy object, but if you use
     the getevents() function yourself, you must make your own arrangements
     to manage this circular reference issue.
-
     Beware of creating Python circular references: this will happen if your
     handler has a reference to an object that has a reference back to
     the event source. Call the 'close' method to break the chain.
-
     Example:
-
     >>>win32com.client.gencache.EnsureModule('{EAB22AC0-30C1-11CF-A7EB-0000C05BAE0B}',0,1,1)
     <module 'win32com.gen_py.....
     >>>
@@ -399,7 +376,6 @@ def getevents(clsid):
 def Record(name, object):
   """Creates a new record object, given the name of the record,
   and an object from the same type library.
-
   Example usage would be:
     app = win32com.client.Dispatch("Some.Application")
     point = win32com.client.Record("SomeAppPoint", app)
@@ -428,127 +404,127 @@ def Record(name, object):
 # The base of all makepy generated classes
 ############################################
 class DispatchBaseClass:
-	def __init__(self, oobj=None):
-		if oobj is None:
-			oobj = pythoncom.new(self.CLSID)
-		elif isinstance(oobj, DispatchBaseClass):
-			try:
-				oobj = oobj._oleobj_.QueryInterface(self.CLSID, pythoncom.IID_IDispatch) # Must be a valid COM instance
-			except pythoncom.com_error as details:
-				import winerror
-				# Some stupid objects fail here, even tho it is _already_ IDispatch!!??
-				# Eg, Lotus notes.
-				# So just let it use the existing object if E_NOINTERFACE
-				if details.hresult != winerror.E_NOINTERFACE:
-					raise
-				oobj = oobj._oleobj_
-		self.__dict__["_oleobj_"] = oobj # so we dont call __setattr__
+    def __init__(self, oobj):
+        if oobj is None:
+            oobj = pythoncom.new(self.CLSID)
+        elif isinstance(oobj, DispatchBaseClass):
+            try:
+                oobj = oobj._oleobj_.QueryInterface(self.CLSID, pythoncom.IID_IDispatch) # Must be a valid COM instance
+            except pythoncom.com_error as details:
+                import winerror
+                # Some stupid objects fail here, even tho it is _already_ IDispatch!!??
+                # Eg, Lotus notes.
+                # So just let it use the existing object if E_NOINTERFACE
+                if details.hresult != winerror.E_NOINTERFACE:
+                    raise
+                oobj = oobj._oleobj_
+        self.__dict__["_oleobj_"] = oobj # so we dont call __setattr__
 
-	def __dir__(self):
-		lst = list(self.__dict__.keys()) + dir(self.__class__) \
-			  + list(self._prop_map_get_.keys()) + list(self._prop_map_put_.keys())
-		try: lst += [p.Name for p in self.Properties_]
-		except AttributeError:
-			pass
-		return list(set(lst))
+    def __dir__(self):
+        lst = list(self.__dict__.keys()) + dir(self.__class__) \
+              + list(self._prop_map_get_.keys()) + list(self._prop_map_put_.keys())
+        try: lst += [p.Name for p in self.Properties_]
+        except AttributeError:
+            pass
+        return list(set(lst))
 
-	# Provide a prettier name than the CLSID
-	def __repr__(self):
-		# Need to get the docstring for the module for this class.
-		try:
-			mod_doc = sys.modules[self.__class__.__module__].__doc__
-			if mod_doc:
-				mod_name = "win32com.gen_py." + mod_doc
-			else:
-				mod_name = sys.modules[self.__class__.__module__].__name__
-		except KeyError:
-		  mod_name = "win32com.gen_py.unknown"
-		return "<%s.%s instance at 0x%s>" % (mod_name, self.__class__.__name__, id(self))
-	# Delegate comparison to the oleobjs, as they know how to do identity.
-	def __eq__(self, other):
-		other = getattr(other, "_oleobj_", other)
-		return self._oleobj_ == other
+    # Provide a prettier name than the CLSID
+    def __repr__(self):
+        # Need to get the docstring for the module for this class.
+        try:
+            mod_doc = sys.modules[self.__class__.__module__].__doc__
+            if mod_doc:
+                mod_name = "win32com.gen_py." + mod_doc
+            else:
+                mod_name = sys.modules[self.__class__.__module__].__name__
+        except KeyError:
+          mod_name = "win32com.gen_py.unknown"
+        return "<%s.%s instance at 0x%s>" % (mod_name, self.__class__.__name__, id(self))
+    # Delegate comparison to the oleobjs, as they know how to do identity.
+    def __eq__(self, other):
+        other = getattr(other, "_oleobj_", other)
+        return self._oleobj_ == other
 
-	def __ne__(self, other):
-		other = getattr(other, "_oleobj_", other)
-		return self._oleobj_ != other
+    def __ne__(self, other):
+        other = getattr(other, "_oleobj_", other)
+        return self._oleobj_ != other
 
-	def _ApplyTypes_(self, dispid, wFlags, retType, argTypes, user, resultCLSID, *args):
-		return self._get_good_object_(
-			self._oleobj_.InvokeTypes(dispid, 0, wFlags, retType, argTypes, *args),
-			user, resultCLSID)
+    def _ApplyTypes_(self, dispid, wFlags, retType, argTypes, user, resultCLSID, *args):
+        return self._get_good_object_(
+            self._oleobj_.InvokeTypes(dispid, 0, wFlags, retType, argTypes, *args),
+            user, resultCLSID)
 
-	def __getattr__(self, attr):
-		args=self._prop_map_get_.get(attr)
-		if args is None:
-			raise AttributeError("'%s' object has no attribute '%s'" % (repr(self), attr))
-		return self._ApplyTypes_(*args)
+    def __getattr__(self, attr):
+        args=self._prop_map_get_.get(attr)
+        if args is None:
+            raise AttributeError("'%s' object has no attribute '%s'" % (repr(self), attr))
+        return self._ApplyTypes_(*args)
 
-	def __setattr__(self, attr, value):
-		if attr in self.__dict__: self.__dict__[attr] = value; return
-		try:
-			args, defArgs=self._prop_map_put_[attr]
-		except KeyError:
-			raise AttributeError("'%s' object has no attribute '%s'" % (repr(self), attr))
-		self._oleobj_.Invoke(*(args + (value,) + defArgs))
-	def _get_good_single_object_(self, obj, obUserName=None, resultCLSID=None):
-		return _get_good_single_object_(obj, obUserName, resultCLSID)
-	def _get_good_object_(self, obj, obUserName=None, resultCLSID=None):
-		return _get_good_object_(obj, obUserName, resultCLSID)
+    def __setattr__(self, attr, value):
+        if attr in self.__dict__: self.__dict__[attr] = value; return
+        try:
+            args, defArgs=self._prop_map_put_[attr]
+        except KeyError:
+            raise AttributeError("'%s' object has no attribute '%s'" % (repr(self), attr))
+        self._oleobj_.Invoke(*(args + (value,) + defArgs))
+    def _get_good_single_object_(self, obj, obUserName, resultCLSID):
+        return _get_good_single_object_(obj, obUserName, resultCLSID)
+    def _get_good_object_(self, obj, obUserName, resultCLSID):
+        return _get_good_object_(obj, obUserName, resultCLSID)
 
 # XXX - These should be consolidated with dynamic.py versions.
-def _get_good_single_object_(obj, obUserName=None, resultCLSID=None):
-	if _PyIDispatchType==type(obj):
-		return Dispatch(obj, obUserName, resultCLSID)
-	return obj
+def _get_good_single_object_(obj, obUserName, resultCLSID):
+    if _PyIDispatchType==type(obj):
+        return Dispatch(obj, obUserName, resultCLSID)
+    return obj
 
-def _get_good_object_(obj, obUserName=None, resultCLSID=None):
-	if obj is None:
-		return None
-	elif isinstance(obj, tuple):
-		obUserNameTuple = (obUserName,) * len(obj)
-		resultCLSIDTuple = (resultCLSID,) * len(obj)
-		return tuple(map(_get_good_object_, obj, obUserNameTuple, resultCLSIDTuple))
-	else:
-		return _get_good_single_object_(obj, obUserName, resultCLSID)
+def _get_good_object_(obj, obUserName, resultCLSID):
+    if obj is None:
+        return None
+    elif isinstance(obj, tuple):
+        obUserNameTuple = (obUserName,) * len(obj)
+        resultCLSIDTuple = (resultCLSID,) * len(obj)
+        return tuple(map(_get_good_object_, obj, obUserNameTuple, resultCLSIDTuple))
+    else:
+        return _get_good_single_object_(obj, obUserName, resultCLSID)
 
 class CoClassBaseClass:
-	def __init__(self, oobj=None):
-		if oobj is None: oobj = pythoncom.new(self.CLSID)
-		self.__dict__["_dispobj_"] = self.default_interface(oobj)
-	def __repr__(self):
-		return "<win32com.gen_py.%s.%s>" % (__doc__, self.__class__.__name__)
+    def __init__(self, oobj):
+        if oobj is None: oobj = pythoncom.new(self.CLSID)
+        self.__dict__["_dispobj_"] = self.default_interface(oobj)
+    def __repr__(self):
+        return "<win32com.gen_py.%s.%s>" % (__doc__, self.__class__.__name__)
 
-	def __getattr__(self, attr):
-		d=self.__dict__["_dispobj_"]
-		if d is not None: return getattr(d, attr)
-		raise AttributeError(attr)
-	def __setattr__(self, attr, value):
-		if attr in self.__dict__: self.__dict__[attr] = value; return
-		try:
-			d=self.__dict__["_dispobj_"]
-			if d is not None:
-				d.__setattr__(attr, value)
-				return
-		except AttributeError:
-			pass
-		self.__dict__[attr] = value
+    def __getattr__(self, attr):
+        d=self.__dict__["_dispobj_"]
+        if d is not None: return getattr(d, attr)
+        raise AttributeError(attr)
+    def __setattr__(self, attr, value):
+        if attr in self.__dict__: self.__dict__[attr] = value; return
+        try:
+            d=self.__dict__["_dispobj_"]
+            if d is not None:
+                d.__setattr__(attr, value)
+                return
+        except AttributeError:
+            pass
+        self.__dict__[attr] = value
 
   # Special methods don't use __getattr__ etc, so explicitly delegate here.
   # Some wrapped objects might not have them, but that's OK - the attribute
   # error can just bubble up.
-	def __call__(self, *args, **kwargs):
-		return self.__dict__["_dispobj_"].__call__(*args, **kwargs)
-	def __str__(self, *args):
-		return self.__dict__["_dispobj_"].__str__(*args)
-	def __int__(self, *args):
-		return self.__dict__["_dispobj_"].__int__(*args)
-	def __iter__(self):
-		return self.__dict__["_dispobj_"].__iter__()
-	def __len__(self):
-		return self.__dict__["_dispobj_"].__len__()
-	def __nonzero__(self):
-		return self.__dict__["_dispobj_"].__nonzero__()
+    def __call__(self, *args, **kwargs):
+        return self.__dict__["_dispobj_"].__call__(*args, **kwargs)
+    def __str__(self, *args):
+        return self.__dict__["_dispobj_"].__str__(*args)
+    def __int__(self, *args):
+        return self.__dict__["_dispobj_"].__int__(*args)
+    def __iter__(self):
+        return self.__dict__["_dispobj_"].__iter__()
+    def __len__(self):
+        return self.__dict__["_dispobj_"].__len__()
+    def __nonzero__(self):
+        return self.__dict__["_dispobj_"].__nonzero__()
 
 
 # A very simple VARIANT class.  Only to be used with poorly-implemented COM
@@ -557,19 +533,19 @@ class CoClassBaseClass:
 # which it would get from a Python integer), you can use this to force a
 # particular VT.
 class VARIANT(object):
-  def __init__(self, vt, value):
-    self.varianttype = vt
-    self._value = value
+    def __init__(self, vt, value):
+        self.varianttype = vt
+        self._value = value
+    
+    # 'value' is a property so when set by pythoncom it gets any magic wrapping
+    # which normally happens for result objects
+    def _get_value(self):
+        return self._value
+    def _set_value(self, newval):
+        self._value = _get_good_object_(newval)
+    def _del_value(self):
+        del self._value
+    value = property(_get_value, _set_value, _del_value)
 
-  # 'value' is a property so when set by pythoncom it gets any magic wrapping
-  # which normally happens for result objects
-  def _get_value(self):
-    return self._value
-  def _set_value(self, newval):
-    self._value = _get_good_object_(newval)
-  def _del_value(self):
-    del self._value
-  value = property(_get_value, _set_value, _del_value)
-
-  def __repr__(self):
-    return "win32com.client.VARIANT(%r, %r)" % (self.varianttype, self._value)
+    def __repr__(self):
+        return "win32com.client.VARIANT(%r, %r)" % (self.varianttype, self._value)
