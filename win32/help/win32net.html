@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <HTML>
 <HEAD>
 <TITLE>Windows Network Management: win32net</TITLE>
@@ -81,12 +82,12 @@ r'\\rubble'.
 <p>
 And finally, python's exception handling makes it convenient to catch win32net errors.
 I use the following format:
-<pre>
+<code>
 try:
   #win32net calls
 except win32net.error:
   print traceback.format_tb(sys.exc_info()[2]),'\n',sys.exc_type,'\n',sys.exc_value
-</pre>
+</code>
 The traceback and sys modules are used to extract the error information.
 
 
@@ -95,14 +96,13 @@ The traceback and sys modules are used to extract the error information.
 <HR>
 <H2><A NAME="Server">Managing Servers/Workstations</A></H3>
 <p>
-<pre>
 <H3><A NAME="list">Listing Logins on a workstation</A></H3>
 
 <p>If you want to get the logins currently present on a workstation you
 need to use NetWkstaUserEnum api call.  
 
 In c++ the call looks like this: |
-
+<code>
 NET_API_STATUS NetWkstaUserEnum(
   LPWSTR servername,    
   DWORD level,          
@@ -112,7 +112,7 @@ NET_API_STATUS NetWkstaUserEnum(
   LPDWORD totalentries, 
   LPDWORD resumehandle  
 );
-
+</code>
 The python documentation says this: | ([dict, ...], total, resumeHandle)
 = NetWkstaUserEnum( server, level , resumeHandle , prefLen )
 
@@ -127,7 +127,7 @@ returned which trivial to parse and if resumeHandel is true you make
 the win32 call again.
 
 Now for some code:
- 
+<code>
 def getusers(server):
   res=1  #initially set it to true
   pref=win32netcon.MAX_PREFERRED_LENGTH 
@@ -146,7 +146,7 @@ def getusers(server):
 print getusers(r'\\betty')
 
 
-</pre>
+</code>
 
 <H3><A NAME="accounts">Listing all user accounts</A></H3> 
 
@@ -157,7 +157,7 @@ can look for. In this case, we use the constant in win32netcon to look
 for 'normal' accounts. Another win32net function, NetUserGetInfo
 described later gets the full_name for the login.
 
-<pre>
+<code>
 def getall_users(server):
    'This functions returns a list of id and full_names on an NT server'
    j=1
@@ -180,7 +180,7 @@ def getall_users(server):
 
 print getall_users(r'\\dino')
 
-</pre>
+</code>
 
 <H3><A NAME="machines">Listing all machines in Domain</A></H3> If you
 need to touch every machine in your domain, NetServerEnum can help you
@@ -189,7 +189,7 @@ for different classes of machines.  For example,
 win32netcon.SV_TYPE_DOMAIN_BAKCTRL, will single out backup domain
 controllers. Here we use SV_TYPE_ALL to get everything.
 
-<pre>
+<code>
 def getall_boxes(domain='',server=''):
     res=1
     wrk_lst=[]
@@ -207,10 +207,10 @@ def getall_boxes(domain='',server=''):
     return final_lst
 
 print getall_boxes('bedrock',r'\\rubble')
-</pre>
+</code>
 
 <H3><A NAME="share">Creating a share</A></H3>
-<pre>
+
 If we want to add a new share, the help documentation says is that I
 need a dictionary holding the share data, in the format of
 PySHARE_INFO_*.
@@ -223,6 +223,7 @@ structures; lets assume we want to use the PySHARE_INFO_2 structure.
 So do you create this PySHARE_INFO_2 Object? It is really quite simple: 
 
 In c++, for example, the SHARE_INFO_2 structure looks like: 
+<code>
 typedef struct _SHARE_INFO_2 { 
 LPWSTR shi2_netname; 
 DWORD shi2_type; 
@@ -233,7 +234,7 @@ DWORD shi2_current_uses;
 LPWSTR shi2_path; 
 LPWSTR shi2_passwd; 
 } SHARE_INFO_2, *PSHARE_INFO_2, *LPSHARE_INFO_2; 
-
+	</code>
 What does that mean in python?
 
 
@@ -257,7 +258,7 @@ Example
 
 Given this knowledge, we could then write the following Python code to
 add a new share.
-
+<code>
 import win32net
 import win32netcon
 
@@ -281,12 +282,11 @@ try:
 except win32net.error:
   print traceback.format_tb(sys.exc_info()[2]),'\n',sys.exc_type,'\n',sys.exc_value
 
-</pre>
+</code>
 </p>
 <HR>
 <H2><A NAME="manage">Manage Users</A></H2>
 <p>
-<pre>
 <hr>
 
 
@@ -297,7 +297,8 @@ use NetUserGetInfo and NetUserSetInfo, respectively.
 
 Example
 In c++ the setinfo call looks like this:
-
+<code>
+	
 NET_API_STATUS NetUserSetInfo(
 
   LPCWSTR servername,
@@ -312,7 +313,7 @@ NET_API_STATUS NetUserSetInfo(
 
 );
 
-
+</code>
 It's reasonably self explanatory except for level. It turns out there
 are many levels. One of the most useful one is USER_INFO_3 this
 structure lets you change just about anything you want for a
@@ -324,7 +325,7 @@ using USER_INFO_1008 that has no corresponding NetUserGetInfo.
 
 The python call looks like this:
 
-NetUserSetInfo( server , username ,level , data )
+<code>NetUserSetInfo( server , username ,level , data )</code>
 
 For it the most interesting parts are server, level, and data.  Server
 is only interesting because the server name has to be prepended with
@@ -354,7 +355,7 @@ exception handling is a very powerful asset. The try block explicitly
 catches and win32net errors from your system calls. And, we can
 extract what happened with sys.exc_type and sys.exc_value.
 
-
+<code>
 import sys
 import win32net
 import win32netcon
@@ -375,7 +376,7 @@ try:
     print info['full_name']
 except win32net.error:
     print traceback.format_tb(sys.exc_info()[2]),'\n',sys.exc_type,'\n',sys.exc_value
-
+</code>
 
 <H3><A NAME="password"></A>Changing password expiration</H3>
 
@@ -401,6 +402,7 @@ Here is some code that turns on the
 
 UF_DONT_EXPIRE_PASSWD bit for a user.
 
+<code>
 import sys
 import win32net
 import win32netcon
@@ -425,7 +427,7 @@ try:
 except win32net.error:
     print traceback.format_tb(sys.exc_info()[2]),'\n',sys.exc_type,'\n',sys.exc_value
 
-</pre>
+</code>
 </p>
 <p>
 
