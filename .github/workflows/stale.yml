@@ -9,7 +9,7 @@ jobs:
     steps:
       - uses: actions/stale@v3
         with:
-          stale-issue-message: 'This is a stale issue and will be closed in 5 days'
-          stale-pr-message: 'This is a stale pull request and will be closed in 5 days'
-          days-before-stale: 30
-          days-before-close: 5
+          stale-issue-message: 'This is a stale issue and will be closed in 30 days'
+          stale-pr-message: 'This is a stale pull request and will be closed in 30 days'
+          days-before-stale: 100
+          days-before-close: 30
