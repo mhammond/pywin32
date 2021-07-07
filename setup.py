@@ -2333,7 +2333,7 @@ dist = setup(name="pywin32",
                 'win32/test/win32rcparser/python.bmp',
                 'win32/Demos/*.py',
                 'win32/Demos/images/*.bmp',
-                'com/win32com/readme.htm',
+                'com/win32com/readme.html',
                 # win32com test utility files.
                 'com/win32com/test/*.idl',
                 'com/win32com/test/*.js',

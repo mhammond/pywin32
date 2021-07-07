@@ -19,7 +19,7 @@
     <category id="com" label="Python COM">
         <overviews>
             <item name="win32com documentation index" href="com/win32com/HTML/docindex.html"/>
-            <item name="win32com readme" href="com/win32com/readme.htm"/>
+            <item name="win32com readme" href="com/win32com/readme.html"/>
             <item name="ADSI Python" href="com/help/adsi.html"/>
             <item name="Active Directory" href="com/help/active_directory.html"/>
             <item name="Important notes about COM currency support changes" href="com/win32com/readme.htm#currency"/>
