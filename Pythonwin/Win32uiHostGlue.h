@@ -192,7 +192,7 @@ inline BOOL Win32uiHostGlue::DynamicApplicationInit(const TCHAR *cmd, const TCHA
 
 // In 3.7 and up it's not necessary to call PyEval_InitThreads. In all versions
 // it's safe to call multiple times.
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION < 7
+#if PY_VERSION_HEX < 0x03070000
     void(__cdecl * pfnPyEval_InitThreads)(void);
     pfnPyEval_InitThreads = (void(__cdecl *)(void))GetProcAddress(hModCore, "PyEval_InitThreads");
     if (!pfnPyEval_InitThreads) {

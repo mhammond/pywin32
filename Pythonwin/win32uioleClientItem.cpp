@@ -15,8 +15,10 @@ class PythonOleClientItem : public COleClientItem {
             // @pyparm int|wNotification||
             // @pyparm int|dwParam||
             helper.call(wNotification, dwParam);
-        else
+        else {
+            helper.release_full();
             COleClientItem::OnChange(wNotification, dwParam);
+        }
     }
     virtual void OnActivate()
     {
@@ -24,8 +26,10 @@ class PythonOleClientItem : public COleClientItem {
         CVirtualHelper helper("OnActivate", this);
         if (helper.HaveHandler())
             helper.call();
-        else
+        else {
+            helper.release_full();
             COleClientItem::OnActivate();
+        }
     }
     virtual void OnGetItemPosition(CRect &rPosition)
     {
@@ -34,7 +38,7 @@ class PythonOleClientItem : public COleClientItem {
         if (helper.call()) {
             PyObject *ret;
             helper.retval(ret);
-            CEnterLeavePython _celp;
+            //CEnterLeavePython _celp;
             PyArg_ParseTuple(ret, "iiii", &rPosition.left, &rPosition.top, &rPosition.right, &rPosition.bottom);
         }
     }
@@ -45,8 +49,10 @@ class PythonOleClientItem : public COleClientItem {
         CVirtualHelper helper("OnDeactivateUI", this);
         if (helper.HaveHandler())
             helper.call(bUndoable);
-        else
+        else {
+            helper.release_full();
             COleClientItem::OnDeactivateUI(bUndoable);
+        }
     }
     virtual BOOL OnChangeItemPosition(const CRect &rectPos)
     {
@@ -56,8 +62,10 @@ class PythonOleClientItem : public COleClientItem {
         BOOL bRet;
         if (helper.call_args("(iiii)", rectPos.left, rectPos.top, rectPos.right, rectPos.bottom)) {
             helper.retval(bRet);
-        } else
+        } else {
+            helper.release_full();
             bRet = COleClientItem::OnChangeItemPosition(rectPos);
+        }
         return bRet;
     }
     BOOL BaseOnChangeItemPosition(const CRect &rectPos) { return COleClientItem::OnChangeItemPosition(rectPos); }

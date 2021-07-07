@@ -1971,6 +1971,7 @@ pythonwin_extensions = [
         depends = [
             "Pythonwin/stdafx.h",
             "Pythonwin/win32uiExt.h",
+            "win32/src/PyWinTypes.h",
             "Pythonwin/dibapi.h",
             "Pythonwin/pythoncbar.h",
             "Pythonwin/pythondoc.h",

@@ -44,6 +44,7 @@ void CPythonViewImpl::OnPrepareDC(CDC *pDC, CPrintInfo *pInfo)
 
     CVirtualHelper helper("OnPrepareDC", this);
     helper.call(pDC, pInfo);
+    helper.release_full();
     CScrollView::OnPrepareDC(pDC, pInfo);
     // @pyparm <o PyCDC>|dc||The DC object.
 }

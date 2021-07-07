@@ -27,7 +27,7 @@ CDDEServerSystemTopic *PythonDDEServer::CreateSystemTopic()
     CVirtualHelper helper("CreateSystemTopic", this);
     PyObject *ob;
     if (helper.call() && helper.retval(ob)) {
-        CEnterLeavePython _celp;
+        //CEnterLeavePython _celp;
         Py_XDECREF(m_obSystemTopic);
         CDDEServerSystemTopic *pT;
         if (pT = PyDDEServerSystemTopic::GetTopic(ob)) {
@@ -36,6 +36,7 @@ CDDEServerSystemTopic *PythonDDEServer::CreateSystemTopic()
             return pT;
         }
     }
+    helper.release_full();
     return new CDDEServerSystemTopic();
 }
 

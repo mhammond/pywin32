@@ -80,6 +80,7 @@ BOOL CPythonDocTemp<P>::DoSave(LPCTSTR lpszPathName, BOOL bReplace)
             return ret;
         return FALSE;
     }
+    helper.release_full();
     return P::DoSave(lpszPathName, bReplace);
 }
 
@@ -100,6 +101,7 @@ BOOL CPythonDocTemp<P>::DoFileSave()
             return ret;
         return FALSE;
     }
+    helper.release_full();
     return P::DoFileSave();
 }
 
@@ -132,7 +134,7 @@ BOOL CPythonDocTemp<P>::OnOpenDocument(const TCHAR *fileName)
     // be called.  If necessary, the handler must call this function explicitely.
     CVirtualHelper helper("OnOpenDocument", this);
     if (!helper.HaveHandler()) {
-        CEnterLeavePython _celp;  // grab lock to report error
+        //CEnterLeavePython _celp;  // grab lock to report error
         PyErr_SetString(ui_module_error, "PyCDocument::OnOpenDocument handler does not exist.");
         gui_print_error();
         return FALSE;
@@ -157,6 +159,7 @@ BOOL CPythonDocTemp<P>::OnNewDocument()
     // be called.  If necessary, the handler must call this function explicitely.
     CVirtualHelper helper("OnNewDocument", this);
     if (!helper.HaveHandler()) {
+        helper.release_full();
         return P::OnNewDocument();
     }
     // from here, it means a Python exception occurred, and this has been reported.
@@ -185,8 +188,10 @@ void CPythonDocTemp<P>::OnCloseDocument()
     if (helper.HaveHandler()) {
         helper.call();
     }
-    else
-        P::OnCloseDocument();
+    else {
+        helper.release_full();
+        P::OnCloseDocument();        
+    }
 }
 
 template <class P>
@@ -195,6 +200,7 @@ void CPythonDocTemp<P>::PreCloseFrame(CFrameWnd *pWnd)
     // @pyvirtual |PyCDocument|PreCloseFrame|Called before the frame window is closed.
     CVirtualHelper helper("PreCloseFrame", this);
     helper.call(pWnd);
+    helper.release_full();
     P::PreCloseFrame(pWnd);
     // @comm The MFC base implementation is always called after the Python handler returns.
 }
@@ -205,8 +211,10 @@ void CPythonDocTemp<P>::DeleteContents()
     // @pyvirtual |PyCDocument|DeleteContents|Called by the MFC architecture when a document is newly created or closed.
     // @xref <om PyCDocument.DeleteContents>
     CVirtualHelper helper("DeleteContents", this);
-    if (!helper.call())
+    if (!helper.call()) {
+        helper.release_full();
         P::DeleteContents();
+    }
     // @comm If a handler is defined for this function, the base (MFC) function will not
     // be called.  If necessary, the handler must call this function explicitely.
 }
@@ -218,8 +226,10 @@ BOOL CPythonDocTemp<P>::SaveModified()
     // @comm If a handler is defined for this function, the base (MFC) function will not
     // be called.  If necessary, the handler must call this function explicitely.
     CVirtualHelper helper("SaveModified", this);
-    if (!helper.HaveHandler())
+    if (!helper.HaveHandler()) {
+        helper.release_full();
         return P::SaveModified();
+    }
     if (helper.call()) {
         int ret;
         // @rdesc The handler should return TRUE if it is safe to continue and close
@@ -240,6 +250,7 @@ void CPythonDocTemp<P>::OnChangedViewList()
     if (helper.HaveHandler() && helper.call()) {
         return;
     }
+    helper.release_full();
     P::OnChangedViewList();
 }
 

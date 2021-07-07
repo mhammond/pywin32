@@ -421,6 +421,7 @@ void CPythonDocTemplate::InitialUpdateFrame(CFrameWnd *pFrame, CDocument *pDoc, 
     // The default behaviour is to call OnInitialUpdate on all views.
     CVirtualHelper helper("InitialUpdateFrame", this);
     if (!helper.HaveHandler()) {
+        helper.release_full();
         CMultiDocTemplate::InitialUpdateFrame(pFrame, pDoc, bMakeVisible);
         return;
     }
@@ -444,7 +445,7 @@ CFrameWnd *CPythonDocTemplate::CreateNewFrame(CDocument *pDoc, CFrameWnd *pOther
     ok = ok && helper.retval(retObject);
     ok = ok && ui_base_class::is_uiobject(retObject, &PyCFrameWnd::type);
     if (!ok) {
-        CEnterLeavePython _celp;
+        //CEnterLeavePython _celp;
         if (PyErr_Occurred())
             gui_print_error();
         const char *typ_str = retObject ? retObject->ob_type->tp_name : "<null>";
@@ -463,7 +464,7 @@ CDocument *CPythonDocTemplate::CreateNewDocument()
     CVirtualHelper helper("CreateNewDocument", this);
     BOOL ok = helper.HaveHandler();
     if (!ok) {
-        CEnterLeavePython _celp;
+        //CEnterLeavePython _celp;
         PyErr_SetString(ui_module_error, "PyCTemplate::CreateNewDocument handler does not exist.");
         TRACE0("CPythonDocTemplate::CreateNewDocument fails due to no handler\n");
         return NULL;
@@ -475,7 +476,7 @@ CDocument *CPythonDocTemplate::CreateNewDocument()
     ok = ok && ui_base_class::is_uiobject(retObject, &PyCDocument::type);
 
     if (!ok) {
-        CEnterLeavePython _celp;
+        //CEnterLeavePython _celp;
         if (PyErr_Occurred())
             gui_print_error();
         const char *typ_str = retObject ? retObject->ob_type->tp_name : "<null>";
@@ -493,8 +494,10 @@ CDocument *CPythonDocTemplate::OpenDocumentFile(LPCTSTR lpszPathName, BOOL bMake
     // @pyvirtual <o PyCDocument>|PyCDocTemplate|OpenDocumentFile|Called when a document file is to be opened.
     CVirtualHelper helper("OpenDocumentFile", this);
     BOOL ok = helper.HaveHandler();
-    if (!ok)
+    if (!ok) {
+        helper.release_full();
         return CMultiDocTemplate::OpenDocumentFile(lpszPathName, bMakeVisible);
+    }
 
     ok = ok && helper.call(lpszPathName, bMakeVisible);
     PyObject *retObject = NULL;
@@ -504,7 +507,7 @@ CDocument *CPythonDocTemplate::OpenDocumentFile(LPCTSTR lpszPathName, BOOL bMake
     ok = ok && ui_base_class::is_uiobject(retObject, &PyCDocument::type);
 
     if (!ok) {
-        CEnterLeavePython _celp;
+        //CEnterLeavePython _celp;
         if (PyErr_Occurred())
             gui_print_error();
         const char *typ_str = retObject ? retObject->ob_type->tp_name : "<null>";
@@ -544,7 +547,7 @@ CDocTemplate::Confidence CPythonDocTemplate::MatchDocType(LPCTSTR lpszPathName, 
             rpDocMatch = pDoc;
             return yesAlreadyOpen;
         }
-        CEnterLeavePython _celp;
+        //CEnterLeavePython _celp;
         const char *typ_str = ret ? ret->ob_type->tp_name : "<null>";
         PyErr_Format(PyExc_TypeError,
                      "PyCTemplate::MatchDocType must return an integer or PyCDocument object (got %s).", typ_str);

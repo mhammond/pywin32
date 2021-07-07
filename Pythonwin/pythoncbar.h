@@ -21,8 +21,10 @@ class CPythonControlBarFramework : public CPythonWndFramework<T> {
             helper.retval(ob);
             PyArg_ParseTuple(ob, "ii", &result.cx, &result.cy);
         }
-        else
+        else {
+            helper.release_full();
             result = T::CalcFixedLayout(bStretch, bHorz);
+        }
         return result;
     }
     virtual CSize CalcDynamicLayout(int nLength, DWORD dwMode)
@@ -38,8 +40,10 @@ class CPythonControlBarFramework : public CPythonWndFramework<T> {
             helper.retval(ob);
             PyArg_ParseTuple(ob, "ii", &result.cx, &result.cy);
         }
-        else
+        else {
+            helper.release_full();
             result = T::CalcDynamicLayout(nLength, dwMode);
+        }
         return result;
     }
     virtual void OnBarStyleChange(DWORD oldStyle, DWORD newStyle)
@@ -52,6 +56,7 @@ class CPythonControlBarFramework : public CPythonWndFramework<T> {
             ;
         }
         else {
+            helper.release_full();
             T::OnBarStyleChange(oldStyle, newStyle);
         }
     }
