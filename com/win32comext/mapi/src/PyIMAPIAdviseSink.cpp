@@ -6,6 +6,10 @@
 #include "PyMAPIUtil.h"
 #include "PyIMAPIAdviseSink.h"
 
+#ifdef __MINGW32__
+#define __FUNCSIG__ __PRETTY_FUNCTION__
+#endif
+
 // @doc - This file contains autoduck documentation
 // ---------------------------------------------------
 //
