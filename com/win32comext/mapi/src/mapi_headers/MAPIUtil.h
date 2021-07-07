@@ -860,23 +860,23 @@ STDAPI_(VOID)			DeinitMapiUtil(VOID);
  *	it easier to write code which uses them optionally.
  */
 
-#if defined (_WIN64) && defined(_AMD64_)
+#if defined (_WIN64) && (defined (_AMD64_) || defined(_ARM64_))
 #define szHrDispatchNotifications "HrDispatchNotifications"
 #elif defined (_WIN32) && defined (_X86_)
 #define szHrDispatchNotifications "_HrDispatchNotifications@4"
 #else
-#error	"Unknown Platform: MAPI is currently supported on Win32/X86 and Win64/AMD64"
+#error	"Unknown Platform: MAPI is currently supported on Win32/X86, Win64/AMD64 and Win64/ARM64"
 #endif
 
 typedef HRESULT (STDAPICALLTYPE DISPATCHNOTIFICATIONS)(ULONG ulFlags);
 typedef DISPATCHNOTIFICATIONS FAR * LPDISPATCHNOTIFICATIONS;
 
-#if defined (_WIN64) && defined (_AMD64_)
+#if defined (_WIN64) && (defined (_AMD64_) || defined(_ARM64_))
 #define szScCreateConversationIndex "ScCreateConversationIndex"
 #elif defined (_WIN32) && defined (_X86_)
 #define szScCreateConversationIndex "_ScCreateConversationIndex@16"
 #else
-#error	"Unknown Platform: MAPI is currently supported on Win32/X86 and Win64/AMD64"
+#error	"Unknown Platform: MAPI is currently supported on Win32/X86, Win64/AMD64 and Win64/ARM64"
 #endif
 
 typedef SCODE (STDAPICALLTYPE CREATECONVERSATIONINDEX)(ULONG cbParent,
