@@ -234,6 +234,10 @@ def RegisterPythonwin(register=True):
         else:
             for key, sub_key, val in keys_vals:
                 try:
+                    if sub_key:
+                        hkey = winreg.OpenKey(classes_root, key)
+                        winreg.DeleteKey(hkey, sub_key)
+                        hkey.Close()
                     winreg.DeleteKey(classes_root, key)
                 except OSError as why:
                     winerror = getattr(why, 'winerror', why.errno)
