@@ -393,11 +393,16 @@ def install(lib_dir):
                 # Register the files with the uninstaller
                 file_created(dst)
                 worked = 1
-                # If this isn't sys.prefix (ie, System32), then nuke
-                # any versions that may exist in sys.prefix - having
+                # Nuke any other versions that may exist - having
                 # duplicates causes major headaches.
+                bad_dest_dirs = [
+                    os.path.join(sys.prefix, "Library\\bin"),
+                    os.path.join(sys.prefix, "Lib\\site-packages\\win32"),
+                ]
                 if dest_dir != sys.prefix:
-                    bad_fname = os.path.join(sys.prefix, base)
+                    bad_dest_dirs.append(sys.prefix)
+                for bad_dest_dir in bad_dest_dirs:
+                    bad_fname = os.path.join(bad_dest_dir, base)
                     if os.path.exists(bad_fname):
                         # let exceptions go here - delete must succeed
                         os.unlink(bad_fname)
