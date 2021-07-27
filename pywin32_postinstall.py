@@ -177,14 +177,36 @@ def SetPyKeyVal(key_name, value_name, value):
         my_key = winreg.CreateKey(root_key, key_name)
         try:
             winreg.SetValueEx(my_key, value_name, 0, winreg.REG_SZ, value)
+            if verbose:
+                print("-> %s\\%s[%s]=%r" % (root_key_name, key_name, value_name, value))
         finally:
             my_key.Close()
     finally:
         root_key.Close()
-    if verbose:
-        print("-> %s\\%s[%s]=%r" % (root_key_name, key_name, value_name, value))
 
-def RegisterCOMObjects(register = 1):
+def UnsetPyKeyVal(key_name, value_name, delete_key=False):
+    root_hkey = get_root_hkey()
+    root_key = winreg.OpenKey(root_hkey, root_key_name)
+    try:
+        my_key = winreg.OpenKey(root_key, key_name, 0, winreg.KEY_SET_VALUE)
+        try:
+            winreg.DeleteValue(my_key, value_name)
+            if verbose:
+                print("-> DELETE %s\\%s[%s]" % (root_key_name, key_name, value_name))
+        finally:
+            my_key.Close()
+        if delete_key:
+            winreg.DeleteKey(root_key, key_name)
+            if verbose:
+                print("-> DELETE %s\\%s" % (root_key_name, key_name))
+    except OSError as why:
+        winerror = getattr(why, 'winerror', why.errno)
+        if winerror != 2: # file not found
+            raise
+    finally:
+        root_key.Close()
+
+def RegisterCOMObjects(register=True):
     import win32com.server.register
     if register:
         func = win32com.server.register.RegisterClasses
@@ -200,6 +222,23 @@ def RegisterCOMObjects(register = 1):
         flags["finalize_unregister"] = getattr(mod, "DllUnregisterServer", None)
         klass = getattr(mod, klass_name)
         func(klass, **flags)
+
+def RegisterHelpFile(register=True, lib_dir=None):
+    if lib_dir is None:
+        lib_dir = distutils.sysconfig.get_python_lib(plat_specific=1)
+    if register:
+        # Register the .chm help file.
+        chm_file = os.path.join(lib_dir, "PyWin32.chm")
+        if os.path.isfile(chm_file):
+            # This isn't recursive, so if 'Help' doesn't exist, we croak
+            SetPyKeyVal("Help", None, None)
+            SetPyKeyVal("Help\\Pythonwin Reference", None, chm_file)
+        else:
+            print("NOTE: PyWin32.chm can not be located, so has not " \
+                "been registered")
+    else:
+        UnsetPyKeyVal("Help\\Pythonwin Reference", None, delete_key=True)
+
 
 def RegisterPythonwin(register=True, lib_dir=None):
     """ Add (or remove) Pythonwin to context menu for python scripts.
@@ -404,15 +443,14 @@ def install(lib_dir):
     # python itself.
     winreg.CreateKey(get_root_hkey(), root_key_name)
 
-    # Register the .chm help file.
-    chm_file = os.path.join(lib_dir, "PyWin32.chm")
-    if os.path.isfile(chm_file):
-        # This isn't recursive, so if 'Help' doesn't exist, we croak
-        SetPyKeyVal("Help", None, None)
-        SetPyKeyVal("Help\\Pythonwin Reference", None, chm_file)
+    try:
+        RegisterHelpFile(True, lib_dir)
+    except:
+        print("Failed to register help file")
+        traceback.print_exc()
     else:
-        print("NOTE: PyWin32.chm can not be located, so has not " \
-              "been registered")
+        if verbose:
+            print("Registered help file")
 
     # misc other fixups.
     fixup_dbi()
@@ -481,6 +519,14 @@ def uninstall(lib_dir):
         RegisterCOMObjects(False)
     except Exception as why:
         print("Failed to unregister COM objects: %s" % (why,))
+
+    try:
+        RegisterHelpFile(False, lib_dir)
+    except Exception as why:
+        print("Failed to unregister help file: %s" % (why,))
+    else:
+        if verbose:
+            print("Unregistered help file")
 
     try:
         RegisterPythonwin(False, lib_dir)
