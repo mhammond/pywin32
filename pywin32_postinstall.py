@@ -201,7 +201,7 @@ def RegisterCOMObjects(register = 1):
         klass = getattr(mod, klass_name)
         func(klass, **flags)
 
-def RegisterPythonwin(register=True):
+def RegisterPythonwin(register=True, lib_dir=None):
     """ Add (or remove) Pythonwin to context menu for python scripts.
         ??? Should probably also add Edit command for pys files also.
         Also need to remove these keys on uninstall, but there's no function
@@ -209,7 +209,8 @@ def RegisterPythonwin(register=True):
     """
     import os
 
-    lib_dir = distutils.sysconfig.get_python_lib(plat_specific=1)
+    if lib_dir is None:
+        lib_dir = distutils.sysconfig.get_python_lib(plat_specific=1)
     classes_root=get_root_hkey()
     ## Installer executable doesn't seem to pass anything to postinstall script indicating if it's a debug build,
     pythonwin_exe = os.path.join(lib_dir, "Pythonwin", "Pythonwin.exe")
@@ -418,7 +419,7 @@ def install(lib_dir):
 
     # Register Pythonwin in context menu
     try:
-        RegisterPythonwin()
+        RegisterPythonwin(True, lib_dir)
     except:
         print('Failed to register pythonwin as editor')
         traceback.print_exc()
@@ -482,7 +483,7 @@ def uninstall(lib_dir):
         print("Failed to unregister COM objects: %s" % (why,))
 
     try:
-        RegisterPythonwin(False)
+        RegisterPythonwin(False, lib_dir)
     except Exception as why:
         print("Failed to unregister Pythonwin: %s" % (why,))
     else:
