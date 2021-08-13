@@ -119,6 +119,11 @@ static PyObject *PyTraceObject_write(PyObject *self, PyObject *args)
     char *data = NULL;
     if (!PyArg_ParseTuple(args, "et#:write", "latin-1", &data, &len))
         return NULL;
+    if (len > UINT_MAX) {
+        PyMem_Free(data);
+        PyErr_SetString(PyExc_ValueError, "data too long");
+        return NULL;
+    }
     BOOL ok = static_cast<PyTraceObject *>(self)->WriteData(data, (unsigned)len);
     PyMem_Free(data);
     if (!ok)
