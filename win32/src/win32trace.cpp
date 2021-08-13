@@ -30,6 +30,7 @@ See - I told you the implementation was simple :-)
 
 */
 
+#define PY_SSIZE_T_CLEAN
 #include "PyWinTypes.h"
 #include "PyWinObjects.h"
 
@@ -114,11 +115,11 @@ static void PyTraceObject_dealloc(PyObject *self) { PyObject_Del(self); }
 // a latin-1 decoded unicode object.
 static PyObject *PyTraceObject_write(PyObject *self, PyObject *args)
 {
-    int len;
+    Py_ssize_t len;
     char *data = NULL;
     if (!PyArg_ParseTuple(args, "et#:write", "latin-1", &data, &len))
         return NULL;
-    BOOL ok = static_cast<PyTraceObject *>(self)->WriteData(data, len);
+    BOOL ok = static_cast<PyTraceObject *>(self)->WriteData(data, (unsigned)len);
     PyMem_Free(data);
     if (!ok)
         return NULL;
