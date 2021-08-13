@@ -50,6 +50,10 @@ jobs:
     - name: Build wheels
       run: |
         python setup.py bdist_wheel --skip-build
+
+    - if: matrix.python-version != '3.10'
+      name: Build installers
+      run: |
         python setup.py bdist_wininst --skip-build --target-version=${{ matrix.python-version }}
 
     - uses: actions/upload-artifact@v2
