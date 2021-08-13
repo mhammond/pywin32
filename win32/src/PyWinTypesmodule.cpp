@@ -12,6 +12,7 @@ generates Windows .hlp files.
 
 ******************************************************************/
 
+#define PY_SSIZE_T_CLEAN
 #include "PyWinTypes.h"
 #include "PyWinObjects.h"
 #include "PySecurityObjects.h"
@@ -369,13 +370,17 @@ static PyObject *PyWin_NewUnicodeFromRaw(PyObject *self, PyObject *args)
 static PyObject *PyWin_IsTextUnicode(PyObject *self, PyObject *args)
 {
     const char *value;
-    unsigned int numBytes;
+    Py_ssize_t numBytes;
     int flags;
 
     // @pyparm string|str||The string containing the binary data.
     // @pyparm int|flags||Determines the specific tests to make
     if (!PyArg_ParseTuple(args, "s#i", &value, &numBytes, &flags))
         return NULL;
+    if (numBytes > INT_MAX) {
+        PyErr_SetString(PyExc_ValueError, "string size beyond INT_MAX");
+        return NULL;
+    }
 
     DWORD rc = IsTextUnicode((LPVOID)value, numBytes, &flags);
     return Py_BuildValue("ii", rc, flags);

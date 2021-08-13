@@ -13,4 +13,5 @@
 #define USE_COM_CONTEXT_DEF
 
 // PyWinTypes.h pulls in Python.h and windows.h.
+#define PY_SSIZE_T_CLEAN
 #include <PyWinTypes.h>

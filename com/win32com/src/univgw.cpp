@@ -3,6 +3,7 @@
 ** Written by Bill Tutt and Greg Stein.
 */
 
+#define PY_SSIZE_T_CLEAN
 #include "stdafx.h"
 #include "stddef.h"
 #include "PythonCOM.h"
@@ -686,7 +687,7 @@ static PyObject *univgw_WriteMemory(PyObject *self, PyObject *args)
 {
     PyObject *obPtr;
     void *pSrc;
-    int size;
+    Py_ssize_t size;
     if (!PyArg_ParseTuple(args, "Os#:WriteMemory", &obPtr, &pSrc, &size))
         return NULL;
 
