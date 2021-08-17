@@ -273,7 +273,7 @@ static PyObject *ui_load_cursor(PyObject *self, PyObject *args)
     if (!PyWinObject_AsResourceId(obid, &csid, TRUE))
         return NULL;
     if (IS_INTRESOURCE(csid))
-        hc = GetApp()->LoadCursor((UINT)csid);
+        hc = GetApp()->LoadCursor(MAKEINTRESOURCE(csid));
     else
         hc = GetApp()->LoadCursor(csid);
     PyWinObject_FreeResourceId(csid);
