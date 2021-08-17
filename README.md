@@ -55,7 +55,7 @@ the following command from an elevated command prompt:
 
 Building from source has been simplified recently - you just need Visual Studio
 and the Windows 10 SDK installed (the free compilers probably work too, but
-  haven't been tested - let me know your experiences!)
+haven't been tested - let me know your experiences!)
 
 `setup.py` is a standard distutils build script.  You probably want:
 
@@ -82,16 +82,17 @@ to form a checklist so mhammond doesn't forget what to do :)
 
 * Execute build.bat, wait forever, test the artifacts.
 
+* Upload .whl artifacts to pypi - we do this before pushing the tag because they might be
+  rejected for an invalid `README.md`. Done via `py -3.5 -m twine upload dist/*XXX*.whl`.
+
 * Commit setup.py (so the new build number is in the repo), create a new git tag
+
+* Upload the .exe installers to github.
 
 * Update setup.py with the new build number + ".1" (eg, 123.1), to ensure
   future test builds aren't mistaken for the real release.
 
 * Make sure everything is pushed to github, including the tag (ie,
   `git push --tags`)
-
-* Upload the .exe installers to github (using the web UI), the .whl files to
-  pypi (using `py -3.5 -m twine upload dist/*XXX*.whl` where `XXX` is the build
-  number).
 
 * Send mail to python-win32

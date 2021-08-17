@@ -2281,7 +2281,7 @@ else:
     my_dir = os.path.abspath(os.path.dirname(__file__))
     with open(os.path.join(my_dir, 'README.md')) as f:
         long_description = f.read()
-    long_description_content_type='text/markdown',
+    long_description_content_type='text/markdown'
 
 dist = setup(name="pywin32",
       version=str(build_id),
