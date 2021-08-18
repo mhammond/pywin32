@@ -79,7 +79,7 @@ def TestObjectFromWindow():
 
 def TestExplorer(iexplore):
     if not iexplore.Visible: iexplore.Visible = -1
-    filename = os.path.join(os.path.dirname(__file__), '..\\readme.htm')
+    filename = os.path.join(os.path.dirname(__file__), '..\\readme.html')
     iexplore.Navigate(win32api.GetFullPathName(filename))
     win32api.Sleep(1000)
     TestObjectFromWindow()
