@@ -288,8 +288,8 @@ BOOL PyMAPIObject_AsSPropValue(PyObject *Valob, SPropValue *pv, void *pAllocMore
 
         // @flag PT_BINARY|A string containing binary data
         case PT_BINARY:
-            pv->Value.bin.lpb = (unsigned char *)PyString_AsString(ob);
-            pv->Value.bin.cb = PyString_Size(ob);
+            pv->Value.bin.lpb = (unsigned char *)PyBytes_AsString(ob);
+            pv->Value.bin.cb = PyBytes_Size(ob);
             break;
 
         // @flag PT_MV_BINARY|A sequence of strings containing binary data
@@ -300,13 +300,13 @@ BOOL PyMAPIObject_AsSPropValue(PyObject *Valob, SPropValue *pv, void *pAllocMore
                 PyObject *obmv = PySequence_GetItem(ob, i);
                 if (obmv == NULL)
                     break;
-                if (!PyString_Check(obmv)) {
+                if (!PyBytes_Check(obmv)) {
                     Py_DECREF(obmv);
                     PyErr_SetString(PyExc_TypeError, "PT_MV_BINARY elements must be strings");
                     break;
                 }
-                pv->Value.MVbin.lpbin[i].lpb = (unsigned char *)PyString_AsString(obmv);
-                pv->Value.MVbin.lpbin[i].cb = PyString_Size(obmv);
+                pv->Value.MVbin.lpbin[i].lpb = (unsigned char *)PyBytes_AsString(obmv);
+                pv->Value.MVbin.lpbin[i].cb = PyBytes_Size(obmv);
                 Py_DECREF(obmv);
             }
             break;
@@ -392,13 +392,13 @@ PyObject *PyMAPIObject_FromSPropValue(SPropValue *pv)
             val = PyWinObject_FromFILETIME(pv->Value.ft);
             break;
         case PT_STRING8:
-            val = PyString_FromString(pv->Value.lpszA);
+            val = PyBytes_FromString(pv->Value.lpszA);
             break;
         case PT_UNICODE:
             val = PyWinObject_FromWCHAR(pv->Value.lpszW);
             break;
         case PT_BINARY:
-            val = PyString_FromStringAndSize((char *)pv->Value.bin.lpb, pv->Value.bin.cb);
+            val = PyBytes_FromStringAndSize((char *)pv->Value.bin.lpb, pv->Value.bin.cb);
             break;
 
         case PT_CLSID:
@@ -472,14 +472,14 @@ PyObject *PyMAPIObject_FromSPropValue(SPropValue *pv)
                 for (i = 0; i < pv->Value.MVbin.cValues; i++)
                     PyTuple_SET_ITEM(
                         val, i,
-                        PyString_FromStringAndSize((char *)pv->Value.MVbin.lpbin[i].lpb, pv->Value.MVbin.lpbin[i].cb));
+                        PyBytes_FromStringAndSize((char *)pv->Value.MVbin.lpbin[i].lpb, pv->Value.MVbin.lpbin[i].cb));
             }
             break;
         case PT_MV_STRING8:
             val = PyTuple_New(pv->Value.MVszA.cValues);
             if (val) {
                 for (i = 0; i < pv->Value.MVszA.cValues; i++)
-                    PyTuple_SET_ITEM(val, i, PyString_FromString(pv->Value.MVszA.lppszA[i]));
+                    PyTuple_SET_ITEM(val, i, PyBytes_FromString(pv->Value.MVszA.lppszA[i]));
             }
             break;
         case PT_MV_UNICODE:
@@ -777,7 +777,7 @@ BOOL PyMAPIObject_AsSBinaryArray(PyObject *ob, SBinaryArray *pba)
 {
     BOOL bSeq = TRUE;
     int seqLen;
-    if (PyString_Check(ob)) {
+    if (PyBytes_Check(ob)) {
         seqLen = 1;
         bSeq = FALSE;
     }
@@ -804,26 +804,26 @@ BOOL PyMAPIObject_AsSBinaryArray(PyObject *ob, SBinaryArray *pba)
                 MAPIFreeBuffer(pba);
                 return FALSE;
             }
-            if (!PyString_Check(obItem)) {
+            if (!PyBytes_Check(obItem)) {
                 PyErr_SetString(PyExc_TypeError, "SBinary must be a string");
                 Py_DECREF(obItem);
                 MAPIFreeBuffer(pba);
                 return FALSE;
             }
-            pBin[i].cb = PyString_Size(obItem);
-            pBin[i].lpb = (LPBYTE)PyString_AsString(obItem);
+            pBin[i].cb = PyBytes_Size(obItem);
+            pBin[i].lpb = (LPBYTE)PyBytes_AsString(obItem);
             Py_DECREF(obItem);
         }
     }
     else {
-        if (!PyString_Check(ob)) {
+        if (!PyBytes_Check(ob)) {
             PyErr_SetString(PyExc_TypeError, "SBinary must be a string");
             MAPIFreeBuffer(pba);
             return FALSE;
         }
         // Simple string
-        pBin[0].cb = PyString_Size(ob);
-        pBin[0].lpb = (LPBYTE)PyString_AsString(ob);
+        pBin[0].cb = PyBytes_Size(ob);
+        pBin[0].lpb = (LPBYTE)PyBytes_AsString(ob);
     }
     return TRUE;
 }
@@ -1265,7 +1265,7 @@ PyObject *PyWinObject_FromMAPIStr(LPTSTR str, BOOL isUnicode)
 #if PY_MAJOR_VERSION >= 3
         return (PyObject *)PyUnicode_DecodeMBCS((LPSTR)str, strlen((LPSTR)str), NULL);
 #else
-        return PyString_FromString((LPSTR)str);
+        return PyBytes_FromString((LPSTR)str);
 #endif
     }
 }

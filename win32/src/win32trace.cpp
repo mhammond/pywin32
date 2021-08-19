@@ -141,7 +141,7 @@ static PyObject *PyTraceObject_read(PyObject *self, PyObject *args)
     if (!ok)
         return NULL;
 #if (PY_VERSION_HEX < 0x03000000)
-    PyObject *result = PyString_FromStringAndSize(data, len);
+    PyObject *result = PyBytes_FromStringAndSize(data, len);
 #else
     PyObject *result = PyUnicode_DecodeLatin1(data, len, "replace");
 #endif
@@ -160,7 +160,7 @@ static PyObject *PyTraceObject_blockingread(PyObject *self, PyObject *args)
     if (!ok)
         return NULL;
 #if (PY_VERSION_HEX < 0x03000000)
-    PyObject *result = PyString_FromStringAndSize(data, len);
+    PyObject *result = PyBytes_FromStringAndSize(data, len);
 #else
     PyObject *result = PyUnicode_DecodeLatin1(data, len, "replace");
 #endif

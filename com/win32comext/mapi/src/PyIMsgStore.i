@@ -54,9 +54,9 @@ PyObject *PyIMsgStore::OpenEntry(PyObject *self, PyObject *args)
 	if (obEntry==Py_None) {
 		entryString = NULL;
 		entryStrLen = 0;
-	} else if (PyString_Check(obEntry)) {
-		entryString = PyString_AsString(obEntry);
-		entryStrLen = PyString_Size(obEntry);
+	} else if (PyBytes_Check(obEntry)) {
+		entryString = PyBytes_AsString(obEntry);
+		entryStrLen = PyBytes_Size(obEntry);
 	} else {
 		PyErr_SetString(PyExc_TypeError, "EntryID must be a string or None");
 		return NULL;
@@ -111,7 +111,7 @@ PyObject *PyIMsgStore::GetReceiveFolder(PyObject *self, PyObject *args)
 		goto done;
 	}
 
-	rc = Py_BuildValue("NN", PyString_FromStringAndSize((char *)eid_out, eid_cb),
+	rc = Py_BuildValue("NN", PyBytes_FromStringAndSize((char *)eid_out, eid_cb),
 	                         PyWinObject_FromMAPIStr(sz_explicit_class, flags & MAPI_UNICODE));
 	MAPIFreeBuffer(eid_out);
 	MAPIFreeBuffer(sz_explicit_class);
@@ -264,9 +264,9 @@ PyObject *PyIMsgStore::Advise(PyObject *self, PyObject *args)
 	{
 		eid = NULL;
 		cbEID = 0;
-	} else if (PyString_Check(obEntryId)) {
-		eid = (LPENTRYID)PyString_AsString(obEntryId);
-		cbEID = PyString_Size(obEntryId);
+	} else if (PyBytes_Check(obEntryId)) {
+		eid = (LPENTRYID)PyBytes_AsString(obEntryId);
+		cbEID = PyBytes_Size(obEntryId);
 	} else {
 		PyErr_SetString(PyExc_TypeError, "EntryID must be a string");
 		return NULL;

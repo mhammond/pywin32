@@ -123,9 +123,9 @@ BOOL PyCom_VariantFromPyObject(PyObject *obj, VARIANT *var)
     BOOL bGoodEmpty = FALSE;  // Set if VT_EMPTY should really be used.
     V_VT(var) = VT_EMPTY;
     if (
-// In py3k we don't convert PyString_Check objects (ie, bytes) to BSTR...
+// In py3k we don't convert PyBytes_Check objects (ie, bytes) to BSTR...
 #if (PY_VERSION_HEX < 0x03000000)
-        PyString_Check(obj) ||
+        PyBytes_Check(obj) ||
 #endif
         PyUnicode_Check(obj)) {
         if (!PyWinObject_AsBstr(obj, &V_BSTR(var))) {
@@ -615,7 +615,7 @@ static long PyCom_CalculatePyObjectDimension(PyObject *obItemCheck, long lDimens
         return lDimension + 1;
 
     // Allow arbitrary sequences, but not strings or Unicode objects.
-    if (PyString_Check(obItemCheck) || PyUnicode_Check(obItemCheck) || !PySequence_Check(obItemCheck))
+    if (PyBytes_Check(obItemCheck) || PyUnicode_Check(obItemCheck) || !PySequence_Check(obItemCheck))
         return lDimension;
 
     long lReturnDimension = lDimension;
@@ -1272,7 +1272,7 @@ BOOL PythonOleArgHelper::MakeObjToVariant(PyObject *obj, VARIANT *var, PyObject 
             break;
 
         case VT_BSTR:
-            if (PyString_Check(obj) || PyUnicode_Check(obj)) {
+            if (PyBytes_Check(obj) || PyUnicode_Check(obj)) {
                 if (!PyWinObject_AsBstr(obj, &V_BSTR(var)))
                     BREAK_FALSE
             }
@@ -1293,7 +1293,7 @@ BOOL PythonOleArgHelper::MakeObjToVariant(PyObject *obj, VARIANT *var, PyObject 
             *V_BSTRREF(var) = NULL;
 
             if (!VALID_BYREF_MISSING(obj)) {
-                if (PyString_Check(obj) || PyUnicode_Check(obj)) {
+                if (PyBytes_Check(obj) || PyUnicode_Check(obj)) {
                     if (!PyWinObject_AsBstr(obj, V_BSTRREF(var)))
                         BREAK_FALSE
                 }

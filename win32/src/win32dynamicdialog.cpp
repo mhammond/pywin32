@@ -417,7 +417,7 @@ static PyObject *MakeListFromDlgItem(LPVOID *tplin)
     // Parameter 6 - Extra data
     WORD datalen = *ptr++;
     if (datalen > 0) {
-        obitem = PyString_FromStringAndSize((char *)ptr, datalen);
+        obitem = PyBytes_FromStringAndSize((char *)ptr, datalen);
         ptr = (WCHAR *)(((char *)ptr) + datalen);
     }
     else {

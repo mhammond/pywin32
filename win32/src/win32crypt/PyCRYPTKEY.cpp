@@ -146,7 +146,7 @@ PyObject *PyCRYPTKEY::PyCryptExportKey(PyObject *self, PyObject *args, PyObject 
     if (pbData == NULL)
         return PyErr_Format(PyExc_MemoryError, "PyCRYPTKEY::CryptExportKey: Unable to allocate %d bytes", dwDataLen);
     if (CryptExportKey(hcryptkey, hcryptkeyexp, dwBlobType, dwFlags, pbData, &dwDataLen))
-        ret = PyString_FromStringAndSize((char *)pbData, dwDataLen);
+        ret = PyBytes_FromStringAndSize((char *)pbData, dwDataLen);
     else
         PyWin_SetAPIError("CryptExportKey");
     if (pbData != NULL)
@@ -196,7 +196,7 @@ PyObject *PyCRYPTKEY::PyCryptGetKeyParam(PyObject *self, PyObject *args, PyObjec
         case KP_G:
         case KP_IV:
         case KP_SALT:
-            ret = PyString_FromStringAndSize((char *)pbData, dwDataLen);
+            ret = PyBytes_FromStringAndSize((char *)pbData, dwDataLen);
             break;
         default:
             PyErr_SetString(PyExc_NotImplementedError, "The Param specified is not yet supported");
@@ -266,7 +266,7 @@ PyObject *PyCRYPTKEY::PyCryptEncrypt(PyObject *self, PyObject *args, PyObject *k
     if (!CryptEncrypt(hcryptkey, hcrypthash, Final, dwFlags, pbData, &dwDataLen, dwBufLen))
         PyWin_SetAPIError("CryptEncrypt");
     else
-        ret = PyString_FromStringAndSize((char *)pbData, dwDataLen);
+        ret = PyBytes_FromStringAndSize((char *)pbData, dwDataLen);
     free(pbData);
     return ret;
 }
@@ -305,7 +305,7 @@ PyObject *PyCRYPTKEY::PyCryptDecrypt(PyObject *self, PyObject *args, PyObject *k
     if (!CryptDecrypt(hcryptkey, hcrypthash, Final, dwFlags, pbData, &dwDataLen))
         PyWin_SetAPIError("CryptDecrypt");
     else
-        ret = PyString_FromStringAndSize((char *)pbData, dwDataLen);
+        ret = PyBytes_FromStringAndSize((char *)pbData, dwDataLen);
     free(pbData);
     return ret;
 }

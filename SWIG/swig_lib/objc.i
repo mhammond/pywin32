@@ -19,11 +19,11 @@ typedef Object *id;         // Make 'id' behave like any other "Object"
 
 %typemap(python,in) id {
    char *temp;
-   if (!PyString_Check($source)) {
+   if (!PyBytes_Check($source)) {
      PyErr_SetString(PyExc_TypeError,"Expecting an 'id' in argument $argnum of $name");
      return NULL;
    }
-   temp = PyString_AsString($source);
+   temp = PyBytes_AsString($source);
    if (SWIG_GetPtr(temp, (void **) &$target, 0)) {
      PyErr_SetString(PyExc_TypeError,"Expecting an 'id' in argument $argnum of $name");
      return NULL;

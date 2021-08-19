@@ -100,7 +100,7 @@ in this extension are:
 <li>PyList_New(),PyList_Append -- make and add to a  python list</li>
 <li>PyDict_New(),PyDict_SetItem -- make a dictionary and add to a python dictionary</li>
 <li>PyArg_ParseTuple -- process arguments sent to module</li>
-<li>PyString_FromString/PyLong_FromUnsignedLong -- convert C datatypes to Python</li>
+<li>PyBytes_FromString/PyLong_FromUnsignedLong -- convert C datatypes to Python</li>
 <li>PyArg_ParseTuple -- accept data from python and convert to C</li>
 </ul>
 </p>
@@ -252,13 +252,13 @@ static PyObject *get_perms(PyObject *self, PyObject *args)
 		
 		//Dict
 		for (ULONG i=0;i<aclSize.AceCount;++i){
-			PyDict_SetItem( py_perms, PyString_FromString(fp[i].user_domain) , 
+			PyDict_SetItem( py_perms, PyBytes_FromString(fp[i].user_domain) , 
 				PyLong_FromUnsignedLong ((unsigned long) fp[i].user_mask));      
 		}
 		
 		//List
 		for (i=0;i<aclSize.AceCount;++i){
-			PyList_Append(py_perms,PyString_FromString(fp[i].user_domain));
+			PyList_Append(py_perms,PyBytes_FromString(fp[i].user_domain));
 		}
 
 	}

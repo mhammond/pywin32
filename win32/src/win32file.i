@@ -444,10 +444,10 @@ PyObject *py_DeviceIoControl(PyObject *self, PyObject *args, PyObject *kwargs)
 			OutBufferSize = out_buf.len();
 			}
 		else {
-			ret = PyString_FromStringAndSize(NULL, OutBufferSize);
+			ret = PyBytes_FromStringAndSize(NULL, OutBufferSize);
 			if (ret==NULL)
 				return NULL;
-			OutBuffer=PyString_AS_STRING(ret);
+			OutBuffer=PyBytes_AS_STRING(ret);
 			}
 		}
 	else {
@@ -504,7 +504,7 @@ PyObject *py_DeviceIoControl(PyObject *self, PyObject *args, PyObject *kwargs)
 			ret=resized;
 			}
 		else
-			_PyString_Resize(&ret, numRead);
+			_PyBytes_Resize(&ret, numRead);
 		}
 	return ret;
 }
@@ -964,10 +964,10 @@ PyObject *MyReadFile(PyObject *self, PyObject *args)
 			bufSize = pybuf.len();
 			}
 		else{
-			obRet=PyString_FromStringAndSize(NULL, bufSize);
+			obRet=PyBytes_FromStringAndSize(NULL, bufSize);
 			if (obRet==NULL)
 				return NULL;
-			buf=PyString_AS_STRING(obRet);
+			buf=PyBytes_AS_STRING(obRet);
 			bBufMallocd=TRUE;
 			}
 		}
@@ -1003,9 +1003,9 @@ PyObject *MyReadFile(PyObject *self, PyObject *args)
 		}
 	}
 	if (obRet==NULL)
-		obRet=PyString_FromStringAndSize((char *)buf, numRead);
+		obRet=PyBytes_FromStringAndSize((char *)buf, numRead);
 	else if (bBufMallocd && (numRead < bufSize))
-		_PyString_Resize(&obRet, numRead);
+		_PyBytes_Resize(&obRet, numRead);
 	if (obRet==NULL)
 		return NULL;
 	return Py_BuildValue("iN", err, obRet);
@@ -1853,9 +1853,9 @@ static PyObject *py_ConnectEx( PyObject *self, PyObject *args, PyObject *kwargs 
 		host_idna = PyObject_CallMethod(hobj, "encode", "s", "idna");
 		if (!host_idna)
 			return NULL;
-		hptr = PyString_AsString(host_idna);
-	} else if (PyString_Check(hobj)) {
-		hptr = PyString_AsString(hobj);
+		hptr = PyBytes_AsString(host_idna);
+	} else if (PyBytes_Check(hobj)) {
+		hptr = PyBytes_AsString(hobj);
 	} else {
 		PyErr_SetString(PyExc_TypeError,
 				"getaddrinfo() argument 1 must be string or None");
@@ -1868,9 +1868,9 @@ static PyObject *py_ConnectEx( PyObject *self, PyObject *args, PyObject *kwargs 
 		port_idna = PyObject_CallMethod(pobj, "encode", "s", "idna");
 		if (!port_idna)
 			return NULL;
-		pptr = PyString_AsString(port_idna);
-	} else if (PyString_Check(pobj)) {
-		pptr = PyString_AsString(pobj);
+		pptr = PyBytes_AsString(port_idna);
+	} else if (PyBytes_Check(pobj)) {
+		pptr = PyBytes_AsString(pobj);
 	} else if (PyInt_Check(pobj)) {
 		PyOS_snprintf(pbuf, sizeof(pbuf), "%ld", PyInt_AsLong(pobj));
 		pptr = pbuf;
@@ -2042,7 +2042,7 @@ MyMakeIPAddr(SOCKADDR_IN *addr)
 	sprintf(buf, "%d.%d.%d.%d",
 		(int) (x>>24) & 0xff, (int) (x>>16) & 0xff,
 		(int) (x>> 8) & 0xff, (int) (x>> 0) & 0xff);
-	return PyString_FromString(buf);
+	return PyBytes_FromString(buf);
 }
 
 static PyObject *
@@ -2075,7 +2075,7 @@ MyMakeSockaddr(SOCKADDR *addr, INT cbAddr)
 		   exception -- return it as a tuple. */
 		return Py_BuildValue("iN",
 			addr->sa_family,
-			PyString_FromStringAndSize(addr->sa_data,sizeof(addr->sa_data)));
+			PyBytes_FromStringAndSize(addr->sa_data,sizeof(addr->sa_data)));
 
 	}
 }
@@ -3486,7 +3486,7 @@ PyObject *PyWinObject_FromPENCRYPTION_CERTIFICATE_LIST(PENCRYPTION_CERTIFICATE_L
 	for (user_cnt=0; user_cnt < pecl->nUsers; user_cnt++){
 		ret_item=Py_BuildValue("NN", 
 			PyWinObject_FromSID((*user_item)->pUserSid), 
-			PyString_FromStringAndSize((char *)(*user_item)->pCertBlob->pbData, (*user_item)->pCertBlob->cbData));
+			PyBytes_FromStringAndSize((char *)(*user_item)->pCertBlob->pbData, (*user_item)->pCertBlob->cbData));
 		// ??? This doesn't return EFS_CERTIFICATE_BLOB.dwCertEncodingType ???
 		if (!ret_item){
 			Py_DECREF(ret);
@@ -3510,7 +3510,7 @@ PyObject *PyWinObject_FromPENCRYPTION_CERTIFICATE_HASH_LIST(PENCRYPTION_CERTIFIC
 	for (user_cnt=0; user_cnt < pechl->nCert_Hash; user_cnt++){
 		ret_item=Py_BuildValue("NNu",
 			PyWinObject_FromSID((*user_item)->pUserSid),
-			PyString_FromStringAndSize((char *)(*user_item)->pHash->pbData, (*user_item)->pHash->cbData),
+			PyBytes_FromStringAndSize((char *)(*user_item)->pHash->pbData, (*user_item)->pHash->cbData),
 			(*user_item)->lpDisplayInformation);
 		if (!ret_item){
 			Py_DECREF(ret);
@@ -3593,7 +3593,7 @@ BOOL PyWinObject_AsPENCRYPTION_CERTIFICATE_LIST(PyObject *obcert_list, PENCRYPTI
 		if (bSuccess){
 			obcert_member=PySequence_GetItem(obcert,2);
 			Py_ssize_t cbData;
-			if (PyString_AsStringAndSize(obcert_member, 
+			if (PyBytes_AsStringAndSize(obcert_member, 
 					(char **)&((*ppec)->pCertBlob->pbData), 
 					&cbData)==-1){
 				PyErr_SetString(PyExc_TypeError,"Third item of ENCRYPTION_CERTIFICATE must be a string containing encoded certificate data");
@@ -3672,7 +3672,7 @@ BOOL PyWinObject_AsPENCRYPTION_CERTIFICATE_HASH_LIST(PyObject *obhash_list, PENC
 			ZeroMemory((*ppech)->pHash,sizeof(EFS_HASH_BLOB));
 			obhash_item=PySequence_GetItem(obhash,1);
 			Py_ssize_t cbData;
-			if (PyString_AsStringAndSize(obhash_item, 
+			if (PyBytes_AsStringAndSize(obhash_item, 
 				(char **)&((*ppech)->pHash->pbData), 
 				&cbData)==-1){
 				PyErr_SetString(PyExc_TypeError,"Second item of ENCRYPTION_CERTIFICATE_HASH tuple must be a string containing encoded certificate data");
@@ -5430,7 +5430,7 @@ static PyObject *py_GetFullPathName(PyObject *self, PyObject *args, PyObject *kw
 
 	PyErr_Clear();
 	char *cpathin;
-	if (cpathin=PyString_AsString(obpathin)){
+	if (cpathin=PyBytes_AsString(obpathin)){
 		if (htrans)
 			CHECK_PFN(GetFullPathNameTransactedA);
 		char *cpathret=NULL, *cfilepart, *cpathsave=NULL;
@@ -5458,7 +5458,7 @@ static PyObject *py_GetFullPathName(PyObject *self, PyObject *args, PyObject *kw
 				break;
 				}
 			if (retlen<=pathlen){
-				ret=PyString_FromStringAndSize(cpathret,retlen);
+				ret=PyBytes_FromStringAndSize(cpathret,retlen);
 				break;
 				}
 			pathlen=retlen;

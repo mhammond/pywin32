@@ -301,7 +301,7 @@ static PyObject *PyRecord_reduce(PyObject *self, PyObject *args)
     }
     ret =
         Py_BuildValue("O(NHHiNN)", obFunc, PyWinObject_FromIID(pta->guid), pta->wMajorVerNum, pta->wMinorVerNum,
-                      pta->lcid, PyWinObject_FromIID(structguid), PyString_FromStringAndSize((char *)pyrec->pdata, cb));
+                      pta->lcid, PyWinObject_FromIID(structguid), PyBytes_FromStringAndSize((char *)pyrec->pdata, cb));
 
 done:
     if (pta && pti)
@@ -349,8 +349,8 @@ static void _FreeFieldNames(BSTR *strings, ULONG num_names)
 }
 
 #if (PY_VERSION_HEX < 0x03000000)
-#define PyWinCoreString_ConcatAndDel PyString_ConcatAndDel
-#define PyWinCoreString_Concat PyString_Concat
+#define PyWinCoreString_ConcatAndDel PyBytes_ConcatAndDel
+#define PyWinCoreString_Concat PyBytes_Concat
 #else
 // Unicode versions of '_Concat' etc have different sigs.  Make them the
 // same here...

@@ -33,7 +33,7 @@ PyObject *PyIUnknown::repr()
     char buf[256];
     _snprintf(buf, 256, "<%hs at 0x%0lp with obj at 0x%0lp>", ob_type->tp_name, this, m_obj);
 #if (PY_VERSION_HEX < 0x03000000)
-    return PyString_FromString(buf);
+    return PyBytes_FromString(buf);
 #else
     return PyUnicode_FromString(buf);
 #endif
@@ -78,7 +78,7 @@ pLook, pLook->m_obj, pLook->ob_refcnt, relDesc); if ( pLook->m_obj )
                                     if ( PyInstance_Check(ob) )
                                     {
                                         PyCom_LogF("   object is a Python class instance of: %s",
-PyString_AsString(((PyInstanceObject *)ob)->in_class->cl_name));
+PyBytes_AsString(((PyInstanceObject *)ob)->in_class->cl_name));
                                     }
                                     else
                                     {

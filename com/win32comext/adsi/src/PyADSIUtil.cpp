@@ -203,7 +203,7 @@ BOOL PyADSIObject_AsADSVALUE(PyObject *ob, ADSVALUE &v)
     if (PyTuple_Size(ob) > 1)
         obtype = PyTuple_GET_ITEM(ob, 1);
     if (obtype == NULL || obtype == Py_None) {
-        if (PyString_Check(val) || PyUnicode_Check(val))
+        if (PyBytes_Check(val) || PyUnicode_Check(val))
             dwType = ADSTYPE_PRINTABLE_STRING;
         else if (val == Py_True || val == Py_False)
             dwType = ADSTYPE_BOOLEAN;
@@ -455,10 +455,10 @@ class PyADS_ATTR_INFO : public PyObject {
         if (strcmp(name, "__members__") == 0) {
             PyObject *ret = PyList_New(4);
             if (ret) {
-                PyList_SET_ITEM(ret, 0, PyString_FromString("AttrName"));
-                PyList_SET_ITEM(ret, 1, PyString_FromString("ControlCode"));
-                PyList_SET_ITEM(ret, 2, PyString_FromString("ADsType"));
-                PyList_SET_ITEM(ret, 3, PyString_FromString("Values"));
+                PyList_SET_ITEM(ret, 0, PyBytes_FromString("AttrName"));
+                PyList_SET_ITEM(ret, 1, PyBytes_FromString("ControlCode"));
+                PyList_SET_ITEM(ret, 2, PyBytes_FromString("ADsType"));
+                PyList_SET_ITEM(ret, 3, PyBytes_FromString("Values"));
             }
             return ret;
         }

@@ -586,7 +586,7 @@ typedef int UINT;
                 $source->rcPaint.left, $source->rcPaint.top, $source->rcPaint.right, $source->rcPaint.bottom,
                 $source->fRestore,
                 $source->fIncUpdate,
-                PyString_FromStringAndSize((char *)$source->rgbReserved,sizeof($source->rgbReserved)));
+                PyBytes_FromStringAndSize((char *)$source->rgbReserved,sizeof($source->rgbReserved)));
     if (!$target) {
       $target = o;
     } else if ($target == Py_None) {
@@ -625,7 +625,7 @@ typedef int UINT;
 			return NULL;
 		if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&ps_input.hdc))
 			return NULL;
-		if (PyString_AsStringAndSize(obReserved, &szReserved, &lenReserved)==-1)
+		if (PyBytes_AsStringAndSize(obReserved, &szReserved, &lenReserved)==-1)
 			return NULL;
         if (lenReserved != sizeof(ps_input.rgbReserved))
             return PyErr_Format(PyExc_ValueError, "%s: last element must be string of %d bytes",
@@ -1022,14 +1022,14 @@ int SetTCHAR(PyObject *v, PyObject **m, LPCTSTR *ret)
 	*ret = PyUnicode_AsUnicode(v);
 	return 0;
 #else
-	if (!PyString_Check(v)) {
+	if (!PyBytes_Check(v)) {
 		PyErr_SetString(PyExc_TypeError, "Object must be a string");
 		return -1;
 	}
 	Py_XDECREF(*m);
 	*m = v;
 	Py_INCREF(v);
-	*ret = PyString_AsString(v);
+	*ret = PyBytes_AsString(v);
 	return 0;
 #endif
 }
@@ -3712,7 +3712,7 @@ PyObject *Pylpstr(PyObject *self, PyObject *args) {
 		return NULL;
 	if (!PyWinLong_AsVoidPtr(obaddress, (void **)&address))
 		return NULL;
-	return PyString_FromString(address);
+	return PyBytes_FromString(address);
 }
 %}
 %native (lpstr) Pylpstr;
@@ -3722,17 +3722,17 @@ DWORD CommDlgExtendedError(void);
 
 %typemap (python, in) OPENFILENAME *INPUT (int size){
 	size = sizeof(OPENFILENAME);
-	if (!PyString_Check($source)) {
+	if (!PyBytes_Check($source)) {
 		PyErr_Format(PyExc_TypeError, "Argument must be a %d-byte string (got type %s)",
 		             size, $source->ob_type->tp_name);
 		return NULL;
 	}
-	if (size != PyString_GET_SIZE($source)) {
+	if (size != PyBytes_GET_SIZE($source)) {
 		PyErr_Format(PyExc_TypeError, "Argument must be a %d-byte string (got string of %d bytes)",
-		             size, PyString_GET_SIZE($source));
+		             size, PyBytes_GET_SIZE($source));
 		return NULL;
 	}
-	$target = ( OPENFILENAME *)PyString_AS_STRING($source);
+	$target = ( OPENFILENAME *)PyBytes_AS_STRING($source);
 }
 
 #ifndef MS_WINCE

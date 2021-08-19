@@ -63,12 +63,12 @@ static PyObject *ptrcast(PyObject *_PTRVALUE, char *type) {
     } else {
       sprintf(r,"_0%s",typestr);
     }
-    obj = PyString_FromString(r);
+    obj = PyBytes_FromString(r);
     free(r);
-  } else if (PyString_Check(_PTRVALUE)) {
+  } else if (PyBytes_Check(_PTRVALUE)) {
     /* Have a real pointer value now.  Try to strip out the pointer
        value */
-    s = PyString_AsString(_PTRVALUE);
+    s = PyBytes_AsString(_PTRVALUE);
     r = (char *) malloc(strlen(type)+22);
     
     /* Now extract the pointer value */
@@ -78,7 +78,7 @@ static PyObject *ptrcast(PyObject *_PTRVALUE, char *type) {
       } else {
 	sprintf(r,"_0%s",typestr);
       }
-      obj = PyString_FromString(r);
+      obj = PyBytes_FromString(r);
     } else {
       obj = NULL;
     }
@@ -106,11 +106,11 @@ static PyObject *ptrvalue(PyObject *_PTRVALUE, int index, char *type) {
   char     *s;
   PyObject *obj;
 
-  if (!PyString_Check(_PTRVALUE)) {
+  if (!PyBytes_Check(_PTRVALUE)) {
     PyErr_SetString(PyExc_TypeError,"Type error in ptrvalue. Argument is not a valid pointer value.");
     return NULL;
   }
-  s = PyString_AsString(_PTRVALUE);
+  s = PyBytes_AsString(_PTRVALUE);
   if (SWIG_GetPtr(s,&ptr,0)) {
     PyErr_SetString(PyExc_TypeError,"Type error in ptrvalue. Argument is not a valid pointer value.");
     return NULL;
@@ -158,11 +158,11 @@ static PyObject *ptrvalue(PyObject *_PTRVALUE, int index, char *type) {
   } else if (strcmp(type,"float") == 0) {
     obj = PyFloat_FromDouble((double) *(((float *) ptr)+index));
   } else if (strcmp(type,"char") == 0) {
-    obj = PyString_FromString(((char *) ptr)+index);
+    obj = PyBytes_FromString(((char *) ptr)+index);
   } else if (strcmp(type,"char *") == 0) {
     char *c = *(((char **) ptr)+index);
-    if (c) obj = PyString_FromString(c);
-    else obj = PyString_FromString("NULL");
+    if (c) obj = PyBytes_FromString(c);
+    else obj = PyBytes_FromString("NULL");
   } else {
     PyErr_SetString(PyExc_TypeError,"Unable to dereference unsupported datatype.");
     return NULL;
@@ -259,13 +259,13 @@ static PyObject *ptrcreate(char *type, PyObject *_PYVALUE, int numelements) {
 	ip[i] = ivalue;
     } else if (strcmp(type,"char") == 0) {
       char *ip,*ivalue;
-      ivalue = (char *) PyString_AsString(_PYVALUE);
+      ivalue = (char *) PyBytes_AsString(_PYVALUE);
       ip = (char *) ptr;
       strncpy(ip,ivalue,numelements-1);
     } else if (strcmp(type,"char *") == 0) {
       char **ip, *ivalue;
       int  i;
-      ivalue = (char *) PyString_AsString(_PYVALUE);
+      ivalue = (char *) PyBytes_AsString(_PYVALUE);
       ip = (char **) ptr;
       for (i = 0; i < numelements; i++) {
 	if (ivalue) {
@@ -281,7 +281,7 @@ static PyObject *ptrcreate(char *type, PyObject *_PYVALUE, int numelements) {
   /* Create the pointer value */
   
   SWIG_MakePtr(temp,ptr,cast);
-  obj = PyString_FromString(temp);
+  obj = PyBytes_FromString(temp);
   return obj;
 }
 
@@ -298,11 +298,11 @@ static PyObject *ptrset(PyObject *_PTRVALUE, PyObject *_PYVALUE, int index, char
   char     *s;
   PyObject *obj;
 
-  if (!PyString_Check(_PTRVALUE)) {
+  if (!PyBytes_Check(_PTRVALUE)) {
     PyErr_SetString(PyExc_TypeError,"Type error in ptrset. Argument is not a valid pointer value.");
     return NULL;
   }
-  s = PyString_AsString(_PTRVALUE);
+  s = PyBytes_AsString(_PTRVALUE);
   if (SWIG_GetPtr(s,&ptr,0)) {
     PyErr_SetString(PyExc_TypeError,"Type error in ptrset. Argument is not a valid pointer value.");
     return NULL;
@@ -350,10 +350,10 @@ static PyObject *ptrset(PyObject *_PTRVALUE, PyObject *_PYVALUE, int index, char
   } else if (strcmp(type,"float") == 0) {
     *(((float *) ptr)+index) = (float) PyFloat_AsDouble(_PYVALUE);
   } else if (strcmp(type,"char") == 0) {
-    char *c = PyString_AsString(_PYVALUE);
+    char *c = PyBytes_AsString(_PYVALUE);
     strcpy(((char *) ptr)+index, c);
   } else if (strcmp(type,"char *") == 0) {
-    char *c = PyString_AsString(_PYVALUE);
+    char *c = PyBytes_AsString(_PYVALUE);
     char **ca = (char **) ptr;
     if (ca[index]) free(ca[index]);
     if (strcmp(c,"NULL") == 0) {
@@ -387,9 +387,9 @@ static PyObject *ptradd(PyObject *_PTRVALUE, int offset) {
 
   /* Check to see what kind of object _PTRVALUE is */
   
-  if (PyString_Check(_PTRVALUE)) {
+  if (PyBytes_Check(_PTRVALUE)) {
     /* Have a potential pointer value now.  Try to strip out the value */
-    s = PyString_AsString(_PTRVALUE);
+    s = PyBytes_AsString(_PTRVALUE);
 
     /* Try to handle a few common datatypes first */
 
@@ -418,7 +418,7 @@ static PyObject *ptradd(PyObject *_PTRVALUE, int offset) {
     } else {
       sprintf(r,"_0%s",type);
     }
-    obj = PyString_FromString(r);
+    obj = PyBytes_FromString(r);
     free(r);
   }
   return obj;
@@ -489,11 +489,11 @@ PyObject *ptrfree(PyObject *_PTRVALUE) {
   void *ptr, *junk;
   char *s;
 
-  if (!PyString_Check(_PTRVALUE)) {
+  if (!PyBytes_Check(_PTRVALUE)) {
     PyErr_SetString(PyExc_TypeError,"Type error in ptrfree. Argument is not a valid pointer value.");
     return NULL;
   }
-  s = PyString_AsString(_PTRVALUE);
+  s = PyBytes_AsString(_PTRVALUE);
   if (SWIG_GetPtr(s,&ptr,0)) {
     PyErr_SetString(PyExc_TypeError,"Type error in ptrfree. Argument is not a valid pointer value.");
     return NULL;

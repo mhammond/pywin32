@@ -75,7 +75,7 @@ PyObject *PyIExtractIcon::GetIconLocation(PyObject *self, PyObject *args)
         free(buf);
         return PyCom_BuildPyException(hr, pIEI, IID_IExtractIcon);
     }
-    PyObject *retStr = PyString_FromString(buf);
+    PyObject *retStr = PyBytes_FromString(buf);
     free(buf);
     return Py_BuildValue("iNii", hr, retStr, iIndex, flags);
 }
@@ -100,7 +100,7 @@ STDMETHODIMP PyGExtractIcon::Extract(
 {
     PY_GATEWAY_METHOD;
     PyObject *obpszFile;
-    obpszFile = PyString_FromString(pszFile);
+    obpszFile = PyBytes_FromString(pszFile);
     PyObject *result;
     HRESULT hr = InvokeViaPolicy("Extract", &result, "Oii", obpszFile, nIconIndex, nIconSize);
     Py_XDECREF(obpszFile);

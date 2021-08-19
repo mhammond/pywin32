@@ -137,7 +137,7 @@ static PyObject *PyCertAlgIdToOID(PyObject *self, PyObject *args, PyObject *kwar
         Py_INCREF(Py_None);
         return Py_None;
     }
-    return PyString_FromString(szoid);
+    return PyBytes_FromString(szoid);
 }
 
 // @pymethod int|win32crypt|CertOIDToAlgId|Converts a string object identfier to a numeric algorith identifier
@@ -762,7 +762,7 @@ static PyObject *PyCryptFindOIDInfo(PyObject *self, PyObject *args, PyObject *kw
 
     switch (keytype) {
         case CRYPT_OID_INFO_OID_KEY:
-            key = PyString_AsString(obkey);
+            key = PyBytes_AsString(obkey);
             if (key == NULL)
                 return NULL;
             break;
@@ -874,7 +874,7 @@ BOOL WINAPI CryptEnumKeyIdentifierProperties_callback(const CRYPT_HASH_BLOB *key
             prop_data = PyWinObject_FromCRYPT_KEY_PROV_INFO((PCRYPT_KEY_PROV_INFO)rgpvData[prop_index]);
         else {
             PyErr_Warn(PyExc_RuntimeWarning, "Key identifier property returned as raw data"),
-                prop_data = PyString_FromStringAndSize((char *)rgpvData[prop_index], rgcbData[prop_index]);
+                prop_data = PyBytes_FromStringAndSize((char *)rgpvData[prop_index], rgcbData[prop_index]);
         }
         if (prop_data == NULL) {
             Py_DECREF(props);
@@ -890,7 +890,7 @@ BOOL WINAPI CryptEnumKeyIdentifierProperties_callback(const CRYPT_HASH_BLOB *key
     }
 
     ret_item = Py_BuildValue("{s:N, s:N}", "KeyIdentifier",
-                             PyString_FromStringAndSize((char *)key_id->pbData, key_id->cbData), "Props", props);
+                             PyBytes_FromStringAndSize((char *)key_id->pbData, key_id->cbData), "Props", props);
     if (ret_item == NULL) {
         Py_DECREF(props);
         return FALSE;
@@ -1195,7 +1195,7 @@ static PyObject *PyCryptDecodeMessage(PyObject *self, PyObject *args, PyObject *
             PyWin_SetAPIError("CryptDecodeMessage");
     }
     else ret = Py_BuildValue("{s:k,s:k,s:N,s:N,s:N}", "MsgType", msg_type, "InnerContentType", inner_type, "Decoded",
-                             PyString_FromStringAndSize((char *)output_buf, output_bufsize), "XchgCert",
+                             PyBytes_FromStringAndSize((char *)output_buf, output_bufsize), "XchgCert",
                              PyWinObject_FromCERT_CONTEXT(exchange_cert), "SignerCert",
                              PyWinObject_FromCERT_CONTEXT(signer_cert));
 
@@ -1249,7 +1249,7 @@ static PyObject *PyCryptEncryptMessage(PyObject *self, PyObject *args, PyObject 
                                                                   (BYTE*)pybuf.ptr(), pybuf.len(),
                                                                   outputbuf, &output_bufsize);
             Py_END_ALLOW_THREADS if (!bsuccess) PyWin_SetAPIError("CryptEncryptMessage");
-            else ret = PyString_FromStringAndSize((char *)outputbuf, output_bufsize);
+            else ret = PyBytes_FromStringAndSize((char *)outputbuf, output_bufsize);
         }
     }
 
@@ -1293,7 +1293,7 @@ static PyObject *PyCryptDecryptMessage(PyObject *self, PyObject *args, PyObject 
     Py_BEGIN_ALLOW_THREADS bsuccess =
         CryptDecryptMessage(&cdmp, (BYTE*)pybuf.ptr(), pybuf.len(), output_buf, &output_bufsize, &exchange_cert);
     Py_END_ALLOW_THREADS if (!bsuccess) PyWin_SetAPIError("CryptDecryptMessage");
-    else ret = Py_BuildValue("NN", PyString_FromStringAndSize((char *)output_buf, output_bufsize),
+    else ret = Py_BuildValue("NN", PyBytes_FromStringAndSize((char *)output_buf, output_bufsize),
                              PyWinObject_FromCERT_CONTEXT(exchange_cert));
     free(output_buf);
     return ret;
@@ -1351,7 +1351,7 @@ static PyObject *PyCryptSignAndEncryptMessage(PyObject *self, PyObject *args, Py
         PyWin_SetAPIError("CryptSignAndEncryptMessage");
         goto cleanup;
     }
-    ret = PyString_FromStringAndSize((char *)output_buf, output_bufsize);
+    ret = PyBytes_FromStringAndSize((char *)output_buf, output_bufsize);
 
 cleanup:
     PyWinObject_FreeCRYPT_SIGN_MESSAGE_PARA(&csmp);
@@ -1417,7 +1417,7 @@ static PyObject *PyCryptVerifyMessageSignature(PyObject *self, PyObject *args, P
                 PyWin_SetAPIError("CryptVerifyMessageSignature");
         }
         else ret = Py_BuildValue("{s:N, s:N}", "SignerCert", PyWinObject_FromCERT_CONTEXT(signer_cert), "Decoded",
-                                 PyString_FromStringAndSize((char *)output_buf, output_bufsize));
+                                 PyBytes_FromStringAndSize((char *)output_buf, output_bufsize));
     }
     if (output_buf)
         free(output_buf);
@@ -1521,7 +1521,7 @@ static PyObject *PyCryptSignMessage(PyObject *self, PyObject *args, PyObject *kw
         PyWin_SetAPIError("CryptSignMessage");
         goto cleanup;
     }
-    ret = PyString_FromStringAndSize((char *)output_buf, output_bufsize);
+    ret = PyBytes_FromStringAndSize((char *)output_buf, output_bufsize);
 
 cleanup:
     PyWinObject_FreeCRYPT_SIGN_MESSAGE_PARA(&csmp);
@@ -1615,7 +1615,7 @@ static PyObject *PyCryptDecryptAndVerifyMessageSignature(PyObject *self, PyObjec
         &cdmp, &cvmp, signer_ind, (BYTE*)pybuf.ptr(), pybuf.len(), output_buf, &output_bufsize, &exchange_cert, &signer_cert);
     Py_END_ALLOW_THREADS if (!bsuccess) PyWin_SetAPIError("CryptDecryptAndVerifyMessageSignature");
     else ret = Py_BuildValue(
-        "{s:N,s:N,s:N}", "Decrypted", PyString_FromStringAndSize((char *)output_buf, output_bufsize), "XchgCert",
+        "{s:N,s:N,s:N}", "Decrypted", PyBytes_FromStringAndSize((char *)output_buf, output_bufsize), "XchgCert",
         PyWinObject_FromCERT_CONTEXT(exchange_cert), "SignerCert", PyWinObject_FromCERT_CONTEXT(signer_cert));
 
     free(output_buf);
@@ -1628,7 +1628,7 @@ BOOL PyWinObject_AsOID(PyObject *oboid, LPSTR *objid, BOOLEAN *oid_is_str)
     *objid = (LPSTR)PyLong_AsVoidPtr(oboid);
     if (PyErr_Occurred()) {
         PyErr_Clear();
-        *objid = PyString_AsString(oboid);
+        *objid = PyBytes_AsString(oboid);
         if (*objid == NULL)
             return FALSE;
         *oid_is_str = TRUE;
@@ -1706,7 +1706,7 @@ static PyObject *PyCryptEncodeObjectEx(PyObject *self, PyObject *args, PyObject 
     Py_BEGIN_ALLOW_THREADS bsuccess =
         CryptEncodeObjectEx(encoding, structtype, input_buf, flags, NULL, &output_buf, &output_bufsize);
     Py_END_ALLOW_THREADS if (!bsuccess) PyWin_SetAPIError("CryptDecodeObjectEx");
-    else ret = PyString_FromStringAndSize((char *)output_buf, output_bufsize);
+    else ret = PyBytes_FromStringAndSize((char *)output_buf, output_bufsize);
 
 cleanup:
     if ((oid_is_str && (strcmp(structtype, szOID_ENHANCED_KEY_USAGE) == 0)) || (structtype == X509_ENHANCED_KEY_USAGE))
@@ -1813,7 +1813,7 @@ static PyObject *PyCryptDecodeObjectEx(PyObject *self, PyObject *args, PyObject 
         ret = PyWinObject_FromCERT_POLICIES_INFO((PCERT_POLICIES_INFO)output_buf);
     else if (oid_is_str && (strcmp(structtype, szOID_SUBJECT_KEY_IDENTIFIER) ==
                             0))  // @flag szOID_SUBJECT_KEY_IDENTIFIER|Binary string containing the key identifier
-        ret = PyString_FromStringAndSize((char *)((CRYPT_DATA_BLOB *)output_buf)->pbData,
+        ret = PyBytes_FromStringAndSize((char *)((CRYPT_DATA_BLOB *)output_buf)->pbData,
                                          ((CRYPT_DATA_BLOB *)output_buf)->cbData);
     else if ((oid_is_str && (strcmp(structtype, szOID_AUTHORITY_KEY_IDENTIFIER) ==
                              0)) ||  // @flag szOID_AUTHORITY_KEY_IDENTIFIER|<o PyCERT_AUTHORITY_KEY_ID_INFO>
@@ -2081,10 +2081,10 @@ static PyObject *PyCryptStringToBinary(PyObject *self, PyObject *args, PyObject 
     Py_BEGIN_ALLOW_THREADS bsuccess =
         CryptStringToBinary(input_buf, input_size, flags, output_buf, &output_size, &skip, &out_flags);
     Py_END_ALLOW_THREADS if (!bsuccess) return PyWin_SetAPIError("CryptStringToBinary");
-    oboutput_buf = PyString_FromStringAndSize(NULL, output_size);
+    oboutput_buf = PyBytes_FromStringAndSize(NULL, output_size);
     if (oboutput_buf == NULL)
         return NULL;
-    output_buf = (BYTE *)PyString_AS_STRING(oboutput_buf);
+    output_buf = (BYTE *)PyBytes_AS_STRING(oboutput_buf);
     Py_BEGIN_ALLOW_THREADS bsuccess =
         CryptStringToBinary(input_buf, input_size, flags, output_buf, &output_size, &skip, &out_flags);
     Py_END_ALLOW_THREADS if (!bsuccess)

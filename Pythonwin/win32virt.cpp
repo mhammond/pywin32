@@ -102,8 +102,8 @@ BOOL CVirtualHelper::do_call(PyObject *args)
             PyObject *obRepr = PyObject_Repr(handler);
             char *szRepr = "<no representation (PyObject_Repr failed)>";
             if (obRepr) {
-                if (PyString_Check(obRepr))
-                    szRepr = PyString_AS_STRING(obRepr);
+                if (PyBytes_Check(obRepr))
+                    szRepr = PyBytes_AS_STRING(obRepr);
                 else if (PyUnicode_Check(obRepr))
                     szRepr = W2A(PyUnicode_AS_UNICODE(obRepr));
             }

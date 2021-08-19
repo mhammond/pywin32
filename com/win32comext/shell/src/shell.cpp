@@ -250,7 +250,7 @@ PyObject *PyObject_FromPIDL(LPCITEMIDLIST pidl, BOOL bFreeSystemPIDL)
                 PyErr_SetString(PyExc_ValueError, "This string has an invalid sub-item (too long)");
                 break;
             }
-            PyObject *sub = PyString_FromStringAndSize((char *)pidl->mkid.abID, cbdata);
+            PyObject *sub = PyBytes_FromStringAndSize((char *)pidl->mkid.abID, cbdata);
             if (sub) {
                 PyList_Append(ret, sub);
                 Py_DECREF(sub);
@@ -286,7 +286,7 @@ BOOL PyObject_AsPIDL(PyObject *ob, LPITEMIDLIST *ppidl, BOOL bNoneOK /*= FALSE*/
             *pcb = 0;
         return TRUE;
     }
-    if (!PySequence_Check(ob) || PyString_Check(ob)) {
+    if (!PySequence_Check(ob) || PyBytes_Check(ob)) {
         PyErr_Format(PyExc_TypeError, "Only sequences (but not strings) are valid ITEMIDLIST objects (got %s).",
                      ob->ob_type->tp_name);
         return FALSE;
@@ -302,17 +302,17 @@ BOOL PyObject_AsPIDL(PyObject *ob, LPITEMIDLIST *ppidl, BOOL bNoneOK /*= FALSE*/
         PyObject *sub = PySequence_GetItem(ob, i);
         if (!sub)
             return FALSE;
-        if (!PyString_Check(sub)) {
+        if (!PyBytes_Check(sub)) {
             PyErr_Format(PyExc_TypeError, "ITEMIDLIST sub-items must be strings (got %s)", sub->ob_type->tp_name);
             Py_DECREF(sub);
             return FALSE;
         }
-        if (PyString_GET_SIZE(sub) > cbMax) {
+        if (PyBytes_GET_SIZE(sub) > cbMax) {
             PyErr_Format(PyExc_ValueError, "Python string exceeds maximum size for a PIDL item");
             Py_DECREF(sub);
             return FALSE;
         }
-        cbTotal += sizeof((*ppidl)->mkid.cb) + PyString_GET_SIZE(sub);
+        cbTotal += sizeof((*ppidl)->mkid.cb) + PyBytes_GET_SIZE(sub);
         Py_DECREF(sub);
     }
     // Now again, filling our buffer.
@@ -327,14 +327,14 @@ BOOL PyObject_AsPIDL(PyObject *ob, LPITEMIDLIST *ppidl, BOOL bNoneOK /*= FALSE*/
         if (!sub)
             return FALSE;
         /* Don't need to check this again, called holding GIL so nothing can modify the sequence
-        if (!PyString_Check(sub)) {
+        if (!PyBytes_Check(sub)) {
             PyErr_Format(PyExc_TypeError, "ITEMIDLIST sub-items must be strings (got %s)", sub->ob_type->tp_name);
             Py_DECREF(sub);
             return FALSE;
         }
         */
-        pidl->mkid.cb = (USHORT)PyString_GET_SIZE(sub) + sizeof(pidl->mkid.cb);
-        memcpy(pidl->mkid.abID, PyString_AS_STRING(sub), PyString_GET_SIZE(sub));
+        pidl->mkid.cb = (USHORT)PyBytes_GET_SIZE(sub) + sizeof(pidl->mkid.cb);
+        memcpy(pidl->mkid.abID, PyBytes_AS_STRING(sub), PyBytes_GET_SIZE(sub));
         Py_DECREF(sub);
         pidl = _ILNext(pidl);
     }
@@ -353,7 +353,7 @@ BOOL PyObject_AsPIDLArray(PyObject *obSeq, UINT *pcidl, LPCITEMIDLIST **ret)
     // string is a seq - handle that
     *pcidl = 0;
     *ret = NULL;
-    if (PyString_Check(obSeq) || !PySequence_Check(obSeq)) {
+    if (PyBytes_Check(obSeq) || !PySequence_Check(obSeq)) {
         PyErr_SetString(PyExc_TypeError, "Must be an array of IDLs");
         return FALSE;
     }
@@ -491,8 +491,8 @@ PyObject *PyObject_AsCIDA(PyObject *ob)
         nbytes += cbParent;
         // and each kid.
         for (i = 0; i < nKids; i++) nbytes += pKids[i].pidl_size;
-        ret = PyString_FromStringAndSize(NULL, nbytes);
-        pcida = (CIDA *)PyString_AS_STRING(ret);
+        ret = PyBytes_FromStringAndSize(NULL, nbytes);
+        pcida = (CIDA *)PyBytes_AS_STRING(ret);
         pcida->cidl = nKids;  // not counting parent.
         pidl_buf = ((LPBYTE)pcida) + pidl_offset;
         pcida->aoffset[0] = pidl_offset;
@@ -567,7 +567,7 @@ PyObject *PyWinObject_FromRESOURCESTRING(LPCSTR str)
 {
     if (HIWORD(str) == 0)
         return PyInt_FromLong(LOWORD(str));
-    return PyString_FromString(str);
+    return PyBytes_FromString(str);
 }
 
 // @object PyCMINVOKECOMMANDINFO|A tuple of parameters to be converted to a CMINVOKECOMMANDINFO struct
@@ -646,10 +646,10 @@ PyObject *PyObject_FromSTRRET(STRRET *ps, ITEMIDLIST *pidl, BOOL bFree)
     PyObject *ret;
     switch (ps->uType) {
         case STRRET_CSTR:
-            ret = PyString_FromString(ps->cStr);
+            ret = PyBytes_FromString(ps->cStr);
             break;
         case STRRET_OFFSET:
-            ret = PyString_FromString(((char *)pidl) + ps->uOffset);
+            ret = PyBytes_FromString(((char *)pidl) + ps->uOffset);
             break;
         case STRRET_WSTR:
             ret = PyWinObject_FromWCHAR(ps->pOleStr);
@@ -1207,7 +1207,7 @@ static PyObject *PySHGetPathFromIDList(PyObject *self, PyObject *args)
         rc = NULL;
     }
     else
-        rc = PyString_FromString(buffer);
+        rc = PyBytes_FromString(buffer);
     PyObject_FreePIDL(pidl);
     return rc;
 }
@@ -1827,11 +1827,11 @@ static PyObject *PySHChangeNotify(PyObject *self, PyObject *args)
             break;
         case SHCNF_PATHA:
         case SHCNF_PRINTERA:
-            p1 = (void *)PyString_AsString(ob1);
+            p1 = (void *)PyBytes_AsString(ob1);
             if (p1 == NULL)
                 bsuccess = FALSE;
             else if (ob2 != Py_None) {
-                p2 = (void *)PyString_AsString(ob2);
+                p2 = (void *)PyBytes_AsString(ob2);
                 if (p2 == NULL)
                     bsuccess = FALSE;
             }
@@ -2051,7 +2051,7 @@ static PyObject *PyPIDLAsString(PyObject *self, PyObject *args)
     ITEMIDLIST *ppidls;
     if (!PyObject_AsPIDL(obPIDL, &ppidls, FALSE, &cb))
         return NULL;
-    PyObject *ret = PyString_FromStringAndSize((char *)ppidls, cb);
+    PyObject *ret = PyBytes_FromStringAndSize((char *)ppidls, cb);
     CoTaskMemFree(ppidls);
     return ret;
 }
@@ -2192,11 +2192,11 @@ static PyObject *PyFILEGROUPDESCRIPTORAsString(PyObject *self, PyObject *args)
         cb = sizeof(FILEGROUPDESCRIPTORW) + sizeof(FILEDESCRIPTORW) * (num - 1);
     else
         cb = sizeof(FILEGROUPDESCRIPTORA) + sizeof(FILEDESCRIPTORA) * (num - 1);
-    PyObject *ret_string = PyString_FromStringAndSize(NULL, cb);
+    PyObject *ret_string = PyBytes_FromStringAndSize(NULL, cb);
     if (!ret_string)
         goto done;
-    fgd = (FILEGROUPDESCRIPTORA *)PyString_AS_STRING(ret_string);
-    fgdw = (FILEGROUPDESCRIPTORW *)PyString_AS_STRING(ret_string);
+    fgd = (FILEGROUPDESCRIPTORA *)PyBytes_AS_STRING(ret_string);
+    fgdw = (FILEGROUPDESCRIPTORW *)PyBytes_AS_STRING(ret_string);
     memset(fgd, 0, cb);
     fgd->cItems = num;
     for (i = 0; i < num; i++) {
@@ -2501,7 +2501,7 @@ static PyObject *PyStringAsFILEGROUPDESCRIPTOR(PyObject *self, PyObject *args)
         if (make_unicode)
             val = PyWinObject_FromWCHAR(fdw->cFileName);
         else
-            val = PyString_FromString(fd->cFileName);
+            val = PyBytes_FromString(fd->cFileName);
         if (val)
             PyDict_SetItemString(sub, "cFileName", val);
         Py_XDECREF(val);

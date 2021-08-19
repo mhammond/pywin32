@@ -178,14 +178,14 @@ PyObject *ui_bitmap_load_bitmap_file(PyObject *self, PyObject *args)
         DODECREF(seeker);
         return NULL;
     }
-    if (!PyString_Check(result)) {
+    if (!PyBytes_Check(result)) {
         DODECREF(result);
         DODECREF(seeker);
         DODECREF(reader);
         PyErr_SetString(PyExc_TypeError, "object.readline() returned non-string");
         return NULL;
     }
-    Py_ssize_t len = PyString_Size(result);
+    Py_ssize_t len = PyBytes_Size(result);
     if (len != sizeof(BITMAPFILEHEADER)) {
         DODECREF(seeker);
         DODECREF(reader);
@@ -194,7 +194,7 @@ PyObject *ui_bitmap_load_bitmap_file(PyObject *self, PyObject *args)
         return NULL;
     }
     BITMAPFILEHEADER bmFileHeader;
-    memcpy(&bmFileHeader, PyString_AsString(result), len);
+    memcpy(&bmFileHeader, PyBytes_AsString(result), len);
     DODECREF(result);  // dont need this anymore
     if (bmFileHeader.bfType != DIB_HEADER_MARKER) {
         DODECREF(reader);
@@ -230,7 +230,7 @@ PyObject *ui_bitmap_load_bitmap_file(PyObject *self, PyObject *args)
         DODECREF(reader);
         return NULL;
     }
-    len = PyString_Size(result);
+    len = PyBytes_Size(result);
     /*	if (len != bitsSize) {
             DODECREF(reader);
             DODECREF(result);
@@ -241,7 +241,7 @@ PyObject *ui_bitmap_load_bitmap_file(PyObject *self, PyObject *args)
     */
     char *pBits = new char[len];
     // XXX - need memory exception handler.
-    memcpy(pBits, PyString_AsString(result), len);
+    memcpy(pBits, PyBytes_AsString(result), len);
     DODECREF(result);  // dont need this.
     DODECREF(reader);  // or this.
 
@@ -303,7 +303,7 @@ PyObject *ui_bitmap_load_ppm_file(PyObject *self, PyObject *args)
         DODECREF(reader);
         return NULL;
     }
-    Py_ssize_t lenRead = PyString_Size(result);
+    Py_ssize_t lenRead = PyBytes_Size(result);
     // work out size of bitmap
     int headerSize = sizeof(BITMAPINFOHEADER);
     // Windows requires bitmap bits aligned to a "long", which is 32 bits!
@@ -325,7 +325,7 @@ PyObject *ui_bitmap_load_ppm_file(PyObject *self, PyObject *args)
     // XXX - need mem exception
     // copy the data in.  Windows wants scan lines bottom up.
     // and also wants RGB values reversed.
-    char *pImg = PyString_AsString(result);
+    char *pImg = PyBytes_AsString(result);
     char *pMem = ((char *)pBits) + headerSize + memSize - memBytesPerScan;
     BITMAPINFOHEADER *pInfo = (BITMAPINFOHEADER *)pBits;
     for (int row = 0; row < rows; row++, pMem -= memBytesPerScan, pImg += imageBytesPerScan)
@@ -476,7 +476,7 @@ static PyObject *ui_get_bitmap_bits(PyObject *self, PyObject *args)
     }
     PyObject *rc;
     if (asString) {
-        rc = PyString_FromStringAndSize(bits, cnt);
+        rc = PyBytes_FromStringAndSize(bits, cnt);
     }
     else {
         rc = PyTuple_New(cnt);

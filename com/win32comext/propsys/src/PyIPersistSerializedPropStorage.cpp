@@ -81,7 +81,7 @@ PyObject *PyIPersistSerializedPropStorage::GetPropertyStorage(PyObject *self, Py
     PY_INTERFACE_POSTCALL;
     if (FAILED(hr))
         return PyCom_BuildPyException(hr, pIPSPS, IID_IPersistSerializedPropStorage);
-    PyObject *ret = PyString_FromStringAndSize((char *)buf, bufsize);
+    PyObject *ret = PyBytes_FromStringAndSize((char *)buf, bufsize);
     CoTaskMemFree(buf);
     return ret;
 }

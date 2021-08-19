@@ -176,7 +176,7 @@ PyObject *PyWinObject_FromStatusInformation(DWORD status, void *buf, DWORD bufsi
 		//	but it appears to be a plain string ??? 
 		case INTERNET_STATUS_CONNECTED_TO_SERVER:
 		case INTERNET_STATUS_CONNECTING_TO_SERVER:
-			return PyString_FromString((char *)buf);
+			return PyBytes_FromString((char *)buf);
 		case INTERNET_STATUS_COOKIE_HISTORY:{	// InternetCookieHistory struct
 			InternetCookieHistory *ich=(InternetCookieHistory *)buf;
 			return Py_BuildValue("{s:N, s:N, s:N, s:N}",
@@ -198,7 +198,7 @@ PyObject *PyWinObject_FromStatusInformation(DWORD status, void *buf, DWORD bufsi
 			//	useless to calling python app, as it may be a pointer to anything.  Should
 			//	probably just throw an error to avoid confusion in the future if more statuses
 			//	are recognized.
-			return PyString_FromStringAndSize((char *)buf, bufsize);
+			return PyBytes_FromStringAndSize((char *)buf, bufsize);
 	}
 }
 
@@ -737,7 +737,7 @@ PyObject *PyInternetReadFile(PyObject *self, PyObject *args)
         PyWin_SetAPIError("InternetReadFile");
         goto done;
     }
-    ret = PyString_FromStringAndSize(buf, read);
+    ret = PyBytes_FromStringAndSize(buf, read);
     // @rdesc The result will be a string of zero bytes when the end is reached.
 done:
     if (buf) free(buf);

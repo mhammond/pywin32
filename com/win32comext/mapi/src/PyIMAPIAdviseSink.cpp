@@ -40,7 +40,7 @@ PyObject *PyObject_FromNOTIFICATION(NOTIFICATION *n)
             NEWMAIL_NOTIFICATION &newmail = n->info.newmail;
             PyObject *msg_class = newmail.ulFlags & MAPI_UNICODE
                                       ? PyWinObject_FromWCHAR((const WCHAR *)newmail.lpszMessageClass)
-                                      : PyString_FromString((const char *)newmail.lpszMessageClass);
+                                      : PyBytes_FromString((const char *)newmail.lpszMessageClass);
             if (!msg_class)
                 return NULL;
             ret = Py_BuildValue(

@@ -53,9 +53,9 @@ PyObject *PyIMAPISession::OpenEntry(PyObject *self, PyObject *args)
 	if (obEntry==Py_None) {
 		entryString = NULL;
 		entryStrLen = 0;
-	} else if (PyString_Check(obEntry)) {
-		entryString = PyString_AsString(obEntry);
-		entryStrLen = PyString_Size(obEntry);
+	} else if (PyBytes_Check(obEntry)) {
+		entryString = PyBytes_AsString(obEntry);
+		entryStrLen = PyBytes_Size(obEntry);
 	} else {
 		PyErr_SetString(PyExc_TypeError, "EntryID must be a string or None");
 		return NULL;
@@ -137,7 +137,7 @@ PyObject *PyIMAPISession::QueryIdentity(PyObject *self, PyObject *args)
 	Py_END_ALLOW_THREADS
 	PyObject *rc;
 	if (_result==S_OK)
-		rc = PyString_FromStringAndSize((char *)peid, cb);
+		rc = PyBytes_FromStringAndSize((char *)peid, cb);
 	else if (FAILED(_result)) {
            rc = OleSetOleError(_result);
     } else {
@@ -170,9 +170,9 @@ PyObject *PyIMAPISession::Advise(PyObject *self, PyObject *args)
 	if (obEntry==Py_None) {
 		entryString = NULL;
 		entryStrLen = 0;
-	} else if (PyString_Check(obEntry)) {
-		entryString = PyString_AsString(obEntry);
-		entryStrLen = PyString_Size(obEntry);
+	} else if (PyBytes_Check(obEntry)) {
+		entryString = PyBytes_AsString(obEntry);
+		entryStrLen = PyBytes_Size(obEntry);
 	} else {
 		PyErr_SetString(PyExc_TypeError, "EntryID must be a string or None");
 		return NULL;

@@ -149,8 +149,8 @@ PyObject *PyCTL_CONTEXT::PyCertEnumSubjectInSortedCTL(PyObject *self, PyObject *
     if (ret == NULL)
         return NULL;
     while (CertEnumSubjectInSortedCTL(pctl, &ctxt, &subject, &attr)) {
-        ret_item = Py_BuildValue("NN", PyString_FromStringAndSize((char *)subject.pbData, subject.cbData),
-                                 PyString_FromStringAndSize((char *)attr.pbData, attr.cbData));
+        ret_item = Py_BuildValue("NN", PyBytes_FromStringAndSize((char *)subject.pbData, subject.cbData),
+                                 PyBytes_FromStringAndSize((char *)attr.pbData, attr.cbData));
         if ((ret_item == NULL) || (PyList_Append(ret, ret_item) == -1)) {
             Py_XDECREF(ret_item);
             Py_DECREF(ret);
@@ -191,7 +191,7 @@ PyObject *PyCTL_CONTEXT::PyCertSerializeCTLStoreElement(PyObject *self, PyObject
     if (!CertSerializeCTLStoreElement(pctl, flags, buf, &bufsize))
         PyWin_SetAPIError("CertSerializeCTLStoreElement");
     else
-        ret = PyString_FromStringAndSize((char *)buf, bufsize);
+        ret = PyBytes_FromStringAndSize((char *)buf, bufsize);
     free(buf);
     return ret;
 }

@@ -72,7 +72,7 @@ static PyObject *mmapfile_read_byte_method(mmapfile_object *self, PyObject *args
     char *where = (self->data + self->pos);
     CHECK_VALID;
     if ((where >= 0) && (where < (self->data + self->size))) {
-        PyObject *ret = PyString_FromStringAndSize(where, 1);
+        PyObject *ret = PyBytes_FromStringAndSize(where, 1);
         if (ret)
             self->pos += 1;
         return ret;
@@ -96,7 +96,7 @@ static PyObject *mmapfile_read_line_method(mmapfile_object *self, PyObject *args
     for (eol = start; (eol < eof) && (*eol != '\n'); eol++) { /* do nothing */
     }
 
-    PyObject *result = PyString_FromStringAndSize(start, (++eol - start));
+    PyObject *result = PyBytes_FromStringAndSize(start, (++eol - start));
     if (result)
         self->pos += (eol - start);
     return (result);
@@ -119,7 +119,7 @@ static PyObject *mmapfile_read_method(mmapfile_object *self, PyObject *args)
     if ((self->pos + num_bytes) > self->size)
         num_bytes -= (self->pos + num_bytes) - self->size;
 
-    PyObject *result = PyString_FromStringAndSize(self->data + self->pos, num_bytes);
+    PyObject *result = PyBytes_FromStringAndSize(self->data + self->pos, num_bytes);
     if (result)
         self->pos += num_bytes;
     return (result);
@@ -139,7 +139,7 @@ static PyObject *mmapfile_find_method(mmapfile_object *self, PyObject *args)
             &obneedle,  // @pyparm str|needle||String to be located
             &obstart))  // @pyparm int|start||Pos at which to start search, current pos assumed if not specified
         return NULL;
-    if (PyString_AsStringAndSize(obneedle, &needle, &len) == -1)
+    if (PyBytes_AsStringAndSize(obneedle, &needle, &len) == -1)
         return NULL;
 
     if (obstart != Py_None) {
@@ -174,7 +174,7 @@ static PyObject *mmapfile_write_method(mmapfile_object *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "O",
                           &obdata))  // @pyparm str|data||Data to be written
         return NULL;
-    if (PyString_AsStringAndSize(obdata, &data, &length) == -1)
+    if (PyBytes_AsStringAndSize(obdata, &data, &length) == -1)
         return NULL;
 
     if ((self->pos + length) > self->size) {

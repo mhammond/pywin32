@@ -955,7 +955,7 @@ DWORD WINAPI dispatchServiceCtrl(DWORD dwCtrlCode, DWORD dwEventType, LPVOID eve
                 if (dwEventType == PBT_POWERSETTINGCHANGE) {
                     POWERBROADCAST_SETTING *pbs = (POWERBROADCAST_SETTING *)eventData;
                     sub = Py_BuildValue("NN", PyWinObject_FromIID(pbs->PowerSetting),
-                                        PyString_FromStringAndSize((char *)pbs->Data, pbs->DataLength));
+                                        PyBytes_FromStringAndSize((char *)pbs->Data, pbs->DataLength));
                 }
                 else {
                     sub = Py_None;
@@ -1325,12 +1325,12 @@ static BOOL RegisterPythonServiceExe(void)
     CEnterLeavePython _celp;
     // Register this specific EXE against this specific DLL version
     PyObject *obVerString = PySys_GetObject("winver");
-    if (obVerString == NULL || !PyString_Check(obVerString)) {
+    if (obVerString == NULL || !PyBytes_Check(obVerString)) {
         Py_XDECREF(obVerString);
         printf("Registration failed as sys.winver is not available or not a string\n");
         return FALSE;
     }
-    char *szVerString = PyString_AsString(obVerString);
+    char *szVerString = PyBytes_AsString(obVerString);
     Py_DECREF(obVerString);
     // note wsprintf allows %hs to be "char *" even when UNICODE!
     TCHAR keyBuf[256];
@@ -1542,8 +1542,8 @@ int _tmain(int argc, TCHAR **argv)
         goto failed;
 
     // now get the handle to the DLL, and call the main function.
-    if (PyString_Check(f))
-        hmod = GetModuleHandleA(PyString_AsString(f));
+    if (PyBytes_Check(f))
+        hmod = GetModuleHandleA(PyBytes_AsString(f));
     else if (PyUnicode_Check(f))
         hmod = GetModuleHandleW(PyUnicode_AsUnicode(f));
     else {

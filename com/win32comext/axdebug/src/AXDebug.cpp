@@ -198,7 +198,7 @@ static PyObject *SetThreadStateTrace(PyObject *self, PyObject *args)
     PyFrameObject *frame = state ? state->frame : NULL;
     bool bFoundFirstScriptBlock = false;
     while (frame) {
-        if (strncmp(PyString_AsString(frame->f_code->co_filename), "<Script ", 8) == 0)
+        if (strncmp(PyBytes_AsString(frame->f_code->co_filename), "<Script ", 8) == 0)
             bFoundFirstScriptBlock = true;
         else {
             if (bFoundFirstScriptBlock)

@@ -20,7 +20,7 @@ PyObject *PyWinObject_FromCREDENTIAL_ATTRIBUTEArray(PCREDENTIAL_ATTRIBUTE attrs,
     for (DWORD attr_ind = 0; attr_ind < attr_cnt; attr_ind++) {
         ret_item =
             Py_BuildValue("{s:u,s:k,s:N}", "Keyword", attrs[attr_ind].Keyword, "Flags", attrs[attr_ind].Flags, "Value",
-                          PyString_FromStringAndSize((char *)attrs[attr_ind].Value, attrs[attr_ind].ValueSize));
+                          PyBytes_FromStringAndSize((char *)attrs[attr_ind].Value, attrs[attr_ind].ValueSize));
         if (ret_item == NULL) {
             Py_DECREF(ret);
             ret = NULL;
@@ -132,7 +132,7 @@ PyObject *PyWinObject_FromCREDENTIAL(PCREDENTIAL credential)
     return Py_BuildValue("{s:k,s:k,s:u,s:u,s:N,s:N,s:k,s:N,s:u,s:u}", "Flags", credential->Flags, "Type",
                          credential->Type, "TargetName", credential->TargetName, "Comment", credential->Comment,
                          "LastWritten", PyWinObject_FromFILETIME(credential->LastWritten), "CredentialBlob",
-                         PyString_FromStringAndSize((char *)credential->CredentialBlob, credential->CredentialBlobSize),
+                         PyBytes_FromStringAndSize((char *)credential->CredentialBlob, credential->CredentialBlobSize),
                          "Persist", credential->Persist, "Attributes",
                          PyWinObject_FromCREDENTIAL_ATTRIBUTEArray(credential->Attributes, credential->AttributeCount),
                          "TargetAlias", credential->TargetAlias, "UserName", credential->UserName);
@@ -373,7 +373,7 @@ PyObject *PyCredMarshalCredential(PyObject *self, PyObject *args, PyObject *kwar
         case CertCredential: {
             Py_ssize_t hashlen;
             char *hash;
-            if (PyString_AsStringAndSize(obcredential, &hash, &hashlen) == -1)
+            if (PyBytes_AsStringAndSize(obcredential, &hash, &hashlen) == -1)
                 goto done;
             if (hashlen > CERT_HASH_LENGTH) {
                 PyErr_Format(PyExc_ValueError, "Certificate hash cannot be longer than %d characters",
@@ -437,7 +437,7 @@ PyObject *PyCredUnmarshalCredential(PyObject *self, PyObject *args, PyObject *kw
         // @flag CertCredential|Character string containing SHA1 hash of a certificate
         case CertCredential:
             ret = Py_BuildValue("kN", credtype,
-                                PyString_FromStringAndSize((char *)&((PCERT_CREDENTIAL_INFO)credential)->rgbHashOfCert,
+                                PyBytes_FromStringAndSize((char *)&((PCERT_CREDENTIAL_INFO)credential)->rgbHashOfCert,
                                                            CERT_HASH_LENGTH));
             break;
         // @flag UsernameTargetCredential|Unicode string containing username

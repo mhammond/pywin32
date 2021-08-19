@@ -2614,7 +2614,7 @@ PyObject *ui_window_begin_paint(PyObject *self, PyObject *args)
     PyObject *obDC = ui_assoc_object::make(ui_dc_object::type, pTemp)->GetGoodRet();
     PyObject *obRet = Py_BuildValue("O(Ni(iiii)iiN)", obDC, PyWinLong_FromHANDLE(ps.hdc), ps.fErase, ps.rcPaint.left,
                                     ps.rcPaint.top, ps.rcPaint.right, ps.rcPaint.bottom, ps.fRestore, ps.fIncUpdate,
-                                    PyString_FromStringAndSize((char *)ps.rgbReserved, sizeof(ps.rgbReserved)));
+                                    PyBytes_FromStringAndSize((char *)ps.rgbReserved, sizeof(ps.rgbReserved)));
     Py_XDECREF(obDC);
     return obRet;
 }
@@ -2630,9 +2630,9 @@ PyObject *ui_window_end_paint(PyObject *self, PyObject *args)
                           &ps.rcPaint.right, &ps.rcPaint.bottom, &ps.fRestore, &ps.fIncUpdate, &obString))
         return NULL;
 
-    if (!PyString_Check(obString) || PyString_Size(obString) != sizeof(ps.rgbReserved))
+    if (!PyBytes_Check(obString) || PyBytes_Size(obString) != sizeof(ps.rgbReserved))
         RETURN_TYPE_ERR("Last tuple must be a string of a specific size!");
-    memcpy(ps.rgbReserved, PyString_AsString(obString), sizeof(ps.rgbReserved));
+    memcpy(ps.rgbReserved, PyBytes_AsString(obString), sizeof(ps.rgbReserved));
 
     if (!PyWinObject_AsHANDLE(obhdc, (HANDLE *)&ps.hdc))
         return NULL;

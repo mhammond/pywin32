@@ -140,7 +140,7 @@ static PyObject *PyHrMAPIFindDefaultMsgStore(PyObject *self, PyObject *args)
      if (FAILED(_result)) {
            return OleSetOleError(_result);
      }
-	 PyObject *rc = PyString_FromStringAndSize((char *)pID, entryStrLen);
+	 PyObject *rc = PyBytes_FromStringAndSize((char *)pID, entryStrLen);
 	 MAPIFreeBuffer(pID);
 	 return rc;
 }
@@ -168,7 +168,7 @@ static PyObject *PyHrMAPIFindIPMSubtree(PyObject *self, PyObject *args)
      if (FAILED(_result)) {
            return OleSetOleError(_result);
      }
-	 PyObject *rc = PyString_FromStringAndSize((char *)pID, entryStrLen);
+	 PyObject *rc = PyBytes_FromStringAndSize((char *)pID, entryStrLen);
 	 MAPIFreeBuffer(pID);
 	 return rc;
 }
@@ -197,7 +197,7 @@ static PyObject *PyHrMAPIFindInbox(PyObject *self, PyObject *args)
      if (FAILED(_result)) {
            return OleSetOleError(_result);
      }
-	 PyObject *rc = PyString_FromStringAndSize((char *)pID, entryStrLen);
+	 PyObject *rc = PyBytes_FromStringAndSize((char *)pID, entryStrLen);
 	 MAPIFreeBuffer(pID);
 	 return rc;
 }
@@ -216,7 +216,7 @@ PyObject *MyHrMAPIFindSubfolderEx(
 	HRESULT hr = HrMAPIFindSubfolderEx(lpRootFolder,chSep,lpszName,&idSize, &id);
 	if (FAILED(hr))
 		return OleSetOleError(hr);
-	PyObject *rc = PyString_FromStringAndSize((char *)id, idSize);
+	PyObject *rc = PyBytes_FromStringAndSize((char *)id, idSize);
 	MAPIFreeBuffer(id);
 	return rc;
 }
@@ -260,7 +260,7 @@ PyObject *PyHrMAPIFindFolder(PyObject *self, PyObject *args)
 		OleSetOleError(hr);
 		goto done;
 	}
-	rc = PyString_FromStringAndSize((char *)eid, cbEID);
+	rc = PyBytes_FromStringAndSize((char *)eid, cbEID);
 done:
 	if (pFolder) pFolder->Release();
 	if (szName) PyWinObject_FreeTCHAR(szName);
@@ -301,7 +301,7 @@ PyObject *PyHrMAPIFindFolderEx(PyObject *self, PyObject *args)
 		OleSetOleError(hr);
 		goto done;
 	}
-	rc = PyString_FromStringAndSize((char *)eid, cbEID);
+	rc = PyBytes_FromStringAndSize((char *)eid, cbEID);
 done:
 	if (pMDB) pMDB->Release();
 	if (szSep) PyWinObject_FreeTCHAR(szSep);
@@ -340,7 +340,7 @@ PyObject *PyHrMAPIFindStore(PyObject *self, PyObject *args)
 		OleSetOleError(hr);
 		goto done;
 	}
-	rc = PyString_FromStringAndSize((char *)eid, cbEID);
+	rc = PyBytes_FromStringAndSize((char *)eid, cbEID);
 done:
 	if (pSession) pSession->Release();
 	if (szName) PyWinObject_FreeTCHAR(szName);
@@ -398,7 +398,7 @@ PyObject *PyHrCreateDirEntryIdEx(PyObject *self, PyObject *args)
 	if (FAILED(hr))
 		return OleSetOleError(hr);
 
-	ret = PyString_FromStringAndSize((char *)entryId, cbEntryId);
+	ret = PyBytes_FromStringAndSize((char *)entryId, cbEntryId);
 done:
 	PyWinObject_FreeString(szdn);
 	if (pAddrBook) pAddrBook->Release();
@@ -430,7 +430,7 @@ static PyObject *PyHrFindExchangeGlobalAddressList(PyObject *self, PyObject *arg
            return OleSetOleError(_result);
      }
 
-	PyObject *rc = PyString_FromStringAndSize((char *)peid, cb);
+	PyObject *rc = PyBytes_FromStringAndSize((char *)peid, cb);
 	MAPIFreeBuffer(peid);
 	return rc;
 #endif

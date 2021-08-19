@@ -14,7 +14,7 @@ BOOL PyWinObject_AsDATA_BLOB(PyObject *ob, DATA_BLOB *b)
     return TRUE;
 }
 
-PyObject *PyWinObject_FromDATA_BLOB(DATA_BLOB *b) { return PyString_FromStringAndSize((char *)b->pbData, b->cbData); }
+PyObject *PyWinObject_FromDATA_BLOB(DATA_BLOB *b) { return PyBytes_FromStringAndSize((char *)b->pbData, b->cbData); }
 
 // @object PyCRYPTPROTECT_PROMPTSTRUCT|A tuple representing a CRYPTPROTECT_PROMPTSTRUCT structure
 // @tupleitem 0|int|flags|Combination of CRYPTPROTECT_PROMPT_* flags
@@ -78,7 +78,7 @@ PyObject *PyWinObject_FromCRYPT_INTEGER_BLOB(PCRYPT_INTEGER_BLOB pcib)
         }
     return PyLong_FromString(hex_string, NULL, 16);
     */
-    return PyString_FromStringAndSize((char *)pcib->pbData, pcib->cbData);
+    return PyBytes_FromStringAndSize((char *)pcib->pbData, pcib->cbData);
 }
 
 PyObject *PyWinObject_FromCRYPT_KEY_PROV_INFO(PCRYPT_KEY_PROV_INFO pckpi)
@@ -104,13 +104,13 @@ PyObject *PyWinObject_FromCRYPT_KEY_PROV_INFO(PCRYPT_KEY_PROV_INFO pckpi)
             case PP_KEYEXCHANGE_PIN:
             case PP_SIGNATURE_PIN:
                 // both return pin as NULL-terminated string
-                data = PyString_FromString((char *)pckpi->rgProvParam[i].pbData);
+                data = PyBytes_FromString((char *)pckpi->rgProvParam[i].pbData);
                 break;
             default:
                 // Anything not handled specifically is dumped out as raw bytes
                 PyErr_Warn(PyExc_RuntimeWarning, "Unsupported PP_ parameter returned as raw data"),
                     data =
-                        PyString_FromStringAndSize((char *)pckpi->rgProvParam[i].pbData, pckpi->rgProvParam[i].cbData);
+                        PyBytes_FromStringAndSize((char *)pckpi->rgProvParam[i].pbData, pckpi->rgProvParam[i].cbData);
                 break;
         }
         if (data == NULL) {
@@ -144,7 +144,7 @@ PyObject *PyWinObject_FromCERT_OTHER_NAME(PCERT_OTHER_NAME pcon)
         - to be decoded with X509_UNICODE_NAME_VALUE
     */
     return Py_BuildValue("{s:s,s:N}", "ObjId", pcon->pszObjId, "Value",
-                         PyString_FromStringAndSize((char *)pcon->Value.pbData, pcon->Value.cbData));
+                         PyBytes_FromStringAndSize((char *)pcon->Value.pbData, pcon->Value.cbData));
 }
 
 // @object PyCERT_ALT_NAME_ENTRY|Represented as a 2-tuple
@@ -160,13 +160,13 @@ PyObject *PyWinObject_FromCERT_ALT_NAME_ENTRY(PCERT_ALT_NAME_ENTRY pcane)
         case CERT_ALT_NAME_EDI_PARTY_NAME:
             return Py_BuildValue("kN", pcane->dwAltNameChoice, PyWinObject_FromWCHAR(pcane->pwszRfc822Name));
         case CERT_ALT_NAME_REGISTERED_ID:
-            return Py_BuildValue("kN", pcane->dwAltNameChoice, PyString_FromString(pcane->pszRegisteredID));
+            return Py_BuildValue("kN", pcane->dwAltNameChoice, PyBytes_FromString(pcane->pszRegisteredID));
         // these 3 all resolve to a CRYPTOAPI_BLOB
         case CERT_ALT_NAME_IP_ADDRESS:
         case CERT_ALT_NAME_X400_ADDRESS:
         case CERT_ALT_NAME_DIRECTORY_NAME:
             return Py_BuildValue("kN", pcane->dwAltNameChoice,
-                                 PyString_FromStringAndSize((char *)pcane->IPAddress.pbData, pcane->IPAddress.cbData));
+                                 PyBytes_FromStringAndSize((char *)pcane->IPAddress.pbData, pcane->IPAddress.cbData));
         case CERT_ALT_NAME_OTHER_NAME:
             // pOtherName points to a CERT_OTHER_NAME
             return Py_BuildValue("kN", pcane->dwAltNameChoice, PyWinObject_FromCERT_OTHER_NAME(pcane->pOtherName));
@@ -213,7 +213,7 @@ PyObject *PyWinObject_FromCRYPT_ALGORITHM_IDENTIFIER(PCRYPT_ALGORITHM_IDENTIFIER
         err=GetLastError();
     */
     return Py_BuildValue("{s:s, s:N}", "ObjId", pcai->pszObjId, "Parameters",
-                         PyString_FromStringAndSize((char *)pcai->Parameters.pbData, pcai->Parameters.cbData));
+                         PyBytes_FromStringAndSize((char *)pcai->Parameters.pbData, pcai->Parameters.cbData));
 }
 
 // @object PyCRYPT_ALGORITHM_IDENTIFIER|Dictionary containing information that identifies an encryption
@@ -257,7 +257,7 @@ BOOL PyWinObject_AsCERT_PUBLIC_KEY_INFO(PyObject *obcpki, PCERT_PUBLIC_KEY_INFO 
 
 PyObject *PyWinObject_FromCRYPT_BIT_BLOB(PCRYPT_BIT_BLOB pcbb)
 {
-    return Py_BuildValue("{s:N,s:k}", "Data", PyString_FromStringAndSize((char *)pcbb->pbData, pcbb->cbData),
+    return Py_BuildValue("{s:N,s:k}", "Data", PyBytes_FromStringAndSize((char *)pcbb->pbData, pcbb->cbData),
                          "UnusedBits", pcbb->cUnusedBits);
 }
 
@@ -324,7 +324,7 @@ PyObject *PyWinObject_FromCERT_RDN_ATTR(PCERT_RDN_ATTR pcra)
         }
     }
     else  // all others treated as raw bytes
-        value = PyString_FromStringAndSize((char *)pcra->Value.pbData, pcra->Value.cbData);
+        value = PyBytes_FromStringAndSize((char *)pcra->Value.pbData, pcra->Value.cbData);
 
     if (value == NULL)
         return NULL;
@@ -371,7 +371,7 @@ PyObject *PyWinObject_FromCRYPT_OID_INFO(PCCRYPT_OID_INFO oid_info)
     return Py_BuildValue("{s:s,s:u,s:k,s:k,s:N}", "OID", oid_info->pszOID, "Name", oid_info->pwszName, "GroupId",
                          oid_info->dwGroupId, "Value", oid_info->dwValue,  // this is union, but all same size integers
                          "ExtraInfo",
-                         PyString_FromStringAndSize((char *)oid_info->ExtraInfo.pbData, oid_info->ExtraInfo.cbData));
+                         PyBytes_FromStringAndSize((char *)oid_info->ExtraInfo.pbData, oid_info->ExtraInfo.cbData));
 }
 
 void PyWinObject_FreeCRYPT_DECRYPT_MESSAGE_PARA(PCRYPT_DECRYPT_MESSAGE_PARA pcdmp)
@@ -500,7 +500,7 @@ PCCERT_CONTEXT WINAPI PyLocateCertificate(void *pvGetArg, DWORD dwCertEncodingTy
         TmpPyObject args = Py_BuildValue(
             "OkNN", callback_arg, dwCertEncodingType,
             Py_BuildValue("{s:N, s:N}", "Issuer",
-                          PyString_FromStringAndSize((char *)pSignerId->Issuer.pbData, pSignerId->Issuer.cbData),
+                          PyBytes_FromStringAndSize((char *)pSignerId->Issuer.pbData, pSignerId->Issuer.cbData),
                           "SerialNumber", PyWinObject_FromCRYPT_INTEGER_BLOB(&pSignerId->SerialNumber)),
             PyWinObject_FromCERTSTORE(hMsgCertStore));
         if (args == NULL)
@@ -879,7 +879,7 @@ BOOL PyWinObject_AsOIDArray(PyObject *str_seq, LPSTR **str_array, DWORD *str_cnt
 
     for (tuple_ind = 0; tuple_ind < *str_cnt; tuple_ind++) {
         PyObject *tuple_item = PyTuple_GET_ITEM((PyObject *)str_tuple, tuple_ind);
-        (*str_array)[tuple_ind] = PyString_AsString(tuple_item);
+        (*str_array)[tuple_ind] = PyBytes_AsString(tuple_item);
         if ((*str_array)[tuple_ind] != NULL)
             continue;
         PyErr_Clear();
@@ -910,7 +910,7 @@ PyObject *PyWinObject_FromCTL_USAGE(PCTL_USAGE pUsage)
     ret = PyTuple_New(pUsage->cUsageIdentifier);
     if (ret != NULL)
         for (usage_index = 0; usage_index < pUsage->cUsageIdentifier; usage_index++) {
-            ret_item = PyString_FromString(pUsage->rgpszUsageIdentifier[usage_index]);
+            ret_item = PyBytes_FromString(pUsage->rgpszUsageIdentifier[usage_index]);
             if (ret_item == NULL) {
                 Py_DECREF(ret);
                 ret = NULL;
@@ -957,7 +957,7 @@ PyObject *PyWinObject_FromCERT_KEY_ATTRIBUTES_INFO(PCERT_KEY_ATTRIBUTES_INFO pck
     }
 
     return Py_BuildValue("{s:N, s:N, s:N}", "KeyId",
-                         PyString_FromStringAndSize((char *)pckai->KeyId.pbData, pckai->KeyId.cbData),
+                         PyBytes_FromStringAndSize((char *)pckai->KeyId.pbData, pckai->KeyId.cbData),
                          "IntendedKeyUsage", PyWinObject_FromCRYPT_BIT_BLOB(&pckai->IntendedKeyUsage),
                          "PrivateKeyUsagePeriod", obusageperiod);
 }
@@ -973,7 +973,7 @@ PyObject *PyWinObject_FromCERT_BASIC_CONSTRAINTS_INFO(PCERT_BASIC_CONSTRAINTS_IN
     if (sc == NULL)
         return NULL;
     for (DWORD i = 0; i < pcbci->cSubtreesConstraint; i++) {
-        PyObject *nb = PyString_FromStringAndSize((char *)pcbci->rgSubtreesConstraint[i].pbData,
+        PyObject *nb = PyBytes_FromStringAndSize((char *)pcbci->rgSubtreesConstraint[i].pbData,
                                                   pcbci->rgSubtreesConstraint[i].cbData);
         if (nb == NULL) {
             Py_DECREF(sc);
@@ -1008,7 +1008,7 @@ PyObject *PyWinObject_FromCERT_POLICY_INFO(PCERT_POLICY_INFO pcpi)
     for (DWORD qual_ind = 0; qual_ind < pcpi->cPolicyQualifier; qual_ind++) {
         PyObject *qual = Py_BuildValue(
             "{s:s,s:N}", "PolicyQualifierId", pcpi->rgPolicyQualifier[qual_ind].pszPolicyQualifierId, "Qualifier",
-            PyString_FromStringAndSize((char *)pcpi->rgPolicyQualifier[qual_ind].Qualifier.pbData,
+            PyBytes_FromStringAndSize((char *)pcpi->rgPolicyQualifier[qual_ind].Qualifier.pbData,
                                        pcpi->rgPolicyQualifier[qual_ind].Qualifier.cbData));
         if (qual == NULL) {
             Py_DECREF(quals);
@@ -1042,7 +1042,7 @@ PyObject *PyWinObject_FromCERT_POLICIES_INFO(PCERT_POLICIES_INFO pcpi)
 PyObject *PyWinObject_FromCERT_AUTHORITY_KEY_ID_INFO(PCERT_AUTHORITY_KEY_ID_INFO pcaki)
 {
     return Py_BuildValue("{s:N, s:N, s:N}", "KeyId",
-                         PyString_FromStringAndSize((char *)pcaki->KeyId.pbData, pcaki->KeyId.cbData), "CertIssuer",
-                         PyString_FromStringAndSize((char *)pcaki->CertIssuer.pbData, pcaki->CertIssuer.cbData),
+                         PyBytes_FromStringAndSize((char *)pcaki->KeyId.pbData, pcaki->KeyId.cbData), "CertIssuer",
+                         PyBytes_FromStringAndSize((char *)pcaki->CertIssuer.pbData, pcaki->CertIssuer.cbData),
                          "CertSerialNumber", PyWinObject_FromCRYPT_INTEGER_BLOB(&pcaki->CertSerialNumber));
 }

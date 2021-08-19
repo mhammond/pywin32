@@ -95,7 +95,7 @@ DWORD CALLBACK PyCRichEditCallbackIn(DWORD_PTR dwCookie, LPBYTE pbBuff, LONG cb,
         *pcb = 0;
     }
     else {
-        char *s = PyString_AsString(result);
+        char *s = PyBytes_AsString(result);
         if (s == NULL) {
             //			gui_print_error();
         }

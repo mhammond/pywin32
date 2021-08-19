@@ -31,19 +31,19 @@ PyObject *PyILockBytes::ReadAt(PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "Kk:ReadAt", &ulOffset.QuadPart, &cb))
         return NULL;
 
-    PyObject *pyretval = PyString_FromStringAndSize(NULL, cb);
+    PyObject *pyretval = PyBytes_FromStringAndSize(NULL, cb);
     if (pyretval == NULL)
         return NULL;
     ULONG cbRead;
     PY_INTERFACE_PRECALL;
-    HRESULT hr = pILB->ReadAt(ulOffset, PyString_AS_STRING(pyretval), cb, &cbRead);
+    HRESULT hr = pILB->ReadAt(ulOffset, PyBytes_AS_STRING(pyretval), cb, &cbRead);
     PY_INTERFACE_POSTCALL;
     if (FAILED(hr)) {
         Py_DECREF(pyretval);
         return PyCom_BuildPyException(hr, pILB, IID_ILockBytes);
     }
     // @comm The result is a binary buffer returned in a string.
-    _PyString_Resize(&pyretval, cbRead);
+    _PyBytes_Resize(&pyretval, cbRead);
     return pyretval;
 }
 
@@ -284,7 +284,7 @@ STDMETHODIMP PyGLockBytes::WriteAt(
 
     PY_GATEWAY_METHOD;
     PyObject *obulOffset = PyWinObject_FromULARGE_INTEGER(ulOffset);
-    PyObject *obbuf = PyString_FromStringAndSize((char *)pv, cb);
+    PyObject *obbuf = PyBytes_FromStringAndSize((char *)pv, cb);
     PyObject *result;
     HRESULT hr = InvokeViaPolicy("WriteAt", &result, "OO", obulOffset, obbuf);
     Py_XDECREF(obulOffset);

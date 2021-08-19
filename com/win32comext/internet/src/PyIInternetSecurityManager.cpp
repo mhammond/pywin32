@@ -115,7 +115,7 @@ PyObject *PyIInternetSecurityManager::GetSecurityId(PyObject *self, PyObject *ar
     PY_INTERFACE_POSTCALL;
     if (FAILED(hr))
         return PyCom_BuildPyException(hr, pIISM, IID_IInternetSecurityManager);
-    return PyString_FromStringAndSize((char *)buf, cbSecurityId);
+    return PyBytes_FromStringAndSize((char *)buf, cbSecurityId);
 }
 
 // @pymethod |PyIInternetSecurityManager|ProcessUrlAction|Description of ProcessUrlAction.
@@ -363,7 +363,7 @@ STDMETHODIMP PyGInternetSecurityManager::ProcessUrlAction(
         Py_INCREF(Py_None);
     }
     else
-        obContext = PyString_FromStringAndSize((char *)pContext, cbContext);
+        obContext = PyBytes_FromStringAndSize((char *)pContext, cbContext);
     PyObject *result;
     HRESULT hr =
         InvokeViaPolicy("ProcessUrlAction", &result, "OlOll", obpwszUrl, dwAction, obContext, dwFlags, dwReserved);

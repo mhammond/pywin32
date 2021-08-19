@@ -42,7 +42,7 @@ static PyObject *PyGetModuleFilename(PyObject *self, PyObject *args)
 #ifdef UNICODE
     return PyUnicode_FromUnicode(buf, wcslen(buf));
 #else
-    return PyString_FromString(buf);
+    return PyBytes_FromString(buf);
 #endif
 }
 
@@ -70,7 +70,7 @@ static PyObject *PyLoadModule(PyObject *self, PyObject *args)
 #ifdef UNICODE
     return PyUnicode_FromUnicode(buf, wcslen(buf));
 #else
-    return PyString_FromString(buf);
+    return PyBytes_FromString(buf);
 #endif
 }
 

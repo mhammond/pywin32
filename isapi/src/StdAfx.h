@@ -63,7 +63,7 @@ typedef int Py_ssize_t;
 
 // Macros to handle PyObject layout changes in Py3k
 #define PYISAPI_OBJECT_HEAD PyObject_HEAD_INIT(&PyType_Type) 0,
-#define PYISAPI_ATTR_CONVERT PyString_AsString
+#define PYISAPI_ATTR_CONVERT PyBytes_AsString
 
 #else  // Py3k definitions
 
@@ -72,12 +72,12 @@ typedef int Py_ssize_t;
 #define PYISAPI_ATTR_CONVERT PyUnicode_AsUnicode
 
 // And some old py2k functions we can map to their new names...
-#define PyString_Check PyBytes_Check
-#define PyString_Size PyBytes_Size
-#define PyString_AsString PyBytes_AsString
-#define PyString_FromString PyBytes_FromString
-#define PyString_FromStringAndSize PyBytes_FromStringAndSize
-#define PyString_AS_STRING PyBytes_AS_STRING
+#define PyBytes_Check PyBytes_Check
+#define PyBytes_Size PyBytes_Size
+#define PyBytes_AsString PyBytes_AsString
+#define PyBytes_FromString PyBytes_FromString
+#define PyBytes_FromStringAndSize PyBytes_FromStringAndSize
+#define PyBytes_AS_STRING PyBytes_AS_STRING
 #define PyInt_AsLong PyLong_AsLong
 #define PyInt_FromLong PyLong_FromLong
 #define PyInt_Check PyLong_Check

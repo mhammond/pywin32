@@ -487,7 +487,7 @@ PyObject *PyCERTSTORE::PyPFXExportCertStoreEx(PyObject *self, PyObject *args, Py
     PyObject *ret = NULL;
     Py_BEGIN_ALLOW_THREADS bsuccess = PFXExportCertStoreEx(hcertstore, &out, password, NULL, flags);
     Py_END_ALLOW_THREADS if (!bsuccess) PyWin_SetAPIError("PFXExportCertStoreEx");
-    else ret = PyString_FromStringAndSize((char *)out.pbData, out.cbData);
+    else ret = PyBytes_FromStringAndSize((char *)out.pbData, out.cbData);
     free(out.pbData);
     return ret;
 }
@@ -551,7 +551,7 @@ property id return NULL;
     if (!bsuccess)
         PyWin_SetAPIError("CertGetStoreProperty");
     else
-        ret = PyString_FromStringAndSize((char *)buf, bufsize);
+        ret = PyBytes_FromStringAndSize((char *)buf, bufsize);
     free(buf);
     return ret;
 }

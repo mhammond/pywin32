@@ -242,7 +242,7 @@ PyEventLogRecord::PyEventLogRecord(EVENTLOGRECORD *pEvt)
 		Sids = PyWinObject_FromSID( (PSID)(((BYTE *)pEvt) + pEvt->UserSidOffset));
 	}
 
-	Data = PyString_FromStringAndSize(((char *)pEvt)+pEvt->DataOffset, pEvt->DataLength);
+	Data = PyBytes_FromStringAndSize(((char *)pEvt)+pEvt->DataOffset, pEvt->DataLength);
 
 	WCHAR *szSourceName = (WCHAR *)(((BYTE *)pEvt) + sizeof(EVENTLOGRECORD));
 	SourceName = PyWinObject_FromWCHAR(szSourceName);
@@ -1364,7 +1364,7 @@ PyObject *PyWinObject_FromEVT_VARIANT(PEVT_VARIANT val)
 			obval = PyBool_FromLong(val->BooleanVal);
 			break;
 		case EvtVarTypeBinary:
-			obval = PyString_FromStringAndSize((char *)val->BinaryVal, val->Count);
+			obval = PyBytes_FromStringAndSize((char *)val->BinaryVal, val->Count);
 			break;
 		case EvtVarTypeGuid:
 			obval = PyWinObject_FromIID(*val->GuidVal);

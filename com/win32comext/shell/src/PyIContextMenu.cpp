@@ -113,7 +113,7 @@ PyObject *PyIContextMenu::GetCommandString(PyObject *self, PyObject *args)
     if (uType & GCS_UNICODE)
         ret = PyWinObject_FromWCHAR((WCHAR *)buf);
     else
-        ret = PyString_FromString(buf);
+        ret = PyBytes_FromString(buf);
     free(buf);
     return ret;
 }
@@ -175,7 +175,7 @@ STDMETHODIMP PyGContextMenu::GetCommandString(
     HRESULT hr = InvokeViaPolicy("GetCommandString", &result, "NI", PyWinObject_FromULONG_PTR(idCmd), uFlags);
     if (FAILED(hr))
         return hr;
-    if (result && (PyString_Check(result) || PyUnicode_Check(result))) {
+    if (result && (PyBytes_Check(result) || PyUnicode_Check(result))) {
         if (uFlags == GCS_HELPTEXTW || uFlags == GCS_VERBW) {
             WCHAR *szResult;
             if (PyWinObject_AsWCHAR(result, &szResult, FALSE, NULL)) {

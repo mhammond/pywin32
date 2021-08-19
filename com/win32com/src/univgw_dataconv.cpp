@@ -45,7 +45,7 @@ PyObject *dataconv_strL64(PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "L:strL64", &val))
         return NULL;
 
-    return PyString_FromStringAndSize((char *)&val, sizeof(val));
+    return PyBytes_FromStringAndSize((char *)&val, sizeof(val));
 }
 
 PyObject *dataconv_strUL64(PyObject *self, PyObject *args)
@@ -57,7 +57,7 @@ PyObject *dataconv_strUL64(PyObject *self, PyObject *args)
 
     unsigned __int64 val = PyLong_AsUnsignedLongLong(ob);
 
-    return PyString_FromStringAndSize((char *)&val, sizeof(val));
+    return PyBytes_FromStringAndSize((char *)&val, sizeof(val));
 }
 
 PyObject *dataconv_interface(PyObject *self, PyObject *args)
@@ -301,7 +301,7 @@ PyObject *dataconv_WriteFromOutTuple(PyObject *self, PyObject *args)
                 BSTR bstr = *(BSTR *)pbArg;
                 BSTR bstrT;
                 UINT cch = SysStringLen(bstr);
-                if (PyString_Check(obOutValue) || PyUnicode_Check(obOutValue)) {
+                if (PyBytes_Check(obOutValue) || PyUnicode_Check(obOutValue)) {
                     if (!PyWinObject_AsBstr(obOutValue, &bstrT)) {
                         goto Error;
                     }
@@ -340,7 +340,7 @@ PyObject *dataconv_WriteFromOutTuple(PyObject *self, PyObject *args)
 
                 *pbstr = NULL;
 
-                if (PyString_Check(obOutValue) || PyUnicode_Check(obOutValue)) {
+                if (PyBytes_Check(obOutValue) || PyUnicode_Check(obOutValue)) {
                     if (!PyWinObject_AsBstr(obOutValue, &bstrT)) {
                         goto Error;
                     }
@@ -428,9 +428,9 @@ PyObject *dataconv_WriteFromOutTuple(PyObject *self, PyObject *args)
             case VT_UI1 | VT_BYREF: {
                 BYTE *pb = *(BYTE **)pbArg;
                 BYTE *pbOutBuffer = NULL;
-                if (PyString_Check(obOutValue)) {
-                    pbOutBuffer = (BYTE *)PyString_AS_STRING(obOutValue);
-                    Py_ssize_t cb = PyString_GET_SIZE(obOutValue);
+                if (PyBytes_Check(obOutValue)) {
+                    pbOutBuffer = (BYTE *)PyBytes_AS_STRING(obOutValue);
+                    Py_ssize_t cb = PyBytes_GET_SIZE(obOutValue);
                     memcpy(pb, pbOutBuffer, cb);
                 }
                 // keep this after string check since string can act as buffers
@@ -667,7 +667,7 @@ PyObject *dataconv_ReadFromInTuple(PyObject *self, PyObject *args)
                         obArg = PyCom_PyObjectFromVariant((VARIANT *)pb);
                     break;
                 case VT_LPSTR:
-                    obArg = PyString_FromString(*(CHAR **)pb);
+                    obArg = PyBytes_FromString(*(CHAR **)pb);
                     break;
                 case VT_LPWSTR:
                     obArg = PyWinObject_FromOLECHAR(*(OLECHAR **)pb);

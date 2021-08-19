@@ -284,7 +284,7 @@ PyObject *PyDSOP_SCOPE_INIT_INFO::getattro(PyObject *self, PyObject *obname)
 {
     PyDSOP_SCOPE_INIT_INFO *p = (PyDSOP_SCOPE_INIT_INFO *)self;
     DSOP_SCOPE_INIT_INFO *pssi = p->owner->pScopes + p->index;
-    char *name = PyString_AsString(obname);
+    char *name = PyBytes_AsString(obname);
     if (!name)
         return NULL;
     // @prop int|type|
@@ -309,7 +309,7 @@ int PyDSOP_SCOPE_INIT_INFO::setattro(PyObject *self, PyObject *obname, PyObject 
 {
     PyDSOP_SCOPE_INIT_INFO *p = (PyDSOP_SCOPE_INIT_INFO *)self;
     DSOP_SCOPE_INIT_INFO *pssi = p->owner->pScopes + p->index;
-    char *name = PyString_AsString(obname);
+    char *name = PyBytes_AsString(obname);
     PyErr_Clear();
     if (strcmp(name, "type") == 0) {
         pssi->flType = PyInt_AsLong(val);
@@ -404,7 +404,7 @@ PyDSOP_FILTER_FLAGS::~PyDSOP_FILTER_FLAGS() { Py_DECREF(owner); }
 PyObject *PyDSOP_FILTER_FLAGS::getattro(PyObject *self, PyObject *obname)
 {
     PyDSOP_FILTER_FLAGS *p = (PyDSOP_FILTER_FLAGS *)self;
-    char *name = PyString_AsString(obname);
+    char *name = PyBytes_AsString(obname);
     if (!name)
         return NULL;
     DSOP_SCOPE_INIT_INFO *psii = p->owner->owner->pScopes + p->owner->index;
@@ -420,7 +420,7 @@ PyObject *PyDSOP_FILTER_FLAGS::getattro(PyObject *self, PyObject *obname)
 int PyDSOP_FILTER_FLAGS::setattro(PyObject *self, PyObject *obname, PyObject *val)
 {
     PyDSOP_FILTER_FLAGS *p = (PyDSOP_FILTER_FLAGS *)self;
-    char *name = PyString_AsString(obname);
+    char *name = PyBytes_AsString(obname);
     if (!name)
         return NULL;
     DSOP_SCOPE_INIT_INFO *psii = p->owner->owner->pScopes + p->owner->index;
@@ -502,7 +502,7 @@ PyObject *PyDSOP_UPLEVEL_FILTER_FLAGS::getattro(PyObject *self, PyObject *obname
 {
     PyDSOP_UPLEVEL_FILTER_FLAGS *p = (PyDSOP_UPLEVEL_FILTER_FLAGS *)self;
     DSOP_SCOPE_INIT_INFO *psii = p->owner->owner->pScopes + p->owner->index;
-    char *name = PyString_AsString(obname);
+    char *name = PyBytes_AsString(obname);
     if (!name)
         return NULL;
     // @prop int|bothModes|
@@ -521,7 +521,7 @@ int PyDSOP_UPLEVEL_FILTER_FLAGS::setattro(PyObject *self, PyObject *obname, PyOb
 {
     PyDSOP_UPLEVEL_FILTER_FLAGS *p = (PyDSOP_UPLEVEL_FILTER_FLAGS *)self;
     DSOP_SCOPE_INIT_INFO *psii = p->owner->owner->pScopes + p->owner->index;
-    char *name = PyString_AsString(obname);
+    char *name = PyBytes_AsString(obname);
     if (!name)
         return NULL;
     PyErr_Clear();

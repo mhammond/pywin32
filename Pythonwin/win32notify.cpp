@@ -49,7 +49,7 @@ PyObject *PyNotifyMakeExtraTuple(NMHDR *ptr, char *fmt)
             case 's':  // string buffer - same for this parse
             {
                 char *use = (*fmt == 'z') ? *(char **)pUse : pUse;
-                ob = bIgnore ? NULL : PyString_FromString("");  // HACK HACK - FIX ME FIX ME
+                ob = bIgnore ? NULL : PyBytes_FromString("");  // HACK HACK - FIX ME FIX ME
                 if (*fmt == 's') {                              // followed by buffer size;
                     int val = 0;
                     while (fmt[1] && isdigit(fmt[1])) {
@@ -67,7 +67,7 @@ PyObject *PyNotifyMakeExtraTuple(NMHDR *ptr, char *fmt)
             case 'S':  // Unicode buffer - same for this parse
             {
                 char *use = (*fmt == 'Z') ? *(char **)pUse : pUse;
-                ob = bIgnore ? NULL : PyString_FromString("");  // HACK HACK - FIX ME FIX ME
+                ob = bIgnore ? NULL : PyBytes_FromString("");  // HACK HACK - FIX ME FIX ME
                 if (*fmt == 'S') {                              // followed by buffer size;
                     int val = 0;
                     while (fmt[1] && isdigit(fmt[1])) {
@@ -200,9 +200,9 @@ void PyNotifyParseExtraTuple(NMHDR *ptr, PyObject *args, char *fmt)
                 }
                 ASSERT(bufSize);
                 if (!bIgnore) {
-                    if (!PyString_Check(ob))
+                    if (!PyBytes_Check(ob))
                         MY_RET_ERR("Expected string object")
-                    char *val = PyString_AsString(ob);
+                    char *val = PyBytes_AsString(ob);
                     SSIZE_T slen = strlen(val);
                     SSIZE_T copylen = max(bufSize - 1, slen);
                     strncpy(pUse, val, copylen);

@@ -339,7 +339,7 @@ PyObject *PyIDirectSoundBuffer::Update(PyObject *self, PyObject *args)
     DWORD dwAudioBytes2 = 0;
 
     PY_INTERFACE_PRECALL;
-    hr = pIDSB->Lock(dwWriteCursor, PyString_Size(obData), &lpAudioPtr1, &dwAudioBytes1, &lpAudioPtr2, &dwAudioBytes2,
+    hr = pIDSB->Lock(dwWriteCursor, PyBytes_Size(obData), &lpAudioPtr1, &dwAudioBytes1, &lpAudioPtr2, &dwAudioBytes2,
                      dwFlags);
     PY_INTERFACE_POSTCALL;
 
@@ -353,7 +353,7 @@ PyObject *PyIDirectSoundBuffer::Update(PyObject *self, PyObject *args)
 
     // Raise error if assumption isn't met
 
-    if (dwAudioBytes1 + dwAudioBytes2 != (DWORD)PyString_Size(obData)) {
+    if (dwAudioBytes1 + dwAudioBytes2 != (DWORD)PyBytes_Size(obData)) {
         PY_INTERFACE_PRECALL;
         hr = pIDSB->Unlock(lpAudioPtr1, dwAudioBytes1, lpAudioPtr2, dwAudioBytes2);
         PY_INTERFACE_POSTCALL;
@@ -363,9 +363,9 @@ PyObject *PyIDirectSoundBuffer::Update(PyObject *self, PyObject *args)
         return NULL;
     }
 
-    memcpy(lpAudioPtr1, PyString_AsString(obData), dwAudioBytes1);
+    memcpy(lpAudioPtr1, PyBytes_AsString(obData), dwAudioBytes1);
     if (dwAudioBytes2) {
-        memcpy(lpAudioPtr2, PyString_AsString(obData) + dwAudioBytes1, dwAudioBytes2);
+        memcpy(lpAudioPtr2, PyBytes_AsString(obData) + dwAudioBytes1, dwAudioBytes2);
     }
 
     {

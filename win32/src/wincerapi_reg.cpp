@@ -312,11 +312,11 @@ static int Py2Reg(PyObject *value, DWORD typ, BYTE **retDataBuf, DWORD *retDataS
             if (value == Py_None)
                 *retDataSize = 0;
             else {
-                if (!PyString_Check(value))
+                if (!PyBytes_Check(value))
                     return 0;
-                *retDataSize = PyString_Size(value);
+                *retDataSize = PyBytes_Size(value);
                 *retDataBuf = (BYTE *)PyMem_NEW(char, *retDataSize);
-                memcpy(*retDataBuf, PyString_AS_STRING((PyStringObject *)value), *retDataSize);
+                memcpy(*retDataBuf, PyBytes_AS_STRING((PyStringObject *)value), *retDataSize);
             }
             break;
     }

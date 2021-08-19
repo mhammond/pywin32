@@ -412,7 +412,7 @@ PyObject *PySecBuffer::getattro(PyObject *self, PyObject *obname)
     if (name == NULL)
         return NULL;
     if (strcmp(name, "Buffer") == 0)
-        return PyString_FromStringAndSize((char *)psecbuffer->pvBuffer, psecbuffer->cbBuffer);
+        return PyBytes_FromStringAndSize((char *)psecbuffer->pvBuffer, psecbuffer->cbBuffer);
     return PyObject_GenericGetAttr(self, obname);
 }
 
@@ -848,7 +848,7 @@ PyObject *PyCtxtHandle::QueryContextAttributes(PyObject *self, PyObject *args)
         case SECPKG_ATTR_SESSION_KEY:
             PSecPkgContext_SessionKey sk;
             sk = (PSecPkgContext_SessionKey)&buf;
-            ret = PyString_FromStringAndSize((const char *)sk->SessionKey, sk->SessionKeyLength);
+            ret = PyBytes_FromStringAndSize((const char *)sk->SessionKey, sk->SessionKeyLength);
             (*psecurityfunctiontable->FreeContextBuffer)(sk->SessionKey);
             break;
         // @flag SECPKG_ATTR_ISSUER_LIST_EX|(int, string) - Returns names of trusted certificate issuers
@@ -856,7 +856,7 @@ PyObject *PyCtxtHandle::QueryContextAttributes(PyObject *self, PyObject *args)
             PSecPkgContext_IssuerListInfoEx li;
             li = (PSecPkgContext_IssuerListInfoEx)&buf;
             ret = Py_BuildValue("lN", li->cIssuers,
-                                PyString_FromStringAndSize((char *)li->aIssuers->pbData, li->aIssuers->cbData));
+                                PyBytes_FromStringAndSize((char *)li->aIssuers->pbData, li->aIssuers->cbData));
             (*psecurityfunctiontable->FreeContextBuffer)(li->aIssuers);
             break;
         // @flag SECPKG_ATTR_FLAGS|int - returns flags negotiated when context was established
@@ -914,7 +914,7 @@ PyObject *PyCtxtHandle::QueryContextAttributes(PyObject *self, PyObject *args)
         case SECPKG_ATTR_TARGET_INFORMATION:
             PSecPkgContext_TargetInformation ti;
             ti = (PSecPkgContext_TargetInformation)&buf;
-            ret = PyString_FromStringAndSize((const char *)ti->MarshalledTargetInfo, ti->MarshalledTargetInfoLength);
+            ret = PyBytes_FromStringAndSize((const char *)ti->MarshalledTargetInfo, ti->MarshalledTargetInfoLength);
             (*psecurityfunctiontable->FreeContextBuffer)(ti->MarshalledTargetInfo);
             break;
         // @flag SECPKG_ATTR_STREAM_SIZES|dict (see SecPkgContext_StreamSizes) containing message buffer sizes

@@ -2520,7 +2520,7 @@ static PyObject *PyFlushPrinter(PyObject *self, PyObject *args)
                           &obbuf,      // @pyparm str|Buf||Data to be sent to printer
                           &sleep_ms))  // @pyparm int|Sleep||Number of milliseconds to suspend printer
         return NULL;
-    if (PyString_AsStringAndSize(obbuf, (char **)&buf, &bufsize) == -1)
+    if (PyBytes_AsStringAndSize(obbuf, (char **)&buf, &bufsize) == -1)
         return NULL;
     if (!(*pfnFlushPrinter)(hprinter, buf, PyWin_SAFE_DOWNCAST(bufsize, Py_ssize_t, DWORD), &bytes_written, sleep_ms))
         return PyWin_SetAPIError("FlushPrinter");
