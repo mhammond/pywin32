@@ -725,7 +725,7 @@ static PyObject *PyFormatMessageA(PyObject *self, PyObject *args)
         // @pyseeapi FormatMessage
         if (::FormatMessageA(flags, hmodule, errCode, 0, buf, bufSize, NULL) <= 0)
             return ReturnAPIError("FormatMessage");
-        return PyString_FromString(buf);
+        return PyBytes_FromString(buf);
     }
     PyErr_Clear();
     // Support for "full" argument list
@@ -803,7 +803,7 @@ static PyObject *PyFormatMessageA(PyObject *self, PyObject *args)
     else if (lrc <= 0)
         PyWin_SetAPIError("FormatMessageA");
     else
-        rc = PyString_FromString(resultBuf);
+        rc = PyBytes_FromString(resultBuf);
 
 cleanup:
     if (pInserts) {
@@ -1455,8 +1455,8 @@ static PyObject *PyGetFileAttributes(PyObject *self, PyObject *args)
     rc = ::GetFileAttributesW(PathName);
     PyWinObject_FreeWCHAR(PathName);
 #else
-    if (PyString_Check(obPathName)) {
-        PyW32_BEGIN_ALLOW_THREADS rc = ::GetFileAttributesA(PyString_AS_STRING(obPathName));
+    if (PyBytes_Check(obPathName)) {
+        PyW32_BEGIN_ALLOW_THREADS rc = ::GetFileAttributesA(PyBytes_AS_STRING(obPathName));
         PyW32_END_ALLOW_THREADS
     }
     else if (PyUnicode_Check(obPathName)) {
@@ -1514,7 +1514,7 @@ static PyObject *PyGetKeyboardState(PyObject *self, PyObject *args)
         ok = GetKeyboardState(buf);
     PyW32_END_ALLOW_THREADS if (!ok) return PyWin_SetAPIError("GetKeyboardState");
 
-    return PyString_FromStringAndSize((char *)buf, 256);
+    return PyBytes_FromStringAndSize((char *)buf, 256);
     // @rdesc The return value is a string of exactly 256 characters.
     // Each character represents the bitmask for a key - see the Win32
     // documentation for more details.
@@ -1531,14 +1531,14 @@ static PyObject *PyVkKeyScan(PyObject *self, PyObject *args)
         return (NULL);
 
     int ret;
-    if (PyString_Check(obkey)) {
-        if (PyString_GET_SIZE(obkey) != 1) {
+    if (PyBytes_Check(obkey)) {
+        if (PyBytes_GET_SIZE(obkey) != 1) {
             PyErr_SetString(PyExc_TypeError, "must be a byte string of length 1");
             return NULL;
         }
         PyW32_BEGIN_ALLOW_THREADS
             // @pyseeapi VkKeyScanA
-            ret = VkKeyScanA(PyString_AS_STRING(obkey)[0]);
+            ret = VkKeyScanA(PyBytes_AS_STRING(obkey)[0]);
         PyW32_END_ALLOW_THREADS
     }
     else if (PyUnicode_Check(obkey)) {
@@ -1575,14 +1575,14 @@ static PyObject *PyVkKeyScanEx(PyObject *self, PyObject *args)
         return NULL;
 
     int ret;
-    if (PyString_Check(obkey)) {
-        if (PyString_GET_SIZE(obkey) != 1) {
+    if (PyBytes_Check(obkey)) {
+        if (PyBytes_GET_SIZE(obkey) != 1) {
             PyErr_SetString(PyExc_TypeError, "must be a byte string of length 1");
             return NULL;
         }
         PyW32_BEGIN_ALLOW_THREADS
             // @pyseeapi VkKeyScanExA
-            ret = VkKeyScanExA(PyString_AS_STRING(obkey)[0], hkl);
+            ret = VkKeyScanExA(PyBytes_AS_STRING(obkey)[0], hkl);
         PyW32_END_ALLOW_THREADS
     }
     else if (PyUnicode_Check(obkey)) {
@@ -1689,7 +1689,7 @@ static PyObject *PyGetModuleFileName(PyObject *self, PyObject *args)
             break;
         }
         if (reqdsize < bufsize) {
-            ret = PyString_FromString(buf);
+            ret = PyBytes_FromString(buf);
             break;
         }
         reqdsize++;
@@ -2232,7 +2232,7 @@ static PyObject *PyGetShortPathName(PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "O:GetShortPathName", &obPath))
         return NULL;
 #ifndef UNICODE
-    if (PyString_Check(obPath)) {
+    if (PyBytes_Check(obPath)) {
         char *path;
         if (!PyWinObject_AsString(obPath, &path))
             return NULL;
@@ -2306,7 +2306,7 @@ static PyObject *PyGetLongPathNameA(PyObject *self, PyObject *args)
             break;
         }
         if (reqd_bufsize <= bufsize) {
-            ret = PyString_FromStringAndSize(pathBuf, reqd_bufsize);
+            ret = PyBytes_FromStringAndSize(pathBuf, reqd_bufsize);
             break;
         }
         bufsize = reqd_bufsize + 1;
@@ -3372,8 +3372,8 @@ static PyObject *PyRegEnumKeyEx(PyObject *self, PyObject *args)
                 break;
             }
             obretitem =
-                Py_BuildValue("NiNN", PyString_FromStringAndSize(key_name, key_len), 0,
-                              PyString_FromStringAndSize(class_name, class_len), PyWinObject_FromFILETIME(timestamp));
+                Py_BuildValue("NiNN", PyBytes_FromStringAndSize(key_name, key_len), 0,
+                              PyBytes_FromStringAndSize(class_name, class_len), PyWinObject_FromFILETIME(timestamp));
             if (obretitem == NULL) {
                 Py_DECREF(ret);
                 ret = NULL;
@@ -3673,7 +3673,7 @@ static PyObject *PyWinObject_FromRegistryValue(BYTE *retDataBuf, DWORD retDataSi
                 obData = Py_None;
             }
             else
-                obData = PyString_FromStringAndSize((char *)retDataBuf, retDataSize);
+                obData = PyBytes_FromStringAndSize((char *)retDataBuf, retDataSize);
             break;
     }
     return obData;
@@ -4673,8 +4673,8 @@ static PyObject *PyWinHelp(PyObject *self, PyObject *args)
         return NULL;
     if (dataOb == Py_None)
         data = 0;
-    else if (PyString_Check(dataOb))
-        data = (ULONG_PTR)PyString_AsString(dataOb);
+    else if (PyBytes_Check(dataOb))
+        data = (ULONG_PTR)PyBytes_AsString(dataOb);
     else if (!PyWinLong_AsVoidPtr(dataOb, (void **)&data))
         return NULL;
     if (!PyWinObject_AsTCHAR(obhlpFile, &hlpFile, FALSE))
@@ -5260,7 +5260,7 @@ static PyObject *PyLoadResource(PyObject *self, PyObject *args)
                     if (p == NULL)
                         PyWin_SetAPIError("LockResource");
                     else
-                        ret = PyString_FromStringAndSize((char *)p, size);
+                        ret = PyBytes_FromStringAndSize((char *)p, size);
                 }
             }
         }
@@ -6018,7 +6018,7 @@ PyObject *PyToAsciiEx(PyObject *self, PyObject *args)
         Py_INCREF(Py_None);
         return Py_None;
     }
-    return PyString_FromStringAndSize(result, nc);
+    return PyBytes_FromStringAndSize(result, nc);
 }
 
 // @pymethod int|win32api|MapVirtualKey|Translates (maps) a virtual-key code into a scan code or character value, or

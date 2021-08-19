@@ -117,9 +117,9 @@ PyObject *PyDEVMODEA::get_DeviceName(PyObject *self, void *unused)
 {
     PDEVMODEA pdevmode = ((PyDEVMODEA *)self)->pdevmode;
     if (pdevmode->dmDeviceName[CCHDEVICENAME - 1] == 0)  // in case DeviceName fills space and has no trailing NULL
-        return PyString_FromString((char *)&pdevmode->dmDeviceName);
+        return PyBytes_FromString((char *)&pdevmode->dmDeviceName);
     else
-        return PyString_FromStringAndSize((char *)&pdevmode->dmDeviceName, CCHDEVICENAME);
+        return PyBytes_FromStringAndSize((char *)&pdevmode->dmDeviceName, CCHDEVICENAME);
 }
 
 int PyDEVMODEA::set_DeviceName(PyObject *self, PyObject *v, void *unused)
@@ -130,7 +130,7 @@ int PyDEVMODEA::set_DeviceName(PyObject *self, PyObject *v, void *unused)
     }
     char *value;
     Py_ssize_t valuelen;
-    if (PyString_AsStringAndSize(v, &value, &valuelen) == -1)
+    if (PyBytes_AsStringAndSize(v, &value, &valuelen) == -1)
         return -1;
     if (valuelen > CCHDEVICENAME) {
         PyErr_Format(PyExc_ValueError, "DeviceName must be a string of length %d or less", CCHDEVICENAME);
@@ -149,9 +149,9 @@ PyObject *PyDEVMODEA::get_FormName(PyObject *self, void *unused)
 {
     PDEVMODEA pdevmode = ((PyDEVMODEA *)self)->pdevmode;
     if (pdevmode->dmFormName[CCHFORMNAME - 1] == 0)  // If dmFormName occupies whole 32 chars, trailing NULL not present
-        return PyString_FromString((char *)&pdevmode->dmFormName);
+        return PyBytes_FromString((char *)&pdevmode->dmFormName);
     else
-        return PyString_FromStringAndSize((char *)&pdevmode->dmFormName, CCHFORMNAME);
+        return PyBytes_FromStringAndSize((char *)&pdevmode->dmFormName, CCHFORMNAME);
 }
 
 int PyDEVMODEA::set_FormName(PyObject *self, PyObject *v, void *unused)
@@ -162,7 +162,7 @@ int PyDEVMODEA::set_FormName(PyObject *self, PyObject *v, void *unused)
     }
     char *value;
     Py_ssize_t valuelen;
-    if (PyString_AsStringAndSize(v, &value, &valuelen) == -1)
+    if (PyBytes_AsStringAndSize(v, &value, &valuelen) == -1)
         return -1;
     if (valuelen > CCHFORMNAME) {
         PyErr_Format(PyExc_ValueError, "FormName must be a string of length %d or less", CCHFORMNAME);
@@ -184,7 +184,7 @@ PyObject *PyDEVMODEA::get_DriverData(PyObject *self, void *unused)
         Py_INCREF(Py_None);
         return Py_None;
     }
-    return PyString_FromStringAndSize((char *)((ULONG_PTR)pdevmode + pdevmode->dmSize), pdevmode->dmDriverExtra);
+    return PyBytes_FromStringAndSize((char *)((ULONG_PTR)pdevmode + pdevmode->dmSize), pdevmode->dmDriverExtra);
 }
 
 int PyDEVMODEA::set_DriverData(PyObject *self, PyObject *v, void *unused)
@@ -195,7 +195,7 @@ int PyDEVMODEA::set_DriverData(PyObject *self, PyObject *v, void *unused)
     }
     char *value;
     Py_ssize_t valuelen;
-    if (PyString_AsStringAndSize(v, &value, &valuelen) == -1)
+    if (PyBytes_AsStringAndSize(v, &value, &valuelen) == -1)
         return -1;
     PDEVMODEA pdevmode = ((PyDEVMODEA *)self)->pdevmode;
     if (valuelen > pdevmode->dmDriverExtra) {
@@ -585,7 +585,7 @@ PyObject *PyDEVMODEW::get_DriverData(PyObject *self, void *unused)
         Py_INCREF(Py_None);
         return Py_None;
     }
-    return PyString_FromStringAndSize((char *)((ULONG_PTR)pdevmode + pdevmode->dmSize), pdevmode->dmDriverExtra);
+    return PyBytes_FromStringAndSize((char *)((ULONG_PTR)pdevmode + pdevmode->dmSize), pdevmode->dmDriverExtra);
 }
 
 int PyDEVMODEW::set_DriverData(PyObject *self, PyObject *v, void *unused)
@@ -596,7 +596,7 @@ int PyDEVMODEW::set_DriverData(PyObject *self, PyObject *v, void *unused)
     }
     char *value;
     Py_ssize_t valuelen;
-    if (PyString_AsStringAndSize(v, &value, &valuelen) == -1)
+    if (PyBytes_AsStringAndSize(v, &value, &valuelen) == -1)
         return -1;
     PDEVMODEW pdevmode = ((PyDEVMODEW *)self)->pdevmode;
     if (valuelen > pdevmode->dmDriverExtra) {

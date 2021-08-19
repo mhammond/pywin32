@@ -192,7 +192,7 @@ PyObject *PyCRYPTHASH::PyCryptSignHash(PyObject *self, PyObject *args, PyObject 
     if (!CryptSignHash(hcrypthash, dwKeySpec, sDescription, dwFlags, pbSignature, &dwSigLen))
         PyWin_SetAPIError("PyCRYPTHASH::CryptSignHash", GetLastError());
     else
-        ret = PyString_FromStringAndSize((char *)pbSignature, dwSigLen);
+        ret = PyBytes_FromStringAndSize((char *)pbSignature, dwSigLen);
 
     if (pbSignature != NULL)
         free(pbSignature);
@@ -256,7 +256,7 @@ PyObject *PyCRYPTHASH::PyCryptGetHashParam(PyObject *self, PyObject *args, PyObj
                 ret = PyLong_FromUnsignedLong(*((unsigned long *)buf));
                 break;
             case HP_HASHVAL:
-                ret = PyString_FromStringAndSize((char *)buf, buflen);
+                ret = PyBytes_FromStringAndSize((char *)buf, buflen);
                 break;
             default:
                 PyErr_Format(PyExc_NotImplementedError, "Hash parameter %d is not yet supported", param);

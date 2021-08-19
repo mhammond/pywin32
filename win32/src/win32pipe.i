@@ -279,10 +279,10 @@ PyObject *MyTransactNamedPipe(PyObject *self, PyObject *args)
 			    }
 			readData = read_buf.ptr();
 		} else {
-			obRet=PyString_FromStringAndSize(NULL, cbReadData);
+			obRet=PyBytes_FromStringAndSize(NULL, cbReadData);
 			if (obRet==NULL)
 				return NULL;
-			readData=PyString_AS_STRING(obRet);
+			readData=PyBytes_AS_STRING(obRet);
 			bIsNewString=TRUE;
 		}
 	} else {
@@ -314,9 +314,9 @@ PyObject *MyTransactNamedPipe(PyObject *self, PyObject *args)
 		}
 	}
 	if (obRet==NULL)
-		obRet=PyString_FromStringAndSize((char *)readData, numRead);
+		obRet=PyBytes_FromStringAndSize((char *)readData, numRead);
 	else if (bIsNewString && (numRead < cbReadData))
-		_PyString_Resize(&obRet, numRead);
+		_PyBytes_Resize(&obRet, numRead);
 	if (obRet==NULL)
 		return NULL;
 	return Py_BuildValue("iN", err, obRet);
@@ -359,7 +359,7 @@ PyObject *MyCallNamedPipe(PyObject *self, PyObject *args)
 		free(readBuf);
 		return PyWin_SetAPIError("CallNamedPipe");
 	}
-	PyObject *rc = PyString_FromStringAndSize( (char *)readBuf, numRead);
+	PyObject *rc = PyBytes_FromStringAndSize( (char *)readBuf, numRead);
 	PyWinObject_FreeTCHAR(szPipeName);
 	free(readBuf);
 	return rc;
@@ -481,7 +481,7 @@ PyObject *MyPeekNamedPipe(PyObject *self, PyObject *args)
 	PyObject *rc = NULL;
 	if (PeekNamedPipe(hNamedPipe, buf, size, &bytesRead, &totalAvail, &bytesLeft)) {
 		rc = Py_BuildValue("Nii", 
-			PyString_FromStringAndSize((char *)buf, bytesRead),
+			PyBytes_FromStringAndSize((char *)buf, bytesRead),
 			totalAvail, bytesLeft);
 	} else
 		PyWin_SetAPIError("PeekNamedPipe");

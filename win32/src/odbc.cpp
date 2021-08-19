@@ -503,7 +503,7 @@ static BOOL bindOutputVar(cursorObject *cur, CopyFcn fcn, short vtype, SQLLEN vs
 
 static PyObject *wcharCopy(const void *v, SQLLEN sz) { return PyWinObject_FromWCHAR((WCHAR *)v, sz / sizeof(WCHAR)); }
 
-static PyObject *stringCopy(const void *v, SQLLEN sz) { return PyString_FromStringAndSize((char *)v, sz); }
+static PyObject *stringCopy(const void *v, SQLLEN sz) { return PyBytes_FromStringAndSize((char *)v, sz); }
 
 static PyObject *longCopy(const void *v, SQLLEN sz) { return PyInt_FromLong(*(unsigned long *)v); }
 
@@ -785,7 +785,7 @@ static int ibindFloat(cursorObject *cur, int column, PyObject *item)
 
 static int ibindString(cursorObject *cur, int column, PyObject *item)
 {
-    const char *val = PyString_AsString(item);
+    const char *val = PyBytes_AsString(item);
     size_t len = strlen(val);
 
     InputBinding *ib = initInputBinding(cur, len);
@@ -878,7 +878,7 @@ static int bindInput(cursorObject *cur, PyObject *vars, int columns)
         else if (PyInt_Check(item)) {
             rv = ibindInt(cur, iCol, item);
         }
-        else if (PyString_Check(item)) {
+        else if (PyBytes_Check(item)) {
             rv = ibindString(cur, iCol, item);
         }
         else if (PyUnicode_Check(item)) {
@@ -908,7 +908,7 @@ static int bindInput(cursorObject *cur, PyObject *vars, int columns)
             PyObject *sitem = PyObject_Str(item);
             if (sitem == NULL)
                 rv = 0;
-            else if (PyString_Check(sitem))
+            else if (PyBytes_Check(sitem))
                 rv = ibindString(cur, iCol, sitem);
             else if (PyUnicode_Check(sitem))
                 rv = ibindUnicode(cur, iCol, sitem);
@@ -1125,14 +1125,14 @@ static PyObject *odbcCurExec(PyObject *self, PyObject *args)
     }
 
     if (inputvars) {
-        if (PyString_Check(inputvars) || PyUnicode_Check(inputvars) || !PySequence_Check(inputvars))
+        if (PyBytes_Check(inputvars) || PyUnicode_Check(inputvars) || !PySequence_Check(inputvars))
             return PyErr_Format(odbcError, "Values must be a sequence, not %s", inputvars->ob_type->tp_name);
         if (PySequence_Length(inputvars) > 0) {
             PyObject *temp = PySequence_GetItem(inputvars, 0);
             if (temp == NULL)
                 return NULL;
             /* Strings don't count as a list in this case. */
-            if (PySequence_Check(temp) && !PyString_Check(temp) && !PyUnicode_Check(temp)) {
+            if (PySequence_Check(temp) && !PyBytes_Check(temp) && !PyUnicode_Check(temp)) {
                 rows = inputvars;
                 inputvars = NULL;
             }

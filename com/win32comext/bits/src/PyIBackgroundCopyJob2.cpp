@@ -117,7 +117,7 @@ PyObject *PyIBackgroundCopyJob2::GetReplyData(PyObject *self, PyObject *args)
     }
     else {
         // MS docs the max size is 1MB - so why use an int64?
-        ret = PyString_FromStringAndSize((char *)pBuffer, (Py_ssize_t)length);
+        ret = PyBytes_FromStringAndSize((char *)pBuffer, (Py_ssize_t)length);
         CoTaskMemFree(pBuffer);
     }
     return ret;

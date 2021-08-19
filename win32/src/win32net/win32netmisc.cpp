@@ -1612,7 +1612,7 @@ static PyObject *PyObject_FromNET_VALIDATE_PERSISTED_FIELDS(NET_VALIDATE_PERSIST
         if (f->PasswordHistory) {
             SAFE_INSERT_NEW_REF(
                 ret, "PasswordHistory",
-                PyString_FromStringAndSize((char *)f->PasswordHistory->Hash, f->PasswordHistory->Length));
+                PyBytes_FromStringAndSize((char *)f->PasswordHistory->Hash, f->PasswordHistory->Length));
         }
         else
             PyDict_SetItemString(ret, "PasswordHistory", Py_None);

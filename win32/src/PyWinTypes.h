@@ -73,16 +73,6 @@
     Definitions for the string functions are in stringobject.h,
     but comments indicate that this header is likely to go away in 3.1.
 */
-#define PyString_Check PyBytes_Check
-#define PyString_Size PyBytes_Size
-#define PyString_AsString PyBytes_AsString
-#define PyString_AsStringAndSize PyBytes_AsStringAndSize
-#define PyString_FromString PyBytes_FromString
-#define PyString_FromStringAndSize PyBytes_FromStringAndSize
-#define _PyString_Resize _PyBytes_Resize
-#define PyString_AS_STRING PyBytes_AS_STRING
-#define PyString_GET_SIZE PyBytes_GET_SIZE
-#define PyString_Concat PyBytes_Concat
 #define PyInt_Check PyLong_Check
 #define PyInt_FromLong PyLong_FromLong
 #define PyInt_AsLong PyLong_AsLong

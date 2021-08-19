@@ -60,9 +60,9 @@ PyObject *PyIAddrBook::OpenEntry(PyObject *self, PyObject *args)
 	if (obEntry==Py_None) {
 		entryString = NULL;
 		entryStrLen = 0;
-	} else if (PyString_Check(obEntry)) {
-		entryString = PyString_AsString(obEntry);
-		entryStrLen = PyString_Size(obEntry);
+	} else if (PyBytes_Check(obEntry)) {
+		entryString = PyBytes_AsString(obEntry);
+		entryStrLen = PyBytes_Size(obEntry);
 	} else {
 		PyErr_SetString(PyExc_TypeError, "EntryID must be a string or None");
 		return NULL;

@@ -151,7 +151,7 @@ BOOL PyObject_AsNET_STRUCT(PyObject *ob, PyNET_STRUCT *pI, BYTE **ppRet)
                     break;
                 case NSI_HOURS:
                     if (subob != Py_None) {
-                        if (!PyString_Check(subob) || PyString_Size(subob) != 21) {
+                        if (!PyBytes_Check(subob) || PyBytes_Size(subob) != 21) {
                             PyErr_Format(PyExc_TypeError,
                                          "The mapping attribute '%s' must be a string of exactly length 21",
                                          pItem->attrname);
@@ -159,7 +159,7 @@ BOOL PyObject_AsNET_STRUCT(PyObject *ob, PyNET_STRUCT *pI, BYTE **ppRet)
                             goto done;
                         }
                         *((char **)(buf + pItem->off)) = (char *)malloc(21);
-                        memcpy(*((char **)(buf + pItem->off)), PyString_AsString(subob), 21);
+                        memcpy(*((char **)(buf + pItem->off)), PyBytes_AsString(subob), 21);
                     }
                     break;
                 case NSI_SID: {
@@ -230,7 +230,7 @@ PyObject *PyObject_FromNET_STRUCT(PyNET_STRUCT *pI, BYTE *buf)
             case NSI_HOURS: {
                 char *data = *((char **)(buf + pItem->off));
                 if (data) {
-                    newObj = PyString_FromStringAndSize(data, 21);
+                    newObj = PyBytes_FromStringAndSize(data, 21);
                 }
                 else {
                     newObj = Py_None;

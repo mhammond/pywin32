@@ -28,7 +28,7 @@ IADsUser *PyIADsUser::GetI(PyObject *self)
 
 PyObject* PyIADsUser_getattro(PyObject *ob, PyObject *obname)
 {
-	char *name = PyString_AsString(obname);
+	char *name = PyBytes_AsString(obname);
 	if (!name) return NULL;
 
 	IADsUser *p = PyIADsUser::GetI(ob);

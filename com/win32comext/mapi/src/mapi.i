@@ -108,7 +108,7 @@ static PyObject *PyBinFromHex(PyObject *self, PyObject *args)
 		PyErr_SetString(PyExc_ValueError, "FBinFromHex failed - input data is invalid");
 		return NULL;
 	}
-	PyObject *rc = PyString_FromStringAndSize((char *)buf, strSize/2);
+	PyObject *rc = PyBytes_FromStringAndSize((char *)buf, strSize/2);
 	free(buf);
 	PyWinObject_FreeTCHAR(tchar);
 	return rc;
@@ -1002,7 +1002,7 @@ static PyObject *MyRTFStreamToHTML(PyObject *self, PyObject *args)
     ret = Py_None;
     goto exit;
   }
-  ret = PyString_FromStringAndSize(htmlbuf, htmlsize-1);
+  ret = PyBytes_FromStringAndSize(htmlbuf, htmlsize-1);
 exit:
   if (pStream) pStream->Release();
   if (htmlbuf)

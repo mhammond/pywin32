@@ -375,7 +375,7 @@ BOOL GetTextualSid(
     DWORD bufSize = 0;
     GetTextualSid(psid, NULL, &bufSize);  // max size, NOT actual size!
     if (GetLastError() != ERROR_INSUFFICIENT_BUFFER) {
-        return PyString_FromString("PySID: Invalid SID");
+        return PyBytes_FromString("PySID: Invalid SID");
     }
     // Space for the "PySID:" prefix.
     TCHAR *prefix = _T("PySID:");

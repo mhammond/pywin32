@@ -150,7 +150,7 @@ PYWIN_MODULE_INIT_FUNC(timer)
 
     if (PyDict_SetItemString(dict, "error", PyWinExc_ApiError) == -1)
         PYWIN_MODULE_INIT_RETURN_ERROR;
-    if (PyDict_SetItemString(dict, "__version__", PyString_FromString("0.2")) == -1)
+    if (PyDict_SetItemString(dict, "__version__", PyBytes_FromString("0.2")) == -1)
         PYWIN_MODULE_INIT_RETURN_ERROR;
 
     PYWIN_MODULE_INIT_RETURN_SUCCESS;

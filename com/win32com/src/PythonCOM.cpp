@@ -2259,7 +2259,7 @@ PYWIN_MODULE_INIT_FUNC(pythoncom)
     // end code changed by ssc
 
     // Add some symbolic constants to the module
-    // pycom_Error = PyString_FromString("pythoncom.error");
+    // pycom_Error = PyBytes_FromString("pythoncom.error");
     if (PyWinExc_COMError == NULL) {
         // This is created by PyWin_Globals_Ensure
         PyErr_SetString(PyExc_MemoryError, "can't define ole_error");

@@ -400,7 +400,7 @@ static PyObject *py_get_clipboard_data(PyObject *self, PyObject *args)
         // For the text formats, strip the null!
         case CF_TEXT:
         case CF_OEMTEXT:
-            ret = PyString_FromStringAndSize((char *)cData, size - 1);
+            ret = PyBytes_FromStringAndSize((char *)cData, size - 1);
             GlobalUnlock(handle);
             break;
         default:
@@ -410,7 +410,7 @@ static PyObject *py_get_clipboard_data(PyObject *self, PyObject *args)
                 Py_INCREF(ret);
             }
             else
-                ret = PyString_FromStringAndSize((char *)cData, size);
+                ret = PyBytes_FromStringAndSize((char *)cData, size);
             GlobalUnlock(handle);
             break;
     }
@@ -467,7 +467,7 @@ static PyObject *py_get_global_memory(PyObject *self, PyObject *args)
     void *p = GlobalLock(hglobal);
     if (!p)
         return ReturnAPIError("GlobalAlloc");
-    PyObject *ret = PyString_FromStringAndSize((char *)p, size);
+    PyObject *ret = PyBytes_FromStringAndSize((char *)p, size);
     GlobalUnlock(hglobal);
     return ret;
 }
@@ -846,7 +846,7 @@ static PyObject *py_set_clipboard_data(PyObject *self, PyObject *args)
                 return NULL;
             buf = pybuf.ptr();
             bufSize = pybuf.len();
-            if (PyString_Check(obhandle))
+            if (PyBytes_Check(obhandle))
                 bufSize++;  // size doesnt include nulls!
                             // else assume buffer needs no terminator...
         }

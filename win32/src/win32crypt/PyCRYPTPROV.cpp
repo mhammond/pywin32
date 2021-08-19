@@ -286,7 +286,7 @@ PyObject *PyCRYPTPROV::PyCryptGetProvParam(PyObject *self, PyObject *args, PyObj
                 case PP_KEYEXCHANGE_PIN:
                 case PP_SIGNATURE_PIN:
                 case PP_ADMIN_PIN:
-                    ret = PyString_FromString((char *)pbData);
+                    ret = PyBytes_FromString((char *)pbData);
                     break;
                 case PP_VERSION:  // return as string or tuple of 2 numbers ???????
                 default: {
@@ -343,7 +343,7 @@ PyObject *PyCRYPTPROV::PyCryptGenRandom(PyObject *self, PyObject *args, PyObject
     if (seeddata != NULL)
         memcpy(pbBuffer, seeddata, min(dwLen, seedlen));
     if (CryptGenRandom(hcryptprov, dwLen, pbBuffer))
-        ret = PyString_FromStringAndSize((char *)pbBuffer, dwLen);
+        ret = PyBytes_FromStringAndSize((char *)pbBuffer, dwLen);
     else
         PyWin_SetAPIError("PyCRYPTPROV::CryptGenRandom");
     if (pbBuffer != NULL)

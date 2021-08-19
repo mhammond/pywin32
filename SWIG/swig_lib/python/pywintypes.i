@@ -100,8 +100,8 @@ typedef unsigned long ULONG;
 %typemap(python,in) char *inNullString {
 	if ($source==Py_None) {
 		$target = NULL;
-	} else if (PyString_Check($source)) {
-		$target = PyString_AsString($source);
+	} else if (PyBytes_Check($source)) {
+		$target = PyBytes_AsString($source);
 	} else {
 		PyErr_SetString(PyExc_TypeError, "Argument must be None or a string");
 		return NULL;

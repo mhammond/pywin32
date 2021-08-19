@@ -187,7 +187,7 @@ PyObject *PyIInternetProtocolInfo::QueryInfo(PyObject *self, PyObject *args)
             free(pFreeBuf);
         return OleSetOleError(hr);
     }
-    PyObject *rc = pFreeBuf == NULL ? PyInt_FromLong(dwBuf) : PyString_FromStringAndSize((char *)pBuffer, pcbBuf);
+    PyObject *rc = pFreeBuf == NULL ? PyInt_FromLong(dwBuf) : PyBytes_FromStringAndSize((char *)pBuffer, pcbBuf);
     if (pFreeBuf)
         free(pFreeBuf);
     return rc;
@@ -313,7 +313,7 @@ STDMETHODIMP PyGInternetProtocolInfo::QueryInfo(
     Py_XDECREF(obpwzUrl);
     if (FAILED(hr))
         return hr;
-    if (!PyString_Check(result)) {
+    if (!PyBytes_Check(result)) {
         if (PyInt_Check(result)) {
             if (cbBuffer != sizeof(DWORD)) {
                 PyErr_SetString(PyExc_TypeError,
@@ -332,8 +332,8 @@ STDMETHODIMP PyGInternetProtocolInfo::QueryInfo(
         }
     }
     else {
-        *pcbBuf = min(cbBuffer, (ULONG)PyString_Size(result));
-        memcpy(pBuffer, PyString_AsString(result), *pcbBuf);
+        *pcbBuf = min(cbBuffer, (ULONG)PyBytes_Size(result));
+        memcpy(pBuffer, PyBytes_AsString(result), *pcbBuf);
     }
     Py_DECREF(result);
     return hr;

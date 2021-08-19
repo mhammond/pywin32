@@ -175,7 +175,7 @@ PyObject *PyVERSION_INFO::getattro(PyObject *self, PyObject *obname)
         return PyErr_Format(PyExc_RuntimeError, "VERSION_INFO structure no longer exists");
     TCHAR *name = PYISAPI_ATTR_CONVERT(obname);
     if (_tcscmp(name, _T("ExtensionDesc")) == 0) {
-        return PyString_FromString(me->m_pvi->lpszExtensionDesc);
+        return PyBytes_FromString(me->m_pvi->lpszExtensionDesc);
     }
     return PyObject_GenericGetAttr(self, obname);
 }
@@ -350,22 +350,22 @@ PyObject *PyECB::getattro(PyObject *self, PyObject *obname)
     EXTENSION_CONTROL_BLOCK *pecb = ((PyECB *)self)->m_pcb->GetECB();
 
     if (_tcscmp(name, _T("Method")) == 0)
-        return PyString_FromString(pecb->lpszMethod);
+        return PyBytes_FromString(pecb->lpszMethod);
 
     if (_tcscmp(name, _T("QueryString")) == 0)
-        return PyString_FromString(pecb->lpszQueryString);
+        return PyBytes_FromString(pecb->lpszQueryString);
 
     if (_tcscmp(name, _T("PathInfo")) == 0)
-        return PyString_FromString(pecb->lpszPathInfo);
+        return PyBytes_FromString(pecb->lpszPathInfo);
 
     if (_tcscmp(name, _T("PathTranslated")) == 0)
-        return PyString_FromString(pecb->lpszPathTranslated);
+        return PyBytes_FromString(pecb->lpszPathTranslated);
 
     if (_tcscmp(name, _T("AvailableData")) == 0)
-        return PyString_FromStringAndSize((const char *)pecb->lpbData, pecb->cbAvailable);
+        return PyBytes_FromStringAndSize((const char *)pecb->lpbData, pecb->cbAvailable);
 
     if (_tcscmp(name, _T("ContentType")) == 0)
-        return PyString_FromString(pecb->lpszContentType);
+        return PyBytes_FromString(pecb->lpszContentType);
 
     if (_tcscmp(name, _T("LogData")) == 0)
         return PyErr_Format(PyExc_AttributeError, "LogData attribute can only be set");
@@ -490,7 +490,7 @@ PyObject *PyECB::GetServerVariable(PyObject *self, PyObject *args)
     }
     PyObject *ret = strncmp("UNICODE_", variable, 8) == 0
                         ? PyUnicode_FromWideChar((WCHAR *)bufUse, bufsize / sizeof(WCHAR))
-                        : PyString_FromStringAndSize(bufUse, bufsize);
+                        : PyBytes_FromStringAndSize(bufUse, bufsize);
     if (bufUse != buf)
         free(bufUse);
     return ret;
@@ -540,9 +540,9 @@ PyObject *PyECB::ReadClient(PyObject *self, PyObject *args)
 
     PyObject *pyRes = NULL;
     if (nSize > 0)
-        pyRes = PyString_FromStringAndSize((const char *)pBuff, nSize);
+        pyRes = PyBytes_FromStringAndSize((const char *)pBuff, nSize);
     else
-        pyRes = PyString_FromStringAndSize("", 0);
+        pyRes = PyBytes_FromStringAndSize("", 0);
 
     delete[] pBuff;
 
@@ -674,9 +674,9 @@ PyObject *PyECB::GetAnonymousToken(PyObject *self, PyObject *args)
         return NULL;
     HANDLE handle;
     BOOL bRes;
-    if (PyString_Check(obStr)) {
+    if (PyBytes_Check(obStr)) {
         Py_BEGIN_ALLOW_THREADS bRes = ecb->ServerSupportFunction(ecb->ConnID, HSE_REQ_GET_ANONYMOUS_TOKEN,
-                                                                 PyString_AS_STRING(obStr), (DWORD *)&handle, NULL);
+                                                                 PyBytes_AS_STRING(obStr), (DWORD *)&handle, NULL);
         Py_END_ALLOW_THREADS
     }
     else if (PyUnicode_Check(obStr)) {
@@ -959,7 +959,7 @@ PyObject *PyECB::MapURLToPath(PyObject *self, PyObject *args)
 
     Py_BEGIN_ALLOW_THREADS ok = pecb->m_pcb->MapURLToPath(buffer, &bufSize);
     Py_END_ALLOW_THREADS if (!ok) return SetPyECBError("ServerSupportFunction(HSE_REQ_MAP_URL_TO_PATH)");
-    return PyString_FromString(buffer);
+    return PyBytes_FromString(buffer);
 }
 
 // @pymethod |EXTENSION_CONTROL_BLOCK|DoneWithSession|Calls ServerSupportFunction with HSE_REQ_DONE_WITH_SESSION

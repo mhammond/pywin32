@@ -435,7 +435,7 @@ BOOL PyWinObject_AsLUID_AND_ATTRIBUTESArray(PyObject *obluids, PLUID_AND_ATTRIBU
 BOOL PyWinObject_AsLSA_STRING(PyObject *obname, PLSA_STRING plsas)
 {
 	Py_ssize_t len;
-	if (PyString_AsStringAndSize(obname, &plsas->Buffer, &len)==-1)
+	if (PyBytes_AsStringAndSize(obname, &plsas->Buffer, &len)==-1)
 		return FALSE;
 	if (len>USHRT_MAX){
 		PyErr_Format(PyExc_ValueError,"String can be at most %d characters", USHRT_MAX);
@@ -622,8 +622,8 @@ void PyWinObject_FreeTOKEN_PRIVILEGES(TOKEN_PRIVILEGES *pPriv)
 	ADD_UNICODE_CONSTANT(SE_CREATE_SYMBOLIC_LINK_NAME);
 	#endif
 
-	PyDict_SetItemString(d,"MSV1_0_PACKAGE_NAME",PyString_FromString(MSV1_0_PACKAGE_NAME));
-	PyDict_SetItemString(d,"MICROSOFT_KERBEROS_NAME_A",PyString_FromString(MICROSOFT_KERBEROS_NAME_A));
+	PyDict_SetItemString(d,"MSV1_0_PACKAGE_NAME",PyBytes_FromString(MSV1_0_PACKAGE_NAME));
+	PyDict_SetItemString(d,"MICROSOFT_KERBEROS_NAME_A",PyBytes_FromString(MICROSOFT_KERBEROS_NAME_A));
 
 	// TOKEN_INFORMATION_CLASS, used with Get/SetTokenInformation
 	PyModule_AddIntConstant(m,"TokenUser", TokenUser);
@@ -1101,7 +1101,7 @@ PyObject *PyLogonUserEx(PyObject *self, PyObject *args, PyObject *kwargs)
 			ret=Py_BuildValue("NNNN",
 				PyWinObject_FromHANDLE(htoken),
 				PyWinObject_FromSID(psid),
-				PyString_FromStringAndSize((char *)profile, profilelen),
+				PyBytes_FromStringAndSize((char *)profile, profilelen),
 				PyWinObject_FromQUOTA_LIMITS(&quota_limits));
 		}
 
@@ -1947,7 +1947,7 @@ static PyObject *PyGetTokenInformation(PyObject *self, PyObject *args)
 			TOKEN_SOURCE *ts = (TOKEN_SOURCE *)buf;
 			PLUID pluid = &ts->SourceIdentifier;
 			ret = Py_BuildValue("NN",
-				PyString_FromStringAndSize(ts->SourceName,8),
+				PyBytes_FromStringAndSize(ts->SourceName,8),
 				PyWinObject_FromLARGE_INTEGER(*((LARGE_INTEGER *) pluid)));
 			break;
 			}

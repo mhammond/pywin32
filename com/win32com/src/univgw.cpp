@@ -680,7 +680,7 @@ static PyObject *univgw_ReadMemory(PyObject *self, PyObject *args)
         return NULL;
     }
 
-    return PyString_FromStringAndSize((char *)p, size);
+    return PyBytes_FromStringAndSize((char *)p, size);
 }
 
 static PyObject *univgw_WriteMemory(PyObject *self, PyObject *args)

@@ -649,8 +649,8 @@ BOOL PyWinObject_AsPARAM(PyObject *ob, WPARAM *pparam)
     }
 #else
 #define TCHAR_DESC "String"
-    if (PyString_Check(ob)) {
-        *pparam = (WPARAM)PyString_AS_STRING(ob);
+    if (PyBytes_Check(ob)) {
+        *pparam = (WPARAM)PyBytes_AS_STRING(ob);
         return TRUE;
     }
 #endif
@@ -1226,8 +1226,8 @@ PYWINTYPES_EXPORT char *GetPythonTraceback(PyObject *exc_type, PyObject *exc_val
         GPEM_ERROR("getvalue() failed.");
 
     /* And it should be a string all ready to go - duplicate it. */
-    if (PyString_Check(obResult))
-        result = strdup(PyString_AsString(obResult));
+    if (PyBytes_Check(obResult))
+        result = strdup(PyBytes_AsString(obResult));
 #if (PY_VERSION_HEX >= 0x03000000)
     else if (PyUnicode_Check(obResult))
         result = strdup(_PyUnicode_AsString(obResult));

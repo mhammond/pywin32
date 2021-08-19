@@ -304,7 +304,7 @@ PyObject *PyObject_FromPROPVARIANT(PROPVARIANT *pVar)
             return PyObject_FromPROPVARIANTs(pVar->capropvar.pElems, pVar->capropvar.cElems);
         case VT_BLOB:
         case VT_BLOB_OBJECT:
-            return PyString_FromStringAndSize((const char *)pVar->blob.pBlobData, pVar->blob.cbSize);
+            return PyBytes_FromStringAndSize((const char *)pVar->blob.pBlobData, pVar->blob.cbSize);
             //		case VT_UNKNOWN:
             //			return PyCom_PyObjectFromIUnknown(pVar->punkVal, IID_IUnknown, TRUE);
             //		case VT_DISPATCH:
@@ -394,7 +394,7 @@ BOOL PyObject_AsPROPVARIANT(PyObject *ob, PROPVARIANT *pVar)
         pVar->dblVal = PyFloat_AsDouble(ob);
         pVar->vt = VT_R8;
     }
-    else if (PyUnicode_Check(ob) || PyString_Check(ob)) {
+    else if (PyUnicode_Check(ob) || PyBytes_Check(ob)) {
         PyWinObject_AsBstr(ob, &pVar->bstrVal);
         pVar->vt = VT_BSTR;
     }

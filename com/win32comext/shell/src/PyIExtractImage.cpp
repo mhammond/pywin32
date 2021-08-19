@@ -95,7 +95,7 @@ PyObject *PyIExtractImage::Extract(PyObject *self, PyObject *args)
     return PyWinObject_FromHANDLE((HANDLE)hBmpThumbnail);
     // return Py_BuildValue("i", hBmpThumbnail);
     // return PyLong_FromVoidPtr((void*)hBmpThumbnail);
-    // return PyString_FromString((char*)hBmpThumbnail);
+    // return PyBytes_FromString((char*)hBmpThumbnail);
 }
 
 // @object PyIExtractImage|Description of the interface

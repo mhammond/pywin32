@@ -57,9 +57,9 @@ PyObject *PySet(PyObject *self, PyObject *args)
             // We need to include the NULL for strings and unicode, as the
             // Windows clipboard functions will assume it is there for
             // text related formats (eg, CF_TEXT).
-            if (PyString_Check(ob)) {
-                cb = PyString_GET_SIZE(ob) + 1;  // for the NULL
-                buf = (void *)PyString_AS_STRING(ob);
+            if (PyBytes_Check(ob)) {
+                cb = PyBytes_GET_SIZE(ob) + 1;  // for the NULL
+                buf = (void *)PyBytes_AS_STRING(ob);
             }
             else if (PyUnicode_Check(ob)) {
                 cb = PyUnicode_GET_DATA_SIZE(ob) + sizeof(Py_UNICODE);
@@ -254,7 +254,7 @@ PyObject *PySTGMEDIUM::getattro(PyObject *self, PyObject *obname)
                 PyObject *ret;
                 void *p = GlobalLock(ps->medium.hGlobal);
                 if (p) {
-                    ret = PyString_FromStringAndSize((char *)p, GlobalSize(ps->medium.hGlobal));
+                    ret = PyBytes_FromStringAndSize((char *)p, GlobalSize(ps->medium.hGlobal));
                     GlobalUnlock(ps->medium.hGlobal);
                 }
                 else {

@@ -160,9 +160,9 @@ static BOOL CreateEnvironmentString(PyObject *env, LPVOID *ppRet, BOOL *pRetIsUn
 		PyObject *key = PyList_GetItem(keys, i);
 		PyObject *val = PyList_GetItem(vals, i);
 		if (i==0) {
-			if (PyString_Check(key)) {
+			if (PyBytes_Check(key)) {
 				bIsUnicode = FALSE;
-				bufLen += PyString_Size(key) + 1;
+				bufLen += PyBytes_Size(key) + 1;
 			} else if (PyUnicode_Check(key)) {
 				bIsUnicode = TRUE;
 				bufLen += PyUnicode_Size(key) + 1;
@@ -183,13 +183,13 @@ static BOOL CreateEnvironmentString(PyObject *env, LPVOID *ppRet, BOOL *pRetIsUn
 				bufLen += PyUnicode_Size(key) + 1;
 			}
 			else {
-				if (!PyString_Check(key)) {
+				if (!PyBytes_Check(key)) {
 					PyErr_SetString(PyExc_TypeError, "All dictionary items must be strings, or all must be unicode");
 					Py_DECREF(keys);
 					Py_DECREF(vals);
 					return FALSE;
 				}
-				bufLen += PyString_Size(key) + 1;
+				bufLen += PyBytes_Size(key) + 1;
 			}
 		}
 		if (bIsUnicode) {
@@ -202,13 +202,13 @@ static BOOL CreateEnvironmentString(PyObject *env, LPVOID *ppRet, BOOL *pRetIsUn
 			bufLen += PyUnicode_Size(val) + 2; // For the '=' and '\0'
 		}
 		else {
-			if (!PyString_Check(val)) {
+			if (!PyBytes_Check(val)) {
 				PyErr_SetString(PyExc_TypeError, "All dictionary items must be strings, or all must be unicode");
 				Py_DECREF(keys);
 				Py_DECREF(vals);
 				return FALSE;
 			}
-			bufLen += PyString_Size(val) + 2; // For the '=' and '\0'
+			bufLen += PyBytes_Size(val) + 2; // For the '=' and '\0'
 		}
 	}
 	LPVOID result = (LPVOID)malloc( (bIsUnicode ? sizeof(WCHAR) : sizeof(char)) * (bufLen + 1) );
@@ -225,7 +225,7 @@ static BOOL CreateEnvironmentString(PyObject *env, LPVOID *ppRet, BOOL *pRetIsUn
 			pUCur += wcslen(pTemp);
 			PyWinObject_FreeBstr(pTemp);
 		} else {
-			char *pTemp = PyString_AsString(key);
+			char *pTemp = PyBytes_AsString(key);
 			strcpy(pACur, pTemp);
 			pACur += strlen(pTemp);
 		}
@@ -240,7 +240,7 @@ static BOOL CreateEnvironmentString(PyObject *env, LPVOID *ppRet, BOOL *pRetIsUn
 			pUCur += wcslen(pTemp);
 			PyWinObject_FreeBstr(pTemp);
 		} else {
-			char *pTemp = PyString_AsString(val);
+			char *pTemp = PyBytes_AsString(val);
 			strcpy(pACur, pTemp);
 			pACur += strlen(pTemp);
 		}
@@ -765,7 +765,7 @@ PyObject *PyCeReadFile(PyObject *self, PyObject *args)
 		free(buf);
 		return PyWin_SetAPIError("CeReadFile", GetLastCEError());
 	}
-	return PyString_FromStringAndSize((char *)buf, numRead);
+	return PyBytes_FromStringAndSize((char *)buf, numRead);
 }
 %}
 %native (CeReadFile) PyCeReadFile;

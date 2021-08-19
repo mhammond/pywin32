@@ -291,7 +291,7 @@ static PyObject *PyStgSerializePropVariant(PyObject *self, PyObject *args)
     PY_INTERFACE_POSTCALL;
     if (FAILED(hr))
         return PyCom_BuildPyException(hr);
-    PyObject *ret = PyString_FromStringAndSize((char *)pspv, bufsize);
+    PyObject *ret = PyBytes_FromStringAndSize((char *)pspv, bufsize);
     CoTaskMemFree(pspv);
     return ret;
 };

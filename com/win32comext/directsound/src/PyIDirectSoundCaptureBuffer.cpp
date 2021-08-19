@@ -291,15 +291,15 @@ PyObject *PyIDirectSoundCaptureBuffer::Update(PyObject *self, PyObject *args)
     // The capture buffer is circular, so we may get two pointers and have to
     // do the wrap-around ourselves.
 
-    PyObject *obData = PyString_FromStringAndSize((char *)lpAudioPtr1, dwAudioBytes1);
+    PyObject *obData = PyBytes_FromStringAndSize((char *)lpAudioPtr1, dwAudioBytes1);
     if (!obData) {
         PyErr_SetString(PyExc_MemoryError, "Update: could not allocate result string");
         goto error;
     }
     if (lpAudioPtr2) {
-        PyObject *obData2 = PyString_FromStringAndSize((char *)lpAudioPtr2, dwAudioBytes2);
+        PyObject *obData2 = PyBytes_FromStringAndSize((char *)lpAudioPtr2, dwAudioBytes2);
 
-        PyString_Concat(&obData, obData2);
+        PyBytes_Concat(&obData, obData2);
 
         if (!obData) {
             PyErr_SetString(PyExc_MemoryError, "Update: could not append to result string");

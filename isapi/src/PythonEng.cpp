@@ -135,7 +135,7 @@ bool CPythonEngine::AddToPythonPath(LPCTSTR pPathName)
         len -= 4;
     }
 #if (PY_VERSION_HEX < 0x03000000)
-    PyObject *obNew = PyString_FromStringAndSize(pPathName, len);
+    PyObject *obNew = PyBytes_FromStringAndSize(pPathName, len);
 #else
     PyObject *obNew = PyUnicode_FromWideChar(pPathName, len);
 #endif

@@ -1,7 +1,6 @@
-//
-// PyUnicode.cpp -- Unicode string type for Python
-//
-// @doc
+// PyUnicode.cpp -- This used to be a Unicode string type for Python, before
+// Python had unicode. Then we had py3k. Then we have covid. I don't know how
+// any of this still manages to work more :)
 
 #include "PyWinTypes.h"
 #include "PyWinObjects.h"
@@ -9,21 +8,13 @@
 #include "tchar.h"
 #include "locale.h"
 
-// @object PyUnicode|A Python object, representing a Unicode string.
-// @comm pywin32 uses the builtin Python Unicode object
-// <nl>In general, any pywin32/COM function documented as taking a
-// PyUnicode parameter will also accept a Python string object, which will
-// be automatically encoded using the MBCS encoding before being passed to the function.
-// Note that the reverse is generally *not* true - a function documented as accepting
-// a string must be passed a string.
-
 BOOL PyWinObject_AsPfnAllocatedWCHAR(PyObject *stringObject, void *(*pfnAllocator)(ULONG), WCHAR **ppResult,
                                      BOOL bNoneOK /*= FALSE*/, DWORD *pResultLen /*= NULL*/)
 {
     BOOL rc = TRUE;
-    if (PyString_Check(stringObject)) {
-        int cch = PyString_Size(stringObject);
-        const char *buf = PyString_AsString(stringObject);
+    if (PyBytes_Check(stringObject)) {
+        int cch = PyBytes_Size(stringObject);
+        const char *buf = PyBytes_AsString(stringObject);
         if (buf == NULL)
             return FALSE;
 
@@ -81,46 +72,18 @@ BOOL PyWinObject_AsTaskAllocatedWCHAR(PyObject *stringObject, WCHAR **ppResult, 
 
 void PyWinObject_FreeTaskAllocatedWCHAR(WCHAR *str) { CoTaskMemFree(str); }
 
-/* Implement our Windows Unicode API using the Python widestring object */
-
-// non-unicode version of PyWinObject_FromTCHAR; returned object depends on
-// if we are running py3k or not.
-PYWINTYPES_EXPORT PyObject *PyWinObject_FromTCHAR(const char *str, Py_ssize_t len /*=(Py_ssize_t)-1*/)
-{
-    if (str == NULL) {
-        Py_INCREF(Py_None);
-        return Py_None;
-    }
-    if (len == (Py_ssize_t)-1)
-        len = strlen(str);
-#if (PY_VERSION_HEX < 0x03000000)
-    return PyString_FromStringAndSize(str, len);
-#else
-    // py3k - decode char * via mbcs encoding.
-    return (PyObject *)PyUnicode_DecodeMBCS(str, len, NULL);
-#endif
-}
-
 PyObject *PyWinCoreString_FromString(const char *str, Py_ssize_t len /*=(Py_ssize_t)-1*/)
 {
     if (len == (Py_ssize_t)-1)
         len = strlen(str);
-#if (PY_VERSION_HEX < 0x03000000)
-    return PyString_FromStringAndSize(str, len);
-#else
     return PyUnicode_DecodeMBCS(str, len, "ignore");
-#endif
 }
 
 PyObject *PyWinCoreString_FromString(const WCHAR *str, Py_ssize_t len /*=(Py_ssize_t)-1*/)
 {
     if (len == (Py_ssize_t)-1)
         len = wcslen(str);
-#if (PY_VERSION_HEX < 0x03000000)
-    return PyUnicode_EncodeMBCS(str, len, "ignore");
-#else
     return PyUnicode_FromWideChar(str, len);
-#endif
 }
 
 // Convert a Python object to a "char *" - allow embedded NULLs, None, etc.
@@ -145,13 +108,12 @@ BOOL PyWinObject_AsString(PyObject *stringObject, char **pResult, BOOL bNoneOK /
         if (!stringObject)
             return FALSE;
     }
-    if (!PyString_Check(stringObject)) {
-        PyErr_Format(PyExc_TypeError, "The object must be a string or unicode object (got '%s')",
-                     stringObject->ob_type->tp_name);
+    if (!PyBytes_Check(stringObject)) {
+        PyErr_Format(PyExc_TypeError, "Expected 'bytes', got '%s'", stringObject->ob_type->tp_name);
         return FALSE;
     }
-    char *temp = PyString_AsString(stringObject);
-    int len = PyString_Size(stringObject);
+    char *temp = PyBytes_AsString(stringObject);
+    int len = PyBytes_Size(stringObject);
     *pResult = (char *)PyMem_Malloc(len + 1);
     if (*pResult) {
         memcpy(*pResult, temp, len + 1);
@@ -215,8 +177,8 @@ void PyWin_AutoFreeBstr::SetBstr(BSTR bstr)
 // Convert a Python string object to a BSTR - allow embedded NULLs, etc.
 static BOOL PyString_AsBstr(PyObject *stringObject, BSTR *pResult)
 {
-    int size = PyString_Size(stringObject);
-    const char *buf = PyString_AsString(stringObject);
+    int size = PyBytes_Size(stringObject);
+    const char *buf = PyBytes_AsString(stringObject);
     if (buf == NULL)
         return FALSE;
 
@@ -244,18 +206,14 @@ static BOOL PyString_AsBstr(PyObject *stringObject, BSTR *pResult)
 BOOL PyWinObject_AsBstr(PyObject *stringObject, BSTR *pResult, BOOL bNoneOK /*= FALSE*/, DWORD *pResultLen /*= NULL*/)
 {
     BOOL rc = TRUE;
-    if (PyString_Check(stringObject))
+    if (PyBytes_Check(stringObject))
         rc = PyString_AsBstr(stringObject, pResult);
     else if (PyUnicode_Check(stringObject)) {
         // copy the value, including embedded NULLs
         int nchars = PyUnicode_GET_SIZE(stringObject);
         *pResult = SysAllocStringLen(NULL, nchars);
         if (*pResult) {
-#if (PY_VERSION_HEX < 0x03020000)
-#define PUAWC_TYPE PyUnicodeObject *
-#else
 #define PUAWC_TYPE PyObject *
-#endif
             if (PyUnicode_AsWideChar((PUAWC_TYPE)stringObject, *pResult, nchars) == -1) {
                 rc = FALSE;
             }
@@ -301,32 +259,8 @@ BOOL PyWinObject_AsWCHAR(PyObject *stringObject, WCHAR **pResult, BOOL bNoneOK /
 {
     BOOL rc = TRUE;
     int resultLen = 0;
-#if (PY_VERSION_HEX < 0x03000000)
-    // Do NOT accept 'bytes' object when a plain 'WCHAR' is needed on py3k.
-    if (PyString_Check(stringObject)) {
-        int size = PyString_Size(stringObject);
-        const char *buf = PyString_AsString(stringObject);
-        if (buf == NULL)
-            return FALSE;
-
-        /* We assume that we dont need more 'wide characters' for the result
-           then the number of bytes in the input. Often we
-           will need less, as the input may contain multi-byte chars, but we
-           should never need more
-        */
-        *pResult = (LPWSTR)PyMem_Malloc((size + 1) * sizeof(WCHAR));
-        if (*pResult == NULL) {
-            PyErr_SetString(PyExc_MemoryError, "No memory for wide string buffer");
-            return FALSE;
-        }
-        /* convert and get the final character size */
-        resultLen = MultiByteToWideChar(CP_ACP, 0, buf, size, *pResult, size);
-        /* terminate the string */
-        (*pResult)[resultLen] = L'\0';
-    }
-    else
-#endif  // py3k
-        if (PyUnicode_Check(stringObject)) {
+    // Do NOT accept 'bytes' for any 'WCHAR' API.
+    if (PyUnicode_Check(stringObject)) {
         resultLen = PyUnicode_GET_SIZE(stringObject);
         size_t cb = sizeof(WCHAR) * (resultLen + 1);
         *pResult = (WCHAR *)PyMem_Malloc(cb);
@@ -400,7 +334,7 @@ PyObject *PyWinObject_FromMultipleString(char *multistring)
         return NULL;
     elementlen = strlen(multistring);
     while (elementlen) {
-        obelement = PyString_FromStringAndSize(multistring, elementlen);
+        obelement = PyBytes_FromStringAndSize(multistring, elementlen);
         if ((obelement == NULL) || (PyList_Append(ret, obelement) == -1)) {
             Py_XDECREF(obelement);
             Py_DECREF(ret);

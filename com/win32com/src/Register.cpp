@@ -106,7 +106,7 @@ HRESULT PyCom_RegisterGatewayObject(REFIID iid, pfnPyGatewayConstructor ctor, co
     Py_DECREF(valueObject);
     // Now in the other server map.
     if (g_obPyCom_MapGatewayIIDToName) {
-        valueObject = PyString_FromString((char *)interfaceName);
+        valueObject = PyBytes_FromString((char *)interfaceName);
         if (!valueObject) {
             Py_DECREF(keyObject);
             return E_FAIL;

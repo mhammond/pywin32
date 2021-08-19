@@ -118,7 +118,7 @@ PyObject *PyWinObject_FromCERT_EXTENSIONArray(PCERT_EXTENSION pce, DWORD ext_cnt
     for (ext_ind = 0; ext_ind < ext_cnt; ext_ind++) {
         ret_item = Py_BuildValue(
             "{s:s,s:N,s:N}", "ObjId", pce[ext_ind].pszObjId, "Critical", PyBool_FromLong(pce[ext_ind].fCritical),
-            "Value", PyString_FromStringAndSize((char *)pce[ext_ind].Value.pbData, pce[ext_ind].Value.cbData));
+            "Value", PyBytes_FromStringAndSize((char *)pce[ext_ind].Value.pbData, pce[ext_ind].Value.cbData));
         if (ret_item == NULL) {
             Py_DECREF(ret);
             ret = NULL;
@@ -146,15 +146,15 @@ PyObject *PyCERT_CONTEXT::getattro(PyObject *self, PyObject *obname)
         return PyWinObject_FromCERTSTORE(h);
     }
     if (strcmp(name, "CertEncoded") == 0)
-        return PyString_FromStringAndSize((char *)pcc->pbCertEncoded, pcc->cbCertEncoded);
+        return PyBytes_FromStringAndSize((char *)pcc->pbCertEncoded, pcc->cbCertEncoded);
     if (strcmp(name, "CertEncodingType") == 0)
         return PyLong_FromUnsignedLong(pcc->dwCertEncodingType);
     if (strcmp(name, "Version") == 0)
         return PyLong_FromUnsignedLong(pcc->pCertInfo->dwVersion);
     if (strcmp(name, "Issuer") == 0)
-        return PyString_FromStringAndSize((char *)pcc->pCertInfo->Issuer.pbData, pcc->pCertInfo->Issuer.cbData);
+        return PyBytes_FromStringAndSize((char *)pcc->pCertInfo->Issuer.pbData, pcc->pCertInfo->Issuer.cbData);
     if (strcmp(name, "Subject") == 0)
-        return PyString_FromStringAndSize((char *)pcc->pCertInfo->Subject.pbData, pcc->pCertInfo->Subject.cbData);
+        return PyBytes_FromStringAndSize((char *)pcc->pCertInfo->Subject.pbData, pcc->pCertInfo->Subject.cbData);
     if (strcmp(name, "NotBefore") == 0)
         return PyWinObject_FromFILETIME(pcc->pCertInfo->NotBefore);
     if (strcmp(name, "NotAfter") == 0)
@@ -336,7 +336,7 @@ PyObject *PyCERT_CONTEXT::PyCertSerializeCertificateStoreElement(PyObject *self,
 
     Py_BEGIN_ALLOW_THREADS bsuccess = CertSerializeCertificateStoreElement(pccert_context, flags, buf, &bufsize);
     Py_END_ALLOW_THREADS if (!bsuccess) PyWin_SetAPIError("CertSerializeCertificateStoreElement");
-    else ret = PyString_FromStringAndSize((char *)buf, bufsize);
+    else ret = PyBytes_FromStringAndSize((char *)buf, bufsize);
     free(buf);
     return ret;
 }
@@ -438,7 +438,7 @@ PyObject *PyCERT_CONTEXT::PyCertGetCertificateContextProperty(PyObject *self, Py
         case CERT_SIGNATURE_HASH_PROP_ID:         // @flag CERT_SIGNATURE_HASH_PROP_ID|String containing a hash
         case CERT_KEY_IDENTIFIER_PROP_ID:         // @flag CERT_KEY_IDENTIFIER_PROP_ID|String containing a hash
         case CERT_SUBJECT_NAME_MD5_HASH_PROP_ID:  // @flag CERT_SUBJECT_NAME_MD5_HASH_PROP_ID|String containing a hash
-            ret = PyString_FromStringAndSize((char *)pvData, pcbData);
+            ret = PyBytes_FromStringAndSize((char *)pvData, pcbData);
             // all hashes treated as raw binary data
             break;
         case CERT_KEY_PROV_HANDLE_PROP_ID:  // @flag CERT_KEY_PROV_HANDLE_PROP_ID|<o PyCRYPTPROV>
@@ -448,14 +448,14 @@ PyObject *PyCERT_CONTEXT::PyCertGetCertificateContextProperty(PyObject *self, Py
                                                         // containing a hash
         case CERT_ISSUER_PUBLIC_KEY_MD5_HASH_PROP_ID:   // @flag CERT_ISSUER_PUBLIC_KEY_MD5_HASH_PROP_ID|String
                                                         // containing a hash
-            ret = PyString_FromStringAndSize((char *)pvData, pcbData);
+            ret = PyBytes_FromStringAndSize((char *)pvData, pcbData);
             /* MSDN claims these return a CRYPT_DATA_BLOB, but data is not valid when
                interpreted as such - cbdata is huge, and pbData is not a valid pointer.
                The returned pcbData exactly matches size of an MD5 hash, and it would
                actually have to be the size of the hash + sizeof(CRYPT_DATA_BLOB) since
                everything is returned in a single allocated block
             pcdb=(CRYPT_DATA_BLOB *)pvData;
-            ret=PyString_FromStringAndSize((char *)pcdb->pbData,pcdb->cbData);
+            ret=PyBytes_FromStringAndSize((char *)pcdb->pbData,pcdb->cbData);
             */
             break;
         // CERT_CTL_USAGE_PROP_ID is same value as CERT_ENHKEY_USAGE_PROP_ID
@@ -464,7 +464,7 @@ PyObject *PyCERT_CONTEXT::PyCertGetCertificateContextProperty(PyObject *self, Py
         // @flag CERT_ENHKEY_USAGE_PROP_ID|Encoded CTL_USAGE. Can be decoded using <om cryptoapi.CryptDecodeObjectEx>
         // with X509_ENHANCED_KEY_USAGE
         case CERT_ENHKEY_USAGE_PROP_ID:
-            ret = PyString_FromStringAndSize((char *)pvData, pcbData);
+            ret = PyBytes_FromStringAndSize((char *)pvData, pcbData);
             break;
         case CERT_KEY_PROV_INFO_PROP_ID:  // @flag CERT_KEY_PROV_INFO_PROP_ID|CRYPT_KEY_PROV_INFO dict
             ret = PyWinObject_FromCRYPT_KEY_PROV_INFO((PCRYPT_KEY_PROV_INFO)pvData);
@@ -476,7 +476,7 @@ PyObject *PyCERT_CONTEXT::PyCertGetCertificateContextProperty(PyObject *self, Py
         // @flag CERT_NEXT_UPDATE_LOCATION_PROP_ID|Encoded CERT_ALT_NAME_INFO, decode using <om
         // cryptoapi.CryptDecodeObjectEx> with szOID_NEXT_UPDATE_LOCATION
         case CERT_NEXT_UPDATE_LOCATION_PROP_ID:
-            ret = PyString_FromStringAndSize((char *)pvData, pcbData);
+            ret = PyBytes_FromStringAndSize((char *)pvData, pcbData);
             break;
         // case CERT_PUBKEY_ALG_PROP_ID: // ???? This constant does not exist in my header files ????
         case CERT_ENROLLMENT_PROP_ID:  // CRYPT_DATA_BLOB, data will apparently have to be split out manually

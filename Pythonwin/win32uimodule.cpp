@@ -716,8 +716,8 @@ PyObject *Python_do_callback(PyObject *themeth, PyObject *thearglst)
 
 // Copied from PyRecord.cpp, should move into pywintypes.h
 #if (PY_VERSION_HEX < 0x03000000)
-#define PyWinCoreString_ConcatAndDel PyString_ConcatAndDel
-#define PyWinCoreString_Concat PyString_Concat
+#define PyWinCoreString_ConcatAndDel PyBytes_ConcatAndDel
+#define PyWinCoreString_Concat PyBytes_Concat
 #else
 // Unicode versions of '_Concat' etc have different sigs.  Make them the
 // same here...
@@ -1788,7 +1788,7 @@ static PyObject *ui_get_bytes(PyObject *self, PyObject *args)
         return NULL;
     if (!PyWinLong_AsVoidPtr(obaddress, &address))
         return NULL;
-    return PyString_FromStringAndSize((char *)address, size);
+    return PyBytes_FromStringAndSize((char *)address, size);
 }
 // @pymethod string|win32ui|InitRichEdit|Initializes the rich edit framework.
 static PyObject *ui_init_rich_edit(PyObject *self, PyObject *args)
@@ -1849,7 +1849,7 @@ static PyObject *ui_translate_vk(PyObject *, PyObject *args)
         Py_INCREF(Py_None);
         return Py_None;
     }
-    return PyString_FromStringAndSize(result, nc);
+    return PyBytes_FromStringAndSize(result, nc);
 }
 
 /** Seems to have problems on 9x for some people (not me, though?)

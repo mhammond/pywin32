@@ -1152,7 +1152,7 @@ CString GetReprText(PyObject *objectUse)
     // Assumes that this will always be compiled with UNICODE defined for py3k
     s = PyObject_Str(objectUse);
     if (s) {
-        csRet = CString(PyString_AsString(s));
+        csRet = CString(PyBytes_AsString(s));
         Py_DECREF(s);
         return csRet;
     }
@@ -1169,8 +1169,8 @@ CString GetReprText(PyObject *objectUse)
     // repr() should return either a string or unicode object, but not sure if this is enforced.
     if (PyUnicode_Check(s))
         csRet = CString(PyUnicode_AS_UNICODE(s));
-    else if (PyString_Check(s))
-        csRet = CString(PyString_AS_STRING(s));
+    else if (PyBytes_Check(s))
+        csRet = CString(PyBytes_AS_STRING(s));
     else
         csRet.Format(_T("??? repr() for type %s returned type %s ???"), objectUse->ob_type->tp_name,
                      s->ob_type->tp_name);
