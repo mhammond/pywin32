@@ -37,7 +37,7 @@ PyObject *PyITypeInfo::GetContainingTypeLib()
 
     PyObject *ret = PyTuple_New(2);
     PyTuple_SetItem(ret, 0, PyCom_PyObjectFromIUnknown(ptlib, IID_ITypeLib));
-    PyTuple_SetItem(ret, 1, PyInt_FromLong(index));
+    PyTuple_SetItem(ret, 1, PyLong_FromLong(index));
     return ret;
 }
 
@@ -378,13 +378,13 @@ static PyObject *typeinfo_getidsofnames(PyObject *self, PyObject *args)
 
     /* if we have just one name, then return a single DISPID (int) */
     if (cNames == 1) {
-        result = PyInt_FromLong(rgdispid[0]);
+        result = PyLong_FromLong(rgdispid[0]);
     }
     else {
         result = PyTuple_New(cNames);
         if (result) {
             for (i = 0; i < cNames; ++i) {
-                PyObject *ob = PyInt_FromLong(rgdispid[i]);
+                PyObject *ob = PyLong_FromLong(rgdispid[i]);
                 if (!ob) {
                     delete[] rgdispid;
                     return NULL;
@@ -534,7 +534,7 @@ PyObject *PyITypeLib::GetTypeInfoCount()
     PY_INTERFACE_PRECALL;
     long rc = pMyTypeLib->GetTypeInfoCount();
     PY_INTERFACE_POSTCALL;
-    return PyInt_FromLong(rc);
+    return PyLong_FromLong(rc);
 }
 
 PyObject *PyITypeLib::GetTypeInfoOfGuid(REFGUID guid)
@@ -563,7 +563,7 @@ PyObject *PyITypeLib::GetTypeInfoType(int pos)
     if (FAILED(sc))
         return PyCom_BuildPyException(sc, pMyTypeLib, IID_ITypeLib);
 
-    return PyInt_FromLong(tkind);
+    return PyLong_FromLong(tkind);
 }
 
 PyObject *PyITypeLib::GetTypeComp()
@@ -945,7 +945,7 @@ static PyObject *ITypeCompBind(ITypeComp *pTC, OLECHAR *S, unsigned short w)
     if (real_ret == NULL)
         return NULL;
     // NOTE: SET_ITEM consumes the refcounts.
-    PyTuple_SET_ITEM(real_ret, 0, PyInt_FromLong(DK));
+    PyTuple_SET_ITEM(real_ret, 0, PyLong_FromLong(DK));
     PyTuple_SET_ITEM(real_ret, 1, ret);
     return real_ret;
 }

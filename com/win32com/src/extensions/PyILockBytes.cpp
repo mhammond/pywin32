@@ -292,7 +292,7 @@ STDMETHODIMP PyGLockBytes::WriteAt(
     if (FAILED(hr))
         return hr;
     // Process the Python results, and convert back to the real params
-    int cbWritten = PyInt_AsLong(result);
+    int cbWritten = PyLong_AsLong(result);
     Py_DECREF(result);
     if (cbWritten == -1) {
         PyErr_Clear();

@@ -85,7 +85,7 @@ PyObject *PyIInternetSecurityManager::MapUrlToZone(PyObject *self, PyObject *arg
     PY_INTERFACE_POSTCALL;
     if (FAILED(hr))
         return PyCom_BuildPyException(hr, pIISM, IID_IInternetSecurityManager);
-    return PyInt_FromLong(pdwZone);
+    return PyLong_FromLong(pdwZone);
 }
 
 // @pymethod |PyIInternetSecurityManager|GetSecurityId|Description of GetSecurityId.
@@ -373,7 +373,7 @@ STDMETHODIMP PyGInternetSecurityManager::ProcessUrlAction(
         return hr;
     // Process the Python results, and convert back to the real params
     if (cbPolicy == sizeof(DWORD)) {
-        *((DWORD *)pPolicy) = PyInt_AsLong(result);
+        *((DWORD *)pPolicy) = PyLong_AsLong(result);
         if (*((DWORD *)pPolicy) == -1)
             hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("ProcessUrlAction");
     }

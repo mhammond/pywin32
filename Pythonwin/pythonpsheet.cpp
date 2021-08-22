@@ -204,8 +204,8 @@ void CPythonPropertySheet::BuildPropPageArray()
         PyErr_Fetch(&t, &v, &tb);
         PyObject *attr = PyObject_GetAttrString(py_bob->virtualInst, "customizeFont");
         if (attr) {
-            if (PyInt_Check(attr)) {
-                m_customizeFont = (BOOL)PyInt_AsLong(PyNumber_Int(attr));
+            if (PyLong_Check(attr)) {
+                m_customizeFont = (BOOL)PyLong_AsLong(PyNumber_Long(attr));
             }
         }
         PyErr_Restore(t, v, tb);

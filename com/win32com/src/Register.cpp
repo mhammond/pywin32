@@ -225,11 +225,11 @@ PyObject *pythoncom_IsGatewayRegistered(PyObject *self, PyObject *args)
     v = PyDict_GetItem(g_obPyCom_MapServerIIDToGateway, obIID);
     if (!v) {
         PyErr_Clear();
-        v = PyInt_FromLong(0);
+        v = PyLong_FromLong(0);
     }
     else {
         Py_DECREF(v);
-        v = PyInt_FromLong(1);
+        v = PyLong_FromLong(1);
     }
     return v;
 }

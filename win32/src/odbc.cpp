@@ -505,7 +505,7 @@ static PyObject *wcharCopy(const void *v, SQLLEN sz) { return PyWinObject_FromWC
 
 static PyObject *stringCopy(const void *v, SQLLEN sz) { return PyBytes_FromStringAndSize((char *)v, sz); }
 
-static PyObject *longCopy(const void *v, SQLLEN sz) { return PyInt_FromLong(*(unsigned long *)v); }
+static PyObject *longCopy(const void *v, SQLLEN sz) { return PyLong_FromLong(*(unsigned long *)v); }
 
 static PyObject *doubleCopy(const void *v, SQLLEN sz)
 {
@@ -611,7 +611,7 @@ static InputBinding *initInputBinding(cursorObject *cur, Py_ssize_t len)
 static int ibindInt(cursorObject *cur, int column, PyObject *item)
 {
     int len = sizeof(long);
-    long val = PyInt_AsLong(item);
+    long val = PyLong_AsLong(item);
 
     InputBinding *ib = initInputBinding(cur, len);
     if (!ib)
@@ -875,7 +875,7 @@ static int bindInput(cursorObject *cur, PyObject *vars, int columns)
         if (PyLong_Check(item)) {
             rv = ibindLong(cur, iCol, item);
         }
-        else if (PyInt_Check(item)) {
+        else if (PyLong_Check(item)) {
             rv = ibindInt(cur, iCol, item);
         }
         else if (PyBytes_Check(item)) {

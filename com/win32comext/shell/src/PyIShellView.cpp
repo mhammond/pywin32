@@ -39,7 +39,7 @@ PyObject *PyIShellView::TranslateAccelerator(PyObject *self, PyObject *args)
     if (FAILED(hr))
         return PyCom_BuildPyException(hr, pISV, IID_IShellView);
     // @rdesc The result is the HRESULT from the underlying TranslateAccelerator call
-    return PyInt_FromLong(hr);
+    return PyLong_FromLong(hr);
 }
 
 // @pymethod |PyIShellView|EnableModeless|Description of EnableModeless.
@@ -338,8 +338,8 @@ STDMETHODIMP PyGShellView::TranslateAccelerator(
     if (FAILED(hr))
         return hr;
     // Process the Python results, and convert back to the real params
-    if (PyInt_Check(result) || PyLong_Check(result))
-        hr = PyInt_AsLong(result);
+    if (PyLong_Check(result) || PyLong_Check(result))
+        hr = PyLong_AsLong(result);
     Py_DECREF(result);
     return hr;
 }

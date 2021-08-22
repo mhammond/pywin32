@@ -345,7 +345,7 @@ PyObject *PyECB::getattro(PyObject *self, PyObject *obname)
     TCHAR *name = PYISAPI_ATTR_CONVERT(obname);
 
     if (_tcscmp(name, _T("softspace")) == 0)  // help 'print' semantics.
-        return PyInt_FromLong(1);
+        return PyLong_FromLong(1);
 
     EXTENSION_CONTROL_BLOCK *pecb = ((PyECB *)self)->m_pcb->GetECB();
 
@@ -386,7 +386,7 @@ int PyECB::setattro(PyObject *self, PyObject *obname, PyObject *v)
 
     if (_tcscmp(name, _T("HttpStatusCode")) == 0) {
         PyECB *pecb = (PyECB *)self;
-        DWORD status = PyInt_AsLong(v);
+        DWORD status = PyLong_AsLong(v);
         pecb->m_HttpStatusCode = status;
         if (pecb->m_pcb)
             pecb->m_pcb->SetStatus(status);
@@ -431,7 +431,7 @@ PyObject *PyECB::WriteClient(PyObject *self, PyObject *args)
         Py_BEGIN_ALLOW_THREADS bRes = pecb->m_pcb->WriteClient(buffer, &buffLenOut, reserved);
         Py_END_ALLOW_THREADS if (!bRes) return SetPyECBError("WriteClient");
     }
-    return PyInt_FromLong(buffLenOut);
+    return PyLong_FromLong(buffLenOut);
     // @rdesc the result is the number of bytes written.
 }
 
@@ -937,7 +937,7 @@ PyObject *PyECB::IsKeepAlive(PyObject *self, PyObject *args)
         Py_END_ALLOW_THREADS
     }
 
-    return PyInt_FromLong((bKeepAlive) ? 1 : 0);
+    return PyLong_FromLong((bKeepAlive) ? 1 : 0);
 }
 
 // @pymethod |EXTENSION_CONTROL_BLOCK|MapURLToPath|Calls ServerSupportFunction with HSE_REQ_MAP_URL_TO_PATH

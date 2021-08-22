@@ -40,7 +40,7 @@ PyObject *PyIExternalConnection::AddConnection(PyObject *self, PyObject *args)
     DWORD rc = pIEC->AddConnection(extconn, reserved);
     PY_INTERFACE_POSTCALL;
     // @rdesc The result is the number of reference counts on the object; used for debugging purposes only.
-    return PyInt_FromLong(rc);
+    return PyLong_FromLong(rc);
 }
 
 // @pymethod int|PyIExternalConnection|ReleaseConnection|Decrements an object's count of its strong external connections
@@ -64,7 +64,7 @@ PyObject *PyIExternalConnection::ReleaseConnection(PyObject *self, PyObject *arg
     DWORD rc = pIEC->ReleaseConnection(extconn, reserved, fLastReleaseCloses);
     PY_INTERFACE_POSTCALL;
     // @rdesc The result is the number of reference counts on the object; used for debugging purposes only.
-    return PyInt_FromLong(rc);
+    return PyLong_FromLong(rc);
 }
 
 // @object PyIExternalConnection|A Python wrapper for a COM IExternalConnection interface.

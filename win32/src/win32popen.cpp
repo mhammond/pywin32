@@ -399,7 +399,7 @@ static PyObject *_PyPopen(char *cmdstring, int mode, int n)
 
         procObj = PyList_New(2);
         hProcessObj = PyLong_FromVoidPtr(hProcess);
-        intObj = PyInt_FromLong(file_count);
+        intObj = PyLong_FromLong(file_count);
 
         if (procObj && hProcessObj && intObj) {
             PyList_SetItem(procObj, 0, hProcessObj);
@@ -508,12 +508,12 @@ static int _PyPclose(FILE *file)
             (procObj = PyDict_GetItem(_PyPopenProcs, fileObj)) != NULL &&
             (hProcessObj = PyList_GetItem(procObj, 0)) != NULL && (intObj = PyList_GetItem(procObj, 1)) != NULL) {
             hProcess = PyLong_AsVoidPtr(hProcessObj);
-            file_count = PyInt_AsLong(intObj);
+            file_count = PyLong_AsLong(intObj);
 
             if (file_count > 1) {
                 /* Still other files referencing process */
                 file_count--;
-                PyList_SetItem(procObj, 1, PyInt_FromLong(file_count));
+                PyList_SetItem(procObj, 1, PyLong_FromLong(file_count));
             }
             else {
                 Py_BEGIN_ALLOW_THREADS

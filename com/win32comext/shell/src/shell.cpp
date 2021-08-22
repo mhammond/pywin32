@@ -566,7 +566,7 @@ BOOL PyObject_AsTBBUTTONs(PyObject *ob, TBBUTTON **ppButtons, UINT *pnButtons)
 PyObject *PyWinObject_FromRESOURCESTRING(LPCSTR str)
 {
     if (HIWORD(str) == 0)
-        return PyInt_FromLong(LOWORD(str));
+        return PyLong_FromLong(LOWORD(str));
     return PyBytes_FromString(str);
 }
 
@@ -1065,8 +1065,8 @@ static int CALLBACK PyBrowseCallbackProc(HWND hwnd, UINT uMsg, LPARAM lParam, LP
         goto done;
     result = PyEval_CallObject(pc->fn, args);
     // API says must return 0, but there might be a good reason.
-    if (result && PyInt_Check(result))
-        rc = PyInt_AsLong(result);
+    if (result && PyLong_Check(result))
+        rc = PyLong_AsLong(result);
 done:
     if (PyErr_Occurred()) {
         PySys_WriteStderr("SHBrowseForFolder callback failed!\n");
@@ -1912,7 +1912,7 @@ static PyObject *PySHChangeNotifyRegister(PyObject *self, PyObject *args)
     rc = (*pfnSHChangeNotifyRegister)(hwnd, sources, events, msg, 1, &entry);
     PY_INTERFACE_POSTCALL;
     PyObject_FreePIDL(entry.pidl);
-    return PyInt_FromLong(rc);
+    return PyLong_FromLong(rc);
 }
 
 // @pymethod |shell|SHChangeNotifyDeregister|Unregisters the client's window process from receiving notification events
@@ -1957,7 +1957,7 @@ static PyObject *PyDragQueryFile(PyObject *self, PyObject *args)
     if (!PyWinObject_AsHANDLE(obhglobal, (HANDLE *)&hglobal))
         return NULL;
     if (index == 0xFFFFFFFF) {
-        return PyInt_FromLong(DragQueryFile(hglobal, index, NULL, 0));
+        return PyLong_FromLong(DragQueryFile(hglobal, index, NULL, 0));
     }
     // get the buffer size
     UINT nchars = DragQueryFile(hglobal, index, NULL, 0) + 2;
@@ -1985,7 +1985,7 @@ static PyObject *PyDragQueryFileW(PyObject *self, PyObject *args)
     if (!PyWinObject_AsHANDLE(obhglobal, (HANDLE *)&hglobal))
         return NULL;
     if (index == 0xFFFFFFFF) {
-        return PyInt_FromLong(DragQueryFileW(hglobal, index, NULL, 0));
+        return PyLong_FromLong(DragQueryFileW(hglobal, index, NULL, 0));
     }
     // get the buffer size
     UINT nchars = DragQueryFileW(hglobal, index, NULL, 0) + 2;
@@ -2145,7 +2145,7 @@ static PyObject *PySHGetSettings(PyObject *self, PyObject *args)
     CHECK_SET_VAL(SSF_WIN95CLASSIC, mask, fWin95Classic);
     // If requesting any of the top 3 bits, return them as well
     if (mask & 0xE000) {
-        PyObject *val = PyInt_FromLong(state.fRestFlags);
+        PyObject *val = PyLong_FromLong(state.fRestFlags);
         if (val) {
             PyDict_SetItemString(ret, "fRestFlags", val);
             Py_DECREF(val);
@@ -2228,7 +2228,7 @@ static PyObject *PyFILEGROUPDESCRIPTORAsString(PyObject *self, PyObject *args)
         if (attr == NULL)
             PyErr_Clear();
         if (attr && attr != Py_None) {
-            fd->dwFlags = PyInt_AsLong(attr);
+            fd->dwFlags = PyLong_AsLong(attr);
             ok = !PyErr_Occurred();
         }
         Py_XDECREF(attr);
@@ -2273,7 +2273,7 @@ static PyObject *PyFILEGROUPDESCRIPTORAsString(PyObject *self, PyObject *args)
             PyErr_Clear();
         if (attr && attr != Py_None) {
             fd->dwFlags |= FD_ATTRIBUTES;
-            fd->dwFileAttributes = PyInt_AsLong(attr);
+            fd->dwFileAttributes = PyLong_AsLong(attr);
             ok = !PyErr_Occurred();
         }
         Py_XDECREF(attr);
@@ -2437,7 +2437,7 @@ static PyObject *PyStringAsFILEGROUPDESCRIPTOR(PyObject *self, PyObject *args)
         PyObject *val;
         // These structures are the same until the very end, where the
         // unicode/ascii buffer is - so we can use either pointer
-        val = PyInt_FromLong(fd->dwFlags);
+        val = PyLong_FromLong(fd->dwFlags);
         if (val)
             PyDict_SetItemString(sub, "dwFlags", val);
         Py_XDECREF(val);
@@ -2461,7 +2461,7 @@ static PyObject *PyStringAsFILEGROUPDESCRIPTOR(PyObject *self, PyObject *args)
         }
 
         if (fd->dwFlags & FD_ATTRIBUTES) {
-            val = PyInt_FromLong(fd->dwFileAttributes);
+            val = PyLong_FromLong(fd->dwFileAttributes);
             if (val)
                 PyDict_SetItemString(sub, "dwFileAttributes", val);
             Py_XDECREF(val);
@@ -2576,7 +2576,7 @@ static PyObject *PyShellExecuteEx(PyObject *self, PyObject *args, PyObject *kw)
     }
     if (obHotKey) {
         info.fMask |= SEE_MASK_HOTKEY;
-        info.dwHotKey = PyInt_AsLong(obHotKey);
+        info.dwHotKey = PyLong_AsLong(obHotKey);
         if (PyErr_Occurred())
             goto done;
     }
@@ -3831,7 +3831,7 @@ static const PyCom_InterfaceSupportInfo g_interfaceSupportData[] = {
 
 static int AddConstant(PyObject *dict, const char *key, long value)
 {
-    PyObject *oval = PyInt_FromLong(value);
+    PyObject *oval = PyLong_FromLong(value);
     if (!oval) {
         return 1;
     }

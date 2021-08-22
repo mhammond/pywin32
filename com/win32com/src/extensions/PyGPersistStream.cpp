@@ -11,7 +11,7 @@ STDMETHODIMP PyGPersistStream::IsDirty(void)
     if (SUCCEEDED(hr)) {
         /* returning 0 means not dirty. *anything* else means dirty */
 
-        int dirty = PyInt_AsLong(result);
+        int dirty = PyLong_AsLong(result);
         Py_DECREF(result);
         hr = dirty == 0 ? S_FALSE : S_OK;
     }

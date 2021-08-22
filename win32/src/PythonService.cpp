@@ -364,7 +364,7 @@ static PyObject *PyCoInitializeEx(PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "l:CoInitializeEx", &flags))
         return NULL;
     HRESULT hr = CoInitializeEx(NULL, flags);
-    return PyInt_FromLong(hr);
+    return PyLong_FromLong(hr);
 }
 
 // @pymethod |servicemanager|CoUninitialize|Unitialize OLE
@@ -422,7 +422,7 @@ static PyObject *PyPumpWaitingMessages(PyObject *self, PyObject *args)
         // Otherwise, dispatch the message.
         DispatchMessage(&msg);
     }  // End of PeekMessage while loop
-    Py_END_ALLOW_THREADS return PyInt_FromLong(result);
+    Py_END_ALLOW_THREADS return PyLong_FromLong(result);
 }
 
 static PyObject *PyStartServiceCtrlDispatcher(PyObject *self)
@@ -987,7 +987,7 @@ DWORD WINAPI dispatchServiceCtrl(DWORD dwCtrlCode, DWORD dwEventType, LPVOID eve
     else if (result == Py_None)
         dwResult = NOERROR;
     else {
-        dwResult = PyInt_AsUnsignedLongMask(result);
+        dwResult = PyLong_AsUnsignedLongMask(result);
         if (dwResult == -1 && PyErr_Occurred()) {
             ReportPythonError(PYS_E_SERVICE_CONTROL_FAILED);
             dwResult = ERROR_SERVICE_SPECIFIC_ERROR;

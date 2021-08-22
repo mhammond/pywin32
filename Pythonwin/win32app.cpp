@@ -355,7 +355,7 @@ static PyObject *ui_app_run(PyObject *self, PyObject *args)
     long rc = AfxGetApp()->CWinApp::Run();
     GUI_END_SAVE;
 
-    return PyInt_FromLong(rc);
+    return PyLong_FromLong(rc);
 }
 
 // @pymethod int|PyCWinApp|IsInproc|Returns a flag to indicate if the created CWinApp was in the DLL, or an external
@@ -364,7 +364,7 @@ static PyObject *ui_app_isinproc(PyObject *self, PyObject *args)
 {
     extern BOOL PyWin_bHaveMFCHost;
     CHECK_NO_ARGS2(args, IsInproc);
-    return PyInt_FromLong(!PyWin_bHaveMFCHost);
+    return PyLong_FromLong(!PyWin_bHaveMFCHost);
 }
 
 // @pymethod [<o PyCDocTemplate>,...]|PyCWinApp|GetDocTemplateList|Returns a list of all document templates.

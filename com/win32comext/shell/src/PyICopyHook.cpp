@@ -91,7 +91,7 @@ PyGCopyHookA::CopyCallback(
                                  srcAttribs, destFile, destAttribs);
     if (FAILED(hr))
         return hr;
-    hr = PyInt_AsLong(result);
+    hr = PyLong_AsLong(result);
     if ((hr == -1) && PyErr_Occurred())
         hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("CopyCallBack");
     Py_DECREF(result);
@@ -181,7 +181,7 @@ PyGCopyHookW::CopyCallback(
                         PyWinObject_FromWCHAR(srcFile), srcAttribs, PyWinObject_FromWCHAR(destFile), destAttribs);
     if (FAILED(hr))
         return hr;
-    hr = PyInt_AsLong(result);
+    hr = PyLong_AsLong(result);
     if ((hr == -1) && PyErr_Occurred())
         hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("CopyCallBack");
     Py_DECREF(result);

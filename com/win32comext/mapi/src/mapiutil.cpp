@@ -125,18 +125,18 @@ BOOL PyMAPIObject_AsSPropValue(PyObject *Valob, SPropValue *pv, void *pAllocMore
     switch (PROP_TYPE(pv->ulPropTag)) {
         // @flag PT_I2|An integer
         case PT_I2:  //		case PT_SHORT:
-            pv->Value.i = (int)PyInt_AsLong(ob);
+            pv->Value.i = (int)PyLong_AsLong(ob);
             break;
         // @flag PT_MV_I2|A sequence of integers
         case PT_MV_I2:
-            MAKE_MV(short int, pAllocMoreLinkBlock, pv->Value.MVi.lpi, pv->Value.MVi.cValues, PyInt_AsLong)
+            MAKE_MV(short int, pAllocMoreLinkBlock, pv->Value.MVi.lpi, pv->Value.MVi.cValues, PyLong_AsLong)
         // @flag PT_I4|An integer
         case PT_I4:  //		case PT_LONG:
-            pv->Value.l = PyInt_AsLong(ob);
+            pv->Value.l = PyLong_AsLong(ob);
             break;
         // @flag PT_MV_I4|A sequence of integers
         case PT_MV_I4:
-            MAKE_MV(long, pAllocMoreLinkBlock, pv->Value.MVl.lpl, pv->Value.MVl.cValues, PyInt_AsLong)
+            MAKE_MV(long, pAllocMoreLinkBlock, pv->Value.MVl.lpl, pv->Value.MVl.cValues, PyLong_AsLong)
         // @flag PT_R4|A float
         case PT_R4:  //		case PT_FLOAT:
             pv->Value.flt = (float)PyFloat_AsDouble(ob);
@@ -153,7 +153,7 @@ BOOL PyMAPIObject_AsSPropValue(PyObject *Valob, SPropValue *pv, void *pAllocMore
             MAKE_MV(double, pAllocMoreLinkBlock, pv->Value.MVdbl.lpdbl, pv->Value.MVdbl.cValues, PyFloat_AsDouble)
         // @flag PT_BOOLEAN|A boolean value (or an int)
         case PT_BOOLEAN:
-            pv->Value.b = PyInt_AsLong(ob) ? VARIANT_TRUE : VARIANT_FALSE;
+            pv->Value.b = PyLong_AsLong(ob) ? VARIANT_TRUE : VARIANT_FALSE;
             break;
 
             /*
@@ -340,7 +340,7 @@ BOOL PyMAPIObject_AsSPropValue(PyObject *Valob, SPropValue *pv, void *pAllocMore
 
         // @flag PT_ERROR|An integer error code.
         case PT_ERROR:
-            pv->Value.err = (SCODE)PyInt_AsLong(ob);
+            pv->Value.err = (SCODE)PyLong_AsLong(ob);
             break;
 
         // @flag PT_NULL|Anything!
@@ -365,10 +365,10 @@ PyObject *PyMAPIObject_FromSPropValue(SPropValue *pv)
     ULONG i;
     switch (PROP_TYPE(pv->ulPropTag)) {
         case PT_I2:  //		case PT_SHORT:
-            val = PyInt_FromLong(pv->Value.i);
+            val = PyLong_FromLong(pv->Value.i);
             break;
         case PT_I4:  //		case PT_LONG:
-            val = PyInt_FromLong(pv->Value.l);
+            val = PyLong_FromLong(pv->Value.l);
             break;
         case PT_R4:  //		case PT_FLOAT:
             val = PyFloat_FromDouble(pv->Value.flt);
@@ -409,7 +409,7 @@ PyObject *PyMAPIObject_FromSPropValue(SPropValue *pv)
             val = PyWinObject_FromLARGE_INTEGER(pv->Value.li);
             break;
         case PT_ERROR:
-            val = PyInt_FromLong(pv->Value.err);
+            val = PyLong_FromLong(pv->Value.err);
             break;
 
         case PT_NULL:
@@ -421,14 +421,14 @@ PyObject *PyMAPIObject_FromSPropValue(SPropValue *pv)
             val = PyTuple_New(pv->Value.MVi.cValues);
             if (val) {
                 for (i = 0; i < pv->Value.MVi.cValues; i++)
-                    PyTuple_SET_ITEM(val, i, PyInt_FromLong(pv->Value.MVi.lpi[i]));
+                    PyTuple_SET_ITEM(val, i, PyLong_FromLong(pv->Value.MVi.lpi[i]));
             }
             break;
         case PT_MV_LONG:
             val = PyTuple_New(pv->Value.MVi.cValues);
             if (val) {
                 for (i = 0; i < pv->Value.MVl.cValues; i++)
-                    PyTuple_SET_ITEM(val, i, PyInt_FromLong(pv->Value.MVl.lpl[i]));
+                    PyTuple_SET_ITEM(val, i, PyLong_FromLong(pv->Value.MVl.lpl[i]));
             }
             break;
         case PT_MV_R4:
@@ -507,7 +507,7 @@ PyObject *PyMAPIObject_FromSPropValue(SPropValue *pv)
             break;
 
         case PT_OBJECT:
-            val = PyInt_FromLong(pv->Value.x);
+            val = PyLong_FromLong(pv->Value.x);
             break;
 
         default:
@@ -712,7 +712,7 @@ BOOL PyMAPIObject_AsSPropTagArray(PyObject *obta, SPropTagArray **ppta)
     if (PySequence_Check(obta)) {
         seqLen = PySequence_Length(obta);
     }
-    else if (PyInt_Check(obta)) {
+    else if (PyLong_Check(obta)) {
         seqLen = 1;
         bSeq = FALSE;
     }
@@ -880,7 +880,7 @@ BOOL PyMAPIObject_AsMAPINAMEIDArray(PyObject *ob, MAPINAMEID ***pppNameId, ULONG
         BSTR bstrVal;
         if (!PyWinObject_AsIID(obIID, pIIDs + i))
             goto loop_error;
-        if (PyInt_Check(obPropId)) {
+        if (PyLong_Check(obPropId)) {
             pNew->ulKind = MNID_ID;
             pNew->Kind.lID = PyLong_AsUnsignedLong(obPropId);
         }
@@ -931,7 +931,7 @@ PyObject *PyMAPIObject_FromMAPINAMEIDArray(MAPINAMEID **pp, ULONG numEntries)
         }
         else {
             value = pLook->ulKind == MNID_STRING ? PyWinObject_FromOLECHAR(pLook->Kind.lpwstrName)
-                                                 : PyInt_FromLong(pLook->Kind.lID);
+                                                 : PyLong_FromLong(pLook->Kind.lID);
             guid = PyWinObject_FromIID(*pLook->lpguid);
         }
         PyObject *newItem = PyTuple_New(2);
@@ -1081,14 +1081,14 @@ BOOL PyMAPIObject_AsSingleSRestriction(PyObject *ob, SRestriction *pRest, void *
     PyObject *obResType = PySequence_GetItem(ob, 0);
     if (obResType == NULL)
         return FALSE;
-    if (!PyInt_Check(obResType)) {
+    if (!PyLong_Check(obResType)) {
         PyErr_SetString(PyExc_TypeError, "SRestriction must be a sequence of (integer, object)");
         Py_DECREF(obResType);
         return FALSE;
     }
     // @pyparm int|restrictionType||An integer describing the contents of the second parameter.
     // @pyparm object|restriction||An object in one of the formats describe below.
-    pRest->rt = PyInt_AsLong(obResType);
+    pRest->rt = PyLong_AsLong(obResType);
     Py_DECREF(obResType);
     PyObject *subOb = PySequence_GetItem(ob, 1);
     if (subOb == NULL)

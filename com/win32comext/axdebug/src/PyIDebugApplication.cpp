@@ -317,7 +317,7 @@ PyObject *PyIDebugApplication::QueryCurrentThreadIsDebuggerThread(PyObject *self
     PY_INTERFACE_POSTCALL;
     if (FAILED(hr))
         return SetPythonCOMError(self, hr);
-    return PyInt_FromLong(hr);
+    return PyLong_FromLong(hr);
     // @rdesc Returns S_OK if the current running thread is the debugger thread.
     // Otherwise, returns S_FALSE.
 }

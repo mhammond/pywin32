@@ -242,7 +242,7 @@ static PyObject *MakeResName(WCHAR **val)
     PyObject *obj = NULL;
     if (*ptr == (WORD)-1) {
         ptr++;
-        obj = PyInt_FromLong((WORD)*ptr++);
+        obj = PyLong_FromLong((WORD)*ptr++);
     }
     else if (*ptr != (WORD)0) {
         obj = PyWinObject_FromWCHAR(ptr);
@@ -359,7 +359,7 @@ static PyObject *MakeListFromDlgItem(LPVOID *tplin)
     WCHAR *ptr = (WCHAR *)((char *)tpl + sizeof(DLGITEMTEMPLATE));
     if (*ptr == (WCHAR)-1) {
         ptr++;
-        obitem = PyInt_FromLong((WORD)*ptr++);
+        obitem = PyLong_FromLong((WORD)*ptr++);
     }
     else {
         LPWSTR wc = LPWSTR(ptr);
@@ -383,7 +383,7 @@ static PyObject *MakeListFromDlgItem(LPVOID *tplin)
     PyList_SET_ITEM(ret, 1, obitem);
 
     // Parameter 2 - ID
-    obitem = PyInt_FromLong(tpl->id);
+    obitem = PyLong_FromLong(tpl->id);
     if (obitem == NULL) {
         Py_DECREF(ret);
         return NULL;

@@ -263,7 +263,7 @@ static PyObject *ui_thread_set_thread_priority(PyObject *self, PyObject *args)
         return NULL;
 
     long rc = pThread->SetThreadPriority(priority);
-    return PyInt_FromLong(rc);
+    return PyLong_FromLong(rc);
 }
 
 // @pymethod int|PyCWinThread|Run|Starts the message pump.  Advanced users only
@@ -276,7 +276,7 @@ static PyObject *ui_thread_run(PyObject *self, PyObject *args)
     GUI_BGN_SAVE;
     long rc = pThread->CWinThread::Run();
     GUI_END_SAVE;
-    return PyInt_FromLong(rc);
+    return PyLong_FromLong(rc);
 }
 
 // @pymethod |PyCWinThread|CreateThread|Creates the actual thread behind the thread object.

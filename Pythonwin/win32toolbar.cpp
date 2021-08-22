@@ -176,7 +176,7 @@ PyObject *PyCDockContext::getattro(PyObject *obname)
             void *pv = &((BYTE *)pC)[pm->off];
             switch (pm->type) {
                 case MT_INT:
-                    return PyInt_FromLong(*((int *)pv));
+                    return PyLong_FromLong(*((int *)pv));
                     break;
                 case MT_RECT: {
                     CRect *p = (CRect *)pv;
@@ -212,7 +212,7 @@ int PyCDockContext::setattro(PyObject *obname, PyObject *value)
             void *pv = &((BYTE *)pC)[pm->off];
             switch (pm->type) {
                 case MT_INT:
-                    *((int *)pv) = PyInt_AsLong(value);
+                    *((int *)pv) = PyLong_AsLong(value);
                     return 0;
                 case MT_RECT: {
                     CRect *p = (CRect *)pv;
@@ -468,9 +468,9 @@ PyObject *PyCControlBar::getattro(PyObject *obname)
         return ui_assoc_object::make(PyCDockContext::type, pCtlBar->m_pDockContext);
     }
     if (strcmp(name, "dwStyle") == 0)  // @prop int|dwStyle|creation style (used for layout)
-        return PyInt_FromLong(pCtlBar->m_dwStyle);
+        return PyLong_FromLong(pCtlBar->m_dwStyle);
     if (strcmp(name, "dwDockStyle") == 0)  // @prop int|dwDockStyle|indicates how bar can be docked
-        return PyInt_FromLong(pCtlBar->m_dwStyle);
+        return PyLong_FromLong(pCtlBar->m_dwStyle);
 
     return PyObject_GenericGetAttr(this, obname);
 }
@@ -485,13 +485,13 @@ int PyCControlBar::setattro(PyObject *obname, PyObject *v)
     if (!pCtlBar)
         return -1;
     if (strcmp(name, "dwStyle") == 0) {
-        pCtlBar->m_dwStyle = PyInt_AsLong(v);
+        pCtlBar->m_dwStyle = PyLong_AsLong(v);
         if (pCtlBar->m_dwStyle == -1 && PyErr_Occurred())
             return -1;
         return 0;
     }
     if (strcmp(name, "dwDockStyle") == 0) {
-        pCtlBar->m_dwDockStyle = PyInt_AsLong(v);
+        pCtlBar->m_dwDockStyle = PyLong_AsLong(v);
         if (pCtlBar->m_dwDockStyle == -1 && PyErr_Occurred())
             return -1;
         return 0;
@@ -579,10 +579,10 @@ PyObject *PyCToolBar_SetButtons(PyObject *self, PyObject *args)
                           &buttons))  // @pyparm tuple|buttons||A tuple containing the ID's of the buttons.
         return NULL;
 
-    if (PyInt_Check(buttons)) {
+    if (PyLong_Check(buttons)) {
         // @pyparmalt1 int|numButtons||The number of buttons to pre-allocate.  If this option is used, then <om
         // PyCToolBar.PySetButtonInfo> must be used.
-        BOOL rc = pToolBar->SetButtons(NULL, PyInt_AsLong(buttons));
+        BOOL rc = pToolBar->SetButtons(NULL, PyLong_AsLong(buttons));
         if (!rc)
             RETURN_API_ERR("PyCToolBar.SetButtons");
         RETURN_NONE;
@@ -597,11 +597,11 @@ PyObject *PyCToolBar_SetButtons(PyObject *self, PyObject *args)
     PyObject *o;
     for (Py_ssize_t i = 0; i < num_buttons; i++) {
         o = PyTuple_GetItem(buttons, i);
-        if (!PyInt_Check(o)) {
+        if (!PyLong_Check(o)) {
             delete button_list;
             RETURN_ERR("SetButtons expected integer button ids.");
         }
-        button_list[i] = PyInt_AsLong(o);
+        button_list[i] = PyLong_AsLong(o);
     }
     BOOL rc = pToolBar->SetButtons(button_list, PyWin_SAFE_DOWNCAST(num_buttons, Py_ssize_t, int));
     delete button_list;
@@ -1054,7 +1054,7 @@ PyObject *PyCToolBarCtrl_AddStrings(PyObject *self, PyObject *args)
     GUI_BGN_SAVE;
     int rc = pTBC->AddStrings(strings);
     GUI_END_SAVE;
-    return PyInt_FromLong(rc);
+    return PyLong_FromLong(rc);
 }
 
 // @pymethod |PyCToolBarCtrl|AutoSize|Resize the entire toolbar control
@@ -1595,12 +1595,12 @@ PyObject *PyCStatusBar_SetIndicators(PyObject *self, PyObject *args)
     PyObject *o;
     for (Py_ssize_t i = 0; i < num_buttons; i++) {
         o = PySequence_GetItem(buttons, i);
-        if (!PyInt_Check(o)) {
+        if (!PyLong_Check(o)) {
             Py_XDECREF(o);
             delete button_list;
             RETURN_ERR("SetIndicators expected integer button ids.");
         }
-        button_list[i] = PyInt_AsLong(o);
+        button_list[i] = PyLong_AsLong(o);
         Py_DECREF(o);
     }
     BOOL rc = pSB->SetIndicators(button_list, PyWin_SAFE_DOWNCAST(num_buttons, Py_ssize_t, int));

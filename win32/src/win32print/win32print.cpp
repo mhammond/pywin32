@@ -338,7 +338,7 @@ BOOL PyWinObject_AsPRINTER_INFO(DWORD level, PyObject *obinfo, LPBYTE *pbuf)
         if (obinfo == Py_None)
             return TRUE;
         else {
-            *pbuf = (LPBYTE)PyInt_AsLong(obinfo);
+            *pbuf = (LPBYTE)PyLong_AsLong(obinfo);
             if ((*pbuf == (LPBYTE)-1) && PyErr_Occurred()) {
                 PyErr_Clear();
                 PyErr_SetString(PyExc_TypeError, "Info must be None or a PRINTER_STATUS_* integer when level is 0.");
@@ -1317,7 +1317,7 @@ static PyObject *PyDocumentProperties(PyObject *self, PyObject *args)
         else {
             if (obdmoutput != Py_None)
                 ((PyDEVMODE *)obdmoutput)->modify_in_place();
-            ret = PyInt_FromLong(rc);
+            ret = PyLong_FromLong(rc);
         }
     }
     PyWinObject_FreeTCHAR(devicename);
@@ -2597,7 +2597,7 @@ static struct PyMethodDef win32print_functions[] = {
 
 static void AddConstant(PyObject *dict, char *name, long val)
 {
-    PyObject *nv = PyInt_FromLong(val);
+    PyObject *nv = PyLong_FromLong(val);
     PyDict_SetItemString(dict, name, nv);
     Py_XDECREF(nv);
 }

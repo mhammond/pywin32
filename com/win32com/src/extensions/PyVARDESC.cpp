@@ -37,11 +37,11 @@ BOOL PyObject_AsVARDESC(PyObject *ob, VARDESC *v, void *pMore)
         return FALSE;
 
     if (v->varkind == VAR_PERINSTANCE) {
-        if (!PyInt_Check(pyv->value)) {
+        if (!PyLong_Check(pyv->value)) {
             PyErr_SetString(PyExc_TypeError, "If varkind==VAR_PERINSTANCE, value attribute must be an integer");
             return FALSE;
         }
-        v->oInst = PyInt_AsLong(pyv->value);
+        v->oInst = PyLong_AsLong(pyv->value);
     }
     else if (v->varkind == VAR_CONST) {
         VARIANT *pVar = (VARIANT *)AllocMore(pMore, sizeof(VARIANT), TRUE);
@@ -170,7 +170,7 @@ PyVARDESC::PyVARDESC(const VARDESC *pVD)
     desckind = DESCKIND_VARDESC;
 
     if (varkind == VAR_PERINSTANCE)
-        value = PyInt_FromLong(pVD->oInst);
+        value = PyLong_FromLong(pVD->oInst);
     else if (varkind == VAR_CONST) {
         VARIANT varValue;
 
@@ -236,7 +236,7 @@ PyVARDESC::~PyVARDESC()
     PyObject *rc;
     switch (index) {
         case 0:  // @tupleitem 0|int|memid|The id of the member
-            return PyInt_FromLong(p->memid);
+            return PyLong_FromLong(p->memid);
         case 1:  // @tupleitem 1|int/object|value|A value for the variant.  If PERINSTANCE then an offset into the
                  // instance, otherwise a variant converted to a Python object.
             rc = p->value ? p->value : Py_None;
@@ -247,9 +247,9 @@ PyVARDESC::~PyVARDESC()
             Py_INCREF(rc);
             return rc;
         case 3:  // @tupleitem 3|int|wVarFlags|Variable flags
-            return PyInt_FromLong(p->wVarFlags);
+            return PyLong_FromLong(p->wVarFlags);
         case 4:  // @tupleitem 4|int|varkind|Kind flags.
-            return PyInt_FromLong(p->varkind);
+            return PyLong_FromLong(p->varkind);
     }
     PyErr_SetString(PyExc_IndexError, "index out of range");
     return NULL;

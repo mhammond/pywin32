@@ -77,7 +77,7 @@ static HRESULT univgw_dispatch(DWORD index, gw_object *_this, va_list argPtr)
 
     // prep the rest of the arguments
     PyObject *obArgs = PyTuple_New(3);
-    PyObject *obIndex = PyInt_FromLong(index);
+    PyObject *obIndex = PyLong_FromLong(index);
 
     if (obArgPtr == NULL || obArgs == NULL || obIndex == NULL) {
         set_error(vtbl->iid, L"could not create argument tuple");
@@ -113,13 +113,13 @@ static HRESULT univgw_dispatch(DWORD index, gw_object *_this, va_list argPtr)
         hr = S_OK;
     }
     else {
-        if (!PyInt_Check(result)) {
+        if (!PyLong_Check(result)) {
             Py_DECREF(result);
             set_error(vtbl->iid, L"expected integer return value");
             return E_UNEXPECTED;  // ### select a different value?
         }
 
-        hr = PyInt_AS_LONG(result);
+        hr = PyLong_AS_LONG(result);
     }
 
     Py_DECREF(result);
@@ -466,12 +466,12 @@ static PyObject *univgw_CreateVTable(PyObject *self, PyObject *args)
         if (obArgCount == NULL)
             goto error;
 
-        int argSize = PyInt_AsLong(obArgSize);
+        int argSize = PyLong_AsLong(obArgSize);
         Py_DECREF(obArgSize);
         if (argSize == -1 && PyErr_Occurred())
             goto error;
 
-        int argCount = PyInt_AsLong(obArgCount);
+        int argCount = PyLong_AsLong(obArgCount);
         Py_DECREF(obArgCount);
         if (argCount == -1 && PyErr_Occurred())
             goto error;

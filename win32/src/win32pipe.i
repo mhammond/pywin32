@@ -129,8 +129,8 @@ PyObject *MyGetNamedPipeHandleState(PyObject *self, PyObject *args)
 		return PyWin_SetAPIError("GetNamedPipeHandleState");
 	PyObject *obName = PyWinObject_FromTCHAR(buf);
 	if (getCollectData) {
-		obMaxCollectionCount = PyInt_FromLong(MaxCollectionCount);
-		obCollectDataTimeout = PyInt_FromLong(CollectDataTimeout);
+		obMaxCollectionCount = PyLong_FromLong(MaxCollectionCount);
+		obCollectDataTimeout = PyLong_FromLong(CollectDataTimeout);
 	} else {
 		obMaxCollectionCount = Py_None; Py_INCREF(Py_None);
 		obCollectDataTimeout = Py_None; Py_INCREF(Py_None);
@@ -167,21 +167,21 @@ PyObject *MySetNamedPipeHandleState(PyObject *self, PyObject *args)
 	if (!PyWinObject_AsHANDLE(obhNamedPipe, &hNamedPipe))
 		return NULL;
     if (obMode!=Py_None) {
-        if (!PyInt_Check(obMode))
+        if (!PyLong_Check(obMode))
             return PyErr_Format(PyExc_TypeError, "mode param must be None or an integer (got %s)", obMode->ob_type->tp_name);
-        Mode = PyInt_AsLong(obMode);
+        Mode = PyLong_AsLong(obMode);
         pMode = &Mode;
     }
     if (obMaxCollectionCount!=Py_None) {
-        if (!PyInt_Check(obMaxCollectionCount))
+        if (!PyLong_Check(obMaxCollectionCount))
             return PyErr_Format(PyExc_TypeError, "maxCollectionCount param must be None or an integer (got %s)", obMaxCollectionCount->ob_type->tp_name);
-        MaxCollectionCount = PyInt_AsLong(obMaxCollectionCount);
+        MaxCollectionCount = PyLong_AsLong(obMaxCollectionCount);
         pMaxCollectionCount = &MaxCollectionCount;
     }
     if (obCollectDataTimeout!=Py_None) {
-        if (!PyInt_Check(obCollectDataTimeout))
+        if (!PyLong_Check(obCollectDataTimeout))
             return PyErr_Format(PyExc_TypeError, "collectDataTimeout param must be None or an integer (got %s)", obCollectDataTimeout->ob_type->tp_name);
-        CollectDataTimeout = PyInt_AsLong(obCollectDataTimeout);
+        CollectDataTimeout = PyLong_AsLong(obCollectDataTimeout);
         pCollectDataTimeout = &CollectDataTimeout;
     }
 
@@ -225,7 +225,7 @@ PyObject *MyConnectNamedPipe(PyObject *self, PyObject *args)
 	// the function has still worked.
 	if (!ok && rc != ERROR_IO_PENDING && rc != ERROR_PIPE_CONNECTED)
 		return PyWin_SetAPIError("ConnectNamedPipe");
-	return PyInt_FromLong(rc);
+	return PyLong_FromLong(rc);
 }
 
 // @pyswig string/buffer|TransactNamedPipe|Combines the functions that write a
@@ -265,7 +265,7 @@ PyObject *MyTransactNamedPipe(PyObject *self, PyObject *args)
 	BOOL bIsNewString=FALSE;
 	PyObject *obRet = NULL;
 	// process the tricky read buffer.
-	cbReadData = PyInt_AsLong(obReadData);
+	cbReadData = PyLong_AsLong(obReadData);
 	if ((cbReadData!=(DWORD)-1) || !PyErr_Occurred()){
 		if (pOverlapped){	// guaranteed to be NULL on CE
 			obRet = PyBuffer_New(cbReadData);

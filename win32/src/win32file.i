@@ -949,7 +949,7 @@ PyObject *MyReadFile(PyObject *self, PyObject *args)
 	void *buf = NULL;
 	PyWinBufferView pybuf;
 
-	bufSize = PyInt_AsLong(obBuf);
+	bufSize = PyLong_AsLong(obBuf);
 	if ((bufSize!=(DWORD)-1) || !PyErr_Occurred()){
 		if (pOverlapped){	// guaranteed to be NULL on CE
 			obRet = PyBuffer_New(bufSize);
@@ -1690,7 +1690,7 @@ PyObject *myopen_osfhandle (PyHANDLE osfhandle, int flags)
   if (result == -1)
     return PyErr_SetFromErrno(PyExc_IOError);
 
-  return PyInt_FromLong(result);
+  return PyLong_FromLong(result);
 }
 
 %}
@@ -1784,7 +1784,7 @@ static PyObject *py_TransmitFile( PyObject *self, PyObject *args, PyObject *kwar
 	Py_END_ALLOW_THREADS;
 
 	if (rc == 0 || rc == ERROR_IO_PENDING || rc == WSA_IO_PENDING)
-		return PyInt_FromLong(rc);
+		return PyLong_FromLong(rc);
 	return PyWin_SetAPIError("TransmitFile", rc);
 }
 PyCFunction pfnpy_TransmitFile=(PyCFunction)py_TransmitFile;
@@ -1871,8 +1871,8 @@ static PyObject *py_ConnectEx( PyObject *self, PyObject *args, PyObject *kwargs 
 		pptr = PyBytes_AsString(port_idna);
 	} else if (PyBytes_Check(pobj)) {
 		pptr = PyBytes_AsString(pobj);
-	} else if (PyInt_Check(pobj)) {
-		PyOS_snprintf(pbuf, sizeof(pbuf), "%ld", PyInt_AsLong(pobj));
+	} else if (PyLong_Check(pobj)) {
+		PyOS_snprintf(pbuf, sizeof(pbuf), "%ld", PyLong_AsLong(pobj));
 		pptr = pbuf;
 	} else {
 		PyErr_SetString(PyExc_TypeError, "Port must be int, string, or None");
@@ -2031,7 +2031,7 @@ static PyObject *MyAcceptEx
 		if (rc != ERROR_IO_PENDING)
 			return PyWin_SetAPIError("AcceptEx", WSAGetLastError());
 	}
-	return PyInt_FromLong(rc);
+	return PyLong_FromLong(rc);
 }
 
 static PyObject *
@@ -2111,7 +2111,7 @@ PyObject *MyCalculateSocketEndPointSize(PyObject *self, PyObject *args)
 		PyWin_SetAPIError("getsockopt", WSAGetLastError());
 		return NULL;
 	}
-	return PyInt_FromLong((wsProtInfo.iMaxSockAddr + 16) * 2);
+	return PyLong_FromLong((wsProtInfo.iMaxSockAddr + 16) * 2);
 }
 %}
 
@@ -2209,7 +2209,7 @@ PyObject *MyGetAcceptExSockaddrs
 	//@comm and they should be unpacked with the struct module.
 
 	// Stick in sa_family.
-	obTemp = PyInt_FromLong((LONG)psaddrLocal->sa_family);
+	obTemp = PyLong_FromLong((LONG)psaddrLocal->sa_family);
 	if (obTemp == NULL)
 	{
 		goto Error;
@@ -2289,12 +2289,12 @@ MyCopyEvent(PyObject *dict, WSANETWORKEVENTS *events, long event, int eventbit)
 	{
 		PyObject *key, *value;
 
-		key = PyInt_FromLong(event);
+		key = PyLong_FromLong(event);
 		if (key == NULL)
 		{
 			return -1;
 		}
-		value = PyInt_FromLong(events->iErrorCode[eventbit]);
+		value = PyLong_FromLong(events->iErrorCode[eventbit]);
 		if (value == NULL)
 		{
 			Py_DECREF(key);
@@ -2477,7 +2477,7 @@ PyObject *MyWSASend
 		goto Error;
 	}
 
-	obTemp = PyInt_FromLong(rc);
+	obTemp = PyLong_FromLong(rc);
 	if (obTemp == NULL)
 	{
 		goto Error;
@@ -2485,7 +2485,7 @@ PyObject *MyWSASend
 	PyTuple_SET_ITEM(rv, 0, obTemp);
 	obTemp = NULL;
 
-	obTemp = PyInt_FromLong(cbSent);
+	obTemp = PyLong_FromLong(cbSent);
 	if (obTemp == NULL)
 	{
 		goto Error;
@@ -2575,7 +2575,7 @@ PyObject *MyWSARecv
 		goto Error;
 	}
 
-	obTemp = PyInt_FromLong(rc);
+	obTemp = PyLong_FromLong(rc);
 	if (obTemp == NULL)
 	{
 		goto Error;
@@ -2583,7 +2583,7 @@ PyObject *MyWSARecv
 	PyTuple_SET_ITEM(rv, 0, obTemp);
 	obTemp = NULL;
 
-	obTemp = PyInt_FromLong(cbRecvd);
+	obTemp = PyLong_FromLong(cbRecvd);
 	if (obTemp == NULL)
 	{
 		goto Error;
@@ -3581,12 +3581,12 @@ BOOL PyWinObject_AsPENCRYPTION_CERTIFICATE_LIST(PyObject *obcert_list, PENCRYPTI
 		if (bSuccess){
 			ZeroMemory((*ppec)->pCertBlob,sizeof(EFS_CERTIFICATE_BLOB));
 			obcert_member=PySequence_GetItem(obcert,1);
-			if (!PyInt_Check(obcert_member)){
+			if (!PyLong_Check(obcert_member)){
 				PyErr_SetString(PyExc_TypeError,"Second item (dwCertEncodingType) of ENCRYPTION_CERTIFICATE must be an integer");
 				bSuccess=FALSE;
 				}
 			else
-				(*ppec)->pCertBlob->dwCertEncodingType=PyInt_AsLong(obcert_member);
+				(*ppec)->pCertBlob->dwCertEncodingType=PyLong_AsLong(obcert_member);
 			Py_DECREF(obcert_member);
 			}
 
@@ -4059,7 +4059,7 @@ DWORD CALLBACK CopyFileEx_ProgressRoutine(
 		if (ret==NULL)
 			retcode=PROGRESS_CANCEL;
 		else{
-			retcode=PyInt_AsLong(ret);
+			retcode=PyLong_AsLong(ret);
 			if ((retcode==(DWORD)-1) && PyErr_Occurred())
 				retcode=PROGRESS_CANCEL;
 			}
@@ -4565,7 +4565,7 @@ static PyObject *py_CreateFileW(PyObject *self, PyObject *args, PyObject *kwargs
 			PyErr_SetString(PyExc_ValueError, "MiniVersion can only be used with a transacted operation");
 			return NULL;
 			}
-		long longversion=PyInt_AsLong(obminiversion);
+		long longversion=PyLong_AsLong(obminiversion);
 		if (longversion==-1 && PyErr_Occurred())
 			return NULL;
 		if ((longversion > USHRT_MAX) || (longversion < 0))
@@ -5849,7 +5849,7 @@ static PyObject *py_SetFileInformationByHandle(PyObject *self, PyObject *args, P
 			if (piohi == NULL)
 				break;
 			buf = piohi;
-			piohi->PriorityHint = (PRIORITY_HINT)PyInt_AsLong(info);
+			piohi->PriorityHint = (PRIORITY_HINT)PyLong_AsLong(info);
 			rc = piohi->PriorityHint != -1 || !PyErr_Occurred();
 			break;
 			}

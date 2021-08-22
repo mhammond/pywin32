@@ -792,7 +792,7 @@ PyObject *MyChangeServiceConfig(
 						 lpDisplayName))
 		rc = PyWin_SetAPIError("ChangeServiceConfig");
 	else if (bFetchTag)
-		rc = PyInt_FromLong(tagID);
+		rc = PyLong_FromLong(tagID);
 	else {
 		rc = Py_None;
 		Py_INCREF(rc);

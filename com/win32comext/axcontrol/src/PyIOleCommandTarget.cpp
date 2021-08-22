@@ -185,7 +185,7 @@ STDMETHODIMP PyGOleCommandTarget::QueryStatus(
         Py_INCREF(Py_None);
     }
     else
-        obText = PyInt_FromLong(pCmdText->cmdtextf);
+        obText = PyLong_FromLong(pCmdText->cmdtextf);
     PyObject *result;
     HRESULT hr = InvokeViaPolicy("QueryStatus", &result, "NNN", obGUID, cmds, obText);
     if (FAILED(hr))

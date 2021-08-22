@@ -233,7 +233,7 @@ BOOL CheckCounterStatusOK(DWORD status)
 {
     if (status == 0)
         return TRUE;
-    PyObject *v = PyInt_FromLong(status);
+    PyObject *v = PyLong_FromLong(status);
     PyErr_SetObject(win32pdh_counter_error, v);
     Py_DECREF(v);
     return FALSE;
@@ -669,7 +669,7 @@ static PyObject *PyGetFormattedCounterValue(PyObject *self, PyObject *args)
     if (format & PDH_FMT_DOUBLE)
         rc = PyFloat_FromDouble(result.doubleValue);
     else if (format & PDH_FMT_LONG)
-        rc = PyInt_FromLong(result.longValue);
+        rc = PyLong_FromLong(result.longValue);
     else if (format & PDH_FMT_LARGE)
         rc = PyLong_FromLongLong(result.largeValue);
     else {
@@ -731,7 +731,7 @@ static PyObject *PyPdhGetFormattedCounterArray(PyObject *self, PyObject *args)
         if (format & PDH_FMT_DOUBLE)
             value = PyFloat_FromDouble(pItems[i].FmtValue.doubleValue);
         else if (format & PDH_FMT_LONG)
-            value = PyInt_FromLong(pItems[i].FmtValue.longValue);
+            value = PyLong_FromLong(pItems[i].FmtValue.longValue);
         else if (format & PDH_FMT_LARGE)
             value = PyLong_FromLongLong(pItems[i].FmtValue.largeValue);
         else {
@@ -786,7 +786,7 @@ static PyObject *PyValidatePath(PyObject *self, PyObject *args)
 
     PyWinObject_FreeTCHAR(path);
 
-    return PyInt_FromLong(pdhStatus);
+    return PyLong_FromLong(pdhStatus);
     // @comm This method returns an integer result code.  No exception is
     // ever thrown.  Zero result indicates success.
 }
@@ -987,7 +987,7 @@ PDH_STATUS __stdcall PyCounterPathCallback(DWORD_PTR dwArg)
         else if (result == Py_None)
             rc = ERROR_SUCCESS;
         else {
-            rc = PyInt_AsLong(result);
+            rc = PyLong_AsLong(result);
             if (rc == -1 && PyErr_Occurred()) {
                 PyErr_Print();  // *Don't* leave exception hanging
                 rc = PDH_INVALID_DATA;
@@ -1160,7 +1160,7 @@ static PyObject *PyLookupPerfIndexByName(PyObject *self, PyObject *args)
     Py_END_ALLOW_THREADS
 
         if (pdhStatus != 0) return PyWin_SetAPIError("LookupPerfIndexByName", pdhStatus);
-    return PyInt_FromLong(dwIndex);
+    return PyLong_FromLong(dwIndex);
 }
 
 // @pymethod string|win32pdh|LookupPerfNameByIndex|Returns the performance object name corresponding to the specified

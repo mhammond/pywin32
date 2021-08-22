@@ -87,7 +87,7 @@ PyObject *PyPERF_COUNTER_DEFINITION::Get(PyObject *self, PyObject *args)
     }
 
     DWORD *pVal = (DWORD *)(This->m_pCounterValue);
-    return PyInt_FromLong(*pVal);
+    return PyLong_FromLong(*pVal);
 }
 
 // @object PyPERF_COUNTER_DEFINITION|An object encapsulating a Windows NT Performance Monitor counter definition

@@ -106,8 +106,8 @@ STDMETHODIMP PyGExtractIcon::Extract(
     Py_XDECREF(obpszFile);
     if (FAILED(hr))
         return hr;
-    if (PyInt_Check(result) || PyLong_Check(result))
-        hr = PyInt_AsLong(result);
+    if (PyLong_Check(result) || PyLong_Check(result))
+        hr = PyLong_AsLong(result);
     else {
         PyObject *oblarge, *obsmall;
         if (PyArg_ParseTuple(result, "OO", &oblarge, &obsmall) &&
@@ -140,8 +140,8 @@ STDMETHODIMP PyGExtractIcon::GetIconLocation(
         return hr;
     PyObject *obFileName;
     // Process the Python results, and convert back to the real params
-    if (PyInt_Check(result) || PyLong_Check(result))
-        hr = PyInt_AsLong(result);
+    if (PyLong_Check(result) || PyLong_Check(result))
+        hr = PyLong_AsLong(result);
     else {
         if (PyArg_ParseTuple(result, "Oii", &obFileName, piIndex, pflags)) {
             char *filename;

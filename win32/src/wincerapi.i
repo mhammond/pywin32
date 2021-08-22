@@ -297,8 +297,8 @@ PyObject *MyCreateProcess(
 	PyObject *ret = PyTuple_New(4);
 	PyTuple_SET_ITEM(ret, 0, PyWinObject_FromCEHANDLE(pi.hProcess));
 	PyTuple_SET_ITEM(ret, 1, PyWinObject_FromCEHANDLE(pi.hThread));
-	PyTuple_SET_ITEM(ret, 2, PyInt_FromLong(pi.dwProcessId));
-	PyTuple_SET_ITEM(ret, 3, PyInt_FromLong(pi.dwThreadId));
+	PyTuple_SET_ITEM(ret, 2, PyLong_FromLong(pi.dwProcessId));
+	PyTuple_SET_ITEM(ret, 3, PyLong_FromLong(pi.dwThreadId));
 	return ret;
 }
 %}
@@ -699,7 +699,7 @@ PyCeGetFileAttributes(PyObject * self, PyObject * args)
 	if (rc==(DWORD)-1)
 		return PyWin_SetAPIError("CeGetFileAttributes", GetLastCEError());
 
-	return PyInt_FromLong(rc);
+	return PyLong_FromLong(rc);
 }
 %}
 %native (CeGetFileAttributes) PyCeGetFileAttributes;
@@ -845,9 +845,9 @@ BOOL PyWinObject_CloseCEHANDLE(PyObject *obHandle)
 	BOOL ok;
 	if (PyHANDLE_Check(obHandle))
 		ok = ((PyCEHANDLE *)obHandle)->Close();
-	else if PyInt_Check(obHandle) {
+	else if PyLong_Check(obHandle) {
 		PyW32_BEGIN_ALLOW_THREADS
-		long rc = ::CeCloseHandle((HANDLE)PyInt_AsLong(obHandle));
+		long rc = ::CeCloseHandle((HANDLE)PyLong_AsLong(obHandle));
 		PyW32_END_ALLOW_THREADS
 		ok = (rc==ERROR_SUCCESS);
 		if (!ok)

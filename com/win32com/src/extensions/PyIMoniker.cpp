@@ -364,7 +364,7 @@ PyObject *PyIMoniker::IsEqual(PyObject *self, PyObject *args)
     PY_INTERFACE_POSTCALL;
     if (FAILED(hr))
         return PyCom_BuildPyException(hr, pMy, IID_IMoniker);
-    return PyInt_FromLong(hr);
+    return PyLong_FromLong(hr);
 }
 
 // @pymethod int|PyIMoniker|IsSystemMoniker|Indicates whether this moniker is of one of the system-supplied moniker
@@ -384,7 +384,7 @@ PyObject *PyIMoniker::IsSystemMoniker(PyObject *self, PyObject *args)
     PY_INTERFACE_POSTCALL;
     if (FAILED(hr))
         return PyCom_BuildPyException(hr, pMy, IID_IMoniker);
-    return PyInt_FromLong(mksys);
+    return PyLong_FromLong(mksys);
 }
 
 // @pymethod int|PyIMoniker|Hash|Calculates a 32-bit integer using the internal state of the moniker.
@@ -402,7 +402,7 @@ PyObject *PyIMoniker::Hash(PyObject *self, PyObject *args)
     PY_INTERFACE_POSTCALL;
     if (FAILED(hr))
         return PyCom_BuildPyException(hr, pMy, IID_IMoniker);
-    return PyInt_FromLong(result);
+    return PyLong_FromLong(result);
 }
 
 // @object PyIMoniker|A Python interface to IMoniker

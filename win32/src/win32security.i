@@ -2639,7 +2639,7 @@ static PyObject *PyLsaSetInformationPolicy(PyObject *self, PyObject *args)
 
 			for (option_ind=0; option_ind<info.MaximumAuditEventCount; option_ind++){
 				obauditing_option = PyTuple_GET_ITEM(options_tuple, option_ind);
-				info.EventAuditingOptions[option_ind] = PyInt_AsLong(obauditing_option);
+				info.EventAuditingOptions[option_ind] = PyLong_AsLong(obauditing_option);
 				if (info.EventAuditingOptions[option_ind] == (ULONG)-1 && PyErr_Occurred())
 					goto done;
 				}

@@ -98,7 +98,7 @@ PyObject *PyADSIObject_FromADSVALUE(ADSVALUE &v)
             Py_INCREF(ob);
             break;
         case ADSTYPE_INTEGER:
-            ob = PyInt_FromLong(v.Integer);
+            ob = PyLong_FromLong(v.Integer);
             break;
         case ADSTYPE_OCTET_STRING: {
             DWORD bufSize = v.OctetString.dwLength;
@@ -172,10 +172,10 @@ BOOL PyADSIObject_AsTypedValue(PyObject *val, ADSVALUE &v)
             ok = PyWinObject_AsWCHAR(val, &v.DNString, FALSE);
             break;
         case ADSTYPE_BOOLEAN:
-            v.Boolean = PyInt_AsLong(val);
+            v.Boolean = PyLong_AsLong(val);
             break;
         case ADSTYPE_INTEGER:
-            v.Integer = PyInt_AsLong(val);
+            v.Integer = PyLong_AsLong(val);
             break;
         case ADSTYPE_UTC_TIME:
             ok = PyWinObject_AsSYSTEMTIME(val, &v.UTCTime);
@@ -207,7 +207,7 @@ BOOL PyADSIObject_AsADSVALUE(PyObject *ob, ADSVALUE &v)
             dwType = ADSTYPE_PRINTABLE_STRING;
         else if (val == Py_True || val == Py_False)
             dwType = ADSTYPE_BOOLEAN;
-        else if (PyInt_Check(val))
+        else if (PyLong_Check(val))
             dwType = ADSTYPE_INTEGER;
         else if (PyWinTime_Check(val))
             dwType = ADSTYPE_UTC_TIME;
@@ -216,8 +216,8 @@ BOOL PyADSIObject_AsADSVALUE(PyObject *ob, ADSVALUE &v)
             return FALSE;
         }
     }
-    else if (PyInt_Check(obtype))
-        dwType = PyInt_AsLong(obtype);
+    else if (PyLong_Check(obtype))
+        dwType = PyLong_AsLong(obtype);
     else {
         PyErr_SetString(PyExc_TypeError, "The type specified must be None or a string");
         return FALSE;

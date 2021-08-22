@@ -98,7 +98,7 @@ PyObject *PyIDirectoryObject::SetObjectAttributes(PyObject *self, PyObject *args
 	if (FAILED(_result)) {
 		PyCom_BuildPyException(_result, _swig_self, IID_IDirectoryObject);
 	} else
-		ret = PyInt_FromLong(numset);
+		ret = PyLong_FromLong(numset);
 	PyADSIObject_FreeADS_ATTR_INFOs(attr, cattr);
 	return ret;
 };

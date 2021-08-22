@@ -160,8 +160,8 @@ STDMETHODIMP PyGatewayBase::QueryInterface(REFIID iid, void **ppv)
         Py_DECREF(ob);
 
         if (result) {
-            if (PyInt_Check(result))
-                supports = PyInt_AsLong(result);
+            if (PyLong_Check(result))
+                supports = PyLong_AsLong(result);
             else if (PyIBase::is_object(result, &PyIUnknown::type)) {
                 // We already have the object - return it without additional QI's etc.
                 IUnknown *pUnk = PyIUnknown::GetI(result);
@@ -214,8 +214,8 @@ STDMETHODIMP PyGatewayBase::GetTypeInfoCount(UINT FAR *pctInfo)
         PyObject *result = PyObject_CallMethod(m_pPyObject, "_GetTypeInfoCount_", NULL);
 
         if (result) {
-            if (PyInt_Check(result))
-                *pctInfo = PyInt_AsLong(result);
+            if (PyLong_Check(result))
+                *pctInfo = PyLong_AsLong(result);
             PyErr_Clear();  // ignore exceptions during conversion
             Py_DECREF(result);
         }
@@ -324,7 +324,7 @@ static HRESULT getids_finish(PyObject *result, UINT cNames, DISPID FAR *rgdispid
             Py_DECREF(result);
             return E_FAIL;
         }
-        if ((rgdispid[i] = PyInt_AsLong(ob)) == DISPID_UNKNOWN)
+        if ((rgdispid[i] = PyLong_AsLong(ob)) == DISPID_UNKNOWN)
             hr = DISP_E_UNKNOWNNAME;
 
         Py_DECREF(ob);
@@ -535,7 +535,7 @@ static HRESULT invoke_finish(PyObject *dispatcher,    /* The dispatcher for the 
         // We are expecting a tuple of (hresult, argErr, userResult)
         // or a simple HRESULT.
         if (PyNumber_Check(result)) {
-            hr = PyInt_AsLong(result);
+            hr = PyLong_AsLong(result);
             Py_DECREF(result);
             return hr;
         }
@@ -547,7 +547,7 @@ static HRESULT invoke_finish(PyObject *dispatcher,    /* The dispatcher for the 
         PyObject *ob = PySequence_GetItem(result, 0);
         if (!ob)
             goto done;
-        hr = PyInt_AsLong(ob);
+        hr = PyLong_AsLong(ob);
         Py_DECREF(ob);
         ob = NULL;
 
@@ -558,7 +558,7 @@ static HRESULT invoke_finish(PyObject *dispatcher,    /* The dispatcher for the 
                 if (!ob)
                     goto done;
 
-                *puArgErr = PyInt_AsLong(ob);
+                *puArgErr = PyLong_AsLong(ob);
                 Py_DECREF(ob);
                 ob = NULL;
             }
@@ -715,8 +715,8 @@ STDMETHODIMP PyGatewayBase::GetDispID(BSTR bstrName, DWORD grfdex, DISPID *pid)
     PyObject *result = PyObject_CallMethod(m_pPyObject, "_GetDispID_", "Ol", obName, grfdex);
     Py_DECREF(obName);
     if (result) {
-        if (PyInt_Check(result))
-            *pid = PyInt_AsLong(result);
+        if (PyLong_Check(result))
+            *pid = PyLong_AsLong(result);
         else
             PyErr_SetString(PyExc_TypeError, "_GetDispID_ must return an integer object");
         Py_DECREF(result);
@@ -796,8 +796,8 @@ STDMETHODIMP PyGatewayBase::GetMemberProperties(DISPID id, DWORD grfdexFetch, DW
     PY_GATEWAY_METHOD;
     PyObject *result = PyObject_CallMethod(m_pPyObject, "_GetMemberProperties_", "ll", id, grfdexFetch);
     if (result) {
-        if (PyInt_Check(result))
-            *pgrfdex = PyInt_AsLong(result);
+        if (PyLong_Check(result))
+            *pgrfdex = PyLong_AsLong(result);
         else
             PyErr_SetString(PyExc_TypeError, "GetMemberProperties must return an integer object");
         Py_DECREF(result);
@@ -827,8 +827,8 @@ STDMETHODIMP PyGatewayBase::GetNextDispID(DWORD grfdex, DISPID id, DISPID *pid)
     PY_GATEWAY_METHOD;
     PyObject *result = PyObject_CallMethod(m_pPyObject, "_GetNextDispID_", "ll", grfdex, id);
     if (result) {
-        if (PyInt_Check(result))
-            *pid = PyInt_AsLong(result);
+        if (PyLong_Check(result))
+            *pid = PyLong_AsLong(result);
         else
             PyErr_SetString(PyExc_TypeError, "GetNextDispID must return an integer object");
         Py_DECREF(result);

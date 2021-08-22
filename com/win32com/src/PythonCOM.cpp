@@ -423,7 +423,7 @@ static PyObject *pythoncom_CoRegisterClassObject(PyObject *self, PyObject *args)
     if (FAILED(hr))
         return PyCom_BuildPyException(hr);
     // @rdesc The result is a handle which should be revoked using <om pythoncom.CoRevokeClassObject>
-    return PyInt_FromLong(reg);
+    return PyLong_FromLong(reg);
 }
 // @pymethod |pythoncom|CoRevokeClassObject|Informs OLE that a class object, previously registered with the <om
 // pythoncom.CoRegisterClassObject> method, is no longer available for use.
@@ -511,7 +511,7 @@ static PyObject *pythoncom_GetInterfaceCount(PyObject *self, PyObject *args)
 {
     if (!PyArg_ParseTuple(args, ":_GetInterfaceCount"))
         return NULL;
-    return PyInt_FromLong(_PyCom_GetInterfaceCount());
+    return PyLong_FromLong(_PyCom_GetInterfaceCount());
     // @comm If is occasionally a good idea to call this function before your Python program
     // terminates.  If this function returns non-zero, then you still have PythonCOM objects
     // alive in your program (possibly in global variables).
@@ -525,7 +525,7 @@ static PyObject *pythoncom_GetGatewayCount(PyObject *self, PyObject *args)
     // is to have the process which uses these PythonCOM servers release its references.
     if (!PyArg_ParseTuple(args, ":_GetGatewayCount"))
         return NULL;
-    return PyInt_FromLong(_PyCom_GetGatewayCount());
+    return PyLong_FromLong(_PyCom_GetGatewayCount());
 }
 
 #ifndef MS_WINCE
@@ -1131,7 +1131,7 @@ static PyObject *pythoncom_RegisterActiveObject(PyObject *self, PyObject *args)
     PY_INTERFACE_POSTCALL;
     if (S_OK != hr)
         return PyCom_BuildPyException(hr);
-    return PyInt_FromLong(dwkey);
+    return PyLong_FromLong(dwkey);
     // @rdesc The result is a handle which should be pass to <om pythoncom.RevokeActiveObject>
 }
 
@@ -1508,7 +1508,7 @@ static PyObject *pythoncom_PumpWaitingMessages(PyObject *self, PyObject *args)
         // Otherwise, dispatch the message.
         DispatchMessage(&msg);
     }  // End of PeekMessage while loop
-    Py_END_ALLOW_THREADS return PyInt_FromLong(result);
+    Py_END_ALLOW_THREADS return PyLong_FromLong(result);
 }
 
 // @pymethod |pythoncom|PumpMessages|Pumps all messages for the current thread until a WM_QUIT message.
@@ -1593,7 +1593,7 @@ static PyObject *pythoncom_CoWaitForMultipleHandles(PyObject *self, PyObject *ar
     HRESULT hr;
     Py_BEGIN_ALLOW_THREADS hr = (*pfnCoWaitForMultipleHandles)(flags, timeout, numItems, pItems, &index);
     Py_END_ALLOW_THREADS if (FAILED(hr)) { PyCom_BuildPyException(hr); }
-    else rc = PyInt_FromLong(index);
+    else rc = PyLong_FromLong(index);
     free(pItems);
     return rc;
 }
@@ -1754,7 +1754,7 @@ static PyObject *pythoncom_DoDragDrop(PyObject *, PyObject *args)
         PyCom_BuildPyException(hr);
         return NULL;
     }
-    return PyInt_FromLong(retEffect);
+    return PyLong_FromLong(retEffect);
 }
 
 // @pymethod |pythoncom|OleInitialize|Calls OleInitialized - this should rarely
@@ -2186,7 +2186,7 @@ static struct PyMethodDef pythoncom_methods[] = {
 
 int AddConstant(PyObject *dict, const char *key, long value)
 {
-    PyObject *oval = PyInt_FromLong(value);
+    PyObject *oval = PyLong_FromLong(value);
     if (!oval) {
         return 1;
     }
@@ -2214,7 +2214,7 @@ PYWIN_MODULE_INIT_FUNC(pythoncom)
     PyObject *obFlags = PySys_GetObject("coinit_flags");
     // No reference added to obFlags.
     if (obFlags) {
-        coinit_flags = PyInt_AsUnsignedLongMask(obFlags);
+        coinit_flags = PyLong_AsUnsignedLongMask(obFlags);
         if (coinit_flags == -1 && PyErr_Occurred())
             PYWIN_MODULE_INIT_RETURN_ERROR;
     }

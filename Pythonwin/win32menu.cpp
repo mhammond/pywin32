@@ -242,7 +242,7 @@ PyObject *PyCMenu::InsertMenu(PyObject *self, PyObject *args)
         return NULL;
 
     if (obsubMenu) {
-        id = PyInt_AsLong(obsubMenu);
+        id = PyLong_AsLong(obsubMenu);
         if (id == -1 && PyErr_Occurred()) {
             PyErr_Clear();
             bHaveInt = FALSE;

@@ -390,8 +390,8 @@ PyObject *ui_propsheet_remove_page(PyObject *self, PyObject *args)
     // @pyparmalt1 <o PyCPropertyPage>|page||The page to remove
     if (!PyArg_ParseTuple(args, "O", &ob))
         return NULL;
-    if (PyInt_Check(ob)) {
-        int id = (int)PyInt_AsLong(ob);
+    if (PyLong_Check(ob)) {
+        int id = (int)PyLong_AsLong(ob);
         GUI_BGN_SAVE;
         pPS->RemovePage(id);
         GUI_END_SAVE;
@@ -726,7 +726,7 @@ PyObject *ui_proppage_on_apply(PyObject *self, PyObject *args)
     GUI_BGN_SAVE;
     BOOL bOk = pPP->CPropertyPage::OnApply();
     GUI_END_SAVE;
-    return PyInt_FromLong((long)bOk);
+    return PyLong_FromLong((long)bOk);
 }
 // @pymethod |PyCPropertyPage|OnReset|Calls the default MFC OnReset handler.
 PyObject *ui_proppage_on_reset(PyObject *self, PyObject *args)
@@ -752,7 +752,7 @@ PyObject *ui_proppage_on_query_cancel(PyObject *self, PyObject *args)
     GUI_BGN_SAVE;
     BOOL bOk = pPP->CPropertyPage::OnQueryCancel();
     GUI_END_SAVE;
-    return PyInt_FromLong((long)bOk);
+    return PyLong_FromLong((long)bOk);
 }
 // @pymethod |PyCPropertyPage|OnWizardBack|Calls the default MFC OnWizardBack handler.
 PyObject *ui_proppage_on_wizard_back(PyObject *self, PyObject *args)
@@ -791,7 +791,7 @@ PyObject *ui_proppage_on_wizard_finish(PyObject *self, PyObject *args)
     GUI_BGN_SAVE;
     BOOL bOk = pPP->CPropertyPage::OnWizardFinish();
     GUI_END_SAVE;
-    return PyInt_FromLong((long)bOk);
+    return PyLong_FromLong((long)bOk);
 }
 // @pymethod |PyCPropertyPage|OnCancel|Calls the default MFC OnCancel handler.
 PyObject *ui_proppage_on_cancel(PyObject *self, PyObject *args)
@@ -819,7 +819,7 @@ PyObject *ui_proppage_on_set_active(PyObject *self, PyObject *args)
     GUI_BGN_SAVE;
     long rc = pPP->CPropertyPage::OnSetActive();
     GUI_END_SAVE;
-    return PyInt_FromLong(rc);
+    return PyLong_FromLong(rc);
     // @rdesc The result is true if the page should be made active.
     // Typically this result should be passed to the original OnSetActive handler.
 }
@@ -835,7 +835,7 @@ PyObject *ui_proppage_on_kill_active(PyObject *self, PyObject *args)
     GUI_BGN_SAVE;
     long rc = pPP->CPropertyPage::OnKillActive();
     GUI_END_SAVE;
-    return PyInt_FromLong(rc);
+    return PyLong_FromLong(rc);
     // @rdesc The result is true if the page should be deselected.
     // Typically this result should be passed to the original OnSetActive handler.
 }

@@ -58,7 +58,7 @@ PyObject *PyIDropTarget::DragEnter(PyObject *self, PyObject *args)
 
     if (FAILED(hr))
         return PyCom_BuildPyException(hr, pIDT, IID_IDropTarget);
-    return PyInt_FromLong(dwEffect);
+    return PyLong_FromLong(dwEffect);
 }
 
 // @pymethod int|PyIDropTarget|DragOver|Called as the dragged object moves over the window
@@ -90,7 +90,7 @@ PyObject *PyIDropTarget::DragOver(PyObject *self, PyObject *args)
 
     if (FAILED(hr))
         return PyCom_BuildPyException(hr, pIDT, IID_IDropTarget);
-    return PyInt_FromLong(dwEffect);
+    return PyLong_FromLong(dwEffect);
 }
 
 // @pymethod |PyIDropTarget|DragLeave|Called as the object is dragged back out of the window
@@ -149,7 +149,7 @@ PyObject *PyIDropTarget::Drop(PyObject *self, PyObject *args)
 
     if (FAILED(hr))
         return PyCom_BuildPyException(hr, pIDT, IID_IDropTarget);
-    return PyInt_FromLong(dwEffect);
+    return PyLong_FromLong(dwEffect);
 }
 
 // @object PyIDropTarget|Interface that acts as a target of OLE drag and drop operations
@@ -186,8 +186,8 @@ STDMETHODIMP PyGDropTarget::DragEnter(
     Py_DECREF(obpt);
     if (FAILED(hr))
         return hr;
-    if (result && PyInt_Check(result))
-        *pdwEffect = PyInt_AsLong(result);
+    if (result && PyLong_Check(result))
+        *pdwEffect = PyLong_AsLong(result);
     Py_DECREF(result);
     return hr;
 }
@@ -207,8 +207,8 @@ STDMETHODIMP PyGDropTarget::DragOver(
     Py_DECREF(obpt);
     if (FAILED(hr))
         return hr;
-    if (result && PyInt_Check(result))
-        *pdwEffect = PyInt_AsLong(result);
+    if (result && PyLong_Check(result))
+        *pdwEffect = PyLong_AsLong(result);
     Py_DECREF(result);
     return hr;
 }
@@ -239,8 +239,8 @@ STDMETHODIMP PyGDropTarget::Drop(
     Py_DECREF(obpt);
     if (FAILED(hr))
         return hr;
-    if (result && PyInt_Check(result))
-        *pdwEffect = PyInt_AsLong(result);
+    if (result && PyLong_Check(result))
+        *pdwEffect = PyLong_AsLong(result);
     Py_DECREF(result);
     return hr;
 }

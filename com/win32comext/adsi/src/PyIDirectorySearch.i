@@ -57,7 +57,7 @@ PyObject *PyIDirectorySearch::SetSearchPreference(PyObject *self, PyObject *args
 	Py_END_ALLOW_THREADS
 	PyObject *ret = NULL;
     for (i=0;i<numPrefs;i++)
-        PyList_SET_ITEM(retStatus, i, PyInt_FromLong(p[i].dwStatus));
+        PyList_SET_ITEM(retStatus, i, PyLong_FromLong(p[i].dwStatus));
     PyADSIObject_FreeADS_SEARCHPREF_INFOs(p, numPrefs);
     return Py_BuildValue("iN", _result, retStatus);
 }
@@ -133,7 +133,7 @@ PyObject *PyIDirectorySearch::GetNextRow(PyObject *self, PyObject *args) {
     if (FAILED(_result)) {
         return OleSetADSIError(_result, _swig_self,  SWIG_THIS_IID);
     }
-    return PyInt_FromLong(_result);
+    return PyLong_FromLong(_result);
 }
 %}
 %native(GetNextRow) GetNextRow;
@@ -158,7 +158,7 @@ PyObject *PyIDirectorySearch::GetFirstRow(PyObject *self, PyObject *args) {
     if (FAILED(_result)) {
         return OleSetADSIError(_result, _swig_self,  SWIG_THIS_IID);
     }
-    return PyInt_FromLong(_result);
+    return PyLong_FromLong(_result);
 }
 %}
 %native(GetFirstRow) GetFirstRow;
@@ -183,7 +183,7 @@ PyObject *PyIDirectorySearch::GetPreviousRow(PyObject *self, PyObject *args) {
     if (FAILED(_result)) {
         return OleSetADSIError(_result, _swig_self,  SWIG_THIS_IID);
     }
-    return PyInt_FromLong(_result);
+    return PyLong_FromLong(_result);
 }
 %}
 %native(GetPreviousRow) GetPreviousRow;

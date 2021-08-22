@@ -69,7 +69,7 @@ PyObject *PyACL::IsValid(PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, ":IsValid"))
         return NULL;
     PyACL *This = (PyACL *)self;
-    return PyInt_FromLong(IsValidAcl(This->GetACL()));
+    return PyLong_FromLong(IsValidAcl(This->GetACL()));
 }
 
 BOOL _ReorderACL(PACL pacl)

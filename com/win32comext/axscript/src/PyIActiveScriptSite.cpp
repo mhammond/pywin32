@@ -29,7 +29,7 @@ PyObject *PyIActiveScriptSite::GetLCID(PyObject *self, PyObject *args)
     PY_INTERFACE_POSTCALL;
     if (FAILED(sc))
         return SetPythonCOMError(self, sc);
-    return PyInt_FromLong(lcid);
+    return PyLong_FromLong(lcid);
 }
 
 // @pymethod int|PyIActiveScriptSite|GetItemInfo|
@@ -171,7 +171,7 @@ PyObject *PyIActiveScriptSite::OnScriptError(PyObject *self, PyObject *args)
     PyWin_MakePendingCalls();
     if (sc != E_FAIL && FAILED(sc))  // E_FAIL is documented as a normal retval.
         return SetPythonCOMError(self, sc);
-    return PyInt_FromLong(sc);
+    return PyLong_FromLong(sc);
 }
 
 // @pymethod int|PyIActiveScriptSite|OnScriptTerminate|
@@ -209,7 +209,7 @@ PyObject *PyIActiveScriptSite::OnScriptTerminate(PyObject *self, PyObject *args)
         VariantClear(pVarResult);
     if (FAILED(sc))
         return SetPythonCOMError(self, sc);
-    return PyInt_FromLong(sc);
+    return PyLong_FromLong(sc);
 }
 
 // @object PyIActiveScriptSite|An object providing the IActiveScriptSite interface

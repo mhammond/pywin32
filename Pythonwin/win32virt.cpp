@@ -568,7 +568,7 @@ BOOL CVirtualHelper::retval(int &ret)
         return TRUE;
     }
     CEnterLeavePython _celp;
-    ret = PyInt_AsLong(retVal);
+    ret = PyLong_AsLong(retVal);
     if (ret == -1 && PyErr_Occurred()) {
         gui_print_error();
         return FALSE;
@@ -586,7 +586,7 @@ BOOL CVirtualHelper::retval(long &ret)
         return TRUE;
     }
     CEnterLeavePython _celp;
-    ret = PyInt_AsLong(retVal);
+    ret = PyLong_AsLong(retVal);
     if (PyErr_Occurred()) {
         gui_print_error();
         return FALSE;

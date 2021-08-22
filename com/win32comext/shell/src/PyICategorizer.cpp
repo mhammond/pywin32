@@ -69,7 +69,7 @@ STDMETHODIMP PyGCategorizer::GetCategory(
         else {
             for (DWORD tuple_index = 0; tuple_index < cidl; tuple_index++) {
                 PyObject *tuple_item = PyTuple_GET_ITEM(dwords_tuple, tuple_index);
-                rgCategoryIds[tuple_index] = PyInt_AsLong(tuple_item);
+                rgCategoryIds[tuple_index] = PyLong_AsLong(tuple_item);
                 if ((rgCategoryIds[tuple_index] == -1) && PyErr_Occurred()) {
                     hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE(method_name);
                     break;
@@ -118,12 +118,12 @@ STDMETHODIMP PyGCategorizer::CompareCategory(
     HRESULT hr = InvokeViaPolicy("CompareCategory", &result, "lll", csfFlags, dwCategoryId1, dwCategoryId2);
     if (FAILED(hr))
         return hr;
-    if (!PyInt_Check(result)) {
+    if (!PyLong_Check(result)) {
         PyErr_Format(PyExc_TypeError, "CompareCategory expects an int, got a %s", result->ob_type->tp_name);
         hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("GetCategory");
     }
     else {
-        hr = MAKE_HRESULT(SEVERITY_SUCCESS, 0, (USHORT)PyInt_AsLong(result));
+        hr = MAKE_HRESULT(SEVERITY_SUCCESS, 0, (USHORT)PyLong_AsLong(result));
     }
     Py_DECREF(result);
     return hr;

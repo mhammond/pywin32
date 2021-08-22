@@ -40,9 +40,9 @@ BOOL PyWinObject_CloseCEHKEY(PyObject *obHandle)
         // Python error already set.
         ok = ((PyCEHKEY *)obHandle)->Close();
     else if
-        PyInt_Check(obHandle)
+        PyLong_Check(obHandle)
         {
-            PyW32_BEGIN_ALLOW_THREADS long rc = ::CeRegCloseKey((HKEY)PyInt_AsLong(obHandle));
+            PyW32_BEGIN_ALLOW_THREADS long rc = ::CeRegCloseKey((HKEY)PyLong_AsLong(obHandle));
             PyW32_END_ALLOW_THREADS ok = (rc == ERROR_SUCCESS);
             if (!ok)
                 PyWin_SetAPIError("CeRegCloseKey", rc);
@@ -237,7 +237,7 @@ static int Py2Reg(PyObject *value, DWORD typ, BYTE **retDataBuf, DWORD *retDataS
     int i, j;
     switch (typ) {
         case REG_DWORD:
-            if (value != Py_None && !PyInt_Check(value))
+            if (value != Py_None && !PyLong_Check(value))
                 return 0;
             *retDataBuf = (BYTE *)PyMem_NEW(DWORD, 1);
             *retDataSize = sizeof(DWORD);
@@ -246,7 +246,7 @@ static int Py2Reg(PyObject *value, DWORD typ, BYTE **retDataBuf, DWORD *retDataS
                 memcpy(*retDataBuf, &zero, sizeof(DWORD));
             }
             else
-                memcpy(*retDataBuf, &PyInt_AS_LONG((PyIntObject *)value), sizeof(DWORD));
+                memcpy(*retDataBuf, &PyLong_AS_LONG((PyIntObject *)value), sizeof(DWORD));
             break;
         case REG_SZ:
         case REG_EXPAND_SZ: {

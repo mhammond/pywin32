@@ -377,7 +377,7 @@ static PyObject *axcontrol_OleTranslateAccelerator(PyObject *, PyObject *args)
         PyCom_BuildPyException(hr);
         goto done;
     }
-    ret = PyInt_FromLong(hr);
+    ret = PyLong_FromLong(hr);
 done:
     if (pframe)
         pframe->Release();

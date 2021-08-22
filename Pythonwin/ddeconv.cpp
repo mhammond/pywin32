@@ -46,7 +46,7 @@ PyObject *PyDDEConv_Connected(PyObject *self, PyObject *args)
     GUI_BGN_SAVE;
     BOOL rc = pConv->Connected();
     GUI_END_SAVE;
-    return PyInt_FromLong(rc);
+    return PyLong_FromLong(rc);
 }
 
 // @pymethod |PyDDEConv|Exec|Executes a command.

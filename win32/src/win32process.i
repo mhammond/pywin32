@@ -382,8 +382,8 @@ unsigned __stdcall ThreadEntryPoint( void *arg )
 		return -1;
 	}
 	int rc = 0;
-	if (PyInt_Check(pyrc))
-		rc = PyInt_AsLong(pyrc);
+	if (PyLong_Check(pyrc))
+		rc = PyLong_AsLong(pyrc);
 	Py_XDECREF(pyrc);
 	return rc;
 }
@@ -655,8 +655,8 @@ PyObject *MyCreateProcess(
 	PyObject *ret = PyTuple_New(4);
 	PyTuple_SET_ITEM(ret, 0, PyWinObject_FromHANDLE(pi.hProcess));
 	PyTuple_SET_ITEM(ret, 1, PyWinObject_FromHANDLE(pi.hThread));
-	PyTuple_SET_ITEM(ret, 2, PyInt_FromLong(pi.dwProcessId));
-	PyTuple_SET_ITEM(ret, 3, PyInt_FromLong(pi.dwThreadId));
+	PyTuple_SET_ITEM(ret, 2, PyLong_FromLong(pi.dwProcessId));
+	PyTuple_SET_ITEM(ret, 3, PyLong_FromLong(pi.dwThreadId));
 	return ret;
 }
 %}
@@ -749,8 +749,8 @@ PyObject *MyCreateProcessAsUser(
 	PyObject *ret = PyTuple_New(4);
 	PyTuple_SET_ITEM(ret, 0, PyWinObject_FromHANDLE(pi.hProcess));
 	PyTuple_SET_ITEM(ret, 1, PyWinObject_FromHANDLE(pi.hThread));
-	PyTuple_SET_ITEM(ret, 2, PyInt_FromLong(pi.dwProcessId));
-	PyTuple_SET_ITEM(ret, 3, PyInt_FromLong(pi.dwThreadId));
+	PyTuple_SET_ITEM(ret, 2, PyLong_FromLong(pi.dwProcessId));
+	PyTuple_SET_ITEM(ret, 3, PyLong_FromLong(pi.dwThreadId));
 	return ret;
 }
 %}
@@ -1003,7 +1003,7 @@ static PyObject *MySetThreadIdealProcessor( HANDLE hThread, DWORD dwIdealProc )
 	DWORD rc = (*pfnSetThreadIdealProcessor)(hThread, dwIdealProc);
 	if (rc==-1)
 		return PyWin_SetAPIError("SetThreadIdealProcessor");
-	return PyInt_FromLong(rc);
+	return PyLong_FromLong(rc);
 }
 %}
 
@@ -1095,7 +1095,7 @@ static PyObject *MySetThreadAffinityMask(PyObject *self, PyObject *args)
 // Special result handling for SuspendThread and ResumeThread
 %typedef DWORD DWORD_SR_THREAD
 %typemap(python,out) DWORD_SR_THREAD {
-	$target = PyInt_FromLong($source);
+	$target = PyLong_FromLong($source);
 }
 %typemap(python,except) DWORD_SR_THREAD {
       Py_BEGIN_ALLOW_THREADS

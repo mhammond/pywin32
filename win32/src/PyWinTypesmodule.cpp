@@ -493,7 +493,7 @@ BOOL PyWinObject_AsDWORDArray(PyObject *obdwords, DWORD **pdwords, DWORD *item_c
             // Doesn't check for overflow, but will accept a python long
             //  greater than INT_MAX (even on python 2.3).  Also accepts
             //  negatives and converts to the correct hex representation
-            (*pdwords)[tuple_index] = PyInt_AsUnsignedLongMask(tuple_item);
+            (*pdwords)[tuple_index] = PyLong_AsUnsignedLongMask(tuple_item);
             if (((*pdwords)[tuple_index] == -1) && PyErr_Occurred()) {
                 ret = FALSE;
                 break;
@@ -545,7 +545,7 @@ BOOL PyWinLong_AsVoidPtr(PyObject *ob, void **pptr)
                                 // longs that fit in 32bits if they are treated as unsigned - eg,
                                 // eg, the result of:
                                 // struct.unpack("P", struct.pack("P", -1)) -> (4294967295L,)
-                                // So, we do the PyInt_AsLong thing first, then fall back to the
+                                // So, we do the PyLong_AsLong thing first, then fall back to the
                                 // *_AsUnsignedLong[Long] versions.
 #ifdef _WIN64
 #define SIGNED_CONVERTER PyLong_AsLongLong
@@ -579,7 +579,7 @@ PyObject *PyWinLong_FromVoidPtr(const void *ptr)
 #ifdef _WIN64
     return PyLong_FromLongLong((LONG_PTR)ptr);
 #else
-    return PyInt_FromLong((LONG_PTR)ptr);
+    return PyLong_FromLong((LONG_PTR)ptr);
 #endif
 }
 

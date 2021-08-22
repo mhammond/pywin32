@@ -167,7 +167,7 @@ PyObject *PyICreateTypeInfo::AddRefTypeInfo(PyObject *self, PyObject *args)
 
     if (FAILED(hr))
         return PyCom_BuildPyException(hr, pICTI, IID_ICreateTypeInfo);
-    return PyInt_FromLong(hRefType);
+    return PyLong_FromLong(hRefType);
 }
 
 // @pymethod |PyICreateTypeInfo|AddFuncDesc|Description of AddFuncDesc.

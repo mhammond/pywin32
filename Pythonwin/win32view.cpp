@@ -210,7 +210,7 @@ static PyObject *PyCView_on_mouse_activate(PyObject *self, PyObject *args)
     GUI_BGN_SAVE;
     UINT rc = view->BaseOnMouseActivate(pWndArg, ht, msg);
     GUI_END_SAVE;
-    return PyInt_FromLong(rc);
+    return PyLong_FromLong(rc);
 }
 
 // @pymethod tuple|PyCView|PreCreateWindow|Calls the underlying MFC PreCreateWindow method.

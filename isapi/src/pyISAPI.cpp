@@ -81,8 +81,8 @@ BOOL WINAPI GetExtensionVersion(HSE_VERSION_INFO *pVer)
     else {
         if (resultobject == Py_None)
             bRetStatus = TRUE;
-        else if (PyInt_Check(resultobject))
-            bRetStatus = PyInt_AsLong(resultobject) ? true : false;
+        else if (PyLong_Check(resultobject))
+            bRetStatus = PyLong_AsLong(resultobject) ? true : false;
         else {
             ExtensionError(NULL, "Filter init should return an int, or None");
             bRetStatus = FALSE;
@@ -111,8 +111,8 @@ DWORD WINAPI HttpExtensionProc(EXTENSION_CONTROL_BLOCK *pECB)
         result = HSE_STATUS_ERROR;
     }
     else {
-        if (PyInt_Check(resultobject))
-            result = PyInt_AsLong(resultobject);
+        if (PyLong_Check(resultobject))
+            result = PyLong_AsLong(resultobject);
         else {
             ExtensionError(pcb, "HttpExtensionProc should return an int");
             result = HSE_STATUS_ERROR;
@@ -136,8 +136,8 @@ BOOL WINAPI TerminateExtension(DWORD dwFlags)
     else {
         if (resultobject == Py_None)
             bRetStatus = TRUE;
-        else if (PyInt_Check(resultobject))
-            bRetStatus = PyInt_AsLong(resultobject) ? true : false;
+        else if (PyLong_Check(resultobject))
+            bRetStatus = PyLong_AsLong(resultobject) ? true : false;
         else {
             ExtensionError(NULL, "Extension term should return an int, or None");
             bRetStatus = FALSE;
@@ -167,8 +167,8 @@ BOOL WINAPI GetFilterVersion(HTTP_FILTER_VERSION *pVer)
     else {
         if (resultobject == Py_None)
             bRetStatus = TRUE;
-        else if (PyInt_Check(resultobject))
-            bRetStatus = PyInt_AsLong(resultobject) ? true : false;
+        else if (PyLong_Check(resultobject))
+            bRetStatus = PyLong_AsLong(resultobject) ? true : false;
         else {
             FilterError(NULL, "Filter init should return an int, or None");
             bRetStatus = FALSE;
@@ -204,8 +204,8 @@ DWORD WINAPI HttpFilterProc(HTTP_FILTER_CONTEXT *phfc, DWORD NotificationType, V
         DWORD action;
         if (resultobject == Py_None)
             action = SF_STATUS_REQ_NEXT_NOTIFICATION;
-        else if (PyInt_Check(resultobject))
-            action = PyInt_AsLong(resultobject);
+        else if (PyLong_Check(resultobject))
+            action = PyLong_AsLong(resultobject);
         else {
             FilterError(&fc, "Filter should return an int, or None");
             action = SF_STATUS_REQ_ERROR;
@@ -234,8 +234,8 @@ BOOL WINAPI TerminateFilter(DWORD status)
     else {
         if (resultobject == Py_None)
             bRetStatus = TRUE;
-        else if (PyInt_Check(resultobject))
-            bRetStatus = PyInt_AsLong(resultobject) ? true : false;
+        else if (PyLong_Check(resultobject))
+            bRetStatus = PyLong_AsLong(resultobject) ? true : false;
         else {
             FilterError(NULL, "Filter term should return an int, or None");
             bRetStatus = FALSE;

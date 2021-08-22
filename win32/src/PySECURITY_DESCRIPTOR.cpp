@@ -667,7 +667,7 @@ PyObject *PySECURITY_DESCRIPTOR::IsValid(PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, ":IsValid"))
         return NULL;
     PySECURITY_DESCRIPTOR *This = (PySECURITY_DESCRIPTOR *)self;
-    return PyInt_FromLong(IsValidSecurityDescriptor(This->m_psd));
+    return PyLong_FromLong(IsValidSecurityDescriptor(This->m_psd));
 }
 
 // @pymethod |PySECURITY_DESCRIPTOR|GetLength|return length of security descriptor (GetSecurityDescriptorLenght).
@@ -676,7 +676,7 @@ PyObject *PySECURITY_DESCRIPTOR::GetLength(PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, ":GetLength"))
         return NULL;
     PySECURITY_DESCRIPTOR *This = (PySECURITY_DESCRIPTOR *)self;
-    return PyInt_FromLong(GetSecurityDescriptorLength(This->m_psd));
+    return PyLong_FromLong(GetSecurityDescriptorLength(This->m_psd));
 }
 
 // @object PySECURITY_DESCRIPTOR|A Python object, representing a SECURITY_DESCRIPTOR structure

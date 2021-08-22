@@ -53,7 +53,7 @@ PyObject *PyIUnknown::repr()
             int len = PySequence_Length(keys);
             for (int index=0;index<len;index++) {
                 PyObject *intLook = PySequence_GetItem(keys, index);
-                PyIUnknown *pLook = (PyIUnknown *)PyInt_AsLong(intLook);
+                PyIUnknown *pLook = (PyIUnknown *)PyLong_AsLong(intLook);
                 if (pLook) {
 #ifdef NOPE_DEBUG
                     const char *relDesc = pLook->m_obj ? "NOT RELEASED" : "released";

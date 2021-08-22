@@ -57,7 +57,7 @@ PyObject *PyIDocHostUIHandler::ShowContextMenu(PyObject *self, PyObject *args)
     PY_INTERFACE_POSTCALL;
     if (FAILED(hr))
         return PyCom_BuildPyException(hr, pIDHUIH, IID_IDocHostUIHandler);
-    return PyInt_FromLong(hr);
+    return PyLong_FromLong(hr);
 }
 
 // @pymethod |PyIDocHostUIHandler|GetHostInfo|Description of GetHostInfo.
@@ -132,7 +132,7 @@ PyObject *PyIDocHostUIHandler::ShowUI(PyObject *self, PyObject *args)
     PY_INTERFACE_POSTCALL;
     if (FAILED(hr))
         return PyCom_BuildPyException(hr, pIDHUIH, IID_IDocHostUIHandler);
-    return PyInt_FromLong(hr);
+    return PyLong_FromLong(hr);
 }
 
 // @pymethod |PyIDocHostUIHandler|HideUI|Description of HideUI.
@@ -149,7 +149,7 @@ PyObject *PyIDocHostUIHandler::HideUI(PyObject *self, PyObject *args)
     PY_INTERFACE_POSTCALL;
     if (FAILED(hr))
         return PyCom_BuildPyException(hr, pIDHUIH, IID_IDocHostUIHandler);
-    return PyInt_FromLong(hr);
+    return PyLong_FromLong(hr);
 }
 
 // @pymethod |PyIDocHostUIHandler|UpdateUI|Description of UpdateUI.
@@ -166,7 +166,7 @@ PyObject *PyIDocHostUIHandler::UpdateUI(PyObject *self, PyObject *args)
     PY_INTERFACE_POSTCALL;
     if (FAILED(hr))
         return PyCom_BuildPyException(hr, pIDHUIH, IID_IDocHostUIHandler);
-    return PyInt_FromLong(hr);
+    return PyLong_FromLong(hr);
 }
 
 // @pymethod |PyIDocHostUIHandler|EnableModeless|Description of EnableModeless.
@@ -185,7 +185,7 @@ PyObject *PyIDocHostUIHandler::EnableModeless(PyObject *self, PyObject *args)
     PY_INTERFACE_POSTCALL;
     if (FAILED(hr))
         return PyCom_BuildPyException(hr, pIDHUIH, IID_IDocHostUIHandler);
-    return PyInt_FromLong(hr);
+    return PyLong_FromLong(hr);
 }
 
 // @pymethod |PyIDocHostUIHandler|OnDocWindowActivate|Description of OnDocWindowActivate.
@@ -204,7 +204,7 @@ PyObject *PyIDocHostUIHandler::OnDocWindowActivate(PyObject *self, PyObject *arg
     PY_INTERFACE_POSTCALL;
     if (FAILED(hr))
         return PyCom_BuildPyException(hr, pIDHUIH, IID_IDocHostUIHandler);
-    return PyInt_FromLong(hr);
+    return PyLong_FromLong(hr);
 }
 
 // @pymethod |PyIDocHostUIHandler|OnFrameWindowActivate|Description of OnFrameWindowActivate.
@@ -223,7 +223,7 @@ PyObject *PyIDocHostUIHandler::OnFrameWindowActivate(PyObject *self, PyObject *a
     PY_INTERFACE_POSTCALL;
     if (FAILED(hr))
         return PyCom_BuildPyException(hr, pIDHUIH, IID_IDocHostUIHandler);
-    return PyInt_FromLong(hr);
+    return PyLong_FromLong(hr);
 }
 
 // @pymethod |PyIDocHostUIHandler|ResizeBorder|Description of ResizeBorder.
@@ -253,7 +253,7 @@ PyObject *PyIDocHostUIHandler::ResizeBorder(PyObject *self, PyObject *args)
     PY_INTERFACE_POSTCALL;
     if (FAILED(hr))
         return PyCom_BuildPyException(hr, pIDHUIH, IID_IDocHostUIHandler);
-    return PyInt_FromLong(hr);
+    return PyLong_FromLong(hr);
 }
 
 // @pymethod |PyIDocHostUIHandler|TranslateAccelerator|Description of TranslateAccelerator.
@@ -285,7 +285,7 @@ PyObject *PyIDocHostUIHandler::TranslateAccelerator(PyObject *self, PyObject *ar
     PY_INTERFACE_POSTCALL;
     if (FAILED(hr))
         return PyCom_BuildPyException(hr, pIDHUIH, IID_IDocHostUIHandler);
-    return PyInt_FromLong(hr);
+    return PyLong_FromLong(hr);
 }
 
 // @pymethod |PyIDocHostUIHandler|GetOptionKeyPath|Description of GetOptionKeyPath.

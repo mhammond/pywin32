@@ -553,7 +553,7 @@ PyObject *PyIActiveDesktop::GetDesktopItemCount(PyObject *self, PyObject *args)
 
     if (FAILED(hr))
         return PyCom_BuildPyException(hr, pIAD, IID_IActiveDesktop);
-    return PyInt_FromLong(Count);
+    return PyLong_FromLong(Count);
 }
 
 // @pymethod dict|PyIActiveDesktop|GetDesktopItem|Returns desktop item parameters by index

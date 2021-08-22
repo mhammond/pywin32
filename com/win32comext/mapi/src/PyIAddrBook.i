@@ -119,7 +119,7 @@ PyObject *PyIAddrBook::CompareEntryIDs(PyObject *self, PyObject *args)
 	if (FAILED(hr))
 		rc =  OleSetOleError(hr);
 	else
-		rc = PyInt_FromLong(ulResult);
+		rc = PyLong_FromLong(ulResult);
 done:
 	PyWinObject_FreeString((char *)peid1);
 	PyWinObject_FreeString((char *)peid2);

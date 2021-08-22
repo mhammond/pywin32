@@ -222,7 +222,7 @@ PyObject *PyITransferSource::RemoveItem(PyObject *self, PyObject *args)
 
     if (FAILED(hr))
         return PyCom_BuildPyException(hr, pITS, IID_ITransferSource);
-    return PyInt_FromLong(hr);
+    return PyLong_FromLong(hr);
 }
 
 // @pymethod (int, <o PyIShellItem>)|PyITransferSource|RenameItem|Renames a shell item
@@ -386,7 +386,7 @@ PyObject *PyITransferSource::EnterFolder(PyObject *self, PyObject *args)
 
     if (FAILED(hr))
         return PyCom_BuildPyException(hr, pITS, IID_ITransferSource);
-    return PyInt_FromLong(hr);
+    return PyLong_FromLong(hr);
 }
 
 // @pymethod int|PyITransferSource|LeaveFolder|Informs the copy engine that the operation on a destination folder is
@@ -412,7 +412,7 @@ PyObject *PyITransferSource::LeaveFolder(PyObject *self, PyObject *args)
 
     if (FAILED(hr))
         return PyCom_BuildPyException(hr, pITS, IID_ITransferSource);
-    return PyInt_FromLong(hr);
+    return PyLong_FromLong(hr);
 }
 
 // @object PyITransferSource|Implemented by shell folders that can act as the source of shell item operations

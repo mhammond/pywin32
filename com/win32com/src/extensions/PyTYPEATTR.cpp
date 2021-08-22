@@ -182,32 +182,32 @@ PyTYPEATTR::~PyTYPEATTR()
             Py_INCREF(rc);
             return rc;
         case 1:  // @tupleitem 1|int|lcid|The lcid
-            return PyInt_FromLong(p->lcid);
+            return PyLong_FromLong(p->lcid);
         case 2:  // @tupleitem 2|int|memidConstructor|ID of constructor
-            return PyInt_FromLong(p->memidConstructor);
+            return PyLong_FromLong(p->memidConstructor);
         case 3:  // @tupleitem 3|int|memidDestructor|ID of destructor,
-            return PyInt_FromLong(p->memidDestructor);
+            return PyLong_FromLong(p->memidDestructor);
         case 4:  // @tupleitem 4|int|cbSizeInstance|The size of an instance of this type
-            return PyInt_FromLong(p->cbSizeInstance);
+            return PyLong_FromLong(p->cbSizeInstance);
         case 5:  // @tupleitem 5|int|typekind|The kind of type this information describes.  One of the win32con.TKIND_*
                  // constants.
-            return PyInt_FromLong(p->typekind);
+            return PyLong_FromLong(p->typekind);
         case 6:  // @tupleitem 6|int|cFuncs|Number of functions.
-            return PyInt_FromLong(p->cFuncs);
+            return PyLong_FromLong(p->cFuncs);
         case 7:  // @tupleitem 7|int|cVars|Number of variables/data members.
-            return PyInt_FromLong(p->cVars);
+            return PyLong_FromLong(p->cVars);
         case 8:  // @tupleitem 8|int|cImplTypes|Number of implemented interfaces.
-            return PyInt_FromLong(p->cImplTypes);
+            return PyLong_FromLong(p->cImplTypes);
         case 9:  // @tupleitem 9|int|cbSizeVft|The size of this type's VTBL
-            return PyInt_FromLong(p->cbSizeVft);
+            return PyLong_FromLong(p->cbSizeVft);
         case 10:  // @tupleitem 10|int|cbAlignment|Byte alignment for an instance of this type.
-            return PyInt_FromLong(p->cbAlignment);
+            return PyLong_FromLong(p->cbAlignment);
         case 11:  // @tupleitem 11|int|wTypeFlags|One of the pythoncom TYPEFLAG_* constants
-            return PyInt_FromLong(p->wTypeFlags);
+            return PyLong_FromLong(p->wTypeFlags);
         case 12:  // @tupleitem 12|int|wMajorVerNum|Major version number.
-            return PyInt_FromLong(p->wMajorVerNum);
+            return PyLong_FromLong(p->wMajorVerNum);
         case 13:  // @tupleitem 13|int|wMinorVerNum|Minor version number.
-            return PyInt_FromLong(p->wMinorVerNum);
+            return PyLong_FromLong(p->wMinorVerNum);
         case 14:  // @tupleitem 14|<o TYPEDESC>|obDescAlias|If TypeKind == pythoncom.TKIND_ALIAS, specifies the type for
                   // which this type is an alias.
             rc = p->obDescAlias ? p->obDescAlias : Py_None;

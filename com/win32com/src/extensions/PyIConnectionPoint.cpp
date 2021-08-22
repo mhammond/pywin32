@@ -78,7 +78,7 @@ PyObject *PyIConnectionPoint::Advise(PyObject *self, PyObject *args)
     if (FAILED(hr))
         return SetPythonCOMError(self, hr);
     // @rdesc The result is the connection point identifier used by <om PyIConnectionPoint::Unadvise>
-    return PyInt_FromLong(cookie);
+    return PyLong_FromLong(cookie);
 }
 
 // @pymethod |PyIConnectionPoint|Unadvise|Terminates an advisory connection previously established through

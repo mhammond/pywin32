@@ -44,7 +44,7 @@ PyObject *PyIShellIconOverlayManager::GetFileOverlayInfo(PyObject *self, PyObjec
 
     if (FAILED(hr))
         return PyCom_BuildPyException(hr, pISIOM, IID_IShellIconOverlayManager);
-    return PyInt_FromLong(index);
+    return PyLong_FromLong(index);
 }
 
 // @pymethod |PyIShellIconOverlayManager|GetReservedOverlayInfo|Description of GetReservedOverlayInfo.
@@ -75,7 +75,7 @@ PyObject *PyIShellIconOverlayManager::GetReservedOverlayInfo(PyObject *self, PyO
     if (FAILED(hr))
         return PyCom_BuildPyException(hr, pISIOM, IID_IShellIconOverlayManager);
 
-    return PyInt_FromLong(index);
+    return PyLong_FromLong(index);
 }
 
 // @pymethod |PyIShellIconOverlayManager|RefreshOverlayImages|Description of RefreshOverlayImages.

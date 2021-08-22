@@ -126,7 +126,7 @@ PyObject *PySID::GetSubAuthority(PyObject *self, PyObject *args)
         PyErr_SetString(PyExc_ValueError, "The index is out of range");
         return NULL;
     }
-    return PyInt_FromLong(*GetSidSubAuthority(psid, subauthInd));
+    return PyLong_FromLong(*GetSidSubAuthority(psid, subauthInd));
 }
 
 // @pymethod int|PySID|GetLength|return length of SID (GetLengthSid).
@@ -135,7 +135,7 @@ PyObject *PySID::GetLength(PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, ":GetLength"))
         return NULL;
     PySID *This = (PySID *)self;
-    return PyInt_FromLong(GetLengthSid(This->GetSID()));
+    return PyLong_FromLong(GetLengthSid(This->GetSID()));
 }
 
 // @pymethod int|PySID|GetSubAuthorityCount|return nbr of subauthorities from SID
@@ -144,7 +144,7 @@ PyObject *PySID::GetSubAuthorityCount(PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, ":GetSubAuthorityCount"))
         return NULL;
     PySID *This = (PySID *)self;
-    return PyInt_FromLong(*::GetSidSubAuthorityCount(This->GetSID()));
+    return PyLong_FromLong(*::GetSidSubAuthorityCount(This->GetSID()));
 }
 
 // @pymethod |PySID|SetSubAuthority|Sets a SID SubAuthority

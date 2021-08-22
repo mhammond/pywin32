@@ -778,7 +778,7 @@ PyObject *PyOpenIMsgSession(PyObject *self, PyObject *args)
 	PY_INTERFACE_POSTCALL;
 	if (FAILED(hr))
 		return OleSetOleError(hr);
-	return PyInt_FromLong((long)pSession);
+	return PyLong_FromLong((long)pSession);
 }
 %}
 // @pyswig |CloseIMsgSession|

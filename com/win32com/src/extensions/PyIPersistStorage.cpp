@@ -29,7 +29,7 @@ PyObject *PyIPersistStorage::IsDirty(PyObject *self, PyObject *args)
     PY_INTERFACE_POSTCALL;
     if (FAILED(hr))
         return PyCom_BuildPyException(hr, pIPS, IID_IPersistStorage);
-    return PyInt_FromLong(hr);
+    return PyLong_FromLong(hr);
     // @rvalue S_OK (ie, 0)|The object has changed since it was last saved.
     // @rvalue S_FALSE (ie, 1)|The object has not changed since the last save.
 }

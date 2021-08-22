@@ -537,8 +537,8 @@ CDocTemplate::Confidence CPythonDocTemplate::MatchDocType(LPCTSTR lpszPathName, 
         PyObject *ret;
         if (!helper.retval(ret))
             return CDocTemplate::noAttempt;
-        if (PyInt_Check(ret))
-            return (CDocTemplate::Confidence)PyInt_AsLong(ret);
+        if (PyLong_Check(ret))
+            return (CDocTemplate::Confidence)PyLong_AsLong(ret);
         if (ui_base_class::is_uiobject(ret, &PyCDocument::type)) {
             CDocument *pDoc = PyCDocument::GetDoc(ret);
             rpDocMatch = pDoc;

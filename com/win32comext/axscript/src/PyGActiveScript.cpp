@@ -50,8 +50,8 @@ STDMETHODIMP PyGActiveScript::GetScriptState(
     HRESULT hr = InvokeViaPolicy("GetScriptState", &result, NULL);
     if (FAILED(hr))
         return hr;
-    if (result && PyInt_Check(result))
-        *pssState = (SCRIPTSTATE)PyInt_AsLong(result);
+    if (result && PyLong_Check(result))
+        *pssState = (SCRIPTSTATE)PyLong_AsLong(result);
     Py_XDECREF(result);
     return hr;
 }
@@ -116,8 +116,8 @@ STDMETHODIMP PyGActiveScript::GetCurrentScriptThreadID(
     if (FAILED(hr))
         return hr;
 
-    if (PyInt_Check(result)) {
-        *pstidThread = PyInt_AsLong(result);
+    if (PyLong_Check(result)) {
+        *pstidThread = PyLong_AsLong(result);
         if (PyErr_Occurred())
             hr = PyCom_SetCOMErrorFromPyException(GetIID());
     }
@@ -137,8 +137,8 @@ STDMETHODIMP PyGActiveScript::GetScriptThreadID(
     HRESULT hr = InvokeViaPolicy("GetScriptThreadID", &result, "i", dwWin32ThreadId);
     if (FAILED(hr))
         return hr;
-    if (PyInt_Check(result)) {
-        *pstidThread = PyInt_AsLong(result);
+    if (PyLong_Check(result)) {
+        *pstidThread = PyLong_AsLong(result);
         if (PyErr_Occurred())
             hr = PyCom_SetCOMErrorFromPyException(GetIID());
     }
@@ -157,8 +157,8 @@ STDMETHODIMP PyGActiveScript::GetScriptThreadState(
 
     if (FAILED(hr))
         return hr;
-    if (PyInt_Check(result)) {
-        *pstsState = (SCRIPTTHREADSTATE)PyInt_AsLong(result);
+    if (PyLong_Check(result)) {
+        *pstsState = (SCRIPTTHREADSTATE)PyLong_AsLong(result);
         if (PyErr_Occurred())
             hr = PyCom_HandlePythonFailureToCOM();
     }

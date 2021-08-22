@@ -1261,7 +1261,7 @@ PyObject *PyList_FromEVT_VARIANTArray(PEVT_VARIANT val)
 				obval = PyWinObject_FromIID(val->GuidArr[i]);
 				break;
 			case EvtVarTypeSizeT:
-				obval = PyInt_FromSsize_t(val->SizeTArr[i]);
+				obval = PyLong_FromSsize_t(val->SizeTArr[i]);
 				break;
 			case EvtVarTypeFileTime:
 				{
@@ -1370,7 +1370,7 @@ PyObject *PyWinObject_FromEVT_VARIANT(PEVT_VARIANT val)
 			obval = PyWinObject_FromIID(*val->GuidVal);
 			break;
 		case EvtVarTypeSizeT:
-			obval = PyInt_FromSsize_t(val->SizeTVal);
+			obval = PyLong_FromSsize_t(val->SizeTVal);
 			break;
 		case EvtVarTypeFileTime:
 			{

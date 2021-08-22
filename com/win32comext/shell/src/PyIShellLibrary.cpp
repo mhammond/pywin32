@@ -241,7 +241,7 @@ PyObject *PyIShellLibrary::GetOptions(PyObject *self, PyObject *args)
 
     if (FAILED(hr))
         return PyCom_BuildPyException(hr, pISL, IID_IShellLibrary);
-    return PyInt_FromLong(Options);
+    return PyLong_FromLong(Options);
 }
 
 // @pymethod |PyIShellLibrary|SetOptions|Sets library option flags

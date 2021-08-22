@@ -670,7 +670,7 @@ static PyObject *py_getPriority_clipboard_format(PyObject *self, PyObject *args)
     Py_END_ALLOW_THREADS;
 
     free(format_list);
-    return PyInt_FromLong(rc);
+    return PyLong_FromLong(rc);
     // @pyseeapi GetPriorityClipboardFormat
     // @pyseeapi Standard Clipboard Formats
 
@@ -781,7 +781,7 @@ static PyObject *py_register_clipboard_format(PyObject *self, PyObject *args)
     PyWinObject_FreeTCHAR(name);
     if (!rc)
         return ReturnAPIError("RegisterClipboardFormat");
-    return PyInt_FromLong(rc);
+    return PyLong_FromLong(rc);
 
     // @comm If a registered format with the specified name already exists, a
     // new format is not registered and the return value identifies the existing

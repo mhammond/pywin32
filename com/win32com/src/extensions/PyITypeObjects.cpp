@@ -96,8 +96,8 @@ PyObject *PyObject_FromARRAYDESC(ARRAYDESC *ad)
 BOOL PyObject_AsTYPEDESC(PyObject *ob, TYPEDESC *pDesc, void *pMore)
 {
     BOOL rc = FALSE;
-    if (PyInt_Check(ob)) {  // a simple VT
-        pDesc->vt = (VARTYPE)PyInt_AsLong(ob);
+    if (PyLong_Check(ob)) {  // a simple VT
+        pDesc->vt = (VARTYPE)PyLong_AsLong(ob);
         return TRUE;  // quick exit!
     }
     if (!PySequence_Check(ob) || PySequence_Length(ob) != 2) {
@@ -107,11 +107,11 @@ BOOL PyObject_AsTYPEDESC(PyObject *ob, TYPEDESC *pDesc, void *pMore)
     PyObject *obType = PySequence_GetItem(ob, 0);
     PyObject *obExtra = PySequence_GetItem(ob, 1);
 
-    if (!PyInt_Check(obType)) {
+    if (!PyLong_Check(obType)) {
         PyErr_SetString(PyExc_TypeError, "The first sequence item must be an integer");
         goto done;
     }
-    pDesc->vt = (VARTYPE)PyInt_AsLong(obType);
+    pDesc->vt = (VARTYPE)PyLong_AsLong(obType);
     switch (pDesc->vt) {
         case VT_PTR:
         case VT_SAFEARRAY:
@@ -126,12 +126,12 @@ BOOL PyObject_AsTYPEDESC(PyObject *ob, TYPEDESC *pDesc, void *pMore)
                 goto done;
             break;
         case VT_USERDEFINED:
-            if (!PyInt_Check(obExtra)) {
+            if (!PyLong_Check(obExtra)) {
                 PyErr_SetString(PyExc_TypeError,
                                 "If the TYPEDESC is of type VT_USERDEFINED, the object must be an integer");
                 goto done;
             }
-            pDesc->hreftype = (HREFTYPE)PyInt_AsLong(obExtra);
+            pDesc->hreftype = (HREFTYPE)PyLong_AsLong(obExtra);
             break;
         default:
             break;
@@ -167,7 +167,7 @@ PyObject *PyObject_FromTYPEDESC(const TYPEDESC *td)
     else if (td->vt == VT_CARRAY)
         p3 = PyObject_FromARRAYDESC(td->lpadesc);
     else if (td->vt == VT_USERDEFINED)
-        p3 = PyInt_FromLong(td->hreftype);
+        p3 = PyLong_FromLong(td->hreftype);
 
     if (p3) {
         PyObject *ret = Py_BuildValue("(iO)", td->vt, p3);
@@ -175,7 +175,7 @@ PyObject *PyObject_FromTYPEDESC(const TYPEDESC *td)
         return ret;
     }
     else
-        return PyInt_FromLong(td->vt);
+        return PyLong_FromLong(td->vt);
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -195,11 +195,11 @@ BOOL PyObject_AsELEMDESC(PyObject *ob, ELEMDESC *pDesc, void *pMore)
     PyObject *obParamFlags = PySequence_GetItem(ob, 1);
     PyObject *obDefaultVal = PySequence_GetItem(ob, 2);
 
-    if (!PyInt_Check(obParamFlags)) {
+    if (!PyLong_Check(obParamFlags)) {
         PyErr_SetString(PyExc_TypeError, "The second sequence item must be an integer");
         goto done;
     }
-    pDesc->paramdesc.wParamFlags = (WORD)PyInt_AsLong(obParamFlags);
+    pDesc->paramdesc.wParamFlags = (WORD)PyLong_AsLong(obParamFlags);
 
     if (obDefaultVal != Py_None) {
         pDesc->paramdesc.wParamFlags |= PARAMFLAG_FHASDEFAULT;
