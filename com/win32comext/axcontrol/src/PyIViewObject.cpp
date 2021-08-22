@@ -242,7 +242,7 @@ STDMETHODIMP PyGViewObject::Draw(
     /* [in] */ ULONG_PTR dwContinue)
 {
     PY_GATEWAY_METHOD;
-    PyObject *obpvAspect = PyInt_FromLong(((DVASPECTINFO *)pvAspect)->dwFlags);
+    PyObject *obpvAspect = PyLong_FromLong(((DVASPECTINFO *)pvAspect)->dwFlags);
     if (obpvAspect == NULL)
         return PyCom_HandlePythonFailureToCOM();
     PyObject *obptd = PyObject_FromDVTARGETDEVICE(ptd);
@@ -283,7 +283,7 @@ STDMETHODIMP PyGViewObject::GetColorSet(
     /**
         if (ppColorSet==NULL) return E_POINTER;
         PY_GATEWAY_METHOD;
-        PyObject *obpvAspect = PyInt_FromLong(((DVASPECTINFO *)pvAspect)->dwFlags);
+        PyObject *obpvAspect = PyLong_FromLong(((DVASPECTINFO *)pvAspect)->dwFlags);
         if (obpvAspect==NULL) return PyCom_HandlePythonFailureToCOM();
 
         PyObject *obptd = PyObject_FromDVTARGETDEVICE(ptd);
@@ -305,7 +305,7 @@ STDMETHODIMP PyGViewObject::Freeze(
     /* [out] */ DWORD __RPC_FAR *pdwFreeze)
 {
     PY_GATEWAY_METHOD;
-    PyObject *obpvAspect = PyInt_FromLong(((DVASPECTINFO *)pvAspect)->dwFlags);
+    PyObject *obpvAspect = PyLong_FromLong(((DVASPECTINFO *)pvAspect)->dwFlags);
     if (obpvAspect == NULL)
         return PyCom_HandlePythonFailureToCOM();
     PyObject *result;

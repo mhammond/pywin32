@@ -222,7 +222,7 @@ PyObject *PyIDirectSound::GetSpeakerConfig(PyObject *self, PyObject *args)
         return NULL;
     }
 
-    return PyInt_FromLong(config);
+    return PyLong_FromLong(config);
 }
 
 // @pymethod |PyIDirectSound|SetSpeakerConfig|The SetSpeakerConfig method specifies the speaker configuration of the

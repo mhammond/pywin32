@@ -275,13 +275,13 @@ PyObject *PyCCmdUI::getattro(PyObject *obname)
         CCmdUI *pCU = PyCCmdUI::GetCCmdUIPtr(this);
         if (!pCU)
             return NULL;
-        return PyInt_FromLong(pCU->m_nIndex);
+        return PyLong_FromLong(pCU->m_nIndex);
     }
     else if (strcmp(name, "m_nID") == 0) {  // @prop int|m_nID|
         CCmdUI *pCU = PyCCmdUI::GetCCmdUIPtr(this);
         if (!pCU)
             return NULL;
-        return PyInt_FromLong(pCU->m_nID);
+        return PyLong_FromLong(pCU->m_nID);
     }
     else if (strcmp(name, "m_pMenu") == 0) {  // @prop <o PyCMenu>|m_pMenu|
         CCmdUI *pCU = PyCCmdUI::GetCCmdUIPtr(this);

@@ -509,10 +509,10 @@ static PyObject *ui_dc_ext_text_out(PyObject *self, PyObject *args)
                 widths = new int[len + 1];
                 for (Py_ssize_t i = 0; i < len; i++) {
                     PyObject *item = PyTuple_GetItem(widthObject, i);
-                    if (!PyInt_Check(item))
+                    if (!PyLong_Check(item))
                         error = TRUE;
                     else
-                        widths[i] = PyInt_AsLong(item);
+                        widths[i] = PyLong_AsLong(item);
                 }
             }
         }
@@ -680,14 +680,14 @@ static PyObject *ui_dc_polygon(PyObject *self, PyObject *args)
                 PyObject *px, *py;
                 px = PyTuple_GetItem(point_tuple, 0);
                 py = PyTuple_GetItem(point_tuple, 1);
-                if ((!PyInt_Check(px)) || (!PyInt_Check(py))) {
+                if ((!PyLong_Check(px)) || (!PyLong_Check(py))) {
                     PyErr_SetString(PyExc_ValueError, "point list must be a list of (x,y) tuples");
                     delete[] point_array;
                     return NULL;
                 }
                 else {
-                    x = PyInt_AsLong(px);
-                    y = PyInt_AsLong(py);
+                    x = PyLong_AsLong(px);
+                    y = PyLong_AsLong(py);
                     point_array[i].x = x;
                     point_array[i].y = y;
                 }
@@ -749,12 +749,12 @@ static PyObject *ui_dc_poly_bezier(PyObject *self, PyObject *args)
                         PyObject *px, *py;
                         px = PyTuple_GetItem(point, 0);
                         py = PyTuple_GetItem(point, 1);
-                        if (!PyInt_Check(px) || !PyInt_Check(py)) {
+                        if (!PyLong_Check(px) || !PyLong_Check(py)) {
                             HURL;
                         }
                         else {
-                            point_array[index].x = PyInt_AsLong(px);
-                            point_array[index].y = PyInt_AsLong(py);
+                            point_array[index].x = PyLong_AsLong(px);
+                            point_array[index].y = PyLong_AsLong(py);
                             index++;
                         }
                     }
@@ -1064,7 +1064,7 @@ static PyObject *ui_dc_get_map_mode(PyObject *self, PyObject *args)
     GUI_END_SAVE;
     if (mode == 0)
         RETURN_ERR("GetMapMode failed");
-    return PyInt_FromLong(mode);
+    return PyLong_FromLong(mode);
 }
 
 // @pymethod x, y|PyCDC|SetWindowOrg|Sets the window origin of the device context
@@ -2054,14 +2054,14 @@ static PyObject *ui_dc_polyline(PyObject *self, PyObject *args)
                 PyObject *px, *py;
                 px = PyTuple_GetItem(point_tuple, 0);
                 py = PyTuple_GetItem(point_tuple, 1);
-                if ((!PyInt_Check(px)) || (!PyInt_Check(py))) {
+                if ((!PyLong_Check(px)) || (!PyLong_Check(py))) {
                     PyErr_SetString(PyExc_ValueError, "point list must be a list of (x,y) tuples");
                     delete[] point_array;
                     return NULL;
                 }
                 else {
-                    x = PyInt_AsLong(px);
-                    y = PyInt_AsLong(py);
+                    x = PyLong_AsLong(px);
+                    y = PyLong_AsLong(py);
                     point_array[i].x = x;
                     point_array[i].y = y;
                 }

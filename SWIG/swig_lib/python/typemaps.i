@@ -87,39 +87,39 @@ or you can use the %apply directive :
 
 %typemap(python,in) int            *INPUT(int temp)
 {
-  temp = (int) PyInt_AsLong($source);
+  temp = (int) PyLong_AsLong($source);
   $target = &temp;
 }
 
 %typemap(python,in) short          *INPUT(short temp)
 {
-  temp = (short) PyInt_AsLong($source);
+  temp = (short) PyLong_AsLong($source);
   $target = &temp;
 }
 
 %typemap(python,in) long           *INPUT(long temp)
 {
-  temp = (long) PyInt_AsLong($source);
+  temp = (long) PyLong_AsLong($source);
   $target = &temp;
 }
 %typemap(python,in) unsigned int   *INPUT(unsigned int temp)
 {
-  temp = (unsigned int) PyInt_AsLong($source);
+  temp = (unsigned int) PyLong_AsLong($source);
   $target = &temp;
 }
 %typemap(python,in) unsigned short *INPUT(unsigned short temp)
 {
-  temp = (unsigned short) PyInt_AsLong($source);
+  temp = (unsigned short) PyLong_AsLong($source);
   $target = &temp;
 }
 %typemap(python,in) unsigned long  *INPUT(unsigned long temp)
 {
-  temp = (unsigned long) PyInt_AsLong($source);
+  temp = (unsigned long) PyLong_AsLong($source);
   $target = &temp;
 }
 %typemap(python,in) unsigned char  *INPUT(unsigned char temp)
 {
-  temp = (unsigned char) PyInt_AsLong($source);
+  temp = (unsigned char) PyLong_AsLong($source);
   $target = &temp;
 }
                  
@@ -194,7 +194,7 @@ output values.
                         unsigned char  *OUTPUT
 {
     PyObject *o;
-    o = PyInt_FromLong((long) (*$source));
+    o = PyLong_FromLong((long) (*$source));
     if (!$target) {
       $target = o;
     } else if ($target == Py_None) {
@@ -294,7 +294,7 @@ static PyObject* t_output_helper(PyObject* target, PyObject* o) {
                         unsigned char  *T_OUTPUT
 {
     PyObject *o;
-    o = PyInt_FromLong((long) (*$source));
+    o = PyLong_FromLong((long) (*$source));
     $target = t_output_helper($target, o);
 }
 

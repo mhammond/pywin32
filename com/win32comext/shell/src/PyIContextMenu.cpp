@@ -44,7 +44,7 @@ PyObject *PyIContextMenu::QueryContextMenu(PyObject *self, PyObject *args)
 
     if (FAILED(hr))
         return PyCom_BuildPyException(hr, pICM, IID_IContextMenu);
-    return PyInt_FromLong(hr);
+    return PyLong_FromLong(hr);
 }
 
 // @pymethod |PyIContextMenu|InvokeCommand|Executes a context menu option
@@ -145,8 +145,8 @@ STDMETHODIMP PyGContextMenu::QueryContextMenu(
                                  idCmdLast, uFlags);
     if (FAILED(hr))
         return hr;
-    if (PyInt_Check(ret))
-        hr = MAKE_HRESULT(SEVERITY_SUCCESS, 0, PyInt_AsLong(ret));
+    if (PyLong_Check(ret))
+        hr = MAKE_HRESULT(SEVERITY_SUCCESS, 0, PyLong_AsLong(ret));
     Py_DECREF(ret);
     return hr;
 }
@@ -192,8 +192,8 @@ STDMETHODIMP PyGContextMenu::GetCommandString(
         }
         hr = S_OK;
     }
-    else if (result && PyInt_Check(result)) {
-        hr = PyInt_AsLong(result) ? S_OK : S_FALSE;
+    else if (result && PyLong_Check(result)) {
+        hr = PyLong_AsLong(result) ? S_OK : S_FALSE;
     }
     Py_DECREF(result);
     return hr;

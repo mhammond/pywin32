@@ -229,7 +229,7 @@ PyObject *dataconv_WriteFromOutTuple(PyObject *self, PyObject *args)
 
     for (i = 0; i < cArgs; i++) {
         obArgType = PyTuple_GET_ITEM(PyTuple_GET_ITEM(obArgTypes, i), 0);
-        vtArgType = (VARTYPE)PyInt_AS_LONG(obArgType);
+        vtArgType = (VARTYPE)PyLong_AS_LONG(obArgType);
 
         // The following types aren't supported:
         // SAFEARRAY *: This requires support for SAFEARRAYs as a
@@ -243,7 +243,7 @@ PyObject *dataconv_WriteFromOutTuple(PyObject *self, PyObject *args)
         //              memory allocation policy.
 
         // Find the start of the argument.
-        pbArg = pbArgs + PyInt_AS_LONG(PyTuple_GET_ITEM(PyTuple_GET_ITEM(obArgTypes, i), 1));
+        pbArg = pbArgs + PyLong_AS_LONG(PyTuple_GET_ITEM(PyTuple_GET_ITEM(obArgTypes, i), 1));
         obOutValue = PyTuple_GET_ITEM(obRetValues, i);
 
         if (vtArgType & VT_ARRAY) {
@@ -362,11 +362,11 @@ PyObject *dataconv_WriteFromOutTuple(PyObject *self, PyObject *args)
             case VT_HRESULT | VT_BYREF:
             case VT_I4 | VT_BYREF: {
                 INT *pi = *(INT **)pbArg;
-                obUse = PyNumber_Int(obOutValue);
+                obUse = PyNumber_Long(obOutValue);
                 if (obUse == NULL) {
                     goto Error;
                 }
-                *pi = PyInt_AsLong(obUse);
+                *pi = PyLong_AsLong(obUse);
                 if (*pi == (UINT)-1 && PyErr_Occurred())
                     goto Error;
                 break;
@@ -375,18 +375,18 @@ PyObject *dataconv_WriteFromOutTuple(PyObject *self, PyObject *args)
                 UINT *pui = *(UINT **)pbArg;
                 // special care here as we could be > sys.maxint,
                 // in which case we must work with longs.
-                // Avoiding PyInt_AsUnsignedLongMask as it doesn't
+                // Avoiding PyLong_AsUnsignedLongMask as it doesn't
                 // exist in 2.2.
                 if (PyLong_Check(obOutValue)) {
                     *pui = PyLong_AsUnsignedLong(obOutValue);
                 }
                 else {
                     // just do the generic "number" thing.
-                    obUse = PyNumber_Int(obOutValue);
+                    obUse = PyNumber_Long(obOutValue);
                     if (obUse == NULL) {
                         goto Error;
                     }
-                    *pui = (UINT)PyInt_AsLong(obUse);
+                    *pui = (UINT)PyLong_AsLong(obUse);
                 }
                 if (*pui == (UINT)-1 && PyErr_Occurred())
                     goto Error;
@@ -394,33 +394,33 @@ PyObject *dataconv_WriteFromOutTuple(PyObject *self, PyObject *args)
             }
             case VT_I2 | VT_BYREF: {
                 short *ps = *(short **)pbArg;
-                obUse = PyNumber_Int(obOutValue);
+                obUse = PyNumber_Long(obOutValue);
                 if (obUse == NULL) {
                     goto Error;
                 }
-                *ps = (short)PyInt_AsLong(obUse);
+                *ps = (short)PyLong_AsLong(obUse);
                 if (*ps == (UINT)-1 && PyErr_Occurred())
                     goto Error;
                 break;
             }
             case VT_UI2 | VT_BYREF: {
                 unsigned short *pus = *(unsigned short **)pbArg;
-                obUse = PyNumber_Int(obOutValue);
+                obUse = PyNumber_Long(obOutValue);
                 if (obUse == NULL) {
                     goto Error;
                 }
-                *pus = (unsigned short)PyInt_AsLong(obUse);
+                *pus = (unsigned short)PyLong_AsLong(obUse);
                 if (*pus == (UINT)-1 && PyErr_Occurred())
                     goto Error;
                 break;
             }
             case VT_I1 | VT_BYREF: {
                 signed char *pb = *(signed char **)pbArg;
-                obUse = PyNumber_Int(obOutValue);
+                obUse = PyNumber_Long(obOutValue);
                 if (obUse == NULL) {
                     goto Error;
                 }
-                *pb = (signed char)PyInt_AsLong(obUse);
+                *pb = (signed char)PyLong_AsLong(obUse);
                 if (*pb == (UINT)-1 && PyErr_Occurred())
                     goto Error;
                 break;
@@ -441,11 +441,11 @@ PyObject *dataconv_WriteFromOutTuple(PyObject *self, PyObject *args)
                     memcpy(pb, pybuf.ptr(), pybuf.len());
                 }
                 else {
-                    obUse = PyNumber_Int(obOutValue);
+                    obUse = PyNumber_Long(obOutValue);
                     if (obUse == NULL) {
                         goto Error;
                     }
-                    *pb = (BYTE)PyInt_AsLong(obUse);
+                    *pb = (BYTE)PyLong_AsLong(obUse);
                     if (*pb == (UINT)-1 && PyErr_Occurred())
                         goto Error;
                 }
@@ -453,11 +453,11 @@ PyObject *dataconv_WriteFromOutTuple(PyObject *self, PyObject *args)
             }
             case VT_BOOL | VT_BYREF: {
                 VARIANT_BOOL *pbool = *(VARIANT_BOOL **)pbArg;
-                obUse = PyNumber_Int(obOutValue);
+                obUse = PyNumber_Long(obOutValue);
                 if (obUse == NULL) {
                     goto Error;
                 }
-                *pbool = PyInt_AsLong(obUse) ? VARIANT_TRUE : VARIANT_FALSE;
+                *pbool = PyLong_AsLong(obUse) ? VARIANT_TRUE : VARIANT_FALSE;
                 if (*pbool == (UINT)-1 && PyErr_Occurred())
                     goto Error;
                 break;
@@ -592,8 +592,8 @@ PyObject *dataconv_ReadFromInTuple(PyObject *self, PyObject *args)
         obArgType = PyTuple_GET_ITEM(PyTuple_GET_ITEM(obArgTypes, i), 0);
 
         // Position pb to point to the current argument.
-        pb = pbArg + PyInt_AS_LONG(PyTuple_GET_ITEM(PyTuple_GET_ITEM(obArgTypes, i), 1));
-        vtArgType = (VARTYPE)PyInt_AS_LONG(obArgType);
+        pb = pbArg + PyLong_AS_LONG(PyTuple_GET_ITEM(PyTuple_GET_ITEM(obArgTypes, i), 1));
+        vtArgType = (VARTYPE)PyLong_AS_LONG(obArgType);
 #ifdef _M_IX86
         bIsByRef = vtArgType & VT_BYREF;
 #elif _M_X64

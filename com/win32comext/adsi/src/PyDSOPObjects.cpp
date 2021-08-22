@@ -289,13 +289,13 @@ PyObject *PyDSOP_SCOPE_INIT_INFO::getattro(PyObject *self, PyObject *obname)
         return NULL;
     // @prop int|type|
     if (strcmp(name, "type") == 0)
-        return PyInt_FromLong(pssi->flType);
+        return PyLong_FromLong(pssi->flType);
     // @prop int|scope|
     if (strcmp(name, "scope") == 0)
-        return PyInt_FromLong(pssi->flScope);
+        return PyLong_FromLong(pssi->flScope);
     // @prop int|hr|
     if (strcmp(name, "hr") == 0)
-        return PyInt_FromLong(pssi->hr);
+        return PyLong_FromLong(pssi->hr);
     // @prop <o PyUnicode>|dcName|
     if (strcmp(name, "dcName") == 0)
         return PyWinObject_FromWCHAR(pssi->pwzDcName);
@@ -312,17 +312,17 @@ int PyDSOP_SCOPE_INIT_INFO::setattro(PyObject *self, PyObject *obname, PyObject 
     char *name = PyBytes_AsString(obname);
     PyErr_Clear();
     if (strcmp(name, "type") == 0) {
-        pssi->flType = PyInt_AsLong(val);
+        pssi->flType = PyLong_AsLong(val);
         if (PyErr_Occurred())
             return -1;
     }
     else if (strcmp(name, "scope") == 0) {
-        pssi->flScope = PyInt_AsLong(val);
+        pssi->flScope = PyLong_AsLong(val);
         if (PyErr_Occurred())
             return -1;
     }
     else if (strcmp(name, "scope") == 0) {
-        pssi->hr = PyInt_AsLong(val);
+        pssi->hr = PyLong_AsLong(val);
         if (PyErr_Occurred())
             return -1;
     }
@@ -413,7 +413,7 @@ PyObject *PyDSOP_FILTER_FLAGS::getattro(PyObject *self, PyObject *obname)
         return new PyDSOP_UPLEVEL_FILTER_FLAGS(p->owner);
     // @prop int|downlevel|
     if (strcmp(name, "downlevel") == 0)
-        return PyInt_FromLong(psii->FilterFlags.flDownlevel);
+        return PyLong_FromLong(psii->FilterFlags.flDownlevel);
     return PyObject_GenericGetAttr(self, obname);
 }
 
@@ -426,7 +426,7 @@ int PyDSOP_FILTER_FLAGS::setattro(PyObject *self, PyObject *obname, PyObject *va
     DSOP_SCOPE_INIT_INFO *psii = p->owner->owner->pScopes + p->owner->index;
     PyErr_Clear();
     if (strcmp(name, "downlevel") == 0) {
-        psii->FilterFlags.flDownlevel = PyInt_AsLong(val);
+        psii->FilterFlags.flDownlevel = PyLong_AsLong(val);
         if (PyErr_Occurred())
             return -1;
     }
@@ -507,13 +507,13 @@ PyObject *PyDSOP_UPLEVEL_FILTER_FLAGS::getattro(PyObject *self, PyObject *obname
         return NULL;
     // @prop int|bothModes|
     if (strcmp(name, "bothModes") == 0)
-        return PyInt_FromLong(psii->FilterFlags.Uplevel.flBothModes);
+        return PyLong_FromLong(psii->FilterFlags.Uplevel.flBothModes);
     // @prop int|mixedModeOnly|
     if (strcmp(name, "mixedModeOnly") == 0)
-        return PyInt_FromLong(psii->FilterFlags.Uplevel.flMixedModeOnly);
+        return PyLong_FromLong(psii->FilterFlags.Uplevel.flMixedModeOnly);
     // @prop int|nativeModeOnly|
     if (strcmp(name, "nativeModeOnly") == 0)
-        return PyInt_FromLong(psii->FilterFlags.Uplevel.flNativeModeOnly);
+        return PyLong_FromLong(psii->FilterFlags.Uplevel.flNativeModeOnly);
     return PyObject_GenericGetAttr(self, obname);
 }
 
@@ -526,17 +526,17 @@ int PyDSOP_UPLEVEL_FILTER_FLAGS::setattro(PyObject *self, PyObject *obname, PyOb
         return NULL;
     PyErr_Clear();
     if (strcmp(name, "bothModes") == 0) {
-        psii->FilterFlags.Uplevel.flBothModes = PyInt_AsLong(val);
+        psii->FilterFlags.Uplevel.flBothModes = PyLong_AsLong(val);
         if (PyErr_Occurred())
             return -1;
     }
     else if (strcmp(name, "mixedModeOnly") == 0) {
-        psii->FilterFlags.Uplevel.flMixedModeOnly = PyInt_AsLong(val);
+        psii->FilterFlags.Uplevel.flMixedModeOnly = PyLong_AsLong(val);
         if (PyErr_Occurred())
             return -1;
     }
     else if (strcmp(name, "nativeModeOnly") == 0) {
-        psii->FilterFlags.Uplevel.flNativeModeOnly = PyInt_AsLong(val);
+        psii->FilterFlags.Uplevel.flNativeModeOnly = PyLong_AsLong(val);
         if (PyErr_Occurred())
             return -1;
     }

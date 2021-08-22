@@ -121,7 +121,7 @@ BOOL PyObject_AsNET_STRUCT(PyObject *ob, PyNET_STRUCT *pI, BYTE **ppRet)
                     *((WCHAR **)(buf + pItem->off)) = wsz;
                     break;
                 case NSI_DWORD:
-                    *((DWORD *)(buf + pItem->off)) = PyInt_AsUnsignedLongMask(subob);
+                    *((DWORD *)(buf + pItem->off)) = PyLong_AsUnsignedLongMask(subob);
                     if (*((DWORD *)(buf + pItem->off)) == -1 && PyErr_Occurred()) {
                         PyErr_Clear();
                         PyErr_Format(PyExc_TypeError, "The mapping attribute '%s' must be an unsigned 32 bit int",
@@ -131,7 +131,7 @@ BOOL PyObject_AsNET_STRUCT(PyObject *ob, PyNET_STRUCT *pI, BYTE **ppRet)
                     }
                     break;
                 case NSI_LONG:
-                    *((LONG *)(buf + pItem->off)) = PyInt_AsLong(subob);
+                    *((LONG *)(buf + pItem->off)) = PyLong_AsLong(subob);
                     if (*((LONG *)(buf + pItem->off)) == -1 && PyErr_Occurred()) {
                         PyErr_Clear();
                         PyErr_Format(PyExc_TypeError, "The mapping attribute '%s' must be an integer", pItem->attrname);
@@ -221,7 +221,7 @@ PyObject *PyObject_FromNET_STRUCT(PyNET_STRUCT *pI, BYTE *buf)
                 newObj = PyLong_FromUnsignedLong(*((DWORD *)(buf + pItem->off)));
                 break;
             case NSI_LONG:
-                newObj = PyInt_FromLong(*((LONG *)(buf + pItem->off)));
+                newObj = PyLong_FromLong(*((LONG *)(buf + pItem->off)));
                 break;
             case NSI_BOOL:
                 newObj = *((BOOL *)(buf + pItem->off)) ? Py_True : Py_False;
@@ -1195,7 +1195,7 @@ static struct PyMethodDef win32net_functions[] = {
 
 static void AddConstant(PyObject *dict, char *name, long val)
 {
-    PyObject *nv = PyInt_FromLong(val);
+    PyObject *nv = PyLong_FromLong(val);
     PyDict_SetItemString(dict, name, nv);
     Py_XDECREF(nv);
 }

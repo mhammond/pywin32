@@ -129,8 +129,8 @@ STDMETHODIMP PyGShellIconOverlayIdentifier::IsMemberOf(
     HRESULT hr = InvokeViaPolicy("IsMemberOf", &ret, "Ol", obpath, attrib);
     if (FAILED(hr))
         return hr;
-    if (PyInt_Check(ret))
-        hr = PyInt_AsLong(ret);
+    if (PyLong_Check(ret))
+        hr = PyLong_AsLong(ret);
     Py_XDECREF(ret);
     return hr;
 }

@@ -131,7 +131,7 @@ PyObject *__DoBaseOnCommand(ui_type_CObject *type, PyObject *self, PyObject *arg
     ClassFramework *pcf = (ClassFramework *)ob;
     BOOL rc = pcf->_BaseOnCommand(wparam, lparam);
     GUI_END_SAVE;
-    return PyInt_FromLong(rc);
+    return PyLong_FromLong(rc);
 }
 #define DoBaseOnCommand(Class, type, self, args) __DoBaseOnCommand<Class>(type, self, args)
 

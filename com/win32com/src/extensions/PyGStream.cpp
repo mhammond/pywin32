@@ -50,7 +50,7 @@ STDMETHODIMP PyGStream::Write(
     if (FAILED(hr))
         return hr;
 
-    int cbWritten = PyInt_AsLong(result);
+    int cbWritten = PyLong_AsLong(result);
     Py_DECREF(result);
     if (cbWritten == -1)
         return PyCom_SetCOMErrorFromPyException(GetIID());

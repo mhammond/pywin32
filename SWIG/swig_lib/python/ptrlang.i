@@ -54,8 +54,8 @@ static PyObject *ptrcast(PyObject *_PTRVALUE, char *type) {
 
   /* Check to see what kind of object _PTRVALUE is */
   
-  if (PyInt_Check(_PTRVALUE)) {
-    ptr = (void *) PyInt_AsLong(_PTRVALUE);
+  if (PyLong_Check(_PTRVALUE)) {
+    ptr = (void *) PyLong_AsLong(_PTRVALUE);
     /* Received a numerical value. Make a pointer out of it */
     r = (char *) malloc(strlen(typestr)+22);
     if (ptr) {
@@ -148,13 +148,13 @@ static PyObject *ptrvalue(PyObject *_PTRVALUE, int index, char *type) {
 
   /* Now we have a datatype.  Try to figure out what to do about it */
   if (strcmp(type,"int") == 0) {
-    obj = PyInt_FromLong((long) *(((int *) ptr) + index));
+    obj = PyLong_FromLong((long) *(((int *) ptr) + index));
   } else if (strcmp(type,"double") == 0) {
     obj = PyFloat_FromDouble((double) *(((double *) ptr)+index));
   } else if (strcmp(type,"short") == 0) {
-    obj = PyInt_FromLong((long) *(((short *) ptr)+index));
+    obj = PyLong_FromLong((long) *(((short *) ptr)+index));
   } else if (strcmp(type,"long") == 0) {
-    obj = PyInt_FromLong((long) *(((long *) ptr)+index));
+    obj = PyLong_FromLong((long) *(((long *) ptr)+index));
   } else if (strcmp(type,"float") == 0) {
     obj = PyFloat_FromDouble((double) *(((float *) ptr)+index));
   } else if (strcmp(type,"char") == 0) {
@@ -225,21 +225,21 @@ static PyObject *ptrcreate(char *type, PyObject *_PYVALUE, int numelements) {
   if (_PYVALUE) {
     if (strcmp(type,"int") == 0) {
       int *ip,i,ivalue;
-      ivalue = (int) PyInt_AsLong(_PYVALUE);
+      ivalue = (int) PyLong_AsLong(_PYVALUE);
       ip = (int *) ptr;
       for (i = 0; i < numelements; i++)
 	ip[i] = ivalue;
     } else if (strcmp(type,"short") == 0) {
       short *ip,ivalue;
       int i;
-      ivalue = (short) PyInt_AsLong(_PYVALUE);
+      ivalue = (short) PyLong_AsLong(_PYVALUE);
       ip = (short *) ptr;
       for (i = 0; i < numelements; i++)
 	ip[i] = ivalue;
     } else if (strcmp(type,"long") == 0) {
       long *ip,ivalue;
       int i;
-      ivalue = (long) PyInt_AsLong(_PYVALUE);
+      ivalue = (long) PyLong_AsLong(_PYVALUE);
       ip = (long *) ptr;
       for (i = 0; i < numelements; i++)
 	ip[i] = ivalue;
@@ -340,13 +340,13 @@ static PyObject *ptrset(PyObject *_PTRVALUE, PyObject *_PYVALUE, int index, char
   
   /* Now we have a datatype.  Try to figure out what to do about it */
   if (strcmp(type,"int") == 0) {
-    *(((int *) ptr)+index) = (int) PyInt_AsLong(_PYVALUE);
+    *(((int *) ptr)+index) = (int) PyLong_AsLong(_PYVALUE);
   } else if (strcmp(type,"double") == 0) {
     *(((double *) ptr)+index) = (double) PyFloat_AsDouble(_PYVALUE);
   } else if (strcmp(type,"short") == 0) {
-    *(((short *) ptr)+index) = (short) PyInt_AsLong(_PYVALUE);
+    *(((short *) ptr)+index) = (short) PyLong_AsLong(_PYVALUE);
   } else if (strcmp(type,"long") == 0) {
-    *(((long *) ptr)+index) = (long) PyInt_AsLong(_PYVALUE);
+    *(((long *) ptr)+index) = (long) PyLong_AsLong(_PYVALUE);
   } else if (strcmp(type,"float") == 0) {
     *(((float *) ptr)+index) = (float) PyFloat_AsDouble(_PYVALUE);
   } else if (strcmp(type,"char") == 0) {

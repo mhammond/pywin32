@@ -759,14 +759,14 @@ PyHH_POPUP::PyHH_POPUP(const HH_POPUP *pPOPUP)
     m_pszFont = pPOPUP->pszFont ? PyWinObject_FromTCHAR((TCHAR *)pPOPUP->pszFont) : NULL;
 
     m_pt = PyTuple_New(2);
-    PyTuple_SetItem(m_pt, 0, PyInt_FromLong(pPOPUP->pt.x));
-    PyTuple_SetItem(m_pt, 1, PyInt_FromLong(pPOPUP->pt.y));
+    PyTuple_SetItem(m_pt, 0, PyLong_FromLong(pPOPUP->pt.x));
+    PyTuple_SetItem(m_pt, 1, PyLong_FromLong(pPOPUP->pt.y));
 
     m_rcMargins = PyTuple_New(4);
-    PyTuple_SetItem(m_rcMargins, 0, PyInt_FromLong(pPOPUP->rcMargins.left));
-    PyTuple_SetItem(m_rcMargins, 1, PyInt_FromLong(pPOPUP->rcMargins.right));
-    PyTuple_SetItem(m_rcMargins, 2, PyInt_FromLong(pPOPUP->rcMargins.top));
-    PyTuple_SetItem(m_rcMargins, 3, PyInt_FromLong(pPOPUP->rcMargins.bottom));
+    PyTuple_SetItem(m_rcMargins, 0, PyLong_FromLong(pPOPUP->rcMargins.left));
+    PyTuple_SetItem(m_rcMargins, 1, PyLong_FromLong(pPOPUP->rcMargins.right));
+    PyTuple_SetItem(m_rcMargins, 2, PyLong_FromLong(pPOPUP->rcMargins.top));
+    PyTuple_SetItem(m_rcMargins, 3, PyLong_FromLong(pPOPUP->rcMargins.bottom));
 }
 
 PyHH_POPUP::~PyHH_POPUP(void)
@@ -2404,11 +2404,11 @@ in the Html Help engine yet.");
                 PyErr_SetString(PyExc_TypeError, "HH_HELP_CONTEXT file must be a string");
                 return NULL;
             }
-            if (!PyInt_Check(dataOb)) {
+            if (!PyLong_Check(dataOb)) {
                 PyErr_SetString(PyExc_TypeError, "HH_HELP_CONTEXT data must be an integer");
                 return NULL;
             }
-            data = (DWORD_PTR)PyInt_AsLong(dataOb);
+            data = (DWORD_PTR)PyLong_AsLong(dataOb);
             break;
 
         case HH_INITIALIZE:
@@ -2457,10 +2457,10 @@ in the Html Help engine yet.");
             ctlIDs = new DWORD[len + 1];
             for (i = 0; i < len; i++) {
                 item = PyTuple_GetItem(dataOb, i);
-                if (!PyInt_Check(item))
+                if (!PyLong_Check(item))
                     error = TRUE;
                 else
-                    ctlIDs[i] = PyInt_AsLong(item);
+                    ctlIDs[i] = PyLong_AsLong(item);
             }
             if (error) {
                 delete[] ctlIDs;
@@ -2474,11 +2474,11 @@ data tuple items must be integers");
 
         case HH_UNINITIALIZE:
             file = NULL;
-            if (!PyInt_Check(dataOb)) {
+            if (!PyLong_Check(dataOb)) {
                 PyErr_SetString(PyExc_TypeError, "HH_UNINITIALIZE data must be an integer");
                 return NULL;
             }
-            data = (DWORD_PTR)PyInt_AsLong(dataOb);
+            data = (DWORD_PTR)PyLong_AsLong(dataOb);
             break;
 
         default:

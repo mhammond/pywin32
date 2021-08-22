@@ -121,7 +121,7 @@ DWORD CALLBACK PyCRichEditCallbackOut(DWORD_PTR dwCookie, LPBYTE pbBuff, LONG cb
         //		gui_print_error();
     }
     else {
-        retval = PyInt_AsLong(result);
+        retval = PyLong_AsLong(result);
         if (PyErr_Occurred()) {
             gui_print_error();
             //			retval = 0;
@@ -620,8 +620,8 @@ static PyObject *PyCRichEditCtrl_set_sel_and_char_format(PyObject *self, PyObjec
 
     //	PyErr_Clear();
     // Note - no reference added.
-    long start = PyInt_AsLong(PyTuple_GET_ITEM(args, 0));
-    long end = PyInt_AsLong(PyTuple_GET_ITEM(args, 1));
+    long start = PyLong_AsLong(PyTuple_GET_ITEM(args, 0));
+    long end = PyLong_AsLong(PyTuple_GET_ITEM(args, 1));
     PyObject *fmtTuple = PyTuple_GET_ITEM(args, 2);
 
     if (PyErr_Occurred())
@@ -771,7 +771,7 @@ static PyObject *PyCRichEditCtrl_get_text_length(PyObject *self, PyObject *args)
     GUI_BGN_SAVE;
     long rc = pEdit->GetTextLength();  // @pyseemfc CRichEditCtrl|GetTextLength
     GUI_END_SAVE;
-    return PyInt_FromLong(rc);
+    return PyLong_FromLong(rc);
 }
 
 // @pymethod int|PyCRichEditCtrl|GetModify|Nonzero if the text in this control has been modified; otherwise 0.
@@ -784,7 +784,7 @@ static PyObject *PyCRichEditCtrl_get_modify(PyObject *self, PyObject *args)
     GUI_BGN_SAVE;
     BOOL rc = pEdit->GetModify();  // @pyseemfc CRichEditCtrl|GetModify
     GUI_END_SAVE;
-    return PyInt_FromLong(rc);
+    return PyLong_FromLong(rc);
 }
 
 // @pymethod |PyCRichEditCtrl|SetModify|Sets the modified flag for this control

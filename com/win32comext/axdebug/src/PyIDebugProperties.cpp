@@ -49,7 +49,7 @@ PyObject *PyObject_FromDebugPropertyInfo(const DebugPropertyInfo *p)
         SET_INC_NONE(ob);
     PyTuple_SET_ITEM(obRet, 3, ob);
     if (p->m_dwValidFields & DBGPROP_INFO_ATTRIBUTES) {
-        ob = PyInt_FromLong(p->m_dwAttrib);
+        ob = PyLong_FromLong(p->m_dwAttrib);
         if (ob == NULL)
             goto error;
     }
@@ -136,8 +136,8 @@ BOOL PyObject_AsDebugPropertyInfo(PyObject *ob, DebugPropertyInfo *p)
         goto error;
     if (thisOb == Py_None)
         ;
-    else if (PyInt_Check(thisOb)) {
-        p->m_dwAttrib = PyInt_AsLong(thisOb);
+    else if (PyLong_Check(thisOb)) {
+        p->m_dwAttrib = PyLong_AsLong(thisOb);
         p->m_dwValidFields |= DBGPROP_INFO_ATTRIBUTES;
     }
     else {

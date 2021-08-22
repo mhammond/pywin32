@@ -68,7 +68,7 @@ PyObject *PyINameSpaceTreeControl::TreeAdvise(PyObject *self, PyObject *args)
     PY_INTERFACE_POSTCALL;
     if (FAILED(hr))
         return PyCom_BuildPyException(hr, pINSTC, IID_INameSpaceTreeControl);
-    return PyInt_FromLong(dwCookie);
+    return PyLong_FromLong(dwCookie);
 }
 
 // @pymethod |PyINameSpaceTreeControl|TreeUnadvise|Description of TreeUnadvise.
@@ -339,7 +339,7 @@ PyObject *PyINameSpaceTreeControl::GetItemCustomState(PyObject *self, PyObject *
     PY_INTERFACE_POSTCALL;
     if (FAILED(hr))
         return PyCom_BuildPyException(hr, pINSTC, IID_INameSpaceTreeControl);
-    return PyInt_FromLong(iStateNumber);
+    return PyLong_FromLong(iStateNumber);
 }
 
 // @pymethod |PyINameSpaceTreeControl|SetItemCustomState|Description of SetItemCustomState.

@@ -73,7 +73,7 @@ BOOL PyWinObject_AsUSHORTArray(PyObject *obushorts, USHORT **pushorts, DWORD *it
     else
         for (tuple_index = 0; tuple_index < *item_cnt; tuple_index++) {
             tuple_item = PyTuple_GET_ITEM(ushorts_tuple, tuple_index);
-            short_candidate = PyInt_AsLong(tuple_item);
+            short_candidate = PyLong_AsLong(tuple_item);
             if (short_candidate == -1 && PyErr_Occurred()) {
                 ret = FALSE;
                 break;
@@ -541,7 +541,7 @@ int PyINPUT_RECORD::tp_setattro(PyObject *self, PyObject *obname, PyObject *obva
             return -1;
         }
 
-        *dest_ptr = PyInt_AsUnsignedLongMask(obvalue);
+        *dest_ptr = PyLong_AsUnsignedLongMask(obvalue);
         if ((*dest_ptr == (DWORD)-1) && PyErr_Occurred())
             return -1;
         return 0;
@@ -993,7 +993,7 @@ PyObject *PyConsoleScreenBuffer::PyWriteConsole(PyObject *self, PyObject *args, 
     if (!WriteConsole(((PyConsoleScreenBuffer *)self)->m_handle, (LPVOID)buf, nbrtowrite, &nbrwritten, reserved))
         PyWin_SetAPIError("WriteConsole");
     else
-        ret = PyInt_FromLong(nbrwritten);
+        ret = PyLong_FromLong(nbrwritten);
     PyWinObject_FreeWCHAR(buf);
     return ret;
 }
@@ -1149,7 +1149,7 @@ PyObject *PyConsoleScreenBuffer::PyFillConsoleOutputCharacter(PyObject *self, Py
         return NULL;
     if (!FillConsoleOutputCharacter(((PyConsoleScreenBuffer *)self)->m_handle, fillchar, len, *pcoord, &nbrwritten))
         return PyWin_SetAPIError("FillConsoleOutputCharacter");
-    return PyInt_FromLong(nbrwritten);
+    return PyLong_FromLong(nbrwritten);
 }
 
 // @pymethod <o PyUnicode>|PyConsoleScreenBuffer|ReadConsoleOutputCharacter|Reads consecutive characters from a starting
@@ -1205,7 +1205,7 @@ PyObject *PyConsoleScreenBuffer::PyReadConsoleOutputAttribute(PyObject *self, Py
         ret = PyTuple_New(nbrread);
         if (ret != NULL)
             for (tuple_ind = 0; tuple_ind < nbrread; tuple_ind++) {
-                ret_item = PyInt_FromLong(buf[tuple_ind]);
+                ret_item = PyLong_FromLong(buf[tuple_ind]);
                 if (ret_item == NULL) {
                     Py_DECREF(ret);
                     ret = NULL;

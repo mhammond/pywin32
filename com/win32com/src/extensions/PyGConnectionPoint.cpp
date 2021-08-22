@@ -48,7 +48,7 @@ STDMETHODIMP PyGConnectionPoint::Advise(IUnknown *pUnk, DWORD *pdwCookie)
     Py_DECREF(obUnknown);
     if (FAILED(hr))
         return hr;
-    *pdwCookie = PyInt_AsLong(result);
+    *pdwCookie = PyLong_AsLong(result);
     if (PyErr_Occurred()) {
         hr = PyCom_SetCOMErrorFromPyException(GetIID());
         *pdwCookie = 0;

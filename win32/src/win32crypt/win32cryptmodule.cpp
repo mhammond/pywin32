@@ -771,7 +771,7 @@ static PyObject *PyCryptFindOIDInfo(PyObject *self, PyObject *args, PyObject *kw
                 return NULL;
             break;
         case CRYPT_OID_INFO_ALGID_KEY:
-            alg_ids[0] = PyInt_AsLong(obkey);
+            alg_ids[0] = PyLong_AsLong(obkey);
             if (alg_ids[0] == (ALG_ID)-1 && PyErr_Occurred())
                 return NULL;
             key = (PVOID)&alg_ids[0];

@@ -35,6 +35,8 @@ typedef unsigned long ULONG;
 
 
 %{
+#define PyInt_FromLong PyLong_FromLong // py3k pain.
+
 #include "PyWinTypes.h"
 #ifdef NEED_PYWINOBJECTS_H
 #include "PyWinObjects.h"
@@ -586,7 +588,7 @@ typedef float HWND;
 #ifndef SWIG_PYTHONCOM
 /* This code only valid if non COM SWIG builds */
 #ifndef PYCOM_EXPORT
-	 PyDict_SetItemString(d,"UNICODE", PyInt_FromLong(
+	 PyDict_SetItemString(d,"UNICODE", PyLong_FromLong(
 #ifdef UNICODE
 	1
 #else

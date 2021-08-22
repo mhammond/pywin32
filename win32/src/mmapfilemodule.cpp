@@ -111,7 +111,7 @@ static PyObject *mmapfile_read_method(mmapfile_object *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "O",
                           &obnum_bytes))  // @pyparm int|num_bytes||Number of bytes to read
         return NULL;
-    num_bytes = PyInt_AsSsize_t(obnum_bytes);
+    num_bytes = PyLong_AsSsize_t(obnum_bytes);
     if (num_bytes == -1 && PyErr_Occurred())
         return NULL;
 
@@ -143,7 +143,7 @@ static PyObject *mmapfile_find_method(mmapfile_object *self, PyObject *args)
         return NULL;
 
     if (obstart != Py_None) {
-        start = PyInt_AsSsize_t(obstart);
+        start = PyLong_AsSsize_t(obstart);
         if (start == -1 && PyErr_Occurred())
             return NULL;
     }
@@ -161,7 +161,7 @@ static PyObject *mmapfile_find_method(mmapfile_object *self, PyObject *args)
         }
         p++;
     }
-    return PyInt_FromLong(-1);
+    return PyLong_FromLong(-1);
 }
 
 // @pymethod |Pymmapfile|write|Places data at current pos in buffer.
@@ -240,7 +240,7 @@ static PyObject *mmapfile_resize_method(mmapfile_object *self, PyObject *args, P
             &obview_size))  // @pyparm long|NumberOfBytesToMap|0|New view size.  Specify a multiple of system page size.
         return NULL;
     if (obview_size != Py_None) {
-        new_view_size = PyInt_AsSsize_t(obview_size);
+        new_view_size = PyLong_AsSsize_t(obview_size);
         if (new_view_size == -1 && PyErr_Occurred())
             return NULL;
     }
@@ -304,12 +304,12 @@ static PyObject *mmapfile_flush_method(mmapfile_object *self, PyObject *args)
             &obsize))   // @pyparm int|size|0|Number of bytes to flush, 0 to flush remainder of buffer past the offset
         return NULL;
     if (oboffset != Py_None) {
-        offset = PyInt_AsSsize_t(oboffset);
+        offset = PyLong_AsSsize_t(oboffset);
         if (offset == -1 && PyErr_Occurred())
             return NULL;
     }
     if (obsize != Py_None) {
-        size = PyInt_AsSsize_t(obsize);
+        size = PyLong_AsSsize_t(obsize);
         if (size == -1 && PyErr_Occurred())
             return NULL;
     }
@@ -320,7 +320,7 @@ static PyObject *mmapfile_flush_method(mmapfile_object *self, PyObject *args)
     if (!FlushViewOfFile(self->data + offset, size))
         return PyWin_SetAPIError("FlushViewOfFile");
     // Previously the BOOL result was returned without raising an error, return 1 on success
-    return PyInt_FromLong(1);
+    return PyLong_FromLong(1);
 }
 
 // @pymethod int|Pymmapfile|tell|Returns current position in buffer
@@ -341,7 +341,7 @@ static PyObject *mmapfile_seek_method(mmapfile_object *self, PyObject *args)
                           &obdist,  // @pyparm int|dist||Distance to seek
                           &how))    // @pyparm int|how|0|Pos from which to seek
         return (NULL);
-    dist = PyInt_AsSsize_t(obdist);
+    dist = PyLong_AsSsize_t(obdist);
     if (dist == -1 && PyErr_Occurred())
         return NULL;
 
@@ -384,13 +384,13 @@ static PyObject *mmapfile_move_method(mmapfile_object *self, PyObject *args)
                           &obsrc,     // @pyparm int|src||Source position in buffer
                           &obcount))  // @pyparm int|count||Number of bytes to move
         return NULL;
-    dest = PyInt_AsSsize_t(obdest);
+    dest = PyLong_AsSsize_t(obdest);
     if (dest == (size_t)-1 && PyErr_Occurred())
         return NULL;
-    src = PyInt_AsSsize_t(obsrc);
+    src = PyLong_AsSsize_t(obsrc);
     if (src == (size_t)-1 && PyErr_Occurred())
         return NULL;
-    count = PyInt_AsSsize_t(obcount);
+    count = PyLong_AsSsize_t(obcount);
     if (count == (size_t)-1 && PyErr_Occurred())
         return NULL;
 
@@ -533,7 +533,7 @@ static PyObject *new_mmapfile_object(PyObject *self, PyObject *args, PyObject *k
         return NULL;
     }
     if (obview_size != Py_None) {
-        m_obj->size = PyInt_AsSsize_t(obview_size);
+        m_obj->size = PyLong_AsSsize_t(obview_size);
         if (m_obj->size == -1 && PyErr_Occurred()) {
             Py_DECREF(m_obj);
             PyWinObject_FreeTCHAR(filename);

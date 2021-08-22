@@ -234,7 +234,7 @@ PyObject *PySTGMEDIUM::getattro(PyObject *self, PyObject *obname)
     PySTGMEDIUM *ps = (PySTGMEDIUM *)self;
     // @prop int|tymed|An integer indicating the type of data in the stgmedium
     if (strcmp(name, "tymed") == 0)
-        return PyInt_FromLong(ps->medium.tymed);
+        return PyLong_FromLong(ps->medium.tymed);
     // @prop object|data|The data in the stgmedium.
     // The result depends on the value of the 'tymed' property of the <o PySTGMEDIUM> object.
     // @flagh tymed|Result Type

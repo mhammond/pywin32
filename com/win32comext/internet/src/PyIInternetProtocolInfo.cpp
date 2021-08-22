@@ -187,7 +187,7 @@ PyObject *PyIInternetProtocolInfo::QueryInfo(PyObject *self, PyObject *args)
             free(pFreeBuf);
         return OleSetOleError(hr);
     }
-    PyObject *rc = pFreeBuf == NULL ? PyInt_FromLong(dwBuf) : PyBytes_FromStringAndSize((char *)pBuffer, pcbBuf);
+    PyObject *rc = pFreeBuf == NULL ? PyLong_FromLong(dwBuf) : PyBytes_FromStringAndSize((char *)pBuffer, pcbBuf);
     if (pFreeBuf)
         free(pFreeBuf);
     return rc;
@@ -314,7 +314,7 @@ STDMETHODIMP PyGInternetProtocolInfo::QueryInfo(
     if (FAILED(hr))
         return hr;
     if (!PyBytes_Check(result)) {
-        if (PyInt_Check(result)) {
+        if (PyLong_Check(result)) {
             if (cbBuffer != sizeof(DWORD)) {
                 PyErr_SetString(PyExc_TypeError,
                                 "IInternetProtocolInfo::QueryInfo can return an integer only when sizeof(int) bytes "
@@ -322,7 +322,7 @@ STDMETHODIMP PyGInternetProtocolInfo::QueryInfo(
                 return PyCom_HandlePythonFailureToCOM();
             }
             *pcbBuf = sizeof(DWORD);
-            *((DWORD *)pBuffer) = PyInt_AsLong(result);
+            *((DWORD *)pBuffer) = PyLong_AsLong(result);
         }
         else {
             PyErr_SetString(

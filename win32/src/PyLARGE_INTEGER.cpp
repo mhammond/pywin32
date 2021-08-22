@@ -22,9 +22,9 @@
 BOOL PyWinObject_AsLARGE_INTEGER(PyObject *ob, LARGE_INTEGER *pResult)
 {
 #if (PY_VERSION_HEX < 0x03000000)
-    if (PyInt_Check(ob)) {
+    if (PyLong_Check(ob)) {
         // 32 bit integer value.
-        int x = PyInt_AS_LONG(ob);
+        int x = PyLong_AS_LONG(ob);
         if (x == (int)-1 && PyErr_Occurred())
             return FALSE;
         LISet32(*pResult, x);
@@ -55,9 +55,9 @@ BOOL PyWinObject_AsULARGE_INTEGER(PyObject *ob, ULARGE_INTEGER *pResult)
 {
 #if (PY_VERSION_HEX < 0x03000000)
     // py2k - ints and longs are different, and we assume 'int' is 32bits.
-    if (PyInt_Check(ob)) {
+    if (PyLong_Check(ob)) {
         // 32 bit integer value.
-        int x = PyInt_AS_LONG(ob);
+        int x = PyLong_AS_LONG(ob);
         if (x == (int)-1 && PyErr_Occurred())
             return FALSE;
         // ### what to do with "negative" integers?  Nothing - they

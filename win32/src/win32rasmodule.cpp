@@ -278,7 +278,7 @@ PyObject *PyRASDIALEXTENSIONS::getattro(PyObject *self, PyObject *obname)
     PyRASDIALEXTENSIONS *py = (PyRASDIALEXTENSIONS *)self;
     // @prop integer|dwfOptions|(fOptions may also be used)
     if (strcmp(name, "dwfOptions") == 0 || strcmp(name, "fOptions") == 0)
-        return PyInt_FromLong(py->m_ext.dwfOptions);
+        return PyLong_FromLong(py->m_ext.dwfOptions);
     // @prop integer|hwndParent|
     if (strcmp(name, "hwndParent") == 0)
         return PyLong_FromVoidPtr(py->m_ext.hwndParent);
@@ -309,7 +309,7 @@ int PyRASDIALEXTENSIONS::setattro(PyObject *self, PyObject *obname, PyObject *va
         return -1;
     PyRASDIALEXTENSIONS *py = (PyRASDIALEXTENSIONS *)self;
     if (strcmp(name, "dwfOptions") == 0 || strcmp(name, "fOptions") == 0) {
-        int i = PyInt_AsLong(val);
+        int i = PyLong_AsLong(val);
         if (i == -1 && PyErr_Occurred())
             return -1;
         py->m_ext.dwfOptions = i;
@@ -323,7 +323,7 @@ int PyRASDIALEXTENSIONS::setattro(PyObject *self, PyObject *obname, PyObject *va
         return 0;
     }
     if (strcmp(name, "reserved") == 0) {
-        long v = PyInt_AsLong(val);
+        long v = PyLong_AsLong(val);
         if (v == -1 && PyErr_Occurred())
             return -1;
         py->m_ext.reserved = v;
@@ -552,7 +552,7 @@ static PyObject *PyRasDial(PyObject *self, PyObject *args)
         pNotification = PyRasDialFunc1;
         notType = 1;
     }
-    else if (PyInt_Check(obCallback)) {
+    else if (PyLong_Check(obCallback)) {
         if (!PyWinLong_AsVoidPtr(obCallback, &pNotification))
             return NULL;
         notType = 0xFFFFFFFF;

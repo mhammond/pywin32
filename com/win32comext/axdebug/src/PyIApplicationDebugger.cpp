@@ -30,7 +30,7 @@ PyObject *PyIApplicationDebugger::QueryAlive(PyObject *self, PyObject *args)
     PY_INTERFACE_PRECALL;
     HRESULT hr = pIAD->QueryAlive();
     PY_INTERFACE_POSTCALL;
-    return PyInt_FromLong(hr == S_OK);
+    return PyLong_FromLong(hr == S_OK);
 }
 
 // @pymethod |PyIApplicationDebugger|CreateInstanceAtDebugger|Create objects in the application process address space.

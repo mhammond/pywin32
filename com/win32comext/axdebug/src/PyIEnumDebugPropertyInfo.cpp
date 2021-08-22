@@ -150,7 +150,7 @@ PyObject *PyIEnumDebugPropertyInfo::GetCount(PyObject *self, PyObject *args)
     if (FAILED(hr))
         return PyCom_BuildPyException(hr, pIEDebugPropertyInfo, IID_IEnumDebugPropertyInfo);
 
-    return PyInt_FromLong(ret);
+    return PyLong_FromLong(ret);
 }
 
 // @object PyIEnumDebugPropertyInfo|A Python interface to IEnumDebugPropertyInfo
@@ -286,7 +286,7 @@ STDMETHODIMP PyGEnumDebugPropertyInfo::GetCount(
     HRESULT hr = InvokeViaPolicy("GetCount", &result);
     if (FAILED(hr))
         return hr;
-    *pcelt = PyInt_AsLong(result);
+    *pcelt = PyLong_AsLong(result);
     Py_DECREF(result);
     return PyCom_SetCOMErrorFromPyException(IID_IEnumDebugPropertyInfo);
 }

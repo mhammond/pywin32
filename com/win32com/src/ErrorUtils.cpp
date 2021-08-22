@@ -152,9 +152,9 @@ static BOOL PyCom_ExcepInfoFromServerExceptionInstance(PyObject *v, EXCEPINFO *p
 
     ob = PyObject_GetAttrString(v, "code");
     if (ob && ob != Py_None) {
-        PyObject *temp = PyNumber_Int(ob);
+        PyObject *temp = PyNumber_Long(ob);
         if (temp) {
-            pExcepInfo->wCode = (unsigned short)PyInt_AsLong(temp);
+            pExcepInfo->wCode = (unsigned short)PyLong_AsLong(temp);
             Py_DECREF(temp);
         }  // XXX - else - what to do here, apart from call the user a moron :-)
     }
@@ -164,9 +164,9 @@ static BOOL PyCom_ExcepInfoFromServerExceptionInstance(PyObject *v, EXCEPINFO *p
 
     ob = PyObject_GetAttrString(v, "scode");
     if (ob && ob != Py_None) {
-        PyObject *temp = PyNumber_Int(ob);
+        PyObject *temp = PyNumber_Long(ob);
         if (temp) {
-            pExcepInfo->scode = PyInt_AsLong(temp);
+            pExcepInfo->scode = PyLong_AsLong(temp);
             Py_DECREF(temp);
         }
         else
@@ -179,9 +179,9 @@ static BOOL PyCom_ExcepInfoFromServerExceptionInstance(PyObject *v, EXCEPINFO *p
 
     ob = PyObject_GetAttrString(v, "helpcontext");
     if (ob && ob != Py_None) {
-        PyObject *temp = PyNumber_Int(ob);
+        PyObject *temp = PyNumber_Long(ob);
         if (temp) {
-            pExcepInfo->dwHelpContext = (unsigned short)PyInt_AsLong(temp);
+            pExcepInfo->dwHelpContext = (unsigned short)PyLong_AsLong(temp);
             Py_DECREF(temp);
         }
     }
@@ -223,7 +223,7 @@ BOOL PyCom_ExcepInfoFromPyObject(PyObject *v, EXCEPINFO *pExcepInfo, HRESULT *ph
         if (phresult) {
             ob = PySequence_GetItem(v, 0);
             if (ob) {
-                *phresult = PyInt_AsLong(ob);
+                *phresult = PyLong_AsLong(ob);
                 Py_DECREF(ob);
             }
         }
@@ -620,7 +620,7 @@ PyObject *PyCom_BuildPyExceptionFromEXCEPINFO(HRESULT hr, EXCEPINFO *pexcepInfo 
     PyObject *obArg;
 
     if (nArgErr != -1) {
-        obArg = PyInt_FromLong(nArgErr);
+        obArg = PyLong_FromLong(nArgErr);
     }
     else {
         obArg = Py_None;

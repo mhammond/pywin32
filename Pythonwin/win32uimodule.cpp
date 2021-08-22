@@ -751,7 +751,7 @@ int Python_do_int_callback(PyObject *themeth, PyObject *thearglst)
     if (result == Py_None)  // allow for None==0
         retVal = 0;
     else {
-        retVal = PyInt_AsLong(result);
+        retVal = PyLong_AsLong(result);
         if (retVal == -1 && PyErr_Occurred()) {
             gui_print_error();
             TRACE("Python_do_int_callback: callback had bad return type\n");
@@ -1018,7 +1018,7 @@ static PyObject *ui_write_profile_val(PyObject *self, PyObject *args)
         bHaveInt = FALSE;
     else {
         PyErr_Clear();
-        intVal = PyInt_AsLong(obVal);
+        intVal = PyLong_AsLong(obVal);
         if (intVal == -1 && PyErr_Occurred())
             RETURN_TYPE_ERR("Value must be string or int");
     }
@@ -1032,7 +1032,7 @@ static PyObject *ui_write_profile_val(PyObject *self, PyObject *args)
             rc = pApp->WriteProfileString(sect, entry, strVal);
         GUI_END_SAVE;
         if (rc)
-            ret = PyInt_FromLong(rc);
+            ret = PyLong_FromLong(rc);
         else
             PyErr_SetString(ui_module_error, "WriteProfileInt/String failed");
     }
@@ -1063,7 +1063,7 @@ static PyObject *ui_get_profile_val(PyObject *self, PyObject *args)
         bHaveInt = FALSE;
     else {
         PyErr_Clear();
-        intDef = PyInt_AsLong(obDef);
+        intDef = PyLong_AsLong(obDef);
         if (intDef == -1 && PyErr_Occurred())
             RETURN_TYPE_ERR("Default value must be string or int");
     }
@@ -1073,7 +1073,7 @@ static PyObject *ui_get_profile_val(PyObject *self, PyObject *args)
             GUI_BGN_SAVE;
             rc = pApp->GetProfileInt(sect, entry, intDef);
             GUI_END_SAVE;
-            ret = PyInt_FromLong(rc);
+            ret = PyLong_FromLong(rc);
         }
         else {
             CString rc;
@@ -1301,7 +1301,7 @@ static PyObject *ui_pump_waiting_messages(PyObject *self, PyObject *args)
     GUI_BGN_SAVE;
     bool rc = pThread->PumpWaitingMessages(firstMsg, lastMsg);
     GUI_END_SAVE;
-    return PyInt_FromLong((int)rc == true);
+    return PyLong_FromLong((int)rc == true);
     // @comm This allows an application which is performing a long operation to dispatch paint messages during the
     // operation.
     // @rdesc The result is 1 if a WM_QUIT message was processed, otherwise 0.
@@ -1349,7 +1349,7 @@ static PyObject *ui_message_box(PyObject *self, PyObject *args)
         GUI_BGN_SAVE;
         rc = ::MessageBox(pApp->m_pMainWnd->GetSafeHwnd(), message, title ? title : pApp->m_pszAppName, style);
         GUI_END_SAVE;
-        ret = PyInt_FromLong(rc);
+        ret = PyLong_FromLong(rc);
     }
     PyWinObject_FreeTCHAR(message);
     PyWinObject_FreeTCHAR(title);
@@ -1385,7 +1385,7 @@ static PyObject *ui_compare_path(PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "OO:ComparePath", &obpath1, &obpath2))
         return NULL;
     if (PyWinObject_AsTCHAR(obpath1, &path1, FALSE) && PyWinObject_AsTCHAR(obpath2, &path2, FALSE))
-        ret = PyInt_FromLong(AfxComparePath(path1, path2));
+        ret = PyLong_FromLong(AfxComparePath(path1, path2));
     PyWinObject_FreeTCHAR(path1);
     PyWinObject_FreeTCHAR(path2);
     return ret;
@@ -1686,9 +1686,9 @@ static PyObject *ui_is_debug(PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, ":IsDebug"))
         return NULL;
 #ifdef _DEBUG
-    return PyInt_FromLong(1);
+    return PyLong_FromLong(1);
 #else
-    return PyInt_FromLong(0);
+    return PyLong_FromLong(0);
 #endif
     // @comm This should not normally be of relevance to the Python
     // programmer.  However, under certain circumstances Python code may
@@ -1814,7 +1814,7 @@ static PyObject *ui_get_device_caps(PyObject *, PyObject *args)
     HDC hdc;
     if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc))
         return NULL;
-    return PyInt_FromLong(::GetDeviceCaps(hdc, index));
+    return PyLong_FromLong(::GetDeviceCaps(hdc, index));
 }
 
 // @pymethod int|win32ui|TranslateMessage|Calls the API version of TranslateMessage.
@@ -1828,7 +1828,7 @@ static PyObject *ui_translate_message(PyObject *, PyObject *args)
     GUI_BGN_SAVE;
     BOOL rc = ::TranslateMessage(msg);
     GUI_END_SAVE;
-    return PyInt_FromLong(rc);
+    return PyLong_FromLong(rc);
 }
 
 // @pymethod string/None|win32ui|TranslateVirtualKey|

@@ -126,7 +126,7 @@ PyObject *PyIDirectSoundBuffer::GetStatus(PyObject *self, PyObject *args)
         return NULL;
     }
 
-    return PyInt_FromLong(dwStatus);
+    return PyLong_FromLong(dwStatus);
 }
 
 // @pymethod |PyIDirectSoundBuffer|SetFormat|Sets the format of the primary sound buffer for the application. Whenever
@@ -243,8 +243,8 @@ PyObject *PyIDirectSoundBuffer::GetCurrentPosition(PyObject *self, PyObject *arg
     if (!result)
         return NULL;
 
-    PyTuple_SetItem(result, 0, PyInt_FromLong(dwPlay));
-    PyTuple_SetItem(result, 1, PyInt_FromLong(dwWrite));
+    PyTuple_SetItem(result, 0, PyLong_FromLong(dwPlay));
+    PyTuple_SetItem(result, 1, PyLong_FromLong(dwWrite));
 
     return result;
 }
@@ -404,7 +404,7 @@ PyObject *PyIDirectSoundBuffer::GetFrequency(PyObject *self, PyObject *args)
         return NULL;
     }
 
-    return PyInt_FromLong(dwFrequency);
+    return PyLong_FromLong(dwFrequency);
 }
 
 // @pymethod |PyIDirectSoundBuffer|GetPan|Description of GetPan.
@@ -427,7 +427,7 @@ PyObject *PyIDirectSoundBuffer::GetPan(PyObject *self, PyObject *args)
         return NULL;
     }
 
-    return PyInt_FromLong(pan);
+    return PyLong_FromLong(pan);
 }
 
 // @pymethod |PyIDirectSoundBuffer|GetVolume|Description of GetVolume.
@@ -450,7 +450,7 @@ PyObject *PyIDirectSoundBuffer::GetVolume(PyObject *self, PyObject *args)
         return NULL;
     }
 
-    return PyInt_FromLong(pan);
+    return PyLong_FromLong(pan);
 }
 
 // @pymethod |PyIDirectSoundBuffer|SetFrequency|Description of SetFrequency.

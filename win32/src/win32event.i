@@ -198,7 +198,7 @@ static PyObject * MyMsgWaitForMultipleObjects(
 	if (rc==(DWORD)0xFFFFFFFF)
 		obrc = PyWin_SetAPIError("MsgWaitForMultipleObjects");
 	else
-		obrc = PyInt_FromLong(rc);
+		obrc = PyLong_FromLong(rc);
 	free(pItems);
 	return obrc;
 }
@@ -237,7 +237,7 @@ static PyObject * MyMsgWaitForMultipleObjectsEx(
 	if (rc==(DWORD)0xFFFFFFFF)
 		obrc = PyWin_SetAPIError("MsgWaitForMultipleObjectsEx");
 	else
-		obrc = PyInt_FromLong(rc);
+		obrc = PyLong_FromLong(rc);
 	free(pItems);
 	return obrc;
 }
@@ -340,7 +340,7 @@ static PyObject *MyWaitForMultipleObjects(
 	if (rc==WAIT_FAILED)
 		obrc = PyWin_SetAPIError("WaitForMultipleObjects");
 	else
-		obrc = PyInt_FromLong(rc);
+		obrc = PyLong_FromLong(rc);
 	free(pItems);
 	return obrc;
 }
@@ -374,7 +374,7 @@ static PyObject *MyWaitForMultipleObjectsEx(
 	if (rc==WAIT_FAILED)
 		obrc = PyWin_SetAPIError("WaitForMultipleObjectsEx");
 	else
-		obrc = PyInt_FromLong(rc);
+		obrc = PyLong_FromLong(rc);
 	free(pItems);
 	return obrc;
 }

@@ -129,7 +129,7 @@ PyObject *PyIDirectSoundCaptureBuffer::GetStatus(PyObject *self, PyObject *args)
         return NULL;
     }
 
-    return PyInt_FromLong(dwStatus);
+    return PyLong_FromLong(dwStatus);
 }
 
 // @pymethod |PyIDirectSoundCaptureBuffer|Initialize|Not normally used. Used IDirectSoundCapture.CreateCaptureBuffer
@@ -194,8 +194,8 @@ PyObject *PyIDirectSoundCaptureBuffer::GetCurrentPosition(PyObject *self, PyObje
     if (!result)
         return NULL;
 
-    PyTuple_SetItem(result, 0, PyInt_FromLong(dwCapture));
-    PyTuple_SetItem(result, 1, PyInt_FromLong(dwRead));
+    PyTuple_SetItem(result, 0, PyLong_FromLong(dwCapture));
+    PyTuple_SetItem(result, 1, PyLong_FromLong(dwRead));
 
     return result;
 }

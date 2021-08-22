@@ -49,7 +49,7 @@ PyObject *PyIKnownFolder::GetCategory(PyObject *self, PyObject *args)
     PY_INTERFACE_POSTCALL;
     if (FAILED(hr))
         return PyCom_BuildPyException(hr, pIKF, IID_IKnownFolder);
-    return PyInt_FromLong(category);
+    return PyLong_FromLong(category);
 }
 
 // @pymethod <o PyIShellItem>|PyIKnownFolder|GetShellItem|Returns a shell interface for the folder
@@ -180,7 +180,7 @@ PyObject *PyIKnownFolder::GetRedirectionCapabilities(PyObject *self, PyObject *a
 
     if (FAILED(hr))
         return PyCom_BuildPyException(hr, pIKF, IID_IKnownFolder);
-    return PyInt_FromLong(Capabilities);
+    return PyLong_FromLong(Capabilities);
 }
 
 // @pymethod dict|PyIKnownFolder|GetFolderDefinition|Retrieves detailed information about a known folder

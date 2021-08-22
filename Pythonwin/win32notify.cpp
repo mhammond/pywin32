@@ -34,7 +34,7 @@ PyObject *PyNotifyMakeExtraTuple(NMHDR *ptr, char *fmt)
             ++fmt;
         switch (*fmt) {
             case 'i':
-                ob = bIgnore ? NULL : PyInt_FromLong(*((int *)pUse));
+                ob = bIgnore ? NULL : PyLong_FromLong(*((int *)pUse));
                 pUse += (sizeof(int));
                 break;
             case 'P': {  // point
@@ -157,9 +157,9 @@ void PyNotifyParseExtraTuple(NMHDR *ptr, PyObject *args, char *fmt)
         switch (*fmt) {
             case 'i':
                 if (!bIgnore) {
-                    if (!PyInt_Check(ob))
+                    if (!PyLong_Check(ob))
                         MY_RET_ERR("Expected integer object")
-                    *((int *)pUse) = PyInt_AsLong(ob);
+                    *((int *)pUse) = PyLong_AsLong(ob);
                 }
                 pUse += (sizeof(int));
                 break;

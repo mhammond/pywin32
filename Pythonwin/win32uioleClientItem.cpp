@@ -217,7 +217,7 @@ static PyObject *PyCOleClientItem_GetItemState(PyObject *self, PyObject *args)
     GUI_BGN_SAVE;
     int rc = pCI->GetItemState();
     GUI_END_SAVE;
-    return PyInt_FromLong(rc);
+    return PyLong_FromLong(rc);
 }
 
 // @pymethod <o PyIUnknown>|PyCOleClientItem|GetObject|Returns the COM object to the item.  This is the m_lpObject
@@ -286,7 +286,7 @@ static PyObject *PyCOleClientItem_OnChangeItemPosition(PyObject *self, PyObject 
     BOOL bRet = ((PythonOleClientItem *)pCI)->BaseOnChangeItemPosition(rect);
     GUI_END_SAVE;
     // @rdesc The result is a BOOL indicating if the function succeeded.  No exception is thrown.
-    return PyInt_FromLong(bRet);
+    return PyLong_FromLong(bRet);
 }
 
 // @pymethod int|PyCOleClientItem|OnDeactivateUI|Calls the underlying MFC method.

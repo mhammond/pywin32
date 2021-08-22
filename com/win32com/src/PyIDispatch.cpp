@@ -163,13 +163,13 @@ PyObject *PyIDispatch::GetIDsOfNames(PyObject *self, PyObject *args)
 
     /* if we have just one name, then return a single DISPID (int) */
     if (cNames == 1) {
-        result = PyInt_FromLong(rgdispid[0]);
+        result = PyLong_FromLong(rgdispid[0]);
     }
     else {
         result = PyTuple_New(cNames);
         if (result) {
             for (i = 0; i < cNames; ++i) {
-                PyObject *ob = PyInt_FromLong(rgdispid[i]);
+                PyObject *ob = PyLong_FromLong(rgdispid[i]);
                 if (!ob) {
                     delete[] rgdispid;
                     return NULL;
@@ -269,9 +269,9 @@ PyObject *PyIDispatch::Invoke(PyObject *self, PyObject *args)
 
     // @pyparm int|dispid||The dispid to use.  Typically this value will come from <om PyIDispatch.GetIDsOfNames> or
     // from a type library.
-    DISPID dispid = PyInt_AsLong(PyTuple_GET_ITEM(args, 0));
+    DISPID dispid = PyLong_AsLong(PyTuple_GET_ITEM(args, 0));
     // @pyparm int|lcid||The locale id to use.
-    LCID lcid = PyInt_AsLong(PyTuple_GET_ITEM(args, 1));
+    LCID lcid = PyLong_AsLong(PyTuple_GET_ITEM(args, 1));
     // @pyparm int|flags||The flags for the call.  The following flags can be used.
     // @flagh Flag|Description
     // @flag DISPATCH_METHOD|The member is invoked as a method. If a property has the same name, both this and the
@@ -280,10 +280,10 @@ PyObject *PyIDispatch::Invoke(PyObject *self, PyObject *args)
     // @flag DISPATCH_PROPERTYPUT|The member is changed as a property or data member.
     // @flag DISPATCH_PROPERTYPUTREF|The member is changed by a reference assignment, rather than a value assignment.
     // This flag is valid only when the property accepts a reference to an object.
-    UINT wFlags = PyInt_AsLong(PyTuple_GET_ITEM(args, 2));
+    UINT wFlags = PyLong_AsLong(PyTuple_GET_ITEM(args, 2));
     // @pyparm int|bResultWanted||Indicates if the result of the call should be requested.
     // @pyparm object, ...|params, ...||The parameters to pass.
-    BOOL bResultWanted = (BOOL)PyInt_AsLong(PyTuple_GET_ITEM(args, 3));
+    BOOL bResultWanted = (BOOL)PyLong_AsLong(PyTuple_GET_ITEM(args, 3));
     if (PyErr_Occurred())
         return NULL;
 
@@ -346,11 +346,11 @@ PyObject *PyIDispatch::InvokeTypes(PyObject *self, PyObject *args)
         return PyErr_Format(PyExc_TypeError, "not enough arguments (at least 5 needed)");
 
     // @pyparm int|dispid||The dispid to use.  Please see <om PyIDispatch.Invoke>.
-    DISPID dispid = PyInt_AsLong(PyTuple_GET_ITEM(args, 0));
+    DISPID dispid = PyLong_AsLong(PyTuple_GET_ITEM(args, 0));
     // @pyparm int|lcid||The locale ID.  Please see <om PyIDispatch.Invoke>.
-    LCID lcid = PyInt_AsLong(PyTuple_GET_ITEM(args, 1));
+    LCID lcid = PyLong_AsLong(PyTuple_GET_ITEM(args, 1));
     // @pyparm int|wFlags||Flags for the call.  Please see <om PyIDispatch.Invoke>.
-    UINT wFlags = PyInt_AsLong(PyTuple_GET_ITEM(args, 2));
+    UINT wFlags = PyLong_AsLong(PyTuple_GET_ITEM(args, 2));
     // @pyparm tuple|resultTypeDesc||A tuple describing the type of the
     // result.  See the comments for more information.
     PyObject *resultElemDesc = PyTuple_GET_ITEM(args, 3);
@@ -634,7 +634,7 @@ PyObject *PyIDispatchEx::GetDispID(PyObject *self, PyObject *args)
     PY_INTERFACE_POSTCALL;
     if (FAILED(hr))
         return SetPythonCOMError(self, hr);
-    return PyInt_FromLong(dispid);
+    return PyLong_FromLong(dispid);
 }
 
 // @pymethod object|PyIDispatchEx|InvokeEx|Provides access to properties and methods exposed by a <o PyIDispatchEx>
@@ -785,7 +785,7 @@ PyObject *PyIDispatchEx::GetMemberProperties(PyObject *self, PyObject *args)
     PY_INTERFACE_POSTCALL;
     if (FAILED(hr))
         return SetPythonCOMError(self, hr);
-    return PyInt_FromLong(props);
+    return PyLong_FromLong(props);
 }
 // @pymethod str|PyIDispatchEx|GetMemberName|Returns the name associated with a member id
 PyObject *PyIDispatchEx::GetMemberName(PyObject *self, PyObject *args)
@@ -826,7 +826,7 @@ PyObject *PyIDispatchEx::GetNextDispID(PyObject *self, PyObject *args)
     PY_INTERFACE_POSTCALL;
     if (hr != S_OK)
         return SetPythonCOMError(self, hr);
-    return PyInt_FromLong(retDispid);
+    return PyLong_FromLong(retDispid);
 }
 
 // @object PyIDispatchEx|A OLE automation client object that uses the IDispatchEx scripting interface..

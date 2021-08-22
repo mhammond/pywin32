@@ -36,7 +36,7 @@ PyObject *PyIPropertyStoreCache::GetState(PyObject *self, PyObject *args)
 
     if (FAILED(hr))
         return PyCom_BuildPyException(hr, pIPSC, IID_IPropertyStoreCache);
-    return PyInt_FromLong(state);
+    return PyLong_FromLong(state);
 }
 
 // @pymethod (<o PyPROPVARIANT>, int)|PyIPropertyStoreCache|GetValueAndState|Retrieves the current value and state of a
@@ -60,7 +60,7 @@ PyObject *PyIPropertyStoreCache::GetValueAndState(PyObject *self, PyObject *args
 
     if (FAILED(hr))
         return PyCom_BuildPyException(hr, pIPSC, IID_IPropertyStoreCache);
-    return Py_BuildValue("NN", PyWinObject_FromPROPVARIANT(&val), PyInt_FromLong(state));
+    return Py_BuildValue("NN", PyWinObject_FromPROPVARIANT(&val), PyLong_FromLong(state));
 }
 
 // @pymethod |PyIPropertyStoreCache|SetState|Sets the state of a property

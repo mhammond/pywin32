@@ -246,7 +246,7 @@ PyObject *PyIShellItem2::GetInt32(PyObject *self, PyObject *args)
 
     if (FAILED(hr))
         return PyCom_BuildPyException(hr, pISI2, IID_IShellItem2);
-    return PyInt_FromLong(val);
+    return PyLong_FromLong(val);
 }
 
 // @pymethod str|PyIShellItem2|GetString|Retrieves the value of a property as a string
@@ -535,7 +535,7 @@ STDMETHODIMP PyGShellItem2::GetInt32(
     HRESULT hr = InvokeViaPolicy("GetInt32", &result, "(N)", PyObject_FromSHCOLUMNID(&key));
     if (FAILED(hr))
         return hr;
-    *pi = PyInt_AsLong(result);
+    *pi = PyLong_AsLong(result);
     if (*pi == -1 && PyErr_Occurred())
         hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("GetInt32");
     Py_DECREF(result);

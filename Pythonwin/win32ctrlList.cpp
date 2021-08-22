@@ -268,7 +268,7 @@ PyObject *PyCListCtrl_SetColumn(PyObject *self, PyObject *args)
     PyWinObject_FreeLV_COLUMN(&lvCol);
     if (ret == -1)
         RETURN_ERR("SetColumn failed");
-    return PyInt_FromLong(ret);
+    return PyLong_FromLong(ret);
 }
 
 // @pymethod int|PyCListCtrl|InsertItem|Inserts an item into the list.
@@ -323,7 +323,7 @@ PyObject *PyCListCtrl_InsertItem(PyObject *self, PyObject *args)
     PyWinObject_FreeTCHAR(text);
     if (ret == -1)
         RETURN_ERR("InsertItem failed");
-    return PyInt_FromLong(ret);
+    return PyLong_FromLong(ret);
 }
 
 // @pymethod int|PyCListCtrl|SetItem|Sets some of all of an items attributes.

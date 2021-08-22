@@ -96,13 +96,13 @@ PyObject *PyCRect::getattro(PyObject *obname)
     if (name == NULL)
         return NULL;
     if (strcmp(name, "left") == 0)
-        return PyInt_FromLong(m_pRect->left);
+        return PyLong_FromLong(m_pRect->left);
     if (strcmp(name, "right") == 0)
-        return PyInt_FromLong(m_pRect->right);
+        return PyLong_FromLong(m_pRect->right);
     if (strcmp(name, "top") == 0)
-        return PyInt_FromLong(m_pRect->top);
+        return PyLong_FromLong(m_pRect->top);
     if (strcmp(name, "bottom") == 0)
-        return PyInt_FromLong(m_pRect->bottom);
+        return PyLong_FromLong(m_pRect->bottom);
     return PyObject_GenericGetAttr(this, obname);
 }
 
@@ -126,13 +126,13 @@ CString PyCRect::repr()
     PyCRect *p = (PyCRect *)self;
     switch (index) {
         case 0:  // @tupleitem 0|int|left|
-            return PyInt_FromLong(p->m_pRect->left);
+            return PyLong_FromLong(p->m_pRect->left);
         case 1:  // @tupleitem 1|int|top|
-            return PyInt_FromLong(p->m_pRect->top);
+            return PyLong_FromLong(p->m_pRect->top);
         case 2:  // @tupleitem 2|int|right|
-            return PyInt_FromLong(p->m_pRect->right);
+            return PyLong_FromLong(p->m_pRect->right);
         case 3:  // @tupleitem 3|int|bottom|
-            return PyInt_FromLong(p->m_pRect->bottom);
+            return PyLong_FromLong(p->m_pRect->bottom);
     }
     PyErr_SetString(PyExc_IndexError, "index out of range");
     return NULL;
@@ -143,7 +143,7 @@ int PyCRect::setattro(PyObject *obname, PyObject *v)
     char *name = PYWIN_ATTR_CONVERT(obname);
     if (name == NULL)
         return -1;
-    int intval = PyInt_AsLong(v);
+    int intval = PyLong_AsLong(v);
     if (intval == -1 && PyErr_Occurred())
         return -1;
     if (strcmp(name, "left") == 0) {
@@ -241,14 +241,14 @@ static char *szFontName = "name";
 PyObject *LogFontToDict(const LOGFONT &lf)
 {
     return Py_BuildValue("{s:N, s:N, s:N, s:N, s:N, s:N, s:N, s:N, s:N, s:N, s:N, s:N, s:N, s:N}", szFontHeight,
-                         PyInt_FromLong(lf.lfHeight), szFontWidth, PyInt_FromLong(lf.lfWidth), szFontEscapement,
-                         PyInt_FromLong(lf.lfEscapement), szFontOrientation, PyInt_FromLong(lf.lfOrientation),
-                         szFontWeight, PyInt_FromLong(lf.lfWeight), szFontItalic, PyBool_FromLong(lf.lfItalic),
+                         PyLong_FromLong(lf.lfHeight), szFontWidth, PyLong_FromLong(lf.lfWidth), szFontEscapement,
+                         PyLong_FromLong(lf.lfEscapement), szFontOrientation, PyLong_FromLong(lf.lfOrientation),
+                         szFontWeight, PyLong_FromLong(lf.lfWeight), szFontItalic, PyBool_FromLong(lf.lfItalic),
                          szFontUnderline, PyBool_FromLong(lf.lfUnderline), szFontStrikeOut,
-                         PyBool_FromLong(lf.lfStrikeOut), szFontCharSet, PyInt_FromLong(lf.lfCharSet),
-                         szFontOutPrecision, PyInt_FromLong(lf.lfOutPrecision), szFontClipPrecision,
-                         PyInt_FromLong(lf.lfClipPrecision), szFontQuality, PyInt_FromLong(lf.lfQuality), szFontPitch,
-                         PyInt_FromLong(lf.lfPitchAndFamily), szFontName, PyWinObject_FromTCHAR(lf.lfFaceName));
+                         PyBool_FromLong(lf.lfStrikeOut), szFontCharSet, PyLong_FromLong(lf.lfCharSet),
+                         szFontOutPrecision, PyLong_FromLong(lf.lfOutPrecision), szFontClipPrecision,
+                         PyLong_FromLong(lf.lfClipPrecision), szFontQuality, PyLong_FromLong(lf.lfQuality), szFontPitch,
+                         PyLong_FromLong(lf.lfPitchAndFamily), szFontName, PyWinObject_FromTCHAR(lf.lfFaceName));
 }
 
 BOOL DictToLogFont(PyObject *font_props, LOGFONT *pLF)
@@ -309,11 +309,11 @@ PyObject *PyWinObject_FromLV_ITEM(LV_ITEM *item)
     PyObject *ret = PyTuple_New(7);
     if (ret == NULL)
         return NULL;
-    PyTuple_SET_ITEM(ret, 0, PyInt_FromLong(item->iItem));
-    PyTuple_SET_ITEM(ret, 1, PyInt_FromLong(item->iSubItem));
+    PyTuple_SET_ITEM(ret, 0, PyLong_FromLong(item->iItem));
+    PyTuple_SET_ITEM(ret, 1, PyLong_FromLong(item->iSubItem));
     if (item->mask & LVIF_STATE) {
-        PyTuple_SET_ITEM(ret, 2, PyInt_FromLong(item->state));
-        PyTuple_SET_ITEM(ret, 3, PyInt_FromLong(item->stateMask));
+        PyTuple_SET_ITEM(ret, 2, PyLong_FromLong(item->state));
+        PyTuple_SET_ITEM(ret, 3, PyLong_FromLong(item->stateMask));
     }
     else {
         Py_INCREF(Py_None);
@@ -329,7 +329,7 @@ PyObject *PyWinObject_FromLV_ITEM(LV_ITEM *item)
         PyTuple_SET_ITEM(ret, 4, Py_None);
     }
     if (item->mask & LVIF_IMAGE) {
-        PyTuple_SET_ITEM(ret, 5, PyInt_FromLong(item->iImage));
+        PyTuple_SET_ITEM(ret, 5, PyLong_FromLong(item->iImage));
     }
     else {
         Py_INCREF(Py_None);
@@ -376,13 +376,13 @@ BOOL PyWinObject_AsLV_ITEM(PyObject *args, LV_ITEM *pItem)
 
     // 0 - iItem.
     ob = PyTuple_GET_ITEM(args, 0);
-    pItem->iItem = PyInt_AsLong(ob);
+    pItem->iItem = PyLong_AsLong(ob);
     if (pItem->iImage == -1 && PyErr_Occurred())
         return FALSE;
 
     // 1 - iSubItem
     ob = PyTuple_GET_ITEM(args, 1);
-    pItem->iSubItem = PyInt_AsLong(ob);
+    pItem->iSubItem = PyLong_AsLong(ob);
     if (pItem->iSubItem == -1 && PyErr_Occurred())
         return FALSE;
 
@@ -402,10 +402,10 @@ BOOL PyWinObject_AsLV_ITEM(PyObject *args, LV_ITEM *pItem)
         return FALSE;
     }
     else {
-        pItem->state = PyInt_AsLong(ob);
+        pItem->state = PyLong_AsLong(ob);
         if (pItem->state == -1 && PyErr_Occurred())
             return FALSE;
-        pItem->stateMask = PyInt_AsLong(ob2);
+        pItem->stateMask = PyLong_AsLong(ob2);
         if (pItem->stateMask == -1 && PyErr_Occurred())
             return FALSE;
         pItem->mask |= LVIF_STATE;
@@ -425,7 +425,7 @@ BOOL PyWinObject_AsLV_ITEM(PyObject *args, LV_ITEM *pItem)
         return TRUE;
     ob = PyTuple_GET_ITEM(args, 5);
     if (ob != Py_None) {
-        pItem->iImage = PyInt_AsLong(ob);
+        pItem->iImage = PyLong_AsLong(ob);
         if (pItem->iImage == -1 && PyErr_Occurred()) {
             PyWinObject_FreeLV_ITEM(pItem);
             return FALSE;
@@ -454,14 +454,14 @@ PyObject *PyWinObject_FromLV_COLUMN(LV_COLUMN *pCol)
     if (ret == NULL)
         return NULL;
     if (pCol->mask & LVCF_FMT) {
-        PyTuple_SET_ITEM(ret, 0, PyInt_FromLong(pCol->fmt));
+        PyTuple_SET_ITEM(ret, 0, PyLong_FromLong(pCol->fmt));
     }
     else {
         Py_INCREF(Py_None);
         PyTuple_SET_ITEM(ret, 0, Py_None);
     }
     if (pCol->mask & LVCF_WIDTH) {
-        PyTuple_SET_ITEM(ret, 1, PyInt_FromLong(pCol->cx));
+        PyTuple_SET_ITEM(ret, 1, PyLong_FromLong(pCol->cx));
     }
     else {
         Py_INCREF(Py_None);
@@ -475,7 +475,7 @@ PyObject *PyWinObject_FromLV_COLUMN(LV_COLUMN *pCol)
         PyTuple_SET_ITEM(ret, 2, Py_None);
     }
     if (pCol->mask & LVCF_SUBITEM) {
-        PyTuple_SET_ITEM(ret, 3, PyInt_FromLong(pCol->iSubItem));
+        PyTuple_SET_ITEM(ret, 3, PyLong_FromLong(pCol->iSubItem));
     }
     else {
         Py_INCREF(Py_None);
@@ -517,7 +517,7 @@ BOOL PyWinObject_AsLV_COLUMN(PyObject *args, LV_COLUMN *pCol)
         return TRUE;
     ob = PyTuple_GET_ITEM(args, 0);
     if (ob != Py_None) {
-        pCol->fmt = PyInt_AsLong(ob);
+        pCol->fmt = PyLong_AsLong(ob);
         if (pCol->fmt == -1 && PyErr_Occurred())
             return FALSE;
         pCol->mask |= LVCF_FMT;
@@ -528,7 +528,7 @@ BOOL PyWinObject_AsLV_COLUMN(PyObject *args, LV_COLUMN *pCol)
         return TRUE;
     ob = PyTuple_GET_ITEM(args, 1);
     if (ob != Py_None) {
-        pCol->cx = PyInt_AsLong(ob);
+        pCol->cx = PyLong_AsLong(ob);
         if (pCol->cx == -1 && PyErr_Occurred())
             return FALSE;
         pCol->mask |= LVCF_WIDTH;
@@ -548,7 +548,7 @@ BOOL PyWinObject_AsLV_COLUMN(PyObject *args, LV_COLUMN *pCol)
         return TRUE;
     ob = PyTuple_GET_ITEM(args, 3);
     if (ob != Py_None) {
-        pCol->iSubItem = PyInt_AsLong(ob);
+        pCol->iSubItem = PyLong_AsLong(ob);
         if (pCol->iSubItem == -1 && PyErr_Occurred()) {
             PyWinObject_FreeLV_COLUMN(pCol);
             return FALSE;
@@ -576,8 +576,8 @@ PyObject *PyWinObject_FromTV_ITEM(TV_ITEM *item)
         PyTuple_SET_ITEM(ret, 0, Py_None);
     }
     if (item->mask & TVIF_STATE) {
-        PyTuple_SET_ITEM(ret, 1, PyInt_FromLong(item->state));
-        PyTuple_SET_ITEM(ret, 2, PyInt_FromLong(item->stateMask));
+        PyTuple_SET_ITEM(ret, 1, PyLong_FromLong(item->state));
+        PyTuple_SET_ITEM(ret, 2, PyLong_FromLong(item->stateMask));
     }
     else {
         Py_INCREF(Py_None);
@@ -593,14 +593,14 @@ PyObject *PyWinObject_FromTV_ITEM(TV_ITEM *item)
         PyTuple_SET_ITEM(ret, 3, Py_None);
     }
     if (item->mask & TVIF_IMAGE) {
-        PyTuple_SET_ITEM(ret, 4, PyInt_FromLong(item->iImage));
+        PyTuple_SET_ITEM(ret, 4, PyLong_FromLong(item->iImage));
     }
     else {
         Py_INCREF(Py_None);
         PyTuple_SET_ITEM(ret, 4, Py_None);
     }
     if (item->mask & TVIF_SELECTEDIMAGE) {
-        PyTuple_SET_ITEM(ret, 5, PyInt_FromLong(item->iSelectedImage));
+        PyTuple_SET_ITEM(ret, 5, PyLong_FromLong(item->iSelectedImage));
     }
     else {
         Py_INCREF(Py_None);
@@ -608,7 +608,7 @@ PyObject *PyWinObject_FromTV_ITEM(TV_ITEM *item)
     }
 
     if (item->mask & TVIF_CHILDREN) {
-        PyTuple_SET_ITEM(ret, 6, PyInt_FromLong(item->cChildren));
+        PyTuple_SET_ITEM(ret, 6, PyLong_FromLong(item->cChildren));
     }
     else {
         Py_INCREF(Py_None);
@@ -673,10 +673,10 @@ BOOL PyWinObject_AsTV_ITEM(PyObject *args, TV_ITEM *pItem)
     else {
         // @tupleitem 1|int|state|Item state.  If specified, the stateMask must also be specified.
         // @tupleitem 2|int|stateMask|Item state mask
-        pItem->state = PyInt_AsLong(ob);
+        pItem->state = PyLong_AsLong(ob);
         if (pItem->state == -1 && PyErr_Occurred())
             return FALSE;
-        pItem->stateMask = PyInt_AsLong(ob2);
+        pItem->stateMask = PyLong_AsLong(ob2);
         if (pItem->stateMask == -1 && PyErr_Occurred())
             return FALSE;
         pItem->mask |= TVIF_STATE;
@@ -698,7 +698,7 @@ BOOL PyWinObject_AsTV_ITEM(PyObject *args, TV_ITEM *pItem)
     ob = PyTuple_GET_ITEM(args, 4);
     if (ob != Py_None) {
         // @tupleitem 4|int|iImage|Image list index of icon for non-seleted state.
-        pItem->iImage = PyInt_AsLong(ob);
+        pItem->iImage = PyLong_AsLong(ob);
         if (pItem->iImage == -1 && PyErr_Occurred()) {
             PyWinObject_FreeTV_ITEM(pItem);
             return FALSE;
@@ -712,7 +712,7 @@ BOOL PyWinObject_AsTV_ITEM(PyObject *args, TV_ITEM *pItem)
     ob = PyTuple_GET_ITEM(args, 5);
     if (ob != Py_None) {
         // @tupleitem 5|int|iSelectedImage|Offset of items selected image.
-        pItem->iSelectedImage = PyInt_AsLong(ob);
+        pItem->iSelectedImage = PyLong_AsLong(ob);
         if (pItem->iSelectedImage == -1 && PyErr_Occurred()) {
             PyWinObject_FreeTV_ITEM(pItem);
             return FALSE;
@@ -726,7 +726,7 @@ BOOL PyWinObject_AsTV_ITEM(PyObject *args, TV_ITEM *pItem)
     ob = PyTuple_GET_ITEM(args, 6);
     if (ob != Py_None) {
         // @tupleitem 6|int|cChildren|Number of child items.
-        pItem->cChildren = PyInt_AsLong(ob);
+        pItem->cChildren = PyLong_AsLong(ob);
         if (pItem->cChildren == -1 && PyErr_Occurred()) {
             PyWinObject_FreeTV_ITEM(pItem);
             return FALSE;
@@ -764,11 +764,11 @@ PyObject *MakeHD_ITEMTuple(HD_ITEM *item)
     if (ret == NULL)
         return NULL;
     if (item->mask & HDI_HEIGHT)
-        PyTuple_SET_ITEM(ret, 0, PyInt_FromLong((long)0));
+        PyTuple_SET_ITEM(ret, 0, PyLong_FromLong((long)0));
     else if (item->mask & HDI_WIDTH)
-        PyTuple_SET_ITEM(ret, 0, PyInt_FromLong((long)1));
+        PyTuple_SET_ITEM(ret, 0, PyLong_FromLong((long)1));
     if ((item->mask & HDI_HEIGHT) || (item->mask & HDI_WIDTH))
-        PyTuple_SET_ITEM(ret, 1, PyInt_FromLong((long)item->cxy));
+        PyTuple_SET_ITEM(ret, 1, PyLong_FromLong((long)item->cxy));
     else {
         Py_INCREF(Py_None);
         Py_INCREF(Py_None);
@@ -791,7 +791,7 @@ PyObject *MakeHD_ITEMTuple(HD_ITEM *item)
         PyTuple_SET_ITEM(ret, 3, Py_None);
     }
     if (item->mask & HDI_FORMAT) {
-        PyTuple_SET_ITEM(ret, 4, PyInt_FromLong(item->fmt));
+        PyTuple_SET_ITEM(ret, 4, PyLong_FromLong(item->fmt));
     }
     else {
         Py_INCREF(Py_None);
@@ -843,7 +843,7 @@ BOOL ParseHD_ITEMTuple( PyObject *args, HD_ITEM *pItem)
         return FALSE;
     if (ob != Py_None) {
         // @pyparm int|cxy||Width or height of item
-        pItem->cxy = (int)PyInt_AsLong(ob);
+        pItem->cxy = (int)PyLong_AsLong(ob);
         if (PyErr_Occurred()) return FALSE;
         //mask updated above
     }
@@ -876,7 +876,7 @@ BOOL ParseHD_ITEMTuple( PyObject *args, HD_ITEM *pItem)
     if (ob != Py_None) {
         pItem->mask |= HDI_FORMAT;
         // @pyparm int|fmt||code for centering etc of string
-        pItem->fmt = (int)PyInt_AsLong(ob);
+        pItem->fmt = (int)PyLong_AsLong(ob);
     }
     // 5 - object
     if (len<6) return TRUE;
@@ -885,7 +885,7 @@ BOOL ParseHD_ITEMTuple( PyObject *args, HD_ITEM *pItem)
     if (ob != Py_None) {
         // @pyparm int|lParam||User defined integer param.
         pItem->mask |= LVIF_PARAM;
-        pItem->lParam = PyInt_AsLong(ob);
+        pItem->lParam = PyLong_AsLong(ob);
     }
     return !PyErr_Occurred();
 }
@@ -966,7 +966,7 @@ BOOL ParseParaFormatTuple(PyObject *args, PARAFORMAT *pFmt)
         Py_ssize_t tabCount = PyObject_Length(obTabStops);
         tabCount = min(MAX_TAB_STOPS, tabCount);
         for (Py_ssize_t i = 0; rc && i < tabCount; i++) {
-            pFmt->rgxTabs[i] = PyInt_AsLong(PySequence_GetItem(obTabStops, i));
+            pFmt->rgxTabs[i] = PyLong_AsLong(PySequence_GetItem(obTabStops, i));
             rc = PyErr_Occurred() == FALSE;
             if (!rc)
                 break;
@@ -985,7 +985,7 @@ PyObject *MakeParaFormatTuple(PARAFORMAT *pFmt)
     }
     else {
         obTabs = PyTuple_New(pFmt->cTabCount);
-        for (int i = 0; i < pFmt->cTabCount; i++) PyTuple_SetItem(obTabs, i, PyInt_FromLong(pFmt->rgxTabs[i]));
+        for (int i = 0; i < pFmt->cTabCount; i++) PyTuple_SetItem(obTabs, i, PyLong_FromLong(pFmt->rgxTabs[i]));
     }
     PyObject *ret = Py_BuildValue("iiiiiiiO", pFmt->dwMask, pFmt->wNumbering, pFmt->wEffects, pFmt->dxStartIndent,
                                   pFmt->dxRightIndent, pFmt->dxOffset, pFmt->wAlignment, obTabs);

@@ -423,7 +423,7 @@ PyObject *PyCListBox_GetItemValue(PyObject *self, PyObject *args)
     GUI_BGN_SAVE;
     long rc = (long)pLB->GetItemData(item);
     GUI_END_SAVE;
-    return PyInt_FromLong(rc);
+    return PyLong_FromLong(rc);
 }
 
 // @pymethod int|PyCListBox|GetSel|Returns the selection state of a specified item.
@@ -1038,7 +1038,7 @@ PyObject *PyCComboBox_GetItemValue(PyObject *self, PyObject *args)
     GUI_BGN_SAVE;
     long rc = (long)pLB->GetItemData(item);
     GUI_END_SAVE;
-    return PyInt_FromLong(rc);
+    return PyLong_FromLong(rc);
 }
 
 // @pymethod string|PyCComboBox|GetLBText|Gets the string from the list of a combo box.
@@ -2377,7 +2377,7 @@ PyObject *PyCSpinButtonCtrl_GetPos(PyObject *self, PyObject *args)
 
     if (!pSB)
         return NULL;
-    return PyInt_FromLong(pSB->GetPos());
+    return PyLong_FromLong(pSB->GetPos());
 }
 
 // @pymethod int|PyCSpinButtonCtrl|SetPos|Sets the current position for a spin button control.
@@ -2395,7 +2395,7 @@ PyObject *PyCSpinButtonCtrl_SetPos(PyObject *self, PyObject *args)
     int oldPos = pSB->SetPos(pos);
     GUI_END_SAVE;
     // @rdesc The result is the previous position.
-    return PyInt_FromLong(oldPos);
+    return PyLong_FromLong(oldPos);
 }
 
 // @pymethod int|PyCSpinButtonCtrl|SetRange|Sets the upper and lower limits (range) for a spin button control.

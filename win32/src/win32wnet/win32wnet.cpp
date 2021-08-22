@@ -575,7 +575,7 @@ PyObject *PyWinMethod_Netbios(PyObject *self, PyObject *args)
     PyNCB *pyncb = (PyNCB *)obncb;
     UCHAR rc;
     Py_BEGIN_ALLOW_THREADS rc = Netbios(&pyncb->m_ncb);
-    Py_END_ALLOW_THREADS return PyInt_FromLong((long)rc);
+    Py_END_ALLOW_THREADS return PyLong_FromLong((long)rc);
 }
 
 // @pymethod buffer|win32wnet|NCBBuffer|Creates an NCB buffer of the relevant size.

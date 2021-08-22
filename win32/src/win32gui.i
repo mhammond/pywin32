@@ -699,7 +699,7 @@ BOOL PyWndProc_Call(PyObject *obFuncOrMap, HWND hWnd, UINT uMsg, WPARAM wParam, 
 	PyObject *obFunc = NULL;
 	if (obFuncOrMap!=NULL) {
 		if (PyDict_Check(obFuncOrMap)) {
-			PyObject *key = PyInt_FromLong(uMsg);
+			PyObject *key = PyLong_FromLong(uMsg);
 			if (key==NULL){
 				HandleError("Internal error converting Msg param of window procedure");
 				return FALSE;
@@ -1405,7 +1405,7 @@ BOOL CALLBACK EnumFontFamProc(const LOGFONT FAR *lpelf, const TEXTMETRIC *lpntm,
 	PyObject *ret = PyObject_CallObject(obFunc, params);
 	Py_XDECREF(params);
 	if (ret) {
-		iret = PyInt_AsLong(ret);
+		iret = PyLong_AsLong(ret);
 		Py_DECREF(ret);
 	}
 	return iret;
@@ -1443,7 +1443,7 @@ static PyObject *PyEnumFontFamilies(PyObject *self, PyObject *args)
 	int rc = EnumFontFamilies(hdc, szFamily, EnumFontFamProc, (LPARAM)lparam);
 	Py_XDECREF(lparam);
 	PyWinObject_FreeTCHAR(szFamily);
-	return PyInt_FromLong(rc);
+	return PyLong_FromLong(rc);
 
 }
 %}
@@ -1742,7 +1742,7 @@ static PyObject *PyGetArraySignedLong(PyObject *self, PyObject *args)
 		PyErr_SetString(PyExc_ValueError,"array index out of bounds");
 		return NULL;
 		}
-	return PyInt_FromLong(l[offset]);
+	return PyLong_FromLong(l[offset]);
 }
 %}
 %native (PyGetArraySignedLong) PyGetArraySignedLong;
@@ -1760,7 +1760,7 @@ static PyObject *PyGetBufferAddressAndLen(PyObject *self, PyObject *args)
 	PyWinBufferView pybuf(ob);
 	if (!pybuf.ok())
 		return NULL;
-	return Py_BuildValue("NN", PyWinLong_FromVoidPtr(pybuf.ptr()), PyInt_FromSsize_t(pybuf.len()));
+	return Py_BuildValue("NN", PyWinLong_FromVoidPtr(pybuf.ptr()), PyLong_FromSsize_t(pybuf.len()));
 }
 %}
 %native (PyGetBufferAddressAndLen) PyGetBufferAddressAndLen;
@@ -2072,7 +2072,7 @@ BOOL CALLBACK PyEnumWindowsProc(
 	if (ret == NULL)		
 		return FALSE;
 	if (ret != Py_None){
-		result = PyInt_AsLong(ret);
+		result = PyLong_AsLong(ret);
 		if (result == -1 && PyErr_Occurred())
 			result = FALSE;
 		}
@@ -2239,7 +2239,7 @@ static PyObject *PyDialogBoxIndirect(PyObject *self, PyObject *args)
 	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd))
 		return NULL;
 	// We unpack the object in the dlgproc - but check validity now
-	if (obParam != Py_None && !PyInt_Check(obParam) && !PyLong_Check(obParam)) {
+	if (obParam != Py_None && !PyLong_Check(obParam) && !PyLong_Check(obParam)) {
 		return PyErr_Format(PyExc_TypeError, "optional param must be None, or an integer (got %s)",
 		                    obParam->ob_type->tp_name);
 	}
@@ -3254,7 +3254,7 @@ static PyObject *PyRegisterClass(PyObject *self, PyObject *args)
 
 	// Save atom/PyWNDCLASS and name/atom pairs in global dict.  These are used in
 	// CreateWindow to lookup the python window proc function for the class
-	PyObject *ret = PyInt_FromLong(at);
+	PyObject *ret = PyLong_FromLong(at);
 	if (ret==NULL)
 		return NULL;
 	if (PyDict_SetItem(g_AtomMap, ((PyWNDCLASS *)obwc)->m_obClassName, ret)==-1){
@@ -3413,7 +3413,7 @@ PyHIWORD(PyObject *self, PyObject *args)
 {	int n;
 	if(!PyArg_ParseTuple(args, "i:HIWORD", &n))
 		return NULL;
-	return PyInt_FromLong(HIWORD(n));
+	return PyLong_FromLong(HIWORD(n));
 }
 %}
 %native (HIWORD) PyHIWORD;
@@ -3424,7 +3424,7 @@ PyLOWORD(PyObject *self, PyObject *args)
 {	int n;
 	if(!PyArg_ParseTuple(args, "i:LOWORD", &n))
 		return NULL;
-	return PyInt_FromLong(LOWORD(n));
+	return PyLong_FromLong(LOWORD(n));
 }
 %}
 %native (LOWORD) PyLOWORD;
@@ -3767,7 +3767,7 @@ static PyObject *PyExtractIconEx(PyObject *self, PyObject *args)
     if (index==-1) {
         nicons = (int)ExtractIconEx(fname, index, NULL, NULL, 0);
         PyWinObject_FreeTCHAR(fname);
-        return PyInt_FromLong(nicons);
+        return PyLong_FromLong(nicons);
     }
 #endif // MS_WINCE
     if (nicons<=0) {
@@ -3930,7 +3930,7 @@ static PyObject *PyGetTextCharacterExtra(PyObject *self, PyObject *args)
 	ret=GetTextCharacterExtra(hdc);
 	if (ret==0x80000000)
 		return PyWin_SetAPIError("GetTextCharacterExtra");
-	return PyInt_FromLong(ret);
+	return PyLong_FromLong(ret);
 }
 
 // @pyswig int|SetTextCharacterExtra|Sets the spacing between characters
@@ -3949,7 +3949,7 @@ static PyObject *PySetTextCharacterExtra(PyObject *self, PyObject *args)
 	prevspacing=SetTextCharacterExtra(hdc, newspacing);
 	if (prevspacing==0x80000000)
 		return PyWin_SetAPIError("SetTextCharacterExtra");
-	return PyInt_FromLong(prevspacing);
+	return PyLong_FromLong(prevspacing);
 }
 
 // @pyswig int|GetTextAlign|Returns horizontal and vertical alignment for text in a device context
@@ -3967,7 +3967,7 @@ static PyObject *PyGetTextAlign(PyObject *self, PyObject *args)
 	prevalign=GetTextAlign(hdc);
 	if (prevalign==GDI_ERROR)
 		return PyWin_SetAPIError("GetTextAlign");
-	return PyInt_FromLong(prevalign);
+	return PyLong_FromLong(prevalign);
 }
 
 // @pyswig int|SetTextAlign|Sets horizontal and vertical alignment for text in a device context
@@ -3986,7 +3986,7 @@ static PyObject *PySetTextAlign(PyObject *self, PyObject *args)
 	prevalign=SetTextAlign(hdc, newalign);
 	if (prevalign==GDI_ERROR)
 		return PyWin_SetAPIError("SetTextAlign");
-	return PyInt_FromLong(prevalign);
+	return PyLong_FromLong(prevalign);
 }
 
 // @pyswig <o PyUnicode>|GetTextFace|Retrieves the name of the font currently selected in a DC
@@ -4024,7 +4024,7 @@ static PyObject *PyGetMapMode(PyObject *self, PyObject *args)
 	ret=GetMapMode(hdc);
 	if (ret==0)
 		return PyWin_SetAPIError("GetMapMode");
-	return PyInt_FromLong(ret);
+	return PyLong_FromLong(ret);
 }
 
 // @pyswig int|SetMapMode|Sets the method used for translating logical units to device units
@@ -4043,7 +4043,7 @@ static PyObject *PySetMapMode(PyObject *self, PyObject *args)
 	prevmode=SetMapMode(hdc, newmode);
 	if (prevmode==0)
 		return PyWin_SetAPIError("SetMapMode");
-	return PyInt_FromLong(prevmode);
+	return PyLong_FromLong(prevmode);
 }
 
 // @pyswig int|GetGraphicsMode|Determines if advanced GDI features are enabled for a device context
@@ -4061,7 +4061,7 @@ static PyObject *PyGetGraphicsMode(PyObject *self, PyObject *args)
 	ret=GetGraphicsMode(hdc);
 	if (ret==0)
 		return PyWin_SetAPIError("GetGraphicsMode");
-	return PyInt_FromLong(ret);
+	return PyLong_FromLong(ret);
 }
 
 // @pyswig int|SetGraphicsMode|Enables or disables advanced graphics features for a DC
@@ -4080,7 +4080,7 @@ static PyObject *PySetGraphicsMode(PyObject *self, PyObject *args)
 	prevmode=SetGraphicsMode(hdc, newmode);
 	if (prevmode==0)
 		return PyWin_SetAPIError("SetGraphicsMode");
-	return PyInt_FromLong(prevmode);
+	return PyLong_FromLong(prevmode);
 }
 
 // @pyswig int|GetLayout|Retrieves the layout mode of a device context
@@ -4137,7 +4137,7 @@ static PyObject *PyGetPolyFillMode(PyObject *self, PyObject *args)
 	ret=GetPolyFillMode(hdc);
 	if (ret==0)
 		return PyWin_SetAPIError("GetPolyFillMode");
-	return PyInt_FromLong(ret);
+	return PyLong_FromLong(ret);
 }
 
 // @pyswig int|SetPolyFillMode|Sets the polygon filling mode for a device context
@@ -4156,7 +4156,7 @@ static PyObject *PySetPolyFillMode(PyObject *self, PyObject *args)
 	prevmode=SetPolyFillMode(hdc, newmode);
 	if (prevmode==0)
 		return PyWin_SetAPIError("SetPolyFillMode");
-	return PyInt_FromLong(prevmode);
+	return PyLong_FromLong(prevmode);
 }
 %}
 %native (GetTextExtentPoint32) PyGetTextExtentPoint32;
@@ -5050,7 +5050,7 @@ static PyObject *PyGetROP2(PyObject *self, PyObject *args)
 	ret=GetROP2(hdc);
 	if (ret==0)
 		return PyWin_SetAPIError("GetROP2");
-	return PyInt_FromLong(ret);
+	return PyLong_FromLong(ret);
 }
 
 // @pyswig int|SetROP2|Sets the foreground mixing mode of a DC
@@ -5069,7 +5069,7 @@ static PyObject *PySetROP2(PyObject *self, PyObject *args)
 	oldmode=SetROP2(hdc, newmode);
 	if (oldmode==0)
 		return PyWin_SetAPIError("SetROP2");
-	return PyInt_FromLong(oldmode);
+	return PyLong_FromLong(oldmode);
 }
 %}
 %native (SetPixel) PySetPixel;
@@ -5396,10 +5396,10 @@ static PyObject *PyExtTextOut(PyObject *self, PyObject *args)
 				widths = new int[len + 1];
 				for (int i = 0; i < len; i++) {
 					PyObject *item = PyTuple_GetItem(widthObject, i);
-					if (!PyInt_Check(item))
+					if (!PyLong_Check(item))
 						error = TRUE;
 					else 
-						widths[i] = PyInt_AsLong(item);
+						widths[i] = PyLong_AsLong(item);
 				}
 			}
 		}
@@ -5770,7 +5770,7 @@ static PyObject *PyGetPath(PyObject *self, PyObject *args)
 		if (tuple_item==NULL)
 			goto cleanup;
 		PyTuple_SET_ITEM(obpoints, point_ind, tuple_item);
-		tuple_item=PyInt_FromLong(types[point_ind]);
+		tuple_item=PyLong_FromLong(types[point_ind]);
 		if (tuple_item==NULL)
 			goto cleanup;
 		PyTuple_SET_ITEM(obtypes, point_ind, tuple_item);
@@ -5958,24 +5958,24 @@ BOOL ParseSCROLLINFOTuple( PyObject *args, SCROLLINFO *pInfo)
 		return FALSE;
 	}
 	if (obMin!=Py_None){
-		if (((pInfo->nMin=PyInt_AsLong(obMin))==-1)&&PyErr_Occurred())
+		if (((pInfo->nMin=PyLong_AsLong(obMin))==-1)&&PyErr_Occurred())
 			return FALSE;
-		if (((pInfo->nMax=PyInt_AsLong(obMax))==-1)&&PyErr_Occurred())
+		if (((pInfo->nMax=PyLong_AsLong(obMax))==-1)&&PyErr_Occurred())
 			return FALSE;
 		pInfo->fMask |= SIF_RANGE;
 	}
 	if (obPage!=Py_None){
-		if (((pInfo->nPage=PyInt_AsLong(obPage))==-1)&&PyErr_Occurred())
+		if (((pInfo->nPage=PyLong_AsLong(obPage))==-1)&&PyErr_Occurred())
 			return FALSE;
 		pInfo->fMask |= SIF_PAGE;
 	}
 	if (obPos!=Py_None){
-		if (((pInfo->nPos=PyInt_AsLong(obPos))==-1)&&PyErr_Occurred())
+		if (((pInfo->nPos=PyLong_AsLong(obPos))==-1)&&PyErr_Occurred())
 			return FALSE;
 		pInfo->fMask |= SIF_POS;
 	}
 	if (obTrackPos!=Py_None){
-		if (((pInfo->nTrackPos=PyInt_AsLong(obTrackPos))==-1)&&PyErr_Occurred())
+		if (((pInfo->nTrackPos=PyLong_AsLong(obTrackPos))==-1)&&PyErr_Occurred())
 			return FALSE;
 		pInfo->fMask |= SIF_TRACKPOS;
 	}
@@ -5986,10 +5986,10 @@ PyObject *MakeSCROLLINFOTuple(SCROLLINFO *pInfo)
 {
 	PyObject *ret = PyTuple_New(6);
 	if (ret==NULL) return NULL;
-	PyTuple_SET_ITEM(ret, 0, PyInt_FromLong(0));
+	PyTuple_SET_ITEM(ret, 0, PyLong_FromLong(0));
 	if (pInfo->fMask & SIF_RANGE) {
-		PyTuple_SET_ITEM(ret, 1, PyInt_FromLong(pInfo->nMin));
-		PyTuple_SET_ITEM(ret, 2, PyInt_FromLong(pInfo->nMax));
+		PyTuple_SET_ITEM(ret, 1, PyLong_FromLong(pInfo->nMin));
+		PyTuple_SET_ITEM(ret, 2, PyLong_FromLong(pInfo->nMax));
 	} else {
 		Py_INCREF(Py_None);
 		Py_INCREF(Py_None);
@@ -5997,18 +5997,18 @@ PyObject *MakeSCROLLINFOTuple(SCROLLINFO *pInfo)
 		PyTuple_SET_ITEM(ret, 2, Py_None);
 	}
 	if (pInfo->fMask & SIF_PAGE) {
-		PyTuple_SET_ITEM(ret, 3, PyInt_FromLong(pInfo->nPage));
+		PyTuple_SET_ITEM(ret, 3, PyLong_FromLong(pInfo->nPage));
 	} else {
 		Py_INCREF(Py_None);
 		PyTuple_SET_ITEM(ret, 3, Py_None);
 	}
 	if (pInfo->fMask & SIF_POS) {
-		PyTuple_SET_ITEM(ret, 4, PyInt_FromLong(pInfo->nPos));
+		PyTuple_SET_ITEM(ret, 4, PyLong_FromLong(pInfo->nPos));
 	} else {
 		Py_INCREF(Py_None);
 		PyTuple_SET_ITEM(ret, 4, Py_None);
 	}
-	PyTuple_SET_ITEM(ret, 5, PyInt_FromLong(pInfo->nTrackPos));
+	PyTuple_SET_ITEM(ret, 5, PyLong_FromLong(pInfo->nTrackPos));
 	return ret;
 }
 
@@ -6037,7 +6037,7 @@ static PyObject *PySetScrollInfo(PyObject *self, PyObject *args) {
 	GUI_BGN_SAVE;
 	int rc = SetScrollInfo(hwnd, nBar, &info, bRedraw);
 	GUI_END_SAVE;
-	return PyInt_FromLong(rc);
+	return PyLong_FromLong(rc);
 }
 %}
 %native (SetScrollInfo) PySetScrollInfo;
@@ -6146,11 +6146,11 @@ static int CALLBACK PySortFunc(
 	result = PyEval_CallObject(pc->fn, args);
 	// API says must return 0, but there might be a good reason.
 	if (!result) goto done;
-	if (!PyInt_Check(result)) {
+	if (!PyLong_Check(result)) {
 		PyErr_SetString(PyExc_TypeError, "The sort function must return an integer");
 		goto done;
 	}
-	rc = PyInt_AsLong(result);
+	rc = PyLong_AsLong(result);
 done:
 	if (PyErr_Occurred())
 		HandleError("ListView sort callback failed!");
@@ -6942,7 +6942,7 @@ static PyObject *PySystemParametersInfo(PyObject *self, PyObject *args, PyObject
 		// @flag SPI_SETDEFAULTINPUTLANG|Param is an int containing a locale id
 		case SPI_SETDEFAULTINPUTLANG:
 			// input is a HKL, which is actually a HANDLE, which can be treated as a long
-			longParam=PyInt_AsLong(obParam);
+			longParam=PyLong_AsLong(obParam);
 			if (longParam==-1 && PyErr_Occurred())
 				goto done;
 			pvParam=&longParam;
@@ -6961,7 +6961,7 @@ static PyObject *PySystemParametersInfo(PyObject *self, PyObject *args, PyObject
 			uiParam=buflen;
 			((ANIMATIONINFO *)pvParam)->cbSize=buflen;
 			if (Action==SPI_SETANIMATION){
-				((ANIMATIONINFO *)pvParam)->iMinAnimate=PyInt_AsLong(obParam);
+				((ANIMATIONINFO *)pvParam)->iMinAnimate=PyLong_AsLong(obParam);
 				if (((ANIMATIONINFO *)pvParam)->iMinAnimate==-1 && PyErr_Occurred())
 					goto done;
 				}
@@ -7152,7 +7152,7 @@ static PyObject *PySystemParametersInfo(PyObject *self, PyObject *args, PyObject
 			break;
 #ifndef MS_WINCE
 		case SPI_GETANIMATION:
-			ret=PyInt_FromLong(((ANIMATIONINFO *)pvParam)->iMinAnimate);
+			ret=PyLong_FromLong(((ANIMATIONINFO *)pvParam)->iMinAnimate);
 			break;
 		// these 2 can be a get or set, use Param==Py_None to mean a get
 		case SPI_ICONHORIZONTALSPACING:

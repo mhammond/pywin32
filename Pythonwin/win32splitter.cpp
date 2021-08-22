@@ -137,7 +137,7 @@ PyObject *ui_splitter_do_kb_split(PyObject *self, PyObject *args)
     GUI_BGN_SAVE;
     rc = wnd->DoKeyboardSplit();
     GUI_END_SAVE;
-    return PyInt_FromLong(rc);
+    return PyLong_FromLong(rc);
 }
 
 // @pymethod <o PyCWnd>|PyCSplitterWnd|GetPane|Returns the <o PyCView> associated with the specified pane.
@@ -217,7 +217,7 @@ PyObject *ui_splitter_id_from_row_col(PyObject *self, PyObject *args)
     GUI_BGN_SAVE;
     rc = wnd->IdFromRowCol(row, col);
     GUI_END_SAVE;
-    return PyInt_FromLong(rc);
+    return PyLong_FromLong(rc);
 }
 
 // @object PyCSplitterWnd|A class which encapsulates an MFC <o CSplitterWnd>. Derived from a <o PyCWnd> object.

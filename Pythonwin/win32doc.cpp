@@ -284,7 +284,7 @@ static PyObject *ui_doc_save_modified(PyObject *self, PyObject *args)
     BOOL rc = pDoc->CDocument::SaveModified();  // @pyseemfc CDocument|SaveModified
     GUI_END_SAVE;
     // @rdesc Nonzero if it is safe to continue and close the document; 0 if the document should not be closed.
-    return PyInt_FromLong(rc);
+    return PyLong_FromLong(rc);
 }
 
 // @pymethod |PyCDocument|SetModifiedFlag|Set the "dirty" flag for the document.

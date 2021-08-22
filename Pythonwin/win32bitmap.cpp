@@ -481,7 +481,7 @@ static PyObject *ui_get_bitmap_bits(PyObject *self, PyObject *args)
     else {
         rc = PyTuple_New(cnt);
         for (UINT i = 0; i < cnt; i++) {
-            PyTuple_SetItem(rc, i, PyInt_FromLong((long)bits[i]));
+            PyTuple_SetItem(rc, i, PyLong_FromLong((long)bits[i]));
         }
     }
     free(bits);

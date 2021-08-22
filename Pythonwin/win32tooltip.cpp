@@ -163,7 +163,7 @@ static PyObject *PyCToolTipCtrl_set_max_tip_width(PyObject *self, PyObject *args
     GUI_BGN_SAVE;
     int rc = pTTC->SetMaxTipWidth(width);
     GUI_END_SAVE;
-    return PyInt_FromLong(rc);
+    return PyLong_FromLong(rc);
 }
 
 // @object PyCToolTipCtrl|A windows tooltip control.  Encapsulates an MFC <c CToolTipCtrl> class.  Derived from <o

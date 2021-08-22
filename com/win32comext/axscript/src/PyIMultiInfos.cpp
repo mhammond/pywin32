@@ -32,7 +32,7 @@ PyObject *PyIProvideMultipleClassInfo::GetMultiTypeInfoCount(PyObject *self, PyO
     PY_INTERFACE_POSTCALL;
     if (FAILED(sc))
         return SetPythonCOMError(self, sc);
-    return PyInt_FromLong(num);
+    return PyLong_FromLong(num);
 }
 
 // @pymethod (various - depends on flags param)|PyIProvideMultipleClassInfo|GetInfoOfIndex|
@@ -66,7 +66,7 @@ PyObject *PyIProvideMultipleClassInfo::GetInfoOfIndex(PyObject *self, PyObject *
         PY_INTERFACE_POSTCALL;
         if (FAILED(sc))
             return SetPythonCOMError(self, sc);
-        return PyInt_FromLong(reserved);
+        return PyLong_FromLong(reserved);
     }
     if (flags == MULTICLASSINFO_GETIIDPRIMARY) {
         IID iid;

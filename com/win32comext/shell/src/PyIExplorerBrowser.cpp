@@ -205,7 +205,7 @@ PyObject *PyIExplorerBrowser::Advise(PyObject *self, PyObject *args)
 
     if (FAILED(hr))
         return PyCom_BuildPyException(hr, pIEB, IID_IExplorerBrowser);
-    return PyInt_FromLong(dwCookie);
+    return PyLong_FromLong(dwCookie);
 }
 
 // @pymethod |PyIExplorerBrowser|Unadvise|Description of Unadvise.

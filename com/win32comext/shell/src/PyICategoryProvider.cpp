@@ -185,8 +185,8 @@ STDMETHODIMP PyGCategoryProvider::CanCategorizeOnSCID(
     if (FAILED(hr))
         return hr;
     hr = S_FALSE;
-    if (PyInt_Check(ret))  // make a bool
-        hr = PyInt_AsLong(ret) ? S_OK : S_FALSE;
+    if (PyLong_Check(ret))  // make a bool
+        hr = PyLong_AsLong(ret) ? S_OK : S_FALSE;
     Py_DECREF(ret);
     return hr;
 }

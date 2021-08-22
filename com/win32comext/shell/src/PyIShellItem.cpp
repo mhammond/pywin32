@@ -142,7 +142,7 @@ PyObject *PyIShellItem::Compare(PyObject *self, PyObject *args)
 
     if (FAILED(hr))
         return PyCom_BuildPyException(hr, pISI, IID_IShellItem);
-    return PyInt_FromLong(iOrder);
+    return PyLong_FromLong(iOrder);
 }
 
 // @object PyIShellItem|Interface that represents an item in the Explorer shell
@@ -261,7 +261,7 @@ STDMETHODIMP PyGShellItem::Compare(
     Py_XDECREF(obpsi);
     if (FAILED(hr))
         return hr;
-    *piOrder = PyInt_AsLong(result);
+    *piOrder = PyLong_AsLong(result);
     hr = PyCom_SetAndLogCOMErrorFromPyException("Compare", IID_IShellItem);
     Py_DECREF(result);
     return hr;

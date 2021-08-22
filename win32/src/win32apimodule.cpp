@@ -958,7 +958,7 @@ static PyObject *PyGetLogicalDrives(PyObject *self, PyObject *args)
     DWORD rc = GetLogicalDrives();
     if (rc == 0)
         return ReturnAPIError("GetLogicalDrives");
-    return PyInt_FromLong(rc);
+    return PyLong_FromLong(rc);
 }
 
 // @pymethod string|win32api|GetConsoleTitle|Returns the title for the current console.
@@ -1555,7 +1555,7 @@ static PyObject *PyVkKeyScan(PyObject *self, PyObject *args)
         PyErr_SetString(PyExc_TypeError, "must be a unicode or byte string of length 1");
         return NULL;
     }
-    return PyInt_FromLong(ret);
+    return PyLong_FromLong(ret);
 }
 
 // @pymethod int|win32api|VkKeyScanEx|Translates a character to the corresponding virtual-key code and shift state.
@@ -1599,7 +1599,7 @@ static PyObject *PyVkKeyScanEx(PyObject *self, PyObject *args)
         PyErr_SetString(PyExc_TypeError, "must be a unicode or byte string of length 1");
         return NULL;
     }
-    return PyInt_FromLong(ret);
+    return PyLong_FromLong(ret);
 }
 
 // @pymethod int|win32api|GetLastError|Retrieves the calling thread's last error code value.
@@ -2040,7 +2040,7 @@ static PyObject *PyGetProfileVal(PyObject *self, PyObject *args)
             &obiniName))  // @pyparm string|iniName|None|The name of the INI file.  If None, the system INI file is
                           // used.
         return NULL;
-    intDef = PyInt_AsLong(obDef);
+    intDef = PyLong_AsLong(obDef);
     if (intDef == -1 && PyErr_Occurred()) {
         PyErr_Clear();
         bHaveInt = FALSE;
@@ -3523,7 +3523,7 @@ static BOOL PyWinObject_AsRegistryValue(PyObject *value, DWORD typ, BYTE **retDa
                 *(DWORD *)*retDataBuf = 0;
                 return true;
             }
-            *(int *)*retDataBuf = PyInt_AsLong(value);
+            *(int *)*retDataBuf = PyLong_AsLong(value);
             if (*(int *)*retDataBuf == -1 && PyErr_Occurred()) {
                 PyErr_Clear();
                 *(DWORD *)*retDataBuf = PyLong_AsUnsignedLong(value);
@@ -3609,13 +3609,13 @@ static PyObject *PyWinObject_FromRegistryValue(BYTE *retDataBuf, DWORD retDataSi
     switch (typ) {
         case REG_DWORD:
             if (retDataSize == 0)
-                obData = PyInt_FromLong(0);
+                obData = PyLong_FromLong(0);
             else  // ??? Should be returned as unsigned ???
-                obData = PyInt_FromLong(*(int *)retDataBuf);
+                obData = PyLong_FromLong(*(int *)retDataBuf);
             break;
         case REG_QWORD:
             if (retDataSize == 0)
-                obData = PyInt_FromLong(0);
+                obData = PyLong_FromLong(0);
             else
                 obData = PyLong_FromUnsignedLongLong(*(ULONGLONG *)retDataBuf);
             break;
@@ -4555,7 +4555,7 @@ static PyObject *PySetErrorMode(PyObject *self, PyObject *args)
     PyW32_BEGIN_ALLOW_THREADS UINT ret = ::SetErrorMode(mode);
     PyW32_END_ALLOW_THREADS
         // @rdesc The result is an integer containing the old error flags.
-        return PyInt_FromLong(ret);
+        return PyLong_FromLong(ret);
 }
 
 // @pymethod int|win32api|ShowCursor|The ShowCursor method displays or hides the cursor.
@@ -4704,7 +4704,7 @@ static PyObject *PyWriteProfileVal(PyObject *self, PyObject *args)
                           &obiniFile))  // @pyparm string|iniName|None|The name of the INI file.  If None, the system
                                         // INI file is used.
         return NULL;
-    intVal = PyInt_AsLong(obVal);
+    intVal = PyLong_AsLong(obVal);
     if (intVal == -1 && PyErr_Occurred()) {
         PyErr_Clear();
         bHaveInt = FALSE;
@@ -5113,7 +5113,7 @@ static PyObject *PyGetThreadLocale(PyObject *self, PyObject *args)
 {
     if (!PyArg_ParseTuple(args, ":GetThreadLocale"))
         return NULL;
-    return PyInt_FromLong(GetThreadLocale());
+    return PyLong_FromLong(GetThreadLocale());
 }
 
 // @pymethod |win32api|OutputDebugString|Sends a string to the Windows debugging device.
@@ -5452,7 +5452,7 @@ BOOL CALLBACK EnumResourceLanguagesProc(HMODULE hmodule, WCHAR *typname, WCHAR *
 {
     long resid;
     resid = wIDLanguage;
-    PyObject *oblangid = PyInt_FromLong(resid);
+    PyObject *oblangid = PyLong_FromLong(resid);
     if ((oblangid == NULL) || (PyList_Append(ret, oblangid) == -1)) {
         Py_XDECREF(oblangid);
         return FALSE;
@@ -5542,8 +5542,8 @@ int PyApplyExceptionFilter(DWORD ExceptionCode, PEXCEPTION_POINTERS ExceptionInf
     int ret = EXCEPTION_CONTINUE_SEARCH;
     if (obRet) {
         // Simple integer return code
-        if (PyInt_Check(obRet)) {
-            ret = PyInt_AsLong(obRet);
+        if (PyLong_Check(obRet)) {
+            ret = PyLong_AsLong(obRet);
             // Exception instance to be raised.
         }
         else if (PyObject_IsSubclass(obRet, PyExc_Exception)) {
@@ -6045,7 +6045,7 @@ PyObject *PyMapVirtualKey(PyObject *self, PyObject *args)
             return NULL;
         rc = MapVirtualKeyExW(vk, typ, layout);
     }
-    return PyInt_FromLong(rc);
+    return PyLong_FromLong(rc);
 }
 
 // @pymethod dict|win32api|GlobalMemoryStatus|Returns systemwide memory usage
@@ -6130,8 +6130,8 @@ PyObject *PyGetPwrCapabilities(PyObject *self, PyObject *args)
         PyBool_FromLong(spc.FullWake), "VideoDimPresent", PyBool_FromLong(spc.VideoDimPresent), "ApmPresent",
         PyBool_FromLong(spc.ApmPresent), "UpsPresent", PyBool_FromLong(spc.UpsPresent), "ThermalControl",
         PyBool_FromLong(spc.ThermalControl), "ProcessorThrottle", PyBool_FromLong(spc.ProcessorThrottle),
-        "ProcessorMinThrottle", PyInt_FromLong(spc.ProcessorMinThrottle), "ProcessorMaxThrottle",
-        PyInt_FromLong(spc.ProcessorMaxThrottle), "FastSystemS4", PyBool_FromLong(spc.FastSystemS4), "spare2",
+        "ProcessorMinThrottle", PyLong_FromLong(spc.ProcessorMinThrottle), "ProcessorMaxThrottle",
+        PyLong_FromLong(spc.ProcessorMaxThrottle), "FastSystemS4", PyBool_FromLong(spc.FastSystemS4), "spare2",
         Py_None,                                                               // reserved
         "DiskSpinDown", PyBool_FromLong(spc.DiskSpinDown), "spare3", Py_None,  // reserved
         "SystemBatteriesPresent", PyBool_FromLong(spc.SystemBatteriesPresent), "BatteriesAreShortTerm",
@@ -6139,9 +6139,9 @@ PyObject *PyGetPwrCapabilities(PyObject *self, PyObject *args)
         Py_BuildValue("NNN", PyWinObject_FromBATTERY_REPORTING_SCALE(&spc.BatteryScale[0]),
                       PyWinObject_FromBATTERY_REPORTING_SCALE(&spc.BatteryScale[1]),
                       PyWinObject_FromBATTERY_REPORTING_SCALE(&spc.BatteryScale[2])),
-        "AcOnLineWake", PyInt_FromLong(spc.AcOnLineWake), "SoftLidWake", PyInt_FromLong(spc.SoftLidWake), "RtcWake",
-        PyInt_FromLong(spc.RtcWake), "MinDeviceWakeState", PyInt_FromLong(spc.MinDeviceWakeState),
-        "DefaultLowLatencyWake", PyInt_FromLong(spc.DefaultLowLatencyWake));
+        "AcOnLineWake", PyLong_FromLong(spc.AcOnLineWake), "SoftLidWake", PyLong_FromLong(spc.SoftLidWake), "RtcWake",
+        PyLong_FromLong(spc.RtcWake), "MinDeviceWakeState", PyLong_FromLong(spc.MinDeviceWakeState),
+        "DefaultLowLatencyWake", PyLong_FromLong(spc.DefaultLowLatencyWake));
 }
 
 /* List of functions exported by this module */
@@ -6523,9 +6523,9 @@ PYWIN_MODULE_INIT_FUNC(win32api)
                               "Wraps general API functions that are not subsumed in the more specific modules");
 
     PyDict_SetItemString(dict, "error", PyWinExc_ApiError);
-    PyDict_SetItemString(dict, "STD_INPUT_HANDLE", PyInt_FromLong(STD_INPUT_HANDLE));
-    PyDict_SetItemString(dict, "STD_OUTPUT_HANDLE", PyInt_FromLong(STD_OUTPUT_HANDLE));
-    PyDict_SetItemString(dict, "STD_ERROR_HANDLE", PyInt_FromLong(STD_ERROR_HANDLE));
+    PyDict_SetItemString(dict, "STD_INPUT_HANDLE", PyLong_FromLong(STD_INPUT_HANDLE));
+    PyDict_SetItemString(dict, "STD_OUTPUT_HANDLE", PyLong_FromLong(STD_OUTPUT_HANDLE));
+    PyDict_SetItemString(dict, "STD_ERROR_HANDLE", PyLong_FromLong(STD_ERROR_HANDLE));
 
     if (PyType_Ready(&PyDISPLAY_DEVICEType) == -1 ||
         PyDict_SetItemString(dict, "PyDISPLAY_DEVICEType", (PyObject *)&PyDISPLAY_DEVICEType) == -1)

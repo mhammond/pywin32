@@ -144,7 +144,7 @@ PyObject *PyIShellItemArray::GetCount(PyObject *self, PyObject *args)
 
     if (FAILED(hr))
         return PyCom_BuildPyException(hr, pISIA, IID_IShellItemArray);
-    return PyInt_FromLong(dwNumItems);
+    return PyLong_FromLong(dwNumItems);
 }
 
 // @pymethod <o PyIShellItem>|PyIShellItemArray|GetItemAt|Retrieves an item by index

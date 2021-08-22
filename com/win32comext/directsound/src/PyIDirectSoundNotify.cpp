@@ -35,10 +35,10 @@ static BOOL unpack(PyObject *tuple, DSBPOSITIONNOTIFY *&notify, int pos)
     PyObject *o0 = PyTuple_GET_ITEM(tuple, 0);
     PyObject *o1 = PyTuple_GET_ITEM(tuple, 1);
 
-    if (!o0 || !PyInt_Check(o0) || !o1 || !PyHANDLE_Check(o1))
+    if (!o0 || !PyLong_Check(o0) || !o1 || !PyHANDLE_Check(o1))
         return FALSE;
 
-    notify[pos].dwOffset = PyInt_AS_LONG(o0);
+    notify[pos].dwOffset = PyLong_AS_LONG(o0);
     if (!PyWinObject_AsHANDLE(o1, &notify[pos].hEventNotify))
         return FALSE;
 

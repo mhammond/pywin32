@@ -74,7 +74,7 @@ BOOL PyAXDebug_PySOURCE_TEXT_ATTR_Length(PyObject *obAttr, ULONG *pLength)
             ok = FALSE;
             break;
         }
-        if (PyInt_Check(ob)) {
+        if (PyLong_Check(ob)) {
             ++attrLen;
         }
         else if (PySequence_Check(ob) && PySequence_Length(ob) == 2) {
@@ -82,7 +82,7 @@ BOOL PyAXDebug_PySOURCE_TEXT_ATTR_Length(PyObject *obAttr, ULONG *pLength)
             if (obRepeat == NULL)
                 ok = FALSE;
             else {
-                attrLen += PyInt_AsLong(obRepeat);
+                attrLen += PyLong_AsLong(obRepeat);
                 Py_DECREF(obRepeat);
             }
         }
@@ -110,8 +110,8 @@ BOOL PyAXDebug_PyObject_AsSOURCE_TEXT_ATTR(PyObject *obAttr, SOURCE_TEXT_ATTR *p
         for (DWORD i = 0; ok && i < seqLen; i++) {
             PyObject *ob = PySequence_GetItem(obAttr, i);
             if (ob) {
-                if (PyInt_Check(ob)) {
-                    pstaTextAttr[attrLen] = (SOURCE_TEXT_ATTR)PyInt_AsLong(ob);
+                if (PyLong_Check(ob)) {
+                    pstaTextAttr[attrLen] = (SOURCE_TEXT_ATTR)PyLong_AsLong(ob);
                     ++attrLen;
                 }
                 else if (PySequence_Check(ob) && PySequence_Length(ob) == 2) {
@@ -120,8 +120,8 @@ BOOL PyAXDebug_PyObject_AsSOURCE_TEXT_ATTR(PyObject *obAttr, SOURCE_TEXT_ATTR *p
                     if (obAttr == NULL || obRepeat == NULL)
                         ok = FALSE;
                     else {
-                        SOURCE_TEXT_ATTR attr = (SOURCE_TEXT_ATTR)PyInt_AsLong(obAttr);
-                        DWORD len = (DWORD)PyInt_AsLong(obRepeat);
+                        SOURCE_TEXT_ATTR attr = (SOURCE_TEXT_ATTR)PyLong_AsLong(obAttr);
+                        DWORD len = (DWORD)PyLong_AsLong(obRepeat);
                         if (attrLen + len <= numAttr) {
                             while (len--) pstaTextAttr[attrLen++] = attr;
                         }
@@ -152,7 +152,7 @@ PyObject *PyAXDebug_PyObject_FromSOURCE_TEXT_ATTR(const SOURCE_TEXT_ATTR *pstaTe
     PyObject *obattr = PyTuple_New(numAttr);
     if (obattr)
         for (ULONG i = 0; i < numAttr; i++) {
-            PyTuple_SET_ITEM(obattr, i, PyInt_FromLong(pstaTextAttr[i]));
+            PyTuple_SET_ITEM(obattr, i, PyLong_FromLong(pstaTextAttr[i]));
         }
     return obattr;
 }

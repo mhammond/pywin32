@@ -53,7 +53,7 @@ BOOL PyWinObject_AsPROPSPECs(PyObject *ob, PROPSPEC **ppRet, ULONG *pcRet)
     ZeroMemory(*ppRet, numBytes);
     for (DWORD i = 0; i < *pcRet; i++) {
         PyObject *sub = PyTuple_GET_ITEM((PyObject *)tuple, i);
-        (*ppRet)[i].propid = PyInt_AsUnsignedLongMask(sub);
+        (*ppRet)[i].propid = PyLong_AsUnsignedLongMask(sub);
         if ((*ppRet)[i].propid != (ULONG)-1 || !PyErr_Occurred())
             (*ppRet)[i].ulKind = PRSPEC_PROPID;
         else {
@@ -151,13 +151,13 @@ PyObject *VectorToSeq(arraytype *A, ULONG count, PyObject *(*converter)(const ar
 }
 
 // Some helper functions for the Vector conversion template
-PyObject *PyWinObject_FromCHAR(CHAR c) { return PyInt_FromLong(c); }
+PyObject *PyWinObject_FromCHAR(CHAR c) { return PyLong_FromLong(c); }
 
-PyObject *PyWinObject_FromUCHAR(UCHAR uc) { return PyInt_FromLong(uc); }
+PyObject *PyWinObject_FromUCHAR(UCHAR uc) { return PyLong_FromLong(uc); }
 
-PyObject *PyWinObject_FromSHORT(SHORT s) { return PyInt_FromLong(s); }
+PyObject *PyWinObject_FromSHORT(SHORT s) { return PyLong_FromLong(s); }
 
-PyObject *PyWinObject_FromUSHORT(USHORT us) { return PyInt_FromLong(us); }
+PyObject *PyWinObject_FromUSHORT(USHORT us) { return PyLong_FromLong(us); }
 
 PyObject *PyWinObject_FromFLOAT(FLOAT f) { return PyFloat_FromDouble(f); }
 
@@ -187,27 +187,27 @@ PyObject *PyObject_FromPROPVARIANT(PROPVARIANT *pVar)
             Py_INCREF(Py_None);
             return Py_None;
         case VT_I1:
-            return PyInt_FromLong(pVar->cVal);
+            return PyLong_FromLong(pVar->cVal);
         case VT_I1 | VT_VECTOR:
             return VectorToSeq(pVar->cac.pElems, pVar->cac.cElems, PyWinObject_FromCHAR);
         case VT_UI1:
-            return PyInt_FromLong(pVar->bVal);
+            return PyLong_FromLong(pVar->bVal);
         case VT_UI1 | VT_VECTOR:
             return VectorToSeq(pVar->caub.pElems, pVar->caub.cElems, PyWinObject_FromUCHAR);
         case VT_I2:
-            return PyInt_FromLong(pVar->iVal);
+            return PyLong_FromLong(pVar->iVal);
         case VT_I2 | VT_VECTOR:
             return VectorToSeq(pVar->cai.pElems, pVar->cai.cElems, PyWinObject_FromSHORT);
         case VT_UI2:
-            return PyInt_FromLong(pVar->uiVal);
+            return PyLong_FromLong(pVar->uiVal);
         case VT_UI2 | VT_VECTOR:
             return VectorToSeq(pVar->caui.pElems, pVar->caui.cElems, PyWinObject_FromUSHORT);
         case VT_I4:
-            return PyInt_FromLong(pVar->lVal);
+            return PyLong_FromLong(pVar->lVal);
         case VT_I4 | VT_VECTOR:
-            return VectorToSeq(pVar->cal.pElems, pVar->cal.cElems, PyInt_FromLong);
+            return VectorToSeq(pVar->cal.pElems, pVar->cal.cElems, PyLong_FromLong);
         case VT_INT:
-            return PyInt_FromLong(pVar->intVal);
+            return PyLong_FromLong(pVar->intVal);
         case VT_UI4:
             return PyLong_FromUnsignedLong(pVar->ulVal);
         case VT_UI4 | VT_VECTOR:
@@ -247,9 +247,9 @@ PyObject *PyObject_FromPROPVARIANT(PROPVARIANT *pVar)
         case VT_BOOL | VT_VECTOR:
             return VectorToSeq(pVar->cabool.pElems, pVar->cabool.cElems, PyWinObject_FromVARIANT_BOOL);
         case VT_ERROR:
-            return PyInt_FromLong(pVar->scode);
+            return PyLong_FromLong(pVar->scode);
         case VT_ERROR | VT_VECTOR:
-            return VectorToSeq(pVar->cascode.pElems, pVar->cascode.cElems, PyInt_FromLong);
+            return VectorToSeq(pVar->cascode.pElems, pVar->cascode.cElems, PyLong_FromLong);
         case VT_FILETIME:
             return PyWinObject_FromFILETIME(pVar->filetime);
         case VT_FILETIME | VT_VECTOR:
@@ -383,10 +383,10 @@ BOOL PyObject_AsPROPVARIANT(PyObject *ob, PROPVARIANT *pVar)
             }
         }
 #if (PY_VERSION_HEX < 0x03000000)
-        // Not needed in Py3k, as PyInt_Check is defined to PyLong_Check
+        // Not needed in Py3k, as PyLong_Check is defined to PyLong_Check
     }
-    else if (PyInt_Check(ob)) {
-        pVar->lVal = PyInt_AsLong(ob);
+    else if (PyLong_Check(ob)) {
+        pVar->lVal = PyLong_AsLong(ob);
         pVar->vt = VT_I4;
 #endif
     }

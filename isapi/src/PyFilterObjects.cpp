@@ -70,15 +70,15 @@ PyObject *PyFILTER_VERSION::getattro(PyObject *self, PyObject *obname)
     TCHAR *name = PYISAPI_ATTR_CONVERT(obname);
     // @prop int|ServerFilterVersion|(read-only)
     if (_tcscmp(name, _T("ServerFilterVersion")) == 0) {
-        return PyInt_FromLong(me->m_pfv->dwServerFilterVersion);
+        return PyLong_FromLong(me->m_pfv->dwServerFilterVersion);
     }
     // @prop int|FilterVersion|
     if (_tcscmp(name, _T("FilterVersion")) == 0) {
-        return PyInt_FromLong(me->m_pfv->dwFilterVersion);
+        return PyLong_FromLong(me->m_pfv->dwFilterVersion);
     }
     // @prop int|Flags|
     if (_tcscmp(name, _T("Flags")) == 0) {
-        return PyInt_FromLong(me->m_pfv->dwFlags);
+        return PyLong_FromLong(me->m_pfv->dwFlags);
     }
     // @prop string|FilterDesc|
     if (_tcscmp(name, _T("FilterDesc")) == 0) {
@@ -100,18 +100,18 @@ int PyFILTER_VERSION::setattro(PyObject *self, PyObject *obname, PyObject *v)
     }
     TCHAR *name = PYISAPI_ATTR_CONVERT(obname);
     if (_tcscmp(name, _T("FilterVersion")) == 0) {
-        if (!PyInt_Check(v)) {
+        if (!PyLong_Check(v)) {
             PyErr_Format(PyExc_ValueError, "FilterVersion must be an int (got %s)", v->ob_type->tp_name);
             return -1;
         }
-        me->m_pfv->dwFilterVersion = PyInt_AsLong(v);
+        me->m_pfv->dwFilterVersion = PyLong_AsLong(v);
     }
     else if (_tcscmp(name, _T("Flags")) == 0) {
-        if (!PyInt_Check(v)) {
+        if (!PyLong_Check(v)) {
             PyErr_Format(PyExc_ValueError, "Flags must be an int (got %s)", v->ob_type->tp_name);
             return -1;
         }
-        me->m_pfv->dwFlags = PyInt_AsLong(v);
+        me->m_pfv->dwFlags = PyLong_AsLong(v);
     }
     else if (_tcscmp(name, _T("FilterDesc")) == 0) {
         DWORD size;
@@ -1018,10 +1018,10 @@ PyObject *PyFILTER_LOG::getattro(PyObject *self, PyObject *obname)
         return PyBytes_FromString(pLog->pszParameters);
     // @prop int|HttpStatus|
     if (_tcscmp(name, _T("HttpStatus")) == 0)
-        return PyInt_FromLong(pLog->dwHttpStatus);
+        return PyLong_FromLong(pLog->dwHttpStatus);
     // @prop int|HttpStatus|
     if (_tcscmp(name, _T("Win32Status")) == 0)
-        return PyInt_FromLong(pLog->dwWin32Status);
+        return PyLong_FromLong(pLog->dwWin32Status);
     return PyObject_GenericGetAttr(self, obname);
 }
 
@@ -1047,11 +1047,11 @@ PyObject *PyFILTER_LOG::getattro(PyObject *self, PyObject *obname)
 
 #define CHECK_SET_FILTER_LOG_LONG(struct_elem)                                 \
     if (_tcscmp(name, _T(#struct_elem)) == 0) {                                \
-        if (!PyInt_Check(v)) {                                                 \
+        if (!PyLong_Check(v)) {                                                 \
             PyErr_Format(PyExc_TypeError, #struct_elem " must be an integer"); \
             return -1;                                                         \
         }                                                                      \
-        pLog->dw##struct_elem = PyInt_AsLong(v);                               \
+        pLog->dw##struct_elem = PyLong_AsLong(v);                               \
         return 0;                                                              \
     }
 

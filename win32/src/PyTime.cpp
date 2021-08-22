@@ -256,7 +256,7 @@ static BOOL gettmarg(PyObject *ob, struct tm *p, int *pmsec)
 static WORD SequenceIndexAsWORD(PyObject *seq, int index)
 {
     PyObject *t = PySequence_GetItem(seq, index);
-    int ret = t ? PyInt_AsLong(t) : -1;
+    int ret = t ? PyLong_AsLong(t) : -1;
     Py_XDECREF(t);
     return (WORD)ret;
 }

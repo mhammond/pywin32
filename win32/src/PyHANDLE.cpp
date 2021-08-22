@@ -260,7 +260,7 @@ PyObject *PyHANDLE::richcompare(PyObject *other, int op)
     if (PyHANDLE_Check(other)) {
         hother = ((PyHANDLE *)other)->m_handle;
     }
-    else if (PyInt_Check(other) || PyLong_Check(other)) {
+    else if (PyLong_Check(other) || PyLong_Check(other)) {
         if (!PyWinLong_AsVoidPtr(other, &hother))
             return NULL;
     }
