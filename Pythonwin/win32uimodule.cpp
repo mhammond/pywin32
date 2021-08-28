@@ -121,8 +121,8 @@ BOOL HookWindowsMessages()
 // ui_type object
 //
 //////////////////////////////////////////////////////////////////////
-ui_type::ui_type(const char *name, ui_type *pBase, int typeSize,
-                 int pyobjOffset,  // number of bytes difference between a (PyObject *) and a (ui_base_class *)
+ui_type::ui_type(const char *name, ui_type *pBase, Py_ssize_t typeSize,
+                 ptrdiff_t pyobjOffset,  // number of bytes difference between a (PyObject *) and a (ui_base_class *)
                  struct PyMethodDef *methodList, ui_base_class *(*thector)())
 {
     // originally, this copied the typeobject of the parent, but as it is impossible
@@ -192,8 +192,8 @@ ui_type::~ui_type() {}
 // ui_type_CObject
 ui_type_CObject::CRuntimeClassTypeMap *ui_type_CObject::typemap = NULL;
 
-ui_type_CObject::ui_type_CObject(const char *name, ui_type *pBaseType, CRuntimeClass *pRT, int typeSize,
-                                 int pyobjOffset, struct PyMethodDef *methodList, ui_base_class *(*thector)())
+ui_type_CObject::ui_type_CObject(const char *name, ui_type *pBaseType, CRuntimeClass *pRT, Py_ssize_t typeSize,
+                                 ptrdiff_t pyobjOffset, struct PyMethodDef *methodList, ui_base_class *(*thector)())
     : ui_type(name, pBaseType, typeSize, pyobjOffset, methodList, thector)
 {
     pCObjectClass = pRT;

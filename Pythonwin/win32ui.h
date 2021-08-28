@@ -158,7 +158,7 @@ class ui_base_class;
 // helper typeobject class.
 class PYW_EXPORT ui_type : public PyTypeObject {
    public:
-    ui_type(const char *name, ui_type *pBaseType, int typeSize, int pyobjOffset, struct PyMethodDef *methodList,
+    ui_type(const char *name, ui_type *pBaseType, Py_ssize_t typeSize, ptrdiff_t pyobjOffset, struct PyMethodDef *methodList,
             ui_base_class *(*thector)());
     ~ui_type();
 
@@ -174,7 +174,7 @@ class PYW_EXPORT ui_type : public PyTypeObject {
 // helper typeCObject class.
 class PYW_EXPORT ui_type_CObject : public ui_type {
    public:
-    ui_type_CObject(const char *name, ui_type *pBaseType, CRuntimeClass *pRT, int typeSize, int pyobjOffset,
+    ui_type_CObject(const char *name, ui_type *pBaseType, CRuntimeClass *pRT, Py_ssize_t typeSize, ptrdiff_t pyobjOffset,
                     struct PyMethodDef *methodList, ui_base_class *(*thector)());
     ~ui_type_CObject();
 

@@ -32,7 +32,7 @@ static PyTypeObject PyInterfaceType_Type = {
     "Define the behavior of a PythonCOM Interface type.", /* tp_doc */
 };
 
-PyComTypeObject::PyComTypeObject(const char *name, PyComTypeObject *pBase, int typeSize, struct PyMethodDef *methodList,
+PyComTypeObject::PyComTypeObject(const char *name, PyComTypeObject *pBase, Py_ssize_t typeSize, struct PyMethodDef *methodList,
                                  PyIUnknown *(*thector)(IUnknown *))
 {
     // originally, this copied the typeobject of the parent, but as it is impossible
@@ -96,7 +96,7 @@ PyComTypeObject::~PyComTypeObject() {}
 }
 
 // Our type for IEnum* interfaces
-PyComEnumTypeObject::PyComEnumTypeObject(const char *name, PyComTypeObject *pBase, int typeSize,
+PyComEnumTypeObject::PyComEnumTypeObject(const char *name, PyComTypeObject *pBase, Py_ssize_t typeSize,
                                          struct PyMethodDef *methodList, PyIUnknown *(*thector)(IUnknown *))
     : PyComTypeObject(name, pBase, typeSize, methodList, thector)
 {
@@ -145,7 +145,7 @@ PyObject *PyComEnumTypeObject::iternext(PyObject *self)
 }
 
 // Our type for IEnum provider interfaces
-PyComEnumProviderTypeObject::PyComEnumProviderTypeObject(const char *name, PyComTypeObject *pBase, int typeSize,
+PyComEnumProviderTypeObject::PyComEnumProviderTypeObject(const char *name, PyComTypeObject *pBase, Py_ssize_t typeSize,
                                                          struct PyMethodDef *methodList,
                                                          PyIUnknown *(*thector)(IUnknown *),
                                                          const char *penum_method_name)

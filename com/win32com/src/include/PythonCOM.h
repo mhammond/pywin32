@@ -150,7 +150,7 @@ class PyIUnknown;
 
 class PYCOM_EXPORT PyComTypeObject : public PyTypeObject {
    public:
-    PyComTypeObject(const char *name, PyComTypeObject *pBaseType, int typeSize, struct PyMethodDef *methodList,
+    PyComTypeObject(const char *name, PyComTypeObject *pBaseType, Py_ssize_t typeSize, struct PyMethodDef *methodList,
                     PyIUnknown *(*thector)(IUnknown *));
     ~PyComTypeObject();
 
@@ -166,7 +166,7 @@ class PYCOM_EXPORT PyComTypeObject : public PyTypeObject {
 // method that returns a PyIEnum object
 class PYCOM_EXPORT PyComEnumProviderTypeObject : public PyComTypeObject {
    public:
-    PyComEnumProviderTypeObject(const char *name, PyComTypeObject *pBaseType, int typeSize,
+    PyComEnumProviderTypeObject(const char *name, PyComTypeObject *pBaseType, Py_ssize_t typeSize,
                                 struct PyMethodDef *methodList, PyIUnknown *(*thector)(IUnknown *),
                                 const char *enum_method_name);
     static PyObject *iter(PyObject *self);
@@ -178,7 +178,7 @@ class PYCOM_EXPORT PyComEnumTypeObject : public PyComTypeObject {
    public:
     static PyObject *iter(PyObject *self);
     static PyObject *iternext(PyObject *self);
-    PyComEnumTypeObject(const char *name, PyComTypeObject *pBaseType, int typeSize, struct PyMethodDef *methodList,
+    PyComEnumTypeObject(const char *name, PyComTypeObject *pBaseType, Py_ssize_t typeSize, struct PyMethodDef *methodList,
                         PyIUnknown *(*thector)(IUnknown *));
 };
 
