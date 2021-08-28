@@ -730,6 +730,10 @@ PyObject *PyACL::AddAuditAccessAce(PyObject *self, PyObject *args)
         // max ACL size is USHRT_MAX
         if (required_size > USHRT_MAX)
             return PyErr_Format(PyExc_OverflowError, "%s: adding ACE would put ACL over size limit", __FUNCTION__ );
+        psacl_padded = (ACL *)malloc(required_size);
+        if (psacl_padded == NULL)
+            return PyErr_Format(PyExc_MemoryError, "AddAuditAccessAce: unable to allocated %d bytes", required_size);
+
         ZeroMemory(psacl_padded, required_size);
         memcpy(psacl_padded, psacl, psacl->AclSize);
         psacl_padded->AclSize = (unsigned short)required_size;
