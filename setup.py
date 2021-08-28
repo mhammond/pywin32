@@ -1375,7 +1375,6 @@ for info in (
             win32/src/PerfMon/PyPerfMon.cpp
             """),
         ("timer", "user32", None, "win32/src/timermodule.cpp"),
-        ("win2kras", "rasapi32", 0x0500, "win32/src/win2krasmodule.cpp"),
         ("win32cred", "AdvAPI32 credui", 0x0501, 'win32/src/win32credmodule.cpp'),
         ("win32crypt", "Crypt32 Advapi32", 0x0500, """
             win32/src/win32crypt/win32cryptmodule.cpp
