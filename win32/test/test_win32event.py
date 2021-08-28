@@ -4,16 +4,8 @@ import pywintypes
 import time
 import os
 import sys
-from pywin32_testutil import int2long
 
 class TestWaitableTimer(unittest.TestCase):
-    def testWaitableFireLong(self):
-        h = win32event.CreateWaitableTimer(None, 0, None)
-        dt = int2long(-160) # 160 ns.
-        win32event.SetWaitableTimer(h, dt, 0, None, None, 0)
-        rc = win32event.WaitForSingleObject(h, 1000)
-        self.failUnlessEqual(rc, win32event.WAIT_OBJECT_0)
-
     def testWaitableFire(self):
         h = win32event.CreateWaitableTimer(None, 0, None)
         dt = -160 # 160 ns.

@@ -11,32 +11,24 @@ site_packages = [site.getusersitepackages(), ] + site.getsitepackages()
 
 # Run a test using subprocess and wait for the result.
 # If we get an returncode != 0, we know that there was an error.
-def run_test(script, cmdline_rest=""):
+def run_test(script, cmdline_extras):
     dirname, scriptname = os.path.split(script)
     # some tests prefer to be run from their directory.
-    cmd = [sys.executable, "-u", scriptname] + cmdline_rest.split()
-    print(script)
-    popen = subprocess.Popen(cmd, shell=True, cwd=dirname,
-                             stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-    data = popen.communicate()[0]
-    if sys.version_info > (3,):
-        sys.stdout.write(data.decode('latin-1'))
-    else:
-        sys.stdout.write(data)
-    sys.stdout.flush()
+    cmd = [sys.executable, "-u", scriptname] + extras
+    popen = subprocess.Popen(cmd, shell=True, cwd=dirname)
     if popen.returncode:
         print("****** %s failed: %s" % (script, popen.returncode))
         sys.exit(popen.returncode)
 
 
-def find_and_run(possible_locations, script, cmdline_rest=""):
+def find_and_run(possible_locations, extras):
     for maybe in possible_locations:
-        if os.path.isfile(os.path.join(maybe, script)):
-            run_test(os.path.abspath(os.path.join(maybe, script)), cmdline_rest)
+        if os.path.isfile(maybe):
+            run_test(maybe, extras)
             break
     else:
-        raise RuntimeError("Failed to locate the test script '%s' in one of %s"
-                           % (script, possible_locations))
+        raise RuntimeError("Failed to locate a test script in one of %s"
+                           % possible_locations)
 
 if __name__ == '__main__':
     import argparse
@@ -47,34 +39,39 @@ if __name__ == '__main__':
     parser.add_argument("-no-user-interaction",
                         default=False,
                         action='store_true',
-                        help="Run all tests without user interaction")
+                        help="(This is now the default - use `-user-interaction` to include them)")
+
+    parser.add_argument("-user-interaction",
+                        action='store_true',
+                        help="Include tests which require user interaction")
 
     parser.add_argument("-skip-adodbapi",
                         default=False,
                         action='store_true',
                         help="Skip the adodbapi tests; useful for CI where there's no provider")
 
-    args = parser.parse_args()
+    args, remains = parser.parse_known_args()
 
     # win32
-    maybes = [os.path.join(directory, "win32", "test") for directory in code_directories]
-    command = ('testall.py', )
-    if args.no_user_interaction:
-        command += ("-no-user-interaction", )
-    find_and_run(maybes, *command)
+    maybes = [os.path.join(directory, "win32", "test", "testall.py") for directory in code_directories]
+    extras = []
+    if args.user_interaction:
+        extras += "-user-interaction"
+    extras.extend(remains)
+
+    find_and_run(maybes, extras)
 
     # win32com
-    maybes = [os.path.join(directory, "win32com", "test") for directory in [os.path.join(this_dir, "com"), ] + site_packages]
-    find_and_run(maybes, 'testall.py', "2")
+    maybes = [os.path.join(directory, "win32com", "test", "testall.py") for directory in [os.path.join(this_dir, "com"), ] + site_packages]
+    extras = remains + ["2"]
+    find_and_run(maybes, extras)
 
     # adodbapi
     if not args.skip_adodbapi:
-        maybes = [os.path.join(directory, "adodbapi", "test") for directory in code_directories]
-        find_and_run(maybes, 'adodbapitest.py')
+        maybes = [os.path.join(directory, "adodbapi", "test", "adodbapitest.py") for directory in code_directories]
+        find_and_run(maybes, remains)
         # This script has a hard-coded sql server name in it, (and markh typically
         # doesn't have a different server to test on) but there is now supposed to be a server out there on the Internet
         # just to run these tests, so try it...
-        find_and_run(maybes, 'test_adodbapi_dbapi20.py')
-
-    if sys.version_info > (3,):
-        print("** The tests have some issues on py3k - not all failures are a problem...")
+        maybes = [os.path.join(directory, "adodbapi", "test", "test_adodbapi_dbapi20.py") for directory in code_directories]
+        find_and_run(maybes, remains)

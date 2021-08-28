@@ -8,10 +8,6 @@ import winerror
 ## General purpose utilities for the test suite.
 ##
 
-def int2long(val):
-    """return a long on py2k"""
-    return val + 0x100000000 - 0x100000000
-
 # The test suite has lots of string constants containing binary data, but
 # the strings are used in various "bytes" contexts.
 def str2bytes(sval):
@@ -35,10 +31,6 @@ def ob2memory(ob):
         return buffer(ob)
     # py3k.
     return memoryview(ob)
-
-
-# Note: no str2unicode: we use u'' literals or unicode() function, and 2to3
-# 
 
 ##
 ## unittest related stuff

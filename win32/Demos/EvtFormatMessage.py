@@ -60,8 +60,15 @@ def main():
                 except Exception:
                     pass
                 else:
-                    print('    Message: {}'.format(message))
-
+                    try:
+                        print('    Message: {}'.format(message))
+                    except UnicodeEncodeError:
+                        # Obscure error when run under subprocess.Popen(), presumably due to
+                        # not knowing the correct encoding for the console.
+                        # > UnicodeEncodeError: \'charmap\' codec can\'t encode character \'\\u200e\' in position 57: character maps to <undefined>\r\n'
+                        # Can't reproduce when running manually, so it seems more a subprocess.Popen()
+                        # than ours:
+                        print(' Failed to decode:', repr(message))
 
 if __name__=='__main__':
     main()

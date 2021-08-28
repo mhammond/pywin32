@@ -15,16 +15,19 @@ ui_demos = """GetSaveFileName print_desktop win32cred_demo win32gui_demo
 # Other demos known as 'bad' (or at least highly unlikely to work)
 # cerapi: no CE module is built (CE via pywin32 appears dead)
 # desktopmanager: hangs (well, hangs for 60secs or so...)
-# EvtSubscribe_*: must be run together
+# EvtSubscribe_*: must be run together:
+# SystemParametersInfo: a couple of the params cause markh to hang, and there's
+# no great reason to adjust (twice!) all those system settings!
 bad_demos = """cerapi desktopmanager win32comport_demo
                EvtSubscribe_pull EvtSubscribe_push
+               SystemParametersInfo
             """.split()
 
 argvs = {
     "rastest": ("-l",),
 }
 
-no_user_interaction = False
+no_user_interaction = True
 
 # re to pull apart an exception line into the exception type and the args.
 re_exception = re.compile("([a-zA-Z0-9_.]*): (.*)$")
@@ -99,7 +102,7 @@ class TestRunner:
 def get_demo_tests():
     import win32api
     ret = []
-    demo_dir = os.path.abspath(os.path.join(os.path.dirname(win32api.__file__), "Demos"))
+    demo_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "Demos"))
     assert os.path.isdir(demo_dir), demo_dir
     for name in os.listdir(demo_dir):
         base, ext = os.path.splitext(name)
@@ -126,6 +129,8 @@ def import_all():
     is_debug = os.path.basename(win32api.__file__).endswith("_d")
     for name in os.listdir(dir):
         base, ext = os.path.splitext(name)
+        # handle `modname.cp310-win_amd64.pyd` etc
+        base = base.split(".")[0]
         if (ext==".pyd") and \
            name != "_winxptheme.pyd" and \
            (is_debug and base.endswith("_d") or \
@@ -178,11 +183,18 @@ if __name__ == '__main__':
     parser.add_argument("-no-user-interaction",
                         default=no_user_interaction,
                         action='store_true',
-                        help="Run all tests without user interaction")
+                        help="(This is now the default - use `-user-interaction` to include them)")
+
+    parser.add_argument("-user-interaction",
+                        action='store_true',
+                        help="Include tests which require user interaction")
 
     parsed_args, remains = parser.parse_known_args()
 
-    no_user_interaction = parsed_args.no_user_interaction
+    if parsed_args.no_user_interaction:
+        print("Note: -no-user-interaction is now the default, run with `-user-interaction` to include them.")
+
+    no_user_interaction = not parsed_args.user_interaction
 
     sys.argv = [sys.argv[0]] + remains
 

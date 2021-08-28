@@ -3,6 +3,7 @@ from win32inetcon import *
 import winerror
 from pywin32_testutil import str2bytes # py3k-friendly helper
 from pywin32_testutil import TestSkipped
+from pywin32_testutil import testmain
 
 import unittest
 
@@ -11,14 +12,16 @@ class CookieTests(unittest.TestCase):
         data = "TestData=Test"
         InternetSetCookie("http://www.python.org", None, data)
         got = InternetGetCookie("http://www.python.org", None)
-        self.assertEqual(got, data)
+        # handle that there might already be cookies for the domain.
+        bits = map(lambda x: x.strip(), got.split(";"))
+        self.assertTrue(data in bits)
 
     def testCookiesEmpty(self):
         try:
             InternetGetCookie("http://site-with-no-cookie.python.org", None)
             self.fail("expected win32 exception")
         except error as exc:
-            self.failUnlessEqual(exc.winerror, winerror.ERROR_NO_MORE_ITEMS)
+            self.assertEqual(exc.winerror, winerror.ERROR_NO_MORE_ITEMS)
 
 class UrlTests(unittest.TestCase):
     def testSimpleCanonicalize(self):
@@ -72,4 +75,4 @@ class TestNetwork(unittest.TestCase):
             raise TestSkipped(e)
 
 if __name__=='__main__':
-    unittest.main()
+    testmain()
