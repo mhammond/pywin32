@@ -517,6 +517,7 @@ PyLong_AsVoidPtr is unsuitable for use in many places due to the following issue
     This causes it to fail for PyHANDLE's.
     However, it doesn't even fail consistently since on 64-bit it uses
     PyLong_AsLongLong which does check tp_as_number.
+    (except starting in 3.10, it no longer does!)
 
 2. When it fails to convert an object (even one for which it should succeed!)
     it uses PyErr_BadInternalCall which returns a vague and misleading error.
@@ -539,7 +540,7 @@ Accordingly, here is our own version.
 BOOL PyWinLong_AsVoidPtr(PyObject *ob, void **pptr)
 {
     assert(!PyErr_Occurred());  // lingering exception?
-                                // PyInt_AsLong (and PyLong_AsLongLong on x64) handle objects
+                                // PyLong_AsLong (and PyLong_AsLongLong on x64) handle objects
                                 // with tp_number slots, and longs that fit in 32bits - but *not*
                                 // longs that fit in 32bits if they are treated as unsigned - eg,
                                 // eg, the result of:
@@ -550,18 +551,26 @@ BOOL PyWinLong_AsVoidPtr(PyObject *ob, void **pptr)
 #define SIGNED_CONVERTER PyLong_AsLongLong
 #define UNSIGNED_CONVERTER PyLong_AsUnsignedLongLong
 #else
-#define SIGNED_CONVERTER PyInt_AsLong
+#define SIGNED_CONVERTER PyLong_AsLong
 #define UNSIGNED_CONVERTER PyLong_AsUnsignedLong
 #endif
-    *pptr = (void *)SIGNED_CONVERTER(ob);
+    // Since Python 3.10, calling __int__ is no longer done, so we convert to an int explicitly.
+    PyObject *longob = PyNumber_Long(ob);
+    if (!longob && PyErr_Occurred()) {
+        PyErr_Format(PyExc_TypeError, "Unable to convert %s to pointer-sized value", ob->ob_type->tp_name);
+        return FALSE;
+    }
+    *pptr = (void *)SIGNED_CONVERTER(longob);
     if (*pptr == (void *)-1 && PyErr_Occurred()) {
         PyErr_Clear();
-        *pptr = (void *)UNSIGNED_CONVERTER(ob);
+        *pptr = (void *)UNSIGNED_CONVERTER(longob);
         if (*pptr == (void *)-1 && PyErr_Occurred()) {
+            Py_DECREF(longob);
             PyErr_Format(PyExc_TypeError, "Unable to convert %s to pointer-sized value", ob->ob_type->tp_name);
             return FALSE;
         }
     }
+    Py_DECREF(longob);
     return TRUE;
 }
 

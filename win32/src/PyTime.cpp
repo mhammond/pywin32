@@ -285,15 +285,17 @@ PyObject *PyWin_NewTime(PyObject *timeOb)
                                  // now we should fall into the sequence check!
         }
         if (PyNumber_Check(timeOb)) {
-            // XXX - should possibly check for long_long, as sizeof(time_t) > sizeof(long)
-            // on x64
-            long t = PyInt_AsLong(timeOb);
-            if (t == -1) {
-                if (!PyErr_Occurred())
-                    PyErr_BadArgument();
+            PyObject *longob = PyNumber_Long(timeOb);
+            if (longob) {
+                long t = PyLong_AsLong(longob);
+                if (t == -1) {
+                    if (!PyErr_Occurred())
+                        PyErr_BadArgument();
+                }
+                else
+                    result = PyWinTimeObject_Fromtime_t(t);
+                Py_DECREF(longob);
             }
-            else
-                result = PyWinTimeObject_Fromtime_t((time_t)t);
         }
         else if (PySequence_Check(timeOb)) {
             assert(!PyErr_Occurred());  // should be no stale errors!
