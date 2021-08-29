@@ -177,14 +177,36 @@ def SetPyKeyVal(key_name, value_name, value):
         my_key = winreg.CreateKey(root_key, key_name)
         try:
             winreg.SetValueEx(my_key, value_name, 0, winreg.REG_SZ, value)
+            if verbose:
+                print("-> %s\\%s[%s]=%r" % (root_key_name, key_name, value_name, value))
         finally:
             my_key.Close()
     finally:
         root_key.Close()
-    if verbose:
-        print("-> %s\\%s[%s]=%r" % (root_key_name, key_name, value_name, value))
 
-def RegisterCOMObjects(register = 1):
+def UnsetPyKeyVal(key_name, value_name, delete_key=False):
+    root_hkey = get_root_hkey()
+    root_key = winreg.OpenKey(root_hkey, root_key_name)
+    try:
+        my_key = winreg.OpenKey(root_key, key_name, 0, winreg.KEY_SET_VALUE)
+        try:
+            winreg.DeleteValue(my_key, value_name)
+            if verbose:
+                print("-> DELETE %s\\%s[%s]" % (root_key_name, key_name, value_name))
+        finally:
+            my_key.Close()
+        if delete_key:
+            winreg.DeleteKey(root_key, key_name)
+            if verbose:
+                print("-> DELETE %s\\%s" % (root_key_name, key_name))
+    except OSError as why:
+        winerror = getattr(why, 'winerror', why.errno)
+        if winerror != 2: # file not found
+            raise
+    finally:
+        root_key.Close()
+
+def RegisterCOMObjects(register=True):
     import win32com.server.register
     if register:
         func = win32com.server.register.RegisterClasses
@@ -201,7 +223,24 @@ def RegisterCOMObjects(register = 1):
         klass = getattr(mod, klass_name)
         func(klass, **flags)
 
-def RegisterPythonwin(register=True):
+def RegisterHelpFile(register=True, lib_dir=None):
+    if lib_dir is None:
+        lib_dir = distutils.sysconfig.get_python_lib(plat_specific=1)
+    if register:
+        # Register the .chm help file.
+        chm_file = os.path.join(lib_dir, "PyWin32.chm")
+        if os.path.isfile(chm_file):
+            # This isn't recursive, so if 'Help' doesn't exist, we croak
+            SetPyKeyVal("Help", None, None)
+            SetPyKeyVal("Help\\Pythonwin Reference", None, chm_file)
+        else:
+            print("NOTE: PyWin32.chm can not be located, so has not " \
+                "been registered")
+    else:
+        UnsetPyKeyVal("Help\\Pythonwin Reference", None, delete_key=True)
+
+
+def RegisterPythonwin(register=True, lib_dir=None):
     """ Add (or remove) Pythonwin to context menu for python scripts.
         ??? Should probably also add Edit command for pys files also.
         Also need to remove these keys on uninstall, but there's no function
@@ -209,7 +248,8 @@ def RegisterPythonwin(register=True):
     """
     import os
 
-    lib_dir = distutils.sysconfig.get_python_lib(plat_specific=1)
+    if lib_dir is None:
+        lib_dir = distutils.sysconfig.get_python_lib(plat_specific=1)
     classes_root=get_root_hkey()
     ## Installer executable doesn't seem to pass anything to postinstall script indicating if it's a debug build,
     pythonwin_exe = os.path.join(lib_dir, "Pythonwin", "Pythonwin.exe")
@@ -234,6 +274,10 @@ def RegisterPythonwin(register=True):
         else:
             for key, sub_key, val in keys_vals:
                 try:
+                    if sub_key:
+                        hkey = winreg.OpenKey(classes_root, key)
+                        winreg.DeleteKey(hkey, sub_key)
+                        hkey.Close()
                     winreg.DeleteKey(classes_root, key)
                 except OSError as why:
                     winerror = getattr(why, 'winerror', why.errno)
@@ -349,11 +393,16 @@ def install(lib_dir):
                 # Register the files with the uninstaller
                 file_created(dst)
                 worked = 1
-                # If this isn't sys.prefix (ie, System32), then nuke
-                # any versions that may exist in sys.prefix - having
+                # Nuke any other versions that may exist - having
                 # duplicates causes major headaches.
+                bad_dest_dirs = [
+                    os.path.join(sys.prefix, "Library\\bin"),
+                    os.path.join(sys.prefix, "Lib\\site-packages\\win32"),
+                ]
                 if dest_dir != sys.prefix:
-                    bad_fname = os.path.join(sys.prefix, base)
+                    bad_dest_dirs.append(sys.prefix)
+                for bad_dest_dir in bad_dest_dirs:
+                    bad_fname = os.path.join(bad_dest_dir, base)
                     if os.path.exists(bad_fname):
                         # let exceptions go here - delete must succeed
                         os.unlink(bad_fname)
@@ -399,22 +448,21 @@ def install(lib_dir):
     # python itself.
     winreg.CreateKey(get_root_hkey(), root_key_name)
 
-    # Register the .chm help file.
-    chm_file = os.path.join(lib_dir, "PyWin32.chm")
-    if os.path.isfile(chm_file):
-        # This isn't recursive, so if 'Help' doesn't exist, we croak
-        SetPyKeyVal("Help", None, None)
-        SetPyKeyVal("Help\\Pythonwin Reference", None, chm_file)
+    try:
+        RegisterHelpFile(True, lib_dir)
+    except:
+        print("Failed to register help file")
+        traceback.print_exc()
     else:
-        print("NOTE: PyWin32.chm can not be located, so has not " \
-              "been registered")
+        if verbose:
+            print("Registered help file")
 
     # misc other fixups.
     fixup_dbi()
 
     # Register Pythonwin in context menu
     try:
-        RegisterPythonwin()
+        RegisterPythonwin(True, lib_dir)
     except:
         print('Failed to register pythonwin as editor')
         traceback.print_exc()
@@ -478,7 +526,15 @@ def uninstall(lib_dir):
         print("Failed to unregister COM objects: %s" % (why,))
 
     try:
-        RegisterPythonwin(False)
+        RegisterHelpFile(False, lib_dir)
+    except Exception as why:
+        print("Failed to unregister help file: %s" % (why,))
+    else:
+        if verbose:
+            print("Unregistered help file")
+
+    try:
+        RegisterPythonwin(False, lib_dir)
     except Exception as why:
         print("Failed to unregister Pythonwin: %s" % (why,))
     else:
