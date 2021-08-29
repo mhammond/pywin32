@@ -12,18 +12,7 @@ This is the readme for the Python for Win32 (pywin32) extensions, which provides
 
 See [CHANGES.txt](https://github.com/mhammond/pywin32/blob/master/CHANGES.txt) for recent notable changes.
 
-Build 228 is the last build supporting Python 2, and as part of this transition,
-all code in the repository is now using Python 3 syntax.
-To highlight and celebrate this change, build 228 is the last numbered 2XX - the
-following build numbers start at 300.
-
-In other words, there is no build 229 - the build numbers jump from 228 to 300.
-
-As of build 222, pywin32 has a new home at [github](https://github.com/mhammond/pywin32).
-You can find build 221 and later on github and older versions can be found on
-the old project home at [sourceforge](https://sourceforge.net/projects/pywin32/)
-
-A special shout-out to @xoviat who provided enormous help with the github move!
+Only Python 3 is supported. If you want Python 2 support, you want build `228`.
 
 ## Support
 
@@ -45,11 +34,16 @@ By far the easiest way to use pywin32 is to grab binaries from the [most recent 
 You can install pywin32 via pip:
 > pip install pywin32
 
-Note that if you want to use pywin32 for "system wide" features, such as
-registering COM objects or implementing Windows Services, then you must run
-the following command from an elevated command prompt:
+If you encounter any problems when upgrading (eg, "module not found" errors or similar), you
+should execute:
 
 > python Scripts/pywin32_postinstall.py -install
+
+This will make some small attempts to cleanup older conflicting installs.
+
+Note that if you want to use pywin32 for "system wide" features, such as
+registering COM objects or implementing Windows Services, then you must run
+that command from an elevated (ie, "Run as Administrator) command prompt.
 
 ## Building from source
 
