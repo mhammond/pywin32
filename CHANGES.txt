@@ -8,6 +8,9 @@ Note that build 228 was the last version supporting Python 2.
 
 Since build 301:
 ----------------
+* Support for Python 10, dropped support for Python 3.5 (3.5 security support
+  ended 13 Sep 2020)
+
 * Merged win2kras into win32ras. In the unlikely case that anyone is still
   using win2kras, there is a win2kras.py that imports all of win32ras. If you
   import win2kras and it fails with 'you must import win32ras first', then it

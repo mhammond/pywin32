@@ -51,6 +51,8 @@ jobs:
       run: |
         python setup.py bdist_wheel --skip-build
 
+    # 3.10 dropped support for bdist_wininst. If we had both 3.9 and 3.10 available in a single
+    # environment we could also build the .exe for 3.10+ - but for now, we can't.
     - if: matrix.python-version != '3.10-dev'
       name: Build installers
       run: |
