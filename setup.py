@@ -9,7 +9,7 @@ or
   python setup.py -q install
 to build and install into your current Python installation.
 
-Note that Python 3.5 is the earliest Python supported.
+Note that Python 3.6 is the earliest Python supported.
 
 These extensions require a number of libraries to build, some of which may
 require you to install special SDKs or toolkits.  This script will attempt
@@ -2264,11 +2264,11 @@ classifiers = [ 'Environment :: Win32 (MS Windows)',
 	            'Intended Audience :: Developers',
 	            'License :: OSI Approved :: Python Software Foundation License',
 	            'Operating System :: Microsoft :: Windows',
-	            'Programming Language :: Python :: 3.5',
 	            'Programming Language :: Python :: 3.6',
 	            'Programming Language :: Python :: 3.7',
 	            'Programming Language :: Python :: 3.8',
 	            'Programming Language :: Python :: 3.9',
+	            'Programming Language :: Python :: 3.10',
 	            'Programming Language :: Python :: Implementation :: CPython',
 	          ]
 
