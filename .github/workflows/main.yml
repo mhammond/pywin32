@@ -45,7 +45,7 @@ jobs:
       run: python setup.py install --user
 
     - name: Run tests
-      run: python ${env:USER_DIR}\Scripts\pywin32_testall.py -no-user-interaction -skip-adodbapi
+      run: python ${env:USER_DIR}\Scripts\pywin32_testall.py -v -skip-adodbapi
 
     - name: Build wheels
       run: |

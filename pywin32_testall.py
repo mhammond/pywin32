@@ -9,16 +9,20 @@ import subprocess
 this_dir = os.path.dirname(__file__)
 site_packages = [site.getusersitepackages(), ] + site.getsitepackages()
 
+failures = []
+
 # Run a test using subprocess and wait for the result.
-# If we get an returncode != 0, we know that there was an error.
+# If we get an returncode != 0, we know that there was an error, but we don't
+# abort immediately - we run as many tests as we can.
 def run_test(script, cmdline_extras):
     dirname, scriptname = os.path.split(script)
     # some tests prefer to be run from their directory.
-    cmd = [sys.executable, "-u", scriptname] + extras
-    popen = subprocess.Popen(cmd, shell=True, cwd=dirname)
-    if popen.returncode:
-        print("****** %s failed: %s" % (script, popen.returncode))
-        sys.exit(popen.returncode)
+    cmd = [sys.executable, "-u", scriptname] + cmdline_extras
+    result = subprocess.run(cmd, check=False, cwd=dirname)
+    print("*** Test script '%s' exited with %s" % (script, result.returncode))
+    sys.stdout.flush()
+    if result.returncode:
+        failures.append(script)
 
 
 def find_and_run(possible_locations, extras):
@@ -75,3 +79,10 @@ if __name__ == '__main__':
         # just to run these tests, so try it...
         maybes = [os.path.join(directory, "adodbapi", "test", "test_adodbapi_dbapi20.py") for directory in code_directories]
         find_and_run(maybes, remains)
+
+    if failures:
+        print("The following scripts failed")
+        for failure in failures:
+            print(">", failure)
+        sys.exit(1)
+    print("All tests passed \o/")
