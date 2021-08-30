@@ -2351,7 +2351,6 @@ dist = setup(name="pywin32",
                 'com/win32com/HTML/image/*.gif',
                 'com/win32comext/adsi/demos/*.py',
                 # Active Scripting test and demos.
-                'com/win32comext/axscript/test/*.html',
                 'com/win32comext/axscript/test/*.py',
                 'com/win32comext/axscript/test/*.pys',
                 'com/win32comext/axscript/test/*.vbs',
