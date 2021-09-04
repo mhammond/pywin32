@@ -84,19 +84,28 @@ class PippoTest(TestCase):
 # This is a list of "win32com.test.???" module names, optionally with a
 # function in that module if the module isn't unitest based...
 unittest_modules = [
-        # Level 1 tests.
-        """testIterators testvbscript_regexp testStorage 
+        # Level 1 tests - fast and few dependencies - good for CI!
+        """testIterators testvbscript_regexp testStorage
           testStreams testWMI policySemantics testShell testROT
-          testAXScript testxslt testDictionary testCollections
-          testServers errorSemantics.test testvb testArrays
-          testClipboard testMarshal
+          testxslt testCollections
+          errorSemantics.test testArrays
+          testClipboard
           testConversionErrors
         """.split(),
-        # Level 2 tests.
+        # Level 2 tests - wants our demo COM objects registered.
+        # (these are strange; on github CI they get further than expected when
+        # our objects are not installed, so fail to quietly fail with "can't
+        # register" like they do locally. So really just a nod to CI)
+        """
+        testAXScript testDictionary testServers testvb testMarshal
+        """.split(),
+
+        # Level 3 tests - Requires Office or other non-free stuff.
         """testMSOffice.TestAll testMSOfficeEvents.test testAccess.test
            testExplorer.TestAll testExchange.test
         """.split(),
-        # Level 3 tests.
+
+        # Level 4 tests - we try and run `makepy` over every typelib installed!
         """testmakepy.TestAll
         """.split()
 ]
@@ -110,37 +119,39 @@ unittest_other_modules = [
         # Level 2 tests.
         [],
         # Level 3 tests.
-        []
+        [],
+        # Level 4 tests.
+        [],
 ]
 
 
 output_checked_programs = [
         # Level 1 tests.
+        [],
+        # Level 2 tests.
         [
             ("cscript.exe /nologo //E:vbscript testInterp.vbs", "VBScript test worked OK"),
             ("cscript.exe /nologo //E:vbscript testDictionary.vbs",
                          "VBScript has successfully tested Python.Dictionary"),
         ],
-        # Level 2 tests.
-        [
-        ],
         # Level 3 tests
-        [
-        ],
+        [],
+        # Level 4 tests.
+        [],
 ]
 
 custom_test_cases = [
         # Level 1 tests.
+        [],
+        # Level 2 tests.
         [
             PyCOMTest,
             PippoTest,
         ],
-        # Level 2 tests.
-        [
-        ],
         # Level 3 tests
-        [
-        ],
+        [],
+        # Level 4 tests.
+        [],
 ]
 
 def get_test_mod_and_func(test_name, import_failures):
@@ -222,13 +233,13 @@ if __name__=='__main__':
     for opt, val in opts:
         if opt=='-v':
             verbosity += 1
-    testLevel = 1 # default to quick test
+    testLevel = 2 # default to quick test with local objects
     test_names = []
     for arg in args:
         try:
             testLevel = int(arg)
-            if testLevel < 0 or testLevel > 3:
-                raise ValueError("Only levels 1-3 are supported")
+            if testLevel < 0 or testLevel > 4:
+                raise ValueError("Only levels 1-4 are supported")
         except ValueError:
             test_names.append(arg)
     if test_names:

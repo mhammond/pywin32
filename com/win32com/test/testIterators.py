@@ -9,10 +9,6 @@ import win32com.server.util
 import win32com.test.util
 import pythoncom
 
-def yield_iter(iter):
-    while 1:
-        yield next(iter)
-
 class _BaseTestCase(win32com.test.util.TestCase):
     def test_enumvariant_vb(self):
         ob, iter = self.iter_factory()
@@ -23,7 +19,7 @@ class _BaseTestCase(win32com.test.util.TestCase):
     def test_yield(self):
         ob, i = self.iter_factory()
         got=[]
-        for v in yield_iter(iter(i)):
+        for v in iter(i):
             got.append(v)
         self.assertEquals(got, self.expected_data)
 

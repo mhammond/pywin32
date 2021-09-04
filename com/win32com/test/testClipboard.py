@@ -5,8 +5,6 @@ import win32con
 import winerror
 import win32clipboard
 
-from pywin32_testutil import str2bytes
-
 from win32com.server.util import NewEnum, wrap
 from win32com.server.exception import COMException
 
@@ -23,10 +21,10 @@ def WrapCOMObject(ob, iid=None):
 class TestDataObject:
     _com_interfaces_ = [pythoncom.IID_IDataObject]
     _public_methods_ = IDataObject_Methods
-    def __init__(self, strval):
+    def __init__(self, bytesval):
         global num_do_objects
         num_do_objects += 1
-        self.strval = strval
+        self.bytesval = bytesval
         self.supported_fe = []
         for cf in (win32con.CF_TEXT, win32con.CF_UNICODETEXT):
             fe = cf, None, pythoncom.DVASPECT_CONTENT, -1, pythoncom.TYMED_HGLOBAL
@@ -47,11 +45,10 @@ class TestDataObject:
            tymed==pythoncom.TYMED_HGLOBAL:
             if cf == win32con.CF_TEXT:
                 ret_stg = pythoncom.STGMEDIUM()
-                # ensure always 'bytes' by encoding string.
-                ret_stg.set(pythoncom.TYMED_HGLOBAL, str2bytes(self.strval))
+                ret_stg.set(pythoncom.TYMED_HGLOBAL, self.bytesval)
             elif cf == win32con.CF_UNICODETEXT:
                 ret_stg = pythoncom.STGMEDIUM()
-                ret_stg.set(pythoncom.TYMED_HGLOBAL, str(self.strval))
+                ret_stg.set(pythoncom.TYMED_HGLOBAL, self.bytesval.decode("latin1"))
 
         if ret_stg is None:
             raise COMException(hresult=winerror.E_NOTIMPL)
@@ -99,21 +96,21 @@ class ClipboardTester(unittest.TestCase):
             # We never set anything!
             pass
     def testIsCurrentClipboard(self):
-        do = TestDataObject("Hello from Python")
+        do = TestDataObject(b"Hello from Python")
         do = WrapCOMObject(do, iid=pythoncom.IID_IDataObject)
         pythoncom.OleSetClipboard(do)
-        self.failUnless(pythoncom.OleIsCurrentClipboard(do))
+        self.assertTrue(pythoncom.OleIsCurrentClipboard(do))
 
     def testComToWin32(self):
         # Set the data via our DataObject
-        do = TestDataObject("Hello from Python")
+        do = TestDataObject(b"Hello from Python")
         do = WrapCOMObject(do, iid=pythoncom.IID_IDataObject)
         pythoncom.OleSetClipboard(do)
         # Then get it back via the standard win32 clipboard functions.
         win32clipboard.OpenClipboard()
         got = win32clipboard.GetClipboardData(win32con.CF_TEXT)
-        # CF_TEXT gives bytes on py3k - use str2bytes() to ensure that's true.
-        expected = str2bytes("Hello from Python")
+        # CF_TEXT gives bytes.
+        expected = b"Hello from Python"
         self.assertEqual(got, expected)
         # Now check unicode
         got = win32clipboard.GetClipboardData(win32con.CF_UNICODETEXT)
@@ -122,7 +119,7 @@ class ClipboardTester(unittest.TestCase):
 
     def testWin32ToCom(self):
         # Set the data via the std win32 clipboard functions.
-        val = str2bytes("Hello again!") # ensure always bytes, even in py3k
+        val = b"Hello again!" # always bytes
         win32clipboard.OpenClipboard()
         win32clipboard.SetClipboardData(win32con.CF_TEXT, val)
         win32clipboard.CloseClipboard()
@@ -131,13 +128,13 @@ class ClipboardTester(unittest.TestCase):
         cf = win32con.CF_TEXT, None, pythoncom.DVASPECT_CONTENT, -1, pythoncom.TYMED_HGLOBAL
         stg = do.GetData(cf)
         got = stg.data
-        # The data we get back has the \0, as our STGMEDIUM has no way of 
+        # The data we get back has the \0, as our STGMEDIUM has no way of
         # knowing if it meant to be a string, or a binary buffer, so
         # it must return it too.
-        self.failUnlessEqual(got, str2bytes("Hello again!\0"))
-        
+        self.assertTrue(got, b"Hello again!\0")
+
     def testDataObjectFlush(self):
-        do = TestDataObject("Hello from Python")
+        do = TestDataObject(b"Hello from Python")
         do = WrapCOMObject(do, iid=pythoncom.IID_IDataObject)
         pythoncom.OleSetClipboard(do)
         self.assertEqual(num_do_objects, 1)
@@ -147,7 +144,7 @@ class ClipboardTester(unittest.TestCase):
         self.assertEqual(num_do_objects, 0)
 
     def testDataObjectReset(self):
-        do = TestDataObject("Hello from Python")
+        do = TestDataObject(b"Hello from Python")
         do = WrapCOMObject(do)
         pythoncom.OleSetClipboard(do)
         do = None # clear my ref!

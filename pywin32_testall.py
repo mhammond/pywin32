@@ -67,7 +67,7 @@ if __name__ == '__main__':
 
     # win32com
     maybes = [os.path.join(directory, "win32com", "test", "testall.py") for directory in [os.path.join(this_dir, "com"), ] + site_packages]
-    extras = remains + ["2"]
+    extras = remains + ["1"] # only run "level 1" tests in CI
     find_and_run(maybes, extras)
 
     # adodbapi
