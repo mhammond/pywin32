@@ -89,18 +89,24 @@ from distutils import log
 static_crt_modules = ["winxpgui"]
 
 
-from sysconfig import get_config_var, get_config_vars
 from distutils.dep_util import newer_group
 from distutils.filelist import FileList
 from distutils.errors import DistutilsExecError, DistutilsSetupError
 import distutils.util
 
-# prevent the new in 3.5 suffix of "cpXX-win32" from being added.
-# (adjusting both .cp35-win_amd64.pyd and .cp35-win32.pyd to .pyd)
-try:
-    get_config_vars()["EXT_SUFFIX"] = re.sub("\\.cp\\d\\d-win((32)|(_amd64))", "", get_config_vars()["EXT_SUFFIX"])
-except KeyError:
-    pass # no EXT_SUFFIX in this build.
+# We patch distutils's EXT_SUFFIX variable back to `.pyd`
+# Before 3.10, there was a hack to force this:
+# > distutils.sysconfig.get_config_vars()['EXT_SUFFIX'] = '.pyd'
+# Long story short, that no longer works after 3.10, and we just start shipping
+# `modulename.cp-blah.pyd`
+
+# (Side-node - strangely, for all versions:
+# > distutils.sysconfig.get_config_vars()['EXT_SUFFIX'] == '.cp-blah.pyd'
+# > sysconfig.get_config_vars()['EXT_SUFFIX'] -> '.pyd'
+# So be careful trying to replace `distutils.sysconfig` with `sysconfig`!
+from distutils.sysconfig import get_config_vars, get_config_var
+if sys.version_info < (3, 10):
+    get_config_vars()["EXT_SUFFIX"] = ".pyd"
 
 build_id_patch = build_id
 if not "." in build_id_patch:
@@ -1031,38 +1037,37 @@ class my_build_ext(build_ext):
 
         try:
             build_ext.build_extension(self, ext)
-            # XXX This has to be changed for mingw32
-            # Get the .lib files we need.  This is limited to pywintypes,
-            # pythoncom and win32ui - but the first 2 have special names
+            # Convincing distutils to create .lib files with the name we
+            # need is difficult, so we just hack around it by copying from
+            # the created name to the name we need.
             extra = self.debug and "_d.lib" or ".lib"
             if ext.name in ("pywintypes", "pythoncom"):
                 # The import libraries are created as PyWinTypes23.lib, but
                 # are expected to be pywintypes.lib.
-                name1 = "%s%d%d%s" % (ext.name, sys.version_info[0], sys.version_info[1], extra)
-                name2 = "%s%s" % (ext.name, extra)
+                created = "%s%d%d%s" % (ext.name, sys.version_info[0], sys.version_info[1], extra)
+                needed = "%s%s" % (ext.name, extra)
             elif ext.name in ("win32ui",):
+                # For 3.9 and earlier, we are already creating the correct name
+                # For 3.10 and later, we need to convert from ".cp310-win_amd64.pyd"
+                # and remove the .cp part.
                 if sys.version_info >= (3, 10):
-                    # Versioned ext DLL filenames in Py3.10+ like 'win32ui.cp310-win_amd64.pyd'
-                    name1 = ext.name + os.path.splitext(get_config_var('EXT_SUFFIX'))[0] + extra
-                    name2 = ext.name + extra
+                    created = ext.name + os.path.splitext(get_config_var('EXT_SUFFIX'))[0] + extra
+                    needed = ext.name + extra
                 else:
-                    name1 = name2 = ext.name + extra
+                    created = needed = ext.name + extra
             else:
-                name1 = name2 = None
-            if name1 is not None:
-                # The compiler always creates 'pywintypes22.lib', whereas we
-                # actually want 'pywintypes.lib' - copy it over.
-                # Worse: 2.3+ MSVCCompiler constructs the .lib file in the same
-                # directory as the first source file's object file:
+                created = needed = None
+            if created is not None:
+                # To keep us on our toes, MSVCCompiler constructs the .lib files
+                # in the same directory as the first source file's object file:
                 #    os.path.dirname(objects[0])
                 # rather than in the self.build_temp directory
-                # 2.3+ - Wrong dir, numbered name
                 src = os.path.join(old_build_temp,
                                    os.path.dirname(ext.sources[0]),
-                                   name1)
-                dst = os.path.join(old_build_temp, name2)
+                                   created)
+                dst = os.path.join(old_build_temp, needed)
                 if os.path.abspath(src) != os.path.abspath(dst):
-                    self.copy_file(src, dst)#, update=1)
+                    self.copy_file(src, dst)
         finally:
             self.build_temp = old_build_temp
             if want_static_crt:
