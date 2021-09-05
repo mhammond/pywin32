@@ -598,6 +598,12 @@ class my_build_ext(build_ext):
                 ext.libraries.append('legacy_stdio_definitions')
             elif ext.name == 'exchdapi':
                 return "Haven't worked out how to build on vs2015"
+        # axdebug fails to build on 3.11 due to Python "frame" objects changing.
+        # This could be fixed, but is almost certainly not in use any more, so
+        # just skip it.
+        if ext.name == "axdebug" and sys.version_info > (3, 10):
+            return "AXDebug no longer builds on 3.11 and up"
+
         include_dirs = self.compiler.include_dirs + \
                        os.environ.get("INCLUDE", "").split(os.pathsep)
         if self.windows_h_version is None:
