@@ -103,8 +103,12 @@ BOOL PyWinObject_AsString(PyObject *stringObject, char **pResult, BOOL bNoneOK /
     }
     // Convert the string if a WIDE string.
     if (PyUnicode_Check(stringObject)) {
-        stringObject = tempObject =
-            PyUnicode_EncodeMBCS(PyUnicode_AS_UNICODE(stringObject), PyUnicode_GET_SIZE(stringObject), NULL);
+        // PyUnicode_EncodeMBCS was removed in Py 3.11.
+        PyObject *unicode = PyUnicode_FromWideChar(PyUnicode_AS_UNICODE(stringObject), -1);
+        if (unicode == NULL)
+            return FALSE;
+        stringObject = tempObject = PyUnicode_EncodeCodePage(CP_ACP, unicode, NULL);
+        Py_DECREF(unicode);
         if (!stringObject)
             return FALSE;
     }
