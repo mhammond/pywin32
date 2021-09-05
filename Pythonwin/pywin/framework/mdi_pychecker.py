@@ -299,8 +299,8 @@ class TheDocument(docview.RichEditDoc):
             except win32api.error:
                 py = ""
             # Find checker.py
-            from distutils.sysconfig import get_python_lib
-            pychecker = os.path.join(get_python_lib(), 'pychecker', 'checker.py')
+            import sysconfig
+            pychecker = os.path.join(sysconfig.get_paths()["purelib"], 'pychecker', 'checker.py')
             if not os.path.isfile(py):
                 result = "Can't find python.exe!\n"
             elif not os.path.isfile(pychecker):

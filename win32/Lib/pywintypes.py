@@ -77,8 +77,8 @@ def __import_pywin32_system_module__(modname, globs):
             # This isn't ideal as it means, say 'python -c "import win32api"'
             # will not work but 'python -c "import pywintypes, win32api"' will,
             # but it's better than nothing...
-            import distutils.sysconfig
-            maybe = os.path.join(distutils.sysconfig.get_python_lib(plat_specific=1),
+            import sysconfig
+            maybe = os.path.join(sysconfig.get_paths()["platlib"],
                                  "pywin32_system32", filename)
             if os.path.isfile(maybe):
                 found = maybe

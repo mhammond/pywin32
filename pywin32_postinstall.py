@@ -7,7 +7,7 @@ import sys
 import glob
 import shutil
 import time
-import distutils.sysconfig
+import sysconfig
 try:
     import winreg as winreg
 except:
@@ -225,7 +225,7 @@ def RegisterCOMObjects(register=True):
 
 def RegisterHelpFile(register=True, lib_dir=None):
     if lib_dir is None:
-        lib_dir = distutils.sysconfig.get_python_lib(plat_specific=1)
+        lib_dir = sysconfig.get_paths()["platlib"]
     if register:
         # Register the .chm help file.
         chm_file = os.path.join(lib_dir, "PyWin32.chm")
@@ -249,7 +249,7 @@ def RegisterPythonwin(register=True, lib_dir=None):
     import os
 
     if lib_dir is None:
-        lib_dir = distutils.sysconfig.get_python_lib(plat_specific=1)
+        lib_dir = sysconfig.get_paths()["platlib"]
     classes_root=get_root_hkey()
     ## Installer executable doesn't seem to pass anything to postinstall script indicating if it's a debug build,
     pythonwin_exe = os.path.join(lib_dir, "Pythonwin", "Pythonwin.exe")
@@ -656,7 +656,7 @@ if __name__ == '__main__':
                         action='store_true',
                         help="Don't display progress messages.")
     parser.add_argument("-destination",
-                        default=distutils.sysconfig.get_python_lib(plat_specific=1),
+                        default=sysconfig.get_paths()["platlib"],
                         type=verify_destination,
                         help="Location of the PyWin32 installation")
 
@@ -671,9 +671,6 @@ if __name__ == '__main__':
     if args.wait is not None:
         try:
             os.waitpid(args.wait, 0)
-        except AttributeError:
-            # Python 2.2 - no waitpid - just sleep.
-            time.sleep(3)
         except os.error:
             # child already dead
             pass

@@ -335,8 +335,8 @@ class AboutBox(dialog.Dialog):
 		self.SetDlgItemText(win32ui.IDC_EDIT1, text)
 		# Get the build number - written by installers.
 		# For distutils build, read pywin32.version.txt
-		import distutils.sysconfig
-		site_packages = distutils.sysconfig.get_python_lib(plat_specific=1)
+		import sysconfig
+		site_packages = sysconfig.get_paths()["platlib"]
 		try:
 			build_no = open(os.path.join(site_packages, "pywin32.version.txt")).read().strip()
 			ver = "pywin32 build %s" % build_no

@@ -4,16 +4,17 @@
 # Use 'python setup.py build' to build this extension.
 import os
 from distutils.core import setup, Extension
-from distutils.sysconfig import get_python_lib
+from sysconfig import get_paths
 
 sources = ["win32_extension.cpp"]
+libdir = sysconfig.get_paths()["platlib"]
 
 # Specify the directory where the PyWin32 .h and .lib files are installed.
 # If you are doing a win32com extension, you will also need to add
 # win32com\Include and win32com\Libs.
 ext = Extension("win32_extension", sources,
-                include_dirs = [os.path.join(get_python_lib(), "win32", "Include")],
-                library_dirs = [os.path.join(get_python_lib(), "win32", "Libs")],
+                include_dirs = [lib_dir, "win32", "include")],
+                library_dirs = [lib_dir, "win32", "libs")],
                 )
 
 setup(

@@ -89,8 +89,8 @@ from distutils import log
 static_crt_modules = ["winxpgui"]
 
 
+from sysconfig import get_config_var, get_config_vars
 from distutils.dep_util import newer_group
-from distutils.sysconfig import get_config_vars
 from distutils.filelist import FileList
 from distutils.errors import DistutilsExecError, DistutilsSetupError
 import distutils.util
@@ -1037,7 +1037,7 @@ class my_build_ext(build_ext):
             elif ext.name in ("win32ui",):
                 if sys.version_info >= (3, 10):
                     # Versioned ext DLL filenames in Py3.10+ like 'win32ui.cp310-win_amd64.pyd'
-                    name1 = ext.name + os.path.splitext(distutils.sysconfig.get_config_var('EXT_SUFFIX'))[0] + extra
+                    name1 = ext.name + os.path.splitext(get_config_var('EXT_SUFFIX'))[0] + extra
                     name2 = ext.name + extra
                 else:
                     name1 = name2 = ext.name + extra
