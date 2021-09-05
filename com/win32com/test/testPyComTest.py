@@ -421,6 +421,9 @@ def TestGenerated():
     coclass_o = GetClass("{8EE0C520-5605-11D0-AE5F-CADD4C000000}")()
     TestCommon(coclass_o, True)
 
+    # Test the regression reported in #1753
+    assert(bool(coclass_o))
+
     # This is `CoSimpleCounter` and the counter tests should work.
     coclass = GetClass("{B88DD310-BAE8-11D0-AE86-76F2C1000000}")()
     TestCounter(coclass, True)

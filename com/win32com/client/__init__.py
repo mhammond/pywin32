@@ -515,7 +515,12 @@ def _get_good_object_(obj, obUserName=None, resultCLSID=None):
 class CoClassBaseClass:
 	def __init__(self, oobj=None):
 		if oobj is None: oobj = pythoncom.new(self.CLSID)
-		self.__dict__["_dispobj_"] = self.default_interface(oobj)
+		dispobj = self.__dict__["_dispobj_"] = self.default_interface(oobj)
+    # See comments below re the special methods.
+		for maybe in ["__call__", "__str__", "__int__", "__iter__", "__len__", "__nonzero__"]:
+			if hasattr(dispobj, maybe):
+				setattr(self, maybe, getattr(self, "__maybe" + maybe))
+
 	def __repr__(self):
 		return "<win32com.gen_py.%s.%s>" % (__doc__, self.__class__.__name__)
 
@@ -535,21 +540,24 @@ class CoClassBaseClass:
 		self.__dict__[attr] = value
 
   # Special methods don't use __getattr__ etc, so explicitly delegate here.
-  # Some wrapped objects might not have them, but that's OK - the attribute
-  # error can just bubble up.
-	def __call__(self, *args, **kwargs):
+  # Note however, that not all are safe to let bubble up - things like
+  # `bool(ob)` will break if the object defines __int__ but then raises an
+  # attribute error - eg, see #1753.
+  # It depends on what the wrapped COM object actually defines whether these
+  # will exist on the underlying object, so __init__ explicitly checks if they
+  # do and if so, wires them up.
+	def __maybe__call__(self, *args, **kwargs):
 		return self.__dict__["_dispobj_"].__call__(*args, **kwargs)
-	def __str__(self, *args):
+	def __maybe__str__(self, *args):
 		return self.__dict__["_dispobj_"].__str__(*args)
-	def __int__(self, *args):
+	def __maybe__int__(self, *args):
 		return self.__dict__["_dispobj_"].__int__(*args)
-	def __iter__(self):
+	def __maybe__iter__(self):
 		return self.__dict__["_dispobj_"].__iter__()
-	def __len__(self):
+	def __maybe__len__(self):
 		return self.__dict__["_dispobj_"].__len__()
-	def __nonzero__(self):
+	def __maybe__nonzero__(self):
 		return self.__dict__["_dispobj_"].__nonzero__()
-
 
 # A very simple VARIANT class.  Only to be used with poorly-implemented COM
 # objects.  If an object accepts an arg which is a simple "VARIANT", but still
