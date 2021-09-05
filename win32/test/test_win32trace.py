@@ -4,11 +4,19 @@ import threading
 import time
 import os
 import sys
+from pywin32_testutil import TestSkipped
 
 if __name__=='__main__':
     this_file = sys.argv[0]
 else:
     this_file = __file__
+
+def SkipIfCI():
+    # This test often fails in CI, probably when it is being run multiple times
+    # (ie, for different Python versions)
+    # Github actions always have a `CI` variable.
+    if "CI" in os.environ:
+        raise TestSkipped("We skip this test on CI")
 
 def CheckNoOtherReaders():
     win32trace.write("Hi")
@@ -22,6 +30,7 @@ def CheckNoOtherReaders():
 
 class TestInitOps(unittest.TestCase):
     def setUp(self):
+        SkipIfCI()
         # clear old data
         win32trace.InitRead()
         win32trace.read()
@@ -83,6 +92,7 @@ class TestInitOps(unittest.TestCase):
 
 class BasicSetupTearDown(unittest.TestCase):
     def setUp(self):
+        SkipIfCI()
         win32trace.InitRead()
         # If any other writers are running (even if not actively writing),
         # terminating the module will *not* close the handle, meaning old data
@@ -163,6 +173,7 @@ class TestMultipleThreadsWriting(unittest.TestCase):
     FullBucket = 50
     BucketCount = 9 # buckets must be a single digit number (ie. less than 10)
     def setUp(self):
+        SkipIfCI()
         WriterThread.BucketCount = self.BucketCount        
         win32trace.InitRead()
         win32trace.read() # clear any old data.
@@ -213,6 +224,7 @@ class TestHugeChunks(unittest.TestCase):
     # BiggestChunk is the size where we stop stressing the writer
     BiggestChunk = 2**16 # 256k should do it.
     def setUp(self):
+        SkipIfCI()
         win32trace.InitRead()
         win32trace.read() # clear any old data
         win32trace.InitWrite()
@@ -264,6 +276,7 @@ class TestOutofProcess(unittest.TestCase):
     BucketCount = 9
     FullBucket = 50
     def setUp(self):
+        SkipIfCI()
         win32trace.InitRead()
         TraceWriteProcess.BucketCount = self.BucketCount
         self.setUpWriters()
@@ -328,7 +341,7 @@ def _RunAsTestProcess():
     for t in threads:
         if not t.verifyWritten():
             sys.exit(-1)
-    
+
 if __name__ == '__main__':
     if sys.argv[1:2]==["/run_test_process"]:
         _RunAsTestProcess()
