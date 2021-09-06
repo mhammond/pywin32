@@ -181,7 +181,7 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description="Test runner for PyWin32/win32")
     parser.add_argument("-no-user-interaction",
-                        default=no_user_interaction,
+                        default=False,
                         action='store_true',
                         help="(This is now the default - use `-user-interaction` to include them)")
 
