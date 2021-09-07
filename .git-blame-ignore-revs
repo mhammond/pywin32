@@ -1,0 +1,6 @@
+# This file contains hashes of commits git blame should ignore.
+# Run `git config blame.ignoreRevsFile .git-blame-ignore-revs` to enable.
+# Requires git 2.23+.
+
+# 2019-09-07 formatted c++ source with clang-format
+059b7beb928225e389621802db758c75a7b8c58f
