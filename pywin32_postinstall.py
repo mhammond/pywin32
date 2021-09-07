@@ -6,7 +6,6 @@ import os
 import sys
 import glob
 import shutil
-import time
 import sysconfig
 try:
     import winreg as winreg
@@ -79,7 +78,7 @@ except NameError:
             winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE,
                            root_key_name, 0, winreg.KEY_CREATE_SUB_KEY)
             return winreg.HKEY_LOCAL_MACHINE
-        except OSError as details:
+        except OSError:
             # Either not exist, or no permissions to create subkey means
             # must be HKCU
             return winreg.HKEY_CURRENT_USER
@@ -92,7 +91,7 @@ except NameError:
     def create_shortcut(path, description, filename,
                         arguments="", workdir="", iconpath="", iconindex=0):
         import pythoncom
-        from win32com.shell import shell, shellcon
+        from win32com.shell import shell
 
         ilink = pythoncom.CoCreateInstance(shell.CLSID_ShellLink, None,
                                            pythoncom.CLSCTX_INPROC_SERVER,
@@ -111,7 +110,6 @@ except NameError:
 
     # Support the same list of "path names" as bdist_wininst.
     def get_special_folder_path(path_name):
-        import pythoncom
         from win32com.shell import shell, shellcon
 
         for maybe in """
@@ -137,7 +135,6 @@ def CopyTo(desc, src, dest):
             if silent:
                 # Running silent mode - just re-raise the error.
                 raise
-            tb = None
             full_desc = "Error %s\n\n" \
                         "If you have any Python applications running, " \
                         "please close them now\nand select 'Retry'\n\n%s" \
@@ -233,12 +230,13 @@ def RegisterHelpFile(register=True, lib_dir=None):
             # This isn't recursive, so if 'Help' doesn't exist, we croak
             SetPyKeyVal("Help", None, None)
             SetPyKeyVal("Help\\Pythonwin Reference", None, chm_file)
+            return chm_file
         else:
             print("NOTE: PyWin32.chm can not be located, so has not " \
                 "been registered")
     else:
         UnsetPyKeyVal("Help\\Pythonwin Reference", None, delete_key=True)
-
+    return None
 
 def RegisterPythonwin(register=True, lib_dir=None):
     """ Add (or remove) Pythonwin to context menu for python scripts.
@@ -440,7 +438,7 @@ def install(lib_dir):
                 raise
             print("You do not have the permissions to install COM objects.")
             print("The sample COM objects were not registered.")
-    except:
+    except Exception:
         print("FAILED to register the Python COM objects")
         traceback.print_exc()
 
@@ -448,9 +446,10 @@ def install(lib_dir):
     # python itself.
     winreg.CreateKey(get_root_hkey(), root_key_name)
 
+    chm_file = None
     try:
-        RegisterHelpFile(True, lib_dir)
-    except:
+        chm_file = RegisterHelpFile(True, lib_dir)
+    except Exception:
         print("Failed to register help file")
         traceback.print_exc()
     else:
@@ -463,7 +462,7 @@ def install(lib_dir):
     # Register Pythonwin in context menu
     try:
         RegisterPythonwin(True, lib_dir)
-    except:
+    except Exception:
         print('Failed to register pythonwin as editor')
         traceback.print_exc()
     else:
@@ -493,12 +492,13 @@ def install(lib_dir):
             if verbose:
                 print("Shortcut for Pythonwin created")
             # And the docs.
-            dst = os.path.join(fldr, "Python for Windows Documentation.lnk")
-            doc = "Documentation for the PyWin32 extensions"
-            create_shortcut(chm_file, doc, dst)
-            file_created(dst)
-            if verbose:
-                print("Shortcut to documentation created")
+            if chm_file:
+                dst = os.path.join(fldr, "Python for Windows Documentation.lnk")
+                doc = "Documentation for the PyWin32 extensions"
+                create_shortcut(chm_file, doc, dst)
+                file_created(dst)
+                if verbose:
+                    print("Shortcut to documentation created")
         else:
             if verbose:
                 print("Can't install shortcuts - %r is not a folder" % (fldr,))
@@ -508,7 +508,7 @@ def install(lib_dir):
     # importing win32com.client ensures the gen_py dir created - not strictly
     # necessary to do now, but this makes the installation "complete"
     try:
-        import win32com.client
+        import win32com.client  # noqa
     except ImportError:
         # Don't let this error sound fatal
         pass
