@@ -2346,7 +2346,7 @@ static PyObject *PyFILEGROUPDESCRIPTORAsString(PyObject *self, PyObject *args)
                 char *t;
                 ok = PyWinObject_AsString(attr, &t);
                 if (ok) {
-                    strncpy(fd->cFileName, t, sizeof(fd->cFileName) / sizeof(char));
+                    strncpy(fd->cFileName, t, sizeof(fd->cFileName)-1 / sizeof(char));
                     PyWinObject_FreeString(t);
                 }
             }

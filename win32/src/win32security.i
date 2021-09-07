@@ -5,6 +5,7 @@
 %module win32security // An interface to the win32 security API's
 
 %{
+#undef _WIN32_WINNT
 #define _WIN32_WINNT 0x0600 // Vista!
 %}
 
@@ -76,7 +77,7 @@ static IsTokenRestrictedfunc pfnIsTokenRestricted = NULL;
 
 typedef PSecurityFunctionTableW (SEC_ENTRY *InitSecurityInterfacefunc)(void);
 static InitSecurityInterfacefunc pfnInitSecurityInterface=NULL;
-extern PSecurityFunctionTableW psecurityfunctiontable=NULL;
+PSecurityFunctionTableW psecurityfunctiontable=NULL;
 
 typedef BOOL (WINAPI *TranslateNamefunc)(LPCTSTR, EXTENDED_NAME_FORMAT, EXTENDED_NAME_FORMAT, LPTSTR, PULONG);
 static TranslateNamefunc pfnTranslateName=NULL;
@@ -89,20 +90,20 @@ static LogonUserExExfunc pfnLogonUserExEx = NULL;
 
 
 // function pointers used in win32security_sspi.cpp and win32security_ds.cpp
-extern DsBindfunc pfnDsBind=NULL;
-extern DsUnBindfunc pfnDsUnBind=NULL;
-extern DsGetSpnfunc pfnDsGetSpn=NULL;
-extern DsWriteAccountSpnfunc pfnDsWriteAccountSpn=NULL;
-extern DsFreeSpnArrayfunc pfnDsFreeSpnArray=NULL;
-extern DsGetDcNamefunc pfnDsGetDcName=NULL;
-extern DsCrackNamesfunc pfnDsCrackNames=NULL;
-extern DsListInfoForServerfunc pfnDsListInfoForServer=NULL;
-extern DsListServersForDomainInSitefunc pfnDsListServersForDomainInSite=NULL;
-extern DsListServersInSitefunc pfnDsListServersInSite=NULL;
-extern DsListSitesfunc pfnDsListSites=NULL;
-extern DsListDomainsInSitefunc pfnDsListDomainsInSite=NULL;
-extern DsListRolesfunc pfnDsListRoles=NULL;
-extern DsFreeNameResultfunc pfnDsFreeNameResult=NULL;
+DsBindfunc pfnDsBind=NULL;
+DsUnBindfunc pfnDsUnBind=NULL;
+DsGetSpnfunc pfnDsGetSpn=NULL;
+DsWriteAccountSpnfunc pfnDsWriteAccountSpn=NULL;
+DsFreeSpnArrayfunc pfnDsFreeSpnArray=NULL;
+DsGetDcNamefunc pfnDsGetDcName=NULL;
+DsCrackNamesfunc pfnDsCrackNames=NULL;
+DsListInfoForServerfunc pfnDsListInfoForServer=NULL;
+DsListServersForDomainInSitefunc pfnDsListServersForDomainInSite=NULL;
+DsListServersInSitefunc pfnDsListServersInSite=NULL;
+DsListSitesfunc pfnDsListSites=NULL;
+DsListDomainsInSitefunc pfnDsListDomainsInSite=NULL;
+DsListRolesfunc pfnDsListRoles=NULL;
+DsFreeNameResultfunc pfnDsFreeNameResult=NULL;
 
 static HMODULE advapi32_dll=NULL;
 static HMODULE secur32_dll =NULL;
@@ -114,8 +115,8 @@ static HMODULE netapi32_dll=NULL;
 HMODULE loadmodule(WCHAR *dllname)
 {
 	HMODULE hmodule = GetModuleHandle(dllname);
-    if (hmodule==NULL)
-        hmodule = LoadLibrary(dllname);
+	if (hmodule==NULL)
+		hmodule = LoadLibrary(dllname);
 	return hmodule;
 }
 
@@ -449,7 +450,7 @@ BOOL PyWinObject_AsLSA_STRING(PyObject *obname, PLSA_STRING plsas)
 BOOL PyWinObject_AsLSA_UNICODE_STRING(PyObject *obstr, LSA_UNICODE_STRING *plsaus, BOOL bNoneOk)
 {
 	DWORD len = 0;
-	ZeroMemory(plsaus, sizeof(plsaus));
+	ZeroMemory(plsaus, sizeof(plsaus)/sizeof(WCHAR));
 	if (!PyWinObject_AsWCHAR(obstr, &plsaus->Buffer, bNoneOk, &len))
 		return FALSE;
 	// Length is in bytes, not characters, and does not include null terminator
@@ -1884,6 +1885,8 @@ static PyObject *PyGetTokenInformation(PyObject *self, PyObject *args)
 			if (!GetTokenInformation(handle, typ, &dwordbuf, bufSize, &retLength))
 				return PyWin_SetAPIError("GetTokenInformation");
 			return PyLong_FromUnsignedLong(dwordbuf);
+		default:
+			break;
 		}
 
 	PyObject *ret = NULL;
@@ -3339,12 +3342,14 @@ static PyObject *PyCreateRestrictedToken(PyObject *self, PyObject *args, PyObjec
 	if (PyWinObject_AsHANDLE(obExistingTokenHandle, &ExistingTokenHandle))
 		if (PyWinObject_AsSID_AND_ATTRIBUTESArray(obSidsToDisable, &SidsToDisable, &DisableSidCount))
 			if (PyWinObject_AsSID_AND_ATTRIBUTESArray(obSidsToRestrict, &SidsToRestrict, &RestrictedSidCount))
-				if (PyWinObject_AsLUID_AND_ATTRIBUTESArray(obPrivilegesToDelete, &PrivilegesToDelete, &DeletePrivilegeCount))
+				if (PyWinObject_AsLUID_AND_ATTRIBUTESArray(obPrivilegesToDelete, &PrivilegesToDelete, &DeletePrivilegeCount)){
 					if ((*pfnCreateRestrictedToken)(ExistingTokenHandle,Flags,DisableSidCount,SidsToDisable,
-							DeletePrivilegeCount,PrivilegesToDelete,RestrictedSidCount,SidsToRestrict,&NewTokenHandle))
+							DeletePrivilegeCount,PrivilegesToDelete,RestrictedSidCount,SidsToRestrict,&NewTokenHandle)){
 						ret=PyWinObject_FromHANDLE(NewTokenHandle);
-					else
+					}else{
 						PyWin_SetAPIError("CreateRestrictedToken",GetLastError());
+					}
+				}
 	if (SidsToDisable!=NULL)
 		free(SidsToDisable);
 	if (PrivilegesToDelete!=NULL)
@@ -3588,9 +3593,9 @@ BOOL PyWinObject_AsSEC_WINNT_AUTH_IDENTITY(PyObject *obAuthData, PSEC_WINNT_AUTH
 		return FALSE;
 		}
 	static const BOOL none_ok = TRUE; // NULL seems OK anywhere
-	if (!PyWinObject_AsWCHAR(obUser, &pAuthData->User, none_ok, &pAuthData->UserLength) || \
-	    !PyWinObject_AsWCHAR(obDomain, &pAuthData->Domain, none_ok, &pAuthData->DomainLength) || \
-		!PyWinObject_AsWCHAR(obPW, &pAuthData->Password, none_ok, &pAuthData->PasswordLength)) {
+	if (!PyWinObject_AsWCHAR(obUser, (WCHAR**)&pAuthData->User, none_ok, &pAuthData->UserLength) || \
+	    !PyWinObject_AsWCHAR(obDomain, (WCHAR**)&pAuthData->Domain, none_ok, &pAuthData->DomainLength) || \
+		!PyWinObject_AsWCHAR(obPW, (WCHAR**)&pAuthData->Password, none_ok, &pAuthData->PasswordLength)) {
 		PyErr_Clear();
 		PyErr_SetString(PyExc_TypeError, err_msg);
 		return FALSE;
@@ -3604,11 +3609,11 @@ void PyWinObject_FreeSEC_WINNT_AUTH_IDENTITY(PSEC_WINNT_AUTH_IDENTITY_W pAuthDat
 	if (!pAuthData)
 		return;
 	if (pAuthData->User)
-		PyWinObject_FreeWCHAR(pAuthData->User);
+		PyWinObject_FreeWCHAR((WCHAR*)pAuthData->User);
 	if (pAuthData->Domain)
-		PyWinObject_FreeWCHAR(pAuthData->Domain);
+		PyWinObject_FreeWCHAR((WCHAR*)pAuthData->Domain);
 	if (pAuthData->Password)
-		PyWinObject_FreeWCHAR(pAuthData->Password);
+		PyWinObject_FreeWCHAR((WCHAR*)pAuthData->Password);
 }
 
 %}

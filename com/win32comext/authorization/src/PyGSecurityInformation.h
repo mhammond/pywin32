@@ -22,7 +22,7 @@ class PyGSecurityInformation : private PyGatewayBase, public ISecurityInformatio
         ObjectInfoAcquired = FALSE;
     }
     PYGATEWAY_MAKE_SUPPORT2(PyGSecurityInformation, ISecurityInformation, IID_ISecurityInformation, PyGatewayBase)
-    PyGSecurityInformation::~PyGSecurityInformation(void);
+    ~PyGSecurityInformation(void);
 
     // ISecurityInformation
     // @pymeth GetObjectInformation|Returns information identifying the object

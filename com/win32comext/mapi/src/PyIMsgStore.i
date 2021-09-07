@@ -33,14 +33,14 @@ PyIMsgStore::~PyIMsgStore()
 // @pyswig <o PyIInterface>|OpenEntry|Opens a folder or message and returns an interface object for further access.
 PyObject *PyIMsgStore::OpenEntry(PyObject *self, PyObject *args) 
 {
-    HRESULT  _result;
-    char * entryString;
+	HRESULT  _result;
+	char * entryString;
 	int entryStrLen;
-    IID iid;
+	IID iid;
 	IID *pIID;
-    PyObject * objIID = 0;
-    unsigned long  flags;
-    IUnknown * pUnk = NULL;
+	PyObject * objIID = 0;
+	unsigned long  flags;
+	IUnknown * pUnk = NULL;
 	ULONG resType;
 	PyObject *obEntry;
 
@@ -49,8 +49,8 @@ PyObject *PyIMsgStore::OpenEntry(PyObject *self, PyObject *args)
 	// @pyparm string|entryId||The entryID of the object
 	// @pyparm <o PyIID>|iid||The IID of the object to return, or None for the default IID
 	// @pyparm int|flags||Bitmask of flags that controls how the object is opened.
-    if(!PyArg_ParseTuple(args,"OOl:OpenEntry",&obEntry, &objIID,&flags)) 
-        return NULL;
+	if(!PyArg_ParseTuple(args,"OOl:OpenEntry",&obEntry, &objIID,&flags)) 
+		return NULL;
 	if (obEntry==Py_None) {
 		entryString = NULL;
 		entryStrLen = 0;
@@ -69,12 +69,12 @@ PyObject *PyIMsgStore::OpenEntry(PyObject *self, PyObject *args)
 			return NULL;
 	}
 	Py_BEGIN_ALLOW_THREADS
-     _result = (HRESULT )_swig_self->OpenEntry(entryStrLen,(ENTRYID *)entryString,pIID,flags, &resType, &pUnk);
+	_result = (HRESULT )_swig_self->OpenEntry(entryStrLen,(ENTRYID *)entryString,pIID,flags, &resType, &pUnk);
 	Py_END_ALLOW_THREADS
-     if (FAILED(_result)) {
-           return OleSetOleError(_result);
-     }
-	 return PyMAPIObject_FromTypedUnknown( resType, pUnk, FALSE /*bAddRef*/);
+	if (FAILED(_result)) {
+		return OleSetOleError(_result);
+	}
+	return PyMAPIObject_FromTypedUnknown( resType, pUnk, FALSE /*bAddRef*/);
 }
 
 %}
@@ -144,17 +144,17 @@ PyObject *PyIMsgStore::CompareEntryIDs(PyObject *self, PyObject *args)
 	IMsgStore *_swig_self;
 	PyObject *obE1, *obE2;
 	if ((_swig_self=GetI(self))==NULL) return NULL;
-    if(!PyArg_ParseTuple(args,"OO|i:CompareEntryIDs", 
+	if(!PyArg_ParseTuple(args,"OO|i:CompareEntryIDs", 
 		&obE1, // @pyparm string|entryId||The first entry ID to be compared
 		&obE2, // @pyparm string|entryId||The second entry ID to be compared
 		&flags)) // @pyparm int|flags|0|Reserved - must be zero.
-        goto done;
+		goto done;
 
 	if (!PyWinObject_AsString(obE1, (char **)&peid1, FALSE, &cb1))
-        goto done;
+		goto done;
 
 	if (!PyWinObject_AsString(obE2, (char **)&peid2, FALSE, &cb2))
-        goto done;
+		goto done;
 
 	Py_BEGIN_ALLOW_THREADS
 	hr=_swig_self->CompareEntryIDs(cb1, peid1, cb2, peid2, flags, &ulResult);
@@ -182,10 +182,10 @@ PyObject *PyIMsgStore::GetLastError(PyObject *self, PyObject *args)
 	IMsgStore *_swig_self;
 	if ((_swig_self=GetI(self))==NULL) return NULL;
 	
-    if(!PyArg_ParseTuple(args,"l|l:GetLastError",
+	if(!PyArg_ParseTuple(args,"l|l:GetLastError",
 		&hr, // @pyparm int|hr||Contains the error code generated in the previous method call.
 		&flags)) // @pyparm int|flags||Indicates for format for the output.
-        return NULL;
+		return NULL;
 		
 	Py_BEGIN_ALLOW_THREADS
 	hRes = _swig_self->GetLastError(hr, flags, &me);
@@ -255,11 +255,11 @@ PyObject *PyIMsgStore::Advise(PyObject *self, PyObject *args)
 	IMsgStore *_swig_self;
 	if ((_swig_self=GetI(self))==NULL) return NULL;
 
-    if(!PyArg_ParseTuple(args,"OkO:Advise",
+	if(!PyArg_ParseTuple(args,"OkO:Advise",
 		&obEntryId, // @pyparm string|entryId||entry identifier of the folder or message about which notifications should be generated, or None
 		&ulEventMask, // @pyparm int|eventMask||A mask of values that indicate the types of notification events.
 		&obAdviseSink)) // @pyparm <o PyIMAPIAdviseSink>|adviseSink||An advise sink.
-        return NULL;
+		return NULL;
 	if (obEntryId == Py_None)
 	{
 		eid = NULL;

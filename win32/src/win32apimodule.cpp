@@ -5592,8 +5592,8 @@ static PyObject *PyApply(PyObject *self, PyObject *args)
     }
     PyThreadState *stateSave = PyThreadState_Swap(NULL);
     PyThreadState_Swap(stateSave);
-    _try { ret = PyObject_CallObject(obFunc, obArgs); }
-    _except(PyApplyExceptionFilter(GetExceptionCode(), GetExceptionInformation(), obHandler, &exc_type, &exc_value))
+    __try { ret = PyObject_CallObject(obFunc, obArgs); }
+    __except(PyApplyExceptionFilter(GetExceptionCode(), GetExceptionInformation(), obHandler, &exc_type, &exc_value))
     {
         // Do my best to restore the thread state to a sane spot.
         PyThreadState *stateCur = PyThreadState_Swap(NULL);

@@ -1,5 +1,10 @@
 /* ADSI SWIG Support */
 
+typedef VARIANT VARIANT;
+typedef ADS_OBJECT_INFO ADS_OBJECT_INFO;
+typedef IDataObject IDataObject;
+typedef IDispatch IDispatch;
+
 %{
 #include "pyadsiutil.h"
 

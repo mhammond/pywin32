@@ -1,4 +1,5 @@
 // @doc
+#undef _WIN32_WINNT
 #define _WIN32_WINNT 0x501
 #include "PyWinTypes.h"
 #include "PyWinObjects.h"
@@ -96,6 +97,7 @@ static PyObject *PyWTSQueryUserConfig(PyObject *self, PyObject *args, PyObject *
             &WTSConfigClass))  // @pyparm int|ConfigClass||Type of information to be returned, win32ts.WTSUserConfig*
         return NULL;
     if (PyWinObject_AsWCHAR(obServerName, &ServerName, TRUE) && PyWinObject_AsWCHAR(obUserName, &UserName, FALSE))
+    {
         if (!WTSQueryUserConfig(ServerName, UserName, WTSConfigClass, &buf, &bufsize))
             PyWin_SetAPIError("WTSQueryUserConfig");
         else
@@ -137,6 +139,7 @@ static PyObject *PyWTSQueryUserConfig(PyObject *self, PyObject *args, PyObject *
                 default:
                     PyErr_SetString(PyExc_NotImplementedError, "Config class not supported yet");
             }
+    }
 
     PyWinObject_FreeWCHAR(ServerName);
     PyWinObject_FreeWCHAR(UserName);

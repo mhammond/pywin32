@@ -78,7 +78,7 @@
 #define PR_PROFILE_RECONNECT_INTERVAL	PROP_TAG( PT_LONG, pidProfileMin+0x1a)	// dup tag of PR_USER_NAME
 #define PR_PROFILE_SERVER_VERSION		PROP_TAG( PT_LONG, pidProfileMin+0x1b)
 
-/* SE 233155 - MarkH: EMSABP DCR /*
+/* SE 233155 - MarkH: EMSABP DCR */
 /* Properties in the abp section - I got these values from AlecDun (Outlook team) */
 #define PR_PROFILE_ABP_ALLOW_RECONNECT		PROP_TAG( PT_LONG, pidProfileMin+0x39)
 #define PR_PROFILE_ABP_MTHREAD_TIMEOUT_SECS	PROP_TAG( PT_LONG, pidProfileMin+0x3A)

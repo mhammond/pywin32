@@ -1,4 +1,5 @@
 // @doc
+#undef _WIN32_WINNT
 #define _WIN32_WINNT 0x502
 #include "win32crypt.h"
 
@@ -495,10 +496,12 @@ static PyObject *PyCertEnumSystemStore(PyObject *self, PyObject *args, PyObject 
     }
 
     if (pvSystemStoreLocationPara != NULL)
+    {
         if (dwFlags & CERT_SYSTEM_STORE_RELOCATE_FLAG)
             PyWinObject_FreeWCHAR((WCHAR *)cssrp.pwszSystemStore);
         else
             PyWinObject_FreeWCHAR((WCHAR *)pvSystemStoreLocationPara);
+    }
     return ret;
 }
 
@@ -582,6 +585,7 @@ static PyObject *PyCertOpenStore(PyObject *self, PyObject *args, PyObject *kwarg
         pvPara = (void *)&cssrp;
     }
     else {
+#ifdef _MSC_VER
         switch ((ULONG_PTR)StoreProvider) {
             case CERT_STORE_PROV_PHYSICAL:
             case CERT_STORE_PROV_FILENAME:
@@ -623,6 +627,41 @@ static PyObject *PyCertOpenStore(PyObject *self, PyObject *args, PyObject *kwarg
                 return NULL;
             }
         }
+#else
+        if (StoreProvider == CERT_STORE_PROV_PHYSICAL)
+        if (StoreProvider == CERT_STORE_PROV_FILENAME)
+        if (StoreProvider == CERT_STORE_PROV_SYSTEM)
+        if (StoreProvider == CERT_STORE_PROV_SYSTEM_REGISTRY)
+        if (StoreProvider == CERT_STORE_PROV_LDAP) {
+            if (!PyWinObject_AsWCHAR(obpvPara, (WCHAR **)&pvPara))
+                return NULL;
+            free_wchar = TRUE;
+	}
+        if (StoreProvider == CERT_STORE_PROV_REG) {
+            if (!PyWinObject_AsHKEY(obpvPara, (HKEY *)&pvPara))
+                return NULL;
+	}
+        if (StoreProvider == CERT_STORE_PROV_FILE) {
+            if (!PyWinObject_AsHANDLE(obpvPara, (HANDLE *)&pvPara))
+                return NULL;
+	}
+        if (StoreProvider == CERT_STORE_PROV_SERIALIZED)
+        if (StoreProvider == CERT_STORE_PROV_PKCS7) {
+            if (!pybuf.init(obpvPara))
+                return NULL;
+            crypt_data_blob.pbData = (BYTE*)pybuf.ptr();
+            crypt_data_blob.cbData = pybuf.len();
+            pvPara = (void *)&crypt_data_blob;
+	}
+        if (StoreProvider == CERT_STORE_PROV_MEMORY) {
+            // pvPara is not used, warn if something passed in
+            if (obpvPara != Py_None)
+                PyErr_Warn(PyExc_RuntimeWarning, "Para ignored for CERT_STORE_PROV_MEMORY");
+	}
+
+        PyErr_SetString(PyExc_NotImplementedError, "Specified store provider type not supported");
+        return NULL;
+#endif
     }
 
     Py_BEGIN_ALLOW_THREADS hcertstore = CertOpenStore(StoreProvider, dwEncodingType, hcryptprov, dwFlags, pvPara);

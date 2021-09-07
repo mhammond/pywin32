@@ -93,8 +93,8 @@ typedef struct {
 static cursorObject *cursor(PyObject *o) { return (cursorObject *)o; }
 
 static void cursorDealloc(PyObject *self);
-PyMethodDef cursorMethods[];
-PyMemberDef cursorMembers[];
+extern PyMethodDef cursorMethods[];
+extern PyMemberDef cursorMembers[];
 
 static PyTypeObject Cursor_Type = {
     PYWIN_OBJECT_HEAD "odbccur", /*tp_name */
@@ -137,8 +137,8 @@ static PyTypeObject Cursor_Type = {
 };
 
 static void connectionDealloc(PyObject *self);
-PyMethodDef connectionMethods[];
-PyMemberDef connectionMembers[];
+extern PyMethodDef connectionMethods[];
+extern PyMemberDef connectionMembers[];
 static PyTypeObject Connection_Type = {
     PYWIN_OBJECT_HEAD "odbcconn", /*tp_name */
     sizeof(connectionObject),     /*tp_basicsize */
@@ -379,7 +379,7 @@ static PyObject *odbcClose(PyObject *self, PyObject *args)
 }
 
 /* @object connection|An object representing an ODBC connection */
-static struct PyMethodDef connectionMethods[] = {
+struct PyMethodDef connectionMethods[] = {
     {"setautocommit", odbcSetAutoCommit, 1}, /* @pymeth setautocommit|Sets the autocommit mode. */
     {"commit", odbcCommit, 1},               /* @pymeth commit|Commits a transaction. */
     {"rollback", odbcRollback, 1},           /* @pymeth rollback|Rollsback a transaction. */
@@ -387,7 +387,7 @@ static struct PyMethodDef connectionMethods[] = {
     {"close", odbcClose, 1},                 /* @pymeth close|Closes the connection. */
     {0, 0}};
 
-static PyMemberDef connectionMembers[] = {{"error", T_OBJECT, offsetof(connectionObject, connectionError), READONLY},
+struct PyMemberDef connectionMembers[] = {{"error", T_OBJECT, offsetof(connectionObject, connectionError), READONLY},
                                           {NULL}};
 
 static void connectionDealloc(PyObject *self)
@@ -1422,7 +1422,7 @@ static PyObject *odbcCurSetOutputSize(PyObject *self, PyObject *args)
 }
 
 /* @object cursor|An object representing an ODBC cursor. */
-static PyMethodDef cursorMethods[] = {
+struct PyMethodDef cursorMethods[] = {
     {"close", odbcCurClose, 1},                 /* @pymeth close|Closes the cursor */
     {"execute", odbcCurExec, 1},                /* @pymeth execute|Execute some SQL */
     {"fetchone", odbcCurFetchOne, 1},           /* @pymeth fetchone|Fetch one row of data */
@@ -1432,7 +1432,7 @@ static PyMethodDef cursorMethods[] = {
     {"setoutputsize", odbcCurSetOutputSize, 1}, /* @pymeth setoutputsize| */
     {0, 0}};
 
-static PyMemberDef cursorMembers[] = {{"description", T_OBJECT, offsetof(cursorObject, description), READONLY},
+struct PyMemberDef cursorMembers[] = {{"description", T_OBJECT, offsetof(cursorObject, description), READONLY},
                                       {"error", T_OBJECT, offsetof(cursorObject, cursorError), READONLY},
                                       {NULL}};
 

@@ -38,7 +38,7 @@ STDMETHODIMP_(ULONG) CPyFactory::Release(void)
 {
     LONG cRef = InterlockedDecrement(&m_cRef);
     if (cRef == 0)
-        delete this;
+        operator delete (this);
     return cRef;
 }
 

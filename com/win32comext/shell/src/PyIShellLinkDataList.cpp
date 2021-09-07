@@ -200,7 +200,7 @@ void *PyObject_AsDATABLOCK(PyObject *obdb)
                     &buf->dbh.cbSize)       // @prop int|Size|Size of structure, ignored on input
                 && PyWinObject_AsWCHAR(obwDarwinID, &wDarwinID, FALSE);
             if (bsuccess) {
-                strncpy(buf->szDarwinID, DarwinID, MAX_PATH);
+                strncpy(buf->szDarwinID, DarwinID, MAX_PATH-1);
                 wcsncpy(buf->szwDarwinID, wDarwinID, MAX_PATH);
             }
             buf->dbh.cbSize = bufsize;
@@ -230,7 +230,7 @@ void *PyObject_AsDATABLOCK(PyObject *obdb)
                     &buf->cbSize)       // @prop int|Size|Size of structure, ignored on input
                 && PyWinObject_AsWCHAR(obwTarget, &wTarget, FALSE);
             if (bsuccess) {
-                strncpy(buf->szTarget, Target, MAX_PATH);
+                strncpy(buf->szTarget, Target, MAX_PATH-1);
                 wcsncpy(buf->swzTarget, wTarget, MAX_PATH);
             }
             buf->cbSize = bufsize;

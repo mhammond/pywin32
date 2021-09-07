@@ -483,12 +483,14 @@ PyObject *PyIScheduledWorkItem::SetWorkItemData(PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "O:PyIScheduledWorkItem::SetWorkItemData", &obworkitem_data))
         return NULL;
     if (obworkitem_data != Py_None)
+    {
         if (PyBytes_AsStringAndSize(obworkitem_data, (CHAR **)&workitem_data, &data_len) == -1)
             return NULL;
         else
             // Task Scheduler won't take an empty string for data anymore ??????
             if (data_len == 0)
-            workitem_data = NULL;
+                workitem_data = NULL;
+    }
 
     HRESULT hr;
     PY_INTERFACE_PRECALL;

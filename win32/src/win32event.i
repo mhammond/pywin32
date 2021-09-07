@@ -5,13 +5,14 @@
 
 %{
 //#define UNICODE
+#undef _WIN32_WINNT
 #define _WIN32_WINNT 0x0501
 %}
 
 %include "typemaps.i"
 %include "pywin32.i"
 
-%typedef void *NULL_ONLY
+%typedef void *NULL_ONLY;
 
 %typemap(python,in) NULL_ONLY {
 	if ($source != Py_None) {
@@ -23,6 +24,7 @@
 
 // only seem able to make this work with an incorrect level of
 // indirection, and fixing it up inline with a temp.
+%typedef PTIMERAPCROUTINE PTIMERAPCROUTINE;
 %typemap(python,in) PTIMERAPCROUTINE *(PTIMERAPCROUTINE temp) {
 	if ($source != Py_None) {
 		PyErr_SetString(PyExc_TypeError, "This param must be None");
@@ -93,7 +95,6 @@
 BOOLAPI CancelWaitableTimer(PyHANDLE handle);
 #endif
 
-#end
 
 // @pyswig <o PyHANDLE>|CreateEvent|Creates a waitable event
 // @rdesc The result is a handle to the created object
@@ -387,7 +388,7 @@ static PyObject *MyWaitForMultipleObjectsEx(
     BOOL bAlertable 	// @pyparm bool|bAlertable||alertable wait flag.
    );
 #endif
-%typedef DWORD DWORD_WAITAPI
+%typedef DWORD DWORD_WAITAPI;
 %typemap(python,except) DWORD_WAITAPI {
       Py_BEGIN_ALLOW_THREADS
       $function

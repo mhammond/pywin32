@@ -28,6 +28,18 @@
 #include "windows.h"
 #undef WRITE_RESTRICTED  // stop anyone using the wrong one accidently...
 
+#ifndef _MSC_VER
+#define min(x,y) (((x) < (y)) ? (x) : (y))
+#define max(x,y) (((x) > (y)) ? (x) : (y))
+
+#ifndef __try
+#define __try try
+#endif
+#ifndef __except
+#define __except(filter) catch(...)
+#endif
+#endif
+
 // Helpers for our modules.
 // Some macros to help the pywin32 modules co-exist in py2x and py3k.
 // Creates and initializes local variables called 'module' and 'dict'.

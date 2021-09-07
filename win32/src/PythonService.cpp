@@ -881,6 +881,7 @@ void WINAPI service_main(DWORD dwArgc, LPTSTR *lpszArgv)
             ReportPythonError(E_PYS_NOT_CONTROL_HANDLER);
         // else no instance - an error has already been reported.
         if (!bServiceDebug)
+        {
             if (g_RegisterServiceCtrlHandlerEx) {
                 // Use 2K/XP extended registration if available
                 pe->sshStatusHandle = g_RegisterServiceCtrlHandlerEx(lpszArgv[0], service_ctrl_ex, pe);
@@ -889,6 +890,7 @@ void WINAPI service_main(DWORD dwArgc, LPTSTR *lpszArgv)
                 // Otherwise fall back to NT
                 pe->sshStatusHandle = RegisterServiceCtrlHandler(lpszArgv[0], service_ctrl);
             }
+        }
     }
     // No instance - we can't start.
     if (!instance) {
@@ -1156,7 +1158,7 @@ int PythonService_main(int argc, TCHAR **argv)
         else {
             // Some other nasty error - log it.
             ReportAPIError(PYS_E_API_CANT_START_SERVICE, errCode);
-            printf("Could not start the service - error %d\n", errCode);
+            printf("Could not start the service - error %ld\n", errCode);
             // Just incase the error was caused by this EXE not being registered
 #ifndef BUILD_FREEZE
             RegisterPythonServiceExe();
@@ -1312,13 +1314,13 @@ BOOL LocatePythonServiceClassString(TCHAR *svcName, TCHAR *buf, int cchBuf)
 // Register the EXE.
 // This writes an entry to the Python registry and also
 // to the EventLog so I can stick in messages.
-static BOOL RegisterPythonServiceExe(void)
+BOOL RegisterPythonServiceExe(void)
 {
     printf("Registering the Python Service Manager...\n");
     const int fnameBufSize = MAX_PATH + 1;
     TCHAR fnameBuf[fnameBufSize];
     if (GetModuleFileName(NULL, fnameBuf, fnameBufSize) == 0) {
-        printf("Registration failed due to GetModuleFileName() failing (error %d)\n", GetLastError());
+        printf("Registration failed due to GetModuleFileName() failing (error %ld)\n", GetLastError());
         return FALSE;
     }
     assert(Py_IsInitialized());
@@ -1337,7 +1339,7 @@ static BOOL RegisterPythonServiceExe(void)
     wsprintf(keyBuf, _T("Software\\Python\\PythonService\\%hs"), szVerString);
     DWORD rc;
     if ((rc = RegSetValue(HKEY_LOCAL_MACHINE, keyBuf, REG_SZ, fnameBuf, _tcslen(fnameBuf))) != ERROR_SUCCESS) {
-        printf("Registration failed due to RegSetValue() of service EXE - error %d\n", rc);
+        printf("Registration failed due to RegSetValue() of service EXE - error %ld\n", rc);
         return FALSE;
     }
     // don't bother registering in the event log - do it when we write a log entry.
@@ -1373,7 +1375,7 @@ static void ReportAPIError(DWORD msgCode, DWORD errCode /*= 0*/)
 
     TCHAR cvtBuf[20];
     wsprintf(cvtBuf, L"%d", errCode);
-    LPTSTR lpszStrings[] = {cvtBuf, buf, L'\0'};
+    LPTSTR lpszStrings[] = {cvtBuf, buf, _T('\0')};
     ReportError(msgCode, (LPCTSTR *)lpszStrings);
 }
 

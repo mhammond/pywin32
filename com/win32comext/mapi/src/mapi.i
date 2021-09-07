@@ -24,6 +24,10 @@
 %include "mapilib.i"
 
 %{
+#ifndef _MSC_VER
+#define USES_IID_IMsgServiceAdmin2
+#endif
+
 #include "mapiaux.h"
 
 #include "PythonCOMServer.h"
@@ -620,9 +624,9 @@ PyObject *PyMAPILogonEx(PyObject *self, PyObject *args)
 		return NULL;
 
 	if (!PyWinObject_AsMAPIStr(obProfileName, &lpszProfileName, ulFlags & MAPI_UNICODE, FALSE))
-		goto done;
+		PyWinObject_FreeString(lpszProfileName);
 	if (!PyWinObject_AsMAPIStr(obPassword, &lpszPassword, ulFlags & MAPI_UNICODE, TRUE))
-		goto done;
+		PyWinObject_FreeString(lpszPassword);
 	
 	Py_BEGIN_ALLOW_THREADS
 	hRes = ::MAPILogonEx(ulUIParam, lpszProfileName, lpszPassword, ulFlags, &lpSession);
@@ -632,10 +636,6 @@ PyObject *PyMAPILogonEx(PyObject *self, PyObject *args)
 		result = OleSetOleError(hRes);
 	else
 		MAKE_OUTPUT_INTERFACE(&lpSession, result, IID_IMAPISession);
-	
-done:
-	PyWinObject_FreeString(lpszProfileName);
-	PyWinObject_FreeString(lpszPassword);
 	
 	return result;
 }
@@ -778,7 +778,7 @@ PyObject *PyOpenIMsgSession(PyObject *self, PyObject *args)
 	PY_INTERFACE_POSTCALL;
 	if (FAILED(hr))
 		return OleSetOleError(hr);
-	return PyLong_FromLong((long)pSession);
+	return PyLong_FromLong((LONG_PTR)pSession);
 }
 %}
 // @pyswig |CloseIMsgSession|
@@ -786,7 +786,7 @@ PyObject *PyOpenIMsgSession(PyObject *self, PyObject *args)
 %{
 PyObject *PyCloseIMsgSession(PyObject *self, PyObject *args)
 {
-	long session = 0;
+	LONG_PTR session = 0;
 	if (!PyArg_ParseTuple(args, "l:CloseIMsgSession", &session))
 		return NULL;
 	PY_INTERFACE_PRECALL;
@@ -810,7 +810,7 @@ PyObject *PyOpenIMsgOnIStg(PyObject *self, PyObject *args)
 	long flags = 0;
 	HRESULT hr = E_FAIL;
 	PyObject *rc = NULL;
-	long lSession;
+	LONG_PTR lSession;
 
 	if (!PyArg_ParseTuple(args, "lOO|Oll:OpenIMsgOnIStg",
 		&lSession, // @pyparm object|session||
@@ -934,7 +934,7 @@ void decodertfhtml(char *buf,unsigned int *len)
     else if (strncmp(c,"\\pntext",7)==0) {c+=7; while (c<max && *c!='}') c++;}
     else if (strncmp(c,"\\htmlrtf",8)==0)
     { c++; while (c<max && strncmp(c,"\\htmlrtf0",9)!=0) c++;
-      if (c<max) c+=9; if (*c==' ') c++;
+      if (c<max) {c+=9;} if (*c==' ') {c++;}
     }
     else if (*c=='\r' || *c=='\n') c++;
     else if (strncmp(c,"\\{",2)==0) {*d='{'; d++; c+=2;}
@@ -1032,10 +1032,10 @@ PyObject *PyOpenStreamOnFile(PyObject *self, PyObject *args)
 			return NULL;
 
 		if (!PyWinObject_AsString(obFileName, &filename, TRUE))
-			goto done;
+			PyWinObject_FreeString(filename);
 
 		if (!PyWinObject_AsString(obPrefix, &prefix, TRUE))
-			goto done;
+			PyWinObject_FreeString(prefix);
 
 		{
 			PY_INTERFACE_PRECALL;
@@ -1043,10 +1043,6 @@ PyObject *PyOpenStreamOnFile(PyObject *self, PyObject *args)
 			hRes = OpenStreamOnFile(MAPIAllocateBuffer, MAPIFreeBuffer, flags, (LPTSTR)filename, (LPTSTR)prefix, &pStream);
 			PY_INTERFACE_POSTCALL;
 		}
-
-	done:
-		PyWinObject_FreeString(filename);
-		PyWinObject_FreeString(prefix);
 
 		if (PyErr_Occurred())
 			return NULL;
@@ -1058,6 +1054,7 @@ PyObject *PyOpenStreamOnFile(PyObject *self, PyObject *args)
 }
 %}
 
+#ifdef _MSC_VER
 // @pyswig <o PyIStream>|OpenStreamOnFileW|Allocates and initializes an OLE IStream object to access the contents of a file.
 %native(OpenStreamOnFileW) PyOpenStreamOnFileW;
 %{
@@ -1112,6 +1109,7 @@ PyObject *PyOpenStreamOnFileW(PyObject *self, PyObject *args)
 		return PyCom_PyObjectFromIUnknown(pStream, IID_IStream, FALSE);
 }
 %}
+#endif
 
 // @pyswig item|HrGetOneProp|Retrieves the value of a single property from an IMAPIProp object.
 %native(HrGetOneProp) PyHrGetOneProp;
@@ -1131,7 +1129,7 @@ PyObject *PyHrGetOneProp(PyObject *self, PyObject *args)
 		return NULL;
 		
 	if (!PyCom_InterfaceFromPyObject(obProp, IID_IMAPIProp, (void **)&pProp, FALSE))
-		goto done;
+		if (pProp) pProp->Release();
 
 	{
 		PY_INTERFACE_PRECALL;
@@ -1141,10 +1139,10 @@ PyObject *PyHrGetOneProp(PyObject *self, PyObject *args)
 	if (FAILED(hRes))
 	{
 		OleSetOleError(hRes);
-		goto done;
+		if (pProp) pProp->Release();
 	}
 	if ((ret = PyMAPIObject_FromSPropValue(pPV)) == NULL)
-		goto done;
+		MAPIFreeBuffer(pPV);
 	
 	// PyMAPIObject_FromSPropValue does not raise an exception for types
 	// it cannot handle so that GetProps doesn't blow up. Since we are processing
@@ -1153,15 +1151,12 @@ PyObject *PyHrGetOneProp(PyObject *self, PyObject *args)
 		PyLong_AsUnsignedLong(PyTuple_GET_ITEM(ret, 0)) != PT_NULL)
 	{
 		char buf[128];
-		sprintf(buf, "Unsupported MAPI property type 0x%X", PROP_TYPE(pPV->ulPropTag));
+		sprintf(buf, "Unsupported MAPI property type 0x%lu", PROP_TYPE(pPV->ulPropTag));
 		PyErr_SetString(PyExc_TypeError, buf);
 		Py_DECREF(ret);
 		ret = NULL;
 	}
-done:
-	if (pProp) pProp->Release();
-	MAPIFreeBuffer(pPV);
-	
+
 	return ret;
 }
 %}
@@ -1174,6 +1169,7 @@ PyObject *PyHrSetOneProp(PyObject *self, PyObject *args)
 	HRESULT hRes;
 	PyObject *obProp;
 	PyObject *obPropValue;
+	ULONG propTag;
 	IMAPIProp *pProp = NULL;
 	PyObject *ret = NULL;
 	SPropValue *pPV = NULL;
@@ -1184,14 +1180,14 @@ PyObject *PyHrSetOneProp(PyObject *self, PyObject *args)
 		return NULL;
 		
 	if (!PyCom_InterfaceFromPyObject(obProp, IID_IMAPIProp, (void **)&pProp, FALSE))
-		goto done;
+		if (pProp) pProp->Release();
 	if (S_OK != (hRes=MAPIAllocateBuffer(sizeof(SPropValue), (void **)&pPV)))
 	{
 		OleSetOleError(hRes);
-		goto done;
+		MAPIFreeBuffer(pPV);
 	}
 	if (!PyMAPIObject_AsSPropValue(obPropValue, pPV, pPV))
-		goto done;
+		MAPIFreeBuffer(pPV);
 
 	{
 		PY_INTERFACE_PRECALL;
@@ -1201,13 +1197,10 @@ PyObject *PyHrSetOneProp(PyObject *self, PyObject *args)
 	if (FAILED(hRes))
 	{
 		OleSetOleError(hRes);
-		goto done;
+		if (pProp) pProp->Release();
 	}
 	Py_INCREF(Py_None);
 	ret = Py_None;
-done:
-	if (pProp) pProp->Release();
-	MAPIFreeBuffer(pPV);
 	
 	return ret;
 }

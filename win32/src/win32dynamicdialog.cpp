@@ -54,7 +54,7 @@
 #endif
 
 #include "win32dynamicdialog.h"
-static void DwordAlign(PCHAR *ptr)
+void DwordAlign(PCHAR *ptr)
 {
     size_t offset = ((ULONG_PTR)*ptr) & 0x03;
     if (offset > 0) {

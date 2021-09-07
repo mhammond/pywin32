@@ -23,7 +23,7 @@ class CControlBlock {
     // wrappers for IIS ECB structures
     void SetStatus(const DWORD status) { m_pECB->dwHttpStatusCode = status; }
 
-    void SetLogMessage(const char *msg) { strncpy(m_pECB->lpszLogData, msg, HSE_LOG_BUFFER_LEN); }
+    void SetLogMessage(const char *msg) { strncpy(m_pECB->lpszLogData, msg, HSE_LOG_BUFFER_LEN-1); }
 
     DWORD WriteStream(char *buffer, const int buffLen, const int reserved = 0)
     {

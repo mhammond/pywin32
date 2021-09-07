@@ -69,10 +69,10 @@ BOOL MappingManager::Init(const TCHAR *szServiceName, const TCHAR *szMappingName
     m_pControl->ControlSize = sizeof(MappingManagerControlData);
     m_pControl->TotalSize = sizeof(MappingManagerControlData);
     _tcsncpy(m_pControl->ServiceName, szServiceName, MMCD_SERVICE_SIZE);
-    m_pControl->ServiceName[MMCD_SERVICE_SIZE] = _T('\0');
+    m_pControl->ServiceName[MMCD_SERVICE_SIZE/sizeof(TCHAR)] = _T('\0');
 
     _tcsncpy(m_pControl->EventSourceName, szEventSourceName, MMCD_EVENTSOURCE_SIZE);
-    m_pControl->EventSourceName[MMCD_EVENTSOURCE_SIZE] = _T('\0');
+    m_pControl->EventSourceName[MMCD_EVENTSOURCE_SIZE/sizeof(TCHAR)] = _T('\0');
     m_pControl->supplierStatus = SupplierStatusRunning;
     return TRUE;
 }

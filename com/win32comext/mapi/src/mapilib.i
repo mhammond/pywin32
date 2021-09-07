@@ -7,6 +7,29 @@
 typedef unsigned long BOOKMARK;
 %apply unsigned long {BOOKMARK};
 
+typedef IID IID;
+typedef MAPIUID MAPIUID;
+typedef MAPIINIT_0 MAPIINIT_0;
+typedef IMAPISession IMAPISession;
+typedef IMAPITable IMAPITable;
+typedef IMAPIProp IMAPIProp;
+typedef IMAPIFolder IMAPIFolder;
+typedef IMAPIProgress IMAPIProgress;
+typedef IMAPIAdviseSink IMAPIAdviseSink;
+typedef IAddrBook IAddrBook;
+typedef IAttach IAttach;
+typedef IProfAdmin IProfAdmin;
+typedef IProfSect IProfSect;
+typedef IProviderAdmin IProviderAdmin;
+typedef IMsgServiceAdmin IMsgServiceAdmin;
+typedef IStream IStream;
+typedef IMessage IMessage;
+typedef IMsgStore IMsgStore;
+typedef SRowSet SRowSet;
+typedef SPropTagArray SPropTagArray;
+typedef SRestriction SRestriction;
+typedef SSortOrderSet SSortOrderSet;
+typedef SBinaryArray SBinaryArray;
 // A MAPIUID is close enough to an IID for now!
 %typemap(python,in) MAPIUID *INPUT(MAPIUID temp)
 {

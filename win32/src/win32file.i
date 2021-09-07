@@ -73,6 +73,9 @@
 %include "typemaps.i"
 %include "pywin32.i"
 
+%typedef DCB DCB;
+%typedef COMMTIMEOUTS COMMTIMEOUTS;
+
 %{
 
 #include "datetime.h" // python's datetime header.
@@ -753,8 +756,8 @@ static PyObject *PySetFileTime (PyObject *self, PyObject *args, PyObject *kwargs
 		&obHandle, &obCreationTime, &obLastAccessTime, &obLastWriteTime, &UTCTimes))
 		return NULL;
 
-    if (!PyWinObject_AsHANDLE(obHandle, &hHandle))
-        return NULL;
+	if (!PyWinObject_AsHANDLE(obHandle, &hHandle))
+		return NULL;
 	if (obCreationTime != Py_None){
 		if (!PyWinObject_AsFILETIME(obCreationTime, &FileTime))
 			return NULL;
@@ -3540,7 +3543,7 @@ BOOL PyWinObject_AsPENCRYPTION_CERTIFICATE_LIST(PyObject *obcert_list, PENCRYPTI
 	ppec=(PENCRYPTION_CERTIFICATE *)malloc(cert_cnt*sizeof(PENCRYPTION_CERTIFICATE));
 	if (ppec==NULL){
 		PyErr_SetString(PyExc_MemoryError,"PyWinObject_AsENCRYPTION_CERTIFICATE_LIST: unable to allocate hash list");
-		return NULL;
+		return FALSE;
 		}
 	ZeroMemory(ppec,cert_cnt*sizeof(PENCRYPTION_CERTIFICATE));
 	pecl->pUsers=ppec;
@@ -5390,8 +5393,7 @@ static PyObject *py_GetFullPathName(PyObject *self, PyObject *args, PyObject *kw
 	if (!PyWinObject_AsHANDLE(obtrans, &htrans))
 		return NULL;
 
-	WCHAR *wpathin;
-	if (wpathin=PyUnicode_AsUnicode(obpathin)){
+	if (WCHAR *wpathin=PyUnicode_AsUnicode(obpathin)){
 		if (htrans)
 			CHECK_PFN(GetFullPathNameTransactedW);
 		WCHAR *wpathret=NULL, *wfilepart, *wpathsave=NULL;
@@ -5429,8 +5431,7 @@ static PyObject *py_GetFullPathName(PyObject *self, PyObject *args, PyObject *kw
 		}
 
 	PyErr_Clear();
-	char *cpathin;
-	if (cpathin=PyBytes_AsString(obpathin)){
+	if (char *cpathin=PyBytes_AsString(obpathin)){
 		if (htrans)
 			CHECK_PFN(GetFullPathNameTransactedA);
 		char *cpathret=NULL, *cfilepart, *cpathsave=NULL;

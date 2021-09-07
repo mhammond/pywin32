@@ -30,24 +30,24 @@ PyIMAPIContainer::~PyIMAPIContainer()
 // @pyswig <o PyIInterface>|OpenEntry|Opens an object and returns an interface object for further access. 
 PyObject *PyIMAPIContainer::OpenEntry(PyObject *self, PyObject *args) 
 {
-    HRESULT  _result;
-    char * entryString;
+	HRESULT  _result;
+	char * entryString;
 	int entryStrLen;
-    IID iid;
+	IID iid;
 	IID *pIID;
-    PyObject * objIID = 0;
-    unsigned long  flags;
-    IUnknown * pUnk = NULL;
+	PyObject * objIID = 0;
+	unsigned long  flags;
+	IUnknown * pUnk = NULL;
 	ULONG resType;
 	PyObject *obEntry;
 
 	IMAPIContainer *_swig_self;
 	if ((_swig_self=GetI(self))==NULL) return NULL;
-    // @pyparm string|entryId||The EntryID to open.
-    // @pyparm <o PyIID>|iid||The IID of the returned interface, or None for the default interface.
-    // @pyparm int|flags||Flags for the call.  May include MAPI_BEST_ACCESS, MAPI_DEFERRED_ERRORS, MAPI_MODIFY and possibly others (see the MAPI documentation)
-    if(!PyArg_ParseTuple(args,"OOl:OpenEntry",&obEntry, &objIID,&flags)) 
-        return NULL;
+	// @pyparm string|entryId||The EntryID to open.
+	// @pyparm <o PyIID>|iid||The IID of the returned interface, or None for the default interface.
+	// @pyparm int|flags||Flags for the call.  May include MAPI_BEST_ACCESS, MAPI_DEFERRED_ERRORS, MAPI_MODIFY and possibly others (see the MAPI documentation)
+	if(!PyArg_ParseTuple(args,"OOl:OpenEntry",&obEntry, &objIID,&flags)) 
+		return NULL;
 	if (obEntry==Py_None) {
 		entryString = NULL;
 		entryStrLen = 0;
@@ -66,12 +66,12 @@ PyObject *PyIMAPIContainer::OpenEntry(PyObject *self, PyObject *args)
 			return NULL;
 	}
 	Py_BEGIN_ALLOW_THREADS
-     _result = (HRESULT )_swig_self->OpenEntry(entryStrLen,(ENTRYID *)entryString,pIID,flags, &resType, &pUnk);
+	_result = (HRESULT )_swig_self->OpenEntry(entryStrLen,(ENTRYID *)entryString,pIID,flags, &resType, &pUnk);
 	Py_END_ALLOW_THREADS
-     if (FAILED(_result)) {
-           return OleSetOleError(_result);
-     }
-	 return PyMAPIObject_FromTypedUnknown( resType, pUnk, FALSE /*bAddRef*/);
+	if (FAILED(_result)) {
+		return OleSetOleError(_result);
+	}
+	return PyMAPIObject_FromTypedUnknown( resType, pUnk, FALSE /*bAddRef*/);
 }
 
 

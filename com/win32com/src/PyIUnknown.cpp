@@ -31,7 +31,11 @@ PyObject *PyIUnknown::repr()
 {
     // @comm The repr of this object displays both the object's address, and its attached IUnknown's address
     char buf[256];
+#ifdef _MSC_VER
     _snprintf(buf, 256, "<%hs at 0x%0lp with obj at 0x%0lp>", ob_type->tp_name, this, m_obj);
+#else
+    _snprintf(buf, 256, "<%s at 0x%p with obj at 0x%p>", ob_type->tp_name, this, m_obj);
+#endif
 #if (PY_VERSION_HEX < 0x03000000)
     return PyBytes_FromString(buf);
 #else
@@ -87,7 +91,7 @@ PyBytes_AsString(((PyInstanceObject *)ob)->in_class->cl_name));
                                 }
                             }
 
-                            /* successful QI; need to release it
+                            // successful QI; need to release it
                             pdisp->Release();
                         }
                     }

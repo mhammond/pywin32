@@ -212,7 +212,7 @@ int PyOVERLAPPED::setattro(PyObject *self, PyObject *obname, PyObject *v)
     }
     char *name = PYWIN_ATTR_CONVERT(obname);
     if (name == NULL)
-        return NULL;
+        return 0;
     if (strcmp("hEvent", name) == 0) {
         PyOVERLAPPED *pO = (PyOVERLAPPED *)self;
         // Use an intermediate so the original isn't lost if conversion fails

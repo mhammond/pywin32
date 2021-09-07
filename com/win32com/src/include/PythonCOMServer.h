@@ -29,7 +29,7 @@ HRESULT PyCom_MakeRegisteredGatewayObject(REFIID iid, PyObject *instance, PyGate
 // other than IUnknown
 #define PYGATEWAY_MAKE_SUPPORT2(classname, IInterface, theIID, gatewaybaseclass)                                 \
    public:                                                                                                       \
-    static HRESULT classname::PyGatewayConstruct(PyObject *pPyInstance, PyGatewayBase *unkBase, void **ppResult, \
+    static HRESULT PyGatewayConstruct(PyObject *pPyInstance, PyGatewayBase *unkBase, void **ppResult, \
                                                  REFIID iid)                                                     \
     {                                                                                                            \
         if (ppResult == NULL)                                                                                    \
@@ -46,7 +46,7 @@ HRESULT PyCom_MakeRegisteredGatewayObject(REFIID iid, PyObject *instance, PyGate
     virtual IID GetIID(void) { return theIID; }                                                                  \
     virtual void *ThisAsIID(IID iid)                                                                             \
     {                                                                                                            \
-        if (this == NULL)                                                                                        \
+        if (ThisAsIID(iid) == NULL)                                                                                        \
             return NULL;                                                                                         \
         if (iid == theIID)                                                                                       \
             return (IInterface *)this;                                                                           \
@@ -134,7 +134,7 @@ class PYCOM_EXPORT PyGatewayBase :
 
     // Basically just PYGATEWAY_MAKE_SUPPORT(PyGatewayBase, IDispatch, IID_IDispatch);
     // but with special handling as its the base class.
-    static HRESULT PyGatewayBase::PyGatewayConstruct(PyObject *pPyInstance, PyGatewayBase *gatewayBase, void **ppResult,
+    static HRESULT PyGatewayConstruct(PyObject *pPyInstance, PyGatewayBase *gatewayBase, void **ppResult,
                                                      REFIID iid)
     {
         if (ppResult == NULL)

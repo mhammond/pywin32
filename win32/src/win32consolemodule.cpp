@@ -1,4 +1,5 @@
 // @doc
+#undef _WIN32_WINNT
 #define _WIN32_WINNT 0x501
 #include "PyWinTypes.h"
 #include "PyWinObjects.h"
@@ -1296,6 +1297,7 @@ PyObject *PyConsoleScreenBuffer::PyScrollConsoleScreenBuffer(PyObject *self, PyO
         PyWinObject_AsSMALL_RECT(obcliprect, &pcliprect, TRUE) &&
         PyWinObject_AsCOORD(obdestcoord, &pdestcoord, FALSE) &&
         PyWinObject_AsSingleWCHAR(obfillchar, &char_info.Char.UnicodeChar))
+    {
         if (!ScrollConsoleScreenBuffer(((PyConsoleScreenBuffer *)self)->m_handle, pscrollrect, pcliprect, *pdestcoord,
                                        &char_info))
             PyWin_SetAPIError("ScrollConsoleScreenBuffer");
@@ -1303,6 +1305,7 @@ PyObject *PyConsoleScreenBuffer::PyScrollConsoleScreenBuffer(PyObject *self, PyO
             Py_INCREF(Py_None);
             return Py_None;
         }
+    }
     return NULL;
 }
 
@@ -1814,12 +1817,14 @@ static PyObject *PyAddConsoleAlias(PyObject *self, PyObject *args, PyObject *kwa
     CHECK_PFN(AddConsoleAlias);
     if (PyWinObject_AsWCHAR(obsource, &source, FALSE) && PyWinObject_AsWCHAR(obtarget, &target, TRUE) &&
         PyWinObject_AsWCHAR(obexename, &exename, FALSE))
+    {
         if (!(*pfnAddConsoleAlias)(source, target, exename))
             PyWin_SetAPIError("AddConsoleAlias");
         else {
             Py_INCREF(Py_None);
             ret = Py_None;
         }
+    }
     PyWinObject_FreeWCHAR(source);
     PyWinObject_FreeWCHAR(target);
     PyWinObject_FreeWCHAR(exename);

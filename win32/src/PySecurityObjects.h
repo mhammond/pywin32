@@ -118,7 +118,7 @@ class PYWINTYPES_EXPORT PySID : public PyObject {
     static PyObject *GetSubAuthorityCount(PyObject *self, PyObject *args);
     static PyObject *GetSubAuthority(PyObject *self, PyObject *args);
     static PyObject *GetSidIdentifierAuthority(PyObject *self, PyObject *args);
-    static struct PyMethodDef PySID::methods[];
+    static struct PyMethodDef methods[];
 
    protected:
     PSID m_psid;
@@ -155,7 +155,7 @@ class PYWINTYPES_EXPORT PyACL : public PyObject {
     /* Python support */
     int compare(PyObject *ob);
     static void deallocFunc(PyObject *ob);
-    static struct PyMethodDef PyACL::methods[];
+    static struct PyMethodDef methods[];
 
     static PyObject *Initialize(PyObject *self, PyObject *args);
     static PyObject *IsValid(PyObject *self, PyObject *args);

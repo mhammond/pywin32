@@ -110,7 +110,7 @@ BOOL PyObject_AsDVTARGETDEVICE(PyObject *ob, DVTARGETDEVICE **ppTD)
     BOOL ok = FALSE;
     if (!PyArg_ParseTuple(ob, "OOOO:DVTARGETDEVICE tuple", &obDriverName, &obDeviceName, &obPortName,
                           &obExtDevmodeOffset))
-        return NULL;
+        return FALSE;
     if (!PyWinObject_AsBstr(obDriverName, &bstrDriverName))
         goto done;
     if (!PyWinObject_AsBstr(obDeviceName, &bstrDeviceName))

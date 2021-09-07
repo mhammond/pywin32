@@ -1,4 +1,5 @@
 // @doc
+#undef _WIN32_WINNT
 #define _WIN32_WINNT 0x501  // Credentials functions only available on WinXP
 #include "PyWinTypes.h"
 #include "PyWinObjects.h"

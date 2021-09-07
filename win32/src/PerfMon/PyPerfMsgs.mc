@@ -86,3 +86,4 @@ The collection DLL and application have mismatched structure sizes.  The version
 .
 ;//
 ;#endif // _PYPERFMSG_H_
+
