@@ -7,18 +7,18 @@ from distutils.core import setup, Extension
 from sysconfig import get_paths
 
 sources = ["win32_extension.cpp"]
-libdir = sysconfig.get_paths()["platlib"]
+lib_dir = get_paths()["platlib"]
 
 # Specify the directory where the PyWin32 .h and .lib files are installed.
 # If you are doing a win32com extension, you will also need to add
 # win32com\Include and win32com\Libs.
 ext = Extension("win32_extension", sources,
-                include_dirs = [lib_dir, "win32", "include")],
-                library_dirs = [lib_dir, "win32", "libs")],
+                include_dirs = [os.path.join(lib_dir, "win32", "include")],
+                library_dirs = [os.path.join(lib_dir, "win32", "libs")],
                 )
 
 setup(
-    name="win32 extension sample", 
+    name="win32 extension sample",
     version="0.1",
     ext_modules=[ext],
 )
