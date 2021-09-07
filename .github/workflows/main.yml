@@ -63,3 +63,11 @@ jobs:
       with:
         name: wheels
         path: dist/*.whl
+
+  black:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: psf/black@stable
+        with:
+          options: "--fast --check --diff --verbose"
