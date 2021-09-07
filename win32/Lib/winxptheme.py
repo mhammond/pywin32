@@ -9,6 +9,7 @@ including real implementations of IsAppThemed() and IsThemeActive().
 """
 
 import win32api
+
 try:
     win32api.FreeLibrary(win32api.LoadLibrary("Uxtheme.dll"))
     # Life is good, everything is available.
@@ -17,7 +18,9 @@ except win32api.error:
     # Probably not running XP.
     def IsAppThemed():
         return False
+
     def IsThemeActive():
         return False
+
 
 del win32api

@@ -19,6 +19,7 @@
 from isapi import isapicon, threaded_extension
 import sys
 import traceback
+
 try:
     from urllib.request import urlopen
 except ImportError:
@@ -42,19 +43,23 @@ excludes = ["/iisstart.htm", "/welcome.png"]
 def io_callback(ecb, url, cbIO, errcode):
     # Get the status of our ExecURL
     httpstatus, substatus, win32 = ecb.GetExecURLStatus()
-    print("ExecURL of %r finished with http status %d.%d, win32 status %d (%s)" % (
-           url, httpstatus, substatus, win32, win32api.FormatMessage(win32).strip()))
+    print(
+        "ExecURL of %r finished with http status %d.%d, win32 status %d (%s)"
+        % (url, httpstatus, substatus, win32, win32api.FormatMessage(win32).strip())
+    )
     # nothing more to do!
     ecb.DoneWithSession()
+
 
 # The ISAPI extension - handles all requests in the site.
 class Extension(threaded_extension.ThreadPoolExtension):
     "Python sample Extension"
+
     def Dispatch(self, ecb):
         # Note that our ThreadPoolExtension base class will catch exceptions
         # in our Dispatch method, and write the traceback to the client.
         # That is perfect for this sample, so we don't catch our own.
-        #print 'IIS dispatching "%s"' % (ecb.GetServerVariable("URL"),)
+        # print 'IIS dispatching "%s"' % (ecb.GetServerVariable("URL"),)
         url = ecb.GetServerVariable("URL").decode("ascii")
         for exclude in excludes:
             if url.lower().startswith(exclude):
@@ -63,47 +68,56 @@ class Extension(threaded_extension.ThreadPoolExtension):
                     print("(but this is IIS5 or earlier - can't do 'excludes')")
                 else:
                     ecb.IOCompletion(io_callback, url)
-                    ecb.ExecURL(None, None, None, None, None, isapicon.HSE_EXEC_URL_IGNORE_CURRENT_INTERCEPTOR)
+                    ecb.ExecURL(
+                        None,
+                        None,
+                        None,
+                        None,
+                        None,
+                        isapicon.HSE_EXEC_URL_IGNORE_CURRENT_INTERCEPTOR,
+                    )
                     return isapicon.HSE_STATUS_PENDING
 
         new_url = proxy + url
         print("Opening %s" % new_url)
         fp = urlopen(new_url)
         headers = fp.info()
-        # subtle py3k breakage: in py3k, str(headers) has normalized \r\n 
+        # subtle py3k breakage: in py3k, str(headers) has normalized \r\n
         # back to \n and also stuck an extra \n term.  py2k leaves the
         # \r\n from the server in tact and finishes with a single term.
-        if sys.version_info < (3,0):
+        if sys.version_info < (3, 0):
             header_text = str(headers) + "\r\n"
         else:
             # take *all* trailing \n off, replace remaining with
             # \r\n, then add the 2 trailing \r\n.
-            header_text = str(headers).rstrip('\n').replace('\n', '\r\n') + '\r\n\r\n'
+            header_text = str(headers).rstrip("\n").replace("\n", "\r\n") + "\r\n\r\n"
         ecb.SendResponseHeaders("200 OK", header_text, False)
         ecb.WriteClient(fp.read())
         ecb.DoneWithSession()
         print("Returned data from '%s'" % (new_url,))
         return isapicon.HSE_STATUS_SUCCESS
 
+
 # The entry points for the ISAPI extension.
 def __ExtensionFactory__():
     return Extension()
 
-if __name__=='__main__':
+
+if __name__ == "__main__":
     # If run from the command-line, install ourselves.
     from isapi.install import *
+
     params = ISAPIParameters()
     # Setup the virtual directories - this is a list of directories our
     # extension uses - in this case only 1.
     # Each extension has a "script map" - this is the mapping of ISAPI
     # extensions.
-    sm = [
-        ScriptMapParams(Extension="*", Flags=0)
-    ]
-    vd = VirtualDirParameters(Name="/",
-                              Description = Extension.__doc__,
-                              ScriptMaps = sm,
-                              ScriptMapUpdate = "replace"
-                              )
+    sm = [ScriptMapParams(Extension="*", Flags=0)]
+    vd = VirtualDirParameters(
+        Name="/",
+        Description=Extension.__doc__,
+        ScriptMaps=sm,
+        ScriptMapUpdate="replace",
+    )
     params.VirtualDirs = [vd]
     HandleCommandLine(params)

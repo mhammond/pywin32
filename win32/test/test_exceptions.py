@@ -5,6 +5,7 @@ import win32api, win32file, pywintypes
 import pythoncom
 import winerror
 
+
 class TestBase(unittest.TestCase):
     def _testExceptionIndex(self, exc, index, expected):
         # check the exception itself can be indexed if not py3k
@@ -12,6 +13,7 @@ class TestBase(unittest.TestCase):
             self.failUnlessEqual(exc[index], expected)
         # and that exception.args can is the same.
         self.failUnlessEqual(exc.args[index], expected)
+
 
 class TestAPISimple(TestBase):
     def _getInvalidHandleException(self):
@@ -44,21 +46,23 @@ class TestAPISimple(TestBase):
         except win32api.error as exc:
             self.failUnlessEqual(exc.winerror, winerror.ERROR_INVALID_HANDLE)
             self.failUnlessEqual(exc.funcname, "CloseHandle")
-            expected_msg = win32api.FormatMessage(winerror.ERROR_INVALID_HANDLE).rstrip()
+            expected_msg = win32api.FormatMessage(
+                winerror.ERROR_INVALID_HANDLE
+            ).rstrip()
             self.failUnlessEqual(exc.strerror, expected_msg)
 
     def testAsStr(self):
         exc = self._getInvalidHandleException()
         err_msg = win32api.FormatMessage(winerror.ERROR_INVALID_HANDLE).rstrip()
         # early on the result actually *was* a tuple - it must always look like one
-        err_tuple = (winerror.ERROR_INVALID_HANDLE, 'CloseHandle', err_msg)
+        err_tuple = (winerror.ERROR_INVALID_HANDLE, "CloseHandle", err_msg)
         self.failUnlessEqual(str(exc), str(err_tuple))
 
     def testAsTuple(self):
         exc = self._getInvalidHandleException()
         err_msg = win32api.FormatMessage(winerror.ERROR_INVALID_HANDLE).rstrip()
         # early on the result actually *was* a tuple - it must be able to be one
-        err_tuple = (winerror.ERROR_INVALID_HANDLE, 'CloseHandle', err_msg)
+        err_tuple = (winerror.ERROR_INVALID_HANDLE, "CloseHandle", err_msg)
         if sys.version_info < (3,):
             self.failUnlessEqual(tuple(exc), err_tuple)
         else:
@@ -81,7 +85,7 @@ class TestAPISimple(TestBase):
         err_msg = win32api.FormatMessage(winerror.ERROR_INVALID_HANDLE).rstrip()
         self.failUnlessEqual(exc.winerror, winerror.ERROR_INVALID_HANDLE)
         self.failUnlessEqual(exc.strerror, err_msg)
-        self.failUnlessEqual(exc.funcname, 'CloseHandle')
+        self.failUnlessEqual(exc.funcname, "CloseHandle")
 
     # some tests for 'insane' args.
     def testStrangeArgsNone(self):
@@ -115,6 +119,7 @@ class TestAPISimple(TestBase):
             self.failUnlessEqual(exc.winerror, "foo")
             self.failUnlessEqual(exc.funcname, "bar")
             self.failUnlessEqual(exc.strerror, "you")
+
 
 class TestCOMSimple(TestBase):
     def _getException(self):
@@ -210,5 +215,6 @@ class TestCOMSimple(TestBase):
             self.failUnlessEqual(exc.excepinfo, "you")
             self.failUnlessEqual(exc.argerror, "never")
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

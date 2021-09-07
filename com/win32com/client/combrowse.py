@@ -29,23 +29,35 @@ import pythoncom
 from win32com.client import util
 from pywin.tools import browser
 
+
 class HLIRoot(browser.HLIPythonObject):
     def __init__(self, title):
         self.name = title
+
     def GetSubList(self):
-        return [HLIHeadingCategory(), HLI_IEnumMoniker(pythoncom.GetRunningObjectTable().EnumRunning(), "Running Objects"), HLIHeadingRegisterdTypeLibs()]
+        return [
+            HLIHeadingCategory(),
+            HLI_IEnumMoniker(
+                pythoncom.GetRunningObjectTable().EnumRunning(), "Running Objects"
+            ),
+            HLIHeadingRegisterdTypeLibs(),
+        ]
+
     def __cmp__(self, other):
         return cmp(self.name, other.name)
+
 
 class HLICOM(browser.HLIPythonObject):
     def GetText(self):
         return self.name
+
     def CalculateIsExpandable(self):
         return 1
 
+
 class HLICLSID(HLICOM):
-    def __init__(self, myobject, name=None ):
-        if type(myobject)==type(''):
+    def __init__(self, myobject, name=None):
+        if type(myobject) == type(""):
             myobject = pythoncom.MakeIID(myobject)
         if name is None:
             try:
@@ -54,25 +66,32 @@ class HLICLSID(HLICOM):
                 name = str(myobject)
             name = "IID: " + name
         HLICOM.__init__(self, myobject, name)
+
     def CalculateIsExpandable(self):
         return 0
+
     def GetSubList(self):
         return []
+
 
 class HLI_Interface(HLICOM):
     pass
 
+
 class HLI_Enum(HLI_Interface):
     def GetBitmapColumn(self):
-        return 0 # Always a folder.
+        return 0  # Always a folder.
+
     def CalculateIsExpandable(self):
         if self.myobject is not None:
-            rc = len(self.myobject.Next(1))>0
+            rc = len(self.myobject.Next(1)) > 0
             self.myobject.Reset()
         else:
             rc = 0
         return rc
+
     pass
+
 
 class HLI_IEnumMoniker(HLI_Enum):
     def GetSubList(self):
@@ -82,6 +101,7 @@ class HLI_IEnumMoniker(HLI_Enum):
             ret.append(HLI_IMoniker(mon, mon.GetDisplayName(ctx, None)))
         return ret
 
+
 class HLI_IMoniker(HLI_Interface):
     def GetSubList(self):
         ret = []
@@ -90,47 +110,67 @@ class HLI_IMoniker(HLI_Interface):
         ret.append(HLI_IEnumMoniker(subenum, "Sub Monikers"))
         return ret
 
+
 class HLIHeadingCategory(HLICOM):
     "A tree heading for registered categories"
+
     def GetText(self):
         return "Registered Categories"
+
     def GetSubList(self):
-        catinf=pythoncom.CoCreateInstance(pythoncom.CLSID_StdComponentCategoriesMgr,None,pythoncom.CLSCTX_INPROC,pythoncom.IID_ICatInformation)
-        enum=util.Enumerator(catinf.EnumCategories())
+        catinf = pythoncom.CoCreateInstance(
+            pythoncom.CLSID_StdComponentCategoriesMgr,
+            None,
+            pythoncom.CLSCTX_INPROC,
+            pythoncom.IID_ICatInformation,
+        )
+        enum = util.Enumerator(catinf.EnumCategories())
         ret = []
         try:
             for catid, lcid, desc in enum:
                 ret.append(HLICategory((catid, lcid, desc)))
         except pythoncom.com_error:
             # Registered categories occasionally seem to give spurious errors.
-            pass # Use what we already have.
+            pass  # Use what we already have.
         return ret
+
 
 class HLICategory(HLICOM):
     "An actual Registered Category"
+
     def GetText(self):
-        desc =  self.myobject[2]
-        if not desc: desc = "(unnamed category)"
+        desc = self.myobject[2]
+        if not desc:
+            desc = "(unnamed category)"
         return desc
+
     def GetSubList(self):
         win32ui.DoWaitCursor(1)
         catid, lcid, desc = self.myobject
-        catinf=pythoncom.CoCreateInstance(pythoncom.CLSID_StdComponentCategoriesMgr,None,pythoncom.CLSCTX_INPROC,pythoncom.IID_ICatInformation)
+        catinf = pythoncom.CoCreateInstance(
+            pythoncom.CLSID_StdComponentCategoriesMgr,
+            None,
+            pythoncom.CLSCTX_INPROC,
+            pythoncom.IID_ICatInformation,
+        )
         ret = []
-        for clsid in util.Enumerator(catinf.EnumClassesOfCategories((catid,),())):
+        for clsid in util.Enumerator(catinf.EnumClassesOfCategories((catid,), ())):
             ret.append(HLICLSID(clsid))
         win32ui.DoWaitCursor(0)
 
         return ret
 
+
 class HLIHelpFile(HLICOM):
     def CalculateIsExpandable(self):
         return 0
+
     def GetText(self):
         import os
+
         fname, ctx = self.myobject
         base = os.path.split(fname)[1]
-        return "Help reference in %s" %( base)
+        return "Help reference in %s" % (base)
 
     def TakeDefaultAction(self):
         fname, ctx = self.myobject
@@ -139,16 +179,21 @@ class HLIHelpFile(HLICOM):
         else:
             cmd = win32con.HELP_FINDER
         win32api.WinHelp(win32ui.GetMainFrame().GetSafeHwnd(), fname, cmd, ctx)
+
     def GetBitmapColumn(self):
         return 6
+
 
 class HLIRegisteredTypeLibrary(HLICOM):
     def GetSubList(self):
         import os
+
         clsidstr, versionStr = self.myobject
         collected = []
         helpPath = ""
-        key = win32api.RegOpenKey(win32con.HKEY_CLASSES_ROOT, "TypeLib\\%s\\%s" % (clsidstr, versionStr))
+        key = win32api.RegOpenKey(
+            win32con.HKEY_CLASSES_ROOT, "TypeLib\\%s\\%s" % (clsidstr, versionStr)
+        )
         win32ui.DoWaitCursor(1)
         try:
             num = 0
@@ -164,9 +209,9 @@ class HLIRegisteredTypeLibrary(HLICOM):
                         value = win32api.ExpandEnvironmentStrings(value)
                 except win32api.error:
                     value = ""
-                if subKey=="HELPDIR":
+                if subKey == "HELPDIR":
                     helpPath = value
-                elif subKey=="Flags":
+                elif subKey == "Flags":
                     flags = value
                 else:
                     try:
@@ -197,19 +242,21 @@ class HLIRegisteredTypeLibrary(HLICOM):
             win32api.RegCloseKey(key)
         # Now, loop over my collected objects, adding a TypeLib and a HelpFile
         ret = []
-#               if helpPath: ret.append(browser.MakeHLI(helpPath, "Help Path"))
+        #               if helpPath: ret.append(browser.MakeHLI(helpPath, "Help Path"))
         ret.append(HLICLSID(clsidstr))
         for lcid, platform, fname in collected:
             extraDescs = []
-            if platform!="win32":
+            if platform != "win32":
                 extraDescs.append(platform)
             if lcid:
-                extraDescs.append("locale=%s"%lcid)
+                extraDescs.append("locale=%s" % lcid)
             extraDesc = ""
-            if extraDescs: extraDesc = " (%s)" % ", ".join(extraDescs)
+            if extraDescs:
+                extraDesc = " (%s)" % ", ".join(extraDescs)
             ret.append(HLITypeLib(fname, "Type Library" + extraDesc))
         ret.sort()
         return ret
+
 
 class HLITypeLibEntry(HLICOM):
     def GetText(self):
@@ -220,13 +267,17 @@ class HLITypeLibEntry(HLICOM):
         except KeyError:
             typedesc = "Unknown!"
         return name + " - " + typedesc
+
     def GetSubList(self):
         tlb, index = self.myobject
         name, doc, ctx, helpFile = tlb.GetDocumentation(index)
         ret = []
-        if doc: ret.append(browser.HLIDocString(doc, "Doc"))
-        if helpFile: ret.append(HLIHelpFile(    (helpFile, ctx) ))
+        if doc:
+            ret.append(browser.HLIDocString(doc, "Doc"))
+        if helpFile:
+            ret.append(HLIHelpFile((helpFile, ctx)))
         return ret
+
 
 class HLICoClass(HLITypeLibEntry):
     def GetSubList(self):
@@ -238,14 +289,17 @@ class HLICoClass(HLITypeLibEntry):
             flags = typeinfo.GetImplTypeFlags(j)
             refType = typeinfo.GetRefTypeInfo(typeinfo.GetRefTypeOfImplType(j))
             refAttr = refType.GetTypeAttr()
-            ret.append(browser.MakeHLI(refAttr[0], "Name=%s, Flags = %d" % (refAttr[0], flags)))
+            ret.append(
+                browser.MakeHLI(refAttr[0], "Name=%s, Flags = %d" % (refAttr[0], flags))
+            )
         return ret
 
 
 class HLITypeLibMethod(HLITypeLibEntry):
-    def __init__(self, ob, name = None):
+    def __init__(self, ob, name=None):
         self.entry_type = "Method"
         HLITypeLibEntry.__init__(self, ob, name)
+
     def GetSubList(self):
         ret = HLITypeLibEntry.GetSubList(self)
         tlb, index = self.myobject
@@ -257,6 +311,7 @@ class HLITypeLibMethod(HLITypeLibEntry):
             ret.append(HLITypeLibFunction((typeinfo, i)))
         return ret
 
+
 class HLITypeLibEnum(HLITypeLibEntry):
     def __init__(self, myitem):
         typelib, index = myitem
@@ -264,8 +319,10 @@ class HLITypeLibEnum(HLITypeLibEntry):
         self.id = typeinfo.GetVarDesc(index)[0]
         name = typeinfo.GetNames(self.id)[0]
         HLITypeLibEntry.__init__(self, myitem, name)
+
     def GetText(self):
         return self.name + " - Enum/Module"
+
     def GetSubList(self):
         ret = []
         typelib, index = self.myobject
@@ -277,19 +334,22 @@ class HLITypeLibEnum(HLITypeLibEntry):
             ret.append(browser.MakeHLI(vdesc[1], name))
         return ret
 
+
 class HLITypeLibProperty(HLICOM):
     def __init__(self, myitem):
         typeinfo, index = myitem
         self.id = typeinfo.GetVarDesc(index)[0]
         name = typeinfo.GetNames(self.id)[0]
         HLICOM.__init__(self, myitem, name)
+
     def GetText(self):
         return self.name + " - Property"
+
     def GetSubList(self):
         ret = []
         typeinfo, index = self.myobject
         names = typeinfo.GetNames(self.id)
-        if len(names)>1:
+        if len(names) > 1:
             ret.append(browser.MakeHLI(names[1:], "Named Params"))
         vd = typeinfo.GetVarDesc(index)
         ret.append(browser.MakeHLI(self.id, "Dispatch ID"))
@@ -299,73 +359,79 @@ class HLITypeLibProperty(HLICOM):
         ret.append(browser.MakeHLI(vd[4], "Var Kind"))
         return ret
 
-class HLITypeLibFunction(HLICOM):
-    funckinds = {pythoncom.FUNC_VIRTUAL : "Virtual",
-                 pythoncom.FUNC_PUREVIRTUAL : "Pure Virtual",
-                 pythoncom.FUNC_STATIC : "Static",
-                 pythoncom.FUNC_DISPATCH : "Dispatch",
-            }
-    invokekinds = {pythoncom.INVOKE_FUNC: "Function",
-                 pythoncom.INVOKE_PROPERTYGET : "Property Get",
-                 pythoncom.INVOKE_PROPERTYPUT : "Property Put",
-                 pythoncom.INVOKE_PROPERTYPUTREF : "Property Put by reference",
-            }
-    funcflags = [(pythoncom.FUNCFLAG_FRESTRICTED, "Restricted"),
-               (pythoncom.FUNCFLAG_FSOURCE, "Source"),
-               (pythoncom.FUNCFLAG_FBINDABLE, "Bindable"),
-               (pythoncom.FUNCFLAG_FREQUESTEDIT, "Request Edit"),
-               (pythoncom.FUNCFLAG_FDISPLAYBIND, "Display Bind"),
-               (pythoncom.FUNCFLAG_FDEFAULTBIND, "Default Bind"),
-               (pythoncom.FUNCFLAG_FHIDDEN, "Hidden"),
-               (pythoncom.FUNCFLAG_FUSESGETLASTERROR, "Uses GetLastError"),
-               ]
 
-    vartypes = {pythoncom.VT_EMPTY: "Empty",
-            pythoncom.VT_NULL: "NULL",
-            pythoncom.VT_I2: "Integer 2",
-            pythoncom.VT_I4: "Integer 4",
-            pythoncom.VT_R4: "Real 4",
-            pythoncom.VT_R8: "Real 8",
-            pythoncom.VT_CY: "CY",
-            pythoncom.VT_DATE: "Date",
-            pythoncom.VT_BSTR: "String",
-            pythoncom.VT_DISPATCH: "IDispatch",
-            pythoncom.VT_ERROR: "Error",
-            pythoncom.VT_BOOL: "BOOL",
-            pythoncom.VT_VARIANT: "Variant",
-            pythoncom.VT_UNKNOWN: "IUnknown",
-            pythoncom.VT_DECIMAL: "Decimal",
-            pythoncom.VT_I1: "Integer 1",
-            pythoncom.VT_UI1: "Unsigned integer 1",
-            pythoncom.VT_UI2: "Unsigned integer 2",
-            pythoncom.VT_UI4: "Unsigned integer 4",
-            pythoncom.VT_I8: "Integer 8",
-            pythoncom.VT_UI8: "Unsigned integer 8",
-            pythoncom.VT_INT: "Integer",
-            pythoncom.VT_UINT: "Unsigned integer",
-            pythoncom.VT_VOID: "Void",
-            pythoncom.VT_HRESULT: "HRESULT",
-            pythoncom.VT_PTR: "Pointer",
-            pythoncom.VT_SAFEARRAY: "SafeArray",
-            pythoncom.VT_CARRAY: "C Array",
-            pythoncom.VT_USERDEFINED: "User Defined",
-            pythoncom.VT_LPSTR: "Pointer to string",
-            pythoncom.VT_LPWSTR: "Pointer to Wide String",
-            pythoncom.VT_FILETIME: "File time",
-            pythoncom.VT_BLOB: "Blob",
-            pythoncom.VT_STREAM: "IStream",
-            pythoncom.VT_STORAGE: "IStorage",
-            pythoncom.VT_STORED_OBJECT: "Stored object",
-            pythoncom.VT_STREAMED_OBJECT: "Streamed object",
-            pythoncom.VT_BLOB_OBJECT: "Blob object",
-            pythoncom.VT_CF: "CF",
-            pythoncom.VT_CLSID: "CLSID",
+class HLITypeLibFunction(HLICOM):
+    funckinds = {
+        pythoncom.FUNC_VIRTUAL: "Virtual",
+        pythoncom.FUNC_PUREVIRTUAL: "Pure Virtual",
+        pythoncom.FUNC_STATIC: "Static",
+        pythoncom.FUNC_DISPATCH: "Dispatch",
+    }
+    invokekinds = {
+        pythoncom.INVOKE_FUNC: "Function",
+        pythoncom.INVOKE_PROPERTYGET: "Property Get",
+        pythoncom.INVOKE_PROPERTYPUT: "Property Put",
+        pythoncom.INVOKE_PROPERTYPUTREF: "Property Put by reference",
+    }
+    funcflags = [
+        (pythoncom.FUNCFLAG_FRESTRICTED, "Restricted"),
+        (pythoncom.FUNCFLAG_FSOURCE, "Source"),
+        (pythoncom.FUNCFLAG_FBINDABLE, "Bindable"),
+        (pythoncom.FUNCFLAG_FREQUESTEDIT, "Request Edit"),
+        (pythoncom.FUNCFLAG_FDISPLAYBIND, "Display Bind"),
+        (pythoncom.FUNCFLAG_FDEFAULTBIND, "Default Bind"),
+        (pythoncom.FUNCFLAG_FHIDDEN, "Hidden"),
+        (pythoncom.FUNCFLAG_FUSESGETLASTERROR, "Uses GetLastError"),
+    ]
+
+    vartypes = {
+        pythoncom.VT_EMPTY: "Empty",
+        pythoncom.VT_NULL: "NULL",
+        pythoncom.VT_I2: "Integer 2",
+        pythoncom.VT_I4: "Integer 4",
+        pythoncom.VT_R4: "Real 4",
+        pythoncom.VT_R8: "Real 8",
+        pythoncom.VT_CY: "CY",
+        pythoncom.VT_DATE: "Date",
+        pythoncom.VT_BSTR: "String",
+        pythoncom.VT_DISPATCH: "IDispatch",
+        pythoncom.VT_ERROR: "Error",
+        pythoncom.VT_BOOL: "BOOL",
+        pythoncom.VT_VARIANT: "Variant",
+        pythoncom.VT_UNKNOWN: "IUnknown",
+        pythoncom.VT_DECIMAL: "Decimal",
+        pythoncom.VT_I1: "Integer 1",
+        pythoncom.VT_UI1: "Unsigned integer 1",
+        pythoncom.VT_UI2: "Unsigned integer 2",
+        pythoncom.VT_UI4: "Unsigned integer 4",
+        pythoncom.VT_I8: "Integer 8",
+        pythoncom.VT_UI8: "Unsigned integer 8",
+        pythoncom.VT_INT: "Integer",
+        pythoncom.VT_UINT: "Unsigned integer",
+        pythoncom.VT_VOID: "Void",
+        pythoncom.VT_HRESULT: "HRESULT",
+        pythoncom.VT_PTR: "Pointer",
+        pythoncom.VT_SAFEARRAY: "SafeArray",
+        pythoncom.VT_CARRAY: "C Array",
+        pythoncom.VT_USERDEFINED: "User Defined",
+        pythoncom.VT_LPSTR: "Pointer to string",
+        pythoncom.VT_LPWSTR: "Pointer to Wide String",
+        pythoncom.VT_FILETIME: "File time",
+        pythoncom.VT_BLOB: "Blob",
+        pythoncom.VT_STREAM: "IStream",
+        pythoncom.VT_STORAGE: "IStorage",
+        pythoncom.VT_STORED_OBJECT: "Stored object",
+        pythoncom.VT_STREAMED_OBJECT: "Streamed object",
+        pythoncom.VT_BLOB_OBJECT: "Blob object",
+        pythoncom.VT_CF: "CF",
+        pythoncom.VT_CLSID: "CLSID",
     }
 
-    type_flags = [ (pythoncom.VT_VECTOR, "Vector"),
-               (pythoncom.VT_ARRAY, "Array"),
-               (pythoncom.VT_BYREF, "ByRef"),
-               (pythoncom.VT_RESERVED, "Reserved"),
+    type_flags = [
+        (pythoncom.VT_VECTOR, "Vector"),
+        (pythoncom.VT_ARRAY, "Array"),
+        (pythoncom.VT_BYREF, "ByRef"),
+        (pythoncom.VT_RESERVED, "Reserved"),
     ]
 
     def __init__(self, myitem):
@@ -373,8 +439,10 @@ class HLITypeLibFunction(HLICOM):
         self.id = typeinfo.GetFuncDesc(index)[0]
         name = typeinfo.GetNames(self.id)[0]
         HLICOM.__init__(self, myitem, name)
+
     def GetText(self):
         return self.name + " - Function"
+
     def MakeReturnTypeName(self, typ):
         justtyp = typ & pythoncom.VT_TYPEMASK
         try:
@@ -385,8 +453,9 @@ class HLITypeLibFunction(HLICOM):
             if flag & typ:
                 typname = "%s(%s)" % (desc, typname)
         return typname
+
     def MakeReturnType(self, returnTypeDesc):
-        if type(returnTypeDesc)==type(()):
+        if type(returnTypeDesc) == type(()):
             first = returnTypeDesc[0]
             result = self.MakeReturnType(first)
             if first != pythoncom.VT_USERDEFINED:
@@ -400,7 +469,7 @@ class HLITypeLibFunction(HLICOM):
         typeinfo, index = self.myobject
         names = typeinfo.GetNames(self.id)
         ret.append(browser.MakeHLI(self.id, "Dispatch ID"))
-        if len(names)>1:
+        if len(names) > 1:
             ret.append(browser.MakeHLI(", ".join(names[1:]), "Named Params"))
         fd = typeinfo.GetFuncDesc(index)
         if fd[1]:
@@ -442,16 +511,18 @@ class HLITypeLibFunction(HLICOM):
             ret.append(browser.MakeHLI(", ".join(flagDescs), "Function Flags"))
         return ret
 
+
 HLITypeKinds = {
-                pythoncom.TKIND_ENUM : (HLITypeLibEnum, 'Enumeration'),
-                pythoncom.TKIND_RECORD : (HLITypeLibEntry, 'Record'),
-                pythoncom.TKIND_MODULE : (HLITypeLibEnum, 'Module'),
-                pythoncom.TKIND_INTERFACE : (HLITypeLibMethod, 'Interface'),
-                pythoncom.TKIND_DISPATCH : (HLITypeLibMethod, 'Dispatch'),
-                pythoncom.TKIND_COCLASS : (HLICoClass, 'CoClass'),
-                pythoncom.TKIND_ALIAS : (HLITypeLibEntry, 'Alias'),
-                pythoncom.TKIND_UNION : (HLITypeLibEntry, 'Union')
-        }
+    pythoncom.TKIND_ENUM: (HLITypeLibEnum, "Enumeration"),
+    pythoncom.TKIND_RECORD: (HLITypeLibEntry, "Record"),
+    pythoncom.TKIND_MODULE: (HLITypeLibEnum, "Module"),
+    pythoncom.TKIND_INTERFACE: (HLITypeLibMethod, "Interface"),
+    pythoncom.TKIND_DISPATCH: (HLITypeLibMethod, "Dispatch"),
+    pythoncom.TKIND_COCLASS: (HLICoClass, "CoClass"),
+    pythoncom.TKIND_ALIAS: (HLITypeLibEntry, "Alias"),
+    pythoncom.TKIND_UNION: (HLITypeLibEntry, "Union"),
+}
+
 
 class HLITypeLib(HLICOM):
     def GetSubList(self):
@@ -464,16 +535,19 @@ class HLITypeLib(HLICOM):
 
         for i in range(tlb.GetTypeInfoCount()):
             try:
-                ret.append(HLITypeKinds[tlb.GetTypeInfoType(i)][0]( (tlb, i) ) )
+                ret.append(HLITypeKinds[tlb.GetTypeInfoType(i)][0]((tlb, i)))
             except pythoncom.com_error:
                 ret.append(browser.MakeHLI("The type info can not be loaded!"))
         ret.sort()
         return ret
 
+
 class HLIHeadingRegisterdTypeLibs(HLICOM):
     "A tree heading for registered type libraries"
+
     def GetText(self):
         return "Registered Type Libraries"
+
     def GetSubList(self):
         # Explicit lookup in the registry.
         ret = []
@@ -500,7 +574,7 @@ class HLIHeadingRegisterdTypeLibs(HLICOM):
                         try:
                             versionFlt = float(versionStr)
                         except ValueError:
-                            versionFlt = 0 # ????
+                            versionFlt = 0  # ????
                         if versionFlt > bestVersion:
                             bestVersion = versionFlt
                             name = win32api.RegQueryValue(subKey, versionStr)
@@ -516,16 +590,18 @@ class HLIHeadingRegisterdTypeLibs(HLICOM):
         ret.sort()
         return ret
 
+
 def main(modal=False):
     from pywin.tools import hierlist
+
     root = HLIRoot("COM Browser")
     if "app" in sys.modules:
         # do it in a window
         browser.MakeTemplate()
         browser.template.OpenObject(root)
     else:
-#               list=hierlist.HierListWithItems( root, win32ui.IDB_BROWSER_HIER )
-#               dlg=hierlist.HierDialog("COM Browser",list)
+        #               list=hierlist.HierListWithItems( root, win32ui.IDB_BROWSER_HIER )
+        #               dlg=hierlist.HierDialog("COM Browser",list)
         dlg = browser.dynamic_browser(root)
         if modal:
             dlg.DoModal()
@@ -534,11 +610,10 @@ def main(modal=False):
             dlg.ShowWindow()
 
 
-
-if __name__=='__main__':
+if __name__ == "__main__":
     main()
 
     ni = pythoncom._GetInterfaceCount()
     ng = pythoncom._GetGatewayCount()
     if ni or ng:
-        print("Warning - exiting with %d/%d objects alive" % (ni,ng))
+        print("Warning - exiting with %d/%d objects alive" % (ni, ng))

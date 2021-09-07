@@ -2,18 +2,28 @@
 from win32com.bits import bits
 import pythoncom
 
-states = dict([(val, (name[13:]))
-               for name, val in vars(bits).items()
-               if name.startswith('BG_JOB_STATE_')])
+states = dict(
+    [
+        (val, (name[13:]))
+        for name, val in vars(bits).items()
+        if name.startswith("BG_JOB_STATE_")
+    ]
+)
 
-job_types = dict([(val, (name[12:]))
-               for name, val in vars(bits).items()
-               if name.startswith('BG_JOB_TYPE_')])
+job_types = dict(
+    [
+        (val, (name[12:]))
+        for name, val in vars(bits).items()
+        if name.startswith("BG_JOB_TYPE_")
+    ]
+)
 
-bcm = pythoncom.CoCreateInstance(bits.CLSID_BackgroundCopyManager, 
-                                 None,
-                                 pythoncom.CLSCTX_LOCAL_SERVER,
-                                 bits.IID_IBackgroundCopyManager)
+bcm = pythoncom.CoCreateInstance(
+    bits.CLSID_BackgroundCopyManager,
+    None,
+    pythoncom.CLSCTX_LOCAL_SERVER,
+    bits.IID_IBackgroundCopyManager,
+)
 
 try:
     enum = bcm.EnumJobs(bits.BG_JOB_ENUM_ALL_USERS)

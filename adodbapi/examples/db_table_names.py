@@ -7,13 +7,13 @@ try:
 except IndexError:
     databasename = "test.mdb"
 
-provider = ['prv', "Microsoft.ACE.OLEDB.12.0", "Microsoft.Jet.OLEDB.4.0"]
+provider = ["prv", "Microsoft.ACE.OLEDB.12.0", "Microsoft.Jet.OLEDB.4.0"]
 constr = "Provider=%(prv)s;Data Source=%(db)s"
 
-#create the connection
+# create the connection
 con = adodbapi.connect(constr, db=databasename, macro_is64bit=provider)
 
-print('Table names in= %s' % databasename)
+print("Table names in= %s" % databasename)
 
 for table in con.get_table_names():
     print(table)

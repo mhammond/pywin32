@@ -5,12 +5,9 @@ import sys, os, win32api
 fname = sys.argv[1]
 
 try:
-	os.stat(fname)
+    os.stat(fname)
 except os.error:
-	sys.stderr.write("The project file '%s' was not found\n" % (fname))
-	sys.exit(1)
-	
-win32api.WriteProfileVal("options","COMPRESS","12 Hall Zeck", fname)
+    sys.stderr.write("The project file '%s' was not found\n" % (fname))
+    sys.exit(1)
 
-
-
+win32api.WriteProfileVal("options", "COMPRESS", "12 Hall Zeck", fname)

@@ -12,7 +12,9 @@ import win32con
 import winerror
 
 # Our shell extension.
-IEmptyVolumeCache_Methods = "Initialize GetSpaceUsed Purge ShowProperties Deactivate".split()
+IEmptyVolumeCache_Methods = (
+    "Initialize GetSpaceUsed Purge ShowProperties Deactivate".split()
+)
 IEmptyVolumeCache2_Methods = "InitializeEx".split()
 
 ico = os.path.join(sys.prefix, "py.ico")
@@ -21,6 +23,7 @@ if not os.path.isfile(ico):
 if not os.path.isfile(ico):
     ico = None
     print("Can't find python.ico - no icon will be installed")
+
 
 class EmptyVolumeCache:
     _reg_progid_ = "Python.ShellExtension.EmptyVolumeCache"
@@ -47,7 +50,7 @@ class EmptyVolumeCache:
             # should be touched. You should ignore the initialization
             # method's pcwszVolume parameter and clean unneeded files
             # regardless of what drive they are on."
-            self.volume = None # flag as 'any disk will do'
+            self.volume = None  # flag as 'any disk will do'
         elif flags & shellcon.EVCF_OUTOFDISKSPACE:
             # In this case, "the handler should be aggressive about deleting
             # files, even if it results in a performance loss. However, the
@@ -63,19 +66,23 @@ class EmptyVolumeCache:
         # volume, so will return 0 when we are on a different disk
         flags = shellcon.EVCF_DONTSHOWIFZERO | shellcon.EVCF_ENABLEBYDEFAULT
 
-        return ("pywin32 compiled files",
-                "Removes all .pyc and .pyo files in the pywin32 directories",
-                "click me!",
-                flags
-                )
+        return (
+            "pywin32 compiled files",
+            "Removes all .pyc and .pyo files in the pywin32 directories",
+            "click me!",
+            flags,
+        )
 
     def _GetDirectories(self):
         root_dir = os.path.abspath(os.path.dirname(os.path.dirname(win32gui.__file__)))
-        if self.volume is not None and \
-           not root_dir.lower().startswith(self.volume.lower()):
+        if self.volume is not None and not root_dir.lower().startswith(
+            self.volume.lower()
+        ):
             return []
-        return [os.path.join(root_dir, p)
-                for p in ('win32', 'win32com', 'win32comext', 'isapi')]
+        return [
+            os.path.join(root_dir, p)
+            for p in ("win32", "win32com", "win32comext", "isapi")
+        ]
 
     def _WalkCallback(self, arg, directory, files):
         # callback function for os.path.walk - no need to be member, but its
@@ -107,7 +114,7 @@ class EmptyVolumeCache:
                         callback.ScanProgress(used, 0, "Looking at " + fqn)
 
     def GetSpaceUsed(self, callback):
-        total = [0] # See _WalkCallback above
+        total = [0]  # See _WalkCallback above
         try:
             for d in self._GetDirectories():
                 os.path.walk(d, self._WalkCallback, (callback, total))
@@ -115,7 +122,7 @@ class EmptyVolumeCache:
         except pythoncom.error as exc:
             # This will be raised by the callback when the user selects 'cancel'.
             if exc.hresult != winerror.E_ABORT:
-                raise # that's the documented error code!
+                raise  # that's the documented error code!
             print("User cancelled the operation")
         return total[0]
 
@@ -129,7 +136,7 @@ class EmptyVolumeCache:
         except pythoncom.error as exc:
             # This will be raised by the callback when the user selects 'cancel'.
             if exc.hresult != winerror.E_ABORT:
-                raise # that's the documented error code!
+                raise  # that's the documented error code!
             print("User cancelled the operation")
 
     def ShowProperties(self, hwnd):
@@ -139,30 +146,41 @@ class EmptyVolumeCache:
         print("Deactivate called")
         return 0
 
+
 def DllRegisterServer():
     # Also need to register specially in:
     # HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\Explorer\VolumeCaches
     # See link at top of file.
     import winreg
-    kn = r"Software\Microsoft\Windows\CurrentVersion\Explorer\VolumeCaches\%s" \
-         % (EmptyVolumeCache._reg_desc_,)
+
+    kn = r"Software\Microsoft\Windows\CurrentVersion\Explorer\VolumeCaches\%s" % (
+        EmptyVolumeCache._reg_desc_,
+    )
     key = winreg.CreateKey(winreg.HKEY_LOCAL_MACHINE, kn)
     winreg.SetValueEx(key, None, 0, winreg.REG_SZ, EmptyVolumeCache._reg_clsid_)
 
+
 def DllUnregisterServer():
     import winreg
-    kn = r"Software\Microsoft\Windows\CurrentVersion\Explorer\VolumeCaches\%s" \
-         % (EmptyVolumeCache._reg_desc_,)
+
+    kn = r"Software\Microsoft\Windows\CurrentVersion\Explorer\VolumeCaches\%s" % (
+        EmptyVolumeCache._reg_desc_,
+    )
     try:
         key = winreg.DeleteKey(winreg.HKEY_LOCAL_MACHINE, kn)
     except WindowsError as details:
         import errno
+
         if details.errno != errno.ENOENT:
             raise
     print(EmptyVolumeCache._reg_desc_, "unregistration complete.")
 
-if __name__=='__main__':
+
+if __name__ == "__main__":
     from win32com.server import register
-    register.UseCommandLine(EmptyVolumeCache,
-                   finalize_register = DllRegisterServer,
-                   finalize_unregister = DllUnregisterServer)
+
+    register.UseCommandLine(
+        EmptyVolumeCache,
+        finalize_register=DllRegisterServer,
+        finalize_unregister=DllUnregisterServer,
+    )

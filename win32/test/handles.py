@@ -9,21 +9,23 @@ class Cycle:
         self.cycle = self
         self.handle = handle
 
+
 class PyHandleTestCase(unittest.TestCase):
     def testCleanup1(self):
         # We used to clobber all outstanding exceptions.
         def f1(invalidate):
             import win32event
+
             h = win32event.CreateEvent(None, 0, 0, None)
             if invalidate:
                 win32api.CloseHandle(int(h))
-            1/0
-            # If we invalidated, then the object destruction code will attempt 
-            # to close an invalid handle.  We don't wan't an exception in 
+            1 / 0
+            # If we invalidated, then the object destruction code will attempt
+            # to close an invalid handle.  We don't wan't an exception in
             # this case
 
         def f2(invalidate):
-            """ This function should throw an IOError. """
+            """This function should throw an IOError."""
             try:
                 f1(invalidate)
             except ZeroDivisionError as exc:
@@ -36,9 +38,10 @@ class PyHandleTestCase(unittest.TestCase):
 
     def testCleanup2(self):
         # Cause an exception during object destruction.
-        # The worst this does is cause an ".XXX undetected error (why=3)" 
+        # The worst this does is cause an ".XXX undetected error (why=3)"
         # So avoiding that is the goal
         import win32event
+
         h = win32event.CreateEvent(None, 0, 0, None)
         # Close the handle underneath the object.
         win32api.CloseHandle(int(h))
@@ -48,16 +51,19 @@ class PyHandleTestCase(unittest.TestCase):
     def testCleanup3(self):
         # And again with a class - no __del__
         import win32event
+
         class Test:
             def __init__(self):
                 self.h = win32event.CreateEvent(None, 0, 0, None)
                 win32api.CloseHandle(int(self.h))
-        t=Test()
+
+        t = Test()
         t = None
 
     def testCleanupGood(self):
         # And check that normal error semantics *do* work.
         import win32event
+
         h = win32event.CreateEvent(None, 0, 0, None)
         win32api.CloseHandle(int(h))
         self.assertRaises(win32api.error, h.Close)
@@ -65,7 +71,7 @@ class PyHandleTestCase(unittest.TestCase):
         h.Close()
 
     def testInvalid(self):
-        h=pywintypes.HANDLE(-2)
+        h = pywintypes.HANDLE(-2)
         try:
             h.Close()
             # Ideally, we'd:
@@ -79,8 +85,8 @@ class PyHandleTestCase(unittest.TestCase):
             pass
 
     def testOtherHandle(self):
-        h=pywintypes.HANDLE(1)
-        h2=pywintypes.HANDLE(h)
+        h = pywintypes.HANDLE(1)
+        h2 = pywintypes.HANDLE(h)
         self.failUnlessEqual(h, h2)
         # but the above doesn't really test everything - we want a way to
         # pass the handle directly into PyWinLong_AsVoidPtr.  One way to
@@ -91,42 +97,42 @@ class PyHandleTestCase(unittest.TestCase):
         win32api.GetProcAddress(sys.dllhandle, h)
 
     def testHandleInDict(self):
-        h=pywintypes.HANDLE(1)
+        h = pywintypes.HANDLE(1)
         d = dict(foo=h)
-        self.failUnlessEqual(d['foo'], h)
+        self.failUnlessEqual(d["foo"], h)
 
     def testHandleInDictThenInt(self):
-        h=pywintypes.HANDLE(1)
+        h = pywintypes.HANDLE(1)
         d = dict(foo=h)
-        self.failUnlessEqual(d['foo'], 1)
+        self.failUnlessEqual(d["foo"], 1)
 
     def testHandleCompareNone(self):
-        h=pywintypes.HANDLE(1)
+        h = pywintypes.HANDLE(1)
         self.failIfEqual(h, None)
         self.failIfEqual(None, h)
         # ensure we use both __eq__ and __ne__ ops
-        self.failIf(h==None)
-        self.failUnless(h!=None)
+        self.failIf(h == None)
+        self.failUnless(h != None)
 
     def testHandleCompareInt(self):
-        h=pywintypes.HANDLE(1)
+        h = pywintypes.HANDLE(1)
         self.failIfEqual(h, 0)
         self.failUnlessEqual(h, 1)
         # ensure we use both __eq__ and __ne__ ops
-        self.failUnless(h==1)
-        self.failUnless(1==h)
-        self.failIf(h!=1)
-        self.failIf(1!=h)
-        self.failIf(h==0)
-        self.failIf(0==h)
-        self.failUnless(h!=0)
-        self.failUnless(0!=h)
+        self.failUnless(h == 1)
+        self.failUnless(1 == h)
+        self.failIf(h != 1)
+        self.failIf(1 != h)
+        self.failIf(h == 0)
+        self.failIf(0 == h)
+        self.failUnless(h != 0)
+        self.failUnless(0 != h)
 
     def testHandleNonZero(self):
-        h=pywintypes.HANDLE(0)
+        h = pywintypes.HANDLE(0)
         self.failIf(h)
 
-        h=pywintypes.HANDLE(1)
+        h = pywintypes.HANDLE(1)
         self.failUnless(h)
 
     def testLong(self):
@@ -140,15 +146,17 @@ class PyHandleTestCase(unittest.TestCase):
             big = sys.maxsize
         except AttributeError:
             big = sys.maxint
-        pywintypes.HANDLE(big+1)
+        pywintypes.HANDLE(big + 1)
 
     def testGC(self):
         # This used to provoke:
         # Fatal Python error: unexpected exception during garbage collection
         def make():
-            h=pywintypes.HANDLE(-2)
+            h = pywintypes.HANDLE(-2)
             c = Cycle(h)
+
         import gc
+
         make()
         gc.collect()
 
@@ -156,5 +164,6 @@ class PyHandleTestCase(unittest.TestCase):
         self.assertRaises(TypeError, pywintypes.HANDLE, "foo")
         self.assertRaises(TypeError, pywintypes.HANDLE, ())
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

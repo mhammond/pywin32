@@ -12,10 +12,11 @@ from win32com.client import gencache, constants, Dispatch
 import win32api
 import os, sys
 
-def CreateTestAccessDatabase(dbname = None):
+
+def CreateTestAccessDatabase(dbname=None):
     # Creates a test access database - returns the filename.
     if dbname is None:
-        dbname = os.path.join( win32api.GetTempPath(), "COMTestSuiteTempDatabase.mdb" )
+        dbname = os.path.join(win32api.GetTempPath(), "COMTestSuiteTempDatabase.mdb")
 
     access = Dispatch("Access.Application")
     dbEngine = access.DBEngine
@@ -24,29 +25,33 @@ def CreateTestAccessDatabase(dbname = None):
     try:
         os.unlink(dbname)
     except os.error:
-        print("WARNING - Unable to delete old test database - expect a COM exception RSN!")
+        print(
+            "WARNING - Unable to delete old test database - expect a COM exception RSN!"
+        )
 
-    newdb = workspace.CreateDatabase( dbname, constants.dbLangGeneral, constants.dbEncrypt )
+    newdb = workspace.CreateDatabase(
+        dbname, constants.dbLangGeneral, constants.dbEncrypt
+    )
 
     # Create one test table.
     table = newdb.CreateTableDef("Test Table 1")
-    table.Fields.Append( table.CreateField("First Name", constants.dbText ) )
-    table.Fields.Append( table.CreateField("Last Name", constants.dbText ) )
+    table.Fields.Append(table.CreateField("First Name", constants.dbText))
+    table.Fields.Append(table.CreateField("Last Name", constants.dbText))
 
     index = table.CreateIndex("UniqueIndex")
-    index.Fields.Append( index.CreateField("First Name") )
-    index.Fields.Append( index.CreateField("Last Name") )
+    index.Fields.Append(index.CreateField("First Name"))
+    index.Fields.Append(index.CreateField("Last Name"))
     index.Unique = -1
     table.Indexes.Append(index)
 
-    newdb.TableDefs.Append( table )
+    newdb.TableDefs.Append(table)
 
     # Create a second test table.
     table = newdb.CreateTableDef("Test Table 2")
-    table.Fields.Append( table.CreateField("First Name", constants.dbText ) )
-    table.Fields.Append( table.CreateField("Last Name", constants.dbText ) )
+    table.Fields.Append(table.CreateField("First Name", constants.dbText))
+    table.Fields.Append(table.CreateField("Last Name", constants.dbText))
 
-    newdb.TableDefs.Append( table )
+    newdb.TableDefs.Append(table)
 
     # Create a relationship between them
     relation = newdb.CreateRelation("TestRelationship")
@@ -55,13 +60,15 @@ def CreateTestAccessDatabase(dbname = None):
 
     field = relation.CreateField("First Name")
     field.ForeignName = "First Name"
-    relation.Fields.Append( field )
+    relation.Fields.Append(field)
 
     field = relation.CreateField("Last Name")
     field.ForeignName = "Last Name"
-    relation.Fields.Append( field )
+    relation.Fields.Append(field)
 
-    relation.Attributes = constants.dbRelationDeleteCascade + constants.dbRelationUpdateCascade
+    relation.Attributes = (
+        constants.dbRelationDeleteCascade + constants.dbRelationUpdateCascade
+    )
 
     newdb.Relations.Append(relation)
 
@@ -101,19 +108,20 @@ def CreateTestAccessDatabase(dbname = None):
 
 def DoDumpAccessInfo(dbname):
     from . import daodump
+
     a = forms = None
     try:
         sys.stderr.write("Creating Access Application...\n")
-        a=Dispatch("Access.Application")
+        a = Dispatch("Access.Application")
         print("Opening database %s" % dbname)
         a.OpenCurrentDatabase(dbname)
         db = a.CurrentDb()
-        daodump.DumpDB(db,1)
+        daodump.DumpDB(db, 1)
         forms = a.Forms
         print("There are %d forms open." % (len(forms)))
-# Uncommenting these lines means Access remains open.
-#               for form in forms:
-#                       print " %s" % form.Name
+        # Uncommenting these lines means Access remains open.
+        #               for form in forms:
+        #                       print " %s" % form.Name
         reports = a.Reports
         print("There are %d reports open" % (len(reports)))
     finally:
@@ -124,13 +132,15 @@ def DoDumpAccessInfo(dbname):
             except pythoncom.com_error:
                 pass
 
+
 # Generate all the support we can.
 def GenerateSupport():
     # dao
     gencache.EnsureModule("{00025E01-0000-0000-C000-000000000046}", 0, 4, 0)
     # Access
-#       gencache.EnsureModule("{4AFFC9A0-5F99-101B-AF4E-00AA003F0F07}", 0, 8, 0)
+    #       gencache.EnsureModule("{4AFFC9A0-5F99-101B-AF4E-00AA003F0F07}", 0, 8, 0)
     gencache.EnsureDispatch("Access.Application")
+
 
 def DumpAccessInfo(dbname):
     amod = gencache.GetModuleForProgID("Access.Application")
@@ -140,11 +150,14 @@ def DumpAccessInfo(dbname):
         # Now generate all the support we can.
         GenerateSupport()
     else:
-        sys.stderr.write("testAccess not doing dynamic test, as generated code already exists\n")
+        sys.stderr.write(
+            "testAccess not doing dynamic test, as generated code already exists\n"
+        )
     # Now a generated version.
     DoDumpAccessInfo(dbname)
 
-def test(dbname = None):
+
+def test(dbname=None):
     if dbname is None:
         # We need makepy support to create a database (just for the constants!)
         try:
@@ -157,11 +170,13 @@ def test(dbname = None):
 
     DumpAccessInfo(dbname)
 
-if __name__=='__main__':
+
+if __name__ == "__main__":
     import sys
     from .util import CheckClean
+
     dbname = None
-    if len(sys.argv)>1:
+    if len(sys.argv) > 1:
         dbname = sys.argv[1]
 
     test(dbname)

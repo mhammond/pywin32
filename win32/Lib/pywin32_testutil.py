@@ -11,7 +11,7 @@ import winerror
 # The test suite has lots of string constants containing binary data, but
 # the strings are used in various "bytes" contexts.
 def str2bytes(sval):
-    if sys.version_info < (3,0) and isinstance(sval, str):
+    if sys.version_info < (3, 0) and isinstance(sval, str):
         sval = sval.decode("latin1")
     return sval.encode("latin1")
 
@@ -19,7 +19,7 @@ def str2bytes(sval):
 # Sometimes we want to pass a string that should explicitly be treated as
 # a memory blob.
 def str2memory(sval):
-    if sys.version_info < (3,0):
+    if sys.version_info < (3, 0):
         return buffer(sval)
     # py3k.
     return memoryview(sval.encode("latin1"))
@@ -27,10 +27,11 @@ def str2memory(sval):
 
 # Sometimes we want to pass an object that exposes its memory
 def ob2memory(ob):
-    if sys.version_info < (3,0):
+    if sys.version_info < (3, 0):
         return buffer(ob)
     # py3k.
     return memoryview(ob)
+
 
 ##
 ## unittest related stuff
@@ -39,30 +40,32 @@ def ob2memory(ob):
 # This is a specialized TestCase adaptor which wraps a real test.
 class LeakTestCase(unittest.TestCase):
     """An 'adaptor' which takes another test.  In debug builds we execute the
-       test once to remove one-off side-effects, then capture the total
-       reference count, then execute the test a few times.  If the total
-       refcount at the end is greater than we first captured, we have a leak!
+    test once to remove one-off side-effects, then capture the total
+    reference count, then execute the test a few times.  If the total
+    refcount at the end is greater than we first captured, we have a leak!
 
-       In release builds the test is executed just once, as normal.
+    In release builds the test is executed just once, as normal.
 
-       Generally used automatically by the test runner - you can safely
-       ignore this.
+    Generally used automatically by the test runner - you can safely
+    ignore this.
     """
+
     def __init__(self, real_test):
         unittest.TestCase.__init__(self)
         self.real_test = real_test
         self.num_test_cases = 1
-        self.num_leak_iters = 2 # seems to be enough!
+        self.num_leak_iters = 2  # seems to be enough!
         if hasattr(sys, "gettotalrefcount"):
             self.num_test_cases = self.num_test_cases + self.num_leak_iters
 
     def countTestCases(self):
         return self.num_test_cases
 
-    def __call__(self, result = None):
+    def __call__(self, result=None):
         # For the COM suite's sake, always ensure we don't leak
         # gateways/interfaces
         from pythoncom import _GetInterfaceCount, _GetGatewayCount
+
         gc.collect()
         ni = _GetInterfaceCount()
         ng = _GetGatewayCount()
@@ -75,19 +78,21 @@ class LeakTestCase(unittest.TestCase):
         lost_i = _GetInterfaceCount() - ni
         lost_g = _GetGatewayCount() - ng
         if lost_i or lost_g:
-            msg = "%d interface objects and %d gateway objects leaked" \
-                                                        % (lost_i, lost_g)
+            msg = "%d interface objects and %d gateway objects leaked" % (
+                lost_i,
+                lost_g,
+            )
             exc = AssertionError(msg)
             result.addFailure(self.real_test, (exc.__class__, exc, None))
 
     def runTest(self):
         assert 0, "not used"
 
-    def _do_leak_tests(self, result = None):
+    def _do_leak_tests(self, result=None):
         try:
             gtrc = sys.gettotalrefcount
         except AttributeError:
-            return # can't do leak tests in this build
+            return  # can't do leak tests in this build
         # Assume already called once, to prime any caches etc
         gc.collect()
         trc = gtrc()
@@ -95,13 +100,16 @@ class LeakTestCase(unittest.TestCase):
             self.real_test(result)
             if result.shouldStop:
                 break
-        del i # created after we remembered the refcount!
-        # int division here means one or 2 stray references won't force 
+        del i  # created after we remembered the refcount!
+        # int division here means one or 2 stray references won't force
         # failure, but one per loop
         gc.collect()
         lost = (gtrc() - trc) // self.num_leak_iters
         if lost < 0:
-            msg = "LeakTest: %s appeared to gain %d references!!" % (self.real_test, -lost)
+            msg = "LeakTest: %s appeared to gain %d references!!" % (
+                self.real_test,
+                -lost,
+            )
             result.addFailure(self.real_test, (AssertionError, msg, None))
         if lost > 0:
             msg = "LeakTest: %s lost %d references" % (self.real_test, lost)
@@ -145,12 +153,13 @@ class TestLoader(unittest.TestLoader):
     def loadTestsFromName(self, name, module=None):
         test = unittest.TestLoader.loadTestsFromName(self, name, module)
         if isinstance(test, unittest.TestSuite):
-            pass # hmmm? print "Don't wrap suites yet!", test._tests
+            pass  # hmmm? print "Don't wrap suites yet!", test._tests
         elif isinstance(test, unittest.TestCase):
             test = self._getTestWrapper(test)
         else:
             print("XXX - what is", test)
         return test
+
 
 # Lots of classes necessary to support one simple feature: we want a 3rd
 # test result state - "SKIPPED" - to indicate that the test wasn't able
@@ -160,15 +169,20 @@ class TestLoader(unittest.TestLoader):
 
 # win32 error codes that probably mean we need to be elevated (ie, if we
 # aren't elevated, we treat these error codes as 'skipped')
-non_admin_error_codes = [winerror.ERROR_ACCESS_DENIED,
-                         winerror.ERROR_PRIVILEGE_NOT_HELD]
+non_admin_error_codes = [
+    winerror.ERROR_ACCESS_DENIED,
+    winerror.ERROR_PRIVILEGE_NOT_HELD,
+]
 
 _is_admin = None
+
+
 def check_is_admin():
     global _is_admin
     if _is_admin is None:
         from win32com.shell.shell import IsUserAnAdmin
         import pythoncom
+
         try:
             _is_admin = IsUserAnAdmin()
         except pythoncom.com_error as exc:
@@ -189,7 +203,7 @@ class TestSkipped(Exception):
 class TestResult(unittest._TextTestResult):
     def __init__(self, *args, **kw):
         super(TestResult, self).__init__(*args, **kw)
-        self.skips = {} # count of skips for each reason.
+        self.skips = {}  # count of skips for each reason.
 
     def addError(self, test, err):
         """Called when an error has occurred. 'err' is a tuple of values as
@@ -197,20 +211,24 @@ class TestResult(unittest._TextTestResult):
         """
         # translate a couple of 'well-known' exceptions into 'skipped'
         import pywintypes
+
         exc_val = err[1]
         # translate ERROR_ACCESS_DENIED for non-admin users to be skipped.
         # (access denied errors for an admin user aren't expected.)
-        if isinstance(exc_val, pywintypes.error) \
-           and exc_val.winerror in non_admin_error_codes \
-           and not check_is_admin():
+        if (
+            isinstance(exc_val, pywintypes.error)
+            and exc_val.winerror in non_admin_error_codes
+            and not check_is_admin()
+        ):
             exc_val = TestSkipped(exc_val)
         # and COM errors due to objects not being registered (the com test
         # suite will attempt to catch this and handle it itself if the user
         # is admin)
-        elif isinstance(exc_val, pywintypes.com_error) and \
-           exc_val.hresult in [winerror.CO_E_CLASSSTRING,
-                               winerror.REGDB_E_CLASSNOTREG,
-                               winerror.TYPE_E_LIBNOTREGISTERED]:
+        elif isinstance(exc_val, pywintypes.com_error) and exc_val.hresult in [
+            winerror.CO_E_CLASSSTRING,
+            winerror.REGDB_E_CLASSNOTREG,
+            winerror.TYPE_E_LIBNOTREGISTERED,
+        ]:
             exc_val = TestSkipped(exc_val)
         # NotImplemented generally means the platform doesn't support the
         # functionality.
@@ -229,7 +247,7 @@ class TestResult(unittest._TextTestResult):
             if self.showAll:
                 self.stream.writeln("SKIP (%s)" % (reason,))
             elif self.dots:
-                self.stream.write('S')
+                self.stream.write("S")
                 self.stream.flush()
             return
         super(TestResult, self).addError(test, err)
@@ -238,6 +256,7 @@ class TestResult(unittest._TextTestResult):
         super(TestResult, self).printErrors()
         for reason, num_skipped in self.skips.items():
             self.stream.writeln("SKIPPED: %d tests - %s" % (num_skipped, reason))
+
 
 # TestRunner subclass necessary just to get our TestResult hooked up.
 class TestRunner(unittest.TextTestRunner):
@@ -253,10 +272,11 @@ class TestProgram(unittest.TestProgram):
         self.testRunner = TestRunner(verbosity=self.verbosity)
         unittest.TestProgram.runTests(self)
 
+
 # A convenient entry-point - if used, 'SKIPPED' exceptions will be supressed.
 def testmain(*args, **kw):
     new_kw = kw.copy()
-    if 'testLoader' not in new_kw:
-        new_kw['testLoader'] = TestLoader()
-    program_class = new_kw.get('testProgram', TestProgram)
+    if "testLoader" not in new_kw:
+        new_kw["testLoader"] = TestLoader()
+    program_class = new_kw.get("testProgram", TestProgram)
     program_class(*args, **new_kw)

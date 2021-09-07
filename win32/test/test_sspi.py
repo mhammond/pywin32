@@ -19,7 +19,6 @@ def applyHandlingSkips(func, *args):
 
 
 class TestSSPI(unittest.TestCase):
-
     def assertRaisesHRESULT(self, hr, func, *args):
         try:
             return func(*args)
@@ -28,10 +27,10 @@ class TestSSPI(unittest.TestCase):
             self.failUnlessEqual(exc.winerror, hr)
 
     def _doAuth(self, pkg_name):
-        sspiclient=sspi.ClientAuth(pkg_name,targetspn=win32api.GetUserName())
-        sspiserver=sspi.ServerAuth(pkg_name)
+        sspiclient = sspi.ClientAuth(pkg_name, targetspn=win32api.GetUserName())
+        sspiserver = sspi.ServerAuth(pkg_name)
 
-        sec_buffer=None
+        sec_buffer = None
         err = 1
         while err != 0:
             err, sec_buffer = sspiclient.authorize(sec_buffer)
@@ -54,16 +53,20 @@ class TestSSPI(unittest.TestCase):
 
         sspiclient, sspiserver = self._doAuth(pkg_name)
 
-        pkg_size_info=sspiclient.ctxt.QueryContextAttributes(sspicon.SECPKG_ATTR_SIZES)
-        msg=str2bytes('some data to be encrypted ......')
+        pkg_size_info = sspiclient.ctxt.QueryContextAttributes(
+            sspicon.SECPKG_ATTR_SIZES
+        )
+        msg = str2bytes("some data to be encrypted ......")
 
-        trailersize=pkg_size_info['SecurityTrailer']
-        encbuf=win32security.PySecBufferDescType()
+        trailersize = pkg_size_info["SecurityTrailer"]
+        encbuf = win32security.PySecBufferDescType()
         encbuf.append(win32security.PySecBufferType(len(msg), sspicon.SECBUFFER_DATA))
-        encbuf.append(win32security.PySecBufferType(trailersize, sspicon.SECBUFFER_TOKEN))
-        encbuf[0].Buffer=msg
-        sspiclient.ctxt.EncryptMessage(0,encbuf,1)
-        sspiserver.ctxt.DecryptMessage(encbuf,1)
+        encbuf.append(
+            win32security.PySecBufferType(trailersize, sspicon.SECBUFFER_TOKEN)
+        )
+        encbuf[0].Buffer = msg
+        sspiclient.ctxt.EncryptMessage(0, encbuf, 1)
+        sspiserver.ctxt.DecryptMessage(encbuf, 1)
         self.failUnlessEqual(msg, encbuf[0].Buffer)
         # and test the higher-level functions
         data_in = str2bytes("hello")
@@ -79,25 +82,33 @@ class TestSSPI(unittest.TestCase):
 
         sspiclient, sspiserver = self._doAuth(pkg_name)
 
-        pkg_size_info=sspiclient.ctxt.QueryContextAttributes(sspicon.SECPKG_ATTR_SIZES)
-        msg=str2bytes('some data to be encrypted ......')
+        pkg_size_info = sspiclient.ctxt.QueryContextAttributes(
+            sspicon.SECPKG_ATTR_SIZES
+        )
+        msg = str2bytes("some data to be encrypted ......")
 
-        trailersize=pkg_size_info['SecurityTrailer']
-        blocksize=pkg_size_info['BlockSize']
-        encbuf=win32security.PySecBufferDescType()
-        encbuf.append(win32security.PySecBufferType(trailersize, sspicon.SECBUFFER_TOKEN))
+        trailersize = pkg_size_info["SecurityTrailer"]
+        blocksize = pkg_size_info["BlockSize"]
+        encbuf = win32security.PySecBufferDescType()
+        encbuf.append(
+            win32security.PySecBufferType(trailersize, sspicon.SECBUFFER_TOKEN)
+        )
         encbuf.append(win32security.PySecBufferType(len(msg), sspicon.SECBUFFER_DATA))
-        encbuf.append(win32security.PySecBufferType(blocksize, sspicon.SECBUFFER_PADDING))
-        encbuf[1].Buffer=msg
-        sspiclient.ctxt.EncryptMessage(0,encbuf,1)
+        encbuf.append(
+            win32security.PySecBufferType(blocksize, sspicon.SECBUFFER_PADDING)
+        )
+        encbuf[1].Buffer = msg
+        sspiclient.ctxt.EncryptMessage(0, encbuf, 1)
 
         encmsg = encbuf[0].Buffer + encbuf[1].Buffer + encbuf[2].Buffer
-        decbuf=win32security.PySecBufferDescType()
-        decbuf.append(win32security.PySecBufferType(len(encmsg), sspicon.SECBUFFER_STREAM))
+        decbuf = win32security.PySecBufferDescType()
+        decbuf.append(
+            win32security.PySecBufferType(len(encmsg), sspicon.SECBUFFER_STREAM)
+        )
         decbuf.append(win32security.PySecBufferType(0, sspicon.SECBUFFER_DATA))
         decbuf[0].Buffer = encmsg
 
-        sspiserver.ctxt.DecryptMessage(decbuf,1)
+        sspiserver.ctxt.DecryptMessage(decbuf, 1)
         self.failUnlessEqual(msg, decbuf[1].Buffer)
 
     def testEncryptNTLM(self):
@@ -116,16 +127,18 @@ class TestSSPI(unittest.TestCase):
 
         sspiclient, sspiserver = self._doAuth(pkg_name)
 
-        pkg_size_info=sspiclient.ctxt.QueryContextAttributes(sspicon.SECPKG_ATTR_SIZES)
-        msg=str2bytes('some data to be encrypted ......')
-        
-        sigsize=pkg_size_info['MaxSignature']
-        sigbuf=win32security.PySecBufferDescType()
+        pkg_size_info = sspiclient.ctxt.QueryContextAttributes(
+            sspicon.SECPKG_ATTR_SIZES
+        )
+        msg = str2bytes("some data to be encrypted ......")
+
+        sigsize = pkg_size_info["MaxSignature"]
+        sigbuf = win32security.PySecBufferDescType()
         sigbuf.append(win32security.PySecBufferType(len(msg), sspicon.SECBUFFER_DATA))
         sigbuf.append(win32security.PySecBufferType(sigsize, sspicon.SECBUFFER_TOKEN))
-        sigbuf[0].Buffer=msg
-        sspiclient.ctxt.MakeSignature(0,sigbuf,0)
-        sspiserver.ctxt.VerifySignature(sigbuf,0)
+        sigbuf[0].Buffer = msg
+        sspiclient.ctxt.MakeSignature(0, sigbuf, 0)
+        sspiserver.ctxt.VerifySignature(sigbuf, 0)
         # and test the higher-level functions
         sspiclient.next_seq_num = 1
         sspiserver.next_seq_num = 1
@@ -133,19 +146,21 @@ class TestSSPI(unittest.TestCase):
         key = sspiclient.sign(data)
         sspiserver.verify(data, key)
         key = sspiclient.sign(data)
-        self.assertRaisesHRESULT(sspicon.SEC_E_MESSAGE_ALTERED,
-                                 sspiserver.verify, data + data, key)
+        self.assertRaisesHRESULT(
+            sspicon.SEC_E_MESSAGE_ALTERED, sspiserver.verify, data + data, key
+        )
 
         # and the other way
         key = sspiserver.sign(data)
         sspiclient.verify(data, key)
         key = sspiserver.sign(data)
-        self.assertRaisesHRESULT(sspicon.SEC_E_MESSAGE_ALTERED,
-                                 sspiclient.verify, data + data, key)
+        self.assertRaisesHRESULT(
+            sspicon.SEC_E_MESSAGE_ALTERED, sspiclient.verify, data + data, key
+        )
 
     def testSignNTLM(self):
         self._doTestSign("NTLM")
-    
+
     def testSignKerberos(self):
         applyHandlingSkips(self._doTestSign, "Kerberos")
 
@@ -154,8 +169,9 @@ class TestSSPI(unittest.TestCase):
         sspiclient, sspiserver = self._doAuth("Kerberos")
         key = sspiclient.sign("hello")
         sspiclient.sign("hello")
-        self.assertRaisesHRESULT(sspicon.SEC_E_OUT_OF_SEQUENCE,
-                                 sspiserver.verify, 'hello', key)
+        self.assertRaisesHRESULT(
+            sspicon.SEC_E_OUT_OF_SEQUENCE, sspiserver.verify, "hello", key
+        )
 
     def testSequenceSign(self):
         applyHandlingSkips(self._testSequenceSign)
@@ -163,30 +179,49 @@ class TestSSPI(unittest.TestCase):
     def _testSequenceEncrypt(self):
         # Only Kerberos supports sequence detection.
         sspiclient, sspiserver = self._doAuth("Kerberos")
-        blob, key = sspiclient.encrypt("hello",)
+        blob, key = sspiclient.encrypt(
+            "hello",
+        )
         blob, key = sspiclient.encrypt("hello")
-        self.assertRaisesHRESULT(sspicon.SEC_E_OUT_OF_SEQUENCE,
-                                 sspiserver.decrypt, blob, key)
+        self.assertRaisesHRESULT(
+            sspicon.SEC_E_OUT_OF_SEQUENCE, sspiserver.decrypt, blob, key
+        )
 
     def testSequenceEncrypt(self):
         applyHandlingSkips(self._testSequenceEncrypt)
 
     def testSecBufferRepr(self):
         desc = win32security.PySecBufferDescType()
-        assert re.match('PySecBufferDesc\(ulVersion: 0 \| cBuffers: 0 \| pBuffers: 0x[\da-fA-F]{8,16}\)', repr(desc))
+        assert re.match(
+            "PySecBufferDesc\(ulVersion: 0 \| cBuffers: 0 \| pBuffers: 0x[\da-fA-F]{8,16}\)",
+            repr(desc),
+        )
 
         buffer1 = win32security.PySecBufferType(0, sspicon.SECBUFFER_TOKEN)
-        assert re.match('PySecBuffer\(cbBuffer: 0 \| BufferType: 2 \| pvBuffer: 0x[\da-fA-F]{8,16}\)', repr(buffer1))
-        'PySecBuffer(cbBuffer: 0 | BufferType: 2 | pvBuffer: 0x000001B8CC6D8020)'
+        assert re.match(
+            "PySecBuffer\(cbBuffer: 0 \| BufferType: 2 \| pvBuffer: 0x[\da-fA-F]{8,16}\)",
+            repr(buffer1),
+        )
+        "PySecBuffer(cbBuffer: 0 | BufferType: 2 | pvBuffer: 0x000001B8CC6D8020)"
         desc.append(buffer1)
 
-        assert re.match('PySecBufferDesc\(ulVersion: 0 \| cBuffers: 1 \| pBuffers: 0x[\da-fA-F]{8,16}\)', repr(desc))
+        assert re.match(
+            "PySecBufferDesc\(ulVersion: 0 \| cBuffers: 1 \| pBuffers: 0x[\da-fA-F]{8,16}\)",
+            repr(desc),
+        )
 
         buffer2 = win32security.PySecBufferType(4, sspicon.SECBUFFER_DATA)
-        assert re.match('PySecBuffer\(cbBuffer: 4 \| BufferType: 1 \| pvBuffer: 0x[\da-fA-F]{8,16}\)', repr(buffer2))
+        assert re.match(
+            "PySecBuffer\(cbBuffer: 4 \| BufferType: 1 \| pvBuffer: 0x[\da-fA-F]{8,16}\)",
+            repr(buffer2),
+        )
         desc.append(buffer2)
 
-        assert re.match('PySecBufferDesc\(ulVersion: 0 \| cBuffers: 2 \| pBuffers: 0x[\da-fA-F]{8,16}\)', repr(desc))
+        assert re.match(
+            "PySecBufferDesc\(ulVersion: 0 \| cBuffers: 2 \| pBuffers: 0x[\da-fA-F]{8,16}\)",
+            repr(desc),
+        )
 
-if __name__=='__main__':
+
+if __name__ == "__main__":
     testmain()

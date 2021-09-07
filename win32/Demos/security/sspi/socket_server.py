@@ -30,9 +30,10 @@ import traceback
 import win32security
 import sspi, sspicon
 
-import optparse # sorry, this demo needs 2.3+
+import optparse  # sorry, this demo needs 2.3+
 
-options = None # set to optparse object.
+options = None  # set to optparse object.
+
 
 def GetUserName():
     try:
@@ -44,12 +45,14 @@ def GetUserName():
         # is a lack of Python codecs - so printing the Unicode value fails.
         # So just return the repr(), and avoid codecs completely.
         return repr(win32api.GetUserNameEx(win32api.NameSamCompatible))
-    
+
+
 # Send a simple "message" over a socket - send the number of bytes first,
 # then the string.  Ditto for receive.
 def _send_msg(s, m):
     s.send(struct.pack("i", len(m)))
     s.send(m)
+
 
 def _get_msg(s):
     size_data = s.recv(struct.calcsize("i"))
@@ -57,6 +60,7 @@ def _get_msg(s):
         return None
     cb = struct.unpack("i", size_data)[0]
     return s.recv(cb)
+
 
 class SSPISocketServer(socketserver.TCPServer):
     def __init__(self, *args, **kw):
@@ -75,8 +79,8 @@ class SSPISocketServer(socketserver.TCPServer):
             except sspi.error as details:
                 print("FAILED to authorize client:", details)
                 return False
-                
-            if err==0:
+
+            if err == 0:
                 break
             _send_msg(sock, sec_buffer[0].Buffer)
         return True
@@ -101,10 +105,12 @@ class SSPISocketServer(socketserver.TCPServer):
         self.close_request(request)
         print("The server is back to user", GetUserName())
 
+
 def serve():
     s = SSPISocketServer(("localhost", options.port), None)
     print("Running test server...")
     s.serve_forever()
+
 
 def sspi_client():
     c = http.client.HTTPConnection("localhost", options.port)
@@ -115,7 +121,7 @@ def sspi_client():
     while 1:
         err, out_buf = ca.authorize(data)
         _send_msg(c.sock, out_buf[0].Buffer)
-        if err==0:
+        if err == 0:
             break
         data = _get_msg(c.sock)
     print("Auth dance complete - sending a few encryted messages")
@@ -127,28 +133,46 @@ def sspi_client():
     c.sock.close()
     print("Client completed.")
 
-if __name__=='__main__':
-    parser = optparse.OptionParser("%prog [options] client|server",
-                                   description=__doc__)
-    
-    parser.add_option("", "--package", action="store", default="NTLM",
-                      help="The SSPI package to use (eg, Kerberos) - default is NTLM")
 
-    parser.add_option("", "--target-spn", action="store",
-                      help="""The target security provider name to use. The
+if __name__ == "__main__":
+    parser = optparse.OptionParser("%prog [options] client|server", description=__doc__)
+
+    parser.add_option(
+        "",
+        "--package",
+        action="store",
+        default="NTLM",
+        help="The SSPI package to use (eg, Kerberos) - default is NTLM",
+    )
+
+    parser.add_option(
+        "",
+        "--target-spn",
+        action="store",
+        help="""The target security provider name to use. The
                       string contents are security-package specific.  For
                       example, 'Kerberos' or 'Negotiate' require the server
                       principal name (SPN) (ie, the username) of the remote
-                      process.  For NTLM this must be blank.""")
+                      process.  For NTLM this must be blank.""",
+    )
 
-    parser.add_option("", "--port", action="store", default="8181",
-                      help="The port number to use (default=8181)")
+    parser.add_option(
+        "",
+        "--port",
+        action="store",
+        default="8181",
+        help="The port number to use (default=8181)",
+    )
 
-    parser.add_option("", "--wait", action="store_true",
-                      help="""Cause the program to wait for input just before
+    parser.add_option(
+        "",
+        "--wait",
+        action="store_true",
+        help="""Cause the program to wait for input just before
                               terminating. Useful when using via runas to see
                               any error messages before termination.
-                           """)
+                           """,
+    )
 
     options, args = parser.parse_args()
     try:
@@ -159,14 +183,15 @@ if __name__=='__main__':
     try:
         try:
             if not args:
-                args = ['']
-            if args[0]=="client":
+                args = [""]
+            if args[0] == "client":
                 sspi_client()
-            elif args[0]=="server":
+            elif args[0] == "server":
                 serve()
             else:
-                parser.error("You must supply 'client' or 'server' - " \
-                             "use --help for details")
+                parser.error(
+                    "You must supply 'client' or 'server' - " "use --help for details"
+                )
         except KeyboardInterrupt:
             pass
         except SystemExit:

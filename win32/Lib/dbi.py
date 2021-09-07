@@ -8,17 +8,20 @@ and memoryview objects in Py3k.
 """
 
 import warnings
+
 warnings.warn(
-	"dbi module is obsolete, code should now use native python datetime and buffer/memoryview objects",
-	DeprecationWarning)
+    "dbi module is obsolete, code should now use native python datetime and buffer/memoryview objects",
+    DeprecationWarning,
+)
 
 import datetime
+
 dbDate = dbiDate = datetime.datetime
-	  
+
 try:
-	dbRaw = dbiRaw = buffer
+    dbRaw = dbiRaw = buffer
 except NameError:
-	dbRaw = dbiRaw = memoryview
+    dbRaw = dbiRaw = memoryview
 
 # type names are still exported by odbc module
 from odbc import *

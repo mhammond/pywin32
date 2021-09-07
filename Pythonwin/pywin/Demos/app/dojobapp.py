@@ -12,51 +12,62 @@ import sys
 from pywin.framework import app, dlgappcore
 import string
 
+
 class DoJobAppDialog(dlgappcore.AppDialog):
-	softspace=1
-	def __init__(self, appName = ""):
-		self.appName = appName
-		dlgappcore.AppDialog.__init__(self, win32ui.IDD_GENERAL_STATUS)
+    softspace = 1
 
-	def PreDoModal(self):
-		pass
+    def __init__(self, appName=""):
+        self.appName = appName
+        dlgappcore.AppDialog.__init__(self, win32ui.IDD_GENERAL_STATUS)
 
-	def ProcessArgs(self, args):
-		pass
+    def PreDoModal(self):
+        pass
 
-	def OnInitDialog(self):
-		self.SetWindowText(self.appName)
-		butCancel = self.GetDlgItem(win32con.IDCANCEL)
-		butCancel.ShowWindow(win32con.SW_HIDE)
-		p1 = self.GetDlgItem(win32ui.IDC_PROMPT1)
-		p2 = self.GetDlgItem(win32ui.IDC_PROMPT2)
+    def ProcessArgs(self, args):
+        pass
 
-		# Do something here!
+    def OnInitDialog(self):
+        self.SetWindowText(self.appName)
+        butCancel = self.GetDlgItem(win32con.IDCANCEL)
+        butCancel.ShowWindow(win32con.SW_HIDE)
+        p1 = self.GetDlgItem(win32ui.IDC_PROMPT1)
+        p2 = self.GetDlgItem(win32ui.IDC_PROMPT2)
 
-		p1.SetWindowText("Hello there")
-		p2.SetWindowText("from the demo")
-	def OnDestroy(self,msg):
-		pass
-#	def OnOK(self):
-#		pass	
-#	def OnCancel(self): default behaviour - cancel == close.
-#		return 
+        # Do something here!
+
+        p1.SetWindowText("Hello there")
+        p2.SetWindowText("from the demo")
+
+    def OnDestroy(self, msg):
+        pass
+
+
+# 	def OnOK(self):
+# 		pass
+# 	def OnCancel(self): default behaviour - cancel == close.
+# 		return
+
 
 class DoJobDialogApp(dlgappcore.DialogApp):
-	def CreateDialog(self):
-		return DoJobAppDialog("Do Something")
+    def CreateDialog(self):
+        return DoJobAppDialog("Do Something")
+
 
 class CopyToDialogApp(DoJobDialogApp):
-	def __init__(self):
-		DoJobDialogApp.__init__(self)
+    def __init__(self):
+        DoJobDialogApp.__init__(self)
+
 
 app.AppBuilder = DoJobDialogApp
 
+
 def t():
-	t = DoJobAppDialog("Copy To")
-	t.DoModal()
-	return t
-	
-if __name__=='__main__':
-	import demoutils
-	demoutils.NeedApp()
+    t = DoJobAppDialog("Copy To")
+    t.DoModal()
+    return t
+
+
+if __name__ == "__main__":
+    import demoutils
+
+    demoutils.NeedApp()

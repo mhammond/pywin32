@@ -5,9 +5,10 @@
 import sspi
 import win32security, sspicon, win32api
 
+
 def lookup_ret_code(err):
-    for k,v in list(sspicon.__dict__.items()):
-        if k[0:6] in ('SEC_I_','SEC_E_') and v==err:
+    for k, v in list(sspicon.__dict__.items()):
+        if k[0:6] in ("SEC_I_", "SEC_E_") and v == err:
             return k
 
 
@@ -23,49 +24,47 @@ sspiserver=SSPIServer(pkg_name, None,
         sspicon.ASC_REQ_DELEGATE|sspicon.ASC_REQ_CONFIDENTIALITY|sspicon.ASC_REQ_STREAM|sspicon.ASC_REQ_USE_SESSION_KEY)
 """
 
-pkg_name='NTLM'
+pkg_name = "NTLM"
 
 # Setup the 2 contexts.
-sspiclient=sspi.ClientAuth(pkg_name)
-sspiserver=sspi.ServerAuth(pkg_name)
+sspiclient = sspi.ClientAuth(pkg_name)
+sspiserver = sspi.ServerAuth(pkg_name)
 
 # Perform the authentication dance, each loop exchanging more information
 # on the way to completing authentication.
-sec_buffer=None
+sec_buffer = None
 while 1:
     err, sec_buffer = sspiclient.authorize(sec_buffer)
     err, sec_buffer = sspiserver.authorize(sec_buffer)
-    if err==0:
+    if err == 0:
         break
 
 # The server can now impersonate the client.  In this demo the 2 users will
 # always be the same.
 sspiserver.ctxt.ImpersonateSecurityContext()
-print('Impersonated user: ',win32api.GetUserNameEx(win32api.NameSamCompatible))
+print("Impersonated user: ", win32api.GetUserNameEx(win32api.NameSamCompatible))
 sspiserver.ctxt.RevertSecurityContext()
-print('Reverted to self: ',win32api.GetUserName())
+print("Reverted to self: ", win32api.GetUserName())
 
-pkg_size_info=sspiclient.ctxt.QueryContextAttributes(sspicon.SECPKG_ATTR_SIZES)
+pkg_size_info = sspiclient.ctxt.QueryContextAttributes(sspicon.SECPKG_ATTR_SIZES)
 # Now sign some data
-msg='some data to be encrypted ......'
+msg = "some data to be encrypted ......"
 
-sigsize=pkg_size_info['MaxSignature']
-sigbuf=win32security.PySecBufferDescType()
+sigsize = pkg_size_info["MaxSignature"]
+sigbuf = win32security.PySecBufferDescType()
 sigbuf.append(win32security.PySecBufferType(len(msg), sspicon.SECBUFFER_DATA))
 sigbuf.append(win32security.PySecBufferType(sigsize, sspicon.SECBUFFER_TOKEN))
-sigbuf[0].Buffer=msg
-sspiclient.ctxt.MakeSignature(0,sigbuf,1)
-sspiserver.ctxt.VerifySignature(sigbuf,1)
+sigbuf[0].Buffer = msg
+sspiclient.ctxt.MakeSignature(0, sigbuf, 1)
+sspiserver.ctxt.VerifySignature(sigbuf, 1)
 
 # And finally encrypt some.
-trailersize=pkg_size_info['SecurityTrailer']
-encbuf=win32security.PySecBufferDescType()
+trailersize = pkg_size_info["SecurityTrailer"]
+encbuf = win32security.PySecBufferDescType()
 encbuf.append(win32security.PySecBufferType(len(msg), sspicon.SECBUFFER_DATA))
 encbuf.append(win32security.PySecBufferType(trailersize, sspicon.SECBUFFER_TOKEN))
-encbuf[0].Buffer=msg
-sspiclient.ctxt.EncryptMessage(0,encbuf,1)
-print('Encrypted data:',repr(encbuf[0].Buffer))
-sspiserver.ctxt.DecryptMessage(encbuf,1)
-print('Unencrypted data:',encbuf[0].Buffer)
-
-
+encbuf[0].Buffer = msg
+sspiclient.ctxt.EncryptMessage(0, encbuf, 1)
+print("Encrypted data:", repr(encbuf[0].Buffer))
+sspiserver.ctxt.DecryptMessage(encbuf, 1)
+print("Unencrypted data:", encbuf[0].Buffer)

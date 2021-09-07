@@ -13,24 +13,32 @@ automatically calls this.
 #
 import string
 
+
 def is_interface_enum(enumtype):
-  return not (enumtype[0] in string.uppercase and enumtype[2] in string.uppercase)
+    return not (enumtype[0] in string.uppercase and enumtype[2] in string.uppercase)
 
 
 def _write_enumifc_cpp(f, interface):
-  enumtype = interface.name[5:]
-  if is_interface_enum(enumtype):
-    # Assume an interface.
-    enum_interface = "I" + enumtype[:-1]
-    converter = "PyObject *ob = PyCom_PyObjectFromIUnknown(rgVar[i], IID_%(enum_interface)s, FALSE);" % locals()
-    arraydeclare = "%(enum_interface)s **rgVar = new %(enum_interface)s *[celt];" % locals()
-  else:
-    # Enum of a simple structure
-    converter = "PyObject *ob = PyCom_PyObjectFrom%(enumtype)s(&rgVar[i]);" % locals()
-    arraydeclare = "%(enumtype)s *rgVar = new %(enumtype)s[celt];" % locals()
+    enumtype = interface.name[5:]
+    if is_interface_enum(enumtype):
+        # Assume an interface.
+        enum_interface = "I" + enumtype[:-1]
+        converter = (
+            "PyObject *ob = PyCom_PyObjectFromIUnknown(rgVar[i], IID_%(enum_interface)s, FALSE);"
+            % locals()
+        )
+        arraydeclare = (
+            "%(enum_interface)s **rgVar = new %(enum_interface)s *[celt];" % locals()
+        )
+    else:
+        # Enum of a simple structure
+        converter = (
+            "PyObject *ob = PyCom_PyObjectFrom%(enumtype)s(&rgVar[i]);" % locals()
+        )
+        arraydeclare = "%(enumtype)s *rgVar = new %(enumtype)s[celt];" % locals()
 
-  f.write(\
-'''
+    f.write(
+        """
 // ---------------------------------------------------
 //
 // Interface Implementation
@@ -182,22 +190,26 @@ PyComEnumTypeObject PyIEnum%(enumtype)s::type("PyIEnum%(enumtype)s",
 		sizeof(PyIEnum%(enumtype)s),
 		PyIEnum%(enumtype)s_methods,
 		GET_PYCOM_CTOR(PyIEnum%(enumtype)s));
-''' % locals() )
-
+"""
+        % locals()
+    )
 
 
 def _write_enumgw_cpp(f, interface):
-  enumtype = interface.name[5:]
-  if is_interface_enum(enumtype):
-    # Assume an interface.
-    enum_interface = "I" + enumtype[:-1]
-    converter = "if ( !PyCom_InterfaceFromPyObject(ob, IID_%(enum_interface)s, (void **)&rgVar[i], FALSE) )" % locals()
-    argdeclare="%(enum_interface)s __RPC_FAR * __RPC_FAR *rgVar" % locals()
-  else:
-    argdeclare="%(enumtype)s __RPC_FAR *rgVar" % locals()
-    converter="if ( !PyCom_PyObjectAs%(enumtype)s(ob, &rgVar[i]) )" % locals()
-  f.write(
-'''
+    enumtype = interface.name[5:]
+    if is_interface_enum(enumtype):
+        # Assume an interface.
+        enum_interface = "I" + enumtype[:-1]
+        converter = (
+            "if ( !PyCom_InterfaceFromPyObject(ob, IID_%(enum_interface)s, (void **)&rgVar[i], FALSE) )"
+            % locals()
+        )
+        argdeclare = "%(enum_interface)s __RPC_FAR * __RPC_FAR *rgVar" % locals()
+    else:
+        argdeclare = "%(enumtype)s __RPC_FAR *rgVar" % locals()
+        converter = "if ( !PyCom_PyObjectAs%(enumtype)s(ob, &rgVar[i]) )" % locals()
+    f.write(
+        """
 // ---------------------------------------------------
 //
 // Gateway Implementation
@@ -314,4 +326,6 @@ STDMETHODIMP PyGEnum%(enumtype)s::Clone(
 
 	return PyCom_SetCOMErrorFromSimple(hr, IID_IEnum%(enumtype)s, "Python could not convert the result from Next() into the required COM interface");
 }
-''' % locals())
+"""
+        % locals()
+    )

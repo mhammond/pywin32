@@ -12,7 +12,8 @@ from win32com.client import makepy, selecttlb, gencache
 import pythoncom
 import winerror
 
-def TestBuildAll(verbose = 1):
+
+def TestBuildAll(verbose=1):
     num = 0
     tlbInfos = selecttlb.EnumTlbs()
     for info in tlbInfos:
@@ -20,13 +21,15 @@ def TestBuildAll(verbose = 1):
             print("%s (%s)" % (info.desc, info.dll))
         try:
             makepy.GenerateFromTypeLibSpec(info)
-#          sys.stderr.write("Attr typeflags for coclass referenced object %s=%d (%d), typekind=%d\n" % (name, refAttr.wTypeFlags, refAttr.wTypeFlags & pythoncom.TYPEFLAG_FDUAL,refAttr.typekind))
+            #          sys.stderr.write("Attr typeflags for coclass referenced object %s=%d (%d), typekind=%d\n" % (name, refAttr.wTypeFlags, refAttr.wTypeFlags & pythoncom.TYPEFLAG_FDUAL,refAttr.typekind))
             num += 1
         except pythoncom.com_error as details:
             # Ignore these 2 errors, as the are very common and can obscure
             # useful warnings.
-            if details.hresult not in [winerror.TYPE_E_CANTLOADLIBRARY,
-                              winerror.TYPE_E_LIBNOTREGISTERED]:
+            if details.hresult not in [
+                winerror.TYPE_E_CANTLOADLIBRARY,
+                winerror.TYPE_E_LIBNOTREGISTERED,
+            ]:
                 print("** COM error on", info.desc)
                 print(details)
         except KeyboardInterrupt:
@@ -44,10 +47,12 @@ def TestBuildAll(verbose = 1):
                 makepy.GenerateChildFromTypeLibSpec(name, tinfo)
     return num
 
-def TestAll(verbose = 0):
+
+def TestAll(verbose=0):
     num = TestBuildAll(verbose)
     print("Generated and imported", num, "modules")
     win32com.test.util.CheckClean()
 
-if __name__=='__main__':
+
+if __name__ == "__main__":
     TestAll("-q" not in sys.argv)

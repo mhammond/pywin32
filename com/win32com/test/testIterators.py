@@ -9,16 +9,18 @@ import win32com.server.util
 import win32com.test.util
 import pythoncom
 
+
 class _BaseTestCase(win32com.test.util.TestCase):
     def test_enumvariant_vb(self):
         ob, iter = self.iter_factory()
-        got=[]
+        got = []
         for v in iter:
             got.append(v)
         self.assertEquals(got, self.expected_data)
+
     def test_yield(self):
         ob, i = self.iter_factory()
-        got=[]
+        got = []
         for v in iter(i):
             got.append(v)
         self.assertEquals(got, self.expected_data)
@@ -29,7 +31,7 @@ class _BaseTestCase(win32com.test.util.TestCase):
                 pass
             self.fail("Could iterate over a non-iterable object")
         except TypeError:
-            pass # this is expected.
+            pass  # this is expected.
         self.assertRaises(TypeError, iter, object)
         self.assertRaises(AttributeError, getattr, object, "next")
 
@@ -41,7 +43,7 @@ class _BaseTestCase(win32com.test.util.TestCase):
                 pass
             self.fail("Could iterate over a non-iterable object")
         except TypeError:
-            pass # this is expected.
+            pass  # this is expected.
         self.assertRaises(TypeError, iter, ob)
         self.assertRaises(AttributeError, getattr, ob, "next")
 
@@ -52,7 +54,7 @@ class _BaseTestCase(win32com.test.util.TestCase):
                 pass
             self.fail("Could iterate over a non-iterable object")
         except TypeError:
-            pass # this is expected.
+            pass  # this is expected.
         # Note that as our object may be dynamic, we *do* have a __getitem__
         # method, meaning we *can* call iter() on the object.  In this case
         # actual iteration is what fails.
@@ -66,6 +68,7 @@ class _BaseTestCase(win32com.test.util.TestCase):
         # And it should never have a 'next' method
         self.assertRaises(AttributeError, getattr, ob, "next")
 
+
 class VBTestCase(_BaseTestCase):
     def setUp(self):
         def factory():
@@ -75,8 +78,11 @@ class VBTestCase(_BaseTestCase):
                 ob.Add(i)
             # Get the raw IEnumVARIANT.
             invkind = pythoncom.DISPATCH_METHOD | pythoncom.DISPATCH_PROPERTYGET
-            iter = ob._oleobj_.InvokeTypes(pythoncom.DISPID_NEWENUM,0,invkind,(13, 10),())
+            iter = ob._oleobj_.InvokeTypes(
+                pythoncom.DISPID_NEWENUM, 0, invkind, (13, 10), ()
+            )
             return ob, iter.QueryInterface(pythoncom.IID_IEnumVARIANT)
+
         # We *need* generated dispatch semantics, so dynamic __getitem__ etc
         # don't get in the way of our tests.
         self.object = EnsureDispatch("PyCOMVBTest.Tester")
@@ -86,15 +92,19 @@ class VBTestCase(_BaseTestCase):
     def tearDown(self):
         self.object = None
 
+
 # Test our client semantics, but using a wrapped Python list object.
 # This has the effect of re-using our client specific tests, but in this
 # case is exercising the server side.
 class SomeObject:
     _public_methods_ = ["GetCollection"]
+
     def __init__(self, data):
         self.data = data
+
     def GetCollection(self):
         return win32com.server.util.NewCollection(self.data)
+
 
 class WrappedPythonCOMServerTestCase(_BaseTestCase):
     def setUp(self):
@@ -104,7 +114,7 @@ class WrappedPythonCOMServerTestCase(_BaseTestCase):
             enum = ob._oleobj_.Invoke(pythoncom.DISPID_NEWENUM, 0, flags, 1)
             return ob, enum.QueryInterface(pythoncom.IID_IEnumVARIANT)
 
-        self.expected_data = [1,'Two',3]
+        self.expected_data = [1, "Two", 3]
         sv = win32com.server.util.wrap(SomeObject(self.expected_data))
         self.object = Dispatch(sv)
         self.iter_factory = factory
@@ -112,15 +122,19 @@ class WrappedPythonCOMServerTestCase(_BaseTestCase):
     def tearDown(self):
         self.object = None
 
+
 def suite():
     # We dont want our base class run
     suite = unittest.TestSuite()
     for item in globals().values():
-        if type(item)==type(unittest.TestCase) and \
-           issubclass(item, unittest.TestCase) and \
-           item != _BaseTestCase:
+        if (
+            type(item) == type(unittest.TestCase)
+            and issubclass(item, unittest.TestCase)
+            and item != _BaseTestCase
+        ):
             suite.addTest(unittest.makeSuite(item))
     return suite
 
-if __name__=='__main__':
-    unittest.main(argv=sys.argv + ['suite'])
+
+if __name__ == "__main__":
+    unittest.main(argv=sys.argv + ["suite"])

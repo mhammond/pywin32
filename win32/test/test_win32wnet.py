@@ -32,14 +32,14 @@ NETRESOURCE_attributes = [
     ("lpRemoteName", str),
     ("lpComment", str),
     ("lpProvider", str),
-    ]
+]
 
 NCB_attributes = [
     ("Command", int),
     ("Retcode", int),
     ("Lsn", int),
     ("Num", int),
-#    ("Bufflen", int), - read-only
+    #    ("Bufflen", int), - read-only
     ("Callname", str),
     ("Name", str),
     ("Rto", int),
@@ -48,7 +48,8 @@ NCB_attributes = [
     ("Cmd_cplt", int),
     ("Event", int),
     ("Post", int),
-    ]
+]
+
 
 class TestCase(unittest.TestCase):
     def testGetUser(self):
@@ -58,14 +59,16 @@ class TestCase(unittest.TestCase):
         for attr, typ in attrs:
             val = getattr(item, attr)
             if typ is int:
-                self.failUnless(type(val) in (int,),
-                                "Attr %r has value %r" % (attr, val))
+                self.failUnless(
+                    type(val) in (int,), "Attr %r has value %r" % (attr, val)
+                )
                 new_val = val + 1
             elif typ is str:
                 if val is not None:
                     # on py2k, must be string or unicode.  py3k must be string or bytes.
-                    self.failUnless(type(val) in (str, str),
-                                    "Attr %r has value %r" % (attr, val))
+                    self.failUnless(
+                        type(val) in (str, str), "Attr %r has value %r" % (attr, val)
+                    )
                     new_val = val + " new value"
                 else:
                     new_val = "new value"
@@ -79,15 +82,14 @@ class TestCase(unittest.TestCase):
         self._checkItemAttributes(nr, NETRESOURCE_attributes)
 
     def testWNetEnumResource(self):
-        handle = win32wnet.WNetOpenEnum(RESOURCE_GLOBALNET, RESOURCETYPE_ANY,
-                                        0, None)
+        handle = win32wnet.WNetOpenEnum(RESOURCE_GLOBALNET, RESOURCETYPE_ANY, 0, None)
         try:
             while 1:
-                    items = win32wnet.WNetEnumResource(handle, 0)
-                    if len(items)==0:
-                            break
-                    for item in items:
-                        self._checkItemAttributes(item, NETRESOURCE_attributes)
+                items = win32wnet.WNetEnumResource(handle, 0)
+                if len(items) == 0:
+                    break
+                for item in items:
+                    self._checkItemAttributes(item, NETRESOURCE_attributes)
         finally:
             handle.Close()
 
@@ -112,7 +114,7 @@ class TestCase(unittest.TestCase):
             ncb.Reset()
             ncb.Command = netbios.NCBASTAT
             ncb.Lana_num = byte_to_int(la_enum.lana[i])
-            ncb.Callname = str2bytes("*               ") # ensure bytes on py2x and 3k
+            ncb.Callname = str2bytes("*               ")  # ensure bytes on py2x and 3k
             adapter = netbios.ADAPTER_STATUS()
             ncb.Buffer = adapter
             Netbios(ncb)
@@ -122,38 +124,39 @@ class TestCase(unittest.TestCase):
     def iterConnectableShares(self):
         nr = win32wnet.NETRESOURCE()
         nr.dwScope = RESOURCE_GLOBALNET
-        nr.dwUsage = RESOURCEUSAGE_CONTAINER 
+        nr.dwUsage = RESOURCEUSAGE_CONTAINER
         nr.lpRemoteName = "\\\\" + win32api.GetComputerName()
 
-        handle = win32wnet.WNetOpenEnum(RESOURCE_GLOBALNET, RESOURCETYPE_ANY,
-                                        0, nr)
+        handle = win32wnet.WNetOpenEnum(RESOURCE_GLOBALNET, RESOURCETYPE_ANY, 0, nr)
         while 1:
             items = win32wnet.WNetEnumResource(handle, 0)
-            if len(items)==0:
+            if len(items) == 0:
                 break
             for item in items:
                 if item.dwDisplayType == RESOURCEDISPLAYTYPE_SHARE:
                     yield item
 
     def findUnusedDriveLetter(self):
-        existing = [x[0].lower() for x in win32api.GetLogicalDriveStrings().split('\0') if x]
-        handle = win32wnet.WNetOpenEnum(RESOURCE_REMEMBERED,RESOURCETYPE_DISK,0,None)
+        existing = [
+            x[0].lower() for x in win32api.GetLogicalDriveStrings().split("\0") if x
+        ]
+        handle = win32wnet.WNetOpenEnum(RESOURCE_REMEMBERED, RESOURCETYPE_DISK, 0, None)
         try:
-                while 1:
-                        items = win32wnet.WNetEnumResource(handle, 0)
-                        if len(items)==0:
-                                break
-                        xtra = [i.lpLocalName[0].lower() for i in items if i.lpLocalName]
-                        existing.extend(xtra)
+            while 1:
+                items = win32wnet.WNetEnumResource(handle, 0)
+                if len(items) == 0:
+                    break
+                xtra = [i.lpLocalName[0].lower() for i in items if i.lpLocalName]
+                existing.extend(xtra)
         finally:
-                handle.Close()
-        for maybe in 'defghijklmnopqrstuvwxyz':
-                if maybe not in existing:
-                        return maybe
+            handle.Close()
+        for maybe in "defghijklmnopqrstuvwxyz":
+            if maybe not in existing:
+                return maybe
         self.fail("All drive mappings are taken?")
 
     def testAddConnection(self):
-        localName = self.findUnusedDriveLetter() + ':'
+        localName = self.findUnusedDriveLetter() + ":"
         for share in self.iterConnectableShares():
             share.lpLocalName = localName
             win32wnet.WNetAddConnection2(share)
@@ -161,12 +164,12 @@ class TestCase(unittest.TestCase):
             break
 
     def testAddConnectionOld(self):
-        localName = self.findUnusedDriveLetter() + ':'
+        localName = self.findUnusedDriveLetter() + ":"
         for share in self.iterConnectableShares():
             win32wnet.WNetAddConnection2(share.dwType, localName, share.lpRemoteName)
             win32wnet.WNetCancelConnection2(localName, 0, 0)
             break
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

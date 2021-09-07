@@ -1,8 +1,9 @@
-'''cat.py
+"""cat.py
 a version of unix cat, tweaked to show off runproc.py
-'''
+"""
 
 import sys
+
 data = sys.stdin.read(1)
 sys.stdout.write(data)
 sys.stdout.flush()

@@ -1,19 +1,24 @@
 import win32evtlog
 import win32api
 import win32con
-import win32security # To translate NT Sids to account names.
+import win32security  # To translate NT Sids to account names.
 
 import win32evtlogutil
 
-def ReadLog(computer, logType="Application", dumpEachRecord = 0):
-    # read the entire log back.
-    h=win32evtlog.OpenEventLog(computer, logType)
-    numRecords = win32evtlog.GetNumberOfEventLogRecords(h)
-#       print "There are %d records" % numRecords
 
-    num=0
+def ReadLog(computer, logType="Application", dumpEachRecord=0):
+    # read the entire log back.
+    h = win32evtlog.OpenEventLog(computer, logType)
+    numRecords = win32evtlog.GetNumberOfEventLogRecords(h)
+    #       print "There are %d records" % numRecords
+
+    num = 0
     while 1:
-        objects = win32evtlog.ReadEventLog(h, win32evtlog.EVENTLOG_BACKWARDS_READ|win32evtlog.EVENTLOG_SEQUENTIAL_READ, 0)
+        objects = win32evtlog.ReadEventLog(
+            h,
+            win32evtlog.EVENTLOG_BACKWARDS_READ | win32evtlog.EVENTLOG_SEQUENTIAL_READ,
+            0,
+        )
         if not objects:
             break
         for object in objects:
@@ -21,7 +26,9 @@ def ReadLog(computer, logType="Application", dumpEachRecord = 0):
             msg = win32evtlogutil.SafeFormatMessage(object, logType)
             if object.Sid is not None:
                 try:
-                    domain, user, typ = win32security.LookupAccountSid(computer, object.Sid)
+                    domain, user, typ = win32security.LookupAccountSid(
+                        computer, object.Sid
+                    )
                     sidDesc = "%s/%s" % (domain, user)
                 except win32security.error:
                     sidDesc = str(object.Sid)
@@ -29,7 +36,10 @@ def ReadLog(computer, logType="Application", dumpEachRecord = 0):
             else:
                 user_desc = None
             if dumpEachRecord:
-                print("Event record from %r generated at %s" % (object.SourceName, object.TimeGenerated.Format()))
+                print(
+                    "Event record from %r generated at %s"
+                    % (object.SourceName, object.TimeGenerated.Format())
+                )
                 if user_desc:
                     print(user_desc)
                 try:
@@ -43,9 +53,14 @@ def ReadLog(computer, logType="Application", dumpEachRecord = 0):
     if numRecords == num:
         print("Successfully read all", numRecords, "records")
     else:
-        print("Couldn't get all records - reported %d, but found %d" % (numRecords, num))
-        print("(Note that some other app may have written records while we were running!)")
+        print(
+            "Couldn't get all records - reported %d, but found %d" % (numRecords, num)
+        )
+        print(
+            "(Note that some other app may have written records while we were running!)"
+        )
     win32evtlog.CloseEventLog(h)
+
 
 def usage():
     print("Writes an event to the event log.")
@@ -63,6 +78,7 @@ def test():
         return
 
     import sys, getopt
+
     opts, args = getopt.getopt(sys.argv[1:], "rwh?c:t:v")
     computer = None
     do_read = do_write = 1
@@ -70,42 +86,57 @@ def test():
     logType = "Application"
     verbose = 0
 
-    if len(args)>0:
+    if len(args) > 0:
         print("Invalid args")
         usage()
         return 1
     for opt, val in opts:
-        if opt == '-t':
+        if opt == "-t":
             logType = val
-        if opt == '-c':
+        if opt == "-c":
             computer = val
-        if opt in ['-h', '-?']:
+        if opt in ["-h", "-?"]:
             usage()
             return
-        if opt=='-r':
+        if opt == "-r":
             do_read = 0
-        if opt=='-w':
+        if opt == "-w":
             do_write = 0
-        if opt=='-v':
+        if opt == "-v":
             verbose = verbose + 1
     if do_write:
-        ph=win32api.GetCurrentProcess()
-        th = win32security.OpenProcessToken(ph,win32con.TOKEN_READ)
-        my_sid = win32security.GetTokenInformation(th,win32security.TokenUser)[0]
+        ph = win32api.GetCurrentProcess()
+        th = win32security.OpenProcessToken(ph, win32con.TOKEN_READ)
+        my_sid = win32security.GetTokenInformation(th, win32security.TokenUser)[0]
 
-        win32evtlogutil.ReportEvent(logType, 2,
-            strings=["The message text for event 2","Another insert"],
-            data = "Raw\0Data".encode("ascii"), sid = my_sid)
-        win32evtlogutil.ReportEvent(logType, 1, eventType=win32evtlog.EVENTLOG_WARNING_TYPE,
-            strings=["A warning","An even more dire warning"],
-            data = "Raw\0Data".encode("ascii"), sid = my_sid)
-        win32evtlogutil.ReportEvent(logType, 1, eventType=win32evtlog.EVENTLOG_INFORMATION_TYPE,
-            strings=["An info","Too much info"],
-            data = "Raw\0Data".encode("ascii"), sid = my_sid)
+        win32evtlogutil.ReportEvent(
+            logType,
+            2,
+            strings=["The message text for event 2", "Another insert"],
+            data="Raw\0Data".encode("ascii"),
+            sid=my_sid,
+        )
+        win32evtlogutil.ReportEvent(
+            logType,
+            1,
+            eventType=win32evtlog.EVENTLOG_WARNING_TYPE,
+            strings=["A warning", "An even more dire warning"],
+            data="Raw\0Data".encode("ascii"),
+            sid=my_sid,
+        )
+        win32evtlogutil.ReportEvent(
+            logType,
+            1,
+            eventType=win32evtlog.EVENTLOG_INFORMATION_TYPE,
+            strings=["An info", "Too much info"],
+            data="Raw\0Data".encode("ascii"),
+            sid=my_sid,
+        )
         print("Successfully wrote 3 records to the log")
 
     if do_read:
         ReadLog(computer, logType, verbose > 0)
 
-if __name__=='__main__':
+
+if __name__ == "__main__":
     test()

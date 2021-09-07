@@ -7,7 +7,7 @@
 
 import win32ui, sys, win32con
 
-defaultCharacterFormat = (-402653169, 0, 200, 0, 0, 0, 49, 'Courier New')
+defaultCharacterFormat = (-402653169, 0, 200, 0, 0, 0, 49, "Courier New")
 
 ##def GetDefaultEditorModuleName():
 ##	import pywin
@@ -25,8 +25,11 @@ defaultCharacterFormat = (-402653169, 0, 200, 0, 0, 0, 49, 'Courier New')
 ##		pass
 ##	win32ui.WriteProfileVal("Editor", "Module", module)
 
+
 def LoadDefaultEditor():
-	pass
+    pass
+
+
 ##	prefModule = GetDefaultEditorModuleName()
 ##	restorePrefModule = None
 ##	mod = None
@@ -40,16 +43,16 @@ def LoadDefaultEditor():
 ##				restorePrefModule = prefModule
 ##			WriteDefaultEditorModule("")
 ##			del rc
-##	
+##
 ##	try:
-##		# Try and load the default one - dont catch errors here.		
+##		# Try and load the default one - dont catch errors here.
 ##		if mod is None:
 ##			prefModule = "pywin.framework.editor.color.coloreditor"
 ##			mod = __import__(prefModule)
-##	
+##
 ##		# Get at the real module.
 ##		mod = sys.modules[prefModule]
-##	
+##
 ##		# Do a "from mod import *"
 ##		globals().update(mod.__dict__)
 ##
@@ -58,33 +61,43 @@ def LoadDefaultEditor():
 ##		if restorePrefModule:
 ##			WriteDefaultEditorModule(restorePrefModule)
 
-def GetEditorOption(option, defaultValue, min=None, max = None):
-	rc = win32ui.GetProfileVal("Editor", option, defaultValue)
-	if min is not None and rc < min: rc = defaultValue
-	if max is not None and rc > max: rc = defaultValue
-	return rc
+
+def GetEditorOption(option, defaultValue, min=None, max=None):
+    rc = win32ui.GetProfileVal("Editor", option, defaultValue)
+    if min is not None and rc < min:
+        rc = defaultValue
+    if max is not None and rc > max:
+        rc = defaultValue
+    return rc
+
 
 def SetEditorOption(option, newValue):
-	win32ui.WriteProfileVal("Editor", option, newValue)
+    win32ui.WriteProfileVal("Editor", option, newValue)
+
 
 def DeleteEditorOption(option):
-	try:
-		win32ui.WriteProfileVal("Editor", option, None)
-	except win32ui.error:
-		pass
+    try:
+        win32ui.WriteProfileVal("Editor", option, None)
+    except win32ui.error:
+        pass
+
 
 # Load and save font tuples
-def GetEditorFontOption(option, default = None):
-	if default is None: default = defaultCharacterFormat
-	fmt = GetEditorOption( option, "" )
-	if fmt == "": return default
-	try:
-		return eval(fmt)
-	except:
-		print("WARNING: Invalid font setting in registry - setting ignored")
-		return default
-		
+def GetEditorFontOption(option, default=None):
+    if default is None:
+        default = defaultCharacterFormat
+    fmt = GetEditorOption(option, "")
+    if fmt == "":
+        return default
+    try:
+        return eval(fmt)
+    except:
+        print("WARNING: Invalid font setting in registry - setting ignored")
+        return default
+
+
 def SetEditorFontOption(option, newValue):
-	SetEditorOption(option, str(newValue))
+    SetEditorOption(option, str(newValue))
+
 
 from pywin.framework.editor.color.coloreditor import editorTemplate
