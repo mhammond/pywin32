@@ -2523,9 +2523,10 @@ int Win32uiRun(void)
     // An error here is too late for anything to usefully print it,
     // so we use a dialog.
     CVirtualHelper helper("Run", GetApp(), VEH_DISPLAY_DIALOG);
-    if (!helper.HaveHandler())
+    if (!helper.HaveHandler()) {
+        helper.release_full();  // important
         ret = GetApp()->CWinApp::Run();
-    else {
+    } else {
         helper.call();
         helper.retval(ret);
     }

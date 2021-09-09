@@ -46,6 +46,7 @@ LRESULT CPythonRichEditView::WindowProc(UINT message, WPARAM wParam, LPARAM lPar
     CVirtualHelper helper("WindowProc", this);
     if (!helper.HaveHandler() || !helper.call(message, wParam, lParam) || !helper.retval(res)) {
         try {
+            helper.release_full();
             return CRichEditView::WindowProc(message, wParam, lParam);
         }
         catch (...) {
@@ -64,8 +65,10 @@ void CPythonRichEditView::OnInitialUpdate()
     CVirtualHelper helper("OnInitialUpdate", this);
     if (helper.HaveHandler())
         helper.call();
-    else
+    else {
+        helper.release_full();
         CRichEditView::OnInitialUpdate();
+    }
 }
 
 #ifdef _DEBUG
