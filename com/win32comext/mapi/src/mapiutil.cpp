@@ -350,7 +350,7 @@ BOOL PyMAPIObject_AsSPropValue(PyObject *Valob, SPropValue *pv, void *pAllocMore
 
         default: {
             char buf[128];
-            sprintf(buf, "Unsupported MAPI property type 0x%lu", PROP_TYPE(pv->ulPropTag));
+            sprintf(buf, "Unsupported MAPI property type 0x%uX", PROP_TYPE(pv->ulPropTag));
             PyErr_SetString(PyExc_TypeError, buf);
             ok = FALSE;
         }
@@ -511,7 +511,7 @@ PyObject *PyMAPIObject_FromSPropValue(SPropValue *pv)
             break;
 
         default:
-            printf("File %s: Unsupported MAPI property type 0x%lu", __FILE__, PROP_TYPE(pv->ulPropTag));
+            printf("File %s: Unsupported MAPI property type 0x%uX", __FILE__, PROP_TYPE(pv->ulPropTag));
             /* Dont set exception, as this prevents otherwise valid props from
                being returned
             */

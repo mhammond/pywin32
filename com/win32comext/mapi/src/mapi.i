@@ -1151,7 +1151,7 @@ PyObject *PyHrGetOneProp(PyObject *self, PyObject *args)
 		PyLong_AsUnsignedLong(PyTuple_GET_ITEM(ret, 0)) != PT_NULL)
 	{
 		char buf[128];
-		sprintf(buf, "Unsupported MAPI property type 0x%lu", PROP_TYPE(pPV->ulPropTag));
+		sprintf(buf, "Unsupported MAPI property type 0x%uX", PROP_TYPE(pPV->ulPropTag));
 		PyErr_SetString(PyExc_TypeError, buf);
 		Py_DECREF(ret);
 		ret = NULL;
