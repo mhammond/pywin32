@@ -106,7 +106,7 @@ import distutils.util
 # > sysconfig.get_config_vars()['EXT_SUFFIX'] -> '.pyd'
 # So be careful trying to replace `distutils.sysconfig` with `sysconfig`!
 from distutils.sysconfig import get_config_vars, get_config_var
-if sys.version_info < (3, 10):
+if 'MSC' in sys.version and sys.version_info < (3, 10):
     get_config_vars()["EXT_SUFFIX"] = ".pyd"
 
 build_id_patch = build_id
@@ -551,14 +551,8 @@ class WinExt_win32com_mapi(WinExt_win32com):
             # Additional utility functions are only available for 32-bit builds.
             pass
         else:
-            if 'MSC' in sys.version:
-                libs += " version user32 advapi32 Ex2KSdk sadapi netapi32"
-            else:
-                if '32 bit' in sys.version or name == 'exchdapi':
-                    libs += " ex2ksdk version mapi32 advapi32 user32 netapi32"
+            libs += " version user32 advapi32 Ex2KSdk sadapi netapi32"
         kw["libraries"] = libs
-        if 'GCC' in sys.version:
-            kw.setdefault('extra_compile_args', []).append("-DEXCHANGE_RE")
         WinExt_win32com.__init__(self, name, **kw)
 
     def get_pywin32_dir(self):
@@ -1292,8 +1286,8 @@ class mingw_build_ext(build_ext):
 
     def _why_cant_build_extension(self, ext):
         # Return None, or a reason it can't be built.
-        if '64 bit' in sys.version and ext.name == 'exchdapi':
-            return "No 64-bit library for utility functions available."
+        if ext.name in ['exchange', 'exchdapi']:
+            return "No library for utility functions available."
 
         # Comment out below to enable Pythonwin extensions
         if ext.name in ['win32ui', 'win32uiole', 'dde', 'Pythonwin']:
@@ -1872,7 +1866,7 @@ for info in (
             """),
         ("timer", "user32", None, "win32/src/timermodule.cpp"),
         ("win32cred", "AdvAPI32 credui", 0x0501, 'win32/src/win32credmodule.cpp'),
-        ("win32crypt", "Crypt32 Advapi32", 0x0500, """
+        ("win32crypt", "advapi32 crypt32", 0x0500, """
             win32/src/win32crypt/win32cryptmodule.cpp
             win32/src/win32crypt/win32crypt_structs.cpp
             win32/src/win32crypt/PyCERTSTORE.cpp
