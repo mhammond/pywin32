@@ -208,13 +208,13 @@ BOOL PyWinObject_AsSYSTEMTIME(PyObject *ob, SYSTEMTIME *st)
 {
     if (!PyDateTime_Check(ob)) {
         PyErr_Format(PyExc_TypeError, "must be a pywintypes time object (got %s)", ob->ob_type->tp_name);
-        return FALSE;
+        return NULL;
     }
     // convert the date to a UTC date.
     PyObject *utc = PyObject_CallMethod(ob, "astimezone", "O", GetTZUTC());
     // likely error is "ValueError: astimezone() cannot be applied to a naive datetime"
     if (!utc)
-        return FALSE;
+        return NULL;
     st->wYear = PyDateTime_GET_YEAR(utc);
     st->wMonth = PyDateTime_GET_MONTH(utc);
     st->wDay = PyDateTime_GET_DAY(utc);
@@ -435,7 +435,7 @@ PyObject *PyWin_NewTime(PyObject *timeOb)
     {
         PyDateTime_IMPORT;
         if (!PyDateTimeAPI)
-            return FALSE;
+            return NULL;
         PyWinDateTimeType.tp_base = PyDateTimeAPI->DateTimeType;
         PyWinDateTimeType.tp_basicsize = PyDateTimeAPI->DateTimeType->tp_basicsize;
         PyWinDateTimeType.tp_new = PyDateTimeAPI->DateTimeType->tp_new;

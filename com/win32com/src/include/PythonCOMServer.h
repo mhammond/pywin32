@@ -46,7 +46,7 @@ HRESULT PyCom_MakeRegisteredGatewayObject(REFIID iid, PyObject *instance, PyGate
     virtual IID GetIID(void) { return theIID; }                                                                  \
     virtual void *ThisAsIID(IID iid)                                                                             \
     {                                                                                                            \
-        if (ThisAsIID(iid) == NULL)                                                                                        \
+        if (this == NULL)                                                                                        \
             return NULL;                                                                                         \
         if (iid == theIID)                                                                                       \
             return (IInterface *)this;                                                                           \

@@ -450,7 +450,7 @@ BOOL PyWinObject_AsLSA_STRING(PyObject *obname, PLSA_STRING plsas)
 BOOL PyWinObject_AsLSA_UNICODE_STRING(PyObject *obstr, LSA_UNICODE_STRING *plsaus, BOOL bNoneOk)
 {
 	DWORD len = 0;
-	ZeroMemory(plsaus, sizeof(plsaus)/sizeof(WCHAR));
+	ZeroMemory(plsaus, sizeof(plsaus));
 	if (!PyWinObject_AsWCHAR(obstr, &plsaus->Buffer, bNoneOk, &len))
 		return FALSE;
 	// Length is in bytes, not characters, and does not include null terminator
@@ -1885,8 +1885,6 @@ static PyObject *PyGetTokenInformation(PyObject *self, PyObject *args)
 			if (!GetTokenInformation(handle, typ, &dwordbuf, bufSize, &retLength))
 				return PyWin_SetAPIError("GetTokenInformation");
 			return PyLong_FromUnsignedLong(dwordbuf);
-		default:
-			break;
 		}
 
 	PyObject *ret = NULL;
@@ -3593,9 +3591,9 @@ BOOL PyWinObject_AsSEC_WINNT_AUTH_IDENTITY(PyObject *obAuthData, PSEC_WINNT_AUTH
 		return FALSE;
 		}
 	static const BOOL none_ok = TRUE; // NULL seems OK anywhere
-	if (!PyWinObject_AsWCHAR(obUser, (WCHAR**)&pAuthData->User, none_ok, &pAuthData->UserLength) || \
-	    !PyWinObject_AsWCHAR(obDomain, (WCHAR**)&pAuthData->Domain, none_ok, &pAuthData->DomainLength) || \
-		!PyWinObject_AsWCHAR(obPW, (WCHAR**)&pAuthData->Password, none_ok, &pAuthData->PasswordLength)) {
+	if (!PyWinObject_AsWCHAR(obUser, &pAuthData->User, none_ok, &pAuthData->UserLength) || \
+	    !PyWinObject_AsWCHAR(obDomain, &pAuthData->Domain, none_ok, &pAuthData->DomainLength) || \
+		!PyWinObject_AsWCHAR(obPW, &pAuthData->Password, none_ok, &pAuthData->PasswordLength)) {
 		PyErr_Clear();
 		PyErr_SetString(PyExc_TypeError, err_msg);
 		return FALSE;
@@ -3609,11 +3607,11 @@ void PyWinObject_FreeSEC_WINNT_AUTH_IDENTITY(PSEC_WINNT_AUTH_IDENTITY_W pAuthDat
 	if (!pAuthData)
 		return;
 	if (pAuthData->User)
-		PyWinObject_FreeWCHAR((WCHAR*)pAuthData->User);
+		PyWinObject_FreeWCHAR(pAuthData->User);
 	if (pAuthData->Domain)
-		PyWinObject_FreeWCHAR((WCHAR*)pAuthData->Domain);
+		PyWinObject_FreeWCHAR(pAuthData->Domain);
 	if (pAuthData->Password)
-		PyWinObject_FreeWCHAR((WCHAR*)pAuthData->Password);
+		PyWinObject_FreeWCHAR(pAuthData->Password);
 }
 
 %}

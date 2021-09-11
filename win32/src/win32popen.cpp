@@ -10,7 +10,7 @@
 #include "fcntl.h"
 #include "PyWinTypes.h"
 
-#define DllExport __declspec(dllexport)
+#define DllExport _declspec(dllexport)
 
 // These tell _PyPopen() wether to return 1, 2, or 3 file objects.
 #define POPEN_1 1

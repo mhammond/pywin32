@@ -1091,11 +1091,12 @@ static struct PyMethodDef clipboard_functions[] = {
     {NULL, NULL}};
 
 #define ADD_CONSTANT(tok)                                \
-    if (int rc = PyModule_AddIntConstant(module, #tok, tok)) \
+    if (rc = PyModule_AddIntConstant(module, #tok, tok)) \
     return rc
 
 static int AddConstants(PyObject *module)
 {
+    int rc;
     ADD_CONSTANT(CF_TEXT);
     ADD_CONSTANT(CF_BITMAP);
     ADD_CONSTANT(CF_METAFILEPICT);

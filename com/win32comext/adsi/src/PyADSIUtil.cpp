@@ -643,7 +643,7 @@ BOOL PyADSIObject_AsADS_SEARCHPREF_INFOs(PyObject *ob, ADS_SEARCHPREF_INFO **ppr
     pret = (ADS_SEARCHPREF_INFO *)malloc(sizeof(ADS_SEARCHPREF_INFO) * nitems);
     if (!pret) {
         PyErr_NoMemory();
-        return FALSE;
+        return NULL;
     }
     memset(pret, 0, sizeof(ADS_SEARCHPREF_INFO) * nitems);
     PyObject *sub = NULL;

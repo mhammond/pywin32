@@ -549,7 +549,7 @@ static PyObject *PyRasDial(PyObject *self, PyObject *args)
         pNotification = NULL;
     }
     else if (PyCallable_Check(obCallback)) {
-        pNotification = (LPVOID)PyRasDialFunc1;
+        pNotification = PyRasDialFunc1;
         notType = 1;
     }
     else if (PyLong_Check(obCallback)) {
@@ -786,13 +786,14 @@ static PyObject *PyRasGetEntryDialParams(PyObject *self, PyObject *args)
 static PyObject *PyRasGetErrorString(PyObject *self, PyObject *args)
 {
     DWORD error;
+    DWORD rc;
     if (!PyArg_ParseTuple(args, "i:GetErrorString",
                           &error))  // @pyparm int|error||The error value being queried.
         return NULL;
 
     TCHAR buf[512];
     // @pyseeapi RasGetErrorString
-    if (DWORD rc = RasGetErrorString(error, buf, sizeof(buf) / sizeof(buf[0])))
+    if (rc = RasGetErrorString(error, buf, sizeof(buf) / sizeof(buf[0])))
         return ReturnRasError("RasGetErrorString");
     return PyWinObject_FromTCHAR(buf);
 }
@@ -800,13 +801,14 @@ static PyObject *PyRasGetErrorString(PyObject *self, PyObject *args)
 // @pymethod |win32ras|HangUp|Terminates a remote access session.
 static PyObject *PyRasHangUp(PyObject *self, PyObject *args)
 {
+    DWORD rc;
     HRASCONN hras;
     if (!PyArg_ParseTuple(args, "O&:HangUp", PyWinObject_AsHANDLE,
                           &hras))  // @pyparm int|hras||The handle to the RAS connection to be terminated.
         return NULL;
 
     // @pyseeapi RasHangUp
-    if (DWORD rc = RasHangUp(hras))
+    if (rc = RasHangUp(hras))
         return ReturnRasError("RasHangup");
     Py_INCREF(Py_None);
     return Py_None;
@@ -925,7 +927,7 @@ static struct PyMethodDef win32ras_functions[] = {
     {NULL, NULL}};
 
 #define ADD_CONSTANT(tok)                                \
-    if (int rc = PyModule_AddIntConstant(module, #tok, tok)) \
+    if (rc = PyModule_AddIntConstant(module, #tok, tok)) \
     return rc
 #define ADD_ENUM(parta, partb)                                                 \
     if (rc = PyModule_AddIntConstant(module, #parta "_" #partb, parta::partb)) \
@@ -936,6 +938,7 @@ static struct PyMethodDef win32ras_functions[] = {
 
 static int AddConstants(PyObject *module)
 {
+    int rc;
     ADD_CONSTANT(RASCS_OpenPort);             // @const win32ras|RASCS_OpenPort|Constant for RAS state.
     ADD_CONSTANT(RASCS_PortOpened);           // @const win32ras|RASCS_PortOpened|Constant for RAS state.
     ADD_CONSTANT(RASCS_ConnectDevice);        // @const win32ras|RASCS_ConnectDevice|Constant for RAS state.

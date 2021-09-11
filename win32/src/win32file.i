@@ -3543,7 +3543,7 @@ BOOL PyWinObject_AsPENCRYPTION_CERTIFICATE_LIST(PyObject *obcert_list, PENCRYPTI
 	ppec=(PENCRYPTION_CERTIFICATE *)malloc(cert_cnt*sizeof(PENCRYPTION_CERTIFICATE));
 	if (ppec==NULL){
 		PyErr_SetString(PyExc_MemoryError,"PyWinObject_AsENCRYPTION_CERTIFICATE_LIST: unable to allocate hash list");
-		return FALSE;
+		return NULL;
 		}
 	ZeroMemory(ppec,cert_cnt*sizeof(PENCRYPTION_CERTIFICATE));
 	pecl->pUsers=ppec;
@@ -5393,7 +5393,8 @@ static PyObject *py_GetFullPathName(PyObject *self, PyObject *args, PyObject *kw
 	if (!PyWinObject_AsHANDLE(obtrans, &htrans))
 		return NULL;
 
-	if (WCHAR *wpathin=PyUnicode_AsUnicode(obpathin)){
+	WCHAR *wpathin;
+	if (wpathin=PyUnicode_AsUnicode(obpathin)){
 		if (htrans)
 			CHECK_PFN(GetFullPathNameTransactedW);
 		WCHAR *wpathret=NULL, *wfilepart, *wpathsave=NULL;
@@ -5431,7 +5432,8 @@ static PyObject *py_GetFullPathName(PyObject *self, PyObject *args, PyObject *kw
 		}
 
 	PyErr_Clear();
-	if (char *cpathin=PyBytes_AsString(obpathin)){
+	char *cpathin;
+	if (cpathin=PyBytes_AsString(obpathin)){
 		if (htrans)
 			CHECK_PFN(GetFullPathNameTransactedA);
 		char *cpathret=NULL, *cfilepart, *cpathsave=NULL;

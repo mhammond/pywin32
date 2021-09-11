@@ -206,7 +206,7 @@ PyObject *PyIOleInPlaceSiteWindowless::InvalidateRgn(PyObject *self, PyObject *a
         return NULL;
     HRESULT hr;
     PY_INTERFACE_PRECALL;
-    hr = pIOIPSW->InvalidateRgn((LONG_PTR)hRGN, fErase);
+    hr = pIOIPSW->InvalidateRgn((HRGN)hRGN, fErase);
     PY_INTERFACE_POSTCALL;
 
     if (FAILED(hr))
@@ -394,7 +394,7 @@ STDMETHODIMP PyGOleInPlaceSiteWindowless::InvalidateRgn(
     /* [in] */ BOOL fErase)
 {
     PY_GATEWAY_METHOD;
-    HRESULT hr = InvokeViaPolicy("InvalidateRgn", NULL, "li", (long*)hRGN, fErase);
+    HRESULT hr = InvokeViaPolicy("InvalidateRgn", NULL, "li", (long)hRGN, fErase);
     return hr;
 }
 
