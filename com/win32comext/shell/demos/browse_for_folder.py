@@ -6,7 +6,7 @@ import win32gui
 
 # A callback procedure - called by SHBrowseForFolder
 def BrowseCallbackProc(hwnd, msg, lp, data):
-    if msg== shellcon.BFFM_INITIALIZED:
+    if msg == shellcon.BFFM_INITIALIZED:
         win32gui.SendMessage(hwnd, shellcon.BFFM_SETSELECTION, 1, data)
     elif msg == shellcon.BFFM_SELCHANGED:
         # Set the status text of the
@@ -19,22 +19,25 @@ def BrowseCallbackProc(hwnd, msg, lp, data):
             # No path for this PIDL
             pass
 
-if __name__=='__main__':
+
+if __name__ == "__main__":
     # Demonstrate a dialog with the cwd selected as the default - this
     # must be done via a callback function.
     flags = shellcon.BIF_STATUSTEXT
-    shell.SHBrowseForFolder(0, # parent HWND
-                            None, # root PIDL.
-                            "Default of %s" % os.getcwd(), # title
-                            flags, # flags
-                            BrowseCallbackProc, # callback function
-                            os.getcwd() # 'data' param for the callback
-                            )
+    shell.SHBrowseForFolder(
+        0,  # parent HWND
+        None,  # root PIDL.
+        "Default of %s" % os.getcwd(),  # title
+        flags,  # flags
+        BrowseCallbackProc,  # callback function
+        os.getcwd(),  # 'data' param for the callback
+    )
     # Browse from this directory down only.
     # Get the PIDL for the cwd.
     desktop = shell.SHGetDesktopFolder()
     cb, pidl, extra = desktop.ParseDisplayName(0, None, os.getcwd())
-    shell.SHBrowseForFolder(0, # parent HWND
-                            pidl, # root PIDL.
-                            "From %s down only" % os.getcwd(), # title
-                            )
+    shell.SHBrowseForFolder(
+        0,  # parent HWND
+        pidl,  # root PIDL.
+        "From %s down only" % os.getcwd(),  # title
+    )

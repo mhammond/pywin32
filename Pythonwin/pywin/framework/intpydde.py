@@ -11,46 +11,48 @@ from pywin.mfc import object
 from dde import *
 import sys, traceback
 
+
 class DDESystemTopic(object.Object):
-	def __init__(self, app):
-		self.app = app
-		object.Object.__init__(self, CreateServerSystemTopic())
-	def Exec(self, data):
-		try:
-#			print "Executing", cmd
-			self.app.OnDDECommand(data)
-		except:
-			t,v,tb = sys.exc_info()
-			# The DDE Execution failed.
-			print("Error executing DDE command.")
-			traceback.print_exception(t,v,tb)
-			return 0
+    def __init__(self, app):
+        self.app = app
+        object.Object.__init__(self, CreateServerSystemTopic())
+
+    def Exec(self, data):
+        try:
+            # 			print "Executing", cmd
+            self.app.OnDDECommand(data)
+        except:
+            t, v, tb = sys.exc_info()
+            # The DDE Execution failed.
+            print("Error executing DDE command.")
+            traceback.print_exception(t, v, tb)
+            return 0
+
 
 class DDEServer(object.Object):
-	def __init__(self, app):
-		self.app = app
-		object.Object.__init__(self, CreateServer())
-		self.topic = self.item = None
-		
-	def CreateSystemTopic(self):
-		return DDESystemTopic(self.app)
+    def __init__(self, app):
+        self.app = app
+        object.Object.__init__(self, CreateServer())
+        self.topic = self.item = None
 
-	def Shutdown(self):
-		self._obj_.Shutdown()
-		self._obj_.Destroy()
-		if self.topic is not None:
-			self.topic.Destroy()
-			self.topic = None
-		if self.item is not None:
-			self.item.Destroy()
-			self.item = None
-		
-	def OnCreate(self):
-		return 1
-		
-	def Status(self, msg):
-		try:
-			win32ui.SetStatusText(msg)
-		except win32ui.error:
-			pass
+    def CreateSystemTopic(self):
+        return DDESystemTopic(self.app)
 
+    def Shutdown(self):
+        self._obj_.Shutdown()
+        self._obj_.Destroy()
+        if self.topic is not None:
+            self.topic.Destroy()
+            self.topic = None
+        if self.item is not None:
+            self.item.Destroy()
+            self.item = None
+
+    def OnCreate(self):
+        return 1
+
+    def Status(self, msg):
+        try:
+            win32ui.SetStatusText(msg)
+        except win32ui.error:
+            pass

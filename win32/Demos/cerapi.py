@@ -13,14 +13,18 @@ import getopt
 
 def DumpPythonRegistry():
     try:
-        h = wincerapi.CeRegOpenKeyEx(win32con.HKEY_LOCAL_MACHINE, "Software\\Python\\PythonCore\\%s\\PythonPath" % sys.winver)
+        h = wincerapi.CeRegOpenKeyEx(
+            win32con.HKEY_LOCAL_MACHINE,
+            "Software\\Python\\PythonCore\\%s\\PythonPath" % sys.winver,
+        )
     except win32api.error:
         print("The remote device does not appear to have Python installed")
         return 0
     path, typ = wincerapi.CeRegQueryValueEx(h, None)
-    print("The remote PythonPath is '%s'" % (str(path), ))
+    print("The remote PythonPath is '%s'" % (str(path),))
     h.Close()
     return 1
+
 
 def DumpRegistry(root, level=0):
     # A recursive dump of the remote registry to test most functions.
@@ -34,9 +38,9 @@ def DumpRegistry(root, level=0):
         except win32api.error:
             break
         print("%s%s=%s" % (level_prefix, name, repr(str(data))))
-        index = index+1
+        index = index + 1
     # Now enumerate all keys.
-    index=0
+    index = 0
     while 1:
         try:
             name, klass = wincerapi.CeRegEnumKeyEx(root, index)
@@ -44,16 +48,21 @@ def DumpRegistry(root, level=0):
             break
         print("%s%s\\" % (level_prefix, name))
         subkey = wincerapi.CeRegOpenKeyEx(root, name)
-        DumpRegistry(subkey, level+1)
-        index = index+1
+        DumpRegistry(subkey, level + 1)
+        index = index + 1
+
 
 def DemoCopyFile():
     # Create a file on the device, and write a string.
-    cefile = wincerapi.CeCreateFile("TestPython", win32con.GENERIC_WRITE, 0, None, win32con.OPEN_ALWAYS, 0, None)
+    cefile = wincerapi.CeCreateFile(
+        "TestPython", win32con.GENERIC_WRITE, 0, None, win32con.OPEN_ALWAYS, 0, None
+    )
     wincerapi.CeWriteFile(cefile, "Hello from Python")
     cefile.Close()
     # reopen the file and check the data.
-    cefile = wincerapi.CeCreateFile("TestPython", win32con.GENERIC_READ, 0, None, win32con.OPEN_EXISTING, 0, None)
+    cefile = wincerapi.CeCreateFile(
+        "TestPython", win32con.GENERIC_READ, 0, None, win32con.OPEN_EXISTING, 0, None
+    )
     if wincerapi.CeReadFile(cefile, 100) != "Hello from Python":
         print("Couldnt read the data from the device!")
     cefile.Close()
@@ -61,9 +70,12 @@ def DemoCopyFile():
     wincerapi.CeDeleteFile("TestPython")
     print("Created, wrote to, read from and deleted a test file!")
 
+
 def DemoCreateProcess():
     try:
-        hp, ht, pid, tid = wincerapi.CeCreateProcess("Windows\\Python.exe", "", None, None, 0, 0, None, "", None)
+        hp, ht, pid, tid = wincerapi.CeCreateProcess(
+            "Windows\\Python.exe", "", None, None, 0, 0, None, "", None
+        )
 
         # Not necessary, except to see if handle closing raises an exception
         # (if auto-closed, the error is suppressed)
@@ -74,21 +86,41 @@ def DemoCreateProcess():
         (hr, fn, msg) = xxx_todo_changeme1.args
         print("Couldnt execute remote process -", msg)
 
+
 def DumpRemoteMachineStatus():
-    ACLineStatus, BatteryFlag, BatteryLifePercent, BatteryLifeTime, BatteryFullLifeTime, BackupBatteryFlag, BackupBatteryLifePercent, BackupBatteryLifeTime, BackupBatteryLifeTime = \
-            wincerapi.CeGetSystemPowerStatusEx()
+    (
+        ACLineStatus,
+        BatteryFlag,
+        BatteryLifePercent,
+        BatteryLifeTime,
+        BatteryFullLifeTime,
+        BackupBatteryFlag,
+        BackupBatteryLifePercent,
+        BackupBatteryLifeTime,
+        BackupBatteryLifeTime,
+    ) = wincerapi.CeGetSystemPowerStatusEx()
     if ACLineStatus:
         power = "AC"
     else:
         power = "battery"
-    if BatteryLifePercent==255:
+    if BatteryLifePercent == 255:
         batPerc = "unknown"
     else:
         batPerc = BatteryLifePercent
-    print("The batteries are at %s%%, and is currently being powered by %s" % (batPerc, power))
+    print(
+        "The batteries are at %s%%, and is currently being powered by %s"
+        % (batPerc, power)
+    )
 
-    memLoad, totalPhys, availPhys, totalPage, availPage, totalVirt, availVirt = \
-            wincerapi.CeGlobalMemoryStatus()
+    (
+        memLoad,
+        totalPhys,
+        availPhys,
+        totalPage,
+        availPage,
+        totalVirt,
+        availVirt,
+    ) = wincerapi.CeGlobalMemoryStatus()
 
     print("The memory is %d%% utilized." % (memLoad))
     print("%-20s%-10s%-10s" % ("", "Total", "Avail"))
@@ -96,17 +128,17 @@ def DumpRemoteMachineStatus():
     print("%-20s%-10s%-10s" % ("Virtual Memory", totalVirt, availVirt))
     print("%-20s%-10s%-10s" % ("Paging file", totalPage, availPage))
 
-
     storeSize, freeSize = wincerapi.CeGetStoreInformation()
     print("%-20s%-10s%-10s" % ("File store", storeSize, freeSize))
 
     print("The CE temp path is", wincerapi.CeGetTempPath())
     print("The system info for the device is", wincerapi.CeGetSystemInfo())
 
+
 def DumpRemoteFolders():
     # Dump all special folders possible.
     for name, val in list(wincerapi.__dict__.items()):
-        if name[:6]=="CSIDL_":
+        if name[:6] == "CSIDL_":
             try:
                 loc = str(wincerapi.CeGetSpecialFolderPath(val))
                 print("Folder %s is at %s" % (name, loc))
@@ -135,6 +167,7 @@ def DumpRemoteFolders():
     #       print "The start menu is at",
     #       print wincerapi.CeSHGetShortcutTarget("\\Windows\\Start Menu\\Shortcut to Python.exe.lnk")
 
+
 def usage():
     print("Options:")
     print("-a - Execute all demos")
@@ -143,6 +176,7 @@ def usage():
     print("-f - Dump all remote special folder locations")
     print("-s - Dont dump machine status")
     print("-y - Perform asynch init of CE connection")
+
 
 def main():
     async_init = bStartPython = bDumpRegistry = bDumpFolders = 0
@@ -155,17 +189,17 @@ def main():
         return
 
     for o, v in opts:
-        if o=="-a":
+        if o == "-a":
             bStartPython = bDumpRegistry = bDumpStatus = bDumpFolders = asynch_init = 1
-        if o=="-p":
-            bStartPython=1
-        if o=="-r":
-            bDumpRegistry=1
-        if o=="-s":
-            bDumpStatus=0
-        if o=="-f":
+        if o == "-p":
+            bStartPython = 1
+        if o == "-r":
+            bDumpRegistry = 1
+        if o == "-s":
+            bDumpStatus = 0
+        if o == "-f":
             bDumpFolders = 1
-        if o=="-y":
+        if o == "-y":
             print("Doing asynch init of CE connection")
             async_init = 1
 
@@ -173,17 +207,22 @@ def main():
         event, rc = wincerapi.CeRapiInitEx()
         while 1:
             rc = win32event.WaitForSingleObject(event, 500)
-            if rc==win32event.WAIT_OBJECT_0:
+            if rc == win32event.WAIT_OBJECT_0:
                 # We connected.
                 break
             else:
-                print("Waiting for Initialize to complete (picture a Cancel button here :)")
+                print(
+                    "Waiting for Initialize to complete (picture a Cancel button here :)"
+                )
     else:
         wincerapi.CeRapiInit()
     print("Connected to remote CE device.")
     try:
         verinfo = wincerapi.CeGetVersionEx()
-        print("The device is running windows CE version %d.%d - %s" % (verinfo[0], verinfo[1], verinfo[4]))
+        print(
+            "The device is running windows CE version %d.%d - %s"
+            % (verinfo[0], verinfo[1], verinfo[4])
+        )
 
         if bDumpStatus:
             print("Dumping remote machine status")
@@ -209,5 +248,6 @@ def main():
         wincerapi.CeRapiUninit()
         print("Disconnected")
 
-if __name__=='__main__':
+
+if __name__ == "__main__":
     main()

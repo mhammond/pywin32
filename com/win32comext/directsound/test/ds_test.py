@@ -8,25 +8,39 @@ import os
 from pywin32_testutil import TestSkipped
 import win32com.directsound.directsound as ds
 import pythoncom
+
 # next two lines are for for debugging:
 # import win32com
 # import directsound as ds
 
 WAV_FORMAT_PCM = 1
-WAV_HEADER_SIZE = struct.calcsize('<4sl4s4slhhllhh4sl')
+WAV_HEADER_SIZE = struct.calcsize("<4sl4s4slhhllhh4sl")
+
 
 def wav_header_unpack(data):
-    (riff, riffsize, wave, fmt, fmtsize, format, nchannels, samplespersecond, 
-     datarate, blockalign, bitspersample, data, datalength) \
-     = struct.unpack('<4sl4s4slhhllhh4sl', data)
+    (
+        riff,
+        riffsize,
+        wave,
+        fmt,
+        fmtsize,
+        format,
+        nchannels,
+        samplespersecond,
+        datarate,
+        blockalign,
+        bitspersample,
+        data,
+        datalength,
+    ) = struct.unpack("<4sl4s4slhhllhh4sl", data)
 
-    if riff != b'RIFF':
-        raise ValueError('invalid wav header')
+    if riff != b"RIFF":
+        raise ValueError("invalid wav header")
 
-    if fmtsize != 16 or fmt != b'fmt ' or data != b'data':
+    if fmtsize != 16 or fmt != b"fmt " or data != b"data":
         # fmt chuck is not first chunk, directly followed by data chuck
         # It is nowhere required that they are, it is just very common
-        raise ValueError('cannot understand wav header')
+        raise ValueError("cannot understand wav header")
 
     wfx = pywintypes.WAVEFORMATEX()
     wfx.wFormatTag = format
@@ -38,21 +52,34 @@ def wav_header_unpack(data):
 
     return wfx, datalength
 
+
 def wav_header_pack(wfx, datasize):
-    return struct.pack('<4sl4s4slhhllhh4sl', b'RIFF', 36 + datasize,
-                       b'WAVE', b'fmt ', 16,
-                       wfx.wFormatTag, wfx.nChannels, wfx.nSamplesPerSec,
-                       wfx.nAvgBytesPerSec, wfx.nBlockAlign,
-                       wfx.wBitsPerSample, b'data', datasize);
+    return struct.pack(
+        "<4sl4s4slhhllhh4sl",
+        b"RIFF",
+        36 + datasize,
+        b"WAVE",
+        b"fmt ",
+        16,
+        wfx.wFormatTag,
+        wfx.nChannels,
+        wfx.nSamplesPerSec,
+        wfx.nAvgBytesPerSec,
+        wfx.nBlockAlign,
+        wfx.wBitsPerSample,
+        b"data",
+        datasize,
+    )
+
 
 class WAVEFORMATTest(unittest.TestCase):
     def test_1_Type(self):
-        'WAVEFORMATEX type'
+        "WAVEFORMATEX type"
         w = pywintypes.WAVEFORMATEX()
         self.assertTrue(type(w) == pywintypes.WAVEFORMATEXType)
 
     def test_2_Attr(self):
-        'WAVEFORMATEX attribute access'
+        "WAVEFORMATEX attribute access"
         # A wav header for a soundfile from a CD should look like this...
         w = pywintypes.WAVEFORMATEX()
         w.wFormatTag = pywintypes.WAVE_FORMAT_PCM
@@ -69,14 +96,15 @@ class WAVEFORMATTest(unittest.TestCase):
         self.assertTrue(w.nBlockAlign == 4)
         self.assertTrue(w.wBitsPerSample == 16)
 
+
 class DSCAPSTest(unittest.TestCase):
     def test_1_Type(self):
-        'DSCAPS type'
+        "DSCAPS type"
         c = ds.DSCAPS()
         self.assertTrue(type(c) == ds.DSCAPSType)
 
     def test_2_Attr(self):
-        'DSCAPS attribute access'
+        "DSCAPS attribute access"
         c = ds.DSCAPS()
         c.dwFlags = 1
         c.dwMinSecondarySampleRate = 2
@@ -122,14 +150,15 @@ class DSCAPSTest(unittest.TestCase):
         self.assertTrue(c.dwUnlockTransferRateHwBuffers == 20)
         self.assertTrue(c.dwPlayCpuOverheadSwBuffers == 21)
 
+
 class DSBCAPSTest(unittest.TestCase):
     def test_1_Type(self):
-        'DSBCAPS type'
+        "DSBCAPS type"
         c = ds.DSBCAPS()
         self.assertTrue(type(c) == ds.DSBCAPSType)
 
     def test_2_Attr(self):
-        'DSBCAPS attribute access'
+        "DSBCAPS attribute access"
         c = ds.DSBCAPS()
         c.dwFlags = 1
         c.dwBufferBytes = 2
@@ -141,14 +170,15 @@ class DSBCAPSTest(unittest.TestCase):
         self.assertTrue(c.dwUnlockTransferRate == 3)
         self.assertTrue(c.dwPlayCpuOverhead == 4)
 
+
 class DSCCAPSTest(unittest.TestCase):
     def test_1_Type(self):
-        'DSCCAPS type'
+        "DSCCAPS type"
         c = ds.DSCCAPS()
         self.assertTrue(type(c) == ds.DSCCAPSType)
 
     def test_2_Attr(self):
-        'DSCCAPS attribute access'
+        "DSCCAPS attribute access"
         c = ds.DSCCAPS()
         c.dwFlags = 1
         c.dwFormats = 2
@@ -158,14 +188,15 @@ class DSCCAPSTest(unittest.TestCase):
         self.assertTrue(c.dwFormats == 2)
         self.assertTrue(c.dwChannels == 4)
 
+
 class DSCBCAPSTest(unittest.TestCase):
     def test_1_Type(self):
-        'DSCBCAPS type'
+        "DSCBCAPS type"
         c = ds.DSCBCAPS()
         self.assertTrue(type(c) == ds.DSCBCAPSType)
 
     def test_2_Attr(self):
-        'DSCBCAPS attribute access'
+        "DSCBCAPS attribute access"
         c = ds.DSCBCAPS()
         c.dwFlags = 1
         c.dwBufferBytes = 2
@@ -173,14 +204,15 @@ class DSCBCAPSTest(unittest.TestCase):
         self.assertTrue(c.dwFlags == 1)
         self.assertTrue(c.dwBufferBytes == 2)
 
+
 class DSBUFFERDESCTest(unittest.TestCase):
     def test_1_Type(self):
-        'DSBUFFERDESC type'
+        "DSBUFFERDESC type"
         c = ds.DSBUFFERDESC()
         self.assertTrue(type(c) == ds.DSBUFFERDESCType)
 
     def test_2_Attr(self):
-        'DSBUFFERDESC attribute access'
+        "DSBUFFERDESC attribute access"
         c = ds.DSBUFFERDESC()
         c.dwFlags = 1
         c.dwBufferBytes = 2
@@ -205,18 +237,19 @@ class DSBUFFERDESCTest(unittest.TestCase):
         c.lpwfxFormat = 17
 
     def test_3_invalid_format(self):
-        'DSBUFFERDESC invalid lpwfxFormat assignment'
+        "DSBUFFERDESC invalid lpwfxFormat assignment"
         c = ds.DSBUFFERDESC()
         self.assertRaises(ValueError, self.invalid_format, c)
 
+
 class DSCBUFFERDESCTest(unittest.TestCase):
     def test_1_Type(self):
-        'DSCBUFFERDESC type'
+        "DSCBUFFERDESC type"
         c = ds.DSCBUFFERDESC()
         self.assertTrue(type(c) == ds.DSCBUFFERDESCType)
 
     def test_2_Attr(self):
-        'DSCBUFFERDESC attribute access'
+        "DSCBUFFERDESC attribute access"
         c = ds.DSCBUFFERDESC()
         c.dwFlags = 1
         c.dwBufferBytes = 2
@@ -241,14 +274,15 @@ class DSCBUFFERDESCTest(unittest.TestCase):
         c.lpwfxFormat = 17
 
     def test_3_invalid_format(self):
-        'DSCBUFFERDESC invalid lpwfxFormat assignment'
+        "DSCBUFFERDESC invalid lpwfxFormat assignment"
         c = ds.DSCBUFFERDESC()
         self.assertRaises(ValueError, self.invalid_format, c)
+
 
 class DirectSoundTest(unittest.TestCase):
     # basic tests - mostly just exercise the functions
     def testEnumerate(self):
-        '''DirectSoundEnumerate() sanity tests'''
+        """DirectSoundEnumerate() sanity tests"""
 
         devices = ds.DirectSoundEnumerate()
         # this might fail on machines without a sound card
@@ -257,7 +291,7 @@ class DirectSoundTest(unittest.TestCase):
         self.assertTrue(len(devices[0]) == 3)
 
     def testCreate(self):
-        '''DirectSoundCreate()'''
+        """DirectSoundCreate()"""
         try:
             d = ds.DirectSoundCreate(None, None)
         except pythoncom.com_error as exc:
@@ -266,24 +300,25 @@ class DirectSoundTest(unittest.TestCase):
             raise TestSkipped(exc)
 
     def testPlay(self):
-        '''Mesdames et Messieurs, la cour de Devin Dazzle'''
+        """Mesdames et Messieurs, la cour de Devin Dazzle"""
         # look for the test file in various places
         candidates = [
             os.path.dirname(__file__),
             os.path.dirname(sys.argv[0]),
             # relative to 'testall.py' in the win32com test suite.
-            os.path.join(os.path.dirname(sys.argv[0]),
-                         '../../win32comext/directsound/test'),
-            '.',
+            os.path.join(
+                os.path.dirname(sys.argv[0]), "../../win32comext/directsound/test"
+            ),
+            ".",
         ]
         for candidate in candidates:
-            fname=os.path.join(candidate, "01-Intro.wav")
+            fname = os.path.join(candidate, "01-Intro.wav")
             if os.path.isfile(fname):
                 break
         else:
             raise TestSkipped("Can't find test .wav file to play")
 
-        with open(fname, 'rb') as f:
+        with open(fname, "rb") as f:
             hdr = f.read(WAV_HEADER_SIZE)
             wfx, size = wav_header_unpack(hdr)
 
@@ -308,10 +343,11 @@ class DirectSoundTest(unittest.TestCase):
 
             win32event.WaitForSingleObject(event, -1)
 
+
 class DirectSoundCaptureTest(unittest.TestCase):
     # basic tests - mostly just exercise the functions
     def testEnumerate(self):
-        '''DirectSoundCaptureEnumerate() sanity tests'''
+        """DirectSoundCaptureEnumerate() sanity tests"""
 
         devices = ds.DirectSoundCaptureEnumerate()
         # this might fail on machines without a sound card
@@ -320,7 +356,7 @@ class DirectSoundCaptureTest(unittest.TestCase):
         self.assertTrue(len(devices[0]) == 3)
 
     def testCreate(self):
-        '''DirectSoundCreate()'''
+        """DirectSoundCreate()"""
         try:
             d = ds.DirectSoundCaptureCreate(None, None)
         except pythoncom.com_error as exc:
@@ -337,7 +373,7 @@ class DirectSoundCaptureTest(unittest.TestCase):
             raise TestSkipped(exc)
 
         sdesc = ds.DSCBUFFERDESC()
-        sdesc.dwBufferBytes = 352800 # 2 seconds
+        sdesc.dwBufferBytes = 352800  # 2 seconds
         sdesc.lpwfxFormat = pywintypes.WAVEFORMATEX()
         sdesc.lpwfxFormat.wFormatTag = pywintypes.WAVE_FORMAT_PCM
         sdesc.lpwfxFormat.nChannels = 2
@@ -359,11 +395,12 @@ class DirectSoundCaptureTest(unittest.TestCase):
         event.Close()
 
         data = buffer.Update(0, 352800)
-        fname=os.path.join(win32api.GetTempPath(), 'test_directsound_record.wav')
-        f = open(fname, 'wb')
+        fname = os.path.join(win32api.GetTempPath(), "test_directsound_record.wav")
+        f = open(fname, "wb")
         f.write(wav_header_pack(sdesc.lpwfxFormat, 352800))
         f.write(data)
         f.close()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

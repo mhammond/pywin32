@@ -1,4 +1,4 @@
-# This is an example of a service hosted by python.exe rather than 
+# This is an example of a service hosted by python.exe rather than
 # pythonservice.exe.
 
 # Note that it is very rare that using python.exe is a better option
@@ -19,6 +19,7 @@ import servicemanager
 
 from pipeTestService import TestPipeService
 
+
 class NativeTestPipeService(TestPipeService):
     _svc_name_ = "PyNativePipeTestService"
     _svc_display_name_ = "Python Native Pipe Test Service"
@@ -28,15 +29,17 @@ class NativeTestPipeService(TestPipeService):
     _exe_name_ = sys.executable
     _exe_args_ = '"' + os.path.abspath(sys.argv[0]) + '"'
 
+
 def main():
-    if len(sys.argv)==1:
+    if len(sys.argv) == 1:
         # service must be starting...
         # for the sake of debugging etc, we use win32traceutil to see
         # any unhandled exceptions and print statements.
         import win32traceutil
+
         print("service is starting...")
         print("(execute this script with '--help' if that isn't what you want)")
-        
+
         servicemanager.Initialize()
         servicemanager.PrepareToHostSingle(NativeTestPipeService)
         # Now ask the service manager to fire things up for us...
@@ -45,7 +48,8 @@ def main():
     else:
         win32serviceutil.HandleCommandLine(NativeTestPipeService)
 
-if __name__=='__main__':
+
+if __name__ == "__main__":
     try:
         main()
     except (SystemExit, KeyboardInterrupt):
@@ -53,4 +57,5 @@ if __name__=='__main__':
     except:
         print("Something went bad!")
         import traceback
+
         traceback.print_exc()

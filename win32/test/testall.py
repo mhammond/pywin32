@@ -31,10 +31,12 @@ no_user_interaction = True
 
 # re to pull apart an exception line into the exception type and the args.
 re_exception = re.compile("([a-zA-Z0-9_.]*): (.*)$")
+
+
 def find_exception_in_output(data):
     have_traceback = False
     for line in data.splitlines():
-        line = line.decode('ascii') # not sure what the correct encoding is...
+        line = line.decode("ascii")  # not sure what the correct encoding is...
         if line.startswith("Traceback ("):
             have_traceback = True
             continue
@@ -85,9 +87,10 @@ class TestRunner:
 
     def __call__(self):
         import subprocess
-        p = subprocess.Popen(self.argv,
-                             stdout=subprocess.PIPE,
-                             stderr=subprocess.STDOUT)
+
+        p = subprocess.Popen(
+            self.argv, stdout=subprocess.PIPE, stderr=subprocess.STDOUT
+        )
         output, _ = p.communicate()
         rc = p.returncode
 
@@ -97,10 +100,14 @@ class TestRunner:
             reconstituted = find_exception_in_output(output)
             if reconstituted is not None:
                 raise reconstituted
-            raise AssertionError("%s failed with exit code %s.  Output is:\n%s" % (base, rc, output))
+            raise AssertionError(
+                "%s failed with exit code %s.  Output is:\n%s" % (base, rc, output)
+            )
+
 
 def get_demo_tests():
     import win32api
+
     ret = []
     demo_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "Demos"))
     assert os.path.isdir(demo_dir), demo_dir
@@ -111,19 +118,26 @@ def get_demo_tests():
         # Skip any other files than .py and bad tests in any case
         if ext != ".py" or base in bad_demos:
             continue
-        argv = (sys.executable, os.path.join(demo_dir, base+".py")) + \
-               argvs.get(base, ())
-        ret.append(unittest.FunctionTestCase(TestRunner(argv), description="win32/demos/" + name))
+        argv = (sys.executable, os.path.join(demo_dir, base + ".py")) + argvs.get(
+            base, ()
+        )
+        ret.append(
+            unittest.FunctionTestCase(
+                TestRunner(argv), description="win32/demos/" + name
+            )
+        )
     return ret
+
 
 def import_all():
     # Some hacks for import order - dde depends on win32ui
     try:
         import win32ui
     except ImportError:
-        pass # 'what-ev-a....'
+        pass  # 'what-ev-a....'
 
     import win32api
+
     dir = os.path.dirname(win32api.__file__)
     num = 0
     is_debug = os.path.basename(win32api.__file__).endswith("_d")
@@ -131,16 +145,23 @@ def import_all():
         base, ext = os.path.splitext(name)
         # handle `modname.cp310-win_amd64.pyd` etc
         base = base.split(".")[0]
-        if (ext==".pyd") and \
-           name != "_winxptheme.pyd" and \
-           (is_debug and base.endswith("_d") or \
-           not is_debug and not base.endswith("_d")):
+        if (
+            (ext == ".pyd")
+            and name != "_winxptheme.pyd"
+            and (
+                is_debug
+                and base.endswith("_d")
+                or not is_debug
+                and not base.endswith("_d")
+            )
+        ):
             try:
                 __import__(base)
             except:
                 print("FAILED to import", name)
                 raise
             num += 1
+
 
 def suite():
     # Loop over all .py files here, except me :)
@@ -154,7 +175,7 @@ def suite():
     suite.addTest(unittest.FunctionTestCase(import_all))
     for file in files:
         base, ext = os.path.splitext(file)
-        if ext=='.py' and os.path.basename(me) != file:
+        if ext == ".py" and os.path.basename(me) != file:
             try:
                 mod = __import__(base)
             except:
@@ -176,23 +197,29 @@ class CustomLoader(pywin32_testutil.TestLoader):
         return self.fixupTestsForLeakTests(suite())
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     import argparse
 
     parser = argparse.ArgumentParser(description="Test runner for PyWin32/win32")
-    parser.add_argument("-no-user-interaction",
-                        default=False,
-                        action='store_true',
-                        help="(This is now the default - use `-user-interaction` to include them)")
+    parser.add_argument(
+        "-no-user-interaction",
+        default=False,
+        action="store_true",
+        help="(This is now the default - use `-user-interaction` to include them)",
+    )
 
-    parser.add_argument("-user-interaction",
-                        action='store_true',
-                        help="Include tests which require user interaction")
+    parser.add_argument(
+        "-user-interaction",
+        action="store_true",
+        help="Include tests which require user interaction",
+    )
 
     parsed_args, remains = parser.parse_known_args()
 
     if parsed_args.no_user_interaction:
-        print("Note: -no-user-interaction is now the default, run with `-user-interaction` to include them.")
+        print(
+            "Note: -no-user-interaction is now the default, run with `-user-interaction` to include them."
+        )
 
     no_user_interaction = not parsed_args.user_interaction
 

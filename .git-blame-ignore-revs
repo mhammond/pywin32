@@ -4,3 +4,6 @@
 
 # 2019-09-07 formatted c++ source with clang-format
 059b7beb928225e389621802db758c75a7b8c58f
+
+# 2021-09-11 formatted Python source with black.
+858e19a76e08fc175a667ffc97409f2ef15bfc19

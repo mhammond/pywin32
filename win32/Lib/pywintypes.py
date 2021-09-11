@@ -1,5 +1,7 @@
 # Magic utility that "redirects" to pywintypesxx.dll
 import importlib.util, importlib.machinery, sys, os
+
+
 def __import_pywin32_system_module__(modname, globs):
     # This has been through a number of iterations.  The problem: how to
     # locate pywintypesXX.dll when it may be in a number of places, and how
@@ -18,9 +20,13 @@ def __import_pywin32_system_module__(modname, globs):
     # on pywintypesXX.dll.  It then can check if the DLL we are looking for
     # lib is already loaded.
     # See if this is a debug build.
-    suffix = '_d' if '_d.pyd' in importlib.machinery.EXTENSION_SUFFIXES else ''
-    filename = "%s%d%d%s.dll" % \
-               (modname, sys.version_info[0], sys.version_info[1], suffix)
+    suffix = "_d" if "_d.pyd" in importlib.machinery.EXTENSION_SUFFIXES else ""
+    filename = "%s%d%d%s.dll" % (
+        modname,
+        sys.version_info[0],
+        sys.version_info[1],
+        suffix,
+    )
     if hasattr(sys, "frozen"):
         # If we are running from a frozen program (py2exe, McMillan, freeze)
         # then we try and load the DLL from our sys.path
@@ -35,10 +41,13 @@ def __import_pywin32_system_module__(modname, globs):
             if os.path.isfile(found):
                 break
         else:
-            raise ImportError("Module '%s' isn't in frozen sys.path %s" % (modname, sys.path))
+            raise ImportError(
+                "Module '%s' isn't in frozen sys.path %s" % (modname, sys.path)
+            )
     else:
         # First see if it already in our process - if so, we must use that.
         import _win32sysloader
+
         found = _win32sysloader.GetModuleFilename(filename)
         if found is None:
             # We ask Windows to load it next.  This is in an attempt to
@@ -78,8 +87,10 @@ def __import_pywin32_system_module__(modname, globs):
             # will not work but 'python -c "import pywintypes, win32api"' will,
             # but it's better than nothing...
             import sysconfig
-            maybe = os.path.join(sysconfig.get_paths()["platlib"],
-                                 "pywin32_system32", filename)
+
+            maybe = os.path.join(
+                sysconfig.get_paths()["platlib"], "pywin32_system32", filename
+            )
             if os.path.isfile(maybe):
                 found = maybe
         if found is None:
@@ -101,5 +112,6 @@ def __import_pywin32_system_module__(modname, globs):
     # as above - re-reset to the *old* module object then update globs.
     sys.modules[modname] = old_mod
     globs.update(mod.__dict__)
+
 
 __import_pywin32_system_module__("pywintypes", globals())

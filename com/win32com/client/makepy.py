@@ -70,323 +70,386 @@ import sys, os, importlib, pythoncom
 from win32com.client import genpy, selecttlb, gencache
 from win32com.client import Dispatch
 
-bForDemandDefault = 0 # Default value of bForDemand - toggle this to change the world - see also gencache.py
+bForDemandDefault = 0  # Default value of bForDemand - toggle this to change the world - see also gencache.py
 
 error = "makepy.error"
 
+
 def usage():
-	sys.stderr.write (usageHelp)
-	sys.exit(2)
+    sys.stderr.write(usageHelp)
+    sys.exit(2)
+
 
 def ShowInfo(spec):
-	if not spec:
-		tlbSpec = selecttlb.SelectTlb(excludeFlags=selecttlb.FLAG_HIDDEN)
-		if tlbSpec is None:
-			return
-		try:
-			tlb = pythoncom.LoadRegTypeLib(tlbSpec.clsid, tlbSpec.major, tlbSpec.minor, tlbSpec.lcid)
-		except pythoncom.com_error: # May be badly registered.
-			sys.stderr.write("Warning - could not load registered typelib '%s'\n" % (tlbSpec.clsid))
-			tlb = None
+    if not spec:
+        tlbSpec = selecttlb.SelectTlb(excludeFlags=selecttlb.FLAG_HIDDEN)
+        if tlbSpec is None:
+            return
+        try:
+            tlb = pythoncom.LoadRegTypeLib(
+                tlbSpec.clsid, tlbSpec.major, tlbSpec.minor, tlbSpec.lcid
+            )
+        except pythoncom.com_error:  # May be badly registered.
+            sys.stderr.write(
+                "Warning - could not load registered typelib '%s'\n" % (tlbSpec.clsid)
+            )
+            tlb = None
 
-		infos = [(tlb, tlbSpec)]
-	else:
-		infos = GetTypeLibsForSpec(spec)
-	for (tlb, tlbSpec) in infos:
-		desc = tlbSpec.desc
-		if desc is None:
-			if tlb is None:
-				desc = "<Could not load typelib %s>" % (tlbSpec.dll)
-			else:
-				desc = tlb.GetDocumentation(-1)[0]
-		print(desc)
-		print(" %s, lcid=%s, major=%s, minor=%s" % (tlbSpec.clsid, tlbSpec.lcid, tlbSpec.major, tlbSpec.minor))
-		print(" >>> # Use these commands in Python code to auto generate .py support")
-		print(" >>> from win32com.client import gencache")
-		print(" >>> gencache.EnsureModule('%s', %s, %s, %s)" % (tlbSpec.clsid, tlbSpec.lcid, tlbSpec.major, tlbSpec.minor))
+        infos = [(tlb, tlbSpec)]
+    else:
+        infos = GetTypeLibsForSpec(spec)
+    for (tlb, tlbSpec) in infos:
+        desc = tlbSpec.desc
+        if desc is None:
+            if tlb is None:
+                desc = "<Could not load typelib %s>" % (tlbSpec.dll)
+            else:
+                desc = tlb.GetDocumentation(-1)[0]
+        print(desc)
+        print(
+            " %s, lcid=%s, major=%s, minor=%s"
+            % (tlbSpec.clsid, tlbSpec.lcid, tlbSpec.major, tlbSpec.minor)
+        )
+        print(" >>> # Use these commands in Python code to auto generate .py support")
+        print(" >>> from win32com.client import gencache")
+        print(
+            " >>> gencache.EnsureModule('%s', %s, %s, %s)"
+            % (tlbSpec.clsid, tlbSpec.lcid, tlbSpec.major, tlbSpec.minor)
+        )
+
 
 class SimpleProgress(genpy.GeneratorProgress):
-	"""A simple progress class prints its output to stderr
-	"""
-	def __init__(self, verboseLevel):
-		self.verboseLevel = verboseLevel
-	def Close(self):
-		pass
-	def Finished(self):
-		if self.verboseLevel>1:
-			sys.stderr.write("Generation complete..\n")
-	def SetDescription(self, desc, maxticks = None):
-		if self.verboseLevel:
-			sys.stderr.write(desc + "\n")
-	def Tick(self, desc = None):
-		pass
+    """A simple progress class prints its output to stderr"""
 
-	def VerboseProgress(self, desc, verboseLevel = 2):
-		if self.verboseLevel >= verboseLevel:
-			sys.stderr.write(desc + "\n")
+    def __init__(self, verboseLevel):
+        self.verboseLevel = verboseLevel
 
-	def LogBeginGenerate(self, filename):
-		self.VerboseProgress("Generating to %s" % filename, 1)
+    def Close(self):
+        pass
 
-	def LogWarning(self, desc):
-		self.VerboseProgress("WARNING: " + desc, 1)
+    def Finished(self):
+        if self.verboseLevel > 1:
+            sys.stderr.write("Generation complete..\n")
+
+    def SetDescription(self, desc, maxticks=None):
+        if self.verboseLevel:
+            sys.stderr.write(desc + "\n")
+
+    def Tick(self, desc=None):
+        pass
+
+    def VerboseProgress(self, desc, verboseLevel=2):
+        if self.verboseLevel >= verboseLevel:
+            sys.stderr.write(desc + "\n")
+
+    def LogBeginGenerate(self, filename):
+        self.VerboseProgress("Generating to %s" % filename, 1)
+
+    def LogWarning(self, desc):
+        self.VerboseProgress("WARNING: " + desc, 1)
+
 
 class GUIProgress(SimpleProgress):
-	def __init__(self, verboseLevel):
-		# Import some modules we need to we can trap failure now.
-		import win32ui, pywin
-		SimpleProgress.__init__(self, verboseLevel)
-		self.dialog = None
+    def __init__(self, verboseLevel):
+        # Import some modules we need to we can trap failure now.
+        import win32ui, pywin
 
-	def Close(self):
-		if self.dialog is not None:
-			self.dialog.Close()
-			self.dialog = None
+        SimpleProgress.__init__(self, verboseLevel)
+        self.dialog = None
 
-	def Starting(self, tlb_desc):
-		SimpleProgress.Starting(self, tlb_desc)
-		if self.dialog is None:
-			from pywin.dialogs import status
-			self.dialog=status.ThreadedStatusProgressDialog(tlb_desc)
-		else:
-			self.dialog.SetTitle(tlb_desc)
+    def Close(self):
+        if self.dialog is not None:
+            self.dialog.Close()
+            self.dialog = None
 
-	def SetDescription(self, desc, maxticks = None):
-		self.dialog.SetText(desc)
-		if maxticks:
-			self.dialog.SetMaxTicks(maxticks)
+    def Starting(self, tlb_desc):
+        SimpleProgress.Starting(self, tlb_desc)
+        if self.dialog is None:
+            from pywin.dialogs import status
 
-	def Tick(self, desc = None):
-		self.dialog.Tick()
-		if desc is not None:
-			self.dialog.SetText(desc)
+            self.dialog = status.ThreadedStatusProgressDialog(tlb_desc)
+        else:
+            self.dialog.SetTitle(tlb_desc)
+
+    def SetDescription(self, desc, maxticks=None):
+        self.dialog.SetText(desc)
+        if maxticks:
+            self.dialog.SetMaxTicks(maxticks)
+
+    def Tick(self, desc=None):
+        self.dialog.Tick()
+        if desc is not None:
+            self.dialog.SetText(desc)
+
 
 def GetTypeLibsForSpec(arg):
-	"""Given an argument on the command line (either a file name, library
-	description, or ProgID of an object) return a list of actual typelibs
-	to use. """
-	typelibs = []
-	try:
-		try:
-			tlb = pythoncom.LoadTypeLib(arg)
-			spec = selecttlb.TypelibSpec(None, 0,0,0)
-			spec.FromTypelib(tlb, arg)
-			typelibs.append((tlb, spec))
-		except pythoncom.com_error:
-			# See if it is a description
-			tlbs = selecttlb.FindTlbsWithDescription(arg)
-			if len(tlbs)==0:
-				# Maybe it is the name of a COM object?
-				try:
-					ob = Dispatch(arg)
-					# and if so, it must support typelib info
-					tlb, index = ob._oleobj_.GetTypeInfo().GetContainingTypeLib()
-					spec = selecttlb.TypelibSpec(None, 0,0,0)
-					spec.FromTypelib(tlb)
-					tlbs.append(spec)
-				except pythoncom.com_error:
-					pass
-			if len(tlbs)==0:
-				print("Could not locate a type library matching '%s'" % (arg))
-			for spec in tlbs:
-				# Version numbers not always reliable if enumerated from registry.
-				# (as some libs use hex, other's dont.  Both examples from MS, of course.)
-				if spec.dll is None:
-					tlb = pythoncom.LoadRegTypeLib(spec.clsid, spec.major, spec.minor, spec.lcid)
-				else:
-					tlb = pythoncom.LoadTypeLib(spec.dll)
+    """Given an argument on the command line (either a file name, library
+    description, or ProgID of an object) return a list of actual typelibs
+    to use."""
+    typelibs = []
+    try:
+        try:
+            tlb = pythoncom.LoadTypeLib(arg)
+            spec = selecttlb.TypelibSpec(None, 0, 0, 0)
+            spec.FromTypelib(tlb, arg)
+            typelibs.append((tlb, spec))
+        except pythoncom.com_error:
+            # See if it is a description
+            tlbs = selecttlb.FindTlbsWithDescription(arg)
+            if len(tlbs) == 0:
+                # Maybe it is the name of a COM object?
+                try:
+                    ob = Dispatch(arg)
+                    # and if so, it must support typelib info
+                    tlb, index = ob._oleobj_.GetTypeInfo().GetContainingTypeLib()
+                    spec = selecttlb.TypelibSpec(None, 0, 0, 0)
+                    spec.FromTypelib(tlb)
+                    tlbs.append(spec)
+                except pythoncom.com_error:
+                    pass
+            if len(tlbs) == 0:
+                print("Could not locate a type library matching '%s'" % (arg))
+            for spec in tlbs:
+                # Version numbers not always reliable if enumerated from registry.
+                # (as some libs use hex, other's dont.  Both examples from MS, of course.)
+                if spec.dll is None:
+                    tlb = pythoncom.LoadRegTypeLib(
+                        spec.clsid, spec.major, spec.minor, spec.lcid
+                    )
+                else:
+                    tlb = pythoncom.LoadTypeLib(spec.dll)
 
-				# We have a typelib, but it may not be exactly what we specified
-				# (due to automatic version matching of COM).  So we query what we really have!
-				attr = tlb.GetLibAttr()
-				spec.major = attr[3]
-				spec.minor = attr[4]
-				spec.lcid = attr[1]
-				typelibs.append((tlb, spec))
-		return typelibs
-	except pythoncom.com_error:
-		t,v,tb=sys.exc_info()
-		sys.stderr.write ("Unable to load type library from '%s' - %s\n" % (arg, v))
-		tb = None # Storing tb in a local is a cycle!
-		sys.exit(1)
+                # We have a typelib, but it may not be exactly what we specified
+                # (due to automatic version matching of COM).  So we query what we really have!
+                attr = tlb.GetLibAttr()
+                spec.major = attr[3]
+                spec.minor = attr[4]
+                spec.lcid = attr[1]
+                typelibs.append((tlb, spec))
+        return typelibs
+    except pythoncom.com_error:
+        t, v, tb = sys.exc_info()
+        sys.stderr.write("Unable to load type library from '%s' - %s\n" % (arg, v))
+        tb = None  # Storing tb in a local is a cycle!
+        sys.exit(1)
 
-def GenerateFromTypeLibSpec(typelibInfo, file = None, verboseLevel = None, progressInstance = None, bUnicodeToString=None, bForDemand = bForDemandDefault, bBuildHidden = 1):
-	assert bUnicodeToString is None, "this is deprecated and will go away"
-	if verboseLevel is None:
-		verboseLevel = 0 # By default, we use no gui and no verbose level!
 
-	if bForDemand and file is not None:
-		raise RuntimeError("You can only perform a demand-build when the output goes to the gen_py directory")
-	if isinstance(typelibInfo, tuple):
-		# Tuple
-		typelibCLSID, lcid, major, minor  = typelibInfo
-		tlb = pythoncom.LoadRegTypeLib(typelibCLSID, major, minor, lcid)
-		spec = selecttlb.TypelibSpec(typelibCLSID, lcid, major, minor)
-		spec.FromTypelib(tlb, str(typelibCLSID))
-		typelibs = [(tlb, spec)]
-	elif isinstance(typelibInfo, selecttlb.TypelibSpec):
-		if typelibInfo.dll is None:
-			# Version numbers not always reliable if enumerated from registry.
-			tlb = pythoncom.LoadRegTypeLib(typelibInfo.clsid, typelibInfo.major, typelibInfo.minor, typelibInfo.lcid)
-		else:
-			tlb = pythoncom.LoadTypeLib(typelibInfo.dll)
-		typelibs = [(tlb, typelibInfo)]
-	elif hasattr(typelibInfo, "GetLibAttr"):
-		# A real typelib object!
-		# Could also use isinstance(typelibInfo, PyITypeLib) instead, but PyITypeLib is not directly exposed by pythoncom.
-		#	pythoncom.TypeIIDs[pythoncom.IID_ITypeLib] seems to work
-		tla = typelibInfo.GetLibAttr()
-		guid = tla[0]
-		lcid = tla[1]
-		major = tla[3]
-		minor = tla[4]
-		spec = selecttlb.TypelibSpec(guid, lcid, major, minor)
-		typelibs = [(typelibInfo, spec)]
-	else:
-		typelibs = GetTypeLibsForSpec(typelibInfo)
+def GenerateFromTypeLibSpec(
+    typelibInfo,
+    file=None,
+    verboseLevel=None,
+    progressInstance=None,
+    bUnicodeToString=None,
+    bForDemand=bForDemandDefault,
+    bBuildHidden=1,
+):
+    assert bUnicodeToString is None, "this is deprecated and will go away"
+    if verboseLevel is None:
+        verboseLevel = 0  # By default, we use no gui and no verbose level!
 
-	if progressInstance is None:
-		progressInstance = SimpleProgress(verboseLevel)
-	progress = progressInstance
+    if bForDemand and file is not None:
+        raise RuntimeError(
+            "You can only perform a demand-build when the output goes to the gen_py directory"
+        )
+    if isinstance(typelibInfo, tuple):
+        # Tuple
+        typelibCLSID, lcid, major, minor = typelibInfo
+        tlb = pythoncom.LoadRegTypeLib(typelibCLSID, major, minor, lcid)
+        spec = selecttlb.TypelibSpec(typelibCLSID, lcid, major, minor)
+        spec.FromTypelib(tlb, str(typelibCLSID))
+        typelibs = [(tlb, spec)]
+    elif isinstance(typelibInfo, selecttlb.TypelibSpec):
+        if typelibInfo.dll is None:
+            # Version numbers not always reliable if enumerated from registry.
+            tlb = pythoncom.LoadRegTypeLib(
+                typelibInfo.clsid,
+                typelibInfo.major,
+                typelibInfo.minor,
+                typelibInfo.lcid,
+            )
+        else:
+            tlb = pythoncom.LoadTypeLib(typelibInfo.dll)
+        typelibs = [(tlb, typelibInfo)]
+    elif hasattr(typelibInfo, "GetLibAttr"):
+        # A real typelib object!
+        # Could also use isinstance(typelibInfo, PyITypeLib) instead, but PyITypeLib is not directly exposed by pythoncom.
+        # 	pythoncom.TypeIIDs[pythoncom.IID_ITypeLib] seems to work
+        tla = typelibInfo.GetLibAttr()
+        guid = tla[0]
+        lcid = tla[1]
+        major = tla[3]
+        minor = tla[4]
+        spec = selecttlb.TypelibSpec(guid, lcid, major, minor)
+        typelibs = [(typelibInfo, spec)]
+    else:
+        typelibs = GetTypeLibsForSpec(typelibInfo)
 
-	bToGenDir = (file is None)
+    if progressInstance is None:
+        progressInstance = SimpleProgress(verboseLevel)
+    progress = progressInstance
 
-	for typelib, info in typelibs:
-		gen = genpy.Generator(typelib, info.dll, progress, bBuildHidden=bBuildHidden)
+    bToGenDir = file is None
 
-		if file is None:
-			this_name = gencache.GetGeneratedFileName(info.clsid, info.lcid, info.major, info.minor)
-			full_name = os.path.join(gencache.GetGeneratePath(), this_name)
-			if bForDemand:
-				try: os.unlink(full_name + ".py")
-				except os.error: pass
-				try: os.unlink(full_name + ".pyc")
-				except os.error: pass
-				try: os.unlink(full_name + ".pyo")
-				except os.error: pass
-				if not os.path.isdir(full_name):
-					os.mkdir(full_name)
-				outputName = os.path.join(full_name, "__init__.py")
-			else:
-				outputName = full_name + ".py"
-			fileUse = gen.open_writer(outputName)
-			progress.LogBeginGenerate(outputName)
-		else:
-			fileUse = file
+    for typelib, info in typelibs:
+        gen = genpy.Generator(typelib, info.dll, progress, bBuildHidden=bBuildHidden)
 
-		worked = False
-		try:
-			gen.generate(fileUse, bForDemand)
-			worked = True
-		finally:
-			if file is None:
-				gen.finish_writer(outputName, fileUse, worked)
-		importlib.invalidate_caches()
-		if bToGenDir:
-			progress.SetDescription("Importing module")
-			gencache.AddModuleToCache(info.clsid, info.lcid, info.major, info.minor)
+        if file is None:
+            this_name = gencache.GetGeneratedFileName(
+                info.clsid, info.lcid, info.major, info.minor
+            )
+            full_name = os.path.join(gencache.GetGeneratePath(), this_name)
+            if bForDemand:
+                try:
+                    os.unlink(full_name + ".py")
+                except os.error:
+                    pass
+                try:
+                    os.unlink(full_name + ".pyc")
+                except os.error:
+                    pass
+                try:
+                    os.unlink(full_name + ".pyo")
+                except os.error:
+                    pass
+                if not os.path.isdir(full_name):
+                    os.mkdir(full_name)
+                outputName = os.path.join(full_name, "__init__.py")
+            else:
+                outputName = full_name + ".py"
+            fileUse = gen.open_writer(outputName)
+            progress.LogBeginGenerate(outputName)
+        else:
+            fileUse = file
 
-	progress.Close()
+        worked = False
+        try:
+            gen.generate(fileUse, bForDemand)
+            worked = True
+        finally:
+            if file is None:
+                gen.finish_writer(outputName, fileUse, worked)
+        importlib.invalidate_caches()
+        if bToGenDir:
+            progress.SetDescription("Importing module")
+            gencache.AddModuleToCache(info.clsid, info.lcid, info.major, info.minor)
 
-def GenerateChildFromTypeLibSpec(child, typelibInfo, verboseLevel = None, progressInstance = None, bUnicodeToString=None):
-	assert bUnicodeToString is None, "this is deprecated and will go away"
-	if verboseLevel is None:
-		verboseLevel = 0 # By default, we use no gui, and no verbose level for the children.
-	if type(typelibInfo)==type(()):
-		typelibCLSID, lcid, major, minor  = typelibInfo
-		tlb = pythoncom.LoadRegTypeLib(typelibCLSID, major, minor, lcid)
-	else:
-		tlb = typelibInfo
-		tla = typelibInfo.GetLibAttr()
-		typelibCLSID = tla[0]
-		lcid = tla[1]
-		major = tla[3]
-		minor = tla[4]
-	spec = selecttlb.TypelibSpec(typelibCLSID, lcid, major, minor)
-	spec.FromTypelib(tlb, str(typelibCLSID))
-	typelibs = [(tlb, spec)]
+    progress.Close()
 
-	if progressInstance is None:
-		progressInstance = SimpleProgress(verboseLevel)
-	progress = progressInstance
 
-	for typelib, info in typelibs:
-		dir_name = gencache.GetGeneratedFileName(info.clsid, info.lcid, info.major, info.minor)
-		dir_path_name = os.path.join(gencache.GetGeneratePath(), dir_name)
-		progress.LogBeginGenerate(dir_path_name)
+def GenerateChildFromTypeLibSpec(
+    child, typelibInfo, verboseLevel=None, progressInstance=None, bUnicodeToString=None
+):
+    assert bUnicodeToString is None, "this is deprecated and will go away"
+    if verboseLevel is None:
+        verboseLevel = (
+            0  # By default, we use no gui, and no verbose level for the children.
+        )
+    if type(typelibInfo) == type(()):
+        typelibCLSID, lcid, major, minor = typelibInfo
+        tlb = pythoncom.LoadRegTypeLib(typelibCLSID, major, minor, lcid)
+    else:
+        tlb = typelibInfo
+        tla = typelibInfo.GetLibAttr()
+        typelibCLSID = tla[0]
+        lcid = tla[1]
+        major = tla[3]
+        minor = tla[4]
+    spec = selecttlb.TypelibSpec(typelibCLSID, lcid, major, minor)
+    spec.FromTypelib(tlb, str(typelibCLSID))
+    typelibs = [(tlb, spec)]
 
-		gen = genpy.Generator(typelib, info.dll, progress)
-		gen.generate_child(child, dir_path_name)
-		progress.SetDescription("Importing module")
-		importlib.invalidate_caches()
-		__import__("win32com.gen_py." + dir_name + "." + child)
-	progress.Close()
+    if progressInstance is None:
+        progressInstance = SimpleProgress(verboseLevel)
+    progress = progressInstance
+
+    for typelib, info in typelibs:
+        dir_name = gencache.GetGeneratedFileName(
+            info.clsid, info.lcid, info.major, info.minor
+        )
+        dir_path_name = os.path.join(gencache.GetGeneratePath(), dir_name)
+        progress.LogBeginGenerate(dir_path_name)
+
+        gen = genpy.Generator(typelib, info.dll, progress)
+        gen.generate_child(child, dir_path_name)
+        progress.SetDescription("Importing module")
+        importlib.invalidate_caches()
+        __import__("win32com.gen_py." + dir_name + "." + child)
+    progress.Close()
+
 
 def main():
-	import getopt
-	hiddenSpec = 1
-	outputName = None
-	verboseLevel = 1
-	doit = 1
-	bForDemand = bForDemandDefault
-	try:
-		opts, args = getopt.getopt(sys.argv[1:], 'vo:huiqd')
-		for o,v in opts:
-			if o=='-h':
-				hiddenSpec = 0
-			elif o=='-o':
-				outputName = v
-			elif o=='-v':
-				verboseLevel = verboseLevel + 1
-			elif o=='-q':
-				verboseLevel = verboseLevel - 1
-			elif o=='-i':
-				if len(args)==0:
-					ShowInfo(None)
-				else:
-					for arg in args:
-						ShowInfo(arg)
-				doit = 0
-			elif o=='-d':
-				bForDemand = not bForDemand
+    import getopt
 
-	except (getopt.error, error) as msg:
-		sys.stderr.write (str(msg) + "\n")
-		usage()
+    hiddenSpec = 1
+    outputName = None
+    verboseLevel = 1
+    doit = 1
+    bForDemand = bForDemandDefault
+    try:
+        opts, args = getopt.getopt(sys.argv[1:], "vo:huiqd")
+        for o, v in opts:
+            if o == "-h":
+                hiddenSpec = 0
+            elif o == "-o":
+                outputName = v
+            elif o == "-v":
+                verboseLevel = verboseLevel + 1
+            elif o == "-q":
+                verboseLevel = verboseLevel - 1
+            elif o == "-i":
+                if len(args) == 0:
+                    ShowInfo(None)
+                else:
+                    for arg in args:
+                        ShowInfo(arg)
+                doit = 0
+            elif o == "-d":
+                bForDemand = not bForDemand
 
-	if bForDemand and outputName is not None:
-		sys.stderr.write("Can not use -d and -o together\n")
-		usage()
+    except (getopt.error, error) as msg:
+        sys.stderr.write(str(msg) + "\n")
+        usage()
 
-	if not doit:
-		return 0
-	if len(args)==0:
-		rc = selecttlb.SelectTlb()
-		if rc is None:
-			sys.exit(1)
-		args = [ rc ]
+    if bForDemand and outputName is not None:
+        sys.stderr.write("Can not use -d and -o together\n")
+        usage()
 
-	if outputName is not None:
-		path = os.path.dirname(outputName)
-		if path != '' and not os.path.exists(path):
-			os.makedirs(path)
-		if sys.version_info > (3,0):
-			f = open(outputName, "wt", encoding="mbcs")
-		else:
-			import codecs # not available in py3k.
-			f = codecs.open(outputName, "w", "mbcs")
-	else:
-		f = None
+    if not doit:
+        return 0
+    if len(args) == 0:
+        rc = selecttlb.SelectTlb()
+        if rc is None:
+            sys.exit(1)
+        args = [rc]
 
-	for arg in args:
-		GenerateFromTypeLibSpec(arg, f, verboseLevel = verboseLevel, bForDemand = bForDemand, bBuildHidden = hiddenSpec)
+    if outputName is not None:
+        path = os.path.dirname(outputName)
+        if path != "" and not os.path.exists(path):
+            os.makedirs(path)
+        if sys.version_info > (3, 0):
+            f = open(outputName, "wt", encoding="mbcs")
+        else:
+            import codecs  # not available in py3k.
 
-	if f:
-		f.close()
+            f = codecs.open(outputName, "w", "mbcs")
+    else:
+        f = None
+
+    for arg in args:
+        GenerateFromTypeLibSpec(
+            arg,
+            f,
+            verboseLevel=verboseLevel,
+            bForDemand=bForDemand,
+            bBuildHidden=hiddenSpec,
+        )
+
+    if f:
+        f.close()
 
 
-if __name__=='__main__':
-	rc = main()
-	if rc:
-		sys.exit(rc)
-	sys.exit(0)
+if __name__ == "__main__":
+    rc = main()
+    if rc:
+        sys.exit(rc)
+    sys.exit(0)

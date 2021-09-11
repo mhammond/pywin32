@@ -18,21 +18,23 @@ Topic :: Software Development :: Libraries :: Python Modules
 Topic :: Database
 """
 
-NAME                = 'adodbapi'
-MAINTAINER          = "Vernon Cole"
-MAINTAINER_EMAIL    = "vernondcole@gmail.com"
-DESCRIPTION         = """A pure Python package implementing PEP 249 DB-API using Microsoft ADO."""
-URL                 = "http://sourceforge.net/projects/adodbapi"
-LICENSE             = 'LGPL'
-CLASSIFIERS         = filter(None, CLASSIFIERS.split('\n'))
-AUTHOR              = "Henrik Ekelund, Vernon Cole, et.al."
-AUTHOR_EMAIL        = "vernondcole@gmail.com"
-PLATFORMS           = ["Windows","Linux"]
+NAME = "adodbapi"
+MAINTAINER = "Vernon Cole"
+MAINTAINER_EMAIL = "vernondcole@gmail.com"
+DESCRIPTION = (
+    """A pure Python package implementing PEP 249 DB-API using Microsoft ADO."""
+)
+URL = "http://sourceforge.net/projects/adodbapi"
+LICENSE = "LGPL"
+CLASSIFIERS = filter(None, CLASSIFIERS.split("\n"))
+AUTHOR = "Henrik Ekelund, Vernon Cole, et.al."
+AUTHOR_EMAIL = "vernondcole@gmail.com"
+PLATFORMS = ["Windows", "Linux"]
 
-VERSION = None # in case searching for version fails
-a = open('adodbapi.py') # find the version string in the source code
+VERSION = None  # in case searching for version fails
+a = open("adodbapi.py")  # find the version string in the source code
 for line in a:
-    if '__version__' in line:
+    if "__version__" in line:
         VERSION = line.split("'")[1]
         print('adodbapi version="%s"' % VERSION)
         break
@@ -41,6 +43,8 @@ a.close()
 ##DOWNLOAD_URL = "http://sourceforge.net/projects/adodbapi/files/adodbapi/" + VERSION.rsplit('.', 1)[0] + '/adodbapi-' + VERSION + '.zip'
 
 import sys
+
+
 def setup_package():
 
     from distutils.core import setup
@@ -49,36 +53,40 @@ def setup_package():
 
         try:
             from distutils.command.build_py import build_py_2to3 as build_py
-##        # exclude fixers that break already compatible code
-##        from lib2to3.refactor import get_fixers_from_package
-##        fixers = get_fixers_from_package('lib2to3.fixes')
-##        for skip_fixer in ['import']:
-##            fixers.remove('lib2to3.fixes.fix_' + skip_fixer)
-##        build_py.fixer_names = fixers
+        ##        # exclude fixers that break already compatible code
+        ##        from lib2to3.refactor import get_fixers_from_package
+        ##        fixers = get_fixers_from_package('lib2to3.fixes')
+        ##        for skip_fixer in ['import']:
+        ##            fixers.remove('lib2to3.fixes.fix_' + skip_fixer)
+        ##        build_py.fixer_names = fixers
         except ImportError:
-            raise ImportError("build_py_2to3 not found in distutils - it is required for Python 3.x")
+            raise ImportError(
+                "build_py_2to3 not found in distutils - it is required for Python 3.x"
+            )
     else:
         from distutils.command.build_py import build_py
 
     setup(
-        cmdclass = {'build_py': build_py},
+        cmdclass={"build_py": build_py},
         name=NAME,
         maintainer=MAINTAINER,
         maintainer_email=MAINTAINER_EMAIL,
         description=DESCRIPTION,
         url=URL,
-        keywords='database ado odbc dbapi db-api Microsoft SQL',
-##        download_url=DOWNLOAD_URL,
-        long_description=open('README.txt').read(),
+        keywords="database ado odbc dbapi db-api Microsoft SQL",
+        ##        download_url=DOWNLOAD_URL,
+        long_description=open("README.txt").read(),
         license=LICENSE,
         classifiers=CLASSIFIERS,
         author=AUTHOR,
         author_email=AUTHOR_EMAIL,
         platforms=PLATFORMS,
         version=VERSION,
-        package_dir = {'adodbapi':''},
-        packages=['adodbapi'] )
+        package_dir={"adodbapi": ""},
+        packages=["adodbapi"],
+    )
     return
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     setup_package()

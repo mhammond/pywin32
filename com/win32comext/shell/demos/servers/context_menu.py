@@ -13,6 +13,7 @@ from win32com.shell import shell, shellcon
 import win32gui
 import win32con
 
+
 class ShellExtension:
     _reg_progid_ = "Python.ShellExtension.ContextMenu"
     _reg_desc_ = "Python Sample Shell Extension (context menu)"
@@ -30,14 +31,16 @@ class ShellExtension:
         format_etc = win32con.CF_HDROP, None, 1, -1, pythoncom.TYMED_HGLOBAL
         sm = self.dataobj.GetData(format_etc)
         num_files = shell.DragQueryFile(sm.data_handle, -1)
-        if num_files>1:
+        if num_files > 1:
             msg = "&Hello from Python (with %d files selected)" % num_files
         else:
             fname = shell.DragQueryFile(sm.data_handle, 0)
             msg = "&Hello from Python (with '%s' selected)" % fname
         idCmd = idCmdFirst
-        items = ['First Python content menu item']
-        if (uFlags & 0x000F) == shellcon.CMF_NORMAL: # Check == here, since CMF_NORMAL=0
+        items = ["First Python content menu item"]
+        if (
+            uFlags & 0x000F
+        ) == shellcon.CMF_NORMAL:  # Check == here, since CMF_NORMAL=0
             print("CMF_NORMAL...")
             items.append(msg)
         elif uFlags & shellcon.CMF_VERBSONLY:
@@ -50,22 +53,26 @@ class ShellExtension:
             print("CMF_DEFAULTONLY...\r\n")
         else:
             print("** unknown flags", uFlags)
-        win32gui.InsertMenu(hMenu, indexMenu,
-                            win32con.MF_SEPARATOR|win32con.MF_BYPOSITION,
-                            0, None)
+        win32gui.InsertMenu(
+            hMenu, indexMenu, win32con.MF_SEPARATOR | win32con.MF_BYPOSITION, 0, None
+        )
         indexMenu += 1
         for item in items:
-            win32gui.InsertMenu(hMenu, indexMenu,
-                                win32con.MF_STRING|win32con.MF_BYPOSITION,
-                                idCmd, item)
+            win32gui.InsertMenu(
+                hMenu,
+                indexMenu,
+                win32con.MF_STRING | win32con.MF_BYPOSITION,
+                idCmd,
+                item,
+            )
             indexMenu += 1
             idCmd += 1
 
-        win32gui.InsertMenu(hMenu, indexMenu,
-                            win32con.MF_SEPARATOR|win32con.MF_BYPOSITION,
-                            0, None)
+        win32gui.InsertMenu(
+            hMenu, indexMenu, win32con.MF_SEPARATOR | win32con.MF_BYPOSITION, 0, None
+        )
         indexMenu += 1
-        return idCmd-idCmdFirst # Must return number of menu items we added.
+        return idCmd - idCmdFirst  # Must return number of menu items we added.
 
     def InvokeCommand(self, ci):
         mask, hwnd, verb, params, dir, nShow, hotkey, hicon = ci
@@ -78,28 +85,38 @@ class ShellExtension:
         # ignored)
         return "Hello from Python (cmd=%d)!!" % (cmd,)
 
+
 def DllRegisterServer():
     import winreg
-    key = winreg.CreateKey(winreg.HKEY_CLASSES_ROOT,
-                            "Python.File\\shellex")
+
+    key = winreg.CreateKey(winreg.HKEY_CLASSES_ROOT, "Python.File\\shellex")
     subkey = winreg.CreateKey(key, "ContextMenuHandlers")
     subkey2 = winreg.CreateKey(subkey, "PythonSample")
     winreg.SetValueEx(subkey2, None, 0, winreg.REG_SZ, ShellExtension._reg_clsid_)
     print(ShellExtension._reg_desc_, "registration complete.")
 
+
 def DllUnregisterServer():
     import winreg
+
     try:
-        key = winreg.DeleteKey(winreg.HKEY_CLASSES_ROOT,
-                                "Python.File\\shellex\\ContextMenuHandlers\\PythonSample")
+        key = winreg.DeleteKey(
+            winreg.HKEY_CLASSES_ROOT,
+            "Python.File\\shellex\\ContextMenuHandlers\\PythonSample",
+        )
     except WindowsError as details:
         import errno
+
         if details.errno != errno.ENOENT:
             raise
     print(ShellExtension._reg_desc_, "unregistration complete.")
 
-if __name__=='__main__':
+
+if __name__ == "__main__":
     from win32com.server import register
-    register.UseCommandLine(ShellExtension,
-                   finalize_register = DllRegisterServer,
-                   finalize_unregister = DllUnregisterServer)
+
+    register.UseCommandLine(
+        ShellExtension,
+        finalize_register=DllRegisterServer,
+        finalize_unregister=DllUnregisterServer,
+    )

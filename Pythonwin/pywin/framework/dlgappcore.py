@@ -9,61 +9,66 @@ import win32api
 import sys
 from pywin.mfc import dialog
 
-error = "Dialog Application Error" 
+error = "Dialog Application Error"
+
 
 class AppDialog(dialog.Dialog):
-	"The dialog box for the application"
-	def __init__(self, id, dll=None):
-		self.iconId = win32ui.IDR_MAINFRAME
-		dialog.Dialog.__init__(self, id, dll)
+    "The dialog box for the application"
 
-	def OnInitDialog(self):
-		return dialog.Dialog.OnInitDialog(self)
+    def __init__(self, id, dll=None):
+        self.iconId = win32ui.IDR_MAINFRAME
+        dialog.Dialog.__init__(self, id, dll)
 
-	# Provide support for a dlg app using an icon
-	def OnPaint(self):
-		if not self.IsIconic(): return self._obj_.OnPaint()
-		self.DefWindowProc(win32con.WM_ICONERASEBKGND, dc.GetHandleOutput(), 0)
-		left, top, right, bottom = self.GetClientRect()
-		left = (right  - win32api.GetSystemMetrics(win32con.SM_CXICON)) >> 1
-		top  = (bottom - win32api.GetSystemMetrics(win32con.SM_CYICON)) >> 1
-		hIcon = win32ui.GetApp().LoadIcon(self.iconId)
-		self.GetDC().DrawIcon((left, top), hIcon)
+    def OnInitDialog(self):
+        return dialog.Dialog.OnInitDialog(self)
 
-	# Only needed to provide a minimized icon (and this seems
-	# less important under win95/NT4
-	def OnEraseBkgnd(self, dc):
-		if self.IsIconic():
-			return 1
-		else:
-			return self._obj_.OnEraseBkgnd(dc)
-	def OnQueryDragIcon(self):
-		return win32ui.GetApp().LoadIcon(self.iconId)
+    # Provide support for a dlg app using an icon
+    def OnPaint(self):
+        if not self.IsIconic():
+            return self._obj_.OnPaint()
+        self.DefWindowProc(win32con.WM_ICONERASEBKGND, dc.GetHandleOutput(), 0)
+        left, top, right, bottom = self.GetClientRect()
+        left = (right - win32api.GetSystemMetrics(win32con.SM_CXICON)) >> 1
+        top = (bottom - win32api.GetSystemMetrics(win32con.SM_CYICON)) >> 1
+        hIcon = win32ui.GetApp().LoadIcon(self.iconId)
+        self.GetDC().DrawIcon((left, top), hIcon)
 
-	def PreDoModal(self):
-		pass
+    # Only needed to provide a minimized icon (and this seems
+    # less important under win95/NT4
+    def OnEraseBkgnd(self, dc):
+        if self.IsIconic():
+            return 1
+        else:
+            return self._obj_.OnEraseBkgnd(dc)
+
+    def OnQueryDragIcon(self):
+        return win32ui.GetApp().LoadIcon(self.iconId)
+
+    def PreDoModal(self):
+        pass
 
 
 class DialogApp(app.CApp):
-	"An application class, for an app with main dialog box"
-	def InitInstance(self):
-#		win32ui.SetProfileFileName('dlgapp.ini')
-		win32ui.LoadStdProfileSettings()
-		win32ui.EnableControlContainer()
-		win32ui.Enable3dControls()
-		self.dlg = self.frame = self.CreateDialog()
-	
-		if self.frame is None:
-			raise error("No dialog was created by CreateDialog()")
-			return
+    "An application class, for an app with main dialog box"
 
-		self._obj_.InitDlgInstance(self.dlg)
-		self.PreDoModal()
-		self.dlg.PreDoModal()
-		self.dlg.DoModal()
+    def InitInstance(self):
+        # 		win32ui.SetProfileFileName('dlgapp.ini')
+        win32ui.LoadStdProfileSettings()
+        win32ui.EnableControlContainer()
+        win32ui.Enable3dControls()
+        self.dlg = self.frame = self.CreateDialog()
 
-	def CreateDialog(self):
-		pass
-	def PreDoModal(self):
-		pass
+        if self.frame is None:
+            raise error("No dialog was created by CreateDialog()")
+            return
 
+        self._obj_.InitDlgInstance(self.dlg)
+        self.PreDoModal()
+        self.dlg.PreDoModal()
+        self.dlg.DoModal()
+
+    def CreateDialog(self):
+        pass
+
+    def PreDoModal(self):
+        pass

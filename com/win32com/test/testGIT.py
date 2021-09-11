@@ -26,16 +26,20 @@ import win32com.client
 import win32event, win32api
 import pythoncom
 
+
 def TestInterp(interp):
     if interp.Eval("1+1") != 2:
         raise ValueError("The interpreter returned the wrong result.")
     try:
-        interp.Eval(1+1)
+        interp.Eval(1 + 1)
         raise ValueError("The interpreter did not raise an exception")
     except pythoncom.com_error as details:
         import winerror
-        if details[0]!=winerror.DISP_E_TYPEMISMATCH:
-            raise ValueError("The interpreter exception was not winerror.DISP_E_TYPEMISMATCH.")
+
+        if details[0] != winerror.DISP_E_TYPEMISMATCH:
+            raise ValueError(
+                "The interpreter exception was not winerror.DISP_E_TYPEMISMATCH."
+            )
 
 
 def TestInterpInThread(stopEvent, cookie):
@@ -44,34 +48,42 @@ def TestInterpInThread(stopEvent, cookie):
     finally:
         win32event.SetEvent(stopEvent)
 
+
 def CreateGIT():
-    return pythoncom.CoCreateInstance(pythoncom.CLSID_StdGlobalInterfaceTable,
-                                      None,
-                                      pythoncom.CLSCTX_INPROC,
-                                      pythoncom.IID_IGlobalInterfaceTable)
+    return pythoncom.CoCreateInstance(
+        pythoncom.CLSID_StdGlobalInterfaceTable,
+        None,
+        pythoncom.CLSCTX_INPROC,
+        pythoncom.IID_IGlobalInterfaceTable,
+    )
+
 
 def DoTestInterpInThread(cookie):
-        try:
-            pythoncom.CoInitialize()
-            myThread = win32api.GetCurrentThreadId()
-            GIT = CreateGIT()
+    try:
+        pythoncom.CoInitialize()
+        myThread = win32api.GetCurrentThreadId()
+        GIT = CreateGIT()
 
-            interp = GIT.GetInterfaceFromGlobal(cookie, pythoncom.IID_IDispatch)
-            interp = win32com.client.Dispatch(interp)
+        interp = GIT.GetInterfaceFromGlobal(cookie, pythoncom.IID_IDispatch)
+        interp = win32com.client.Dispatch(interp)
 
-            TestInterp(interp)
-            interp.Exec("import win32api")
-            print("The test thread id is %d, Python.Interpreter's thread ID is %d" % (myThread, interp.Eval("win32api.GetCurrentThreadId()")))
-            interp = None
-            pythoncom.CoUninitialize()
-        except:
-            traceback.print_exc()
+        TestInterp(interp)
+        interp.Exec("import win32api")
+        print(
+            "The test thread id is %d, Python.Interpreter's thread ID is %d"
+            % (myThread, interp.Eval("win32api.GetCurrentThreadId()"))
+        )
+        interp = None
+        pythoncom.CoUninitialize()
+    except:
+        traceback.print_exc()
+
 
 def BeginThreadsSimpleMarshal(numThreads, cookie):
     """Creates multiple threads using simple (but slower) marshalling.
-    
+
     Single interpreter object, but a new stream is created per thread.
-    
+
     Returns the handles the threads will set when complete.
     """
     ret = []
@@ -84,36 +96,47 @@ def BeginThreadsSimpleMarshal(numThreads, cookie):
 
 def test(fn):
     print("The main thread is %d" % (win32api.GetCurrentThreadId()))
-    GIT    = CreateGIT()
+    GIT = CreateGIT()
     interp = win32com.client.Dispatch("Python.Interpreter")
     cookie = GIT.RegisterInterfaceInGlobal(interp._oleobj_, pythoncom.IID_IDispatch)
-    
+
     events = fn(4, cookie)
     numFinished = 0
     while 1:
         try:
-            rc = win32event.MsgWaitForMultipleObjects(events, 0, 2000, win32event.QS_ALLINPUT)
-            if rc >= win32event.WAIT_OBJECT_0 and rc < win32event.WAIT_OBJECT_0+len(events):
+            rc = win32event.MsgWaitForMultipleObjects(
+                events, 0, 2000, win32event.QS_ALLINPUT
+            )
+            if rc >= win32event.WAIT_OBJECT_0 and rc < win32event.WAIT_OBJECT_0 + len(
+                events
+            ):
                 numFinished = numFinished + 1
                 if numFinished >= len(events):
                     break
-            elif rc==win32event.WAIT_OBJECT_0 + len(events): # a message
+            elif rc == win32event.WAIT_OBJECT_0 + len(events):  # a message
                 # This is critical - whole apartment model demo will hang.
                 pythoncom.PumpWaitingMessages()
-            else: # Timeout
-                print("Waiting for thread to stop with interfaces=%d, gateways=%d" % (pythoncom._GetInterfaceCount(), pythoncom._GetGatewayCount()))
+            else:  # Timeout
+                print(
+                    "Waiting for thread to stop with interfaces=%d, gateways=%d"
+                    % (pythoncom._GetInterfaceCount(), pythoncom._GetGatewayCount())
+                )
         except KeyboardInterrupt:
             break
     GIT.RevokeInterfaceFromGlobal(cookie)
     del interp
     del GIT
 
-if __name__=='__main__':
+
+if __name__ == "__main__":
     test(BeginThreadsSimpleMarshal)
     win32api.Sleep(500)
     # Doing CoUninit here stop Pythoncom.dll hanging when DLLMain shuts-down the process
     pythoncom.CoUninitialize()
-    if pythoncom._GetInterfaceCount()!=0 or pythoncom._GetGatewayCount()!=0:
-        print("Done with interfaces=%d, gateways=%d" % (pythoncom._GetInterfaceCount(), pythoncom._GetGatewayCount()))
+    if pythoncom._GetInterfaceCount() != 0 or pythoncom._GetGatewayCount() != 0:
+        print(
+            "Done with interfaces=%d, gateways=%d"
+            % (pythoncom._GetInterfaceCount(), pythoncom._GetGatewayCount())
+        )
     else:
         print("Done.")

@@ -24,12 +24,12 @@ or IronPython version 2.6 and later,
 or, after running through 2to3.py, CPython 3.2 or later.
 """
 
-__version__ = '2.6.2.0'
-version = 'adodbapi.server v' + __version__
+__version__ = "2.6.2.0"
+version = "adodbapi.server v" + __version__
 
-PYRO_HOST = '::0' # '::0' or '0.0.0.0' means any network
+PYRO_HOST = "::0"  # '::0' or '0.0.0.0' means any network
 PYRO_PORT = 9099  # may be altered below for Python 3 based servers
-PYRO_COMMTIMEOUT = 40 # to be larger than the default database timeout
+PYRO_COMMTIMEOUT = 40  # to be larger than the default database timeout
 SERVICE_NAME = "ado.connection"
 
 import os
@@ -52,36 +52,36 @@ makeByteBuffer = bytes
 _BaseException = Exception
 Binary = bytes
 try:
-    pyro_host = os.environ['PYRO_HOST']
+    pyro_host = os.environ["PYRO_HOST"]
 except:
     pyro_host = PYRO_HOST
 try:
-    pyro_port = os.environ['PYRO_PORT']
+    pyro_port = os.environ["PYRO_PORT"]
 except:
     pyro_port = PYRO_PORT
 
 for arg in sys.argv[1:]:
-    if arg.lower().startswith('host'):
+    if arg.lower().startswith("host"):
         try:
-            pyro_host = arg.split('=')[1]
+            pyro_host = arg.split("=")[1]
         except _BaseException:
             raise TypeError('Must supply value for argument="%s"' % arg)
 
-    if arg.lower().startswith('port'):
+    if arg.lower().startswith("port"):
         try:
-            pyro_port = int(arg.split('=')[1])
+            pyro_port = int(arg.split("=")[1])
         except _BaseException:
             raise TypeError('Must supply numeric value for argument="%s"' % arg)
 
-    if arg.lower().startswith('timeout'):
+    if arg.lower().startswith("timeout"):
         try:
-            PYRO_COMMTIMEOUT = int(arg.split('=')[1])
+            PYRO_COMMTIMEOUT = int(arg.split("=")[1])
         except _BaseException:
             raise TypeError('Must supply numeric value for argument="%s"' % arg)
 
-    if arg.lower().startswith('--verbose'):
+    if arg.lower().startswith("--verbose"):
         try:
-            verbose = int(arg.split('=')[1])
+            verbose = int(arg.split("=")[1])
         except _BaseException:
             raise TypeError('Must supply numeric value for argument="%s"' % arg)
         adodbapi.adodbapi.verbose = verbose
@@ -93,29 +93,32 @@ print(version)
 Pyro4.config.DETAILED_TRACEBACK = True
 Pyro4.config.COMMTIMEOUT = PYRO_COMMTIMEOUT
 Pyro4.config.AUTOPROXY = False
-Pyro4.config.SERVERTYPE = 'multiplex'
+Pyro4.config.SERVERTYPE = "multiplex"
 Pyro4.config.PREFER_IP_VERSION = 0  # allow system to prefer IPv6
-Pyro4.config.SERIALIZERS_ACCEPTED = set(['serpent', 'pickle'])  # change when Py2.5 retired
+Pyro4.config.SERIALIZERS_ACCEPTED = set(
+    ["serpent", "pickle"]
+)  # change when Py2.5 retired
 
 connection_list = []
 CONNECTION_TIMEOUT = datetime.timedelta(minutes=30)
 CONNECTION_REMEMBER = datetime.timedelta(hours=3)
-if '--debug' in sys.argv:
+if "--debug" in sys.argv:
     CONNECTION_TIMEOUT = datetime.timedelta(minutes=10)
     CONNECTION_REMEMBER = datetime.timedelta(minutes=20)
 HEARTBEAT_INTERVAL = CONNECTION_TIMEOUT / 10
 
 KEEP_RUNNING = True  # global value which will kill server when set to False
 
+
 def unfixpickle(x):
     """pickle barfs on buffer(x) so we pass as array.array(x) then restore to original form for .execute()"""
-    if  x is None:
+    if x is None:
         return None
-    if isinstance(x,dict):
+    if isinstance(x, dict):
         # for 'named' paramstyle user will pass a mapping
         newargs = {}
-        for arg,val in list(x.items()):
-            if isinstance(arg, type(array.array('B'))):
+        for arg, val in list(x.items()):
+            if isinstance(arg, type(array.array("B"))):
                 newargs[arg] = Binary(val)
             else:
                 newargs[arg] = val
@@ -123,7 +126,7 @@ def unfixpickle(x):
     # if not a mapping, then a sequence
     newargs = []
     for arg in x:
-        if isinstance(arg, type(array.array('B'))):
+        if isinstance(arg, type(array.array("B"))):
             newargs.append(Binary(arg))
         else:
             newargs.append(arg)
@@ -139,12 +142,12 @@ class ServerConnection(object):
 
     def _check_timeout(self):
         if self.timed_out:
-            raise api.OperationalError('Remote Connection Timed Out')
+            raise api.OperationalError("Remote Connection Timed Out")
 
     def build_cursor(self):
         "Return a new Cursor Object using the connection."
         self._check_timeout()
-        lc = self.server_connection.cursor() # get a new real cursor
+        lc = self.server_connection.cursor()  # get a new real cursor
         self.cursors[lc.id] = lc
         return lc.id
 
@@ -162,7 +165,7 @@ class ServerConnection(object):
         kw = adodbapi.process_connect_string.process([], kwargs, True)
 
         if verbose:
-            print('%s trying to connect %s', (version, repr(kw)))
+            print("%s trying to connect %s", (version, repr(kw)))
         # kwargs has been loaded with all the values we need
         try:
             conn = adodbapi.adodbapi.connect(kw)
@@ -191,18 +194,28 @@ class ServerConnection(object):
 
     def get_attribute_for_remote(self, item):
         self._check_timeout()
-        if item == 'autocommit':
-            item = '_autocommit'
-        if item in ('paramstyle', 'messages', 'supportsTransactions', 'dbms_name', 'dbms_version',
-                    'connection_string', 'timeout', '_autocommit'):
+        if item == "autocommit":
+            item = "_autocommit"
+        if item in (
+            "paramstyle",
+            "messages",
+            "supportsTransactions",
+            "dbms_name",
+            "dbms_version",
+            "connection_string",
+            "timeout",
+            "_autocommit",
+        ):
             return getattr(self.server_connection, item)
         raise AttributeError('No provision for remote access to attribute="%s"' % item)
 
-    def send_attribute_to_host(self, name, value): # to change autocommit or paramstyle on host
+    def send_attribute_to_host(
+        self, name, value
+    ):  # to change autocommit or paramstyle on host
         self._check_timeout()
         self.server_connection.__setattr__(name, value)
 
-# # # # # #  following are cursor methods called by the remote (using the connection) with a cursor id "cid" # # #
+    # # # # # #  following are cursor methods called by the remote (using the connection) with a cursor id "cid" # # #
 
     def crsr_execute(self, cid, operation, parameters=None):
         self._check_timeout()
@@ -210,9 +223,13 @@ class ServerConnection(object):
         try:
             self.cursors[cid].execute(operation, fp)
         except api.Error as e:
-            try: errorclass = self.server_connection.messages[0][0]
-            except: errorclass = api.Error
-            return errorclass, str(e) # the error class should have been stored by the standard error handler
+            try:
+                errorclass = self.server_connection.messages[0][0]
+            except:
+                errorclass = api.Error
+            return errorclass, str(
+                e
+            )  # the error class should have been stored by the standard error handler
 
     def crsr_prepare(self, cid, operation):
         self._check_timeout()
@@ -247,7 +264,7 @@ class ServerConnection(object):
         self._check_timeout()
         rows = []
         for row in self.cursors[cid].fetchall():
-            rows.append(row[:])   #[item for item in row])
+            rows.append(row[:])  # [item for item in row])
         return rows
 
     def crsr_get_rowcount(self, cid):
@@ -266,7 +283,8 @@ class ServerConnection(object):
     def crsr_close(self, cid):
         try:
             self.cursors[cid].close()
-        except: pass
+        except:
+            pass
         del self.cursors[cid]
 
     def crsr_set_arraysize(self, cid, value):
@@ -280,18 +298,18 @@ class ServerConnection(object):
 
     def crsr_get_attribute_for_remote(self, cid, item):
         if verbose > 3:
-            print('remote %s asking for=%s' % (cid, item))
+            print("remote %s asking for=%s" % (cid, item))
         self._check_timeout()
-        r = getattr(self.cursors[cid], item) # use the built-in function
+        r = getattr(self.cursors[cid], item)  # use the built-in function
         if verbose > 3:
-            print('server replying with=%s' % repr(r))
+            print("server replying with=%s" % repr(r))
         return r
 
     def suicide(self):
         """shut down the server service"""
         global KEEP_RUNNING
         KEEP_RUNNING = False
-        print('Shutdown request received')
+        print("Shutdown request received")
 
 
 class ConnectionDispatcher(object):
@@ -315,52 +333,58 @@ class Heartbeat_Timer(object):
             self.work_function()
         return self.tick_result_function()
 
+
 def heartbeat_timer_work():
-        global connection_list
-        now = datetime.datetime.now()
-        for conn in connection_list[:]:  # step through a copy of the list
-            if now - conn.last_used > CONNECTION_TIMEOUT:
-                try:
-                    if not conn.timed_out:
-                        conn.timed_out = True
-                        conn.close(remember=True)
-                    else:
-                        if now - conn.last_used > CONNECTION_REMEMBER:
-                            connection_list.remove(conn)
-                except:
-                    pass
+    global connection_list
+    now = datetime.datetime.now()
+    for conn in connection_list[:]:  # step through a copy of the list
+        if now - conn.last_used > CONNECTION_TIMEOUT:
+            try:
+                if not conn.timed_out:
+                    conn.timed_out = True
+                    conn.close(remember=True)
+                else:
+                    if now - conn.last_used > CONNECTION_REMEMBER:
+                        connection_list.remove(conn)
+            except:
+                pass
+
 
 def still_running():
     return KEEP_RUNNING
 
-heartbeat_timer = Heartbeat_Timer(HEARTBEAT_INTERVAL, heartbeat_timer_work, still_running)
+
+heartbeat_timer = Heartbeat_Timer(
+    HEARTBEAT_INTERVAL, heartbeat_timer_work, still_running
+)
+
 
 def serve():
     service_name = SERVICE_NAME
     if "use_nameserver" in sys.argv:
         # advertise self using nameserver
-        if pyro_host in ('::0', '0.0.0.0'):
-            raise Warning('Use a specified IP address when using the nameserver')
-        i = 10 # wait for nameserver to come up
+        if pyro_host in ("::0", "0.0.0.0"):
+            raise Warning("Use a specified IP address when using the nameserver")
+        i = 10  # wait for nameserver to come up
         while i:
             i -= 1
             time.sleep(2)
             try:
                 ns = Pyro4.naming.locateNS()
                 break
-            except  Pyro4.errors.PyroError:
+            except Pyro4.errors.PyroError:
                 if i == 0:
-                    print('..unable to find nameserver..')
+                    print("..unable to find nameserver..")
                     sys.exit(1)
         ns_p = Pyro4.core.Proxy(ns._pyroUri)
-        if ':' in pyro_host and pyro_host[0] != '[':
-            ph = pyro_host.join(('[',']')) # but [] around bare IPv6 addresses
+        if ":" in pyro_host and pyro_host[0] != "[":
+            ph = pyro_host.join(("[", "]"))  # but [] around bare IPv6 addresses
         else:
             ph = pyro_host
-        uri = 'PYRO:{}@{}:{}'.format(service_name, ph, int(pyro_port))
+        uri = "PYRO:{}@{}:{}".format(service_name, ph, int(pyro_port))
         ns_p.register(SERVICE_NAME, uri)
-        print('registered {} to nameserver as={}'.format(SERVICE_NAME, uri))
-        print('')
+        print("registered {} to nameserver as={}".format(SERVICE_NAME, uri))
+        print("")
 
     daemon = Pyro4.Daemon(host=pyro_host, port=int(pyro_port))
     uri = daemon.register(ConnectionDispatcher(), service_name)
@@ -374,7 +398,8 @@ def serve():
         except KeyboardInterrupt:
             break
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     serve()
     for conn in connection_list:  # clean up when done
         try:

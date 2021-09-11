@@ -14,6 +14,7 @@ except ImportError:  # Python ≥3.6: replace ImportError with ModuleNotFoundErr
     pass
 else:
     import os
+
     # We're guaranteed only that __path__: Iterable[str]
     # https://docs.python.org/3/reference/import.html#__path__
     for path in pywin32_system32.__path__:

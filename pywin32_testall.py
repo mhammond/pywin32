@@ -7,7 +7,9 @@ import subprocess
 # locate the dirs based on where this script is - it may be either in the
 # source tree, or in an installed Python 'Scripts' tree.
 this_dir = os.path.dirname(__file__)
-site_packages = [site.getusersitepackages(), ] + site.getsitepackages()
+site_packages = [
+    site.getusersitepackages(),
+] + site.getsitepackages()
 
 failures = []
 
@@ -31,33 +33,46 @@ def find_and_run(possible_locations, extras):
             run_test(maybe, extras)
             break
     else:
-        raise RuntimeError("Failed to locate a test script in one of %s"
-                           % possible_locations)
+        raise RuntimeError(
+            "Failed to locate a test script in one of %s" % possible_locations
+        )
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     import argparse
 
     code_directories = [this_dir] + site_packages
 
-    parser = argparse.ArgumentParser(description="A script to trigger tests in all subprojects of PyWin32.")
-    parser.add_argument("-no-user-interaction",
-                        default=False,
-                        action='store_true',
-                        help="(This is now the default - use `-user-interaction` to include them)")
+    parser = argparse.ArgumentParser(
+        description="A script to trigger tests in all subprojects of PyWin32."
+    )
+    parser.add_argument(
+        "-no-user-interaction",
+        default=False,
+        action="store_true",
+        help="(This is now the default - use `-user-interaction` to include them)",
+    )
 
-    parser.add_argument("-user-interaction",
-                        action='store_true',
-                        help="Include tests which require user interaction")
+    parser.add_argument(
+        "-user-interaction",
+        action="store_true",
+        help="Include tests which require user interaction",
+    )
 
-    parser.add_argument("-skip-adodbapi",
-                        default=False,
-                        action='store_true',
-                        help="Skip the adodbapi tests; useful for CI where there's no provider")
+    parser.add_argument(
+        "-skip-adodbapi",
+        default=False,
+        action="store_true",
+        help="Skip the adodbapi tests; useful for CI where there's no provider",
+    )
 
     args, remains = parser.parse_known_args()
 
     # win32
-    maybes = [os.path.join(directory, "win32", "test", "testall.py") for directory in code_directories]
+    maybes = [
+        os.path.join(directory, "win32", "test", "testall.py")
+        for directory in code_directories
+    ]
     extras = []
     if args.user_interaction:
         extras += "-user-interaction"
@@ -66,18 +81,30 @@ if __name__ == '__main__':
     find_and_run(maybes, extras)
 
     # win32com
-    maybes = [os.path.join(directory, "win32com", "test", "testall.py") for directory in [os.path.join(this_dir, "com"), ] + site_packages]
-    extras = remains + ["1"] # only run "level 1" tests in CI
+    maybes = [
+        os.path.join(directory, "win32com", "test", "testall.py")
+        for directory in [
+            os.path.join(this_dir, "com"),
+        ]
+        + site_packages
+    ]
+    extras = remains + ["1"]  # only run "level 1" tests in CI
     find_and_run(maybes, extras)
 
     # adodbapi
     if not args.skip_adodbapi:
-        maybes = [os.path.join(directory, "adodbapi", "test", "adodbapitest.py") for directory in code_directories]
+        maybes = [
+            os.path.join(directory, "adodbapi", "test", "adodbapitest.py")
+            for directory in code_directories
+        ]
         find_and_run(maybes, remains)
         # This script has a hard-coded sql server name in it, (and markh typically
         # doesn't have a different server to test on) but there is now supposed to be a server out there on the Internet
         # just to run these tests, so try it...
-        maybes = [os.path.join(directory, "adodbapi", "test", "test_adodbapi_dbapi20.py") for directory in code_directories]
+        maybes = [
+            os.path.join(directory, "adodbapi", "test", "test_adodbapi_dbapi20.py")
+            for directory in code_directories
+        ]
         find_and_run(maybes, remains)
 
     if failures:

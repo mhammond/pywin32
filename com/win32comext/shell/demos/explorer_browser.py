@@ -11,6 +11,8 @@ from win32com.server.util import wrap, unwrap
 # event handler for the browser.
 IExplorerBrowserEvents_Methods = """OnNavigationComplete OnNavigationFailed 
                                     OnNavigationPending OnViewCreated""".split()
+
+
 class EventHandler:
     _com_interfaces_ = [shell.IID_IExplorerBrowserEvents]
     _public_methods_ = IExplorerBrowserEvents_Methods
@@ -34,25 +36,41 @@ class EventHandler:
         except ValueError:
             pass
 
+
 class MainWindow:
     def __init__(self):
         message_map = {
-                win32con.WM_DESTROY: self.OnDestroy,
-                win32con.WM_COMMAND: self.OnCommand,
-                win32con.WM_SIZE: self.OnSize,
+            win32con.WM_DESTROY: self.OnDestroy,
+            win32con.WM_COMMAND: self.OnCommand,
+            win32con.WM_SIZE: self.OnSize,
         }
         # Register the Window class.
         wc = win32gui.WNDCLASS()
         hinst = wc.hInstance = win32api.GetModuleHandle(None)
         wc.lpszClassName = "test_explorer_browser"
-        wc.lpfnWndProc = message_map # could also specify a wndproc.
+        wc.lpfnWndProc = message_map  # could also specify a wndproc.
         classAtom = win32gui.RegisterClass(wc)
         # Create the Window.
         style = win32con.WS_OVERLAPPEDWINDOW | win32con.WS_VISIBLE
-        self.hwnd = win32gui.CreateWindow( classAtom, "Python IExplorerBrowser demo", style, \
-                0, 0, win32con.CW_USEDEFAULT, win32con.CW_USEDEFAULT, \
-                0, 0, hinst, None)
-        eb = pythoncom.CoCreateInstance(shellcon.CLSID_ExplorerBrowser, None, pythoncom.CLSCTX_ALL, shell.IID_IExplorerBrowser)
+        self.hwnd = win32gui.CreateWindow(
+            classAtom,
+            "Python IExplorerBrowser demo",
+            style,
+            0,
+            0,
+            win32con.CW_USEDEFAULT,
+            win32con.CW_USEDEFAULT,
+            0,
+            0,
+            hinst,
+            None,
+        )
+        eb = pythoncom.CoCreateInstance(
+            shellcon.CLSID_ExplorerBrowser,
+            None,
+            pythoncom.CLSCTX_ALL,
+            shell.IID_IExplorerBrowser,
+        )
         # as per MSDN docs, hook up events early
         self.event_cookie = eb.Advise(wrap(EventHandler()))
 
@@ -61,7 +79,7 @@ class MainWindow:
         # Set the flags such that the folders autoarrange and non web view is presented
         flags = (shellcon.FVM_LIST, shellcon.FWF_AUTOARRANGE | shellcon.FWF_NOWEBVIEW)
         eb.Initialize(self.hwnd, rect, (0, shellcon.FVM_DETAILS))
-        if len(sys.argv)==2:
+        if len(sys.argv) == 2:
             # If an arg was specified, ask the desktop parse it.
             # You can pass anything explorer accepts as its '/e' argument -
             # eg, "::{guid}\::{guid}" etc.
@@ -76,12 +94,15 @@ class MainWindow:
         # Get the tree control.
         sp = eb.QueryInterface(pythoncom.IID_IServiceProvider)
         try:
-            tree = sp.QueryService(shell.IID_INameSpaceTreeControl,
-                                   shell.IID_INameSpaceTreeControl)
+            tree = sp.QueryService(
+                shell.IID_INameSpaceTreeControl, shell.IID_INameSpaceTreeControl
+            )
         except pythoncom.com_error as exc:
             # this should really only fail if no "nav" frame exists...
-            print("Strange - failed to get the tree control even though " \
-                  "we asked for a EBO_SHOWFRAMES")
+            print(
+                "Strange - failed to get the tree control even though "
+                "we asked for a EBO_SHOWFRAMES"
+            )
             print(exc)
         else:
             # get the IShellItem for the selection.
@@ -89,8 +110,8 @@ class MainWindow:
             # set it to selected.
             tree.SetItemState(si, shellcon.NSTCIS_SELECTED, shellcon.NSTCIS_SELECTED)
 
-        #eb.FillFromObject(None, shellcon.EBF_NODROPTARGET); 
-        #eb.SetEmptyText("No known folders yet...");  
+        # eb.FillFromObject(None, shellcon.EBF_NODROPTARGET);
+        # eb.SetEmptyText("No known folders yet...");
         self.eb = eb
 
     def OnCommand(self, hwnd, msg, wparam, lparam):
@@ -109,9 +130,11 @@ class MainWindow:
         y = win32api.HIWORD(lparam)
         self.eb.SetRect(None, (0, 0, x, y))
 
+
 def main():
-    w=MainWindow()
+    w = MainWindow()
     win32gui.PumpMessages()
 
-if __name__=='__main__':
+
+if __name__ == "__main__":
     main()

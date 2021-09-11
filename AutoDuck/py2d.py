@@ -2,11 +2,14 @@ import sys
 import types
 import re
 
+
 def ad_escape(s):
     return re.sub(r"([^<]*)<([^>]*)>", r"\g<1>\\<\g<2>\\>", s)
 
-Print = __builtins__.__dict__['print']
+
+Print = __builtins__.__dict__["print"]
 long = int
+
 
 class DocInfo:
     def __init__(self, name, ob):
@@ -15,10 +18,11 @@ class DocInfo:
         self.short_desc = ""
         self.desc = ""
 
+
 def BuildArgInfos(ob):
     ret = []
-    vars = list(ob.__code__.co_varnames[:ob.__code__.co_argcount])
-    vars.reverse() # for easier default checking.
+    vars = list(ob.__code__.co_varnames[: ob.__code__.co_argcount])
+    vars.reverse()  # for easier default checking.
     defs = list(ob.__defaults__ or [])
     for i, n in enumerate(vars):
         info = DocInfo(n, ob)
@@ -33,6 +37,7 @@ def BuildArgInfos(ob):
     ret.reverse()
     return ret
 
+
 def BuildInfo(name, ob):
     ret = DocInfo(name, ob)
     docstring = ob.__doc__ or ""
@@ -41,8 +46,10 @@ def BuildInfo(name, ob):
         ret.short_desc = ret.desc.splitlines()[0]
     return ret
 
+
 def should_build_function(build_info):
-    return build_info.ob.__doc__ and not build_info.ob.__name__.startswith('_')
+    return build_info.ob.__doc__ and not build_info.ob.__name__.startswith("_")
+
 
 # docstring aware paragraph generator.  Isn't there something in docutils
 # we can use?
@@ -60,7 +67,8 @@ def gen_paras(val):
                 continue
             in_docstring = True
         chunks.append(line)
-    yield chunks or ['']
+    yield chunks or [""]
+
 
 def format_desc(desc):
     # A little complicated!  Given the docstring for a module, we want to:
@@ -86,6 +94,7 @@ def format_desc(desc):
         chunks.extend(["// " + l for l in lines[1:]])
     return "\n".join(chunks)
 
+
 def build_module(fp, mod_name):
     __import__(mod_name)
     mod = sys.modules[mod_name]
@@ -99,10 +108,10 @@ def build_module(fp, mod_name):
             continue
         if type(ob) in [type, type]:
             classes.append(BuildInfo(name, ob))
-        elif type(ob)==types.FunctionType:
+        elif type(ob) == types.FunctionType:
             functions.append(BuildInfo(name, ob))
-        elif name.upper()==name and type(ob) in (int, str):
-            constants.append( (name, ob) )
+        elif name.upper() == name and type(ob) in (int, str):
+            constants.append((name, ob))
     info = BuildInfo(mod_name, mod)
     Print("// @module %s|%s" % (mod_name, format_desc(info.desc)), file=fp)
     functions = [f for f in functions if should_build_function(f)]
@@ -115,9 +124,14 @@ def build_module(fp, mod_name):
         ob_name = mod_name + "." + ob.name
         Print("// @pyclass %s|%s" % (ob.name, ob.short_desc), file=fp)
     for ob in functions:
-        Print("// @pymethod |%s|%s|%s" % (mod_name, ob.name, format_desc(ob.desc)), file=fp)
+        Print(
+            "// @pymethod |%s|%s|%s" % (mod_name, ob.name, format_desc(ob.desc)),
+            file=fp,
+        )
         for ai in BuildArgInfos(ob.ob):
-            Print("// @pyparm |%s|%s|%s" % (ai.name, ai.default, ai.short_desc), file=fp)
+            Print(
+                "// @pyparm |%s|%s|%s" % (ai.name, ai.default, ai.short_desc), file=fp
+            )
 
     for ob in classes:
         # only classes with docstrings get printed.
@@ -137,23 +151,34 @@ def build_module(fp, mod_name):
         for fi in func_infos:
             Print("// @pymeth %s|%s" % (fi.name, fi.short_desc), file=fp)
         for fi in func_infos:
-            Print("// @pymethod |%s|%s|%s" % (ob_name, fi.name, format_desc(fi.desc)), file=fp)
-            if hasattr(fi.ob, 'im_self') and fi.ob.im_self is ob.ob:
+            Print(
+                "// @pymethod |%s|%s|%s" % (ob_name, fi.name, format_desc(fi.desc)),
+                file=fp,
+            )
+            if hasattr(fi.ob, "im_self") and fi.ob.im_self is ob.ob:
                 Print("// @comm This is a @classmethod.", file=fp)
-            Print("// @pymethod |%s|%s|%s" % (ob_name, fi.name, format_desc(fi.desc)), file=fp)
+            Print(
+                "// @pymethod |%s|%s|%s" % (ob_name, fi.name, format_desc(fi.desc)),
+                file=fp,
+            )
             for ai in BuildArgInfos(fi.ob):
-                Print("// @pyparm |%s|%s|%s" % (ai.name, ai.default, ai.short_desc), file=fp)
-                
+                Print(
+                    "// @pyparm |%s|%s|%s" % (ai.name, ai.default, ai.short_desc),
+                    file=fp,
+                )
+
     for (name, val) in constants:
         desc = "%s = %r" % (name, val)
         if type(val) in (int, int):
             desc += " (0x%x)" % (val,)
         Print("// @const %s|%s|%s" % (mod_name, name, desc), file=fp)
 
+
 def main(fp, args):
     Print("// @doc", file=fp)
     for arg in args:
         build_module(sys.stdout, arg)
-        
-if __name__=='__main__':
+
+
+if __name__ == "__main__":
     main(sys.stdout, sys.argv[1:])

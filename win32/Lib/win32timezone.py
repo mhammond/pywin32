@@ -231,7 +231,7 @@ Test offsets that occur right at the DST changeover
 datetime.datetime(2011, 11, 6, 1, 0, tzinfo=TimeZoneInfo('Pacific Standard Time'))
 
 """
-__author__ = 'Jason R. Coombs <jaraco@jaraco.com>'
+__author__ = "Jason R. Coombs <jaraco@jaraco.com>"
 
 import winreg
 import struct
@@ -242,6 +242,7 @@ import operator
 from itertools import count
 
 import logging
+
 log = logging.getLogger(__file__)
 
 
@@ -289,33 +290,33 @@ class _SimpleStruct(object):
 
 class SYSTEMTIME(_SimpleStruct):
     _fields_ = [
-        ('year', int),
-        ('month', int),
-        ('day_of_week', int),
-        ('day', int),
-        ('hour', int),
-        ('minute', int),
-        ('second', int),
-        ('millisecond', int),
+        ("year", int),
+        ("month", int),
+        ("day_of_week", int),
+        ("day", int),
+        ("hour", int),
+        ("minute", int),
+        ("second", int),
+        ("millisecond", int),
     ]
 
 
 class TIME_ZONE_INFORMATION(_SimpleStruct):
     _fields_ = [
-        ('bias', int),
-        ('standard_name', str),
-        ('standard_start', SYSTEMTIME),
-        ('standard_bias', int),
-        ('daylight_name', str),
-        ('daylight_start', SYSTEMTIME),
-        ('daylight_bias', int),
+        ("bias", int),
+        ("standard_name", str),
+        ("standard_start", SYSTEMTIME),
+        ("standard_bias", int),
+        ("daylight_name", str),
+        ("daylight_start", SYSTEMTIME),
+        ("daylight_bias", int),
     ]
 
 
 class DYNAMIC_TIME_ZONE_INFORMATION(_SimpleStruct):
     _fields_ = TIME_ZONE_INFORMATION._fields_ + [
-        ('key_name', str),
-        ('dynamic_daylight_time_disabled', bool),
+        ("key_name", str),
+        ("dynamic_daylight_time_disabled", bool),
     ]
 
 
@@ -356,18 +357,29 @@ class TimeZoneDefinition(DYNAMIC_TIME_ZONE_INFORMATION):
         raise TypeError("Invalid arguments for %s" % self.__class__)
 
     def __init_from_bytes(
-            self, bytes, standard_name='', daylight_name='', key_name='',
-            daylight_disabled=False):
-        format = '3l8h8h'
+        self,
+        bytes,
+        standard_name="",
+        daylight_name="",
+        key_name="",
+        daylight_disabled=False,
+    ):
+        format = "3l8h8h"
         components = struct.unpack(format, bytes)
         bias, standard_bias, daylight_bias = components[:3]
         standard_start = SYSTEMTIME(*components[3:11])
         daylight_start = SYSTEMTIME(*components[11:19])
         super(TimeZoneDefinition, self).__init__(
             bias,
-            standard_name, standard_start, standard_bias,
-            daylight_name, daylight_start, daylight_bias,
-            key_name, daylight_disabled,)
+            standard_name,
+            standard_start,
+            standard_bias,
+            daylight_name,
+            daylight_start,
+            daylight_bias,
+            key_name,
+            daylight_disabled,
+        )
 
     def __init_from_other(self, other):
         if not isinstance(other, TIME_ZONE_INFORMATION):
@@ -382,7 +394,7 @@ class TimeZoneDefinition(DYNAMIC_TIME_ZONE_INFORMATION):
 
     def __getattribute__(self, attr):
         value = super(TimeZoneDefinition, self).__getattribute__(attr)
-        if 'bias' in attr:
+        if "bias" in attr:
             value = datetime.timedelta(minutes=value)
         return value
 
@@ -433,8 +445,14 @@ class TimeZoneDefinition(DYNAMIC_TIME_ZONE_INFORMATION):
         # so the following is the first day of that week
         day = (week_of_month - 1) * 7 + 1
         result = datetime.datetime(
-            year, cutoff.month, day,
-            cutoff.hour, cutoff.minute, cutoff.second, cutoff.millisecond)
+            year,
+            cutoff.month,
+            day,
+            cutoff.hour,
+            cutoff.minute,
+            cutoff.second,
+            cutoff.millisecond,
+        )
         # now the result is the correct week, but not necessarily the correct day of the week
         days_to_go = (target_weekday - result.weekday()) % 7
         result += datetime.timedelta(days_to_go)
@@ -444,7 +462,7 @@ class TimeZoneDefinition(DYNAMIC_TIME_ZONE_INFORMATION):
         #  to be the last week in a month and adding the time delta might have
         #  pushed the result into the next month.
         while result.month == cutoff.month + 1:
-            result -= datetime.timedelta(weeks = 1)
+            result -= datetime.timedelta(weeks=1)
         return result
 
 
@@ -471,7 +489,7 @@ class TimeZoneInfo(datetime.tzinfo):
     """
 
     # this key works for WinNT+, but not for the Win95 line.
-    tzRegKey = r'SOFTWARE\Microsoft\Windows NT\CurrentVersion\Time Zones'
+    tzRegKey = r"SOFTWARE\Microsoft\Windows NT\CurrentVersion\Time Zones"
 
     def __init__(self, param=None, fix_standard_time=False):
         if isinstance(param, TimeZoneDefinition):
@@ -485,7 +503,7 @@ class TimeZoneInfo(datetime.tzinfo):
         """Find the registry key for the time zone name (self.timeZoneName)."""
         # for multi-language compatability, match the time zone name in the
         # "Std" key of the time zone key.
-        zoneNames = dict(self._get_indexed_time_zone_keys('Std'))
+        zoneNames = dict(self._get_indexed_time_zone_keys("Std"))
         # Also match the time zone key name itself, to be compatible with
         # English-based hard-coded time zones.
         timeZoneName = zoneNames.get(self.timeZoneName, self.timeZoneName)
@@ -493,22 +511,22 @@ class TimeZoneInfo(datetime.tzinfo):
         try:
             result = key.subkey(timeZoneName)
         except Exception:
-            raise ValueError('Timezone Name %s not found.' % timeZoneName)
+            raise ValueError("Timezone Name %s not found." % timeZoneName)
         return result
 
     def _LoadInfoFromKey(self):
         """Loads the information from an opened time zone registry key
         into relevant fields of this TZI object"""
         key = self._FindTimeZoneKey()
-        self.displayName = key['Display']
-        self.standardName = key['Std']
-        self.daylightName = key['Dlt']
-        self.staticInfo = TimeZoneDefinition(key['TZI'])
+        self.displayName = key["Display"]
+        self.standardName = key["Std"]
+        self.daylightName = key["Dlt"]
+        self.staticInfo = TimeZoneDefinition(key["TZI"])
         self._LoadDynamicInfoFromKey(key)
 
     def _LoadFromTZI(self, tzi):
         self.timeZoneName = tzi.standard_name
-        self.displayName = 'Unknown'
+        self.displayName = "Unknown"
         self.standardName = tzi.standard_name
         self.daylightName = tzi.daylight_name
         self.staticInfo = tzi
@@ -549,11 +567,11 @@ class TimeZoneInfo(datetime.tzinfo):
         True
         """
         try:
-            info = key.subkey('Dynamic DST')
+            info = key.subkey("Dynamic DST")
         except WindowsError:
             return
-        del info['FirstEntry']
-        del info['LastEntry']
+        del info["FirstEntry"]
+        del info["LastEntry"]
         years = map(int, list(info.keys()))
         values = map(TimeZoneDefinition, list(info.values()))
         # create a range mapping that searches by descending year and matches
@@ -561,13 +579,14 @@ class TimeZoneInfo(datetime.tzinfo):
         self.dynamicInfo = RangeMap(
             zip(years, values),
             sort_params=dict(reverse=True),
-            key_match_comparator=operator.ge)
+            key_match_comparator=operator.ge,
+        )
 
     def __repr__(self):
-        result = '%s(%s' % (self.__class__.__name__, repr(self.timeZoneName))
+        result = "%s(%s" % (self.__class__.__name__, repr(self.timeZoneName))
         if self.fixedStandardTime:
-            result += ', True'
-        result += ')'
+            result += ", True"
+        result += ")"
         return result
 
     def __str__(self):
@@ -586,13 +605,12 @@ class TimeZoneInfo(datetime.tzinfo):
         Return the most relevant "info" for this time zone
         in the target year.
         """
-        if not hasattr(self, 'dynamicInfo') or not self.dynamicInfo:
+        if not hasattr(self, "dynamicInfo") or not self.dynamicInfo:
             return self.staticInfo
         # Find the greatest year entry in self.dynamicInfo which is for
         #  a year greater than or equal to our targetYear. If not found,
         #  default to the earliest year.
-        return self.dynamicInfo.get(
-            targetYear, self.dynamicInfo[RangeMap.last_item])
+        return self.dynamicInfo.get(targetYear, self.dynamicInfo[RangeMap.last_item])
 
     def _getStandardBias(self, dt):
         winInfo = self.getWinInfo(dt.year)
@@ -708,16 +726,15 @@ class TimeZoneInfo(datetime.tzinfo):
         >>> isinstance(TimeZoneInfo.utc(), TimeZoneInfo)
         True
         """
-        if '_tzutc' not in class_.__dict__:
-            setattr(class_, '_tzutc', class_('GMT Standard Time', True))
+        if "_tzutc" not in class_.__dict__:
+            setattr(class_, "_tzutc", class_("GMT Standard Time", True))
         return class_._tzutc
 
     # helper methods for accessing the timezone info from the registry
     @staticmethod
     def _get_time_zone_key(subkey=None):
         "Return the registry key that stores time zone details"
-        key = _RegKeyDict.open(
-            winreg.HKEY_LOCAL_MACHINE, TimeZoneInfo.tzRegKey)
+        key = _RegKeyDict.open(winreg.HKEY_LOCAL_MACHINE, TimeZoneInfo.tzRegKey)
         if subkey:
             key = key.subkey(subkey)
         return key
@@ -728,7 +745,7 @@ class TimeZoneInfo(datetime.tzinfo):
         return TimeZoneInfo._get_time_zone_key().subkeys()
 
     @staticmethod
-    def _get_indexed_time_zone_keys(index_key='Index'):
+    def _get_indexed_time_zone_keys(index_key="Index"):
         """
         Get the names of the registry keys indexed by a value in that key,
         ignoring any keys for which that value is empty or missing.
@@ -742,9 +759,7 @@ class TimeZoneInfo(datetime.tzinfo):
         values = map(get_index_value, key_names)
 
         return (
-            (value, key_name)
-            for value, key_name in zip(values, key_names)
-            if value
+            (value, key_name) for value, key_name in zip(values, key_names) if value
         )
 
     @staticmethod
@@ -758,8 +773,7 @@ class TimeZoneInfo(datetime.tzinfo):
 
     @staticmethod
     def get_all_time_zones():
-        return [
-            TimeZoneInfo(n) for n in TimeZoneInfo._get_time_zone_key_names()]
+        return [TimeZoneInfo(n) for n in TimeZoneInfo._get_time_zone_key_names()]
 
     @staticmethod
     def get_sorted_time_zones(key=None):
@@ -841,16 +855,21 @@ def GetTZCapabilities():
     Note Dynamic Time Zone support is not available on any
     platform at this time; this
     is a limitation of this library, not the platform."""
-    tzi = TimeZoneInfo('Mountain Standard Time')
-    MissingTZPatch = (
-        datetime.datetime(2007, 11, 2, tzinfo=tzi).utctimetuple()
-        != (2007, 11, 2, 6, 0, 0, 4, 306, 0)
+    tzi = TimeZoneInfo("Mountain Standard Time")
+    MissingTZPatch = datetime.datetime(2007, 11, 2, tzinfo=tzi).utctimetuple() != (
+        2007,
+        11,
+        2,
+        6,
+        0,
+        0,
+        4,
+        306,
+        0,
     )
-    DynamicTZSupport = (
-        not MissingTZPatch
-        and datetime.datetime(2003, 11, 2, tzinfo=tzi).utctimetuple()
-        == (2003, 11, 2, 7, 0, 0, 6, 306, 0)
-    )
+    DynamicTZSupport = not MissingTZPatch and datetime.datetime(
+        2003, 11, 2, tzinfo=tzi
+    ).utctimetuple() == (2003, 11, 2, 7, 0, 0, 6, 306, 0)
     del tzi
     return locals()
 
@@ -882,14 +901,13 @@ def resolveMUITimeZone(spec):
     spec should be of the format @path,-stringID[;comment]
     see http://msdn2.microsoft.com/en-us/library/ms725481.aspx for details
     """
-    pattern = re.compile(
-        r'@(?P<dllname>.*),-(?P<index>\d+)(?:;(?P<comment>.*))?')
+    pattern = re.compile(r"@(?P<dllname>.*),-(?P<index>\d+)(?:;(?P<comment>.*))?")
     matcher = pattern.match(spec)
-    assert matcher, 'Could not parse MUI spec'
+    assert matcher, "Could not parse MUI spec"
 
     try:
-        handle = DLLCache[matcher.groupdict()['dllname']]
-        result = win32api.LoadString(handle, int(matcher.groupdict()['index']))
+        handle = DLLCache[matcher.groupdict()["dllname"]]
+        result = win32api.LoadString(handle, int(matcher.groupdict()["index"]))
     except win32api.error:
         result = None
     return result
@@ -951,8 +969,8 @@ class RangeMap(dict):
     'not found'
 
     """
-    def __init__(
-            self, source, sort_params={}, key_match_comparator=operator.le):
+
+    def __init__(self, source, sort_params={}, key_match_comparator=operator.le):
         dict.__init__(self, source)
         self.sort_params = sort_params
         self.match = key_match_comparator
@@ -982,6 +1000,7 @@ class RangeMap(dict):
     def _find_first_match_(self, keys, item):
         def is_match(k):
             return self.match(item, k)
+
         matches = list(filter(is_match, keys))
         if matches:
             return matches[0]
@@ -995,9 +1014,10 @@ class RangeMap(dict):
         )
 
     # some special values for the RangeMap
-    undefined_value = type(str('RangeValueUndefined'), (object,), {})()
+    undefined_value = type(str("RangeValueUndefined"), (object,), {})()
 
     class Item(int):
         pass
+
     first_item = Item(0)
     last_item = Item(-1)

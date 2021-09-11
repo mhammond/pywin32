@@ -6,12 +6,14 @@ import operator
 import array
 import sys
 
+
 class TestPyGetString(unittest.TestCase):
     def test_get_string(self):
         # test invalid addresses cause a ValueError rather than crash!
         self.assertRaises(ValueError, win32gui.PyGetString, 0)
         self.assertRaises(ValueError, win32gui.PyGetString, 1)
-        self.assertRaises(ValueError, win32gui.PyGetString, 1,1)
+        self.assertRaises(ValueError, win32gui.PyGetString, 1, 1)
+
 
 class TestPyGetMemory(unittest.TestCase):
     def test_ob(self):
@@ -59,5 +61,5 @@ class TestPyGetMemory(unittest.TestCase):
         self.assertRaises(TypeError, operator.setitem, got, 0, 1)
 
 
-if __name__=='__main__':
+if __name__ == "__main__":
     unittest.main()

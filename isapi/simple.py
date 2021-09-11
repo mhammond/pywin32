@@ -8,14 +8,16 @@ It is not necessary to use these base-classes - but if you don't, you
 must ensure each of the required methods are implemented.
 """
 
+
 class SimpleExtension:
     "Base class for a simple ISAPI extension"
+
     def __init__(self):
         pass
 
     def GetExtensionVersion(self, vi):
         """Called by the ISAPI framework to get the extension version
-        
+
         The default implementation uses the classes docstring to
         set the extension description."""
         # nod to our reload capability - vi is None when we are reloaded.
@@ -24,25 +26,26 @@ class SimpleExtension:
 
     def HttpExtensionProc(self, control_block):
         """Called by the ISAPI framework for each extension request.
-        
+
         sub-classes must provide an implementation for this method.
         """
         raise NotImplementedError("sub-classes should override HttpExtensionProc")
 
     def TerminateExtension(self, status):
-        """Called by the ISAPI framework as the extension terminates.
-        """
+        """Called by the ISAPI framework as the extension terminates."""
         pass
+
 
 class SimpleFilter:
     "Base class for a a simple ISAPI filter"
     filter_flags = None
+
     def __init__(self):
         pass
 
     def GetFilterVersion(self, fv):
         """Called by the ISAPI framework to get the extension version
-        
+
         The default implementation uses the classes docstring to
         set the extension description, and uses the classes
         filter_flags attribute to set the ISAPI filter flags - you
@@ -57,12 +60,11 @@ class SimpleFilter:
 
     def HttpFilterProc(self, fc):
         """Called by the ISAPI framework for each filter request.
-        
+
         sub-classes must provide an implementation for this method.
         """
         raise NotImplementedError("sub-classes should override HttpExtensionProc")
 
     def TerminateFilter(self, status):
-        """Called by the ISAPI framework as the filter terminates.
-        """
+        """Called by the ISAPI framework as the filter terminates."""
         pass

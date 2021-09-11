@@ -24,32 +24,36 @@
 
 import win32trace
 
+
 def RunAsCollector():
-	import sys
-	try:
-		import win32api
-		win32api.SetConsoleTitle("Python Trace Collector")
-	except:
-		pass # Oh well!
-	win32trace.InitRead()
-	print("Collecting Python Trace Output...")
-	try:
-		while 1:
-			# a short timeout means ctrl+c works next time we wake...
-			sys.stdout.write(win32trace.blockingread(500))
-	except KeyboardInterrupt:
-		print("Ctrl+C")
+    import sys
+
+    try:
+        import win32api
+
+        win32api.SetConsoleTitle("Python Trace Collector")
+    except:
+        pass  # Oh well!
+    win32trace.InitRead()
+    print("Collecting Python Trace Output...")
+    try:
+        while 1:
+            # a short timeout means ctrl+c works next time we wake...
+            sys.stdout.write(win32trace.blockingread(500))
+    except KeyboardInterrupt:
+        print("Ctrl+C")
 
 
 def SetupForPrint():
-	win32trace.InitWrite()
-	try:	# Under certain servers, sys.stdout may be invalid.
-		print("Redirecting output to win32trace remote collector")
-	except:
-		pass
-	win32trace.setprint() # this works in an rexec environment.
+    win32trace.InitWrite()
+    try:  # Under certain servers, sys.stdout may be invalid.
+        print("Redirecting output to win32trace remote collector")
+    except:
+        pass
+    win32trace.setprint()  # this works in an rexec environment.
 
-if __name__=='__main__':
-	RunAsCollector()
+
+if __name__ == "__main__":
+    RunAsCollector()
 else:
-	SetupForPrint()
+    SetupForPrint()

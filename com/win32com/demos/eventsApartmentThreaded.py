@@ -8,7 +8,7 @@
 # a loop fetching and dispatching Windows messages).  Without such message
 # processing, dead-locks can occur.
 
-# See also eventsFreeThreaded.py for how to do this in a free-threaded 
+# See also eventsFreeThreaded.py for how to do this in a free-threaded
 # world where these marshalling considerations do not exist.
 
 # NOTE: This example uses Internet Explorer, but it should not be considerd
@@ -25,34 +25,37 @@ import os
 import win32com.client
 import win32api
 import win32event
+
 # sys.coinit_flags not set, so pythoncom initializes apartment-threaded.
 import pythoncom
 import time
 
+
 class ExplorerEvents:
     def __init__(self):
         self.event = win32event.CreateEvent(None, 0, 0, None)
-    def OnDocumentComplete(self,
-                           pDisp=pythoncom.Empty,
-                           URL=pythoncom.Empty):
+
+    def OnDocumentComplete(self, pDisp=pythoncom.Empty, URL=pythoncom.Empty):
         thread = win32api.GetCurrentThreadId()
-        print("OnDocumentComplete event processed on thread %d"%thread)
+        print("OnDocumentComplete event processed on thread %d" % thread)
         # Set the event our main thread is waiting on.
         win32event.SetEvent(self.event)
+
     def OnQuit(self):
         thread = win32api.GetCurrentThreadId()
-        print("OnQuit event processed on thread %d"%thread)
+        print("OnQuit event processed on thread %d" % thread)
         win32event.SetEvent(self.event)
 
-def WaitWhileProcessingMessages(event, timeout = 2):
+
+def WaitWhileProcessingMessages(event, timeout=2):
     start = time.clock()
     while True:
         # Wake 4 times a second - we can't just specify the
         # full timeout here, as then it would reset for every
         # message we process.
-        rc = win32event.MsgWaitForMultipleObjects( (event,), 0,
-                                250,
-                                win32event.QS_ALLEVENTS)
+        rc = win32event.MsgWaitForMultipleObjects(
+            (event,), 0, 250, win32event.QS_ALLEVENTS
+        )
         if rc == win32event.WAIT_OBJECT_0:
             # event signalled - stop now!
             return True
@@ -62,16 +65,18 @@ def WaitWhileProcessingMessages(event, timeout = 2):
         # must be a message.
         pythoncom.PumpWaitingMessages()
 
+
 def TestExplorerEvents():
     iexplore = win32com.client.DispatchWithEvents(
-        "InternetExplorer.Application", ExplorerEvents)
+        "InternetExplorer.Application", ExplorerEvents
+    )
 
     thread = win32api.GetCurrentThreadId()
-    print('TestExplorerEvents created IE object on thread %d'%thread)
+    print("TestExplorerEvents created IE object on thread %d" % thread)
 
     iexplore.Visible = 1
     try:
-        iexplore.Navigate(win32api.GetFullPathName('..\\readme.html'))
+        iexplore.Navigate(win32api.GetFullPathName("..\\readme.html"))
     except pythoncom.com_error as details:
         print("Warning - could not open the test HTML file", details)
 
@@ -90,5 +95,6 @@ def TestExplorerEvents():
 
     iexplore = None
 
-if __name__=='__main__':
+
+if __name__ == "__main__":
     TestExplorerEvents()

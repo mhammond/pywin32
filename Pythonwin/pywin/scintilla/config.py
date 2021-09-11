@@ -24,45 +24,59 @@ import win32api
 
 debugging = 0
 if debugging:
-    import win32traceutil # Some trace statements fire before the interactive window is open.
+    import win32traceutil  # Some trace statements fire before the interactive window is open.
+
     def trace(*args):
         sys.stderr.write(" ".join(map(str, args)) + "\n")
+
+
 else:
     trace = lambda *args: None
 
 compiled_config_version = 3
 
+
 def split_line(line, lineno):
     comment_pos = line.find("#")
-    if comment_pos>=0: line = line[:comment_pos]
+    if comment_pos >= 0:
+        line = line[:comment_pos]
     sep_pos = line.rfind("=")
     if sep_pos == -1:
         if line.strip():
             print("Warning: Line %d: %s is an invalid entry" % (lineno, repr(line)))
             return None, None
         return "", ""
-    return line[:sep_pos].strip(), line[sep_pos+1:].strip()
+    return line[:sep_pos].strip(), line[sep_pos + 1 :].strip()
+
 
 def get_section_header(line):
     # Returns the section if the line is a section header, else None
     if line[0] == "[":
         end = line.find("]")
-        if end==-1: end=len(line)
+        if end == -1:
+            end = len(line)
         rc = line[1:end].lower()
         try:
             i = rc.index(":")
-            return rc[:i], rc[i+1:]
+            return rc[:i], rc[i + 1 :]
         except ValueError:
             return rc, ""
     return None, None
 
+
 def find_config_file(f):
     return os.path.join(pywin.__path__[0], f + ".cfg")
 
+
 def find_config_files():
-    return [os.path.split(x)[1]
-            for x in [os.path.splitext(x)[0] for x in glob.glob(os.path.join(pywin.__path__[0], "*.cfg"))]
-            ]
+    return [
+        os.path.split(x)[1]
+        for x in [
+            os.path.splitext(x)[0]
+            for x in glob.glob(os.path.join(pywin.__path__[0], "*.cfg"))
+        ]
+    ]
+
 
 class ConfigManager:
     def __init__(self, f):
@@ -94,13 +108,15 @@ class ConfigManager:
                         magic = marshal.load(cf)
                         size = marshal.load(cf)
                         mtime = marshal.load(cf)
-                        if magic == importlib.util.MAGIC_NUMBER and \
-                           win32api.GetKeyboardLayoutName() == kblayoutname and \
-                           src_stat[stat.ST_MTIME] == mtime and \
-                           src_stat[stat.ST_SIZE] == size:
+                        if (
+                            magic == importlib.util.MAGIC_NUMBER
+                            and win32api.GetKeyboardLayoutName() == kblayoutname
+                            and src_stat[stat.ST_MTIME] == mtime
+                            and src_stat[stat.ST_SIZE] == size
+                        ):
                             self.cache = marshal.load(cf)
                             trace("Configuration loaded cached", compiled_name)
-                            return # We are ready to roll!
+                            return  # We are ready to roll!
                 finally:
                     cf.close()
             except (os.error, IOError, EOFError):
@@ -114,12 +130,14 @@ class ConfigManager:
             section, subsection = get_section_header(line)
             while line and section is None:
                 line = fp.readline()
-                if not line: break
+                if not line:
+                    break
                 lineno = lineno + 1
                 section, subsection = get_section_header(line)
-            if not line: break
+            if not line:
+                break
 
-            if section=="keys":
+            if section == "keys":
                 line, lineno = self._load_keys(subsection, fp, lineno)
             elif section == "extensions":
                 line, lineno = self._load_extensions(subsection, fp, lineno)
@@ -128,7 +146,9 @@ class ConfigManager:
             elif section == "general":
                 line, lineno = self._load_general(subsection, fp, lineno)
             else:
-                self.report_error("Unrecognised section header '%s:%s'" % (section,subsection))
+                self.report_error(
+                    "Unrecognised section header '%s:%s'" % (section, subsection)
+                )
                 line = fp.readline()
                 lineno = lineno + 1
         # Check critical data.
@@ -145,13 +165,14 @@ class ConfigManager:
                 marshal.dump(self.cache, cf)
                 cf.close()
             except (IOError, EOFError):
-                pass # Ignore errors - may be read only.
+                pass  # Ignore errors - may be read only.
 
-    def configure(self, editor, subsections = None):
+    def configure(self, editor, subsections=None):
         # Execute the extension code, and find any events.
         # First, we "recursively" connect any we are based on.
-        if subsections is None: subsections = []
-        subsections = [''] + subsections
+        if subsections is None:
+            subsections = []
+        subsections = [""] + subsections
         general = self.get_data("general")
         if general:
             parents = general.get("based on", [])
@@ -175,7 +196,7 @@ class ConfigManager:
             if ns:
                 num = 0
                 for name, func in list(ns.items()):
-                    if type(func)==types.FunctionType and name[:1] != '_':
+                    if type(func) == types.FunctionType and name[:1] != "_":
                         bindings.bind(name, func)
                         num = num + 1
                 trace("Configuration Extension code loaded", num, "events")
@@ -197,14 +218,15 @@ class ConfigManager:
             num_bound = num_bound + len(keymap)
         trace("Configuration bound", num_bound, "keys")
 
-    def get_key_binding(self, event, subsections = None):
-        if subsections is None: subsections = []
-        subsections = [''] + subsections
+    def get_key_binding(self, event, subsections=None):
+        if subsections is None:
+            subsections = []
+        subsections = [""] + subsections
 
         subsection_keymap = self.get_data("keys")
         for subsection in subsections:
             map = self.key_to_events.get(subsection)
-            if map is None: # Build it
+            if map is None:  # Build it
                 map = {}
                 keymap = subsection_keymap.get(subsection, {})
                 for key_info, map_event in list(keymap.items()):
@@ -213,25 +235,29 @@ class ConfigManager:
 
             info = map.get(event)
             if info is not None:
-                return keycodes.make_key_name( info[0], info[1] )
+                return keycodes.make_key_name(info[0], info[1])
         return None
 
     def report_error(self, msg):
         self.last_error = msg
         print("Error in %s: %s" % (self.filename, msg))
+
     def report_warning(self, msg):
         print("Warning in %s: %s" % (self.filename, msg))
 
-    def _readline(self, fp, lineno, bStripComments = 1):
+    def _readline(self, fp, lineno, bStripComments=1):
         line = fp.readline()
         lineno = lineno + 1
         if line:
-            bBreak = get_section_header(line)[0] is not None # A new section is starting
+            bBreak = (
+                get_section_header(line)[0] is not None
+            )  # A new section is starting
             if bStripComments and not bBreak:
                 pos = line.find("#")
-                if pos>=0: line=line[:pos]+"\n"
+                if pos >= 0:
+                    line = line[:pos] + "\n"
         else:
-            bBreak=1
+            bBreak = 1
         return line, lineno, bBreak
 
     def get_data(self, name, default=None):
@@ -245,14 +271,16 @@ class ConfigManager:
         map = {}
         while 1:
             line, lineno, bBreak = self._readline(fp, lineno)
-            if bBreak: break
+            if bBreak:
+                break
 
             key, val = split_line(line, lineno)
-            if not key: continue
+            if not key:
+                continue
             key = key.lower()
             l = map.get(key, [])
             l.append(val)
-            map[key]=l
+            map[key] = l
         self._save_data("general", map)
         return line, lineno
 
@@ -263,10 +291,12 @@ class ConfigManager:
         map = main_map.get(sub_section, {})
         while 1:
             line, lineno, bBreak = self._readline(fp, lineno)
-            if bBreak: break
+            if bBreak:
+                break
 
             key, event = split_line(line, lineno)
-            if not event: continue
+            if not event:
+                continue
             sc, flag = keycodes.parse_key_name(key)
             if sc is None:
                 self.report_warning("Line %d: Invalid key name '%s'" % (lineno, key))
@@ -281,27 +311,34 @@ class ConfigManager:
         lines = []
         while 1:
             line, lineno, bBreak = self._readline(fp, lineno, 0)
-            if bBreak: break
+            if bBreak:
+                break
             lines.append(line)
         try:
             c = compile(
-                "\n" * start_lineno +        # produces correct tracebacks
-                "".join(lines), self.filename, "exec")
+                "\n" * start_lineno + "".join(lines),  # produces correct tracebacks
+                self.filename,
+                "exec",
+            )
             self._save_data("extension code", c)
         except SyntaxError as details:
             errlineno = details.lineno + start_lineno
             # Should handle syntax errors better here, and offset the lineno.
-            self.report_error("Compiling extension code failed:\r\nFile: %s\r\nLine %d\r\n%s" \
-                              % (details.filename, errlineno, details.msg))
+            self.report_error(
+                "Compiling extension code failed:\r\nFile: %s\r\nLine %d\r\n%s"
+                % (details.filename, errlineno, details.msg)
+            )
         return line, lineno
 
     def _load_idle_extensions(self, sub_section, fp, lineno):
         extension_map = self.get_data("idle extensions")
-        if extension_map is None: extension_map = {}
+        if extension_map is None:
+            extension_map = {}
         extensions = []
         while 1:
             line, lineno, bBreak = self._readline(fp, lineno)
-            if bBreak: break
+            if bBreak:
+                break
             line = line.strip()
             if line:
                 extensions.append(line)
@@ -309,14 +346,17 @@ class ConfigManager:
         self._save_data("idle extensions", extension_map)
         return line, lineno
 
+
 def test():
     import time
+
     start = time.clock()
-    f="default"
+    f = "default"
     cm = ConfigManager(f)
     map = cm.get_data("keys")
-    took = time.clock()-start
+    took = time.clock() - start
     print("Loaded %s items in %.4f secs" % (len(map), took))
 
-if __name__=='__main__':
+
+if __name__ == "__main__":
     test()

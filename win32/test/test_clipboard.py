@@ -11,6 +11,7 @@ from pywin32_testutil import str2bytes
 
 custom_format_name = "PythonClipboardTestFormat"
 
+
 class CrashingTestCase(unittest.TestCase):
     def test_722082(self):
         class crasher(object):
@@ -21,9 +22,10 @@ class CrashingTestCase(unittest.TestCase):
         try:
             EmptyClipboard()
             # This used to crash - now correctly raises type error.
-            self.assertRaises(TypeError, SetClipboardData, 0, obj )
+            self.assertRaises(TypeError, SetClipboardData, 0, obj)
         finally:
             CloseClipboard()
+
 
 class TestBitmap(unittest.TestCase):
     def setUp(self):
@@ -33,13 +35,14 @@ class TestBitmap(unittest.TestCase):
         except NameError:
             this_file = sys.argv[0]
         this_dir = os.path.dirname(this_file)
-        self.bmp_name = os.path.join(os.path.abspath(this_dir),
-                                     "..", "Demos", "images", "smiley.bmp")
+        self.bmp_name = os.path.join(
+            os.path.abspath(this_dir), "..", "Demos", "images", "smiley.bmp"
+        )
         self.failUnless(os.path.isfile(self.bmp_name), self.bmp_name)
         flags = win32con.LR_DEFAULTSIZE | win32con.LR_LOADFROMFILE
-        self.bmp_handle = win32gui.LoadImage(0, self.bmp_name,
-                                             win32con.IMAGE_BITMAP,
-                                             0, 0, flags)
+        self.bmp_handle = win32gui.LoadImage(
+            0, self.bmp_name, win32con.IMAGE_BITMAP, 0, 0, flags
+        )
         self.failUnless(self.bmp_handle, "Failed to get a bitmap handle")
 
     def tearDown(self):
@@ -55,15 +58,19 @@ class TestBitmap(unittest.TestCase):
         finally:
             CloseClipboard()
 
+
 class TestStrings(unittest.TestCase):
     def setUp(self):
         OpenClipboard()
+
     def tearDown(self):
         CloseClipboard()
+
     def test_unicode(self):
         val = "test-\a9har"
         SetClipboardData(win32con.CF_UNICODETEXT, val)
         self.failUnlessEqual(GetClipboardData(win32con.CF_UNICODETEXT), val)
+
     def test_unicode_text(self):
         val = "test-val"
         SetClipboardText(val)
@@ -73,16 +80,20 @@ class TestStrings(unittest.TestCase):
         self.failUnlessEqual(GetClipboardData(win32con.CF_TEXT), expected)
         SetClipboardText(val, win32con.CF_UNICODETEXT)
         self.failUnlessEqual(GetClipboardData(win32con.CF_UNICODETEXT), val)
+
     def test_string(self):
         val = str2bytes("test")
         SetClipboardData(win32con.CF_TEXT, val)
         self.failUnlessEqual(GetClipboardData(win32con.CF_TEXT), val)
 
+
 class TestGlobalMemory(unittest.TestCase):
     def setUp(self):
         OpenClipboard()
+
     def tearDown(self):
         CloseClipboard()
+
     def test_mem(self):
         val = str2bytes("test")
         expected = str2bytes("test\0")
@@ -90,6 +101,7 @@ class TestGlobalMemory(unittest.TestCase):
         # Get the raw data - this will include the '\0'
         raw_data = GetGlobalMemory(GetClipboardDataHandle(win32con.CF_TEXT))
         self.failUnlessEqual(expected, raw_data)
+
     def test_bad_mem(self):
         self.failUnlessRaises(pywintypes.error, GetGlobalMemory, 0)
         self.failUnlessRaises(pywintypes.error, GetGlobalMemory, -1)
@@ -98,6 +110,7 @@ class TestGlobalMemory(unittest.TestCase):
             # "works" (ie, gives the correct exception) from a 32bit process.
             # just silently skip this value on Vista.
             self.failUnlessRaises(pywintypes.error, GetGlobalMemory, 1)
+
     def test_custom_mem(self):
         test_data = str2bytes("hello\x00\xff")
         test_buffer = array.array("b", test_data)
@@ -108,5 +121,6 @@ class TestGlobalMemory(unittest.TestCase):
         data = GetGlobalMemory(hglobal)
         self.failUnlessEqual(data, test_data)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

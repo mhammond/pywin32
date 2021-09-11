@@ -12,53 +12,61 @@ else:
     # token_generator is the 'undocumented b/w compat' function that
     # theoretically works with str objects - but actually seems to fail)
     token_generator = tokenize.tokenize
-    
+
+
 class AutoIndent:
 
     menudefs = [
-        ('edit', [
-            None,
-            ('_Indent region', '<<indent-region>>'),
-            ('_Dedent region', '<<dedent-region>>'),
-            ('Comment _out region', '<<comment-region>>'),
-            ('U_ncomment region', '<<uncomment-region>>'),
-            ('Tabify region', '<<tabify-region>>'),
-            ('Untabify region', '<<untabify-region>>'),
-            ('Toggle tabs', '<<toggle-tabs>>'),
-            ('New indent width', '<<change-indentwidth>>'),
-        ]),
+        (
+            "edit",
+            [
+                None,
+                ("_Indent region", "<<indent-region>>"),
+                ("_Dedent region", "<<dedent-region>>"),
+                ("Comment _out region", "<<comment-region>>"),
+                ("U_ncomment region", "<<uncomment-region>>"),
+                ("Tabify region", "<<tabify-region>>"),
+                ("Untabify region", "<<untabify-region>>"),
+                ("Toggle tabs", "<<toggle-tabs>>"),
+                ("New indent width", "<<change-indentwidth>>"),
+            ],
+        ),
     ]
 
     keydefs = {
-        '<<smart-backspace>>': ['<Key-BackSpace>'],
-        '<<newline-and-indent>>': ['<Key-Return>', '<KP_Enter>'],
-        '<<smart-indent>>': ['<Key-Tab>']
+        "<<smart-backspace>>": ["<Key-BackSpace>"],
+        "<<newline-and-indent>>": ["<Key-Return>", "<KP_Enter>"],
+        "<<smart-indent>>": ["<Key-Tab>"],
     }
 
     windows_keydefs = {
-        '<<indent-region>>': ['<Control-bracketright>'],
-        '<<dedent-region>>': ['<Control-bracketleft>'],
-        '<<comment-region>>': ['<Alt-Key-3>'],
-        '<<uncomment-region>>': ['<Alt-Key-4>'],
-        '<<tabify-region>>': ['<Alt-Key-5>'],
-        '<<untabify-region>>': ['<Alt-Key-6>'],
-        '<<toggle-tabs>>': ['<Alt-Key-t>'],
-        '<<change-indentwidth>>': ['<Alt-Key-u>'],
+        "<<indent-region>>": ["<Control-bracketright>"],
+        "<<dedent-region>>": ["<Control-bracketleft>"],
+        "<<comment-region>>": ["<Alt-Key-3>"],
+        "<<uncomment-region>>": ["<Alt-Key-4>"],
+        "<<tabify-region>>": ["<Alt-Key-5>"],
+        "<<untabify-region>>": ["<Alt-Key-6>"],
+        "<<toggle-tabs>>": ["<Alt-Key-t>"],
+        "<<change-indentwidth>>": ["<Alt-Key-u>"],
     }
 
     unix_keydefs = {
-        '<<indent-region>>': ['<Alt-bracketright>',
-                              '<Meta-bracketright>',
-                              '<Control-bracketright>'],
-        '<<dedent-region>>': ['<Alt-bracketleft>',
-                              '<Meta-bracketleft>',
-                              '<Control-bracketleft>'],
-        '<<comment-region>>': ['<Alt-Key-3>', '<Meta-Key-3>'],
-        '<<uncomment-region>>': ['<Alt-Key-4>', '<Meta-Key-4>'],
-        '<<tabify-region>>': ['<Alt-Key-5>', '<Meta-Key-5>'],
-        '<<untabify-region>>': ['<Alt-Key-6>', '<Meta-Key-6>'],
-        '<<toggle-tabs>>': ['<Alt-Key-t>'],
-        '<<change-indentwidth>>': ['<Alt-Key-u>'],
+        "<<indent-region>>": [
+            "<Alt-bracketright>",
+            "<Meta-bracketright>",
+            "<Control-bracketright>",
+        ],
+        "<<dedent-region>>": [
+            "<Alt-bracketleft>",
+            "<Meta-bracketleft>",
+            "<Control-bracketleft>",
+        ],
+        "<<comment-region>>": ["<Alt-Key-3>", "<Meta-Key-3>"],
+        "<<uncomment-region>>": ["<Alt-Key-4>", "<Meta-Key-4>"],
+        "<<tabify-region>>": ["<Alt-Key-5>", "<Meta-Key-5>"],
+        "<<untabify-region>>": ["<Alt-Key-6>", "<Meta-Key-6>"],
+        "<<toggle-tabs>>": ["<Alt-Key-t>"],
+        "<<change-indentwidth>>": ["<Alt-Key-u>"],
     }
 
     # usetabs true  -> literal tab characters are used by indent and
@@ -74,7 +82,7 @@ class AutoIndent:
     # Nobody expects this, so for now tabwidth should never be changed.
     usetabs = 1
     indentwidth = 4
-    tabwidth = 8    # for IDLE use, must remain 8 until Tk is fixed
+    tabwidth = 8  # for IDLE use, must remain 8 until Tk is fixed
 
     # If context_use_ps1 is true, parsing searches back for a ps1 line;
     # else searches for a popular (if, def, ...) Python stmt.
@@ -94,13 +102,13 @@ class AutoIndent:
 
     def config(self, **options):
         for key, value in options.items():
-            if key == 'usetabs':
+            if key == "usetabs":
                 self.usetabs = value
-            elif key == 'indentwidth':
+            elif key == "indentwidth":
                 self.indentwidth = value
-            elif key == 'tabwidth':
+            elif key == "tabwidth":
                 self.tabwidth = value
-            elif key == 'context_use_ps1':
+            elif key == "context_use_ps1":
                 self.context_use_ps1 = value
             else:
                 raise KeyError("bad option name: %s" % repr(key))
@@ -131,14 +139,14 @@ class AutoIndent:
         # Delete whitespace left, until hitting a real char or closest
         # preceding virtual tab stop.
         chars = text.get("insert linestart", "insert")
-        if chars == '':
+        if chars == "":
             if text.compare("insert", ">", "1.0"):
                 # easy: delete preceding newline
                 text.delete("insert-1c")
             else:
-                text.bell()     # at start of buffer
+                text.bell()  # at start of buffer
             return "break"
-        if  chars[-1] not in " \t":
+        if chars[-1] not in " \t":
             # easy: delete preceding real char
             text.delete("insert-1c")
             return "break"
@@ -157,7 +165,7 @@ class AutoIndent:
         text.undo_block_start()
         text.delete("insert-%dc" % ncharsdeleted, "insert")
         if have < want:
-            text.insert("insert", ' ' * (want - have))
+            text.insert("insert", " " * (want - have))
         text.undo_block_stop()
         return "break"
 
@@ -183,11 +191,11 @@ class AutoIndent:
                 self.reindent_to(effective + self.indentwidth)
             else:
                 if self.usetabs:
-                    pad = '\t'
+                    pad = "\t"
                 else:
                     effective = len(prefix.expandtabs(self.tabwidth))
                     n = self.indentwidth
-                    pad = ' ' * (n - effective % n)
+                    pad = " " * (n - effective % n)
                 text.insert("insert", pad)
             text.see("insert")
             return "break"
@@ -205,30 +213,30 @@ class AutoIndent:
             line = text.get("insert linestart", "insert")
             i, n = 0, len(line)
             while i < n and line[i] in " \t":
-                i = i+1
+                i = i + 1
             if i == n:
                 # the cursor is in or at leading indentation; just inject
                 # an empty line at the start and strip space from current line
                 text.delete("insert - %d chars" % i, "insert")
-                text.insert("insert linestart", '\n')
+                text.insert("insert linestart", "\n")
                 return "break"
             indent = line[:i]
             # strip whitespace before insert point
             i = 0
             while line and line[-1] in " \t":
                 line = line[:-1]
-                i = i+1
+                i = i + 1
             if i:
                 text.delete("insert - %d chars" % i, "insert")
             # strip whitespace after insert point
             while text.get("insert") in " \t":
                 text.delete("insert")
             # start new line
-            text.insert("insert", '\n')
+            text.insert("insert", "\n")
 
             # adjust indentation for continuations and block
             # open/close first need to find the last stmt
-            lno = index2line(text.index('insert'))
+            lno = index2line(text.index("insert"))
             y = PyParse.Parser(self.indentwidth, self.tabwidth)
             for context in self.num_context_lines:
                 startat = max(lno - context, 1)
@@ -236,8 +244,8 @@ class AutoIndent:
                 rawtext = text.get(startatindex, "insert")
                 y.set_str(rawtext)
                 bod = y.find_good_parse_start(
-                          self.context_use_ps1,
-                          self._build_char_in_string_func(startatindex))
+                    self.context_use_ps1, self._build_char_in_string_func(startatindex)
+                )
                 if bod is not None or startat == 1:
                     break
             y.set_lo(bod or 0)
@@ -289,9 +297,9 @@ class AutoIndent:
     # offset.
 
     def _build_char_in_string_func(self, startindex):
-        def inner(offset, _startindex=startindex,
-                  _icis=self.editwin.is_char_in_string):
+        def inner(offset, _startindex=startindex, _icis=self.editwin.is_char_in_string):
             return _icis(_startindex + "+%dc" % offset)
+
         return inner
 
     def indent_region_event(self, event):
@@ -320,7 +328,7 @@ class AutoIndent:
         head, tail, chars, lines = self.get_region()
         for pos in range(len(lines) - 1):
             line = lines[pos]
-            lines[pos] = '##' + line
+            lines[pos] = "##" + line
         self.set_region(head, tail, chars, lines)
 
     def uncomment_region_event(self, event):
@@ -329,9 +337,9 @@ class AutoIndent:
             line = lines[pos]
             if not line:
                 continue
-            if line[:2] == '##':
+            if line[:2] == "##":
                 line = line[2:]
-            elif line[:1] == '#':
+            elif line[:1] == "#":
                 line = line[1:]
             lines[pos] = line
         self.set_region(head, tail, chars, lines)
@@ -344,7 +352,7 @@ class AutoIndent:
             if line:
                 raw, effective = classifyws(line, tabwidth)
                 ntabs, nspaces = divmod(effective, tabwidth)
-                lines[pos] = '\t' * ntabs + ' ' * nspaces + line[raw:]
+                lines[pos] = "\t" * ntabs + " " * nspaces + line[raw:]
         self.set_region(head, tail, chars, lines)
 
     def untabify_region_event(self, event):
@@ -356,9 +364,10 @@ class AutoIndent:
 
     def toggle_tabs_event(self, event):
         if self.editwin.askyesno(
-              "Toggle tabs",
-              "Turn tabs " + ("on", "off")[self.usetabs] + "?",
-              parent=self.text):
+            "Toggle tabs",
+            "Turn tabs " + ("on", "off")[self.usetabs] + "?",
+            parent=self.text,
+        ):
             self.usetabs = not self.usetabs
         return "break"
 
@@ -372,12 +381,13 @@ class AutoIndent:
 
     def change_indentwidth_event(self, event):
         new = self.editwin.askinteger(
-                  "Indent width",
-                  "New indent width (1-16)",
-                  parent=self.text,
-                  initialvalue=self.indentwidth,
-                  minvalue=1,
-                  maxvalue=16)
+            "Indent width",
+            "New indent width (1-16)",
+            parent=self.text,
+            initialvalue=self.indentwidth,
+            minvalue=1,
+            maxvalue=16,
+        )
         if new and new != self.indentwidth:
             self.indentwidth = new
         return "break"
@@ -414,9 +424,9 @@ class AutoIndent:
     def _make_blanks(self, n):
         if self.usetabs:
             ntabs, nspaces = divmod(n, self.tabwidth)
-            return '\t' * ntabs + ' ' * nspaces
+            return "\t" * ntabs + " " * nspaces
         else:
-            return ' ' * n
+            return " " * n
 
     # Delete from beginning of line to insert point, then reinsert
     # column logical (meaning use tabs if appropriate) spaces.
@@ -431,13 +441,17 @@ class AutoIndent:
         text.undo_block_stop()
 
     def _asktabwidth(self):
-        return self.editwin.askinteger(
-            "Tab width",
-            "Spaces per tab?",
-            parent=self.text,
-            initialvalue=self.tabwidth,
-            minvalue=1,
-            maxvalue=16) or self.tabwidth
+        return (
+            self.editwin.askinteger(
+                "Tab width",
+                "Spaces per tab?",
+                parent=self.text,
+                initialvalue=self.tabwidth,
+                minvalue=1,
+                maxvalue=16,
+            )
+            or self.tabwidth
+        )
 
     # Guess indentwidth from text content.
     # Return guessed indentwidth.  This should not be believed unless
@@ -453,27 +467,31 @@ class AutoIndent:
             indentsmall = indentlarge = 0
         return indentlarge - indentsmall
 
+
 # "line.col" -> line, as an int
 def index2line(index):
     return int(float(index))
+
 
 # Look at the leading whitespace in s.
 # Return pair (# of leading ws characters,
 #              effective # of leading blanks after expanding
 #              tabs to width tabwidth)
 
+
 def classifyws(s, tabwidth):
     raw = effective = 0
     for ch in s:
-        if ch == ' ':
+        if ch == " ":
             raw = raw + 1
             effective = effective + 1
-        elif ch == '\t':
+        elif ch == "\t":
             raw = raw + 1
             effective = (effective // tabwidth + 1) * tabwidth
         else:
             break
     return raw, effective
+
 
 class IndentSearcher:
 
@@ -505,10 +523,10 @@ class IndentSearcher:
         return val.encode(default_scintilla_encoding)
 
     def run(self):
-        OPENERS=('class', 'def', 'for', 'if', 'try', 'while')
-        INDENT=tokenize.INDENT
-        NAME=tokenize.NAME
-                   
+        OPENERS = ("class", "def", "for", "if", "try", "while")
+        INDENT = tokenize.INDENT
+        NAME = tokenize.NAME
+
         save_tabsize = tokenize.tabsize
         tokenize.tabsize = self.tabwidth
         try:

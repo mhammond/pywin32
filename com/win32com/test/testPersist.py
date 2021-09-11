@@ -21,13 +21,23 @@ S_OK = 0
 
 import datetime
 import win32timezone
+
 now = win32timezone.now()
 
-class LockBytes:
-    _public_methods_ = [ 'ReadAt', 'WriteAt', 'Flush', 'SetSize', 'LockRegion', 'UnlockRegion', 'Stat' ]
-    _com_interfaces_ = [ pythoncom.IID_ILockBytes ]
 
-    def __init__(self, data = ""):
+class LockBytes:
+    _public_methods_ = [
+        "ReadAt",
+        "WriteAt",
+        "Flush",
+        "SetSize",
+        "LockRegion",
+        "UnlockRegion",
+        "Stat",
+    ]
+    _com_interfaces_ = [pythoncom.IID_ILockBytes]
+
+    def __init__(self, data=""):
         self.data = str2bytes(data)
         self.ctime = now
         self.mtime = now
@@ -35,19 +45,19 @@ class LockBytes:
 
     def ReadAt(self, offset, cb):
         print("ReadAt")
-        result = self.data[offset:offset + cb]
+        result = self.data[offset : offset + cb]
         return result
 
     def WriteAt(self, offset, data):
-        print("WriteAt " +str(offset))
+        print("WriteAt " + str(offset))
         print("len " + str(len(data)))
         print("data:")
-        #print data
+        # print data
         if len(self.data) >= offset:
             newdata = self.data[0:offset] + data
         print(len(newdata))
         if len(self.data) >= offset + len(data):
-            newdata = newdata + self.data[offset +  len(data):]
+            newdata = newdata + self.data[offset + len(data) :]
         print(len(newdata))
         self.data = newdata
         return len(data)
@@ -61,7 +71,7 @@ class LockBytes:
     def SetSize(self, size):
         print("Set Size" + str(size))
         if size > len(self.data):
-            self.data = self.data +  str2bytes("\000" * (size - len(self.data)))
+            self.data = self.data + str2bytes("\000" * (size - len(self.data)))
         else:
             self.data = self.data[0:size]
         return S_OK
@@ -77,25 +87,32 @@ class LockBytes:
     def Stat(self, statflag):
         print("returning Stat " + str(statflag))
         return (
-          "PyMemBytes",
-          storagecon.STGTY_LOCKBYTES,
-          len(self.data),
-          self.mtime,
-          self.ctime,
-          self.atime,
-          storagecon.STGM_DIRECT|storagecon.STGM_READWRITE|storagecon.STGM_CREATE ,
-          storagecon.STGM_SHARE_EXCLUSIVE,
-          "{00020905-0000-0000-C000-000000000046}",
-          0,   # statebits ?
-          0
-          )
+            "PyMemBytes",
+            storagecon.STGTY_LOCKBYTES,
+            len(self.data),
+            self.mtime,
+            self.ctime,
+            self.atime,
+            storagecon.STGM_DIRECT | storagecon.STGM_READWRITE | storagecon.STGM_CREATE,
+            storagecon.STGM_SHARE_EXCLUSIVE,
+            "{00020905-0000-0000-C000-000000000046}",
+            0,  # statebits ?
+            0,
+        )
 
 
 class OleClientSite:
-    _public_methods_ = [ 'SaveObject', 'GetMoniker', 'GetContainer', 'ShowObject', 'OnShowWindow', 'RequestNewObjectLayout' ]
-    _com_interfaces_ = [ axcontrol.IID_IOleClientSite ]
+    _public_methods_ = [
+        "SaveObject",
+        "GetMoniker",
+        "GetContainer",
+        "ShowObject",
+        "OnShowWindow",
+        "RequestNewObjectLayout",
+    ]
+    _com_interfaces_ = [axcontrol.IID_IOleClientSite]
 
-    def __init__(self, data = ""):
+    def __init__(self, data=""):
         self.IPersistStorage = None
         self.IStorage = None
 
@@ -108,7 +125,7 @@ class OleClientSite:
     def SaveObject(self):
         print("SaveObject")
         if self.IPersistStorage != None and self.IStorage != None:
-            self.IPersistStorage.Save(self.IStorage,1)
+            self.IPersistStorage.Save(self.IStorage, 1)
             self.IStorage.Commit(0)
         return S_OK
 
@@ -130,12 +147,21 @@ class OleClientSite:
 
 def test():
     # create a LockBytes object and
-    #wrap it as a COM object
-#       import win32com.server.dispatcher
-    lbcom = win32com.server.util.wrap(LockBytes(), pythoncom.IID_ILockBytes) #, useDispatcher=win32com.server.dispatcher.DispatcherWin32trace)
+    # wrap it as a COM object
+    #       import win32com.server.dispatcher
+    lbcom = win32com.server.util.wrap(
+        LockBytes(), pythoncom.IID_ILockBytes
+    )  # , useDispatcher=win32com.server.dispatcher.DispatcherWin32trace)
 
     # create a structured storage on the ILockBytes object
-    stcom = pythoncom.StgCreateDocfileOnILockBytes(lbcom, storagecon.STGM_DIRECT| storagecon.STGM_CREATE | storagecon.STGM_READWRITE | storagecon.STGM_SHARE_EXCLUSIVE, 0)
+    stcom = pythoncom.StgCreateDocfileOnILockBytes(
+        lbcom,
+        storagecon.STGM_DIRECT
+        | storagecon.STGM_CREATE
+        | storagecon.STGM_READWRITE
+        | storagecon.STGM_SHARE_EXCLUSIVE,
+        0,
+    )
 
     # create our ClientSite
     ocs = OleClientSite()
@@ -143,16 +169,17 @@ def test():
     ocscom = win32com.server.util.wrap(ocs, axcontrol.IID_IOleClientSite)
 
     # create a Word OLE Document, connect it to our site and our storage
-    oocom=axcontrol.OleCreate("{00020906-0000-0000-C000-000000000046}",
-            axcontrol.IID_IOleObject,
-            0,
-            (0,),
-            ocscom,
-            stcom,
-            )
+    oocom = axcontrol.OleCreate(
+        "{00020906-0000-0000-C000-000000000046}",
+        axcontrol.IID_IOleObject,
+        0,
+        (0,),
+        ocscom,
+        stcom,
+    )
 
-    mf=win32ui.GetMainFrame()
-    hwnd=mf.GetSafeHwnd()
+    mf = win32ui.GetMainFrame()
+    hwnd = mf.GetSafeHwnd()
 
     # Set the host and document name
     # for unknown reason document name becomes hostname, and document name
@@ -160,16 +187,16 @@ def test():
     oocom.SetHostNames("OTPython", "This is Cool")
 
     # activate the OLE document
-    oocom.DoVerb( -1, ocscom, 0, hwnd, mf.GetWindowRect())
+    oocom.DoVerb(-1, ocscom, 0, hwnd, mf.GetWindowRect())
 
     # set the hostnames again
     oocom.SetHostNames("OTPython2", "ThisisCool2")
 
     # get IDispatch of Word
-    doc=win32com.client.Dispatch(oocom.QueryInterface(pythoncom.IID_IDispatch))
+    doc = win32com.client.Dispatch(oocom.QueryInterface(pythoncom.IID_IDispatch))
 
     # get IPersistStorage of Word
-    dpcom=oocom.QueryInterface(pythoncom.IID_IPersistStorage)
+    dpcom = oocom.QueryInterface(pythoncom.IID_IPersistStorage)
 
     # let our ClientSite know the interfaces
     ocs.SetIPersistStorage(dpcom)
@@ -183,7 +210,7 @@ def test():
         wrange.InsertAfter("Hello from Python %d\n" % i)
     paras = doc.Paragraphs
     for i in range(len(paras)):
-        paras[i]().Font.ColorIndex = i+1
+        paras[i]().Font.ColorIndex = i + 1
         paras[i]().Font.Size = 12 + (4 * i)
     # XXX - note that
     # for para in paras:
@@ -191,19 +218,19 @@ def test():
     # doesnt seem to work - no error, just doesnt work
     # Should check if it works for VB!
 
-
     dpcom.Save(stcom, 0)
     dpcom.HandsOffStorage()
-#       oocom.Close(axcontrol.OLECLOSE_NOSAVE) # or OLECLOSE_SAVEIFDIRTY, but it fails???
+    #       oocom.Close(axcontrol.OLECLOSE_NOSAVE) # or OLECLOSE_SAVEIFDIRTY, but it fails???
 
-    #Save the ILockBytes data to "persist2.doc"
+    # Save the ILockBytes data to "persist2.doc"
     lbcom.Flush()
 
-    #exiting Winword will automatically update the ILockBytes data
-    #and flush it to "%TEMP%\persist.doc"
+    # exiting Winword will automatically update the ILockBytes data
+    # and flush it to "%TEMP%\persist.doc"
     doc.Application.Quit()
 
-if __name__=='__main__':
+
+if __name__ == "__main__":
     test()
     pythoncom.CoUninitialize()
     CheckClean()

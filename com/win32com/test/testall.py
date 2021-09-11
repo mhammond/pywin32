@@ -1,49 +1,62 @@
 import sys, os, string, re
 import pythoncom
 import win32com.client
-from win32com.test.util import CheckClean, TestCase,  \
-            CapturingFunctionTestCase, ShellTestCase, \
-            TestLoader, TestRunner, RegisterPythonServer
+from win32com.test.util import (
+    CheckClean,
+    TestCase,
+    CapturingFunctionTestCase,
+    ShellTestCase,
+    TestLoader,
+    TestRunner,
+    RegisterPythonServer,
+)
 import traceback
 import getopt
 
 import unittest
 
-verbosity = 1 # default unittest verbosity.
+verbosity = 1  # default unittest verbosity.
 
 try:
     this_file = __file__
 except NameError:
     this_file = sys.argv[0]
 
+
 def GenerateAndRunOldStyle():
     from . import GenTestScripts
+
     GenTestScripts.GenerateAll()
     try:
-        pass #
+        pass  #
     finally:
         GenTestScripts.CleanAll()
 
+
 def CleanGenerated():
     import win32com, shutil
+
     if os.path.isdir(win32com.__gen_path__):
         if verbosity > 1:
             print("Deleting files from %s" % (win32com.__gen_path__))
         shutil.rmtree(win32com.__gen_path__)
     import win32com.client.gencache
-    win32com.client.gencache.__init__() # Reset
+
+    win32com.client.gencache.__init__()  # Reset
+
 
 def RemoveRefCountOutput(data):
     while 1:
         last_line_pos = data.rfind("\n")
-        if not re.match("\[\d+ refs\]", data[last_line_pos+1:]):
+        if not re.match("\[\d+ refs\]", data[last_line_pos + 1 :]):
             break
         if last_line_pos < 0:
             # All the output
-            return ''
+            return ""
         data = data[:last_line_pos]
-        
+
     return data
+
 
 def ExecuteSilentlyIfOK(cmd, testcase):
     f = os.popen(cmd)
@@ -55,14 +68,20 @@ def ExecuteSilentlyIfOK(cmd, testcase):
     # for "_d" builds, strip the '[xxx refs]' line
     return RemoveRefCountOutput(data)
 
+
 class PyCOMTest(TestCase):
-    no_leak_tests = True # done by the test itself
+    no_leak_tests = True  # done by the test itself
+
     def testit(self):
         # Check that the item is registered, so we get the correct
         # 'skipped' behaviour (and recorded as such) rather than either
         # error or silence due to non-registration.
-        RegisterPythonServer(os.path.join(os.path.dirname(__file__), '..', "servers", "test_pycomtest.py"),
-                             "Python.Test.PyCOMTest")
+        RegisterPythonServer(
+            os.path.join(
+                os.path.dirname(__file__), "..", "servers", "test_pycomtest.py"
+            ),
+            "Python.Test.PyCOMTest",
+        )
 
         # Execute testPyComTest in its own process so it can play
         # with the Python thread state
@@ -70,10 +89,12 @@ class PyCOMTest(TestCase):
         cmd = '%s "%s" -q 2>&1' % (sys.executable, fname)
         data = ExecuteSilentlyIfOK(cmd, self)
 
+
 class PippoTest(TestCase):
     def testit(self):
         # Check we are registered before spawning the process.
         from win32com.test import pippo_server
+
         RegisterPythonServer(pippo_server.__file__, "Python.Test.Pippo")
 
         python = sys.executable
@@ -81,81 +102,83 @@ class PippoTest(TestCase):
         cmd = '%s "%s" 2>&1' % (python, fname)
         ExecuteSilentlyIfOK(cmd, self)
 
+
 # This is a list of "win32com.test.???" module names, optionally with a
 # function in that module if the module isn't unitest based...
 unittest_modules = [
-        # Level 1 tests - fast and few dependencies - good for CI!
-        """testIterators testvbscript_regexp testStorage
+    # Level 1 tests - fast and few dependencies - good for CI!
+    """testIterators testvbscript_regexp testStorage
           testStreams testWMI policySemantics testShell testROT
           testxslt testCollections
           errorSemantics.test testArrays
           testClipboard
           testConversionErrors
         """.split(),
-        # Level 2 tests - wants our demo COM objects registered.
-        # (these are strange; on github CI they get further than expected when
-        # our objects are not installed, so fail to quietly fail with "can't
-        # register" like they do locally. So really just a nod to CI)
-        """
+    # Level 2 tests - wants our demo COM objects registered.
+    # (these are strange; on github CI they get further than expected when
+    # our objects are not installed, so fail to quietly fail with "can't
+    # register" like they do locally. So really just a nod to CI)
+    """
         testAXScript testDictionary testServers testvb testMarshal
         """.split(),
-
-        # Level 3 tests - Requires Office or other non-free stuff.
-        """testMSOffice.TestAll testMSOfficeEvents.test testAccess.test
+    # Level 3 tests - Requires Office or other non-free stuff.
+    """testMSOffice.TestAll testMSOfficeEvents.test testAccess.test
            testExplorer.TestAll testExchange.test
         """.split(),
-
-        # Level 4 tests - we try and run `makepy` over every typelib installed!
-        """testmakepy.TestAll
-        """.split()
+    # Level 4 tests - we try and run `makepy` over every typelib installed!
+    """testmakepy.TestAll
+        """.split(),
 ]
 
 # A list of other unittest modules we use - these are fully qualified module
 # names and the module is assumed to be unittest based.
 unittest_other_modules = [
-        # Level 1 tests.
-        """win32com.directsound.test.ds_test
+    # Level 1 tests.
+    """win32com.directsound.test.ds_test
         """.split(),
-        # Level 2 tests.
-        [],
-        # Level 3 tests.
-        [],
-        # Level 4 tests.
-        [],
+    # Level 2 tests.
+    [],
+    # Level 3 tests.
+    [],
+    # Level 4 tests.
+    [],
 ]
 
 
 output_checked_programs = [
-        # Level 1 tests.
-        [],
-        # Level 2 tests.
-        [
-            ("cscript.exe /nologo //E:vbscript testInterp.vbs", "VBScript test worked OK"),
-            ("cscript.exe /nologo //E:vbscript testDictionary.vbs",
-                         "VBScript has successfully tested Python.Dictionary"),
-        ],
-        # Level 3 tests
-        [],
-        # Level 4 tests.
-        [],
+    # Level 1 tests.
+    [],
+    # Level 2 tests.
+    [
+        ("cscript.exe /nologo //E:vbscript testInterp.vbs", "VBScript test worked OK"),
+        (
+            "cscript.exe /nologo //E:vbscript testDictionary.vbs",
+            "VBScript has successfully tested Python.Dictionary",
+        ),
+    ],
+    # Level 3 tests
+    [],
+    # Level 4 tests.
+    [],
 ]
 
 custom_test_cases = [
-        # Level 1 tests.
-        [],
-        # Level 2 tests.
-        [
-            PyCOMTest,
-            PippoTest,
-        ],
-        # Level 3 tests
-        [],
-        # Level 4 tests.
-        [],
+    # Level 1 tests.
+    [],
+    # Level 2 tests.
+    [
+        PyCOMTest,
+        PippoTest,
+    ],
+    # Level 3 tests
+    [],
+    # Level 4 tests.
+    [],
 ]
 
+
 def get_test_mod_and_func(test_name, import_failures):
-    if test_name.find(".")>0:
+    if test_name.find(".") > 0:
         mod_name, func_name = test_name.split(".")
     else:
         mod_name = test_name
@@ -173,8 +196,9 @@ def get_test_mod_and_func(test_name, import_failures):
         func = getattr(mod, func_name)
     return mod, func
 
+
 # Return a test suite all loaded with the tests we want to run
-def make_test_suite(test_level = 1):
+def make_test_suite(test_level=1):
     suite = unittest.TestSuite()
     import_failures = []
     loader = TestLoader()
@@ -205,7 +229,7 @@ def make_test_suite(test_level = 1):
             except:
                 import_failures.append((mod_name, sys.exc_info()[:2]))
                 continue
-            
+
             mod = sys.modules[mod_name]
             if hasattr(mod, "suite"):
                 test = mod.suite()
@@ -216,6 +240,7 @@ def make_test_suite(test_level = 1):
 
     return suite, import_failures
 
+
 def usage(why):
     print(why)
     print()
@@ -224,16 +249,17 @@ def usage(why):
     print("  where test_level is an integer 1-3.  Level 1 tests are quick,")
     print("  level 2 tests invoke Word, IE etc, level 3 take ages!")
     sys.exit(1)
-    
-if __name__=='__main__':
+
+
+if __name__ == "__main__":
     try:
         opts, args = getopt.getopt(sys.argv[1:], "v")
     except getopt.error as why:
         usage(why)
     for opt, val in opts:
-        if opt=='-v':
+        if opt == "-v":
             verbosity += 1
-    testLevel = 2 # default to quick test with local objects
+    testLevel = 2  # default to quick test with local objects
     test_names = []
     for arg in args:
         try:
@@ -245,31 +271,37 @@ if __name__=='__main__':
     if test_names:
         usage("Test names are not supported yet")
     CleanGenerated()
-    
+
     suite, import_failures = make_test_suite(testLevel)
     if verbosity:
         if hasattr(sys, "gettotalrefcount"):
             print("This is a debug build - memory leak tests will also be run.")
             print("These tests may take *many* minutes to run - be patient!")
             print("(running from python.exe will avoid these leak tests)")
-        print("Executing level %d tests - %d test cases will be run" \
-                % (testLevel, suite.countTestCases()))
-        if verbosity==1 and suite.countTestCases() < 70:
+        print(
+            "Executing level %d tests - %d test cases will be run"
+            % (testLevel, suite.countTestCases())
+        )
+        if verbosity == 1 and suite.countTestCases() < 70:
             # A little row of markers so the dots show how close to finished
-            print('|' * suite.countTestCases())
+            print("|" * suite.countTestCases())
     testRunner = TestRunner(verbosity=verbosity)
     testResult = testRunner.run(suite)
     if import_failures:
-        testResult.stream.writeln("*** The following test modules could not be imported ***")
+        testResult.stream.writeln(
+            "*** The following test modules could not be imported ***"
+        )
         for mod_name, (exc_type, exc_val) in import_failures:
-            desc = '\n'.join(traceback.format_exception_only(exc_type, exc_val))
+            desc = "\n".join(traceback.format_exception_only(exc_type, exc_val))
             testResult.stream.write("%s: %s" % (mod_name, desc))
-        testResult.stream.writeln("*** %d test(s) could not be run ***" % len(import_failures))
-    
+        testResult.stream.writeln(
+            "*** %d test(s) could not be run ***" % len(import_failures)
+        )
+
     # re-print unit-test error here so it is noticed
     if not testResult.wasSuccessful():
         print("*" * 20, "- unittest tests FAILED")
-    
+
     CheckClean()
     pythoncom.CoUninitialize()
     CleanGenerated()

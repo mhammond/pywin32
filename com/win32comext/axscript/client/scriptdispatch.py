@@ -18,84 +18,97 @@ debugging = 0
 
 PyIDispatchType = pythoncom.TypeIIDs[pythoncom.IID_IDispatch]
 
+
 def _is_callable(obj):
-	return type(obj) in [types.FunctionType, types.MethodType]
-	# ignore hasattr(obj, "__call__") as this means all COM objects!
+    return type(obj) in [types.FunctionType, types.MethodType]
+    # ignore hasattr(obj, "__call__") as this means all COM objects!
+
 
 class ScriptDispatch:
-	_public_methods_ = []
-	def __init__(self, engine, scriptNamespace):
-		self.engine = engine
-		self.scriptNamespace = scriptNamespace
+    _public_methods_ = []
 
-	def _dynamic_(self, name, lcid, wFlags, args):
-		# Ensure any newly added items are available.
-		self.engine.RegisterNewNamedItems()
-		self.engine.ProcessNewNamedItemsConnections()
-		if wFlags & pythoncom.INVOKE_FUNC:
-			# attempt to call a function
-			try:
-				func = getattr(self.scriptNamespace, name)
-				if not _is_callable(func):
-					raise AttributeError(name) # Not a function.
-				realArgs = []
-				for arg in args:
-					if type(arg)==PyIDispatchType:
-						realArgs.append(Dispatch(arg))
-					else:
-						realArgs.append(arg)
-				# xxx - todo - work out what code block to pass???
-				return self.engine.ApplyInScriptedSection(None, func, tuple(realArgs))
+    def __init__(self, engine, scriptNamespace):
+        self.engine = engine
+        self.scriptNamespace = scriptNamespace
 
-			except AttributeError:
-				if not wFlags & pythoncom.DISPATCH_PROPERTYGET:
-					raise COMException(scode=winerror.DISP_E_MEMBERNOTFOUND)
-		if wFlags & pythoncom.DISPATCH_PROPERTYGET:
-			# attempt to get a property
-			try:
-				ret =  getattr(self.scriptNamespace, name)
-				if _is_callable(ret):
-					raise AttributeError(name) # Not a property.
-			except AttributeError:
-				raise COMException(scode=winerror.DISP_E_MEMBERNOTFOUND)
-			except COMException as instance:
-				raise
-			except:
-				ret = self.engine.HandleException()
-			return ret
+    def _dynamic_(self, name, lcid, wFlags, args):
+        # Ensure any newly added items are available.
+        self.engine.RegisterNewNamedItems()
+        self.engine.ProcessNewNamedItemsConnections()
+        if wFlags & pythoncom.INVOKE_FUNC:
+            # attempt to call a function
+            try:
+                func = getattr(self.scriptNamespace, name)
+                if not _is_callable(func):
+                    raise AttributeError(name)  # Not a function.
+                realArgs = []
+                for arg in args:
+                    if type(arg) == PyIDispatchType:
+                        realArgs.append(Dispatch(arg))
+                    else:
+                        realArgs.append(arg)
+                # xxx - todo - work out what code block to pass???
+                return self.engine.ApplyInScriptedSection(None, func, tuple(realArgs))
 
-		raise COMException(scode=winerror.DISP_E_MEMBERNOTFOUND)
+            except AttributeError:
+                if not wFlags & pythoncom.DISPATCH_PROPERTYGET:
+                    raise COMException(scode=winerror.DISP_E_MEMBERNOTFOUND)
+        if wFlags & pythoncom.DISPATCH_PROPERTYGET:
+            # attempt to get a property
+            try:
+                ret = getattr(self.scriptNamespace, name)
+                if _is_callable(ret):
+                    raise AttributeError(name)  # Not a property.
+            except AttributeError:
+                raise COMException(scode=winerror.DISP_E_MEMBERNOTFOUND)
+            except COMException as instance:
+                raise
+            except:
+                ret = self.engine.HandleException()
+            return ret
+
+        raise COMException(scode=winerror.DISP_E_MEMBERNOTFOUND)
+
 
 class StrictDynamicPolicy(win32com.server.policy.DynamicPolicy):
-	def _wrap_(self, object):
-		win32com.server.policy.DynamicPolicy._wrap_(self, object)
-		if hasattr(self._obj_, 'scriptNamespace'):
-			for name in dir(self._obj_.scriptNamespace):
-				self._dyn_dispid_to_name_[self._getdispid_(name,0)] = name    
+    def _wrap_(self, object):
+        win32com.server.policy.DynamicPolicy._wrap_(self, object)
+        if hasattr(self._obj_, "scriptNamespace"):
+            for name in dir(self._obj_.scriptNamespace):
+                self._dyn_dispid_to_name_[self._getdispid_(name, 0)] = name
 
-	def _getmembername_(self, dispid):
-		try:
-			return str(self._dyn_dispid_to_name_[dispid])
-		except KeyError:
-			raise COMException(scode=winerror.DISP_E_UNKNOWNNAME, desc="Name not found")	
+    def _getmembername_(self, dispid):
+        try:
+            return str(self._dyn_dispid_to_name_[dispid])
+        except KeyError:
+            raise COMException(scode=winerror.DISP_E_UNKNOWNNAME, desc="Name not found")
 
-	def _getdispid_(self, name, fdex):
-		try:
-			func = getattr(self._obj_.scriptNamespace, str(name))
-		except AttributeError:
-			raise COMException(scode=winerror.DISP_E_MEMBERNOTFOUND)
-#		if not _is_callable(func):
-		return win32com.server.policy.DynamicPolicy._getdispid_(self, name, fdex)
+    def _getdispid_(self, name, fdex):
+        try:
+            func = getattr(self._obj_.scriptNamespace, str(name))
+        except AttributeError:
+            raise COMException(scode=winerror.DISP_E_MEMBERNOTFOUND)
+        # 		if not _is_callable(func):
+        return win32com.server.policy.DynamicPolicy._getdispid_(self, name, fdex)
+
 
 def _wrap_debug(obj):
-	return win32com.server.util.wrap(obj, usePolicy=StrictDynamicPolicy, useDispatcher=win32com.server.policy.DispatcherWin32trace)
+    return win32com.server.util.wrap(
+        obj,
+        usePolicy=StrictDynamicPolicy,
+        useDispatcher=win32com.server.policy.DispatcherWin32trace,
+    )
+
+
 def _wrap_nodebug(obj):
-	return win32com.server.util.wrap(obj, usePolicy=StrictDynamicPolicy)
+    return win32com.server.util.wrap(obj, usePolicy=StrictDynamicPolicy)
+
 
 if debugging:
-	_wrap = _wrap_debug
+    _wrap = _wrap_debug
 else:
-	_wrap = _wrap_nodebug
+    _wrap = _wrap_nodebug
+
 
 def MakeScriptDispatch(engine, namespace):
-	return _wrap(ScriptDispatch(engine, namespace))
+    return _wrap(ScriptDispatch(engine, namespace))

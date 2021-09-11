@@ -3,6 +3,7 @@ import os
 import unittest
 import win32profile
 
+
 class Tester(unittest.TestCase):
     def test_environment(self):
         os.environ["FOO"] = "bar=baz"
@@ -11,5 +12,6 @@ class Tester(unittest.TestCase):
         assert env["FOO"] == "bar=baz"
         assert os.environ["FOO"] == "bar=baz"
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

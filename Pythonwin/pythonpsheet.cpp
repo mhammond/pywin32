@@ -175,8 +175,10 @@ LRESULT CPythonPropertySheet::WindowProc(UINT message, WPARAM wParam, LPARAM lPa
     // @pyvirtual int|PyCPropertySheet|WindowProc|Default message handler.
     LRESULT res;
     CVirtualHelper helper("WindowProc", this);
-    if (!helper.HaveHandler() || !helper.call(message, wParam, lParam) || !helper.retval(res))
+    if (!helper.HaveHandler() || !helper.call(message, wParam, lParam) || !helper.retval(res)) {
+        helper.release_full();
         return CPropertySheet::WindowProc(message, wParam, lParam);
+    }
     return res;
 }
 #endif PYWIN_WITH_WINDOWPROC
@@ -254,6 +256,7 @@ BOOL CPythonPropertySheet::OnInitDialog()
     BOOL result = FALSE;
     CVirtualHelper helper("OnInitDialog", this);
     if (!helper.HaveHandler()) {
+        helper.release_full();
         result = CPropertySheet::OnInitDialog();
     }
     else {
@@ -340,8 +343,10 @@ void CPythonPropertySheet::OnClose()
     int ret = 1;
     if (helper.call())
         helper.retval(ret);
-    if (ret)
+    if (ret) {
+        helper.release_full();
         CPropertySheet::OnClose();
+    }
 }
 
 int CPythonPropertySheet::OnCreate(LPCREATESTRUCT lpCreateStruct)

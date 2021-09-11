@@ -294,11 +294,12 @@ PYW_EXPORT ExceptionHandlerFunc SetExceptionHandler(ExceptionHandlerFunc handler
 // The type of error handling we want...
 enum EnumVirtualErrorHandling { VEH_PRINT_ERROR, VEH_DISPLAY_DIALOG };
 
-class PYW_EXPORT CVirtualHelper {
+class PYW_EXPORT CVirtualHelper : public CEnterLeavePython {
    public:
     CVirtualHelper(const char *iname, void *iassoc, EnumVirtualErrorHandling veh = VEH_PRINT_ERROR);
     ~CVirtualHelper();
 
+    void release_full();
     BOOL HaveHandler() { return handler != NULL; }
     // All the "call" functions return FALSE if the call failed, or no handler exists.
     BOOL call();

@@ -26,14 +26,14 @@ def logonUser(loginString):
         login use . or empty string as domain
         e.g. '.\nadministrator\nsecret_password'
     """
-    domain, user, passwd = loginString.split('\n')
+    domain, user, passwd = loginString.split("\n")
     return win32security.LogonUser(
         user,
         domain,
         passwd,
         win32con.LOGON32_LOGON_INTERACTIVE,
-        win32con.LOGON32_PROVIDER_DEFAULT
-        )
+        win32con.LOGON32_PROVIDER_DEFAULT,
+    )
 
 
 class Process:
@@ -41,10 +41,18 @@ class Process:
     A Windows process.
     """
 
-    def __init__(self, cmd, login=None,
-                 hStdin=None, hStdout=None, hStderr=None,
-                 show=1, xy=None, xySize=None,
-                 desktop=None):
+    def __init__(
+        self,
+        cmd,
+        login=None,
+        hStdin=None,
+        hStdout=None,
+        hStderr=None,
+        show=1,
+        xy=None,
+        xySize=None,
+        desktop=None,
+    ):
         """
         Create a Windows process.
         cmd:     command to run
@@ -69,8 +77,7 @@ class Process:
         (may be very slow to startup & finalize).
         """
         si = win32process.STARTUPINFO()
-        si.dwFlags = (win32con.STARTF_USESTDHANDLES ^
-                      win32con.STARTF_USESHOWWINDOW)
+        si.dwFlags = win32con.STARTF_USESTDHANDLES ^ win32con.STARTF_USESHOWWINDOW
         if hStdin is None:
             si.hStdInput = win32api.GetStdHandle(win32api.STD_INPUT_HANDLE)
         else:
@@ -92,15 +99,17 @@ class Process:
             si.dwFlags ^= win32con.STARTF_USESIZE
         if desktop is not None:
             si.lpDesktop = desktop
-        procArgs = (None,  # appName
-                    cmd,  # commandLine
-                    None,  # processAttributes
-                    None,  # threadAttributes
-                    1,  # bInheritHandles
-                    win32process.CREATE_NEW_CONSOLE,  # dwCreationFlags
-                    None,  # newEnvironment
-                    None,  # currentDirectory
-                    si)  # startupinfo
+        procArgs = (
+            None,  # appName
+            cmd,  # commandLine
+            None,  # processAttributes
+            None,  # threadAttributes
+            1,  # bInheritHandles
+            win32process.CREATE_NEW_CONSOLE,  # dwCreationFlags
+            None,  # newEnvironment
+            None,  # currentDirectory
+            si,
+        )  # startupinfo
         if login is not None:
             hUser = logonUser(login)
             win32security.ImpersonateLoggedOnUser(hUser)
@@ -127,7 +136,7 @@ class Process:
         win32gui.EnumWindows(self.__close__, 0)
         if self.wait(gracePeriod) != win32event.WAIT_OBJECT_0:
             win32process.TerminateProcess(self.hProcess, 0)
-            win32api.Sleep(100) # wait for resources to be released
+            win32api.Sleep(100)  # wait for resources to be released
 
     def __close__(self, hwnd, dummy):
         """
@@ -156,47 +165,57 @@ def run(cmd, mSec=None, stdin=None, stdout=None, stderr=None, **kw):
     kw:    see Process.__init__ for more keyword options
     """
     if stdin is not None:
-        kw['hStdin'] = msvcrt.get_osfhandle(stdin.fileno())
+        kw["hStdin"] = msvcrt.get_osfhandle(stdin.fileno())
     if stdout is not None:
-        kw['hStdout'] = msvcrt.get_osfhandle(stdout.fileno())
+        kw["hStdout"] = msvcrt.get_osfhandle(stdout.fileno())
     if stderr is not None:
-        kw['hStderr'] = msvcrt.get_osfhandle(stderr.fileno())
+        kw["hStderr"] = msvcrt.get_osfhandle(stderr.fileno())
     child = Process(cmd, **kw)
     if child.wait(mSec) != win32event.WAIT_OBJECT_0:
         child.kill()
-        raise WindowsError('process timeout exceeded')
+        raise WindowsError("process timeout exceeded")
     return child.exitCode()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
 
     # Pipe commands to a shell and display the output in notepad
-    print('Testing winprocess.py...')
+    print("Testing winprocess.py...")
 
     import tempfile
 
     timeoutSeconds = 15
-    cmdString = """\
+    cmdString = (
+        """\
 REM      Test of winprocess.py piping commands to a shell.\r
 REM      This 'notepad' process will terminate in %d seconds.\r
 vol\r
 net user\r
 _this_is_a_test_of_stderr_\r
-""" % timeoutSeconds
+"""
+        % timeoutSeconds
+    )
 
     cmd_name = tempfile.mktemp()
-    out_name = cmd_name + '.txt'
+    out_name = cmd_name + ".txt"
     try:
         cmd = open(cmd_name, "w+b")
         out = open(out_name, "w+b")
-        cmd.write(cmdString.encode('mbcs'))
+        cmd.write(cmdString.encode("mbcs"))
         cmd.seek(0)
-        print('CMD.EXE exit code:', run('cmd.exe', show=0, stdin=cmd,
-                                        stdout=out, stderr=out))
+        print(
+            "CMD.EXE exit code:",
+            run("cmd.exe", show=0, stdin=cmd, stdout=out, stderr=out),
+        )
         cmd.close()
-        print('NOTEPAD exit code:', run('notepad.exe %s' % out.name,
-                                        show=win32con.SW_MAXIMIZE,
-                                        mSec=timeoutSeconds*1000))
+        print(
+            "NOTEPAD exit code:",
+            run(
+                "notepad.exe %s" % out.name,
+                show=win32con.SW_MAXIMIZE,
+                mSec=timeoutSeconds * 1000,
+            ),
+        )
         out.close()
     finally:
         for n in (cmd_name, out_name):
