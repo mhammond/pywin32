@@ -1434,8 +1434,8 @@ class mingw_build_ext(build_ext):
         src = r"com/win32com/src/PythonCOMLoader.cpp"
         build_temp = os.path.abspath(self.build_temp)
         obj = os.path.join(build_temp, os.path.splitext(src)[0]+".o")
-        dll = os.path.join(self.build_lib, "win32", "pythoncomloader"+suffix+".dll")
-        if self.force or newer_group([src], obj, 'newer'):
+        dll = os.path.join(self.build_lib, "win32", "pythoncomloader" + suffix + ".dll")
+        if self.force or newer_group([src], obj, "newer"):
             ccargs = ["gcc", "-c"]
             ccargs.append('-DDLL_DELEGATE=\\"pythoncom%s.dll\\"' % (suffix,))
             ccargs.append(src)
@@ -1445,7 +1445,7 @@ class mingw_build_ext(build_ext):
             self.spawn(ccargs)
 
         rcsrc = r"com/win32com/src/PythonCOMLoader.rc"
-        rcobj = os.path.join(build_temp, os.path.splitext(rcsrc)[0]+".rc.o")
+        rcobj = os.path.join(build_temp, os.path.splitext(rcsrc)[0] + ".rc.o")
         if self.force or newer_group([rcsrc], rcobj, "newer"):
             wargs = ["windres", "-i", rcsrc, "-o", rcobj]
             self.spawn(wargs)
@@ -1531,8 +1531,6 @@ class mingw_build_ext(build_ext):
             )
         sources = list(sources)
 
-        log.info("building exe '%s'", ext.name)
-
         fullname = self.get_ext_fullname(ext.name)
         if self.inplace:
             # ignore build-lib -- put the compiled extension into
@@ -1548,7 +1546,7 @@ class mingw_build_ext(build_ext):
         else:
             ext_filename = os.path.join(self.build_lib, self.get_ext_filename(fullname))
         depends = sources + ext.depends
-        if not (self.force or newer_group(depends, ext_filename, 'newer')):
+        if not (self.force or newer_group(depends, ext_filename, "newer")):
             log.debug("skipping '%s' executable (up-to-date)", ext.name)
             return
         else:
@@ -1617,7 +1615,7 @@ class mingw_build_ext(build_ext):
         if why is not None:
             self.excluded_extensions.append((ext, why))
             assert why, "please give a reason, or None"
-            print ("Skipping %s: %s" % (ext.name, why))
+            print("Skipping %s: %s" % (ext.name, why))
             return
         self.current_extension = ext
 
@@ -1636,10 +1634,11 @@ class mingw_build_ext(build_ext):
 
         try:
             build_ext.build_extension(self, ext)
-        except DistutilsExecError:
-            print ("WARNING: building of extension '%s' failed" % (ext.name))
-            print ("")
-            pass
+        except:
+            print()
+            print("WARNING: building of extension '%s' failed" % (ext.name))
+            print()
+            return
 
     def get_ext_filename(self, name):
         # The pywintypes and pythoncom extensions have special names
@@ -1966,7 +1965,7 @@ pywintypes = WinExt_system32(
     ],
     extra_compile_args=["-DBUILD_PYWINTYPES"],
     libraries="advapi32 user32 ole32 oleaut32",
-    implib_name = pywintypes_lib,
+    implib_name=pywintypes_lib,
     pch_header="PyWinTypes.h",
 )
 
@@ -2295,7 +2294,7 @@ pythoncom = WinExt_system32(
     libraries = "oleaut32 ole32 user32 urlmon" + pythoncom_dep,
     export_symbol_file="com/win32com/src/PythonCOM.def",
     extra_compile_args=["-DBUILD_PYTHONCOM"],
-    implib_name = pythoncom_lib,
+    implib_name=pythoncom_lib,
     pch_header="stdafx.h",
     windows_h_version=0x500,
     base_address=dll_base_address,
