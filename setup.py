@@ -1356,6 +1356,7 @@ class my_build_ext(build_ext):
 
         return new_sources
 
+
 class mingw_build_ext(build_ext):
     def finalize_options(self):
         build_ext.finalize_options(self)
@@ -1423,7 +1424,7 @@ class mingw_build_ext(build_ext):
             base_name = "scintilla.dll"
         self.copy_file(
             os.path.join(self.build_temp, "scintilla", base_name),
-            os.path.join(self.build_lib, "pythonwin")
+            os.path.join(self.build_lib, "pythonwin"),
         )
 
     def _build_pycom_loader(self):
