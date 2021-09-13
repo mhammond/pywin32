@@ -203,6 +203,7 @@ def find_platform_sdk_dir():
 # http://bugs.python.org/issue7833
 if "MSC" in sys.version:
     from distutils.msvc9compiler import MSVCCompiler
+
     MSVCCompiler._orig_spawn = MSVCCompiler.spawn
 else:
     from distutils.cygwinccompiler import Mingw32CCompiler
@@ -429,7 +430,7 @@ class WinExt(Extension):
             # MinGW-w64 doesn't define these.
             self.extra_compile_args.append("-D__WIN32__")
             # Why this python doesn't have plat_name?
-            if '64 bit' in sys.version:
+            if "64 bit" in sys.version:
                 self.extra_compile_args.append("-D_M_X64")
                 self.extra_compile_args.append("-D_AMD64_")
             else:
@@ -443,8 +444,10 @@ class WinExt(Extension):
                     suffix = "_d"
                 else:
                     suffix = ""
-                self.extra_link_args.append("-Wl,--out-implib,%s%s.dll.a" % (implib, suffix))
-   
+                self.extra_link_args.append(
+                    "-Wl,--out-implib,%s%s.dll.a" % (implib, suffix)
+                )
+
             # Avoid dll hell please
             if "static-libgcc" not in get_config_vars()["LDSHARED"]:
                 self.extra_link_args.append("-static-libgcc")
@@ -1354,7 +1357,6 @@ class my_build_ext(build_ext):
         return new_sources
 
 class mingw_build_ext(build_ext):
-
     def finalize_options(self):
         build_ext.finalize_options(self)
         self.windows_h_version = None
@@ -1409,6 +1411,7 @@ class mingw_build_ext(build_ext):
         os.chdir(path)
         try:
             import subprocess
+
             cmd = subprocess.call(["make", "-f", makefile] + makeargs)
         finally:
             os.chdir(cwd)
@@ -1419,8 +1422,9 @@ class mingw_build_ext(build_ext):
         else:
             base_name = "scintilla.dll"
         self.copy_file(
-                    os.path.join(self.build_temp, "scintilla", base_name),
-                    os.path.join(self.build_lib, "pythonwin"))
+            os.path.join(self.build_temp, "scintilla", base_name),
+            os.path.join(self.build_lib, "pythonwin")
+        )
 
     def _build_pycom_loader(self):
         # the base compiler strips out the manifest from modules it builds
@@ -1433,7 +1437,7 @@ class mingw_build_ext(build_ext):
             suffix += "_d"
         src = r"com/win32com/src/PythonCOMLoader.cpp"
         build_temp = os.path.abspath(self.build_temp)
-        obj = os.path.join(build_temp, os.path.splitext(src)[0]+".o")
+        obj = os.path.join(build_temp, os.path.splitext(src)[0] + ".o")
         dll = os.path.join(self.build_lib, "win32", "pythoncomloader" + suffix + ".dll")
         if self.force or newer_group([src], obj, "newer"):
             ccargs = ["gcc", "-c"]
@@ -1454,7 +1458,9 @@ class mingw_build_ext(build_ext):
             largs = ["gcc", "-shared"]
             largs.append("-static-libgcc")
             largs.append("-o" + dll)
-            largs.append("-Wl,--out-implib," + os.path.join(build_temp, "pythoncomloader.dll.a"))
+            largs.append(
+                "-Wl,--out-implib," + os.path.join(build_temp, "pythoncomloader.dll.a")
+            )
             largs.append(obj)
             largs.append(rcobj)
             self.spawn(largs)
@@ -1463,7 +1469,7 @@ class mingw_build_ext(build_ext):
         # First, sanity-check the 'extensions' list
         self.check_extensions_list(self.extensions)
 
-        self.found_libraries = {}        
+        self.found_libraries = {}
 
         if not hasattr(self.compiler, "initialized"):
             # 2.3 and earlier initialized at construction
@@ -1506,7 +1512,7 @@ class mingw_build_ext(build_ext):
         clib_files = (
             ["win32", "pywintypes%s.dll.a"],
             ["win32com", "pythoncom%s.dll.a"],
-            ["win32com", "axscript%s.dll.a"]
+            ["win32com", "axscript%s.dll.a"],
         )
         for clib_file in clib_files:
             target_dir = os.path.join(self.build_lib, clib_file[0], "libs")
@@ -1624,9 +1630,11 @@ class mingw_build_ext(build_ext):
         # ensure the SWIG .i files are treated as dependencies.
         for source in ext.sources:
             if source.endswith(".i"):
-                self.find_swig() # for the side-effect of the environment value.
+                self.find_swig()  # for the side-effect of the environment value.
                 # Find the swig_lib .i files we care about for dependency tracking.
-                ext.swig_deps = glob.glob(os.path.join(os.environ["SWIG_LIB"], "python", "*.i"))
+                ext.swig_deps = glob.glob(
+                    os.path.join(os.environ["SWIG_LIB"], "python", "*.i")
+                )
                 ext.depends.extend(ext.swig_deps)
                 break
         else:
@@ -1722,7 +1730,9 @@ class mingw_build_ext(build_ext):
         swig = self.find_swig()
         for source in swig_sources:
             swig_cmd = [swig, "-python", "-c++"]
-            swig_cmd.append("-dnone",) # we never use the .doc files.
+            swig_cmd.append(
+                "-dnone",
+            )  # we never use the .doc files.
             swig_cmd.extend(self.current_extension.extra_swig_commands)
 
             if "64 bit" in sys.version:
@@ -1752,7 +1762,9 @@ class mingw_build_ext(build_ext):
             # This could probably go once we generate .cpp into the temp dir.
             fqsource = os.path.abspath(source)
             fqtarget = os.path.abspath(target)
-            rebuild = self.force or (ext and newer_group(ext.swig_deps + [fqsource], fqtarget))
+            rebuild = self.force or (
+                ext and newer_group(ext.swig_deps + [fqsource], fqtarget)
+            )
 
             # can remove once edklib is no longer used for 32-bit builds
             if source == "com/win32comext/mapi/src/exchange.i":
@@ -1773,6 +1785,7 @@ class mingw_build_ext(build_ext):
                 log.info("skipping swig of %s", source)
 
         return new_sources
+
 
 class my_install(install):
     def run(self):
@@ -2291,7 +2304,7 @@ pythoncom = WinExt_system32(
                         """
         % dirs
     ).split(),
-    libraries = "oleaut32 ole32 user32 urlmon" + pythoncom_dep,
+    libraries="oleaut32 ole32 user32 urlmon" + pythoncom_dep,
     export_symbol_file="com/win32com/src/PythonCOM.def",
     extra_compile_args=["-DBUILD_PYTHONCOM"],
     implib_name=pythoncom_lib,
