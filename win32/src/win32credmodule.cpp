@@ -43,7 +43,7 @@ BOOL PyWinObject_AsCREDENTIAL_ATTRIBUTE(PyObject *obattr, PCREDENTIAL_ATTRIBUTE 
 {
     static char *keywords[] = {"Keyword", "Flags", "Value", NULL};
     PyObject *obKeyword, *obValue, *args;
-    BOOL ret;
+    BOOL ret = FALSE;
     ZeroMemory(attr, sizeof(CREDENTIAL_ATTRIBUTE));
     if (!PyDict_Check(obattr)) {
         PyErr_SetString(PyExc_TypeError, "CREDENTIAL_ATTRIBUTE must be a dict");
@@ -54,16 +54,50 @@ BOOL PyWinObject_AsCREDENTIAL_ATTRIBUTE(PyObject *obattr, PCREDENTIAL_ATTRIBUTE 
         return FALSE;
 
     PyWinBufferView pybuf;
-    ret = PyArg_ParseTupleAndKeywords(args, obattr, "OkO:CREDENTIAL_ATTRIBUTE", keywords, &obKeyword, &attr->Flags,
-                                      &obValue) &&
-          PyWinObject_AsWCHAR(obKeyword, &attr->Keyword, FALSE) &&
-          pybuf.init(obValue) && ((attr->Value = (LPBYTE)malloc(pybuf.len())) != NULL);
-    if (ret) {
+    if (!PyArg_ParseTupleAndKeywords(args, obattr, "OkO:CREDENTIAL_ATTRIBUTE", keywords, &obKeyword, &attr->Flags,
+                                     &obValue)) {
+        return FALSE;
+    }
+    // from here we need to free on failure.
+    if (!PyWinObject_AsWCHAR(obKeyword, &attr->Keyword, FALSE)) {
+        goto done;
+    }
+    // Handle `Value`: the docs https://docs.microsoft.com/en-us/windows/win32/api/wincred/ns-wincred-credential_attributew
+    // say it's an LPBYTE Value (meaning it's just bytes) but then the description says "Data
+    // associated with the attribute. By convention, if Value is a text string, then Value should
+    // not include the trailing zero character and should be in UNICODE."
+    if (PyUnicode_Check(obValue)) {
+        Py_ssize_t nchars = PyUnicode_GetLength(obValue);
+        Py_ssize_t nbytes = nchars * sizeof(wchar_t);
+        attr->ValueSize =  nbytes;
+        if (attr->ValueSize == -1) {
+            goto done;
+        }
+        if ((attr->Value = (LPBYTE)malloc(nbytes)) == NULL) {
+            goto done;
+        }
+        // PyUnicode_AsWideChar copies exactly as many chars as requested and
+        // says it's up to the caller to ensure it's null terminated if necessary
+        // (which according to the msdn docs quotes above, it's not here)
+        if (PyUnicode_AsWideChar(obValue, (wchar_t *)attr->Value, nchars) == -1) {
+            goto done;
+        }
+    } else {
+        // Use the buffer API to get bytes if possible.
+        if (!pybuf.init(obValue)) {
+            goto done;
+        }
+        if ((attr->Value = (LPBYTE)malloc(pybuf.len())) == NULL) {
+            goto done;
+        }
         memcpy(attr->Value, pybuf.ptr(), pybuf.len());
         attr->ValueSize = pybuf.len();
     }
-    else
+    ret = TRUE;
+done:
+    if (!ret) {
         PyWinObject_FreeCREDENTIAL_ATTRIBUTE(attr);
+    }
     Py_DECREF(args);
     return ret;
 }
