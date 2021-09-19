@@ -1,4 +1,4 @@
-﻿A changelog for recent builds as pasted into the sourceforge page.
+﻿A changelog for recent builds:
 
 Generally created by hand after running:
    hg log -rb2xx: > log.out
@@ -17,6 +17,8 @@ Since build 301:
   using win2kras, there is a win2kras.py that imports all of win32ras. If you
   import win2kras and it fails with 'you must import win32ras first', then it
   means an old win2kras.pyd exists, which you should remove.
+
+* github branch 'master' was renamed to 'main'.
 
 Since build 300:
 ----------------
