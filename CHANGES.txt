@@ -8,6 +8,8 @@ Note that build 228 was the last version supporting Python 2.
 
 Since build 301:
 ----------------
+* Fixed support for unicode as a `win32crypt.CREDENTIAL_ATTRIBUTE.Value`
+
 * Support for Python 10, dropped support for Python 3.5 (3.5 security support
   ended 13 Sep 2020)
 
