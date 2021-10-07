@@ -730,55 +730,6 @@ class my_build_ext(build_ext):
             os.path.join(self.build_lib, "pythonwin"),
         )
 
-    def _build_pycom_loader(self):
-        # the base compiler strips out the manifest from modules it builds
-        # which can't be done for this module - having the manifest is the
-        # reason it needs to exist!
-        # At least this is made easier by it not depending on Python itself,
-        # so the compile and link are simple...
-        suffix = "%d%d" % (sys.version_info[0], sys.version_info[1])
-        if self.debug:
-            suffix += "_d"
-        src = "com\\win32com\\src\\PythonCOMLoader.cpp"
-        build_temp = os.path.abspath(self.build_temp)
-        obj = os.path.join(build_temp, os.path.splitext(src)[0] + ".obj")
-        dll = os.path.join(
-            self.build_lib, "pywin32_system32", "pythoncomloader" + suffix + ".dll"
-        )
-        if self.force or newer_group([src], obj, "newer"):
-            ccargs = [self.compiler.cc, "/c"]
-            if self.debug:
-                ccargs.extend(self.compiler.compile_options_debug)
-            else:
-                ccargs.extend(self.compiler.compile_options)
-            ccargs.append("/Fo" + obj)
-            ccargs.append(src)
-            ccargs.append('/DDLL_DELEGATE=\\"pythoncom%s.dll\\"' % (suffix,))
-            self.spawn(ccargs)
-
-        deffile = "com\\win32com\\src\\PythonCOMLoader.def"
-        if self.force or newer_group([obj, deffile], dll, "newer"):
-            largs = [self.compiler.linker, "/DLL", "/nologo", "/incremental:no"]
-            if self.debug:
-                largs.append("/DEBUG")
-            temp_manifest = os.path.join(
-                build_temp, os.path.basename(dll) + ".manifest"
-            )
-            largs.append("/MANIFESTFILE:" + temp_manifest)
-            largs.append("/PDB:None")
-            largs.append("/OUT:" + dll)
-            largs.append("/DEF:" + deffile)
-            largs.append(
-                "/IMPLIB:"
-                + os.path.join(build_temp, "PythonCOMLoader" + suffix + ".lib")
-            )
-            largs.append(obj)
-            self.spawn(largs)
-            # and the manifest if one exists.
-            if os.path.isfile(temp_manifest):
-                out_arg = "-outputresource:%s;2" % (dll,)
-                self.spawn(["mt.exe", "-nologo", "-manifest", temp_manifest, out_arg])
-
     def lookupMfcInVisualStudio(self, mfc_version, mfc_libraries):
         # Looking for the MFC files in the installation paths of the Visual Studios
         plat_dir_64 = "x64"
