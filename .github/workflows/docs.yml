@@ -23,7 +23,7 @@ jobs:
         python-version: '3.9'
 
     - name: Install latest release
-      run: pip install --user pywin32
+      run: pip install --user --upgrade pywin32
 
     - name: Set Python user site directory
       run: python -c "import os,site;open(os.environ['GITHUB_ENV'], 'a').write(f'USER_DIR={site.USER_SITE}\n')"
