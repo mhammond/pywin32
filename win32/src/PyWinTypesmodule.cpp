@@ -1142,11 +1142,19 @@ extern "C" __declspec(dllexport)
 }
 
 // Function to format a python traceback into a character string.
+#ifdef _MSC_VER
 #define GPEM_ERROR(what)                                     \
     {                                                        \
         errorMsg = "<Error getting traceback - "##what##">"; \
         goto done;                                           \
     }
+#else
+#define GPEM_ERROR(what)                                     \
+    {                                                        \
+        errorMsg = "<Error getting traceback - " what ">";   \
+        goto done;                                           \
+    }
+#endif
 PYWINTYPES_EXPORT char *GetPythonTraceback(PyObject *exc_type, PyObject *exc_value, PyObject *exc_tb)
 {
     // Sleep (30000); // Time enough to attach the debugger (barely)

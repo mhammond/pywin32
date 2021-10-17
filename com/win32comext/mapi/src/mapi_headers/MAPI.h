@@ -20,6 +20,13 @@
 #pragma once
 #endif
 
+#ifndef _MSC_VER
+#define __in
+#define __in_opt
+#define __out
+#define __deref_out_ecount_full(x)
+#endif
+
 /*
  *  Types.
  */
@@ -160,7 +167,7 @@ typedef struct
 
 /* #define MAPI_LOGON_UI        0x00000001     Display logon UI             */
 /* #define MAPI_NEW_SESSION     0x00000002     Don't use shared session     */
-/* #define MAPI_LONG_MSGID		0x00004000	/* allow 512 char returned ID	*/
+/* #define MAPI_LONG_MSGID      0x00004000     allow 512 char returned ID   */
 
 /* MAPIAddress() flags.     */
 

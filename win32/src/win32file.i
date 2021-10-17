@@ -73,6 +73,9 @@
 %include "typemaps.i"
 %include "pywin32.i"
 
+%typedef DCB DCB;
+%typedef COMMTIMEOUTS COMMTIMEOUTS;
+
 %{
 
 #include "datetime.h" // python's datetime header.
@@ -753,8 +756,8 @@ static PyObject *PySetFileTime (PyObject *self, PyObject *args, PyObject *kwargs
 		&obHandle, &obCreationTime, &obLastAccessTime, &obLastWriteTime, &UTCTimes))
 		return NULL;
 
-    if (!PyWinObject_AsHANDLE(obHandle, &hHandle))
-        return NULL;
+	if (!PyWinObject_AsHANDLE(obHandle, &hHandle))
+		return NULL;
 	if (obCreationTime != Py_None){
 		if (!PyWinObject_AsFILETIME(obCreationTime, &FileTime))
 			return NULL;

@@ -36,29 +36,29 @@ PyIMAPIProp::~PyIMAPIProp()
 
 // @pyswig int, [items, ]|GetProps|Returns a list of property values.
 PyObject *PyIMAPIProp::GetProps(PyObject *self, PyObject *args) {
-    PyObject * _resultobj;
-    HRESULT  _result;
-    SPropTagArray * _arg0 = NULL;
-    unsigned long  _arg1=0;
-    PyObject * _obj0 = 0;
+	PyObject * _resultobj;
+	HRESULT  _result;
+	SPropTagArray * _arg0 = NULL;
+	unsigned long  _arg1=0;
+	PyObject * _obj0 = 0;
 
 	IMAPIProp *_swig_self;
 	if ((_swig_self=GetI(self))==NULL) return NULL;
 	// @pyparm <o PySPropTagArray>|propList||The list of properties
 	// @pyparm int|flags|0|
-    if(!PyArg_ParseTuple(args,"O|l:GetProps",&_obj0,&_arg1)) 
-        return NULL;
+	if(!PyArg_ParseTuple(args,"O|l:GetProps",&_obj0,&_arg1)) 
+		return NULL;
 	if (!PyMAPIObject_AsSPropTagArray(_obj0, &_arg0))
 		return NULL;
 	ULONG numValues;
 	SPropValue *pv;
 	Py_BEGIN_ALLOW_THREADS
-    _result = (HRESULT )_swig_self->GetProps(_arg0,_arg1, &numValues, &pv);
+	_result = (HRESULT )_swig_self->GetProps(_arg0,_arg1, &numValues, &pv);
 	Py_END_ALLOW_THREADS
 	PyMAPIObject_FreeSPropTagArray(_arg0);
-    if (FAILED(_result))  {
-       return OleSetOleError(_result);
-    }
+	if (FAILED(_result))  {
+		return OleSetOleError(_result);
+	}
 
 	_resultobj = PyTuple_New(numValues);
 	if (_resultobj==NULL) {
@@ -86,7 +86,7 @@ PyObject *PyIMAPIProp::GetProps(PyObject *self, PyObject *args) {
 PyObject *PyIMAPIProp::DeleteProps(PyObject *self, PyObject *args) 
 {
 	PyObject *obs;
-    SPropTagArray * _arg0;
+	SPropTagArray * _arg0;
 	HRESULT hr;
 	IMAPIProp *pMAPIProp;
 	PyObject *obWantProblems = Py_False;
@@ -94,7 +94,7 @@ PyObject *PyIMAPIProp::DeleteProps(PyObject *self, PyObject *args)
 	if ((pMAPIProp=GetI(self))==NULL) return NULL;
 	// @pyparm <o PySPropTagArray>|propList||The list of properties
 	// @pyparm bool|wantProblems|False|Return detailed error information
-    if(!PyArg_ParseTuple(args,"O|O:DeleteProps",&obs, &obWantProblems))
+	if(!PyArg_ParseTuple(args,"O|O:DeleteProps",&obs, &obWantProblems))
 		return NULL;
 	int wantProblems = PyObject_IsTrue(obWantProblems);
 	if (wantProblems == -1)
@@ -128,7 +128,7 @@ PyObject *PyIMAPIProp::SetProps(PyObject *self, PyObject *args)
 	if ((pMAPIProp=GetI(self))==NULL) return NULL;
 	// @pyparm [<o PySPropValue>, ]|propList||The list of properties
 	// @pyparm bool|wantProblems|False|Return detailed error information
-    if(!PyArg_ParseTuple(args,"O|O:SetProps",&obs, &obWantProblems))
+	if(!PyArg_ParseTuple(args,"O|O:SetProps",&obs, &obWantProblems))
 		return NULL;
 	if (!PySequence_Check(obs)) {
 		PyErr_SetString(PyExc_TypeError, "Properties must be a sequence of tuples");
@@ -183,7 +183,7 @@ PyObject *PyIMAPIProp::CopyTo(PyObject *self, PyObject *args)
 	// @pyparm <o PyIMAPIProp>|dest||The destination object
 	// @pyparm int|flags||flags
 	// @pyparm bool|wantProblems|False|Return detailed error information
-    if(!PyArg_ParseTuple(args,"OOlzOOl|O:CopyTo",&obIIDExclude, &obPropTags, &ulUIParam, &szIgnore, &obIID, &obDest, &flags, &obWantProblems))
+	if(!PyArg_ParseTuple(args,"OOlzOOl|O:CopyTo",&obIIDExclude, &obPropTags, &ulUIParam, &szIgnore, &obIID, &obDest, &flags, &obWantProblems))
 		return NULL;
 	int wantProblems = PyObject_IsTrue(obWantProblems);
 	if (wantProblems == -1)
@@ -264,7 +264,7 @@ PyObject *PyIMAPIProp::CopyProps(PyObject *self, PyObject *args)
 	// @pyparm <o PyIMAPIProp>|dest||The destination object
 	// @pyparm int|flags||flags
 	// @pyparm bool|wantProblems|False|Return detailed error information
-    if(!PyArg_ParseTuple(args,"OlzOOl|O:CopyProps",&obPropTags, &ulUIParam, &szIgnore, &obIID, &obDest, &flags, &obWantProblems))
+	if(!PyArg_ParseTuple(args,"OlzOOl|O:CopyProps",&obPropTags, &ulUIParam, &szIgnore, &obIID, &obDest, &flags, &obWantProblems))
 		return NULL;
 	int wantProblems = PyObject_IsTrue(obWantProblems);
 	if (wantProblems == -1)
@@ -314,7 +314,7 @@ PyObject *PyIMAPIProp::OpenProperty(PyObject *self, PyObject *args)
 	// @pyparm <o PyIID>|iid||The IID of the resulting interface.
 	// @pyparm int|interfaceOptions||Data that relates to the interface identified by the lpiid parameter. 
 	// @pyparm int|flags||flags
-    if(!PyArg_ParseTuple(args,"kOll:OpenProperty",&propTag, &obIID, &interfaceOptions, &flags))
+	if(!PyArg_ParseTuple(args,"kOll:OpenProperty",&propTag, &obIID, &interfaceOptions, &flags))
 		return NULL;
 	// IID.
 	if (!PyWinObject_AsIID(obIID, &iid))
@@ -418,10 +418,10 @@ PyObject *PyIMAPIProp::GetLastError(PyObject *self, PyObject *args)
 	IMAPIProp *_swig_self;
 	if ((_swig_self=GetI(self))==NULL) return NULL;
 	
-    if(!PyArg_ParseTuple(args,"l|l:GetLastError",
+	if(!PyArg_ParseTuple(args,"l|l:GetLastError",
 		&hr, // @pyparm int|hr||Contains the error code generated in the previous method call.
 		&flags)) // @pyparm int|flags||Indicates for format for the output.
-        return NULL;
+		return NULL;
 		
 	Py_BEGIN_ALLOW_THREADS
 	hRes = _swig_self->GetLastError(hr, flags, &me);

@@ -120,17 +120,17 @@ PyObject *PyIDirectoryObject::CreateDSObject(PyObject *self, PyObject *args)
 	if (!PyArg_ParseTuple(args, "OO:CreateDSObject", &obName, &obAttr))
 		return NULL;
 
-    WCHAR *szName= NULL;
-    if (!PyWinObject_AsWCHAR(obName, &szName, FALSE))
-        return NULL;
+	WCHAR *szName= NULL;
+	if (!PyWinObject_AsWCHAR(obName, &szName, FALSE))
+		return NULL;
 
 	PADS_ATTR_INFO attr;
 	DWORD cattr;
 	if (!PyADSIObject_AsADS_ATTR_INFOs(obAttr, &attr, &cattr)) {
-        PyWinObject_FreeWCHAR(szName);
+		PyWinObject_FreeWCHAR(szName);
 		return NULL;
-    }
-    IDispatch *pRet = NULL;
+	}
+	IDispatch *pRet = NULL;
 
 	Py_BEGIN_ALLOW_THREADS
 	_result = (HRESULT )_swig_self->CreateDSObject(szName, attr, cattr, &pRet);

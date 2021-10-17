@@ -8,6 +8,10 @@ typedef long HRESULT;	// This will raise COM Exception.
 %typedef long HRESULT_KEEP; // This will keep HRESULT, and return
 typedef long FLAGS;
 
+typedef WCHAR OLECHAR;
+typedef OLECHAR* BSTR;
+typedef MAPIERROR MAPIERROR;
+typedef ADRLIST ADRLIST;
 
 %typemap(python,out) HRESULT {
 	$target = Py_None;

@@ -45,6 +45,10 @@
 // avoid anyone accidently using the wrong WRITE_RESTRICTED...
 #undef WRITE_RESTRICTED
 
+#ifndef _MSC_VER
+#define HSE_REQ_SET_FLUSH_FLAG (HSE_REQ_END_RESERVED+43)
+#endif
+
 // ***** py3k support *****
 // Note that when built for py3k, 'UNICODE' is defined, which conveniently
 // means TCHAR is the same size as the native unicode object in all versions.

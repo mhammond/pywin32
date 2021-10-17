@@ -81,9 +81,9 @@ PyObject *PyIDirectorySearch::ExecuteSearch(PyObject *self, PyObject *args)
 	// @pyparm [<o PyUnicode>, ...]|attrNames||
 	if (!PyArg_ParseTuple(args, "OO", &obFilter, &obNames))
 		return NULL;
-    WCHAR *szFilter = NULL;
-    if (!PyWinObject_AsWCHAR(obFilter, &szFilter, FALSE))
-        return NULL;
+	WCHAR *szFilter = NULL;
+	if (!PyWinObject_AsWCHAR(obFilter, &szFilter, FALSE))
+		return NULL;
 
 	WCHAR **names = NULL;
 	DWORD cnames = -1;
@@ -94,7 +94,7 @@ PyObject *PyIDirectorySearch::ExecuteSearch(PyObject *self, PyObject *args)
         }
 
 	HRESULT _result;
-    ADS_SEARCH_HANDLE handle;
+	ADS_SEARCH_HANDLE handle;
 
 	Py_BEGIN_ALLOW_THREADS
 	_result = (HRESULT )_swig_self->ExecuteSearch(szFilter, names, cnames, &handle);
@@ -106,7 +106,7 @@ PyObject *PyIDirectorySearch::ExecuteSearch(PyObject *self, PyObject *args)
         ret = PyLong_FromSsize_t((Py_ssize_t)handle);
 	} 
 	PyADSI_FreeNames(names, cnames);
-    PyWinObject_FreeWCHAR(szFilter);
+	PyWinObject_FreeWCHAR(szFilter);
 	return ret;
 }
 

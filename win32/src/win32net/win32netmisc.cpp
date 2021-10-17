@@ -1417,7 +1417,8 @@ PyObject *PyNetServerComputerNameDel(PyObject *self, PyObject *args)
 
 #if WINVER >= 0x0500
 
-extern "C" NetValidateNamefunc pfnNetValidateName = NULL;
+extern "C" NetValidateNamefunc pfnNetValidateName;
+NetValidateNamefunc pfnNetValidateName = NULL;
 // @pymethod |win32net|NetValidateName|Checks that domain/machine/workgroup name is valid for given context
 // @rdesc Returns none if valid, exception if not
 // @comm If Account and Password aren't passed, current logon credentials are used
@@ -1460,8 +1461,10 @@ PyObject *PyNetValidateName(PyObject *self, PyObject *args)
     return ret;
 }
 
-extern "C" NetValidatePasswordPolicyfunc pfnNetValidatePasswordPolicy = NULL;
-extern "C" NetValidatePasswordPolicyFreefunc pfnNetValidatePasswordPolicyFree = NULL;
+extern "C" NetValidatePasswordPolicyfunc pfnNetValidatePasswordPolicy;
+NetValidatePasswordPolicyfunc pfnNetValidatePasswordPolicy = NULL;
+extern "C" NetValidatePasswordPolicyFreefunc pfnNetValidatePasswordPolicyFree;
+NetValidatePasswordPolicyFreefunc pfnNetValidatePasswordPolicyFree = NULL;
 
 static void PyObject_CleanupAUTH_INPUT(NET_VALIDATE_AUTHENTICATION_INPUT_ARG *p)
 {

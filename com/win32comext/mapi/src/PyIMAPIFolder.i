@@ -43,10 +43,10 @@ PyObject *PyIMAPIFolder::GetLastError(PyObject *self, PyObject *args)
 	IMAPIFolder *_swig_self;
 	if ((_swig_self=GetI(self))==NULL) return NULL;
 	
-    if(!PyArg_ParseTuple(args,"l|l:GetLastError",
+	if(!PyArg_ParseTuple(args,"l|l:GetLastError",
 		&hr, // @pyparm int|hr||Contains the error code generated in the previous method call.
 		&flags)) // @pyparm int|flags||Indicates for format for the output.
-        return NULL;
+		return NULL;
 		
 	Py_BEGIN_ALLOW_THREADS
 	hRes = _swig_self->GetLastError(hr, flags, &me);
@@ -156,12 +156,12 @@ PyObject *PyIMAPIFolder::DeleteFolder(PyObject *self, PyObject *args)
 	IMAPIFolder *_swig_self;
 	if ((_swig_self=GetI(self))==NULL) return NULL;
 	
-    if(!PyArg_ParseTuple(args,"OOO|l:DeleteFolder",
+	if(!PyArg_ParseTuple(args,"OOO|l:DeleteFolder",
 		&obEntryId, // @pyparm string|entryId||The EntryID of the subfolder to delete.
 		&obUIParam, // @pyparm long|uiParam||Handle of the parent window of the progress indicator.
 		&obProgress, // @pyparm <o PyIMAPIProgress>|progress||A progress object, or None
 		&flags)) 
-        return NULL;
+		return NULL;
 	if (PyBytes_Check(obEntryId)) {
 		eid = (LPENTRYID)PyBytes_AsString(obEntryId);
 		cbEID = PyBytes_Size(obEntryId);
