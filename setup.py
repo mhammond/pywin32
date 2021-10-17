@@ -79,8 +79,6 @@ from distutils.command.build import build
 from distutils.command.install_data import install_data
 from distutils.command.build_scripts import build_scripts
 
-from distutils.command.bdist_msi import bdist_msi
-
 from distutils.msvccompiler import get_build_version
 from distutils import log
 
@@ -2419,10 +2417,6 @@ def convert_data_files(files):
             flist.exclude_pattern(re.compile(".*\\\\CVS\\\\"), is_regex=1, anchor=0)
             flist.exclude_pattern("*.pyc", anchor=0)
             flist.exclude_pattern("*.pyo", anchor=0)
-            # files with a leading dot upset bdist_msi, and '.*' doesn't
-            # work - it matches from the start of the string and we have
-            # dir names.  So any '\.' gets the boot.
-            flist.exclude_pattern(re.compile(".*\\\\\\."), is_regex=1, anchor=0)
             if not flist.files:
                 raise RuntimeError("No files match '%s'" % file)
             files_use = flist.files
@@ -2521,6 +2515,7 @@ classifiers = [
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: Implementation :: CPython",
 ]
 
@@ -2559,9 +2554,6 @@ dist = setup(
             "install_script": "pywin32_postinstall.py",
             "title": "pywin32-%s" % (build_id,),
             "user_access_control": "auto",
-        },
-        "bdist_msi": {
-            "install_script": "pywin32_postinstall.py",
         },
     },
     scripts=["pywin32_postinstall.py", "pywin32_testall.py"],

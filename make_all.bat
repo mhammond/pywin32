@@ -39,6 +39,12 @@ py -3.9 setup.py -q bdist_wininst --skip-build --target-version=3.10
 py -3.10-32 setup.py -q bdist_wheel --skip-build
 py -3.10 setup.py -q bdist_wheel --skip-build
 
+py -3.9-32 setup.py -q bdist_wininst --skip-build --target-version=3.11
+py -3.9 setup.py -q bdist_wininst --skip-build --target-version=3.11
+
+py -3.11-32 setup.py -q bdist_wheel --skip-build
+py -3.11 setup.py -q bdist_wheel --skip-build
+
 @goto xit
 :couldnt_rm
 @echo Could not remove the build directory!

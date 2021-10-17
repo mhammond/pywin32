@@ -14,7 +14,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ['3.6', '3.7', '3.8', '3.9', '3.10-dev']
+        python-version: ['3.6', '3.7', '3.8', '3.9', '3.10', '3.11-dev']
         architecture: ['x64', 'x86']
 
     steps:
@@ -53,7 +53,7 @@ jobs:
 
     # 3.10 dropped support for bdist_wininst. If we had both 3.9 and 3.10 available in a single
     # environment we could also build the .exe for 3.10+ - but for now, we can't.
-    - if: matrix.python-version != '3.10-dev'
+    - if: matrix.python-version != '3.10' && matrix.python-version != '3.11-dev'
       name: Build installers
       run: |
         python setup.py bdist_wininst --skip-build --target-version=${{ matrix.python-version }}
@@ -61,8 +61,10 @@ jobs:
     - uses: actions/upload-artifact@v2
       if: ${{ always() }}
       with:
-        name: wheels
-        path: dist/*.whl
+        name: artifacts
+        path: |
+          dist/*.whl
+          dist/*.exe
 
   black:
     runs-on: ubuntu-latest
