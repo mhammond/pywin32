@@ -98,14 +98,14 @@ class test_adodbapi(dbapi20.DatabaseAPI20Test):
     def __init__(self, arg):
         dbapi20.DatabaseAPI20Test.__init__(self, arg)
 
-    def testMethodName(self):
+    def getTestMethodName(self):
         return self.id().split(".")[-1]
 
     def setUp(self):
         # Call superclass setUp In case this does something in the
         # future
         dbapi20.DatabaseAPI20Test.setUp(self)
-        if self.testMethodName() == "test_callproc":
+        if self.getTestMethodName() == "test_callproc":
             con = self._connect()
             engine = con.dbms_name
             ## print('Using database Engine=%s' % engine) ##
@@ -134,7 +134,7 @@ class test_adodbapi(dbapi20.DatabaseAPI20Test):
             self.lower_func = "templower"
 
     def tearDown(self):
-        if self.testMethodName() == "test_callproc":
+        if self.getTestMethodName() == "test_callproc":
             con = self._connect()
             cur = con.cursor()
             try:
