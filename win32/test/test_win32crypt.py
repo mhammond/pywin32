@@ -16,8 +16,8 @@ class Crypt(unittest.TestCase):
         got_desc, got_data = win32crypt.CryptUnprotectData(
             blob, entropy, None, ps, flags
         )
-        self.failUnlessEqual(data, got_data)
-        self.failUnlessEqual(desc, got_desc)
+        self.assertEqual(data, got_data)
+        self.assertEqual(desc, got_desc)
 
     def testEntropy(self):
         data = str2bytes("My test data")
@@ -29,8 +29,8 @@ class Crypt(unittest.TestCase):
         got_desc, got_data = win32crypt.CryptUnprotectData(
             blob, entropy, None, ps, flags
         )
-        self.failUnlessEqual(data, got_data)
-        self.failUnlessEqual(desc, got_desc)
+        self.assertEqual(data, got_data)
+        self.assertEqual(desc, got_desc)
 
 
 if __name__ == "__main__":

@@ -22,7 +22,7 @@ except NameError:
 class TestReadBuffer(unittest.TestCase):
     def testLen(self):
         buffer = win32file.AllocateReadBuffer(1)
-        self.failUnlessEqual(len(buffer), 1)
+        self.assertEqual(len(buffer), 1)
 
     def testSimpleIndex(self):
         buffer = win32file.AllocateReadBuffer(1)
@@ -33,7 +33,7 @@ class TestReadBuffer(unittest.TestCase):
         buffer = win32file.AllocateReadBuffer(2)
         val = str2bytes("\0\0")
         buffer[:2] = val
-        self.failUnlessEqual(buffer[0:2], val)
+        self.assertEqual(buffer[0:2], val)
 
 
 class TestSimpleOps(unittest.TestCase):
@@ -89,7 +89,7 @@ class TestSimpleOps(unittest.TestCase):
 
         win32file.WriteFile(h, data)
 
-        self.failUnless(
+        self.assertTrue(
             win32file.GetFileSize(h) == len(data),
             "WARNING: Written file does not have the same size as the length of the data in it!",
         )
@@ -99,35 +99,35 @@ class TestSimpleOps(unittest.TestCase):
         hr, read_data = win32file.ReadFile(
             h, len(data) + 10
         )  # + 10 to get anything extra
-        self.failUnless(hr == 0, "Readfile returned %d" % hr)
+        self.assertTrue(hr == 0, "Readfile returned %d" % hr)
 
-        self.failUnless(read_data == data, "Read data is not what we wrote!")
+        self.assertTrue(read_data == data, "Read data is not what we wrote!")
 
         # Now truncate the file at 1/2 its existing size.
         newSize = len(data) // 2
         win32file.SetFilePointer(h, newSize, win32file.FILE_BEGIN)
         win32file.SetEndOfFile(h)
-        self.failUnlessEqual(win32file.GetFileSize(h), newSize)
+        self.assertEqual(win32file.GetFileSize(h), newSize)
 
         # GetFileAttributesEx/GetFileAttributesExW tests.
-        self.failUnlessEqual(
+        self.assertEqual(
             win32file.GetFileAttributesEx(testName),
             win32file.GetFileAttributesExW(testName),
         )
 
         attr, ct, at, wt, size = win32file.GetFileAttributesEx(testName)
-        self.failUnless(
+        self.assertTrue(
             size == newSize,
             "Expected GetFileAttributesEx to return the same size as GetFileSize()",
         )
-        self.failUnless(
+        self.assertTrue(
             attr == win32file.GetFileAttributes(testName),
             "Expected GetFileAttributesEx to return the same attributes as GetFileAttributes",
         )
 
         h = None  # Close the file by removing the last reference to the handle!
 
-        self.failUnless(
+        self.assertTrue(
             not os.path.isfile(testName), "After closing the file, it still exists!"
         )
 
@@ -151,22 +151,22 @@ class TestSimpleOps(unittest.TestCase):
             data = str2bytes("Some data")
             (res, written) = win32file.WriteFile(f, data)
 
-            self.failIf(res)
+            self.assertFalse(res)
             self.assertEqual(written, len(data))
 
             # Move at the beginning and read the data
             win32file.SetFilePointer(f, 0, win32file.FILE_BEGIN)
             (res, s) = win32file.ReadFile(f, len(data))
 
-            self.failIf(res)
+            self.assertFalse(res)
             self.assertEqual(s, data)
 
             # Move at the end and read the data
             win32file.SetFilePointer(f, -len(data), win32file.FILE_END)
             (res, s) = win32file.ReadFile(f, len(data))
 
-            self.failIf(res)
-            self.failUnlessEqual(s, data)
+            self.assertFalse(res)
+            self.assertEqual(s, data)
         finally:
             f.Close()
             os.unlink(filename)
@@ -189,15 +189,15 @@ class TestSimpleOps(unittest.TestCase):
         try:
             win32file.SetFileTime(h, now_utc, now_utc, now_utc)
             ct, at, wt = win32file.GetFileTime(h)
-            self.failUnlessEqual(now_local, ct)
-            self.failUnlessEqual(now_local, at)
-            self.failUnlessEqual(now_local, wt)
+            self.assertEqual(now_local, ct)
+            self.assertEqual(now_local, at)
+            self.assertEqual(now_local, wt)
             # and the reverse - set local, check against utc
             win32file.SetFileTime(h, now_local, now_local, now_local)
             ct, at, wt = win32file.GetFileTime(h)
-            self.failUnlessEqual(now_utc, ct)
-            self.failUnlessEqual(now_utc, at)
-            self.failUnlessEqual(now_utc, wt)
+            self.assertEqual(now_utc, ct)
+            self.assertEqual(now_utc, at)
+            self.assertEqual(now_utc, wt)
         finally:
             h.close()
             os.unlink(filename)
@@ -226,16 +226,16 @@ class TestSimpleOps(unittest.TestCase):
         )
         try:
             ct, at, wt = win32file.GetFileTime(f)
-            self.failUnless(
+            self.assertTrue(
                 ct >= now,
                 "File was created in the past - now=%s, created=%s" % (now, ct),
             )
-            self.failUnless(now <= ct <= nowish, (now, ct))
-            self.failUnless(
+            self.assertTrue(now <= ct <= nowish, (now, ct))
+            self.assertTrue(
                 wt >= now,
                 "File was written-to in the past now=%s, written=%s" % (now, wt),
             )
-            self.failUnless(now <= wt <= nowish, (now, wt))
+            self.assertTrue(now <= wt <= nowish, (now, wt))
 
             # Now set the times.
             win32file.SetFileTime(f, later, later, later, UTCTimes=True)
@@ -243,9 +243,9 @@ class TestSimpleOps(unittest.TestCase):
             ct, at, wt = win32file.GetFileTime(f)
             # XXX - the builtin PyTime type appears to be out by a dst offset.
             # just ignore that type here...
-            self.failUnlessEqual(ct, later)
-            self.failUnlessEqual(at, later)
-            self.failUnlessEqual(wt, later)
+            self.assertEqual(ct, later)
+            self.assertEqual(at, later)
+            self.assertEqual(wt, later)
 
         finally:
             f.Close()
@@ -361,7 +361,7 @@ class TestOverlapped(unittest.TestCase):
             win32file.CloseHandle(hv)
             raise RuntimeError("Expected close to fail!")
         except win32file.error as details:
-            self.failUnlessEqual(details.winerror, winerror.ERROR_INVALID_HANDLE)
+            self.assertEqual(details.winerror, winerror.ERROR_INVALID_HANDLE)
 
     def testCompletionPortsQueued(self):
         class Foo:
@@ -374,8 +374,8 @@ class TestOverlapped(unittest.TestCase):
         errCode, bytes, key, overlapped = win32file.GetQueuedCompletionStatus(
             io_req_port, win32event.INFINITE
         )
-        self.failUnlessEqual(errCode, 0)
-        self.failUnless(isinstance(overlapped.object, Foo))
+        self.assertEqual(errCode, 0)
+        self.assertTrue(isinstance(overlapped.object, Foo))
 
     def _IOCPServerThread(self, handle, port, drop_overlapped_reference):
         overlapped = pywintypes.OVERLAPPED()
@@ -388,7 +388,7 @@ class TestOverlapped(unittest.TestCase):
             # even if we fail, be sure to close the handle; prevents hangs
             # on Vista 64...
             try:
-                self.failUnlessRaises(
+                self.assertRaises(
                     RuntimeError, win32file.GetQueuedCompletionStatus, port, -1
                 )
             finally:
@@ -397,7 +397,7 @@ class TestOverlapped(unittest.TestCase):
 
         result = win32file.GetQueuedCompletionStatus(port, -1)
         ol2 = result[-1]
-        self.failUnless(ol2 is overlapped)
+        self.assertTrue(ol2 is overlapped)
         data = win32file.ReadFile(handle, 512)[1]
         win32file.WriteFile(handle, data)
 
@@ -444,7 +444,7 @@ class TestOverlapped(unittest.TestCase):
             if not test_overlapped_death:
                 handle.Close()
             t.join(3)
-            self.failIf(t.is_alive(), "thread didn't finish")
+            self.assertFalse(t.is_alive(), "thread didn't finish")
 
     def testCompletionPortsNonQueuedBadReference(self):
         self.testCompletionPortsNonQueued(True)
@@ -453,29 +453,29 @@ class TestOverlapped(unittest.TestCase):
         overlapped = pywintypes.OVERLAPPED()
         d = {}
         d[overlapped] = "hello"
-        self.failUnlessEqual(d[overlapped], "hello")
+        self.assertEqual(d[overlapped], "hello")
 
     def testComparable(self):
         overlapped = pywintypes.OVERLAPPED()
-        self.failUnlessEqual(overlapped, overlapped)
+        self.assertEqual(overlapped, overlapped)
         # ensure we explicitly test the operators.
-        self.failUnless(overlapped == overlapped)
-        self.failIf(overlapped != overlapped)
+        self.assertTrue(overlapped == overlapped)
+        self.assertFalse(overlapped != overlapped)
 
     def testComparable2(self):
         # 2 overlapped objects compare equal if their contents are the same.
         overlapped1 = pywintypes.OVERLAPPED()
         overlapped2 = pywintypes.OVERLAPPED()
-        self.failUnlessEqual(overlapped1, overlapped2)
+        self.assertEqual(overlapped1, overlapped2)
         # ensure we explicitly test the operators.
-        self.failUnless(overlapped1 == overlapped2)
-        self.failIf(overlapped1 != overlapped2)
+        self.assertTrue(overlapped1 == overlapped2)
+        self.assertFalse(overlapped1 != overlapped2)
         # now change something in one of them - should no longer be equal.
         overlapped1.hEvent = 1
-        self.failIfEqual(overlapped1, overlapped2)
+        self.assertNotEqual(overlapped1, overlapped2)
         # ensure we explicitly test the operators.
-        self.failIf(overlapped1 == overlapped2)
-        self.failUnless(overlapped1 != overlapped2)
+        self.assertFalse(overlapped1 == overlapped2)
+        self.assertTrue(overlapped1 != overlapped2)
 
 
 class TestSocketExtensions(unittest.TestCase):
@@ -500,7 +500,7 @@ class TestSocketExtensions(unittest.TestCase):
         # This is the correct way to allocate the buffer...
         buffer = win32file.AllocateReadBuffer(1024)
         rc = win32file.AcceptEx(listener, accepter, buffer, overlapped)
-        self.failUnlessEqual(rc, winerror.ERROR_IO_PENDING)
+        self.assertEqual(rc, winerror.ERROR_IO_PENDING)
         # Set the event to say we are all ready
         running_event.set()
         # and wait for the connection.
@@ -535,7 +535,7 @@ class TestSocketExtensions(unittest.TestCase):
         win32file.WSARecv(s, buffer, overlapped)
         nbytes = win32file.GetOverlappedResult(s.fileno(), overlapped, True)
         got = buffer[:nbytes]
-        self.failUnlessEqual(got, str2bytes("hello"))
+        self.assertEqual(got, str2bytes("hello"))
         # thread should have stopped
         stopped.wait(2)
         if not stopped.isSet():
@@ -552,7 +552,7 @@ class TestFindFiles(unittest.TestCase):
         for file in win32file.FindFilesIterator(dir):
             set2.add(file)
         assert len(set2) > 5, "This directory has less than 5 files!?"
-        self.failUnlessEqual(set1, set2)
+        self.assertEqual(set1, set2)
 
     def testBadDir(self):
         dir = os.path.join(os.getcwd(), "a dir that doesnt exist", "*")
@@ -563,7 +563,7 @@ class TestFindFiles(unittest.TestCase):
         num = 0
         for i in win32file.FindFilesIterator(spec):
             num += 1
-        self.failUnlessEqual(0, num)
+        self.assertEqual(0, num)
 
     def testEmptyDir(self):
         test_path = os.path.join(win32api.GetTempPath(), "win32file_test_directory")
@@ -580,7 +580,7 @@ class TestFindFiles(unittest.TestCase):
             for i in win32file.FindFilesIterator(os.path.join(test_path, "*")):
                 num += 1
             # Expecting "." and ".." only
-            self.failUnlessEqual(2, num)
+            self.assertEqual(2, num)
         finally:
             os.rmdir(test_path)
 
@@ -697,7 +697,7 @@ class TestDirectoryChanges(unittest.TestCase):
 
         self.stablize()
         changes = self.watcher_thread_changes[0]
-        self.failUnlessEqual(changes, [(1, "test_file")])
+        self.assertEqual(changes, [(1, "test_file")])
 
     def testSmall(self):
         self.stablize()
@@ -707,7 +707,7 @@ class TestDirectoryChanges(unittest.TestCase):
 
         self.stablize()
         changes = self.watcher_thread_changes[0]
-        self.failUnlessEqual(changes, [(1, "x")])
+        self.assertEqual(changes, [(1, "x")])
 
 
 class TestEncrypt(unittest.TestCase):
@@ -803,7 +803,7 @@ class TestConnect(unittest.TestCase):
         self.assertEqual(self.response, str2bytes("some expected response"))
         self.assertEqual(self.request, str2bytes("some expected request"))
         t.join(5)
-        self.failIf(t.is_alive(), "worker thread didn't terminate")
+        self.assertFalse(t.is_alive(), "worker thread didn't terminate")
 
     def test_connect_without_payload(self):
         giveup_event = win32event.CreateEvent(None, 0, 0, None)
@@ -838,7 +838,7 @@ class TestConnect(unittest.TestCase):
         self.response = buff[:length]
         self.assertEqual(self.response, str2bytes("some expected response"))
         t.join(5)
-        self.failIf(t.is_alive(), "worker thread didn't terminate")
+        self.assertFalse(t.is_alive(), "worker thread didn't terminate")
 
 
 class TestTransmit(unittest.TestCase):

@@ -39,12 +39,12 @@ class TestParser(unittest.TestCase):
             style = cdef[-2]
             styleex = cdef[-1]
             if cid in tabstop_ids:
-                self.failUnlessEqual(style & win32con.WS_TABSTOP, win32con.WS_TABSTOP)
+                self.assertEqual(style & win32con.WS_TABSTOP, win32con.WS_TABSTOP)
                 num_ok += 1
             elif cid in notabstop_ids:
-                self.failUnlessEqual(style & win32con.WS_TABSTOP, 0)
+                self.assertEqual(style & win32con.WS_TABSTOP, 0)
                 num_ok += 1
-        self.failUnlessEqual(num_ok, len(tabstop_ids) + len(notabstop_ids))
+        self.assertEqual(num_ok, len(tabstop_ids) + len(notabstop_ids))
 
 
 class TestGenerated(TestParser):

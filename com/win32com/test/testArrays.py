@@ -58,7 +58,7 @@ class ArrayTest(util.TestCase):
 
     def _doTest(self, array):
         self.arr.Array = array
-        self.failUnlessEqual(_normalize_array(self.arr.Array), array)
+        self.assertEqual(_normalize_array(self.arr.Array), array)
 
     def testZeroD(self):
         self._doTest(ZeroD)
