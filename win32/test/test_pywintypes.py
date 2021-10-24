@@ -34,25 +34,25 @@ class TestCase(unittest.TestCase):
     def testTimeInDict(self):
         d = {}
         d["t1"] = pywintypes.Time(1)
-        self.failUnlessEqual(d["t1"], pywintypes.Time(1))
+        self.assertEqual(d["t1"], pywintypes.Time(1))
 
     def testPyTimeCompare(self):
         t1 = pywintypes.Time(100)
         t1_2 = pywintypes.Time(100)
         t2 = pywintypes.Time(101)
 
-        self.failUnlessEqual(t1, t1_2)
-        self.failUnless(t1 <= t1_2)
-        self.failUnless(t1_2 >= t1)
+        self.assertEqual(t1, t1_2)
+        self.assertTrue(t1 <= t1_2)
+        self.assertTrue(t1_2 >= t1)
 
-        self.failIfEqual(t1, t2)
-        self.failUnless(t1 < t2)
-        self.failUnless(t2 > t1)
+        self.assertNotEqual(t1, t2)
+        self.assertTrue(t1 < t2)
+        self.assertTrue(t2 > t1)
 
     def testPyTimeCompareOther(self):
         t1 = pywintypes.Time(100)
         t2 = None
-        self.failIfEqual(t1, t2)
+        self.assertNotEqual(t1, t2)
 
     def testTimeTuple(self):
         now = datetime.datetime.now()  # has usec...
@@ -60,7 +60,7 @@ class TestCase(unittest.TestCase):
         pt = pywintypes.Time(now.timetuple())
         # *sob* - only if we have a datetime object can we compare like this.
         if isinstance(pt, datetime.datetime):
-            self.failUnless(pt <= now)
+            self.assertTrue(pt <= now)
 
     def testTimeTuplems(self):
         now = datetime.datetime.now()  # has usec...
@@ -74,12 +74,12 @@ class TestCase(unittest.TestCase):
 
     def testPyTimeFromTime(self):
         t1 = pywintypes.Time(time.time())
-        self.failUnless(pywintypes.Time(t1) is t1)
+        self.assertTrue(pywintypes.Time(t1) is t1)
 
     def testPyTimeTooLarge(self):
         MAX_TIMESTAMP = 0x7FFFFFFFFFFFFFFF  # used by some API function to mean "never"
         ts = pywintypes.TimeStamp(MAX_TIMESTAMP)
-        self.failUnlessEqual(ts, datetime.datetime.max)
+        self.assertEqual(ts, datetime.datetime.max)
 
     def testGUID(self):
         s = "{00020400-0000-0000-C000-000000000046}"
@@ -94,10 +94,10 @@ class TestCase(unittest.TestCase):
     def testGUIDRichCmp(self):
         s = "{00020400-0000-0000-C000-000000000046}"
         iid = pywintypes.IID(s)
-        self.failIf(s == None)
-        self.failIf(None == s)
-        self.failUnless(s != None)
-        self.failUnless(None != s)
+        self.assertFalse(s == None)
+        self.assertFalse(None == s)
+        self.assertTrue(s != None)
+        self.assertTrue(None != s)
         if sys.version_info > (3, 0):
             self.assertRaises(TypeError, operator.gt, None, s)
             self.assertRaises(TypeError, operator.gt, s, None)
@@ -108,7 +108,7 @@ class TestCase(unittest.TestCase):
         s = "{00020400-0000-0000-C000-000000000046}"
         iid = pywintypes.IID(s)
         d = dict(item=iid)
-        self.failUnlessEqual(d["item"], iid)
+        self.assertEqual(d["item"], iid)
 
 
 if __name__ == "__main__":

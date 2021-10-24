@@ -174,9 +174,9 @@ class TestStuff(unittest.TestCase):
                 ["Frank"],
             )
             rows = self.cur.fetchmany()
-            self.failUnlessEqual(1, len(rows))
+            self.assertEqual(1, len(rows))
             row = rows[0]
-            self.failUnlessEqual(row[0], value)
+            self.assertEqual(row[0], value)
 
     def testBit(self):
         self._test_val("bitfield", 1)

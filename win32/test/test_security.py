@@ -25,31 +25,31 @@ class SecurityTests(unittest.TestCase):
     def testEqual(self):
         if self.admin_sid is None:
             raise TestSkipped("No 'Administrator' account is available")
-        self.failUnlessEqual(
+        self.assertEqual(
             win32security.LookupAccountName("", "Administrator")[0],
             win32security.LookupAccountName("", "Administrator")[0],
         )
 
     def testNESID(self):
-        self.failUnless(self.pwr_sid == self.pwr_sid)
+        self.assertTrue(self.pwr_sid == self.pwr_sid)
         if self.admin_sid:
-            self.failUnless(self.pwr_sid != self.admin_sid)
+            self.assertTrue(self.pwr_sid != self.admin_sid)
 
     def testNEOther(self):
-        self.failUnless(self.pwr_sid != None)
-        self.failUnless(None != self.pwr_sid)
-        self.failIf(self.pwr_sid == None)
-        self.failIf(None == self.pwr_sid)
-        self.failIfEqual(None, self.pwr_sid)
+        self.assertTrue(self.pwr_sid != None)
+        self.assertTrue(None != self.pwr_sid)
+        self.assertFalse(self.pwr_sid == None)
+        self.assertFalse(None == self.pwr_sid)
+        self.assertNotEqual(None, self.pwr_sid)
 
     def testSIDInDict(self):
         d = dict(foo=self.pwr_sid)
-        self.failUnlessEqual(d["foo"], self.pwr_sid)
+        self.assertEqual(d["foo"], self.pwr_sid)
 
     def testBuffer(self):
         if self.admin_sid is None:
             raise TestSkipped("No 'Administrator' account is available")
-        self.failUnlessEqual(
+        self.assertEqual(
             ob2memory(win32security.LookupAccountName("", "Administrator")[0]),
             ob2memory(win32security.LookupAccountName("", "Administrator")[0]),
         )
@@ -121,7 +121,7 @@ class TestDS(DomainTests):
         fmt_offered = ntsecuritycon.DS_FQDN_1779_NAME
         name = win32api.GetUserNameEx(fmt_offered)
         result = win32security.DsCrackNames(h, 0, fmt_offered, fmt_offered, (name,))
-        self.failUnlessEqual(name, result[0][2])
+        self.assertEqual(name, result[0][2])
 
     def testDsCrackNamesSyntax(self):
         # Do a syntax check only - that allows us to avoid binding.
@@ -136,7 +136,7 @@ class TestDS(DomainTests):
             ntsecuritycon.DS_CANONICAL_NAME,
             (name,),
         )
-        self.failUnlessEqual(expected, result[0][2])
+        self.assertEqual(expected, result[0][2])
 
 
 class TestTranslate(DomainTests):
@@ -144,7 +144,7 @@ class TestTranslate(DomainTests):
         name = win32api.GetUserNameEx(fmt_from)
         expected = win32api.GetUserNameEx(fmt_to)
         got = win32security.TranslateName(name, fmt_from, fmt_to)
-        self.failUnlessEqual(got, expected)
+        self.assertEqual(got, expected)
 
     def testTranslate1(self):
         self._testTranslate(win32api.NameFullyQualifiedDN, win32api.NameSamCompatible)

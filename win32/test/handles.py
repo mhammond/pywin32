@@ -87,7 +87,7 @@ class PyHandleTestCase(unittest.TestCase):
     def testOtherHandle(self):
         h = pywintypes.HANDLE(1)
         h2 = pywintypes.HANDLE(h)
-        self.failUnlessEqual(h, h2)
+        self.assertEqual(h, h2)
         # but the above doesn't really test everything - we want a way to
         # pass the handle directly into PyWinLong_AsVoidPtr.  One way to
         # to that is to abuse win32api.GetProcAddress() - the 2nd param
@@ -99,41 +99,41 @@ class PyHandleTestCase(unittest.TestCase):
     def testHandleInDict(self):
         h = pywintypes.HANDLE(1)
         d = dict(foo=h)
-        self.failUnlessEqual(d["foo"], h)
+        self.assertEqual(d["foo"], h)
 
     def testHandleInDictThenInt(self):
         h = pywintypes.HANDLE(1)
         d = dict(foo=h)
-        self.failUnlessEqual(d["foo"], 1)
+        self.assertEqual(d["foo"], 1)
 
     def testHandleCompareNone(self):
         h = pywintypes.HANDLE(1)
-        self.failIfEqual(h, None)
-        self.failIfEqual(None, h)
+        self.assertNotEqual(h, None)
+        self.assertNotEqual(None, h)
         # ensure we use both __eq__ and __ne__ ops
-        self.failIf(h == None)
-        self.failUnless(h != None)
+        self.assertFalse(h == None)
+        self.assertTrue(h != None)
 
     def testHandleCompareInt(self):
         h = pywintypes.HANDLE(1)
-        self.failIfEqual(h, 0)
-        self.failUnlessEqual(h, 1)
+        self.assertNotEqual(h, 0)
+        self.assertEqual(h, 1)
         # ensure we use both __eq__ and __ne__ ops
-        self.failUnless(h == 1)
-        self.failUnless(1 == h)
-        self.failIf(h != 1)
-        self.failIf(1 != h)
-        self.failIf(h == 0)
-        self.failIf(0 == h)
-        self.failUnless(h != 0)
-        self.failUnless(0 != h)
+        self.assertTrue(h == 1)
+        self.assertTrue(1 == h)
+        self.assertFalse(h != 1)
+        self.assertFalse(1 != h)
+        self.assertFalse(h == 0)
+        self.assertFalse(0 == h)
+        self.assertTrue(h != 0)
+        self.assertTrue(0 != h)
 
     def testHandleNonZero(self):
         h = pywintypes.HANDLE(0)
-        self.failIf(h)
+        self.assertFalse(h)
 
         h = pywintypes.HANDLE(1)
-        self.failUnless(h)
+        self.assertTrue(h)
 
     def testLong(self):
         # sys.maxint+1 should always be a 'valid' handle, treated as an

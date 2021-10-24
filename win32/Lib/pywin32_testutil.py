@@ -198,9 +198,15 @@ class TestSkipped(Exception):
     pass
 
 
+# This appears to have been "upgraded" to non-private in 3.11
+try:
+    TextTestResult = unittest._TextTestResult
+except AttributeError:
+    TextTestResult = unittest.TextTestResult
+
 # The 'TestResult' subclass that records the failures and has the special
 # handling for the TestSkipped exception.
-class TestResult(unittest._TextTestResult):
+class TestResult(TextTestResult):
     def __init__(self, *args, **kw):
         super(TestResult, self).__init__(*args, **kw)
         self.skips = {}  # count of skips for each reason.

@@ -12,7 +12,7 @@ class TestWaitableTimer(unittest.TestCase):
         dt = -160  # 160 ns.
         win32event.SetWaitableTimer(h, dt, 0, None, None, 0)
         rc = win32event.WaitForSingleObject(h, 1000)
-        self.failUnlessEqual(rc, win32event.WAIT_OBJECT_0)
+        self.assertEqual(rc, win32event.WAIT_OBJECT_0)
 
     def testWaitableTrigger(self):
         h = win32event.CreateWaitableTimer(None, 0, None)
@@ -20,7 +20,7 @@ class TestWaitableTimer(unittest.TestCase):
         dt = -2000000000
         win32event.SetWaitableTimer(h, dt, 0, None, None, 0)
         rc = win32event.WaitForSingleObject(h, 10)  # 10 ms.
-        self.failUnlessEqual(rc, win32event.WAIT_TIMEOUT)
+        self.assertEqual(rc, win32event.WAIT_TIMEOUT)
 
     def testWaitableError(self):
         h = win32event.CreateWaitableTimer(None, 0, None)

@@ -180,12 +180,12 @@ class EngineTester(win32com.test.util.TestCase):
             engine.AddCode(code)
             engine.Start()
             _CheckEngineState(site, engineName, axscript.SCRIPTSTATE_STARTED)
-            self.failUnless(not echoer.fail_called, "Fail should not have been called")
+            self.assertTrue(not echoer.fail_called, "Fail should not have been called")
             # Now call into the scripts IDispatch
             ob = Dispatch(engine.GetScriptDispatch())
             try:
                 ob.hello("Goober")
-                self.failUnless(
+                self.assertTrue(
                     expected_exc is None,
                     "Expected %r, but no exception seen" % (expected_exc,),
                 )
@@ -205,7 +205,7 @@ class EngineTester(win32com.test.util.TestCase):
 
             self.assertEqual(str(ob.prop), "Property Value")
             ob.testcollection()
-            self.failUnless(not echoer.fail_called, "Fail should not have been called")
+            self.assertTrue(not echoer.fail_called, "Fail should not have been called")
 
             # Now make sure my engines can evaluate stuff.
             result = engine.eParse.ParseScriptText(

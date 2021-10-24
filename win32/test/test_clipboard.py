@@ -38,12 +38,12 @@ class TestBitmap(unittest.TestCase):
         self.bmp_name = os.path.join(
             os.path.abspath(this_dir), "..", "Demos", "images", "smiley.bmp"
         )
-        self.failUnless(os.path.isfile(self.bmp_name), self.bmp_name)
+        self.assertTrue(os.path.isfile(self.bmp_name), self.bmp_name)
         flags = win32con.LR_DEFAULTSIZE | win32con.LR_LOADFROMFILE
         self.bmp_handle = win32gui.LoadImage(
             0, self.bmp_name, win32con.IMAGE_BITMAP, 0, 0, flags
         )
-        self.failUnless(self.bmp_handle, "Failed to get a bitmap handle")
+        self.assertTrue(self.bmp_handle, "Failed to get a bitmap handle")
 
     def tearDown(self):
         if self.bmp_handle:
@@ -54,7 +54,7 @@ class TestBitmap(unittest.TestCase):
         try:
             SetClipboardData(win32con.CF_BITMAP, self.bmp_handle)
             got_handle = GetClipboardDataHandle(win32con.CF_BITMAP)
-            self.failUnlessEqual(got_handle, self.bmp_handle)
+            self.assertEqual(got_handle, self.bmp_handle)
         finally:
             CloseClipboard()
 
@@ -69,7 +69,7 @@ class TestStrings(unittest.TestCase):
     def test_unicode(self):
         val = "test-\a9har"
         SetClipboardData(win32con.CF_UNICODETEXT, val)
-        self.failUnlessEqual(GetClipboardData(win32con.CF_UNICODETEXT), val)
+        self.assertEqual(GetClipboardData(win32con.CF_UNICODETEXT), val)
 
     def test_unicode_text(self):
         val = "test-val"
@@ -77,14 +77,14 @@ class TestStrings(unittest.TestCase):
         # GetClipboardData doesn't to auto string conversions - so on py3k,
         # CF_TEXT returns bytes.
         expected = str2bytes(val)
-        self.failUnlessEqual(GetClipboardData(win32con.CF_TEXT), expected)
+        self.assertEqual(GetClipboardData(win32con.CF_TEXT), expected)
         SetClipboardText(val, win32con.CF_UNICODETEXT)
-        self.failUnlessEqual(GetClipboardData(win32con.CF_UNICODETEXT), val)
+        self.assertEqual(GetClipboardData(win32con.CF_UNICODETEXT), val)
 
     def test_string(self):
         val = str2bytes("test")
         SetClipboardData(win32con.CF_TEXT, val)
-        self.failUnlessEqual(GetClipboardData(win32con.CF_TEXT), val)
+        self.assertEqual(GetClipboardData(win32con.CF_TEXT), val)
 
 
 class TestGlobalMemory(unittest.TestCase):
@@ -100,26 +100,26 @@ class TestGlobalMemory(unittest.TestCase):
         SetClipboardData(win32con.CF_TEXT, val)
         # Get the raw data - this will include the '\0'
         raw_data = GetGlobalMemory(GetClipboardDataHandle(win32con.CF_TEXT))
-        self.failUnlessEqual(expected, raw_data)
+        self.assertEqual(expected, raw_data)
 
     def test_bad_mem(self):
-        self.failUnlessRaises(pywintypes.error, GetGlobalMemory, 0)
-        self.failUnlessRaises(pywintypes.error, GetGlobalMemory, -1)
+        self.assertRaises(pywintypes.error, GetGlobalMemory, 0)
+        self.assertRaises(pywintypes.error, GetGlobalMemory, -1)
         if sys.getwindowsversion()[0] <= 5:
             # For some reason, the value '1' dies from a 64bit process, but
             # "works" (ie, gives the correct exception) from a 32bit process.
             # just silently skip this value on Vista.
-            self.failUnlessRaises(pywintypes.error, GetGlobalMemory, 1)
+            self.assertRaises(pywintypes.error, GetGlobalMemory, 1)
 
     def test_custom_mem(self):
         test_data = str2bytes("hello\x00\xff")
         test_buffer = array.array("b", test_data)
         cf = RegisterClipboardFormat(custom_format_name)
-        self.failUnlessEqual(custom_format_name, GetClipboardFormatName(cf))
+        self.assertEqual(custom_format_name, GetClipboardFormatName(cf))
         SetClipboardData(cf, test_buffer)
         hglobal = GetClipboardDataHandle(cf)
         data = GetGlobalMemory(hglobal)
-        self.failUnlessEqual(data, test_data)
+        self.assertEqual(data, test_data)
 
 
 if __name__ == "__main__":

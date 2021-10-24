@@ -12,7 +12,7 @@ import datetime
 class CurrentUserTestCase(unittest.TestCase):
     def testGetCurrentUser(self):
         name = "%s\\%s" % (win32api.GetDomainName(), win32api.GetUserName())
-        self.failUnless(name == win32api.GetUserNameEx(win32api.NameSamCompatible))
+        self.assertTrue(name == win32api.GetUserNameEx(win32api.NameSamCompatible))
 
 
 class TestTime(unittest.TestCase):
@@ -123,11 +123,11 @@ class Registry(unittest.TestCase):
         )
         ret_code = win32event.WaitForSingleObject(evt, 0)
         # Should be no change.
-        self.failUnless(ret_code == win32con.WAIT_TIMEOUT)
+        self.assertTrue(ret_code == win32con.WAIT_TIMEOUT)
         change()
         # Our event should now be in a signalled state.
         ret_code = win32event.WaitForSingleObject(evt, 0)
-        self.failUnless(ret_code == win32con.WAIT_OBJECT_0)
+        self.assertTrue(ret_code == win32con.WAIT_OBJECT_0)
 
 
 class FileNames(unittest.TestCase):
@@ -139,17 +139,17 @@ class FileNames(unittest.TestCase):
         fname = os.path.abspath(me).lower()
         short_name = win32api.GetShortPathName(fname).lower()
         long_name = win32api.GetLongPathName(short_name).lower()
-        self.failUnless(
+        self.assertTrue(
             long_name == fname,
             "Expected long name ('%s') to be original name ('%s')" % (long_name, fname),
         )
-        self.failUnlessEqual(long_name, win32api.GetLongPathNameW(short_name).lower())
+        self.assertEqual(long_name, win32api.GetLongPathNameW(short_name).lower())
         long_name = win32api.GetLongPathNameW(short_name).lower()
-        self.failUnless(
+        self.assertTrue(
             type(long_name) == str,
             "GetLongPathNameW returned type '%s'" % (type(long_name),),
         )
-        self.failUnless(
+        self.assertTrue(
             long_name == fname,
             "Expected long name ('%s') to be original name ('%s')" % (long_name, fname),
         )
@@ -162,19 +162,19 @@ class FileNames(unittest.TestCase):
         fname = os.path.abspath(me).lower()
         # passing unicode should cause GetShortPathNameW to be called.
         short_name = win32api.GetShortPathName(str(fname)).lower()
-        self.failUnless(isinstance(short_name, str))
+        self.assertTrue(isinstance(short_name, str))
         long_name = win32api.GetLongPathName(short_name).lower()
-        self.failUnless(
+        self.assertTrue(
             long_name == fname,
             "Expected long name ('%s') to be original name ('%s')" % (long_name, fname),
         )
-        self.failUnlessEqual(long_name, win32api.GetLongPathNameW(short_name).lower())
+        self.assertEqual(long_name, win32api.GetLongPathNameW(short_name).lower())
         long_name = win32api.GetLongPathNameW(short_name).lower()
-        self.failUnless(
+        self.assertTrue(
             type(long_name) == str,
             "GetLongPathNameW returned type '%s'" % (type(long_name),),
         )
-        self.failUnless(
+        self.assertTrue(
             long_name == fname,
             "Expected long name ('%s') to be original name ('%s')" % (long_name, fname),
         )
@@ -205,10 +205,10 @@ class FileNames(unittest.TestCase):
                     raise
 
             attr = win32api.GetFileAttributes(str(fname))
-            self.failUnless(attr & win32con.FILE_ATTRIBUTE_DIRECTORY, attr)
+            self.assertTrue(attr & win32con.FILE_ATTRIBUTE_DIRECTORY, attr)
 
             long_name = win32api.GetLongPathNameW(fname)
-            self.failUnlessEqual(long_name.lower(), fname.lower())
+            self.assertEqual(long_name.lower(), fname.lower())
         finally:
             win32file.RemoveDirectory(fname)
 
@@ -231,15 +231,15 @@ class Misc(unittest.TestCase):
     def test_last_error(self):
         for x in (0, 1, -1, winerror.TRUST_E_PROVIDER_UNKNOWN):
             win32api.SetLastError(x)
-            self.failUnlessEqual(x, win32api.GetLastError())
+            self.assertEqual(x, win32api.GetLastError())
 
     def testVkKeyScan(self):
         # hopefully ' ' doesn't depend on the locale!
-        self.failUnlessEqual(win32api.VkKeyScan(" "), 32)
+        self.assertEqual(win32api.VkKeyScan(" "), 32)
 
     def testVkKeyScanEx(self):
         # hopefully ' ' doesn't depend on the locale!
-        self.failUnlessEqual(win32api.VkKeyScanEx(" ", 0), 32)
+        self.assertEqual(win32api.VkKeyScanEx(" ", 0), 32)
 
 
 if __name__ == "__main__":

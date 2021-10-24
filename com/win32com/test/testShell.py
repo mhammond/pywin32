@@ -243,26 +243,26 @@ class FileOperationTester(win32com.test.util.TestCase):
         s = (0, FO_COPY, self.src_name, self.dest_name)  # hwnd,  # operation
 
         rc, aborted = shell.SHFileOperation(s)
-        self.failUnless(not aborted)
-        self.failUnlessEqual(0, rc)
-        self.failUnless(os.path.isfile(self.src_name))
-        self.failUnless(os.path.isfile(self.dest_name))
+        self.assertTrue(not aborted)
+        self.assertEqual(0, rc)
+        self.assertTrue(os.path.isfile(self.src_name))
+        self.assertTrue(os.path.isfile(self.dest_name))
 
     def testRename(self):
         s = (0, FO_RENAME, self.src_name, self.dest_name)  # hwnd,  # operation
         rc, aborted = shell.SHFileOperation(s)
-        self.failUnless(not aborted)
-        self.failUnlessEqual(0, rc)
-        self.failUnless(os.path.isfile(self.dest_name))
-        self.failUnless(not os.path.isfile(self.src_name))
+        self.assertTrue(not aborted)
+        self.assertEqual(0, rc)
+        self.assertTrue(os.path.isfile(self.dest_name))
+        self.assertTrue(not os.path.isfile(self.src_name))
 
     def testMove(self):
         s = (0, FO_MOVE, self.src_name, self.dest_name)  # hwnd,  # operation
         rc, aborted = shell.SHFileOperation(s)
-        self.failUnless(not aborted)
-        self.failUnlessEqual(0, rc)
-        self.failUnless(os.path.isfile(self.dest_name))
-        self.failUnless(not os.path.isfile(self.src_name))
+        self.assertTrue(not aborted)
+        self.assertEqual(0, rc)
+        self.assertTrue(os.path.isfile(self.dest_name))
+        self.assertTrue(not os.path.isfile(self.src_name))
 
     def testDelete(self):
         s = (
@@ -273,9 +273,9 @@ class FileOperationTester(win32com.test.util.TestCase):
             FOF_NOCONFIRMATION,
         )
         rc, aborted = shell.SHFileOperation(s)
-        self.failUnless(not aborted)
-        self.failUnlessEqual(0, rc)
-        self.failUnless(not os.path.isfile(self.src_name))
+        self.assertTrue(not aborted)
+        self.assertEqual(0, rc)
+        self.assertTrue(not os.path.isfile(self.src_name))
 
 
 if __name__ == "__main__":

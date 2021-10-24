@@ -59,14 +59,14 @@ class TestCase(unittest.TestCase):
         for attr, typ in attrs:
             val = getattr(item, attr)
             if typ is int:
-                self.failUnless(
+                self.assertTrue(
                     type(val) in (int,), "Attr %r has value %r" % (attr, val)
                 )
                 new_val = val + 1
             elif typ is str:
                 if val is not None:
                     # on py2k, must be string or unicode.  py3k must be string or bytes.
-                    self.failUnless(
+                    self.assertTrue(
                         type(val) in (str, str), "Attr %r has value %r" % (attr, val)
                     )
                     new_val = val + " new value"
@@ -104,13 +104,13 @@ class TestCase(unittest.TestCase):
         la_enum = netbios.LANA_ENUM()
         ncb.Buffer = la_enum
         rc = win32wnet.Netbios(ncb)
-        self.failUnlessEqual(rc, 0)
+        self.assertEqual(rc, 0)
         for i in range(la_enum.length):
             ncb.Reset()
             ncb.Command = netbios.NCBRESET
             ncb.Lana_num = netbios.byte_to_int(la_enum.lana[i])
             rc = Netbios(ncb)
-            self.failUnlessEqual(rc, 0)
+            self.assertEqual(rc, 0)
             ncb.Reset()
             ncb.Command = netbios.NCBASTAT
             ncb.Lana_num = byte_to_int(la_enum.lana[i])
@@ -119,7 +119,7 @@ class TestCase(unittest.TestCase):
             ncb.Buffer = adapter
             Netbios(ncb)
             # expect 6 bytes in the mac address.
-            self.failUnless(len(adapter.adapter_address), 6)
+            self.assertTrue(len(adapter.adapter_address), 6)
 
     def iterConnectableShares(self):
         nr = win32wnet.NETRESOURCE()
