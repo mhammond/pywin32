@@ -13,7 +13,6 @@
 // It will either be an integer, or a long integer, depending on the size.
 
 #include "PyWinTypes.h"
-#include "longintrepr.h"
 
 #ifdef __MINGW32__
 #define __int64 long long
