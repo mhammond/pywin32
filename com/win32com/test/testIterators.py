@@ -16,14 +16,14 @@ class _BaseTestCase(win32com.test.util.TestCase):
         got = []
         for v in iter:
             got.append(v)
-        self.assertEquals(got, self.expected_data)
+        self.assertEqual(got, self.expected_data)
 
     def test_yield(self):
         ob, i = self.iter_factory()
         got = []
         for v in iter(i):
             got.append(v)
-        self.assertEquals(got, self.expected_data)
+        self.assertEqual(got, self.expected_data)
 
     def _do_test_nonenum(self, object):
         try:
@@ -126,7 +126,7 @@ class WrappedPythonCOMServerTestCase(_BaseTestCase):
 def suite():
     # We dont want our base class run
     suite = unittest.TestSuite()
-    for item in globals().values():
+    for item in list(globals().values()):
         if (
             type(item) == type(unittest.TestCase)
             and issubclass(item, unittest.TestCase)

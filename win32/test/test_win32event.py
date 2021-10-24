@@ -34,34 +34,34 @@ class TestWaitFunctions(unittest.TestCase):
     def testMsgWaitForMultipleObjects(self):
         # this function used to segfault when called with an empty list
         res = win32event.MsgWaitForMultipleObjects([], 0, 0, 0)
-        self.assertEquals(res, win32event.WAIT_TIMEOUT)
+        self.assertEqual(res, win32event.WAIT_TIMEOUT)
 
     def testMsgWaitForMultipleObjects2(self):
         # test with non-empty list
         event = win32event.CreateEvent(None, 0, 0, None)
         res = win32event.MsgWaitForMultipleObjects([event], 0, 0, 0)
-        self.assertEquals(res, win32event.WAIT_TIMEOUT)
+        self.assertEqual(res, win32event.WAIT_TIMEOUT)
 
     def testMsgWaitForMultipleObjectsEx(self):
         # this function used to segfault when called with an empty list
         res = win32event.MsgWaitForMultipleObjectsEx([], 0, 0, 0)
-        self.assertEquals(res, win32event.WAIT_TIMEOUT)
+        self.assertEqual(res, win32event.WAIT_TIMEOUT)
 
     def testMsgWaitForMultipleObjectsEx2(self):
         # test with non-empty list
         event = win32event.CreateEvent(None, 0, 0, None)
         res = win32event.MsgWaitForMultipleObjectsEx([event], 0, 0, 0)
-        self.assertEquals(res, win32event.WAIT_TIMEOUT)
+        self.assertEqual(res, win32event.WAIT_TIMEOUT)
 
 
 class TestEvent(unittest.TestCase):
     def assertSignaled(self, event):
-        self.assertEquals(
+        self.assertEqual(
             win32event.WaitForSingleObject(event, 0), win32event.WAIT_OBJECT_0
         )
 
     def assertNotSignaled(self, event):
-        self.assertEquals(
+        self.assertEqual(
             win32event.WaitForSingleObject(event, 0), win32event.WAIT_TIMEOUT
         )
 
@@ -79,7 +79,7 @@ class TestEvent(unittest.TestCase):
         event = win32event.CreateEvent(None, True, False, None)
         self.assertNotSignaled(event)
         res = win32event.SetEvent(event)
-        self.assertEquals(res, None)
+        self.assertEqual(res, None)
         self.assertSignaled(event)
         event.close()
         self.assertRaises(pywintypes.error, win32event.SetEvent, event)
@@ -88,7 +88,7 @@ class TestEvent(unittest.TestCase):
         event = win32event.CreateEvent(None, True, True, None)
         self.assertSignaled(event)
         res = win32event.ResetEvent(event)
-        self.assertEquals(res, None)
+        self.assertEqual(res, None)
         self.assertNotSignaled(event)
         event.close()
         self.assertRaises(pywintypes.error, win32event.ResetEvent, event)

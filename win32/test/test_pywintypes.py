@@ -18,7 +18,7 @@ class TestCase(unittest.TestCase):
         for fmt in format_strings.split():
             v1 = pytime_current.Format(fmt)
             v2 = time.strftime(fmt, struct_current)
-            self.assertEquals(v1, v2, "format %s failed - %r != %r" % (fmt, v1, v2))
+            self.assertEqual(v1, v2, "format %s failed - %r != %r" % (fmt, v1, v2))
 
     def testPyTimePrint(self):
         # This used to crash with an invalid, or too early time.
@@ -85,7 +85,7 @@ class TestCase(unittest.TestCase):
         s = "{00020400-0000-0000-C000-000000000046}"
         iid = pywintypes.IID(s)
         iid2 = pywintypes.IID(ob2memory(iid), True)
-        self.assertEquals(iid, iid2)
+        self.assertEqual(iid, iid2)
         self.assertRaises(
             ValueError, pywintypes.IID, str2bytes("00"), True
         )  # too short

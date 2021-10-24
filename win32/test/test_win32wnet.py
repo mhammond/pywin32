@@ -53,7 +53,7 @@ NCB_attributes = [
 
 class TestCase(unittest.TestCase):
     def testGetUser(self):
-        self.assertEquals(win32api.GetUserName(), win32wnet.WNetGetUser())
+        self.assertEqual(win32api.GetUserName(), win32wnet.WNetGetUser())
 
     def _checkItemAttributes(self, item, attrs):
         for attr, typ in attrs:

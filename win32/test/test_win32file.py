@@ -59,7 +59,7 @@ class TestSimpleOps(unittest.TestCase):
                 None,
             )
             rc, data = win32file.ReadFile(handle, 1024)
-            self.assertEquals(data, test_data)
+            self.assertEqual(data, test_data)
         finally:
             handle.Close()
             try:
@@ -929,7 +929,7 @@ class TestTransmit(unittest.TestCase):
         self.assertEqual(length, len(buf))
         expected = val + aaa + val + bbb + val + val + ccc + ddd + val
         self.assertEqual(type(expected), type(buf))
-        self.assert_(expected == buf)
+        self.assertEqual(expected, buf)
 
 
 class TestWSAEnumNetworkEvents(unittest.TestCase):
@@ -937,8 +937,8 @@ class TestWSAEnumNetworkEvents(unittest.TestCase):
         s = socket.socket()
         e = win32event.CreateEvent(None, 1, 0, None)
         win32file.WSAEventSelect(s, e, 0)
-        self.assertEquals(win32file.WSAEnumNetworkEvents(s), {})
-        self.assertEquals(win32file.WSAEnumNetworkEvents(s, e), {})
+        self.assertEqual(win32file.WSAEnumNetworkEvents(s), {})
+        self.assertEqual(win32file.WSAEnumNetworkEvents(s, e), {})
         self.assertRaises(TypeError, win32file.WSAEnumNetworkEvents, s, e, 3)
         self.assertRaises(TypeError, win32file.WSAEnumNetworkEvents, s, "spam")
         self.assertRaises(TypeError, win32file.WSAEnumNetworkEvents, "spam", e)
@@ -950,13 +950,13 @@ class TestWSAEnumNetworkEvents(unittest.TestCase):
         try:
             win32file.WSAEnumNetworkEvents(h)
         except win32file.error as e:
-            self.assertEquals(e.winerror, win32file.WSAENOTSOCK)
+            self.assertEqual(e.winerror, win32file.WSAENOTSOCK)
         try:
             win32file.WSAEnumNetworkEvents(s, h)
         except win32file.error as e:
             # According to the docs it would seem reasonable that
             # this would fail with WSAEINVAL, but it doesn't.
-            self.assertEquals(e.winerror, win32file.WSAENOTSOCK)
+            self.assertEqual(e.winerror, win32file.WSAENOTSOCK)
 
     def test_functional(self):
         # This is not really a unit test, but it does exercise the code
@@ -983,12 +983,12 @@ class TestWSAEnumNetworkEvents(unittest.TestCase):
             | win32file.FD_CLOSE,
         )
         err = client.connect_ex(port.getsockname())
-        self.assertEquals(err, win32file.WSAEWOULDBLOCK)
+        self.assertEqual(err, win32file.WSAEWOULDBLOCK)
 
         res = win32event.WaitForSingleObject(port_event, 1000)
-        self.assertEquals(res, win32event.WAIT_OBJECT_0)
+        self.assertEqual(res, win32event.WAIT_OBJECT_0)
         events = win32file.WSAEnumNetworkEvents(port, port_event)
-        self.assertEquals(events, {win32file.FD_ACCEPT: 0})
+        self.assertEqual(events, {win32file.FD_ACCEPT: 0})
 
         server, addr = port.accept()
         server.setblocking(0)
@@ -999,14 +999,14 @@ class TestWSAEnumNetworkEvents(unittest.TestCase):
             win32file.FD_READ | win32file.FD_WRITE | win32file.FD_CLOSE,
         )
         res = win32event.WaitForSingleObject(server_event, 1000)
-        self.assertEquals(res, win32event.WAIT_OBJECT_0)
+        self.assertEqual(res, win32event.WAIT_OBJECT_0)
         events = win32file.WSAEnumNetworkEvents(server, server_event)
-        self.assertEquals(events, {win32file.FD_WRITE: 0})
+        self.assertEqual(events, {win32file.FD_WRITE: 0})
 
         res = win32event.WaitForSingleObject(client_event, 1000)
-        self.assertEquals(res, win32event.WAIT_OBJECT_0)
+        self.assertEqual(res, win32event.WAIT_OBJECT_0)
         events = win32file.WSAEnumNetworkEvents(client, client_event)
-        self.assertEquals(events, {win32file.FD_CONNECT: 0, win32file.FD_WRITE: 0})
+        self.assertEqual(events, {win32file.FD_CONNECT: 0, win32file.FD_WRITE: 0})
         sent = 0
         data = str2bytes("x") * 16 * 1024
         while sent < 16 * 1024 * 1024:
@@ -1023,12 +1023,12 @@ class TestWSAEnumNetworkEvents(unittest.TestCase):
             self.fail("could not find socket buffer limit")
 
         events = win32file.WSAEnumNetworkEvents(client)
-        self.assertEquals(events, {})
+        self.assertEqual(events, {})
 
         res = win32event.WaitForSingleObject(server_event, 1000)
-        self.assertEquals(res, win32event.WAIT_OBJECT_0)
+        self.assertEqual(res, win32event.WAIT_OBJECT_0)
         events = win32file.WSAEnumNetworkEvents(server, server_event)
-        self.assertEquals(events, {win32file.FD_READ: 0})
+        self.assertEqual(events, {win32file.FD_READ: 0})
 
         received = 0
         while received < sent:
@@ -1040,18 +1040,18 @@ class TestWSAEnumNetworkEvents(unittest.TestCase):
                 else:
                     raise
 
-        self.assertEquals(received, sent)
+        self.assertEqual(received, sent)
         events = win32file.WSAEnumNetworkEvents(server)
-        self.assertEquals(events, {})
+        self.assertEqual(events, {})
 
         res = win32event.WaitForSingleObject(client_event, 1000)
-        self.assertEquals(res, win32event.WAIT_OBJECT_0)
+        self.assertEqual(res, win32event.WAIT_OBJECT_0)
         events = win32file.WSAEnumNetworkEvents(client, client_event)
-        self.assertEquals(events, {win32file.FD_WRITE: 0})
+        self.assertEqual(events, {win32file.FD_WRITE: 0})
 
         client.shutdown(socket.SHUT_WR)
         res = win32event.WaitForSingleObject(server_event, 1000)
-        self.assertEquals(res, win32event.WAIT_OBJECT_0)
+        self.assertEqual(res, win32event.WAIT_OBJECT_0)
         # strange timing issues...
         for i in range(5):
             events = win32file.WSAEnumNetworkEvents(server, server_event)
@@ -1060,19 +1060,19 @@ class TestWSAEnumNetworkEvents(unittest.TestCase):
             win32api.Sleep(100)
         else:
             raise AssertionError("failed to get events")
-        self.assertEquals(events, {win32file.FD_CLOSE: 0})
+        self.assertEqual(events, {win32file.FD_CLOSE: 0})
         events = win32file.WSAEnumNetworkEvents(client)
-        self.assertEquals(events, {})
+        self.assertEqual(events, {})
 
         server.close()
         res = win32event.WaitForSingleObject(client_event, 1000)
-        self.assertEquals(res, win32event.WAIT_OBJECT_0)
+        self.assertEqual(res, win32event.WAIT_OBJECT_0)
         events = win32file.WSAEnumNetworkEvents(client, client_event)
-        self.assertEquals(events, {win32file.FD_CLOSE: 0})
+        self.assertEqual(events, {win32file.FD_CLOSE: 0})
 
         client.close()
         events = win32file.WSAEnumNetworkEvents(port)
-        self.assertEquals(events, {})
+        self.assertEqual(events, {})
 
 
 if __name__ == "__main__":

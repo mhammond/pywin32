@@ -19,7 +19,7 @@ class InterpCase(win32com.test.util.TestCase):
         RegisterPythonServer(interp.__file__, "Python.Interpreter")
 
     def _testInterp(self, interp):
-        self.assertEquals(interp.Eval("1+1"), 2)
+        self.assertEqual(interp.Eval("1+1"), 2)
         win32com.test.util.assertRaisesCOM_HRESULT(
             self, winerror.DISP_E_TYPEMISMATCH, interp.Eval, 2
         )
