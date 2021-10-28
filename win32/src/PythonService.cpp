@@ -1535,6 +1535,7 @@ int _tmain(int argc, TCHAR **argv)
     wchar_t **program = CommandLineToArgvW(GetCommandLineW(), &dummy);
     if (program != NULL) {
         Py_SetProgramName(program[0]);
+        // do not free `program` since Py_SetProgramName does not copy it.
     }
     Py_Initialize();
     PyEval_InitThreads();
