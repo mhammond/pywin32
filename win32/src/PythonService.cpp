@@ -1531,6 +1531,12 @@ int _tmain(int argc, TCHAR **argv)
     PyThreadState *threadState;
     HMODULE hmod;
     FARPROC proc;
+    int dummy;
+    wchar_t **program = CommandLineToArgvW(GetCommandLineW(), &dummy);
+    if (program != NULL) {
+        Py_SetProgramName(program[0]);
+        // do not free `program` since Py_SetProgramName does not copy it.
+    }
     Py_Initialize();
     PyEval_InitThreads();
     module = PyImport_ImportModule("servicemanager");
