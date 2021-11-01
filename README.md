@@ -14,6 +14,12 @@ See [CHANGES.txt](https://github.com/mhammond/pywin32/blob/master/CHANGES.txt) f
 
 Only Python 3 is supported. If you want Python 2 support, you want build `228`.
 
+## Docs
+
+The docs are a long and sad story, but [there's now an online version](https://mhammond.github.io/pywin32/)
+of the helpfile that ships with the installers (thanks [@ofek](https://github.com/mhammond/pywin32/pull/1774)!).
+Lots of that is very old, but some is auto-generated and current. Would love help untangling the docs!
+
 ## Support
 
 Feel free to [open issues](https://github.com/mhammond/pywin32/issues) for
@@ -44,6 +50,21 @@ This will make some small attempts to cleanup older conflicting installs.
 Note that if you want to use pywin32 for "system wide" features, such as
 registering COM objects or implementing Windows Services, then you must run
 that command from an elevated (ie, "Run as Administrator) command prompt.
+
+### `The specified procedure could not be found` / `Entry-point not found` Errors?
+A very common report is that people install pywin32, but many imports fail with errors
+similar to the above.
+
+In almost all cases, this tends to mean there are other pywin32 DLLs installed in your system,
+but in a different location than the new ones. This sometimes happens in environments that
+come with pywin32 pre-shipped (eg, anaconda?).
+
+The possible solutions are:
+
+* Run the "post_install" script documented above.
+
+* Otherwise, find and remove all other copies of `pywintypesXX.dll` and `pythoncomXX.dll`
+(where `XX` is the Python version - eg, "39")
 
 ## Building from source
 
