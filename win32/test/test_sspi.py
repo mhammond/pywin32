@@ -13,7 +13,7 @@ def applyHandlingSkips(func, *args):
     try:
         return func(*args)
     except win32api.error as exc:
-        if exc.winerror == sspicon.SEC_E_NO_CREDENTIALS:
+        if exc.winerror in [sspicon.SEC_E_NO_CREDENTIALS, sspicon.SEC_E_NO_AUTHENTICATING_AUTHORITY]:
             raise TestSkipped(exc)
         raise
 

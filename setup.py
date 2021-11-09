@@ -513,7 +513,7 @@ class WinExt_win32com_mapi(WinExt_win32com):
                 kw.setdefault("library_dirs", []).insert(0, d)
 
         # The stand-alone exchange SDK has these libs
-        if distutils.util.get_platform() == "win-amd64":
+        if distutils.util.get_platform() in ["win-amd64", "win-arm64"]:
             # Additional utility functions are only available for 32-bit builds.
             pass
         else:
@@ -603,7 +603,7 @@ class my_build_ext(build_ext):
         # build_ext.include_dirs should 'win' over the compiler's dirs.
         assert self.compiler.initialized  # if not, our env changes will be lost!
 
-        is_64bit = self.plat_name == "win-amd64"
+        is_64bit = self.plat_name in ["win-amd64", "win-arm64"]
         for extra in sdk_info["include"]:
             # should not be possible for the SDK dirs to already be in our
             # include_dirs - they may be in the registry etc from MSVC, but
@@ -628,7 +628,7 @@ class my_build_ext(build_ext):
         # Exclude exchange 32-bit utility libraries from 64-bit
         # builds. Note that the exchange module now builds, but only
         # includes interfaces for 64-bit builds.
-        if self.plat_name == "win-amd64" and ext.name == "exchdapi":
+        if self.plat_name in ["win-amd64", "win-arm64"] and ext.name == "exchdapi":
             return "No 64-bit library for utility functions available."
         if get_build_version() >= 14:
             if ext.name == "exchange":
@@ -640,6 +640,11 @@ class my_build_ext(build_ext):
         # just skip it.
         if ext.name == "axdebug" and sys.version_info > (3, 10):
             return "AXDebug no longer builds on 3.11 and up"
+
+        # winxpgui cannot be build for win-arm64 due to manifest file conflicts
+        # skip extension as we probably don't want this extension for win-arm64 platforms
+        if self.plat_name == "win-arm64" and ext.name == "winxpgui":
+            return "winxpgui extension cannot be build for win-arm64"
 
         include_dirs = self.compiler.include_dirs + os.environ.get("INCLUDE", "").split(
             os.pathsep
@@ -1242,7 +1247,7 @@ class my_build_ext(build_ext):
                 "-dnone",
             )  # we never use the .doc files.
             swig_cmd.extend(self.current_extension.extra_swig_commands)
-            if distutils.util.get_platform() == "win-amd64":
+            if distutils.util.get_platform() in ["win-amd64", "win-arm64"]:
                 swig_cmd.append("-DSWIG_PY64BIT")
             else:
                 swig_cmd.append("-DSWIG_PY32BIT")
@@ -1338,7 +1343,14 @@ def my_new_compiler(**kw):
 
 
 # No way to cleanly wedge our compiler sub-class in.
-from distutils import ccompiler, msvccompiler
+from distutils import ccompiler
+
+# distutils is deprecated and not updated with win/arm64 support so use
+# setuptools distutils for arm64 builds
+if distutils.util.get_platform() == "win-arm64":
+    from setuptools._distutils import _msvccompiler as msvccompiler
+else:
+    from distutils import msvccompiler
 
 orig_new_compiler = ccompiler.new_compiler
 ccompiler.new_compiler = my_new_compiler

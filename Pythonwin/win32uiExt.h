@@ -316,7 +316,7 @@ class CPythonWndFramework : public T {
         }
     }
     afx_msg
-#ifdef _M_X64  // add one more thing to things I don't understand..
+#ifdef _WIN64  // add one more thing to things I don't understand..
         LRESULT
 #else
         UINT
