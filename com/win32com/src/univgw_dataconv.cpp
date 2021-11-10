@@ -152,7 +152,7 @@ static inline bool SizeOfVT(VARTYPE vt, int *pitem_size, int *pstack_size)
     }
 #ifdef _M_IX86
     int stack_size = (item_size < 4) ? 4 : item_size;
-#elif _M_X64
+#elif defined(_M_X64) || defined(_M_ARM64)
     // params > 64bits passed by address, and only VT_VARIANT is > 64bits.
     assert((item_size <= 8) || ((vt & VT_TYPEMASK) == VT_VARIANT));
     if (item_size > 8)
@@ -596,7 +596,7 @@ PyObject *dataconv_ReadFromInTuple(PyObject *self, PyObject *args)
         vtArgType = (VARTYPE)PyLong_AS_LONG(obArgType);
 #ifdef _M_IX86
         bIsByRef = vtArgType & VT_BYREF;
-#elif _M_X64
+#elif defined(_M_X64) || defined(_M_ARM64)
         // params > 64bits always passed by address - and the only
         // arg we support > 64 bits is a VARIANT structure.
         bIsByRef = (vtArgType == VT_VARIANT) || (vtArgType & VT_BYREF);

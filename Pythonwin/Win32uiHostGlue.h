@@ -133,6 +133,8 @@ inline BOOL Win32uiHostGlue::DynamicApplicationInit(const TCHAR *cmd, const TCHA
         _T("..\\..\\.."),  // lib\site-packages\pythonwin
 #ifdef _M_X64
         _T("..\\..\\..\\PCBuild\\amd64"),
+#elif defined(_M_ARM64)
+        _T("..\\..\\..\\PCBuild\\arm64"),
 #else
         _T("..\\..\\..\\PCBuild"),
 #endif
@@ -140,6 +142,8 @@ inline BOOL Win32uiHostGlue::DynamicApplicationInit(const TCHAR *cmd, const TCHA
         _T(""),
 #ifdef _M_X64
         _T("PCBuild\\amd64"),
+#elif defined(_M_ARM64)
+        _T("PCBuild\\arm64"),
 #else
         _T("PCBuild"),
 #endif

@@ -10,7 +10,7 @@
 // (although replacing transact.h with a later Platform SDK
 // version does *not* give the error.  Whatever.
 #include "transact.h"
-#ifndef _M_X64
+#if !defined(_M_X64) && !defined(_M_ARM64)
 #include "afxdao.h"
 #endif
 
@@ -88,7 +88,7 @@ static PyObject *DaoGetEngine(PyObject *self, PyObject *args)
 {
     CHECK_NO_ARGS2(args, "DaoGetEngine");
 
-#ifdef _M_X64
+#if defined(_M_X64) || defined(_M_ARM64)
     return NULL;
 #else
     AfxDaoInit();
