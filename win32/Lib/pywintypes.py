@@ -79,13 +79,24 @@ def __import_pywin32_system_module__(modname, globs):
             # easy_install...
             if os.path.isfile(os.path.join(os.path.dirname(__file__), filename)):
                 found = os.path.join(os.path.dirname(__file__), filename)
+
+        # There are 2 site-packages directories - one "global" and one "user".
+        # We could be in either, or both (but with different versions!). Factors include
+        # virtualenvs, post-install script being run or not, `setup.py install` flags, etc.
+
+        # In a worst-case, it means, say 'python -c "import win32api"'
+        # will not work but 'python -c "import pywintypes, win32api"' will,
+        # but it's better than nothing.
+        # We prefer the "user" site-packages if it exists...
         if found is None:
-            # We might have been installed via PIP and without the post-install
-            # script having been run, so they might be in the
-            # lib/site-packages/pywin32_system32 directory.
-            # This isn't ideal as it means, say 'python -c "import win32api"'
-            # will not work but 'python -c "import pywintypes, win32api"' will,
-            # but it's better than nothing...
+            import site
+
+            maybe = os.path.join(site.USER_SITE, "pywin32_system32", filename)
+            if os.path.isfile(maybe):
+                found = maybe
+
+        # Or the "global" site-packages.
+        if found is None:
             import sysconfig
 
             maybe = os.path.join(
@@ -93,6 +104,7 @@ def __import_pywin32_system_module__(modname, globs):
             )
             if os.path.isfile(maybe):
                 found = maybe
+
         if found is None:
             # give up in disgust.
             raise ImportError("No system module '%s' (%s)" % (modname, filename))
