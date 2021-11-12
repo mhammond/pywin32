@@ -484,6 +484,15 @@ def install(lib_dir):
             "You don't have enough permissions to install the system files"
         )
 
+    # Also copies the pythonXXX.dll to system32 if not already present
+    base = "python%d%d.dll" % (sys.version_info.major, sys.version_info.minor)
+    fname = os.path.join(sys.prefix, base)
+    dst = os.path.join(get_system_dir(), base)
+    CopyTo("installing %s" % base, fname, dst)
+    if verbose:
+        print("Copied %s to %s" % (base, dst))
+    # unlike for pywintypes and pycomtypes, we don't register pythonXXX.dll with the uninstaller
+
     # Pythonwin 'compiles' config files - record them for uninstall.
     pywin_dir = os.path.join(lib_dir, "Pythonwin", "pywin")
     for fname in glob.glob(os.path.join(pywin_dir, "*.cfg")):
