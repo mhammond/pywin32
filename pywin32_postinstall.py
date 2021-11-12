@@ -488,9 +488,10 @@ def install(lib_dir):
     base = "python%d%d.dll" % (sys.version_info.major, sys.version_info.minor)
     fname = os.path.join(sys.prefix, base)
     dst = os.path.join(get_system_dir(), base)
-    CopyTo("installing %s" % base, fname, dst)
-    if verbose:
-        print("Copied %s to %s" % (base, dst))
+    if not os.path.exists(dst):
+        CopyTo("installing %s" % base, fname, dst)
+        if verbose:
+            print("Copied %s to %s" % (base, dst))
     # unlike for pywintypes and pycomtypes, we don't register pythonXXX.dll with the uninstaller
 
     # Pythonwin 'compiles' config files - record them for uninstall.
