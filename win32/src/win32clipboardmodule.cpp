@@ -535,7 +535,19 @@ static PyObject *py_get_clipboard_owner(PyObject *self, PyObject *args)
     // @rdesc If the function succeeds, the return value is the handle of the
     // window that owns the clipboard.
     // If the function fails, win32api.error is raised with the GetLastError
-    // info.
+    // info.<nl>
+    // If there is no current owner, the function will fail with a `win32api.error`
+    // with `winerror` set to 0 - in other words, the function will never return
+    // None. This behaviour was not intentional but is being retained for backwards
+    // compatibility.
+    // @ex This example shows how to handle the fact an owner may be null while
+    // still handing real exceptions:|
+    // try:
+    //     owner = win32clipboard.GetClipboardOwner()
+    // except win32api.error as e:
+    //     if e.winerror != 0:
+    //        raise
+    //     owner = None
 }
 
 //*****************************************************************************
