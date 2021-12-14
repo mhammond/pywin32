@@ -62,7 +62,6 @@ if api.onIronPython:
     def getIndexedValue(obj, index):
         return obj.Item[index]
 
-
 else:  # try pywin32
     try:
         import win32com.client

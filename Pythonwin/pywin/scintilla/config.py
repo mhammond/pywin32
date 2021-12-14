@@ -29,7 +29,6 @@ if debugging:
     def trace(*args):
         sys.stderr.write(" ".join(map(str, args)) + "\n")
 
-
 else:
     trace = lambda *args: None
 

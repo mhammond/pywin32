@@ -24,7 +24,6 @@ if sys.version[0] >= "3":  # python 3.x
     def _failUnless(self, expr, msg=None):
         self.assertTrue(expr, msg)
 
-
 else:  # python 2.x
     from exceptions import Exception as _BaseException
 

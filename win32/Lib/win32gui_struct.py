@@ -45,7 +45,6 @@ try:
         nt = namedtuple(names[0], names[1:])
         return nt(*values)
 
-
 except ImportError:
     # no namedtuple support - just return the values as a normal tuple.
     def _MakeResult(names_str, values):
@@ -74,7 +73,6 @@ if win32gui.UNICODE:
         data = (text + "\0").encode("utf-16le")
         return array.array("b", data)
 
-
 else:
 
     def _make_text_buffer(text):
@@ -95,7 +93,6 @@ if sys.version_info < (3, 0):
 
     def _make_bytes(sval):
         return sval
-
 
 else:
 

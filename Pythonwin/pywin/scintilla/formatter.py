@@ -21,7 +21,6 @@ if debugging:
     def trace(*args):
         win32trace.write(" ".join(map(str, args)) + "\n")
 
-
 else:
     trace = lambda *args: None
 
