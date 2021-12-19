@@ -35,6 +35,9 @@ note that you must be subscribed to the list before posting.
 ## Binaries
 By far the easiest way to use pywin32 is to grab binaries from the [most recent release](https://github.com/mhammond/pywin32/releases)
 
+Note that there are no 32-bit binary installers for 3.10 and later - see
+[this github issue](https://github.com/mhammond/pywin32/issues/1805)
+
 ## Installing via PIP
 
 You can install pywin32 via pip:

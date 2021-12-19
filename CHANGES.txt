@@ -6,6 +6,10 @@ However contributors are encouraged to add their own entries for their work.
 
 Note that build 228 was the last version supporting Python 2.
 
+Since build 302:
+----------------
+* Binary installers for 32-bit 3.10+ are no longer released (#1805)
+
 Since build 301:
 ----------------
 * Fixed support for unicode as a `win32crypt.CREDENTIAL_ATTRIBUTE.Value`
