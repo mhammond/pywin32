@@ -11,6 +11,9 @@ Since build 302:
 * Tweaks to how DLLs are loaded and our installation found, which should
   improve virtualenv support and version mismatch issues (#1787, #1794)
 
+* Fixed a bug where `win32clipboard.GetClipboardData()` may have returned extra
+  data.
+
 * Binary installers for 32-bit 3.10+ are no longer released (#1805)
 
 Since build 301:
