@@ -393,14 +393,15 @@ static PyObject *py_get_clipboard_data(PyObject *self, PyObject *args)
             }
             GlobalUnlock(handle);
             break;
+        // The text formats are documented as terminating with \0, which may be less
+        // than the size, so can't pass a length (#1804)
         case CF_UNICODETEXT:
-            ret = PyUnicode_FromWideChar((wchar_t *)cData, (size / sizeof(wchar_t)) - 1);
+            ret = PyUnicode_FromWideChar((wchar_t *)cData, -1);
             GlobalUnlock(handle);
             break;
-        // For the text formats, strip the null!
         case CF_TEXT:
         case CF_OEMTEXT:
-            ret = PyBytes_FromStringAndSize((char *)cData, size - 1);
+            ret = PyBytes_FromString((char *)cData);
             GlobalUnlock(handle);
             break;
         default:
