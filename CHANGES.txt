@@ -8,6 +8,9 @@ Note that build 228 was the last version supporting Python 2.
 
 Since build 302:
 ----------------
+* Tweaks to how DLLs are loaded and our installation found, which should
+  improve virtualenv support and version mismatch issues (#1787, #1794)
+
 * Binary installers for 32-bit 3.10+ are no longer released (#1805)
 
 Since build 301:
