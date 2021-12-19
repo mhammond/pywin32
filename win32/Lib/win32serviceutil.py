@@ -8,11 +8,58 @@
 
 import win32service, win32api, win32con, winerror
 import sys, pywintypes, os, warnings
+import importlib
 
 error = RuntimeError
 
+# We need to find a `pythonservice.exe` to register as a service. Now that the
+# 90's have passed, we really can't assume that pythonXX.dll/pywintypesXX.dll
+# etc are all in SYSTEM32. pythonservice.exe isn't, by default, in a place where
+# these DLLs are likely to be found in a service context.
+
+# We could try and have the postinstall script copy the .exe? But I guess the
+# number of users is tiny and everyone else doesn't need the extra .exe hanging
+# around on the PATH.
+# So - just make noise.
+noise = """
+**** WARNING ****
+The executable at "{exe}" is being used as a service.
+
+This executable doesn't have pythonXX.dll and/or pywintypesXX.dll in the same
+directory. This is likely to fail when used in the context of a service.
+
+The exact environment needed will depend on which user runs the service and
+where Python is installed. If the service fails to run, this will be why.
+
+NOTE: You should consider copying this executable to the directory where these
+DLLs live - "{good}" might be a good place.
+****
+"""
+
 
 def LocatePythonServiceExe(exeName=None):
+    found = _LocatePythonServiceExe(exeName)
+    where = os.path.dirname(found)
+    under_d = "_d" if "_d.pyd" in importlib.machinery.EXTENSION_SUFFIXES else ""
+    suffix = "%s%s%s.dll" % (
+        sys.version_info[0],
+        sys.version_info[1],
+        under_d,
+    )
+    # If someone isn't using pythonservice.exe we assume they know what they are doing.
+    if found != sys.executable and (
+        not os.path.exists(os.path.join(where, "python{}".format(suffix)))
+        or not os.path.exists(os.path.join(where, "pywintypes{}".format(suffix)))
+    ):
+        print(
+            noise.format(exe=found, good=os.path.dirname(pywintypes.__file__)),
+            file=sys.stderr,
+        )
+
+    return found
+
+
+def _LocatePythonServiceExe(exeName=None):
     if not exeName and hasattr(sys, "frozen"):
         # If py2exe etc calls this with no exeName, default is current exe.
         return sys.executable

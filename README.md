@@ -66,6 +66,17 @@ The possible solutions are:
 * Otherwise, find and remove all other copies of `pywintypesXX.dll` and `pythoncomXX.dll`
 (where `XX` is the Python version - eg, "39")
 
+### Running as a Windows Service
+
+Modern Python installers do not, by default, install Python in a way that is suitable for
+running as a service, particularly for other users.
+
+* Ensure Python is installed in a location where the user running the service has
+  access to the installation and is able to load `pywintypesXX.dll` and `pythonXX.dll`.
+
+* Manually copy `pythonservice.exe` from the `site-packages/win32` directory to
+  the same place as these DLLs.
+
 ## Building from source
 
 Building from source has been simplified recently - you just need Visual Studio
