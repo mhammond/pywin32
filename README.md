@@ -67,7 +67,7 @@ The possible solutions are:
 * Run the "post_install" script documented above.
 
 * Otherwise, find and remove all other copies of `pywintypesXX.dll` and `pythoncomXX.dll`
-(where `XX` is the Python version - eg, "39")
+  (where `XX` is the Python version - eg, "39")
 
 ### Running as a Windows Service
 
