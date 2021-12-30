@@ -21,14 +21,20 @@ static PyObject *PyGetModuleFilename(PyObject *self, PyObject *args)
 {
     // For py3k, will be built with UNICODE defined
 #ifdef UNICODE
-    static char *fmt = "u";
-#else
-    static char *fmt = "s";
-#endif
+    PyObject *nameobj;
 
-    TCHAR *modName = NULL;
-    if (!PyArg_ParseTuple(args, fmt, &modName))
+    if (!PyArg_ParseTuple(args, "U", &nameobj))
         return NULL;
+
+    TCHAR *modName = PyUnicode_AsWideCharString(nameobj, NULL);
+    if (!modName)
+        return NULL;
+#else
+    TCHAR *modName = NULL;
+    if (!PyArg_ParseTuple(args, "s", &modName))
+        return NULL;
+#endif
+    
     HINSTANCE hinst = GetModuleHandle(modName);
     if (hinst == NULL) {
         Py_INCREF(Py_None);
@@ -49,13 +55,19 @@ static PyObject *PyGetModuleFilename(PyObject *self, PyObject *args)
 static PyObject *PyLoadModule(PyObject *self, PyObject *args)
 {
 #ifdef UNICODE
-    static char *fmt = "u";
-#else
-    static char *fmt = "s";
-#endif
-    TCHAR *modName = NULL;
-    if (!PyArg_ParseTuple(args, fmt, &modName))
+    PyObject *nameobj;
+
+    if (!PyArg_ParseTuple(args, "U", &nameobj))
         return NULL;
+
+    TCHAR *modName = PyUnicode_AsWideCharString(nameobj, NULL);
+    if (!modName)
+        return NULL;
+#else
+    TCHAR *modName = NULL;
+    if (!PyArg_ParseTuple(args, "s", &modName))
+        return NULL;
+#endif
 
     // Python 3.7 vs 3.8 use different flags for LoadLibraryEx and we match them.
     // See github issue 1787.
