@@ -21,9 +21,18 @@ static PyObject *PyGetModuleFilename(PyObject *self, PyObject *args)
 {
     // For py3k, will be built with UNICODE defined
 #ifdef UNICODE
-    static char *fmt = "u";
+    PyObject *nameobj;
+
+    if (!PyArg_ParseTuple(args, "U", &nameobj))
+        return NULL;
+
+    TCHAR *modName = PyUnicode_AsWideCharString(nameobj, NULL);
+    if (!modName)
+        return NULL;
 #else
-    static char *fmt = "s";
+    TCHAR *modName = NULL;
+    if (!PyArg_ParseTuple(args, "s", &modName))
+        return NULL;
 #endif
 
     TCHAR *modName = NULL;
@@ -49,10 +58,20 @@ static PyObject *PyGetModuleFilename(PyObject *self, PyObject *args)
 static PyObject *PyLoadModule(PyObject *self, PyObject *args)
 {
 #ifdef UNICODE
-    static char *fmt = "u";
+    PyObject *nameobj;
+
+    if (!PyArg_ParseTuple(args, "U", &nameobj))
+        return NULL;
+
+    TCHAR *modName = PyUnicode_AsWideCharString(nameobj, NULL);
+    if (!modName)
+        return NULL;
 #else
-    static char *fmt = "s";
+    TCHAR *modName = NULL;
+    if (!PyArg_ParseTuple(args, "s", &modName))
+        return NULL;
 #endif
+    
     TCHAR *modName = NULL;
     if (!PyArg_ParseTuple(args, fmt, &modName))
         return NULL;
