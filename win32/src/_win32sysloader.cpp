@@ -19,21 +19,13 @@ See pywintypes.py for more information.
 // GetModuleHandle and GetModuleFilename rolled into 1
 static PyObject *PyGetModuleFilename(PyObject *self, PyObject *args)
 {
-    // For py3k, will be built with UNICODE defined
-#ifdef UNICODE
     PyObject *nameobj;
-
     if (!PyArg_ParseTuple(args, "U", &nameobj))
         return NULL;
 
     TCHAR *modName = PyUnicode_AsWideCharString(nameobj, NULL);
     if (!modName)
         return NULL;
-#else
-    TCHAR *modName = NULL;
-    if (!PyArg_ParseTuple(args, "s", &modName))
-        return NULL;
-#endif
     
     HINSTANCE hinst = GetModuleHandle(modName);
     if (hinst == NULL) {
@@ -45,29 +37,19 @@ static PyObject *PyGetModuleFilename(PyObject *self, PyObject *args)
         Py_INCREF(Py_None);
         return Py_None;
     }
-#ifdef UNICODE
+
     return PyUnicode_FromUnicode(buf, wcslen(buf));
-#else
-    return PyBytes_FromString(buf);
-#endif
 }
 
 static PyObject *PyLoadModule(PyObject *self, PyObject *args)
 {
-#ifdef UNICODE
     PyObject *nameobj;
-
     if (!PyArg_ParseTuple(args, "U", &nameobj))
         return NULL;
 
     TCHAR *modName = PyUnicode_AsWideCharString(nameobj, NULL);
     if (!modName)
         return NULL;
-#else
-    TCHAR *modName = NULL;
-    if (!PyArg_ParseTuple(args, "s", &modName))
-        return NULL;
-#endif
 
     // Python 3.7 vs 3.8 use different flags for LoadLibraryEx and we match them.
     // See github issue 1787.
@@ -88,11 +70,8 @@ static PyObject *PyLoadModule(PyObject *self, PyObject *args)
         Py_INCREF(Py_None);
         return Py_None;
     }
-#ifdef UNICODE
+
     return PyUnicode_FromUnicode(buf, wcslen(buf));
-#else
-    return PyBytes_FromString(buf);
-#endif
 }
 
 static struct PyMethodDef functions[] = {
