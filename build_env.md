@@ -48,6 +48,7 @@ way to build pywin32 - it's build process should find these tools automatically.
           - In the menue to the right, check:
               - `MSVCv142 - VS 2019 C++ x64/x86 build tools`
               - `Windows 10 SDK`
+              - If building for ARM64 (optional): `MSVCv142 - VS 2019 C++ ARM64 build tools`
         - Press `Install` (~ 4.6 GB shown in the overview, but ~ 1.1 GB shown during download)
 - Restart your virus scanner
 - Restart
@@ -86,3 +87,23 @@ One everything is setup, just execute:
 % python setup.py -q install
 
 from the pywin32 directory.
+
+## Cross-compiling for ARM64 (Microsoft Visual C++ 14.1 and up)
+- Follow the `For Visual Studio 2019` instructions above and pick the optional ARM64 build tools
+- Follow one option from below to get Python for ARM64:
+  1. Build Python for ARM64 and x86/x64 from source:
+    - Follow steps 1-4 from [here](https://docs.microsoft.com/en-us/windows/iot-core/developer-tools/python#using-python-on-windows-iot-core-arm64) and stop after you have built for x86/x64 using `pcbuild\build.bat`
+  2. Download prebuilt Python ARM64 binaries:
+    - Download a Python ARM64 version aligned with the x86/x64 version you want to use for building. Download [NuGet package](https://www.nuget.org/packages/pythonarm64/) until Python.org starts including Windows ARM64 output
+    - Change .nupkg file to .zip extension
+    - Unzip package
+    - Set an environment variable PYTHON_CROSS_LIBS_DIR to point to the Python ARM64 libraries:
+      > set "PYTHON_CROSS_LIBS_DIR=C:\path\to\extractedpythonnuget\tools\libs"
+- Setup the cross-compilation environment:
+  > "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\vc\Auxiliary\Build\vcvarsall.bat" x86_arm64
+- Build:
+  > python setup.py build --plat-name win-arm64
+- Install data files:
+  > python setup.py install_data --install-dir build\lib.win-arm64-3.xx
+- Install:
+  > xcopy /e build\lib.win-arm64-3.xx\\* C:\path\to\pythonarm64\Lib\site-packages\

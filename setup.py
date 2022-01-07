@@ -92,20 +92,14 @@ from distutils.filelist import FileList
 from distutils.errors import DistutilsExecError, DistutilsSetupError
 import distutils.util
 
-# We patch distutils's EXT_SUFFIX variable back to `.pyd`
-# Before 3.10, there was a hack to force this:
-# > distutils.sysconfig.get_config_vars()['EXT_SUFFIX'] = '.pyd'
-# Long story short, that no longer works after 3.10, and we just start shipping
-# `modulename.cp-blah.pyd`
-
-# (Side-node - strangely, for all versions:
-# > distutils.sysconfig.get_config_vars()['EXT_SUFFIX'] == '.cp-blah.pyd'
-# > sysconfig.get_config_vars()['EXT_SUFFIX'] -> '.pyd'
-# So be careful trying to replace `distutils.sysconfig` with `sysconfig`!
 from distutils.sysconfig import get_config_vars, get_config_var
 
-if sys.version_info < (3, 10):
-    get_config_vars()["EXT_SUFFIX"] = ".pyd"
+# Remove the suffix cpxx-win((32)|(_amd64)) to allow cross-compiled output
+# to run on the target platform.
+# For example, cross-compiling for ARM64 in an AMD64 machine outputs
+# win32api.cp310-win_amd64.pyd by default. That cannot be imported in an
+# ARM64 machine even if the binary itself is built for ARM64.
+get_config_vars()["EXT_SUFFIX"] = ".pyd"
 
 build_id_patch = build_id
 if not "." in build_id_patch:
@@ -601,7 +595,12 @@ class my_build_ext(build_ext):
         # build_ext.include_dirs should 'win' over the compiler's dirs.
         assert self.compiler.initialized  # if not, our env changes will be lost!
 
-        is_64bit = self.plat_name in ["win-amd64", "win-arm64"]
+        PLAT_TO_ARCH_DIR = {
+            "win32": "x86",
+            "win-amd64": "x64",
+            "win-arm64": "arm64",
+        }
+        arch_dir = PLAT_TO_ARCH_DIR[self.plat_name]
         for extra in sdk_info["include"]:
             # should not be possible for the SDK dirs to already be in our
             # include_dirs - they may be in the registry etc from MSVC, but
@@ -612,11 +611,22 @@ class my_build_ext(build_ext):
             self.compiler.add_include_dir(extra)
         # and again for lib dirs.
         for extra in sdk_info["lib"]:
-            extra = os.path.join(extra, "x64" if is_64bit else "x86")
+            extra = os.path.join(extra, arch_dir)
             assert os.path.isdir(extra), extra
             assert extra not in self.library_dirs  # see above
             assert os.path.isdir(extra), "%s doesn't exist!" % (extra,)
             self.compiler.add_library_dir(extra)
+
+        # User-specified environment variable to map to the target
+        # platform's Python\libs folder. This allows cross-compiling via
+        # binary installed interpreters.
+        if "PYTHON_CROSS_LIBS_DIR" in os.environ:
+            extra = os.environ["PYTHON_CROSS_LIBS_DIR"]
+            assert os.path.isdir(extra), extra
+            # Insert at the beginning because distutils adds the running
+            # Python's libs by default, which conflict with the target
+            # platform when we are cross-compiling.
+            self.compiler.library_dirs.insert(0, extra)
 
         log.debug("After SDK processing, includes are %s", self.compiler.include_dirs)
         log.debug("After SDK processing, libs are %s", self.compiler.library_dirs)
@@ -1072,18 +1082,7 @@ class my_build_ext(build_ext):
                 )
                 needed = "%s%s" % (ext.name, extra)
             elif ext.name in ("win32ui",):
-                # For 3.9 and earlier, we are already creating the correct name
-                # For 3.10 and later, we need to convert from ".cp310-win_amd64.pyd"
-                # and remove the .cp part.
-                if sys.version_info >= (3, 10):
-                    created = (
-                        ext.name
-                        + os.path.splitext(get_config_var("EXT_SUFFIX"))[0]
-                        + extra
-                    )
-                    needed = ext.name + extra
-                else:
-                    created = needed = ext.name + extra
+                created = needed = ext.name + extra
             else:
                 created = needed = None
             if created is not None:
@@ -1296,7 +1295,7 @@ from distutils import ccompiler
 
 # distutils is deprecated and not updated with win/arm64 support so use
 # setuptools distutils for arm64 builds
-if distutils.util.get_platform() == "win-arm64":
+if distutils.util.get_platform() == "win-arm64" or "win-arm64" in "".join(sys.argv):
     from setuptools._distutils import _msvccompiler as msvccompiler
 else:
     from distutils import msvccompiler
