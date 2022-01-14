@@ -119,7 +119,6 @@ def __import_pywin32_system_module__(modname, globs):
     spec.loader.exec_module(mod)
 
     # Check the sys.modules[] behaviour we describe above is true...
-    assert sys.modules[modname] is not old_mod
     assert sys.modules[modname] is mod
     # as above - re-reset to the *old* module object then update globs.
     sys.modules[modname] = old_mod
