@@ -229,7 +229,7 @@ class TestMultipleThreadsWriting(unittest.TestCase):
 
 class TestHugeChunks(unittest.TestCase):
     # BiggestChunk is the size where we stop stressing the writer
-    BiggestChunk = 2 ** 16  # 256k should do it.
+    BiggestChunk = 2**16  # 256k should do it.
 
     def setUp(self):
         SkipIfCI()
