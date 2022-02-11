@@ -73,14 +73,14 @@ from setuptools import setup
 from distutils.core import Extension
 from distutils.command.install import install
 from distutils.command.install_lib import install_lib
-from distutils.command.build_ext import build_ext
+from setuptools.command.build_ext import build_ext
 from distutils.command.build_py import build_py
 from distutils.command.build import build
 from distutils.command.install_data import install_data
 from distutils.command.build_scripts import build_scripts
 
-from distutils.msvccompiler import get_build_version
 from distutils import log
+
 
 # some modules need a static CRT to avoid problems caused by them having a
 # manifest.
@@ -198,7 +198,7 @@ def find_platform_sdk_dir():
 # the manifest - even without a reference to the CRT assembly - is enough
 # to prevent the extension from loading.  For more details, see
 # http://bugs.python.org/issue7833
-from distutils.msvc9compiler import MSVCCompiler
+from distutils._msvccompiler import MSVCCompiler
 
 MSVCCompiler._orig_spawn = MSVCCompiler.spawn
 
@@ -303,7 +303,7 @@ class WinExt(Extension):
         delay_load_libraries="",
     ):
         include_dirs = ["com/win32com/src/include", "win32/src"] + include_dirs
-        libraries = libraries.split()
+        libraries = libraries.split() + ["atls"]
         self.delay_load_libraries = delay_load_libraries.split()
         libraries.extend(self.delay_load_libraries)
 
@@ -564,6 +564,10 @@ class my_build_ext(build_ext):
         if not hasattr(self, "plat_name"):
             # Old Python version that doesn't support cross-compile
             self.plat_name = distutils.util.get_platform()
+        self.plat_dir = {
+            "win-amd64": "x64",
+            "win-arm64": "arm64",
+        }.get(self.plat_name, "x86")
 
     def _fixup_sdk_dirs(self):
         # Adjust paths etc for the platform SDK - the default paths used by
@@ -601,7 +605,6 @@ class my_build_ext(build_ext):
         # build_ext.include_dirs should 'win' over the compiler's dirs.
         assert self.compiler.initialized  # if not, our env changes will be lost!
 
-        is_64bit = self.plat_name in ["win-amd64", "win-arm64"]
         for extra in sdk_info["include"]:
             # should not be possible for the SDK dirs to already be in our
             # include_dirs - they may be in the registry etc from MSVC, but
@@ -612,7 +615,7 @@ class my_build_ext(build_ext):
             self.compiler.add_include_dir(extra)
         # and again for lib dirs.
         for extra in sdk_info["lib"]:
-            extra = os.path.join(extra, "x64" if is_64bit else "x86")
+            extra = os.path.join(extra, self.plat_dir)
             assert os.path.isdir(extra), extra
             assert extra not in self.library_dirs  # see above
             assert os.path.isdir(extra), "%s doesn't exist!" % (extra,)
@@ -628,11 +631,8 @@ class my_build_ext(build_ext):
         # includes interfaces for 64-bit builds.
         if self.plat_name in ["win-amd64", "win-arm64"] and ext.name == "exchdapi":
             return "No 64-bit library for utility functions available."
-        if get_build_version() >= 14:
-            if ext.name == "exchange":
-                ext.libraries.append("legacy_stdio_definitions")
-            elif ext.name == "exchdapi":
-                return "Haven't worked out how to build on vs2015"
+        if ext.name == "exchdapi":
+            return "Haven't worked out how to build on vs2015"
         # axdebug fails to build on 3.11 due to Python "frame" objects changing.
         # This could be fixed, but is almost certainly not in use any more, so
         # just skip it.
@@ -735,7 +735,21 @@ class my_build_ext(build_ext):
 
     def lookupMfcInVisualStudio(self, mfc_version, mfc_libraries):
         # Looking for the MFC files in the installation paths of the Visual Studios
-        plat_dir_64 = "x64"
+        # Find the redist directory.
+        mfc_files = subprocess.check_output([
+            os.path.expandvars(r'%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe'),
+            '-utf8',
+            '-prerelease',
+            '-find',
+            r'VC\Redist\MSVC\*\{}\*\mfc140u.dll'.format(self.plat_dir),
+        ], encoding='utf-8').splitlines()
+        try:
+            mfc_dir = os.path.split(mfc_files[-1])[0]
+            return [os.path.join(mfc_dir, p) for p in os.listdir(mfc_dir)]
+        except IndexError:
+            pass
+
+        # Looking for the MFC files in the installation paths of the Visual Studios
         mfc_dir = "Microsoft.{}.MFC".format(mfc_version.upper())
         mfc_contents = []
         # Here is where we'd match the Python version aganst the MSVC version,
@@ -749,10 +763,6 @@ class my_build_ext(build_ext):
         access = winreg.KEY_READ
         if sys.getwindowsversion()[0] >= 5:
             access = access | 512  # KEY_WOW64_32KEY
-        if self.plat_name == "win-amd64":
-            plat_dir = plat_dir_64
-        else:
-            plat_dir = "x86"
         # Find the redist directory.
         vckey = winreg.OpenKey(
             winreg.HKEY_LOCAL_MACHINE,
@@ -761,7 +771,7 @@ class my_build_ext(build_ext):
             access,
         )
         val = winreg.QueryValueEx(vckey, "ProductDir")[0]
-        mfc_dir = os.path.join(val, "redist", plat_dir, mfc_dir)
+        mfc_dir = os.path.join(val, "redist", self.plat_dir, mfc_dir)
         if os.path.isdir(mfc_dir):
             # Ensuring absolute paths
             mfc_contents = [os.path.join(mfc_dir, mfc_file) for mfc_file in mfc_files]
@@ -1077,8 +1087,7 @@ class my_build_ext(build_ext):
                 # and remove the .cp part.
                 if sys.version_info >= (3, 10):
                     created = (
-                        ext.name
-                        + os.path.splitext(get_config_var("EXT_SUFFIX"))[0]
+                        os.path.splitext(self.get_ext_filename(ext.name))[0]
                         + extra
                     )
                     needed = ext.name + extra
@@ -1294,17 +1303,10 @@ def my_new_compiler(**kw):
 # No way to cleanly wedge our compiler sub-class in.
 from distutils import ccompiler
 
-# distutils is deprecated and not updated with win/arm64 support so use
-# setuptools distutils for arm64 builds
-if distutils.util.get_platform() == "win-arm64":
-    from setuptools._distutils import _msvccompiler as msvccompiler
-else:
-    from distutils import msvccompiler
-
 orig_new_compiler = ccompiler.new_compiler
 ccompiler.new_compiler = my_new_compiler
 
-base_compiler = msvccompiler.MSVCCompiler
+base_compiler = MSVCCompiler
 
 
 class my_compiler(base_compiler):
@@ -1329,8 +1331,7 @@ class my_compiler(base_compiler):
         *args,
         **kw
     ):
-        msvccompiler.MSVCCompiler.link(
-            self,
+        super().link(
             target_desc,
             objects,
             output_filename,
@@ -1384,7 +1385,7 @@ class my_compiler(base_compiler):
             return (e, b)
 
         sources = sorted(sources, key=key_reverse_mc)
-        return msvccompiler.MSVCCompiler.compile(self, sources, **kwargs)
+        return MSVCCompiler.compile(self, sources, **kwargs)
 
 
 ################################################################
@@ -1935,7 +1936,7 @@ com_extensions += [
     ),
     WinExt_win32com_mapi(
         "exchange",
-        libraries="advapi32",
+        libraries="advapi32 legacy_stdio_definitions",
         include_dirs=["%(mapi)s/mapi_headers" % dirs],
         sources=(
             """

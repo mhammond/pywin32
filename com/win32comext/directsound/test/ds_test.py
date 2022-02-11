@@ -322,7 +322,12 @@ class DirectSoundTest(unittest.TestCase):
             hdr = f.read(WAV_HEADER_SIZE)
             wfx, size = wav_header_unpack(hdr)
 
-            d = ds.DirectSoundCreate(None, None)
+            try:
+                d = ds.DirectSoundCreate(None, None)
+            except pythoncom.com_error as exc:
+                if exc.hresult != ds.DSERR_NODRIVER:
+                    raise
+                raise TestSkipped(exc)
             d.SetCooperativeLevel(None, ds.DSSCL_PRIORITY)
 
             sdesc = ds.DSBUFFERDESC()

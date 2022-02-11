@@ -12,7 +12,8 @@ import datetime
 class CurrentUserTestCase(unittest.TestCase):
     def testGetCurrentUser(self):
         name = "%s\\%s" % (win32api.GetDomainName(), win32api.GetUserName())
-        self.assertTrue(name == win32api.GetUserNameEx(win32api.NameSamCompatible))
+        name2 = "NT AUTHORITY\\%s" % win32api.GetUserName()
+        self.assertIn(win32api.GetUserNameEx(win32api.NameSamCompatible), (name, name2))
 
 
 class TestTime(unittest.TestCase):
