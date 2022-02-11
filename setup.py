@@ -1024,6 +1024,10 @@ class my_build_ext(build_ext):
                     extra,
                 )
                 needed = "%s%s" % (ext.name, extra)
+            elif ext.name in ("win32ui",):
+                # We do not need to change the name, but we want to trigger
+                # the following block to copy our .lib file up one directory
+                created = needed = ext.name + extra
             else:
                 created = needed = None
             if created is not None:
