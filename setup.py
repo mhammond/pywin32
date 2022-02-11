@@ -104,9 +104,6 @@ import distutils.util
 # So be careful trying to replace `distutils.sysconfig` with `sysconfig`!
 from distutils.sysconfig import get_config_vars, get_config_var
 
-if sys.version_info < (3, 10):
-    get_config_vars()["EXT_SUFFIX"] = ".pyd"
-
 build_id_patch = build_id
 if not "." in build_id_patch:
     build_id_patch = build_id_patch + ".0"
@@ -192,69 +189,6 @@ def find_platform_sdk_dir():
     include.append(os.path.join(installRoot, "include", ver, "shared"))
     lib = [os.path.join(installRoot, "lib", ver, "um")]
     return {"include": include, "lib": lib}
-
-
-# Some nasty hacks to prevent most of our extensions using a manifest, as
-# the manifest - even without a reference to the CRT assembly - is enough
-# to prevent the extension from loading.  For more details, see
-# http://bugs.python.org/issue7833
-from distutils._msvccompiler import MSVCCompiler
-
-MSVCCompiler._orig_spawn = MSVCCompiler.spawn
-
-# We need to override this method for versions where issue7833 *has* landed
-# (ie, 2.7 and 3.2+)
-def manifest_get_embed_info(self, target_desc, ld_args):
-    _want_assembly_kept = getattr(self, "_want_assembly_kept", False)
-    if not _want_assembly_kept:
-        return None
-    for arg in ld_args:
-        if arg.startswith("/MANIFESTFILE:"):
-            orig_manifest = arg.split(":", 1)[1]
-            if target_desc == self.EXECUTABLE:
-                rid = 1
-            else:
-                rid = 2
-            return orig_manifest, rid
-    return None
-
-
-MSVCCompiler.manifest_get_embed_info = manifest_get_embed_info
-
-
-def monkeypatched_spawn(self, cmd):
-    is_link = cmd[0].endswith("link.exe") or cmd[0].endswith('"link.exe"')
-    is_mt = cmd[0].endswith("mt.exe") or cmd[0].endswith('"mt.exe"')
-    _want_assembly_kept = getattr(self, "_want_assembly_kept", False)
-    if is_mt:
-        # We don't want mt.exe run...
-        return
-    if is_link:
-        # remove /MANIFESTFILE:... and add MANIFEST:NO
-        # (but note that for winxpgui, which specifies a manifest via a
-        # .rc file, this is ignored by the linker - the manifest specified
-        # in the .rc file is still added)
-        for i in range(len(cmd)):
-            if cmd[i].startswith("/MANIFESTFILE:"):
-                cmd[i] = "/MANIFEST:NO"
-                break
-    if is_mt:
-        # We want mt.exe run with the original manifest
-        for i in range(len(cmd)):
-            if cmd[i] == "-manifest":
-                cmd[i + 1] = cmd[i + 1] + ".orig"
-                break
-    self._orig_spawn(cmd)
-    if is_link:
-        # We want a copy of the original manifest so we can use it later.
-        for i in range(len(cmd)):
-            if cmd[i].startswith("/MANIFESTFILE:"):
-                mfname = cmd[i][14:]
-                shutil.copyfile(mfname, mfname + ".orig")
-                break
-
-
-MSVCCompiler.spawn = monkeypatched_spawn
 
 
 sdk_info = find_platform_sdk_dir()
@@ -734,22 +668,31 @@ class my_build_ext(build_ext):
         )
 
     def lookupMfcInVisualStudio(self, mfc_version, mfc_libraries):
-        # Looking for the MFC files in the installation paths of the Visual Studios
-        # Find the redist directory.
-        mfc_files = subprocess.check_output([
-            os.path.expandvars(r'%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe'),
-            '-utf8',
-            '-prerelease',
-            '-find',
-            r'VC\Redist\MSVC\*\{}\*\mfc140u.dll'.format(self.plat_dir),
-        ], encoding='utf-8').splitlines()
+        # Find the redist directory by locating mfc140u.dll in modern Visual Studio
+        # installations.
         try:
+            mfc_files = subprocess.check_output(
+                [
+                    os.path.expandvars(
+                        r"%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe"
+                    ),
+                    "-utf8",
+                    "-prerelease",
+                    "-find",
+                    r"VC\Redist\MSVC\*\{}\*\mfc140u.dll".format(self.plat_dir),
+                ],
+                encoding="utf-8",
+            ).splitlines()
+            # When locating MFC redist this way, we include all files regardless
+            # of what was requested.
             mfc_dir = os.path.split(mfc_files[-1])[0]
             return [os.path.join(mfc_dir, p) for p in os.listdir(mfc_dir)]
-        except IndexError:
+        except (IndexError, OSError):
             pass
 
-        # Looking for the MFC files in the installation paths of the Visual Studios
+        # Looking for the MFC files in the installation paths of the Visual Studio
+        # It should be incredibly rare that the legacy registry key exists without
+        # the vswhere.exe utility, but we retain the registry lookup just in case.
         mfc_dir = "Microsoft.{}.MFC".format(mfc_version.upper())
         mfc_contents = []
         # Here is where we'd match the Python version aganst the MSVC version,
@@ -1087,8 +1030,7 @@ class my_build_ext(build_ext):
                 # and remove the .cp part.
                 if sys.version_info >= (3, 10):
                     created = (
-                        os.path.splitext(self.get_ext_filename(ext.name))[0]
-                        + extra
+                        os.path.splitext(self.get_ext_filename(ext.name))[0] + extra
                     )
                     needed = ext.name + extra
                 else:
@@ -1140,7 +1082,7 @@ class my_build_ext(build_ext):
             return "win32\\pythonservice" + extra_exe
         elif name.endswith("pythonwin.Pythonwin"):
             return "pythonwin\\Pythonwin" + extra_exe
-        return build_ext.get_ext_filename(self, name)
+        return name.replace(".", "\\") + ".pyd"
 
     def get_export_symbols(self, ext):
         if ext.is_regular_dll:
@@ -1302,6 +1244,7 @@ def my_new_compiler(**kw):
 
 # No way to cleanly wedge our compiler sub-class in.
 from distutils import ccompiler
+from distutils._msvccompiler import MSVCCompiler
 
 orig_new_compiler = ccompiler.new_compiler
 ccompiler.new_compiler = my_new_compiler
@@ -1386,6 +1329,37 @@ class my_compiler(base_compiler):
 
         sources = sorted(sources, key=key_reverse_mc)
         return MSVCCompiler.compile(self, sources, **kwargs)
+
+    def spawn(self, cmd):
+        is_link = cmd[0].endswith("link.exe") or cmd[0].endswith('"link.exe"')
+        is_mt = cmd[0].endswith("mt.exe") or cmd[0].endswith('"mt.exe"')
+        _want_assembly_kept = getattr(self, "_want_assembly_kept", False)
+        if is_mt:
+            # We don't want mt.exe run...
+            return
+        if is_link:
+            # remove /MANIFESTFILE:... and add MANIFEST:NO
+            # (but note that for winxpgui, which specifies a manifest via a
+            # .rc file, this is ignored by the linker - the manifest specified
+            # in the .rc file is still added)
+            for i in range(len(cmd)):
+                if cmd[i].startswith(("/MANIFESTFILE:", "/MANIFEST:EMBED")):
+                    cmd[i] = "/MANIFEST:NO"
+                    break
+        if is_mt:
+            # We want mt.exe run with the original manifest
+            for i in range(len(cmd)):
+                if cmd[i] == "-manifest":
+                    cmd[i + 1] = cmd[i + 1] + ".orig"
+                    break
+        super().spawn(cmd)
+        if is_link:
+            # We want a copy of the original manifest so we can use it later.
+            for i in range(len(cmd)):
+                if cmd[i].startswith("/MANIFESTFILE:"):
+                    mfname = cmd[i][14:]
+                    shutil.copyfile(mfname, mfname + ".orig")
+                    break
 
 
 ################################################################
