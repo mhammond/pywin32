@@ -1024,17 +1024,6 @@ class my_build_ext(build_ext):
                     extra,
                 )
                 needed = "%s%s" % (ext.name, extra)
-            elif ext.name in ("win32ui",):
-                # For 3.9 and earlier, we are already creating the correct name
-                # For 3.10 and later, we need to convert from ".cp310-win_amd64.pyd"
-                # and remove the .cp part.
-                if sys.version_info >= (3, 10):
-                    created = (
-                        os.path.splitext(self.get_ext_filename(ext.name))[0] + extra
-                    )
-                    needed = ext.name + extra
-                else:
-                    created = needed = ext.name + extra
             else:
                 created = needed = None
             if created is not None:
