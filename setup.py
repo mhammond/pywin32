@@ -485,7 +485,28 @@ class my_build(build):
 class my_build_ext(build_ext):
     def finalize_options(self):
         build_ext.finalize_options(self)
+
+        if not hasattr(self, "plat_name"):
+            # Old Python version that doesn't support cross-compile
+            self.plat_name = distutils.util.get_platform()
+        self.plat_dir = {
+            "win-amd64": "x64",
+            "win-arm64": "arm64",
+        }.get(self.plat_name, "x86")
+
         self.windows_h_version = None
+        # The afxres.h file isn't always included by default, so find it
+        # specifically and add it and its lib directory
+        afxres_h = self.lookupFileInVisualStudio(
+            r"VC\Tools\MSVC\*\ATLMFC\include\afxres.h"
+        )
+        if afxres_h:
+            self.include_dirs.append(os.path.dirname(afxres_h))
+            self.library_dirs.append(
+                os.path.join(
+                    os.path.dirname(os.path.dirname(afxres_h)), "lib", self.plat_dir
+                )
+            )
         # The pywintypes library is created in the build_temp
         # directory, so we need to add this to library_dirs
         self.library_dirs.append(self.build_temp)
@@ -495,13 +516,6 @@ class my_build_ext(build_ext):
 
         self.excluded_extensions = []  # list of (ext, why)
         self.swig_cpp = True  # hrm - deprecated - should use swig_opts=-c++??
-        if not hasattr(self, "plat_name"):
-            # Old Python version that doesn't support cross-compile
-            self.plat_name = distutils.util.get_platform()
-        self.plat_dir = {
-            "win-amd64": "x64",
-            "win-arm64": "arm64",
-        }.get(self.plat_name, "x86")
 
     def _fixup_sdk_dirs(self):
         # Adjust paths etc for the platform SDK - the default paths used by
@@ -667,11 +681,9 @@ class my_build_ext(build_ext):
             os.path.join(self.build_lib, "pythonwin"),
         )
 
-    def lookupMfcInVisualStudio(self, mfc_version, mfc_libraries):
-        # Find the redist directory by locating mfc140u.dll in modern Visual Studio
-        # installations.
+    def lookupFileInVisualStudio(self, pattern):
         try:
-            mfc_files = subprocess.check_output(
+            files = subprocess.check_output(
                 [
                     os.path.expandvars(
                         r"%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe"
@@ -679,13 +691,24 @@ class my_build_ext(build_ext):
                     "-utf8",
                     "-prerelease",
                     "-find",
-                    r"VC\Redist\MSVC\*\{}\*\mfc140u.dll".format(self.plat_dir),
+                    pattern,
                 ],
                 encoding="utf-8",
             ).splitlines()
+            return files[-1]
+        except (IndexError, OSError):
+            return None
+
+    def lookupMfcInVisualStudio(self, mfc_version, mfc_libraries):
+        # Find the redist directory by locating mfc140u.dll in modern Visual Studio
+        # installations.
+        try:
+            mfc_file = self.lookupFileInVisualStudio(
+                r"VC\Redist\MSVC\*\{}\*\mfc140u.dll".format(self.plat_dir)
+            )
             # When locating MFC redist this way, we include all files regardless
             # of what was requested.
-            mfc_dir = os.path.split(mfc_files[-1])[0]
+            mfc_dir = os.path.split(mfc_file)[0]
             return [os.path.join(mfc_dir, p) for p in os.listdir(mfc_dir)]
         except (IndexError, OSError):
             pass
