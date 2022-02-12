@@ -203,6 +203,25 @@ if not sdk_info:
     raise RuntimeError("Can't find the Windows SDK")
 
 
+def find_visual_studio_file(pattern):
+    try:
+        files = subprocess.check_output(
+            [
+                os.path.expandvars(
+                    r"%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe"
+                ),
+                "-utf8",
+                "-prerelease",
+                "-find",
+                pattern,
+            ],
+            encoding="utf-8",
+        ).splitlines()
+        return files[-1]
+    except (IndexError, OSError):
+        return None
+
+
 class WinExt(Extension):
     # Base class for all win32 extensions, with some predefined
     # library and include dirs, and predefined windows libraries.
@@ -497,7 +516,7 @@ class my_build_ext(build_ext):
         self.windows_h_version = None
         # The afxres.h file isn't always included by default, so find it
         # specifically and add it and its lib directory
-        afxres_h = self.lookupFileInVisualStudio(
+        afxres_h = find_visual_studio_file(
             r"VC\Tools\MSVC\*\ATLMFC\include\afxres.h"
         )
         if afxres_h:
@@ -663,11 +682,24 @@ class my_build_ext(build_ext):
         makeargs.append("SUB_DIR_BIN=%s" % build_temp)
         makeargs.append("DIR_PYTHON=%s" % sys.prefix)
 
+        nmake = "nmake.exe"
+        # Attempt to resolve nmake to the same one that our compiler object
+        # would use. compiler.spawn() ought to do this, but it does not search
+        # its own PATH value for the initial command. It does, however, set it
+        # correctly for any subsequent commands.
+        try:
+            for p in self.compiler._paths.split(os.pathsep):
+                if os.path.isfile(os.path.join(p, nmake)):
+                    nmake = os.path.join(p, nmake)
+                    break
+        except (AttributeError, TypeError):
+            pass
+
         cwd = os.getcwd()
         os.chdir(path)
         try:
-            cmd = ["nmake.exe", "/nologo", "/f", makefile] + makeargs
-            self.spawn(cmd)
+            cmd = [nmake, "/nologo", "/f", makefile] + makeargs
+            self.compiler.spawn(cmd)
         finally:
             os.chdir(cwd)
 
@@ -681,29 +713,11 @@ class my_build_ext(build_ext):
             os.path.join(self.build_lib, "pythonwin"),
         )
 
-    def lookupFileInVisualStudio(self, pattern):
-        try:
-            files = subprocess.check_output(
-                [
-                    os.path.expandvars(
-                        r"%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe"
-                    ),
-                    "-utf8",
-                    "-prerelease",
-                    "-find",
-                    pattern,
-                ],
-                encoding="utf-8",
-            ).splitlines()
-            return files[-1]
-        except (IndexError, OSError):
-            return None
-
     def lookupMfcInVisualStudio(self, mfc_version, mfc_libraries):
         # Find the redist directory by locating mfc140u.dll in modern Visual Studio
         # installations.
         try:
-            mfc_file = self.lookupFileInVisualStudio(
+            mfc_file = find_visual_studio_file(
                 r"VC\Redist\MSVC\*\{}\*\mfc140u.dll".format(self.plat_dir)
             )
             # When locating MFC redist this way, we include all files regardless

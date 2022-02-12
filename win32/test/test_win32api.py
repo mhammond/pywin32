@@ -1,7 +1,7 @@
 # General test module for win32api - please add some :)
 
 import unittest
-from pywin32_testutil import str2bytes
+from pywin32_testutil import str2bytes, TestSkipped
 
 import win32api, win32con, win32event, winerror
 import sys, os
@@ -11,9 +11,12 @@ import datetime
 
 class CurrentUserTestCase(unittest.TestCase):
     def testGetCurrentUser(self):
-        name = "%s\\%s" % (win32api.GetDomainName(), win32api.GetUserName())
-        name2 = "NT AUTHORITY\\%s" % win32api.GetUserName()
-        self.assertIn(win32api.GetUserNameEx(win32api.NameSamCompatible), (name, name2))
+        domain = win32api.GetDomainName()
+        if domain == "NT AUTHORITY":
+            # Running as a service account, so the comparison will fail
+            raise TestSkipped("running as service account")
+        name = "%s\\%s" % (domain, win32api.GetUserName())
+        self.assertEquals(name, win32api.GetUserNameEx(win32api.NameSamCompatible))
 
 
 class TestTime(unittest.TestCase):
