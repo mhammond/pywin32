@@ -711,14 +711,17 @@ class Cursor(object):
             self._makeDescriptionFromRS()
         if isinstance(d, int):
             d = self.description[d]
-        desc = "Name= %s, Type= %s, DispSize= %s, IntSize= %s, Precision= %s, Scale= %s NullOK=%s" % (
-            d[0],
-            adc.adTypeNames.get(d[1], str(d[1]) + " (unknown type)"),
-            d[2],
-            d[3],
-            d[4],
-            d[5],
-            d[6],
+        desc = (
+            "Name= %s, Type= %s, DispSize= %s, IntSize= %s, Precision= %s, Scale= %s NullOK=%s"
+            % (
+                d[0],
+                adc.adTypeNames.get(d[1], str(d[1]) + " (unknown type)"),
+                d[2],
+                d[3],
+                d[4],
+                d[5],
+                d[6],
+            )
         )
         return desc
 

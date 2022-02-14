@@ -516,9 +516,7 @@ class my_build_ext(build_ext):
         self.windows_h_version = None
         # The afxres.h file isn't always included by default, so find it
         # specifically and add it and its lib directory
-        afxres_h = find_visual_studio_file(
-            r"VC\Tools\MSVC\*\ATLMFC\include\afxres.h"
-        )
+        afxres_h = find_visual_studio_file(r"VC\Tools\MSVC\*\ATLMFC\include\afxres.h")
         if afxres_h:
             self.include_dirs.append(os.path.dirname(afxres_h))
             self.library_dirs.append(

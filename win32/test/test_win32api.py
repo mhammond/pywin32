@@ -88,7 +88,7 @@ class Registry(unittest.TestCase):
             ("REG_MULTI_SZ_empty", win32con.REG_MULTI_SZ, []),
             ("REG_DWORD", win32con.REG_DWORD, 666),
             ("REG_QWORD_INT", win32con.REG_QWORD, 99),
-            ("REG_QWORD", win32con.REG_QWORD, 2 ** 33),
+            ("REG_QWORD", win32con.REG_QWORD, 2**33),
             (
                 "REG_BINARY",
                 win32con.REG_BINARY,

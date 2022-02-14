@@ -283,7 +283,7 @@ def TestCommon(o, is_generated):
     # This number fits in an unsigned long.  Attempting to set it to a normal
     # long will involve overflow, which is to be expected. But we do
     # expect it to work in a property explicitly a VT_UI4.
-    check = 3 * 10 ** 9
+    check = 3 * 10**9
     o.ULongProp = check
     if o.ULongProp != check:
         raise error(
