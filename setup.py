@@ -696,12 +696,17 @@ class my_build_ext(build_ext):
             pass
 
         cwd = os.getcwd()
+        old_env = os.environ.copy()
         os.chdir(path)
+        os.environ["INCLUDE"] = os.pathsep.join(self.compiler.include_dirs)
+        os.environ["LIB"] = os.pathsep.join(self.compiler.library_dirs)
         try:
             cmd = [nmake, "/nologo", "/f", makefile] + makeargs
             self.compiler.spawn(cmd)
         finally:
             os.chdir(cwd)
+            os.environ["INCLUDE"] = old_env.get("INCLUDE", "")
+            os.environ["LIB"] = old_env.get("LIB", "")
 
         # The DLL goes in the Pythonwin directory.
         if self.debug:
