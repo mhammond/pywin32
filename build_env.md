@@ -46,22 +46,18 @@ way to build pywin32 - it's build process should find these tools automatically.
       - In `Visual Studio Build Tools 2019`
         - Check `C++ build tools`
           - In the menue to the right, check:
-              - `MSVCv142 - VS 2019 C++ x64/x86 build tools`
+              - `MSVC v142 - VS 2019 C++ x64/x86 build tools`
               - `Windows 10 SDK`
-        - Press `Install` (~ 4.6 GB shown in the overview, but ~ 1.1 GB shown during download)
+              - `C++ MFC for latest v142 build tools (x86 & x64)`
+              - `C++ ATL for latest v142 build tools`
+        - If building for ARM64 (optional), select the "Individual Components" tab, and search for and select:
+              - `MSVC v142 - VS 2019 C++ ARM64 build tools`
+              - `C++ MFC for latest v142 build tools (ARM64)`
+              - `C++ ATL for latest v142 build tools (ARM64)`
+        - Press `Install` (~ 4.6 GB shown in the overview, but ~ 1.1 GB shown during download; approximately double with the ARM64 components)
 - Restart your virus scanner
 - Restart
-### MFC v140
-- Install the [Build Tools for Visual Studio 2017 (version 15.9)](https://my.visualstudio.com) (`vs_BuildTools.exe` ~ 1 MB)
-- Maybe stop your virus scanner
-- In `Visual Studio installer`:
-  - Select `Visual Studio Build Tools 2017 (15.9.21)`
-    - Press `Modify`
-      - In the `Visual Studio Build Tools 2017`
-        - Check `C++ build tools`
-          - In the menue to the right, at the bottom of the “Optional” section, additionally check:
-            - `VC++ 2015.3 v14.00 (v140) toolset for desktop`
-    - Press `Install` 
+
 ### Microsoft Message Compiler
 Search the executable
 
@@ -86,3 +82,18 @@ One everything is setup, just execute:
 % python setup.py -q install
 
 from the pywin32 directory.
+
+## Cross-compiling for ARM64 (Microsoft Visual C++ 14.1 and up)
+- Follow the `For Visual Studio 2019` instructions above and pick the optional ARM64 build tools
+- Download prebuilt Python ARM64 binaries:
+  - Download a Python ARM64 version [from NuGet](https://www.nuget.org/packages/pythonarm64/#versions-tab) that matches the version you are using to run the build.
+  - Change .nupkg file to .zip extension and unzip (or install normally using `nuget.exe`). The extracted folder contains a `tools\libs` directory with a number of `*.lib` files in it. You will need this folder later.
+- Setup the cross-compilation environment:
+  > "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\vc\Auxiliary\Build\vcvarsall.bat" x86_arm64
+- Update `setuptools` and set the following environment variables to ensure it is used:
+  > set SETUPTOOLS_USE_DISTUTILS=1
+  > set DISTUTILS_USE_SDK=1
+- Build the extensions, passing the `libs` directory from earlier. You may optionally add the `bdist_wheel` command to generate a wheel.
+  > python setup.py build_ext -L "<path to tools\libs>" bdist_wheel
+- Copy the wheel to the target machine and install directly:
+  > python -m pip install "<path to wheel>"

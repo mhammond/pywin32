@@ -516,12 +516,15 @@ class my_build_ext(build_ext):
         self.windows_h_version = None
         # The afxres.h file isn't always included by default, so find it
         # specifically and add it and its lib directory
-        afxres_h = find_visual_studio_file(r"VC\Tools\MSVC\*\ATLMFC\include\afxres.h")
-        if afxres_h:
-            self.include_dirs.append(os.path.dirname(afxres_h))
-            self.library_dirs.append(
+        atls_lib = find_visual_studio_file(
+            r"VC\Tools\MSVC\*\ATLMFC\lib\{}\atls.lib".format(self.plat_dir)
+        )
+        if atls_lib:
+            self.library_dirs.append(os.path.dirname(atls_lib))
+            self.include_dirs.append(
                 os.path.join(
-                    os.path.dirname(os.path.dirname(afxres_h)), "lib", self.plat_dir
+                    os.path.dirname(os.path.dirname(os.path.dirname(atls_lib))),
+                    "Include",
                 )
             )
         # The pywintypes library is created in the build_temp
