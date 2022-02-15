@@ -20,11 +20,11 @@ dest = dest.absolute()
 dest.mkdir(parents=True, exist_ok=True)
 
 VERSION = "{}.{}.{}".format(*sys.version_info[:3])
-if sys.version_info.releaselevel == 'alpha':
+if sys.version_info.releaselevel == "alpha":
     VERSION += "-a{}".format(sys.version_info.serial)
-if sys.version_info.releaselevel == 'beta':
+if sys.version_info.releaselevel == "beta":
     VERSION += "-b{}".format(sys.version_info.serial)
-if sys.version_info.releaselevel == 'candidate':
+if sys.version_info.releaselevel == "candidate":
     VERSION += "-rc{}".format(sys.version_info.serial)
 
 URL = f"https://www.nuget.org/api/v2/package/pythonarm64/{VERSION}"
