@@ -19,17 +19,16 @@ except IndexError:
 dest = dest.absolute()
 dest.mkdir(parents=True, exist_ok=True)
 
-URL = "https://www.nuget.org/api/v2/package/pythonarm64/{}.{}.{}".format(
-    sys.version_info.major,
-    sys.version_info.minor,
-    sys.version_info.micro,
-)
+VERSION = "{}.{}.{}".format(*sys.version_info[:3])
+if sys.version_info.releaselevel == 'alpha':
+    VERSION += "-a{}".format(sys.version_info.serial)
+if sys.version_info.releaselevel == 'beta':
+    VERSION += "-b{}".format(sys.version_info.serial)
+if sys.version_info.releaselevel == 'candidate':
+    VERSION += "-rc{}".format(sys.version_info.serial)
 
-PATH = dest / "pythonarm64.{}.{}.{}.zip".format(
-    sys.version_info.major,
-    sys.version_info.minor,
-    sys.version_info.micro,
-)
+URL = f"https://www.nuget.org/api/v2/package/pythonarm64/{VERSION}"
+PATH = dest / f"pythonarm64.{VERSION}.zip"
 
 if PATH.is_file():
     print("Skipping download because", PATH, "exists")

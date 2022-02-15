@@ -99,7 +99,7 @@ jobs:
         python download-arm64-libs.py .\arm64libs
 
     - name: Build package
-      run: python setup.py --skip-verstamp buildext -L .\arm64libs --plat-name arm64 build
+      run: python setup.py --skip-verstamp build_ext -L .\arm64libs --plat-name arm64 build
 
     - name: Install package
       run: python setup.py install --user
