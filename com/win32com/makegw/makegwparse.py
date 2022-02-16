@@ -484,10 +484,13 @@ class ArgFormatterTime(ArgFormatterPythonCOM):
     def GetParsePostCode(self):
         # variable was declared with only the builtinIndirection
         ### NOTE: this is an [in] ... so use only builtin
-        return '\tif (!PyTime_Check(ob%s)) {\n\t\tPyErr_SetString(PyExc_TypeError, "The argument must be a PyTime object");\n\t\tbPythonIsHappy = FALSE;\n\t}\n\tif (!((PyTime *)ob%s)->GetTime(%s)) bPythonIsHappy = FALSE;\n' % (
-            self.arg.name,
-            self.arg.name,
-            self.GetIndirectedArgName(self.builtinIndirection, 1),
+        return (
+            '\tif (!PyTime_Check(ob%s)) {\n\t\tPyErr_SetString(PyExc_TypeError, "The argument must be a PyTime object");\n\t\tbPythonIsHappy = FALSE;\n\t}\n\tif (!((PyTime *)ob%s)->GetTime(%s)) bPythonIsHappy = FALSE;\n'
+            % (
+                self.arg.name,
+                self.arg.name,
+                self.GetIndirectedArgName(self.builtinIndirection, 1),
+            )
         )
 
     def GetBuildForInterfacePreCode(self):
@@ -516,11 +519,14 @@ class ArgFormatterSTATSTG(ArgFormatterPythonCOM):
 
     def GetBuildForInterfacePreCode(self):
         notdirected = self.GetIndirectedArgName(None, 1)
-        return "\tob%s = PyCom_PyObjectFromSTATSTG(%s);\n\t// STATSTG doco says our responsibility to free\n\tif ((%s).pwcsName) CoTaskMemFree((%s).pwcsName);\n" % (
-            self.arg.name,
-            self.GetIndirectedArgName(None, 1),
-            notdirected,
-            notdirected,
+        return (
+            "\tob%s = PyCom_PyObjectFromSTATSTG(%s);\n\t// STATSTG doco says our responsibility to free\n\tif ((%s).pwcsName) CoTaskMemFree((%s).pwcsName);\n"
+            % (
+                self.arg.name,
+                self.GetIndirectedArgName(None, 1),
+                notdirected,
+                notdirected,
+            )
         )
 
 

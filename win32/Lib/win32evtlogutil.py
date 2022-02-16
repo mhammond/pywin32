@@ -174,10 +174,13 @@ def SafeFormatMessage(eventLogRecord, logType=None):
             desc = ""
         else:
             desc = ", ".join(eventLogRecord.StringInserts)
-        return "<The description for Event ID ( %d ) in Source ( %r ) could not be found. It contains the following insertion string(s):%r.>" % (
-            winerror.HRESULT_CODE(eventLogRecord.EventID),
-            eventLogRecord.SourceName,
-            desc,
+        return (
+            "<The description for Event ID ( %d ) in Source ( %r ) could not be found. It contains the following insertion string(s):%r.>"
+            % (
+                winerror.HRESULT_CODE(eventLogRecord.EventID),
+                eventLogRecord.SourceName,
+                desc,
+            )
         )
 
 
