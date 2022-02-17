@@ -98,10 +98,10 @@ jobs:
 
     - name: Obtain ARM64 library files
       run: |
-        python download-arm64-libs.py .\arm64libs
+        python .github\workflows\download-arm64-libs.py .\arm64libs
 
     - name: Build wheels
-      run: python setup.py --skip-verstamp build_ext -L .\arm64libs --plat-name win-arm64 bdist_wheel
+      run: python setup.py --skip-verstamp build_ext -L .\arm64libs --plat-name win-arm64 build --plat-name win-arm64 bdist_wheel --plat-name win-arm64
 
     - uses: actions/upload-artifact@v2
       if: ${{ always() }}

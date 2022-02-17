@@ -93,16 +93,9 @@ from distutils.errors import DistutilsExecError, DistutilsSetupError
 import distutils.util
 
 # We patch distutils's EXT_SUFFIX variable back to `.pyd`
-# Before 3.10, there was a hack to force this:
-# > distutils.sysconfig.get_config_vars()['EXT_SUFFIX'] = '.pyd'
-# Long story short, that no longer works after 3.10, and we just start shipping
-# `modulename.cp-blah.pyd`
-
-# (Side-node - strangely, for all versions:
-# > distutils.sysconfig.get_config_vars()['EXT_SUFFIX'] == '.cp-blah.pyd'
-# > sysconfig.get_config_vars()['EXT_SUFFIX'] -> '.pyd'
-# So be careful trying to replace `distutils.sysconfig` with `sysconfig`!
-from distutils.sysconfig import get_config_vars, get_config_var
+# by overriding get_ext_filename in our build_ext command.
+# Previously we would do it here by directly updating its
+# dict of config vars.
 
 build_id_patch = build_id
 if not "." in build_id_patch:
@@ -514,8 +507,8 @@ class my_build_ext(build_ext):
         }.get(self.plat_name, "x86")
 
         self.windows_h_version = None
-        # The afxres.h file isn't always included by default, so find it
-        # specifically and add it and its lib directory
+        # The afxres.h/atls.lib files aren't always included by default,
+        # so find and add them
         atls_lib = find_visual_studio_file(
             r"VC\Tools\MSVC\*\ATLMFC\lib\{}\atls.lib".format(self.plat_dir)
         )
@@ -1396,6 +1389,18 @@ class my_compiler(base_compiler):
                     mfname = cmd[i][14:]
                     shutil.copyfile(mfname, mfname + ".orig")
                     break
+
+    # CCompiler's implementations of these methods completely replace the values
+    # determined by the build environment. This seems like a design that must
+    # always have been broken, but we work around it here.
+    def set_include_dirs(self, dirs):
+        self.include_dirs[:0] = dirs
+
+    def set_library_dirs(self, dirs):
+        self.library_dirs[:0] = dirs
+
+    def set_libraries(self, libs):
+        self.libraries.extend(libs)
 
 
 ################################################################

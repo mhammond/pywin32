@@ -86,7 +86,7 @@ from the pywin32 directory.
 ## Cross-compiling for ARM64 (Microsoft Visual C++ 14.1 and up)
 - Follow the `For Visual Studio 2019` instructions above and pick the optional ARM64 build tools
 - Download prebuilt Python ARM64 binaries to a temporary location on your machine. You will need this location in a later step.
-  > python download-arm64-libraries.py "<temporary path>"
+  > python .github\workflows\download-arm64-libraries.py "<temporary path>"
   - This script downloads a Python ARM64 build [from NuGet](https://www.nuget.org/packages/pythonarm64/#versions-tab) that matches the version you used to run it.
 - Setup the cross-compilation environment:
   > "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\vc\Auxiliary\Build\vcvarsall.bat" x86_arm64
@@ -95,5 +95,6 @@ from the pywin32 directory.
   > set DISTUTILS_USE_SDK=1
 - Build the extensions, passing the directory from earlier. You may optionally add the `bdist_wheel` command to generate a wheel.
   > python setup.py build_ext -L "<temporary path from earlier>" bdist_wheel
-- Copy the wheel to the target machine and install directly:
+  - If you are not using an initialized build environment, you will need to specify the `build_ext`, `build` and `bdist_wheel` commands and pass `--plat-name win-arm64` to _each_ of them separately. Otherwise you may get a mixed platform build and/or linker errors.
+- Copy the built wheel to the target machine and install directly:
   > python -m pip install "<path to wheel>"
