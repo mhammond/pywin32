@@ -73,14 +73,14 @@ from setuptools import setup
 from distutils.core import Extension
 from distutils.command.install import install
 from distutils.command.install_lib import install_lib
-from distutils.command.build_ext import build_ext
+from setuptools.command.build_ext import build_ext
 from distutils.command.build_py import build_py
 from distutils.command.build import build
 from distutils.command.install_data import install_data
 from distutils.command.build_scripts import build_scripts
 
-from distutils.msvccompiler import get_build_version
 from distutils import log
+
 
 # some modules need a static CRT to avoid problems caused by them having a
 # manifest.
@@ -93,19 +93,9 @@ from distutils.errors import DistutilsExecError, DistutilsSetupError
 import distutils.util
 
 # We patch distutils's EXT_SUFFIX variable back to `.pyd`
-# Before 3.10, there was a hack to force this:
-# > distutils.sysconfig.get_config_vars()['EXT_SUFFIX'] = '.pyd'
-# Long story short, that no longer works after 3.10, and we just start shipping
-# `modulename.cp-blah.pyd`
-
-# (Side-node - strangely, for all versions:
-# > distutils.sysconfig.get_config_vars()['EXT_SUFFIX'] == '.cp-blah.pyd'
-# > sysconfig.get_config_vars()['EXT_SUFFIX'] -> '.pyd'
-# So be careful trying to replace `distutils.sysconfig` with `sysconfig`!
-from distutils.sysconfig import get_config_vars, get_config_var
-
-if sys.version_info < (3, 10):
-    get_config_vars()["EXT_SUFFIX"] = ".pyd"
+# by overriding get_ext_filename in our build_ext command.
+# Previously we would do it here by directly updating its
+# dict of config vars.
 
 build_id_patch = build_id
 if not "." in build_id_patch:
@@ -194,69 +184,6 @@ def find_platform_sdk_dir():
     return {"include": include, "lib": lib}
 
 
-# Some nasty hacks to prevent most of our extensions using a manifest, as
-# the manifest - even without a reference to the CRT assembly - is enough
-# to prevent the extension from loading.  For more details, see
-# http://bugs.python.org/issue7833
-from distutils.msvc9compiler import MSVCCompiler
-
-MSVCCompiler._orig_spawn = MSVCCompiler.spawn
-
-# We need to override this method for versions where issue7833 *has* landed
-# (ie, 2.7 and 3.2+)
-def manifest_get_embed_info(self, target_desc, ld_args):
-    _want_assembly_kept = getattr(self, "_want_assembly_kept", False)
-    if not _want_assembly_kept:
-        return None
-    for arg in ld_args:
-        if arg.startswith("/MANIFESTFILE:"):
-            orig_manifest = arg.split(":", 1)[1]
-            if target_desc == self.EXECUTABLE:
-                rid = 1
-            else:
-                rid = 2
-            return orig_manifest, rid
-    return None
-
-
-MSVCCompiler.manifest_get_embed_info = manifest_get_embed_info
-
-
-def monkeypatched_spawn(self, cmd):
-    is_link = cmd[0].endswith("link.exe") or cmd[0].endswith('"link.exe"')
-    is_mt = cmd[0].endswith("mt.exe") or cmd[0].endswith('"mt.exe"')
-    _want_assembly_kept = getattr(self, "_want_assembly_kept", False)
-    if is_mt:
-        # We don't want mt.exe run...
-        return
-    if is_link:
-        # remove /MANIFESTFILE:... and add MANIFEST:NO
-        # (but note that for winxpgui, which specifies a manifest via a
-        # .rc file, this is ignored by the linker - the manifest specified
-        # in the .rc file is still added)
-        for i in range(len(cmd)):
-            if cmd[i].startswith("/MANIFESTFILE:"):
-                cmd[i] = "/MANIFEST:NO"
-                break
-    if is_mt:
-        # We want mt.exe run with the original manifest
-        for i in range(len(cmd)):
-            if cmd[i] == "-manifest":
-                cmd[i + 1] = cmd[i + 1] + ".orig"
-                break
-    self._orig_spawn(cmd)
-    if is_link:
-        # We want a copy of the original manifest so we can use it later.
-        for i in range(len(cmd)):
-            if cmd[i].startswith("/MANIFESTFILE:"):
-                mfname = cmd[i][14:]
-                shutil.copyfile(mfname, mfname + ".orig")
-                break
-
-
-MSVCCompiler.spawn = monkeypatched_spawn
-
-
 sdk_info = find_platform_sdk_dir()
 if not sdk_info:
     print()
@@ -267,6 +194,25 @@ if not sdk_info:
     print("for more information.")
     print()
     raise RuntimeError("Can't find the Windows SDK")
+
+
+def find_visual_studio_file(pattern):
+    try:
+        files = subprocess.check_output(
+            [
+                os.path.expandvars(
+                    r"%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe"
+                ),
+                "-utf8",
+                "-prerelease",
+                "-find",
+                pattern,
+            ],
+            encoding="utf-8",
+        ).splitlines()
+        return files[-1]
+    except (IndexError, OSError):
+        return None
 
 
 class WinExt(Extension):
@@ -303,7 +249,7 @@ class WinExt(Extension):
         delay_load_libraries="",
     ):
         include_dirs = ["com/win32com/src/include", "win32/src"] + include_dirs
-        libraries = libraries.split()
+        libraries = libraries.split() + ["atls"]
         self.delay_load_libraries = delay_load_libraries.split()
         libraries.extend(self.delay_load_libraries)
 
@@ -551,7 +497,29 @@ class my_build(build):
 class my_build_ext(build_ext):
     def finalize_options(self):
         build_ext.finalize_options(self)
+
+        if not hasattr(self, "plat_name"):
+            # Old Python version that doesn't support cross-compile
+            self.plat_name = distutils.util.get_platform()
+        self.plat_dir = {
+            "win-amd64": "x64",
+            "win-arm64": "arm64",
+        }.get(self.plat_name, "x86")
+
         self.windows_h_version = None
+        # The afxres.h/atls.lib files aren't always included by default,
+        # so find and add them
+        atls_lib = find_visual_studio_file(
+            r"VC\Tools\MSVC\*\ATLMFC\lib\{}\atls.lib".format(self.plat_dir)
+        )
+        if atls_lib:
+            self.library_dirs.append(os.path.dirname(atls_lib))
+            self.include_dirs.append(
+                os.path.join(
+                    os.path.dirname(os.path.dirname(os.path.dirname(atls_lib))),
+                    "Include",
+                )
+            )
         # The pywintypes library is created in the build_temp
         # directory, so we need to add this to library_dirs
         self.library_dirs.append(self.build_temp)
@@ -561,9 +529,6 @@ class my_build_ext(build_ext):
 
         self.excluded_extensions = []  # list of (ext, why)
         self.swig_cpp = True  # hrm - deprecated - should use swig_opts=-c++??
-        if not hasattr(self, "plat_name"):
-            # Old Python version that doesn't support cross-compile
-            self.plat_name = distutils.util.get_platform()
 
     def _fixup_sdk_dirs(self):
         # Adjust paths etc for the platform SDK - the default paths used by
@@ -601,7 +566,6 @@ class my_build_ext(build_ext):
         # build_ext.include_dirs should 'win' over the compiler's dirs.
         assert self.compiler.initialized  # if not, our env changes will be lost!
 
-        is_64bit = self.plat_name in ["win-amd64", "win-arm64"]
         for extra in sdk_info["include"]:
             # should not be possible for the SDK dirs to already be in our
             # include_dirs - they may be in the registry etc from MSVC, but
@@ -612,7 +576,7 @@ class my_build_ext(build_ext):
             self.compiler.add_include_dir(extra)
         # and again for lib dirs.
         for extra in sdk_info["lib"]:
-            extra = os.path.join(extra, "x64" if is_64bit else "x86")
+            extra = os.path.join(extra, self.plat_dir)
             assert os.path.isdir(extra), extra
             assert extra not in self.library_dirs  # see above
             assert os.path.isdir(extra), "%s doesn't exist!" % (extra,)
@@ -628,11 +592,8 @@ class my_build_ext(build_ext):
         # includes interfaces for 64-bit builds.
         if self.plat_name in ["win-amd64", "win-arm64"] and ext.name == "exchdapi":
             return "No 64-bit library for utility functions available."
-        if get_build_version() >= 14:
-            if ext.name == "exchange":
-                ext.libraries.append("legacy_stdio_definitions")
-            elif ext.name == "exchdapi":
-                return "Haven't worked out how to build on vs2015"
+        if ext.name == "exchdapi":
+            return "Haven't worked out how to build on vs2015"
         # axdebug fails to build on 3.11 due to Python "frame" objects changing.
         # This could be fixed, but is almost certainly not in use any more, so
         # just skip it.
@@ -715,13 +676,31 @@ class my_build_ext(build_ext):
         makeargs.append("SUB_DIR_BIN=%s" % build_temp)
         makeargs.append("DIR_PYTHON=%s" % sys.prefix)
 
-        cwd = os.getcwd()
-        os.chdir(path)
+        nmake = "nmake.exe"
+        # Attempt to resolve nmake to the same one that our compiler object
+        # would use. compiler.spawn() ought to do this, but it does not search
+        # its own PATH value for the initial command. It does, however, set it
+        # correctly for any subsequent commands.
         try:
-            cmd = ["nmake.exe", "/nologo", "/f", makefile] + makeargs
-            self.spawn(cmd)
+            for p in self.compiler._paths.split(os.pathsep):
+                if os.path.isfile(os.path.join(p, nmake)):
+                    nmake = os.path.join(p, nmake)
+                    break
+        except (AttributeError, TypeError):
+            pass
+
+        cwd = os.getcwd()
+        old_env = os.environ.copy()
+        os.chdir(path)
+        os.environ["INCLUDE"] = os.pathsep.join(self.compiler.include_dirs)
+        os.environ["LIB"] = os.pathsep.join(self.compiler.library_dirs)
+        try:
+            cmd = [nmake, "/nologo", "/f", makefile] + makeargs
+            self.compiler.spawn(cmd)
         finally:
             os.chdir(cwd)
+            os.environ["INCLUDE"] = old_env.get("INCLUDE", "")
+            os.environ["LIB"] = old_env.get("LIB", "")
 
         # The DLL goes in the Pythonwin directory.
         if self.debug:
@@ -734,8 +713,22 @@ class my_build_ext(build_ext):
         )
 
     def lookupMfcInVisualStudio(self, mfc_version, mfc_libraries):
-        # Looking for the MFC files in the installation paths of the Visual Studios
-        plat_dir_64 = "x64"
+        # Find the redist directory by locating mfc140u.dll in modern Visual Studio
+        # installations.
+        try:
+            mfc_file = find_visual_studio_file(
+                r"VC\Redist\MSVC\*\{}\*\mfc140u.dll".format(self.plat_dir)
+            )
+            # When locating MFC redist this way, we include all files regardless
+            # of what was requested.
+            mfc_dir = os.path.split(mfc_file)[0]
+            return [os.path.join(mfc_dir, p) for p in os.listdir(mfc_dir)]
+        except (IndexError, OSError):
+            pass
+
+        # Looking for the MFC files in the installation paths of the Visual Studio
+        # It should be incredibly rare that the legacy registry key exists without
+        # the vswhere.exe utility, but we retain the registry lookup just in case.
         mfc_dir = "Microsoft.{}.MFC".format(mfc_version.upper())
         mfc_contents = []
         # Here is where we'd match the Python version aganst the MSVC version,
@@ -749,10 +742,6 @@ class my_build_ext(build_ext):
         access = winreg.KEY_READ
         if sys.getwindowsversion()[0] >= 5:
             access = access | 512  # KEY_WOW64_32KEY
-        if self.plat_name == "win-amd64":
-            plat_dir = plat_dir_64
-        else:
-            plat_dir = "x86"
         # Find the redist directory.
         vckey = winreg.OpenKey(
             winreg.HKEY_LOCAL_MACHINE,
@@ -761,7 +750,7 @@ class my_build_ext(build_ext):
             access,
         )
         val = winreg.QueryValueEx(vckey, "ProductDir")[0]
-        mfc_dir = os.path.join(val, "redist", plat_dir, mfc_dir)
+        mfc_dir = os.path.join(val, "redist", self.plat_dir, mfc_dir)
         if os.path.isdir(mfc_dir):
             # Ensuring absolute paths
             mfc_contents = [os.path.join(mfc_dir, mfc_file) for mfc_file in mfc_files]
@@ -1072,18 +1061,9 @@ class my_build_ext(build_ext):
                 )
                 needed = "%s%s" % (ext.name, extra)
             elif ext.name in ("win32ui",):
-                # For 3.9 and earlier, we are already creating the correct name
-                # For 3.10 and later, we need to convert from ".cp310-win_amd64.pyd"
-                # and remove the .cp part.
-                if sys.version_info >= (3, 10):
-                    created = (
-                        ext.name
-                        + os.path.splitext(get_config_var("EXT_SUFFIX"))[0]
-                        + extra
-                    )
-                    needed = ext.name + extra
-                else:
-                    created = needed = ext.name + extra
+                # We do not need to change the name, but we want to trigger
+                # the following block to copy our .lib file up one directory
+                created = needed = ext.name + extra
             else:
                 created = needed = None
             if created is not None:
@@ -1131,7 +1111,7 @@ class my_build_ext(build_ext):
             return "win32\\pythonservice" + extra_exe
         elif name.endswith("pythonwin.Pythonwin"):
             return "pythonwin\\Pythonwin" + extra_exe
-        return build_ext.get_ext_filename(self, name)
+        return name.replace(".", "\\") + ".pyd"
 
     def get_export_symbols(self, ext):
         if ext.is_regular_dll:
@@ -1293,18 +1273,12 @@ def my_new_compiler(**kw):
 
 # No way to cleanly wedge our compiler sub-class in.
 from distutils import ccompiler
-
-# distutils is deprecated and not updated with win/arm64 support so use
-# setuptools distutils for arm64 builds
-if distutils.util.get_platform() == "win-arm64":
-    from setuptools._distutils import _msvccompiler as msvccompiler
-else:
-    from distutils import msvccompiler
+from distutils._msvccompiler import MSVCCompiler
 
 orig_new_compiler = ccompiler.new_compiler
 ccompiler.new_compiler = my_new_compiler
 
-base_compiler = msvccompiler.MSVCCompiler
+base_compiler = MSVCCompiler
 
 
 class my_compiler(base_compiler):
@@ -1329,8 +1303,7 @@ class my_compiler(base_compiler):
         *args,
         **kw
     ):
-        msvccompiler.MSVCCompiler.link(
-            self,
+        super().link(
             target_desc,
             objects,
             output_filename,
@@ -1384,7 +1357,50 @@ class my_compiler(base_compiler):
             return (e, b)
 
         sources = sorted(sources, key=key_reverse_mc)
-        return msvccompiler.MSVCCompiler.compile(self, sources, **kwargs)
+        return MSVCCompiler.compile(self, sources, **kwargs)
+
+    def spawn(self, cmd):
+        is_link = cmd[0].endswith("link.exe") or cmd[0].endswith('"link.exe"')
+        is_mt = cmd[0].endswith("mt.exe") or cmd[0].endswith('"mt.exe"')
+        _want_assembly_kept = getattr(self, "_want_assembly_kept", False)
+        if is_mt:
+            # We don't want mt.exe run...
+            return
+        if is_link:
+            # remove /MANIFESTFILE:... and add MANIFEST:NO
+            # (but note that for winxpgui, which specifies a manifest via a
+            # .rc file, this is ignored by the linker - the manifest specified
+            # in the .rc file is still added)
+            for i in range(len(cmd)):
+                if cmd[i].startswith(("/MANIFESTFILE:", "/MANIFEST:EMBED")):
+                    cmd[i] = "/MANIFEST:NO"
+                    break
+        if is_mt:
+            # We want mt.exe run with the original manifest
+            for i in range(len(cmd)):
+                if cmd[i] == "-manifest":
+                    cmd[i + 1] = cmd[i + 1] + ".orig"
+                    break
+        super().spawn(cmd)
+        if is_link:
+            # We want a copy of the original manifest so we can use it later.
+            for i in range(len(cmd)):
+                if cmd[i].startswith("/MANIFESTFILE:"):
+                    mfname = cmd[i][14:]
+                    shutil.copyfile(mfname, mfname + ".orig")
+                    break
+
+    # CCompiler's implementations of these methods completely replace the values
+    # determined by the build environment. This seems like a design that must
+    # always have been broken, but we work around it here.
+    def set_include_dirs(self, dirs):
+        self.include_dirs[:0] = dirs
+
+    def set_library_dirs(self, dirs):
+        self.library_dirs[:0] = dirs
+
+    def set_libraries(self, libs):
+        self.libraries.extend(libs)
 
 
 ################################################################
@@ -1935,7 +1951,7 @@ com_extensions += [
     ),
     WinExt_win32com_mapi(
         "exchange",
-        libraries="advapi32",
+        libraries="advapi32 legacy_stdio_definitions",
         include_dirs=["%(mapi)s/mapi_headers" % dirs],
         sources=(
             """

@@ -66,6 +66,50 @@ jobs:
           dist/*.whl
           dist/*.exe
 
+  # We cannot build and test on ARM64, so we cross-compile.
+  # Later, when available, we can add tests using this wheel on ARM64 VMs
+  build_arm64:
+    runs-on: windows-2019
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.10', '3.11-dev']
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+        architecture: 'x64'
+
+    - name: Show runner information
+      run: |
+        python --version
+        pip --version
+
+    # Need wheel so that we can use bdist_wheel
+    - name: Upgrade Python packaging tools
+      run: pip install --upgrade setuptools==60.8.2 wheel
+
+    - name: Set Python user directory
+      run: python -c "import os,site;open(os.environ['GITHUB_ENV'], 'a').write('USER_DIR=%s\n' % os.path.dirname(site.USER_SITE).rstrip('-32'))"
+
+    - name: Obtain ARM64 library files
+      run: |
+        python .github\workflows\download-arm64-libs.py .\arm64libs
+
+    - name: Build wheels
+      run: python setup.py --skip-verstamp build_ext -L .\arm64libs --plat-name win-arm64 build --plat-name win-arm64 bdist_wheel --plat-name win-arm64
+
+    - uses: actions/upload-artifact@v2
+      if: ${{ always() }}
+      with:
+        name: artifacts
+        path: |
+          dist/*.whl
+
   black:
     runs-on: ubuntu-latest
     steps:
