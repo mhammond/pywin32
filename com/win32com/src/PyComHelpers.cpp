@@ -146,7 +146,7 @@ PyObject *PyCom_PyObjectFromIUnknown(IUnknown *punk, REFIID riid, BOOL bAddRef /
 
     PyIUnknown *ret = (*myCreateType->ctor)(punk);
 #ifdef _DEBUG_LIFETIMES
-    PyCom_LogF("Object %s created at 0x%0xld, IUnknown at 0x%0xld", myCreateType->tp_name, ret, ret->m_obj);
+    PyCom_LogF(L"Object %s created at 0x%0xld, IUnknown at 0x%0xld", myCreateType->tp_name, ret, ret->m_obj);
 #endif
     if (ret && bAddRef)
         punk->AddRef();

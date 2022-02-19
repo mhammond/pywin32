@@ -379,7 +379,7 @@ STDMETHODIMP PyGInternetSecurityManager::ProcessUrlAction(
     }
     else {
         PyCom_LoggerWarning(
-            NULL, "PyGInternetSecurityManager::ProcessUrlAction has %d bytes for policy - what is that?", cbPolicy);
+            NULL, L"PyGInternetSecurityManager::ProcessUrlAction has %d bytes for policy - what is that?", cbPolicy);
         hr = E_UNEXPECTED;
     }
     return hr;

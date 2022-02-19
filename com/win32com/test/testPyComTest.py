@@ -45,15 +45,6 @@ universal.RegisterInterfaces("{6BCDCB60-5605-11D0-AE5F-CADD4C000000}", 0, 1, 1)
 
 verbose = 0
 
-# convert a normal int to a long int - used to avoid, eg, '1L' for py3k
-# friendliness
-def ensure_long(int_val):
-    if sys.version_info > (3,):
-        # py3k - no such thing as a 'long'
-        return int_val
-    # on py2x, we just use an expression that results in a long
-    return 0x100000000 - 0x100000000 + int_val
-
 
 def check_get_set(func, arg):
     got = func(arg)
@@ -298,10 +289,10 @@ def TestCommon(o, is_generated):
 
     assert o.DoubleString("foo") == "foofoo"
 
-    TestConstant("ULongTest1", ensure_long(0xFFFFFFFF))
-    TestConstant("ULongTest2", ensure_long(0x7FFFFFFF))
-    TestConstant("LongTest1", ensure_long(-0x7FFFFFFF))
-    TestConstant("LongTest2", ensure_long(0x7FFFFFFF))
+    TestConstant("ULongTest1", 0xFFFFFFFF)
+    TestConstant("ULongTest2", 0x7FFFFFFF)
+    TestConstant("LongTest1", -0x7FFFFFFF)
+    TestConstant("LongTest2", 0x7FFFFFFF)
     TestConstant("UCharTest", 255)
     TestConstant("CharTest", -1)
     # 'Hello World', but the 'r' is the "Registered" sign (\xae)

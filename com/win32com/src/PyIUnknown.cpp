@@ -31,83 +31,10 @@ PyObject *PyIUnknown::repr()
 {
     // @comm The repr of this object displays both the object's address, and its attached IUnknown's address
     char buf[256];
-    _snprintf(buf, 256, "<%hs at 0x%0lp with obj at 0x%0lp>", ob_type->tp_name, this, m_obj);
-#if (PY_VERSION_HEX < 0x03000000)
-    return PyBytes_FromString(buf);
-#else
+    _snprintf(buf, 256, "<%hs at 0x%0p with obj at 0x%0p>", ob_type->tp_name, this, m_obj);
     return PyUnicode_FromString(buf);
-#endif
 }
 
-/*static void PyIUnknown::CleanupTrackList()
-{
-#ifdef _DEBUG
-    int numInMap = m_obTrackList ? PyMapping_Length(m_obTrackList) : 0;
-    PyCom_LogF("Cleaning up %d COM objects...", numInMap);
-    OLECHAR FAR *pythonOb = L"pythonObject";
-#endif
-    if (m_obTrackList) {
-        AllocThreadState();
-        PyObject *keys = PyMapping_Keys(m_obTrackList);
-        if (keys) {
-            int len = PySequence_Length(keys);
-            for (int index=0;index<len;index++) {
-                PyObject *intLook = PySequence_GetItem(keys, index);
-                PyIUnknown *pLook = (PyIUnknown *)PyLong_AsLong(intLook);
-                if (pLook) {
-#ifdef NOPE_DEBUG
-                    const char *relDesc = pLook->m_obj ? "NOT RELEASED" : "released";
-                    PyCom_LogF(" object <%s> at 0x%0lx, m_obj at 0x%0lx, ob_refcnt=%d, %s", pLook->ob_type->tp_name,
-pLook, pLook->m_obj, pLook->ob_refcnt, relDesc); if ( pLook->m_obj )
-                    {
-                        IDispatch *pdisp;
-                        HRESULT hr = pLook->m_obj->QueryInterface(IID_IDispatch, (LPVOID *)&pdisp);
-                        if ( SUCCEEDED(hr) )
-                        {
-                            DISPID dispid;
-                            hr = pdisp->GetIDsOfNames(IID_NULL, &pythonOb, 1, LOCALE_SYSTEM_DEFAULT, &dispid);
-                            if ( SUCCEEDED(hr) )
-                            {
-                                DISPPARAMS dispparams = { NULL, NULL, 0, 0 };
-                                VARIANT result;
-                                VariantInit(&result);
-                                hr = pdisp->Invoke(dispid, IID_NULL, LOCALE_SYSTEM_DEFAULT, DISPATCH_METHOD,
-&dispparams, &result, NULL, NULL); if ( SUCCEEDED(hr) && V_VT(&result) == VT_I4 )
-                                {
-                                    PyObject *ob = (PyObject *)V_I4(&result);
-                                    if ( PyInstance_Check(ob) )
-                                    {
-                                        PyCom_LogF("   object is a Python class instance of: %s",
-PyBytes_AsString(((PyInstanceObject *)ob)->in_class->cl_name));
-                                    }
-                                    else
-                                    {
-                                        PyCom_LogF("   object is a Python object of type: %s", ob->ob_type->tp_name);
-                                    }
-                                }
-                            }
-
-                            /* successful QI; need to release it
-                            pdisp->Release();
-                        }
-                    }
-#endif // _DEBUG
-//					SafeRelease(pLook);
-                }
-            }
-        }
-        Py_XDECREF(keys);
-        // no need to actually remove each item from the map - just
-        // remove ref to the map.
-        Py_DECREF(m_obTrackList);
-        m_obTrackList = NULL;
-        FreeThreadState();
-    }
-#ifdef _DEBUG
-    PyCom_LogF("COM object cleanup complete.");
-#endif
-}
-*/
 /*static*/ IUnknown *PyIUnknown::GetI(PyObject *self)
 {
     if (self == NULL) {
@@ -135,17 +62,12 @@ PyBytes_AsString(((PyInstanceObject *)ob)->in_class->cl_name));
             _save = PyEval_SaveThread();
             long rcnt = ob->m_obj->Release();
             PyEval_RestoreThread(_save);
-
-#ifdef _DEBUG_LIFETIMES
-            PyCom_LogF(buf, "   SafeRelease(%ld) -> %s at 0x%0lx, IUnknown at 0x%0lx - Release() returned %ld",
-                       GetCurrentThreadId(), ob->ob_type->tp_name, ob, ob->m_obj, rcnt);
-#endif
             ob->m_obj = NULL;
         }
         PYWINTYPES_EXCEPT
         {
             PyEval_RestoreThread(_save);
-            PyCom_LogF("Win32 exception occurred releasing IUnknown at 0x%08x", ob->m_obj);
+            PyCom_LogF(L"Win32 exception occurred releasing IUnknown at 0x%08p", ob->m_obj);
             ob->m_obj = NULL;
 #ifdef _DEBUG
             DebugBreak();

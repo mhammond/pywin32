@@ -503,13 +503,13 @@ BOOL DisplayPythonTraceback(PyObject *exc_type, PyObject *exc_val, PyObject *exc
             SetWindowText(title);
             GetDlgItem(IDCANCEL)->ShowWindow(SW_HIDE);
             GetDlgItem(IDOK)->SetWindowText(_T("Close"));
-            char *msg = GetPythonTraceback(m_exc_type, m_exc_value, m_exc_tb);
-            char *msg_free = msg;
+            WCHAR *msg = GetPythonTraceback(m_exc_type, m_exc_value, m_exc_tb);
+            WCHAR *msg_free = msg;
             // Translate '\n' to '\r\n' - do it the easy way!
             CString useMsg;
             for (; *msg; msg++)
-                if (*msg == '\n')
-                    useMsg += "\r\n";
+                if (*msg == L'\n')
+                    useMsg += L"\r\n";
                 else
                     useMsg += *msg;
             free(msg_free);
@@ -659,7 +659,7 @@ void DefaultExceptionHandler(int action, const TCHAR *context, const TCHAR *extr
         }
         else
             PyErr_Restore(type, value, traceback);
-        fprintf(stderr, "%s\n", context);
+        fwprintf(stderr, L"%s\n", context);
         // Now print it.
         PyErr_Print();
     }

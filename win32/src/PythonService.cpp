@@ -1383,22 +1383,9 @@ static void ReportPythonError(DWORD code)
         LPTSTR inserts[4] = {NULL, NULL, NULL, NULL};
         PyObject *type, *value, *traceback;
         PyErr_Fetch(&type, &value, &traceback);
-        TCHAR *szTracebackUse = L"<No memory!>";  // default.
-        TCHAR *szTraceback = NULL;                // to be freed.
-        char *szmbTraceback = GetPythonTraceback(type, value, traceback);
-        if (szmbTraceback) {
-            int tb_len = strlen(szmbTraceback) + 1;
-            szTraceback = (TCHAR *)malloc(sizeof(WCHAR) * tb_len);
-            if (szTraceback) {
-                szTracebackUse = szTraceback;
-                MultiByteToWideChar(CP_ACP, 0, szmbTraceback, tb_len, szTraceback, tb_len);
-                // trim crud from the end.
-                if (tb_len > 2)
-                    szTracebackUse[tb_len - 2] = L'\0';
-            }
-            free(szmbTraceback);
-        }
-        inserts[0] = szTracebackUse;
+        WCHAR *szTracebackDefault = L"<No memory!>";  // default.
+        WCHAR *szTraceback = GetPythonTraceback(type, value, traceback);
+        inserts[0] = szTraceback ? szTraceback : szTracebackDefault;
         ReportError(code, (LPCTSTR *)inserts);
         if (szTraceback)
             free(szTraceback);

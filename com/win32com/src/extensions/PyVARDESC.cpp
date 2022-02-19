@@ -57,7 +57,7 @@ BOOL PyObject_AsVARDESC(PyObject *ob, VARDESC *v, void *pMore)
         ;
     }
     else {
-        PyCom_LoggerWarning(NULL, "PyObject_AsVARDESC has unknown varkind (%d) - None will be used", v->varkind);
+        PyCom_LoggerWarning(NULL, L"PyObject_AsVARDESC has unknown varkind (%d) - None will be used", v->varkind);
     }
     // else ignore value.
     return TRUE;
@@ -207,7 +207,7 @@ PyVARDESC::PyVARDESC(const VARDESC *pVD)
         Py_INCREF(Py_None);
     }
     else {
-        PyCom_LoggerWarning(NULL, "PyVARDESC ctor has unknown varkind (%d) - returning None", varkind);
+        PyCom_LoggerWarning(NULL, L"PyVARDESC ctor has unknown varkind (%d) - returning None", varkind);
         value = Py_None;
         Py_INCREF(Py_None);
     }
