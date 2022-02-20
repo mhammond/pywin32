@@ -26,12 +26,7 @@ extern PyObject *PyWinMethod_NewHKEY(PyObject *self, PyObject *args);
 extern BOOL _PyWinDateTime_Init();
 extern BOOL _PyWinDateTime_PrepareModuleDict(PyObject *dict);
 
-#ifdef MS_WINCE
-// Where is this supposed to come from on CE???
-const GUID GUID_NULL = {0, 0, 0, {0, 0, 0, 0, 0, 0, 0, 0}};
-#endif
-
-#if (PY_VERSION_HEX >= 0x03000000)
+// XXX - Needs py3k modernization!
 // For py3k, a function that returns new memoryview object instead of buffer.
 // ??? Byte array object is mutable, maybe just use that directly as a substitute ???
 // Docs do not specify that you can pass NULL buffer to PyByteArray_FromStringAndSize, but it works
@@ -64,7 +59,6 @@ PyObject *PyBuffer_FromMemory(void *buf, Py_ssize_t size)
     };
     return PyMemoryView_FromBuffer(&info);
 }
-#endif
 
 // See comments in pywintypes.h for why we need this!
 void PyWin_MakePendingCalls()
@@ -1144,14 +1138,13 @@ extern "C" __declspec(dllexport)
 // Function to format a python traceback into a character string.
 #define GPEM_ERROR(what)                                     \
     {                                                        \
-        errorMsg = "<Error getting traceback - "##what##">"; \
+        errorMsg = L"<Error getting traceback - "##what##">"; \
         goto done;                                           \
     }
-PYWINTYPES_EXPORT char *GetPythonTraceback(PyObject *exc_type, PyObject *exc_value, PyObject *exc_tb)
+PYWINTYPES_EXPORT WCHAR *GetPythonTraceback(PyObject *exc_type, PyObject *exc_value, PyObject *exc_tb)
 {
-    // Sleep (30000); // Time enough to attach the debugger (barely)
-    char *result = NULL;
-    char *errorMsg = NULL;
+    WCHAR *result = NULL;
+    WCHAR *errorMsg = NULL;
     PyObject *modStringIO = NULL;
     PyObject *modTB = NULL;
     PyObject *obFuncStringIO = NULL;
@@ -1159,14 +1152,10 @@ PYWINTYPES_EXPORT char *GetPythonTraceback(PyObject *exc_type, PyObject *exc_val
     PyObject *obFuncTB = NULL;
     PyObject *argsTB = NULL;
     PyObject *obResult = NULL;
+    TmpWCHAR resultPtr;
 
-    /* Import the modules we need - cStringIO and traceback */
-#if (PY_VERSION_HEX < 0x03000000)
-    modStringIO = PyImport_ImportModule("cStringIO");
-#else
-    // In py3k, cStringIO is in "io"
+    // cStringIO is in "io"
     modStringIO = PyImport_ImportModule("io");
-#endif
 
     if (modStringIO == NULL)
         GPEM_ERROR("cant import cStringIO");
@@ -1186,21 +1175,17 @@ PYWINTYPES_EXPORT char *GetPythonTraceback(PyObject *exc_type, PyObject *exc_val
     obFuncTB = PyObject_GetAttrString(modTB, "print_exception");
     if (obFuncTB == NULL)
         GPEM_ERROR("cant find traceback.print_exception");
-    argsTB = Py_BuildValue(
-        "OOOOO"
-#if (PY_VERSION_HEX >= 0x03000000)
-        "i"
     // Py3k has added an undocumented 'chain' argument which defaults to True
-    //	and causes all kinds of exceptions while trying to print a goddam exception
-#endif
-        ,
+    // and causes all kinds of exceptions while trying to print a traceback!
+    // This *could* be useful thought if we can tame it - later!
+    int chain = 0;
+
+    argsTB = Py_BuildValue(
+        "OOOOOi",
         exc_type ? exc_type : Py_None, exc_value ? exc_value : Py_None, exc_tb ? exc_tb : Py_None,
         Py_None,  // limit
-        obStringIO
-#if (PY_VERSION_HEX >= 0x03000000)
-        ,
-        0  // Goddam undocumented 'chain' param, which defaults to True
-#endif
+        obStringIO,
+        chain
     );
     if (argsTB == NULL)
         GPEM_ERROR("cant make print_exception arguments");
@@ -1226,18 +1211,14 @@ PYWINTYPES_EXPORT char *GetPythonTraceback(PyObject *exc_type, PyObject *exc_val
         GPEM_ERROR("getvalue() failed.");
 
     /* And it should be a string all ready to go - duplicate it. */
-    if (PyBytes_Check(obResult))
-        result = strdup(PyBytes_AsString(obResult));
-#if (PY_VERSION_HEX >= 0x03000000)
-    else if (PyUnicode_Check(obResult))
-        result = strdup(_PyUnicode_AsString(obResult));
-#endif
+    if (PyWinObject_AsWCHAR(obResult, &resultPtr, FALSE))
+        result = wcsdup(resultPtr);
     else
         GPEM_ERROR("getvalue() did not return a string");
 
 done:
     if (result == NULL && errorMsg != NULL)
-        result = strdup(errorMsg);
+        result = wcsdup(errorMsg);
     Py_XDECREF(modStringIO);
     Py_XDECREF(modTB);
     Py_XDECREF(obFuncStringIO);

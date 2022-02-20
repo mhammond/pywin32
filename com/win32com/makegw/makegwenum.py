@@ -267,7 +267,7 @@ STDMETHODIMP PyGEnum%(enumtype)s::Next(
   error:
 	PyErr_Clear();	// just in case
 	Py_DECREF(result);
-	return PyCom_SetCOMErrorFromSimple(E_FAIL, IID_IEnum%(enumtype)s, "Next() did not return a sequence of objects");
+	return PyCom_HandleIEnumNoSequence(IID_IEnum%(enumtype)s);
 }
 
 STDMETHODIMP PyGEnum%(enumtype)s::Skip( 
@@ -324,7 +324,7 @@ STDMETHODIMP PyGEnum%(enumtype)s::Clone(
 	/* done with the result; this DECREF is also for <punk> */
 	Py_DECREF(result);
 
-	return PyCom_SetCOMErrorFromSimple(hr, IID_IEnum%(enumtype)s, "Python could not convert the result from Next() into the required COM interface");
+	return PyCom_CheckIEnumNextResult(hr, IID_IEnum%(enumtype)s);
 }
 """
         % locals()

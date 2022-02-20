@@ -139,10 +139,9 @@ class StreamTest(win32com.test.util.TestCase):
         badstream2 = win32com.server.util.wrap(badstream, pythoncom.IID_IStream)
         self.assertRaises(pythoncom.com_error, badstream2.Read, 10)
         win32com.test.util.restore_test_logger(old_log)
-        # expecting 2 pythoncom errors to have been raised by the gateways.
-        self.assertEqual(len(records), 2)
+        # there's 1 error here
+        self.assertEqual(len(records), 1)
         self.assertTrue(records[0].msg.startswith("pythoncom error"))
-        self.assertTrue(records[1].msg.startswith("pythoncom error"))
 
 
 if __name__ == "__main__":

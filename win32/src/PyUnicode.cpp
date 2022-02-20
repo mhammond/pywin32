@@ -258,6 +258,7 @@ void PyWinObject_FreeBstr(BSTR str) { SysFreeString(str); }
 
 // String conversions
 // Convert a Python object to a WCHAR - allow embedded NULLs, None, etc.
+// Must be freed with PyWinObject_FreeWCHAR
 BOOL PyWinObject_AsWCHAR(PyObject *stringObject, WCHAR **pResult, BOOL bNoneOK /*= FALSE*/,
                          DWORD *pResultLen /*= NULL*/)
 {

@@ -188,7 +188,7 @@ STDMETHODIMP PyGEnumFORMATETC::Next(
 error:
     PyErr_Clear();  // just in case
     Py_DECREF(result);
-    return PyCom_SetCOMErrorFromSimple(E_FAIL, IID_IEnumFORMATETC, "Next() did not return a sequence of objects");
+    return PyCom_HandleIEnumNoSequence(IID_IEnumFORMATETC);
 }
 
 STDMETHODIMP PyGEnumFORMATETC::Skip(
@@ -244,6 +244,5 @@ STDMETHODIMP PyGEnumFORMATETC::Clone(
         /* done with the result; this DECREF is also for <punk> */
         Py_DECREF(result);
 
-    return PyCom_SetCOMErrorFromSimple(
-        hr, IID_IEnumFORMATETC, "Python could not convert the result from Next() into the required COM interface");
+    return PyCom_CheckIEnumNextResult(hr, IID_IEnumFORMATETC);
 }

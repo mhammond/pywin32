@@ -190,7 +190,7 @@ STDMETHODIMP PyGEnumSTATSTG::Next(
 error:
     PyErr_Clear();  // just in case
     Py_DECREF(result);
-    return PyCom_SetCOMErrorFromSimple(E_FAIL, IID_IEnumSTATSTG, "Next() did not return a sequence of objects");
+    return PyCom_HandleIEnumNoSequence(IID_IEnumSTATSTG);
 }
 
 STDMETHODIMP PyGEnumSTATSTG::Skip(

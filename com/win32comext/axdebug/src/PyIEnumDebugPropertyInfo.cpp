@@ -214,8 +214,7 @@ STDMETHODIMP PyGEnumDebugPropertyInfo::Next(
 error:
     PyErr_Clear();  // just in case
     Py_DECREF(result);
-    return PyCom_SetCOMErrorFromSimple(E_FAIL, IID_IEnumDebugPropertyInfo,
-                                       "Next() did not return a sequence of objects");
+    return PyCom_HandleIEnumNoSequence(IID_IEnumDebugPropertyInfo);
 }
 
 STDMETHODIMP PyGEnumDebugPropertyInfo::Skip(
@@ -271,9 +270,7 @@ STDMETHODIMP PyGEnumDebugPropertyInfo::Clone(
         /* done with the result; this DECREF is also for <punk> */
         Py_DECREF(result);
 
-    return PyCom_SetCOMErrorFromSimple(
-        hr, IID_IEnumDebugPropertyInfo,
-        "Python could not convert the result from Next() into the required COM interface");
+    return PyCom_CheckIEnumNextResult(hr, IID_IEnumDebugPropertyInfo);
 }
 
 STDMETHODIMP PyGEnumDebugPropertyInfo::GetCount(

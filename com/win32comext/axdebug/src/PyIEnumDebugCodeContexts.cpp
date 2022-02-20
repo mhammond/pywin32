@@ -195,8 +195,7 @@ STDMETHODIMP PyGEnumDebugCodeContexts::Next(
 error:
     PyErr_Clear();  // just in case
     Py_DECREF(result);
-    return PyCom_SetCOMErrorFromSimple(E_FAIL, IID_IEnumDebugCodeContexts,
-                                       "Next() did not return a sequence of objects");
+    return PyCom_HandleIEnumNoSequence(IID_IEnumDebugCodeContexts);
 }
 
 STDMETHODIMP PyGEnumDebugCodeContexts::Skip(

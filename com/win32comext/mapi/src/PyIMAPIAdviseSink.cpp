@@ -97,7 +97,7 @@ PyObject *PyObject_FromNOTIFICATION(NOTIFICATION *n)
             break;
         }
         default: {
-            PyCom_LoggerWarning(NULL, "unknown MAPI notification type %x", n->ulEventType);
+            PyCom_LoggerWarning(NULL, L"unknown MAPI notification type %x", n->ulEventType);
             ret = Py_BuildValue("k(O)", n->ulEventType, Py_None);
             break;
         }
@@ -183,7 +183,7 @@ ULONG PyCMAPIAdviseSink::OnNotify(ULONG cNotif, LPNOTIFICATION lpNotifications)
 
     PyObject *arg = PyTuple_New(cNotif);
     if (!arg) {
-        PyCom_LoggerException(NULL, "File %s:Line %d:%s:PyTuple_New() failed.", __FILE__, __LINE__, __FUNCSIG__);
+        PyCom_LoggerException(NULL, L"File %s:Line %d:%s:PyTuple_New() failed.", __FILE__, __LINE__, __FUNCSIG__);
         PyErr_Clear();
         return 0;
     }
@@ -191,7 +191,7 @@ ULONG PyCMAPIAdviseSink::OnNotify(ULONG cNotif, LPNOTIFICATION lpNotifications)
         PyObject *sub = PyObject_FromNOTIFICATION(lpNotifications + i);
         if (!sub) {
             Py_DECREF(arg);
-            PyCom_LoggerException(NULL, "File %s:Line %d:%s:PyObject_FromNOTIFICATION failed.", __FILE__, __LINE__,
+            PyCom_LoggerException(NULL, L"File %s:Line %d:%s:PyObject_FromNOTIFICATION failed.", __FILE__, __LINE__,
                                   __FUNCSIG__);
             PyErr_Clear();
             return 0;
@@ -200,7 +200,7 @@ ULONG PyCMAPIAdviseSink::OnNotify(ULONG cNotif, LPNOTIFICATION lpNotifications)
     }
     PyObject *args = Py_BuildValue("NO", arg, m_context);
     if (!args) {
-        PyCom_LoggerException(NULL, "File %s:Line %d:%s:Py_BuildValue() failed.", __FILE__, __LINE__, __FUNCSIG__);
+        PyCom_LoggerException(NULL, L"File %s:Line %d:%s:Py_BuildValue() failed.", __FILE__, __LINE__, __FUNCSIG__);
         PyErr_Clear();
         return 0;
     }
@@ -208,7 +208,7 @@ ULONG PyCMAPIAdviseSink::OnNotify(ULONG cNotif, LPNOTIFICATION lpNotifications)
     PyObject *result = PyObject_CallObject(m_callback, args);
     Py_DECREF(args);
     if (!result) {
-        PyCom_LoggerException(NULL, "File %s:Line %d:%s:PyObject_CallObject failed.", __FILE__, __LINE__, __FUNCSIG__);
+        PyCom_LoggerException(NULL, L"File %s:Line %d:%s:PyObject_CallObject failed.", __FILE__, __LINE__, __FUNCSIG__);
         PyErr_Clear();
         return 0;
     }

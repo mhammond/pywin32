@@ -122,7 +122,7 @@ STDMETHODIMP PyGActiveScript::GetCurrentScriptThreadID(
             hr = PyCom_SetCOMErrorFromPyException(GetIID());
     }
     else
-        hr = PyCom_SetCOMErrorFromSimple(E_FAIL, GetIID(), "Python did not return an integer");
+        hr = PyCom_SetCOMErrorFromSimple(E_FAIL, GetIID(), L"Python did not return an integer");
 
     Py_XDECREF(result);
     return hr;
@@ -143,7 +143,7 @@ STDMETHODIMP PyGActiveScript::GetScriptThreadID(
             hr = PyCom_SetCOMErrorFromPyException(GetIID());
     }
     else
-        hr = PyCom_SetCOMErrorFromSimple(E_FAIL, GetIID(), "Python didnt return an integer");
+        hr = PyCom_SetCOMErrorFromSimple(E_FAIL, GetIID(), L"Python didnt return an integer");
     return hr;
 }
 
@@ -163,7 +163,7 @@ STDMETHODIMP PyGActiveScript::GetScriptThreadState(
             hr = PyCom_HandlePythonFailureToCOM();
     }
     else
-        hr = PyCom_SetCOMErrorFromSimple(E_FAIL, GetIID(), "Python did not return an integer");
+        hr = PyCom_SetCOMErrorFromSimple(E_FAIL, GetIID(), L"Python did not return an integer");
     Py_XDECREF(result);
     return hr;
 }
