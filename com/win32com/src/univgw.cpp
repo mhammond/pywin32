@@ -264,6 +264,8 @@ static pfnGWMethod make_method(DWORD index, UINT argsize, UINT argc)
 #else  // other arches
     /* The MAINWIN toolkit allows us to build this on Linux!!! */
 #pragma message("XXXXXXXXX - win32com.universal wont work on this platform - need make_method")
+    PyErr_SetString(PyExc_NotImplementedError, "not implemented on this platform");
+    code = NULL;
 #endif
 
     return (pfnGWMethod)code;

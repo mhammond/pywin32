@@ -42,6 +42,11 @@ To build 64bit versions of this:
    been tested in many years. Regardless, this ability comes directly from
    distutils/setuptools, so see their documentation for more details.
 
+To build 64bit ARM versions:
+    Only cross-compilation has been tested (and I'd welcome patches needed to build natively)
+    You will want a command something like:
+    % python setup.py -q build_ext --plat-name win-arm64 build --plat-name win-arm64 bdist_wheel --plat-name win-arm64
+
 Creating Distributions:
 -----------------------
 
@@ -244,7 +249,7 @@ class WinExt(Extension):
         delay_load_libraries="",
     ):
         include_dirs = ["com/win32com/src/include", "win32/src"] + include_dirs
-        libraries = libraries.split() + ["atls"]
+        libraries = libraries.split()
         self.delay_load_libraries = delay_load_libraries.split()
         libraries.extend(self.delay_load_libraries)
 
