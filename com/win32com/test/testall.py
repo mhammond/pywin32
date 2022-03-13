@@ -1,4 +1,22 @@
 import sys, os, string, re
+import getopt, traceback, unittest
+
+try:
+    this_file = __file__
+except NameError:
+    this_file = sys.argv[0]
+
+win32com_src_dir = os.path.abspath(os.path.join(this_file, "../.."))
+
+import win32com
+
+# We'd prefer the win32com namespace to be the parent of __file__ - ie, our source-tree,
+# rather than the version installed - otherwise every .py change needs a full install to
+# test!
+# We can't patch win32comext as most of them have a .pyd in their root :(
+# This clearly ins't ideal or perfect :)
+win32com.__path__[0] = win32com_src_dir
+
 import pythoncom
 import win32com.client
 from win32com.test.util import (
@@ -10,17 +28,8 @@ from win32com.test.util import (
     TestRunner,
     RegisterPythonServer,
 )
-import traceback
-import getopt
-
-import unittest
 
 verbosity = 1  # default unittest verbosity.
-
-try:
-    this_file = __file__
-except NameError:
-    this_file = sys.argv[0]
 
 
 def GenerateAndRunOldStyle():
@@ -190,10 +199,7 @@ def get_test_mod_and_func(test_name, import_failures):
     except:
         import_failures.append((mod_name, sys.exc_info()[:2]))
         return None, None
-    if func_name is None:
-        func = None
-    else:
-        func = getattr(mod, func_name)
+    func = None if func_name is None else getattr(mod, func_name)
     return mod, func
 
 
@@ -206,7 +212,7 @@ def make_test_suite(test_level=1):
         for mod_name in unittest_modules[i]:
             mod, func = get_test_mod_and_func(mod_name, import_failures)
             if mod is None:
-                continue
+                raise Exception("no such module '{}'".format(mod_name))
             if func is not None:
                 test = CapturingFunctionTestCase(func, description=mod_name)
             else:
