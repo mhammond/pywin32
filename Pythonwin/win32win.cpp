@@ -63,25 +63,25 @@ class WndHack : public CWnd {
 
 BOOL Python_check_message(const MSG *msg)  // TRUE if fully processed.
 {
-    BOOL ret;
+    // Our Python convention is TRUE means "pass it on", which we only want to do if the message if valid, and the callback returns TRUE
+    BOOL ret = FALSE;
     ui_assoc_object *pObj = NULL;
     PyObject *method;
     CWnd *pWnd = bInFatalShutdown ? NULL : CWnd::FromHandlePermanent(msg->hwnd);
-    // is_uiobjects calls python methods, must already hold lock
-    CEnterLeavePython _celp;
-    if (pWnd && (pObj = ui_assoc_object::GetAssocObject(pWnd)) && pObj->is_uiobject(&PyCWnd::type) &&
-        ((PyCWnd *)pObj)->pMessageHookList &&
-        ((PyCWnd *)pObj)->pMessageHookList->Lookup(msg->message, (void *&)method)) {
+    if (pWnd) {
+        // is_uiobjects calls python methods, must already hold lock
+        CEnterLeavePython _celp;
+        if ((pObj = ui_assoc_object::GetAssocObject(pWnd)) && pObj->is_uiobject(&PyCWnd::type) &&
+            ((PyCWnd *)pObj)->pMessageHookList &&
+            ((PyCWnd *)pObj)->pMessageHookList->Lookup(msg->message, (void *&)method)) {
 #ifdef TRACE_CALLBACKS
-        TRACE("Message callback: message %04X, object %s (hwnd %p) (%p)\n", msg->message,
-              (const char *)GetReprText(pObj), pWnd, pWnd->GetSafeHwnd());
+            TRACE("Message callback: message %04X, object %s (hwnd %p) (%p)\n", msg->message,
+                  (const char *)GetReprText(pObj), pWnd, pWnd->GetSafeHwnd());
 #endif
-        // Our Python convention is TRUE means "pass it on"
-        // CEnterLeavePython _celp;
-        ret = Python_callback(method, msg) == 0;
+            ret = Python_callback(method, msg) == 0;
+        }
     }
-    else
-        ret = FALSE;  // dont want it.
+
     Py_XDECREF(pObj);
     return ret;
 }
