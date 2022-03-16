@@ -22,6 +22,11 @@ Ensure the following components are installed:
 * Windows 8.1 SDK and UCRT SDK
 * Visual C++ MFC for x86 and x64
 
+if you want to cross-compile for ARM, you will need at least the following (from "Individual Components")
+* "Visual C++ compilers and libraries for ARM64"
+* "Visual C++ for MFC for ARM64"
+
+
 (You should be able to check everything you need is installed by opening a
 command prompt and executing:
 

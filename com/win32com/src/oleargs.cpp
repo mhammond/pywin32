@@ -997,7 +997,7 @@ PyObject *PyCom_PyObjectFromSAFEARRAYBuildDimension(SAFEARRAY *psa, VARENUM vt, 
         return PyCom_BuildPyException(hres);
     // First we take a shortcut for VT_UI1 (ie, binary) buffers.
     if (vt == VT_UI1) {
-        void *ob_buf, *sa_buf;
+        void *sa_buf;
         HRESULT hres = SafeArrayAccessData(psa, &sa_buf);
         if (FAILED(hres))
             return PyCom_BuildPyException(hres);
