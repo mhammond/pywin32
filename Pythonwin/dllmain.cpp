@@ -101,9 +101,14 @@ CInProcApp::CInProcApp(LPCTSTR lpszAppName) : CWinApp(lpszAppName)
 /////////////////////////////////////////////////////////////////////////////
 // CInProcApp initialization
 
+extern "C" PYW_EXPORT BOOL
+    Win32uiApplicationInit(Win32uiHostGlue *pGlue, const TCHAR *cmd, const TCHAR *addnPaths);
+
 BOOL CInProcApp::InitInstance()
 {
-    if (!glue.DynamicApplicationInit())
+    // Avoid dynamic search for Win32uiApplicationInit from inside DLL
+    //if (!glue.DynamicApplicationInit())
+    if (!Win32uiApplicationInit(&glue, NULL, NULL))
         return FALSE;
     return glue.InitInstance();
 }

@@ -2595,7 +2595,7 @@ BOOL Win32uiOnIdle(LONG lCount)
     return ret;
 }
 
-extern "C" PYW_EXPORT BOOL Win32uiApplicationInit(Win32uiHostGlue *pGlue, TCHAR *cmd, const TCHAR *additionalPaths)
+extern "C" PYW_EXPORT BOOL Win32uiApplicationInit(Win32uiHostGlue *pGlue, const TCHAR *cmd, const TCHAR *additionalPaths)
 {
 #ifdef _DEBUG
     afxDump.SetDepth(1);  // deep dump of objects at exit.
