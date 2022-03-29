@@ -247,7 +247,7 @@ fail_with_error_dlg:
 #else  // LINK_WITH_WIN32UI defined
 
 extern "C" __declspec(dllimport) BOOL
-    Win32uiApplicationInit(Win32uiHostGlue *pGlue, TCHAR *cmd, const TCHAR *addnPaths);
+    Win32uiApplicationInit(Win32uiHostGlue *pGlue, const TCHAR *cmd, const TCHAR *addnPaths);
 extern "C" void initwin32ui();
 
 inline BOOL Win32uiHostGlue::ApplicationInit(const TCHAR *cmd, const TCHAR *additionalPaths)
@@ -259,7 +259,7 @@ inline BOOL Win32uiHostGlue::ApplicationInit(const TCHAR *cmd, const TCHAR *addi
     // Make sure the statically linked win32ui is the one Python sees
     // (and doesnt go searching for a new one)
 
-    initwin32ui();
+    PyInit_win32ui();
     return Win32uiApplicationInit(this, cmd, additionalPaths);
 }
 
