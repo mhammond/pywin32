@@ -1948,6 +1948,9 @@ PyCFunction pfnPyEvtGetObjectArrayProperty = (PyCFunction) PyEvtGetObjectArrayPr
 
 
 %init %{
+    if (PyType_Ready(&PyEventLogRecordType) == -1)
+        PYWIN_MODULE_INIT_RETURN_ERROR;
+
     for (PyMethodDef *pmd = win32evtlogMethods;pmd->ml_name;pmd++)
         if   ((strcmp(pmd->ml_name, "EvtOpenChannelEnum")==0)
 			||(strcmp(pmd->ml_name, "EvtCreateRenderContext")==0)
