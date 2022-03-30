@@ -1160,14 +1160,14 @@ BOOL PytoJob(DWORD level, PyObject *pyjobinfo, LPBYTE *pbuf)
     static char *job1_keys[] = {"JobId",      "pPrinterName", "pMachineName", "pUserName", "pDocument",
                                 "pDatatype",  "pStatus",      "Status",       "Priority",  "Position",
                                 "TotalPages", "PagesPrinted", "Submitted",    NULL};
-    static char *job1_format = "kzzzzzzkkkkk|O:JOB_INFO_1";
+    static char *job1_format = "kZZZZZZkkkkk|O:JOB_INFO_1";
 
     static char *job2_keys[] = {"JobId",       "pPrinterName", "pMachineName",        "pUserName",   "pDocument",
                                 "pNotifyName", "pDatatype",    "pPrintProcessor",     "pParameters", "pDriverName",
                                 "pDevMode",    "pStatus",      "pSecurityDescriptor", "Status",      "Priority",
                                 "Position",    "StartTime",    "UntilTime",           "TotalPages",  "Size",
                                 "Submitted",   "Time",         "PagesPrinted",        NULL};
-    static char *job2_format = "kzzzzzzzzzOzOkkkkkkkOkk:JOB_INFO_2";
+    static char *job2_format = "kZZZZZZZZZOZOkkkkkkkOkk:JOB_INFO_2";
 
     static char *job3_keys[] = {"JobId", "NextJobId", "Reserved", NULL};
     static char *job3_format = "kk|k:JOB_INFO_3";
