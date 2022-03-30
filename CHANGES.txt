@@ -13,6 +13,9 @@ Since build 303:
   break any workarounds which were used, such as using specific encodings in
   these strings. (#1823, #1833)
 
+* Fixed a bug triggering `win32print.SetJob` to fail due to data type
+  (`char*` / `wchar_t*`) mismatch (#1849, @CristiFati)
+
 Since build 302:
 ----------------
 * Tweaks to how DLLs are loaded and our installation found, which should
