@@ -38,7 +38,7 @@ def find_and_run(possible_locations, extras):
         )
 
 
-if __name__ == "__main__":
+def main():
     import argparse
 
     code_directories = [this_dir] + site_packages
@@ -113,3 +113,7 @@ if __name__ == "__main__":
             print(">", failure)
         sys.exit(1)
     print("All tests passed \o/")
+
+
+if __name__ == "__main__":
+    main()
