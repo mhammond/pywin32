@@ -98,7 +98,7 @@ class ListsDialog(ListDialog):
         numCols = len(self.colHeadings)
 
         for col in self.colHeadings:
-            itemDetails = (commctrl.LVCFMT_LEFT, width / numCols, col, 0)
+            itemDetails = (commctrl.LVCFMT_LEFT, int(width / numCols), col, 0)
             self.itemsControl.InsertColumn(index, itemDetails)
             index = index + 1
         index = 0
