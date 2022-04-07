@@ -1,4 +1,5 @@
 // @doc
+#define PY_SSIZE_T_CLEAN
 #include "win32crypt.h"
 
 // @object PyCRYPTPROV|Handle to a cryptographic provider, created using <om cryptoapi.CryptAcquireContext>
@@ -325,18 +326,18 @@ PyObject *PyCRYPTPROV::PyCryptGenRandom(PyObject *self, PyObject *args, PyObject
 {
     static char *keywords[] = {"Len", "SeedData", NULL};
     PyObject *ret = NULL;
-    DWORD dwLen = 0, seedlen = 0;
+    Py_ssize_t dwLen = 0, seedlen = 0;
     BYTE *pbBuffer = NULL;
     HCRYPTPROV hcryptprov = ((PyCRYPTPROV *)self)->GetHCRYPTPROV();
     char *seeddata = NULL;
 
-    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "k|z#", keywords,
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "n|z#", keywords,
                                      &dwLen,                // @pyparm int|Len||Number of bytes to generate
                                      &seeddata, &seedlen))  // @pyparm string|SeedData|None|Random seed data
         return NULL;
     pbBuffer = (BYTE *)malloc(dwLen + 1);
     if (pbBuffer == NULL)
-        return PyErr_Format(PyExc_MemoryError, "CryptGenRandom: Unable to allocate %d bytes", dwLen + 1);
+        return PyErr_Format(PyExc_MemoryError, "CryptGenRandom: Unable to allocate %zd bytes", dwLen + 1);
 
     // initialize buffer with char string if passed if
     ZeroMemory(pbBuffer, dwLen + 1);

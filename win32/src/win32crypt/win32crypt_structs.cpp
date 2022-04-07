@@ -1,3 +1,4 @@
+#define PY_SSIZE_T_CLEAN
 #include "win32crypt.h"
 // @doc
 extern PyObject *dummy_tuple;  // = PyTuple_New(0); // set up in win32cryptmodule init
@@ -226,11 +227,14 @@ BOOL PyWinObject_AsCRYPT_ALGORITHM_IDENTIFIER(PyObject *obcai, PCRYPT_ALGORITHM_
         return FALSE;
     }
     ZeroMemory(pcai, sizeof(CRYPT_ALGORITHM_IDENTIFIER));
-    return PyArg_ParseTupleAndKeywords(
+    Py_ssize_t cbData;
+    BOOL ok = PyArg_ParseTupleAndKeywords(
         dummy_tuple, obcai, "sz#:CRYPT_ALGORITHM_IDENTIFIER", cai_keys,
         &pcai->pszObjId,  // @prop str|ObjId|An szOID_* string identifying the algorithm
         &pcai->Parameters.pbData,
-        &pcai->Parameters.cbData);  // @prop str|Parameters|Blob of binary data containing encoded parameters
+        &cbData);  // @prop str|Parameters|Blob of binary data containing encoded parameters
+    if (ok) pcai->Parameters.cbData = (DWORD)cbData;
+    return ok;
 }
 
 PyObject *PyWinObject_FromCERT_PUBLIC_KEY_INFO(PCERT_PUBLIC_KEY_INFO pcpki)
@@ -293,7 +297,7 @@ PyObject *PyWinObject_FromCERT_NAME_VALUE(PCERT_NAME_VALUE pcnv)
     /* ???? Need some additional interpretation here, some of the CERT_RDN_* values can mean 8-bit characters
         or even an array of 32-bit ints */
     PyObject *ret = Py_BuildValue("{s:k,s:u#}", "ValueType", pcnv->dwValueType, "Value", pcnv->Value.pbData,
-                                  pcnv->Value.cbData / sizeof(WCHAR));
+                                  (Py_ssize_t)(pcnv->Value.cbData / sizeof(WCHAR)));
     return ret;
 }
 

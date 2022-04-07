@@ -1,4 +1,5 @@
 // Rich Edit Control
+#define PY_SSIZE_T_CLEAN
 #include "stdafx.h"
 
 #include "win32win.h"

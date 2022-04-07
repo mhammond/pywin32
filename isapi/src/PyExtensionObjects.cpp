@@ -23,6 +23,7 @@
  ======================================================================
  */
 
+//#define PY_SSIZE_T_CLEAN  // defined by isapi\src\StdAfx.h
 #include "stdafx.h"
 #include "Utils.h"
 #include "PyExtensionObjects.h"
@@ -875,6 +876,7 @@ PyObject *PyECB::TransmitFile(PyObject *self, PyObject *args)
     HSE_TF_INFO info;
     memset(&info, 0, sizeof(info));
     PyObject *obCallback, *obCallbackParam;
+    Py_ssize_t HeadLength, TailLength;
     if (!PyArg_ParseTuple(args, "OOKsiiz#z#i:TransmitFile",
                           &obCallback,          // @pyparm callable|callback||
                           &obCallbackParam,     // @pyparm object|param||Any object - passed as 2nd arg to callback.
@@ -883,12 +885,14 @@ PyObject *PyECB::TransmitFile(PyObject *self, PyObject *args)
                           &info.BytesToWrite,   // @pyparm int|BytesToWrite||
                           &info.Offset,         // @pyparm int|Offset||
                           &info.pHead,          // @pyparm string|head||
-                          &info.HeadLength,
+                          &HeadLength,
                           &info.pTail,  // @pyparm string|tail||
-                          &info.TailLength,
+                          &TailLength,
                           &info.dwFlags  // @pyparm int|flags||
                           ))
         return NULL;
+    info.HeadLength = (DWORD)HeadLength;
+    info.TailLength = (DWORD)TailLength;
     info.hFile = (HANDLE)hFile;
     // @comm The callback is called with 4 args - (<o PyECB>, param, cbIO, dwErrCode)
 

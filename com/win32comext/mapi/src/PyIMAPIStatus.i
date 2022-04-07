@@ -4,6 +4,9 @@
                      // subsystem, the integrated address book and the MAPI
                      // spooler.
 
+%{
+#define PY_SSIZE_T_CLEAN
+%}
 %include "typemaps.i"
 %include "pywin32.i"
 %include "pythoncom.i"
@@ -60,7 +63,7 @@ PyObject *PyIMAPIStatus::FlushQueues(PyObject *self, PyObject *args)
     HRESULT  _result;
     ULONG uiparam = 0, flags = 0;
     char *entryID;
-    int cbEntryID;
+    Py_ssize_t cbEntryID;
     // @pyparm int|uiparam||
     // @pyparm string|entryID||A blob
     // @pyparm int|flags||

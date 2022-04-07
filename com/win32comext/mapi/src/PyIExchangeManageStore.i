@@ -2,6 +2,9 @@
 
 %module IExchangeManageStore
 
+%{
+#define PY_SSIZE_T_CLEAN
+%}
 %include "typemaps.i"
 %include "pywin32.i"
 %include "pythoncom.i"
@@ -94,7 +97,7 @@ PyObject *PyIExchangeManageStore::CreateStoreEntryID(PyObject *self, PyObject *a
 #else
 								"s#",
 #endif
-								sbEID.lpb, sbEID.cb);
+								sbEID.lpb, (Py_ssize_t)sbEID.cb);
 
 done:
 	MAPIFreeBuffer((LPENTRYID)sbEID.lpb);

@@ -3,6 +3,7 @@
 %module win32process // An interface to the win32 Process and Thread API's
 
 %{
+#define PY_SSIZE_T_CLEAN  // may inevitably be defined by swig_lib/python/python.swg already
 #ifndef MS_WINCE
 #include "process.h"
 #endif
@@ -1645,7 +1646,7 @@ PyObject *PyReadProcessMemory(PyObject *self, PyObject *args)
 {
 	PyObject *obhprocess;
 	PyObject *obAddress;
-	SIZE_T size;
+	Py_ssize_t size;
 	// @pyswig bytes|ReadProcessMemory|
 	// @pyparm <o PyHANDLE>|hProcess||
 	// @pyparm int|address||

@@ -3,6 +3,9 @@
 
 %module wincerapi // A module which provides an interface to the win32 CE Remote API
 
+%{
+#define PY_SSIZE_T_CLEAN
+%}
 %include "typemaps.i"
 %include "pywintypes.i"
 
@@ -778,7 +781,7 @@ PyObject *PyCeReadFile(PyObject *self, PyObject *args)
 PyObject *PyCeWriteFile(PyObject *self, PyObject *args)
 {
 	char *writeData;
-	int dataSize;
+	Py_ssize_t dataSize;
 	PyObject *obOverlapped;
 	PyObject *obhFile;
 	if (!PyArg_ParseTuple(args, "Os#|O:CeWriteFile",

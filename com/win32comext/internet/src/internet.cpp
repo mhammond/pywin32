@@ -12,6 +12,7 @@ generates Windows .hlp files.
 @doc
 ***/
 
+#define PY_SSIZE_T_CLEAN
 #include "internet_pch.h"
 #include "MsHtmHst.h"
 #include "stddef.h"             // for offsetof
@@ -81,7 +82,7 @@ BOOL PyObject_AsPROTOCOLDATA(PyObject *ob, PROTOCOLDATA *pPD)
 
 PyObject *PyObject_FromPROTOCOLDATA(PROTOCOLDATA *pPD)
 {
-    return Py_BuildValue("iiz#", pPD->grfFlags, pPD->dwState, pPD->pData, pPD->cbData);
+    return Py_BuildValue("iiz#", pPD->grfFlags, pPD->dwState, pPD->pData, (Py_ssize_t)pPD->cbData);
 }
 //////////////////////////////////////////////////////////////
 //

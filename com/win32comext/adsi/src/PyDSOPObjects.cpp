@@ -4,6 +4,7 @@
 #define UNICODE
 #define _UNICODE
 #endif
+#define PY_SSIZE_T_CLEAN
 #include "PyWinTypes.h"
 #include "PythonCOM.h"
 #include "Objsel.h"
@@ -12,11 +13,11 @@
 PyObject *PyStringAsDS_SELECTION_LIST(PyObject *self, PyObject *args)
 {
     char *sz;
-    unsigned int cb;
+    Py_ssize_t cb;
     if (!PyArg_ParseTuple(args, "s#:PyStringAsDS_SELECTION_LIST", &sz, &cb))
         return NULL;
     if (cb < sizeof(DS_SELECTION_LIST))
-        return PyErr_Format(PyExc_ValueError, "String must be at least %d bytes (got %d)", sizeof(DS_SELECTION_LIST),
+        return PyErr_Format(PyExc_ValueError, "String must be at least %zu bytes (got %zd)", sizeof(DS_SELECTION_LIST),
                             cb);
     DS_SELECTION_LIST *pSL = (DS_SELECTION_LIST *)sz;
     PyObject *ret = PyList_New(pSL->cItems);

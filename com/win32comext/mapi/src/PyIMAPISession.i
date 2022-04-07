@@ -2,6 +2,9 @@
 
 %module IMAPISession // An COM interface to MAPI's ISession interface.
 
+%{
+#define PY_SSIZE_T_CLEAN
+%}
 %include "typemaps.i"
 %include "pywin32.i"
 %include "pythoncom.i"
@@ -84,7 +87,7 @@ PyObject *PyIMAPISession::OpenMsgStore(PyObject *self, PyObject *args)
 {
     HRESULT  _result;
     char * entryString;
-	int entryStrLen;
+	Py_ssize_t entryStrLen;
     IID iid;
 	IID *pIID;
     PyObject * objIID = 0;

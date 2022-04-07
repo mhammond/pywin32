@@ -3,6 +3,7 @@
 // misc structures
 //
 // @doc
+#define PY_SSIZE_T_CLEAN
 #include "PyWinTypes.h"
 #include "lm.h"
 #include "lmuseflg.h"
@@ -1543,15 +1544,17 @@ static BOOL PyObject_AsCHANGE_INPUT(PyObject *ob, NET_VALIDATE_PASSWORD_CHANGE_I
         return FALSE;
     }
 
+    Py_ssize_t Length;
     int rc = PyArg_ParseTupleAndKeywords(
         args, kw, "|OOOz#i:NET_VALIDATE_PASSWORD_CHANGE_INPUT_ARG", keywords,
         &obipf,                   // @pyparm <o NET_VALIDATE_PERSISTED_FIELDS>|InputPersistedFields|None|
         &obPassword,              // @pyparm <o PyUnicode>|ClearPassword|None|
         &obAcct,                  // @pyparm <o PyUnicode>|UserAccountName|None|
         &p->HashedPassword.Hash,  // @pyparm buffer|HashedPassword|None|A string or anything else holding bytes.
-        &p->HashedPassword.Length,
+        &Length,
         &p->PasswordMatch);  // @pyparm int|PasswordMatch|0|Note MSDN incorrectly documents this member as
                              // PasswordMatched
+    if (rc) p->HashedPassword.Length = Length;
 
     if (decref_args)
         Py_DECREF(args);
