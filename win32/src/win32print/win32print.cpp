@@ -213,6 +213,10 @@ static PyObject *PyWinObject_FromPRINTER_INFO(LPBYTE printer_info, DWORD level)
                                  "pPortName", PyWinObject_FromTCHAR(pi5->pPortName), "Attributes", pi5->Attributes,
                                  "DeviceNotSelectedTimeout", pi5->DeviceNotSelectedTimeout, "TransmissionRetryTimeout",
                                  pi5->TransmissionRetryTimeout);
+        case 6:
+            PRINTER_INFO_6 *pi6;
+            pi6 = (PRINTER_INFO_6*)printer_info;
+            return Py_BuildValue("{s:k}", "Status", pi6->dwStatus);
         case 7:
             PRINTER_INFO_7 *pi7;
             pi7 = (PRINTER_INFO_7 *)printer_info;
@@ -327,6 +331,17 @@ void PyWinObject_FreePRINTER_INFO(DWORD level, LPBYTE pbuf)
     }
     free(pbuf);
 }
+
+#define AsPRINTER_INFO__INIT_PRINTER_INFO_X(_PRINTER_INFO_X, _PIX_PTR, _BREAK_ON_ERROR) \
+    _PRINTER_INFO_X *_PIX_PTR; \
+    bufsize = sizeof(_PRINTER_INFO_X); \
+    if ((*pbuf = (LPBYTE)malloc(bufsize)) == NULL) { \
+        PyErr_Format(PyExc_MemoryError, "Malloc failed for %d bytes", bufsize); \
+        if (_BREAK_ON_ERROR) break; \
+    } \
+    ZeroMemory(*pbuf, bufsize); \
+    _PIX_PTR = (_PRINTER_INFO_X*)*pbuf;
+
 
 BOOL PyWinObject_AsPRINTER_INFO(DWORD level, PyObject *obinfo, LPBYTE *pbuf)
 {
@@ -467,6 +482,15 @@ BOOL PyWinObject_AsPRINTER_INFO(DWORD level, PyObject *obinfo, LPBYTE *pbuf)
                                               &pi5->TransmissionRetryTimeout) &&
                   PyWinObject_AsTCHAR(obPrinterName, &pi5->pPrinterName, TRUE) &&
                   PyWinObject_AsTCHAR(obPortName, &pi5->pPortName, TRUE);
+            break;
+        }
+        case 6: {
+            static char *pi6_keys[] = {
+                "Status",
+                NULL };
+            static char *pi6_format = "k:PRINTER_INFO_6";
+            AsPRINTER_INFO__INIT_PRINTER_INFO_X(PRINTER_INFO_6, pi6, TRUE);
+            ret = PyArg_ParseTupleAndKeywords(dummy_tuple, obinfo, pi6_format, pi6_keys, &pi6->dwStatus);
             break;
         }
         case 7: {
