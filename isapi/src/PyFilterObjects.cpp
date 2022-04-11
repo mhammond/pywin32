@@ -23,6 +23,7 @@
  ======================================================================
  */
 
+//#define PY_SSIZE_T_CLEAN  // defined by isapi\src\StdAfx.h
 #include "stdafx.h"
 #include "Utils.h"
 #include "pyFilterObjects.h"

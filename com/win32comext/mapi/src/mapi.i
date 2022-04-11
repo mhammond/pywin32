@@ -13,9 +13,10 @@
 %module mapi // A COM interface to MAPI
 
 
-//%{
+%{
+#define PY_SSIZE_T_CLEAN
 //#define UNICODE
-//%}
+%}
 
 
 %include "typemaps.i"
@@ -79,7 +80,7 @@ static int AddIID(PyObject *dict, const char *key, REFGUID guid)
 static PyObject *PyHexFromBin(PyObject *self, PyObject *args) 
 {
 	char *szData;
-	int dataSize;
+	Py_ssize_t dataSize;
 	// @pyparm string|val||Converts an EntryID into a hex string representation.
 	if (!PyArg_ParseTuple(args, "s#:HexFromBin", &szData, &dataSize))
 		return NULL;
@@ -748,7 +749,7 @@ PyObject *PyWrapCompressedRTFStreamEx(PyObject *self, PyObject *args)
 PyObject *MAPIUIDFromBinary(PyObject *self, PyObject *args)
 {
 	char *szVal;
-	int szSize;
+	Py_ssize_t szSize;
 	if (!PyArg_ParseTuple(args, "s#:MAPIUIDFromBinary", &szVal, &szSize))
 		return NULL;
 	if (szSize != sizeof(MAPIUID)) {

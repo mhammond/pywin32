@@ -5,6 +5,7 @@
     Created August 1994, Mark Hammond (MHammond@skippinet.com.au)
 
 */
+#define PY_SSIZE_T_CLEAN
 #include "stdafx.h"
 #include "win32win.h"
 #include "win32dc.h"

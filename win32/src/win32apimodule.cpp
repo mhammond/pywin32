@@ -11,6 +11,7 @@ generates Windows .hlp files.
 @doc
 
 ******************************************************************/
+#define PY_SSIZE_T_CLEAN
 #include "PyWinTypes.h"
 #include "PyWinObjects.h"
 #include "win32api_display.h"
@@ -5998,7 +5999,7 @@ PyObject *PyToAsciiEx(PyObject *self, PyObject *args)
 {
     UINT vk, sc, flags = 0;
     const char *state;
-    int statesize;
+    Py_ssize_t statesize;
     PyObject *obhlayout = NULL;
     HKL layout = 0;
     // @pyparm int|vk||The virtual key code.

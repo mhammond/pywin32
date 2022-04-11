@@ -1,3 +1,5 @@
+//#define PY_SSIZE_T_CLEAN  // defined in win32virt.cpp which runs the z# format here
+
 extern PyObject *BASED_CODE dde_module_error;
 
 // #define RETURN_NONE				do {Py_INCREF(Py_None);return Py_None;} while (0)
@@ -55,7 +57,7 @@ class PythonDDETopicFramework : public T {
     {
         CVirtualHelper helper("Poke", this);
         BOOL rc = TRUE;
-        if (helper.call_args("(Nz#)", PyWinObject_FromTCHAR(szItem), pData, dwSize)) {
+        if (helper.call_args("(Nz#)", PyWinObject_FromTCHAR(szItem), pData, (Py_ssize_t)dwSize)) {
             return TRUE;
         }
         return !rc;
