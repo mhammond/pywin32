@@ -2476,12 +2476,6 @@ dist = setup(
         },
     },
     scripts=["pywin32_postinstall.py", "pywin32_testall.py"],
-    entry_points={
-        "console_scripts": [
-            "pywin32_postinstall=pywin32_postinstall:main",
-            "pywin32_testall=pywin32_testall:main",
-        ]
-    },
     ext_modules=ext_modules,
     package_dir={
         "win32com": "com/win32com",
