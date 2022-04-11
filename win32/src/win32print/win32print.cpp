@@ -332,12 +332,12 @@ void PyWinObject_FreePRINTER_INFO(DWORD level, LPBYTE pbuf)
     free(pbuf);
 }
 
-#define AsPRINTER_INFO__INIT_PRINTER_INFO_X(_PRINTER_INFO_X, _PIX_PTR, _BREAK_ON_ERROR) \
+#define AsPRINTER_INFO__INIT_PRINTER_INFO_X(_PRINTER_INFO_X, _PIX_PTR) \
     _PRINTER_INFO_X *_PIX_PTR; \
     bufsize = sizeof(_PRINTER_INFO_X); \
     if ((*pbuf = (LPBYTE)malloc(bufsize)) == NULL) { \
         PyErr_Format(PyExc_MemoryError, "Malloc failed for %d bytes", bufsize); \
-        if (_BREAK_ON_ERROR) break; \
+        break; \
     } \
     ZeroMemory(*pbuf, bufsize); \
     _PIX_PTR = (_PRINTER_INFO_X*)*pbuf;
@@ -489,7 +489,7 @@ BOOL PyWinObject_AsPRINTER_INFO(DWORD level, PyObject *obinfo, LPBYTE *pbuf)
                 "Status",
                 NULL };
             static char *pi6_format = "k:PRINTER_INFO_6";
-            AsPRINTER_INFO__INIT_PRINTER_INFO_X(PRINTER_INFO_6, pi6, TRUE);
+            AsPRINTER_INFO__INIT_PRINTER_INFO_X(PRINTER_INFO_6, pi6);
             ret = PyArg_ParseTupleAndKeywords(dummy_tuple, obinfo, pi6_format, pi6_keys, &pi6->dwStatus);
             break;
         }
