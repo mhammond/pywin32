@@ -395,15 +395,7 @@ BOOL PyWinObject_AsPRINTER_INFO(DWORD level, PyObject *obinfo, LPBYTE *pbuf)
                      *obDriverName = Py_None, *obComment = Py_None, *obLocation = Py_None, *obDevMode = Py_None,
                      *obSepFile = Py_None, *obPrintProcessor = Py_None, *obDatatype = Py_None, *obParameters = Py_None,
                      *obSecurityDescriptor = Py_None;
-            PRINTER_INFO_2 *pi2;
-            bufsize = sizeof(PRINTER_INFO_2);
-            if (NULL == (*pbuf = (LPBYTE)malloc(bufsize))) {
-                PyErr_Format(PyExc_MemoryError, "Malloc failed for %d bytes", bufsize);
-                break;
-            }
-            ZeroMemory(*pbuf, bufsize);
-            pi2 = (PRINTER_INFO_2 *)*pbuf;
-
+            AsPRINTER_INFO__INIT_PRINTER_INFO_X(PRINTER_INFO_2, pi2);
             ret = PyArg_ParseTupleAndKeywords(dummy_tuple, obinfo, pi2_format, pi2_keys, &obServerName, &obPrinterName,
                                               &obShareName, &obPortName, &obDriverName, &obComment, &obLocation,
                                               &obDevMode, &obSepFile, &obPrintProcessor, &obDatatype, &obParameters,
@@ -429,14 +421,7 @@ BOOL PyWinObject_AsPRINTER_INFO(DWORD level, PyObject *obinfo, LPBYTE *pbuf)
             static char *pi3_keys[] = {"pSecurityDescriptor", NULL};
             static char *pi3_format = "O:PRINTER_INFO_3";
             PyObject *obSecurityDescriptor;
-            PRINTER_INFO_3 *pi3;
-            bufsize = sizeof(PRINTER_INFO_3);
-            if (NULL == (*pbuf = (LPBYTE)malloc(bufsize))) {
-                PyErr_Format(PyExc_MemoryError, "Malloc failed for %d bytes", bufsize);
-                break;
-            }
-            ZeroMemory(*pbuf, bufsize);
-            pi3 = (PRINTER_INFO_3 *)*pbuf;
+            AsPRINTER_INFO__INIT_PRINTER_INFO_X(PRINTER_INFO_3, pi3);
             ret = PyArg_ParseTupleAndKeywords(dummy_tuple, obinfo, pi3_format, pi3_keys, &obSecurityDescriptor) &&
                   PyWinObject_AsSECURITY_DESCRIPTOR(obSecurityDescriptor, &pi3->pSecurityDescriptor, FALSE);
             break;
@@ -445,14 +430,7 @@ BOOL PyWinObject_AsPRINTER_INFO(DWORD level, PyObject *obinfo, LPBYTE *pbuf)
             static char *pi4_keys[] = {"pPrinterName", "pServerName", "Attributes", NULL};
             static char *pi4_format = "OOk:PRINTER_INFO_4";
             PyObject *obPrinterName = Py_None, *obServerName = Py_None;
-            PRINTER_INFO_4 *pi4;
-            bufsize = sizeof(PRINTER_INFO_4);
-            if (NULL == (*pbuf = (LPBYTE)malloc(bufsize))) {
-                PyErr_Format(PyExc_MemoryError, "Malloc failed for %d bytes", bufsize);
-                break;
-            }
-            ZeroMemory(*pbuf, bufsize);
-            pi4 = (PRINTER_INFO_4 *)*pbuf;
+            AsPRINTER_INFO__INIT_PRINTER_INFO_X(PRINTER_INFO_4, pi4);
             ret = PyArg_ParseTupleAndKeywords(dummy_tuple, obinfo, pi4_format, pi4_keys, &obPrinterName, &obServerName,
                                               &pi4->Attributes) &&
                   PyWinObject_AsTCHAR(obPrinterName, &pi4->pPrinterName, TRUE) &&
@@ -468,15 +446,7 @@ BOOL PyWinObject_AsPRINTER_INFO(DWORD level, PyObject *obinfo, LPBYTE *pbuf)
                                        NULL};
             static char *pi5_format = "OOkkk:PRINTER_INFO_5";
             PyObject *obPrinterName = Py_None, *obPortName = Py_None;
-
-            PRINTER_INFO_5 *pi5;
-            bufsize = sizeof(PRINTER_INFO_5);
-            if (NULL == (*pbuf = (LPBYTE)malloc(bufsize))) {
-                PyErr_Format(PyExc_MemoryError, "Malloc failed for %d bytes", bufsize);
-                break;
-            }
-            ZeroMemory(*pbuf, bufsize);
-            pi5 = (PRINTER_INFO_5 *)*pbuf;
+            AsPRINTER_INFO__INIT_PRINTER_INFO_X(PRINTER_INFO_5, pi5);
             ret = PyArg_ParseTupleAndKeywords(dummy_tuple, obinfo, pi5_format, pi5_keys, &obPrinterName, &obPortName,
                                               &pi5->Attributes, &pi5->DeviceNotSelectedTimeout,
                                               &pi5->TransmissionRetryTimeout) &&
@@ -497,14 +467,7 @@ BOOL PyWinObject_AsPRINTER_INFO(DWORD level, PyObject *obinfo, LPBYTE *pbuf)
             static char *pi7_keys[] = {"ObjectGUID", "Action", NULL};
             static char *pi7_format = "Ok:PRINTER_INFO_7";
             PyObject *obObjectGUID = Py_None;
-            PRINTER_INFO_7 *pi7;
-            bufsize = sizeof(PRINTER_INFO_7);
-            if (NULL == (*pbuf = (LPBYTE)malloc(bufsize))) {
-                PyErr_Format(PyExc_MemoryError, "Malloc failed for %d bytes", bufsize);
-                break;
-            }
-            ZeroMemory(*pbuf, bufsize);
-            pi7 = (PRINTER_INFO_7 *)*pbuf;
+            AsPRINTER_INFO__INIT_PRINTER_INFO_X(PRINTER_INFO_7, pi7);
             ret =
                 PyArg_ParseTupleAndKeywords(dummy_tuple, obinfo, pi7_format, pi7_keys, &obObjectGUID, &pi7->dwAction) &&
                 PyWinObject_AsTCHAR(obObjectGUID, &pi7->pszObjectGUID, TRUE);
@@ -515,14 +478,7 @@ BOOL PyWinObject_AsPRINTER_INFO(DWORD level, PyObject *obinfo, LPBYTE *pbuf)
             static char *pi8_keys[] = {"pDevMode", NULL};
             static char *pi8_format = "O:PRINTER_INFO_8";
             PyObject *obDevMode;
-            PRINTER_INFO_8 *pi8;
-            bufsize = sizeof(PRINTER_INFO_8);
-            if (NULL == (*pbuf = (LPBYTE)malloc(bufsize))) {
-                PyErr_Format(PyExc_MemoryError, "Malloc failed for %d bytes", bufsize);
-                break;
-            }
-            ZeroMemory(*pbuf, bufsize);
-            pi8 = (PRINTER_INFO_8 *)*pbuf;
+            AsPRINTER_INFO__INIT_PRINTER_INFO_X(PRINTER_INFO_8, pi8);
             ret = PyArg_ParseTupleAndKeywords(dummy_tuple, obinfo, pi8_format, pi8_keys, &obDevMode) &&
                   PyWinObject_AsDEVMODE(obDevMode, &pi8->pDevMode, FALSE);
             break;
