@@ -26,7 +26,8 @@ noise = """
 The executable at "{exe}" is being used as a service.
 
 This executable doesn't have pythonXX.dll and/or pywintypesXX.dll in the same
-directory. This is likely to fail when used in the context of a service.
+directory, and they can't be found in the System directory. This is likely to
+fail when used in the context of a service.
 
 The exact environment needed will depend on which user runs the service and
 where Python is installed. If the service fails to run, this will be why.
@@ -46,11 +47,23 @@ def LocatePythonServiceExe(exeName=None):
         sys.version_info[1],
         under_d,
     )
-    # If someone isn't using pythonservice.exe we assume they know what they are doing.
-    if found != sys.executable and (
-        not os.path.exists(os.path.join(where, "python{}".format(suffix)))
-        or not os.path.exists(os.path.join(where, "pywintypes{}".format(suffix)))
-    ):
+    # If someone isn't using python.exe to register pythonservice.exe we assume they know what they
+    # are doing.
+    if found == sys.executable:
+        return found
+
+    py_dll = "python{}".format(suffix)
+    pyw_dll = "pywintypes{}".format(suffix)
+    system_dir = win32api.GetSystemDirectory()
+
+    ok = (
+        os.path.exists(os.path.join(where, py_dll))
+        and os.path.exists(os.path.join(where, pyw_dll))
+    ) or (
+        os.path.exists(os.path.join(system_dir, py_dll))
+        and os.path.exists(os.path.join(system_dir, pyw_dll))
+    )
+    if not ok:
         print(
             noise.format(exe=found, good=os.path.dirname(pywintypes.__file__)),
             file=sys.stderr,
