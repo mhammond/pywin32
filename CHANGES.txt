@@ -1,7 +1,7 @@
 ﻿A changelog for recent builds:
 
 Generally created by hand after running:
-   hg log -rb2xx: > log.out
+   git log -rb3xx:
 However contributors are encouraged to add their own entries for their work.
 
 Note that build 228 was the last version supporting Python 2.
@@ -17,6 +17,8 @@ Since build 303:
 
 * Fixed a bug triggering `win32print.SetJob` to fail due to data type
   (`char*` / `wchar_t*`) mismatch (#1849, @CristiFati)
+
+* Fix eventlog initialization (#1845, #1846, @kxrob)
 
 Since build 302:
 ----------------
