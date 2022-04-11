@@ -33,7 +33,7 @@ jobs:
 
     # Need wheel so that we can use bdist_wheel
     - name: Upgrade Python packaging tools
-      run: pip install --upgrade setuptools==59.6.0 wheel
+      run: pip install --upgrade wheel
 
     - name: Set Python user directory
       run: python -c "import os,site;open(os.environ['GITHUB_ENV'], 'a').write('USER_DIR=%s\n' % os.path.dirname(site.USER_SITE).rstrip('-32'))"
