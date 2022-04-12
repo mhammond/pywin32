@@ -43,9 +43,11 @@ To build 64bit versions of this:
    distutils/setuptools, so see their documentation for more details.
 
 To build 64bit ARM versions:
-    Only cross-compilation has been tested (and I'd welcome patches needed to build natively)
-    You will want a command something like:
+    For cross-compilation
     % python setup.py -q build_ext --plat-name win-arm64 build --plat-name win-arm64 bdist_wheel --plat-name win-arm64
+
+    For native-compilation
+    % python setup.py -q bdist_wheel
 
 Creating Distributions:
 -----------------------
@@ -1233,10 +1235,13 @@ class my_compiler(base_compiler):
                 self.spawn(args)
             except Exception:
                 print("** Failed to versionstamp the binaries.")
-                print(
-                    "** If you want to skip this step, pass '--skip-verstamp' on the command-line"
-                )
-                raise
+                # py.exe is not yet available for windows-arm64 so version stamp will fail
+                # ignore it for now
+                if platform.machine() != "ARM64":
+                    print(
+                        "** If you want to skip this step, pass '--skip-verstamp' on the command-line"
+                    )
+                    raise
 
     # Work around bpo-36302/bpo-42009 - it sorts sources but this breaks
     # support for building .mc files etc :(
