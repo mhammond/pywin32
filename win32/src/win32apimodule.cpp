@@ -1545,7 +1545,7 @@ static PyObject *PyGetModuleFileNameW(PyObject *self, PyObject *args)
             break;
         }
         if (reqdsize < bufsize) {
-            ret = PyUnicode_FromUnicode(buf, reqdsize);
+            ret = PyUnicode_FromWideChar(buf, reqdsize);
             break;
         }
         reqdsize++;
@@ -2103,7 +2103,7 @@ static PyObject *PyGetLongPathNameW(PyObject *self, PyObject *args)
             // size and that it is big, avoid double-handling.
             TmpWCHAR buf = PyMem_New(WCHAR, length);
             // The length is the buffer needed, which includes the NULL.
-            // PyUnicode_FromUnicode adds one.
+            // PyUnicode_FromWideChar adds one.
             PyW32_BEGIN_ALLOW_THREADS DWORD length2 = (*pfnGetLongPathNameW)(fileName, buf, length);
             PyW32_END_ALLOW_THREADS 
             if (length2)

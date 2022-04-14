@@ -26,8 +26,9 @@ static PyObject *PyGetModuleFilename(PyObject *self, PyObject *args)
     TCHAR *modName = PyUnicode_AsWideCharString(nameobj, NULL);
     if (!modName)
         return NULL;
-    
+
     HINSTANCE hinst = GetModuleHandle(modName);
+    PyMem_Free(modName);
     if (hinst == NULL) {
         Py_INCREF(Py_None);
         return Py_None;
@@ -38,7 +39,7 @@ static PyObject *PyGetModuleFilename(PyObject *self, PyObject *args)
         return Py_None;
     }
 
-    return PyUnicode_FromUnicode(buf, wcslen(buf));
+    return PyUnicode_FromWideChar(buf, wcslen(buf));
 }
 
 static PyObject *PyLoadModule(PyObject *self, PyObject *args)
@@ -61,6 +62,7 @@ static PyObject *PyLoadModule(PyObject *self, PyObject *args)
                                     LOAD_LIBRARY_SEARCH_DEFAULT_DIRS |
                                     LOAD_LIBRARY_SEARCH_DLL_LOAD_DIR);
 #endif
+    PyMem_Free(modName);
     if (hinst == NULL) {
         Py_INCREF(Py_None);
         return Py_None;
@@ -71,7 +73,7 @@ static PyObject *PyLoadModule(PyObject *self, PyObject *args)
         return Py_None;
     }
 
-    return PyUnicode_FromUnicode(buf, wcslen(buf));
+    return PyUnicode_FromWideChar(buf, wcslen(buf));
 }
 
 static struct PyMethodDef functions[] = {
