@@ -12,6 +12,9 @@ generates Windows .hlp files.
 
 ******************************************************************/
 
+#ifndef UNICODE
+#error "no ANSI builds anymore - otherwise tweaks are needed here"
+#endif
 #include "PyWinTypes.h"
 #include "PyWinObjects.h"
 #include <stdarg.h>
@@ -1689,7 +1692,7 @@ BOOL PyWinObject_AsSIZEL(PyObject *obsizel, SIZEL *sizel)
 // @prop dict|ImageableArea|A dictionary representing a RECTL structure {'left':int, 'top':int, 'right':int,
 // 'bottom':int}
 
-BOOL PyWinObject_AsFORM_INFO_1(PyObject *obform, FORM_INFO_1W *fi1)
+BOOL PyWinObject_AsFORM_INFO_1(PyObject *obform, FORM_INFO_1W *fi1, TmpWCHAR* ptw)
 {
     static char *form_keys[] = {"Flags", "Name", "Size", "ImageableArea", 0};
     static char *err_msg =
@@ -1698,8 +1701,9 @@ BOOL PyWinObject_AsFORM_INFO_1(PyObject *obform, FORM_INFO_1W *fi1)
         PyErr_SetString(PyExc_TypeError, err_msg);
         return FALSE;
     }
-    return PyArg_ParseTupleAndKeywords(dummy_tuple, obform, "kuO&O&:FORM_INFO_1", form_keys, &fi1->Flags, &fi1->pName,
-                                       PyWinObject_AsSIZEL, &fi1->Size, PyWinObject_AsRECTL, &fi1->ImageableArea);
+    return PyArg_ParseTupleAndKeywords(dummy_tuple, obform, "kUO&O&:FORM_INFO_1", form_keys, &fi1->Flags, &ptw->u,
+                                       PyWinObject_AsSIZEL, &fi1->Size, PyWinObject_AsRECTL, &fi1->ImageableArea)
+        && (fi1->pName=ptw->u2w());
 }
 
 // @pymethod |win32print|AddForm|Adds a form for a printer
@@ -1712,8 +1716,10 @@ static PyObject *PyAddForm(PyObject *self, PyObject *args)
     HANDLE hprinter;
     CHECK_PFN(AddForm);
 
-    if (!PyArg_ParseTuple(args, "O&O&:AddForm", PyWinObject_AsPrinterHANDLE, &hprinter, PyWinObject_AsFORM_INFO_1,
-                          &fi1))
+    PyObject *py_form1;
+    TmpWCHAR tmpw_shelve[1];
+    if (!PyArg_ParseTuple(args, "O&O:AddForm", PyWinObject_AsPrinterHANDLE, &hprinter, &py_form1)
+        || !PyWinObject_AsFORM_INFO_1(py_form1, &fi1, tmpw_shelve))
         return NULL;
     if (!(*pfnAddForm)(hprinter, 1, (LPBYTE)&fi1))
         return PyWin_SetAPIError("AddForm");
@@ -1728,10 +1734,10 @@ static PyObject *PyDeleteForm(PyObject *self, PyObject *args)
     // @pyparm <o PyUnicode>|FormName||Name of form to be deleted
     // @rdesc Returns None on success, throws an exception otherwise
     HANDLE hprinter;
-    WCHAR *formname;
+    TmpWCHAR formname;
     CHECK_PFN(DeleteForm);
 
-    if (!PyArg_ParseTuple(args, "O&u:DeleteForm", PyWinObject_AsPrinterHANDLE, &hprinter, &formname))
+    if (!PyArg_ParseTuple(args, "O&U:DeleteForm", PyWinObject_AsPrinterHANDLE, &hprinter, &formname.u) || !formname.u2w())
         return NULL;
     if (!(*pfnDeleteForm)(hprinter, formname))
         return PyWin_SetAPIError("DeleteForm");
@@ -1745,14 +1751,14 @@ static PyObject *PyGetForm(PyObject *self, PyObject *args)
     // @pyparm <o PyUnicode>|FormName||Name of form for which to retrieve info
     // @rdesc Returns a <o FORM_INFO_1> dict
     HANDLE hprinter;
-    WCHAR *formname;
+    TmpWCHAR formname;
     DWORD level = 1, bufsize = 0, bytes_needed = 0;
     FORM_INFO_1W *fi1 = NULL;
     LPBYTE buf = NULL;
     PyObject *ret = NULL;
     CHECK_PFN(GetForm);
 
-    if (!PyArg_ParseTuple(args, "O&u:GetForm", PyWinObject_AsPrinterHANDLE, &hprinter, &formname))
+    if (!PyArg_ParseTuple(args, "O&U:GetForm", PyWinObject_AsPrinterHANDLE, &hprinter, &formname.u) || !formname.u2w())
         return NULL;
     (*pfnGetForm)(hprinter, formname, level, buf, bufsize, &bytes_needed);
     if (bytes_needed == 0)
@@ -1780,11 +1786,13 @@ static PyObject *PySetForm(PyObject *self, PyObject *args)
     // @rdesc Returns None on success
     FORM_INFO_1W fi1;
     HANDLE hprinter;
-    WCHAR *formname;
+    TmpWCHAR formname;
+    PyObject *py_form1;
+    TmpWCHAR tmpw_shelve[1];
     CHECK_PFN(SetForm);
 
-    if (!PyArg_ParseTuple(args, "O&uO&:SetForm", PyWinObject_AsPrinterHANDLE, &hprinter, &formname,
-                          PyWinObject_AsFORM_INFO_1, &fi1))
+    if (!PyArg_ParseTuple(args, "O&UO:SetForm", PyWinObject_AsPrinterHANDLE, &hprinter, &formname.u, &py_form1)
+        || !formname.u2w() || !PyWinObject_AsFORM_INFO_1(py_form1, &fi1, tmpw_shelve))
         return NULL;
     if (!(*pfnSetForm)(hprinter, formname, 1, (LPBYTE)&fi1))
         return PyWin_SetAPIError("SetForm");

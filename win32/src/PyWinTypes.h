@@ -169,9 +169,12 @@ class TmpWCHAR {
    public:
     WCHAR *tmp;  // (NULL after conversion error)
     Py_ssize_t length;  // only set after successful auto-conversion; w/o trailing \0
+    PyObject *u;        // auxiliary slot for u2w()
+
     TmpWCHAR() { tmp = NULL; }
     TmpWCHAR(WCHAR *t) { tmp = t; }
     TmpWCHAR(PyObject *ob) : tmp(NULL) { *this = ob; }
+    WCHAR *u2w() { return *this = u; }
     WCHAR *operator=(PyObject *ob) {
         if (tmp)
             PyMem_Free(tmp);
