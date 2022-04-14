@@ -8,6 +8,8 @@ Note that build 228 was the last version supporting Python 2.
 
 Since build 303:
 ----------------
+* Add `PRINTER_INFO_6` support for Set/GetPrinter (#1853, @CristiFati)
+
 * Fixed codepage/mojibake issues when non-ascii characters were included in
   COM exceptions raised by Python apps. This should be invisible, but might
   break any workarounds which were used, such as using specific encodings in
