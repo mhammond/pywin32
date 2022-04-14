@@ -356,7 +356,7 @@ BOOL PyWinObject_AsPRINTER_INFO(DWORD level, PyObject *obinfo, LPBYTE *pbuf)
         if (obinfo == Py_None)
             return TRUE;
         else {
-            *pbuf = (LPBYTE)PyLong_AsLong(obinfo);
+            *pbuf = (LPBYTE)PyLong_AsLongLong(obinfo);
             if ((*pbuf == (LPBYTE)-1) && PyErr_Occurred()) {
                 PyErr_Clear();
                 PyErr_SetString(PyExc_TypeError, "Info must be None or a PRINTER_STATUS_* integer when level is 0.");
@@ -1138,25 +1138,29 @@ static PyObject *PyGetJob(PyObject *self, PyObject *args)
 
 // Convert a python dictionary to a JOB_INFO_* structure.
 // Returned buffer must be freed.
-BOOL PytoJob(DWORD level, PyObject *pyjobinfo, LPBYTE *pbuf)
+BOOL PytoJob(DWORD level, PyObject *pyjobinfo, LPBYTE *pbuf, TmpWCHAR* tmpw_shelve)
 {
     static char *job1_keys[] = {"JobId",      "pPrinterName", "pMachineName", "pUserName", "pDocument",
                                 "pDatatype",  "pStatus",      "Status",       "Priority",  "Position",
                                 "TotalPages", "PagesPrinted", "Submitted",    NULL};
-    static char *job1_format = "kZZZZZZkkkkk|O:JOB_INFO_1";
-
+    static char *job1_format = "kOOOOOOkkkkk|O:JOB_INFO_1";
     static char *job2_keys[] = {"JobId",       "pPrinterName", "pMachineName",        "pUserName",   "pDocument",
                                 "pNotifyName", "pDatatype",    "pPrintProcessor",     "pParameters", "pDriverName",
                                 "pDevMode",    "pStatus",      "pSecurityDescriptor", "Status",      "Priority",
                                 "Position",    "StartTime",    "UntilTime",           "TotalPages",  "Size",
                                 "Submitted",   "Time",         "PagesPrinted",        NULL};
-    static char *job2_format = "kZZZZZZZZZOZOkkkkkkkOkk:JOB_INFO_2";
+    static char *job2_format = "kOOOOOOOOOOOOkkkkkkkOkk:JOB_INFO_2";
 
     static char *job3_keys[] = {"JobId", "NextJobId", "Reserved", NULL};
     static char *job3_format = "kk|k:JOB_INFO_3";
 
     PyObject *obdevmode, *obsecurity_descriptor, *obsubmitted = Py_None;
     BOOL ret = FALSE;
+
+    // record  conversions unicode / None --> WCHAR* / NULL
+    int i, u2w_count = 0;
+    TmpWCHAR *ptw = tmpw_shelve;
+#define U2W(target)  (ptw->u=(PyObject*)target, ptw++, u2w_count++, target)
 
     *pbuf = NULL;
     switch (level) {
@@ -1179,8 +1183,8 @@ BOOL PytoJob(DWORD level, PyObject *pyjobinfo, LPBYTE *pbuf)
             job1 = (JOB_INFO_1 *)*pbuf;
             ZeroMemory(job1, sizeof(JOB_INFO_1));
             if (PyArg_ParseTupleAndKeywords(dummy_tuple, pyjobinfo, job1_format, job1_keys, &job1->JobId,
-                                            &job1->pPrinterName, &job1->pMachineName, &job1->pUserName,
-                                            &job1->pDocument, &job1->pDatatype, &job1->pStatus, &job1->Status,
+                                            U2W(&job1->pPrinterName), U2W(&job1->pMachineName), U2W(&job1->pUserName),
+                                            U2W(&job1->pDocument), U2W(&job1->pDatatype), U2W(&job1->pStatus), &job1->Status,
                                             &job1->Priority, &job1->Position, &job1->TotalPages, &job1->PagesPrinted,
                                             &obsubmitted) &&
                 ((obsubmitted == Py_None) || PyWinObject_AsSYSTEMTIME(obsubmitted, &job1->Submitted)))
@@ -1199,9 +1203,9 @@ BOOL PytoJob(DWORD level, PyObject *pyjobinfo, LPBYTE *pbuf)
             job2 = (JOB_INFO_2 *)*pbuf;
             ZeroMemory(job2, sizeof(JOB_INFO_2));
             if (PyArg_ParseTupleAndKeywords(
-                    dummy_tuple, pyjobinfo, job2_format, job2_keys, &job2->JobId, &job2->pPrinterName,
-                    &job2->pMachineName, &job2->pUserName, &job2->pDocument, &job2->pNotifyName, &job2->pDatatype,
-                    &job2->pPrintProcessor, &job2->pParameters, &job2->pDriverName, &obdevmode, &job2->pStatus,
+                    dummy_tuple, pyjobinfo, job2_format, job2_keys, &job2->JobId, U2W(&job2->pPrinterName),
+                    U2W(&job2->pMachineName), U2W(&job2->pUserName), U2W(&job2->pDocument), U2W(&job2->pNotifyName), U2W(&job2->pDatatype),
+                    U2W(&job2->pPrintProcessor), U2W(&job2->pParameters), U2W(&job2->pDriverName), &obdevmode, U2W(&job2->pStatus),
                     &obsecurity_descriptor, &job2->Status, &job2->Priority, &job2->Position, &job2->StartTime,
                     &job2->UntilTime, &job2->TotalPages, &job2->Size, &obsubmitted, &job2->Time, &job2->PagesPrinted) &&
                 PyWinObject_AsDEVMODE(obdevmode, &job2->pDevMode, TRUE) &&
@@ -1227,6 +1231,17 @@ BOOL PytoJob(DWORD level, PyObject *pyjobinfo, LPBYTE *pbuf)
         default:
             PyErr_Format(PyExc_NotImplementedError, "Information level %d is not supported", level);
     }
+
+    // Conversions unicode / None --> WCHAR* / NULL  (held by tmpw_shelve)
+    for (i=0, ptw = tmpw_shelve;  ret && i < u2w_count;  i++, ptw++) {
+        PyObject *o = *(PyObject**)ptw->u;
+        if (o == Py_None)
+            *(WCHAR**)ptw->u = NULL;
+        else if (!(*(WCHAR**)ptw->u = *ptw = o))  // convert, hold and store in target
+            ret = FALSE;
+    }
+#undef U2W
+
     if (!ret)
         if (*pbuf != NULL)
             free(*pbuf);
@@ -1255,7 +1270,9 @@ static PyObject *PySetJob(PyObject *self, PyObject *args)
             &command     // @pyparm int|Command||Job command value (JOB_CONTROL_*).
             ))
         return NULL;
-    if (!PytoJob(level, pyjobinfo, &buf))
+
+    TmpWCHAR tmpw_shelve[12];  // auto-freed shelve for allocated wide strings from unicode
+    if (!PytoJob(level, pyjobinfo, &buf, tmpw_shelve))
         return NULL;
 
     if (!SetJob(hprinter, jobid, level, buf, command)) {
