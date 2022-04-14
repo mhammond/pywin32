@@ -1137,8 +1137,8 @@ CString GetReprText(PyObject *objectUse)
     PyObject *s;
     CString csRet;
     s = PyObject_Str(objectUse);
-    if (s) {
-        csRet = CString(PyUnicode_AsUnicode(s));
+    if (s) if (TmpWCHAR ts=s) {
+        csRet = CString(ts);
         Py_DECREF(s);
         return csRet;
     }

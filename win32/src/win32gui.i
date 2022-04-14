@@ -861,6 +861,7 @@ public:
 	static PyObject *PySetDialogProc(PyObject *self, PyObject *args);
 	WNDCLASS m_WNDCLASS;
 	PyObject *m_obMenuName, *m_obClassName, *m_obWndProc;
+	TmpWCHAR m_MenuName, m_ClassName;
 };
 #define PyWNDCLASS_Check(ob)	((ob)->ob_type == &PyWNDCLASSType)
 
@@ -1001,7 +1002,7 @@ PyObject *PyWNDCLASS::getattro(PyObject *self, PyObject *obname)
 	return PyObject_GenericGetAttr(self, obname);
 }
 
-int SetTCHAR(PyObject *v, PyObject **m, LPCTSTR *ret)
+int _SetTCHAR(PyObject *v, PyObject **m, LPCTSTR *ret, TmpWCHAR &tws)
 {
 	if (!PyUnicode_Check(v)) {
 		PyErr_SetString(PyExc_TypeError, "Object must be a Unicode");
@@ -1010,7 +1011,9 @@ int SetTCHAR(PyObject *v, PyObject **m, LPCTSTR *ret)
 	Py_XDECREF(*m);
 	*m = v;
 	Py_INCREF(v);
-	*ret = PyUnicode_AsUnicode(v);
+	*ret = tws = v;
+	if (!tws)
+	    return -1;
 	return 0;
 }
 
@@ -1025,10 +1028,10 @@ int PyWNDCLASS::setattro(PyObject *self, PyObject *obname, PyObject *v)
 		return -1;
 	PyWNDCLASS *pW = (PyWNDCLASS *)self;
 	if (strcmp("lpszMenuName", name)==0) {
-		return SetTCHAR(v, &pW->m_obMenuName, &pW->m_WNDCLASS.lpszMenuName);
+		return _SetTCHAR(v, &pW->m_obMenuName, &pW->m_WNDCLASS.lpszMenuName, pW->m_MenuName);
 	}
 	if (strcmp("lpszClassName", name)==0) {
-		return SetTCHAR(v, &pW->m_obClassName, &pW->m_WNDCLASS.lpszClassName);
+		return _SetTCHAR(v, &pW->m_obClassName, &pW->m_WNDCLASS.lpszClassName, pW->m_ClassName);
 	}
 	if (strcmp("lpfnWndProc", name)==0) {
 		if (!PyCallable_Check(v) && !PyDict_Check(v)) {

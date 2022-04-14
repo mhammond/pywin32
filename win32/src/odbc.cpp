@@ -817,8 +817,8 @@ static int ibindString(cursorObject *cur, int column, PyObject *item)
 
 static int ibindUnicode(cursorObject *cur, int column, PyObject *item)
 {
-    const WCHAR *wval = (WCHAR *)PyUnicode_AsUnicode(item);
-    Py_ssize_t nchars = PyUnicode_GetSize(item) + 1;
+    TmpWCHAR wval = item;  if (!wval) return 0;
+    Py_ssize_t nchars = wval.length + 1;
     Py_ssize_t nbytes = nchars * sizeof(WCHAR);
 
     InputBinding *ib = initInputBinding(cur, nbytes);

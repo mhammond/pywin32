@@ -5320,8 +5320,7 @@ static PyObject *py_GetFullPathName(PyObject *self, PyObject *args, PyObject *kw
 	if (!PyWinObject_AsHANDLE(obtrans, &htrans))
 		return NULL;
 
-	WCHAR *wpathin;
-	if (wpathin=PyUnicode_AsUnicode(obpathin)){
+	if (TmpWCHAR wpathin=obpathin) {
 		if (htrans)
 			CHECK_PFN(GetFullPathNameTransactedW);
 		WCHAR *wpathret=NULL, *wfilepart, *wpathsave=NULL;

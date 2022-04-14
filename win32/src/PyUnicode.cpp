@@ -224,7 +224,7 @@ void PyWinObject_FreeBstr(BSTR str) { SysFreeString(str); }
 
 // String conversions
 // Convert a Python object to a WCHAR - allow embedded NULLs, None, etc.
-// Must be freed with PyWinObject_FreeWCHAR
+// Must be freed with PyWinObject_FreeWCHAR / PyMem_Free
 BOOL PyWinObject_AsWCHAR(PyObject *stringObject, WCHAR **pResult, BOOL bNoneOK /*= FALSE*/,
                          DWORD *pResultLen /*= NULL*/)
 {
@@ -232,15 +232,11 @@ BOOL PyWinObject_AsWCHAR(PyObject *stringObject, WCHAR **pResult, BOOL bNoneOK /
     Py_ssize_t resultLen = 0;
     // Do NOT accept 'bytes' for any 'WCHAR' API.
     if (PyUnicode_Check(stringObject)) {
-        resultLen = PyUnicode_GET_SIZE(stringObject);
-        size_t cb = sizeof(WCHAR) * (resultLen + 1);
-        *pResult = (WCHAR *)PyMem_Malloc(cb);
+        *pResult = PyUnicode_AsWideCharString(stringObject, &resultLen);
         if (*pResult == NULL) {
-            PyErr_SetString(PyExc_MemoryError, "Allocating WCHAR array");
+            PyErr_SetString(PyExc_MemoryError, "Getting WCHAR string");
             return FALSE;
         }
-        // copy the value, including embedded NULLs
-        memcpy(*pResult, PyUnicode_AsUnicode(stringObject), cb);
     }
     else if (stringObject == Py_None) {
         if (bNoneOK) {
