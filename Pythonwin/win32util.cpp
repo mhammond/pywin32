@@ -1152,7 +1152,12 @@ CString GetReprText(PyObject *objectUse)
 
     // repr() should always return a unicode string, but for hysterical raisens we check if it is bytes.
     if (PyUnicode_Check(s))
-        csRet = CString(PyUnicode_AS_UNICODE(s));
+        if (TmpWCHAR ts=s)
+            csRet = ts;
+        else {
+            PyErr_Clear();
+            csRet = L"??? wide string allocation error ???";
+        }
     else if (PyBytes_Check(s))
         csRet = CString(PyBytes_AS_STRING(s));
     else

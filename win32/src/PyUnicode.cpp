@@ -34,8 +34,8 @@ BOOL PyWinObject_AsPfnAllocatedWCHAR(PyObject *stringObject, void *(*pfnAllocato
     }
     else if (PyUnicode_Check(stringObject)) {
         // copy the value, including embedded NULLs
-        WCHAR *v = (WCHAR *)PyUnicode_AS_UNICODE(stringObject);
-        Py_ssize_t cch = PyUnicode_GET_SIZE(stringObject);
+        TmpWCHAR v = stringObject;  if (!v) return FALSE;
+        Py_ssize_t cch = v.length;
         *ppResult = (WCHAR *)pfnAllocator((cch + 1) * sizeof(WCHAR));
         if (*ppResult)
             memcpy(*ppResult, v, (cch + 1) * sizeof(WCHAR));
@@ -180,22 +180,11 @@ BOOL PyWinObject_AsBstr(PyObject *stringObject, BSTR *pResult, BOOL bNoneOK /*= 
     // sane b/w compat reason to support that any more.
     if (PyUnicode_Check(stringObject)) {
         // copy the value, including embedded NULLs
-        Py_ssize_t nchars = PyUnicode_GET_SIZE(stringObject);
-        *pResult = SysAllocStringLen(NULL, nchars);
-        if (*pResult) {
-#define PUAWC_TYPE PyObject *
-            if (PyUnicode_AsWideChar((PUAWC_TYPE)stringObject, *pResult, nchars) == -1) {
-                rc = FALSE;
-            }
-            else {
-                // The SysAllocStringLen docs indicate that nchars+1 bytes are allocated,
-                // and that normally a \0 is appened by the function.  It also states
-                // the \0 is not necessary!  While it seems to work fine without it,
-                // we do copy it, as the previous code, which used SysAllocStringLen
-                // with a non-NULL arg is documented clearly as appending the \0.
-                (*pResult)[nchars] = 0;
-            }
-        }
+        // Py3.12+: only conversion yields the correct number of wide chars (incl. surrogate pairs).
+        // For simplicity we use a temp buffer.
+        TmpWCHAR tw = stringObject;  if (!tw) return FALSE;
+        // SysAllocStringLen allocates length+1 wchars (and puts a \0 at end); like PyUnicode_AsWideCharString
+        *pResult = SysAllocStringLen(tw, tw.length);
     }
     else if (stringObject == Py_None) {
         if (bNoneOK) {

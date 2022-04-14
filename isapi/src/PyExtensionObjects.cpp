@@ -683,8 +683,9 @@ PyObject *PyECB::GetAnonymousToken(PyObject *self, PyObject *args)
         Py_END_ALLOW_THREADS
     }
     else if (PyUnicode_Check(obStr)) {
+        TmpWCHAR tmpw = obStr;  if (!tmpw) return NULL;
         Py_BEGIN_ALLOW_THREADS bRes = ecb->ServerSupportFunction(ecb->ConnID, HSE_REQ_GET_UNICODE_ANONYMOUS_TOKEN,
-                                                                 PyUnicode_AS_UNICODE(obStr), (DWORD *)&handle, NULL);
+                                                                 tmpw, (DWORD *)&handle, NULL);
         Py_END_ALLOW_THREADS
     }
     else

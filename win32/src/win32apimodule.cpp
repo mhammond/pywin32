@@ -1396,13 +1396,14 @@ static PyObject *PyVkKeyScan(PyObject *self, PyObject *args)
         PyW32_END_ALLOW_THREADS
     }
     else if (PyUnicode_Check(obkey)) {
-        if (PyUnicode_GET_SIZE(obkey) != 1) {
+        if (PyUnicode_GetLength(obkey) != 1) {
             PyErr_SetString(PyExc_TypeError, "must be a unicode string of length 1");
             return NULL;
         }
+        TmpWCHAR ts(obkey);  if (!ts) return NULL;
         PyW32_BEGIN_ALLOW_THREADS
             // @pyseeapi VkKeyScanW
-            ret = VkKeyScanW(PyUnicode_AS_UNICODE(obkey)[0]);
+            ret = VkKeyScanW(ts[0]);
         PyW32_END_ALLOW_THREADS
     }
     else {
@@ -1440,13 +1441,14 @@ static PyObject *PyVkKeyScanEx(PyObject *self, PyObject *args)
         PyW32_END_ALLOW_THREADS
     }
     else if (PyUnicode_Check(obkey)) {
-        if (PyUnicode_GET_SIZE(obkey) != 1) {
+        if (PyUnicode_GetLength(obkey) != 1) {
             PyErr_SetString(PyExc_TypeError, "must be a unicode string of length 1");
             return NULL;
         }
+        TmpWCHAR ts(obkey);  if (!ts) return NULL;
         PyW32_BEGIN_ALLOW_THREADS
             // @pyseeapi VkKeyScanExW
-            ret = VkKeyScanExW(PyUnicode_AS_UNICODE(obkey)[0], hkl);
+            ret = VkKeyScanExW(ts[0], hkl);
         PyW32_END_ALLOW_THREADS
     }
     else {
@@ -2099,21 +2101,13 @@ static PyObject *PyGetLongPathNameW(PyObject *self, PyObject *args)
         else {
             // retry with a buffer that is big enough.  Now we know the
             // size and that it is big, avoid double-handling.
-            Py_UNICODE *buf;
+            TmpWCHAR buf = PyMem_New(WCHAR, length);
             // The length is the buffer needed, which includes the NULL.
             // PyUnicode_FromUnicode adds one.
-            obLongPathNameW = PyUnicode_FromUnicode(NULL, length - 1);
-            if (!obLongPathNameW) {
-                PyWinObject_FreeWCHAR(fileName);
-                return NULL;
-            }
-            buf = PyUnicode_AS_UNICODE(obLongPathNameW);
             PyW32_BEGIN_ALLOW_THREADS DWORD length2 = (*pfnGetLongPathNameW)(fileName, buf, length);
-            PyW32_END_ALLOW_THREADS if (length2 == 0)
-            {
-                Py_DECREF(obLongPathNameW);
-                obLongPathNameW = NULL;
-            }
+            PyW32_END_ALLOW_THREADS 
+            if (length2)
+                obLongPathNameW = PyUnicode_FromWideChar(buf, -1);
             // On success, it is the number of chars copied *not* including
             // the NULL.  Check this is true.
             assert(length2 + 1 == length);

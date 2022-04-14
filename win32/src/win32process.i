@@ -502,6 +502,7 @@ static BOOL CreateEnvironmentString(PyObject *env, LPVOID *ppRet, BOOL *pRetIsUn
 	LPVOID result = NULL;
 	WCHAR *pUCur;
 	char *pACur;
+	TmpWCHAR tw;
 
 	keys = PyMapping_Keys(env);
 	vals = PyMapping_Values(env);
@@ -517,7 +518,8 @@ static BOOL CreateEnvironmentString(PyObject *env, LPVOID *ppRet, BOOL *pRetIsUn
 				bufLen += PyBytes_Size(key) + 1;
 			} else if (PyUnicode_Check(key)) {
 				bIsUnicode = TRUE;
-				bufLen += PyUnicode_GET_SIZE(key) + 1;
+				tw = key;  if (!tw) goto done;
+				bufLen += wcslen(tw) + 1;  // PyUnicode_GetLength() and tw.length (incl \0 's) may be different
 			} else {
 				PyErr_SetString(PyExc_TypeError, "dictionary must have keys and values as strings or unicode objects.");
 				goto done;
@@ -528,7 +530,8 @@ static BOOL CreateEnvironmentString(PyObject *env, LPVOID *ppRet, BOOL *pRetIsUn
 					PyErr_SetString(PyExc_TypeError, "All dictionary items must be strings, or all must be unicode");
 					goto done;
 				}
-				bufLen += PyUnicode_GET_SIZE(key) + 1;
+				tw = key;  if (!tw) goto done;
+				bufLen += wcslen(tw) + 1;
 			}
 			else {
 				if (!PyBytes_Check(key)) {
@@ -544,7 +547,8 @@ static BOOL CreateEnvironmentString(PyObject *env, LPVOID *ppRet, BOOL *pRetIsUn
 				PyErr_SetString(PyExc_TypeError, "All dictionary items must be strings, or all must be unicode");
 				goto done;
 			}
-			bufLen += PyUnicode_GET_SIZE(val) + 2; // For the '=' and '\0'
+			tw = val;  if (!tw) goto done;
+			bufLen += wcslen(tw) + 2;  // For the '=' and '\0'
 		}
 		else {
 			if (!PyBytes_Check(val)) {
