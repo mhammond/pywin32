@@ -17,7 +17,11 @@
 // Format lists
 //
 
+#if defined(UNICODE)
+static WORD SysFormatList[] = {CF_UNICODETEXT, NULL};
+#else
 static WORD SysFormatList[] = {CF_TEXT, NULL};
+#endif
 
 //
 // Structure used to hold a clipboard id and its text name
@@ -187,7 +191,7 @@ IMPLEMENT_DYNCREATE(CDDEStringItem, CDDEItem);
 
 WORD *CDDEStringItem::GetFormatList()
 {
-    return SysFormatList;  // CF_TEXT
+    return SysFormatList;  // CF_TEXT or CF_UNICODETEXT
 }
 
 BOOL CDDEStringItem::Request(UINT wFmt, CDDEAllocator &allocr)
