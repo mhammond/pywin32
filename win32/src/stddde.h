@@ -58,8 +58,14 @@ class CDDEAllocator {
     }
     BOOL Alloc(LPBYTE p, DWORD cb)
     {
+#if defined(UNICODE)
+        UINT wFmt = (m_wFmt == CF_TEXT) ? CF_UNICODETEXT : m_wFmt;
+#else
+        UINT wFmt = m_wFmt;
+#endif
+
         // XXX - should we check wFmt is CF_TEXT vs CF_UNICODETEXT??
-        *m_hret = ::DdeCreateDataHandle(m_instance, p, cb, 0, m_hszItem, m_wFmt, 0);
+        *m_hret = ::DdeCreateDataHandle(m_instance, p, cb, 0, m_hszItem, wFmt, 0);
         return TRUE;
     }
 
