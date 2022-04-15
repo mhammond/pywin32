@@ -53,7 +53,6 @@ class CDDEAllocator {
     }
     BOOL Alloc(CString &cs)
     {
-        // XXX - should we check wFmt is CF_TEXT vs CF_UNICODETEXT??
         return Alloc((LPBYTE)(const TCHAR *)cs, (cs.GetLength() + 1) * sizeof(TCHAR));
     }
     BOOL Alloc(LPBYTE p, DWORD cb)
@@ -64,7 +63,6 @@ class CDDEAllocator {
         UINT wFmt = m_wFmt;
 #endif
 
-        // XXX - should we check wFmt is CF_TEXT vs CF_UNICODETEXT??
         *m_hret = ::DdeCreateDataHandle(m_instance, p, cb, 0, m_hszItem, wFmt, 0);
         return TRUE;
     }
