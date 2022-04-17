@@ -246,6 +246,7 @@ class CDDEConv : public CDDECountedObject {
     virtual BOOL Terminate();
     virtual BOOL AdviseData(UINT wFmt, const TCHAR *pszTopic, const TCHAR *pszItem, void *pData, DWORD dwSize);
     virtual BOOL Request(const TCHAR *pszItem, CString &ret);
+    virtual BOOL Request(UINT wFmt, const TCHAR *pszItem, CString &ret);
     virtual BOOL Advise(const TCHAR *pszItem);
     virtual BOOL Exec(const TCHAR *pszCmd);
     virtual BOOL Poke(UINT wFmt, const TCHAR *pszItem, void *pData, DWORD dwSize);
