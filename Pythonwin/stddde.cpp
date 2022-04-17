@@ -18,7 +18,7 @@
 //
 
 #if defined(UNICODE)
-static WORD SysFormatList[] = {CF_UNICODETEXT, NULL};
+static WORD SysFormatList[] = {CF_UNICODETEXT, CF_TEXT, NULL};
 #else
 static WORD SysFormatList[] = {CF_TEXT, NULL};
 #endif

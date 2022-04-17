@@ -53,17 +53,21 @@ class CDDEAllocator {
     }
     BOOL Alloc(CString &cs)
     {
-        return Alloc((LPBYTE)(const TCHAR *)cs, (cs.GetLength() + 1) * sizeof(TCHAR));
+        LPBYTE p = (LPBYTE)(const TCHAR *)cs;
+        DWORD cb = (cs.GetLength() + 1) * sizeof(TCHAR);
+
+#if defined(UNICODE)
+        if(m_wFmt == CF_TEXT) {
+            p = (LPBYTE)(const char*)CT2CA(cs);
+            cb = (cs.GetLength() + 1) * sizeof(const char);
+        }
+#endif
+
+        return Alloc(p, cb);
     }
     BOOL Alloc(LPBYTE p, DWORD cb)
     {
-#if defined(UNICODE)
-        UINT wFmt = (m_wFmt == CF_TEXT) ? CF_UNICODETEXT : m_wFmt;
-#else
-        UINT wFmt = m_wFmt;
-#endif
-
-        *m_hret = ::DdeCreateDataHandle(m_instance, p, cb, 0, m_hszItem, wFmt, 0);
+        *m_hret = ::DdeCreateDataHandle(m_instance, p, cb, 0, m_hszItem, m_wFmt, 0);
         return TRUE;
     }
 
