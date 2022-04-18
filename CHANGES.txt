@@ -8,6 +8,8 @@ Note that build 228 was the last version supporting Python 2.
 
 Since build 303:
 ----------------
+* Fixed Unicode issues in the `dde` module (#1861, @markuskimius )
+
 * Add `PRINTER_INFO_6` support for Set/GetPrinter (#1853, @CristiFati)
 
 * Fixed codepage/mojibake issues when non-ascii characters were included in
