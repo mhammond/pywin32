@@ -326,12 +326,13 @@ PyObject *PyCRYPTPROV::PyCryptGenRandom(PyObject *self, PyObject *args, PyObject
 {
     static char *keywords[] = {"Len", "SeedData", NULL};
     PyObject *ret = NULL;
-    Py_ssize_t dwLen = 0, seedlen = 0;
+    unsigned long dwLen = 0;
+    Py_ssize_t seedlen = 0;
     BYTE *pbBuffer = NULL;
     HCRYPTPROV hcryptprov = ((PyCRYPTPROV *)self)->GetHCRYPTPROV();
     char *seeddata = NULL;
 
-    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "n|z#", keywords,
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "k|z#", keywords,
                                      &dwLen,                // @pyparm int|Len||Number of bytes to generate
                                      &seeddata, &seedlen))  // @pyparm string|SeedData|None|Random seed data
         return NULL;

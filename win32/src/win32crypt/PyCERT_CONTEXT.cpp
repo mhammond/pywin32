@@ -129,15 +129,28 @@ PyObject *PyWinObject_FromCERT_EXTENSIONArray(PCERT_EXTENSION pce, DWORD ext_cnt
     return ret;
 }
 
+#define CHECK_CERT_CONTEXT(p) \
+    if (p == NULL) { \
+        PyErr_SetString(PyExc_ValueError, "The certificate context has been closed"); \
+        return NULL; \
+    }
+
+#define GET_CERT_CONTEXT(varname) \
+    PCCERT_CONTEXT varname = ((PyCERT_CONTEXT *)self)->GetPCCERT_CONTEXT(); \
+    CHECK_CERT_CONTEXT(varname);
+
 PyObject *PyCERT_CONTEXT::getattro(PyObject *self, PyObject *obname)
 {
-    PCCERT_CONTEXT pcc = ((PyCERT_CONTEXT *)self)->GetPCCERT_CONTEXT();
     char *name = PYWIN_ATTR_CONVERT(obname);
     if (name == NULL)
         return NULL;
-    if (strcmp(name, "HANDLE") == 0)
+    PCCERT_CONTEXT pcc = ((PyCERT_CONTEXT *)self)->GetPCCERT_CONTEXT();
+    if (strcmp(name, "HANDLE") == 0) {
+        CHECK_CERT_CONTEXT(pcc);
         return PyLong_FromVoidPtr((void *)pcc);
+    }
     if (strcmp(name, "CertStore") == 0) {
+        CHECK_CERT_CONTEXT(pcc);
         HCERTSTORE h = NULL;
         // Increment the store's reference count since CertCloseStore is called when object is destroyed.
         // CertDuplicateStore throws an access violation if store handle is NULL
@@ -145,34 +158,62 @@ PyObject *PyCERT_CONTEXT::getattro(PyObject *self, PyObject *obname)
             h = CertDuplicateStore(pcc->hCertStore);
         return PyWinObject_FromCERTSTORE(h);
     }
-    if (strcmp(name, "CertEncoded") == 0)
+    if (strcmp(name, "CertEncoded") == 0) {
+        CHECK_CERT_CONTEXT(pcc);
         return PyBytes_FromStringAndSize((char *)pcc->pbCertEncoded, pcc->cbCertEncoded);
-    if (strcmp(name, "CertEncodingType") == 0)
+    }
+    if (strcmp(name, "CertEncodingType") == 0) {
+        CHECK_CERT_CONTEXT(pcc);
         return PyLong_FromUnsignedLong(pcc->dwCertEncodingType);
-    if (strcmp(name, "Version") == 0)
+    }
+    if (strcmp(name, "Version") == 0) {
+        CHECK_CERT_CONTEXT(pcc);
         return PyLong_FromUnsignedLong(pcc->pCertInfo->dwVersion);
-    if (strcmp(name, "Issuer") == 0)
+    }
+    if (strcmp(name, "Issuer") == 0) {
+        CHECK_CERT_CONTEXT(pcc);
         return PyBytes_FromStringAndSize((char *)pcc->pCertInfo->Issuer.pbData, pcc->pCertInfo->Issuer.cbData);
-    if (strcmp(name, "Subject") == 0)
+    }
+    if (strcmp(name, "Subject") == 0) {
+        CHECK_CERT_CONTEXT(pcc);
         return PyBytes_FromStringAndSize((char *)pcc->pCertInfo->Subject.pbData, pcc->pCertInfo->Subject.cbData);
-    if (strcmp(name, "NotBefore") == 0)
+    }
+    if (strcmp(name, "NotBefore") == 0) {
+        CHECK_CERT_CONTEXT(pcc);
         return PyWinObject_FromFILETIME(pcc->pCertInfo->NotBefore);
-    if (strcmp(name, "NotAfter") == 0)
+    }
+    if (strcmp(name, "NotAfter") == 0) {
+        CHECK_CERT_CONTEXT(pcc);
         return PyWinObject_FromFILETIME(pcc->pCertInfo->NotAfter);
-    if (strcmp(name, "SignatureAlgorithm") == 0)
+    }
+    if (strcmp(name, "SignatureAlgorithm") == 0) {
+        CHECK_CERT_CONTEXT(pcc);
         return PyWinObject_FromCRYPT_ALGORITHM_IDENTIFIER(&pcc->pCertInfo->SignatureAlgorithm);
-    if (strcmp(name, "Extension") == 0)
+    }
+    if (strcmp(name, "Extension") == 0) {
+        CHECK_CERT_CONTEXT(pcc);
         return PyWinObject_FromCERT_EXTENSIONArray(pcc->pCertInfo->rgExtension, pcc->pCertInfo->cExtension);
-    if (strcmp(name, "SubjectPublicKeyInfo") == 0)
+    }
+    if (strcmp(name, "SubjectPublicKeyInfo") == 0) {
+        CHECK_CERT_CONTEXT(pcc);
         return PyWinObject_FromCERT_PUBLIC_KEY_INFO(&pcc->pCertInfo->SubjectPublicKeyInfo);
-    if (strcmp(name, "SerialNumber") == 0)
+    }
+    if (strcmp(name, "SerialNumber") == 0) {
+        CHECK_CERT_CONTEXT(pcc);
         return PyWinObject_FromCRYPT_INTEGER_BLOB(&pcc->pCertInfo->SerialNumber);
+    }
     return PyObject_GenericGetAttr(self, obname);
 }
 
-PyCERT_CONTEXT::~PyCERT_CONTEXT(void) { CertFreeCertificateContext(pccert_context); }
+PyCERT_CONTEXT::~PyCERT_CONTEXT(void) {
+    if (pccert_context) {
+        CertFreeCertificateContext(pccert_context);
+    }
+}
 
-void PyCERT_CONTEXT::deallocFunc(PyObject *ob) { delete (PyCERT_CONTEXT *)ob; }
+void PyCERT_CONTEXT::deallocFunc(PyObject *ob) {
+    delete (PyCERT_CONTEXT *)ob;
+}
 
 PyCERT_CONTEXT::PyCERT_CONTEXT(PCCERT_CONTEXT pccert_context)
 {
@@ -193,6 +234,10 @@ BOOL PyWinObject_AsCERT_CONTEXT(PyObject *obpccert_context, PCCERT_CONTEXT *pcce
         return FALSE;
     }
     *pccert_context = ((PyCERT_CONTEXT *)obpccert_context)->GetPCCERT_CONTEXT();
+    if (*pccert_context == NULL) {
+        PyErr_SetString(PyExc_ValueError, "The certificate context has been closed");
+        return FALSE;
+    }
     return TRUE;
 }
 
@@ -211,10 +256,13 @@ PyObject *PyWinObject_FromCERT_CONTEXT(PCCERT_CONTEXT pcc)
 // @pymethod |PyCERT_CONTEXT|CertFreeCertificateContext|Frees the certificate context
 PyObject *PyCERT_CONTEXT::PyCertFreeCertificateContext(PyObject *self, PyObject *args)
 {
-    PCCERT_CONTEXT pccert_context = ((PyCERT_CONTEXT *)self)->GetPCCERT_CONTEXT();
+    GET_CERT_CONTEXT(pcc);
     BOOL bsuccess;
-    Py_BEGIN_ALLOW_THREADS bsuccess = CertFreeCertificateContext(pccert_context);
-    Py_END_ALLOW_THREADS if (!bsuccess) return PyWin_SetAPIError("CertFreeCertificateContext");
+    Py_BEGIN_ALLOW_THREADS;
+    bsuccess = CertFreeCertificateContext(pcc);
+    Py_END_ALLOW_THREADS;
+    if (!bsuccess) return PyWin_SetAPIError("CertFreeCertificateContext");
+    ((PyCERT_CONTEXT *)self)->pccert_context = NULL;
     Py_INCREF(Py_None);
     return Py_None;
 }
@@ -222,7 +270,7 @@ PyObject *PyCERT_CONTEXT::PyCertFreeCertificateContext(PyObject *self, PyObject 
 // @pymethod [int,...]|PyCERT_CONTEXT|CertEnumCertificateContextProperties|Lists property ids for the certificate
 PyObject *PyCERT_CONTEXT::PyCertEnumCertificateContextProperties(PyObject *self, PyObject *args)
 {
-    PCCERT_CONTEXT pccert_context = ((PyCERT_CONTEXT *)self)->GetPCCERT_CONTEXT();
+    GET_CERT_CONTEXT(pccert_context);
     PyObject *ret_item = NULL;
     DWORD err = 0, dwPropId = 0;
     PyObject *ret = PyList_New(0);
@@ -250,7 +298,7 @@ PyObject *PyCERT_CONTEXT::PyCertEnumCertificateContextProperties(PyObject *self,
 PyObject *PyCERT_CONTEXT::PyCryptAcquireCertificatePrivateKey(PyObject *self, PyObject *args, PyObject *kwargs)
 {
     static char *keywords[] = {"Flags", NULL};
-    PCCERT_CONTEXT pccert_context = ((PyCERT_CONTEXT *)self)->GetPCCERT_CONTEXT();
+    GET_CERT_CONTEXT(pccert_context);
     HCRYPTPROV hcryptprov;
     DWORD flags = 0, keyspec;
     BOOL callerfree;
@@ -281,7 +329,7 @@ PyObject *PyCERT_CONTEXT::PyCertGetEnhancedKeyUsage(PyObject *self, PyObject *ar
     PyObject *ret = NULL;
     DWORD flags = 0, bufsize = 0;
     PCERT_ENHKEY_USAGE pceu = NULL;
-    PCCERT_CONTEXT pccert_context = ((PyCERT_CONTEXT *)self)->GetPCCERT_CONTEXT();
+    GET_CERT_CONTEXT(pccert_context);
 
     if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|k:CertGetEnhancedKeyUsage", keywords,
                                      &flags))  // @pyparm int|Flags|0|CERT_FIND_EXT_ONLY_ENHKEY_USAGE_FLAG,
@@ -305,7 +353,7 @@ PyObject *PyCERT_CONTEXT::PyCertGetEnhancedKeyUsage(PyObject *self, PyObject *ar
 // @rdesc Returns a combination of CERT_*_KEY_USAGE values
 PyObject *PyCERT_CONTEXT::PyCertGetIntendedKeyUsage(PyObject *self, PyObject *args)
 {
-    PCCERT_CONTEXT pccert_context = ((PyCERT_CONTEXT *)self)->GetPCCERT_CONTEXT();
+    GET_CERT_CONTEXT(pccert_context);
     DWORD buf;
     DWORD bufsize = sizeof(DWORD);
     BOOL bsuccess;
@@ -321,7 +369,7 @@ PyObject *PyCERT_CONTEXT::PyCertSerializeCertificateStoreElement(PyObject *self,
     static char *keywords[] = {"Flags", NULL};
     PyObject *ret = NULL;
     DWORD flags = 0, bufsize = 0;
-    PCCERT_CONTEXT pccert_context = ((PyCERT_CONTEXT *)self)->GetPCCERT_CONTEXT();
+    GET_CERT_CONTEXT(pccert_context);
     BYTE *buf = NULL;
     if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|k:CertSerializeCertificateStoreElement", keywords,
                                      &flags))  // @pyparm int|Flags|0|Reserved, use only 0 if passed in
@@ -349,7 +397,7 @@ PyObject *PyCERT_CONTEXT::PyCertVerifySubjectCertificateContext(PyObject *self, 
     PyObject *obissuer;
     DWORD flags;
     PCCERT_CONTEXT issuer;
-    PCCERT_CONTEXT pccert_context = ((PyCERT_CONTEXT *)self)->GetPCCERT_CONTEXT();
+    GET_CERT_CONTEXT(pccert_context);
     if (!PyArg_ParseTupleAndKeywords(
             args, kwargs, "Ok:CertVerifySubjectCertificateContext", keywords,
             &obissuer,  // @pyparm <o PyCERT_CONTEXT>|Issuer||Certificate of authority that issued the certificate
@@ -367,7 +415,7 @@ PyObject *PyCERT_CONTEXT::PyCertVerifySubjectCertificateContext(PyObject *self, 
 // @pymethod |PyCERT_CONTEXT|CertDeleteCertificateFromStore|Removes the certificate from its store
 PyObject *PyCERT_CONTEXT::PyCertDeleteCertificateFromStore(PyObject *self, PyObject *args)
 {
-    PCCERT_CONTEXT pcert_context = ((PyCERT_CONTEXT *)self)->GetPCCERT_CONTEXT();
+    GET_CERT_CONTEXT(pcert_context);
     BOOL bsuccess;
     Py_BEGIN_ALLOW_THREADS bsuccess = CertDeleteCertificateFromStore(pcert_context);
     Py_END_ALLOW_THREADS if (!bsuccess) return PyWin_SetAPIError("CertDeleteCertificateFromStore");
@@ -381,7 +429,7 @@ PyObject *PyCERT_CONTEXT::PyCertDeleteCertificateFromStore(PyObject *self, PyObj
 PyObject *PyCERT_CONTEXT::PyCertGetCertificateContextProperty(PyObject *self, PyObject *args, PyObject *kwargs)
 {
     static char *keywords[] = {"PropId", NULL};
-    PCCERT_CONTEXT pccert_context = ((PyCERT_CONTEXT *)self)->GetPCCERT_CONTEXT();
+    GET_CERT_CONTEXT(pccert_context);
     PyObject *ret = NULL;
     DWORD dwPropId, pcbData = 0;
     void *pvData = NULL;
@@ -493,7 +541,7 @@ PyObject *PyCERT_CONTEXT::PyCertGetCertificateContextProperty(PyObject *self, Py
 PyObject *PyCERT_CONTEXT::PyCertSetCertificateContextProperty(PyObject *self, PyObject *args, PyObject *kwargs)
 {
     static char *keywords[] = {"PropId", "Data", "Flags", NULL};
-    PCCERT_CONTEXT pccert_context = ((PyCERT_CONTEXT *)self)->GetPCCERT_CONTEXT();
+    GET_CERT_CONTEXT(pccert_context);
     PyObject *obData;
     DWORD prop, flags = 0, dwData;
     FILETIME ftData;

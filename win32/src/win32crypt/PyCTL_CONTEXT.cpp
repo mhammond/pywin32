@@ -84,6 +84,16 @@ PyObject *PyWinObject_FromCTL_CONTEXT(PCCTL_CONTEXT pcc)
     return ret;
 }
 
+#define CHECK_CTL_CONTEXT(p) \
+    if (p == NULL) { \
+        PyErr_SetString(PyExc_ValueError, "The certificate trust context has been closed"); \
+        return NULL; \
+    }
+
+#define GET_CTL_CONTEXT(varname) \
+    PCCTL_CONTEXT varname = ((PyCTL_CONTEXT *)self)->GetCTL_CONTEXT(); \
+    CHECK_CTL_CONTEXT(varname);
+
 PyCTL_CONTEXT::~PyCTL_CONTEXT(void)
 {
     if (pctl_context != NULL)
@@ -105,9 +115,10 @@ PyCTL_CONTEXT::PyCTL_CONTEXT(PCCTL_CONTEXT pcc)
 // @pymethod |PyCTL_CONTEXT|CertFreeCTLContext|Closes the CTL handle
 PyObject *PyCTL_CONTEXT::PyCertFreeCTLContext(PyObject *self, PyObject *args)
 {
-    PCCTL_CONTEXT pcc = ((PyCTL_CONTEXT *)self)->GetCTL_CONTEXT();
+    GET_CTL_CONTEXT(pcc);
     if (!CertFreeCTLContext(pcc))
         return PyWin_SetAPIError("CertFreeCTLContext");
+    ((PyCTL_CONTEXT *)self)->pctl_context = NULL;
     Py_INCREF(Py_None);
     return Py_None;
 }
@@ -115,7 +126,7 @@ PyObject *PyCTL_CONTEXT::PyCertFreeCTLContext(PyObject *self, PyObject *args)
 // @pymethod (int,...)|PyCTL_CONTEXT|CertEnumCTLContextProperties|Lists property id's for the context
 PyObject *PyCTL_CONTEXT::PyCertEnumCTLContextProperties(PyObject *self, PyObject *args)
 {
-    PCCTL_CONTEXT pctl = ((PyCTL_CONTEXT *)self)->GetCTL_CONTEXT();
+    GET_CTL_CONTEXT(pctl);
     PyObject *ret_item = NULL;
     DWORD err = 0, prop = 0;
     PyObject *ret = PyList_New(0);
@@ -141,7 +152,7 @@ PyObject *PyCTL_CONTEXT::PyCertEnumCTLContextProperties(PyObject *self, PyObject
 // @rdesc Returns a sequence of tuples containing two strings (SubjectIdentifier, EncodedAttributes)
 PyObject *PyCTL_CONTEXT::PyCertEnumSubjectInSortedCTL(PyObject *self, PyObject *args)
 {
-    PCCTL_CONTEXT pctl = ((PyCTL_CONTEXT *)self)->GetCTL_CONTEXT();
+    GET_CTL_CONTEXT(pctl);
     void *ctxt = NULL;
     CRYPT_DER_BLOB subject, attr;
     PyObject *ret_item = NULL;
@@ -165,7 +176,7 @@ PyObject *PyCTL_CONTEXT::PyCertEnumSubjectInSortedCTL(PyObject *self, PyObject *
 // @pymethod |PyCTL_CONTEXT|CertDeleteCTLFromStore|Removes the CTL from the store that it is contained in
 PyObject *PyCTL_CONTEXT::PyCertDeleteCTLFromStore(PyObject *self, PyObject *args)
 {
-    PCCTL_CONTEXT pctl = ((PyCTL_CONTEXT *)self)->GetCTL_CONTEXT();
+    GET_CTL_CONTEXT(pctl);
     if (!CertDeleteCTLFromStore(pctl))
         return PyWin_SetAPIError("CertDeleteCTLFromStore");
     Py_INCREF(Py_None);
@@ -178,7 +189,7 @@ PyObject *PyCTL_CONTEXT::PyCertSerializeCTLStoreElement(PyObject *self, PyObject
     static char *keywords[] = {"Flags", NULL};
     PyObject *ret = NULL;
     DWORD flags = 0, bufsize = 0;
-    PCCTL_CONTEXT pctl = ((PyCTL_CONTEXT *)self)->GetCTL_CONTEXT();
+    GET_CTL_CONTEXT(pctl);
     BYTE *buf = NULL;
     if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|k:CertSerializeCTLStoreElement", keywords,
                                      &flags))  // @pyparm int|Flags|0|Reserved, use only 0 if passed in
