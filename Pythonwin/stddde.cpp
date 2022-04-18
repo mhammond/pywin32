@@ -17,7 +17,11 @@
 // Format lists
 //
 
+#if defined(UNICODE)
+static WORD SysFormatList[] = {CF_UNICODETEXT, CF_TEXT, NULL};
+#else
 static WORD SysFormatList[] = {CF_TEXT, NULL};
+#endif
 
 //
 // Structure used to hold a clipboard id and its text name
@@ -187,7 +191,7 @@ IMPLEMENT_DYNCREATE(CDDEStringItem, CDDEItem);
 
 WORD *CDDEStringItem::GetFormatList()
 {
-    return SysFormatList;  // CF_TEXT
+    return SysFormatList;  // CF_TEXT or CF_UNICODETEXT
 }
 
 BOOL CDDEStringItem::Request(UINT wFmt, CDDEAllocator &allocr)
@@ -454,17 +458,20 @@ BOOL CDDEConv::AdviseData(UINT wFmt, const TCHAR *pszTopic, const TCHAR *pszItem
 
 BOOL CDDEConv::Request(const TCHAR *pszItem, CString &ret)
 {
+#if defined(UNICODE)
+    return Request(CF_UNICODETEXT, pszItem, ret) || Request(CF_TEXT, pszItem, ret);
+#else
+    return Request(CF_TEXT, pszItem, ret);
+#endif
+}
+
+BOOL CDDEConv::Request(UINT wFmt, const TCHAR *pszItem, CString &ret)
+{
     ASSERT(m_pServer);
     ASSERT(pszItem);
 
     CHSZ hszItem(m_pServer, pszItem);
-    HDDEDATA hData = ::DdeClientTransaction(NULL, 0, m_hConv, hszItem,
-#if defined(UNICODE)
-                                            CF_UNICODETEXT,
-#else
-                                            CF_TEXT,
-#endif
-                                            XTYP_REQUEST, DDE_TIMEOUT, NULL);
+    HDDEDATA hData = ::DdeClientTransaction(NULL, 0, m_hConv, hszItem, wFmt, XTYP_REQUEST, DDE_TIMEOUT, NULL);
 
     if (!hData) {
         return FALSE;
@@ -476,7 +483,18 @@ BOOL CDDEConv::Request(const TCHAR *pszItem, CString &ret)
     DWORD dwSize;
     BYTE *pData = ::DdeAccessData(hData, &dwSize);
     DWORD nChars = (dwSize / sizeof(TCHAR)) - 1;
+
+#if defined(UNICODE)
+    if(wFmt == CF_TEXT) {
+        nChars = (dwSize / sizeof(CHAR)) - 1;
+        ret = CString((CHAR*)pData, nChars);
+    }
+    else {
+        ret = CString((TCHAR *)pData, nChars);
+    }
+#else
     ret = CString((TCHAR *)pData, nChars);
+#endif
     ::DdeUnaccessData(hData);
     // MSDN sez 'When an application has finished using the data handle
     // returned by DdeClientTransaction, the application should free the
