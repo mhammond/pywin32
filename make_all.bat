@@ -5,10 +5,8 @@ if exist build\. goto couldnt_rm
 :quick
 call build_all.bat
 @if errorlevel 1 goto failed
-cd autoduck
-call make.bat
+py autoduck\make.py
 @if errorlevel 1 goto failed
-cd ..
 :already_built
 rem Now the binaries.
 
