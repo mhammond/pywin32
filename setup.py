@@ -1194,7 +1194,7 @@ class my_compiler(base_compiler):
         export_symbols=None,
         debug=0,
         *args,
-        **kw
+        **kw,
     ):
         super().link(
             target_desc,
@@ -1207,7 +1207,7 @@ class my_compiler(base_compiler):
             export_symbols,
             debug,
             *args,
-            **kw
+            **kw,
         )
         # Here seems a good place to stamp the version of the built
         # target.  Do this externally to avoid suddenly dragging in the
@@ -2444,6 +2444,29 @@ classifiers = [
 ]
 
 if "bdist_wininst" in sys.argv:
+    # fixup https://github.com/pypa/setuptools/issues/3284
+    def maybe_fixup_exes():
+        import distutils.command.bdist_wininst
+        import site
+
+        # setuptools can't find .exe stubs in `site-packages/setuptools/_distutils`
+        # but they might exist in the original `lib/distutils`.
+        expected_dir = os.path.dirname(distutils.command.bdist_wininst.__file__)
+        if not len(glob.glob(f"{expected_dir}/*.exe")):
+            # might die, see if we can not!
+            for maybe in site.getsitepackages():
+                maybe_dir = os.path.abspath(f"{maybe}/../distutils/command")
+                if len(glob.glob(f"{maybe_dir}/*.exe")):
+                    print(f"pointing setuptools at '{maybe_dir}'")
+                    distutils.command.bdist_wininst.__file__ = os.path.join(
+                        maybe_dir, "bdist_wininst.py"
+                    )
+                    break
+            else:
+                print("can't fixup distutils/setuptools exe stub location, good luck!")
+
+    maybe_fixup_exes()
+
     # It doesn't really make sense to put README.md as the long description, so
     # keep it short and sweet as it's the first thing shown by the UI.
     long_description = (
