@@ -81,10 +81,8 @@ from distutils.core import Extension
 from distutils.command.install import install
 from distutils.command.install_lib import install_lib
 from setuptools.command.build_ext import build_ext
-from distutils.command.build_py import build_py
 from distutils.command.build import build
 from distutils.command.install_data import install_data
-from distutils.command.build_scripts import build_scripts
 
 from distutils import log
 
@@ -1156,6 +1154,24 @@ class my_install(install):
                     str(os.getpid()),
                 ]
             )
+
+
+class my_install_lib(install_lib):
+    def install(self):
+        # This is crazy - in setuptools 61.1.0 (and probably some earlier versions), the
+        # install_lib and build comments don't agree on where the .py files to install can
+        # be found, so we end up with a warning logged:
+        # `warning: my_install_lib: 'build\lib.win-amd64-3.7' does not exist -- no Python modules to install`
+        # (because they are actually in `build\lib.win-amd64-cpython-37`!)
+        # So hack around that.
+        builder = self.get_finalized_command("build")
+        if os.path.isdir(builder.build_platlib) and not os.path.isdir(self.build_dir):
+            self.build_dir = builder.build_platlib
+        # And if it turns out that didn't actually work we want to die.
+        outfiles = super().install()
+        if not outfiles:
+            raise RuntimeError("No Python files were found to install")
+        return outfiles
 
 
 def my_new_compiler(**kw):
@@ -2425,8 +2441,7 @@ cmdclass = {
     "build": my_build,
     "build_ext": my_build_ext,
     "install_data": my_install_data,
-    #             'build_py' : build_py,
-    #             'build_scripts' : build_scripts,
+    "install_lib": my_install_lib,
 }
 
 classifiers = [

@@ -24,23 +24,17 @@ jobs:
         python-version: ${{ matrix.python-version }}
         architecture: ${{ matrix.architecture }}
 
-    - name: Show runner information
+    - name: Setup environment
       run: |
         python --version
         pip --version
+        pip install --upgrade setuptools wheel
 
-    # Need wheel so that we can use bdist_wheel
-    - name: Upgrade Python packaging tools
-      run: pip install --upgrade wheel
-
-    - name: Set Python user directory
-      run: python -c "import os,site;open(os.environ['GITHUB_ENV'], 'a').write('USER_DIR=%s\n' % os.path.dirname(site.USER_SITE).rstrip('-32'))"
-
-    - name: Build package
-      run: python setup.py --skip-verstamp build
-
-    - name: Install package
-      run: python setup.py install --user
+    - name: Build and install
+      run: |
+        # First ensure `USER_DIR` is in the right place before we do --user.
+        python -c "import os,site;open(os.environ['GITHUB_ENV'], 'a').write('USER_DIR=%s\n' % os.path.dirname(site.USER_SITE))"
+        python setup.py --skip-verstamp install --user
 
     - name: Run tests
       run: python ${env:USER_DIR}\Scripts\pywin32_testall.py -v -skip-adodbapi
@@ -89,7 +83,7 @@ jobs:
 
     # Need wheel so that we can use bdist_wheel
     - name: Upgrade Python packaging tools
-      run: pip install --upgrade setuptools==60.8.2 wheel
+      run: pip install --upgrade setuptools wheel
 
     - name: Set Python user directory
       run: python -c "import os,site;open(os.environ['GITHUB_ENV'], 'a').write('USER_DIR=%s\n' % os.path.dirname(site.USER_SITE).rstrip('-32'))"
