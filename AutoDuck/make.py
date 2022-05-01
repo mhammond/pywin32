@@ -6,9 +6,8 @@ import sys
 if __name__ == "__main__":
     # *sob* - we should kill .chm file support!
     # "hhc" is the "html help compiler" - part of some obscure SDK.
-    hhc = os.environ.get("HHC")
-    if not hhc:
-        hhc = os.path.expandvars(r"%ProgramFiles(x86)%\HTML Help Workshop\hhc.exe")
+    if not os.environ.get("HHC"):
+        os.environ["HHC"] = os.path.expandvars(r'"%ProgramFiles(x86)%\HTML Help Workshop\hhc.exe"')
 
     # find nmake
     nmake = subprocess.check_output(
