@@ -61,9 +61,9 @@ def LocatePythonServiceExe(exeName=None):
     exec_prefix = sys.exec_prefix
 
     dirs = [system_dir, exec_prefix, where]
-    fpaths = [os.path.join(p, dll) for dll in[py_dll, pyw_dll] for p in dirs]
-    fpaths = [f for f in fpaths if os.path.exists(f)]   
-    fpaths = fpaths and fpaths or ['nothing']
+    fpaths = [os.path.join(p, dll) for dll in [py_dll, pyw_dll] for p in dirs]
+    fpaths = [f for f in fpaths if os.path.exists(f)]
+    fpaths = fpaths and fpaths or ["nothing"]
 
     ok = (
         os.path.exists(os.path.join(where, py_dll))
