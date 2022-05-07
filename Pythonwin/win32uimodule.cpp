@@ -644,9 +644,9 @@ void DefaultExceptionHandler(int action, const TCHAR *context, const TCHAR *extr
         PyErr_NormalizeException(&type, &value, &traceback);
 #ifdef DEBUG
         // dump it to the debugger in debug builds.
-        char *msg = GetPythonTraceback(type, value, traceback);
+        WCHAR *msg = GetPythonTraceback(type, value, traceback);
         if (msg) {
-            OutputDebugStringA(msg);
+            OutputDebugString(msg);
             free(msg);
         }
 #endif

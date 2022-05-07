@@ -1002,7 +1002,8 @@ class my_build_ext(build_ext):
             return "win32\\pythonservice" + extra_exe
         elif name.endswith("pythonwin.Pythonwin"):
             return "pythonwin\\Pythonwin" + extra_exe
-        return name.replace(".", "\\") + ".pyd"
+        extra_pyd = self.debug and "_d.pyd" or ".pyd"
+        return name.replace(".", "\\") + extra_pyd
 
     def get_export_symbols(self, ext):
         if ext.is_regular_dll:
