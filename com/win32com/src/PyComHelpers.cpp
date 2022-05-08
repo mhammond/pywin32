@@ -53,11 +53,7 @@ PyObject *get_Decimal_class(void)
 
 PyObject *PyObject_FromCurrency(CURRENCY &cy)
 {
-#if (PY_VERSION_HEX < 0x03000000)
-    static char *divname = "__div__";
-#else
     static char *divname = "__truediv__";
-#endif
     if (Decimal_class == NULL) {
         Decimal_class = get_Decimal_class();
         if (Decimal_class == NULL)

@@ -305,11 +305,7 @@ HRESULT DoRegisterUnregister(LPCSTR fileName, int argc, char **argv)
     PyCom_DLLAddRef();
     {  // A scope for _celp
         CEnterLeavePython _celp;
-#if (PY_VERSION_HEX < 0x03000000)
-        PySys_SetArgv(argc, argv);
-#else
         PySys_SetArgv(argc, __wargv);
-#endif;
 
         if (PyRun_SimpleFile(fp, (char *)fileName) != 0) {
             // Convert the Python error to a HRESULT.

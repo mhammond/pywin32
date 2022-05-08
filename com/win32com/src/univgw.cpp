@@ -349,7 +349,6 @@ static void free_vtbl(gw_vtbl *vtbl)
     VirtualFree(vtbl, 0, MEM_RELEASE);
 }
 
-#if PY_VERSION_HEX > 0x03010000
 // Use the new capsule API
 const char *capsule_name = "win32com universal gateway";
 
@@ -359,20 +358,6 @@ static PyObject *PyVTable_Create(void *vtbl) { return PyCapsule_New(vtbl, capsul
 static gw_vtbl *PyVTable_Get(PyObject *ob) { return (gw_vtbl *)PyCapsule_GetPointer(ob, capsule_name); }
 
 static bool PyVTable_Check(PyObject *ob) { return PyCapsule_IsValid(ob, capsule_name) != 0; }
-#else
-// Use the old CObject API.
-static void __cdecl do_free_vtbl(void *cobject)
-{
-    gw_vtbl *vtbl = (gw_vtbl *)cobject;
-    free_vtbl(vtbl);
-}
-
-static PyObject *PyVTable_Create(void *vtbl) { return PyCObject_FromVoidPtr(vtbl, do_free_vtbl); }
-
-static gw_vtbl *PyVTable_Get(PyObject *ob) { return (gw_vtbl *)PyCObject_AsVoidPtr(ob); }
-
-static bool PyVTable_Check(PyObject *ob) { return PyCObject_Check(ob) != 0; }
-#endif
 
 static PyObject *univgw_CreateVTable(PyObject *self, PyObject *args)
 {
@@ -731,13 +716,9 @@ BOOL initunivgw(PyObject *parentDict)
 
     PyObject *module;
 
-#if (PY_VERSION_HEX < 0x03000000)
-    module = Py_InitModule("pythoncom.__univgw", univgw_functions);
-#else
     static PyModuleDef univgw_def = {PyModuleDef_HEAD_INIT, "pythoncom.__univgw", "Univeral gateway", -1,
                                      univgw_functions};
     module = PyModule_Create(&univgw_def);
-#endif
     if (!module) /* Eeek - some serious error! */
         return FALSE;
 

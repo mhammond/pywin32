@@ -77,18 +77,10 @@ static PyObject *PyLoadModule(PyObject *self, PyObject *args)
 static struct PyMethodDef functions[] = {
     {"GetModuleFilename", PyGetModuleFilename, 1}, {"LoadModule", PyLoadModule, 1}, {NULL}};
 
-extern "C" __declspec(dllexport)
-#if (PY_VERSION_HEX < 0x03000000)
-    void init_win32sysloader(void)
-{
-    PyObject *module = Py_InitModule("_win32sysloader", functions);
-}
-#else
-    PyObject *PyInit__win32sysloader(void)
+extern "C" __declspec(dllexport) PyObject *PyInit__win32sysloader(void)
 {
     static PyModuleDef _win32sysloader_def = {PyModuleDef_HEAD_INIT, "_win32sysloader",
                                               "Exists only to load Pywin32 system modules", -1, functions};
     PyObject *module = PyModule_Create(&_win32sysloader_def);
     return module;
 }
-#endif

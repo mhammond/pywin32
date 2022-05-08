@@ -1136,28 +1136,12 @@ CString GetReprText(PyObject *objectUse)
 {
     PyObject *s;
     CString csRet;
-#ifdef UNICODE
-// PyObject_Unicode disappeared in Py3k, where PyObject_Str returns unicode object
-#if (PY_VERSION_HEX < 0x03000000)
-    s = PyObject_Unicode(objectUse);
-#else
     s = PyObject_Str(objectUse);
-#endif
     if (s) {
         csRet = CString(PyUnicode_AsUnicode(s));
         Py_DECREF(s);
         return csRet;
     }
-#else
-    // Assumes that this will always be compiled with UNICODE defined for py3k
-    s = PyObject_Str(objectUse);
-    if (s) {
-        csRet = CString(PyBytes_AsString(s));
-        Py_DECREF(s);
-        return csRet;
-    }
-#endif
-
     PyErr_Clear();
     s = PyObject_Repr(objectUse);
     if (s == NULL) {
@@ -1166,7 +1150,7 @@ CString GetReprText(PyObject *objectUse)
         return csRet;
     }
 
-    // repr() should return either a string or unicode object, but not sure if this is enforced.
+    // repr() should always return a unicode string, but for hysterical raisens we check if it is bytes.
     if (PyUnicode_Check(s))
         csRet = CString(PyUnicode_AS_UNICODE(s));
     else if (PyBytes_Check(s))
@@ -1176,16 +1160,4 @@ CString GetReprText(PyObject *objectUse)
                      s->ob_type->tp_name);
     Py_DECREF(s);
     return csRet;
-
-    /* This was apparently trying to remove enclosing quotes, parens, and brackets but will only succeed for quotes
-        Forget about it for now
-    Py_ssize_t len=strlen(szRepr);
-    if (len > 2 && strchr("\"'[(", *szRepr)) {
-        if (szRepr[len-1]==*szRepr) {
-            ++szRepr;
-            len-=2;	// drop first and last chars.
-        }
-    }
-    csRet= CString( szRepr, PyWin_SAFE_DOWNCAST(len, Py_ssize_t, int) );
-    */
 }

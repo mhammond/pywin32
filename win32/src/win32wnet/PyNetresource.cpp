@@ -17,18 +17,6 @@
  ******************************************************************/
 // @doc
 
-#if defined(_WIN32_WCE_)  // defined by the Windows CE compiler environment
-
-#ifndef UNICODE
-#define UNICODE
-#endif
-
-#ifndef _UNICODE
-#define _UNICODE
-#endif
-
-#endif
-
 #include "PyWinTypes.h"
 #include "netres.h"  // C++ header file for NETRESOURCE object
 
@@ -77,11 +65,7 @@ __declspec(dllexport) PyTypeObject PyNETRESOURCEType = {
     0,                          /* tp_print */
     0,                          /* tp_getattr */
     0,                          /* tp_setattr */
-#if (PY_VERSION_HEX >= 0x03000000)
-    0, /* tp_as_async */
-#else
-    PyNETRESOURCE::compareFunc, /* tp_compare */
-#endif
+    0,                       /* tp_as_async */
     0,                       /* tp_repr */
     0,                       /* tp_as_number */
     0,                       /* tp_as_sequence */

@@ -1,6 +1,4 @@
 /******************************************************************************
-  $Revision$
-
   A simple interface to win32 clipboard API
 
   Author: Roger Burnham, rburnham@cri-inc.com
@@ -274,7 +272,7 @@ static PyObject *py_get_clipboard_data_handle(PyObject *self, PyObject *args)
 
 //*****************************************************************************
 //
-// @pymethod string/unicode|win32clipboard|GetClipboardData|The GetClipboardData function
+// @pymethod string|win32clipboard|GetClipboardData|The GetClipboardData function
 // retrieves data from the clipboard in a specified format. The clipboard
 // must have been opened previously.  Note that not all data formats are supported,
 // and that the underlying handle can be retrieved with
@@ -284,14 +282,9 @@ static PyObject *py_get_clipboard_data(PyObject *self, PyObject *args)
 {
     PyObject *ret;
 
-    // @pyparm int|format|CF_TEXT|Specifies a clipboard format. For a description of
+    // @pyparm int|format|CF_UNICODETEXT|Specifies a clipboard format. For a description of
     // the standard clipboard formats, see Standard Clipboard Formats.
-    // In Unicode builds (ie, python 3k), the default is CF_UNICODETEXT.
-#ifdef UNICODE
     int format = CF_UNICODETEXT;
-#else
-    int format = CF_TEXT;
-#endif
     if (!PyArg_ParseTuple(args, "|i:GetClipboardData:", &format)) {
         return NULL;
     }
@@ -439,9 +432,9 @@ static PyObject *py_get_clipboard_data(PyObject *self, PyObject *args)
     // described in the following table:
     // @flagh Format|Result type
     // @flag CF_HDROP|A tuple of Unicode filenames.
-    // @flag CF_UNICODETEXT|A unicode object.
-    // @flag CF_OEMTEXT|A string object.
-    // @flag CF_TEXT|A string object.
+    // @flag CF_UNICODETEXT|A string object.
+    // @flag CF_OEMTEXT|A bytes object.
+    // @flag CF_TEXT|A bytes object.
     // @flag CF_ENHMETAFILE|A string with binary data obtained from GetEnhMetaFileBits
     // @flag CF_METAFILEPICT|A string with binary data obtained from GetMetaFileBitsEx (currently broken)
     // @flag CF_BITMAP|An integer handle to the bitmap.
@@ -903,7 +896,7 @@ static PyObject *py_set_clipboard_data(PyObject *self, PyObject *args)
 //
 // @pymethod int|win32clipboard|SetClipboardText|Convienience function to
 // call SetClipboardData with text.
-// @comm You may pass a Unicode or string/bytes object to this function,
+// @comm You may pass a string or bytes object to this function,
 // but depending on the value of the 'format' param, it may be converted
 // to the appropriate type for that param.
 // @comm Many applications will want to call this function twice, with the
@@ -1145,13 +1138,7 @@ PYWIN_MODULE_INIT_FUNC(win32clipboard)
         PYWIN_MODULE_INIT_RETURN_ERROR;
     if (PyDict_SetItemString(dict, "error", PyWinExc_ApiError) == -1)
         PYWIN_MODULE_INIT_RETURN_ERROR;
-    if (PyDict_SetItemString(dict, "UNICODE",
-#ifdef UNICODE
-                             Py_True
-#else
-                             Py_False
-#endif
-                             ) == -1)
+    if (PyDict_SetItemString(dict, "UNICODE", Py_True) == -1)
         PYWIN_MODULE_INIT_RETURN_ERROR;
     PYWIN_MODULE_INIT_RETURN_SUCCESS;
 }

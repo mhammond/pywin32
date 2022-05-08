@@ -61,12 +61,7 @@ class PYWINTYPES_EXPORT PySECURITY_DESCRIPTOR : public PyObject {
     int compare(PyObject *ob);
     static void deallocFunc(PyObject *ob);
 
-#if (PY_VERSION_HEX < 0x03000000)
-    static Py_ssize_t getreadbuf(PyObject *self, Py_ssize_t index, void **ptr);
-    static Py_ssize_t getsegcount(PyObject *self, Py_ssize_t *lenp);
-#else
     static int getbufferinfo(PyObject *self, Py_buffer *view, int flags);
-#endif
 
     static PyObject *Initialize(PyObject *self, PyObject *args);
     static PyObject *GetSecurityDescriptorOwner(PyObject *self, PyObject *args);
@@ -104,12 +99,7 @@ class PYWINTYPES_EXPORT PySID : public PyObject {
     static PyObject *strFunc(PyObject *ob);
 
     // Buffer interface changed in 3.0
-#if (PY_VERSION_HEX < 0x03000000)
-    static Py_ssize_t getreadbuf(PyObject *self, Py_ssize_t index, void **ptr);
-    static Py_ssize_t getsegcount(PyObject *self, Py_ssize_t *lenp);
-#else
     static int getbufferinfo(PyObject *self, Py_buffer *view, int flags);
-#endif
 
     static PyObject *Initialize(PyObject *self, PyObject *args);
     static PyObject *IsValid(PyObject *self, PyObject *args);

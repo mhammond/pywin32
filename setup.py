@@ -1445,7 +1445,7 @@ for info in (
               """,
     ),
     ("win32pdh", "", None, "win32/src/win32pdhmodule.cpp"),
-    ("win32pipe", "", None, "win32/src/win32pipe.i win32/src/win32popen.cpp"),
+    ("win32pipe", "", None, "win32/src/win32pipe.i"),
     (
         "win32print",
         "winspool user32 gdi32",

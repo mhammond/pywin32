@@ -37,17 +37,10 @@ static GetNamedPipeClientProcessIdfunc pfnGetNamedPipeServerSessionId = NULL;
 %}
 
 %{
-#if (PY_VERSION_HEX < 0x03000000)
-extern PyObject *PyPopen(PyObject *self, PyObject  *args);
-extern PyObject *PyPopen2(PyObject *self, PyObject  *args);
-extern PyObject *PyPopen3(PyObject *self, PyObject  *args);
-extern PyObject *PyPopen4(PyObject *self, PyObject  *args);
-#else
 PyObject *PyPopen(PyObject *self, PyObject  *args) {PyErr_SetString(PyExc_NotImplementedError, "not available in py3k"); return NULL;};
 PyObject *PyPopen2(PyObject *self, PyObject  *args) {PyErr_SetString(PyExc_NotImplementedError, "not available in py3k"); return NULL;};
 PyObject *PyPopen3(PyObject *self, PyObject  *args) {PyErr_SetString(PyExc_NotImplementedError, "not available in py3k"); return NULL;};
 PyObject *PyPopen4(PyObject *self, PyObject  *args) {PyErr_SetString(PyExc_NotImplementedError, "not available in py3k"); return NULL;};
-#endif // PY_VERSION_HEX
 
 %}
 // @pymeth popen|Version of popen that works in a GUI

@@ -140,11 +140,7 @@ static PyObject *PyTraceObject_read(PyObject *self, PyObject *args)
     BOOL ok = static_cast<PyTraceObject *>(self)->ReadData(&data, &len, 0);
     if (!ok)
         return NULL;
-#if (PY_VERSION_HEX < 0x03000000)
-    PyObject *result = PyBytes_FromStringAndSize(data, len);
-#else
     PyObject *result = PyUnicode_DecodeLatin1(data, len, "replace");
-#endif
     free(data);
     return result;
 }
@@ -159,11 +155,7 @@ static PyObject *PyTraceObject_blockingread(PyObject *self, PyObject *args)
     BOOL ok = static_cast<PyTraceObject *>(self)->ReadData(&data, &len, milliSeconds);
     if (!ok)
         return NULL;
-#if (PY_VERSION_HEX < 0x03000000)
-    PyObject *result = PyBytes_FromStringAndSize(data, len);
-#else
     PyObject *result = PyUnicode_DecodeLatin1(data, len, "replace");
-#endif
     free(data);
     return result;
 }

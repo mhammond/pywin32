@@ -19,11 +19,7 @@ static PyObject *PyVariant_Type;
 #define BYREF_ARRAY_USE_EXISTING_ARRAY
 
 // Need to put this in pywintypes.h with rest of compatibility macros
-#if (PY_VERSION_HEX < 0x03000000)
-#define PYWIN_BUFFER_CHECK PyBuffer_Check
-#else
 #define PYWIN_BUFFER_CHECK(obj) (PyBytes_Check(obj) || PyByteArray_Check(obj) || PyMemoryView_Check(obj))
-#endif
 
 // A little helper just for this file
 static PyObject *OleSetTypeError(TCHAR *msg)
@@ -124,9 +120,6 @@ BOOL PyCom_VariantFromPyObject(PyObject *obj, VARIANT *var)
     V_VT(var) = VT_EMPTY;
     if (
 // In py3k we don't convert PyBytes_Check objects (ie, bytes) to BSTR...
-#if (PY_VERSION_HEX < 0x03000000)
-        PyBytes_Check(obj) ||
-#endif
         PyUnicode_Check(obj)) {
         if (!PyWinObject_AsBstr(obj, &V_BSTR(var))) {
             PyErr_SetString(PyExc_MemoryError, "Making BSTR for variant");
@@ -223,15 +216,6 @@ BOOL PyCom_VariantFromPyObject(PyObject *obj, VARIANT *var)
     else if (obj == Py_None) {
         V_VT(var) = VT_NULL;
     }
-#if (PY_VERSION_HEX < 0x03000000)
-    // This is redundant in 3.x, since PyLong_Check is #defined to PyLong_Check
-    else if (PyLong_Check(obj)) {
-        V_VT(var) = VT_I4;
-        V_I4(var) = PyLong_AsLong(obj);
-        if (V_I4(var) == -1 && PyErr_Occurred())
-            return FALSE;
-    }
-#endif
     else if (PyObject_HasAttrString(obj, "_oleobj_")) {
         if (PyCom_InterfaceFromPyInstanceOrObject(obj, IID_IDispatch, (void **)&V_DISPATCH(var), FALSE))
             V_VT(var) = VT_DISPATCH;

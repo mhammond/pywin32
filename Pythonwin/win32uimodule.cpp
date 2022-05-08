@@ -173,10 +173,6 @@ ui_type::ui_type(const char *name, ui_type *pBase, Py_ssize_t typeSize,
     tp_methods = methodList;
     //#define funky_offsetof_weakreflist ((size_t) &((PyObject *)(ui_base_class *)0)->weakreflist)
 
-#if (PY_VERSION_HEX < 0x03000000)
-    tp_flags |= Py_TPFLAGS_HAVE_WEAKREFS;  // flag doesn't exist in py3k
-#endif
-
     tp_weaklistoffset -= pyobjOffset;
     // cast away const, as Python doesnt use it.
     tp_name = (char *)name;
@@ -350,12 +346,7 @@ int ui_base_class::setattro(PyObject *obname, PyObject *v)
 CString ui_base_class::repr()
 {
     CString csRet;
-#if (PY_VERSION_HEX < 0x03000000)
-    USES_CONVERSION;
-    csRet.Format(_T("object '%s'"), A2T((LPSTR)ob_type->tp_name));
-#else
     csRet.Format(_T("object '%S'"), ob_type->tp_name);
-#endif
     return csRet;
 }
 void ui_base_class::cleanup()
@@ -715,10 +706,6 @@ PyObject *Python_do_callback(PyObject *themeth, PyObject *thearglst)
 }
 
 // Copied from PyRecord.cpp, should move into pywintypes.h
-#if (PY_VERSION_HEX < 0x03000000)
-#define PyWinCoreString_ConcatAndDel PyBytes_ConcatAndDel
-#define PyWinCoreString_Concat PyBytes_Concat
-#else
 // Unicode versions of '_Concat' etc have different sigs.  Make them the
 // same here...
 void PyWinCoreString_Concat(register PyObject **pv, register PyObject *w)
@@ -732,14 +719,6 @@ void PyWinCoreString_Concat(register PyObject **pv, register PyObject *w)
     Py_DECREF(*pv);
     *pv = tmp;
 }
-
-void PyWinCoreString_ConcatAndDel(register PyObject **pv, register PyObject *w)
-{
-    PyWinCoreString_Concat(pv, w);
-    Py_XDECREF(w);
-}
-
-#endif
 
 int Python_do_int_callback(PyObject *themeth, PyObject *thearglst)
 {
@@ -1479,7 +1458,7 @@ static PyObject *ui_get_resource(PyObject *self, PyObject *args)
     return ret;
 }
 
-// @pymethod <o PyUnicode>|win32ui|LoadString|Loads a string from a resource file.
+// @pymethod string|win32ui|LoadString|Loads a string from a resource file.
 static PyObject *ui_load_string(PyObject *self, PyObject *args)
 {
     UINT stringId;
@@ -1852,29 +1831,6 @@ static PyObject *ui_translate_vk(PyObject *, PyObject *args)
     return PyBytes_FromStringAndSize(result, nc);
 }
 
-/** Seems to have problems on 9x for some people (not me, though?)
-// @pymethod <o PyUnicode>/None|win32ui|TranslateVirtualKeyW|
-static PyObject *ui_translate_vkW(PyObject *, PyObject *args)
-{
-    int vk;
-    // @pyparm int|vk||The key to translate
-    if (!PyArg_ParseTuple(args, "i", &vk))
-        return NULL;
-    static HKL layout=GetKeyboardLayout(0);
-    static BYTE State[256];
-    if (GetKeyboardState(State)==FALSE)
-        RETURN_ERR("Can't get keyboard state");
-    WCHAR result[2];
-    UINT sc=MapVirtualKeyEx(vk,0,layout);
-    int nc = ToUnicodeEx(vk,sc,State,result,2, 0,layout);
-    if (nc==-1) { // a dead char.
-        Py_INCREF(Py_None);
-        return Py_None;
-    }
-    return PyWinObject_FromWCHAR(result, nc);
-}
-**/
-
 extern PyObject *ui_get_dialog_resource(PyObject *, PyObject *args);
 extern PyObject *ui_create_app(PyObject *, PyObject *args);
 extern PyObject *ui_get_app(PyObject *, PyObject *args);
@@ -2086,13 +2042,7 @@ int AddConstants(PyObject *module)
     int debug = 0;
 #endif
     ADD_CONSTANT(debug);  // @const win32ui|debug|1 if we are current using a _DEBUG build of win32ui, else 0.
-    if (PyModule_AddIntConstant(module, "UNICODE",
-#ifdef UNICODE
-                                1
-#else
-                                0
-#endif
-                                ) == -1)
+    if (PyModule_AddIntConstant(module, "UNICODE", 1) == -1)
         return -1;
     ADD_CONSTANT(AFX_IDW_PANE_FIRST);   // @const win32ui|AFX_IDW_PANE_FIRST|Id of the first splitter pane
     ADD_CONSTANT(AFX_IDW_PANE_LAST);    // @const win32ui|AFX_IDW_PANE_LAST|Id of the last splitter pane
@@ -2445,11 +2395,7 @@ PYWIN_MODULE_INIT_FUNC(win32ui)
         PYWIN_MODULE_INIT_RETURN_ERROR;
     }
     if (existing_module)
-#if (PY_VERSION_HEX < 0x03000000)
-        return;
-#else
         return existing_module;
-#endif
 
     PYWIN_MODULE_INIT_PREPARE(win32ui, ui_functions, "A module, encapsulating the Microsoft Foundation Classes.");
 
@@ -2608,12 +2554,6 @@ extern "C" PYW_EXPORT BOOL Win32uiApplicationInit(Win32uiHostGlue *pGlue, const 
     // a risk that when Python does "import win32ui", it
     // will locate a different one, causing obvious grief!
     PyObject *argv = PySys_GetObject("argv");
-#if (PY_VERSION_HEX < 0x03000000)
-    initwin32ui();
-    // Set sys.argv if not already done!
-    if (argv == NULL && __targv != NULL && __argc > 0)
-        PySys_SetArgv(__argc - 1, __targv + 1);
-#else
     PyInit_win32ui();
     // Decide if we render sys.argv from command line.
     // PY3.6- Py_Initialize sets sys.argv=NULL .
@@ -2632,7 +2572,6 @@ extern "C" PYW_EXPORT BOOL Win32uiApplicationInit(Win32uiHostGlue *pGlue, const 
             LocalFree(myargv);
         }
     }
-#endif
     // If the versions of the .h file are not in synch, then we are in trouble!
     if (pGlue->versionNo != WIN32UIHOSTGLUE_VERSION) {
         MessageBox(0,

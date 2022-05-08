@@ -355,56 +355,8 @@ PyObject *PyDEVMODEA::tp_new(PyTypeObject *typ, PyObject *args, PyObject *kwargs
     return new PyDEVMODEA(DriverExtra);
 }
 
-// If pywintypes is compiled with UNICODE defined, all modules that use these
-//	objects will also need to be UNICODE
-#ifndef UNICODE
-BOOL PyWinObject_AsDEVMODE(PyObject *ob, PDEVMODE *ppDEVMODE, BOOL bNoneOk)
-{
-    if (ob == Py_None)
-        if (bNoneOk) {
-            *ppDEVMODE = NULL;
-            return TRUE;
-        }
-        else {
-            PyErr_SetString(PyExc_ValueError, "PyDEVMODE cannot be None in this context");
-            return FALSE;
-        }
-    if (!PyDEVMODE_Check(ob))
-        return FALSE;
-    *ppDEVMODE = ((PyDEVMODEA *)ob)->GetDEVMODE();
-    return TRUE;
-}
-
-PyObject *PyWinObject_FromDEVMODE(PDEVMODEA pdevmode)
-{
-    static WORD dmSize = sizeof(DEVMODE);
-    if (pdevmode == NULL) {
-        Py_INCREF(Py_None);
-        return Py_None;
-    }
-
-    // make sure we can't overflow the fixed size DEVMODE in PyDEVMODE
-    if (pdevmode->dmSize > dmSize) {
-        PyErr_Format(PyExc_WindowsError, "DEVMODE structure of size %d greater than supported size of %d",
-                     pdevmode->dmSize, dmSize);
-        return NULL;
-    }
-    PyObject *ret = new PyDEVMODEA(pdevmode);
-    // check that variable sized pdevmode is allocated
-    if (((PyDEVMODEA *)ret)->GetDEVMODE() == NULL) {
-        Py_DECREF(ret);
-        ret = NULL;
-    }
-    return ret;
-}
-#endif
-
 // DEVMODEW support
 // @object PyDEVMODEW|Unicode version of <o PyDEVMODE> object
-/* PyDEVMODEW is only needed when win32api, win32gui, or win32print
-    are built with UNICODE defined.  Currently, you must explicitely ask
-    for the unicode version.
-*/
 
 struct PyMethodDef PyDEVMODEW::methods[] = {
     {"Clear", PyDEVMODEW::Clear, 1},  // @pymeth Clear|Resets all members of the structure
@@ -511,7 +463,7 @@ struct PyMemberDef PyDEVMODEW::members[] = {
 #endif  // !MS_WINCE
     {NULL}};
 
-// @prop <o PyUnicode>|DeviceName|String of at most 32 chars
+// @prop string|DeviceName|String of at most 32 chars
 PyObject *PyDEVMODEW::get_DeviceName(PyObject *self, void *unused)
 {
     PDEVMODEW pdevmode = ((PyDEVMODEW *)self)->pdevmode;

@@ -98,7 +98,7 @@ typedef unsigned long ULONG;
       }
 }
 
-// String and UniCode support
+// String support
 %typemap(python,in) char *inNullString {
 	if ($source==Py_None) {
 		$target = NULL;
@@ -588,13 +588,7 @@ typedef float HWND;
 #ifndef SWIG_PYTHONCOM
 /* This code only valid if non COM SWIG builds */
 #ifndef PYCOM_EXPORT
-	 PyDict_SetItemString(d,"UNICODE", PyLong_FromLong(
-#ifdef UNICODE
-	1
-#else
-	0
-#endif
-	));
+	 PyDict_SetItemString(d,"UNICODE", PyLong_FromLong(1));
 #endif
   PyWinGlobals_Ensure();
   PyDict_SetItemString(d, "error", PyWinExc_ApiError);

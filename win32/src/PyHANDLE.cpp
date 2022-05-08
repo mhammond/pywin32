@@ -114,9 +114,6 @@ static PyNumberMethods PyHANDLE_NumberMethods = {
     PyHANDLE::binaryFailureFunc, /* nb_add */
     PyHANDLE::binaryFailureFunc, /* nb_subtract */
     PyHANDLE::binaryFailureFunc, /* nb_multiply */
-#if (PY_VERSION_HEX < 0x03000000)
-    PyHANDLE::binaryFailureFunc, /* nb_divide - removed in Py3k */
-#endif
     PyHANDLE::binaryFailureFunc,  /* nb_remainder */
     PyHANDLE::binaryFailureFunc,  /* nb_divmod */
     PyHANDLE::ternaryFailureFunc, /* nb_power */
@@ -131,29 +128,16 @@ static PyNumberMethods PyHANDLE_NumberMethods = {
     PyHANDLE::binaryFailureFunc, /* nb_and */
     PyHANDLE::binaryFailureFunc, /* nb_xor */
     PyHANDLE::binaryFailureFunc, /* nb_or */
-#if (PY_VERSION_HEX < 0x03000000)
-    0, /* nb_coerce (allowed to be zero) - removed in 3.0 */
-#endif
     PyHANDLE::intFunc,          /* nb_int */
     PyHANDLE::longFunc,         /* nb_long */
     PyHANDLE::unaryFailureFunc, /* nb_float */
                                 // These removed in 3.0
-#if (PY_VERSION_HEX < 0x03000000)
-    PyHANDLE::unaryFailureFunc, /* nb_oct */
-    PyHANDLE::unaryFailureFunc, /* nb_hex */
-#endif
 };
 // @pymeth __int__|Used when an integer representation of the handle object is required.
 
 PYWINTYPES_EXPORT PyTypeObject PyHANDLEType = {
     PYWIN_OBJECT_HEAD "PyHANDLE", sizeof(PyHANDLE), 0, PyHANDLE::deallocFunc, /* tp_dealloc */
-#if (PY_VERSION_HEX < 0x03000000)
-    // tp_print is 2.x only.
-    // @pymeth __print__|Used when the object is printed.
-    PyHANDLE::printFunc,     /* tp_print */
-#else
     0,
-#endif
     0,                       /* tp_getattr */
     0,                       /* tp_setattr */
     0,                       /* tp_compare */

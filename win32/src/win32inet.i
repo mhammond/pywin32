@@ -2,8 +2,6 @@
 // @doc
 %module win32inet // An interface to the Windows internet (wininet) API
 %{
-// #define UNICODE
-// #define _UNICODE
 #include "Windows.h"
 #include "WinInet.h"
 #undef BOOLAPI // wininet.h defines this!
@@ -166,11 +164,10 @@ PyObject *PyWinObject_FromStatusInformation(DWORD status, void *buf, DWORD bufsi
 			INTERNET_ASYNC_RESULT *ias=(INTERNET_ASYNC_RESULT *)buf;
 			return Py_BuildValue("{s:N, s:k}",
 				"Result", PyWinLong_FromHANDLE((HANDLE)ias->dwResult),
-				"Error", ias->dwError);			
+				"Error", ias->dwError);
 			}
 		case INTERNET_STATUS_RESOLVING_NAME:
-			return PyWinObject_FromTCHAR((TCHAR *)buf);
-		// This always returns a character string, even when compiled with UNICODE defined
+			return PyWinObject_FromWCHAR((TCHAR *)buf);
 		case INTERNET_STATUS_NAME_RESOLVED:
 		// ??? MSDN claims the 2 below return pointer to SOCKADDR struct,
 		//	but it appears to be a plain string ??? 
@@ -529,7 +526,7 @@ PyCFunction pfnPyInternetConnect = (PyCFunction)PyInternetConnect;
 %}
 %native (InternetConnect) pfnPyInternetConnect;
 
-// @pyswig |InternetOpen|Initializes an application's use of the Microsoft® Win32® Internet functions.
+// @pyswig |InternetOpen|Initializes an application's use of the Microsoftï¿½ Win32ï¿½ Internet functions.
 PyHINTERNET InternetOpen(
     TCHAR *lpszAgent, // @pyparm string|agent||A string that contains the name of the application
                       // or entity calling the Internet functions. This name is used as the user
@@ -630,7 +627,7 @@ PyObject *PyInternetCanonicalizeUrl(PyObject *self, PyObject *args)
     // canonicalization. This can be one of the following values:
     // @flag ICU_BROWSER_MODE|Does not encode or decode characters after "#" or "?", and does not remove trailing white space after "?". If this value is not specified, the entire URL is encoded and trailing white space is removed. 
     // @flag ICU_DECODE|Converts all %XX sequences to characters, including escape sequences, before the URL is parsed. 
-    // @flag ICU_ENCODE_PERCENT|Encodes any percent signs encountered. By default, percent signs are not encoded. This value is available in Microsoft® Internet Explorer 5 and later versions of the Win32® Internet functions. 
+    // @flag ICU_ENCODE_PERCENT|Encodes any percent signs encountered. By default, percent signs are not encoded. This value is available in Microsoftï¿½ Internet Explorer 5 and later versions of the Win32ï¿½ Internet functions. 
     // @flag ICU_ENCODE_SPACES_ONLY|Encodes spaces only. 
     // @flag ICU_NO_ENCODE|Does not convert unsafe characters to escape sequences. 
     // @flag ICU_NO_META|Does not remove meta sequences (such as "." and "..") from the URL. 
@@ -671,7 +668,7 @@ done:
 %native (InternetCanonicalizeUrl) PyInternetCanonicalizeUrl;
 
 %{
-// @pyswig int, string|InternetGetLastResponseInfo|Retrieves the last Win32® Internet function error description or server response on the thread calling this function.
+// @pyswig int, string|InternetGetLastResponseInfo|Retrieves the last Win32ï¿½ Internet function error description or server response on the thread calling this function.
 PyObject *PyInternetGetLastResponseInfo(PyObject *self, PyObject *args)
 {
     if (!PyArg_ParseTuple(args, ":InternetGetLastResponseInfo"))
@@ -1717,19 +1714,14 @@ PyObject *PyCreateUrlCacheEntry(PyObject *self, PyObject *args, PyObject *kwargs
 PyObject *PyCommitUrlCacheEntry(PyObject *self, PyObject *args, PyObject *kwargs)
 {
 	TCHAR *UrlName=NULL, *LocalFileName=NULL, *OriginalUrl=NULL;
-	// ??? Header info is defined as LPWSTR in UNICODE mode, but LPBYTE in ansi mode ???
-#ifdef UNICODE
 	WCHAR *HeaderInfo=NULL;
-#else
-	LPBYTE HeaderInfo=NULL;
-#endif
 	PyObject *obUrlName, *obLocalFileName, *obHeaderInfo=Py_None, *obOriginalUrl=Py_None;
 	FILETIME ExpireTime={0,0}, LastModifiedTime={0,0};
 	PyObject *obExpireTime=Py_None, *obLastModifiedTime=Py_None;
 	DWORD CacheEntryType=NORMAL_CACHE_ENTRY, HeaderSize=0;
 	TCHAR *FileExtension=NULL;	// reserved
 	PyObject *ret=NULL;
-	
+
 	static char *keywords[]={"UrlName","LocalFileName","ExpireTime","LastModifiedTime",
 		"CacheEntryType","HeaderInfo","OriginalUrl", NULL};
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OO|OOkOO:CommitUrlCacheEntry", keywords,

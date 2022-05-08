@@ -16,18 +16,6 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  ******************************************************************/
 // @doc
-#if !defined(_WIN32_WCE)  // so far, none of this is supported by Windows CE
-#if defined(_WIN32_WCE_)  // defined by Windows CE compiler environment
-
-#ifndef UNICODE
-#define UNICODE
-#endif
-
-#ifndef _UNICODE
-#define _UNICODE
-#endif
-
-#endif
 
 #include "Pywintypes.h"
 #include <windows.h>
@@ -295,7 +283,7 @@ int PyNCB::setattro(PyObject *self, PyObject *obname, PyObject *v)
             Py_DECREF(ob_buf);
             return -1;
         }
-        
+
         if (pybuf.len() > USHRT_MAX) {
             Py_DECREF(ob_buf);
             PyErr_Format(PyExc_ValueError, "Buffer can be at most %d bytes", USHRT_MAX);
@@ -314,5 +302,3 @@ int PyNCB::setattro(PyObject *self, PyObject *obname, PyObject *v)
     }
     return PyObject_GenericSetAttr(self, obname, v);
 }
-
-#endif

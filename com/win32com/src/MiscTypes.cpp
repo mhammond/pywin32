@@ -103,9 +103,6 @@ PyComEnumTypeObject::PyComEnumTypeObject(const char *name, PyComTypeObject *pBas
     tp_iter = iter;
     tp_iternext = iternext;
     // Py3k does not have this flag, and depends just on presence of tp_iter
-#if (PY_VERSION_HEX < 0x03000000)
-    tp_flags |= Py_TPFLAGS_HAVE_ITER;
-#endif
 }
 
 // PyIEnum iter methods - generic for any "standard" COM IEnum interface, but
@@ -153,9 +150,6 @@ PyComEnumProviderTypeObject::PyComEnumProviderTypeObject(const char *name, PyCom
 {
     tp_iter = iter;
     // tp_iternext remains NULL
-#if (PY_VERSION_HEX < 0x03000000)
-    tp_flags |= Py_TPFLAGS_HAVE_ITER;
-#endif
 }
 
 // PyIEnumProvider iter methods - generic for COM object that can provide an IEnum*

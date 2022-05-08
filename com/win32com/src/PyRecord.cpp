@@ -348,12 +348,6 @@ static void _FreeFieldNames(BSTR *strings, ULONG num_names)
     delete[] strings;
 }
 
-#if (PY_VERSION_HEX < 0x03000000)
-#define PyWinCoreString_ConcatAndDel PyBytes_ConcatAndDel
-#define PyWinCoreString_Concat PyBytes_Concat
-#else
-// Unicode versions of '_Concat' etc have different sigs.  Make them the
-// same here...
 void PyWinCoreString_Concat(register PyObject **pv, register PyObject *w)
 {
     if (!w) {  // hrm - string version doesn't do this, but I saw PyObject_Repr() return NULL...
@@ -371,8 +365,6 @@ void PyWinCoreString_ConcatAndDel(register PyObject **pv, register PyObject *w)
     PyWinCoreString_Concat(pv, w);
     Py_XDECREF(w);
 }
-
-#endif
 
 PyObject *PyRecord::tp_repr(PyObject *self)
 {

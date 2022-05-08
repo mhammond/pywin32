@@ -77,20 +77,6 @@
 
 #include "datetime.h" // python's datetime header.
 
-// older python version's don't get the PyCObject structure definition
-// exposed, and we need it to cleanly zap our handles (see
-// CloseEncryptedFileRaw below).
-// Fortunately, the PyCObject structure has been identical from versions
-// 2.3->2.6 - and 2.6 is where it is first made public.
-#if (PY_VERSION_HEX < 0x02060000)
-typedef struct {
-    PyObject_HEAD
-    void *cobject;
-    void *desc;
-    void (*destructor)(void *);
-} PyCObject;
-
-#endif
 %}
 
 #define FILE_GENERIC_READ FILE_GENERIC_READ
@@ -216,31 +202,31 @@ BOOLAPI CancelIo(PyHANDLE handle);
 
 // @pyswig |CopyFile|Copies a file
 BOOLAPI CopyFile(
-    TCHAR *from, // @pyparm <o PyUnicode>|from||The name of the file to copy from
-    TCHAR *to, // @pyparm <o PyUnicode>|to||The name of the file to copy to
+    TCHAR *from, // @pyparm string|from||The name of the file to copy from
+    TCHAR *to, // @pyparm string|to||The name of the file to copy to
     BOOL bFailIfExists); // @pyparm int|bFailIfExists||Indicates if the operation should fail if the file exists.
 
-// @pyswig |CopyFileW|Copies a file (NT/2000 Unicode specific version)
+// @pyswig |CopyFileW|Copies a file
 BOOLAPI CopyFileW(
-    WCHAR *from, // @pyparm <o PyUnicode>|from||The name of the file to copy from
-    WCHAR *to, // @pyparm <o PyUnicode>|to||The name of the file to copy to
+    WCHAR *from, // @pyparm string|from||The name of the file to copy from
+    WCHAR *to, // @pyparm string|to||The name of the file to copy to
     BOOL bFailIfExists); // @pyparm int|bFailIfExists||Indicates if the operation should fail if the file exists.
 
 // @pyswig |CreateDirectory|Creates a directory
 BOOLAPI CreateDirectory(
-    TCHAR *name, // @pyparm <o PyUnicode>|name||The name of the directory to create
+    TCHAR *name, // @pyparm string|name||The name of the directory to create
     SECURITY_ATTRIBUTES *pSA); // @pyparm <o PySECURITY_ATTRIBUTES>|sa||The security attributes, or None
 
-// @pyswig |CreateDirectoryW|Creates a directory (NT/2000 Unicode specific version)
+// @pyswig |CreateDirectoryW|Creates a directory
 BOOLAPI CreateDirectoryW(
-    WCHAR *name, // @pyparm <o PyUnicode>|name||The name of the directory to create
+    WCHAR *name, // @pyparm string|name||The name of the directory to create
     SECURITY_ATTRIBUTES *pSA); // @pyparm <o PySECURITY_ATTRIBUTES>|sa||The security attributes, or None
 
 #ifndef MS_WINCE
 // @pyswig |CreateDirectoryEx|Creates a directory
 BOOLAPI CreateDirectoryEx(
-    TCHAR *templateName, // @pyparm <o PyUnicode>|templateName||Specifies the path of the directory to use as a template when creating the new directory. 
-    TCHAR *newDirectory, // @pyparm <o PyUnicode>|newDirectory||Specifies the name of the new directory
+    TCHAR *templateName, // @pyparm string|templateName||Specifies the path of the directory to use as a template when creating the new directory. 
+    TCHAR *newDirectory, // @pyparm string|newDirectory||Specifies the name of the new directory
     SECURITY_ATTRIBUTES *pSA); // @pyparm <o PySECURITY_ATTRIBUTES>|sa||The security attributes, or None
 
 #endif // MS_WINCE
@@ -248,7 +234,7 @@ BOOLAPI CreateDirectoryEx(
 // @pyswig <o PyHANDLE>|CreateFile|Creates or opens the a file or other object and returns a handle that can be used to access the object.
 // @comm The following objects can be opened:<nl>files<nl>pipes<nl>mailslots<nl>communications resources<nl>disk devices (Windows NT only)<nl>consoles<nl>directories (open only)
 PyHANDLE CreateFile(
-    TCHAR *lpFileName,	// @pyparm <o PyUnicode>|fileName||The name of the file
+    TCHAR *lpFileName,	// @pyparm string|fileName||The name of the file
     DWORD dwDesiredAccess,	// @pyparm int|desiredAccess||access (read-write) mode
 			// Specifies the type of access to the object. An application can obtain read access, write access, read-write access, or device query access. This parameter can be any combination of the following values. 
 			// @flagh Value|Meaning 
@@ -350,26 +336,25 @@ BOOLAPI SetMailslotInfo(
 	HANDLE Mailslot,	// @pyparm <o PyHANDLE>|Mailslot||Handle to a mailslot
 	DWORD ReadTimeout);	// @pyparm int|ReadTimeout||Timeout in milliseconds, use -1 for no timeout
 
-// @pyswig |DefineDosDevice|Lets an application define, redefine, or delete MS-DOS device names. 
+// @pyswig |DefineDosDevice|Lets an application define, redefine, or delete MS-DOS device names.
 BOOLAPI DefineDosDevice(
-    DWORD dwFlags,	// @pyparm int|flags||flags specifying aspects of device definition  
-    TCHAR *lpDeviceName,	// @pyparm <o PyUnicode>|deviceName||MS-DOS device name string  
-    TCHAR *lpTargetPath	// @pyparm <o PyUnicode>|targetPath||MS-DOS or path string for 32-bit Windows.
+    DWORD dwFlags,	// @pyparm int|flags||flags specifying aspects of device definition
+    TCHAR *lpDeviceName,	// @pyparm string|deviceName||MS-DOS device name string
+    TCHAR *lpTargetPath	// @pyparm string|targetPath||MS-DOS or path string for 32-bit Windows.
 );
-// @pyswig |DefineDosDeviceW|Lets an application define, redefine, or delete MS-DOS device names. (NT/2000 Unicode specific version)
+// @pyswig |DefineDosDeviceW|Lets an application define, redefine, or delete MS-DOS device names.
 BOOLAPI DefineDosDeviceW(
-    DWORD dwFlags,	// @pyparm int|flags||flags specifying aspects of device definition  
-    WCHAR *lpDeviceName,	// @pyparm <o PyUnicode>|deviceName||MS-DOS device name string  
-    WCHAR *lpTargetPath	// @pyparm <o PyUnicode>|targetPath||MS-DOS or path string for 32-bit Windows.
+    DWORD dwFlags,	// @pyparm int|flags||flags specifying aspects of device definition
+    WCHAR *lpDeviceName,	// @pyparm string|deviceName||MS-DOS device name string
+    WCHAR *lpTargetPath	// @pyparm string|targetPath||MS-DOS or path string for 32-bit Windows.
 );
 #endif // MS_WINCE
 
 // @pyswig |DeleteFile|Deletes a file.
 BOOLAPI DeleteFile(TCHAR *fileName);
-// @pyparm <o PyUnicode>|fileName||The filename to delete
+// @pyparm string|fileName||The filename to delete
 
 %{
-#if (PY_VERSION_HEX >= 0x03000000)
 // theoretically this could be in pywintypes, but this is the only place
 // it is called...
 
@@ -385,8 +370,6 @@ static PyObject *PyBuffer_FromReadWriteMemory(void *buf, Py_ssize_t size){
 		return NULL;
 	return PyMemoryView_FromBuffer(&info);
 }
-#endif
-
 
 
 // @pyswig str/buffer|DeviceIoControl|Sends a control code to a device or file system driver
@@ -495,11 +478,7 @@ PyObject *py_DeviceIoControl(PyObject *self, PyObject *args, PyObject *kwargs)
 		if (bBuffer){
 			// Create a view of existing buffer with actual output size
 			// Memoryview object in py3k supports slicing
-			#if (PY_VERSION_HEX >= 0x03000000)
-				PyObject *resized=PySequence_GetSlice(ret, 0, numRead);
-			#else
-				PyObject *resized=PyBuffer_FromReadWriteObject(ret, 0, numRead);
-			#endif
+			PyObject *resized=PySequence_GetSlice(ret, 0, numRead);
 			Py_DECREF(ret);
 			ret=resized;
 			}
@@ -530,7 +509,7 @@ BOOLAPI FindCloseChangeNotification(
 
 // @pyswig int|FindFirstChangeNotification|Creates a change notification handle and sets up initial change notification filter conditions. A wait on a notification handle succeeds when a change matching the filter conditions occurs in the specified directory or subtree. 
 HANDLE FindFirstChangeNotification(
-    TCHAR *lpPathName,	// @pyparm <o PyUnicode>|pathName||Name of directory to watch  
+    TCHAR *lpPathName,	// @pyparm string|pathName||Name of directory to watch  
     BOOL bWatchSubtree,	// @pyparm int|bWatchSubtree||flag for monitoring directory or directory tree  
     DWORD dwNotifyFilter 	// @pyparm int|notifyFilter||filter conditions to watch for.  See <om win32api.FindFirstChangeNotification> for details.
 );
@@ -636,7 +615,7 @@ BOOLAPI FlushFileBuffers(
 #ifndef MS_WINCE
 // @pyswig int|GetBinaryType|Determines whether a file is executable, and if so, what type of executable file it is. That last property determines which subsystem an executable file runs under.
 BOOLAPI GetBinaryType(
-    TCHAR *lpApplicationName,	// @pyparm <o PyUnicode>|appName||Fully qualified path of file to test
+    TCHAR *lpApplicationName,	// @pyparm string|appName||Fully qualified path of file to test
     unsigned long *OUTPUT	// DWORD
    );
 #define SCS_32BIT_BINARY SCS_32BIT_BINARY // A Win32-based application
@@ -652,7 +631,7 @@ BOOLAPI GetBinaryType(
 #ifndef MS_WINCE
 // @pyswig (int, int, int, int)|GetDiskFreeSpace|Determines the free space on a device.
 BOOLAPI GetDiskFreeSpace(
-    TCHAR *lpRootPathName,	// @pyparm <o PyUnicode>|rootPathName||address of root path
+    TCHAR *lpRootPathName,	// @pyparm string|rootPathName||address of root path
     unsigned long *OUTPUT,
     unsigned long *OUTPUT,
     unsigned long *OUTPUT,
@@ -660,26 +639,26 @@ BOOLAPI GetDiskFreeSpace(
 // @rdesc The result is a tuple of integers representing (sectors per cluster, bytes per sector, number of free clusters, total number of clusters)
 );
 
-// GetDiskFreeSpaceEx	
+// GetDiskFreeSpaceEx
 // @pyswig long, long, long|GetDiskFreeSpaceEx|Determines the free space on a device.
 BOOLAPI GetDiskFreeSpaceEx(
-    TCHAR *lpRootPathName,	// @pyparm <o PyUnicode>|rootPathName||address of root path
-    ULARGE_INTEGER *OUTPUT, 
+    TCHAR *lpRootPathName,	// @pyparm string|rootPathName||address of root path
     ULARGE_INTEGER *OUTPUT,
-    ULARGE_INTEGER *OUTPUT 
+    ULARGE_INTEGER *OUTPUT,
+    ULARGE_INTEGER *OUTPUT
 // @rdesc The result is a tuple of long integers:
 // @tupleitem 0|long integer|freeBytes|The total number of free bytes on the disk that are available to the user associated with the calling thread.
 // @tupleitem 1|long integer|totalBytes|The total number of bytes on the disk that are available to the user associated with the calling thread.
-// Windows 2000: If per-user quotas are in use, this value may be less than the total number of bytes on the disk. 
-// @tupleitem 2|long integer|totalFreeBytes|The total number of free bytes on the disk. 
+// If per-user quotas are in use, this value may be less than the total number of bytes on the disk.
+// @tupleitem 2|long integer|totalFreeBytes|The total number of free bytes on the disk.
 );
 
-// @pyswig int|GetDriveType|Determines whether a disk drive is a removable, fixed, CD-ROM, RAM disk, or network drive. 
+// @pyswig int|GetDriveType|Determines whether a disk drive is a removable, fixed, CD-ROM, RAM disk, or network drive.
 long GetDriveType(
     TCHAR *rootPathName // @pyparm string|rootPathName||
 // @rdesc The result is one of the DRIVE_* constants.
 );
-// @pyswig int|GetDriveTypeW|Determines whether a disk drive is a removable, fixed, CD-ROM, RAM disk, or network drive. (NT/2000 Unicode specific version).
+// @pyswig int|GetDriveTypeW|Determines whether a disk drive is a removable, fixed, CD-ROM, RAM disk, or network drive.
 long GetDriveTypeW(
     WCHAR *rootPathName // @pyparm string|rootPathName||
 // @rdesc The result is one of the DRIVE_* constants.
@@ -697,21 +676,12 @@ long GetDriveTypeW(
 
 
 // @pyswig int|GetFileAttributes|Determines a files attributes.
-// @comm The win32file module exposes <om win32file.GetFileAttributes> and
-// <om win32file.GetFileAttributesW> separately - both functions will accept
-// either strings or Unicode objects but will always call the named function.
-// This is different than <om win32api.GetFileAttributes>, which only exposes
-// one Python function and automatically calls the appropriate win32 function
-// based on the type of the filename param.
 DWORD GetFileAttributes(
-    TCHAR *fileName); // @pyparm <o PyUnicode>|fileName||Name of the file to retrieve attributes for.
+    TCHAR *fileName); // @pyparm string|fileName||Name of the file to retrieve attributes for.
 
-// @pyswig int|GetFileAttributesW|Determines a files attributes (NT/2000 Unicode specific version).
-// @comm Note that <om win32api.GetFileAttributes> will automatically call
-// GetFileAttributesW when passed a unicode filename param.  See <om win32file.GetFileAttributes>
-// and <om win32api.GetFileAttributes> for more.
+// @pyswig int|GetFileAttributesW|Determines a files attributes
 DWORD GetFileAttributesW(
-    WCHAR *fileName); // @pyparm <o PyUnicode>|fileName||Name of the file to retrieve attributes for.
+    WCHAR *fileName); // @pyparm string|fileName||Name of the file to retrieve attributes for.
 
 // @pyswig (<o PyDateTime>, <o PyDateTime>, <o PyDateTime>)|GetFileTime|Returns a file's creation, last access, and modification times.
 // @comm Times are returned in UTC time.
@@ -1326,11 +1296,11 @@ BOOLAPI GetOverlappedResult(
 #ifndef MS_WINCE
 // @pyswig |LockFile|Locks a specified file for exclusive access by the calling process.
 BOOLAPI LockFile(
-    PyHANDLE hFile,	// @pyparm <o PyHANDLE>|hFile||handle of file to lock 
-    DWORD dwFileOffsetLow,	// @pyparm int|offsetLow||low-order word of lock region offset 
-    DWORD dwFileOffsetHigh,	// @pyparm int|offsetHigh||high-order word of lock region offset  
-    DWORD nNumberOfBytesToLockLow,	// @pyparm int|nNumberOfBytesToLockLow||low-order word of length to lock 
-    DWORD nNumberOfBytesToLockHigh 	// @pyparm int|nNumberOfBytesToLockHigh||high-order word of length to lock 
+    PyHANDLE hFile,	// @pyparm <o PyHANDLE>|hFile||handle of file to lock
+    DWORD dwFileOffsetLow,	// @pyparm int|offsetLow||low-order word of lock region offset
+    DWORD dwFileOffsetHigh,	// @pyparm int|offsetHigh||high-order word of lock region offset
+    DWORD nNumberOfBytesToLockLow,	// @pyparm int|nNumberOfBytesToLockLow||low-order word of length to lock
+    DWORD nNumberOfBytesToLockHigh 	// @pyparm int|nNumberOfBytesToLockHigh||high-order word of length to lock
    );
 
 %native(LockFileEx) MyLockFileEx;
@@ -1338,28 +1308,28 @@ BOOLAPI LockFile(
 #endif // MS_WINCE
 
 
-// @pyswig |MoveFile|Renames an existing file or a directory (including all its children). 
+// @pyswig |MoveFile|Renames an existing file or a directory (including all its children).
 BOOLAPI MoveFile(
-    TCHAR *lpExistingFileName,	// @pyparm <o PyUnicode>|existingFileName||Name of the existing file  
-    TCHAR *lpNewFileName 	// @pyparm <o PyUnicode>|newFileName||New name for the file 
+    TCHAR *lpExistingFileName,	// @pyparm string|existingFileName||Name of the existing file
+    TCHAR *lpNewFileName 	// @pyparm string|newFileName||New name for the file
 );
-// @pyswig |MoveFileW|Renames an existing file or a directory (including all its children). (NT/2000 Unicode specific version).
+// @pyswig |MoveFileW|Renames an existing file or a directory (including all its children).
 BOOLAPI MoveFileW(
-    WCHAR *lpExistingFileName,	// @pyparm <o PyUnicode>|existingFileName||Name of the existing file  
-    WCHAR *lpNewFileName 	// @pyparm <o PyUnicode>|newFileName||New name for the file 
+    WCHAR *lpExistingFileName,	// @pyparm string|existingFileName||Name of the existing file
+    WCHAR *lpNewFileName 	// @pyparm string|newFileName||New name for the file
 );
 
 #ifndef MS_WINCE
-// @pyswig |MoveFileEx|Renames an existing file or a directory (including all its children). 
+// @pyswig |MoveFileEx|Renames an existing file or a directory (including all its children).
 BOOLAPI MoveFileEx(
-    TCHAR *lpExistingFileName,	// @pyparm <o PyUnicode>|existingFileName||Name of the existing file  
-    TCHAR *INPUT_NULLOK, 	// @pyparm <o PyUnicode>|newFileName||New name for the file, can be None for delayed delete operation
+    TCHAR *lpExistingFileName,	// @pyparm string|existingFileName||Name of the existing file
+    TCHAR *INPUT_NULLOK, 	// @pyparm string|newFileName||New name for the file, can be None for delayed delete operation
     DWORD dwFlags 	        // @pyparm int|flags||flag to determine how to move file (win32file.MOVEFILE_*)
 );
-// @pyswig |MoveFileExW|Renames an existing file or a directory (including all its children). (NT/2000 Unicode specific version).
+// @pyswig |MoveFileExW|Renames an existing file or a directory (including all its children).
 BOOLAPI MoveFileExW(
-    WCHAR *lpExistingFileName,	// @pyparm <o PyUnicode>|existingFileName||Name of the existing file  
-    WCHAR *INPUT_NULLOK, 	// @pyparm <o PyUnicode>|newFileName||New name for the file, can be None for delayed delete operation
+    WCHAR *lpExistingFileName,	// @pyparm string|existingFileName||Name of the existing file
+    WCHAR *INPUT_NULLOK, 	// @pyparm string|newFileName||New name for the file, can be None for delayed delete operation
     DWORD dwFlags 	        // @pyparm int|flags||flag to determine how to move file (win32file.MOVEFILE_*)
 );
 #define MOVEFILE_COPY_ALLOWED MOVEFILE_COPY_ALLOWED // If the file is to be moved to a different volume, the function simulates the move by using the CopyFile and DeleteFile functions. Cannot be combined with the MOVEFILE_DELAY_UNTIL_REBOOT flag.
@@ -1577,7 +1547,7 @@ PyObject *PyFILE_NOTIFY_INFORMATION(PyObject *self, PyObject *args)
 #ifndef MS_WINCE
 // @pyswig |SetCurrentDirectory|Sets the current directory.
 %name(SetCurrentDirectory) BOOLAPI SetCurrentDirectoryW(
-    WCHAR *lpPathName	// @pyparm str/<o PyUnicode>|lpPathName||Name of the path to set current.
+    WCHAR *lpPathName	// @pyparm str/string|lpPathName||Name of the path to set current.
 );
 #endif // MS_WINCE
 
@@ -1596,7 +1566,7 @@ void SetFileApisToOEM(void);
 
 // @pyswig |SetFileAttributes|Changes a file's attributes.
 BOOLAPI SetFileAttributes(
-    TCHAR *lpFileName,	// @pyparm <o PyUnicode>|filename||filename 
+    TCHAR *lpFileName,	// @pyparm string|filename||filename 
     DWORD dwFileAttributes 	// @pyparm int|newAttributes||attributes to set 
 );	
 
@@ -1644,8 +1614,8 @@ PyObject *MySetFilePointer(PyObject *self, PyObject *args)
 #ifndef MS_WINCE
 // @pyswig |SetVolumeLabel|Sets a volume label for a disk drive.
 BOOLAPI SetVolumeLabel(
-    TCHAR *lpRootPathName,	// @pyparm <o PyUnicode>|rootPathName||address of name of root directory for volume 
-    TCHAR *lpVolumeName 	// @pyparm <o PyUnicode>|volumeName||name for the volume 
+    TCHAR *lpRootPathName,	// @pyparm string|rootPathName||address of name of root directory for volume 
+    TCHAR *lpVolumeName 	// @pyparm string|volumeName||name for the volume 
    );
 
 // @pyswig |UnlockFile|Unlocks a region of a file locked by <om win32file.LockFile> or <om win32file.LockFileEx>
@@ -1861,7 +1831,7 @@ static PyObject *py_ConnectEx( PyObject *self, PyObject *args, PyObject *kwargs 
 				"getaddrinfo() argument 1 must be string or None");
 		return NULL;
 	}
-	
+
 	if (pobj == Py_None) {
 		pptr = NULL;
 	} else if (PyUnicode_Check(pobj)) {
@@ -3050,7 +3020,7 @@ typedef BOOL (WINAPI *SfcIsFileProtectedfunc)(HANDLE,LPCWSTR);
 static SfcIsFileProtectedfunc pfnSfcIsFileProtected = NULL;
 
 
-// @pyswig <o PyUnicode>|SetVolumeMountPoint|Mounts the specified volume at the specified volume mount point.
+// @pyswig string|SetVolumeMountPoint|Mounts the specified volume at the specified volume mount point.
 // @comm Accepts keyword args.
 static PyObject*
 py_SetVolumeMountPoint(PyObject	*self, PyObject	*args, PyObject *kwargs)
@@ -3068,8 +3038,8 @@ py_SetVolumeMountPoint(PyObject	*self, PyObject	*args, PyObject *kwargs)
 	WCHAR volume_name[50];
 	static char *keywords[]={"VolumeMountPoint", "VolumeName", NULL};
 	if (!PyArg_ParseTupleAndKeywords(args,kwargs,"OO:SetVolumeMountPoint",keywords,
-		&mount_point_obj,	// @pyparm <o PyUnicode>|VolumeMountPoint||The mount point - must be an existing empty directory on an NTFS volume
-		&volume_obj))		// @pyparm <o PyUnicode>|VolumeName||The volume to	mount there	
+		&mount_point_obj,	// @pyparm string|VolumeMountPoint||The mount point - must be an existing empty directory on an NTFS volume
+		&volume_obj))		// @pyparm string|VolumeName||The volume to	mount there	
 		return NULL;
 
 	if (PyWinObject_AsWCHAR(mount_point_obj, &mount_point, false)
@@ -3102,7 +3072,7 @@ py_DeleteVolumeMountPoint(PyObject *self, PyObject *args, PyObject *kwargs)
 	WCHAR *mount_point = NULL;
 	static char *keywords[]={"VolumeMountPoint", NULL};
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O:DeleteVolumeMountPoint", keywords,
-		&mount_point_obj))	// @pyparm <o PyUnicode>|VolumeMountPoint||The mount point to delete - must have a trailing backslash.
+		&mount_point_obj))	// @pyparm string|VolumeMountPoint||The mount point to delete - must have a trailing backslash.
 		return NULL;
 	if (!PyWinObject_AsWCHAR(mount_point_obj, &mount_point,	FALSE))
 		return NULL;
@@ -3118,7 +3088,7 @@ py_DeleteVolumeMountPoint(PyObject *self, PyObject *args, PyObject *kwargs)
 }
 PyCFunction pfnpy_DeleteVolumeMountPoint=(PyCFunction)py_DeleteVolumeMountPoint;
 
-// @pyswig <o PyUnicode>|GetVolumeNameForVolumeMountPoint|Returns unique volume name.
+// @pyswig string|GetVolumeNameForVolumeMountPoint|Returns unique volume name.
 // @comm Requires Win2K or later.
 // @comm Accepts keyword args.
 static PyObject *py_GetVolumeNameForVolumeMountPoint(PyObject *self, PyObject *args, PyObject *kwargs)
@@ -3132,7 +3102,7 @@ static PyObject *py_GetVolumeNameForVolumeMountPoint(PyObject *self, PyObject *a
 	static char *keywords[]={"VolumeMountPoint", NULL};
 
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O:GetVolumeNameForVolumeMountPoint", keywords,
-		&obmount_point))	// @pyparm <o PyUnicode>|VolumeMountPoint||Volume mount point or root drive - trailing backslash required
+		&obmount_point))	// @pyparm string|VolumeMountPoint||Volume mount point or root drive - trailing backslash required
 		return NULL;
 	if (!PyWinObject_AsWCHAR(obmount_point, &mount_point, false))
 		return NULL;
@@ -3145,7 +3115,7 @@ static PyObject *py_GetVolumeNameForVolumeMountPoint(PyObject *self, PyObject *a
 }
 PyCFunction pfnpy_GetVolumeNameForVolumeMountPoint=(PyCFunction)py_GetVolumeNameForVolumeMountPoint;
 
-// @pyswig <o PyUnicode>|GetVolumePathName|Returns volume mount point for a path
+// @pyswig string|GetVolumePathName|Returns volume mount point for a path
 // @comm Api gives no indication of how much memory is needed, so function assumes returned path
 //       will not be longer that length of input path + 1.
 //       Use GetFullPathName first for relative paths, or GetLongPathName for 8.3 paths.
@@ -3160,7 +3130,7 @@ static PyObject *py_GetVolumePathName(PyObject *self, PyObject *args, PyObject *
 	CHECK_PFN(GetVolumePathName);
 	static char *keywords[]={"FileName","BufferLength", NULL};
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O|l:GetVolumePathName", keywords,
-		&obpath,	// @pyparm <o PyUnicode>|FileName||File/dir for which to return volume mount point
+		&obpath,	// @pyparm string|FileName||File/dir for which to return volume mount point
 		&bufsize))	// @pyparm int|BufferLength|0|Optional parm to allocate extra space for returned string
 		return NULL;
 	if (!PyWinObject_AsWCHAR(obpath, &path, FALSE, &pathlen))
@@ -3187,7 +3157,7 @@ static PyObject *py_GetVolumePathName(PyObject *self, PyObject *args, PyObject *
 }
 PyCFunction pfnpy_GetVolumePathName=(PyCFunction)py_GetVolumePathName;
 
-// @pyswig [<o PyUnicode>,...]|GetVolumePathNamesForVolumeName|Returns mounted paths for a volume
+// @pyswig [string,...]|GetVolumePathNamesForVolumeName|Returns mounted paths for a volume
 // @comm Requires WinXP or later
 // @comm Accepts keyword args
 static PyObject *py_GetVolumePathNamesForVolumeName(PyObject *self, PyObject *args, PyObject *kwargs)
@@ -3199,7 +3169,7 @@ static PyObject *py_GetVolumePathNamesForVolumeName(PyObject *self, PyObject *ar
 	static char *keywords[]={"VolumeName", NULL};
 	CHECK_PFN(GetVolumePathNamesForVolumeName);
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O:GetVolumePathNamesForVolumeName", keywords, 
-		&obvolume))		// @pyparm <o PyUnicode>|VolumeName||Name of a volume as returned by <om win32file.GetVolumeNameForVolumeMountPoint>
+		&obvolume))		// @pyparm string|VolumeName||Name of a volume as returned by <om win32file.GetVolumeNameForVolumeMountPoint>
 		return NULL;
 	if (!PyWinObject_AsWCHAR(obvolume, &volume, FALSE))
 		return NULL;
@@ -3254,8 +3224,8 @@ py_CreateHardLink(PyObject *self, PyObject *args, PyObject *kwargs)
 	static char *keywords[]={"FileName","ExistingFileName","SecurityAttributes","Transaction", NULL};
 
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OO|OO:CreateHardLink", keywords,
-		&new_file_obj,		// @pyparm <o PyUnicode>|FileName||The name of the new directory entry to be created.
-		&existing_file_obj,	// @pyparm <o PyUnicode>|ExistingFileName||The name of the existing file to which the new link will point.
+		&new_file_obj,		// @pyparm string|FileName||The name of the new directory entry to be created.
+		&existing_file_obj,	// @pyparm string|ExistingFileName||The name of the existing file to which the new link will point.
 		&sa_obj,			// @pyparm <o PySECURITY_ATTRIBUTES>|SecurityAttributes|None|Optional SECURITY_ATTRIBUTES object. MSDN describes this parameter as reserved, so use only None
 		&trans_obj))		// @pyparm <o PyHANDLE>|Transaction|None|Handle to a transaction, as returned by <om win32transaction.CreateTransaction>
 		return NULL;
@@ -3303,8 +3273,8 @@ static PyObject *py_CreateSymbolicLink(PyObject *self, PyObject *args, PyObject 
 	static char *keywords[]={"SymlinkFileName","TargetFileName","Flags","Transaction", NULL};
 
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OO|kO:CreateSymbolicLink", keywords,
-		&oblinkname,	// @pyparm <o PyUnicode>|SymlinkFileName||Path of the symbolic link to be created
-		&obtargetname,	// @pyparm <o PyUnicode>|TargetFileName||The name of file to which link will point
+		&oblinkname,	// @pyparm string|SymlinkFileName||Path of the symbolic link to be created
+		&obtargetname,	// @pyparm string|TargetFileName||The name of file to which link will point
 		&flags,			// @pyparm int|Flags|0|SYMBOLIC_LINK_FLAG_DIRECTORY and SYMBOLIC_LINK_FLAG_ALLOW_UNPRIVILEGED_CREATE are the only defined flags
 		&obtrans))		// @pyparm <o PyHANDLE>|Transaction|None|Handle to a transaction, as returned by <om win32transaction.CreateTransaction>
 		return NULL;
@@ -3341,7 +3311,7 @@ static PyObject*
 py_EncryptFile(PyObject *self, PyObject *args)
 {
 	CHECK_PFN(EncryptFile);
-	// @pyparm string/unicode|filename||File to encrypt
+	// @pyparm string|filename||File to encrypt
 	PyObject *ret=NULL, *obfname=NULL;
 	WCHAR *fname = NULL;
 
@@ -3363,7 +3333,7 @@ static PyObject*
 py_DecryptFile(PyObject *self, PyObject *args)
 {
 	CHECK_PFN(DecryptFile);
-	// @pyparm string/unicode|filename||File to decrypt
+	// @pyparm string|filename||File to decrypt
 	PyObject *ret=NULL, *obfname=NULL;
 	WCHAR *fname = NULL;
 	DWORD reserved=0;
@@ -3386,7 +3356,7 @@ static PyObject*
 py_EncryptionDisable(PyObject *self, PyObject *args)
 {
 	CHECK_PFN(EncryptionDisable);
-	// @pyparm string/unicode|DirName||Directory to enable or disable
+	// @pyparm string|DirName||Directory to enable or disable
 	// @pyparm boolean|Disable||Set to False to enable encryption
 	PyObject *ret=NULL, *obfname=NULL;
 	WCHAR *fname = NULL;
@@ -3415,7 +3385,7 @@ static PyObject*
 py_FileEncryptionStatus(PyObject *self, PyObject *args)
 {
 	CHECK_PFN(FileEncryptionStatus);
-	// @pyparm string/unicode|FileName||file to query
+	// @pyparm string|FileName||file to query
 	PyObject *ret=NULL, *obfname=NULL;
 	WCHAR *fname = NULL;
 	DWORD Status=0;
@@ -3613,7 +3583,7 @@ BOOL PyWinObject_AsPENCRYPTION_CERTIFICATE_LIST(PyObject *obcert_list, PENCRYPTI
 
 BOOL PyWinObject_AsPENCRYPTION_CERTIFICATE_HASH_LIST(PyObject *obhash_list, PENCRYPTION_CERTIFICATE_HASH_LIST pechl)
 {
-	char *err_msg="ENCRYPTION_CERTIFICATE_HASH_LIST must be represented as a sequence of sequences of (PySID, string, unicode)";
+	char *err_msg="ENCRYPTION_CERTIFICATE_HASH_LIST must be represented as a sequence of sequences of (PySID, bytes, string)";
 	BOOL bSuccess=TRUE;
 	DWORD hash_cnt=0, hash_ind=0;
 	PENCRYPTION_CERTIFICATE_HASH *ppech=NULL;
@@ -3697,12 +3667,12 @@ BOOL PyWinObject_AsPENCRYPTION_CERTIFICATE_HASH_LIST(PyObject *obhash_list, PENC
 }
 
 
-// @pyswig (<o PySID>,string,unicode)|QueryUsersOnEncryptedFile|Returns list of users for an encrypted file as tuples of (SID, certificate hash blob, display info)
+// @pyswig (<o PySID>,bytes,string)|QueryUsersOnEncryptedFile|Returns list of users for an encrypted file as tuples of (SID, certificate hash blob, display info)
 static PyObject*
 py_QueryUsersOnEncryptedFile(PyObject *self, PyObject *args)
 {
 	CHECK_PFN(QueryUsersOnEncryptedFile);
-	// @pyparm string/unicode|FileName||file to query
+	// @pyparm string|FileName||file to query
 	PyObject *ret=NULL, *obfname=NULL, *ret_item=NULL;
 	WCHAR *fname=NULL;
 	DWORD err=0;
@@ -3727,13 +3697,13 @@ py_QueryUsersOnEncryptedFile(PyObject *self, PyObject *args)
 	return ret;
 }
 
-// @pyswig (<o PySID>,string,unicode)|QueryRecoveryAgentsOnEncryptedFile|Lists recovery agents for file as a tuple of tuples.
+// @pyswig (<o PySID>,bytes,string)|QueryRecoveryAgentsOnEncryptedFile|Lists recovery agents for file as a tuple of tuples.
 // @rdesc The result is a tuple of tuples - ((SID, certificate hash blob, display info),....)
 static PyObject*
 py_QueryRecoveryAgentsOnEncryptedFile(PyObject *self, PyObject *args)
 {
 	CHECK_PFN(QueryRecoveryAgentsOnEncryptedFile);
-	// @pyparm string/unicode|FileName||file to query
+	// @pyparm string|FileName||file to query
 	PyObject *ret=NULL, *obfname=NULL, *ret_item=NULL;
 	WCHAR *fname=NULL;
 	DWORD user_cnt=0, err=0;
@@ -3763,8 +3733,8 @@ static PyObject*
 py_RemoveUsersFromEncryptedFile(PyObject *self, PyObject *args)
 {
 	CHECK_PFN(RemoveUsersFromEncryptedFile);
-	// @pyparm string/unicode|FileName||File from which to remove users
-	// @pyparm ((<o PySID>,string,unicode),...)|pHashes||Sequence representing an ENCRYPTION_CERTIFICATE_HASH_LIST structure, as returned by QueryUsersOnEncryptedFile
+	// @pyparm string|FileName||File from which to remove users
+	// @pyparm ((<o PySID>,bytes,string),...)|pHashes||Sequence representing an ENCRYPTION_CERTIFICATE_HASH_LIST structure, as returned by QueryUsersOnEncryptedFile
 	PyObject *ret=NULL, *obfname=NULL, *obechl=NULL;
 	WCHAR *fname=NULL;
 	DWORD err=0;
@@ -3795,7 +3765,7 @@ static PyObject*
 py_AddUsersToEncryptedFile(PyObject *self, PyObject *args)
 {
 	CHECK_PFN(AddUsersToEncryptedFile);
-	// @pyparm string/unicode|FileName||File that additional users will be allowed to decrypt
+	// @pyparm string|FileName||File that additional users will be allowed to decrypt
 	// @pyparm ((<o PySID>,string,int),...)|pUsers||Sequence representing
 	// ENCRYPTION_CERTIFICATE_LIST - elements are sequences consisting of
 	// users' Sid, encoded EFS certficate (user must export a .cer to obtain
@@ -3838,8 +3808,8 @@ static PyObject *py_DuplicateEncryptionInfoFile(PyObject *self, PyObject *args, 
 	static char *keywords[]={"SrcFileName","DstFileName","CreationDisposition","Attributes","SecurityAttributes", NULL};
 
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OOkk|O:DuplicateEncryptionInfoFile", keywords,
-		&obsrc,		// @pyparm <o PyUnicode>|SrcFileName||Encrypted file to read EFS metadata from
-		&obdst,		// @pyparm <o PyUnicode>|DstFileName||File to be encrypted using EFS data from source file
+		&obsrc,		// @pyparm string|SrcFileName||Encrypted file to read EFS metadata from
+		&obdst,		// @pyparm string|DstFileName||File to be encrypted using EFS data from source file
 		&disp,		// @pyparm int|CreationDisposition||Specifies whether an existing file should be overwritten (CREATE_NEW or CREATE_ALWAYS)
 		&attr,		// @pyparm int|Attributes||File attributes
 		&obsa))		// @pyparm <o PySECURITY_ATTRIBUTES>|SecurityAttributes|None|Specifies security for destination file
@@ -4003,7 +3973,7 @@ py_SetFileShortName(PyObject *self, PyObject *args)
 	BOOL bsuccess;
 	if (!PyArg_ParseTuple(args, "OO:SetFileShortName",
 		&obh,			// @pyparm <o PyHANDLE>|hFile||Handle to a file or directory
-		&obshortname))	// @pyparm <o PyUNICODE>|ShortName||The 8.3 name to be applied to the file
+		&obshortname))	// @pyparm string|ShortName||The 8.3 name to be applied to the file
 		return NULL;
 	if (!PyWinObject_AsHANDLE(obh, &h))
 		return NULL;
@@ -4091,8 +4061,8 @@ py_CopyFileEx(PyObject *self, PyObject *args, PyObject *kwargs)
 		"Cancel","CopyFlags","Transaction", NULL};
 
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OO|OOikO:CopyFileEx", keywords,
-		&obsrc,		// @pyparm <o PyUNICODE>|ExistingFileName||File to be copied
-		&obdst,		// @pyparm <o PyUNICODE>|NewFileName||Place to which it will be copied
+		&obsrc,		// @pyparm string|ExistingFileName||File to be copied
+		&obdst,		// @pyparm string|NewFileName||Place to which it will be copied
 		&obcallback,	// @pyparm <o CopyProgressRoutine>|ProgressRoutine|None|A python function that receives progress updates, can be None
 		&obdata,		// @pyparm object|Data|None|An arbitrary object to be passed to the callback function
 		&bcancel,		// @pyparm boolean|Cancel|False|Pass True to cancel a restartable copy that was previously interrupted
@@ -4162,8 +4132,8 @@ py_MoveFileWithProgress(PyObject *self, PyObject *args, PyObject *kwargs)
 	static char *keywords[]={"ExistingFileName","NewFileName","ProgressRoutine","Data","Flags","Transaction", NULL};
 
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OO|OOkO:MoveFileWithProgress", keywords,
-		&obsrc,		// @pyparm <o PyUNICODE>|ExistingFileName||File or directory to be moved
-		&obdst,		// @pyparm <o PyUNICODE>|NewFileName||Destination, can be None if flags contain MOVEFILE_DELAY_UNTIL_REBOOT
+		&obsrc,		// @pyparm string|ExistingFileName||File or directory to be moved
+		&obdst,		// @pyparm string|NewFileName||Destination, can be None if flags contain MOVEFILE_DELAY_UNTIL_REBOOT
 		&obcallback,	// @pyparm <o CopyProgressRoutine>|ProgressRoutine|None|A python function that receives progress updates, can be None
 		&obdata,	// @pyparm object|Data|None|An arbitrary object to be passed to the callback function
 		&flags,		// @pyparm int|Flags|0|Combination of MOVEFILE_* flags
@@ -4225,9 +4195,9 @@ py_ReplaceFile(PyObject *self, PyObject *args)
 	BOOL bsuccess;
 	DWORD flags=0;
 	if (!PyArg_ParseTuple(args, "OO|OkOO:ReplaceFile",
-		&obdst,		// @pyparm <o PyUNICODE>|ReplacedFileName||File to be replaced
-		&obsrc,		// @pyparm <o PyUNICODE>|ReplacementFileName||File that will replace it
-		&obbackup,	// @pyparm <o PyUNICODE>|BackupFileName|None|Place at which to create a backup of the replaced file, can be None
+		&obdst,		// @pyparm string|ReplacedFileName||File to be replaced
+		&obsrc,		// @pyparm string|ReplacementFileName||File that will replace it
+		&obbackup,	// @pyparm string|BackupFileName|None|Place at which to create a backup of the replaced file, can be None
 		&flags,		// @pyparm int|ReplaceFlags|0|Combination of REPLACEFILE_* flags
 		&obExclude,	// @pyparm None|Exclude|None|Reserved, use None if passed in
 		&obReserved))	// @pyparm None|Reserved|None|Reserved, use None if passed in
@@ -4256,7 +4226,6 @@ py_ReplaceFile(PyObject *self, PyObject *args)
 	return ret;
 }
 
-#if PY_VERSION_HEX > 0x03010000
 // Capsule API replaced PyCObject in 3.2.
 void encryptedfilecontextdestructor(PyObject *obctxt){
 	if (!PyCapsule_IsValid(obctxt, NULL))
@@ -4269,12 +4238,6 @@ void encryptedfilecontextdestructor(PyObject *obctxt){
 	if (pfnCloseEncryptedFileRaw)
 		(*pfnCloseEncryptedFileRaw)(ctxt);
 }
-#else
-void encryptedfilecontextdestructor(void *ctxt){
-	if (pfnCloseEncryptedFileRaw && ctxt)
-		(*pfnCloseEncryptedFileRaw)(ctxt);
-}
-#endif
 
 
 // @pyswig PyCObject|OpenEncryptedFileRaw|Initiates a backup or restore operation on an encrypted file
@@ -4292,7 +4255,7 @@ py_OpenEncryptedFileRaw(PyObject *self, PyObject *args)
 	WCHAR *fname=NULL;
 	void *ctxt;
 	if (!PyArg_ParseTuple(args, "Ok:OpenEncryptedFileRaw",
-		&obfname,	// @pyparm <o PyUNICODE>|FileName||Name of file on which to operate
+		&obfname,	// @pyparm string|FileName||Name of file on which to operate
 		&flags))	// @pyparm int|Flags||CREATE_FOR_IMPORT, CREATE_FOR_DIR, OVERWRITE_HIDDEN, or 0 for export
 		return NULL;
 	if (!PyWinObject_AsWCHAR(obfname, &fname, FALSE))
@@ -4303,11 +4266,7 @@ py_OpenEncryptedFileRaw(PyObject *self, PyObject *args)
 	if (err!=ERROR_SUCCESS)
 		PyWin_SetAPIError("OpenEncryptedFileRaw", err);
 	else{
-#if PY_VERSION_HEX > 0x03010000
 		ret=PyCapsule_New(ctxt, NULL, encryptedfilecontextdestructor);
-#else
-		ret=PyCObject_FromVoidPtr(ctxt, encryptedfilecontextdestructor); 
-#endif
 		if (ret==NULL)
 			(*pfnCloseEncryptedFileRaw)(ctxt);
 		}
@@ -4363,11 +4322,7 @@ py_ReadEncryptedFileRaw(PyObject *self, PyObject *args)
 		&obcallback_data,	// @pyparm object|CallbackContext||Arbitrary Python object to be passed to callback function
 		&obctxt))			// @pyparm PyCObject|Context||Context object returned from <om win32file.OpenEncryptedFileRaw>
 		return NULL;
-#if PY_VERSION_HEX > 0x03010000
 	ctxt=PyCapsule_GetPointer(obctxt, NULL);
-#else
-	ctxt=PyCObject_AsVoidPtr(obctxt);
-#endif
 	if (ctxt==NULL)
 		return NULL;
 	if (!PyCallable_Check(obcallback)){
@@ -4444,11 +4399,7 @@ py_WriteEncryptedFileRaw(PyObject *self, PyObject *args)
 		&obcallback_data,	// @pyparm object|CallbackContext||Arbitrary Python object to be passed to callback function
 		&obctxt))			// @pyparm PyCObject|Context||Context object returned from <om win32file.OpenEncryptedFileRaw>
 		return NULL;
-#if PY_VERSION_HEX > 0x03010000
 	ctxt=PyCapsule_GetPointer(obctxt, NULL);
-#else
-	ctxt=PyCObject_AsVoidPtr(obctxt);
-#endif
 	if (ctxt==NULL)
 		return NULL;
 	if (!PyCallable_Check(obcallback)){
@@ -4485,7 +4436,6 @@ py_CloseEncryptedFileRaw(PyObject *self, PyObject *args)
 	// object destructs and we attempt to close it a second time, Vista x64
 	// crashes.
 	// So must bypass the CObject API for this.
-#if PY_VERSION_HEX > 0x03010000
 	if (!PyCapsule_IsValid(obctxt, NULL))
 		return PyErr_Format(PyExc_TypeError, "param must be handle to an encrypted file (got type %s)", obctxt->ob_type->tp_name);
 	if (PyCapsule_GetDestructor(obctxt) != encryptedfilecontextdestructor)
@@ -4499,19 +4449,6 @@ py_CloseEncryptedFileRaw(PyObject *self, PyObject *args)
 	void *ctxt = PyCapsule_GetPointer(obctxt, NULL);
 	(*pfnCloseEncryptedFileRaw)(ctxt);
 	PyCapsule_SetContext(obctxt, INVALID_HANDLE_VALUE);
-#else
-	if (!PyCObject_Check(obctxt))
-		return PyErr_Format(PyExc_TypeError, "param must be handle to an encrypted file (got type %s)", obctxt->ob_type->tp_name);
-	PyCObject *pcobj = (PyCObject *)obctxt;
-	if (pcobj->destructor != encryptedfilecontextdestructor)
-		return PyErr_Format(PyExc_TypeError, "param must be handle to an encrypted file (got a CObject with invalid destructor)");
-	if (!pcobj->cobject)
-		return PyErr_Format(PyExc_ValueError, "This handle has already been closed");
-	// ok - close it, then nuke it.
-	// function has no return value, make sure to check for memory leaks!
-	(*pfnCloseEncryptedFileRaw)(pcobj->cobject);
-	pcobj->cobject = 0;
-#endif
 	Py_INCREF(Py_None);
 	return Py_None;
 }
@@ -4535,7 +4472,7 @@ static PyObject *py_CreateFileW(PyObject *self, PyObject *args, PyObject *kwargs
 	static char *keywords[]={"FileName","DesiredAccess","ShareMode","SecurityAttributes","CreationDisposition",
 		"FlagsAndAttributes","TemplateFile","Transaction","MiniVersion","ExtendedParameter", NULL};
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OkkOkk|OOOO:CreateFileW", keywords,
-		&obfilename,			// @pyparm <o PyUnicode>|FileName||Name of file
+		&obfilename,			// @pyparm string|FileName||Name of file
 		&desiredaccess,			// @pyparm int|DesiredAccess||Combination of access mode flags.  See MSDN docs.
 		&sharemode,				// @pyparm int|ShareMode||Combination of FILE_SHARE_READ, FILE_SHARE_WRITE, FILE_SHARE_DELETE
 		&obsa,					// @pyparm <o PySECURITY_ATTRIBUTES>|SecurityAttributes||Specifies security descriptor and handle inheritance, can be None
@@ -4592,7 +4529,7 @@ static PyObject *py_CreateFileW(PyObject *self, PyObject *args, PyObject *kwargs
 }
 PyCFunction pfnpy_CreateFileW=(PyCFunction)py_CreateFileW;
 
-// @pyswig |DeleteFileW|Deletes a file (Unicode version)
+// @pyswig |DeleteFileW|Deletes a file
 // @pyseeapi DeleteFile
 // @pyseeapi DeleteFileTransacted
 // @comm If a transaction handle is passed in, DeleteFileTransacted will be called (requires Windows Vista).
@@ -4605,7 +4542,7 @@ static PyObject *py_DeleteFileW(PyObject *self, PyObject *args, PyObject *kwargs
 	static char *keywords[]={"FileName","Transaction", NULL};
 
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O|O:DeleteFileW", keywords,
-		&obfilename,		// @pyparm <o PyUnicode>|FileName||Name of file to be deleted
+		&obfilename,		// @pyparm string|FileName||Name of file to be deleted
 		&obhtransaction))	// @pyparm <o PyHANDLE>|Transaction|None|Transaction handle as returned by <om win32transaction.CreateTransaction>
 		return NULL;
 	if (!PyWinObject_AsHANDLE(obhtransaction, &htransaction))
@@ -4648,7 +4585,7 @@ static PyObject *PyObject_FromFILEX_INFO(GET_FILEEX_INFO_LEVELS level, void *p)
 			             PyWinObject_FromULARGE_INTEGER(fsize));
 			break;
 		}
-			
+
 		default:
 			PyErr_Format(PyExc_RuntimeError, "invalid level for FILEEX_INFO");
 			return NULL;
@@ -4660,32 +4597,31 @@ static PyObject *PyObject_FromFILEX_INFO(GET_FILEEX_INFO_LEVELS level, void *p)
 // @pyswig tuple|GetFileAttributesEx|Retrieves attributes for a specified file or directory.
 // @pyseeapi GetFileAttributesEx
 // @pyseeapi GetFileAttributesTransacted
-// @pyparm <o PyUnicode>|FileName||File or directory for which to retrieve information
-//  In the ANSI version of this function, the name is limited to 
-//	MAX_PATH characters. To extend this limit to nearly 32,000 wide characters, 
-//	call the Unicode version of the function (<om win32file.GetFileAttributesExW>) and prepend 
-//	r"\\?\" to the path.
+// @pyparm string/bytes|FileName||File or directory for which to retrieve information
+//  In the usual case, the name is limited to MAX_PATH characters. To extend this
+// limit to nearly 32,000 wide characters, call this and prepend r"\\?\" to the path.
 // @pyparm int|InfoLevelId|GetFileExInfoStandard|An integer that gives the set of attribute information to obtain.
 //  See the Win32 SDK documentation for more information.
 // @pyparm <o PyHANDLE>|Transaction|None|Handle to a transaction (optional).  See <om win32transaction.CreateTransaction>.
 //  If this parameter is specified, GetFileAttributesTransacted will be called (requires Vista or later).
 // @rdesc The result is a tuple of:
 //	@tupleitem 0|int|attributes|File Attributes.  A combination of the win32com.FILE_ATTRIBUTE_* flags.
-//	@tupleitem 1|<o PyDateTime>|creationTime|Specifies when the file or directory was created. 
-//	@tupleitem 2|<o PyDateTime>|lastAccessTime|For a file, specifies when the file was last read from 
-//		or written to. For a directory, the structure specifies when the directory was created. For 
-//		both files and directories, the specified date will be correct, but the time of day will 
+//	@tupleitem 1|<o PyDateTime>|creationTime|Specifies when the file or directory was created.
+//	@tupleitem 2|<o PyDateTime>|lastAccessTime|For a file, specifies when the file was last read from
+//		or written to. For a directory, the structure specifies when the directory was created. For
+//		both files and directories, the specified date will be correct, but the time of day will
 //		always be set to midnight.
-//	@tupleitem 3|<o PyDateTime>|lastWriteTime|For a file, the structure specifies when the file was last 
+//	@tupleitem 3|<o PyDateTime>|lastWriteTime|For a file, the structure specifies when the file was last
 //		written to. For a directory, the structure specifies when the directory was created.
-//	@tupleitem 4|int/long|fileSize|The size of the file. This member has no meaning for directories. 
-// @comm Not all file systems can record creation and last access time and not all file systems record 
-//	them in the same manner. For example, on Windows NT FAT, create time has a resolution of 
-//	10 milliseconds, write time has a resolution of 2 seconds, and access time has a resolution 
-//	of 1 day (really, the access date). On NTFS, access time has a resolution of 1 hour. 
-//	Furthermore, FAT records times on disk in local time, while NTFS records times on disk in UTC, 
+//	@tupleitem 4|int/long|fileSize|The size of the file. This member has no meaning for directories.
+// @comm Not all file systems can record creation and last access time and not all file systems record
+//	them in the same manner. For example, on Windows NT FAT, create time has a resolution of
+//	10 milliseconds, write time has a resolution of 2 seconds, and access time has a resolution
+//	of 1 day (really, the access date). On NTFS, access time has a resolution of 1 hour.
+//	Furthermore, FAT records times on disk in local time, while NTFS records times on disk in UTC,
 //	so it is not affected by changes in time zone or daylight saving time.
 // @comm Accepts keyword arguments.
+// @comm If bytes are passed for the filename, the ANSI Windows functions are called.
 static PyObject *py_GetFileAttributesEx(PyObject *self, PyObject *args, PyObject *kwargs, BOOL bUnicode)
 {
 	BOOL ok;
@@ -4702,7 +4638,7 @@ static PyObject *py_GetFileAttributesEx(PyObject *self, PyObject *args, PyObject
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O|kO:GetFileAttributesEx", keywords,
 		&obfname,
 		&lvl,
-		&obtrans))	
+		&obtrans))
 		return NULL;
 	if (!PyWinObject_AsHANDLE(obtrans, &htrans))
 		return NULL;
@@ -4777,11 +4713,7 @@ static PyObject *py_GetFileAttributesExA(PyObject *self, PyObject *args, PyObjec
 	return py_GetFileAttributesEx(self, args, kwargs, FALSE);
 }
 PyCFunction pfnpy_GetFileAttributesExW=(PyCFunction)py_GetFileAttributesExW;
-#ifdef UNICODE
 PyCFunction pfnpy_GetFileAttributesEx=(PyCFunction)py_GetFileAttributesExW;
-#else
-PyCFunction pfnpy_GetFileAttributesEx=(PyCFunction)py_GetFileAttributesExA;
-#endif
 
 // @pyswig |SetFileAttributesW|Sets a file's attributes
 // @pyseeapi SetFileAttributes
@@ -4797,7 +4729,7 @@ static PyObject *py_SetFileAttributesW(PyObject *self, PyObject *args, PyObject 
 	static char *keywords[]={"FileName","FileAttributes","Transaction", NULL};
 
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "Ok|O:SetFileAttributesW", keywords,
-		&obfname,	// @pyparm <o PyUNICODE>|FileName||File or directory whose attributes are to be changed
+		&obfname,	// @pyparm string|FileName||File or directory whose attributes are to be changed
 		&attrs,		// @pyparm int|FileAttributes||Combination of FILE_ATTRIBUTE_* flags
 		&obtrans))	// @pyparm <o PyHANDLE>|Transaction|None|Handle to the transaction.  See <om win32transaction.CreateTransaction>.
 		return NULL;
@@ -4822,7 +4754,7 @@ static PyObject *py_SetFileAttributesW(PyObject *self, PyObject *args, PyObject 
 }
 PyCFunction pfnpy_SetFileAttributesW=(PyCFunction)py_SetFileAttributesW;
 
-// @pyswig |CreateDirectoryExW|Creates a directory (Unicode version)
+// @pyswig |CreateDirectoryExW|Creates a directory
 // @pyseeapi CreateDirectoryEx
 // @pyseeapi CreateDirectoryTransacted
 // @comm If a transaction handle is passed, CreateDirectoryTransacted will be called (requires Vista or later).
@@ -4836,8 +4768,8 @@ static PyObject *py_CreateDirectoryExW(PyObject *self, PyObject *args, PyObject 
 	static char *keywords[]={"TemplateDirectory","NewDirectory","SecurityAttributes","Transaction", NULL};
 
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OO|OO:CreateDirectoryExW", keywords,
-		&obtemplatedir,	// @pyparm <o PyUnicode>|TemplateDirectory||Directory to use as a template, can be None
-		&obdirname,		// @pyparm <o PyUnicode>|NewDirectory||Name of directory to be created
+		&obtemplatedir,	// @pyparm string|TemplateDirectory||Directory to use as a template, can be None
+		&obdirname,		// @pyparm string|NewDirectory||Name of directory to be created
 		&obsa,			// @pyparm <o PySECURITY_ATTRIBUTES>|SecurityAttributes|None|Security for new directory (optional)
 		&obtrans))		// @pyparm <o PyHANDLE>|Transaction|None|Handle to a transaction (optional).  See <om win32transaction.CreateTransaction>.
 		return NULL;
@@ -4872,7 +4804,7 @@ PyCFunction pfnpy_CreateDirectoryExW=(PyCFunction)py_CreateDirectoryExW;
 // @pyseeapi RemoveDirectory
 // @pyseeapi RemoveDirectoryTransacted
 // @comm If a transaction handle is passed in, RemoveDirectoryTransacted will be called (requires Vista or later)
-// @comm Accepts keyword arguments.  Implemented only as Unicode.
+// @comm Accepts keyword arguments.
 static PyObject *py_RemoveDirectory(PyObject *self, PyObject *args, PyObject *kwargs)
 {
 	WCHAR *dirname=NULL;
@@ -4881,7 +4813,7 @@ static PyObject *py_RemoveDirectory(PyObject *self, PyObject *args, PyObject *kw
 	static char *keywords[]={"PathName","Transaction", NULL};
 
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O|O:RemoveDirectory", keywords,
-		&obdirname,		// @pyparm <o PyUnicode>|PathName||Name of directory to be removed
+		&obdirname,		// @pyparm string|PathName||Name of directory to be removed
 		&obtrans))		// @pyparm <o PyHANDLE>|Transaction|None|Handle to a transaction (optional). See <om win32transaction.CreateTransaction>.
 		return NULL;
 	if (!PyWinObject_AsHANDLE(obtrans, &htrans))
@@ -5033,10 +4965,9 @@ static PyObject *py_FindFilesIterator(PyObject *self, PyObject *args, PyObject *
 }
 PyCFunction pfnpy_FindFilesIterator=(PyCFunction)py_FindFilesIterator;
 
-// @pyswig [(long, <o PyUnicode>),...]|FindStreams|List the data streams for a file
+// @pyswig [(long, string),...]|FindStreams|List the data streams for a file
 // @rdesc Returns a list of tuples containing each stream's size and name
 // @comm This uses the API functions FindFirstStreamW, FindNextStreamW and FindClose
-// @comm Available on Windows Server 2003 and Vista
 // @comm If the Transaction arg is not None, FindFirstStreamTransacted will be called in place of FindFirstStreamW
 static PyObject *py_FindStreams(PyObject *self, PyObject *args, PyObject *kwargs)
 {
@@ -5052,7 +4983,7 @@ static PyObject *py_FindStreams(PyObject *self, PyObject *args, PyObject *kwargs
 	static char *keywords[]={"FileName","Transaction", NULL};
 
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O|O:FindStreams", keywords,
-		&obfname,	// @pyparm <o PyUnicode>|FileName||Name of file (or directory) to operate on
+		&obfname,	// @pyparm string|FileName||Name of file (or directory) to operate on
 		&obtrans))	// @pyparm <o PyHANDLE>|Transaction|None|Handle to a transaction, can be None
 		return NULL;
 	if (!PyWinObject_AsHANDLE(obtrans, &htrans))
@@ -5096,7 +5027,7 @@ static PyObject *py_FindStreams(PyObject *self, PyObject *args, PyObject *kwargs
 }
 PyCFunction pfnpy_FindStreams=(PyCFunction)py_FindStreams;
 
-// @pyswig [<o PyUnicode>,...]|FindFileNames|Enumerates hard links that point to specified file
+// @pyswig [string,...]|FindFileNames|Enumerates hard links that point to specified file
 // @comm This uses the API functions FindFirstFileNameW, FindNextFileNameW and FindClose
 // @comm Available on Vista and later
 // @comm If Transaction is specified, a transacted search is performed using FindFirstFileNameTransacted
@@ -5117,7 +5048,7 @@ static PyObject *py_FindFileNames(PyObject *self, PyObject *args, PyObject *kwar
 	static char *keywords[]={"FileName","Transaction", NULL};
 
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O|O:FindFileNames", keywords,
-		&obfname,	// @pyparm <o PyUnicode>|FileName||Name of file for which to find links
+		&obfname,	// @pyparm string|FileName||Name of file for which to find links
 		&obtrans))	// @pyparm <o PyHANDLE>|Transaction|None|Handle to a transaction, can be None
 		return NULL;
 	if (!PyWinObject_AsHANDLE(obtrans, &htrans))
@@ -5206,9 +5137,8 @@ static PyObject *py_FindFileNames(PyObject *self, PyObject *args, PyObject *kwar
 }
 PyCFunction pfnpy_FindFileNames=(PyCFunction)py_FindFileNames;
 
-// @pyswig <o PyUnicode>|GetFinalPathNameByHandle|Returns the file name for an open file handle
+// @pyswig string|GetFinalPathNameByHandle|Returns the file name for an open file handle
 // @pyseeapi GetFinalPathNameByHandle
-// @comm Exists on Windows Vista or later.
 // @comm Accepts keyword arguments.
 static PyObject *py_GetFinalPathNameByHandle(PyObject *self, PyObject *args, PyObject *kwargs)
 {
@@ -5245,7 +5175,7 @@ static PyObject *py_GetFinalPathNameByHandle(PyObject *self, PyObject *args, PyO
 }
 PyCFunction pfnpy_GetFinalPathNameByHandle=(PyCFunction)py_GetFinalPathNameByHandle;
 
-// @pyswig [<o PyUnicode>,...]|SfcGetNextProtectedFile|Returns list of protected operating system files
+// @pyswig [string,...]|SfcGetNextProtectedFile|Returns list of protected operating system files
 // @pyseeapi SfcGetNextProtectedFile
 static PyObject *py_SfcGetNextProtectedFile(PyObject *self, PyObject *args)
 {
@@ -5288,7 +5218,7 @@ static PyObject *py_SfcIsFileProtected(PyObject *self, PyObject *args)
 	BOOL ret;
 
 	if (!PyArg_ParseTuple(args, "O:SfcIsFileProtected",
-		&obfname))	// @pyparm <o PyUnicode>|ProtFileName||Name of file to be checked
+		&obfname))	// @pyparm string|ProtFileName||Name of file to be checked
 		return NULL;
 	if (!PyWinObject_AsWCHAR(obfname, &fname, FALSE))
 		return NULL;
@@ -5303,7 +5233,7 @@ static PyObject *py_SfcIsFileProtected(PyObject *self, PyObject *args)
 	return PyBool_FromLong(ret);
 }
 
-// @pyswig <o PyUnicode>|GetLongPathName|Retrieves the long path for a short path (8.3 filename)
+// @pyswig string|GetLongPathName|Retrieves the long path for a short path (8.3 filename)
 // @comm Accepts keyword args
 static PyObject *py_GetLongPathName(PyObject *self, PyObject *args, PyObject *kwargs)
 {
@@ -5318,7 +5248,7 @@ static PyObject *py_GetLongPathName(PyObject *self, PyObject *args, PyObject *kw
 #endif
 
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O|O:GetLongPathName", keywords,
-		&obfname,	// @pyparm <o PyUnicode>|ShortPath||8.3 path to be expanded
+		&obfname,	// @pyparm string|ShortPath||8.3 path to be expanded
 		&obtrans))	// @pyparm <o PyHANDLE>|Transaction|None|Handle to a transaction.  If specified, GetLongPathNameTransacted will be called.
 		return NULL;
 	if (!PyWinObject_AsHANDLE(obtrans, &htrans))
@@ -5369,10 +5299,10 @@ static PyObject *py_GetLongPathName(PyObject *self, PyObject *args, PyObject *kw
 }
 PyCFunction pfnpy_GetLongPathName=(PyCFunction)py_GetLongPathName;
 
-// @pyswig str/unicode|GetFullPathName|Returns full path for path passed in
-// @comm This function takes either a plain string or a unicode string, and returns the same type
+// @pyswig string|GetFullPathName|Returns full path for path passed in
+// @comm This function takes either a bytes a unicode string, and returns the same type
 //       If unicode is passed in, GetFullPathNameW is called, which supports filenames longer than MAX_PATH
-// @comm If Transaction parameter is specified, GetFullPathNameTransacted is called (requires Vista or later)
+// @comm If Transaction parameter is specified, GetFullPathNameTransacted is called
 static PyObject *py_GetFullPathName(PyObject *self, PyObject *args, PyObject *kwargs)
 {
 	HANDLE htrans;
@@ -5384,7 +5314,7 @@ static PyObject *py_GetFullPathName(PyObject *self, PyObject *args, PyObject *kw
 #endif
 
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O|O:GetFullPathName", keywords,
-		&obpathin,	// @pyparm str/unicode|FileName||Path on which to operate
+		&obpathin,	// @pyparm bytes/unicode|FileName||Path on which to operate
 		&obtrans))	// @pyparm <o PyHANDLE>|Transaction|None|Handle to a transaction as returned by <om win32transaction.CreateTransaction>
 		return NULL;
 	if (!PyWinObject_AsHANDLE(obtrans, &htrans))
@@ -5517,8 +5447,6 @@ static PyObject *py_GetFileInformationByHandleEx(PyObject *self, PyObject *args,
 {
 	// According to MSDN, this function is in kernel32.lib in Vista or later, but I can't get it to link
 	//	with either Vista or Windows 7 sdks.
-	// On XP, you can use it with the downloadable fileextd.lib add-on, but it's a static library
-	//	and would never call the function exported from kernel32.dll.
 	CHECK_PFN(GetFileInformationByHandleEx);
 	static char *keywords[] = {"File", "FileInformationClass", NULL};
 	HANDLE handle;

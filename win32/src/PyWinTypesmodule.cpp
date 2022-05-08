@@ -334,7 +334,7 @@ PyObject *PyWin_SetBasicCOMError(HRESULT hr)
     return NULL;
 }
 
-// @pymethod <o PyUnicode>|pywintypes|Unicode|Creates a new Unicode object
+// @pymethod string|pywintypes|Unicode|Creates a new Unicode object
 PYWINTYPES_EXPORT PyObject *PyWin_NewUnicode(PyObject *self, PyObject *args)
 {
     char *string;
@@ -344,7 +344,7 @@ PYWINTYPES_EXPORT PyObject *PyWin_NewUnicode(PyObject *self, PyObject *args)
     return PyUnicode_DecodeMBCS(string, slen, NULL);
 }
 
-// @pymethod <o PyUnicode>|pywintypes|UnicodeFromRaw|Creates a new Unicode object from raw binary data
+// @pymethod string|pywintypes|UnicodeFromRaw|Creates a new Unicode object from raw binary data
 static PyObject *PyWin_NewUnicodeFromRaw(PyObject *self, PyObject *args)
 {
     PyObject *ob;
@@ -633,21 +633,11 @@ BOOL PyWinObject_AsPARAM(PyObject *ob, WPARAM *pparam)
         *pparam = NULL;
         return TRUE;
     }
-// XXX - why this UNICODE block?  Can't we just do both anyway?  Maybe
-// just via the buffer interface?
-#ifdef UNICODE
-#define TCHAR_DESC "Unicode"
+
     if (PyUnicode_Check(ob)) {
         *pparam = (WPARAM)PyUnicode_AS_UNICODE(ob);
         return TRUE;
     }
-#else
-#define TCHAR_DESC "String"
-    if (PyBytes_Check(ob)) {
-        *pparam = (WPARAM)PyBytes_AS_STRING(ob);
-        return TRUE;
-    }
-#endif
     PyWinBufferView pybuf(ob);
     if (pybuf.ok()) {
         // note: this might be unsafe, as we give away the buffer pointer to a
@@ -660,7 +650,7 @@ BOOL PyWinObject_AsPARAM(PyObject *ob, WPARAM *pparam)
     if (PyWinLong_AsVoidPtr(ob, (void **)pparam))
         return TRUE;
 
-    PyErr_Format(PyExc_TypeError, "WPARAM must be a " TCHAR_DESC ", int, or buffer object (got %s)",
+    PyErr_Format(PyExc_TypeError, "WPARAM must be a unicode string, int, or buffer object (got %s)",
                  ob->ob_type->tp_name);
     return FALSE;
 }
@@ -798,22 +788,18 @@ static struct PyMethodDef pywintypes_functions[] = {
     {"DosDateTimeToTime", PyWin_DosDateTimeToTime,
      1},  // @pymeth DosDateTimeToTime|Converts an MS-DOS Date/Time to a standard Time object
 #endif
-    {"Unicode", PyWin_NewUnicode, 1},  // @pymeth Unicode|Creates a new <o PyUnicode> object
+    {"Unicode", PyWin_NewUnicode, 1},  // @pymeth Unicode|Creates a new string object
     {"UnicodeFromRaw", PyWin_NewUnicodeFromRaw,
-     1},  // @pymeth UnicodeFromRaw|Creates a new <o PyUnicode> object from raw binary data
-#ifndef MS_WINCE
+     1},  // @pymeth UnicodeFromRaw|Creates a new string object from raw binary data
     {"IsTextUnicode", PyWin_IsTextUnicode,
      1},  // @pymeth IsTextUnicode|Determines whether a buffer probably contains a form of Unicode text.
-#endif
     {"OVERLAPPED", PyWinMethod_NewOVERLAPPED, 1},  // @pymeth OVERLAPPED|Creates a new <o PyOVERLAPPED> object
 #ifndef NO_PYWINTYPES_IID
     {"IID", PyWinMethod_NewIID, 1},  // @pymeth IID|Makes an <o PyIID> object from a string.
 #endif
     {"Time", PyWinMethod_NewTime, 1},            // @pymeth Time|Makes a <o PyDateTime> object from the argument.
     {"TimeStamp", PyWinMethod_NewTimeStamp, 1},  // @pymeth Time|Makes a <o PyDateTime> object from the argument.
-#ifndef MS_WINCE
     {"CreateGuid", PyWin_CreateGuid, 1},  // @pymeth CreateGuid|Creates a new, unique GUIID.
-#endif                                    // MS_WINCE
 #ifndef NO_PYWINTYPES_SECURITY
     {"ACL", PyWinMethod_NewACL, 1},  // @pymeth ACL|Creates a new <o PyACL> object.
     {"SID", PyWinMethod_NewSID, 1},  // @pymeth SID|Creates a new <o PySID> object.
@@ -851,11 +837,7 @@ int PyWinGlobals_Ensure()
         PyDict_SetItemString(d, "__name__", name);
         Py_DECREF(name);
         PyObject *bimod = PyImport_ImportModule(
-#if PY_VERSION_HEX >= 0x03000000
             "builtins");
-#else
-            "__builtin__");
-#endif
         if ((bimod == NULL) || PyDict_SetItemString(d, "__builtins__", bimod) == -1) {
             Py_XDECREF(bimod);
             return -1;
@@ -1023,11 +1005,7 @@ PYWIN_MODULE_INIT_FUNC(pywintypes)
     ADD_TYPE(OVERLAPPEDType);
     ADD_TYPE(DEVMODEAType);
     ADD_TYPE(DEVMODEWType);
-#ifdef UNICODE
     if (PyDict_SetItemString(dict, "DEVMODEType", (PyObject *)&PyDEVMODEWType) == -1)
-#else
-    if (PyDict_SetItemString(dict, "DEVMODEType", (PyObject *)&PyDEVMODEAType) == -1)
-#endif
         PYWIN_MODULE_INIT_RETURN_ERROR;
 
     ADD_TYPE(WAVEFORMATEXType);
