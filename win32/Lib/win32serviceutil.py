@@ -25,14 +25,17 @@ noise = """
 **** WARNING ****
 The executable at "{exe}" is being used as a service.
 
-This executable doesn't have pythonXX.dll and/or pywintypesXX.dll in the same
-directory, and they can't be found in the System directory. This is likely to
-fail when used in the context of a service.
+The service will need to find "{py_dll}" and "{pyw_dll}" in it's environment,
+but we were unable to find these in locations we can safely predict.
+We searched in:
+ {dirs}
+and found:
+ {fpaths}
+Note that this warning will appear despite any files found in "{exec_prefix}"
+as this may not be in the PATH that the service will see.
+If the service does fail to run, not finding these files will be the reason.
 
-The exact environment needed will depend on which user runs the service and
-where Python is installed. If the service fails to run, this will be why.
-
-NOTE: You should consider copying this executable to the directory where these
+You should consider copying this executable to the directory where these
 DLLs live - "{good}" might be a good place.
 ****
 """
@@ -55,17 +58,31 @@ def LocatePythonServiceExe(exeName=None):
     py_dll = "python{}".format(suffix)
     pyw_dll = "pywintypes{}".format(suffix)
     system_dir = win32api.GetSystemDirectory()
+    exec_prefix = sys.exec_prefix
+
+    dirs = [system_dir, exec_prefix, where]
+    fpaths = [os.path.join(p, dll) for dll in [py_dll, pyw_dll] for p in dirs]
+    fpaths = [f for f in fpaths if os.path.exists(f)]
+    fpaths = fpaths and fpaths or ["nothing"]
 
     ok = (
         os.path.exists(os.path.join(where, py_dll))
-        and os.path.exists(os.path.join(where, pyw_dll))
-    ) or (
-        os.path.exists(os.path.join(system_dir, py_dll))
-        and os.path.exists(os.path.join(system_dir, pyw_dll))
+        or os.path.exists(os.path.join(system_dir, py_dll))
+    ) and (
+        os.path.exists(os.path.join(where, pyw_dll))
+        or os.path.exists(os.path.join(system_dir, pyw_dll))
     )
     if not ok:
         print(
-            noise.format(exe=found, good=os.path.dirname(pywintypes.__file__)),
+            noise.format(
+                exe=found,
+                good=os.path.dirname(pywintypes.__file__),
+                py_dll=py_dll,
+                pyw_dll=pyw_dll,
+                dirs="\n ".join(dirs),
+                fpaths="\n ".join(fpaths),
+                exec_prefix=exec_prefix,
+            ),
             file=sys.stderr,
         )
 
