@@ -36,7 +36,7 @@ Since build 301:
 ----------------
 * Fixed support for unicode as a `win32crypt.CREDENTIAL_ATTRIBUTE.Value`
 
-* Support for Python 10, dropped support for Python 3.5 (3.5 security support
+* Support for Python 3.10, dropped support for Python 3.5 (3.5 security support
   ended 13 Sep 2020)
 
 * Merged win2kras into win32ras. In the unlikely case that anyone is still
