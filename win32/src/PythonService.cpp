@@ -245,7 +245,7 @@ cleanup:
 static PyObject *PyLogInfoMsg(PyObject *self, PyObject *args)
 {
     PyObject *obMsg;
-    // @pyparm <o PyUnicode>|msg||The message to write.
+    // @pyparm string|msg||The message to write.
     if (!PyArg_ParseTuple(args, "O:LogInfoMsg", &obMsg))
         return NULL;
     return DoLogMessage(EVENTLOG_INFORMATION_TYPE, obMsg);
@@ -255,7 +255,7 @@ static PyObject *PyLogInfoMsg(PyObject *self, PyObject *args)
 static PyObject *PyLogWarningMsg(PyObject *self, PyObject *args)
 {
     PyObject *obMsg;
-    // @pyparm <o PyUnicode>|msg||The message to write.
+    // @pyparm string|msg||The message to write.
     if (!PyArg_ParseTuple(args, "O:LogWarningMsg", &obMsg))
         return NULL;
     return DoLogMessage(EVENTLOG_WARNING_TYPE, obMsg);
@@ -264,7 +264,7 @@ static PyObject *PyLogWarningMsg(PyObject *self, PyObject *args)
 // @pymethod |servicemanager|LogErrorMsg|Logs a generic error message to the event log
 static PyObject *PyLogErrorMsg(PyObject *self, PyObject *args)
 {
-    // @pyparm <o PyUnicode>|msg||The message to write.
+    // @pyparm string|msg||The message to write.
     PyObject *obMsg;
     if (!PyArg_ParseTuple(args, "O:LogErrorMsg", &obMsg))
         return NULL;
@@ -306,7 +306,7 @@ static PyObject *PyRegisterServiceCtrlHandler(PyObject *self, PyObject *args)
 {
     PyObject *nameOb, *obCallback;
     BOOL bUseEx = FALSE;
-    // @pyparm <o PyUnicode>|serviceName||The name of the service.  This is provided in args[0] of the service class
+    // @pyparm string|serviceName||The name of the service.  This is provided in args[0] of the service class
     // __init__ method.
     // @pyparm object|callback||The Python function that performs as the control function.  This will be called with an
     // integer status argument.
@@ -439,8 +439,8 @@ static PyObject *PyStartServiceCtrlDispatcher(PyObject *self)
 static PyObject *PyServiceInitialize(PyObject *self, PyObject *args)
 {
     PyObject *nameOb = Py_None, *fileOb = Py_None;
-    // @pyparm <o PyUnicode>|eventSourceName|None|The event source name
-    // @pyparm <o PyUnicode>|eventSourceFile|None|The name of the file
+    // @pyparm string|eventSourceName|None|The event source name
+    // @pyparm string|eventSourceFile|None|The name of the file
     // (generally a DLL) with the event source messages.
     if (!PyArg_ParseTuple(args, "|OO", &nameOb, &fileOb))
         return NULL;
@@ -487,7 +487,7 @@ static PyObject *PyPrepareToHostSingle(PyObject *self, PyObject *args)
 static PyObject *PyPrepareToHostMultiple(PyObject *self, PyObject *args)
 {
     PyObject *klass, *obSvcName;
-    // @pyparm string/unicode|service_name||The name of the service hosted by the class
+    // @pyparm string|service_name||The name of the service hosted by the class
     // @pyparm object|klass||The Python class to host.
     if (!PyArg_ParseTuple(args, "OO", &obSvcName, &klass))
         return NULL;
@@ -604,20 +604,7 @@ static void PyService_InitPython()
     // This, however, shouldnt be a problem, as Python itself
     // knows how to get the .EXE name when it needs.
     int pyargc;
-#if (PY_VERSION_HEX < 0x03000000)
-    pyargc = 0;
-    char **pyargv = (char **)malloc(sizeof(char *) * __argc);
-    if (pyargv) {
-        for (; pyargc < __argc; pyargc++) {
-            pyargv[pyargc] = NarrowString(__wargv[pyargc]);
-            if (!pyargv[pyargc]) {
-                break;
-            }
-        }
-    }
-#else
     WCHAR **pyargv = CommandLineToArgvW(GetCommandLineW(), &pyargc);
-#endif
     if (pyargv)
         Py_SetProgramName(pyargv[0]);
 
@@ -637,15 +624,8 @@ static void PyService_InitPython()
     // though it never is when running as a real service?
     if (pyargv)
         PySys_SetArgv(pyargc, pyargv);
-#if (PY_VERSION_HEX < 0x03000000)
-    initservicemanager();
-    // free the argv we created above
-    for (int i = 0; i < pyargc; i++) free(pyargv[i]);
-    free(pyargv);
-#else
     PyInit_servicemanager();
     LocalFree(pyargv);
-#endif
 }
 
 /*************************************************************************
@@ -1083,11 +1063,7 @@ int PythonService_main(int argc, TCHAR **argv)
     int temp;
     LPTSTR *targv;
 
-#ifdef UNICODE
     targv = CommandLineToArgvW(GetCommandLineW(), &temp);
-#else
-    targv = argv;
-#endif
     // Before we start, change directory to our executable's dir.  This
     // is to prevent our cwd being SYSTEM32, which can have undesired
     // side effects (ie, it ends up on sys.path and, eg, 'import zlib' may

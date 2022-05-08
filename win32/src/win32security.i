@@ -813,7 +813,7 @@ void PyWinObject_FreeTOKEN_PRIVILEGES(TOKEN_PRIVILEGES *pPriv)
 
 	pfnTranslateName=(TranslateNamefunc)loadapifunc("TranslateNameW",secur32_dll);
 	pfnCreateWellKnownSid=(CreateWellKnownSidfunc)loadapifunc("CreateWellKnownSid",advapi32_dll);
-		
+
 	pfnDsBind=(DsBindfunc)loadapifunc("DsBindW", ntdsapi_dll);
 	pfnDsUnBind=(DsUnBindfunc)loadapifunc("DsUnBindW", ntdsapi_dll);
 	pfnDsGetSpn=(DsGetSpnfunc)loadapifunc("DsGetSpnW", ntdsapi_dll);
@@ -831,7 +831,6 @@ void PyWinObject_FreeTOKEN_PRIVILEGES(TOKEN_PRIVILEGES *pPriv)
 	pfnDsGetDcName=(DsGetDcNamefunc)loadapifunc("DsGetDcNameW", netapi32_dll);
 
 	// Py3k requires that *all* types have to be initialized
-#if (PY_VERSION_HEX >= 0x03000000)
 	if (PyType_Ready(&PySecBufferType) == -1)
 		return NULL;
 	if (PyType_Ready(&PySecBufferDescType) == -1)
@@ -840,7 +839,6 @@ void PyWinObject_FreeTOKEN_PRIVILEGES(TOKEN_PRIVILEGES *pPriv)
 		return NULL;
 	if (PyType_Ready(&PyCredHandleType) == -1)
 		return NULL;
-#endif
 
 	// old names, these should not be used
 	PyDict_SetItemString(d, "SecBufferType", (PyObject *)&PySecBufferType);

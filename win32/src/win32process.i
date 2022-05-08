@@ -1708,10 +1708,8 @@ PyObject *PyWriteProcessMemory(PyObject *self, PyObject *args)
 
 %init %{
 
-#if (PY_VERSION_HEX >= 0x03000000)
 	if (PyType_Ready(&PySTARTUPINFOType) == -1)
 		return NULL;
-#endif
 
 	FARPROC fp=NULL;
 	HMODULE hmodule=NULL;

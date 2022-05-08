@@ -20,18 +20,7 @@
 
 BOOL PyWinObject_AsLARGE_INTEGER(PyObject *ob, LARGE_INTEGER *pResult)
 {
-#if (PY_VERSION_HEX < 0x03000000)
     if (PyLong_Check(ob)) {
-        // 32 bit integer value.
-        int x = PyLong_AS_LONG(ob);
-        if (x == (int)-1 && PyErr_Occurred())
-            return FALSE;
-        LISet32(*pResult, x);
-        return TRUE;
-    }
-    else
-#endif
-        if (PyLong_Check(ob)) {
         pResult->QuadPart = PyLong_AsLongLong(ob);
         return !(pResult->QuadPart == -1 && PyErr_Occurred());
     }
@@ -52,19 +41,6 @@ BOOL PyWinObject_AsLARGE_INTEGER(PyObject *ob, LARGE_INTEGER *pResult)
 
 BOOL PyWinObject_AsULARGE_INTEGER(PyObject *ob, ULARGE_INTEGER *pResult)
 {
-#if (PY_VERSION_HEX < 0x03000000)
-    // py2k - ints and longs are different, and we assume 'int' is 32bits.
-    if (PyLong_Check(ob)) {
-        // 32 bit integer value.
-        int x = PyLong_AS_LONG(ob);
-        if (x == (int)-1 && PyErr_Occurred())
-            return FALSE;
-        // ### what to do with "negative" integers?  Nothing - they
-        // get treated as unsigned!
-        ULISet32(*pResult, x);
-        return TRUE;
-    }
-#endif  // py2k
     if (PyLong_Check(ob)) {
         pResult->QuadPart = PyLong_AsUnsignedLongLong(ob);
         return !(pResult->QuadPart == (ULONGLONG)-1 && PyErr_Occurred());

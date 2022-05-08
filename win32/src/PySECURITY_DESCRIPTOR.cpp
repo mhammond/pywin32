@@ -713,33 +713,6 @@ struct PyMethodDef PySECURITY_DESCRIPTOR::methods[] = {
     {NULL}};
 
 // Buffer interface in Python 3.0 has changed
-#if (PY_VERSION_HEX < 0x03000000)
-/*static*/ Py_ssize_t PySECURITY_DESCRIPTOR::getreadbuf(PyObject *self, Py_ssize_t index, void **ptr)
-{
-    if (index != 0) {
-        PyErr_SetString(PyExc_SystemError, "accessing non-existent SID segment");
-        return -1;
-    }
-    PySECURITY_DESCRIPTOR *pysd = (PySECURITY_DESCRIPTOR *)self;
-    *ptr = pysd->m_psd;
-    return GetSecurityDescriptorLength(pysd->m_psd);
-}
-
-/*static*/ Py_ssize_t PySECURITY_DESCRIPTOR::getsegcount(PyObject *self, Py_ssize_t *lenp)
-{
-    if (lenp)
-        *lenp = GetSecurityDescriptorLength(((PySECURITY_DESCRIPTOR *)self)->m_psd);
-    return 1;
-}
-
-static PyBufferProcs PySECURITY_DESCRIPTOR_as_buffer = {
-    PySECURITY_DESCRIPTOR::getreadbuf,
-    0,
-    PySECURITY_DESCRIPTOR::getsegcount,
-    0,
-};
-
-#else   // New buffer interface for Python 3.0
 /*static*/ int PySECURITY_DESCRIPTOR::getbufferinfo(PyObject *self, Py_buffer *view, int flags)
 {
     PySECURITY_DESCRIPTOR *pysd = (PySECURITY_DESCRIPTOR *)self;
@@ -750,7 +723,6 @@ static PyBufferProcs PySECURITY_DESCRIPTOR_as_buffer = {
     PySECURITY_DESCRIPTOR::getbufferinfo,
     NULL  // Don't need to release any memory from Py_buffer struct
 };
-#endif  // PY_VERSION_HEX < 0x03000000
 
 PYWINTYPES_EXPORT PyTypeObject PySECURITY_DESCRIPTORType = {
     PYWIN_OBJECT_HEAD "PySECURITY_DESCRIPTOR", sizeof(PySECURITY_DESCRIPTOR), 0,

@@ -12,8 +12,6 @@
 %endif
 
 %{
-// #define UNICODE
-// #define _UNICODE // for CRT string functions
 #define _WIN32_IE 0x0501 // to enable balloon notifications in Shell_NotifyIcon
 #define _WIN32_WINNT 0x0501
 #ifdef WINXPGUI
@@ -272,13 +270,7 @@ PyDict_SetItemString(d, "g_HWNDMap", g_HWNDMap);
 PyDict_SetItemString(d, "g_DLGMap", g_DLGMap);
 #endif
 
-PyDict_SetItemString(d, "UNICODE",
-#ifdef UNICODE
-					Py_True
-#else
-					Py_False
-#endif
-						);
+PyDict_SetItemString(d, "UNICODE", Py_True);
 
 // hack borrowed from win32security since version of SWIG we use doesn't do keyword arguments
 #ifdef WINXPGUI
@@ -933,8 +925,8 @@ PyTypeObject PyWNDCLASSType =
 	// @prop integer|hbrBackground|
 	// These 3 handled manually in PyWNDCLASS::getattro/setattro.  The pymeth below is used as an
 	// end tag, so these props will be lost if below it
-	// @prop string/<o PyUnicode>|lpszMenuName|
-	// @prop string/<o PyUnicode>|lpszClassName|
+	// @prop string|lpszMenuName|
+	// @prop string|lpszClassName|
 	// @prop function|lpfnWndProc|
 
 };
@@ -1011,7 +1003,6 @@ PyObject *PyWNDCLASS::getattro(PyObject *self, PyObject *obname)
 
 int SetTCHAR(PyObject *v, PyObject **m, LPCTSTR *ret)
 {
-#ifdef UNICODE
 	if (!PyUnicode_Check(v)) {
 		PyErr_SetString(PyExc_TypeError, "Object must be a Unicode");
 		return -1;
@@ -1021,17 +1012,6 @@ int SetTCHAR(PyObject *v, PyObject **m, LPCTSTR *ret)
 	Py_INCREF(v);
 	*ret = PyUnicode_AsUnicode(v);
 	return 0;
-#else
-	if (!PyBytes_Check(v)) {
-		PyErr_SetString(PyExc_TypeError, "Object must be a string");
-		return -1;
-	}
-	Py_XDECREF(*m);
-	*m = v;
-	Py_INCREF(v);
-	*ret = PyBytes_AsString(v);
-	return 0;
-#endif
 }
 
 int PyWNDCLASS::setattro(PyObject *self, PyObject *obname, PyObject *v)
@@ -1419,7 +1399,7 @@ static PyObject *PyEnumFontFamilies(PyObject *self, PyObject *args)
 	PyObject *obExtra = Py_None;
 	HDC hdc;
 	// @pyparm <o PyHANDLE>|hdc||Handle to a device context for which to enumerate available fonts
-	// @pyparm string/<o PyUnicode>|Family||Family of fonts to enumerate. If none, first member of each font family will be returned.
+	// @pyparm string|Family||Family of fonts to enumerate. If none, first member of each font family will be returned.
 	// @pyparm function|EnumFontFamProc||The Python function called with each font family. This function is called with 4 arguments.
 	// @pyparm object|Param||An arbitrary object to be passed to the callback function
 	// @comm The parameters that the callback function will receive are as follows:<nl>
@@ -1616,7 +1596,6 @@ static PyObject *PyGetMemory(PyObject *self, PyObject *args)
 
 %{
 // @pyswig string|PyGetString|Returns a string from an address.
-// @rdesc If win32gui.UNICODE is True, this will return a unicode object.
 static PyObject *PyGetString(PyObject *self, PyObject *args)
 {
 	TCHAR *addr = 0;
@@ -2041,7 +2020,7 @@ BOOLAPI ReplyMessage(int lResult); // @pyparm int|result||Specifies the result o
 #endif	/* not MS_WINCE */
 
 // @pyswig int|RegisterWindowMessage|Defines a new window message that is guaranteed to be unique throughout the system. The message value can be used when sending or posting messages.
-// @pyparm string/unicode|name||The string
+// @pyparm unicode|name||The string
 UINT RegisterWindowMessage(TCHAR *lpString);
 
 // @pyswig int|DefWindowProc|
@@ -2424,7 +2403,7 @@ static PyObject *PyGetDlgItemText(PyObject *self, PyObject *args)
 BOOLAPI SetDlgItemText(
 	HWND hDlg,		// @pyparm <o PyHANDLE>|hDlg||Handle to a dialog window
 	int nIDDlgItem,	// @pyparm int|IDDlgItem||The Id of a control within the dialog
-	TCHAR *text);	// @pyparm str/unicode|String||The text to put in the control
+	TCHAR *text);	// @pyparm string|text||The text to put in the control
 
 // @pyswig HWND|GetNextDlgTabItem|Retrieves a handle to the first control that has the WS_TABSTOP style that precedes (or follows) the specified control.
 HWND GetNextDlgTabItem(
@@ -2458,9 +2437,6 @@ static PyObject *PyGetWindowText(PyObject *self, PyObject *args)
     Py_BEGIN_ALLOW_THREADS
     len = GetWindowText(hwnd, buffer, sizeof(buffer)/sizeof(TCHAR));
     Py_END_ALLOW_THREADS
-    // @comm Note that previous versions of PyWin32 returned a (empty) Unicode 
-    // object when the string was empty, or an MBCS encoded string value 
-    // otherwise.  A String is now returned in all cases.
 	return PyWinObject_FromTCHAR(buffer, len);
 }
 %}
@@ -2961,8 +2937,8 @@ BOOLAPI ImageList_SetOverlayImage(
 
 // @pyswig int|MessageBox|Displays a message box
 // @pyparm int|parent||The parent window
-// @pyparm string/<o PyUnicode>|text||The text for the message box
-// @pyparm string/<o PyUnicode>|caption||The caption for the message box
+// @pyparm string|text||The text for the message box
+// @pyparm string|caption||The caption for the message box
 // @pyparm int|flags||
 int MessageBox(HWND parent, TCHAR *text, TCHAR *caption, DWORD flags);
 
@@ -3735,15 +3711,13 @@ DWORD CommDlgExtendedError(void);
 	$target = ( OPENFILENAME *)PyBytes_AS_STRING($source);
 }
 
-#ifndef MS_WINCE
 // @pyswig int|ExtractIcon|
 // @pyparm int|hinstance||
-// @pyparm string/<o PyUnicode>|moduleName||
+// @pyparm string|moduleName||
 // @pyparm int|index||
 // @comm You must destroy the icon handle returned by calling the <om win32gui.DestroyIcon> function. 
 // @rdesc The result is a HICON.
 HICON ExtractIcon(HINSTANCE hinst, TCHAR *modName, UINT index);
-#endif	/* not MS_WINCE */
 
 // @pyswig int|ExtractIconEx|
 // @pyparm string|moduleName||
@@ -3989,7 +3963,7 @@ static PyObject *PySetTextAlign(PyObject *self, PyObject *args)
 	return PyLong_FromLong(prevalign);
 }
 
-// @pyswig <o PyUnicode>|GetTextFace|Retrieves the name of the font currently selected in a DC
+// @pyswig string|GetTextFace|Retrieves the name of the font currently selected in a DC
 // @comm Calls unicode api function (GetTextFaceW)
 static PyObject *PyGetTextFace(PyObject *self, PyObject *args)
 {
@@ -6332,9 +6306,9 @@ PyObject *PyReturn_OPENFILENAMEW_Output(OPENFILENAMEW *pofn)
 %native (GetOpenFileNameW) pfnPyGetOpenFileNameW;
 
 %{
-// @pyswig (<o PyUNICODE>,<o PyUNICODE>,int)|GetSaveFileNameW|Creates a dialog for user to specify location to save a file or files
+// @pyswig (string, string,int)|GetSaveFileNameW|Creates a dialog for user to specify location to save a file or files
 // @comm Accepts keyword arguments, all arguments optional
-// @rdesc Returns a tuple of 3 values (<o PyUNICODE>, <o PyUNICODE>, int):<nl>
+// @rdesc Returns a tuple of 3 values (string, string, int):<nl>
 // First is the selected file(s). If multiple files are selected, returned string will be the directory followed by files names
 // separated by nulls, otherwise it will be the full path.  In other words, if you use the OFN_ALLOWMULTISELECT flag
 // you should split this value on \0 characters and if the length of the result list is 1, it will be
@@ -6346,16 +6320,16 @@ PyObject *PyReturn_OPENFILENAMEW_Output(OPENFILENAMEW *pofn)
 // win32gui.error is raised.  If the user pressed cancel, the error number (ie, the winerror attribute of the exception) will be zero.
 // @pyparm <o PyHANDLE>|hwndOwner|None|Handle to window that owns dialog
 // @pyparm <o PyHANDLE>|hInstance|None|Handle to module that contains dialog template
-// @pyparm <o PyUNICODE>|Filter|None|Contains pairs of descriptions and filespecs separated by NULLS, with a final trailing NULL.
+// @pyparm string|Filter|None|Contains pairs of descriptions and filespecs separated by NULLS, with a final trailing NULL.
 // Example: 'Python Scripts\0*.py;*.pyw;*.pys\0Text files\0*.txt\0'
-// @pyparm <o PyUNICODE>|CustomFilter|None|Description to be used for filter that user selected or typed, can also contain a filespec as above
+// @pyparm string|CustomFilter|None|Description to be used for filter that user selected or typed, can also contain a filespec as above
 // @pyparm int|FilterIndex|0|Specifies which of the filters is initially selected, use 0 for CustomFilter
-// @pyparm <o PyUNICODE>|File|None|The file name initially displayed
+// @pyparm string|File|None|The file name initially displayed
 // @pyparm int|MaxFile|1024|Number of characters to allocate for selected filename(s), override if large number of files expected
-// @pyparm <o PyUNICODE>|InitialDir|None|The starting directory
-// @pyparm <o PyUNICODE>|Title|None|The title of the dialog box
+// @pyparm string|InitialDir|None|The starting directory
+// @pyparm string|Title|None|The title of the dialog box
 // @pyparm int|Flags|0|Combination of win32con.OFN_* constants
-// @pyparm <o PyUNICODE>|DefExt|None|The default extension to use
+// @pyparm string|DefExt|None|The default extension to use
 // @pyparm <o PyResourceId>|TemplateName|None|Name or resource id of dialog box template
 static PyObject *PyGetSaveFileNameW(PyObject *self, PyObject *args, PyObject *kwargs)
 {	
@@ -6378,7 +6352,7 @@ static PyObject *PyGetSaveFileNameW(PyObject *self, PyObject *args, PyObject *kw
 	return ret;
 }
 
-// @pyswig (<o PyUNICODE>,<o PyUNICODE>, int)|GetOpenFileNameW|Creates a dialog to allow user to select file(s) to open
+// @pyswig (string,string, int)|GetOpenFileNameW|Creates a dialog to allow user to select file(s) to open
 // @comm Accepts keyword arguments, all arguments optional
 // Input parameters and return values are identical to <om win32gui.GetSaveFileNameW>
 static PyObject *PyGetOpenFileNameW(PyObject *self, PyObject *args, PyObject *kwargs)
@@ -6421,16 +6395,16 @@ BOOL PyParse_OPENFILENAMEW_Args(PyObject *args, PyObject *kwargs, OPENFILENAMEW 
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|OOOOlOlOOlOO:OPENFILENAME", keywords,
 		&obOwner,				// @pyparm <o PyHANDLE>|hwndOwner|None|Handle to window that owns dialog
 		&obhInstance,			// @pyparm <o PyHANDLE>|hInstance|None|Handle to module that contains dialog template
-		&obFilter,				// @pyparm <o PyUNICODE>|Filter|None|Contains pairs of descriptions and filespecs separated by NULLS, with a final trailing NULL.
+		&obFilter,				// @pyparm string|Filter|None|Contains pairs of descriptions and filespecs separated by NULLS, with a final trailing NULL.
 								// Example: 'Python Scripts\0*.py;*.pyw;*.pys\0Text files\0*.txt\0'
-		&obCustomFilter,		// @pyparm <o PyUNICODE>|CustomFilter|None|Description to be used for filter that user selected or typed, can also contain a filespec as above
+		&obCustomFilter,		// @pyparm string|CustomFilter|None|Description to be used for filter that user selected or typed, can also contain a filespec as above
 		&pofn->nFilterIndex,	// @pyparm int|FilterIndex|0|Specifies which of the filters is initially selected, use 0 for CustomFilter
-		&obFile,				// @pyparm <o PyUNICODE>|File|None|The file name initially displayed
+		&obFile,				// @pyparm string|File|None|The file name initially displayed
 		&pofn->nMaxFile,		// @pyparm int|MaxFile|1024|Number of characters to allocate for selected filename, override if large number of files expected
-		&obInitialDir,			// @pyparm <o PyUNICODE>|InitialDir|None|The starting directory
-		&obTitle,				// @pyparm <o PyUNICODE>|Title|None|The title of the dialog box
+		&obInitialDir,			// @pyparm string|InitialDir|None|The starting directory
+		&obTitle,				// @pyparm string|Title|None|The title of the dialog box
 		&pofn->Flags,			// @pyparm int|Flags|0|Combination of win32con.OFN_* constants
-		&obDefExt,				// @pyparm <o PyUNICODE>|DefExt|None|The default extension to use
+		&obDefExt,				// @pyparm string|DefExt|None|The default extension to use
 		&obTemplateName))		// @pyparm <o PyResourceId>|TemplateName|None|Name or resource id of dialog box template
 		goto done;
 
@@ -7470,7 +7444,7 @@ PyObject *PyDrawTextW(PyObject *self, PyObject *args, PyObject *kwargs)
 
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OOiOI:DrawTextW", keywords,
 		&obhdc,		// @pyparm <o PyHANDLE>|hDC||Handle to a device context
-		&obtxt,		// @pyparm <o PyUnicode>|String||Text to be drawn
+		&obtxt,		// @pyparm string|String||Text to be drawn
 		&len,		// @pyparm int|Count||Number of characters to draw, use -1 for entire null terminated string
 		&obrc,		// @pyparm <o PyRECT>|Rect||Rectangle in which to draw text
 		&fmt))		// @pyparm int|Format||Formatting flags, combination of win32con.DT_* values

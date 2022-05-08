@@ -25,10 +25,6 @@ conversion is required.
 ******************************************************************/
 // @doc
 
-#ifndef UNICODE
-#error This project requires a Unicode build.
-#endif
-
 #include "PyWinTypes.h"
 #include "lm.h"
 #include "lmuseflg.h"

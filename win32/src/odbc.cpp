@@ -893,11 +893,7 @@ static int bindInput(cursorObject *cur, PyObject *vars, int columns)
         else if (PyWinTime_Check(item)) {
             rv = ibindDate(cur, iCol, item);
         }
-#if (PY_VERSION_HEX < 0x03000000)
-        else if (PyBuffer_Check(item))
-#else
         else if (PyObject_CheckBuffer(item))
-#endif
         {
             rv = ibindRaw(cur, iCol, item);
         }

@@ -277,8 +277,8 @@ static PyObject *PyCopyFile(PyObject *self, PyObject *args)
     PyObject *obSrc, *obDest;
     if (!PyArg_ParseTuple(
             args, "OO|i:CopyFile",
-            &obSrc,         // @pyparm string<o PyUnicode>|src||Name of an existing file.
-            &obDest,        // @pyparm string/<o PyUnicode>|dest||Name of file to copy to.
+            &obSrc,         // @pyparm string|src||Name of an existing file.
+            &obDest,        // @pyparm string|dest||Name of file to copy to.
             &failOnExist))  // @pyparm int|bFailOnExist|0|Indicates if the operation should fail if the file exists.
         return NULL;
     TCHAR *src, *dest;
@@ -312,7 +312,7 @@ static PyObject *PyDebugBreak(PyObject *self, PyObject *args)
 static PyObject *PyDeleteFile(PyObject *self, PyObject *args)
 {
     PyObject *obPath;
-    // @pyparm string/<o PyUnicode>|fileName||File to delete.
+    // @pyparm string|fileName||File to delete.
     if (!PyArg_ParseTuple(args, "O:DeleteFile", &obPath))
         return NULL;
     TCHAR *szPath;
@@ -401,7 +401,7 @@ static PyObject *PyGetEnvironmentVariable(PyObject *self, PyObject *args)
     return ret;
 }
 
-// @pymethod <o PyUnicode>|win32api|GetEnvironmentVariableW|Retrieves the unicode value of an environment variable.
+// @pymethod string|win32api|GetEnvironmentVariableW|Retrieves the unicode value of an environment variable.
 // @rdesc Returns None if environment variable is not found
 // @pyseeapi GetEnvironmentVariableW
 static PyObject *PyGetEnvironmentVariableW(PyObject *self, PyObject *args)
@@ -459,8 +459,8 @@ static PyObject *PySetEnvironmentVariable(PyObject *self, PyObject *args)
     TCHAR *key = NULL, *val = NULL;
     PyObject *obkey, *obval, *ret = NULL;
     if (!PyArg_ParseTuple(args, "OO:SetEnvironmentVariable",
-                          &obkey,   // @pyparm str/unicode|Name||Name of the environment variable
-                          &obval))  // @pyparm str/unicode|Value||Value to be set, use None to remove variable
+                          &obkey,   // @pyparm string|Name||Name of the environment variable
+                          &obval))  // @pyparm string|Value||Value to be set, use None to remove variable
         return NULL;
     // @pyseeapi SetEnvironmentVariable
     if (PyWinObject_AsTCHAR(obkey, &key, FALSE) && PyWinObject_AsTCHAR(obval, &val, TRUE)) {
@@ -818,7 +818,7 @@ cleanup:
     return rc;
 }
 
-// @pymethod <o PyUnicode>|win32api|FormatMessageW|Returns an error message from the system error file.
+// @pymethod string|win32api|FormatMessageW|Returns an error message from the system error file.
 static PyObject *PyFormatMessageW(PyObject *self, PyObject *args)
 {
     int errCode = 0;
@@ -845,13 +845,13 @@ static PyObject *PyFormatMessageW(PyObject *self, PyObject *args)
     // Full parameter list
     // @pyparmalt1 int|flags||Flags for the call.  Note that FORMAT_MESSAGE_ALLOCATE_BUFFER and
     // FORMAT_MESSAGE_ARGUMENT_ARRAY will always be added.
-    // @pyparmalt1 int/<o PyUnicode>|source||The source object.  If flags contain FORMAT_MESSAGE_FROM_HMODULE it should
+    // @pyparmalt1 int/string|source||The source object.  If flags contain FORMAT_MESSAGE_FROM_HMODULE it should
     // be an int or <o PyHANDLE>;
-    //		if flags contain FORMAT_MESSAGE_FROM_STRING it should be a unicode string;
+    //		if flags contain FORMAT_MESSAGE_FROM_STRING it should be a string;
     //		otherwise it is ignored.
     // @pyparmalt1 int|messageId||The message ID.
     // @pyparmalt1 int|languageID||The language ID.
-    // @pyparmalt1 [<o PyUnicode>,...]/None|inserts||The string inserts to insert.
+    // @pyparmalt1 [string,...]/None|inserts||The string inserts to insert.
     DWORD flags, msgId, langId;
     PyObject *obSource;
     PyObject *obInserts, *Inserts_tuple = NULL;
@@ -1314,7 +1314,7 @@ static PyObject *PyLoadCursor(PyObject *self, PyObject *args)
     return PyWinLong_FromHANDLE(ret);
 }
 
-// @pymethod [string]|win32api|CommandLineToArgv|Parses a Unicode command line string and returns a list of command line arguments, in a way that is similar to sys.argv.
+// @pymethod [string]|win32api|CommandLineToArgv|Parses a command line string and returns a list of command line arguments, in a way that is similar to sys.argv.
 static PyObject *PyCommandLineToArgv(PyObject *self, PyObject *args)
 {
     const Py_UNICODE *cmdLine;
@@ -1444,29 +1444,16 @@ static PyObject *PyGetAsyncKeyState(PyObject *self, PyObject *args)
 static PyObject *PyGetFileAttributes(PyObject *self, PyObject *args)
 {
     PyObject *obPathName;
-    // @pyparm string|pathName||The name of the file whose attributes are to be returned.
-    // If this param is a unicode object, GetFileAttributesW is called.
+    // @pyparm string/bytes|pathName||The name of the file whose attributes are to be returned.
+    // This calls the Windows GetFileAttributesW function.
     if (!PyArg_ParseTuple(args, "O:GetFileAttributes", &obPathName))
         return NULL;
     DWORD rc;
-#ifdef UNICODE
     WCHAR *PathName;
     if (!PyWinObject_AsWCHAR(obPathName, &PathName, FALSE))
         return NULL;
     rc = ::GetFileAttributesW(PathName);
     PyWinObject_FreeWCHAR(PathName);
-#else
-    if (PyBytes_Check(obPathName)) {
-        PyW32_BEGIN_ALLOW_THREADS rc = ::GetFileAttributesA(PyBytes_AS_STRING(obPathName));
-        PyW32_END_ALLOW_THREADS
-    }
-    else if (PyUnicode_Check(obPathName)) {
-        PyW32_BEGIN_ALLOW_THREADS rc = ::GetFileAttributesW(PyUnicode_AS_UNICODE(obPathName));
-        PyW32_END_ALLOW_THREADS
-    }
-    else
-        return PyErr_Format(PyExc_TypeError, "pathName arg must be string or unicode");
-#endif
     if (rc == (DWORD)0xFFFFFFFF)
         return ReturnAPIError("GetFileAttributes");
     return Py_BuildValue("i", rc);

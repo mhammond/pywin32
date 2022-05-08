@@ -28,11 +28,9 @@ EnumServicesStatusExfunc fpEnumServicesStatusEx=NULL;
 
 %init %{
 
-#if (PY_VERSION_HEX >= 0x03000000)
 	if (PyType_Ready(&PyHWINSTAType) == -1 ||
 		PyType_Ready(&PyHDESKType) == -1)
 		return NULL;
-#endif
 
 	// All errors raised by this module are of this type.
 	PyDict_SetItemString(d, "error", PyWinExc_ApiError);
@@ -324,7 +322,7 @@ BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM ret)
 	return TRUE;
 }
 
-// @pymethod (PyUNICODE,...)|PyHWINSTA|EnumDesktops|Lists names of desktops in the window station
+// @pymethod (string,...)|PyHWINSTA|EnumDesktops|Lists names of desktops in the window station
 PyObject *PyHWINSTA::EnumDesktops(PyObject *self, PyObject *args)
 {
 	if (!PyArg_ParseTuple(args, ":EnumDesktops"))
@@ -432,7 +430,7 @@ PyObject *PyGetThreadDesktop(PyObject *self, PyObject *args)
 }
 %}
 
-// @pyswig (<o PyUnicode>,,...)|EnumWindowStations|Lists names of window stations
+// @pyswig (string,,...)|EnumWindowStations|Lists names of window stations
 // @comm Only window stations for which you have WINSTA_ENUMERATE access will be returned
 %native(EnumWindowStations) PyEnumWindowStations;
 %{
@@ -576,7 +574,7 @@ PyObject *PyOpenWindowStation(PyObject *self, PyObject *args)
 	ACCESS_MASK DesiredAccess;
 	PyObject *obwinsta_name, *ret=NULL;
 	HWINSTA hwinsta;
-	// @pyparm str/PyUNICODE|szWinSta||Name of window station
+	// @pyparm string|szWinSta||Name of window station
 	// @pyparm Bool|Inherit||Allow handle to be inherited by subprocesses
 	// @pyparm int|DesiredAccess||Bitmask of access types
 	if (!PyArg_ParseTuple(args,"Oll:OpenWindowStation",&obwinsta_name, &Inherit, &DesiredAccess))
@@ -604,7 +602,7 @@ PyObject *PyOpenDesktop(PyObject *self, PyObject *args)
 	DWORD Flags;
 	PyObject *obdesktop_name, *ret=NULL;
 	HDESK hdesk;
-	// @pyparm str/unicode|szDesktop||Name of desktop to open
+	// @pyparm string|szDesktop||Name of desktop to open
 	// @pyparm int|Flags||DF_ALLOWOTHERACCOUNTHOOK or 0
 	// @pyparm bool|Inherit||Allow handle to be inherited
 	// @pyparm int|DesiredAccess||ACCESS_MASK specifying level of access for handle
@@ -633,7 +631,7 @@ PyObject *PyCreateDesktop(PyObject *self, PyObject *args)
 	ACCESS_MASK DesiredAccess;
 	PSECURITY_ATTRIBUTES pSA;
 	HDESK hdesk;
-	// @pyparm str/unicode|Desktop||Name of desktop to create
+	// @pyparm string|Desktop||Name of desktop to create
 	// @pyparm int|Flags||DF_ALLOWOTHERACCOUNTHOOK or 0
 	// @pyparm int|DesiredAccess||An ACCESS_MASK determining level of access available thru returned handle
 	// @pyparm <o PySECURITY_ATTRIBUTES>|SecurityAttributes||Specifies inheritance and controls access to desktop
@@ -703,7 +701,7 @@ PyObject *PyCreateWindowStation(PyObject *self, PyObject *args)
 	ACCESS_MASK DesiredAccess;
 	PSECURITY_ATTRIBUTES pSA;
 	PyObject *obwinsta_name, *obSA;
-	// @pyparm str/unicode|WindowStation||Name of window station to create, or None
+	// @pyparm string|WindowStation||Name of window station to create, or None
 	// @pyparm int|Flags||CWF_CREATE_ONLY or 0
 	// @pyparm int|DesiredAccess||Bitmask of access types available to returned handle
 	// @pyparm <o PySECURITY_ATTRIBUTES>|SecurityAttributes||Specifies security for window station, and whether handle is inheritable
@@ -1103,12 +1101,12 @@ static PyObject *MyQueryServiceConfig(PyObject *self, PyObject *args)
 	// @tupleitem 0|int|ServiceType|Combination of SERVICE_*_DRIVER or SERVICE_*_PROCESS constants
 	// @tupleitem 1|int|StartType|One of SERVICE_*_START constants
 	// @tupleitem 2|int|ErrorControl|One of SERVICE_ERROR_* constants
-	// @tupleitem 3|<o PyUnicode>|BinaryPathName|Service's binary executable, can also contain command line args
-	// @tupleitem 4|<o PyUnicode>|LoadOrderGroup|Loading group that service is a member of
+	// @tupleitem 3|string|BinaryPathName|Service's binary executable, can also contain command line args
+	// @tupleitem 4|string|LoadOrderGroup|Loading group that service is a member of
 	// @tupleitem 5|int|TagId|Order of service within its load order group
-	// @tupleitem 6|[<o PyUnicode>,...]|Dependencies|Sequence of names of services on which this service depends
-	// @tupleitem 7|<o PyUnicode>|ServiceStartName|Account name under which service will run
-	// @tupleitem 8|<o PyUnicode>|DisplayName|Name of service
+	// @tupleitem 6|[string,...]|Dependencies|Sequence of names of services on which this service depends
+	// @tupleitem 7|string|ServiceStartName|Account name under which service will run
+	// @tupleitem 8|string|DisplayName|Name of service
 	PyObject *retval = Py_BuildValue("lllNNlNNN",
 			config->dwServiceType,
 			config->dwStartType,
@@ -1189,13 +1187,13 @@ typedef float SC_HANDLE, SERVICE_STATUS_HANDLE, SC_LOCK;	// This is just to keep
 // @pyswig <o PySC_HANDLE>|OpenService|Returns a handle to the specified service.
 SC_HANDLE OpenService(
 	SC_HANDLE hSCManager, // @pyparm <o PySC_HANDLE>|scHandle||Handle to the Service Control Mananger
-	TCHAR *name, // @pyparm <o PyUnicode>|name||The name of the service to open.
+	TCHAR *name, // @pyparm string|name||The name of the service to open.
 	unsigned long desiredAccess); // @pyparm int|desiredAccess||The access desired.
 
 // @pyswig <o PySC_HANDLE>|OpenSCManager|Returns a handle to the service control manager
 SC_HANDLE OpenSCManager(
-	TCHAR *INPUT_NULLOK, // @pyparm <o PyUnicode>|machineName||The name of the computer, or None
-	TCHAR *INPUT_NULLOK, // @pyparm <o PyUnicode>|dbName||The name of the service database, or None
+	TCHAR *INPUT_NULLOK, // @pyparm string|machineName||The name of the computer, or None
+	TCHAR *INPUT_NULLOK, // @pyparm string|dbName||The name of the service database, or None
 	unsigned long desiredAccess); // @pyparm int|desiredAccess||The access desired. (combination of win32service.SC_MANAGER_* flags)
 
 %{
@@ -1342,13 +1340,13 @@ PyObject *MyQueryServiceObjectSecurity(PyObject *self, PyObject *args)
 }
 %}
 
-// @pyswig <o PyUNICODE>|GetServiceKeyName|Translates a service display name into its registry key name
+// @pyswig string|GetServiceKeyName|Translates a service display name into its registry key name
 %native (GetServiceKeyName) MyGetServiceKeyName;
 %{
 PyObject *MyGetServiceKeyName(PyObject *self, PyObject *args)
 {
 	// @pyparm <o PySC_HANDLE>|hSCManager||Handle to service control manager as returned by <om win32service.OpenSCManager>
-	// @pyparm <o PyUNICODE>|DisplayName||Display name of a service
+	// @pyparm string|DisplayName||Display name of a service
 	SC_HANDLE h;
 	PyObject *obh;
 	WCHAR *displayname;
@@ -1370,13 +1368,13 @@ PyObject *MyGetServiceKeyName(PyObject *self, PyObject *args)
 }
 %}
 
-// @pyswig <o PyUNICODE>|GetServiceDisplayName|Translates an internal service name into its display name
+// @pyswig string|GetServiceDisplayName|Translates an internal service name into its display name
 %native (GetServiceDisplayName) MyGetServiceDisplayName;
 %{
 PyObject *MyGetServiceDisplayName(PyObject *self, PyObject *args)
 {
 	// @pyparm <o PySC_HANDLE>|hSCManager||Handle to service control manager as returned by <om win32service.OpenSCManager>
-	// @pyparm <o PyUNICODE>|ServiceName||Name of service
+	// @pyparm string|ServiceName||Name of service
 	SC_HANDLE h;
 	PyObject *obh;
 	WCHAR *keyname;
@@ -1417,18 +1415,18 @@ BOOLAPI DeleteService(SC_HANDLE);
 // @pyswig <o PySC_HANDLE>/(<o PySC_HANDLE>, int)|CreateService|Creates a new service.
 %name (CreateService) PyObject * MyCreateService(
     SC_HANDLE hSCManager,	// @pyparm <o PySC_HANDLE>|scHandle||handle to service control manager database  
-    TCHAR *name,			// @pyparm <o PyUnicode>|name||Name of service
-    TCHAR *displayName,		// @pyparm <o PyUnicode>|displayName||Display name 
+    TCHAR *name,			// @pyparm string|name||Name of service
+    TCHAR *displayName,		// @pyparm string|displayName||Display name 
     DWORD dwDesiredAccess,	// @pyparm int|desiredAccess||type of access to service 
     DWORD dwServiceType,	// @pyparm int|serviceType||type of service 
     DWORD dwStartType,		// @pyparm int|startType||When/how to start service 
     DWORD dwErrorControl,	// @pyparm int|errorControl||severity if service fails to start
-    TCHAR *binaryFile,	// @pyparm <o PyUnicode>|binaryFile||name of binary file 
-    TCHAR *INPUT_NULLOK,	// @pyparm <o PyUnicode>|loadOrderGroup||name of load ordering group , or None
+    TCHAR *binaryFile,	// @pyparm string|binaryFile||name of binary file 
+    TCHAR *INPUT_NULLOK,	// @pyparm string|loadOrderGroup||name of load ordering group , or None
     BOOL  bFetchTag,            // @pyparm int|bFetchTag||Should the tag be fetched and returned?  If TRUE, the result is a tuple of (handle, tag), otherwise just handle.
-    PyObject *pyobject,		// @pyparm [<o PyUnicode>,...]|serviceDeps||sequence of dependency names 
-    TCHAR *INPUT_NULLOK,	// @pyparm <o PyUnicode>|acctName||account name of service, or None
-    TCHAR *INPUT_NULLOK 	// @pyparm <o PyUnicode>|password||password for service account , or None
+    PyObject *pyobject,		// @pyparm [string,...]|serviceDeps||sequence of dependency names 
+    TCHAR *INPUT_NULLOK,	// @pyparm string|acctName||account name of service, or None
+    TCHAR *INPUT_NULLOK 	// @pyparm string|password||password for service account , or None
    );
 
 // @pyswig int/None|ChangeServiceConfig|Changes the configuration of an existing service.
@@ -1437,13 +1435,13 @@ BOOLAPI DeleteService(SC_HANDLE);
     DWORD dwServiceType,	// @pyparm int|serviceType||type of service, or SERVICE_NO_CHANGE
     DWORD dwStartType,		// @pyparm int|startType||When/how to start service, or SERVICE_NO_CHANGE
     DWORD dwErrorControl,	// @pyparm int|errorControl||severity if service fails to start, or SERVICE_NO_CHANGE
-    TCHAR *INPUT_NULLOK,	// @pyparm <o PyUnicode>|binaryFile||name of binary file, or None
-    TCHAR *INPUT_NULLOK,	// @pyparm <o PyUnicode>|loadOrderGroup||name of load ordering group , or None
+    TCHAR *INPUT_NULLOK,	// @pyparm string|binaryFile||name of binary file, or None
+    TCHAR *INPUT_NULLOK,	// @pyparm string|loadOrderGroup||name of load ordering group , or None
     BOOL  bFetchTag,		// @pyparm int|bFetchTag||Should the tag be fetched and returned?  If TRUE, the result is the tag, else None.
-    PyObject *pyobject,		// @pyparm [<o PyUnicode>,...]|serviceDeps||sequence of dependency names 
-    TCHAR *INPUT_NULLOK,	// @pyparm <o PyUnicode>|acctName||account name of service, or None
-    TCHAR *INPUT_NULLOK,	// @pyparm <o PyUnicode>|password||password for service account , or None
-    TCHAR *INPUT_NULLOK		// @pyparm <o PyUnicode>|displayName||Display name 
+    PyObject *pyobject,		// @pyparm [string,...]|serviceDeps||sequence of dependency names 
+    TCHAR *INPUT_NULLOK,	// @pyparm string|acctName||account name of service, or None
+    TCHAR *INPUT_NULLOK,	// @pyparm string|password||password for service account , or None
+    TCHAR *INPUT_NULLOK		// @pyparm string|displayName||Display name 
    );
 
 // @pyswig int|LockServiceDatabase|Locks the service database.
@@ -1457,7 +1455,7 @@ BOOLAPI UnlockServiceDatabase(
 );
 
 %{
-// @pyswig (int, <o PyUnicode>, int)|QueryServiceLockStatus|Retrieves the lock status of the specified service control manager database. 
+// @pyswig (int, string, int)|QueryServiceLockStatus|Retrieves the lock status of the specified service control manager database. 
 static PyObject *PyQueryServiceLockStatus(PyObject *self, PyObject *args)
 {
 	SC_HANDLE handle;
@@ -1494,12 +1492,12 @@ static PyObject *PyQueryServiceLockStatus(PyObject *self, PyObject *args)
 
 // @object SC_ACTION|Tuple of 2 ints (Type,Delay) used to represent an SC_ACTION structure
 // @prop int|Type|One of SC_ACTION_NONE, SC_ACTION_REBOOT, SC_ACTION_RESTART, SC_ACTION_RUN_COMMAND
-// @prop int|Delay|Time delay before specified action is taken (in milliseconds) 
+// @prop int|Delay|Time delay before specified action is taken (in milliseconds)
 
 // @object SERVICE_FAILURE_ACTIONS|A dictionary representing a SERVICE_FAILURE_ACTIONS structure
 // @prop int|ResetPeriod|Indicates how many seconds to wait to reset the failure count, can be INFINITE
-// @prop str/<o PyUnicode>|RebootMsg|Message displayed when reboot action is taken
-// @prop str/<o PyUnicode>|Command|Command line to execute for SC_ACTION_RUN_COMMAND
+// @prop string|RebootMsg|Message displayed when reboot action is taken
+// @prop string|Command|Command line to execute for SC_ACTION_RUN_COMMAND
 // @prop tuple|Actions|A tuple of <o SC_ACTION> tuples
 
 %{

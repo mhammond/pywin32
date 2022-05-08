@@ -2200,7 +2200,5 @@ PYWIN_MODULE_INIT_FUNC(win32crypt)
 
     dummy_tuple = PyTuple_New(0);
 
-#if (PY_VERSION_HEX >= 0x03000000)
     return module;
-#endif
 }

@@ -382,13 +382,6 @@ BOOL PyObject_AsPROPVARIANT(PyObject *ob, PROPVARIANT *pVar)
                 pVar->vt = VT_UI4;
             }
         }
-#if (PY_VERSION_HEX < 0x03000000)
-        // Not needed in Py3k, as PyLong_Check is defined to PyLong_Check
-    }
-    else if (PyLong_Check(ob)) {
-        pVar->lVal = PyLong_AsLong(ob);
-        pVar->vt = VT_I4;
-#endif
     }
     else if (PyFloat_Check(ob)) {
         pVar->dblVal = PyFloat_AsDouble(ob);

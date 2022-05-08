@@ -24,10 +24,6 @@
  WRT Mark Hammond, on who's examples much of this is based.
 
   This module seeks to implement the WNET win32 api functions for Windows NT.
-  It will compile for both UNICODE and ASCII environments.  By extension of the
-  UNICODE compatibility, it seeks to support Windows CE.  This functionality
-  (Windows CE) has not yet been tested (or even compiled!).
-
 
   REVISION HISTORY:
   7/00  - Convert comments to autoduck strings.         mh
@@ -39,18 +35,6 @@
   1/99	- Windows CE conditionals started. Not tested.	SC
   2/99	- First public release.  Work in Progress.	SC
 */
-
-#if defined(_WIN32_WCE_)  // defined by Windows CE compiler environment
-
-#ifndef UNICODE
-#define UNICODE
-#endif
-
-#ifndef _UNICODE
-#define _UNICODE
-#endif
-
-#endif
 
 #include "PyWinTypes.h"
 #include "PyWinObjects.h"  // for the PyHANDLE impl.

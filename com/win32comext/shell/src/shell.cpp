@@ -947,8 +947,8 @@ BOOL PyObject_AsSHFILEOPSTRUCT(PyObject *ob, SHFILEOPSTRUCT *p)
             ob, "OiOO|iOO",
             &obhwnd,    // @tupleitem 0|int|hwnd|Handle of window in which to display status messages
             &p->wFunc,  // @tupleitem 1|int|wFunc|One of the shellcon.FO_* values
-            &obFrom,    // @tupleitem 2|str/unicode|From|String containing source file name(s) separated by nulls
-            &obTo,  // @tupleitem 3|str/unicode|To|String containing destination file name(s) separated by nulls, can be
+            &obFrom,    // @tupleitem 2|string|From|String containing source file name(s) separated by nulls
+            &obTo,  // @tupleitem 3|string|To|String containing destination file name(s) separated by nulls, can be
                     // None
             &p->fFlags,         // @tupleitem 4|int|flags|Combination of shellcon.FOF_* flags. Default=0
             &obNameMappings,    // @tupleitem 5|None|NameMappings|Maps input file names to their new names.  This is
@@ -1130,7 +1130,7 @@ static PyObject *PySHBrowseForFolder(PyObject *self, PyObject *args)
             &obhwndOwner,  // @pyparm <o PyHANDLE>|hwndOwner|None|Parent window for the dialog box, can be None
             &obPIDL,   // @pyparm <o PyIDL>|pidlRoot|None|PIDL identifying the place to start browsing. Desktop is used
                        // if not specified
-            &obTitle,  // @pyparm <o Unicode>/string|title|None|Title to be displayed with the directory tree
+            &obTitle,  // @pyparm string|title|None|Title to be displayed with the directory tree
             &bi.ulFlags,  // @pyparm int|flags|0|Combination of shellcon.BIF_* flags
             &obcb,        // @pyparm object|callback|None|A callable object to be used as the callback, or None
             &obcbparam))  // @pyparm object|callback_data|None|An object passed to the callback function
@@ -1212,7 +1212,7 @@ static PyObject *PySHGetPathFromIDList(PyObject *self, PyObject *args)
     return rc;
 }
 
-// @pymethod <o PyUnicode>|shell|SHGetPathFromIDListW|Converts an IDLIST to a path.
+// @pymethod string|shell|SHGetPathFromIDListW|Converts an IDLIST to a path.
 static PyObject *PySHGetPathFromIDListW(PyObject *self, PyObject *args)
 {
     WCHAR buffer[MAX_PATH];
@@ -1239,7 +1239,7 @@ static PyObject *PySHGetPathFromIDListW(PyObject *self, PyObject *args)
     return rc;
 }
 
-// @pymethod <o PyUnicode>|shell|SHGetSpecialFolderPath|Retrieves the path of a special folder.
+// @pymethod string|shell|SHGetSpecialFolderPath|Retrieves the path of a special folder.
 static PyObject *PySHGetSpecialFolderPath(PyObject *self, PyObject *args)
 {
     HWND hwndOwner;
@@ -1269,7 +1269,7 @@ static PyObject *PySHGetSpecialFolderPath(PyObject *self, PyObject *args)
     return PyWinObject_FromWCHAR(buf);
 }
 
-// @pymethod <o PyUnicode>|shell|SHGetKnownFolderPath|Retrieves the full path of a known folder identified by the folder's KNOWNFOLDERID.
+// @pymethod string|shell|SHGetKnownFolderPath|Retrieves the full path of a known folder identified by the folder's KNOWNFOLDERID.
 static PyObject *PySHGetKnownFolderPath(PyObject *self, PyObject *args)
 {
     PyObject *obfid;
@@ -1374,7 +1374,7 @@ static PyObject *PySHGetFileInfo(PyObject *self, PyObject *args)
     return ret;
 }
 
-// @pymethod string/<o PyUnicode>|shell|SHGetFolderPath|Retrieves the path of a folder.
+// @pymethod string|shell|SHGetFolderPath|Retrieves the path of a folder.
 static PyObject *PySHGetFolderPath(PyObject *self, PyObject *args)
 {
     HWND hwndOwner;
@@ -1426,7 +1426,7 @@ static PyObject *PySHSetFolderPath(PyObject *self, PyObject *args)
         return OleSetOleError(E_NOTIMPL);
     if (!PyArg_ParseTuple(args, "lO|O:SHSetFolderPath",
                           &csidl,     // @pyparm int|csidl||One of the shellcon.CSIDL_* values
-                          &obPath,    // @pyparm str/unicode|Path||The full path to be set
+                          &obPath,    // @pyparm string|Path||The full path to be set
                           &obToken))  // @pyparm <o PyHANDLE>|hToken|None|Handle to an access token, can be None
         return NULL;
     if (!PyWinObject_AsHANDLE(obToken, &hToken))
@@ -1679,7 +1679,7 @@ static PyObject *PySHQueryRecycleBin(PyObject *self, PyObject *args)
     WCHAR *RootPath = NULL;
     SHQUERYRBINFO info;
     if (!PyArg_ParseTuple(args, "|O:SHQueryRecycleBin",
-                          &obRootPath))  // @pyparm <o PyUnicode>|RootPath|None|A path containing the drive whose
+                          &obRootPath))  // @pyparm string|RootPath|None|A path containing the drive whose
                                          // recycle bin will be queried, or None for all drives
         return NULL;
     if (!PyWinObject_AsWCHAR(obRootPath, &RootPath, TRUE))
@@ -1704,7 +1704,7 @@ static PyObject *PyWinObject_FromSHNAMEMAPPINGS(LPVOID hNameMappings)
     // according to the SDK, SHFILEOPSTRUCT.hNameMappings should be interpreted thusly:
     struct SHNAMEMAPPINGS {
         UINT nbr_of_mappings;
-        LPSHNAMEMAPPINGW pmappings;  // on WinNT and up, the unicode version will always be returned
+        LPSHNAMEMAPPINGW pmappings;
     };
     SHNAMEMAPPINGS *mappings = (SHNAMEMAPPINGS *)hNameMappings;
     ret = PyTuple_New(mappings->nbr_of_mappings);
@@ -1970,7 +1970,7 @@ static PyObject *PyDragQueryFile(PyObject *self, PyObject *args)
     return ret;
 }
 
-// @pymethod int/<o PyUnicode>|shell|DragQueryFileW|Retrieves the names (or count) of dropped files
+// @pymethod int/string|shell|DragQueryFileW|Retrieves the names (or count) of dropped files
 static PyObject *PyDragQueryFileW(PyObject *self, PyObject *args)
 {
     HDROP hglobal;
@@ -2174,12 +2174,8 @@ static PyObject *PyFILEGROUPDESCRIPTORAsString(PyObject *self, PyObject *args)
     // you only need specify attributes you care about.
     // <nl>In general, you can omit dwFlags - it will be set correctly based
     // on what other attributes exist.
-    // @pyparm bool|make_unicode|False on py2k, True on py3k|If true, a FILEDESCRIPTORW object is created
-#ifdef UNICODE
+    // @pyparm bool|make_unicode|True|If true, a FILEDESCRIPTORW object is created
     int make_unicode = TRUE;
-#else
-    int make_unicode = FALSE;
-#endif
     if (!PyArg_ParseTuple(args, "O|i", &ob, &make_unicode))
         return NULL;
     if (!PySequence_Check(ob))
@@ -2692,7 +2688,7 @@ static PyObject *PySHGetViewStatePropertyBag(PyObject *self, PyObject *args)
         return OleSetOleError(E_NOTIMPL);
     if (!PyArg_ParseTuple(args, "OOkO",
                           &obpidl,     // @pyparm <o PyIDL>|pidl||An item id list that identifies the folder
-                          &obbagname,  // @pyparm <o PyUnicode>|BagName||Name of the property bag to retrieve
+                          &obbagname,  // @pyparm string|BagName||Name of the property bag to retrieve
                           &flags,      // @pyparm int|Flags||Combination of SHGVSPB_* flags
                           &obriid))    // @pyparm <o PyIID>|riid||The interface to return, usually IID_IPropertyBag
         return NULL;
@@ -2728,7 +2724,7 @@ static PyObject *PySHILCreateFromPath(PyObject *self, PyObject *args)
         return OleSetOleError(E_NOTIMPL);
     if (!PyArg_ParseTuple(
             args, "Ok:SHILCreateFromPath",
-            &obpath,  // @pyparm <o PyUnicode>|Path||The path whose PIDL will be returned
+            &obpath,  // @pyparm string|Path||The path whose PIDL will be returned
             &flags))  // @pyparm int|Flags||A combination of SFGAO_* constants as used with GetAttributesOf
         return NULL;
     if (!PyWinObject_AsWCHAR(obpath, &path, FALSE))
