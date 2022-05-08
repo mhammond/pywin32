@@ -6,6 +6,9 @@ However contributors are encouraged to add their own entries for their work.
 
 Note that build 228 was the last version supporting Python 2.
 
+Since build 304:
+----------------
+
 Since build 303:
 ----------------
 * Fixed Unicode issues in the `dde` module (#1861, @markuskimius )

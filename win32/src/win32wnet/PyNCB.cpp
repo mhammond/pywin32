@@ -240,7 +240,7 @@ int PyNCB::setattro(PyObject *self, PyObject *obname, PyObject *v)
         char *value;
         DWORD valuelen;
 
-        if (!PyWinObject_AsString(v, &value, FALSE, &valuelen))
+        if (!PyWinObject_AsChars(v, &value, FALSE, &valuelen))
             return -1;
         if (valuelen > NCBNAMSZ)  // cap string length at NCBNAMSZ(16)
             valuelen = NCBNAMSZ;
@@ -249,14 +249,14 @@ int PyNCB::setattro(PyObject *self, PyObject *obname, PyObject *v)
         strncpy((char *)This->m_ncb.ncb_callname, value, valuelen);
         if (valuelen == 0)  // source was null string
             This->m_ncb.ncb_callname[0] = '\0';
-        PyWinObject_FreeString(value);
+        PyWinObject_FreeChars(value);
         return 0;
     }
 
     if (strcmp(name, "Name") == 0) {
         char *value;
         DWORD valuelen;
-        if (!PyWinObject_AsString(v, &value, FALSE, &valuelen))
+        if (!PyWinObject_AsChars(v, &value, FALSE, &valuelen))
             return -1;
         if (valuelen > NCBNAMSZ)  // cap string length at NCBNAMSZ(16)
             valuelen = NCBNAMSZ;
@@ -265,7 +265,7 @@ int PyNCB::setattro(PyObject *self, PyObject *obname, PyObject *v)
         strncpy((char *)This->m_ncb.ncb_name, value, valuelen);
         if (valuelen == 0)  // source was null string
             This->m_ncb.ncb_callname[0] = '\0';
-        PyWinObject_FreeString(value);
+        PyWinObject_FreeChars(value);
         return 0;
     }
 

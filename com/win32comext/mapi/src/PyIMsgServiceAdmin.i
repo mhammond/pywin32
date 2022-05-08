@@ -101,8 +101,8 @@ PyObject *PyIMsgServiceAdmin::CreateMsgService(PyObject *self, PyObject *args)
 		result = Py_BuildValue("");
 
 done:
-	PyWinObject_FreeString(lpszService);
-	PyWinObject_FreeString(lpszDisplayName);
+	PyWinObject_FreeMAPIStr(lpszService, ulFlags & MAPI_UNICODE);
+	PyWinObject_FreeMAPIStr(lpszDisplayName, ulFlags & MAPI_UNICODE);
 	
 	return result;
 }

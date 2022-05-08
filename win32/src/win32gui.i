@@ -6443,7 +6443,7 @@ BOOL PyParse_OPENFILENAMEW_Args(PyObject *args, PyObject *kwargs, OPENFILENAMEW 
 		PyWinObject_AsWCHAR(obInitialDir, (WCHAR **)&pofn->lpstrInitialDir, TRUE) &&
 		PyWinObject_AsWCHAR(obTitle, (WCHAR **)&pofn->lpstrTitle, TRUE) &&
 		PyWinObject_AsWCHAR(obDefExt, (WCHAR **)&pofn->lpstrDefExt, TRUE) &&
-		PyWinObject_AsResourceIdW(obTemplateName, (WCHAR **)&pofn->lpTemplateName, TRUE);
+		PyWinObject_AsResourceId(obTemplateName, (WCHAR **)&pofn->lpTemplateName, TRUE);
 		
 	done:
 	if (!ret)

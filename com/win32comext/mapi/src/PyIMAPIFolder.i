@@ -114,8 +114,8 @@ PyObject *PyIMAPIFolder::CreateFolder(PyObject *self, PyObject *args)
 		MAKE_OUTPUT_INTERFACE(&lpFolder, result, IID_IMAPIFolder);
 
 done:
-	PyWinObject_FreeString(lpszFolderName);
-	PyWinObject_FreeString(lpszFolderComment);
+	PyWinObject_FreeMAPIStr(lpszFolderName, ulFlags & MAPI_UNICODE);
+	PyWinObject_FreeMAPIStr(lpszFolderComment, ulFlags & MAPI_UNICODE);
 	
 	return result;
 }

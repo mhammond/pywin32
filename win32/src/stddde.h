@@ -56,12 +56,10 @@ class CDDEAllocator {
         LPBYTE p = (LPBYTE)(const TCHAR *)cs;
         DWORD cb = (cs.GetLength() + 1) * sizeof(TCHAR);
 
-#if defined(UNICODE)
         if(m_wFmt == CF_TEXT) {
             p = (LPBYTE)(const char*)CT2CA(cs);
             cb = (cs.GetLength() + 1) * sizeof(const char);
         }
-#endif
 
         return Alloc(p, cb);
     }
@@ -397,10 +395,6 @@ class CDDEServer : public CObject {
     CDDESystemItem_FormatList m_SystemItemFormats;
 };
 
-#ifdef UNICODE
 #define DDE_STRING_CODEPAGE CP_WINUNICODE
-#else
-#define DDE_STRING_CODEPAGE CP_WINANSI
-#endif
 
 #endif  // _STDDDE_

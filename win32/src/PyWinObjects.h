@@ -126,37 +126,6 @@ class PYWINTYPES_EXPORT PyHKEY : public PyHANDLE {
     virtual const char *GetTypeName() { return "PyHKEY"; }
 };
 
-class PYWINTYPES_EXPORT PyDEVMODEA : public PyObject {
-   public:
-    static struct PyMemberDef members[];
-    static struct PyMethodDef methods[];
-
-    static PyObject *get_DeviceName(PyObject *self, void *unused);
-    static int set_DeviceName(PyObject *self, PyObject *obsd, void *unused);
-    static PyObject *get_FormName(PyObject *self, void *unused);
-    static int set_FormName(PyObject *self, PyObject *obsd, void *unused);
-    static PyObject *get_DriverData(PyObject *self, void *unused);
-    static int set_DriverData(PyObject *self, PyObject *obsd, void *unused);
-    static PyGetSetDef getset[];
-
-    static void deallocFunc(PyObject *ob);
-    PyDEVMODEA(PDEVMODEA);
-    PyDEVMODEA(void);
-    PyDEVMODEA(USHORT);
-    static PyObject *Clear(PyObject *self, PyObject *args);
-    static PyObject *tp_new(PyTypeObject *, PyObject *, PyObject *);
-    // use this where a function modifies a passed-in PyDEVMODE to make changes visible to Python
-    void modify_in_place(void) { memcpy(&devmode, pdevmode, pdevmode->dmSize); }
-    PDEVMODEA GetDEVMODE(void);
-
-   protected:
-    // Pointer to variable length DEVMODE with dmDriverExtra bytes allocated at end, always use this externally
-    PDEVMODEA pdevmode;
-    // copy of fixed portion of DEVMODE for structmember api to access
-    DEVMODEA devmode;
-    ~PyDEVMODEA();
-};
-
 // Unicode version of DEVMODE
 class PYWINTYPES_EXPORT PyDEVMODEW : public PyObject {
    public:
@@ -189,10 +158,6 @@ class PYWINTYPES_EXPORT PyDEVMODEW : public PyObject {
     ~PyDEVMODEW();
 };
 
-#ifdef UNICODE
 #define PyDEVMODE PyDEVMODEW
-#else
-#define PyDEVMODE PyDEVMODEA
-#endif
 
 #endif /* __PYWINOBJECTS_H__ */

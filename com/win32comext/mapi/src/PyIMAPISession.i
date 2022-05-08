@@ -229,10 +229,10 @@ PyObject *PyIMAPISession::CompareEntryIDs(PyObject *self, PyObject *args)
 		&flags)) // @pyparm int|flags|0|Reserved - must be zero.
         goto done;
 
-	if (!PyWinObject_AsString(obE1, (char **)&peid1, FALSE, &cb1))
+	if (!PyWinObject_AsChars(obE1, (char **)&peid1, FALSE, &cb1))
         goto done;
 
-	if (!PyWinObject_AsString(obE2, (char **)&peid2, FALSE, &cb2))
+	if (!PyWinObject_AsChars(obE2, (char **)&peid2, FALSE, &cb2))
         goto done;
 
 	Py_BEGIN_ALLOW_THREADS
@@ -243,8 +243,8 @@ PyObject *PyIMAPISession::CompareEntryIDs(PyObject *self, PyObject *args)
 	else
 		rc = PyLong_FromLong(ulResult);
 done:
-	PyWinObject_FreeString((char *)peid1);
-	PyWinObject_FreeString((char *)peid2);
+	PyWinObject_FreeChars((char *)peid1);
+	PyWinObject_FreeChars((char *)peid2);
 	return rc;
 }
 %}

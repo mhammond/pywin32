@@ -150,10 +150,10 @@ PyObject *PyIMsgStore::CompareEntryIDs(PyObject *self, PyObject *args)
 		&flags)) // @pyparm int|flags|0|Reserved - must be zero.
         goto done;
 
-	if (!PyWinObject_AsString(obE1, (char **)&peid1, FALSE, &cb1))
+	if (!PyWinObject_AsChars(obE1, (char **)&peid1, FALSE, &cb1))
         goto done;
 
-	if (!PyWinObject_AsString(obE2, (char **)&peid2, FALSE, &cb2))
+	if (!PyWinObject_AsChars(obE2, (char **)&peid2, FALSE, &cb2))
         goto done;
 
 	Py_BEGIN_ALLOW_THREADS
@@ -164,8 +164,8 @@ PyObject *PyIMsgStore::CompareEntryIDs(PyObject *self, PyObject *args)
 	else
 		rc = PyLong_FromLong(ulResult);
 done:
-	PyWinObject_FreeString((char *)peid1);
-	PyWinObject_FreeString((char *)peid2);
+	PyWinObject_FreeChars((char *)peid1);
+	PyWinObject_FreeChars((char *)peid2);
 	return rc;
 }
 %}
@@ -221,7 +221,7 @@ PyObject *PyIMsgStore::AbortSubmit(PyObject *self, PyObject *args)
 		&flags)) // @pyparm int|flags|0|Reserved - must be zero.
 		goto done;
 
-	if (!PyWinObject_AsString(obE, (char **)&peid, FALSE, &cb))
+	if (!PyWinObject_AsChars(obE, (char **)&peid, FALSE, &cb))
 		goto done;
 
 	Py_BEGIN_ALLOW_THREADS
@@ -234,7 +234,7 @@ PyObject *PyIMsgStore::AbortSubmit(PyObject *self, PyObject *args)
 		Py_INCREF(Py_None);
 	}
 done:
-	PyWinObject_FreeString((char *)peid);
+	PyWinObject_FreeChars((char *)peid);
 	return rc;
 }
 %}

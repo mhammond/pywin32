@@ -2,13 +2,6 @@
     if (pfn##fname == NULL) \
         return PyErr_Format(PyExc_NotImplementedError, "%s is not available on this platform", #fname);
 
-// Macro to allow loading the correct ANSI/wide-character version of a function from a .dll
-#ifdef UNICODE
-#define A_OR_W "W"
-#else
-#define A_OR_W "A"
-#endif
-
 PyObject *PyChangeDisplaySettings(PyObject *self, PyObject *args);
 PyObject *PyChangeDisplaySettingsEx(PyObject *self, PyObject *args, PyObject *kwargs);
 PyObject *PyEnumDisplayDevices(PyObject *self, PyObject *args, PyObject *kwargs);

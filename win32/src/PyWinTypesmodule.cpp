@@ -407,26 +407,6 @@ static PyObject *PyWin_DosDateTimeToTime(PyObject *self, PyObject *args)
 }
 #endif /* MS_WINCE */
 
-PyObject *PyObject_FromWIN32_FIND_DATAA(WIN32_FIND_DATAA *pData)
-{
-    // @object WIN32_FIND_DATA|A tuple representing a WIN32_FIND_DATA structure.
-    return Py_BuildValue(
-        "lNNNNNNNss",
-        pData->dwFileAttributes,  // @tupleitem 0|int|attributes|File Attributes.  A combination of the
-                                  // win32com.FILE_ATTRIBUTE_* flags.
-        PyWinObject_FromFILETIME(pData->ftCreationTime),    // @tupleitem 1|<o PyDateTime>|createTime|File creation time.
-        PyWinObject_FromFILETIME(pData->ftLastAccessTime),  // @tupleitem 2|<o PyDateTime>|accessTime|File access time.
-        PyWinObject_FromFILETIME(pData->ftLastWriteTime),   // @tupleitem 3|<o PyDateTime>|writeTime|Time of last file write
-        PyLong_FromUnsignedLong(pData->nFileSizeHigh),  // @tupleitem 4|int|nFileSizeHigh|high order DWORD of file size.
-        PyLong_FromUnsignedLong(pData->nFileSizeLow),   // @tupleitem 5|int|nFileSizeLow|low order DWORD of file size.
-        PyLong_FromUnsignedLong(
-            pData->dwReserved0),  // @tupleitem 6|int|reserved0|Contains reparse tag if path is a reparse point
-        PyLong_FromUnsignedLong(pData->dwReserved1),  // @tupleitem 7|int|reserved1|Reserved.
-        pData->cFileName,                             // @tupleitem 8|str/unicode|fileName|The name of the file.
-        pData->cAlternateFileName);  // @tupleitem 9|str/unicode|alternateFilename|Alternative name of the file,
-                                     // expressed in 8.3 format.
-}
-
 PyObject *PyObject_FromWIN32_FIND_DATAW(WIN32_FIND_DATAW *pData)
 {
     return Py_BuildValue("lNNNNNNNuu", pData->dwFileAttributes, PyWinObject_FromFILETIME(pData->ftCreationTime),
@@ -578,16 +558,11 @@ PyObject *PyWinLong_FromVoidPtr(const void *ptr)
 }
 
 // @object PyResourceId|Identifies a resource or function in a module.
-//	This can be a WORD-sized integer value (0-65536), or string/unicode
-//	depending on whether the *A or *W API function is to be called.
-//	Class atoms as used with <om win32gui.CreateWindow> are also treated
-//	as resource ids since they can also be represented by a name or WORD id.
-//	When passing resource names and types as strings, they are usually formatted
-//	as a pound sign followed by decimal form of the id.  ('#42' for example)
+//    This can be a WORD-sized integer value (0-65536), or bytes.
 BOOL PyWinObject_AsResourceIdA(PyObject *ob, char **presource_id, BOOL bNoneOK)
 {
     // Plain character conversion
-    if (PyWinObject_AsString(ob, presource_id, bNoneOK))
+    if (PyWinObject_AsChars(ob, presource_id, bNoneOK))
         return TRUE;
     PyErr_Clear();
     if (PyWinLong_AsVoidPtr(ob, (void **)presource_id) && IS_INTRESOURCE(*presource_id))
@@ -597,9 +572,20 @@ BOOL PyWinObject_AsResourceIdA(PyObject *ob, char **presource_id, BOOL bNoneOK)
     return FALSE;
 }
 
-BOOL PyWinObject_AsResourceIdW(PyObject *ob, WCHAR **presource_id, BOOL bNoneOK)
+void PyWinObject_FreeResourceIdA(char *resource_id)
 {
-    // Unicode version of above
+    if ((resource_id != NULL) && !IS_INTRESOURCE(resource_id))
+        PyWinObject_FreeChars(resource_id);
+}
+
+// @object PyResourceId|Identifies a resource or function in a module.
+//    This can be a WORD-sized integer value (0-65536), or unicode.
+//    Class atoms as used with <om win32gui.CreateWindow> are also treated
+//    as resource ids since they can also be represented by a name or WORD id.
+//    When passing resource names and types as strings, they are usually formatted
+//    as a pound sign followed by decimal form of the id.  ('#42' for example)
+BOOL PyWinObject_AsResourceId(PyObject *ob, WCHAR **presource_id, BOOL bNoneOK)
+{
     if (PyWinObject_AsWCHAR(ob, presource_id, bNoneOK))
         return TRUE;
     PyErr_Clear();
@@ -610,17 +596,10 @@ BOOL PyWinObject_AsResourceIdW(PyObject *ob, WCHAR **presource_id, BOOL bNoneOK)
     return FALSE;
 }
 
-// PyWinObject_FreeString is overloaded to accept either char * or WCHAR *
-void PyWinObject_FreeResourceId(char *resource_id)
-{
-    if ((resource_id != NULL) && !IS_INTRESOURCE(resource_id))
-        PyWinObject_FreeString(resource_id);
-}
-
 void PyWinObject_FreeResourceId(WCHAR *resource_id)
 {
     if ((resource_id != NULL) && !IS_INTRESOURCE(resource_id))
-        PyWinObject_FreeString(resource_id);
+        PyWinObject_FreeWCHAR(resource_id);
 }
 
 // Conversion for WPARAM and LPARAM
@@ -913,7 +892,7 @@ int PyWinGlobals_Ensure()
         ??? All extension modules that call this need to be changed to check the exit code ???
     */
     if (PyType_Ready(&PyHANDLEType) == -1 || PyType_Ready(&PyOVERLAPPEDType) == -1 ||
-        PyType_Ready(&PyDEVMODEAType) == -1 || PyType_Ready(&PyDEVMODEWType) == -1 ||
+        PyType_Ready(&PyDEVMODEWType) == -1 ||
         PyType_Ready(&PyWAVEFORMATEXType) == -1
 #ifndef NO_PYWINTYPES_IID
         || PyType_Ready(&PyIIDType) == -1
@@ -1003,7 +982,6 @@ PYWIN_MODULE_INIT_FUNC(pywintypes)
 #endif
     ADD_TYPE(HANDLEType);
     ADD_TYPE(OVERLAPPEDType);
-    ADD_TYPE(DEVMODEAType);
     ADD_TYPE(DEVMODEWType);
     if (PyDict_SetItemString(dict, "DEVMODEType", (PyObject *)&PyDEVMODEWType) == -1)
         PYWIN_MODULE_INIT_RETURN_ERROR;

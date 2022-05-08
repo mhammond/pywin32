@@ -45,17 +45,17 @@ PyObject *PyICopyHookA::CopyCallback(PyObject *self, PyObject *args)
     if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd))
         return NULL;
     BOOL bPythonIsHappy = TRUE;
-    if (bPythonIsHappy && !PyWinObject_AsString(obsrcFile, &srcFile))
+    if (bPythonIsHappy && !PyWinObject_AsChars(obsrcFile, &srcFile))
         bPythonIsHappy = FALSE;
-    if (bPythonIsHappy && !PyWinObject_AsString(obdestFile, &destFile))
+    if (bPythonIsHappy && !PyWinObject_AsChars(obdestFile, &destFile))
         bPythonIsHappy = FALSE;
     if (!bPythonIsHappy)
         return NULL;
     HRESULT hr;
     PY_INTERFACE_PRECALL;
     hr = pICH->CopyCallback(hwnd, wFunc, wFlags, srcFile, srcAttribs, destFile, destAttribs);
-    PyWinObject_FreeString(srcFile);
-    PyWinObject_FreeString(destFile);
+    PyWinObject_FreeChars(srcFile);
+    PyWinObject_FreeChars(destFile);
 
     PY_INTERFACE_POSTCALL;
 

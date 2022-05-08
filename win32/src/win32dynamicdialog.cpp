@@ -507,9 +507,9 @@ static CPythonDialogTemplate *ParseDlgHdrList(PyObject *tmpl)
 
     if (!PyWinObject_AsWCHAR(obcaption, &caption, FALSE))
         goto cleanup;
-    if (!PyWinObject_AsResourceIdW(obmenu, &menu, TRUE))
+    if (!PyWinObject_AsResourceId(obmenu, &menu, TRUE))
         goto cleanup;
-    if (!PyWinObject_AsResourceIdW(obwclass, &wclass, TRUE))
+    if (!PyWinObject_AsResourceId(obwclass, &wclass, TRUE))
         goto cleanup;
     if (obexstyle != Py_None) {
         tpl.dwExtendedStyle = PyLong_AsUnsignedLong(obexstyle);
@@ -592,7 +592,7 @@ static BOOL ParseDlgItemList(CPythonDialogTemplate *dlg, PyObject *tmpl)
     if (!PyArg_ParseTuple(obitem, "OOH|(hhhh)kkO:DLGITEMTEMPLATE", &obwclass, &obcaption, &tpl.id, &tpl.x, &tpl.y,
                           &tpl.cx, &tpl.cy, &tpl.style, &tpl.dwExtendedStyle, &obdata))
         goto cleanup;
-    if (!PyWinObject_AsResourceIdW(obwclass, &wclass, FALSE))
+    if (!PyWinObject_AsResourceId(obwclass, &wclass, FALSE))
         goto cleanup;
     if (!PyWinObject_AsWCHAR(obcaption, &caption, TRUE))
         goto cleanup;

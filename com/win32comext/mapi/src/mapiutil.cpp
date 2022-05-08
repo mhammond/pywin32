@@ -184,7 +184,7 @@ BOOL PyMAPIObject_AsSPropValue(PyObject *Valob, SPropValue *pv, void *pAllocMore
         case PT_STRING8: {  // Copy into new MAPI memory block
             DWORD bufLen;
             char *str;
-            ok = PyWinObject_AsString(ob, &str, FALSE, &bufLen);
+            ok = PyWinObject_AsChars(ob, &str, FALSE, &bufLen);
             if (ok) {
                 bufLen++;
                 HRESULT hr = MAPIAllocateMore(bufLen, pAllocMoreLinkBlock, (void **)&pv->Value.lpszA);
@@ -198,7 +198,7 @@ BOOL PyMAPIObject_AsSPropValue(PyObject *Valob, SPropValue *pv, void *pAllocMore
                     memcpy(((char *)pv->Value.lpszA) + (bufLen - sizeof(char)), "\0", sizeof(char));
                 }
             }
-            PyWinObject_FreeString(str);
+            PyWinObject_FreeChars(str);
             break;
         }
 
@@ -215,7 +215,7 @@ BOOL PyMAPIObject_AsSPropValue(PyObject *Valob, SPropValue *pv, void *pAllocMore
 
                 DWORD bufLen;
                 char *str;
-                ok = PyWinObject_AsString(obmv, &str, FALSE, &bufLen);
+                ok = PyWinObject_AsChars(obmv, &str, FALSE, &bufLen);
                 if (ok) {
                     bufLen++;
                     HRESULT hr = MAPIAllocateMore(bufLen, pAllocMoreLinkBlock, (void **)&pv->Value.MVszA.lppszA[i]);
@@ -229,7 +229,7 @@ BOOL PyMAPIObject_AsSPropValue(PyObject *Valob, SPropValue *pv, void *pAllocMore
                         memcpy(((char *)pv->Value.MVszA.lppszA[i]) + (bufLen - sizeof(char)), "\0", sizeof(char));
                     }
                 }
-                PyWinObject_FreeString(str);
+                PyWinObject_FreeChars(str);
                 Py_DECREF(obmv);
             }
             break;
@@ -1262,26 +1262,23 @@ PyObject *PyWinObject_FromMAPIStr(LPTSTR str, BOOL isUnicode)
         return PyUnicode_FromWideChar((LPCWSTR)str, wcslen((LPCWSTR)str));
     }
     else {
-#if PY_MAJOR_VERSION >= 3
         return (PyObject *)PyUnicode_DecodeMBCS((LPSTR)str, strlen((LPSTR)str), NULL);
-#else
-        return PyBytes_FromString((LPSTR)str);
-#endif
     }
 }
 
 BOOL PyWinObject_AsMAPIStr(PyObject *stringObject, LPTSTR *pResult, BOOL asUnicode, BOOL bNoneOK /*= FALSE*/,
                            DWORD *pResultLen /* = NULL */)
 {
-#if PY_MAJOR_VERSION >= 3
     if (asUnicode)
         return PyWinObject_AsWCHAR(stringObject, (LPWSTR *)pResult, bNoneOK, pResultLen);
     else
-        return PyWinObject_AsString(stringObject, (LPSTR *)pResult, bNoneOK, pResultLen);
-#else
-    if (asUnicode && PyUnicode_Check(stringObject))
-        return PyWinObject_AsWCHAR(stringObject, (LPWSTR *)pResult, bNoneOK, pResultLen);
-    // allows already encoded string pass-through workaround (backwards compat)
-    return PyWinObject_AsString(stringObject, (LPSTR *)pResult, bNoneOK, pResultLen);
-#endif
+        return PyWinObject_AsChars(stringObject, (LPSTR *)pResult, bNoneOK, pResultLen);
+}
+
+void PyWinObject_FreeMAPIStr(LPTSTR pString, BOOL wasUnicode)
+{
+    if (wasUnicode)
+        return PyWinObject_FreeWCHAR((WCHAR *)pString);
+    else
+        return PyWinObject_FreeChars((char *)pString);
 }

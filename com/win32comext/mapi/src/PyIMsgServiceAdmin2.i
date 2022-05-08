@@ -71,8 +71,8 @@ PyObject *PyIMsgServiceAdmin2::CreateMsgServiceEx(PyObject *self, PyObject *args
 		result = PyWinObject_FromIID(reinterpret_cast<GUID &>(uidService));
 
 done:
-	PyWinObject_FreeString(lpszService);
-	PyWinObject_FreeString(lpszDisplayName);
+	PyWinObject_FreeMAPIStr(lpszService, ulFlags & MAPI_UNICODE);
+	PyWinObject_FreeMAPIStr(lpszDisplayName, ulFlags & MAPI_UNICODE);
 
 	return result;
 }

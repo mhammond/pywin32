@@ -595,7 +595,9 @@ BOOL PyObject_AsCMINVOKECOMMANDINFO(PyObject *ob, CMINVOKECOMMANDINFO *pci)
         return FALSE;
     return TRUE;
 }
-void PyObject_FreeCMINVOKECOMMANDINFO(CMINVOKECOMMANDINFO *pci) { PyWinObject_FreeResourceId((char *)pci->lpVerb); }
+void PyObject_FreeCMINVOKECOMMANDINFO(CMINVOKECOMMANDINFO *pci) {
+    PyWinObject_FreeResourceIdA((char *)pci->lpVerb);
+}
 
 static PyObject *PyString_FromMaybeNullString(const char *sz)
 {
@@ -1507,12 +1509,12 @@ static PyObject *PySHAddToRecentDocs(PyObject *self, PyObject *args)
         case SHARD_PATHA: {
             // @flag SHARD_PATHA|String containing a file path
             char *buf;
-            if (!PyWinObject_AsString(ob, &buf, FALSE))
+            if (!PyWinObject_AsChars(ob, &buf, FALSE))
                 return NULL;
             PY_INTERFACE_PRECALL;
             SHAddToRecentDocs(flags, buf);
             PY_INTERFACE_POSTCALL;
-            PyWinObject_FreeString(buf);
+            PyWinObject_FreeChars(buf);
             break;
         }
         case SHARD_PATHW: {
@@ -2340,10 +2342,10 @@ static PyObject *PyFILEGROUPDESCRIPTORAsString(PyObject *self, PyObject *args)
             }
             else {
                 char *t;
-                ok = PyWinObject_AsString(attr, &t);
+                ok = PyWinObject_AsChars(attr, &t);
                 if (ok) {
                     strncpy(fd->cFileName, t, sizeof(fd->cFileName) / sizeof(char));
-                    PyWinObject_FreeString(t);
+                    PyWinObject_FreeChars(t);
                 }
             }
         }
@@ -2606,11 +2608,11 @@ static PyObject *PyShellExecuteEx(PyObject *self, PyObject *args, PyObject *kw)
         PyWin_SetAPIError("ShellExecuteEx");
 
 done:
-    PyWinObject_FreeString((char *)info.lpVerb);
-    PyWinObject_FreeString((char *)info.lpFile);
-    PyWinObject_FreeString((char *)info.lpParameters);
-    PyWinObject_FreeString((char *)info.lpDirectory);
-    PyWinObject_FreeString((char *)info.lpClass);
+    PyWinObject_FreeChars((char *)info.lpVerb);
+    PyWinObject_FreeChars((char *)info.lpFile);
+    PyWinObject_FreeChars((char *)info.lpParameters);
+    PyWinObject_FreeChars((char *)info.lpDirectory);
+    PyWinObject_FreeChars((char *)info.lpClass);
     PyObject_FreePIDL((ITEMIDLIST *)info.lpIDList);
     return ret;
 }

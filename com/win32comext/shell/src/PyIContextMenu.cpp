@@ -185,9 +185,9 @@ STDMETHODIMP PyGContextMenu::GetCommandString(
         }
         else {
             char *szResult;
-            if (PyWinObject_AsString(result, &szResult, FALSE, NULL)) {
+            if (PyWinObject_AsChars(result, &szResult, FALSE, NULL)) {
                 strncpy(pszName, szResult, cchMax);
-                PyWinObject_FreeString(szResult);
+                PyWinObject_FreeChars(szResult);
             }
         }
         hr = S_OK;

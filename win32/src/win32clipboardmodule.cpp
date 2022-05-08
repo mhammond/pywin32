@@ -915,7 +915,7 @@ static PyObject *py_set_clipboard_text(PyObject *self, PyObject *args)
     DWORD cb = 0;  // number of bytes *excluding* NULL
     size_t size_null = 0;
     if (format == CF_TEXT) {
-        if (!PyWinObject_AsString(obtext, (char **)&src, FALSE, &cb))
+        if (!PyWinObject_AsChars(obtext, (char **)&src, FALSE, &cb))
             return NULL;
         size_null = sizeof(char);
     }
@@ -953,7 +953,7 @@ static PyObject *py_set_clipboard_text(PyObject *self, PyObject *args)
             ret = PyWinLong_FromHANDLE(data);
     }
     if (format == CF_TEXT)
-        PyWinObject_FreeString((char *)src);
+        PyWinObject_FreeChars((char *)src);
     else
         PyWinObject_FreeWCHAR((WCHAR *)src);
     return ret;

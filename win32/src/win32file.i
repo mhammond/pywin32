@@ -4654,7 +4654,7 @@ static PyObject *py_GetFileAttributesEx(PyObject *self, PyObject *args, PyObject
 	if (bUnicode)
 		ok = PyWinObject_AsWCHAR(obfname, &wname, FALSE);
 	else
-		ok = PyWinObject_AsString(obfname, &cname, FALSE);
+		ok = PyWinObject_AsChars(obfname, &cname, FALSE);
 	if (!ok)
 		goto done;
 
@@ -4699,7 +4699,7 @@ static PyObject *py_GetFileAttributesEx(PyObject *self, PyObject *args, PyObject
 	if (buf)
 		free(buf);
 	PyWinObject_FreeWCHAR(wname);
-	PyWinObject_FreeString(cname);
+	PyWinObject_FreeChars(cname);
 	return ret;
 }
 
