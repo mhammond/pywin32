@@ -1,5 +1,7 @@
 # Utilities for the pywin32 tests
+import site
 import sys
+import os
 import unittest
 import gc
 import winerror
@@ -191,6 +193,39 @@ def check_is_admin():
             # not impl on this platform - must be old - assume is admin
             _is_admin = True
     return _is_admin
+
+
+# Find a test "fixture" (eg, binary test file) expected to be very close to
+# the test being run.
+# If the tests are being run from the "installed" version, then these fixtures
+# probably don't exist - the test is "skipped".
+# But it's fatal if we think we might be running from a pywin32 source tree.
+def find_test_fixture(basename, extra_dir="."):
+    # look for the test file in various places
+    candidates = [
+        os.path.dirname(sys.argv[0]),
+        extra_dir,
+        ".",
+    ]
+    for candidate in candidates:
+        fname = os.path.join(candidate, basename)
+        if os.path.isfile(fname):
+            return fname
+    else:
+        # Can't find it - see if this is expected or not.
+        # This module is typically always in the installed dir, so use argv[0]
+        this_file = os.path.normcase(os.path.abspath(sys.argv[0]))
+        dirs_to_check = site.getsitepackages()[:]
+        if site.USER_SITE:
+            dirs_to_check.append(site.USER_SITE)
+
+        for d in dirs_to_check:
+            d = os.path.normcase(d)
+            if os.path.commonprefix([this_file, d]) == d:
+                # looks like we are in an installed Python, so skip the text.
+                raise TestSkipped(f"Can't find test fixture '{fname}'")
+        # Looks like we are running from source, so this is fatal.
+        raise RuntimeError(f"Can't find test fixture '{fname}'")
 
 
 # If this exception is raised by a test, the test is reported as a 'skip'
