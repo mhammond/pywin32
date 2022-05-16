@@ -69,7 +69,15 @@ ph = win32api.OpenProcess(win32con.PROCESS_ALL_ACCESS, 0, pid)
 th = win32security.OpenProcessToken(
     ph, win32security.TOKEN_ALL_ACCESS
 )  ##win32con.TOKEN_ADJUST_PRIVILEGES)
-old_privs = win32security.AdjustTokenPrivileges(th, 0, new_privs)
+old_privs = win32security.GetTokenInformation(th, win32security.TokenPrivileges)
+desired_privs = tuple((e[0], win32con.SE_PRIVILEGE_ENABLED) for e in old_privs)
+modified_privs = win32security.AdjustTokenPrivileges(
+    th, 0, desired_privs
+)  # Will (partially) fail for new_privs (unless they are a subset of current ones)
+gle = win32api.GetLastError()
+if gle != 0:
+    print("AdjustTokenPrivileges error:", gle)
+# print(modified_privs)
 my_sid = win32security.GetTokenInformation(th, win32security.TokenUser)[0]
 pwr_sid = win32security.LookupAccountName("", "Power Users")[0]
 ## reopen process with ACCESS_SYSTEM_SECURITY now that sufficent privs are enabled
