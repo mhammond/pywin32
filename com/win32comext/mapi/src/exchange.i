@@ -359,12 +359,12 @@ static PyObject *PyHrCreateProfileName(PyObject *self, PyObject *args)
 	// @pyparm string/<o PyUnicode>|profPrefix||A prefix for the new profile.
 	if (!PyArg_ParseTuple(args, "O:HrCreateProfileName", &obPrefix))
 		return NULL;
-	if (!PyWinObject_AsString(obPrefix, &prefix))
+	if (!PyWinObject_AsChars(obPrefix, &prefix))
 		return NULL;
 	const int bufSize = MAX_PATH + 1;
 	char buf[bufSize];
 	_result = HrCreateProfileName(prefix, bufSize, buf);
-	PyWinObject_FreeString(prefix);
+	PyWinObject_FreeChars(prefix);
 	if (FAILED(_result))
 		return OleSetOleError(_result);
 	return PyWinCoreString_FromString(buf);
@@ -388,7 +388,7 @@ PyObject *PyHrCreateDirEntryIdEx(PyObject *self, PyObject *args)
 		&obDN))		 // @pyparm string|distinguishedName||The dn of the object to obtain the entry ID for.
 		return NULL;
 
-	if (!PyWinObject_AsString(obDN, &szdn, FALSE))
+	if (!PyWinObject_AsChars(obDN, &szdn, FALSE))
         goto done;
 
 	if (!PyCom_InterfaceFromPyInstanceOrObject(obAddrBook, IID_IAddrBook, (void **)&pAddrBook, /*BOOL bNoneOK=*/FALSE))
@@ -400,7 +400,7 @@ PyObject *PyHrCreateDirEntryIdEx(PyObject *self, PyObject *args)
 
 	ret = PyBytes_FromStringAndSize((char *)entryId, cbEntryId);
 done:
-	PyWinObject_FreeString(szdn);
+	PyWinObject_FreeChars(szdn);
 	if (pAddrBook) pAddrBook->Release();
 	return ret;
 }

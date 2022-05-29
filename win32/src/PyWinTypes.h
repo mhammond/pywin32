@@ -15,18 +15,8 @@
 #endif
 
 #include "Python.h"
-// many many files need python's structmember.h, and its possible people
-// #included windows.h before including us...
-#ifdef WRITE_RESTRICTED
-#undef WRITE_RESTRICTED
-#endif
 #include "structmember.h"
-// and python's structmember.h #defines this, conflicting with windows.h
-#ifdef WRITE_RESTRICTED
-#undef WRITE_RESTRICTED
-#endif
 #include "windows.h"
-#undef WRITE_RESTRICTED  // stop anyone using the wrong one accidently...
 
 // Helpers for our modules.
 // Some macros to help the pywin32 modules co-exist in py2x and py3k.
@@ -144,14 +134,14 @@ inline BOOL PyWinObject_AsWCHAR(PyObject *stringObject, unsigned short **pResult
 }
 inline void PyWinObject_FreeWCHAR(unsigned short *pResult) { PyWinObject_FreeWCHAR((WCHAR *)pResult); }
 
-// Given a PyObject (string, Unicode, etc) create a "char *" with the value
-// if pResultLen != NULL, it will be set to the result size NOT INCLUDING
-// TERMINATOR (to be in line with SysStringLen, PyString_*, etc)
-PYWINTYPES_EXPORT BOOL PyWinObject_AsString(PyObject *stringObject, char **pResult, BOOL bNoneOK = FALSE,
-                                            DWORD *pResultLen = NULL);
+// A bit unfortunate, but used when we logically want a "string" but only have
+// a "char *" to put it in.
+// * accepts bytes but boesn't try to accept buffer-like objects.
+// * accepts unicode objects and converts via the code-page.
+PYWINTYPES_EXPORT BOOL PyWinObject_AsChars(PyObject *stringObject, char **pResult, BOOL bNoneOK = FALSE,
+                                           DWORD *pResultLen = NULL);
 // And free it when finished.
-PYWINTYPES_EXPORT void PyWinObject_FreeString(char *pResult);
-PYWINTYPES_EXPORT void PyWinObject_FreeString(WCHAR *pResult);
+PYWINTYPES_EXPORT void PyWinObject_FreeChars(char *pResult);
 
 // Automatically freed WCHAR that can be used anywhere WCHAR * is required
 class TmpWCHAR {
@@ -170,9 +160,6 @@ class TmpWCHAR {
     operator WCHAR *() { return tmp; }
     ~TmpWCHAR() { PyWinObject_FreeWCHAR(tmp); }
 };
-
-// For 64-bit python compatibility, convert sequence to tuple and check length fits in a DWORD
-PYWINTYPES_EXPORT PyObject *PyWinSequence_Tuple(PyObject *obseq, DWORD *len);
 
 // replacement for PyWinObject_AsReadBuffer and PyWinObject_AsWriteBuffer
 class PYWINTYPES_EXPORT PyWinBufferView
@@ -212,6 +199,7 @@ PYWINTYPES_EXPORT PyObject *PyWinCoreString_FromString(const WCHAR *str, Py_ssiz
 #define PyWinObject_FromWCHAR PyWinObject_FromOLECHAR
 
 // Converts a series of consecutive null terminated strings into a list
+// ??? really?
 PYWINTYPES_EXPORT PyObject *PyWinObject_FromMultipleString(WCHAR *multistring);
 PYWINTYPES_EXPORT PyObject *PyWinObject_FromMultipleString(char *multistring);
 // Converts a sequence of str/unicode objects into a series of consecutive null-terminated
@@ -219,12 +207,6 @@ PYWINTYPES_EXPORT PyObject *PyWinObject_FromMultipleString(char *multistring);
 PYWINTYPES_EXPORT BOOL PyWinObject_AsMultipleString(PyObject *ob, WCHAR **pmultistring, BOOL bNoneOK = TRUE,
                                                     DWORD *chars_returned = NULL);
 PYWINTYPES_EXPORT void PyWinObject_FreeMultipleString(WCHAR *pmultistring);
-
-// Converts a sequence of str/unicode objects into a series of consecutive character strings
-//	terminated by double null
-PYWINTYPES_EXPORT BOOL PyWinObject_AsMultipleString(PyObject *ob, char **pmultistring, BOOL bNoneOK = TRUE,
-                                                    DWORD *chars_returned = NULL);
-PYWINTYPES_EXPORT void PyWinObject_FreeMultipleString(char *pmultistring);
 
 // Convert a sequence of strings to an array of WCHAR pointers
 PYWINTYPES_EXPORT void PyWinObject_FreeWCHARArray(LPWSTR *wchars, DWORD str_cnt);
@@ -243,34 +225,22 @@ PYWINTYPES_EXPORT BOOL PyWinObject_AsPfnAllocatedWCHAR(PyObject *stringObject, v
                                                        WCHAR **ppResult, BOOL bNoneOK = FALSE,
                                                        DWORD *pResultLen = NULL);
 
-#ifdef UNICODE
-// XXX - "AsTCHAR" functions should all die - the type of the Python object
-// being returned should not depend on UNICODE or not.
 #define PyWinObject_AsTCHAR PyWinObject_AsWCHAR
 #define PyWinObject_FreeTCHAR PyWinObject_FreeWCHAR
 #define PyWinObject_FromTCHAR PyWinObject_FromOLECHAR
-#else /* not UNICODE */
-#define PyWinObject_AsTCHAR PyWinObject_AsString
-#define PyWinObject_FreeTCHAR PyWinObject_FreeString
-
-// PyWinObject_FromTCHAR in a non-unicode build still depends on py3k or not:
-// py2x a string object is returned (no conversions).  py3x a unicode object
-// is returned (ie, the string is decoded)
-PYWINTYPES_EXPORT PyObject *PyWinObject_FromTCHAR(const char *str, Py_ssize_t len = (Py_ssize_t)-1);
-
-#endif  // UNICODE
 
 // String support for buffers allocated via CoTaskMemAlloc and CoTaskMemFree
 PYWINTYPES_EXPORT BOOL PyWinObject_AsTaskAllocatedWCHAR(PyObject *stringObject, WCHAR **ppResult, BOOL bNoneOK = FALSE,
                                                         DWORD *pResultLen = NULL);
 PYWINTYPES_EXPORT void PyWinObject_FreeTaskAllocatedWCHAR(WCHAR *str);
 
-PYWINTYPES_EXPORT void PyWinObject_FreeString(char *str);
-PYWINTYPES_EXPORT void PyWinObject_FreeString(WCHAR *str);
-
 // Copy null terminated string with same allocator as PyWinObject_AsWCHAR, etc
+// ? wot?
 PYWINTYPES_EXPORT WCHAR *PyWin_CopyString(const WCHAR *input);
 PYWINTYPES_EXPORT char *PyWin_CopyString(const char *input);
+
+// For 64-bit python compatibility, convert sequence to tuple and check length fits in a DWORD
+PYWINTYPES_EXPORT PyObject *PyWinSequence_Tuple(PyObject *obseq, DWORD *len);
 
 // Pointers.
 // Substitute for Python's inconsistent PyLong_AsVoidPtr
@@ -364,13 +334,8 @@ PYWINTYPES_EXPORT PyObject *PyWinMethod_NewTimeStamp(PyObject *self, PyObject *a
 PYWINTYPES_EXPORT BOOL PyWinTime_Check(PyObject *ob);
 
 // functions to return WIN32_FIND_DATA tuples, used in shell, win32api, and win32file
-PYWINTYPES_EXPORT PyObject *PyObject_FromWIN32_FIND_DATAA(WIN32_FIND_DATAA *pData);
 PYWINTYPES_EXPORT PyObject *PyObject_FromWIN32_FIND_DATAW(WIN32_FIND_DATAW *pData);
-#ifdef UNICODE
 #define PyObject_FromWIN32_FIND_DATA PyObject_FromWIN32_FIND_DATAW
-#else
-#define PyObject_FromWIN32_FIND_DATA PyObject_FromWIN32_FIND_DATAA
-#endif
 
 // POINT tuple, used in win32api_display.cpp and win32gui.i
 PYWINTYPES_EXPORT BOOL PyWinObject_AsPOINT(PyObject *obpoint, LPPOINT ppoint);
@@ -384,14 +349,10 @@ PYWINTYPES_EXPORT BOOL PyWinObject_AsDWORDArray(PyObject *obdwords, DWORD **pdwo
 
 // Conversion for resource id/name and class atom
 PYWINTYPES_EXPORT BOOL PyWinObject_AsResourceIdA(PyObject *ob, char **presource_id, BOOL bNoneOK = FALSE);
-PYWINTYPES_EXPORT BOOL PyWinObject_AsResourceIdW(PyObject *ob, WCHAR **presource_id, BOOL bNoneOK = FALSE);
-PYWINTYPES_EXPORT void PyWinObject_FreeResourceId(char *resource_id);
+PYWINTYPES_EXPORT void PyWinObject_FreeResourceIdA(char *resource_id);
+
+PYWINTYPES_EXPORT BOOL PyWinObject_AsResourceId(PyObject *ob, WCHAR **presource_id, BOOL bNoneOK = FALSE);
 PYWINTYPES_EXPORT void PyWinObject_FreeResourceId(WCHAR *resource_id);
-#ifdef UNICODE
-#define PyWinObject_AsResourceId PyWinObject_AsResourceIdW
-#else
-#define PyWinObject_AsResourceId PyWinObject_AsResourceIdA
-#endif
 
 // WPARAM and LPARAM conversion
 PYWINTYPES_EXPORT BOOL PyWinObject_AsPARAM(PyObject *ob, WPARAM *pparam);
@@ -409,16 +370,13 @@ PYWINTYPES_EXPORT PyObject *PyWinObject_FromRECT(LPRECT prect);
 */
 extern PYWINTYPES_EXPORT PyTypeObject PySECURITY_ATTRIBUTESType;
 #define PySECURITY_ATTRIBUTES_Check(ob) ((ob)->ob_type == &PySECURITY_ATTRIBUTESType)
-extern PYWINTYPES_EXPORT PyTypeObject PyDEVMODEAType;
 extern PYWINTYPES_EXPORT PyTypeObject PyDEVMODEWType;
 
 PYWINTYPES_EXPORT PyObject *PyWinMethod_NewSECURITY_ATTRIBUTES(PyObject *self, PyObject *args);
 PYWINTYPES_EXPORT BOOL PyWinObject_AsSECURITY_ATTRIBUTES(PyObject *ob, SECURITY_ATTRIBUTES **ppSECURITY_ATTRIBUTES,
                                                          BOOL bNoneOK = TRUE);
 PYWINTYPES_EXPORT PyObject *PyWinObject_FromSECURITY_ATTRIBUTES(const SECURITY_ATTRIBUTES &sa);
-PYWINTYPES_EXPORT BOOL PyWinObject_AsDEVMODE(PyObject *ob, PDEVMODEA *ppDEVMODE, BOOL bNoneOK = TRUE);
 PYWINTYPES_EXPORT BOOL PyWinObject_AsDEVMODE(PyObject *ob, PDEVMODEW *ppDEVMODE, BOOL bNoneOK);
-PYWINTYPES_EXPORT PyObject *PyWinObject_FromDEVMODE(PDEVMODEA);
 PYWINTYPES_EXPORT PyObject *PyWinObject_FromDEVMODE(PDEVMODEW);
 
 /*

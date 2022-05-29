@@ -101,8 +101,8 @@ PyObject *PyIProfAdmin::CreateProfile(PyObject *self, PyObject *args)
 		result = Py_BuildValue("");
 
 done:
-	PyWinObject_FreeString(lpszProfileName);
-	PyWinObject_FreeString(lpszPassword);
+	PyWinObject_FreeMAPIStr(lpszProfileName, ulFlags & MAPI_UNICODE);
+	PyWinObject_FreeMAPIStr(lpszPassword, ulFlags & MAPI_UNICODE);
 	
 	return result;
 }
@@ -122,10 +122,10 @@ PyObject *PyIProfAdmin::DeleteProfile(PyObject *self, PyObject *args)
 	PyObject *obProfileName;
 	LPTSTR lpszProfileName;
 	ULONG ulFlags = 0;
-	
+
 	IProfAdmin *_swig_self;
 	if ((_swig_self=GetI(self))==NULL) return NULL;
-	
+
 	if (!PyArg_ParseTuple(args, "O|l",
 		&obProfileName, // @pyparm string|oldProfileName||The name of the profile to be deleted. 
 		&ulFlags)) // @pyparm int|flags|0|
@@ -133,15 +133,15 @@ PyObject *PyIProfAdmin::DeleteProfile(PyObject *self, PyObject *args)
 
 	if (!PyWinObject_AsMAPIStr(obProfileName, &lpszProfileName, ulFlags & MAPI_UNICODE, FALSE))
 		return NULL;
-	
-	Py_BEGIN_ALLOW_THREADS
+
+	Py_BEGIN_ALLOW_THREADS;
 	hRes = _swig_self->DeleteProfile(lpszProfileName, ulFlags);
-	Py_END_ALLOW_THREADS
-	
-	PyWinObject_FreeString(lpszProfileName);
+	Py_END_ALLOW_THREADS;
+
+	PyWinObject_FreeMAPIStr(lpszProfileName, ulFlags & MAPI_UNICODE);
 	if (FAILED(hRes))
 		return OleSetOleError(hRes);
-	
+
 	return Py_BuildValue("");
 }
 %}
@@ -199,9 +199,9 @@ PyObject *PyIProfAdmin::CopyProfile(PyObject *self, PyObject *args)
 		result = Py_BuildValue("");
 
 done:
-	PyWinObject_FreeString(lpszOldProfileName);
-	PyWinObject_FreeString(lpszOldPassword);
-	PyWinObject_FreeString(lpszNewProfileName);
+	PyWinObject_FreeMAPIStr(lpszOldProfileName, ulFlags & MAPI_UNICODE);
+	PyWinObject_FreeMAPIStr(lpszOldPassword, ulFlags & MAPI_UNICODE);
+	PyWinObject_FreeMAPIStr(lpszNewProfileName, ulFlags & MAPI_UNICODE);
 	
 	return result;
 }
@@ -251,9 +251,9 @@ PyObject *PyIProfAdmin::RenameProfile(PyObject *self, PyObject *args)
 		result = Py_BuildValue("");
 
 done:
-	PyWinObject_FreeString(lpszOldProfileName);
-	PyWinObject_FreeString(lpszOldPassword);
-	PyWinObject_FreeString(lpszNewProfileName);
+	PyWinObject_FreeMAPIStr(lpszOldProfileName, ulFlags & MAPI_UNICODE);
+	PyWinObject_FreeMAPIStr(lpszOldPassword, ulFlags & MAPI_UNICODE);
+	PyWinObject_FreeMAPIStr(lpszNewProfileName, ulFlags & MAPI_UNICODE);
 	
 	return result;
 }
@@ -284,7 +284,7 @@ PyObject *PyIProfAdmin::SetDefaultProfile(PyObject *self, PyObject *args)
 	hRes = _swig_self->SetDefaultProfile(lpszProfileName, ulFlags);
 	Py_END_ALLOW_THREADS
 	
-	PyWinObject_FreeString(lpszProfileName);
+	PyWinObject_FreeMAPIStr(lpszProfileName, ulFlags & MAPI_UNICODE);
 	
 	if (FAILED(hRes))
 		return OleSetOleError(hRes);
@@ -333,8 +333,8 @@ PyObject *PyIProfAdmin::AdminServices(PyObject *self, PyObject *args)
 		MAKE_OUTPUT_INTERFACE(&lpServiceAdmin, result, IID_IMsgServiceAdmin);
 
 done:
-	PyWinObject_FreeString(lpszProfileName);
-	PyWinObject_FreeString(lpszPassword);
+	PyWinObject_FreeMAPIStr(lpszProfileName, ulFlags & MAPI_UNICODE);
+	PyWinObject_FreeMAPIStr(lpszPassword, ulFlags & MAPI_UNICODE);
 	
 	return result;
 }

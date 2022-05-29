@@ -4,7 +4,6 @@
 %module win32event // A module which provides an interface to the win32 event/wait API
 
 %{
-//#define UNICODE
 #define _WIN32_WINNT 0x0501
 %}
 
@@ -84,9 +83,9 @@
 
 #define EVENT_ALL_ACCESS EVENT_ALL_ACCESS // Specifies all possible access flags for the event object. 
  
-#define EVENT_MODIFY_STATE EVENT_MODIFY_STATE // Enables use of the event handle in the SetEvent and ResetEvent functions to modify the event’s state. 
+#define EVENT_MODIFY_STATE EVENT_MODIFY_STATE // Enables use of the event handle in the SetEvent and ResetEventï¿½functions to modify the eventï¿½s state. 
  
-#define SYNCHRONIZE SYNCHRONIZE // Windows NT only: Enables use of the event handle in any of the wait functions to wait for the event’s state to be signaled.
+#define SYNCHRONIZE SYNCHRONIZE // Windows NT only:ï¿½Enables use of the event handle in any of the wait functionsï¿½to wait for the eventï¿½s state to be signaled.
 
 #ifndef MS_WINCE
 // @pyswig |CancelWaitableTimer|Cancels a waiting timer.

@@ -31,14 +31,14 @@ PyObject *PyIExtractIcon::Extract(PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "Oii:Extract", &obpszFile, &nIconIndex, &nIconSize))
         return NULL;
     BOOL bPythonIsHappy = TRUE;
-    if (!PyWinObject_AsString(obpszFile, &pszFile))
+    if (!PyWinObject_AsChars(obpszFile, &pszFile))
         bPythonIsHappy = FALSE;
     if (!bPythonIsHappy)
         return NULL;
     HRESULT hr;
     PY_INTERFACE_PRECALL;
     hr = pIEI->Extract(pszFile, nIconIndex, &hiconLarge, &hiconSmall, nIconSize);
-    PyWinObject_FreeString(pszFile);
+    PyWinObject_FreeChars(pszFile);
     PY_INTERFACE_POSTCALL;
     if (FAILED(hr))
         return PyCom_BuildPyException(hr, pIEI, IID_IExtractIcon);
@@ -145,9 +145,9 @@ STDMETHODIMP PyGExtractIcon::GetIconLocation(
     else {
         if (PyArg_ParseTuple(result, "Oii", &obFileName, piIndex, pflags)) {
             char *filename;
-            if (PyWinObject_AsString(obFileName, &filename)) {
+            if (PyWinObject_AsChars(obFileName, &filename)) {
                 strncpy(szIconFile, filename, cchMax);
-                PyWinObject_FreeString(filename);
+                PyWinObject_FreeChars(filename);
             }
         }
         hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("GetIconLocation");

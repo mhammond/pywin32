@@ -635,8 +635,8 @@ PyObject *PyMAPILogonEx(PyObject *self, PyObject *args)
 		MAKE_OUTPUT_INTERFACE(&lpSession, result, IID_IMAPISession);
 	
 done:
-	PyWinObject_FreeString(lpszProfileName);
-	PyWinObject_FreeString(lpszPassword);
+	PyWinObject_FreeMAPIStr(lpszProfileName, ulFlags & MAPI_UNICODE);
+	PyWinObject_FreeMAPIStr(lpszPassword, ulFlags & MAPI_UNICODE);
 	
 	return result;
 }
@@ -1017,7 +1017,7 @@ exit:
 %native(OpenStreamOnFile) PyOpenStreamOnFile;
 %{
 PyObject *PyOpenStreamOnFile(PyObject *self, PyObject *args)
-{	
+{
 		HRESULT hRes;
 		unsigned long flags = 0;
 		IStream *pStream;
@@ -1025,17 +1025,17 @@ PyObject *PyOpenStreamOnFile(PyObject *self, PyObject *args)
 		char *filename = NULL;
 		PyObject *obPrefix = Py_None;
 		char *prefix = NULL;
-		
+
 		if (!PyArg_ParseTuple(args, "O|lO:OpenStreamOnFile",
 			&obFileName, // @pyparm string|filename||
 			&flags, // @pyparm int|flags|0|
 			&obPrefix)) // @pyparm string|prefix|None|
 			return NULL;
 
-		if (!PyWinObject_AsString(obFileName, &filename, TRUE))
+		if (!PyWinObject_AsChars(obFileName, &filename, TRUE))
 			goto done;
 
-		if (!PyWinObject_AsString(obPrefix, &prefix, TRUE))
+		if (!PyWinObject_AsChars(obPrefix, &prefix, TRUE))
 			goto done;
 
 		{
@@ -1046,16 +1046,16 @@ PyObject *PyOpenStreamOnFile(PyObject *self, PyObject *args)
 		}
 
 	done:
-		PyWinObject_FreeString(filename);
-		PyWinObject_FreeString(prefix);
+		PyWinObject_FreeChars(filename);
+		PyWinObject_FreeChars(prefix);
 
 		if (PyErr_Occurred())
 			return NULL;
 
 		if (FAILED(hRes))
-			return OleSetOleError(hRes);	
-				
-		return PyCom_PyObjectFromIUnknown(pStream, IID_IStream, FALSE);	
+			return OleSetOleError(hRes);
+
+		return PyCom_PyObjectFromIUnknown(pStream, IID_IStream, FALSE);
 }
 %}
 
