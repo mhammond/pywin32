@@ -32,7 +32,7 @@ from pywin.tools import browser
 
 class HLIRoot(browser.HLIPythonObject):
     def __init__(self, title):
-        self.name = title
+        super().__init__(name=title)
 
     def GetSubList(self):
         return [
