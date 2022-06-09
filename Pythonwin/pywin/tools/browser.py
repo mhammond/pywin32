@@ -8,6 +8,7 @@
 import sys
 import types
 import __main__
+import win32con
 import win32ui
 from pywin.mfc import dialog
 
@@ -398,6 +399,7 @@ class dynamic_browser(dialog.Dialog):
     ]
 
     def __init__(self, hli_root):
+        self._is_modal = True
         super().__init__(self.dt)
         self.hier_list = hierlist.HierListWithItems(hli_root, win32ui.IDB_BROWSER_HIER)
         self.HookMessage(self.on_size, win32con.WM_SIZE)
@@ -414,6 +416,8 @@ class dynamic_browser(dialog.Dialog):
     def OnCancel(self):
         self.hier_list.HierTerm()
         self.hier_list = None
+        if not self._is_modal:
+            self.EndModalLoop(win32con.IDCANCEL)
         return super().OnCancel()
 
     def on_size(self, params):
@@ -421,6 +425,10 @@ class dynamic_browser(dialog.Dialog):
         w = win32api.LOWORD(lparam)
         h = win32api.HIWORD(lparam)
         self.GetDlgItem(win32ui.IDC_LIST1).MoveWindow((0, 0, w, h))
+
+    def do_modeless(self, flags):
+        self._is_modal = False
+        return self.RunModalLoop(flags)
 
 
 def Browse(ob=__main__):

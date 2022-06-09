@@ -607,7 +607,7 @@ def main(modal=False):
             dlg.DoModal()
         else:
             dlg.CreateWindow()
-            dlg.ShowWindow()
+            dlg.do_modeless(0)
 
 
 if __name__ == "__main__":
