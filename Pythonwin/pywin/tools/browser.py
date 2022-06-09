@@ -398,23 +398,23 @@ class dynamic_browser(dialog.Dialog):
     ]
 
     def __init__(self, hli_root):
-        dialog.Dialog.__init__(self, self.dt)
+        super().__init__(self.dt)
         self.hier_list = hierlist.HierListWithItems(hli_root, win32ui.IDB_BROWSER_HIER)
         self.HookMessage(self.on_size, win32con.WM_SIZE)
 
     def OnInitDialog(self):
         self.hier_list.HierInit(self)
-        return dialog.Dialog.OnInitDialog(self)
+        return super().OnInitDialog()
 
     def OnOK(self):
         self.hier_list.HierTerm()
         self.hier_list = None
-        return self._obj_.OnOK()
+        return super().OnOK()
 
     def OnCancel(self):
         self.hier_list.HierTerm()
         self.hier_list = None
-        return self._obj_.OnCancel()
+        return super().OnCancel()
 
     def on_size(self, params):
         lparam = params[3]

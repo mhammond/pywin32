@@ -50,10 +50,10 @@ class Dialog(window.Wnd):
 
     # provide virtuals.
     def OnOK(self):
-        self._obj_.OnOK()
+        return self._obj_.OnOK()
 
     def OnCancel(self):
-        self._obj_.OnCancel()
+        return self._obj_.OnCancel()
 
     def OnInitDialog(self):
         self.bHaveInit = 1
