@@ -11,32 +11,32 @@ import win32con
 from pywin.mfc import window
 
 
-def dllFromDll(dllid):
+def dllFromDll(dll_id):
     "given a 'dll' (maybe a dll, filename, etc), return a DLL object"
-    if dllid == None:
+    if dll_id is None:
         return None
-    elif type("") == type(dllid):
-        return win32ui.LoadLibrary(dllid)
+    elif isinstance(dll_id, str):
+        return win32ui.LoadLibrary(dll_id)
     else:
         try:
-            dllid.GetFileName()
+            dll_id.GetFileName()
         except AttributeError:
             raise TypeError("DLL parameter must be None, a filename or a dll object")
-        return dllid
+        return dll_id
 
 
 class Dialog(window.Wnd):
     "Base class for a dialog"
 
-    def __init__(self, id, dllid=None):
-        """id is the resource ID, or a template
+    def __init__(self, params, dllid=None):
+        """params is the resource ID, or a template
         dllid may be None, a dll object, or a string with a dll name"""
         # must take a reference to the DLL until InitDialog.
         self.dll = dllFromDll(dllid)
-        if type(id) == type([]):  # a template
-            dlg = win32ui.CreateDialogIndirect(id)
+        if isinstance(params, list):  # a template
+            dlg = win32ui.CreateDialogIndirect(params)
         else:
-            dlg = win32ui.CreateDialog(id, self.dll)
+            dlg = win32ui.CreateDialog(params, self.dll)
         window.Wnd.__init__(self, dlg)
         self.HookCommands()
         self.bHaveInit = None
