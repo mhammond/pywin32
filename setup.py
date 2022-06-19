@@ -1,66 +1,26 @@
 build_id = "304.1"  # may optionally include a ".{patchno}" suffix.
-# Putting build_id at the top prevents automatic __doc__ assignment, and
-# I *want* the build number at the top :)
-__doc__ = """This is a distutils setup-script for the pywin32 extensions
 
-To build the pywin32 extensions, simply execute:
-  python setup.py -q build
-or
-  python setup.py -q install
-to build and install into your current Python installation.
+__doc__ = """This is a distutils setup-script for the pywin32 extensions.
 
-Note that Python 3.6 is the earliest Python supported.
+The canonical source of truth for supported versions and build environments
+is [the github CI](https://github.com/mhammond/pywin32/tree/main/.github/workflows).
 
-These extensions require a number of libraries to build, some of which may
-require you to install special SDKs or toolkits.  This script will attempt
-to build as many as it can, and at the end of the build will report any
-extension modules that could not be built and why.
-
-See build_env.md for information about setting up your build environment.
-
-Building:
----------
-
-To install the pywin32 extensions, execute:
+To build and install locally for testing etc, you need a build environment
+which is capable of building the version of Python you are targeting, then:
   python setup.py -q install
 
-This will install the built extensions into your site-packages directory,
-create an appropriate .pth file, and should leave everything ready to use.
-There is no need to modify the registry.
-
-To build or install debug (_d) versions of these extensions, ensure you have
-built or installed a debug version of Python itself, then pass the "--debug"
-flag to the build command - eg:
-  python setup.py -q build --debug
-or to build and install a debug version:
+For a debug (_d) version, you need a local debug build of Python, but must use
+the release version executable for the build. eg:
   python setup.py -q build --debug install
 
-To build 64bit versions of this:
-   On a 64bit OS, just build as you would on a 32bit platform.
+Cross-compilation from x86 to ARM is well supported (assuming installed vs tools etc) - eg:
+  python setup.py -q build_ext --plat-name win-arm64 build --plat-name win-arm64 bdist_wheel --plat-name win-arm64
 
-   On a 32bit platform it may be possible to cross-compile, but this hasn't
-   been tested in many years. Regardless, this ability comes directly from
-   distutils/setuptools, so see their documentation for more details.
-
-To build 64bit ARM versions:
-    For cross-compilation
-    % python setup.py -q build_ext --plat-name win-arm64 build --plat-name win-arm64 bdist_wheel --plat-name win-arm64
-
-    For native-compilation
-    % python setup.py -q bdist_wheel
-
-Creating Distributions:
------------------------
-
-The make_all.bat batch file will build and create distributions.
-
-Once a distribution has been built and tested, you should ensure that
-'git status' shows no dirty files, then create a tag with the format 'bXXX'
-
-The executable installers are uploaded to github.
-
-The "wheel" packages are uploaded to pypi using `twine upload dist/path-to.whl`
-
+Some modules require special SDKs or toolkits to build (eg, mapi/exchange),
+which often aren't available in CI. The build process treats them as optional -
+instead of a failing, it will report what was skipped, and why. See also
+build_env.md, which is getting out of date but might help getting everything
+required for an official build - see README.md for that process.
 """
 # Originally by Thomas Heller, started in 2000 or so.
 import os
