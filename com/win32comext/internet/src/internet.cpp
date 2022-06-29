@@ -215,9 +215,10 @@ static PyObject *PyCoInternetCreateSecurityManager(PyObject *self, PyObject *arg
 /* List of module functions */
 // @module internet|A module, encapsulating the ActiveX Internet interfaces
 static struct PyMethodDef internet_functions[] = {
-    {"CoInternetCreateSecurityManager", PyCoInternetCreateSecurityManager},  // @pymeth CoInternetCreateSecurityManager|
-    {"CoInternetIsFeatureEnabled", PyCoInternetIsFeatureEnabled},            // @pymeth CoInternetIsFeatureEnabled|
-    {"CoInternetSetFeatureEnabled", PyCoInternetSetFeatureEnabled},          // @pymeth CoInternetSetFeatureEnabled|
+    {"CoInternetCreateSecurityManager", PyCoInternetCreateSecurityManager,
+     1},                                                                // @pymeth CoInternetCreateSecurityManager|
+    {"CoInternetIsFeatureEnabled", PyCoInternetIsFeatureEnabled, 1},    // @pymeth CoInternetIsFeatureEnabled|
+    {"CoInternetSetFeatureEnabled", PyCoInternetSetFeatureEnabled, 1},  // @pymeth CoInternetSetFeatureEnabled|
     {NULL, NULL},
 };
 
