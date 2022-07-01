@@ -5,7 +5,7 @@ import os
 import pywintypes
 import win32event, win32api
 import os
-from pywin32_testutil import TestSkipped
+from pywin32_testutil import TestSkipped, find_test_fixture
 import win32com.directsound.directsound as ds
 import pythoncom
 
@@ -301,22 +301,12 @@ class DirectSoundTest(unittest.TestCase):
 
     def testPlay(self):
         """Mesdames et Messieurs, la cour de Devin Dazzle"""
-        # look for the test file in various places
-        candidates = [
-            os.path.dirname(__file__),
-            os.path.dirname(sys.argv[0]),
-            # relative to 'testall.py' in the win32com test suite.
-            os.path.join(
-                os.path.dirname(sys.argv[0]), "../../win32comext/directsound/test"
-            ),
-            ".",
-        ]
-        for candidate in candidates:
-            fname = os.path.join(candidate, "01-Intro.wav")
-            if os.path.isfile(fname):
-                break
-        else:
-            raise TestSkipped("Can't find test .wav file to play")
+        # relative to 'testall.py' in the win32com test suite.
+        extra = os.path.join(
+            os.path.dirname(sys.argv[0]), "../../win32comext/directsound/test"
+        )
+
+        fname = find_test_fixture("01-Intro.wav", extra)
 
         with open(fname, "rb") as f:
             hdr = f.read(WAV_HEADER_SIZE)
