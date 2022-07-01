@@ -349,17 +349,6 @@ class WinExt_win32(WinExt):
         return "win32"
 
 
-class WinExt_win32_subsys_con(WinExt_win32):
-    def finalize_options(self, build_ext):
-        WinExt_win32.finalize_options(self, build_ext)
-
-        if build_ext.mingw32:
-            self.extra_link_args.append("-mconsole")
-            self.extra_link_args.append("-municode")
-        else:
-            self.extra_link_args.append("/SUBSYSTEM:CONSOLE")
-
-
 class WinExt_ISAPI(WinExt):
     def get_pywin32_dir(self):
         return "isapi"
@@ -435,6 +424,21 @@ class WinExt_win32com_mapi(WinExt_win32com):
 class WinExt_system32(WinExt):
     def get_pywin32_dir(self):
         return "pywin32_system32"
+
+
+class WinExt_pythonservice(WinExt):
+    # special handling because it's a "console" exe.
+    def finalize_options(self, build_ext):
+        WinExt_win32.finalize_options(self, build_ext)
+
+        if build_ext.mingw32:
+            self.extra_link_args.append("-mconsole")
+            self.extra_link_args.append("-municode")
+        else:
+            self.extra_link_args.append("/SUBSYSTEM:CONSOLE")
+
+    def get_pywin32_dir(self):
+        return "win32"
 
 
 ################################################################
@@ -744,128 +748,56 @@ class my_build_ext(build_ext):
             )
 
     def build_exefile(self, ext):
-        sources = ext.sources
-        if sources is None or type(sources) not in (list, tuple):
-            raise DistutilsSetupError(
-                (
-                    "in 'ext_modules' option (extension '%s'), "
-                    + "'sources' must be present and must be "
-                    + "a list of source filenames"
-                )
-                % ext.name
-            )
-        sources = list(sources)
+        _d = self.debug and "_d" or ""
 
         log.info("building exe '%s'", ext.name)
+        leaf_name = f"{ext.get_pywin32_dir()}\\{ext.name}{_d}.exe"
+        full_name = os.path.join(self.build_lib, leaf_name)
 
-        fullname = self.get_ext_fullname(ext.name)
-        if self.inplace:
-            # ignore build-lib -- put the compiled extension into
-            # the source tree along with pure Python modules
-
-            modpath = string.split(fullname, ".")
-            package = string.join(modpath[0:-1], ".")
-            base = modpath[-1]
-
-            build_py = self.get_finalized_command("build_py")
-            package_dir = build_py.get_package_dir(package)
-            ext_filename = os.path.join(package_dir, self.get_ext_filename(base))
-        else:
-            ext_filename = os.path.join(self.build_lib, self.get_ext_filename(fullname))
+        sources = list(ext.sources)
         depends = sources + ext.depends
-        if not (self.force or newer_group(depends, ext_filename, "newer")):
+        # unclear why we need to check this!?
+        if not (self.force or newer_group(depends, full_name, "newer")):
             log.debug("skipping '%s' executable (up-to-date)", ext.name)
             return
         else:
             log.info("building '%s' executable", ext.name)
 
-        # First, scan the sources for SWIG definition files (.i), run
-        # SWIG on 'em to create .c files, and modify the sources list
-        # accordingly.
-        sources = self.swig_sources(sources, ext)
+        objects = self.compiler.compile(
+            sources,
+            output_dir=os.path.join(self.build_temp, ext.name),
+            include_dirs=ext.include_dirs,
+            debug=self.debug,
+            extra_postargs=ext.extra_compile_args,
+            depends=ext.depends,
+        )
 
-        # Next, compile the source code to object files.
-
-        # XXX not honouring 'define_macros' or 'undef_macros' -- the
-        # CCompiler API needs to change to accommodate this, and I
-        # want to do one thing at a time!
-
-        # Two possible sources for extra compiler arguments:
-        #   - 'extra_compile_args' in Extension object
-        #   - CFLAGS environment variable (not particularly
-        #     elegant, but people seem to expect it and I
-        #     guess it's useful)
-        # The environment variable should take precedence, and
-        # any sensible compiler will give precedence to later
-        # command line args.  Hence we combine them in order:
-        extra_args = ext.extra_compile_args or []
-
-        macros = ext.define_macros[:]
-        for undef in ext.undef_macros:
-            macros.append((undef,))
-        # Note: custom 'output_dir' needed due to servicemanager.pyd and
-        # pythonservice.exe being built from the same .cpp file - without
-        # this, distutils gets confused, as they both try and use the same
-        # .obj.
-        output_dir = os.path.join(self.build_temp, ext.name)
-        kw = {
-            "output_dir": output_dir,
-            "macros": macros,
-            "include_dirs": ext.include_dirs,
-            "debug": self.debug,
-            "extra_postargs": extra_args,
-            "depends": ext.depends,
-        }
-        objects = self.compiler.compile(sources, **kw)
-
-        # XXX -- this is a Vile HACK!
-        #
-        # The setup.py script for Python on Unix needs to be able to
-        # get this list so it can perform all the clean up needed to
-        # avoid keeping object files around when cleaning out a failed
-        # build of an extension module.  Since Distutils does not
-        # track dependencies, we have to get rid of intermediates to
-        # ensure all the intermediates will be properly re-built.
-        #
-        self._built_objects = objects[:]
-
-        # Now link the object files together into a "shared object" --
-        # of course, first we have to figure out all the other things
-        # that go into the mix.
-        if ext.extra_objects:
-            objects.extend(ext.extra_objects)
-        extra_args = ext.extra_link_args or []
-
-        # 2.2 has no 'language' support
-        kw = {
-            "libraries": self.get_libraries(ext),
-            "library_dirs": ext.library_dirs,
-            "runtime_library_dirs": ext.runtime_library_dirs,
-            "extra_postargs": extra_args,
-            "debug": self.debug,
-            "build_temp": self.build_temp,
-        }
-
-        # Detect target language, if not provided
-        language = ext.language or self.compiler.detect_language(sources)
-        kw["target_lang"] = language
-
-        self.compiler.link("executable", objects, ext_filename, **kw)
+        self.compiler.link(
+            "executable",
+            objects,
+            full_name,
+            libraries=self.get_libraries(ext),
+            library_dirs=ext.library_dirs,
+            runtime_library_dirs=ext.runtime_library_dirs,
+            extra_postargs=ext.extra_link_args,
+            debug=self.debug,
+            build_temp=self.build_temp,
+        )
 
     def build_extension(self, ext):
-        # It is well known that some of these extensions are difficult to
-        # build, requiring various hard-to-track libraries etc.  So we
+        # Some of these extensions are difficult to build, requiring various
+        # hard-to-track libraries et (eg, exchange sdk, etc).  So we
         # check the extension list for the extra libraries explicitly
         # listed.  We then search for this library the same way the C
-        # compiler would - if we can't find a  library, we exclude the
+        # compiler would - if we can't find a library, we exclude the
         # extension from the build.
         # Note we can't do this in advance, as some of the .lib files
         # we depend on may be built as part of the process - thus we can
         # only check an extension's lib files as we are building it.
         why = self._why_cant_build_extension(ext)
         if why is not None:
-            self.excluded_extensions.append((ext, why))
             assert why, "please give a reason, or None"
+            self.excluded_extensions.append((ext, why))
             print("Skipping %s: %s" % (ext.name, why))
             return
         self.current_extension = ext
@@ -937,33 +869,16 @@ class my_build_ext(build_ext):
                 self.compiler.compile_options_debug.append("/MDd")
 
     def get_ext_filename(self, name):
-        # The pywintypes and pythoncom extensions have special names
-        extra_dll = self.debug and "_d.dll" or ".dll"
-        extra_exe = self.debug and "_d.exe" or ".exe"
-        # *sob* - python fixed this bug in python 3.1 (bug 6403)
-        # So in the fixed versions we only get the base name, and if the
-        # output name is simply 'dir\name' we need to nothing.
-
-        if name == "pywintypes":
-            return "pywintypes%d%d%s" % (
-                sys.version_info[0],
-                sys.version_info[1],
-                extra_dll,
-            )
-        elif name == "pythoncom":
-            return "pythoncom%d%d%s" % (
-                sys.version_info[0],
-                sys.version_info[1],
-                extra_dll,
-            )
-        elif name in ["perfmondata", "PyISAPI_loader"]:
-            return name + extra_dll
-        elif name.endswith("win32.pythonservice"):
-            return "win32\\pythonservice" + extra_exe
-        elif name.endswith("pythonwin.Pythonwin"):
-            return "pythonwin\\Pythonwin" + extra_exe
-        extra_pyd = self.debug and "_d.pyd" or ".pyd"
-        return name.replace(".", "\\") + extra_pyd
+        # We need to fixup some target filenames.
+        _d = self.debug and "_d" or ""
+        if name in ["pywintypes", "pythoncom"]:
+            ver = f"{sys.version_info[0]}{sys.version_info[1]}"
+            return f"{name}{ver}{_d}.dll"
+        if name in ["perfmondata", "PyISAPI_loader"]:
+            return f"{name}{_d}.dll"
+        # everything else a .pyd - calling base-class might give us a more
+        # complicated name, so return a simple one.
+        return f"{name}{_d}.pyd"
 
     def get_export_symbols(self, ext):
         if ext.is_regular_dll:
@@ -2226,7 +2141,7 @@ other_extensions.append(
 )
 
 W32_exe_files = [
-    WinExt_win32_subsys_con(
+    WinExt_pythonservice(
         "pythonservice",
         sources=[
             os.path.join("win32", "src", s)
