@@ -437,6 +437,8 @@ class WinExt_pythonservice(WinExt):
         else:
             self.extra_link_args.append("/SUBSYSTEM:CONSOLE")
 
+    # pythonservice.exe goes in win32, where it doesn't actually work, but
+    # win32serviceutil manages to copy it to where it does.
     def get_pywin32_dir(self):
         return "win32"
 

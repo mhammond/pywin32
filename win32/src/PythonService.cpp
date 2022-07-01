@@ -105,8 +105,6 @@ BOOL WINAPI DebugControlHandler(DWORD dwCtrlType);
 DWORD WINAPI service_ctrl_ex(DWORD, DWORD, LPVOID, LPVOID);
 VOID WINAPI service_ctrl(DWORD);
 
-BOOL RegisterPythonServiceExe(void);
-
 static PY_SERVICE_TABLE_ENTRY *FindPythonServiceEntry(LPCTSTR svcName);
 
 static PyObject *LoadPythonServiceClass(TCHAR *svcInitString);
@@ -1077,12 +1075,6 @@ int PythonService_main(int argc, TCHAR **argv)
     }
     // Process the args
     if ((argc > 1) && ((*argv[1] == '-') || (*argv[1] == '/'))) {
-#ifndef BUILD_FREEZE
-        if (_tcsicmp(_T("register"), argv[1] + 1) == 0 || _tcsicmp(_T("install"), argv[1] + 1) == 0) {
-            // Get out of here.
-            return RegisterPythonServiceExe() ? 0 : 1;
-        }
-#endif
         if (_tcsicmp(_T("debug"), argv[1] + 1) == 0) {
             /* Debugging the service.  If this EXE has a service name
                embedded in it, use it, otherwise insist one is passed on the
@@ -1122,9 +1114,6 @@ int PythonService_main(int argc, TCHAR **argv)
             // We are not being run by the SCM - print a debug message.
             _tprintf(_T("%s - Python Service Manager\n"), argv[0]);
             printf("Options:\n");
-#ifndef BUILD_FREEZE
-            printf(" -register - register the EXE - this should generally not be necessary.\n");
-#endif
             printf(" -debug servicename [parms] - debug the Python service.\n");
             printf("\nNOTE: You do not start the service using this program - start the\n");
             printf("service using Control Panel, or 'net start service_name'\n");
@@ -1133,10 +1122,6 @@ int PythonService_main(int argc, TCHAR **argv)
             // Some other nasty error - log it.
             ReportAPIError(PYS_E_API_CANT_START_SERVICE, errCode);
             printf("Could not start the service - error %d\n", errCode);
-            // Just incase the error was caused by this EXE not being registered
-#ifndef BUILD_FREEZE
-            RegisterPythonServiceExe();
-#endif
         }
         return 2;
     }
@@ -1283,41 +1268,6 @@ BOOL LocatePythonServiceClassString(TCHAR *svcName, TCHAR *buf, int cchBuf)
     if (key)
         RegCloseKey(key);
     return ok;
-}
-
-// Register the EXE.
-// This writes an entry to the Python registry and also
-// to the EventLog so I can stick in messages.
-static BOOL RegisterPythonServiceExe(void)
-{
-    printf("Registering the Python Service Manager...\n");
-    const int fnameBufSize = MAX_PATH + 1;
-    TCHAR fnameBuf[fnameBufSize];
-    if (GetModuleFileName(NULL, fnameBuf, fnameBufSize) == 0) {
-        printf("Registration failed due to GetModuleFileName() failing (error %d)\n", GetLastError());
-        return FALSE;
-    }
-    assert(Py_IsInitialized());
-    CEnterLeavePython _celp;
-    // Register this specific EXE against this specific DLL version
-    PyObject *obVerString = PySys_GetObject("winver");
-    if (obVerString == NULL || !PyBytes_Check(obVerString)) {
-        Py_XDECREF(obVerString);
-        printf("Registration failed as sys.winver is not available or not a string\n");
-        return FALSE;
-    }
-    char *szVerString = PyBytes_AsString(obVerString);
-    Py_DECREF(obVerString);
-    // note wsprintf allows %hs to be "char *" even when UNICODE!
-    TCHAR keyBuf[256];
-    wsprintf(keyBuf, _T("Software\\Python\\PythonService\\%hs"), szVerString);
-    DWORD rc;
-    if ((rc = RegSetValue(HKEY_LOCAL_MACHINE, keyBuf, REG_SZ, fnameBuf, _tcslen(fnameBuf))) != ERROR_SUCCESS) {
-        printf("Registration failed due to RegSetValue() of service EXE - error %d\n", rc);
-        return FALSE;
-    }
-    // don't bother registering in the event log - do it when we write a log entry.
-    return TRUE;
 }
 
 #endif  // PYSERVICE_BUILD_DLL
