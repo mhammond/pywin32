@@ -127,6 +127,7 @@ ui_assoc_object *CAssocManager::GetAssocObject(void *handle)
     cacheLookups++;
 #endif
     // implement a basic 1 item cache.
+	// XXX - ::Assoc above means a cached "no object" might be incorrect?
     if (lastLookup == handle) {
         weakref = lastObjectWeakRef;
 #ifdef _DEBUG
@@ -242,9 +243,9 @@ PyObject *ui_assoc_object::AttachObject(PyObject *self, PyObject *args)
     pAssoc->virtualInst = NULL;
     if (ob != Py_None) {
         pAssoc->virtualInst = ob;
-        DOINCREF(ob);
+        Py_INCREF(ob);
     }
-    XDODECREF(old);
+    Py_XDECREF(old);
     RETURN_NONE;
 }
 
@@ -300,8 +301,8 @@ PyObject *ui_assoc_object::GetGoodRet()
         return NULL;
     if (virtualInst) {
         PyObject *vi = virtualInst;
-        DOINCREF(vi);
-        DODECREF(this);
+        Py_INCREF(vi);
+        Py_DECREF(this);
         return vi;
     }
     else
@@ -314,7 +315,7 @@ PyObject *ui_assoc_object::GetGoodRet()
     CEnterLeavePython _celp;
     ui_assoc_object *ret = NULL;
     if (!skipLookup)
-        ret = (ui_assoc_object *)handleMgr.GetAssocObject(search);
+        ret = handleMgr.GetAssocObject(search);
     if (ret) {
         if (!ret->is_uiobject(&makeType)) {
             PyErr_Format(ui_module_error, "Internal error - existing object has type '%s', but '%s' was requested.",

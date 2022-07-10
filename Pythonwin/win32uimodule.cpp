@@ -560,7 +560,7 @@ int Python_run_command_with_log(const char *command)
         ExceptionHandler(EHA_DISPLAY_DIALOG);
         return 1;  // indicate failure, with traceback correctly shown.
     }
-    DODECREF(v);
+    Py_DECREF(v);
     return 0;
 }
 
@@ -687,7 +687,7 @@ PyObject *Python_do_callback(PyObject *themeth, PyObject *thearglst)
     if (pCallbackCaller) {
         PyObject *newarglst = Py_BuildValue("(OO)", themeth, thearglst);
         result = gui_call_object(pCallbackCaller, newarglst);
-        DODECREF(newarglst);
+        Py_DECREF(newarglst);
     }
     else {
         // Only ref to 'themeth' may be map - and if the message hook
@@ -697,7 +697,7 @@ PyObject *Python_do_callback(PyObject *themeth, PyObject *thearglst)
         result = gui_call_object(themeth, thearglst);
         Py_XDECREF(themeth);
     }
-    DODECREF(thearglst);
+    Py_DECREF(thearglst);
     if (result == NULL) {
         TRACE("Python_do_callback: callback failed with exception\n");
         gui_print_error();
@@ -756,7 +756,7 @@ int Python_do_int_callback(PyObject *themeth, PyObject *thearglst)
     if (_heapchk() != _HEAPOK)
         TRACE("**** Warning-heap corrupt after application callback ****\n");
 #endif
-    DODECREF(result);
+    Py_DECREF(result);
     return retVal;
 }
 int Python_callback(PyObject *method, WPARAM val)
@@ -1433,12 +1433,13 @@ static PyObject *ui_install_callback_caller(PyObject *self, PyObject *args)
     // @rdesc The previous callback caller.
 }
 
-// @pymethod int|win32ui|IsWin32s|Determines if the application is running under Win32s.
+// @pymethod int|win32ui|IsWin32s|Returns False.
 static PyObject *ui_is_win32s(PyObject *self, PyObject *args)
 {
     CHECK_NO_ARGS2(args, IsWin32s);
-    return Py_BuildValue("i", IsWin32s());
+    return Py_BuildValue("O", Py_False);
 }
+
 // @pymethod int|win32ui|IsObject|Determines if the passed object is a win32ui object.
 static PyObject *ui_is_object(PyObject *self, PyObject *args)
 {

@@ -320,7 +320,7 @@ PyObject *ui_propsheet_do_modal(PyObject *self, PyObject *args)
     GUI_BGN_SAVE;
     ret = pPS->DoModal();
     GUI_END_SAVE;
-    DODECREF(self);
+    Py_DECREF(self);
     return PyWinObject_FromDWORD_PTR(ret);
 }
 

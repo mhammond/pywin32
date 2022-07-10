@@ -771,7 +771,7 @@ PyObject *PyCToolBar_SetBitmap(PyObject *self, PyObject *args)
     HBITMAP val;
     if (!PyWinObject_AsHANDLE(obval, (HANDLE *)&val))
         return NULL;
-    if (!IsWin32s() && ::GetObjectType(val) != OBJ_BITMAP)
+    if (::GetObjectType(val) != OBJ_BITMAP)
         RETURN_ERR("The bitmap handle is invalid");
     if (!pToolBar->SetBitmap(val))
         RETURN_ERR("SetBitmap failed");

@@ -718,7 +718,7 @@ static PyObject *PyCRichEditCtrl_stream_in(PyObject *self, PyObject *args)
         return NULL;
     if (!PyCallable_Check(method))
         RETURN_ERR("The method parameter is not callable");
-    DOINCREF(method);
+    Py_INCREF(method);
     EDITSTREAM es;
     es.dwCookie = (DWORD_PTR)method;
     es.dwError = 0;
@@ -727,7 +727,7 @@ static PyObject *PyCRichEditCtrl_stream_in(PyObject *self, PyObject *args)
     GUI_BGN_SAVE;
     long rc = pEdit->StreamIn(format, es);  // @pyseemfc CRichEditCtrl|StreamIn
     GUI_END_SAVE;
-    DODECREF(method);
+    Py_DECREF(method);
     return PyErr_Occurred() ? NULL : Py_BuildValue("li", rc, es.dwError);
     // @rdesc The return value is a tuple of (no bytes written, error code)
 }
@@ -749,7 +749,7 @@ static PyObject *PyCRichEditCtrl_stream_out(PyObject *self, PyObject *args)
     if (!PyCallable_Check(method))
         RETURN_ERR("The method parameter is not callable");
     EDITSTREAM es;
-    DOINCREF(method);
+    Py_INCREF(method);
     es.dwCookie = (DWORD_PTR)method;
     es.dwError = 0;
     es.pfnCallback = PyCRichEditCallbackOut;
@@ -757,7 +757,7 @@ static PyObject *PyCRichEditCtrl_stream_out(PyObject *self, PyObject *args)
     GUI_BGN_SAVE;
     long rc = pEdit->StreamOut(format, es);  // @pyseemfc CRichEditCtrl|StreamOut
     GUI_END_SAVE;
-    DODECREF(method);
+    Py_DECREF(method);
     return PyErr_Occurred() ? NULL : Py_BuildValue("li", rc, es.dwError);
     // @rdesc The return value is a tuple of (no bytes written, error code)
 }

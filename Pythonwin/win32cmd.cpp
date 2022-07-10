@@ -199,18 +199,18 @@ PyObject *add_hook_list(PyObject *hookedObject, PyObject *args, CMapWordToPtr **
     // note I maybe decref, then maybe incref.  To ensure the object will
     // not be destroyed (ie, ref go to zero) between the 2 calls), I
     // add a temporary reference first.
-    DOINCREF(hookedObject);
+    Py_INCREF(hookedObject);
     if (pList->Lookup(message, oldMethod)) {
         pList->RemoveKey(message);
         // oldMethod is returned - don't drop its reference.
-        DODECREF(hookedObject);
+        Py_DECREF(hookedObject);
     }
     if (method != Py_None) {
         Py_INCREF(method);
         pList->SetAt(message, method);
         Py_INCREF(hookedObject);
     }
-    DODECREF(hookedObject);  // remove temp reference added above.
+    Py_DECREF(hookedObject);  // remove temp reference added above.
     if (oldMethod)
         return (PyObject *)oldMethod;
     else
@@ -222,7 +222,7 @@ PyObject *add_hook_list(PyObject *hookedObject, PyObject *args, CMapWordToPtr **
 //
 // this is a bit nasty!  This function is called when the window itself
 // is closed.  As all the hooks into the window are decref'd, it is possible
-// (actually, likely!) that one of the member DODECREFS will also cause the
+// (actually, likely!) that one of the member Py_DECREFS will also cause the
 // window object itself to destruct (as the member function in my list was the
 // last remaining (indirect) reference to the window) which also calls this.
 // Therefore I set the list value to NULL before freeing the members, so
