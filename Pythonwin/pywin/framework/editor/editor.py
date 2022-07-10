@@ -115,23 +115,16 @@ class EditorDocument(ParentEditorDocument):
         f.close()
         contents = self.TranslateLoadedData(raw)
         rc = 0
-        if win32ui.IsWin32s() and len(contents) > 62000:  # give or take a few bytes
-            win32ui.MessageBox(
-                "This file is too big for Python on Windows 3.1\r\nPlease use another editor to view this file."
-            )
-        else:
-            try:
-                self.GetFirstView().SetWindowText(contents)
-                rc = 1
-            except TypeError:  # Null byte in file.
-                win32ui.MessageBox(
-                    "This file contains NULL bytes, and can not be edited"
-                )
-                rc = 0
+        try:
+            self.GetFirstView().SetWindowText(contents)
+            rc = 1
+        except TypeError:  # Null byte in file.
+            win32ui.MessageBox("This file contains NULL bytes, and can not be edited")
+            rc = 0
 
-            self.EndWaitCursor()
-            self.SetModifiedFlag(0)  # No longer dirty
-            self._DocumentStateChanged()
+        self.EndWaitCursor()
+        self.SetModifiedFlag(0)  # No longer dirty
+        self._DocumentStateChanged()
         return rc
 
     def TranslateLoadedData(self, data):

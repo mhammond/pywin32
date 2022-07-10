@@ -166,38 +166,38 @@ PyObject *ui_bitmap_load_bitmap_file(PyObject *self, PyObject *args)
 
     args = Py_BuildValue("(i)", sizeof(BITMAPFILEHEADER));
     if (args == NULL) {
-        DODECREF(reader);
-        DODECREF(seeker);
+        Py_DECREF(reader);
+        Py_DECREF(seeker);
         return NULL;
     }
 
     PyObject *result = gui_call_object(reader, args);
-    DODECREF(args);
+    Py_DECREF(args);
     if (result == NULL) {
-        DODECREF(reader);
-        DODECREF(seeker);
+        Py_DECREF(reader);
+        Py_DECREF(seeker);
         return NULL;
     }
     if (!PyBytes_Check(result)) {
-        DODECREF(result);
-        DODECREF(seeker);
-        DODECREF(reader);
+        Py_DECREF(result);
+        Py_DECREF(seeker);
+        Py_DECREF(reader);
         PyErr_SetString(PyExc_TypeError, "object.readline() returned non-string");
         return NULL;
     }
     Py_ssize_t len = PyBytes_Size(result);
     if (len != sizeof(BITMAPFILEHEADER)) {
-        DODECREF(seeker);
-        DODECREF(reader);
-        DODECREF(result);
+        Py_DECREF(seeker);
+        Py_DECREF(reader);
+        Py_DECREF(result);
         PyErr_SetString(PyExc_EOFError, "EOF when reading DIB header");
         return NULL;
     }
     BITMAPFILEHEADER bmFileHeader;
     memcpy(&bmFileHeader, PyBytes_AsString(result), len);
-    DODECREF(result);  // dont need this anymore
+    Py_DECREF(result);  // dont need this anymore
     if (bmFileHeader.bfType != DIB_HEADER_MARKER) {
-        DODECREF(reader);
+        Py_DECREF(reader);
         PyErr_SetString(PyExc_TypeError, "File is not a DIB format file");
         return NULL;
     }
@@ -206,7 +206,7 @@ PyObject *ui_bitmap_load_bitmap_file(PyObject *self, PyObject *args)
     /*	int bitsSize = bmFileHeader.bfSize - sizeof(BITMAPFILEHEADER);
         args = Py_BuildValue("(i)", bitsSize);
         if (args == NULL) {
-            DODECREF(reader);
+            Py_DECREF(reader);
             return NULL;
         }
     */
@@ -214,26 +214,26 @@ PyObject *ui_bitmap_load_bitmap_file(PyObject *self, PyObject *args)
     if (bmFileHeader.bfOffBits) {
             PyObject *args = Py_BuildValue("(i)", bmFileHeader.bfOffBits);
             result = gui_call_object(seeker, args);
-            DODECREF(args);
+            Py_DECREF(args);
             if (result==NULL) {
-                DODECREF(reader);
-                DODECREF(seeker);
+                Py_DECREF(reader);
+                Py_DECREF(seeker);
                 return NULL;
             }
-            DODECREF(result);
+            Py_DECREF(result);
         }
     */
-    DODECREF(seeker);  // done with this.
+    Py_DECREF(seeker);  // done with this.
 
     result = gui_call_object(reader, NULL);
     if (result == NULL) {
-        DODECREF(reader);
+        Py_DECREF(reader);
         return NULL;
     }
     len = PyBytes_Size(result);
     /*	if (len != bitsSize) {
-            DODECREF(reader);
-            DODECREF(result);
+            Py_DECREF(reader);
+            Py_DECREF(result);
             err_setstr(EOFError,
                        "EOF when reading DIB bits");
             return NULL;
@@ -242,8 +242,8 @@ PyObject *ui_bitmap_load_bitmap_file(PyObject *self, PyObject *args)
     char *pBits = new char[len];
     // XXX - need memory exception handler.
     memcpy(pBits, PyBytes_AsString(result), len);
-    DODECREF(result);  // dont need this.
-    DODECREF(reader);  // or this.
+    Py_DECREF(result);  // dont need this.
+    Py_DECREF(reader);  // or this.
 
     // kill old palette
     delete pDIB->pPal;
@@ -300,7 +300,7 @@ PyObject *ui_bitmap_load_ppm_file(PyObject *self, PyObject *args)
 
     PyObject *result = gui_call_object(reader, NULL);
     if (result == NULL) {
-        DODECREF(reader);
+        Py_DECREF(reader);
         return NULL;
     }
     Py_ssize_t lenRead = PyBytes_Size(result);
@@ -317,8 +317,8 @@ PyObject *ui_bitmap_load_ppm_file(PyObject *self, PyObject *args)
     int memSize = rows * memBytesPerScan;
     int totalSize = headerSize + memSize;
     if (lenRead != rows * imageBytesPerScan) {
-        DODECREF(reader);
-        DODECREF(result);
+        Py_DECREF(reader);
+        Py_DECREF(result);
         RETURN_ERR("loading PBM - bytes read from file is not consistant with the bitmap size given");
     }
     char *pBits = new char[totalSize];
@@ -335,8 +335,8 @@ PyObject *ui_bitmap_load_ppm_file(PyObject *self, PyObject *args)
             pMem[col + 2] = pImg[col];
         }
 
-    DODECREF(result);  // dont need this.
-    DODECREF(reader);  // or this.
+    Py_DECREF(result);  // dont need this.
+    Py_DECREF(reader);  // or this.
 
     // delete old palette - none for this format
     delete pDIB->pPal;

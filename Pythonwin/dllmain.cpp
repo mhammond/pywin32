@@ -11,7 +11,6 @@ HINSTANCE hWin32uiDll;  // Handle to this DLL.
 static AFX_EXTENSION_MODULE extensionDLL;
 static CDynLinkLibrary *pDLL = NULL;
 
-// BOOL PyWin_bIsWin32s; // global, and aint gunna change over 1 app lifetime!
 BOOL PyWin_bHaveMFCHost = TRUE;  // indicates if the CWinApp was locally created.
 
 extern BOOL bInFatalShutdown;
@@ -180,12 +179,6 @@ extern "C" __declspec(dllexport) int __stdcall DllMainwin32ui(HINSTANCE hInstanc
 {
     if (dwReason == DLL_PROCESS_ATTACH) {
         hWin32uiDll = hInstance;
-        // Get Win32s version, etc
-        //		OSVERSIONINFO ver;
-        //		ver.dwOSVersionInfoSize = sizeof(ver);
-        //		GetVersionEx(&ver);
-        //		PyWin_bIsWin32s = ver.dwPlatformId == VER_PLATFORM_WIN32s;
-
         TCHAR path[_MAX_PATH];
         GetModuleFileName(hInstance, path, sizeof(path) / sizeof(TCHAR));
 #ifndef FREEZE_WIN32UI

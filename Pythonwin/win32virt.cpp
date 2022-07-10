@@ -48,7 +48,7 @@ CVirtualHelper::CVirtualHelper(const char *iname, void *iassoc, EnumVirtualError
                 if (!PyCFunction_Check(handler)) {
                     TRACE("Handler for object is not a method!\n");
                 }
-                DODECREF(handler);
+                Py_DECREF(handler);
                 handler = NULL;
             }
         }
@@ -65,9 +65,9 @@ CVirtualHelper::~CVirtualHelper()
     // take the reliable option...
     if (py_ob || handler || retVal) {
         acquire();  // may have been released
-        XDODECREF(retVal);
-        XDODECREF(handler);
-        XDODECREF(py_ob);
+        Py_XDECREF(retVal);
+        Py_XDECREF(handler);
+        Py_XDECREF(py_ob);
     }
 }
 
@@ -77,9 +77,9 @@ void CVirtualHelper::release_full()
     // any more - saving 1x PyGILState_Ensure() & _Release()
     if (py_ob || handler || retVal) {
         acquire();  // may have been released
-        XDODECREF(retVal);
-        XDODECREF(handler);
-        XDODECREF(py_ob);
+        Py_XDECREF(retVal);
+        Py_XDECREF(handler);
+        Py_XDECREF(py_ob);
         retVal = handler = py_ob = NULL;
     }
     release();
@@ -100,12 +100,12 @@ PyObject *CVirtualHelper::GetHandler() { return handler; }
 BOOL CVirtualHelper::do_call(PyObject *args)
 {
     USES_CONVERSION;
-    XDODECREF(retVal);  // our old one.
+    Py_XDECREF(retVal);  // our old one.
     retVal = NULL;
     ASSERT(handler);  // caller must trap this.
     ASSERT(args);
     PyObject *result = gui_call_object(handler, args);
-    DODECREF(args);
+    Py_DECREF(args);
     if (result == NULL) {
         if (vehErrorHandling == VEH_PRINT_ERROR) {
             char msg[256];
@@ -290,7 +290,7 @@ BOOL CVirtualHelper::call(CDC *pDC)
         return FALSE;
     PyObject *arglst = Py_BuildValue("(O)", dc);
     BOOL ret = do_call(arglst);
-    DODECREF(dc);  // the reference I created.
+    Py_DECREF(dc);  // the reference I created.
     return ret;
 }
 BOOL CVirtualHelper::call(CDC *pDC, CPrintInfo *pInfo)
@@ -313,9 +313,9 @@ BOOL CVirtualHelper::call(CDC *pDC, CPrintInfo *pInfo)
         arglst = Py_BuildValue("(Oz)", dc, NULL);
     }
     ret = do_call(arglst);
-    DODECREF(dc);  // the reference I created.
+    Py_DECREF(dc);  // the reference I created.
     if (pInfo != NULL) {
-        DODECREF(info);  // the reference I created.
+        Py_DECREF(info);  // the reference I created.
     }
     return ret;
 }
@@ -335,7 +335,7 @@ BOOL CVirtualHelper::call(CPrintInfo *pInfo)
         arglst = Py_BuildValue("(z)", NULL);
     }
     BOOL ret = do_call(arglst);
-    DODECREF(info);  // the reference I created.
+    Py_DECREF(info);  // the reference I created.
     return ret;
 }
 BOOL CVirtualHelper::call(CWnd *pWnd)
@@ -347,7 +347,7 @@ BOOL CVirtualHelper::call(CWnd *pWnd)
         return FALSE;
     PyObject *arglst = Py_BuildValue("(O)", wnd);
     BOOL ret = do_call(arglst);
-    DODECREF(wnd);  // the reference I created.
+    Py_DECREF(wnd);  // the reference I created.
     return ret;
 }
 
@@ -360,7 +360,7 @@ BOOL CVirtualHelper::call(CWnd *pWnd, int i)
         return FALSE;
     PyObject *arglst = Py_BuildValue("(Oi)", wnd, i);
     BOOL ret = do_call(arglst);
-    DODECREF(wnd);  // the reference I created.
+    Py_DECREF(wnd);  // the reference I created.
     return ret;
 }
 
@@ -373,7 +373,7 @@ BOOL CVirtualHelper::call(CWnd *pWnd, int i, int i2)
         return FALSE;
     PyObject *arglst = Py_BuildValue("(Oii)", wnd, i, i2);
     BOOL ret = do_call(arglst);
-    DODECREF(wnd);  // the reference I created.
+    Py_DECREF(wnd);  // the reference I created.
     return ret;
 }
 
@@ -382,7 +382,7 @@ BOOL CVirtualHelper::call(CDC *pDC, CWnd *pWnd, int i)
     PyObject *wnd;
     if (pWnd == NULL) {
         wnd = Py_None;
-        DOINCREF(wnd);
+        Py_INCREF(wnd);
     }
     else {
         wnd = PyWinObject_FromCWnd(pWnd);
@@ -409,7 +409,7 @@ BOOL CVirtualHelper::call(CView *pWnd, PyObject *ob)
     PyObject *wnd;
     if (pWnd == NULL) {
         wnd = Py_None;
-        DOINCREF(wnd);
+        Py_INCREF(wnd);
     }
     else {
         wnd = PyWinObject_FromCWnd(pWnd);
@@ -418,7 +418,7 @@ BOOL CVirtualHelper::call(CView *pWnd, PyObject *ob)
     }
     PyObject *arglst = Py_BuildValue("(OO)", wnd, ob);
     BOOL ret = do_call(arglst);
-    DODECREF(wnd);  // the reference I created.
+    Py_DECREF(wnd);  // the reference I created.
     return ret;
 }
 
@@ -448,8 +448,8 @@ BOOL CVirtualHelper::call(BOOL boolVal, CWnd *pWnd1, CWnd *pWnd2)
     }
     PyObject *arglst = Py_BuildValue("(iOO)", boolVal, wnd1, wnd2);
     BOOL ret = do_call(arglst);
-    DODECREF(wnd1);  // the reference I created.
-    DODECREF(wnd2);  // the reference I created.
+    Py_DECREF(wnd1);  // the reference I created.
+    Py_DECREF(wnd2);  // the reference I created.
     return ret;
 }
 
@@ -462,7 +462,7 @@ BOOL CVirtualHelper::call(CDocument *pDoc)
         return FALSE;
     PyObject *arglst = Py_BuildValue("(O)", doc);
     BOOL ret = do_call(arglst);
-    DODECREF(doc);  // ref I created.
+    Py_DECREF(doc);  // ref I created.
     return ret;
 }
 BOOL CVirtualHelper::call(LPCREATESTRUCT lpcs, PyObject *ob)
@@ -475,7 +475,7 @@ BOOL CVirtualHelper::call(LPCREATESTRUCT lpcs, PyObject *ob)
     if (ob == NULL)
         ob = Py_None;
     PyObject *arglst = Py_BuildValue("(O,O)", cs, ob);
-    DODECREF(cs);  // ref I created.
+    Py_DECREF(cs);  // ref I created.
     BOOL ret = do_call(arglst);
     return ret;
 }
@@ -488,7 +488,7 @@ BOOL CVirtualHelper::call(LPCREATESTRUCT lpcs)
         return FALSE;
     PyObject *arglst = Py_BuildValue("(O)", cs);
     BOOL ret = do_call(arglst);
-    DODECREF(cs);  // my reference.
+    Py_DECREF(cs);  // my reference.
     return ret;
 }
 

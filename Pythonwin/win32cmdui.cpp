@@ -122,7 +122,7 @@ BOOL Python_OnCmdMsg(CCmdTarget *obj, UINT nID, int nCode, void *pExtra, AFX_CMD
                     GUI_BGN_SAVE;
                     Python_delete_assoc(ob);
                     GUI_END_SAVE;
-                    DODECREF(ob);
+                    Py_DECREF(ob);
                 }
                 rc = TRUE;
             }

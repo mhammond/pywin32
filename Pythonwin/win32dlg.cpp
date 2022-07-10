@@ -575,7 +575,7 @@ static PyObject *ui_dialog_do_modal(PyObject *self, PyObject *args)
     GUI_BGN_SAVE;
     ret = pDlg->DoModal();  // @pyseemfc CDialog|DoModal
     GUI_END_SAVE;
-    DODECREF(self);
+    Py_DECREF(self);
     return PyWinObject_FromDWORD_PTR(ret);
     // @rdesc The return value from the dialog.  This is the value passed to <om PyCDialog.EndDialog>.
 }

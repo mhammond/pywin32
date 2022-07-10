@@ -16,6 +16,8 @@ generates Windows .hlp files.
 #include "win32win.h"
 #include "win32ImageList.h"
 
+inline BOOL IsGdiHandleValid(HANDLE hobject) { return hobject == NULL || ::GetObjectType(hobject) != 0; }
+
 /////////////////////////////////////////////////////////////////////////
 //
 // ImageList

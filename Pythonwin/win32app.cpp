@@ -18,11 +18,6 @@ generates Windows .hlp files.
 #include "win32doc.h"
 #include "win32template.h"
 
-extern CWnd *GetWndPtr(PyObject *self);
-
-PyObject *PyCWinApp::pExistingAppObject = NULL;
-char *errmsgAlreadyInit = "The application has already been initialised";
-
 /////////////////////////////////////////////////////////////////////
 //
 // CProtectedWinApp Application helpers.
@@ -108,12 +103,12 @@ extern BOOL bDebuggerPumpStopRequested;
 // Application object
 //
 //////////////////////////////////////////////////////////////////////
-PyCWinApp::PyCWinApp() { ASSERT(pExistingAppObject == NULL); }
+PyCWinApp::PyCWinApp()
+{
+}
 
 PyCWinApp::~PyCWinApp()
 {
-    XDODECREF(pExistingAppObject);
-    pExistingAppObject = NULL;
 }
 
 // @pymethod |PyCWinApp|AddDocTemplate|Adds a template to the application list.
@@ -409,6 +404,4 @@ ui_type_CObject PyCWinApp::type("PyCWinApp", &PyCWinThread::type, RUNTIME_CLASS(
 void PyCWinApp::cleanup()
 {
     PyCWinThread::cleanup();
-    // total hack!
-    while (pExistingAppObject) DODECREF(pExistingAppObject);  // this may delete it.
 }
