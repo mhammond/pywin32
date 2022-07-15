@@ -551,7 +551,7 @@ STDMETHODIMP PyGShellItem2::GetString(
     HRESULT hr = InvokeViaPolicy("GetString", &result, "(N)", PyObject_FromSHCOLUMNID(&key));
     if (FAILED(hr))
         return hr;
-    if (!PyWinObject_AsTaskAllocatedWCHAR(result, ppsz, FALSE, NULL))
+    if (!PyWinObject_AsTaskAllocatedWCHAR(result, ppsz, FALSE))
         hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("GetString");
     Py_DECREF(result);
     return hr;

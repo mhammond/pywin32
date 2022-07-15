@@ -392,7 +392,7 @@ BOOL PyWin_NewPROPVARIANT(PyObject *ob, VARTYPE vt, PROPVARIANT *ppv)
             ret = SeqToVector(ob, &ppv->cauh.pElems, &ppv->cauh.cElems, PyWinObject_AsULARGE_INTEGER);
             break;
         case VT_LPWSTR:
-            ret = PyWinObject_AsTaskAllocatedWCHAR(ob, &ppv->pwszVal, FALSE, NULL);
+            ret = PyWinObject_AsTaskAllocatedWCHAR(ob, &ppv->pwszVal, FALSE);
             break;
         case VT_LPWSTR | VT_VECTOR: {
             TmpPyObject seq = PyWinSequence_Tuple(ob, &ppv->calpwstr.cElems);
@@ -407,7 +407,7 @@ BOOL PyWin_NewPROPVARIANT(PyObject *ob, VARTYPE vt, PROPVARIANT *ppv)
             ret = TRUE;
             for (ULONG i = 0; i < ppv->calpwstr.cElems; i++) {
                 PyObject *obstr = PyTuple_GET_ITEM((PyObject *)seq, i);
-                ret = PyWinObject_AsTaskAllocatedWCHAR(obstr, &ppv->calpwstr.pElems[i], FALSE, NULL);
+                ret = PyWinObject_AsTaskAllocatedWCHAR(obstr, &ppv->calpwstr.pElems[i], FALSE);
                 if (!ret)
                     break;
             }

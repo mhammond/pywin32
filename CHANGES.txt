@@ -17,6 +17,9 @@ Coming in build 305, as yet unreleased
   copied to `sys.exec_prefix`, along with possibly `pywintypesXX.dll` and run
   from there. (#1908)
 
+* Dropped support for allowing a bytes object to be passed where a COM BSTR
+  is expected - this support was accidental on the path from 2.x->3.x.
+
 Build 304, released 2022-05-02
 ------------------------------
 * Fixed Unicode issues in the `dde` module (#1861, @markuskimius )

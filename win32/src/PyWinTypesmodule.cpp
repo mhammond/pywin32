@@ -376,7 +376,7 @@ static PyObject *PyWin_IsTextUnicode(PyObject *self, PyObject *args)
         return NULL;
     }
 
-    DWORD rc = IsTextUnicode((LPVOID)value, numBytes, &flags);
+    DWORD rc = IsTextUnicode((LPVOID)value, (int)numBytes, &flags);
     return Py_BuildValue("ii", rc, flags);
     // @rdesc The function returns (result, flags), both integers.
     // <nl>result is nonzero if the data in the buffer passes the specified tests.

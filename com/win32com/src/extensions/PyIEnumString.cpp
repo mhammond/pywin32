@@ -168,7 +168,7 @@ STDMETHODIMP PyGEnumString::Next(ULONG celt, LPOLESTR __RPC_FAR *rgVar, ULONG __
     else
         for (item_index = 0; item_index < *pCeltFetched; item_index++) {
             result_item = PyTuple_GET_ITEM(result_tuple, item_index);
-            if (!PyWinObject_AsTaskAllocatedWCHAR(result_item, &rgVar[item_index], FALSE, NULL)) {
+            if (!PyWinObject_AsTaskAllocatedWCHAR(result_item, &rgVar[item_index], FALSE)) {
                 hr = PyCom_SetCOMErrorFromPyException(IID_IEnumString);
                 break;
             }

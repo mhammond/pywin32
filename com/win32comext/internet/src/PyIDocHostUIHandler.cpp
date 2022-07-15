@@ -463,8 +463,8 @@ STDMETHODIMP PyGDocHostUIHandler::GetHostInfo(
     // Process the Python results, and convert back to the real params
     PyObject *obhostcss, *obhostns;
     if (!PyArg_ParseTuple(result, "iiOO", &pInfo->dwFlags, &pInfo->dwDoubleClick, &obhostcss, &obhostns) ||
-        !PyWinObject_AsTaskAllocatedWCHAR(obhostcss, &pInfo->pchHostCss, TRUE, NULL) ||
-        !PyWinObject_AsTaskAllocatedWCHAR(obhostns, &pInfo->pchHostNS, TRUE, NULL))
+        !PyWinObject_AsTaskAllocatedWCHAR(obhostcss, &pInfo->pchHostCss, TRUE) ||
+        !PyWinObject_AsTaskAllocatedWCHAR(obhostns, &pInfo->pchHostNS, TRUE))
         hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("GetHostInfo");
     Py_DECREF(result);
     return hr;
@@ -558,7 +558,7 @@ STDMETHODIMP PyGDocHostUIHandler::GetOptionKeyPath(
     if (FAILED(hr))
         return hr;
     // Process the Python results, and convert back to the real params
-    if (!PyWinObject_AsTaskAllocatedWCHAR(result, pchKey, FALSE, NULL))
+    if (!PyWinObject_AsTaskAllocatedWCHAR(result, pchKey, FALSE))
         hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("GetOptionKeyPath");
     Py_DECREF(result);
     return hr;
@@ -618,7 +618,7 @@ STDMETHODIMP PyGDocHostUIHandler::TranslateUrl(
     if (FAILED(hr))
         return hr;
     // Process the Python results, and convert back to the real params
-    if (!PyWinObject_AsTaskAllocatedWCHAR(result, ppchURLOut, FALSE, NULL))
+    if (!PyWinObject_AsTaskAllocatedWCHAR(result, ppchURLOut, FALSE))
         hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("TranslateUrl");
     Py_DECREF(result);
     return hr;

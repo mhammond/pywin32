@@ -79,7 +79,7 @@ PyObject *PySet(PyObject *self, PyObject *args)
             break;
         }
         case TYMED_FILE:
-            if (!PyWinObject_AsTaskAllocatedWCHAR(ob, &ps->medium.lpszFileName, FALSE, NULL))
+            if (!PyWinObject_AsTaskAllocatedWCHAR(ob, &ps->medium.lpszFileName, FALSE))
                 return FALSE;
             break;
         case TYMED_ISTREAM:
