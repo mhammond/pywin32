@@ -12,7 +12,7 @@
 # * The buttons are "old" style, rather than based on the XP theme.
 # Hence, using:
 #   import winxpgui as win32gui
-# is recommened.
+# is recommended.
 # Please report any problems.
 import sys
 
