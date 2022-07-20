@@ -589,7 +589,7 @@ class CommonDBTests(unittest.TestCase):
         crsr = self.getCursor()
         self.helpCreateAndPopulateTableTemp(crsr)
         crsr.prepare("SELECT fldData FROM xx_%s" % config.tmp)
-        crsr.execute(crsr.command)  # remembes the one that was prepared
+        crsr.execute(crsr.command)  # remember the one that was prepared
         rs = crsr.fetchall()
         assert len(rs) == 9
         assert rs[2][0] == 2

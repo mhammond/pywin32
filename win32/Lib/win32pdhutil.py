@@ -81,7 +81,7 @@ def FindPerformanceAttributesByName(
     machine=None,
     bRefresh=0,
 ):
-    """Find peformance attributes by (case insensitive) instance name.
+    """Find performance attributes by (case insensitive) instance name.
 
     Given a process name, return a list with the requested attributes.
     Most useful for returning a tuple of PIDs given a process name.

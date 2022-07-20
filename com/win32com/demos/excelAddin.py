@@ -62,7 +62,7 @@ gencache.EnsureModule(
     "{2DF8D04C-5BFA-101B-BDE5-00AA0044DE52}", 0, 2, 1, bForDemand=True
 )  # Office 9
 
-# The TLB defiining the interfaces we implement
+# The TLB defining the interfaces we implement
 universal.RegisterInterfaces(
     "{AC0714F2-3D04-11D1-AE7D-00A0C90F26F4}", 0, 1, 0, ["_IDTExtensibility2"]
 )
