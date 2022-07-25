@@ -1879,7 +1879,7 @@ static PyObject *py_ConnectEx( PyObject *self, PyObject *args, PyObject *kwargs 
 
 	rc=0;
 	Py_BEGIN_ALLOW_THREADS;
-	if (!lpfnConnectEx(sConnecting, res->ai_addr, res->ai_addrlen, pybuf.ptr(), pybuf.len(), &sent, pOverlapped))
+	if (!lpfnConnectEx(sConnecting, res->ai_addr, (int)res->ai_addrlen, pybuf.ptr(), pybuf.len(), &sent, pOverlapped))
 		rc=WSAGetLastError();
 	Py_END_ALLOW_THREADS;
 	WspiapiFreeAddrInfo(res);
@@ -3493,10 +3493,10 @@ PyObject *PyWinObject_FromPENCRYPTION_CERTIFICATE_HASH_LIST(PENCRYPTION_CERTIFIC
 }
 
 BOOL PyWinObject_AsPENCRYPTION_CERTIFICATE_LIST(PyObject *obcert_list, PENCRYPTION_CERTIFICATE_LIST pecl)
-{	
+{
 	char *format_msg="ENCRYPTION_CERTIFICATE_LIST must be represented as a sequence of sequences of (PySID, str, int dwCertEncodingType )";
 	BOOL bSuccess=TRUE;
-	DWORD cert_cnt=0, cert_ind=0;
+	DWORD cert_ind=0;
 	PENCRYPTION_CERTIFICATE *ppec=NULL;
 	PyObject *obcert=NULL;
 	PyObject *obsid=NULL, *obcert_member=NULL;
@@ -3505,7 +3505,9 @@ BOOL PyWinObject_AsPENCRYPTION_CERTIFICATE_LIST(PyObject *obcert_list, PENCRYPTI
 		PyErr_SetString(PyExc_TypeError,format_msg);
 		return FALSE;
 		}
-	cert_cnt=PySequence_Length(obcert_list);
+	Py_ssize_t ssize_cert_cnt=PySequence_Length(obcert_list);
+	PYWIN_CHECK_SSIZE_DWORD(ssize_cert_cnt, FALSE);
+	DWORD cert_cnt=(DWORD)ssize_cert_cnt;
 	pecl->nUsers=cert_cnt;
 	ppec=(PENCRYPTION_CERTIFICATE *)malloc(cert_cnt*sizeof(PENCRYPTION_CERTIFICATE));
 	if (ppec==NULL){
@@ -3585,7 +3587,7 @@ BOOL PyWinObject_AsPENCRYPTION_CERTIFICATE_HASH_LIST(PyObject *obhash_list, PENC
 {
 	char *err_msg="ENCRYPTION_CERTIFICATE_HASH_LIST must be represented as a sequence of sequences of (PySID, bytes, string)";
 	BOOL bSuccess=TRUE;
-	DWORD hash_cnt=0, hash_ind=0;
+	DWORD hash_ind=0;
 	PENCRYPTION_CERTIFICATE_HASH *ppech=NULL;
 	PyObject *obsid=NULL, *obDisplayInformation=NULL, *obhash=NULL;
 	PyObject *obhash_item=NULL;
@@ -3594,7 +3596,10 @@ BOOL PyWinObject_AsPENCRYPTION_CERTIFICATE_HASH_LIST(PyObject *obhash_list, PENC
 		PyErr_SetString(PyExc_TypeError,err_msg);
 		return FALSE;
 		}
-	hash_cnt=PySequence_Length(obhash_list);
+	Py_ssize_t ssize_hash_cnt=PySequence_Length(obhash_list);
+	PYWIN_CHECK_SSIZE_DWORD(ssize_hash_cnt, FALSE);
+	DWORD hash_cnt=(DWORD)ssize_hash_cnt;
+
 	pechl->nCert_Hash=hash_cnt;
 	ppech=(PENCRYPTION_CERTIFICATE_HASH *)malloc(hash_cnt*sizeof(PENCRYPTION_CERTIFICATE_HASH));
 	if (ppech==NULL){

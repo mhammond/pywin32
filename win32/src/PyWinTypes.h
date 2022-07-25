@@ -121,6 +121,7 @@ PYWINTYPES_EXPORT PyObject *PyWin_SetBasicCOMError(HRESULT hr);
 //
 // A sizes/lengths are reported as a `DWORD` rather than a `Py_ssize_t`, that's what the callers
 // need. `Py_ssize_t` used as the "in" type.
+// (We also use this for UINT and ULONG, all of which are 32bit unsigned ints.)
 
 // Sometimes we need to downcast from a ssize_t to a DWORD
 inline bool PyWin_is_ssize_dword(Py_ssize_t val) {

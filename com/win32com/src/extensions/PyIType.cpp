@@ -332,7 +332,9 @@ static PyObject *typeinfo_getidsofnames(PyObject *self, PyObject *args)
     if (pti == NULL)
         return NULL;
     UINT i;
-    int argc = PyTuple_GET_SIZE(args);
+    Py_ssize_t argc = PyTuple_GET_SIZE(args);
+    PYWIN_CHECK_SSIZE_DWORD(argc, NULL);
+
     if (argc < 1) {
         PyErr_SetString(PyExc_TypeError, "At least one argument must be supplied");
         return NULL;
@@ -350,7 +352,7 @@ static PyObject *typeinfo_getidsofnames(PyObject *self, PyObject *args)
             offset = 1;
     }
 
-    UINT cNames = argc - offset;
+    UINT cNames = (UINT)argc - offset;
     OLECHAR FAR *FAR *rgszNames = new LPOLESTR[cNames];
 
     for (i = 0; i < cNames; ++i) {

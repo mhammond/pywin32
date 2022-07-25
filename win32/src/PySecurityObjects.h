@@ -87,7 +87,7 @@ class PYWINTYPES_EXPORT PySID : public PyObject {
    public:
     PSID GetSID() { return m_psid; }
 
-    PySID(int bufSize, void *initBuf = NULL);
+    PySID(Py_ssize_t bufSize, void *initBuf = NULL);
     PySID(PSID other);
     ~PySID();
 

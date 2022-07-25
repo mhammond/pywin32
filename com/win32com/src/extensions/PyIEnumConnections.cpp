@@ -154,15 +154,14 @@ STDMETHODIMP PyGEnumConnections::Next(
 
     if (!PySequence_Check(result))
         goto error;
-    int len;
-    len = PyObject_Length(result);
-    if (len == -1)
+    Py_ssize_t len = PyObject_Length(result);
+    if (len == -1 || !PyWin_is_ssize_dword(len))
         goto error;
-    if (len > (int)celt)
+    if (len > celt)
         len = celt;
 
     if (pCeltFetched)
-        *pCeltFetched = len;
+        *pCeltFetched = (ULONG)len;
 
     int i;
     for (i = 0; i < len; ++i) {

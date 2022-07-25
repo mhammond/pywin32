@@ -183,8 +183,9 @@ BOOL PyWinObject_AsBstr(PyObject *stringObject, BSTR *pResult, BOOL bNoneOK /*= 
         // Py3.12+: only conversion yields the correct number of wide chars (incl. surrogate pairs).
         // For simplicity we use a temp buffer.
         TmpWCHAR tw = stringObject;  if (!tw) return FALSE;
+        PYWIN_CHECK_SSIZE_DWORD(tw.length, NULL);
         // SysAllocStringLen allocates length+1 wchars (and puts a \0 at end); like PyUnicode_AsWideCharString
-        *pResult = SysAllocStringLen(tw, tw.length);
+        *pResult = SysAllocStringLen(tw, (UINT)tw.length);
     }
     else if (stringObject == Py_None) {
         if (bNoneOK) {

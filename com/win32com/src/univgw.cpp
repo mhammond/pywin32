@@ -393,11 +393,12 @@ static PyObject *univgw_CreateVTable(PyObject *self, PyObject *args)
     if (methods == NULL)
         return NULL;
 
-    int count = PyObject_Length(methods);
+    Py_ssize_t count = PyObject_Length(methods);
     if (count == -1) {
         Py_DECREF(methods);
         return NULL;
     }
+    PYWIN_CHECK_SSIZE_DWORD(count, NULL);
     PyObject *methodsArgc = PyObject_CallMethod(obDef, "vtbl_argcounts", NULL);
     if (methodsArgc == NULL)
         return NULL;
@@ -424,7 +425,7 @@ static PyObject *univgw_CreateVTable(PyObject *self, PyObject *args)
 
     vtbl->magic = GW_VTBL_MAGIC;
     vtbl->iid = iid;
-    vtbl->cMethod = count;
+    vtbl->cMethod = (UINT)count;
     vtbl->cReservedMethods = numReservedVtables;
 
     vtbl->dispatcher = PyObject_GetAttrString(obDef, "dispatch");
