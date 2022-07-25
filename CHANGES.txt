@@ -11,6 +11,11 @@ or
 
 Coming in build 305, as yet unreleased
 --------------------------------------
+* service registration had an overhaul, avoiding a complicated, and ultimately
+  unnecessary "single globally registered service runner" concept.
+  Now, when registering a service, the host pythonservice.exe runner will be
+  copied to `sys.exec_prefix`, along with possibly `pywintypesXX.dll` and run
+  from there. (#1908)
 
 Build 304, released 2022-05-02
 ------------------------------

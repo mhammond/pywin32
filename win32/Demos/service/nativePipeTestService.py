@@ -33,12 +33,14 @@ class NativeTestPipeService(TestPipeService):
 def main():
     if len(sys.argv) == 1:
         # service must be starting...
+        print("service is starting...")
+        print("(execute this script with '--help' if that isn't what you want)")
+
         # for the sake of debugging etc, we use win32traceutil to see
         # any unhandled exceptions and print statements.
         import win32traceutil
 
-        print("service is starting...")
-        print("(execute this script with '--help' if that isn't what you want)")
+        print("service is still starting...")
 
         servicemanager.Initialize()
         servicemanager.PrepareToHostSingle(NativeTestPipeService)

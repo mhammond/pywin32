@@ -2,7 +2,7 @@
 # and for for Python programs which run as services...
 #
 # Note that most utility functions here will raise win32api.error's
-# (which is == win32service.error, pywintypes.error, etc)
+# (which is win32service.error, pywintypes.error, etc)
 # when things go wrong - eg, not enough permissions to hit the
 # registry etc.
 
@@ -10,127 +10,57 @@ import win32service, win32api, win32con, winerror
 import sys, pywintypes, os, warnings
 import importlib
 
+_d = "_d" if "_d.pyd" in importlib.machinery.EXTENSION_SUFFIXES else ""
 error = RuntimeError
 
-# We need to find a `pythonservice.exe` to register as a service. Now that the
-# 90's have passed, we really can't assume that pythonXX.dll/pywintypesXX.dll
-# etc are all in SYSTEM32. pythonservice.exe isn't, by default, in a place where
-# these DLLs are likely to be found in a service context.
-
-# We could try and have the postinstall script copy the .exe? But I guess the
-# number of users is tiny and everyone else doesn't need the extra .exe hanging
-# around on the PATH.
-# So - just make noise.
-noise = """
-**** WARNING ****
-The executable at "{exe}" is being used as a service.
-
-The service will need to find "{py_dll}" and "{pyw_dll}" in it's environment,
-but we were unable to find these in locations we can safely predict.
-We searched in:
- {dirs}
-and found:
- {fpaths}
-Note that this warning will appear despite any files found in "{exec_prefix}"
-as this may not be in the PATH that the service will see.
-If the service does fail to run, not finding these files will be the reason.
-
-You should consider copying this executable to the directory where these
-DLLs live - "{good}" might be a good place.
-****
-"""
-
-
-def LocatePythonServiceExe(exeName=None):
-    found = _LocatePythonServiceExe(exeName)
-    where = os.path.dirname(found)
-    under_d = "_d" if "_d.pyd" in importlib.machinery.EXTENSION_SUFFIXES else ""
-    suffix = "%s%s%s.dll" % (
-        sys.version_info[0],
-        sys.version_info[1],
-        under_d,
-    )
-    # If someone isn't using python.exe to register pythonservice.exe we assume they know what they
-    # are doing.
-    if found == sys.executable:
-        return found
-
-    py_dll = "python{}".format(suffix)
-    pyw_dll = "pywintypes{}".format(suffix)
-    system_dir = win32api.GetSystemDirectory()
-    exec_prefix = sys.exec_prefix
-
-    dirs = [system_dir, exec_prefix, where]
-    fpaths = [os.path.join(p, dll) for dll in [py_dll, pyw_dll] for p in dirs]
-    fpaths = [f for f in fpaths if os.path.exists(f)]
-    fpaths = fpaths and fpaths or ["nothing"]
-
-    ok = (
-        os.path.exists(os.path.join(where, py_dll))
-        or os.path.exists(os.path.join(system_dir, py_dll))
-    ) and (
-        os.path.exists(os.path.join(where, pyw_dll))
-        or os.path.exists(os.path.join(system_dir, pyw_dll))
-    )
-    if not ok:
-        print(
-            noise.format(
-                exe=found,
-                good=os.path.dirname(pywintypes.__file__),
-                py_dll=py_dll,
-                pyw_dll=pyw_dll,
-                dirs="\n ".join(dirs),
-                fpaths="\n ".join(fpaths),
-                exec_prefix=exec_prefix,
-            ),
-            file=sys.stderr,
-        )
-
-    return found
-
-
-def _LocatePythonServiceExe(exeName=None):
-    if not exeName and hasattr(sys, "frozen"):
-        # If py2exe etc calls this with no exeName, default is current exe.
+# Returns the full path to an executable for hosting a Python service - typically
+# 'pythonservice.exe'
+# * If you pass a param and it exists as a file, you'll get the abs path back
+# * Otherwise we'll use the param instead of 'pythonservice.exe', and we will
+#   look for it.
+def LocatePythonServiceExe(exe=None):
+    if not exe and hasattr(sys, "frozen"):
+        # If py2exe etc calls this with no exe, default is current exe,
+        # and all setup is their problem :)
         return sys.executable
 
-    # Try and find the specified EXE somewhere.  If specifically registered,
-    # use it.  Otherwise look down sys.path, and the global PATH environment.
-    if exeName is None:
-        if os.path.splitext(win32service.__file__)[0].endswith("_d"):
-            exeName = "PythonService_d.exe"
-        else:
-            exeName = "PythonService.exe"
-    # See if it exists as specified
-    if os.path.isfile(exeName):
-        return win32api.GetFullPathName(exeName)
-    baseName = os.path.splitext(os.path.basename(exeName))[0]
-    try:
-        exeName = win32api.RegQueryValue(
-            win32con.HKEY_LOCAL_MACHINE,
-            "Software\\Python\\%s\\%s" % (baseName, sys.winver),
-        )
-        if os.path.isfile(exeName):
-            return exeName
-        raise RuntimeError(
-            "The executable '%s' is registered as the Python "
-            "service exe, but it does not exist as specified" % exeName
-        )
-    except win32api.error:
-        # OK - not there - lets go a-searchin'
-        for path in [sys.prefix] + sys.path:
-            look = os.path.join(path, exeName)
-            if os.path.isfile(look):
-                return win32api.GetFullPathName(look)
-        # Try the global Path.
-        try:
-            return win32api.SearchPath(None, exeName)[0]
-        except win32api.error:
-            msg = (
-                "%s is not correctly registered\nPlease locate and run %s, and it will self-register\nThen run this service registration process again."
-                % (exeName, exeName)
-            )
-            raise error(msg)
+    if exe and os.path.isfile(exe):
+        return win32api.GetFullPathName(exe)
+
+    # We are confused if we aren't now looking for our default. But if that
+    # exists as specified we assume it's good.
+    exe = f"pythonservice{_d}.exe"
+    if os.path.isfile(exe):
+        return win32api.GetFullPathName(exe)
+
+    # Now we are searching for the .exe
+    # We are going to want it here.
+    correct = os.path.join(sys.exec_prefix, exe)
+    # If that doesn't exist, we might find it where pywin32 installed it,
+    # next to win32service.pyd.
+    maybe = os.path.join(os.path.dirname(win32service.__file__), exe)
+    if os.path.exists(maybe):
+        # Welp, copy it to exec_prefix
+        print(f"copying host exe '{maybe}' -> '{correct}'")
+        win32api.CopyFile(maybe, correct)
+        correct = maybe
+
+    if not os.path.exists(correct):
+        raise error(f"Can't find '{correct}'")
+
+    # If pywintypes.dll isn't next to us, or at least next to pythonXX.dll,
+    #  there's a good chance the service will not run. That's usually copied by
+    # `pywin32_postinstall`, but putting it next to the python DLL seems
+    # reasonable.
+    python_dll = win32api.GetModuleFileName(sys.dllhandle)
+    pyw = f"pywintypes{sys.version_info[0]}{sys.version_info[1]}{_d}.dll"
+    correct_pyw = os.path.join(os.path.dirname(python_dll), pyw)
+
+    if not os.path.exists(correct_pyw):
+        print(f"copying helper dll '{pywintypes.__file__}' -> '{correct_pyw}'")
+        win32api.CopyFile(pywintypes.__file__, correct_pyw)
+
+    return correct
 
 
 def _GetServiceShortName(longName):
@@ -176,8 +106,7 @@ def SmartOpenService(hscm, name, access):
 
 
 def LocateSpecificServiceExe(serviceName):
-    # Given the name of a specific service, return the .EXE name _it_ uses
-    # (which may or may not be the Python Service EXE
+    # Return the .exe name of any service.
     hkey = win32api.RegOpenKey(
         win32con.HKEY_LOCAL_MACHINE,
         "SYSTEM\\CurrentControlSet\\Services\\%s" % (serviceName),
@@ -283,9 +212,7 @@ def InstallService(
     if errorControl is None:
         errorControl = win32service.SERVICE_ERROR_NORMAL
 
-    exeName = '"%s"' % LocatePythonServiceExe(
-        exeName
-    )  # None here means use default PythonService.exe
+    exeName = '"%s"' % LocatePythonServiceExe(exeName)
     commandLine = _GetCommandLine(exeName, exeArgs)
     hscm = win32service.OpenSCManager(None, None, win32service.SC_MANAGER_ALL_ACCESS)
     try:
@@ -320,8 +247,7 @@ def InstallService(
                 )
             except (win32service.error, NotImplementedError):
                 ## delayed start only exists on Vista and later - warn only when trying to set delayed to True
-                if delayedstart:
-                    warnings.warn("Delayed Start not available on this system")
+                warnings.warn("Delayed Start not available on this system")
         win32service.CloseServiceHandle(hs)
     finally:
         win32service.CloseServiceHandle(hscm)
