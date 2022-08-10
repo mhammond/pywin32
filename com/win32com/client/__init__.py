@@ -574,12 +574,17 @@ class DispatchBaseClass:
             resultCLSID,
         )
 
+    _dyndisp_ = None
+
     def __getattr__(self, attr):
         args = self._prop_map_get_.get(attr)
         if args is None:
-            raise AttributeError(
-                "'%s' object has no attribute '%s'" % (repr(self), attr)
-            )
+            # Fall back to dynamic get. Type info may be incomplete.
+            if self._dyndisp_ is None:
+                self.__dict__["_dyndisp_"] = dynamic.Dispatch(
+                    self._oleobj_, self.__class__.__name__
+                )
+            return getattr(self._dyndisp_, attr)
         return self._ApplyTypes_(*args)
 
     def __setattr__(self, attr, value):
@@ -589,9 +594,11 @@ class DispatchBaseClass:
         try:
             args, defArgs = self._prop_map_put_[attr]
         except KeyError:
-            raise AttributeError(
-                "'%s' object has no attribute '%s'" % (repr(self), attr)
-            )
+            if self._dyndisp_ is None:
+                self.__dict__["_dyndisp_"] = dynamic.Dispatch(
+                    self._oleobj_, self.__class__.__name__
+                )
+            return setattr(self._dyndisp_, attr, value)
         self._oleobj_.Invoke(*(args + (value,) + defArgs))
 
     def _get_good_single_object_(self, obj, obUserName=None, resultCLSID=None):
