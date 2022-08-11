@@ -19,7 +19,10 @@ defaultToolMenuItems = [
     ),
     ("Edit Python Path", "from pywin.tools import regedit;regedit.EditRegistry()"),
     ("COM Makepy utility", "from win32com.client import makepy;makepy.main()"),
-    ("COM Browser", "from win32com.client import combrowse;combrowse.main()"),
+    (
+        "COM Browser",
+        "from win32com.client import combrowse;combrowse.main(modal=False)",
+    ),
     (
         "Trace Collector Debugging tool",
         "from pywin.tools import TraceCollector;TraceCollector.MakeOutputWindow()",

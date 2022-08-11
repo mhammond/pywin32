@@ -273,8 +273,7 @@ if __name__ == "__main__":
     except:
         pass
     dlg = TypeBrowseDialog(fname)
-    try:
-        win32api.GetConsoleTitle()
+    if win32api.GetConsoleTitle():  # empty string w/o console
         dlg.DoModal()
-    except:
+    else:
         dlg.CreateWindow(win32ui.GetMainFrame())
