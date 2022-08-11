@@ -655,8 +655,13 @@ class my_build_ext(build_ext):
         cwd = os.getcwd()
         old_env = os.environ.copy()
         os.chdir(path)
+        print("-- _build_scintilla INCLUDE old:", os.environ.get("INCLUDE"))
+        if not self.compiler.initialized:
+            print("-- _build_scintilla compiler.initialize()")
+            self.compiler.initialize()
         os.environ["INCLUDE"] = os.pathsep.join(self.compiler.include_dirs)
         os.environ["LIB"] = os.pathsep.join(self.compiler.library_dirs)
+        print("-- _build_scintilla INCLUDE new:", os.environ.get("INCLUDE"))
         try:
             cmd = [nmake, "/nologo", "/f", makefile] + makeargs
             self.compiler.spawn(cmd)

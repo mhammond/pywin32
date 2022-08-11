@@ -28,7 +28,10 @@ jobs:
       run: |
         python --version
         pip --version
-        pip install --upgrade setuptools wheel
+        # XXX With setuptools 63.4.3 .. 64.0.0 the scintilla nmake won't compile (
+        # setuptools.msvc._msvc14_get_vc_env() won't get the VC\INCLUDE into os.environ)
+        # Lets see if this will be fixed again in higher versions
+        pip install --upgrade setuptools<=63.2.0 wheel
 
     - name: Build and install
       run: |
@@ -80,7 +83,7 @@ jobs:
       run: |
         python --version
         pip --version
-        pip install --upgrade setuptools wheel
+        pip install --upgrade setuptools<=63.2.0 wheel
 
     - name: Obtain ARM64 library files
       run: |
