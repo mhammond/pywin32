@@ -61,6 +61,16 @@ formatInput = (-402653169, 0, 200, 0, 0, 0, 49, "Courier New")
 formatOutput = (-402653169, 0, 200, 0, 8421376, 0, 49, "Courier New")
 formatOutputError = (-402653169, 0, 200, 0, 255, 0, 49, "Courier New")
 
+
+def save_locals(frame=None, remove=True):
+    frame = frame or sys._getframe(1)
+    import ctypes
+
+    return ctypes.pythonapi.PyFrame_LocalsToFast(
+        ctypes.py_object(frame), ctypes.c_int(remove)
+    )
+
+
 try:
     sys.ps1
 except AttributeError:
@@ -283,6 +293,8 @@ class InteractiveFormatter(FormatterParent):
 # line, looking for the prompts
 #
 class PythonwinInteractiveInterpreter(code.InteractiveInterpreter):
+    curframe = None
+
     def __init__(self, locals=None, globals=None):
         if locals is None:
             locals = __main__.__dict__
@@ -297,13 +309,95 @@ class PythonwinInteractiveInterpreter(code.InteractiveInterpreter):
         )  # So the color syntaxer recognises it.
         code.InteractiveInterpreter.showsyntaxerror(self, filename)
 
+    # try auto-import after NameError or AttributeError
+    def try_autoimport(self, exc):
+        ty, va, tb = exc
+        if ty is AttributeError and not (
+            "module" in va.args[0] and "has no attribute" in va.args[0]
+        ):
+            # error not due to a module attribute
+            raise
+        ltb = traceback.extract_tb(tb)
+        if len(ltb) > 3:
+            # too complex for a decent auto-import
+            raise
+        # name of NameError or AttributeError
+        name = re.findall("'(\w+)'", va.args[0])[-1]
+        # analyze dotted name: the part including the (last) occurrence of the
+        # name can be a sub-module directly or an attribute requiring an import of
+        # a previous part
+        src = self.source_interact
+        cnt = 0
+        _impname = ""
+        for fullname, _basename, _sub, _rest in re.findall(
+            r"((\w+\.)*(%s))(.\w+)*" % re.escape(name), src
+        ):
+            if not _basename and not _rest:
+                continue  # we don't search NameError's w/o dot context
+            print("-- interact: auto-import upon name error: %s --" % (fullname))
+            impname = fullname
+            while impname:
+                # try import dotted name - starting with fullname and retracing
+                _impname = impname
+                try:
+                    base = __import__(impname, self.globals, self.locals)
+                except ImportError as _ev:
+                    ev = _ev
+                    # try basename import
+                    impname = ([""] + impname.rsplit(".", 1))[-2]
+                    continue
+                # import ok, done.
+                self.globals[base.__name__] = base
+                break
+            else:
+                continue
+            break
+        else:
+            if _impname:
+                print("-- auto-import %r FAILED: %s --" % (_impname, ev.args[0]))
+            raise
+
     def runcode(self, code):
+        import builtins as builtins  # otherwise 2to3 will trouble
+
+        last_ = getattr(builtins, "_", None)
         try:
-            exec(code, self.globals, self.locals)
+            for _retry in 0, 1, 2:
+                try:
+                    exec(code, self.globals, self.locals)
+                    if self.curframe:
+                        save_locals(self.curframe)
+                    break
+                except (
+                    NameError,
+                    AttributeError,
+                ):  # ("name 'inspectx' is not defined",)
+                    if _retry > 1:
+                        raise
+                    # Auto-import upon NameError / AttributeError : search for
+                    # 'somemod.[submod. *]something' in simple cases.
+                    self.try_autoimport(sys.exc_info())
+                    continue  # retry
         except SystemExit:
             raise
         except:
+            ev = sys.exc_info()[1]
+            cause = getattr(ev, "__cause__", None)
+            ev.__cause__ = None  # PY3: show only final exception - otherwise annoying
             self.showtraceback()
+            ev.__cause__ = cause  # restore the cause for further inspection
+        else:
+            new_ = getattr(builtins, "_", None)
+            if new_ is not last_:
+                ##builtins.___ = getattr(builtins, '__', None)
+                builtins.__ = last_
+                builtins._ = new_
+                del new_
+        del last_
+        from pywin.debugger import currentDebugger as d
+
+        if d:
+            d.GUIRespondDebuggerData()
 
 
 class InteractiveCore:
@@ -332,7 +426,7 @@ class InteractiveCore:
                     % (win32ui.copyright,)
                 )
             else:
-                sys.stderr.write(banner)
+                sys.stderr.write(self.banner)
         rcfile = os.environ.get("PYTHONSTARTUP")
         if rcfile:
             import __main__
@@ -352,18 +446,16 @@ class InteractiveCore:
                 traceback.print_exc(file=sys.stderr)
         self.AppendToPrompt([])
 
-    def SetContext(self, globals, locals, name="Dbg"):
+    def SetContext(self, globals, locals, name="", curframe=None):
         oldPrompt = sys.ps1
         if globals is None:
             # Reset
-            sys.ps1 = ">>> "
-            sys.ps2 = "... "
             locals = globals = __main__.__dict__
-        else:
-            sys.ps1 = "[%s]>>> " % name
-            sys.ps2 = "[%s]... " % name
+        sys.ps1 = "%s>>> " % name
+        sys.ps2 = "%s... " % name
         self.interp.locals = locals
         self.interp.globals = globals
+        self.interp.curframe = curframe
         self.AppendToPrompt([], oldPrompt)
 
     def GetContext(self):
@@ -506,7 +598,13 @@ class InteractiveCore:
     #
     # Enter key handler
     #
-    def ProcessEnterEvent(self, event):
+    def DebugStatementEvent(self, event):
+        return self.ProcessEnterEvent(debug_into=True)
+
+    def EnterIndentEvent(self, event):
+        return self.ProcessEnterEvent(bNeedIndent=True)
+
+    def ProcessEnterEvent(self, event=None, bNeedIndent=False, debug_into=False):
         # If autocompletion has been triggered, complete and do not process event
         if self.SCIAutoCActive():
             self.SCIAutoCComplete()
@@ -538,10 +636,6 @@ class InteractiveCore:
             return
 
         # If SHIFT held down, we want new code here and now!
-        bNeedIndent = (
-            win32api.GetKeyState(win32con.VK_SHIFT) < 0
-            or win32api.GetKeyState(win32con.VK_CONTROL) < 0
-        )
         if bNeedIndent:
             self.ReplaceSel("\n")
         else:
@@ -550,9 +644,12 @@ class InteractiveCore:
             source = "\n".join(lines)
             while source and source[-1] in "\t ":
                 source = source[:-1]
+            self.interp.source_interact = source
             self.OutputGrab()  # grab the output for the command exec.
             try:
-                if self.interp.runsource(
+                if debug_into:
+                    self.DebugIntoStatement(source)
+                elif self.interp.runsource(
                     source, "<interactive input>"
                 ):  # Need more input!
                     bNeedIndent = 1
@@ -564,7 +661,6 @@ class InteractiveCore:
                     win32ui.SetStatusText(
                         win32ui.LoadString(afxres.AFX_IDS_IDLEMESSAGE)
                     )
-            # 					win32ui.SetStatusText('Successfully executed statement')
             finally:
                 self.OutputRelease()
         if bNeedIndent:
@@ -584,6 +680,34 @@ class InteractiveCore:
             self.ReplaceSel(sys.ps2 + indent)
         return 0
 
+    def DebugIntoStatement(self, source):
+        self.AppendToPrompt(["-- debugging into statement --"])
+        import pywin.debugger, bdb
+
+        d = pywin.debugger._GetCurrentDebugger()
+        globs, locs = self.interp.globals, self.interp.locals
+        try:
+            code = self.interp.compile.compiler(
+                source, "<interactive debugging>", "single"
+            )
+            if d.pumping:
+                d.run_recursive(code, globs, locs)
+            else:
+                d.run(code, globs, locs)
+            print("-- statement debugger exit --")
+        except bdb.BdbQuit:
+            print("-- statement debugger aborted by user --")
+        except:
+            sys.last_type, sys.last_value, sys.last_traceback = sys.exc_info()
+            import traceback
+
+            traceback.print_exception(*sys.exc_info())
+            print("-- statement debugger exit with exception --")
+        if self.history is not None:
+            self.history.history_store(source)
+        self.AppendToPrompt([])
+        win32ui.SetStatusText("Statement execution in debugger complete.")
+
     # ESC key handler
     def ProcessEscEvent(self, event):
         # Implement a cancel.
@@ -592,6 +716,22 @@ class InteractiveCore:
         else:
             win32ui.SetStatusText("Cancelled.")
             self.AppendToPrompt(("",))
+        return 0
+
+    # BACKspace key handler
+    def ProcessBackEvent(self, event):
+        # currently unused : IDLE <<smart-backspace>> is now enabled on
+        # interactive too in default.cfg and does well.
+        #
+        # auto-complete should not be cancelled in interactive by scintillas
+        # default behavior, when simple backspace-delete hits the dot again after
+        # autoc became active (similar to behavior in normal editor)
+        if self.GetSelText():
+            return 1  # not handled -> sci default action
+        a, b = self.GetSel()
+        a = max(0, a - 1)
+        self.SetSel(a, b)
+        self.ReplaceSel("")
         return 0
 
     def OnSelectBlock(self, command, code):
@@ -635,8 +775,8 @@ class InteractiveCore:
 
         code = code.replace("\r\n", "\n") + "\n"
         try:
-            o = compile(code, "<clipboard>", "exec")
-            exec(o, __main__.__dict__)
+            o = self.interp.compile.compiler(code, "<clipboard>", "exec")
+            self.interp.runcode(o)
         except:
             traceback.print_exc()
 
@@ -644,6 +784,9 @@ class InteractiveCore:
         # Just override parents
         ret = []
         flags = 0
+        ret.append((flags, "LocateObject", "&Locate object\tCtrl+L"))
+        ret.append((flags, "LocateObjectEx", "&Locate object / external viewer"))
+        ret.append(win32con.MF_SEPARATOR)
         ret.append((flags, win32ui.ID_EDIT_UNDO, "&Undo"))
         ret.append(win32con.MF_SEPARATOR)
         ret.append((flags, win32ui.ID_EDIT_CUT, "Cu&t"))
@@ -774,7 +917,7 @@ class DockedInteractiveView(DockedInteractiveViewParent):
 
     def OnKillFocus(self, msg):
         # If we are losing focus to another in this app, reset the main frame's active view.
-        hwnd = wparam = msg[2]
+        hwnd = msg[2]
         try:
             wnd = win32ui.CreateWindowFromHandle(hwnd)
             reset = wnd.GetTopLevelFrame() == self.GetTopLevelFrame()
@@ -889,7 +1032,22 @@ def CreateDockedInteractiveWindow():
 InteractiveDocument = winout.WindowOutputDocument
 
 # We remember our one and only interactive window in the "edit" variable.
-edit = None
+try:
+    edit
+except NameError:
+    edit = None
+else:
+    # reload support for dev: immediate effect of (most) changes in this file
+    if edit:
+        for obj in (edit.currentView, edit.currentView.interp):  ##, edit
+            obj.__class__ = getattr(
+                sys.modules[obj.__class__.__module__], obj.__class__.__name__
+            )
+            print("reload-reclassed %s" % obj)
+        _old = (edit.currentView.history.history,)
+        ##edit.currentView.bindings.bindings.clear()  # idle bindings wouldn't be reinstalled
+        edit.currentView.HookHandlers()
+        (edit.currentView.history.history,) = _old
 
 
 def CreateInteractiveWindowUserPreference(makeDoc=None, makeFrame=None):
@@ -902,7 +1060,7 @@ def CreateInteractiveWindowUserPreference(makeDoc=None, makeFrame=None):
 def CreateInteractiveWindow(makeDoc=None, makeFrame=None):
     """Create a standard or docked interactive window unconditionally"""
     assert edit is None, "Creating second interactive window!"
-    bDocking = LoadPreference("Docking", 0)
+    bDocking = LoadPreference("Docking", 1)
     if bDocking:
         CreateDockedInteractiveWindow()
     else:

@@ -5,6 +5,7 @@ from . import IDLEenvironment  # IDLE emulation.
 from pywin.mfc import docview
 from pywin.mfc import dialog
 from . import scintillacon
+import win32api
 import win32con
 import win32ui
 import afxres
@@ -23,9 +24,9 @@ PRINTDLGORD = 1538
 IDC_PRINT_MAG_EDIT = 1010
 EM_FORMATRANGE = win32con.WM_USER + 57
 
-wordbreaks = "._" + string.ascii_uppercase + string.ascii_lowercase + string.digits
+wordbreaks = "_" + string.ascii_uppercase + string.ascii_lowercase + string.digits
 
-patImport = re.compile("import (?P<name>.*)")
+patImport = re.compile("import\s+(?P<name>.*)")
 
 _event_commands = [
     # File menu
@@ -65,12 +66,17 @@ _event_commands = [
 ]
 
 _extra_event_commands = [
+    ("OnDebuggerJumpToLine", 13400),
+    ("OnDebuggerContinueToLine", 13402),
     ("EditDelete", afxres.ID_EDIT_CLEAR),
-    ("LocateModule", win32ui.ID_FILE_LOCATE),
+    ("LocateModule", win32ui.ID_FILE_LOCATE),  # deprecated
+    ("LocateObject", win32ui.ID_FILE_LOCATE),
+    ("LocateObjectEx", 13401),
     ("GotoLine", win32ui.ID_EDIT_GOTO_LINE),
     ("DbgBreakpointToggle", win32ui.IDC_DBG_ADD),
     ("DbgGo", win32ui.IDC_DBG_GO),
     ("DbgStepOver", win32ui.IDC_DBG_STEPOVER),
+    ("DbgStepUntil", 13403),
     ("DbgStep", win32ui.IDC_DBG_STEP),
     ("DbgStepOut", win32ui.IDC_DBG_STEPOUT),
     ("DbgBreakpointClearAll", win32ui.IDC_DBG_CLEAR),
@@ -165,11 +171,17 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
 
         self.idle = IDLEenvironment.IDLEEditorWindow(self)
         self.idle.IDLEExtension("AutoExpand")
+        self.idle.IDLEExtension("AutoIndent")  # Required extension
         # SendScintilla is called so frequently it is worth optimizing.
         self.SendScintilla = self._obj_.SendMessage
 
     def OnDestroy(self, msg):
         self.SendScintilla = None
+        self.bindings.close()
+        self.bindings = None
+        self.idle.close()
+        self.idle = None
+        control.CScintillaColorEditInterface.close(self)
         return docview.CtrlView.OnDestroy(self, msg)
 
     def _MakeColorizer(self):
@@ -217,7 +229,10 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
         self.HookCommandUpdate(self.OnUpdateViewEOL, win32ui.ID_VIEW_EOL)
         self.HookCommand(self.OnCmdViewFixedFont, win32ui.ID_VIEW_FIXED_FONT)
         self.HookCommandUpdate(self.OnUpdateViewFixedFont, win32ui.ID_VIEW_FIXED_FONT)
-        self.HookCommand(self.OnCmdFileLocate, win32ui.ID_FILE_LOCATE)
+        self.HookCommand(self.OnDebuggerJumpToLine, 13400)
+        self.HookCommand(self.OnDebuggerContinueToLine, 13402)
+        self.HookCommand(self.OnLocateObjectEx, 13401)
+        self.HookCommand(self.OnLocateObject, win32ui.ID_FILE_LOCATE)
         self.HookCommand(self.OnCmdEditFind, win32ui.ID_EDIT_FIND)
         self.HookCommand(self.OnCmdEditRepeat, win32ui.ID_EDIT_REPEAT)
         self.HookCommand(self.OnCmdEditReplace, win32ui.ID_EDIT_REPLACE)
@@ -260,7 +275,9 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
         # Load the configuration information.
         self.OnWinIniChange(None)
 
-        self.SetSel()
+        # .SetSel() moved to doc loader; some views (runtool) may have
+        # already changed the pos earlier in OnNewDocument()
+        ##self.SetSel()
 
         self.GetDocument().FinalizeViewCreation(
             self
@@ -288,14 +305,6 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
             win32ui.MessageBox(configManager.last_error, "Configuration Error")
         self.bMatchBraces = GetEditorOption("Match Braces", 1)
         self.ApplyFormattingStyles(1)
-
-    def OnDestroy(self, msg):
-        self.bindings.close()
-        self.bindings = None
-        self.idle.close()
-        self.idle = None
-        control.CScintillaColorEditInterface.close(self)
-        return docview.CtrlView.OnDestroy(self, msg)
 
     def OnMouseWheel(self, msg):
         zDelta = msg[2] >> 16
@@ -431,7 +440,173 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
 
         find.ShowReplaceDialog()
 
-    def OnCmdFileLocate(self, cmd, id):
+    def OnDebuggerContinueToLine(self, cmd=None, id=None):
+        from pywin.debugger import currentDebugger as d
+
+        lineno = self.GetCurLineNumber() + 1
+        if (
+            self.GetDocument().GetPathName().lower()
+            != d.curframe.f_code.co_filename.lower()
+        ):
+            self.MessageBox(
+                "OnDebuggerContinueToLine works only for current frame's file."
+            )
+            return
+        try:
+            d.do_set_untilline(d.curframe, lineno)
+        except Exception as ev:
+            self.MessageBox(
+                "OnDebuggerContinueToLine works only for current frame. Error: %s" % ev
+            )
+        else:
+            d.ShowCurrentLine()
+
+    def DbgJumpToLineEvent(self, event):
+        self.OnDebuggerJumpToLine()
+
+    def DbgUntilLineEvent(self, event):
+        self.OnDebuggerJumpToLine(cm="continue-until")
+
+    def OnDebuggerJumpToLine(self, cmd=None, id=None, cm="jump"):
+        from pywin.debugger import currentDebugger as d
+
+        if not d.IsBreak():
+            self.MessageBox("Debugger %s : debugger not active" % cm)
+            return
+        lineno = self.GetCurLineNumber() + 1
+        if (
+            self.GetDocument().GetPathName().lower()
+            != d.curframe.f_code.co_filename.lower()
+        ):
+            self.MessageBox("Debugger %s works only for current frame's file." % cm)
+            return
+        if cm == "continue-until":
+            d.do_set_untilline(d.curframe, lineno + 1)
+            return
+        try:
+            d.curframe.f_lineno = int(lineno)  # fails with long on py27x64
+        except ValueError as ev:
+            self.MessageBox(
+                "Debugger %s works only for current frame. Error: %s" % (cm, ev)
+            )
+        else:
+            d.ShowCurrentLine()
+
+    def OnLocateObjectEx(self, cmd, id):
+        return self.OnLocateObject(cmd, id, extern=True)
+
+    def OnLocateObject(self, cmd, id, extern=False):
+        from pywin.framework import scriptutils
+
+        ed = self
+        path = ed.GetDocument().GetPathName()
+        if not path:
+            ed = scriptutils.GetActiveEditControl()
+            if ed:
+                path = ed.GetDocument().GetPathName()
+        # path = self.GetDocument().GetPathName() or scriptutils.GetActiveFileName()
+
+        if extern:
+
+            def jump_to(path, lineno=0, col=0):
+                import subprocess, time
+
+                ## extviewer = 'SciTE'
+                extviewer = (
+                    win32ui.GetProfileVal("Editor", "External Viewer", "")
+                    or sys.executable + " -new"
+                )
+                p = subprocess.Popen(
+                    '%(extviewer)s "%(path)s" -goto:%(lineno)s' % locals(), shell=1
+                )
+                t_end = time.time() + 0.5
+                while time.time() < t_end:
+                    if p.poll() is not None:
+                        break
+                    time.sleep(0.020)
+                if p.poll():
+                    win32ui.MessageBox(
+                        "External viewer '%(extviewer)s' not found on PATH. Check or clear HKCU\Software\Python V.v\Python for Win32\Editor\External Viewer"
+                        % locals()
+                    )
+
+        else:
+            jump_to = scriptutils.JumpToDocument  # func(path, lineno=0)
+
+            def jump_to(tpath, lineno=0, col=0):
+                tpath = os.path.abspath(tpath)
+                if tpath == path:
+                    # force add last pos always in locate jump - JumpToDocument() would do
+                    # it only on far jump
+                    ed.AddLastPosEvent()
+                return not scriptutils.JumpToDocument(tpath, lineno, col)
+
+        # get the namespace of the (most likely) module of this file
+        ns = {}
+        if path:
+            mainfile = win32ui.FullPath(getattr(__main__, "__file__", "."))
+            if os.path.normcase(mainfile) == os.path.normcase(path):
+                mod = __main__
+            else:
+                modname, _newpath = scriptutils.GetPackageModuleName(path)
+                ##try: __import__(modname)	 # too aggressive probably
+                ##except: pass
+                ##else:
+                mod = sys.modules.get(modname)
+                if mod:
+                    ns = mod.__dict__
+
+        # try for an inspect-locateable living object
+        pos = self.GetSel()[0]
+        while pos and self.SCIGetCharAt(pos - 1) in " ([{":
+            pos -= 1
+        expr, obj = self._GetObjectAtPos(pos=pos, leftright=True, ns_extra=ns)
+        if not obj:
+            expr_c, obj = self._GetObjectAtPos(
+                pos=pos, bAllowCalls=True, leftright=True, ns_extra=ns
+            )
+            if obj:
+                expr = expr_c
+        if not expr:
+            # classic finder: import statement or default (file) Locate
+            r = self.OnCmdFileLocate(0, 0)
+            if extern:
+                win32api.MessageBeep()
+            return r
+        win32ui.SetStatusText("Locating object %r  (%r)" % (expr, obj))
+
+        loc = scriptutils.LocateObject(obj, expr, editor_current=ed, ns_extra=ns)
+        if loc.fn:
+            if loc.typ == "class" and ed and loc.lineno == ed.GetCurLineNumber() + 1:
+                # same line again -> jump to end of class source
+                import inspect
+
+                lines, loc.lineno = inspect.getsourcelines(loc.obj)
+                loc.lineno += len(lines)
+                loc.col = 1
+            jump_to(loc.fn, loc.lineno, loc.col)
+            return 0
+        else:
+            ##win32ui.SetStatusText("Can't locate object %r (%r): %s" % (expr, loc.obj, loc.error))
+            ##win32api.MessageBeep()
+            ##return 0  # no further propagation
+            return self.OnCmdFileLocate(
+                0, 0, expr=expr + "*"
+            )  # classic import / file locator
+
+    def _on_reclass(self):
+        # post fix for hot reload
+        if not getattr(self, "_obj_", None):
+            if self.__dict__:
+                # Stale refs of HookMessage()'ed meths hold .__self__ of dead windows
+                # for ever. Bug in win32ui? Here we just free things as much as
+                # possible: the __dict__ contents.
+                self.__dict__.clear()
+            return
+        print("%s._on_reclass" % self)
+        self.HookHandlers()
+
+    def OnCmdFileLocate(self, cmd=None, id=None, expr=""):
         line = self.GetLine().strip()
         import pywin.framework.scriptutils
 
@@ -439,7 +614,10 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
         if m:
             # Module name on this line - locate that!
             modName = m.group("name")
-            fileName = pywin.framework.scriptutils.LocatePythonFile(modName)
+            try:
+                fileName = pywin.framework.scriptutils.LocatePythonFile(modName)
+            except KeyboardInterrupt:
+                return 0
             if fileName is None:
                 win32ui.SetStatusText("Can't locate module %s" % modName)
                 return 1  # Let the default get it.
@@ -447,7 +625,8 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
                 win32ui.GetApp().OpenDocumentFile(fileName)
         else:
             # Just to a "normal" locate - let the default handler get it.
-            return 1
+            ##return 1  # may propagate odd from interactive to top editor
+            win32ui.GetApp().OnFileLocate(cmd, id, expr=expr)
         return 0
 
     def OnCmdGotoLine(self, cmd, id):
@@ -461,9 +640,7 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
 
     def SaveTextFile(self, filename, encoding=None):
         doc = self.GetDocument()
-        doc._SaveTextToFile(self, filename, encoding=encoding)
-        doc.SetModifiedFlag(0)
-        return 1
+        return doc._SaveTextToFile(self, filename, encoding=encoding)
 
     def _AutoComplete(self):
         def list2dict(l):
@@ -474,10 +651,10 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
 
         self.SCIAutoCCancel()  # Cancel old auto-complete lists.
         # First try and get an object without evaluating calls
-        ob = self._GetObjectAtPos(bAllowCalls=0)
+        expr, ob = self._GetObjectAtPos(bAllowCalls=0)
         # If that failed, try and process call or indexing to get the object.
         if ob is None:
-            ob = self._GetObjectAtPos(bAllowCalls=1)
+            expr, ob = self._GetObjectAtPos(bAllowCalls=1)
         items_dict = {}
         if ob is not None:
             try:  # Catch unexpected errors when fetching attribute names from the object
@@ -490,7 +667,13 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
 
                 # normal attributes
                 try:
-                    items_dict.update(list2dict(dir(ob)))
+                    if hasattr(ob, "__dir__") and not isinstance(
+                        ob, type
+                    ):  # support python 2.5-
+                        dirob = ob.__dir__()
+                    else:
+                        dirob = dir(ob)
+                    items_dict.update(list2dict(dirob))
                 except AttributeError:
                     pass  # object has no __dict__
                 if hasattr(ob, "__class__"):
@@ -521,9 +704,8 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
                 )
 
         # ensure all keys are strings.
-        items = [str(k) for k in items_dict.keys()]
-        # All names that start with "_" go!
-        items = [k for k in items if not k.startswith("_")]
+        items = [str(k) for k in items_dict]
+        # All names that start with "_" go to the end in ignorecase-mode auto!
 
         if not items:
             # Heuristics a-la AutoExpand
@@ -561,8 +743,18 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
                 items.remove(right[1:])
             except ValueError:
                 pass
+        if sys.version_info < (2, 4):
+            items.sort(lambda a, b: cmp(a.upper(), b.upper()))  # py23-
+        else:
+            items.sort(key=lambda x: x.upper())
         if items:
-            items.sort()
+            # SCI_AUTOCSETORDER is not yet in pywin's scintilla version (2011), so we
+            # cannot get the underscore items to the end consistently without
+            # SCI_AUTOCSETIGNORECASE(1); but SCI_AUTOCSETIGNORECASE anyway turned out
+            # to be the better solution by far.
+            ##self.SendScintilla(SCI_AUTOCSETCASEINSENSITIVEBEHAVIOUR, 1)
+            ##self.SendScintilla(SCI_AUTOCSETORDER, SC_ORDER_CUSTOM)
+            self.SendScintilla(scintillacon.SCI_AUTOCSETIGNORECASE, 1)
             self.SCIAutoCSetAutoHide(0)
             self.SCIAutoCShow(items)
 
@@ -647,29 +839,19 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
                     maxline = item_lineno
         return (minline, maxline, curclass)
 
-    def _GetObjectAtPos(self, pos=-1, bAllowCalls=0):
-        left, right = self._GetWordSplit(pos, bAllowCalls)
-        if left:  # It is an attribute lookup
-            # How is this for a hack!
-            namespace = sys.modules.copy()
-            namespace.update(__main__.__dict__)
-            # Get the debugger's context.
-            try:
-                from pywin.framework import interact
+    def _GetObjectAtPos(self, pos=-1, bAllowCalls=0, leftright=False, ns_extra={}):
+        if isinstance(pos, str):
+            expr = pos
+        else:
+            expr, right = self._GetWordSplit(pos, bAllowCalls)
+            if leftright:
+                expr = expr + right
+        if expr:
+            # It is an attribute lookup
+            from pywin.framework import scriptutils
 
-                if interact.edit is not None and interact.edit.currentView is not None:
-                    globs, locs = interact.edit.currentView.GetContext()[:2]
-                    if globs:
-                        namespace.update(globs)
-                    if locs:
-                        namespace.update(locs)
-            except ImportError:
-                pass
-            try:
-                return eval(left, namespace)
-            except:
-                pass
-        return None
+            return expr, scriptutils.GetXNamespace(expr, ns_extra=ns_extra)
+        return expr, None
 
     def _GetWordSplit(self, pos=-1, bAllowCalls=0):
         if pos == -1:
@@ -678,7 +860,7 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
         before = []
         after = []
         index = pos - 1
-        wordbreaks_use = wordbreaks
+        wordbreaks_use = wordbreaks + "."
         if bAllowCalls:
             wordbreaks_use = wordbreaks_use + "()[]"
         while index >= 0:
@@ -688,6 +870,7 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
             before.insert(0, char)
             index = index - 1
         index = pos
+        wordbreaks_use = wordbreaks
         while index <= limit:
             char = self.SCIGetCharAt(index)
             if char not in wordbreaks_use:

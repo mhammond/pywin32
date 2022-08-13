@@ -47,6 +47,7 @@ class DDEServer(object.Object):
         if self.item is not None:
             self.item.Destroy()
             self.item = None
+        self.close()
 
     def OnCreate(self):
         return 1

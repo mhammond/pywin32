@@ -154,6 +154,7 @@ class CScintillaDocument(ParentScintillaDocument):
             view.SetReadOnly(0)
             view.SendScintilla(scintillacon.SCI_CLEARALL)
             view.SendMessage(scintillacon.SCI_ADDTEXT, text)
+            view.SendScintilla(scintillacon.SCI_SETSEL, 0, 0)
             view.SendScintilla(scintillacon.SCI_SETUNDOCOLLECTION, 1, 0)
             view.SendScintilla(win32con.EM_EMPTYUNDOBUFFER, 0, 0)
             # set EOL mode
@@ -178,8 +179,32 @@ class CScintillaDocument(ParentScintillaDocument):
             if source_encoding is None:
                 source_encoding = "utf-8"
 
-        ## encode data before opening file so script is not lost if encoding fails
+        # encode data before opening file so script is not lost if encoding fails
         file_contents = s.encode(source_encoding)
+
+        # Dialog on hardlink twins
+        try:
+            nl = nlinks(filename)
+        except EnvironmentError:
+            nl = 0
+        if nl > 1:
+            fnhard = deref_symlinks(filename)
+            rc = win32ui.MessageBox(
+                "File %s is a hardlinked twin.\n\nDo you want to create a new file instance on write?"
+                % filename,
+                "Pythonwin",
+                win32con.MB_YESNOCANCEL | win32con.MB_ICONWARNING,
+            )  ## | win32con.MB_DEFBUTTON1)
+            if rc == win32con.IDCANCEL:
+                raise KeyboardInterrupt
+            if rc == win32con.IDYES:
+                print(
+                    "-- write new file instance:",
+                    fnhard,
+                    fnhard != filename and "(symlinked from %s)" % filename or "",
+                )
+                os.unlink(fnhard)
+
         # Open in binary mode as scintilla itself ensures the
         # line endings are already appropriate
         f = open(filename, "wb")
@@ -190,6 +215,7 @@ class CScintillaDocument(ParentScintillaDocument):
         finally:
             f.close()
         self.SetModifiedFlag(0)
+        return 1
 
     def FinalizeViewCreation(self, view):
         pass
@@ -234,8 +260,8 @@ class CScintillaDocument(ParentScintillaDocument):
         self.MakeDocumentWritable()
 
     # All Marker functions are 1 based.
-    def MarkerAdd(self, lineNo, marker):
-        self.GetEditorView().SCIMarkerAdd(lineNo - 1, marker)
+    def MarkerAdd(self, lineNo, marker):  # returns marker handle
+        return self.GetEditorView().SCIMarkerAdd(lineNo - 1, marker)
 
     def MarkerCheck(self, lineNo, marker):
         v = self.GetEditorView()
@@ -258,6 +284,9 @@ class CScintillaDocument(ParentScintillaDocument):
 
     def MarkerGetNext(self, lineNo, marker):
         return self.GetEditorView().SCIMarkerNext(lineNo - 1, 1 << marker) + 1
+
+    def MarkerGetPrev(self, lineNo, marker):
+        return self.GetEditorView().SCIMarkerPrev(lineNo - 1, 1 << marker) + 1
 
     def MarkerAtLine(self, lineNo, marker):
         markerState = self.GetEditorView().SCIMarkerGet(lineNo - 1)
@@ -309,3 +338,40 @@ class DocumentNotifyDelegate:
         (hwndFrom, idFrom, code) = std
         if hwndFrom == self.doc.GetEditorView().GetSafeHwnd():
             self.delegate(*(std, extra))
+
+
+# open() variant creating a new file when existing one has hardlinked twins.
+def open_new_on_write(fname, mode="r", *args, **kw):
+    if "w" in mode and not "+" in mode:
+        try:
+            st = os.stat(fname)
+        except os.error:
+            pass
+        else:
+            if st.st_nlink > 1:
+                if 1:
+                    print("-- open_new_on_write() new file:", fname, mode)
+                os.unlink(fname)
+    return open(fname, mode, *args, **kw)
+
+
+def deref_symlinks(path):
+    fnhard = path
+    d = {}
+    while os.path.islink(fnhard):
+        d[fnhard] = 1
+        try:
+            fnhard = readlink(fnhard)
+        except Exception as ev:
+            print("-- symlink '%s' could not be deref'ed:" % fnhard, ev)
+            break
+        if fnhard in d:
+            raise OSError(2, "circular symlink: %s" % path)
+    return fnhard
+
+
+readlink = os.readlink
+
+
+def nlinks(path):
+    return os.stat(path).st_nlink

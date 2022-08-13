@@ -79,6 +79,7 @@ def find_config_files():
 
 class ConfigManager:
     def __init__(self, f):
+        self.parents = {}
         self.filename = "unknown"
         self.last_error = None
         self.key_to_events = {}
@@ -96,7 +97,15 @@ class ConfigManager:
             self.filename = f
             self.basename = os.path.basename(f)
             trace("Loading configuration", self.basename)
-            compiled_name = os.path.splitext(f)[0] + ".cfc"
+            rootname = os.path.splitext(f)[0]
+            cache_tag = getattr(getattr(sys, "implementation", None), "cache_tag", "")
+            if cache_tag:
+                dn, bn = os.path.split(rootname)
+                compiled_name = (
+                    dn + os.sep + "__pycache__" + os.sep + bn + "." + cache_tag + ".cfc"
+                )
+            else:
+                compiled_name = os.path.splitext(f)[0] + cache_tag + ".cfc"
             try:
                 cf = open(compiled_name, "rb")
                 try:
@@ -118,6 +127,8 @@ class ConfigManager:
                             return  # We are ready to roll!
                 finally:
                     cf.close()
+            except ValueError as ev:
+                print("loading '%s' failed:" % compiled_name, ev)
             except (os.error, IOError, EOFError):
                 pass
             fp = open(f)
@@ -166,39 +177,57 @@ class ConfigManager:
             except (IOError, EOFError):
                 pass  # Ignore errors - may be read only.
 
+    ns = None
+
     def configure(self, editor, subsections=None):
         # Execute the extension code, and find any events.
         # First, we "recursively" connect any we are based on.
         if subsections is None:
             subsections = []
-        subsections = [""] + subsections
+        if "" not in subsections:
+            subsections = [""] + subsections
+        ns = self.ns or {}  # cached one time execution for ns
         general = self.get_data("general")
         if general:
             parents = general.get("based on", [])
-            for parent in parents:
-                trace("Configuration based on", parent, "- loading.")
-                parent = self.__class__(parent)
-                parent.configure(editor, subsections)
+            for parent_name in parents:
+                trace("Configuration based on", parent_name, "- loading.")
+                parent = self.parents.get(parent_name) or self.parents.setdefault(
+                    parent_name, self.__class__(parent_name)
+                )
+                nsp = parent.configure(editor, subsections)
+                if self.ns is None:
+                    ns.update(nsp)
                 if parent.last_error:
                     self.report_error(parent.last_error)
 
         bindings = editor.bindings
         codeob = self.get_data("extension code")
-        if codeob is not None:
-            ns = {}
+        if self.ns is None and codeob:
+            ns["__file__"] = self.filename
             try:
                 exec(codeob, ns)
+                self.ns = ns
             except:
                 traceback.print_exc()
                 self.report_error("Executing extension code failed")
-                ns = None
-            if ns:
-                num = 0
-                for name, func in list(ns.items()):
-                    if type(func) == types.FunctionType and name[:1] != "_":
-                        bindings.bind(name, func)
-                        num = num + 1
-                trace("Configuration Extension code loaded", num, "events")
+                ##ns.clear()  ## = None
+
+            modname = "_pywin_" + os.path.basename(self.filename).replace(".", "_")
+            mod = types.ModuleType(modname)
+            # somehow a created module __dict__ is spooky regarding reusage (attrs None) so we force set ist
+            ns.update(mod.__dict__)
+            mod.__dict__.update(ns)
+            sys.modules[mod.__name__] = mod
+
+        if ns:
+            num = 0
+            for name, func in list(ns.items()):
+                if type(func) == types.FunctionType and name[:1] != "_":
+                    bindings.bind(name, func)
+                    num = num + 1
+            trace("Configuration Extension code loaded", num, "events")
+
         # Load the idle extensions
         for subsection in subsections:
             for ext in self.get_data("idle extensions", {}).get(subsection, []):
@@ -216,6 +245,7 @@ class ConfigManager:
             bindings.update_keymap(keymap)
             num_bound = num_bound + len(keymap)
         trace("Configuration bound", num_bound, "keys")
+        return ns
 
     def get_key_binding(self, event, subsections=None):
         if subsections is None:
@@ -321,8 +351,8 @@ class ConfigManager:
             )
             self._save_data("extension code", c)
         except SyntaxError as details:
-            errlineno = details.lineno + start_lineno
-            # Should handle syntax errors better here, and offset the lineno.
+            errlineno = details.lineno
+            traceback.print_exc()
             self.report_error(
                 "Compiling extension code failed:\r\nFile: %s\r\nLine %d\r\n%s"
                 % (details.filename, errlineno, details.msg)

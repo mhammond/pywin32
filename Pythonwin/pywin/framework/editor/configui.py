@@ -52,7 +52,7 @@ class EditorPropertyPage(dialog.PropertyPage):
         )
         self._AddEditorOption(win32ui.IDC_CALLTIPS, "i", "Show Call Tips", 1)
         self._AddEditorOption(
-            win32ui.IDC_MARGIN_LINENUMBER, "i", "Line Number Margin Width", 0
+            win32ui.IDC_MARGIN_LINENUMBER, "i", "Line Number Margin Width", 40
         )
         self._AddEditorOption(win32ui.IDC_RADIO1, "i", "MarkersInMargin", None)
         self._AddEditorOption(

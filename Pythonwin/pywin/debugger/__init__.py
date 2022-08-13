@@ -16,7 +16,7 @@ def _CheckNeedGUI():
         isInprocApp = win32ui.GetApp().IsInproc()
     if isInprocApp:
         # MAY Need it - may already have one
-        need = "pywin.debugger.dbgpyapp" not in sys.modules
+        need = "pywin.framework.app" not in sys.modules
     else:
         need = 0
     if need:
@@ -80,7 +80,7 @@ def runcall(*args):
     return _GetCurrentDebugger().runcall(*args)
 
 
-def set_trace():
+def set_trace(frame=None):
     import sys
 
     d = _GetCurrentDebugger()
@@ -92,9 +92,7 @@ def set_trace():
         # If im not "running"
         return
 
-    sys.settrace(None)  # May be hooked
-    d.reset()
-    d.set_trace()
+    d.set_trace(frame or sys._getframe().f_back)
 
 
 # "brk" is an alias for "set_trace" ("break" is a reserved word :-(
@@ -103,7 +101,7 @@ brk = set_trace
 # Post-Mortem interface
 
 
-def post_mortem(t=None):
+def post_mortem(t=None, frame=None):
     if t is None:
         t = sys.exc_info()[2]  # Will be valid if we are called from an except handler.
     if t is None:
@@ -126,12 +124,12 @@ def post_mortem(t=None):
     p.bAtPostMortem = 1
     p.prep_run(None)
     try:
-        p.interaction(t.tb_frame, t)
+        p.interaction(frame or t.tb_frame, t)
     finally:
         t = None
         p.bAtPostMortem = 0
         p.done_run()
 
 
-def pm(t=None):
-    post_mortem(t)
+def pm(t=None, frame=None):
+    post_mortem(t, frame)

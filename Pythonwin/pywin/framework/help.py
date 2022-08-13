@@ -169,6 +169,39 @@ def SetHelpMenuOtherHelp(mainMenu):
             otherHelpMenuPos, win32con.MF_BYPOSITION | win32con.MF_GRAYED
         )
 
+    # insert opener for default.cfg & user.cfg keyboard configuration
+    cmdID = win32ui.ID_HELP_OTHER + 20
+    pos = 3
+    helpMenu.InsertMenu(
+        pos,
+        win32con.MF_ENABLED | win32con.MF_STRING | win32con.MF_BYPOSITION,
+        cmdID,
+        "Keyboard &default.cfg",
+    )
+    win32ui.GetMainFrame().HookCommand(HandleHelpCfg, cmdID)
+    cmdID += 1
+    helpMenu.InsertMenu(
+        pos,
+        win32con.MF_ENABLED | win32con.MF_STRING | win32con.MF_BYPOSITION,
+        cmdID,
+        "Keyboard &user.cfg",
+    )
+    win32ui.GetMainFrame().HookCommand(HandleHelpUserCfg, cmdID)
+    cmdID += 1
+    helpMenu.InsertMenu(pos, win32con.MF_SEPARATOR | win32con.MF_BYPOSITION)
+
+
+from . import scriptutils
+import pywin
+
+
+def HandleHelpCfg(cmd, code):
+    scriptutils.JumpToDocument(os.path.join(pywin.__path__[0], "default.cfg"))
+
+
+def HandleHelpUserCfg(cmd, code):
+    scriptutils.JumpToDocument(os.path.join(pywin.__path__[0], "user.cfg"))
+
 
 def HandleHelpOtherCommand(cmd, code):
     OpenHelpFile(helpIDMap[cmd][1])

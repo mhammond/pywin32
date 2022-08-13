@@ -55,7 +55,7 @@ class OptionsPropPage(dialog.PropertyPage):
         edit.SetWindowText("Error Text")
 
         self["bShowAtStartup"] = interact.LoadPreference("Show at startup", 1)
-        self["bDocking"] = interact.LoadPreference("Docking", 0)
+        self["bDocking"] = interact.LoadPreference("Docking", 1)
         self["MRUSize"] = win32ui.GetProfileVal("Settings", "Recent File List Size", 10)
 
         # Hook the button clicks.

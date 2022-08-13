@@ -22,11 +22,8 @@ import win32ui
 import win32api
 from pywin.mfc import docview, dialog, window
 import win32con
-import string
 import re
-import glob
 import os
-import stat
 import glob
 from . import scriptutils
 
@@ -47,15 +44,15 @@ class dirpath:
         dirs = {}
         for d in dp:
             if os.path.isdir(d):
-                d = d.lower()
-                if d not in dirs:
-                    dirs[d] = None
+                _d = d.lower()
+                if _d not in dirs:
+                    dirs[_d] = d
                     if recurse:
                         subdirs = getsubdirs(d)
                         for sd in subdirs:
-                            sd = sd.lower()
-                            if sd not in dirs:
-                                dirs[sd] = None
+                            _sd = sd.lower()
+                            if _sd not in dirs:
+                                dirs[_sd] = sd
             elif os.path.isfile(d):
                 pass
             else:
@@ -92,11 +89,11 @@ class dirpath:
                             if recurse:
                                 subdirs = getsubdirs(xd)
                                 for sd in subdirs:
-                                    sd = sd.lower()
-                                    if sd not in dirs:
-                                        dirs[sd] = None
+                                    _sd = sd.lower()
+                                    if _sd not in dirs:
+                                        dirs[_sd] = sd
         self.dirs = []
-        for d in list(dirs.keys()):
+        for _d, d in dirs.items():
             self.dirs.append(d)
 
     def __getitem__(self, key):
@@ -228,6 +225,32 @@ class GrepDocument(docview.RichEditDoc):
         self.casesensitive = int(params[3])
         self.recurse = int(params[4])
         self.verbose = int(params[5])
+
+        # Is text selected in editor or interactive? Usually the user wants to grep that.
+        editctl = None
+        try:
+            lv = win32ui.GetMainFrame().cmd_active_view
+            if lv and lv[-1]:
+                editctl = lv[-1]  # interactive
+            else:
+                editctl = win32ui.GetMainFrame().MDIGetActive()[0]
+                editctl = editctl.GetActiveView()  ##.GetEditorView()
+        except (AttributeError, win32ui.error):
+            pass
+        else:
+            s = editctl.GetSelText()
+            if not s:
+                try:
+                    from pywin.framework import interact
+
+                    editctl = interact.edit.currentView
+                except win32ui.error:
+                    pass
+                else:
+                    s = editctl.GetSelText()
+            if s:
+                self.greppattern = re.escape(s)
+
         # setup some reasonable defaults.
         if not self.dirpattern:
             try:
@@ -300,7 +323,10 @@ class GrepDocument(docview.RichEditDoc):
             #  while grep is running
             if os.path.isfile(f):
                 win32ui.SetStatusText("Searching " + f, 0)
-                lines = open(f, "r").readlines()
+                try:
+                    lines = open(f, "r").readlines()
+                except UnicodeDecodeError:
+                    lines = open(f, "r", encoding="utf-8", errors="replace").readlines()
                 for i in range(len(lines)):
                     line = lines[i]
                     if self.pat.search(line) != None:
@@ -320,6 +346,7 @@ class GrepDocument(docview.RichEditDoc):
                         self.dp[self.dpndx] + "\\" + self.fplist[self.fpndx]
                     )
                 else:
+                    self.GetFirstView().Append("# Search complete.\n")
                     win32ui.SetStatusText("Search complete.", 0)
                     self.SetModifiedFlag(0)  # default to not modified.
                     try:
@@ -359,24 +386,28 @@ ID_OPEN_FILE = 0xE400
 ID_GREP = 0xE401
 ID_SAVERESULTS = 0x402
 ID_TRYAGAIN = 0x403
+ID_EXPLORE = 0x404
 
 
 class GrepView(docview.RichEditView):
     def __init__(self, doc):
         docview.RichEditView.__init__(self, doc)
         self.SetWordWrap(win32ui.CRichEditView_WrapNone)
-        self.HookHandlers()
 
     def OnInitialUpdate(self):
         rc = self._obj_.OnInitialUpdate()
         format = (-402653169, 0, 200, 0, 0, 0, 49, "Courier New")
         self.SetDefaultCharFormat(format)
+        self.HookHandlers()
         return rc
 
     def HookHandlers(self):
-        self.HookMessage(self.OnRClick, win32con.WM_RBUTTONDOWN)
+        self.HookMessage(self.OnRClick, win32con.WM_CONTEXTMENU)
+        # RichEditView seems to not auto-generate WM_CONTEXTMENU upon WM_RBUTTONUP
+        self.HookMessage(self.OnRClick, win32con.WM_RBUTTONUP)
         self.HookCommand(self.OnCmdOpenFile, ID_OPEN_FILE)
         self.HookCommand(self.OnCmdGrep, ID_GREP)
+        self.HookCommand(self.OnCmdExplore, ID_EXPLORE)
         self.HookCommand(self.OnCmdSave, ID_SAVERESULTS)
         self.HookCommand(self.OnTryAgain, ID_TRYAGAIN)
         self.HookMessage(self.OnLDblClick, win32con.WM_LBUTTONDBLCLK)
@@ -401,6 +432,7 @@ class GrepView(docview.RichEditView):
             self.fnm = regexGrepResult.group(1)
             self.lnnum = int(regexGrepResult.group(2))
             menu.AppendMenu(flags, ID_OPEN_FILE, "&Open " + self.fnm)
+            menu.AppendMenu(flags, ID_EXPLORE, "&Explore " + self.fnm)
             menu.AppendMenu(win32con.MF_SEPARATOR)
         menu.AppendMenu(flags, ID_TRYAGAIN, "&Try Again")
         charstart, charend = self._obj_.GetSel()
@@ -416,21 +448,33 @@ class GrepView(docview.RichEditView):
         menu.AppendMenu(flags, win32ui.ID_EDIT_SELECT_ALL, "&Select all")
         menu.AppendMenu(flags, win32con.MF_SEPARATOR)
         menu.AppendMenu(flags, ID_SAVERESULTS, "Sa&ve results")
-        menu.TrackPopupMenu(params[5])
+        if params[3] == -1:
+            # context key -> caret pos
+            import win32gui
+
+            ctxpos = self.ClientToScreen(win32gui.GetCaretPos())
+        else:
+            # mouse pos
+            ctxpos = params[5]
+        menu.TrackPopupMenu(ctxpos)
         return 0
 
+    def OnCmdExplore(self, cmd, code):
+        if code != 0:  # BN_CLICKED
+            # 3d controls (python.exe + start_pythonwin.pyw) send
+            # other notification codes
+            return 1  # propagate
+        os.startfile(os.path.dirname(self.fnm))
+
     def OnCmdOpenFile(self, cmd, code):
-        doc = win32ui.GetApp().OpenDocumentFile(self.fnm)
-        if doc:
-            vw = doc.GetFirstView()
-            # hope you have an editor that implements GotoLine()!
-            try:
-                vw.GotoLine(int(self.lnnum))
-            except:
-                pass
+        if code != 0:
+            return 1
+        scriptutils.JumpToDocument(self.fnm, self.lnnum)
         return 0
 
     def OnCmdGrep(self, cmd, code):
+        if code != 0:
+            return 1
         curparamsstr = self.GetDocument().GetParams()
         params = curparamsstr.split("\t")
         params[2] = self.sel
@@ -439,11 +483,15 @@ class GrepView(docview.RichEditView):
         return 0
 
     def OnTryAgain(self, cmd, code):
+        if code != 0:
+            return 1
         greptemplate.setParams(self.GetDocument().GetParams())
         greptemplate.OpenDocumentFile()
         return 0
 
     def OnCmdSave(self, cmd, code):
+        if code != 0:
+            return 1
         flags = win32con.OFN_OVERWRITEPROMPT
         dlg = win32ui.CreateFileDialog(
             0, None, None, flags, "Text Files (*.txt)|*.txt||", self
@@ -473,25 +521,25 @@ class GrepDialog(dialog.Dialog):
         )
         CS = win32con.WS_CHILD | win32con.WS_VISIBLE
         tmp = [
-            ["Grep", (0, 0, 210, 90), style, None, (8, "MS Sans Serif")],
+            ["Grep", (0, 0, 310, 90), style, None, (8, "MS Sans Serif")],
         ]
-        tmp.append([STATIC, "Grep For:", -1, (7, 7, 50, 9), CS])
+        tmp.append([STATIC, "&Grep For:", -1, (7, 7, 50, 9), CS])
         tmp.append(
             [
                 EDIT,
                 gp,
                 101,
-                (52, 7, 144, 11),
+                (52, 7, 246, 11),
                 CS | win32con.WS_TABSTOP | win32con.ES_AUTOHSCROLL | win32con.WS_BORDER,
             ]
         )
-        tmp.append([STATIC, "Directories:", -1, (7, 20, 50, 9), CS])
+        tmp.append([STATIC, "&Directories:", -1, (7, 20, 50, 9), CS])
         tmp.append(
             [
                 EDIT,
                 dp,
                 102,
-                (52, 20, 128, 11),
+                (52, 20, 228, 11),
                 CS | win32con.WS_TABSTOP | win32con.ES_AUTOHSCROLL | win32con.WS_BORDER,
             ]
         )
@@ -500,17 +548,17 @@ class GrepDialog(dialog.Dialog):
                 BUTTON,
                 "...",
                 110,
-                (182, 20, 16, 11),
+                (282, 20, 16, 11),
                 CS | win32con.BS_PUSHBUTTON | win32con.WS_TABSTOP,
             ]
         )
-        tmp.append([STATIC, "File types:", -1, (7, 33, 50, 9), CS])
+        tmp.append([STATIC, "&File types:", -1, (7, 33, 50, 9), CS])
         tmp.append(
             [
                 EDIT,
                 fp,
                 103,
-                (52, 33, 128, 11),
+                (52, 33, 228, 11),
                 CS | win32con.WS_TABSTOP | win32con.ES_AUTOHSCROLL | win32con.WS_BORDER,
             ]
         )
@@ -519,14 +567,14 @@ class GrepDialog(dialog.Dialog):
                 BUTTON,
                 "...",
                 111,
-                (182, 33, 16, 11),
+                (282, 33, 16, 11),
                 CS | win32con.BS_PUSHBUTTON | win32con.WS_TABSTOP,
             ]
         )
         tmp.append(
             [
                 BUTTON,
-                "Case sensitive",
+                "&Case sensitive",
                 104,
                 (7, 45, 72, 9),
                 CS
@@ -538,7 +586,7 @@ class GrepDialog(dialog.Dialog):
         tmp.append(
             [
                 BUTTON,
-                "Subdirectories",
+                "&Subdirectories",
                 105,
                 (7, 56, 72, 9),
                 CS
@@ -550,7 +598,7 @@ class GrepDialog(dialog.Dialog):
         tmp.append(
             [
                 BUTTON,
-                "Verbose",
+                "&Verbose",
                 106,
                 (7, 67, 72, 9),
                 CS
@@ -564,7 +612,7 @@ class GrepDialog(dialog.Dialog):
                 BUTTON,
                 "OK",
                 win32con.IDOK,
-                (166, 53, 32, 12),
+                (266, 53, 32, 12),
                 CS | win32con.BS_DEFPUSHBUTTON | win32con.WS_TABSTOP,
             ]
         )
@@ -573,7 +621,7 @@ class GrepDialog(dialog.Dialog):
                 BUTTON,
                 "Cancel",
                 win32con.IDCANCEL,
-                (166, 67, 32, 12),
+                (266, 67, 32, 12),
                 CS | win32con.BS_PUSHBUTTON | win32con.WS_TABSTOP,
             ]
         )
@@ -594,9 +642,13 @@ class GrepDialog(dialog.Dialog):
         self.HookCommand(self.OnMoreFiles, 111)
 
     def OnMoreDirectories(self, cmd, code):
+        if code != 0:
+            return 1
         self.getMore("Grep\\Directories", "dirpattern")
 
     def OnMoreFiles(self, cmd, code):
+        if code != 0:
+            return 1
         self.getMore("Grep\\File Types", "filpattern")
 
     def getMore(self, section, key):
@@ -714,6 +766,8 @@ class GrepParamsDialog(dialog.Dialog):
         return self._obj_.OnInitDialog()
 
     def OnAddItem(self, cmd, code):
+        if code != 0:
+            return 1
         eb = self.GetDlgItem(108)
         item = eb.GetLine(0)
         self.newitems.append(item)

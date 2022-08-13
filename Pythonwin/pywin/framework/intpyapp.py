@@ -116,8 +116,15 @@ class MainFrame(app.MainFrame):
             if v.OnCommand(wparam, lparam):
                 return 1
         except (win32ui.error, AttributeError):
-            pass
-        return self._obj_.OnCommand(wparam, lparam)
+            v = None
+
+        self.cmd_active_view.append(v)
+        try:
+            return self._obj_.OnCommand(wparam, lparam)
+        finally:
+            self.cmd_active_view.pop()
+
+    cmd_active_view = []  # one instance
 
 
 class InteractivePythonApp(app.CApp):
@@ -368,7 +375,7 @@ class InteractivePythonApp(app.CApp):
     def LoadUserModules(self, moduleNames=None):
         # Load the users modules.
         if moduleNames is None:
-            default = "pywin.framework.sgrepmdi,pywin.framework.mdi_pychecker"
+            default = "pywin.framework.sgrepmdi,pywin.framework.mdi_runtool"
             moduleNames = win32ui.GetProfileVal("Python", "Startup Modules", default)
         self.DoLoadModules(moduleNames)
 
@@ -440,13 +447,13 @@ class InteractivePythonApp(app.CApp):
         showDlg = win32api.GetKeyState(win32con.VK_SHIFT) >= 0
         scriptutils.RunScript(None, None, showDlg)
 
-    def OnFileLocate(self, id, code):
+    def OnFileLocate(self, id, code, expr=""):
         from . import scriptutils
 
         global lastLocateFileName  # save the new version away for next time...
 
         name = dialog.GetSimpleInput(
-            "File name", lastLocateFileName, "Locate Python File"
+            "File name", expr or lastLocateFileName, "Locate Python File"
         )
         if name is None:  # Cancelled.
             return

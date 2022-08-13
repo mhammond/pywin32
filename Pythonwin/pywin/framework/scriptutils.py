@@ -10,6 +10,7 @@ from pywin.mfc import dialog
 from pywin.mfc.docview import TreeView
 import os
 import string
+import re
 import traceback
 import linecache
 import bdb
@@ -53,7 +54,9 @@ class DlgRunScript(dialog.Dialog):
         if not self.bHaveDebugger:
             cbo.EnableWindow(0)
 
-    def OnBrowse(self, id, cmd):
+    def OnBrowse(self, id, code):
+        if code != 0:  # BN_CLICKED
+            return 1
         openFlags = win32con.OFN_OVERWRITEPROMPT | win32con.OFN_FILEMUSTEXIST
         dlg = win32ui.CreateFileDialog(
             1, None, None, openFlags, "Python Scripts (*.py)|*.py||", self
@@ -87,7 +90,9 @@ def IsOnPythonPath(path):
     for syspath in sys.path:
         try:
             # Python 1.5 and later allows an empty sys.path entry.
-            if syspath and win32ui.FullPath(syspath) == path:
+            if syspath and os.path.normcase(
+                win32ui.FullPath(syspath)
+            ) == os.path.normcase(path):
                 return 1
         except win32ui.error as details:
             print(
@@ -110,6 +115,8 @@ def GetPackageModuleName(fileName):
         # Module not directly on the search path - see if under a package.
         while len(path) > 3:  # ie 'C:\'
             path, modBit = os.path.split(path)
+            if not modBit:
+                break  # no endless loops with network share etc.
             modBits.append(modBit)
             # If on path, _and_ existing package of that name loaded.
             if (
@@ -311,8 +318,8 @@ def RunScript(defName=None, defArgs=None, bShowDialog=1, debuggingType=None):
         )
         return
 
-    # Get the source-code - as above, normalize \r\n
-    code = f.read().replace(byte_crlf, byte_lf).replace(byte_cr, byte_lf) + byte_lf
+    # Get the source-code - as above	##, normalize \r\n
+    code = f.read()  ##.replace(byte_crlf, byte_lf).replace(byte_cr, byte_lf) + byte_lf
 
     # Remember and hack sys.argv for the script.
     oldArgv = sys.argv
@@ -346,7 +353,7 @@ def RunScript(defName=None, defArgs=None, bShowDialog=1, debuggingType=None):
     # Get a code object - ignore the debugger for this, as it is probably a syntax error
     # at this point
     try:
-        codeObject = compile(code, script, "exec")
+        codeObject = compile(code, script, "exec", dont_inherit=True)
     except:
         # Almost certainly a syntax error!
         _HandlePythonFailure("run script", script)
@@ -356,7 +363,7 @@ def RunScript(defName=None, defArgs=None, bShowDialog=1, debuggingType=None):
     try:
         if debuggingType == RS_DEBUGGER_STEP:
             debugger.run(codeObject, __main__.__dict__, start_stepping=1)
-        elif debuggingType == RS_DEBUGGER_GO:
+        elif debuggingType == RS_DEBUGGER_GO and debugger._GetCurrentDebugger().breaks:
             debugger.run(codeObject, __main__.__dict__, start_stepping=0)
         else:
             # Post mortem or no debugging
@@ -379,15 +386,19 @@ def RunScript(defName=None, defArgs=None, bShowDialog=1, debuggingType=None):
         if interact.edit and interact.edit.currentView:
             interact.edit.currentView.AppendToPrompt([])
         bWorked = 1
+        sys.last_type, sys.last_value, sys.last_traceback = sys.exc_info()
     except:
         if interact.edit and interact.edit.currentView:
             interact.edit.currentView.EnsureNoPrompt()
         traceback.print_exc()
         if interact.edit and interact.edit.currentView:
             interact.edit.currentView.AppendToPrompt([])
-        if debuggingType == RS_DEBUGGER_PM:
+
+        sys.last_type, sys.last_value, sys.last_traceback = sys.exc_info()
+        if debuggingType != RS_DEBUGGER_NONE:
             debugger.pm()
-    del __main__.__file__
+
+    ##del __main__.__file__   # last run __file__ should better stay for interaction
     sys.argv = oldArgv
     if insertedPath0:
         del sys.path[0]
@@ -444,7 +455,7 @@ def ImportFile():
             if ext.lower() in [".pyo", ".pyc"]:
                 ext = ".py"
             fname = base + ext
-            if win32ui.ComparePath(fname, pathName):
+            if win32ui.ComparePath(fname, pathName) and mod.__name__ != "__main__":
                 modName = key
                 break
     else:  # for not broken
@@ -474,8 +485,10 @@ def ImportFile():
         exec(codeObj, __main__.__dict__)
         mod = sys.modules.get(modName)
         if bNeedReload:
-            from importlib import reload
-
+            if sys.version_info < (3,):
+                from __builtin__ import reload
+            else:
+                from importlib import reload
             mod = reload(sys.modules[modName])
         win32ui.SetStatusText(
             "Successfully "
@@ -502,16 +515,16 @@ def CheckFile():
     win32ui.SetStatusText(what.capitalize() + "ing module...", 1)
     win32ui.DoWaitCursor(1)
     try:
-        f = open(pathName)
+        f = open(pathName, "rb")
     except IOError as details:
         print("Cant open file '%s' - %s" % (pathName, details))
         return
     try:
-        code = f.read() + "\n"
+        code = f.read()
     finally:
         f.close()
     try:
-        codeObj = compile(code, pathName, "exec")
+        codeObj = compile(code, pathName, "exec", dont_inherit=True)
         if RunTabNanny(pathName):
             win32ui.SetStatusText(
                 "Python and the TabNanny successfully checked the file '"
@@ -573,6 +586,9 @@ def JumpToDocument(fileName, lineno=0, col=1, nChars=0, bScrollToTop=0):
     #  (eg, bScrollToTop should be false when jumping to an error line to retain the
     #  context, but true when jumping to a method defn, where we want the full body.
     # Return the view which is editing the file, or None on error.
+    if not os.path.isfile(fileName):
+        # non-existing file causes OpenDocumentFile crash in MFC (mfc140, not mfc90)
+        return None
     doc = win32ui.GetApp().OpenDocumentFile(fileName)
     if doc is None:
         return None
@@ -585,8 +601,15 @@ def JumpToDocument(fileName, lineno=0, col=1, nChars=0, bScrollToTop=0):
     except AttributeError:  # Not an editor frame??
         view = doc.GetFirstView()
     if lineno > 0:
+        curlineno = view.GetCurLineNumber() + 1
+        if (
+            curlineno > 15
+            and abs(curlineno - lineno) > 15
+            and hasattr(view, "AddLastPosEvent")
+        ):
+            view.AddLastPosEvent()
         charNo = view.LineIndex(lineno - 1)
-        start = charNo + col - 1
+        start = charNo + (col or 1) - 1
         size = view.GetTextLength()
         try:
             view.EnsureCharsVisible(charNo)
@@ -597,21 +620,30 @@ def JumpToDocument(fileName, lineno=0, col=1, nChars=0, bScrollToTop=0):
         curTop = view.GetFirstVisibleLine()
         nScroll = (lineno - 1) - curTop
         view.LineScroll(nScroll, 0)
+    view.GetParentFrame().SetActiveView(view)
     view.SetFocus()
     return view
 
 
 def _HandlePythonFailure(what, syntaxErrorPathName=None):
-    typ, details, tb = sys.exc_info()
+    typ, details, tb = (
+        sys.last_type,
+        sys.last_value,
+        sys.last_traceback,
+    ) = sys.exc_info()
     if isinstance(details, SyntaxError):
         try:
-            msg, (fileName, line, col, text) = details
-            if (not fileName or fileName == "<string>") and syntaxErrorPathName:
+            if (
+                not details.filename or details.filename == "<string>"
+            ) and syntaxErrorPathName:
                 fileName = syntaxErrorPathName
-            _JumpToPosition(fileName, line, col)
+            _JumpToPosition(details.filename, details.lineno, details.offset or 1)
         except (TypeError, ValueError):
             msg = str(details)
-        win32ui.SetStatusText("Failed to " + what + " - syntax error - %s" % msg)
+        traceback.print_exc()
+        win32ui.SetStatusText(
+            "Failed to " + what + " - syntax error - %s" % details.msg
+        )
     else:
         traceback.print_exc()
         win32ui.SetStatusText("Failed to " + what + " - " + str(details))
@@ -674,12 +706,336 @@ def LocatePythonFile(fileName, bBrowseIfDir=1):
                         fileName = d.GetPathName()
                         break
                     else:
-                        return None
+                        raise KeyboardInterrupt
             else:
-                fileName = fileName + ".py"
-                if os.path.isfile(fileName):
+                fileName = fileName.replace(".", "/") + ".py"
+                import glob
+
+                fileNames = glob.glob(fileName)  # allow 1st of "pywin/fr*/int*(.py)"
+                if fileNames:
+                    fileName = fileNames[0]
                     break  # Found it!
 
         else:  # for not broken out of
             return None
     return win32ui.FullPath(fileName)
+
+
+_func_code = "__code__"
+if not hasattr(LocatePythonFile, _func_code):
+    _func_code = "func_code"  # <Py2.6
+
+
+def LocateObject(obj, expr=None, editor_current=None, ns_extra=None):
+    """Locate the source definition or container definition of `obj`.
+    expr:  optional expression for obj; e.g. 'scriptutils.myvariable'
+    ns_extra: extra namespace to search (in addition to sys.modules / __main__ / current-interact...)
+    return: DictObj(locals()) exposing: fn, lineno, col, typ, error, obj
+    """
+    import inspect
+
+    ed = editor_current
+
+    # main return attributes
+
+    lineno = col = 1
+    error = ""
+    fn = None
+    typ = None  # 'class', 'import', 'def', '=' ... ; not always set
+
+    # try to get location directly from obj inspection - or info for further parsing search
+
+    expr_open = ""  # when non-zero -> detail search to continue in source text later
+    for _retry in 0, 1, 2:
+        try:
+            if hasattr(obj, "__wrapped__"):
+                obj = inspect.unwrap(obj)
+            try:
+                fn = inspect.getsourcefile(obj)
+            except TypeError:
+                error = str(sys.exc_info()[1])
+            else:
+                if fn is None:
+                    error = "no file found"
+                elif fn.startswith("<"):
+                    fn = None
+                    error = "frozen module"
+
+            if not fn:
+
+                # its not a module, class, method, function, traceback, frame, or code object
+
+                if not inspect.isclass(obj) and (
+                    hasattr(obj, "__dict__") or hasattr(obj, "__slots__")
+                ):
+
+                    # user instance -> locate class definition
+                    obj = obj.__class__
+                    continue
+
+                if "." in expr:
+
+                    # probably some builtin type - lets check for pre-dot containerobject and
+                    # setup for text search of attribute
+                    parts = expr.split(".")  # .rsplit not in py2.3-
+                    expr, expr_open = ".".join(parts[:-1]), parts[-1]
+                    if not expr:
+                        break
+                    if expr in ("self", "cls"):
+                        r = FindClassDef(editor_current)
+                        if r is None:
+                            break  # break _retry loop
+                        # (classname, pos, iline, indentstr) = r
+                        expr = r[0] + "." + expr_open
+                        expr_open = ""
+                    obj = GetXNamespace(expr, ns_extra)
+                    if obj is not None:
+                        continue  # repeat search with pre-dot object and expr_open
+
+            elif inspect.isclass(obj):
+
+                # finds class source faster than inspect.getsourcelines() for classes
+                # (locating classes is frequent)
+
+                if sys.version_info > (3,):
+                    s = open(fn, "rb").read()
+                    # PEP 263 decode
+                    l2 = b"\n".join(s[:256].split(b"\n", 2)[:2])
+                    m = re.search(
+                        b"(?m)^[ \\t\\f]*#.*?coding[:=][ \\t]*([-_.a-zA-Z0-9]+)", l2
+                    )
+                    s = s.decode(m and m.group(1).decode("ascii") or "utf-8", "replace")
+                else:
+                    s = open(fn).read()
+                ms = list(
+                    re.finditer(r"(?m)^([ \t]*)class\s*" + obj.__name__ + r"\b", s)
+                )
+                if ms:
+                    # found in source code
+                    typ = "class"
+                    if sys.version_info < (2, 4):
+                        ms.sort(lambda a, b: cmp(a.group(1), b.group(1)))
+                    else:
+                        ms.sort(key=lambda m: m.group(1))
+                    lineno = s[: ms[0].start()].count("\n") + 1
+                    _lines = [ms[0].group()]
+                    col = len(ms[0].group()) + 1
+                else:
+                    # then search for code location of __init__ or other methods
+                    keys = list(obj.__dict__.keys())
+                    keys.sort()
+                    keys.insert(0, "__init__")
+                    for k in keys:
+                        v = obj.__dict__.get(k)
+                        if callable(v) and hasattr(v, _func_code):  # py23 no __code__
+                            obj = v
+                            break  # retry with code object
+                    else:
+                        for k in keys:
+                            v = getattr(obj, k, None)
+                            if callable(v) and hasattr(v, _func_code):
+                                obj = v
+                                break
+                        else:
+                            expr_open = expr  # trigger further text search if fn
+                            if hasattr(obj, "__module__"):
+                                fn = getattr(
+                                    sys.modules[obj.__module__], "__file__", None
+                                )
+                                if fn and fn.endswith(".pyc"):
+                                    fn = fn[:-4] + ".py"
+                                lineno = 1
+                                break
+                            break  # found nothing
+                    continue  # cont with method
+            else:
+
+                # getsourcelines speed is ok for non-classes
+                _lines, lineno = inspect.getsourcelines(obj)
+                line = _lines[0]
+                name = getattr(obj, "__name__", None)
+                if name and name in line:
+                    col = line.find(name) + 1 or 1
+                elif expr:
+                    col = line.find(expr.split(".")[-1]) + 1 or 1
+            # found!
+
+        except EnvironmentError:
+            error = str(sys.exc_info()[1])
+
+        break
+
+    if fn and not expr_open:
+        return DictObj(locals())
+
+    # More parsing search for `expr` in the source code text.
+    # Search for "EXPR = ..." ; "def|class|import EXPR" ; "class CONTAININGCLS:"
+
+    if expr_open:
+        expr = expr_open
+    if fn:
+        doc = win32ui.GetApp().OpenDocumentFile(fn)
+        ed = doc.GetFirstView()
+        ed.SetSel(ed.LineIndex(lineno - 1))
+        path = fn
+
+    expr0 = expr  # initial expr
+    if ed:
+        fn_ed = ed.GetDocument().GetPathName()
+        pos = ed.GetSel()[1]
+        txt = ed.GetTextRange()
+        # search for "EXPR = ..." or "def|class|import EXPR"
+        t_regex = (
+            t_0
+        ) = r"(?m)\b(?:%(_expr)s)\s*=[^=]|(^\s*def|^\s*class|\bimport)\s+(%(_expr)s)\b"
+        while True:
+            _expr = re.escape(expr)
+            regex = t_regex % locals()
+            plast = None
+            for m in re.finditer(regex, txt):
+                p = m.end()
+                if p > pos and plast is not None:
+                    break
+                plast = p
+                mlast = m
+            if plast is not None:
+                typ = (m.group(1) or "=").strip()
+                # inspect the last match before or first after pos of expr
+                lineno = txt[:plast].count("\n") + 1
+                if t_regex is t_0 and lineno == ed.GetCurLineNumber() + 1:
+                    # same line again and original template
+                    if m.group(1) == "class":
+                        print("WARN: same inner class? --", m.groups())
+                    md = re.search(r"^(\s+)def .*\bself\b", ed.GetLine())
+                    if md:
+                        nwhite = len(md.group(1))
+                        # def <method> -> search for "class CONTAININGCLS:"
+                        # (useful for navigating in huge classes)
+                        t_regex = r"(?m)^\s{0,%s}(class)\s+(\w)" % (
+                            nwhite - 1
+                        )  # no inner class from here
+                        continue
+                    t_regex = r"\b()(%(_expr)s),"  # tuple assignment / usage possibly
+                    continue
+                # found a typical definition
+                fn = fn_ed
+                col = mlast.start(mlast.lastindex or 0) - txt[:plast].rfind("\n")
+                break
+            if "." in expr:
+                expr = expr.split(".", 1)[-1]  # drop 1st part and retry
+            else:
+                # so we only found the predot object/file and not a typical plain or
+                # nested (def/class/import/=) definition. Now we could search just for
+                # the bare string `expr` anywhere down - or give up and serve the predot
+                # part location (file line 0)
+                m = re.search(r"\b%s\b" % re.escape(expr), txt)
+                if m:
+                    pos = m.start()
+                    lineno = txt[:pos].count("\n") + 1
+                    # found the bare string as last hope to be useful
+                    fn = fn_ed
+                    col = pos - txt[:pos].rfind("\n") + 1
+                break
+
+    return DictObj(locals())
+
+
+class DictObj(object):
+    """exposes dictionary as object - adding optional keyword args"""
+
+    def __init__(self, d=None, **kw):
+        if d is not None:
+            self.__dict__ = d
+        if kw:
+            self.__dict__.update(kw)
+
+
+def FindClassDef(ed, pos=None):
+    """find containing class defintion in source code from current editor
+    position.
+
+    return: (classname, pos, iline, indentstr)  OR None=no class found
+    example position resulting in class `XY`:
+         class XY:
+            def meth(self):
+              abc = self.GetSomeT|hing()   # <--- pos
+    """
+    if pos is None:
+        pos = ed.GetSel()[0]
+    txt = ed.GetTextRange()
+
+    # find indent of current expression. simplified: no ml string, but \ in last line ..
+
+    iline = ed.LineFromChar(pos)
+    lastline = ed.GetLine(iline - 1)
+    while lastline.endswith("\\"):
+        iline -= 1
+        lastline = ed.GetLine(iline - 1)
+    line = ed.GetLine(iline)
+    indent_expr = len(re.match(r"(\s*)", line).group(1))  # .replace('\t', '    ')
+
+    # find last def according indent
+
+    plast = None
+    for m in re.finditer(r"(?m)^(\s{0,%s})def\s" % (indent_expr - 1), txt):
+        p = m.start()
+        if p > pos:  # and plast is not None:
+            break
+        plast = p
+        mlast = m
+    if plast is None:
+        return None
+
+    indent_def = len(mlast.group(1))
+    pos = plast
+
+    # find last class according indent
+
+    plast = None
+    for m in re.finditer(r"(?m)^(\s{0,%s})class\s+(\w+)" % (indent_def - 1), txt):
+        p = m.start()
+        if p > pos:  # and plast is not None:
+            break
+        plast = p
+        mlast = m
+    if plast is None:
+        return None
+
+    pos = mlast.end(1)
+    return mlast.group(2), pos, ed.LineFromChar(pos), mlast.group(1)
+
+
+def GetXNamespace(expr="", ns_extra={}):
+    """Get or eval `expr` in combined namespace of sys.modules, __builtins__,
+    __main__, ns_extra, and interactive (debugging) context. For calltips,
+    auto-complete, object location etc.
+
+    When expr != '' then evaluate `expr` in that namespace and return the
+    result object - or None on failure.
+    """
+
+    namespace = sys.modules.copy()
+    namespace.update(__builtins__)
+    namespace.update(__main__.__dict__)
+    namespace.update(ns_extra)
+    # Get the debugger's context.
+    try:
+        from pywin.framework import interact
+
+        if interact.edit is not None and interact.edit.currentView is not None:
+            globs, locs = interact.edit.currentView.GetContext()[:2]
+            if globs is not __main__.__dict__:
+                namespace.update(globs)
+            if locs is not __main__.__dict__:
+                namespace.update(locs)
+            else:
+                # again - ns_extra with higher prio
+                namespace.update(ns_extra)
+    except ImportError:
+        print("GetXNamespace ImportError interact")
+    if not expr:
+        return namespace
+    try:
+        return eval(expr, namespace)
+    except:
+        return None

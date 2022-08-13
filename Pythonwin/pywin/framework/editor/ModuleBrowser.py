@@ -53,9 +53,13 @@ class HierListCLBRItem(hierlist.HierListItem):
 
     def TakeDefaultAction(self):
         if self.file:
-            pywin.framework.scriptutils.JumpToDocument(
-                self.file, self.lineno, bScrollToTop=1
-            )
+
+            def _jump():
+                pywin.framework.scriptutils.JumpToDocument(
+                    self.file, self.lineno, bScrollToTop=1
+                )
+
+            win32ui.GetApp().CallAfter(_jump)
         else:
             win32ui.SetStatusText("Can not locate the source code for this object.")
 
@@ -177,7 +181,7 @@ class BrowserView(pywin.mfc.docview.TreeView):
             except AttributeError:
                 reader = pyclbr.readmodule
             try:
-                data = reader(mod, [path])
+                data = reader(mod, path and [path])
                 if data:
                     return HierListCLBRModule(mod, data)
                 else:
