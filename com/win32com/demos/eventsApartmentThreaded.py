@@ -48,7 +48,7 @@ class ExplorerEvents:
 
 
 def WaitWhileProcessingMessages(event, timeout=2):
-    start = time.clock()
+    start = time.perf_counter()
     while True:
         # Wake 4 times a second - we can't just specify the
         # full timeout here, as then it would reset for every
@@ -59,7 +59,7 @@ def WaitWhileProcessingMessages(event, timeout=2):
         if rc == win32event.WAIT_OBJECT_0:
             # event signalled - stop now!
             return True
-        if (time.clock() - start) > timeout:
+        if (time.perf_counter() - start) > timeout:
             # Timeout expired.
             return False
         # must be a message.
