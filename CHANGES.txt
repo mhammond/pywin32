@@ -11,6 +11,14 @@ or
 
 Coming in build 305, as yet unreleased
 --------------------------------------
+* Changes in PARAM handling. Some functions which returned a WPARAM or LPARAM
+  allowed you to return a pointer to a Python buffer object or a PyUnicode.
+  These functions now only accept a Python long to be returned. Note that
+  this DOES NOT apply to functions with accept WPARAM or LPARAM as arguments,
+  only when they are being returned. Impacted functions are `OnNotify`
+  handler, LV_ITEM/TV_ITEM objects, PyIContextMenu3::HandleMenuMsg2, and the
+  result of a WNDPROC/DLGPROC (#1927).
+
 * service registration had an overhaul, avoiding a complicated, and ultimately
   unnecessary "single globally registered service runner" concept.
   Now, when registering a service, the host pythonservice.exe runner will be

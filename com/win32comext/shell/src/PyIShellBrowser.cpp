@@ -262,12 +262,11 @@ PyObject *PyIShellBrowser::SendControlMsg(PyObject *self, PyObject *args)
     PyObject *obwparam, *oblparam;
     if (!PyArg_ParseTuple(args, "IIOO:SendControlMsg", &id, &uMsg, &obwparam, &oblparam))
         return NULL;
-    WPARAM wParam;
-    LPARAM lParam;
+    PyWin_PARAMHolder wParam;
+    PyWin_PARAMHolder lParam;
     if (!PyWinObject_AsPARAM(obwparam, &wParam))
         return NULL;
-    // WPARAM and LPARAM are defined as UINT_PTR and LONG_PTR, so they can't be used interchangeably without a cast
-    if (!PyWinObject_AsPARAM(oblparam, (WPARAM *)&lParam))
+    if (!PyWinObject_AsPARAM(oblparam, &lParam))
         return NULL;
 
     HRESULT hr;

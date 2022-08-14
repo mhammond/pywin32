@@ -602,32 +602,44 @@ void PyWinObject_FreeResourceId(WCHAR *resource_id)
         PyWinObject_FreeWCHAR(resource_id);
 }
 
+// Conversion for WPARAM and LPARAM from a simple integer value. Used when we
+// can't guarantee memory pointed at will remain valid as long as necessary.
+// In that scenario, the caller is responsible for arranging memory safety.
+BOOL PyWinObject_AsSimplePARAM(PyObject *ob, WPARAM *wparam) {
+    if (PyWinLong_AsVoidPtr(ob, (void **)wparam)) {
+        return TRUE;
+    }
+
+    PyErr_Format(PyExc_TypeError, "WPARAM is simple, so must be an int object (got %s)",
+                 ob->ob_type->tp_name);
+    return FALSE;
+}
+
 // Conversion for WPARAM and LPARAM
 // (WPARAM is defined as UINT_PTR, and LPARAM is defined as LONG_PTR - see
 // pywintypes.h for inline functions to resolve this)
-BOOL PyWinObject_AsPARAM(PyObject *ob, WPARAM *pparam)
+BOOL PyWinObject_AsPARAM(PyObject *ob, PyWin_PARAMHolder *holder)
 {
     assert(!PyErr_Occurred());  // lingering exception?
     if (ob == NULL || ob == Py_None) {
-        *pparam = NULL;
+        *holder = (WPARAM)0;
         return TRUE;
     }
 
     if (PyUnicode_Check(ob)) {
-        *pparam = (WPARAM)PyUnicode_AS_UNICODE(ob);
-        return TRUE;
+        return holder->set_allocated(PyUnicode_AsWideCharString(ob, NULL)) != NULL;
     }
-    PyWinBufferView pybuf(ob);
-    if (pybuf.ok()) {
-        // note: this might be unsafe, as we give away the buffer pointer to a
-        // client outside of the scope where our RAII object 'pybuf' resides.
-        *pparam = (WPARAM)pybuf.ptr();
+
+    if (holder->init_buffer(ob)) {
         return TRUE;
     }
 
     PyErr_Clear();
-    if (PyWinLong_AsVoidPtr(ob, (void **)pparam))
+    void *simple = NULL;
+    if (PyWinLong_AsVoidPtr(ob, &simple)) {
+        *holder = (WPARAM)simple;
         return TRUE;
+    }
 
     PyErr_Format(PyExc_TypeError, "WPARAM must be a unicode string, int, or buffer object (got %s)",
                  ob->ob_type->tp_name);
@@ -749,8 +761,8 @@ BOOL PyWinObject_AsMSG(PyObject *ob, MSG *pMsg)
                                         // coordinates, when the message was posted.
                           &pMsg->pt.y))
         return FALSE;
-    return PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&pMsg->hwnd) && PyWinObject_AsPARAM(obwParam, &pMsg->wParam) &&
-           PyWinObject_AsPARAM(oblParam, &pMsg->lParam);
+    return PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&pMsg->hwnd) && PyWinObject_AsSimplePARAM(obwParam, &pMsg->wParam) &&
+           PyWinObject_AsSimplePARAM(oblParam, &pMsg->lParam);
 }
 
 PyObject *PyWinObject_FromMSG(const MSG *pMsg)

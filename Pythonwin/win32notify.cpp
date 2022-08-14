@@ -386,7 +386,7 @@ BOOL Python_OnNotify(CWnd *pFrom, WPARAM, LPARAM lParam, LRESULT *pResult)
             gui_print_error();
         }
     // Otherwise result is just the LRESULT, which can be anything that fits in pointer size
-    } else if (!PyWinObject_AsPARAM(result, (LPARAM *)&rc)) {
+    } else if (!PyWinObject_AsSimplePARAM(result, (LPARAM *)&rc)) {
         gui_print_error();
         PyErr_SetString(ui_module_error,
                         "OnNotify did not return an LRESULT, or a tuple of (LRESULT, notify info tuple)");

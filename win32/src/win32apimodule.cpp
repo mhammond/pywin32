@@ -2692,8 +2692,8 @@ PyObject *PyPostMessage(PyObject *self, PyObject *args)
     HWND hwnd;
     PyObject *obhwnd, *obwParam = Py_None, *oblParam = Py_None;
     UINT message;
-    WPARAM wParam = 0;
-    LPARAM lParam = 0;
+    PyWin_PARAMHolder wParam = 0;
+    PyWin_PARAMHolder lParam = 0;
     if (!PyArg_ParseTuple(args, "OI|OO:PostMessage",
                           &obhwnd,     // @pyparm <o PyHANDLE>|hwnd||The hWnd of the window to receive the message.
                           &message,    // @pyparm int|idMessage||The ID of the message to post.
@@ -2704,11 +2704,13 @@ PyObject *PyPostMessage(PyObject *self, PyObject *args)
         return NULL;
     if (!PyWinObject_AsPARAM(obwParam, &wParam))
         return NULL;
-    if (!PyWinObject_AsPARAM(oblParam, (WPARAM *)&lParam))
+    if (!PyWinObject_AsPARAM(oblParam, &lParam))
         return NULL;
     // @pyseeapi PostMessage
-    PyW32_BEGIN_ALLOW_THREADS BOOL ok = ::PostMessage(hwnd, message, wParam, lParam);
-    PyW32_END_ALLOW_THREADS if (!ok) return ReturnAPIError("PostMessage");
+    PyW32_BEGIN_ALLOW_THREADS;
+    BOOL ok = ::PostMessage(hwnd, message, wParam, lParam);
+    PyW32_END_ALLOW_THREADS;
+    if (!ok) return ReturnAPIError("PostMessage");
     Py_INCREF(Py_None);
     return Py_None;
 }
@@ -2718,8 +2720,8 @@ PyObject *PyPostThreadMessage(PyObject *self, PyObject *args)
 {
     DWORD threadId;
     UINT message;
-    WPARAM wParam = 0;
-    LPARAM lParam = 0;
+    PyWin_PARAMHolder wParam = 0;
+    PyWin_PARAMHolder lParam = 0;
     PyObject *obwParam = Py_None, *oblParam = Py_None;
     if (!PyArg_ParseTuple(args, "iI|OO:PostThreadMessage",
                           &threadId,   // @pyparm int|tid||Identifier of the thread to which the message will be posted.
@@ -2729,12 +2731,14 @@ PyObject *PyPostThreadMessage(PyObject *self, PyObject *args)
         return NULL;
     if (!PyWinObject_AsPARAM(obwParam, &wParam))
         return NULL;
-    if (!PyWinObject_AsPARAM(oblParam, (WPARAM *)&lParam))
+    if (!PyWinObject_AsPARAM(oblParam, &lParam))
         return NULL;
 
     // @pyseeapi PostThreadMessage
-    PyW32_BEGIN_ALLOW_THREADS BOOL ok = ::PostThreadMessage(threadId, message, wParam, lParam);
-    PyW32_END_ALLOW_THREADS if (!ok) return ReturnAPIError("PostThreadMessage");
+    PyW32_BEGIN_ALLOW_THREADS;
+    BOOL ok = ::PostThreadMessage(threadId, message, wParam, lParam);
+    PyW32_END_ALLOW_THREADS;
+    if (!ok) return ReturnAPIError("PostThreadMessage");
     Py_INCREF(Py_None);
     return Py_None;
 }
@@ -4179,8 +4183,8 @@ PyObject *PySendMessage(PyObject *self, PyObject *args)
     HWND hwnd;
     PyObject *obhwnd, *obwParam = Py_None, *oblParam = Py_None;
     UINT message;
-    WPARAM wParam = 0;
-    LPARAM lParam = 0;
+    PyWin_PARAMHolder wParam;
+    PyWin_PARAMHolder lParam;
     if (!PyArg_ParseTuple(args, "OI|OO:SendMessage",
                           &obhwnd,     // @pyparm <o PyHANDLE>|hwnd||The hWnd of the window to receive the message.
                           &message,    // @pyparm int|idMessage||The ID of the message to send.
@@ -4191,12 +4195,14 @@ PyObject *PySendMessage(PyObject *self, PyObject *args)
         return NULL;
     if (!PyWinObject_AsPARAM(obwParam, &wParam))
         return NULL;
-    if (!PyWinObject_AsPARAM(oblParam, (WPARAM *)&lParam))
+    if (!PyWinObject_AsPARAM(oblParam, &lParam))
         return NULL;
     LRESULT rc;
     // @pyseeapi SendMessage
-    PyW32_BEGIN_ALLOW_THREADS rc = ::SendMessage(hwnd, message, wParam, lParam);
-    PyW32_END_ALLOW_THREADS return PyWinLong_FromVoidPtr((void *)rc);
+    PyW32_BEGIN_ALLOW_THREADS;
+    rc = ::SendMessage(hwnd, message, wParam, lParam);
+    PyW32_END_ALLOW_THREADS;
+    return PyWinLong_FromVoidPtr((void *)rc);
 }
 
 // @pymethod |win32api|SetConsoleTitle|Sets the title for the current console.

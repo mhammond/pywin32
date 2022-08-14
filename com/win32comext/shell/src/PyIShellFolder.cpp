@@ -199,7 +199,7 @@ PyObject *PyIShellFolder::CompareIDs(PyObject *self, PyObject *args)
     PyObject *obpidl2;
     PyObject *ret = NULL;
     PyObject *oblparam;
-    LPARAM lparam;
+    PyWin_PARAMHolder lparam;
     ITEMIDLIST *pidl1 = NULL;
     ITEMIDLIST *pidl2 = NULL;
     if (!PyArg_ParseTuple(args, "OOO:CompareIDs", &oblparam, &obpidl1, &obpidl2))
