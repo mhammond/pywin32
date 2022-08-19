@@ -93,6 +93,7 @@ def __import_pywin32_system_module__(modname, globs):
 
         if found is None:
             import pywin32_system32
+
             for path in pywin32_system32.__path__:
                 maybe = os.path.join(path, filename)
                 if os.path.isfile(maybe):
