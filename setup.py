@@ -137,7 +137,8 @@ def find_platform_sdk_dir():
         print(
             "Windows 10 SDK version",
             preferred_ver,
-            "is preferred, but that's not installed.")
+            "is preferred, but that's not installed.",
+        )
         print("Installed versions are", installed_versions)
     else:
         installed_versions = [e for e in installed_versions if e != preferred_ver]
@@ -151,7 +152,8 @@ def find_platform_sdk_dir():
             print(
                 "Found Windows sdk in",
                 include,
-                "but it doesn't appear to have windows.h")
+                "but it doesn't appear to have windows.h",
+            )
             continue
         include.append(os.path.join(include_base, "shared"))
         lib = [os.path.join(install_root, "lib", ver, user_mode)]
