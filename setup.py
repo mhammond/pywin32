@@ -88,6 +88,31 @@ if os.path.dirname(this_file):
 # dll_base_address later in this file...
 dll_base_address = 0x1E200000
 
+
+def sdk_registry_data():
+    # Find the win 10 SDKs installed.
+    root = ""
+    versions = []
+    try:
+        key = winreg.OpenKey(
+            winreg.HKEY_LOCAL_MACHINE,
+            r"SOFTWARE\Microsoft\Windows Kits\Installed Roots",
+            0,
+            winreg.KEY_READ | winreg.KEY_WOW64_32KEY,
+        )
+        root = winreg.QueryValueEx(key, "KitsRoot10")[0]
+        keyNo = 0
+        while 1:
+            try:
+                versions.append(winreg.EnumKey(key, keyNo))
+                keyNo += 1
+            except winreg.error:
+                break
+    except EnvironmentError:
+        pass
+    return root, versions
+
+
 # We need to know the platform SDK dir before we can list the extensions.
 def find_platform_sdk_dir():
     # The user might have their current environment setup for the
@@ -99,25 +124,7 @@ def find_platform_sdk_dir():
             "lib": os.environ["MSSDK_LIB"].split(os.path.pathsep),
         }
 
-    # Find the win 10 SDKs installed.
-    installedVersions = []
-    try:
-        key = winreg.OpenKey(
-            winreg.HKEY_LOCAL_MACHINE,
-            r"SOFTWARE\Microsoft\Windows Kits\Installed Roots",
-            0,
-            winreg.KEY_READ | winreg.KEY_WOW64_32KEY,
-        )
-        installRoot = winreg.QueryValueEx(key, "KitsRoot10")[0]
-        keyNo = 0
-        while 1:
-            try:
-                installedVersions.append(winreg.EnumKey(key, keyNo))
-                keyNo += 1
-            except winreg.error:
-                break
-    except EnvironmentError:
-        pass
+    installRoot, installedVersions = sdk_registry_data()
     if not installedVersions:
         print("Can't find a windows 10 sdk")
         return None
