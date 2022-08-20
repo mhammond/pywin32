@@ -89,7 +89,7 @@ if os.path.dirname(this_file):
 dll_base_address = 0x1E200000
 
 
-def sdk_registry_data():
+def registry_data():
     # Find the win 10 SDKs installed.
     root = ""
     versions = []
@@ -124,31 +124,35 @@ def find_platform_sdk_dir():
             "lib": os.environ["MSSDK_LIB"].split(os.path.pathsep),
         }
 
-    installRoot, installedVersions = sdk_registry_data()
-    if not installedVersions:
+    install_root, installed_versions = registry_data()
+    if not installed_versions:
         print("Can't find a windows 10 sdk")
         return None
 
     # We don't want to automatically used the latest as that's going to always
     # be a moving target. Github's automation has "10.0.16299.0", so we target
     # that if it exists, otherwise we use the earliest installed version.
-    ver = "10.0.16299.0"
-    if ver not in installedVersions:
-        print("Windows 10 SDK version", ver, "is preferred, but that's not installed")
-        print("Installed versions are", installedVersions)
-        ver = installedVersions[0]
-        print("Using", ver)
-    # no idea what these 'um' and 'winv6.3' paths actually mean and whether
-    # hard-coding them is appropriate, but here we are...
-    include = [os.path.join(installRoot, "include", ver, "um")]
-    if not os.path.exists(os.path.join(include[0], "windows.h")):
-        print(
-            "Found Windows sdk in", include, "but it doesn't appear to have windows.h"
-        )
-        return None
-    include.append(os.path.join(installRoot, "include", ver, "shared"))
-    lib = [os.path.join(installRoot, "lib", ver, "um")]
-    return {"include": include, "lib": lib}
+    preferred_ver = "10.0.16299.0"
+    if preferred_ver not in installed_versions:
+        print("Windows 10 SDK version", preferred_ver,
+            "is preferred, but that's not installed.")
+        print("Installed versions are", installed_versions)
+    else:
+        installed_versions = [e for e in installed_versions if e != preferred_ver]
+        installed_versions.insert(0, preferred_ver)
+    user_mode = "um"
+    for ver in installed_versions:
+        print("Attempting", ver)
+        include_base = os.path.join(install_root, "include", ver)
+        include = [os.path.join(include_base, user_mode)]
+        if not os.path.exists(os.path.join(include[0], "windows.h")):
+            print("Found Windows sdk in", include,
+                "but it doesn't appear to have windows.h")
+            continue
+        include.append(os.path.join(include_base, "shared"))
+        lib = [os.path.join(install_root, "lib", ver, user_mode)]
+        return {"include": include, "lib": lib}
+    return None  # Redundant (for readability)
 
 
 sdk_info = find_platform_sdk_dir()
