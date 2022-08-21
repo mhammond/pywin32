@@ -615,6 +615,7 @@ class my_build_ext(build_ext):
                 look_dirs = common_dirs + ext.library_dirs
                 found = self.compiler.find_library_file(look_dirs, lib, self.debug)
                 if not found:
+                    print("-- LIB NOT FOUND:", lib, look_dirs)
                     log.debug("Looked for %s in %s", lib, look_dirs)
                     return "No library '%s'" % lib
                 self.found_libraries[lib.lower()] = found
@@ -671,14 +672,9 @@ class my_build_ext(build_ext):
 
         cwd = os.getcwd()
         old_env = os.environ.copy()
-        os.chdir(path)
-        print("-- _build_scintilla INCLUDE old:", os.environ.get("INCLUDE"))
-        if not self.compiler.initialized:
-            print("-- _build_scintilla compiler.initialize()")
-            self.compiler.initialize()
         os.environ["INCLUDE"] = os.pathsep.join(self.compiler.include_dirs)
         os.environ["LIB"] = os.pathsep.join(self.compiler.library_dirs)
-        print("-- _build_scintilla INCLUDE new:", os.environ.get("INCLUDE"))
+        os.chdir(path)
         try:
             cmd = [nmake, "/nologo", "/f", makefile] + makeargs
             self.compiler.spawn(cmd)
@@ -705,6 +701,24 @@ class my_build_ext(build_ext):
 
         if not self.compiler.initialized:
             self.compiler.initialize()
+
+        # XXX this distutils class var peek hack should become obsolete
+        # (silently) when https://github.com/pypa/distutils/pull/172 is
+        # resolved.
+        # _why_cant_build_extension() and _build_scintilla() at least need
+        # complete VC+SDK inspectable inc / lib dirs.
+        classincs = getattr(self.compiler.__class__, "include_dirs", [])
+        if classincs:
+            log.warn("distutils hack to expose complete inc/lib dirs")
+            print("-- orig compiler.include_dirs:", self.compiler.include_dirs)
+            print("-- orig compiler.library_dirs:", self.compiler.library_dirs)
+            self.compiler.include_dirs += classincs
+            self.compiler.__class__.include_dirs = []
+            classlibs = getattr(self.compiler.__class__, "library_dirs", [])
+            self.compiler.library_dirs += classlibs
+            self.compiler.__class__.library_dirs = []
+        else:
+            print("-- FIX ME ! distutils may expose complete inc/lib dirs again")
 
         self._fixup_sdk_dirs()
 
