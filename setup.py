@@ -24,7 +24,6 @@ required for an official build - see README.md for that process.
 """
 # Originally by Thomas Heller, started in 2000 or so.
 import os
-import string
 import sys
 import glob
 import re
@@ -54,7 +53,6 @@ static_crt_modules = ["winxpgui"]
 
 from distutils.dep_util import newer_group
 from distutils.filelist import FileList
-from distutils.errors import DistutilsExecError, DistutilsSetupError
 import distutils.util
 
 build_id_patch = build_id
@@ -511,56 +509,18 @@ class my_build_ext(build_ext):
         self.swig_cpp = True  # hrm - deprecated - should use swig_opts=-c++??
 
     def _fixup_sdk_dirs(self):
-        # Adjust paths etc for the platform SDK - the default paths used by
-        # distutils don't include the platform SDK.
-        # Note that just having them in INCLUDE/LIB does *not* work -
-        # distutils thinks it knows better, and resets those vars (see notes
-        # below about how the paths are put together)
-
-        # Called after the compiler is initialized, but before the extensions
-        # are built.  NOTE: this means setting self.include_dirs etc will
-        # have no effect, so we poke our path changes directly into the
-        # compiler (we can't call this *before* the compiler is setup, as
-        # then our environment changes would have no effect - see below)
-
-        # distutils puts the path together like so:
-        # * compiler command line includes /I entries for each dir in
-        #   ext.include_dir + build_ext.include_dir (ie, extension's come first)
-        # * The compiler initialization sets the INCLUDE/LIB etc env vars to the
-        #   values read from the registry (ignoring anything that was there)
-
-        # We are also at the mercy of how MSVC processes command-line
-        # includes vs env vars (presumably environment comes last) - so,
-        # moral of the story:
-        # * To get a path at the start, it must be at the start of
-        #   ext.includes
-        # * To get a path at the end, it must be at the end of
-        #   os.environ("INCLUDE")
-        # Note however that the environment tweaking can only be done after
-        # the compiler has set these vars, which is quite late -
-        # build_ext.run() - so global environment hacks are done in our
-        # build_extensions() override)
-        #
-        # Also note that none of our extensions have individual include files
-        # that must be first - so for practical purposes, any entry in
-        # build_ext.include_dirs should 'win' over the compiler's dirs.
         assert self.compiler.initialized  # if not, our env changes will be lost!
 
         for extra in sdk_info["include"]:
-            # should not be possible for the SDK dirs to already be in our
-            # include_dirs - they may be in the registry etc from MSVC, but
-            # those aren't reflected here...
-            assert extra not in self.include_dirs
-            # and we will not work as expected if the dirs don't exist
-            assert os.path.isdir(extra), "%s doesn't exist!" % (extra,)
-            self.compiler.add_include_dir(extra)
-        # and again for lib dirs.
+            if extra not in self.compiler.include_dirs:
+                log.warn("distutils should meanwhile provide SDK include dir %s", extra)
+                assert os.path.isdir(extra), "%s doesn't exist!" % (extra,)
+                self.compiler.add_include_dir(extra)
         for extra in sdk_info["lib"]:
             extra = os.path.join(extra, self.plat_dir)
-            assert os.path.isdir(extra), extra
-            assert extra not in self.library_dirs  # see above
-            assert os.path.isdir(extra), "%s doesn't exist!" % (extra,)
-            self.compiler.add_library_dir(extra)
+            if extra not in self.compiler.library_dirs:
+                assert os.path.isdir(extra), "%s doesn't exist!" % (extra,)
+                self.compiler.add_library_dir(extra)
 
         log.debug("After SDK processing, includes are %s", self.compiler.include_dirs)
         log.debug("After SDK processing, libs are %s", self.compiler.library_dirs)
@@ -1188,7 +1148,6 @@ class my_compiler(base_compiler):
     def spawn(self, cmd):
         is_link = cmd[0].endswith("link.exe") or cmd[0].endswith('"link.exe"')
         is_mt = cmd[0].endswith("mt.exe") or cmd[0].endswith('"mt.exe"')
-        _want_assembly_kept = getattr(self, "_want_assembly_kept", False)
         if is_mt:
             # We don't want mt.exe run...
             return
