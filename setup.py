@@ -87,90 +87,6 @@ if os.path.dirname(this_file):
 dll_base_address = 0x1E200000
 
 
-def registry_data():
-    # Find the win 10 SDKs installed.
-    root = ""
-    versions = []
-    try:
-        key = winreg.OpenKey(
-            winreg.HKEY_LOCAL_MACHINE,
-            r"SOFTWARE\Microsoft\Windows Kits\Installed Roots",
-            0,
-            winreg.KEY_READ | winreg.KEY_WOW64_32KEY,
-        )
-        root = winreg.QueryValueEx(key, "KitsRoot10")[0]
-        keyNo = 0
-        while 1:
-            try:
-                versions.append(winreg.EnumKey(key, keyNo))
-                keyNo += 1
-            except winreg.error:
-                break
-    except EnvironmentError:
-        pass
-    return root, versions
-
-
-# We need to know the platform SDK dir before we can list the extensions.
-def find_platform_sdk_dir():
-    # The user might have their current environment setup for the
-    # SDK, in which case "MSSDK_INCLUDE" and "MSSDK_LIB" vars must be set.
-    if "MSSDK_INCLUDE" in os.environ and "MSSDK_LIB" in os.environ:
-        print("Using SDK as specified in the environment")
-        return {
-            "include": os.environ["MSSDK_INCLUDE"].split(os.path.pathsep),
-            "lib": os.environ["MSSDK_LIB"].split(os.path.pathsep),
-        }
-
-    install_root, installed_versions = registry_data()
-    if not installed_versions:
-        print("Can't find a windows 10 sdk")
-        return None
-
-    # We don't want to automatically used the latest as that's going to always
-    # be a moving target. Github's automation has "10.0.16299.0", so we target
-    # that if it exists, otherwise we use the earliest installed version.
-    preferred_ver = "10.0.16299.0"
-    if preferred_ver not in installed_versions:
-        print(
-            "Windows 10 SDK version",
-            preferred_ver,
-            "is preferred, but that's not installed.",
-        )
-        print("Installed versions are", installed_versions)
-    else:
-        installed_versions = [e for e in installed_versions if e != preferred_ver]
-        installed_versions.insert(0, preferred_ver)
-    user_mode = "um"
-    for ver in installed_versions:
-        print("Attempting", ver)
-        include_base = os.path.join(install_root, "include", ver)
-        include = [os.path.join(include_base, user_mode)]
-        if not os.path.exists(os.path.join(include[0], "windows.h")):
-            print(
-                "Found Windows sdk in",
-                include,
-                "but it doesn't appear to have windows.h",
-            )
-            continue
-        include.append(os.path.join(include_base, "shared"))
-        lib = [os.path.join(install_root, "lib", ver, user_mode)]
-        return {"include": include, "lib": lib}
-    return None  # Redundant (for readability)
-
-
-sdk_info = find_platform_sdk_dir()
-if not sdk_info:
-    print()
-    print("It looks like you are trying to build pywin32 in an environment without")
-    print("the necessary tools installed. It's much easier to grab binaries!")
-    print()
-    print("Please read the docstring at the top of this file, or read README.md")
-    print("for more information.")
-    print()
-    raise RuntimeError("Can't find the Windows SDK")
-
-
 def find_visual_studio_file(pattern):
     try:
         files = subprocess.check_output(
@@ -508,23 +424,6 @@ class my_build_ext(build_ext):
         self.excluded_extensions = []  # list of (ext, why)
         self.swig_cpp = True  # hrm - deprecated - should use swig_opts=-c++??
 
-    def _fixup_sdk_dirs(self):
-        assert self.compiler.initialized  # if not, our env changes will be lost!
-
-        for extra in sdk_info["include"]:
-            if extra not in self.compiler.include_dirs:
-                log.warn("distutils should meanwhile provide SDK include dir %s", extra)
-                assert os.path.isdir(extra), "%s doesn't exist!" % (extra,)
-                self.compiler.add_include_dir(extra)
-        for extra in sdk_info["lib"]:
-            extra = os.path.join(extra, self.plat_dir)
-            if extra not in self.compiler.library_dirs:
-                assert os.path.isdir(extra), "%s doesn't exist!" % (extra,)
-                self.compiler.add_library_dir(extra)
-
-        log.debug("After SDK processing, includes are %s", self.compiler.include_dirs)
-        log.debug("After SDK processing, libs are %s", self.compiler.library_dirs)
-
     def _why_cant_build_extension(self, ext):
         # Return None, or a reason it can't be built.
         # Exclude exchange 32-bit utility libraries from 64-bit
@@ -679,8 +578,6 @@ class my_build_ext(build_ext):
             self.compiler.__class__.library_dirs = []
         else:
             print("-- FIX ME ! distutils may expose complete inc/lib dirs again")
-
-        self._fixup_sdk_dirs()
 
         # Here we hack a "pywin32" directory (one of 'win32', 'win32com',
         # 'pythonwin' etc), as distutils doesn't seem to like the concept
