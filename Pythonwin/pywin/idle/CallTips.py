@@ -93,7 +93,7 @@ class CallTips:
         word = chars[i:]
         if word:
             # How is this for a hack!
-            import sys, __main__
+            import __main__
 
             namespace = sys.modules.copy()
             namespace.update(__main__.__dict__)
@@ -121,7 +121,6 @@ def get_arg_text(ob):
     # Get a string describing the arguments for the given object.
     argText = ""
     if ob is not None:
-        argOffset = 0
         if inspect.isclass(ob):
             # Look for the highest __init__ in the class chain.
             fob = _find_constructor(ob)
@@ -131,9 +130,7 @@ def get_arg_text(ob):
             fob = ob
         if inspect.isfunction(fob) or inspect.ismethod(fob):
             try:
-                # py3k has a 'getfullargspec' which can handle py3k specific things.
-                arg_getter = getattr(inspect, "getfullargspec", inspect.getargspec)
-                argText = inspect.formatargspec(*arg_getter(fob))
+                argText = inspect.formatargspec(*inspect.getfullargspec(fob))
             except:
                 print("Failed to format the args")
                 traceback.print_exc()
