@@ -5817,6 +5817,18 @@ HWND GetWindow(
 	HWND hWnd,  // @pyparm int|hWnd||handle to original window
 	UINT uCmd   // @pyparm int|uCmd||relationship flag
 );
+
+// @pyswig int|GetTopWindow|Examines the Z order of the child windows associated with the specified parent window and retrieves a handle to the child window at the top of the Z order.
+HWND GetTopWindow(
+    HWND hWnd  // @pyparm int|hWnd||handle to parent window
+);
+
+// @pyswig int|GetAncestor|retrieves the handle to the ancestor of the specified window.
+HWND GetAncestor(
+    HWND hWnd,  // @pyparm int|hWnd||handle to original window
+    UINT gaFlags  // @pyparm int|gaFlags||ancestor to be retrieved
+);
+
 // @pyswig int|GetWindowDC|returns the device context (DC) for the entire window, including title bar, menus, and scroll bars.
 HDC GetWindowDC(
 	HWND hWnd   // @pyparm int|hWnd||handle of window
