@@ -436,7 +436,7 @@ BOOL PyWinObject_AsLV_ITEM(PyObject *args, LV_ITEM *pItem)
     if (len < 7)
         return TRUE;
     ob = PyTuple_GET_ITEM(args, 6);
-    if (!PyWinObject_AsPARAM(ob, &pItem->lParam)) {
+    if (!PyWinObject_AsSimplePARAM(ob, &pItem->lParam)) {
         PyWinObject_FreeLV_ITEM(pItem);
         return FALSE;
     }
@@ -740,7 +740,7 @@ BOOL PyWinObject_AsTV_ITEM(PyObject *args, TV_ITEM *pItem)
     ob = PyTuple_GET_ITEM(args, 7);
     if (ob != Py_None) {
         // @tupleitem 7|int|lParam|User defined integer param.
-        if (!PyWinObject_AsPARAM(ob, &pItem->lParam)) {
+        if (!PyWinObject_AsSimplePARAM(ob, &pItem->lParam)) {
             PyWinObject_FreeTV_ITEM(pItem);
             return FALSE;
         }

@@ -804,8 +804,8 @@ static PyObject *ui_window_def_window_proc(PyObject *self, PyObject *args)
                           &obwparam,   // @pyparm int|idLast||The lParam for the message.
                           &oblparam))  // @pyparm int|idCheck||The wParam for the message.
         return NULL;
-    WPARAM wparam;
-    LPARAM lparam;
+    PyWin_PARAMHolder wparam;
+    PyWin_PARAMHolder lparam;
     if (!PyWinObject_AsPARAM(obwparam, &wparam) || !PyWinObject_AsPARAM(oblparam, &lparam))
         return NULL;
     GUI_BGN_SAVE;
@@ -1849,8 +1849,8 @@ static PyObject *ui_window_on_wnd_msg(PyObject *self, PyObject *args)
 {
     LRESULT res;
     int msg;
-    WPARAM wParam;
-    LPARAM lParam;
+    PyWin_PARAMHolder wParam;
+    PyWin_PARAMHolder lParam;
     PyObject *obwParam, *oblParam;
     CRect rect;
     BOOL bRepaint = TRUE;
@@ -1875,7 +1875,6 @@ static PyObject *ui_window_on_wnd_msg(PyObject *self, PyObject *args)
     // return value from the MFC function call, and the value of the
     // lResult param.  Please see the MFC documentation for more details.
     return Py_BuildValue("iN", rc, PyWinObject_FromPARAM(res));
-    RETURN_NONE;
 }
 
 // @pymethod |PyCWnd|PostMessage|Post a message to the window.
@@ -1891,8 +1890,8 @@ PyObject *ui_window_post_message(PyObject *self, PyObject *args)
                           &obwParam,   // @pyparm int|wParam|0|The wParam for the message
                           &oblParam))  // @pyparm int|lParam|0|The lParam for the message
         return NULL;
-    WPARAM wParam = 0;
-    LPARAM lParam = 0;
+    PyWin_PARAMHolder wParam;
+    PyWin_PARAMHolder lParam;
     if (obwParam != Py_None && !PyWinObject_AsPARAM(obwParam, &wParam))
         return NULL;
     if (oblParam != Py_None && !PyWinObject_AsPARAM(oblParam, &lParam))
@@ -2185,8 +2184,8 @@ PyObject *ui_window_send_message(PyObject *self, PyObject *args)
         return NULL;
     assert(!PyErr_Occurred());  // lingering exception?
     int message;
-    WPARAM wp = 0;
-    LPARAM lp = 0;
+    PyWin_PARAMHolder wp;
+    PyWin_PARAMHolder lp;
     BOOL ok = FALSE;
     PyWinBufferView pybuf;
     // Old code assumes the following behaviour:
@@ -2249,8 +2248,8 @@ PyObject *ui_window_send_message_to_desc(PyObject *self, PyObject *args)
             &oblParam,  // @pyparm int|lParam|0|The lParam for the message
             &bDeep))    // @pyparm int|bDeep|1|Indicates if the message should be recursively sent to all children
         return NULL;
-    WPARAM wParam = 0;
-    LPARAM lParam = 0;
+    PyWin_PARAMHolder wParam;
+    PyWin_PARAMHolder lParam;
     if (obwParam != Py_None && !PyWinObject_AsPARAM(obwParam, &wParam))
         return NULL;
     if (oblParam != Py_None && !PyWinObject_AsPARAM(oblParam, &lParam))

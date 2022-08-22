@@ -716,7 +716,7 @@ BOOL PyWndProc_Call(PyObject *obFuncOrMap, HWND hWnd, UINT uMsg, WPARAM wParam, 
 	Py_DECREF(args);
 	LRESULT rc = 0;
 	if (ret){
-		if (!PyWinObject_AsPARAM(ret, (LPARAM *)&rc))
+		if (!PyWinObject_AsSimplePARAM(ret, (LPARAM *)&rc))
 			HandleError("WNDPROC return value cannot be converted to LRESULT");
 		Py_DECREF(ret);
 		}
@@ -794,7 +794,7 @@ INT_PTR CALLBACK PyDlgProcHDLG(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPara
 		PyObject *obTuple = (PyObject *)lParam;
 		PyObject *obWndProc = PyTuple_GET_ITEM(obTuple, 0);
 		// Replace the lParam with the one the user specified.
-		lParam = 0;
+		PyWin_PARAMHolder lParam;
 		if (PyTuple_GET_ITEM(obTuple, 1) != Py_None)
 			PyWinObject_AsPARAM( PyTuple_GET_ITEM(obTuple, 1), &lParam );
 
@@ -1889,8 +1889,6 @@ static PyObject *PySetWindowLong(PyObject *self, PyObject *args)
 static PyObject *PyCallWindowProc(PyObject *self, PyObject *args)
 {
 	MYWNDPROC wndproc;
-	WPARAM wparam;
-	LPARAM lparam;
 	HWND hwnd;
 	PyObject *obwndproc, *obhwnd, *obwparam, *oblparam;
 	UINT msg;
@@ -1905,9 +1903,11 @@ static PyObject *PyCallWindowProc(PyObject *self, PyObject *args)
 		return NULL;
 	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd))
 		return NULL;
+	PyWin_PARAMHolder wparam;
 	if (!PyWinObject_AsPARAM(obwparam, &wparam))
 		return NULL;
-	if (!PyWinObject_AsPARAM(oblparam, (WPARAM *)&lparam))
+	PyWin_PARAMHolder lparam;
+	if (!PyWinObject_AsPARAM(oblparam, &lparam))
 		return NULL;
 	LRESULT rc;
     Py_BEGIN_ALLOW_THREADS
@@ -1918,14 +1918,16 @@ static PyObject *PyCallWindowProc(PyObject *self, PyObject *args)
 %}
 %native (CallWindowProc) PyCallWindowProc;
 
-%typemap(python,in) WPARAM {
-   if (!PyWinObject_AsPARAM($source, &$target))
+%typemap(python,in) WPARAM(PyWin_PARAMHolder wtemp) {
+   if (!PyWinObject_AsPARAM($source, &wtemp))
        return NULL;
+    $target = wtemp;
 }
 
-%typemap(python,in) LPARAM {
-   if (!PyWinObject_AsPARAM($source, (WPARAM *)&$target))
+%typemap(python,in) LPARAM(PyWin_PARAMHolder ltemp) {
+   if (!PyWinObject_AsPARAM($source, &ltemp))
        return NULL;
+    $target = ltemp;
 }
 
 %{
@@ -1943,11 +1945,11 @@ static PyObject *PySendMessage(PyObject *self, PyObject *args)
 		return NULL;
 	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd))
 		return NULL;
-	WPARAM wparam;
-	LPARAM lparam;
+	PyWin_PARAMHolder wparam;
+	PyWin_PARAMHolder lparam;
 	if (!PyWinObject_AsPARAM(obwparam, &wparam))
 		return NULL;
-	if (!PyWinObject_AsPARAM(oblparam, (WPARAM *)&lparam))
+	if (!PyWinObject_AsPARAM(oblparam, &lparam))
 		return NULL;
 
 	LRESULT rc;
@@ -1978,11 +1980,11 @@ static PyObject *PySendMessageTimeout(PyObject *self, PyObject *args)
 		return NULL;
 	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd))
 		return NULL;
-	WPARAM wparam;
-	LPARAM lparam;
+	PyWin_PARAMHolder wparam;
+	PyWin_PARAMHolder lparam;
 	if (!PyWinObject_AsPARAM(obwparam, &wparam))
 		return NULL;
-	if (!PyWinObject_AsPARAM(oblparam, (WPARAM *)&lparam))
+	if (!PyWinObject_AsPARAM(oblparam, &lparam))
 		return NULL;
 
 	LRESULT rc;

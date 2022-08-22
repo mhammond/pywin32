@@ -364,11 +364,60 @@ PYWINTYPES_EXPORT void PyWinObject_FreeResourceIdA(char *resource_id);
 PYWINTYPES_EXPORT BOOL PyWinObject_AsResourceId(PyObject *ob, WCHAR **presource_id, BOOL bNoneOK = FALSE);
 PYWINTYPES_EXPORT void PyWinObject_FreeResourceId(WCHAR *resource_id);
 
-// WPARAM and LPARAM conversion
-PYWINTYPES_EXPORT BOOL PyWinObject_AsPARAM(PyObject *ob, WPARAM *pparam);
+// WPARAM and LPARAM conversion.
+// Auto-freed WPARAM / LPARAM which ensure any memory referenced remains valid when a String or
+// Buffer object is used. Make sure the destructor is called with the GIL held.
+class PyWin_PARAMHolder {
+    protected:
+        WPARAM _pa;
+        // Holds *either* a PyWinBufferView (which will auto-free) *or* a "void *" that we
+        // will auto-free.
+        PyWinBufferView _bufferView;
+        void *_pymem;
+        void _free() {
+            if (_pymem) {
+                PyMem_Free(_pymem);
+                _pymem = NULL;
+            }
+            _bufferView.release();
+            _pa = NULL;
+        }
+  public:
+    PyWin_PARAMHolder(WPARAM t=0):_pa(t),_pymem(NULL) {}
+    ~PyWin_PARAMHolder() {
+        _free();
+    }
+    WCHAR *set_allocated(WCHAR *t) {
+        assert(!_bufferView.ptr()); // should be one or the other.
+        _free();
+        _pymem = t;
+        _pa = (WPARAM)t;
+        return t;
+    }
+    bool init_buffer(PyObject *ob) {
+        assert(!_pymem); // should be one or the other!
+        _free();
+        if (!_bufferView.init(ob)) {
+            return false;
+        }
+        _pa = (WPARAM)_bufferView.ptr();
+        return true;
+    }
+
+    WPARAM operator=(WPARAM t) {
+        _free();
+        return _pa = t;
+    }
+    operator WPARAM() { return _pa; }
+    operator LPARAM() { return (LPARAM)_pa; }
+};
+
+PYWINTYPES_EXPORT BOOL PyWinObject_AsPARAM(PyObject *ob, PyWin_PARAMHolder *pparam);
 inline PyObject *PyWinObject_FromPARAM(WPARAM param) { return PyWinObject_FromULONG_PTR(param); }
-inline BOOL PyWinObject_AsPARAM(PyObject *ob, LPARAM *pparam) { return PyWinObject_AsPARAM(ob, (WPARAM *)pparam); }
 inline PyObject *PyWinObject_FromPARAM(LPARAM param) { return PyWinObject_FromULONG_PTR(param); }
+
+PYWINTYPES_EXPORT BOOL PyWinObject_AsSimplePARAM(PyObject *ob, WPARAM *pparam);
+inline BOOL PyWinObject_AsSimplePARAM(PyObject *ob, LPARAM *pparam) { return PyWinObject_AsSimplePARAM(ob, (WPARAM *)pparam); }
 
 // RECT conversions
 // @object PyRECT|Tuple of 4 ints defining a rectangle: (left, top, right, bottom)

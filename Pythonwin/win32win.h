@@ -121,8 +121,8 @@ PyObject *__DoBaseOnCommand(ui_type_CObject *type, PyObject *self, PyObject *arg
     PyObject *obwparam, *oblparam;
     if (!PyArg_ParseTuple(args, "OO", &obwparam, &oblparam))
         return NULL;
-    WPARAM wparam;
-    LPARAM lparam;
+    PyWin_PARAMHolder wparam;
+    PyWin_PARAMHolder lparam;
     if (!PyWinObject_AsPARAM(obwparam, &wparam))
         return NULL;
     if (!PyWinObject_AsPARAM(oblparam, &lparam))
