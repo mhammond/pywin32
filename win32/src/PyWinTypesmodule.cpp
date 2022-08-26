@@ -606,6 +606,15 @@ void PyWinObject_FreeResourceId(WCHAR *resource_id)
 // can't guarantee memory pointed at will remain valid as long as necessary.
 // In that scenario, the caller is responsible for arranging memory safety.
 BOOL PyWinObject_AsSimplePARAM(PyObject *ob, WPARAM *wparam) {
+    // convert simple integers directly
+    void *simple = PyLong_AsVoidPtr(ob);
+    if (simple || !PyErr_Occurred()) {
+        *wparam = (WPARAM)simple;
+        return TRUE;
+    }
+    PyErr_Clear();
+
+    // unlikely - convert any object providing .__int__() for backward compatibility
     if (PyWinLong_AsVoidPtr(ob, (void **)wparam)) {
         return TRUE;
     }
@@ -628,7 +637,7 @@ BOOL PyWinObject_AsPARAM(PyObject *ob, PyWin_PARAMHolder *holder)
 
     // fast-track - most frequent by far are simple integers
     void *simple = PyLong_AsVoidPtr(ob);
-    if (!PyErr_Occurred()) {
+    if (simple || !PyErr_Occurred()) {
         *holder = (WPARAM)simple;
         return TRUE;
     }
