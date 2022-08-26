@@ -615,7 +615,7 @@ BOOL PyWinObject_AsSimplePARAM(PyObject *ob, WPARAM *wparam) {
     return FALSE;
 }
 
-// Conversion for WPARAM and LPARAM
+// Converts for WPARAM and LPARAM: int or str (WCHAR*) or buffer (pointer to its locked memory)
 // (WPARAM is defined as UINT_PTR, and LPARAM is defined as LONG_PTR - see
 // pywintypes.h for inline functions to resolve this)
 BOOL PyWinObject_AsPARAM(PyObject *ob, PyWin_PARAMHolder *holder)
@@ -626,6 +626,14 @@ BOOL PyWinObject_AsPARAM(PyObject *ob, PyWin_PARAMHolder *holder)
         return TRUE;
     }
 
+    // fast-track - most frequent by far are simple integers
+    void *simple = PyLong_AsVoidPtr(ob);
+    if (!PyErr_Occurred()) {
+        *holder = (WPARAM)simple;
+        return TRUE;
+    }
+    PyErr_Clear();
+
     if (PyUnicode_Check(ob)) {
         return holder->set_allocated(PyUnicode_AsWideCharString(ob, NULL)) != NULL;
     }
@@ -633,9 +641,11 @@ BOOL PyWinObject_AsPARAM(PyObject *ob, PyWin_PARAMHolder *holder)
     if (holder->init_buffer(ob)) {
         return TRUE;
     }
-
     PyErr_Clear();
-    void *simple = NULL;
+
+    // Finally try to convert any object providing .__int__() . That's undocumented
+    // and probably not used from inside pywin32. But existing for long time and won't impact
+    // speed here at the end of the game.
     if (PyWinLong_AsVoidPtr(ob, &simple)) {
         *holder = (WPARAM)simple;
         return TRUE;
@@ -672,6 +682,7 @@ PyWinBufferView::PyWinBufferView()
     memset(&m_view, 0, sizeof(m_view));
 }
 
+// When init() fails, an appropriate Python error has been set too
 bool PyWinBufferView::init(PyObject *ob, bool bWrite, bool bNoneOk)
 {
     release();
