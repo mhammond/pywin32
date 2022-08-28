@@ -706,7 +706,7 @@ bool PyWinBufferView::init(PyObject *ob, bool bWrite, bool bNoneOk)
         PyObject_GetBuffer(ob, &m_view, bWrite ? PyBUF_WRITABLE : PyBUF_SIMPLE);
 
 #ifdef _WIN64
-        if (m_view.len > MAXDWORD) {
+        if (m_view.obj && m_view.len > MAXDWORD) {
             PyBuffer_Release(&m_view);
             memset(&m_view, 0, sizeof(m_view));
             PyErr_Format(PyExc_ValueError, "Buffer length can be at most %d characters", MAXDWORD);
