@@ -231,14 +231,22 @@ PYWINTYPES_EXPORT BOOL PyWinObject_AsCharArray(PyObject *str_seq, char ***pchars
 class PYWINTYPES_EXPORT PyWinBufferView
 {
 public:
-    PyWinBufferView();
-    PyWinBufferView(PyObject *ob, bool bWrite = false, bool bNoneOk = false);
-    ~PyWinBufferView();
+    PyWinBufferView() { m_view.obj = NULL; }
+    PyWinBufferView(PyObject *ob, bool bWrite = false, bool bNoneOk = false) {
+        m_view.obj = NULL;
+        init(ob, bWrite, bNoneOk);
+    }
+    ~PyWinBufferView() { release(); }
     bool init(PyObject *ob, bool bWrite = false, bool bNoneOk = false);
-    void release();
-    bool ok();
-    void* ptr();
-    DWORD len();
+    void release() {
+        if (m_view.obj != NULL && m_view.obj != Py_None) {
+            PyBuffer_Release(&m_view);  // sets view->obj = NULL
+        }
+    }
+    bool ok() { return m_view.obj != NULL; }
+    void* ptr() { return m_view.buf; }
+    DWORD len() { return static_cast<DWORD>(m_view.len); }
+
 private:
     Py_buffer m_view;
 

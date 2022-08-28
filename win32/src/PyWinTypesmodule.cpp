@@ -685,21 +685,16 @@ PyObject *PyWinObject_FromRECT(LPRECT prect)
     return Py_BuildValue("llll", prect->left, prect->top, prect->right, prect->bottom);
 }
 
-// replacement for PyWinObject_AsReadBuffer and PyWinObject_AsWriteBuffer
-PyWinBufferView::PyWinBufferView()
-{
-    memset(&m_view, 0, sizeof(m_view));
-}
-
 // When init() fails, an appropriate Python error has been set too
 bool PyWinBufferView::init(PyObject *ob, bool bWrite, bool bNoneOk)
 {
     release();
-    memset(&m_view, 0, sizeof(m_view));
     if (ob == Py_None) {
         if (bNoneOk) {
-            // using Py_None as sentinel, leaving m_view's buf and len equal to 0
+            // using Py_None as sentinel, for handling a "valid" NULL buffer pointer
             m_view.obj = Py_None;
+            m_view.buf = NULL;
+            m_view.len = 0;
         } else
             PyErr_SetString(PyExc_TypeError, "Buffer cannot be None");
     } else if (ob != NULL) {
@@ -707,47 +702,13 @@ bool PyWinBufferView::init(PyObject *ob, bool bWrite, bool bNoneOk)
 
 #ifdef _WIN64
         if (m_view.obj && m_view.len > MAXDWORD) {
-            PyBuffer_Release(&m_view);
-            memset(&m_view, 0, sizeof(m_view));
+            PyBuffer_Release(&m_view);  // already sets view->obj = NULL
             PyErr_Format(PyExc_ValueError, "Buffer length can be at most %d characters", MAXDWORD);
         }
 #endif
-    }
+    } else  // ob == NULL handled as not ok
+        m_view.obj = NULL;
     return ok();
-}
-
-PyWinBufferView::PyWinBufferView(PyObject *ob, bool bWrite, bool bNoneOk)
-{
-    memset(&m_view, 0, sizeof(m_view));
-    init(ob, bWrite, bNoneOk);
-}
-
-void PyWinBufferView::release()
-{
-    // don't call PyBuffer_Release on NULL or Py_None
-    if (m_view.obj != NULL && m_view.obj != Py_None) {
-        PyBuffer_Release(&m_view);
-    }
-}
-
-PyWinBufferView::~PyWinBufferView()
-{
-    release();
-}
-
-bool PyWinBufferView::ok()
-{
-    return m_view.obj != NULL;
-}
-
-void* PyWinBufferView::ptr()
-{
-    return m_view.buf;
-}
-
-DWORD PyWinBufferView::len()
-{
-    return static_cast<DWORD>(m_view.len);
 }
 
 // Converts sequence into a tuple and verifies that length fits in length variable
