@@ -24,7 +24,6 @@ required for an official build - see README.md for that process.
 """
 # Originally by Thomas Heller, started in 2000 or so.
 import os
-import string
 import sys
 import glob
 import re
@@ -54,7 +53,6 @@ static_crt_modules = ["winxpgui"]
 
 from distutils.dep_util import newer_group
 from distutils.filelist import FileList
-from distutils.errors import DistutilsExecError, DistutilsSetupError
 import distutils.util
 
 build_id_patch = build_id
@@ -87,90 +85,6 @@ if os.path.dirname(this_file):
 # Start address we assign base addresses from.  See comment re
 # dll_base_address later in this file...
 dll_base_address = 0x1E200000
-
-
-def registry_data():
-    # Find the win 10 SDKs installed.
-    root = ""
-    versions = []
-    try:
-        key = winreg.OpenKey(
-            winreg.HKEY_LOCAL_MACHINE,
-            r"SOFTWARE\Microsoft\Windows Kits\Installed Roots",
-            0,
-            winreg.KEY_READ | winreg.KEY_WOW64_32KEY,
-        )
-        root = winreg.QueryValueEx(key, "KitsRoot10")[0]
-        keyNo = 0
-        while 1:
-            try:
-                versions.append(winreg.EnumKey(key, keyNo))
-                keyNo += 1
-            except winreg.error:
-                break
-    except EnvironmentError:
-        pass
-    return root, versions
-
-
-# We need to know the platform SDK dir before we can list the extensions.
-def find_platform_sdk_dir():
-    # The user might have their current environment setup for the
-    # SDK, in which case "MSSDK_INCLUDE" and "MSSDK_LIB" vars must be set.
-    if "MSSDK_INCLUDE" in os.environ and "MSSDK_LIB" in os.environ:
-        print("Using SDK as specified in the environment")
-        return {
-            "include": os.environ["MSSDK_INCLUDE"].split(os.path.pathsep),
-            "lib": os.environ["MSSDK_LIB"].split(os.path.pathsep),
-        }
-
-    install_root, installed_versions = registry_data()
-    if not installed_versions:
-        print("Can't find a windows 10 sdk")
-        return None
-
-    # We don't want to automatically used the latest as that's going to always
-    # be a moving target. Github's automation has "10.0.16299.0", so we target
-    # that if it exists, otherwise we use the earliest installed version.
-    preferred_ver = "10.0.16299.0"
-    if preferred_ver not in installed_versions:
-        print(
-            "Windows 10 SDK version",
-            preferred_ver,
-            "is preferred, but that's not installed.",
-        )
-        print("Installed versions are", installed_versions)
-    else:
-        installed_versions = [e for e in installed_versions if e != preferred_ver]
-        installed_versions.insert(0, preferred_ver)
-    user_mode = "um"
-    for ver in installed_versions:
-        print("Attempting", ver)
-        include_base = os.path.join(install_root, "include", ver)
-        include = [os.path.join(include_base, user_mode)]
-        if not os.path.exists(os.path.join(include[0], "windows.h")):
-            print(
-                "Found Windows sdk in",
-                include,
-                "but it doesn't appear to have windows.h",
-            )
-            continue
-        include.append(os.path.join(include_base, "shared"))
-        lib = [os.path.join(install_root, "lib", ver, user_mode)]
-        return {"include": include, "lib": lib}
-    return None  # Redundant (for readability)
-
-
-sdk_info = find_platform_sdk_dir()
-if not sdk_info:
-    print()
-    print("It looks like you are trying to build pywin32 in an environment without")
-    print("the necessary tools installed. It's much easier to grab binaries!")
-    print()
-    print("Please read the docstring at the top of this file, or read README.md")
-    print("for more information.")
-    print()
-    raise RuntimeError("Can't find the Windows SDK")
 
 
 def find_visual_studio_file(pattern):
@@ -510,61 +424,6 @@ class my_build_ext(build_ext):
         self.excluded_extensions = []  # list of (ext, why)
         self.swig_cpp = True  # hrm - deprecated - should use swig_opts=-c++??
 
-    def _fixup_sdk_dirs(self):
-        # Adjust paths etc for the platform SDK - the default paths used by
-        # distutils don't include the platform SDK.
-        # Note that just having them in INCLUDE/LIB does *not* work -
-        # distutils thinks it knows better, and resets those vars (see notes
-        # below about how the paths are put together)
-
-        # Called after the compiler is initialized, but before the extensions
-        # are built.  NOTE: this means setting self.include_dirs etc will
-        # have no effect, so we poke our path changes directly into the
-        # compiler (we can't call this *before* the compiler is setup, as
-        # then our environment changes would have no effect - see below)
-
-        # distutils puts the path together like so:
-        # * compiler command line includes /I entries for each dir in
-        #   ext.include_dir + build_ext.include_dir (ie, extension's come first)
-        # * The compiler initialization sets the INCLUDE/LIB etc env vars to the
-        #   values read from the registry (ignoring anything that was there)
-
-        # We are also at the mercy of how MSVC processes command-line
-        # includes vs env vars (presumably environment comes last) - so,
-        # moral of the story:
-        # * To get a path at the start, it must be at the start of
-        #   ext.includes
-        # * To get a path at the end, it must be at the end of
-        #   os.environ("INCLUDE")
-        # Note however that the environment tweaking can only be done after
-        # the compiler has set these vars, which is quite late -
-        # build_ext.run() - so global environment hacks are done in our
-        # build_extensions() override)
-        #
-        # Also note that none of our extensions have individual include files
-        # that must be first - so for practical purposes, any entry in
-        # build_ext.include_dirs should 'win' over the compiler's dirs.
-        assert self.compiler.initialized  # if not, our env changes will be lost!
-
-        for extra in sdk_info["include"]:
-            # should not be possible for the SDK dirs to already be in our
-            # include_dirs - they may be in the registry etc from MSVC, but
-            # those aren't reflected here...
-            assert extra not in self.include_dirs
-            # and we will not work as expected if the dirs don't exist
-            assert os.path.isdir(extra), "%s doesn't exist!" % (extra,)
-            self.compiler.add_include_dir(extra)
-        # and again for lib dirs.
-        for extra in sdk_info["lib"]:
-            extra = os.path.join(extra, self.plat_dir)
-            assert os.path.isdir(extra), extra
-            assert extra not in self.library_dirs  # see above
-            assert os.path.isdir(extra), "%s doesn't exist!" % (extra,)
-            self.compiler.add_library_dir(extra)
-
-        log.debug("After SDK processing, includes are %s", self.compiler.include_dirs)
-        log.debug("After SDK processing, libs are %s", self.compiler.library_dirs)
-
     def _why_cant_build_extension(self, ext):
         # Return None, or a reason it can't be built.
         # Exclude exchange 32-bit utility libraries from 64-bit
@@ -615,6 +474,7 @@ class my_build_ext(build_ext):
                 look_dirs = common_dirs + ext.library_dirs
                 found = self.compiler.find_library_file(look_dirs, lib, self.debug)
                 if not found:
+                    print("-- LIB NOT FOUND:", lib, look_dirs)
                     log.debug("Looked for %s in %s", lib, look_dirs)
                     return "No library '%s'" % lib
                 self.found_libraries[lib.lower()] = found
@@ -671,14 +531,9 @@ class my_build_ext(build_ext):
 
         cwd = os.getcwd()
         old_env = os.environ.copy()
-        os.chdir(path)
-        print("-- _build_scintilla INCLUDE old:", os.environ.get("INCLUDE"))
-        if not self.compiler.initialized:
-            print("-- _build_scintilla compiler.initialize()")
-            self.compiler.initialize()
         os.environ["INCLUDE"] = os.pathsep.join(self.compiler.include_dirs)
         os.environ["LIB"] = os.pathsep.join(self.compiler.library_dirs)
-        print("-- _build_scintilla INCLUDE new:", os.environ.get("INCLUDE"))
+        os.chdir(path)
         try:
             cmd = [nmake, "/nologo", "/f", makefile] + makeargs
             self.compiler.spawn(cmd)
@@ -706,7 +561,23 @@ class my_build_ext(build_ext):
         if not self.compiler.initialized:
             self.compiler.initialize()
 
-        self._fixup_sdk_dirs()
+        # XXX this distutils class var peek hack should become obsolete
+        # (silently) when https://github.com/pypa/distutils/pull/172 is
+        # resolved.
+        # _why_cant_build_extension() and _build_scintilla() at least need
+        # complete VC+SDK inspectable inc / lib dirs.
+        classincs = getattr(self.compiler.__class__, "include_dirs", [])
+        if classincs:
+            log.warn("distutils hack to expose complete inc/lib dirs")
+            print("-- orig compiler.include_dirs:", self.compiler.include_dirs)
+            print("-- orig compiler.library_dirs:", self.compiler.library_dirs)
+            self.compiler.include_dirs += classincs
+            self.compiler.__class__.include_dirs = []
+            classlibs = getattr(self.compiler.__class__, "library_dirs", [])
+            self.compiler.library_dirs += classlibs
+            self.compiler.__class__.library_dirs = []
+        else:
+            print("-- FIX ME ! distutils may expose complete inc/lib dirs again")
 
         # Here we hack a "pywin32" directory (one of 'win32', 'win32com',
         # 'pythonwin' etc), as distutils doesn't seem to like the concept
@@ -1174,7 +1045,6 @@ class my_compiler(base_compiler):
     def spawn(self, cmd):
         is_link = cmd[0].endswith("link.exe") or cmd[0].endswith('"link.exe"')
         is_mt = cmd[0].endswith("mt.exe") or cmd[0].endswith('"mt.exe"')
-        _want_assembly_kept = getattr(self, "_want_assembly_kept", False)
         if is_mt:
             # We don't want mt.exe run...
             return
