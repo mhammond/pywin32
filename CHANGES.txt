@@ -28,6 +28,20 @@ Coming in build 305, as yet unreleased
 * Dropped support for allowing a bytes object to be passed where a COM BSTR
   is expected - this support was accidental on the path from 2.x->3.x.
 
+* win32crypt's PyCERTSTORE.CertCloseStore()'s `Flags` argument has been
+  deprecated as it is likely to crash the process if
+  `CERT_CLOSE_STORE_FORCE_FLAG` is specified. The underlying function is now
+  always called with `CERT_CLOSE_STORE_CHECK_FLAG`, and support for this
+  param will be dropped at some point in the future.
+
+* Fix a bug where win32crypt.CryptQueryObject() would return a PyCTL_CONTEXT
+  object instead of a PyCERT_CONTEXT for base64 encoded certificates (#1859)
+
+* win32crypt.CryptQueryObject() is now able to return PyCTL_CONTEXT objects.
+  This is technically a breaking change as previously it would return the
+  address in memory of the object, but this address wasn't practically usable,
+  so it's very unlikely anyone relied on this behavior. (#1859)
+
 Build 304, released 2022-05-02
 ------------------------------
 * Fixed Unicode issues in the `dde` module (#1861, @markuskimius )
