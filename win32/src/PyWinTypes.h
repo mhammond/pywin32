@@ -231,14 +231,22 @@ PYWINTYPES_EXPORT BOOL PyWinObject_AsCharArray(PyObject *str_seq, char ***pchars
 class PYWINTYPES_EXPORT PyWinBufferView
 {
 public:
-    PyWinBufferView();
-    PyWinBufferView(PyObject *ob, bool bWrite = false, bool bNoneOk = false);
-    ~PyWinBufferView();
+    PyWinBufferView() { m_view.obj = NULL; }
+    PyWinBufferView(PyObject *ob, bool bWrite = false, bool bNoneOk = false) {
+        m_view.obj = NULL;
+        init(ob, bWrite, bNoneOk);
+    }
+    ~PyWinBufferView() { release(); }
     bool init(PyObject *ob, bool bWrite = false, bool bNoneOk = false);
-    void release();
-    bool ok();
-    void* ptr();
-    DWORD len();
+    void release() {
+        if (m_view.obj != NULL && m_view.obj != Py_None) {
+            PyBuffer_Release(&m_view);  // sets view->obj = NULL
+        }
+    }
+    bool ok() { return m_view.obj != NULL; }
+    void* ptr() { return m_view.buf; }
+    DWORD len() { return static_cast<DWORD>(m_view.len); }
+
 private:
     Py_buffer m_view;
 
@@ -368,44 +376,43 @@ PYWINTYPES_EXPORT void PyWinObject_FreeResourceId(WCHAR *resource_id);
 // Auto-freed WPARAM / LPARAM which ensure any memory referenced remains valid when a String or
 // Buffer object is used. Make sure the destructor is called with the GIL held.
 class PyWin_PARAMHolder {
-    protected:
-        WPARAM _pa;
-        // Holds *either* a PyWinBufferView (which will auto-free) *or* a "void *" that we
-        // will auto-free.
-        PyWinBufferView _bufferView;
-        void *_pymem;
-        void _free() {
-            if (_pymem) {
-                PyMem_Free(_pymem);
-                _pymem = NULL;
-            }
-            _bufferView.release();
-            _pa = NULL;
+  protected:
+    WPARAM _pa;
+    // Holds *either* a PyWinBufferView (which will auto-free) *or* a "void *" that we
+    // will auto-free.
+    void *_pymem;
+    void _free() {
+        if (_pymem) {
+            PyMem_Free(_pymem);
+            _pymem = NULL;
         }
+    }
   public:
+    PyWinBufferView bufferView;
+
     PyWin_PARAMHolder(WPARAM t=0):_pa(t),_pymem(NULL) {}
     ~PyWin_PARAMHolder() {
         _free();
     }
     WCHAR *set_allocated(WCHAR *t) {
-        assert(!_bufferView.ptr()); // should be one or the other.
+        assert(!bufferView.ok()); // should be one or the other.
         _free();
         _pymem = t;
         _pa = (WPARAM)t;
         return t;
     }
+    // When init_buffer() fails, an appropriate Python error has been set too
     bool init_buffer(PyObject *ob) {
         assert(!_pymem); // should be one or the other!
         _free();
-        if (!_bufferView.init(ob)) {
+        if (!bufferView.init(ob)) {
             return false;
         }
-        _pa = (WPARAM)_bufferView.ptr();
+        _pa = (WPARAM)bufferView.ptr();
         return true;
     }
 
     WPARAM operator=(WPARAM t) {
-        _free();
         return _pa = t;
     }
     operator WPARAM() { return _pa; }

@@ -2186,33 +2186,7 @@ PyObject *ui_window_send_message(PyObject *self, PyObject *args)
     int message;
     PyWin_PARAMHolder wp;
     PyWin_PARAMHolder lp;
-    BOOL ok = FALSE;
-    PyWinBufferView pybuf;
-    // Old code assumes the following behaviour:
-    // (msg, buffer_ob) -> lparam==&buffer, wparam=len(buffer)
-    // (msg, [int_arg, int_arg]) - lparam and wparam cast from ints
-    // However, PyWinObject_AsPARAM() has special casing for buffer objects -
-    // their address is used, but size is discarded.  This means we must check
-    // for our special case before letting PyWinObject_AsPARAM at them.
-    // Shortcut - our special case requires exactly 2 args be passed.
-    if (args && PyTuple_Size(args) == 2) {
-        PyObject *obParam;
-        ok = PyArg_ParseTuple(args, "iO",
-                              &message,   // @pyparmalt1 int|idMessage||The ID of the message to send.
-                              &obParam);  // @pyparmalt1 buffer|ob||A buffer whose size is passed in wParam, and address
-                                          // is passed in lParam
-        if (ok) {
-            ok = pybuf.init(obParam);
-            if (ok) {
-                lp = (LPARAM)pybuf.ptr();
-                wp = (WPARAM)pybuf.len();
-            }
-        }
-        // save unconditionally clearing it in the block below...
-        if (!ok)
-            PyErr_Clear();
-    }
-    if (!ok) {
+    {
         // more general purpose args.
         PyObject *obwParam = Py_None, *oblParam = Py_None;
         if (!PyArg_ParseTuple(args, "i|OO:SendMessage",
@@ -2222,8 +2196,15 @@ PyObject *ui_window_send_message(PyObject *self, PyObject *args)
             return NULL;
         if (obwParam != Py_None && !PyWinObject_AsPARAM(obwParam, &wp))
             return NULL;
-        if (oblParam != Py_None && !PyWinObject_AsPARAM(oblParam, &lp))
-            return NULL;
+        if (oblParam != Py_None) {
+            if (!PyWinObject_AsPARAM(oblParam, &lp))
+                return NULL;
+        } else if (wp.bufferView.ok() && PyTuple_Size(args) == 2) {
+            // old code compatibily: (msg, buffer_ob) -> lparam==&buffer, wparam=len(buffer)
+            lp = (WPARAM)wp.bufferView.ptr();
+            wp = (WPARAM)wp.bufferView.len();  // doesn't release the held bufferView so far
+            assert(wp.bufferView.ok());
+        }
     }
     LRESULT rc;
     GUI_BGN_SAVE;
