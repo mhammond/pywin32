@@ -7,6 +7,7 @@ import sys
 import glob
 import shutil
 import sysconfig
+import argparse
 
 try:
     import winreg as winreg
@@ -694,8 +695,6 @@ def verify_destination(location):
 
 
 def main():
-    import argparse
-
     parser = argparse.ArgumentParser(
         formatter_class=argparse.RawDescriptionHelpFormatter,
         description="""A post-install script for the pywin32 extensions.
