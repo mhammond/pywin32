@@ -24,6 +24,9 @@ else:
             # This is to ensure the pywin32 path is in the beginning to find the
             # pywin32 DLLs first and prevent other PATH entries to shadow them
             elif not os.environ["PATH"].startswith(path):
-                os.environ["PATH"] = os.environ["PATH"].replace(os.pathsep + path, "")
-                os.environ["PATH"] = path + os.pathsep + os.environ["PATH"]
+                os.environ["PATH"] = (
+                    path
+                    + os.pathsep
+                    + os.environ["PATH"].replace(path + os.pathsep, "")
+                )
             break
