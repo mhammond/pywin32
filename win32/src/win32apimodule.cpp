@@ -2125,15 +2125,16 @@ static PyObject *PyGetLongPathNameW(PyObject *self, PyObject *args)
     return obLongPathNameW;
 }
 
-// @pymethod int|win32api|GetTickCount|Returns the number of milliseconds since windows started.
+// @pymethod int|win32api|GetTickCount|Returns the (64bit) number of milliseconds since windows started. Uses Win API GetTickCount64().
 static PyObject *PyGetTickCount(PyObject *self, PyObject *args)
 {
     if (!PyArg_ParseTuple(args, ":PyGetTickCount"))
         return NULL;
-    PyW32_BEGIN_ALLOW_THREADS DWORD count = GetTickCount();
+    PyW32_BEGIN_ALLOW_THREADS
+    ULONGLONG count = GetTickCount64();
     PyW32_END_ALLOW_THREADS
 
-        return Py_BuildValue("l", (long)count);
+        return Py_BuildValue("K", count);
 }
 
 // @pymethod string|win32api|GetTempPath|Retrieves the path of the directory designated for temporary files.
