@@ -88,7 +88,7 @@ class TestPipeService(win32serviceutil.ServiceFramework):
             if ok:
                 msg = (
                     "%s (on thread %d) sent me %s"
-                    % (GetNamedPipeHandleState(pipeHandle)[4], tid, d)
+                    % (GetNamedPipeHandleState(pipeHandle, False, True)[4], tid, d)
                 ).encode("ascii")
                 WriteFile(pipeHandle, msg)
         finally:
