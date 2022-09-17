@@ -11,6 +11,23 @@ or
 
 Coming in build 305, as yet unreleased
 --------------------------------------
+* @kxrob put a lot of work towards removing use of the deprecated Unicode
+  API so we can build on Python 2.12. This should be largely invisible, but
+  please report any unintended consequences.
+
+* win32api.GetTickCount() now returns an unsigned 64bit integer (@kxrob, #1946)
+
+* win32pipe.GetNamedPipeHandleState() now takes a 3rd optional param
+  indicating whether the username should be returned, and related constants
+  added. (@kxrob, #1946)
+
+* Added win32gui.GetTopWindow() and win32gui.GetAncestor() (@CristiFati, #1928)
+
+* Tweaks to how pywintypes searches for DLLs to better support virtualenvs
+  created with --system-site-packages. (@saaketp, #1933)
+
+* Added win32event.CreateWaitableTimerExW (#1945, @zariiii9003)
+
 * Changes in PARAM handling. Some functions which returned a WPARAM or LPARAM
   allowed you to return a pointer to a Python buffer object or a PyUnicode.
   These functions now only accept a Python long to be returned. Note that
