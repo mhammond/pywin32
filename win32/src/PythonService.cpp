@@ -1463,9 +1463,9 @@ int _tmain(int argc, TCHAR **argv)
     // now get the handle to the DLL, and call the main function.
     if (PyBytes_Check(f))
         hmod = GetModuleHandleA(PyBytes_AsString(f));
-    else if (PyUnicode_Check(f))
-        hmod = GetModuleHandleW(PyUnicode_AsUnicode(f));
-    else {
+    else if (TmpWCHAR tw=f) {
+        hmod = GetModuleHandleW(tw);
+    } else {
         PyErr_SetString(PyExc_TypeError, "servicemanager.__file__ is not a string or unicode !");
         goto failed;
     }

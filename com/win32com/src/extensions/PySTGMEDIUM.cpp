@@ -50,6 +50,7 @@ PyObject *PySet(PyObject *self, PyObject *args)
         }
         case TYMED_HGLOBAL: {
             const void *buf = NULL;
+            TmpWCHAR tmpw;
             Py_ssize_t cb = 0;
             PyWinBufferView pybuf;
             // In py3k, unicode objects don't support the buffer
@@ -62,8 +63,8 @@ PyObject *PySet(PyObject *self, PyObject *args)
                 buf = (void *)PyBytes_AS_STRING(ob);
             }
             else if (PyUnicode_Check(ob)) {
-                cb = PyUnicode_GET_DATA_SIZE(ob) + sizeof(Py_UNICODE);
-                buf = (void *)PyUnicode_AS_UNICODE(ob);
+                buf = tmpw = ob;  if (!tmpw) return NULL;
+                cb = (tmpw.length + 1) * sizeof(WCHAR);
             }
             else {
                 if (!pybuf.init(ob))

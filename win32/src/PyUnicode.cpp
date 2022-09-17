@@ -34,8 +34,8 @@ BOOL PyWinObject_AsPfnAllocatedWCHAR(PyObject *stringObject, void *(*pfnAllocato
     }
     else if (PyUnicode_Check(stringObject)) {
         // copy the value, including embedded NULLs
-        WCHAR *v = (WCHAR *)PyUnicode_AS_UNICODE(stringObject);
-        Py_ssize_t cch = PyUnicode_GET_SIZE(stringObject);
+        TmpWCHAR v = stringObject;  if (!v) return FALSE;
+        Py_ssize_t cch = v.length;
         *ppResult = (WCHAR *)pfnAllocator((cch + 1) * sizeof(WCHAR));
         if (*ppResult)
             memcpy(*ppResult, v, (cch + 1) * sizeof(WCHAR));
@@ -102,11 +102,7 @@ BOOL PyWinObject_AsChars(PyObject *stringObject, char **pResult, BOOL bNoneOK /*
     // Convert the string if a WIDE string.
     if (PyUnicode_Check(stringObject)) {
         // PyUnicode_EncodeMBCS was removed in Py 3.11.
-        PyObject *unicode = PyUnicode_FromWideChar(PyUnicode_AS_UNICODE(stringObject), -1);
-        if (unicode == NULL)
-            return FALSE;
-        stringObject = tempObject = PyUnicode_EncodeCodePage(CP_ACP, unicode, NULL);
-        Py_DECREF(unicode);
+        stringObject = tempObject = PyUnicode_AsMBCSString(stringObject);
         if (!stringObject)
             return FALSE;
     }
@@ -184,22 +180,11 @@ BOOL PyWinObject_AsBstr(PyObject *stringObject, BSTR *pResult, BOOL bNoneOK /*= 
     // sane b/w compat reason to support that any more.
     if (PyUnicode_Check(stringObject)) {
         // copy the value, including embedded NULLs
-        Py_ssize_t nchars = PyUnicode_GET_SIZE(stringObject);
-        *pResult = SysAllocStringLen(NULL, nchars);
-        if (*pResult) {
-#define PUAWC_TYPE PyObject *
-            if (PyUnicode_AsWideChar((PUAWC_TYPE)stringObject, *pResult, nchars) == -1) {
-                rc = FALSE;
-            }
-            else {
-                // The SysAllocStringLen docs indicate that nchars+1 bytes are allocated,
-                // and that normally a \0 is appened by the function.  It also states
-                // the \0 is not necessary!  While it seems to work fine without it,
-                // we do copy it, as the previous code, which used SysAllocStringLen
-                // with a non-NULL arg is documented clearly as appending the \0.
-                (*pResult)[nchars] = 0;
-            }
-        }
+        // Py3.12+: only conversion yields the correct number of wide chars (incl. surrogate pairs).
+        // For simplicity we use a temp buffer.
+        TmpWCHAR tw = stringObject;  if (!tw) return FALSE;
+        // SysAllocStringLen allocates length+1 wchars (and puts a \0 at end); like PyUnicode_AsWideCharString
+        *pResult = SysAllocStringLen(tw, tw.length);
     }
     else if (stringObject == Py_None) {
         if (bNoneOK) {
@@ -228,7 +213,7 @@ void PyWinObject_FreeBstr(BSTR str) { SysFreeString(str); }
 
 // String conversions
 // Convert a Python object to a WCHAR - allow embedded NULLs, None, etc.
-// Must be freed with PyWinObject_FreeWCHAR
+// Must be freed with PyWinObject_FreeWCHAR / PyMem_Free
 BOOL PyWinObject_AsWCHAR(PyObject *stringObject, WCHAR **pResult, BOOL bNoneOK /*= FALSE*/,
                          DWORD *pResultLen /*= NULL*/)
 {
@@ -236,15 +221,11 @@ BOOL PyWinObject_AsWCHAR(PyObject *stringObject, WCHAR **pResult, BOOL bNoneOK /
     Py_ssize_t resultLen = 0;
     // Do NOT accept 'bytes' for any 'WCHAR' API.
     if (PyUnicode_Check(stringObject)) {
-        resultLen = PyUnicode_GET_SIZE(stringObject);
-        size_t cb = sizeof(WCHAR) * (resultLen + 1);
-        *pResult = (WCHAR *)PyMem_Malloc(cb);
+        *pResult = PyUnicode_AsWideCharString(stringObject, &resultLen);
         if (*pResult == NULL) {
-            PyErr_SetString(PyExc_MemoryError, "Allocating WCHAR array");
+            PyErr_SetString(PyExc_MemoryError, "Getting WCHAR string");
             return FALSE;
         }
-        // copy the value, including embedded NULLs
-        memcpy(*pResult, PyUnicode_AsUnicode(stringObject), cb);
     }
     else if (stringObject == Py_None) {
         if (bNoneOK) {
