@@ -728,7 +728,7 @@ static BOOL PyCom_SAFEARRAYFromPyObjectEx(PyObject *obj, SAFEARRAY **ppSA, bool 
     for (LONG dimLook = 1; dimLook <= cDims; dimLook++) {
         pBounds[dimLook - 1].lLbound = 0;  // always!
         // Don't use PySequence_Length due to memoryview not supporting sequence protocol
-        pBounds[dimLook - 1].cElements = PyObject_Length(obItemCheck);
+        pBounds[dimLook - 1].cElements = (ULONG)PyObject_Length(obItemCheck);
         if (!bAllocNewArray) {
             LONG exist_lbound, exist_ubound;
             SafeArrayGetLBound(*ppSA, dimLook, &exist_lbound);
@@ -1683,8 +1683,8 @@ BOOL PyCom_MakeOlePythonCall(PyObject *handler, DISPPARAMS FAR *params, VARIANT 
         PyObject *simpleRet;
         if (PyTuple_Check(result) && PyTuple_Size(result)) {
             simpleRet = PyTuple_GetItem(result, 0);
-            int retNumber = 1;
-            int retTotal = PyTuple_Size(result);
+            UINT retNumber = 1;
+            UINT retTotal = (UINT)PyTuple_Size(result);
 
             // Params are reverse order - loop from the back.
             for (unsigned int param = params->cArgs; param != 0 && retNumber < retTotal; param--) {

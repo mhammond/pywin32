@@ -245,7 +245,7 @@ PYWINTYPES_EXPORT PyTypeObject PySIDType = {
     0,                                        /* tp_new */
 };
 
-PySID::PySID(int bufSize, void *buf /* = NULL */)
+PySID::PySID(Py_ssize_t bufSize, void *buf /* = NULL */)
 {
     ob_type = &PySIDType;
     _Py_NewReference(this);

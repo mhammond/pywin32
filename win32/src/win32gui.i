@@ -6290,7 +6290,7 @@ BOOL PyParse_OPENFILENAMEW_Args(PyObject *args, PyObject *kwargs, OPENFILENAMEW 
 
 PyObject *PyReturn_OPENFILENAMEW_Output(OPENFILENAMEW *pofn)
 {
-	DWORD filechars, filterchars;
+	Py_ssize_t filechars, filterchars;
 	// If OFN_ALLOWMULTISELECT is set, the terminator is 2 NULLs,
 	// otherwise a single NULL.
 	if (pofn->Flags & OFN_ALLOWMULTISELECT) {
