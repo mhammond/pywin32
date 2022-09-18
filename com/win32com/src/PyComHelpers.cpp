@@ -327,7 +327,7 @@ BOOL PyCom_PyObjectAsSTATSTG(PyObject *ob, STATSTG *pStat, DWORD flags /* = 0 */
 }
 
 #ifndef NO_PYCOM_STGOPTIONS
-BOOL PyCom_PyObjectAsSTGOPTIONS(PyObject *obstgoptions, STGOPTIONS **ppstgoptions)
+BOOL PyCom_PyObjectAsSTGOPTIONS(PyObject *obstgoptions, STGOPTIONS **ppstgoptions, TmpWCHAR *ptw)
 {
     static char *stgmembers[] = {"Version", "reserved", "SectorSize", "TemplateFile", 0};
     char *explain_format =
@@ -355,9 +355,10 @@ BOOL PyCom_PyObjectAsSTGOPTIONS(PyObject *obstgoptions, STGOPTIONS **ppstgoption
     (*ppstgoptions)->ulSectorSize = 512;
     (*ppstgoptions)->pwcsTemplateFile = NULL;
     dummy_tuple = PyTuple_New(0);
-    ret = PyArg_ParseTupleAndKeywords(dummy_tuple, obstgoptions, "|lllu", stgmembers, &(*ppstgoptions)->usVersion,
+    ret = PyArg_ParseTupleAndKeywords(dummy_tuple, obstgoptions, "|lllU", stgmembers, &(*ppstgoptions)->usVersion,
                                       &(*ppstgoptions)->reserved, &(*ppstgoptions)->ulSectorSize,
-                                      &(*ppstgoptions)->pwcsTemplateFile);
+                                      &ptw->u)
+        && ((*ppstgoptions)->pwcsTemplateFile=ptw->u2w());
     Py_DECREF(dummy_tuple);
     if (!ret) {
         PyErr_Clear();

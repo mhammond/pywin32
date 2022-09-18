@@ -1183,11 +1183,11 @@ static PyObject *PyLoadCursor(PyObject *self, PyObject *args)
 // @pymethod [string]|win32api|CommandLineToArgv|Parses a command line string and returns a list of command line arguments, in a way that is similar to sys.argv.
 static PyObject *PyCommandLineToArgv(PyObject *self, PyObject *args)
 {
-    const Py_UNICODE *cmdLine;
-    if (!PyArg_ParseTuple(args, "u", &cmdLine)) // @pyparm string|cmdLine||A string that contains the full command line. If this parameter is an empty string the function returns the path to the current executable file.
+    TmpWCHAR cmd;
+    if (!PyArg_ParseTuple(args, "U", &cmd.u) || !cmd.u2w()) // @pyparm string|cmdLine||A string that contains the full command line. If this parameter is an empty string the function returns the path to the current executable file.
         return NULL;
     int numArgs = 0;
-    LPWSTR *szArglist = CommandLineToArgvW(cmdLine, &numArgs);
+    LPWSTR *szArglist = CommandLineToArgvW(cmd, &numArgs);
     if (szArglist == NULL)
         ReturnAPIError("CommandLineToArgvW");
 

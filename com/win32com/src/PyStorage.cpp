@@ -346,7 +346,8 @@ PyObject *pythoncom_StgOpenStorageEx(PyObject *self, PyObject *args, PyObject *k
         return NULL;
     if (!PyWinObject_AsWCHAR(obfname, &fname))
         return NULL;
-    if (!PyCom_PyObjectAsSTGOPTIONS(obstgoptions, &pstgoptions))
+    TmpWCHAR tmpw_shelve[1];
+    if (!PyCom_PyObjectAsSTGOPTIONS(obstgoptions, &pstgoptions, tmpw_shelve))
         return NULL;
 
     PY_INTERFACE_PRECALL;
@@ -411,7 +412,8 @@ PyObject *pythoncom_StgCreateStorageEx(PyObject *self, PyObject *args, PyObject 
         return NULL;
     if (!PyWinObject_AsWCHAR(obfname, &fname, TRUE))
         return NULL;
-    if (!PyCom_PyObjectAsSTGOPTIONS(obstgoptions, &pstgoptions))
+    TmpWCHAR tmpw_shelve[1];
+    if (!PyCom_PyObjectAsSTGOPTIONS(obstgoptions, &pstgoptions, tmpw_shelve))
         return NULL;
 
     PY_INTERFACE_PRECALL;
