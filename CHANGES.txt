@@ -12,7 +12,7 @@ or
 Coming in build 305, as yet unreleased
 --------------------------------------
 * @kxrob put a lot of work towards removing use of the deprecated Unicode
-  API so we can build on Python 2.12. This should be largely invisible, but
+  API so we can build on Python 3.12. This should be largely invisible, but
   please report any unintended consequences.
 
 * win32api.GetTickCount() now returns an unsigned 64bit integer (@kxrob, #1946)
