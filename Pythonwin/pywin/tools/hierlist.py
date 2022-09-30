@@ -206,9 +206,6 @@ class HierList(object.Object):
             pass
         return ret
 
-    def ItemFromHandle(self, handle):
-        return self.itemHandleMap[handle]
-
     def Refresh(self, hparent=None):
         # Attempt to refresh the given item's sub-entries, but maintain the tree state
         # (ie, the selected item, expanded items, etc)
@@ -272,9 +269,6 @@ class HierList(object.Object):
             return 0
         else:
             return 4
-
-    def GetSelectedBitmapColumn(self, item):
-        return None  # Use standard.
 
     def GetSelectedBitmapColumn(self, item):
         return 0
