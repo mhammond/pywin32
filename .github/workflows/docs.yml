@@ -38,7 +38,7 @@ jobs:
     - name: Create archive
       run: python -m zipfile -c site.zip site
 
-    - uses: actions/upload-artifact@v2
+    - uses: actions/upload-artifact@v3
       with:
         name: documentation
         path: site.zip
@@ -52,7 +52,7 @@ jobs:
     if: github.event_name == 'create' && github.event.ref_type == 'tag'
 
     steps:
-    - uses: actions/download-artifact@v2
+    - uses: actions/download-artifact@v3
       with:
         name: documentation
 
