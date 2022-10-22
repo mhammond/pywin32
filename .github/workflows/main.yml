@@ -8,6 +8,7 @@ on:
 
 jobs:
   test:
+    name: Build and test
     runs-on: windows-2019
     strategy:
       fail-fast: false
@@ -16,10 +17,10 @@ jobs:
         architecture: ['x64', 'x86']
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python-version }}
         architecture: ${{ matrix.architecture }}
@@ -43,7 +44,7 @@ jobs:
       run: |
         python setup.py bdist_wheel --skip-build
 
-    - uses: actions/upload-artifact@v2
+    - uses: actions/upload-artifact@v3
       if: ${{ always() }}
       with:
         name: artifacts
@@ -54,6 +55,7 @@ jobs:
   # We cannot build and test on ARM64, so we cross-compile.
   # Later, when available, we can add tests using this wheel on ARM64 VMs
   build_arm64:
+    name: Cross-compile ARM
     runs-on: windows-2019
     strategy:
       fail-fast: false
@@ -61,10 +63,10 @@ jobs:
         python-version: ['3.10', '3.11-dev']
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python-version }}
         architecture: 'x64'
@@ -82,7 +84,7 @@ jobs:
     - name: Build wheels
       run: python setup.py --skip-verstamp build_ext -L .\arm64libs --plat-name win-arm64 build --plat-name win-arm64 bdist_wheel --plat-name win-arm64
 
-    - uses: actions/upload-artifact@v2
+    - uses: actions/upload-artifact@v3
       if: ${{ always() }}
       with:
         name: artifacts
@@ -92,7 +94,7 @@ jobs:
   black:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: psf/black@stable
         with:
           options: "--fast --check --diff --verbose"
