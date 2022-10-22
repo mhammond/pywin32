@@ -308,10 +308,6 @@ class ArgFormatterLONG_PTR(ArgFormatter):
     def GetBuildForInterfacePostCode(self):
         return "\tPy_XDECREF(ob%s);\n" % self.arg.name
 
-    def DeclareParseArgTupleInputConverter(self):
-        # Declare a PyObject variable
-        return "\tPyObject *ob%s;\n" % self.arg.name
-
     def GetParsePostCode(self):
         return (
             "\tif (bPythonIsHappy && !PyWinLong_AsULONG_PTR(ob%s, (ULONG_PTR *)%s)) bPythonIsHappy = FALSE;\n"
@@ -353,10 +349,6 @@ class ArgFormatterPythonCOM(ArgFormatter):
 
     def GetBuildForInterfacePostCode(self):
         return "\tPy_XDECREF(ob%s);\n" % self.arg.name
-
-    def DeclareParseArgTupleInputConverter(self):
-        # Declare a PyObject variable
-        return "\tPyObject *ob%s;\n" % self.arg.name
 
 
 class ArgFormatterBSTR(ArgFormatterPythonCOM):
