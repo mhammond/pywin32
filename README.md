@@ -33,15 +33,13 @@ closed. For such issues, please email the
 note that you must be subscribed to the list before posting.
 
 ## Binaries
-By far the easiest way to use pywin32 is to grab binaries from the [most recent release](https://github.com/mhammond/pywin32/releases)
-
-Note that there are no 32-bit binary installers for 3.10 and later - see
-[this github issue](https://github.com/mhammond/pywin32/issues/1805)
+[Binary releases are deprecated.](https://mhammond.github.io/pywin32_installers.html)
+While they are still provided, [find them here](https://github.com/mhammond/pywin32/releases)
 
 ## Installing via PIP
 
-You can install pywin32 via pip:
-> pip install pywin32
+You should install pywin32 via pip - eg,
+> python -m pip install --upgrade pywin32
 
 If you encounter any problems when upgrading (eg, "module not found" errors or similar), you
 should execute:
@@ -53,6 +51,9 @@ This will make some small attempts to cleanup older conflicting installs.
 Note that if you want to use pywin32 for "system wide" features, such as
 registering COM objects or implementing Windows Services, then you must run
 that command from an elevated (ie, "Run as Administrator) command prompt.
+
+For unreleased changes, you can download builds made by [github actions](https://github.com/mhammond/pywin32/actions/) -
+choose any "workflow" from the `main` branch and download its "artifacts")
 
 ### `The specified procedure could not be found` / `Entry-point not found` Errors?
 A very common report is that people install pywin32, but many imports fail with errors

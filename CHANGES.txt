@@ -8,9 +8,13 @@ All changes can be found via git - eg, for all changes afer a build:
 or
     https://github.com/mhammond/pywin32/compare/b3xx...main
 
+As of build 305, installation .exe files have been deprecated; see
+https://mhammond.github.io/pywin32_installers.html.
 
 Coming in build 305, as yet unreleased
 --------------------------------------
+* Installation .exe files were deprecated.
+
 * @kxrob put a lot of work towards removing use of the deprecated Unicode
   API so we can build on Python 3.12. This should be largely invisible, but
   please report any unintended consequences.
