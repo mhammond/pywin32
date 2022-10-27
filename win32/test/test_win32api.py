@@ -16,7 +16,7 @@ class CurrentUserTestCase(unittest.TestCase):
             # Running as a service account, so the comparison will fail
             raise TestSkipped("running as service account")
         name = "%s\\%s" % (domain, win32api.GetUserName())
-        self.assertEquals(name, win32api.GetUserNameEx(win32api.NameSamCompatible))
+        self.assertEqual(name, win32api.GetUserNameEx(win32api.NameSamCompatible))
 
 
 class TestTime(unittest.TestCase):
