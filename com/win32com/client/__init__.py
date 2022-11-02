@@ -38,7 +38,7 @@ def __WrapDispatch(
                 resultCLSID = str(typeinfo.GetTypeAttr()[0])
         except (pythoncom.com_error, AttributeError):
             pass
-    if resultCLSID is not None:
+    else:
         from . import gencache
 
         # Attempt to load generated module support
