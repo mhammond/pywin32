@@ -630,6 +630,10 @@ class my_build_ext(build_ext):
         canary_dll = find_visual_studio_file(
             r"VC\Redist\MSVC\*\{}\*\mfc140u.dll".format(self.plat_dir)
         )
+        
+        if not canary_dll:
+            raise RuntimeError("MFC dll not found!")
+            
         mfc_dir = os.path.dirname(canary_dll)
         mfc_contents = [os.path.join(mfc_dir, p) for p in os.listdir(mfc_dir)]
 
