@@ -2412,10 +2412,20 @@ if "build_ext" in dist.command_obj:
     if "build_ext" in dist.command_obj:
         excluded_extensions = dist.command_obj["build_ext"].excluded_extensions
         if excluded_extensions:
+            skip_whitelist = {"exchdapi", "exchange", "axdebug", "winxpgui"}
+            skipped_ex = []
             print("*** NOTE: The following extensions were NOT %s:" % what_string)
             for ext, why in excluded_extensions:
                 print(" %s: %s" % (ext.name, why))
+                if ext.name not in skip_whitelist:
+                    skipped_ex.append(ext.name)
             print("For more details on installing the correct libraries and headers,")
             print("please execute this script with no arguments (or see the docstring)")
+            if skipped_ex:
+                print(
+                    "*** Non-zero exit status. Missing for complete release build: %s"
+                    % skipped_ex
+                )
+                sys.exit(1000 + len(skipped_ex))
         else:
             print("All extension modules %s OK" % (what_string,))

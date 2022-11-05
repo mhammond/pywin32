@@ -54,5 +54,5 @@ py -3.11 setup.py -q build_ext --plat-name win-arm64 build --plat-name win-arm64
 goto xit
 :failed
 @echo Oops - failed!
-goto xit
+@exit /b 1
 :xit

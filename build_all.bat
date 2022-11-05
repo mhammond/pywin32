@@ -26,5 +26,5 @@ py -3.11 setup.py -q build
 goto xit
 :failed
 @echo Oops - failed!
-goto xit
+@exit /b 1
 :xit
