@@ -11,13 +11,18 @@ or
 As of build 305, installation .exe files have been deprecated; see
 https://mhammond.github.io/pywin32_installers.html.
 
-Coming in build 305, as yet unreleased
+Coming in build 306, as yet unreleased
 --------------------------------------
+
+Build 305, released 2022-11-06
+------------------------------
 * Installation .exe files were deprecated.
 
 * @kxrob put a lot of work towards removing use of the deprecated Unicode
   API so we can build on Python 3.12. This should be largely invisible, but
   please report any unintended consequences.
+
+* odbc: Handle `varchar(max)`/`nvarchar(max)` column sizes (#1954)
 
 * win32api.GetTickCount() now returns an unsigned 64bit integer (@kxrob, #1946)
 
