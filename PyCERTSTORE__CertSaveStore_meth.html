@@ -1,0 +1,42 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyCERTSTORE.CertSaveStore</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="PyCERTSTORE.html">PyCERTSTORE</A>.CertSaveStore</H1><P>
+
+<B>CertSaveStore(<I>MsgAndCertEncodingType</I><I>, SaveAs</I><I>, SaveTo</I><I>, SaveToPara</I><I>, Flags</I></B>)<P>Serializes the store to memory or a file<P>
+
+<H3>Parameters</H3><P><DT><I>MsgAndCertEncodingType</I> : int<P>
+
+<DD>Only used when 
+
+saveas is CERT_STORE_SAVE_AS_PKCS7 - usually 
+
+X509_ASN_ENCODING combined with PKCS_7_ASN_ENCODING<P><DT><I>SaveAs</I> : int<P>
+
+<DD>One of the CERT_STORE_SAVE_AS_* constants<P><DT><I>SaveTo</I> : int<P>
+
+<DD>One of the CERT_STORE_SAVE_TO_* constants 
+
+(CERT_STORE_SAVE_TO_MEMORY not supported yet)<P><DT><I>SaveToPara</I> : <A HREF="PyHANDLE.html">PyHANDLE</A>/string<P>
+
+<DD>File name or open file 
+
+handle depending on SaveTo parm<P><DT><I>Flags=0</I> : int<P>
+
+<DD>Reserved, use 0<P>
+
+</body>
+</html>

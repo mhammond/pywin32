@@ -1,0 +1,36 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyACL.AddAccessAllowedObjectAce</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="PyACL.html">PyACL</A>.AddAccessAllowedObjectAce</H1><P>
+
+<B>AddAccessAllowedObjectAce(<I>AceRevision</I><I>, AceFlags</I><I>, AccessMask</I><I>, ObjectTypeGuid</I><I>, InheritedObjectTypeGuid</I><I>, sid</I></B>)<P>Adds an ACCESS_ALLOWED_OBJECT_ACE to the ACL<P>
+
+<H3>Parameters</H3><P><DT><I>AceRevision</I> : int<P>
+
+<DD>Must be at least ACL_REVISION_DS<P><DT><I>AceFlags</I> : int<P>
+
+<DD>Combination of ACE inheritance flags 
+
+(CONTAINER_INHERIT_ACE,INHERIT_ONLY_ACE,INHERITED_ACE,NO_PROPAGATE_INHERIT_ACE, and OBJECT_INHERIT_ACE)<P><DT><I>AccessMask</I> : int<P>
+
+<DD>Specifies the mask of access rights to be granted to the specified SID<P><DT><I>ObjectTypeGuid</I> : <A HREF="PyIID.html">PyIID</A><P>
+
+<DD>GUID of object type or property set to which ace applies, can be None<P><DT><I>InheritedObjectTypeGuid</I> : <A HREF="PyIID.html">PyIID</A><P>
+
+<DD>GUID of object type or property that will inherit ACE, can be None<P><DT><I>sid</I> : <A HREF="PySID.html">PySID</A><P>
+
+<DD>A SID object representing a user, group, or logon account being granted access.<P></body>
+</html>

@@ -1,0 +1,98 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyConsoleScreenBuffer</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<HR><H1>PyConsoleScreenBuffer Object</H1><P>
+
+Handle to a console screen buffer 
+
+Create using <A HREF="win32console__CreateConsoleScreenBuffer_meth.html">win32console::CreateConsoleScreenBuffer</A> or <A HREF="win32console__GetStdHandle_meth.html">win32console::GetStdHandle</A> 
+
+Use PyConsoleScreenBufferType(Handle) to wrap a pre-existing handle as returned by <A HREF="win32api__GetStdHandle_meth.html">win32api::GetStdHandle</A>. 
+
+Will also accept a handle created by <A HREF="win32file__CreateFile_meth.html">win32file::CreateFile</A> for CONIN$ or CONOUT$. 
+
+When an existing handle is wrapped, a copy is made using DuplicateHandle, and caller is still responsible 
+
+for any cleanup of original handle.<P>
+
+<H3>Methods</H3><P><DL><DT><A HREF="PyConsoleScreenBuffer__Detach_meth.html">Detach</A><BR>
+
+<DD>Releases reference to handle without closing it&nbsp;<P><DT><A HREF="PyConsoleScreenBuffer__Close_meth.html">Close</A><BR>
+
+<DD>Closes the handle&nbsp;<P><DT><A HREF="PyConsoleScreenBuffer__SetConsoleActiveScreenBuffer_meth.html">SetConsoleActiveScreenBuffer</A><BR>
+
+<DD>Sets this handle as the currently display screen buffer&nbsp;<P><DT><A HREF="PyConsoleScreenBuffer__GetConsoleCursorInfo_meth.html">GetConsoleCursorInfo</A><BR>
+
+<DD>Retrieves size and visibility of console's cursor&nbsp;<P><DT><A HREF="PyConsoleScreenBuffer__SetConsoleCursorInfo_meth.html">SetConsoleCursorInfo</A><BR>
+
+<DD>Sets the size and visibility of console's cursor&nbsp;<P><DT><A HREF="PyConsoleScreenBuffer__GetConsoleMode_meth.html">GetConsoleMode</A><BR>
+
+<DD>Returns the input or output mode of the console buffer&nbsp;<P><DT><A HREF="PyConsoleScreenBuffer__SetConsoleMode_meth.html">SetConsoleMode</A><BR>
+
+<DD>Sets the input or output mode of the console buffer&nbsp;<P><DT><A HREF="PyConsoleScreenBuffer__ReadConsole_meth.html">ReadConsole</A><BR>
+
+<DD>Reads characters from the console input buffer&nbsp;<P><DT><A HREF="PyConsoleScreenBuffer__WriteConsole_meth.html">WriteConsole</A><BR>
+
+<DD>Writes characters at current cursor position&nbsp;<P><DT><A HREF="PyConsoleScreenBuffer__FlushConsoleInputBuffer_meth.html">FlushConsoleInputBuffer</A><BR>
+
+<DD>Flush input buffer for console&nbsp;<P><DT><A HREF="PyConsoleScreenBuffer__SetConsoleTextAttribute_meth.html">SetConsoleTextAttribute</A><BR>
+
+<DD>Sets character attributes for subsequent write operations&nbsp;<P><DT><A HREF="PyConsoleScreenBuffer__SetConsoleCursorPosition_meth.html">SetConsoleCursorPosition</A><BR>
+
+<DD>Sets the console screen buffer's cursor position&nbsp;<P><DT><A HREF="PyConsoleScreenBuffer__SetConsoleScreenBufferSize_meth.html">SetConsoleScreenBufferSize</A><BR>
+
+<DD>Sets the size of the console screen buffer&nbsp;<P><DT><A HREF="PyConsoleScreenBuffer__SetConsoleWindowInfo_meth.html">SetConsoleWindowInfo</A><BR>
+
+<DD>Changes size and position of a console's window&nbsp;<P><DT><A HREF="PyConsoleScreenBuffer__GetConsoleScreenBufferInfo_meth.html">GetConsoleScreenBufferInfo</A><BR>
+
+<DD>Returns the state of the screen buffer&nbsp;<P><DT><A HREF="PyConsoleScreenBuffer__GetLargestConsoleWindowSize_meth.html">GetLargestConsoleWindowSize</A><BR>
+
+<DD>Returns the largest possible size for the console's window&nbsp;<P><DT><A HREF="PyConsoleScreenBuffer__FillConsoleOutputAttribute_meth.html">FillConsoleOutputAttribute</A><BR>
+
+<DD>Set text attributes for a consecutive series of characters&nbsp;<P><DT><A HREF="PyConsoleScreenBuffer__FillConsoleOutputCharacter_meth.html">FillConsoleOutputCharacter</A><BR>
+
+<DD>Sets consecutive character positions to a specified character&nbsp;<P><DT><A HREF="PyConsoleScreenBuffer__ReadConsoleOutputCharacter_meth.html">ReadConsoleOutputCharacter</A><BR>
+
+<DD>Reads consecutive characters from a starting position&nbsp;<P><DT><A HREF="PyConsoleScreenBuffer__ReadConsoleOutputAttribute_meth.html">ReadConsoleOutputAttribute</A><BR>
+
+<DD>Retrieves attributes from consecutive character cells&nbsp;<P><DT><A HREF="PyConsoleScreenBuffer__WriteConsoleOutputCharacter_meth.html">WriteConsoleOutputCharacter</A><BR>
+
+<DD>Writes a string of characters at a specified position&nbsp;<P><DT><A HREF="PyConsoleScreenBuffer__WriteConsoleOutputAttribute_meth.html">WriteConsoleOutputAttribute</A><BR>
+
+<DD>Sets the attributes of a range of character cells&nbsp;<P><DT><A HREF="PyConsoleScreenBuffer__ScrollConsoleScreenBuffer_meth.html">ScrollConsoleScreenBuffer</A><BR>
+
+<DD>Scrolls a region of the display&nbsp;<P><DT><A HREF="PyConsoleScreenBuffer__GetCurrentConsoleFont_meth.html">GetCurrentConsoleFont</A><BR>
+
+<DD>Returns the currently displayed font&nbsp;<P><DT><A HREF="PyConsoleScreenBuffer__GetConsoleFontSize_meth.html">GetConsoleFontSize</A><BR>
+
+<DD>Returns size of specified font for the console&nbsp;<P><DT><A HREF="PyConsoleScreenBuffer__SetConsoleFont_meth.html">SetConsoleFont</A><BR>
+
+<DD>Changes the font used by the screen buffer&nbsp;<P><DT><A HREF="PyConsoleScreenBuffer__SetStdHandle_meth.html">SetStdHandle</A><BR>
+
+<DD>Replaces one of calling process's standard handles with this handle&nbsp;<P><DT><A HREF="PyConsoleScreenBuffer__SetConsoleDisplayMode_meth.html">SetConsoleDisplayMode</A><BR>
+
+<DD>Sets the display mode of the console buffer&nbsp;<P><DT><A HREF="PyConsoleScreenBuffer__WriteConsoleInput_meth.html">WriteConsoleInput</A><BR>
+
+<DD>Places input records in the console's input queue&nbsp;<P><DT><A HREF="PyConsoleScreenBuffer__ReadConsoleInput_meth.html">ReadConsoleInput</A><BR>
+
+<DD>Reads input records and removes them from the input queue&nbsp;<P><DT><A HREF="PyConsoleScreenBuffer__PeekConsoleInput_meth.html">PeekConsoleInput</A><BR>
+
+<DD>Returns pending input records without removing them from the input queue&nbsp;<P><DT><A HREF="PyConsoleScreenBuffer__GetNumberOfConsoleInputEvents_meth.html">GetNumberOfConsoleInputEvents</A><BR>
+
+<DD>Returns the number of unread records in the input queue&nbsp;<P></DL>
+
+</body>
+</html>

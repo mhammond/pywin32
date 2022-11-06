@@ -1,0 +1,48 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32net.NetUseGetInfo</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32net.html">win32net</A>.NetUseGetInfo</H1><P>
+
+dict = <B>NetUseGetInfo(<I>server</I><I>, usename</I>
+
+<I>, level</I>
+
+</B>)<P>Retrieves information about the configuration elements for a workstation<P>
+
+<H3>Parameters</H3><P><DT><I>server</I> : string/<B>PyUnicode</B>
+
+<P>
+
+<DD>The name of the server to execute on, or None.<P><DT><I>usename</I> : string/<B>PyUnicode</B>
+
+<P>
+
+<DD>The name of the locally mapped resource.<P><DT><I>level=0</I> : int<P>
+
+<DD>The information level contained in the data. NOTE: levels 302 and 402 don't seem to work 
+
+correctly. They return error 124. So currently these info levels are not available.<P>
+
+<H3>Win32 API References</H3><P><DT>Search for <i>NetUseGetInfo</i> at <a href="http://search.msdn.microsoft.com/search/results.aspx?view=msdn&query=NetUseGetInfo" target="_blank">msdn</a>, <a href="http://www.google.com/search?q=NetUseGetInfo" target="_blank">google</a> or <a href="http://groups.google.com/groups?q=NetUseGetInfo" target="_blank">google groups</a>.<P>
+
+<H3>Return Value</H3>The result will be a dictionary in one of the <A HREF="PyUSE_INFO_.2a.html">PyUSE_INFO_*</A> 
+
+formats, depending on the level parameter.<P>
+
+
+
+</body>
+</html>

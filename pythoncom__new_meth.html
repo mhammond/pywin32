@@ -1,0 +1,32 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>pythoncom.new</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="pythoncom.html">pythoncom</A>.new</H1><P>
+
+<A HREF="PyIDispatch.html">PyIDispatch</A> = <B>new(<I>cls</I></B>)<P>Create a new instance of an OLE automation server.<P>
+
+<H3>Parameters</H3><P><DT><I>cls</I> : CLSID<P>
+
+<DD>An identifier for the program.  Usually "program.item"<P><H3>Comments</H3>
+
+This is just a wrapper for the CoCreateInstance method. 
+
+Specifically, this call is identical to: 
+
+<BR>pythoncom.CoCreateInstance(cls, None, pythoncom.CLSCTX_SERVER, pythoncom.IID_IDispatch)<P>
+
+</body>
+</html>

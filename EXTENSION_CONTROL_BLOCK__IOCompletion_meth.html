@@ -1,0 +1,44 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>EXTENSION_CONTROL_BLOCK.IOCompletion</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="EXTENSION_CONTROL_BLOCK.html">EXTENSION_CONTROL_BLOCK</A>.IOCompletion</H1><P>
+
+int = <B>IOCompletion(<I>func</I><I>, arg</I>
+
+</B>)<P>Set a callback that will be used for handling asynchronous I/O 
+
+operations.<P>
+
+<H3>Parameters</H3><P><DT><I>func</I> : callable<P>
+
+<DD>The function to call, as described by the <A HREF="EXTENSION_CONTROL_BLOCK__IOCallback_meth.html">EXTENSION_CONTROL_BLOCK::IOCallback</A> method.<P><DT><I>arg=None</I> : object<P>
+
+<DD>Any object which will be supplied as an argument to the 
+
+callback function.<P>
+
+<H3>Comments</H3>
+
+If you call this multiple times, the previous callback will be discarded.<P>
+
+A reference to the callback and args are held until <A HREF="EXTENSION_CONTROL_BLOCK__DoneWithSession_meth.html">EXTENSION_CONTROL_BLOCK::DoneWithSession</A> is called. If the callback 
+
+function fails, DoneWithSession(HSE_STATUS_ERROR) will automatically be 
+
+called and no further callbacks for the ECB will be made.<P>
+
+</body>
+</html>

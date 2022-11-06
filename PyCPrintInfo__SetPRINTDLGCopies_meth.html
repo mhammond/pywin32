@@ -1,0 +1,36 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyCPrintInfo.SetPRINTDLGCopies</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="PyCPrintInfo.html">PyCPrintInfo</A>.SetPRINTDLGCopies</H1><P>
+
+<B>SetPRINTDLGCopies(</B>)<P>Set the initial number of copies for the Copies edit control if hDevMode is 
+
+NULL; otherwise, the dmCopies member of theDEVMODE structure contains the initial value. When PrintDlg returns, 
+
+nCopies contains the actual number of copies to print. This value depends on whether the application or the printer 
+
+driver is responsible for printing multiple copies. If the PD_USEDEVMODECOPIESANDCOLLATE flag is set in the Flags 
+
+member, nCopies is always 1 on return, and the printer driver is responsible for printing multiple copies. If the 
+
+flag is not set, the application is responsible for printing the number of copies specified by nCopies. For more 
+
+information, see the description of the PD_USEDEVMODECOPIESANDCOLLATE flag.<P>
+
+<H3>MFC References</H3><P><DT>PRINTDLG::nCopies<P>
+
+</body>
+</html>

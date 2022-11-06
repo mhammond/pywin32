@@ -1,0 +1,98 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32api.FindFirstChangeNotification</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32api.html">win32api</A>.FindFirstChangeNotification</H1><P>
+
+int = <B>FindFirstChangeNotification(<I>pathName</I><I>, bSubDirs</I>
+
+<I>, filter</I>
+
+</B>)<P>Creates a change notification handle and sets up initial change 
+
+notification filter conditions.<P>
+
+<H3>Parameters</H3><P><DT><I>pathName</I> : string<P>
+
+<DD>Specifies the path of the directory to watch.<P><DT><I>bSubDirs</I> : int<P>
+
+<DD>Specifies whether the function will monitor the directory or the directory tree. If this 
+
+parameter is TRUE, the function monitors the directory tree rooted at the specified directory; if it is FALSE, it 
+
+monitors only the specified directory<P><DT><I>filter</I> : int<P>
+
+<DD>Specifies the filter conditions that satisfy a change notification wait. This parameter can 
+
+be one or more of the following values:<P><P><TABLE COLS=2 WIDTH="100%" CELLSPACING=15>
+
+<TR>
+
+   <TD>
+
+       <B>Value</B>
+
+   </TD>
+
+   <TD>
+
+       <B>Meaning</B>
+
+   </TD>
+
+</TR>
+
+<TR><TD><HR></TD><TD><HR></TD></TR>
+
+<TR><TD>FILE_NOTIFY_CHANGE_FILE_NAME</TD><TD>Any file name change in the watched directory or subtree causes a change 
+
+notification wait operation to return. Changes include renaming, creating, or deleting a file name.</TD></TR>
+
+<TR><TD>FILE_NOTIFY_CHANGE_DIR_NAME</TD><TD>Any directory-name change in the watched directory or subtree causes a change 
+
+notification wait operation to return. Changes include creating or deleting a directory.</TD></TR>
+
+<TR><TD>FILE_NOTIFY_CHANGE_ATTRIBUTES</TD><TD>Any attribute change in the watched directory or subtree causes a change 
+
+notification wait operation to return.</TD></TR>
+
+<TR><TD>FILE_NOTIFY_CHANGE_SIZE</TD><TD>Any file-size change in the watched directory or subtree causes a change 
+
+notification wait operation to return. The operating system detects a change in file size only when the file is 
+
+written to the disk. For operating systems that use extensive caching, detection occurs only when the cache is 
+
+sufficiently flushed.</TD></TR>
+
+<TR><TD>FILE_NOTIFY_CHANGE_LAST_WRITE</TD><TD>Any change to the last write-time of files in the watched directory or 
+
+subtree causes a change notification wait operation to return. The operating system detects a change to the last 
+
+write-time only when the file is written to the disk. For operating systems that use extensive caching, detection 
+
+occurs only when the cache is sufficiently flushed.</TD></TR>
+
+<TR><TD>FILE_NOTIFY_CHANGE_SECURITY</TD><TD>Any security-descriptor change in the watched directory or subtree causes a 
+
+change notification wait operation to return</TD></TR>
+
+</TABLE><H3>Return Value</H3>Although the result is a handle, the handle can not be closed via CloseHandle() - therefore a PyHandle object 
+
+is not used.<P>
+
+
+
+</body>
+</html>

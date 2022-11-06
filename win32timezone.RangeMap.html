@@ -1,0 +1,124 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32timezone.RangeMap</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<HR><H1>win32timezone.RangeMap Object</H1><P>
+
+A dictionary-like object that uses the keys as bounds for a range. 
+
+Inclusion of the value for that range is determined by the 
+
+key_match_comparator, which defaults to less-than-or-equal. 
+
+A value is returned for a key if it is the first key that matches in 
+
+the sorted list of keys.<P>
+
+<H3>Comments</H3>
+
+One may supply keyword parameters to be passed to the sort function used 
+
+to sort keys (i.e. cmp [python 2 only], keys, reverse) as sort_params.<P>
+
+Let's create a map that maps 1-3 -&gt 'a', 4-6 -&gt 'b'<P>
+
+<PRE>&gt&gt&gt r = RangeMap({3: 'a', 6: 'b'})  # boy, that was easy
+
+&gt&gt&gt r[1], r[2], r[3], r[4], r[5], r[6]
+
+('a', 'a', 'a', 'b', 'b', 'b')<P>
+
+</PRE>
+
+Even float values should work so long as the comparison operator 
+
+supports it.<P>
+
+<PRE>&gt&gt&gt r[4.5]
+
+'b'<P>
+
+</PRE>
+
+But you'll notice that the way rangemap is defined, it must be open-ended on one side.<P>
+
+<PRE>&gt&gt&gt r[0]
+
+'a'
+
+&gt&gt&gt r[-1]
+
+'a'<P>
+
+</PRE>
+
+One can close the open-end of the RangeMap by using undefined_value<P>
+
+<PRE>&gt&gt&gt r = RangeMap({0: RangeMap.undefined_value, 3: 'a', 6: 'b'})
+
+&gt&gt&gt r[0]
+
+Traceback (most recent call last):
+
+...
+
+KeyError: 0<P>
+
+</PRE>
+
+One can get the first or last elements in the range by using RangeMap.Item<P>
+
+<PRE>&gt&gt&gt last_item = RangeMap.Item(-1)
+
+&gt&gt&gt r[last_item]
+
+'b'<P>
+
+</PRE>
+
+.last_item is a shortcut for Item(-1)<P>
+
+<PRE>&gt&gt&gt r[RangeMap.last_item]
+
+'b'<P>
+
+</PRE>
+
+Sometimes it's useful to find the bounds for a RangeMap<P>
+
+<PRE>&gt&gt&gt r.bounds()
+
+(0, 6)<P>
+
+</PRE>
+
+RangeMap supports .get(key, default)<P>
+
+<PRE>&gt&gt&gt r.get(0, 'not found')
+
+'not found'<P>
+
+&gt&gt&gt r.get(7, 'not found')
+
+'not found'<P>
+
+</PRE>
+
+<H3>Methods</H3><P><DL><DT><A HREF="win32timezone.RangeMap__get_meth.html">get</A><BR>
+
+<DD>Return the value for key if key is in the dictionary, else default.&nbsp;<P></DL>
+
+</body>
+</html>

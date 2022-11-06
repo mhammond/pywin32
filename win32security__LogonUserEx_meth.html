@@ -1,0 +1,60 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32security.LogonUserEx</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32security.html">win32security</A>.LogonUserEx</H1><P>
+
+(<A HREF="PyHANDLE.html">PyHANDLE</A>, <A HREF="PySID.html">PySID</A>, str, dict) = <B>LogonUserEx(<I>Username</I><I>, Domain</I>
+
+<I>, Password</I>
+
+<I>, LogonType</I>
+
+<I>, LogonProvider</I>
+
+</B>)<P>Log a user onto the local machine,<P>
+
+<H3>Parameters</H3><P><DT><I>Username</I> : <B>PyUnicode</B>
+
+<P>
+
+<DD>User account, may be specified as a UPN (user@domain.com). 
+
+This may also be a marshalled credential (see <A HREF="win32cred__CredMarshalCredential_meth.html">win32cred::CredMarshalCredential</A>).<P><DT><I>Domain</I> : <B>PyUnicode</B>
+
+<P>
+
+<DD>User's domain. Can be None if Username is a full UPN.<P><DT><I>Password</I> : <B>PyUnicode</B>
+
+<P>
+
+<DD>User's password.  Use a blank string if Username contains a marshalled credential.<P><DT><I>LogonType</I> : int<P>
+
+<DD>One of LOGON32_LOGON_* values<P><DT><I>LogonProvider</I> : int<P>
+
+<DD>One of LOGON32_PROVIDER_* values<P><H3>Comments</H3>
+
+Requires Windows XP or later<P>
+
+Accepts keyword args<P>
+
+<H3>Return Value</H3>Returns access token, logon sid, profile buffer, and process quotas. 
+
+Format of the profile buffer is not known, so returned object is subject to change.<P>
+
+
+
+</body>
+</html>

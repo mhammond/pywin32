@@ -1,0 +1,186 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyWKSTA_INFO_302</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<HR><H1>PyWKSTA_INFO_302 Object</H1><P>
+
+A dictionary holding the infomation in a Win32 WKSTA_INFO_302 structure.<P>
+
+<H3>Properties</H3>
+
+<DL>
+
+<DT><B>int char_wait</B>
+
+<DD>number of seconds the computer will wait for a remote resource to become available<P>
+
+
+
+<DT><B>int collection_time</B>
+
+<DD>number of milliseconds the computer will collect data before sending 
+
+the data to a character device resource. The workstation waits the specified time or collects 
+
+the number of characters specified by wki302_maximum_collection_count, whichever comes first.<P>
+
+
+
+<DT><B>int maximum_collection_count</B>
+
+<DD>Specifies the number of bytes of information the computer will 
+
+collect before sending the data to a character device resource. The workstation collects the specified 
+
+number of bytes or waits the time specified by wki302_collection_time, whichever comes first.<P>
+
+
+
+<DT><B>int keep_conn</B>
+
+<DD>Specifies the 
+
+number of seconds the server will 
+
+maintain an inactive connection 
+
+to a resource.<P>
+
+
+
+<DT><B>int keep_search</B>
+
+<DD>Defines 
+
+the number of seconds an 
+
+inactive search will continue.<P>
+
+
+
+<DT><B>int max_cmds</B>
+
+<DD>Specifies the number of simultaneous network device 
+
+driver commands that can be sent to the network.<P>
+
+
+
+<DT><B>int num_work_buf</B>
+
+<DD>Specifies the number of internal buffers the computer has.<P>
+
+
+
+<DT><B>int siz_work_buf</B>
+
+<DD>Specifies the size, in bytes, of each internal buffer.<P>
+
+
+
+<DT><B>int max_wrk_cache</B>
+
+<DD>Specifies the maximum size, in bytes, of an internal cache buffer.<P>
+
+
+
+<DT><B>int max_wrk_cache</B>
+
+<DD>Indicates the number of seconds the server 
+
+waits before disconnecting an inactive session.<P>
+
+
+
+<DT><B>int siz_error</B>
+
+<DD>Specifies the size, in bytes, of an internal error buffer.<P>
+
+
+
+<DT><B>int num_alerts</B>
+
+<DD>Specifies the maximum number of clients that can 
+
+receive alert messages. (This member is not supported under MS-DOS.) The 
+
+Alerter service registers at least three clients when it begins to run.<P>
+
+
+
+<DT><B>int num_services</B>
+
+<DD>Specifies the number of services that can be 
+
+installed on the computer at any time.<P>
+
+
+
+<DT><B>int errlog_sz</B>
+
+<DD>Specifies the maximum size, in kilobytes, of the client's error log file.<P>
+
+
+
+<DT><B>int print_buf_time</B>
+
+<DD>Specifies the number of seconds the server 
+
+waits before closing inactive compatibility-mode print jobs.<P>
+
+
+
+<DT><B>int num_char_buf</B>
+
+<DD>Specifies the number of character pipe buffers 
+
+and device buffers the client can have.<P>
+
+
+
+<DT><B>int siz_char_buf</B>
+
+<DD>Specifies the maximum size, in bytes, of a 
+
+character pipe buffer and device buffer.<P>
+
+
+
+<DT><B>string/<B>PyUnicode</B>
+
+ wrk_heuristics</B>
+
+<DD>Pointer to a Unicode string 
+
+of flags used to control a client's operation.<P>
+
+
+
+<DT><B>int mailslots</B>
+
+<DD>Specifies the maximum number of mailslots allowed.<P>
+
+
+
+<DT><B>int num_dgram_buf</B>
+
+<DD>Specifies the number of buffers to allocate for receiving datagrams.<P>
+
+
+
+</DL>
+
+</body>
+</html>

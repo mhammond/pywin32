@@ -1,0 +1,64 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>RASDIALPARAMS</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<HR><H1>RASDIALPARAMS Object</H1><P>
+
+A tuple that describes a Win32 RASDIALPARAMS structure<P>
+
+<H3>Comments</H3>
+
+When used as a parameter, RASDIALPARAMS must be a sequence, of up to 
+
+6 items long.  All items must be strings - None is not allowed. 
+
+<BR>When this is returned from a RAS function, all six fields will exist. 
+
+<BR>RAS will often accept an empty string to mean "default" - ie, passing 
+
+an empty string to phoneNumber uses the stored phone number.<P>
+
+<H3>Items</H3><P><DL><DT>[0] <I>string</I> : entryName<P>
+
+<DD>name of RAS entry.<P></DL>
+
+<DL><DT>[1] <I>string</I> : phoneNumber<P>
+
+<DD>phone number to be used.<P></DL>
+
+<DL><DT>[2] <I>string</I> : callBackNumber<P>
+
+<DD>phone number to be used if callback is enabled.<P></DL>
+
+<DL><DT>[3] <I>string</I> : userName<P>
+
+<DD>username to log on with.<P></DL>
+
+<DL><DT>[4] <I>string</I> : password<P>
+
+<DD>password to use<P></DL>
+
+<DL><DT>[5] <I>string</I> : domain<P>
+
+<DD>Network domain to log on to.<P></DL>
+
+<H3>Example</H3>An example with win32ras.Dial<P>
+
+<PRE>handle = win32ras.Dial(None, None, ("Entry Name",), None)
+
+</PRE>
+
+</body>
+</html>

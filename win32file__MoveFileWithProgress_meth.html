@@ -1,0 +1,50 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32file.MoveFileWithProgress</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32file.html">win32file</A>.MoveFileWithProgress</H1><P>
+
+<B>MoveFileWithProgress(<I>ExistingFileName</I><I>, NewFileName</I><I>, ProgressRoutine</I><I>, Data</I><I>, Flags</I><I>, Transaction</I></B>)<P>Moves a file, and reports progress to a callback function<P>
+
+<H3>Parameters</H3><P><DT><I>ExistingFileName</I> : string<P>
+
+<DD>File or directory to be moved<P><DT><I>NewFileName</I> : string<P>
+
+<DD>Destination, can be None if flags contain MOVEFILE_DELAY_UNTIL_REBOOT<P><DT><I>ProgressRoutine=None</I> : <A HREF="CopyProgressRoutine.html">CopyProgressRoutine</A><P>
+
+<DD>A python function that receives progress updates, can be None<P>
+
+<DT><I>Data=None</I> : object<P>
+
+<DD>An arbitrary object to be passed to the callback function<P>
+
+<DT><I>Flags=0</I> : int<P>
+
+<DD>Combination of MOVEFILE_* flags<P>
+
+<DT><I>Transaction=None</I> : <A HREF="PyHANDLE.html">PyHANDLE</A><P>
+
+<DD>Handle to a transaction (optional).  See <A HREF="win32transaction__CreateTransaction_meth.html">win32transaction::CreateTransaction</A>.<P>
+
+<H3>Comments</H3>
+
+Only available on Windows 2000 or later<P>
+
+Accepts keyword arguments.<P>
+
+On Vista and later, the Transaction arg can be passed to invoke MoveFileTransacted<P>
+
+</body>
+</html>

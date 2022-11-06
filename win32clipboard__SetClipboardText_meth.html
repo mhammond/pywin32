@@ -1,0 +1,56 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32clipboard.SetClipboardText</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32clipboard.html">win32clipboard</A>.SetClipboardText</H1><P>
+
+int = <B>SetClipboardText(<I>text</I><I>, format</I>
+
+</B>)<P>Convienience function to 
+
+call SetClipboardData with text.<P>
+
+<H3>Parameters</H3><P><DT><I>text</I> : str/unicode<P>
+
+<DD>The text to place on the clipboard.<P><DT><I>format=CF_TEXT</I> : int<P>
+
+<DD>The clipboard format to use - must be CF_TEXT or CF_UNICODETEXT<P>
+
+<H3>Comments</H3>
+
+You may pass a string or bytes object to this function, 
+
+but depending on the value of the 'format' param, it may be converted 
+
+to the appropriate type for that param.<P>
+
+Many applications will want to call this function twice, with the 
+
+same string specified but CF_UNICODETEXT specified the second.<P>
+
+<H3>Win32 API References</H3><P><DT>Search for <i>SetClipboardData</i> at <a href="http://search.msdn.microsoft.com/search/results.aspx?view=msdn&query=SetClipboardData" target="_blank">msdn</a>, <a href="http://www.google.com/search?q=SetClipboardData" target="_blank">google</a> or <a href="http://groups.google.com/groups?q=SetClipboardData" target="_blank">google groups</a>.<P>
+
+<H3>Return Value</H3>If the function succeeds, the return value is integer handle 
+
+of the data.<BR> 
+
+If the function fails, win32api.error is raised with the GetLastError 
+
+info.<P>
+
+
+
+</body>
+</html>

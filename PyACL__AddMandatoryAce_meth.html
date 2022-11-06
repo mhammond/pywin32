@@ -1,0 +1,36 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyACL.AddMandatoryAce</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="PyACL.html">PyACL</A>.AddMandatoryAce</H1><P>
+
+<B>AddMandatoryAce(<I>AceRevision</I><I>, AceFlags</I><I>, MandatoryPolicy</I><I>, LabelSid</I></B>)<P>Adds a mandatory integrity level ACE to a SACL<P>
+
+<H3>Parameters</H3><P><DT><I>AceRevision</I> : int<P>
+
+<DD>ACL_REVISION or ACL_REVISION_DS<P><DT><I>AceFlags</I> : int<P>
+
+<DD>Combination of ACE inheritance flags 
+
+(CONTAINER_INHERIT_ACE,INHERIT_ONLY_ACE,INHERITED_ACE,NO_PROPAGATE_INHERIT_ACE, and OBJECT_INHERIT_ACE)<P><DT><I>MandatoryPolicy</I> : int<P>
+
+<DD>Access policy for processes with lower integrity level, combination of 
+
+SYSTEM_MANDATORY_LABEL_* flags<P><DT><I>LabelSid</I> : <A HREF="PySID.html">PySID</A><P>
+
+<DD>Integrity level SID.  This can be created using CreateWellKnownSid with Win*LabelSid. 
+
+<BR>Also can be constructed manually using SECURITY_MANDATORY_LABEL_AUTHORITY and a SECURITY_MANDATORY_*_RID<P></body>
+</html>

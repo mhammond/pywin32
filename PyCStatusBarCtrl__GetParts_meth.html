@@ -1,0 +1,50 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyCStatusBarCtrl.GetParts</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="PyCStatusBarCtrl.html">PyCStatusBarCtrl</A>.GetParts</H1><P>
+
+(int) = <B>GetParts(<I>nParts</I></B>)<P>Retrieve coordinates of the parts in a status bar control.<P>
+
+<H3>Parameters</H3><P><DT><I>nParts</I> : int<P>
+
+<DD>The number of coordinates to retrieve<P><H3>Comments</H3>
+
+This function, as designed in MFC, returns both the *number* of parts, and, 
+
+through an OUT parameter, an array of ints giving the coordinates of the 
+
+parts.  There is also an IN parameter saying how many coordinates to give 
+
+back.  Here, we're explicitly changing the semantics a bit.<P>
+
+<BR>GetParts() -&gt Tuple of all coordinates 
+
+<BR>GetParts(n) -&gt Tuple of the first n coordinates (or all coordinates, if 
+
+fewer than n)<P>
+
+So, in Python, you can't simultaneously find out how many coordinates there 
+
+are, and retrieve a subset of them.  In a reasonable universe, there would 
+
+have been GetParts() -&gt int, and GetCoords() -&gt List.  This means that I 
+
+need to call the MFC method twice; once to find out how many there are, and 
+
+another time to get them.<P>
+
+</body>
+</html>

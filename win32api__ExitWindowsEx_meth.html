@@ -1,0 +1,36 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32api.ExitWindowsEx</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32api.html">win32api</A>.ExitWindowsEx</H1><P>
+
+<B>ExitWindowsEx(<I>flags</I><I>, reserved</I></B>)<P>either logs off the current user, shuts down the system, or shuts down and restarts 
+
+the system.<P>
+
+<H3>Parameters</H3><P><DT><I>flags</I> : int<P>
+
+<DD>The shutdown operation<P><DT><I>reserved=0</I> : int<P>
+
+<DD><P>
+
+<H3>Comments</H3>
+
+It sends the WM_QUERYENDSESSION message to all applications to determine if they can be terminated.<P>
+
+<H3>Win32 API References</H3><P><DT>Search for <i>AbortSystemShutdown</i> at <a href="http://search.msdn.microsoft.com/search/results.aspx?view=msdn&query=AbortSystemShutdown" target="_blank">msdn</a>, <a href="http://www.google.com/search?q=AbortSystemShutdown" target="_blank">google</a> or <a href="http://groups.google.com/groups?q=AbortSystemShutdown" target="_blank">google groups</a>.<P>
+
+</body>
+</html>

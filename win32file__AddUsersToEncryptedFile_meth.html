@@ -1,0 +1,32 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32file.AddUsersToEncryptedFile</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32file.html">win32file</A>.AddUsersToEncryptedFile</H1><P>
+
+<B>AddUsersToEncryptedFile(<I>FileName</I><I>, pUsers</I></B>)<P>Allows user identified by SID and EFS certificate access to decrypt specified file<P>
+
+<H3>Parameters</H3><P><DT><I>FileName</I> : string<P>
+
+<DD>File that additional users will be allowed to decrypt<P><DT><I>pUsers</I> : ((<A HREF="PySID.html">PySID</A>,string,int),...)<P>
+
+<DD>Sequence representing 
+
+ENCRYPTION_CERTIFICATE_LIST - elements are sequences consisting of 
+
+users' Sid, encoded EFS certficate (user must export a .cer to obtain 
+
+this data), and encoding type (usually 1 for X509_ASN_ENCODING)<P></body>
+</html>

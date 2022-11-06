@@ -1,0 +1,40 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyIDispatch.GetIDsOfNames</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="PyIDispatch.html">PyIDispatch</A>.GetIDsOfNames</H1><P>
+
+(int, ...)/int = <B>GetIDsOfNames(<I>name</I></B>)<P>Get the DISPID for the passed names.<P>
+
+<H3>Parameters</H3><P><DT><I>name</I> : string<P>
+
+<DD>A name to query for<P><H3>Alternative Parameters</H3><P><DT><I>[name, ...]</I><P>
+
+<DD>A sequence of string names to query<P>
+
+<H3>Comments</H3>
+
+Currently the LCID can not be specified, and  LOCALE_SYSTEM_DEFAULT is used.<P>
+
+<H3>Return Value</H3>If the first parameter is a sequence, the result will be a tuple of integers 
+
+for each name in the sequence.  If the first parameter is a single string, the result 
+
+is a single integer with the ID of requested item.<P>
+
+
+
+</body>
+</html>

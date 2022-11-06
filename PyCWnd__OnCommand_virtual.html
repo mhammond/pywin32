@@ -1,0 +1,46 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyCWnd.OnCommand</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="PyCWnd.html">PyCWnd.OnCommand</A> Virtual</H1><P>
+
+<B>OnCommand(<I>wparam</I><I>, lparam</I>
+
+
+
+</B>)<P>Allows a Window to override the OnCommand handling.<P>
+
+<H3>Parameters</H3><P><DT><I>wparam</I> : int<P>
+
+<DD><P><DT><I>lparam</I> : int<P>
+
+<DD><P><H3>Comments</H3>
+
+The base class method must be called manually via <B>PyCWnd::OnCommand</B>
+
+
+
+. 
+
+Failure to call the base implementation will prevent all Python command 
+
+handlers (hooked via <B>PyCWnd::HookCommand</B>
+
+
+
+).<P>
+
+</body>
+</html>

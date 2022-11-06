@@ -1,0 +1,94 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyOVERLAPPED</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<HR><H1>PyOVERLAPPED Object</H1><P>
+
+A Python object, representing an overlapped structure<P>
+
+<H3>Comments</H3>
+
+Typically you create a PyOVERLAPPED object, and set its hEvent property. 
+
+The object can then be passed to any function which takes an OVERLAPPED object, and 
+
+the object attributes will be automatically updated.<P>
+
+<H3>Properties</H3>
+
+<DL>
+
+<DT><B>integer Offset</B>
+
+<DD>Specifies a file position at which to start the transfer. The 
+
+file position is a byte offset from the start of the file. The calling process sets 
+
+this member before calling the ReadFile&#160or WriteFile function. This member is 
+
+ignored when reading from or writing to named pipes and communications devices.<P>
+
+
+
+<DT><B>integer OffsetHigh</B>
+
+<DD>Specifies the high word of the 
+
+byte offset at which to start the transfer.<P>
+
+
+
+<DT><B>object object</B>
+
+<DD>Any python object that you want to attach 
+
+to your overlapped I/O request.<P>
+
+
+
+<DT><B>int dword</B>
+
+<DD>An integer buffer that may be used by overlapped 
+
+functions (eg, <A HREF="win32file__WaitCommEvent_meth.html">win32file::WaitCommEvent</A>)<P>
+
+
+
+<DT><B><A HREF="PyHANDLE.html">PyHANDLE</A> hEvent</B>
+
+<DD>Identifies an event set to the signaled state when 
+
+the transfer has been completed. The calling process sets this member before 
+
+calling the <A HREF="win32file__ReadFile_meth.html">win32file::ReadFile</A>, <A HREF="win32file__WriteFile_meth.html">win32file::WriteFile</A>, <A HREF="win32pipe__ConnectNamedPipe_meth.html">win32pipe::ConnectNamedPipe</A>, or <A HREF="win32pipe__TransactNamedPipe_meth.html">win32pipe::TransactNamedPipe</A>&#160function.<P>
+
+
+
+<DT><B>integer Internal</B>
+
+<DD>Reserved for operating system use. (pointer-sized value)<P>
+
+
+
+<DT><B>integer InternalHigh</B>
+
+<DD>Reserved for operating system use. (pointer-sized value)<P>
+
+
+
+</DL>
+
+</body>
+</html>

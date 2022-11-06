@@ -1,0 +1,52 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32file.WriteFile</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32file.html">win32file</A>.WriteFile</H1><P>
+
+int, int = <B>WriteFile(<I>hFile</I><I>, data</I>
+
+<I>, ol</I>
+
+</B>)<P>Writes a string to a file<P>
+
+<H3>Parameters</H3><P><DT><I>hFile</I> : <A HREF="PyHANDLE.html">PyHANDLE</A>/int<P>
+
+<DD>Handle to the file<P><DT><I>data</I> : string/<A HREF="PyOVERLAPPEDReadBuffer.html">PyOVERLAPPEDReadBuffer</A><P>
+
+<DD>The data to write.<P><DT><I>ol=None</I> : <A HREF="PyOVERLAPPED.html">PyOVERLAPPED</A><P>
+
+<DD>An overlapped structure<P>
+
+<H3>Comments</H3>
+
+If you use an overlapped buffer, then it is your responsibility 
+
+to ensure the string object passed remains valid until the operation 
+
+completes.  If Python garbage collection reclaims the buffer before the 
+
+win32 API has finished with it, the results are unpredictable.<P>
+
+<H3>Return Value</H3>The result is a tuple of (errCode, nBytesWritten).  If errCode is not zero, 
+
+it will be ERROR_IO_PENDING (ie, it is an overlapped request). 
+
+<BR>Any other error will raise an exception.<P>
+
+
+
+</body>
+</html>

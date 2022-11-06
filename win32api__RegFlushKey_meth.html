@@ -1,0 +1,42 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32api.RegFlushKey</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32api.html">win32api</A>.RegFlushKey</H1><P>
+
+<B>RegFlushKey(<I>key</I></B>)<P>Writes all the attributes of the specified key to the registry.<P>
+
+<H3>Parameters</H3><P><DT><I>key</I> : <A HREF="PyHKEY.html">PyHKEY</A>/int<P>
+
+<DD>An already open key, or any one of the following win32con 
+
+constants:<BR>HKEY_CLASSES_ROOT<BR>HKEY_CURRENT_USER<BR>HKEY_LOCAL_MACHINE<BR>HKEY_USERS<P><H3>Comments</H3>
+
+It is not necessary to call RegFlushKey to change a key. 
+
+Registry changes are flushed to disk by the registry using its lazy flusher. 
+
+Registry changes are also flushed to disk at system shutdown. 
+
+<BR>Unlike <A HREF="win32api__RegCloseKey_meth.html">win32api::RegCloseKey</A>, the RegFlushKey method returns only when all the data has been written to 
+
+the registry. <BR>An application should only call RegFlushKey if it requires absolute certainty that registry 
+
+changes are on disk. If you don't know whether a RegFlushKey call is required, it probably isn't.<P>
+
+<H3>Win32 API References</H3><P><DT>Search for <i>RegFlushKey</i> at <a href="http://search.msdn.microsoft.com/search/results.aspx?view=msdn&query=RegFlushKey" target="_blank">msdn</a>, <a href="http://www.google.com/search?q=RegFlushKey" target="_blank">google</a> or <a href="http://groups.google.com/groups?q=RegFlushKey" target="_blank">google groups</a>.<P>
+
+</body>
+</html>

@@ -1,0 +1,66 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyIUnknown.QueryInterface</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="PyIUnknown.html">PyIUnknown</A>.QueryInterface</H1><P>
+
+<A HREF="PyIUnknown.html">PyIUnknown</A> = <B>QueryInterface(<I>iid</I><I>, useIID</I>
+
+</B>)<P>Queries an object for a specific interface.<P>
+
+<H3>Parameters</H3><P><DT><I>iid</I> : IID<P>
+
+<DD>The IID requested.<P><DT><I>useIID=None</I> : IID<P>
+
+<DD>If provided and not None, will return an 
+
+interface for the specified IID if (and only if) a native interface can not be supported. 
+
+If the interface specified by iid is natively supported, this option is ignored.<P>
+
+<H3>Comments</H3>
+
+The useIID parameter is a very dangerous option, and should only 
+
+be used when you are sure you need it! 
+
+By specifying this parameter, you are telling the COM framework that regardless 
+
+of the true type of the result (as specified by iid), a Python wrapper 
+
+of type useIID will be created.  If iid does not derive from useIID, 
+
+then it is almost certain that using the object will cause an Access Violation. 
+
+<BR>For example, this option can be used to obtain a PyIUnknown object if 
+
+pythoncom does not natively support the interface. 
+
+Another example might be to return an unsupported persistence interface as a 
+
+PyIPersist instance.<BR> 
+
+For backwards compatibility: the integer 0 implies None, and the 
+
+integer 1 implies IID_IUnknown.<P>
+
+<H3>Return Value</H3>The result is always an object derived from PyIUnknown. 
+
+Any error (including E_NOINTERFACE) will generate a <A HREF="com_error.html">com_error</A> exception.<P>
+
+
+
+</body>
+</html>

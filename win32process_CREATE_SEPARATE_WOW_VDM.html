@@ -1,0 +1,26 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>CREATE_SEPARATE_WOW_VDM</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<HR>
+
+<H1>CREATE_SEPARATE_WOW_VDM</H1>
+
+<B>const win32process.CREATE_SEPARATE_WOW_VDM;</B><P>
+
+Windows NT: This flag is valid only when starting a 16-bit Windows-based application. If set, the new process is run in a private Virtual DOS Machine (VDM). By default, all 16-bit Windows-based applications are run as threads in a single, shared VDM. The advantage of running separately is that a crash only kills the single VDM; any other programs running in distinct VDMs continue to function normally. Also, 16-bit Windows-based applications that are run in separate VDMs have separate input queues. That means that if one application hangs momentarily, applications in separate VDMs continue to receive input. The disadvantage of running separately is that it takes significantly more memory to do so. You should use this flag only if the user requests that 16-bit applications should run in them own VDM.<P>
+
+</body>
+</html>

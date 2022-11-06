@@ -1,0 +1,44 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32ui.FindWindowEx</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32ui.html">win32ui</A>.FindWindowEx</H1><P>
+
+<A HREF="PyCWnd.html">PyCWnd</A> = <B>FindWindowEx(<I>parentWindow</I><I>, childAfter</I>
+
+<I>, className</I>
+
+<I>, windowName</I>
+
+</B>)<P>Searches for the specified top-level or child window<P>
+
+<H3>Parameters</H3><P><DT><I>parentWindow</I> : <A HREF="PyCWnd.html">PyCWnd</A><P>
+
+<DD>The parent whose children will be searched. If 
+
+None, the desktops window will be used.<P><DT><I>childAfter</I> : <A HREF="PyCWnd.html">PyCWnd</A><P>
+
+<DD>The search begins with the next window in 
+
+the Z order.  If None, all children are searched.<P><DT><I>className</I> : string<P>
+
+<DD>The window class name to find, else None<P><DT><I>windowName</I> : string<P>
+
+<DD>The window name (ie, title) to find, else None<P><H3>Return Value</H3>The result is a <A HREF="PyCWnd.html">PyCWnd</A> (or derived) object, or a win32ui.error exception is raised.<P>
+
+
+
+</body>
+</html>

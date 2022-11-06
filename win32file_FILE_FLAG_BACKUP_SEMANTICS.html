@@ -1,0 +1,30 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>FILE_FLAG_BACKUP_SEMANTICS</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<HR>
+
+<H1>FILE_FLAG_BACKUP_SEMANTICS</H1>
+
+<B>const win32file.FILE_FLAG_BACKUP_SEMANTICS;</B><P>
+
+Windows NT only: Indicates that the file is being opened or created for a backup or restore operation. 
+
+The operating system ensures that the calling process overrides file security checks, provided it has the necessary permission to do so. The relevant permissions are SE_BACKUP_NAME and SE_RESTORE_NAME. 
+
+You can also set this flag to obtain a handle to a directory. A directory handle can be passed to some Win32 functions in place of a file handle.<P>
+
+</body>
+</html>

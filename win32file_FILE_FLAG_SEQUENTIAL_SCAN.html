@@ -1,0 +1,32 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>FILE_FLAG_SEQUENTIAL_SCAN</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<HR>
+
+<H1>FILE_FLAG_SEQUENTIAL_SCAN</H1>
+
+<B>const win32file.FILE_FLAG_SEQUENTIAL_SCAN;</B><P>
+
+Indicates that the file is to be accessed sequentially from beginning to end. The system can use this as a hint to optimize file caching. 
+
+If an application moves the file pointer for random access, optimum caching may not occur; however, correct operation is still guaranteed. 
+
+Specifying this flag can increase performance for applications that read large files using sequential access. 
+
+Performance gains can be even more noticeable for applications that read large files mostly sequentially, but occasionally skip over small ranges of bytes.<P>
+
+</body>
+</html>

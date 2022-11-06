@@ -1,0 +1,82 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyIShellLink.Resolve</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="PyIShellLink.html">PyIShellLink</A>.Resolve</H1><P>
+
+<B>Resolve(<I>hwnd</I><I>, fFlags</I></B>)<P>Resolves a shell link by searching for the shell link object and updating the 
+
+shell link path and its list of identifiers (if necessary)<P>
+
+<H3>Parameters</H3><P><DT><I>hwnd</I> : HWND<P>
+
+<DD>The parent window of a dialog which will pop up if resolution fails.<P><DT><I>fFlags</I> : int<P>
+
+<DD>One of the following constants:<P><P><TABLE COLS=2 WIDTH="100%" CELLSPACING=15>
+
+<TR>
+
+   <TD>
+
+       <B>Value</B>
+
+   </TD>
+
+   <TD>
+
+       <B>Description</B>
+
+   </TD>
+
+</TR>
+
+<TR><TD><HR></TD><TD><HR></TD></TR>
+
+<TR><TD>SLR_INVOKE_MSI</TD><TD>Call the Microsoft Windows Installer.</TD></TR>
+
+<TR><TD>SLR_NOLINKINFO</TD><TD>Disable distributed link tracking. By default, distributed 
+
+link tracking tracks removable media across multiple devices based on the 
+
+volume name. It also uses the UNC path to track remote file systems whose 
+
+drive letter has changed. Setting SLR_NOLINKINFO disables both types of tracking.</TD></TR>
+
+<TR><TD>SLR_NO_UI</TD><TD>Do not display a dialog box if the link cannot be resolved. When 
+
+SLR_NO_UI is set, the high-order word of fFlags can be set to a time-out value 
+
+that specifies the maximum amount of time to be spent resolving the link. The 
+
+function returns if the link cannot be resolved within the time-out duration. 
+
+If the high-order word is set to zero, the time-out duration will be set to the 
+
+default value of 3,000 milliseconds (3 seconds). To specify a value, set the high 
+
+word of fFlags to the desired time-out duration, in milliseconds.</TD></TR>
+
+<TR><TD>SLR_NOUPDATE</TD><TD>Do not update the link information.</TD></TR>
+
+<TR><TD>SLR_NOSEARCH</TD><TD>Do not execute the search heuristics.</TD></TR>
+
+<TR><TD>SLR_NOTRACK</TD><TD>Do not use distributed link tracking.</TD></TR>
+
+<TR><TD>SLR_UPDATE</TD><TD>If the link object has changed, update its path and list of identifiers. If SLR_UPDATE is set, 
+
+you do not need to call IPersistFile::IsDirty to determine whether or not the link object has changed.</TD></TR>
+
+</TABLE></body>
+</html>

@@ -1,0 +1,82 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32api.RegCreateKeyEx</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32api.html">win32api</A>.RegCreateKeyEx</H1><P>
+
+<A HREF="PyHKEY.html">PyHKEY</A>, int = <B>RegCreateKeyEx(<I>Key</I><I>, SubKey</I>
+
+<I>, samDesired</I>
+
+<I>, Class</I>
+
+<I>, Options</I>
+
+<I>, SecurityAttributes</I>
+
+<I>, Transaction</I>
+
+</B>)<P>Extended version of RegCreateKey<P>
+
+<H3>Parameters</H3><P><DT><I>Key</I> : <A HREF="PyHKEY.html">PyHKEY</A>/int<P>
+
+<DD>Registry key or one of win32con.HKEY_* values<P><DT><I>SubKey</I> : <B>PyUnicode</B>
+
+<P>
+
+<DD>Name of subkey to open or create.<P><DT><I>samDesired</I> : int<P>
+
+<DD>Access allowed to handle, combination of win32con.KEY_* constants.  Can 
+
+also contain 
+
+standard access rights such as DELETE, WRITE_OWNER, etc.<P><DT><I>Class=None</I> : <B>PyUnicode</B>
+
+<P>
+
+<DD>Name of registry key class<P>
+
+<DT><I>Options=REG_OPTION_NON_VOLATILE</I> : int<P>
+
+<DD>One of the winnt.REG_OPTION_* values<P>
+
+<DT><I>SecurityAttributes=None</I> : <A HREF="PySECURITY_ATTRIBUTES.html">PySECURITY_ATTRIBUTES</A><P>
+
+<DD>Specifies security for key and handle 
+
+inheritance<P>
+
+<DT><I>Transaction=None</I> : <A HREF="PyHANDLE.html">PyHANDLE</A><P>
+
+<DD>Handle to a transaction as returned by <A HREF="win32transaction__CreateTransaction_meth.html">win32transaction::CreateTransaction</A><P>
+
+<H3>Comments</H3>
+
+Implemented only as Unicode (RegCreateKeyExW).  Accepts keyword arguments.<P>
+
+If a transaction handle is passed in, RegCreateKeyTransacted will be called (requires Vista or later)<P>
+
+<H3>Win32 API References</H3><P><DT>Search for <i>RegCreateKeyEx</i> at <a href="http://search.msdn.microsoft.com/search/results.aspx?view=msdn&query=RegCreateKeyEx" target="_blank">msdn</a>, <a href="http://www.google.com/search?q=RegCreateKeyEx" target="_blank">google</a> or <a href="http://groups.google.com/groups?q=RegCreateKeyEx" target="_blank">google groups</a>.<P>
+
+<DT>Search for <i>RegCreateKeyTransacted</i> at <a href="http://search.msdn.microsoft.com/search/results.aspx?view=msdn&query=RegCreateKeyTransacted" target="_blank">msdn</a>, <a href="http://www.google.com/search?q=RegCreateKeyTransacted" target="_blank">google</a> or <a href="http://groups.google.com/groups?q=RegCreateKeyTransacted" target="_blank">google groups</a>.<P>
+
+<H3>Return Value</H3>Returns registry handle and flag indicating if key was opened or created (REG_CREATED_NEW_KEY or 
+
+REG_OPENED_EXISTING_KEY)<P>
+
+
+
+</body>
+</html>

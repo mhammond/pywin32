@@ -1,0 +1,132 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32crypt.CryptDecodeObjectEx</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32crypt.html">win32crypt</A>.CryptDecodeObjectEx</H1><P>
+
+object = <B>CryptDecodeObjectEx(<I>StructType</I><I>, Encoded</I>
+
+<I>, Flags</I>
+
+<I>, CertEncodingType</I>
+
+<I>, DecodePara</I>
+
+</B>)<P>Decodes ASN encoded data<P>
+
+<H3>Parameters</H3><P><DT><I>StructType</I> : str/int<P>
+
+<DD>An OID identifying the type of data 
+
+to be decoded, can be either str or int<P><DT><I>Encoded</I> : str<P>
+
+<DD>String or buffer containing ASN encoded data<P><DT><I>Flags=0</I> : int<P>
+
+<DD>Encoding options, can be combination 
+
+CRYPT_UNICODE_* constants.  CRYPT_ENCODE_ALLOC_FLAG is added to flags..<P>
+
+<DT><I>CertEncodingType=X509_ASN_ENCODING combined with 
+
+PKCS_7_ASN_ENCODING</I> : int<P>
+
+<DD>Encoding types<P>
+
+<DT><I>DecodePara=None</I> : object<P>
+
+<DD>Not supported, use only None<P>
+
+<P><TABLE COLS=2 WIDTH="100%" CELLSPACING=15>
+
+<TR>
+
+   <TD>
+
+       <B>OID</B>
+
+   </TD>
+
+   <TD>
+
+       <B>Object returned</B>
+
+   </TD>
+
+</TR>
+
+<TR><TD><HR></TD><TD><HR></TD></TR>
+
+<TR><TD>szOID_ENHANCED_KEY_USAGE</TD><TD>Sequence of OIDs</TD></TR>
+
+<TR><TD>X509_ENHANCED_KEY_USAGE</TD><TD>Sequence of OIDs</TD></TR>
+
+<TR><TD>szOID_KEY_USAGE</TD><TD><A HREF="PyCRYPT_BIT_BLOB.html">PyCRYPT_BIT_BLOB</A></TD></TR>
+
+<TR><TD>X509_KEY_USAGE</TD><TD><A HREF="PyCRYPT_BIT_BLOB.html">PyCRYPT_BIT_BLOB</A></TD></TR>
+
+<TR><TD>X509_BITS</TD><TD><A HREF="PyCRYPT_BIT_BLOB.html">PyCRYPT_BIT_BLOB</A></TD></TR>
+
+<TR><TD>szOID_SUBJECT_ALT_NAME</TD><TD><A HREF="PyCERT_ALT_NAME_INFO.html">PyCERT_ALT_NAME_INFO</A></TD></TR>
+
+<TR><TD>szOID_SUBJECT_ALT_NAME2</TD><TD><A HREF="PyCERT_ALT_NAME_INFO.html">PyCERT_ALT_NAME_INFO</A></TD></TR>
+
+<TR><TD>szOID_ISSUER_ALT_NAME</TD><TD><A HREF="PyCERT_ALT_NAME_INFO.html">PyCERT_ALT_NAME_INFO</A></TD></TR>
+
+<TR><TD>szOID_ISSUER_ALT_NAME2</TD><TD><A HREF="PyCERT_ALT_NAME_INFO.html">PyCERT_ALT_NAME_INFO</A></TD></TR>
+
+<TR><TD>szOID_NEXT_UPDATE_LOCATION</TD><TD><A HREF="PyCERT_ALT_NAME_INFO.html">PyCERT_ALT_NAME_INFO</A></TD></TR>
+
+<TR><TD>X509_ALTERNATE_NAME</TD><TD><A HREF="PyCERT_ALT_NAME_INFO.html">PyCERT_ALT_NAME_INFO</A></TD></TR>
+
+<TR><TD>X509_NAME_VALUE</TD><TD><A HREF="PyCERT_NAME_VALUE.html">PyCERT_NAME_VALUE</A></TD></TR>
+
+<TR><TD>X509_UNICODE_ANY_STRING</TD><TD><A HREF="PyCERT_NAME_VALUE.html">PyCERT_NAME_VALUE</A></TD></TR>
+
+<TR><TD>X509_UNICODE_NAME_VALUE</TD><TD><A HREF="PyCERT_NAME_VALUE.html">PyCERT_NAME_VALUE</A></TD></TR>
+
+<TR><TD>X509_NAME</TD><TD><A HREF="PyCERT_NAME_INFO.html">PyCERT_NAME_INFO</A></TD></TR>
+
+<TR><TD>X509_UNICODE_NAME</TD><TD><A HREF="PyCERT_NAME_INFO.html">PyCERT_NAME_INFO</A></TD></TR>
+
+<TR><TD>szOID_KEY_ATTRIBUTES</TD><TD><A HREF="PyCERT_KEY_ATTRIBUTES_INFO.html">PyCERT_KEY_ATTRIBUTES_INFO</A></TD></TR>
+
+<TR><TD>X509_KEY_ATTRIBUTES</TD><TD><A HREF="PyCERT_KEY_ATTRIBUTES_INFO.html">PyCERT_KEY_ATTRIBUTES_INFO</A></TD></TR>
+
+<TR><TD>szOID_BASIC_CONSTRAINTS</TD><TD><A HREF="PyCERT_BASIC_CONSTRAINTS_INFO.html">PyCERT_BASIC_CONSTRAINTS_INFO</A></TD></TR>
+
+<TR><TD>X509_BASIC_CONSTRAINTS</TD><TD><A HREF="PyCERT_BASIC_CONSTRAINTS_INFO.html">PyCERT_BASIC_CONSTRAINTS_INFO</A></TD></TR>
+
+<TR><TD>szOID_BASIC_CONSTRAINTS2</TD><TD><A HREF="PyCERT_BASIC_CONSTRAINTS2_INFO.html">PyCERT_BASIC_CONSTRAINTS2_INFO</A></TD></TR>
+
+<TR><TD>X509_BASIC_CONSTRAINTS2</TD><TD><A HREF="PyCERT_BASIC_CONSTRAINTS2_INFO.html">PyCERT_BASIC_CONSTRAINTS2_INFO</A></TD></TR>
+
+<TR><TD>szOID_CERT_POLICIES</TD><TD>Sequence of <A HREF="PyCERT_POLICY_INFO.html">PyCERT_POLICY_INFO</A> objects</TD></TR>
+
+<TR><TD>szOID_APPLICATION_CERT_POLICIES</TD><TD>Sequence of <A HREF="PyCERT_POLICY_INFO.html">PyCERT_POLICY_INFO</A> objects</TD></TR>
+
+<TR><TD>X509_CERT_POLICIES</TD><TD>Sequence of <A HREF="PyCERT_POLICY_INFO.html">PyCERT_POLICY_INFO</A> objects</TD></TR>
+
+<TR><TD>szOID_SUBJECT_KEY_IDENTIFIER</TD><TD>Binary string containing the key identifier</TD></TR>
+
+<TR><TD>szOID_AUTHORITY_KEY_IDENTIFIER</TD><TD><A HREF="PyCERT_AUTHORITY_KEY_ID_INFO.html">PyCERT_AUTHORITY_KEY_ID_INFO</A></TD></TR>
+
+<TR><TD>X509_AUTHORITY_KEY_ID</TD><TD><A HREF="PyCERT_AUTHORITY_KEY_ID_INFO.html">PyCERT_AUTHORITY_KEY_ID_INFO</A></TD></TR>
+
+</TABLE><H3>Return Value</H3>Type of object returned is dependent on the StructType to be decoded<P>
+
+
+
+</body>
+</html>

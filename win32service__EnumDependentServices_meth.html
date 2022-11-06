@@ -1,0 +1,34 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32service.EnumDependentServices</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32service.html">win32service</A>.EnumDependentServices</H1><P>
+
+(tuple,...) = <B>EnumDependentServices(<I>hService</I><I>, ServiceState</I>
+
+</B>)<P>Lists services that depend on a service<P>
+
+<H3>Parameters</H3><P><DT><I>hService</I> : <A HREF="PySC_HANDLE.html">PySC_HANDLE</A><P>
+
+<DD>Handle to service for which to list dependent services (as returned by <A HREF="win32service__OpenService_meth.html">win32service::OpenService</A>)<P><DT><I>ServiceState=SERVICE_STATE_ALL</I> : int<P>
+
+<DD>Limits to services in specified state - One of SERVICE_STATE_ALL, SERVICE_ACTIVE, SERVICE_INACTIVE<P>
+
+<H3>Return Value</H3>Returns a sequence of tuples representing ENUM_SERVICE_STATUS structs: (ServiceName, DisplayName, <A HREF="SERVICE_STATUS.html">SERVICE_STATUS</A>)<P>
+
+
+
+</body>
+</html>

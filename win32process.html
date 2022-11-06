@@ -1,0 +1,124 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32process</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1>Module win32process</H1><P>
+
+An interface to the win32 Process and Thread API's<P>
+
+<H3>Methods</H3><P><DL><DT><A HREF="win32process__STARTUPINFO_meth.html">STARTUPINFO</A><BR>
+
+<DD>Creates a new STARTUPINFO object.&nbsp;<P><DT><A HREF="win32process__beginthreadex_meth.html">beginthreadex</A><BR>
+
+<DD>Creates a new thread&nbsp;<P><DT><A HREF="win32process__CreateRemoteThread_meth.html">CreateRemoteThread</A><BR>
+
+<DD>creates a thread that runs in 
+
+the virtual address space of another process.&nbsp;<P><DT><A HREF="win32process__CreateProcess_meth.html">CreateProcess</A><BR>
+
+<DD>Creates a new process and its primary thread. The new process executes the specified executable file.&nbsp;<P><DT><A HREF="win32process__CreateProcessAsUser_meth.html">CreateProcessAsUser</A><BR>
+
+<DD>Creates a new process in the context of the specified user.&nbsp;<P><DT><A HREF="win32process__GetCurrentProcess_meth.html">GetCurrentProcess</A><BR>
+
+<DD>Retrieves a pseudo handle for the current process.&nbsp;<P><DT><A HREF="win32process__GetProcessVersion_meth.html">GetProcessVersion</A><BR>
+
+<DD>Obtains the major and minor version numbers of the system on which a specified process expects to run.&nbsp;<P><DT><A HREF="win32process__GetCurrentProcessId_meth.html">GetCurrentProcessId</A><BR>
+
+<DD>Retrieves the process identifier of the calling process.&nbsp;<P><DT><A HREF="win32process__GetStartupInfo_meth.html">GetStartupInfo</A><BR>
+
+<DD>Retrieves the contents of the STARTUPINFO structure that was specified when the calling process was created.&nbsp;<P><DT><A HREF="win32process__GetPriorityClass_meth.html">GetPriorityClass</A><BR>
+
+<DD>&nbsp;<P><DT><A HREF="win32process__GetExitCodeThread_meth.html">GetExitCodeThread</A><BR>
+
+<DD>&nbsp;<P><DT><A HREF="win32process__GetExitCodeProcess_meth.html">GetExitCodeProcess</A><BR>
+
+<DD>&nbsp;<P><DT><A HREF="win32process__GetWindowThreadProcessId_meth.html">GetWindowThreadProcessId</A><BR>
+
+<DD>Retrieves the identifier of the thread and process that created the specified window.&nbsp;<P><DT><A HREF="win32process__SetThreadPriority_meth.html">SetThreadPriority</A><BR>
+
+<DD>&nbsp;<P><DT><A HREF="win32process__GetThreadPriority_meth.html">GetThreadPriority</A><BR>
+
+<DD>&nbsp;<P><DT><A HREF="win32process__GetProcessPriorityBoost_meth.html">GetProcessPriorityBoost</A><BR>
+
+<DD>Determines if dynamic priority adjustment is enabled for a process&nbsp;<P><DT><A HREF="win32process__SetProcessPriorityBoost_meth.html">SetProcessPriorityBoost</A><BR>
+
+<DD>Enables or disables dynamic priority adjustment for a process&nbsp;<P><DT><A HREF="win32process__GetThreadPriorityBoost_meth.html">GetThreadPriorityBoost</A><BR>
+
+<DD>Determines if dynamic priority adjustment is enabled for a thread&nbsp;<P><DT><A HREF="win32process__SetThreadPriorityBoost_meth.html">SetThreadPriorityBoost</A><BR>
+
+<DD>Enables or disables dynamic priority adjustment for a thread&nbsp;<P><DT><A HREF="win32process__GetThreadIOPendingFlag_meth.html">GetThreadIOPendingFlag</A><BR>
+
+<DD>Determines if thread has any outstanding IO requests&nbsp;<P><DT><A HREF="win32process__GetThreadTimes_meth.html">GetThreadTimes</A><BR>
+
+<DD>Returns a thread's time statistics&nbsp;<P><DT><A HREF="win32process__GetProcessId_meth.html">GetProcessId</A><BR>
+
+<DD>Returns the Pid for a process handle&nbsp;<P><DT><A HREF="win32process__SetPriorityClass_meth.html">SetPriorityClass</A><BR>
+
+<DD>&nbsp;<P><DT><A HREF="win32process__AttachThreadInput_meth.html">AttachThreadInput</A><BR>
+
+<DD>Attaches or detaches the input of two threads&nbsp;<P><DT><A HREF="win32process__SetThreadIdealProcessor_meth.html">SetThreadIdealProcessor</A><BR>
+
+<DD>Used to specify a preferred processor for a thread. The system schedules threads on their preferred processors whenever possible.&nbsp;<P><DT><A HREF="win32process__GetProcessAffinityMask_meth.html">GetProcessAffinityMask</A><BR>
+
+<DD>Gets a processor affinity mask for a specified process&nbsp;<P><DT><A HREF="win32process__SetProcessAffinityMask_meth.html">SetProcessAffinityMask</A><BR>
+
+<DD>Sets a processor affinity mask for a specified process.&nbsp;<P><DT><A HREF="win32process__SetThreadAffinityMask_meth.html">SetThreadAffinityMask</A><BR>
+
+<DD>Sets a processor affinity mask for a specified thread.&nbsp;<P><DT><A HREF="win32process__SuspendThread_meth.html">SuspendThread</A><BR>
+
+<DD>Suspends the specified thread.&nbsp;<P><DT><A HREF="win32process__ResumeThread_meth.html">ResumeThread</A><BR>
+
+<DD>Resumes the specified thread. When the suspend count is decremented to zero, the execution of the thread is resumed.&nbsp;<P><DT><A HREF="win32process__TerminateProcess_meth.html">TerminateProcess</A><BR>
+
+<DD>Terminates the specified process and all of its threads.&nbsp;<P><DT><A HREF="win32process__ExitProcess_meth.html">ExitProcess</A><BR>
+
+<DD>Ends a process and all its threads&nbsp;<P><DT><A HREF="win32process__EnumProcesses_meth.html">EnumProcesses</A><BR>
+
+<DD>Returns Pids for currently running processes&nbsp;<P><DT><A HREF="win32process__EnumProcessModules_meth.html">EnumProcessModules</A><BR>
+
+<DD>Lists loaded modules for a process handle&nbsp;<P><DT><A HREF="win32process__EnumProcessModulesEx_meth.html">EnumProcessModulesEx</A><BR>
+
+<DD>Lists 32 or 64-bit modules load by a process&nbsp;<P><DT><A HREF="win32process__GetModuleFileNameEx_meth.html">GetModuleFileNameEx</A><BR>
+
+<DD>Return name of module loaded by another process (uses process handle, not pid)&nbsp;<P><DT><A HREF="win32process__GetProcessMemoryInfo_meth.html">GetProcessMemoryInfo</A><BR>
+
+<DD>Returns process memory statistics as a dict representing a PROCESS_MEMORY_COUNTERS struct&nbsp;<P><DT><A HREF="win32process__GetProcessTimes_meth.html">GetProcessTimes</A><BR>
+
+<DD>Retrieve time statics for a process by handle.  (KernelTime and UserTime in 100 nanosecond units)&nbsp;<P><DT><A HREF="win32process__GetProcessIoCounters_meth.html">GetProcessIoCounters</A><BR>
+
+<DD>Return I/O statistics for a process as a dictionary representing an IO_COUNTERS struct.&nbsp;<P><DT><A HREF="win32process__GetProcessWindowStation_meth.html">GetProcessWindowStation</A><BR>
+
+<DD>Returns a handle to the window station for the calling process&nbsp;<P><DT><A HREF="win32process__GetProcessWorkingSetSize_meth.html">GetProcessWorkingSetSize</A><BR>
+
+<DD>Returns min and max working set sizes for a process by handle&nbsp;<P><DT><A HREF="win32process__SetProcessWorkingSetSize_meth.html">SetProcessWorkingSetSize</A><BR>
+
+<DD>Sets minimum and maximum working set sizes for a process&nbsp;<P><DT><A HREF="win32process__GetProcessShutdownParameters_meth.html">GetProcessShutdownParameters</A><BR>
+
+<DD>Retrieves shutdown priority and flags for current process&nbsp;<P><DT><A HREF="win32process__SetProcessShutdownParameters_meth.html">SetProcessShutdownParameters</A><BR>
+
+<DD>Sets shutdown priority and flags for current process&nbsp;<P><DT><A HREF="win32process__GetGuiResources_meth.html">GetGuiResources</A><BR>
+
+<DD>Returns the number of GDI or user object handles held by a process&nbsp;<P><DT><A HREF="win32process__IsWow64Process_meth.html">IsWow64Process</A><BR>
+
+<DD>Determines whether the specified process is running under WOW64.&nbsp;<P><DT><A HREF="win32process__VirtualAllocEx_meth.html">VirtualAllocEx</A><BR>
+
+<DD>&nbsp;<P><DT><A HREF="win32process__VirtualFreeEx_meth.html">VirtualFreeEx</A><BR>
+
+<DD>&nbsp;<P><DT><A HREF="win32process__ReadProcessMemory_meth.html">ReadProcessMemory</A><BR>
+
+<DD>&nbsp;<P><DT><A HREF="win32process__WriteProcessMemory_meth.html">WriteProcessMemory</A><BR>
+
+<DD>&nbsp;<P></DL></body>
+</html>

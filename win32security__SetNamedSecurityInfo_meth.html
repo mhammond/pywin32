@@ -1,0 +1,36 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32security.SetNamedSecurityInfo</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32security.html">win32security</A>.SetNamedSecurityInfo</H1><P>
+
+<B>SetNamedSecurityInfo(<I>ObjectName</I><I>, ObjectType</I><I>, SecurityInfo</I><I>, Owner</I><I>, Group</I><I>, Dacl</I><I>, Sacl</I></B>)<P>Sets security info for an object by name<P>
+
+<H3>Parameters</H3><P><DT><I>ObjectName</I> : str/unicode<P>
+
+<DD>Name of object<P><DT><I>ObjectType</I> : int<P>
+
+<DD>Value from SE_OBJECT_TYPE enum<P><DT><I>SecurityInfo</I> : int<P>
+
+<DD>Combination of SECURITY_INFORMATION constants<P><DT><I>Owner</I> : <A HREF="PySID.html">PySID</A><P>
+
+<DD>Sid to set as owner of object, can be None<P><DT><I>Group</I> : <A HREF="PySID.html">PySID</A><P>
+
+<DD>Group Sid, can be None<P><DT><I>Dacl</I> : <A HREF="PyACL.html">PyACL</A><P>
+
+<DD>Discretionary ACL to set for object, can be None<P><DT><I>Sacl</I> : <A HREF="PyACL.html">PyACL</A><P>
+
+<DD>System Audit ACL to set for object, can be None<P></body>
+</html>

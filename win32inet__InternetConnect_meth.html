@@ -1,0 +1,80 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32inet.InternetConnect</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32inet.html">win32inet</A>.InternetConnect</H1><P>
+
+<B>InternetConnect(<I>Internet</I><I>, ServerName</I><I>, ServerPort</I><I>, Username</I><I>, Password</I><I>, Service</I><I>, Flags</I><I>, Context</I></B>)<P>Opens an FTP, Gopher, or HTTP session for a given site.<P>
+
+<H3>Parameters</H3><P><DT><I>Internet</I> : <A HREF="PyHINTERNET.html">PyHINTERNET</A><P>
+
+<DD>Valid HINTERNET handle returned by a previous call to <A HREF="win32inet__InternetOpen_meth.html">win32inet::InternetOpen</A>.<P><DT><I>ServerName</I> : string<P>
+
+<DD>A string that contains the host name of an Internet 
+
+server. Alternately, the string can contain the IP number of the site, 
+
+in ASCII dotted-decimal format (for example, 11.0.1.45).<P><DT><I>ServerPort</I> : int<P>
+
+<DD>Number of the TCP/IP port on the server to connect to. 
+
+These flags set only the port that will be used. The service is set by 
+
+the value of dwService. This can be one of the INTERNET_DEFAULT_*_PORT 
+
+constants or INTERNET_INVALID_PORT_NUMBER, which uses the default 
+
+port for the service specified by dwService.<P><DT><I>Username</I> : string<P>
+
+<DD>A string that contains the name of the user 
+
+to log on. If this parameter is&#09None, the function uses&#09an appropriate 
+
+default, except&#09for&#09HTTP; a&#09NULL parameter in HTTP causes the server 
+
+to return an error.&#09For&#09the&#09FTP&#09protocol, the default is "anonymous".<P><DT><I>Password</I> : string<P>
+
+<DD>Address&#09of a null-terminated string&#09that 
+
+contains the password to use to&#09log&#09on.&#09If both&#09Password 
+
+and&#09Username are None, the function&#09uses the default 
+
+"anonymous"&#09password. In the case of FTP, the default password 
+
+is the user's e-mail name. If lpszPassword is None,&#09but&#09lpszUsername 
+
+is not None, the function uses a blank password.<P><DT><I>Service</I> : int<P>
+
+<DD>Iinteger value that contains the type&#09of service to 
+
+access.&#09This can be&#09one&#09of INTERNET_SERVICE_FTP, INTERNET_SERVICE_GOPHER, 
+
+or INTERNET_SERVICE_HTTP.<P><DT><I>Flags</I> : int<P>
+
+<DD>Integer value that contains the flags specific to 
+
+the&#09service&#09used. When the value of&#09dwService is INTERNET_SERVICE_FTP, 
+
+INTERNET_FLAG_PASSIVE causes the application to&#09use&#09passive&#09FTP&#09semantics.<P><DT><I>Context=None</I> : object<P>
+
+<DD>Arbitrary object to be passed to callback function<P>
+
+<H3>Comments</H3>
+
+Accepts keyword args<P>
+
+</body>
+</html>

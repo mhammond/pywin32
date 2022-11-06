@@ -1,0 +1,194 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32security</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1>Module win32security</H1><P>
+
+An interface to the win32 security API's<P>
+
+<H3>Methods</H3><P><DL><DT><A HREF="win32security__DsGetSpn_meth.html">DsGetSpn</A><BR>
+
+<DD>Compose one or more service principal names to be registered using <A HREF="win32security__DsWriteAccountSpn_meth.html">win32security::DsWriteAccountSpn</A>&nbsp;<P><DT><A HREF="win32security__DsWriteAccountSpn_meth.html">DsWriteAccountSpn</A><BR>
+
+<DD>Associates a set of service principal names with an account&nbsp;<P><DT><A HREF="win32security__DsBind_meth.html">DsBind</A><BR>
+
+<DD>Creates a connection to a directory service&nbsp;<P><DT><A HREF="win32security__DsUnBind_meth.html">DsUnBind</A><BR>
+
+<DD>Closes a directory services handle created by <A HREF="win32security__DsBind_meth.html">win32security::DsBind</A>&nbsp;<P><DT><A HREF="win32security__DsGetDcName_meth.html">DsGetDcName</A><BR>
+
+<DD>Returns the name of a domain controller (DC) in a specified domain. 
+
+You can supply DC selection criteria to this function to indicate preference for a DC with particular characteristics.&nbsp;<P><DT><A HREF="win32security__DsCrackNames_meth.html">DsCrackNames</A><BR>
+
+<DD>Converts an array of directory service object names from one format to another.&nbsp;<P><DT><A HREF="win32security__DsListInfoForServer_meth.html">DsListInfoForServer</A><BR>
+
+<DD>Lists miscellaneous information for a server.&nbsp;<P><DT><A HREF="win32security__DsListServersInSite_meth.html">DsListServersInSite</A><BR>
+
+<DD>&nbsp;<P><DT><A HREF="win32security__DsListServersInSite_meth.html">DsListServersInSite</A><BR>
+
+<DD>&nbsp;<P><DT><A HREF="win32security__DsListServersInSite_meth.html">DsListServersInSite</A><BR>
+
+<DD>&nbsp;<P><DT><A HREF="win32security__DsListRoles_meth.html">DsListRoles</A><BR>
+
+<DD>&nbsp;<P><DT><A HREF="win32security__DsListDomainsInSite_meth.html">DsListDomainsInSite</A><BR>
+
+<DD>&nbsp;<P><DT><A HREF="win32security__ACL_meth.html">ACL</A><BR>
+
+<DD>Creates a new <A HREF="PyACL.html">PyACL</A> object.&nbsp;<P><DT><A HREF="win32security__SID_meth.html">SID</A><BR>
+
+<DD>Creates a new <A HREF="PySID.html">PySID</A> object.&nbsp;<P><DT><A HREF="win32security__SECURITY_ATTRIBUTES_meth.html">SECURITY_ATTRIBUTES</A><BR>
+
+<DD>Creates a new <A HREF="PySECURITY_ATTRIBUTES.html">PySECURITY_ATTRIBUTES</A> object.&nbsp;<P><DT><A HREF="win32security__SECURITY_DESCRIPTOR_meth.html">SECURITY_DESCRIPTOR</A><BR>
+
+<DD>Creates a new <A HREF="PySECURITY_DESCRIPTOR.html">PySECURITY_DESCRIPTOR</A> object.&nbsp;<P><DT><A HREF="win32security__ImpersonateNamedPipeClient_meth.html">ImpersonateNamedPipeClient</A><BR>
+
+<DD>Impersonates a named-pipe client application.&nbsp;<P><DT><A HREF="win32security__ImpersonateLoggedOnUser_meth.html">ImpersonateLoggedOnUser</A><BR>
+
+<DD>Impersonates a logged on user.&nbsp;<P><DT><A HREF="win32security__ImpersonateAnonymousToken_meth.html">ImpersonateAnonymousToken</A><BR>
+
+<DD>Cause a thread to act in the security context of an anonymous token&nbsp;<P><DT><A HREF="win32security__IsTokenRestricted_meth.html">IsTokenRestricted</A><BR>
+
+<DD>Checks if a token contains restricted sids&nbsp;<P><DT><A HREF="win32security__RevertToSelf_meth.html">RevertToSelf</A><BR>
+
+<DD>Terminates the impersonation of a client application.&nbsp;<P><DT><A HREF="win32security__LogonUser_meth.html">LogonUser</A><BR>
+
+<DD>Attempts to log a user on to the local computer, that is, to the computer from which LogonUser was called. You cannot use LogonUser to log on to a remote computer.&nbsp;<P><DT><A HREF="win32security__LogonUserEx_meth.html">LogonUserEx</A><BR>
+
+<DD>Log a user onto the local machine,&nbsp;<P><DT><A HREF="win32security__LookupAccountName_meth.html">LookupAccountName</A><BR>
+
+<DD>Accepts the name of a system and an account as input. It retrieves a security identifier (SID) for the account and the name of the domain on which the account was found.&nbsp;<P><DT><A HREF="win32security__LookupAccountSid_meth.html">LookupAccountSid</A><BR>
+
+<DD>Accepts a security identifier (SID) as input. It retrieves the name of the account for this SID and the name of the first domain on which this SID is found.&nbsp;<P><DT><A HREF="win32security__GetBinarySid_meth.html">GetBinarySid</A><BR>
+
+<DD>Accepts a SID string (eg: S-1-5-32-544) and returns the SID as a PySID object.&nbsp;<P><DT><A HREF="win32security__SetSecurityInfo_meth.html">SetSecurityInfo</A><BR>
+
+<DD>Sets security info for an object by handle&nbsp;<P><DT><A HREF="win32security__GetSecurityInfo_meth.html">GetSecurityInfo</A><BR>
+
+<DD>Retrieve security info for an object by handle&nbsp;<P><DT><A HREF="win32security__SetNamedSecurityInfo_meth.html">SetNamedSecurityInfo</A><BR>
+
+<DD>Sets security info for an object by name&nbsp;<P><DT><A HREF="win32security__GetNamedSecurityInfo_meth.html">GetNamedSecurityInfo</A><BR>
+
+<DD>Retrieve security info for an object by name&nbsp;<P><DT><A HREF="win32security__OpenProcessToken_meth.html">OpenProcessToken</A><BR>
+
+<DD>Opens the access token associated with a process.&nbsp;<P><DT><A HREF="win32security__LookupPrivilegeValue_meth.html">LookupPrivilegeValue</A><BR>
+
+<DD>Retrieves the locally unique id for a privilege name&nbsp;<P><DT><A HREF="win32security__LookupPrivilegeName_meth.html">LookupPrivilegeName</A><BR>
+
+<DD>return the text name for a privilege LUID&nbsp;<P><DT><A HREF="win32security__LookupPrivilegeDisplayName_meth.html">LookupPrivilegeDisplayName</A><BR>
+
+<DD>Returns long description for a privilege name&nbsp;<P><DT><A HREF="win32security__AdjustTokenPrivileges_meth.html">AdjustTokenPrivileges</A><BR>
+
+<DD>Enables or disables privileges for an access token.&nbsp;<P><DT><A HREF="win32security__AdjustTokenGroups_meth.html">AdjustTokenGroups</A><BR>
+
+<DD>Sets the groups associated to an access token.&nbsp;<P><DT><A HREF="win32security__GetTokenInformation_meth.html">GetTokenInformation</A><BR>
+
+<DD>Retrieves a specified type of information about an access token. The calling process must have appropriate access rights to obtain the information.&nbsp;<P><DT><A HREF="win32security__OpenThreadToken_meth.html">OpenThreadToken</A><BR>
+
+<DD>Opens the access token associated with a thread.&nbsp;<P><DT><A HREF="win32security__SetThreadToken_meth.html">SetThreadToken</A><BR>
+
+<DD>Assigns an impersonation token to a thread. The function 
+
+can also cause a thread to stop using an impersonation token.&nbsp;<P><DT><A HREF="win32security__GetFileSecurity_meth.html">GetFileSecurity</A><BR>
+
+<DD>Obtains specified information about the security of a file or directory. The information obtained is constrained by the caller's access rights and privileges.&nbsp;<P><DT><A HREF="win32security__SetFileSecurity_meth.html">SetFileSecurity</A><BR>
+
+<DD>Sets information about the security of a file or directory. The information obtained is constrained by the caller's access rights and privileges.&nbsp;<P><DT><A HREF="win32security__GetUserObjectSecurity_meth.html">GetUserObjectSecurity</A><BR>
+
+<DD>Obtains specified information about the security of a user object. The information obtained is constrained by the caller's access rights and privileges.&nbsp;<P><DT><A HREF="win32security__SetUserObjectSecurity_meth.html">SetUserObjectSecurity</A><BR>
+
+<DD>Sets information about the security of a user object. The information obtained is constrained by the caller's access rights and privileges.&nbsp;<P><DT><A HREF="win32security__GetKernelObjectSecurity_meth.html">GetKernelObjectSecurity</A><BR>
+
+<DD>Obtains specified information about the security of a kernel object. The information obtained is constrained by the caller's access rights and privileges.&nbsp;<P><DT><A HREF="win32security__SetKernelObjectSecurity_meth.html">SetKernelObjectSecurity</A><BR>
+
+<DD>Sets information about the security of a kernel object. The information obtained is constrained by the caller's access rights and privileges.&nbsp;<P><DT><A HREF="win32security__SetTokenInformation_meth.html">SetTokenInformation</A><BR>
+
+<DD>Set a specified type of information in an access token&nbsp;<P><DT><A HREF="win32security__LsaOpenPolicy_meth.html">LsaOpenPolicy</A><BR>
+
+<DD>Opens a policy handle for the specified system&nbsp;<P><DT><A HREF="win32security__LsaClose_meth.html">LsaClose</A><BR>
+
+<DD>Closes a policy handle created by <A HREF="win32security__LsaOpenPolicy_meth.html">win32security::LsaOpenPolicy</A>&nbsp;<P><DT><A HREF="win32security__LsaQueryInformationPolicy_meth.html">LsaQueryInformationPolicy</A><BR>
+
+<DD>Retrieves information from the policy handle&nbsp;<P><DT><A HREF="win32security__LsaSetInformationPolicy_meth.html">LsaSetInformationPolicy</A><BR>
+
+<DD>Sets policy options&nbsp;<P><DT><A HREF="win32security__LsaAddAccountRights_meth.html">LsaAddAccountRights</A><BR>
+
+<DD>Adds a list of privileges to an account&nbsp;<P><DT><A HREF="win32security__LsaRemoveAccountRights_meth.html">LsaRemoveAccountRights</A><BR>
+
+<DD>Removes privs from an account&nbsp;<P><DT><A HREF="win32security__LsaEnumerateAccountRights_meth.html">LsaEnumerateAccountRights</A><BR>
+
+<DD>Lists privileges held by SID&nbsp;<P><DT><A HREF="win32security__LsaEnumerateAccountsWithUserRight_meth.html">LsaEnumerateAccountsWithUserRight</A><BR>
+
+<DD>Return SIDs that hold specified priv&nbsp;<P><DT><A HREF="win32security__ConvertSidToStringSid_meth.html">ConvertSidToStringSid</A><BR>
+
+<DD>Return string representation of a SID&nbsp;<P><DT><A HREF="win32security__ConvertStringSidToSid_meth.html">ConvertStringSidToSid</A><BR>
+
+<DD>Creates a SID from a string representation&nbsp;<P><DT><A HREF="win32security__ConvertSecurityDescriptorToStringSecurityDescriptor_meth.html">ConvertSecurityDescriptorToStringSecurityDescriptor</A><BR>
+
+<DD>Return string representation of a SECURITY_DESCRIPTOR&nbsp;<P><DT><A HREF="win32security__ConvertStringSecurityDescriptorToSecurityDescriptor_meth.html">ConvertStringSecurityDescriptorToSecurityDescriptor</A><BR>
+
+<DD>Turns string representation of a SECURITY_DESCRIPTOR into the real thing&nbsp;<P><DT><A HREF="win32security__LsaStorePrivateData_meth.html">LsaStorePrivateData</A><BR>
+
+<DD>Stores encrypted unicode data under specified Lsa registry key. Returns None on success&nbsp;<P><DT><A HREF="win32security__LsaRetrievePrivateData_meth.html">LsaRetrievePrivateData</A><BR>
+
+<DD>Retreives encrypted unicode data from Lsa registry key.&nbsp;<P><DT><A HREF="win32security__LsaRegisterPolicyChangeNotification_meth.html">LsaRegisterPolicyChangeNotification</A><BR>
+
+<DD>Register an event handle to receive policy change events&nbsp;<P><DT><A HREF="win32security__LsaUnregisterPolicyChangeNotification_meth.html">LsaUnregisterPolicyChangeNotification</A><BR>
+
+<DD>Stop receiving policy change notification&nbsp;<P><DT><A HREF="win32security__CryptEnumProviders_meth.html">CryptEnumProviders</A><BR>
+
+<DD>List cryptography providers&nbsp;<P><DT><A HREF="win32security__EnumerateSecurityPackages_meth.html">EnumerateSecurityPackages</A><BR>
+
+<DD>List available security packages as a sequence of dictionaries representing SecPkgInfo structures&nbsp;<P><DT><A HREF="win32security__AllocateLocallyUniqueId_meth.html">AllocateLocallyUniqueId</A><BR>
+
+<DD>Creates a new LUID&nbsp;<P><DT><A HREF="win32security__ImpersonateSelf_meth.html">ImpersonateSelf</A><BR>
+
+<DD>Assigns an impersonation token for current security context to current process&nbsp;<P><DT><A HREF="win32security__DuplicateToken_meth.html">DuplicateToken</A><BR>
+
+<DD>Creates a copy of an access token with specified impersonation level&nbsp;<P><DT><A HREF="win32security__DuplicateTokenEx_meth.html">DuplicateTokenEx</A><BR>
+
+<DD>Extended version of DuplicateToken.&nbsp;<P><DT><A HREF="win32security__CheckTokenMembership_meth.html">CheckTokenMembership</A><BR>
+
+<DD>Checks if a SID is enabled in a token&nbsp;<P><DT><A HREF="win32security__CreateRestrictedToken_meth.html">CreateRestrictedToken</A><BR>
+
+<DD>Creates a restricted copy of an access token with reduced privs - requires win2K or higher&nbsp;<P><DT><A HREF="win32security__LsaRegisterLogonProcess_meth.html">LsaRegisterLogonProcess</A><BR>
+
+<DD>Creates a trusted connection to LSA&nbsp;<P><DT><A HREF="win32security__LsaConnectUntrusted_meth.html">LsaConnectUntrusted</A><BR>
+
+<DD>Creates untrusted connection to LSA&nbsp;<P><DT><A HREF="win32security__LsaDeregisterLogonProcess_meth.html">LsaDeregisterLogonProcess</A><BR>
+
+<DD>Closes connection to LSA server&nbsp;<P><DT><A HREF="win32security__LsaLookupAuthenticationPackage_meth.html">LsaLookupAuthenticationPackage</A><BR>
+
+<DD>Retrieves the unique id for an authentication package&nbsp;<P><DT><A HREF="win32security__LsaEnumerateLogonSessions_meth.html">LsaEnumerateLogonSessions</A><BR>
+
+<DD>Lists all current logon ids&nbsp;<P><DT><A HREF="win32security__LsaGetLogonSessionData_meth.html">LsaGetLogonSessionData</A><BR>
+
+<DD>Returns information about a logon session&nbsp;<P><DT><A HREF="win32security__AcquireCredentialsHandle_meth.html">AcquireCredentialsHandle</A><BR>
+
+<DD>Creates a handle to credentials for use with SSPI&nbsp;<P><DT><A HREF="win32security__InitializeSecurityContext_meth.html">InitializeSecurityContext</A><BR>
+
+<DD>Creates a security context based on credentials created by AcquireCredentialsHandle&nbsp;<P><DT><A HREF="win32security__AcceptSecurityContext_meth.html">AcceptSecurityContext</A><BR>
+
+<DD>Builds security context between server and client&nbsp;<P><DT><A HREF="win32security__QuerySecurityPackageInfo_meth.html">QuerySecurityPackageInfo</A><BR>
+
+<DD>Retrieves parameters for a security package&nbsp;<P><DT><A HREF="win32security__LsaCallAuthenticationPackage_meth.html">LsaCallAuthenticationPackage</A><BR>
+
+<DD>Requests the services of an authentication package&nbsp;<P><DT><A HREF="win32security__TranslateName_meth.html">TranslateName</A><BR>
+
+<DD>Converts a directory service object name from one format to another.&nbsp;<P><DT><A HREF="win32security__CreateWellKnownSid_meth.html">CreateWellKnownSid</A><BR>
+
+<DD>Returns one of the predefined well known sids&nbsp;<P><DT><A HREF="win32security__MapGenericMask_meth.html">MapGenericMask</A><BR>
+
+<DD>Translates generic access rights into specific rights&nbsp;<P></DL></body>
+</html>

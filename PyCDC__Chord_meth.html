@@ -1,0 +1,60 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyCDC.Chord</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="PyCDC.html">PyCDC</A>.Chord</H1><P>
+
+<B>Chord(<I>rect</I><I>, pointStart</I><I>, pointEnd</I></B>)<P>Draws a chord.<P>
+
+<H3>Parameters</H3><P><DT><I>rect</I> : (left, top, right, bottom)<P>
+
+<DD>Specifies the ellipse's bounding rectangle<P><DT><I>pointStart</I> : (x,y)<P>
+
+<DD>Specifies the x- and y-coordinates 
+
+of the point that defines the arc's starting point (in logical units). 
+
+This point does not have to lie exactly on the arc.<P><DT><I>pointEnd</I> : (x,y)<P>
+
+<DD>Specifies the x- and y-coordinates 
+
+of the point that defines the arc's ending point (in logical units). 
+
+This point does not have to lie exactly on the arc.<P><H3>Comments</H3>
+
+Draws a chord (a closed figure bounded by the intersection 
+
+of an ellipse and a line segment). The rect parameter specify the 
+
+upper-left and lower-right corners, respectively, of a rectangle 
+
+bounding the ellipse that is part of the chord. 
+
+The pointStart and pointEnd parameters specify 
+
+the endpoints of a line that intersects the ellipse. 
+
+The chord is drawn by using the selected pen and filled 
+
+by using the selected brush.<P>
+
+<H3>MFC References</H3><P><DT>CDC::Chord<P>
+
+<H3>Return Value</H3>Always none.  If the function fails, an exception is raised.<P>
+
+
+
+</body>
+</html>

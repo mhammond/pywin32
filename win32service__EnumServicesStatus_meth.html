@@ -1,0 +1,40 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32service.EnumServicesStatus</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32service.html">win32service</A>.EnumServicesStatus</H1><P>
+
+(tuple,...) = <B>EnumServicesStatus(<I>hSCManager</I><I>, ServiceType</I>
+
+<I>, ServiceState</I>
+
+</B>)<P>Returns a tuple of status info for each service that meets specified criteria<P>
+
+<H3>Parameters</H3><P><DT><I>hSCManager</I> : <A HREF="PySC_HANDLE.html">PySC_HANDLE</A><P>
+
+<DD>Handle to service control manager as returned by <A HREF="win32service__OpenSCManager_meth.html">win32service::OpenSCManager</A><P><DT><I>ServiceType=SERVICE_WIN32</I> : int<P>
+
+<DD>Types of services to enumerate (SERVICE_DRIVER and/or SERVICE_WIN32)<P>
+
+<DT><I>ServiceState=SERVICE_STATE_ALL</I> : int<P>
+
+<DD>Limits to services in specified state<P>
+
+<H3>Return Value</H3>Returns a sequence of tuples representing ENUM_SERVICE_STATUS structs: (ServiceName, DisplayName, <A HREF="SERVICE_STATUS.html">SERVICE_STATUS</A>)<P>
+
+
+
+</body>
+</html>

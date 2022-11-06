@@ -1,0 +1,42 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32api.DragQueryFile</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32api.html">win32api</A>.DragQueryFile</H1><P>
+
+string/int = <B>DragQueryFile(<I>hDrop</I><I>, fileNum</I>
+
+</B>)<P>Retrieves the file names of dropped files.<P>
+
+<H3>Parameters</H3><P><DT><I>hDrop</I> : int<P>
+
+<DD>Handle identifying the structure containing the file names.<P><DT><I>fileNum=0xFFFFFFFF</I> : int<P>
+
+<DD>Specifies the index of the file to query.<P>
+
+<H3>Win32 API References</H3><P><DT>Search for <i>DragQueryFile</i> at <a href="http://search.msdn.microsoft.com/search/results.aspx?view=msdn&query=DragQueryFile" target="_blank">msdn</a>, <a href="http://www.google.com/search?q=DragQueryFile" target="_blank">google</a> or <a href="http://groups.google.com/groups?q=DragQueryFile" target="_blank">google groups</a>.<P>
+
+<H3>Return Value</H3>If the fileNum parameter is 0xFFFFFFFF (the default) then the return value 
+
+is an integer with the count of files dropped.  If fileNum is between 0 and Count, 
+
+the return value is a string containing the filename.<BR> 
+
+If an error occurs, and exception is raised.<P>
+
+
+
+</body>
+</html>

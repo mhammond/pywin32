@@ -1,0 +1,40 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyGSecurityInformation.MapGeneric</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="PyGSecurityInformation.html">PyGSecurityInformation</A>.MapGeneric</H1><P>
+
+int = <B>MapGeneric(<I>ObjectType</I><I>, AceFlags</I>
+
+<I>, Mask</I>
+
+</B>)<P>Translates generic access rights to specific equivalents<P>
+
+<H3>Parameters</H3><P><DT><I>ObjectType</I> : <A HREF="PyIID.html">PyIID</A><P>
+
+<DD>Type of object that permissions apply to, None or GUID_NULL indicates object itself<P><DT><I>AceFlags</I> : int<P>
+
+<DD>Flags from the ACE that contains the permissions<P><DT><I>Mask</I> : int<P>
+
+<DD>Bitmask containing access rights<P><H3>Comments</H3>
+
+See <A HREF="win32security__MapGenericMask_meth.html">win32security::MapGenericMask</A><P>
+
+<H3>Return Value</H3>This method should return the input bitmask will all generic rights mapped to specific rights<P>
+
+
+
+</body>
+</html>

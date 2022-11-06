@@ -1,0 +1,40 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>shell.SHGetViewStatePropertyBag</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="shell.html">shell</A>.SHGetViewStatePropertyBag</H1><P>
+
+<A HREF="PyIPropertyBag.html">PyIPropertyBag</A> = <B>SHGetViewStatePropertyBag(<I>pidl</I><I>, BagName</I>
+
+<I>, Flags</I>
+
+<I>, riid</I>
+
+</B>)<P>Retrieves an interface for the view state of a folder<P>
+
+<H3>Parameters</H3><P><DT><I>pidl</I> : <A HREF="PyIDL.html">PyIDL</A><P>
+
+<DD>An item id list that identifies the folder<P><DT><I>BagName</I> : string<P>
+
+<DD>Name of the property bag to retrieve<P><DT><I>Flags</I> : int<P>
+
+<DD>Combination of SHGVSPB_* flags<P><DT><I>riid</I> : <A HREF="PyIID.html">PyIID</A><P>
+
+<DD>The interface to return, usually IID_IPropertyBag<P><H3>Comments</H3>
+
+This function will also return IPropertyBag2, but we don't have a python implementation of this interface yet<P>
+
+</body>
+</html>

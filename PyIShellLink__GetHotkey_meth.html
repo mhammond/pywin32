@@ -1,0 +1,32 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyIShellLink.GetHotkey</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="PyIShellLink.html">PyIShellLink</A>.GetHotkey</H1><P>
+
+int = <B>GetHotkey(</B>)<P>Retrieves the hot key for a shell link object.<P>
+
+<H3>Comments</H3>
+
+Note: My tests do not seem to be working. at least, the values returned 
+
+seem not to match what the documentation says should be returned. 
+
+I would expect with a Hotkey of CTRL-ALT-T, to get an integer where 
+
+integer & 256 == ord('T'), i.e. 116 or 84, instead I get 1620<P>
+
+</body>
+</html>

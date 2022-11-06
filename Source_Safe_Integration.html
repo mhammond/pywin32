@@ -1,0 +1,56 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>Source Safe Integration</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<HR><H1>Source Safe Integration</H1>
+
+Note you will need to restart Pythonwin for this option to take effect.<P>
+
+Before using the VSS integration, you must create a "mssccprj.scc" file 
+
+in the directory, or a parent directory, of the files you wish to 
+
+integrate. There are no limits on how many of these files exist. This is 
+
+the same name and format as VB uses for VSS integration - a Windows INI 
+
+file.<P>
+
+This file must have a section [Python] with entry "Project=ProjectName". 
+
+The project name is the name of the VSS project used to check the out 
+
+the file. If the .scc file is in a parent directory, the correct 
+
+relative VSS path is built - so if your file system matches your VSS 
+
+structure, you only need a single .scc file in the VSS "root" directory.<P>
+
+<BR>For example, assuming you have the file c:\\src\\mssccprj.scc with the contents: 
+
+<BR>[Python] 
+
+<BR>Project=OurProject 
+
+<BR>-eof- 
+
+<BR>The file c:\\src\\source1.py will be checked out from project OurProject, 
+
+c:\\src\\sub\\source2.py will be checked out from project OurProject\\sub, 
+
+etc.<P>
+
+</body>
+</html>

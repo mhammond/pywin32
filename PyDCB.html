@@ -1,0 +1,200 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyDCB</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<HR><H1>PyDCB Object</H1><P>
+
+A Python object, representing an DCB structure<P>
+
+<H3>Comments</H3>
+
+Typically you query a device for its DCB using 
+
+<A HREF="win32file__GetCommState_meth.html">win32file::GetCommState</A>, change any setting necessary, then 
+
+call <A HREF="win32file__SetCommState_meth.html">win32file::SetCommState</A> with the new structure. 
+
+TRUE*/)<P>
+
+<H3>Properties</H3>
+
+<DL>
+
+<DT><B>integer BaudRate</B>
+
+<DD>current baud rate<P>
+
+
+
+<DT><B>integer wReserved</B>
+
+<DD>not currently used<P>
+
+
+
+<DT><B>integer XonLim</B>
+
+<DD>transmit XON threshold<P>
+
+
+
+<DT><B>integer XoffLim</B>
+
+<DD>transmit XOFF threshold<P>
+
+
+
+<DT><B>integer ByteSize</B>
+
+<DD>number of bits/byte, 4-8<P>
+
+
+
+<DT><B>integer Parity</B>
+
+<DD>0-4=no,odd,even,mark,space<P>
+
+
+
+<DT><B>integer StopBits</B>
+
+<DD>0,1,2 = 1, 1.5, 2<P>
+
+
+
+<DT><B>character XonChar</B>
+
+<DD>Tx and Rx XON character<P>
+
+
+
+<DT><B>character XoffChar</B>
+
+<DD>Tx and Rx XOFF character<P>
+
+
+
+<DT><B>character ErrorChar</B>
+
+<DD>error replacement character<P>
+
+
+
+<DT><B>character EofChar</B>
+
+<DD>end of input character<P>
+
+
+
+<DT><B>character EvtChar</B>
+
+<DD>received event character<P>
+
+
+
+<DT><B>integer wReserved1</B>
+
+<DD>reserved; do not use<P>
+
+
+
+<DT><B>integer fBinary</B>
+
+<DD>binary mode, no EOF check<P>
+
+
+
+<DT><B>integer fParity</B>
+
+<DD>enable parity checking<P>
+
+
+
+<DT><B>integer fOutxCtsFlow</B>
+
+<DD>CTS output flow control<P>
+
+
+
+<DT><B>integer fOutxDsrFlow</B>
+
+<DD>DSR output flow control<P>
+
+
+
+<DT><B>integer fDtrControl</B>
+
+<DD>DTR flow control type<P>
+
+
+
+<DT><B>integer fDsrSensitivity</B>
+
+<DD>DSR sensitivity<P>
+
+
+
+<DT><B>integer fTXContinueOnXoff</B>
+
+<DD>XOFF continues Tx<P>
+
+
+
+<DT><B>integer fOutX</B>
+
+<DD>XON/XOFF out flow control<P>
+
+
+
+<DT><B>integer fInX</B>
+
+<DD>XON/XOFF in flow control<P>
+
+
+
+<DT><B>integer fErrorChar</B>
+
+<DD>enable error replacement<P>
+
+
+
+<DT><B>integer fNull</B>
+
+<DD>enable null stripping<P>
+
+
+
+<DT><B>integer fRtsControl</B>
+
+<DD>RTS flow control<P>
+
+
+
+<DT><B>integer fAbortOnError</B>
+
+<DD>abort on error<P>
+
+
+
+<DT><B>integer fDummy2</B>
+
+<DD>reserved<P>
+
+
+
+</DL>
+
+</body>
+</html>

@@ -1,0 +1,50 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyCWnd.HookKeyStroke</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="PyCWnd.html">PyCWnd</A>.HookKeyStroke</H1><P>
+
+object = <B>HookKeyStroke(<I>obHandler</I><I>, ch</I>
+
+</B>)<P>Hook a key stroke handler<P>
+
+<H3>Parameters</H3><P><DT><I>obHandler</I> : object<P>
+
+<DD>The handler of the keystroke.  This must be a callable object.<P><DT><I>ch</I> : int<P>
+
+<DD>The ID for the keystroke to be handled. 
+
+This may be an ascii code, or a virtual key code.<P><H3>Comments</H3>
+
+The handler object passed will be called as the application receives WM_CHAR message for the specified 
+
+character code. The handler will be called with 2 arguments<BR> 
+
+The handler object (as per all hook functions)<BR> 
+
+The keystroke being handled.<BR> 
+
+If the handler returns TRUE, then the keystroke will be passed on to the 
+
+default handler, otherwise the keystroke will be consumed.<BR> 
+
+Note: This handler will not be called if a <A HREF="PyCWnd__HookAllKeyStrokes_meth.html">PyCWnd::HookAllKeyStrokes</A> hook is in place.<P>
+
+<H3>Return Value</H3>The return value is the previous handler, or None.<P>
+
+
+
+</body>
+</html>

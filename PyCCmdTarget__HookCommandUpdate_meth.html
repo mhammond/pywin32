@@ -1,0 +1,44 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyCCmdTarget.HookCommandUpdate</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="PyCCmdTarget.html">PyCCmdTarget</A>.HookCommandUpdate</H1><P>
+
+object = <B>HookCommandUpdate(<I>obHandler</I><I>, id</I>
+
+</B>)<P>Hook a windows command update handler.<P>
+
+<H3>Parameters</H3><P><DT><I>obHandler</I> : object<P>
+
+<DD>The handler for the command message.  This must be a callable object.<P><DT><I>id</I> : int<P>
+
+<DD>The ID of the command to be handled.<P><H3>Comments</H3>
+
+The handler object passed will be called as 
+
+the application updates user interface elements 
+
+with the specified ID. 
+
+See <A HREF="PyCCmdTarget__HookCommand_meth.html">PyCCmdTarget::HookCommand</A> for a description 
+
+of the rules used to determine command routing and updating.<P>
+
+<H3>Return Value</H3>The return value is the previous handler, or None.<P>
+
+
+
+</body>
+</html>

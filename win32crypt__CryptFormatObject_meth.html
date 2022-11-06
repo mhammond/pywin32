@@ -1,0 +1,62 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32crypt.CryptFormatObject</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32crypt.html">win32crypt</A>.CryptFormatObject</H1><P>
+
+str = <B>CryptFormatObject(<I>StructType</I><I>, Encoded</I>
+
+<I>, FormatStrType</I>
+
+<I>, CertEncodingType</I>
+
+<I>, FormatType</I>
+
+<I>, FormatStruct</I>
+
+</B>)<P>Formats an encoded buffer into a readable string<P>
+
+<H3>Parameters</H3><P><DT><I>StructType</I> : str/int<P>
+
+<DD>OID identifying the type of encoded data, 
+
+one of the szOID_* strings or an integer OID<P><DT><I>Encoded</I> : str<P>
+
+<DD>String containing encoded data to be formatted<P><DT><I>FormatStrType=0</I> : int<P>
+
+<DD>String formatting options, combination 
+
+of CRYPT_FORMAT_STR_MULTI_LINE, CRYPT_FORMAT_STR_NO_HEX<P>
+
+<DT><I>CertEncodingType=X509_ASN_ENCODING</I> : int<P>
+
+<DD>Input encoding<P>
+
+<DT><I>FormatType=0</I> : int<P>
+
+<DD>Reserved, use only 0<P>
+
+<DT><I>FormatStruct=None</I> : None<P>
+
+<DD>Reserved, use only None<P>
+
+<H3>Comments</H3>
+
+Will handle all of the common certificate extension types<P>
+
+<H3>Win32 API References</H3><P><DT>Search for <i>CryptFormatObject</i> at <a href="http://search.msdn.microsoft.com/search/results.aspx?view=msdn&query=CryptFormatObject" target="_blank">msdn</a>, <a href="http://www.google.com/search?q=CryptFormatObject" target="_blank">google</a> or <a href="http://groups.google.com/groups?q=CryptFormatObject" target="_blank">google groups</a>.<P>
+
+</body>
+</html>

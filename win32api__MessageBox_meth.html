@@ -1,0 +1,54 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32api.MessageBox</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32api.html">win32api</A>.MessageBox</H1><P>
+
+int = <B>MessageBox(<I>hwnd</I><I>, message</I>
+
+<I>, title</I>
+
+<I>, style</I>
+
+<I>, language</I>
+
+</B>)<P>Display a message box.<P>
+
+<H3>Parameters</H3><P><DT><I>hwnd</I> : <A HREF="PyHANDLE.html">PyHANDLE</A><P>
+
+<DD>The handle of the parent window.  See the comments section.<P><DT><I>message</I> : string<P>
+
+<DD>The message to be displayed in the message box.<P><DT><I>title</I> : string/None<P>
+
+<DD>The title for the message box.  If None, the applications title will be used.<P><DT><I>style=win32con.MB_OK</I> : int<P>
+
+<DD>The style of the message box.<P>
+
+<DT><I>language=win32api.MAKELANGID(LANG_NEUTRAL,SUBLANG_DEFAULT)</I> : int<P>
+
+<DD>The language ID to use.<P>
+
+<H3>Comments</H3>
+
+Normally, a program in a GUI environment will use one of the MessageBox 
+
+methods supplied by the GUI (eg, <A HREF="win32ui__MessageBox_meth.html">win32ui::MessageBox</A> or <A HREF="PyCWnd__MessageBox_meth.html">PyCWnd::MessageBox</A>)<P>
+
+<H3>Return Value</H3>An integer identifying the button pressed to dismiss the dialog.<P>
+
+
+
+</body>
+</html>

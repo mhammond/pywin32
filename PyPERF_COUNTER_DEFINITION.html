@@ -1,0 +1,80 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyPERF_COUNTER_DEFINITION</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<HR><H1>PyPERF_COUNTER_DEFINITION Object</H1><P>
+
+An object encapsulating a Windows NT Performance Monitor counter definition 
+
+(PERF_COUNTER_DEFINITION).<P>
+
+<H3>Comments</H3>
+
+Note that all the counter "set" functions will silently do nothing 
+
+if the counter does not appear in a block.  This is so the application can avoid 
+
+excessive tests for lack of performance monitor functionality. 
+
+However, the method <A HREF="PyPERF_COUNTER_DEFINITION__Get_meth.html">PyPERF_COUNTER_DEFINITION::Get</A> will raise a ValueError exception in this case.<P>
+
+<H3>Methods</H3><P><DL><DT><A HREF="PyPERF_COUNTER_DEFINITION__Increment_meth.html">Increment</A><BR>
+
+<DD>Increments the value of the performance counter&nbsp;<P><DT><A HREF="PyPERF_COUNTER_DEFINITION__Decrement_meth.html">Decrement</A><BR>
+
+<DD>Decrements the value of the performance counter&nbsp;<P><DT><A HREF="PyPERF_COUNTER_DEFINITION__Set_meth.html">Set</A><BR>
+
+<DD>Sets the counter to a specific value&nbsp;<P><DT><A HREF="PyPERF_COUNTER_DEFINITION__Get_meth.html">Get</A><BR>
+
+<DD>Gets the current value of the counter&nbsp;<P></DL>
+
+<H3>Properties</H3>
+
+<DL>
+
+<DT><B>integer DefaultScale</B>
+
+<DD>The default scale of the counter.<P>
+
+
+
+<DT><B>integer DetailLevel</B>
+
+<DD>The detail level of the counter.<P>
+
+
+
+<DT><B>integer CounterType</B>
+
+<DD>The counter type.<P>
+
+
+
+<DT><B>integer CounterNameTitleIndex</B>
+
+<DD><P>
+
+
+
+<DT><B>integer CounterHelpTitleIndex</B>
+
+<DD>Sentinel<P>
+
+
+
+</DL>
+
+</body>
+</html>

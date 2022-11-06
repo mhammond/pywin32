@@ -1,0 +1,50 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>shell.SHCreateStreamOnFileEx</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="shell.html">shell</A>.SHCreateStreamOnFileEx</H1><P>
+
+<A HREF="PyIStream.html">PyIStream</A> = <B>SHCreateStreamOnFileEx(<I>File</I><I>, Mode</I>
+
+<I>, Attributes</I>
+
+<I>, Create</I>
+
+<I>, Template</I>
+
+</B>)<P>Creates an IStream interface that reads and writes to a file<P>
+
+<H3>Parameters</H3><P><DT><I>File</I> : str<P>
+
+<DD>Name of file to be connected to the stream<P><DT><I>Mode</I> : int<P>
+
+<DD>Combination of storagecon.STGM_* flags specifying the access mode<P><DT><I>Attributes</I> : int<P>
+
+<DD>Combination of win32con.FILE_ATTRIBUTE_* flags<P><DT><I>Create</I> : bool<P>
+
+<DD>Determines if function should fail when file exists (see MSDN docs for full explanation)<P><DT><I>Template=None</I> : None<P>
+
+<DD>Reserved, use only None<P>
+
+<H3>Comments</H3>
+
+Accepts keyword args.<P>
+
+This function is only available on WinXP and later. 
+
+COM exception with E_NOTIMPL will be thrown if the function can't be located.<P>
+
+</body>
+</html>

@@ -1,0 +1,30 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>DEBUG_PROCESS</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<HR>
+
+<H1>DEBUG_PROCESS</H1>
+
+<B>const win32process.DEBUG_PROCESS;</B><P>
+
+If this flag is set, the calling process is treated as a debugger, and the new process is a process being debugged. The system notifies the debugger of all debug events that occur in the process being debugged. 
+
+If you create a process with this flag set, only the calling thread (the thread that called CreateProcess) can call the WaitForDebugEvent function. 
+
+Windows 95 and Windows 98: This flag is not valid if the new process is a 16-bit application.<P>
+
+</body>
+</html>

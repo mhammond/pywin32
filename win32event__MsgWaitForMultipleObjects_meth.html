@@ -1,0 +1,44 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32event.MsgWaitForMultipleObjects</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32event.html">win32event</A>.MsgWaitForMultipleObjects</H1><P>
+
+int = <B>MsgWaitForMultipleObjects(<I>handleList</I><I>, bWaitAll</I>
+
+<I>, milliseconds</I>
+
+<I>, wakeMask</I>
+
+</B>)<P>Returns when a message arrives of an event is signalled<P>
+
+<H3>Parameters</H3><P><DT><I>handleList</I> : [<A HREF="PyHANDLE.html">PyHANDLE</A>, ...]<P>
+
+<DD>A sequence of handles to wait on.<P><DT><I>bWaitAll</I> : bool<P>
+
+<DD>If true, waits for all handles in the list.<P><DT><I>milliseconds</I> : int<P>
+
+<DD>time-out interval in milliseconds<P><DT><I>wakeMask</I> : int<P>
+
+<DD>type of input events to wait for.  One of the win32event.QS_ constants.<P><H3>Comments</H3>
+
+Note that if bWaitAll is TRUE, the function will return when there is input in the queue, 
+
+and all events are signalled.  This is rarely what you want! 
+
+If input is waiting, the result is win32event.WAIT_OBJECT_0+len(handles))<P>
+
+</body>
+</html>

@@ -1,0 +1,32 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32file.TransmitCommChar</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32file.html">win32file</A>.TransmitCommChar</H1><P>
+
+<B>TransmitCommChar(<I>handle</I><I>, cChar</I></B>)<P>Transmits a specified character ahead of any pending data in the output buffer of the specified communications device.<P>
+
+<H3>Parameters</H3><P><DT><I>handle</I> : <A HREF="PyHANDLE.html">PyHANDLE</A><P>
+
+<DD>The handle to the communications device.<P><DT><I>cChar</I> : char<P>
+
+<DD>The character to transmit.<P><H3>Comments</H3>
+
+The TransmitCommChar function is useful for sending an interrupt character (such as a CTRL+C) to a host system. 
+
+<BR>If the device is not transmitting, TransmitCommChar cannot be called repeatedly. Once TransmitCommChar places a character in the output buffer, the character must be transmitted before the function can be called again. If the previous character has not yet been sent, TransmitCommChar returns an error.<P>
+
+</body>
+</html>

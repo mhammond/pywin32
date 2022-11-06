@@ -1,0 +1,36 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32ui.SetRegistryKey</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32ui.html">win32ui</A>.SetRegistryKey</H1><P>
+
+<B>SetRegistryKey(<I>key</I></B>)<P>Causes application settings to be stored in the registry instead of INI files.<P>
+
+<H3>Parameters</H3><P><DT><I>key</I> : string<P>
+
+<DD>A string containing the name of the key.<P><H3>Comments</H3>
+
+Causes application settings to be stored in the registry instead of INI files. This function sets 
+
+m_pszRegistryKey, which is then used by the GetProfileXXX and WriteProfileXXX member functions of CWinApp. If 
+
+this function has been called, the list of most recently-used (MRU) files is also stored in the registry. The 
+
+registry key is usually the name of a company. It is stored in a key of the following form: 
+
+HKEY_CURRENT_USER\\Software\\&ltcompany name&gt\\&ltapplication name&gt\\&ltsection name&gt\\&ltvalue name&gt.<P>
+
+</body>
+</html>

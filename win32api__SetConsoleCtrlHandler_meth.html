@@ -1,0 +1,68 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32api.SetConsoleCtrlHandler</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32api.html">win32api</A>.SetConsoleCtrlHandler</H1><P>
+
+<B>SetConsoleCtrlHandler(<I>ctrlHandler</I><I>, bAdd</I></B>)<P>Adds or removes an application-defined HandlerRoutine function from the 
+
+list of handler functions for the calling process.<P>
+
+<H3>Parameters</H3><P><DT><I>ctrlHandler</I> : callable<P>
+
+<DD>The function to call.  This function 
+
+should accept one param - the type of signal.<P><DT><I>bAdd</I> : int<P>
+
+<DD>True if the handler is being added, false if removed.<P><H3>Comments</H3>
+
+Note that the implementation is a single CtrlHandler in C, which 
+
+keeps a list of the handlers added by this function.  So although this 
+
+function uses the same semantics as the Win32 function (ie, last 
+
+registered first called, and first to return True stops the calls) the 
+
+true order of all Python and C implemented CtrlHandlers may not match 
+
+what would happen if all were implemented in C. 
+
+<BR>This handler must acquire the Python lock before it can call any 
+
+of the registered handlers.  This means the handler may not be called 
+
+until the current Python thread yields the lock. 
+
+<BR> 
+
+A console process can use the <A HREF="win32api__GenerateConsoleCtrlEvent_meth.html">win32api::GenerateConsoleCtrlEvent</A> 
+
+function to send a CTRL+C or CTRL+BREAK signal to a console process 
+
+group. 
+
+<BR>The system generates CTRL_CLOSE_EVENT, CTRL_LOGOFF_EVENT, and 
+
+CTRL_SHUTDOWN_EVENT signals when the user closes the console, logs off, 
+
+or shuts down the system so that the process has an opportunity to 
+
+clean up before termination.<P>
+
+<H3>Win32 API References</H3><P><DT>Search for <i>SetConsoleCtrlHandler</i> at <a href="http://search.msdn.microsoft.com/search/results.aspx?view=msdn&query=SetConsoleCtrlHandler" target="_blank">msdn</a>, <a href="http://www.google.com/search?q=SetConsoleCtrlHandler" target="_blank">google</a> or <a href="http://groups.google.com/groups?q=SetConsoleCtrlHandler" target="_blank">google groups</a>.<P>
+
+</body>
+</html>

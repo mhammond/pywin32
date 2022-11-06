@@ -1,0 +1,76 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32file.SetFileInformationByHandle</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32file.html">win32file</A>.SetFileInformationByHandle</H1><P>
+
+<B>SetFileInformationByHandle(<I>File</I><I>, FileInformationClass</I><I>, Information</I></B>)<P>Changes file characteristics by file handle<P>
+
+<H3>Parameters</H3><P><DT><I>File</I> : <A HREF="PyHANDLE.html">PyHANDLE</A><P>
+
+<DD>Handle to a file or directory.  Do not pass a pipe handle.<P><DT><I>FileInformationClass</I> : int<P>
+
+<DD>Type of data, one of win32file.File*Info values<P><DT><I>Information</I> : object<P>
+
+<DD>Type is dependent on the class to be changed<P><P><TABLE COLS=2 WIDTH="100%" CELLSPACING=15>
+
+<TR>
+
+   <TD>
+
+       <B>Class</B>
+
+   </TD>
+
+   <TD>
+
+       <B>Type of input</B>
+
+   </TD>
+
+</TR>
+
+<TR><TD><HR></TD><TD><HR></TD></TR>
+
+<TR><TD>FileBasicInfo</TD><TD>Dict representing a FILE_BASIC_INFO struct, containing 
+
+{"CreationTime":<A HREF="PyDateTime.html">PyDateTime</A>, "LastAccessTime":<A HREF="PyDateTime.html">PyDateTime</A>,  "LastWriteTime":<A HREF="PyDateTime.html">PyDateTime</A>, 
+
+"ChangeTime":<A HREF="PyDateTime.html">PyDateTime</A>, "FileAttributes":int}</TD></TR>
+
+<TR><TD>FileRenameInfo</TD><TD>Dict representing a FILE_RENAME_INFO struct, containing 
+
+{"ReplaceIfExists":boolean, "RootDirectory":<A HREF="PyHANDLE.html">PyHANDLE</A>, "FileName":str} 
+
+MSDN says the RootDirectory is "A handle to the root directory in which the file to be renamed is located". 
+
+However, this is actually the destination dir, can be None to stay in same dir.</TD></TR>
+
+<TR><TD>FileDispositionInfo</TD><TD>Boolean indicating if file should be deleted when handle is closed</TD></TR>
+
+<TR><TD>FileAllocationInfo</TD><TD>Int giving the allocation size.</TD></TR>
+
+<TR><TD>FileEndOfFileInfo</TD><TD>Int giving the EOF position, cannot be greater than allocated size.</TD></TR>
+
+<TR><TD>FileIoPriorityHintInfo</TD><TD>Int containing the IO priority (IoPriorityHint*)</TD></TR>
+
+</TABLE><H3>Comments</H3>
+
+Available on Vista and later.<P>
+
+Accepts keyword args.<P>
+
+</body>
+</html>

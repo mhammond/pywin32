@@ -1,0 +1,38 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyIPersistStorage.Save</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="PyIPersistStorage.html">PyIPersistStorage</A>.Save</H1><P>
+
+<B>Save(<I>PyIStorage</I><I>, int</I></B>)<P>Saves an object, and any nested objects that it contains, into the specified 
+
+storage. The object is placed in NoScribble mode, and it must not write to the specified storage until it receives a 
+
+call to its <A HREF="PyIPersistStorage__SaveCompleted_meth.html">PyIPersistStorage::SaveCompleted</A> method.<P>
+
+<H3>Parameters</H3><P><DT><I>PyIStorage</I> : <A HREF="PyIStorage.html">PyIStorage</A><P>
+
+<DD>Storage for the object<P><DT><I>int</I> : fSameAsLoad<P>
+
+<DD>Indicates whether the specified storage object is the current one.<BR> 
+
+This parameter is set to FALSE when performing a Save As or Save A Copy To operation or when performing a full 
+
+save. In the latter case, this method saves to a temporary file, deletes the original file, and renames the 
+
+temporary file.<BR> This parameter is set to TRUE to perform a full save in a low-memory situation or to perform 
+
+a fast incremental save in which only the dirty components are saved.<P></body>
+</html>

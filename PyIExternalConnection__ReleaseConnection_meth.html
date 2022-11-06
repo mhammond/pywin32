@@ -1,0 +1,42 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyIExternalConnection.ReleaseConnection</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="PyIExternalConnection.html">PyIExternalConnection</A>.ReleaseConnection</H1><P>
+
+int = <B>ReleaseConnection(<I>extconn</I><I>, reserved</I>
+
+<I>, fLastReleaseCloses</I>
+
+</B>)<P>Decrements an object's count of its strong external connections 
+
+(references).<P>
+
+<H3>Parameters</H3><P><DT><I>extconn</I> : int<P>
+
+<DD>Type of external connection<P><DT><I>reserved</I> : int<P>
+
+<DD>A reserved parameter.<P><DT><I>fLastReleaseCloses</I> : int<P>
+
+<DD>TRUE specifies that if the connection being released is the last external lock on 
+
+the object, the object should close. FALSE specifies that the object should remain open until closed by the user 
+
+or another process.<P><H3>Return Value</H3>The result is the number of reference counts on the object; used for debugging purposes only.<P>
+
+
+
+</body>
+</html>

@@ -1,0 +1,36 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32api.GetCurrentProcess</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32api.html">win32api</A>.GetCurrentProcess</H1><P>
+
+int = <B>GetCurrentProcess(</B>)<P>Returns a pseudohandle for the current process.<P>
+
+<H3>Comments</H3>
+
+A pseudohandle is a special constant that is interpreted as the current thread handle. The calling thread 
+
+can use this handle to specify itself whenever a thread handle is required. Pseudohandles are not inherited by 
+
+child processes. The method <A HREF="win32api__DuplicateHandle_meth.html">win32api::DuplicateHandle</A> can be used to create a handle that other threads and 
+
+processes can use. As this handle can not be closed, and integer is returned rather than a <A HREF="PyHANDLE.html">PyHANDLE</A> object, 
+
+which would attempt to automatically close the handle.<P>
+
+<H3>Win32 API References</H3><P><DT>Search for <i>GetCurrentProcess</i> at <a href="http://search.msdn.microsoft.com/search/results.aspx?view=msdn&query=GetCurrentProcess" target="_blank">msdn</a>, <a href="http://www.google.com/search?q=GetCurrentProcess" target="_blank">google</a> or <a href="http://groups.google.com/groups?q=GetCurrentProcess" target="_blank">google groups</a>.<P>
+
+</body>
+</html>

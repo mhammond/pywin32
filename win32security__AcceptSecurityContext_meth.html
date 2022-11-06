@@ -1,0 +1,52 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32security.AcceptSecurityContext</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32security.html">win32security</A>.AcceptSecurityContext</H1><P>
+
+(int, long, int) = <B>AcceptSecurityContext(<I>Credential</I><I>, Context</I>
+
+<I>, pInput</I>
+
+<I>, ContextReq</I>
+
+<I>, TargetDataRep</I>
+
+<I>, NewContext</I>
+
+<I>, pOutput</I>
+
+</B>)<P>Builds security context between server and client<P>
+
+<H3>Parameters</H3><P><DT><I>Credential</I> : <A HREF="PyCredHandle.html">PyCredHandle</A><P>
+
+<DD>Handle to server's credentials (see AcquireCredentialsHandle)<P><DT><I>Context</I> : <A HREF="PyCtxtHandle.html">PyCtxtHandle</A><P>
+
+<DD>Use None on initial call, then handle returned in NewContext thereafter<P><DT><I>pInput</I> : <A HREF="PySecBufferDesc.html">PySecBufferDesc</A><P>
+
+<DD>Data buffer received from client<P><DT><I>ContextReq</I> : int<P>
+
+<DD>Combination of ASC_REQ_* flags<P><DT><I>TargetDataRep</I> : int<P>
+
+<DD>One of SECURITY_NATIVE_DREP,SECURITY_NETWORK_DREP<P><DT><I>NewContext</I> : <A HREF="PyCtxtHandle.html">PyCtxtHandle</A><P>
+
+<DD>Uninitialized context handle to receive output<P><DT><I>pOutput</I> : <A HREF="PySecBufferDesc.html">PySecBufferDesc</A><P>
+
+<DD>Buffer that receives output data, to be passed back as pInput on subsequent calls<P><H3>Return Value</H3>Returns a tuple of (return code, context attributes, context expiration time)<P>
+
+
+
+</body>
+</html>

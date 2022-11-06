@@ -1,0 +1,38 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>shell.DragQueryPoint</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="shell.html">shell</A>.DragQueryPoint</H1><P>
+
+int, (int,int) = <B>DragQueryPoint(<I>hglobal</I></B>)<P>Retrieves the position of the mouse pointer at the time a file was 
+
+dropped during a drag-and-drop operation.<P>
+
+<H3>Parameters</H3><P><DT><I>hglobal</I> : <A HREF="PyHANDLE.html">PyHANDLE</A><P>
+
+<DD>The HGLOBAL object - generally obtained the 
+
+'data_handle' property of a <A HREF="PySTGMEDIUM.html">PySTGMEDIUM</A><P><H3>Comments</H3>
+
+The window for which coordinates are returned is the window that received the WM_DROPFILES message<P>
+
+<H3>Return Value</H3>The first item of the return tuple is True if the drop occurred in the client area of the window, or False if 
+
+the drop did not occur in the client area of the window.<P>
+
+
+
+</body>
+</html>

@@ -1,0 +1,120 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32gui.GetSaveFileNameW</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32gui.html">win32gui</A>.GetSaveFileNameW</H1><P>
+
+(string, string,int) = <B>GetSaveFileNameW(<I>hwndOwner</I><I>, hInstance</I>
+
+<I>, Filter</I>
+
+<I>, CustomFilter</I>
+
+<I>, FilterIndex</I>
+
+<I>, File</I>
+
+<I>, MaxFile</I>
+
+<I>, InitialDir</I>
+
+<I>, Title</I>
+
+<I>, Flags</I>
+
+<I>, DefExt</I>
+
+<I>, TemplateName</I>
+
+</B>)<P>Creates a dialog for user to specify location to save a file or files<P>
+
+<H3>Parameters</H3><P><DT><I>hwndOwner=None</I> : <A HREF="PyHANDLE.html">PyHANDLE</A><P>
+
+<DD>Handle to window that owns dialog<P>
+
+<DT><I>hInstance=None</I> : <A HREF="PyHANDLE.html">PyHANDLE</A><P>
+
+<DD>Handle to module that contains dialog template<P>
+
+<DT><I>Filter=None</I> : string<P>
+
+<DD>Contains pairs of descriptions and filespecs separated by NULLS, with a final trailing NULL. 
+
+Example: 'Python Scripts\\0*.py;*.pyw;*.pys\\0Text files\\0*.txt\\0'<P>
+
+<DT><I>CustomFilter=None</I> : string<P>
+
+<DD>Description to be used for filter that user selected or typed, can also contain a filespec as above<P>
+
+<DT><I>FilterIndex=0</I> : int<P>
+
+<DD>Specifies which of the filters is initially selected, use 0 for CustomFilter<P>
+
+<DT><I>File=None</I> : string<P>
+
+<DD>The file name initially displayed<P>
+
+<DT><I>MaxFile=1024</I> : int<P>
+
+<DD>Number of characters to allocate for selected filename(s), override if large number of files expected<P>
+
+<DT><I>InitialDir=None</I> : string<P>
+
+<DD>The starting directory<P>
+
+<DT><I>Title=None</I> : string<P>
+
+<DD>The title of the dialog box<P>
+
+<DT><I>Flags=0</I> : int<P>
+
+<DD>Combination of win32con.OFN_* constants<P>
+
+<DT><I>DefExt=None</I> : string<P>
+
+<DD>The default extension to use<P>
+
+<DT><I>TemplateName=None</I> : <A HREF="PyResourceId.html">PyResourceId</A><P>
+
+<DD>Name or resource id of dialog box template<P>
+
+<H3>Comments</H3>
+
+Accepts keyword arguments, all arguments optional<P>
+
+<H3>Return Value</H3>Returns a tuple of 3 values (string, string, int):<BR> 
+
+First is the selected file(s). If multiple files are selected, returned string will be the directory followed by files names 
+
+separated by nulls, otherwise it will be the full path.  In other words, if you use the OFN_ALLOWMULTISELECT flag 
+
+you should split this value on \\0 characters and if the length of the result list is 1, it will be 
+
+the full path, otherwise element 0 will be the directory and the rest of the elements will be filenames in 
+
+this directory.<BR> 
+
+Second is a unicode string containing user-selected filter, will be None if CustomFilter was not specified<BR> 
+
+Third item contains flags pertaining to users input, such as OFN_READONLY and OFN_EXTENSIONDIFFERENT 
+
+<BR>If the user presses cancel or an error occurs, a 
+
+win32gui.error is raised.  If the user pressed cancel, the error number (ie, the winerror attribute of the exception) will be zero.<P>
+
+
+
+</body>
+</html>

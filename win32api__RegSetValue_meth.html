@@ -1,0 +1,48 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32api.RegSetValue</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32api.html">win32api</A>.RegSetValue</H1><P>
+
+<B>RegSetValue(<I>key</I><I>, subKey</I><I>, type</I><I>, value</I></B>)<P>Associates a value with a specified key.  Currently, only strings are supported.<P>
+
+<H3>Parameters</H3><P><DT><I>key</I> : <A HREF="PyHKEY.html">PyHKEY</A>/int<P>
+
+<DD>An already open key, or any one of the following win32con 
+
+constants:<BR>HKEY_CLASSES_ROOT<BR>HKEY_CURRENT_USER<BR>HKEY_LOCAL_MACHINE<BR>HKEY_USERS<P><DT><I>subKey</I> : string<P>
+
+<DD>The name of the subkey with which the value is associated. 
+
+This parameter can be None or empty, in which case the value will be added to the key identified by the key 
+
+parameter.<P><DT><I>type</I> : int<P>
+
+<DD>Type of data. Must be win32con.REG_SZ<P><DT><I>value</I> : string<P>
+
+<DD>The value to associate with the key.<P><H3>Comments</H3>
+
+If the key specified by the lpszSubKey parameter does not exist, the RegSetValue function creates it. 
+
+<BR>Value lengths are limited by available memory. Long values (more than 2048 bytes) should be stored as files 
+
+with the filenames stored in the configuration registry. This helps the registry perform efficiently. <BR>The key 
+
+identified by the key parameter must have been opened with KEY_SET_VALUE access.<P>
+
+<H3>Win32 API References</H3><P><DT>Search for <i>RegSetValue</i> at <a href="http://search.msdn.microsoft.com/search/results.aspx?view=msdn&query=RegSetValue" target="_blank">msdn</a>, <a href="http://www.google.com/search?q=RegSetValue" target="_blank">google</a> or <a href="http://groups.google.com/groups?q=RegSetValue" target="_blank">google groups</a>.<P>
+
+</body>
+</html>

@@ -1,0 +1,46 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32print.SetJob</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32print.html">win32print</A>.SetJob</H1><P>
+
+None = <B>SetJob(<I>hPrinter</I><I>, JobID</I>
+
+<I>, Level</I>
+
+<I>, JobInfo</I>
+
+<I>, Command</I>
+
+</B>)<P>Pause, cancel, resume, set priority levels on a print job.<P>
+
+<H3>Parameters</H3><P><DT><I>hPrinter</I> : <A HREF="PyPrinterHANDLE.html">PyPrinterHANDLE</A><P>
+
+<DD>Handle of printer.<P><DT><I>JobID</I> : int<P>
+
+<DD>Job Identifier.<P><DT><I>Level</I> : int<P>
+
+<DD>Level of information in JobInfo dict (0, 1, 2, and 3 are supported).<P><DT><I>JobInfo</I> : dict<P>
+
+<DD>JOB_INFO_* Dictionary as returned by <A HREF="win32print__GetJob_meth.html">win32print::GetJob</A> or <A HREF="win32print__EnumJobs_meth.html">win32print::EnumJobs</A> (can be None if Level is 0).<P><DT><I>Command</I> : int<P>
+
+<DD>Job command value (JOB_CONTROL_*).<P><H3>Comments</H3>
+
+If printer is not opened with at least PRINTER_ACCESS_ADMINISTER access, 'Position' member of 
+
+JOB_INFO_1 and JOB_INFO_2 must be set to JOB_POSITION_UNSPECIFIED<P>
+
+</body>
+</html>

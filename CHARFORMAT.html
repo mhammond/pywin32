@@ -1,0 +1,64 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>CHARFORMAT</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<HR><H1>CHARFORMAT Object</H1><P>
+
+Describes a CHARFORMAT tuple<P>
+
+<H3>Items</H3><P><DL><DT>[0] <I>int</I> : mask<P>
+
+<DD>The mask to use.  Bits in this mask indicate which of the following parameter are 
+
+interpreted.  Must be a combination the win32con.CFM_* constants.<P></DL>
+
+<DL><DT>[1] <I>int</I> : effects<P>
+
+<DD>The effects to use.  Must be a combination the win32con.CFE_* constants.<P></DL>
+
+<DL><DT>[2] <I>int</I> : yHeight<P>
+
+<DD>The y height.<P></DL>
+
+<DL><DT>[3] <I>int</I> : yOffset<P>
+
+<DD>Character offset from the baseline. If this member is positive, the character is a 
+
+superscript; if it is negative, the character is a subscript.<P></DL>
+
+<DL><DT>[4] <I>int</I> : colorText<P>
+
+<DD>The color to use.<P></DL>
+
+<DL><DT>[5] <I>int</I> : bCharSet<P>
+
+<DD>The charset.  See the LOGFONT structure for details.<P></DL>
+
+<DL><DT>[6] <I>int</I> : bPitchAndFamily<P>
+
+<DD>The charset.  See the LOGFONT structure for details.<P></DL>
+
+<DL><DT>[7] <I>string</I> : faceName<P>
+
+<DD>The font name.<P></DL>
+
+<H3>Comments</H3>
+
+Executing d=win32ui.CreateFontDialog(); d.DoModal(); print d.GetCharFormat() 
+
+will print a valid CHARFORMAT tuple.<P>
+
+</body>
+</html>

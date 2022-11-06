@@ -1,0 +1,28 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32gui.EnumChildWindows</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32gui.html">win32gui</A>.EnumChildWindows</H1><P>
+
+<B>EnumChildWindows(<I>hwnd</I><I>, callback</I><I>, extra</I></B>)<P>Enumerates the child windows that belong to the specified parent window by passing the handle to each child window, in turn, to an application-defined callback function. EnumChildWindows continues until the last child window is enumerated or the callback function returns FALSE.<P>
+
+<H3>Parameters</H3><P><DT><I>hwnd</I> : <A HREF="PyHANDLE.html">PyHANDLE</A><P>
+
+<DD>The handle to the window to enumerate.<P><DT><I>callback</I> : object<P>
+
+<DD>A Python function to be used as the callback.<P><DT><I>extra</I> : object<P>
+
+<DD>Any python object - this is passed to the callback function as the second param (first is the hwnd).<P></body>
+</html>

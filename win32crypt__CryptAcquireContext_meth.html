@@ -1,0 +1,48 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32crypt.CryptAcquireContext</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32crypt.html">win32crypt</A>.CryptAcquireContext</H1><P>
+
+<A HREF="PyCRYPTPROV.html">PyCRYPTPROV</A> = <B>CryptAcquireContext(<I>Container</I><I>, Provider</I>
+
+<I>, ProvType</I>
+
+<I>, Flags</I>
+
+</B>)<P>Retrieve handle to a cryptographic service provider<P>
+
+<H3>Parameters</H3><P><DT><I>Container</I> : <B>PyUnicode</B>
+
+<P>
+
+<DD>Name of key container, can be none to use a Provider's default key container 
+
+(usually username)<P><DT><I>Provider</I> : <B>PyUnicode</B>
+
+<P>
+
+<DD>Name of cryptographic provider. (MS_*_PROV) Use None for user's default provider.<P><DT><I>ProvType</I> : int<P>
+
+<DD>One of the PROV_* constants<P><DT><I>Flags</I> : int<P>
+
+<DD>Combination of 
+
+CRYPT_VERIFYCONTEXT,CRYPT_NEWKEYSET,CRYPT_MACHINE_KEYSET,CRYPT_DELETEKEYSET,CRYPT_SILENT<P><H3>Return Value</H3>Returns None if CRYPT_DELETEKEYSET is specified, otherwise returns a handle to the provider<P>
+
+
+
+</body>
+</html>

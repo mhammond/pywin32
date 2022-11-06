@@ -1,0 +1,122 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32clipboard.GetClipboardData</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32clipboard.html">win32clipboard</A>.GetClipboardData</H1><P>
+
+string = <B>GetClipboardData(<I>format</I></B>)<P>The GetClipboardData function 
+
+retrieves data from the clipboard in a specified format. The clipboard 
+
+must have been opened previously.  Note that not all data formats are supported, 
+
+and that the underlying handle can be retrieved with 
+
+<A HREF="win32clipboard__GetClipboardDataHandle_meth.html">win32clipboard::GetClipboardDataHandle</A><P>
+
+<H3>Parameters</H3><P><DT><I>format=CF_UNICODETEXT</I> : int<P>
+
+<DD>Specifies a clipboard format. For a description of 
+
+the standard clipboard formats, see Standard Clipboard Formats.<P>
+
+<H3>Comments</H3>
+
+An application can enumerate the available formats in advance by 
+
+using the EnumClipboardFormats function.<BR> 
+
+The clipboard controls the handle that the GetClipboardData function 
+
+returns, not the application. The application should copy the data 
+
+immediately. The application cannot rely on being able to make long-term 
+
+use of the handle. The application must not free the handle nor leave it 
+
+locked.<BR> 
+
+The system performs implicit data format conversions between certain 
+
+clipboard formats when an application calls the GetClipboardData function. 
+
+For example, if the CF_OEMTEXT format is on the clipboard, a window can 
+
+retrieve data in the CF_TEXT format. The format on the clipboard is 
+
+converted to the requested format on demand. For more information, see 
+
+Synthesized Clipboard Formats.<P>
+
+<H3>Win32 API References</H3><P><DT>Search for <i>GetClipboardData</i> at <a href="http://search.msdn.microsoft.com/search/results.aspx?view=msdn&query=GetClipboardData" target="_blank">msdn</a>, <a href="http://www.google.com/search?q=GetClipboardData" target="_blank">google</a> or <a href="http://groups.google.com/groups?q=GetClipboardData" target="_blank">google groups</a>.<P>
+
+<DT>Search for <i>Standard Clipboard Formats</i> at <a href="http://search.msdn.microsoft.com/search/results.aspx?view=msdn&query=Standard Clipboard Formats" target="_blank">msdn</a>, <a href="http://www.google.com/search?q=Standard Clipboard Formats" target="_blank">google</a> or <a href="http://groups.google.com/groups?q=Standard Clipboard Formats" target="_blank">google groups</a>.<P>
+
+<H3><font color=#c71a1d> To Do</font></H3><font color=#c71a1d> CF_METAFILEPICT format returns a pointer to a METAFILEPICT struct which contains the metafile 
+
+handle, 
+
+rather than returning the handle directly.  This code currently fails with 
+
+error: (6, 'GetClipboardData:GetMetafileBitsEx(NULL)', 'The handle is invalid.')</font><P>
+
+<H3>Return Value</H3>If the function fails, the standard win32api.error exception 
+
+is raised.  If the function succeeds, the return value is as 
+
+described in the following table:<P>
+
+
+
+<P><TABLE COLS=2 WIDTH="100%" CELLSPACING=15>
+
+<TR>
+
+   <TD>
+
+       <B>Format</B>
+
+   </TD>
+
+   <TD>
+
+       <B>Result type</B>
+
+   </TD>
+
+</TR>
+
+<TR><TD><HR></TD><TD><HR></TD></TR>
+
+<TR><TD>CF_HDROP</TD><TD>A tuple of Unicode filenames.</TD></TR>
+
+<TR><TD>CF_UNICODETEXT</TD><TD>A string object.</TD></TR>
+
+<TR><TD>CF_OEMTEXT</TD><TD>A bytes object.</TD></TR>
+
+<TR><TD>CF_TEXT</TD><TD>A bytes object.</TD></TR>
+
+<TR><TD>CF_ENHMETAFILE</TD><TD>A string with binary data obtained from GetEnhMetaFileBits</TD></TR>
+
+<TR><TD>CF_METAFILEPICT</TD><TD>A string with binary data obtained from GetMetaFileBitsEx (currently broken)</TD></TR>
+
+<TR><TD>CF_BITMAP</TD><TD>An integer handle to the bitmap.</TD></TR>
+
+<TR><TD>All other formats</TD><TD>A string with binary data obtained directly from the 
+
+global memory referenced by the handle.</TD></TR>
+
+</TABLE></body>
+</html>

@@ -1,0 +1,54 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32crypt.CertAddSerializedElementToStore</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32crypt.html">win32crypt</A>.CertAddSerializedElementToStore</H1><P>
+
+<A HREF="PyCERT_CONTEXT.html">PyCERT_CONTEXT</A> = <B>CertAddSerializedElementToStore(<I>CertStore</I><I>, Element</I>
+
+<I>, AddDisposition</I>
+
+<I>, ContextTypeFlags</I>
+
+<I>, Flags</I>
+
+</B>)<P>Imports a serialized Certificate context, 
+
+CRL, or CTL<P>
+
+<H3>Parameters</H3><P><DT><I>CertStore</I> : <A HREF="PyCERTSTORE.html">PyCERTSTORE</A><P>
+
+<DD>Certificate Store to which the context will be added, 
+
+can be None<P><DT><I>Element</I> : buffer<P>
+
+<DD>Serialized data<P><DT><I>AddDisposition</I> : int<P>
+
+<DD>one of CERT_STORE_ADD_* values<P><DT><I>ContextTypeFlags=CERT_STORE_CERTIFICATE_CONTEXT_FLAG</I> : int<P>
+
+<DD>One of 
+
+CERT_STORE_*_CONTEXT_FLAG constants<P>
+
+<DT><I>Flags=0</I> : int<P>
+
+<DD>Reserved, use only 0<P>
+
+<H3>Comments</H3>
+
+Currently only Certificate contexts are supported<P>
+
+</body>
+</html>

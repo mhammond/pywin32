@@ -1,0 +1,100 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32clipboard.EnumClipboardFormats</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32clipboard.html">win32clipboard</A>.EnumClipboardFormats</H1><P>
+
+int = <B>EnumClipboardFormats(<I>format</I></B>)<P>The EnumClipboardFormats 
+
+function lets you enumerate the data formats that are currently available 
+
+on the clipboard.<P>
+
+<H3>Parameters</H3><P><DT><I>format=0</I> : int<P>
+
+<DD>Specifies a clipboard format that is known to be 
+
+available.<BR> 
+
+To start an enumeration of clipboard formats, set format to zero. When 
+
+format is zero, the function retrieves the first available clipboard 
+
+format. For subsequent calls during an enumeration, set format to the 
+
+result of the previous EnumClipboardFormat call.<P>
+
+<H3>Comments</H3>
+
+Clipboard data formats are stored in an ordered list. To perform an 
+
+enumeration of clipboard data formats, you make a series of calls to the 
+
+EnumClipboardFormats function. For each call, the format parameter 
+
+specifies an available clipboard format, and the function returns the next 
+
+available clipboard format.<BR> 
+
+You must open the clipboard before enumerating its formats. Use the 
+
+OpenClipboard function to open the clipboard. The EnumClipboardFormats 
+
+function fails if the clipboard is not open.<BR> 
+
+The EnumClipboardFormats function enumerates formats in the order that 
+
+they were placed on the clipboard. If you are copying information to the 
+
+clipboard, add clipboard objects in order from the most descriptive 
+
+clipboard format to the least descriptive clipboard format. If you are 
+
+pasting information from the clipboard, retrieve the first clipboard 
+
+format that you can handle. That will be the most descriptive clipboard 
+
+format that you can handle.<BR> 
+
+The system provides automatic type conversions for certain clipboard 
+
+formats. In the case of such a format, this function enumerates the 
+
+specified format, then enumerates the formats to which it can be 
+
+converted.  For more information, see Standard Clipboard Formats and 
+
+Synthesized Clipboard Formats.<P>
+
+<H3>Win32 API References</H3><P><DT>Search for <i>EnumClipboardFormats</i> at <a href="http://search.msdn.microsoft.com/search/results.aspx?view=msdn&query=EnumClipboardFormats" target="_blank">msdn</a>, <a href="http://www.google.com/search?q=EnumClipboardFormats" target="_blank">google</a> or <a href="http://groups.google.com/groups?q=EnumClipboardFormats" target="_blank">google groups</a>.<P>
+
+<H3>Return Value</H3>If the function succeeds, the return value is the clipboard 
+
+format that follows the specified format. In other words, the next 
+
+available clipboard format.<BR> 
+
+If there are no more clipboard formats to enumerate, the return value is 
+
+zero.<BR> 
+
+If the function fails, win32api.error is raised with the GetLastError 
+
+info.<P>
+
+
+
+</body>
+</html>

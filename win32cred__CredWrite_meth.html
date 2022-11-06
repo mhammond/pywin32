@@ -1,0 +1,34 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32cred.CredWrite</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32cred.html">win32cred</A>.CredWrite</H1><P>
+
+<B>CredWrite(<I>Credential</I><I>, Flags</I></B>)<P>Creates or updates a stored credential<P>
+
+<H3>Parameters</H3><P><DT><I>Credential</I> : dict<P>
+
+<DD><A HREF="PyCREDENTIAL.html">PyCREDENTIAL</A> dict containing the credentials to be stored<P><DT><I>Flags=0</I> : int<P>
+
+<DD>CRED_PRESERVE_CREDENTIAL_BLOB is only defined flag<P>
+
+<H3>Comments</H3>
+
+When updating a credential, to preserve a previously stored password use None or '' 
+
+for CredentialBlob member of Credential and pass CRED_PRESERVE_CREDENTIAL_BLOB in Flags<P>
+
+</body>
+</html>

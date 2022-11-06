@@ -1,0 +1,60 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>LV_ITEM</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<HR><H1>LV_ITEM Object</H1><P>
+
+Describes an LV_ITEM tuple, used by the <A HREF="PyCListCtrl.html">PyCListCtrl</A> object.<P>
+
+<H3>Items</H3><P><DL><DT>[0] <I>int</I> : item<P>
+
+<DD>The item number.<P></DL>
+
+<DL><DT>[1] <I>int</I> : subItem<P>
+
+<DD>The sub-item number.<P></DL>
+
+<DL><DT>[2] <I>int</I> : state<P>
+
+<DD>The items state.  If specified, the stateMask must also be specified.<P></DL>
+
+<DL><DT>[3] <I>int</I> : stateMask<P>
+
+<DD>A mask indicating which of the state bits are valid..<P></DL>
+
+<DL><DT>[4] <I>string</I> : text<P>
+
+<DD>The text for the item<P></DL>
+
+<DL><DT>[5] <I>int</I> : iImage<P>
+
+<DD>The image offset for the item<P></DL>
+
+<DL><DT>[6] <I>int</I> : userObject<P>
+
+<DD>Any integer to be associated with the item.<P></DL>
+
+<H3>Comments</H3>
+
+When passed to Python, will always be a tuple of size 7, and items may be None if not available. 
+
+<BR>When passed from Python, the tuple must be at least 2 items long, and any item may be None. 
+
+<BR>userob is any Python object at all, but no reference count is kept, so you must ensure the object remains 
+
+referenced throught the lists life.<P>
+
+</body>
+</html>

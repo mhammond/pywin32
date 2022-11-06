@@ -1,0 +1,44 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32file.CreateSymbolicLink</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32file.html">win32file</A>.CreateSymbolicLink</H1><P>
+
+<B>CreateSymbolicLink(<I>SymlinkFileName</I><I>, TargetFileName</I><I>, Flags</I><I>, Transaction</I></B>)<P>Creates a symbolic link (reparse point)<P>
+
+<H3>Parameters</H3><P><DT><I>SymlinkFileName</I> : string<P>
+
+<DD>Path of the symbolic link to be created<P><DT><I>TargetFileName</I> : string<P>
+
+<DD>The name of file to which link will point<P><DT><I>Flags=0</I> : int<P>
+
+<DD>SYMBOLIC_LINK_FLAG_DIRECTORY and SYMBOLIC_LINK_FLAG_ALLOW_UNPRIVILEGED_CREATE are the only defined flags<P>
+
+<DT><I>Transaction=None</I> : <A HREF="PyHANDLE.html">PyHANDLE</A><P>
+
+<DD>Handle to a transaction, as returned by <A HREF="win32transaction__CreateTransaction_meth.html">win32transaction::CreateTransaction</A><P>
+
+<H3>Comments</H3>
+
+This method only exists on Vista and later.<P>
+
+Accepts keyword args.<P>
+
+Requires SeCreateSymbolicLink priv.<P>
+
+If the Transaction parameter is passed in, CreateSymbolicLinkTransacted will be called<P>
+
+</body>
+</html>

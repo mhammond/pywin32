@@ -1,0 +1,64 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32clipboard.ChangeClipboardChain</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32clipboard.html">win32clipboard</A>.ChangeClipboardChain</H1><P>
+
+int = <B>ChangeClipboardChain(<I>hWndRemove</I><I>, hWndNewNext</I>
+
+</B>)<P>The ChangeClipboardChain 
+
+function removes a specified window from the chain of clipboard viewers.<P>
+
+<H3>Parameters</H3><P><DT><I>hWndRemove</I> : int<P>
+
+<DD>Integer handle to the window to be removed from 
+
+the chain. The handle must have been passed to the SetClipboardViewer 
+
+function.<P><DT><I>hWndNewNext</I> : int<P>
+
+<DD>Integer handle to the window that follows the 
+
+hWndRemove window in the clipboard viewer chain. (This is the handle 
+
+returned by SetClipboardViewer, unless the sequence was changed in 
+
+response to a WM_CHANGECBCHAIN message.)<P><H3>Comments</H3>
+
+The window identified by hWndNewNext replaces the hWndRemove window 
+
+in the chain. The SetClipboardViewer function sends a WM_CHANGECBCHAIN 
+
+message to the first window in the clipboard viewer chain.<P>
+
+<H3>Win32 API References</H3><P><DT>Search for <i>ChangeClipboardChain</i> at <a href="http://search.msdn.microsoft.com/search/results.aspx?view=msdn&query=ChangeClipboardChain" target="_blank">msdn</a>, <a href="http://www.google.com/search?q=ChangeClipboardChain" target="_blank">google</a> or <a href="http://groups.google.com/groups?q=ChangeClipboardChain" target="_blank">google groups</a>.<P>
+
+<H3>Return Value</H3>The return value indicates the result of passing the 
+
+WM_CHANGECBCHAIN message to the windows in the clipboard viewer chain. 
+
+Because a window in the chain typically returns FALSE when it processes 
+
+WM_CHANGECBCHAIN, the return value from ChangeClipboardChain is typically 
+
+FALSE. If there is only one window in the chain, the return value is 
+
+typically TRUE.<P>
+
+
+
+</body>
+</html>

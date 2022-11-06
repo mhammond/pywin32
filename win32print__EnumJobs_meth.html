@@ -1,0 +1,44 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32print.EnumJobs</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32print.html">win32print</A>.EnumJobs</H1><P>
+
+tuple = <B>EnumJobs(<I>hPrinter</I><I>, FirstJob</I>
+
+<I>, NoJobs</I>
+
+<I>, Level</I>
+
+</B>)<P>Enumerates print jobs on specified printer.<P>
+
+<H3>Parameters</H3><P><DT><I>hPrinter</I> : <A HREF="PyPrinterHANDLE.html">PyPrinterHANDLE</A><P>
+
+<DD>Handle of printer.<P><DT><I>FirstJob</I> : int<P>
+
+<DD>location of first job in print queue to enumerate.<P><DT><I>NoJobs</I> : int<P>
+
+<DD>Number of jobs to enumerate.<P><DT><I>Level=1</I> : int<P>
+
+<DD>Level of information to return (JOB_INFO_1, JOB_INFO_2, 
+
+JOB_INFO_3 supported).<P>
+
+<H3>Return Value</H3>Returns a sequence of dictionaries representing JOB_INFO_* structures, depending on level<P>
+
+
+
+</body>
+</html>

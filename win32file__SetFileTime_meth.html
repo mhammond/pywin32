@@ -1,0 +1,46 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32file.SetFileTime</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32file.html">win32file</A>.SetFileTime</H1><P>
+
+<B>SetFileTime(<I>File</I><I>, CreationTime</I><I>, LastAccessTime</I><I>, LastWriteTime</I><I>, UTCTimes</I></B>)<P>Sets the date and time that a file was created, last accessed, or last modified.<P>
+
+<H3>Parameters</H3><P><DT><I>File</I> : <A HREF="PyHANDLE.html">PyHANDLE</A><P>
+
+<DD>Previously opened handle (opened with FILE_WRITE_ATTRIBUTES access).<P><DT><I>CreationTime=None</I> : <A HREF="PyDateTime.html">PyDateTime</A><P>
+
+<DD>File created time. None for no change.<P>
+
+<DT><I>LastAccessTime=None</I> : <A HREF="PyDateTime.html">PyDateTime</A><P>
+
+<DD>File access time. None for no change.<P>
+
+<DT><I>LastWriteTime=None</I> : <A HREF="PyDateTime.html">PyDateTime</A><P>
+
+<DD>File written time. None for no change.<P>
+
+<DT><I>UTCTimes=False</I> : boolean<P>
+
+<DD>If True, input times are treated as UTC and no conversion is done, 
+
+otherwise they are treated as local times.  Defaults to False for backward compatibility. 
+
+This parameter is ignored in Python 3.x, where you should always pass datetime objects 
+
+with timezone information.<P>
+
+</body>
+</html>

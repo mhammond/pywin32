@@ -1,0 +1,54 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyCWnd.ModifyStyle</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="PyCWnd.html">PyCWnd</A>.ModifyStyle</H1><P>
+
+int = <B>ModifyStyle(<I>remove</I><I>, add</I>
+
+<I>, flags</I>
+
+</B>)<P>Modifies the style of a window.<P>
+
+<H3>Parameters</H3><P><DT><I>remove</I> : int<P>
+
+<DD>Specifies window styles to be removed during style modification.<P><DT><I>add</I> : int<P>
+
+<DD>Specifies window styles to be added during style modification.<P><DT><I>flags=0</I> : int<P>
+
+<DD>Flags to be passed to SetWindowPos, or zero if SetWindowPos should not be 
+
+called. The default is zero.<P>
+
+<H3>Comments</H3>
+
+If nFlags is nonzero, ModifyStyle calls the Windows API function ::SetWindowPos and redraws the window by 
+
+combining nFlags with the following four preset flags: <BR>* SWP_NOSIZE&#09Retains the current size. <BR>* 
+
+SWP_NOMOVE&#09Retains the current position. <BR>* SWP_NOZORDER&#09Retains the current Z order. <BR>* 
+
+SWP_NOACTIVATE&#09Does not activate the window. <BR>See also <A HREF="PyCWnd__ModifyStyleEx_meth.html">PyCWnd::ModifyStyleEx</A><P>
+
+<H3>MFC References</H3><P><DT>CWnd::ModifyStyle<P>
+
+<H3>Return Value</H3>The result is true if the style was changed, or false if the style 
+
+is already the same as requested and no change was made.<P>
+
+
+
+</body>
+</html>

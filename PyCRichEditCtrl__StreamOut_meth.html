@@ -1,0 +1,38 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyCRichEditCtrl.StreamOut</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="PyCRichEditCtrl.html">PyCRichEditCtrl</A>.StreamOut</H1><P>
+
+(int, int) = <B>StreamOut(<I>format</I><I>, method</I>
+
+</B>)<P>Invokes a callback to stream data into the control.<P>
+
+<H3>Parameters</H3><P><DT><I>format</I> : int<P>
+
+<DD>The format.  One of the win32con.SF_* flags (SF_TEXT,SF_RTF) and may also combine 
+
+SFF_SELECTION.<P><DT><I>method</I> : object<P>
+
+<DD>A callable object (eg, a method or function) 
+
+This method is called with a string parameter.  It should return an integer, zero to abort, non zero otherwise.<P><H3>MFC References</H3><P><DT>CRichEditCtrl::StreamOut<P>
+
+<H3>Return Value</H3>The return value is a tuple of (no bytes written, error code)<P>
+
+
+
+</body>
+</html>

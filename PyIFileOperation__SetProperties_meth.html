@@ -1,0 +1,36 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyIFileOperation.SetProperties</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="PyIFileOperation.html">PyIFileOperation</A>.SetProperties</H1><P>
+
+<B>SetProperties(<I>proparray</I></B>)<P>Specifies a set of properties to be changed.<P>
+
+<H3>Parameters</H3><P><DT><I>proparray</I> : <A HREF="PyIPropertyChangeArray.html">PyIPropertyChangeArray</A><P>
+
+<DD>Sequence of property changes to be performed (see <A HREF="propsys__PSCreatePropertyChangeArray_meth.html">propsys::PSCreatePropertyChangeArray</A>)<P><H3>Comments</H3>
+
+Note that these properties will be set for *any* files created by the operation, not 
+
+just items passed to ApplyPropertiesToItem(s).  New items created as the result of a 
+
+rename, copy, or move must have a property handler, or the operation fails with the vague 
+
+<BR>com_error: (-2147467259, 'Unspecified error', None, None) (E_FAIL, or 0x80004005 in hex) 
+
+even though the given file operation was actually performed.<P>
+
+</body>
+</html>

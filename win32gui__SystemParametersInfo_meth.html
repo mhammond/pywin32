@@ -1,0 +1,402 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32gui.SystemParametersInfo</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32gui.html">win32gui</A>.SystemParametersInfo</H1><P>
+
+<B>SystemParametersInfo(<I>Action</I><I>, Param</I><I>, WinIni</I></B>)<P>Queries or sets system-wide parameters. This function can also update the user profile while setting a parameter.<P>
+
+<H3>Parameters</H3><P><DT><I>Action</I> : int<P>
+
+<DD>System parameter to query or set, one of the SPI_GET* or SPI_SET* constants<P><DT><I>Param=None</I> : object<P>
+
+<DD>depends on action to be taken<P>
+
+<DT><I>WinIni=0</I> : int<P>
+
+<DD>Flags specifying whether change should be permanent, and if all windows should be notified of change. Combination of SPIF_UPDATEINIFILE, SPIF_SENDCHANGE, SPIF_SENDWININICHANGE<P>
+
+<P><TABLE COLS=2 WIDTH="100%" CELLSPACING=15>
+
+<TR>
+
+   <TD>
+
+       <B>Action</B>
+
+   </TD>
+
+   <TD>
+
+       <B>Input/return type</B>
+
+   </TD>
+
+</TR>
+
+<TR><TD><HR></TD><TD><HR></TD></TR>
+
+<TR><TD>SPI_GETDESKWALLPAPER</TD><TD>Returns the path to the bmp used as wallpaper</TD></TR>
+
+<TR><TD>SPI_SETDESKWALLPAPER</TD><TD>Param should be a string specifying a .bmp file</TD></TR>
+
+<TR><TD>SPI_GETDROPSHADOW</TD><TD>Returns a boolean</TD></TR>
+
+<TR><TD>SPI_GETFLATMENU</TD><TD>Returns a boolean</TD></TR>
+
+<TR><TD>SPI_GETFONTSMOOTHING</TD><TD>Returns a boolean</TD></TR>
+
+<TR><TD>SPI_GETICONTITLEWRAP</TD><TD>Returns a boolean</TD></TR>
+
+<TR><TD>SPI_GETSNAPTODEFBUTTON</TD><TD>Returns a boolean</TD></TR>
+
+<TR><TD>SPI_GETBEEP</TD><TD>Returns a boolean</TD></TR>
+
+<TR><TD>SPI_GETBLOCKSENDINPUTRESETS</TD><TD>Returns a boolean</TD></TR>
+
+<TR><TD>SPI_GETMENUUNDERLINES</TD><TD>Returns a boolean</TD></TR>
+
+<TR><TD>SPI_GETKEYBOARDCUES</TD><TD>Returns a boolean</TD></TR>
+
+<TR><TD>SPI_GETKEYBOARDPREF</TD><TD>Returns a boolean</TD></TR>
+
+<TR><TD>SPI_GETSCREENSAVEACTIVE</TD><TD>Returns a boolean</TD></TR>
+
+<TR><TD>SPI_GETSCREENSAVERRUNNING</TD><TD>Returns a boolean</TD></TR>
+
+<TR><TD>SPI_GETMENUDROPALIGNMENT</TD><TD>Returns a boolean (True indicates left aligned, False right aligned)</TD></TR>
+
+<TR><TD>SPI_GETMENUFADE</TD><TD>Returns a boolean</TD></TR>
+
+<TR><TD>SPI_GETLOWPOWERACTIVE</TD><TD>Returns a boolean</TD></TR>
+
+<TR><TD>SPI_GETPOWEROFFACTIVE</TD><TD>Returns a boolean</TD></TR>
+
+<TR><TD>SPI_GETCOMBOBOXANIMATION</TD><TD>Returns a boolean</TD></TR>
+
+<TR><TD>SPI_GETCURSORSHADOW</TD><TD>Returns a boolean</TD></TR>
+
+<TR><TD>SPI_GETGRADIENTCAPTIONS</TD><TD>Returns a boolean</TD></TR>
+
+<TR><TD>SPI_GETHOTTRACKING</TD><TD>Returns a boolean</TD></TR>
+
+<TR><TD>SPI_GETLISTBOXSMOOTHSCROLLING</TD><TD>Returns a boolean</TD></TR>
+
+<TR><TD>SPI_GETMENUANIMATION</TD><TD>Returns a boolean</TD></TR>
+
+<TR><TD>SPI_GETSELECTIONFADE</TD><TD>Returns a boolean</TD></TR>
+
+<TR><TD>SPI_GETTOOLTIPANIMATION</TD><TD>Returns a boolean</TD></TR>
+
+<TR><TD>SPI_GETTOOLTIPFADE</TD><TD>Returns a boolean (TRUE=fade, False=slide)</TD></TR>
+
+<TR><TD>SPI_GETUIEFFECTS</TD><TD>Returns a boolean</TD></TR>
+
+<TR><TD>SPI_GETACTIVEWINDOWTRACKING</TD><TD>Returns a boolean</TD></TR>
+
+<TR><TD>SPI_GETACTIVEWNDTRKZORDER</TD><TD>Returns a boolean</TD></TR>
+
+<TR><TD>SPI_GETDRAGFULLWINDOWS</TD><TD>Returns a boolean</TD></TR>
+
+<TR><TD>SPI_GETSHOWIMEUI</TD><TD>Returns a boolean</TD></TR>
+
+<TR><TD>SPI_GETMOUSECLICKLOCK</TD><TD>Returns a boolean</TD></TR>
+
+<TR><TD>SPI_GETMOUSESONAR</TD><TD>Returns a boolean</TD></TR>
+
+<TR><TD>SPI_GETMOUSEVANISH</TD><TD>Returns a boolean</TD></TR>
+
+<TR><TD>SPI_GETSCREENREADER</TD><TD>Returns a boolean</TD></TR>
+
+<TR><TD>SPI_GETSHOWSOUNDS</TD><TD>Returns a boolean</TD></TR>
+
+<TR><TD>SPI_SETDROPSHADOW</TD><TD>Param must be a boolean</TD></TR>
+
+<TR><TD>SPI_SETDROPSHADOW</TD><TD>Param must be a boolean</TD></TR>
+
+<TR><TD>SPI_SETMENUUNDERLINES</TD><TD>Param must be a boolean</TD></TR>
+
+<TR><TD>SPI_SETKEYBOARDCUES</TD><TD>Param must be a boolean</TD></TR>
+
+<TR><TD>SPI_SETMENUFADE</TD><TD>Param must be a boolean</TD></TR>
+
+<TR><TD>SPI_SETCOMBOBOXANIMATION</TD><TD>Param must be a boolean</TD></TR>
+
+<TR><TD>SPI_SETCURSORSHADOW</TD><TD>Param must be a boolean</TD></TR>
+
+<TR><TD>SPI_SETGRADIENTCAPTIONS</TD><TD>Param must be a boolean</TD></TR>
+
+<TR><TD>SPI_SETHOTTRACKING</TD><TD>Param must be a boolean</TD></TR>
+
+<TR><TD>SPI_SETLISTBOXSMOOTHSCROLLING</TD><TD>Param must be a boolean</TD></TR>
+
+<TR><TD>SPI_SETMENUANIMATION</TD><TD>Param must be a boolean</TD></TR>
+
+<TR><TD>SPI_SETSELECTIONFADE</TD><TD>Param must be a boolean</TD></TR>
+
+<TR><TD>SPI_SETTOOLTIPANIMATION</TD><TD>Param must be a boolean</TD></TR>
+
+<TR><TD>SPI_SETTOOLTIPFADE</TD><TD>Param must be a boolean</TD></TR>
+
+<TR><TD>SPI_SETUIEFFECTS</TD><TD>Param must be a boolean</TD></TR>
+
+<TR><TD>SPI_SETACTIVEWINDOWTRACKING</TD><TD>Param must be a boolean</TD></TR>
+
+<TR><TD>SPI_SETACTIVEWNDTRKZORDER</TD><TD>Param must be a boolean</TD></TR>
+
+<TR><TD>SPI_SETMOUSESONAR</TD><TD>Param must be a boolean</TD></TR>
+
+<TR><TD>SPI_SETMOUSEVANISH</TD><TD>Param must be a boolean</TD></TR>
+
+<TR><TD>SPI_SETMOUSECLICKLOCK</TD><TD>Param must be a boolean</TD></TR>
+
+<TR><TD>SPI_SETFONTSMOOTHING</TD><TD>Param should specify a boolean</TD></TR>
+
+<TR><TD>SPI_SETICONTITLEWRAP</TD><TD>Param should specify a boolean</TD></TR>
+
+<TR><TD>SPI_SETSNAPTODEFBUTTON</TD><TD>Param is a boolean</TD></TR>
+
+<TR><TD>SPI_SETBEEP</TD><TD>Param is a boolean</TD></TR>
+
+<TR><TD>SPI_SETBLOCKSENDINPUTRESETS</TD><TD>Param is a boolean</TD></TR>
+
+<TR><TD>SPI_SETKEYBOARDPREF</TD><TD>Param is a boolean</TD></TR>
+
+<TR><TD>SPI_SETMOUSEBUTTONSWAP</TD><TD>Param is a boolean</TD></TR>
+
+<TR><TD>SPI_SETSCREENSAVEACTIVE</TD><TD>Param is a boolean</TD></TR>
+
+<TR><TD>SPI_SETMENUDROPALIGNMENT</TD><TD>Param is a boolean (True=left aligned, False=right aligned)</TD></TR>
+
+<TR><TD>SPI_SETLOWPOWERACTIVE</TD><TD>Param is a boolean</TD></TR>
+
+<TR><TD>SPI_SETPOWEROFFACTIVE</TD><TD>Param is a boolean</TD></TR>
+
+<TR><TD>SPI_SETDRAGFULLWINDOWS</TD><TD>Param is a boolean</TD></TR>
+
+<TR><TD>SPI_SETSHOWIMEUI</TD><TD>Param is a boolean</TD></TR>
+
+<TR><TD>SPI_SETSCREENREADER</TD><TD>Param is a boolean</TD></TR>
+
+<TR><TD>SPI_SETSHOWSOUNDS</TD><TD>Param is a boolean</TD></TR>
+
+<TR><TD>SPI_SETMOUSETRAILS</TD><TD>Param should be an int specifying the nbr of cursors in the trail (0 or 1 means disabled)</TD></TR>
+
+<TR><TD>SPI_SETWHEELSCROLLLINES</TD><TD>Param is an int specifying nbr of lines</TD></TR>
+
+<TR><TD>SPI_SETKEYBOARDDELAY</TD><TD>Param is an int in the range 0 - 3</TD></TR>
+
+<TR><TD>SPI_SETKEYBOARDSPEED</TD><TD>Param is an int in the range 0 - 31</TD></TR>
+
+<TR><TD>SPI_SETDOUBLECLICKTIME</TD><TD>Param is an int (in milliseconds),  Use <A HREF="win32gui__GetDoubleClickTime_meth.html">win32gui::GetDoubleClickTime</A> to retrieve the value.</TD></TR>
+
+<TR><TD>SPI_SETDOUBLECLKWIDTH</TD><TD>Param is an int.  Use win32api.GetSystemMetrics(SM_CXDOUBLECLK) to retrieve the value.</TD></TR>
+
+<TR><TD>SPI_SETDOUBLECLKHEIGHT</TD><TD>Param is an int,  Use win32api.GetSystemMetrics(SM_CYDOUBLECLK) to retrieve the value.</TD></TR>
+
+<TR><TD>SPI_SETMOUSEHOVERHEIGHT</TD><TD>Param is an int</TD></TR>
+
+<TR><TD>SPI_SETMOUSEHOVERWIDTH</TD><TD>Param is an int</TD></TR>
+
+<TR><TD>SPI_SETMOUSEHOVERTIME</TD><TD>Param is an int</TD></TR>
+
+<TR><TD>SPI_SETSCREENSAVETIMEOUT</TD><TD>Param is an int specifying the timeout in seconds</TD></TR>
+
+<TR><TD>SPI_SETMENUSHOWDELAY</TD><TD>Param is an int specifying the shortcut menu delay in milliseconds</TD></TR>
+
+<TR><TD>SPI_SETLOWPOWERTIMEOUT</TD><TD>Param is an int (in seconds)</TD></TR>
+
+<TR><TD>SPI_SETPOWEROFFTIMEOUT</TD><TD>Param is an int (in seconds)</TD></TR>
+
+<TR><TD>SPI_SETDRAGHEIGHT</TD><TD>Param is an int. Use win32api.GetSystemMetrics(SM_CYDRAG) to retrieve the value.</TD></TR>
+
+<TR><TD>SPI_SETDRAGWIDTH</TD><TD>Param is an int. Use win32api.GetSystemMetrics(SM_CXDRAG) to retrieve the value.</TD></TR>
+
+<TR><TD>SPI_SETBORDER</TD><TD>Param is an int</TD></TR>
+
+<TR><TD>SPI_GETFONTSMOOTHINGCONTRAST</TD><TD>Returns an int</TD></TR>
+
+<TR><TD>SPI_GETFONTSMOOTHINGTYPE</TD><TD>Returns an int</TD></TR>
+
+<TR><TD>SPI_GETMOUSETRAILS</TD><TD>Returns an int specifying the nbr of cursor images in the trail, 0 or 1 indicates disabled</TD></TR>
+
+<TR><TD>SPI_GETWHEELSCROLLLINES</TD><TD>Returns the nbr of lines to scroll for the mouse wheel</TD></TR>
+
+<TR><TD>SPI_GETKEYBOARDDELAY</TD><TD>Returns an int</TD></TR>
+
+<TR><TD>SPI_GETKEYBOARDSPEED</TD><TD>Returns an int</TD></TR>
+
+<TR><TD>SPI_GETMOUSESPEED</TD><TD>Returns an int</TD></TR>
+
+<TR><TD>SPI_GETMOUSEHOVERHEIGHT</TD><TD>Returns an int</TD></TR>
+
+<TR><TD>SPI_GETMOUSEHOVERWIDTH</TD><TD>Returns an int</TD></TR>
+
+<TR><TD>SPI_GETMOUSEHOVERTIME</TD><TD>Returns an int</TD></TR>
+
+<TR><TD>SPI_GETSCREENSAVETIMEOUT</TD><TD>Returns an int (idle time in seconds)</TD></TR>
+
+<TR><TD>SPI_GETMENUSHOWDELAY</TD><TD>Returns an int (shortcut delay in milliseconds)</TD></TR>
+
+<TR><TD>SPI_GETLOWPOWERTIMEOUT</TD><TD>Returns an int (in seconds)</TD></TR>
+
+<TR><TD>SPI_GETPOWEROFFTIMEOUT</TD><TD>Returns an int (in seconds)</TD></TR>
+
+<TR><TD>SPI_GETACTIVEWNDTRKTIMEOUT</TD><TD>Returns an int (milliseconds)</TD></TR>
+
+<TR><TD>SPI_GETBORDER</TD><TD>Returns an int</TD></TR>
+
+<TR><TD>SPI_GETCARETWIDTH</TD><TD>Returns an int</TD></TR>
+
+<TR><TD>SPI_GETFOREGROUNDFLASHCOUNT</TD><TD>Returns an int</TD></TR>
+
+<TR><TD>SPI_GETFOREGROUNDLOCKTIMEOUT</TD><TD>Returns an int</TD></TR>
+
+<TR><TD>SPI_GETFOCUSBORDERHEIGHT</TD><TD>Returns an int</TD></TR>
+
+<TR><TD>SPI_GETFOCUSBORDERWIDTH</TD><TD>Returns an int</TD></TR>
+
+<TR><TD>SPI_GETMOUSECLICKLOCKTIME</TD><TD>Returns an int (in milliseconds)</TD></TR>
+
+<TR><TD>SPI_SETFONTSMOOTHINGCONTRAST</TD><TD>Param should be an int in the range 1000 to 2200</TD></TR>
+
+<TR><TD>SPI_SETFONTSMOOTHINGTYPE</TD><TD>Param should be one of the FE_FONTSMOOTHING* constants</TD></TR>
+
+<TR><TD>SPI_SETMOUSESPEED</TD><TD>Param should be an int in the range 1 - 20</TD></TR>
+
+<TR><TD>SPI_SETACTIVEWNDTRKTIMEOUT</TD><TD>Param is an int (in milliseconds)</TD></TR>
+
+<TR><TD>SPI_SETCARETWIDTH</TD><TD>Param is an int (in pixels)</TD></TR>
+
+<TR><TD>SPI_SETFOREGROUNDFLASHCOUNT</TD><TD>Param is an int</TD></TR>
+
+<TR><TD>SPI_SETFOREGROUNDLOCKTIMEOUT</TD><TD>Param is an int (in milliseconds)</TD></TR>
+
+<TR><TD>SPI_SETFOCUSBORDERHEIGHT</TD><TD>Returns an int</TD></TR>
+
+<TR><TD>SPI_SETFOCUSBORDERWIDTH</TD><TD>Returns an int</TD></TR>
+
+<TR><TD>SPI_SETMOUSECLICKLOCKTIME</TD><TD>Param is an int (in milliseconds)</TD></TR>
+
+<TR><TD>SPI_GETICONTITLELOGFONT</TD><TD>Returns a <A HREF="PyLOGFONT.html">PyLOGFONT</A>,</TD></TR>
+
+<TR><TD>SPI_SETICONTITLELOGFONT</TD><TD>Param must be a <A HREF="PyLOGFONT.html">PyLOGFONT</A>,</TD></TR>
+
+<TR><TD>SPI_SETLANGTOGGLE</TD><TD>Param is ignored. Sets the language toggle hotkey from registry key HKCU\\keyboard layout\\toggle</TD></TR>
+
+<TR><TD>SPI_SETICONS</TD><TD>Reloads the system icons.  Param is not used</TD></TR>
+
+<TR><TD>SPI_GETMOUSE</TD><TD>Returns a tuple of 3 ints containing the x and y mouse thresholds and the acceleration factor.</TD></TR>
+
+<TR><TD>SPI_SETMOUSE</TD><TD>Param should be a sequence of 3 ints</TD></TR>
+
+<TR><TD>SPI_GETDEFAULTINPUTLANG</TD><TD>Returns an int (locale id for default language)</TD></TR>
+
+<TR><TD>SPI_SETDEFAULTINPUTLANG</TD><TD>Param is an int containing a locale id</TD></TR>
+
+<TR><TD>SPI_GETANIMATION</TD><TD>Returns an int</TD></TR>
+
+<TR><TD>SPI_SETANIMATION</TD><TD>Param is an int</TD></TR>
+
+<TR><TD>SPI_ICONHORIZONTALSPACING</TD><TD>Functions as both a get and set operation.  If Param is None, functions as a get operation, otherwise Param is an int to be set as the new value</TD></TR>
+
+<TR><TD>SPI_ICONVERTICALSPACING</TD><TD>Functions as both a get and set operation.  If Param is None, functions as a get operation, otherwise Param is an int to be set as the new value</TD></TR>
+
+<TR><TD>SPI_GETNONCLIENTMETRICS</TD><TD>Param must be None.  The result is a dict.</TD></TR>
+
+<TR><TD>SPI_SETNONCLIENTMETRICS</TD><TD>Param is a dict in the form of a NONCLIENTMETRICS struct, as returned by SPI_GETNONCLIENTMETRICS operation</TD></TR>
+
+<TR><TD>SPI_GETMINIMIZEDMETRICS</TD><TD>Returns a dict representing a MINIMIZEDMETRICS struct.  Param is not used.</TD></TR>
+
+<TR><TD>SPI_SETMINIMIZEDMETRICS</TD><TD>Param should be a MINIMIZEDMETRICS dict as returned by SPI_GETMINIMIZEDMETRICS action</TD></TR>
+
+<TR><TD>SPI_SETDESKPATTERN</TD><TD>Unsupported (obsolete)</TD></TR>
+
+<TR><TD>SPI_GETFASTTASKSWITCH</TD><TD>Unsupported (obsolete)</TD></TR>
+
+<TR><TD>SPI_SETFASTTASKSWITCH</TD><TD>Unsupported (obsolete)</TD></TR>
+
+<TR><TD>SPI_SETSCREENSAVERRUNNING</TD><TD>Unsupported (documented as internal use only)</TD></TR>
+
+<TR><TD>SPI_SCREENSAVERRUNNING</TD><TD>Same as SPI_SETSCREENSAVERRUNNING</TD></TR>
+
+<TR><TD>SPI_SETPENWINDOWS</TD><TD>Unsupported (only relevant for win95)</TD></TR>
+
+<TR><TD>SPI_GETWINDOWSEXTENSION</TD><TD>Unsupported (only relevant for win95)</TD></TR>
+
+<TR><TD>SPI_GETGRIDGRANULARITY</TD><TD>Unsupported (obsolete)</TD></TR>
+
+<TR><TD>SPI_SETGRIDGRANULARITY</TD><TD>Unsupported (obsolete)</TD></TR>
+
+<TR><TD>SPI_LANGDRIVER</TD><TD>Unsupported (use is not documented)</TD></TR>
+
+<TR><TD>SPI_GETFONTSMOOTHINGORIENTATION</TD><TD>Unsupported (use is not documented)</TD></TR>
+
+<TR><TD>SPI_SETFONTSMOOTHINGORIENTATION</TD><TD>Unsupported (use is not documented)</TD></TR>
+
+<TR><TD>SPI_SETHANDHELD</TD><TD>Unsupported (use is not documented)</TD></TR>
+
+<TR><TD>SPI_GETICONMETRICS</TD><TD>Not implemented yet</TD></TR>
+
+<TR><TD>SPI_SETICONMETRICS</TD><TD>Not implemented yet</TD></TR>
+
+<TR><TD>SPI_GETWORKAREA</TD><TD>Not implemented yet</TD></TR>
+
+<TR><TD>SPI_SETWORKAREA</TD><TD>Not implemented yet</TD></TR>
+
+<TR><TD>SPI_GETSERIALKEYS</TD><TD>Not implemented yet</TD></TR>
+
+<TR><TD>SPI_SETSERIALKEYS</TD><TD>Not implemented yet</TD></TR>
+
+<TR><TD>SPI_SETMOUSEKEYS</TD><TD>Not implemented yet</TD></TR>
+
+<TR><TD>SPI_GETMOUSEKEYS</TD><TD>Not implemented yet</TD></TR>
+
+<TR><TD>SPI_GETHIGHCONTRAST</TD><TD>Not implemented yet</TD></TR>
+
+<TR><TD>SPI_SETHIGHCONTRAST</TD><TD>Not implemented yet</TD></TR>
+
+<TR><TD>SPI_GETSOUNDSENTRY</TD><TD>Not implemented yet</TD></TR>
+
+<TR><TD>SPI_SETSOUNDSENTRY</TD><TD>Not implemented yet</TD></TR>
+
+<TR><TD>SPI_GETSTICKYKEYS</TD><TD>Not implemented yet</TD></TR>
+
+<TR><TD>SPI_SETSTICKYKEYS</TD><TD>Not implemented yet</TD></TR>
+
+<TR><TD>SPI_GETTOGGLEKEYS</TD><TD>Not implemented yet</TD></TR>
+
+<TR><TD>SPI_SETTOGGLEKEYS</TD><TD>Not implemented yet</TD></TR>
+
+<TR><TD>SPI_GETACCESSTIMEOUT</TD><TD>Not implemented yet</TD></TR>
+
+<TR><TD>SPI_SETACCESSTIMEOUT</TD><TD>Not implemented yet</TD></TR>
+
+<TR><TD>SPI_GETFILTERKEYS</TD><TD>Not implemented yet</TD></TR>
+
+<TR><TD>SPI_SETFILTERKEYS</TD><TD>Not implemented yet</TD></TR>
+
+</TABLE><H3>Comments</H3>
+
+Param and WinIni are not used with any of the SPI_GET operations<BR> 
+
+Boolean parameters can be any object that can be evaluated as True or False<P>
+
+<H3>Return Value</H3>SPI_SET functions all return None on success.  Types returned by SPI_GET functions are dependent on the operation<P>
+
+
+
+</body>
+</html>

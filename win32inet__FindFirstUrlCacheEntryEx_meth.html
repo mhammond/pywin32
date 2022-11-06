@@ -1,0 +1,58 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32inet.FindFirstUrlCacheEntryEx</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32inet.html">win32inet</A>.FindFirstUrlCacheEntryEx</H1><P>
+
+(<A HREF="PyUrlCacheHANDLE.html">PyUrlCacheHANDLE</A>, dict) = <B>FindFirstUrlCacheEntryEx(<I>SearchPattern</I><I>, Flags</I>
+
+<I>, Filter</I>
+
+<I>, GroupId</I>
+
+</B>)<P>Initiates an enumeration of the browser cache<P>
+
+<H3>Parameters</H3><P><DT><I>SearchPattern=None</I> : str<P>
+
+<DD>Type of entry to find, can be 'visited:', 'cookie:', or None<P>
+
+<DT><I>Flags=0</I> : int<P>
+
+<DD>None currently defined<P>
+
+<DT><I>Filter=0</I> : int<P>
+
+<DD>Types of entries to return, combination of *_CACHE_ENTRY values<P>
+
+<DT><I>GroupId=0</I> : int<P>
+
+<DD>Cache group to enumerate, use 0 for all<P>
+
+<H3>Comments</H3>
+
+Accepts keyword args<P>
+
+<H3>Win32 API References</H3><P><DT>Search for <i>FindFirstUrlCacheEntryEx</i> at <a href="http://search.msdn.microsoft.com/search/results.aspx?view=msdn&query=FindFirstUrlCacheEntryEx" target="_blank">msdn</a>, <a href="http://www.google.com/search?q=FindFirstUrlCacheEntryEx" target="_blank">google</a> or <a href="http://groups.google.com/groups?q=FindFirstUrlCacheEntryEx" target="_blank">google groups</a>.<P>
+
+<H3>Return Value</H3>Returns a handle that can be passed to <A HREF="win32inet__FindNextUrlCacheEntry_meth.html">win32inet::FindNextUrlCacheEntry</A>, and a dict 
+
+containing information for the first entry found.  Throws error code ERROR_NO_MORE_ITEMS 
+
+if no items are found.<P>
+
+
+
+</body>
+</html>

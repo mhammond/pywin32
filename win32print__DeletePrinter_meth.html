@@ -1,0 +1,30 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32print.DeletePrinter</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32print.html">win32print</A>.DeletePrinter</H1><P>
+
+<B>DeletePrinter(<I>hPrinter</I></B>)<P>Deletes an existing printer<P>
+
+<H3>Parameters</H3><P><DT><I>hPrinter</I> : <A HREF="PyPrinterHANDLE.html">PyPrinterHANDLE</A><P>
+
+<DD>Handle to printer as returned by <A HREF="win32print__OpenPrinter_meth.html">win32print::OpenPrinter</A> or <A HREF="win32print__AddPrinter_meth.html">win32print::AddPrinter</A><P><H3>Comments</H3>
+
+Printer handle must be opened for PRINTER_ACCESS_ADMINISTER 
+
+If there are any pending print jobs for the printer, actual deletion does not happen until they are done<P>
+
+</body>
+</html>

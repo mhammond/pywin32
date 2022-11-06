@@ -1,0 +1,44 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyCStatusBarCtrl.SetText</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="PyCStatusBarCtrl.html">PyCStatusBarCtrl</A>.SetText</H1><P>
+
+<B>SetText(<I>text</I><I>, nPane</I><I>, nType</I></B>)<P>Set the text in the given part of a status bar control.<P>
+
+<H3>Parameters</H3><P><DT><I>text</I> : string<P>
+
+<DD>The text to display<P><DT><I>nPane</I> : int<P>
+
+<DD>Zero-based index of the part to set.<P><DT><I>nType</I> : int<P>
+
+<DD>Type of drawing operation.<P><H3>Comments</H3>
+
+The drawing type can be set to one of:~ 
+
+0 - The text is drawn with a border to appear lower than 
+
+the plane of the status bar.~ 
+
+win32con.SBT_NOBORDERS - The text is drawn without borders.~ 
+
+win32con.SBT_OWNERDRAW - The text is drawn by the parent window.~ 
+
+win32con.SBT_POPOUT - The text is drawn with a border to appear 
+
+higher than the plane of the status bar.<P>
+
+</body>
+</html>

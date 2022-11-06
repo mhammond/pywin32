@@ -1,0 +1,58 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyIShellFolder.GetUIObjectOf</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="PyIShellFolder.html">PyIShellFolder</A>.GetUIObjectOf</H1><P>
+
+int, <A HREF="PyIUnknown.html">PyIUnknown</A> = <B>GetUIObjectOf(<I>hwndOwner</I><I>, pidl</I>
+
+<I>, riid</I>
+
+<I>, Reserved</I>
+
+<I>, iidout</I>
+
+</B>)<P>Creates an interface to one or more items in a shell 
+
+folder<P>
+
+<H3>Parameters</H3><P><DT><I>hwndOwner</I> : <A HREF="PyHANDLE.html">PyHANDLE</A><P>
+
+<DD>Specifies a window in which to display any required dialogs or errors, can be 0<P><DT><I>pidl</I> : (<A HREF="PyIDL.html">PyIDL</A>,...)<P>
+
+<DD>A sequence of single-level pidls identifying items in the folder<P><DT><I>riid</I> : <A HREF="PyIID.html">PyIID</A><P>
+
+<DD>The interface to create, one of IID_IContextMenu, IID_IContextMenu2, IID_IDataObject, 
+
+IID_IDropTarget, IID_IExtractIcon, IID_IQueryInfo<P><DT><I>Reserved=0</I> : int<P>
+
+<DD>Reserved, use 0 if passed in<P>
+
+<DT><I>iidout=riid</I> : <A HREF="PyIID.html">PyIID</A><P>
+
+<DD>The interface to return.  Can be used in the case where there is not a 
+
+python wrapper for the desired interface.  You must make certain that the interface identified by riid 
+
+actually supports the iidout interface, or Bad Things Will Happen. 
+
+It should always be safe to return <A HREF="PyIUnknown.html">PyIUnknown</A>, which is the base for all interfaces.<P>
+
+<H3>Return Value</H3>Returns the Reserved parameter and the requested interface<P>
+
+
+
+</body>
+</html>

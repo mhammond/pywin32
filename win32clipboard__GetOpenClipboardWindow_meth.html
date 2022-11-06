@@ -1,0 +1,48 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32clipboard.GetOpenClipboardWindow</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32clipboard.html">win32clipboard</A>.GetOpenClipboardWindow</H1><P>
+
+int = <B>GetOpenClipboardWindow(</B>)<P>The GetOpenClipboardWindow 
+
+function retrieves the handle of the window that currently has the 
+
+clipboard open.<P>
+
+<H3>Comments</H3>
+
+If an application or dynamic-link library (DLL) specifies a NULL 
+
+window handle when calling the OpenClipboard function, the clipboard is 
+
+opened but is not associated with a window. In such a case, 
+
+GetOpenClipboardWindow returns NULL.<P>
+
+<H3>Win32 API References</H3><P><DT>Search for <i>GetOpenClipboardWindow</i> at <a href="http://search.msdn.microsoft.com/search/results.aspx?view=msdn&query=GetOpenClipboardWindow" target="_blank">msdn</a>, <a href="http://www.google.com/search?q=GetOpenClipboardWindow" target="_blank">google</a> or <a href="http://groups.google.com/groups?q=GetOpenClipboardWindow" target="_blank">google groups</a>.<P>
+
+<H3>Return Value</H3>If the function succeeds, the return value is the handle of the 
+
+window that has the clipboard open. 
+
+If the function fails, win32api.error is raised with the GetLastError 
+
+info.<P>
+
+
+
+</body>
+</html>

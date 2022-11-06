@@ -1,0 +1,60 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyCWnd.GetWindowPlacement</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="PyCWnd.html">PyCWnd</A>.GetWindowPlacement</H1><P>
+
+tuple = <B>GetWindowPlacement(</B>)<P>Returns placement information about the current window.<P>
+
+<H3>MFC References</H3><P><DT>CWnd::GetWindowPlacement<P>
+
+<H3>Return Value</H3>The result is a tuple of 
+
+(flags, showCmd, (minposX, minposY), (maxposX, maxposY), (normalposX, normalposY))<P>
+
+
+
+<P><TABLE COLS=2 WIDTH="100%" CELLSPACING=15>
+
+<TR>
+
+   <TD>
+
+       <B>Item</B>
+
+   </TD>
+
+   <TD>
+
+       <B>Description</B>
+
+   </TD>
+
+</TR>
+
+<TR><TD><HR></TD><TD><HR></TD></TR>
+
+<TR><TD>flags</TD><TD>One of the WPF_* constants</TD></TR>
+
+<TR><TD>showCmd</TD><TD>Current state - one of the SW_* constants.</TD></TR>
+
+<TR><TD>minpos</TD><TD>Specifies the coordinates of the window's upper-left corner when the window is minimized.</TD></TR>
+
+<TR><TD>maxpos</TD><TD>Specifies the coordinates of the window's upper-left corner when the window is maximized.</TD></TR>
+
+<TR><TD>normalpos</TD><TD>Specifies the window's coordinates when the window is in the restored position.</TD></TR>
+
+</TABLE></body>
+</html>

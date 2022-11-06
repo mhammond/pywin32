@@ -1,0 +1,50 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32crypt.CertOpenStore</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32crypt.html">win32crypt</A>.CertOpenStore</H1><P>
+
+<A HREF="PyCERTSTORE.html">PyCERTSTORE</A> = <B>CertOpenStore(<I>StoreProvider</I><I>, MsgAndCertEncodingType</I>
+
+<I>, CryptProv</I>
+
+<I>, Flags</I>
+
+<I>, Para</I>
+
+</B>)<P>Opens a certificate store<P>
+
+<H3>Parameters</H3><P><DT><I>StoreProvider</I> : int<P>
+
+<DD>CERT_STORE_PROV_*, currently does not accept string provider 
+
+names<P><DT><I>MsgAndCertEncodingType</I> : int<P>
+
+<DD>Only used with CERT_STORE_PROV_MSG, 
+
+CERT_STORE_PROV_PKCS7, and CERT_STORE_PROV_FILENAME. Usually should be 
+
+X509_ASN_ENCODING combined with PKCS_7_ASN_ENCODING<P><DT><I>CryptProv</I> : <A HREF="PyCRYPTPROV.html">PyCRYPTPROV</A><P>
+
+<DD>Handle to a CSP, can be None to use default provider<P><DT><I>Flags</I> : int<P>
+
+<DD>Combination of CERT_STORE_*_FLAG flags<P><DT><I>Para=None</I> : object<P>
+
+<DD><B>PyCERT_SYSTEM_STORE_RELOCATE_PARA</B>
+
+, or data specific to provider<P>
+
+</body>
+</html>

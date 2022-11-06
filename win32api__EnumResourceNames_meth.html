@@ -1,0 +1,36 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32api.EnumResourceNames</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32api.html">win32api</A>.EnumResourceNames</H1><P>
+
+[string, ...] = <B>EnumResourceNames(<I>hmodule</I><I>, resType</I>
+
+</B>)<P>Enumerates all the resources of the specified type from the 
+
+nominated file.<P>
+
+<H3>Parameters</H3><P><DT><I>hmodule</I> : <A HREF="PyHANDLE.html">PyHANDLE</A><P>
+
+<DD>The handle to the module to enumerate.<P><DT><I>resType</I> : <A HREF="PyResourceId.html">PyResourceId</A><P>
+
+<DD>The type of resource to enumerate. (win32con.RT_*). 
+
+If passed as a string, form is '#' sign followed by decimal number. eg RT_ANICURSOR would be '#21'<P><H3>Return Value</H3>The result is a list of string or integers, one for each resource enumerated.<P>
+
+
+
+</body>
+</html>

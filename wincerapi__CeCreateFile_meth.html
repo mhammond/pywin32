@@ -1,0 +1,142 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>wincerapi.CeCreateFile</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="wincerapi.html">wincerapi</A>.CeCreateFile</H1><P>
+
+<A HREF="PyCEHANDLE.html">PyCEHANDLE</A> = <B>CeCreateFile(<I>fileName</I><I>, desiredAccess</I>
+
+<I>, shareMode</I>
+
+<I>, attributes</I>
+
+<I>, creationDisposition</I>
+
+<I>, flagsAndAttributes</I>
+
+<I>, hTemplateFile</I>
+
+</B>)<P>Creates or opens the a file or other object and returns a handle that can be used to access the object.<P>
+
+<H3>Parameters</H3><P><DT><I>fileName</I> : <B>PyUnicode</B>
+
+<P>
+
+<DD>The name of the file<P><DT><I>desiredAccess</I> : int<P>
+
+<DD>access (read-write) mode 
+
+Specifies the type of access to the object. An application can obtain read access, write access, read-write access, or device query access. This parameter can be any combination of the following values.<P><P><TABLE COLS=2 WIDTH="100%" CELLSPACING=15>
+
+<TR>
+
+   <TD>
+
+       <B>Value</B>
+
+   </TD>
+
+   <TD>
+
+       <B>Meaning</B>
+
+   </TD>
+
+</TR>
+
+<TR><TD><HR></TD><TD><HR></TD></TR>
+
+<TR><TD>0</TD><TD>Specifies device query access to the object. An application can query device attributes without accessing the device.</TD></TR>
+
+<TR><TD>GENERIC_READ</TD><TD>Specifies read access to the object. Data can be read from the file and the file pointer can be moved. Combine with GENERIC_WRITE for read-write access.</TD></TR>
+
+<TR><TD>GENERIC_WRITE</TD><TD>Specifies write access to the object. Data can be written to the file and the file pointer can be moved. Combine with GENERIC_READ for read-write access.</TD></TR>
+
+</TABLE><DT><I>shareMode</I> : int<P>
+
+<DD>Set of bit flags that specifies how the object can be shared. If dwShareMode is 0, the object cannot be shared. Subsequent open operations on the object will fail, until the handle is closed. 
+
+To share the object, use a combination of one or more of the following values:<P><P><TABLE COLS=2 WIDTH="100%" CELLSPACING=15>
+
+<TR>
+
+   <TD>
+
+       <B>Value</B>
+
+   </TD>
+
+   <TD>
+
+       <B>Meaning</B>
+
+   </TD>
+
+</TR>
+
+<TR><TD><HR></TD><TD><HR></TD></TR>
+
+<TR><TD>FILE_SHARE_DELETE</TD><TD>Windows NT: Subsequent open operations on the object will succeed only if delete access is requested.</TD></TR>
+
+<TR><TD>FILE_SHARE_READ</TD><TD>Subsequent open operations on the object will succeed only if read access is requested.</TD></TR>
+
+<TR><TD>FILE_SHARE_WRITE</TD><TD>Subsequent open operations on the object will succeed only if write access is requested.</TD></TR>
+
+</TABLE><DT><I>attributes</I> : <A HREF="PySECURITY_ATTRIBUTES.html">PySECURITY_ATTRIBUTES</A><P>
+
+<DD>The security attributes, or None<P><DT><I>creationDisposition</I> : int<P>
+
+<DD>Specifies which action to take on files that exist, and which action to take when files do not exist. For more information about this parameter, see the Remarks section. This parameter must be one of the following values:<P><P><TABLE COLS=2 WIDTH="100%" CELLSPACING=15>
+
+<TR>
+
+   <TD>
+
+       <B>Value</B>
+
+   </TD>
+
+   <TD>
+
+       <B>Meaning</B>
+
+   </TD>
+
+</TR>
+
+<TR><TD><HR></TD><TD><HR></TD></TR>
+
+<TR><TD>CREATE_NEW</TD><TD>Creates a new file. The function fails if the specified file already exists.</TD></TR>
+
+<TR><TD>CREATE_ALWAYS</TD><TD>Creates a new file. If the file exists, the function overwrites the file and clears the existing attributes.</TD></TR>
+
+<TR><TD>OPEN_EXISTING</TD><TD>Opens the file. The function fails if the file does not exist. 
+
+See the Remarks section for a discussion of why you should use the OPEN_EXISTING flag if you are using the CreateFile function for devices, including the console.</TD></TR>
+
+<TR><TD>OPEN_ALWAYS</TD><TD>Opens the file, if it exists. If the file does not exist, the function creates the file as if dwCreationDisposition were CREATE_NEW.</TD></TR>
+
+<TR><TD>TRUNCATE_EXISTING</TD><TD>Opens the file. Once opened, the file is truncated so that its size is zero bytes. The calling process must open the file with at least GENERIC_WRITE access. The function fails if the file does not exist.</TD></TR>
+
+</TABLE><DT><I>flagsAndAttributes</I> : int<P>
+
+<DD>file attributes<P><DT><I>hTemplateFile</I> : <A HREF="PyHANDLE.html">PyHANDLE</A><P>
+
+<DD>Specifies a handle with GENERIC_READ access to a template file. The template file supplies file attributes and extended attributes for the file being created.   Under Win95, this must be 0, else an exception will be raised.<P><H3>Comments</H3>
+
+The following objects can be opened:<BR>files<BR>pipes<BR>mailslots<BR>communications resources<BR>disk devices (Windows NT only)<BR>consoles<BR>directories (open only)<P>
+
+</body>
+</html>

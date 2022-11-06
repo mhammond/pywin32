@@ -1,0 +1,54 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32pipe.WaitNamedPipe</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32pipe.html">win32pipe</A>.WaitNamedPipe</H1><P>
+
+<B>WaitNamedPipe(<I>pipeName</I><I>, timeout</I></B>)<P>Waits until either a time-out interval elapses or an instance of the specified named pipe is available to be connected to (that is, the pipe's server process has a pending <A HREF="win32pipe__ConnectNamedPipe_meth.html">win32pipe::ConnectNamedPipe</A> operation on the pipe).<P>
+
+<H3>Parameters</H3><P><DT><I>pipeName</I> : <B>PyUnicode</B>
+
+<P>
+
+<DD>The name of the pipe<P><DT><I>timeout</I> : int<P>
+
+<DD>The number of milliseconds the function will wait. 
+
+instead of a literal value, you can specify one of the following values for the timeout:<P><P><TABLE COLS=2 WIDTH="100%" CELLSPACING=15>
+
+<TR>
+
+   <TD>
+
+       <B>Value</B>
+
+   </TD>
+
+   <TD>
+
+       <B>Meaning</B>
+
+   </TD>
+
+</TR>
+
+<TR><TD><HR></TD><TD><HR></TD></TR>
+
+<TR><TD>NMPWAIT_USE_DEFAULT_WAIT</TD><TD>The time-out interval is the default value specified by the server process in the CreateNamedPipe function.</TD></TR>
+
+<TR><TD>NMPWAIT_WAIT_FOREVER</TD><TD>The function does not return until an instance of the named pipe is available</TD></TR>
+
+</TABLE></body>
+</html>

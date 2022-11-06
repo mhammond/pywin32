@@ -1,0 +1,78 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32file.CreateFileW</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32file.html">win32file</A>.CreateFileW</H1><P>
+
+<A HREF="PyHANDLE.html">PyHANDLE</A> = <B>CreateFileW(<I>FileName</I><I>, DesiredAccess</I>
+
+<I>, ShareMode</I>
+
+<I>, SecurityAttributes</I>
+
+<I>, CreationDisposition</I>
+
+<I>, FlagsAndAttributes</I>
+
+<I>, TemplateFile</I>
+
+<I>, Transaction</I>
+
+<I>, MiniVersion</I>
+
+<I>, ExtendedParameter</I>
+
+</B>)<P>Unicode version of CreateFile - see <A HREF="win32file__CreateFile_meth.html">win32file::CreateFile</A> for more information.<P>
+
+<H3>Parameters</H3><P><DT><I>FileName</I> : string<P>
+
+<DD>Name of file<P><DT><I>DesiredAccess</I> : int<P>
+
+<DD>Combination of access mode flags.  See MSDN docs.<P><DT><I>ShareMode</I> : int<P>
+
+<DD>Combination of FILE_SHARE_READ, FILE_SHARE_WRITE, FILE_SHARE_DELETE<P><DT><I>SecurityAttributes</I> : <A HREF="PySECURITY_ATTRIBUTES.html">PySECURITY_ATTRIBUTES</A><P>
+
+<DD>Specifies security descriptor and handle inheritance, can be None<P><DT><I>CreationDisposition</I> : int<P>
+
+<DD>One of CREATE_ALWAYS,CREATE_NEW,OPEN_ALWAYS,OPEN_EXISTING or TRUNCATE_EXISTING<P><DT><I>FlagsAndAttributes</I> : int<P>
+
+<DD>Combination of FILE_ATTRIBUTE_* and FILE_FLAG_* flags<P><DT><I>TemplateFile=None</I> : <A HREF="PyHANDLE.html">PyHANDLE</A><P>
+
+<DD>Handle to file to be used as template, can be None<P>
+
+<DT><I>Transaction=None</I> : <A HREF="PyHANDLE.html">PyHANDLE</A><P>
+
+<DD>Handle to the transaction as returned by <A HREF="win32transaction__CreateTransaction_meth.html">win32transaction::CreateTransaction</A><P>
+
+<DT><I>MiniVersion=None</I> : int<P>
+
+<DD>Transacted version of file to open, can be None<P>
+
+<DT><I>ExtendedParameter=None</I> : None<P>
+
+<DD>Reserved, use only None<P>
+
+<H3>Comments</H3>
+
+If Transaction is specified, CreateFileTransacted will be called (requires Vista or later)<P>
+
+Accepts keyword arguments.<P>
+
+<H3>Win32 API References</H3><P><DT>Search for <i>CreateFile</i> at <a href="http://search.msdn.microsoft.com/search/results.aspx?view=msdn&query=CreateFile" target="_blank">msdn</a>, <a href="http://www.google.com/search?q=CreateFile" target="_blank">google</a> or <a href="http://groups.google.com/groups?q=CreateFile" target="_blank">google groups</a>.<P>
+
+<DT>Search for <i>CreateFileTransacted</i> at <a href="http://search.msdn.microsoft.com/search/results.aspx?view=msdn&query=CreateFileTransacted" target="_blank">msdn</a>, <a href="http://www.google.com/search?q=CreateFileTransacted" target="_blank">google</a> or <a href="http://groups.google.com/groups?q=CreateFileTransacted" target="_blank">google groups</a>.<P>
+
+</body>
+</html>

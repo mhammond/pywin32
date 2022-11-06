@@ -1,0 +1,60 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32ts.WTSSendMessage</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32ts.html">win32ts</A>.WTSSendMessage</H1><P>
+
+int = <B>WTSSendMessage(<I>Server</I><I>, SessionId</I>
+
+<I>, Title</I>
+
+<I>, Message</I>
+
+<I>, Style</I>
+
+<I>, Timeout</I>
+
+<I>, Wait</I>
+
+</B>)<P>Sends a popup message to a terminal services session<P>
+
+<H3>Parameters</H3><P><DT><I>Server=WTS_CURRENT_SERVER_HANDLE</I> : <A HREF="PyHANDLE.html">PyHANDLE</A><P>
+
+<DD>Handle to a terminal server, or 
+
+WTS_CURRENT_SERVER_HANDLE<P>
+
+<DT><I>SessionId</I> : int<P>
+
+<DD>Terminal services session id<P><DT><I>Title</I> : <B>PyUnicode</B>
+
+<P>
+
+<DD>Title of dialog<P><DT><I>Message</I> : <B>PyUnicode</B>
+
+<P>
+
+<DD>Message to be displayed<P><DT><I>Style</I> : int<P>
+
+<DD>Usually MB_OK<P><DT><I>Timeout</I> : int<P>
+
+<DD>Seconds to wait before returning (only used if Wait is True)<P><DT><I>Wait</I> : boolean<P>
+
+<DD>Specifies if function should wait for user input before returning<P><H3>Return Value</H3>Returns one of IDABORT,IDCANCEL,IDIGNORE,IDNO,IDOK,IDRETRY,IDYES,IDASYNC,IDTIMEOUT,<P>
+
+
+
+</body>
+</html>

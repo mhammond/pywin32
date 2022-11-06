@@ -1,0 +1,126 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PySPropValue</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<HR><H1>PySPropValue Object</H1><P>
+
+A MAPI property value.  Property values can either be passed from 
+
+python into MAPI functions, or returned from MAPI functions to Python.<P>
+
+<H3>Parameters</H3><P><DT><I>propType</I> : ULONG<P>
+
+<DD>The type of the MAPI property<P><DT><I>value</I> : object<P>
+
+<DD>The property value<P><H3>Comments</H3>
+
+The parameters can be one of the following pairs of values.<P>
+
+<P><TABLE COLS=2 WIDTH="100%" CELLSPACING=15>
+
+<TR>
+
+   <TD>
+
+       <B>propType</B>
+
+   </TD>
+
+   <TD>
+
+       <B>value</B>
+
+   </TD>
+
+</TR>
+
+<TR><TD><HR></TD><TD><HR></TD></TR>
+
+<TR><TD>PT_I2</TD><TD>An integer 
+
+case PT_SHORT:</TD></TR>
+
+<TR><TD>PT_MV_I2</TD><TD>A sequence of integers</TD></TR>
+
+<TR><TD>PT_I4</TD><TD>An integer 
+
+case PT_LONG:</TD></TR>
+
+<TR><TD>PT_MV_I4</TD><TD>A sequence of integers</TD></TR>
+
+<TR><TD>PT_R4</TD><TD>A float 
+
+case PT_FLOAT:</TD></TR>
+
+<TR><TD>PT_MV_R4</TD><TD>A sequence of floats</TD></TR>
+
+<TR><TD>PT_R8</TD><TD>A float 
+
+case PT_DOUBLE:</TD></TR>
+
+<TR><TD>PT_MV_R8</TD><TD>A sequence of floats</TD></TR>
+
+<TR><TD>PT_BOOLEAN</TD><TD>A boolean value (or an int)</TD></TR>
+
+<TR><TD>PT_APPTIME</TD><TD>A <A HREF="PyTime.html">PyTime</A> object</TD></TR>
+
+<TR><TD>PT_MV_APPTIME</TD><TD>An sequence of <A HREF="PyTime.html">PyTime</A> object</TD></TR>
+
+<TR><TD>PT_SYSTIME</TD><TD>A <A HREF="PyTime.html">PyTime</A> object</TD></TR>
+
+<TR><TD>PT_MV_APPTIME</TD><TD>An sequence of <A HREF="PyTime.html">PyTime</A> object</TD></TR>
+
+<TR><TD>PT_STRING8</TD><TD>A string or <B>PyUnicode</B>
+
+ 
+
+Copy into new MAPI memory block</TD></TR>
+
+<TR><TD>PT_STRING8</TD><TD>A sequence of string or <B>PyUnicode</B>
+
+ objects.</TD></TR>
+
+<TR><TD>PT_UNICODE</TD><TD>A string or <B>PyUnicode</B>
+
+ 
+
+Bit of a hack - need to copy into MAPI block.</TD></TR>
+
+<TR><TD>PT_MV_UNICODE</TD><TD>A sequence of string or <B>PyUnicode</B>
+
+</TD></TR>
+
+<TR><TD>PT_BINARY</TD><TD>A string containing binary data</TD></TR>
+
+<TR><TD>PT_MV_BINARY</TD><TD>A sequence of strings containing binary data</TD></TR>
+
+<TR><TD>PT_CLSID</TD><TD>A <A HREF="PyIID.html">PyIID</A></TD></TR>
+
+<TR><TD>PT_MV_CLSID</TD><TD>A sequence of <A HREF="PyIID.html">PyIID</A> objects</TD></TR>
+
+<TR><TD>PT_I8</TD><TD>A <B>PyLARGE_INTEGER</B>
+
+</TD></TR>
+
+<TR><TD>PT_MV_I8</TD><TD>A sequence of <B>PyLARGE_INTEGER</B>
+
+</TD></TR>
+
+<TR><TD>PT_ERROR</TD><TD>An integer error code.</TD></TR>
+
+<TR><TD>PT_NULL</TD><TD>Anything!</TD></TR>
+
+</TABLE></body>
+</html>

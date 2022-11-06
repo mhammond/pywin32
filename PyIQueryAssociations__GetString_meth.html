@@ -1,0 +1,46 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyIQueryAssociations.GetString</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="PyIQueryAssociations.html">PyIQueryAssociations</A>.GetString</H1><P>
+
+int = <B>GetString(<I>flags</I><I>, assocStr</I>
+
+<I>, </I>
+
+</B>)<P>Searches for and retrieves a file association-related string from the 
+
+registry.<P>
+
+<H3>Parameters</H3><P><DT><I>flags</I> : int<P>
+
+<DD>Used to control the search.<P><DT><I>assocStr</I> : int<P>
+
+<DD>Specifies the type of string that is to be returned.<P><DT><I>=extra</I> : string<P>
+
+<DD>Optional string with information about the location of the key. 
+
+It is normally set to a shell verb such as 'open'. Set this parameter to None if it is not used.<P>
+
+<H3>Comments</H3>
+
+Note that ASSOCF_NOTRUNCATE semantics are currently not supported - 
+
+the buffer passed is 2048 bytes long, and will be truncated by the 
+
+shell if too small.<P>
+
+</body>
+</html>

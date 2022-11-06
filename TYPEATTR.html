@@ -1,0 +1,196 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>TYPEATTR</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<HR><H1>TYPEATTR Object</H1><P>
+
+A TYPEATTR object represents a COM TYPEATTR structure.<P>
+
+<H3>Properties</H3>
+
+<DL>
+
+<DT><B><A HREF="PyIID.html">PyIID</A> iid</B>
+
+<DD>The IID<P>
+
+
+
+<DT><B>int lcid</B>
+
+<DD>The lcid<P>
+
+
+
+<DT><B>int memidConstructor</B>
+
+<DD>ID of constructor<P>
+
+
+
+<DT><B>int memidDestructor</B>
+
+<DD>ID of destructor<P>
+
+
+
+<DT><B>int cbSizeInstance</B>
+
+<DD>The size of an instance of this type<P>
+
+
+
+<DT><B>int typekind</B>
+
+<DD>The kind of type this information describes.  One of the 
+
+win32con.TKIND_* constants.<P>
+
+
+
+<DT><B>int cFuncs</B>
+
+<DD>Number of functions.<P>
+
+
+
+<DT><B>int cVars</B>
+
+<DD>Number of variables/data members.<P>
+
+
+
+<DT><B>int cImplTypes</B>
+
+<DD>Number of implemented interfaces.<P>
+
+
+
+<DT><B>int cbSizeVft</B>
+
+<DD>The size of this type's VTBL<P>
+
+
+
+<DT><B>int cbAlignment</B>
+
+<DD>Byte alignment for an instance of this type.<P>
+
+
+
+<DT><B>int wTypeFlags</B>
+
+<DD>One of the pythoncom TYPEFLAG_<P>
+
+
+
+<DT><B>int wMajorVerNum</B>
+
+<DD>Major version number.<P>
+
+
+
+<DT><B>int wMinorVerNum</B>
+
+<DD>Minor version number.<P>
+
+
+
+<DT><B><A HREF="TYPEDESC.html">TYPEDESC</A> tdescAlias</B>
+
+<DD>If TypeKind == pythoncom.TKIND_ALIAS, 
+
+specifies the type for which this type is an alias.<P>
+
+
+
+<DT><B><A HREF="IDLDESC.html">IDLDESC</A> idldeskType</B>
+
+<DD>IDL attributes of the described type.<P>
+
+
+
+</DL>
+
+<H3>Items</H3><P><DL><DT>[0] <I><A HREF="PyIID.html">PyIID</A></I> : IID<P>
+
+<DD>The IID<P></DL>
+
+<DL><DT>[1] <I>int</I> : lcid<P>
+
+<DD>The lcid<P></DL>
+
+<DL><DT>[2] <I>int</I> : memidConstructor<P>
+
+<DD>ID of constructor<P></DL>
+
+<DL><DT>[3] <I>int</I> : memidDestructor<P>
+
+<DD>ID of destructor,<P></DL>
+
+<DL><DT>[4] <I>int</I> : cbSizeInstance<P>
+
+<DD>The size of an instance of this type<P></DL>
+
+<DL><DT>[5] <I>int</I> : typekind<P>
+
+<DD>The kind of type this information describes.  One of the win32con.TKIND_* 
+
+constants.<P></DL>
+
+<DL><DT>[6] <I>int</I> : cFuncs<P>
+
+<DD>Number of functions.<P></DL>
+
+<DL><DT>[7] <I>int</I> : cVars<P>
+
+<DD>Number of variables/data members.<P></DL>
+
+<DL><DT>[8] <I>int</I> : cImplTypes<P>
+
+<DD>Number of implemented interfaces.<P></DL>
+
+<DL><DT>[9] <I>int</I> : cbSizeVft<P>
+
+<DD>The size of this type's VTBL<P></DL>
+
+<DL><DT>[10] <I>int</I> : cbAlignment<P>
+
+<DD>Byte alignment for an instance of this type.<P></DL>
+
+<DL><DT>[11] <I>int</I> : wTypeFlags<P>
+
+<DD>One of the pythoncom TYPEFLAG_* constants<P></DL>
+
+<DL><DT>[12] <I>int</I> : wMajorVerNum<P>
+
+<DD>Major version number.<P></DL>
+
+<DL><DT>[13] <I>int</I> : wMinorVerNum<P>
+
+<DD>Minor version number.<P></DL>
+
+<DL><DT>[14] <I><A HREF="TYPEDESC.html">TYPEDESC</A></I> : obDescAlias<P>
+
+<DD>If TypeKind == pythoncom.TKIND_ALIAS, specifies the type for 
+
+which this type is an alias.<P></DL>
+
+<DL><DT>[15] <I><A HREF="IDLDESC.html">IDLDESC</A></I> : obIDLDesc<P>
+
+<DD>IDL attributes of the described type.<P></DL>
+
+</body>
+</html>

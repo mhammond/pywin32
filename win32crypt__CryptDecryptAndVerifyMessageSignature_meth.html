@@ -1,0 +1,58 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32crypt.CryptDecryptAndVerifyMessageSignature</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32crypt.html">win32crypt</A>.CryptDecryptAndVerifyMessageSignature</H1><P>
+
+dict = <B>CryptDecryptAndVerifyMessageSignature(<I>EncryptedBlob</I><I>, DecryptPara</I>
+
+<I>, VerifyPara</I>
+
+<I>, SignerIndex</I>
+
+</B>)<P>Decrypts and decodes a signed message, and verifies 
+
+its signatures<P>
+
+<H3>Parameters</H3><P><DT><I>EncryptedBlob</I> : buffer<P>
+
+<DD>Encoded message to be decrypted.<P><DT><I>DecryptPara</I> : <A HREF="PyCRYPT_DECRYPT_MESSAGE_PARA.html">PyCRYPT_DECRYPT_MESSAGE_PARA</A><P>
+
+<DD>Decryption parms<P><DT><I>VerifyPara=None</I> : <A HREF="PyCRYPT_VERIFY_MESSAGE_PARA.html">PyCRYPT_VERIFY_MESSAGE_PARA</A><P>
+
+<DD>Signature verification parms<P>
+
+<DT><I>SignerIndex=0</I> : int<P>
+
+<DD>Index of the signer to verify, zero-based.<P>
+
+<H3>Comments</H3>
+
+Usage is similar to CryptDecodeMessage, except that it undoes all levels of encoding and 
+
+returns the bare message.   This function is the counterpart of CryptSignAndEncryptMessage.<P>
+
+<H3>Return Value</H3>Output params are returned as a dict containing: 
+
+<BR>Decrypted:str,&#09&#09&#09&#09&#09&nbsp&nbsp##The decrypted message contents 
+
+<BR>XchgCert:<A HREF="PyCERT_CONTEXT.html">PyCERT_CONTEXT</A>,&#09&nbsp&nbsp##Certificate whose private key was used to decrypt message 
+
+<BR>SignerCert:<A HREF="PyCERT_CONTEXT.html">PyCERT_CONTEXT</A>&#09&nbsp&nbsp##Certificate used to sign message<P>
+
+
+
+</body>
+</html>

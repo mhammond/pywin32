@@ -1,0 +1,88 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32api.Apply</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32api.html">win32api</A>.Apply</H1><P>
+
+object = <B>Apply(<I>exceptionHandler</I><I>, func</I>
+
+<I>, args</I>
+
+</B>)<P>Calls a Python function, but traps Win32 exceptions.<P>
+
+<H3>Parameters</H3><P><DT><I>exceptionHandler</I> : object<P>
+
+<DD>An object which will be called when a win32 
+
+exception occurs.<P><DT><I>func</I> : object<P>
+
+<DD>The function call call under the protection of the Win32 
+
+exception handler.<P><DT><I>args</I> : tuple<P>
+
+<DD>Args for the function.<P><H3>Comments</H3>
+
+Calls the specified function in a manner similar to 
+
+the built-in function apply(), but allows Win32 exceptions 
+
+to be handled by Python.  If a Win32 exception occurs calling 
+
+the function, the specified exceptionHandler is called, and its 
+
+return value determines the action taken.<P>
+
+<P><TABLE COLS=2 WIDTH="100%" CELLSPACING=15>
+
+<TR>
+
+   <TD>
+
+       <B>Return value</B>
+
+   </TD>
+
+   <TD>
+
+       <B>Description</B>
+
+   </TD>
+
+</TR>
+
+<TR><TD><HR></TD><TD><HR></TD></TR>
+
+<TR><TD>Tuple of (exc_type, exc_value)</TD><TD>This exception is raised to the 
+
+Python caller of Apply() - This is conceptually similar to 
+
+"raise exc_type, exc_value", although exception handlers must not 
+
+themselves raise exceptions (see below).</TD></TR>
+
+<TR><TD>Integer</TD><TD>Must be one of the win32 exception constants, and this 
+
+value is returned to Win32.  See the Win32 documentation for details.</TD></TR>
+
+<TR><TD>None</TD><TD>The exception is considered not handled (ie, it is as if no 
+
+exception handler exists).  If a Python exception occurs in the Win32 
+
+exception handler, it is as if None were returned (ie, no tracebacks 
+
+or other diagnostics are printed)</TD></TR>
+
+</TABLE></body>
+</html>

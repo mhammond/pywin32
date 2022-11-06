@@ -1,0 +1,94 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyCDC.DrawText</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="PyCDC.html">PyCDC</A>.DrawText</H1><P>
+
+s,rc,forat = <B>DrawText(<I>s</I><I>, tuple</I>
+
+<I>, format</I>
+
+</B>)<P>Formats text in the given rectangle<P>
+
+<H3>Parameters</H3><P><DT><I>s</I> : string<P>
+
+<DD>The desired output string<P><DT><I>tuple</I> : (int, int, int, int)<P>
+
+<DD>The bounding rectangle in the form: 
+
+(left, top, right, bottom) expressed in logical units (depending on 
+
+selected coordinate system - see <A HREF="PyCDC__SetMapMode_meth.html">PyCDC::SetMapMode</A>)<P><DT><I>format</I> : int<P>
+
+<DD>Specifies one or more bit-or'd format values, such as 
+
+DT_BOTTOM, DT_CENTERDT_RIGHT, DT_VCENTER. For a complete list, see 
+
+the Microsoft Win32 API documentation.<P><H3>Example</H3>Example<P>
+
+<PRE>import win32ui&ltnl&gt
+
+ import win32con&ltnl&gt
+
+ INCH = 1440   # twips - 1440 per inch allows fine res&ltnl&gt
+
+ def drawtext_test():&ltnl&gt
+
+     dc = win32ui.CreateDC()&ltnl&gt
+
+     dc.CreatePrinterDC()                # ties to default printer&ltnl&gt
+
+     dc.StartDoc('My Python Document')&ltnl&gt
+
+     dc.StartPage()&ltnl&gt
+
+ &ltnl&gt
+
+     # note: upper left is 0,0 with x increasing to the right,&ltnl&gt
+
+     #       and y decreasing (negative) moving down&ltnl&gt
+
+     dc.SetMapMode(win32con.MM_TWIPS)&ltnl&gt
+
+ &ltnl&gt
+
+     # Centers "TEST" about an inch down on page&ltnl&gt
+
+     dc.DrawText('TEST', (0,INCH*-1,INCH*8,INCH*-2), win32con.DT_CENTER )&ltnl&gt
+
+     dc.EndPage()&ltnl&gt
+
+     dc.EndDoc()&ltnl&gt
+
+     del dc&ltnl&gt
+
+</PRE>
+
+<H3>Return Value</H3>Height of text in pixels<P>
+
+
+
+The return value is the height of the text, in logical units. 
+
+If DT_VCENTER or DT_BOTTOM is specified, the return value is the 
+
+offset from rect.top to the bottom of the drawn text. 
+
+If the function fails, the return value is zero (no Python exception is thrown)<P>
+
+
+
+</body>
+</html>

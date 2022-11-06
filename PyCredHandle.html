@@ -1,0 +1,38 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyCredHandle</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<HR><H1>PyCredHandle Object</H1><P>
+
+Handle to a set of logon credentials, used with sspi authentication functions<P>
+
+<H3>Comments</H3>
+
+This object is usually created using <A HREF="win32security__AcquireCredentialsHandle_meth.html">win32security::AcquireCredentialsHandle</A>. 
+
+An uninitialized handle can also be created using win32security.PyCredHandleType()<P>
+
+<H3>Methods</H3><P><DL><DT><A HREF="PyCredHandle__Detach_meth.html">Detach</A><BR>
+
+<DD>Disassociates object from handle and returns integer value of handle (prevents automatic 
+
+freeing of credentials when object is deallocated),&nbsp;<P><DT><A HREF="PyCredHandle__FreeCredentialsHandle_meth.html">FreeCredentialsHandle</A><BR>
+
+<DD>Releases the credentials handle&nbsp;<P><DT><A HREF="PyCredHandle__QueryCredentialsAttributes_meth.html">QueryCredentialsAttributes</A><BR>
+
+<DD>Returns information about the credentials&nbsp;<P></DL>
+
+</body>
+</html>

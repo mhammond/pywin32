@@ -1,0 +1,56 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32event.WaitForInputIdle</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32event.html">win32event</A>.WaitForInputIdle</H1><P>
+
+int = <B>WaitForInputIdle(<I>hProcess</I><I>, milliseconds</I>
+
+</B>)<P>Waits until the given process is waiting for user input with no input pending, or until the time-out interval has elapsed<P>
+
+<H3>Parameters</H3><P><DT><I>hProcess</I> : <A HREF="PyHANDLE.html">PyHANDLE</A><P>
+
+<DD>handle of process to wait for<P><DT><I>milliseconds</I> : int<P>
+
+<DD>time-out interval in milliseconds<P><H3>Return Value</H3>The return value indicates wether the process is ready or wether it timed out. This value can be one of the following.<P>
+
+
+
+<P><TABLE COLS=2 WIDTH="100%" CELLSPACING=15>
+
+<TR>
+
+   <TD>
+
+       <B>Value</B>
+
+   </TD>
+
+   <TD>
+
+       <B>Meaning</B>
+
+   </TD>
+
+</TR>
+
+<TR><TD><HR></TD><TD><HR></TD></TR>
+
+<TR><TD>0</TD><TD>The process is ready.</TD></TR>
+
+<TR><TD>WAIT_TIMEOUT</TD><TD>The time-out interval elapsed, and the process is not ready.</TD></TR>
+
+</TABLE></body>
+</html>

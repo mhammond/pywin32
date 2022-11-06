@@ -1,0 +1,38 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyITransferAdviseSink.PropertyFailure</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="PyITransferAdviseSink.html">PyITransferAdviseSink</A>.PropertyFailure</H1><P>
+
+int = <B>PropertyFailure(<I>Item</I><I>, key</I>
+
+<I>, Error</I>
+
+</B>)<P>Notifies user of failure to set an item's properties<P>
+
+<H3>Parameters</H3><P><DT><I>Item</I> : <A HREF="PyIShellItem.html">PyIShellItem</A><P>
+
+<DD>The item whose property could not be set<P><DT><I>key</I> : <A HREF="PyPROPERTYKEY.html">PyPROPERTYKEY</A><P>
+
+<DD>Identifies the property that caused the error, or None if all properties failed<P><DT><I>Error</I> : int<P>
+
+<DD>HRESULT error code returned by the operation<P><H3>Return Value</H3>Returns COPYENGINE_S_* to indicate that the failure was handled, or 
+
+COPYENGINE_E_USERCANCELLED to cancel pending operations<P>
+
+
+
+</body>
+</html>

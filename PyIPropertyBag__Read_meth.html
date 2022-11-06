@@ -1,0 +1,42 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyIPropertyBag.Read</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="PyIPropertyBag.html">PyIPropertyBag</A>.Read</H1><P>
+
+object = <B>Read(<I>propName</I><I>, propType</I>
+
+<I>, errorLog</I>
+
+</B>)<P>Called by the control to read a property from the storage provided by the 
+
+container.<P>
+
+<H3>Parameters</H3><P><DT><I>propName</I> : str<P>
+
+<DD>Name of the property to read.<P><DT><I>propType</I> : int<P>
+
+<DD>The type of the object to read.  Must be a VT_* Variant Type constant.<P><DT><I>errorLog=None</I> : <A HREF="PyIErrorLog.html">PyIErrorLog</A><P>
+
+<DD>The caller's <A HREF="PyIErrorLog.html">PyIErrorLog</A> object in which the property bag stores any 
+
+errors that occur during reads. Can be None in which case the caller is not interested in errors.<P>
+
+<H3>Comments</H3>
+
+The result is a Python object, mapped from a COM VARIANT of type as specified in the propType parameter.<P>
+
+</body>
+</html>

@@ -1,0 +1,46 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>servicemanager.SetEventSourceName</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="servicemanager.html">servicemanager</A>.SetEventSourceName</H1><P>
+
+<B>SetEventSourceName(<I>sourceName</I><I>, registerNow</I></B>)<P>Sets the event source name 
+
+for event log entries written by the service.<P>
+
+<H3>Parameters</H3><P><DT><I>sourceName</I> : string<P>
+
+<DD>The event source name<P><DT><I>registerNow=False</I> : bool<P>
+
+<DD>If True, the event source name in the 
+
+registry will be updated immediately. 
+
+If False, the name will be registered the first time an event log entry 
+
+is written via any pythonservice methods (or possibly never if no record 
+
+if written). 
+
+<BR>Note that in some cases, the service itself will not have permission 
+
+to write the event source in the registry.  Therefore, it would be 
+
+prudent for your installation program to call this function with 
+
+registerNow=True, to ensure your services can write useful entries.<P>
+
+</body>
+</html>

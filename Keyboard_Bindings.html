@@ -1,0 +1,264 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>Keyboard Bindings</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<HR><H1>Keyboard Bindings</H1>
+
+Pythonwin has a new, flexible keyboard 
+
+binding mechanism. Bindings (and even code) can be defined in a 
+
+configuration file, stored in the pywin directory.<P>
+
+<BR>Many bindings are still builtin to Python using Window's accelerators - 
+
+see the Pythonwin menus for the specific keyboard shortcuts.<P>
+
+<BR>The default configuration file is named default.cfg. You can view 
+
+this file with a text editor (eg, Pythonwin) This file has extensive 
+
+comments, including how to create your own configuration based on the 
+
+default. An example configuration which provides keyboard bindings 
+
+similar to IDLE exists in IDLE.cfg, and this makes a good example of a 
+
+custom configuration.<P>
+
+<BR>Please see default.cfg for a complete list, but the default bindings 
+
+provided with Pythonwin are:<P>
+
+<P><TABLE COLS=2 WIDTH="100%" CELLSPACING=15>
+
+<TR>
+
+   <TD>
+
+       <B>Common Keystrokes</B>
+
+   </TD>
+
+   <TD>
+
+       <B>Description</B>
+
+   </TD>
+
+</TR>
+
+<TR><TD><HR></TD><TD><HR></TD></TR>
+
+<TR><TD>Alt+Q</TD><TD>Reformat the current paragraph/comment block.  Note this does NOT reformat code correctly - use only within comment blocks!</TD></TR>
+
+<TR><TD>Ctrl+W</TD><TD>Toggle view whitespace.</TD></TR>
+
+<TR><TD>Alt+/</TD><TD>Expand the word at the cursor.  Eg, pressing "st&ltAlt+/&gt" 
+
+will complete based on all words in the current file - eg, "string" 
+
+would be likely to result assuming the code has an "import string" 
+
+statement.  Pressing the key again expands to the next match.</TD></TR>
+
+<TR><TD>.</TD><TD>Auto expand the attribute.  Eg, typing "string." will display a listbox with the contents of the string module.  Select an item with TAB or the mouse.</TD></TR>
+
+<TR><TD>Alt+I</TD><TD>Toggle focus to/from the interactive window.</TD></TR>
+
+</TABLE><P><TABLE COLS=2 WIDTH="100%" CELLSPACING=15>
+
+<TR>
+
+   <TD>
+
+       <B>Builtin Keystrokes</B>
+
+   </TD>
+
+   <TD>
+
+       <B>Keystrokes built into Scintilla</B>
+
+   </TD>
+
+</TR>
+
+<TR><TD><HR></TD><TD><HR></TD></TR>
+
+<TR><TD>Ctrl+Keypad+Plus</TD><TD>Zoom-in for the current window.  Non True-Type fonts may require multiple presses.</TD></TR>
+
+<TR><TD>Ctrl+Keypad+Minus</TD><TD>Zoom-out for the current window.  Non True-Type fonts may require multiple presses.</TD></TR>
+
+<TR><TD>Ctrl+Backspace</TD><TD>Delete the word to the left of the cursor.</TD></TR>
+
+<TR><TD>Ctrl+Z</TD><TD>Undo</TD></TR>
+
+<TR><TD>Ctrl+Y</TD><TD>Redo</TD></TR>
+
+<TR><TD>Ctrl+X</TD><TD>Cut</TD></TR>
+
+<TR><TD>Ctrl+C</TD><TD>Copy</TD></TR>
+
+<TR><TD>Ctrl+V</TD><TD>Paste</TD></TR>
+
+<TR><TD>Ctrl+A</TD><TD>Select All</TD></TR>
+
+<TR><TD>Ctrl+Shift+L</TD><TD>Delete the current line</TD></TR>
+
+<TR><TD>Ctrl+T</TD><TD>Transpose (swap) the current line with the line above</TD></TR>
+
+<TR><TD>Ctrl+U</TD><TD>Convert the selection to lower case</TD></TR>
+
+<TR><TD>Ctrl+Shift+U</TD><TD>Convert the selection to upper case</TD></TR>
+
+</TABLE><P><TABLE COLS=2 WIDTH="100%" CELLSPACING=15>
+
+<TR>
+
+   <TD>
+
+       <B>Editor Specific Keystrokes</B>
+
+   </TD>
+
+   <TD>
+
+       <B>Description</B>
+
+   </TD>
+
+</TR>
+
+<TR><TD><HR></TD><TD><HR></TD></TR>
+
+<TR><TD>F2</TD><TD>Move to the next bookmark.</TD></TR>
+
+<TR><TD>Ctrl+F2</TD><TD>Add or remove a bookmark on the current line.</TD></TR>
+
+<TR><TD>Ctrl+G</TD><TD>Prompt for and goto a specific line number.</TD></TR>
+
+<TR><TD>Alt+B</TD><TD>Adds a simple comment banner at the current location.</TD></TR>
+
+<TR><TD>Alt+3</TD><TD>Block comment the selected region.</TD></TR>
+
+<TR><TD>Shift+Alt+3</TD><TD>Uncomment the selected region.</TD></TR>
+
+<TR><TD>Alt+4</TD><TD>Uncomment the selected region (IDLE default keystroke)</TD></TR>
+
+<TR><TD>Alt+5</TD><TD>Tabify the selected region. 
+
+<BR></TD></TR>
+
+<TR><TD>Alt+6</TD><TD>Untabify the selected region.</TD></TR>
+
+<TR><TD>BackSpace</TD><TD>Remove selected region or one character or indent to the left.</TD></TR>
+
+<TR><TD>Ctrl+T</TD><TD>Toggle the use of tabs for the current file (after confirmation)</TD></TR>
+
+<TR><TD>Alt+U</TD><TD>Change the indent width for the current file.</TD></TR>
+
+<TR><TD>Enter</TD><TD>Insert a newline and indent.</TD></TR>
+
+<TR><TD>Tab</TD><TD>Insert an indent, perform a block indent if a selection exists, or accept an attribute selection.</TD></TR>
+
+<TR><TD>Shift-Tab</TD><TD>Block dedent the selection 
+
+<BR></TD></TR>
+
+<TR><TD>F6</TD><TD>Toggle view when editor splitter is open. 
+
+<BR></TD></TR>
+
+<TR><TD>Keypad-Plus</TD><TD>If the current line is a collapsed fold, expand it (see <B>Folding</B>
+
+)</TD></TR>
+
+<TR><TD>Alt-Keypad-Plus</TD><TD>Expand all folds in the current file (see <B>Folding</B>
+
+)</TD></TR>
+
+<TR><TD>Keypad-Minus</TD><TD>If the current line is an expanded fold, collapse it (see <B>Folding</B>
+
+)</TD></TR>
+
+<TR><TD>Alt-Keypad-Minus</TD><TD>Collapse all folds in the current file. regardless of how deep the fold becomes. (see <B>Folding</B>
+
+)</TD></TR>
+
+<TR><TD>Keypad-Multiply</TD><TD>Expand or collapse all top-level folds in the current file.  No second level or deeper folds are changed. 
+
+If the first fold in the file is collapsed, all top-level folds are opened.  Otherwise, all top-level folds are collapsed (see <B>Folding</B>
+
+)</TD></TR>
+
+</TABLE><P><TABLE COLS=2 WIDTH="100%" CELLSPACING=15>
+
+<TR>
+
+   <TD>
+
+       <B>Debugger Keystrokes</B>
+
+   </TD>
+
+   <TD>
+
+       <B>Description</B>
+
+   </TD>
+
+</TR>
+
+<TR><TD><HR></TD><TD><HR></TD></TR>
+
+<TR><TD>F9</TD><TD>Toggle breakpoint</TD></TR>
+
+<TR><TD>F5</TD><TD>Run (ie, go)</TD></TR>
+
+<TR><TD>Shift+F5</TD><TD>Stop debugging</TD></TR>
+
+<TR><TD>F11</TD><TD>Single step into functions</TD></TR>
+
+<TR><TD>F10</TD><TD>Step over functions</TD></TR>
+
+<TR><TD>Shift+F11</TD><TD>Step out of the current function</TD></TR>
+
+</TABLE><P><TABLE COLS=2 WIDTH="100%" CELLSPACING=15>
+
+<TR>
+
+   <TD>
+
+       <B>Interactive Window Specific Keystrokes</B>
+
+   </TD>
+
+   <TD>
+
+       <B>Description</B>
+
+   </TD>
+
+</TR>
+
+<TR><TD><HR></TD><TD><HR></TD></TR>
+
+<TR><TD>Ctrl+Up</TD><TD>Recall the previous command in the history list.</TD></TR>
+
+<TR><TD>Ctrl+Down</TD><TD>Recall the next command in the history list.</TD></TR>
+
+</TABLE></body>
+</html>

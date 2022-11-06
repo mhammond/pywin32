@@ -1,0 +1,60 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32api.ShellExecute</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32api.html">win32api</A>.ShellExecute</H1><P>
+
+int = <B>ShellExecute(<I>hwnd</I><I>, op</I>
+
+<I>, file</I>
+
+<I>, params</I>
+
+<I>, dir</I>
+
+<I>, bShow</I>
+
+</B>)<P>Opens or prints a file.<P>
+
+<H3>Parameters</H3><P><DT><I>hwnd</I> : <A HREF="PyHANDLE.html">PyHANDLE</A><P>
+
+<DD>The handle of the parent window, or 0 for no parent.  This window 
+
+receives any message boxes an application produces (for example, for error reporting).<P><DT><I>op</I> : string<P>
+
+<DD>The operation to perform.  May be "open", "print", or None, which defaults to 
+
+"open".<P><DT><I>file</I> : string<P>
+
+<DD>The name of the file to open.<P><DT><I>params</I> : string<P>
+
+<DD>The parameters to pass, if the file name contains an executable. 
+
+Should be None for a document file.<P><DT><I>dir</I> : string<P>
+
+<DD>The initial directory for the application.<P><DT><I>bShow</I> : int<P>
+
+<DD>Specifies whether the application is shown when it is opened. If the lpszFile 
+
+parameter specifies a document file, this parameter is zero.<P><H3>Win32 API References</H3><P><DT>Search for <i>ShellExecute</i> at <a href="http://search.msdn.microsoft.com/search/results.aspx?view=msdn&query=ShellExecute" target="_blank">msdn</a>, <a href="http://www.google.com/search?q=ShellExecute" target="_blank">google</a> or <a href="http://groups.google.com/groups?q=ShellExecute" target="_blank">google groups</a>.<P>
+
+<H3>Return Value</H3>The instance handle of the application that was run. (This handle could also be the handle of a dynamic 
+
+data exchange [DDE] server application.) If there is an error, the method raises an exception.<P>
+
+
+
+</body>
+</html>

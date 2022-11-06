@@ -1,0 +1,70 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>_winxptheme.OpenThemeData</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="_winxptheme.html">_winxptheme</A>.OpenThemeData</H1><P>
+
+<A HREF="PyHTHEME.html">PyHTHEME</A> = <B>OpenThemeData(<I>hwnd</I><I>, pszClassList</I>
+
+</B>)<P>Open the theme data for the specified HWND and 
+
+semi-colon separated list of class names. 
+
+<BR>OpenThemeData() will try each class name, one at 
+
+a time, and use the first matching theme info 
+
+found.  If a match is found, a theme handle 
+
+to the data is returned.  If no match is found, 
+
+a "NULL" handle is returned. 
+
+<BR>When the window is destroyed or a WM_THEMECHANGED 
+
+msg is received, <A HREF="_winxptheme__CloseThemeData_meth.html">_winxptheme::CloseThemeData</A> should be 
+
+called to close the theme handle.<P>
+
+<H3>Parameters</H3><P><DT><I>hwnd</I> : int<P>
+
+<DD>Window handle of the control/window to be themed<P><DT><I>pszClassList</I> : string<P>
+
+<DD>Class name (or list of names) to match to theme data 
+
+section.  if the list contains more than one name, 
+
+the names are tested one at a time for a match. 
+
+If a match is found, OpenThemeData() returns a 
+
+theme handle associated with the matching class. 
+
+This param is a list (instead of just a single 
+
+class name) to provide the class an opportunity 
+
+to get the "best" match between the class and 
+
+the current theme.  For example, a button might 
+
+pass L"OkButton, Button" if its ID=ID_OK.  If 
+
+the current theme has an entry for OkButton, 
+
+that will be used.  Otherwise, we fall back on 
+
+the normal Button entry.<P></body>
+</html>

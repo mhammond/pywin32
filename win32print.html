@@ -1,0 +1,120 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32print</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1>Module win32print</H1><P>
+
+A module encapsulating the Windows printing API.<P>
+
+<H3>Methods</H3><P><DL><DT><A HREF="win32print__OpenPrinter_meth.html">OpenPrinter</A><BR>
+
+<DD>Retrieves a handle to a printer.&nbsp;<P><DT><A HREF="win32print__GetPrinter_meth.html">GetPrinter</A><BR>
+
+<DD>Retrieves information about a printer&nbsp;<P><DT><A HREF="win32print__SetPrinter_meth.html">SetPrinter</A><BR>
+
+<DD>Changes printer configuration and status&nbsp;<P><DT><A HREF="win32print__ClosePrinter_meth.html">ClosePrinter</A><BR>
+
+<DD>Closes a handle to a printer.&nbsp;<P><DT><A HREF="win32print__AddPrinterConnection_meth.html">AddPrinterConnection</A><BR>
+
+<DD>Connects to a network printer.&nbsp;<P><DT><A HREF="win32print__DeletePrinterConnection_meth.html">DeletePrinterConnection</A><BR>
+
+<DD>Disconnects from a network printer.&nbsp;<P><DT><A HREF="win32print__EnumPrinters_meth.html">EnumPrinters</A><BR>
+
+<DD>Enumerates printers, print servers, domains and print providers.&nbsp;<P><DT><A HREF="win32print__GetDefaultPrinter_meth.html">GetDefaultPrinter</A><BR>
+
+<DD>Returns the default printer.&nbsp;<P><DT><A HREF="win32print__GetDefaultPrinterW_meth.html">GetDefaultPrinterW</A><BR>
+
+<DD>Returns the default printer.&nbsp;<P><DT><A HREF="win32print__SetDefaultPrinter_meth.html">SetDefaultPrinter</A><BR>
+
+<DD>Sets the default printer.&nbsp;<P><DT><A HREF="win32print__SetDefaultPrinterW_meth.html">SetDefaultPrinterW</A><BR>
+
+<DD>Sets the default printer.&nbsp;<P><DT><A HREF="win32print__StartDocPrinter_meth.html">StartDocPrinter</A><BR>
+
+<DD>Notifies the print spooler that a document is 
+
+to be spooled for printing. Returns the Jobid of the started job.&nbsp;<P><DT><A HREF="win32print__EndDocPrinter_meth.html">EndDocPrinter</A><BR>
+
+<DD>The EndDocPrinter function ends a print job for the specified printer.&nbsp;<P><DT><A HREF="win32print__AbortPrinter_meth.html">AbortPrinter</A><BR>
+
+<DD>Deletes spool file for printer&nbsp;<P><DT><A HREF="win32print__StartPagePrinter_meth.html">StartPagePrinter</A><BR>
+
+<DD>Notifies the print spooler that a page is to be printed on specified printer&nbsp;<P><DT><A HREF="win32print__EndPagePrinter_meth.html">EndPagePrinter</A><BR>
+
+<DD>Ends a page in a print job&nbsp;<P><DT><A HREF="win32print__StartDoc_meth.html">StartDoc</A><BR>
+
+<DD>Starts spooling a print job on a printer device context&nbsp;<P><DT><A HREF="win32print__EndDoc_meth.html">EndDoc</A><BR>
+
+<DD>Stops spooling a print job on a printer device context&nbsp;<P><DT><A HREF="win32print__AbortDoc_meth.html">AbortDoc</A><BR>
+
+<DD>Cancels print job on a printer device context&nbsp;<P><DT><A HREF="win32print__StartPage_meth.html">StartPage</A><BR>
+
+<DD>Starts a page on a printer device context&nbsp;<P><DT><A HREF="win32print__EndPage_meth.html">EndPage</A><BR>
+
+<DD>Ends a page on a printer device context&nbsp;<P><DT><A HREF="win32print__WritePrinter_meth.html">WritePrinter</A><BR>
+
+<DD>Copies the specified bytes to the specified printer. StartDocPrinter and EndDocPrinter 
+
+should be called before and after. Returns number of bytes written to printer.&nbsp;<P><DT><A HREF="win32print__EnumJobs_meth.html">EnumJobs</A><BR>
+
+<DD>Enumerates print jobs on specified printer.&nbsp;<P><DT><A HREF="win32print__GetJob_meth.html">GetJob</A><BR>
+
+<DD>Returns dictionary of information about a specified print job.&nbsp;<P><DT><A HREF="win32print__SetJob_meth.html">SetJob</A><BR>
+
+<DD>Pause, cancel, resume, set priority levels on a print job.&nbsp;<P><DT><A HREF="win32print__DocumentProperties_meth.html">DocumentProperties</A><BR>
+
+<DD>Changes printer configuration&nbsp;<P><DT><A HREF="win32print__EnumPrintProcessors_meth.html">EnumPrintProcessors</A><BR>
+
+<DD>List printer providers for specified server and environment&nbsp;<P><DT><A HREF="win32print__EnumPrintProcessorDatatypes_meth.html">EnumPrintProcessorDatatypes</A><BR>
+
+<DD>Lists data types that specified print provider supports&nbsp;<P><DT><A HREF="win32print__EnumPrinterDrivers_meth.html">EnumPrinterDrivers</A><BR>
+
+<DD>Lists installed printer drivers&nbsp;<P><DT><A HREF="win32print__EnumForms_meth.html">EnumForms</A><BR>
+
+<DD>Lists forms for a printer&nbsp;<P><DT><A HREF="win32print__AddForm_meth.html">AddForm</A><BR>
+
+<DD>Adds a form for a printer&nbsp;<P><DT><A HREF="win32print__DeleteForm_meth.html">DeleteForm</A><BR>
+
+<DD>Deletes a form defined for a printer&nbsp;<P><DT><A HREF="win32print__GetForm_meth.html">GetForm</A><BR>
+
+<DD>Retrieves information about a defined form&nbsp;<P><DT><A HREF="win32print__SetForm_meth.html">SetForm</A><BR>
+
+<DD>Change information for a form&nbsp;<P><DT><A HREF="win32print__AddJob_meth.html">AddJob</A><BR>
+
+<DD>Adds a job to be spooled to a printer queue&nbsp;<P><DT><A HREF="win32print__ScheduleJob_meth.html">ScheduleJob</A><BR>
+
+<DD>Schedules a spooled job to be printed&nbsp;<P><DT><A HREF="win32print__DeviceCapabilities_meth.html">DeviceCapabilities</A><BR>
+
+<DD>Queries a printer for its capabilities&nbsp;<P><DT><A HREF="win32print__GetDeviceCaps_meth.html">GetDeviceCaps</A><BR>
+
+<DD>Retrieves device-specific parameters and settings&nbsp;<P><DT><A HREF="win32print__EnumMonitors_meth.html">EnumMonitors</A><BR>
+
+<DD>Lists installed printer port monitors&nbsp;<P><DT><A HREF="win32print__EnumPorts_meth.html">EnumPorts</A><BR>
+
+<DD>Lists printer ports on a server&nbsp;<P><DT><A HREF="win32print__GetPrintProcessorDirectory_meth.html">GetPrintProcessorDirectory</A><BR>
+
+<DD>Returns the directory where print processor files reside&nbsp;<P><DT><A HREF="win32print__GetPrinterDriverDirectory_meth.html">GetPrinterDriverDirectory</A><BR>
+
+<DD>Returns the directory where printer drivers are installed&nbsp;<P><DT><A HREF="win32print__AddPrinter_meth.html">AddPrinter</A><BR>
+
+<DD>Adds a new printer on a server&nbsp;<P><DT><A HREF="win32print__DeletePrinter_meth.html">DeletePrinter</A><BR>
+
+<DD>Deletes an existing printer&nbsp;<P><DT><A HREF="win32print__DeletePrinterDriver_meth.html">DeletePrinterDriver</A><BR>
+
+<DD>Deletes the specified driver from a server&nbsp;<P><DT><A HREF="win32print__DeletePrinterDriverEx_meth.html">DeletePrinterDriverEx</A><BR>
+
+<DD>Deletes a printer driver and associated files&nbsp;<P><DT><A HREF="win32print__FlushPrinter_meth.html">FlushPrinter</A><BR>
+
+<DD>Clears printer from error state if WritePrinter fails&nbsp;<P></DL></body>
+</html>

@@ -1,0 +1,32 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32ui.StartDebuggerPump</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32ui.html">win32ui</A>.StartDebuggerPump</H1><P>
+
+<B>StartDebuggerPump(</B>)<P>Starts a recursive message loop, waiting for an application close message.<P>
+
+<H3>Comments</H3>
+
+This function is used by the debugger.  It allows the debugger to 
+
+interact with the user, even while the Python code is stopped. 
+
+As the Python code may be responding to a Windows Event, this function 
+
+works around the inherent message queue problems.<P>
+
+</body>
+</html>

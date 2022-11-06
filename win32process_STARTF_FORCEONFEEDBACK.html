@@ -1,0 +1,28 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>STARTF_FORCEONFEEDBACK</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<HR>
+
+<H1>STARTF_FORCEONFEEDBACK</H1>
+
+<B>const win32process.STARTF_FORCEONFEEDBACK;</B><P>
+
+Indicates that the cursor is in feedback mode for two seconds after CreateProcess is called. If during those two seconds the process makes the first GUI call, the system gives five more seconds to the process. If during those five seconds the process shows a window, the system gives five more seconds to the process to finish drawing the window. 
+
+The system turns the feedback cursor off after the first call to GetMessage, regardless of whether the process is drawing.<P>
+
+</body>
+</html>

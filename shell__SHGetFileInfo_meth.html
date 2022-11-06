@@ -1,0 +1,68 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>shell.SHGetFileInfo</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="shell.html">shell</A>.SHGetFileInfo</H1><P>
+
+int, <A HREF="SHFILEINFO.html">SHFILEINFO</A> = <B>SHGetFileInfo(<I>name</I><I>, dwFileAttributes</I>
+
+<I>, uFlags</I>
+
+<I>, infoAttrs</I>
+
+</B>)<P>Retrieves information about an object in the file system, such as a 
+
+file, a folder, a directory, or a drive root.<P>
+
+<H3>Parameters</H3><P><DT><I>name</I> : string/<A HREF="PyIDL.html">PyIDL</A><P>
+
+<DD>The path and file name. Both absolute 
+
+and relative paths are valid. 
+
+<BR>If the uFlags parameter includes the SHGFI_PIDL flag, this parameter 
+
+must be a valid <A HREF="PyIDL.html">PyIDL</A> object that uniquely identifies the file within 
+
+the shell's namespace. The PIDL must be a fully qualified PIDL. 
+
+Relative PIDLs are not allowed. 
+
+<BR>If the uFlags parameter includes the SHGFI_USEFILEATTRIBUTES flag, this parameter does not 
+
+have to be a valid file name. The function will proceed as if the file exists with the 
+
+specified name and with the file attributes passed in the dwFileAttributes parameter. This 
+
+allows you to obtain information about a file type by passing just the extension for pszPath 
+
+and passing FILE_ATTRIBUTE_NORMAL in dwFileAttributes. <BR>This string can use either short 
+
+(the 8.3 form) or long file names.<P><DT><I>dwFileAttributes</I> : int<P>
+
+<DD>Combination of one or more file attribute flags (FILE_ATTRIBUTE_ 
+
+values). If uFlags does not include the SHGFI_USEFILEATTRIBUTES flag, this parameter is ignored.<P><DT><I>uFlags</I> : int<P>
+
+<DD>Combination of shellcon.SHGFI_* flags that specify the file information to 
+
+retrieve.  See MSDN for details<P><DT><I>infoAttrs=0</I> : int<P>
+
+<DD>Flags copied to the SHFILEINFO.dwAttributes member - useful when 
+
+flags contains SHGFI_ATTR_SPECIFIED<P>
+
+</body>
+</html>

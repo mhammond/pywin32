@@ -1,0 +1,68 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PD_USEDEVMODECOPIESANDCOLLATE</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<HR>
+
+<H1>PD_USEDEVMODECOPIESANDCOLLATE</H1>
+
+<B>const win32ui.PD_USEDEVMODECOPIESANDCOLLATE;</B><P>
+
+This flag indicates whether 
+
+your application supports multiple copies and collation. Set this flag on 
+
+input to indicate that your application does not support multiple copies and 
+
+collation. In this case, the nCopies member of the PRINTDLG structure always 
+
+returns 1, and PD_COLLATE is never set in the Flags member. If this flag is 
+
+not set, the application is responsible for printing and collating multiple 
+
+copies. In this case, the nCopies member of the PRINTDLG structure indicates 
+
+the number of copies the user wants to print, and the PD_COLLATE flag in the 
+
+Flags member indicates whether the user wants collation. Regardless of 
+
+whether this flag is set, an application can determine from nCopies and 
+
+PD_COLLATE how many copies to render and whether to print them collated.  If 
+
+this flag is set and the printer driver does not support multiple copies, 
+
+the Copies edit control is disabled. Similarly, if this flag is set and the 
+
+printer driver does not support collation, the Collate checkbox is disabled. 
+
+The dmCopies and dmCollate members of theDEVMODE structure contain the 
+
+copies and collate information used by the printer driver. If this flag is 
+
+set and the printer driver supports multiple copies, the dmCopies member 
+
+indicates the number of copies requested by the user. If this flag is set 
+
+and the printer driver supports collation, the dmCollate member of the 
+
+DEVMODE structure indicates whether the user wants collation. If this flag 
+
+is not set, the dmCopies member always returns 1, and the dmCollate member 
+
+is always zero.<P>
+
+</body>
+</html>

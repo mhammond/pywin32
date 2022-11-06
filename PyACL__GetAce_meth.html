@@ -1,0 +1,64 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyACL.GetAce</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="PyACL.html">PyACL</A>.GetAce</H1><P>
+
+tuple = <B>GetAce(<I>index</I></B>)<P>Gets an Ace from the ACL<P>
+
+<H3>Parameters</H3><P><DT><I>index</I> : int<P>
+
+<DD>Zero-based index of the ACE to retrieve.<P><H3>Return Value</H3>Conventional ACE's (types ACCESS_ALLOWED_ACE, ACCESS_DENIED_ACE, SYSTEM_AUDIT_ACE) are returned 
+
+as a tuple of:<P>
+
+
+
+<H3>Items</H3><P><DL><DT>[0] <I>(int, int)</I> : aceType, AceFlags<P>
+
+<DD><P></DL>
+
+<DL><DT>[1] <I>int</I> : Mask<P>
+
+<DD><P></DL>
+
+<DL><DT>[2] <I><A HREF="PySID.html">PySID</A></I> : sid<P>
+
+<DD><BR>Object ACE's (types ACCESS_ALLOWED_OBJECT_ACE, ACCESS_DENIED_OBJECT_ACE, SYSTEM_AUDIT_OBJECT_ACE) 
+
+are returned as a tuple:<P></DL>
+
+<DL><DT>[0] <I>(int, int)</I> : aceType, AceFlags<P>
+
+<DD><P></DL>
+
+<DL><DT>[1] <I>int</I> : mask<P>
+
+<DD><P></DL>
+
+<DL><DT>[2] <I><A HREF="PyIID.html">PyIID</A></I> : ObjectType<P>
+
+<DD><P></DL>
+
+<DL><DT>[3] <I><A HREF="PyIID.html">PyIID</A></I> : InheritedObjectType<P>
+
+<DD><P></DL>
+
+<DL><DT>[4] <I><A HREF="PySID.html">PySID</A></I> : sid<P>
+
+<DD><BR>For details see the API documentation.<P></DL>
+
+</body>
+</html>

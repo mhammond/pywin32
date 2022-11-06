@@ -1,0 +1,60 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32file.EscapeCommFunction</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32file.html">win32file</A>.EscapeCommFunction</H1><P>
+
+<B>EscapeCommFunction(<I>handle</I></B>)<P>directs a specified communications device to perform an extended function.<P>
+
+<H3>Parameters</H3><P><DT><I>handle</I> : <A HREF="PyHANDLE.html">PyHANDLE</A><P>
+
+<DD>The handle to the communications device.<P><P><TABLE COLS=2 WIDTH="100%" CELLSPACING=15>
+
+<TR>
+
+   <TD>
+
+       <B>Value</B>
+
+   </TD>
+
+   <TD>
+
+       <B>Meaning</B>
+
+   </TD>
+
+</TR>
+
+<TR><TD><HR></TD><TD><HR></TD></TR>
+
+<TR><TD>CLRDTR</TD><TD>Clears the DTR (data-terminal-ready) signal.</TD></TR>
+
+<TR><TD>CLRRTS</TD><TD>Clears the RTS (request-to-send) signal.</TD></TR>
+
+<TR><TD>SETDTR</TD><TD>Sends the DTR (data-terminal-ready) signal.</TD></TR>
+
+<TR><TD>SETRTS</TD><TD>Sends the RTS (request-to-send) signal.</TD></TR>
+
+<TR><TD>SETXOFF</TD><TD>Causes transmission to act as if an XOFF character has been received.</TD></TR>
+
+<TR><TD>SETXON</TD><TD>Causes transmission to act as if an XON character has been received.</TD></TR>
+
+<TR><TD>SETBREAK</TD><TD>Suspends character transmission and places the transmission line in a break state until the ClearCommBreak function is called (or EscapeCommFunction is called with the CLRBREAK extended function code). The SETBREAK extended function code is identical to the SetCommBreak function. Note that this extended function does not flush data that has not been transmitted.</TD></TR>
+
+<TR><TD>CLRBREAK</TD><TD>Restores character transmission and places the transmission line in a nonbreak state. The CLRBREAK extended function code is identical to the ClearCommBreak function.</TD></TR>
+
+</TABLE></body>
+</html>

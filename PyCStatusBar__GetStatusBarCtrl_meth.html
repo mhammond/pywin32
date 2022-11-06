@@ -1,0 +1,34 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyCStatusBar.GetStatusBarCtrl</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="PyCStatusBar.html">PyCStatusBar</A>.GetStatusBarCtrl</H1><P>
+
+<A HREF="PyCStatusBarCtrl.html">PyCStatusBarCtrl</A> = <B>GetStatusBarCtrl(</B>)<P>Gets the statusbar control object for the statusbar.<P>
+
+<H3>MFC References</H3><P><DT>CStatusBar::GetStatusBarCtrl 
+
+Note that below we take the address of rTBC because it's a reference and not a pointer 
+
+and ui_assoc_object::make expects a pointer. 
+
+We need to create a new class and not do a map lookup because in MFC CToolBarCtrl is 
+
+simply a casted CToolBarCtrl (afxext.inl) so the lookup will return the PyCToolBar object 
+
+which will fail the type tests.<P>
+
+</body>
+</html>

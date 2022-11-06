@@ -1,0 +1,56 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32service.EnumServicesStatusEx</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32service.html">win32service</A>.EnumServicesStatusEx</H1><P>
+
+(dict,...) = <B>EnumServicesStatusEx(<I>SCManager</I><I>, ServiceType</I>
+
+<I>, ServiceState</I>
+
+<I>, GroupName</I>
+
+<I>, InfoLevel</I>
+
+</B>)<P>Lists the status of services that meet the specified criteria<P>
+
+<H3>Parameters</H3><P><DT><I>SCManager</I> : <A HREF="PySC_HANDLE.html">PySC_HANDLE</A><P>
+
+<DD>Handle to service control manager as returned by <A HREF="win32service__OpenSCManager_meth.html">win32service::OpenSCManager</A><P><DT><I>ServiceType=SERVICE_WIN32</I> : int<P>
+
+<DD>Types of services to enumerate (SERVICE_DRIVER and/or SERVICE_WIN32)<P>
+
+<DT><I>ServiceState=SERVICE_STATE_ALL</I> : int<P>
+
+<DD>Limits to services in specified state<P>
+
+<DT><I>GroupName=None</I> : str<P>
+
+<DD>Name of group - use None for all, or '' for services that don't belong to a group<P>
+
+<DT><I>InfoLevel=SC_ENUM_PROCESS_INFO</I> : int<P>
+
+<DD>Currently SC_ENUM_PROCESS_INFO is only level defined<P>
+
+<H3>Win32 API References</H3><P><DT>Search for <i>EnumServicesStatusEx</i> at <a href="http://search.msdn.microsoft.com/search/results.aspx?view=msdn&query=EnumServicesStatusEx" target="_blank">msdn</a>, <a href="http://www.google.com/search?q=EnumServicesStatusEx" target="_blank">google</a> or <a href="http://groups.google.com/groups?q=EnumServicesStatusEx" target="_blank">google groups</a>.<P>
+
+<H3>Return Value</H3>Returns a sequence of dicts, whose contents depend on information level requested. 
+
+Currently, only information level supported is SC_ENUM_PROCESS_INFO (returns ENUM_SERVICE_STATUS_PROCESS).<P>
+
+
+
+</body>
+</html>

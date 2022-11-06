@@ -1,0 +1,62 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>pythoncom.StgCreateStorageEx</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="pythoncom.html">pythoncom</A>.StgCreateStorageEx</H1><P>
+
+<A HREF="PyIStorage.html">PyIStorage</A> = <B>StgCreateStorageEx(<I>Name</I><I>, Mode</I>
+
+<I>, stgfmt</I>
+
+<I>, Attrs</I>
+
+<I>, riid</I>
+
+<I>, StgOptions</I>
+
+<I>, SecurityDescriptor</I>
+
+</B>)<P>Creates a new structured storage file or property set<P>
+
+<H3>Parameters</H3><P><DT><I>Name</I> : string<P>
+
+<DD>Name of the stream or file to open<P><DT><I>Mode</I> : int<P>
+
+<DD>Access mode, combination of storagecon.STGM_* flags<P><DT><I>stgfmt</I> : int<P>
+
+<DD>Storage format, storagecon.STGFMT_*<P><DT><I>Attrs</I> : int<P>
+
+<DD>File flags and attributes, only used with STGFMT_DOCFILE<P><DT><I>riid</I> : <A HREF="PyIID.html">PyIID</A><P>
+
+<DD>Interface id to return, IStorage or IPropertySetStorage<P><DT><I>StgOptions=None</I> : dict<P>
+
+<DD>Dictionary representing STGOPTIONS struct (only used with 
+
+STGFMT_DOCFILE)<P>
+
+<DT><I>SecurityDescriptor=None</I> : <A HREF="PySECURITY_DESCRIPTOR.html">PySECURITY_DESCRIPTOR</A><P>
+
+<DD>Specifies security for the new file. 
+
+Must be None on Windows XP.<P>
+
+<H3>Comments</H3>
+
+Requires Win2k or later<P>
+
+Accepts keyword args<P>
+
+</body>
+</html>

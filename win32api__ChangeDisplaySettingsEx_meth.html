@@ -1,0 +1,48 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32api.ChangeDisplaySettingsEx</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32api.html">win32api</A>.ChangeDisplaySettingsEx</H1><P>
+
+int = <B>ChangeDisplaySettingsEx(<I>DeviceName</I><I>, DevMode</I>
+
+<I>, Flags</I>
+
+</B>)<P>Changes video mode for specified display<P>
+
+<H3>Parameters</H3><P><DT><I>DeviceName=None</I> : str<P>
+
+<DD>Name of device as returned by <A HREF="win32api__EnumDisplayDevices_meth.html">win32api::EnumDisplayDevices</A>, use None for default display device<P>
+
+<DT><I>DevMode=None</I> : <B>PyDEVMODE</B>
+
+<P>
+
+<DD>A PyDEVMODE object as returned from <A HREF="win32api__EnumDisplaySettings_meth.html">win32api::EnumDisplaySettings</A>, or None to reset to default settings from registry<P>
+
+<DT><I>Flags=0</I> : int<P>
+
+<DD>One of the win32con.CDS_* constants, or 0<P>
+
+<H3>Comments</H3>
+
+Accepts keyword arguments<P>
+
+<H3>Return Value</H3>Returns DISP_CHANGE_SUCCESSFUL on success, or one of the DISP_CHANGE_* error constants on failure<P>
+
+
+
+</body>
+</html>

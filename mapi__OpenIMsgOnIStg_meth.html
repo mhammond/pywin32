@@ -1,0 +1,52 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>mapi.OpenIMsgOnIStg</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="mapi.html">mapi</A>.OpenIMsgOnIStg</H1><P>
+
+<A HREF="PyIMessage.html">PyIMessage</A> = <B>OpenIMsgOnIStg(<I>session</I><I>, support</I>
+
+<I>, storage</I>
+
+<I>, callback</I>
+
+<I>, callbackData</I>
+
+<I>, flags</I>
+
+</B>)<P>Builds a new IMessage object on top of an existing OLE IStorage object, to be used within a message session.<P>
+
+<H3>Parameters</H3><P><DT><I>session</I> : object<P>
+
+<DD><P><DT><I>support</I> : <B>PyIMAPISupport</B>
+
+<P>
+
+<DD>May be None<P><DT><I>storage</I> : <A HREF="PyIStorage.html">PyIStorage</A><P>
+
+<DD>A <A HREF="PyIStorage.html">PyIStorage</A> object that is open and has read-only or read/write access. Because IMessage does not support write-only access, OpenIMsgOnIStg does not accept a storage object opened in write-only mode.<P><DT><I>callback=None</I> : object<P>
+
+<DD>Only None is supported.<P>
+
+<DT><I>callbackData=0</I> : int<P>
+
+<DD><P>
+
+<DT><I>flags=0</I> : int<P>
+
+<DD><P>
+
+</body>
+</html>

@@ -1,0 +1,30 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyIUnknown.__cmp__</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="PyIUnknown.html">PyIUnknown</A>.__cmp__</H1><P>
+
+int = <B>__cmp__(</B>)<P>Implements COM rules for object identity.<P>
+
+<H3>Comments</H3>
+
+As per the COM rules for object identity, both objects are queried for IUnknown, and these values compared. 
+
+The only meaningful test is for equality - the result of other comparisons is undefined 
+
+(ie, determined by the object's relative addresses in memory.<P>
+
+</body>
+</html>

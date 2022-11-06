@@ -1,0 +1,48 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyCMenu.TrackPopupMenu</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="PyCMenu.html">PyCMenu</A>.TrackPopupMenu</H1><P>
+
+<B>TrackPopupMenu(<I>(x,y)</I><I>, flags</I><I>, owner</I></B>)<P>Creates a popup menu anywhere on the screen.<P>
+
+<H3>Parameters</H3><P><DT><I>(x,y)</I> : (int, int)<P>
+
+<DD>The position for the menu..<P><DT><I>flags=win32con.TPM_LEFTALIGN|win32con.TPM_LEFTBUTTON|win32con.TPM_RIGHTBUTTON</I> : int<P>
+
+<DD>Flags 
+
+for the menu.<P>
+
+<DT><I>owner=(main application frame)</I> : <A HREF="PyCWnd.html">PyCWnd</A><P>
+
+<DD>The owner of the menu.<P>
+
+<H3>Comments</H3>
+
+The TrackPopupMenu function displays a floating pop-up menu at the 
+
+specified location and tracks the selection of items on the pop-up menu. 
+
+The floating pop-up menu can appear anywhere on the screen.<P>
+
+<H3>Return Value</H3>If the underlying MFC function fails, but TPM_RETURNCMD is set in the flags parameter, then None is 
+
+returned instead of the normal exception.<P>
+
+
+
+</body>
+</html>

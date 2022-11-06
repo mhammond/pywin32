@@ -1,0 +1,54 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32gui.GetObject</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32gui.html">win32gui</A>.GetObject</H1><P>
+
+object = <B>GetObject(<I>handle</I></B>)<P>Returns a struct containing the parameters used to create a GDI object<P>
+
+<H3>Parameters</H3><P><DT><I>handle</I> : <A HREF="PyHANDLE.html">PyHANDLE</A><P>
+
+<DD>Handle to the object.<P><H3>Comments</H3>
+
+The result depends on the type of the handle.<P>
+
+<P><TABLE COLS=2 WIDTH="100%" CELLSPACING=15>
+
+<TR>
+
+   <TD>
+
+       <B>Object type as determined by <A HREF="win32gui__GetObjectType_meth.html">win32gui::GetObjectType</A></B>
+
+   </TD>
+
+   <TD>
+
+       <B>Returned object</B>
+
+   </TD>
+
+</TR>
+
+<TR><TD><HR></TD><TD><HR></TD></TR>
+
+<TR><TD>OBJ_FONT</TD><TD><A HREF="PyLOGFONT.html">PyLOGFONT</A></TD></TR>
+
+<TR><TD>OBJ_BITMAP</TD><TD><A HREF="PyBITMAP.html">PyBITMAP</A></TD></TR>
+
+<TR><TD>OBJ_PEN</TD><TD>Dict representing a LOGPEN struct</TD></TR>
+
+</TABLE></body>
+</html>

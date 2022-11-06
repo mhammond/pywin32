@@ -1,0 +1,38 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32security.GetSecurityInfo</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32security.html">win32security</A>.GetSecurityInfo</H1><P>
+
+<A HREF="PySECURITY_DESCRIPTOR.html">PySECURITY_DESCRIPTOR</A> = <B>GetSecurityInfo(<I>handle</I><I>, ObjectType</I>
+
+<I>, SecurityInfo</I>
+
+</B>)<P>Retrieve security info for an object by handle<P>
+
+<H3>Parameters</H3><P><DT><I>handle</I> : int/<A HREF="PyHANDLE.html">PyHANDLE</A><P>
+
+<DD>Handle to object<P><DT><I>ObjectType</I> : int<P>
+
+<DD>Value from SE_OBJECT_TYPE enum<P><DT><I>SecurityInfo</I> : int<P>
+
+<DD>Combination of SECURITY_INFORMATION constants<P><H3>Comments</H3>
+
+Separate owner, group, dacl, and sacl are not returned as they can be easily retrieved from 
+
+the returned PySECURITY_DESCRIPTOR<P>
+
+</body>
+</html>

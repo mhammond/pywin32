@@ -1,0 +1,88 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32pdh.BrowseCounters</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32pdh.html">win32pdh</A>.BrowseCounters</H1><P>
+
+string = <B>BrowseCounters(<I>Flags</I><I>, hWndOwner</I>
+
+<I>, CallBack</I>
+
+<I>, DefaultDetailLevel</I>
+
+<I>, DialogBoxCaption</I>
+
+<I>, InitialPath</I>
+
+<I>, DataSource</I>
+
+<I>, ReturnMultiple</I>
+
+<I>, CallBackArg</I>
+
+</B>)<P>Displays the counter browsing dialog box so that the user can select the 
+
+counters to be returned to the caller.<P>
+
+<H3>Parameters</H3><P><DT><I>Flags</I> : (boolean, ...)<P>
+
+<DD>Sequence of boolean flags, or None. All default to False. 
+
+(bIncludeInstanceIndex, bSingleCounterPerAdd, bSingleCounterPerDialog, bLocalCountersOnly, 
+
+bWildCardInstances, bHideDetailBox, bInitializePath, bDisableMachineSelection, 
+
+bIncludeCostlyObjects, bShowObjectBrowser)<P><DT><I>hWndOwner</I> : <A HREF="PyHANDLE.html">PyHANDLE</A><P>
+
+<DD>Parent for the dialog.<P><DT><I>CallBack</I> : object<P>
+
+<DD>A callable object to function as the callback.<P><DT><I>DefaultDetailLevel</I> : int<P>
+
+<DD>The default detail level to show on 
+
+startup in the Detail Level combo box. If the Detail Level combo box is 
+
+not shown, this is the detail level to use in filtering the displayed 
+
+performance counters and objects.<P><DT><I>DialogBoxCaption=None</I> : string<P>
+
+<DD>The dialog caption, or None for default.<P>
+
+<DT><I>InitialPath=None</I> : str<P>
+
+<DD>Counter to be selected initially, or None for default<P>
+
+<DT><I>DataSource=None</I> : str<P>
+
+<DD>Name of a performance log file, or None for live counters<P>
+
+<DT><I>ReturnMultiple=False</I> : boolean<P>
+
+<DD>Return all selected counter paths as a 
+
+sequence of strings. Previously, this function only returned a single path even 
+
+when multiple counters were selected.<P>
+
+<DT><I>CallBackArg=None</I> : object<P>
+
+<DD>Extra argument to be passed to callback function. 
+
+For backward compatibility, the callback will only receive a single argument if 
+
+this is not given.<P>
+
+</body>
+</html>

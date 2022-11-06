@@ -1,0 +1,90 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32ts.WTSQuerySessionInformation</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32ts.html">win32ts</A>.WTSQuerySessionInformation</H1><P>
+
+<B>WTSQuerySessionInformation(<I>Server</I><I>, SessionId</I><I>, WTSInfoClass</I></B>)<P>Returns information about a terminal services session<P>
+
+<H3>Parameters</H3><P><DT><I>Server</I> : <A HREF="PyHANDLE.html">PyHANDLE</A><P>
+
+<DD>Handle to a terminal server as returned by <A HREF="win32ts__WTSOpenServer_meth.html">win32ts::WTSOpenServer</A><P><DT><I>SessionId</I> : int<P>
+
+<DD>Terminal services session id as returned by <A HREF="win32ts__WTSEnumerateSessions_meth.html">win32ts::WTSEnumerateSessions</A><P><DT><I>WTSInfoClass</I> : int<P>
+
+<DD>Type of information requested, from WTS_INFO_CLASS enum<P><P><TABLE COLS=2 WIDTH="100%" CELLSPACING=15>
+
+<TR>
+
+   <TD>
+
+       <B>InfoClass</B>
+
+   </TD>
+
+   <TD>
+
+       <B>Returned value</B>
+
+   </TD>
+
+</TR>
+
+<TR><TD><HR></TD><TD><HR></TD></TR>
+
+<TR><TD>WTSApplicationName</TD><TD>Unicode string</TD></TR>
+
+<TR><TD>WTSClientDirectory</TD><TD>Unicode string</TD></TR>
+
+<TR><TD>WTSClientName</TD><TD>Unicode string</TD></TR>
+
+<TR><TD>WTSDomainName</TD><TD>Unicode string</TD></TR>
+
+<TR><TD>WTSInitialProgram</TD><TD>Unicode string</TD></TR>
+
+<TR><TD>WTSOEMId</TD><TD>Unicode string</TD></TR>
+
+<TR><TD>WTSUserName</TD><TD>Unicode string</TD></TR>
+
+<TR><TD>WTSWinStationName</TD><TD>Unicode string</TD></TR>
+
+<TR><TD>WTSWorkingDirectory</TD><TD>Unicode string</TD></TR>
+
+<TR><TD>WTSClientProtocolType</TD><TD>Int, one of 
+
+WTS_PROTOCOL_TYPE_CONSOLE,WTS_PROTOCOL_TYPE_ICA,WTS_PROTOCOL_TYPE_RDP</TD></TR>
+
+<TR><TD>WTSClientProductId</TD><TD>Int</TD></TR>
+
+<TR><TD>WTSClientBuildNumber</TD><TD>Int</TD></TR>
+
+<TR><TD>WTSClientHardwareId</TD><TD>Int</TD></TR>
+
+<TR><TD>WTSSessionId</TD><TD>Int</TD></TR>
+
+<TR><TD>WTSConnectState</TD><TD>Int, from WTS_CONNECTSTATE_CLASS</TD></TR>
+
+<TR><TD>WTSClientDisplay</TD><TD>Dict containing client's display settings</TD></TR>
+
+<TR><TD>WTSClientAddress</TD><TD>Dict containing type and value of client's IP address (None 
+
+if console session) IPV6 addresses may not be returned correctly on Windows 
+
+versions earlier than Windows Server 2012 (see 
+
+http://sourceforge.net/p/pywin32/bugs/664/ for details)</TD></TR>
+
+</TABLE></body>
+</html>

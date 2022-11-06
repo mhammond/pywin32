@@ -1,0 +1,42 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>mapi.HrQueryAllRows</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="mapi.html">mapi</A>.HrQueryAllRows</H1><P>
+
+<B>SRowSet</B>
+
+ = <B>HrQueryAllRows(<I>table</I><I>, properties</I>
+
+<I>, restrictions</I>
+
+<I>, sortOrderSet</I>
+
+<I>, rowsMax</I>
+
+</B>)<P><P>
+
+<H3>Parameters</H3><P><DT><I>table</I> : <A HREF="PyIMAPITable.html">PyIMAPITable</A><P>
+
+<DD><P><DT><I>properties</I> : <A HREF="PySPropTagArray.html">PySPropTagArray</A><P>
+
+<DD>A sequence of property tags indicating table columns. These tags are used to select the specific columns to be retrieved. If this parameter is None, HrQueryAllRows retrieves the entire column set of the current table view passed in the table parameter.<P><DT><I>restrictions</I> : <A HREF="PySRestriction.html">PySRestriction</A><P>
+
+<DD>Defines the retrieval restrictions. If this parameter is None, HrQueryAllRows makes no restrictions.<P><DT><I>sortOrderSet</I> : <A HREF="PySSortOrderSet.html">PySSortOrderSet</A><P>
+
+<DD>Identifies the sort order of the columns to be retrieved. If this parameter is None, the default sort order for the table is used.<P><DT><I>rowsMax</I> : int<P>
+
+<DD>Maximum number of rows to be retrieved. If the value of the rowsMax parameter is zero, no limit on the number of rows retrieved is set.<P></body>
+</html>

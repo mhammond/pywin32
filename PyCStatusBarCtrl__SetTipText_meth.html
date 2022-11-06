@@ -1,0 +1,42 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyCStatusBarCtrl.SetTipText</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="PyCStatusBarCtrl.html">PyCStatusBarCtrl</A>.SetTipText</H1><P>
+
+<B>SetTipText(<I>nPane</I><I>, text</I></B>)<P>Sets the tooltip text for a pane in a status bar. The status bar must have 
+
+been created with the afxres.SBT_TOOLTIPS control style to enable ToolTips.<P>
+
+<H3>Parameters</H3><P><DT><I>nPane</I> : int<P>
+
+<DD>The zero-based index of status bar pane to receive the tooltip text.<P><DT><I>text</I> : string<P>
+
+<DD>The string containing the tooltip text.<P><H3>Comments</H3>
+
+Pay attention, this tooltip text is ONLY displayed in two situations: 
+
+<BR>1. When the corresponding pane in the status bar contains only an icon. 
+
+<BR>2. When the corresponding pane in the status bar contains text that is truncated due to the size of the pane. 
+
+<BR>To make the tooltip appear even if the text is not truncated, you could add additional spaces to the end of 
+
+the pane text.<P>
+
+<H3>MFC References</H3><P><DT>CStatusBarCtrl::SetTipText<P>
+
+</body>
+</html>

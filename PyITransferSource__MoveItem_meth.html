@@ -1,0 +1,46 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyITransferSource.MoveItem</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="PyITransferSource.html">PyITransferSource</A>.MoveItem</H1><P>
+
+(int, <A HREF="PyIShellItem.html">PyIShellItem</A> = <B>MoveItem(<I>Item</I><I>, ParentDst</I>
+
+<I>, NameDst</I>
+
+<I>, flags</I>
+
+</B>)<P>Moves a shell item into another folder<P>
+
+<H3>Parameters</H3><P><DT><I>Item</I> : <A HREF="PyIShellItem.html">PyIShellItem</A><P>
+
+<DD>Item to be moved<P><DT><I>ParentDst</I> : <A HREF="PyIShellItem.html">PyIShellItem</A><P>
+
+<DD>The folder into which it will be moved<P><DT><I>NameDst</I> : <B>unicode</B>
+
+<P>
+
+<DD>New name for item after move, None to keep same name<P><DT><I>flags</I> : int<P>
+
+<DD>Combination of shellcon.TSF_* flags<P><H3>Return Value</H3>Returns the HRESULT from the operation and the new shell item, which may be None 
+
+when the code in one of the informational COPYENGINE_S_* values.  See MSDN for descriptions 
+
+of expected actions for specific error codes.<P>
+
+
+
+</body>
+</html>

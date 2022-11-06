@@ -1,0 +1,46 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>shell.FILEGROUPDESCRIPTORAsString</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="shell.html">shell</A>.FILEGROUPDESCRIPTORAsString</H1><P>
+
+string = <B>FILEGROUPDESCRIPTORAsString(<I>descriptors</I><I>, make_unicode</I>
+
+</B>)<P>Creates a FILEGROUPDESCRIPTOR from a sequence of mapping objects, 
+
+each with FILEDESCRIPTOR attributes<P>
+
+<H3>Parameters</H3><P><DT><I>descriptors</I> : [FILEDESCRIPTOR, ...]<P>
+
+<DD>A sequence of FILEDESCRIPTOR objects. 
+
+Each filedescriptor object must be a mapping/dictionary, with the following 
+
+optional attributes: dwFlags, clsid, sizel, pointl, dwFileAttributes, 
+
+ftCreationTime, ftLastAccessTime, ftLastWriteTime, nFileSize 
+
+If these attributes do not exist, or are None, they will be ignored - hence 
+
+you only need specify attributes you care about. 
+
+<BR>In general, you can omit dwFlags - it will be set correctly based 
+
+on what other attributes exist.<P><DT><I>make_unicode=True</I> : bool<P>
+
+<DD>If true, a FILEDESCRIPTORW object is created<P>
+
+</body>
+</html>

@@ -1,0 +1,250 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyDSCAPS</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<HR><H1>PyDSCAPS Object</H1><P>
+
+A Python object, representing a DSCAPS structure<P>
+
+<H3>Properties</H3>
+
+<DL>
+
+<DT><B>integer dwFlags</B>
+
+<DD>Specifies device capabilities. Can be one or more of the following:<P>
+
+
+
+<P><TABLE COLS=2 WIDTH="100%" CELLSPACING=15>
+
+<TR>
+
+   <TD>
+
+       <B>Flag</B>
+
+   </TD>
+
+   <TD>
+
+       <B>Description</B>
+
+   </TD>
+
+</TR>
+
+<TR><TD><HR></TD><TD><HR></TD></TR>
+
+<TR><TD>DSCAPS_PRIMARYMONO</TD><TD>The device supports monophonic primary buffers.</TD></TR>
+
+<TR><TD>DSCAPS_PRIMARYSTEREO</TD><TD>The device supports stereo primary buffers.</TD></TR>
+
+<TR><TD>DSCAPS_PRIMARY8BIT</TD><TD>The device supports hardware-mixed secondary buffers with 8-bit samples.</TD></TR>
+
+<TR><TD>DSCAPS_PRIMARY16BIT</TD><TD>The device supports primary sound buffers with 16-bit samples.</TD></TR>
+
+<TR><TD>DSCAPS_CONTINUOUSRATE</TD><TD>The device supports all sample rates between the dwMinSecondarySampleRate and 
+
+dwMaxSecondarySampleRate member values. Typically, this means that the actual output rate will be within +/- 10 
+
+hertz (Hz) of the requested frequency.</TD></TR>
+
+<TR><TD>DSCAPS_EMULDRIVER</TD><TD>The device does not have a DirectSound driver installed, so it is being emulated through 
+
+the waveform-audio functions. Performance degradation should be expected.</TD></TR>
+
+<TR><TD>DSCAPS_CERTIFIED</TD><TD>This driver has been tested and certified by Microsoft.</TD></TR>
+
+<TR><TD>DSCAPS_SECONDARYMONO</TD><TD>The device supports hardware-mixed monophonic secondary buffers.</TD></TR>
+
+<TR><TD>DSCAPS_SECONDARYSTEREO</TD><TD>The device supports hardware-mixed stereo secondary buffers.</TD></TR>
+
+<TR><TD>DSCAPS_SECONDARY8BIT</TD><TD>The device supports hardware-mixed secondary buffers with 8-bit samples.</TD></TR>
+
+<TR><TD>DSCAPS_SECONDARY16BIT</TD><TD>The device supports hardware-mixed secondary sound buffers with 16-bit samples.</TD></TR>
+
+</TABLE><DT><B>integer dwMinSecondarySampleRate</B>
+
+<DD>Minimum sample rate supported by this device's hardware secondary sound 
+
+buffers.<P>
+
+
+
+<DT><B>integer dwMaxSecondarySampleRate</B>
+
+<DD>Maximum sample rate supported by this device's hardware secondary sound 
+
+buffers.<P>
+
+
+
+<DT><B>integer dwPrimaryBuffers</B>
+
+<DD>Number of primary buffers supported. This value will always be 1.<P>
+
+
+
+<DT><B>integer dwMaxHwMixingAllBuffers</B>
+
+<DD>Specifies the total number of buffers that can be mixed in hardware. This 
+
+member can be less than the sum of dwMaxHwMixingStaticBuffers and dwMaxHwMixingStreamingBuffers. Resource 
+
+tradeoffs frequently occur.<P>
+
+
+
+<DT><B>integer dwMaxHwMixingStaticBuffers</B>
+
+<DD>Specifies the maximum number of static sound buffers.<P>
+
+
+
+<DT><B>integer dwMaxHwMixingStreamingBuffers</B>
+
+<DD>Specifies the maximum number of streaming sound buffers.<P>
+
+
+
+<DT><B>integer dwFreeHwMixingAllBuffers</B>
+
+<DD>Description of the free hardware mixing capabilities of the device. An 
+
+application can use this value to determine whether hardware resources are available for allocation to a 
+
+secondary sound buffer. Also, by comparing these values to the members that specify maximum mixing capabilities, 
+
+the resources that are already allocated can be determined.<P>
+
+
+
+<DT><B>integer dwFreeHwMixingStaticBuffers</B>
+
+<DD>Description of the free hardware mixing capabilities of the device. An 
+
+application can use this value to determine whether hardware resources are available for allocation to a 
+
+secondary sound buffer. Also, by comparing these values to the members that specify maximum mixing capabilities, 
+
+the resources that are already allocated can be determined.<P>
+
+
+
+<DT><B>integer dwFreeHwMixingStreamingBuffers</B>
+
+<DD>Description of the free hardware mixing capabilities of the device. 
+
+An application can use this value to determine whether hardware resources are available for allocation to a 
+
+secondary sound buffer. Also, by comparing these values to the members that specify maximum mixing capabilities, 
+
+the resources that are already allocated can be determined.<P>
+
+
+
+<DT><B>integer dwMaxHw3DAllBuffers</B>
+
+<DD>Description of the hardware 3-D positional capabilities of the device.<P>
+
+
+
+<DT><B>integer dwMaxHw3DStaticBuffers</B>
+
+<DD>Description of the hardware 3-D positional capabilities of the device.<P>
+
+
+
+<DT><B>integer dwMaxHw3DStreamingBuffers</B>
+
+<DD>Description of the hardware 3-D positional capabilities of the device.<P>
+
+
+
+<DT><B>integer dwFreeHw3DAllBuffers</B>
+
+<DD>Description of the free, or unallocated, hardware 3-D positional capabilities 
+
+of the device.<P>
+
+
+
+<DT><B>integer dwFreeHw3DStaticBuffers</B>
+
+<DD>Description of the free, or unallocated, hardware 3-D positional 
+
+capabilities of the device.<P>
+
+
+
+<DT><B>integer dwFreeHw3DStreamingBuffers</B>
+
+<DD>Description of the free, or unallocated, hardware 3-D positional 
+
+capabilities of the device.<P>
+
+
+
+<DT><B>integer dwTotalHwMemBytes</B>
+
+<DD>Size, in bytes, of the amount of memory on the sound card that stores static 
+
+sound buffers.<P>
+
+
+
+<DT><B>integer dwFreeHwMemBytes</B>
+
+<DD>Size, in bytes, of the free memory on the sound card.<P>
+
+
+
+<DT><B>integer dwMaxContigFreeHwMemBytes</B>
+
+<DD>Size, in bytes, of the largest contiguous block of free memory on the 
+
+sound card.<P>
+
+
+
+<DT><B>integer dwUnlockTransferRateHwBuffers</B>
+
+<DD>Description of the rate, in kilobytes per second, at which data can 
+
+be transferred to hardware static sound buffers. This and the number of bytes transferred determines the duration 
+
+of a call to the IDirectSoundBuffer::Update method.<P>
+
+
+
+<DT><B>integer dwPlayCpuOverheadSwBuffers</B>
+
+<DD>Description of the processing overhead, as a percentage of the central 
+
+processing unit, needed to mix software buffers (those located in main system memory). This varies according to 
+
+the bus type, the processor type, and the clock speed. The unlock transfer rate for software buffers is 0 because 
+
+the data need not be transferred anywhere. Similarly, the play processing overhead for hardware buffers is 0 
+
+because the mixing is done by the sound device.<P>
+
+
+
+</DL>
+
+</body>
+</html>

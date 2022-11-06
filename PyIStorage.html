@@ -1,0 +1,68 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyIStorage</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<HR><H1>PyIStorage Object</H1><P>
+
+Structured storage compound storage object<P>
+
+<H3>Comments</H3>
+
+This object acts as an iterator through <A HREF="PyIStorage__EnumElements_meth.html">PyIStorage::EnumElements</A><P>
+
+<H3>Methods</H3><P><DL><DT><A HREF="PyIStorage__CreateStream_meth.html">CreateStream</A><BR>
+
+<DD>Creates and opens a stream object with the 
+
+specified name contained in this storage object.&nbsp;<P><DT><A HREF="PyIStorage__OpenStream_meth.html">OpenStream</A><BR>
+
+<DD>Opens an existing stream object.&nbsp;<P><DT><A HREF="PyIStorage__CreateStorage_meth.html">CreateStorage</A><BR>
+
+<DD>Creates and opens a new storage object nested within this storage object.&nbsp;<P><DT><A HREF="PyIStorage__OpenStorage_meth.html">OpenStorage</A><BR>
+
+<DD>Opens an existing storage object with the specified name in the specified access mode.&nbsp;<P><DT><A HREF="PyIStorage__CopyTo_meth.html">CopyTo</A><BR>
+
+<DD>Copies the entire contents of an open storage object to another storage object.&nbsp;<P><DT><A HREF="PyIStorage__MoveElementTo_meth.html">MoveElementTo</A><BR>
+
+<DD>Copies or moves a substorage or stream 
+
+from this storage object to another storage object.&nbsp;<P><DT><A HREF="PyIStorage__Commit_meth.html">Commit</A><BR>
+
+<DD>Ensures that any changes made to a storage object open in 
+
+transacted mode are reflected in the parent storage.&nbsp;<P><DT><A HREF="PyIStorage__Revert_meth.html">Revert</A><BR>
+
+<DD>Discards all changes that have been made to the storage object since the last commit.&nbsp;<P><DT><A HREF="PyIStorage__EnumElements_meth.html">EnumElements</A><BR>
+
+<DD>Retrieves an enumerator object that can be used to enumerate the storage and stream 
+
+objects contained within this storage object.&nbsp;<P><DT><A HREF="PyIStorage__DestroyElement_meth.html">DestroyElement</A><BR>
+
+<DD>Removes the specified storage or stream from this storage object.&nbsp;<P><DT><A HREF="PyIStorage__RenameElement_meth.html">RenameElement</A><BR>
+
+<DD>Renames the specified substorage or stream in this storage object.&nbsp;<P><DT><A HREF="PyIStorage__SetElementTimes_meth.html">SetElementTimes</A><BR>
+
+<DD>Sets the modification, access, and creation times of the specified storage element, 
+
+if supported by the underlying file system.&nbsp;<P><DT><A HREF="PyIStorage__SetClass_meth.html">SetClass</A><BR>
+
+<DD>Assigns the specified CLSID to this storage object.&nbsp;<P><DT><A HREF="PyIStorage__SetStateBits_meth.html">SetStateBits</A><BR>
+
+<DD>Stores up to 32 bits of state information in this storage object.&nbsp;<P><DT><A HREF="PyIStorage__Stat_meth.html">Stat</A><BR>
+
+<DD>Retrieves the STATSTG structure for this open storage object.&nbsp;<P></DL>
+
+<H3>Based On</H3><A HREF="PyIUnknown.html">PyIUnknown</A></body>
+</html>

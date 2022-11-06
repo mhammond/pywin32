@@ -1,0 +1,316 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>Windows NT Eventlog</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<HR><H1>Windows NT Eventlog</H1>
+
+Python's win32 access for the Eventlog<P>
+
+<BR>If you need to scan the eventlog of many servers or do specific 
+
+filtering based off of the event log, python's win32evtlog 
+
+win32evtlogutil libraries give you an means to do it efficiently.<P>
+
+The library of primary importance is win32evtlog. With it you can 
+
+connect to a server's eventlog with the call.<P>
+
+<H3>Example</H3>Here is the basic call:<P>
+
+<PRE>logtype='System'
+
+hand=win32evtlog.OpenEventLog(server,logtype)
+
+</PRE>
+
+This returns a handle from which you can make calls such as one that 
+
+will give you the total number of events or another examine the 
+
+details for each event. The logtype variable is set to the type of log 
+
+you want to look at. The default ones are: Application, Security, and System.<P>
+
+After you have the handle you can get ask for things such as the number of 
+
+records, or the specific event records:<P>
+
+<PRE>total=win32evtlog.GetNumberOfEventLogRecords(hand)
+
+flags = win32evtlog.EVENTLOG_BACKWARDS_READ|win32evtlog.EVENTLOG_SEQUENTIAL_READ
+
+events=win32evtlog.ReadEventLog(hand,flags,0)
+
+</PRE>
+
+ReadEventLog returns a number of event objects which may not be all of 
+
+them.  You need to continously check in a loop until there are no more 
+
+events returned by ReadEventLog. You may notice that ReadEventLog has 
+
+a flags argument.  The flags (which are convinently available with the 
+
+win32evtlog library) specify how to read the event log.<P>
+
+<BR>Here is a simple loop getting the data from the events that ReadEventLog 
+
+returned:<P>
+
+<PRE>for ev_obj in events:
+
+&#09the_time=ev_obj.TimeGenerated.Format() #'12/23/99 15:54:09'
+
+&#09evt_id=str(winerror.HRESULT_CODE(ev_obj.EventID))
+
+&#09computer=str(ev_obj.ComputerName)
+
+&#09cat=ev_obj.EventCategory
+
+&#09seconds=date2sec(the_time)
+
+&#09record=ev_obj.RecordNumber
+
+&#09msg=str(win32evtlogutil.SafeFormatMessage(ev_obj, logtype))
+
+&#09source=str(ev_obj.SourceName)
+
+</PRE>
+
+We use the library win32evtlogutil to get the actual text body for the 
+
+event.  To get a easily readable date for the event, you need to 
+
+specify the 'Format' method for the TimeGenerated part of the event 
+
+object.<P>
+
+<BR>The win32evtlogutil comes in handy to give us the actual text body of 
+
+the eventlog message.  If you want to do any sorting based of off 
+
+time, here is a handy function that converts the eventlog's time 
+
+format into seconds using's python's time and regexp library:<P>
+
+<PRE>def date2sec(self,evt_date):
+
+&#09'''
+
+&#09converts '12/23/99 15:54:09' to seconds
+
+&#09print '333333',evt_date
+
+&#09'''
+
+&#09regexp=re.compile('(.*)\\s(.*)')
+
+&#09reg_result=regexp.search(evt_date)
+
+&#09date=reg_result.group(1)
+
+&#09the_time=reg_result.group(2)
+
+&#09(mon,day,yr)=map(lambda x: string.atoi(x),string.split(date,'/'))
+
+&#09(hr,min,sec)=map(lambda x: string.atoi(x),string.split(the_time,':'))
+
+&#09tup=[yr,mon,day,hr,min,sec,0,0,0]
+
+&#09sec=time.mktime(tup)
+
+&#09return sec
+
+</PRE>
+
+If you want to get the current localtime in seconds, you can make the call: 
+
+begin_sec=time.time(). To convert that to a date use: 
+
+begin_time=str(time.strftime('%H:%M:%S  ',time.localtime( begin_sec )))<P>
+
+<BR>Finally here is all the code that puts together an application which looks 
+
+for all events for a server since a certain time.<P>
+
+<BR>Find events:<P>
+
+<PRE>import win32evtlog
+
+import win32evtlogutil
+
+import win32security
+
+import win32con
+
+import winerror
+
+import time
+
+import re
+
+import string
+
+import sys
+
+import traceback
+
+
+
+def date2sec(evt_date):
+
+&#09'''
+
+&#09This function converts dates with format
+
+&#09'12/23/99 15:54:09' to seconds since 1970.
+
+&#09'''
+
+&#09regexp=re.compile('(.*)\\s(.*)') #store result in site
+
+&#09reg_result=regexp.search(evt_date)
+
+&#09date=reg_result.group(1)
+
+&#09the_time=reg_result.group(2)
+
+&#09(mon,day,yr)=map(lambda x: string.atoi(x),string.split(date,'/'))
+
+&#09(hr,min,sec)=map(lambda x: string.atoi(x),string.split(the_time,':'))
+
+&#09tup=[yr,mon,day,hr,min,sec,0,0,0]
+
+
+
+&#09sec=time.mktime(tup)
+
+
+
+&#09return sec
+
+
+
+####Main program
+
+#initialize variables
+
+flags = win32evtlog.EVENTLOG_BACKWARDS_READ|\\
+
+&#09&#09win32evtlog.EVENTLOG_SEQUENTIAL_READ
+
+
+
+#This dict converts the event type into a human readable form
+
+evt_dict={win32con.EVENTLOG_AUDIT_FAILURE:'EVENTLOG_AUDIT_FAILURE',\\
+
+&#09&#09  win32con.EVENTLOG_AUDIT_SUCCESS:'EVENTLOG_AUDIT_SUCCESS',\\
+
+&#09&#09  win32con.EVENTLOG_INFORMATION_TYPE:'EVENTLOG_INFORMATION_TYPE',\\
+
+&#09&#09  win32con.EVENTLOG_WARNING_TYPE:'EVENTLOG_WARNING_TYPE',\\
+
+&#09&#09  win32con.EVENTLOG_ERROR_TYPE:'EVENTLOG_ERROR_TYPE'}
+
+computer='bedrock'
+
+logtype='System'
+
+begin_sec=time.time()
+
+begin_time=time.strftime('%H:%M:%S  ',time.localtime(begin_sec))
+
+
+
+#open event log
+
+hand=win32evtlog.OpenEventLog(computer,logtype)
+
+print logtype,' events found in the last 8 hours since:',begin_time
+
+
+
+try:
+
+  events=1
+
+  while events:
+
+    events=win32evtlog.ReadEventLog(hand,flags,0)
+
+      for ev_obj in events:
+
+&#09#check if the event is recent enough
+
+&#09#only want data from last 8hrs
+
+&#09the_time=ev_obj.TimeGenerated.Format()
+
+&#09seconds=date2sec(the_time)
+
+&#09if seconds &lt begin_sec-28800: break
+
+
+
+&#09#data is recent enough, so print it out
+
+&#09computer=str(ev_obj.ComputerName)
+
+&#09cat=str(ev_obj.EventCategory)
+
+&#09src=str(ev_obj.SourceName)
+
+&#09record=str(ev_obj.RecordNumber)
+
+&#09evt_id=str(winerror.HRESULT_CODE(ev_obj.EventID))
+
+&#09evt_type=str(evt_dict[ev_obj.EventType])
+
+&#09msg = str(win32evtlogutil.SafeFormatMessage(ev_obj, logtype))
+
+&#09print string.join((the_time,computer,src,cat,record,evt_id,evt_type,msg[0:15]),':')
+
+
+
+    if seconds &lt begin_sec-28800: break #get out of while loop as well
+
+  win32evtlog.CloseEventLog(hand)
+
+except:
+
+    print traceback.print_exc(sys.exc_info())
+
+
+
+
+
+&#09Some useful additions to this would be to make it
+
+multi-threaded and deploy it as a web application, to look at many servers.
+
+</PRE>
+
+Have a great time with programming with python! 
+
+<BR><P>
+
+<PRE>John Nielsen   nielsenjf@my-deja.com
+
+</PRE>
+
+</body>
+</html>

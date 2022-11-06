@@ -1,0 +1,56 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32file.WaitCommEvent</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32file.html">win32file</A>.WaitCommEvent</H1><P>
+
+<B>WaitCommEvent(<I>handle</I><I>, overlapped</I></B>)<P>Waits for an event to occur for a specified communications device. The set of events that are monitored by this function is contained in the event mask associated with the device handle.<P>
+
+<H3>Parameters</H3><P><DT><I>handle</I> : <A HREF="PyHANDLE.html">PyHANDLE</A><P>
+
+<DD>The handle to the communications device.<P><DT><I>overlapped</I> : <A HREF="PyOVERLAPPED.html">PyOVERLAPPED</A><P>
+
+<DD>This structure is required if hFile was opened with FILE_FLAG_OVERLAPPED. 
+
+<BR>If hFile was opened with FILE_FLAG_OVERLAPPED, the lpOverlapped parameter must not be NULL. It must point to a valid OVERLAPPED structure. If hFile was opened with FILE_FLAG_OVERLAPPED and lpOverlapped is NULL, the function can incorrectly report that the operation is complete. 
+
+<BR>If hFile was opened with FILE_FLAG_OVERLAPPED and lpOverlapped is not NULL, WaitCommEvent is performed as an overlapped operation. In this case, the OVERLAPPED structure must contain a handle to a manual-reset event object (created by using the CreateEvent function). 
+
+<BR>If hFile was not opened with FILE_FLAG_OVERLAPPED, WaitCommEvent does not return until one of the specified events or an error occurs.<P><H3>Comments</H3>
+
+If an overlapped structure is passed, then the <B>PyOVERLAPPED::dword</B>
+
+
+
+ 
+
+address is passed to the Win32 API as the mask.  This means that once the 
+
+overlapped operation has completed, this dword attribute can be used to 
+
+determine the type of event that occurred.<P>
+
+<H3>Return Value</H3>The result is a tuple of (rc, mask_val), where rc is zero for success, or 
+
+the result of calling GetLastError() otherwise.  The mask_val is the new mask value 
+
+once the function has returned, but if an Overlapped object is passed, this value 
+
+will generally be meaningless.  See the comments for more details.<P>
+
+
+
+</body>
+</html>

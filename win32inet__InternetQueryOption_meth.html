@@ -1,0 +1,202 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32inet.InternetQueryOption</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32inet.html">win32inet</A>.InternetQueryOption</H1><P>
+
+object = <B>InternetQueryOption(<I>hInternet</I><I>, Option</I>
+
+</B>)<P>Retrieves an option for an internet handle<P>
+
+<H3>Parameters</H3><P><DT><I>hInternet</I> : <A HREF="PyHINTERNET.html">PyHINTERNET</A><P>
+
+<DD>Internet handle, or None for global defaults<P><DT><I>Option</I> : int<P>
+
+<DD>INTERNET_OPTION_* value<P><P><TABLE COLS=2 WIDTH="100%" CELLSPACING=15>
+
+<TR>
+
+   <TD>
+
+       <B>Option</B>
+
+   </TD>
+
+   <TD>
+
+       <B>Returned type</B>
+
+   </TD>
+
+</TR>
+
+<TR><TD><HR></TD><TD><HR></TD></TR>
+
+<TR><TD>INTERNET_OPTION_CALLBACK</TD><TD>Python callback function</TD></TR>
+
+<TR><TD>INTERNET_OPTION_CONTEXT_VALUE</TD><TD>Context object</TD></TR>
+
+<TR><TD>INTERNET_OPTION_SEND_TIMEOUT</TD><TD>Int - timeout in millseconds</TD></TR>
+
+<TR><TD>INTERNET_OPTION_CONTROL_SEND_TIMEOUT</TD><TD>Int - timeout in millseconds</TD></TR>
+
+<TR><TD>INTERNET_OPTION_RECEIVE_TIMEOUT</TD><TD>Int - timeout in millseconds</TD></TR>
+
+<TR><TD>INTERNET_OPTION_CONTROL_RECEIVE_TIMEOUT</TD><TD>Int - timeout in millseconds</TD></TR>
+
+<TR><TD>INTERNET_OPTION_CODEPAGE</TD><TD>Int - Codepage of host part of URL</TD></TR>
+
+<TR><TD>INTERNET_OPTION_CODEPAGE_PATH</TD><TD>Int - Codepage for URL</TD></TR>
+
+<TR><TD>INTERNET_OPTION_CODEPAGE_EXTRA</TD><TD>Int - Codepage for path part of URL</TD></TR>
+
+<TR><TD>INTERNET_OPTION_CONNECT_RETRIES</TD><TD>Int - Number of time to try to reconnect to host</TD></TR>
+
+<TR><TD>INTERNET_OPTION_CONNECT_TIMEOUT</TD><TD>Int - Connection timeout in milliseconds</TD></TR>
+
+<TR><TD>INTERNET_OPTION_CONNECTED_STATE</TD><TD>Int - Connection state, INTERNET_STATE_*</TD></TR>
+
+<TR><TD>INTERNET_OPTION_HANDLE_TYPE</TD><TD>Int, INTERNET_HANDLE_TYPE_*</TD></TR>
+
+<TR><TD>INTERNET_OPTION_ERROR_MASK</TD><TD>Int, combination of INTERNET_ERROR_MASK_*</TD></TR>
+
+<TR><TD>INTERNET_OPTION_EXTENDED_ERROR</TD><TD>Int, ERROR_INTERNET_*</TD></TR>
+
+<TR><TD>INTERNET_OPTION_FROM_CACHE_TIMEOUT</TD><TD>Int - Timeout in ms before cached copy is used</TD></TR>
+
+<TR><TD>INTERNET_OPTION_IDN</TD><TD>Int, INTERNET_FLAG_IDN_*</TD></TR>
+
+<TR><TD>INTERNET_OPTION_MAX_CONNS_PER_1_0_SERVER</TD><TD>Int</TD></TR>
+
+<TR><TD>INTERNET_OPTION_MAX_CONNS_PER_SERVER</TD><TD>Int</TD></TR>
+
+<TR><TD>INTERNET_OPTION_READ_BUFFER_SIZE</TD><TD>Int</TD></TR>
+
+<TR><TD>INTERNET_OPTION_WRITE_BUFFER_SIZE</TD><TD>Int</TD></TR>
+
+<TR><TD>INTERNET_OPTION_REQUEST_FLAGS</TD><TD>Int, combination of INTERNET_REQFLAG_*</TD></TR>
+
+<TR><TD>INTERNET_OPTION_REQUEST_PRIORITY</TD><TD>Int</TD></TR>
+
+<TR><TD>INTERNET_OPTION_SECURITY_FLAGS</TD><TD>Int, SECURITY_FLAG_*</TD></TR>
+
+<TR><TD>INTERNET_OPTION_SECURITY_KEY_BITNESS</TD><TD>Int</TD></TR>
+
+<TR><TD>INTERNET_OPTION_BYPASS_EDITED_ENTRY</TD><TD>Boolean</TD></TR>
+
+<TR><TD>INTERNET_OPTION_HTTP_DECODING</TD><TD>Boolean</TD></TR>
+
+<TR><TD>INTERNET_OPTION_IGNORE_OFFLINE</TD><TD>Boolean</TD></TR>
+
+<TR><TD>INTERNET_OPTION_DATAFILE_NAME</TD><TD>String - Name of internet cache file</TD></TR>
+
+<TR><TD>INTERNET_OPTION_USERNAME</TD><TD>String - Username passed to InternetConnect</TD></TR>
+
+<TR><TD>INTERNET_OPTION_PASSWORD</TD><TD>String - Password passed to InternetConnect</TD></TR>
+
+<TR><TD>INTERNET_OPTION_PROXY_PASSWORD</TD><TD>String</TD></TR>
+
+<TR><TD>INTERNET_OPTION_PROXY_USERNAME</TD><TD>String</TD></TR>
+
+<TR><TD>INTERNET_OPTION_SECONDARY_CACHE_KEY</TD><TD>String</TD></TR>
+
+<TR><TD>INTERNET_OPTION_SECURITY_CERTIFICATE</TD><TD>String</TD></TR>
+
+<TR><TD>INTERNET_OPTION_URL</TD><TD>String</TD></TR>
+
+<TR><TD>INTERNET_OPTION_USER_AGENT</TD><TD>String</TD></TR>
+
+<TR><TD>INTERNET_OPTION_CACHE_TIMESTAMPS</TD><TD>dict - Expiration and last modified times</TD></TR>
+
+<TR><TD>INTERNET_OPTION_HTTP_VERSION</TD><TD>dict - HTTP_VERSION_INFO</TD></TR>
+
+<TR><TD>INTERNET_OPTION_VERSION</TD><TD>dict - INTERNET_VERSION_INFO</TD></TR>
+
+<TR><TD>INTERNET_OPTION_PARENT_HANDLE</TD><TD><A HREF="PyHINTERNET.html">PyHINTERNET</A></TD></TR>
+
+<TR><TD>INTERNET_OPTION_PROXY</TD><TD>dict - INTERNET_PROXY_INFO</TD></TR>
+
+<TR><TD>INTERNET_OPTION_DIAGNOSTIC_SOCKET_INFO</TD><TD>Not yet supported (INTERNET_DIAGNOSTIC_SOCKET_INFO)</TD></TR>
+
+<TR><TD>INTERNET_OPTION_PER_CONNECTION_OPTION</TD><TD>Not yet supported (INTERNET_PER_CONN_OPTION_LIST)</TD></TR>
+
+<TR><TD>INTERNET_OPTION_SECURITY_CERTIFICATE_STRUCT</TD><TD>Not yet supported (INTERNET_CERTIFICATE_INFO)</TD></TR>
+
+<TR><TD>INTERNET_OPTION_ALTER_IDENTITY</TD><TD>Not supported</TD></TR>
+
+<TR><TD>INTERNET_OPTION_ASYNC</TD><TD>Not supported</TD></TR>
+
+<TR><TD>INTERNET_OPTION_ASYNC_ID</TD><TD>Not supported</TD></TR>
+
+<TR><TD>INTERNET_OPTION_ASYNC_PRIORITY</TD><TD>Not supported</TD></TR>
+
+<TR><TD>INTERNET_OPTION_CACHE_STREAM_HANDLE</TD><TD>Not supported</TD></TR>
+
+<TR><TD>INTERNET_OPTION_CALLBACK_FILTER</TD><TD>Not supported</TD></TR>
+
+<TR><TD>INTERNET_OPTION_CLIENT_CERT_CONTEXT</TD><TD>Not supported</TD></TR>
+
+<TR><TD>INTERNET_OPTION_DATA_RECEIVE_TIMEOUT</TD><TD>Not supported</TD></TR>
+
+<TR><TD>INTERNET_OPTION_DATA_SEND_TIMEOUT</TD><TD>Not supported</TD></TR>
+
+<TR><TD>INTERNET_OPTION_CONNECT_BACKOFF</TD><TD>Not supported</TD></TR>
+
+<TR><TD>INTERNET_OPTION_CONNECT_TIME</TD><TD>Not supported</TD></TR>
+
+<TR><TD>INTERNET_OPTION_DISABLE_AUTODIAL</TD><TD>Not supported</TD></TR>
+
+<TR><TD>INTERNET_OPTION_DISCONNECTED_TIMEOUT</TD><TD>Not supported</TD></TR>
+
+<TR><TD>INTERNET_OPTION_IDENTITY</TD><TD>Not supported</TD></TR>
+
+<TR><TD>INTERNET_OPTION_IDLE_STATE</TD><TD>Not supported</TD></TR>
+
+<TR><TD>INTERNET_OPTION_KEEP_CONNECTION</TD><TD>Not supported</TD></TR>
+
+<TR><TD>INTERNET_OPTION_LISTEN_TIMEOUT</TD><TD>Not supported</TD></TR>
+
+<TR><TD>INTERNET_OPTION_OFFLINE_MODE</TD><TD>Not supported</TD></TR>
+
+<TR><TD>INTERNET_OPTION_OFFLINE_SEMANTICS</TD><TD>Not supported</TD></TR>
+
+<TR><TD>INTERNET_OPTION_POLICY</TD><TD>Not supported</TD></TR>
+
+<TR><TD>INTERNET_OPTION_RECEIVE_THROUGHPUT</TD><TD>Not supported</TD></TR>
+
+<TR><TD>INTERNET_OPTION_REMOVE_IDENTITY</TD><TD>Not supported</TD></TR>
+
+<TR><TD>INTERNET_OPTION_SEND_THROUGHPUT</TD><TD>Not supported</TD></TR>
+
+<TR><TD>INTERNET_OPTION_DATAFILE_EXT</TD><TD>Only valid for InternetSetOption</TD></TR>
+
+<TR><TD>INTERNET_OPTION_DIGEST_AUTH_UNLOAD</TD><TD>Only valid for InternetSetOption</TD></TR>
+
+<TR><TD>INTERNET_OPTION_END_BROWSER_SESSION</TD><TD>Only valid for InternetSetOption</TD></TR>
+
+<TR><TD>INTERNET_OPTION_REFRESH</TD><TD>Only valid for InternetSetOption</TD></TR>
+
+<TR><TD>INTERNET_OPTION_RESET_URLCACHE_SESSION</TD><TD>Only valid for InternetSetOption</TD></TR>
+
+<TR><TD>INTERNET_OPTION_SETTINGS_CHANGED</TD><TD>Only valid for InternetSetOption</TD></TR>
+
+</TABLE><H3>Win32 API References</H3><P><DT>Search for <i>InternetQueryOption</i> at <a href="http://search.msdn.microsoft.com/search/results.aspx?view=msdn&query=InternetQueryOption" target="_blank">msdn</a>, <a href="http://www.google.com/search?q=InternetQueryOption" target="_blank">google</a> or <a href="http://groups.google.com/groups?q=InternetQueryOption" target="_blank">google groups</a>.<P>
+
+<H3>Return Value</H3>The type of object returned is dependent on the option requested<P>
+
+
+
+</body>
+</html>

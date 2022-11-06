@@ -1,0 +1,88 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>VARDESC</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<HR><H1>VARDESC Object</H1><P>
+
+A VARDESC object represents a COM VARDESC structure.<P>
+
+<H3>Properties</H3>
+
+<DL>
+
+<DT><B>int memid</B>
+
+<DD>The dispid of the member<P>
+
+
+
+<DT><B>int/object value</B>
+
+<DD>A value for the variant.  If PERINSTANCE then an offset 
+
+into the instance, otherwise a variant converted to a Python object.<P>
+
+
+
+<DT><B><A HREF="ELEMDESC.html">ELEMDESC</A> elemdescVar</B>
+
+<DD>Object describing the member.<P>
+
+
+
+<DT><B>int varFlags</B>
+
+<DD>Variable flags<P>
+
+
+
+<DT><B>int varkind</B>
+
+<DD>Kind flags.<P>
+
+
+
+<DT><B>int desckind</B>
+
+<DD>Always DESCKIND_VARDESC<P>
+
+
+
+</DL>
+
+<H3>Items</H3><P><DL><DT>[0] <I>int</I> : memid<P>
+
+<DD>The id of the member<P></DL>
+
+<DL><DT>[1] <I>int/object</I> : value<P>
+
+<DD>A value for the variant.  If PERINSTANCE then an offset into the 
+
+instance, otherwise a variant converted to a Python object.<P></DL>
+
+<DL><DT>[2] <I><A HREF="ELEMDESC.html">ELEMDESC</A></I> : elemdescVar<P>
+
+<DD>Object describing the member.<P></DL>
+
+<DL><DT>[3] <I>int</I> : wVarFlags<P>
+
+<DD>Variable flags<P></DL>
+
+<DL><DT>[4] <I>int</I> : varkind<P>
+
+<DD>Kind flags.<P></DL>
+
+</body>
+</html>

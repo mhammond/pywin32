@@ -1,0 +1,68 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32crypt.CryptFindOIDInfo</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32crypt.html">win32crypt</A>.CryptFindOIDInfo</H1><P>
+
+dict = <B>CryptFindOIDInfo(<I>KeyType</I><I>, Key</I>
+
+<I>, GroupId</I>
+
+</B>)<P>Returns information about an algorithm identifier or object identifier<P>
+
+<H3>Parameters</H3><P><DT><I>KeyType</I> : int<P>
+
+<DD>One of 
+
+CRYPT_OID_INFO_OID_KEY,CRYPT_OID_INFO_NAME_KEY,CRYPT_OID_INFO_ALGID_KEY,CRYPT_OID_INFO_SIGN_KEY<P><DT><I>Key</I> : object<P>
+
+<DD>Type is dependent on KeyType<P><DT><I>GroupId=0</I> : int<P>
+
+<DD>CRYPT_*_GROUP_ID constant, or 0<P>
+
+<H3>Return Value</H3>Returns a dictionary of CRYPT_OID_INFO data<P>
+
+
+
+<P><TABLE COLS=2 WIDTH="100%" CELLSPACING=15>
+
+<TR>
+
+   <TD>
+
+       <B>KeyType</B>
+
+   </TD>
+
+   <TD>
+
+       <B>Type of Key</B>
+
+   </TD>
+
+</TR>
+
+<TR><TD><HR></TD><TD><HR></TD></TR>
+
+<TR><TD>CRYPT_OID_INFO_OID_KEY</TD><TD>An szOID_* character string</TD></TR>
+
+<TR><TD>CRYPT_OID_INFO_NAME_KEY</TD><TD>A unicode name</TD></TR>
+
+<TR><TD>CRYPT_OID_INFO_ALGID_KEY</TD><TD>An ALG_ID, one of the CALG_* integer constants</TD></TR>
+
+<TR><TD>CRYPT_OID_INFO_SIGN_KEY</TD><TD>A tuple of 2 CALG_* integers (hash algorithm, public key algorithm)</TD></TR>
+
+</TABLE></body>
+</html>

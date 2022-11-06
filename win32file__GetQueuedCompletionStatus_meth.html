@@ -1,0 +1,36 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32file.GetQueuedCompletionStatus</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32file.html">win32file</A>.GetQueuedCompletionStatus</H1><P>
+
+(int, int, int, <A HREF="PyOVERLAPPED.html">PyOVERLAPPED</A>) = <B>GetQueuedCompletionStatus(<I>hPort</I><I>, timeOut</I>
+
+</B>)<P>Attempts to dequeue an I/O completion packet from a specified input/output completion port.<P>
+
+<H3>Parameters</H3><P><DT><I>hPort</I> : <A HREF="PyHANDLE.html">PyHANDLE</A><P>
+
+<DD>The handle to the completion port.<P><DT><I>timeOut</I> : int<P>
+
+<DD>Timeout in milli-seconds.<P><H3>Comments</H3>
+
+This method never throws an API error. 
+
+<BR>The result is a tuple of (rc, numberOfBytesTransferred, completionKey, overlapped) 
+
+<BR>If the function succeeds, rc will be set to 0, otherwise it will be set to the win32 error code.<P>
+
+</body>
+</html>

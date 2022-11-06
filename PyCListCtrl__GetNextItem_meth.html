@@ -1,0 +1,48 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyCListCtrl.GetNextItem</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="PyCListCtrl.html">PyCListCtrl</A>.GetNextItem</H1><P>
+
+int = <B>GetNextItem(<I>item</I><I>, flags</I>
+
+</B>)<P>Searches for a list view item with specified properties and with specified 
+
+relationship to a given item.<P>
+
+<H3>Parameters</H3><P><DT><I>item</I> : int<P>
+
+<DD>Index of the item to begin the searching with, or -1 to find the first item 
+
+that matches the specified flags. The specified item itself is excluded from the search.<P><DT><I>flags</I> : int<P>
+
+<DD>Geometric relation of the requested item to the specified item, 
+
+and the state of the requested item. The geometric relation can be one of these values: 
+
+<BR>LVNI_ABOVE<BR>LVNI_ALL<BR>LVNI_BELOW<BR>LVNI_TOLEFT<BR>LVNI_TORIGHT<BR> 
+
+The state can be zero, or it can be one or more of these values: 
+
+<BR>LVNI_DROPHILITED<BR>LVNI_FOCUSED<BR>LVNI_HIDDEN<BR>LVNI_MARKED<BR>LVNI_SELECTED<BR> 
+
+If an item does not have all of the specified state flags set, the search continues with the 
+
+next item.<P><H3>Return Value</H3>Returns an integer index, or raises a win32ui.error exception if not item can be found.<P>
+
+
+
+</body>
+</html>

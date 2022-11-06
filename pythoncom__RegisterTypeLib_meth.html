@@ -1,0 +1,54 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>pythoncom.RegisterTypeLib</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="pythoncom.html">pythoncom</A>.RegisterTypeLib</H1><P>
+
+<B>RegisterTypeLib(<I>typelib</I><I>, fullPath</I><I>, helpDir</I><I>, lcid</I></B>)<P>Adds information about a type library to the system registry.<P>
+
+<H3>Parameters</H3><P><DT><I>typelib</I> : <A HREF="PyITypeLib.html">PyITypeLib</A><P>
+
+<DD>The type library being registered.<P><DT><I>fullPath</I> : string<P>
+
+<DD>Fully qualified path specification for the type library being registered<P><DT><I>helpDir=None</I> : string<P>
+
+<DD>Directory in which the Help file for the library being registered can be found. Can 
+
+be None.<P>
+
+<DT><I>lcid=LOCALE_USER_DEFAULT</I> : int<P>
+
+<DD>The locale ID to use.<P>
+
+<H3>Comments</H3>
+
+This function can be used during application initialization to register the application's type 
+
+library correctly. When RegisterTypeLib is called to register a type library, 
+
+both the minor and major version numbers are registered in hexadecimal. 
+
+<BR> In addition to filling in a complete registry entry under the type library key, 
+
+RegisterTypeLib adds entries for each of the dispinterfaces and Automation-compatible 
+
+interfaces, including dual interfaces. This information is required to create 
+
+instances of these interfaces. Coclasses are not registered (that is, 
+
+RegisterTypeLib does not write any values to the CLSID key of the coclass).<P>
+
+</body>
+</html>

@@ -1,0 +1,444 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32timezone</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1>Module win32timezone</H1><P>
+
+win32timezone: 
+
+Module for handling datetime.tzinfo time zones using the windows 
+
+registry for time zone information.  The time zone names are dependent 
+
+on the registry entries defined by the operating system.<P>
+
+<H3>Comments</H3>
+
+This module may be tested using the doctest module.<P>
+
+Written by Jason R. Coombs (jaraco@jaraco.com). 
+
+Copyright &#194&#169 2003-2012. 
+
+All Rights Reserved.<P>
+
+This module is licenced for use in Mark Hammond's pywin32 
+
+library under the same terms as the pywin32 library.<P>
+
+To use this time zone module with the datetime module, simply pass 
+
+the TimeZoneInfo object to the datetime constructor.  For example,<P>
+
+<PRE>&gt&gt&gt import win32timezone, datetime
+
+&gt&gt&gt assert 'Mountain Standard Time' in win32timezone.TimeZoneInfo.get_sorted_time_zone_names()
+
+&gt&gt&gt MST = win32timezone.TimeZoneInfo('Mountain Standard Time')
+
+&gt&gt&gt now = datetime.datetime.now(MST)<P>
+
+</PRE>
+
+The now object is now a time-zone aware object, and daylight savings- 
+
+aware methods may be called on it.<P>
+
+<PRE>&gt&gt&gt now.utcoffset() in (datetime.timedelta(-1, 61200), datetime.timedelta(-1, 64800))
+
+True<P>
+
+</PRE>
+
+(note that the result of utcoffset call will be different based on when now was 
+
+generated, unless standard time is always used)<P>
+
+<PRE>&gt&gt&gt now = datetime.datetime.now(TimeZoneInfo('Mountain Standard Time', True))
+
+&gt&gt&gt now.utcoffset()
+
+datetime.timedelta(-1, 61200)<P>
+
+&gt&gt&gt aug2 = datetime.datetime(2003, 8, 2, tzinfo = MST)
+
+&gt&gt&gt tuple(aug2.utctimetuple())
+
+(2003, 8, 2, 6, 0, 0, 5, 214, 0)
+
+&gt&gt&gt nov2 = datetime.datetime(2003, 11, 25, tzinfo = MST)
+
+&gt&gt&gt tuple(nov2.utctimetuple())
+
+(2003, 11, 25, 7, 0, 0, 1, 329, 0)<P>
+
+</PRE>
+
+To convert from one timezone to another, just use the astimezone method.<P>
+
+<PRE>&gt&gt&gt aug2.isoformat()
+
+'2003-08-02T00:00:00-06:00'
+
+&gt&gt&gt aug2est = aug2.astimezone(win32timezone.TimeZoneInfo('Eastern Standard Time'))
+
+&gt&gt&gt aug2est.isoformat()
+
+'2003-08-02T02:00:00-04:00'<P>
+
+</PRE>
+
+calling the displayName member will return the display name as set in the 
+
+registry.<P>
+
+<PRE>&gt&gt&gt est = win32timezone.TimeZoneInfo('Eastern Standard Time')
+
+&gt&gt&gt str(est.displayName)
+
+'(UTC-05:00) Eastern Time (US & Canada)'<P>
+
+&gt&gt&gt gmt = win32timezone.TimeZoneInfo('GMT Standard Time', True)
+
+&gt&gt&gt str(gmt.displayName)
+
+'(UTC+00:00) Dublin, Edinburgh, Lisbon, London'<P>
+
+</PRE>
+
+To get the complete list of available time zone keys,<P>
+
+<PRE>&gt&gt&gt zones = win32timezone.TimeZoneInfo.get_all_time_zones()<P>
+
+</PRE>
+
+If you want to get them in an order that's sorted longitudinally<P>
+
+<PRE>&gt&gt&gt zones = win32timezone.TimeZoneInfo.get_sorted_time_zones()<P>
+
+</PRE>
+
+TimeZoneInfo now supports being pickled and comparison<P>
+
+<PRE>&gt&gt&gt import pickle
+
+&gt&gt&gt tz = win32timezone.TimeZoneInfo('China Standard Time')
+
+&gt&gt&gt tz == pickle.loads(pickle.dumps(tz))
+
+True<P>
+
+</PRE>
+
+It's possible to construct a TimeZoneInfo from a TimeZoneDescription 
+
+including the currently-defined zone.<P>
+
+<PRE>&gt&gt&gt tz = win32timezone.TimeZoneInfo(TimeZoneDefinition.current())
+
+&gt&gt&gt tz == pickle.loads(pickle.dumps(tz))
+
+True<P>
+
+&gt&gt&gt aest = win32timezone.TimeZoneInfo('AUS Eastern Standard Time')
+
+&gt&gt&gt est = win32timezone.TimeZoneInfo('E. Australia Standard Time')
+
+&gt&gt&gt dt = datetime.datetime(2006, 11, 11, 1, 0, 0, tzinfo = aest)
+
+&gt&gt&gt estdt = dt.astimezone(est)
+
+&gt&gt&gt estdt.strftime('%Y-%m-%d %H:%M:%S')
+
+'2006-11-11 00:00:00'<P>
+
+&gt&gt&gt dt = datetime.datetime(2007, 1, 12, 1, 0, 0, tzinfo = aest)
+
+&gt&gt&gt estdt = dt.astimezone(est)
+
+&gt&gt&gt estdt.strftime('%Y-%m-%d %H:%M:%S')
+
+'2007-01-12 00:00:00'<P>
+
+&gt&gt&gt dt = datetime.datetime(2007, 6, 13, 1, 0, 0, tzinfo = aest)
+
+&gt&gt&gt estdt = dt.astimezone(est)
+
+&gt&gt&gt estdt.strftime('%Y-%m-%d %H:%M:%S')
+
+'2007-06-13 01:00:00'<P>
+
+</PRE>
+
+Microsoft now has a patch for handling time zones in 2007 (see 
+
+http://support.microsoft.com/gp/cp_dst)<P>
+
+As a result, patched systems will give an incorrect result for 
+
+dates prior to the designated year except for Vista and its 
+
+successors, which have dynamic time zone support.<P>
+
+<PRE>&gt&gt&gt nov2_pre_change = datetime.datetime(2003, 11, 2, tzinfo = MST)
+
+&gt&gt&gt old_response = (2003, 11, 2, 7, 0, 0, 6, 306, 0)
+
+&gt&gt&gt incorrect_patch_response = (2003, 11, 2, 6, 0, 0, 6, 306, 0)
+
+&gt&gt&gt pre_response = nov2_pre_change.utctimetuple()
+
+&gt&gt&gt pre_response in (old_response, incorrect_patch_response)
+
+True<P>
+
+</PRE>
+
+Furthermore, unpatched systems pre-Vista will give an incorrect 
+
+result for dates after 2007.<P>
+
+<PRE>&gt&gt&gt nov2_post_change = datetime.datetime(2007, 11, 2, tzinfo = MST)
+
+&gt&gt&gt incorrect_unpatched_response = (2007, 11, 2, 7, 0, 0, 4, 306, 0)
+
+&gt&gt&gt new_response = (2007, 11, 2, 6, 0, 0, 4, 306, 0)
+
+&gt&gt&gt post_response = nov2_post_change.utctimetuple()
+
+&gt&gt&gt post_response in (new_response, incorrect_unpatched_response)
+
+True<P>
+
+</PRE>
+
+There is a function you can call to get some capabilities of the time 
+
+zone data.<P>
+
+<PRE>&gt&gt&gt caps = GetTZCapabilities()
+
+&gt&gt&gt isinstance(caps, dict)
+
+True
+
+&gt&gt&gt 'MissingTZPatch' in caps
+
+True
+
+&gt&gt&gt 'DynamicTZSupport' in caps
+
+True<P>
+
+&gt&gt&gt both_dates_correct = (pre_response == old_response and post_response == new_response)
+
+&gt&gt&gt old_dates_wrong = (pre_response == incorrect_patch_response)
+
+&gt&gt&gt new_dates_wrong = (post_response == incorrect_unpatched_response)<P>
+
+&gt&gt&gt caps['DynamicTZSupport'] == both_dates_correct
+
+True<P>
+
+&gt&gt&gt (not caps['DynamicTZSupport'] and caps['MissingTZPatch']) == new_dates_wrong
+
+True<P>
+
+&gt&gt&gt (not caps['DynamicTZSupport'] and not caps['MissingTZPatch']) == old_dates_wrong
+
+True<P>
+
+</PRE>
+
+This test helps ensure language support for unicode characters<P>
+
+<PRE>&gt&gt&gt x = TIME_ZONE_INFORMATION(0, u'fran&#195&#167ais')<P>
+
+</PRE>
+
+Test conversion from one time zone to another at a DST boundary<P>
+
+<PRE>&gt&gt&gt tz_hi = TimeZoneInfo('Hawaiian Standard Time')
+
+&gt&gt&gt tz_pac = TimeZoneInfo('Pacific Standard Time')
+
+&gt&gt&gt time_before = datetime.datetime(2011, 11, 5, 15, 59, 59, tzinfo=tz_hi)
+
+&gt&gt&gt tz_hi.utcoffset(time_before)
+
+datetime.timedelta(-1, 50400)
+
+&gt&gt&gt tz_hi.dst(time_before)
+
+datetime.timedelta(0)<P>
+
+</PRE>
+
+Hawaii doesn't need dynamic TZ info<P>
+
+<PRE>&gt&gt&gt getattr(tz_hi, 'dynamicInfo', None)<P>
+
+</PRE>
+
+Here's a time that gave some trouble as reported in #3523104 
+
+because one minute later, the equivalent UTC time changes from DST 
+
+in the U.S.<P>
+
+<PRE>&gt&gt&gt dt_hi = datetime.datetime(2011, 11, 5, 15, 59, 59, 0, tzinfo=tz_hi)
+
+&gt&gt&gt dt_hi.timetuple()
+
+time.struct_time(tm_year=2011, tm_mon=11, tm_mday=5, tm_hour=15, tm_min=59, tm_sec=59, tm_wday=5, tm_yday=309, tm_isdst=0)
+
+&gt&gt&gt dt_hi.utctimetuple()
+
+time.struct_time(tm_year=2011, tm_mon=11, tm_mday=6, tm_hour=1, tm_min=59, tm_sec=59, tm_wday=6, tm_yday=310, tm_isdst=0)<P>
+
+</PRE>
+
+Convert the time to pacific time.<P>
+
+<PRE>&gt&gt&gt dt_pac = dt_hi.astimezone(tz_pac)
+
+&gt&gt&gt dt_pac.timetuple()
+
+time.struct_time(tm_year=2011, tm_mon=11, tm_mday=5, tm_hour=18, tm_min=59, tm_sec=59, tm_wday=5, tm_yday=309, tm_isdst=1)<P>
+
+</PRE>
+
+Notice that the UTC time is almost 2am.<P>
+
+<PRE>&gt&gt&gt dt_pac.utctimetuple()
+
+time.struct_time(tm_year=2011, tm_mon=11, tm_mday=6, tm_hour=1, tm_min=59, tm_sec=59, tm_wday=6, tm_yday=310, tm_isdst=0)<P>
+
+</PRE>
+
+Now do the same tests one minute later in Hawaii.<P>
+
+<PRE>&gt&gt&gt time_after = datetime.datetime(2011, 11, 5, 16, 0, 0, 0, tzinfo=tz_hi)
+
+&gt&gt&gt tz_hi.utcoffset(time_after)
+
+datetime.timedelta(-1, 50400)
+
+&gt&gt&gt tz_hi.dst(time_before)
+
+datetime.timedelta(0)<P>
+
+&gt&gt&gt dt_hi = datetime.datetime(2011, 11, 5, 16, 0, 0, 0, tzinfo=tz_hi)
+
+&gt&gt&gt print dt_hi.timetuple()
+
+time.struct_time(tm_year=2011, tm_mon=11, tm_mday=5, tm_hour=16, tm_min=0, tm_sec=0, tm_wday=5, tm_yday=309, tm_isdst=0)
+
+&gt&gt&gt print dt_hi.utctimetuple()
+
+time.struct_time(tm_year=2011, tm_mon=11, tm_mday=6, tm_hour=2, tm_min=0, tm_sec=0, tm_wday=6, tm_yday=310, tm_isdst=0)<P>
+
+</PRE>
+
+According to the docs, this is what astimezone does.<P>
+
+<PRE>&gt&gt&gt utc = (dt_hi - dt_hi.utcoffset()).replace(tzinfo=tz_pac)
+
+&gt&gt&gt utc
+
+datetime.datetime(2011, 11, 6, 2, 0, tzinfo=TimeZoneInfo('Pacific Standard Time'))
+
+&gt&gt&gt tz_pac.fromutc(utc) == dt_hi.astimezone(tz_pac)
+
+True
+
+&gt&gt&gt tz_pac.fromutc(utc)
+
+datetime.datetime(2011, 11, 5, 19, 0, tzinfo=TimeZoneInfo('Pacific Standard Time'))<P>
+
+</PRE>
+
+Make sure the converted time is correct.<P>
+
+<PRE>&gt&gt&gt dt_pac = dt_hi.astimezone(tz_pac)
+
+&gt&gt&gt dt_pac.timetuple()
+
+time.struct_time(tm_year=2011, tm_mon=11, tm_mday=5, tm_hour=19, tm_min=0, tm_sec=0, tm_wday=5, tm_yday=309, tm_isdst=1)
+
+&gt&gt&gt dt_pac.utctimetuple()
+
+time.struct_time(tm_year=2011, tm_mon=11, tm_mday=6, tm_hour=2, tm_min=0, tm_sec=0, tm_wday=6, tm_yday=310, tm_isdst=0)<P>
+
+</PRE>
+
+Check some internal methods<P>
+
+<PRE>&gt&gt&gt tz_pac._getStandardBias(datetime.datetime(2011, 1, 1))
+
+datetime.timedelta(0, 28800)
+
+&gt&gt&gt tz_pac._getDaylightBias(datetime.datetime(2011, 1, 1))
+
+datetime.timedelta(0, 25200)<P>
+
+</PRE>
+
+Test the offsets<P>
+
+<PRE>&gt&gt&gt offset = tz_pac.utcoffset(datetime.datetime(2011, 11, 6, 2, 0))
+
+&gt&gt&gt offset == datetime.timedelta(hours=-8)
+
+True
+
+&gt&gt&gt dst_offset = tz_pac.dst(datetime.datetime(2011, 11, 6, 2, 0) + offset)
+
+&gt&gt&gt dst_offset == datetime.timedelta(hours=1)
+
+True
+
+&gt&gt&gt (offset + dst_offset) == datetime.timedelta(hours=-7)
+
+True<P>
+
+</PRE>
+
+Test offsets that occur right at the DST changeover<P>
+
+<PRE>&gt&gt&gt datetime.datetime.utcfromtimestamp(1320570000).replace(
+
+...     tzinfo=TimeZoneInfo.utc()).astimezone(tz_pac)
+
+datetime.datetime(2011, 11, 6, 1, 0, tzinfo=TimeZoneInfo('Pacific Standard Time'))<P>
+
+</PRE>
+
+<H3>Methods</H3><P><DL><DT><A HREF="win32timezone__GetTZCapabilities_meth.html">GetTZCapabilities</A><BR>
+
+<DD>Run a few known tests to determine the capabilities of&nbsp;<P><DT><A HREF="win32timezone__now_meth.html">now</A><BR>
+
+<DD>Return the local time now with timezone awareness as enabled&nbsp;<P><DT><A HREF="win32timezone__resolveMUITimeZone_meth.html">resolveMUITimeZone</A><BR>
+
+<DD>Resolve a multilingual user interface resource for the time zone name&nbsp;<P><DT><A HREF="win32timezone__utcnow_meth.html">utcnow</A><BR>
+
+<DD>Return the UTC time now with timezone awareness as enabled&nbsp;<P></DL><H3>Classes</H3><P><DL><DT><A HREF="win32timezone.TimeZoneInfo.html">TimeZoneInfo</A><BR>
+
+<DD>Main class for handling Windows time zones.&nbsp;<P><DT><A HREF="win32timezone.TimeZoneDefinition.html">TimeZoneDefinition</A><BR>
+
+<DD>A time zone definition class based on the win32&nbsp;<P><DT><A HREF="win32timezone.RangeMap.html">RangeMap</A><BR>
+
+<DD>A dictionary-like object that uses the keys as bounds for a range.&nbsp;<P></DL></body>
+</html>

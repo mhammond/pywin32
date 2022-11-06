@@ -1,0 +1,64 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>SHFILEOPSTRUCT</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<HR><H1>SHFILEOPSTRUCT Object</H1><P>
+
+A tuple representing a Win32 shell SHFILEOPSTRUCT structure, used with <A HREF="shell__SHFileOperation_meth.html">shell::SHFileOperation</A><P>
+
+<H3>Comments</H3>
+
+From and To can contain multiple file names concatenated with a single null between them, eg 
+
+"c:\\file1.txt\\0c:\\file2.txt".  A double null terminator will be appended automatically. 
+
+If To specifies multiple file names, flags must contain FOF_MULTIDESTFILES<P>
+
+<H3>Items</H3><P><DL><DT>[0] <I>int</I> : hwnd<P>
+
+<DD>Handle of window in which to display status messages<P></DL>
+
+<DL><DT>[1] <I>int</I> : wFunc<P>
+
+<DD>One of the shellcon.FO_* values<P></DL>
+
+<DL><DT>[2] <I>string</I> : From<P>
+
+<DD>String containing source file name(s) separated by nulls<P></DL>
+
+<DL><DT>[3] <I>string</I> : To<P>
+
+<DD>String containing destination file name(s) separated by nulls, can be 
+
+None<P></DL>
+
+<DL><DT>[4] <I>int</I> : flags<P>
+
+<DD>Combination of shellcon.FOF_* flags. Default=0<P></DL>
+
+<DL><DT>[5] <I>None</I> : NameMappings<P>
+
+<DD>Maps input file names to their new names.  This is 
+
+actually output, and must be None if passed as input. Default=None<P></DL>
+
+<DL><DT>[6] <I>string</I> : ProgressTitle<P>
+
+<DD>Title for progress dialog (flags must contain 
+
+FOF_SIMPLEPROGRESS). Default=None<P></DL>
+
+</body>
+</html>

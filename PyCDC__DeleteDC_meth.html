@@ -1,0 +1,36 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyCDC.DeleteDC</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="PyCDC.html">PyCDC</A>.DeleteDC</H1><P>
+
+<B>DeleteDC(</B>)<P>Deletes all resources associated with a device context.<P>
+
+<H3>Comments</H3>
+
+In general, do not call this function; the destructor will do it for you. 
+
+<BR>An application should not call DeleteDC if objects have been selected into the device context. Objects must 
+
+first be selected out of the device context before it it is deleted. <BR>An application must not delete a device 
+
+context whose handle was obtained by calling CWnd::GetDC. Instead, it must call CWnd::ReleaseDC to free the 
+
+device context. <BR>The DeleteDC function is generally used to delete device contexts created with CreateDC, 
+
+CreateIC, or CreateCompatibleDC.<P>
+
+</body>
+</html>

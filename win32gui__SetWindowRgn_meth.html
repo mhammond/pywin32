@@ -1,0 +1,34 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32gui.SetWindowRgn</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32gui.html">win32gui</A>.SetWindowRgn</H1><P>
+
+<B>SetWindowRgn(<I>hWnd</I><I>, hRgn</I><I>, Redraw</I></B>)<P>Sets the visible region of a window<P>
+
+<H3>Parameters</H3><P><DT><I>hWnd</I> : <A HREF="PyHANDLE.html">PyHANDLE</A><P>
+
+<DD>Handle to a window<P><DT><I>hRgn</I> : <A HREF="PyGdiHANDLE.html">PyGdiHANDLE</A><P>
+
+<DD>Handle to region to be set, can be None<P><DT><I>Redraw</I> : boolean<P>
+
+<DD>Indicates if window should be completely redrawn<P><H3>Comments</H3>
+
+On success, the system assumes ownership of the region so you should call the handle's Detach() 
+
+method to prevent it from being automatically closed.<P>
+
+</body>
+</html>

@@ -1,0 +1,78 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32api.DuplicateHandle</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32api.html">win32api</A>.DuplicateHandle</H1><P>
+
+<A HREF="PyHANDLE.html">PyHANDLE</A> = <B>DuplicateHandle(<I>hSourceProcess</I><I>, hSource</I>
+
+<I>, hTargetProcessHandle</I>
+
+<I>, desiredAccess</I>
+
+<I>, bInheritHandle</I>
+
+<I>, options</I>
+
+</B>)<P>Duplicates a handle.<P>
+
+<H3>Parameters</H3><P><DT><I>hSourceProcess</I> : <A HREF="PyHANDLE.html">PyHANDLE</A><P>
+
+<DD>Identifies the process containing the handle to 
+
+duplicate.<P><DT><I>hSource</I> : <A HREF="PyHANDLE.html">PyHANDLE</A><P>
+
+<DD>Identifies the handle to duplicate. This is an open object 
+
+handle that is valid in the context of the source process.<P><DT><I>hTargetProcessHandle</I> : <A HREF="PyHANDLE.html">PyHANDLE</A><P>
+
+<DD>Identifies the process that is to receive the 
+
+duplicated handle. The handle must have PROCESS_DUP_HANDLE access.<P><DT><I>desiredAccess</I> : int<P>
+
+<DD>Specifies the access requested for the new handle. This parameter is 
+
+ignored if the dwOptions parameter specifies the DUPLICATE_SAME_ACCESS flag. Otherwise, the 
+
+flags that can be specified depend on the type of object whose handle is being duplicated. For 
+
+the flags that can be specified for each object type, see the following Remarks section. Note 
+
+that the new handle can have more access than the original handle.<P><DT><I>bInheritHandle</I> : int<P>
+
+<DD>Indicates whether the handle is inheritable. If TRUE, the 
+
+duplicate handle can be inherited by new processes created by the target process. If FALSE, 
+
+the new handle cannot be inherited.<P><DT><I>options</I> : int<P>
+
+<DD>Specifies optional actions. This parameter can be zero, or any 
+
+combination of the following flags<P><TR><TD>DUPLICATE_CLOSE_SOURCE</TD><TD>loses the source handle. This occurs regardless of any error status returned.</TD></TR>
+
+<TR><TD>DUPLICATE_SAME_ACCESS</TD><TD>Ignores the dwDesiredAccess parameter. The duplicate handle has the same access 
+
+as the source handle.</TD></TR>
+
+</TABLE><H3>Comments</H3>
+
+When duplicating a handle for a different process, you should either keep a 
+
+reference to the returned PyHANDLE, or call .Detach() on it to prevent it 
+
+from being closed prematurely.<P>
+
+</body>
+</html>

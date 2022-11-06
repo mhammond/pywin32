@@ -1,0 +1,48 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32gui.EnumFontFamilies</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32gui.html">win32gui</A>.EnumFontFamilies</H1><P>
+
+int = <B>EnumFontFamilies(<I>hdc</I><I>, Family</I>
+
+<I>, EnumFontFamProc</I>
+
+<I>, Param</I>
+
+</B>)<P>Enumerates the available font families.<P>
+
+<H3>Parameters</H3><P><DT><I>hdc</I> : <A HREF="PyHANDLE.html">PyHANDLE</A><P>
+
+<DD>Handle to a device context for which to enumerate available fonts<P><DT><I>Family</I> : string<P>
+
+<DD>Family of fonts to enumerate. If none, first member of each font family will be returned.<P><DT><I>EnumFontFamProc</I> : function<P>
+
+<DD>The Python function called with each font family. This function is called with 4 arguments.<P><DT><I>Param</I> : object<P>
+
+<DD>An arbitrary object to be passed to the callback function<P><H3>Comments</H3>
+
+The parameters that the callback function will receive are as follows:<BR> 
+
+<A HREF="PyLOGFONT.html">PyLOGFONT</A> - contains the font parameters<BR> 
+
+None - Placeholder for a TEXTMETRIC structure, not supported yet<BR> 
+
+int - Font type, combination of DEVICE_FONTTYPE, RASTER_FONTTYPE, TRUETYPE_FONTTYPE<BR> 
+
+object - The Param originally passed in to EnumFontFamilies<P>
+
+</body>
+</html>

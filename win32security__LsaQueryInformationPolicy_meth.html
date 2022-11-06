@@ -1,0 +1,64 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32security.LsaQueryInformationPolicy</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32security.html">win32security</A>.LsaQueryInformationPolicy</H1><P>
+
+<B>LsaQueryInformationPolicy(<I>PolicyHandle</I><I>, InformationClass</I></B>)<P>Retrieves information from the policy handle<P>
+
+<H3>Parameters</H3><P><DT><I>PolicyHandle</I> : <A HREF="PyLSA_HANDLE.html">PyLSA_HANDLE</A><P>
+
+<DD>An LSA policy handle as returned by <A HREF="win32security__LsaOpenPolicy_meth.html">win32security::LsaOpenPolicy</A><P><DT><I>InformationClass</I> : int<P>
+
+<DD>POLICY_INFORMATION_CLASS value<P><P><TABLE COLS=2 WIDTH="100%" CELLSPACING=15>
+
+<TR>
+
+   <TD>
+
+       <B>POLICY_INFORMATION_CLASS value</B>
+
+   </TD>
+
+   <TD>
+
+       <B>Return type</B>
+
+   </TD>
+
+</TR>
+
+<TR><TD><HR></TD><TD><HR></TD></TR>
+
+<TR><TD>PolicyAuditEventsInformation</TD><TD>returns tuple of (boolean,(int,...)) 
+
+Tuple consists of a boolean indicating if auditing is enabled, and a tuple of 
+
+ints, indexed by POLICY_AUDIT_EVENT_TYPE values, containing a combination 
+
+of POLICY_AUDIT_EVENT_UNCHANGED, POLICY_AUDIT_EVENT_SUCCESS, POLICY_AUDIT_EVENT_FAILURE, POLICY_AUDIT_EVENT_NONE</TD></TR>
+
+<TR><TD>PolicyDnsDomainInformation</TD><TD>Returns a tuple representing a POLICY_DNS_DOMAIN_INFO struct</TD></TR>
+
+<TR><TD>PolicyPrimaryDomainInformation</TD><TD>Returns name and SID of primary domain</TD></TR>
+
+<TR><TD>PolicyAccountDomainInformation</TD><TD>Returns name and SID of account domain</TD></TR>
+
+<TR><TD>PolicyLsaServerRoleInformation</TD><TD>Returns an int, one of PolicyServerRoleBackup, PolicyServerRolePrimary</TD></TR>
+
+<TR><TD>PolicyModificationInformation</TD><TD>Returns modification serial nbr and modified time of Lsa database</TD></TR>
+
+</TABLE></body>
+</html>

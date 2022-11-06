@@ -1,0 +1,104 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32security.LsaCallAuthenticationPackage</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32security.html">win32security</A>.LsaCallAuthenticationPackage</H1><P>
+
+<B>LsaCallAuthenticationPackage(<I>LsaHandle</I><I>, AuthenticationPackage</I><I>, MessageType</I><I>, ProtocolSubmitBuffer</I></B>)<P>Requests the services of an authentication package<P>
+
+<H3>Parameters</H3><P><DT><I>LsaHandle</I> : <A HREF="PyLsaLogon_HANDLE.html">PyLsaLogon_HANDLE</A><P>
+
+<DD>Lsa handle as returned by <A HREF="win32security__LsaRegisterLogonProcess_meth.html">win32security::LsaRegisterLogonProcess</A> or <A HREF="win32security__LsaConnectUntrusted_meth.html">win32security::LsaConnectUntrusted</A><P><DT><I>AuthenticationPackage</I> : int<P>
+
+<DD>Id of authentication package to call, as returned by <A HREF="win32security__LsaLookupAuthenticationPackage_meth.html">win32security::LsaLookupAuthenticationPackage</A><P><DT><I>MessageType</I> : int<P>
+
+<DD>Type of request that is being made, Kerb*Message or MsV1_0* constant<P><DT><I>ProtocolSubmitBuffer</I> : object<P>
+
+<DD>Type is dependent on MessageType<P><H3>Comments</H3>
+
+Message type is embedded in different types of submit buffers in the API call, but passed separately 
+
+from python for simplicity of parsing input<P>
+
+<P><TABLE COLS=2 WIDTH="100%" CELLSPACING=15>
+
+<TR>
+
+   <TD>
+
+       <B>MessageType</B>
+
+   </TD>
+
+   <TD>
+
+       <B>Input type</B>
+
+   </TD>
+
+</TR>
+
+<TR><TD><HR></TD><TD><HR></TD></TR>
+
+<TR><TD>KerbQueryTicketCacheMessage</TD><TD>long - a logon id, use 0 for current logon session</TD></TR>
+
+<TR><TD>KerbRetrieveTicketMessage</TD><TD>long - a logon id, use 0 for current logon session</TD></TR>
+
+<TR><TD>KerbPurgeTicketCacheMessage</TD><TD>(long, <B>PyUnicode</B>
+
+, <B>PyUnicode</B>
+
+) - tuple containing (LogonId, ServerName, RealmName)</TD></TR>
+
+<TR><TD>KerbRetrieveEncodedTicketMessage</TD><TD>(LogonId, TargetName, TicketFlags, CacheOptions, EncryptionType, CredentialsHandle) 
+
+(int, <B>PyUnicode</B>
+
+, int, int, int, <A HREF="PyCredHandle.html">PyCredHandle</A>)</TD></TR>
+
+</TABLE><P><TABLE COLS=2 WIDTH="100%" CELLSPACING=15>
+
+<TR>
+
+   <TD>
+
+       <B>MessageType</B>
+
+   </TD>
+
+   <TD>
+
+       <B>Return type</B>
+
+   </TD>
+
+</TR>
+
+<TR><TD><HR></TD><TD><HR></TD></TR>
+
+<TR><TD>KerbQueryTicketCacheMessage</TD><TD>(dict,...) - Returns all tickets for the specified logon session (form is KERB_TICKET_CACHE_INFO)</TD></TR>
+
+<TR><TD>KerbPurgeTicketCacheMessage</TD><TD>None</TD></TR>
+
+<TR><TD>KerbRetrieveTicketMessage</TD><TD>Returns the ticket granting ticket for the logon session as a KERB_EXTERNAL_TICKET</TD></TR>
+
+<TR><TD>KerbRetrieveEncodedTicketMessage</TD><TD>Returns specified ticket as a KERB_EXTERNAL_TICKET</TD></TR>
+
+</TABLE><H3>Return Value</H3>Type of returned object is dependent on MessageType<P>
+
+
+
+</body>
+</html>

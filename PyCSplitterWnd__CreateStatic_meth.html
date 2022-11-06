@@ -1,0 +1,50 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyCSplitterWnd.CreateStatic</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="PyCSplitterWnd.html">PyCSplitterWnd</A>.CreateStatic</H1><P>
+
+<B>CreateStatic(<I>parent</I><I>, rows</I><I>, cols</I><I>, style</I><I>, id</I></B>)<P>Creates a static splitter window.<P>
+
+<H3>Parameters</H3><P><DT><I>parent</I> : <A HREF="PyCFrameWnd.html">PyCFrameWnd</A> or <B>PyCSplitter</B>
+
+<P>
+
+<DD>The parent window.<P><DT><I>rows</I> : int<P>
+
+<DD>The number of rows in the splitter.<P><DT><I>cols</I> : int<P>
+
+<DD>The number of columns in the splitter.<P><DT><I>style=WS_CHILD | WS_VISIBLE</I> : int<P>
+
+<DD>Specifies the window style<P>
+
+<DT><I>id=AFX_IDW_PANE_FIRST</I> : int<P>
+
+<DD>The child window ID of the window. The ID can be 
+
+AFX_IDW_PANE_FIRST unless the splitter window is nested inside another splitter window.<P>
+
+<H3>Comments</H3>
+
+A static splitter window is a splitter where the number of panes are 
+
+fixed at window creation time.  Currently this is the only splitter window 
+
+supported by win32ui.<P>
+
+<H3>MFC References</H3><P><DT>CSplitterWnd::CreateStatic<P>
+
+</body>
+</html>

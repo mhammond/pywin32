@@ -1,0 +1,36 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyIShellFolder.BindToStorage</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="PyIShellFolder.html">PyIShellFolder</A>.BindToStorage</H1><P>
+
+interface = <B>BindToStorage(<I>pidl</I><I>, pbc</I>
+
+<I>, riid</I>
+
+</B>)<P>Returns an interface to a storage object in a shell folder<P>
+
+<H3>Parameters</H3><P><DT><I>pidl</I> : <A HREF="PyIDL.html">PyIDL</A><P>
+
+<DD>Relative pidl for the folder item, must be a single item id<P><DT><I>pbc</I> : <A HREF="PyIBindCtx.html">PyIBindCtx</A><P>
+
+<DD>Bind context that affects how binding is performed, can be None<P><DT><I>riid</I> : <A HREF="PyIID.html">PyIID</A><P>
+
+<DD>IID of the desired interface, one of IID_IStream, IID_IStorage, IID_IPropertySetStorage<P><H3>Return Value</H3>Returns <A HREF="PyIStream.html">PyIStream</A>, <A HREF="PyIStorage.html">PyIStorage</A> or <A HREF="PyIPropertySetStorage.html">PyIPropertySetStorage</A> depending on the riid passed in<P>
+
+
+
+</body>
+</html>

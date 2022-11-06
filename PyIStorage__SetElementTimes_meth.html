@@ -1,0 +1,40 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyIStorage.SetElementTimes</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="PyIStorage.html">PyIStorage</A>.SetElementTimes</H1><P>
+
+<B>SetElementTimes(<I>name</I><I>, ctime</I><I>, atime</I><I>, mtime</I></B>)<P>Sets the modification, access, and creation times of the specified storage 
+
+element, if supported by the underlying file system.<P>
+
+<H3>Parameters</H3><P><DT><I>name</I> : str<P>
+
+<DD>The name of the storage object element whose times are to be modified. If NULL, the time is set 
+
+on the root storage rather than one of its elements.<P><DT><I>ctime</I> : <A HREF="PyDateTime.html">PyDateTime</A><P>
+
+<DD>Either the new creation time for the element or None if the creation time is not to be 
+
+modified.<P><DT><I>atime</I> : <A HREF="PyDateTime.html">PyDateTime</A><P>
+
+<DD>Either the new access time for the element or None if the access time is not to be 
+
+modified.<P><DT><I>mtime</I> : <A HREF="PyDateTime.html">PyDateTime</A><P>
+
+<DD>Either the new modification time for the element or None if the modification time is 
+
+not to be modified.<P></body>
+</html>

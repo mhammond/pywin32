@@ -1,0 +1,42 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32file.GetDiskFreeSpaceEx</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32file.html">win32file</A>.GetDiskFreeSpaceEx</H1><P>
+
+long, long, long = <B>GetDiskFreeSpaceEx(<I>rootPathName</I></B>)<P>Determines the free space on a device.<P>
+
+<H3>Parameters</H3><P><DT><I>rootPathName</I> : string<P>
+
+<DD>address of root path<P><H3>Return Value</H3>The result is a tuple of long integers:<P>
+
+
+
+<H3>Items</H3><P><DL><DT>[0] <I>long integer</I> : freeBytes<P>
+
+<DD>The total number of free bytes on the disk that are available to the user associated with the calling thread.<P></DL>
+
+<DL><DT>[1] <I>long integer</I> : totalBytes<P>
+
+<DD>The total number of bytes on the disk that are available to the user associated with the calling thread. 
+
+If per-user quotas are in use, this value may be less than the total number of bytes on the disk.<P></DL>
+
+<DL><DT>[2] <I>long integer</I> : totalFreeBytes<P>
+
+<DD>The total number of free bytes on the disk.<P></DL>
+
+</body>
+</html>

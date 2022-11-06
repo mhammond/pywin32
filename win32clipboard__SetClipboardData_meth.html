@@ -1,0 +1,94 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32clipboard.SetClipboardData</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32clipboard.html">win32clipboard</A>.SetClipboardData</H1><P>
+
+int = <B>SetClipboardData(<I>format</I><I>, hMem</I>
+
+</B>)<P>The SetClipboardData function 
+
+places data on the clipboard in a specified clipboard format. The window 
+
+must be the current clipboard owner, and the application must have called 
+
+the OpenClipboard function. (When responding to the WM_RENDERFORMAT and 
+
+WM_RENDERALLFORMATS messages, the clipboard owner must not call 
+
+OpenClipboard before calling SetClipboardData.)<P>
+
+<H3>Parameters</H3><P><DT><I>format</I> : int<P>
+
+<DD>Specifies a clipboard format. For a description of 
+
+the standard clipboard formats, see Standard Clipboard Formats.<P><DT><I>hMem</I> : int/buffer<P>
+
+<DD>Integer handle to the data in the specified 
+
+format, or string, unicode, or any object that supports the buffer interface. 
+
+A global memory object is allocated, and the object's buffer is copied to the new memory. 
+
+This parameter can be 0, indicating that the window provides data in 
+
+the specified clipboard format (renders the format) upon request. If a 
+
+window delays rendering, it must process the WM_RENDERFORMAT and 
+
+WM_RENDERALLFORMATS messages.<BR> 
+
+After SetClipboardData is called, the system owns the object identified 
+
+by the hMem parameter. The application can read the data, but must not 
+
+free the handle or leave it locked. If the hMem parameter identifies a 
+
+memory object, the object must have been allocated using the GlobalAlloc 
+
+function with the GMEM_MOVEABLE and GMEM_DDESHARE flags.<P><H3>Comments</H3>
+
+The uFormat parameter can identify a registered clipboard format, 
+
+or it can be one of the standard clipboard formats. For more information, 
+
+see Registered Clipboard Formats and Standard Clipboard Formats.<BR> 
+
+The system performs implicit data format conversions between certain 
+
+clipboard formats when an application calls the GetClipboardData function. 
+
+For example, if the CF_OEMTEXT format is on the clipboard, a window can 
+
+retrieve data in the CF_TEXT format. The format on the clipboard is 
+
+converted to the requested format on demand. For more information, see 
+
+Synthesized Clipboard Formats.<P>
+
+<H3>Win32 API References</H3><P><DT>Search for <i>SetClipboardData</i> at <a href="http://search.msdn.microsoft.com/search/results.aspx?view=msdn&query=SetClipboardData" target="_blank">msdn</a>, <a href="http://www.google.com/search?q=SetClipboardData" target="_blank">google</a> or <a href="http://groups.google.com/groups?q=SetClipboardData" target="_blank">google groups</a>.<P>
+
+<H3>Return Value</H3>If the function succeeds, the return value is integer handle 
+
+of the data.<BR> 
+
+If the function fails, win32api.error is raised with the GetLastError 
+
+info.<P>
+
+
+
+</body>
+</html>

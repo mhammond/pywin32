@@ -1,0 +1,48 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyACL.AddAccessDeniedAce</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="PyACL.html">PyACL</A>.AddAccessDeniedAce</H1><P>
+
+<B>AddAccessDeniedAce(<I>revision</I><I>, access</I><I>, sid</I></B>)<P>Adds an access-denied ACE to an ACL object. The access is denied to a specified 
+
+SID.<P>
+
+<H3>Parameters</H3><P><DT><I>revision</I> : int<P>
+
+<DD>Pre-win2k, must be ACL_REVISION, otherwise also may be ACL_REVISION_DS.<P><DT><I>access</I> : int<P>
+
+<DD>Specifies the mask of access rights to be denied to the specified SID.<P><DT><I>sid</I> : <A HREF="PySID.html">PySID</A><P>
+
+<DD>A SID object representing a user, group, or logon account being denied access.<P><H3>Alternative Parameters</H3><P><DT><I>access</I><P>
+
+<DD>Specifies the mask of access rights to be denied to the specified SID.<P>
+
+<DT><I>sid</I><P>
+
+<DD>A SID object representing a user, group, or logon account being denied access.<P>
+
+<H3>Comments</H3>
+
+Note that early versions of this function supported only 
+
+two arguments.  This has been deprecated in preference of the 
+
+three argument version, which reflects the win32 API and the new 
+
+functions in this module.<P>
+
+</body>
+</html>

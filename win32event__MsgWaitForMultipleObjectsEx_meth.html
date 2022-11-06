@@ -1,0 +1,42 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32event.MsgWaitForMultipleObjectsEx</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32event.html">win32event</A>.MsgWaitForMultipleObjectsEx</H1><P>
+
+int = <B>MsgWaitForMultipleObjectsEx(<I>handleList</I><I>, milliseconds</I>
+
+<I>, wakeMask</I>
+
+<I>, waitFlags</I>
+
+</B>)<P>Returns when a message arrives of an event is signalled<P>
+
+<H3>Parameters</H3><P><DT><I>handleList</I> : [<A HREF="PyHANDLE.html">PyHANDLE</A>, ...]<P>
+
+<DD>A sequence of handles to wait on.<P><DT><I>milliseconds</I> : int<P>
+
+<DD>time-out interval in milliseconds<P><DT><I>wakeMask</I> : int<P>
+
+<DD>type of input events to wait for<P><DT><I>waitFlags</I> : int<P>
+
+<DD>wait flags<P><H3>Comments</H3>
+
+This method will no longer raise a COM E_NOTIMPL exception 
+
+as it is no longer dynamically loaded.<P>
+
+</body>
+</html>

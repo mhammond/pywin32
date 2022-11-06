@@ -1,0 +1,54 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32crypt.CryptEnumKeyIdentifierProperties</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32crypt.html">win32crypt</A>.CryptEnumKeyIdentifierProperties</H1><P>
+
+list = <B>CryptEnumKeyIdentifierProperties(<I>KeyIdentifier</I><I>, PropId</I>
+
+<I>, Flags</I>
+
+<I>, ComputerName</I>
+
+</B>)<P>Enumerates private keys for certificates and their 
+
+properties<P>
+
+<H3>Parameters</H3><P><DT><I>KeyIdentifier=None</I> : string<P>
+
+<DD>Id of a certificate key, can be None for all keys<P>
+
+<DT><I>PropId=0</I> : int<P>
+
+<DD>CERT_*_PROP_ID constant. Limits returned values to specified propery, Use 
+
+0 for all<P>
+
+<DT><I>Flags=0</I> : int<P>
+
+<DD>Can be CRYPT_KEYID_MACHINE_FLAG to list keys for local machine, or remote 
+
+machine if ComputerName is given<P>
+
+<DT><I>ComputerName=None</I> : <B>PyUnicode</B>
+
+<P>
+
+<DD>Name of remote computer, use None for local 
+
+machine<P>
+
+</body>
+</html>

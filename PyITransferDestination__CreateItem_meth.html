@@ -1,0 +1,54 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyITransferDestination.CreateItem</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="PyITransferDestination.html">PyITransferDestination</A>.CreateItem</H1><P>
+
+(int, interface, interface) = <B>CreateItem(<I>Name</I><I>, Attributes</I>
+
+<I>, Size</I>
+
+<I>, Flags</I>
+
+<I>, riidItem</I>
+
+<I>, riidResources</I>
+
+</B>)<P>Requests that a new item be created<P>
+
+<H3>Parameters</H3><P><DT><I>Name</I> : str<P>
+
+<DD>Filename to be created<P><DT><I>Attributes</I> : int<P>
+
+<DD>File attributes<P><DT><I>Size</I> : int<P>
+
+<DD>Size of file<P><DT><I>Flags</I> : int<P>
+
+<DD>Combination of shellcon.TSF_* flags<P><DT><I>riidItem=IID_IShellItem</I> : <A HREF="PyIID.html">PyIID</A><P>
+
+<DD>Item interface to return<P>
+
+<DT><I>riidResources=IID_IShellItemResources</I> : <A HREF="PyIID.html">PyIID</A><P>
+
+<DD>Resource interface to return<P>
+
+<H3>Return Value</H3>Returns the HRESULT and requested interfaces.  Interfaces may be None if 
+
+function returns one of the informational codes (shellcon.COPYENGINE_S_*)<P>
+
+
+
+</body>
+</html>

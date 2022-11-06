@@ -1,0 +1,44 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>LV_COLUMN</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<HR><H1>LV_COLUMN Object</H1><P>
+
+A tuple that describes a Win32 LV_COLUMN tuple. Used by the <A HREF="PyCListCtrl.html">PyCListCtrl</A> object. 
+
+A tuple of 4 items, being fmt, cx, pszText, iSubItem<P>
+
+<H3>Items</H3><P><DL><DT>[0] <I>int</I> : fmt<P>
+
+<DD>Alignment of the column header and the subitem text in the column.<P></DL>
+
+<DL><DT>[1] <I>int</I> : cx<P>
+
+<DD>Width of the column.<P></DL>
+
+<DL><DT>[2] <I>string</I> : text<P>
+
+<DD>Column header text.<P></DL>
+
+<DL><DT>[3] <I>int</I> : subItem<P>
+
+<DD>Index of subitem associated with the column. 
+
+<BR>When passed to Python, will always be a tuple of size 4, and items may be None if not available. 
+
+<BR>When passed from Python, the tuple may be any length up to 4, and any item may be None.<P></DL>
+
+</body>
+</html>

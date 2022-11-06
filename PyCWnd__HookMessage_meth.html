@@ -1,0 +1,70 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyCWnd.HookMessage</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="PyCWnd.html">PyCWnd</A>.HookMessage</H1><P>
+
+object = <B>HookMessage(<I>obHandler</I><I>, message</I>
+
+</B>)<P>Hook a message notification handler<P>
+
+<H3>Parameters</H3><P><DT><I>obHandler</I> : object<P>
+
+<DD>The handler for the message notification.  This must be a callable object.<P><DT><I>message</I> : int<P>
+
+<DD>The ID of the message to be handled.<P><H3>Comments</H3>
+
+The handler object passed will be called as the application receives messages with the specified ID. 
+
+Note that it is not possible for PythonWin to consume a message - it is always passed on to the default handler. 
+
+The handler will be called with 2 arguments<BR> 
+
+The handler object (as per all hook functions).<BR> 
+
+A tuple representing the message.<BR> 
+
+The message tuple is in the following format:<P>
+
+<H3>Items</H3><P><DL><DT>[0] <I>int</I> : hwnd<P>
+
+<DD>The hwnd of the window.<P></DL>
+
+<DL><DT>[1] <I>int</I> : message<P>
+
+<DD>The message.<P></DL>
+
+<DL><DT>[2] <I>int</I> : wParam<P>
+
+<DD>The wParam sent with the message.<P></DL>
+
+<DL><DT>[3] <I>int</I> : lParam<P>
+
+<DD>The lParam sent with the message.<P></DL>
+
+<DL><DT>[4] <I>int</I> : time<P>
+
+<DD>The time the message was posted.<P></DL>
+
+<DL><DT>[5] <I>int, int</I> : point<P>
+
+<DD>The point where the mouse was when the message was posted.<P></DL>
+
+<H3>Return Value</H3>The return value is the previous handler, or None.<P>
+
+
+
+</body>
+</html>

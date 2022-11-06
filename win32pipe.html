@@ -1,0 +1,78 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32pipe</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1>Module win32pipe</H1><P>
+
+An interface to the win32 pipe API's<P>
+
+<H3>Methods</H3><P><DL><DT><A HREF="win32pipe__GetNamedPipeHandleState_meth.html">GetNamedPipeHandleState</A><BR>
+
+<DD>Determines the state of the named pipe.&nbsp;<P><DT><A HREF="win32pipe__SetNamedPipeHandleState_meth.html">SetNamedPipeHandleState</A><BR>
+
+<DD>Sets the state of the named pipe.&nbsp;<P><DT><A HREF="win32pipe__ConnectNamedPipe_meth.html">ConnectNamedPipe</A><BR>
+
+<DD>Connects to a named pipe&nbsp;<P><DT><A HREF="win32pipe__TransactNamedPipe_meth.html">TransactNamedPipe</A><BR>
+
+<DD>Combines the functions that write a 
+
+message to and read a message from the specified named pipe into a single 
+
+network operation.&nbsp;<P><DT><A HREF="win32pipe__CallNamedPipe_meth.html">CallNamedPipe</A><BR>
+
+<DD>Opens and performs a transaction on a named pipe.&nbsp;<P><DT><A HREF="win32pipe__CreatePipe_meth.html">CreatePipe</A><BR>
+
+<DD>Creates an anonymous pipe, and returns handles to the read and write ends of the pipe&nbsp;<P><DT><A HREF="win32pipe__FdCreatePipe_meth.html">FdCreatePipe</A><BR>
+
+<DD>As CreatePipe but returns file descriptors&nbsp;<P><DT><A HREF="win32pipe__CreateNamedPipe_meth.html">CreateNamedPipe</A><BR>
+
+<DD>Creates an instance of a named pipe and returns a handle for subsequent pipe operations&nbsp;<P><DT><A HREF="win32pipe__DisconnectNamedPipe_meth.html">DisconnectNamedPipe</A><BR>
+
+<DD>Disconnects the server end of a named pipe instance from a client process.&nbsp;<P><DT><A HREF="win32pipe__GetOverlappedResult_meth.html">GetOverlappedResult</A><BR>
+
+<DD>Determines the result of the most recent call with an OVERLAPPED object.&nbsp;<P><DT><A HREF="win32pipe__WaitNamedPipe_meth.html">WaitNamedPipe</A><BR>
+
+<DD>Waits until either a time-out interval elapses or an instance of the specified named pipe is available to be connected to (that is, the pipe's server process has a pending <A HREF="win32pipe__ConnectNamedPipe_meth.html">win32pipe::ConnectNamedPipe</A> operation on the pipe).&nbsp;<P><DT><A HREF="win32pipe__GetNamedPipeInfo_meth.html">GetNamedPipeInfo</A><BR>
+
+<DD>Returns pipe's flags, buffer sizes, and max instances&nbsp;<P><DT><A HREF="win32pipe__PeekNamedPipe_meth.html">PeekNamedPipe</A><BR>
+
+<DD>Copies data from a named or anonymous pipe into a buffer without removing it from the pipe. It also returns information about data in the pipe.&nbsp;<P><DT><A HREF="win32pipe__GetNamedPipeClientProcessId_meth.html">GetNamedPipeClientProcessId</A><BR>
+
+<DD>Returns the process id of client that is connected to a named pipe&nbsp;<P><DT><A HREF="win32pipe__GetNamedPipeServerProcessId_meth.html">GetNamedPipeServerProcessId</A><BR>
+
+<DD>Returns pid of server process that created a named pipe&nbsp;<P><DT><A HREF="win32pipe__GetNamedPipeClientSessionId_meth.html">GetNamedPipeClientSessionId</A><BR>
+
+<DD>Returns the session id of client that is connected to a named pipe&nbsp;<P><DT><A HREF="win32pipe__GetNamedPipeServerSessionId_meth.html">GetNamedPipeServerSessionId</A><BR>
+
+<DD>Returns session id of server process that created a named pipe&nbsp;<P><DT><A HREF="win32pipe__popen_meth.html">popen</A><BR>
+
+<DD>Version of popen that works in a GUI&nbsp;<P></DL><H3>Comments</H3>
+
+Not implemented in py3k.<P>
+
+<H3>Methods</H3><P><DL><DT><A HREF="win32pipe__popen2_meth.html">popen2</A><BR>
+
+<DD>Variation on popen - returns 2 pipes&nbsp;<P></DL>Not implemented in py3k.<P>
+
+<H3>Methods</H3><P><DL><DT><A HREF="win32pipe__popen3_meth.html">popen3</A><BR>
+
+<DD>Variation on popen - returns 3 pipes&nbsp;<P></DL>Not implemented in py3k.<P>
+
+<H3>Methods</H3><P><DL><DT><A HREF="win32pipe__popen4_meth.html">popen4</A><BR>
+
+<DD>Like popen2, but stdout/err are combined.&nbsp;<P></DL>Not implemented in py3k.<P>
+
+</body>
+</html>

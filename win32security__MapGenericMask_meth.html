@@ -1,0 +1,34 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32security.MapGenericMask</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32security.html">win32security</A>.MapGenericMask</H1><P>
+
+int = <B>MapGenericMask(<I>AccessMask</I><I>, GenericMapping</I>
+
+</B>)<P>Translates generic access rights into specific rights<P>
+
+<H3>Parameters</H3><P><DT><I>AccessMask</I> : int<P>
+
+<DD>A bitmask of generic rights to be interpreted according to GenericMapping<P><DT><I>GenericMapping</I> : (int,int,int,int)<P>
+
+<DD>A tuple of 4 bitmasks (GenericRead, GenericWrite, GenericExecute, GenericAll) 
+
+containing the standard and specific rights that correspond to the generic rights.<P><H3>Return Value</H3>The input AccessMask will be returned with any generic access rights translated into specific equivalents<P>
+
+
+
+</body>
+</html>

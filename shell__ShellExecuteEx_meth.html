@@ -1,0 +1,86 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>shell.ShellExecuteEx</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="shell.html">shell</A>.ShellExecuteEx</H1><P>
+
+dict = <B>ShellExecuteEx(<I>fMask</I><I>, hwnd</I>
+
+<I>, lpVerb</I>
+
+<I>, lpFile</I>
+
+<I>, lpParameters</I>
+
+<I>, lpDirectory</I>
+
+<I>, nShow</I>
+
+<I>, lpIDList</I>
+
+<I>, obClass</I>
+
+<I>, hkeyClass</I>
+
+<I>, dwHotKey</I>
+
+<I>, hIcon</I>
+
+<I>, hMonitor</I>
+
+</B>)<P>Performs an operation on a file.<P>
+
+<H3>Parameters</H3><P><DT><I>fMask=0</I> : int<P>
+
+<DD>The default mask for the structure.  Other 
+
+masks may be added based on what paramaters are supplied.<P>
+
+<DT><I>hwnd=0</I> : <A HREF="PyHANDLE.html">PyHANDLE</A><P>
+
+<DD><P>
+
+<DT><I>lpVerb</I> : string<P>
+
+<DD><P><DT><I>lpFile</I> : string<P>
+
+<DD><P><DT><I>lpParameters</I> : string<P>
+
+<DD><P><DT><I>lpDirectory</I> : string<P>
+
+<DD><P><DT><I>nShow=0</I> : int<P>
+
+<DD><P>
+
+<DT><I>lpIDList</I> : <A HREF="PyIDL.html">PyIDL</A><P>
+
+<DD><P><DT><I>obClass</I> : string<P>
+
+<DD><P><DT><I>hkeyClass</I> : int<P>
+
+<DD><P><DT><I>dwHotKey</I> : int<P>
+
+<DD><P><DT><I>hIcon</I> : <A HREF="PyHANDLE.html">PyHANDLE</A><P>
+
+<DD><P><DT><I>hMonitor</I> : <A HREF="PyHANDLE.html">PyHANDLE</A><P>
+
+<DD><P><H3>Return Value</H3>The result is a dictionary based on documented result values 
+
+in the structure.  Currently this is "hInstApp" and "hProcess"<P>
+
+
+
+</body>
+</html>

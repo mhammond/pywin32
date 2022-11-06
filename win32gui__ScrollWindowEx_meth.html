@@ -1,0 +1,54 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32gui.ScrollWindowEx</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32gui.html">win32gui</A>.ScrollWindowEx</H1><P>
+
+int,<A HREF="PyRECT.html">PyRECT</A> = <B>ScrollWindowEx(<I>hWnd</I><I>, dx</I>
+
+<I>, dy</I>
+
+<I>, rcScroll</I>
+
+<I>, rcClip</I>
+
+<I>, hrgnUpdate</I>
+
+<I>, flags</I>
+
+</B>)<P>scrolls the content of the specified window's client area.<P>
+
+<H3>Parameters</H3><P><DT><I>hWnd</I> : int<P>
+
+<DD>handle to window to scroll<P><DT><I>dx</I> : int<P>
+
+<DD>Amount of horizontal scrolling, in device units<P><DT><I>dy</I> : int<P>
+
+<DD>Amount of vertical scrolling, in device units<P><DT><I>rcScroll</I> : <A HREF="PyRECT.html">PyRECT</A><P>
+
+<DD>Scroll rectangle, can be None for entire client area<P><DT><I>rcClip</I> : <A HREF="PyRECT.html">PyRECT</A><P>
+
+<DD>Clipping rectangle, can be None<P><DT><I>hrgnUpdate</I> : <A HREF="PyGdiHandle.html">PyGdiHandle</A><P>
+
+<DD>Handle to region which will be updated with area invalidated by scroll operation, can be None<P><DT><I>flags</I> : int<P>
+
+<DD>Scrolling flags, combination of SW_ERASE,SW_INVALIDATE,SW_SCROLLCHILDREN,SW_SMOOTHSCROLL. 
+
+If SW_SMOOTHSCROLL is specified, use upper 16 bits to specify time in milliseconds.<P><H3>Return Value</H3>Returns the type of region invalidated by scrolling, and a rectangle defining the affected area.<P>
+
+
+
+</body>
+</html>

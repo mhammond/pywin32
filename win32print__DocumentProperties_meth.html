@@ -1,0 +1,58 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32print.DocumentProperties</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32print.html">win32print</A>.DocumentProperties</H1><P>
+
+int = <B>DocumentProperties(<I>HWnd</I><I>, hPrinter</I>
+
+<I>, DeviceName</I>
+
+<I>, DevModeOutput</I>
+
+<I>, DevModeInput</I>
+
+<I>, Mode</I>
+
+</B>)<P>Changes printer configuration for a printer<P>
+
+<H3>Parameters</H3><P><DT><I>HWnd</I> : <A HREF="PyHANDLE.html">PyHANDLE</A><P>
+
+<DD>Parent window handle to use if DM_IN_PROMPT is specified to display printer dialog<P><DT><I>hPrinter</I> : <A HREF="PyPrinterHANDLE.html">PyPrinterHANDLE</A><P>
+
+<DD>Printer handle as returned by <A HREF="win32print__OpenPrinter_meth.html">win32print::OpenPrinter</A><P><DT><I>DeviceName</I> : string<P>
+
+<DD>Name of printer<P><DT><I>DevModeOutput</I> : <B>PyDEVMODE</B>
+
+<P>
+
+<DD>PyDEVMODE object that receives modified info, can be None if DM_OUT_BUFFER 
+
+not specified<P><DT><I>DevModeInput</I> : <B>PyDEVMODE</B>
+
+<P>
+
+<DD>PyDEVMODE that specifies initial configuration, can be None if DM_IN_BUFFER 
+
+not specified<P><DT><I>Mode</I> : int<P>
+
+<DD>A combination of DM_IN_BUFFER, DM_OUT_BUFFER, and DM_IN_PROMPT - pass 0 to retrieve driver data 
+
+size<P><H3>Return Value</H3>If DM_IN_PROMPT is specified, returned value will be IDOK or IDCANCEL<P>
+
+
+
+</body>
+</html>

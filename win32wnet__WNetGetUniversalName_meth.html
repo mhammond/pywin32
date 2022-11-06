@@ -1,0 +1,72 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32wnet.WNetGetUniversalName</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32wnet.html">win32wnet</A>.WNetGetUniversalName</H1><P>
+
+string/tuple = <B>WNetGetUniversalName(<I>localPath</I><I>, infoLevel</I>
+
+</B>)<P>Takes a drive-based path for a network resource and returns an 
+
+information structure that contains a more universal form of the name.<P>
+
+<H3>Parameters</H3><P><DT><I>localPath</I> : string<P>
+
+<DD>A string that is a drive-based path for a network resource. 
+
+<BR>For example, if drive H has been mapped to a network drive share, and the network 
+
+resource of interest is a file named SAMPLE.DOC in the directory \\WIN32\\EXAMPLES on 
+
+that share, the drive-based path is H:\\WIN32\\EXAMPLES\\SAMPLE.DOC.<P><DT><I>infoLevel=UNIVERSAL_NAME_INFO_LEVEL</I> : int<P>
+
+<DD>Specifies the type of structure that the function stores in the 
+
+buffer pointed to by the lpBuffer parameter. This parameter can be one of the following values.<P>
+
+<P><TABLE COLS=2 WIDTH="100%" CELLSPACING=15>
+
+<TR>
+
+   <TD>
+
+       <B>Value</B>
+
+   </TD>
+
+   <TD>
+
+       <B>Meaning</B>
+
+   </TD>
+
+</TR>
+
+<TR><TD><HR></TD><TD><HR></TD></TR>
+
+<TR><TD>UNIVERSAL_NAME_INFO_LEVEL (=1)</TD><TD>The function returns a simple string with the UNC name.</TD></TR>
+
+<TR><TD>REMOTE_NAME_INFO_LEVEL (=2)</TD><TD>The function returns a tuple based in the Win32 REMOTE_NAME_INFO data 
+
+structure.</TD></TR>
+
+</TABLE><H3>Return Value</H3>If the infoLevel parameter is REMOTE_NAME_INFO_LEVEL, the result is a tuple of 3 strings: (UNCName, 
+
+connectionName, remainingPath)<P>
+
+
+
+</body>
+</html>

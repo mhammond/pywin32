@@ -1,0 +1,42 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyIErrorLog</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<HR><H1>PyIErrorLog Object</H1><P>
+
+A Python wrapper for a COM IErrorLog interface.<P>
+
+<H3>Comments</H3>
+
+The IErrorLog interface is an abstraction for an error log that is used to 
+
+communicate detailed error information between a client and an object. 
+
+The caller of the single interface method, <A HREF="PyIErrorLog__AddError_meth.html">PyIErrorLog::AddError</A>, simply logs an error 
+
+where the error is an EXCEPINFO structure related to a specific property. 
+
+The implementer of the interface is responsible for handling the error in whatever way it desires. 
+
+<BR>IErrorLog is used in the protocol between a client that implements <A HREF="PyIPropertyBag.html">PyIPropertyBag</A> and an 
+
+object that implements <A HREF="PyIPersistPropertyBag.html">PyIPersistPropertyBag</A>.<P>
+
+<H3>Methods</H3><P><DL><DT><A HREF="PyIErrorLog__AddError_meth.html">AddError</A><BR>
+
+<DD>Adds an error to the error log.&nbsp;<P></DL>
+
+<H3>Based On</H3><A HREF="PyIUnknown.html">PyIUnknown</A></body>
+</html>

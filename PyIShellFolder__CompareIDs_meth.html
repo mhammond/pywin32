@@ -1,0 +1,40 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyIShellFolder.CompareIDs</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="PyIShellFolder.html">PyIShellFolder</A>.CompareIDs</H1><P>
+
+int = <B>CompareIDs(<I>lparam</I><I>, pidl1</I>
+
+<I>, pidl2</I>
+
+</B>)<P>Determines the sorting order of 2 items in shell folder<P>
+
+<H3>Parameters</H3><P><DT><I>lparam</I> : int<P>
+
+<DD>Lower 16 bits specify folder-dependent sorting rules, 0 means to sort by display name. 
+
+System folder view uses these as a column number.<BR> 
+
+Upper sixteen bits is used for flags SHCIDS_ALLFIELDS or SHCIDS_CANONICALONLY<P><DT><I>pidl1</I> : <A HREF="PyIDL.html">PyIDL</A><P>
+
+<DD>Item id list that idenfies an object relative to the folder<P><DT><I>pidl2</I> : <A HREF="PyIDL.html">PyIDL</A><P>
+
+<DD>Item id list that idenfies an object relative to the folder<P><H3>Return Value</H3>Returns 0 if items compare equal, -1 if the pidl1 comes first, or 1 if pidl2 comes first<P>
+
+
+
+</body>
+</html>

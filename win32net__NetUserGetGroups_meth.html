@@ -1,0 +1,48 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32net.NetUserGetGroups</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32net.html">win32net</A>.NetUserGetGroups</H1><P>
+
+[(groupName, attribute), ...] = <B>NetUserGetGroups(<I>serverName</I><I>, userName</I>
+
+</B>)<P>Returns a list of groups,attributes for all groups 
+
+for the user.<P>
+
+<H3>Parameters</H3><P><DT><I>serverName</I> : string<P>
+
+<DD>The name of the remote server on which the function is to 
+
+execute. None or an empty string specifies the server program running on the local 
+
+computer.<P><DT><I>userName</I> : string<P>
+
+<DD>The name of the user to search for in each group account.<P><H3><font color=#c71a1d> To Do</font></H3><font color=#c71a1d> This needs to be extended to support the new model, while 
+
+not breaking existing code.  A default arg would be perfect.</font><P>
+
+<H3>Return Value</H3>Always makes the level 1 call and returns all data. 
+
+Data return format is a Python List.  Each "Item" 
+
+is a tuple of (groupname, attributes).  "(s,i)" respectively.  In NT 4 the attributes seem to be hardcoded to 7. 
+
+Earlier version of NT have not been tested.<P>
+
+
+
+</body>
+</html>

@@ -1,0 +1,40 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyIShellIconOverlayIdentifier.IsMemberOf</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="PyIShellIconOverlayIdentifier.html">PyIShellIconOverlayIdentifier</A>.IsMemberOf</H1><P>
+
+int = <B>IsMemberOf(<I>path</I><I>, attrib</I>
+
+</B>)<P>Determines if a shell object should have an icon overlay<P>
+
+<H3>Parameters</H3><P><DT><I>path</I> : <B>PyUnicode</B>
+
+<P>
+
+<DD>Fully qualified path of the shell object<P><DT><I>attrib</I> : int<P>
+
+<DD>Shell attributes, combination of shellcon.SFGAO_* flags<P><H3>Return Value</H3>The gateway implementation of this function should return winerror.S_OK to 
+
+display the overlay, S_FALSE if not, or throw a COM exception with E_FAIL on error. 
+
+<BR>The client implementation of this function returns the same values - ie, 
+
+Python's True and False should not be used, as S_OK==0==False.<P>
+
+
+
+</body>
+</html>

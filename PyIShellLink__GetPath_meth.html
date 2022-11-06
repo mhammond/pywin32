@@ -1,0 +1,66 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyIShellLink.GetPath</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="PyIShellLink.html">PyIShellLink</A>.GetPath</H1><P>
+
+str, <B>WIN32_FIND_DATA</B>
+
+ = <B>GetPath(<I>fFlags</I><I>, cchMaxPath</I>
+
+</B>)<P>Retrieves the target path and file name of a shell link 
+
+object<P>
+
+<H3>Parameters</H3><P><DT><I>fFlags</I> : int<P>
+
+<DD>One of the following values:<P><P><TABLE COLS=2 WIDTH="100%" CELLSPACING=15>
+
+<TR>
+
+   <TD>
+
+       <B>Value</B>
+
+   </TD>
+
+   <TD>
+
+       <B>Description</B>
+
+   </TD>
+
+</TR>
+
+<TR><TD><HR></TD><TD><HR></TD></TR>
+
+<TR><TD>SLGP_SHORTPATH</TD><TD>Retrieves the standard short (8.3 format) file name.</TD></TR>
+
+<TR><TD>SLGP_UNCPRIORITY</TD><TD>Retrieves the Universal Naming Convention (UNC) path name of the file.</TD></TR>
+
+<TR><TD>SLGP_RAWPATH</TD><TD>Retrieves the raw path name. A raw path is something that might not exist and may include 
+
+environment variables that need to be expanded.</TD></TR>
+
+</TABLE><DT><I>cchMaxPath=_MAX_PATH</I> : int<P>
+
+<DD>Number of characters to allocate for returned filename<P>
+
+<H3>Comments</H3>
+
+The AlternateFileName (8.3) member of WIN32_FIND_DATA does not return information<P>
+
+</body>
+</html>

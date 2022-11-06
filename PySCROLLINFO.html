@@ -1,0 +1,60 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PySCROLLINFO</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<HR><H1>PySCROLLINFO Object</H1><P>
+
+A tuple representing a SCROLLINFO structure<P>
+
+<H3>Items</H3><P><DL><DT>[0] <I>int</I> : addnMask<P>
+
+<DD>Additional mask information.  Python automatically fills the mask for valid items, so currently the only valid values are zero, and win32con.SIF_DISABLENOSCROLL.<P></DL>
+
+<DL><DT>[1] <I>int</I> : min<P>
+
+<DD>The minimum scrolling position.  Both min and max, or neither, must be provided.<P></DL>
+
+<DL><DT>[2] <I>int</I> : max<P>
+
+<DD>The maximum scrolling position.  Both min and max, or neither, must be provided.<P></DL>
+
+<DL><DT>[3] <I>int</I> : page<P>
+
+<DD>Specifies the page size. A scroll bar uses this value to determine the appropriate size of the proportional scroll box.<P></DL>
+
+<DL><DT>[4] <I>int</I> : pos<P>
+
+<DD>Specifies the position of the scroll box.<P></DL>
+
+<DL><DT>[5] <I>int</I> : trackPos<P>
+
+<DD>Specifies the immediate position of a scroll box that the user 
+
+is dragging. An application can retrieve this value while processing 
+
+the SB_THUMBTRACK notification message. An application cannot set 
+
+the immediate scroll position; the <A HREF="PyCWnd__SetScrollInfo_meth.html">PyCWnd::SetScrollInfo</A> function ignores 
+
+this member.<P></DL>
+
+<H3>Comments</H3>
+
+When passed to Python, will always be a tuple of size 6, and items may be None if not available.<P>
+
+When passed from Python, it must have the addn mask attribute, but all other items may be None, or not exist.<P>
+
+</body>
+</html>

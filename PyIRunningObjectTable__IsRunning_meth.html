@@ -1,0 +1,32 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyIRunningObjectTable.IsRunning</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="PyIRunningObjectTable.html">PyIRunningObjectTable</A>.IsRunning</H1><P>
+
+int = <B>IsRunning(<I>objectName</I></B>)<P>Checks whether an object is running.<P>
+
+<H3>Parameters</H3><P><DT><I>objectName</I> : <A HREF="PyIMoniker.html">PyIMoniker</A><P>
+
+<DD>The <A HREF="PyIMoniker.html">PyIMoniker</A> interface on the moniker to search for in the Running 
+
+Object Table.<P><TABLE>
+
+<TR><TD><B>Return Value</B></TD><TD><B>Description</B></TD></TR><TR><TD>S_OK (ie, 0)</TD><TD>The object identified by objectName is running.</TD></TR><TR><TD>S_FALSE (ie, 1)</TD><TD>There is no entry for objectName in the ROT, or that the object it identifies is no 
+
+longer running (in which case, the entry is revoked).</TD></TR></TABLE>
+
+</body>
+</html>

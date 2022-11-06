@@ -1,0 +1,72 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyIFileOperation</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<HR><H1>PyIFileOperation Object</H1><P>
+
+Interface used to build a collection of file system modifications to be 
+
+performed by the shell as a unit.  Serves as a replacement for <A HREF="shell__SHFileOperation_meth.html">shell::SHFileOperation</A>. 
+
+<BR>No changes are actually made until PerformOperations is called. 
+
+<BR>Progress can be monitored by implementing <A HREF="PyGFileOperationProgressSink.html">PyGFileOperationProgressSink</A>. 
+
+<BR>Requires Vista or later.<P>
+
+<H3>Methods</H3><P><DL><DT><A HREF="PyIFileOperation__Advise_meth.html">Advise</A><BR>
+
+<DD>Connects an event sink to receive updates&nbsp;<P><DT><A HREF="PyIFileOperation__Unadvise_meth.html">Unadvise</A><BR>
+
+<DD>Disconnects a progress sink&nbsp;<P><DT><A HREF="PyIFileOperation__SetOperationFlags_meth.html">SetOperationFlags</A><BR>
+
+<DD>Sets option flags&nbsp;<P><DT><A HREF="PyIFileOperation__SetProgressMessage_meth.html">SetProgressMessage</A><BR>
+
+<DD>Not implemented&nbsp;<P><DT><A HREF="PyIFileOperation__SetProgressDialog_meth.html">SetProgressDialog</A><BR>
+
+<DD>Provides an interface used to display progress&nbsp;<P><DT><A HREF="PyIFileOperation__SetProperties_meth.html">SetProperties</A><BR>
+
+<DD>Specifies a set of properties to be changed&nbsp;<P><DT><A HREF="PyIFileOperation__SetOwnerWindow_meth.html">SetOwnerWindow</A><BR>
+
+<DD>Sets the parent window for any UI displayed.&nbsp;<P><DT><A HREF="PyIFileOperation__ApplyPropertiesToItem_meth.html">ApplyPropertiesToItem</A><BR>
+
+<DD>Specifies the item that will receive property changes&nbsp;<P><DT><A HREF="PyIFileOperation__ApplyPropertiesToItems_meth.html">ApplyPropertiesToItems</A><BR>
+
+<DD>Specifies multiple items that will receive property changes&nbsp;<P><DT><A HREF="PyIFileOperation__RenameItem_meth.html">RenameItem</A><BR>
+
+<DD>Adds a rename to the operation sequence&nbsp;<P><DT><A HREF="PyIFileOperation__RenameItems_meth.html">RenameItems</A><BR>
+
+<DD>Adds multiple renames to the operation sequence&nbsp;<P><DT><A HREF="PyIFileOperation__MoveItem_meth.html">MoveItem</A><BR>
+
+<DD>Adds a move operation to the configuration&nbsp;<P><DT><A HREF="PyIFileOperation__MoveItems_meth.html">MoveItems</A><BR>
+
+<DD>Adds multiple move operations to the configuration&nbsp;<P><DT><A HREF="PyIFileOperation__CopyItem_meth.html">CopyItem</A><BR>
+
+<DD>Adds a copy operation to the configuration&nbsp;<P><DT><A HREF="PyIFileOperation__CopyItems_meth.html">CopyItems</A><BR>
+
+<DD>Adds multiple copy operations to the configuration&nbsp;<P><DT><A HREF="PyIFileOperation__DeleteItem_meth.html">DeleteItem</A><BR>
+
+<DD>Adds a delete operation to the configuration&nbsp;<P><DT><A HREF="PyIFileOperation__DeleteItems_meth.html">DeleteItems</A><BR>
+
+<DD>Adds multiple delete operations to the configuration&nbsp;<P><DT><A HREF="PyIFileOperation__NewItem_meth.html">NewItem</A><BR>
+
+<DD>Creates a new file as part of the operation&nbsp;<P><DT><A HREF="PyIFileOperation__PerformOperations_meth.html">PerformOperations</A><BR>
+
+<DD>Effects all configured file system modifications&nbsp;<P><DT><A HREF="PyIFileOperation__GetAnyOperationsAborted_meth.html">GetAnyOperationsAborted</A><BR>
+
+<DD>Determines if any operations were terminated&nbsp;<P></DL>
+
+</body>
+</html>

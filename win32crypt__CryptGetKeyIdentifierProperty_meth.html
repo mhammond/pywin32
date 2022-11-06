@@ -1,0 +1,56 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32crypt.CryptGetKeyIdentifierProperty</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32crypt.html">win32crypt</A>.CryptGetKeyIdentifierProperty</H1><P>
+
+object = <B>CryptGetKeyIdentifierProperty(<I>KeyIdentifier</I><I>, PropId</I>
+
+<I>, Flags</I>
+
+<I>, ComputerName</I>
+
+</B>)<P>Retrieves a property from a certificate by its key 
+
+indentifier<P>
+
+<H3>Parameters</H3><P><DT><I>KeyIdentifier</I> : string<P>
+
+<DD>Hash that identifies a certificate key<P><DT><I>PropId=CERT_KEY_PROV_INFO_PROP_ID</I> : int<P>
+
+<DD>Property identifier, one 
+
+of the CERT_*_PROP_ID values<P>
+
+<DT><I>Flags=0</I> : int<P>
+
+<DD>Use CRYPT_KEYID_MACHINE_FLAG for machine keyset. 
+
+(CRYPT_KEYID_ALLOC_FLAG is always added to Flags)<P>
+
+<DT><I>ComputerName=None</I> : <B>PyUnicode</B>
+
+<P>
+
+<DD>Name of remote 
+
+computer, use None for local machine<P>
+
+<H3>Comments</H3>
+
+CERT_KEY_PROV_INFO_PROP_ID is only property currently supported<P>
+
+</body>
+</html>

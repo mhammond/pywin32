@@ -1,0 +1,38 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>timer.set_timer</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="timer.html">timer</A>.set_timer</H1><P>
+
+int = <B>set_timer(<I>Elapse</I><I>, TimerFunc</I>
+
+</B>)<P>Creates a timer that executes a callback function<P>
+
+<H3>Parameters</H3><P><DT><I>Elapse</I> : int<P>
+
+<DD>Timer period, in milliseconds<P><DT><I>TimerFunc</I> : function<P>
+
+<DD>Callback function.  Will be called with with 2 int 
+
+args: (timer_id, time)<P><H3>Comments</H3>
+
+Uses the SetTimer function.<P>
+
+<H3>Return Value</H3>Returns the id of the timer, which can be passed to kill_timer to stop it.<P>
+
+
+
+</body>
+</html>

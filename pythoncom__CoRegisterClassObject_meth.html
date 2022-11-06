@@ -1,0 +1,50 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>pythoncom.CoRegisterClassObject</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="pythoncom.html">pythoncom</A>.CoRegisterClassObject</H1><P>
+
+int = <B>CoRegisterClassObject(<I>iid</I><I>, factory</I>
+
+<I>, context</I>
+
+<I>, flags</I>
+
+</B>)<P>Registers an EXE class object with OLE so other applications can 
+
+connect to it.<P>
+
+<H3>Parameters</H3><P><DT><I>iid</I> : <A HREF="PyIID.html">PyIID</A><P>
+
+<DD>The IID of the object to register<P><DT><I>factory</I> : <A HREF="PyIUnknown.html">PyIUnknown</A><P>
+
+<DD>The class factory object.  It is the Python programmers 
+
+responsibility to ensure this object remains alive until the class is unregistered.<P><DT><I>context</I> : int<P>
+
+<DD>The create context for the server.  Must be a combination of the CLSCTX_* 
+
+flags.<P><DT><I>flags</I> : int<P>
+
+<DD>Create flags.<P><H3>Comments</H3>
+
+The class factory object should be <A HREF="PyIClassFactory.html">PyIClassFactory</A> object, but as per the COM documentation, only <A HREF="PyIUnknown.html">PyIUnknown</A> is checked.<P>
+
+<H3>Return Value</H3>The result is a handle which should be revoked using <A HREF="pythoncom__CoRevokeClassObject_meth.html">pythoncom::CoRevokeClassObject</A><P>
+
+
+
+</body>
+</html>

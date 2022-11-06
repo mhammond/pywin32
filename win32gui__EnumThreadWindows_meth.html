@@ -1,0 +1,28 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32gui.EnumThreadWindows</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32gui.html">win32gui</A>.EnumThreadWindows</H1><P>
+
+<B>EnumThreadWindows(<I>dwThreadId</I><I>, callback</I><I>, extra</I></B>)<P>Enumerates all top-level windows associated with a thread on the screen by passing the handle to each window, in turn, to an application-defined callback function. EnumThreadWindows continues until the last top-level window associated with the thread is enumerated or the callback function returns FALSE<P>
+
+<H3>Parameters</H3><P><DT><I>dwThreadId</I> : int<P>
+
+<DD>The id of the thread for which the windows need to be enumerated.<P><DT><I>callback</I> : object<P>
+
+<DD>A Python function to be used as the callback.<P><DT><I>extra</I> : object<P>
+
+<DD>Any python object - this is passed to the callback function as the second param (first is the hwnd).<P></body>
+</html>

@@ -1,0 +1,40 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32file.OpenEncryptedFileRaw</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32file.html">win32file</A>.OpenEncryptedFileRaw</H1><P>
+
+PyCObject = <B>OpenEncryptedFileRaw(<I>FileName</I><I>, Flags</I>
+
+</B>)<P>Initiates a backup or restore operation on an encrypted file<P>
+
+<H3>Parameters</H3><P><DT><I>FileName</I> : string<P>
+
+<DD>Name of file on which to operate<P><DT><I>Flags</I> : int<P>
+
+<DD>CREATE_FOR_IMPORT, CREATE_FOR_DIR, OVERWRITE_HIDDEN, or 0 for export<P><H3>Comments</H3>
+
+Only available on Windows 2000 or later<P>
+
+<H3>Return Value</H3>Returns a PyCObject containing an operation context that can be passed to 
+
+<A HREF="win32file__ReadEncryptedFileRaw_meth.html">win32file::ReadEncryptedFileRaw</A> or <A HREF="win32file__WriteEncryptedFileRaw_meth.html">win32file::WriteEncryptedFileRaw</A>.  Context must be 
+
+destroyed using <A HREF="win32file__CloseEncryptedFileRaw_meth.html">win32file::CloseEncryptedFileRaw</A>.<P>
+
+
+
+</body>
+</html>

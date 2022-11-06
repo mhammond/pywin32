@@ -1,0 +1,58 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32pipe.TransactNamedPipe</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32pipe.html">win32pipe</A>.TransactNamedPipe</H1><P>
+
+string/buffer = <B>TransactNamedPipe(<I>pipeName</I><I>, writeData</I>
+
+<I>, buffer/bufSize</I>
+
+<I>, overlapped</I>
+
+</B>)<P>Combines the functions that write a 
+
+message to and read a message from the specified named pipe into a single 
+
+network operation.<P>
+
+<H3>Parameters</H3><P><DT><I>pipeName</I> : <B>PyUNICODE</B>
+
+<P>
+
+<DD>The name of the pipe.<P><DT><I>writeData</I> : string/buffer<P>
+
+<DD>The data to write to the pipe.<P><DT><I>buffer/bufSize</I> : <A HREF="PyOVERLAPPEDReadBuffer.html">PyOVERLAPPEDReadBuffer</A>/int<P>
+
+<DD>Size of the buffer to create for the result, 
+
+or a buffer to fill with the result. If a buffer object and overlapped is passed, the result is 
+
+the buffer itself.  If a buffer but no overlapped is passed, the result is a new string object, 
+
+built from the buffer, but with a length that reflects the data actually read.<P><DT><I>overlapped=None</I> : <A HREF="PyOVERLAPPED.html">PyOVERLAPPED</A><P>
+
+<DD>An overlapped structure or None<P>
+
+<H3>Comments</H3>
+
+This function is modelled on <A HREF="win32file__ReadFile_meth.html">win32file::ReadFile</A> - for overlapped 
+
+operations you are expected to provide a buffer which will be filled 
+
+asynchronously.<P>
+
+</body>
+</html>

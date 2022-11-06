@@ -1,0 +1,36 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>shell.SHFileOperation</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="shell.html">shell</A>.SHFileOperation</H1><P>
+
+int, int = <B>SHFileOperation(<I>operation</I></B>)<P>Copies, moves, renames, or deletes a file system object.<P>
+
+<H3>Parameters</H3><P><DT><I>operation</I> : <A HREF="SHFILEOPSTRUCT.html">SHFILEOPSTRUCT</A><P>
+
+<DD>Defines the operation to perform.<P><H3>Return Value</H3>The result is a tuple containing int result of the function itself, and the result of the 
+
+fAnyOperationsAborted member after the operation.  If Flags contains FOF_WANTMAPPINGHANDLE, 
+
+returned tuple will have a 3rd member containing a sequence of 2-tuples with the old and new file names 
+
+of renamed files.  This will only have any content if FOF_RENAMEONCOLLISION was specified, and some 
+
+filename conflicts actually occurred.<P>
+
+
+
+</body>
+</html>

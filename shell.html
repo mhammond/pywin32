@@ -1,0 +1,168 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>shell</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1>Module shell</H1><P>
+
+A module wrapping Windows Shell functions and interfaces<P>
+
+<H3>Methods</H3><P><DL><DT><A HREF="shell__AssocCreate_meth.html">AssocCreate</A><BR>
+
+<DD>Creates a <A HREF="PyIQueryAssociations.html">PyIQueryAssociations</A> object&nbsp;<P><DT><A HREF="shell__AssocCreateForClasses_meth.html">AssocCreateForClasses</A><BR>
+
+<DD>Retrieves an object that implements an IQueryAssociations interface."}&nbsp;<P><DT><A HREF="shell__DragQueryFile_meth.html">DragQueryFile</A><BR>
+
+<DD>Retrieves the file names of dropped files that have 
+
+resulted from a successful drag-and-drop operation.&nbsp;<P><DT><A HREF="shell__DragQueryFileW_meth.html">DragQueryFileW</A><BR>
+
+<DD>Retrieves the file names of dropped files that 
+
+have resulted from a successful drag-and-drop operation.&nbsp;<P><DT><A HREF="shell__DragQueryPoint_meth.html">DragQueryPoint</A><BR>
+
+<DD>Retrieves the position of the mouse pointer at 
+
+the time a file was dropped during a drag-and-drop operation.&nbsp;<P><DT><A HREF="shell__IsUserAnAdmin_meth.html">IsUserAnAdmin</A><BR>
+
+<DD>Tests whether the current user is a member of the Administrator's group.&nbsp;<P><DT><A HREF="shell__SHCreateDataObject_meth.html">SHCreateDataObject</A><BR>
+
+<DD>Creates a data object in a parent folder.&nbsp;<P><DT><A HREF="shell__SHCreateDefaultContextMenu_meth.html">SHCreateDefaultContextMenu</A><BR>
+
+<DD>&nbsp;<P><DT><A HREF="shell__SHCreateDefaultExtractIcon_meth.html">SHCreateDefaultExtractIcon</A><BR>
+
+<DD>Creates a standard icon extractor, whose defaults can be further 
+
+configured via the IDefaultExtractIconInit interface.&nbsp;<P><DT><A HREF="shell__SHCreateShellFolderView_meth.html">SHCreateShellFolderView</A><BR>
+
+<DD>Creates a new instance of the default Shell folder view object.&nbsp;<P><DT><A HREF="shell__SHCreateShellItemArray_meth.html">SHCreateShellItemArray</A><BR>
+
+<DD>Creates a Shell item array object.&nbsp;<P><DT><A HREF="shell__SHCreateShellItemArrayFromDataObject_meth.html">SHCreateShellItemArrayFromDataObject</A><BR>
+
+<DD>Creates a shell item array from an IDataObject interface&nbsp;<P><DT><A HREF="shell__SHCreateShellItemArrayFromIDLists_meth.html">SHCreateShellItemArrayFromIDLists</A><BR>
+
+<DD>Creates a shell item array from a number of item identifiers&nbsp;<P><DT><A HREF="shell__SHCreateShellItemArrayFromShellItem_meth.html">SHCreateShellItemArrayFromShellItem</A><BR>
+
+<DD>&nbsp;<P><DT><A HREF="shell__SHGetPathFromIDList_meth.html">SHGetPathFromIDList</A><BR>
+
+<DD>Converts an <A HREF="PyIDL.html">PyIDL</A> to a path.&nbsp;<P><DT><A HREF="shell__SHGetPathFromIDListW_meth.html">SHGetPathFromIDListW</A><BR>
+
+<DD>Converts an <A HREF="PyIDL.html">PyIDL</A> to a unicode path.&nbsp;<P><DT><A HREF="shell__SHBrowseForFolder_meth.html">SHBrowseForFolder</A><BR>
+
+<DD>Displays a dialog box that enables the user to select a shell folder.&nbsp;<P><DT><A HREF="shell__SHGetFileInfo_meth.html">SHGetFileInfo</A><BR>
+
+<DD>Retrieves information about an object in the file 
+
+system, such as a file, a folder, a directory, or a drive root.&nbsp;<P><DT><A HREF="shell__SHGetFolderPath_meth.html">SHGetFolderPath</A><BR>
+
+<DD>Retrieves the path of a folder.&nbsp;<P><DT><A HREF="shell__SHSetFolderPath_meth.html">SHSetFolderPath</A><BR>
+
+<DD>Sets the location of a special folder&nbsp;<P><DT><A HREF="shell__SHGetFolderLocation_meth.html">SHGetFolderLocation</A><BR>
+
+<DD>Retrieves the <A HREF="PyIDL.html">PyIDL</A> of a folder.&nbsp;<P><DT><A HREF="shell__SHGetNameFromIDList_meth.html">SHGetNameFromIDList</A><BR>
+
+<DD>Retrieves the display name of an item from an ID list.&nbsp;<P><DT><A HREF="shell__SHGetSpecialFolderPath_meth.html">SHGetSpecialFolderPath</A><BR>
+
+<DD>Retrieves the path of a special folder.&nbsp;<P><DT><A HREF="shell__SHGetSpecialFolderLocation_meth.html">SHGetSpecialFolderLocation</A><BR>
+
+<DD>Retrieves the <A HREF="PyIDL.html">PyIDL</A> of a special folder.&nbsp;<P><DT><A HREF="shell__SHGetKnownFolderPath_meth.html">SHGetKnownFolderPath</A><BR>
+
+<DD>Retrieves the full path of a known folder identified by the folder's KNOWNFOLDERID.&nbsp;<P><DT><A HREF="shell__SHAddToRecentDocs_meth.html">SHAddToRecentDocs</A><BR>
+
+<DD>Adds a document to the shell's list of recently used documents or clears all 
+
+documents from the list. The user gains access to the list through the Start menu of the Windows taskbar.&nbsp;<P><DT><A HREF="shell__SHChangeNotify_meth.html">SHChangeNotify</A><BR>
+
+<DD>Notifies the system of an event that an application has performed. An application 
+
+should use this function if it performs an action that may affect the shell.&nbsp;<P><DT><A HREF="shell__SHEmptyRecycleBin_meth.html">SHEmptyRecycleBin</A><BR>
+
+<DD>Empties the recycle bin on the specified drive.&nbsp;<P><DT><A HREF="shell__SHQueryRecycleBin_meth.html">SHQueryRecycleBin</A><BR>
+
+<DD>Returns the number of items and total size of recycle bin&nbsp;<P><DT><A HREF="shell__SHGetDesktopFolder_meth.html">SHGetDesktopFolder</A><BR>
+
+<DD>Retrieves the <A HREF="PyIShellFolder.html">PyIShellFolder</A> interface for the desktop folder, which is the 
+
+root of the shell's namespace.&nbsp;<P><DT><A HREF="shell__SHUpdateImage_meth.html">SHUpdateImage</A><BR>
+
+<DD>Notifies the shell that an image in the system image list has changed.&nbsp;<P><DT><A HREF="shell__SHChangeNotify_meth.html">SHChangeNotify</A><BR>
+
+<DD>Notifies the system of an event that an application has performed.&nbsp;<P><DT><A HREF="shell__SHChangeNotifyRegister_meth.html">SHChangeNotifyRegister</A><BR>
+
+<DD>Registers a window that 
+
+receives notifications from the file system or shell.&nbsp;<P><DT><A HREF="shell__SHChangeNotifyDeregister_meth.html">SHChangeNotifyDeregister</A><BR>
+
+<DD>Unregisters the client's window process from receiving notification events&nbsp;<P><DT><A HREF="shell__SHCreateItemFromIDList_meth.html">SHCreateItemFromIDList</A><BR>
+
+<DD>Creates and initializes a Shell item object.&nbsp;<P><DT><A HREF="shell__SHCreateItemFromParsingName_meth.html">SHCreateItemFromParsingName</A><BR>
+
+<DD>Creates and initializes a Shell item object from a parsing name.&nbsp;<P><DT><A HREF="shell__SHCreateItemFromRelativeName_meth.html">SHCreateItemFromRelativeName</A><BR>
+
+<DD>Creates and initializes a Shell item object from a relative parsing 
+
+name.&nbsp;<P><DT><A HREF="shell__SHCreateItemInKnownFolder_meth.html">SHCreateItemInKnownFolder</A><BR>
+
+<DD>Creates a Shell item object for a single file that exists inside a known 
+
+folder.&nbsp;<P><DT><A HREF="shell__SHCreateItemWithParent_meth.html">SHCreateItemWithParent</A><BR>
+
+<DD>Create a Shell item, given a parent folder and a child item ID.&nbsp;<P><DT><A HREF="shell__SHGetIDListFromObject_meth.html">SHGetIDListFromObject</A><BR>
+
+<DD>Retrieves the PIDL of an object.&nbsp;<P><DT><A HREF="shell__SHGetInstanceExplorer_meth.html">SHGetInstanceExplorer</A><BR>
+
+<DD>Allows components that run in a Web browser (Iexplore.exe) or a nondefault 
+
+Windows Explorer (Explorer.exe) process to hold a reference to the process. The components can use the 
+
+reference to prevent the process from closing prematurely.&nbsp;<P><DT><A HREF="shell__SHFileOperation_meth.html">SHFileOperation</A><BR>
+
+<DD>Copies, moves, renames, or deletes a file system object.&nbsp;<P><DT><A HREF="shell__StringAsCIDA_meth.html">StringAsCIDA</A><BR>
+
+<DD>Given a CIDA as a raw string, return pidl_folder, [pidl_children, ...]&nbsp;<P><DT><A HREF="shell__CIDAAsString_meth.html">CIDAAsString</A><BR>
+
+<DD>Given a (pidl, child_pidls) object, return a CIDA as a string&nbsp;<P><DT><A HREF="shell__StringAsPIDL_meth.html">StringAsPIDL</A><BR>
+
+<DD>Given a PIDL as a raw string, return a PIDL object (ie, a list of strings)&nbsp;<P><DT><A HREF="shell__AddressAsPIDL_meth.html">AddressAsPIDL</A><BR>
+
+<DD>Given the address of a PIDL, return a PIDL object (ie, a list of strings)&nbsp;<P><DT><A HREF="shell__PIDLAsString_meth.html">PIDLAsString</A><BR>
+
+<DD>Given a PIDL object, return the raw PIDL bytes as a string&nbsp;<P><DT><A HREF="shell__SHGetSettings_meth.html">SHGetSettings</A><BR>
+
+<DD>Retrieves the current shell option settings.&nbsp;<P><DT><A HREF="shell__FILEGROUPDESCRIPTORAsString_meth.html">FILEGROUPDESCRIPTORAsString</A><BR>
+
+<DD>Creates a FILEGROUPDESCRIPTOR from a sequence of mapping objects, each 
+
+with FILEDESCRIPTOR attributes&nbsp;<P><DT><A HREF="shell__StringAsFILEGROUPDESCRIPTOR_meth.html">StringAsFILEGROUPDESCRIPTOR</A><BR>
+
+<DD>Decodes a FILEGROUPDESCRIPTOR packed in a string&nbsp;<P><DT><A HREF="shell__ShellExecuteEx_meth.html">ShellExecuteEx</A><BR>
+
+<DD>Performs an action on a file.&nbsp;<P><DT><A HREF="shell__SHGetViewStatePropertyBag_meth.html">SHGetViewStatePropertyBag</A><BR>
+
+<DD>Retrieves an interface for a folder's view state&nbsp;<P><DT><A HREF="shell__SHILCreateFromPath_meth.html">SHILCreateFromPath</A><BR>
+
+<DD>Returns the PIDL and attributes of a path&nbsp;<P><DT><A HREF="shell__SHCreateShellItem_meth.html">SHCreateShellItem</A><BR>
+
+<DD>Creates an IShellItem interface from a PIDL&nbsp;<P><DT><A HREF="shell__SHOpenFolderAndSelectItems_meth.html">SHOpenFolderAndSelectItems</A><BR>
+
+<DD>Displays a shell folder with items pre-selected&nbsp;<P><DT><A HREF="shell__SHCreateStreamOnFileEx_meth.html">SHCreateStreamOnFileEx</A><BR>
+
+<DD>Creates a <A HREF="PyIStream.html">PyIStream</A> that reads and writes to a file&nbsp;<P><DT><A HREF="shell__SetCurrentProcessExplicitAppUserModelID_meth.html">SetCurrentProcessExplicitAppUserModelID</A><BR>
+
+<DD>Sets the taskbar identifier&nbsp;<P><DT><A HREF="shell__GetCurrentProcessExplicitAppUserModelID_meth.html">GetCurrentProcessExplicitAppUserModelID</A><BR>
+
+<DD>Retrieves the current taskbar identifier&nbsp;<P><DT><A HREF="shell__SHParseDisplayName_meth.html">SHParseDisplayName</A><BR>
+
+<DD>Translates a display name into a shell item identifier&nbsp;<P></DL></body>
+</html>

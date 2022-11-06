@@ -1,0 +1,38 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyIShellFolder2.GetDetailsOf</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="PyIShellFolder2.html">PyIShellFolder2</A>.GetDetailsOf</H1><P>
+
+(int, int, str) = <B>GetDetailsOf(<I>pidl</I><I>, iColumn</I>
+
+</B>)<P>Returns the value or title of a column in the folder's Details 
+
+view.<P>
+
+<H3>Parameters</H3><P><DT><I>pidl</I> : <A HREF="PyIDL.html">PyIDL</A><P>
+
+<DD>The relative idl of an item in the folder.  Use None to retrieve column title.<P><DT><I>iColumn</I> : int<P>
+
+<DD>Zero based index of column<P><H3>Return Value</H3>Returns a tuple representing a SHELLDETAILS struct, containing the formst (LVCFMT_*), column width in 
+
+characters, 
+
+and string representation of the requested value<P>
+
+
+
+</body>
+</html>

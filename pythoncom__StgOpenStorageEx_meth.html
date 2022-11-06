@@ -1,0 +1,54 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>pythoncom.StgOpenStorageEx</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="pythoncom.html">pythoncom</A>.StgOpenStorageEx</H1><P>
+
+<A HREF="PyIStorage.html">PyIStorage</A> = <B>StgOpenStorageEx(<I>Name</I><I>, Mode</I>
+
+<I>, stgfmt</I>
+
+<I>, Attrs</I>
+
+<I>, riid</I>
+
+<I>, StgOptions</I>
+
+</B>)<P>Advanced version of StgOpenStorage, win2k or better<P>
+
+<H3>Parameters</H3><P><DT><I>Name</I> : string<P>
+
+<DD>Name of the stream or file to open<P><DT><I>Mode</I> : int<P>
+
+<DD>Access mode, combination of storagecon.STGM_* flags<P><DT><I>stgfmt</I> : int<P>
+
+<DD>Storage format (STGFMT_STORAGE,STGFMT_FILE,STGFMT_ANY, or STGFMT_DOCFILE)<P><DT><I>Attrs</I> : int<P>
+
+<DD>File flags and attributes, only used with STGFMT_DOCFILE<P><DT><I>riid</I> : <A HREF="PyIID.html">PyIID</A><P>
+
+<DD>Interface id to return, IStorage or IPropertySetStorage<P><DT><I>StgOptions=None</I> : dict<P>
+
+<DD>Dictionary representing STGOPTIONS struct (only used with 
+
+STGFMT_DOCFILE)<P>
+
+<H3>Comments</H3>
+
+Requires Win2k or later<P>
+
+Accepts keyword args<P>
+
+</body>
+</html>

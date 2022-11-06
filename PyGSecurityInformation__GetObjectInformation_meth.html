@@ -1,0 +1,36 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyGSecurityInformation.GetObjectInformation</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="PyGSecurityInformation.html">PyGSecurityInformation</A>.GetObjectInformation</H1><P>
+
+<A HREF="SI_OBJECT_INFO.html">SI_OBJECT_INFO</A> = <B>GetObjectInformation(</B>)<P>Returns information identifying the object 
+
+whose security is to be editted, and which pages are to appear in the property sheet<P>
+
+<H3>Comments</H3>
+
+Due to peculiarities of the underlying system calls, this method will only be called once, 
+
+and subsequent calls will return the information obtained on the first call.  As a consequence, a new 
+
+instance of the interface will need to be created for each object whose security is to be displayed.<P>
+
+<H3>Return Value</H3>Your implementation of this method should return a <A HREF="SI_OBJECT_INFO.html">SI_OBJECT_INFO</A> tuple<P>
+
+
+
+</body>
+</html>

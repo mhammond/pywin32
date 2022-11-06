@@ -1,0 +1,34 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyCListCtrl.RedrawItems</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="PyCListCtrl.html">PyCListCtrl</A>.RedrawItems</H1><P>
+
+int = <B>RedrawItems(<I>first</I><I>, first</I>
+
+</B>)<P>Forces a listview to repaint a range of items.<P>
+
+<H3>Parameters</H3><P><DT><I>first</I> : int<P>
+
+<DD>Index of the first item to be repainted.<P><DT><I>first</I> : int<P>
+
+<DD>Index of the last item to be repainted.<P><H3>Comments</H3>
+
+The specified items are not actually repainted until the list view window receives a WM_PAINT message. 
+
+To repaint immediately, call the Windows UpdateWindow function after using this function.<P>
+
+</body>
+</html>

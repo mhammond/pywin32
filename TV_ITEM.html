@@ -1,0 +1,60 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>TV_ITEM</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<HR><H1>TV_ITEM Object</H1><P>
+
+Describes a TV_ITEM tuple, used by the <A HREF="PyCListCtrl.html">PyCListCtrl</A> object. 
+
+A tuple of 8 items: 
+
+<BR>When returned from a win32ui function, will always be a tuple of size 8, and items may be None if not available. 
+
+<BR>When passed to a win32ui function, the tuple may be any length up to 8, and any item may be None.<P>
+
+<H3>Items</H3><P><DL><DT>[0] <I>int</I> : hItem<P>
+
+<DD>Item handle<P></DL>
+
+<DL><DT>[1] <I>int</I> : state<P>
+
+<DD>Item state.  If specified, the stateMask must also be specified.<P></DL>
+
+<DL><DT>[2] <I>int</I> : stateMask<P>
+
+<DD>Item state mask<P></DL>
+
+<DL><DT>[3] <I>string</I> : text<P>
+
+<DD>Item text<P></DL>
+
+<DL><DT>[4] <I>int</I> : iImage<P>
+
+<DD>Image list index of icon for non-seleted state.<P></DL>
+
+<DL><DT>[5] <I>int</I> : iSelectedImage<P>
+
+<DD>Offset of items selected image.<P></DL>
+
+<DL><DT>[6] <I>int</I> : cChildren<P>
+
+<DD>Number of child items.<P></DL>
+
+<DL><DT>[7] <I>int</I> : lParam<P>
+
+<DD>User defined integer param.<P></DL>
+
+</body>
+</html>

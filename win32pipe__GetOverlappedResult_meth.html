@@ -1,0 +1,36 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32pipe.GetOverlappedResult</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32pipe.html">win32pipe</A>.GetOverlappedResult</H1><P>
+
+int = <B>GetOverlappedResult(<I>hFile</I><I>, overlapped</I>
+
+<I>, bWait</I>
+
+</B>)<P>Determines the result of the most recent call with an OVERLAPPED object.<P>
+
+<H3>Parameters</H3><P><DT><I>hFile</I> : <A HREF="PyHANDLE.html">PyHANDLE</A><P>
+
+<DD>The handle to the pipe or file<P><DT><I>overlapped</I> : <A HREF="PyOVERLAPPED.html">PyOVERLAPPED</A><P>
+
+<DD>The overlapped object to check.<P><DT><I>bWait</I> : int<P>
+
+<DD>Indicates if the function should wait for data to become available.<P><H3>Comments</H3>
+
+The result is the number of bytes transferred.  The overlapped object's attributes will be changed during this call.<P>
+
+</body>
+</html>

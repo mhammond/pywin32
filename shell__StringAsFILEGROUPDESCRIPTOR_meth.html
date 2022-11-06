@@ -1,0 +1,36 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>shell.StringAsFILEGROUPDESCRIPTOR</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="shell.html">shell</A>.StringAsFILEGROUPDESCRIPTOR</H1><P>
+
+[dict, ...] = <B>StringAsFILEGROUPDESCRIPTOR(<I>buf</I><I>, make_unicode</I>
+
+</B>)<P>Decodes a FILEGROUPDESCRIPTOR packed in a string<P>
+
+<H3>Parameters</H3><P><DT><I>buf</I> : buffer<P>
+
+<DD>A string packed as either FILEGROUPDESCRIPTORW or FILEGROUPDESCRIPTORW<P><DT><I>make_unicode=-1</I> : bool<P>
+
+<DD>Should this be treated as a FILEDESCRIPTORW?  If -1 
+
+the size of the buffer will be used to make that determination.  Thus, if 
+
+the buffer is not the exact size of a correct FILEDESCRIPTORW or FILEDESCRIPTORA, 
+
+you will need to specify this parameter.<P>
+
+</body>
+</html>

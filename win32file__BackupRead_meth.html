@@ -1,0 +1,52 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32file.BackupRead</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32file.html">win32file</A>.BackupRead</H1><P>
+
+(int, buffer, int) = <B>BackupRead(<I>hFile</I><I>, NumberOfBytesToRead</I>
+
+<I>, Buffer</I>
+
+<I>, bAbort</I>
+
+<I>, bProcessSecurity</I>
+
+<I>, lpContext</I>
+
+</B>)<P>Reads streams of data from a file<P>
+
+<H3>Parameters</H3><P><DT><I>hFile</I> : <A HREF="PyHANDLE.html">PyHANDLE</A><P>
+
+<DD>File handle opened by CreateFile<P><DT><I>NumberOfBytesToRead</I> : int<P>
+
+<DD>Number of bytes to be read from file<P><DT><I>Buffer</I> : buffer<P>
+
+<DD>Writeable buffer object that receives data read<P><DT><I>bAbort</I> : int<P>
+
+<DD>If true, ends read operation and frees backup context<P><DT><I>bProcessSecurity</I> : int<P>
+
+<DD>Indicates whether file's ACL stream should be read<P><DT><I>lpContext</I> : int<P>
+
+<DD>Pass 0 on first call, then pass back value returned from last call thereafter<P><H3>Comments</H3>
+
+Returns number of bytes read, data buffer, and context pointer for next operation 
+
+If Buffer is None, a new buffer will be created of size NbrOfBytesToRead that can be passed 
+
+back in subsequent calls<P>
+
+</body>
+</html>

@@ -1,0 +1,50 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>pythoncom.CoInitialize</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="pythoncom.html">pythoncom</A>.CoInitialize</H1><P>
+
+<B>CoInitialize(</B>)<P>Initialize the COM libraries for the calling thread.<P>
+
+<H3>Comments</H3>
+
+Apart from the error handling semantics, this is equivalent 
+
+to <A HREF="pythoncom__CoInitializeEx_meth.html">pythoncom::CoInitializeEx</A>(pythoncom.COINIT_APARTMENTTHREADED). 
+
+See <A HREF="pythoncom__CoInitializeEx_meth.html">pythoncom::CoInitializeEx</A> for a description.<P>
+
+<H3>Return Value</H3>This function will ignore the RPC_E_CHANGED_MODE error, as 
+
+that error indicates someone else beat you to the initialization, and 
+
+did so with a different threading model.  This error is ignored as it 
+
+still means COM is ready for use on this thread, and as this function 
+
+does not explicitly specify a threading model the caller probably 
+
+doesn't care what model it is. 
+
+<BR>All other COM errors will raise pythoncom.error as usual.  Use 
+
+<A HREF="pythoncom__CoInitializeEx_meth.html">pythoncom::CoInitializeEx</A> if you also want to handle the RPC_E_CHANGED_MODE 
+
+error.<P>
+
+
+
+</body>
+</html>

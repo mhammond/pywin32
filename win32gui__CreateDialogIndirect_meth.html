@@ -1,0 +1,42 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32gui.CreateDialogIndirect</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32gui.html">win32gui</A>.CreateDialogIndirect</H1><P>
+
+int = <B>CreateDialogIndirect(<I>hInstance</I><I>, controlList</I>
+
+<I>, hWndParent</I>
+
+<I>, DialogFunc</I>
+
+<I>, InitParam</I>
+
+</B>)<P>Creates a modeless dialog box from a template, see <A HREF="win32ui__CreateDialogIndirect_meth.html">win32ui::CreateDialogIndirect</A><P>
+
+<H3>Parameters</H3><P><DT><I>hInstance</I> : <A HREF="PyHANDLE.html">PyHANDLE</A><P>
+
+<DD>Handle to module creating the dialog box<P><DT><I>controlList</I> : <A HREF="PyDialogTemplate.html">PyDialogTemplate</A><P>
+
+<DD>Sequence containing a <A HREF="PyDLGTEMPLATE.html">PyDLGTEMPLATE</A>, followed by variable number of <A HREF="PyDLGITEMTEMPLATE.html">PyDLGITEMTEMPLATE</A>s<P><DT><I>hWndParent</I> : <A HREF="PyHANDLE.html">PyHANDLE</A><P>
+
+<DD>Handle to dialog's parent window<P><DT><I>DialogFunc</I> : function<P>
+
+<DD>Dialog box procedure to process messages<P><DT><I>InitParam=0</I> : int<P>
+
+<DD>Initialization data to be passed to above procedure during WM_INITDIALOG processing<P>
+
+</body>
+</html>

@@ -1,0 +1,66 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32file.ReadDirectoryChangesW</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32file.html">win32file</A>.ReadDirectoryChangesW</H1><P>
+
+<B>ReadDirectoryChangesW(<I>handle</I><I>, size</I><I>, bWatchSubtree</I><I>, dwNotifyFilter</I><I>, overlapped</I></B>)<P>retrieves information describing the changes occurring within a directory.<P>
+
+<H3>Parameters</H3><P><DT><I>handle</I> : <A HREF="PyHANDLE.html">PyHANDLE</A><P>
+
+<DD>Handle to the directory to be monitored. This directory must be opened with the FILE_LIST_DIRECTORY access right.<P><DT><I>size</I> : int<P>
+
+<DD>Size of the buffer to allocate for the results.<P><DT><I>bWatchSubtree</I> : int<P>
+
+<DD>Specifies whether the ReadDirectoryChangesW function will monitor the directory or the directory tree. If TRUE is specified, the function monitors the directory tree rooted at the specified directory. If FALSE is specified, the function monitors only the directory specified by the hDirectory parameter.<P><DT><I>dwNotifyFilter</I> : int<P>
+
+<DD>Specifies filter criteria the function checks to determine if the wait operation has completed. This parameter can be one or more of the FILE_NOTIFY_CHANGE_* values.<P><DT><I>overlapped=None</I> : <A HREF="PyOVERLAPPED.html">PyOVERLAPPED</A><P>
+
+<DD>An overlapped object.  The directory must also be opened with FILE_FLAG_OVERLAPPED.<P>
+
+<H3>Comments</H3>
+
+If you pass an overlapped object, you almost certainly 
+
+must pass a buffer object for the asynchronous results - failure 
+
+to do so may crash Python as the asynchronous result writes to 
+
+invalid memory.<P>
+
+The FILE_NOTIFY_INFORMATION structure used by this function 
+
+is variable length, depending on the length of the filename. 
+
+The size of the buffer must be at least 6 bytes long + the length 
+
+of the filenames returned.  The number of notifications that can be 
+
+returned for a given buffer size depends on the filename lengths.<P>
+
+<H3>Return Value</H3>If a buffer size is passed, the result is a list of (action, filename)<P>
+
+
+
+If a buffer is passed, the result is None - you must use the overlapped 
+
+object to determine when the information is available and how much is valid. 
+
+The buffer can then be passed to <A HREF="win32file__FILE_NOTIFY_INFORMATION_meth.html">win32file::FILE_NOTIFY_INFORMATION</A><P>
+
+
+
+</body>
+</html>

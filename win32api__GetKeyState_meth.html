@@ -1,0 +1,56 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32api.GetKeyState</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32api.html">win32api</A>.GetKeyState</H1><P>
+
+int = <B>GetKeyState(<I>key</I></B>)<P>Retrieves the status of the specified key.<P>
+
+<H3>Parameters</H3><P><DT><I>key</I> : int<P>
+
+<DD>Specifies a virtual key. If the desired virtual key is a letter or digit (A through Z, a through 
+
+z, or 0 through 9), key must be set to the ASCII value of that character. For other keys, it must be a 
+
+virtual-key code.<P><H3>Comments</H3>
+
+The key status returned from this function changes as a given thread 
+
+reads key messages from its message queue. The status does not reflect the 
+
+interrupt-level state associated with the hardware. Use the <A HREF="win32api__GetAsyncKeyState_meth.html">win32api::GetAsyncKeyState</A> method to retrieve 
+
+that information.<P>
+
+<H3>Win32 API References</H3><P><DT>Search for <i>GetKeyState</i> at <a href="http://search.msdn.microsoft.com/search/results.aspx?view=msdn&query=GetKeyState" target="_blank">msdn</a>, <a href="http://www.google.com/search?q=GetKeyState" target="_blank">google</a> or <a href="http://groups.google.com/groups?q=GetKeyState" target="_blank">google groups</a>.<P>
+
+<H3>Return Value</H3>The return value specifies the status of 
+
+the given virtual key. If the high-order bit is 1, the key is down; 
+
+otherwise, it is up. If the low-order bit is 1, the key is toggled. 
+
+A key, such as the CAPS LOCK key, is toggled if it is turned on. 
+
+The key is off and untoggled if the low-order bit is 0. A toggle key's 
+
+indicator light (if any) on the keyboard will be on when the key is 
+
+toggled, and off when the key is untoggled.<P>
+
+
+
+</body>
+</html>

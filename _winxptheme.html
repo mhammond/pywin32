@@ -1,0 +1,134 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>_winxptheme</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1>Module _winxptheme</H1><P>
+
+A module which provides an interface to the Windows XP 
+
+'theme' API. 
+
+<BR>Note that this module will fail to load on 
+
+non-Windows XP versions.  Generally you should use the 
+
+'winxptheme' module which will load on all Windows 
+
+versions, and provide implementations of 
+
+IsThemeActive() or IsAppThemed() which return False when 
+
+XP is not used, and provides all objects from this module 
+
+when XP is used.  See winxptheme.py for more details.<P>
+
+<H3>Methods</H3><P><DL><DT><A HREF="_winxptheme__OpenThemeData_meth.html">OpenThemeData</A><BR>
+
+<DD>Open the theme data for the specified HWND and 
+
+semi-colon separated list of class names. 
+
+<BR>OpenThemeData() will try each class name, one at 
+
+a time, and use the first matching theme info 
+
+found.  If a match is found, a theme handle 
+
+to the data is returned.  If no match is found, 
+
+a "NULL" handle is returned. 
+
+<BR>When the window is destroyed or a WM_THEMECHANGED 
+
+msg is received, <A HREF="_winxptheme__CloseThemeData_meth.html">_winxptheme::CloseThemeData</A> should be 
+
+called to close the theme handle.&nbsp;<P><DT><A HREF="_winxptheme__CloseThemeData_meth.html">CloseThemeData</A><BR>
+
+<DD>Closes the theme data handle.  This should be done 
+
+when the window being themed is destroyed or 
+
+whenever a WM_THEMECHANGED msg is received 
+
+(followed by an attempt to create a new Theme data 
+
+handle).&nbsp;<P><DT><A HREF="_winxptheme__DrawThemeBackground_meth.html">DrawThemeBackground</A><BR>
+
+<DD>Draws the theme-specified border and fill for 
+
+the "iPartId" and "iStateId".  This could be 
+
+based on a bitmap file, a border and fill, or 
+
+other image description.&nbsp;<P><DT><A HREF="_winxptheme__DrawThemeText_meth.html">DrawThemeText</A><BR>
+
+<DD>Draws the text using the theme-specified 
+
+color and font for the "iPartId" and "iStateId".&nbsp;<P><DT><A HREF="_winxptheme__GetThemeBackgroundContentRect_meth.html">GetThemeBackgroundContentRect</A><BR>
+
+<DD>Gets the size of the content for the theme-defined 
+
+background.  This is usually the area inside the borders or Margins.&nbsp;<P><DT><A HREF="_winxptheme__GetThemeBackgroundExtent_meth.html">GetThemeBackgroundExtent</A><BR>
+
+<DD>Calculates the size/location of the theme- 
+
+specified background based on the "pContentRect".&nbsp;<P><DT><A HREF="_winxptheme__IsThemeActive_meth.html">IsThemeActive</A><BR>
+
+<DD>Can be used to test if a system theme is active 
+
+for the current user session. 
+
+<BR>use the API <A HREF="_winxptheme__IsAppThemed_meth.html">_winxptheme::IsAppThemed</A> to test if a theme is 
+
+active for the calling process.&nbsp;<P><DT><A HREF="_winxptheme__IsAppThemed_meth.html">IsAppThemed</A><BR>
+
+<DD>Returns True if a theme is active and available to 
+
+the current process&nbsp;<P><DT><A HREF="_winxptheme__GetWindowTheme_meth.html">GetWindowTheme</A><BR>
+
+<DD>If window is themed, returns its most recent 
+
+HTHEME from OpenThemeData() - otherwise, returns NULL.&nbsp;<P><DT><A HREF="_winxptheme__EnableThemeDialogTexture_meth.html">EnableThemeDialogTexture</A><BR>
+
+<DD>Enables/disables dialog background theme. 
+
+This method can be used to 
+
+tailor dialog compatibility with child windows and controls that 
+
+may or may not coordinate the rendering of their client area backgrounds 
+
+with that of their parent dialog in a manner that supports seamless 
+
+background texturing.&nbsp;<P><DT><A HREF="_winxptheme__IsThemeDialogTextureEnabled_meth.html">IsThemeDialogTextureEnabled</A><BR>
+
+<DD>Reports whether the dialog supports background texturing.&nbsp;<P><DT><A HREF="_winxptheme__GetThemeAppProperties_meth.html">GetThemeAppProperties</A><BR>
+
+<DD>Returns the app property flags that control theming&nbsp;<P><DT><A HREF="_winxptheme__EnableTheming_meth.html">EnableTheming</A><BR>
+
+<DD>Enables or disables themeing for the current user 
+
+in the current and future sessions.&nbsp;<P><DT><A HREF="_winxptheme__SetWindowTheme_meth.html">SetWindowTheme</A><BR>
+
+<DD>Rredirects an existing Window to use a different 
+
+section of the current theme information than its class normally asks for.&nbsp;<P><DT><A HREF="_winxptheme__GetCurrentThemeName_meth.html">GetCurrentThemeName</A><BR>
+
+<DD>Get the name of the current theme in-use, the 
+
+canonical color scheme name (not the display name) and the 
+
+canonical size name (not the display name).&nbsp;<P></DL></body>
+</html>

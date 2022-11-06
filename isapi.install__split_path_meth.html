@@ -1,0 +1,50 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>isapi.install.split_path</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="isapi.install.html">isapi.install</A>.split_path</H1><P>
+
+<B>split_path(<I>path</I></B>)<P>Get the parent path and basename.<P>
+
+<H3>Parameters</H3><P><DT><I>path</I> : <P>
+
+<DD>path<P><PRE>&gt&gt&gt split_path('/')
+
+['', '']<P>
+
+&gt&gt&gt split_path('')
+
+['', '']<P>
+
+&gt&gt&gt split_path('foo')
+
+['', 'foo']<P>
+
+&gt&gt&gt split_path('/foo')
+
+['', 'foo']<P>
+
+&gt&gt&gt split_path('/foo/bar')
+
+['/foo', 'bar']<P>
+
+&gt&gt&gt split_path('foo/bar')
+
+['/foo', 'bar']<P>
+
+</PRE>
+
+</body>
+</html>

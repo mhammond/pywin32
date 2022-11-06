@@ -1,0 +1,40 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyCtxtHandle.VerifySignature</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="PyCtxtHandle.html">PyCtxtHandle</A>.VerifySignature</H1><P>
+
+<B>VerifySignature(<I>Message</I><I>, MessageSeqNo</I></B>)<P>Verifies a signature created using <A HREF="PyCtxtHandle__MakeSignature_meth.html">PyCtxtHandle::MakeSignature</A><P>
+
+<H3>Parameters</H3><P><DT><I>Message</I> : <A HREF="PySecBufferDesc.html">PySecBufferDesc</A><P>
+
+<DD>SecBufferDesc that contains data buffer and signature buffer<P><DT><I>MessageSeqNo</I> : int<P>
+
+<DD>A sequential number used by some packages to verify that no extraneous messages have 
+
+been received<P><H3>Comments</H3>
+
+The buffer configuration is dependent on the security package.  Usually there is a data buffer of type 
+
+SECBUFFER_DATA 
+
+and a signature buffer of type SECBUFFER_TOKEN<P>
+
+<H3>Return Value</H3>Returns quality of protection flags used to create signature<P>
+
+
+
+</body>
+</html>

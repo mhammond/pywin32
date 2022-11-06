@@ -1,0 +1,52 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32net.NetUserGetLocalGroups</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32net.html">win32net</A>.NetUserGetLocalGroups</H1><P>
+
+[groupName, ...] = <B>NetUserGetLocalGroups(<I>serverName</I><I>, userName</I>
+
+<I>, flags</I>
+
+</B>)<P>Retrieves a list of local groups to which a specified user 
+
+belongs.<P>
+
+<H3>Parameters</H3><P><DT><I>serverName</I> : string<P>
+
+<DD>The name of the remote server on which the function is to 
+
+execute. None or an empty string specifies the server program running on the local 
+
+computer.<P><DT><I>userName</I> : string<P>
+
+<DD>The name of the user to search for in each group account. This 
+
+parameter can be of the form &ltUserName&gt, in which case the username is expected to be 
+
+found on servername. The user name can also be of the form &ltDomainName&gt\\&ltUserName&gt in 
+
+which case &ltDomainName&gt is associated with servername and &ltUserName&gt is expected to be 
+
+to be found on that domain.<P><DT><I>flags=LG_INCLUDE_INDIRECT</I> : int<P>
+
+<DD>Flags for the call.<P>
+
+<H3><font color=#c71a1d> To Do</font></H3><font color=#c71a1d> This needs to be extended to support the new model, while 
+
+not breaking existing code.  A default arg would be perfect.</font><P>
+
+</body>
+</html>

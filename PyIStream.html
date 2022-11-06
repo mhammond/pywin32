@@ -1,0 +1,60 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyIStream</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<HR><H1>PyIStream Object</H1><P>
+
+A Python interface to IStream<P>
+
+<H3>Methods</H3><P><DL><DT><A HREF="PyIStream__Read_meth.html">Read</A><BR>
+
+<DD>Read the specified number of bytes from the string.&nbsp;<P><DT><A HREF="PyIStream__read_meth.html">read</A><BR>
+
+<DD>Alias for <A HREF="PyIStream__Read_meth.html">PyIStream::Read</A>&nbsp;<P><DT><A HREF="PyIStream__Write_meth.html">Write</A><BR>
+
+<DD>Write data from a stream.&nbsp;<P><DT><A HREF="PyIStream__write_meth.html">write</A><BR>
+
+<DD>Alias for <A HREF="PyIStream__Write_meth.html">PyIStream::Write</A>&nbsp;<P><DT><A HREF="PyIStream__Seek_meth.html">Seek</A><BR>
+
+<DD>Changes the seek pointer to a new location.&nbsp;<P><DT><A HREF="PyIStream__SetSize_meth.html">SetSize</A><BR>
+
+<DD>Changes the size of the stream object.&nbsp;<P><DT><A HREF="PyIStream__CopyTo_meth.html">CopyTo</A><BR>
+
+<DD>Copies a specified number of bytes from the current seek 
+
+pointer in the stream to the current seek pointer in another stream.&nbsp;<P><DT><A HREF="PyIStream__Commit_meth.html">Commit</A><BR>
+
+<DD>Ensures that any changes made to a stream object open in 
+
+transacted mode are reflected in the parent storage.&nbsp;<P><DT><A HREF="PyIStream__Revert_meth.html">Revert</A><BR>
+
+<DD>Discards all changes that have been made to a transacted stream 
+
+since the last <A HREF="PyIStream__Commit_meth.html">PyIStream::Commit</A> call.&nbsp;<P><DT><A HREF="PyIStream__LockRegion_meth.html">LockRegion</A><BR>
+
+<DD>Restricts access to a specified range of bytes in the stream.&nbsp;<P><DT><A HREF="PyIStream__UnLockRegion_meth.html">UnLockRegion</A><BR>
+
+<DD>Removes the access restriction on a range of 
+
+bytes previously restricted with <A HREF="PyIStream__LockRegion_meth.html">PyIStream::LockRegion</A>.&nbsp;<P><DT><A HREF="PyIStream__Clone_meth.html">Clone</A><BR>
+
+<DD>Creates a new stream object with its own seek pointer that 
+
+references the same bytes as the original stream.&nbsp;<P><DT><A HREF="PyIStream__Stat_meth.html">Stat</A><BR>
+
+<DD>Returns information about a stream&nbsp;<P></DL>
+
+<H3>Based On</H3><A HREF="PyIUnknown.html">PyIUnknown</A></body>
+</html>

@@ -1,0 +1,56 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>pythoncom.LoadRegTypeLib</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="pythoncom.html">pythoncom</A>.LoadRegTypeLib</H1><P>
+
+<A HREF="PyITypeLib.html">PyITypeLib</A> = <B>LoadRegTypeLib(<I>iid</I><I>, versionMajor</I>
+
+<I>, versionMinor</I>
+
+<I>, lcid</I>
+
+</B>)<P>Loads a registered type library.<P>
+
+<H3>Parameters</H3><P><DT><I>iid</I> : <A HREF="PyIID.html">PyIID</A><P>
+
+<DD>The IID of the type library.<P><DT><I>versionMajor</I> : int<P>
+
+<DD>The major version number of the library<P><DT><I>versionMinor</I> : int<P>
+
+<DD>The minor version number of the library<P><DT><I>lcid=LOCALE_USER_DEFAULT</I> : int<P>
+
+<DD>The locale ID to use.<P>
+
+<H3>Comments</H3>
+
+LoadRegTypeLib compares the requested version numbers against those found in the system registry, and takes 
+
+one of the following actions:<BR> If one of the registered libraries exactly matches both the requested major and 
+
+minor version numbers, then that type library is loaded. <BR> If one or more registered type libraries exactly 
+
+match the requested major version number, and has a greater minor version number than that requested, the one 
+
+with the greatest minor version number is loaded. <BR> If none of the registered type libraries exactly match the 
+
+requested major version number (or if none of those that do exactly match the major version number also have a 
+
+minor version number greater than or equal to the requested minor version number), then LoadRegTypeLib returns an 
+
+error.<P>
+
+</body>
+</html>

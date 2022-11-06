@@ -1,0 +1,42 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32crypt.CertEnumSystemStore</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32crypt.html">win32crypt</A>.CertEnumSystemStore</H1><P>
+
+[<B>PyUnicode</B>
+
+,...] = <B>CertEnumSystemStore(<I>dwFlags</I><I>, pvSystemStoreLocationPara</I>
+
+</B>)<P>Lists system stores<P>
+
+<H3>Parameters</H3><P><DT><I>dwFlags</I> : int<P>
+
+<DD>CERT_SYSTEM_STORE_* location, can be combined with 
+
+CERT_SYSTEM_STORE_RELOCATE_FLAG<P><DT><I>pvSystemStoreLocationPara=None</I> : <B>PyCERT_SYSTEM_STORE_RELOCATE_PARA</B>
+
+<P>
+
+<DD>Optional 
+
+If flags contains CERT_SYSTEM_STORE_RELOCATE_FLAG must be a sequence 
+
+(PyHkey, unicode) representing a CERT_SYSTEM_STORE_RELOCATE_PARA, otherwise 
+
+should be a unicode store name<P>
+
+</body>
+</html>

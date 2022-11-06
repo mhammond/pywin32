@@ -1,0 +1,38 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>CopyProgressRoutine</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<HR><H1>CopyProgressRoutine Object</H1><P>
+
+Python function used as a callback for <A HREF="win32file__CopyFileEx_meth.html">win32file::CopyFileEx</A> and <A HREF="win32file__MoveFileWithProgress_meth.html">win32file::MoveFileWithProgress</A><BR> 
+
+Function will receive 9 parameters:<BR> 
+
+(TotalFileSize, TotalBytesTransferred, StreamSize, StreamBytesTransferred, 
+
+StreamNumber, CallbackReason, SourceFile, DestinationFile, Data)<BR> 
+
+SourceFile and DestinationFile are <A HREF="PyHANDLE.html">PyHANDLE</A>s. 
+
+Data is the context object passed to the calling function. 
+
+All others are longs.<BR> 
+
+CallbackReason will be one of CALLBACK_CHUNK_FINISHED or CALLBACK_STREAM_SWITCH<BR> 
+
+Your implementation of this function must return one of the PROGRESS_* constants.<P>
+
+</body>
+</html>

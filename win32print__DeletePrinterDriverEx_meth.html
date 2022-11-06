@@ -1,0 +1,42 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32print.DeletePrinterDriverEx</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32print.html">win32print</A>.DeletePrinterDriverEx</H1><P>
+
+<B>DeletePrinterDriverEx(<I>Server</I><I>, Environment</I><I>, DriverName</I><I>, DeleteFlag</I><I>, VersionFlag</I></B>)<P>Deletes a printer driver and its associated files<P>
+
+<H3>Parameters</H3><P><DT><I>Server</I> : string/<B>PyUnicode</B>
+
+<P>
+
+<DD>Name of print server, use None for local machine<P><DT><I>Environment</I> : string/<B>PyUnicode</B>
+
+<P>
+
+<DD>Environment - eg 'Windows NT x86' - use None for current client 
+
+environment<P><DT><I>DriverName</I> : string/<B>PyUnicode</B>
+
+<P>
+
+<DD>Name of driver to remove<P><DT><I>DeleteFlag</I> : int<P>
+
+<DD>Combination of DPD_DELETE_SPECIFIC_VERSION, DPD_DELETE_UNUSED_FILES, and 
+
+DPD_DELETE_ALL_FILES<P><DT><I>VersionFlag</I> : int<P>
+
+<DD>Can be 0,1,2, or 3.  Only used if DPD_DELETE_SPECIFIC_VERSION is specified in DeleteFlag<P></body>
+</html>

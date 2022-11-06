@@ -1,0 +1,46 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32evtlog.EvtFormatMessage</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32evtlog.html">win32evtlog</A>.EvtFormatMessage</H1><P>
+
+str,list = <B>EvtFormatMessage(<I>Metadata</I><I>, Event</I>
+
+<I>, Flags</I>
+
+<I>, ResourceId</I>
+
+</B>)<P>Formats a message string.<P>
+
+<H3>Parameters</H3><P><DT><I>Metadata</I> : <A HREF="PyEVT_HANDLE.html">PyEVT_HANDLE</A><P>
+
+<DD>Handle to provider metadata returned by <A HREF="win32evtlog__EvtOpenPublisherMetadata_meth.html">win32evtlog::EvtOpenPublisherMetadata</A><P><DT><I>Event</I> : <A HREF="PyEVT_HANDLE.html">PyEVT_HANDLE</A><P>
+
+<DD>Handle to an event<P><DT><I>Flags</I> : int<P>
+
+<DD>Type of message to format. EvtFormatMessageEvent or EvtFormatMessageLevel or EvtFormatMessageTask or EvtFormatMessageOpcode or EvtFormatMessageKeyword or EvtFormatMessageChannel or EvtFormatMessageProvider or EvtFormatMessageId or EvtFormatMessageXml.  If set to EvtFormatMessageId, callers should also set the 'ResourceId' parameter<P><DT><I>ResourceId=0</I> : int<P>
+
+<DD>The resource identifier of a message string returned by <A HREF="win32evtlog__EvtGetPublisherMetadataProperty_meth.html">win32evtlog::EvtGetPublisherMetadataProperty</A>.  Only set this if flags = EvtFormatMessageId.<P>
+
+<H3>Comments</H3>
+
+Accepts keyword args<P>
+
+<H3>Return Value</H3>Returns a formatted message string, or a list of strings if Flags=EvtFormatMessageKeyword<P>
+
+
+
+</body>
+</html>

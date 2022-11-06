@@ -1,0 +1,274 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyDEVMODEW</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<HR><H1>PyDEVMODEW Object</H1><P>
+
+Unicode version of <B>PyDEVMODE</B>
+
+ object<P>
+
+<H3>Methods</H3><P><DL><DT><A HREF="PyDEVMODEW__Clear_meth.html">Clear</A><BR>
+
+<DD>Resets all members of the structure&nbsp;<P></DL>
+
+<H3>Properties</H3>
+
+<DL>
+
+<DT><B>int SpecVersion</B>
+
+<DD>Should always be set to DM_SPECVERSION<P>
+
+
+
+<DT><B>int DriverVersion</B>
+
+<DD>Version nbr assigned to printer driver by vendor<P>
+
+
+
+<DT><B>int Size</B>
+
+<DD>Size of structure<P>
+
+
+
+<DT><B>int DriverExtra</B>
+
+<DD>Number of extra bytes allocated for driver data, can only be set when new object is created<P>
+
+
+
+<DT><B>int Fields</B>
+
+<DD>Bitmask of win32con.DM_* constants indicating which members are set<P>
+
+
+
+<DT><B>int Orientation</B>
+
+<DD>Only applies to printers, DMORIENT_PORTRAIT or DMORIENT_LANDSCAPE<P>
+
+
+
+<DT><B>int PaperSize</B>
+
+<DD>Use 0 if PaperWidth and PaperLength are set, otherwise win32con.DMPAPER_* constant<P>
+
+
+
+<DT><B>int PaperLength</B>
+
+<DD>Specified in 1/10 millimeters<P>
+
+
+
+<DT><B>int PaperWidth</B>
+
+<DD>Specified in 1/10 millimeters<P>
+
+
+
+<DT><B>int Position_x</B>
+
+<DD>Position of display relative to desktop<P>
+
+
+
+<DT><B>int Position_y</B>
+
+<DD>Position of display relative to desktop<P>
+
+
+
+<DT><B>int DisplayOrientation</B>
+
+<DD>Display rotation: DMDO_DEFAULT,DMDO_90, DMDO_180, DMDO_270<P>
+
+
+
+<DT><B>int DisplayFixedOutput</B>
+
+<DD>DMDFO_DEFAULT, DMDFO_CENTER, DMDFO_STRETCH<P>
+
+
+
+<DT><B>int Scale</B>
+
+<DD>Specified as percentage, eg 50 means half size of original<P>
+
+
+
+<DT><B>int Copies</B>
+
+<DD>Nbr of copies to print<P>
+
+
+
+<DT><B>int DefaultSource</B>
+
+<DD>DMBIN_* constant, or can be a printer-specific value<P>
+
+
+
+<DT><B>int PrintQuality</B>
+
+<DD>DMRES_* constant, interpreted as DPI if positive<P>
+
+
+
+<DT><B>int Color</B>
+
+<DD>DMCOLOR_COLOR or DMCOLOR_MONOCHROME<P>
+
+
+
+<DT><B>int Duplex</B>
+
+<DD>For printers that do two-sided printing: DMDUP_SIMPLEX, DMDUP_HORIZONTAL, DMDUP_VERTICAL<P>
+
+
+
+<DT><B>int YResolution</B>
+
+<DD>Vertical printer resolution in DPI - if this is set, PrintQuality indicates horizontal DPI<P>
+
+
+
+<DT><B>int TTOption</B>
+
+<DD>TrueType options: DMTT_BITMAP, DMTT_DOWNLOAD, DMTT_DOWNLOAD_OUTLINE, DMTT_SUBDEV<P>
+
+
+
+<DT><B>int Collate</B>
+
+<DD>DMCOLLATE_TRUE or DMCOLLATE_FALSE<P>
+
+
+
+<DT><B>int LogPixels</B>
+
+<DD>Pixels per inch (only for display devices<P>
+
+
+
+<DT><B>int BitsPerPel</B>
+
+<DD>Color resolution in bits per pixel<P>
+
+
+
+<DT><B>int PelsWidth</B>
+
+<DD>Pixel width of display<P>
+
+
+
+<DT><B>int PelsHeight</B>
+
+<DD>Pixel height of display<P>
+
+
+
+<DT><B>int DisplayFlags</B>
+
+<DD>Combination of DM_GRAYSCALE and DM_INTERLACED<P>
+
+
+
+<DT><B>int DisplayFrequency</B>
+
+<DD>Refresh rate<P>
+
+
+
+<DT><B>int ICMMethod</B>
+
+<DD>Indicates where ICM is performed, one of win32con.DMICMMETHOD_* values<P>
+
+
+
+<DT><B>int ICMIntent</B>
+
+<DD>Intent of ICM, one of win32con.DMICM_* values<P>
+
+
+
+<DT><B>int MediaType</B>
+
+<DD>win32con.DMMEDIA_*, can also be a printer-specific value greater then DMMEDIA_USER<P>
+
+
+
+<DT><B>int DitherType</B>
+
+<DD>Dithering option, win32con.DMDITHER_*<P>
+
+
+
+<DT><B>int Reserved1</B>
+
+<DD>Reserved, use only 0<P>
+
+
+
+<DT><B>int Reserved2</B>
+
+<DD>Reserved, use only 0<P>
+
+
+
+<DT><B>int Nup</B>
+
+<DD>Controls printing of multiple logical pages per physical page, DMNUP_SYSTEM or DMNUP_ONEUP<P>
+
+
+
+<DT><B>int PanningWidth</B>
+
+<DD>Not used, leave as 0<P>
+
+
+
+<DT><B>int PanningHeight</B>
+
+<DD>Not used, leave as 0<P>
+
+
+
+<DT><B>string DeviceName</B>
+
+<DD>String of at most 32 chars<P>
+
+
+
+<DT><B>str FormName</B>
+
+<DD>Name of form as returned by <A HREF="win32print__EnumForms_meth.html">win32print::EnumForms</A>, at most 32 chars<P>
+
+
+
+<DT><B>str DriverData</B>
+
+<DD>Driver data appended to end of structure<P>
+
+
+
+</DL>
+
+</body>
+</html>

@@ -1,0 +1,36 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32security.LsaRemoveAccountRights</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32security.html">win32security</A>.LsaRemoveAccountRights</H1><P>
+
+<B>LsaRemoveAccountRights(<I>PolicyHandle</I><I>, AccountSid</I><I>, AllRights</I><I>, UserRights</I></B>)<P>Removes privs from an account<P>
+
+<H3>Parameters</H3><P><DT><I>PolicyHandle</I> : <A HREF="PyLSA_HANDLE.html">PyLSA_HANDLE</A><P>
+
+<DD>An LSA policy handle as returned by <A HREF="win32security__LsaOpenPolicy_meth.html">win32security::LsaOpenPolicy</A><P><DT><I>AccountSid</I> : <A HREF="PySID.html">PySID</A><P>
+
+<DD>Account whose privileges will be removed<P><DT><I>AllRights</I> : int<P>
+
+<DD>Boolean value indicating if all privs should be removed from account<P><DT><I>UserRights</I> : (str/unicode,...)<P>
+
+<DD>List of privilege names to be removed (SE_*_NAME unicode constants)<P><H3>Comments</H3>
+
+If AllRights parm is true, account is *deleted*<P>
+
+Accepts keyword args.<P>
+
+</body>
+</html>

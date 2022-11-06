@@ -1,0 +1,32 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyACL.AddAccessDeniedAceEx</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="PyACL.html">PyACL</A>.AddAccessDeniedAceEx</H1><P>
+
+<B>AddAccessDeniedAceEx(<I>revision</I><I>, aceflags</I><I>, access</I><I>, sid</I></B>)<P>Add access denied ACE to an ACL with ACE flags (Requires Win2k or higher)<P>
+
+<H3>Parameters</H3><P><DT><I>revision</I> : int<P>
+
+<DD>Must be at least ACL_REVISION_DS<P><DT><I>aceflags</I> : int<P>
+
+<DD>Combination of ACE inheritance flags 
+
+(CONTAINER_INHERIT_ACE,INHERIT_ONLY_ACE,INHERITED_ACE,NO_PROPAGATE_INHERIT_ACE, and OBJECT_INHERIT_ACE)<P><DT><I>access</I> : int<P>
+
+<DD>Specifies the mask of access rights to be denied to the specified SID.<P><DT><I>sid</I> : <A HREF="PySID.html">PySID</A><P>
+
+<DD>A SID object representing a user, group, or logon account being denied access.<P></body>
+</html>

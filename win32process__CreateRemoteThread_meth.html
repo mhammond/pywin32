@@ -1,0 +1,50 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32process.CreateRemoteThread</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32process.html">win32process</A>.CreateRemoteThread</H1><P>
+
+<A HREF="PyHANDLE.html">PyHANDLE</A>, int = <B>CreateRemoteThread(<I>hprocess</I><I>, sa</I>
+
+<I>, stackSize</I>
+
+<I>, entryPoint</I>
+
+<I>, Parameter</I>
+
+<I>, flags</I>
+
+</B>)<P>creates a thread that runs in 
+
+the virtual address space of another process.<P>
+
+<H3>Parameters</H3><P><DT><I>hprocess</I> : <A HREF="PyHANDLE.html">PyHANDLE</A><P>
+
+<DD>The handle to the remote process.<P><DT><I>sa</I> : <A HREF="PySECURITY_ATTRIBUTES.html">PySECURITY_ATTRIBUTES</A><P>
+
+<DD>The security attributes, or None<P><DT><I>stackSize</I> : int<P>
+
+<DD>Stack size for the new thread, or zero for the default size.<P><DT><I>entryPoint</I> : function<P>
+
+<DD>The thread function's address.<P><DT><I>Parameter</I> : int<P>
+
+<DD>Arg passed to the function in the form of a void pointer<P><DT><I>flags</I> : int<P>
+
+<DD><P><H3>Return Value</H3>The result is a tuple of the thread handle and thread ID.<P>
+
+
+
+</body>
+</html>

@@ -1,0 +1,42 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32pipe.ConnectNamedPipe</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32pipe.html">win32pipe</A>.ConnectNamedPipe</H1><P>
+
+int = <B>ConnectNamedPipe(<I>hPipe</I><I>, overlapped</I>
+
+</B>)<P>Connects to a named pipe<P>
+
+<H3>Parameters</H3><P><DT><I>hPipe</I> : <A HREF="PyHANDLE.html">PyHANDLE</A><P>
+
+<DD>The handle to the pipe.<P><DT><I>overlapped=None</I> : <A HREF="PyOVERLAPPED.html">PyOVERLAPPED</A><P>
+
+<DD>An overlapped object to use, else None<P>
+
+<H3>Comments</H3>
+
+The result is zero if the function succeeds.  If the function fails, 
+
+GetLastError() is called, and if the result is ERROR_IO_PENDING or ERROR_PIPE_CONNECTED 
+
+(common when passing an overlapped object), this value is returned.  All 
+
+other error values raise a win32 exception (from which the error code 
+
+can be extracted)<P>
+
+</body>
+</html>

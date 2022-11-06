@@ -1,0 +1,36 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>ImportCallback</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<HR><H1>ImportCallback Object</H1><P>
+
+User-defined callback function used with <A HREF="win32file__WriteEncryptedFileRaw_meth.html">win32file::WriteEncryptedFileRaw</A><BR> 
+
+Function is called with 3 parameters: (Data, CallbackContext, Length)<BR> 
+
+&nbsp&nbsp Data: Writeable buffer to be filled with raw encrypted data.  Buffer memory is only valid within the callback function.<BR> 
+
+&nbsp&nbsp CallbackContext: The arbitrary object passed to WriteEncryptedFileRaw.<BR> 
+
+&nbsp&nbsp Length: Size of the data buffer.<BR> 
+
+Your implementation of this function should return a tuple of 2 ints containing 
+
+an error code (ERROR_SUCCESS on success), and the length of data written to the buffer.<BR> 
+
+Function exits when 0 is returned for the data length.<P>
+
+</body>
+</html>

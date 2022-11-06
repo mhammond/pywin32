@@ -1,0 +1,32 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>ExportCallback</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<HR><H1>ExportCallback Object</H1><P>
+
+User-defined callback function used with <A HREF="win32file__ReadEncryptedFileRaw_meth.html">win32file::ReadEncryptedFileRaw</A>.<BR> 
+
+Function is called with 3 parameters: (Data, CallbackContext, Length)<BR> 
+
+&nbsp&nbsp Data: Read-only buffer containing the raw data read from the file.  Must not be referenced outside of the callback function.<BR> 
+
+&nbsp&nbsp CallbackContext: Arbitrary object passed to ReadEncryptedFileRaw.<BR> 
+
+&nbsp&nbsp Length: Number of bytes in the Data buffer.<BR> 
+
+On success, function should return ERROR_SUCCESS.  Otherwise, it can return a win32 error code, or simply raise an exception.<P>
+
+</body>
+</html>

@@ -1,0 +1,44 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>pythoncom.StgOpenStorageOnILockBytes</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="pythoncom.html">pythoncom</A>.StgOpenStorageOnILockBytes</H1><P>
+
+<A HREF="PyIStorage.html">PyIStorage</A> = <B>StgOpenStorageOnILockBytes(<I>lockBytes</I><I>, stgPriority</I>
+
+<I>, snbExclude</I>
+
+<I>, reserved</I>
+
+</B>)<P>Open an existing storage object that does not reside in 
+
+a disk file, but instead has an underlying <A HREF="PyILockBytes.html">PyILockBytes</A> byte array provided by the caller.<P>
+
+<H3>Parameters</H3><P><DT><I>lockBytes</I> : <A HREF="PyILockBytes.html">PyILockBytes</A><P>
+
+<DD>The <A HREF="PyILockBytes.html">PyILockBytes</A> interface on the underlying byte 
+
+array object on which to open an existing storage object.<P><DT><I>stgPriority</I> : <A HREF="PyIStorage.html">PyIStorage</A><P>
+
+<DD>Usually None, or another parent storage.<P><DT><I>snbExclude=None</I> : object<P>
+
+<DD>Not yet supported - must be None<P>
+
+<DT><I>reserved=0</I> : int<P>
+
+<DD>A reserved value<P>
+
+</body>
+</html>

@@ -1,0 +1,36 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>shell.SHChangeNotify</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="shell.html">shell</A>.SHChangeNotify</H1><P>
+
+<B>SHChangeNotify(<I>EventId</I><I>, Flags</I><I>, Item1</I><I>, Item2</I></B>)<P>Notifies the system of an event that an application has performed. An application 
+
+should use this function if it performs an action that may affect the shell.<P>
+
+<H3>Parameters</H3><P><DT><I>EventId</I> : int<P>
+
+<DD>Combination of shellcon.SHCNE_* constants<P><DT><I>Flags</I> : int<P>
+
+<DD>Combination of shellcon.SHCNF_* constants that specify type of 
+
+last 2 parameters Only one of the type flags may be specified, combined with one 
+
+of the SHCNF_FLUSH* flags<P><DT><I>Item1</I> : object<P>
+
+<DD>Type is dependent on the event to be signalled<P><DT><I>Item2</I> : object<P>
+
+<DD>Type is dependent on the event to be signalled<P></body>
+</html>

@@ -1,0 +1,38 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32pdh.ExpandCounterPath</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32pdh.html">win32pdh</A>.ExpandCounterPath</H1><P>
+
+[string,] = <B>ExpandCounterPath(<I>wildCardPath</I></B>)<P>Examines the specified machine (or local machine if none is specified) 
+
+for counters and instances of counters that match the wild card strings in the counter path.<P>
+
+<H3>Parameters</H3><P><DT><I>wildCardPath</I> : string<P>
+
+<DD>The counter path to expand.<P><H3>Comments</H3>
+
+The counter path format is assumed to be: 
+
+<BR>\\machine\\object(parent/instance#index)\\countername 
+
+<BR>and the parent, instance, index, and countername elements 
+
+may contain either a valid name or a wild card character.<P>
+
+The API function leaks memory on Windows XP.<P>
+
+</body>
+</html>

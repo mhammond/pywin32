@@ -1,0 +1,56 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32file.CopyFileEx</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32file.html">win32file</A>.CopyFileEx</H1><P>
+
+<B>CopyFileEx(<I>ExistingFileName</I><I>, NewFileName</I><I>, ProgressRoutine</I><I>, Data</I><I>, Cancel</I><I>, CopyFlags</I><I>, Transaction</I></B>)<P>Restartable file copy with optional progress routine<P>
+
+<H3>Parameters</H3><P><DT><I>ExistingFileName</I> : string<P>
+
+<DD>File to be copied<P><DT><I>NewFileName</I> : string<P>
+
+<DD>Place to which it will be copied<P><DT><I>ProgressRoutine=None</I> : <A HREF="CopyProgressRoutine.html">CopyProgressRoutine</A><P>
+
+<DD>A python function that receives progress updates, can be None<P>
+
+<DT><I>Data=None</I> : object<P>
+
+<DD>An arbitrary object to be passed to the callback function<P>
+
+<DT><I>Cancel=False</I> : boolean<P>
+
+<DD>Pass True to cancel a restartable copy that was previously interrupted<P>
+
+<DT><I>CopyFlags=0</I> : int<P>
+
+<DD>Combination of COPY_FILE_* flags<P>
+
+<DT><I>Transaction=None</I> : <A HREF="PyHANDLE.html">PyHANDLE</A><P>
+
+<DD>Handle to a transaction as returned by <A HREF="win32transaction__CreateTransaction_meth.html">win32transaction::CreateTransaction</A><P>
+
+<H3>Comments</H3>
+
+Accepts keyword args.<P>
+
+On Vista and later, the Transaction arg can be passed to invoke CopyFileTransacted<P>
+
+<H3>Win32 API References</H3><P><DT>Search for <i>CopyFileEx</i> at <a href="http://search.msdn.microsoft.com/search/results.aspx?view=msdn&query=CopyFileEx" target="_blank">msdn</a>, <a href="http://www.google.com/search?q=CopyFileEx" target="_blank">google</a> or <a href="http://groups.google.com/groups?q=CopyFileEx" target="_blank">google groups</a>.<P>
+
+<DT>Search for <i>CopyFileTransacted</i> at <a href="http://search.msdn.microsoft.com/search/results.aspx?view=msdn&query=CopyFileTransacted" target="_blank">msdn</a>, <a href="http://www.google.com/search?q=CopyFileTransacted" target="_blank">google</a> or <a href="http://groups.google.com/groups?q=CopyFileTransacted" target="_blank">google groups</a>.<P>
+
+</body>
+</html>

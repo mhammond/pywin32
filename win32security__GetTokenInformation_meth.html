@@ -1,0 +1,108 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32security.GetTokenInformation</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32security.html">win32security</A>.GetTokenInformation</H1><P>
+
+object = <B>GetTokenInformation(<I>TokenHandle</I><I>, TokenInformationClass</I>
+
+</B>)<P>Retrieves a specified type of information about an access token. The calling process must have appropriate access rights to obtain the information.<P>
+
+<H3>Parameters</H3><P><DT><I>TokenHandle</I> : <A HREF="PyHANDLE.html">PyHANDLE</A><P>
+
+<DD>Handle to an access token.<P><DT><I>TokenInformationClass</I> : int<P>
+
+<DD>Specifies a value from the TOKEN_INFORMATION_CLASS enumerated type identifying the type of information the function retrieves.<P><H3>Return Value</H3>The following types are supported<P>
+
+
+
+<P><TABLE COLS=2 WIDTH="100%" CELLSPACING=15>
+
+<TR>
+
+   <TD>
+
+       <B>TokenInformationClass</B>
+
+   </TD>
+
+   <TD>
+
+       <B>Return type</B>
+
+   </TD>
+
+</TR>
+
+<TR><TD><HR></TD><TD><HR></TD></TR>
+
+<TR><TD>TokenSessionId</TD><TD>int - Terminal Services session id</TD></TR>
+
+<TR><TD>TokenSandBoxInert</TD><TD>Boolean</TD></TR>
+
+<TR><TD>TokenType</TD><TD>Value from TOKEN_TYPE enum (TokenPrimary,TokenImpersonation)</TD></TR>
+
+<TR><TD>TokenImpersonationLevel</TD><TD>Value from SECURITY_IMPERSONATION_LEVEL enum</TD></TR>
+
+<TR><TD>TokenVirtualizationEnabled</TD><TD>Boolean</TD></TR>
+
+<TR><TD>TokenVirtualizationAllowed</TD><TD>Boolean</TD></TR>
+
+<TR><TD>TokenHasRestrictions</TD><TD>Boolean</TD></TR>
+
+<TR><TD>TokenElevationType</TD><TD>int - TokenElevation* value indicating what type of token is linked to</TD></TR>
+
+<TR><TD>TokenUIAccess</TD><TD>Boolean</TD></TR>
+
+<TR><TD>TokenUser</TD><TD>(<A HREF="PySID.html">PySID</A>,int)</TD></TR>
+
+<TR><TD>TokenOwner</TD><TD><A HREF="PySID.html">PySID</A></TD></TR>
+
+<TR><TD>TokenGroups</TD><TD>((<A HREF="PySID.html">PySID</A>,int),) 
+
+returns a list of tuples containing (group Sid, attribute flags)</TD></TR>
+
+<TR><TD>TokenRestrictedSids</TD><TD>((<A HREF="PySID.html">PySID</A>,int),)</TD></TR>
+
+<TR><TD>TokenPrivileges</TD><TD>((int,int),) 
+
+returns PyTOKEN_PRIVILEGES (tuple of LUID and attribute flags for each privilege) 
+
+attributes are combination of SE_PRIVILEGE_ENABLED,SE_PRIVILEGE_ENABLED_BY_DEFAULT,SE_PRIVILEGE_USED_FOR_ACCESS</TD></TR>
+
+<TR><TD>TokenPrimaryGroup</TD><TD><A HREF="PySID.html">PySID</A></TD></TR>
+
+<TR><TD>TokenSource</TD><TD>(string,LUID)</TD></TR>
+
+<TR><TD>TokenDefaultDacl</TD><TD><A HREF="PyACL.html">PyACL</A></TD></TR>
+
+<TR><TD>TokenStatistics</TD><TD>dict 
+
+Returns a dictionary representing a TOKEN_STATISTICS structure</TD></TR>
+
+<TR><TD>TokenOrigin</TD><TD>LUID identifying the logon session</TD></TR>
+
+<TR><TD>TokenLinkedToken</TD><TD><A HREF="PyHANDLE.html">PyHANDLE</A> - Returns handle to the access token to which token is linked</TD></TR>
+
+<TR><TD>TokenLogonSid</TD><TD><A HREF="PySID.html">PySID</A></TD></TR>
+
+<TR><TD>TokenElevation</TD><TD>Boolean</TD></TR>
+
+<TR><TD>TokenIntegrityLevel</TD><TD>(<A HREF="PySID.html">PySID</A>, int)</TD></TR>
+
+<TR><TD>TokenMandatoryPolicy</TD><TD>int (TOKEN_MANDATORY_POLICY_* flag)</TD></TR>
+
+</TABLE></body>
+</html>

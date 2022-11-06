@@ -1,0 +1,42 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32security.AdjustTokenPrivileges</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32security.html">win32security</A>.AdjustTokenPrivileges</H1><P>
+
+<A HREF="PyTOKEN_PRIVILEGES.html">PyTOKEN_PRIVILEGES</A> = <B>AdjustTokenPrivileges(<I>TokenHandle</I><I>, bDisableAllPrivileges</I>
+
+<I>, NewState</I>
+
+</B>)<P>Enables or disables privileges for an access token.<P>
+
+<H3>Parameters</H3><P><DT><I>TokenHandle</I> : <A HREF="PyHANDLE.html">PyHANDLE</A><P>
+
+<DD>Handle to an access token<P><DT><I>bDisableAllPrivileges</I> : int<P>
+
+<DD>Flag for disabling all privileges<P><DT><I>NewState</I> : <A HREF="PyTOKEN_PRIVILEGES.html">PyTOKEN_PRIVILEGES</A><P>
+
+<DD>The new state, can be None if bDisableAllPrivileges is True<P><H3>Comments</H3>
+
+Accepts keyword args.<P>
+
+<H3>Return Value</H3>Returns modified privileges for later restoral.  Privileges deleted from the token using 
+
+SE_PRIVILEGE_REMOVED are not returned.<P>
+
+
+
+</body>
+</html>

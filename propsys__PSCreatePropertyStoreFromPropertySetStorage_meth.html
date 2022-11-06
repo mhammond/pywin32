@@ -1,0 +1,42 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>propsys.PSCreatePropertyStoreFromPropertySetStorage</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="propsys.html">propsys</A>.PSCreatePropertyStoreFromPropertySetStorage</H1><P>
+
+<A HREF="PyIPropertyStore.html">PyIPropertyStore</A> = <B>PSCreatePropertyStoreFromPropertySetStorage(<I>pss</I><I>, Mode</I>
+
+<I>, riid</I>
+
+</B>)<P>Wraps a <A HREF="PyIPropertySetStorage.html">PyIPropertySetStorage</A> 
+
+interface in a <A HREF="PyIPropertyStore.html">PyIPropertyStore</A> object<P>
+
+<H3>Parameters</H3><P><DT><I>pss</I> : <A HREF="PyIPropertySetStorage.html">PyIPropertySetStorage</A><P>
+
+<DD>Property container to be adapted<P><DT><I>Mode</I> : int<P>
+
+<DD>Read or write mode, shellcon.STGM_*.  Must match mode used to open input interface.<P><DT><I>riid=IID_IPropertyStore</I> : <A HREF="PyIID.html">PyIID</A><P>
+
+<DD>The interface to create<P>
+
+<H3>Comments</H3>
+
+This function does not work for the NTFS property storage implementation based on 
+
+alternate data streams.<P>
+
+</body>
+</html>

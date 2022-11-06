@@ -1,0 +1,42 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyBLENDFUNCTION</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<HR><H1>PyBLENDFUNCTION Object</H1><P>
+
+Tuple of four small ints used to fill a BLENDFUNCTION struct 
+
+Each int must fit in a byte (0-255).<P>
+
+<H3>Win32 API References</H3><P><DT>Search for <i>BLENDFUNCTION</i> at <a href="http://search.msdn.microsoft.com/search/results.aspx?view=msdn&query=BLENDFUNCTION" target="_blank">msdn</a>, <a href="http://www.google.com/search?q=BLENDFUNCTION" target="_blank">google</a> or <a href="http://groups.google.com/groups?q=BLENDFUNCTION" target="_blank">google groups</a>.<P>
+
+<H3>Items</H3><P><DL><DT>[0] <I>int</I> : BlendOp<P>
+
+<DD>Only defined value is AC_SRC_OVER (0)<P></DL>
+
+<DL><DT>[1] <I>int</I> : BlendFlags<P>
+
+<DD>None currently defined, must be 0<P></DL>
+
+<DL><DT>[2] <I>int</I> : SourceConstantAlpha<P>
+
+<DD>Transparency to be applied to entire source. (255 is opaque)<P></DL>
+
+<DL><DT>[3] <I>int</I> : AlphaFormat<P>
+
+<DD>Only defined flag is AC_SRC_ALPHA, used when src bitmap contains per-pixel alpha<P></DL>
+
+</body>
+</html>

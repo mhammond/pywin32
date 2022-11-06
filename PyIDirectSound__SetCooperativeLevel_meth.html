@@ -1,0 +1,72 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyIDirectSound.SetCooperativeLevel</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="PyIDirectSound.html">PyIDirectSound</A>.SetCooperativeLevel</H1><P>
+
+<B>SetCooperativeLevel(<I>hwnd</I><I>, level</I></B>)<P>The IDirectSound::SetCooperativeLevel method sets the cooperative level 
+
+of the application for this sound device.<P>
+
+<H3>Parameters</H3><P><DT><I>hwnd</I> : int<P>
+
+<DD>Window handle to the application or None.<P><DT><I>level</I> : int<P>
+
+<DD>Requested priority level. Specify one of the following values:<P><P><TABLE COLS=2 WIDTH="100%" CELLSPACING=15>
+
+<TR>
+
+   <TD>
+
+       <B>Level</B>
+
+   </TD>
+
+   <TD>
+
+       <B>Description</B>
+
+   </TD>
+
+</TR>
+
+<TR><TD><HR></TD><TD><HR></TD></TR>
+
+<TR><TD>DSSCL_NORMAL</TD><TD>Sets the application to a fully cooperative status. Most applications should use this 
+
+level, because it has the smoothest multitasking and resource-sharing behavior.</TD></TR>
+
+<TR><TD>DSSCL_PRIORITY</TD><TD>Sets the application to the priority level. Applications with this cooperative level can 
+
+call the DirectSoundBuffer.setFormat and DirectSound.compact methods.</TD></TR>
+
+<TR><TD>DSSCL_EXCLUSIVE</TD><TD>Sets the application to the exclusive level. When it has the input focus, the 
+
+application will be the only one audible (sounds from applications with the DSBCAPS_GLOBALFOCUS flag set will 
+
+be muted). With this level, it also has all the privileges of the DSSCL_PRIORITY level. DirectSound will 
+
+restore the hardware format, as specified by the most recent call to the DirectSoundBuffer.setFormat method, 
+
+once the application gains the input focus. (Note that DirectSound will always restore the wave format, no 
+
+matter what priority level is set.)</TD></TR>
+
+<TR><TD>DSSCL_WRITEPRIMARY</TD><TD>This is the highest priority level. The application has write access to the primary 
+
+sound buffers. No secondary sound buffers in any application can be played.</TD></TR>
+
+</TABLE></body>
+</html>

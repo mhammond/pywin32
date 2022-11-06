@@ -1,0 +1,56 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32file.ConnectEx</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32file.html">win32file</A>.ConnectEx</H1><P>
+
+(int, int) = <B>ConnectEx(<I>s</I><I>, name</I>
+
+<I>, Overlapped</I>
+
+<I>, SendBuffer</I>
+
+</B>)<P>Version of connect that uses Overlapped I/O 
+
+ConnectEx(sock, (addr, port), buf, overlap)<P>
+
+<H3>Parameters</H3><P><DT><I>s</I> : <B>PySocket</B>
+
+/int<P>
+
+<DD>A bound, unconnected socket that will be used to connect<P><DT><I>name</I> : tuple<P>
+
+<DD>Address to connect to (host, port)<P><DT><I>Overlapped</I> : <A HREF="PyOVERLAPPED.html">PyOVERLAPPED</A><P>
+
+<DD>An overlapped structure<P><DT><I>SendBuffer=None</I> : buffer<P>
+
+<DD>Buffer to send on the socket after connect<P>
+
+<H3>Return Value</H3>Returns the completion code and number of bytes sent. 
+
+The completion code will be 0 for a completed operation, or ERROR_IO_PENDING for a pending overlapped operation.<P>
+
+
+
+If the platform does not support ConnectEx (eg, Windows 2000), an 
+
+exception will be thrown indicating the WSAIoctl function (which is used to 
+
+fetch the function pointer) failed with error code WSAEINVAL (10022).<P>
+
+
+
+</body>
+</html>

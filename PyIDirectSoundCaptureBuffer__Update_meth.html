@@ -1,0 +1,32 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyIDirectSoundCaptureBuffer.Update</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="PyIDirectSoundCaptureBuffer.html">PyIDirectSoundCaptureBuffer</A>.Update</H1><P>
+
+<B>Update(<I>dwReadCursor</I><I>, dwReadBytes</I><I>, dwFlags</I></B>)<P>Retrieve data from the capture buffer.<P>
+
+<H3>Parameters</H3><P><DT><I>dwReadCursor</I> : int<P>
+
+<DD>Offset, in bytes, from the start of the buffer to where the update begins.<P><DT><I>dwReadBytes</I> : int<P>
+
+<DD>Size, in bytes, of the portion of the buffer to update.<P><DT><I>dwFlags=0</I> : int<P>
+
+<DD>Flags modifying the update event. This value can be 0 or the following flag: 
+
+DSCBLOCK_ENTIREBUFFER The dwReadBytes parameter is to be ignored and the entire capture buffer is to be locked.<P>
+
+</body>
+</html>

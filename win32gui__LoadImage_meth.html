@@ -1,0 +1,44 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32gui.LoadImage</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32gui.html">win32gui</A>.LoadImage</H1><P>
+
+HANDLE = <B>LoadImage(<I>hinst</I><I>, name</I>
+
+<I>, type</I>
+
+<I>, cxDesired</I>
+
+<I>, cyDesired</I>
+
+<I>, fuLoad</I>
+
+</B>)<P>Loads a bitmap, cursor or icon<P>
+
+<H3>Parameters</H3><P><DT><I>hinst</I> : int<P>
+
+<DD>Handle to an instance of the module that contains the image to be loaded. To load an OEM image, set this parameter to zero.<P><DT><I>name</I> : int/string<P>
+
+<DD>Specifies the image to load. If the hInst parameter is non-zero and the fuLoad parameter omits LR_LOADFROMFILE, name specifies the image resource in the hInst module. If the image resource is to be loaded by name, the name parameter is a string that contains the name of the image resource.<P><DT><I>type</I> : int<P>
+
+<DD>Specifies the type of image to be loaded.<P><DT><I>cxDesired</I> : int<P>
+
+<DD>Specifies the width, in pixels, of the icon or cursor. If this parameter is zero and the fuLoad parameter is LR_DEFAULTSIZE, the function uses the SM_CXICON or SM_CXCURSOR system metric value to set the width. If this parameter is zero and LR_DEFAULTSIZE is not used, the function uses the actual resource width.<P><DT><I>cyDesired</I> : int<P>
+
+<DD>Specifies the height, in pixels, of the icon or cursor. If this parameter is zero and the fuLoad parameter is LR_DEFAULTSIZE, the function uses the SM_CYICON or SM_CYCURSOR system metric value to set the height. If this parameter is zero and LR_DEFAULTSIZE is not used, the function uses the actual resource height.<P><DT><I>fuLoad</I> : int<P>
+
+<DD><P></body>
+</html>

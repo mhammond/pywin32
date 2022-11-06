@@ -1,0 +1,54 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyCMINVOKECOMMANDINFO</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<HR><H1>PyCMINVOKECOMMANDINFO Object</H1><P>
+
+A tuple of parameters to be converted to a CMINVOKECOMMANDINFO struct<P>
+
+<H3>Items</H3><P><DL><DT>[0] <I>int</I> : Mask<P>
+
+<DD>Combination of shellcon.CMIC_MASK_* constants, can be 0<P></DL>
+
+<DL><DT>[1] <I><A HREF="PyHANDLE.html">PyHANDLE</A></I> : hwnd<P>
+
+<DD>Window that owns the shortcut menu<P></DL>
+
+<DL><DT>[2] <I>int or str</I> : Verb<P>
+
+<DD>Action to be carried out, specified as a string command or integer menu item id<P></DL>
+
+<DL><DT>[3] <I>str</I> : Parameters<P>
+
+<DD>Extra parameters to be passed to the command line for the action, can be None<P></DL>
+
+<DL><DT>[4] <I>str</I> : Directory<P>
+
+<DD>Working directory, can be None<P></DL>
+
+<DL><DT>[5] <I>int</I> : Show<P>
+
+<DD>Combination of win32con.SW_* constants for any windows that may be created<P></DL>
+
+<DL><DT>[6] <I>int</I> : HotKey<P>
+
+<DD>Hot key for any application that may be started<P></DL>
+
+<DL><DT>[7] <I><A HREF="PyHANDLE.html">PyHANDLE</A></I> : Icon<P>
+
+<DD>Handle to icon to use for application, can be None<P></DL>
+
+</body>
+</html>

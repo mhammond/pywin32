@@ -1,0 +1,44 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyCRYPTPROV.CryptGenKey</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="PyCRYPTPROV.html">PyCRYPTPROV</A>.CryptGenKey</H1><P>
+
+<A HREF="PyCRYPTKEY.html">PyCRYPTKEY</A> = <B>CryptGenKey(<I>Algid</I><I>, Flags</I>
+
+<I>, KeyLen</I>
+
+</B>)<P>Generates a key pair or a session key<P>
+
+<H3>Parameters</H3><P><DT><I>Algid</I> : int<P>
+
+<DD>Algorithm identifier, one of the CALG_* values, or 
+
+AT_KEYEXCHANGE/AT_SIGNATURE<P><DT><I>Flags</I> : int<P>
+
+<DD>Combination of 
+
+CRYPT_CREATE_SALT,CRYPT_EXPORTABLE,CRYPT_NO_SALT,CRYPT_PREGEN,CRYPT_USER_PROTECTED,CRYPT_ARCHIVABLE<P><DT><I>KeyLen=0</I> : int<P>
+
+<DD>Length of key to generate, can be 0 to use provider's default key 
+
+length<P>
+
+<H3>Comments</H3>
+
+Differs from Api call in that the length is passed in separately<P>
+
+</body>
+</html>

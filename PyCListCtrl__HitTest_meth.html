@@ -1,0 +1,68 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyCListCtrl.HitTest</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="PyCListCtrl.html">PyCListCtrl</A>.HitTest</H1><P>
+
+(int, int, int) = <B>HitTest(<I>x,y</I></B>)<P>Determines which list view item, if any, is at a specified position.<P>
+
+<H3>Parameters</H3><P><DT><I>x,y</I> : point<P>
+
+<DD>The point to test.<P><H3>Return Value</H3>The result is a tuple of (flags, item, subItem). 
+
+flags may be a combination of the following values:<P>
+
+
+
+<P><TABLE COLS=2 WIDTH="100%" CELLSPACING=15>
+
+<TR>
+
+   <TD>
+
+       <B>Value</B>
+
+   </TD>
+
+   <TD>
+
+       <B>Description</B>
+
+   </TD>
+
+</TR>
+
+<TR><TD><HR></TD><TD><HR></TD></TR>
+
+<TR><TD>commctrl.LVHT_ABOVE</TD><TD>The position is above the control's client area.</TD></TR>
+
+<TR><TD>commctrl.LVHT_BELOW</TD><TD>The position is below the control's client area.</TD></TR>
+
+<TR><TD>commctrl.LVHT_NOWHERE</TD><TD>The position is inside the list view control's client window, but it is not over a 
+
+list item.</TD></TR>
+
+<TR><TD>commctrl.LVHT_ONITEMICON</TD><TD>The position is over a list view item's icon.</TD></TR>
+
+<TR><TD>commctrl.LVHT_ONITEMLABEL</TD><TD>The position is over a list view item's text.</TD></TR>
+
+<TR><TD>commctrl.LVHT_ONITEMSTATEICON</TD><TD>The position is over the state image of a list view item.</TD></TR>
+
+<TR><TD>commctrl.LVHT_TOLEFT</TD><TD>The position is to the left of the list view control's client area.</TD></TR>
+
+<TR><TD>commctrl.LVHT_TORIGHT</TD><TD>The position is to the right of the list view control's client area.</TD></TR>
+
+</TABLE></body>
+</html>

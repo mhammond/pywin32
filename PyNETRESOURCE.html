@@ -1,0 +1,86 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyNETRESOURCE</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<HR><H1>PyNETRESOURCE Object</H1><P>
+
+A Python object that encapsulates a Win32 NETRESOURCE structure.<P>
+
+<H3>Properties</H3>
+
+<DL>
+
+<DT><B>integer dwScope</B>
+
+<DD><P>
+
+
+
+<DT><B>integer dwType</B>
+
+<DD><P>
+
+
+
+<DT><B>integer dwDisplayType</B>
+
+<DD><P>
+
+
+
+<DT><B>integer dwUsage</B>
+
+<DD><P>
+
+
+
+<DT><B>string localName</B>
+
+<DD><P>
+
+
+
+<DT><B>string remoteName</B>
+
+<DD><P>
+
+
+
+<DT><B>string comment</B>
+
+<DD><P>
+
+
+
+<DT><B>string provider</B>
+
+<DD><P>
+
+
+
+</DL>
+
+<H3>Comments</H3>
+
+Note that in pywin32-212 and earlier, the string attributes 
+
+were always strings, but empty strings when the underlying Windows 
+
+structure had NULL.  On later pywin32 builds, these string attributes will 
+
+return None in such cases.<P>
+
+</body>
+</html>

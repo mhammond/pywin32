@@ -1,0 +1,44 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32clipboard.GetPriorityClipboardFormat</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32clipboard.html">win32clipboard</A>.GetPriorityClipboardFormat</H1><P>
+
+int = <B>GetPriorityClipboardFormat(<I>formats</I></B>)<P>Returns the first available clipboard format in the specified 
+
+list.<P>
+
+<H3>Parameters</H3><P><DT><I>formats</I> : sequence<P>
+
+<DD>Sequence of integers identifying clipboard formats, 
+
+in priority order. For a description of the standard clipboard formats, 
+
+see Standard Clipboard Formats.<P><H3>Win32 API References</H3><P><DT>Search for <i>GetPriorityClipboardFormat</i> at <a href="http://search.msdn.microsoft.com/search/results.aspx?view=msdn&query=GetPriorityClipboardFormat" target="_blank">msdn</a>, <a href="http://www.google.com/search?q=GetPriorityClipboardFormat" target="_blank">google</a> or <a href="http://groups.google.com/groups?q=GetPriorityClipboardFormat" target="_blank">google groups</a>.<P>
+
+<DT>Search for <i>Standard Clipboard Formats</i> at <a href="http://search.msdn.microsoft.com/search/results.aspx?view=msdn&query=Standard Clipboard Formats" target="_blank">msdn</a>, <a href="http://www.google.com/search?q=Standard Clipboard Formats" target="_blank">google</a> or <a href="http://groups.google.com/groups?q=Standard Clipboard Formats" target="_blank">google groups</a>.<P>
+
+<H3>Return Value</H3>If the function succeeds, the return value is the first clipboard 
+
+format in the list for which data is available. If the clipboard is 
+
+empty, the return value is NULL. If the clipboard contains data, but not 
+
+in any of the specified formats, the return value is -1.<P>
+
+
+
+</body>
+</html>

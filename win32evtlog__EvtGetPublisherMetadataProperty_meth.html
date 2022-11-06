@@ -1,0 +1,46 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32evtlog.EvtGetPublisherMetadataProperty</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32evtlog.html">win32evtlog</A>.EvtGetPublisherMetadataProperty</H1><P>
+
+(object, int) = <B>EvtGetPublisherMetadataProperty(<I>PublisherMetadata</I><I>, PropertyId</I>
+
+<I>, Flags</I>
+
+</B>)<P>Retrieves a property from an event publisher<P>
+
+<H3>Parameters</H3><P><DT><I>PublisherMetadata</I> : <A HREF="PyEVT_HANDLE.html">PyEVT_HANDLE</A><P>
+
+<DD>Publisher handle as returned by <A HREF="win32evtlog__EvtOpenPublisherMetadata_meth.html">win32evtlog::EvtOpenPublisherMetadata</A><P><DT><I>PropertyId</I> : int<P>
+
+<DD>Property to retreive, EvtPublisherMetadata*<P><DT><I>Flags=0</I> : int<P>
+
+<DD>Reserved, use only 0<P>
+
+<H3>Comments</H3>
+
+Accepts keyword args<P>
+
+<H3>Return Value</H3>Returns the value and type of value (EvtVarType*) 
+
+Some properties return a handle (type EvtVarTypeEvtHandle) which can be iterated using 
+
+<A HREF="win32evtlog__EvtGetObjectArraySize_meth.html">win32evtlog::EvtGetObjectArraySize</A> and <A HREF="win32evtlog__EvtGetObjectArrayProperty_meth.html">win32evtlog::EvtGetObjectArrayProperty</A>.<P>
+
+
+
+</body>
+</html>

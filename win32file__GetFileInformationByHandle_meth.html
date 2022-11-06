@@ -1,0 +1,78 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32file.GetFileInformationByHandle</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32file.html">win32file</A>.GetFileInformationByHandle</H1><P>
+
+tuple = <B>GetFileInformationByHandle(<I>handle</I></B>)<P>Retrieves file information for a specified file.<P>
+
+<H3>Parameters</H3><P><DT><I>handle</I> : <A HREF="PyHANDLE.html">PyHANDLE</A>/int<P>
+
+<DD>Handle to the file for which to obtain information.<BR>This handle should not be a pipe handle. The GetFileInformationByHandle function does not work with pipe handles.<P><H3>Comments</H3>
+
+Depending on the underlying network components of the operating system and the type of server 
+
+connected to, the GetFileInformationByHandle function may fail, return partial information, 
+
+or full information for the given file. In general, you should not use GetFileInformationByHandle 
+
+unless your application is intended to be run on a limited set of operating system configurations.<P>
+
+<H3>Return Value</H3>The result is a tuple of:<P>
+
+
+
+<H3>Items</H3><P><DL><DT>[0] <I>int</I> : dwFileAttributes<P>
+
+<DD><P></DL>
+
+<DL><DT>[1] <I><A HREF="PyDateTime.html">PyDateTime</A></I> : ftCreationTime<P>
+
+<DD><P></DL>
+
+<DL><DT>[2] <I><A HREF="PyDateTime.html">PyDateTime</A></I> : ftLastAccessTime<P>
+
+<DD><P></DL>
+
+<DL><DT>[3] <I><A HREF="PyDateTime.html">PyDateTime</A></I> : ftLastWriteTime<P>
+
+<DD><P></DL>
+
+<DL><DT>[4] <I>int</I> : dwVolumeSerialNumber<P>
+
+<DD><P></DL>
+
+<DL><DT>[5] <I>int</I> : nFileSizeHigh<P>
+
+<DD><P></DL>
+
+<DL><DT>[6] <I>int</I> : nFileSizeLow<P>
+
+<DD><P></DL>
+
+<DL><DT>[7] <I>int</I> : nNumberOfLinks<P>
+
+<DD><P></DL>
+
+<DL><DT>[8] <I>int</I> : nFileIndexHigh<P>
+
+<DD><P></DL>
+
+<DL><DT>[9] <I>int</I> : nFileIndexLow<P>
+
+<DD><P></DL>
+
+</body>
+</html>

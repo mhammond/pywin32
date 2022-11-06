@@ -1,0 +1,66 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32service.QueryServiceConfig2</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32service.html">win32service</A>.QueryServiceConfig2</H1><P>
+
+object = <B>QueryServiceConfig2(<I>hService</I><I>, InfoLevel</I>
+
+</B>)<P>Retrieves advanced service configuration options<P>
+
+<H3>Parameters</H3><P><DT><I>hService</I> : <A HREF="PySC_HANDLE.html">PySC_HANDLE</A><P>
+
+<DD>Service handle as returned by <A HREF="win32service__OpenService_meth.html">win32service::OpenService</A><P><DT><I>InfoLevel</I> : int<P>
+
+<DD>One of win32service.SERVICE_CONFIG_* values<P><P><TABLE COLS=2 WIDTH="100%" CELLSPACING=15>
+
+<TR>
+
+   <TD>
+
+       <B>InfoLevel</B>
+
+   </TD>
+
+   <TD>
+
+       <B>Type of value returned</B>
+
+   </TD>
+
+</TR>
+
+<TR><TD><HR></TD><TD><HR></TD></TR>
+
+<TR><TD>SERVICE_CONFIG_DESCRIPTION</TD><TD>Unicode string</TD></TR>
+
+<TR><TD>SERVICE_CONFIG_FAILURE_ACTIONS</TD><TD>Dict representing a SERVICE_FAILURE_ACTIONS struct</TD></TR>
+
+<TR><TD>SERVICE_CONFIG_DELAYED_AUTO_START_INFO</TD><TD>Boolean</TD></TR>
+
+<TR><TD>SERVICE_CONFIG_FAILURE_ACTIONS_FLAG</TD><TD>Boolean</TD></TR>
+
+<TR><TD>SERVICE_CONFIG_PRESHUTDOWN_INFO</TD><TD>int (shutdown timeout in milliseconds)</TD></TR>
+
+<TR><TD>SERVICE_CONFIG_SERVICE_SID_INFO</TD><TD>int (SERVICE_SID_TYPE_*)</TD></TR>
+
+<TR><TD>SERVICE_CONFIG_REQUIRED_PRIVILEGES_INFO</TD><TD>List of unicode strings</TD></TR>
+
+</TABLE><H3>Return Value</H3>Type of returned object depends on InfoLevel<P>
+
+
+
+</body>
+</html>

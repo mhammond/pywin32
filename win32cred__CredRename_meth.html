@@ -1,0 +1,46 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32cred.CredRename</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32cred.html">win32cred</A>.CredRename</H1><P>
+
+dict = <B>CredRename(<I>OldTargetName</I><I>, NewTargetName</I>
+
+<I>, Type</I>
+
+<I>, Flags</I>
+
+</B>)<P>Changes the target name of stored credentials<P>
+
+<H3>Parameters</H3><P><DT><I>OldTargetName</I> : <B>PyUnicode</B>
+
+<P>
+
+<DD>The target of credential to be renamed<P><DT><I>NewTargetName</I> : <B>PyUnicode</B>
+
+<P>
+
+<DD>New target for the specified credential<P><DT><I>Type</I> : int<P>
+
+<DD>Type of the credential to be renamed (CRED_TYPE_*)<P><DT><I>Flags=0</I> : int<P>
+
+<DD>Reserved, use only 0<P>
+
+<H3>Comments</H3>
+
+CRED_FLAGS_USERNAME_TARGET credentials can't be renamed since their TargetName and Username must be equal<P>
+
+</body>
+</html>

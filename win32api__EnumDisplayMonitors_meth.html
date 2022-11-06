@@ -1,0 +1,42 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32api.EnumDisplayMonitors</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32api.html">win32api</A>.EnumDisplayMonitors</H1><P>
+
+list = <B>EnumDisplayMonitors(<I>hdc</I><I>, rcClip</I>
+
+</B>)<P>Lists display monitors for a given device context and area<P>
+
+<H3>Parameters</H3><P><DT><I>hdc=None</I> : <A HREF="PyHANDLE.html">PyHANDLE</A><P>
+
+<DD>Handle to device context, use None for virtual desktop<P>
+
+<DT><I>rcClip=None</I> : <A HREF="PyRECT.html">PyRECT</A><P>
+
+<DD>Clipping rectangle, can be None<P>
+
+<H3>Comments</H3>
+
+Accepts keyword arguments<P>
+
+<H3>Return Value</H3>Returns a sequence of tuples.  For each monitor found, returns a handle to the monitor, 
+
+device context handle, and intersection rectangle: (hMonitor, hdcMonitor, <A HREF="PyRECT.html">PyRECT</A>)<P>
+
+
+
+</body>
+</html>

@@ -1,0 +1,62 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyGFileOperationProgressSink</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<HR><H1>PyGFileOperationProgressSink Object</H1><P>
+
+Implement-only gateway for IFileOperationProgressSink, 
+
+used to receive events from a <A HREF="PyIFileOperation.html">PyIFileOperation</A> object. 
+
+<BR>To abort the operation, an implementation of any method can raise a 
+
+com_error with an appropriate HRESULT.<P>
+
+<H3>Methods</H3><P><DL><DT><A HREF="PyGFileOperationProgressSink__StartOperations_meth.html">StartOperations</A><BR>
+
+<DD>Called as operation begins, before any modifications are done&nbsp;<P><DT><A HREF="PyGFileOperationProgressSink__FinishOperations_meth.html">FinishOperations</A><BR>
+
+<DD>Called after all actions have been performed&nbsp;<P><DT><A HREF="PyGFileOperationProgressSink__PreRenameItem_meth.html">PreRenameItem</A><BR>
+
+<DD>Called before each file rename&nbsp;<P><DT><A HREF="PyGFileOperationProgressSink__PostRenameItem_meth.html">PostRenameItem</A><BR>
+
+<DD>Called after each file rename&nbsp;<P><DT><A HREF="PyGFileOperationProgressSink__PreMoveItem_meth.html">PreMoveItem</A><BR>
+
+<DD>Called before each move operation&nbsp;<P><DT><A HREF="PyGFileOperationProgressSink__PostMoveItem_meth.html">PostMoveItem</A><BR>
+
+<DD>Called after each move operation&nbsp;<P><DT><A HREF="PyGFileOperationProgressSink__PreCopyItem_meth.html">PreCopyItem</A><BR>
+
+<DD>Called before each copy operation&nbsp;<P><DT><A HREF="PyGFileOperationProgressSink__PostCopyItem_meth.html">PostCopyItem</A><BR>
+
+<DD>Called after each copy operation&nbsp;<P><DT><A HREF="PyGFileOperationProgressSink__PreDeleteItem_meth.html">PreDeleteItem</A><BR>
+
+<DD>Called before each delete operation&nbsp;<P><DT><A HREF="PyGFileOperationProgressSink__PostDeleteItem_meth.html">PostDeleteItem</A><BR>
+
+<DD>Called after each delete operation&nbsp;<P><DT><A HREF="PyGFileOperationProgressSink__PreNewItem_meth.html">PreNewItem</A><BR>
+
+<DD>Called before each new file is created&nbsp;<P><DT><A HREF="PyGFileOperationProgressSink__PostNewItem_meth.html">PostNewItem</A><BR>
+
+<DD>Called after each new file is created&nbsp;<P><DT><A HREF="PyGFileOperationProgressSink__UpdateProgress_meth.html">UpdateProgress</A><BR>
+
+<DD>Gives an estimate of total work completed&nbsp;<P><DT><A HREF="PyGFileOperationProgressSink__ResetTimer_meth.html">ResetTimer</A><BR>
+
+<DD>Not implemented, according to MSDN&nbsp;<P><DT><A HREF="PyGFileOperationProgressSink__PauseTimer_meth.html">PauseTimer</A><BR>
+
+<DD>Not implemented, according to MSDN&nbsp;<P><DT><A HREF="PyGFileOperationProgressSink__ResumeTimer_meth.html">ResumeTimer</A><BR>
+
+<DD>Not implemented, according to MSDN&nbsp;<P></DL>
+
+</body>
+</html>

@@ -1,0 +1,38 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyIApplicationDebugger.CreateInstanceAtDebugger</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="PyIApplicationDebugger.html">PyIApplicationDebugger</A>.CreateInstanceAtDebugger</H1><P>
+
+<B>CreateInstanceAtDebugger(<I>rclsid</I><I>, pUnkOuter</I><I>, dwClsContext</I><I>, riid</I></B>)<P>Create objects in the application process address space.<P>
+
+<H3>Parameters</H3><P><DT><I>rclsid</I> : <A HREF="PyIID.html">PyIID</A><P>
+
+<DD>Description for rclsid<P><DT><I>pUnkOuter</I> : <A HREF="PyIUnknown.html">PyIUnknown</A><P>
+
+<DD>Description for pUnkOuter<P><DT><I>dwClsContext</I> : int<P>
+
+<DD>Description for dwClsContext<P><DT><I>riid</I> : <A HREF="PyIID.html">PyIID</A><P>
+
+<DD>Description for riid<P><H3>Comments</H3>
+
+Provides a mechanism for the debugger IDE, running out-of-process to the 
+
+application, to create objects in the application process. 
+
+This method simply delegates to CoCreateInstance.<P>
+
+</body>
+</html>

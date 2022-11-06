@@ -1,0 +1,88 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32evtlog.EvtSubscribe</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32evtlog.html">win32evtlog</A>.EvtSubscribe</H1><P>
+
+<A HREF="PyEVT_HANDLE.html">PyEVT_HANDLE</A> = <B>EvtSubscribe(<I>ChannelPath</I><I>, Flags</I>
+
+<I>, SignalEvent</I>
+
+<I>, Callback</I>
+
+<I>, Context</I>
+
+<I>, Query</I>
+
+<I>, Session</I>
+
+<I>, Bookmark</I>
+
+</B>)<P>Requests notification for events<P>
+
+<H3>Parameters</H3><P><DT><I>ChannelPath</I> : str<P>
+
+<DD>Name of an event log channel<P><DT><I>Flags</I> : int<P>
+
+<DD>Combination of EvtSubscribe* flags determining how subscription is initiated<P><DT><I>SignalEvent=None</I> : <B>Py_HANDLE</B>
+
+<P>
+
+<DD>An event handle to be set when events are available (see <A HREF="win32event__CreateEvent_meth.html">win32event::CreateEvent</A>)<P>
+
+<DT><I>Callback=None</I> : function<P>
+
+<DD>Python function to be called with each event<P>
+
+<DT><I>Context=None</I> : object<P>
+
+<DD>Arbitrary object to be passed to the callback function<P>
+
+<DT><I>Query=None</I> : str<P>
+
+<DD>XML query used to select specific events, use None or '*' for all events<P>
+
+<DT><I>Session=None</I> : <A HREF="PyEVT_HANDLE.html">PyEVT_HANDLE</A><P>
+
+<DD>Handle to a session on another machine, or None for local<P>
+
+<DT><I>Bookmark=None</I> : <A HREF="PyEVT_HANDLE.html">PyEVT_HANDLE</A><P>
+
+<DD>If Flags contains EvtSubscribeStartAfterBookmark, used as starting point<P>
+
+<H3>Comments</H3>
+
+Accepts keyword args<P>
+
+The method used to receive events is determined by the parameters passed in. 
+
+To create a push subscription, define a callback function that will be called with each event. 
+
+The function will receive 3 args: 
+
+First is an integer specifying why the function was called (EvtSubscribeActionError or EvtSubscribeActionDeliver) 
+
+Second is the context object passed to EvtSubscribe. 
+
+Third is the handle to an event log record (if not called due to an error) 
+
+If an event handle is passed in, a pull subscription is created.  The event handle will be 
+
+signalled when events are available, and the subscription handle can be 
+
+passed to <A HREF="win32evtlog__EvtNext_meth.html">win32evtlog::EvtNext</A> to obtain the events.<P>
+
+</body>
+</html>

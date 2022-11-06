@@ -1,0 +1,52 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32clipboard.IsClipboardFormatAvailable</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32clipboard.html">win32clipboard</A>.IsClipboardFormatAvailable</H1><P>
+
+int = <B>IsClipboardFormatAvailable(<I>format</I></B>)<P>The 
+
+IsClipboardFormatAvailable function determines whether the clipboard 
+
+contains data in the specified format.<P>
+
+<H3>Parameters</H3><P><DT><I>format</I> : int<P>
+
+<DD>Specifies a clipboard format. For a description of 
+
+the standard clipboard formats, see Standard Clipboard Formats.<P><H3>Comments</H3>
+
+Typically, an application that recognizes only one clipboard format 
+
+would call this function when processing the WM_INITMENU or 
+
+WM_INITMENUPOPUP message. The application would then enable or disable 
+
+the Paste menu item, depending on the return value. Applications that 
+
+recognize more than one clipboard format should use the 
+
+GetPriorityClipboardFormat function for this purpose.<P>
+
+<H3>Win32 API References</H3><P><DT>Search for <i>IsClipboardFormatAvailable</i> at <a href="http://search.msdn.microsoft.com/search/results.aspx?view=msdn&query=IsClipboardFormatAvailable" target="_blank">msdn</a>, <a href="http://www.google.com/search?q=IsClipboardFormatAvailable" target="_blank">google</a> or <a href="http://groups.google.com/groups?q=IsClipboardFormatAvailable" target="_blank">google groups</a>.<P>
+
+<DT>Search for <i>Standard Clipboard Formats</i> at <a href="http://search.msdn.microsoft.com/search/results.aspx?view=msdn&query=Standard Clipboard Formats" target="_blank">msdn</a>, <a href="http://www.google.com/search?q=Standard Clipboard Formats" target="_blank">google</a> or <a href="http://groups.google.com/groups?q=Standard Clipboard Formats" target="_blank">google groups</a>.<P>
+
+<H3>Return Value</H3>If the clipboard format is available, the return value is nonzero.<P>
+
+
+
+</body>
+</html>

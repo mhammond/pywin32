@@ -1,0 +1,154 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyHH_AKLINK</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<HR><H1>PyHH_AKLINK Object</H1><P>
+
+A Python object, representing an HH_AKLINK structure<P>
+
+<H3>Comments</H3>
+
+Typically you create a PyHH_AKLINK (via <A HREF="win32help__HH_AKLINK_meth.html">win32help::HH_AKLINK</A>) 
+
+object, and set its properties. 
+
+The object can then be passed to any function which takes an HH_AKLINK 
+
+object.<BR> 
+
+<BR> 
+
+Use this structure to specify one or more ALink names or KLink keywords 
+
+that you want to search for.<BR> 
+
+<BR> 
+
+If the lookup yields no matching topics, HtmlHelp() checks the values of 
+
+the following HH_AKLINK members to determine what alternative action to 
+
+take:<BR> 
+
+<BR> 
+
+indexOnFail. If indexOnFail is TRUE, the Index tab is selected in the 
+
+help window specified in window, and the keyword specified in 
+
+keyword is selected in the entry field.<BR> 
+
+<BR> 
+
+url. If indexOnFail is FALSE, the topic file specified in url 
+
+appears in the help window specified in window.<BR> 
+
+msgText and msgTitle. If indexOnFail is FALSE and url is NULL, 
+
+a message box appears using the text and caption specified in 
+
+msgText and msgTitle.<BR> 
+
+<BR> 
+
+Used by<BR> 
+
+<B>HH_ALINK_LOOKUP</B>
+
+
+
+<BR> 
+
+<B>HH_KEYWORD_LOOKUP</B>
+
+
+
+<BR><P>
+
+<H3>Properties</H3>
+
+<DL>
+
+<DT><B>int indexOnFail</B>
+
+<DD>Specifies whether to display the keyword in the 
+
+Index tab of the HTML Help Viewer if the lookup fails. The value of 
+
+window specifies the Help Viewer.<P>
+
+
+
+<DT><B>string keywords</B>
+
+<DD>Specifies one or more ALink names or KLink 
+
+keywords to look up. Multiple entries are delimited by a semicolon.<P>
+
+
+
+<DT><B>string url</B>
+
+<DD>Specifies the topic file to navigate to if the lookup 
+
+fails. url refers to a valid topic within the specified compiled help 
+
+(.chm) file and does not support Internet protocols that point to an 
+
+HTML file.<P>
+
+
+
+<DT><B>string msgText</B>
+
+<DD>Specifies the text to display in a message box if 
+
+the lookup fails and indexOnFail is FALSE and url is NULL.<P>
+
+
+
+<DT><B>string msgTitle</B>
+
+<DD>Specifies the caption of the message box in which 
+
+the msgText parameter appears.<P>
+
+
+
+<DT><B>string window</B>
+
+<DD>Specifies the name of the window type in which to 
+
+display one of the following:<BR> 
+
+<BR> 
+
+The selected topic, if the lookup yields one or more matching topics. 
+
+The topic specified in url, if the lookup fails and a topic is specified 
+
+in url.<BR> 
+
+<BR> 
+
+The Index tab, if the lookup fails and indexOnFail is specified as TRUE.<P>
+
+
+
+</DL>
+
+</body>
+</html>

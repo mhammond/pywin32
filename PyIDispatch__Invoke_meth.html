@@ -1,0 +1,80 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyIDispatch.Invoke</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="PyIDispatch.html">PyIDispatch</A>.Invoke</H1><P>
+
+object = <B>Invoke(<I>dispid</I><I>, lcid</I>
+
+<I>, flags</I>
+
+<I>, bResultWanted</I>
+
+<I>, params, ...</I>
+
+</B>)<P>Invokes a DISPID, using the passed arguments.<P>
+
+<H3>Parameters</H3><P><DT><I>dispid</I> : int<P>
+
+<DD>The dispid to use.  Typically this value will come from <A HREF="PyIDispatch__GetIDsOfNames_meth.html">PyIDispatch::GetIDsOfNames</A> or 
+
+from a type library.<P><DT><I>lcid</I> : int<P>
+
+<DD>The locale id to use.<P><DT><I>flags</I> : int<P>
+
+<DD>The flags for the call.  The following flags can be used.<P><P><TABLE COLS=2 WIDTH="100%" CELLSPACING=15>
+
+<TR>
+
+   <TD>
+
+       <B>Flag</B>
+
+   </TD>
+
+   <TD>
+
+       <B>Description</B>
+
+   </TD>
+
+</TR>
+
+<TR><TD><HR></TD><TD><HR></TD></TR>
+
+<TR><TD>DISPATCH_METHOD</TD><TD>The member is invoked as a method. If a property has the same name, both this and the 
+
+DISPATCH_PROPERTYGET flag may be set.</TD></TR>
+
+<TR><TD>DISPATCH_PROPERTYGET</TD><TD>The member is retrieved as a property or data member.</TD></TR>
+
+<TR><TD>DISPATCH_PROPERTYPUT</TD><TD>The member is changed as a property or data member.</TD></TR>
+
+<TR><TD>DISPATCH_PROPERTYPUTREF</TD><TD>The member is changed by a reference assignment, rather than a value assignment. 
+
+This flag is valid only when the property accepts a reference to an object.</TD></TR>
+
+</TABLE><DT><I>bResultWanted</I> : int<P>
+
+<DD>Indicates if the result of the call should be requested.<P><DT><I>params, ...</I> : object, ...<P>
+
+<DD>The parameters to pass.<P><H3>Return Value</H3>If the bResultWanted parameter is False, then the result will be None. 
+
+Otherwise, the result is determined by the COM object itself (and may still be None)<P>
+
+
+
+</body>
+</html>

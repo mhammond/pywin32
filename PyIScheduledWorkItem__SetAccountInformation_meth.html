@@ -1,0 +1,40 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyIScheduledWorkItem.SetAccountInformation</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="PyIScheduledWorkItem.html">PyIScheduledWorkItem</A>.SetAccountInformation</H1><P>
+
+<B>SetAccountInformation(<I>AccountName</I><I>, Password</I></B>)<P>Set username and password under which task will run<P>
+
+<H3>Parameters</H3><P><DT><I>AccountName</I> : <B>unicode</B>
+
+<P>
+
+<DD>AccountName, use "" for local system account (can only be used by 
+
+Administrators)<P><DT><I>Password</I> : <B>unicode</B>
+
+<P>
+
+<DD>Password - Can be None for local System account, or if 
+
+TASK_FLAG_RUN_ONLY_IF_LOGGED_ON is set<P><H3>Comments</H3>
+
+On some systems, username and password are verified at the time the task is saved, on others when the task 
+
+tries to run<P>
+
+</body>
+</html>

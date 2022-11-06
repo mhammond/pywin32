@@ -1,0 +1,64 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32security.SetTokenInformation</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32security.html">win32security</A>.SetTokenInformation</H1><P>
+
+<B>SetTokenInformation(<I>TokenHandle</I><I>, TokenInformationClass</I><I>, TokenInformation</I></B>)<P>Set a specified type of information in an access token<P>
+
+<H3>Parameters</H3><P><DT><I>TokenHandle</I> : <A HREF="PyHANDLE.html">PyHANDLE</A><P>
+
+<DD>Handle to an access token to be modified<P><DT><I>TokenInformationClass</I> : int<P>
+
+<DD>Specifies a value from the TOKEN_INFORMATION_CLASS enumerated type identifying the type of information to be modfied<P><DT><I>TokenInformation</I> : object<P>
+
+<DD>Type is dependent on TokenInformationClass<P><P><TABLE COLS=2 WIDTH="100%" CELLSPACING=15>
+
+<TR>
+
+   <TD>
+
+       <B>TokenInformationClass</B>
+
+   </TD>
+
+   <TD>
+
+       <B>Type of input expected</B>
+
+   </TD>
+
+</TR>
+
+<TR><TD><HR></TD><TD><HR></TD></TR>
+
+<TR><TD>TokenOwner</TD><TD><A HREF="PySID.html">PySID</A> to be used as owner of created objects</TD></TR>
+
+<TR><TD>TokenPrimaryGroup</TD><TD><A HREF="PySID.html">PySID</A></TD></TR>
+
+<TR><TD>TokenDefaultDacl</TD><TD><A HREF="PyACL.html">PyACL</A> - Default permissions for created objects</TD></TR>
+
+<TR><TD>TokenSessionId</TD><TD>Int - Terminal services session id</TD></TR>
+
+<TR><TD>TokenVirtualizationEnabled</TD><TD>Boolean</TD></TR>
+
+<TR><TD>TokenVirtualizationAllowed</TD><TD>Boolean</TD></TR>
+
+<TR><TD>TokenIntegrityLevel</TD><TD><A HREF="PySID_AND_ATTRIBUTES.html">PySID_AND_ATTRIBUTES</A> containing an integrity SID and SE_GROUP_INTEGRITY flag</TD></TR>
+
+<TR><TD>TokenMandatoryPolicy</TD><TD>Int. one of TOKEN_MANDATORY_POLICY_* values</TD></TR>
+
+</TABLE></body>
+</html>

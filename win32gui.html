@@ -1,0 +1,730 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32gui</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1>Module win32gui</H1><P>
+
+A module which provides an interface to the native win32 
+
+GUI API.<BR>Note that a module <A HREF="winxpgui.html">winxpgui</A> also exists, 
+
+which has the same methods as win32gui, but has an XP 
+
+manifest and is setup for side-by-side sharing support for 
+
+certain system DLLs, notably commctl32.<P>
+
+<H3>Methods</H3><P><DL><DT><A HREF="win32gui__EnumFontFamilies_meth.html">EnumFontFamilies</A><BR>
+
+<DD>Enumerates the available font families.&nbsp;<P><DT><A HREF="win32gui__set_logger_meth.html">set_logger</A><BR>
+
+<DD>Sets a logger object for exceptions and error information&nbsp;<P><DT><A HREF="win32gui__LOGFONT_meth.html">LOGFONT</A><BR>
+
+<DD>Creates a LOGFONT object.&nbsp;<P><DT><A HREF="win32gui__CreateFontIndirect_meth.html">CreateFontIndirect</A><BR>
+
+<DD>function creates a logical font that has the specified characteristics. 
+
+The font can subsequently be selected as the current font for any device context.&nbsp;<P><DT><A HREF="win32gui__GetObject_meth.html">GetObject</A><BR>
+
+<DD>Returns a struct containing the parameters used to create a GDI object&nbsp;<P><DT><A HREF="win32gui__GetObjectType_meth.html">GetObjectType</A><BR>
+
+<DD>Returns the type (OBJ_* constant) of a GDI handle&nbsp;<P><DT><A HREF="win32gui__PyGetMemory_meth.html">PyGetMemory</A><BR>
+
+<DD>Returns a buffer object from and address and length&nbsp;<P><DT><A HREF="win32gui__PyGetString_meth.html">PyGetString</A><BR>
+
+<DD>Returns a string from an address.&nbsp;<P><DT><A HREF="win32gui__PySetString_meth.html">PySetString</A><BR>
+
+<DD>Copies a string to an address (null terminated). 
+
+You almost certainly should use <A HREF="win32gui__PySetMemory_meth.html">win32gui::PySetMemory</A> instead.&nbsp;<P><DT><A HREF="win32gui__PySetMemory_meth.html">PySetMemory</A><BR>
+
+<DD>Copies bytes to an address.&nbsp;<P><DT><A HREF="win32gui__PyGetArraySignedLong_meth.html">PyGetArraySignedLong</A><BR>
+
+<DD>Returns a signed long from an array object at specified index&nbsp;<P><DT><A HREF="win32gui__PyGetBufferAddressAndLen_meth.html">PyGetBufferAddressAndLen</A><BR>
+
+<DD>Returns a buffer object address and len&nbsp;<P><DT><A HREF="win32gui__FlashWindow_meth.html">FlashWindow</A><BR>
+
+<DD>The FlashWindow function flashes the specified window one time. It does not change the active state of the window.&nbsp;<P><DT><A HREF="win32gui__FlashWindowEx_meth.html">FlashWindowEx</A><BR>
+
+<DD>The FlashWindowEx function flashes the specified window a specified number of times.&nbsp;<P><DT><A HREF="win32gui__GetWindowLong_meth.html">GetWindowLong</A><BR>
+
+<DD>&nbsp;<P><DT><A HREF="win32gui__GetClassLong_meth.html">GetClassLong</A><BR>
+
+<DD>&nbsp;<P><DT><A HREF="win32gui__SetWindowLong_meth.html">SetWindowLong</A><BR>
+
+<DD>Places a long value at the specified offset into the extra window memory of the given window.&nbsp;<P><DT><A HREF="win32gui__CallWindowProc_meth.html">CallWindowProc</A><BR>
+
+<DD>&nbsp;<P><DT><A HREF="win32gui__SendMessage_meth.html">SendMessage</A><BR>
+
+<DD>Sends a message to the window.&nbsp;<P><DT><A HREF="win32gui__SendMessageTimeout_meth.html">SendMessageTimeout</A><BR>
+
+<DD>Sends a message to the window.&nbsp;<P><DT><A HREF="win32gui__PostMessage_meth.html">PostMessage</A><BR>
+
+<DD>&nbsp;<P><DT><A HREF="win32gui__PostThreadMessage_meth.html">PostThreadMessage</A><BR>
+
+<DD>&nbsp;<P><DT><A HREF="win32gui__ReplyMessage_meth.html">ReplyMessage</A><BR>
+
+<DD>Used to reply to a message sent through the SendMessage function without returning control to the function that called SendMessage.&nbsp;<P><DT><A HREF="win32gui__RegisterWindowMessage_meth.html">RegisterWindowMessage</A><BR>
+
+<DD>Defines a new window message that is guaranteed to be unique throughout the system. The message value can be used when sending or posting messages.&nbsp;<P><DT><A HREF="win32gui__DefWindowProc_meth.html">DefWindowProc</A><BR>
+
+<DD>&nbsp;<P><DT><A HREF="win32gui__EnumWindows_meth.html">EnumWindows</A><BR>
+
+<DD>Enumerates all top-level windows on the screen by passing the handle to each window, in turn, to an application-defined callback function.&nbsp;<P><DT><A HREF="win32gui__EnumThreadWindows_meth.html">EnumThreadWindows</A><BR>
+
+<DD>Enumerates all top-level windows associated with a thread on the screen by passing the handle to each window, in turn, to an application-defined callback function. EnumThreadWindows continues until the last top-level window associated with the thread is enumerated or the callback function returns FALSE&nbsp;<P><DT><A HREF="win32gui__EnumChildWindows_meth.html">EnumChildWindows</A><BR>
+
+<DD>Enumerates the child windows that belong to the specified parent window by passing the handle to each child window, in turn, to an application-defined callback function. EnumChildWindows continues until the last child window is enumerated or the callback function returns FALSE.&nbsp;<P><DT><A HREF="win32gui__DialogBox_meth.html">DialogBox</A><BR>
+
+<DD>Creates a modal dialog box.&nbsp;<P><DT><A HREF="win32gui__DialogBoxParam_meth.html">DialogBoxParam</A><BR>
+
+<DD>See <A HREF="win32gui__DialogBox_meth.html">win32gui::DialogBox</A>&nbsp;<P><DT><A HREF="win32gui__DialogBoxIndirect_meth.html">DialogBoxIndirect</A><BR>
+
+<DD>Creates a modal dialog box from a template, see <A HREF="win32ui__CreateDialogIndirect_meth.html">win32ui::CreateDialogIndirect</A>&nbsp;<P><DT><A HREF="win32gui__DialogBoxIndirectParam_meth.html">DialogBoxIndirectParam</A><BR>
+
+<DD>See <A HREF="win32gui__DialogBoxIndirect_meth.html">win32gui::DialogBoxIndirect</A>&nbsp;<P><DT><A HREF="win32gui__CreateDialogIndirect_meth.html">CreateDialogIndirect</A><BR>
+
+<DD>Creates a modeless dialog box from a template, see <A HREF="win32ui__CreateDialogIndirect_meth.html">win32ui::CreateDialogIndirect</A>&nbsp;<P><DT><A HREF="win32gui__DialogBoxIndirectParam_meth.html">DialogBoxIndirectParam</A><BR>
+
+<DD>See <A HREF="win32gui__CreateDialogIndirect_meth.html">win32gui::CreateDialogIndirect</A>&nbsp;<P><DT><A HREF="win32gui__EndDialog_meth.html">EndDialog</A><BR>
+
+<DD>Ends a dialog box.&nbsp;<P><DT><A HREF="win32gui__GetDlgItem_meth.html">GetDlgItem</A><BR>
+
+<DD>Retrieves the handle to a control in the specified dialog box.&nbsp;<P><DT><A HREF="win32gui__GetDlgItemInt_meth.html">GetDlgItemInt</A><BR>
+
+<DD>Returns the integer value of a dialog control&nbsp;<P><DT><A HREF="win32gui__SetDlgItemInt_meth.html">SetDlgItemInt</A><BR>
+
+<DD>Places an integer value in a dialog control&nbsp;<P><DT><A HREF="win32gui__GetDlgCtrlID_meth.html">GetDlgCtrlID</A><BR>
+
+<DD>Retrieves the identifier of the specified control.&nbsp;<P><DT><A HREF="win32gui__GetDlgItemText_meth.html">GetDlgItemText</A><BR>
+
+<DD>Returns the text of a dialog control&nbsp;<P><DT><A HREF="win32gui__SetDlgItemText_meth.html">SetDlgItemText</A><BR>
+
+<DD>Sets the text for a window or control&nbsp;<P><DT><A HREF="win32gui__GetNextDlgTabItem_meth.html">GetNextDlgTabItem</A><BR>
+
+<DD>Retrieves a handle to the first control that has the WS_TABSTOP style that precedes (or follows) the specified control.&nbsp;<P><DT><A HREF="win32gui__GetNextDlgGroupItem_meth.html">GetNextDlgGroupItem</A><BR>
+
+<DD>Retrieves a handle to the first control in a group of controls that precedes (or follows) the specified control in a dialog box.&nbsp;<P><DT><A HREF="win32gui__SetWindowText_meth.html">SetWindowText</A><BR>
+
+<DD>Sets the window text.&nbsp;<P><DT><A HREF="win32gui__GetWindowText_meth.html">GetWindowText</A><BR>
+
+<DD>Get the window text.&nbsp;<P><DT><A HREF="win32gui__InitCommonControls_meth.html">InitCommonControls</A><BR>
+
+<DD>Initializes the common controls.&nbsp;<P><DT><A HREF="win32gui__InitCommonControlsEx_meth.html">InitCommonControlsEx</A><BR>
+
+<DD>Initializes specific common controls.&nbsp;<P><DT><A HREF="win32gui__LoadCursor_meth.html">LoadCursor</A><BR>
+
+<DD>Loads a cursor.&nbsp;<P><DT><A HREF="win32gui__SetCursor_meth.html">SetCursor</A><BR>
+
+<DD>&nbsp;<P><DT><A HREF="win32gui__GetCursor_meth.html">GetCursor</A><BR>
+
+<DD>&nbsp;<P><DT><A HREF="win32gui__GetCursorInfo_meth.html">GetCursorInfo</A><BR>
+
+<DD>Retrieves information about the global cursor.&nbsp;<P><DT><A HREF="win32gui__CreateAcceleratorTable_meth.html">CreateAcceleratorTable</A><BR>
+
+<DD>Creates an accelerator table&nbsp;<P><DT><A HREF="win32gui__DestroyAccleratorTable_meth.html">DestroyAccleratorTable</A><BR>
+
+<DD>Destroys an accelerator table&nbsp;<P><DT><A HREF="win32gui__LoadMenu_meth.html">LoadMenu</A><BR>
+
+<DD>Loads a menu&nbsp;<P><DT><A HREF="win32gui__DestroyMenu_meth.html">DestroyMenu</A><BR>
+
+<DD>Destroys a previously loaded menu.&nbsp;<P><DT><A HREF="win32gui__SetMenu_meth.html">SetMenu</A><BR>
+
+<DD>Sets the menu for the specified window.&nbsp;<P><DT><A HREF="win32gui__GetMenu_meth.html">GetMenu</A><BR>
+
+<DD>Gets the menu for the specified window.&nbsp;<P><DT><A HREF="win32gui__LoadIcon_meth.html">LoadIcon</A><BR>
+
+<DD>Loads an icon&nbsp;<P><DT><A HREF="win32gui__CopyIcon_meth.html">CopyIcon</A><BR>
+
+<DD>Copies an icon&nbsp;<P><DT><A HREF="win32gui__DrawIcon_meth.html">DrawIcon</A><BR>
+
+<DD>Draws an icon or cursor into the specified device context. 
+
+To specify additional drawing options, use the <A HREF="win32gui__DrawIconEx_meth.html">win32gui::DrawIconEx</A> function.&nbsp;<P><DT><A HREF="win32gui__DrawIconEx_meth.html">DrawIconEx</A><BR>
+
+<DD>Draws an icon or cursor into the specified device context, 
+
+performing the specified raster operations, and stretching or compressing the 
+
+icon or cursor as specified.&nbsp;<P><DT><A HREF="win32gui__CreateIconIndirect_meth.html">CreateIconIndirect</A><BR>
+
+<DD>Creates an icon or cursor from an ICONINFO structure.&nbsp;<P><DT><A HREF="win32gui__CreateIconFromResource_meth.html">CreateIconFromResource</A><BR>
+
+<DD>Creates an icon or cursor from resource bits describing the icon.&nbsp;<P><DT><A HREF="win32gui__LoadImage_meth.html">LoadImage</A><BR>
+
+<DD>Loads a bitmap, cursor or icon&nbsp;<P><DT><A HREF="win32gui__DeleteObject_meth.html">DeleteObject</A><BR>
+
+<DD>Deletes a logical pen, brush, font, bitmap, region, or palette, freeing all system resources associated with the object. After the object is deleted, the specified handle is no longer valid.&nbsp;<P><DT><A HREF="win32gui__BitBlt_meth.html">BitBlt</A><BR>
+
+<DD>Performs a bit-block transfer of the color data corresponding 
+
+to a rectangle of pixels from the specified source device context into a 
+
+destination device context.&nbsp;<P><DT><A HREF="win32gui__StretchBlt_meth.html">StretchBlt</A><BR>
+
+<DD>Copies a bitmap from a source rectangle into a destination 
+
+rectangle, stretching or compressing the bitmap to fit the dimensions of the 
+
+destination rectangle, if necessary&nbsp;<P><DT><A HREF="win32gui__PatBlt_meth.html">PatBlt</A><BR>
+
+<DD>Paints a rectangle by combining the current brush with existing colors&nbsp;<P><DT><A HREF="win32gui__SetStretchBltMode_meth.html">SetStretchBltMode</A><BR>
+
+<DD>Sets the stretching mode used by <A HREF="win32gui__StretchBlt_meth.html">win32gui::StretchBlt</A>&nbsp;<P><DT><A HREF="win32gui__GetStretchBltMode_meth.html">GetStretchBltMode</A><BR>
+
+<DD>Returns the stretching mode used by <A HREF="win32gui__StretchBlt_meth.html">win32gui::StretchBlt</A>&nbsp;<P><DT><A HREF="win32gui__TransparentBlt_meth.html">TransparentBlt</A><BR>
+
+<DD>Transfers color from one DC to another, with one color treated as transparent&nbsp;<P><DT><A HREF="win32gui__MaskBlt_meth.html">MaskBlt</A><BR>
+
+<DD>Combines the color data for the source and destination 
+
+bitmaps using the specified mask and raster operation.&nbsp;<P><DT><A HREF="win32gui__AlphaBlend_meth.html">AlphaBlend</A><BR>
+
+<DD>Transfers color information using alpha blending&nbsp;<P><DT><A HREF="win32gui__ImageList_Add_meth.html">ImageList_Add</A><BR>
+
+<DD>Adds an image or images to an image list.&nbsp;<P><DT><A HREF="win32gui__ImageList_Create_meth.html">ImageList_Create</A><BR>
+
+<DD>Create an image list&nbsp;<P><DT><A HREF="win32gui__ImageList_Destroy_meth.html">ImageList_Destroy</A><BR>
+
+<DD>Destroy an imagelist&nbsp;<P><DT><A HREF="win32gui__ImageList_Draw_meth.html">ImageList_Draw</A><BR>
+
+<DD>Draw an image on an HDC&nbsp;<P><DT><A HREF="win32gui__ImageList_DrawEx_meth.html">ImageList_DrawEx</A><BR>
+
+<DD>Draw an image on an HDC&nbsp;<P><DT><A HREF="win32gui__ImageList_GetIcon_meth.html">ImageList_GetIcon</A><BR>
+
+<DD>Extract an icon from an imagelist&nbsp;<P><DT><A HREF="win32gui__ImageList_GetImageCount_meth.html">ImageList_GetImageCount</A><BR>
+
+<DD>Return count of images in imagelist&nbsp;<P><DT><A HREF="win32gui__ImageList_LoadImage_meth.html">ImageList_LoadImage</A><BR>
+
+<DD>Loads bitmaps, cursors or icons, creates imagelist&nbsp;<P><DT><A HREF="win32gui__ImageList_LoadBitmap_meth.html">ImageList_LoadBitmap</A><BR>
+
+<DD>Creates an image list from the specified bitmap resource.&nbsp;<P><DT><A HREF="win32gui__ImageList_Remove_meth.html">ImageList_Remove</A><BR>
+
+<DD>Remove an image from an imagelist&nbsp;<P><DT><A HREF="win32gui__ImageList_Replace_meth.html">ImageList_Replace</A><BR>
+
+<DD>Replace an image in an imagelist with a bitmap image&nbsp;<P><DT><A HREF="win32gui__ImageList_ReplaceIcon_meth.html">ImageList_ReplaceIcon</A><BR>
+
+<DD>Replace an image in an imagelist with an icon image&nbsp;<P><DT><A HREF="win32gui__ImageList_SetBkColor_meth.html">ImageList_SetBkColor</A><BR>
+
+<DD>Set the background color for the imagelist&nbsp;<P><DT><A HREF="win32gui__ImageList_SetOverlayImage_meth.html">ImageList_SetOverlayImage</A><BR>
+
+<DD>Adds a specified image to the list of images to be used as overlay masks. An image list can have up to four overlay masks in version 4.70 and earlier and up to 15 in version 4.71. The function assigns an overlay mask index to the specified image.&nbsp;<P><DT><A HREF="win32gui__MessageBox_meth.html">MessageBox</A><BR>
+
+<DD>Displays a message box&nbsp;<P><DT><A HREF="win32gui__MessageBeep_meth.html">MessageBeep</A><BR>
+
+<DD>Plays a waveform sound.&nbsp;<P><DT><A HREF="win32gui__CreateWindow_meth.html">CreateWindow</A><BR>
+
+<DD>Creates a new window.&nbsp;<P><DT><A HREF="win32gui__DestroyWindow_meth.html">DestroyWindow</A><BR>
+
+<DD>&nbsp;<P><DT><A HREF="win32gui__EnableWindow_meth.html">EnableWindow</A><BR>
+
+<DD>Enables and disables keyboard and mouse input to a window&nbsp;<P><DT><A HREF="win32gui__FindWindow_meth.html">FindWindow</A><BR>
+
+<DD>Retrieves a handle to the top-level window whose class name and window name match the specified strings.&nbsp;<P><DT><A HREF="win32gui__FindWindowEx_meth.html">FindWindowEx</A><BR>
+
+<DD>Retrieves a handle to the top-level window whose class name and window name match the specified strings.&nbsp;<P><DT><A HREF="win32gui__DragAcceptFiles_meth.html">DragAcceptFiles</A><BR>
+
+<DD>Registers whether a window accepts dropped files.&nbsp;<P><DT><A HREF="win32gui__DragDetect_meth.html">DragDetect</A><BR>
+
+<DD>captures the mouse and tracks its movement until the user releases the left button, presses the ESC key, or moves the mouse outside the drag rectangle around the specified point.&nbsp;<P><DT><A HREF="win32gui__SetDoubleClickTime_meth.html">SetDoubleClickTime</A><BR>
+
+<DD>&nbsp;<P><DT><A HREF="win32gui__GetDoubleClickTime_meth.html">GetDoubleClickTime</A><BR>
+
+<DD>&nbsp;<P><DT><A HREF="win32gui__HideCaret_meth.html">HideCaret</A><BR>
+
+<DD>Hides the caret&nbsp;<P><DT><A HREF="win32gui__SetCaretPos_meth.html">SetCaretPos</A><BR>
+
+<DD>Changes the position of the caret&nbsp;<P><DT><A HREF="win32gui__GetCaretPos_meth.html">GetCaretPos</A><BR>
+
+<DD>Returns the current caret position&nbsp;<P><DT><A HREF="win32gui__ShowCaret_meth.html">ShowCaret</A><BR>
+
+<DD>Shows the caret at its current position&nbsp;<P><DT><A HREF="win32gui__ShowWindow_meth.html">ShowWindow</A><BR>
+
+<DD>Shows or hides a window and changes its state&nbsp;<P><DT><A HREF="win32gui__IsWindowVisible_meth.html">IsWindowVisible</A><BR>
+
+<DD>Indicates if the window has the WS_VISIBLE style.&nbsp;<P><DT><A HREF="win32gui__IsWindowEnabled_meth.html">IsWindowEnabled</A><BR>
+
+<DD>Indicates if the window is enabled.&nbsp;<P><DT><A HREF="win32gui__SetFocus_meth.html">SetFocus</A><BR>
+
+<DD>Sets focus to the specified window.&nbsp;<P><DT><A HREF="win32gui__GetFocus_meth.html">GetFocus</A><BR>
+
+<DD>Returns the HWND of the window with focus.&nbsp;<P><DT><A HREF="win32gui__UpdateWindow_meth.html">UpdateWindow</A><BR>
+
+<DD>&nbsp;<P><DT><A HREF="win32gui__BringWindowToTop_meth.html">BringWindowToTop</A><BR>
+
+<DD>&nbsp;<P><DT><A HREF="win32gui__SetActiveWindow_meth.html">SetActiveWindow</A><BR>
+
+<DD>&nbsp;<P><DT><A HREF="win32gui__GetActiveWindow_meth.html">GetActiveWindow</A><BR>
+
+<DD>&nbsp;<P><DT><A HREF="win32gui__SetForegroundWindow_meth.html">SetForegroundWindow</A><BR>
+
+<DD>&nbsp;<P><DT><A HREF="win32gui__GetForegroundWindow_meth.html">GetForegroundWindow</A><BR>
+
+<DD>&nbsp;<P><DT><A HREF="win32gui__GetClientRect_meth.html">GetClientRect</A><BR>
+
+<DD>Returns the rectangle of the client area of a window, in client coordinates&nbsp;<P><DT><A HREF="win32gui__GetDC_meth.html">GetDC</A><BR>
+
+<DD>Gets the device context for the window.&nbsp;<P><DT><A HREF="win32gui__SaveDC_meth.html">SaveDC</A><BR>
+
+<DD>Save the state of a device context&nbsp;<P><DT><A HREF="win32gui__RestoreDC_meth.html">RestoreDC</A><BR>
+
+<DD>Restores a device context state&nbsp;<P><DT><A HREF="win32gui__DeleteDC_meth.html">DeleteDC</A><BR>
+
+<DD>Deletes a DC&nbsp;<P><DT><A HREF="win32gui__CreateCompatibleDC_meth.html">CreateCompatibleDC</A><BR>
+
+<DD>Creates a memory device context (DC) compatible with the specified device.&nbsp;<P><DT><A HREF="win32gui__CreateCompatibleBitmap_meth.html">CreateCompatibleBitmap</A><BR>
+
+<DD>Creates a bitmap compatible with the device that is associated with the specified device context.&nbsp;<P><DT><A HREF="win32gui__CreateBitmap_meth.html">CreateBitmap</A><BR>
+
+<DD>Creates a bitmap&nbsp;<P><DT><A HREF="win32gui__SelectObject_meth.html">SelectObject</A><BR>
+
+<DD>Selects an object into the specified device context (DC). The new object replaces the previous object of the same type.&nbsp;<P><DT><A HREF="win32gui__GetCurrentObject_meth.html">GetCurrentObject</A><BR>
+
+<DD>Retrieves currently selected object from a DC&nbsp;<P><DT><A HREF="win32gui__GetWindowRect_meth.html">GetWindowRect</A><BR>
+
+<DD>Returns the rectangle for a window in screen coordinates&nbsp;<P><DT><A HREF="win32gui__GetStockObject_meth.html">GetStockObject</A><BR>
+
+<DD>Creates a handle to one of the standard system Gdi objects&nbsp;<P><DT><A HREF="win32gui__PostQuitMessage_meth.html">PostQuitMessage</A><BR>
+
+<DD>&nbsp;<P><DT><A HREF="win32gui__WaitMessage_meth.html">WaitMessage</A><BR>
+
+<DD>Waits for a message&nbsp;<P><DT><A HREF="win32gui__SetWindowPos_meth.html">SetWindowPos</A><BR>
+
+<DD>Sets the position and size of a window&nbsp;<P><DT><A HREF="win32gui__GetWindowPlacement_meth.html">GetWindowPlacement</A><BR>
+
+<DD>Returns placement information about the current window.&nbsp;<P><DT><A HREF="win32gui__SetWindowPlacement_meth.html">SetWindowPlacement</A><BR>
+
+<DD>Sets the windows placement&nbsp;<P><DT><A HREF="win32gui__RegisterClass_meth.html">RegisterClass</A><BR>
+
+<DD>Registers a window class.&nbsp;<P><DT><A HREF="win32gui__UnregisterClass_meth.html">UnregisterClass</A><BR>
+
+<DD>Unregisters a window class created by <A HREF="win32gui__RegisterClass_meth.html">win32gui::RegisterClass</A>&nbsp;<P><DT><A HREF="win32gui__PumpMessages_meth.html">PumpMessages</A><BR>
+
+<DD>Runs a message loop until a WM_QUIT message is received.&nbsp;<P><DT><A HREF="win32gui__PumpWaitingMessages_meth.html">PumpWaitingMessages</A><BR>
+
+<DD>Pumps all waiting messages for the current thread.&nbsp;<P><DT><A HREF="win32gui__GetMessage_meth.html">GetMessage</A><BR>
+
+<DD>&nbsp;<P><DT><A HREF="win32gui__TranslateMessage_meth.html">TranslateMessage</A><BR>
+
+<DD>&nbsp;<P><DT><A HREF="win32gui__DispatchMessage_meth.html">DispatchMessage</A><BR>
+
+<DD>&nbsp;<P><DT><A HREF="win32gui__TranslateAccelerator_meth.html">TranslateAccelerator</A><BR>
+
+<DD>&nbsp;<P><DT><A HREF="win32gui__PeekMessage_meth.html">PeekMessage</A><BR>
+
+<DD>&nbsp;<P><DT><A HREF="win32gui__Shell_NotifyIcon_meth.html">Shell_NotifyIcon</A><BR>
+
+<DD>Adds, removes or modifies a taskbar icon.&nbsp;<P><DT><A HREF="win32gui__GetSystemMenu_meth.html">GetSystemMenu</A><BR>
+
+<DD>&nbsp;<P><DT><A HREF="win32gui__DrawMenuBar_meth.html">DrawMenuBar</A><BR>
+
+<DD>&nbsp;<P><DT><A HREF="win32gui__MoveWindow_meth.html">MoveWindow</A><BR>
+
+<DD>&nbsp;<P><DT><A HREF="win32gui__CloseWindow_meth.html">CloseWindow</A><BR>
+
+<DD>&nbsp;<P><DT><A HREF="win32gui__DeleteMenu_meth.html">DeleteMenu</A><BR>
+
+<DD>&nbsp;<P><DT><A HREF="win32gui__RemoveMenu_meth.html">RemoveMenu</A><BR>
+
+<DD>&nbsp;<P><DT><A HREF="win32gui__CreateMenu_meth.html">CreateMenu</A><BR>
+
+<DD>&nbsp;<P><DT><A HREF="win32gui__CreatePopupMenu_meth.html">CreatePopupMenu</A><BR>
+
+<DD>&nbsp;<P><DT><A HREF="win32gui__TrackPopupMenu_meth.html">TrackPopupMenu</A><BR>
+
+<DD>Display popup shortcut menu&nbsp;<P><DT><A HREF="win32gui__CommDlgExtendedError_meth.html">CommDlgExtendedError</A><BR>
+
+<DD>&nbsp;<P><DT><A HREF="win32gui__ExtractIcon_meth.html">ExtractIcon</A><BR>
+
+<DD>&nbsp;<P><DT><A HREF="win32gui__ExtractIconEx_meth.html">ExtractIconEx</A><BR>
+
+<DD>&nbsp;<P><DT><A HREF="win32gui__DestroyIcon_meth.html">DestroyIcon</A><BR>
+
+<DD>&nbsp;<P><DT><A HREF="win32gui__GetIconInfo_meth.html">GetIconInfo</A><BR>
+
+<DD>Returns parameters for an icon or cursor&nbsp;<P><DT><A HREF="win32gui__ScreenToClient_meth.html">ScreenToClient</A><BR>
+
+<DD>Convert screen coordinates to client coords&nbsp;<P><DT><A HREF="win32gui__ClientToScreen_meth.html">ClientToScreen</A><BR>
+
+<DD>Convert client coordinates to screen coords&nbsp;<P><DT><A HREF="win32gui__PaintDesktop_meth.html">PaintDesktop</A><BR>
+
+<DD>Fills a DC with the destop background&nbsp;<P><DT><A HREF="win32gui__RedrawWindow_meth.html">RedrawWindow</A><BR>
+
+<DD>Causes a portion of a window to be redrawn&nbsp;<P><DT><A HREF="win32gui__GetTextExtentPoint32_meth.html">GetTextExtentPoint32</A><BR>
+
+<DD>Computes the width and height of the specified string of text.&nbsp;<P><DT><A HREF="win32gui__GetTextMetrics_meth.html">GetTextMetrics</A><BR>
+
+<DD>Returns info for the font selected into a DC&nbsp;<P><DT><A HREF="win32gui__GetTextCharacterExtra_meth.html">GetTextCharacterExtra</A><BR>
+
+<DD>Returns the space between characters&nbsp;<P><DT><A HREF="win32gui__SetTextCharacterExtra_meth.html">SetTextCharacterExtra</A><BR>
+
+<DD>Sets the spacing between characters&nbsp;<P><DT><A HREF="win32gui__GetTextAlign_meth.html">GetTextAlign</A><BR>
+
+<DD>Returns horizontal and vertical alignment for text in a device context&nbsp;<P><DT><A HREF="win32gui__SetTextAlign_meth.html">SetTextAlign</A><BR>
+
+<DD>Sets horizontal and vertical alignment for text in a device context&nbsp;<P><DT><A HREF="win32gui__GetTextFace_meth.html">GetTextFace</A><BR>
+
+<DD>Retrieves the name of the font currently selected in a DC&nbsp;<P><DT><A HREF="win32gui__GetMapMode_meth.html">GetMapMode</A><BR>
+
+<DD>Returns the method a device context uses to translate logical units to physical units&nbsp;<P><DT><A HREF="win32gui__SetMapMode_meth.html">SetMapMode</A><BR>
+
+<DD>Sets the method used for translating logical units to device units&nbsp;<P><DT><A HREF="win32gui__GetGraphicsMode_meth.html">GetGraphicsMode</A><BR>
+
+<DD>Determines if advanced GDI features are enabled for a device context&nbsp;<P><DT><A HREF="win32gui__SetGraphicsMode_meth.html">SetGraphicsMode</A><BR>
+
+<DD>Enables or disables advanced graphics features for a DC&nbsp;<P><DT><A HREF="win32gui__GetLayout_meth.html">GetLayout</A><BR>
+
+<DD>Retrieves the layout mode of a device context&nbsp;<P><DT><A HREF="win32gui__SetLayout_meth.html">SetLayout</A><BR>
+
+<DD>Sets the layout for a device context&nbsp;<P><DT><A HREF="win32gui__GetPolyFillMode_meth.html">GetPolyFillMode</A><BR>
+
+<DD>Returns the polygon filling mode for a device context&nbsp;<P><DT><A HREF="win32gui__SetPolyFillMode_meth.html">SetPolyFillMode</A><BR>
+
+<DD>Sets the polygon filling mode for a device context&nbsp;<P><DT><A HREF="win32gui__GetWorldTransform_meth.html">GetWorldTransform</A><BR>
+
+<DD>Retrieves a device context's coordinate space translation matrix&nbsp;<P><DT><A HREF="win32gui__SetWorldTransform_meth.html">SetWorldTransform</A><BR>
+
+<DD>Transforms a device context's coordinate space&nbsp;<P><DT><A HREF="win32gui__ModifyWorldTransform_meth.html">ModifyWorldTransform</A><BR>
+
+<DD>Combines a coordinate tranformation with device context's current transformation&nbsp;<P><DT><A HREF="win32gui__CombineTransform_meth.html">CombineTransform</A><BR>
+
+<DD>Combines two coordinate space transformations&nbsp;<P><DT><A HREF="win32gui__GetWindowOrgEx_meth.html">GetWindowOrgEx</A><BR>
+
+<DD>Retrievs the window origin for a DC&nbsp;<P><DT><A HREF="win32gui__SetWindowOrgEx_meth.html">SetWindowOrgEx</A><BR>
+
+<DD>Changes the window origin for a DC&nbsp;<P><DT><A HREF="win32gui__GetViewportOrgEx_meth.html">GetViewportOrgEx</A><BR>
+
+<DD>Retrievs the origin for a DC's viewport&nbsp;<P><DT><A HREF="win32gui__SetViewportOrgEx_meth.html">SetViewportOrgEx</A><BR>
+
+<DD>Changes the viewport origin for a DC&nbsp;<P><DT><A HREF="win32gui__GetWindowExtEx_meth.html">GetWindowExtEx</A><BR>
+
+<DD>Retrieves the window extents for a DC&nbsp;<P><DT><A HREF="win32gui__SetWindowExtEx_meth.html">SetWindowExtEx</A><BR>
+
+<DD>Changes the window extents for a DC&nbsp;<P><DT><A HREF="win32gui__GetViewportExtEx_meth.html">GetViewportExtEx</A><BR>
+
+<DD>Retrieves the viewport extents for a DC&nbsp;<P><DT><A HREF="win32gui__SetViewportExtEx_meth.html">SetViewportExtEx</A><BR>
+
+<DD>Changes the viewport extents for a DC&nbsp;<P><DT><A HREF="win32gui__GradientFill_meth.html">GradientFill</A><BR>
+
+<DD>Shades triangles or rectangles by interpolating between vertex colors&nbsp;<P><DT><A HREF="win32gui__GetOpenFileName_meth.html">GetOpenFileName</A><BR>
+
+<DD>Creates an Open dialog box that lets the user specify the drive, directory, and the name of a file or set of files to open.&nbsp;<P><DT><A HREF="win32gui__InsertMenuItem_meth.html">InsertMenuItem</A><BR>
+
+<DD>Inserts a menu item&nbsp;<P><DT><A HREF="win32gui__SetMenuItemInfo_meth.html">SetMenuItemInfo</A><BR>
+
+<DD>Sets menu information&nbsp;<P><DT><A HREF="win32gui__GetMenuItemInfo_meth.html">GetMenuItemInfo</A><BR>
+
+<DD>Gets menu information&nbsp;<P><DT><A HREF="win32gui__GetMenuItemCount_meth.html">GetMenuItemCount</A><BR>
+
+<DD>&nbsp;<P><DT><A HREF="win32gui__GetMenuItemRect_meth.html">GetMenuItemRect</A><BR>
+
+<DD>&nbsp;<P><DT><A HREF="win32gui__GetMenuState_meth.html">GetMenuState</A><BR>
+
+<DD>&nbsp;<P><DT><A HREF="win32gui__SetMenuDefaultItem_meth.html">SetMenuDefaultItem</A><BR>
+
+<DD>&nbsp;<P><DT><A HREF="win32gui__GetMenuDefaultItem_meth.html">GetMenuDefaultItem</A><BR>
+
+<DD>&nbsp;<P><DT><A HREF="win32gui__AppendMenu_meth.html">AppendMenu</A><BR>
+
+<DD>&nbsp;<P><DT><A HREF="win32gui__InsertMenu_meth.html">InsertMenu</A><BR>
+
+<DD>&nbsp;<P><DT><A HREF="win32gui__EnableMenuItem_meth.html">EnableMenuItem</A><BR>
+
+<DD>&nbsp;<P><DT><A HREF="win32gui__CheckMenuItem_meth.html">CheckMenuItem</A><BR>
+
+<DD>&nbsp;<P><DT><A HREF="win32gui__GetSubMenu_meth.html">GetSubMenu</A><BR>
+
+<DD>&nbsp;<P><DT><A HREF="win32gui__ModifyMenu_meth.html">ModifyMenu</A><BR>
+
+<DD>Changes an existing menu item. This function is used to specify the content, appearance, and behavior of the menu item.&nbsp;<P><DT><A HREF="win32gui__GetMenuItemID_meth.html">GetMenuItemID</A><BR>
+
+<DD>Retrieves the menu item identifier of a menu item located at the specified position in a menu.&nbsp;<P><DT><A HREF="win32gui__SetMenuItemBitmaps_meth.html">SetMenuItemBitmaps</A><BR>
+
+<DD>Associates the specified bitmap with a menu item. Whether the menu item is selected or clear, the system displays the appropriate bitmap next to the menu item.&nbsp;<P><DT><A HREF="win32gui__CheckMenuRadioItem_meth.html">CheckMenuRadioItem</A><BR>
+
+<DD>Checks a specified menu item and makes it a 
+
+radio item. At the same time, the function clears all other menu items in 
+
+the associated group and clears the radio-item type flag for those items.&nbsp;<P><DT><A HREF="win32gui__SetMenuInfo_meth.html">SetMenuInfo</A><BR>
+
+<DD>Sets information for a specified menu.&nbsp;<P><DT><A HREF="win32gui__GetMenuInfo_meth.html">GetMenuInfo</A><BR>
+
+<DD>Gets information about a specified menu.&nbsp;<P><DT><A HREF="win32gui__DrawFocusRect_meth.html">DrawFocusRect</A><BR>
+
+<DD>Draws a standard focus outline around a rectangle&nbsp;<P><DT><A HREF="win32gui__DrawText_meth.html">DrawText</A><BR>
+
+<DD>Draws formatted text on a device context&nbsp;<P><DT><A HREF="win32gui__LineTo_meth.html">LineTo</A><BR>
+
+<DD>Draw a line from current position to specified point&nbsp;<P><DT><A HREF="win32gui__Ellipse_meth.html">Ellipse</A><BR>
+
+<DD>Draws a filled ellipse on a device context&nbsp;<P><DT><A HREF="win32gui__Pie_meth.html">Pie</A><BR>
+
+<DD>Draws a section of an ellipse cut by 2 radials&nbsp;<P><DT><A HREF="win32gui__Arc_meth.html">Arc</A><BR>
+
+<DD>Draws an arc defined by an ellipse and 2 radials&nbsp;<P><DT><A HREF="win32gui__ArcTo_meth.html">ArcTo</A><BR>
+
+<DD>Draws an arc defined by an ellipse and 2 radials&nbsp;<P><DT><A HREF="win32gui__AngleArc_meth.html">AngleArc</A><BR>
+
+<DD>Draws a line from current pos and a section of a circle's arc&nbsp;<P><DT><A HREF="win32gui__Chord_meth.html">Chord</A><BR>
+
+<DD>Draws a chord defined by an ellipse and 2 radials&nbsp;<P><DT><A HREF="win32gui__ExtFloodFill_meth.html">ExtFloodFill</A><BR>
+
+<DD>Fills an area with current brush&nbsp;<P><DT><A HREF="win32gui__SetPixel_meth.html">SetPixel</A><BR>
+
+<DD>Set the color of a single pixel&nbsp;<P><DT><A HREF="win32gui__GetPixel_meth.html">GetPixel</A><BR>
+
+<DD>Returns the RGB color of a single pixel&nbsp;<P><DT><A HREF="win32gui__GetROP2_meth.html">GetROP2</A><BR>
+
+<DD>Returns the foreground mixing mode of a DC&nbsp;<P><DT><A HREF="win32gui__SetROP2_meth.html">SetROP2</A><BR>
+
+<DD>Sets the foreground mixing mode of a DC&nbsp;<P><DT><A HREF="win32gui__SetPixelV_meth.html">SetPixelV</A><BR>
+
+<DD>Sets the color of a single pixel to an approximation of specified color&nbsp;<P><DT><A HREF="win32gui__MoveToEx_meth.html">MoveToEx</A><BR>
+
+<DD>Changes the current drawing position&nbsp;<P><DT><A HREF="win32gui__GetCurrentPositionEx_meth.html">GetCurrentPositionEx</A><BR>
+
+<DD>Returns a device context's current drawing position&nbsp;<P><DT><A HREF="win32gui__GetArcDirection_meth.html">GetArcDirection</A><BR>
+
+<DD>Returns the direction in which rectangles and arcs are drawn&nbsp;<P><DT><A HREF="win32gui__SetArcDirection_meth.html">SetArcDirection</A><BR>
+
+<DD>Sets the drawing direction for arcs and rectangles&nbsp;<P><DT><A HREF="win32gui__Polygon_meth.html">Polygon</A><BR>
+
+<DD>Draws a closed filled polygon defined by a sequence of points&nbsp;<P><DT><A HREF="win32gui__Polyline_meth.html">Polyline</A><BR>
+
+<DD>Connects a sequence of points using currently selected pen&nbsp;<P><DT><A HREF="win32gui__PolylineTo_meth.html">PolylineTo</A><BR>
+
+<DD>Draws a series of lines starting from current position.  Updates current position with end point.&nbsp;<P><DT><A HREF="win32gui__PolyBezier_meth.html">PolyBezier</A><BR>
+
+<DD>Draws a series of Bezier curves starting from first point specified.&nbsp;<P><DT><A HREF="win32gui__PolyBezierTo_meth.html">PolyBezierTo</A><BR>
+
+<DD>Draws a series of Bezier curves starting from current drawing position.&nbsp;<P><DT><A HREF="win32gui__PlgBlt_meth.html">PlgBlt</A><BR>
+
+<DD>Copies color from a rectangle into a parallelogram&nbsp;<P><DT><A HREF="win32gui__CreatePolygonRgn_meth.html">CreatePolygonRgn</A><BR>
+
+<DD>Creates a region from a sequence of vertices&nbsp;<P><DT><A HREF="win32gui__ExtTextOut_meth.html">ExtTextOut</A><BR>
+
+<DD>Writes text to a DC.&nbsp;<P><DT><A HREF="win32gui__GetTextColor_meth.html">GetTextColor</A><BR>
+
+<DD>Returns the text color for a DC&nbsp;<P><DT><A HREF="win32gui__SetTextColor_meth.html">SetTextColor</A><BR>
+
+<DD>Changes the text color for a device context&nbsp;<P><DT><A HREF="win32gui__GetBkMode_meth.html">GetBkMode</A><BR>
+
+<DD>Returns the background mode for a device context&nbsp;<P><DT><A HREF="win32gui__SetBkMode_meth.html">SetBkMode</A><BR>
+
+<DD>Sets the background mode for a device context&nbsp;<P><DT><A HREF="win32gui__GetBkColor_meth.html">GetBkColor</A><BR>
+
+<DD>Returns the background color for a device context&nbsp;<P><DT><A HREF="win32gui__SetBkColor_meth.html">SetBkColor</A><BR>
+
+<DD>Sets the background color for a device context&nbsp;<P><DT><A HREF="win32gui__DrawEdge_meth.html">DrawEdge</A><BR>
+
+<DD>Draws edge(s) of a rectangle&nbsp;<P><DT><A HREF="win32gui__FillRect_meth.html">FillRect</A><BR>
+
+<DD>Fills a rectangular area with specified brush&nbsp;<P><DT><A HREF="win32gui__FillRgn_meth.html">FillRgn</A><BR>
+
+<DD>Fills a region with specified brush&nbsp;<P><DT><A HREF="win32gui__PaintRgn_meth.html">PaintRgn</A><BR>
+
+<DD>Paints a region with current brush&nbsp;<P><DT><A HREF="win32gui__FrameRgn_meth.html">FrameRgn</A><BR>
+
+<DD>Draws a frame around a region&nbsp;<P><DT><A HREF="win32gui__InvertRgn_meth.html">InvertRgn</A><BR>
+
+<DD>Inverts the colors in a region&nbsp;<P><DT><A HREF="win32gui__EqualRgn_meth.html">EqualRgn</A><BR>
+
+<DD>Determines if 2 regions are equal&nbsp;<P><DT><A HREF="win32gui__PtInRegion_meth.html">PtInRegion</A><BR>
+
+<DD>Determines if a region contains a point&nbsp;<P><DT><A HREF="win32gui__PtInRect_meth.html">PtInRect</A><BR>
+
+<DD>Determines if a rectangle contains a point&nbsp;<P><DT><A HREF="win32gui__RectInRegion_meth.html">RectInRegion</A><BR>
+
+<DD>Determines if a region and rectangle overlap at any point&nbsp;<P><DT><A HREF="win32gui__SetRectRgn_meth.html">SetRectRgn</A><BR>
+
+<DD>Makes an existing region rectangular&nbsp;<P><DT><A HREF="win32gui__CombineRgn_meth.html">CombineRgn</A><BR>
+
+<DD>Combines two regions&nbsp;<P><DT><A HREF="win32gui__DrawAnimatedRects_meth.html">DrawAnimatedRects</A><BR>
+
+<DD>Animates a rectangle in the manner of minimizing, mazimizing, or opening&nbsp;<P><DT><A HREF="win32gui__CreateSolidBrush_meth.html">CreateSolidBrush</A><BR>
+
+<DD>Creates a solid brush of specified color&nbsp;<P><DT><A HREF="win32gui__CreatePatternBrush_meth.html">CreatePatternBrush</A><BR>
+
+<DD>Creates a brush using a bitmap as a pattern&nbsp;<P><DT><A HREF="win32gui__CreateHatchBrush_meth.html">CreateHatchBrush</A><BR>
+
+<DD>Creates a hatch brush with specified style and color&nbsp;<P><DT><A HREF="win32gui__CreatePen_meth.html">CreatePen</A><BR>
+
+<DD>Create a GDI pen&nbsp;<P><DT><A HREF="win32gui__GetSysColor_meth.html">GetSysColor</A><BR>
+
+<DD>Returns the color of a window element&nbsp;<P><DT><A HREF="win32gui__GetSysColorBrush_meth.html">GetSysColorBrush</A><BR>
+
+<DD>Creates a handle to a system color brush&nbsp;<P><DT><A HREF="win32gui__ValidateRect_meth.html">ValidateRect</A><BR>
+
+<DD>Validates the client area within a rectangle by removing the rectangle from the update region of the specified window.&nbsp;<P><DT><A HREF="win32gui__InvalidateRect_meth.html">InvalidateRect</A><BR>
+
+<DD>Invalidates a rectangular area of a window and adds it to the window's update region&nbsp;<P><DT><A HREF="win32gui__FrameRect_meth.html">FrameRect</A><BR>
+
+<DD>Draws an outline around a rectangle&nbsp;<P><DT><A HREF="win32gui__InvertRect_meth.html">InvertRect</A><BR>
+
+<DD>Inverts the colors in a regtangular region&nbsp;<P><DT><A HREF="win32gui__WindowFromDC_meth.html">WindowFromDC</A><BR>
+
+<DD>Finds the window associated with a device context&nbsp;<P><DT><A HREF="win32gui__GetUpdateRgn_meth.html">GetUpdateRgn</A><BR>
+
+<DD>Copies the update region of a window into an existing region&nbsp;<P><DT><A HREF="win32gui__GetWindowRgn_meth.html">GetWindowRgn</A><BR>
+
+<DD>Copies the window region of a window into an existing region&nbsp;<P><DT><A HREF="win32gui__SetWindowRgn_meth.html">SetWindowRgn</A><BR>
+
+<DD>Sets the visible region of a window&nbsp;<P><DT><A HREF="win32gui__GetWindowRgnBox_meth.html">GetWindowRgnBox</A><BR>
+
+<DD>Returns the bounding box for a window's region&nbsp;<P><DT><A HREF="win32gui__ValidateRgn_meth.html">ValidateRgn</A><BR>
+
+<DD>Removes a region from a window's update region&nbsp;<P><DT><A HREF="win32gui__InvalidateRgn_meth.html">InvalidateRgn</A><BR>
+
+<DD>Adds a region to a window's update region&nbsp;<P><DT><A HREF="win32gui__GetRgnBox_meth.html">GetRgnBox</A><BR>
+
+<DD>Calculates the bounding box of a region&nbsp;<P><DT><A HREF="win32gui__OffsetRgn_meth.html">OffsetRgn</A><BR>
+
+<DD>Relocates a region&nbsp;<P><DT><A HREF="win32gui__Rectangle_meth.html">Rectangle</A><BR>
+
+<DD>Creates a solid rectangle using currently selected pen and brush&nbsp;<P><DT><A HREF="win32gui__RoundRect_meth.html">RoundRect</A><BR>
+
+<DD>Draws a rectangle with elliptically rounded corners, filled using using current brush&nbsp;<P><DT><A HREF="win32gui__BeginPaint_meth.html">BeginPaint</A><BR>
+
+<DD>&nbsp;<P><DT><A HREF="win32gui__EndPaint_meth.html">EndPaint</A><BR>
+
+<DD>&nbsp;<P><DT><A HREF="win32gui__BeginPath_meth.html">BeginPath</A><BR>
+
+<DD>Initializes a path in a DC&nbsp;<P><DT><A HREF="win32gui__EndPath_meth.html">EndPath</A><BR>
+
+<DD>Finalizes a path begun by <A HREF="win32gui__BeginPath_meth.html">win32gui::BeginPath</A>&nbsp;<P><DT><A HREF="win32gui__AbortPath_meth.html">AbortPath</A><BR>
+
+<DD>Cancels a path begun by <A HREF="win32gui__BeginPath_meth.html">win32gui::BeginPath</A>&nbsp;<P><DT><A HREF="win32gui__CloseFigure_meth.html">CloseFigure</A><BR>
+
+<DD>Closes a section of a path by connecting the beginning pos with the current pos&nbsp;<P><DT><A HREF="win32gui__FlattenPath_meth.html">FlattenPath</A><BR>
+
+<DD>Flattens any curves in current path into a series of lines&nbsp;<P><DT><A HREF="win32gui__FillPath_meth.html">FillPath</A><BR>
+
+<DD>Fills a path with currently selected brush&nbsp;<P><DT><A HREF="win32gui__WidenPath_meth.html">WidenPath</A><BR>
+
+<DD>Widens current path by amount it would increase by if drawn with currently selected pen&nbsp;<P><DT><A HREF="win32gui__StrokePath_meth.html">StrokePath</A><BR>
+
+<DD>Draws current path with currently selected pen&nbsp;<P><DT><A HREF="win32gui__StrokeAndFillPath_meth.html">StrokeAndFillPath</A><BR>
+
+<DD>Combines operations of StrokePath and FillPath with no overlap&nbsp;<P><DT><A HREF="win32gui__GetMiterLimit_meth.html">GetMiterLimit</A><BR>
+
+<DD>Retrieves the limit of miter joins for a DC&nbsp;<P><DT><A HREF="win32gui__SetMiterLimit_meth.html">SetMiterLimit</A><BR>
+
+<DD>Set the limit of miter joins for a DC&nbsp;<P><DT><A HREF="win32gui__PathToRegion_meth.html">PathToRegion</A><BR>
+
+<DD>Converts a closed path in a DC to a region&nbsp;<P><DT><A HREF="win32gui__GetPath_meth.html">GetPath</A><BR>
+
+<DD>Returns a sequence of points that describe the current path&nbsp;<P><DT><A HREF="win32gui__CreateRoundRectRgn_meth.html">CreateRoundRectRgn</A><BR>
+
+<DD>Create a rectangular region with elliptically rounded corners,&nbsp;<P><DT><A HREF="win32gui__CreateRectRgnIndirect_meth.html">CreateRectRgnIndirect</A><BR>
+
+<DD>Creates a rectangular region,&nbsp;<P><DT><A HREF="win32gui__CreateEllipticRgnIndirect_meth.html">CreateEllipticRgnIndirect</A><BR>
+
+<DD>Creates an ellipse region,&nbsp;<P><DT><A HREF="win32gui__CreateWindowEx_meth.html">CreateWindowEx</A><BR>
+
+<DD>Creates a new window with Extended Style.&nbsp;<P><DT><A HREF="win32gui__GetParent_meth.html">GetParent</A><BR>
+
+<DD>Retrieves a handle to the specified child window's parent window.&nbsp;<P><DT><A HREF="win32gui__SetParent_meth.html">SetParent</A><BR>
+
+<DD>changes the parent window of the specified child window.&nbsp;<P><DT><A HREF="win32gui__GetCursorPos_meth.html">GetCursorPos</A><BR>
+
+<DD>retrieves the cursor's position, in screen coordinates.&nbsp;<P><DT><A HREF="win32gui__GetDesktopWindow_meth.html">GetDesktopWindow</A><BR>
+
+<DD>returns the desktop window&nbsp;<P><DT><A HREF="win32gui__GetWindow_meth.html">GetWindow</A><BR>
+
+<DD>returns a window that has the specified relationship (Z order or owner) to the specified window.&nbsp;<P><DT><A HREF="win32gui__GetTopWindow_meth.html">GetTopWindow</A><BR>
+
+<DD>Examines the Z order of the child windows associated with the specified parent window and retrieves a handle to the child window at the top of the Z order.&nbsp;<P><DT><A HREF="win32gui__GetAncestor_meth.html">GetAncestor</A><BR>
+
+<DD>retrieves the handle to the ancestor of the specified window.&nbsp;<P><DT><A HREF="win32gui__GetWindowDC_meth.html">GetWindowDC</A><BR>
+
+<DD>returns the device context (DC) for the entire window, including title bar, menus, and scroll bars.&nbsp;<P><DT><A HREF="win32gui__IsIconic_meth.html">IsIconic</A><BR>
+
+<DD>determines whether the specified window is minimized (iconic).&nbsp;<P><DT><A HREF="win32gui__IsWindow_meth.html">IsWindow</A><BR>
+
+<DD>determines whether the specified window handle identifies an existing window.&nbsp;<P><DT><A HREF="win32gui__IsChild_meth.html">IsChild</A><BR>
+
+<DD>Tests whether a window is a child window or descendant window of a specified parent window&nbsp;<P><DT><A HREF="win32gui__ReleaseCapture_meth.html">ReleaseCapture</A><BR>
+
+<DD>Releases the moust capture for a window.&nbsp;<P><DT><A HREF="win32gui__GetCapture_meth.html">GetCapture</A><BR>
+
+<DD>Returns the window with the mouse capture.&nbsp;<P><DT><A HREF="win32gui__SetCapture_meth.html">SetCapture</A><BR>
+
+<DD>Captures the mouse for the specified window.&nbsp;<P><DT><A HREF="win32gui___TrackMouseEvent_meth.html">_TrackMouseEvent</A><BR>
+
+<DD>Posts messages when the mouse pointer leaves a window or hovers over a window for a specified amount of time.&nbsp;<P><DT><A HREF="win32gui__ReleaseDC_meth.html">ReleaseDC</A><BR>
+
+<DD>Releases a device context.&nbsp;<P><DT><A HREF="win32gui__CreateCaret_meth.html">CreateCaret</A><BR>
+
+<DD>Creates a new caret for a window&nbsp;<P><DT><A HREF="win32gui__DestroyCaret_meth.html">DestroyCaret</A><BR>
+
+<DD>Destroys caret for current task&nbsp;<P><DT><A HREF="win32gui__ScrollWindowEx_meth.html">ScrollWindowEx</A><BR>
+
+<DD>scrolls the content of the specified window's client area.&nbsp;<P><DT><A HREF="win32gui__SetScrollInfo_meth.html">SetScrollInfo</A><BR>
+
+<DD>Sets information about a scroll-bar&nbsp;<P><DT><A HREF="win32gui__GetScrollInfo_meth.html">GetScrollInfo</A><BR>
+
+<DD>Returns information about a scroll bar&nbsp;<P><DT><A HREF="win32gui__GetClassName_meth.html">GetClassName</A><BR>
+
+<DD>Retrieves the name of the class to which the specified window belongs.&nbsp;<P><DT><A HREF="win32gui__WindowFromPoint_meth.html">WindowFromPoint</A><BR>
+
+<DD>Retrieves a handle to the window that contains the specified point.&nbsp;<P><DT><A HREF="win32gui__ChildWindowFromPoint_meth.html">ChildWindowFromPoint</A><BR>
+
+<DD>Determines which, if any, of the child windows belonging to a parent window contains the specified point.&nbsp;<P><DT><A HREF="win32gui__ChildWindowFromPoint_meth.html">ChildWindowFromPoint</A><BR>
+
+<DD>Determines which, if any, of the child windows belonging to a parent window contains the specified point.&nbsp;<P><DT><A HREF="win32gui__ListView_SortItems_meth.html">ListView_SortItems</A><BR>
+
+<DD>Uses an application-defined comparison function to sort the items of a list view control.&nbsp;<P><DT><A HREF="win32gui__ListView_SortItemsEx_meth.html">ListView_SortItemsEx</A><BR>
+
+<DD>Uses an application-defined comparison function to sort the items of a list view control.&nbsp;<P><DT><A HREF="win32gui__CreateDC_meth.html">CreateDC</A><BR>
+
+<DD>Creates a device context for a printer or display device&nbsp;<P><DT><A HREF="win32gui__GetSaveFileNameW_meth.html">GetSaveFileNameW</A><BR>
+
+<DD>Creates a dialog for user to specify location to save a file or files&nbsp;<P><DT><A HREF="win32gui__GetOpenFileNameW_meth.html">GetOpenFileNameW</A><BR>
+
+<DD>Creates a dialog to allow user to select file(s) to open&nbsp;<P><DT><A HREF="win32gui__SystemParametersInfo_meth.html">SystemParametersInfo</A><BR>
+
+<DD>Queries or sets system-wide parameters. This function can also update the user profile while setting a parameter.&nbsp;<P><DT><A HREF="win32gui__SetLayeredWindowAttributes_meth.html">SetLayeredWindowAttributes</A><BR>
+
+<DD>Sets the opacity and transparency color key of a layered window.&nbsp;<P><DT><A HREF="win32gui__GetLayeredWindowAttributes_meth.html">GetLayeredWindowAttributes</A><BR>
+
+<DD>Retrieves the layering parameters of a window with the WS_EX_LAYERED extended style&nbsp;<P><DT><A HREF="win32gui__UpdateLayeredWindow_meth.html">UpdateLayeredWindow</A><BR>
+
+<DD>Updates the position, size, shape, content, and translucency of a layered window.&nbsp;<P><DT><A HREF="win32gui__AnimateWindow_meth.html">AnimateWindow</A><BR>
+
+<DD>Enables you to produce special effects when showing or hiding windows. There are three types of animation: roll, slide, and alpha-blended fade.&nbsp;<P><DT><A HREF="win32gui__CreateBrushIndirect_meth.html">CreateBrushIndirect</A><BR>
+
+<DD>Creates a GDI brush from a LOGBRUSH struct&nbsp;<P><DT><A HREF="win32gui__ExtCreatePen_meth.html">ExtCreatePen</A><BR>
+
+<DD>Creates a GDI pen object&nbsp;<P><DT><A HREF="win32gui__DrawTextW_meth.html">DrawTextW</A><BR>
+
+<DD>Draws Unicode text on a device context.&nbsp;<P><DT><A HREF="win32gui__EnumPropsEx_meth.html">EnumPropsEx</A><BR>
+
+<DD>Enumerates properties attached to a window. 
+
+Each property is passed to a callback function, which receives 4 arguments:<BR> 
+
+Handle to the window, name of the property, handle to the property data, and Param object passed to this function&nbsp;<P><DT><A HREF="win32gui__RegisterDeviceNotification_meth.html">RegisterDeviceNotification</A><BR>
+
+<DD>Registers the device or type of device for which a window will receive notifications.&nbsp;<P><DT><A HREF="win32gui__UnregisterDeviceNotification_meth.html">UnregisterDeviceNotification</A><BR>
+
+<DD>Unregisters a Device Notification handle. 
+
+It is generally not necessary to call this function manually, but in some cases, 
+
+handle values may be extracted via the struct module and need to be closed explicitly.&nbsp;<P><DT><A HREF="win32gui__RegisterHotKey_meth.html">RegisterHotKey</A><BR>
+
+<DD>Registers a hotkey for a window&nbsp;<P></DL></body>
+</html>

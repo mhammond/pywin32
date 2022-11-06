@@ -1,0 +1,40 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyCToolBarCtrl.TBUTTON tuple</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="PyCToolBarCtrl.html">PyCToolBarCtrl</A>.TBUTTON tuple</H1><P>
+
+<B>TBUTTON tuple(<I>iBitmap</I><I>, idCommand</I><I>, fsState</I><I>, fsStyle</I><I>, userob</I><I>, iString</I></B>)<P>Describes a TBUTTON tuple, used by the PyCToolBarCtrl AddButtons method<P>
+
+<H3>Parameters</H3><P><DT><I>iBitmap</I> : int<P>
+
+<DD>Zero-based index of button image<P><DT><I>idCommand</I> : int<P>
+
+<DD>Command to be sent when button pressed<P><DT><I>fsState</I> : int<P>
+
+<DD>Button state. Can be any of the TBSTATE values defined in win32con<P><DT><I>fsStyle</I> : int<P>
+
+<DD>Button style. Can be any of the TBSTYLE values defined in win32con<P><DT><I>userob</I> : object<P>
+
+<DD>Arbitrary Python object<P><DT><I>iString</I> : int<P>
+
+<DD>Zero-based index of button label string<P><H3>Comments</H3>
+
+Userob is any Python object at all, but no reference count is kept, so you must ensure the object remains 
+
+referenced throughout.<P>
+
+</body>
+</html>

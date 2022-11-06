@@ -1,0 +1,52 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32api.GetTempFileName</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32api.html">win32api</A>.GetTempFileName</H1><P>
+
+tuple = <B>GetTempFileName(<I>path</I><I>, prefix</I>
+
+<I>, nUnique</I>
+
+</B>)<P>Returns creates a temporary filename of the following form: 
+
+path\\preuuuu.tmp.<P>
+
+<H3>Parameters</H3><P><DT><I>path</I> : string<P>
+
+<DD>Specifies the path where the method creates the temporary 
+
+filename. Applications typically specify a period (.) or the result of the 
+
+GetTempPath function for this parameter.<P><DT><I>prefix</I> : string<P>
+
+<DD>Specifies the temporary filename prefix.<P><DT><I>nUnique</I> : int<P>
+
+<DD>Specifies an nteger used in creating the temporary filename. 
+
+If this parameter is nonzero, it is appended to the temporary filename. 
+
+If this parameter is zero, Windows uses the current system time to create a number to 
+
+append to the filename.<P><H3>Win32 API References</H3><P><DT>Search for <i>GetTempFileName</i> at <a href="http://search.msdn.microsoft.com/search/results.aspx?view=msdn&query=GetTempFileName" target="_blank">msdn</a>, <a href="http://www.google.com/search?q=GetTempFileName" target="_blank">google</a> or <a href="http://groups.google.com/groups?q=GetTempFileName" target="_blank">google groups</a>.<P>
+
+<H3>Return Value</H3>The return value is a tuple of (string, int), where string is the 
+
+filename, and rc is the unique number used to generate the filename.<P>
+
+
+
+</body>
+</html>

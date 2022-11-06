@@ -1,0 +1,44 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32gui.DrawText</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32gui.html">win32gui</A>.DrawText</H1><P>
+
+(int, <A HREF="PyRECT.html">PyRECT</A>) = <B>DrawText(<I>hDC</I><I>, String</I>
+
+<I>, nCount</I>
+
+<I>, Rect</I>
+
+<I>, Format</I>
+
+</B>)<P>Draws formatted text on a device context<P>
+
+<H3>Parameters</H3><P><DT><I>hDC</I> : int/<A HREF="PyHANDLE.html">PyHANDLE</A><P>
+
+<DD>The device context on which to draw<P><DT><I>String</I> : str<P>
+
+<DD>The text to be drawn<P><DT><I>nCount</I> : int<P>
+
+<DD>The number of characters, use -1 for simple null-terminated string<P><DT><I>Rect</I> : <A HREF="PyRECT.html">PyRECT</A><P>
+
+<DD>Tuple of 4 ints specifying the position (left, top, right, bottom)<P><DT><I>Format</I> : int<P>
+
+<DD>Formatting flags, combination of win32con.DT_* values<P><H3>Return Value</H3>Returns the height of the drawn text, and the rectangle coordinates<P>
+
+
+
+</body>
+</html>

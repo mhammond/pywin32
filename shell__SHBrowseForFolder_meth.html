@@ -1,0 +1,80 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>shell.SHBrowseForFolder</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="shell.html">shell</A>.SHBrowseForFolder</H1><P>
+
+(<A HREF="PyIDL.html">PyIDL</A>, string displayName, iImage) = <B>SHBrowseForFolder(<I>hwndOwner</I><I>, pidlRoot</I>
+
+<I>, title</I>
+
+<I>, flags</I>
+
+<I>, callback</I>
+
+<I>, callback_data</I>
+
+</B>)<P>Displays a dialog box that enables the user 
+
+to select a shell folder.<P>
+
+<H3>Parameters</H3><P><DT><I>hwndOwner=None</I> : <A HREF="PyHANDLE.html">PyHANDLE</A><P>
+
+<DD>Parent window for the dialog box, can be None<P>
+
+<DT><I>pidlRoot=None</I> : <A HREF="PyIDL.html">PyIDL</A><P>
+
+<DD>PIDL identifying the place to start browsing. Desktop is used 
+
+if not specified<P>
+
+<DT><I>title=None</I> : string<P>
+
+<DD>Title to be displayed with the directory tree<P>
+
+<DT><I>flags=0</I> : int<P>
+
+<DD>Combination of shellcon.BIF_* flags<P>
+
+<DT><I>callback=None</I> : object<P>
+
+<DD>A callable object to be used as the callback, or None<P>
+
+<DT><I>callback_data=None</I> : object<P>
+
+<DD>An object passed to the callback function<P>
+
+<H3>Comments</H3>
+
+If you provide a callback function, it should take 4 args: 
+
+hwnd, msg, lp, data.  Data will be whatever you passed as callback_data, 
+
+and the rest are integers.  See the Microsoft documentation for 
+
+SHBrowseForFolder, or the browse_for_folder.py shell sample for more 
+
+information.<P>
+
+<H3>Return Value</H3>The result is ALWAYS a tuple of 3 items.  If the user cancels the 
+
+dialog, all items are None.  If the dialog is closed normally, the result is 
+
+a tuple of (PIDL, DisplayName, iImageList)<P>
+
+
+
+</body>
+</html>

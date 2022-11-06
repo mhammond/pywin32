@@ -1,0 +1,32 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyIStorage.Commit</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="PyIStorage.html">PyIStorage</A>.Commit</H1><P>
+
+<B>Commit(<I>grfCommitFlags</I></B>)<P>Ensures that any changes made to a storage object open in transacted mode are reflected 
+
+in the parent storage; for a root storage, reflects the changes in the actual device, for example, a file on disk. 
+
+For a root storage object opened in direct mode, this method has no effect except to flush all memory buffers to the 
+
+disk. For non-root storage objects in direct mode, this method has no effect.<P>
+
+<H3>Parameters</H3><P><DT><I>grfCommitFlags</I> : int<P>
+
+<DD>Controls how the changes are committed to the storage object. See the STGC 
+
+enumeration for a definition of these values.<P></body>
+</html>

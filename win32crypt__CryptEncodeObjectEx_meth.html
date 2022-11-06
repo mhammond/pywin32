@@ -1,0 +1,84 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32crypt.CryptEncodeObjectEx</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32crypt.html">win32crypt</A>.CryptEncodeObjectEx</H1><P>
+
+str = <B>CryptEncodeObjectEx(<I>StructType</I><I>, StructInfo</I>
+
+<I>, Flags</I>
+
+<I>, CertEncodingType</I>
+
+<I>, EncodePara</I>
+
+</B>)<P>Serializes and ASN encodes cryptographic structures<P>
+
+<H3>Parameters</H3><P><DT><I>StructType</I> : str/int<P>
+
+<DD>OID identifying type of data to be 
+
+encoded, either szOID_* string or a numeric id<P><DT><I>StructInfo</I> : dict<P>
+
+<DD>Information to be encoded.  Contents of 
+
+dict are dependent on StructType<P><DT><I>Flags=0</I> : int<P>
+
+<DD>Encoding options, combination of CRYPT_UNICODE_* 
+
+constants.  CRYPT_ENCODE_ALLOC_FLAG is added to flags..<P>
+
+<DT><I>CertEncodingType=X509_ASN_ENCODING combined with 
+
+PKCS_7_ASN_ENCODING</I> : int<P>
+
+<DD>Encoding types<P>
+
+<DT><I>EncodePara=None</I> : object<P>
+
+<DD>Not supported, use only None<P>
+
+<P><TABLE COLS=2 WIDTH="100%" CELLSPACING=15>
+
+<TR>
+
+   <TD>
+
+       <B>StructType</B>
+
+   </TD>
+
+   <TD>
+
+       <B>Type of input</B>
+
+   </TD>
+
+</TR>
+
+<TR><TD><HR></TD><TD><HR></TD></TR>
+
+<TR><TD>szOID_ENHANCED_KEY_USAGE</TD><TD><A HREF="PyCTL_USAGE.html">PyCTL_USAGE</A> (sequence of OID's)</TD></TR>
+
+<TR><TD>X509_ENHANCED_KEY_USAGE</TD><TD><A HREF="PyCTL_USAGE.html">PyCTL_USAGE</A> (sequence of OID's)</TD></TR>
+
+<TR><TD>szOID_KEY_USAGE</TD><TD><A HREF="PyCRYPT_BIT_BLOB.html">PyCRYPT_BIT_BLOB</A></TD></TR>
+
+<TR><TD>X509_KEY_USAGE</TD><TD><A HREF="PyCRYPT_BIT_BLOB.html">PyCRYPT_BIT_BLOB</A></TD></TR>
+
+<TR><TD>X509_BITS</TD><TD><A HREF="PyCRYPT_BIT_BLOB.html">PyCRYPT_BIT_BLOB</A></TD></TR>
+
+</TABLE></body>
+</html>

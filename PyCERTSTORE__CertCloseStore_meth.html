@@ -1,0 +1,40 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyCERTSTORE.CertCloseStore</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="PyCERTSTORE.html">PyCERTSTORE</A>.CertCloseStore</H1><P>
+
+<B>CertCloseStore(</B>)<P>Closes the certificate store<P>
+
+<H3>Comments</H3>
+
+Note that in general, it should not be necessary to call this - it will be 
+
+called automatically when the Python object dies.<P>
+
+Note that the Flags param is not supported - if you attempt to force-close the store 
+
+and Python certificate objects remain alive, the program will crash as those objects are closed. 
+
+The underlying Windows function is always called with CERT_CLOSE_STORE_CHECK_FLAG. 
+
+This means that this function is likely to fail with CRYPT_E_PENDING_CLOSE if any such 
+
+Python objects remain alive (in which case, this function would certainly have crashed 
+
+the process if CERT_CLOSE_STORE_FORCE_FLAG was able to be specified)<P>
+
+</body>
+</html>

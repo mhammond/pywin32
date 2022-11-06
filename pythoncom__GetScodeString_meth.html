@@ -1,0 +1,32 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>pythoncom.GetScodeString</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="pythoncom.html">pythoncom</A>.GetScodeString</H1><P>
+
+string = <B>GetScodeString(<I>scode</I></B>)<P>Returns the string for an OLE scode (HRESULT)<P>
+
+<H3>Parameters</H3><P><DT><I>scode</I> : int<P>
+
+<DD>The OLE error code for the scode string requested.<P><H3>Comments</H3>
+
+This will obtain the COM Error message for a given HRESULT. 
+
+Internally, PythonCOM uses this function to obtain the description 
+
+when a <A HREF="com_error.html">com_error</A> COM Exception is raised.<P>
+
+</body>
+</html>

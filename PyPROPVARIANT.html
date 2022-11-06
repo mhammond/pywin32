@@ -1,0 +1,56 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyPROPVARIANT</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<HR><H1>PyPROPVARIANT Object</H1><P>
+
+Encapsulates a PROPVARIANT structure. 
+
+Constructed using PROPVARIANTType(Value, Type=VT_ILLEGAL). 
+
+Value can be any object that can be be converted to the requested variant type. 
+
+Type should be a combination of VARENUM values (pythoncom.VT_*). 
+
+VT_ILLEGAL indicates that an appropriate variant type should be inferred from the Value. 
+
+If the requested Type includes VT_VECTOR, Value should be a sequence of compatible objects. 
+
+Currently VT_ARRAY and VT_BYREF are not supported, although some types can be coerced 
+
+into a safearray using <A HREF="PyPROPVARIANT__ChangeType_meth.html">PyPROPVARIANT::ChangeType</A>.<P>
+
+<H3>Properties</H3>
+
+<DL>
+
+<DT><B>int vt</B>
+
+<DD>The variant type, a combination of VARENUM values including flags.  (read only)<P>
+
+
+
+<H3>Methods</H3><P><DL><DT><A HREF="PyPROPVARIANT__GetValue_meth.html">GetValue</A><BR>
+
+<DD>Returns an object representing the variant value&nbsp;<P><DT><A HREF="PyPROPVARIANT__ToString_meth.html">ToString</A><BR>
+
+<DD>Returns the value as a string&nbsp;<P><DT><A HREF="PyPROPVARIANT__ChangeType_meth.html">ChangeType</A><BR>
+
+<DD>Coerce to a different variant type&nbsp;<P></DL>
+
+</DL>
+
+</body>
+</html>

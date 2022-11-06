@@ -1,0 +1,40 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>pythoncom.ObjectFromAddress</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="pythoncom.html">pythoncom</A>.ObjectFromAddress</H1><P>
+
+<A HREF="PyIUnknown.html">PyIUnknown</A> = <B>ObjectFromAddress(<I>address</I><I>, iid</I>
+
+</B>)<P>Returns a COM object given its address in memory.<P>
+
+<H3>Parameters</H3><P><DT><I>address</I> : int<P>
+
+<DD>The address which holds a COM object<P><DT><I>iid=IUnknown</I> : <A HREF="PyIID.html">PyIID</A><P>
+
+<DD>The IID to query<P>
+
+<H3>Return Value</H3>This method is useful for applications which return objects via non-standard 
+
+mechanisms - eg, Windows Explorer allows you to send a specific message to the 
+
+explorer window and the result will be the address of an object Explorer implements. 
+
+This method allows you to recover the object from that address.<P>
+
+
+
+</body>
+</html>

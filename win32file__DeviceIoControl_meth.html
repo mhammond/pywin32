@@ -1,0 +1,64 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32file.DeviceIoControl</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32file.html">win32file</A>.DeviceIoControl</H1><P>
+
+str/buffer = <B>DeviceIoControl(<I>Device</I><I>, IoControlCode</I>
+
+<I>, InBuffer</I>
+
+<I>, OutBuffer</I>
+
+<I>, Overlapped</I>
+
+</B>)<P>Sends a control code to a device or file system driver<P>
+
+<H3>Parameters</H3><P><DT><I>Device</I> : <A HREF="PyHANDLE.html">PyHANDLE</A><P>
+
+<DD>Handle to a file, device, or volume<P><DT><I>IoControlCode</I> : int<P>
+
+<DD>IOControl Code to use, from winioctlcon<P><DT><I>InBuffer</I> : str/buffer<P>
+
+<DD>The input data for the operation, can be None for some operations.<P><DT><I>OutBuffer</I> : int/buffer<P>
+
+<DD>Size of the buffer to allocate for output, or a writeable buffer 
+
+as returned by <A HREF="win32file__AllocateReadBuffer_meth.html">win32file::AllocateReadBuffer</A>.<P><DT><I>Overlapped=None</I> : <A HREF="PyOVERLAPPED.html">PyOVERLAPPED</A><P>
+
+<DD>An overlapped object for async operations.  Device 
+
+handle must have been opened with FILE_FLAG_OVERLAPPED.<P>
+
+<H3>Comments</H3>
+
+Accepts keyword args<P>
+
+<H3>Return Value</H3>If a preallocated output buffer is passed in, the returned object 
+
+may be the original buffer, or a view of the buffer with only the actual 
+
+size of the retrieved data. 
+
+<BR>If OutBuffer is a buffer size and the operation is synchronous (ie no 
+
+Overlapped is passed in), returns a plain string containing the retrieved 
+
+data.  For an async operation, a new writeable buffer is returned.<P>
+
+
+
+</body>
+</html>

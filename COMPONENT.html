@@ -1,0 +1,116 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>COMPONENT</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<HR><H1>COMPONENT Object</H1><P>
+
+A dictionary containing data to fill a COMPPOS struct<P>
+
+<H3>Properties</H3>
+
+<DL>
+
+<DT><B>int ID</B>
+
+<DD>Id of component, ignored when adding a new component<P>
+
+
+
+<DT><B>int ComponentType</B>
+
+<DD>One of shellcon.COMP_TYPE_* values<P>
+
+
+
+<DT><B>bool Checked</B>
+
+<DD>True indicates item is currently displayed<P>
+
+
+
+<DT><B>bool fDirty</B>
+
+<DD>Indicates if unsaved changes exist<P>
+
+
+
+<DT><B>bool NoScroll</B>
+
+<DD>True disables scrolling<P>
+
+
+
+<DT><B>dict Pos</B>
+
+<DD><A HREF="COMPPOS.html">COMPPOS</A> dictionary determining window size and placement<P>
+
+
+
+<DT><B><B>PyUNICODE</B>
+
+ FriendlyName</B>
+
+<DD>String of at most MAX_PATH-1 characters, truncated if 
+
+longer<P>
+
+
+
+<DT><B><B>PyUNICODE</B>
+
+ Source</B>
+
+<DD>String of at most INTERNET_MAX_URL_LENGTH-1 characters<P>
+
+
+
+<DT><B><B>PyUNICODE</B>
+
+ SubscribedURL</B>
+
+<DD>String of at most INTERNET_MAX_URL_LENGTH-1 
+
+characters<P>
+
+
+
+<DT><B>int CurItemState</B>
+
+<DD>One of shellcon.IS_* flags<P>
+
+
+
+<DT><B>dict Original</B>
+
+<DD><A HREF="COMPSTATEINFO.html">COMPSTATEINFO</A> dictionary<P>
+
+
+
+<DT><B>dict Restored</B>
+
+<DD><A HREF="COMPSTATEINFO.html">COMPSTATEINFO</A> dictionary<P>
+
+
+
+<DT><B>int Size</B>
+
+<DD>Size of structure, ignored on input<P>
+
+
+
+</DL>
+
+</body>
+</html>

@@ -1,0 +1,38 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>shell.SHCreateItemFromIDList</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="shell.html">shell</A>.SHCreateItemFromIDList</H1><P>
+
+<A HREF="PyIShellItem.html">PyIShellItem</A> = <B>SHCreateItemFromIDList(<I>pidl</I><I>, riid</I>
+
+</B>)<P>Creates and initializes a Shell item 
+
+object from a PIDL.  Can also create <A HREF="PyIShellItem2.html">PyIShellItem2</A> objects.<P>
+
+<H3>Parameters</H3><P><DT><I>pidl</I> : <A HREF="PyIDL.html">PyIDL</A><P>
+
+<DD>An absolute item identifier list<P><DT><I>riid=IID_IShellItem</I> : <A HREF="PyIID.html">PyIID</A><P>
+
+<DD>The interface to create<P>
+
+<H3>Comments</H3>
+
+This function is only available on Vista and later; a 
+
+COM exception with E_NOTIMPL will be thrown if the function can't be located.<P>
+
+</body>
+</html>

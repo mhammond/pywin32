@@ -1,0 +1,62 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32crypt.CryptProtectData</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32crypt.html">win32crypt</A>.CryptProtectData</H1><P>
+
+bytes = <B>CryptProtectData(<I>DataIn</I><I>, DataDescr</I>
+
+<I>, OptionalEntropy</I>
+
+<I>, Reserved</I>
+
+<I>, PromptStruct</I>
+
+<I>, Flags</I>
+
+</B>)<P>Encrypts data using a session key derived from current user's logon 
+
+credentials<P>
+
+<H3>Parameters</H3><P><DT><I>DataIn</I> : bytes<P>
+
+<DD>Data to be encrypted.<P><DT><I>DataDescr=None</I> : <B>PyUnicode</B>
+
+<P>
+
+<DD>Description to add to the data<P>
+
+<DT><I>OptionalEntropy=None</I> : bytes<P>
+
+<DD>Extra entropy (eg password) for encryption 
+
+process, can be None<P>
+
+<DT><I>Reserved=None</I> : None<P>
+
+<DD>Must be None<P>
+
+<DT><I>PromptStruct=None</I> : <A HREF="PyCRYPTPROTECT_PROMPTSTRUCT.html">PyCRYPTPROTECT_PROMPTSTRUCT</A><P>
+
+<DD>Contains options for UI 
+
+display during encryption and decryption, can be None<P>
+
+<DT><I>Flags=0</I> : int<P>
+
+<DD>Combination of CRYPTPROTECT_* flags<P>
+
+</body>
+</html>

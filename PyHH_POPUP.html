@@ -1,0 +1,134 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyHH_POPUP</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<HR><H1>PyHH_POPUP Object</H1><P>
+
+A Python object, representing an HH_POPUP structure<P>
+
+<H3>Comments</H3>
+
+Typically you create a PyHH_POPUP (via <A HREF="win32help__HH_POPUP_meth.html">win32help::HH_POPUP</A>) 
+
+object, and set its properties. 
+
+The object can then be passed to any function which takes an HH_POPUP 
+
+object.<BR> 
+
+<BR> 
+
+Use this structure to specify or modify the attributes of a pop-up 
+
+window.<BR> 
+
+<BR> 
+
+Used by<BR> 
+
+<B>HH_DISPLAY_TEXT_POPUP</B>
+
+
+
+<BR><P>
+
+<H3>Properties</H3>
+
+<DL>
+
+<DT><B>long hinst</B>
+
+<DD>Instance handle of the program or DLL to retrieve the 
+
+string resource from. Ignored if idString is zero.<P>
+
+
+
+<DT><B>unsigned int idString</B>
+
+<DD>Specifies zero, or a resource ID in the 
+
+program or DLL specified in hinst.<P>
+
+
+
+<DT><B>int clrForeground</B>
+
+<DD>Specifies the RGB value to use for the 
+
+foreground color of the pop-up window. To use the system color for the 
+
+window text, specify -1.<P>
+
+
+
+<DT><B>int clrBackground</B>
+
+<DD>Specifies the RGB value to use for the 
+
+background color of the pop-up window. To use the system color for the 
+
+window background, specify -1.<P>
+
+
+
+<DT><B>string text</B>
+
+<DD>Specifies the text to display if idString is zero.<P>
+
+
+
+<DT><B>string font</B>
+
+<DD>Specifies the font attributes to use for the text in 
+
+the pop-up window.<BR> 
+
+Use the following format to specify font family, point size, character 
+
+set, and font format:<BR> 
+
+facename[, point size[, charset[ BOLD ITALIC UNDERLINE]]]<BR> 
+
+To omit an attribute, enter a comma. For example, to specify bold, 10-pt, 
+
+MS Sans Serif font, font would be:<BR> 
+
+MS Sans Serif, 10, , BOLD<P>
+
+
+
+<DT><B>tuple pt</B>
+
+<DD>(x,y). Specifies (in pixels) where the top center of the 
+
+pop-up window should be located.<P>
+
+
+
+<DT><B>tuple margins</B>
+
+<DD>(left,top,right,bottom). Specifies (in pixels) the 
+
+margins to use on the left, top, right, and bottom sides of the pop-up 
+
+window. The default for all rectangle members is -1.<P>
+
+
+
+</DL>
+
+</body>
+</html>

@@ -1,0 +1,72 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyIMAPIFolder.CopyMessages</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="PyIMAPIFolder.html">PyIMAPIFolder</A>.CopyMessages</H1><P>
+
+int = <B>CopyMessages(<I>msgs</I><I>, iid</I>
+
+<I>, folder</I>
+
+<I>, ulUIParam</I>
+
+<I>, progress</I>
+
+<I>, flags</I>
+
+</B>)<P>Copies the specified messages<P>
+
+<H3>Parameters</H3><P><DT><I>msgs</I> : <A HREF="PySBinaryArray.html">PySBinaryArray</A><P>
+
+<DD><P><DT><I>iid</I> : <A HREF="PyIID.html">PyIID</A><P>
+
+<DD>IID representing the interface to be used to access the destination folder.  Should usually be None.<P><DT><I>folder</I> : <A HREF="PyIMAPIFolder.html">PyIMAPIFolder</A><P>
+
+<DD>The destination folder<P><DT><I>ulUIParam</I> : long<P>
+
+<DD>Handle of the parent window for any dialog boxes or windows this method displays.<P><DT><I>progress</I> : <B>PyIMAPIProgress</B>
+
+<P>
+
+<DD>A progress object, or None<P><DT><I>flags</I> : int<P>
+
+<DD>A bitmask of<P><P><TABLE COLS=2 WIDTH="100%" CELLSPACING=15>
+
+<TR>
+
+   <TD>
+
+       <B>Mask</B>
+
+   </TD>
+
+   <TD>
+
+       <B>Description</B>
+
+   </TD>
+
+</TR>
+
+<TR><TD><HR></TD><TD><HR></TD></TR>
+
+<TR><TD>MAPI_DECLINE_OK</TD><TD>Informs the message store provider to immediately return MAPI_E_DECLINE_COPY if it implements CopyMessage by calling the support object's IMAPISupport::DoCopyTo or IMAPISupport::DoCopyProps method.</TD></TR>
+
+<TR><TD>MESSAGE_DIALOG</TD><TD>Displays a progress indicator as the operation proceeds.</TD></TR>
+
+<TR><TD>MESSAGE_MOVE</TD><TD>The message or messages are to be moved rather than copied. If MESSAGE_MOVE is not set, the messages are copied.</TD></TR>
+
+</TABLE></body>
+</html>

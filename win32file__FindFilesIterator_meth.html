@@ -1,0 +1,54 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32file.FindFilesIterator</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32file.html">win32file</A>.FindFilesIterator</H1><P>
+
+iterator = <B>FindFilesIterator(<I>FileName</I><I>, Transaction</I>
+
+</B>)<P>Returns an interator based on 
+
+FindFirstFile/FindNextFile. Similar to <B>win32file::FindFiles</B>
+
+
+
+, but 
+
+avoids the creation of the list for huge directories.<P>
+
+<H3>Parameters</H3><P><DT><I>FileName</I> : string<P>
+
+<DD>A string that specifies a valid directory or path and filename, which can contain wildcard characters (* and ?).<P><DT><I>Transaction=None</I> : <A HREF="PyHANDLE.html">PyHANDLE</A><P>
+
+<DD>Handle to a transaction, can be None. 
+
+If this parameter is not None, FindFirstFileTransacted will be called to perform a transacted search<P>
+
+<H3>Comments</H3>
+
+Accepts keyword args.<P>
+
+FindFirstFileTransacted will be called if a transaction handle is passed in.<P>
+
+<H3>Return Value</H3>The result is a Python iterator, with each next() method 
+
+returning a <B>WIN32_FIND_DATA</B>
+
+ tuple.<P>
+
+
+
+</body>
+</html>

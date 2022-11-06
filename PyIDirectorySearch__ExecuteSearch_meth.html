@@ -1,0 +1,42 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyIDirectorySearch.ExecuteSearch</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="PyIDirectorySearch.html">PyIDirectorySearch</A>.ExecuteSearch</H1><P>
+
+int = <B>ExecuteSearch(<I>filter</I><I>, attrNames</I>
+
+</B>)<P>Executes a search and passes the results to the caller. 
+
+Some providers, such as LDAP, will defer the actual execution until the caller invokes the 
+
+<A HREF="PyIDirectorySearch__GetFirstRow_meth.html">PyIDirectorySearch::GetFirstRow</A> method or the <A HREF="PyIDirectorySearch__GetNextRow_meth.html">PyIDirectorySearch::GetNextRow</A> method.<P>
+
+<H3>Parameters</H3><P><DT><I>filter</I> : <B>PyUnicode</B>
+
+<P>
+
+<DD><P><DT><I>attrNames</I> : [<B>PyUnicode</B>
+
+, ...]<P>
+
+<DD><P><H3>Return Value</H3>The result is an integer search handle.  <A HREF="PyIDirectorySearch__CloseSearchHandle_meth.html">PyIDirectorySearch::CloseSearchHandle</A> 
+
+should be called to close the handle.<P>
+
+
+
+</body>
+</html>

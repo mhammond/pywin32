@@ -1,0 +1,62 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PySECURITY_DESCRIPTOR</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<HR><H1>PySECURITY_DESCRIPTOR Object</H1><P>
+
+A Python object, representing a SECURITY_DESCRIPTOR structure<P>
+
+<H3>Methods</H3><P><DL><DT><A HREF="PySECURITY_DESCRIPTOR__Initialize_meth.html">Initialize</A><BR>
+
+<DD>Initializes the object.&nbsp;<P><DT><A HREF="PySECURITY_DESCRIPTOR__GetSecurityDescriptorOwner_meth.html">GetSecurityDescriptorOwner</A><BR>
+
+<DD>Return the owner of the security descriptor. SID is returned.&nbsp;<P><DT><A HREF="PySECURITY_DESCRIPTOR__GetSecurityDescriptorOwner_meth.html">GetSecurityDescriptorOwner</A><BR>
+
+<DD>Return the group owning the security descriptor. SID is returned.&nbsp;<P><DT><A HREF="PySECURITY_DESCRIPTOR__GetSecurityDescriptorDacl_meth.html">GetSecurityDescriptorDacl</A><BR>
+
+<DD>Return the discretionary ACL of the security descriptor.&nbsp;<P><DT><A HREF="PySECURITY_DESCRIPTOR__GetSecurityDescriptorSacl_meth.html">GetSecurityDescriptorSacl</A><BR>
+
+<DD>Return the system ACL of the security descriptor.&nbsp;<P><DT><A HREF="PySECURITY_DESCRIPTOR__GetSecurityDescriptorControl_meth.html">GetSecurityDescriptorControl</A><BR>
+
+<DD>Returns the control bit flags and revistion of the SD&nbsp;<P><DT><A HREF="PySECURITY_DESCRIPTOR__SetSecurityDescriptorOwner_meth.html">SetSecurityDescriptorOwner</A><BR>
+
+<DD>Set the owner of the security descriptor. Returns non-zero on success.&nbsp;<P><DT><A HREF="PySECURITY_DESCRIPTOR__SetSecurityDescriptorGroup_meth.html">SetSecurityDescriptorGroup</A><BR>
+
+<DD>Set the primary group of the security descriptor. Returns non-zero on 
+
+success.&nbsp;<P><DT><A HREF="PySECURITY_DESCRIPTOR__SetDacl_meth.html">SetDacl</A><BR>
+
+<DD>Sets information in a discretionary access-control list.&nbsp;<P><DT><A HREF="PySECURITY_DESCRIPTOR__SetSecurityDescriptorSacl_meth.html">SetSecurityDescriptorSacl</A><BR>
+
+<DD>Sets the system access control list in the security descriptor&nbsp;<P><DT><A HREF="PySECURITY_DESCRIPTOR__IsValid_meth.html">IsValid</A><BR>
+
+<DD>Determine if security descriptor is valid (IsValidSecurityDescriptor)&nbsp;<P><DT><A HREF="PySECURITY_DESCRIPTOR__GetLength_meth.html">GetLength</A><BR>
+
+<DD>Return length of security descriptor (GetSecurityDescriptorLength)&nbsp;<P><DT><A HREF="PySECURITY_DESCRIPTOR__IsSelfRelative_meth.html">IsSelfRelative</A><BR>
+
+<DD>Returns true if SD is self-relative, false if absolute&nbsp;<P><DT><A HREF="PySECURITY_DESCRIPTOR__SetSecurityDescriptorControl_meth.html">SetSecurityDescriptorControl</A><BR>
+
+<DD>Sets control bitmask of a security descriptor&nbsp;<P></DL>
+
+<H3>Comments</H3>
+
+Note the PySECURITY_DESCRIPTOR object supports the buffer interface.  Thus buffer(sd) can be used to obtain 
+
+the raw bytes. 
+
+tp_as_buffer<P>
+
+</body>
+</html>

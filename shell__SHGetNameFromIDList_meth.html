@@ -1,0 +1,34 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>shell.SHGetNameFromIDList</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="shell.html">shell</A>.SHGetNameFromIDList</H1><P>
+
+str = <B>SHGetNameFromIDList(<I>pidl</I><I>, flags</I>
+
+</B>)<P>Retrieves the display name of an item from an ID list.<P>
+
+<H3>Parameters</H3><P><DT><I>pidl</I> : <A HREF="PyIDL.html">PyIDL</A><P>
+
+<DD>Absolute ID list of the item<P><DT><I>flags</I> : int<P>
+
+<DD>Type of name to return, shellcon.SIGDN_*<P><H3>Comments</H3>
+
+This function is only available on Vista and later; a 
+
+COM exception with E_NOTIMPL will be thrown if the function can't be located.<P>
+
+</body>
+</html>

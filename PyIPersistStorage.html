@@ -1,0 +1,46 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyIPersistStorage</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<HR><H1>PyIPersistStorage Object</H1><P>
+
+A Python wrapper of a COM IPersistStorage interface.<P>
+
+<H3>Comments</H3>
+
+The IPersistStorage interface defines methods that enable a container application to pass a storage object to 
+
+one of its contained objects and to load and save the storage object. This interface supports the structured storage 
+
+model, in which each contained object has its own storage that is nested within the container's storage.<P>
+
+<H3>Methods</H3><P><DL><DT><A HREF="PyIPersistStorage__IsDirty_meth.html">IsDirty</A><BR>
+
+<DD>Checks the object for changes since it was last saved.&nbsp;<P><DT><A HREF="PyIPersistStorage__InitNew_meth.html">InitNew</A><BR>
+
+<DD>Initializes a new object, providing a storage object to be used for the object.&nbsp;<P><DT><A HREF="PyIPersistStorage__Load_meth.html">Load</A><BR>
+
+<DD>Loads an object from its existing storage.&nbsp;<P><DT><A HREF="PyIPersistStorage__Save_meth.html">Save</A><BR>
+
+<DD>Saves an object, and any nested objects that it contains, into the specified storage.&nbsp;<P><DT><A HREF="PyIPersistStorage__SaveCompleted_meth.html">SaveCompleted</A><BR>
+
+<DD>Notifies the object that it can revert from NoScribble or HandsOff mode.&nbsp;<P><DT><A HREF="PyIPersistStorage__HandsOffStorage_meth.html">HandsOffStorage</A><BR>
+
+<DD>Instructs the object to release all storage objects that have been passed to it by 
+
+its container and to enter HandsOff mode.&nbsp;<P></DL>
+
+<H3>Based On</H3><A HREF="PyIUnknown.html">PyIUnknown</A></body>
+</html>

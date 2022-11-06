@@ -1,0 +1,42 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32file.GetVolumePathName</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32file.html">win32file</A>.GetVolumePathName</H1><P>
+
+string = <B>GetVolumePathName(<I>FileName</I><I>, BufferLength</I>
+
+</B>)<P>Returns volume mount point for a path<P>
+
+<H3>Parameters</H3><P><DT><I>FileName</I> : string<P>
+
+<DD>File/dir for which to return volume mount point<P><DT><I>BufferLength=0</I> : int<P>
+
+<DD>Optional parm to allocate extra space for returned string<P>
+
+<H3>Comments</H3>
+
+Api gives no indication of how much memory is needed, so function assumes returned path 
+
+will not be longer that length of input path + 1. 
+
+Use GetFullPathName first for relative paths, or GetLongPathName for 8.3 paths. 
+
+Optional second parm can also be used to override the buffer size for returned path<P>
+
+Accepts keyword args.<P>
+
+</body>
+</html>

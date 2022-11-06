@@ -1,0 +1,88 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyHHNTRACK</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<HR><H1>PyHHNTRACK Object</H1><P>
+
+A Python object, representing an HHNTRACK 
+
+structure<P>
+
+<H3>Comments</H3>
+
+Typically you create a PyHHNTRACK 
+
+(via <A HREF="win32help__HHNTRACK_meth.html">win32help::HHNTRACK</A>) object, and set its properties. 
+
+The object can then be passed to any function which takes an HHNTRACK 
+
+object.<BR> 
+
+<BR> 
+
+This structure returns the file name of the current topic and a constant 
+
+that specfies the user action that is about to occur, such as hiding the 
+
+Navigation pane by clicking the Hide button on the toolbar.<BR> 
+
+<BR> 
+
+Used by<BR> 
+
+<B>HHN_TRACK</B>
+
+
+
+<BR><P>
+
+<H3>Properties</H3>
+
+<DL>
+
+<DT><B>int action</B>
+
+<DD>Specifies the action the user is about to take. This 
+
+is an HHACT_ constant.<P>
+
+
+
+<DT><B>NMHDR hdr</B>
+
+<DD>Standard WM_NOTIFY header(<A HREF="win32help__NMHDR_meth.html">win32help::NMHDR</A>).<P>
+
+
+
+<DT><B>string curUrl</B>
+
+<DD>A multi-byte, zero-terminated string that specifies 
+
+the topic navigated to, or the name of the help window being created.<P>
+
+
+
+<DT><B>HH_WINTYPE winType</B>
+
+<DD>A pointer to the current HH_WINTYPE structure 
+
+(<A HREF="win32help__HH_WINTYPE_meth.html">win32help::HH_WINTYPE</A>).<P>
+
+
+
+</DL>
+
+</body>
+</html>

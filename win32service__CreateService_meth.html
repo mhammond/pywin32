@@ -1,0 +1,72 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32service.CreateService</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32service.html">win32service</A>.CreateService</H1><P>
+
+<A HREF="PySC_HANDLE.html">PySC_HANDLE</A>/(<A HREF="PySC_HANDLE.html">PySC_HANDLE</A>, int) = <B>CreateService(<I>scHandle</I><I>, name</I>
+
+<I>, displayName</I>
+
+<I>, desiredAccess</I>
+
+<I>, serviceType</I>
+
+<I>, startType</I>
+
+<I>, errorControl</I>
+
+<I>, binaryFile</I>
+
+<I>, loadOrderGroup</I>
+
+<I>, bFetchTag</I>
+
+<I>, serviceDeps</I>
+
+<I>, acctName</I>
+
+<I>, password</I>
+
+</B>)<P>Creates a new service.<P>
+
+<H3>Parameters</H3><P><DT><I>scHandle</I> : <A HREF="PySC_HANDLE.html">PySC_HANDLE</A><P>
+
+<DD>handle to service control manager database<P><DT><I>name</I> : string<P>
+
+<DD>Name of service<P><DT><I>displayName</I> : string<P>
+
+<DD>Display name<P><DT><I>desiredAccess</I> : int<P>
+
+<DD>type of access to service<P><DT><I>serviceType</I> : int<P>
+
+<DD>type of service<P><DT><I>startType</I> : int<P>
+
+<DD>When/how to start service<P><DT><I>errorControl</I> : int<P>
+
+<DD>severity if service fails to start<P><DT><I>binaryFile</I> : string<P>
+
+<DD>name of binary file<P><DT><I>loadOrderGroup</I> : string<P>
+
+<DD>name of load ordering group , or None<P><DT><I>bFetchTag</I> : int<P>
+
+<DD>Should the tag be fetched and returned?  If TRUE, the result is a tuple of (handle, tag), otherwise just handle.<P><DT><I>serviceDeps</I> : [string,...]<P>
+
+<DD>sequence of dependency names<P><DT><I>acctName</I> : string<P>
+
+<DD>account name of service, or None<P><DT><I>password</I> : string<P>
+
+<DD>password for service account , or None<P></body>
+</html>

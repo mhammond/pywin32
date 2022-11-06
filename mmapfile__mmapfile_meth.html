@@ -1,0 +1,70 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>mmapfile.mmapfile</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="mmapfile.html">mmapfile</A>.mmapfile</H1><P>
+
+<A HREF="Pymmapfile.html">Pymmapfile</A> = <B>mmapfile(<I>File</I><I>, Name</I>
+
+<I>, MaximumSize</I>
+
+<I>, FileOffset</I>
+
+<I>, NumberOfBytesToMap</I>
+
+</B>)<P>Creates or opens a memory mapped file. 
+
+This method uses the following API functions: CreateFileMapping, MapViewOfFile, VirtualQuery<P>
+
+<H3>Parameters</H3><P><DT><I>File</I> : str<P>
+
+<DD>Name of file.  Use None or '' when opening an existing named mapping, or 
+
+to use system pagefile.<P><DT><I>Name</I> : str<P>
+
+<DD>Name of mapping object to create or open, can be None<P><DT><I>MaximumSize=0</I> : int<P>
+
+<DD>Size of file mapping to create, should be specified as a 
+
+multiple of system page size (see <A HREF="win32api__GetSystemInfo_meth.html">win32api::GetSystemInfo</A>).  Defaults to size of 
+
+existing file if 0. If an existing named mapping is opened, the returned object will 
+
+have the same size as the original mapping.<P>
+
+<DT><I>FileOffset=0</I> : int<P>
+
+<DD>Offset into the file at which to create view.  This 
+
+should be specified as a multiple of system allocation granularity. (see <A HREF="win32api__GetSystemInfo_meth.html">win32api::GetSystemInfo</A>)<P>
+
+<DT><I>NumberOfBytesToMap=0</I> : int<P>
+
+<DD>Size of view to create, also a multiple of system page 
+
+size. If 0, view will span from offset to end of file mapping.<P>
+
+<H3>Comments</H3>
+
+Accepts keyword args.<P>
+
+<H3>Win32 API References</H3><P><DT>Search for <i>CreateFileMapping</i> at <a href="http://search.msdn.microsoft.com/search/results.aspx?view=msdn&query=CreateFileMapping" target="_blank">msdn</a>, <a href="http://www.google.com/search?q=CreateFileMapping" target="_blank">google</a> or <a href="http://groups.google.com/groups?q=CreateFileMapping" target="_blank">google groups</a>.<P>
+
+<DT>Search for <i>MapViewOfFile</i> at <a href="http://search.msdn.microsoft.com/search/results.aspx?view=msdn&query=MapViewOfFile" target="_blank">msdn</a>, <a href="http://www.google.com/search?q=MapViewOfFile" target="_blank">google</a> or <a href="http://groups.google.com/groups?q=MapViewOfFile" target="_blank">google groups</a>.<P>
+
+<DT>Search for <i>VirtualQuery</i> at <a href="http://search.msdn.microsoft.com/search/results.aspx?view=msdn&query=VirtualQuery" target="_blank">msdn</a>, <a href="http://www.google.com/search?q=VirtualQuery" target="_blank">google</a> or <a href="http://groups.google.com/groups?q=VirtualQuery" target="_blank">google groups</a>.<P>
+
+</body>
+</html>

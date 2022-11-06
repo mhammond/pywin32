@@ -1,0 +1,44 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>sspi</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1>Module sspi</H1><P>
+
+Helper classes for SSPI authentication via the win32security module.<P>
+
+<H3>Comments</H3>
+
+SSPI authentication involves a token-exchange "dance", the exact details 
+
+of which depends on the authentication provider used.  There are also 
+
+a number of complex flags and constants that need to be used - in most 
+
+cases, there are reasonable defaults.<P>
+
+These classes attempt to hide these details from you until you really need 
+
+to know.  They are not designed to handle all cases, just the common ones. 
+
+If you need finer control than offered here, just use the win32security 
+
+functions directly.<P>
+
+<H3>Classes</H3><P><DL><DT><A HREF="sspi.ClientAuth.html">ClientAuth</A><BR>
+
+<DD>Manages the client side of an SSPI authentication handshake&nbsp;<P><DT><A HREF="sspi.ServerAuth.html">ServerAuth</A><BR>
+
+<DD>Manages the server side of an SSPI authentication handshake&nbsp;<P></DL></body>
+</html>

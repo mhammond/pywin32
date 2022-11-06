@@ -1,0 +1,82 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32net.NetShareEnum</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32net.html">win32net</A>.NetShareEnum</H1><P>
+
+([dict, ...], total, resumeHandle) = <B>NetShareEnum(<I>server</I><I>, level</I>
+
+<I>, resumeHandle</I>
+
+<I>, prefLen</I>
+
+</B>)<P>Retrieves information about each shared resource 
+
+on a server.<P>
+
+<H3>Parameters</H3><P><DT><I>server</I> : string/<B>PyUnicode</B>
+
+<P>
+
+<DD>The name of the server, or None.<P><DT><I>level</I> : int<P>
+
+<DD>The level of data required.<P><DT><I>resumeHandle=0</I> : int<P>
+
+<DD>A resume handle.  See the return description for more information.<P>
+
+<DT><I>prefLen=MAX_PREFERRED_LENGTH</I> : int<P>
+
+<DD>The preferred length of the data buffer.<P>
+
+<H3>Alternative Parameters</H3><P><DT><I>serverName</I><P>
+
+<DD>The name of the server on which the call should execute, or None for the local 
+
+computer.<P>
+
+<H3>Comments</H3>
+
+If the old style is used, the result is a list of [(shareName, type, remarks), ...]<P>
+
+<H3>Win32 API References</H3><P><DT>Search for <i>NetShareEnum 
+
+param 1 is not declared as const :-(</i> at <a href="http://search.msdn.microsoft.com/search/results.aspx?view=msdn&query=NetShareEnum 
+
+param 1 is not declared as const :-(" target="_blank">msdn</a>, <a href="http://www.google.com/search?q=NetShareEnum 
+
+param 1 is not declared as const :-(" target="_blank">google</a> or <a href="http://groups.google.com/groups?q=NetShareEnum 
+
+param 1 is not declared as const :-(" target="_blank">google groups</a>.<P>
+
+<H3>Return Value</H3>The result is a list of items read (with each item being a dictionary of format 
+
+<A HREF="PySHARE_INFO_.2a.html">PySHARE_INFO_*</A>, depending on the level parameter), 
+
+the total available, and a new "resume handle".  The first time you call 
+
+this function, you should pass zero for the resume handle.  If more data 
+
+is available than what was returned, a new non-zero resume handle will be 
+
+returned, which can be used to call the function again to fetch more data. 
+
+This process may repeat, each time with a new resume handle, until zero is 
+
+returned for the new handle, indicating all the data has been read.<P>
+
+
+
+</body>
+</html>

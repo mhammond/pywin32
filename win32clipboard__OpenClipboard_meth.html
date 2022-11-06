@@ -1,0 +1,56 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32clipboard.OpenClipboard</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32clipboard.html">win32clipboard</A>.OpenClipboard</H1><P>
+
+None = <B>OpenClipboard(<I>hWnd</I></B>)<P>The OpenClipboard function opens the 
+
+clipboard for examination and prevents other applications from modifying 
+
+the clipboard content.<P>
+
+<H3>Parameters</H3><P><DT><I>hWnd=None</I> : <A HREF="PyHANDLE.html">PyHANDLE</A><P>
+
+<DD>Integer handle to the window to be associated with the 
+
+open clipboard. If this parameter is None, the open clipboard is associated 
+
+with the current task.<P>
+
+<H3>Comments</H3>
+
+OpenClipboard fails if another window has the clipboard open.<BR> 
+
+An application should call the CloseClipboard function after every 
+
+successful call to OpenClipboard.<BR> 
+
+The window identified by the hWnd parameter does not become the 
+
+clipboard owner unless the EmptyClipboard function is called.<P>
+
+<H3>Win32 API References</H3><P><DT>Search for <i>OpenClipboard</i> at <a href="http://search.msdn.microsoft.com/search/results.aspx?view=msdn&query=OpenClipboard" target="_blank">msdn</a>, <a href="http://www.google.com/search?q=OpenClipboard" target="_blank">google</a> or <a href="http://groups.google.com/groups?q=OpenClipboard" target="_blank">google groups</a>.<P>
+
+<H3>Return Value</H3>If the function succeeds, the return value is None.<BR> 
+
+If the function fails, win32api.error is raised with the GetLastError 
+
+info.<P>
+
+
+
+</body>
+</html>

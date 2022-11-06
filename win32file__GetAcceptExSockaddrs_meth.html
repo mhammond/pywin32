@@ -1,0 +1,42 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32file.GetAcceptExSockaddrs</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32file.html">win32file</A>.GetAcceptExSockaddrs</H1><P>
+
+(iFamily, <B>LocalSockAddr</B>
+
+, <B>RemoteSockAddr</B>
+
+) = <B>GetAcceptExSockaddrs(<I>sAccepting</I><I>, buffer</I>
+
+</B>)<P>Parses the connection endpoints from the buffer passed into AcceptEx<P>
+
+<H3>Parameters</H3><P><DT><I>sAccepting</I> : <B>PySocket</B>
+
+/int<P>
+
+<DD>Socket that was passed into the sAccepting parameter of AcceptEx<P><DT><I>buffer</I> : <A HREF="PyOVERLAPPEDReadBuffer.html">PyOVERLAPPEDReadBuffer</A><P>
+
+<DD>Buffer you passed into AcceptEx<P><H3>Comments</H3>
+
+LocalSockAddr and RemoteSockAddr are ("xx.xx.xx.xx", port#) if iFamily == AF_INET<P>
+
+otherwise LocalSockAddr and RemoteSockAddr are just binary strings<P>
+
+and they should be unpacked with the struct module.<P>
+
+</body>
+</html>

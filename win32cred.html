@@ -1,0 +1,66 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32cred</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1>Module win32cred</H1><P>
+
+Interface to credentials management functions. 
+
+The functions in this module are only available on Windows XP and later.<BR> 
+
+Functions operate only on the credential set of the calling user.<BR> 
+
+User's profile must be loaded for stored credentials to be accessible.<BR> 
+
+Each credential is uniquely identified by its TargetName and Type.<BR> 
+
+All functions accept keyword arguments.<P>
+
+<H3>Methods</H3><P><DL><DT><A HREF="win32cred__CredMarshalCredential_meth.html">CredMarshalCredential</A><BR>
+
+<DD>Marshals a credential into a unicode string&nbsp;<P><DT><A HREF="win32cred__CredUnmarshalCredential_meth.html">CredUnmarshalCredential</A><BR>
+
+<DD>Unmarshals credentials formatted using <A HREF="win32cred__CredMarshalCredential_meth.html">win32cred::CredMarshalCredential</A>&nbsp;<P><DT><A HREF="win32cred__CredIsMarshaledCredential_meth.html">CredIsMarshaledCredential</A><BR>
+
+<DD>Checks if a string matches the form of a marshaled credential&nbsp;<P><DT><A HREF="win32cred__CredEnumerate_meth.html">CredEnumerate</A><BR>
+
+<DD>Lists stored credentials for current logon session&nbsp;<P><DT><A HREF="win32cred__CredGetTargetInfo_meth.html">CredGetTargetInfo</A><BR>
+
+<DD>Determines type and location of credential target&nbsp;<P><DT><A HREF="win32cred__CredWriteDomainCredentials_meth.html">CredWriteDomainCredentials</A><BR>
+
+<DD>Creates or updates credential for a domain or server&nbsp;<P><DT><A HREF="win32cred__CredReadDomainCredentials_meth.html">CredReadDomainCredentials</A><BR>
+
+<DD>Retrieves a user's credentials for a domain or server&nbsp;<P><DT><A HREF="win32cred__CredDelete_meth.html">CredDelete</A><BR>
+
+<DD>Deletes a stored credential&nbsp;<P><DT><A HREF="win32cred__CredWrite_meth.html">CredWrite</A><BR>
+
+<DD>Creates or updates a stored credential&nbsp;<P><DT><A HREF="win32cred__CredRead_meth.html">CredRead</A><BR>
+
+<DD>Retrieves a stored credential&nbsp;<P><DT><A HREF="win32cred__CredRename_meth.html">CredRename</A><BR>
+
+<DD>Changes the target name of stored credentials&nbsp;<P><DT><A HREF="win32cred__CredUICmdLinePromptForCredentials_meth.html">CredUICmdLinePromptForCredentials</A><BR>
+
+<DD>Prompt for username/passwd from a console app&nbsp;<P><DT><A HREF="win32cred__CredUIPromptForCredentials_meth.html">CredUIPromptForCredentials</A><BR>
+
+<DD>Initiates dialog to request user credentials&nbsp;<P><DT><A HREF="win32cred__CredUIConfirmCredentials_meth.html">CredUIConfirmCredentials</A><BR>
+
+<DD>Confirms whether credentials entered by user are valid or not&nbsp;<P><DT><A HREF="win32cred__CredUIReadSSOCredW_meth.html">CredUIReadSSOCredW</A><BR>
+
+<DD>Retrieves single sign on username&nbsp;<P><DT><A HREF="win32cred__CredUIStoreSSOCredW_meth.html">CredUIStoreSSOCredW</A><BR>
+
+<DD>Creates a single sign on credential&nbsp;<P><DT><A HREF="win32cred__CredUIParseUserName_meth.html">CredUIParseUserName</A><BR>
+
+<DD>Parses a full username into domain and username&nbsp;<P></DL></body>
+</html>

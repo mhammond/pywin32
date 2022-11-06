@@ -1,0 +1,64 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyCERT_EXTENSION</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<HR><H1>PyCERT_EXTENSION Object</H1><P>
+
+Dict containing a certificate extension<P>
+
+<H3>Properties</H3>
+
+<DL>
+
+<DT><B>str ObjId</B>
+
+<DD>The OID identifying the type of extension<P>
+
+
+
+<DT><B>boolean Critical</B>
+
+<DD>If true, any contraints or limits contained in the extension should be considered absolute<P>
+
+
+
+<DT><B>str Value</B>
+
+<DD>Binary string containing ASN encoded data. 
+
+To interpret or display extension data, see <B>cryptoapi::CryptDecodeObjectEx</B>
+
+
+
+ and <B>cryptoapi::CryptFormatObject</B>
+
+
+
+.<P>
+
+
+
+</DL>
+
+<H3>Comments</H3>
+
+These extensions are not yet handled by CryptDecodeObjectEx, but can be formatted with CryptFormatObject. 
+
+<BR>szOID_PRIVATEKEY_USAGE_PERIOD -- ???? CERT_PRIVATE_KEY_VALIDITY ???? 
+
+<BR>szOID_KEY_USAGE_RESTRICTION - CERT_KEY_USAGE_RESTRICTION_INFO<P>
+
+</body>
+</html>

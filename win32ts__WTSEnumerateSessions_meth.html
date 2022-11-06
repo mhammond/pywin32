@@ -1,0 +1,44 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32ts.WTSEnumerateSessions</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32ts.html">win32ts</A>.WTSEnumerateSessions</H1><P>
+
+(dict,...) = <B>WTSEnumerateSessions(<I>Server</I><I>, Version</I>
+
+<I>, Reserved</I>
+
+</B>)<P>Lists sessions on a server<P>
+
+<H3>Parameters</H3><P><DT><I>Server=WTS_CURRENT_SERVER_HANDLE</I> : <A HREF="PyHANDLE.html">PyHANDLE</A><P>
+
+<DD>Handle to a terminal server<P>
+
+<DT><I>Version=1</I> : int<P>
+
+<DD>Version of request, currently 1 is only valid value<P>
+
+<DT><I>Reserved=0</I> : int<P>
+
+<DD>Reserved, use 0 if passed in<P>
+
+<H3>Return Value</H3>Returns a sequence of dictionaries representing WTS_SESSION_INFO structs, containing {SessionId:int, 
+
+WinStationName:str, State:int}<P>
+
+
+
+</body>
+</html>

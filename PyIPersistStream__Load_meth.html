@@ -1,0 +1,34 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyIPersistStream.Load</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="PyIPersistStream.html">PyIPersistStream</A>.Load</H1><P>
+
+<B>Load(<I>stream</I></B>)<P>Initializes an object from the stream where it was previously saved.<P>
+
+<H3>Parameters</H3><P><DT><I>stream</I> : <A HREF="PyIStream.html">PyIStream</A><P>
+
+<DD>Stream object to load from.<P><H3>Comments</H3>
+
+This method loads an object from its associated stream. The seek pointer is set as it was in the most 
+
+recent <A HREF="PyIPersistStream__Save_meth.html">PyIPersistStream::Save</A> method. This method can seek and read from the stream, but cannot write to it.<P>
+
+On exit, the seek pointer must be in the same position it was in on entry, immediately past the end of the 
+
+data.<P>
+
+</body>
+</html>

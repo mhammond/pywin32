@@ -1,0 +1,72 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32job.QueryInformationJobObject</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32job.html">win32job</A>.QueryInformationJobObject</H1><P>
+
+dict = <B>QueryInformationJobObject(<I>Job</I><I>, JobObjectInfoClass</I>
+
+</B>)<P>Retrieves limit and job state information from the job object.<P>
+
+<H3>Parameters</H3><P><DT><I>Job</I> : <A HREF="PyHANDLE.html">PyHANDLE</A><P>
+
+<DD>Handle to a job, use None for job that calling process is part of<P><DT><I>JobObjectInfoClass</I> : int<P>
+
+<DD>The type of data required, one of JobObject* values<P><P><TABLE COLS=2 WIDTH="100%" CELLSPACING=15>
+
+<TR>
+
+   <TD>
+
+       <B>JobObjectInfoClass</B>
+
+   </TD>
+
+   <TD>
+
+       <B>Type of information returned</B>
+
+   </TD>
+
+</TR>
+
+<TR><TD><HR></TD><TD><HR></TD></TR>
+
+<TR><TD>JobObjectBasicAccountingInformation</TD><TD>Returns a dict representing a JOBOBJECT_BASIC_ACCOUNTING_INFORMATION struct</TD></TR>
+
+<TR><TD>JobObjectBasicAndIoAccountingInformation</TD><TD>Returns a dict representing a JOBOBJECT_BASIC_AND_IO_ACCOUNTING_INFORMATION struct</TD></TR>
+
+<TR><TD>JobObjectBasicLimitInformation</TD><TD>Returns a dict representing a JOBOBJECT_BASIC_LIMIT_INFORMATION struct</TD></TR>
+
+<TR><TD>JobObjectExtendedLimitInformation</TD><TD>Returns a dict representing a JOBOBJECT_EXTENDED_LIMIT_INFORMATION struct</TD></TR>
+
+<TR><TD>JobObjectEndOfJobTimeInformation</TD><TD>Returns a dict representing a JOBOBJECT_END_OF_JOB_TIME_INFORMATION struct</TD></TR>
+
+<TR><TD>JobObjectBasicUIRestrictions</TD><TD>Returns a dict representing a JOBOBJECT_BASIC_UI_RESTRICTIONS struct</TD></TR>
+
+<TR><TD>JobObjectBasicProcessIdList</TD><TD>Returns a sequence of pids of processes assigned to the job</TD></TR>
+
+<TR><TD>JobObjectJobSetInformation</TD><TD>Returns a dict representing a JOBOBJECT_JOBSET_INFORMATION struct (not documented on MSDN)</TD></TR>
+
+<TR><TD>JobObjectSecurityLimitInformation</TD><TD>JOBOBJECT_SECURITY_LIMIT_INFORMATION Not implemented</TD></TR>
+
+<TR><TD>JobObjectAssociateCompletionPortInformation</TD><TD>JOBOBJECT_ASSOCIATE_COMPLETION_PORT Not implemented</TD></TR>
+
+</TABLE><H3>Return Value</H3>The type of the returned information is dependent on the class requested<P>
+
+
+
+</body>
+</html>

@@ -1,0 +1,26 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32gui.EnumWindows</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32gui.html">win32gui</A>.EnumWindows</H1><P>
+
+<B>EnumWindows(<I>callback</I><I>, extra</I></B>)<P>Enumerates all top-level windows on the screen by passing the handle to each window, in turn, to an application-defined callback function.<P>
+
+<H3>Parameters</H3><P><DT><I>callback</I> : function<P>
+
+<DD>A Python function to be used as the callback.  Function can return False to stop enumeration, or raise an exception.<P><DT><I>extra</I> : object<P>
+
+<DD>Any python object - this is passed to the callback function as the second param (first is the hwnd).<P></body>
+</html>

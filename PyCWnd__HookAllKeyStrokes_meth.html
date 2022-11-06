@@ -1,0 +1,40 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyCWnd.HookAllKeyStrokes</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="PyCWnd.html">PyCWnd</A>.HookAllKeyStrokes</H1><P>
+
+<B>HookAllKeyStrokes(<I>obHandler</I></B>)<P>Hook a key stroke handler for all key strokes.<P>
+
+<H3>Parameters</H3><P><DT><I>obHandler</I> : object<P>
+
+<DD>The handler for the keystrokes.  This must be a callable object.<P><H3>Comments</H3>
+
+The handler object passed will be called as the application receives WM_CHAR messages. 
+
+The handler will be called with 2 arguments<BR> 
+
+The handler object (as per all hook functions).<BR> 
+
+The keystroke being handled.<BR> 
+
+If the handler returns TRUE, then the keystroke will be passed on to the 
+
+default handler, otherwise it will be consumed.<BR> 
+
+Note: This handler will prevent any <A HREF="PyCWnd__HookKeyStroke_meth.html">PyCWnd::HookKeyStroke</A> hooks from being called.<P>
+
+</body>
+</html>

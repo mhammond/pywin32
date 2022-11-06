@@ -1,0 +1,100 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32ts.WTSSetUserConfig</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32ts.html">win32ts</A>.WTSSetUserConfig</H1><P>
+
+<B>WTSSetUserConfig(<I>ServerName</I><I>, UserName</I><I>, ConfigClass</I></B>)<P>Changes user configuration<P>
+
+<H3>Parameters</H3><P><DT><I>ServerName</I> : <B>PyUnicode</B>
+
+<P>
+
+<DD>Name ot terminal server<P><DT><I>UserName</I> : <B>PyUnicode</B>
+
+<P>
+
+<DD>Name of user<P><DT><I>ConfigClass</I> : int<P>
+
+<DD>Type of information to be set, win32ts.WTSUserConfig*<P><P><TABLE COLS=2 WIDTH="100%" CELLSPACING=15>
+
+<TR>
+
+   <TD>
+
+       <B>ConfigClass</B>
+
+   </TD>
+
+   <TD>
+
+       <B>Type of data required</B>
+
+   </TD>
+
+</TR>
+
+<TR><TD><HR></TD><TD><HR></TD></TR>
+
+<TR><TD>WTSUserConfigInitialProgram</TD><TD>Unicode string, program to be run when 
+
+user logs on</TD></TR>
+
+<TR><TD>WTSUserConfigWorkingDirectory</TD><TD>Unicode string, working dir for 
+
+initial program</TD></TR>
+
+<TR><TD>WTSUserConfigModemCallbackPhoneNumber</TD><TD>Unicode string</TD></TR>
+
+<TR><TD>WTSUserConfigTerminalServerProfilePath</TD><TD>Unicode string</TD></TR>
+
+<TR><TD>WTSUserConfigTerminalServerHomeDir</TD><TD>Unicode string</TD></TR>
+
+<TR><TD>WTSUserConfigTerminalServerHomeDirDrive</TD><TD>Unicode string</TD></TR>
+
+<TR><TD>WTSUserConfigfInheritInitialProgram</TD><TD>Int</TD></TR>
+
+<TR><TD>WTSUserConfigfAllowLogonTerminalServer</TD><TD>Int, 1 if user can 
+
+log on thru Terminal Service</TD></TR>
+
+<TR><TD>WTSUserConfigTimeoutSettingsConnections</TD><TD>Int, max 
+
+connection time (ms)</TD></TR>
+
+<TR><TD>WTSUserConfigTimeoutSettingsDisconnections</TD><TD>Int</TD></TR>
+
+<TR><TD>WTSUserConfigTimeoutSettingsIdle</TD><TD>Int, max idle time (ms)</TD></TR>
+
+<TR><TD>WTSUserConfigfDeviceClientDrives</TD><TD>Int</TD></TR>
+
+<TR><TD>WTSUserConfigfDeviceClientPrinters</TD><TD>Int</TD></TR>
+
+<TR><TD>WTSUserConfigfDeviceClientDefaultPrinter</TD><TD>Int</TD></TR>
+
+<TR><TD>WTSUserConfigBrokenTimeoutSettings</TD><TD>Int</TD></TR>
+
+<TR><TD>WTSUserConfigReconnectSettings</TD><TD>Int</TD></TR>
+
+<TR><TD>WTSUserConfigModemCallbackSettings</TD><TD>Int</TD></TR>
+
+<TR><TD>WTSUserConfigShadowingSettings</TD><TD>Int, indicates if user's session 
+
+my be monitored</TD></TR>
+
+<TR><TD>WTSUserConfigfTerminalServerRemoteHomeDir</TD><TD>Int,</TD></TR>
+
+</TABLE></body>
+</html>

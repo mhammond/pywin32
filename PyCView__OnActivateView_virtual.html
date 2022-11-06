@@ -1,0 +1,54 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyCView.OnActivateView</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="PyCView.html">PyCView.OnActivateView</A> Virtual</H1><P>
+
+<B>OnActivateView(<I>bActivate</I><I>, activateView</I>
+
+
+
+<I>, DeactivateView</I>
+
+
+
+</B>)<P>Called by the framework when a view is activated or deactivated.<P>
+
+<H3>Parameters</H3><P><DT><I>bActivate</I> : int<P>
+
+<DD>Indicates whether the view is being activated or deactivated.<P><DT><I>activateView</I> : <A HREF="PyCWnd.html">PyCWnd</A><P>
+
+<DD>The view object that is being activated.<P><DT><I>DeactivateView</I> : <A HREF="PyCWnd.html">PyCWnd</A><P>
+
+<DD>The view object that is being deactivated.<P><H3>Comments</H3>
+
+If a handler exists, the base MFC implementation is not called. 
+
+<BR>The activateView and deactiveView parameters are the same objects if the 
+
+application's main frame window is activated with no change in the 
+
+active view for example, if the focus is being transferred from 
+
+another application to this one, rather than from one view to 
+
+another within the application. 
+
+This allows a view to re-realize its palette, if needed.<P>
+
+<H3>See Also</H3><P><DT><A HREF="PyCView__OnActivateView_meth.html">PyCView::OnActivateView</A><P>
+
+</body>
+</html>

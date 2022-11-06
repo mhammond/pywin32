@@ -1,0 +1,68 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32crypt.CryptQueryObject</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32crypt.html">win32crypt</A>.CryptQueryObject</H1><P>
+
+dict = <B>CryptQueryObject(<I>ObjectType</I><I>, Object</I>
+
+<I>, ExpectedContentTypeFlags</I>
+
+<I>, ExpectedFormatTypeFlags</I>
+
+<I>, Flags</I>
+
+</B>)<P>Determines the cryptographic type of input data<P>
+
+<H3>Parameters</H3><P><DT><I>ObjectType</I> : int<P>
+
+<DD>Type of input, CERT_QUERY_OBJECT_BLOB or CERT_QUERY_OBJECT_FILE<P><DT><I>Object</I> : str<P>
+
+<DD>Raw data or a filename containing the data to be queried depending on 
+
+ObjectType<P><DT><I>ExpectedContentTypeFlags=CERT_QUERY_CONTENT_FLAG_ALL</I> : int<P>
+
+<DD>One of the 
+
+CERT_QUERY_CONTENT_FLAG_* constants<P>
+
+<DT><I>ExpectedFormatTypeFlags=CERT_QUERY_FORMAT_FLAG_ALL</I> : int<P>
+
+<DD>One of the 
+
+CERT_QUERY_FORMAT_FLAG_* constants<P>
+
+<DT><I>Flags=0</I> : int<P>
+
+<DD>Reserved, use only 0<P>
+
+<H3>Return Value</H3>Returns a dictionary containing 
+
+<BR>{MsgAndCertEncodingType:int,&#09## encoding type, usually X509_ASN_ENCODING combined with PKCS_7_ASN_ENCODING 
+
+<BR>ContentType:int,&#09&#09&#09&#09## One of the CERT_QUERY_CONTENT_* constants 
+
+<BR>FormatType:int,&#09&#09&#09&#09&#09## One of the CERT_QUERY_FORMAT_* constants 
+
+<BR>CertStore:<A HREF="PyCERTSTORE.html">PyCERTSTORE</A>,&#09&#09## Handle to certificate store containing all certficates in the object, may be 
+
+None &#09<BR>Msg:<A HREF="PyCRYPTMSG.html">PyCRYPTMSG</A>,&#09&#09&#09&#09## If input doesn't contains a PKCS7 message, will be None 
+
+<BR>Context:<A HREF="PyCERT_CONTEXT.html">PyCERT_CONTEXT</A>}&#09&#09## A certificate, CRL, or CTL context depending on ContentType, may be None<P>
+
+
+
+</body>
+</html>

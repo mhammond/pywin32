@@ -1,0 +1,58 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32print.StartDocPrinter</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32print.html">win32print</A>.StartDocPrinter</H1><P>
+
+int = <B>StartDocPrinter(<I>hprinter</I><I>, level</I>
+
+<I>, tuple</I>
+
+</B>)<P>Notifies the print spooler that a document is to be spooled for printing. To 
+
+be used before using WritePrinter. Returns the Jobid of the started job.<P>
+
+<H3>Parameters</H3><P><DT><I>hprinter</I> : <A HREF="PyPrinterHANDLE.html">PyPrinterHANDLE</A><P>
+
+<DD>handle to printer (from <A HREF="win32print__OpenPrinter_meth.html">win32print::OpenPrinter</A>)<P><DT><I>level=1</I> : int<P>
+
+<DD>type of docinfo structure (only docinfo level 1 supported)<P>
+
+<DT><I>tuple</I> : data<P>
+
+<DD>A tuple corresponding to the level parameter.<P><H3>Comments</H3>
+
+For level 1, the tuple is:<P>
+
+<H3>Items</H3><P><DL><DT>[0] <I>string</I> : docName<P>
+
+<DD>Specifies the name of the document.<P></DL>
+
+<DL><DT>[1] <I>string</I> : outputFile<P>
+
+<DD>Specifies the name of an output file. To print to a printer, set this to None.<P></DL>
+
+<DL><DT>[2] <I>string</I> : dataType<P>
+
+<DD>Identifies the type of data used to record the document, such 
+
+as "raw" or "emf", used to record the print job. This member can be None. If it is not None, 
+
+the StartDoc function passes it to the printer driver. Note that the printer driver might 
+
+ignore the requested data type.<P></DL>
+
+</body>
+</html>

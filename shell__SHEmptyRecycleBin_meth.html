@@ -1,0 +1,42 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>shell.SHEmptyRecycleBin</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="shell.html">shell</A>.SHEmptyRecycleBin</H1><P>
+
+<B>SHEmptyRecycleBin(<I>hwnd</I><I>, path</I><I>, flags</I></B>)<P>Empties the recycle bin on the specified drive.<P>
+
+<H3>Parameters</H3><P><DT><I>hwnd</I> : <A HREF="PyHANDLE.html">PyHANDLE</A><P>
+
+<DD>Handle to parent window, can be None<P><DT><I>path</I> : string<P>
+
+<DD>A NULL-terminated string that contains the path of the root 
+
+drive on which the recycle bin is located. This parameter can contain the address 
+
+of a string formatted with the drive, folder, and subfolder names 
+
+(c:\\windows\\system . . .). It can also contain an empty string or NULL. If this 
+
+value is an empty string or NULL, all recycle bins on all drives will be emptied.<P><DT><I>flags</I> : int<P>
+
+<DD>One of the SHERB_* values.<P><H3>Comments</H3>
+
+This method is only available in shell version 4.71.  If the function is not available, a COM Exception 
+
+with HRESULT=E_NOTIMPL will be raised.<P>
+
+</body>
+</html>

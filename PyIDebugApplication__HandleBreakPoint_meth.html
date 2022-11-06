@@ -1,0 +1,42 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyIDebugApplication.HandleBreakPoint</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="PyIDebugApplication.html">PyIDebugApplication</A>.HandleBreakPoint</H1><P>
+
+int = <B>HandleBreakPoint(<I>br</I></B>)<P>Called by the language engine in the context of a thread that has 
+
+hit a breakpoint.<P>
+
+<H3>Parameters</H3><P><DT><I>br</I> : int<P>
+
+<DD>Break reason - one of the BREAKREASON_* constants.<P><H3>Comments</H3>
+
+This method causes the current thread to block and a notification of the breakpoint 
+
+to be sent to the debugger IDE. When the debugger IDE resumes the application this 
+
+method returns with the action to be taken.<P>
+
+Note: While in the breakpoint the language engine may be called in this thread to do 
+
+various things such as enumerating stack frames or evaluating expressions.<P>
+
+<H3>Return Value</H3>The result is the break resume action - one of the BREAKRESUMEACTION contsants.<P>
+
+
+
+</body>
+</html>

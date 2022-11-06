@@ -1,0 +1,44 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>servicemanager.RegisterServiceCtrlHandler</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="servicemanager.html">servicemanager</A>.RegisterServiceCtrlHandler</H1><P>
+
+int/None = <B>RegisterServiceCtrlHandler(<I>serviceName</I><I>, callback</I>
+
+<I>, extra_args</I>
+
+</B>)<P>Registers the Python service control handler function.<P>
+
+<H3>Parameters</H3><P><DT><I>serviceName</I> : string<P>
+
+<DD>The name of the service.  This is provided in args[0] of the service class 
+
+__init__ method.<P><DT><I>callback</I> : object<P>
+
+<DD>The Python function that performs as the control function.  This will be called with an 
+
+integer status argument.<P><DT><I>extra_args=False</I> : bool<P>
+
+<DD>Is this callback expecting the additional 2 args passed by HandlerEx?<P>
+
+<H3>Return Value</H3>If the service manager is in debug mode, this returns None, indicating 
+
+there is no service control manager handle, otherwise the handle to the Win32 service manager.<P>
+
+
+
+</body>
+</html>

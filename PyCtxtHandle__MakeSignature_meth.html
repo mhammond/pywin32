@@ -1,0 +1,42 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyCtxtHandle.MakeSignature</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="PyCtxtHandle.html">PyCtxtHandle</A>.MakeSignature</H1><P>
+
+<B>MakeSignature(<I>fqop</I><I>, Message</I><I>, MessageSeqNo</I></B>)<P>Creates a crytographic hash of a message using session key of the security 
+
+context<P>
+
+<H3>Parameters</H3><P><DT><I>fqop</I> : int<P>
+
+<DD>Flags that indicate quality of protection desired, specific to each security package<P><DT><I>Message</I> : <A HREF="PySecBufferDesc.html">PySecBufferDesc</A><P>
+
+<DD>Buffer set that includes buffers for input data and output signature<P><DT><I>MessageSeqNo</I> : int<P>
+
+<DD>A sequential number used by some packages to verify that no extraneous messages have 
+
+been received<P><H3>Comments</H3>
+
+The buffer configuration is dependent on the security package.  Usually there is one input buffer of 
+
+type SECBUFFER_DATA and an output buffer of type SECBUFFER_TOKEN<P>
+
+<H3>Return Value</H3>Returns None on success, and output buffer in Message will contain the signature<P>
+
+
+
+</body>
+</html>

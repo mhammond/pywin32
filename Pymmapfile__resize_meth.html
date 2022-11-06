@@ -1,0 +1,42 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>Pymmapfile.resize</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="Pymmapfile.html">Pymmapfile</A>.resize</H1><P>
+
+<B>resize(<I>MaximumSize</I><I>, FileOffset</I><I>, NumberOfBytesToMap</I></B>)<P>Resizes the file mapping and view.<P>
+
+<H3>Parameters</H3><P><DT><I>MaximumSize</I> : long<P>
+
+<DD>New size for file mapping. Use a multiple of 
+
+system page size (see <A HREF="win32api__GetSystemInfo_meth.html">win32api::GetSystemInfo</A>)<P><DT><I>FileOffset=0</I> : long<P>
+
+<DD>Offset into file mapping.  Must be multiple of 
+
+allocation granularity.<P>
+
+<DT><I>NumberOfBytesToMap=0</I> : long<P>
+
+<DD>New view size.  Specify a multiple of system page size.<P>
+
+<H3>Comments</H3>
+
+If MaximumSize is 0, only the mapped view will be affected.<P>
+
+Accepts keyword args.<P>
+
+</body>
+</html>

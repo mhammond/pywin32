@@ -1,0 +1,32 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32gui.DragDetect</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32gui.html">win32gui</A>.DragDetect</H1><P>
+
+<B>DragDetect(<I>hwnd</I><I>, point</I></B>)<P>captures the mouse and tracks its movement until the user releases the left button, presses the ESC key, or moves the mouse outside the drag rectangle around the specified point.<P>
+
+<H3>Parameters</H3><P><DT><I>hwnd</I> : int<P>
+
+<DD>Handle to the Window<P><DT><I>point</I> : (int, int)<P>
+
+<DD>Initial position of the mouse, in screen coordinates. The function determines the coordinates of the drag rectangle by using this point.<P><H3>Return Value</H3>If the user moved the mouse outside of the drag rectangle while holding down the left button , the return value is nonzero. 
+
+<BR>If the user did not move the mouse outside of the drag rectangle while holding down the left button , the return value is zero.<P>
+
+
+
+</body>
+</html>

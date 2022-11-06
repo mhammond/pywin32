@@ -1,0 +1,58 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>MAPIINIT_0</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<HR><H1>MAPIINIT_0 Object</H1><P>
+
+A MAPIINIT_0 is represented as a tuple of:<P>
+
+<H3>Items</H3><P><DL><DT>[0] <I>int</I> : version<P>
+
+<DD>This must be MAPI_INIT_VERSION.<P></DL>
+
+<DL><DT>[1] <I>int</I> : flags<P>
+
+<DD>MAPI initlization flags.<P></DL>
+
+<P><TABLE COLS=2 WIDTH="100%" CELLSPACING=15>
+
+<TR>
+
+   <TD>
+
+       <B>Value</B>
+
+   </TD>
+
+   <TD>
+
+       <B>Meaning</B>
+
+   </TD>
+
+</TR>
+
+<TR><TD><HR></TD><TD><HR></TD></TR>
+
+<TR><TD>MAPI_MULTITHREAD_NOTIFICATIONS</TD><TD>MAPI should generate notifications using a thread dedicated to notification handling rather than the first thread used to call <A HREF="mapi__MAPIInitialize_meth.html">mapi::MAPIInitialize</A>.</TD></TR>
+
+<TR><TD>MAPI_NT_SERVICE</TD><TD>The caller is running as a NT service. Callers that are not running in a Windows NT service should not set this flag; callers that are running as a service must set this flag.</TD></TR>
+
+</TABLE><H3>Comments</H3>
+
+Multithreaded clients should set MAPI_MULTITHREAD_NOTIFICATIONS flag so that they can receive notifications on threads other than the first thread to call <A HREF="mapi__MAPIInitialize_meth.html">mapi::MAPIInitialize</A>.<P>
+
+</body>
+</html>

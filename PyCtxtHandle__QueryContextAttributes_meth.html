@@ -1,0 +1,118 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyCtxtHandle.QueryContextAttributes</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="PyCtxtHandle.html">PyCtxtHandle</A>.QueryContextAttributes</H1><P>
+
+<B>QueryContextAttributes(<I>Attribute</I></B>)<P>Retrieves info about a security context<P>
+
+<H3>Parameters</H3><P><DT><I>Attribute</I> : int<P>
+
+<DD>SECPKG_ATTR_* constant<P><H3>Comments</H3>
+
+Not all attributes are available for every security package<P>
+
+<P><TABLE COLS=2 WIDTH="100%" CELLSPACING=15>
+
+<TR>
+
+   <TD>
+
+       <B>Attribute</B>
+
+   </TD>
+
+   <TD>
+
+       <B>Return type</B>
+
+   </TD>
+
+</TR>
+
+<TR><TD><HR></TD><TD><HR></TD></TR>
+
+<TR><TD>SECPKG_ATTR_ACCESS_TOKEN</TD><TD><A HREF="PyHANDLE.html">PyHANDLE</A> - returns a handle to the context's access token</TD></TR>
+
+<TR><TD>SECPKG_ATTR_AUTHORITY</TD><TD><B>PyUnicode</B>
+
+ - returns the name of the authenticating entity</TD></TR>
+
+<TR><TD>SECPKG_ATTR_CIPHER_STRENGTHS</TD><TD>(int,int) - returns the mininum and maximum cipher strengths allowed</TD></TR>
+
+<TR><TD>SECPKG_ATTR_CONNECTION_INFO</TD><TD>Returns a dictionary of connection info representing a 
+
+SecPkgContext_ConnectionInfo struct</TD></TR>
+
+<TR><TD>SECPKG_ATTR_SESSION_KEY</TD><TD>string - returns the session key for the context</TD></TR>
+
+<TR><TD>SECPKG_ATTR_ISSUER_LIST_EX</TD><TD>(int, string) - Returns names of trusted certificate issuers</TD></TR>
+
+<TR><TD>SECPKG_ATTR_FLAGS</TD><TD>int - returns flags negotiated when context was established</TD></TR>
+
+<TR><TD>SECPKG_ATTR_PACKAGE_INFO</TD><TD>dict - returns dictionary containing info for context's security package</TD></TR>
+
+<TR><TD>SECPKG_ATTR_NEGOTIATION_INFO</TD><TD>(int, dict) - returns state of negotiation (SECPKG_NEGOTIATION_COMPLETE, 
+
+SECPKG_NEGOTIATION_OPTIMISTIC,SECPKG_NEGOTIATION_IN_PROGRESS) and info for negotiated package</TD></TR>
+
+<TR><TD>SECPKG_ATTR_NAMES</TD><TD><B>PyUnicode</B>
+
+ - returns the user name for the context</TD></TR>
+
+<TR><TD>SECPKG_ATTR_SIZES</TD><TD>dict containing buffer sizes to be used with the context</TD></TR>
+
+<TR><TD>SECPKG_ATTR_PASSWORD_EXPIRY</TD><TD><A HREF="PyDateTime.html">PyDateTime</A> - returns time password expires</TD></TR>
+
+<TR><TD>SECPKG_ATTR_LIFESPAN</TD><TD>(<A HREF="PyDateTime.html">PyDateTime</A>,<A HREF="PyDateTime.html">PyDateTime</A>) - returns time period during which context is valid</TD></TR>
+
+<TR><TD>SECPKG_ATTR_NATIVE_NAMES</TD><TD>(<B>PyUnicode</B>
+
+,<B>PyUnicode</B>
+
+) - returns client and server names</TD></TR>
+
+<TR><TD>SECPKG_ATTR_TARGET_INFORMATION</TD><TD>string - returns the target for the context</TD></TR>
+
+<TR><TD>SECPKG_ATTR_STREAM_SIZES</TD><TD>dict (see SecPkgContext_StreamSizes) containing message buffer sizes</TD></TR>
+
+<TR><TD>SECPKG_ATTR_KEY_INFO</TD><TD>dict (see SecPkgContext_KeyInfo) containing encryption key parameters</TD></TR>
+
+<TR><TD>SECPKG_ATTR_DCE_INFO</TD><TD>not supported yet 
+
+SecPkgContext_DceInfo</TD></TR>
+
+<TR><TD>SECPKG_ATTR_LOCAL_CERT_CONTEXT</TD><TD>not supported yet 
+
+PCCERT_CONTEXT</TD></TR>
+
+<TR><TD>SECPKG_ATTR_REMOTE_CERT_CONTEXT</TD><TD>not supported yet 
+
+PCCERT_CONTEXT</TD></TR>
+
+<TR><TD>SECPKG_ATTR_ROOT_STORE</TD><TD>not supported yet 
+
+HCERTCONTEXT</TD></TR>
+
+<TR><TD>SECPKG_ATTR_SUPPORTED_ALGS</TD><TD>not supported yet 
+
+SecPkgCred_SupportedAlgs</TD></TR>
+
+<TR><TD>SECPKG_ATTR_SUPPORTED_PROTOCOLS</TD><TD>not supported yet 
+
+SecPkgCred_SupportedProtocols</TD></TR>
+
+</TABLE></body>
+</html>

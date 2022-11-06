@@ -1,0 +1,38 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyCPrintInfo.GetDefaults</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="PyCPrintInfo.html">PyCPrintInfo</A>.GetDefaults</H1><P>
+
+<B>GetDefaults(</B>)<P>Nonzero if the function was successful; otherwise 0.  Call this function to 
+
+retrieve the device defaults of the default printer without displaying a dialog box. The retrieved values are placed 
+
+in the m_pd structure.  In some cases, a call to this function will call the constructor for CPrintDialog with 
+
+bPrintSetupOnly set to FALSE. In these cases, a printer DC and hDevNames and hDevMode (two handles located in the 
+
+m_pd data member) are automatically allocated.  If the constructor for CPrintDialog was called with bPrintSetupOnly 
+
+set to FALSE, this function will not only return hDevNames and hDevMode (located in m_pd.hDevNames and m_pd.hDevMode) 
+
+to the caller, but will also return a printer DC in m_pd.hDC. It is the responsibility of the caller to delete the 
+
+printer DC and call the WindowsGlobalFree function on the handles when you are finished with the CPrintDialog object.<P>
+
+<H3>MFC References</H3><P><DT>CPrintDialog::GetDefaults<P>
+
+</body>
+</html>

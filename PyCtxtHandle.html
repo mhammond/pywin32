@@ -1,0 +1,54 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyCtxtHandle</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<HR><H1>PyCtxtHandle Object</H1><P>
+
+Security context handle, as used with sspi functions<P>
+
+<H3>Comments</H3>
+
+Create using win32security.PyCtxtHandleType().  The handle must be initialized by passing it to 
+
+<A HREF="win32security__InitializeSecurityContext_meth.html">win32security::InitializeSecurityContext</A> or <A HREF="win32security__AcceptSecurityContext_meth.html">win32security::AcceptSecurityContext</A><P>
+
+<H3>Methods</H3><P><DL><DT><A HREF="PyCtxtHandle__Detach_meth.html">Detach</A><BR>
+
+<DD>Disassociates object from handle and returns integer value of handle&nbsp;<P><DT><A HREF="PyCtxtHandle__CompleteAuthToken_meth.html">CompleteAuthToken</A><BR>
+
+<DD>Completes the authentication token&nbsp;<P><DT><A HREF="PyCtxtHandle__QueryContextAttributes_meth.html">QueryContextAttributes</A><BR>
+
+<DD>Retrieves info about a security context&nbsp;<P><DT><A HREF="PyCtxtHandle__DeleteSecurityContext_meth.html">DeleteSecurityContext</A><BR>
+
+<DD>Frees the security context and invalidates the handle&nbsp;<P><DT><A HREF="PyCtxtHandle__QuerySecurityContextToken_meth.html">QuerySecurityContextToken</A><BR>
+
+<DD>Returns the access token for a security context&nbsp;<P><DT><A HREF="PyCtxtHandle__MakeSignature_meth.html">MakeSignature</A><BR>
+
+<DD>Generates a signature for a message&nbsp;<P><DT><A HREF="PyCtxtHandle__VerifySignature_meth.html">VerifySignature</A><BR>
+
+<DD>Verifies  a signature created using <A HREF="PyCtxtHandle__MakeSignature_meth.html">PyCtxtHandle::MakeSignature</A>&nbsp;<P><DT><A HREF="PyCtxtHandle__EncryptMessage_meth.html">EncryptMessage</A><BR>
+
+<DD>Encrypts data with security context's session key&nbsp;<P><DT><A HREF="PyCtxtHandle__DecryptMessage_meth.html">DecryptMessage</A><BR>
+
+<DD>Decrypts data encrypted by <A HREF="PyCtxtHandle__EncryptMessage_meth.html">PyCtxtHandle::EncryptMessage</A>&nbsp;<P><DT><A HREF="PyCtxtHandle__ImpersonateSecurityContext_meth.html">ImpersonateSecurityContext</A><BR>
+
+<DD>Causes a server to act in the security context of an authenticated 
+
+client&nbsp;<P><DT><A HREF="PyCtxtHandle__RevertSecurityContext_meth.html">RevertSecurityContext</A><BR>
+
+<DD>Stops impersonation of a client initiated by <A HREF="PyCtxtHandle__ImpersonateSecurityContext_meth.html">PyCtxtHandle::ImpersonateSecurityContext</A>&nbsp;<P></DL>
+
+</body>
+</html>

@@ -1,0 +1,52 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32api.RegDeleteKeyEx</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32api.html">win32api</A>.RegDeleteKeyEx</H1><P>
+
+<B>RegDeleteKeyEx(<I>Key</I><I>, SubKey</I><I>, samDesired</I><I>, Transaction</I></B>)<P>Deletes a registry key from 32 or 64 bit registry view<P>
+
+<H3>Parameters</H3><P><DT><I>Key</I> : <A HREF="PyHKEY.html">PyHKEY</A>/int<P>
+
+<DD>Registry key or one of win32con.HKEY_* values<P><DT><I>SubKey</I> : <B>PyUnicode</B>
+
+<P>
+
+<DD>Name of subkey to be deleted.<P><DT><I>samDesired=0</I> : int<P>
+
+<DD>Can be KEY_WOW64_32KEY or KEY_WOW64_64KEY to specify alternate 
+
+registry view<P>
+
+<DT><I>Transaction=None</I> : <A HREF="PyHANDLE.html">PyHANDLE</A><P>
+
+<DD>Handle to a transaction as returned by <A HREF="win32transaction__CreateTransaction_meth.html">win32transaction::CreateTransaction</A><P>
+
+<H3>Comments</H3>
+
+Accepts keyword args.<P>
+
+Requires 64-bit XP, Vista, or later.<P>
+
+Key to be deleted cannot contain subkeys<P>
+
+If a transaction handle is specified, RegDeleteKeyTransacted is called<P>
+
+<H3>Win32 API References</H3><P><DT>Search for <i>RegDeleteKeyEx</i> at <a href="http://search.msdn.microsoft.com/search/results.aspx?view=msdn&query=RegDeleteKeyEx" target="_blank">msdn</a>, <a href="http://www.google.com/search?q=RegDeleteKeyEx" target="_blank">google</a> or <a href="http://groups.google.com/groups?q=RegDeleteKeyEx" target="_blank">google groups</a>.<P>
+
+<DT>Search for <i>RegDeleteKeyTransacted</i> at <a href="http://search.msdn.microsoft.com/search/results.aspx?view=msdn&query=RegDeleteKeyTransacted" target="_blank">msdn</a>, <a href="http://www.google.com/search?q=RegDeleteKeyTransacted" target="_blank">google</a> or <a href="http://groups.google.com/groups?q=RegDeleteKeyTransacted" target="_blank">google groups</a>.<P>
+
+</body>
+</html>

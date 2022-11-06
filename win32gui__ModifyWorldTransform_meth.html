@@ -1,0 +1,32 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32gui.ModifyWorldTransform</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32gui.html">win32gui</A>.ModifyWorldTransform</H1><P>
+
+<B>ModifyWorldTransform(<I>hdc</I><I>, Xform</I><I>, Mode</I></B>)<P>Combines a coordinate tranformation with device context's current transformation<P>
+
+<H3>Parameters</H3><P><DT><I>hdc</I> : <A HREF="PyHANDLE.html">PyHANDLE</A><P>
+
+<DD>Handle to a device context<P><DT><I>Xform</I> : <A HREF="PyXFORM.html">PyXFORM</A><P>
+
+<DD>Transformation to be applied.  Ignored if Mode is MWT_IDENTITY.<P><DT><I>Mode</I> : int<P>
+
+<DD>One of win32con.MWT_* values specifying how transformations will be combined<P><H3>Comments</H3>
+
+DC's mode must be set to GM_ADVANCED.  See <A HREF="win32gui__SetGraphicsMode_meth.html">win32gui::SetGraphicsMode</A>.<P>
+
+</body>
+</html>

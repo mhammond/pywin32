@@ -1,0 +1,78 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyBITMAP</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<HR><H1>PyBITMAP Object</H1><P>
+
+A Python object, representing an PyBITMAP structure<P>
+
+<H3>Comments</H3>
+
+Typically you get one of these from GetObject.  Note that currently 
+
+the bitmap bits are not exposed via this type - but the value of the 
+
+pointer is.  You can use the struct and win32gui functions to unpack 
+
+these bits manually if you really need them. 
+
+Note that you are still responsible for the life of the win32 bitmap object. 
+
+The object can then be passed to any function which takes an BITMAP object<P>
+
+<H3>Properties</H3>
+
+<DL>
+
+<DT><B>integer bmType</B>
+
+<DD><P>
+
+
+
+<DT><B>integer bmWidth</B>
+
+<DD><P>
+
+
+
+<DT><B>integer bmHeight</B>
+
+<DD><P>
+
+
+
+<DT><B>integer bmWidthBytes</B>
+
+<DD><P>
+
+
+
+<DT><B>integer bmPlanes</B>
+
+<DD><P>
+
+
+
+<DT><B>integer </B>
+
+<DD><P>
+
+
+
+</DL>
+
+</body>
+</html>

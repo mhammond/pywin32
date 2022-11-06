@@ -1,0 +1,62 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyIDispatchEx.InvokeEx</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="PyIDispatchEx.html">PyIDispatchEx</A>.InvokeEx</H1><P>
+
+object = <B>InvokeEx(<I>dispid</I><I>, lcid</I>
+
+<I>, flags</I>
+
+<I>, args</I>
+
+<I>, types</I>
+
+<I>, returnDesc</I>
+
+<I>, serviceProvider</I>
+
+</B>)<P>Provides access to properties and methods exposed by a <A HREF="PyIDispatchEx.html">PyIDispatchEx</A> 
+
+object.<P>
+
+<H3>Parameters</H3><P><DT><I>dispid</I> : int<P>
+
+<DD><P><DT><I>lcid</I> : int<P>
+
+<DD><P><DT><I>flags</I> : int<P>
+
+<DD><P><DT><I>args</I> : [object, ...]<P>
+
+<DD>The arguments.<P><DT><I>types=None</I> : [object, ...]<P>
+
+<DD>A tuple of type description object, or None if type 
+
+descriptions are not available.<P>
+
+<DT><I>returnDesc=1</I> : object|int<P>
+
+<DD>If types==None, should be a BOOL indicating if the 
+
+result is needed.  If types is a tuple, then should a be type description.<P>
+
+<DT><I>serviceProvider=None</I> : <A HREF="PyIServiceProvider.html">PyIServiceProvider</A><P>
+
+<DD>A service provider object supplied by 
+
+the caller which allows the object to obtain services from the caller. Can be None.<P>
+
+</body>
+</html>

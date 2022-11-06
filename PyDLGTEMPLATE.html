@@ -1,0 +1,64 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyDLGTEMPLATE</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<HR><H1>PyDLGTEMPLATE Object</H1><P>
+
+A tuple of items describing a dialog box, that can be used to create the dialog.<P>
+
+<H3>Win32 API References</H3><P><DT>Search for <i>DLGTEMPLATE</i> at <a href="http://search.msdn.microsoft.com/search/results.aspx?view=msdn&query=DLGTEMPLATE" target="_blank">msdn</a>, <a href="http://www.google.com/search?q=DLGTEMPLATE" target="_blank">google</a> or <a href="http://groups.google.com/groups?q=DLGTEMPLATE" target="_blank">google groups</a>.<P>
+
+<H3>Items</H3><P><DL><DT>[0] <I>string</I> : caption<P>
+
+<DD>The caption for the window<P></DL>
+
+<DL><DT>[1] <I>(int,int,int,int)</I> : (x,y,cx,cy)<P>
+
+<DD>The bounding rectange for the dialog.<P></DL>
+
+<DL><DT>[2] <I>int</I> : style<P>
+
+<DD>The style bits for the dialog.  Combination of WS_* and DS_* constants. 
+
+Note that the DS_SETFONT style need never be specified - it is determined by the font item (below) 
+
+<BR>See MSDN documentation on Dialog Boxes for allowable values.<P></DL>
+
+<DL><DT>[3] <I>int</I> : extStyle<P>
+
+<DD>The extended style bits for the dialog. Defaults to 0 if not passed and None is 
+
+supported for backwards compatibility.<P></DL>
+
+<DL><DT>[4] <I>(int, string)</I> : (fontSize, fontName)<P>
+
+<DD>A tuple describing the font, or None if the system default font 
+
+is to be used.<P></DL>
+
+<DL><DT>[5] <I><A HREF="PyResourceId.html">PyResourceId</A></I> : menuResource<P>
+
+<DD>The resource ID of the menu to be used for the dialog, or None for no 
+
+menu.<P></DL>
+
+<DL><DT>[6] <I><A HREF="PyResourceId.html">PyResourceId</A></I> : windowClass<P>
+
+<DD>Window class name or atom as returned from RegisterWindowClass. 
+
+Defaults to None.<P></DL>
+
+</body>
+</html>

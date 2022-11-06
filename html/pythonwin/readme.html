@@ -1,0 +1,65 @@
+<HTML>
+<HEAD>
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=windows-1252">
+<META NAME="Generator" CONTENT="Microsoft FrontPage 4.0">
+<TITLE>Pythonwin Readme</TITLE>
+<META NAME="Template" CONTENT="D:\Program Files\Microsoft Office\Office\HTML.DOT">
+</HEAD>
+<BODY LINK="#0000ff" VLINK="#800080">
+
+<H1><IMG SRC="doc/pythonwin.gif" WIDTH=64 HEIGHT=64>Pythonwin Readme. </H1>
+<H2>Introduction </H2>
+<P><a href="#KnownProblems">There are a few known problems</a> (and probably
+lots of unknown ones!) </P>
+<P>Pythonwin is a Windows only IDE and GUI framework for Python.&nbsp; It has an
+<a href="doc/debugger/index.html">integrated debugger</a>, and a rich Python
+editing environment. </P>
+<P>Pythonwin is implemented as a 'wrapper' for the Microsoft Foundation Class library. With it, you can use MFC in an interactive, interpreted environment, or write full blown stand-alone applications tightly coupled with the Windows environment. Over 30 MFC objects are exposed, including Common Controls, Property Pages/Sheets, Control/Toolbars, Threads, etc. </P>
+<P>Pythonwin could almost be considered a sample program for the MFC UI environment. This Python UI environment can be embedded in almost any other application - such as OLE clients/servers, Netscape plugins, as a Macro language etc. </P>
+<P><A HREF="#RecentChanges">Recent changes can be found at the end of this document</A>.</P>
+<H2>Demos</H2>
+<P>There are many demos in the pywin\demos directory. To see a list of all the demos, run the program "pywin\demos\guidemo.py" from inside Pythonwin.</P>
+<H2>Documentation </H2>
+<P>Almost all win32ui methods are document in the Pythonwin Help file. This is available from the Help Menu in the Pythonwin enviroment.</P>
+<P>Below is a list of external Pythonwin specific documentation. </P>
+
+<UL>
+<LI>There is separate <a href="doc/debugger/index.html">documentation for the
+  debugger</a> </LI>
+<LI>Check out documentation on <A HREF="doc/guienvironment.html">the Pythonwin GUI environment</A> </LI>
+<LI>For a brief description of how to embed win32ui.pyd into your MFC application see the <A HREF="doc/EmbeddingWin32ui.html">embedding win32ui documentation</A>. </LI>
+<LI>There is some general documentation on the <A HREF="doc/architecture.html">MFC Architecture</A> and more specifically, <A HREF="doc/docview.html">document and view architecture</A>. </LI>
+<LI>A Reference Manual of all available MFC functions etc. is released as a Windows Help file with the main Pythonwin release. </LI>
+<LI>Check out the demos, and the source code to the Pythonwin environment.</LI></UL>
+
+<H2><a name="KnownProblems">Known Problems</a></H2>
+
+<UL>
+<LI>Some of the configuration options (eg, &quot;Docking Windows&quot;) do not
+  take affect until you restart Pythonwin. </LI>
+<LI>Under Windows 9x, any attempt to use Pythonwin features from an MS-DOS
+  prompt seems to cause immediate death.&nbsp; This means that you can not use
+  the Pythonwin debugger for programs running under Python.exe on Windows
+  9x.&nbsp; You should still be able to use the debugger normally from inside
+  Pythonwin itself. </LI>
+<LI>Pythonwin will occasionally crash upon exiting under Windows 9x. The crash is in
+  &quot;user.exe&quot; (old 16 bit code) which makes debugging difficult. It does not happen on Windows NT, so I'm stumped on this one. If someone could even just narrow it down to exactly what code will cause the crash at exit I would really appreciate it. </LI>
+<LI>Some of the menu items are always grey.&nbsp; This functionality is simply not yet implemented in
+  Pythonwin. </LI>
+</UL>
+
+<H2><A NAME="RecentChanges">Recent Changes</A></H2>
+<P>Fixed alot of the interactive window formatting problems.&nbsp; Pythonwin now
+always prints output as it receives it - this should stop Pythonwin from looking
+like it has completely hung when infact it is just waiting for some code to
+finish.</P>
+<P>Support for Scintilla's indentation guides, that gives a nice indication of
+the block structure.</P>
+<P>New, improved color editor, using the Scintilla control by Neil Hodgson (see <A HREF="http://hare.net.au/~neilh/ScintillaTide.html">http://hare.net.au/~neilh/ScintillaTide.html</A>). The debugger now requires use of this editor.</P>
+<P>Much better printing support from Roger Burnham. Pythonwin itself still can't print anything, but the framework can (meaning some kind soul could now add the support to Pythonwin :-)</P>
+<P>DDE support is complete.</P>
+<P>Reference helpfile is far more complete.</P>
+<P>Lots of new methods from Kleanthis Kleanthous.</P>
+<P>Better tool-tip and region support</P>
+</BODY>
+</HTML>

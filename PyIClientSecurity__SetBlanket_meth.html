@@ -1,0 +1,42 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyIClientSecurity.SetBlanket</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="PyIClientSecurity.html">PyIClientSecurity</A>.SetBlanket</H1><P>
+
+<B>SetBlanket(<I>Proxy</I><I>, AuthnSvc</I><I>, AuthzSvc</I><I>, ServerPrincipalName</I><I>, AuthnLevel</I><I>, ImpLevel</I><I>, AuthInfo</I><I>, Capabilities</I></B>)<P>Changes the authentication options used with an interface<P>
+
+<H3>Parameters</H3><P><DT><I>Proxy</I> : <A HREF="PyIUnknown.html">PyIUnknown</A><P>
+
+<DD>The proxy interface for which to set security options<P><DT><I>AuthnSvc</I> : int<P>
+
+<DD>Authentication service identifier, pythoncom.RPC_C_AUTHN_* (but not RPC_C_AUTHN_LEVEL_*)<P><DT><I>AuthzSvc</I> : int<P>
+
+<DD>Authorization service identifier, pythoncom.RPC_C_AUTHZ_*<P><DT><I>ServerPrincipalName</I> : <B>PyUnicode</B>
+
+<P>
+
+<DD>SPN that identifies the server, can be None<P><DT><I>AuthnLevel</I> : int<P>
+
+<DD>Authentication level, pythoncom.RPC_C_AUTHN_LEVEL_*<P><DT><I>ImpLevel</I> : int<P>
+
+<DD>Impersonation level, pythoncom.RPC_C_IMP_LEVEL_*<P><DT><I>AuthInfo</I> : None<P>
+
+<DD>Not supported yet, use only None<P><DT><I>Capabilities</I> : int<P>
+
+<DD>Combination of pythoncom.EOAC_* flags.  Must be a subset of the 
+
+capabilities of the specified authentication service.<P></body>
+</html>

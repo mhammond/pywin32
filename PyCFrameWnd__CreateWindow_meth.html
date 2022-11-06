@@ -1,0 +1,62 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyCFrameWnd.CreateWindow</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="PyCFrameWnd.html">PyCFrameWnd</A>.CreateWindow</H1><P>
+
+tuple = <B>CreateWindow(<I>wndClass</I><I>, title</I>
+
+<I>, style</I>
+
+<I>, rect</I>
+
+<I>, <A HREF="PyCWnd.html">PyCWnd</A></I>
+
+<I>, createContext</I>
+
+<I>, menuId</I>
+
+<I>, styleEx</I>
+
+</B>)<P>Creates the actual window for the PyCFrameWnd object.<P>
+
+<H3>Parameters</H3><P><DT><I>wndClass</I> : string<P>
+
+<DD>The window class name, or None<P><DT><I>title</I> : string<P>
+
+<DD>The window title<P><DT><I>style=WS_VISIBLE | WS_OVERLAPPEDWINDOW</I> : int<P>
+
+<DD>The window style<P>
+
+<DT><I>rect=None</I> : int, int, int, int<P>
+
+<DD>The default rectangle<P>
+
+<DT><I><A HREF="PyCWnd.html">PyCWnd</A>=None</I> : parent<P>
+
+<DD>The parent window<P>
+
+<DT><I>createContext=None</I> : tuple<P>
+
+<DD>A tuple representing a CREATECONTEXT structure.<P>
+
+<DT><I>menuId</I> : string or int<P>
+
+<DD>The string or integer id for the menu.<P><DT><I>styleEx</I> : int<P>
+
+<DD>The extended style of the window being created.<P><H3>MFC References</H3><P><DT>CFrameWnd::Create<P>
+
+</body>
+</html>

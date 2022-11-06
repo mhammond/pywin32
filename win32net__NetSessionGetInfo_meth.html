@@ -1,0 +1,48 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32net.NetSessionGetInfo</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32net.html">win32net</A>.NetSessionGetInfo</H1><P>
+
+dict = <B>NetSessionGetInfo(<I>level</I><I>, server</I>
+
+<I>, client</I>
+
+<I>, username</I>
+
+</B>)<P>Returns information for a network session from specified client<P>
+
+<H3>Parameters</H3><P><DT><I>level</I> : int<P>
+
+<DD>Level of information requested, currently accepts 0, 1, 2, 10, and 502<P><DT><I>server</I> : string/<B>PyUnicode</B>
+
+<P>
+
+<DD>The name of the server on which to operate, None or blank assumes local 
+
+machine<P><DT><I>client</I> : string/<B>PyUnicode</B>
+
+<P>
+
+<DD>Name of client computer<P><DT><I>username</I> : string/<B>PyUnicode</B>
+
+<P>
+
+<DD>User that established session<P><H3>Return Value</H3>Returns a dictionary representing a SESSION_INFO_* struct, depending on level specified<P>
+
+
+
+</body>
+</html>

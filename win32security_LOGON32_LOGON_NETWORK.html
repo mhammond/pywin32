@@ -1,0 +1,26 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>LOGON32_LOGON_NETWORK</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<HR>
+
+<H1>LOGON32_LOGON_NETWORK</H1>
+
+<B>const win32security.LOGON32_LOGON_NETWORK;</B><P>
+
+This logon type is intended for high performance servers to authenticate clear text passwords. LogonUser does not cache credentials for this logon type. This is the fastest logon path, but there are two limitations. First, the function returns an impersonation token, not a primary token. You cannot use this token directly in the CreateProcessAsUser function. However, you can call the DuplicateTokenEx function to convert the token to a primary token, and then use it in CreateProcessAsUser. Second, if you convert the token to a primary token and use it in CreateProcessAsUser to start a process, the new process will not be able to access other network resources, such as remote servers or printers, through the redirector.<P>
+
+</body>
+</html>

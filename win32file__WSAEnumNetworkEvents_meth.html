@@ -1,0 +1,34 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32file.WSAEnumNetworkEvents</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32file.html">win32file</A>.WSAEnumNetworkEvents</H1><P>
+
+dict = <B>WSAEnumNetworkEvents(<I>s</I><I>, hEvent</I>
+
+</B>)<P>Return network events that caused the event associated with the socket to be signaled.<P>
+
+<H3>Parameters</H3><P><DT><I>s</I> : <B>PySocket</B>
+
+<P>
+
+<DD>Socket to check for netork events, previously registered for network event notification with WSAEventSelect.<P><DT><I>hEvent</I> : <A HREF="PyHANDLE.html">PyHANDLE</A><P>
+
+<DD>Optional handle to the event associated with socket s in the last call to WSAEventSelect. If specified, the event will be reset.<P><H3>Return Value</H3>A dictionary mapping network events that occured for the specified socket since the last call to this function (e.g. FD_READ, FD_WRITE) to their associated error code, or 0 if the event occured without an error. The events returned are a subset of events previously registered for this socket with WSAEventSelect.<P>
+
+
+
+</body>
+</html>

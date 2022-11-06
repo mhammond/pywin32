@@ -1,0 +1,48 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32api.RegisterWindowMessage</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32api.html">win32api</A>.RegisterWindowMessage</H1><P>
+
+<B>RegisterWindowMessage(<I>msgString</I></B>)<P>The RegisterWindowMessage method, given a string, returns a system wide 
+
+unique message ID, suitable for sending messages between applications who both register the same string.<P>
+
+<H3>Parameters</H3><P><DT><I>msgString</I> : string<P>
+
+<DD>The name of the message to register. 
+
+All applications that register this message string will get the same message. 
+
+ID back.  It will be unique in the system and suitable for applications to 
+
+use to exchange messages.<P><H3>Comments</H3>
+
+Only use RegisterWindowMessage when more than one application must process the 
+
+<BR> same message. For sending private messages within a window class, an application 
+
+<BR> can use any integer in the range WM_USER through 0x7FFF. (Messages in this range 
+
+<BR> are private to a window class, not to an application. For example, predefined 
+
+<BR> control classes such as BUTTON, EDIT, LISTBOX, and COMBOBOX may use values in 
+
+<BR> this range.)<P>
+
+<H3>Win32 API References</H3><P><DT>Search for <i>RegisterWindowMessage</i> at <a href="http://search.msdn.microsoft.com/search/results.aspx?view=msdn&query=RegisterWindowMessage" target="_blank">msdn</a>, <a href="http://www.google.com/search?q=RegisterWindowMessage" target="_blank">google</a> or <a href="http://groups.google.com/groups?q=RegisterWindowMessage" target="_blank">google groups</a>.<P>
+
+</body>
+</html>

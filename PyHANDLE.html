@@ -1,0 +1,68 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyHANDLE</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<HR><H1>PyHANDLE Object</H1><P>
+
+A Python object, representing a win32 HANDLE.<P>
+
+<H3>Comments</H3>
+
+This object wraps a win32 HANDLE object, automatically closing it when the object 
+
+is destroyed.  To guarantee cleanup, you can call either <A HREF="PyHANDLE__Close_meth.html">PyHANDLE::Close</A>, or 
+
+<A HREF="win32api__CloseHandle_meth.html">win32api::CloseHandle</A>. 
+
+<BR>Most functions which accept a handle object also accept an integer - however, 
+
+use of the handle object is encouraged.<P>
+
+<H3>Properties</H3>
+
+<DL>
+
+<DT><B>long handle</B>
+
+<DD>Integer value of the handle<P>
+
+
+
+<H3>Methods</H3><P><DL><DT><A HREF="PyHANDLE__Close_meth.html">Close</A><BR>
+
+<DD>Closes the handle&nbsp;<P><DT><A HREF="PyHANDLE__close_meth.html">close</A><BR>
+
+<DD>Synonym for <A HREF="PyHANDLE__Close_meth.html">PyHANDLE::Close</A>&nbsp;<P><DT><A HREF="PyHANDLE__Detach_meth.html">Detach</A><BR>
+
+<DD>Detaches the Win32 handle from the handle object.&nbsp;<P><DT><A HREF="PyHANDLE____nonzero___meth.html">__nonzero__</A><BR>
+
+<DD>Used for detecting true/false. 
+
+is nb_bool in Python 3.0&nbsp;<P><DT><A HREF="PyHANDLE____int___meth.html">__int__</A><BR>
+
+<DD>Used when an integer representation of the handle object is required.&nbsp;<P><DT><A HREF="PyHANDLE____hash___meth.html">__hash__</A><BR>
+
+<DD>Used when the hash value of an object is required 
+
+tp_hash&nbsp;<P><DT><A HREF="PyHANDLE____str___meth.html">__str__</A><BR>
+
+<DD>Used when a string representation is required 
+
+tp_str&nbsp;<P></DL>
+
+</DL>
+
+</body>
+</html>

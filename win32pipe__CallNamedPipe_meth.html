@@ -1,0 +1,64 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32pipe.CallNamedPipe</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32pipe.html">win32pipe</A>.CallNamedPipe</H1><P>
+
+string = <B>CallNamedPipe(<I>pipeName</I><I>, data</I>
+
+<I>, bufSize</I>
+
+<I>, timeOut</I>
+
+</B>)<P>Opens and performs a transaction on a named pipe.<P>
+
+<H3>Parameters</H3><P><DT><I>pipeName</I> : <B>PyUNICODE</B>
+
+<P>
+
+<DD>The name of the pipe.<P><DT><I>data</I> : string<P>
+
+<DD>The data to write.<P><DT><I>bufSize</I> : int<P>
+
+<DD>The size of the result buffer to allocate for the read.<P><DT><I>timeOut</I> : int<P>
+
+<DD>Specifies the number of milliseconds to wait for the named pipe to be available. In addition to numeric values, the following special values can be specified.<P><P><TABLE COLS=2 WIDTH="100%" CELLSPACING=15>
+
+<TR>
+
+   <TD>
+
+       <B>Value</B>
+
+   </TD>
+
+   <TD>
+
+       <B>Meaning</B>
+
+   </TD>
+
+</TR>
+
+<TR><TD><HR></TD><TD><HR></TD></TR>
+
+<TR><TD>win32pipe.NMPWAIT_NOWAIT</TD><TD>Does not wait for the named pipe. If the named pipe is not available, the function returns an error.</TD></TR>
+
+<TR><TD>win32pipe.NMPWAIT_WAIT_FOREVER</TD><TD>Waits indefinitely.</TD></TR>
+
+<TR><TD>win32pipe.NMPWAIT_USE_DEFAULT_WAIT</TD><TD>Uses the default time-out specified in a call to the CreateNamedPipe function.</TD></TR>
+
+</TABLE></body>
+</html>

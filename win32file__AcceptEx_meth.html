@@ -1,0 +1,62 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32file.AcceptEx</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32file.html">win32file</A>.AcceptEx</H1><P>
+
+<B>AcceptEx(<I>sListening</I><I>, sAccepting</I><I>, buffer</I><I>, ol</I></B>)<P>Version of accept that uses Overlapped I/O<P>
+
+<H3>Parameters</H3><P><DT><I>sListening</I> : <B>PySocket</B>
+
+/int<P>
+
+<DD>Socket that had listen() called on.<P><DT><I>sAccepting</I> : <B>PySocket</B>
+
+/int<P>
+
+<DD>Socket that will be used as the incoming connection.<P><DT><I>buffer</I> : <B>buffer</B>
+
+<P>
+
+<DD>Buffer to read incoming data and connection point information into. This buffer MUST be big enough to recieve your connection endpoints... AF_INET sockets need to be at least 64 bytes. The correct minimum of the buffer is determined by the protocol family that the listening socket is using.<P><DT><I>ol</I> : <A HREF="PyOVERLAPPED.html">PyOVERLAPPED</A><P>
+
+<DD>An overlapped structure<P><H3>Comments</H3>
+
+In order to make sure the connection has been accepted, either use the hEvent in PyOVERLAPPED, GetOverlappedResult, or GetQueuedCompletionStatus.<P>
+
+To use this with I/O completion ports, don't forget to attach sAccepting to your completion port.<P>
+
+Pass a buffer of exactly the size returned by <A HREF="win32file__CalculateSocketEndPointSize_meth.html">win32file::CalculateSocketEndPointSize</A> 
+
+to have AcceptEx return without reading any bytes from the remote connection.<P>
+
+<H3>Example</H3>To have sAccepting inherit the properties of sListening, you need to do the following after a connection is successfully accepted<P>
+
+<PRE>import struct
+
+sAccepting.setsockopt(socket.SOL_SOCKET, win32file.SO_UPDATE_ACCEPT_CONTEXT, struct.pack("I", sListening.fileno()))
+
+</PRE>
+
+<H3>Return Value</H3>The result is 0 or ERROR_IO_PENDING.  All other values will raise 
+
+win32file.error.  Specifically: if the win32 function returns FALSE, 
+
+WSAGetLastError() is checked for ERROR_IO_PENDING.<P>
+
+
+
+</body>
+</html>

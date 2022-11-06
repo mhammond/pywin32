@@ -1,0 +1,66 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32clipboard.SetClipboardViewer</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32clipboard.html">win32clipboard</A>.SetClipboardViewer</H1><P>
+
+<A HREF="PyHANDLE.html">PyHANDLE</A> = <B>SetClipboardViewer(<I>hWndNewViewer</I></B>)<P>The SetClipboardViewer function 
+
+adds the specified window to the chain of clipboard viewers. Clipboard 
+
+viewer windows receive a WM_DRAWCLIPBOARD message whenever the content of 
+
+the clipboard changes.<P>
+
+<H3>Parameters</H3><P><DT><I>hWndNewViewer</I> : <A HREF="PyHANDLE.html">PyHANDLE</A><P>
+
+<DD>Integer handle to the window to be added to 
+
+the clipboard chain.<P><H3>Comments</H3>
+
+The windows that are part of the clipboard viewer chain, called 
+
+clipboard viewer windows, must process the clipboard messages 
+
+WM_CHANGECBCHAIN and WM_DRAWCLIPBOARD. Each clipboard viewer window calls 
+
+the SendMessage function to pass these messages to the next window in the 
+
+clipboard viewer chain.<BR> 
+
+A clipboard viewer window must eventually remove itself from the clipboard 
+
+viewer chain by calling the ChangeClipboardChain function -- for example, 
+
+in response to theWM_DESTROY message.<P>
+
+<H3>Win32 API References</H3><P><DT>Search for <i>SetClipboardViewer</i> at <a href="http://search.msdn.microsoft.com/search/results.aspx?view=msdn&query=SetClipboardViewer" target="_blank">msdn</a>, <a href="http://www.google.com/search?q=SetClipboardViewer" target="_blank">google</a> or <a href="http://groups.google.com/groups?q=SetClipboardViewer" target="_blank">google groups</a>.<P>
+
+<H3>Return Value</H3>Returns a handle to the next window in chain, or None if no other viewer exists.<P>
+
+
+
+If the function succeeds, the return value identifies the next 
+
+window in the clipboard viewer chain.<BR> 
+
+If an error occurs or there are no other windows in the clipboard viewer 
+
+chain, win32api.error is raised with the GetLastError info.<P>
+
+
+
+</body>
+</html>

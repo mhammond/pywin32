@@ -1,0 +1,44 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>shell.SHGetSpecialFolderPath</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="shell.html">shell</A>.SHGetSpecialFolderPath</H1><P>
+
+string = <B>SHGetSpecialFolderPath(<I>hwndOwner</I><I>, nFolder</I>
+
+<I>, bCreate</I>
+
+</B>)<P>Retrieves the path of a special folder.<P>
+
+<H3>Parameters</H3><P><DT><I>hwndOwner</I> : <A HREF="PyHANDLE.html">PyHANDLE</A><P>
+
+<DD>Parent window, can be None (or 0)<P><DT><I>nFolder</I> : int<P>
+
+<DD>One of the CSIDL_* constants specifying the path.<P><DT><I>bCreate=0</I> : int<P>
+
+<DD>Should the path be created.<P>
+
+<H3>Comments</H3>
+
+This method is only available in shell version 4.71.  If the 
+
+function is not available, a COM Exception with HRESULT=E_NOTIMPL 
+
+will be raised.  If the function fails, a COM Exception with 
+
+HRESULT=E_FAIL will be raised.<P>
+
+</body>
+</html>

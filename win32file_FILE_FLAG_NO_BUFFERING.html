@@ -1,0 +1,52 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>FILE_FLAG_NO_BUFFERING</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<HR>
+
+<H1>FILE_FLAG_NO_BUFFERING</H1>
+
+<B>const win32file.FILE_FLAG_NO_BUFFERING;</B><P>
+
+Instructs the system to open the file with no intermediate buffering or caching. 
+
+When combined with FILE_FLAG_OVERLAPPED, the flag gives maximum asynchronous performance, 
+
+because the I/O does not rely on the synchronous operations of the memory 
+
+manager. However, some I/O operations will take longer, because data is 
+
+not being held in the cache. An application must meet certain requirements 
+
+when working with files opened with FILE_FLAG_NO_BUFFERING: 
+
+<BR>-&#09File access must begin at byte offsets within the file that are integer multiples of the volume's sector size. 
+
+<BR>-&#09File access must be for numbers of bytes that are integer multiples of the volume's sector size. 
+
+For example, if the sector size is 512 bytes, an application can request reads and writes of 512, 1024, or 2048 bytes, but not of 335, 981, or 7171 bytes. 
+
+<BR>-&#09Buffer addresses for read and write operations must be aligned on addresses in memory that are integer multiples of the volume's sector size. 
+
+One way to align buffers on integer multiples of the volume sector size is to use VirtualAlloc to allocate the 
+
+buffers. It allocates memory that is aligned on addresses that are integer multiples of the operating system's memory page size. Because both memory page 
+
+and volume sector sizes are powers of 2, this memory is also aligned on addresses that are integer multiples of a volume's sector size. An application can 
+
+determine a volume's sector size by calling the GetDiskFreeSpace function.<P>
+
+</body>
+</html>

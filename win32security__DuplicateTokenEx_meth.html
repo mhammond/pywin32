@@ -1,0 +1,46 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32security.DuplicateTokenEx</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32security.html">win32security</A>.DuplicateTokenEx</H1><P>
+
+<A HREF="PyHANDLE.html">PyHANDLE</A> = <B>DuplicateTokenEx(<I>ExistingToken</I><I>, ImpersonationLevel</I>
+
+<I>, DesiredAccess</I>
+
+<I>, TokenType</I>
+
+<I>, TokenAttributes</I>
+
+</B>)<P>Extended version of DuplicateToken.<P>
+
+<H3>Parameters</H3><P><DT><I>ExistingToken</I> : <A HREF="PyHANDLE.html">PyHANDLE</A><P>
+
+<DD>Logon token opened with TOKEN_DUPLICATE access<P><DT><I>ImpersonationLevel</I> : int<P>
+
+<DD>One of win32security.Security* values<P><DT><I>DesiredAccess</I> : int<P>
+
+<DD>Type of access required for the handle, combination of win32security.TOKEN_* flags<P><DT><I>TokenType</I> : int<P>
+
+<DD>Type of token to be created, TokenPrimary or TokenImpersonation<P><DT><I>TokenAttributes=None</I> : <A HREF="PySECURITY_ATTRIBUTES.html">PySECURITY_ATTRIBUTES</A><P>
+
+<DD>Specifies security and inheritance for the new handle.  None results in default DACL and no inheritance,<P>
+
+<H3>Comments</H3>
+
+Accepts keyword arguments<P>
+
+</body>
+</html>

@@ -1,0 +1,70 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyCRYPT_VERIFY_MESSAGE_PARA</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<HR><H1>PyCRYPT_VERIFY_MESSAGE_PARA Object</H1><P>
+
+Dict of verification parameters to be used with <B>cryptoapi::CryptDecodeMessage</B>
+
+
+
+ 
+
+or <B>cryptoapi::CryptVerifyMessageSignature</B>
+
+
+
+.  All parameters are optional.  Can be either an empty dict or None 
+
+to use all defaults.<P>
+
+<H3>Properties</H3>
+
+<DL>
+
+<DT><B>int MsgAndCertEncodingType</B>
+
+<DD>Encoding types, defaults to 
+
+X509_ASN_ENCODING combined with PKCS_7_ASN_ENCODING<P>
+
+
+
+<DT><B><A HREF="PyCRYPTPROV.html">PyCRYPTPROV</A> CryptProv</B>
+
+<DD>CSP to be used to verify signature. Use None for default 
+
+provider.<P>
+
+
+
+<DT><B>function <A HREF="PyGetSignerCertificate.html">PyGetSignerCertificate</A></B>
+
+<DD>Callback function that locates signer's 
+
+certificate.<P>
+
+
+
+<DT><B>object GetArg</B>
+
+<DD>Argument to be passed to above function, can be any object.<P>
+
+
+
+</DL>
+
+</body>
+</html>

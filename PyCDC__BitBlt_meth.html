@@ -1,0 +1,44 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyCDC.BitBlt</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="PyCDC.html">PyCDC</A>.BitBlt</H1><P>
+
+<B>BitBlt(<I>destPos</I><I>, size</I><I>, dc</I><I>, srcPos</I><I>, rop</I></B>)<P>Copies a bitmap from the source device context to this device context.<P>
+
+<H3>Parameters</H3><P><DT><I>destPos</I> : (x,y)-ints<P>
+
+<DD>The logical x,y coordinates of the 
+
+upper-left corner of the destination rectangle.<P><DT><I>size</I> : (width, height)-ints<P>
+
+<DD>Specifies the width and height (in logical units) of 
+
+the destination rectangle and source bitmap.<P><DT><I>dc</I> : <A HREF="PyCDC.html">PyCDC</A><P>
+
+<DD>Specifies the PyCDC object from which the bitmap will be copied. It must 
+
+be None if rop specifies a raster operation that does not include a source.<P><DT><I>srcPos</I> : (xSrc, ySrc)-ints<P>
+
+<DD>Specifies the logical x,y coordinates of the upper-left 
+
+corner of the source bitmap.<P><DT><I>rop</I> : int<P>
+
+<DD>Specifies the raster operation to be performed. See the win32 api documentation 
+
+for details.<P><H3>MFC References</H3><P><DT>CDC::BitBlt<P>
+
+</body>
+</html>

@@ -1,0 +1,42 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyIDataObject.DAdvise</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="PyIDataObject.html">PyIDataObject</A>.DAdvise</H1><P>
+
+int = <B>DAdvise(<I>pformatetc</I><I>, advf</I>
+
+<I>, pAdvSink</I>
+
+</B>)<P>Connects the object to an interface that will receive notifications when its data 
+
+changes<P>
+
+<H3>Parameters</H3><P><DT><I>pformatetc</I> : <A HREF="PyFORMATETC.html">PyFORMATETC</A><P>
+
+<DD>Defines the type of data for which the sink will receive notifications.<P><DT><I>advf</I> : int<P>
+
+<DD>Combination of values from ADVF enum. (which currently do not appear in any of the constants 
+
+modules!)<P><DT><I>pAdvSink</I> : <B>PyIAdviseSink</B>
+
+<P>
+
+<DD>Currently this interface is not wrapped.<P><H3>Return Value</H3>Returns a unique number that is used to identify the connection<P>
+
+
+
+</body>
+</html>

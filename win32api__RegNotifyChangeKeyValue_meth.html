@@ -1,0 +1,34 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32api.RegNotifyChangeKeyValue</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32api.html">win32api</A>.RegNotifyChangeKeyValue</H1><P>
+
+<B>RegNotifyChangeKeyValue(<I>key</I><I>, bWatchSubTree</I><I>, dwNotifyFilter</I><I>, hKey</I><I>, fAsynchronous</I></B>)<P>Receive notification of registry changes<P>
+
+<H3>Parameters</H3><P><DT><I>key</I> : <A HREF="PyHKEY.html">PyHKEY</A>/int<P>
+
+<DD>Handle to an open registry key<P><DT><I>bWatchSubTree</I> : int<P>
+
+<DD>Boolean, notify of changes to subkeys if True<P><DT><I>dwNotifyFilter</I> : int<P>
+
+<DD>Combination of REG_NOTIFY_CHANGE_* constants<P><DT><I>hKey</I> : <A HREF="PyHANDLE.html">PyHANDLE</A><P>
+
+<DD>Event handle to be signalled, use None if fAsynchronous is False<P><DT><I>fAsynchronous</I> : int<P>
+
+<DD>Boolean, function returns immediately if True, waits for change if 
+
+False<P></body>
+</html>

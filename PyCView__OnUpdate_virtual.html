@@ -1,0 +1,56 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyCView.OnUpdate</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="PyCView.html">PyCView.OnUpdate</A> Virtual</H1><P>
+
+<B>OnUpdate(<I>sender</I><I>, lHint</I>
+
+
+
+<I>, hint</I>
+
+
+
+</B>)<P>Called by the framework when a view needs updating.<P>
+
+<H3>Parameters</H3><P><DT><I>sender</I> : <A HREF="PyCView.html">PyCView</A><P>
+
+<DD><P><DT><I>lHint</I> : int<P>
+
+<DD><P><DT><I>hint</I> : object<P>
+
+<DD><P><H3>Comments</H3>
+
+Typically you should not perform any drawing directly from OnUpdate. 
+
+Instead, determine the rectangle describing, in device coordinates, the 
+
+area that requires updating; pass this rectangle to <A HREF="PyCWnd__InvalidateRect_meth.html">PyCWnd::InvalidateRect</A>. 
+
+You can then paint the update next <B>PyCView::OnDraw</B>
+
+
+
+<P>
+
+<H3>See Also</H3><P><DT><B>PyCView::OnUpdate</B>
+
+
+
+<P>
+
+</body>
+</html>

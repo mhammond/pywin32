@@ -1,0 +1,60 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>wincerapi.CreateProcess</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="wincerapi.html">wincerapi</A>.CreateProcess</H1><P>
+
+<A HREF="PyHANDLE.html">PyHANDLE</A>, <A HREF="PyHANDLE.html">PyHANDLE</A>, int, int = <B>CreateProcess(<I>appName</I><I>, commandLine</I>
+
+<I>, processAttributes</I>
+
+<I>, threadAttributes</I>
+
+<I>, bInheritHandles</I>
+
+<I>, dwCreationFlags</I>
+
+<I>, newEnvironment</I>
+
+<I>, currentDirectory</I>
+
+<I>, startupinfo</I>
+
+</B>)<P>Creates a new process and its primary thread. The new process executes the specified executable file.<P>
+
+<H3>Parameters</H3><P><DT><I>appName</I> : string<P>
+
+<DD>name of executable module, or None<P><DT><I>commandLine</I> : string<P>
+
+<DD>command line string, or None<P><DT><I>processAttributes</I> : <A HREF="PySECURITY_ATTRIBUTES.html">PySECURITY_ATTRIBUTES</A><P>
+
+<DD>process security attributes, or None<P><DT><I>threadAttributes</I> : <A HREF="PySECURITY_ATTRIBUTES.html">PySECURITY_ATTRIBUTES</A><P>
+
+<DD>thread security attributes, or None<P><DT><I>bInheritHandles</I> : int<P>
+
+<DD>handle inheritance flag<P><DT><I>dwCreationFlags</I> : int<P>
+
+<DD>creation flags<P><DT><I>newEnvironment</I> : None<P>
+
+<DD>A dictionary of stringor Unicode pairs to define the environment for the process, or None to inherit the current environment.<P><DT><I>currentDirectory</I> : string<P>
+
+<DD>current directory name, or None<P><DT><I>startupinfo</I> : <A HREF="PySTARTUPINFO.html">PySTARTUPINFO</A><P>
+
+<DD>a STARTUPINFO object that specifies how the main window for the new process should appear.<P><H3>Comments</H3>
+
+The result is a tuple of (hProcess, hThread, dwProcessId, dwThreadId)<P>
+
+</body>
+</html>

@@ -1,0 +1,54 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32print.EnumPrinters</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32print.html">win32print</A>.EnumPrinters</H1><P>
+
+tuple = <B>EnumPrinters(<I>flags</I><I>, name</I>
+
+<I>, level</I>
+
+</B>)<P>Enumerates printers, print servers, domains and print providers.<P>
+
+<H3>Parameters</H3><P><DT><I>flags</I> : int<P>
+
+<DD>types of printer objects to enumerate (combination of 
+
+PRINTER_ENUM_* constants).<P><DT><I>name=None</I> : string<P>
+
+<DD>name of printer object.<P>
+
+<DT><I>level=1</I> : int<P>
+
+<DD>type of printer info structure (Levels 1,2,4,5 supported)<P>
+
+<H3>Comments</H3>
+
+Use Flags=PRINTER_ENUM_NAME, Name=None, Level=1 to enumerate print providers.<BR> 
+
+Use Flags=PRINTER_ENUM_NAME, Name=\\servername, Level=2 or 5 to list printers on another server.<BR> 
+
+See MSDN docs for EnumPrinters for other specific combinations<P>
+
+<H3>Return Value</H3>Level 1 returns a tuple of tuples for backward compatibility. 
+
+Each individual element is a tuple of (flags, description, name, comment)<BR> 
+
+All other levels return a tuple of dictionaries representing PRINTER_INFO_* structures<P>
+
+
+
+</body>
+</html>

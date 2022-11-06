@@ -1,0 +1,58 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32event.WaitForSingleObject</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32event.html">win32event</A>.WaitForSingleObject</H1><P>
+
+int = <B>WaitForSingleObject(<I>hHandle</I><I>, milliseconds</I>
+
+</B>)<P>Returns when an event is signalled<P>
+
+<H3>Parameters</H3><P><DT><I>hHandle</I> : <A HREF="PyHANDLE.html">PyHANDLE</A><P>
+
+<DD>handle of object to wait for<P><DT><I>milliseconds</I> : int<P>
+
+<DD>time-out interval in milliseconds<P><H3>Return Value</H3>If the function succeeds, the return value indicates the event that caused the function to return. This value can be one of the following.<P>
+
+
+
+<P><TABLE COLS=2 WIDTH="100%" CELLSPACING=15>
+
+<TR>
+
+   <TD>
+
+       <B>Value</B>
+
+   </TD>
+
+   <TD>
+
+       <B>Meaning</B>
+
+   </TD>
+
+</TR>
+
+<TR><TD><HR></TD><TD><HR></TD></TR>
+
+<TR><TD>WAIT_ABANDONED</TD><TD>The specified object is a mutex object that was not released by the thread that owned the mutex object before the owning thread terminated. Ownership of the mutex object is granted to the calling thread, and the mutex is set to nonsignaled.</TD></TR>
+
+<TR><TD>WAIT_OBJECT_0</TD><TD>The state of the specified object is signaled.</TD></TR>
+
+<TR><TD>WAIT_TIMEOUT</TD><TD>The time-out interval elapsed, and the object's state is nonsignaled.</TD></TR>
+
+</TABLE></body>
+</html>

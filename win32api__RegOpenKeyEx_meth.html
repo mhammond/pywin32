@@ -1,0 +1,60 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32api.RegOpenKeyEx</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32api.html">win32api</A>.RegOpenKeyEx</H1><P>
+
+<A HREF="PyHKEY.html">PyHKEY</A> = <B>RegOpenKeyEx(<I>key</I><I>, subKey</I>
+
+<I>, reserved</I>
+
+<I>, sam</I>
+
+</B>)<P>Opens the specified key.<P>
+
+<H3>Parameters</H3><P><DT><I>key</I> : <A HREF="PyHKEY.html">PyHKEY</A>/int<P>
+
+<DD>An already open key, or any one of the following win32con 
+
+constants:<BR>HKEY_CLASSES_ROOT<BR>HKEY_CURRENT_USER<BR>HKEY_LOCAL_MACHINE<BR>HKEY_USERS<P><DT><I>subKey</I> : string<P>
+
+<DD>The name of a key that this method opens. 
+
+This key must be a subkey of the key identified by the key parameter. 
+
+If key is one of the predefined keys, subKey may be None. In that case, 
+
+the handle returned is the same key handle passed in to the function.<P><DT><I>reserved=0</I> : int<P>
+
+<DD>Reserved.  Must be zero.<P>
+
+<DT><I>sam=KEY_READ</I> : int<P>
+
+<DD>Specifies an access mask that describes the desired security access for the new key. 
+
+This parameter can be a combination of the following win32con constants: 
+
+<BR>KEY_ALL_ACCESS<BR>KEY_CREATE_LINK<BR>KEY_CREATE_SUB_KEY<BR>KEY_ENUMERATE_SUB_KEYS<BR>KEY_EXECUTE<BR>KEY_NOTIFY<BR>KEY_QUERY_VALUE<BR>KEY_READ<BR>KEY_SET_VALUE<BR>KEY_WRITE<BR><P>
+
+<H3>Win32 API References</H3><P><DT>Search for <i>RegOpenKeyEx</i> at <a href="http://search.msdn.microsoft.com/search/results.aspx?view=msdn&query=RegOpenKeyEx" target="_blank">msdn</a>, <a href="http://www.google.com/search?q=RegOpenKeyEx" target="_blank">google</a> or <a href="http://groups.google.com/groups?q=RegOpenKeyEx" target="_blank">google groups</a>.<P>
+
+<H3>Return Value</H3>The return value is the handle of the opened key. 
+
+If the function fails, an exception is raised.<P>
+
+
+
+</body>
+</html>

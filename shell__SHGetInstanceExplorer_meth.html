@@ -1,0 +1,44 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>shell.SHGetInstanceExplorer</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="shell.html">shell</A>.SHGetInstanceExplorer</H1><P>
+
+<A HREF="PyIUnknown.html">PyIUnknown</A> = <B>SHGetInstanceExplorer(</B>)<P>Allows components that run in a Web browser (Iexplore.exe) or a 
+
+nondefault Windows Explorer (Explorer.exe) process to hold a reference to the process. The components can use the 
+
+reference to prevent the process from closing prematurely.<P>
+
+<H3>Comments</H3>
+
+SHGetInstanceExplorer succeeds only if it is called from within 
+
+an Explorer.exe or Iexplorer.exe process. It is typically used by 
+
+components that run in the context of the Web browser (Iexplore.exe). 
+
+However, it is also useful when Explorer.exe has been configured to 
+
+run all folders in a second process. SHGetInstanceExplorer fails if 
+
+the component is running in the default Explorer.exe process. There 
+
+is no need to hold a reference to this process, as it is shut down 
+
+only when the user logs out.<P>
+
+</body>
+</html>

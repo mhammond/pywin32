@@ -1,0 +1,58 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32ui.CreateStatusBar</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32ui.html">win32ui</A>.CreateStatusBar</H1><P>
+
+<A HREF="PyCStatusBar.html">PyCStatusBar</A> = <B>CreateStatusBar(<I>parent</I><I>, style</I>
+
+<I>, windowId</I>
+
+<I>, ctrlStype</I>
+
+</B>)<P>Creates a statusbar object.<P>
+
+<H3>Parameters</H3><P><DT><I>parent</I> : <A HREF="PyCWnd.html">PyCWnd</A><P>
+
+<DD>The parent window for the status bar.<P><DT><I>style=afxres.WS_CHILD | afxres.WS_VISIBLE | afxres.CBRS_BOTTOM</I> : int<P>
+
+<DD>The style for the 
+
+status bar.<P>
+
+<DT><I>windowId=afxres.AFX_IDW_STATUS_BAR</I> : int<P>
+
+<DD>The child window ID.<P>
+
+<DT><I>ctrlStype=0</I> : int<P>
+
+<DD>Additional styles for the creation of the embedded <A HREF="PyCStatusBarCtrl.html">PyCStatusBarCtrl</A> object. <BR>Status bar styles supported are:<BR>commctrl.SBARS_SIZEGRIP - 
+
+The status bar control includes a sizing grip at the right end of the status bar. A sizing 
+
+grip is similar to a sizing border; it is a rectangular area that the user can click and 
+
+drag to resize the parent window. <BR>commctrl.SBT_TOOLTIPS - The status bar supports 
+
+tooltips.<P>
+
+<H3>Comments</H3>
+
+You must ensure no 2 status bars share the same ID.<P>
+
+<H3>MFC References</H3><P><DT>CStatusBar::CreateEx<P>
+
+</body>
+</html>

@@ -1,0 +1,60 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32file.ReadFile</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32file.html">win32file</A>.ReadFile</H1><P>
+
+(int, string) = <B>ReadFile(<I>hFile</I><I>, buffer/bufSize</I>
+
+<I>, overlapped</I>
+
+</B>)<P>Reads a string from a file<P>
+
+<H3>Parameters</H3><P><DT><I>hFile</I> : <A HREF="PyHANDLE.html">PyHANDLE</A>/int<P>
+
+<DD>Handle to the file<P><DT><I>buffer/bufSize</I> : <A HREF="PyOVERLAPPEDReadBuffer.html">PyOVERLAPPEDReadBuffer</A>/int<P>
+
+<DD>Size of the buffer to create for the result, 
+
+or a buffer to fill with the result. If a buffer object and overlapped is passed, the result is 
+
+the buffer itself.  If a buffer but no overlapped is passed, the result is a new string object, 
+
+built from the buffer, but with a length that reflects the data actually read.<P><DT><I>overlapped=None</I> : <A HREF="PyOVERLAPPED.html">PyOVERLAPPED</A><P>
+
+<DD>An overlapped structure<P>
+
+<H3>Comments</H3>
+
+in a multi-threaded overlapped environment, it is likely to be necessary to pre-allocate the read buffer using the <A HREF="win32file__AllocateReadBuffer_meth.html">win32file::AllocateReadBuffer</A> method, otherwise the I/O operation may complete before you can assign to the resulting buffer.<P>
+
+<H3>Return Value</H3>The result is a tuple of (hr, string/<A HREF="PyOVERLAPPEDReadBuffer.html">PyOVERLAPPEDReadBuffer</A>), where hr may be 
+
+0, ERROR_MORE_DATA or ERROR_IO_PENDING. 
+
+If the overlapped param is not None, then the result is a <A HREF="PyOVERLAPPEDReadBuffer.html">PyOVERLAPPEDReadBuffer</A>.  Once the overlapped IO operation 
+
+has completed, you can convert this to a string (str(object)) [py2k] or (bytes(object)) [py3k] to obtain the data. 
+
+While the operation is in progress, you can use the slice operations (object[:end]) to 
+
+obtain the data read so far. 
+
+You must use the OVERLAPPED API functions to determine how much of the data is valid.<P>
+
+
+
+</body>
+</html>

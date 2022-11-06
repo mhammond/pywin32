@@ -1,0 +1,36 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyCScrollView.ResizeParentToFit</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="PyCScrollView.html">PyCScrollView</A>.ResizeParentToFit</H1><P>
+
+tuple = <B>ResizeParentToFit(<I>bShrinkOnly</I></B>)<P>Lets the size of a view dictate the size of its frame window.<P>
+
+<H3>Parameters</H3><P><DT><I>bShrinkOnly=1</I> : int<P>
+
+<DD>The kind of resizing to perform. The default value, TRUE, shrinks the frame window if 
+
+appropriate.<P>
+
+<H3>Comments</H3>
+
+This is recommended only for views in MDI child frame windows. 
+
+<BR>Use ResizeParentToFit in the OnInitialUpdate handler function of your View class. 
+
+<BR>You must ensure the parent's <A HREF="PyCFrameWnd__RecalcLayout_meth.html">PyCFrameWnd::RecalcLayout</A> is called before using this method.<P>
+
+</body>
+</html>

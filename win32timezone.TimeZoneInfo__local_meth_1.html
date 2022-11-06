@@ -1,0 +1,52 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32timezone.TimeZoneInfo.local</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32timezone.TimeZoneInfo.html">win32timezone.TimeZoneInfo</A>.local</H1><P>
+
+<B>local(<I>class_</I></B>)<P>Returns the local time zone as defined by the operating system in the 
+
+registry.<P>
+
+<H3>Parameters</H3><P><DT><I>class_</I> : <P>
+
+<DD>class_<P><H3>Comments</H3>
+
+Now one can compare the results of the two offset aware values<P>
+
+<PRE>&gt&gt&gt (now_UTC - now_local) &lt datetime.timedelta(seconds = 5)
+
+True<P>
+
+&gt&gt&gt localTZ = TimeZoneInfo.local()
+
+&gt&gt&gt now_local = datetime.datetime.now(localTZ)
+
+&gt&gt&gt now_UTC = datetime.datetime.utcnow()
+
+&gt&gt&gt (now_UTC - now_local) &lt datetime.timedelta(seconds = 5)
+
+Traceback (most recent call last):
+
+...
+
+TypeError: can't subtract offset-naive and offset-aware datetimes<P>
+
+&gt&gt&gt now_UTC = now_UTC.replace(tzinfo = TimeZoneInfo('GMT Standard Time', True))<P>
+
+</PRE>
+
+</body>
+</html>

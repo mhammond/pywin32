@@ -1,0 +1,92 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32crypt.CryptDecodeMessage</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32crypt.html">win32crypt</A>.CryptDecodeMessage</H1><P>
+
+dict = <B>CryptDecodeMessage(<I>EncodedBlob</I><I>, DecryptPara</I>
+
+<I>, VerifyPara</I>
+
+<I>, MsgTypeFlags</I>
+
+<I>, SignerIndex</I>
+
+<I>, PrevInnerContentType</I>
+
+<I>, ReturnData</I>
+
+</B>)<P>Decodes and decrypts a message, and verifies its signatures<P>
+
+<H3>Parameters</H3><P><DT><I>EncodedBlob</I> : buffer<P>
+
+<DD>Data to be decoded<P><DT><I>DecryptPara</I> : dict<P>
+
+<DD><A HREF="PyCRYPT_DECRYPT_MESSAGE_PARA.html">PyCRYPT_DECRYPT_MESSAGE_PARA</A> containing decryption parms<P><DT><I>VerifyPara=None</I> : dict<P>
+
+<DD><A HREF="PyCRYPT_VERIFY_MESSAGE_PARA.html">PyCRYPT_VERIFY_MESSAGE_PARA</A> containing signature verification 
+
+parms<P>
+
+<DT><I>MsgTypeFlags=CMSG_ALL_FLAGS</I> : int<P>
+
+<DD>Combination of CMSG_DATA_FLAG, 
+
+CMSG_SIGNED_FLAG, CMSG_ENVELOPED_FLAG, CMSG_SIGNED_AND_ENVELOPED_FLAG, or 
+
+CMSG_HASHED_FLAG<P>
+
+<DT><I>SignerIndex=0</I> : int<P>
+
+<DD>Index of the signer to verify,  ignored if message is not signed.<P>
+
+<DT><I>PrevInnerContentType=0</I> : int<P>
+
+<DD>Content type returned from previous call, used 
+
+during subsequent pass on a nested message<P>
+
+<DT><I>ReturnData=True</I> : boolean<P>
+
+<DD>Indicates if decoded data should be returned.<P>
+
+<H3>Comments</H3>
+
+Only one level of encoding is interpreted.  Some types of messages will need multiple calls to completely 
+
+decode. 
+
+For example, to decode a message created by <A HREF="win32crypt__CryptSignAndEncryptMessage_meth.html">win32crypt::CryptSignAndEncryptMessage</A>, one pass with 
+
+CMSG_ENVELOPED_FLAG &#09and a second pass using CMSG_SIGNED_FLAG are required to recover the original message text.<P>
+
+<H3>Return Value</H3>Output params are returned as a dict containing: 
+
+<BR>{MsgType:int},&#09&#09&#09&#09&#09&nbsp&nbsp##Type of message decoded, one of 
+
+CMSG_DATA,CMSG_SIGNED,CMSG_ENVELOPED,CMSG_SIGNED_AND_ENVELOPED,CMSG_HASHED &#09<BR>InnerContentType:int, 
+
+&nbsp&nbsp##Type of decoded content returned, uses same set of values as MsgType.  CMSG_DATA indicates unencoded data. 
+
+<BR>Decoded:str,&#09&#09&#09&#09&#09&nbsp&nbsp##The decoded data, will be None if ReturnData is False. 
+
+<BR>XchgCert:<A HREF="PyCERT_CONTEXT.html">PyCERT_CONTEXT</A>,&#09&nbsp&nbsp##Certificate used to decode message 
+
+<BR>SignerCert:<A HREF="PyCERT_CONTEXT.html">PyCERT_CONTEXT</A>}&#09&nbsp&nbsp##Certificate used to sign message<P>
+
+
+
+</body>
+</html>

@@ -1,0 +1,54 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>com_error</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<HR><H1>com_error Object</H1><P>
+
+An exception raised when a COM exception occurs.<P>
+
+<H3>Comments</H3>
+
+This error is defined in the pywintypes module, but is 
+
+also available via pythoncom.com_error.<P>
+
+This exception is derived from the standard Python Exception object.<P>
+
+Instances of these exception can be accessed via indexing 
+
+or via attribute access.  Attribute access is more forwards 
+
+compatible with Python 3, so is recommended.<P>
+
+See also <A HREF="error.html">error</A><P>
+
+<H3>Items</H3><P><DL><DT>[0] <I>int</I> : hresult<P>
+
+<DD>The COM hresult<P></DL>
+
+<DL><DT>[1] <I>string</I> : strerror<P>
+
+<DD>The error message<P></DL>
+
+<DL><DT>[2] <I>None/tuple</I> : excepinfo<P>
+
+<DD>An optional EXCEPINFO tuple.<P></DL>
+
+<DL><DT>[3] <I>None/int</I> : argerror<P>
+
+<DD>The index of the argument in error, or (usually) None or -1<P></DL>
+
+</body>
+</html>

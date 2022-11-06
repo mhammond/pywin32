@@ -1,0 +1,136 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32api.GetVersionEx</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32api.html">win32api</A>.GetVersionEx</H1><P>
+
+tuple = <B>GetVersionEx(<I>format</I></B>)<P>Returns the current version of Windows, and information about the environment.<P>
+
+<H3>Parameters</H3><P><DT><I>format=0</I> : int<P>
+
+<DD>The format of the version info to return. 
+
+May be 0 (for OSVERSIONINFO) or 1 (for OSVERSIONINFOEX)<P>
+
+<H3>Return Value</H3>The return value is a tuple with the following information.<BR><P>
+
+
+
+<H3>Items</H3><P><DL><DT>[0] <I>int</I> : majorVersion<P>
+
+<DD>Identifies the major version number of the operating 
+
+system.<BR><P></DL>
+
+<DL><DT>[1] <I>int</I> : minorVersion<P>
+
+<DD>Identifies the minor version number of the operating 
+
+system.<BR><P></DL>
+
+<DL><DT>[2] <I>int</I> : buildNumber<P>
+
+<DD>Identifies the build number of the operating system in 
+
+the low-order word. (The high-order word contains the major and minor version 
+
+numbers.)<BR><P></DL>
+
+<DL><DT>[3] <I>int</I> : platformId<P>
+
+<DD>Identifies the platform supported by the operating system. 
+
+May be one of VER_PLATFORM_WIN32s, VER_PLATFORM_WIN32_WINDOWS or 
+
+VER_PLATFORM_WIN32_NT<BR><P></DL>
+
+<DL><DT>[4] <I>string</I> : version<P>
+
+<DD>Contains arbitrary additional 
+
+information about the operating system.<P></DL>
+
+<H3>Return Value</H3>or if the format param is 1, the return value is a tuple with:<BR><P>
+
+
+
+<H3>Items</H3><P><DL><DT>[0] <I>int</I> : majorVersion<P>
+
+<DD>Identifies the major version number of the operating 
+
+system.<BR><P></DL>
+
+<DL><DT>[1] <I>int</I> : minorVersion<P>
+
+<DD>Identifies the minor version number of the operating 
+
+system.<BR><P></DL>
+
+<DL><DT>[2] <I>int</I> : buildNumber<P>
+
+<DD>Identifies the build number of the operating system in 
+
+the low-order word. (The high-order word contains the major and minor version 
+
+numbers.)<BR><P></DL>
+
+<DL><DT>[3] <I>int</I> : platformId<P>
+
+<DD>Identifies the platform supported by the operating system. 
+
+May be one of VER_PLATFORM_WIN32s, VER_PLATFORM_WIN32_WINDOWS or 
+
+VER_PLATFORM_WIN32_NT<BR><P></DL>
+
+<DL><DT>[4] <I>string</I> : version<P>
+
+<DD>Contains arbitrary additional 
+
+information about the operating system.<P></DL>
+
+<DL><DT>[5] <I>int</I> : wServicePackMajor<P>
+
+<DD>Major version number of the latest Service 
+
+Pack installed on the system. For example, for Service Pack 3, the major version 
+
+number is 3. If no Service Pack has been installed, the value is zero.<P></DL>
+
+<DL><DT>[6] <I>int</I> : wServicePackMinor<P>
+
+<DD>Minor version number of the latest Service 
+
+Pack installed on the system. For example, for Service Pack 3, the minor version 
+
+number is 0.<P></DL>
+
+<DL><DT>[7] <I>int</I> : wSuiteMask<P>
+
+<DD>Bit flags that identify the product suites available on the 
+
+system. This member can be a combination of the VER_SUITE_* values.<P></DL>
+
+<DL><DT>[8] <I>int</I> : wProductType<P>
+
+<DD>Additional information about the system. This member can 
+
+be one of the VER_NT_* values.<P></DL>
+
+<DL><DT>[9] <I>int</I> : wReserved<P>
+
+<DD><P></DL>
+
+</body>
+</html>

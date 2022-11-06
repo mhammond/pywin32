@@ -1,0 +1,38 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32api.SetSystemFileCacheSize</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32api.html">win32api</A>.SetSystemFileCacheSize</H1><P>
+
+<B>SetSystemFileCacheSize(<I>MinimumFileCacheSize</I><I>, MaximumFileCacheSize</I><I>, Flags</I></B>)<P>Sets the amount of memory reserved for file cache<P>
+
+<H3>Parameters</H3><P><DT><I>MinimumFileCacheSize</I> : long<P>
+
+<DD>Minimum size in bytes.<P><DT><I>MaximumFileCacheSize</I> : long<P>
+
+<DD>Maximum size in bytes.<P><DT><I>Flags=0</I> : int<P>
+
+<DD>Combination of win32con.MM_WORKING_SET_* flags<P>
+
+<H3>Comments</H3>
+
+Requires SE_INCREASE_QUOTA_NAME priv<P>
+
+Pass -1 for both min and max to flush file cache.<P>
+
+Accepts keyword args.<P>
+
+</body>
+</html>

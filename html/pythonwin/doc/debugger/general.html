@@ -1,0 +1,72 @@
+<HTML>
+<HEAD>
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=windows-1252">
+<META NAME="Generator" CONTENT="Microsoft Word 97">
+<TITLE>Win32 Debugger Documentation</TITLE>
+<META NAME="Template" CONTENT="D:\Program Files\Microsoft Office\Office\HTML.DOT">
+</HEAD>
+<BODY LINK="#0000ff" VLINK="#800080">
+
+<H1><IMG SRC="pythonwin.gif" WIDTH=64 HEIGHT=64>Pythonwin Debugger Documentation</H1>
+<P>This documents the Win32 Debugger, and much of its functionality. </P>
+<P>You may also wish to view the <A HREF="index.html">debugger overview</A>, the <A HREF="tutorial.html">debugger tutorial</A>, or the <A HREF="probs.html">known problems with the debugger</A>. </P>
+<P>This document contains the following topics </P>
+<P><A HREF="#Win32dbg_package">pywin.debugger package</A><BR>
+<A HREF="#Debugger_Interface">Debugger Interface</A><BR>
+<A HREF="#GUI_versus_NonGUI_Issues">GUI versus Non-GUI Issues</A> <BR>
+<A HREF="#How_It_Works">How It Works</A> </P>
+<H2><A NAME="Win32dbg_package">pywin.debugger package</A></H2>
+<P>The debugger is a sub-package of Pythonwin, named <I>pywin.debugger</I>.</P>
+<H2><A NAME="Debugger_Interface">Debugger Interface</A></H2>
+<P>The debugger is based on the standard Python debugging modules. It is suggested you read the documentation on the "<CODE>pdb</CODE>" and "<CODE>bdb</CODE>" modules. This documentation can be located in the standard Python documentation: </P>
+<P>The package exports the following functions: </P>
+<CODE><P>GetDebugger()</CODE> </P><DIR>
+<DIR>
+
+<P>Returns a debugger object. If there is already a debugger, then this function returns it (re-creating its window, if necessary). If there is no current debugger, a debugger is created. </P></DIR>
+</DIR>
+
+<P>The following functions operate almost identically to those described in the <CODE>pdb</CODE> documentation </P>
+<CODE><P>set_trace()<BR>
+brk() # alternative name</CODE> </P><DIR>
+<DIR>
+
+<P>Like a hard-coded break-point, this function creates a debugger if necessary, and stops at the following statement. Note - putting this statement as the last line of a function may cause you to stop at an unexpected place! </P></DIR>
+</DIR>
+
+<CODE><P>post_mortem(traceback, exception_type = None, exception_value = None)</CODE> </P><DIR>
+<DIR>
+
+<P>Perform post-mortem debugging of the passed traceback. This is useful for analysing the conditions that lead up to an exception. </P></DIR>
+</DIR>
+
+<CODE><P>run(cmd, globals=None, locals=None)</CODE> </P><DIR>
+<DIR>
+
+<P>Begin debugging the command, in the globals and locals context. </P></DIR>
+</DIR>
+
+<CODE><P>runeval(expression, globals=None, locals=None)</CODE> </P><DIR>
+<DIR>
+
+<P>Like "<CODE>run</CODE>" but treats the string as an expression to be evaluated. </P></DIR>
+</DIR>
+
+<H2><A NAME="GUI_versus_NonGUI_Issues">GUI versus Non-GUI Issues</A> </H2>
+<P>The Pythonwin debugger behaves differently depending on if the application being debugged is Pythonwin or not. If the host Python application is Pythonwin, then the debugger runs in "GUI" mode - otherwise in "non-GUI" mode. </P>
+<P>If the application is not Pythonwin, then the debugger has far less control over the debugging environment. There are 2 main areas where this is most apparent. </P>
+<B><P>Will we return?</B> </P>
+<P>In a non-GUI application, each time we leave the debugger (eg, to step through a line of code), we may never re-appear. We may be debugging the last statement of the program, or just may never hit another breakpoint until termination. </P>
+<P>Therefore, the debugger will always prompt for file saves whenever stepping into code. Although the file will be saved, the changes will probably not take affect until the program is restarted. </P>
+<B><P>Are there any messages for me?</B> </P>
+<P>When debugging non-GUI applications, there may not be a message loop. As the debugger is a GUI application, it needs a message loop to respond to user interaction, etc. </P>
+<P>There is an option for the debugger to "hide in non-GUI applications", which by default is enabled. This means that each time a statement is executed, the entire debugger environment is hidden! In fact, it may never re-appear (see above). </P>
+<P>If you disable this option, then debugging these applications will be smoother, but the side-effects will depend on your host application. </P>
+<P>If debugging a Python.exe program (or any other console program), the debugger will not be hidden, but will not respond at all to any user input while the host program is executing. In fact, the debugger will appear to have totally hung. The debugger has not hung - it just can not process messages. It will either spring back into life when a breakpoint etc. it hit, or vanish when the host application exits. </P>
+<P>If debugging inside another GUI application (such as Excel, or MS Internet Explorer), then there is a reasonable chance that the debugger will continue to operate totally normally while the host is running (ie, just as it does under Pythonwin) </P>
+<B><P>Let me out of here</B> </P>
+<P>The other potential area where things may get strange is shutting down the main application frame while debugging. In general, this should shut down normally, but sometimes may not! </P>
+<H2><A NAME="How_It_Works">How It Works</A></H2>
+<P>For those who care, the debugger uses the standard Python debugger hooks. Whenever interaction with the user is required, the debugger creates a new message loop, right under the code being debugged. </P>
+<P>While this message loop is processing messages, the code is broken, and the user can interact with the debugger. Whenever the debugger is about to return control to Python itself, it breaks out of the message loop, leaving the code to execute as it was.</P></BODY>
+</HTML>

@@ -1,0 +1,38 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32file.GetFullPathName</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32file.html">win32file</A>.GetFullPathName</H1><P>
+
+string = <B>GetFullPathName(<I>FileName</I><I>, Transaction</I>
+
+</B>)<P>Returns full path for path passed in<P>
+
+<H3>Parameters</H3><P><DT><I>FileName</I> : bytes/unicode<P>
+
+<DD>Path on which to operate<P><DT><I>Transaction=None</I> : <A HREF="PyHANDLE.html">PyHANDLE</A><P>
+
+<DD>Handle to a transaction as returned by <A HREF="win32transaction__CreateTransaction_meth.html">win32transaction::CreateTransaction</A><P>
+
+<H3>Comments</H3>
+
+This function takes either a bytes a unicode string, and returns the same type 
+
+If unicode is passed in, GetFullPathNameW is called, which supports filenames longer than MAX_PATH<P>
+
+If Transaction parameter is specified, GetFullPathNameTransacted is called<P>
+
+</body>
+</html>

@@ -1,0 +1,38 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32gui.set_logger</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32gui.html">win32gui</A>.set_logger</H1><P>
+
+<B>set_logger(<I>logger</I></B>)<P>Sets a logger object for exceptions and error information<P>
+
+<H3>Parameters</H3><P><DT><I>logger</I> : object<P>
+
+<DD>A logger object, generally from the standard logger package.<P><H3>Comments</H3>
+
+Once a logger has been set for the module, unhandled exceptions, such as 
+
+from a window's WNDPROC, will be written (via logger.exception()) to the log 
+
+instead of to stderr. 
+
+<BR>Note that using this with the Python 2.3 logging package will prevent the 
+
+traceback from being written to the log.  However, it is possible to use 
+
+the Python 2.4 logging package directly with Python 2.3<P>
+
+</body>
+</html>

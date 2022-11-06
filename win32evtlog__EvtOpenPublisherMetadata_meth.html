@@ -1,0 +1,52 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32evtlog.EvtOpenPublisherMetadata</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32evtlog.html">win32evtlog</A>.EvtOpenPublisherMetadata</H1><P>
+
+<A HREF="PyEVT_HANDLE.html">PyEVT_HANDLE</A> = <B>EvtOpenPublisherMetadata(<I>PublisherIdentity</I><I>, Session</I>
+
+<I>, LogFilePath</I>
+
+<I>, Locale</I>
+
+<I>, Flags</I>
+
+</B>)<P>Opens a publisher to retrieve properties using <A HREF="win32evtlog__EvtGetPublisherMetadataProperty_meth.html">win32evtlog::EvtGetPublisherMetadataProperty</A><P>
+
+<H3>Parameters</H3><P><DT><I>PublisherIdentity</I> : str<P>
+
+<DD>Publisher id as returned by <A HREF="win32evtlog__EvtNextPublisherId_meth.html">win32evtlog::EvtNextPublisherId</A><P><DT><I>Session=None</I> : <A HREF="PyEVT_HANDLE.html">PyEVT_HANDLE</A><P>
+
+<DD>Handle to remote session, or None for local machine<P>
+
+<DT><I>LogFilePath=None</I> : str<P>
+
+<DD>Log file from which to retrieve publisher, or None for locally registered publisher<P>
+
+<DT><I>Locale=0</I> : int<P>
+
+<DD>Locale to use for retrieved properties, use 0 for current locale<P>
+
+<DT><I>Flags=0</I> : int<P>
+
+<DD>Reserved, use only 0<P>
+
+<H3>Comments</H3>
+
+Accepts keyword args<P>
+
+</body>
+</html>

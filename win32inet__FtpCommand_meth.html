@@ -1,0 +1,56 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32inet.FtpCommand</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32inet.html">win32inet</A>.FtpCommand</H1><P>
+
+<A HREF="PyHINTERNET.html">PyHINTERNET</A> = <B>FtpCommand(<I>Connect</I><I>, ExpectResponse</I>
+
+<I>, Flags</I>
+
+<I>, Command</I>
+
+<I>, Context</I>
+
+</B>)<P>Allows an application to send commands directly to an FTP server.<P>
+
+<H3>Parameters</H3><P><DT><I>Connect</I> : <A HREF="PyHINTERNET.html">PyHINTERNET</A><P>
+
+<DD>Valid HINTERNET&#09handle to an FTP session.<P><DT><I>ExpectResponse</I> : bool<P>
+
+<DD>Boolean value&#09that indicates whether or not 
+
+the application expects a response&#09from the FTP server. 
+
+This must be set to True if a response&#09is expected, or&#09False otherwise.<P><DT><I>Flags</I> : int<P>
+
+<DD>Unsigned long integer value that contains the flags that 
+
+control this function. This can be set to&#09either FTP_TRANSFER_TYPE_ASCII or 
+
+FTP_TRANSFER_TYPE_BINARY<P><DT><I>Command</I> : string<P>
+
+<DD>The command to send to the FTP server.<P><DT><I>Context=None</I> : object<P>
+
+<DD>Arbitrary object&#09to be passed to&#09callback<P>
+
+<H3>Comments</H3>
+
+This function may cause a crash on 32-bit XP and Vista due to an internal error in win32inet.dll.<P>
+
+Accepts keyword args<P>
+
+</body>
+</html>

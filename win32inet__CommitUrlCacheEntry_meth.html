@@ -1,0 +1,66 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32inet.CommitUrlCacheEntry</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32inet.html">win32inet</A>.CommitUrlCacheEntry</H1><P>
+
+str = <B>CommitUrlCacheEntry(<I>UrlName</I><I>, LocalFileName</I>
+
+<I>, ExpireTime</I>
+
+<I>, LastModifiedTime</I>
+
+<I>, CacheEntryType</I>
+
+<I>, HeaderInfo</I>
+
+<I>, OriginalUrl</I>
+
+</B>)<P>Commits a cache entry<P>
+
+<H3>Parameters</H3><P><DT><I>UrlName</I> : str<P>
+
+<DD>The Url for which to create an entry<P><DT><I>LocalFileName</I> : str<P>
+
+<DD>Filename returned from <A HREF="win32inet__CreateUrlCacheEntry_meth.html">win32inet::CreateUrlCacheEntry</A>. 
+
+Can be None when creating a history entry.<P><DT><I>ExpireTime=None</I> : <A HREF="PyDateTime.html">PyDateTime</A><P>
+
+<DD>Time at which entry expires<P>
+
+<DT><I>LastModifiedTime=None</I> : <A HREF="PyDateTime.html">PyDateTime</A><P>
+
+<DD>Modification time of URL<P>
+
+<DT><I>CacheEntryType=NORMAL_CACHE_ENTRY</I> : int<P>
+
+<DD>Combination of *_CACHE_ENTRY flags<P>
+
+<DT><I>HeaderInfo=None</I> : str<P>
+
+<DD>Header data used to request Url<P>
+
+<DT><I>OriginalUrl=None</I> : str<P>
+
+<DD>If redirected, original site requested<P>
+
+<H3>Comments</H3>
+
+Accepts keyword args<P>
+
+<H3>Win32 API References</H3><P><DT>Search for <i>CommitUrlCacheEntry</i> at <a href="http://search.msdn.microsoft.com/search/results.aspx?view=msdn&query=CommitUrlCacheEntry" target="_blank">msdn</a>, <a href="http://www.google.com/search?q=CommitUrlCacheEntry" target="_blank">google</a> or <a href="http://groups.google.com/groups?q=CommitUrlCacheEntry" target="_blank">google groups</a>.<P>
+
+</body>
+</html>

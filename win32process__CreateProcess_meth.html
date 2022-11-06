@@ -1,0 +1,128 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32process.CreateProcess</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32process.html">win32process</A>.CreateProcess</H1><P>
+
+<A HREF="PyHANDLE.html">PyHANDLE</A>, <A HREF="PyHANDLE.html">PyHANDLE</A>, int, int = <B>CreateProcess(<I>appName</I><I>, commandLine</I>
+
+<I>, processAttributes</I>
+
+<I>, threadAttributes</I>
+
+<I>, bInheritHandles</I>
+
+<I>, dwCreationFlags</I>
+
+<I>, newEnvironment</I>
+
+<I>, currentDirectory</I>
+
+<I>, startupinfo</I>
+
+</B>)<P>Creates a new process and its primary thread. The new process executes the specified executable file.<P>
+
+<H3>Parameters</H3><P><DT><I>appName</I> : string<P>
+
+<DD>name of executable module, or None<P><DT><I>commandLine</I> : string<P>
+
+<DD>command line string, or None<P><DT><I>processAttributes</I> : <A HREF="PySECURITY_ATTRIBUTES.html">PySECURITY_ATTRIBUTES</A><P>
+
+<DD>process security attributes, or None<P><DT><I>threadAttributes</I> : <A HREF="PySECURITY_ATTRIBUTES.html">PySECURITY_ATTRIBUTES</A><P>
+
+<DD>thread security attributes, or None<P><DT><I>bInheritHandles</I> : int<P>
+
+<DD>handle inheritance flag<P><DT><I>dwCreationFlags</I> : int<P>
+
+<DD>creation flags.  May be a combination of the following values from the win32con module:<P><P><TABLE COLS=2 WIDTH="100%" CELLSPACING=15>
+
+<TR>
+
+   <TD>
+
+       <B>Value</B>
+
+   </TD>
+
+   <TD>
+
+       <B>Meaning</B>
+
+   </TD>
+
+</TR>
+
+<TR><TD><HR></TD><TD><HR></TD></TR>
+
+<TR><TD>CREATE_BREAKAWAY_FROM_JOB</TD><TD>Windows 2000: The child processes of a process associated with a job are not associated with the job. 
+
+If the calling process is not associated with a job, this flag has no effect. If the calling process is associated with a job, the job must set the JOB_OBJECT_LIMIT_BREAKAWAY_OK limit or CreateProcess will fail.</TD></TR>
+
+<TR><TD>CREATE_DEFAULT_ERROR_MODE</TD><TD>The new process does not inherit the error mode of the calling process. Instead, CreateProcess gives the new process the current default error mode. An application sets the current default error mode by calling SetErrorMode. 
+
+This flag is particularly useful for multi-threaded shell applications that run with hard errors disabled. 
+
+The default behavior for CreateProcess is for the new process to inherit the error mode of the caller. Setting this flag changes that default behavior.</TD></TR>
+
+<TR><TD>CREATE_FORCE_DOS</TD><TD>Windows NT/2000: This flag is valid only when starting a 16-bit bound application. If set, the system will force the application to run as an MS-DOS-based application rather than as an OS/2-based application.</TD></TR>
+
+<TR><TD>CREATE_NEW_CONSOLE</TD><TD>The new process has a new console, instead of inheriting the parent's console. This flag cannot be used with the DETACHED_PROCESS flag.</TD></TR>
+
+<TR><TD>CREATE_NEW_PROCESS_GROUP</TD><TD>The new process is the root process of a new process group. The process group includes all processes that are descendants of this root process. The process identifier of the new process group is the same as the process identifier, which is returned in the lpProcessInformation parameter. Process groups are used by the GenerateConsoleCtrlEvent function to enable sending a CTRL+C or CTRL+BREAK signal to a group of console processes.</TD></TR>
+
+<TR><TD>CREATE_NO_WINDOW</TD><TD>Windows NT/2000: This flag is valid only when starting a console application. If set, the console application is run without a console window.</TD></TR>
+
+<TR><TD>CREATE_SEPARATE_WOW_VDM</TD><TD>Windows NT/2000: This flag is valid only when starting a 16-bit Windows-based application. If set, the new process runs in a private Virtual DOS Machine (VDM). By default, all 16-bit Windows-based applications run as threads in a single, shared VDM. The advantage of running separately is that a crash only terminates the single VDM; any other programs running in distinct VDMs continue to function normally. Also, 16-bit Windows-based applications that are run in separate VDMs have separate input queues. That means that if one application stops responding momentarily, applications in separate VDMs continue to receive input. The disadvantage of running separately is that it takes significantly more memory to do so. You should use this flag only if the user requests that 16-bit applications should run in them own VDM.</TD></TR>
+
+<TR><TD>CREATE_SHARED_WOW_VDM</TD><TD>Windows NT/2000: The flag is valid only when starting a 16-bit Windows-based application. If the DefaultSeparateVDM switch in the Windows section of WIN.INI is TRUE, this flag causes the CreateProcess function to override the switch and run the new process in the shared Virtual DOS Machine.</TD></TR>
+
+<TR><TD>CREATE_SUSPENDED</TD><TD>The primary thread of the new process is created in a suspended state, and does not run until the ResumeThread function is called.</TD></TR>
+
+<TR><TD>CREATE_UNICODE_ENVIRONMENT</TD><TD>Indicates the format of the lpEnvironment parameter. If this flag is set, the environment block pointed to by lpEnvironment uses Unicode characters. Otherwise, the environment block uses ANSI characters.</TD></TR>
+
+<TR><TD>DEBUG_PROCESS</TD><TD>If this flag is set, the calling process is treated as a debugger, and the new process is debugged. The system notifies the debugger of all debug events that occur in the process being debugged. 
+
+If you create a process with this flag set, only the calling thread (the thread that called CreateProcess) can call the WaitForDebugEvent function. 
+
+Windows 95/98: This flag is not valid if the new process is a 16-bit application.</TD></TR>
+
+<TR><TD>DEBUG_ONLY_THIS_PROCESS</TD><TD>If this flag is not set and the calling process is being debugged, the new process becomes another process being debugged by the calling process's debugger. If the calling process is not a process being debugged, no debugging-related actions occur.</TD></TR>
+
+<TR><TD>DETACHED_PROCESS</TD><TD>For console processes, the new process does not have access to the console of the parent process. The new process can call the AllocConsole function at a later time to create a new console. This flag cannot be used with the CREATE_NEW_CONSOLE flag.</TD></TR>
+
+<TR><TD>ABOVE_NORMAL_PRIORITY_CLASS</TD><TD>Windows 2000: Indicates a process that has priority higher than NORMAL_PRIORITY_CLASS but lower than HIGH_PRIORITY_CLASS.</TD></TR>
+
+<TR><TD>BELOW_NORMAL_PRIORITY_CLASS</TD><TD>Windows 2000: Indicates a process that has priority higher than IDLE_PRIORITY_CLASS but lower than NORMAL_PRIORITY_CLASS.</TD></TR>
+
+<TR><TD>HIGH_PRIORITY_CLASS</TD><TD>Indicates a process that performs time-critical tasks. The threads of a high-priority class process preempt the threads of normal-priority or idle-priority class processes. An example is the Task List, which must respond quickly when called by the user, regardless of the load on the system. Use extreme care when using the high-priority class, because a CPU-bound application with a high-priority class can use nearly all available cycles.</TD></TR>
+
+<TR><TD>IDLE_PRIORITY_CLASS</TD><TD>Indicates a process whose threads run only when the system is idle and are preempted by the threads of any process running in a higher priority class. An example is a screen saver. The idle priority class is inherited by child processes.</TD></TR>
+
+<TR><TD>NORMAL_PRIORITY_CLASS</TD><TD>Indicates a normal process with no special scheduling needs.</TD></TR>
+
+<TR><TD>REALTIME_PRIORITY_CLASS</TD><TD>Indicates a process that has the highest possible priority. The threads of a real-time priority class process preempt the threads of all other processes, including operating system processes performing important tasks. For example, a real-time process that executes for more than a very brief interval can cause disk caches not to flush or cause the mouse to be unresponsive.</TD></TR>
+
+</TABLE><DT><I>newEnvironment</I> : dictionary/None<P>
+
+<DD>A dictionary of string or Unicode pairs to define the environment for the process, or None to inherit the current environment.<P><DT><I>currentDirectory</I> : string<P>
+
+<DD>current directory name, or None<P><DT><I>startupinfo</I> : <A HREF="PySTARTUPINFO.html">PySTARTUPINFO</A><P>
+
+<DD>a STARTUPINFO object that specifies how the main window for the new process should appear.<P><H3>Comments</H3>
+
+The result is a tuple of (hProcess, hThread, dwProcessId, dwThreadId)<P>
+
+</body>
+</html>

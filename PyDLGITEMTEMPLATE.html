@@ -1,0 +1,150 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyDLGITEMTEMPLATE</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<HR><H1>PyDLGITEMTEMPLATE Object</H1><P>
+
+A tuple describing a control in a dialog box.<P>
+
+<H3>Win32 API References</H3><P><DT>Search for <i>DLGITEMTEMPLATE</i> at <a href="http://search.msdn.microsoft.com/search/results.aspx?view=msdn&query=DLGITEMTEMPLATE" target="_blank">msdn</a>, <a href="http://www.google.com/search?q=DLGITEMTEMPLATE" target="_blank">google</a> or <a href="http://groups.google.com/groups?q=DLGITEMTEMPLATE" target="_blank">google groups</a>.<P>
+
+<H3>Items</H3><P><DL><DT>[0] <I>string/int</I> : windowClass<P>
+
+<DD>The window class.  If not a string, it must be in integer defining one of the 
+
+built-in Windows controls. If a string, it must be a pre-registered windows class name, a built-in class, or the 
+
+CLSID of an OLE controls. Built-in classes include:<P></DL>
+
+<P><TABLE COLS=2 WIDTH="100%" CELLSPACING=15>
+
+<TR>
+
+   <TD>
+
+       <B>Control Type</B>
+
+   </TD>
+
+   <TD>
+
+       <B>String Class Name</B>
+
+   </TD>
+
+</TR>
+
+<TR><TD><HR></TD><TD><HR></TD></TR>
+
+<TR><TD>Check Box</TD><TD>Button</TD></TR>
+
+<TR><TD>Combo Box</TD><TD>ComboBox</TD></TR>
+
+<TR><TD>Command Button</TD><TD>Button</TD></TR>
+
+<TR><TD>Header</TD><TD>SysHeader32</TD></TR>
+
+<TR><TD>Label</TD><TD>Static</TD></TR>
+
+<TR><TD>List Box</TD><TD>ListBox<BR>SysListView32</TD></TR>
+
+<TR><TD>Option Button</TD><TD>Button</TD></TR>
+
+<TR><TD>Tab</TD><TD>SysTabControl32</TD></TR>
+
+<TR><TD>Text Box</TD><TD>Edit<BR>RICHEDIT</TD></TR>
+
+<TR><TD>Tool Bar</TD><TD>ToolbarWindow32</TD></TR>
+
+<TR><TD>Tool Tips</TD><TD>tooltips_class32<BR>tooltips_class</TD></TR>
+
+<TR><TD>Tree View</TD><TD>SysTreeView32 
+
+The built-in windows controls are:</TD></TR>
+
+</TABLE><P><TABLE COLS=2 WIDTH="100%" CELLSPACING=15>
+
+<TR>
+
+   <TD>
+
+       <B>Integer Value</B>
+
+   </TD>
+
+   <TD>
+
+       <B>Window Type</B>
+
+   </TD>
+
+</TR>
+
+<TR><TD><HR></TD><TD><HR></TD></TR>
+
+<TR><TD>0x0080</TD><TD>Button</TD></TR>
+
+<TR><TD>0x0081</TD><TD>Edit</TD></TR>
+
+<TR><TD>0x0082</TD><TD>Static</TD></TR>
+
+<TR><TD>0x0083</TD><TD>List box</TD></TR>
+
+<TR><TD>0x0084</TD><TD>Scroll bar</TD></TR>
+
+<TR><TD>0x0085</TD><TD>Combo box</TD></TR>
+
+</TABLE><DL><DT>[1] <I><B>PyUnicode</B>
+
+</I> : caption<P>
+
+<DD>Caption for the control, or None<P></DL>
+
+<DL><DT>[2] <I>int</I> : ID<P>
+
+<DD>The child ID of this control.  All children should have unique 
+
+IDs.  This ID can be used by <B>PyCDialog::GetDlgItem</B>
+
+
+
+ to retrieve the actual control 
+
+object at runtime.<P></DL>
+
+<DL><DT>[3] <I>(int,int,int,int)</I> : (x,y,cx,cy)<P>
+
+<DD>The bounding rectange for the control, relative to the upper left of 
+
+the dialog, in dialog units.<P></DL>
+
+<DL><DT>[4] <I>int</I> : style<P>
+
+<DD>The window style of the control (WS_* constants). Depending on the type of control, 
+
+other constants may also be valid (eg, BS_* for Button, ES_* for Edit controls, etc).<P></DL>
+
+<DL><DT>[5] <I>int</I> : extStyle<P>
+
+<DD>The extended style of the control.<P></DL>
+
+<DL><DT>[6] <I>buffer</I> : extraData<P>
+
+<DD>A byte string or buffer used as extra data for the control.  The value depends on 
+
+the control.<P></DL>
+
+</body>
+</html>

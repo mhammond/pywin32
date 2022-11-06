@@ -1,0 +1,54 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32file.PurgeComm</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32file.html">win32file</A>.PurgeComm</H1><P>
+
+<B>PurgeComm(<I>handle</I><I>, action</I></B>)<P>Discards all characters from the output or input buffer of a specified communications resource. It can also terminate pending read or write operations on the resource.<P>
+
+<H3>Parameters</H3><P><DT><I>handle</I> : <A HREF="PyHANDLE.html">PyHANDLE</A><P>
+
+<DD>The handle to the communications device.<P><DT><I>action</I> : int<P>
+
+<DD>The action to perform.  This parameter can be one or more of the following values.<P><P><TABLE COLS=2 WIDTH="100%" CELLSPACING=15>
+
+<TR>
+
+   <TD>
+
+       <B>Value</B>
+
+   </TD>
+
+   <TD>
+
+       <B>Meaning</B>
+
+   </TD>
+
+</TR>
+
+<TR><TD><HR></TD><TD><HR></TD></TR>
+
+<TR><TD>PURGE_TXABORT</TD><TD>Terminates all outstanding overlapped write operations and returns immediately, even if the write operations have not been completed.</TD></TR>
+
+<TR><TD>PURGE_RXABORT</TD><TD>Terminates all outstanding overlapped read operations and returns immediately, even if the read operations have not been completed.</TD></TR>
+
+<TR><TD>PURGE_TXCLEAR</TD><TD>Clears the output buffer (if the device driver has one).</TD></TR>
+
+<TR><TD>PURGE_RXCLEAR</TD><TD>Clears the input buffer (if the device driver has one).</TD></TR>
+
+</TABLE></body>
+</html>

@@ -1,0 +1,54 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32gui.ExtTextOut</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32gui.html">win32gui</A>.ExtTextOut</H1><P>
+
+int = <B>ExtTextOut(<I>hdc</I><I>, int</I>
+
+<I>, int</I>
+
+<I>, int</I>
+
+<I>, rect</I>
+
+<I>, string</I>
+
+<I>, tuple</I>
+
+</B>)<P>Writes text to a DC.<P>
+
+<H3>Parameters</H3><P><DT><I>hdc</I> : <A HREF="PyHANDLE.html">PyHANDLE</A><P>
+
+<DD>Handle to a device context<P><DT><I>int</I> : x<P>
+
+<DD>The x coordinate to write the text to.<P><DT><I>int</I> : y<P>
+
+<DD>The y coordinate to write the text to.<P><DT><I>int</I> : nOptions<P>
+
+<DD>Specifies the rectangle type. This parameter can be one, both, or neither of ETO_CLIPPED and ETO_OPAQUE<P><DT><I>rect</I> : <A HREF="PyRECT.html">PyRECT</A><P>
+
+<DD>Specifies the text's bounding rectangle.  (Can be None.)<P><DT><I>string</I> : text<P>
+
+<DD>The text to write.<P><DT><I>tuple</I> : (width1, width2, ...)<P>
+
+<DD>Optional array of values that indicate distance between origins of character cells.<P><H3>Win32 API References</H3><P><DT>Search for <i>ExtTextOut</i> at <a href="http://search.msdn.microsoft.com/search/results.aspx?view=msdn&query=ExtTextOut" target="_blank">msdn</a>, <a href="http://www.google.com/search?q=ExtTextOut" target="_blank">google</a> or <a href="http://groups.google.com/groups?q=ExtTextOut" target="_blank">google groups</a>.<P>
+
+<H3>Return Value</H3>Always none.  If the function fails, an exception is raised.<P>
+
+
+
+</body>
+</html>

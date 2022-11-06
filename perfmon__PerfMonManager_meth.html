@@ -1,0 +1,64 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>perfmon.PerfMonManager</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="perfmon.html">perfmon</A>.PerfMonManager</H1><P>
+
+<A HREF="PyPerfMonManager.html">PyPerfMonManager</A> = <B>PerfMonManager(<I>serviceName</I><I>, seqPerfObTypes</I>
+
+<I>, mappingName</I>
+
+<I>, eventSourceName</I>
+
+</B>)<P>Creates a new PERF_OBJECT_TYPE object<P>
+
+<H3>Parameters</H3><P><DT><I>serviceName</I> : <B>PyUnicode</B>
+
+<P>
+
+<DD>The name of the service for which data is being 
+
+provided.<P><DT><I>seqPerfObTypes</I> : [<A HREF="PyPERF_OBJECT_TYPE.html">PyPERF_OBJECT_TYPE</A>, ...]<P>
+
+<DD>A sequence of objects to use in 
+
+the performance monitor.  At this stage, len(seqPerfObTypes) must == 1.<P><DT><I>mappingName=None</I> : <B>PyUnicode</B>
+
+<P>
+
+<DD>The name of the mapping to open.  This must be 
+
+the same as the DLL name providing the information.  If None, the serviceName is used.<P>
+
+<DT><I>eventSourceName=None</I> : <B>PyUnicode</B>
+
+<P>
+
+<DD>The name used by the DLL for error 
+
+messages in the registry.  If None, the serviceName is used.<P>
+
+<H3>Comments</H3>
+
+The application need not be a service, but it must have an entry in the 
+
+Services section of the registry.  This limits the performance monitor to being able to 
+
+provide only one 'counter type', but still many counters within that type. 
+
+See the documentation for the Performance Monitor API for more details.<P>
+
+</body>
+</html>

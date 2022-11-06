@@ -1,0 +1,54 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32security.LogonUser</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32security.html">win32security</A>.LogonUser</H1><P>
+
+<A HREF="PyHANDLE.html">PyHANDLE</A> = <B>LogonUser(<I>Username</I><I>, Domain</I>
+
+<I>, Password</I>
+
+<I>, LogonType</I>
+
+<I>, LogonProvider</I>
+
+</B>)<P>Attempts to log a user on to the local computer, that is, to the computer from which LogonUser was called. You cannot use LogonUser to log on to a remote computer.<P>
+
+<H3>Parameters</H3><P><DT><I>Username</I> : <B>PyUnicode</B>
+
+<P>
+
+<DD>The name of the user account to log on to. 
+
+This may also be a marshalled credential (see <A HREF="win32cred__CredMarshalCredential_meth.html">win32cred::CredMarshalCredential</A>).<P><DT><I>Domain</I> : <B>PyUnicode</B>
+
+<P>
+
+<DD>The name of the domain, or None for the current domain<P><DT><I>Password</I> : <B>PyUnicode</B>
+
+<P>
+
+<DD>User's password.  Use a blank string if Username contains a marshalled credential.<P><DT><I>LogonType</I> : int<P>
+
+<DD>One of LOGON32_LOGON_* values<P><DT><I>LogonProvider</I> : int<P>
+
+<DD>One of LOGON32_PROVIDER_* values<P><H3>Comments</H3>
+
+Accepts keyword args<P>
+
+On Windows 2000 and earlier, the calling process must have SE_TCB_NAME privilege.<P>
+
+</body>
+</html>

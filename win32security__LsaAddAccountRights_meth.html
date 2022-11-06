@@ -1,0 +1,34 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32security.LsaAddAccountRights</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32security.html">win32security</A>.LsaAddAccountRights</H1><P>
+
+<B>LsaAddAccountRights(<I>PolicyHandle</I><I>, AccountSid</I><I>, UserRights</I></B>)<P>Adds a list of privileges to an account<P>
+
+<H3>Parameters</H3><P><DT><I>PolicyHandle</I> : <A HREF="PyLSA_HANDLE.html">PyLSA_HANDLE</A><P>
+
+<DD>An LSA policy handle as returned by <A HREF="win32security__LsaOpenPolicy_meth.html">win32security::LsaOpenPolicy</A><P><DT><I>AccountSid</I> : <A HREF="PySID.html">PySID</A><P>
+
+<DD>Account to which privs will be added<P><DT><I>UserRights</I> : (str/unicode,...)<P>
+
+<DD>Sequence of privilege names (SE_*_NAME unicode constants)<P><H3>Comments</H3>
+
+Account is created if it doesn't already exist.<P>
+
+Accepts keyword args.<P>
+
+</body>
+</html>

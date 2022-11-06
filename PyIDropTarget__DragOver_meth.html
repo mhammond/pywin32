@@ -1,0 +1,38 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyIDropTarget.DragOver</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="PyIDropTarget.html">PyIDropTarget</A>.DragOver</H1><P>
+
+int = <B>DragOver(<I>grfKeyState</I><I>, pt</I>
+
+<I>, pdwEffect</I>
+
+</B>)<P>Called as the dragged object moves over the window<P>
+
+<H3>Parameters</H3><P><DT><I>grfKeyState</I> : int<P>
+
+<DD>Combination of win32con.MK_* flags containing keyboard modifier state<P><DT><I>pt</I> : (int, int)<P>
+
+<DD>(x,y) Screen coordinates of cursor<P><DT><I>pdwEffect</I> : int<P>
+
+<DD>shellcon.DROPEFFECT_* value<P><H3>Return Value</H3>Your implementation of this function should return a shellcon.DROPEFFECT_* value indicating if the 
+
+object can be accepted at the current position<P>
+
+
+
+</body>
+</html>

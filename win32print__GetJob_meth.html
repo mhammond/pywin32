@@ -1,0 +1,40 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32print.GetJob</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32print.html">win32print</A>.GetJob</H1><P>
+
+dictionary = <B>GetJob(<I>hPrinter</I><I>, JobID</I>
+
+<I>, Level</I>
+
+</B>)<P>Returns dictionary of information about a specified print job.<P>
+
+<H3>Parameters</H3><P><DT><I>hPrinter</I> : <A HREF="PyPrinterHANDLE.html">PyPrinterHANDLE</A><P>
+
+<DD>Handle to a printer as returned by <A HREF="win32print__OpenPrinter_meth.html">win32print::OpenPrinter</A>.<P><DT><I>JobID</I> : int<P>
+
+<DD>Job Identifier.<P><DT><I>Level=1</I> : int<P>
+
+<DD>Level of information to return (JOB_INFO_1, JOB_INFO_2, 
+
+JOB_INFO_3 supported).<P>
+
+<H3>Return Value</H3>Returns a dict representing a JOB_INFO_* struct, depending on level<P>
+
+
+
+</body>
+</html>

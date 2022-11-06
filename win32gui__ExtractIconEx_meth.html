@@ -1,0 +1,44 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32gui.ExtractIconEx</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32gui.html">win32gui</A>.ExtractIconEx</H1><P>
+
+int = <B>ExtractIconEx(<I>moduleName</I><I>, index</I>
+
+<I>, numIcons</I>
+
+</B>)<P><P>
+
+<H3>Parameters</H3><P><DT><I>moduleName</I> : string<P>
+
+<DD><P><DT><I>index</I> : int<P>
+
+<DD><P><DT><I>numIcons=1</I> : int<P>
+
+<DD><P>
+
+<H3>Comments</H3>
+
+You must destroy each icon handle returned by calling the <A HREF="win32gui__DestroyIcon_meth.html">win32gui::DestroyIcon</A> function.<P>
+
+<H3>Return Value</H3>If index==-1, the result is an integer with the number of icons in 
+
+the file, otherwise it is 2 arrays of icon handles.<P>
+
+
+
+</body>
+</html>

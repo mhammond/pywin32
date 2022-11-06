@@ -1,0 +1,60 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>pythoncom.CoInitializeSecurity</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="pythoncom.html">pythoncom</A>.CoInitializeSecurity</H1><P>
+
+<B>CoInitializeSecurity(<I>sd</I><I>, authSvc</I><I>, reserved1</I><I>, authnLevel</I><I>, impLevel</I><I>, authInfo</I><I>, capabilities</I><I>, reserved2</I></B>)<P>Registers security and sets the default security values.<P>
+
+<H3>Parameters</H3><P><DT><I>sd</I> : <A HREF="PySECURITY_DESCRIPTOR.html">PySECURITY_DESCRIPTOR</A><P>
+
+<DD>Security descriptor containing access permissions for 
+
+process' objects, can be None. <BR>If Capabilities contains EOAC_APPID, sd should be an AppId 
+
+(guid), or None to use server executable. <BR>If Capabilities contains EOAC_ACCESS_CONTROL, sd 
+
+parameter should be an IAccessControl interface.<P><DT><I>authSvc</I> : object<P>
+
+<DD>A value of None tells COM to choose which authentication services to 
+
+use.  An empty list means use no services.<P><DT><I>reserved1</I> : object<P>
+
+<DD>Must be None<P><DT><I>authnLevel</I> : int<P>
+
+<DD>One of pythoncom.RPC_C_AUTHN_LEVEL_* values. The default 
+
+authentication level for proxies. On the server side, COM will fail calls that arrive at 
+
+a lower level. All calls to AddRef and Release are made at this level.<P><DT><I>impLevel</I> : int<P>
+
+<DD>One of pythoncom.RPC_C_IMP_LEVEL_* values.  The default impersonation 
+
+level for proxies. This value is not checked on the server side. AddRef and Release calls 
+
+are made with this impersonation level so even security aware apps should set this 
+
+carefully. Setting IUnknown security only affects calls to QueryInterface, not AddRef or 
+
+Release.<P><DT><I>authInfo</I> : object<P>
+
+<DD>Must be None<P><DT><I>capabilities</I> : int<P>
+
+<DD>Authentication capabilities, combination of pythoncom.EOAC_* 
+
+flags.<P><DT><I>reserved2</I> : object<P>
+
+<DD>Must be None<P></body>
+</html>

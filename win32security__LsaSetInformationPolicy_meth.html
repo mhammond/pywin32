@@ -1,0 +1,56 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32security.LsaSetInformationPolicy</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32security.html">win32security</A>.LsaSetInformationPolicy</H1><P>
+
+<B>LsaSetInformationPolicy(<I>PolicyHandle</I><I>, InformationClass</I><I>, Information</I></B>)<P>Sets policy options<P>
+
+<H3>Parameters</H3><P><DT><I>PolicyHandle</I> : <A HREF="PyLSA_HANDLE.html">PyLSA_HANDLE</A><P>
+
+<DD>An LSA policy handle as returned by <A HREF="win32security__LsaOpenPolicy_meth.html">win32security::LsaOpenPolicy</A><P><DT><I>InformationClass</I> : int<P>
+
+<DD>POLICY_INFORMATION_CLASS value<P><DT><I>Information</I> : object<P>
+
+<DD>Type is dependent on InformationClass<P><P><TABLE COLS=2 WIDTH="100%" CELLSPACING=15>
+
+<TR>
+
+   <TD>
+
+       <B>InformationClass</B>
+
+   </TD>
+
+   <TD>
+
+       <B>Type of input expected</B>
+
+   </TD>
+
+</TR>
+
+<TR><TD><HR></TD><TD><HR></TD></TR>
+
+<TR><TD>PolicyAuditEventsInformation</TD><TD>(boolean, (int, ...)) 
+
+<BR>First member imdicates whether auditing is enabled or not. 
+
+<BR>Seconed member is a sequence of POLICY_AUDIT_EVENT_* flags specifying which events 
+
+should be audited.  See AuditCategory* values for positions of each event type.</TD></TR>
+
+</TABLE></body>
+</html>

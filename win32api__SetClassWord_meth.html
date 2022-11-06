@@ -1,0 +1,40 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32api.SetClassWord</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32api.html">win32api</A>.SetClassWord</H1><P>
+
+int = <B>SetClassWord(<I>hwnd</I><I>, offset</I>
+
+<I>, val</I>
+
+</B>)<P><P>
+
+<H3>Parameters</H3><P><DT><I>hwnd</I> : int<P>
+
+<DD>The handle to the window.<P><DT><I>offset</I> : int<P>
+
+<DD>Specifies the zero-based byte offset of the value to change. Valid values are in the range 
+
+zero through the number of bytes of extra window memory, minus four (for example, if 12 or more bytes of extra 
+
+memory were specified, a value of 8 would be an index to the third long integer), or one of the GWL_ constants.<P><DT><I>val</I> : int<P>
+
+<DD>Specifies the long value to place in the window's reserved memory.<P><H3>Comments</H3>
+
+This function is obsolete, use <A HREF="win32api__SetClassLong_meth.html">win32api::SetClassLong</A> instead<P>
+
+</body>
+</html>

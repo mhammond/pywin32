@@ -1,0 +1,62 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>EXTENSION_CONTROL_BLOCK.TransmitFile</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="EXTENSION_CONTROL_BLOCK.html">EXTENSION_CONTROL_BLOCK</A>.TransmitFile</H1><P>
+
+int = <B>TransmitFile(<I>callback</I><I>, param</I>
+
+<I>, hFile</I>
+
+<I>, statusCode</I>
+
+<I>, BytesToWrite</I>
+
+<I>, Offset</I>
+
+<I>, head</I>
+
+<I>, tail</I>
+
+<I>, flags</I>
+
+</B>)<P>Calls ServerSupportFunction with HSE_REQ_TRANSMIT_FILE<P>
+
+<H3>Parameters</H3><P><DT><I>callback</I> : callable<P>
+
+<DD><P><DT><I>param</I> : object<P>
+
+<DD>Any object - passed as 2nd arg to callback.<P><DT><I>hFile</I> : int<P>
+
+<DD><P><DT><I>statusCode</I> : string<P>
+
+<DD><P><DT><I>BytesToWrite</I> : int<P>
+
+<DD><P><DT><I>Offset</I> : int<P>
+
+<DD><P><DT><I>head</I> : string<P>
+
+<DD><P><DT><I>tail</I> : string<P>
+
+<DD><P><DT><I>flags</I> : int<P>
+
+<DD><P><H3>Comments</H3>
+
+The callback is called with 4 args - (<B>PyECB</B>
+
+, param, cbIO, dwErrCode)<P>
+
+</body>
+</html>

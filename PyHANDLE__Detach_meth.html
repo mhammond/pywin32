@@ -1,0 +1,38 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyHANDLE.Detach</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="PyHANDLE.html">PyHANDLE</A>.Detach</H1><P>
+
+int = <B>Detach(</B>)<P>Detaches the Win32 handle from the handle object.<P>
+
+<H3>Comments</H3>
+
+After calling this function, the handle is effectively invalidated, 
+
+but the handle is not closed.  You would call this function when you 
+
+need the underlying win32 handle to exist beyond the lifetime of the 
+
+handle object.<P>
+
+<H3>Return Value</H3>The result is the value of the handle before it is detached.  If the 
+
+handle is already detached, this will return zero.<P>
+
+
+
+</body>
+</html>

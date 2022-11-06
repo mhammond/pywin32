@@ -1,0 +1,108 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32crypt</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1>Module win32crypt</H1><P>
+
+An interface to the win32 Cryptography API<P>
+
+<H3>Methods</H3><P><DL><DT><A HREF="win32crypt__CryptProtectData_meth.html">CryptProtectData</A><BR>
+
+<DD>Encrypts data using a session key derived from current user's logon credentials&nbsp;<P><DT><A HREF="win32crypt__CryptUnprotectData_meth.html">CryptUnprotectData</A><BR>
+
+<DD>Decrypts data that was encrypted using <A HREF="win32crypt__CryptProtectData_meth.html">win32crypt::CryptProtectData</A>&nbsp;<P><DT><A HREF="win32crypt__CryptEnumProviders_meth.html">CryptEnumProviders</A><BR>
+
+<DD>Lists available cryptographic providers&nbsp;<P><DT><A HREF="win32crypt__CryptEnumProviderTypes_meth.html">CryptEnumProviderTypes</A><BR>
+
+<DD>Lists available local cryptographic provider types&nbsp;<P><DT><A HREF="win32crypt__CryptGetDefaultProvider_meth.html">CryptGetDefaultProvider</A><BR>
+
+<DD>Returns default provider for local machine or current user&nbsp;<P><DT><A HREF="win32crypt__CryptSetProviderEx_meth.html">CryptSetProviderEx</A><BR>
+
+<DD>Sets default provider (for machine or user) for specified type&nbsp;<P><DT><A HREF="win32crypt__CryptAcquireContext_meth.html">CryptAcquireContext</A><BR>
+
+<DD>Retrieve handle to a cryptographic service provider&nbsp;<P><DT><A HREF="win32crypt__CryptFindLocalizedName_meth.html">CryptFindLocalizedName</A><BR>
+
+<DD>Return localized name for predefined system stores (Root, My, .Default, 
+
+.LocalMachine)&nbsp;<P><DT><A HREF="win32crypt__CertEnumSystemStore_meth.html">CertEnumSystemStore</A><BR>
+
+<DD>Lists system stores&nbsp;<P><DT><A HREF="win32crypt__CertEnumSystemStoreLocation_meth.html">CertEnumSystemStoreLocation</A><BR>
+
+<DD>Lists system store locations&nbsp;<P><DT><A HREF="win32crypt__CertEnumPhysicalStore_meth.html">CertEnumPhysicalStore</A><BR>
+
+<DD>Lists physical stores on computer&nbsp;<P><DT><A HREF="win32crypt__CertRegisterSystemStore_meth.html">CertRegisterSystemStore</A><BR>
+
+<DD>Creates a new system certificate store&nbsp;<P><DT><A HREF="win32crypt__CertUnregisterSystemStore_meth.html">CertUnregisterSystemStore</A><BR>
+
+<DD>Unregister specified store, optionally deleting it&nbsp;<P><DT><A HREF="win32crypt__CertOpenStore_meth.html">CertOpenStore</A><BR>
+
+<DD>Opens a certificate store&nbsp;<P><DT><A HREF="win32crypt__CertOpenSystemStore_meth.html">CertOpenSystemStore</A><BR>
+
+<DD>Opens most commonly used Certificate Stores&nbsp;<P><DT><A HREF="win32crypt__CryptFindOIDInfo_meth.html">CryptFindOIDInfo</A><BR>
+
+<DD>Retreives information about an object identifier or alorithm identifier&nbsp;<P><DT><A HREF="win32crypt__CertAlgIdToOID_meth.html">CertAlgIdToOID</A><BR>
+
+<DD>Converts an integer ALG_ID to it's szOID_ string representation&nbsp;<P><DT><A HREF="win32crypt__CertOIDToAlgId_meth.html">CertOIDToAlgId</A><BR>
+
+<DD>Converts a string object identfier to a numeric algorith identifier&nbsp;<P><DT><A HREF="win32crypt__CryptGetKeyIdentifierProperty_meth.html">CryptGetKeyIdentifierProperty</A><BR>
+
+<DD>Retrieves a property from a certificate by it's key indentifier&nbsp;<P><DT><A HREF="win32crypt__CryptEnumKeyIdentifierProperties_meth.html">CryptEnumKeyIdentifierProperties</A><BR>
+
+<DD>Lists private keys for user or machine&nbsp;<P><DT><A HREF="win32crypt__CryptEnumOIDInfo_meth.html">CryptEnumOIDInfo</A><BR>
+
+<DD>Lists registered object identfiers&nbsp;<P><DT><A HREF="win32crypt__CertAddSerializedElementToStore_meth.html">CertAddSerializedElementToStore</A><BR>
+
+<DD>Creates a new Certificate, CRL, or CTL context from serialized data&nbsp;<P><DT><A HREF="win32crypt__CryptQueryObject_meth.html">CryptQueryObject</A><BR>
+
+<DD>Determines the type of serialized or encoded data&nbsp;<P><DT><A HREF="win32crypt__CryptDecodeMessage_meth.html">CryptDecodeMessage</A><BR>
+
+<DD>Decrypts an encoded message and verifies a signature&nbsp;<P><DT><A HREF="win32crypt__CryptEncryptMessage_meth.html">CryptEncryptMessage</A><BR>
+
+<DD>Encrypts and encodes a message&nbsp;<P><DT><A HREF="win32crypt__CryptDecryptMessage_meth.html">CryptDecryptMessage</A><BR>
+
+<DD>Decrypts an encrypted and encoded message&nbsp;<P><DT><A HREF="win32crypt__CryptSignAndEncryptMessage_meth.html">CryptSignAndEncryptMessage</A><BR>
+
+<DD>Decrypts an encrypted and encoded message&nbsp;<P><DT><A HREF="win32crypt__CryptVerifyMessageSignature_meth.html">CryptVerifyMessageSignature</A><BR>
+
+<DD>Verifies a message signature&nbsp;<P><DT><A HREF="win32crypt__CryptGetMessageCertificates_meth.html">CryptGetMessageCertificates</A><BR>
+
+<DD>Extracts certificates encoded in a message&nbsp;<P><DT><A HREF="win32crypt__CryptGetMessageSignerCount_meth.html">CryptGetMessageSignerCount</A><BR>
+
+<DD>Finds the number of signers of an encoded message&nbsp;<P><DT><A HREF="win32crypt__CryptSignMessage_meth.html">CryptSignMessage</A><BR>
+
+<DD>Signs and encodes a message&nbsp;<P><DT><A HREF="win32crypt__CryptVerifyDetachedMessageSignature_meth.html">CryptVerifyDetachedMessageSignature</A><BR>
+
+<DD>Verifies a signature that is encoded separately from the data&nbsp;<P><DT><A HREF="win32crypt__CryptDecryptAndVerifyMessageSignature_meth.html">CryptDecryptAndVerifyMessageSignature</A><BR>
+
+<DD>Decrypts and decodes a signed message, and verifies its signatures&nbsp;<P><DT><A HREF="win32crypt__CryptEncodeObjectEx_meth.html">CryptEncodeObjectEx</A><BR>
+
+<DD>Serializes and ASN encodes cryptographic structures&nbsp;<P><DT><A HREF="win32crypt__CryptDecodeObjectEx_meth.html">CryptDecodeObjectEx</A><BR>
+
+<DD>Decodes ASN encodes data&nbsp;<P><DT><A HREF="win32crypt__CertNameToStr_meth.html">CertNameToStr</A><BR>
+
+<DD>Converts an encoded CERT_NAME_INFO into a formatted string&nbsp;<P><DT><A HREF="win32crypt__CryptFormatObject_meth.html">CryptFormatObject</A><BR>
+
+<DD>Formats an encoded buffer into a readable string&nbsp;<P><DT><A HREF="win32crypt__PFXImportCertStore_meth.html">PFXImportCertStore</A><BR>
+
+<DD>Creates a certificate store from PKCS#12 data (*.PFX files)&nbsp;<P><DT><A HREF="win32crypt__PFXVerifyPassword_meth.html">PFXVerifyPassword</A><BR>
+
+<DD>Checks if a PFX blob can be decrypted with given password&nbsp;<P><DT><A HREF="win32crypt__PFXIsPFXBlob_meth.html">PFXIsPFXBlob</A><BR>
+
+<DD>Checks if data buffer contains a PFX blob&nbsp;<P><DT><A HREF="win32crypt__CryptBinaryToString_meth.html">CryptBinaryToString</A><BR>
+
+<DD>Formats a binary buffer into the specified type of string&nbsp;<P><DT><A HREF="win32crypt__CryptStringToBinary_meth.html">CryptStringToBinary</A><BR>
+
+<DD>Converts a formatted string back into raw bytes&nbsp;<P></DL></body>
+</html>

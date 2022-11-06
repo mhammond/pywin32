@@ -1,0 +1,154 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyCERT_CONTEXT</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<HR><H1>PyCERT_CONTEXT Object</H1><P>
+
+Handle to a certificate context<P>
+
+<H3>Methods</H3><P><DL><DT><A HREF="PyCERT_CONTEXT__CertFreeCertificateContext_meth.html">CertFreeCertificateContext</A><BR>
+
+<DD>Frees the context handle&nbsp;<P><DT><A HREF="PyCERT_CONTEXT__CertEnumCertificateContextProperties_meth.html">CertEnumCertificateContextProperties</A><BR>
+
+<DD>Lists property ids for the certificate&nbsp;<P><DT><A HREF="PyCERT_CONTEXT__CryptAcquireCertificatePrivateKey_meth.html">CryptAcquireCertificatePrivateKey</A><BR>
+
+<DD>Retrieves the private key associated with the certificate&nbsp;<P><DT><A HREF="PyCERT_CONTEXT__CertGetIntendedKeyUsage_meth.html">CertGetIntendedKeyUsage</A><BR>
+
+<DD>Returns the intended key usage from the certificate extensions&nbsp;<P><DT><A HREF="PyCERT_CONTEXT__CertGetEnhancedKeyUsage_meth.html">CertGetEnhancedKeyUsage</A><BR>
+
+<DD>Finds the enhanced key usage property and/or extension for the certificate&nbsp;<P><DT><A HREF="PyCERT_CONTEXT__CertSerializeCertificateStoreElement_meth.html">CertSerializeCertificateStoreElement</A><BR>
+
+<DD>Serializes the certificate and its properties&nbsp;<P><DT><A HREF="PyCERT_CONTEXT__CertVerifySubjectCertificateContext_meth.html">CertVerifySubjectCertificateContext</A><BR>
+
+<DD>Checks the validity of the certificate&nbsp;<P><DT><A HREF="PyCERT_CONTEXT__CertDeleteCertificateFromStore_meth.html">CertDeleteCertificateFromStore</A><BR>
+
+<DD>Removes the certificate from its store&nbsp;<P><DT><A HREF="PyCERT_CONTEXT__CertGetCertificateContextProperty_meth.html">CertGetCertificateContextProperty</A><BR>
+
+<DD>Retrieves the specified property from the certificate&nbsp;<P><DT><A HREF="PyCERT_CONTEXT__CertSetCertificateContextProperty_meth.html">CertSetCertificateContextProperty</A><BR>
+
+<DD>Sets a property for a certificate&nbsp;<P></DL>
+
+<H3>Properties</H3>
+
+<DL>
+
+<DT><B>int HANDLE</B>
+
+<DD>Pointer to CERT_CONTEXT struct<P>
+
+
+
+<DT><B><A HREF="PyCERTSTORE.html">PyCERTSTORE</A> CertStore</B>
+
+<DD>Handle to the certificate store that contains this certificate<P>
+
+
+
+<DT><B>str CertEncoded</B>
+
+<DD>Content of the certificate as encoded bytes<P>
+
+
+
+<DT><B>int CertEncodingType</B>
+
+<DD>Method used to encode the certifcate, usually X509_ASN_ENCODING or PKCS_7_ASN_ENCODING<P>
+
+
+
+<DT><B>int Version</B>
+
+<DD>One of the CERT_V* values<P>
+
+
+
+<DT><B><B>PyUnicode</B>
+
+ Subject</B>
+
+<DD>Encoded CERT_NAME_INFO struct containing the subject name. Can be decoded 
+
+using <B>cryptoapi::CryptDecodeObjectEx</B>
+
+
+
+ with X509_UNICODE_NAME, or formatted using <B>cryptoapi::CertNameToStr</B>
+
+
+
+<P>
+
+
+
+<DT><B><B>PyUnicode</B>
+
+ Issuer</B>
+
+<DD>Certificate Authority that issued certificate as encoded CERT_NAME_INFO.  Use 
+
+<B>cryptoapi::CryptDecodeObjectEx</B>
+
+
+
+ to decode into individual components, or <B>cryptoapi::CertNameToStr</B>
+
+
+
+ to 
+
+return a single formatted string<P>
+
+
+
+<DT><B><A HREF="PyDateTime.html">PyDateTime</A> NotBefore</B>
+
+<DD>Beginning of certificate's period of validity<P>
+
+
+
+<DT><B><A HREF="PyDateTime.html">PyDateTime</A> NotAfter</B>
+
+<DD>End of certificate's period of validity<P>
+
+
+
+<DT><B>str SignatureAlgorithm</B>
+
+<DD>Object id of the certifcate's signature algorithm<P>
+
+
+
+<DT><B>(<A HREF="PyCERT_EXTENSION.html">PyCERT_EXTENSION</A>,...) Extension</B>
+
+<DD>Sequence of CERT_EXTENSION dicts containing certificate's extensions<P>
+
+
+
+<DT><B><A HREF="PyCERT_PUBLIC_KEY_INFO.html">PyCERT_PUBLIC_KEY_INFO</A> SubjectPublicKeyInfo</B>
+
+<DD>Encoded public key of certificate<P>
+
+
+
+<DT><B>int SerialNumber</B>
+
+<DD>Serial number assigned by the issuer<P>
+
+
+
+</DL>
+
+</body>
+</html>

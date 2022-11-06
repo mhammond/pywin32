@@ -1,0 +1,46 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32file.SetVolumeMountPoint</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32file.html">win32file</A>.SetVolumeMountPoint</H1><P>
+
+string = <B>SetVolumeMountPoint(<I>VolumeMountPoint</I><I>, VolumeName</I>
+
+</B>)<P>Mounts the specified volume at the specified volume mount point.<P>
+
+<H3>Parameters</H3><P><DT><I>VolumeMountPoint</I> : string<P>
+
+<DD>The mount point - must be an existing empty directory on an NTFS volume<P><DT><I>VolumeName</I> : string<P>
+
+<DD>The volume to&#09mount there<P><H3>Comments</H3>
+
+Accepts keyword args.<P>
+
+Note that both&#09parameters must&#09have trailing backslashes.<P>
+
+This method exists only on Windows 2000 or later.  On earlier platforms, NotImplementedError will be raised.<P>
+
+<H3>Example</H3>Usage<P>
+
+<PRE>SetVolumeMountPoint('h:\\tmp\\','c:\\')
+
+</PRE>
+
+<H3>Return Value</H3>The result is&#09the&#09GUID of&#09the&#09volume mounted,&#09as a string.<P>
+
+
+
+</body>
+</html>

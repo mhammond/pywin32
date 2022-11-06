@@ -1,0 +1,40 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32file.DeleteVolumeMountPoint</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32file.html">win32file</A>.DeleteVolumeMountPoint</H1><P>
+
+<B>DeleteVolumeMountPoint(<I>VolumeMountPoint</I></B>)<P>Unmounts the volume from the specified volume mount point.<P>
+
+<H3>Parameters</H3><P><DT><I>VolumeMountPoint</I> : string<P>
+
+<DD>The mount point to delete - must have a trailing backslash.<P><H3>Comments</H3>
+
+Accepts keyword args.<P>
+
+Throws&#09an error if&#09it is not a&#09valid mount&#09point, returns None&#09on success. 
+
+<BR>Use carefully - will&#09remove drive letter&#09assignment if no directory specified<P>
+
+This method requires Windows 2000 or later.  On earlier platforms, NotImplementedError will be raised.<P>
+
+<H3>Example</H3>Usage<P>
+
+<PRE>DeleteVolumeMountPoint('h:\\tmp\\')
+
+</PRE>
+
+</body>
+</html>

@@ -1,0 +1,78 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyDSCBUFFERDESC</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<HR><H1>PyDSCBUFFERDESC Object</H1><P>
+
+A Python object, representing a DSCBUFFERDESC structure<P>
+
+<H3>Properties</H3>
+
+<DL>
+
+<DT><B>integer dwFlags</B>
+
+<DD>Identifies the capabilities to include when creating a new DirectSoundBuffer object. Can be 
+
+zero or the following flag:<P>
+
+
+
+<P><TABLE COLS=2 WIDTH="100%" CELLSPACING=15>
+
+<TR>
+
+   <TD>
+
+       <B>Flag</B>
+
+   </TD>
+
+   <TD>
+
+       <B>Description</B>
+
+   </TD>
+
+</TR>
+
+<TR><TD><HR></TD><TD><HR></TD></TR>
+
+<TR><TD>DSCBCAPS_WAVEMAPPED</TD><TD>The Win32 wave mapper will be used for formats not supported by the device.</TD></TR>
+
+</TABLE><DT><B>integer dwBufferBytes</B>
+
+<DD>Size of the new buffer, in bytes. This value must be 0 when creating primary buffers. 
+
+For secondary buffers, the minimum and maximum sizes allowed are specified by DSBSIZE_MIN and DSBSIZE_MAX.<P>
+
+
+
+<DT><B>WAVEFORMATEX lpwfxFormat</B>
+
+<DD>Structure specifying the waveform format for the buffer. This value must be None 
+
+for primary buffers. The application can use IDirectSoundBuffer::SetFormat to set the format of the primary 
+
+buffer. 
+
+Sentinel<P>
+
+
+
+</DL>
+
+</body>
+</html>

@@ -1,0 +1,110 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyCERT_CONTEXT.CertGetCertificateContextProperty</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="PyCERT_CONTEXT.html">PyCERT_CONTEXT</A>.CertGetCertificateContextProperty</H1><P>
+
+object = <B>CertGetCertificateContextProperty(<I>PropId</I></B>)<P>Retrieves the specified property from the 
+
+certificate<P>
+
+<H3>Parameters</H3><P><DT><I>PropId</I> : int<P>
+
+<DD>One of the CERT_*_PROP_ID constants<P><P><TABLE COLS=2 WIDTH="100%" CELLSPACING=15>
+
+<TR>
+
+   <TD>
+
+       <B>PropId</B>
+
+   </TD>
+
+   <TD>
+
+       <B>Returned value</B>
+
+   </TD>
+
+</TR>
+
+<TR><TD><HR></TD><TD><HR></TD></TR>
+
+<TR><TD>CERT_ARCHIVED_PROP_ID</TD><TD>Boolean</TD></TR>
+
+<TR><TD>CERT_DATE_STAMP_PROP_ID</TD><TD><A HREF="PyDateTime.html">PyDateTime</A></TD></TR>
+
+<TR><TD>CERT_ACCESS_STATE_PROP_ID</TD><TD>int</TD></TR>
+
+<TR><TD>CERT_KEY_SPEC_PROP_ID</TD><TD>int</TD></TR>
+
+<TR><TD>CERT_DESCRIPTION_PROP_ID</TD><TD>Unicode</TD></TR>
+
+<TR><TD>CERT_FRIENDLY_NAME_PROP_ID</TD><TD>Unicode</TD></TR>
+
+<TR><TD>CERT_PVK_FILE_PROP_ID</TD><TD>Unicode</TD></TR>
+
+<TR><TD>CERT_AUTO_ENROLL_PROP_ID</TD><TD>Unicode</TD></TR>
+
+<TR><TD>CERT_HASH_PROP_ID</TD><TD>String containing a hash</TD></TR>
+
+<TR><TD>CERT_SHA1_HASH_PROP_ID</TD><TD>String containing a hash</TD></TR>
+
+<TR><TD>CERT_MD5_HASH_PROP_ID</TD><TD>String containing a hash</TD></TR>
+
+<TR><TD>CERT_SIGNATURE_HASH_PROP_ID</TD><TD>String containing a hash</TD></TR>
+
+<TR><TD>CERT_KEY_IDENTIFIER_PROP_ID</TD><TD>String containing a hash</TD></TR>
+
+<TR><TD>CERT_SUBJECT_NAME_MD5_HASH_PROP_ID</TD><TD>String containing a hash</TD></TR>
+
+<TR><TD>CERT_KEY_PROV_HANDLE_PROP_ID</TD><TD><A HREF="PyCRYPTPROV.html">PyCRYPTPROV</A></TD></TR>
+
+<TR><TD>CERT_SUBJECT_PUBLIC_KEY_MD5_HASH_PROP_ID</TD><TD>String 
+
+containing a hash</TD></TR>
+
+<TR><TD>CERT_ISSUER_PUBLIC_KEY_MD5_HASH_PROP_ID</TD><TD>String 
+
+containing a hash</TD></TR>
+
+<TR><TD>CERT_CTL_USAGE_PROP_ID</TD><TD>Encoded CTL_USAGE, decode as X509_ENHANCED_KEY_USAGE (CTL_USAGE and 
+
+CERT_ENHKEY_USAGE are identical)</TD></TR>
+
+<TR><TD>CERT_ENHKEY_USAGE_PROP_ID</TD><TD>Encoded CTL_USAGE. Can be decoded using <B>cryptoapi::CryptDecodeObjectEx</B>
+
+
+
+ 
+
+with X509_ENHANCED_KEY_USAGE</TD></TR>
+
+<TR><TD>CERT_KEY_PROV_INFO_PROP_ID</TD><TD>CRYPT_KEY_PROV_INFO dict</TD></TR>
+
+<TR><TD>CERT_KEY_CONTEXT_PROP_ID</TD><TD>Dict representing CERT_KEY_CONTEXT struct</TD></TR>
+
+<TR><TD>CERT_NEXT_UPDATE_LOCATION_PROP_ID</TD><TD>Encoded CERT_ALT_NAME_INFO, decode using <B>cryptoapi::CryptDecodeObjectEx</B>
+
+
+
+ with szOID_NEXT_UPDATE_LOCATION</TD></TR>
+
+</TABLE><H3>Return Value</H3>Type of object returned is dependent on the property id requested.<P>
+
+
+
+</body>
+</html>

@@ -1,0 +1,38 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32file.FindFileNames</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32file.html">win32file</A>.FindFileNames</H1><P>
+
+[string,...] = <B>FindFileNames(<I>FileName</I><I>, Transaction</I>
+
+</B>)<P>Enumerates hard links that point to specified file<P>
+
+<H3>Parameters</H3><P><DT><I>FileName</I> : string<P>
+
+<DD>Name of file for which to find links<P><DT><I>Transaction=None</I> : <A HREF="PyHANDLE.html">PyHANDLE</A><P>
+
+<DD>Handle to a transaction, can be None<P>
+
+<H3>Comments</H3>
+
+This uses the API functions FindFirstFileNameW, FindNextFileNameW and FindClose<P>
+
+Available on Vista and later<P>
+
+If Transaction is specified, a transacted search is performed using FindFirstFileNameTransacted<P>
+
+</body>
+</html>

@@ -1,0 +1,52 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32file.PostQueuedCompletionStatus</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32file.html">win32file</A>.PostQueuedCompletionStatus</H1><P>
+
+None = <B>PostQueuedCompletionStatus(<I>handle</I><I>, numberOfbytes</I>
+
+<I>, completionKey</I>
+
+<I>, overlapped</I>
+
+</B>)<P>lets you post an I/O completion packet to an I/O completion port. The I/O completion packet will satisfy an outstanding call to the GetQueuedCompletionStatus function.<P>
+
+<H3>Parameters</H3><P><DT><I>handle</I> : <A HREF="PyHANDLE.html">PyHANDLE</A><P>
+
+<DD>handle to an I/O completion port<P><DT><I>numberOfbytes=0</I> : int<P>
+
+<DD>value to return via GetQueuedCompletionStatus' first result<P>
+
+<DT><I>completionKey=0</I> : int<P>
+
+<DD>value to return via GetQueuedCompletionStatus' second result<P>
+
+<DT><I>overlapped=None</I> : <A HREF="PyOVERLAPPED.html">PyOVERLAPPED</A><P>
+
+<DD>value to return via GetQueuedCompletionStatus' third result<P>
+
+<H3>Comments</H3>
+
+Note that if you post overlapped objects, but your post is closed 
+
+before all pending requests are processed, the overlapped objects 
+
+(including its 'handle' and 'object' members) will leak. 
+
+See MS KB article Q192800 for a summary of this.<P>
+
+</body>
+</html>

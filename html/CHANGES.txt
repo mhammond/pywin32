@@ -1,0 +1,199 @@
+﻿Notable changes in recent builds.
+
+Maintained by hand, so what's "notable" is subjective! Contributors are
+encouraged to add entries for their work.
+
+All changes can be found via git - eg, for all changes afer a build:
+    git log -rb3xx:
+or
+    https://github.com/mhammond/pywin32/compare/b3xx...main
+
+As of build 305, installation .exe files have been deprecated; see
+https://mhammond.github.io/pywin32_installers.html.
+
+Coming in build 306, as yet unreleased
+--------------------------------------
+
+Build 305, released 2022-11-06
+------------------------------
+* Installation .exe files were deprecated.
+
+* @kxrob put a lot of work towards removing use of the deprecated Unicode
+  API so we can build on Python 3.12. This should be largely invisible, but
+  please report any unintended consequences.
+
+* win32api.GetTickCount() now returns an unsigned 64bit integer (@kxrob, #1946)
+
+* win32pipe.GetNamedPipeHandleState() now takes a 3rd optional param
+  indicating whether the username should be returned, and related constants
+  added. (@kxrob, #1946)
+
+* Added win32gui.GetTopWindow() and win32gui.GetAncestor() (@CristiFati, #1928)
+
+* Tweaks to how pywintypes searches for DLLs to better support virtualenvs
+  created with --system-site-packages. (@saaketp, #1933)
+
+* Added win32event.CreateWaitableTimerExW (#1945, @zariiii9003)
+
+* Changes in PARAM handling. Some functions which returned a WPARAM or LPARAM
+  allowed you to return a pointer to a Python buffer object or a PyUnicode.
+  These functions now only accept a Python long to be returned. Note that
+  this DOES NOT apply to functions with accept WPARAM or LPARAM as arguments,
+  only when they are being returned. Impacted functions are `OnNotify`
+  handler, LV_ITEM/TV_ITEM objects, PyIContextMenu3::HandleMenuMsg2, and the
+  result of a WNDPROC/DLGPROC (#1927).
+
+* service registration had an overhaul, avoiding a complicated, and ultimately
+  unnecessary "single globally registered service runner" concept.
+  Now, when registering a service, the host pythonservice.exe runner will be
+  copied to `sys.exec_prefix`, along with possibly `pywintypesXX.dll` and run
+  from there. (#1908)
+
+* Dropped support for allowing a bytes object to be passed where a COM BSTR
+  is expected - this support was accidental on the path from 2.x->3.x.
+
+* win32crypt's PyCERTSTORE.CertCloseStore()'s `Flags` argument has been
+  deprecated as it is likely to crash the process if
+  `CERT_CLOSE_STORE_FORCE_FLAG` is specified. The underlying function is now
+  always called with `CERT_CLOSE_STORE_CHECK_FLAG`, and support for this
+  param will be dropped at some point in the future.
+
+* Fix a bug where win32crypt.CryptQueryObject() would return a PyCTL_CONTEXT
+  object instead of a PyCERT_CONTEXT for base64 encoded certificates (#1859)
+
+* win32crypt.CryptQueryObject() is now able to return PyCTL_CONTEXT objects.
+  This is technically a breaking change as previously it would return the
+  address in memory of the object, but this address wasn't practically usable,
+  so it's very unlikely anyone relied on this behavior. (#1859)
+
+Build 304, released 2022-05-02
+------------------------------
+* Fixed Unicode issues in the `dde` module (#1861, @markuskimius )
+
+* Add `PRINTER_INFO_6` support for Set/GetPrinter (#1853, @CristiFati)
+
+* Fixed codepage/mojibake issues when non-ascii characters were included in
+  COM exceptions raised by Python apps. This should be invisible, but might
+  break any workarounds which were used, such as using specific encodings in
+  these strings. (#1823, #1833)
+
+* Fixed a bug triggering `win32print.SetJob` to fail due to data type
+  (`char*` / `wchar_t*`) mismatch (#1849, @CristiFati)
+
+* Fix eventlog initialization (#1845, #1846, @kxrob)
+
+Build 303, released 2021-12-20
+------------------------------
+* Tweaks to how DLLs are loaded and our installation found, which should
+  improve virtualenv support and version mismatch issues (#1787, #1794)
+
+* Fixed a bug where `win32clipboard.GetClipboardData()` may have returned extra
+  data.
+
+* Binary installers for 32-bit 3.10+ are no longer released (#1805)
+
+Build 302, released 2021-10-11
+------------------------------
+* Fixed support for unicode as a `win32crypt.CREDENTIAL_ATTRIBUTE.Value`
+
+* Support for Python 3.10, dropped support for Python 3.5 (3.5 security support
+  ended 13 Sep 2020)
+
+* Merged win2kras into win32ras. In the unlikely case that anyone is still
+  using win2kras, there is a win2kras.py that imports all of win32ras. If you
+  import win2kras and it fails with 'you must import win32ras first', then it
+  means an old win2kras.pyd exists, which you should remove.
+
+* github branch 'master' was renamed to 'main'.
+
+Build 301, released 2021-05-30
+------------------------------
+* Fix some confusion on how dynamic COM object properties work. The old
+  code was confused, so there's a chance there will be some subtle
+  regression here - please open a bug if you find anything, but this
+  should fix #1427.
+
+* COM objects are now registered with the full path to pythoncomXX.dll, fixes
+  #1704.
+
+* Creating a `win32crypt.CRYPT_ATTRIBUTE` object now correctly sets `cbData`.
+
+* Add wrap and unwrap operations defined in the GSSAPI to the sspi module
+  and enhance the examples given in this module.
+  (#1692, Emmanuel Coirier)
+
+* Fix a bug in `win32profile.GetEnvironmentStrings()` relating to environment
+  variables with an equals sign (@maxim-krikun in #1661)
+
+* Fixed a bug where certain COM dates would fail to be converted to a Python
+  datetime object with `ValueError: microsecond must be in 0..999999`. Shoutout
+  to @hujiaxing for reporting and helping reproduce the issue (#1655)
+
+* Added win32com.shell.SHGetKnownFolderPath() and related constants.
+
+* CoClass objects should work better with special methods like __len__ etc.
+  (#1699)
+
+* Shifted work in win32.lib.pywin32_bootstrap to Python's import system from
+  manual path manipulations (@wkschwartz in #1651)
+
+* Fixed a bug where win32print.DeviceCapabilities would return strings
+  containing the null character followed by junk characters.
+  (#1654, #1660, Lincoln Puzey)
+
+Build 300, released 2020-11-14
+------------------------------
+* Fixed a bug where win32com.client.VARIANT params were returned in the reverse
+  order. This only happened when win32com.client.VARIANT was explicitly used
+  (ie, not when normal params were passed) For example:
+  ```python
+      arg1 = VARIANT(pythoncom.VT_R4 | pythoncom.VT_BYREF, 2.0)
+      arg2 = VARIANT(pythoncom.VT_BOOL | pythoncom.VT_BYREF, True)
+      object.SomeFunction(arg1, arg2)
+  ```
+  after this call, `arg1.value` was actually the value for `arg2`, and
+  vice-versa (#1303, #622).
+
+* Fixed a bug that Pythonwin had an empty `sys.argv` (@kxrob in #1607)
+
+* Fixed a bug that prevented win32process.ReadProcessMemory() from working
+  in all scenarios (#1599)
+
+* Changed how Services implemented with win32serviceutil.ServiceFramework
+  report that they have stopped. Now if the SvcRun() method (or the SvcDoRun()
+  method, which is called by SvcRun() by default) raises on Exception,
+  the Service will report a final SERVICE_STOPPED status with a non-zero error
+  code. This will cause the Service's recovery actions to be triggered if the
+  Service has the "Enable actions for stops with errors" option enabled.
+  (#1563, Lincoln Puzey)
+
+* adodbapi connect() method now accepts a "mode" keyword argument which is the
+  "Mode" property to set on the ADO "Connection" object before opening the
+  Connection. See "ConnectModeEnum" for valid values.
+  (Lincoln Puzey)
+
+* The Windows 10 SDK is now used to build the project. This shouldn't cause any
+  visible changes, but should make it much easier to build the project yourself.
+
+Python 2 is no longer supported - so long, Python 2, you served us well!
+
+Notable changes in this transition:
+
+* Python 3 builds used to erroneously turn "bytes" into a tuple of integers
+  instead of a buffer type object. Because this special-casing is important for
+  performance when using massive buffers, this has been fixed in Python 3 so
+  it matches the old Python 2 behavior. If you use arrays of VT_UI1 and expect
+  get back tuples of integers, your code may break.
+
+* Pythonwin's default encoding is now utf-8 (#1559)
+
+* The build environment has been greatly simplified - you just need Visual
+  Studio and a Windows 10 SDK. (The free compilers probably work too, but
+  haven't been tested - let me know your experiences!)
+
+Previous
+--------
+Build 228 (2020-06-13) was the last to support Python 2.0.
+
+Older entries are periodically removed - see the git history of this file
+for them.

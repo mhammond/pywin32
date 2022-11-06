@@ -1,0 +1,52 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32inet.FtpOpenFile</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32inet.html">win32inet</A>.FtpOpenFile</H1><P>
+
+<A HREF="PyHINTERNET.html">PyHINTERNET</A> = <B>FtpOpenFile(<I>hConnect</I><I>, FileName</I>
+
+<I>, Access</I>
+
+<I>, Flags</I>
+
+<I>, Context</I>
+
+</B>)<P>Initiates access to a remote file on an FTP server for reading or writing.<P>
+
+<H3>Parameters</H3><P><DT><I>hConnect</I> : <A HREF="PyHINTERNET.html">PyHINTERNET</A><P>
+
+<DD>Valid HINTERNET handle to an FTP session.<P><DT><I>FileName</I> : string<P>
+
+<DD>The name of the file to access on the remote system.<P><DT><I>Access</I> : int<P>
+
+<DD>Integer value that determines how the file will be accessed. This can be GENERIC_READ or GENERIC_WRITE, but not both.<P><DT><I>Flags</I> : int<P>
+
+<DD>Integer value that contains the conditions under which the 
+
+transfers occur. The application should select one transfer type and 
+
+any of the flags that indicate how the caching of the file will be 
+
+controlled.  The transfer type can be one of the FTP_TRANSFER_TYPE* values<P><DT><I>Context=None</I> : object<P>
+
+<DD>Arbitrary object that will be passed to handle's callback function<P>
+
+<H3>Comments</H3>
+
+Accepts keyword args<P>
+
+</body>
+</html>

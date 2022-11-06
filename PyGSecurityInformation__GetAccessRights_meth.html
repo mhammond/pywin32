@@ -1,0 +1,36 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyGSecurityInformation.GetAccessRights</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="PyGSecurityInformation.html">PyGSecurityInformation</A>.GetAccessRights</H1><P>
+
+((<A HREF="SI_ACCESS.html">SI_ACCESS</A>,...)  int) = <B>GetAccessRights(<I>ObjectType</I><I>, Flags</I>
+
+</B>)<P>Retrieves permission that can be set<P>
+
+<H3>Parameters</H3><P><DT><I>ObjectType</I> : <A HREF="PyIID.html">PyIID</A><P>
+
+<DD>GUID representing type of object, may be None<P><DT><I>Flags</I> : int<P>
+
+<DD>Indicates which page is requesting the access rights (SI_ADVANCED, SI_EDIT_AUDITS, 
+
+SI_EDIT_PROPERTIES)<P><H3>Return Value</H3>This method should return a 2-tuple containing a sequence of <A HREF="SI_ACCESS.html">SI_ACCESS</A> tuples, 
+
+and a zero-based index indicating which of them is the default<P>
+
+
+
+</body>
+</html>

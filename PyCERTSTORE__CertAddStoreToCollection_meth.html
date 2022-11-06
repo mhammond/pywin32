@@ -1,0 +1,40 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyCERTSTORE.CertAddStoreToCollection</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="PyCERTSTORE.html">PyCERTSTORE</A>.CertAddStoreToCollection</H1><P>
+
+<B>CertAddStoreToCollection(<I>SiblingStore</I><I>, UpdateFlag</I><I>, Priority</I></B>)<P>Adds a sibling store to a store collection<P>
+
+<H3>Parameters</H3><P><DT><I>SiblingStore</I> : <A HREF="PyCERTSTORE.html">PyCERTSTORE</A><P>
+
+<DD>Store to be added to the collection<P><DT><I>UpdateFlag=0</I> : int<P>
+
+<DD>Can be CERT_PHYSICAL_STORE_ADD_ENABLE_FLAG to enable changes to persist<P>
+
+<DT><I>Priority=0</I> : int<P>
+
+<DD>Determines order in which store are searched and updated<P>
+
+<H3>Comments</H3>
+
+A collection store is created by using <B>cryptoapi::CertOpenStore</B>
+
+
+
+ with CERT_STORE_PROV_COLLECTION<P>
+
+</body>
+</html>

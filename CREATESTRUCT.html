@@ -1,0 +1,46 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>CREATESTRUCT</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<HR><H1>CREATESTRUCT Object</H1><P>
+
+A representation of a Windows CREATESTRUCT structure.<P>
+
+<H3>Parameters</H3><P><DT><I>createParams</I> : int<P>
+
+<DD><P><DT><I>hInstance</I> : int<P>
+
+<DD><P><DT><I>hMenu</I> : int<P>
+
+<DD><P><DT><I>hwndParent</I> : int<P>
+
+<DD><P><DT><I>cy, cx, y, x</I> : (int, int, int, int)<P>
+
+<DD><P><DT><I>style</I> : int<P>
+
+<DD><P><DT><I>lpszName</I> : int<P>
+
+<DD>A string cast to a long.<P><DT><I>lpszClass</I> : int<P>
+
+<DD>A string cast to a long!?<P><DT><I>dwExStyle</I> : int<P>
+
+<DD><P><H3>Comments</H3>
+
+Note that the strings are passed as longs, which are there address 
+
+in memory.  This is due to the internal mechanics of passing this structure around.<P>
+
+</body>
+</html>

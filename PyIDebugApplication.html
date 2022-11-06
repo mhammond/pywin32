@@ -1,0 +1,76 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyIDebugApplication</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<HR><H1>PyIDebugApplication Object</H1><P>
+
+This interface is an extension of <A HREF="PyIRemoteDebugApplication.html">PyIRemoteDebugApplication</A>, exposing 
+
+non-remotable methods for use by language engines and hosts.<P>
+
+<H3>Methods</H3><P><DL><DT><A HREF="PyIDebugApplication__SetName_meth.html">SetName</A><BR>
+
+<DD>Sets the name of the application.&nbsp;<P><DT><A HREF="PyIDebugApplication__StepOutComplete_meth.html">StepOutComplete</A><BR>
+
+<DD>Called by language engines, in single step mode, just before they return to their 
+
+caller.&nbsp;<P><DT><A HREF="PyIDebugApplication__DebugOutput_meth.html">DebugOutput</A><BR>
+
+<DD>Causes the given string to be displayed by the debugger IDE.&nbsp;<P><DT><A HREF="PyIDebugApplication__StartDebugSession_meth.html">StartDebugSession</A><BR>
+
+<DD>Causes a default debugger IDE to be started.&nbsp;<P><DT><A HREF="PyIDebugApplication__HandleBreakPoint_meth.html">HandleBreakPoint</A><BR>
+
+<DD>Called by the language engine in the context of a thread that has hit a 
+
+breakpoint.&nbsp;<P><DT><A HREF="PyIDebugApplication__Close_meth.html">Close</A><BR>
+
+<DD>Causes this application to release all references and enter a zombie state.&nbsp;<P><DT><A HREF="PyIDebugApplication__GetBreakFlags_meth.html">GetBreakFlags</A><BR>
+
+<DD>Returns the current break flags for the application.&nbsp;<P><DT><A HREF="PyIDebugApplication__GetCurrentThread_meth.html">GetCurrentThread</A><BR>
+
+<DD>Returns the application thread object associated with the currently running 
+
+thread.&nbsp;<P><DT><A HREF="PyIDebugApplication__CreateAsyncDebugOperation_meth.html">CreateAsyncDebugOperation</A><BR>
+
+<DD>Creates an IDebugAsyncOperation object to wrap a provided <A HREF="PyIDebugSyncOperation.html">PyIDebugSyncOperation</A> object.&nbsp;<P><DT><A HREF="PyIDebugApplication__AddStackFrameSniffer_meth.html">AddStackFrameSniffer</A><BR>
+
+<DD>Adds a stack frame sniffer to this application.&nbsp;<P><DT><A HREF="PyIDebugApplication__RemoveStackFrameSniffer_meth.html">RemoveStackFrameSniffer</A><BR>
+
+<DD>Removes a stack frame sniffer from this application.&nbsp;<P><DT><A HREF="PyIDebugApplication__QueryCurrentThreadIsDebuggerThread_meth.html">QueryCurrentThreadIsDebuggerThread</A><BR>
+
+<DD>Determines if the current running thread is the debugger thread.&nbsp;<P><DT><A HREF="PyIDebugApplication__SynchronousCallInDebuggerThread_meth.html">SynchronousCallInDebuggerThread</A><BR>
+
+<DD>Provides a mechanism for the caller to run code in the debugger 
+
+thread.&nbsp;<P><DT><A HREF="PyIDebugApplication__CreateApplicationNode_meth.html">CreateApplicationNode</A><BR>
+
+<DD>Creates a new application node which is associated with a specific document 
+
+provider.&nbsp;<P><DT><A HREF="PyIDebugApplication__FireDebuggerEvent_meth.html">FireDebuggerEvent</A><BR>
+
+<DD>Fire a generic event to the IApplicationDebugger (if any)&nbsp;<P><DT><A HREF="PyIDebugApplication__HandleRuntimeError_meth.html">HandleRuntimeError</A><BR>
+
+<DD>Description of HandleRuntimeError&nbsp;<P><DT><A HREF="PyIDebugApplication__FCanJitDebug_meth.html">FCanJitDebug</A><BR>
+
+<DD>Description of FCanJitDebug&nbsp;<P><DT><A HREF="PyIDebugApplication__FIsAutoJitDebugEnabled_meth.html">FIsAutoJitDebugEnabled</A><BR>
+
+<DD>Description of FIsAutoJitDebugEnabled&nbsp;<P><DT><A HREF="PyIDebugApplication__AddGlobalExpressionContextProvider_meth.html">AddGlobalExpressionContextProvider</A><BR>
+
+<DD>Description of AddGlobalExpressionContextProvider&nbsp;<P><DT><A HREF="PyIDebugApplication__RemoveGlobalExpressionContextProvider_meth.html">RemoveGlobalExpressionContextProvider</A><BR>
+
+<DD>Description of RemoveGlobalExpressionContextProvider&nbsp;<P></DL>
+
+</body>
+</html>

@@ -1,0 +1,36 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyConsoleScreenBuffer.PeekConsoleInput</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="PyConsoleScreenBuffer.html">PyConsoleScreenBuffer</A>.PeekConsoleInput</H1><P>
+
+(<A HREF="PyINPUT_RECORD.html">PyINPUT_RECORD</A>,...) = <B>PeekConsoleInput(<I>Length</I></B>)<P>Returns pending input records without 
+
+removing them from the input queue<P>
+
+<H3>Parameters</H3><P><DT><I>Length</I> : int<P>
+
+<DD>The number of input records to read<P><H3>Comments</H3>
+
+This function does not block as ReadConsoleInput does.<BR> 
+
+The number of records returned may be less than the nbr requested<P>
+
+<H3>Return Value</H3>Returns a sequence of <A HREF="PyINPUT_RECORD.html">PyINPUT_RECORD</A> objects<P>
+
+
+
+</body>
+</html>

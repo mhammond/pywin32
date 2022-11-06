@@ -1,0 +1,50 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyLOGBRUSH</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<HR><H1>PyLOGBRUSH Object</H1><P>
+
+Dict representing a LOGBRUSH struct as used with <A HREF="win32gui__CreateBrushIndirect_meth.html">win32gui::CreateBrushIndirect</A> and <A HREF="win32gui__ExtCreatePen_meth.html">win32gui::ExtCreatePen</A><P>
+
+<H3>Win32 API References</H3><P><DT>Search for <i>LOGBRUSH</i> at <a href="http://search.msdn.microsoft.com/search/results.aspx?view=msdn&query=LOGBRUSH" target="_blank">msdn</a>, <a href="http://www.google.com/search?q=LOGBRUSH" target="_blank">google</a> or <a href="http://groups.google.com/groups?q=LOGBRUSH" target="_blank">google groups</a>.<P>
+
+<H3>Properties</H3>
+
+<DL>
+
+<DT><B>int Style</B>
+
+<DD>Brush style, one of win32con.BS_* values<P>
+
+
+
+<DT><B>int Color</B>
+
+<DD>RGB color value.  Can also be DIB_PAL_COLORS or DIB_RGB_COLORS if Style is BS_DIBPATTERN or BS_DIBPATTERNPT=<P>
+
+
+
+<DT><B>int/<A HREF="PyHANDLE.html">PyHANDLE</A> Hatch</B>
+
+<DD>For BS_HATCH style, one of win32con.HS_*. Not used For BS_SOLID or BS_HOLLOW. 
+
+For a pattern brush, this should be a handle to a bitmap<P>
+
+
+
+</DL>
+
+</body>
+</html>

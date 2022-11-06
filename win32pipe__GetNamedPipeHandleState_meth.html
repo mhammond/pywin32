@@ -1,0 +1,38 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32pipe.GetNamedPipeHandleState</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32pipe.html">win32pipe</A>.GetNamedPipeHandleState</H1><P>
+
+(int, int, int/None, int/None, <B>PyUnicode</B>
+
+ = <B>GetNamedPipeHandleState(<I>hPipe</I><I>, bGetCollectionData</I>
+
+<I>, bGetUserName</I>
+
+</B>)<P>Determines the state of the named pipe.<P>
+
+<H3>Parameters</H3><P><DT><I>hPipe</I> : <A HREF="PyHANDLE.html">PyHANDLE</A><P>
+
+<DD>The handle to the pipe.<P><DT><I>bGetCollectionData=0</I> : int<P>
+
+<DD>Determines if the collection data should be retrieved.  If not, None is returned in their place.<P>
+
+<DT><I>bGetUserName=0</I> : int<P>
+
+<DD>Determines if the username should be retrieved. Works only for a server handle and if the client opened the pipe with SECURITY_IMPERSONATION access.<P>
+
+</body>
+</html>

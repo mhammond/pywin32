@@ -1,0 +1,70 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32ui.CreateFileDialog</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32ui.html">win32ui</A>.CreateFileDialog</H1><P>
+
+<A HREF="PyCFileDialog.html">PyCFileDialog</A> = <B>CreateFileDialog(<I>bFileOpen</I><I>, defExt</I>
+
+<I>, fileName</I>
+
+<I>, flags</I>
+
+<I>, filter</I>
+
+<I>, parent</I>
+
+</B>)<P>Creates a File Open/Save/etc Common Dialog. 
+
+self*/, PyObject *args)<P>
+
+<H3>Parameters</H3><P><DT><I>bFileOpen</I> : int<P>
+
+<DD>A flag indicating if the Dialog is a FileOpen or FileSave dialog.<P><DT><I>defExt=None</I> : string<P>
+
+<DD>The default file extension for saved files. If None, no extension 
+
+is supplied.<P>
+
+<DT><I>fileName=None</I> : string<P>
+
+<DD>The initial filename that appears in the filename edit box. If 
+
+None, no filename initially appears.<P>
+
+<DT><I>flags=win32con.OFN_HIDEREADONLY|win32con.OFN_OVERWRITEPROMPT</I> : int<P>
+
+<DD>The flags for the 
+
+dialog.  See the API documentation for full details.<P>
+
+<DT><I>filter=None</I> : string<P>
+
+<DD>A series of string pairs that specify filters you can apply to the 
+
+file. If you specify file filters, only selected files will appear in the Files list box. The 
+
+first string in the string pair describes the filter; the second string indicates the file 
+
+extension to use. Multiple extensions may be specified using ';' as the delimiter. The string 
+
+ends with two '|' characters.  May be None.<P>
+
+<DT><I>parent=None</I> : <A HREF="PyCWnd.html">PyCWnd</A><P>
+
+<DD>The parent or owner window of the dialog.<P>
+
+</body>
+</html>

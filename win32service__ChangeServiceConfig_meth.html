@@ -1,0 +1,64 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32service.ChangeServiceConfig</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32service.html">win32service</A>.ChangeServiceConfig</H1><P>
+
+int/None = <B>ChangeServiceConfig(<I>hService</I><I>, serviceType</I>
+
+<I>, startType</I>
+
+<I>, errorControl</I>
+
+<I>, binaryFile</I>
+
+<I>, loadOrderGroup</I>
+
+<I>, bFetchTag</I>
+
+<I>, serviceDeps</I>
+
+<I>, acctName</I>
+
+<I>, password</I>
+
+<I>, displayName</I>
+
+</B>)<P>Changes the configuration of an existing service.<P>
+
+<H3>Parameters</H3><P><DT><I>hService</I> : <A HREF="PySC_HANDLE.html">PySC_HANDLE</A><P>
+
+<DD>handle to service to be modified<P><DT><I>serviceType</I> : int<P>
+
+<DD>type of service, or SERVICE_NO_CHANGE<P><DT><I>startType</I> : int<P>
+
+<DD>When/how to start service, or SERVICE_NO_CHANGE<P><DT><I>errorControl</I> : int<P>
+
+<DD>severity if service fails to start, or SERVICE_NO_CHANGE<P><DT><I>binaryFile</I> : string<P>
+
+<DD>name of binary file, or None<P><DT><I>loadOrderGroup</I> : string<P>
+
+<DD>name of load ordering group , or None<P><DT><I>bFetchTag</I> : int<P>
+
+<DD>Should the tag be fetched and returned?  If TRUE, the result is the tag, else None.<P><DT><I>serviceDeps</I> : [string,...]<P>
+
+<DD>sequence of dependency names<P><DT><I>acctName</I> : string<P>
+
+<DD>account name of service, or None<P><DT><I>password</I> : string<P>
+
+<DD>password for service account , or None<P><DT><I>displayName</I> : string<P>
+
+<DD>Display name<P></body>
+</html>

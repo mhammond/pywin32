@@ -1,0 +1,50 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32api.InitiateSystemShutdown</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32api.html">win32api</A>.InitiateSystemShutdown</H1><P>
+
+<B>InitiateSystemShutdown(<I>computerName</I><I>, message</I><I>, timeOut</I><I>, bForceClose</I><I>, bRebootAfterShutdown</I></B>)<P>Initiates a shutdown and optional restart of the specified computer.<P>
+
+<H3>Parameters</H3><P><DT><I>computerName</I> : string/<B>PyUnicode</B>
+
+<P>
+
+<DD>Specifies the name of the computer to shut-down, or None<P><DT><I>message</I> : string/<B>PyUnicode</B>
+
+<P>
+
+<DD>Message to display in a dialog box<P><DT><I>timeOut</I> : int<P>
+
+<DD>Specifies the time (in seconds) that the dialog box should be displayed. While this dialog 
+
+box is displayed, the shutdown can be stopped by the AbortSystemShutdown function. If dwTimeout is zero, the 
+
+computer shuts down without displaying the dialog box, and the shutdown cannot be stopped by AbortSystemShutdown.<P><DT><I>bForceClose</I> : int<P>
+
+<DD>Specifies whether applications with unsaved changes are to be forcibly closed. If this 
+
+parameter is TRUE, such applications are closed. If this parameter is FALSE, a dialog box is displayed prompting 
+
+the user to close the applications.<P><DT><I>bRebootAfterShutdown</I> : int<P>
+
+<DD>Specifies whether the computer is to restart immediately after shutting down. 
+
+If this parameter is TRUE, the computer is to restart. If this parameter is FALSE, the system flushes all caches 
+
+to disk, clears the screen, and displays a message indicating that it is safe to power down.<P><H3>Win32 API References</H3><P><DT>Search for <i>InitiateSystemShutdown</i> at <a href="http://search.msdn.microsoft.com/search/results.aspx?view=msdn&query=InitiateSystemShutdown" target="_blank">msdn</a>, <a href="http://www.google.com/search?q=InitiateSystemShutdown" target="_blank">google</a> or <a href="http://groups.google.com/groups?q=InitiateSystemShutdown" target="_blank">google groups</a>.<P>
+
+</body>
+</html>

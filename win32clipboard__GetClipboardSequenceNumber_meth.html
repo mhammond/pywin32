@@ -1,0 +1,54 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32clipboard.GetClipboardSequenceNumber</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32clipboard.html">win32clipboard</A>.GetClipboardSequenceNumber</H1><P>
+
+int = <B>GetClipboardSequenceNumber(</B>)<P>The 
+
+GetClipboardSequenceNumber function returns the clipboard sequence number 
+
+for the current window station.<P>
+
+<H3>Comments</H3>
+
+This method is not available on some early Windows (eg 95) machines.<P>
+
+[This is preliminary documentation and subject to change.]<BR> 
+
+The system keeps a 32-bit serial number for the clipboard for each window 
+
+station. This number is incremented whenever the contents of the 
+
+clipboard change or the clipboard is emptied. You can track this value to 
+
+determine whether the clipboard contents have changed and optimize 
+
+creating DataObjects. If clipboard rendering is delayed, the sequence 
+
+number is not incremented until the changes are rendered.<P>
+
+<H3>Win32 API References</H3><P><DT>Search for <i>GetClipboardSequenceNumber</i> at <a href="http://search.msdn.microsoft.com/search/results.aspx?view=msdn&query=GetClipboardSequenceNumber" target="_blank">msdn</a>, <a href="http://www.google.com/search?q=GetClipboardSequenceNumber" target="_blank">google</a> or <a href="http://groups.google.com/groups?q=GetClipboardSequenceNumber" target="_blank">google groups</a>.<P>
+
+<H3>Return Value</H3>The return value is the clipboard sequence number. If you do not 
+
+have WINSTA_ACCESSCLIPBOARD access to the window station, the function 
+
+returns zero.<P>
+
+
+
+</body>
+</html>

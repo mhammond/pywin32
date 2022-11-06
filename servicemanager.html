@@ -1,0 +1,68 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>servicemanager</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1>Module servicemanager</H1><P>
+
+A module that interfaces with the Windows Service Control Manager.  While this 
+
+module can be imported by regular Python programs, it is only useful when used by a Python program 
+
+hosting a service - and even then is generally used automatically by the Python Service framework. 
+
+See the pipeTestService sample for an example of using this module. 
+
+<BR>The module <A HREF="win32service.html">win32service</A> and <B>win32serviceutil</B>
+
+ provide other facilities for controlling 
+
+and managing services.<P>
+
+<H3>Methods</H3><P><DL><DT><A HREF="servicemanager__CoInitializeEx_meth.html">CoInitializeEx</A><BR>
+
+<DD>&nbsp;<P><DT><A HREF="servicemanager__CoUninitialize_meth.html">CoUninitialize</A><BR>
+
+<DD>&nbsp;<P><DT><A HREF="servicemanager__RegisterServiceCtrlHandler_meth.html">RegisterServiceCtrlHandler</A><BR>
+
+<DD>Registers a function to retrieve service control notification messages.&nbsp;<P><DT><A HREF="servicemanager__LogMsg_meth.html">LogMsg</A><BR>
+
+<DD>Write an specific message to the log.&nbsp;<P><DT><A HREF="servicemanager__LogInfoMsg_meth.html">LogInfoMsg</A><BR>
+
+<DD>Write an informational message to the log.&nbsp;<P><DT><A HREF="servicemanager__LogErrorMsg_meth.html">LogErrorMsg</A><BR>
+
+<DD>Write an error message to the log.&nbsp;<P><DT><A HREF="servicemanager__LogWarningMsg_meth.html">LogWarningMsg</A><BR>
+
+<DD>Logs a generic warning message to the event log&nbsp;<P><DT><A HREF="servicemanager__PumpWaitingMessages_meth.html">PumpWaitingMessages</A><BR>
+
+<DD>Pumps waiting window messages for the service.&nbsp;<P><DT><A HREF="servicemanager__Debugging_meth.html">Debugging</A><BR>
+
+<DD>Indicates if the service is running in debug mode.&nbsp;<P><DT><A HREF="servicemanager__StartServiceCtrlDispatcher_meth.html">StartServiceCtrlDispatcher</A><BR>
+
+<DD>Starts the service by calling the win32 
+
+StartServiceCtrlDispatcher function.&nbsp;<P><DT><A HREF="servicemanager__Initialize_meth.html">Initialize</A><BR>
+
+<DD>&nbsp;<P><DT><A HREF="servicemanager__Finalize_meth.html">Finalize</A><BR>
+
+<DD>&nbsp;<P><DT><A HREF="servicemanager__PrepareToHostSingle_meth.html">PrepareToHostSingle</A><BR>
+
+<DD>&nbsp;<P><DT><A HREF="servicemanager__PrepareToHostMultiple_meth.html">PrepareToHostMultiple</A><BR>
+
+<DD>&nbsp;<P><DT><A HREF="servicemanager__RunningAsService_meth.html">RunningAsService</A><BR>
+
+<DD>Indicates if the code is running as a service.&nbsp;<P><DT><A HREF="servicemanager__SetEventSourceName_meth.html">SetEventSourceName</A><BR>
+
+<DD>Sets the event source name for event log entries written by the service.&nbsp;<P></DL></body>
+</html>

@@ -1,0 +1,120 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32file.GetFileAttributesEx</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32file.html">win32file</A>.GetFileAttributesEx</H1><P>
+
+tuple = <B>GetFileAttributesEx(<I>FileName</I><I>, InfoLevelId</I>
+
+<I>, Transaction</I>
+
+</B>)<P>Retrieves attributes for a specified file or directory.<P>
+
+<H3>Parameters</H3><P><DT><I>FileName</I> : string/bytes<P>
+
+<DD>File or directory for which to retrieve information 
+
+In the usual case, the name is limited to MAX_PATH characters. To extend this 
+
+limit to nearly 32,000 wide characters, call this and prepend r"\\?\\" to the path.<P><DT><I>InfoLevelId=GetFileExInfoStandard</I> : int<P>
+
+<DD>An integer that gives the set of attribute information to obtain. 
+
+See the Win32 SDK documentation for more information.<P>
+
+<DT><I>Transaction=None</I> : <A HREF="PyHANDLE.html">PyHANDLE</A><P>
+
+<DD>Handle to a transaction (optional).  See <A HREF="win32transaction__CreateTransaction_meth.html">win32transaction::CreateTransaction</A>. 
+
+If this parameter is specified, GetFileAttributesTransacted will be called (requires Vista or later).<P>
+
+<H3>Comments</H3>
+
+Not all file systems can record creation and last access time and not all file systems record 
+
+them in the same manner. For example, on Windows NT FAT, create time has a resolution of 
+
+10 milliseconds, write time has a resolution of 2 seconds, and access time has a resolution 
+
+of 1 day (really, the access date). On NTFS, access time has a resolution of 1 hour. 
+
+Furthermore, FAT records times on disk in local time, while NTFS records times on disk in UTC, 
+
+so it is not affected by changes in time zone or daylight saving time.<P>
+
+Accepts keyword arguments.<P>
+
+If bytes are passed for the filename, the ANSI Windows functions are called.<P>
+
+<P><TABLE COLS=2 WIDTH="100%" CELLSPACING=15>
+
+<TR>
+
+   <TD>
+
+       <B>InfoLevelId</B>
+
+   </TD>
+
+   <TD>
+
+       <B>Information returned</B>
+
+   </TD>
+
+</TR>
+
+<TR><TD><HR></TD><TD><HR></TD></TR>
+
+<TR><TD>GetFileExInfoStandard</TD><TD>Tuple representing a WIN32_FILE_ATTRIBUTE_DATA struc</TD></TR>
+
+</TABLE><H3>Win32 API References</H3><P><DT>Search for <i>GetFileAttributesEx</i> at <a href="http://search.msdn.microsoft.com/search/results.aspx?view=msdn&query=GetFileAttributesEx" target="_blank">msdn</a>, <a href="http://www.google.com/search?q=GetFileAttributesEx" target="_blank">google</a> or <a href="http://groups.google.com/groups?q=GetFileAttributesEx" target="_blank">google groups</a>.<P>
+
+<DT>Search for <i>GetFileAttributesTransacted</i> at <a href="http://search.msdn.microsoft.com/search/results.aspx?view=msdn&query=GetFileAttributesTransacted" target="_blank">msdn</a>, <a href="http://www.google.com/search?q=GetFileAttributesTransacted" target="_blank">google</a> or <a href="http://groups.google.com/groups?q=GetFileAttributesTransacted" target="_blank">google groups</a>.<P>
+
+<H3>Return Value</H3>The result is a tuple of:<P>
+
+
+
+<H3>Items</H3><P><DL><DT>[0] <I>int</I> : attributes<P>
+
+<DD>File Attributes.  A combination of the win32com.FILE_ATTRIBUTE_* flags.<P></DL>
+
+<DL><DT>[1] <I><A HREF="PyDateTime.html">PyDateTime</A></I> : creationTime<P>
+
+<DD>Specifies when the file or directory was created.<P></DL>
+
+<DL><DT>[2] <I><A HREF="PyDateTime.html">PyDateTime</A></I> : lastAccessTime<P>
+
+<DD>For a file, specifies when the file was last read from 
+
+or written to. For a directory, the structure specifies when the directory was created. For 
+
+both files and directories, the specified date will be correct, but the time of day will 
+
+always be set to midnight.<P></DL>
+
+<DL><DT>[3] <I><A HREF="PyDateTime.html">PyDateTime</A></I> : lastWriteTime<P>
+
+<DD>For a file, the structure specifies when the file was last 
+
+written to. For a directory, the structure specifies when the directory was created.<P></DL>
+
+<DL><DT>[4] <I>int/long</I> : fileSize<P>
+
+<DD>The size of the file. This member has no meaning for directories.<P></DL>
+
+</body>
+</html>

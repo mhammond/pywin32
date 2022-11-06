@@ -1,0 +1,198 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyCPrintInfo</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<HR><H1>PyCPrintInfo Object</H1><P>
+
+Encapsulates an MFC CPrintInfo class, its member <B>CPrintDialog</B>
+
+
+
+ class, and the <B>PRINTDLG</B>
+
+
+
+ 
+
+structure member of the CPrintDialog.<P>
+
+<H3>Methods</H3><P><DL><DT><A HREF="PyCPrintInfo__DocObject_meth.html">DocObject</A><BR>
+
+<DD>A flag indicating whether the document being printed is a DocObject.&nbsp;<P><DT><A HREF="PyCPrintInfo__GetDwFlags_meth.html">GetDwFlags</A><BR>
+
+<DD>A flags specifying DocObject printing operations. Valid 
+
+only if data member m_bDocObject is TRUE.&nbsp;<P><DT><A HREF="PyCPrintInfo__SetDwFlags_meth.html">SetDwFlags</A><BR>
+
+<DD>Set a flag specifying DocObject printing operations. Valid 
+
+only if data member m_bDocObject is TRUE.&nbsp;<P><DT><A HREF="PyCPrintInfo__GetDocOffsetPage_meth.html">GetDocOffsetPage</A><BR>
+
+<DD>Get the number of pages preceding the first page of a particular DocObject in a 
+
+combined DocObject print job.&nbsp;<P><DT><A HREF="PyCPrintInfo__SetDocOffsetPage_meth.html">SetDocOffsetPage</A><BR>
+
+<DD>Set the number of pages preceding the first page of a particular DocObject in a 
+
+combined DocObject print job.&nbsp;<P><DT><A HREF="PyCPrintInfo__SetPrintDialog_meth.html">SetPrintDialog</A><BR>
+
+<DD>Set a pointer to the CPrintDialog object used 
+
+to display the Print dialog box for the print job.&nbsp;<P><DT><A HREF="PyCPrintInfo__GetDirect_meth.html">GetDirect</A><BR>
+
+<DD>TRUE if the Print dialog box will be bypassed for direct printing; FALSE otherwise.&nbsp;<P><DT><A HREF="PyCPrintInfo__SetDirect_meth.html">SetDirect</A><BR>
+
+<DD>Sets to TRUE if the Print dialog box will be bypassed for 
+
+direct printing; FALSE otherwise.&nbsp;<P><DT><A HREF="PyCPrintInfo__GetPreview_meth.html">GetPreview</A><BR>
+
+<DD>A flag indicating whether the document is being previewed.&nbsp;<P><DT><A HREF="PyCPrintInfo__SetPreview_meth.html">SetPreview</A><BR>
+
+<DD>Set whether the document is being previewed.&nbsp;<P><DT><A HREF="PyCPrintInfo__GetContinuePrinting_meth.html">GetContinuePrinting</A><BR>
+
+<DD>A flag indicating whether the framework should continue the print loop.&nbsp;<P><DT><A HREF="PyCPrintInfo__SetContinuePrinting_meth.html">SetContinuePrinting</A><BR>
+
+<DD>Set whether the framework should continue the print loop.&nbsp;<P><DT><A HREF="PyCPrintInfo__GetCurPage_meth.html">GetCurPage</A><BR>
+
+<DD>Get the number of the current page.&nbsp;<P><DT><A HREF="PyCPrintInfo__SetCurPage_meth.html">SetCurPage</A><BR>
+
+<DD>Set the number of the current page.&nbsp;<P><DT><A HREF="PyCPrintInfo__GetNumPreviewPages_meth.html">GetNumPreviewPages</A><BR>
+
+<DD>Get the number of pages displayed in preview mode.&nbsp;<P><DT><A HREF="PyCPrintInfo__SetNumPreviewPages_meth.html">SetNumPreviewPages</A><BR>
+
+<DD>Set the number of pages displayed in preview mode.&nbsp;<P><DT><A HREF="PyCPrintInfo__GetUserData_meth.html">GetUserData</A><BR>
+
+<DD>Get a user-created structure.&nbsp;<P><DT><A HREF="PyCPrintInfo__SetUserData_meth.html">SetUserData</A><BR>
+
+<DD>Set a user-created structure.&nbsp;<P><DT><A HREF="PyCPrintInfo__GetDraw_meth.html">GetDraw</A><BR>
+
+<DD>Get the usable drawing area of the page in logical coordinates.&nbsp;<P><DT><A HREF="PyCPrintInfo__SetDraw_meth.html">SetDraw</A><BR>
+
+<DD>Set the usable drawing area of the page in logical coordinates.&nbsp;<P><DT><A HREF="PyCPrintInfo__GetPageDesc_meth.html">GetPageDesc</A><BR>
+
+<DD>Get the format string used to display the page numbers during print preview&nbsp;<P><DT><A HREF="PyCPrintInfo__SetPageDesc_meth.html">SetPageDesc</A><BR>
+
+<DD>Set the format string used to display the page numbers during print preview&nbsp;<P><DT><A HREF="PyCPrintInfo__GetMinPage_meth.html">GetMinPage</A><BR>
+
+<DD>Get the number of the first page of the document.&nbsp;<P><DT><A HREF="PyCPrintInfo__SetMinPage_meth.html">SetMinPage</A><BR>
+
+<DD>Set the number of the first page of the document.&nbsp;<P><DT><A HREF="PyCPrintInfo__GetMaxPage_meth.html">GetMaxPage</A><BR>
+
+<DD>Get the number of the last page of the document.&nbsp;<P><DT><A HREF="PyCPrintInfo__SetMaxPage_meth.html">SetMaxPage</A><BR>
+
+<DD>Set the number of the last page of the document.&nbsp;<P><DT><A HREF="PyCPrintInfo__GetOffsetPage_meth.html">GetOffsetPage</A><BR>
+
+<DD>Get the number of pages preceding the first page 
+
+of a DocObject item being printed in a combined DocObject print job.&nbsp;<P><DT><A HREF="PyCPrintInfo__GetFromPage_meth.html">GetFromPage</A><BR>
+
+<DD>The number of the first page to be printed.&nbsp;<P><DT><A HREF="PyCPrintInfo__GetToPage_meth.html">GetToPage</A><BR>
+
+<DD>The number of the last page to be printed.&nbsp;<P><DT><A HREF="PyCPrintInfo__SetHDC_meth.html">SetHDC</A><BR>
+
+<DD>Sets the printer DC compatible with the users choices, call after the 
+
+print dialog DoModal finishes.&nbsp;<P><DT><A HREF="PyCPrintInfo__CreatePrinterDC_meth.html">CreatePrinterDC</A><BR>
+
+<DD>Handle to the newly created printer device 
+
+context, call only after DoModal finishes.&nbsp;<P><DT><A HREF="PyCPrintInfo__DoModal_meth.html">DoModal</A><BR>
+
+<DD>Call DoModal on the dialog.&nbsp;<P><DT><A HREF="PyCPrintInfo__GetCopies_meth.html">GetCopies</A><BR>
+
+<DD>The number of copies requested, call only after DoModal finishes.&nbsp;<P><DT><A HREF="PyCPrintInfo__GetDefaults_meth.html">GetDefaults</A><BR>
+
+<DD>Retrieves device defaults without displaying a dialog box.&nbsp;<P><DT><A HREF="PyCPrintInfo__FreeDefaults_meth.html">FreeDefaults</A><BR>
+
+<DD>After a call to GetDefaults, and you are through with the CPrintDialog object, this 
+
+call deletes the printer DC and calls GlobalFree function on the handles.&nbsp;<P><DT><A HREF="PyCPrintInfo__GetDeviceName_meth.html">GetDeviceName</A><BR>
+
+<DD>The name of the currently selected printer, call only after DoModal finishes.&nbsp;<P><DT><A HREF="PyCPrintInfo__GetDriverName_meth.html">GetDriverName</A><BR>
+
+<DD>The name of the currently selected printer 
+
+device driver, call only after DoModal finishes.&nbsp;<P><DT><A HREF="PyCPrintInfo__GetDlgFromPage_meth.html">GetDlgFromPage</A><BR>
+
+<DD>Retrieves the starting page of the print range.&nbsp;<P><DT><A HREF="PyCPrintInfo__GetDlgToPage_meth.html">GetDlgToPage</A><BR>
+
+<DD>Retrieves the ending page of the print range.&nbsp;<P><DT><A HREF="PyCPrintInfo__GetPortName_meth.html">GetPortName</A><BR>
+
+<DD>The name of the currently selected printer port, call only after DoModal finishes.&nbsp;<P><DT><A HREF="PyCPrintInfo__GetPrinterDC_meth.html">GetPrinterDC</A><BR>
+
+<DD>A handle to the printer device context if successful; otherwise NULL.  If the 
+
+bPrintSetupOnly parameter of the CPrintDialog constructor was FALSE (indicating that the Print dialog box 
+
+is displayed), then GetPrinterDC returns a handle to the printer device context. You must call the 
+
+WindowsDeleteDC function to delete the device context when you are done using it.&nbsp;<P><DT><A HREF="PyCPrintInfo__PrintAll_meth.html">PrintAll</A><BR>
+
+<DD>Nonzero if all pages in the document are to be printed; 
+
+otherwise 0, call only after DoModal finishes.&nbsp;<P><DT><A HREF="PyCPrintInfo__PrintCollate_meth.html">PrintCollate</A><BR>
+
+<DD>Nonzero if the user selects the collate check box in 
+
+the dialog box; otherwise 0, call only after DoModal finishes.&nbsp;<P><DT><A HREF="PyCPrintInfo__PrintRange_meth.html">PrintRange</A><BR>
+
+<DD>Nonzero if only a range of pages in the document are to be 
+
+printed; otherwise 0, call only after DoModal finishes.&nbsp;<P><DT><A HREF="PyCPrintInfo__PrintSelection_meth.html">PrintSelection</A><BR>
+
+<DD>Nonzero if only the selected items are to be 
+
+printed; otherwise 0., call only after DoModal finishes&nbsp;<P><DT><A HREF="PyCPrintInfo__GetHDC_meth.html">GetHDC</A><BR>
+
+<DD>Identifies a device context or an information context, depending on whether the Flags member 
+
+specifies the PD_RETURNDC or PC_RETURNIC flag. If neither flag is specified, the value of this member is 
+
+undefined. If both flags are specified, PD_RETURNDC has priority.&nbsp;<P><DT><A HREF="PyCPrintInfo__GetFlags_meth.html">GetFlags</A><BR>
+
+<DD>A set of bit flags that you can use to initialize the Print common dialog box. When the 
+
+dialog box returns, it sets these flags to indicate the user's input.&nbsp;<P><DT><A HREF="PyCPrintInfo__SetFlags_meth.html">SetFlags</A><BR>
+
+<DD>A set of bit flags that you can use to initialize the Print common dialog box. When the 
+
+dialog box returns, it sets these flags to indicate the user's input.&nbsp;<P><DT><A HREF="PyCPrintInfo__SetFromPage_meth.html">SetFromPage</A><BR>
+
+<DD>The number of the first page to be printed.&nbsp;<P><DT><A HREF="PyCPrintInfo__SetToPage_meth.html">SetToPage</A><BR>
+
+<DD>The number of the first page to be printed.&nbsp;<P><DT><A HREF="PyCPrintInfo__GetPRINTDLGMinPage_meth.html">GetPRINTDLGMinPage</A><BR>
+
+<DD>Get the minimum value for the page range specified in the From and To page edit 
+
+controls. If nMinPage equals nMaxPage, the Pages radio button and the starting and ending page edit 
+
+controls are disabled.&nbsp;<P><DT><A HREF="PyCPrintInfo__SetPRINTDLGMinPage_meth.html">SetPRINTDLGMinPage</A><BR>
+
+<DD>Set the minimum value for the page range specified in the From and To page edit 
+
+controls. If nMinPage equals nMaxPage, the Pages radio button and the starting and ending page edit 
+
+controls are disabled.&nbsp;<P><DT><A HREF="PyCPrintInfo__GetPRINTDLGCopies_meth.html">GetPRINTDLGCopies</A><BR>
+
+<DD>Gets the initial number of copies for the Copies edit control if hDevMode is 
+
+NULL; otherwise, the dmCopies member of the DEVMODE structure contains the initial value.&nbsp;<P><DT><A HREF="PyCPrintInfo__SetPRINTDLGCopies_meth.html">SetPRINTDLGCopies</A><BR>
+
+<DD>Sets the initial number of copies for the Copies edit control if hDevMode is 
+
+NULL; otherwise, the dmCopies member of the DEVMODE structure contains the initial value.&nbsp;<P></DL>
+
+</body>
+</html>

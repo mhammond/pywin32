@@ -1,0 +1,62 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32job.SetInformationJobObject</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32job.html">win32job</A>.SetInformationJobObject</H1><P>
+
+<B>SetInformationJobObject(<I>Job</I><I>, JobObjectInfoClass</I><I>, JobObjectInfo</I></B>)<P>Sets quotas and limits for a job<P>
+
+<H3>Parameters</H3><P><DT><I>Job</I> : <A HREF="PyHANDLE.html">PyHANDLE</A><P>
+
+<DD>Handle to a job<P><DT><I>JobObjectInfoClass</I> : int<P>
+
+<DD>The type of data required, one of JobObject* values<P><DT><I>JobObjectInfo</I> : dict<P>
+
+<DD>Dictionary containing info to be set, as returned by <A HREF="win32job__QueryInformationJobObject_meth.html">win32job::QueryInformationJobObject</A><P><P><TABLE COLS=2 WIDTH="100%" CELLSPACING=15>
+
+<TR>
+
+   <TD>
+
+       <B>JobObjectInfoClass</B>
+
+   </TD>
+
+   <TD>
+
+       <B>Type of information to be set</B>
+
+   </TD>
+
+</TR>
+
+<TR><TD><HR></TD><TD><HR></TD></TR>
+
+<TR><TD>JobObjectBasicLimitInformation</TD><TD>A JOBOBJECT_BASIC_LIMIT_INFORMATION dict</TD></TR>
+
+<TR><TD>JobObjectExtendedLimitInformation</TD><TD>dict representing a JOBOBJECT_EXTENDED_LIMIT_INFORMATION struct</TD></TR>
+
+<TR><TD>JobObjectEndOfJobTimeInformation</TD><TD>dict representing a JOBOBJECT_END_OF_JOB_TIME_INFORMATION struct</TD></TR>
+
+<TR><TD>JobObjectBasicUIRestrictions</TD><TD>dict representing a JOBOBJECT_BASIC_UI_RESTRICTIONS struct</TD></TR>
+
+<TR><TD>JobObjectJobSetInformation</TD><TD>Input is a JOBOBJECT_JOBSET_INFORMATION dict - Not implemented</TD></TR>
+
+<TR><TD>JobObjectSecurityLimitInformation</TD><TD>Input is a JOBOBJECT_SECURITY_LIMIT_INFORMATION dict - Not implemented</TD></TR>
+
+<TR><TD>JobObjectAssociateCompletionPortInformation</TD><TD>Input is a JOBOBJECT_ASSOCIATE_COMPLETION_PORT dict - Not implemented</TD></TR>
+
+</TABLE></body>
+</html>

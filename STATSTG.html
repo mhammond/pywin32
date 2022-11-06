@@ -1,0 +1,90 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>STATSTG</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<HR><H1>STATSTG Object</H1><P>
+
+A tuple representing a STATSTG structure<P>
+
+<H3>Items</H3><P><DL><DT>[0] <I>string</I> : name<P>
+
+<DD>The name of the storage object<P></DL>
+
+<DL><DT>[1] <I>int</I> : type<P>
+
+<DD>Indicates the type of storage object. This is one of the values from the 
+
+storagecon.STGTY_* values.<P></DL>
+
+<DL><DT>[2] <I><A HREF="ULARGE_INTEGER.html">ULARGE_INTEGER</A></I> : size<P>
+
+<DD>Specifies the size in bytes of the stream or byte array.<P></DL>
+
+<DL><DT>[3] <I><A HREF="PyDateTime.html">PyDateTime</A></I> : modificationTime<P>
+
+<DD>Indicates the last modification time for this storage, 
+
+stream, or byte array.<P></DL>
+
+<DL><DT>[4] <I><A HREF="PyDateTime.html">PyDateTime</A></I> : creationTime<P>
+
+<DD>Indicates the creation time for this storage, stream, or byte 
+
+array.<P></DL>
+
+<DL><DT>[5] <I><A HREF="PyDateTime.html">PyDateTime</A></I> : accessTime<P>
+
+<DD>Indicates the last access time for this storage, stream or byte 
+
+array.<P></DL>
+
+<DL><DT>[6] <I>int</I> : mode<P>
+
+<DD>Indicates the access mode specified when the object was opened. This 
+
+member is only valid in calls to Stat methods.<P></DL>
+
+<DL><DT>[7] <I>int</I> : locksSupported<P>
+
+<DD>Indicates the types of region locking supported by 
+
+the stream or byte array. See the storagecon.LOCKTYPES_* constants for the values 
+
+available. This member is not used for storage objects.<P></DL>
+
+<DL><DT>[8] <I><A HREF="PyIID.html">PyIID</A></I> : clsid<P>
+
+<DD>Indicates the class identifier for the storage object; set to 
+
+CLSID_NULL for new storage objects. This member is not used for streams or byte arrays.<P></DL>
+
+<DL><DT>[9] <I>int</I> : stateBits<P>
+
+<DD>Indicates the current state bits of the storage object, that 
+
+is, the value most recently set by the <A HREF="PyIStorage__SetStateBits_meth.html">PyIStorage::SetStateBits</A> method. This member 
+
+is not valid for streams or byte arrays.<P></DL>
+
+<DL><DT>[10] <I>int</I> : storageFormat<P>
+
+<DD>Indicates the format of the storage object. This is one of 
+
+the values from the STGFMT_* constants.  In some Win32 API documentation, this member is 
+
+known as 'reserved'<P></DL>
+
+</body>
+</html>

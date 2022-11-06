@@ -1,0 +1,110 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32evtlog</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1>Module win32evtlog</H1><P>
+
+A module, encapsulating the Windows Win32 event log API. 
+
+<BR>The Evt* functions are only available on Vista and later.  Attempting to call 
+
+them on XP will result in the process exiting, rather than a python exception.<P>
+
+<H3>Methods</H3><P><DL><DT><A HREF="win32evtlog__ReadEventLog_meth.html">ReadEventLog</A><BR>
+
+<DD>Reads some event log records.&nbsp;<P><DT><A HREF="win32evtlog__ClearEventLog_meth.html">ClearEventLog</A><BR>
+
+<DD>Clears the event log&nbsp;<P><DT><A HREF="win32evtlog__BackupEventLog_meth.html">BackupEventLog</A><BR>
+
+<DD>Backs up the event log&nbsp;<P><DT><A HREF="win32evtlog__CloseEventLog_meth.html">CloseEventLog</A><BR>
+
+<DD>Closes the eventlog&nbsp;<P><DT><A HREF="win32evtlog__DeregisterEventSource_meth.html">DeregisterEventSource</A><BR>
+
+<DD>Deregisters an Event Source&nbsp;<P><DT><A HREF="win32evtlog__NotifyChangeEventLog_meth.html">NotifyChangeEventLog</A><BR>
+
+<DD>Lets an application receive notification when an event is written to the event log file specified by the hEventLog parameter. When the event is written to the event log file, the function causes the event object specified by the hEvent parameter to become signaled.&nbsp;<P><DT><A HREF="win32evtlog__GetNumberOfEventLogRecords_meth.html">GetNumberOfEventLogRecords</A><BR>
+
+<DD>Returns the number of event log records.&nbsp;<P><DT><A HREF="win32evtlog__GetOldestEventLogRecord_meth.html">GetOldestEventLogRecord</A><BR>
+
+<DD>Returns the number of event log records.&nbsp;<P><DT><A HREF="win32evtlog__OpenEventLog_meth.html">OpenEventLog</A><BR>
+
+<DD>Opens an event log.&nbsp;<P><DT><A HREF="win32evtlog__RegisterEventSource_meth.html">RegisterEventSource</A><BR>
+
+<DD>Registers an Event Source&nbsp;<P><DT><A HREF="win32evtlog__OpenBackupEventLog_meth.html">OpenBackupEventLog</A><BR>
+
+<DD>Opens a previously saved event log.&nbsp;<P><DT><A HREF="win32evtlog__ReportEvent_meth.html">ReportEvent</A><BR>
+
+<DD>Reports an event&nbsp;<P><DT><A HREF="win32evtlog__EvtOpenChannelEnum_meth.html">EvtOpenChannelEnum</A><BR>
+
+<DD>Begins an enumeration of event channels&nbsp;<P><DT><A HREF="win32evtlog__EvtFormatMessage_meth.html">EvtFormatMessage</A><BR>
+
+<DD>Formats a message string.&nbsp;<P><DT><A HREF="win32evtlog__EvtNextChannelPath_meth.html">EvtNextChannelPath</A><BR>
+
+<DD>Retrieves a channel path from an enumeration&nbsp;<P><DT><A HREF="win32evtlog__EvtOpenLog_meth.html">EvtOpenLog</A><BR>
+
+<DD>Opens an event log or exported log archive&nbsp;<P><DT><A HREF="win32evtlog__EvtClearLog_meth.html">EvtClearLog</A><BR>
+
+<DD>Clears an event log and optionally exports events to an archive&nbsp;<P><DT><A HREF="win32evtlog__EvtExportLog_meth.html">EvtExportLog</A><BR>
+
+<DD>Exports events from a channel or log file&nbsp;<P><DT><A HREF="win32evtlog__EvtArchiveExportedLog_meth.html">EvtArchiveExportedLog</A><BR>
+
+<DD>Localizes an exported event log file&nbsp;<P><DT><A HREF="win32evtlog__EvtGetExtendedStatus_meth.html">EvtGetExtendedStatus</A><BR>
+
+<DD>Returns additional error info from last Evt* call&nbsp;<P><DT><A HREF="win32evtlog__EvtQuery_meth.html">EvtQuery</A><BR>
+
+<DD>Opens a query over a log channel or exported log file&nbsp;<P><DT><A HREF="win32evtlog__EvtNext_meth.html">EvtNext</A><BR>
+
+<DD>Returns events from a query&nbsp;<P><DT><A HREF="win32evtlog__EvtSeek_meth.html">EvtSeek</A><BR>
+
+<DD>Changes the current position in a result set&nbsp;<P><DT><A HREF="win32evtlog__EvtCreateRenderContext_meth.html">EvtCreateRenderContext</A><BR>
+
+<DD>Creates a render context&nbsp;<P><DT><A HREF="win32evtlog__EvtRender_meth.html">EvtRender</A><BR>
+
+<DD>Formats an event into XML text or a Python Dict of key/values&nbsp;<P><DT><A HREF="win32evtlog__EvtSubscribe_meth.html">EvtSubscribe</A><BR>
+
+<DD>Requests notification for events&nbsp;<P><DT><A HREF="win32evtlog__EvtCreateBookmark_meth.html">EvtCreateBookmark</A><BR>
+
+<DD>Creates a bookmark&nbsp;<P><DT><A HREF="win32evtlog__EvtUpdateBookmark_meth.html">EvtUpdateBookmark</A><BR>
+
+<DD>Repositions a bookmark to an event&nbsp;<P><DT><A HREF="win32evtlog__EvtGetChannelConfigProperty_meth.html">EvtGetChannelConfigProperty</A><BR>
+
+<DD>Retreives channel configuration information&nbsp;<P><DT><A HREF="win32evtlog__EvtOpenChannelConfig_meth.html">EvtOpenChannelConfig</A><BR>
+
+<DD>Opens channel configuration&nbsp;<P><DT><A HREF="win32evtlog__EvtOpenSession_meth.html">EvtOpenSession</A><BR>
+
+<DD>Creates a session used to access the Event Log on another machine&nbsp;<P><DT><A HREF="win32evtlog__EvtOpenPublisherEnum_meth.html">EvtOpenPublisherEnum</A><BR>
+
+<DD>Begins an enumeration of event publishers&nbsp;<P><DT><A HREF="win32evtlog__EvtNextPublisherId_meth.html">EvtNextPublisherId</A><BR>
+
+<DD>Returns the next publisher from an enumeration&nbsp;<P><DT><A HREF="win32evtlog__EvtOpenPublisherMetadata_meth.html">EvtOpenPublisherMetadata</A><BR>
+
+<DD>Opens a publisher to retrieve properties using <A HREF="win32evtlog__EvtGetPublisherMetadataProperty_meth.html">win32evtlog::EvtGetPublisherMetadataProperty</A>&nbsp;<P><DT><A HREF="win32evtlog__EvtGetPublisherMetadataProperty_meth.html">EvtGetPublisherMetadataProperty</A><BR>
+
+<DD>Retrieves a property from an event publisher&nbsp;<P><DT><A HREF="win32evtlog__EvtOpenEventMetadataEnum_meth.html">EvtOpenEventMetadataEnum</A><BR>
+
+<DD>Enumerates the events that a publisher provides&nbsp;<P><DT><A HREF="win32evtlog__EvtNextEventMetadata_meth.html">EvtNextEventMetadata</A><BR>
+
+<DD>Retrieves the next item from an event metadata enumeration&nbsp;<P><DT><A HREF="win32evtlog__EvtGetEventMetadataProperty_meth.html">EvtGetEventMetadataProperty</A><BR>
+
+<DD>Retrieves a property from an event publisher&nbsp;<P><DT><A HREF="win32evtlog__EvtGetLogInfo_meth.html">EvtGetLogInfo</A><BR>
+
+<DD>Retrieves log file or channel information&nbsp;<P><DT><A HREF="win32evtlog__EvtGetEventInfo_meth.html">EvtGetEventInfo</A><BR>
+
+<DD>Retrieves information about the source of an event&nbsp;<P><DT><A HREF="win32evtlog__EvtGetObjectArraySize_meth.html">EvtGetObjectArraySize</A><BR>
+
+<DD>Returns the size of an array of event objects&nbsp;<P><DT><A HREF="win32evtlog__EvtGetObjectArrayProperty_meth.html">EvtGetObjectArrayProperty</A><BR>
+
+<DD>Retrieves an item from an object array&nbsp;<P></DL></body>
+</html>

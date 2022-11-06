@@ -1,0 +1,58 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyIShellFolder.ParseDisplayName</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="PyIShellFolder.html">PyIShellFolder</A>.ParseDisplayName</H1><P>
+
+tuple = <B>ParseDisplayName(<I>hwndOwner</I><I>, pbc</I>
+
+<I>, DisplayName</I>
+
+<I>, Attributes</I>
+
+</B>)<P>Returns the PIDL of an item in a shell folder<P>
+
+<H3>Parameters</H3><P><DT><I>hwndOwner</I> : <A HREF="PyHANDLE.html">PyHANDLE</A><P>
+
+<DD>Window in which to display any dialogs or message boxes, can be 0<P><DT><I>pbc</I> : <A HREF="PyIBindCtx.html">PyIBindCtx</A><P>
+
+<DD>Bind context that affects how parsing is performed, can be None<P><DT><I>DisplayName</I> : str<P>
+
+<DD>Display name to parse, format is dependent on the shell folder. 
+
+Desktop folder will accept a file path, as well as guids of the form ::{guid} 
+
+Example: '::%s\\::%s' %(shell.CLSID_MyComputer,shell.CLSID_ControlPanel)<P><DT><I>Attributes=0</I> : int<P>
+
+<DD>Combination of shellcon.SFGAO_* constants specifying which attributes should be returned<P>
+
+<H3>Return Value</H3>The result is a tuple of cchEaten, pidl, attr<P>
+
+
+
+<H3>Items</H3><P><DL><DT>[0] <I>int</I> : cchEaten<P>
+
+<DD>the number of characters of the input name that were parsed<P></DL>
+
+<DL><DT>[1] <I><A HREF="PyIDL.html">PyIDL</A></I> : pidl<P>
+
+<DD>specifies the relative path from the parsing folder to the object<P></DL>
+
+<DL><DT>[2] <I>int</I> : Attributes<P>
+
+<DD>returns any requested attributes<P></DL>
+
+</body>
+</html>

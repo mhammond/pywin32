@@ -1,0 +1,38 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>DSBCAPS_GETCURRENTPOSITION2</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<HR>
+
+<H1>DSBCAPS_GETCURRENTPOSITION2</H1>
+
+<B>const directsound.DSBCAPS_GETCURRENTPOSITION2;</B><P>
+
+Indicates that IDirectSoundBuffer::GetCurrentPosition should use 
+
+the new behavior of the play cursor. In DirectSound in DirectX 1, the play cursor was significantly ahead of the 
+
+actual playing sound on emulated sound cards; it was directly behind the write cursor. Now, if the 
+
+DSBCAPS_GETCURRENTPOSITION2 flag is specified, the application can get a more accurate play position. If this 
+
+flag is not specified, the old behavior is preserved for compatibility. Note that this flag affects only emulated 
+
+sound cards; if a DirectSound driver is present, the play cursor is accurate for DirectSound in all versions of 
+
+DirectX.<P>
+
+</body>
+</html>

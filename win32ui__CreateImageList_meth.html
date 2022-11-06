@@ -1,0 +1,68 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32ui.CreateImageList</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32ui.html">win32ui</A>.CreateImageList</H1><P>
+
+int = <B>CreateImageList(<I>cx</I><I>, cy</I>
+
+<I>, mask</I>
+
+<I>, initial</I>
+
+<I>, grow</I>
+
+</B>)<P>Creates an image list.<P>
+
+<H3>Parameters</H3><P><DT><I>cx</I> : int<P>
+
+<DD>Dimension of each image, in pixels.<P><DT><I>cy</I> : int<P>
+
+<DD>Dimension of each image, in pixels.<P><DT><I>mask</I> : int<P>
+
+<DD>TRUE if the image contains a mask; otherwise FALSE.<P><DT><I>initial</I> : int<P>
+
+<DD>Number of images that the image list initially contains.<P><DT><I>grow</I> : int<P>
+
+<DD>Number of images by which the image list can grow when the 
+
+system needs to resize the list to make room for new images. This parameter 
+
+represents the number of new images the resized image list can contain.<P><H3>Alternative Parameters</H3><P><DT><I>bitmapId</I><P>
+
+<DD>Resource name or ID of the bitmap to be associated with 
+
+the image list.<P>
+
+<DT><I>cx</I><P>
+
+<DD>Dimension of each image, in pixels.<P>
+
+<DT><I>grow</I><P>
+
+<DD>Number of images by which the image list can grow when the system needs to 
+
+resize the list to make room for new images. This parameter represents the number of new images 
+
+the resized image list can contain.<P>
+
+<DT><I>crMask</I><P>
+
+<DD>Color used to generate a mask. Each pixel of this color in the 
+
+specified bitmap is changed to black, and the corresponding bit in the mask is set to one.<P>
+
+</body>
+</html>

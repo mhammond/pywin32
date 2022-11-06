@@ -1,0 +1,58 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32security.DsGetSpn</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32security.html">win32security</A>.DsGetSpn</H1><P>
+
+(<B>PyUnicode</B>
+
+,...) = <B>DsGetSpn(<I>ServiceType</I><I>, ServiceClass</I>
+
+<I>, ServiceName</I>
+
+<I>, InstancePort</I>
+
+<I>, InstanceNames</I>
+
+<I>, InstancePorts</I>
+
+</B>)<P>Compose one or more service principal names to be registered using <A HREF="win32security__DsWriteAccountSpn_meth.html">win32security::DsWriteAccountSpn</A><P>
+
+<H3>Parameters</H3><P><DT><I>ServiceType</I> : int<P>
+
+<DD>Type of Spn to create, one of the DS_SPN_* constants<P><DT><I>ServiceClass</I> : <B>PyUnicode</B>
+
+<P>
+
+<DD>Arbitrary string that describes type of service, eg http<P><DT><I>ServiceName</I> : <B>PyUnicode</B>
+
+<P>
+
+<DD>Name of service, can be None (not required for DS_SPN_*_HOST Spn's)<P><DT><I>InstancePort=0</I> : int<P>
+
+<DD>Port nbr for service instance, use 0 for no port<P>
+
+<DT><I>InstanceNames=None</I> : (<B>PyUnicode</B>
+
+,...)<P>
+
+<DD>A sequence of service instance names, can be None - not required for for host Spn's<P>
+
+<DT><I>InstancePorts=None</I> : (int,...)<P>
+
+<DD>A sequence of extra instance ports.  If specified, must be same length as InstanceNames.<P>
+
+</body>
+</html>

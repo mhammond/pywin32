@@ -1,0 +1,42 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32gui.SetWindowLong</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32gui.html">win32gui</A>.SetWindowLong</H1><P>
+
+int = <B>SetWindowLong(<I>hwnd</I><I>, index</I>
+
+<I>, value</I>
+
+</B>)<P>Places a long value at the specified offset into the extra window memory of the given window.<P>
+
+<H3>Parameters</H3><P><DT><I>hwnd</I> : <A HREF="PyHANDLE.html">PyHANDLE</A><P>
+
+<DD>The handle to the window<P><DT><I>index</I> : int<P>
+
+<DD>The index of the item to set.<P><DT><I>value</I> : object<P>
+
+<DD>The value to set.<P><H3>Comments</H3>
+
+This function calls the SetWindowLongPtr Api function<P>
+
+If index is GWLP_WNDPROC, then the value parameter 
+
+must be a callable object (or a dictionary) to use as the 
+
+new window procedure.<P>
+
+</body>
+</html>

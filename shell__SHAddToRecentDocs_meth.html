@@ -1,0 +1,74 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>shell.SHAddToRecentDocs</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="shell.html">shell</A>.SHAddToRecentDocs</H1><P>
+
+<B>SHAddToRecentDocs(<I>Flags</I><I>, data</I></B>)<P>Adds a document to the shell's list of recently used documents or clears all 
+
+documents from the list. The user gains access to the list through the Start menu of the Windows taskbar.<P>
+
+<H3>Parameters</H3><P><DT><I>Flags</I> : int<P>
+
+<DD>Value from SHARD enum indicating how the item is identified.<P><DT><I>data</I> : object<P>
+
+<DD>Type of input is determined by the SHARD_* flag.  Use None to 
+
+clear recent items list.<P><P><TABLE COLS=2 WIDTH="100%" CELLSPACING=15>
+
+<TR>
+
+   <TD>
+
+       <B>Flags</B>
+
+   </TD>
+
+   <TD>
+
+       <B>Type of input</B>
+
+   </TD>
+
+</TR>
+
+<TR><TD><HR></TD><TD><HR></TD></TR>
+
+<TR><TD>SHARD_PATHA</TD><TD>String containing a file path</TD></TR>
+
+<TR><TD>SHARD_PATHW</TD><TD>String containing a file path</TD></TR>
+
+<TR><TD>SHARD_PIDL</TD><TD><A HREF="PyIDL.html">PyIDL</A>, or a buffer containing a PIDL (see <A HREF="shell__PIDLAsString_meth.html">shell::PIDLAsString</A>)</TD></TR>
+
+<TR><TD>SHARD_APPIDINFO</TD><TD>Tuple of (<A HREF="PyIShellItem.html">PyIShellItem</A>, str), where str is an AppID</TD></TR>
+
+<TR><TD>SHARD_APPIDINFOIDLIST</TD><TD>Tuple of (<A HREF="PyIDL.html">PyIDL</A>, str), where str is an AppID</TD></TR>
+
+<TR><TD>SHARD_LINK</TD><TD><A HREF="PyIShellLink.html">PyIShellLink</A></TD></TR>
+
+<TR><TD>SHARD_APPIDINFOLINK</TD><TD>Tuple of (<A HREF="PyIShellLink.html">PyIShellLink</A>, str) where str is an AppID</TD></TR>
+
+<TR><TD>SHARD_SHELLITEM</TD><TD><A HREF="PyIShellItem.html">PyIShellItem</A></TD></TR>
+
+</TABLE><H3>Comments</H3>
+
+On Windows 7, the entry is also added to the application's jump list.<P>
+
+The underlying API function has no return value, and therefore no way to indicate failure.<P>
+
+<H3>Win32 API References</H3><P><DT>Search for <i>SHAddToRecentDocs</i> at <a href="http://search.msdn.microsoft.com/search/results.aspx?view=msdn&query=SHAddToRecentDocs" target="_blank">msdn</a>, <a href="http://www.google.com/search?q=SHAddToRecentDocs" target="_blank">google</a> or <a href="http://groups.google.com/groups?q=SHAddToRecentDocs" target="_blank">google groups</a>.<P>
+
+</body>
+</html>

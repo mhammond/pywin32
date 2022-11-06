@@ -1,0 +1,62 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32gui.UpdateLayeredWindow</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32gui.html">win32gui</A>.UpdateLayeredWindow</H1><P>
+
+<B>UpdateLayeredWindow(<I>hwnd</I><I>, hdcDst</I><I>, ptDst</I><I>, size</I><I>, hdcSrc</I><I>, ptSrc</I><I>, Key</I><I>, blend</I><I>, Flags</I></B>)<P>Updates the position, size, shape, content, and translucency of a layered window.<P>
+
+<H3>Parameters</H3><P><DT><I>hwnd</I> : <A HREF="PyHANDLE.html">PyHANDLE</A><P>
+
+<DD>handle to layered window<P><DT><I>hdcDst=None</I> : <A HREF="PyHANDLE.html">PyHANDLE</A><P>
+
+<DD>handle to screen DC, can be None.  *Must* be None if hdcSrc is None<P>
+
+<DT><I>ptDst=None</I> : (x,y)<P>
+
+<DD>New screen position, can be None.<P>
+
+<DT><I>size=None</I> : (cx, cy)<P>
+
+<DD>New size of the layered window, can be None.  *Must* be None if hdcSrc is None.<P>
+
+<DT><I>hdcSrc=None</I> : int<P>
+
+<DD>handle to surface DC for the window, can be None<P>
+
+<DT><I>ptSrc=None</I> : (x,y)<P>
+
+<DD>layer position, can be None.  *Must* be None if hdcSrc is None.<P>
+
+<DT><I>Key=0</I> : int<P>
+
+<DD>Color key, generate using <A HREF="win32api__RGB_meth.html">win32api::RGB</A><P>
+
+<DT><I>blend=(0,0,255,0)</I> : (int, int, int, int)<P>
+
+<DD><A HREF="PyBLENDFUNCTION.html">PyBLENDFUNCTION</A> specifying alpha blending parameters<P>
+
+<DT><I>Flags=0</I> : int<P>
+
+<DD>One of the win32con.ULW_* values.  Use 0 if hdcSrc is None.<P>
+
+<H3>Comments</H3>
+
+This function is only available on Windows 2000 and later<P>
+
+Accepts keyword arguments.<P>
+
+</body>
+</html>

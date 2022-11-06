@@ -1,0 +1,44 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32ui.PumpWaitingMessages</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32ui.html">win32ui</A>.PumpWaitingMessages</H1><P>
+
+int = <B>PumpWaitingMessages(<I>firstMessage</I><I>, lastMessage</I>
+
+</B>)<P>Recursively start a new message dispatching loop while any message remain 
+
+in the queue.<P>
+
+<H3>Parameters</H3><P><DT><I>firstMessage=WM_PAINT</I> : int<P>
+
+<DD>The lowest message ID to retrieve<P>
+
+<DT><I>lastMessage=WM_PAINT</I> : int<P>
+
+<DD>The highest message ID to retrieve<P>
+
+<H3>Comments</H3>
+
+This allows an application which is performing a long operation to dispatch paint messages during the 
+
+operation.<P>
+
+<H3>Return Value</H3>The result is 1 if a WM_QUIT message was processed, otherwise 0.<P>
+
+
+
+</body>
+</html>

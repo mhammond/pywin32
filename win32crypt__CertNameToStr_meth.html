@@ -1,0 +1,44 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32crypt.CertNameToStr</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32crypt.html">win32crypt</A>.CertNameToStr</H1><P>
+
+str = <B>CertNameToStr(<I>Name</I><I>, StrType</I>
+
+<I>, CertEncodingType</I>
+
+</B>)<P>Converts an encoded CERT_NAME_INFO into a formatted string<P>
+
+<H3>Parameters</H3><P><DT><I>Name</I> : str<P>
+
+<DD>String containing an encoded CERT_NAME_INFO, as used 
+
+with certificate Issuer and Subject<P><DT><I>StrType=CERT_SIMPLE_NAME_STR</I> : int<P>
+
+<DD>Type of string to format, 
+
+one of CERT_SIMPLE_NAME_STR,CERT_OID_NAME_STR,CERT_X500_NAME_STR<P>
+
+<DT><I>CertEncodingType=X509_ASN_ENCODING</I> : int<P>
+
+<DD>Input encoding<P>
+
+<H3>Comments</H3>
+
+Usually this encoded data is contained in a CERT_NAME_BLOB<P>
+
+</body>
+</html>

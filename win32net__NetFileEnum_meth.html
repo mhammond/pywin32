@@ -1,0 +1,54 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32net.NetFileEnum</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32net.html">win32net</A>.NetFileEnum</H1><P>
+
+(dict,...) = <B>NetFileEnum(<I>level</I><I>, servername</I>
+
+<I>, basepath</I>
+
+<I>, username</I>
+
+</B>)<P>Lists remotely opened resources on a server<P>
+
+<H3>Parameters</H3><P><DT><I>level</I> : int<P>
+
+<DD>Level of information, 2 or 3 supported<P><DT><I>servername=None</I> : string/<B>PyUnicode</B>
+
+<P>
+
+<DD>The name of the server for which to list open resources, local 
+
+machine assumed if None<P>
+
+<DT><I>basepath=None</I> : string/<B>PyUnicode</B>
+
+<P>
+
+<DD>If specified, limits returned list to files on given path<P>
+
+<DT><I>username=None</I> : string/<B>PyUnicode</B>
+
+<P>
+
+<DD>User that opened resource, or None to list open files for all users<P>
+
+<H3>Return Value</H3>Returns a sequence of dictionaries representing FILE_INFO_* structs, depending on level specified<P>
+
+
+
+</body>
+</html>

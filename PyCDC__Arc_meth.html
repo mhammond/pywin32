@@ -1,0 +1,60 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyCDC.Arc</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="PyCDC.html">PyCDC</A>.Arc</H1><P>
+
+<B>Arc(<I>rect</I><I>, pointStart</I><I>, pointEnd</I></B>)<P>Draws an eliptical arc.<P>
+
+<H3>Parameters</H3><P><DT><I>rect</I> : (left, top, right, bottom)<P>
+
+<DD>Specifies the ellipse's bounding rectangle<P><DT><I>pointStart</I> : (x,y)<P>
+
+<DD>Specifies the x- and y-coordinates 
+
+of the point that defines the arc's starting point (in logical units). 
+
+This point does not have to lie exactly on the arc.<P><DT><I>pointEnd</I> : (x,y)<P>
+
+<DD>Specifies the x- and y-coordinates 
+
+of the point that defines the arc's ending point (in logical units). 
+
+This point does not have to lie exactly on the arc.<P><H3>Comments</H3>
+
+The arc drawn by using the function is a segment of the ellipse defined by the specified bounding 
+
+rectangle. The actual starting point of the arc is the point at which a ray drawn from the center of the bounding 
+
+rectangle through the specified starting point intersects the ellipse. The actual ending point of the arc is the 
+
+point at which a ray drawn from the center of the bounding rectangle through 
+
+the specified ending point intersects the ellipse. The arc is drawn in a 
+
+counterclockwise direction. Since an arc is not a closed figure, it is 
+
+not filled. Both the width and height of the rectangle must be greater 
+
+than 2 units and less than 32,767 units.<P>
+
+<H3>MFC References</H3><P><DT>CDC::Arc<P>
+
+<H3>Return Value</H3>Always none.  If the function fails, an exception is raised.<P>
+
+
+
+</body>
+</html>

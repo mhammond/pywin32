@@ -1,0 +1,60 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyCCmdTarget.HookNotify</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="PyCCmdTarget.html">PyCCmdTarget</A>.HookNotify</H1><P>
+
+object = <B>HookNotify(<I>obHandler</I><I>, id</I>
+
+</B>)<P>Hook a windows command handler.<P>
+
+<H3>Parameters</H3><P><DT><I>obHandler</I> : object<P>
+
+<DD>The handler for the command message.  This must be a callable object.<P><DT><I>id</I> : int<P>
+
+<DD>The ID of the command to be handled, or zero to handle all command messages.<P><H3>Comments</H3>
+
+obHandler will be called as the application receives control notification messages. 
+
+These may also be handled via  <A HREF="PyCCmdTarget__HookCommand_meth.html">PyCCmdTarget::HookCommand</A>, but this method is specific 
+
+to control notifications, and therefore provides more information.<P>
+
+The handler will be called with 2 arguments<BR> 
+
+A tuple describing standard notification information.<BR> 
+
+A tuple describing extra notification params, or an integer containing the address of the first byte of the 
+
+extended information.<BR> If the handler returns TRUE, then the command will be passed on to the default handler, 
+
+otherwise the message will be consumed.<P>
+
+Certain notification codes are recognised internally, and these are converted to a Python tuple. 
+
+If the extra information is not recognised, the address is passed.  These addresses could be 
+
+extracted using <A HREF="win32ui__GetBytes_meth.html">win32ui::GetBytes</A> and the struct module, or using 
+
+Sam Rushing's calldll/dynwin module. (It would be possible to extend Pythonwin so a program 
+
+can install certain knowledge about handlers, but this has not been implemented.)<P>
+
+<H3>Return Value</H3>The return value is the previous handler, or None.<P>
+
+
+
+</body>
+</html>

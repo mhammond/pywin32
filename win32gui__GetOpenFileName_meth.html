@@ -1,0 +1,34 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32gui.GetOpenFileName</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32gui.html">win32gui</A>.GetOpenFileName</H1><P>
+
+int = <B>GetOpenFileName(<I>OPENFILENAME</I></B>)<P>Creates an Open dialog box that lets the user specify the drive, directory, and the name of a file or set of files to open.<P>
+
+<H3>Parameters</H3><P><DT><I>OPENFILENAME</I> : string/bytes<P>
+
+<DD>A string packed into an OPENFILENAME structure, probably via the struct module.<P><H3>Comments</H3>
+
+The <A HREF="win32gui__GetOpenFileNameW_meth.html">win32gui::GetOpenFileNameW</A> function is far more convenient to use.<P>
+
+<H3>Return Value</H3>If the user presses OK, the function returns TRUE.  Otherwise, use CommDlgExtendedError for error details 
+
+(ie, a win32gui.error is raised).  If the user cancels the dialog, the winerror attribute of the exception will be zero.<P>
+
+
+
+</body>
+</html>

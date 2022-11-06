@@ -1,0 +1,40 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyCRichEditCtrl.StreamIn</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="PyCRichEditCtrl.html">PyCRichEditCtrl</A>.StreamIn</H1><P>
+
+(int,int) = <B>StreamIn(<I>format</I><I>, method</I>
+
+</B>)<P>Invokes a callback to stream data into the control.<P>
+
+<H3>Parameters</H3><P><DT><I>format</I> : int<P>
+
+<DD>The format.  One of the win32con.SF_* flags (SF_TEXT,SF_RTF)<P><DT><I>method</I> : object<P>
+
+<DD>A callable object (eg, a method or function) 
+
+This method is called with a single integer param, which is the maximum number of 
+
+bytes to fetch.  The method should return a zero length string, or None to 
+
+finish the operation, and a string otherwise.<P><H3>MFC References</H3><P><DT>CRichEditCtrl::StreamIn<P>
+
+<H3>Return Value</H3>The return value is a tuple of (no bytes written, error code)<P>
+
+
+
+</body>
+</html>

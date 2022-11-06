@@ -1,0 +1,40 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32process.IsWow64Process</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32process.html">win32process</A>.IsWow64Process</H1><P>
+
+bool = <B>IsWow64Process(<I>Process</I></B>)<P>Determines whether the specified process is running under WOW64.<P>
+
+<H3>Parameters</H3><P><DT><I>Process=None</I> : <A HREF="PyHANDLE.html">PyHANDLE</A><P>
+
+<DD>Handle to a process as returned by 
+
+<A HREF="win32api__OpenProcess_meth.html">win32api::OpenProcess</A>, <A HREF="win32api__GetCurrentProcess_meth.html">win32api::GetCurrentProcess</A>, etc, or 
+
+will use the current process handle if None (the default) is passed.<P>
+
+<H3>Return Value</H3>If this function is not provided by the operating system, the 
+
+return value is False (ie, a NotImplemented exception will never be thrown). 
+
+However, if the function exists but fails, a win32process.error exception 
+
+is thrown as normal.<P>
+
+
+
+</body>
+</html>

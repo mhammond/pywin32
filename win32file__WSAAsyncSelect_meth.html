@@ -1,0 +1,36 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32file.WSAAsyncSelect</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32file.html">win32file</A>.WSAAsyncSelect</H1><P>
+
+<B>WSAAsyncSelect(<I>socket</I><I>, hwnd</I><I>, int</I><I>, networkEvents</I></B>)<P>Request windows message notification for the supplied set of FD_XXXX network events.<P>
+
+<H3>Parameters</H3><P><DT><I>socket</I> : <B>PySocket</B>
+
+<P>
+
+<DD>socket to attach to the event<P><DT><I>hwnd</I> : <B>hwnd</B>
+
+<P>
+
+<DD>Window handle for the socket to become attached to.<P><DT><I>int</I> : <B>int</B>
+
+<P>
+
+<DD>Window message that will be posted.<P><DT><I>networkEvents</I> : int<P>
+
+<DD>A bitmask of network events that will cause wMsg to be posted. e.g. (FD_CLOSE | FD_READ)<P></body>
+</html>

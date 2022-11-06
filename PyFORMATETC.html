@@ -1,0 +1,42 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyFORMATETC</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<HR><H1>PyFORMATETC Object</H1><P>
+
+Tuple representing a FORMATETC struct describing an OLE data format<P>
+
+<H3>Items</H3><P><DL><DT>[0] <I>int</I> : Format<P>
+
+<DD>CLIPFORMAT value (CF_*) identifying the type of data<P></DL>
+
+<DL><DT>[1] <I>None</I> : td<P>
+
+<DD>DVTARGETDEVICE (currently not supported, use only None)<P></DL>
+
+<DL><DT>[2] <I>int</I> : Aspect<P>
+
+<DD>One of pythoncom.DVASPECT_* values specifying level of detail<P></DL>
+
+<DL><DT>[3] <I>int</I> : index<P>
+
+<DD>Usually -1, used only when data spans multiple pages<P></DL>
+
+<DL><DT>[4] <I>int</I> : tymed<P>
+
+<DD>One of pythoncom.TYMED_* values indicating how the data is stored<P></DL>
+
+</body>
+</html>

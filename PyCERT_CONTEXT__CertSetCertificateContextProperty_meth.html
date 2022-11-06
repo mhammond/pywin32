@@ -1,0 +1,102 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyCERT_CONTEXT.CertSetCertificateContextProperty</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="PyCERT_CONTEXT.html">PyCERT_CONTEXT</A>.CertSetCertificateContextProperty</H1><P>
+
+<B>CertSetCertificateContextProperty(<I>PropId</I><I>, Data</I><I>, Flags</I></B>)<P>Sets a property for a certificate<P>
+
+<H3>Parameters</H3><P><DT><I>PropId</I> : int<P>
+
+<DD>Id of property to be set, CERT_*_PROP_ID<P><DT><I>Data</I> : object<P>
+
+<DD>The value to be set for the property.  Type is 
+
+dependent on PropId. Use None to delete a property.<P><DT><I>Flags=0</I> : int<P>
+
+<DD>Combination of CERT_SET_* flags<P>
+
+<P><TABLE COLS=2 WIDTH="100%" CELLSPACING=15>
+
+<TR>
+
+   <TD>
+
+       <B>PropId</B>
+
+   </TD>
+
+   <TD>
+
+       <B>Type of input</B>
+
+   </TD>
+
+</TR>
+
+<TR><TD><HR></TD><TD><HR></TD></TR>
+
+<TR><TD>CERT_ARCHIVED_PROP_ID</TD><TD>None causes Archived flag to be cleared, any other 
+
+causes it to be set 
+
+no actual data, non-NULL pvData indicates presence of flag</TD></TR>
+
+<TR><TD>CERT_DATE_STAMP_PROP_ID</TD><TD><A HREF="PyDateTime.html">PyDateTime</A> specifying when cert was added to 
+
+store</TD></TR>
+
+<TR><TD>CERT_DESCRIPTION_PROP_ID</TD><TD>Unicode string</TD></TR>
+
+<TR><TD>CERT_FRIENDLY_NAME_PROP_ID</TD><TD>Unicode string</TD></TR>
+
+<TR><TD>CERT_PVK_FILE_PROP_ID</TD><TD>Unicode string</TD></TR>
+
+<TR><TD>CERT_AUTO_ENROLL_PROP_ID</TD><TD>Unicode string</TD></TR>
+
+<TR><TD>CERT_KEY_SPEC_PROP_ID</TD><TD>Int, usually AT_KEYEXCHANGE or AT_SIGNATURE</TD></TR>
+
+<TR><TD>CERT_HASH_PROP_ID</TD><TD>String containing the hash</TD></TR>
+
+<TR><TD>CERT_SHA1_HASH_PROP_ID</TD><TD>String containing the hash</TD></TR>
+
+<TR><TD>CERT_MD5_HASH_PROP_ID</TD><TD>String containingg the hash</TD></TR>
+
+<TR><TD>CERT_SIGNATURE_HASH_PROP_ID</TD><TD>String containing the hash</TD></TR>
+
+<TR><TD>CERT_KEY_IDENTIFIER_PROP_ID</TD><TD>String containing the key id</TD></TR>
+
+<TR><TD>CERT_SUBJECT_PUBLIC_KEY_MD5_HASH_PROP_ID</TD><TD>String 
+
+containing the hash</TD></TR>
+
+<TR><TD>CERT_ISSUER_PUBLIC_KEY_MD5_HASH_PROP_ID</TD><TD>String 
+
+containing the hash</TD></TR>
+
+<TR><TD>CERT_SUBJECT_NAME_MD5_HASH_PROP_ID</TD><TD>String containing the hash</TD></TR>
+
+<TR><TD>CERT_RENEWAL_PROP_ID</TD><TD>String containing the hash</TD></TR>
+
+<TR><TD>CERT_ENHKEY_USAGE_PROP_ID</TD><TD>String containing an encoded <A HREF="PyCTL_USAGE.html">PyCTL_USAGE</A>.  Use <B>cryptoapi::CryptEncodeObjectEx</B>
+
+
+
+ with X509_ENHANCED_KEY_USAGE.</TD></TR>
+
+<TR><TD>CERT_CTL_USAGE_PROP_ID</TD><TD>Same as CERT_ENHKEY_USAGE_PROP_ID</TD></TR>
+
+</TABLE></body>
+</html>

@@ -1,0 +1,42 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyCtxtHandle.DecryptMessage</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="PyCtxtHandle.html">PyCtxtHandle</A>.DecryptMessage</H1><P>
+
+<B>DecryptMessage(<I>Message</I><I>, MessageSeqNo</I></B>)<P>Decrypts data produced by <A HREF="PyCtxtHandle__EncryptMessage_meth.html">PyCtxtHandle::EncryptMessage</A><P>
+
+<H3>Parameters</H3><P><DT><I>Message</I> : <A HREF="PySecBufferDesc.html">PySecBufferDesc</A><P>
+
+<DD><A HREF="PySecBufferDesc.html">PySecBufferDesc</A> containing data buffers to be decrypted<P><DT><I>MessageSeqNo</I> : int<P>
+
+<DD>A sequential number used by some packages to verify that no extraneous messages have 
+
+been received<P><H3>Comments</H3>
+
+The buffer configuration is dependent on the security package.  Usually there is one buffer 
+
+of type SECBUFFER_DATA which is modified in place and a second buffer of type SECBUFFER_TOKEN or 
+
+SECBUFFER_PADDING containing signature, padding, or other extra data from encryption process that doesn't fit 
+
+in first buffer<P>
+
+<H3>Return Value</H3>Returns flags specfic to security package indicating quality of protection<P>
+
+
+
+</body>
+</html>

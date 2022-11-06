@@ -1,0 +1,190 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>Windows NT Security -- Impersonation</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<HR><H1>Windows NT Security -- Impersonation</H1>
+
+Python's win32 access to help to simplify providing privileged access.<P>
+
+<BR>There may be times when you want to give specific access to 
+
+someone with NT. One mechanism to do this is with the win32 calls: 
+
+LogonUser and ImpersonateLoggedOnUser. LogonUser gives you a handel 
+
+which ImpersonateLoggedOnUser can then use to "become" the user. To do 
+
+this the thread calling, LogonUser, needs SE_TCB_NAME, 
+
+SE_CHANGE_NOTIFY_NAME, and SE_ASSIGNPRIMARYTOKEN_NAME privileges.  If 
+
+you plan to do this with something like IIS and cgi, be careful, the anonymous 
+
+account IIS uses is already impersonated from the system account. You 
+
+will need to use the RevertToSelf, api call to first terminate the 
+
+impersonation.  And, the system account, a local account, ultimately 
+
+limits you, regardless of who you log in as (COM/MTS can provide an 
+
+alternative security solution).<P>
+
+<H3>Example</H3>The c++ api call for Logonasuser looks like:<P>
+
+<PRE>BOOL LogonUser(
+
+  LPTSTR lpszUsername,
+
+  LPTSTR lpszDomain,
+
+  LPTSTR lpszPassword,
+
+  DWORD dwLogonType,
+
+  DWORD dwLogonProvider,
+
+  PHANDLE phToken
+
+);
+
+</PRE>
+
+The python documentation says this:<P>
+
+<PRE>PyHANDLE = LogonUser( userName, domain , password , logonType , logonProvider )
+
+</PRE>
+
+The api call is very similar in both cases except in python the 
+
+handel is returned seperately to the caller. The interesting options 
+
+in this case are logonType and logonProvider.  To give values for 
+
+these, you need to use the constants present in win32con (you can use 
+
+the browser in pythonwin-&gttools to list the constants in 
+
+win32con). Unless you have unusual server requirements, for logonType, 
+
+win32con.LOGON32_LOGON_INTERACTIVE should be fine. With regards to 
+
+logonProvider, generally use win32con.LOGON32_PROVIDER_DEFAULT -- it's 
+
+for specifiying the type of logon NT 3.5, 4.0, win2000. Generally, 
+
+default is fine.<P>
+
+ImpersonateLoggedOnUser is extremely simple and you'll see it's usage in the 
+
+examples.<P>
+
+<BR>Now for some code<P>
+
+<PRE>#A raw example looks like this:
+
+handel=win32security.LogonUser('barney','bedrock','bambam'\\
+
+&#09,win32con.LOGON32_LOGON_INTERACTIVE,win32con.LOGON32_PROVIDER_DEFAULT)
+
+win32security.ImpersonateLoggedOnUser(handel)
+
+
+
+#do stuff here
+
+print win32api.GetUserName() #show you're someone else
+
+
+
+win32security.RevertToSelf() #terminates impersonation
+
+handel.Close()
+
+
+
+#The impersonate code can be encapsulated in a class, which then makes it even more
+
+#trivial to use
+
+
+
+import win32security
+
+import win32con
+
+import win32api
+
+
+
+class Impersonate:
+
+    def __init__(self,login,password):
+
+&#09self.domain='bedrock'
+
+&#09self.login=login
+
+&#09self.password=password
+
+    def logon(self):
+
+&#09self.handel=win32security.LogonUser(self.login,self.domain,self.password,\\
+
+&#09win32con.LOGON32_LOGON_INTERACTIVE,win32con.LOGON32_PROVIDER_DEFAULT)
+
+&#09win32security.ImpersonateLoggedOnUser(self.handel)
+
+    def logoff(self):
+
+&#09win32security.RevertToSelf() #terminates impersonation
+
+&#09self.handel.Close() #guarantees cleanup
+
+
+
+
+
+a=Impersonate('barney','bambam')
+
+
+
+try:
+
+    a.logon() #become the user
+
+    #do whatever here
+
+    print win32api.GetUserName() #show you're someone else
+
+    a.logoff() #return to normal
+
+except:
+
+    print sys.exc_type , sys.exc_value
+
+</PRE>
+
+Have a great time with programming with python! 
+
+<BR><P>
+
+<PRE>John Nielsen   nielsenjf@my-deja.com
+
+</PRE>
+
+</body>
+</html>

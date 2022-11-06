@@ -1,0 +1,56 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32net.NetSessionEnum</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32net.html">win32net</A>.NetSessionEnum</H1><P>
+
+(dict,...) = <B>NetSessionEnum(<I>level</I><I>, server</I>
+
+<I>, client</I>
+
+<I>, username</I>
+
+</B>)<P>Returns network sessions for a server, limited to single client and/or 
+
+user if specified.<P>
+
+<H3>Parameters</H3><P><DT><I>level</I> : int<P>
+
+<DD>Level of information requested, currently accepts 0, 1, 2, 10, and 502<P><DT><I>server=None</I> : string/<B>PyUnicode</B>
+
+<P>
+
+<DD>The name of the server for which to list sessions, local machine assumed 
+
+if None<P>
+
+<DT><I>client=None</I> : string/<B>PyUnicode</B>
+
+<P>
+
+<DD>Name of client computer, or None to list all computer sessions<P>
+
+<DT><I>username=None</I> : string/<B>PyUnicode</B>
+
+<P>
+
+<DD>User name, or None to list all connected users<P>
+
+<H3>Return Value</H3>Returns a sequence of dictionaries representing SESSION_INFO_* structs, depending on level specified<P>
+
+
+
+</body>
+</html>

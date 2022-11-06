@@ -1,0 +1,784 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32help.HtmlHelp</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32help.html">win32help</A>.HtmlHelp</H1><P>
+
+int = <B>HtmlHelp(<I>hwnd</I><I>, file</I>
+
+<I>, cmd</I>
+
+<I>, data</I>
+
+</B>)<P>Invokes the Windows Html Help system.<P>
+
+<H3>Parameters</H3><P><DT><I>hwnd</I> : int<P>
+
+<DD>The handle of the window requesting help.<P><DT><I>file</I> : string/None<P>
+
+<DD>The name of the help file, or None.<P><DT><I>cmd</I> : int<P>
+
+<DD>The type of help.  Valid values are:<BR> 
+
+<BR> 
+
+<B>HH_ALINK_LOOKUP</B>
+
+
+
+: Looks up one or more Associative link (ALink) names 
+
+in a compiled help (.chm) file.<BR> 
+
+The ALink names to search for, and the action to be taken if no matches 
+
+are found, are specified in the <A HREF="win32help__HH_AKLINK_meth.html">win32help::HH_AKLINK</A> structure.<BR> 
+
+<BR> 
+
+<B>file</B>
+
+
+
+: Specifies a compiled help (.chm) file, or a specific topic 
+
+within a compiled help file.<BR> 
+
+<B>data</B>
+
+
+
+: Specifies NULL or a pointer to a topic within a compiled help 
+
+file.<BR> 
+
+<BR> 
+
+<B>HH_CLOSE_ALL</B>
+
+
+
+: Closes all windows opened directly or indirectly by the 
+
+calling program.  The args are not checked for type, values are set as 
+
+they "Must" be.<BR> 
+
+<BR> 
+
+<B>hwnd</B>
+
+
+
+: Must be None.<BR> 
+
+<B>file</B>
+
+
+
+: Must be None.<BR> 
+
+<B>data</B>
+
+
+
+: Must be zero.<BR> 
+
+<BR> 
+
+<B>HH_DISPLAY_INDEX</B>
+
+
+
+: Selects the Index tab in the Navigation pane of the 
+
+HTML Help Viewer and searches for the keyword specified in the data 
+
+parameter.<BR> 
+
+<BR> 
+
+<B>file</B>
+
+
+
+: Specifies a compiled help (.chm) file, or a specific topic 
+
+within a compiled help file.<BR> 
+
+<B>data</B>
+
+
+
+: Specifies the keyword to select in the index (.hhk) file.<BR> 
+
+<BR> 
+
+<B>HH_DISPLAY_SEARCH</B>
+
+
+
+: Selects the Search tab in the Navigation pane of 
+
+the HTML Help Viewer and performs a search for the term specified in the 
+
+searchQuery parameter of the <A HREF="win32help__HH_FTS_QUERY_meth.html">win32help::HH_FTS_QUERY</A> structure.<BR> 
+
+<BR> 
+
+<B>file</B>
+
+
+
+: Specifies a compiled help (.chm) file, or a specific topic 
+
+within a compiled help file.<BR> 
+
+<B>data</B>
+
+
+
+: Specifies a pointer to an <A HREF="win32help__HH_FTS_QUERY_meth.html">win32help::HH_FTS_QUERY</A> 
+
+structure.<BR> 
+
+<BR> 
+
+<B>HH_DISPLAY_TEXT_POPUP</B>
+
+
+
+: Opens a pop-up window that displays the 
+
+contents of one of the following:<BR> 
+
+An explicit text string.<BR> 
+
+A text string based on a resource ID.<BR> 
+
+A text string ID based on a text file contained in a compiled help (.chm) 
+
+file.<BR> 
+
+<BR> 
+
+<B>file</B>
+
+
+
+: To use an explicit text string, use None.  To use a text 
+
+string from a resource, use None. To use text string from a text file 
+
+contained in a compiled help file, specify the .chm file and the text 
+
+file within the .chm file.<BR> 
+
+<B>data</B>
+
+
+
+: Specifies a pointer to an <A HREF="win32help__HH_POPUP_meth.html">win32help::HH_POPUP</A> structure. 
+
+<BR> 
+
+<BR> 
+
+<B>HH_DISPLAY_TOC</B>
+
+
+
+: Selects the Contents tab in the Navigation pane of 
+
+the HTML Help Viewer.<BR> 
+
+<BR> 
+
+<B>file</B>
+
+
+
+: Specifies a compiled help (.chm) file, or a specific topic 
+
+within a compiled help file.<BR> 
+
+<B>data</B>
+
+
+
+: Specifies None or a pointer to a topic within a compiled help 
+
+file.<BR> 
+
+<BR> 
+
+<B>HH_DISPLAY_TOPIC</B>
+
+
+
+: Opens a help topic in a specified help window.<BR> 
+
+If a window type is not specified, a default window type is used. If the 
+
+window type or default window type is open, the help topic replaces the 
+
+current topic in the window.<BR> 
+
+<BR> 
+
+<B>file</B>
+
+
+
+: Specifies a compiled help (.chm) file, or a specific topic 
+
+within a compiled help file. To specify a defined window type, insert a 
+
+greater-than (&gt) character followed by the name of the window type.<BR> 
+
+<B>data</B>
+
+
+
+: Specifies None or a pointer to a topic within a compiled help 
+
+file.<BR> 
+
+<BR> 
+
+<B>HH_GET_LAST_ERROR</B>
+
+
+
+: Returns information about the last error that 
+
+occurred in the HTML Help ActiveX control (Hhctrl.ocx).<BR> 
+
+<BR> 
+
+<B>file</B>
+
+
+
+: Must be None<BR> 
+
+<B>data</B>
+
+
+
+: A pointer to a HH_LAST_ERROR structure.<BR> 
+
+<BR> 
+
+<B>Has not been implemented by Microsoft yet</B>
+
+
+
+<BR> 
+
+<BR> 
+
+<B>HH_GET_WIN_HANDLE</B>
+
+
+
+: Returns the handle (hwnd) of a specified window 
+
+type.<BR> 
+
+<BR> 
+
+<B>file</B>
+
+
+
+: Specifies the name of the compiled help (.chm) file in which 
+
+the window type is defined.<BR> 
+
+<B>data</B>
+
+
+
+: Specifies the name of the window type whose handle you want to 
+
+return.<BR> 
+
+<BR> 
+
+<B>HH_GET_WIN_TYPE</B>
+
+
+
+: Retrieves a pointer to the <A HREF="win32help__HH_WINTYPE_meth.html">win32help::HH_WINTYPE</A> 
+
+structure associated with a specified window type.<BR> 
+
+<BR> 
+
+<B>file</B>
+
+
+
+: Specifies the name of the window type whose information you 
+
+want to get and the name of the compiled help (.chm) file in which the 
+
+window type is defined. The window name must begin with a greater-than (&gt) 
+
+character and must be preceded by the name of the compiled help file it 
+
+is defined in.<BR> 
+
+<B>data</B>
+
+
+
+: Ignored.<BR> 
+
+<BR> 
+
+<B>HH_HELP_CONTEXT</B>
+
+
+
+: Displays a help topic based on a mapped topic ID. 
+
+If a window type is not specified, a default window type is used. If the 
+
+window type or default window type is open, the help topic replaces the 
+
+current topic in the window.<BR> 
+
+<BR> 
+
+<B>file</B>
+
+
+
+: Specifies the compiled help (.chm) file that contains the 
+
+mapping information. To specify a defined window type, insert a 
+
+greater-than (&gt) character followed by the name of the window type.<BR> 
+
+<B>data</B>
+
+
+
+: Specifies the numeric ID of the topic to display. You must map 
+
+symbolic IDs of dialog boxes to numeric IDs in the [MAP] section of your 
+
+project (.hhp) file.<BR> 
+
+<BR> 
+
+<B>HH_INITIALIZE</B>
+
+
+
+: This command initializes the help system for use and 
+
+must be the first HTML Help command called. It returns a cookie which must 
+
+be used in the <B>HH_UNINITIALIZE</B>
+
+
+
+ call. HH_INITIALIZE configures HTML Help 
+
+to run on the same thread as the calling application instead of a 
+
+secondary thread by setting the global property <B>HH_GPROPID_SINGLETHREAD</B>
+
+
+
+ 
+
+to VARIANT_TRUE. Running HTML Help on the same thread as the calling 
+
+application requires the calling application to send messages to HTML Help 
+
+by calling the <B>HH_PRETRANSLATEMESSAGE</B>
+
+
+
+ command.<BR> 
+
+<BR> 
+
+<B>file</B>
+
+
+
+: Must be None.<BR> 
+
+<B>data</B>
+
+
+
+: Ignored.<BR> 
+
+<BR> 
+
+<B>HH_KEYWORD_LOOKUP</B>
+
+
+
+: Looks up one or more keywords in a compiled help 
+
+(.chm) file. The keywords to search for and the action to be taken if 
+
+no matches are found are specified in the <A HREF="win32help__HH_AKLINK_meth.html">win32help::HH_AKLINK</A> 
+
+structure.<BR> 
+
+<BR> 
+
+<B>file</B>
+
+
+
+: Specifies the compiled help (.chm) file that contains 
+
+keywords.<BR> 
+
+<B>data</B>
+
+
+
+: Points to an <A HREF="win32help__HH_AKLINK_meth.html">win32help::HH_AKLINK</A> structure.<BR> 
+
+<BR> 
+
+<B>HH_PRETRANSLATEMESSAGE</B>
+
+
+
+: This command is called in the message loop 
+
+of your Windows application to ensure proper handling of Windows 
+
+messages, especially keyboard messages when running HTML Help single 
+
+thread. The HTML Help API is not thread safe and must be called from one 
+
+and only one thread in a process.<BR> 
+
+<BR> 
+
+<B>file</B>
+
+
+
+ 
+
+<B>data</B>
+
+
+
+: Points to a Win32 MSG structure.<BR> 
+
+<BR> 
+
+<B>Has not been implemented yet</B>
+
+
+
+<BR> 
+
+<BR> 
+
+<B>HH_SET_WIN_TYPE</B>
+
+
+
+: Creates a new help window or modifies an existing 
+
+help window at run time.<BR> 
+
+<BR> 
+
+<B>file</B>
+
+
+
+: Specifies the name of the window type that you want to 
+
+create or modify and the name of the compiled help (.chm) file in which 
+
+the window type is defined. The window type name must begin with a 
+
+greater-than (&gt) character and must be preceded by the name of the 
+
+compiled help file in which it is defined.<BR> 
+
+<B>data</B>
+
+
+
+: Points to an <A HREF="win32help__HH_WINTYPE_meth.html">win32help::HH_WINTYPE</A> structure.<BR> 
+
+<BR> 
+
+<B>HH_SYNC</B>
+
+
+
+: Locates and selects the contents entry for the help topic 
+
+that is open in the Topic pane of the HTML Help Viewer.<BR> 
+
+<BR> 
+
+<B>file</B>
+
+
+
+: Specifies the name of the window type that you want to 
+
+sync and the name of the compiled help (.chm) file in which the window 
+
+type is defined. The window type name must begin with a greater-than (&gt) 
+
+character and must be preceded by the name of the compiled help file in 
+
+which it is defined.<BR> 
+
+<B>data</B>
+
+
+
+: Specifies a pointer to a topic within a compiled help file. 
+
+This value is the topic file to which the contents will synchronize.<BR> 
+
+<BR> 
+
+<B>HH_TP_HELP_CONTEXTMENU</B>
+
+
+
+: Opens a pop-up context menu. Generally used 
+
+in response to the Windows WM_CONTEXTMENU message. For example, this 
+
+message is sent when a user right-clicks a dialog box control.<BR> 
+
+<BR> 
+
+<B>hwnd</B>
+
+
+
+: Specifies the window handle of the dialog box control for 
+
+which you want pop-up help to appear. This is typically the control 
+
+that has focus. <BR> 
+
+<B>file</B>
+
+
+
+: Specifies the compiled help (.chm) file, and the text 
+
+file that contains the pop-up help topics. By default, the text file is 
+
+named Cshelp.txt. If Cshelp.txt is located in the root of the compiled 
+
+help file, then you only need to specify the help file name. If not, 
+
+you must also specify the relative path.<BR> 
+
+<B>data</B>
+
+
+
+: Specifies an array of DWORDs containing pairs of dialog 
+
+box control IDs and help topic IDs. The array must be terminated by zero, 
+
+as in the following example:<BR> 
+
+DWORD ids[3];<BR> 
+
+ids[0] = ControlId;<BR> 
+
+ids[1] = HelpId;<BR> 
+
+ids[2] = 0;<BR> 
+
+<BR> 
+
+<B>HH_TP_HELP_WM_HELP</B>
+
+
+
+: Opens a pop-up help topic. Generally used in 
+
+response to the Windows WM_HELP message. For example, this message is 
+
+sent when a user presses F1.<BR> 
+
+<BR> 
+
+<B>hwnd</B>
+
+
+
+: Specifies the window handle of the dialog box control for 
+
+which you want pop-up help to appear. This is typically the control that 
+
+has focus. <BR> 
+
+<B>file</B>
+
+
+
+: Specifies the compiled help (.chm) file, and the text file 
+
+that contains the pop-up help topics. By default, the text file is named 
+
+Cshelp.txt. If Cshelp.txt is located in the root of the compiled help 
+
+file, then you only need to specify the help file name. If not, you must 
+
+also specify the relative path.<BR> 
+
+<B>data</B>
+
+
+
+: Specifies an array of DWORDs containing pairs of dialog 
+
+box control IDs and help topic IDs. The array must be terminated by 0, 
+
+as in the following example:<BR> 
+
+DWORD ids[3];<BR> 
+
+ids[0] = ControlId;<BR> 
+
+ids[1] = HelpId;<BR> 
+
+ids[2] = 0;<BR> 
+
+<BR> 
+
+<B>HH_UNINITIALIZE</B>
+
+
+
+: This command is called to properly shut down HTML 
+
+Help. This function should be the last help command the application 
+
+calls. HH_UNINITIALIZE should not be called during DLL process detach, 
+
+but during the normal application shutdown process.  The type of the 
+
+file arg is not checked, just set to the value it "Must" be.<BR> 
+
+<BR> 
+
+<B>file</B>
+
+
+
+: Must be None.<BR> 
+
+<B>data</B>
+
+
+
+: Specifies a cookie. This is the cookie returned by 
+
+<B>HH_INITIALIZE</B>
+
+
+
+. <BR> 
+
+<BR><P><DT><I>data=0</I> : None/int/string/int tuple/<A HREF="win32help__HH_AKLINK_meth.html">win32help::HH_AKLINK</A>/ 
+
+<A HREF="win32help__HH_FTS_QUERY_meth.html">win32help::HH_FTS_QUERY</A>/<A HREF="win32help__HH_POPUP_meth.html">win32help::HH_POPUP</A>/ 
+
+<A HREF="win32help__HH_WINTYPE_meth.html">win32help::HH_WINTYPE</A><P>
+
+<DD>Additional data specific to the help call.<P>
+
+<H3>Win32 API References</H3><P><DT>Search for <i>HtmlHelp</i> at <a href="http://search.msdn.microsoft.com/search/results.aspx?view=msdn&query=HtmlHelp" target="_blank">msdn</a>, <a href="http://www.google.com/search?q=HtmlHelp" target="_blank">google</a> or <a href="http://groups.google.com/groups?q=HtmlHelp" target="_blank">google groups</a>.<P>
+
+<H3>Return Value</H3>Depending on the specified cmd and the result:<BR> 
+
+<BR> 
+
+<B>HH_GET_WIN_TYPE</B>
+
+
+
+:<BR> 
+
+tuple: (hwnd as below, and the <A HREF="win32help__HH_WINTYPE_meth.html">win32help::HH_WINTYPE</A> object).<BR> 
+
+Deep copy the structure to which dwData points before modifying the 
+
+structure.<BR> 
+
+<BR> 
+
+<B>HH_INITIALIZE</B>
+
+
+
+:<BR> 
+
+tuple: (hwnd as below, and the cookie).<BR> 
+
+This call returns a cookie that you must pass as the value of 
+
+data when you call <B>HH_UNINITIALIZE</B>
+
+
+
+.<BR> 
+
+<BR> 
+
+<BR> 
+
+<B>All other commands</B>
+
+
+
+:<BR> 
+
+<BR> 
+
+HtmlHelp() returns one or both of the following:<BR> 
+
+The handle (hwnd) of the help window.<BR> 
+
+NULL. In some cases, NULL indicates failure; in other cases, NULL 
+
+indicates that the help window has not yet been created.<P>
+
+
+
+</body>
+</html>

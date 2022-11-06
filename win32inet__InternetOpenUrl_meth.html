@@ -1,0 +1,58 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32inet.InternetOpenUrl</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32inet.html">win32inet</A>.InternetOpenUrl</H1><P>
+
+<A HREF="PyHINTERNET.html">PyHINTERNET</A> = <B>InternetOpenUrl(<I>Internet</I><I>, Url</I>
+
+<I>, Headers</I>
+
+<I>, Flags</I>
+
+<I>, Context</I>
+
+</B>)<P>Opens a resource specified by a 
+
+complete FTP, Gopher, or HTTP URL.<P>
+
+<H3>Parameters</H3><P><DT><I>Internet</I> : <A HREF="PyHINTERNET.html">PyHINTERNET</A><P>
+
+<DD>Internet handle as returned by <A HREF="win32inet__InternetOpen_meth.html">win32inet::InternetOpen</A><P><DT><I>Url</I> : string<P>
+
+<DD>A string that contains the URL to begin reading.  Only URLs beginning with ftp:, gopher:, http:, or https: are supported.<P><DT><I>Headers=None</I> : string<P>
+
+<DD>a string&#09variable that contains the headers to be sent to the HTTP server.<P>
+
+<DT><I>Flags=0</I> : int<P>
+
+<DD>INTERNET_FLAG_*<P>
+
+<DT><I>Context=None</I> : object<P>
+
+<DD>An arbitrary object to be passed to the status callback function<P>
+
+<H3>Comments</H3>
+
+Accepts keyword args.<P>
+
+<H3>Return Value</H3>Returns None in async mode (Internet handle created with INTERNET_FLAG_ASYNC). 
+
+When handle is created, it will be passed to callback function of parent handle.<P>
+
+
+
+</body>
+</html>

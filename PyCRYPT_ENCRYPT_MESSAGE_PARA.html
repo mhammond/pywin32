@@ -1,0 +1,78 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyCRYPT_ENCRYPT_MESSAGE_PARA</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<HR><H1>PyCRYPT_ENCRYPT_MESSAGE_PARA Object</H1><P>
+
+Dictionary of encryption parameters used with <B>cryptoapi::CryptEncryptMessage</B>
+
+
+
+<P>
+
+<H3>Properties</H3>
+
+<DL>
+
+<DT><B><A HREF="PyCRYPT_ALGORITHM_IDENTIFIER.html">PyCRYPT_ALGORITHM_IDENTIFIER</A> ContentEncryptionAlgorithm</B>
+
+<DD>Identifies the algorithm to be 
+
+used<P>
+
+
+
+<DT><B><A HREF="PyCRYPTPROV.html">PyCRYPTPROV</A> CryptProv</B>
+
+<DD>Optional. Handle to provider that will perform encryption, 
+
+can be None for default provider<P>
+
+
+
+<DT><B>object EncryptionAuxInfo</B>
+
+<DD>Optional. Extra info required by some CSP's.  Not supported 
+
+yet, use only None<P>
+
+
+
+<DT><B>int Flags</B>
+
+<DD>Optional.  Combination of CRYPT_MESSAGE_*_FLAG constants<P>
+
+
+
+<DT><B>int InnerContentType</B>
+
+<DD>Optional.  Only used if message to be encrypted 
+
+is already encoded<P>
+
+
+
+<DT><B>int MsgEncodingType</B>
+
+<DD>Optional.  Defaults to X509_ASN_ENCODING combined 
+
+with PKCS_7_ASN_ENCODING<P>
+
+
+
+</DL>
+
+</body>
+</html>

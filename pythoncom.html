@@ -1,0 +1,298 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>pythoncom</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1>Module pythoncom</H1><P>
+
+A module, encapsulating the OLE automation API<P>
+
+<H3>Methods</H3><P><DL><DT><A HREF="pythoncom___GetInterfaceCount_meth.html">_GetInterfaceCount</A><BR>
+
+<DD>Retrieves the number of interface objects currently in existance&nbsp;<P><DT><A HREF="pythoncom___GetInterfaceCount_meth.html">_GetInterfaceCount</A><BR>
+
+<DD>Retrieves the number of gateway objects currently in existance&nbsp;<P><DT><A HREF="pythoncom__CoCreateFreeThreadedMarshaler_meth.html">CoCreateFreeThreadedMarshaler</A><BR>
+
+<DD>Creates an aggregatable object capable of context-dependent 
+
+marshaling.&nbsp;<P><DT><A HREF="pythoncom__CoCreateInstanceEx_meth.html">CoCreateInstanceEx</A><BR>
+
+<DD>Create a new instance of an OLE automation server possibly on a remote machine. 
+
+MS_WINCE&nbsp;<P><DT><A HREF="pythoncom__CoCreateInstance_meth.html">CoCreateInstance</A><BR>
+
+<DD>Create a new instance of an OLE automation server.&nbsp;<P><DT><A HREF="pythoncom__CoFreeUnusedLibraries_meth.html">CoFreeUnusedLibraries</A><BR>
+
+<DD>Unloads any DLLs that are no longer in use and that, when loaded, were 
+
+specified to be freed automatically.&nbsp;<P><DT><A HREF="pythoncom__CoInitialize_meth.html">CoInitialize</A><BR>
+
+<DD>Initialize the COM libraries for the calling thread.&nbsp;<P><DT><A HREF="pythoncom__CoInitializeEx_meth.html">CoInitializeEx</A><BR>
+
+<DD>Initialize the COM libraries for the calling thread.&nbsp;<P><DT><A HREF="pythoncom__CoInitializeSecurity_meth.html">CoInitializeSecurity</A><BR>
+
+<DD>Registers security and sets the default security values.&nbsp;<P><DT><A HREF="pythoncom__CoGetInterfaceAndReleaseStream_meth.html">CoGetInterfaceAndReleaseStream</A><BR>
+
+<DD>Unmarshals a buffer containing an interface pointer and releases the 
+
+stream when an interface pointer has been marshaled from another thread to the calling thread.&nbsp;<P><DT><A HREF="pythoncom__CoMarshalInterThreadInterfaceInStream_meth.html">CoMarshalInterThreadInterfaceInStream</A><BR>
+
+<DD>Marshals an interface pointer from one thread to another 
+
+thread in the same process.&nbsp;<P><DT><A HREF="pythoncom__CoMarshalInterface_meth.html">CoMarshalInterface</A><BR>
+
+<DD>Marshals an interface into a stream&nbsp;<P><DT><A HREF="pythoncom__CoUnmarshalInterface_meth.html">CoUnmarshalInterface</A><BR>
+
+<DD>Unmarshals an interface&nbsp;<P><DT><A HREF="pythoncom__CoReleaseMarshalData_meth.html">CoReleaseMarshalData</A><BR>
+
+<DD>Frees resources used by a marshalled interface 
+
+MS_WINCE&nbsp;<P><DT><A HREF="pythoncom__CoGetObject_meth.html">CoGetObject</A><BR>
+
+<DD>Converts a display name into a moniker that identifies the object named, and then binds 
+
+to the object identified by the moniker.&nbsp;<P><DT><A HREF="pythoncom__CoUninitialize_meth.html">CoUninitialize</A><BR>
+
+<DD>Uninitialize the COM libraries.&nbsp;<P><DT><A HREF="pythoncom__CoRegisterClassObject_meth.html">CoRegisterClassObject</A><BR>
+
+<DD>Registers an EXE class object with OLE so other applications can connect to 
+
+it.&nbsp;<P><DT><A HREF="pythoncom__CoResumeClassObjects_meth.html">CoResumeClassObjects</A><BR>
+
+<DD>Called by a server that can register multiple class objects to inform the OLE 
+
+SCM about all registered classes, and permits activation requests for those class objects.&nbsp;<P><DT><A HREF="pythoncom__CoRevokeClassObject_meth.html">CoRevokeClassObject</A><BR>
+
+<DD>Informs OLE that a class object, previously registered with the <A HREF="pythoncom__CoRegisterClassObject_meth.html">pythoncom::CoRegisterClassObject</A> method, is no longer available for use.&nbsp;<P><DT><A HREF="pythoncom__CoTreatAsClass_meth.html">CoTreatAsClass</A><BR>
+
+<DD>Establishes or removes an emulation, in which objects of one class are treated as 
+
+objects of a different class.&nbsp;<P><DT><A HREF="pythoncom__CoWaitForMultipleHandles_meth.html">CoWaitForMultipleHandles</A><BR>
+
+<DD>Waits for specified handles to be signaled or for a specified timeout 
+
+period to elapse.&nbsp;<P><DT><A HREF="pythoncom__Connect_meth.html">Connect</A><BR>
+
+<DD>Connects to a running instance of an OLE automation server.&nbsp;<P><DT><A HREF="pythoncom__CreateGuid_meth.html">CreateGuid</A><BR>
+
+<DD>Creates a new, unique GUIID.&nbsp;<P><DT><A HREF="pythoncom__CreateBindCtx_meth.html">CreateBindCtx</A><BR>
+
+<DD>Obtains a <A HREF="PyIBindCtx.html">PyIBindCtx</A> object.&nbsp;<P><DT><A HREF="pythoncom__CreateFileMoniker_meth.html">CreateFileMoniker</A><BR>
+
+<DD>Creates a file moniker given a file name.&nbsp;<P><DT><A HREF="pythoncom__CreateItemMoniker_meth.html">CreateItemMoniker</A><BR>
+
+<DD>Creates an item moniker that identifies an object within a containing object 
+
+(typically a compound document).&nbsp;<P><DT><A HREF="pythoncom__CreatePointerMoniker_meth.html">CreatePointerMoniker</A><BR>
+
+<DD>Creates a pointer moniker based on a pointer to an object.&nbsp;<P><DT><A HREF="pythoncom__CreateURLMoniker_meth.html">CreateURLMoniker</A><BR>
+
+<DD>Create a URL moniker from a full url or partial url and base moniker&nbsp;<P><DT><A HREF="pythoncom__CreateTypeLib_meth.html">CreateTypeLib</A><BR>
+
+<DD>Provides access to a new object instance that supports the ICreateTypeLib interface.&nbsp;<P><DT><A HREF="pythoncom__CreateTypeLib2_meth.html">CreateTypeLib2</A><BR>
+
+<DD>Provides access to a new object instance 
+
+that supports the ICreateTypeLib2 interface. 
+
+MS_WINCE&nbsp;<P><DT><A HREF="pythoncom__CreateStreamOnHGlobal_meth.html">CreateStreamOnHGlobal</A><BR>
+
+<DD>Creates an in-memory stream storage object&nbsp;<P><DT><A HREF="pythoncom__CreateILockBytesOnHGlobal_meth.html">CreateILockBytesOnHGlobal</A><BR>
+
+<DD>Creates an ILockBytes interface based on global memory&nbsp;<P><DT><A HREF="pythoncom__EnableQuitMessage_meth.html">EnableQuitMessage</A><BR>
+
+<DD>Indicates the thread PythonCOM should post a WM_QUIT message to.&nbsp;<P><DT><A HREF="pythoncom__FUNCDESC_meth.html">FUNCDESC</A><BR>
+
+<DD>Returns a new <A HREF="FUNCDESC.html">FUNCDESC</A> object.&nbsp;<P><DT><A HREF="pythoncom__GetActiveObject_meth.html">GetActiveObject</A><BR>
+
+<DD>Retrieves an object representing a running object registered with OLE&nbsp;<P><DT><A HREF="pythoncom__GetClassFile_meth.html">GetClassFile</A><BR>
+
+<DD>Supplies the CLSID associated with the given filename. 
+
+MS_WINCE&nbsp;<P><DT><A HREF="pythoncom__GetFacilityString_meth.html">GetFacilityString</A><BR>
+
+<DD>Returns the facility string, given an OLE scode.&nbsp;<P><DT><A HREF="pythoncom__GetRecordFromGuids_meth.html">GetRecordFromGuids</A><BR>
+
+<DD>Creates a new record object from the given GUIDs&nbsp;<P><DT><A HREF="pythoncom__GetRecordFromTypeInfo_meth.html">GetRecordFromTypeInfo</A><BR>
+
+<DD>Creates a <B>PyRecord</B>
+
+ object from a <A HREF="PyITypeInfo.html">PyITypeInfo</A> interface&nbsp;<P><DT><A HREF="pythoncom__GetRunningObjectTable_meth.html">GetRunningObjectTable</A><BR>
+
+<DD>Obtains a <A HREF="PyIRunningObjectTable.html">PyIRunningObjectTable</A> object. 
+
+MS_WINCE&nbsp;<P><DT><A HREF="pythoncom__GetScodeString_meth.html">GetScodeString</A><BR>
+
+<DD>Returns the string for an OLE scode.&nbsp;<P><DT><A HREF="pythoncom__GetScodeRangeString_meth.html">GetScodeRangeString</A><BR>
+
+<DD>Returns the scode range string, given an OLE scode.&nbsp;<P><DT><A HREF="pythoncom__GetSeverityString_meth.html">GetSeverityString</A><BR>
+
+<DD>Returns the severity string, given an OLE scode.&nbsp;<P><DT><A HREF="pythoncom__IsGatewayRegistered_meth.html">IsGatewayRegistered</A><BR>
+
+<DD>Returns 1 if the given IID has a registered gateway object.&nbsp;<P><DT><A HREF="pythoncom__LoadRegTypeLib_meth.html">LoadRegTypeLib</A><BR>
+
+<DD>Loads a registered type library by CLSID&nbsp;<P><DT><A HREF="pythoncom__LoadTypeLib_meth.html">LoadTypeLib</A><BR>
+
+<DD>Loads a type library by name&nbsp;<P><DT><A HREF="pythoncom__MakePyFactory_meth.html">MakePyFactory</A><BR>
+
+<DD>Creates a new <A HREF="PyIClassFactory.html">PyIClassFactory</A> object wrapping a PythonCOM Class Factory object.&nbsp;<P><DT><A HREF="pythoncom__MkParseDisplayName_meth.html">MkParseDisplayName</A><BR>
+
+<DD>Parses a moniker display name into a moniker object. The inverse of 
+
+IMoniker::GetDisplayName. 
+
+MS_WINCE&nbsp;<P><DT><A HREF="pythoncom__New_meth.html">New</A><BR>
+
+<DD>Create a new instance of an OLE automation server.&nbsp;<P><DT><A HREF="pythoncom__ObjectFromAddress_meth.html">ObjectFromAddress</A><BR>
+
+<DD>Returns a COM object given its address in memory.&nbsp;<P><DT><A HREF="pythoncom__ObjectFromLresult_meth.html">ObjectFromLresult</A><BR>
+
+<DD>Retrieves a requested interface pointer for an object based on a previously 
+
+generated object reference.&nbsp;<P><DT><A HREF="pythoncom__OleInitialize_meth.html">OleInitialize</A><BR>
+
+<DD>&nbsp;<P><DT><A HREF="pythoncom__OleGetClipboard_meth.html">OleGetClipboard</A><BR>
+
+<DD>Retrieves a data object that you can use to access the contents of the clipboard.&nbsp;<P><DT><A HREF="pythoncom__OleFlushClipboard_meth.html">OleFlushClipboard</A><BR>
+
+<DD>Carries out the clipboard shutdown sequence. It also releases the IDataObject 
+
+pointer that was placed on the clipboard by the <A HREF="pythoncom__OleSetClipboard_meth.html">pythoncom::OleSetClipboard</A> function.&nbsp;<P><DT><A HREF="pythoncom__OleIsCurrentClipboard_meth.html">OleIsCurrentClipboard</A><BR>
+
+<DD>Determines whether the data object pointer previously placed on the clipboard 
+
+by the OleSetClipboard function is still on the clipboard.&nbsp;<P><DT><A HREF="pythoncom__OleSetClipboard_meth.html">OleSetClipboard</A><BR>
+
+<DD>Places a pointer to a specific data object onto the clipboard. This makes the data 
+
+object accessible to the OleGetClipboard function.&nbsp;<P><DT><A HREF="pythoncom__OleLoadFromStream_meth.html">OleLoadFromStream</A><BR>
+
+<DD>Load an object from an IStream.&nbsp;<P><DT><A HREF="pythoncom__OleSaveToStream_meth.html">OleSaveToStream</A><BR>
+
+<DD>Save an object to an IStream.&nbsp;<P><DT><A HREF="pythoncom__OleLoad_meth.html">OleLoad</A><BR>
+
+<DD>Loads into memory an object nested within a specified storage object.&nbsp;<P><DT><A HREF="pythoncom__ProgIDFromCLSID_meth.html">ProgIDFromCLSID</A><BR>
+
+<DD>Converts a CLSID string to a progID. 
+
+MS_WINCE&nbsp;<P><DT><A HREF="pythoncom__PumpWaitingMessages_meth.html">PumpWaitingMessages</A><BR>
+
+<DD>Pumps all waiting messages for the current thread.&nbsp;<P><DT><A HREF="pythoncom__PumpMessages_meth.html">PumpMessages</A><BR>
+
+<DD>Pumps all messages for the current thread until a WM_QUIT message.&nbsp;<P><DT><A HREF="pythoncom__QueryPathOfRegTypeLib_meth.html">QueryPathOfRegTypeLib</A><BR>
+
+<DD>Retrieves the path of a registered type library 
+
+MS_WINCE&nbsp;<P><DT><A HREF="pythoncom__ReadClassStg_meth.html">ReadClassStg</A><BR>
+
+<DD>Reads a CLSID from a storage object&nbsp;<P><DT><A HREF="pythoncom__ReadClassStm_meth.html">ReadClassStm</A><BR>
+
+<DD>Reads a CLSID from a <A HREF="PyIStream.html">PyIStream</A> object&nbsp;<P><DT><A HREF="pythoncom__RegisterTypeLib_meth.html">RegisterTypeLib</A><BR>
+
+<DD>Adds information about a type library to the system registry.&nbsp;<P><DT><A HREF="pythoncom__UnRegisterTypeLib_meth.html">UnRegisterTypeLib</A><BR>
+
+<DD>Removes a type library from the system registry.&nbsp;<P><DT><A HREF="pythoncom__RegisterActiveObject_meth.html">RegisterActiveObject</A><BR>
+
+<DD>Register an object as the active object for its class&nbsp;<P><DT><A HREF="pythoncom__RevokeActiveObject_meth.html">RevokeActiveObject</A><BR>
+
+<DD>Ends an object's status as active.&nbsp;<P><DT><A HREF="pythoncom__RegisterDragDrop_meth.html">RegisterDragDrop</A><BR>
+
+<DD>Registers the specified window as one that can be the target of an OLE 
+
+drag-and-drop operation.&nbsp;<P><DT><A HREF="pythoncom__RevokeDragDrop_meth.html">RevokeDragDrop</A><BR>
+
+<DD>Revokes the specified window as the target of an OLE drag-and-drop operation.&nbsp;<P><DT><A HREF="pythoncom__DoDragDrop_meth.html">DoDragDrop</A><BR>
+
+<DD>Carries out an OLE drag and drop operation. 
+
+MS_WINCE&nbsp;<P><DT><A HREF="pythoncom__StgCreateDocfile_meth.html">StgCreateDocfile</A><BR>
+
+<DD>Creates a new compound file storage object using the OLE-provided compound file 
+
+implementation for the <A HREF="PyIStorage.html">PyIStorage</A> interface.&nbsp;<P><DT><A HREF="pythoncom__StgCreateDocfileOnILockBytes_meth.html">StgCreateDocfileOnILockBytes</A><BR>
+
+<DD>Creates a new compound file storage object using the OLE-provided 
+
+compound file implementation for the <A HREF="PyIStorage.html">PyIStorage</A> interface.&nbsp;<P><DT><A HREF="pythoncom__StgOpenStorageOnILockBytes_meth.html">StgOpenStorageOnILockBytes</A><BR>
+
+<DD>Open an existing storage object that does not reside in a disk file, but 
+
+instead has an underlying <A HREF="PyILockBytes.html">PyILockBytes</A> byte array provided by the caller.&nbsp;<P><DT><A HREF="pythoncom__StgIsStorageFile_meth.html">StgIsStorageFile</A><BR>
+
+<DD>Indicates whether a particular disk file contains a storage object. 
+
+MS_WINCE&nbsp;<P><DT><A HREF="pythoncom__STGMEDIUM_meth.html">STGMEDIUM</A><BR>
+
+<DD>Creates a new <A HREF="PySTGMEDIUM.html">PySTGMEDIUM</A> object suitable for the <A HREF="PyIDataObject.html">PyIDataObject</A> interface.&nbsp;<P><DT><A HREF="pythoncom__StgOpenStorage_meth.html">StgOpenStorage</A><BR>
+
+<DD>Opens an existing root storage object in the file system.&nbsp;<P><DT><A HREF="pythoncom__StgOpenStorageEx_meth.html">StgOpenStorageEx</A><BR>
+
+<DD>Access IStorage and IPropertySetStorage interfaces for normal files&nbsp;<P><DT><A HREF="pythoncom__StgCreateStorageEx_meth.html">StgCreateStorageEx</A><BR>
+
+<DD>Creates a new structured storage file or property set&nbsp;<P><DT><A HREF="pythoncom__TYPEATTR_meth.html">TYPEATTR</A><BR>
+
+<DD>Returns a new <A HREF="TYPEATTR.html">TYPEATTR</A> object.&nbsp;<P><DT><A HREF="pythoncom__VARDESC_meth.html">VARDESC</A><BR>
+
+<DD>Returns a new <A HREF="VARDESC.html">VARDESC</A> object.&nbsp;<P><DT><A HREF="pythoncom__WrapObject_meth.html">WrapObject</A><BR>
+
+<DD>Wraps an object in a gateway.&nbsp;<P><DT><A HREF="pythoncom__WriteClassStg_meth.html">WriteClassStg</A><BR>
+
+<DD>Stores a CLSID from a storage object&nbsp;<P><DT><A HREF="pythoncom__WriteClassStm_meth.html">WriteClassStm</A><BR>
+
+<DD>Sets the CLSID of a stream&nbsp;<P><DT><A HREF="pythoncom__UnwrapObject_meth.html">UnwrapObject</A><BR>
+
+<DD>Unwraps a Python instance in a gateway object.&nbsp;<P><DT><A HREF="pythoncom__FmtIdToPropStgName_meth.html">FmtIdToPropStgName</A><BR>
+
+<DD>Convert a FMTID to its stream name&nbsp;<P><DT><A HREF="pythoncom__PropStgNameToFmtId_meth.html">PropStgNameToFmtId</A><BR>
+
+<DD>Convert property set name to FMTID&nbsp;<P><DT><A HREF="pythoncom__CoGetCallContext_meth.html">CoGetCallContext</A><BR>
+
+<DD>Creates interfaces used to access 
+
+client security settings and perform impersonation&nbsp;<P><DT><A HREF="pythoncom__CoGetObjectContext_meth.html">CoGetObjectContext</A><BR>
+
+<DD>Creates an interface to interact with the context of the current object&nbsp;<P><DT><A HREF="pythoncom__CoGetCancelObject_meth.html">CoGetCancelObject</A><BR>
+
+<DD>Retrieves an interface used to cancel a pending call&nbsp;<P><DT><A HREF="pythoncom__CoSetCancelObject_meth.html">CoSetCancelObject</A><BR>
+
+<DD>Sets or removes a <A HREF="PyICancelMethodCalls.html">PyICancelMethodCalls</A> interface to be used on the current 
+
+thread&nbsp;<P><DT><A HREF="pythoncom__CoEnableCallCancellation_meth.html">CoEnableCallCancellation</A><BR>
+
+<DD>Enables call cancellation for synchronous calls on the current 
+
+thread&nbsp;<P><DT><A HREF="pythoncom__CoDisableCallCancellation_meth.html">CoDisableCallCancellation</A><BR>
+
+<DD>Disables call cancellation for synchronous calls on the current 
+
+thread&nbsp;<P></DL><H3>Properties</H3>
+
+<DL>
+
+<DT><B>int frozen</B>
+
+<DD>1 if the host is a frozen program, else 0<P>
+
+
+
+<DT><B>int dcom</B>
+
+<DD>1 if the system is DCOM aware, else 0.  Only Win95 without DCOM extensions should return 0<P>
+
+
+
+</DL>
+
+</body>
+</html>

@@ -1,0 +1,122 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32api.RegSetValueEx</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32api.html">win32api</A>.RegSetValueEx</H1><P>
+
+<B>RegSetValueEx(<I>key</I><I>, valueName</I><I>, reserved</I><I>, type</I><I>, value</I></B>)<P>Stores data in the value field of an open registry key.<P>
+
+<H3>Parameters</H3><P><DT><I>key</I> : <A HREF="PyHKEY.html">PyHKEY</A>/int<P>
+
+<DD>An already open key, or any one of the following win32con 
+
+constants:<BR>HKEY_CLASSES_ROOT<BR>HKEY_CURRENT_USER<BR>HKEY_LOCAL_MACHINE<BR>HKEY_USERS<P><DT><I>valueName</I> : string<P>
+
+<DD>The name of the value to set. 
+
+If a value with this name is not already present in the key, the method adds it to the key. 
+
+<BR>If this parameter is None or an empty string and the type parameter is the win32api.REG_SZ type, this 
+
+function sets the same value the <A HREF="win32api__RegSetValue_meth.html">win32api::RegSetValue</A> method would set.<P><DT><I>reserved</I> : any<P>
+
+<DD>Place holder for reserved argument.  Zero will always be passed to the API function.<P><DT><I>type</I> : int<P>
+
+<DD>Type of data.<P><P><TABLE COLS=2 WIDTH="100%" CELLSPACING=15>
+
+<TR>
+
+   <TD>
+
+       <B>Value</B>
+
+   </TD>
+
+   <TD>
+
+       <B>Meaning</B>
+
+   </TD>
+
+</TR>
+
+<TR><TD><HR></TD><TD><HR></TD></TR>
+
+<TR><TD>REG_BINARY</TD><TD>Binary data in any form.</TD></TR>
+
+<TR><TD>REG_DWORD</TD><TD>A 32-bit number.</TD></TR>
+
+<TR><TD>REG_DWORD_LITTLE_ENDIAN</TD><TD>A 32-bit number in little-endian format. This is equivalent to REG_DWORD.<BR>In 
+
+little-endian format, a multi-byte value is stored in memory from the lowest byte (the little end) to the highest 
+
+byte. For example, the value 0x12345678 is stored as (0x78 0x56 0x34 0x12) in little-endian format.</TD></TR>
+
+<TR><TD>REG_QWORD</TD><TD>A 64-bit number.</TD></TR>
+
+<TR><TD>REG_QWORD_LITTLE_ENDIAN</TD><TD>A 64-bit number in little-endian format. This is equivalent to REG_QWORD.<BR>In 
+
+little-endian format, a multi-byte value is stored in memory from the lowest byte (the little end) to the highest 
+
+byte. For example, the value 0x12345678 is stored as (0x78 0x56 0x34 0x12) in little-endian format. Windows NT 
+
+and Windows 95 are designed to run on little-endian computer architectures. A user may connect to computers that 
+
+have big-endian architectures, such as some UNIX systems.</TD></TR>
+
+<TR><TD>REG_DWORD_BIG_ENDIAN</TD><TD>A 32-bit number in big-endian format. 
+
+In big-endian format, a multi-byte value is stored in memory from the highest byte (the big end) to the lowest 
+
+byte. For example, the value 0x12345678 is stored as (0x12 0x34 0x56 0x78) in big-endian format.</TD></TR>
+
+<TR><TD>REG_EXPAND_SZ</TD><TD>A null-terminated string that contains unexpanded references to environment variables (for 
+
+example, %PATH%). It will be a Unicode or ANSI string depending on whether you use the Unicode or ANSI functions.</TD></TR>
+
+<TR><TD>REG_LINK</TD><TD>A Unicode symbolic link.</TD></TR>
+
+<TR><TD>REG_MULTI_SZ</TD><TD>An array of null-terminated strings, terminated by two null characters.</TD></TR>
+
+<TR><TD>REG_NONE</TD><TD>No defined value type.</TD></TR>
+
+<TR><TD>REG_RESOURCE_LIST</TD><TD>A device-driver resource list.</TD></TR>
+
+<TR><TD>REG_SZ</TD><TD>A null-terminated string. It will be a Unicode or ANSI string depending on whether you use the 
+
+Unicode or ANSI functions</TD></TR>
+
+</TABLE><DT><I>value</I> : registry data<P>
+
+<DD>The value to be stored with the specified value name.<P><H3>Comments</H3>
+
+This method can also set additional value and type information for the specified key. 
+
+<BR>The key identified by the key parameter must have been opened with KEY_SET_VALUE access. 
+
+To open the key, use the <A HREF="win32api__RegCreateKeyEx_meth.html">win32api::RegCreateKeyEx</A> or <A HREF="win32api__RegOpenKeyEx_meth.html">win32api::RegOpenKeyEx</A> methods. 
+
+<BR>Value lengths are limited by available memory. 
+
+Long values (more than 2048 bytes) should be stored as files with the filenames stored in the configuration 
+
+registry. This helps the registry perform efficiently. <BR>The key identified by the key parameter must have been 
+
+opened with KEY_SET_VALUE access.<P>
+
+<H3>Win32 API References</H3><P><DT>Search for <i>RegSetValueEx</i> at <a href="http://search.msdn.microsoft.com/search/results.aspx?view=msdn&query=RegSetValueEx" target="_blank">msdn</a>, <a href="http://www.google.com/search?q=RegSetValueEx" target="_blank">google</a> or <a href="http://groups.google.com/groups?q=RegSetValueEx" target="_blank">google groups</a>.<P>
+
+</body>
+</html>

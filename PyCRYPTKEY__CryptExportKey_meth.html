@@ -1,0 +1,42 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyCRYPTKEY.CryptExportKey</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="PyCRYPTKEY.html">PyCRYPTKEY</A>.CryptExportKey</H1><P>
+
+str = <B>CryptExportKey(<I>ExpKey</I><I>, BlobType</I>
+
+<I>, Flags</I>
+
+</B>)<P>Exports key or key pair as an encrypted blob<P>
+
+<H3>Parameters</H3><P><DT><I>ExpKey</I> : <A HREF="PyCRYPTKEY.html">PyCRYPTKEY</A><P>
+
+<DD>Public key or session key of destination user.  Use None 
+
+if exporting a PUBLICKEYBLOB<P><DT><I>BlobType</I> : int<P>
+
+<DD>One of 
+
+OPAQUEKEYBLOB,PRIVATEKEYBLOB,PUBLICKEYBLOB,SIMPLEBLOB,PLAINTEXTKEYBLOB,SYMMETRICWRAPKEYBLOB<P><DT><I>Flags=0</I> : int<P>
+
+<DD>Combination of CRYPT_DESTROYKEY,CRYPT_SSL2_FALLBACK,CRYPT_OAEP or 0<P>
+
+<H3>Return Value</H3>Returns a binary blob that can be imported via <A HREF="PyCRYPTPROV__CryptImportKey_meth.html">PyCRYPTPROV::CryptImportKey</A><P>
+
+
+
+</body>
+</html>

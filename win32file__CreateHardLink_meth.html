@@ -1,0 +1,58 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32file.CreateHardLink</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32file.html">win32file</A>.CreateHardLink</H1><P>
+
+<B>CreateHardLink(<I>FileName</I><I>, ExistingFileName</I><I>, SecurityAttributes</I><I>, Transaction</I></B>)<P>Establishes an NTFS hard link between an existing file and a new file.<P>
+
+<H3>Parameters</H3><P><DT><I>FileName</I> : string<P>
+
+<DD>The name of the new directory entry to be created.<P><DT><I>ExistingFileName</I> : string<P>
+
+<DD>The name of the existing file to which the new link will point.<P><DT><I>SecurityAttributes=None</I> : <A HREF="PySECURITY_ATTRIBUTES.html">PySECURITY_ATTRIBUTES</A><P>
+
+<DD>Optional SECURITY_ATTRIBUTES object. MSDN describes this parameter as reserved, so use only None<P>
+
+<DT><I>Transaction=None</I> : <A HREF="PyHANDLE.html">PyHANDLE</A><P>
+
+<DD>Handle to a transaction, as returned by <A HREF="win32transaction__CreateTransaction_meth.html">win32transaction::CreateTransaction</A><P>
+
+<H3>Comments</H3>
+
+An NTFS hard link is similar to a POSIX hard link. 
+
+<BR>This function creates a second directory entry for an existing file, can be different name in 
+
+same directory or any name in a different directory. 
+
+Both file paths must be on the same NTFS volume.<BR>To remove the link, simply delete 
+
+it and the original file will still remain.<P>
+
+This method exists on Windows 2000 and later.  Otherwise NotImplementedError will be raised.<P>
+
+Accepts keyword args.<P>
+
+If the Transaction parameter is specified, CreateHardLinkTransacted will be called (requires Vista or later)<P>
+
+<H3>Example</H3>Usage<P>
+
+<PRE>CreateHardLink('h:\\dir\\newfilename.txt','h:\\otherdir\\existingfile.txt')
+
+</PRE>
+
+</body>
+</html>

@@ -1,0 +1,38 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32process.ExitProcess</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32process.html">win32process</A>.ExitProcess</H1><P>
+
+<B>ExitProcess(<I>exitCode</I></B>)<P>Ends a process and all its threads<P>
+
+<H3>Parameters</H3><P><DT><I>exitCode</I> : int<P>
+
+<DD>Specifies the exit code for the process, and for all threads that are terminated as a result of this call<P><H3>Comments</H3>
+
+ExitProcess is the preferred method of ending a process. This function provides 
+
+a clean process shutdown. This includes calling the entry-point function of all 
+
+attached dynamic-link libraries (DLLs) with a value indicating that the process 
+
+is detaching from the DLL. If a process terminates by calling 
+
+<A HREF="win32process__TerminateProcess_meth.html">win32process::TerminateProcess</A>, the DLLs that the process is attached to are 
+
+not notified of the process termination.<P>
+
+</body>
+</html>

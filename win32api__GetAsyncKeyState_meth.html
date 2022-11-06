@@ -1,0 +1,72 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32api.GetAsyncKeyState</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32api.html">win32api</A>.GetAsyncKeyState</H1><P>
+
+int = <B>GetAsyncKeyState(<I>key</I></B>)<P>Retrieves the status of the specified key.<P>
+
+<H3>Parameters</H3><P><DT><I>key</I> : int<P>
+
+<DD>Specifies one of 256 possible virtual-key codes.<P><H3>Comments</H3>
+
+An application can use the virtual-key code constants win32con.VK_SHIFT, 
+
+win32con.VK_CONTROL, and win32con.VK_MENU as values for the key parameter. 
+
+This gives the state of the SHIFT, CTRL, or ALT keys without distinguishing 
+
+between left and right. An application can also use the following virtual-key 
+
+code constants as values for key to distinguish between the left and 
+
+right instances of those keys: 
+
+<BR>win32con.VK_LSHIFT 
+
+<BR>win32con.VK_RSHIFT 
+
+<BR>win32con.VK_LCONTROL 
+
+<BR>win32con.VK_RCONTROL 
+
+<BR>win32con.VK_LMENU 
+
+<BR>win32con.VK_RMENU 
+
+<BR>The GetAsyncKeyState method works with mouse buttons. However, it checks on 
+
+the state of the physical mouse buttons, not on the logical mouse buttons that 
+
+the physical buttons are mapped to.<P>
+
+<H3>Win32 API References</H3><P><DT>Search for <i>GetAsyncKeyState</i> at <a href="http://search.msdn.microsoft.com/search/results.aspx?view=msdn&query=GetAsyncKeyState" target="_blank">msdn</a>, <a href="http://www.google.com/search?q=GetAsyncKeyState" target="_blank">google</a> or <a href="http://groups.google.com/groups?q=GetAsyncKeyState" target="_blank">google groups</a>.<P>
+
+<H3>Return Value</H3>The return value specifies whether the key was pressed since the last 
+
+call to GetAsyncKeyState, and whether the key is currently up or down. If 
+
+the most significant bit is set, the key is down, and if the least significant 
+
+bit is set, the key was pressed after the previous call to GetAsyncKeyState. 
+
+<BR>The return value is zero if a window in another thread or process currently has the 
+
+keyboard focus.<P>
+
+
+
+</body>
+</html>

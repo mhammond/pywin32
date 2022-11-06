@@ -1,0 +1,64 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32service.QueryServiceConfig</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32service.html">win32service</A>.QueryServiceConfig</H1><P>
+
+tuple = <B>QueryServiceConfig(<I>hService</I></B>)<P>Retrieves configuration parameters for a service<P>
+
+<H3>Parameters</H3><P><DT><I>hService</I> : <A HREF="PySC_HANDLE.html">PySC_HANDLE</A><P>
+
+<DD>Service handle as returned by <A HREF="win32service__OpenService_meth.html">win32service::OpenService</A><P><H3>Return Value</H3>Returns a tuple representing a QUERY_SERVICE_CONFIG struct:<P>
+
+
+
+<H3>Items</H3><P><DL><DT>[0] <I>int</I> : ServiceType<P>
+
+<DD>Combination of SERVICE_*_DRIVER or SERVICE_*_PROCESS constants<P></DL>
+
+<DL><DT>[1] <I>int</I> : StartType<P>
+
+<DD>One of SERVICE_*_START constants<P></DL>
+
+<DL><DT>[2] <I>int</I> : ErrorControl<P>
+
+<DD>One of SERVICE_ERROR_* constants<P></DL>
+
+<DL><DT>[3] <I>string</I> : BinaryPathName<P>
+
+<DD>Service's binary executable, can also contain command line args<P></DL>
+
+<DL><DT>[4] <I>string</I> : LoadOrderGroup<P>
+
+<DD>Loading group that service is a member of<P></DL>
+
+<DL><DT>[5] <I>int</I> : TagId<P>
+
+<DD>Order of service within its load order group<P></DL>
+
+<DL><DT>[6] <I>[string,...]</I> : Dependencies<P>
+
+<DD>Sequence of names of services on which this service depends<P></DL>
+
+<DL><DT>[7] <I>string</I> : ServiceStartName<P>
+
+<DD>Account name under which service will run<P></DL>
+
+<DL><DT>[8] <I>string</I> : DisplayName<P>
+
+<DD>Name of service<P></DL>
+
+</body>
+</html>

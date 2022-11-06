@@ -1,0 +1,56 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32clipboard.RegisterClipboardFormat</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32clipboard.html">win32clipboard</A>.RegisterClipboardFormat</H1><P>
+
+None = <B>RegisterClipboardFormat(<I>name</I></B>)<P>The 
+
+RegisterClipboardFormat function registers a new clipboard format. 
+
+This format can then be used as a valid clipboard format.<P>
+
+<H3>Parameters</H3><P><DT><I>name</I> : string<P>
+
+<DD>String that names the new format.<P><H3>Comments</H3>
+
+If a registered format with the specified name already exists, a 
+
+new format is not registered and the return value identifies the existing 
+
+format. This enables more than one application to copy and paste data 
+
+using the same registered clipboard format. Note that the format name 
+
+comparison is case-insensitive.<BR> 
+
+Registered clipboard formats are identified by values in the range 0xC000 
+
+through 0xFFFF.<P>
+
+<H3>Win32 API References</H3><P><DT>Search for <i>RegisterClipboardFormat</i> at <a href="http://search.msdn.microsoft.com/search/results.aspx?view=msdn&query=RegisterClipboardFormat" target="_blank">msdn</a>, <a href="http://www.google.com/search?q=RegisterClipboardFormat" target="_blank">google</a> or <a href="http://groups.google.com/groups?q=RegisterClipboardFormat" target="_blank">google groups</a>.<P>
+
+<H3>Return Value</H3>If the function succeeds, the return value identifies the 
+
+registered clipboard format. 
+
+If the function fails, win32api.error is raised with the GetLastError 
+
+info.<P>
+
+
+
+</body>
+</html>

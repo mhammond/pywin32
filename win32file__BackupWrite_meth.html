@@ -1,0 +1,48 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32file.BackupWrite</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32file.html">win32file</A>.BackupWrite</H1><P>
+
+(int,int) = <B>BackupWrite(<I>hFile</I><I>, NumberOfBytesToWrite</I>
+
+<I>, Buffer</I>
+
+<I>, bAbort</I>
+
+<I>, bProcessSecurity</I>
+
+<I>, lpContext</I>
+
+</B>)<P>Restores file data<P>
+
+<H3>Parameters</H3><P><DT><I>hFile</I> : <A HREF="PyHANDLE.html">PyHANDLE</A><P>
+
+<DD>File handle opened by CreateFile<P><DT><I>NumberOfBytesToWrite</I> : int<P>
+
+<DD>Length of data to be written to file<P><DT><I>Buffer</I> : string<P>
+
+<DD>A string or buffer object that contains the data to be written<P><DT><I>bAbort</I> : int<P>
+
+<DD>If true, ends write operation and frees backup context<P><DT><I>bProcessSecurity</I> : int<P>
+
+<DD>Indicates whether ACL's should be restored<P><DT><I>lpContext</I> : int<P>
+
+<DD>Pass 0 on first call, then pass back value returned from last call thereafter<P><H3>Comments</H3>
+
+Returns number of bytes written and context pointer for next operation<P>
+
+</body>
+</html>

@@ -1,0 +1,56 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32file.SetFilePointer</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32file.html">win32file</A>.SetFilePointer</H1><P>
+
+<B>SetFilePointer(<I>handle</I><I>, offset</I><I>, moveMethod</I></B>)<P>Moves the file pointer of an open file.<P>
+
+<H3>Parameters</H3><P><DT><I>handle</I> : <A HREF="PyHANDLE.html">PyHANDLE</A><P>
+
+<DD>The file to perform the operation on.<P><DT><I>offset</I> : <B>Py_LARGEINTEGER</B>
+
+<P>
+
+<DD>Offset to move the file pointer.<P><DT><I>moveMethod</I> : int<P>
+
+<DD>Starting point for the file pointer move. This parameter can be one of the following values.<P><P><TABLE COLS=2 WIDTH="100%" CELLSPACING=15>
+
+<TR>
+
+   <TD>
+
+       <B>Value</B>
+
+   </TD>
+
+   <TD>
+
+       <B>Meaning</B>
+
+   </TD>
+
+</TR>
+
+<TR><TD><HR></TD><TD><HR></TD></TR>
+
+<TR><TD>FILE_BEGIN</TD><TD>The starting point is zero or the beginning of the file.</TD></TR>
+
+<TR><TD>FILE_CURRENT</TD><TD>The starting point is the current value of the file pointer.</TD></TR>
+
+<TR><TD>FILE_END</TD><TD>The starting point is the current end-of-file position.</TD></TR>
+
+</TABLE></body>
+</html>

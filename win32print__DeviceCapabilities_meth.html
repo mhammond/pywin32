@@ -1,0 +1,86 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32print.DeviceCapabilities</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32print.html">win32print</A>.DeviceCapabilities</H1><P>
+
+<B>DeviceCapabilities(<I>Device</I><I>, Port</I><I>, Capability</I><I>, DEVMODE</I></B>)<P>Queries a printer for its capabilities<P>
+
+<H3>Parameters</H3><P><DT><I>Device</I> : string<P>
+
+<DD>Name of printer<P><DT><I>Port</I> : string<P>
+
+<DD>Port that printer is using<P><DT><I>Capability</I> : int<P>
+
+<DD>Type of capability to return - DC_* constant<P><DT><I>DEVMODE=None</I> : <B>PyDEVMODE</B>
+
+<P>
+
+<DD>If present, function returns values from it, otherwise the printer defaults 
+
+are used<P>
+
+<P><TABLE COLS=2 WIDTH="100%" CELLSPACING=15>
+
+<TR>
+
+   <TD>
+
+       <B>Capability</B>
+
+   </TD>
+
+   <TD>
+
+       <B>Returned value</B>
+
+   </TD>
+
+</TR>
+
+<TR><TD><HR></TD><TD><HR></TD></TR>
+
+<TR><TD>DC_MINEXTENT</TD><TD>Dictionary containing minimum paper width and height</TD></TR>
+
+<TR><TD>DC_MAXEXTENT</TD><TD>Dictionary containing maximum paper width and height</TD></TR>
+
+<TR><TD>DC_ENUMRESOLUTIONS</TD><TD>Sequence of dictionaries containing x and y resolutions in DPI</TD></TR>
+
+<TR><TD>DC_PAPERS</TD><TD>Returns a sequence of ints, DMPAPER_* constants</TD></TR>
+
+<TR><TD>DC_BINS</TD><TD>Returns a sequence of ints, DMBIN_* constants</TD></TR>
+
+<TR><TD>DC_NUP</TD><TD>Sequence of ints containing supported logical page per physical page settings</TD></TR>
+
+<TR><TD>DC_MEDIATYPES</TD><TD>Sequence of ints, DMMEDIA_* constants</TD></TR>
+
+<TR><TD>DC_PAPERNAMES</TD><TD>Sequence of strings</TD></TR>
+
+<TR><TD>DC_MEDIATYPENAMES</TD><TD>Sequence of strings</TD></TR>
+
+<TR><TD>DC_MEDIAREADY</TD><TD>Sequence of strings</TD></TR>
+
+<TR><TD>DC_FILEDEPENDENCIES</TD><TD>Sequence of strings</TD></TR>
+
+<TR><TD>DC_PERSONALITY</TD><TD>Sequence of strings</TD></TR>
+
+<TR><TD>DC_BINNAMES</TD><TD>Sequence of strings</TD></TR>
+
+<TR><TD>DC_PAPERSIZE</TD><TD>Sequence of dicts containing paper sizes, in 1/10 millimeter units</TD></TR>
+
+<TR><TD>All others</TD><TD>Output is an int</TD></TR>
+
+</TABLE></body>
+</html>

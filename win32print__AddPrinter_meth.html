@@ -1,0 +1,40 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32print.AddPrinter</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32print.html">win32print</A>.AddPrinter</H1><P>
+
+<A HREF="PyPrinterHANDLE.html">PyPrinterHANDLE</A> = <B>AddPrinter(<I>Name</I><I>, Level</I>
+
+<I>, pPrinter</I>
+
+</B>)<P>Installs a printer on a server<P>
+
+<H3>Parameters</H3><P><DT><I>Name</I> : string<P>
+
+<DD>Name of server on which to install printer, None indicates local machine<P><DT><I>Level</I> : int<P>
+
+<DD>Level of data contained in pPrinter, only level 2 currently supported<P><DT><I>pPrinter</I> : dict<P>
+
+<DD>PRINTER_INFO_2 dict as returned by <A HREF="win32print__GetPrinter_meth.html">win32print::GetPrinter</A><P><H3>Comments</H3>
+
+pPrinterName, pPortName, pDriverName, and pPrintProcessor are required<P>
+
+<H3>Return Value</H3>Returns a handle to the new printer<P>
+
+
+
+</body>
+</html>

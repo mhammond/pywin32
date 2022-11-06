@@ -1,0 +1,84 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyPROFILEINFO</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<HR><H1>PyPROFILEINFO Object</H1><P>
+
+Dictionary containing data to fill a PROFILEINFO struct, to be passed to <A HREF="win32profile__LoadUserProfile_meth.html">win32profile::LoadUserProfile</A>. UserName is only required member.<P>
+
+<H3>Win32 API References</H3><P><DT>Search for <i>PROFILEINFO</i> at <a href="http://search.msdn.microsoft.com/search/results.aspx?view=msdn&query=PROFILEINFO" target="_blank">msdn</a>, <a href="http://www.google.com/search?q=PROFILEINFO" target="_blank">google</a> or <a href="http://groups.google.com/groups?q=PROFILEINFO" target="_blank">google groups</a>.<P>
+
+<H3>Properties</H3>
+
+<DL>
+
+<DT><B><B>PyUnicode</B>
+
+ UserName</B>
+
+<DD>Name of user for which to load profile<P>
+
+
+
+<DT><B>int Flags</B>
+
+<DD>Combination of PI_* flags<P>
+
+
+
+<DT><B><B>PyUnicode</B>
+
+ ProfilePath</B>
+
+<DD>Path to roaming profile, can be None.  Use <A HREF="win32net__NetUserGetInfo_meth.html">win32net::NetUserGetInfo</A> to retrieve 
+
+user's profile path<P>
+
+
+
+<DT><B><B>PyUnicode</B>
+
+ DefaultPath</B>
+
+<DD>Path to Default user profile, can be None<P>
+
+
+
+<DT><B><B>PyUnicode</B>
+
+ ServerName</B>
+
+<DD>Domain controller, can be None<P>
+
+
+
+<DT><B><B>PyUnicode</B>
+
+ PolicyPath</B>
+
+<DD>Location of policy file, can be None<P>
+
+
+
+<DT><B><A HREF="PyHKEY.html">PyHKEY</A> Profile</B>
+
+<DD>Handle to root of user's registry key. This member is output.<P>
+
+
+
+</DL>
+
+</body>
+</html>

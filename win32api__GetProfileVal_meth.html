@@ -1,0 +1,60 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32api.GetProfileVal</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32api.html">win32api</A>.GetProfileVal</H1><P>
+
+int/string = <B>GetProfileVal(<I>section</I><I>, entry</I>
+
+<I>, defValue</I>
+
+<I>, iniName</I>
+
+</B>)<P>Retrieves entries from a windows INI file.  This method encapsulates 
+
+GetProfileString, GetProfileInt, GetPrivateProfileString and GetPrivateProfileInt.<P>
+
+<H3>Parameters</H3><P><DT><I>section</I> : string<P>
+
+<DD>The section in the INI file to retrieve a value for.<P><DT><I>entry</I> : string<P>
+
+<DD>The entry within the section in the INI file to retrieve a value for.<P><DT><I>defValue</I> : int/string<P>
+
+<DD>The default value.  The type of this parameter determines the 
+
+methods return type.<P><DT><I>iniName=None</I> : string<P>
+
+<DD>The name of the INI file.  If None, the system INI file is 
+
+used.<P>
+
+<H3>Comments</H3>
+
+This function is obsolete, applications should use the registry instead.<P>
+
+<H3>Win32 API References</H3><P><DT>Search for <i>GetProfileString</i> at <a href="http://search.msdn.microsoft.com/search/results.aspx?view=msdn&query=GetProfileString" target="_blank">msdn</a>, <a href="http://www.google.com/search?q=GetProfileString" target="_blank">google</a> or <a href="http://groups.google.com/groups?q=GetProfileString" target="_blank">google groups</a>.<P>
+
+<DT>Search for <i>GetProfileInt</i> at <a href="http://search.msdn.microsoft.com/search/results.aspx?view=msdn&query=GetProfileInt" target="_blank">msdn</a>, <a href="http://www.google.com/search?q=GetProfileInt" target="_blank">google</a> or <a href="http://groups.google.com/groups?q=GetProfileInt" target="_blank">google groups</a>.<P>
+
+<DT>Search for <i>GetPrivateProfileString</i> at <a href="http://search.msdn.microsoft.com/search/results.aspx?view=msdn&query=GetPrivateProfileString" target="_blank">msdn</a>, <a href="http://www.google.com/search?q=GetPrivateProfileString" target="_blank">google</a> or <a href="http://groups.google.com/groups?q=GetPrivateProfileString" target="_blank">google groups</a>.<P>
+
+<DT>Search for <i>GetPrivateProfileInt</i> at <a href="http://search.msdn.microsoft.com/search/results.aspx?view=msdn&query=GetPrivateProfileInt" target="_blank">msdn</a>, <a href="http://www.google.com/search?q=GetPrivateProfileInt" target="_blank">google</a> or <a href="http://groups.google.com/groups?q=GetPrivateProfileInt" target="_blank">google groups</a>.<P>
+
+<H3>Return Value</H3>The return value is the same type as the default parameter.<P>
+
+
+
+</body>
+</html>

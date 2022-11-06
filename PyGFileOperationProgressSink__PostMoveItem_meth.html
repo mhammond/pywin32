@@ -1,0 +1,34 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyGFileOperationProgressSink.PostMoveItem</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="PyGFileOperationProgressSink.html">PyGFileOperationProgressSink</A>.PostMoveItem</H1><P>
+
+<B>PostMoveItem(<I>Flags</I><I>, Item</I><I>, DestinationFolder</I><I>, NewName</I><I>, hrMove</I><I>, NewlyCreated</I></B>)<P>Called after each move operation<P>
+
+<H3>Parameters</H3><P><DT><I>Flags</I> : int<P>
+
+<DD>Flags specifying move behaviour, combination of shellcon.TSF_* flags<P><DT><I>Item</I> : <A HREF="PyIShellItem.html">PyIShellItem</A><P>
+
+<DD>Interface of the item before it was moved<P><DT><I>DestinationFolder</I> : <A HREF="PyIShellItem.html">PyIShellItem</A><P>
+
+<DD>The folder into which it was moved<P><DT><I>NewName</I> : str<P>
+
+<DD>Name of item in its new location, may be mangled in case of conflict<P><DT><I>hrMove</I> : int<P>
+
+<DD>HRESULT of the move operation<P><DT><I>NewlyCreated</I> : <A HREF="PyIShellItem.html">PyIShellItem</A><P>
+
+<DD>Shell interface of the item in its new location<P></body>
+</html>

@@ -1,0 +1,48 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyIID</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<HR><H1>PyIID Object</H1><P>
+
+A Python object, representing an IID/CLSID. 
+
+<BR>All pythoncom functions that return a CLSID/IID will return one of these 
+
+objects.  However, in almost all cases, functions that expect a CLSID/IID 
+
+as a param will accept either a string object, or a native PyIID object.<P>
+
+<H3>Methods</H3><P><DL><DT><A HREF="PyIID____repr___meth.html">__repr__</A><BR>
+
+<DD>Used whenever a repr() is called for the object 
+
+tp_repr&nbsp;<P><DT><A HREF="PyIID____hash___meth.html">__hash__</A><BR>
+
+<DD>Used when the hash value of an IID object is required 
+
+tp_hash&nbsp;<P><DT><A HREF="PyIID____str___meth.html">__str__</A><BR>
+
+<DD>Used whenever a string representation of the IID is required. 
+
+tp_str&nbsp;<P></DL>
+
+<H3>Comments</H3>
+
+Note that IID objects support the buffer interface.  Thus buffer(iid) can be used to obtain the raw bytes. 
+
+tp_as_buffer<P>
+
+</body>
+</html>

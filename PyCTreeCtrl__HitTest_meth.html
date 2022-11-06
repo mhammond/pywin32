@@ -1,0 +1,74 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyCTreeCtrl.HitTest</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="PyCTreeCtrl.html">PyCTreeCtrl</A>.HitTest</H1><P>
+
+(int, int) = <B>HitTest(<I>x,y</I></B>)<P>Determines which tree view item, if any, is at a specified position.<P>
+
+<H3>Parameters</H3><P><DT><I>x,y</I> : point<P>
+
+<DD>The point to test.<P><H3>Return Value</H3>The result is a tuple of (flags, hItem). 
+
+flags may be a combination of the following values:<P>
+
+
+
+<P><TABLE COLS=2 WIDTH="100%" CELLSPACING=15>
+
+<TR>
+
+   <TD>
+
+       <B>Value</B>
+
+   </TD>
+
+   <TD>
+
+       <B>Description</B>
+
+   </TD>
+
+</TR>
+
+<TR><TD><HR></TD><TD><HR></TD></TR>
+
+<TR><TD>commctrl.TVHT_ABOVE</TD><TD>Above the client area.</TD></TR>
+
+<TR><TD>commctrl.TVHT_BELOW</TD><TD>Below the client area.</TD></TR>
+
+<TR><TD>commctrl.TVHT_NOWHERE</TD><TD>In the client area, but below the last item.</TD></TR>
+
+<TR><TD>commctrl.TVHT_ONITEM</TD><TD>On the bitmap or label associated with an item.</TD></TR>
+
+<TR><TD>commctrl.TVHT_ONITEMBUTTON</TD><TD>On the button associated with an item.</TD></TR>
+
+<TR><TD>commctrl.TVHT_ONITEMICON</TD><TD>On the bitmap associated with an item.</TD></TR>
+
+<TR><TD>commctrl.TVHT_ONITEMINDENT</TD><TD>In the indentation associated with an item.</TD></TR>
+
+<TR><TD>commctrl.TVHT_ONITEMLABEL</TD><TD>On the label (string) associated with an item.</TD></TR>
+
+<TR><TD>commctrl.TVHT_ONITEMRIGHT</TD><TD>In the area to the right of an item.</TD></TR>
+
+<TR><TD>commctrl.TVHT_ONITEMSTATEICON</TD><TD>On the state icon for a tree view item that is in a user-defined state.</TD></TR>
+
+<TR><TD>commctrl.TVHT_TOLEFT</TD><TD>To the left of the client area.</TD></TR>
+
+<TR><TD>commctrl.TVHT_TORIGHT</TD><TD>To the right of the client area.</TD></TR>
+
+</TABLE></body>
+</html>

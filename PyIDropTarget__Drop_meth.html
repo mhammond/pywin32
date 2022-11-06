@@ -1,0 +1,40 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyIDropTarget.Drop</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="PyIDropTarget.html">PyIDropTarget</A>.Drop</H1><P>
+
+int = <B>Drop(<I>pDataObj</I><I>, grfKeyState</I>
+
+<I>, pt</I>
+
+<I>, dwEffect</I>
+
+</B>)<P>Called when the object is dropped onto the window<P>
+
+<H3>Parameters</H3><P><DT><I>pDataObj</I> : <A HREF="PyIDataObject.html">PyIDataObject</A><P>
+
+<DD>IDataObject interface containing the dropped object<P><DT><I>grfKeyState</I> : int<P>
+
+<DD>Combination of win32con.MK_* flags containing keyboard modifier state<P><DT><I>pt</I> : (int, int)<P>
+
+<DD>(x,y) Screen coordinates of cursor<P><DT><I>dwEffect</I> : int<P>
+
+<DD>shellcon.DROPEFFECT_* value<P><H3>Return Value</H3>Your implementation of this function should return one of the shellcon.DROPEFFECT_* values<P>
+
+
+
+</body>
+</html>

@@ -1,0 +1,142 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyDSBUFFERDESC</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<HR><H1>PyDSBUFFERDESC Object</H1><P>
+
+A Python object, representing a DSBUFFERDESC structure<P>
+
+<H3>Properties</H3>
+
+<DL>
+
+<DT><B>integer dwFlags</B>
+
+<DD>Identifies the capabilities to include when creating a new DirectSoundBuffer object. 
+
+Specify one or more of the following:<P>
+
+
+
+<P><TABLE COLS=2 WIDTH="100%" CELLSPACING=15>
+
+<TR>
+
+   <TD>
+
+       <B>Flag</B>
+
+   </TD>
+
+   <TD>
+
+       <B>Description</B>
+
+   </TD>
+
+</TR>
+
+<TR><TD><HR></TD><TD><HR></TD></TR>
+
+<TR><TD>DSBCAPS_PRIMARYBUFFER</TD><TD>Indicates that the buffer is a primary sound buffer. If this value is not specified, 
+
+a secondary sound buffer will be created.</TD></TR>
+
+<TR><TD>DSBCAPS_STATIC</TD><TD>Indicates that the buffer will be used for static sound data. Typically, these buffers are 
+
+loaded once and played many times. These buffers are candidates for hardware memory.</TD></TR>
+
+<TR><TD>DSBCAPS_LOCHARDWARE</TD><TD>The buffer is in hardware memory and uses hardware mixing.</TD></TR>
+
+<TR><TD>DSBCAPS_LOCSOFTWARE</TD><TD>The buffer is in software memory and uses software mixing.</TD></TR>
+
+<TR><TD>DSBCAPS_CTRL3D</TD><TD>The buffer is either a primary buffer or a secondary buffer that uses 3-D control. To create 
+
+a primary buffer, the dwFlags member of the DSBUFFERDESC structure should include the DSBCAPS_PRIMARYBUFFER flag.</TD></TR>
+
+<TR><TD>DSBCAPS_CTRLFREQUENCY</TD><TD>The buffer must have frequency control capability.</TD></TR>
+
+<TR><TD>DSBCAPS_CTRLPAN</TD><TD>The buffer must have pan control capability.</TD></TR>
+
+<TR><TD>DSBCAPS_CTRLVOLUME</TD><TD>The buffer must have volume control capability.</TD></TR>
+
+<TR><TD>DSBCAPS_CTRLPOSITIONNOTIFY</TD><TD>The buffer must have control position notify capability.</TD></TR>
+
+<TR><TD>DSBCAPS_STICKYFOCUS</TD><TD>Changes the focus behavior of the sound buffer. This flag can be specified in an 
+
+IDirectSound::CreateSoundBuffer call. With this flag set, an application using DirectSound can continue to play 
+
+its sticky focus buffers if the user switches to another application not using DirectSound. In this situation, 
+
+the application's normal buffers are muted, but the sticky focus buffers are still audible. This is useful for 
+
+nongame applications, such as movie playback (DirectShow&#153), when the user wants to hear the soundtrack while 
+
+typing in Microsoft Word or Microsoft&#174 Excel, for example. However, if the user switches to another DirectSound 
+
+application, all sound buffers, both normal and sticky focus, in the previous application are muted.</TD></TR>
+
+<TR><TD>DSBCAPS_GLOBALFOCUS</TD><TD>The buffer is a global sound buffer. With this flag set, an application using 
+
+DirectSound can continue to play its buffers if the user switches focus to another application, even if the new 
+
+application uses DirectSound. The one exception is if you switch focus to a DirectSound application that uses the 
+
+DSSCL_EXCLUSIVE or DSSCL_WRITEPRIMARY flag for its cooperative level. In this case, the global sounds from other 
+
+applications will not be audible.</TD></TR>
+
+<TR><TD>DSBCAPS_GETCURRENTPOSITION2</TD><TD>Indicates that IDirectSoundBuffer::GetCurrentPosition should use the new 
+
+behavior of the play cursor. In DirectSound in DirectX 1, the play cursor was significantly ahead of the actual 
+
+playing sound on emulated sound cards; it was directly behind the write cursor. Now, if the 
+
+DSBCAPS_GETCURRENTPOSITION2 flag is specified, the application can get a more accurate play position. If this 
+
+flag is not specified, the old behavior is preserved for compatibility. Note that this flag affects only emulated 
+
+sound cards; if a DirectSound driver is present, the play cursor is accurate for DirectSound in all versions of 
+
+DirectX.</TD></TR>
+
+<TR><TD>DSBCAPS_MUTE3DATMAXDISTANCE</TD><TD>The sound is reduced to silence at the maximum distance. The buffer will stop 
+
+playing when the maximum distance is exceeded, so that processor time is not wasted.</TD></TR>
+
+</TABLE><DT><B>integer dwBufferBytes</B>
+
+<DD>Size of the new buffer, in bytes. This value must be 0 when creating primary buffers. 
+
+For secondary buffers, the minimum and maximum sizes allowed are specified by DSBSIZE_MIN and DSBSIZE_MAX.<P>
+
+
+
+<DT><B>WAVEFORMATEX lpwfxFormat</B>
+
+<DD>Structure specifying the waveform format for the buffer. This value must be None 
+
+for primary buffers. The application can use IDirectSoundBuffer::SetFormat to set the format of the primary 
+
+buffer. 
+
+Sentinel<P>
+
+
+
+</DL>
+
+</body>
+</html>

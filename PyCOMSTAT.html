@@ -1,0 +1,112 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyCOMSTAT</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<HR><H1>PyCOMSTAT Object</H1><P>
+
+A Python object, representing an COMSTAT structure<P>
+
+<H3>Properties</H3>
+
+<DL>
+
+<DT><B>integer cbInQue</B>
+
+<DD>Specifies the number of bytes received by the serial provider 
+
+but not yet read by a <A HREF="win32file__ReadFile_meth.html">win32file::ReadFile</A> operation<P>
+
+
+
+<DT><B>integer cbOutQue</B>
+
+<DD>Specifies the number of bytes of user data 
+
+remaining to be transmitted for all write operations. This value 
+
+will be zero for a nonoverlapped write.<P>
+
+
+
+<DT><B>integer fCtsHold</B>
+
+<DD>Specifies whether transmission is waiting for the CTS (clear-to-send) signal to be sent. If 
+
+this member is TRUE, transmission is waiting.<P>
+
+
+
+<DT><B>integer fDsrHold</B>
+
+<DD>Specifies whether transmission is waiting for the DSR (data-set-ready) signal to be sent. If 
+
+this member is TRUE, transmission is waiting.<P>
+
+
+
+<DT><B>integer fRlsdHold</B>
+
+<DD>Specifies whether transmission is waiting for the RLSD (receive-line-signal-detect) signal to 
+
+be sent. If this member is TRUE, transmission is waiting.<P>
+
+
+
+<DT><B>integer fXoffHold</B>
+
+<DD>Specifies whether transmission is waiting because the XOFF character was received. If this 
+
+member is TRUE, transmission is waiting.<P>
+
+
+
+<DT><B>integer fXoffSent</B>
+
+<DD>Specifies whether transmission is waiting because the XOFF character was transmitted. If this 
+
+member is TRUE, transmission is waiting. Transmission halts when the XOFF character is transmitted to a system that 
+
+takes the next character as XON, regardless of the actual character.<P>
+
+
+
+<DT><B>integer fEof</B>
+
+<DD>Specifies whether the end-of-file (EOF) character has been received. If this member is TRUE, the 
+
+EOF character has been received.<P>
+
+
+
+<DT><B>integer fTxim</B>
+
+<DD>If this member is TRUE, there is a character queued for transmission that has come to the 
+
+communications device by way of the TransmitCommChar function. The communications device transmits such a character 
+
+ahead of other characters in the device's output buffer.<P>
+
+
+
+<DT><B>integer fReserved</B>
+
+<DD>Reserved; do not use.<P>
+
+
+
+</DL>
+
+</body>
+</html>

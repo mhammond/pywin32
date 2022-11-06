@@ -1,0 +1,50 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32api.RegLoadKey</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32api.html">win32api</A>.RegLoadKey</H1><P>
+
+<B>RegLoadKey(<I>key</I><I>, subKey</I><I>, filename</I></B>)<P>The RegLoadKey method creates a subkey under HKEY_USER or HKEY_LOCAL_MACHINE 
+
+and stores registration information from a specified file into that subkey.<P>
+
+<H3>Parameters</H3><P><DT><I>key</I> : <A HREF="PyHKEY.html">PyHKEY</A>/int<P>
+
+<DD>An already open key, or any one of the following win32con 
+
+constants:<BR>HKEY_CLASSES_ROOT<BR>HKEY_CURRENT_USER<BR>HKEY_LOCAL_MACHINE<BR>HKEY_USERS<P><DT><I>subKey</I> : string<P>
+
+<DD>The name of the key to delete. 
+
+This key must be a subkey of the key identified by the key parameter. 
+
+This value must not be None, and the key may not have subkeys.<P><DT><I>filename</I> : string<P>
+
+<DD>The name of the file to load registry data from. 
+
+This file must have been created with the <A HREF="win32api__RegSaveKey_meth.html">win32api::RegSaveKey</A> function. 
+
+Under the file allocation table (FAT) file system, the filename may not have an extension.<P><H3>Comments</H3>
+
+A call to RegLoadKey fails if the calling process does not have the SE_RESTORE_PRIVILEGE privilege. 
+
+<BR>If hkey is a handle returned by <A HREF="win32api__RegConnectRegistry_meth.html">win32api::RegConnectRegistry</A>, then the path specified in fileName is 
+
+relative to the remote computer.<P>
+
+<H3>Win32 API References</H3><P><DT>Search for <i>RegLoadKey</i> at <a href="http://search.msdn.microsoft.com/search/results.aspx?view=msdn&query=RegLoadKey" target="_blank">msdn</a>, <a href="http://www.google.com/search?q=RegLoadKey" target="_blank">google</a> or <a href="http://groups.google.com/groups?q=RegLoadKey" target="_blank">google groups</a>.<P>
+
+</body>
+</html>

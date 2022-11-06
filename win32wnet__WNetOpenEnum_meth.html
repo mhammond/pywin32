@@ -1,0 +1,48 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32wnet.WNetOpenEnum</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32wnet.html">win32wnet</A>.WNetOpenEnum</H1><P>
+
+<A HREF="PyHANDLE.html">PyHANDLE</A> = <B>WNetOpenEnum(<I>scope</I><I>, type</I>
+
+<I>, usage</I>
+
+<I>, resource</I>
+
+</B>)<P>Opens an Enumeration Handle for Enumerating Resources with <A HREF="win32wnet__WNetEnumResource_meth.html">win32wnet::WNetEnumResource</A><P>
+
+<H3>Parameters</H3><P><DT><I>scope</I> : int<P>
+
+<DD>Specifies the scope of the enumeration.<P><DT><I>type</I> : int<P>
+
+<DD>Specifies the resource types to enumerate.<P><DT><I>usage</I> : int<P>
+
+<DD>Specifies the resource usage to be enumerated.<P><DT><I>resource</I> : <A HREF="PyNETRESOURCE.html">PyNETRESOURCE</A><P>
+
+<DD>Python NETRESOURCE object.<P><H3>Comments</H3>
+
+See the Microsoft SDK  for complete information on WNetOpenEnum.<P>
+
+<H3>Return Value</H3>PyHANDLE representing the Win32 HANDLE for the open resource. 
+
+This handle will be automatically be closed via <A HREF="win32wnet__WNetCloseEnum_meth.html">win32wnet::WNetCloseEnum</A>, but 
+
+good style dictates it still be closed manually.<P>
+
+
+
+</body>
+</html>

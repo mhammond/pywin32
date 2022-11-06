@@ -1,0 +1,62 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyCCmdTarget.HookCommand</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="PyCCmdTarget.html">PyCCmdTarget</A>.HookCommand</H1><P>
+
+object = <B>HookCommand(<I>obHandler</I><I>, id</I>
+
+</B>)<P>Hook a windows command handler.<P>
+
+<H3>Parameters</H3><P><DT><I>obHandler</I> : object<P>
+
+<DD>The handler for the command message.  This must be a callable object.<P><DT><I>id</I> : int<P>
+
+<DD>The ID of the command to be handled, or zero to handle all command messages.<P><H3>Comments</H3>
+
+obHandler will be called as the application receives command notification messages with the specified ID. 
+
+Command notification messages are usually sent in response to menu or toolbar commands. 
+
+<BR>When updating a user interface element, Pythonwin will first check if a 
+
+handler has been installed via  <A HREF="PyCCmdTarget__HookCommandUpdate_meth.html">PyCCmdTarget::HookCommandUpdate</A>.  If so, this alone 
+
+determines the state of the interface object.  If no Update handler exists, 
+
+PythonWin will automatically enable a menu/toolbar item if a command handler exists 
+
+The handler will be called with 2 arguments 
+
+<BR>* The command id being handled. 
+
+<BR>* The command notification code. 
+
+<BR>If the handler returns TRUE, then the command will be passed on to the 
+
+default handler, otherwise the message will be consumed. 
+
+<BR>This method is best suited to handling messages from user interface 
+
+elements, such as menus, toolbars, etc.  To handle notification messages from a control, 
+
+you should use <A HREF="PyCCmdTarget__HookNotify_meth.html">PyCCmdTarget::HookNotify</A><P>
+
+<H3>Return Value</H3>The return value is the previous handler, or None.<P>
+
+
+
+</body>
+</html>

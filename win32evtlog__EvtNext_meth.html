@@ -1,0 +1,50 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32evtlog.EvtNext</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32evtlog.html">win32evtlog</A>.EvtNext</H1><P>
+
+(<A HREF="PyEVT_HANDLE.html">PyEVT_HANDLE</A>,...) = <B>EvtNext(<I>ResultSet</I><I>, Count</I>
+
+<I>, Timeout</I>
+
+<I>, Flags</I>
+
+</B>)<P>Returns events from a query<P>
+
+<H3>Parameters</H3><P><DT><I>ResultSet</I> : <A HREF="PyEVT_HANDLE.html">PyEVT_HANDLE</A><P>
+
+<DD>Handle to event query or subscription<P><DT><I>Count</I> : int<P>
+
+<DD>Number of events to return<P><DT><I>Timeout=-1</I> : int<P>
+
+<DD>Time to wait in milliseconds, use -1 for infinite<P>
+
+<DT><I>Flags=0</I> : int<P>
+
+<DD>Reserved, use only 0<P>
+
+<H3>Comments</H3>
+
+Accepts keyword args<P>
+
+<H3>Return Value</H3>Returns a tuple of handles to events.  If no items are available, returns 
+
+an empty tuple instead of raising an exception.<P>
+
+
+
+</body>
+</html>

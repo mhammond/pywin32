@@ -1,0 +1,48 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>propsys.SHGetPropertyStoreFromParsingName</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="propsys.html">propsys</A>.SHGetPropertyStoreFromParsingName</H1><P>
+
+<A HREF="PyIPropertyStore.html">PyIPropertyStore</A> = <B>SHGetPropertyStoreFromParsingName(<I>Path</I><I>, BindCtx</I>
+
+<I>, Flags</I>
+
+<I>, riid</I>
+
+</B>)<P>Retrieves the property store for an item by 
+
+path<P>
+
+<H3>Parameters</H3><P><DT><I>Path</I> : string<P>
+
+<DD>Path to file<P><DT><I>BindCtx=None</I> : <A HREF="PyIBindCtx.html">PyIBindCtx</A><P>
+
+<DD>Bind context, or None<P>
+
+<DT><I>Flags=GPS_DEFAULT</I> : int<P>
+
+<DD>Combination of GETPROPERTYSTOREFLAGS values (shellcon.GPS_*)<P>
+
+<DT><I>riid=IID_IPropertyStore</I> : <A HREF="PyIID.html">PyIID</A><P>
+
+<DD>The interface to return<P>
+
+<H3>Comments</H3>
+
+This function does not exist on XP, even with Desktop Search installed<P>
+
+</body>
+</html>

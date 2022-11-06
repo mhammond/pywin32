@@ -1,0 +1,348 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32file</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1>Module win32file</H1><P>
+
+An interface to the win32 File API's 
+
+<BR>This module includes the tranactional NTFS operations introduced with 
+
+Vista.  The transacted functions are not wrapped separately, but are invoked by 
+
+passing a transaction handle to the corresponding Unicode API function. 
+
+This makes it simple to convert a set of file operations into a transaction by 
+
+simply adding Transaction=<A HREF="PyHANDLE.html">PyHANDLE</A> to the passed arguments. 
+
+If Transaction is None, 0, or not specified, the non-transacted API function will 
+
+be called. 
+
+<BR>Functions combined in this manner: 
+
+<BR>CreateFile / CreateFileTransacted 
+
+<BR>DeleteFile / DeleteFileTransacted 
+
+<BR>CreateDirectoryEx / CreateDirectoryTransacted 
+
+<BR>MoveFileWithProgress / MoveFileTransacted 
+
+<BR>CopyFileEx / CopyFileTransacted 
+
+<BR>GetFileAttributes / GetFileAttributesTransacted 
+
+<BR>SetFileAttributes / SetFileAttributesTransacted 
+
+<BR>CreateHardLink / CreateHardLinkTransacted 
+
+<BR>CreateSymbolicLink / CreateSymbolicLinkTransacted 
+
+<BR>RemoveDirectory / RemoveDirectoryTransacted<P>
+
+<H3>Methods</H3><P><DL><DT><A HREF="win32file__AreFileApisANSI_meth.html">AreFileApisANSI</A><BR>
+
+<DD>Determines whether a set of Win32 file functions is using the ANSI or OEM character set code page. This function is useful for 8-bit console input and output operations.&nbsp;<P><DT><A HREF="win32file__CancelIo_meth.html">CancelIo</A><BR>
+
+<DD>Cancels pending IO requests for the object.&nbsp;<P><DT><A HREF="win32file__CopyFile_meth.html">CopyFile</A><BR>
+
+<DD>Copies a file&nbsp;<P><DT><A HREF="win32file__CopyFileW_meth.html">CopyFileW</A><BR>
+
+<DD>Copies a file&nbsp;<P><DT><A HREF="win32file__CreateDirectory_meth.html">CreateDirectory</A><BR>
+
+<DD>Creates a directory&nbsp;<P><DT><A HREF="win32file__CreateDirectoryW_meth.html">CreateDirectoryW</A><BR>
+
+<DD>Creates a directory&nbsp;<P><DT><A HREF="win32file__CreateDirectoryEx_meth.html">CreateDirectoryEx</A><BR>
+
+<DD>Creates a directory&nbsp;<P><DT><A HREF="win32file__CreateFile_meth.html">CreateFile</A><BR>
+
+<DD>Creates or opens the a file or other object and returns a handle that can be used to access the object.&nbsp;<P><DT><A HREF="win32file__CreateIoCompletionPort_meth.html">CreateIoCompletionPort</A><BR>
+
+<DD>Can associate an instance of an opened file with a newly created or an existing input/output (I/O) completion port; or it can create an I/O completion port without associating it with a file.&nbsp;<P><DT><A HREF="win32file__CreateMailslot_meth.html">CreateMailslot</A><BR>
+
+<DD>Creates a mailslot on the local machine&nbsp;<P><DT><A HREF="win32file__GetMailslotInfo_meth.html">GetMailslotInfo</A><BR>
+
+<DD>Retrieves information about a mailslot&nbsp;<P><DT><A HREF="win32file__SetMailslotInfo_meth.html">SetMailslotInfo</A><BR>
+
+<DD>Sets a mailslot's timeout&nbsp;<P><DT><A HREF="win32file__DefineDosDevice_meth.html">DefineDosDevice</A><BR>
+
+<DD>Lets an application define, redefine, or delete MS-DOS device names.&nbsp;<P><DT><A HREF="win32file__DefineDosDeviceW_meth.html">DefineDosDeviceW</A><BR>
+
+<DD>Lets an application define, redefine, or delete MS-DOS device names.&nbsp;<P><DT><A HREF="win32file__DeleteFile_meth.html">DeleteFile</A><BR>
+
+<DD>Deletes a file.&nbsp;<P><DT><A HREF="win32file__DeviceIoControl_meth.html">DeviceIoControl</A><BR>
+
+<DD>Sends a control code to a device or file system driver&nbsp;<P><DT><A HREF="win32file__FindClose_meth.html">FindClose</A><BR>
+
+<DD>Closes a find handle.&nbsp;<P><DT><A HREF="win32file__FindCloseChangeNotification_meth.html">FindCloseChangeNotification</A><BR>
+
+<DD>Closes a handle.&nbsp;<P><DT><A HREF="win32file__FindFirstChangeNotification_meth.html">FindFirstChangeNotification</A><BR>
+
+<DD>Creates a change notification handle and sets up initial change notification filter conditions. A wait on a notification handle succeeds when a change matching the filter conditions occurs in the specified directory or subtree.&nbsp;<P><DT><A HREF="win32file__FindNextChangeNotification_meth.html">FindNextChangeNotification</A><BR>
+
+<DD>Requests that the operating system signal a change notification handle the next time it detects an appropriate change,&nbsp;<P><DT><A HREF="win32file__FlushFileBuffers_meth.html">FlushFileBuffers</A><BR>
+
+<DD>Clears the buffers for the specified file and causes all buffered data to be written to the file.&nbsp;<P><DT><A HREF="win32file__GetBinaryType_meth.html">GetBinaryType</A><BR>
+
+<DD>Determines whether a file is executable, and if so, what type of executable file it is. That last property determines which subsystem an executable file runs under.&nbsp;<P><DT><A HREF="win32file__GetDiskFreeSpace_meth.html">GetDiskFreeSpace</A><BR>
+
+<DD>Determines the free space on a device.&nbsp;<P><DT><A HREF="win32file__GetDiskFreeSpaceEx_meth.html">GetDiskFreeSpaceEx</A><BR>
+
+<DD>Determines the free space on a device.&nbsp;<P><DT><A HREF="win32file__GetDriveType_meth.html">GetDriveType</A><BR>
+
+<DD>Determines whether a disk drive is a removable, fixed, CD-ROM, RAM disk, or network drive.&nbsp;<P><DT><A HREF="win32file__GetDriveTypeW_meth.html">GetDriveTypeW</A><BR>
+
+<DD>Determines whether a disk drive is a removable, fixed, CD-ROM, RAM disk, or network drive.&nbsp;<P><DT><A HREF="win32file__GetFileAttributes_meth.html">GetFileAttributes</A><BR>
+
+<DD>Determines a files attributes.&nbsp;<P><DT><A HREF="win32file__GetFileAttributesW_meth.html">GetFileAttributesW</A><BR>
+
+<DD>Determines a files attributes&nbsp;<P><DT><A HREF="win32file__GetFileTime_meth.html">GetFileTime</A><BR>
+
+<DD>Returns a file's creation, last access, and modification times.&nbsp;<P><DT><A HREF="win32file__SetFileTime_meth.html">SetFileTime</A><BR>
+
+<DD>Sets the date and time that a file was created, last accessed, or last modified.&nbsp;<P><DT><A HREF="win32file__GetFileInformationByHandle_meth.html">GetFileInformationByHandle</A><BR>
+
+<DD>Retrieves file information for a specified file.&nbsp;<P><DT><A HREF="win32file__GetCompressedFileSize_meth.html">GetCompressedFileSize</A><BR>
+
+<DD>Determines the compressed size of a file.&nbsp;<P><DT><A HREF="win32file__GetFileSize_meth.html">GetFileSize</A><BR>
+
+<DD>Determines the size of a file.&nbsp;<P><DT><A HREF="win32file__AllocateReadBuffer_meth.html">AllocateReadBuffer</A><BR>
+
+<DD>Allocates a buffer which can be used with an overlapped Read operation using <A HREF="win32file__ReadFile_meth.html">win32file::ReadFile</A>&nbsp;<P><DT><A HREF="win32file__ReadFile_meth.html">ReadFile</A><BR>
+
+<DD>Reads a string from a file&nbsp;<P><DT><A HREF="win32file__WriteFile_meth.html">WriteFile</A><BR>
+
+<DD>Writes a string to a file&nbsp;<P><DT><A HREF="win32file__CloseHandle_meth.html">CloseHandle</A><BR>
+
+<DD>Closes an open handle.&nbsp;<P><DT><A HREF="win32file__LockFileEx_meth.html">LockFileEx</A><BR>
+
+<DD>Locks a file. Wrapper for LockFileEx win32 API.&nbsp;<P><DT><A HREF="win32file__UnlockFileEx_meth.html">UnlockFileEx</A><BR>
+
+<DD>Unlocks a file. Wrapper for UnlockFileEx win32 API.&nbsp;<P><DT><A HREF="win32file__GetQueuedCompletionStatus_meth.html">GetQueuedCompletionStatus</A><BR>
+
+<DD>Attempts to dequeue an I/O completion packet from a specified input/output completion port.&nbsp;<P><DT><A HREF="win32file__PostQueuedCompletionStatus_meth.html">PostQueuedCompletionStatus</A><BR>
+
+<DD>lets you post an I/O completion packet to an I/O completion port. The I/O completion packet will satisfy an outstanding call to the GetQueuedCompletionStatus function.&nbsp;<P><DT><A HREF="win32file__GetFileType_meth.html">GetFileType</A><BR>
+
+<DD>Determines the type of a file.&nbsp;<P><DT><A HREF="win32file__GetLogicalDrives_meth.html">GetLogicalDrives</A><BR>
+
+<DD>Returns a bitmaks of the logical drives installed.&nbsp;<P><DT><A HREF="win32file__GetOverlappedResult_meth.html">GetOverlappedResult</A><BR>
+
+<DD>Determines the result of the most recent call with an OVERLAPPED object.&nbsp;<P><DT><A HREF="win32file__LockFile_meth.html">LockFile</A><BR>
+
+<DD>Locks a specified file for exclusive access by the calling process.&nbsp;<P><DT><A HREF="win32file__MoveFile_meth.html">MoveFile</A><BR>
+
+<DD>Renames an existing file or a directory (including all its children).&nbsp;<P><DT><A HREF="win32file__MoveFileW_meth.html">MoveFileW</A><BR>
+
+<DD>Renames an existing file or a directory (including all its children).&nbsp;<P><DT><A HREF="win32file__MoveFileEx_meth.html">MoveFileEx</A><BR>
+
+<DD>Renames an existing file or a directory (including all its children).&nbsp;<P><DT><A HREF="win32file__MoveFileExW_meth.html">MoveFileExW</A><BR>
+
+<DD>Renames an existing file or a directory (including all its children).&nbsp;<P><DT><A HREF="win32file__QueryDosDevice_meth.html">QueryDosDevice</A><BR>
+
+<DD>Returns the mapping for a device name, or all device names&nbsp;<P><DT><A HREF="win32file__ReadDirectoryChangesW_meth.html">ReadDirectoryChangesW</A><BR>
+
+<DD>retrieves information describing the changes occurring within a directory.&nbsp;<P><DT><A HREF="win32file__FILE_NOTIFY_INFORMATION_meth.html">FILE_NOTIFY_INFORMATION</A><BR>
+
+<DD>Decodes a PyFILE_NOTIFY_INFORMATION buffer.&nbsp;<P><DT><A HREF="win32file__SetCurrentDirectory_meth.html">SetCurrentDirectory</A><BR>
+
+<DD>Sets the current directory.&nbsp;<P><DT><A HREF="win32file__SetEndOfFile_meth.html">SetEndOfFile</A><BR>
+
+<DD>Moves the end-of-file (EOF) position for the specified file to the current position of the file pointer.&nbsp;<P><DT><A HREF="win32file__SetFileApisToANSI_meth.html">SetFileApisToANSI</A><BR>
+
+<DD>Causes a set of Win32 file functions to use the ANSI character set code page. This function is useful for 8-bit console input and output operations.&nbsp;<P><DT><A HREF="win32file__SetFileApisToOEM_meth.html">SetFileApisToOEM</A><BR>
+
+<DD>Causes a set of Win32 file functions to use the OEM character set code page. This function is useful for 8-bit console input and output operations.&nbsp;<P><DT><A HREF="win32file__SetFileAttributes_meth.html">SetFileAttributes</A><BR>
+
+<DD>Changes a file's attributes.&nbsp;<P><DT><A HREF="win32file__SetFilePointer_meth.html">SetFilePointer</A><BR>
+
+<DD>Moves the file pointer of an open file.&nbsp;<P><DT><A HREF="win32file__SetVolumeLabel_meth.html">SetVolumeLabel</A><BR>
+
+<DD>Sets a volume label for a disk drive.&nbsp;<P><DT><A HREF="win32file__UnlockFile_meth.html">UnlockFile</A><BR>
+
+<DD>Unlocks a region of a file locked by <A HREF="win32file__LockFile_meth.html">win32file::LockFile</A> or <A HREF="win32file__LockFileEx_meth.html">win32file::LockFileEx</A>&nbsp;<P><DT><A HREF="win32file___get_osfhandle_meth.html">_get_osfhandle</A><BR>
+
+<DD>Gets operating-system file handle associated with existing stream&nbsp;<P><DT><A HREF="win32file___open_osfhandle_meth.html">_open_osfhandle</A><BR>
+
+<DD>Associates a C run-time file handle with a existing operating-system file handle.&nbsp;<P><DT><A HREF="win32file___setmaxstdio_meth.html">_setmaxstdio</A><BR>
+
+<DD>Set the maximum allowed number of open stdio handles&nbsp;<P><DT><A HREF="win32file___getmaxstdio_meth.html">_getmaxstdio</A><BR>
+
+<DD>Returns the maximum number of CRT io streams.&nbsp;<P><DT><A HREF="win32file__TransmitFile_meth.html">TransmitFile</A><BR>
+
+<DD>Transmits a file over a socket 
+
+TransmitFile(sock, filehandle, bytes_to_write, bytes_per_send, overlap, flags [, (prepend_buf, postpend_buf)])&nbsp;<P><DT><A HREF="win32file__ConnectEx_meth.html">ConnectEx</A><BR>
+
+<DD>Version of connect that uses Overlapped I/O 
+
+ConnectEx(sock, (addr, port), buf, overlap)&nbsp;<P><DT><A HREF="win32file__AcceptEx_meth.html">AcceptEx</A><BR>
+
+<DD>Version of accept that uses Overlapped I/O&nbsp;<P><DT><A HREF="win32file__CalculateSocketEndPointSize_meth.html">CalculateSocketEndPointSize</A><BR>
+
+<DD>Calculate how many bytes are needed for the connection endpoints data for a socket.&nbsp;<P><DT><A HREF="win32file__GetAcceptExSockaddrs_meth.html">GetAcceptExSockaddrs</A><BR>
+
+<DD>Parses the connection endpoints from the buffer passed into AcceptEx&nbsp;<P><DT><A HREF="win32file__WSAEventSelect_meth.html">WSAEventSelect</A><BR>
+
+<DD>Specifies an event object to be associated with the supplied set of FD_XXXX network events.&nbsp;<P><DT><A HREF="win32file__WSAEnumNetworkEvents_meth.html">WSAEnumNetworkEvents</A><BR>
+
+<DD>Return network events that caused the event associated with the socket to be signaled.&nbsp;<P><DT><A HREF="win32file__WSAAsyncSelect_meth.html">WSAAsyncSelect</A><BR>
+
+<DD>Request windows message notification for the supplied set of FD_XXXX network events.&nbsp;<P><DT><A HREF="win32file__WSASend_meth.html">WSASend</A><BR>
+
+<DD>Winsock send() equivalent function for Overlapped I/O.&nbsp;<P><DT><A HREF="win32file__WSARecv_meth.html">WSARecv</A><BR>
+
+<DD>Winsock recv() equivalent function for Overlapped I/O.&nbsp;<P><DT><A HREF="win32file__BuildCommDCB_meth.html">BuildCommDCB</A><BR>
+
+<DD>Fills the specified DCB structure with values specified in a device-control string. The device-control string uses the syntax of the mode command&nbsp;<P><DT><A HREF="win32file__ClearCommError_meth.html">ClearCommError</A><BR>
+
+<DD>retrieves information about a communications error and reports the current status of a communications device.&nbsp;<P><DT><A HREF="win32file__EscapeCommFunction_meth.html">EscapeCommFunction</A><BR>
+
+<DD>directs a specified communications device to perform an extended function.&nbsp;<P><DT><A HREF="win32file__GetCommState_meth.html">GetCommState</A><BR>
+
+<DD>Returns a device-control block (a DCB structure) with the current control settings for a specified communications device.&nbsp;<P><DT><A HREF="win32file__SetCommState_meth.html">SetCommState</A><BR>
+
+<DD>Configures a communications device according to the specifications in a device-control block. 
+
+The function reinitializes all hardware and control settings, but it does not empty output or input queues.&nbsp;<P><DT><A HREF="win32file__ClearCommBreak_meth.html">ClearCommBreak</A><BR>
+
+<DD>Restores character transmission for a specified communications device and places the transmission line in a nonbreak state&nbsp;<P><DT><A HREF="win32file__GetCommMask_meth.html">GetCommMask</A><BR>
+
+<DD>Retrieves the value of the event mask for a specified communications device.&nbsp;<P><DT><A HREF="win32file__SetCommMask_meth.html">SetCommMask</A><BR>
+
+<DD>Sets the value of the event mask for a specified communications device.&nbsp;<P><DT><A HREF="win32file__GetCommModemStatus_meth.html">GetCommModemStatus</A><BR>
+
+<DD>Retrieves modem control-register values.&nbsp;<P><DT><A HREF="win32file__GetCommTimeouts_meth.html">GetCommTimeouts</A><BR>
+
+<DD>Retrieves the time-out parameters for all read and write operations on a specified communications device.&nbsp;<P><DT><A HREF="win32file__SetCommTimeouts_meth.html">SetCommTimeouts</A><BR>
+
+<DD>Sets the time-out parameters for all read and write operations on a specified communications device.&nbsp;<P><DT><A HREF="win32file__PurgeComm_meth.html">PurgeComm</A><BR>
+
+<DD>Discards all characters from the output or input buffer of a specified communications resource. It can also terminate pending read or write operations on the resource.&nbsp;<P><DT><A HREF="win32file__SetCommBreak_meth.html">SetCommBreak</A><BR>
+
+<DD>Suspends character transmission for a specified communications device and places the transmission line in a break state until the <A HREF="win32file__ClearCommBreak_meth.html">win32file::ClearCommBreak</A> function is called.&nbsp;<P><DT><A HREF="win32file__SetupComm_meth.html">SetupComm</A><BR>
+
+<DD>Initializes the communications parameters for a specified communications device.&nbsp;<P><DT><A HREF="win32file__TransmitCommChar_meth.html">TransmitCommChar</A><BR>
+
+<DD>Transmits a specified character ahead of any pending data in the output buffer of the specified communications device.&nbsp;<P><DT><A HREF="win32file__WaitCommEvent_meth.html">WaitCommEvent</A><BR>
+
+<DD>Waits for an event to occur for a specified communications device. The set of events that are monitored by this function is contained in the event mask associated with the device handle.&nbsp;<P><DT><A HREF="win32file__SetVolumeMountPoint_meth.html">SetVolumeMountPoint</A><BR>
+
+<DD>Mounts the specified volume at the specified volume mount point.&nbsp;<P><DT><A HREF="win32file__DeleteVolumeMountPoint_meth.html">DeleteVolumeMountPoint</A><BR>
+
+<DD>Unmounts the volume from the specified volume mount point.&nbsp;<P><DT><A HREF="win32file__GetVolumeNameForVolumeMountPoint_meth.html">GetVolumeNameForVolumeMountPoint</A><BR>
+
+<DD>Returns unique volume name.&nbsp;<P><DT><A HREF="win32file__GetVolumePathName_meth.html">GetVolumePathName</A><BR>
+
+<DD>Returns volume mount point for a path&nbsp;<P><DT><A HREF="win32file__GetVolumePathNamesForVolumeName_meth.html">GetVolumePathNamesForVolumeName</A><BR>
+
+<DD>Returns mounted paths for a volume&nbsp;<P><DT><A HREF="win32file__CreateHardLink_meth.html">CreateHardLink</A><BR>
+
+<DD>Establishes an NTFS hard link between an existing file and a new file.&nbsp;<P><DT><A HREF="win32file__CreateSymbolicLink_meth.html">CreateSymbolicLink</A><BR>
+
+<DD>Creates a symbolic link (reparse point)&nbsp;<P><DT><A HREF="win32file__EncryptFile_meth.html">EncryptFile</A><BR>
+
+<DD>Encrypts specified file (requires Win2k or higher and NTFS)&nbsp;<P><DT><A HREF="win32file__DecryptFile_meth.html">DecryptFile</A><BR>
+
+<DD>Decrypts specified file (requires Win2k or higher and NTFS)&nbsp;<P><DT><A HREF="win32file__EncryptionDisable_meth.html">EncryptionDisable</A><BR>
+
+<DD>Enables/disables encryption for a directory (requires Win2k or higher and NTFS)&nbsp;<P><DT><A HREF="win32file__FileEncryptionStatus_meth.html">FileEncryptionStatus</A><BR>
+
+<DD>retrieves the encryption status of the specified file.&nbsp;<P><DT><A HREF="win32file__QueryUsersOnEncryptedFile_meth.html">QueryUsersOnEncryptedFile</A><BR>
+
+<DD>Returns list of users for an encrypted file as tuples of (SID, certificate hash blob, display info)&nbsp;<P><DT><A HREF="win32file__QueryRecoveryAgentsOnEncryptedFile_meth.html">QueryRecoveryAgentsOnEncryptedFile</A><BR>
+
+<DD>Lists recovery agents for file as a tuple of tuples.&nbsp;<P><DT><A HREF="win32file__RemoveUsersFromEncryptedFile_meth.html">RemoveUsersFromEncryptedFile</A><BR>
+
+<DD>Removes specified certificates from file - if certificate is not found, it is ignored&nbsp;<P><DT><A HREF="win32file__AddUsersToEncryptedFile_meth.html">AddUsersToEncryptedFile</A><BR>
+
+<DD>Allows user identified by SID and EFS certificate access to decrypt specified file&nbsp;<P><DT><A HREF="win32file__DuplicateEncryptionInfoFile_meth.html">DuplicateEncryptionInfoFile</A><BR>
+
+<DD>Duplicates EFS encryption from one file to another&nbsp;<P><DT><A HREF="win32file__BackupRead_meth.html">BackupRead</A><BR>
+
+<DD>Reads streams of data from a file&nbsp;<P><DT><A HREF="win32file__BackupSeek_meth.html">BackupSeek</A><BR>
+
+<DD>Seeks forward in a file stream&nbsp;<P><DT><A HREF="win32file__BackupWrite_meth.html">BackupWrite</A><BR>
+
+<DD>Restores file data&nbsp;<P><DT><A HREF="win32file__SetFileShortName_meth.html">SetFileShortName</A><BR>
+
+<DD>Set the 8.3 name of a file&nbsp;<P><DT><A HREF="win32file__CopyFileEx_meth.html">CopyFileEx</A><BR>
+
+<DD>Restartable file copy with optional progress routine&nbsp;<P><DT><A HREF="win32file__MoveFileWithProgress_meth.html">MoveFileWithProgress</A><BR>
+
+<DD>Moves a file, and reports progress to a callback function&nbsp;<P><DT><A HREF="win32file__ReplaceFile_meth.html">ReplaceFile</A><BR>
+
+<DD>Replaces one file with another&nbsp;<P><DT><A HREF="win32file__OpenEncryptedFileRaw_meth.html">OpenEncryptedFileRaw</A><BR>
+
+<DD>Initiates a backup or restore operation on an encrypted file&nbsp;<P><DT><A HREF="win32file__ReadEncryptedFileRaw_meth.html">ReadEncryptedFileRaw</A><BR>
+
+<DD>Reads the encrypted bytes of a file for backup and restore purposes&nbsp;<P><DT><A HREF="win32file__WriteEncryptedFileRaw_meth.html">WriteEncryptedFileRaw</A><BR>
+
+<DD>Writes raw bytes to an encrypted file&nbsp;<P><DT><A HREF="win32file__CloseEncryptedFileRaw_meth.html">CloseEncryptedFileRaw</A><BR>
+
+<DD>Frees a context created by <A HREF="win32file__OpenEncryptedFileRaw_meth.html">win32file::OpenEncryptedFileRaw</A>&nbsp;<P><DT><A HREF="win32file__CreateFileW_meth.html">CreateFileW</A><BR>
+
+<DD>Unicode version of CreateFile - see <A HREF="win32file__CreateFile_meth.html">win32file::CreateFile</A> for more information.&nbsp;<P><DT><A HREF="win32file__DeleteFileW_meth.html">DeleteFileW</A><BR>
+
+<DD>Deletes a file&nbsp;<P><DT><A HREF="win32file__GetFileAttributesEx_meth.html">GetFileAttributesEx</A><BR>
+
+<DD>Retrieves attributes for a specified file or directory.&nbsp;<P><DT><A HREF="win32file__SetFileAttributesW_meth.html">SetFileAttributesW</A><BR>
+
+<DD>Sets a file's attributes&nbsp;<P><DT><A HREF="win32file__CreateDirectoryExW_meth.html">CreateDirectoryExW</A><BR>
+
+<DD>Creates a directory&nbsp;<P><DT><A HREF="win32file__RemoveDirectory_meth.html">RemoveDirectory</A><BR>
+
+<DD>Removes an existing directory&nbsp;<P><DT><A HREF="win32file__FindFilesW_meth.html">FindFilesW</A><BR>
+
+<DD>Retrieves a list of matching filenames, using the Windows Unicode API.  An interface to the API FindFirstFileW/FindNextFileW/Find close functions.&nbsp;<P><DT><A HREF="win32file__FindFilesIterator_meth.html">FindFilesIterator</A><BR>
+
+<DD>Returns an interator based on 
+
+FindFirstFile/FindNextFile. Similar to <B>win32file::FindFiles</B>
+
+
+
+, but 
+
+avoids the creation of the list for huge directories.&nbsp;<P><DT><A HREF="win32file__FindStreams_meth.html">FindStreams</A><BR>
+
+<DD>List the data streams for a file&nbsp;<P><DT><A HREF="win32file__FindFileNames_meth.html">FindFileNames</A><BR>
+
+<DD>Enumerates hard links that point to specified file&nbsp;<P><DT><A HREF="win32file__GetFinalPathNameByHandle_meth.html">GetFinalPathNameByHandle</A><BR>
+
+<DD>Returns the file name for an open file handle&nbsp;<P><DT><A HREF="win32file__SfcGetNextProtectedFile_meth.html">SfcGetNextProtectedFile</A><BR>
+
+<DD>Returns list of protected operating system files&nbsp;<P><DT><A HREF="win32file__SfcIsFileProtected_meth.html">SfcIsFileProtected</A><BR>
+
+<DD>Checks if a file is protected&nbsp;<P><DT><A HREF="win32file__GetLongPathName_meth.html">GetLongPathName</A><BR>
+
+<DD>Retrieves the long path for a short path (8.3 filename)&nbsp;<P><DT><A HREF="win32file__GetFullPathName_meth.html">GetFullPathName</A><BR>
+
+<DD>Returns full path for path passed in&nbsp;<P><DT><A HREF="win32file__Wow64DisableWow64FsRedirection_meth.html">Wow64DisableWow64FsRedirection</A><BR>
+
+<DD>Disables file system redirection for 32-bit processes running on a 64-bit system&nbsp;<P><DT><A HREF="win32file__Wow64RevertWow64FsRedirection_meth.html">Wow64RevertWow64FsRedirection</A><BR>
+
+<DD>Reenables file system redirection for 32-bit processes running on a 64-bit system&nbsp;<P><DT><A HREF="win32file__GetFileInformationByHandleEx_meth.html">GetFileInformationByHandleEx</A><BR>
+
+<DD>Retrieves extended file information for an open file handle.&nbsp;<P><DT><A HREF="win32file__SetFileInformationByHandle_meth.html">SetFileInformationByHandle</A><BR>
+
+<DD>Changes file characteristics by file handle&nbsp;<P><DT><A HREF="win32file__ReOpenFile_meth.html">ReOpenFile</A><BR>
+
+<DD>Creates a new handle to an open file&nbsp;<P><DT><A HREF="win32file__OpenFileById_meth.html">OpenFileById</A><BR>
+
+<DD>Opens a file by File Id or Object Id&nbsp;<P></DL></body>
+</html>

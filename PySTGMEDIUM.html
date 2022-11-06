@@ -1,0 +1,90 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PySTGMEDIUM</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<HR><H1>PySTGMEDIUM Object</H1><P>
+
+A STGMEDIUM object represents a COM STGMEDIUM structure.<P>
+
+<H3>Methods</H3><P><DL><DT><A HREF="PySTGMEDIUM__set_meth.html">set</A><BR>
+
+<DD>Sets the type and data of the object&nbsp;<P></DL>
+
+<H3>Properties</H3>
+
+<DL>
+
+<DT><B>int tymed</B>
+
+<DD>An integer indicating the type of data in the stgmedium<P>
+
+
+
+<DT><B>object data</B>
+
+<DD>The data in the stgmedium. 
+
+The result depends on the value of the 'tymed' property of the <B>PySTGMEDIUM</B> object.<P>
+
+
+
+<P><TABLE COLS=2 WIDTH="100%" CELLSPACING=15>
+
+<TR>
+
+   <TD>
+
+       <B>tymed</B>
+
+   </TD>
+
+   <TD>
+
+       <B>Result Type</B>
+
+   </TD>
+
+</TR>
+
+<TR><TD><HR></TD><TD><HR></TD></TR>
+
+<TR><TD>TYMED_GDI</TD><TD>An integer GDI handle</TD></TR>
+
+<TR><TD>TYMED_MFPICT</TD><TD>An integer METAFILE handle</TD></TR>
+
+<TR><TD>TYMED_ENHMF</TD><TD>An integer ENHMETAFILE handle</TD></TR>
+
+<TR><TD>TYMED_HGLOBAL</TD><TD>A string with the bytes of the global memory object.</TD></TR>
+
+<TR><TD>TYMED_FILE</TD><TD>A string/unicode filename</TD></TR>
+
+<TR><TD>TYMED_ISTREAM</TD><TD>A <A HREF="PyIStream.html">PyIStream</A> object</TD></TR>
+
+<TR><TD>TYMED_ISTORAGE</TD><TD>A <A HREF="PyIStorage.html">PyIStorage</A> object</TD></TR>
+
+</TABLE><DT><B>int data_handle</B>
+
+<DD>The raw 'integer' representation of the data. 
+
+For TYMED_HGLOBAL, this is the handle rather than the string data. 
+
+For the string and interface types, this is an integer holding the pointer.<P>
+
+
+
+</DL>
+
+</body>
+</html>

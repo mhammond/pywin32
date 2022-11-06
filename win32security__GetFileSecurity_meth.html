@@ -1,0 +1,36 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32security.GetFileSecurity</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32security.html">win32security</A>.GetFileSecurity</H1><P>
+
+<A HREF="PySECURITY_DESCRIPTOR.html">PySECURITY_DESCRIPTOR</A> = <B>GetFileSecurity(<I>filename</I><I>, info</I>
+
+</B>)<P>Obtains specified information about the security of a file or directory. The information obtained is constrained by the caller's access rights and privileges.<P>
+
+<H3>Parameters</H3><P><DT><I>filename</I> : string<P>
+
+<DD>The name of the file<P><DT><I>info=OWNER_SECURITY_INFORMATION | GROUP_SECURITY_INFORMATION | DACL_SECURITY_INFORMATION | SACL_SECURITY_INFORMATION</I> : int<P>
+
+<DD>Flags that specify the information requested.<P>
+
+<H3>Comments</H3>
+
+This function reportedly will not return the INHERITED_ACE flag on some Windows XP SP1 systems 
+
+Use GetNamedSecurityInfo if you encounter this problem.<P>
+
+</body>
+</html>

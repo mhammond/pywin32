@@ -1,0 +1,58 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32crypt.CryptUnprotectData</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32crypt.html">win32crypt</A>.CryptUnprotectData</H1><P>
+
+(str, bytes) = <B>CryptUnprotectData(<I>DataIn</I><I>, OptionalEntropy</I>
+
+<I>, Reserved</I>
+
+<I>, PromptStruct</I>
+
+<I>, Flags</I>
+
+</B>)<P>Decrypts data that was encrypted using <A HREF="win32crypt__CryptProtectData_meth.html">win32crypt::CryptProtectData</A>.<P>
+
+<H3>Parameters</H3><P><DT><I>DataIn</I> : bytes<P>
+
+<DD>Data to be decrypted.<P><DT><I>OptionalEntropy=None</I> : bytes<P>
+
+<DD>Extra entropy passed to CryptProtectData<P>
+
+<DT><I>Reserved=None</I> : None<P>
+
+<DD>Must be None<P>
+
+<DT><I>PromptStruct=None</I> : <A HREF="PyCRYPTPROTECT_PROMPTSTRUCT.html">PyCRYPTPROTECT_PROMPTSTRUCT</A><P>
+
+<DD>Contains options for UI 
+
+display during encryption and decryption, can be None<P>
+
+<DT><I>Flags=0</I> : int<P>
+
+<DD>Combination of CRYPTPROTECT_* flags<P>
+
+<H3>Return Value</H3>The result is a tuple of (description, data) where description 
+
+is the description that was passed to <A HREF="win32crypt__CryptProtectData_meth.html">win32crypt::CryptProtectData</A>, and 
+
+data is the unencrypted data.<P>
+
+
+
+</body>
+</html>

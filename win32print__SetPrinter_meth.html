@@ -1,0 +1,36 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32print.SetPrinter</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32print.html">win32print</A>.SetPrinter</H1><P>
+
+<B>SetPrinter(<I>hPrinter</I><I>, Level</I><I>, pPrinter</I><I>, Command</I></B>)<P>Change printer configuration and status<P>
+
+<H3>Parameters</H3><P><DT><I>hPrinter</I> : <A HREF="PyPrinterHANDLE.html">PyPrinterHANDLE</A><P>
+
+<DD>Printer handle as returned by <A HREF="win32print__OpenPrinter_meth.html">win32print::OpenPrinter</A><P><DT><I>Level</I> : int<P>
+
+<DD>Level of data contained in pPrinter<P><DT><I>pPrinter</I> : dict<P>
+
+<DD>PRINTER_INFO_* dict as returned by <A HREF="win32print__GetPrinter_meth.html">win32print::GetPrinter</A>, can be None if level is 0<P><DT><I>Command</I> : int<P>
+
+<DD>Command to send to printer - one of the PRINTER_CONTROL_* constants, or 0<P><H3>Comments</H3>
+
+If Level is 0 and Command is PRINTER_CONTROL_SET_STATUS, pPrinter should be an integer, 
+
+and is interpreted as the new printer status to set (one of the PRINTER_STATUS_* constants).<P>
+
+</body>
+</html>

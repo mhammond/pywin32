@@ -1,0 +1,114 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyIDispatch.InvokeTypes</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="PyIDispatch.html">PyIDispatch</A>.InvokeTypes</H1><P>
+
+object = <B>InvokeTypes(<I>dispid</I><I>, lcid</I>
+
+<I>, wFlags</I>
+
+<I>, resultTypeDesc</I>
+
+<I>, typeDescs</I>
+
+<I>, args</I>
+
+</B>)<P>Invokes a DISPID, using the passed arguments and type descriptions.<P>
+
+<H3>Parameters</H3><P><DT><I>dispid</I> : int<P>
+
+<DD>The dispid to use.  Please see <A HREF="PyIDispatch__Invoke_meth.html">PyIDispatch::Invoke</A>.<P><DT><I>lcid</I> : int<P>
+
+<DD>The locale ID.  Please see <A HREF="PyIDispatch__Invoke_meth.html">PyIDispatch::Invoke</A>.<P><DT><I>wFlags</I> : int<P>
+
+<DD>Flags for the call.  Please see <A HREF="PyIDispatch__Invoke_meth.html">PyIDispatch::Invoke</A>.<P><DT><I>resultTypeDesc</I> : tuple<P>
+
+<DD>A tuple describing the type of the 
+
+result.  See the comments for more information.<P><DT><I>typeDescs</I> : (tuple, ...)<P>
+
+<DD>A sequence of tuples describing 
+
+the types of the parameters for the function.  See the comments 
+
+for more information.<P><DT><I>args</I> : object, ...<P>
+
+<DD>The args to the function.<P><H3>Comments</H3>
+
+The Microsoft documentation for IDispatch should be used for all 
+
+params except 'resultTypeDesc' and 'typeDescs'. 'resultTypeDesc' describes 
+
+the return value of the function, and is a tuple of (type_id, flags). 
+
+'typeDescs' describes the type of each parameters, and is a list of the 
+
+same (type_id, flags) tuple.<P>
+
+<P><TABLE COLS=2 WIDTH="100%" CELLSPACING=15>
+
+<TR>
+
+   <TD>
+
+       <B>item</B>
+
+   </TD>
+
+   <TD>
+
+       <B>Description</B>
+
+   </TD>
+
+</TR>
+
+<TR><TD><HR></TD><TD><HR></TD></TR>
+
+<TR><TD>type_id</TD><TD>A valid "variant type" constant (eg, VT_I4 | VT_ARRAY, VT_DATE, etc - see VARIANT at MSDN).</TD></TR>
+
+<TR><TD>flags</TD><TD>One of the PARAMFLAG constants (eg, PARAMFLAG_FIN, PARAMFLAG_FOUT etc - see PARAMFLAG at MSDN).</TD></TR>
+
+</TABLE><H3>Example</H3>An example from the makepy generated file for Word<P>
+
+<PRE>class Cells(DispatchBaseClass):
+
+...
+
+    def SetWidth(self, ColumnWidth=..., RulerStyle=...):
+
+&#09return self._oleobj_.InvokeTypes(202, LCID, 1, (24, 0), ((4, 1), (3, 1)),...)
+
+</PRE>
+
+The interesting bits are<P>
+
+<PRE>resultTypeDesc: (24, 0) - (VT_VOID, &ltno flags&gt)
+
+typeDescs: ((4, 1), (3, 1)) - ((VT_R4, PARAMFLAG_FIN), (VT_I4, PARAMFLAG_FIN))
+
+</PRE>
+
+So, in this example, the function returns no value and takes 2 "in" 
+
+params - ColumnWidth is a float, and RulerStule is an int.<P>
+
+<PRE>
+
+</PRE>
+
+</body>
+</html>

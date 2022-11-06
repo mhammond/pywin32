@@ -1,0 +1,42 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32file.CreateIoCompletionPort</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32file.html">win32file</A>.CreateIoCompletionPort</H1><P>
+
+<A HREF="PyHANDLE.html">PyHANDLE</A> = <B>CreateIoCompletionPort(<I>handle</I><I>, existing</I>
+
+<I>, completionKey</I>
+
+<I>, numThreads</I>
+
+</B>)<P>Can associate an instance of an opened file with a newly created or an existing input/output (I/O) completion port; or it can create an I/O completion port without associating it with a file.<P>
+
+<H3>Parameters</H3><P><DT><I>handle</I> : <A HREF="PyHANDLE.html">PyHANDLE</A><P>
+
+<DD>file handle to associate with the I/O completion port<P><DT><I>existing</I> : <A HREF="PyHANDLE.html">PyHANDLE</A><P>
+
+<DD>handle to the I/O completion port<P><DT><I>completionKey</I> : int<P>
+
+<DD>per-file completion key for I/O completion packets<P><DT><I>numThreads</I> : int<P>
+
+<DD>number of threads allowed to execute concurrently<P><H3>Return Value</H3>If an existing handle to a completion port is passed, the result 
+
+of this function will be that same handle.  See MSDN for more details.<P>
+
+
+
+</body>
+</html>

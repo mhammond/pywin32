@@ -1,0 +1,38 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>DSBCAPS_STICKYFOCUS</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<HR>
+
+<H1>DSBCAPS_STICKYFOCUS</H1>
+
+<B>const directsound.DSBCAPS_STICKYFOCUS;</B><P>
+
+Changes the focus behavior of the sound buffer. This flag can be specified 
+
+in an IDirectSound::CreateSoundBuffer call. With this flag set, an application using DirectSound can continue to 
+
+play its sticky focus buffers if the user switches to another application not using DirectSound. In this 
+
+situation, the application's normal buffers are muted, but the sticky focus buffers are still audible. This is 
+
+useful for nongame applications, such as movie playback (DirectShow&#239&#191&#189), when the user wants to hear the soundtrack 
+
+while typing in Microsoft Word or Microsoft&#239&#191&#189 Excel, for example. However, if the user switches to another 
+
+DirectSound application, all sound buffers, both normal and sticky focus, in the previous application are muted.<P>
+
+</body>
+</html>

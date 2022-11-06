@@ -1,0 +1,74 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32file.GetFileInformationByHandleEx</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32file.html">win32file</A>.GetFileInformationByHandleEx</H1><P>
+
+object = <B>GetFileInformationByHandleEx(<I>File</I><I>, FileInformationClass</I>
+
+</B>)<P>Retrieves extended file information for an open file handle.<P>
+
+<H3>Parameters</H3><P><DT><I>File</I> : <A HREF="PyHANDLE.html">PyHANDLE</A><P>
+
+<DD>Handle to a file or directory.  Do not pass a pipe handle.<P><DT><I>FileInformationClass</I> : int<P>
+
+<DD>Type of data to return, one of win32file.File*Info values<P><H3>Comments</H3>
+
+Available on Vista and later.<P>
+
+Accepts keyword args.<P>
+
+<H3>Return Value</H3>Type of returned object is determined by the requested information class<P>
+
+
+
+<P><TABLE COLS=2 WIDTH="100%" CELLSPACING=15>
+
+<TR>
+
+   <TD>
+
+       <B>Class</B>
+
+   </TD>
+
+   <TD>
+
+       <B>Returned info</B>
+
+   </TD>
+
+</TR>
+
+<TR><TD><HR></TD><TD><HR></TD></TR>
+
+<TR><TD>FileBasicInfo</TD><TD>Dict representing a FILE_BASIC_INFO struct</TD></TR>
+
+<TR><TD>FileStandardInfo</TD><TD>Dict representing a FILE_STANDARD_INFO struct</TD></TR>
+
+<TR><TD>FileNameInfo</TD><TD>String containing the file name, without the drive letter</TD></TR>
+
+<TR><TD>FileCompressionInfo</TD><TD>Dict representing a FILE_COMPRESSION_INFO struct</TD></TR>
+
+<TR><TD>FileAttributeTagInfo</TD><TD>Dict representing a FILE_ATTRIBUTE_TAG_INFO struct</TD></TR>
+
+<TR><TD>FileIdBothDirectoryInfo</TD><TD>Sequence of dicts representing FILE_ID_BOTH_DIR_INFO structs.  Call in loop until no more files are returned.</TD></TR>
+
+<TR><TD>FileIdBothDirectoryRestartInfo</TD><TD>Sequence of dicts representing FILE_ID_BOTH_DIR_INFO structs.</TD></TR>
+
+<TR><TD>FileStreamInfo</TD><TD>Sequence of dicts representing FILE_STREAM_INFO structs</TD></TR>
+
+</TABLE></body>
+</html>

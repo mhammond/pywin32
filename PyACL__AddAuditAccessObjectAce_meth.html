@@ -1,0 +1,42 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyACL.AddAuditAccessObjectAce</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="PyACL.html">PyACL</A>.AddAuditAccessObjectAce</H1><P>
+
+<B>AddAuditAccessObjectAce(<I>dwAceRevision</I><I>, AceFlags</I><I>, dwAccessMask</I><I>, ObjectTypeGuid</I><I>, InheritedObjectTypeGuid</I><I>, sid</I><I>, bAuditSuccess</I><I>, bAuditFailure</I></B>)<P>Adds an audit ACE for an object type identified by GUID<P>
+
+<H3>Parameters</H3><P><DT><I>dwAceRevision</I> : int<P>
+
+<DD>Revision of ACL: Must be at least ACL_REVISION_DS<P><DT><I>AceFlags</I> : int<P>
+
+<DD>Combination of 
+
+FAILED_ACCESS_ACE_FLAG,SUCCESSFUL_ACCESS_ACE_FLAG,CONTAINER_INHERIT_ACE,INHERIT_ONLY_ACE,INHERITED_ACE,NO_PROPAGATE_INHERIT_ACE 
+
+and OBJECT_INHERIT_ACE<P><DT><I>dwAccessMask</I> : int<P>
+
+<DD>Bitmask of access types to be audited<P><DT><I>ObjectTypeGuid</I> : <A HREF="PyIID.html">PyIID</A><P>
+
+<DD>GUID of object type or property set to which ace applies, can be None<P><DT><I>InheritedObjectTypeGuid</I> : <A HREF="PyIID.html">PyIID</A><P>
+
+<DD>GUID of object type or property that will inherit ACE, can be None<P><DT><I>sid</I> : <A HREF="PySID.html">PySID</A><P>
+
+<DD>SID for whom system audit messages will be generated<P><DT><I>bAuditSuccess</I> : int<P>
+
+<DD>Set to 1 if access success should be audited, else 0<P><DT><I>bAuditFailure</I> : int<P>
+
+<DD>Set to 1 if access failure should be audited, else 0<P></body>
+</html>

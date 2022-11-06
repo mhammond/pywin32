@@ -1,0 +1,146 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>EXTENSION_CONTROL_BLOCK</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<HR><H1>EXTENSION_CONTROL_BLOCK Object</H1><P>
+
+A python representation of an ISAPI 
+
+EXTENSION_CONTROL_BLOCK.<P>
+
+<H3>Methods</H3><P><DL><DT><A HREF="EXTENSION_CONTROL_BLOCK__write_meth.html">write</A><BR>
+
+<DD>A synonym for WriteClient, this allows you to 'print &gt&gt ecb'&nbsp;<P><DT><A HREF="EXTENSION_CONTROL_BLOCK__WriteClient_meth.html">WriteClient</A><BR>
+
+<DD>&nbsp;<P><DT><A HREF="EXTENSION_CONTROL_BLOCK__GetServerVariable_meth.html">GetServerVariable</A><BR>
+
+<DD>&nbsp;<P><DT><A HREF="EXTENSION_CONTROL_BLOCK__ReadClient_meth.html">ReadClient</A><BR>
+
+<DD>&nbsp;<P><DT><A HREF="EXTENSION_CONTROL_BLOCK__SendResponseHeaders_meth.html">SendResponseHeaders</A><BR>
+
+<DD>&nbsp;<P><DT><A HREF="EXTENSION_CONTROL_BLOCK__SetFlushFlag_meth.html">SetFlushFlag</A><BR>
+
+<DD>&nbsp;<P><DT><A HREF="EXTENSION_CONTROL_BLOCK__TransmitFile_meth.html">TransmitFile</A><BR>
+
+<DD>&nbsp;<P><DT><A HREF="EXTENSION_CONTROL_BLOCK__MapURLToPath_meth.html">MapURLToPath</A><BR>
+
+<DD>&nbsp;<P><DT><A HREF="EXTENSION_CONTROL_BLOCK__DoneWithSession_meth.html">DoneWithSession</A><BR>
+
+<DD>&nbsp;<P><DT><A HREF="EXTENSION_CONTROL_BLOCK__close_meth.html">close</A><BR>
+
+<DD>A synonym for DoneWithSession.&nbsp;<P><DT><A HREF="EXTENSION_CONTROL_BLOCK__Redirect_meth.html">Redirect</A><BR>
+
+<DD>&nbsp;<P><DT><A HREF="EXTENSION_CONTROL_BLOCK__IsKeepAlive_meth.html">IsKeepAlive</A><BR>
+
+<DD>&nbsp;<P><DT><A HREF="EXTENSION_CONTROL_BLOCK__GetAnonymousToken_meth.html">GetAnonymousToken</A><BR>
+
+<DD>Calls ServerSupportFunction with HSE_REQ_GET_ANONYMOUS_TOKEN or 
+
+HSE_REQ_GET_UNICODE_ANONYMOUS_TOKEN&nbsp;<P><DT><A HREF="EXTENSION_CONTROL_BLOCK__GetImpersonationToken_meth.html">GetImpersonationToken</A><BR>
+
+<DD>&nbsp;<P><DT><A HREF="EXTENSION_CONTROL_BLOCK__IsKeepConn_meth.html">IsKeepConn</A><BR>
+
+<DD>Calls ServerSupportFunction with HSE_REQ_IS_KEEP_CONN&nbsp;<P><DT><A HREF="EXTENSION_CONTROL_BLOCK__ExecURL_meth.html">ExecURL</A><BR>
+
+<DD>Calls ServerSupportFunction with HSE_REQ_EXEC_URL&nbsp;<P><DT><A HREF="EXTENSION_CONTROL_BLOCK__GetExecURLStatus_meth.html">GetExecURLStatus</A><BR>
+
+<DD>Calls ServerSupportFunction with HSE_REQ_GET_EXEC_URL_STATUS&nbsp;<P><DT><A HREF="EXTENSION_CONTROL_BLOCK__IOCompletion_meth.html">IOCompletion</A><BR>
+
+<DD>Calls ServerSupportFunction with HSE_REQ_IO_COMPLETION&nbsp;<P><DT><A HREF="EXTENSION_CONTROL_BLOCK__ReportUnhealthy_meth.html">ReportUnhealthy</A><BR>
+
+<DD>Calls ServerSupportFunction with HSE_REQ_REPORT_UNHEALTHY&nbsp;<P><DT><A HREF="EXTENSION_CONTROL_BLOCK__IOCallback_meth.html">IOCallback</A><BR>
+
+<DD>A placeholder for a user-supplied callback function.&nbsp;<P></DL>
+
+<H3>Properties</H3>
+
+<DL>
+
+<DT><B>integer Version</B>
+
+<DD>Version info of this spec (read-only)<P>
+
+
+
+<DT><B>int TotalBytes</B>
+
+<DD>Total bytes indicated from client<P>
+
+
+
+<DT><B>int AvailableBytes</B>
+
+<DD>Available number of bytes<P>
+
+
+
+<DT><B>int HttpStatusCode</B>
+
+<DD>The status of the current transaction when the request is completed.<P>
+
+
+
+<DT><B>bytes Method</B>
+
+<DD>REQUEST_METHOD<P>
+
+
+
+<DT><B>long ConnID</B>
+
+<DD>Context number (read-only)<P>
+
+
+
+<DT><B>bytes QueryString</B>
+
+<DD>QUERY_STRING<P>
+
+
+
+<DT><B>bytes PathInfo</B>
+
+<DD>PATH_INFO<P>
+
+
+
+<DT><B>bytes PathTranslated</B>
+
+<DD>PATH_TRANSLATED<P>
+
+
+
+<DT><B>bytes AvailableData</B>
+
+<DD>Pointer to cbAvailable bytes<P>
+
+
+
+<DT><B>bytes ContentType</B>
+
+<DD>Content type of client data<P>
+
+
+
+<DT><B>bytes LogData</B>
+
+<DD>log data string<P>
+
+
+
+</DL>
+
+</body>
+</html>

@@ -1,0 +1,52 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>SI_OBJECT_INFO</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<HR><H1>SI_OBJECT_INFO Object</H1><P>
+
+Six-tuple representing SI_OBJECT_INFO struct<P>
+
+<H3>Items</H3><P><DL><DT>[0] <I>int</I> : Flags<P>
+
+<DD>Combination of ntsecuritycon.SI_* flags specifying options<P></DL>
+
+<DL><DT>[1] <I><A HREF="PyHANDLE.html">PyHANDLE</A></I> : hInstance<P>
+
+<DD>Handle to a module containing string resources (not supported yet, use 0)<P></DL>
+
+<DL><DT>[2] <I><B>PyUNICODE</B>
+
+</I> : ServerName<P>
+
+<DD>Name of authenticating server if not local machine<P></DL>
+
+<DL><DT>[3] <I><B>PyUNICODE</B>
+
+</I> : ObjectName<P>
+
+<DD>Name of object whose security will be displayed<P></DL>
+
+<DL><DT>[4] <I><B>PyUNICODE</B>
+
+</I> : PageTitle<P>
+
+<DD>Title to be used for basic propery sheet (SI_PAGE_TITLE must be passed in Flags)<P></DL>
+
+<DL><DT>[5] <I><A HREF="PyIID.html">PyIID</A></I> : ObjectType<P>
+
+<DD>GUID identifying the type of object, usually IID_NULL<P></DL>
+
+</body>
+</html>

@@ -1,0 +1,64 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyNOTIFYICONDATA</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<HR><H1>PyNOTIFYICONDATA Object</H1><P>
+
+Tuple used to fill a NOTIFYICONDATA struct as used with <A HREF="win32gui__Shell_NotifyIcon_meth.html">win32gui::Shell_NotifyIcon</A><P>
+
+<H3>Win32 API References</H3><P><DT>Search for <i>NOTIFYICONDATA</i> at <a href="http://search.msdn.microsoft.com/search/results.aspx?view=msdn&query=NOTIFYICONDATA" target="_blank">msdn</a>, <a href="http://www.google.com/search?q=NOTIFYICONDATA" target="_blank">google</a> or <a href="http://groups.google.com/groups?q=NOTIFYICONDATA" target="_blank">google groups</a>.<P>
+
+<H3>Items</H3><P><DL><DT>[0] <I><A HREF="PyHANDLE.html">PyHANDLE</A></I> : hWnd<P>
+
+<DD>Handle to window that will process icon's messages<P></DL>
+
+<DL><DT>[1] <I>int</I> : ID<P>
+
+<DD>Unique id used when hWnd processes messages from more than one icon<P></DL>
+
+<DL><DT>[2] <I>int</I> : Flags<P>
+
+<DD>Combination of win32gui.NIF_* flags<P></DL>
+
+<DL><DT>[3] <I>int</I> : CallbackMessage<P>
+
+<DD>Message id to be pass to hWnd when processing messages<P></DL>
+
+<DL><DT>[4] <I><A HREF="PyHANDLE.html">PyHANDLE</A></I> : hIcon<P>
+
+<DD>Handle to the icon to be displayed<P></DL>
+
+<DL><DT>[5] <I>str</I> : Tip<P>
+
+<DD>Tooltip text (optional)<P></DL>
+
+<DL><DT>[6] <I>str</I> : Info<P>
+
+<DD>Balloon tooltip text (optional)<P></DL>
+
+<DL><DT>[7] <I>int</I> : Timeout<P>
+
+<DD>Timeout for balloon tooltip, in milliseconds (optional)<P></DL>
+
+<DL><DT>[8] <I>str</I> : InfoTitle<P>
+
+<DD>Title for balloon tooltip (optional)<P></DL>
+
+<DL><DT>[9] <I>int</I> : InfoFlags<P>
+
+<DD>Combination of win32gui.NIIF_* flags (optional)<P></DL>
+
+</body>
+</html>

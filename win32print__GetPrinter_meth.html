@@ -1,0 +1,44 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32print.GetPrinter</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32print.html">win32print</A>.GetPrinter</H1><P>
+
+dict = <B>GetPrinter(<I>hPrinter</I><I>, Level</I>
+
+</B>)<P>Retrieves information about a printer<P>
+
+<H3>Parameters</H3><P><DT><I>hPrinter</I> : <A HREF="PyPrinterHANDLE.html">PyPrinterHANDLE</A><P>
+
+<DD>handle to printer object as returned by 
+
+<A HREF="win32print__OpenPrinter_meth.html">win32print::OpenPrinter</A><P><DT><I>Level=2</I> : int<P>
+
+<DD>Level of data returned (1,2,3,4,5,7,8,9)<P>
+
+<H3>Comments</H3>
+
+Original implementation used level 2 only and returned a tuple 
+
+Pass single arg as indicator to use old behaviour for backward compatibility<P>
+
+<H3>Return Value</H3>Returns a dictionary containing PRINTER_INFO_* data for level, or 
+
+returns a tuple of PRINTER_INFO_2 data if no level is passed in.<P>
+
+
+
+</body>
+</html>

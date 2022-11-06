@@ -1,0 +1,38 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>propsys.SHSetDefaultProperties</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="propsys.html">propsys</A>.SHSetDefaultProperties</H1><P>
+
+<B>SHSetDefaultProperties(<I>hwnd</I><I>, Item</I><I>, FileOpFlags</I><I>, Sink</I></B>)<P>Sets the default properties for a file.<P>
+
+<H3>Parameters</H3><P><DT><I>hwnd</I> : <A HREF="PyHANDLE.html">PyHANDLE</A><P>
+
+<DD>Parent window for any notifications, can be None<P><DT><I>Item</I> : <A HREF="PyIShellItem.html">PyIShellItem</A><P>
+
+<DD>Shell item whose defaults are to be set<P><DT><I>FileOpFlags=0</I> : int<P>
+
+<DD>File operation flags, as used with <A HREF="PyIFileOperation__SetOperationFlags_meth.html">PyIFileOperation::SetOperationFlags</A><P>
+
+<DT><I>Sink=None</I> : <A HREF="PyGFileOperationProgressSink.html">PyGFileOperationProgressSink</A><P>
+
+<DD>Event sink to receive notifications<P>
+
+<H3>Comments</H3>
+
+Default properties are registered by filetype under SetDefaultsFor value.<P>
+
+</body>
+</html>

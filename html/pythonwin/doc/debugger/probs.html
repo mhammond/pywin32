@@ -1,0 +1,23 @@
+<HTML>
+<HEAD>
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=windows-1252">
+<META NAME="Generator" CONTENT="Microsoft Word 97">
+<TITLE>Known Problems</TITLE>
+<META NAME="Template" CONTENT="D:\Program Files\Microsoft Office\Office\HTML.DOT">
+</HEAD>
+<BODY LINK="#0000ff" VLINK="#800080">
+
+<H1><IMG SRC="pythonwin.gif" WIDTH=64 HEIGHT=64>Pythonwin Debugger Known Problems </H1>
+<P>This document lists the currently known problems with the pywin.debugger package. </P>
+<P>You may also wish to view the <A HREF="index.html">debugger overview</A>, the <A HREF="tutorial.html">debugger tutorial</A>, or the <A HREF="general.html">general debugger documentation</A>. </P>
+<H3>Exiting the debugger on Windows 95 sometimes causes a crash.</H3>
+<P>There is a problem with the "hierlist" control on Windows 95. I don't know what it is. </P>
+<H3>Closing the main debugger application while debugging may cause strange results. </H3>
+<P>This is particularly true when debugging non-Pythonwin applications. I have made some efforts in this area, but it is pretty hard and complex. </P>
+<P>Closing the debugger dialog, selecting "End/Close" from one of the property pages, or "Close" from the debugging toolbar should always work as expected. </P>
+<H3>Debugging the bottom call-stack does not work as expected. </H3>
+<P>If you are ever debugging a function that is the <I>only</I> function in the call-stack (ie you are at the bottom stack), then the functions "run" "step out" and "step over" may not work as expected - each of these operations may function as a single-step. </P>
+<P>You will need to single-step out of this entire function. </P>
+<H3>Output window does not show function arguments </H3>
+<P>This is a restriction in the core Python interpreter, caused by the introduction of keyword arguments. When Python supports it again, so will I.</P></BODY>
+</HTML>

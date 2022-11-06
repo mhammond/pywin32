@@ -1,0 +1,38 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>shell.SHCreateShellItem</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="shell.html">shell</A>.SHCreateShellItem</H1><P>
+
+<A HREF="PyIShellItem.html">PyIShellItem</A> = <B>SHCreateShellItem(<I>pidlParent</I><I>, sfParent</I>
+
+<I>, Child</I>
+
+</B>)<P>Creates an IShellItem interface from a PIDL<P>
+
+<H3>Parameters</H3><P><DT><I>pidlParent</I> : <A HREF="PyIDL.html">PyIDL</A><P>
+
+<DD>PIDL of parent folder, can be None<P><DT><I>sfParent</I> : <A HREF="PyIShellFolder.html">PyIShellFolder</A><P>
+
+<DD>IShellFolder interface of parent folder, can be None<P><DT><I>Child</I> : <A HREF="PyIDL.html">PyIDL</A><P>
+
+<DD>PIDL identifying desired item.  Must be an absolute PIDL if parent is not specified.<P><H3>Comments</H3>
+
+This function is only available on XP and later; a 
+
+COM exception with E_NOTIMPL will be thrown if the function can't be located.<P>
+
+</body>
+</html>

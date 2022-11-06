@@ -1,0 +1,48 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>shell.SHCreateItemWithParent</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="shell.html">shell</A>.SHCreateItemWithParent</H1><P>
+
+<A HREF="PyIShellItem.html">PyIShellItem</A> = <B>SHCreateItemWithParent(<I>Parent</I><I>, sfParent</I>
+
+<I>, child</I>
+
+<I>, riid</I>
+
+</B>)<P>Create a Shell item, given a parent folder and a child item 
+
+ID.<P>
+
+<H3>Parameters</H3><P><DT><I>Parent</I> : <A HREF="PyIDL.html">PyIDL</A><P>
+
+<DD>Absolute item id list of the parent folder.  Pass None if the below shell folder is 
+
+used.<P><DT><I>sfParent</I> : <A HREF="PyIShellFolder.html">PyIShellFolder</A><P>
+
+<DD>Parent folder object.  Can be None if parent id list is specified.<P><DT><I>child</I> : <A HREF="PyIDL.html">PyIDL</A><P>
+
+<DD>Relative item id list for an object in the parent folder<P><DT><I>riid=IID_IShellItem</I> : <A HREF="PyIID.html">PyIID</A><P>
+
+<DD>The interface to return, usually IID_IShellItem or IID_IShellItem2<P>
+
+<H3>Comments</H3>
+
+This function is only available on Vista and later; a 
+
+COM exception with E_NOTIMPL will be thrown if the function can't be located.<P>
+
+</body>
+</html>

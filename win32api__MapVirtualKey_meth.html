@@ -1,0 +1,44 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32api.MapVirtualKey</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32api.html">win32api</A>.MapVirtualKey</H1><P>
+
+int = <B>MapVirtualKey(<I>vk</I><I>, type</I>
+
+<I>, hlayout</I>
+
+</B>)<P>Translates (maps) a virtual-key code into a scan code or character value, or 
+
+translates a scan code into a virtual-key code.<P>
+
+<H3>Parameters</H3><P><DT><I>vk</I> : int<P>
+
+<DD>The virtual key code.<P><DT><I>type</I> : int<P>
+
+<DD>The type of conversion to make - see the API<P><DT><I>hlayout=None</I> : handle<P>
+
+<DD>The keyboard layout to use.  If not 
+
+specified, the API function MapVirtualKey will be called.  If it 
+
+is specified MapVirtualKeyEx will be called.<P>
+
+<H3>Comments</H3>
+
+implemented by calling the unicode versions of the API (MapVirtualKeyW/MapVirtualKeyExW)<P>
+
+</body>
+</html>

@@ -1,0 +1,164 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>NT_CONSOLE_PROPS</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<HR><H1>NT_CONSOLE_PROPS Object</H1><P>
+
+Dictionary containing information for a NT_CONSOLE_PROPS struct<P>
+
+<H3>Properties</H3>
+
+<DL>
+
+<DT><B>int Signature</B>
+
+<DD>The type of data block, one of shellcon.*_SIG values<P>
+
+
+
+<DT><B>int FillAttribute</B>
+
+<DD>Character attributes for fill operations<P>
+
+
+
+<DT><B>int PopupFillAttribute</B>
+
+<DD>Fill attributes for popups<P>
+
+
+
+<DT><B>(int,int) ScreenBufferSize</B>
+
+<DD>Size of console 
+
+screen buffer, in character cells<P>
+
+
+
+<DT><B>(int,int) WindowSize</B>
+
+<DD>Size of console window in character cells<P>
+
+
+
+<DT><B>(int,int) WindowOrigin</B>
+
+<DD>Window position, in screen coordinates<P>
+
+
+
+<DT><B>int nFont</B>
+
+<DD>Number of font to be displayed.  See <A HREF="win32console__GetNumberOfConsoleFonts_meth.html">win32console::GetNumberOfConsoleFonts</A><P>
+
+
+
+<DT><B>int InputBufferSize</B>
+
+<DD>Size of console's input buffer<P>
+
+
+
+<DT><B>(int,int) FontSize</B>
+
+<DD>Size of font<P>
+
+
+
+<DT><B>int FontFamily</B>
+
+<DD>Font family<P>
+
+
+
+<DT><B>int FontWeight</B>
+
+<DD>Controls thickness of displayed font<P>
+
+
+
+<DT><B>str FaceName</B>
+
+<DD>Name of font face, 31 characters at most<P>
+
+
+
+<DT><B>int CursorSize</B>
+
+<DD>Relative size of cursor, expressed as percent of 
+
+character size<P>
+
+
+
+<DT><B>bool FullScreen</B>
+
+<DD>Causes console to run in full screen mode<P>
+
+
+
+<DT><B>bool QuickEdit</B>
+
+<DD><P>
+
+
+
+<DT><B>bool InsertMode</B>
+
+<DD><P>
+
+
+
+<DT><B>bool AutoPosition</B>
+
+<DD>Lets system determine window placement<P>
+
+
+
+<DT><B>int HistoryBufferSize</B>
+
+<DD>Size of command line history buffer<P>
+
+
+
+<DT><B>int NumberOfHistoryBuffers</B>
+
+<DD><P>
+
+
+
+<DT><B>bool HistoryNoDup</B>
+
+<DD><P>
+
+
+
+<DT><B>tuple ColorTable</B>
+
+<DD>Tuple of 16 ints containing console's color attributes<P>
+
+
+
+<DT><B>int Size</B>
+
+<DD>Size of structure, ignored on input<P>
+
+
+
+</DL>
+
+</body>
+</html>

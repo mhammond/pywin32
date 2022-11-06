@@ -1,0 +1,72 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>PyWKSTA_TRANSPORT_INFO_0</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<HR><H1>PyWKSTA_TRANSPORT_INFO_0 Object</H1><P>
+
+A dictionary holding the infomation in a Win32 WKSTA_TRANSPORT_INFO_0 structure.<P>
+
+<H3>Properties</H3>
+
+<DL>
+
+<DT><B>int quality_of_service</B>
+
+<DD>Supplies a value that specifies the search order of the transport 
+
+protocol with respect to other transport protocols. The highest value is searched first.<P>
+
+
+
+<DT><B>int number_of_vcs</B>
+
+<DD>Specifies the number of clients communicating 
+
+with the server using this transport protocol.<P>
+
+
+
+<DT><B>string/<B>PyUnicode</B>
+
+ transport_name</B>
+
+<DD>Specifies the device name of the transport protocol.<P>
+
+
+
+<DT><B>string/<B>PyUnicode</B>
+
+ transport_address</B>
+
+<DD>Specifies the address 
+
+of the server on this transport protocol.<P>
+
+
+
+<DT><B>bool wan_ish</B>
+
+<DD>This member is ignored by the NetWkstaTransportAdd function. For the 
+
+NetWkstaTransportEnum function, this member indicates that this transport protocol is a WAN transport 
+
+protocol. This member is set TRUE for NetBIOS/TCIP; it is set FALSE for NetBEUI and NetBIOS/IPX.<P>
+
+
+
+</DL>
+
+</body>
+</html>

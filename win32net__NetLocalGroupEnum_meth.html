@@ -1,0 +1,62 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32net.NetLocalGroupEnum</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32net.html">win32net</A>.NetLocalGroupEnum</H1><P>
+
+([dict, ...], total, resumeHandle) = <B>NetLocalGroupEnum(<I>server</I><I>, level</I>
+
+<I>, resumeHandle</I>
+
+<I>, prefLen</I>
+
+</B>)<P>Enumerates all groups.<P>
+
+<H3>Parameters</H3><P><DT><I>server</I> : string/<B>PyUnicode</B>
+
+<P>
+
+<DD>The name of the server, or None.<P><DT><I>level</I> : int<P>
+
+<DD>The level of data required.<P><DT><I>resumeHandle=0</I> : int<P>
+
+<DD>A resume handle.  See the return description for more information.<P>
+
+<DT><I>prefLen=MAX_PREFERRED_LENGTH</I> : int<P>
+
+<DD>The preferred length of the data buffer.<P>
+
+<H3>Win32 API References</H3><P><DT>Search for <i>NetLocalGroupEnum</i> at <a href="http://search.msdn.microsoft.com/search/results.aspx?view=msdn&query=NetLocalGroupEnum" target="_blank">msdn</a>, <a href="http://www.google.com/search?q=NetLocalGroupEnum" target="_blank">google</a> or <a href="http://groups.google.com/groups?q=NetLocalGroupEnum" target="_blank">google groups</a>.<P>
+
+<H3>Return Value</H3>The result is a list of items read (with each item being a dictionary of format 
+
+<A HREF="PyGROUP_INFO_.2a.html">PyGROUP_INFO_*</A>, depending on the level parameter), 
+
+the total available, and a new "resume handle".  The first time you call 
+
+this function, you should pass zero for the resume handle.  If more data 
+
+is available than what was returned, a new non-zero resume handle will be 
+
+returned, which can be used to call the function again to fetch more data. 
+
+This process may repeat, each time with a new resume handle, until zero is 
+
+returned for the new handle, indicating all the data has been read.<P>
+
+
+
+</body>
+</html>

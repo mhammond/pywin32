@@ -1,0 +1,48 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32print.EnumPrinterDrivers</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32print.html">win32print</A>.EnumPrinterDrivers</H1><P>
+
+(dict,...) = <B>EnumPrinterDrivers(<I>Server</I><I>, Environment</I>
+
+<I>, Level</I>
+
+</B>)<P>Lists installed printer drivers<P>
+
+<H3>Parameters</H3><P><DT><I>Server=None</I> : string/unicode<P>
+
+<DD>Name of print server, use None for local machine<P>
+
+<DT><I>Environment=None</I> : string/unicode<P>
+
+<DD>Environment - eg 'Windows NT x86' - use None for current client 
+
+environment<P>
+
+<DT><I>Level=1</I> : int<P>
+
+<DD>Level of information to return, 1-6 (not all levels are supported on all platforms)<P>
+
+<H3>Comments</H3>
+
+On Win2k and up, 'all' can be passed for environment<P>
+
+<H3>Return Value</H3>Returns a sequence of dictionaries representing DRIVER_INFO_* structures<P>
+
+
+
+</body>
+</html>

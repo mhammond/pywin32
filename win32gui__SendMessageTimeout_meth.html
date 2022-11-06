@@ -1,0 +1,52 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>win32gui.SendMessageTimeout</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="win32gui.html">win32gui</A>.SendMessageTimeout</H1><P>
+
+int,int = <B>SendMessageTimeout(<I>hwnd</I><I>, message</I>
+
+<I>, wparam</I>
+
+<I>, lparam</I>
+
+<I>, flags</I>
+
+<I>, timeout</I>
+
+</B>)<P>Sends a message to the window.<P>
+
+<H3>Parameters</H3><P><DT><I>hwnd</I> : int<P>
+
+<DD>The handle to the Window<P><DT><I>message</I> : int<P>
+
+<DD>The ID of the message to post<P><DT><I>wparam</I> : int<P>
+
+<DD>An integer whose value depends on the message<P><DT><I>lparam</I> : int<P>
+
+<DD>An integer whose value depends on the message<P><DT><I>flags</I> : int<P>
+
+<DD>Send options<P><DT><I>timeout</I> : int<P>
+
+<DD>Timeout duration in milliseconds.<P><H3>Return Value</H3>The result is the result of the SendMessageTimeout call, plus the last 'result' param. 
+
+If the timeout period expires, a pywintypes.error exception will be thrown, 
+
+with zero as the error code.  See the Microsoft documentation for more information.<P>
+
+
+
+</body>
+</html>
