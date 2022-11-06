@@ -561,8 +561,10 @@ static PyObject *PyRasDial(PyObject *self, PyObject *args)
         return ReturnError("The callback object must be an integer handle, None, or a callable object",
                            "<Dial param parsing>");
     // If we have any sort of callback, we must ensure threads are init'd.
+#if PY_VERSION_HEX < 0x03070000
     if (pNotification)
         PyEval_InitThreads();
+#endif
     // If we have a callback, store it in our map with None as the key.
     // The callback routine will patch this once it knows the true key.
     // Before we do, we must check None is not already there

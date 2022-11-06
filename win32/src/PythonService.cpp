@@ -614,7 +614,9 @@ static void PyService_InitPython()
     PyWinFreeze_ExeInit();
 #endif
     // Ensure we are set for threading.
+#if PY_VERSION_HEX < 0x03070000
     PyEval_InitThreads();
+#endif
     // Notes about argv: When debugging a service, the argv is currently
     // the *full* args, including the "-debug servicename" args.  This
     // isn't ideal, but has been this way for a few builds, and a good
@@ -1451,7 +1453,9 @@ int _tmain(int argc, TCHAR **argv)
         // do not free `program` since Py_SetProgramName does not copy it.
     }
     Py_Initialize();
+#if PY_VERSION_HEX < 0x03070000
     PyEval_InitThreads();
+#endif
     module = PyImport_ImportModule("servicemanager");
     if (!module)
         goto failed;
