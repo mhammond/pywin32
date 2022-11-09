@@ -54,7 +54,7 @@
 
 // Macros to handle PyObject layout changes in Py3k
 #define PYISAPI_OBJECT_HEAD PyVarObject_HEAD_INIT(NULL, 0)
-#define PYISAPI_ATTR_CONVERT PyUnicode_AsUnicode
+////#define PYISAPI_ATTR_CONVERT PyUnicode_AsUnicode  // removed in Py3.12+
 
 // A helper that on py3k takes a str or unicode as input and returns a
 // string - exactly how the 's#' PyArg_ParseTuple format string does...

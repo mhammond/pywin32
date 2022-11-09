@@ -790,7 +790,9 @@ static struct PyMethodDef pywintypes_functions[] = {
 
 int PyWinGlobals_Ensure()
 {
+#if PY_VERSION_HEX < 0x03070000
     PyEval_InitThreads();
+#endif
     PyWinInterpreterState_Ensure();
     if (PyWinExc_ApiError == NULL) {
         // Setup our exception objects so they have attributes.

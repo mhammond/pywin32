@@ -14,6 +14,18 @@ class TestWaitableTimer(unittest.TestCase):
         rc = win32event.WaitForSingleObject(h, 1000)
         self.assertEqual(rc, win32event.WAIT_OBJECT_0)
 
+    def testCreateWaitableTimerEx(self):
+        h = win32event.CreateWaitableTimerEx(
+            None,
+            None,
+            win32event.CREATE_WAITABLE_TIMER_HIGH_RESOLUTION,
+            win32event.TIMER_ALL_ACCESS,
+        )
+        dt = -160  # 160 ns.
+        win32event.SetWaitableTimer(h, dt, 0, None, None, 0)
+        rc = win32event.WaitForSingleObject(h, 1000)
+        self.assertEqual(rc, win32event.WAIT_OBJECT_0)
+
     def testWaitableTrigger(self):
         h = win32event.CreateWaitableTimer(None, 0, None)
         # for the sake of this, pass a long that doesn't fit in an int.

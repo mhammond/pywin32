@@ -817,8 +817,8 @@ static int ibindString(cursorObject *cur, int column, PyObject *item)
 
 static int ibindUnicode(cursorObject *cur, int column, PyObject *item)
 {
-    const WCHAR *wval = (WCHAR *)PyUnicode_AsUnicode(item);
-    Py_ssize_t nchars = PyUnicode_GetSize(item) + 1;
+    TmpWCHAR wval = item;  if (!wval) return 0;
+    Py_ssize_t nchars = wval.length + 1;
     Py_ssize_t nbytes = nchars * sizeof(WCHAR);
 
     InputBinding *ib = initInputBinding(cur, nbytes);
@@ -1010,13 +1010,13 @@ static BOOL bindOutput(cursorObject *cur)
                 break;
             case SQL_BINARY:
             case SQL_VARBINARY:
-                if (!bindOutputVar(cur, rawCopy, SQL_C_BINARY, cur->max_width, pos, false))
+                if (!bindOutputVar(cur, rawCopy, SQL_C_BINARY, (vsize == 0) ? cur->max_width : vsize, pos, false))
                     return FALSE;
                 typeOf = DbiRaw;
                 break;
             case SQL_VARCHAR:
             case SQL_WVARCHAR:
-                if (!bindOutputVar(cur, wcharCopy, SQL_C_WCHAR, (vsize + 1) * sizeof(WCHAR), pos, false))
+                if (!bindOutputVar(cur, wcharCopy, SQL_C_WCHAR, (((vsize == 0) ? cur->max_width : vsize) + 1) * sizeof(WCHAR), pos, false))
                     return FALSE;
                 typeOf = DbiString;
                 break;

@@ -374,9 +374,6 @@ class CScintillaEditInterface(ScintillaControlInterface):
     def Clear(self):
         self.SendScintilla(win32con.WM_CLEAR)
 
-    def Clear(self):
-        self.SendScintilla(win32con.WM_CLEAR)
-
     def FindText(self, flags, range, findText):
         """LPARAM for EM_FINDTEXTEX:
                 typedef struct _findtextex {

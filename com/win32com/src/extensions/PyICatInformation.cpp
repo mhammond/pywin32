@@ -61,7 +61,7 @@ PyObject *PyICatInformation::EnumClassesOfCategories(PyObject *self, PyObject *a
             PyErr_SetString(PyExc_TypeError, "Only None or lists are supported for the params.");
             return NULL;
         }
-        cImplemented = PySequence_Length(listImplemented);
+        cImplemented = (ULONG)PySequence_Length(listImplemented);
         pIDs = new GUID[cImplemented];
         for (ULONG i = 0; i < cImplemented; i++) {
             PyObject *ob = PySequence_GetItem(listImplemented, i);
@@ -84,7 +84,7 @@ PyObject *PyICatInformation::EnumClassesOfCategories(PyObject *self, PyObject *a
             delete pIDs;
             return NULL;
         }
-        cRequired = PySequence_Length(listRequired);
+        cRequired = (ULONG)PySequence_Length(listRequired);
         pIDsReqd = new GUID[cRequired];
         for (ULONG i = 0; i < cRequired; i++) {
             PyObject *ob = PySequence_GetItem(listRequired, i);

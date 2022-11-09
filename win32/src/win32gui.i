@@ -251,7 +251,9 @@ PyObject *PyWinObject_FromHDEVNOTIFY(HGDIOBJ h)
 
 // Written to the module init function.
 %init %{
+#if PY_VERSION_HEX < 0x03070000
 PyEval_InitThreads(); /* Start the interpreter's thread-awareness */
+#endif
 PyDict_SetItemString(d, "dllhandle", PyWinLong_FromVoidPtr(g_dllhandle));
 PyDict_SetItemString(d, "error", PyWinExc_ApiError);
 
@@ -861,6 +863,7 @@ public:
 	static PyObject *PySetDialogProc(PyObject *self, PyObject *args);
 	WNDCLASS m_WNDCLASS;
 	PyObject *m_obMenuName, *m_obClassName, *m_obWndProc;
+	TmpWCHAR m_MenuName, m_ClassName;
 };
 #define PyWNDCLASS_Check(ob)	((ob)->ob_type == &PyWNDCLASSType)
 
@@ -1001,7 +1004,7 @@ PyObject *PyWNDCLASS::getattro(PyObject *self, PyObject *obname)
 	return PyObject_GenericGetAttr(self, obname);
 }
 
-int SetTCHAR(PyObject *v, PyObject **m, LPCTSTR *ret)
+int _SetTCHAR(PyObject *v, PyObject **m, LPCTSTR *ret, TmpWCHAR &tws)
 {
 	if (!PyUnicode_Check(v)) {
 		PyErr_SetString(PyExc_TypeError, "Object must be a Unicode");
@@ -1010,7 +1013,9 @@ int SetTCHAR(PyObject *v, PyObject **m, LPCTSTR *ret)
 	Py_XDECREF(*m);
 	*m = v;
 	Py_INCREF(v);
-	*ret = PyUnicode_AsUnicode(v);
+	*ret = tws = v;
+	if (!tws)
+	    return -1;
 	return 0;
 }
 
@@ -1025,10 +1030,10 @@ int PyWNDCLASS::setattro(PyObject *self, PyObject *obname, PyObject *v)
 		return -1;
 	PyWNDCLASS *pW = (PyWNDCLASS *)self;
 	if (strcmp("lpszMenuName", name)==0) {
-		return SetTCHAR(v, &pW->m_obMenuName, &pW->m_WNDCLASS.lpszMenuName);
+		return _SetTCHAR(v, &pW->m_obMenuName, &pW->m_WNDCLASS.lpszMenuName, pW->m_MenuName);
 	}
 	if (strcmp("lpszClassName", name)==0) {
-		return SetTCHAR(v, &pW->m_obClassName, &pW->m_WNDCLASS.lpszClassName);
+		return _SetTCHAR(v, &pW->m_obClassName, &pW->m_WNDCLASS.lpszClassName, pW->m_ClassName);
 	}
 	if (strcmp("lpfnWndProc", name)==0) {
 		if (!PyCallable_Check(v) && !PyDict_Check(v)) {
@@ -6287,7 +6292,7 @@ BOOL PyParse_OPENFILENAMEW_Args(PyObject *args, PyObject *kwargs, OPENFILENAMEW 
 
 PyObject *PyReturn_OPENFILENAMEW_Output(OPENFILENAMEW *pofn)
 {
-	DWORD filechars, filterchars;
+	Py_ssize_t filechars, filterchars;
 	// If OFN_ALLOWMULTISELECT is set, the terminator is 2 NULLs,
 	// otherwise a single NULL.
 	if (pofn->Flags & OFN_ALLOWMULTISELECT) {

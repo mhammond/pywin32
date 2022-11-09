@@ -117,11 +117,9 @@ BOOL CVirtualHelper::do_call(PyObject *args)
             if (obRepr) {
                 if (PyBytes_Check(obRepr))
                     szRepr = PyBytes_AS_STRING(obRepr);
-                else if (PyUnicode_Check(obRepr))
-                    szRepr = W2A(PyUnicode_AS_UNICODE(obRepr));
+                else if (TmpWCHAR tmpw=obRepr)
+                    szRepr = W2A(tmpw);
             }
-            else
-                PyErr_Clear();
 
             LPTSTR HandlerName = csHandlerName.GetBuffer(csHandlerName.GetLength());
             snprintf(msg, sizeof(msg) / sizeof(msg[0]), "%s() virtual handler (%s) raised an exception",

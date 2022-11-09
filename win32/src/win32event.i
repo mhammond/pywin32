@@ -3,10 +3,6 @@
 
 %module win32event // A module which provides an interface to the win32 event/wait API
 
-%{
-#define _WIN32_WINNT 0x0501
-%}
-
 %include "typemaps.i"
 %include "pywin32.i"
 
@@ -54,6 +50,13 @@
 #define MAXIMUM_WAIT_OBJECTS MAXIMUM_WAIT_OBJECTS
 
 #define INFINITE INFINITE
+
+#define CREATE_WAITABLE_TIMER_MANUAL_RESET CREATE_WAITABLE_TIMER_MANUAL_RESET
+#define CREATE_WAITABLE_TIMER_HIGH_RESOLUTION CREATE_WAITABLE_TIMER_HIGH_RESOLUTION
+
+#define TIMER_ALL_ACCESS TIMER_ALL_ACCESS
+#define TIMER_MODIFY_STATE TIMER_MODIFY_STATE
+#define TIMER_QUERY_STATE TIMER_QUERY_STATE
 
 #define QS_ALLEVENTS QS_ALLEVENTS // An input, WM_TIMER, WM_PAINT, WM_HOTKEY, or posted message is in the queue.
 
@@ -129,6 +132,16 @@ PyHANDLE CreateWaitableTimer(
     SECURITY_ATTRIBUTES *TimerAttributes, // @pyparm <o PySECURITY_ATTRIBUTES>|TimerAttributes||Specifies inheritance and security descriptor for object, or None for defaults
     BOOL bManualReset,	// @pyparm bool|ManualReset||True for manual reset timer, or False to create a synchronization timer
     TCHAR * INPUT_NULLOK	// @pyparm str|TimerName||Timer object name, or None
+);
+
+// @pyswig <o PyHANDLE>|CreateWaitableTimerEx|Creates or opens a waitable timer object and returns a handle to the object
+// @rdesc The result is a handle to the object
+// @pyseeapi CreateWaitableTimerEx
+PyHANDLE CreateWaitableTimerEx(
+    SECURITY_ATTRIBUTES *TimerAttributes, // @pyparm <o PySECURITY_ATTRIBUTES>|TimerAttributes||Specifies inheritance and security descriptor for object, or None for defaults
+    TCHAR *INPUT_NULLOK,	// @pyparm str|TimerName||Timer object name, or None
+    DWORD dwFlags,	// @pyparm int|Flags||Flags
+    DWORD dwDesiredAccess	// @pyparm int|DesiredAccess||The access mask for the timer object
 );
 #endif // MS_WINCE
 

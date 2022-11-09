@@ -87,6 +87,9 @@ PyObject *FdCreatePipe(SECURITY_ATTRIBUTES *INPUT, DWORD nSize, int mode);
 #define NMPWAIT_WAIT_FOREVER NMPWAIT_WAIT_FOREVER
 #define NMPWAIT_USE_DEFAULT_WAIT NMPWAIT_USE_DEFAULT_WAIT
 #define PIPE_UNLIMITED_INSTANCES PIPE_UNLIMITED_INSTANCES
+#define PIPE_ACCEPT_REMOTE_CLIENTS PIPE_ACCEPT_REMOTE_CLIENTS
+#define PIPE_REJECT_REMOTE_CLIENTS PIPE_REJECT_REMOTE_CLIENTS
+#define FILE_FLAG_FIRST_PIPE_INSTANCE FILE_FLAG_FIRST_PIPE_INSTANCE
 
 %{
 // @pyswig (int, int, int/None, int/None, <o PyUnicode>|GetNamedPipeHandleState|Determines the state of the named pipe.
@@ -104,21 +107,28 @@ PyObject *MyGetNamedPipeHandleState(PyObject *self, PyObject *args)
 	PyObject *obCollectDataTimeout;
 
 	BOOL getCollectData = FALSE;
+	BOOL getUserName = FALSE;
 	// @pyparm <o PyHANDLE>|hPipe||The handle to the pipe.
-	// @pyparm int|bGetCollectionData|0|Determines of the collection data should be returned.  If not, None is returned in their place.
+	// @pyparm int|bGetCollectionData|0|Determines if the collection data should be retrieved.  If not, None is returned in their place.
+	// @pyparm int|bGetUserName|0|Determines if the username should be retrieved. Works only for a server handle and if the client opened the pipe with SECURITY_IMPERSONATION access.
 
-	if (!PyArg_ParseTuple(args, "O|i:GetNamedPipeHandleState", &obhNamedPipe, &getCollectData))
+	if (!PyArg_ParseTuple(args, "O|ii:GetNamedPipeHandleState", &obhNamedPipe, &getCollectData, &getUserName))
 		return NULL;
 	if (!PyWinObject_AsHANDLE(obhNamedPipe, &hNamedPipe))
 		return NULL;
-	TCHAR buf[512];
+	TCHAR buf[512] = L"";
 	if (getCollectData) {
 		pMaxCollectionCount = &MaxCollectionCount;
 		pCollectDataTimeout = &CollectDataTimeout;
 	} else
 		pMaxCollectionCount = pCollectDataTimeout = NULL;
 
-	if (!GetNamedPipeHandleState(hNamedPipe, &State, &CurInstances, pMaxCollectionCount, pCollectDataTimeout, buf, 512))
+	BOOL ok;
+	Py_BEGIN_ALLOW_THREADS
+	ok = GetNamedPipeHandleState(hNamedPipe, &State, &CurInstances, pMaxCollectionCount, pCollectDataTimeout,
+								  getUserName ? buf : NULL, 512);
+	Py_END_ALLOW_THREADS
+	if (!ok)
 		return PyWin_SetAPIError("GetNamedPipeHandleState");
 	PyObject *obName = PyWinObject_FromTCHAR(buf);
 	if (getCollectData) {

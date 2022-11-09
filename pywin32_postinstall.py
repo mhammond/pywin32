@@ -579,6 +579,15 @@ def install(lib_dir):
         pass
     print("The pywin32 extensions were successfully installed.")
 
+    if is_bdist_wininst:
+        # Open a web page with info about the .exe installers being deprecated.
+        import webbrowser
+
+        try:
+            webbrowser.open("https://mhammond.github.io/pywin32_installers.html")
+        except webbrowser.Error:
+            print("Please visit https://mhammond.github.io/pywin32_installers.html")
+
 
 def uninstall(lib_dir):
     # First ensure our system modules are loaded from pywin32_system, so

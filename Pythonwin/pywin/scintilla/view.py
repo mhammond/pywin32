@@ -168,10 +168,6 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
         # SendScintilla is called so frequently it is worth optimizing.
         self.SendScintilla = self._obj_.SendMessage
 
-    def OnDestroy(self, msg):
-        self.SendScintilla = None
-        return docview.CtrlView.OnDestroy(self, msg)
-
     def _MakeColorizer(self):
         ext = os.path.splitext(self.GetDocument().GetPathName())[1]
         from . import formatter

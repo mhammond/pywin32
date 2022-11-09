@@ -294,7 +294,9 @@ static PyObject *ui_thread_create_thread(PyObject *self, PyObject *args)
     CWinThread *pThread = GetCWinThreadPtr(self);
     if (!pThread)
         return NULL;
+#if PY_VERSION_HEX < 0x03070000
     PyEval_InitThreads();
+#endif
     GUI_BGN_SAVE;
     BOOL ok = pThread->CreateThread(createFlags, stackSize);
     GUI_END_SAVE;

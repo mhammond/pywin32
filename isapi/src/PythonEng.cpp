@@ -64,7 +64,9 @@ bool CPythonEngine::InitMainInterp(void)
             Py_Initialize();
             old_state = PyGILState_UNLOCKED;
         }
+#if PY_VERSION_HEX < 0x03070000
         PyEval_InitThreads();
+#endif
 
         if (!g_IsFrozen) {
             TCHAR *dll_path = GetModulePath();

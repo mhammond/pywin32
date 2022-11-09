@@ -106,7 +106,7 @@ BOOL PyWinObject_AsUSHORTArray(PyObject *obushorts, USHORT **pushorts, DWORD *it
 // structmember framework provided a format code for this
 BOOL PyWinObject_AsSingleWCHAR(PyObject *obchar, WCHAR *onechar)
 {
-    if (!PyUnicode_Check(obchar) || (PyUnicode_GET_SIZE(obchar) != 1)) {
+    if (!PyUnicode_Check(obchar) || (PyUnicode_GetLength(obchar) != 1)) {
         PyErr_SetString(PyExc_ValueError, "Object must be a single unicode character");
         return FALSE;
     }

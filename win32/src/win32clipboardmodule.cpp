@@ -840,12 +840,13 @@ static PyObject *py_set_clipboard_data(PyObject *self, PyObject *args)
         PyErr_Clear();
 
         const void *buf = NULL;
+        TmpWCHAR tmpw;
         Py_ssize_t bufSize = 0;
         PyWinBufferView pybuf;
         // In py3k, unicode no longer supports buffer interface
         if (PyUnicode_Check(obhandle)) {
-            bufSize = PyUnicode_GET_DATA_SIZE(obhandle) + sizeof(Py_UNICODE);
-            buf = (void *)PyUnicode_AS_UNICODE(obhandle);
+            buf = tmpw = obhandle;  if (!tmpw) return NULL;
+            bufSize = (tmpw.length +  1) * sizeof(WCHAR);
         }
         else {
             if (!pybuf.init(obhandle))

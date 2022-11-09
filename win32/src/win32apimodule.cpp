@@ -1183,11 +1183,11 @@ static PyObject *PyLoadCursor(PyObject *self, PyObject *args)
 // @pymethod [string]|win32api|CommandLineToArgv|Parses a command line string and returns a list of command line arguments, in a way that is similar to sys.argv.
 static PyObject *PyCommandLineToArgv(PyObject *self, PyObject *args)
 {
-    const Py_UNICODE *cmdLine;
-    if (!PyArg_ParseTuple(args, "u", &cmdLine)) // @pyparm string|cmdLine||A string that contains the full command line. If this parameter is an empty string the function returns the path to the current executable file.
+    TmpWCHAR cmd;
+    if (!PyArg_ParseTuple(args, "U", &cmd.u) || !cmd.u2w()) // @pyparm string|cmdLine||A string that contains the full command line. If this parameter is an empty string the function returns the path to the current executable file.
         return NULL;
     int numArgs = 0;
-    LPWSTR *szArglist = CommandLineToArgvW(cmdLine, &numArgs);
+    LPWSTR *szArglist = CommandLineToArgvW(cmd, &numArgs);
     if (szArglist == NULL)
         ReturnAPIError("CommandLineToArgvW");
 
@@ -1396,13 +1396,14 @@ static PyObject *PyVkKeyScan(PyObject *self, PyObject *args)
         PyW32_END_ALLOW_THREADS
     }
     else if (PyUnicode_Check(obkey)) {
-        if (PyUnicode_GET_SIZE(obkey) != 1) {
+        if (PyUnicode_GetLength(obkey) != 1) {
             PyErr_SetString(PyExc_TypeError, "must be a unicode string of length 1");
             return NULL;
         }
+        TmpWCHAR ts(obkey);  if (!ts) return NULL;
         PyW32_BEGIN_ALLOW_THREADS
             // @pyseeapi VkKeyScanW
-            ret = VkKeyScanW(PyUnicode_AS_UNICODE(obkey)[0]);
+            ret = VkKeyScanW(ts[0]);
         PyW32_END_ALLOW_THREADS
     }
     else {
@@ -1440,13 +1441,14 @@ static PyObject *PyVkKeyScanEx(PyObject *self, PyObject *args)
         PyW32_END_ALLOW_THREADS
     }
     else if (PyUnicode_Check(obkey)) {
-        if (PyUnicode_GET_SIZE(obkey) != 1) {
+        if (PyUnicode_GetLength(obkey) != 1) {
             PyErr_SetString(PyExc_TypeError, "must be a unicode string of length 1");
             return NULL;
         }
+        TmpWCHAR ts(obkey);  if (!ts) return NULL;
         PyW32_BEGIN_ALLOW_THREADS
             // @pyseeapi VkKeyScanExW
-            ret = VkKeyScanExW(PyUnicode_AS_UNICODE(obkey)[0], hkl);
+            ret = VkKeyScanExW(ts[0], hkl);
         PyW32_END_ALLOW_THREADS
     }
     else {
@@ -1543,7 +1545,7 @@ static PyObject *PyGetModuleFileNameW(PyObject *self, PyObject *args)
             break;
         }
         if (reqdsize < bufsize) {
-            ret = PyUnicode_FromUnicode(buf, reqdsize);
+            ret = PyUnicode_FromWideChar(buf, reqdsize);
             break;
         }
         reqdsize++;
@@ -2099,21 +2101,13 @@ static PyObject *PyGetLongPathNameW(PyObject *self, PyObject *args)
         else {
             // retry with a buffer that is big enough.  Now we know the
             // size and that it is big, avoid double-handling.
-            Py_UNICODE *buf;
+            TmpWCHAR buf = PyMem_New(WCHAR, length);
             // The length is the buffer needed, which includes the NULL.
-            // PyUnicode_FromUnicode adds one.
-            obLongPathNameW = PyUnicode_FromUnicode(NULL, length - 1);
-            if (!obLongPathNameW) {
-                PyWinObject_FreeWCHAR(fileName);
-                return NULL;
-            }
-            buf = PyUnicode_AS_UNICODE(obLongPathNameW);
+            // PyUnicode_FromWideChar adds one.
             PyW32_BEGIN_ALLOW_THREADS DWORD length2 = (*pfnGetLongPathNameW)(fileName, buf, length);
-            PyW32_END_ALLOW_THREADS if (length2 == 0)
-            {
-                Py_DECREF(obLongPathNameW);
-                obLongPathNameW = NULL;
-            }
+            PyW32_END_ALLOW_THREADS 
+            if (length2)
+                obLongPathNameW = PyUnicode_FromWideChar(buf, -1);
             // On success, it is the number of chars copied *not* including
             // the NULL.  Check this is true.
             assert(length2 + 1 == length);
@@ -2125,15 +2119,16 @@ static PyObject *PyGetLongPathNameW(PyObject *self, PyObject *args)
     return obLongPathNameW;
 }
 
-// @pymethod int|win32api|GetTickCount|Returns the number of milliseconds since windows started.
+// @pymethod int|win32api|GetTickCount|Returns the (64bit) number of milliseconds since windows started. Uses Win API GetTickCount64().
 static PyObject *PyGetTickCount(PyObject *self, PyObject *args)
 {
     if (!PyArg_ParseTuple(args, ":PyGetTickCount"))
         return NULL;
-    PyW32_BEGIN_ALLOW_THREADS DWORD count = GetTickCount();
+    PyW32_BEGIN_ALLOW_THREADS
+    ULONGLONG count = GetTickCount64();
     PyW32_END_ALLOW_THREADS
 
-        return Py_BuildValue("l", (long)count);
+        return Py_BuildValue("K", count);
 }
 
 // @pymethod string|win32api|GetTempPath|Retrieves the path of the directory designated for temporary files.

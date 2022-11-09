@@ -121,6 +121,7 @@ PYWINTYPES_EXPORT PyObject *PyWin_SetBasicCOMError(HRESULT hr);
 //
 // A sizes/lengths are reported as a `DWORD` rather than a `Py_ssize_t`, that's what the callers
 // need. `Py_ssize_t` used as the "in" type.
+// (We also use this for UINT and ULONG, all of which are 32bit unsigned ints.)
 
 // Sometimes we need to downcast from a ssize_t to a DWORD
 inline bool PyWin_is_ssize_dword(Py_ssize_t val) {
@@ -167,19 +168,38 @@ PYWINTYPES_EXPORT void PyWinObject_FreeChars(char *pResult);
 // Automatically freed WCHAR that can be used anywhere WCHAR * is required
 class TmpWCHAR {
    public:
-    WCHAR *tmp;
+    WCHAR *tmp;  // (NULL after conversion error)
+    Py_ssize_t length;  // only set after successful auto-conversion; w/o trailing \0
+    PyObject *u;        // auxiliary slot for u2w()
+
     TmpWCHAR() { tmp = NULL; }
     TmpWCHAR(WCHAR *t) { tmp = t; }
+    TmpWCHAR(PyObject *ob) : tmp(NULL) { *this = ob; }
+    WCHAR *u2w() { return *this = u; }
+    WCHAR *operator=(PyObject *ob) {
+        if (tmp)
+            PyMem_Free(tmp);
+        if (ob == NULL)
+            tmp = NULL;  // (exception already has been set in this case)
+        else
+            tmp = PyUnicode_AsWideCharString(ob, &length);
+        return tmp;
+    }
     WCHAR *operator=(WCHAR *t)
     {
-        PyWinObject_FreeWCHAR(tmp);
+        if (tmp)
+            PyMem_Free(tmp);
         tmp = t;
         return t;
     }
     WCHAR **operator&() { return &tmp; }
     boolean operator==(WCHAR *t) { return tmp == t; }
     operator WCHAR *() { return tmp; }
-    ~TmpWCHAR() { PyWinObject_FreeWCHAR(tmp); }
+    ~TmpWCHAR() { if (tmp) PyMem_Free(tmp); }
+   private:
+    // Block unwanted copy construction
+    TmpWCHAR(const TmpWCHAR& o);  // = delete;
+    const TmpWCHAR& operator=(const TmpWCHAR& o);  // = delete;
 };
 
 // More string helpers - how many do we need?
