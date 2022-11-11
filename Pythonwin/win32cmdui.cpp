@@ -19,15 +19,27 @@ generates Windows .hlp files.
 inline void *GetPythonOleProcAddress(const char *procName)
 {
     HMODULE hMod = NULL;
-    for (int i = 15; hMod == NULL && i < 40; i++) {
-        TCHAR buf[20];
+    TCHAR buf[32];
 #ifdef _DEBUG
-        wsprintf(buf, _T("PythonCOM%d_d.dll"), i);
+    wsprintf(buf, _T("PythonCOM%d%d_d.dll"), PY_MAJOR_VERSION, PY_MINOR_VERSION);
 #else
-        wsprintf(buf, _T("PythonCOM%d.dll"), i);
+    wsprintf(buf, _T("PythonCOM%d%d.dll"), PY_MAJOR_VERSION, PY_MINOR_VERSION);
 #endif
-        hMod = GetModuleHandle(buf);
-    }
+    hMod = GetModuleHandle(buf);
+
+// XXX It is unclear why the code previously tried to identify a loaded PythonCOM DLL of
+// any Python version 1.5 .. 3.9. If some InprocServer would load the DLL of a different
+// Python version that would likely cause a crash. Thus deactivated.
+//
+//     for (int i = 0; hMod == NULL && i < 40; i++) {
+// #ifdef _DEBUG
+//         wsprintf(buf, _T("PythonCOM3%d_d.dll"), i);
+// #else
+//         wsprintf(buf, _T("PythonCOM3%d.dll"), i);
+// #endif
+//         hMod = GetModuleHandle(buf);
+//     }
+
     if (hMod) {
         void *rc = GetProcAddress(hMod, procName);
         if (rc == NULL)
