@@ -1,7 +1,3 @@
-py -3.6-32 setup.py -q build
-@if errorlevel 1 goto failed
-py -3.6 setup.py -q build
-@if errorlevel 1 goto failed
 py -3.7-32 setup.py -q build
 @if errorlevel 1 goto failed
 py -3.7 setup.py -q build
@@ -22,9 +18,13 @@ py -3.11-32 setup.py -q build
 @if errorlevel 1 goto failed
 py -3.11 setup.py -q build
 @if errorlevel 1 goto failed
+py -3.12-32 setup.py -q build
+@if errorlevel 1 goto failed
+py -3.12 setup.py -q build
+@if errorlevel 1 goto failed
 
 goto xit
 :failed
 @echo Oops - failed!
-goto xit
+@exit /b 1
 :xit
