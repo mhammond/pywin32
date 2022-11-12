@@ -13,6 +13,7 @@ https://mhammond.github.io/pywin32_installers.html.
 
 Coming in build 306, as yet unreleased
 --------------------------------------
+* Support for Python 3.6 was dropped.
 
 Build 305, released 2022-11-06
 ------------------------------
