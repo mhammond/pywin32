@@ -130,7 +130,7 @@ def get_arg_text(ob):
             fob = ob
         if inspect.isfunction(fob) or inspect.ismethod(fob):
             try:
-                argText = inspect.formatargspec(*inspect.getfullargspec(fob))
+                argText = str(inspect.signature(fob))
             except:
                 print("Failed to format the args")
                 traceback.print_exc()
