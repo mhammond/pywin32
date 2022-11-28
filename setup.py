@@ -1046,7 +1046,7 @@ class my_compiler(base_compiler):
                 # ignore it for now
                 if platform.machine() != "ARM64":
                     print(
-                        "** If you want to skip this step, pass '--skip-verstamp' on the command-line"
+                        "** If you want to skip this step, pass '--skip-verstamp' on the setup.py command-line"
                     )
                     raise
 

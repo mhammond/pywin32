@@ -101,6 +101,9 @@ be able to build most extensions and list any extensions that could not be
 built due to missing libraries - if the build actually fails with your
 configuration, please [open an issue](https://github.com/mhammond/pywin32/issues).
 
+You will need to install pywin32 (using pip) before building from source, or 
+use `python setup.py install --skip-verstamp`, because the default build process uses a win32api call..
+
 ## Release process
 
 The following steps are performed when making a new release - this is mainly
