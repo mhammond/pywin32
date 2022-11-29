@@ -1917,7 +1917,7 @@ static PyObject *PyGetProfileSection(PyObject *self, PyObject *args)
         DWORD retVal = 0;
         while (TRUE) {
             if (szRetBuf) {
-                delete szRetBuf;
+                delete[] szRetBuf;
                 size *= 2;
             }
             szRetBuf = new TCHAR[size]; /* cant fail - may raise exception */
@@ -1938,7 +1938,7 @@ static PyObject *PyGetProfileSection(PyObject *self, PyObject *args)
     PyWinObject_FreeTCHAR(szSection);
     PyWinObject_FreeTCHAR(iniName);
     if (szRetBuf)
-        delete szRetBuf;
+        delete[] szRetBuf;
     return ret;
     // @rdesc The return value is a list of strings.
 }

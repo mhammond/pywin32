@@ -761,7 +761,7 @@ static BOOL PyCom_SAFEARRAYFromPyObjectEx(PyObject *obj, SAFEARRAY **ppSA, bool 
         // OK - Finally can create the array...
         *ppSA = SafeArrayCreate(vt, cDims, pBounds);
         if (*ppSA == NULL) {
-            delete pBounds;
+            delete[] pBounds;
             PyErr_SetString(PyExc_MemoryError, "CreatingSafeArray");
             return FALSE;
         }
