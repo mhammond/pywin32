@@ -864,7 +864,7 @@ static PyObject *MyEnumServicesStatus(PyObject *self, PyObject *args)
 
 	if (!result)
 	{
-		delete buffer;
+		delete[] buffer;
 		return PyWin_SetAPIError("EnumServicesStatus");
 	}
 
@@ -887,7 +887,7 @@ static PyObject *MyEnumServicesStatus(PyObject *self, PyObject *args)
 		Py_XDECREF(obDisplayName);
 	}
 
-	delete buffer;
+	delete[] buffer;
 	return retval;
 }
 %}
@@ -1029,7 +1029,7 @@ static PyObject *MyEnumDependentServices(PyObject *self, PyObject *args)
 
 	if (!result)
 	{
-		delete buffer;
+		delete[] buffer;
 		return PyWin_SetAPIError("EnumDependentServices");
 	}
 
@@ -1052,7 +1052,7 @@ static PyObject *MyEnumDependentServices(PyObject *self, PyObject *args)
 		Py_XDECREF(obDisplayName);
 	}
 
-	delete buffer;
+	delete[] buffer;
 	return retval;
 }
 %}
@@ -1093,7 +1093,7 @@ static PyObject *MyQueryServiceConfig(PyObject *self, PyObject *args)
 
 	if (!result)
 	{
-		delete buffer;
+		delete[] buffer;
 		return PyWin_SetAPIError("QueryServiceConfig");
 	}
 
@@ -1117,7 +1117,7 @@ static PyObject *MyQueryServiceConfig(PyObject *self, PyObject *args)
 			PyWinObject_FromMultipleString(config->lpDependencies),
 			PyWinObject_FromTCHAR(config->lpServiceStartName),
 			PyWinObject_FromTCHAR(config->lpDisplayName));
-	delete buffer;
+	delete[] buffer;
 	return retval;
 }
 %}
