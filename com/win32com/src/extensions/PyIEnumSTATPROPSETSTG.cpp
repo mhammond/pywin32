@@ -159,13 +159,14 @@ STDMETHODIMP PyGEnumSTATPROPSETSTG::Next(
 {
     PY_GATEWAY_METHOD;
     PyObject *result;
+    Py_ssize_t len;
     HRESULT hr = InvokeViaPolicy("Next", &result, "i", celt);
     if (FAILED(hr))
         return hr;
 
     if (!PySequence_Check(result))
         goto error;
-    Py_ssize_t len = PyObject_Length(result);
+    len = PyObject_Length(result);
     if (len == -1 || !PyWin_is_ssize_dword(len))
         goto error;
     if (len > celt)
@@ -174,8 +175,7 @@ STDMETHODIMP PyGEnumSTATPROPSETSTG::Next(
     if (pCeltFetched)
         *pCeltFetched = (ULONG)len;
 
-    int i;
-    for (i = 0; i < len; ++i) {
+    for (int i = 0; i < len; ++i) {
         TmpPyObject ob = PySequence_GetItem(result, i);
         if (ob == NULL)
             goto error;
