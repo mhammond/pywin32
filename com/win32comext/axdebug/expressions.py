@@ -1,4 +1,4 @@
-import axdebug, gateways
+from . import axdebug, gateways
 from .util import _wrap, _wrap_remove, RaiseNotImpl
 import io, traceback
 from pprint import pprint

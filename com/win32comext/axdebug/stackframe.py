@@ -4,7 +4,8 @@ Provides Implements a nearly complete wrapper for a stack frame.
 """
 import sys
 from .util import _wrap, RaiseNotImpl
-import expressions, gateways, axdebug, winerror
+from . import expressions, gateways, axdebug
+import winerror
 import pythoncom
 from win32com.server.exception import COMException
 
