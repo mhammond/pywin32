@@ -3,9 +3,8 @@
 from win32com.axdebug.util import trace, _wrap, _wrap_remove
 from win32com.server.util import unwrap
 import win32com.client.connect
-from . import gateways
+from . import gateways, axdebug, stackframe
 import sys, bdb, traceback
-import axdebug, stackframe
 import win32api, pythoncom
 import _thread, os
 

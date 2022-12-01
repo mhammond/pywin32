@@ -1,12 +1,11 @@
 """ A module for managing the AXDebug I*Contexts
 
 """
-import gateways, axdebug
 import pythoncom, win32com.server.util
 
 # Utility function for wrapping object created by this module.
 from .util import _wrap, _wrap_remove, trace
-from . import adb
+from . import adb, gateways, axdebug
 
 
 class DebugCodeContext(gateways.DebugCodeContext, gateways.DebugDocumentContext):
