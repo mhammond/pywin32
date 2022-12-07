@@ -1,10 +1,12 @@
 # OfficeEvents - test/demonstrate events with Word and Excel.
-from win32com.client import DispatchWithEvents, Dispatch
-import msvcrt, pythoncom
-import time, sys
+import msvcrt
+import sys
+import threading
+import time
 import types
 
-import threading
+import pythoncom
+from win32com.client import Dispatch, DispatchWithEvents
 
 stopEvent = threading.Event()
 
@@ -12,14 +14,16 @@ stopEvent = threading.Event()
 def TestExcel():
     class ExcelEvents:
         def OnNewWorkbook(self, wb):
-            if type(wb) != types.InstanceType:
+            if not isinstance(wb, types.InstanceType):
                 raise RuntimeError(
                     "The transformer doesnt appear to have translated this for us!"
                 )
             self.seen_events["OnNewWorkbook"] = None
 
         def OnWindowActivate(self, wb, wn):
-            if type(wb) != types.InstanceType or type(wn) != types.InstanceType:
+            if not isinstance(wb, types.InstanceType) or not isinstance(
+                wn, types.InstanceType
+            ):
                 raise RuntimeError(
                     "The transformer doesnt appear to have translated this for us!"
                 )

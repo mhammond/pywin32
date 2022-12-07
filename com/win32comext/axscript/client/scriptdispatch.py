@@ -5,14 +5,15 @@
  this yet, so it is not well tested!
 """
 
-import winerror
 import types
-from win32com.server.exception import COMException
+
+import pythoncom
 import win32com.server.policy
 import win32com.server.util
-from win32com.client import Dispatch
-import pythoncom
+import winerror
 from win32com.axscript import axscript
+from win32com.client import Dispatch
+from win32com.server.exception import COMException
 
 debugging = 0
 
@@ -20,7 +21,7 @@ PyIDispatchType = pythoncom.TypeIIDs[pythoncom.IID_IDispatch]
 
 
 def _is_callable(obj):
-    return type(obj) in [types.FunctionType, types.MethodType]
+    return isinstance(obj, (types.FunctionType, types.MethodType))
     # ignore hasattr(obj, "__call__") as this means all COM objects!
 
 
@@ -43,7 +44,7 @@ class ScriptDispatch:
                     raise AttributeError(name)  # Not a function.
                 realArgs = []
                 for arg in args:
-                    if type(arg) == PyIDispatchType:
+                    if isinstance(arg, PyIDispatchType):
                         realArgs.append(Dispatch(arg))
                     else:
                         realArgs.append(arg)

@@ -23,9 +23,9 @@ Jim Eggleston, 28 August 1996
 Merged with dlgpass and moved to pywin.dialogs by Mark Hammond Jan 1998.
 """
 
-import win32ui
 import win32api
 import win32con
+import win32ui
 from pywin.mfc import dialog
 
 
@@ -141,7 +141,7 @@ if __name__ == "__main__":
     if len(sys.argv) > 2:
         def_userid = sys.argv[2]
     userid, password = GetLogin(title, def_user)
-    if userid == password == None:
+    if userid == password is None:
         print("User pressed Cancel")
     else:
         print("User ID: ", userid)

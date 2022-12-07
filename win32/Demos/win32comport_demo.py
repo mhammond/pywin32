@@ -13,13 +13,13 @@
 # in this sample, the very next thing we do _is_ block - so it shows off the concepts even though it
 # doesnt exploit them.
 
-from win32file import *  # The base COM port and file IO functions.
-from win32event import *  # We use events and the WaitFor[Multiple]Objects functions.
-import win32con  # constants.
 import msvcrt  # For the getch() function.
-
-import threading
 import sys
+import threading
+
+import win32con  # constants.
+from win32event import *  # We use events and the WaitFor[Multiple]Objects functions.
+from win32file import *  # The base COM port and file IO functions.
 
 
 def FindModem():
@@ -49,7 +49,7 @@ def FindModem():
 # A basic synchronous COM port file-like object
 class SerialTTY:
     def __init__(self, port):
-        if type(port) == type(0):
+        if isinstance(port, int):
             port = "COM%d" % (port,)
         self.handle = CreateFile(
             port,

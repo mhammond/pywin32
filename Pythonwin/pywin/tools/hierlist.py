@@ -14,21 +14,22 @@
 # to provide maximum flexibility (but with extra work).
 
 import sys
-import win32ui
-import win32con
+
+import commctrl
 import win32api
+import win32con
+import win32ui
+from pywin.mfc import dialog, docview, object, window
 from win32api import RGB
 
-from pywin.mfc import object, window, docview, dialog
-import commctrl
 
 # helper to get the text of an arbitary item
 def GetItemText(item):
-    if type(item) == type(()) or type(item) == type([]):
+    if isinstance(item, (tuple, list)):
         use = item[0]
     else:
         use = item
-    if type(use) == type(""):
+    if isinstance(use, str):
         return use
     else:
         return repr(item)
@@ -184,8 +185,8 @@ class HierList(object.Object):
         bitmapSel = self.GetSelectedBitmapColumn(item)
         if bitmapSel is None:
             bitmapSel = bitmapCol
-        ## if type(text) is str:
-        ##	text = text.encode("mbcs")
+        ## if isinstance(text, str):
+        ##  text = text.encode("mbcs")
         hitem = self.listControl.InsertItem(
             parentHandle,
             hInsertAfter,

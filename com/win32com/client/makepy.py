@@ -66,9 +66,12 @@ Examples:
 
 """
 
-import sys, os, importlib, pythoncom
-from win32com.client import genpy, selecttlb, gencache
-from win32com.client import Dispatch
+import importlib
+import os
+import sys
+
+import pythoncom
+from win32com.client import Dispatch, gencache, genpy, selecttlb
 
 bForDemandDefault = 0  # Default value of bForDemand - toggle this to change the world - see also gencache.py
 
@@ -152,7 +155,8 @@ class SimpleProgress(genpy.GeneratorProgress):
 class GUIProgress(SimpleProgress):
     def __init__(self, verboseLevel):
         # Import some modules we need to we can trap failure now.
-        import win32ui, pywin
+        import pywin
+        import win32ui
 
         SimpleProgress.__init__(self, verboseLevel)
         self.dialog = None
@@ -344,7 +348,7 @@ def GenerateChildFromTypeLibSpec(
         verboseLevel = (
             0  # By default, we use no gui, and no verbose level for the children.
         )
-    if type(typelibInfo) == type(()):
+    if isinstance(typelibInfo, tuple):
         typelibCLSID, lcid, major, minor = typelibInfo
         tlb = pythoncom.LoadRegTypeLib(typelibCLSID, major, minor, lcid)
     else:

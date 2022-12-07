@@ -31,15 +31,15 @@ or, after running through 2to3.py, CPython 3.4 or later.
 __version__ = "2.6.2.0"
 version = "adodbapi v" + __version__
 
-import sys
 import copy
 import decimal
 import os
+import sys
 import weakref
 
-from . import process_connect_string
 from . import ado_consts as adc
 from . import apibase as api
+from . import process_connect_string
 
 try:
     verbose = int(os.environ["ADODBAPI_VERBOSE"])
@@ -51,9 +51,10 @@ if verbose:
 # --- define objects to smooth out IronPython <-> CPython differences
 onWin32 = False  # assume the worst
 if api.onIronPython:
-    from System import Activator, Type, DBNull, DateTime, Array, Byte
-    from System import Decimal as SystemDecimal
     from clr import Reference
+    from System import Activator, Array, Byte, DateTime, DBNull
+    from System import Decimal as SystemDecimal
+    from System import Type
 
     def Dispatch(dispatch):
         type = Type.GetTypeFromProgID(dispatch)
@@ -64,9 +65,9 @@ if api.onIronPython:
 
 else:  # try pywin32
     try:
-        import win32com.client
         import pythoncom
         import pywintypes
+        import win32com.client
 
         onWin32 = True
 
@@ -223,7 +224,7 @@ def _configure_parameter(p, value, adotype, settings_known):
             p.NumericScale = 0
             p.Precision = digit_count + exponent
 
-    elif type(value) in dateconverter.types:
+    elif isinstance(value, tuple(dateconverter.types)):
         if settings_known and adotype in api.adoDateTimeTypes:
             p.Value = dateconverter.COMDate(value)
         else:  # probably a string
@@ -1202,7 +1203,7 @@ class Cursor(object):
 
     def _last_query(self):  # let the programmer see what query we actually used
         try:
-            if self.parameters == None:
+            if self.parameters is None:
                 ret = self.commandText
             else:
                 ret = "%s,parameters=%s" % (self.commandText, repr(self.parameters))

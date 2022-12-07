@@ -1,10 +1,11 @@
 # win32clipboardDemo.py
 #
 # Demo/test of the win32clipboard module.
-from win32clipboard import *
-from pywin32_testutil import str2bytes  # py3k-friendly helper
-import win32con
 import types
+
+import win32con
+from pywin32_testutil import str2bytes  # py3k-friendly helper
+from win32clipboard import *
 
 if not __debug__:
     print("WARNING: The test code in this module uses assert")
@@ -45,7 +46,9 @@ def TestText():
         # CF_UNICODE text always gives unicode objects back.
         got = GetClipboardData(win32con.CF_UNICODETEXT)
         assert got == text, "Didnt get the correct result back - '%r'." % (got,)
-        assert type(got) == str, "Didnt get the correct result back - '%r'." % (got,)
+        assert isinstance(got, str), "Didnt get the correct result back - '%r'." % (
+            got,
+        )
 
         # CF_OEMTEXT is a bytes-based format.
         got = GetClipboardData(win32con.CF_OEMTEXT)
@@ -60,7 +63,9 @@ def TestText():
         # Get it in Unicode.
         got = GetClipboardData(win32con.CF_UNICODETEXT)
         assert got == text, "Didnt get the correct result back - '%r'." % (got,)
-        assert type(got) == str, "Didnt get the correct result back - '%r'." % (got,)
+        assert isinstance(got, str), "Didnt get the correct result back - '%r'." % (
+            got,
+        )
 
         # Close and open the clipboard to ensure auto-conversions take place.
     finally:
@@ -74,7 +79,9 @@ def TestText():
         assert got == text_bytes, "Didnt get the correct result back - '%r'." % (got,)
         # Make sure we get back the correct types.
         got = GetClipboardData(win32con.CF_UNICODETEXT)
-        assert type(got) == str, "Didnt get the correct result back - '%r'." % (got,)
+        assert isinstance(got, str), "Didnt get the correct result back - '%r'." % (
+            got,
+        )
         got = GetClipboardData(win32con.CF_OEMTEXT)
         assert got == text_bytes, "Didnt get the correct result back - '%r'." % (got,)
         print("Clipboard text tests worked correctly")

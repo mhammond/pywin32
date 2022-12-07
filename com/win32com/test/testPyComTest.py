@@ -4,19 +4,21 @@
 import sys
 
 sys.coinit_flags = 0  # Must be free-threaded!
-import win32api, pythoncom, time
-import pywintypes
-import os
-import winerror
-import win32com
-import win32com.client.connect
-from win32com.test.util import CheckClean
-from win32com.client import constants, DispatchBaseClass, CastTo, VARIANT
-from win32com.test.util import RegisterPythonServer
-from pywin32_testutil import str2memory
 import datetime
 import decimal
+import os
+import time
+
+import pythoncom
+import pywintypes
+import win32api
+import win32com
+import win32com.client.connect
 import win32timezone
+import winerror
+from pywin32_testutil import str2memory
+from win32com.client import VARIANT, CastTo, DispatchBaseClass, constants
+from win32com.test.util import CheckClean, RegisterPythonServer
 
 importMsg = "**** PyCOMTest is not installed ***\n  PyCOMTest is a Python test specific COM client and server.\n  It is likely this server is not installed on this machine\n  To install the server, you must get the win32com sources\n  and build it using MS Visual C++"
 
@@ -115,7 +117,7 @@ class RandomEventHandler:
             assert no + 1 == out1, "expecting 'out1' param to be ID+1"
             assert no + 2 == out2, "expecting 'out2' param to be ID+2"
         # The middle must be a boolean.
-        assert a_bool is Missing or type(a_bool) == bool, "middle param not a bool"
+        assert a_bool is Missing or isinstance(a_bool, bool), "middle param not a bool"
         return out1 + 2, out2 + 2
 
     def _DumpFireds(self):
@@ -147,7 +149,7 @@ class NewStyleRandomEventHandler(object):
             assert no + 1 == out1, "expecting 'out1' param to be ID+1"
             assert no + 2 == out2, "expecting 'out2' param to be ID+2"
         # The middle must be a boolean.
-        assert a_bool is Missing or type(a_bool) == bool, "middle param not a bool"
+        assert a_bool is Missing or isinstance(a_bool, bool), "middle param not a bool"
         return out1 + 2, out2 + 2
 
     def _DumpFireds(self):
@@ -575,7 +577,7 @@ def _TestPyVariant(o, is_generated, val, checker=None):
     assert vt == val.varianttype, (vt, val.varianttype)
     # Handle our safe-array test - if the passed value is a list of variants,
     # compare against the actual values.
-    if type(val.value) in (tuple, list):
+    if isinstance(val.value, (tuple, list)):
         check = [v.value if isinstance(v, VARIANT) else v for v in val.value]
         # pythoncom always returns arrays as tuples.
         got = list(got)

@@ -6,11 +6,12 @@
 # dispatch object, the known class will be used.  This contrasts
 # with dynamic.Dispatch behaviour, where dynamic objects are always used.
 
-import pythoncom
-from . import dynamic
-from . import gencache
 import sys
+
+import pythoncom
 import pywintypes
+
+from . import dynamic, gencache
 
 _PyIDispatchType = pythoncom.TypeIIDs[pythoncom.IID_IDispatch]
 
@@ -603,7 +604,7 @@ class DispatchBaseClass:
 
 # XXX - These should be consolidated with dynamic.py versions.
 def _get_good_single_object_(obj, obUserName=None, resultCLSID=None):
-    if _PyIDispatchType == type(obj):
+    if isinstance(obj, _PyIDispatchType):
         return Dispatch(obj, obUserName, resultCLSID)
     return obj
 

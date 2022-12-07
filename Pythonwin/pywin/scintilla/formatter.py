@@ -1,10 +1,12 @@
 # Does Python source formatting for Scintilla controls.
-import win32ui
+import array
+import string
+
 import win32api
 import win32con
+import win32ui
 import winerror
-import string
-import array
+
 from . import scintillacon
 
 WM_KICKIDLE = 0x036A
@@ -16,7 +18,10 @@ debugging = 0
 if debugging:
     # Output must go to another process else the result of
     # the printing itself will trigger again trigger a trace.
-    import sys, win32traceutil, win32trace
+    import sys
+
+    import win32trace
+    import win32traceutil
 
     def trace(*args):
         win32trace.write(" ".join(map(str, args)) + "\n")
@@ -33,7 +38,7 @@ class Style:
         # Default background for each style is only used when there are no
         # saved settings (generally on first startup)
         self.background = self.default_background = background
-        if type(format) == type(""):
+        if isinstance(format, str):
             self.aliased = format
             self.format = None
         else:

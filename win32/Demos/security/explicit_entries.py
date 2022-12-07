@@ -1,6 +1,11 @@
 import os
-import win32security, win32file, win32api, ntsecuritycon, win32con
-from security_enums import TRUSTEE_TYPE, TRUSTEE_FORM, ACE_FLAGS, ACCESS_MODE
+
+import ntsecuritycon
+import win32api
+import win32con
+import win32file
+import win32security
+from security_enums import ACCESS_MODE, ACE_FLAGS, TRUSTEE_FORM, TRUSTEE_TYPE
 
 fname = os.path.join(win32api.GetTempPath(), "win32security_test.txt")
 f = open(fname, "w")
@@ -51,10 +56,10 @@ all_security_info = (
 sd = win32security.GetFileSecurity(fname, all_security_info)
 
 old_sacl = sd.GetSecurityDescriptorSacl()
-if old_sacl == None:
+if old_sacl is None:
     old_sacl = win32security.ACL()
 old_dacl = sd.GetSecurityDescriptorDacl()
-if old_dacl == None:
+if old_dacl is None:
     old_dacl = win32security.ACL()
 
 my_sid = win32security.GetTokenInformation(th, ntsecuritycon.TokenUser)[0]

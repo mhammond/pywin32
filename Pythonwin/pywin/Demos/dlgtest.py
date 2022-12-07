@@ -7,16 +7,11 @@
 #
 # ID's for the tabstop dialog - out test.
 #
-from win32ui import IDD_SET_TABSTOPS
-from win32ui import IDC_EDIT_TABS
-from win32ui import IDC_PROMPT_TABS
-from win32con import IDOK
-from win32con import IDCANCEL
-
-import win32ui
 import win32con
-
+import win32ui
 from pywin.mfc import dialog
+from win32con import IDCANCEL, IDOK
+from win32ui import IDC_EDIT_TABS, IDC_PROMPT_TABS, IDD_SET_TABSTOPS
 
 
 class TestDialog(dialog.Dialog):
@@ -56,7 +51,7 @@ class TestDialog(dialog.Dialog):
     # Simply increment the value in the text box.
     def KillFocus(self, msg):
         self.counter = self.counter + 1
-        if self.edit != None:
+        if self.edit is not None:
             self.edit.SetWindowText(str(self.counter))
 
     # Called when the dialog box is terminating...

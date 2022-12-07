@@ -3,8 +3,9 @@
 TupleType = tuple
 ListType = list
 IntType = int
-from pywintypes import TimeType
 import pythoncom
+from pywintypes import TimeType
+
 from . import mapi, mapitags
 
 prTable = {}
@@ -103,13 +104,13 @@ def GetProperties(obj, propList):
     If the property fetch fails, the result is None.
     """
     bRetList = 1
-    if type(propList) not in [TupleType, ListType]:
+    if not isinstance(propList, (TupleType, ListType)):
         bRetList = 0
         propList = (propList,)
     realPropList = []
     rc = []
     for prop in propList:
-        if type(prop) != IntType:  # Integer
+        if not isinstance(prop, IntType):  # Integer
             props = ((mapi.PS_PUBLIC_STRINGS, prop),)
             propIds = obj.GetIDsFromNames(props, 0)
             prop = mapitags.PROP_TAG(
@@ -134,7 +135,7 @@ def GetAllProperties(obj, make_tag_names=True):
     for tag, val in data:
         if make_tag_names:
             hr, tags, array = obj.GetNamesFromIDs((tag,))
-            if type(array[0][1]) == type(""):
+            if isinstance(array[0][1], str):
                 name = array[0][1]
             else:
                 name = GetPropTagName(tag)
@@ -157,7 +158,7 @@ _MapiTypeMap = {
 
 
 def SetPropertyValue(obj, prop, val):
-    if type(prop) != IntType:
+    if not isinstance(prop, IntType):
         props = ((mapi.PS_PUBLIC_STRINGS, prop),)
         propIds = obj.GetIDsFromNames(props, mapi.MAPI_CREATE)
         if val == (1 == 1) or val == (1 == 0):
@@ -190,7 +191,7 @@ def SetProperties(msg, propDict):
     newProps = []
     # First pass over the properties we should get IDs for.
     for key, val in propDict.items():
-        if type(key) == str:
+        if isinstance(key, str):
             newProps.append((mapi.PS_PUBLIC_STRINGS, key))
     # Query for the new IDs
     if newProps:
@@ -198,7 +199,7 @@ def SetProperties(msg, propDict):
     newIdNo = 0
     newProps = []
     for key, val in propDict.items():
-        if type(key) == str:
+        if isinstance(key, str):
             type_val = type(val)
             if type_val == str:
                 tagType = mapitags.PT_UNICODE

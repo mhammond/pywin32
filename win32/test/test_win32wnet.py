@@ -1,8 +1,8 @@
 import unittest
-import win32wnet
-import win32api
-import netbios
 
+import netbios
+import win32api
+import win32wnet
 from pywin32_testutil import str2bytes
 
 RESOURCE_CONNECTED = 0x00000001
@@ -60,14 +60,14 @@ class TestCase(unittest.TestCase):
             val = getattr(item, attr)
             if typ is int:
                 self.assertTrue(
-                    type(val) in (int,), "Attr %r has value %r" % (attr, val)
+                    isinstance(val, int), "Attr %r has value %r" % (attr, val)
                 )
                 new_val = val + 1
             elif typ is str:
                 if val is not None:
                     # on py2k, must be string or unicode.  py3k must be string or bytes.
                     self.assertTrue(
-                        type(val) in (str, str), "Attr %r has value %r" % (attr, val)
+                        isinstance(val, str), "Attr %r has value %r" % (attr, val)
                     )
                     new_val = val + " new value"
                 else:

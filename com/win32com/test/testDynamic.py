@@ -2,7 +2,6 @@
 
 import pythoncom
 import winerror
-
 from win32com.server.exception import Exception
 
 error = "testDynamic error"
@@ -19,7 +18,7 @@ class VeryPermissive:
             try:
                 # to avoid problems with byref param handling, tuple results are converted to lists.
                 ret = self.__dict__[name]
-                if type(ret) == type(()):
+                if isinstance(ret, tuple):
                     ret = list(ret)
                 return ret
             except KeyError:  # Probably a method request.
@@ -45,7 +44,8 @@ class VeryPermissive:
 
 
 def Test():
-    import win32com.server.util, win32com.server.policy
+    import win32com.server.policy
+    import win32com.server.util
 
     #       import win32dbg;win32dbg.brk()
     ob = win32com.server.util.wrap(

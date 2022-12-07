@@ -14,9 +14,9 @@
 __version__ = "$Revision: 1.15.0 $"[11:-2]
 __author__ = "Stuart Bishop <stuart@stuartbishop.net>"
 
-import unittest
-import time
 import sys
+import time
+import unittest
 
 if sys.version[0] >= "3":  # python 3.x
     _BaseException = Exception
@@ -829,7 +829,7 @@ class DatabaseAPI20Test(unittest.TestCase):
                 names = cur.fetchall()
                 assert len(names) == len(self.samples)
                 s = cur.nextset()
-                assert s == None, "No more return sets, should return None"
+                assert s is None, "No more return sets, should return None"
             finally:
                 self.help_nextset_tearDown(cur)
 

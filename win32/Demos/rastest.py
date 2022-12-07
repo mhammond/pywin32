@@ -1,8 +1,9 @@
 # rastest.py - test/demonstrate the win32ras module.
 # Much of the code here contributed by Jethro Wright.
 
-import sys
 import os
+import sys
+
 import win32ras
 
 # Build a little dictionary of RAS states to decent strings.
@@ -155,7 +156,7 @@ def main():
             ShowConnections()
         if opt == "-c":
             hras, rc = Connect(val, bCallback)
-            if hras != None:
+            if hras is not None:
                 print("hras: 0x%8lx, rc: 0x%04x" % (hras, rc))
         if opt == "-d":
             Disconnect(val)

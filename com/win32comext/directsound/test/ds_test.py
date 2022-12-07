@@ -1,13 +1,14 @@
-import unittest
+import os
 import struct
 import sys
-import os
-import pywintypes
-import win32event, win32api
-import os
-from pywin32_testutil import TestSkipped, find_test_fixture
-import win32com.directsound.directsound as ds
+import unittest
+
 import pythoncom
+import pywintypes
+import win32api
+import win32com.directsound.directsound as ds
+import win32event
+from pywin32_testutil import TestSkipped, find_test_fixture
 
 # next two lines are for for debugging:
 # import win32com
@@ -76,7 +77,7 @@ class WAVEFORMATTest(unittest.TestCase):
     def test_1_Type(self):
         "WAVEFORMATEX type"
         w = pywintypes.WAVEFORMATEX()
-        self.assertTrue(type(w) == pywintypes.WAVEFORMATEXType)
+        self.assertTrue(isinstance(w, pywintypes.WAVEFORMATEXType))
 
     def test_2_Attr(self):
         "WAVEFORMATEX attribute access"
@@ -101,7 +102,7 @@ class DSCAPSTest(unittest.TestCase):
     def test_1_Type(self):
         "DSCAPS type"
         c = ds.DSCAPS()
-        self.assertTrue(type(c) == ds.DSCAPSType)
+        self.assertTrue(isinstance(c, ds.DSCAPSType))
 
     def test_2_Attr(self):
         "DSCAPS attribute access"
@@ -155,7 +156,7 @@ class DSBCAPSTest(unittest.TestCase):
     def test_1_Type(self):
         "DSBCAPS type"
         c = ds.DSBCAPS()
-        self.assertTrue(type(c) == ds.DSBCAPSType)
+        self.assertTrue(isinstance(c, ds.DSBCAPSType))
 
     def test_2_Attr(self):
         "DSBCAPS attribute access"
@@ -175,7 +176,7 @@ class DSCCAPSTest(unittest.TestCase):
     def test_1_Type(self):
         "DSCCAPS type"
         c = ds.DSCCAPS()
-        self.assertTrue(type(c) == ds.DSCCAPSType)
+        self.assertTrue(isinstance(c, ds.DSCCAPSType))
 
     def test_2_Attr(self):
         "DSCCAPS attribute access"
@@ -193,7 +194,7 @@ class DSCBCAPSTest(unittest.TestCase):
     def test_1_Type(self):
         "DSCBCAPS type"
         c = ds.DSCBCAPS()
-        self.assertTrue(type(c) == ds.DSCBCAPSType)
+        self.assertTrue(isinstance(c, ds.DSCBCAPSType))
 
     def test_2_Attr(self):
         "DSCBCAPS attribute access"
@@ -209,7 +210,7 @@ class DSBUFFERDESCTest(unittest.TestCase):
     def test_1_Type(self):
         "DSBUFFERDESC type"
         c = ds.DSBUFFERDESC()
-        self.assertTrue(type(c) == ds.DSBUFFERDESCType)
+        self.assertTrue(isinstance(c, ds.DSBUFFERDESCType))
 
     def test_2_Attr(self):
         "DSBUFFERDESC attribute access"
@@ -246,7 +247,7 @@ class DSCBUFFERDESCTest(unittest.TestCase):
     def test_1_Type(self):
         "DSCBUFFERDESC type"
         c = ds.DSCBUFFERDESC()
-        self.assertTrue(type(c) == ds.DSCBUFFERDESCType)
+        self.assertTrue(isinstance(c, ds.DSCBUFFERDESCType))
 
     def test_2_Attr(self):
         "DSCBUFFERDESC attribute access"

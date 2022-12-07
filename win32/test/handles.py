@@ -1,7 +1,9 @@
 import sys
 import unittest
+
 import pywintypes
 import win32api
+
 
 # A class that will never die vie refcounting, but will die via GC.
 class Cycle:
@@ -111,8 +113,8 @@ class PyHandleTestCase(unittest.TestCase):
         self.assertNotEqual(h, None)
         self.assertNotEqual(None, h)
         # ensure we use both __eq__ and __ne__ ops
-        self.assertFalse(h == None)
-        self.assertTrue(h != None)
+        self.assertFalse(h is None)
+        self.assertTrue(h is not None)
 
     def testHandleCompareInt(self):
         h = pywintypes.HANDLE(1)

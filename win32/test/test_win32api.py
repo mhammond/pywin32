@@ -1,12 +1,16 @@
 # General test module for win32api - please add some :)
 
-import unittest
-from pywin32_testutil import str2bytes, TestSkipped
-
-import win32api, win32con, win32event, winerror
-import sys, os
-import tempfile
 import datetime
+import os
+import sys
+import tempfile
+import unittest
+
+import win32api
+import win32con
+import win32event
+import winerror
+from pywin32_testutil import TestSkipped, str2bytes
 
 
 class CurrentUserTestCase(unittest.TestCase):
@@ -150,7 +154,7 @@ class FileNames(unittest.TestCase):
         self.assertEqual(long_name, win32api.GetLongPathNameW(short_name).lower())
         long_name = win32api.GetLongPathNameW(short_name).lower()
         self.assertTrue(
-            type(long_name) == str,
+            isinstance(long_name, str),
             "GetLongPathNameW returned type '%s'" % (type(long_name),),
         )
         self.assertTrue(
@@ -175,7 +179,7 @@ class FileNames(unittest.TestCase):
         self.assertEqual(long_name, win32api.GetLongPathNameW(short_name).lower())
         long_name = win32api.GetLongPathNameW(short_name).lower()
         self.assertTrue(
-            type(long_name) == str,
+            isinstance(long_name, str),
             "GetLongPathNameW returned type '%s'" % (type(long_name),),
         )
         self.assertTrue(

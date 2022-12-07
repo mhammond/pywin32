@@ -1,6 +1,8 @@
-import sys, string
-import pythoncom
+import string
+import sys
+from collections.abc import Callable
 
+import pythoncom
 import win32api
 from win32com.adsi import *
 
@@ -225,11 +227,12 @@ def usage(tests):
 
 
 def main():
-    import getopt, traceback
+    import getopt
+    import traceback
 
     tests = []
     for ob in globals().values():
-        if type(ob) == type(main) and ob.__doc__:
+        if isinstance(ob, Callable) and ob.__doc__:
             tests.append(ob)
     opts, args = getopt.getopt(sys.argv[1:], "s:hv")
     for opt, val in opts:

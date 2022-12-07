@@ -1,4 +1,4 @@
-if type(__path__) == type(""):
+if isinstance(__path__, str):
     # For freeze to work!
     import sys
 

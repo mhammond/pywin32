@@ -3,13 +3,17 @@
 #
 # * Execute this script to register the handler
 # * Start the "disk cleanup" tool - look for "pywin32 compiled files"
-import sys, os, stat, time
+import os
+import stat
+import sys
+import time
+
 import pythoncom
-from win32com.shell import shell, shellcon
-from win32com.server.exception import COMException
-import win32gui
 import win32con
+import win32gui
 import winerror
+from win32com.server.exception import COMException
+from win32com.shell import shell, shellcon
 
 # Our shell extension.
 IEmptyVolumeCache_Methods = (
@@ -91,7 +95,7 @@ class EmptyVolumeCache:
         for file in files:
             fqn = os.path.join(directory, file).lower()
             if file.endswith(".pyc") or file.endswith(".pyo"):
-                # See below - total_list == None means delete files,
+                # See below - total_list is None means delete files,
                 # otherwise it is a list where the result is stored. Its a
                 # list simply due to the way os.walk works - only [0] is
                 # referenced

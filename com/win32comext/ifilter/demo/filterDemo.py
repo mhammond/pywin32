@@ -1,10 +1,10 @@
+from collections.abc import Iterable
+
 import pythoncom
 import pywintypes
-
+from win32com import storagecon
 from win32com.ifilter import ifilter
 from win32com.ifilter.ifiltercon import *
-
-from win32com import storagecon
 
 
 class FileParser:
@@ -254,8 +254,8 @@ def _usage():
 
 
 if __name__ == "__main__":
-    import sys
     import operator
+    import sys
 
     fName = ""
     verbose = False
@@ -294,7 +294,7 @@ if __name__ == "__main__":
                     reduce(operator.add, [len(p) for p in propValue]),
                 )
             )
-        elif type(propValue) == type([]):
+        elif isinstance(propValue, Iterable):
             print()
             for pv in propValue:
                 print(pv)

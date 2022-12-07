@@ -11,8 +11,9 @@
   and call its methods!
 """
 
-from win32com.server.exception import Exception
 import winerror
+from win32com.server.exception import Exception
+
 
 # Expose the Python interpreter.
 class Interpreter:
@@ -31,14 +32,14 @@ class Interpreter:
 
     def Eval(self, exp):
         """Evaluate an expression."""
-        if type(exp) != str:
+        if not isinstance(exp, str):
             raise Exception(desc="Must be a string", scode=winerror.DISP_E_TYPEMISMATCH)
 
         return eval(str(exp), self.dict)
 
     def Exec(self, exp):
         """Execute a statement."""
-        if type(exp) != str:
+        if not isinstance(exp, str):
             raise Exception(desc="Must be a string", scode=winerror.DISP_E_TYPEMISMATCH)
         exec(str(exp), self.dict)
 

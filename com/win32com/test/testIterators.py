@@ -3,11 +3,11 @@
 import sys
 import unittest
 
-from win32com.client.gencache import EnsureDispatch
-from win32com.client import Dispatch
+import pythoncom
 import win32com.server.util
 import win32com.test.util
-import pythoncom
+from win32com.client import Dispatch
+from win32com.client.gencache import EnsureDispatch
 
 
 class _BaseTestCase(win32com.test.util.TestCase):
@@ -128,7 +128,7 @@ def suite():
     suite = unittest.TestSuite()
     for item in list(globals().values()):
         if (
-            type(item) == type(unittest.TestCase)
+            isinstance(item, type)
             and issubclass(item, unittest.TestCase)
             and item != _BaseTestCase
         ):

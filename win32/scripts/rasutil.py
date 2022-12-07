@@ -1,6 +1,8 @@
 # A demo of using the RAS API from Python
 import sys
+
 import win32ras
+
 
 # The error raised if we can not
 class ConnectionError(Exception):
@@ -47,7 +49,7 @@ def Connect(rasEntryName, numRetries=5):
 
 
 def Disconnect(handle):
-    if type(handle) == type(""):  # have they passed a connection name?
+    if isinstance(handle, str):  # have they passed a connection name?
         for info in win32ras.EnumConnections():
             if info[1].lower() == handle.lower():
                 handle = info[0]

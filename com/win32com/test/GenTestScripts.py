@@ -1,10 +1,13 @@
 #
 # Generate scripts needed for serious testing!
 #
-import win32com, win32com.client.makepy
-import win32com.test
+import os
+import sys
+
 import pythoncom
-import sys, os
+import win32com
+import win32com.client.makepy
+import win32com.test
 
 genList = [
     ("msword8", "{00020905-0000-0000-C000-000000000046}", 1033, 8, 0),
@@ -65,13 +68,13 @@ def CleanAll():
             name = args[0] + ".py"
             os.unlink(os.path.join(genPath, name))
         except os.error as details:
-            if type(details) == type(()) and details[0] != 2:
+            if isinstance(details, tuple) and details[0] != 2:
                 print("Could not deleted generated", name, details)
         try:
             name = args[0] + ".pyc"
             os.unlink(os.path.join(genPath, name))
         except os.error as details:
-            if type(details) == type(()) and details[0] != 2:
+            if isinstance(details, tuple) and details[0] != 2:
                 print("Could not deleted generated", name, details)
         try:
             os.unlink(os.path.join(genPath, "__init__.py"))

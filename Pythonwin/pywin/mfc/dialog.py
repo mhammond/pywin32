@@ -4,8 +4,8 @@ Base class for Dialogs.  Also contains a few useful utility functions
 # dialog.py
 # Python class for Dialog Boxes in PythonWin.
 
-import win32ui
 import win32con
+import win32ui
 
 # sob - 2to3 doesn't see this as a relative import :(
 from pywin.mfc import window
@@ -13,9 +13,9 @@ from pywin.mfc import window
 
 def dllFromDll(dllid):
     "given a 'dll' (maybe a dll, filename, etc), return a DLL object"
-    if dllid == None:
+    if dllid is None:
         return None
-    elif type("") == type(dllid):
+    elif isinstance(dllid, str):
         return win32ui.LoadLibrary(dllid)
     else:
         try:
@@ -33,10 +33,10 @@ class Dialog(window.Wnd):
         dllid may be None, a dll object, or a string with a dll name"""
         # must take a reference to the DLL until InitDialog.
         self.dll = dllFromDll(dllid)
-        if type(id) == type([]):  # a template
-            dlg = win32ui.CreateDialogIndirect(id)
-        else:
+        if isinstance(id, int):
             dlg = win32ui.CreateDialog(id, self.dll)
+        else:  # a template
+            dlg = win32ui.CreateDialogIndirect(id)
         window.Wnd.__init__(self, dlg)
         self.HookCommands()
         self.bHaveInit = None
@@ -114,7 +114,7 @@ class PrintDialog(Dialog):
         dllid=None,
     ):
         self.dll = dllFromDll(dllid)
-        if type(dlgID) == type([]):  # a template
+        if not isinstance(dlgID, int):  # a template
             raise TypeError("dlgID parameter must be an integer resource ID")
         dlg = win32ui.CreatePrintDialog(dlgID, printSetupOnly, flags, parent, self.dll)
         window.Wnd.__init__(self, dlg)
@@ -193,7 +193,7 @@ class PropertyPage(Dialog):
         self.dll = dllFromDll(dllid)
         if self.dll:
             oldRes = win32ui.SetResource(self.dll)
-        if type(id) == type([]):
+        if isinstance(id, list):
             dlg = win32ui.CreatePropertyPageIndirect(id)
         else:
             dlg = win32ui.CreatePropertyPage(id, caption)
@@ -243,7 +243,7 @@ class PropertySheet(window.Wnd):
 
     def DoAddSinglePage(self, page):
         "Page may be page, or int ID. Assumes DLL setup"
-        if type(page) == type(0):
+        if isinstance(page, int):
             self.sheet.AddPage(win32ui.CreatePropertyPage(page))
         else:
             self.sheet.AddPage(page)

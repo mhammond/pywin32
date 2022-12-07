@@ -6,16 +6,16 @@
 
   There are classes defined for the engine itself, and for ScriptItems
 """
-import sys
-from win32com.axscript import axscript
-import win32com.server.util
-
-import win32com.client.connect  # Need simple connection point support
-
-import win32api, winerror
-import pythoncom
-import types
 import re
+import sys
+import types
+
+import pythoncom
+import win32api
+import win32com.client.connect  # Need simple connection point support
+import win32com.server.util
+import winerror
+from win32com.axscript import axscript
 
 
 def RemoveCR(text):
@@ -30,6 +30,7 @@ SCRIPTTEXT_ISEXPRESSION = 0x00000020
 SCRIPTTEXT_ISPERSISTENT = 0x00000040
 
 from win32com.server.exception import Exception, IsCOMServerException
+
 from . import error  # ax.client.error
 
 state_map = {
@@ -356,7 +357,7 @@ class ScriptItem:
         # 			id = self.parentItem.dispatch.GetIDsOfNames(self.name)
         # 			print "DispID of me is", id
         # 			result = self.parentItem.dispatch.Invoke(id, 0, pythoncom.DISPATCH_PROPERTYGET,1)
-        # 			if type(result)==pythoncom.TypeIIDs[pythoncom.IID_IDispatch]:
+        # 			if isinstance(result, pythoncom.TypeIIDs[pythoncom.IID_IDispatch]):
         # 				self.dispatch = result
         # 			else:
         # 				print "*** No dispatch"
@@ -509,7 +510,9 @@ class ScriptItem:
                         # as no event handler for "top" would work.
                         # I think we simply need to connect to a *single* event handler.
                         # As use in IE is deprecated, I am not solving this now.
-                        if type(result) == pythoncom.TypeIIDs[pythoncom.IID_IDispatch]:
+                        if isinstance(
+                            result, pythoncom.TypeIIDs[pythoncom.IID_IDispatch]
+                        ):
                             name = names[0]
                             subObj = self.GetCreateSubItem(
                                 self, name, result, axscript.SCRIPTITEM_ISVISIBLE
@@ -725,6 +728,7 @@ class COMScript:
 
         try:
             import win32com.axdebug.axdebug  # see if the core exists.
+
             from . import debug
 
             self.debugManager = debug.DebugManager(self)

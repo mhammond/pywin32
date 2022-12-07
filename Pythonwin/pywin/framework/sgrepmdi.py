@@ -18,16 +18,17 @@
 # Hats off to Mark Hammond for providing an environment where I could cobble
 # something like this together in a couple evenings!
 
-import win32ui
-import win32api
-from pywin.mfc import docview, dialog, window
-import win32con
-import string
-import re
 import glob
 import os
+import re
 import stat
-import glob
+import string
+
+import win32api
+import win32con
+import win32ui
+from pywin.mfc import dialog, docview, window
+
 from . import scriptutils
 
 
@@ -121,11 +122,11 @@ class dirpath:
         del self.dirs[lo:hi]
 
     def __add__(self, other):
-        if type(other) == type(self) or type(other) == type([]):
+        if isinstance(other, (type(self), list)):
             return self.dirs + other.dirs
 
     def __radd__(self, other):
-        if type(other) == type(self) or type(other) == type([]):
+        if isinstance(other, (type(self), list)):
             return other.dirs + self.dirs
 
 
@@ -303,7 +304,7 @@ class GrepDocument(docview.RichEditDoc):
                 lines = open(f, "r").readlines()
                 for i in range(len(lines)):
                     line = lines[i]
-                    if self.pat.search(line) != None:
+                    if self.pat.search(line) is not None:
                         self.GetFirstView().Append(f + "(" + repr(i + 1) + ") " + line)
         else:
             self.fndx = -1

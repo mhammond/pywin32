@@ -1,6 +1,6 @@
+import re
 import sys
 import types
-import re
 
 
 def ad_escape(s):
@@ -106,11 +106,11 @@ def build_module(fp, mod_name):
             continue
         if hasattr(ob, "__module__") and ob.__module__ != mod_name:
             continue
-        if type(ob) in [type, type]:
+        if isinstance(ob, type):
             classes.append(BuildInfo(name, ob))
-        elif type(ob) == types.FunctionType:
+        elif isinstance(ob, types.FunctionType):
             functions.append(BuildInfo(name, ob))
-        elif name.upper() == name and type(ob) in (int, str):
+        elif name.upper() == name and isinstance(ob, (int, str)):
             constants.append((name, ob))
     info = BuildInfo(mod_name, mod)
     Print("// @module %s|%s" % (mod_name, format_desc(info.desc)), file=fp)
@@ -169,7 +169,7 @@ def build_module(fp, mod_name):
 
     for (name, val) in constants:
         desc = "%s = %r" % (name, val)
-        if type(val) in (int, int):
+        if isinstance(val, int):
             desc += " (0x%x)" % (val,)
         Print("// @const %s|%s|%s" % (mod_name, name, desc), file=fp)
 

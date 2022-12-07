@@ -21,13 +21,13 @@
     Updates by Vernon Cole
 """
 
-import unittest
-import sys
+import copy
 import datetime
 import decimal
-import copy
 import random
 import string
+import sys
+import unittest
 
 try:
     import win32com.client
@@ -44,7 +44,6 @@ import tryconnection
 
 import adodbapi
 import adodbapi.apibase as api
-
 
 try:
     import adodbapi.ado_consts as ado_consts
@@ -1030,7 +1029,7 @@ class CommonDBTests(unittest.TestCase):
         self.conn.rollback()
         crsr.execute(selectSql)
         assert (
-            crsr.fetchone() == None
+            crsr.fetchone() is None
         ), "cursor.fetchone should return None if a query retrieves no rows"
         crsr.execute("SELECT fldData from xx_%s" % config.tmp)
         rs = crsr.fetchall()
@@ -1087,7 +1086,7 @@ class CommonDBTests(unittest.TestCase):
             row = crsr.fetchone()
         except api.DatabaseError:
             row = None  # if the entire table disappeared the rollback was perfect and the test passed
-        assert row == None, (
+        assert row is None, (
             "cursor.fetchone should return None if a query retrieves no rows. Got %s"
             % repr(row)
         )
@@ -1262,7 +1261,7 @@ class TestADOwithSQLServer(CommonDBTests):
         assert crsr.nextset() == True, "third set should be present"
         rowdesc = crsr.fetchall()
         self.assertEqual(rowdesc[0][0], 8)
-        assert crsr.nextset() == None, "No more return sets, should return None"
+        assert crsr.nextset() is None, "No more return sets, should return None"
 
         self.helpRollbackTblTemp()
 
@@ -1353,7 +1352,7 @@ class TestADOwithAccessDB(CommonDBTests):
 
     def testOkConnect(self):
         c = self.db(*config.connStrAccess[0], **config.connStrAccess[1])
-        assert c != None
+        assert c is not None
         c.close()
 
 
@@ -1389,7 +1388,7 @@ class TestADOwithMySql(CommonDBTests):
 
     def testOkConnect(self):
         c = self.db(*config.connStrMySql[0], **config.connStrMySql[1])
-        assert c != None
+        assert c is not None
 
     # def testStoredProcedure(self):
     #     crsr=self.conn.cursor()
@@ -1455,7 +1454,7 @@ class TestADOwithPostgres(CommonDBTests):
 
     def testOkConnect(self):
         c = self.db(*config.connStrPostgres[0], **config.connStrPostgres[1])
-        assert c != None
+        assert c is not None
 
     # def testStoredProcedure(self):
     #     crsr=self.conn.cursor()

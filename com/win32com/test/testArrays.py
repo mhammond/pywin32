@@ -1,8 +1,9 @@
 # Originally contributed by Stefan Schukat as part of this arbitrary-sized
 # arrays patch.
+import unittest
+
 from win32com.client import gencache
 from win32com.test import util
-import unittest
 
 ZeroD = 0
 OneDEmpty = []
@@ -41,7 +42,7 @@ LargeD = [
 
 
 def _normalize_array(a):
-    if type(a) != type(()):
+    if not isinstance(a, tuple):
         return a
     ret = []
     for i in a:

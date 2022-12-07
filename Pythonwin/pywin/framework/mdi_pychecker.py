@@ -33,11 +33,19 @@
 ##
 ######################################################################
 
-import win32ui
+import glob
+import os
+import re
+import stat
+import string
+import sys
+import time
+
 import win32api
-from pywin.mfc import docview, dialog, window
 import win32con
-import sys, string, re, glob, os, stat, time
+import win32ui
+from pywin.mfc import dialog, docview, window
+
 from . import scriptutils
 
 
@@ -131,11 +139,11 @@ class dirpath:
         del self.dirs[lo:hi]
 
     def __add__(self, other):
-        if type(other) == type(self) or type(other) == type([]):
+        if isinstance(other, (type(self), list)):
             return self.dirs + other.dirs
 
     def __radd__(self, other):
-        if type(other) == type(self) or type(other) == type([]):
+        if isinstance(other, (type(self), list)):
             return other.dirs + self.dirs
 
 
@@ -313,7 +321,7 @@ class TheDocument(docview.RichEditDoc):
         import time
 
         time.sleep(0.001)
-        if self.result != None:
+        if self.result is not None:
             win32ui.GetApp().DeleteIdleHandler(self.idleHandler)
             return 0
         return 1  # more
@@ -383,7 +391,7 @@ class TheDocument(docview.RichEditDoc):
             lines = open(f, "r").readlines()
             for i in range(len(lines)):
                 line = lines[i]
-                if self.pat.search(line) != None:
+                if self.pat.search(line) is not None:
                     self.GetFirstView().Append(f + "(" + repr(i + 1) + ") " + line)
         else:
             self.fndx = -1

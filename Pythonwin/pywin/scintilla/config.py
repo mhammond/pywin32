@@ -3,24 +3,26 @@
 # Loads config data from a .cfg file.  Also caches the compiled
 # data back into a .cfc file.
 
+import glob
+import importlib.util
+import marshal
+import os
+import stat
+import string
+
 # If you are wondering how to avoid needing .cfg files (eg,
 # if you are freezing Pythonwin etc) I suggest you create a
 # .py file, and put the config info in a docstring.  Then
 # pass a CStringIO file (rather than a filename) to the
 # config manager.
 import sys
-import string
-from . import keycodes
-import marshal
-import stat
-import os
-import types
 import traceback
-import pywin
-import glob
-import importlib.util
+import types
 
+import pywin
 import win32api
+
+from . import keycodes
 
 debugging = 0
 if debugging:
@@ -195,7 +197,7 @@ class ConfigManager:
             if ns:
                 num = 0
                 for name, func in list(ns.items()):
-                    if type(func) == types.FunctionType and name[:1] != "_":
+                    if isinstance(func, types.FunctionType) and name[:1] != "_":
                         bindings.bind(name, func)
                         num = num + 1
                 trace("Configuration Extension code loaded", num, "events")

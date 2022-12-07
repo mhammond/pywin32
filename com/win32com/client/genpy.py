@@ -16,9 +16,10 @@ The makepy command line etc handling is also getting large enough in its own rig
 import os
 import sys
 import time
-import win32com
 
 import pythoncom
+import win32com
+
 from . import build
 
 error = "makepy.error"
@@ -159,9 +160,8 @@ class AliasItem(build.OleItem, WritableItem):
 
         ai = attr[14]
         self.attr = attr
-        if type(ai) == type(()) and type(ai[1]) == type(
-            0
-        ):  # XXX - This is a hack - why tuples?  Need to resolve?
+        # XXX - This is a hack - why tuples?  Need to resolve?
+        if isinstance(ai, tuple) and isinstance(ai[1], int):
             href = ai[1]
             alinfo = typeinfo.GetRefTypeInfo(href)
             self.aliasDoc = alinfo.GetDocumentation(-1)
@@ -182,7 +182,7 @@ class AliasItem(build.OleItem, WritableItem):
             print(self.doc[0] + " = " + depName, file=stream)
         else:
             ai = self.attr[14]
-            if type(ai) == type(0):
+            if isinstance(ai, int):
                 try:
                     typeStr = mapVTToTypeString[ai]
                     print("# %s=%s" % (self.doc[0], typeStr), file=stream)
