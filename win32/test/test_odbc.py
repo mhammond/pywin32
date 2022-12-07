@@ -1,16 +1,16 @@
 # odbc test suite kindly contributed by Frank Millman.
-import sys
 import os
-import unittest
-import odbc
+import sys
 import tempfile
+import unittest
 
-from pywin32_testutil import str2bytes, str2memory, TestSkipped
+import odbc
+import pythoncom
+from pywin32_testutil import TestSkipped
+from win32com.client import constants
 
 # We use the DAO ODBC driver
 from win32com.client.gencache import EnsureDispatch
-from win32com.client import constants
-import pythoncom
 
 
 class TestStuff(unittest.TestCase):
@@ -185,11 +185,7 @@ class TestStuff(unittest.TestCase):
     def testInt(self):
         self._test_val("intfield", 1)
         self._test_val("intfield", 0)
-        try:
-            big = sys.maxsize
-        except AttributeError:
-            big = sys.maxint
-        self._test_val("intfield", big)
+        self._test_val("intfield", sys.maxsize)
 
     def testFloat(self):
         self._test_val("floatfield", 1.01)
@@ -206,11 +202,11 @@ class TestStuff(unittest.TestCase):
 
     def testLongBinary(self):
         """Test a long raw field in excess of internal cursor data size (65536)"""
-        self._test_val("longbinaryfield", str2memory("\0\1\2" * 70000))
+        self._test_val("longbinaryfield", memoryview(b"\0\1\2" * 70000))
 
     def testRaw(self):
         ## Test binary data
-        self._test_val("rawfield", str2memory("\1\2\3\4\0\5\6\7\8"))
+        self._test_val("rawfield", memoryview(b"\1\2\3\4\0\5\6\7\8"))
 
     def test_widechar(self):
         """Test a unicode character that would be mangled if bound as plain character.
@@ -244,7 +240,7 @@ class TestStuff(unittest.TestCase):
         self.assertEqual(
             self.cur.execute(
                 "insert into %s (userid,username) " "values (?,?)" % self.tablename,
-                [str2bytes("Frank"), ""],
+                [b"Frank", ""],
             ),
             1,
         )

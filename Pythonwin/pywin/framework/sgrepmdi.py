@@ -18,16 +18,17 @@
 # Hats off to Mark Hammond for providing an environment where I could cobble
 # something like this together in a couple evenings!
 
-import win32ui
-import win32api
-from pywin.mfc import docview, dialog, window
-import win32con
-import string
-import re
 import glob
 import os
+import re
 import stat
-import glob
+import string
+
+import win32api
+import win32con
+import win32ui
+from pywin.mfc import dialog, docview, window
+
 from . import scriptutils
 
 
@@ -130,7 +131,7 @@ class dirpath:
 
 
 # Group(1) is the filename, group(2) is the lineno.
-# regexGrepResult=regex.compile("^\\([a-zA-Z]:.*\\)(\\([0-9]+\\))")
+# regexGrepResult=regex.compile(r"^\([a-zA-Z]:.*\)(\([0-9]+\))")
 
 regexGrep = re.compile(r"^([a-zA-Z]:[^(]*)\(([0-9]+)\)")
 

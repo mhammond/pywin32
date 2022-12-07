@@ -16,9 +16,10 @@ The makepy command line etc handling is also getting large enough in its own rig
 import os
 import sys
 import time
-import win32com
 
 import pythoncom
+import win32com
+
 from . import build
 
 error = "makepy.error"
@@ -33,22 +34,22 @@ GEN_DEMAND_CHILD = "demand(child)"
 # does not use this map at runtime - all Alias/Enum have already
 # been translated.
 mapVTToTypeString = {
-    pythoncom.VT_I2: "types.IntType",
-    pythoncom.VT_I4: "types.IntType",
-    pythoncom.VT_R4: "types.FloatType",
-    pythoncom.VT_R8: "types.FloatType",
-    pythoncom.VT_BSTR: "types.StringType",
-    pythoncom.VT_BOOL: "types.IntType",
-    pythoncom.VT_VARIANT: "types.TypeType",
-    pythoncom.VT_I1: "types.IntType",
-    pythoncom.VT_UI1: "types.IntType",
-    pythoncom.VT_UI2: "types.IntType",
-    pythoncom.VT_UI4: "types.IntType",
-    pythoncom.VT_I8: "types.LongType",
-    pythoncom.VT_UI8: "types.LongType",
-    pythoncom.VT_INT: "types.IntType",
-    pythoncom.VT_DATE: "pythoncom.PyTimeType",
-    pythoncom.VT_UINT: "types.IntType",
+    pythoncom.VT_I2: "int",
+    pythoncom.VT_I4: "int",
+    pythoncom.VT_R4: "float",
+    pythoncom.VT_R8: "float",
+    pythoncom.VT_BSTR: "string",
+    pythoncom.VT_BOOL: "int",
+    pythoncom.VT_VARIANT: "type",
+    pythoncom.VT_I1: "int",
+    pythoncom.VT_UI1: "int",
+    pythoncom.VT_UI2: "int",
+    pythoncom.VT_UI4: "int",
+    pythoncom.VT_I8: "lint",
+    pythoncom.VT_UI8: "lint",
+    pythoncom.VT_INT: "int",
+    pythoncom.VT_DATE: "pythoncom.PyTimeType",  # FIXME: Type does not exist anywhere; pywintypes.TimeType ?
+    pythoncom.VT_UINT: "int",
 }
 
 # Given a propget function's arg desc, return the default parameters for all
@@ -105,16 +106,7 @@ def WriteSinkEventMap(obj, stream):
 # MI is used to join my writable helpers, and the OLE
 # classes.
 class WritableItem:
-    # __cmp__ used for sorting in py2x...
-    def __cmp__(self, other):
-        "Compare for sorting"
-        ret = cmp(self.order, other.order)
-        if ret == 0 and self.doc:
-            ret = cmp(self.doc[0], other.doc[0])
-        return ret
-
-    # ... but not used in py3k - __lt__ minimum needed there
-    def __lt__(self, other):  # py3k variant
+    def __lt__(self, other):
         if self.order == other.order:
             return self.doc < other.doc
         return self.order < other.order

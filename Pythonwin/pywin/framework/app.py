@@ -4,16 +4,17 @@
 #
 # We also grab the FileOpen command, to invoke our Python editor
 " The PythonWin application code. Manages most aspects of MDI, etc "
-import win32con
-import win32api
-import win32ui
-import sys
-import string
 import os
-from pywin.mfc import window, dialog, afxres
-from pywin.mfc.thread import WinApp
+import string
+import sys
 import traceback
+
 import regutil
+import win32api
+import win32con
+import win32ui
+from pywin.mfc import afxres, dialog, window
+from pywin.mfc.thread import WinApp
 
 from . import scriptutils
 
@@ -397,8 +398,8 @@ class AboutBox(dialog.Dialog):
             )
 
 
-def Win32RawInput(prompt=None):
-    "Provide raw_input() for gui apps"
+def Win32Input(prompt=None):
+    "Provide input() for gui apps"
     # flush stderr/out first.
     try:
         sys.stdout.flush()
@@ -413,22 +414,10 @@ def Win32RawInput(prompt=None):
     return ret
 
 
-def Win32Input(prompt=None):
-    "Provide input() for gui apps"
-    return eval(input(prompt))
-
-
 def HookInput():
-    try:
-        raw_input
-        # must be py2x...
-        sys.modules["__builtin__"].raw_input = Win32RawInput
-        sys.modules["__builtin__"].input = Win32Input
-    except NameError:
-        # must be py3k
-        import code
+    import code
 
-        sys.modules["builtins"].input = Win32RawInput
+    sys.modules["builtins"].input = Win32Input
 
 
 def HaveGoodGUI():
@@ -439,7 +428,8 @@ def HaveGoodGUI():
 def CreateDefaultGUI(appClass=None):
     """Creates a default GUI environment"""
     if appClass is None:
-        from . import intpyapp  # Bring in the default app - could be param'd later.
+        # Bring in the default app - could be param'd later.
+        from . import intpyapp
 
         appClass = intpyapp.InteractivePythonApp
     # Create and init the app.

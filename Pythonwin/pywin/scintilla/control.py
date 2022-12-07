@@ -4,15 +4,17 @@
 # a "standard" MFC edit control (eg, control.GetTextLength(), control.GetSel()
 # plus many Scintilla specific features (eg control.SCIAddStyledText())
 
-from pywin.mfc import window
-from pywin import default_scintilla_encoding
+import array
+import os
+import string
+import struct
+
+import win32api
 import win32con
 import win32ui
-import win32api
-import array
-import struct
-import string
-import os
+from pywin import default_scintilla_encoding
+from pywin.mfc import window
+
 from . import scintillacon
 
 # Load Scintilla.dll to get access to the control.
@@ -36,8 +38,7 @@ if dllid is None:
     # Still not there - lets see if Windows can find it by searching?
     dllid = win32api.LoadLibrary("Scintilla.DLL")
 
-# null_byte is str in py2k, bytes on py3k
-null_byte = "\0".encode("ascii")
+null_byte = b"\0"
 
 ## These are from Richedit.h - need to add to win32con or commctrl
 EM_GETTEXTRANGE = 1099

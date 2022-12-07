@@ -1,9 +1,8 @@
 import unittest
-import win32wnet
-import win32api
-import netbios
 
-from pywin32_testutil import str2bytes
+import netbios
+import win32api
+import win32wnet
 
 RESOURCE_CONNECTED = 0x00000001
 RESOURCE_GLOBALNET = 0x00000002
@@ -65,9 +64,9 @@ class TestCase(unittest.TestCase):
                 new_val = val + 1
             elif typ is str:
                 if val is not None:
-                    # on py2k, must be string or unicode.  py3k must be string or bytes.
+                    # must be string or bytes.
                     self.assertTrue(
-                        type(val) in (str, str), "Attr %r has value %r" % (attr, val)
+                        type(val) in (str, bytes), "Attr %r has value %r" % (attr, val)
                     )
                     new_val = val + " new value"
                 else:
@@ -108,13 +107,13 @@ class TestCase(unittest.TestCase):
         for i in range(la_enum.length):
             ncb.Reset()
             ncb.Command = netbios.NCBRESET
-            ncb.Lana_num = netbios.byte_to_int(la_enum.lana[i])
+            ncb.Lana_num = la_enum.lana[i]
             rc = Netbios(ncb)
             self.assertEqual(rc, 0)
             ncb.Reset()
             ncb.Command = netbios.NCBASTAT
-            ncb.Lana_num = byte_to_int(la_enum.lana[i])
-            ncb.Callname = str2bytes("*               ")  # ensure bytes on py2x and 3k
+            ncb.Lana_num = la_enum.lana[i]
+            ncb.Callname = b"*               "
             adapter = netbios.ADAPTER_STATUS()
             ncb.Buffer = adapter
             Netbios(ncb)

@@ -13,14 +13,13 @@
 # choice.  However, you should investigate using the tree control directly
 # to provide maximum flexibility (but with extra work).
 
-import sys
-import win32ui
-import win32con
+import commctrl
 import win32api
+import win32con
+import win32ui
+from pywin.mfc import dialog, docview, object, window
 from win32api import RGB
 
-from pywin.mfc import object, window, docview, dialog
-import commctrl
 
 # helper to get the text of an arbitary item
 def GetItemText(item):
@@ -105,14 +104,8 @@ class HierList(object.Object):
         self.listControl.SetImageList(self.imageList, commctrl.LVSIL_NORMAL)
         # 		self.list.AttachObject(self)
 
-        ## ??? Need a better way to do this - either some way to detect if it's compiled with UNICODE
-        ##  defined, and/or a way to switch the constants based on UNICODE ???
-        if sys.version_info[0] < 3:
-            parent.HookNotify(self.OnTreeItemExpanding, commctrl.TVN_ITEMEXPANDINGA)
-            parent.HookNotify(self.OnTreeItemSelChanged, commctrl.TVN_SELCHANGEDA)
-        else:
-            parent.HookNotify(self.OnTreeItemExpanding, commctrl.TVN_ITEMEXPANDINGW)
-            parent.HookNotify(self.OnTreeItemSelChanged, commctrl.TVN_SELCHANGEDW)
+        parent.HookNotify(self.OnTreeItemExpanding, commctrl.TVN_ITEMEXPANDINGW)
+        parent.HookNotify(self.OnTreeItemSelChanged, commctrl.TVN_SELCHANGEDW)
         parent.HookNotify(self.OnTreeItemDoubleClick, commctrl.NM_DBLCLK)
         self.notify_parent = parent
 
@@ -128,12 +121,8 @@ class HierList(object.Object):
     def HierTerm(self):
         # Dont want notifies as we kill the list.
         parent = self.notify_parent  # GetParentFrame()
-        if sys.version_info[0] < 3:
-            parent.HookNotify(None, commctrl.TVN_ITEMEXPANDINGA)
-            parent.HookNotify(None, commctrl.TVN_SELCHANGEDA)
-        else:
-            parent.HookNotify(None, commctrl.TVN_ITEMEXPANDINGW)
-            parent.HookNotify(None, commctrl.TVN_SELCHANGEDW)
+        parent.HookNotify(None, commctrl.TVN_ITEMEXPANDINGW)
+        parent.HookNotify(None, commctrl.TVN_SELCHANGEDW)
         parent.HookNotify(None, commctrl.NM_DBLCLK)
 
         self.DeleteAllItems()
@@ -356,11 +345,9 @@ class HierListItem:
     def GetSelectedBitmapColumn(self):
         return None  # same as other
 
-    # for py3k/rich-comp sorting compatibility.
     def __lt__(self, other):
         # we want unrelated items to be sortable...
         return id(self) < id(other)
 
-    # for py3k/rich-comp equality compatibility.
     def __eq__(self, other):
         return False

@@ -1,10 +1,9 @@
-import sys
-import unittest
-import pywintypes
-import time
-from pywin32_testutil import str2bytes, ob2memory
 import datetime
 import operator
+import time
+import unittest
+
+import pywintypes
 
 
 class TestCase(unittest.TestCase):
@@ -84,11 +83,9 @@ class TestCase(unittest.TestCase):
     def testGUID(self):
         s = "{00020400-0000-0000-C000-000000000046}"
         iid = pywintypes.IID(s)
-        iid2 = pywintypes.IID(ob2memory(iid), True)
+        iid2 = pywintypes.IID(memoryview(iid), True)
         self.assertEqual(iid, iid2)
-        self.assertRaises(
-            ValueError, pywintypes.IID, str2bytes("00"), True
-        )  # too short
+        self.assertRaises(ValueError, pywintypes.IID, b"00", True)  # too short
         self.assertRaises(TypeError, pywintypes.IID, 0, True)  # no buffer
 
     def testGUIDRichCmp(self):
@@ -98,11 +95,10 @@ class TestCase(unittest.TestCase):
         self.assertFalse(None == s)
         self.assertTrue(s != None)
         self.assertTrue(None != s)
-        if sys.version_info > (3, 0):
-            self.assertRaises(TypeError, operator.gt, None, s)
-            self.assertRaises(TypeError, operator.gt, s, None)
-            self.assertRaises(TypeError, operator.lt, None, s)
-            self.assertRaises(TypeError, operator.lt, s, None)
+        self.assertRaises(TypeError, operator.gt, None, s)
+        self.assertRaises(TypeError, operator.gt, s, None)
+        self.assertRaises(TypeError, operator.lt, None, s)
+        self.assertRaises(TypeError, operator.lt, s, None)
 
     def testGUIDInDict(self):
         s = "{00020400-0000-0000-C000-000000000046}"

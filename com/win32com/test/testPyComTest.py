@@ -4,19 +4,20 @@
 import sys
 
 sys.coinit_flags = 0  # Must be free-threaded!
-import win32api, pythoncom, time
-import pywintypes
-import os
-import winerror
-import win32com
-import win32com.client.connect
-from win32com.test.util import CheckClean
-from win32com.client import constants, DispatchBaseClass, CastTo, VARIANT
-from win32com.test.util import RegisterPythonServer
-from pywin32_testutil import str2memory
 import datetime
 import decimal
+import os
+import time
+
+import pythoncom
+import pywintypes
+import win32api
+import win32com
+import win32com.client.connect
 import win32timezone
+import winerror
+from win32com.client import VARIANT, CastTo, DispatchBaseClass, constants
+from win32com.test.util import CheckClean, RegisterPythonServer
 
 importMsg = "**** PyCOMTest is not installed ***\n  PyCOMTest is a Python test specific COM client and server.\n  It is likely this server is not installed on this machine\n  To install the server, you must get the win32com sources\n  and build it using MS Visual C++"
 
@@ -125,38 +126,6 @@ class RandomEventHandler:
             progress("ID %d fired %d times" % (firedId, no))
 
 
-# A simple handler class that derives from object (ie, a "new style class") -
-# only relevant for Python 2.x (ie, the 2 classes should be identical in 3.x)
-class NewStyleRandomEventHandler(object):
-    def _Init(self):
-        self.fireds = {}
-
-    def OnFire(self, no):
-        try:
-            self.fireds[no] = self.fireds[no] + 1
-        except KeyError:
-            self.fireds[no] = 0
-
-    def OnFireWithNamedParams(self, no, a_bool, out1, out2):
-        # This test exists mainly to help with an old bug, where named
-        # params would come in reverse.
-        Missing = pythoncom.Missing
-        if no is not Missing:
-            # We know our impl called 'OnFire' with the same ID
-            assert no in self.fireds
-            assert no + 1 == out1, "expecting 'out1' param to be ID+1"
-            assert no + 2 == out2, "expecting 'out2' param to be ID+2"
-        # The middle must be a boolean.
-        assert a_bool is Missing or type(a_bool) == bool, "middle param not a bool"
-        return out1 + 2, out2 + 2
-
-    def _DumpFireds(self):
-        if not self.fireds:
-            print("ERROR: Nothing was received!")
-        for firedId, no in self.fireds.items():
-            progress("ID %d fired %d times" % (firedId, no))
-
-
 # Test everything which can be tested using both the "dynamic" and "generated"
 # COM objects (or when there are very subtle differences)
 def TestCommon(o, is_generated):
@@ -227,9 +196,9 @@ def TestCommon(o, is_generated):
     if o.GetSetUnsignedLong(-1) != 0xFFFFFFFF:
         raise error("unsigned -1 failed")
 
-    # We want to explicitly test > 32 bits.  py3k has no 'maxint' and
+    # We want to explicitly test > 32 bits.
     # 'maxsize+1' is no good on 64bit platforms as its 65 bits!
-    big = 2147483647  # sys.maxint on py2k
+    big = 2147483647
     for l in big, big + 1, 1 << 65:
         check_get_set(o.GetSetVariant, l)
 
@@ -262,7 +231,7 @@ def TestCommon(o, is_generated):
     )
 
     # and binary
-    TestApplyResult(o.SetBinSafeArray, (str2memory("foo\0bar"),), 7)
+    TestApplyResult(o.SetBinSafeArray, (memoryview(b"foo\0bar"),), 7)
 
     progress("Checking properties")
     o.LongProp = 3
@@ -531,12 +500,8 @@ def TestGenerated():
     progress("Testing connection points")
     o2 = win32com.client.DispatchWithEvents(o, RandomEventHandler)
     TestEvents(o2, o2)
-    o2 = win32com.client.DispatchWithEvents(o, NewStyleRandomEventHandler)
-    TestEvents(o2, o2)
     # and a plain "WithEvents".
     handler = win32com.client.WithEvents(o, RandomEventHandler)
-    TestEvents(o, handler)
-    handler = win32com.client.WithEvents(o, NewStyleRandomEventHandler)
     TestEvents(o, handler)
     progress("Finished generated .py test.")
 

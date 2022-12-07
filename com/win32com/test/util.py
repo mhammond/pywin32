@@ -1,28 +1,25 @@
-import sys, os
-import win32api
+import gc
+import io as StringIO
+import logging
+import os
+import sys
 import tempfile
 import unittest
-import gc
-import pywintypes
-import pythoncom
-import winerror
-from pythoncom import _GetInterfaceCount, _GetGatewayCount
-import win32com
-import logging
 import winreg
-import io as StringIO
 
+import pythoncom
 import pywin32_testutil
-from pywin32_testutil import TestLoader, TestResult, TestRunner, LeakTestCase
+import pywintypes
+import win32api
+import win32com
+import winerror
+from pythoncom import _GetGatewayCount, _GetInterfaceCount
+from pywin32_testutil import LeakTestCase, TestLoader, TestResult, TestRunner
 
 
 def CheckClean():
     # Ensure no lingering exceptions - Python should have zero outstanding
     # COM objects
-    try:
-        sys.exc_clear()
-    except AttributeError:
-        pass  # py3k
     c = _GetInterfaceCount()
     if c:
         print("Warning - %d com interface objects still alive" % c)

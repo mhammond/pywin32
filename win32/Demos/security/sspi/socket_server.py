@@ -9,7 +9,7 @@ being run.
 
 Running either the client or server as a different user can be informative.
 A command-line such as the following may be useful:
-`runas /user:{user} {fqp}\python.exe {fqp}\socket_server.py --wait client|server`
+`runas /user:{user} {fqp}\\python.exe {fqp}\\socket_server.py --wait client|server`
 
 {fqp} should specify the relevant fully-qualified path names.
 
@@ -19,18 +19,16 @@ specify --target-spn with the username under which the *server* is running.
 See the SSPI documentation for more details.
 """
 
-
-import sys
-import struct
-import socketserver
-import win32api
 import http.client
+import optparse  # sorry, this demo needs 2.3+
+import socketserver
+import struct
 import traceback
 
+import sspi
+import sspicon
+import win32api
 import win32security
-import sspi, sspicon
-
-import optparse  # sorry, this demo needs 2.3+
 
 options = None  # set to optparse object.
 

@@ -5,7 +5,7 @@
 # any purpose.
 """Provides a class Stdin which can be used to emulate the regular old
 sys.stdin for the PythonWin interactive window. Right now it just pops
-up a raw_input() dialog. With luck, someone will integrate it into the
+up a input() dialog. With luck, someone will integrate it into the
 actual PythonWin interactive window someday.
 
 WARNING: Importing this file automatically replaces sys.stdin with an
@@ -18,15 +18,12 @@ the way they were, simply use this magic incantation:
 """
 import sys
 
-try:
-    get_input_line = raw_input  # py2x
-except NameError:
-    get_input_line = input  # py3k
+get_input_line = input
 
 
 class Stdin:
     def __init__(self):
-        self.real_file = sys.stdin  # NOTE: Likely to be None in py3k
+        self.real_file = sys.stdin  # NOTE: Likely to be None
         self.buffer = ""
         self.closed = False
 
@@ -142,8 +139,8 @@ Thirty-five niggling idiots!
 Sell you soul to the devil, baby
 """
 
-    def fake_raw_input(prompt=None):
-        """Replacement for raw_input() which pulls lines out of global test_input.
+    def fake_input(prompt=None):
+        """Replacement for input() which pulls lines out of global test_input.
         For testing only!
         """
         global test_input
@@ -157,7 +154,7 @@ Sell you soul to the devil, baby
             raise EOFError()
         return result
 
-    get_input_line = fake_raw_input
+    get_input_line = fake_input
 
     # Some completely inadequate tests, just to make sure the code's not totally broken
     try:
@@ -169,7 +166,7 @@ Sell you soul to the devil, baby
         print(x.readline(3))
         print(x.readlines())
     finally:
-        get_input_line = raw_input
+        get_input_line = input
 else:
     import sys
 

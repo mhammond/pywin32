@@ -1,6 +1,6 @@
 #!/usr/bin/env python
-""" Python DB API 2.0 driver compliance unit test suite. 
-    
+""" Python DB API 2.0 driver compliance unit test suite.
+
     This software is Public Domain and may be used without restrictions.
 
  "Now we have booze and barflies entering the discussion, plus rumours of
@@ -11,28 +11,22 @@
     -- Ian Bicking
 """
 
-__version__ = "$Revision: 1.15.0 $"[11:-2]
+__version__ = "$Revision: 1.16.0 $"[11:-2]
 __author__ = "Stuart Bishop <stuart@stuartbishop.net>"
 
-import unittest
 import time
-import sys
+import unittest
 
-if sys.version[0] >= "3":  # python 3.x
-    _BaseException = Exception
 
-    def _failUnless(self, expr, msg=None):
-        self.assertTrue(expr, msg)
-
-else:  # python 2.x
-    from exceptions import Exception as _BaseException
-
-    def _failUnless(self, expr, msg=None):
-        self.failUnless(expr, msg)  ## deprecated since Python 2.6
+def _failUnless(self, expr, msg=None):
+    self.assertTrue(expr, msg)
 
 
 # set this to "True" to follow API 2.0 to the letter
 TEST_FOR_NON_IDEMPOTENT_CLOSE = False
+
+# Revision 1.16  2022/12/07 22:00:00  Avasam
+# Drop support for EOL Python 3.6 and below
 
 # Revision 1.15  2019/11/22 00:50:00  kf7xm
 # Make Turn off IDEMPOTENT_CLOSE a proper skipTest
@@ -94,10 +88,6 @@ TEST_FOR_NON_IDEMPOTENT_CLOSE = False
 #   nothing
 # - Fix bugs in test_setoutputsize_basic and test_setinputsizes
 #
-def str2bytes(sval):
-    if sys.version_info < (3, 0) and isinstance(sval, str):
-        sval = sval.decode("latin1")
-    return sval.encode("latin1")  # python 3 make unicode into bytes
 
 
 class DatabaseAPI20Test(unittest.TestCase):
@@ -169,7 +159,7 @@ class DatabaseAPI20Test(unittest.TestCase):
                         pass
             finally:
                 con.close()
-        except _BaseException:
+        except Exception:
             pass
 
     def _connect(self):
@@ -215,12 +205,8 @@ class DatabaseAPI20Test(unittest.TestCase):
     def test_Exceptions(self):
         # Make sure required exceptions exist, and are in the
         # defined heirarchy.
-        if sys.version[0] == "3":  # under Python 3 StardardError no longer exists
-            self.assertTrue(issubclass(self.driver.Warning, Exception))
-            self.assertTrue(issubclass(self.driver.Error, Exception))
-        else:
-            self.failUnless(issubclass(self.driver.Warning, Exception))
-            self.failUnless(issubclass(self.driver.Error, Exception))
+        self.assertTrue(issubclass(self.driver.Warning, Exception))
+        self.assertTrue(issubclass(self.driver.Error, Exception))
 
         _failUnless(self, issubclass(self.driver.InterfaceError, self.driver.Error))
         _failUnless(self, issubclass(self.driver.DatabaseError, self.driver.Error))
@@ -909,8 +895,8 @@ class DatabaseAPI20Test(unittest.TestCase):
         # self.assertEqual(str(t1),str(t2))
 
     def test_Binary(self):
-        b = self.driver.Binary(str2bytes("Something"))
-        b = self.driver.Binary(str2bytes(""))
+        b = self.driver.Binary(b"Something")
+        b = self.driver.Binary(b"")
 
     def test_STRING(self):
         _failUnless(

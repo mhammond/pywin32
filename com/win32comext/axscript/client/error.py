@@ -2,16 +2,17 @@
 
  This contains the core exceptions that the implementations should raise
  as well as the IActiveScriptError interface code.
- 
+
 """
 
-import sys, traceback
-from win32com.axscript import axscript
-import winerror
+import re
+import traceback
+
+import pythoncom
 import win32com.server.exception
 import win32com.server.util
-import pythoncom
-import re
+import winerror
+from win32com.axscript import axscript
 
 debugging = 0
 
@@ -23,11 +24,11 @@ def FormatForAX(text):
 
 
 def ExpandTabs(text):
-    return re.sub("\t", "    ", text)
+    return re.sub(r"\t", "    ", text)
 
 
 def AddCR(text):
-    return re.sub("\n", "\r\n", text)
+    return re.sub(r"\n", "\r\n", text)
 
 
 class IActiveScriptError:
@@ -188,21 +189,6 @@ class AXScriptException(win32com.server.exception.COMException):
             bits.append("COM Error: " + desc)
         else:
             bits.extend(traceback.format_exception_only(exc_type, value))
-
-        # XXX - this utf8 encoding seems bogus.  From well before py3k,
-        # we had the comment:
-        # > all items in the list are utf8 courtesy of Python magically
-        # > converting unicode to utf8 before compilation.
-        # but that is likely just confusion from early unicode days;
-        # Python isn't doing it, pywin32 probably was, so 'mbcs' would
-        # be the default encoding.  We should never hit this these days
-        # anyway, but on py3k, we *never* will, and str objects there
-        # don't have a decode method...
-        if sys.version_info < (3,):
-            for i in range(len(bits)):
-                if type(bits[i]) is str:
-                    # assert type(bits[i]) is str, type(bits[i])
-                    bits[i] = bits[i].decode("utf8")
 
         self.description = ExpandTabs("".join(bits))
         # Clear tracebacks etc.

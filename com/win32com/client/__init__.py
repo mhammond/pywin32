@@ -6,11 +6,12 @@
 # dispatch object, the known class will be used.  This contrasts
 # with dynamic.Dispatch behaviour, where dynamic objects are always used.
 
-import pythoncom
-from . import dynamic
-from . import gencache
 import sys
+
+import pythoncom
 import pywintypes
+
+from . import dynamic, gencache
 
 _PyIDispatchType = pythoncom.TypeIIDs[pythoncom.IID_IDispatch]
 
@@ -330,16 +331,10 @@ def DispatchWithEvents(clsid, user_event_class):
     # If the clsid was an object, get the clsid
     clsid = disp_class.CLSID
     # Create a new class that derives from 3 classes - the dispatch class, the event sink class and the user class.
-    # XXX - we are still "classic style" classes in py2x, so we need can't yet
-    # use 'type()' everywhere - revisit soon, as py2x will move to new-style too...
-    try:
-        from types import ClassType as new_type
-    except ImportError:
-        new_type = type  # py3k
     events_class = getevents(clsid)
     if events_class is None:
         raise ValueError("This COM object does not support events.")
-    result_class = new_type(
+    result_class = type(
         "COMEventClass",
         (disp_class, events_class, user_event_class),
         {"__setattr__": _event_setattr_},
@@ -399,14 +394,10 @@ def WithEvents(disp, user_event_class):
     clsid = disp_class.CLSID
     # Create a new class that derives from 2 classes - the event sink
     # class and the user class.
-    try:
-        from types import ClassType as new_type
-    except ImportError:
-        new_type = type  # py3k
     events_class = getevents(clsid)
     if events_class is None:
         raise ValueError("This COM object does not support events.")
-    result_class = new_type("COMEventClass", (events_class, user_event_class), {})
+    result_class = type("COMEventClass", (events_class, user_event_class), {})
     instance = result_class(disp)  # This only calls the first base class __init__.
     if hasattr(user_event_class, "__init__"):
         user_event_class.__init__(instance)
@@ -484,7 +475,7 @@ def Record(name, object):
     # XXX - to do - probably should allow "object" to already be a module object.
     from . import gencache
 
-    object = gencache.EnsureDispatch(object)
+    object = gencache.EnsureDispatch
     module = sys.modules[object.__class__.__module__]
     # to allow us to work correctly with "demand generated" code,
     # we must use the typelib CLSID to obtain the module
@@ -690,7 +681,7 @@ class CoClassBaseClass:
 # is very pickly about the actual variant type (eg, isn't happy with a VT_I4,
 # which it would get from a Python integer), you can use this to force a
 # particular VT.
-class VARIANT(object):
+class VARIANT:
     def __init__(self, vt, value):
         self.varianttype = vt
         self._value = value

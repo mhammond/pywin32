@@ -1,9 +1,14 @@
 # This is a "demo" of win32file - it used to be more a test case than a
 # demo, so has been moved to the test directory.
 
-# Please contribute your favourite simple little demo.
-import win32file, win32api, win32con
 import os
+
+import win32api
+import win32con
+
+# Please contribute your favourite simple little demo.
+import win32file
+
 
 # A very simple demo - note that this does no more than you can do with
 # builtin Python file objects, so for something as simple as this, you
@@ -17,7 +22,7 @@ def SimpleFileDemo():
     handle = win32file.CreateFile(
         testName, win32file.GENERIC_WRITE, 0, None, win32con.CREATE_NEW, 0, None
     )
-    test_data = "Hello\0there".encode("ascii")
+    test_data = b"Hello\0there"
     win32file.WriteFile(handle, test_data)
     handle.Close()
     # Open it for reading.

@@ -1,10 +1,9 @@
-#!/usr/bin/python2
+#!/usr/bin/python3
 # Configure this in order to run the testcases.
-"setuptestframework.py v 2.6.0.8"
+"setuptestframework.py v 3.7.0.0"
 import os
-import sys
-import tempfile
 import shutil
+import tempfile
 
 try:
     OSErrors = (WindowsError, OSError)
@@ -59,13 +58,7 @@ def makeadopackage(testfolder):
         for f in os.listdir(adoPath):
             if f.endswith(".py"):
                 shutil.copy(os.path.join(adoPath, f), newpackage)
-        if sys.version_info >= (3, 0):  # only when running Py3.n
-            save = sys.stdout
-            sys.stdout = None
-            from lib2to3.main import main  # use 2to3 to make test package
 
-            main("lib2to3.fixes", args=["-n", "-w", newpackage])
-            sys.stdout = save
         return testfolder
     else:
         raise EnvironmentError("Connot find source of adodbapi to test.")
@@ -81,16 +74,12 @@ def makemdb(testfolder, mdb_name):
         print("using JET database=", _accessdatasource)
     else:
         try:
-            from win32com.client.gencache import EnsureDispatch
             from win32com.client import constants
+            from win32com.client.gencache import EnsureDispatch
 
             win32 = True
-        except ImportError:  # perhaps we are running IronPython
-            win32 = False  # iron Python
-            try:
-                from System import Activator, Type
-            except:
-                pass
+        except ImportError:  # perhaps we are not running CPython
+            win32 = False
 
         # Create a brand-new database - what is the story with these?
         dbe = None

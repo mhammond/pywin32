@@ -2,13 +2,16 @@
 
 Please see policy.py for a discussion on dispatchers and policies
 """
-import pythoncom, traceback, win32api
+import traceback
 from sys import exc_info
+
+import pythoncom
+import win32api
+import win32com
 
 #
 from win32com.server.exception import IsCOMServerException
 from win32com.util import IIDToInterfaceName
-import win32com
 
 
 class DispatcherBase:
@@ -240,9 +243,6 @@ class DispatcherWin32dbg(DispatcherBase):
     """
 
     def __init__(self, policyClass, ob):
-        # No one uses this, and it just causes py2exe to drag all of
-        # pythonwin in.
-        # import pywin.debugger
         pywin.debugger.brk()
         print("The DispatcherWin32dbg dispatcher is deprecated!")
         print("Please let me know if this is a problem.")

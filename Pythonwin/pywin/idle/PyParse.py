@@ -1,5 +1,5 @@
-import string
 import re
+import string
 import sys
 
 # Reason last stmt is continued (or C_NONE if it's not).
@@ -122,6 +122,7 @@ for ch in ")}]":
     _tran[ord(ch)] = ")"
 for ch in "\"'\\\n#":
     _tran[ord(ch)] = ch
+# TODO
 # We are called with unicode strings, and str.translate is one of the few
 # py2k functions which can't 'do the right thing' - so take care to ensure
 # _tran is full of unicode...

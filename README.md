@@ -12,7 +12,7 @@ This is the readme for the Python for Win32 (pywin32) extensions, which provides
 
 See [CHANGES.txt](https://github.com/mhammond/pywin32/blob/master/CHANGES.txt) for recent notable changes.
 
-Only Python 3 is supported. If you want Python 2 support, you want build `228`.
+Only Python 3.7+ is supported. If you want Python 2 support, you want build `228`.
 
 ## Docs
 
@@ -33,6 +33,7 @@ closed. For such issues, please email the
 note that you must be subscribed to the list before posting.
 
 ## Binaries
+
 [Binary releases are deprecated.](https://mhammond.github.io/pywin32_installers.html)
 While they are still provided, [find them here](https://github.com/mhammond/pywin32/releases)
 
@@ -56,6 +57,7 @@ For unreleased changes, you can download builds made by [github actions](https:/
 choose any "workflow" from the `main` branch and download its "artifacts")
 
 ### `The specified procedure could not be found` / `Entry-point not found` Errors?
+
 A very common report is that people install pywin32, but many imports fail with errors
 similar to the above.
 
@@ -101,7 +103,7 @@ be able to build most extensions and list any extensions that could not be
 built due to missing libraries - if the build actually fails with your
 configuration, please [open an issue](https://github.com/mhammond/pywin32/issues).
 
-You will need to install pywin32 (using pip) before building from source, or 
+You will need to install pywin32 (using pip) before building from source, or
 use `python setup.py install --skip-verstamp`, because the default build process uses a win32api call..
 
 ## Release process

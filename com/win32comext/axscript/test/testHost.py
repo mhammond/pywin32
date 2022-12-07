@@ -1,15 +1,15 @@
 import sys
+import unittest
+
 import pythoncom
-from win32com.axscript.server.error import Exception
+import win32com.server.policy
+import win32com.test.util
 from win32com.axscript import axscript
 from win32com.axscript.server import axsite
-from win32com.server import util, connect
-import win32com.server.policy
+from win32com.axscript.server.error import Exception
 from win32com.client.dynamic import Dispatch
+from win32com.server import connect, util
 from win32com.server.exception import COMException
-
-import unittest
-import win32com.test.util
 
 verbose = "-v" in sys.argv
 
@@ -133,7 +133,7 @@ def testcollection():
      test.fail("Didn't get the collection")
    pass
 """
-
+# TODO
 # XXX - needs py3k work!  Throwing a bytes string with an extended char
 # doesn't make much sense, but py2x allows it.  What it gets upset with
 # is a real unicode arg - which is the only thing py3k allows!

@@ -1,23 +1,20 @@
 # A general purpose MFC CCtrlView view that uses Scintilla.
 
-from . import control
-from . import IDLEenvironment  # IDLE emulation.
-from pywin.mfc import docview
-from pywin.mfc import dialog
-from . import scintillacon
+import array
+import os
+import re
+import string
+import struct
+import sys
+
+import __main__  # for attribute lookup
+import afxres
 import win32con
 import win32ui
-import afxres
-import string
-import array
-import sys
-import types
-import __main__  # for attribute lookup
-from . import bindings
-from . import keycodes
-import struct
-import re
-import os
+from pywin.mfc import dialog, docview
+
+from . import IDLEenvironment  # IDLE emulation.
+from . import bindings, control, keycodes, scintillacon
 
 PRINTDLGORD = 1538
 IDC_PRINT_MAG_EDIT = 1010
@@ -25,7 +22,7 @@ EM_FORMATRANGE = win32con.WM_USER + 57
 
 wordbreaks = "._" + string.ascii_uppercase + string.ascii_lowercase + string.digits
 
-patImport = re.compile("import (?P<name>.*)")
+patImport = re.compile(r"import (?P<name>.*)")
 
 _event_commands = [
     # File menu
@@ -536,7 +533,7 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
             endpos = self.LineIndex(maxline)
             text = self.GetTextRange(self.LineIndex(minline), endpos)
             try:
-                l = re.findall(r"\b" + left + "\.\w+", text)
+                l = re.findall(r"\b" + left + r"\.\w+", text)
             except re.error:
                 # parens etc may make an invalid RE, but this code wouldnt
                 # benefit even if the RE did work :-)

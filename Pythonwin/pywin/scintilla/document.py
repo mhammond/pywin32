@@ -1,19 +1,21 @@
-import win32ui
-from pywin.mfc import docview
-from pywin import default_scintilla_encoding
-from . import scintillacon
-import win32con
-import string
-import os
 import codecs
+import os
 import re
+import string
 
-crlf_bytes = "\r\n".encode("ascii")
-lf_bytes = "\n".encode("ascii")
+import win32con
+import win32ui
+from pywin import default_scintilla_encoding
+from pywin.mfc import docview
+
+from . import scintillacon
+
+crlf_bytes = b"\r\n"
+lf_bytes = b"\n"
 
 # re from pep263 - but we use it both on bytes and strings.
-re_encoding_bytes = re.compile("coding[:=]\s*([-\w.]+)".encode("ascii"))
-re_encoding_text = re.compile("coding[:=]\s*([-\w.]+)")
+re_encoding_bytes = re.compile(rb"coding[:=]\s*([-\w.]+)")
+re_encoding_text = re.compile(r"coding[:=]\s*([-\w.]+)")
 
 ParentScintillaDocument = docview.Document
 
@@ -167,7 +169,7 @@ class CScintillaDocument(ParentScintillaDocument):
                 source_encoding = self.source_encoding
             else:
                 # no BOM - look for an encoding.
-                bits = re.split("[\r\n]+", s, 3)
+                bits = re.split(r"[\r\n]+", s, 3)
                 for look in bits[:-1]:
                     match = re_encoding_text.search(look)
                     if match is not None:

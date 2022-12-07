@@ -3,23 +3,23 @@
 ## Interactive Shell Window
 ##
 
-import sys, os
+import array
 import code
+import os
 import string
+import sys
+import traceback
 
-import win32ui
+import __main__
+import afxres
+import pywin.framework.app
+import pywin.scintilla.control
+import pywin.scintilla.formatter
+import pywin.scintilla.IDLEenvironment
 import win32api
 import win32clipboard
 import win32con
-import traceback
-import afxres
-import array
-import __main__
-
-import pywin.scintilla.formatter
-import pywin.scintilla.control
-import pywin.scintilla.IDLEenvironment
-import pywin.framework.app
+import win32ui
 
 ## sequential after ID_GOTO_LINE defined in editor.py
 ID_EDIT_COPY_CODE = 0xE2002
@@ -27,9 +27,9 @@ ID_EDIT_EXEC_CLIPBOARD = 0x2003
 
 trace = pywin.scintilla.formatter.trace
 
-from . import winout
-
 import re
+
+from . import winout
 
 # from IDLE.
 _is_block_opener = re.compile(r":\s*(#.*)?$").search
@@ -47,7 +47,7 @@ _is_block_closer = re.compile(
     re.VERBOSE,
 ).match
 
-tracebackHeader = "Traceback (".encode("ascii")
+tracebackHeader = b"Traceback ("
 
 sectionProfile = "Interactive Window"
 valueFormatTitle = "FormatTitle"
@@ -138,7 +138,7 @@ class InteractiveFormatter(FormatterParent):
             return
         state = styleStart
         # As per comments in Colorize(), we work with the raw utf8
-        # bytes. To avoid too muych py3k pain, we treat each utf8 byte
+        # bytes. To avoid too much py3k pain, we treat each utf8 byte
         # as a latin-1 unicode character - we only use it to compare
         # against ascii chars anyway...
         chNext = cdoc[0:1].decode("latin-1")
@@ -201,7 +201,7 @@ class InteractiveFormatter(FormatterParent):
                 # It is a PythonColorizer state - seek past the end of the line
                 # and ask the Python colorizer to color that.
                 end = startSeg
-                while end < lengthDoc and cdoc[end] not in "\r\n".encode("ascii"):
+                while end < lengthDoc and cdoc[end] not in b"\r\n":
                     end = end + 1
                 self.ColorizePythonCode(cdoc[:end], startSeg, state)
                 stylePyStart = self.GetStringStyle(end - 1)

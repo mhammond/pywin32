@@ -22,12 +22,14 @@
    work.
 
 """
-import win32con
-import win32api, win32ui
 import sys
+
 import pythoncom
-from win32com.client import util
+import win32api
+import win32con
+import win32ui
 from pywin.tools import browser
+from win32com.client import util
 
 
 class HLIRoot(browser.HLIPythonObject):
@@ -43,8 +45,8 @@ class HLIRoot(browser.HLIPythonObject):
             HLIHeadingRegisterdTypeLibs(),
         ]
 
-    def __cmp__(self, other):
-        return cmp(self.name, other.name)
+    def __lt__(self, other):
+        return self.name < other.name
 
 
 class HLICOM(browser.HLIPythonObject):

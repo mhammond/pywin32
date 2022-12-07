@@ -14,8 +14,8 @@
 #   spaces, they will not be considered part of the same block.
 # * Fancy comments, like this bulleted list, arent handled :-)
 
-import string
 import re
+import string
 
 
 class FormatParagraph:
@@ -135,7 +135,7 @@ def reformat_paragraph(data, limit=70):
     partial = indent1
     while i < n and not is_all_white(lines[i]):
         # XXX Should take double space after period (etc.) into account
-        words = re.split("(\s+)", lines[i])
+        words = re.split(r"(\s+)", lines[i])
         for j in range(0, len(words), 2):
             word = words[j]
             if not word:

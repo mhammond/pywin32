@@ -2,9 +2,14 @@
 # Stolen from Roger's original test_sspi.c, a version of which is in "Demos"
 # See also the other SSPI demos.
 import re
-import win32security, sspi, sspicon, win32api
-from pywin32_testutil import TestSkipped, testmain, str2bytes
 import unittest
+
+import sspi
+import sspicon
+import win32api
+import win32security
+from pywin32_testutil import TestSkipped, testmain
+
 
 # It is quite likely that the Kerberos tests will fail due to not being
 # installed.  The NTLM tests do *not* get the same behaviour as they should
@@ -59,7 +64,7 @@ class TestSSPI(unittest.TestCase):
         pkg_size_info = sspiclient.ctxt.QueryContextAttributes(
             sspicon.SECPKG_ATTR_SIZES
         )
-        msg = str2bytes("some data to be encrypted ......")
+        msg = b"some data to be encrypted ......"
 
         trailersize = pkg_size_info["SecurityTrailer"]
         encbuf = win32security.PySecBufferDescType()
@@ -72,7 +77,7 @@ class TestSSPI(unittest.TestCase):
         sspiserver.ctxt.DecryptMessage(encbuf, 1)
         self.assertEqual(msg, encbuf[0].Buffer)
         # and test the higher-level functions
-        data_in = str2bytes("hello")
+        data_in = b"hello"
         data, sig = sspiclient.encrypt(data_in)
         self.assertEqual(sspiserver.decrypt(data, sig), data_in)
 
@@ -88,7 +93,7 @@ class TestSSPI(unittest.TestCase):
         pkg_size_info = sspiclient.ctxt.QueryContextAttributes(
             sspicon.SECPKG_ATTR_SIZES
         )
-        msg = str2bytes("some data to be encrypted ......")
+        msg = b"some data to be encrypted ......"
 
         trailersize = pkg_size_info["SecurityTrailer"]
         blocksize = pkg_size_info["BlockSize"]
@@ -133,7 +138,7 @@ class TestSSPI(unittest.TestCase):
         pkg_size_info = sspiclient.ctxt.QueryContextAttributes(
             sspicon.SECPKG_ATTR_SIZES
         )
-        msg = str2bytes("some data to be encrypted ......")
+        msg = b"some data to be encrypted ......"
 
         sigsize = pkg_size_info["MaxSignature"]
         sigbuf = win32security.PySecBufferDescType()
@@ -145,7 +150,7 @@ class TestSSPI(unittest.TestCase):
         # and test the higher-level functions
         sspiclient.next_seq_num = 1
         sspiserver.next_seq_num = 1
-        data = str2bytes("hello")
+        data = b"hello"
         key = sspiclient.sign(data)
         sspiserver.verify(data, key)
         key = sspiclient.sign(data)
@@ -194,32 +199,31 @@ class TestSSPI(unittest.TestCase):
     def testSecBufferRepr(self):
         desc = win32security.PySecBufferDescType()
         assert re.match(
-            "PySecBufferDesc\(ulVersion: 0 \| cBuffers: 0 \| pBuffers: 0x[\da-fA-F]{8,16}\)",
+            r"PySecBufferDesc\(ulVersion: 0 \| cBuffers: 0 \| pBuffers: 0x[\da-fA-F]{8,16}\)",
             repr(desc),
         )
 
         buffer1 = win32security.PySecBufferType(0, sspicon.SECBUFFER_TOKEN)
         assert re.match(
-            "PySecBuffer\(cbBuffer: 0 \| BufferType: 2 \| pvBuffer: 0x[\da-fA-F]{8,16}\)",
+            r"PySecBuffer\(cbBuffer: 0 \| BufferType: 2 \| pvBuffer: 0x[\da-fA-F]{8,16}\)",
             repr(buffer1),
         )
-        "PySecBuffer(cbBuffer: 0 | BufferType: 2 | pvBuffer: 0x000001B8CC6D8020)"
         desc.append(buffer1)
 
         assert re.match(
-            "PySecBufferDesc\(ulVersion: 0 \| cBuffers: 1 \| pBuffers: 0x[\da-fA-F]{8,16}\)",
+            r"PySecBufferDesc\(ulVersion: 0 \| cBuffers: 1 \| pBuffers: 0x[\da-fA-F]{8,16}\)",
             repr(desc),
         )
 
         buffer2 = win32security.PySecBufferType(4, sspicon.SECBUFFER_DATA)
         assert re.match(
-            "PySecBuffer\(cbBuffer: 4 \| BufferType: 1 \| pvBuffer: 0x[\da-fA-F]{8,16}\)",
+            r"PySecBuffer\(cbBuffer: 4 \| BufferType: 1 \| pvBuffer: 0x[\da-fA-F]{8,16}\)",
             repr(buffer2),
         )
         desc.append(buffer2)
 
         assert re.match(
-            "PySecBufferDesc\(ulVersion: 0 \| cBuffers: 2 \| pBuffers: 0x[\da-fA-F]{8,16}\)",
+            r"PySecBufferDesc\(ulVersion: 0 \| cBuffers: 2 \| pBuffers: 0x[\da-fA-F]{8,16}\)",
             repr(desc),
         )
 

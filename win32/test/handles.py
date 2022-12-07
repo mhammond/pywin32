@@ -1,7 +1,9 @@
 import sys
 import unittest
+
 import pywintypes
 import win32api
+
 
 # A class that will never die vie refcounting, but will die via GC.
 class Cycle:
@@ -136,17 +138,13 @@ class PyHandleTestCase(unittest.TestCase):
         self.assertTrue(h)
 
     def testLong(self):
-        # sys.maxint+1 should always be a 'valid' handle, treated as an
+        # sys.maxsize+1 should always be a 'valid' handle, treated as an
         # unsigned int, even though it is a long. Although pywin32 should not
         # directly create such longs, using struct.unpack() with a P format
         # may well return them. eg:
         # >>> struct.unpack("P", struct.pack("P", -1))
         # (4294967295L,)
-        try:
-            big = sys.maxsize
-        except AttributeError:
-            big = sys.maxint
-        pywintypes.HANDLE(big + 1)
+        pywintypes.HANDLE(sys.maxsize + 1)
 
     def testGC(self):
         # This used to provoke:

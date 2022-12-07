@@ -1,18 +1,19 @@
 """
 Various utilities for running/importing a script
 """
-import sys
-import win32ui
-import win32api
-import win32con
-import __main__
-from pywin.mfc import dialog
-from pywin.mfc.docview import TreeView
+import bdb
+import linecache
 import os
 import string
+import sys
 import traceback
-import linecache
-import bdb
+
+import __main__
+import win32api
+import win32con
+import win32ui
+from pywin.mfc import dialog
+from pywin.mfc.docview import TreeView
 
 from .cmdline import ParseArgs
 
@@ -28,9 +29,9 @@ Post-Mortem of unhandled exceptions""".split(
     "\n"
 )
 
-byte_cr = "\r".encode("ascii")
-byte_lf = "\n".encode("ascii")
-byte_crlf = "\r\n".encode("ascii")
+byte_cr = b"\r"
+byte_lf = b"\n"
+byte_crlf = b"\r\n"
 
 # A dialog box for the "Run Script" command.
 class DlgRunScript(dialog.Dialog):
@@ -302,7 +303,7 @@ def RunScript(defName=None, defArgs=None, bShowDialog=1, debuggingType=None):
     # ignores any encoding decls (bad!).  If we use binary mode we get
     # the raw bytes and Python looks at the encoding (good!) but \r\n
     # chars stay in place so Python throws a syntax error (bad!).
-    # So: so the binary thing and manually normalize \r\n.
+    # So: do the binary thing and manually normalize \r\n.
     try:
         f = open(script, "rb")
     except IOError as exc:
@@ -435,8 +436,7 @@ def ImportFile():
     newPath = None
     # note that some packages (*cough* email *cough*) use "lazy importers"
     # meaning sys.modules can change as a side-effect of looking at
-    # module.__file__ - so we must take a copy (ie, items() in py2k,
-    # list(items()) in py3k)
+    # module.__file__ - so we must take a copy (ie, list(items()))
     for key, mod in list(sys.modules.items()):
         if getattr(mod, "__file__", None):
             fname = mod.__file__

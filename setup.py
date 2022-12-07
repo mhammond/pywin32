@@ -22,38 +22,36 @@ instead of a failing, it will report what was skipped, and why. See also
 build_env.md, which is getting out of date but might help getting everything
 required for an official build - see README.md for that process.
 """
+import glob
+
 # Originally by Thomas Heller, started in 2000 or so.
 import os
-import sys
-import glob
-import re
-from tempfile import gettempdir
 import platform
+import re
 import shutil
 import subprocess
-
+import sys
 import winreg
+from distutils import log
+from distutils.command.build import build
+from distutils.command.install import install
+from distutils.command.install_data import install_data
+from distutils.command.install_lib import install_lib
+from distutils.core import Extension
+from tempfile import gettempdir
 
 # The rest of our imports.
 from setuptools import setup
-from distutils.core import Extension
-from distutils.command.install import install
-from distutils.command.install_lib import install_lib
 from setuptools.command.build_ext import build_ext
-from distutils.command.build import build
-from distutils.command.install_data import install_data
-
-from distutils import log
-
 
 # some modules need a static CRT to avoid problems caused by them having a
 # manifest.
 static_crt_modules = ["winxpgui"]
 
 
+import distutils.util
 from distutils.dep_util import newer_group
 from distutils.filelist import FileList
-import distutils.util
 
 build_id_patch = build_id
 if not "." in build_id_patch:
@@ -814,6 +812,7 @@ class my_build_ext(build_ext):
         new_sources = []
         swig_sources = []
         swig_targets = {}
+        # TODO
         # XXX this drops generated C/C++ files into the source tree, which
         # is fine for developers who want to distribute the generated
         # source -- but there should be an option to put SWIG output in
@@ -879,6 +878,7 @@ class my_build_ext(build_ext):
                         # A class deriving from other than the default
                         swig_cmd.extend(["-com_interface_parent", interface_parent])
 
+            # TODO
             # This 'newer' check helps python 2.2 builds, which otherwise
             # *always* regenerate the .cpp files, meaning every future
             # build for any platform sees these as dirty.
@@ -2144,7 +2144,7 @@ def convert_data_files(files):
             flist.findall(os.path.dirname(file))
             flist.include_pattern(os.path.basename(file), anchor=0)
             # We never want CVS
-            flist.exclude_pattern(re.compile(".*\\\\CVS\\\\"), is_regex=1, anchor=0)
+            flist.exclude_pattern(re.compile(r".*\\CVS\\"), is_regex=1, anchor=0)
             flist.exclude_pattern("*.pyc", anchor=0)
             flist.exclude_pattern("*.pyo", anchor=0)
             if not flist.files:
@@ -2409,23 +2409,22 @@ if "build_ext" in dist.command_obj:
     if "install" in dist.command_obj:  # just to be purdy
         what_string += "/installed"
     # Print the list of extension modules we skipped building.
-    if "build_ext" in dist.command_obj:
-        excluded_extensions = dist.command_obj["build_ext"].excluded_extensions
-        if excluded_extensions:
-            skip_whitelist = {"exchdapi", "exchange", "axdebug", "winxpgui"}
-            skipped_ex = []
-            print("*** NOTE: The following extensions were NOT %s:" % what_string)
-            for ext, why in excluded_extensions:
-                print(" %s: %s" % (ext.name, why))
-                if ext.name not in skip_whitelist:
-                    skipped_ex.append(ext.name)
-            print("For more details on installing the correct libraries and headers,")
-            print("please execute this script with no arguments (or see the docstring)")
-            if skipped_ex:
-                print(
-                    "*** Non-zero exit status. Missing for complete release build: %s"
-                    % skipped_ex
-                )
-                sys.exit(1000 + len(skipped_ex))
-        else:
-            print("All extension modules %s OK" % (what_string,))
+    excluded_extensions = dist.command_obj["build_ext"].excluded_extensions
+    if excluded_extensions:
+        skip_whitelist = {"exchdapi", "exchange", "axdebug", "winxpgui"}
+        skipped_ex = []
+        print("*** NOTE: The following extensions were NOT %s:" % what_string)
+        for ext, why in excluded_extensions:
+            print(" %s: %s" % (ext.name, why))
+            if ext.name not in skip_whitelist:
+                skipped_ex.append(ext.name)
+        print("For more details on installing the correct libraries and headers,")
+        print("please execute this script with no arguments (or see the docstring)")
+        if skipped_ex:
+            print(
+                "*** Non-zero exit status. Missing for complete release build: %s"
+                % skipped_ex
+            )
+            sys.exit(1000 + len(skipped_ex))
+    else:
+        print("All extension modules %s OK" % (what_string,))

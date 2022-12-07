@@ -5,39 +5,16 @@ Copyright (C) 2002 Henrik Ekelund, version 2.1 by Vernon Cole
 * http://sourceforge.net/projects/adodbapi
 """
 
-import sys
-import time
 import datetime
 import decimal
 import numbers
+import sys
+import time
 
 # noinspection PyUnresolvedReferences
 from . import ado_consts as adc
 
 verbose = False  # debugging flag
-
-onIronPython = sys.platform == "cli"
-if onIronPython:  # we need type definitions for odd data we may need to convert
-    # noinspection PyUnresolvedReferences
-    from System import DBNull, DateTime
-
-    NullTypes = (type(None), DBNull)
-else:
-    DateTime = type(NotImplemented)  # should never be seen on win32
-    NullTypes = type(None)
-
-# --- define objects to smooth out Python3 <-> Python 2.x differences
-unicodeType = str
-longType = int
-StringTypes = str
-makeByteBuffer = bytes
-memoryViewType = memoryview
-_BaseException = Exception
-
-try:  # jdhardy -- handle bytes under IronPython & Py3
-    bytes
-except NameError:
-    bytes = str  # define it for old Pythons
 
 # ------- Error handlers ------
 def standardErrorHandler(connection, cursor, errorclass, errorvalue):
@@ -54,8 +31,7 @@ def standardErrorHandler(connection, cursor, errorclass, errorvalue):
     raise errorclass(errorvalue)
 
 
-# Note: _BaseException is defined differently between Python 2.x and 3.x
-class Error(_BaseException):
+class Error(Exception):
     pass  # Exception that is the base class of all other error
     # exceptions. You can use this to catch all errors with one
     # single 'except' statement. Warnings are not considered
@@ -64,7 +40,7 @@ class Error(_BaseException):
     # module exceptions).
 
 
-class Warning(_BaseException):
+class Warning(Exception):
     pass
 
 
@@ -161,10 +137,10 @@ class FetchFailedError(OperationalError):
 #
 # def Binary(aString):
 #     """This function constructs an object capable of holding a binary (long) string value. """
-#     b = makeByteBuffer(aString)
+#     b = bytes(aString)
 #     return b
 # -----     Time converters ----------------------------------------------
-class TimeConverter(object):  # this is a generic time converter skeleton
+class TimeConverter:  # this is a generic time converter skeleton
     def __init__(self):  # the details will be filled in by instances
         self._ordinal_1899_12_31 = datetime.date(1899, 12, 31).toordinal() - 1
         # Use cls.types to compare if an input parameter is a datetime
@@ -190,11 +166,8 @@ class TimeConverter(object):  # this is a generic time converter skeleton
         except:  # might be a tuple
             try:
                 return self.ComDateFromTuple(obj)
-            except:  # try an mxdate
-                try:
-                    return obj.COMDate()
-                except:
-                    raise ValueError('Cannot convert "%s" to COMdate.' % repr(obj))
+            except:
+                raise ValueError('Cannot convert "%s" to COMdate.' % repr(obj))
 
     def ComDateFromTuple(self, t, microseconds=0):
         d = datetime.date(t[0], t[1], t[2])
@@ -228,46 +201,11 @@ class TimeConverter(object):  # this is a generic time converter skeleton
             if isinstance(obj, datetime.date):
                 s = obj.isoformat() + " 00:00:00"  # return exact midnight
             else:
-                try:  # maybe it has a strftime method, like mx
-                    s = obj.strftime("%Y-%m-%d %H:%M:%S")
-                except AttributeError:
-                    try:  # but may be time.struct_time
-                        s = time.strftime("%Y-%m-%d %H:%M:%S", obj)
-                    except:
-                        raise ValueError('Cannot convert "%s" to isoformat' % repr(obj))
+                try:  # maybe time.struct_time
+                    s = time.strftime("%Y-%m-%d %H:%M:%S", obj)
+                except:
+                    raise ValueError('Cannot convert "%s" to isoformat' % repr(obj))
         return s
-
-
-# -- Optional: if mx extensions are installed you may use mxDateTime ----
-try:
-    import mx.DateTime
-
-    mxDateTime = True
-except:
-    mxDateTime = False
-if mxDateTime:
-
-    class mxDateTimeConverter(TimeConverter):  # used optionally if installed
-        def __init__(self):
-            TimeConverter.__init__(self)
-            self.types.add(type(mx.DateTime))
-
-        def DateObjectFromCOMDate(self, comDate):
-            return mx.DateTime.DateTimeFromCOMDate(comDate)
-
-        def Date(self, year, month, day):
-            return mx.DateTime.Date(year, month, day)
-
-        def Time(self, hour, minute, second):
-            return mx.DateTime.Time(hour, minute, second)
-
-        def Timestamp(self, year, month, day, hour, minute, second):
-            return mx.DateTime.Timestamp(year, month, day, hour, minute, second)
-
-else:
-
-    class mxDateTimeConverter(TimeConverter):
-        pass  # if no mx is installed
 
 
 class pythonDateTimeConverter(TimeConverter):  # standard since Python 2.3
@@ -281,8 +219,6 @@ class pythonDateTimeConverter(TimeConverter):  # standard since Python 2.3
             new = datetime.datetime.combine(datetime.datetime.fromordinal(odn), tim)
             return new
             # return comDate.replace(tzinfo=None) # make non aware
-        elif isinstance(comDate, DateTime):
-            fComDate = comDate.ToOADate()  # ironPython clr Date/Time
         else:
             fComDate = float(comDate)  # ComDate is number of days since 1899-12-31
         integerPart = int(fComDate)
@@ -314,8 +250,6 @@ class pythonTimeConverter(TimeConverter):  # the old, ?nix type date and time
         "Returns ticks since 1970"
         if isinstance(comDate, datetime.datetime):
             return comDate.timetuple()
-        elif isinstance(comDate, DateTime):  # ironPython clr date/time
-            fcomDate = comDate.ToOADate()
         else:
             fcomDate = float(comDate)
         secondsperday = 86400  # 24*60*60
@@ -391,7 +325,7 @@ adoRemainingTypes = (
 )
 
 # this class is a trick to determine whether a type is a member of a related group of types. see PEP notes
-class DBAPITypeObject(object):
+class DBAPITypeObject:
     def __init__(self, valuesTuple):
         self.values = frozenset(valuesTuple)
 
@@ -423,7 +357,7 @@ OTHER = DBAPITypeObject(adoRemainingTypes)
 
 # ------- utilities for translating python data types to ADO data types ---------------------------------
 typeMap = {
-    memoryViewType: adc.adVarBinary,
+    memoryview: adc.adVarBinary,
     float: adc.adDouble,
     type(None): adc.adEmpty,
     str: adc.adBSTR,
@@ -446,7 +380,7 @@ def pyTypeToADOType(d):
         ):  # maybe it is one of our supported Date/Time types
             return adc.adDate
         #  otherwise, attempt to discern the type by probing the data object itself -- to handle duck typing
-        if isinstance(d, StringTypes):
+        if isinstance(d, str):
             return adc.adBSTR
         if isinstance(d, numbers.Integral):
             return adc.adBigInt
@@ -460,17 +394,13 @@ def pyTypeToADOType(d):
 # ------------------------------------------------------------------------
 # variant type : function converting variant to Python value
 def variantConvertDate(v):
-    from . import dateconverter  # this function only called when adodbapi is running
+    # this function only called when adodbapi is running
+    from . import dateconverter
 
     return dateconverter.DateObjectFromCOMDate(v)
 
 
 def cvtString(variant):  # use to get old action of adodbapi v1 if desired
-    if onIronPython:
-        try:
-            return variant.ToString()
-        except:
-            pass
     return str(variant)
 
 
@@ -520,19 +450,12 @@ def identity(x):
 def cvtUnusual(variant):
     if verbose > 1:
         sys.stderr.write("Conversion called for Unusual data=%s\n" % repr(variant))
-    if isinstance(variant, DateTime):  # COMdate or System.Date
-        from .adodbapi import (
-            dateconverter,
-        )  # this will only be called when adodbapi is in use, and very rarely
-
-        return dateconverter.DateObjectFromCOMDate(variant)
     return variant  # cannot find conversion function -- just give the data to the user
 
 
 def convert_to_python(variant, func):  # convert DB value into Python value
-    if isinstance(variant, NullTypes):  # IronPython Null or None
-        return None
-    return func(variant)  # call the appropriate conversion function
+    # call the appropriate conversion function
+    return None if variant is None else func(variant)
 
 
 class MultiMap(dict):  # builds a dictionary from {(sequence,of,keys) : function}
@@ -575,7 +498,7 @@ variantConversions = MultiMap(
 RS_WIN_32, RS_ARRAY, RS_REMOTE = list(range(1, 4))
 
 
-class SQLrow(object):  # a single database row
+class SQLrow:  # a single database row
     # class to emulate a sequence, so that a column may be retrieved by either number or name
     def __init__(self, rows, index):  # "rows" is an _SQLrows object, index is which row
         self.rows = rows  # parent 'fetch' container object
@@ -651,7 +574,7 @@ class SQLrow(object):  # a single database row
     # # # #
 
 
-class SQLrows(object):
+class SQLrows:
     # class to emulate a sequence for multiple rows using a container object
     def __init__(self, ado_results, numberOfRows, cursor):
         self.ado_results = ado_results  # raw result of SQL get

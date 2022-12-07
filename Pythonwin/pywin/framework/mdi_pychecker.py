@@ -33,11 +33,19 @@
 ##
 ######################################################################
 
-import win32ui
+import glob
+import os
+import re
+import stat
+import string
+import sys
+import time
+
 import win32api
-from pywin.mfc import docview, dialog, window
 import win32con
-import sys, string, re, glob, os, stat, time
+import win32ui
+from pywin.mfc import dialog, docview, window
+
 from . import scriptutils
 
 
@@ -140,7 +148,7 @@ class dirpath:
 
 
 # Group(1) is the filename, group(2) is the lineno.
-# regexGrepResult=regex.compile("^\\([a-zA-Z]:.*\\)(\\([0-9]+\\))")
+# regexGrepResult=regex.compile(r"^\([a-zA-Z]:.*\)(\([0-9]+\))")
 # regexGrep=re.compile(r"^([a-zA-Z]:[^(]*)\((\d+)\)")
 regexGrep = re.compile(r"^(..[^\(:]+)?[\(:](\d+)[\):]:?\s*(.*)")
 
@@ -538,7 +546,7 @@ class TheView(docview.RichEditView):
                 errtext = m.group(3)
                 if start != end and line_start == line_end:
                     errtext = self.GetSelText()
-                errtext = repr(re.escape(errtext).replace("\ ", " "))
+                errtext = repr(re.escape(errtext).replace(r"\ ", " "))
                 view.ReplaceSel(addspecific and cmnt % locals() or cmnt)
         return 0
 

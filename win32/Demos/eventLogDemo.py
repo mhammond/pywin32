@@ -1,9 +1,8 @@
-import win32evtlog
 import win32api
 import win32con
-import win32security  # To translate NT Sids to account names.
-
+import win32evtlog
 import win32evtlogutil
+import win32security  # To translate NT Sids to account names.
 
 
 def ReadLog(computer, logType="Application", dumpEachRecord=0):
@@ -77,7 +76,8 @@ def test():
         print("This sample only runs on NT")
         return
 
-    import sys, getopt
+    import getopt
+    import sys
 
     opts, args = getopt.getopt(sys.argv[1:], "rwh?c:t:v")
     computer = None
@@ -113,7 +113,7 @@ def test():
             logType,
             2,
             strings=["The message text for event 2", "Another insert"],
-            data="Raw\0Data".encode("ascii"),
+            data=b"Raw\0Data",
             sid=my_sid,
         )
         win32evtlogutil.ReportEvent(
@@ -121,7 +121,7 @@ def test():
             1,
             eventType=win32evtlog.EVENTLOG_WARNING_TYPE,
             strings=["A warning", "An even more dire warning"],
-            data="Raw\0Data".encode("ascii"),
+            data=b"Raw\0Data",
             sid=my_sid,
         )
         win32evtlogutil.ReportEvent(
@@ -129,7 +129,7 @@ def test():
             1,
             eventType=win32evtlog.EVENTLOG_INFORMATION_TYPE,
             strings=["An info", "Too much info"],
-            data="Raw\0Data".encode("ascii"),
+            data=b"Raw\0Data",
             sid=my_sid,
         )
         print("Successfully wrote 3 records to the log")

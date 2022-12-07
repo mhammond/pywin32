@@ -1,20 +1,20 @@
 # General test module for win32api - please add some :)
-import sys, os
+import array
+import os
+import sys
 import unittest
 
-from win32clipboard import *
-import win32gui, win32con
 import pywintypes
-import array
-
-from pywin32_testutil import str2bytes
+import win32con
+import win32gui
+from win32clipboard import *
 
 custom_format_name = "PythonClipboardTestFormat"
 
 
 class CrashingTestCase(unittest.TestCase):
     def test_722082(self):
-        class crasher(object):
+        class crasher:
             pass
 
         obj = crasher()
@@ -74,15 +74,15 @@ class TestStrings(unittest.TestCase):
     def test_unicode_text(self):
         val = "test-val"
         SetClipboardText(val)
-        # GetClipboardData doesn't to auto string conversions - so on py3k,
-        # CF_TEXT returns bytes.
-        expected = str2bytes(val)
+        # GetClipboardData doesn't do auto string conversions -
+        # so CF_TEXT returns bytes.
+        expected = val.encode("latin1")
         self.assertEqual(GetClipboardData(win32con.CF_TEXT), expected)
         SetClipboardText(val, win32con.CF_UNICODETEXT)
         self.assertEqual(GetClipboardData(win32con.CF_UNICODETEXT), val)
 
     def test_string(self):
-        val = str2bytes("test")
+        val = b"test"
         SetClipboardData(win32con.CF_TEXT, val)
         self.assertEqual(GetClipboardData(win32con.CF_TEXT), val)
 
@@ -95,8 +95,8 @@ class TestGlobalMemory(unittest.TestCase):
         CloseClipboard()
 
     def test_mem(self):
-        val = str2bytes("test")
-        expected = str2bytes("test\0")
+        val = b"test"
+        expected = b"test\0"
         SetClipboardData(win32con.CF_TEXT, val)
         # Get the raw data - this will include the '\0'
         raw_data = GetGlobalMemory(GetClipboardDataHandle(win32con.CF_TEXT))
@@ -112,7 +112,7 @@ class TestGlobalMemory(unittest.TestCase):
             self.assertRaises(pywintypes.error, GetGlobalMemory, 1)
 
     def test_custom_mem(self):
-        test_data = str2bytes("hello\x00\xff")
+        test_data = b"hello\x00\xff"
         test_buffer = array.array("b", test_data)
         cf = RegisterClipboardFormat(custom_format_name)
         self.assertEqual(custom_format_name, GetClipboardFormatName(cf))

@@ -4,8 +4,8 @@ Base class for Dialogs.  Also contains a few useful utility functions
 # dialog.py
 # Python class for Dialog Boxes in PythonWin.
 
-import win32ui
 import win32con
+import win32ui
 
 # sob - 2to3 doesn't see this as a relative import :(
 from pywin.mfc import window
@@ -90,6 +90,7 @@ class Dialog(window.Wnd):
     def values(self):
         return list(self.data.values())
 
+    # TODO
     # XXX - needs py3k work!
     def has_key(self, key):
         return key in self.data

@@ -66,13 +66,14 @@ Examples:
 
 """
 
-import sys, os, importlib, pythoncom
-from win32com.client import genpy, selecttlb, gencache
-from win32com.client import Dispatch
+import importlib
+import os
+import sys
+
+import pythoncom
+from win32com.client import Dispatch, gencache, genpy, selecttlb
 
 bForDemandDefault = 0  # Default value of bForDemand - toggle this to change the world - see also gencache.py
-
-error = "makepy.error"
 
 
 def usage():
@@ -151,8 +152,9 @@ class SimpleProgress(genpy.GeneratorProgress):
 
 class GUIProgress(SimpleProgress):
     def __init__(self, verboseLevel):
-        # Import some modules we need to we can trap failure now.
-        import win32ui, pywin
+        # Import some modules we need so we can trap failure now.
+        import pywin
+        import win32ui
 
         SimpleProgress.__init__(self, verboseLevel)
         self.dialog = None
@@ -406,7 +408,7 @@ def main():
             elif o == "-d":
                 bForDemand = not bForDemand
 
-    except (getopt.error, error) as msg:
+    except getopt.error as msg:
         sys.stderr.write(str(msg) + "\n")
         usage()
 
@@ -426,12 +428,8 @@ def main():
         path = os.path.dirname(outputName)
         if path != "" and not os.path.exists(path):
             os.makedirs(path)
-        if sys.version_info > (3, 0):
-            f = open(outputName, "wt", encoding="mbcs")
-        else:
-            import codecs  # not available in py3k.
+        f = open(outputName, "wt", encoding="mbcs")
 
-            f = codecs.open(outputName, "w", "mbcs")
     else:
         f = None
 

@@ -30,14 +30,14 @@ and it can be found at:
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE
 # OF THIS SOFTWARE.
 
+import datetime  # For the example classes...
+import threading
+
 import pythoncom
 import win32com.client
 from win32com import universal
 from win32com.client import gencache
 from win32com.server.exception import COMException
-
-import threading
-import datetime  # For the example classes...
 
 # Typelib info for version 10 - aka Excel XP.
 # This is the minimum version of excel that we can work with as this is when
@@ -69,7 +69,7 @@ universal.RegisterInterfaces(
 )
 
 
-class ExcelRTDServer(object):
+class ExcelRTDServer:
     """Base RTDServer class.
 
     Provides most of the features needed to implement the IRtdServer interface.
@@ -260,7 +260,7 @@ class ExcelRTDServer(object):
         pass
 
 
-class RTDTopic(object):
+class RTDTopic:
     """Base RTD Topic.
     Only method required by our RTDServer implementation is GetValue().
     The others are more for convenience."""

@@ -4,7 +4,7 @@
 # Regenerate the Scintilla and SciTE source files that list
 # all the lexers and all the properties files.
 # Should be run whenever a new lexer is added or removed.
-# Requires Python 2.4 or later
+# Requires Python 3.0 or later
 # Most files are regenerated in place with templates stored in comments.
 # The VS .NET project file is generated into a different file as the
 # VS .NET environment will not retain comments when modifying the file.
@@ -16,10 +16,10 @@
 # Does not regenerate the Visual C++ 6 project files but does the VS .NET
 # project file.
 
+import glob
+import os
 import string
 import sys
-import os
-import glob
 
 # EOL constants
 CR = "\r"
@@ -200,7 +200,9 @@ def FindProperties(lexFile):
 
 
 def ciCompare(a, b):
-    return cmp(a.lower(), b.lower())
+    a_lower = a.lower()
+    b_lower = b.lower()
+    return (a_lower > b_lower) - (a_lower < b_lower)
 
 
 def RegenerateAll():

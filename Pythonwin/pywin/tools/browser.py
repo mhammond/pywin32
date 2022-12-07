@@ -7,6 +7,7 @@
 # >>> browser.Browse(your_module)
 import sys
 import types
+
 import __main__
 import win32ui
 from pywin.mfc import dialog
@@ -245,13 +246,8 @@ class HLIFunction(HLIPythonObject):
             ret.append(MakeHLI(self.myobject.func_argdefs, "Arg Defs"))
         except AttributeError:
             pass
-        try:
-            code = self.myobject.__code__
-            globs = self.myobject.__globals__
-        except AttributeError:
-            # must be py2.5 or earlier...
-            code = self.myobject.func_code
-            globs = self.myobject.func_globals
+        code = self.myobject.__code__
+        globs = self.myobject.__globals__
         ret.append(MakeHLI(code, "Code"))
         ret.append(MakeHLI(globs, "Globals"))
         self.InsertDocString(ret)
@@ -367,7 +363,7 @@ class DialogShowObject(dialog.Dialog):
             t, v, tb = sys.exc_info()
             strval = "Exception getting object value\n\n%s:%s" % (t, v)
             tb = None
-        strval = re.sub("\n", "\r\n", strval)
+        strval = re.sub(r"\n", "\r\n", strval)
         self.edit.ReplaceSel(strval)
 
 
@@ -376,10 +372,11 @@ def ShowObject(object, title):
     dlg.DoModal()
 
 
+import commctrl
+import win32api
+
 # And some mods for a sizable dialog from Sam Rushing!
 import win32con
-import win32api
-import commctrl
 
 
 class dynamic_browser(dialog.Dialog):

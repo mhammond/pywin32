@@ -1,26 +1,12 @@
 # ITransferAdviseSink implementation template
 
 import pythoncom
-from win32com.shell import shell, shellcon
 from win32com.server.policy import DesignatedWrapPolicy
+from win32com.shell import shell, shellcon
 
 tsf_flags = list(
     (k, v) for k, v in list(shellcon.__dict__.items()) if k.startswith("TSF_")
 )
-
-
-def decode_flags(flags):
-    if flags == 0:
-        return "TSF_NORMAL"
-    flag_txt = ""
-    for k, v in tsf_flags:
-        if flags & v:
-            if flag_txt:
-                flag_txt = flag_txt + "|" + k
-            else:
-                flag_txt = k
-    return flag_txt
-
 
 TRANSFER_ADVISE_STATES = {}
 for k, v in list(shellcon.__dict__.items()):

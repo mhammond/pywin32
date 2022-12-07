@@ -1,7 +1,9 @@
-import sys, os
+import os
 import re
-import unittest
+import sys
 import traceback
+import unittest
+
 import pywin32_testutil
 
 # A list of demos that depend on user-interface of *any* kind.  Tests listed
@@ -30,7 +32,7 @@ argvs = {
 no_user_interaction = True
 
 # re to pull apart an exception line into the exception type and the args.
-re_exception = re.compile("([a-zA-Z0-9_.]*): (.*)$")
+re_exception = re.compile(r"([a-zA-Z0-9_.]*): (.*)$")
 
 
 def find_exception_in_output(data):

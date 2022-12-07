@@ -20,13 +20,17 @@ if "--noxp" in sys.argv:
     import win32gui
 else:
     import winxpgui as win32gui
-import win32gui_struct
-import win32api
-import win32con, winerror
-import struct, array
-import commctrl
-import queue
+
+import array
 import os
+import queue
+import struct
+
+import commctrl
+import win32api
+import win32con
+import win32gui_struct
+import winerror
 
 IDC_SEARCHTEXT = 1024
 IDC_BUTTON_SEARCH = 1025
@@ -142,7 +146,7 @@ class DemoWindowBase:
         wc.cbWndExtra = win32con.DLGWINDOWEXTRA + struct.calcsize("Pi")
         icon_flags = win32con.LR_LOADFROMFILE | win32con.LR_DEFAULTSIZE
 
-        ## py.ico went away in python 2.5, load from executable instead
+        ## load icon from executable
         this_app = win32api.GetModuleHandle(None)
         try:
             wc.hIcon = win32gui.LoadIcon(this_app, 1)  ## python.exe and pythonw.exe

@@ -6,12 +6,13 @@ necessary to allow the COM framework to respond to a request for a COM object,
 construct the necessary Python object, and dispatch COM events.
 
 """
+import os
 import sys
+
+import pythoncom
 import win32api
 import win32con
-import pythoncom
 import winerror
-import os
 
 CATID_PythonCOMServer = "{B3EF80D0-68E2-11D0-A689-00C04FD658FF}"
 
@@ -93,7 +94,7 @@ def _cat_registrar():
 
 
 def _find_localserver_exe(mustfind):
-    if not sys.platform.startswith("win32"):
+    if sys.platform != "win32":
         return sys.executable
     if pythoncom.__file__.find("_d") < 0:
         exeBaseName = "pythonw.exe"
@@ -534,11 +535,13 @@ def UnregisterInfoClasses(*classes, **flags):
 
 # Attempt to 're-execute' our current process with elevation.
 def ReExecuteElevated(flags):
-    from win32com.shell.shell import ShellExecuteEx
-    from win32com.shell import shellcon
-    import win32process, win32event
-    import winxpgui  # we've already checked we are running XP above
     import tempfile
+
+    import win32event
+    import win32process
+    import winxpgui  # we've already checked we are running XP above
+    from win32com.shell import shellcon
+    from win32com.shell.shell import ShellExecuteEx
 
     if not flags["quiet"]:
         print("Requesting elevation and retrying...")

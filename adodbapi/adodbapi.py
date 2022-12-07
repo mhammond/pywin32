@@ -23,23 +23,21 @@ Copyright (C) 2002 Henrik Ekelund, versions 2.1 and later by Vernon Cole
 
 DB-API 2.0 specification: http://www.python.org/dev/peps/pep-0249/
 
-This module source should run correctly in CPython versions 2.7 and later,
-or IronPython version 2.7 and later,
-or, after running through 2to3.py, CPython 3.4 or later.
+This module source should run correctly in CPython 3.4 or later.
 """
 
-__version__ = "2.6.2.0"
+__version__ = "3.7.0.0"
 version = "adodbapi v" + __version__
 
-import sys
 import copy
 import decimal
 import os
+import sys
 import weakref
 
-from . import process_connect_string
 from . import ado_consts as adc
 from . import apibase as api
+from . import process_connect_string
 
 try:
     verbose = int(os.environ["ADODBAPI_VERBOSE"])
@@ -48,49 +46,29 @@ except:
 if verbose:
     print(version)
 
-# --- define objects to smooth out IronPython <-> CPython differences
 onWin32 = False  # assume the worst
-if api.onIronPython:
-    from System import Activator, Type, DBNull, DateTime, Array, Byte
-    from System import Decimal as SystemDecimal
-    from clr import Reference
+try:
+    import pythoncom
+    import pywintypes
+    import win32com.client
 
-    def Dispatch(dispatch):
-        type = Type.GetTypeFromProgID(dispatch)
-        return Activator.CreateInstance(type)
+    onWin32 = True
+except ImportError:
+    import warnings
 
-    def getIndexedValue(obj, index):
-        return obj.Item[index]
+    warnings.warn("pywin32 package required for adodbapi.", ImportWarning)
 
-else:  # try pywin32
-    try:
-        import win32com.client
-        import pythoncom
-        import pywintypes
 
-        onWin32 = True
+def Dispatch(dispatch):
+    return win32com.client.Dispatch(dispatch)
 
-        def Dispatch(dispatch):
-            return win32com.client.Dispatch(dispatch)
 
-    except ImportError:
-        import warnings
-
-        warnings.warn(
-            "pywin32 package (or IronPython) required for adodbapi.", ImportWarning
-        )
-
-    def getIndexedValue(obj, index):
-        return obj(index)
+def getIndexedValue(obj, index):
+    return obj(index)
 
 
 from collections.abc import Mapping
 
-# --- define objects to smooth out Python3000 <-> Python 2.x differences
-unicodeType = str
-longType = int
-StringTypes = str
-maxint = sys.maxsize
 
 # -----------------  The .connect method -----------------
 def make_COM_connecter():
@@ -192,7 +170,7 @@ def _configure_parameter(p, value, adotype, settings_known):
         p.Size = len(value)
         p.AppendChunk(value)
 
-    elif isinstance(value, StringTypes):  # v2.1 Jevon
+    elif isinstance(value, str):  # v2.1 Jevon
         L = len(value)
         if adotype in api.adoStringTypes:  # v2.2.1 Cole
             if settings_known:
@@ -204,12 +182,7 @@ def _configure_parameter(p, value, adotype, settings_known):
             p.Size = L  # v2.1 Jevon
 
     elif isinstance(value, decimal.Decimal):
-        if api.onIronPython:
-            s = str(value)
-            p.Value = s
-            p.Size = len(s)
-        else:
-            p.Value = value
+        p.Value = value
         exponent = value.as_tuple()[2]
         digit_count = len(value.as_tuple()[1])
         p.Precision = digit_count
@@ -232,10 +205,6 @@ def _configure_parameter(p, value, adotype, settings_known):
             p.Value = s
             p.Size = len(s)
 
-    elif api.onIronPython and isinstance(value, longType):  # Iron Python Long
-        s = str(value)  # feature workaround for IPy 2.0
-        p.Value = s
-
     elif adotype == adc.adEmpty:  # ADO will not let you specify a null column
         p.Type = (
             adc.adInteger
@@ -248,7 +217,7 @@ def _configure_parameter(p, value, adotype, settings_known):
 
 
 # # # # # ----- the Class that defines a connection ----- # # # # #
-class Connection(object):
+class Connection:
     # include connection attributes as class attributes required by api definition.
     Warning = api.Warning
     Error = api.Error
@@ -559,7 +528,7 @@ class Connection(object):
 
 
 # # # # # ----- the Class that defines a cursor ----- # # # # #
-class Cursor(object):
+class Cursor:
     ## ** api required attributes:
     ## description...
     ##    This read-only attribute is a sequence of 7-item sequences.
@@ -647,7 +616,7 @@ class Cursor(object):
             self.numberOfColumns = 0
             return
         self.rs = recordset  # v2.1.1 bkline
-        self.recordset_format = api.RS_ARRAY if api.onIronPython else api.RS_WIN_32
+        self.recordset_format = api.RS_WIN_32
         self.numberOfColumns = recordset.Fields.Count
         try:
             varCon = self.connection.variantConversions
@@ -784,12 +753,7 @@ class Cursor(object):
             print('Executing command="%s"' % self.commandText)
         try:
             # ----- the actual SQL is executed here ---
-            if api.onIronPython:
-                ra = Reference[int]()
-                recordset = self.cmd.Execute(ra)
-                count = ra.Value
-            else:  # pywin32
-                recordset, count = self.cmd.Execute()
+            recordset, count = self.cmd.Execute()
             # ----- ------------------------------- ---
         except (Exception) as e:
             _message = ""
@@ -1174,21 +1138,11 @@ class Cursor(object):
             )
             return None
 
-        if api.onIronPython:
-            try:
-                recordset = self.rs.NextRecordset()
-            except TypeError:
-                recordset = None
-            except api.Error as exc:
-                self._raiseCursorError(api.NotSupportedError, exc.args)
-        else:  # pywin32
-            try:  # [begin 2.1 ekelund]
-                rsTuple = self.rs.NextRecordset()  #
-            except pywintypes.com_error as exc:  # return appropriate error
-                self._raiseCursorError(
-                    api.NotSupportedError, exc.args
-                )  # [end 2.1 ekelund]
-            recordset = rsTuple[0]
+        try:  # [begin 2.1 ekelund]
+            rsTuple = self.rs.NextRecordset()  #
+        except pywintypes.com_error as exc:  # return appropriate error
+            self._raiseCursorError(api.NotSupportedError, exc.args)  # [end 2.1 ekelund]
+        recordset = rsTuple[0]
         if recordset is None:
             return None
         self.build_column_info(recordset)

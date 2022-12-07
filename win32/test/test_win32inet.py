@@ -1,11 +1,9 @@
+import unittest
+
+import winerror
+from pywin32_testutil import TestSkipped, testmain
 from win32inet import *
 from win32inetcon import *
-import winerror
-from pywin32_testutil import str2bytes  # py3k-friendly helper
-from pywin32_testutil import TestSkipped
-from pywin32_testutil import testmain
-
-import unittest
 
 
 class CookieTests(unittest.TestCase):
@@ -54,8 +52,8 @@ class TestNetwork(unittest.TestCase):
             if not chunk:
                 break
             chunks.append(chunk)
-        data = str2bytes("").join(chunks)
-        assert data.find(str2bytes("Python")) > 0, repr(
+        data = b"".join(chunks)
+        assert data.find(b"Python") > 0, repr(
             data
         )  # This must appear somewhere on the main page!
 

@@ -3,15 +3,7 @@ import sys
 
 
 def Python():
-    if sys.platform == "cli":  # IronPython
-        import System
-
-        return System.IntPtr.Size == 8
-    else:
-        try:
-            return sys.maxsize > 2147483647
-        except AttributeError:
-            return sys.maxint > 2147483647
+    return sys.maxsize > 2147483647
 
 
 def os():

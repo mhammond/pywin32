@@ -12,8 +12,8 @@
 # #  -- the things you need to change are below it.
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 import platform
-import sys
 import random
+import sys
 
 import is64bit
 import setuptestframework
@@ -32,14 +32,14 @@ except:
 if "--help" in sys.argv:
     print(
         """Valid command-line switches are:
-    --package - create a temporary test package, run 2to3 if needed.
+    --package - create a temporary test package
     --all - run all possible tests
-    --time - loop over time format tests (including mxdatetime if present)
+    --time - do time format test
     --nojet - do not test against an ACCESS database file
     --mssql - test against Microsoft SQL server
     --pg - test against PostgreSQL
     --mysql - test against MariaDB
-    --remote= - test unsing remote server at= (experimental) 
+    --remote= - test using remote server at= (experimental)
     """
     )
     exit()
@@ -77,13 +77,8 @@ for arg in sys.argv:
 
 # function to clean up the temporary folder -- calling program must run this function before exit.
 cleanup = setuptestframework.getcleanupfunction()
-try:
-    import adodbapi  # will (hopefully) be imported using the "pth" discovered above
-except SyntaxError:
-    print(
-        '\n* * * Are you trying to run Python2 code using Python3? Re-run this test using the "--package" switch.'
-    )
-    sys.exit(11)
+import adodbapi  # will (hopefully) be imported using the "pth" discovered above
+
 try:
     print(adodbapi.version)  # show version
 except:
@@ -106,20 +101,11 @@ doAccessTest = not ("--nojet" in sys.argv)
 doSqlServerTest = "--mssql" in sys.argv or doAllTests
 doMySqlTest = "--mysql" in sys.argv or doAllTests
 doPostgresTest = "--pg" in sys.argv or doAllTests
-iterateOverTimeTests = ("--time" in sys.argv or doAllTests) and onWindows
+doTimeTest = ("--time" in sys.argv or doAllTests) and onWindows
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # # start your environment setup here v v v
 SQL_HOST_NODE = "testsql.2txt.us,1430"
-
-try:  # If mx extensions are installed, use mxDateTime
-    import mx.DateTime
-
-    doMxDateTimeTest = True
-except:
-    doMxDateTimeTest = False  # Requires eGenixMXExtensions
-
-doTimeTest = True  # obsolete python time format
 
 if doAccessTest:
     if proxy_host:  # determine the (probably remote) database file folder

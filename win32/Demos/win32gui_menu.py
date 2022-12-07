@@ -15,11 +15,14 @@ try:
     from winxpgui import *
 except ImportError:
     from win32gui import *
-from win32gui_struct import *
-import win32con
-import sys, os
-import struct
+
 import array
+import os
+import struct
+import sys
+
+import win32con
+from win32gui_struct import *
 
 this_dir = os.path.split(sys.argv[0])[0]
 
@@ -57,11 +60,6 @@ class MainWindow:
         )
         UpdateWindow(self.hwnd)
         iconPathName = os.path.abspath(os.path.join(sys.prefix, "pyc.ico"))
-        # py2.5 includes the .ico files in the DLLs dir for some reason.
-        if not os.path.isfile(iconPathName):
-            iconPathName = os.path.abspath(
-                os.path.join(os.path.split(sys.executable)[0], "DLLs", "pyc.ico")
-            )
         if not os.path.isfile(iconPathName):
             # Look in the source tree.
             iconPathName = os.path.abspath(

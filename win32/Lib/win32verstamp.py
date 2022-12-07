@@ -1,21 +1,19 @@
 """ Stamp a Win32 binary with version information.
 """
 
-from win32api import BeginUpdateResource, UpdateResource, EndUpdateResource
-
+import glob
+import optparse
 import os
 import struct
-import glob
-import sys
 
-import optparse
+from win32api import BeginUpdateResource, EndUpdateResource, UpdateResource
 
 VS_FFI_SIGNATURE = -17890115  # 0xFEEF04BD
 VS_FFI_STRUCVERSION = 0x00010000
 VS_FFI_FILEFLAGSMASK = 0x0000003F
 VOS_NT_WINDOWS32 = 0x00040004
 
-null_byte = "\0".encode("ascii")  # str in py2k, bytes in py3k
+null_byte = b"\0"
 #
 # Set VS_FF_PRERELEASE and DEBUG if Debug
 #
@@ -52,10 +50,7 @@ def VS_FIXEDFILEINFO(maj, min, sub, build, debug=0, is_dll=1):
 
 def nullterm(s):
     # get raw bytes for a NULL terminated unicode string.
-    if sys.version_info[:2] < (3, 7):
-        return (str(s) + "\0").encode("unicode-internal")
-    else:
-        return (str(s) + "\0").encode("utf-16le")
+    return (str(s) + "\0").encode("utf-16le")
 
 
 def pad32(s, extra=2):
