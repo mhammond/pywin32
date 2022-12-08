@@ -1,7 +1,6 @@
 # A demo of the win32rcparser module and using win32gui
 
 import os
-import sys
 
 import commctrl
 import win32api

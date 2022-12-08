@@ -1,7 +1,6 @@
 # tests for win32gui
 import array
 import operator
-import sys
 import unittest
 
 import pywin32_testutil

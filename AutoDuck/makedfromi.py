@@ -1,6 +1,5 @@
 import getopt
 import os
-import string
 import sys
 
 # Run this passing a ".i" file as param.  Will generate ".d"

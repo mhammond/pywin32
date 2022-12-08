@@ -3,7 +3,6 @@ import os
 import random
 import shutil
 import socket
-import sys
 import tempfile
 import threading
 import time

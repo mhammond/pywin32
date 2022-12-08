@@ -11,11 +11,9 @@
 # This handler is providing that column data.
 import os
 import stat
-import sys
 
 import commctrl
 import pythoncom
-import winerror
 from pywintypes import IID
 from win32com.server.util import wrap
 from win32com.shell import shell, shellcon

@@ -1,7 +1,5 @@
 # dbgpyapp.py  - Debugger Python application class
 #
-import os
-import string
 import sys
 
 import win32con

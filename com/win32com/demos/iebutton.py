@@ -25,8 +25,6 @@ Contribtions to this sample to make it a little "friendlier" welcome!
 """
 
 # imports section
-import os
-import sys
 
 import pythoncom
 import win32api
@@ -43,7 +41,6 @@ except win32api.error:
     import win32traceutil
 
 import array
-import struct
 
 from win32com.axcontrol import axcontrol
 

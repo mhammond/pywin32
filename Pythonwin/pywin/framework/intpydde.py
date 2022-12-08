@@ -9,7 +9,6 @@ import sys
 import traceback
 
 import win32api
-import win32con
 import win32ui
 from dde import *
 from pywin.mfc import object

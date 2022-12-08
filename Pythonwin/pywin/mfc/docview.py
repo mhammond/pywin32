@@ -1,5 +1,4 @@
 # document and view classes for MFC.
-import win32con
 import win32ui
 
 from . import object, window

@@ -1,5 +1,3 @@
-import string
-import sys
 import traceback
 
 import pythoncom

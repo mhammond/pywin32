@@ -10,7 +10,7 @@
 import win32con
 import win32ui
 from pywin.mfc import dialog
-from win32con import IDCANCEL, IDOK
+from win32con import IDCANCEL
 from win32ui import IDC_EDIT_TABS, IDC_PROMPT_TABS, IDD_SET_TABSTOPS
 
 

@@ -8,7 +8,6 @@
 # You almost certainly do NOT want to use thus!
 
 import pythoncom
-import winerror
 from win32com.axscript import axscript
 
 from . import pyscript

@@ -17,11 +17,7 @@
 # Note that it will _always_ prompt you if the file in the editor has been modified.
 
 
-import os
 import re
-import string
-import sys
-import traceback
 
 import regex
 import win32api

@@ -1,6 +1,5 @@
 # Color Editor originally by Neil Hodgson, but restructured by mh to integrate
 # even tighter into Pythonwin.
-import sys
 
 import pywin.scintilla.keycodes
 import win32api

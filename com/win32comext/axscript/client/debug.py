@@ -1,7 +1,5 @@
 import os
-import string
 import sys
-import traceback
 
 import pythoncom
 import win32api

@@ -22,7 +22,6 @@ this is a pain in the but!
 """
 
 import threading
-import traceback
 import unittest
 
 import pythoncom

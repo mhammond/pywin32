@@ -1,4 +1,3 @@
-import string
 import sys
 import tokenize
 

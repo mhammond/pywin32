@@ -3,7 +3,6 @@
 # this code adapted from "Tomcat JK2 ISAPI redirector", part of Apache
 # Created July 2004, Mark Hammond.
 import imp
-import operator
 import os
 import shutil
 import stat

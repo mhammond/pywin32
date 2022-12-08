@@ -6,7 +6,6 @@
 # This will execute the method 'test1' below.  See below for the list of
 # test methods that are acceptable.
 
-import traceback
 import urllib.error
 import urllib.parse
 import urllib.request

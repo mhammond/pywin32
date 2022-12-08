@@ -17,12 +17,10 @@
 
 
 import os
-import string
 import sys
 import traceback
 
 import win32api
-import win32con
 import win32ui
 
 g_iniName = "Mssccprj.scc"  # Use the same INI name as VB!

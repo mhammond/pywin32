@@ -13,7 +13,6 @@ import random
 import sys
 
 import pythoncom
-import win32con
 import win32gui
 import winerror
 from win32com.shell import shell, shellcon

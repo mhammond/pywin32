@@ -1,5 +1,4 @@
 import os
-import string
 
 import pywin.framework.window
 import win32api

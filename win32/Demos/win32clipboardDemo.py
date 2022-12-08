@@ -1,7 +1,6 @@
 # win32clipboardDemo.py
 #
 # Demo/test of the win32clipboard module.
-import types
 
 import win32con
 from pywin32_testutil import str2bytes  # py3k-friendly helper

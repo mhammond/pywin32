@@ -21,10 +21,8 @@ Hacks, to do, etc
   Maybe an OLE2 compound file, or a bsddb file?
 """
 import glob
-import operator
 import os
 import sys
-import traceback
 from importlib import reload
 
 import pythoncom

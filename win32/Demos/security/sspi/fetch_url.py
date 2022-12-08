@@ -9,7 +9,6 @@ root of an IIS server is should work.
 
 import http.client  # sorry, this demo needs 2.3+
 import optparse
-import sys
 import urllib.error
 import urllib.parse
 import urllib.request

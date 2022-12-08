@@ -1,7 +1,6 @@
 # basictimerapp - a really simple timer application.
 # This should be run using the command line:
 # pythonwin /app demos\basictimerapp.py
-import string
 import sys
 import time
 

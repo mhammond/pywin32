@@ -1,4 +1,3 @@
-import sys
 from xml.sax import handler, make_parser
 
 

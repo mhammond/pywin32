@@ -1,5 +1,4 @@
 import time
-import traceback
 
 import win32con
 import win32console

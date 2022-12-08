@@ -1,7 +1,5 @@
 # Test makepy - try and run it over every OCX in the windows system directory.
 
-import glob
-import os
 import sys
 import traceback
 

@@ -1,9 +1,7 @@
-import copy
 import datetime
 import os
 import struct
 import sys
-import unittest
 
 import win32timezone
 

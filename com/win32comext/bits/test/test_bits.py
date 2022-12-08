@@ -1,7 +1,5 @@
 import os
-import sys
 import tempfile
-import time
 
 import pythoncom
 import win32api

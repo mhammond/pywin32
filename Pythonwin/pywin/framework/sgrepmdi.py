@@ -21,8 +21,6 @@
 import glob
 import os
 import re
-import stat
-import string
 
 import win32api
 import win32con

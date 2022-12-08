@@ -1,7 +1,5 @@
 ## demonstrates using BackupRead and BackupWrite to copy all of a file's data streams
 
-import struct
-import traceback
 
 import ntsecuritycon
 import pythoncom

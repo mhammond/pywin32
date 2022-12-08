@@ -5,7 +5,6 @@
 # imported
 import warnings
 
-import win32con
 import win32ui
 from pywin.scintilla.control import CScintillaEditInterface
 

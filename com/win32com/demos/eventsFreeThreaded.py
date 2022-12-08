@@ -22,8 +22,6 @@ import sys
 
 sys.coinit_flags = 0  # specify free threading
 
-import os
-import time
 
 import pythoncom
 import win32api

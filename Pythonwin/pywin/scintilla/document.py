@@ -1,5 +1,4 @@
 import codecs
-import os
 import re
 import string
 

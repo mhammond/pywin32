@@ -1,6 +1,4 @@
 import os
-import string
-import sys
 
 import win32api
 import win32con

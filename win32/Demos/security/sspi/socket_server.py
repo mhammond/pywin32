@@ -24,11 +24,9 @@ import http.client  # sorry, this demo needs 2.3+
 import optparse
 import socketserver
 import struct
-import sys
 import traceback
 
 import sspi
-import sspicon
 import win32api
 import win32security
 

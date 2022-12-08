@@ -1,5 +1,4 @@
 # Regedit - a Registry Editor for Python
-import string
 
 import commctrl
 import regutil

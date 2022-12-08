@@ -5,8 +5,6 @@
 
 # Assumes Word and Excel installed on your machine.
 
-import string
-import sys
 import traceback
 
 import pythoncom

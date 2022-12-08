@@ -15,7 +15,6 @@
 # * Fancy comments, like this bulleted list, arent handled :-)
 
 import re
-import string
 
 
 class FormatParagraph:

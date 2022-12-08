@@ -2,7 +2,6 @@
 #
 # base classes for dialog based apps.
 
-import sys
 
 import win32api
 import win32con

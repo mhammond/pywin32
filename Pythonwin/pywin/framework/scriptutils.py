@@ -4,7 +4,6 @@ Various utilities for running/importing a script
 import bdb
 import linecache
 import os
-import string
 import sys
 import traceback
 

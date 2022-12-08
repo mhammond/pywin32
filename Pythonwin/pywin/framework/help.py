@@ -1,7 +1,5 @@
 # help.py - help utilities for PythonWin.
 import os
-import string
-import sys
 
 import regutil
 import win32api

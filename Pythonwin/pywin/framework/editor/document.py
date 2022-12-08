@@ -2,7 +2,6 @@
 
 import os
 import shutil
-import string
 import traceback
 
 import win32api

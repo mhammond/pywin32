@@ -31,7 +31,6 @@ the dictionary's keys. This allows for the following type of VB code:
     next
 """
 
-import types
 
 import pythoncom
 import pywintypes

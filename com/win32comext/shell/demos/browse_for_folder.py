@@ -1,7 +1,6 @@
 # A couple of samples using SHBrowseForFolder
 
 import os
-import sys
 
 import win32gui
 from win32com.shell import shell, shellcon

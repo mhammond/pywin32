@@ -8,8 +8,6 @@ command line.
 """
 
 import re
-import sys
-import traceback
 
 import pythoncom
 import win32api
@@ -434,7 +432,6 @@ def DllRegisterServer():
 
 
 def Register(klass=PyScript):
-    import sys
 
     ret = win32com.server.register.UseCommandLine(
         klass, finalize_register=DllRegisterServer

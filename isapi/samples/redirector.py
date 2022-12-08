@@ -17,7 +17,6 @@
 # any excludes.
 
 import sys
-import traceback
 
 from isapi import isapicon, threaded_extension
 

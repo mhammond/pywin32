@@ -6,7 +6,6 @@
 
 import array
 import os
-import string
 import struct
 
 import win32api

@@ -6,7 +6,6 @@ import re
 import string
 import struct
 import sys
-import types
 
 import __main__  # for attribute lookup
 import afxres

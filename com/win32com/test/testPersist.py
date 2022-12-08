@@ -1,8 +1,4 @@
 import os
-import string
-import sys
-import time
-import traceback
 
 import pythoncom
 import pywintypes
@@ -20,7 +16,6 @@ from win32com.test.util import CheckClean
 
 S_OK = 0
 
-import datetime
 
 import win32timezone
 
@@ -80,11 +75,9 @@ class LockBytes:
 
     def LockRegion(self, offset, size, locktype):
         print("LockRegion")
-        pass
 
     def UnlockRegion(self, offset, size, locktype):
         print("UnlockRegion")
-        pass
 
     def Stat(self, statflag):
         print("returning Stat " + str(statflag))

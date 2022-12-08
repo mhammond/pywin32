@@ -1,7 +1,6 @@
 import getopt
 import os
 import re
-import string
 import sys
 import traceback
 import unittest

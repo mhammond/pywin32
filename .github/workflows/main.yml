@@ -95,7 +95,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - run: pip install isort
+      - run: pip install isort pycln pyopengl
+      - run: pycln . --config=pycln.toml --check
       - run: isort . --diff --check-only
 
   black:

@@ -5,7 +5,6 @@ import string
 import win32api
 import win32con
 import win32ui
-import winerror
 
 from . import scintillacon
 
@@ -18,7 +17,6 @@ debugging = 0
 if debugging:
     # Output must go to another process else the result of
     # the printing itself will trigger again trigger a trace.
-    import sys
 
     import win32trace
     import win32traceutil

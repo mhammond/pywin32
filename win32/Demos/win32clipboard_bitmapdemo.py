@@ -1,4 +1,3 @@
-import time
 
 import win32api
 import win32clipboard

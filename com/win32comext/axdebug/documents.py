@@ -1,13 +1,9 @@
 """ Management of documents for AXDebugging.
 """
 
-import os
-import string
-import sys
 
 import pythoncom
 import win32api
-import winerror
 from win32com.server.exception import Exception
 from win32com.server.util import unwrap
 

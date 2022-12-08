@@ -1,6 +1,4 @@
 # Tests for the win32security module.
-import os
-import sys
 import unittest
 
 import ntsecuritycon

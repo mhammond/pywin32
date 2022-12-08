@@ -5,7 +5,6 @@
 #
 # Also has the side effect of testing some of the PythonCOM error semantics.
 import sys
-import traceback
 
 import pythoncom
 import pywintypes

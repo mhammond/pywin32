@@ -16,7 +16,6 @@ to catch WM_COMMAND messages.
 """
 
 # imports section
-import os
 import sys
 import winreg
 

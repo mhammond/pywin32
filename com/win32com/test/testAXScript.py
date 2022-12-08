@@ -1,7 +1,6 @@
 # Test AXScripting the best we can in an automated fashion...
 import os
 import sys
-import unittest
 
 import win32api
 import win32com.axscript

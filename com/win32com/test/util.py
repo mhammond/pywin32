@@ -1,5 +1,4 @@
 import gc
-import io as StringIO
 import logging
 import os
 import sys

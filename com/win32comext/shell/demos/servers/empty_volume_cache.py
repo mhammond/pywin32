@@ -6,10 +6,8 @@
 import os
 import stat
 import sys
-import time
 
 import pythoncom
-import win32con
 import win32gui
 import winerror
 from win32com.server.exception import COMException

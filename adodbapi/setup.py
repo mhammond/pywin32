@@ -39,7 +39,6 @@ for line in a:
         break
 a.close()
 
-import sys
 
 
 def setup_package():

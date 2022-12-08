@@ -2,10 +2,8 @@
 
 Provides Implements a nearly complete wrapper for a stack frame.
 """
-import sys
 
 import pythoncom
-import winerror
 from win32com.server.exception import COMException
 
 from . import axdebug, expressions, gateways

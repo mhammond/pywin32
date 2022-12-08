@@ -33,7 +33,6 @@
 # demonstration purposes only.
 
 import sys
-import traceback
 import urllib.error
 import urllib.parse
 import urllib.request

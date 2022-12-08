@@ -20,8 +20,6 @@
 #   running this sample you will see an IE Windows briefly appear, but
 #   vanish without ever being repainted.
 
-import os
-import sys
 import time
 
 # sys.coinit_flags not set, so pythoncom initializes apartment-threaded.

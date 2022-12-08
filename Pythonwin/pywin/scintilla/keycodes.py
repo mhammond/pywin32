@@ -1,4 +1,3 @@
-import string
 
 import win32api
 import win32con

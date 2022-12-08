@@ -8,7 +8,6 @@
 """
 import re
 import sys
-import types
 
 import pythoncom  # Need simple connection point support
 import win32api
@@ -1056,7 +1055,6 @@ class COMScript:
                     self.scriptSite.OnStateChange(state)
             except pythoncom.com_error as xxx_todo_changeme:
                 (hr, desc, exc, arg) = xxx_todo_changeme.args
-                pass  # Ignore all errors here - E_NOTIMPL likely from scriptlets.
         finally:
             self.EnableInterrupts()
 

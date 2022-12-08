@@ -5,8 +5,6 @@
 # This should be run using the command line:
 # pythonwin /app demos\dojobapp.py
 
-import string
-import sys
 
 import win32api
 import win32con

@@ -106,7 +106,6 @@ def FindAppPath(appName, knownFileName, searchPaths):
     """
     # Look in the first path.
     import os
-    import string
 
     import regutil
 
@@ -133,7 +132,6 @@ def FindPythonExe(exeAlias, possibleRealNames, searchPaths):
     if it exists - it may be wrong (ie, for a different Python version)
     """
     import os
-    import string
     import sys
 
     import regutil
@@ -164,7 +162,6 @@ def FindPythonExe(exeAlias, possibleRealNames, searchPaths):
 
 def QuotedFileName(fname):
     """Given a filename, return a quoted version if necessary"""
-    import string
 
     import regutil
 
@@ -185,7 +182,6 @@ def LocateFileName(fileNamesString, searchPaths):
     Raises KeyboardInterrupt if the user cancels.
     """
     import os
-    import string
 
     import regutil
 
@@ -294,7 +290,6 @@ def FindRegisterPackage(packageName, knownFile, searchPaths, registryAppName=Non
     (no other paths are checked, as the application whose path was used
     may later be uninstalled.  This should not happen with the core)
     """
-    import string
 
     import regutil
 
@@ -330,7 +325,6 @@ def FindRegisterApp(appName, knownFiles, searchPaths):
     Assumes the core registry setup correctly.
 
     """
-    import string
 
     import regutil
 
@@ -354,7 +348,6 @@ def FindRegisterPythonExe(exeAlias, searchPaths, actualFileNames=None):
 
     Assumes the core registry setup correctly.
     """
-    import string
 
     import regutil
 
@@ -569,7 +562,6 @@ if __name__ == "__main__":
     else:
         searchPaths = []
         import getopt
-        import string
 
         opts, args = getopt.getopt(
             sys.argv[1:],

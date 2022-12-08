@@ -1,6 +1,5 @@
 # toolmenu.py
 
-import string
 import sys
 
 import win32api

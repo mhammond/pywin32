@@ -1,6 +1,5 @@
 ## demonstrates using BackupSeek to enumerate data streams for a file
 import struct
-import traceback
 
 import pythoncom
 import pywintypes
