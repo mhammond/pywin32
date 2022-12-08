@@ -1,12 +1,12 @@
 # Classes which describe interfaces.
 
-from win32com.server.exception import Exception
-from win32com.server.util import ListEnumeratorGateway
-from win32com.axdebug import axdebug
-from win32com.axdebug.util import RaiseNotImpl, _wrap
 import pythoncom
 import win32com.server.connect
 import winerror
+from win32com.axdebug import axdebug
+from win32com.axdebug.util import RaiseNotImpl, _wrap
+from win32com.server.exception import Exception
+from win32com.server.util import ListEnumeratorGateway
 
 
 class EnumDebugCodeContexts(ListEnumeratorGateway):

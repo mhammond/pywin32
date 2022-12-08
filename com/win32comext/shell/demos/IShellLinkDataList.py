@@ -1,5 +1,9 @@
+import os
+import sys
+
+import pythoncom
+import win32api
 from win32com.shell import shell, shellcon
-import pythoncom, win32api, os, sys
 
 temp_dir = win32api.GetTempPath()
 linkname = win32api.GetTempFileName(temp_dir, "cmd")[0]

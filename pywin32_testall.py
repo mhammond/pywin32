@@ -1,8 +1,8 @@
 """A test runner for pywin32"""
-import sys
 import os
 import site
 import subprocess
+import sys
 
 # locate the dirs based on where this script is - it may be either in the
 # source tree, or in an installed Python 'Scripts' tree.

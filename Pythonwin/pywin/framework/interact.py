@@ -3,23 +3,23 @@
 ## Interactive Shell Window
 ##
 
-import sys, os
+import array
 import code
+import os
 import string
+import sys
+import traceback
 
-import win32ui
+import __main__
+import afxres
+import pywin.framework.app
+import pywin.scintilla.control
+import pywin.scintilla.formatter
+import pywin.scintilla.IDLEenvironment
 import win32api
 import win32clipboard
 import win32con
-import traceback
-import afxres
-import array
-import __main__
-
-import pywin.scintilla.formatter
-import pywin.scintilla.control
-import pywin.scintilla.IDLEenvironment
-import pywin.framework.app
+import win32ui
 
 ## sequential after ID_GOTO_LINE defined in editor.py
 ID_EDIT_COPY_CODE = 0xE2002
@@ -27,9 +27,9 @@ ID_EDIT_EXEC_CLIPBOARD = 0x2003
 
 trace = pywin.scintilla.formatter.trace
 
-from . import winout
-
 import re
+
+from . import winout
 
 # from IDLE.
 _is_block_opener = re.compile(r":\s*(#.*)?$").search

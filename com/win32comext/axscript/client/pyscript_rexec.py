@@ -8,8 +8,9 @@
 # You almost certainly do NOT want to use thus!
 
 import pythoncom
-from win32com.axscript import axscript
 import winerror
+from win32com.axscript import axscript
+
 from . import pyscript
 
 INTERFACE_USES_DISPEX = 0x00000004  # Object knows to use IDispatchEx

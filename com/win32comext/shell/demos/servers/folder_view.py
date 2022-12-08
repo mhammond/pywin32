@@ -5,23 +5,23 @@
 # than our own.
 # XXX - sadly, it doesn't work quite like the original sample.  Oh well,
 # another day...
-import sys
 import os
 import pickle
 import random
-import win32api
-import winxpgui as win32gui  # the needs vista, let alone xp!
-import win32con
-import winerror
+import sys
+
 import commctrl
 import pythoncom
-from win32com.util import IIDToInterfaceName
-from win32com.server.exception import COMException
-from win32com.server.util import wrap as _wrap
-from win32com.server.util import NewEnum as _NewEnum
-from win32com.shell import shell, shellcon
+import win32api
+import win32con
+import winerror
+import winxpgui as win32gui  # the needs vista, let alone xp!
 from win32com.axcontrol import axcontrol  # IObjectWithSite
 from win32com.propsys import propsys
+from win32com.server.exception import COMException
+from win32com.server.util import NewEnum as _NewEnum, wrap as _wrap
+from win32com.shell import shell, shellcon
+from win32com.util import IIDToInterfaceName
 
 GUID = pythoncom.MakeIID
 

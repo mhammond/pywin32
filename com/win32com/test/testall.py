@@ -1,5 +1,10 @@
-import sys, os, string, re
-import getopt, traceback, unittest
+import getopt
+import os
+import re
+import string
+import sys
+import traceback
+import unittest
 
 try:
     this_file = __file__
@@ -20,13 +25,13 @@ win32com.__path__[0] = win32com_src_dir
 import pythoncom
 import win32com.client
 from win32com.test.util import (
-    CheckClean,
-    TestCase,
     CapturingFunctionTestCase,
+    CheckClean,
+    RegisterPythonServer,
     ShellTestCase,
+    TestCase,
     TestLoader,
     TestRunner,
-    RegisterPythonServer,
 )
 
 verbosity = 1  # default unittest verbosity.
@@ -43,7 +48,9 @@ def GenerateAndRunOldStyle():
 
 
 def CleanGenerated():
-    import win32com, shutil
+    import shutil
+
+    import win32com
 
     if os.path.isdir(win32com.__gen_path__):
         if verbosity > 1:

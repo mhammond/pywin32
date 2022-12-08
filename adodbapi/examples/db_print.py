@@ -1,6 +1,7 @@
 """ db_print.py -- a simple demo for ADO database reads."""
 
 import sys
+
 import adodbapi.ado_consts as adc
 
 cmd_args = ("filename", "table_name")

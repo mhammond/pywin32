@@ -2,16 +2,16 @@
 # A nod to the Code Project's article "Embed an HTML control in your own
 # window using plain C"
 import sys
-from win32com.axcontrol import axcontrol
-from win32com.server.exception import COMException
-from win32com.server.util import wrap
-from win32com.client import Dispatch
 
 import pythoncom
+import win32api
 import win32con
 import win32gui
 import winerror
-import win32api
+from win32com.axcontrol import axcontrol
+from win32com.client import Dispatch
+from win32com.server.exception import COMException
+from win32com.server.util import wrap
 
 # Set to True to see debug output in the 'trace collector' window.
 debugging = False

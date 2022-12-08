@@ -5,8 +5,11 @@
 
 # It does nothing useful, and it even doesnt do that!
 
-import pywin.debugger, sys, time
+import sys
+import time
 import traceback
+
+import pywin.debugger
 
 
 def a():

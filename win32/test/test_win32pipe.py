@@ -1,15 +1,14 @@
-import unittest
-import time
 import threading
-from pywin32_testutil import str2bytes  # py3k-friendly helper
+import time
+import unittest
 
-
-import win32pipe
-import win32file
-import win32event
 import pywintypes
-import winerror
 import win32con
+import win32event
+import win32file
+import win32pipe
+import winerror
+from pywin32_testutil import str2bytes  # py3k-friendly helper
 
 
 class PipeTests(unittest.TestCase):

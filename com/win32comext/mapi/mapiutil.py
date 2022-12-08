@@ -3,8 +3,9 @@
 TupleType = tuple
 ListType = list
 IntType = int
-from pywintypes import TimeType
 import pythoncom
+from pywintypes import TimeType
+
 from . import mapi, mapitags
 
 prTable = {}

@@ -7,25 +7,25 @@ either double-click on it, or run "python.exe pyscript.py" from the
 command line.
 """
 
-import winerror
-import win32com
-import win32api
-import pythoncom
+import re
 import sys
 import traceback
-import re
-import win32com.client.dynamic
-from win32com.axscript.client import framework, scriptdispatch
-from win32com.axscript import axscript
-import win32com.server.register
 
+import pythoncom
+import win32api
+import win32com
+import win32com.client.dynamic
+import win32com.server.register
+import winerror
+from win32com.axscript import axscript
+from win32com.axscript.client import framework, scriptdispatch
 from win32com.axscript.client.framework import (
-    RaiseAssert,
-    trace,
-    Exception,
     SCRIPTTEXT_FORCEEXECUTION,
     SCRIPTTEXT_ISEXPRESSION,
     SCRIPTTEXT_ISPERSISTENT,
+    Exception,
+    RaiseAssert,
+    trace,
 )
 
 PyScript_CLSID = "{DF630910-1C1D-11d0-AE36-8C0F5E000000}"

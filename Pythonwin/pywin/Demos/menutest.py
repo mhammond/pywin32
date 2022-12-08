@@ -1,6 +1,6 @@
 # Run this as a python script, to gray "close" off the edit window system menu.
-from pywin.framework import interact
 import win32con
+from pywin.framework import interact
 
 if __name__ == "__main__":
     import demoutils

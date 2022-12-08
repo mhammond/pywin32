@@ -1,12 +1,18 @@
 """ Management of documents for AXDebugging.
 """
 
+import os
+import string
+import sys
+
 import pythoncom
-from .util import _wrap, _wrap_remove, RaiseNotImpl, trace
-from win32com.server.util import unwrap
-from . import codecontainer, contexts, axdebug, gateways
+import win32api
+import winerror
 from win32com.server.exception import Exception
-import win32api, winerror, os, string, sys
+from win32com.server.util import unwrap
+
+from . import axdebug, codecontainer, contexts, gateways
+from .util import RaiseNotImpl, _wrap, _wrap_remove, trace
 
 # def trace(*args):
 #       pass

@@ -1,7 +1,9 @@
 import sys
 import unittest
+
 import pywintypes
 import win32api
+
 
 # A class that will never die vie refcounting, but will die via GC.
 class Cycle:

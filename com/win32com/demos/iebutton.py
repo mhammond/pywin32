@@ -25,14 +25,15 @@ Contribtions to this sample to make it a little "friendlier" welcome!
 """
 
 # imports section
-import sys, os
-from win32com import universal
-from win32com.client import gencache, DispatchWithEvents, Dispatch
-from win32com.client import constants, getevents
-import win32com.server.register
-import win32com
+import os
+import sys
+
 import pythoncom
 import win32api
+import win32com
+import win32com.server.register
+from win32com import universal
+from win32com.client import Dispatch, DispatchWithEvents, constants, gencache, getevents
 
 # This demo uses 'print' - use win32traceutil to see it if we have no
 # console.
@@ -41,9 +42,10 @@ try:
 except win32api.error:
     import win32traceutil
 
-from win32com.axcontrol import axcontrol
+import array
+import struct
 
-import array, struct
+from win32com.axcontrol import axcontrol
 
 # ensure we know the ms internet controls typelib so we have access to IWebBrowser2 later on
 win32com.client.gencache.EnsureModule("{EAB22AC0-30C1-11CF-A7EB-0000C05BAE0B}", 0, 1, 1)

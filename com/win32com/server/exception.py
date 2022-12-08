@@ -12,7 +12,10 @@
 	 This module provides a class which provides the necessary attributes.
 
 """
-import sys, pythoncom
+import sys
+
+import pythoncom
+
 
 # Note that we derive from com_error, which derives from exceptions.Exception
 # Also note that we dont support "self.args", as we dont support tuple-unpacking

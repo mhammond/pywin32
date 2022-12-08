@@ -1,10 +1,11 @@
-import sys
-import unittest
-import pywintypes
-import time
-from pywin32_testutil import str2bytes, ob2memory
 import datetime
 import operator
+import sys
+import time
+import unittest
+
+import pywintypes
+from pywin32_testutil import ob2memory, str2bytes
 
 
 class TestCase(unittest.TestCase):

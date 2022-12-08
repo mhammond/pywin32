@@ -1,18 +1,19 @@
 """
 Various utilities for running/importing a script
 """
-import sys
-import win32ui
-import win32api
-import win32con
-import __main__
-from pywin.mfc import dialog
-from pywin.mfc.docview import TreeView
+import bdb
+import linecache
 import os
 import string
+import sys
 import traceback
-import linecache
-import bdb
+
+import __main__
+import win32api
+import win32con
+import win32ui
+from pywin.mfc import dialog
+from pywin.mfc.docview import TreeView
 
 from .cmdline import ParseArgs
 

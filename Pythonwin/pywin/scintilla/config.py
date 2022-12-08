@@ -8,19 +8,20 @@
 # .py file, and put the config info in a docstring.  Then
 # pass a CStringIO file (rather than a filename) to the
 # config manager.
-import sys
-import string
-from . import keycodes
-import marshal
-import stat
-import os
-import types
-import traceback
-import pywin
 import glob
 import importlib.util
+import marshal
+import os
+import stat
+import string
+import sys
+import traceback
+import types
 
+import pywin
 import win32api
+
+from . import keycodes
 
 debugging = 0
 if debugging:

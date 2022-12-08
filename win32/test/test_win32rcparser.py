@@ -1,8 +1,10 @@
-import sys, os
-import unittest
-import win32rcparser
-import win32con
+import os
+import sys
 import tempfile
+import unittest
+
+import win32con
+import win32rcparser
 
 
 class TestParser(unittest.TestCase):

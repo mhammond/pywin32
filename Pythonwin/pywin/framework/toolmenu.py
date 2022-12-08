@@ -1,11 +1,13 @@
 # toolmenu.py
 
-import win32ui
-import win32con
-import win32api
-from . import app
-import sys
 import string
+import sys
+
+import win32api
+import win32con
+import win32ui
+
+from . import app
 
 tools = {}
 idPos = 100
@@ -109,8 +111,8 @@ def SetToolsMenu(menu, menuPos=None):
 
 
 def HandleToolCommand(cmd, code):
-    import traceback
     import re
+    import traceback
 
     global tools
     (menuString, pyCmd, desc) = tools[cmd]

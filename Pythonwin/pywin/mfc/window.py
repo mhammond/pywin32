@@ -1,7 +1,8 @@
 # The MFCish window classes.
-from . import object
-import win32ui
 import win32con
+import win32ui
+
+from . import object
 
 
 class Wnd(object.CmdTarget):

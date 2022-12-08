@@ -34,14 +34,18 @@ which will:
 Executing with --test will create and remove one of everything.
 """
 
-from win32com.adsi.adsicon import *
-from win32com.adsi import adsi
-import win32api, win32con, winerror
-from win32com.client import Dispatch
-import ntsecuritycon as dscon
-import win32security
-import optparse, textwrap
+import optparse
+import textwrap
 import traceback
+
+import ntsecuritycon as dscon
+import win32api
+import win32con
+import win32security
+import winerror
+from win32com.adsi import adsi
+from win32com.adsi.adsicon import *
+from win32com.client import Dispatch
 
 verbose = 1
 g_createdSCP = None

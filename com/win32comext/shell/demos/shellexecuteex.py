@@ -1,5 +1,5 @@
-from win32com.shell import shell, shellcon
 import win32con
+from win32com.shell import shell, shellcon
 
 
 def ExplorePIDL():

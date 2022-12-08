@@ -1,9 +1,11 @@
-import string
-import win32ui
-import win32api
-from pywin.mfc import docview
-import pywin.framework.window
 import os
+import string
+
+import pywin.framework.window
+import win32api
+import win32ui
+from pywin.mfc import docview
+
 from . import frame
 
 ParentEditorTemplate = docview.DocTemplate

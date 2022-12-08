@@ -4,10 +4,15 @@ The FSCTL_TXFS_CREATE_MINIVERSION control code saves any changes to a new
 miniversion (effectively a savepoint within a transaction).
 """
 
-import win32file, win32api, win32transaction, winerror
-import win32con, winioctlcon
-import struct
 import os
+import struct
+
+import win32api
+import win32con
+import win32file
+import win32transaction
+import winerror
+import winioctlcon
 from pywin32_testutil import str2bytes  # py3k-friendly helper
 
 

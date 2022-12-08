@@ -2,13 +2,13 @@
 # (at least as far as most IDLE extensions are concerned)
 
 import string
-import win32api
-import win32ui
-import win32con
 import sys
 
-from pywin.mfc.dialog import GetSimpleInput
+import win32api
+import win32con
+import win32ui
 from pywin import default_scintilla_encoding
+from pywin.mfc.dialog import GetSimpleInput
 
 wordchars = string.ascii_uppercase + string.ascii_lowercase + string.digits
 
@@ -572,7 +572,8 @@ class IDLEWrapper:
 
 
 def IDLETest(extension):
-    import sys, os
+    import os
+    import sys
 
     modname = "pywin.idle." + extension
     __import__(modname)

@@ -1,8 +1,9 @@
+import os
+import sys
+
 import win32api
 import win32wnet
-import sys
 from winnetwk import *
-import os
 
 possible_shares = []
 

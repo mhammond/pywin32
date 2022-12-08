@@ -1,9 +1,11 @@
 # dump_link.py - dumps information about shell shortcuts
 #
-import sys, os
-from win32com.shell import shell, shellcon
-import pythoncom
 import glob
+import os
+import sys
+
+import pythoncom
+from win32com.shell import shell, shellcon
 from win32com.storagecon import *
 
 

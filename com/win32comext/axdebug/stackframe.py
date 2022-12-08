@@ -3,13 +3,13 @@
 Provides Implements a nearly complete wrapper for a stack frame.
 """
 import sys
-from .util import _wrap, RaiseNotImpl
-from . import expressions, gateways, axdebug
-import winerror
+
 import pythoncom
+import winerror
 from win32com.server.exception import COMException
 
-from .util import trace
+from . import axdebug, expressions, gateways
+from .util import RaiseNotImpl, _wrap, trace
 
 # def trace(*args):
 #       pass

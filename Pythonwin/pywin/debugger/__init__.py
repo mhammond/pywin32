@@ -1,5 +1,6 @@
 import sys
 
+
 # Some cruft to deal with the Pythonwin GUI booting up from a non GUI app.
 def _MakeDebuggerGUI():
     app.InitInstance()
@@ -21,6 +22,7 @@ def _CheckNeedGUI():
         need = 0
     if need:
         import pywin.framework.app
+
         from . import dbgpyapp
 
         pywin.framework.app.CreateDefaultGUI(dbgpyapp.DebuggerPythonApp)

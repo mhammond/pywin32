@@ -1,8 +1,9 @@
-import win32gui
+import time
+
 import win32api
 import win32clipboard
 import win32con
-import time
+import win32gui
 
 
 class ViewerWindow:

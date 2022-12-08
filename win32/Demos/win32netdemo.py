@@ -1,10 +1,11 @@
+import getopt
 import sys
+import traceback
+
 import win32api
 import win32net
 import win32netcon
 import win32security
-import getopt
-import traceback
 
 verbose_level = 0
 

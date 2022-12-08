@@ -12,10 +12,10 @@
 # * "Normal" Python exceptions resolve to an E_FAIL "internal error"
 
 import pythoncom
+import winerror
+from win32com.client import Dispatch
 from win32com.server.exception import COMException
 from win32com.server.util import wrap
-from win32com.client import Dispatch
-import winerror
 from win32com.test.util import CaptureWriter
 
 

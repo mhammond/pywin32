@@ -1,5 +1,8 @@
+import win32api
+import win32security
+import winerror
 from ntsecuritycon import *
-import win32api, win32security, winerror
+
 
 # This is a Python implementation of win32api.GetDomainName()
 def GetDomainName():

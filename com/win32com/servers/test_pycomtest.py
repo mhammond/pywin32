@@ -2,15 +2,14 @@
 # The object is registered when you first run the test suite.
 # (and hopefully unregistered once done ;-)
 
+import pythoncom
+import winerror
+
 # Ensure the vtables in the tlb are known.
 from win32com import universal
+from win32com.client import constants, gencache
 from win32com.server.exception import COMException
-from win32com.client import gencache
-import winerror
-from win32com.client import constants
 from win32com.server.util import wrap
-
-import pythoncom
 
 pythoncom.__future_currency__ = True
 # We use the constants from the module, so must insist on a gencache.

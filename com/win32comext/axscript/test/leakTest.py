@@ -1,10 +1,11 @@
 import sys
-from win32com.axscript.server.error import Exception
+
+import pythoncom
+import win32com.server.policy
 from win32com.axscript import axscript
 from win32com.axscript.server import axsite
-import pythoncom
-from win32com.server import util, connect
-import win32com.server.policy
+from win32com.axscript.server.error import Exception
+from win32com.server import connect, util
 
 
 class MySite(axsite.AXSite):

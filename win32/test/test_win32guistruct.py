@@ -1,9 +1,10 @@
+import array
 import unittest
+
+import pythoncom
+import win32con
 import win32gui
 import win32gui_struct
-import win32con
-import array
-import pythoncom
 
 
 class TestBase(unittest.TestCase):

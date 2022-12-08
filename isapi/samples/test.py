@@ -2,16 +2,26 @@
 # designed to be a simple sample, but instead is a hotch-potch of things
 # that attempts to exercise the framework.
 
+import os
+import stat
+import sys
+
 from isapi import isapicon
 from isapi.simple import SimpleExtension
-import sys, os, stat
 
 if hasattr(sys, "isapidllhandle"):
     import win32traceutil
 
 # We use the same reload support as 'advanced.py' demonstrates.
+import threading
+
+import win32con
+import win32event
+import win32file
+import winerror
+
 from isapi import InternalReloadException
-import win32event, win32file, winerror, win32con, threading
+
 
 # A watcher thread that checks for __file__ changing.
 # When it detects it, it simply sets "change_detected" to true.

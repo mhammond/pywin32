@@ -1,7 +1,10 @@
+import string
 import sys
-import string, tokenize
-from . import PyParse
+import tokenize
+
 from pywin import default_scintilla_encoding
+
+from . import PyParse
 
 if sys.version_info < (3,):
     # in py2k, tokenize() takes a 'token eater' callback, while

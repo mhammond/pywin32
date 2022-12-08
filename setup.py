@@ -23,37 +23,34 @@ build_env.md, which is getting out of date but might help getting everything
 required for an official build - see README.md for that process.
 """
 # Originally by Thomas Heller, started in 2000 or so.
-import os
-import sys
 import glob
-import re
-from tempfile import gettempdir
+import os
 import platform
+import re
 import shutil
 import subprocess
-
+import sys
 import winreg
+from distutils import log
+from distutils.command.build import build
+from distutils.command.install import install
+from distutils.command.install_data import install_data
+from distutils.command.install_lib import install_lib
+from distutils.core import Extension
+from tempfile import gettempdir
 
 # The rest of our imports.
 from setuptools import setup
-from distutils.core import Extension
-from distutils.command.install import install
-from distutils.command.install_lib import install_lib
 from setuptools.command.build_ext import build_ext
-from distutils.command.build import build
-from distutils.command.install_data import install_data
-
-from distutils import log
-
 
 # some modules need a static CRT to avoid problems caused by them having a
 # manifest.
 static_crt_modules = ["winxpgui"]
 
 
+import distutils.util
 from distutils.dep_util import newer_group
 from distutils.filelist import FileList
-import distutils.util
 
 build_id_patch = build_id
 if not "." in build_id_patch:

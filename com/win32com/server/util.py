@@ -1,8 +1,9 @@
 """ General Server side utilities 
 """
 import pythoncom
-from . import policy
 import winerror
+
+from . import policy
 from .exception import COMException
 
 

@@ -2,14 +2,12 @@
 
 # Also demo of a GUI thread, pretty much direct from the MFC C++ sample MTMDI.
 
-import win32ui
-import win32con
-import win32api
 import timer
-
-from pywin.mfc import window, docview, thread
+import win32api
+import win32con
+import win32ui
+from pywin.mfc import docview, thread, window
 from pywin.mfc.thread import WinThread
-
 
 WM_USER_PREPARE_TO_CLOSE = win32con.WM_USER + 32
 

@@ -1,9 +1,10 @@
 # find.py - Find and Replace
-import win32con, win32api
-import win32ui
-from pywin.mfc import dialog
 import afxres
+import win32api
+import win32con
+import win32ui
 from pywin.framework import scriptutils
+from pywin.mfc import dialog
 
 FOUND_NOTHING = 0
 FOUND_NORMAL = 1

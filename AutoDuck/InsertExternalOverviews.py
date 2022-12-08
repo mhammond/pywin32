@@ -1,6 +1,6 @@
 import os
-import sys
 import string
+import sys
 
 """
 Replace: <!--index:extopics-->

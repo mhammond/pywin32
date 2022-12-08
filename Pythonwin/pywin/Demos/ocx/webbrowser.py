@@ -3,10 +3,14 @@
 # It catches an "OnNavigate" event, and updates the frame title.
 # (event stuff by Neil Hodgson)
 
-import win32ui, win32con, win32api, regutil
-from pywin.mfc import window, activex
-from win32com.client import gencache
 import sys
+
+import regutil
+import win32api
+import win32con
+import win32ui
+from pywin.mfc import activex, window
+from win32com.client import gencache
 
 WebBrowserModule = gencache.EnsureModule(
     "{EAB22AC0-30C1-11CF-A7EB-0000C05BAE0B}", 0, 1, 1

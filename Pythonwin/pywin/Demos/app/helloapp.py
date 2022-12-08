@@ -14,8 +14,9 @@
 
 import win32con
 import win32ui
-from pywin.mfc import window, dialog, afxres
+from pywin.mfc import afxres, dialog, window
 from pywin.mfc.thread import WinApp
+
 
 # The main frame.
 # Does almost nothing at all - doesnt even create a child window!

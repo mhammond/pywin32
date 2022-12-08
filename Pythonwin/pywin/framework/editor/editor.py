@@ -17,23 +17,24 @@
 # Note that it will _always_ prompt you if the file in the editor has been modified.
 
 
-import win32ui
-import win32api
-import win32con
-import regex
+import os
 import re
 import string
-import sys, os
+import sys
 import traceback
-from pywin.mfc import docview, dialog, afxres
 
+import regex
+import win32api
+import win32con
+import win32ui
 from pywin.framework.editor import (
-    GetEditorOption,
-    SetEditorOption,
     GetEditorFontOption,
+    GetEditorOption,
     SetEditorFontOption,
+    SetEditorOption,
     defaultCharacterFormat,
 )
+from pywin.mfc import afxres, dialog, docview
 
 patImport = regex.symcomp("import \(<name>.*\)")
 patIndent = regex.compile("^\\([ \t]*[~ \t]\\)")

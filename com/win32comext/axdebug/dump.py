@@ -1,8 +1,10 @@
-import sys, string
+import string
+import sys
 import traceback
+
+import pythoncom
 from win32com.axdebug import axdebug
 from win32com.client.util import Enumerator
-import pythoncom
 
 
 def DumpDebugApplicationNode(node, level=0):

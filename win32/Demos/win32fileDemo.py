@@ -1,9 +1,13 @@
 # This is a "demo" of win32file - it used to be more a test case than a
 # demo, so has been moved to the test directory.
 
-# Please contribute your favourite simple little demo.
-import win32file, win32api, win32con
 import os
+
+# Please contribute your favourite simple little demo.
+import win32api
+import win32con
+import win32file
+
 
 # A very simple demo - note that this does no more than you can do with
 # builtin Python file objects, so for something as simple as this, you

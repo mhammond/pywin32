@@ -3,10 +3,13 @@
 # * CPU sits at 100% while running.
 
 import sys
+
 import pythoncom
+import win32api
+import win32con
+import win32gui
+from win32com.server.util import unwrap, wrap
 from win32com.shell import shell, shellcon
-import win32gui, win32con, win32api
-from win32com.server.util import wrap, unwrap
 
 # event handler for the browser.
 IExplorerBrowserEvents_Methods = """OnNavigationComplete OnNavigationFailed 

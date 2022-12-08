@@ -9,12 +9,14 @@
 # changes and hardware profile events - so try putting your computer to
 # sleep and waking it, inserting a memory stick, etc then check the event log
 
-import win32serviceutil, win32service
-import win32event
-import servicemanager
-
 # Most event notification support lives around win32gui
-import win32gui, win32gui_struct, win32con
+import servicemanager
+import win32con
+import win32event
+import win32gui
+import win32gui_struct
+import win32service
+import win32serviceutil
 
 GUID_DEVINTERFACE_USB_DEVICE = "{A5DCBF10-6530-11D2-901F-00C04FB951ED}"
 

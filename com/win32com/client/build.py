@@ -16,14 +16,15 @@ dynamically, or possibly even generate .html documentation for objects.
 #
 #        OleItem, DispatchItem, MapEntry, BuildCallList() is used by makepy
 
-import sys
+import datetime
 import string
+import sys
 from keyword import iskeyword
 
 import pythoncom
-from pywintypes import TimeType
 import winerror
-import datetime
+from pywintypes import TimeType
+
 
 # It isn't really clear what the quoting rules are in a C/IDL string and
 # literals like a quote char and backslashes makes life a little painful to

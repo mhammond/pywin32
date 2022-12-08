@@ -1,19 +1,19 @@
-from pywin.mfc import dialog
-from . import document
-import win32ui
-import win32con
+import pywin.scintilla.config
 import win32api
-
+import win32con
+import win32ui
 from pywin.framework.editor import (
-    GetEditorOption,
-    SetEditorOption,
     DeleteEditorOption,
     GetEditorFontOption,
+    GetEditorOption,
     SetEditorFontOption,
+    SetEditorOption,
     defaultCharacterFormat,
     editorTemplate,
 )
-import pywin.scintilla.config
+from pywin.mfc import dialog
+
+from . import document
 
 # The standard 16 color VGA palette should always be possible
 paletteVGA = (

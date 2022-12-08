@@ -1,10 +1,11 @@
 # tests for win32gui
-import unittest
-import win32gui
-import pywin32_testutil
-import operator
 import array
+import operator
 import sys
+import unittest
+
+import pywin32_testutil
+import win32gui
 
 
 class TestPyGetString(unittest.TestCase):

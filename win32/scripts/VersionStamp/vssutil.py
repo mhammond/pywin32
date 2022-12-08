@@ -1,8 +1,12 @@
-import win32con, string, traceback
-import win32com.client, win32com.client.gencache
-import pythoncom
-import time
 import os
+import string
+import time
+import traceback
+
+import pythoncom
+import win32com.client
+import win32com.client.gencache
+import win32con
 
 constants = win32com.client.constants
 
