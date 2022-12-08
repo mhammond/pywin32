@@ -1,4 +1,3 @@
-
 import win32api
 import win32clipboard
 import win32con

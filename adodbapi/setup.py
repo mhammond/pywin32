@@ -40,7 +40,6 @@ for line in a:
 a.close()
 
 
-
 def setup_package():
 
     from distutils.command.build_py import build_py

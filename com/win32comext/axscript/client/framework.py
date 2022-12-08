@@ -1055,6 +1055,7 @@ class COMScript:
                     self.scriptSite.OnStateChange(state)
             except pythoncom.com_error as xxx_todo_changeme:
                 (hr, desc, exc, arg) = xxx_todo_changeme.args
+                # Ignore all errors here - E_NOTIMPL likely from scriptlets.
         finally:
             self.EnableInterrupts()
 

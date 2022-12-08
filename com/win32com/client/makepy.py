@@ -155,6 +155,7 @@ class SimpleProgress(genpy.GeneratorProgress):
 class GUIProgress(SimpleProgress):
     def __init__(self, verboseLevel):
         # Import some modules we need to we can trap failure now.
+        import pywin  # nopycln: import
         import win32ui
 
         SimpleProgress.__init__(self, verboseLevel)
