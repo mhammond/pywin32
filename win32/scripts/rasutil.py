@@ -1,6 +1,7 @@
 # A demo of using the RAS API from Python
 import sys
 import win32ras
+import win32api
 
 # The error raised if we can not
 class ConnectionError(Exception):

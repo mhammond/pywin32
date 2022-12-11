@@ -332,7 +332,7 @@ class InteractiveCore:
                     % (win32ui.copyright,)
                 )
             else:
-                sys.stderr.write(banner)
+                sys.stderr.write(self.banner)
         rcfile = os.environ.get("PYTHONSTARTUP")
         if rcfile:
             import __main__

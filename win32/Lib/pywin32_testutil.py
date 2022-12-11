@@ -22,7 +22,7 @@ def str2bytes(sval):
 # a memory blob.
 def str2memory(sval):
     if sys.version_info < (3, 0):
-        return buffer(sval)
+        return buffer(sval)  # noqa
     # py3k.
     return memoryview(sval.encode("latin1"))
 
@@ -30,7 +30,7 @@ def str2memory(sval):
 # Sometimes we want to pass an object that exposes its memory
 def ob2memory(ob):
     if sys.version_info < (3, 0):
-        return buffer(ob)
+        return buffer(ob)  # noqa
     # py3k.
     return memoryview(ob)
 

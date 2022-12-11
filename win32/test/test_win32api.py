@@ -7,6 +7,7 @@ import win32api, win32con, win32event, winerror
 import sys, os
 import tempfile
 import datetime
+import time
 
 
 class CurrentUserTestCase(unittest.TestCase):
@@ -36,19 +37,15 @@ class TestTime(unittest.TestCase):
         ):
             tz_time.Format()
 
-    def TestDateFormat(self):
+    def testDateFormat(self):
         DATE_LONGDATE = 2
         date_flags = DATE_LONGDATE
         win32api.GetDateFormat(0, date_flags, None)
-        win32api.GetDateFormat(0, date_flags, 0)
         win32api.GetDateFormat(0, date_flags, datetime.datetime.now())
-        win32api.GetDateFormat(0, date_flags, time.time())
 
-    def TestTimeFormat(self):
+    def testTimeFormat(self):
         win32api.GetTimeFormat(0, 0, None)
-        win32api.GetTimeFormat(0, 0, 0)
         win32api.GetTimeFormat(0, 0, datetime.datetime.now())
-        win32api.GetTimeFormat(0, 0, time.time())
 
 
 class Registry(unittest.TestCase):

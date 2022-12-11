@@ -50,7 +50,7 @@ class WindowOutput(winout.WindowOutput):
         # 		return winout.WindowOutput.OnViewDestroy(self, frame)
         # 	def Create(self, title=None, style = None):
         # 		rc = winout.WindowOutput.Create(self, title, style)
-        return rc
+        #       return rc
 
 
 def MakeOutputWindow():

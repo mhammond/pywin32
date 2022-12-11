@@ -225,7 +225,7 @@ def test2():
 
 
 def test3():
-    d = TestCOMMDialog(MakeDlgTemplate())
+    d = TestCOMMDialog(MakeDlgTemplate())  # noqa # doesn't exist
     d.DoModal()
     d = None
 

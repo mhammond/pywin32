@@ -112,29 +112,31 @@ class OptionsPropPage(dialog.PropertyPage):
             return None
         return dlg.GetCharFormat()
 
-    def OnFormatTitle(self, command, code):
-        fmt = self.GetFormat(interact.formatTitle)
-        if fmt:
-            formatTitle = fmt
-            SaveFontPreferences()
 
-    def OnFormatInput(self, command, code):
-        global formatInput
-        fmt = self.GetFormat(formatInput)
-        if fmt:
-            formatInput = fmt
-            SaveFontPreferences()
-
-    def OnFormatOutput(self, command, code):
-        global formatOutput
-        fmt = self.GetFormat(formatOutput)
-        if fmt:
-            formatOutput = fmt
-            SaveFontPreferences()
-
-    def OnFormatError(self, command, code):
-        global formatOutputError
-        fmt = self.GetFormat(formatOutputError)
-        if fmt:
-            formatOutputError = fmt
-            SaveFontPreferences()
+# unused and wanting undefined SaveFontPreferences?
+##    def OnFormatTitle(self, command, code):
+##        fmt = self.GetFormat(interact.formatTitle)
+##        if fmt:
+##            formatTitle = fmt
+##            SaveFontPreferences()
+##
+##    def OnFormatInput(self, command, code):
+##        global formatInput
+##        fmt = self.GetFormat(formatInput)
+##        if fmt:
+##            formatInput = fmt
+##            SaveFontPreferences()
+##
+##    def OnFormatOutput(self, command, code):
+##        global formatOutput
+##        fmt = self.GetFormat(formatOutput)
+##        if fmt:
+##            formatOutput = fmt
+##            SaveFontPreferences()
+##
+##    def OnFormatError(self, command, code):
+##        global formatOutputError
+##        fmt = self.GetFormat(formatOutputError)
+##        if fmt:
+##            formatOutputError = fmt
+##            SaveFontPreferences()

@@ -840,7 +840,7 @@ class ScintillaShellView:
         }
         #        win32gui.SetWindowLong(self.hwnd, win32con.GWL_WNDPROC, message_map)
 
-        file_data = file(self.filename, "U").read()
+        file_data = open(self.filename, "U").read()
 
         self._SetupLexer()
         self._SendSci(scintillacon.SCI_ADDTEXT, len(file_data), file_data)

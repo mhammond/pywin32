@@ -184,8 +184,8 @@ class DebugProperty:
             dwFieldSpec,
             nRadix,
             self.hresult,
-            dictionary,
-            stackFrame,
+            self.dictionary,
+            self.stackFrame,
         )
 
     def GetExtendedInfo(self):  ### Note - not in the framework.

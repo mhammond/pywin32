@@ -200,7 +200,7 @@ def FindProperties(lexFile):
 
 
 def ciCompare(a, b):
-    return cmp(a.lower(), b.lower())
+    return cmp(a.lower(), b.lower())  # noqa # just silence (unused vendor code)
 
 
 def RegenerateAll():

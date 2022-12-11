@@ -108,9 +108,9 @@ class WritableItem:
     # __cmp__ used for sorting in py2x...
     def __cmp__(self, other):
         "Compare for sorting"
-        ret = cmp(self.order, other.order)
+        ret = cmp(self.order, other.order)  # noqa
         if ret == 0 and self.doc:
-            ret = cmp(self.doc[0], other.doc[0])
+            ret = cmp(self.doc[0], other.doc[0])  # noqa
         return ret
 
     # ... but not used in py3k - __lt__ minimum needed there

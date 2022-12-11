@@ -45,7 +45,7 @@ class FontView(docview.ScrollView):
         # Change font on the fly
         self.font = win32ui.CreateFont(new_font)
         # redraw the entire client window
-        selfInvalidateRect(None)
+        self.InvalidateRect(None)
 
     def OnSize(self, params):
         lParam = params[3]

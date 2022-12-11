@@ -287,7 +287,7 @@ class ScintillaFormatPropertyPage(dialog.PropertyPage):
 
 
 def test():
-    page = ColorEditorPropertyPage()
-    sheet = pywin.mfc.dialog.PropertySheet("Test")
+    page = ScintillaFormatPropertyPage()
+    sheet = dialog.PropertySheet("Test")
     sheet.AddPage(page)
     sheet.CreateWindow()
