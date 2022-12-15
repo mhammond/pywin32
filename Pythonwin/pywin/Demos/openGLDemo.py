@@ -5,8 +5,8 @@ import sys
 from pywin.mfc import docview
 
 try:
-    from OpenGL.GL import *
-    from OpenGL.GLU import *
+    from OpenGL.GL import *  # nopycln: import
+    from OpenGL.GLU import *  # nopycln: import
 except ImportError:
     print("The OpenGL extensions do not appear to be installed.")
     print("This Pythonwin demo can not run")
