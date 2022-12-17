@@ -433,6 +433,7 @@ def Browse(ob=__main__):
 
     dlg = dynamic_browser(root)
     dlg.CreateWindow()
+    return dlg
 
 
 #
