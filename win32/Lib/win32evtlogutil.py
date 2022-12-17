@@ -14,7 +14,7 @@ def AddSourceToRegistry(
     eventLogType="Application",
     eventLogFlags=None,
     categoryDLL=None,
-    categoryCount=0
+    categoryCount=0,
 ):
     """Add a source of messages to the event log.
 
@@ -37,7 +37,6 @@ def AddSourceToRegistry(
 
     if msgDLL is None:
         msgDLL = win32evtlog.__file__
-
     # Create a new key for our application
     hkey = win32api.RegCreateKey(
         win32con.HKEY_LOCAL_MACHINE,
@@ -73,7 +72,6 @@ def AddSourceToRegistry(
         # Optionally, you can specify a message file that contains the categories
         if categoryDLL is None:
             categoryDLL = win32evtlog.__file__
-
         win32api.RegSetValueEx(
             hkey,  # subkey handle \
             "CategoryMessageFile",  # value name \
@@ -217,7 +215,6 @@ def FeedEventLogRecords(
         readFlags = (
             win32evtlog.EVENTLOG_BACKWARDS_READ | win32evtlog.EVENTLOG_SEQUENTIAL_READ
         )
-
     h = win32evtlog.OpenEventLog(machineName, logName)
     try:
         while 1:
