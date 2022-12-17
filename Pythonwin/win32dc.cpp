@@ -658,6 +658,7 @@ static PyObject *ui_dc_polygon(PyObject *self, PyObject *args)
     CDC *pDC = ui_dc_object::GetDC(self);
     if (!pDC)
         return NULL;
+    // @pyparm [(x, y), ...]|points||A sequence of points
     if (!PyArg_ParseTuple(args, "O:Polygon", &point_list)) {
         return NULL;
     }
@@ -2013,9 +2014,9 @@ static PyObject *ui_dc_set_poly_fill_mode(PyObject *self, PyObject *args)
     CDC *pDC = ui_dc_object::GetDC(self);
     if (!pDC)
         return NULL;
-    int nPolyFillMode;
-    // @pyparm (x,y)|point||The new origin in device units.
-    if (!PyArg_ParseTuple(args, "i", &nPolyFillMode))
+    int nPolyFillMode = 1;
+    // @pyparm i|int|1|The new mode, ALTERNATE (1) or WINDING (2).
+    if (!PyArg_ParseTuple(args, "|i", &nPolyFillMode))
         return NULL;
     GUI_BGN_SAVE;
     int pr = pDC->SetPolyFillMode(nPolyFillMode);  // @pyseemfc CDC|SetPolyFillMode
