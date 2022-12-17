@@ -20,6 +20,8 @@ def run_test(script, cmdline_extras):
     dirname, scriptname = os.path.split(script)
     # some tests prefer to be run from their directory.
     cmd = [sys.executable, "-u", scriptname] + cmdline_extras
+    print("--- Running '%s' ---" % script)
+    sys.stdout.flush()
     result = subprocess.run(cmd, check=False, cwd=dirname)
     print("*** Test script '%s' exited with %s" % (script, result.returncode))
     sys.stdout.flush()
@@ -68,17 +70,19 @@ def main():
 
     args, remains = parser.parse_known_args()
 
-    # win32
-    maybes = [
-        os.path.join(directory, "win32", "test", "testall.py")
-        for directory in code_directories
-    ]
+    # win32, win32ui / Pythonwin
+
     extras = []
     if args.user_interaction:
-        extras += "-user-interaction"
+        extras += ["-user-interaction"]
     extras.extend(remains)
-
-    find_and_run(maybes, extras)
+    scripts = [
+        "win32/test/testall.py",
+        "Pythonwin/pywin/test/all.py",
+    ]
+    for script in scripts:
+        maybes = [os.path.join(directory, script) for directory in code_directories]
+        find_and_run(maybes, extras)
 
     # win32com
     maybes = [
@@ -112,7 +116,7 @@ def main():
         for failure in failures:
             print(">", failure)
         sys.exit(1)
-    print("All tests passed \o/")
+    print("All tests passed \\o/")
 
 
 if __name__ == "__main__":
