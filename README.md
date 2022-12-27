@@ -85,11 +85,15 @@ running as a service, particularly for other users.
 
 ## Building from source
 
-Building from source has been simplified recently - you just need Visual Studio
-and the Windows 10 SDK installed (the free compilers probably work too, but
-haven't been tested - let me know your experiences!)
+Install Visual Studio 2019 (later probably works, but options might be different),
+select "Desktop Development with C++", then the following options:
+* Windows 10 SDK (latest offered I guess? At time of writing, 10.0.18362)
+* "C++ for MFC for ..."
+* ARM build tools if necessary.
 
-`setup.py` is a standard distutils build script.  You probably want:
+(the free compilers probably work too, but haven't been tested - let me know your experiences!)
+
+`setup.py` is a standard distutils build script, so you probably want:
 
 > python setup.py install
 
@@ -97,14 +101,9 @@ or
 
 > python setup.py --help
 
-You can run `setup.py` without any arguments to see
-specific information about dependencies.  A vanilla MSVC installation should
-be able to build most extensions and list any extensions that could not be
-built due to missing libraries - if the build actually fails with your
+Some modules need obscure SDKs to build - `setup.py` should succeed, gracefully
+telling you why it failed to build them - if the build actually fails with your
 configuration, please [open an issue](https://github.com/mhammond/pywin32/issues).
-
-You will need to install pywin32 (using pip) before building from source, or
-use `python setup.py install --skip-verstamp`, because the default build process uses a win32api call..
 
 ## Release process
 
@@ -118,7 +117,7 @@ to form a checklist so mhammond doesn't forget what to do :)
 * Execute build.bat, wait forever, test the artifacts.
 
 * Upload .whl artifacts to pypi - we do this before pushing the tag because they might be
-  rejected for an invalid `README.md`. Done via `py -3.5 -m twine upload dist/*XXX*.whl`.
+  rejected for an invalid `README.md`. Done via `py -3.? -m twine upload dist/*XXX*.whl`.
 
 * Commit setup.py (so the new build number is in the repo), create a new git tag
 

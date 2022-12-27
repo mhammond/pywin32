@@ -36,22 +36,23 @@ def LocatePythonServiceExe(exe=None):
     # Now we are searching for the .exe
     # We are going to want it here.
     correct = os.path.join(sys.exec_prefix, exe)
-    # If that doesn't exist, we might find it where pywin32 installed it,
-    # next to win32service.pyd.
+    # Even if that file already exists, we copy the one installed by pywin32
+    # in-case it was upgraded.
+    # pywin32 installed it next to win32service.pyd (but we can't run it from there)
     maybe = os.path.join(os.path.dirname(win32service.__file__), exe)
     if os.path.exists(maybe):
-        # Welp, copy it to exec_prefix
         print(f"copying host exe '{maybe}' -> '{correct}'")
         win32api.CopyFile(maybe, correct)
-        correct = maybe
 
     if not os.path.exists(correct):
         raise error(f"Can't find '{correct}'")
 
     # If pywintypes.dll isn't next to us, or at least next to pythonXX.dll,
-    #  there's a good chance the service will not run. That's usually copied by
+    # there's a good chance the service will not run. That's usually copied by
     # `pywin32_postinstall`, but putting it next to the python DLL seems
     # reasonable.
+    # (Unlike the .exe above, we don't unconditionally copy this, and possibly
+    # copy it to a different place. Doesn't seem a good reason for that!?)
     python_dll = win32api.GetModuleFileName(sys.dllhandle)
     pyw = f"pywintypes{sys.version_info[0]}{sys.version_info[1]}{_d}.dll"
     correct_pyw = os.path.join(os.path.dirname(python_dll), pyw)
