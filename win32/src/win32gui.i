@@ -3027,6 +3027,67 @@ BOOLAPI GetCaretPos(POINT *OUTPUT);
 // @pyswig |ShowCaret|Shows the caret at its current position
 BOOLAPI ShowCaret(HWND hWnd);	// @pyparm <o PyHANDLE>|hWnd||Window that owns the caret, can be 0.
 
+%{
+// @pyswig WORD|CascadeWindows|Cascade windows
+static PyObject *PyCascadeWindows(PyObject *self, PyObject *args)
+{
+    PyObject *hwndObject, *rectObject = Py_None, *childrenObject = Py_None;
+    UINT how = 0, childCount = 0;
+    RECT rect, *rectPtr = NULL;
+    HWND hwnd, *children = NULL;
+    WORD res = 0;
+    if (!PyArg_ParseTuple(args, "OI|OO:CascadeWindows",
+        &hwndObject,  //@pyparm <o PyHANDLE>|hwnd||Window handle
+        &how,  //@pyparm int|wHow||Cascade flag (win32con)
+        &rectObject,  //@pyparm <o PyHANDLE>|rect||Rectangle area (can be None)
+        &childrenObject)  //@pyparm <o PyHANDLE>|children||Tuple of child windows (can be None)
+    )
+        return NULL;
+    if (!PyWinObject_AsHANDLE(hwndObject, (HANDLE*)&hwnd))
+        return NULL;
+    // Parse out rectangle object
+    if (rectObject != Py_None) {
+        if (!PyArg_ParseTuple(rectObject, "llll",
+            &rect.left, &rect.top, &rect.right, &rect.bottom)
+        )
+            return NULL;
+        rectPtr = &rect;
+    }
+
+    if (PyTuple_Check(childrenObject)) {
+        childCount = (UINT)(PyTuple_GET_SIZE(childrenObject));
+        if (childCount) {
+            children = (HWND*)(malloc(sizeof(HWND) * childCount));
+            for (UINT i = 0; i < childCount; ++i) {
+                if (!PyWinObject_AsHANDLE(PyTuple_GetItem(childrenObject, i), (HANDLE*)(&children[i]))) {
+                    free(children);
+                    return NULL;
+                }
+            }
+        }
+    } else if (childrenObject != Py_None) {
+        PyErr_SetString(PyExc_TypeError, "The children windows object is neither a tuple nor None");
+        return NULL;
+    }
+    Py_BEGIN_ALLOW_THREADS;
+    res = CascadeWindows(hwnd, how, rectPtr, childCount, children);
+    Py_END_ALLOW_THREADS;
+    if (children) {
+        free(children);
+    }
+    if (!res) {
+        DWORD gle = GetLastError();
+        if (gle) {
+            PyWin_SetAPIError("CascadeWindows", gle);
+            return NULL;
+        }
+    }
+    return PyLong_FromLong(res);
+}
+%}
+%native (CascadeWindows) PyCascadeWindows;
+
+
 // @pyswig boolean|ShowWindow|Shows or hides a window and changes its state
 BOOL ShowWindow(
 	HWND hWnd,		// @pyparm int|hWnd||The handle to the window
