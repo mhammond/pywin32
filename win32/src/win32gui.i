@@ -3058,6 +3058,10 @@ static PyObject *PyCascadeWindows(PyObject *self, PyObject *args)
         childCount = (UINT)(PyTuple_GET_SIZE(childrenObject));
         if (childCount) {
             children = (HWND*)(malloc(sizeof(HWND) * childCount));
+            if (!children) {
+                PyErr_NoMemory();
+                return NULL;
+            }
             for (UINT i = 0; i < childCount; ++i) {
                 if (!PyWinObject_AsHANDLE(PyTuple_GetItem(childrenObject, i), (HANDLE*)(&children[i]))) {
                     free(children);
@@ -3066,7 +3070,7 @@ static PyObject *PyCascadeWindows(PyObject *self, PyObject *args)
             }
         }
     } else if (childrenObject != Py_None) {
-        PyErr_SetString(PyExc_TypeError, "The children windows object is neither a tuple nor None");
+        PyErr_SetString(PyExc_TypeError, "The child windows object is neither a tuple nor None");
         return NULL;
     }
     Py_BEGIN_ALLOW_THREADS;
@@ -3077,6 +3081,8 @@ static PyObject *PyCascadeWindows(PyObject *self, PyObject *args)
     }
     if (!res) {
         DWORD gle = GetLastError();
+        // Only fail if GetLastError() != 0. In theory, there could be cases when function returns 0,
+        //   but it's not a failure (there are no windows to cascade).
         if (gle) {
             PyWin_SetAPIError("CascadeWindows", gle);
             return NULL;
