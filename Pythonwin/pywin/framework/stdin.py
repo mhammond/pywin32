@@ -169,7 +169,7 @@ Sell you soul to the devil, baby
         print(x.readline(3))
         print(x.readlines())
     finally:
-        get_input_line = raw_input
+        get_input_line = input
 else:
     import sys
 

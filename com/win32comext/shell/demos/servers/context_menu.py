@@ -49,7 +49,7 @@ class ShellExtension:
         elif uFlags & shellcon.CMF_EXPLORE:
             print("CMF_EXPLORE...")
             items.append(msg + " - normal file, right-click in Explorer")
-        elif uFlags & CMF_DEFAULTONLY:
+        elif uFlags & shellcon.CMF_DEFAULTONLY:
             print("CMF_DEFAULTONLY...\r\n")
         else:
             print("** unknown flags", uFlags)

@@ -242,8 +242,8 @@ class DispatcherWin32dbg(DispatcherBase):
     def __init__(self, policyClass, ob):
         # No one uses this, and it just causes py2exe to drag all of
         # pythonwin in.
-        # import pywin.debugger
-        pywin.debugger.brk()
+        ##import pywin.debugger
+        ##pywin.debugger.brk()
         print("The DispatcherWin32dbg dispatcher is deprecated!")
         print("Please let me know if this is a problem.")
         print("Uncomment the relevant lines in dispatcher.py to re-enable")
@@ -264,6 +264,8 @@ class DispatcherWin32dbg(DispatcherBase):
         except Exception:  # AARG - What is this Exception???
             # Use some inside knowledge to borrow a Debugger option which dictates if we
             # stop at "expected" exceptions.
+            import pywin.debugger
+
             debug = pywin.debugger.GetDebugger().get_option(
                 pywin.debugger.dbgcon.OPT_STOP_EXCEPTIONS
             )
@@ -271,6 +273,8 @@ class DispatcherWin32dbg(DispatcherBase):
             debug = 1
         if debug:
             try:
+                import pywin.debugger
+
                 pywin.debugger.post_mortem(tb, typ, val)  # The original exception
             except:
                 traceback.print_exc()

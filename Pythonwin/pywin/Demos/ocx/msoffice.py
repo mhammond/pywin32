@@ -125,7 +125,7 @@ class WordFrame(window.MDIChildWnd):
 
         rect = self.GetClientRect()
         rect = (0, 0, rect[2] - rect[0], rect[3] - rect[1])
-        self.ocx = MyWordControl()
+        self.ocx = MyWordControl()  # noqa # XXX doesn't exist
         self.ocx.CreateControl(
             "Microsoft Word", win32con.WS_VISIBLE | win32con.WS_CHILD, rect, self, 20000
         )

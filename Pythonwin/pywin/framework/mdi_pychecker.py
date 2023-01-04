@@ -38,6 +38,7 @@ import win32api
 from pywin.mfc import docview, dialog, window
 import win32con
 import sys, string, re, glob, os, stat, time
+from functools import reduce
 from . import scriptutils
 
 

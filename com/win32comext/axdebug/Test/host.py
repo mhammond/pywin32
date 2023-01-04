@@ -26,8 +26,10 @@ class ExternalConnection:
         return self.numExtRefs
 
 
-# externalConnectionManager = ExternalConnection()
-# wrappedExternalConnectionManager = _wrap(externalConnectionManager, pythoncom.IID_IExternalConnection)
+externalConnectionManager = ExternalConnection()
+wrappedExternalConnectionManager = _wrap(
+    externalConnectionManager, pythoncom.IID_IExternalConnection
+)
 
 
 def DelegatedExternalConnectionQI(iid):
@@ -98,12 +100,12 @@ class PySourceModuleDebugDocumentHost(gateways.DebugDocumentHost):
         try:
             return win32api.GetFullPathName(self.module.__file__), 1
         except (AttributeError, win32api.error):
-            raise Exception(scode == E_FAIL)
+            raise Exception(scode=winerror.E_FAIL)
 
     def GetFileName(self):
         # Result is a string with just the name of the document, no path information.
         trace("GetFileName")
-        return os.path.split(module.__file__)
+        return os.path.split(self.module.__file__)
 
     def NotifyChanged():
         trace("NotifyChanged")
@@ -111,6 +113,8 @@ class PySourceModuleDebugDocumentHost(gateways.DebugDocumentHost):
 
 
 def TestSmartHelper():
+    import ttest
+
     pdm = pythoncom.CoCreateInstance(
         axdebug.CLSID_ProcessDebugManager,
         None,
@@ -122,11 +126,11 @@ def TestSmartHelper():
 
     pydebugger = adb.Debugger()
 
-    nodes = BuildModuleTree()
+    nodes = BuildModuleTree()  # noqa # XXX not existing
 
-    all_real_nodes = CreateDebugDocumentHelperNodes(pdm, app, nodes)
+    all_real_nodes = CreateDebugDocumentHelperNodes(pdm, app, nodes)  # noqa # XXX
     root = app.GetRootNode()
-    AttachParentNodes(root, nodes, all_real_nodes)
+    AttachParentNodes(root, nodes, all_real_nodes)  # noqa # XXX not existing
 
     pydebugger.AttachApp(app)
     cookie = pdm.AddApplication(app)
@@ -146,9 +150,9 @@ def testdumb():
     )
     app = pdm.GetDefaultApplication()
 
-    nodes = BuildModuleTree()
-    all_real_nodes = CreateDebugDocumentHelperNodes(pdm, app, nodes)
-    AttachParentNodes(None, nodes, all_real_nodes)
+    nodes = BuildModuleTree()  # noqa # XXX not existing
+    all_real_nodes = CreateDebugDocumentHelperNodes(pdm, app, nodes)  # noqa # XXX
+    AttachParentNodes(None, nodes, all_real_nodes)  # noqa # XXX not existing
 
     parentNode = None
     all_real_nodes = {}

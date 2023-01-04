@@ -109,15 +109,15 @@ class TestCase(unittest.TestCase):
             ncb.Reset()
             ncb.Command = netbios.NCBRESET
             ncb.Lana_num = netbios.byte_to_int(la_enum.lana[i])
-            rc = Netbios(ncb)
+            rc = win32wnet.Netbios(ncb)
             self.assertEqual(rc, 0)
             ncb.Reset()
             ncb.Command = netbios.NCBASTAT
-            ncb.Lana_num = byte_to_int(la_enum.lana[i])
+            ncb.Lana_num = netbios.byte_to_int(la_enum.lana[i])
             ncb.Callname = str2bytes("*               ")  # ensure bytes on py2x and 3k
             adapter = netbios.ADAPTER_STATUS()
             ncb.Buffer = adapter
-            Netbios(ncb)
+            win32wnet.Netbios(ncb)
             # expect 6 bytes in the mac address.
             self.assertTrue(len(adapter.adapter_address), 6)
 

@@ -94,6 +94,8 @@ def _CreateEvents():
 _CreateEvents()
 del _event_commands
 del _extra_event_commands
+if 0:
+    _extra_event_commands = _event_commands = None  # silence flake8 "undefined"
 
 command_reflectors = [
     (win32ui.ID_EDIT_UNDO, win32con.WM_UNDO),

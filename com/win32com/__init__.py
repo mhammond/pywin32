@@ -127,3 +127,5 @@ gen_py = sys.modules["win32com.gen_py"]
 
 # get rid of these for module users
 del os, sys, win32api, pythoncom
+if 0:
+    sys = win32api = None  # silence flake8 "undefined"

@@ -89,7 +89,7 @@ def _make_empty_text_buffer(cch):
 if sys.version_info < (3, 0):
 
     def _make_memory(ob):
-        return str(buffer(ob))
+        return str(buffer(ob))  # noqa
 
     def _make_bytes(sval):
         return sval

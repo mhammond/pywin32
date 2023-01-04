@@ -5,6 +5,7 @@ to color the text, and also how to translate lines into offsets, and back.
 """
 
 import sys
+import os
 from win32com.axdebug import axdebug
 import tokenize
 from .util import RaiseNotImpl, _wrap
