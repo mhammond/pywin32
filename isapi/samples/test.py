@@ -13,6 +13,7 @@ if hasattr(sys, "isapidllhandle"):
 from isapi import InternalReloadException
 import win32event, win32file, winerror, win32con, threading
 
+
 # A watcher thread that checks for __file__ changing.
 # When it detects it, it simply sets "change_detected" to true.
 class ReloadWatcherThread(threading.Thread):

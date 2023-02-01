@@ -71,7 +71,6 @@ class SyntEditView(SyntEditViewParent):
             win32ui.ID_VIEW_FOLD_EXPAND,
             win32ui.ID_VIEW_FOLD_EXPAND_ALL,
         ]:
-
             self.HookCommand(self.OnCmdViewFold, id)
             self.HookCommandUpdate(self.OnUpdateViewFold, id)
         self.HookCommand(self.OnCmdViewFoldTopLevel, win32ui.ID_VIEW_FOLD_TOPLEVEL)

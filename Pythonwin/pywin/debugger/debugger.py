@@ -503,6 +503,7 @@ DebuggerDialogInfos = (
     (0xE812, DebuggerWatchWindow, None),
 )
 
+
 # Prepare all the "control bars" for this package.
 # If control bars are not all loaded when the toolbar-state functions are
 # called, things go horribly wrong.

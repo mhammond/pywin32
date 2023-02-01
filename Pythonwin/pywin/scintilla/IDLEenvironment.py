@@ -66,6 +66,7 @@ try:
 except AttributeError:  # GetIDLEModule may return None
     pass
 
+
 # A class that attempts to emulate an IDLE editor window.
 # Construct with a Pythonwin view.
 class IDLEEditorWindow:

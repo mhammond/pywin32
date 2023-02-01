@@ -32,6 +32,7 @@ byte_cr = "\r".encode("ascii")
 byte_lf = "\n".encode("ascii")
 byte_crlf = "\r\n".encode("ascii")
 
+
 # A dialog box for the "Run Script" command.
 class DlgRunScript(dialog.Dialog):
     "A class for the 'run script' dialog"

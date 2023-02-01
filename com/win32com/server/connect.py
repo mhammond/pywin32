@@ -25,6 +25,7 @@ class ConnectableServer:
         pythoncom.IID_IConnectionPoint,
         pythoncom.IID_IConnectionPointContainer,
     ]
+
     # Clients must set _connect_interfaces_ = [...]
     def __init__(self):
         self.cookieNo = 0

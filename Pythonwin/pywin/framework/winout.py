@@ -321,6 +321,8 @@ class WindowOutputViewScintilla(
 
 
 WindowOutputView = WindowOutputViewScintilla
+
+
 # The WindowOutput class is actually an MFC template.  This is a conventient way of
 # making sure that my state can exist beyond the life of the windows themselves.
 # This is primarily to support the functionality of a WindowOutput window automatically

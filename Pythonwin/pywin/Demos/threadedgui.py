@@ -21,6 +21,7 @@ WM_USER_PREPARE_TO_CLOSE = win32con.WM_USER + 32
 #   italic		boolean; true if set to anything but None
 #   underline	boolean; true if set to anything but None
 
+
 # This window is a child window of a frame.  It is not the frame window itself.
 class FontWindow(window.Wnd):
     def __init__(self, text="Python Rules!"):

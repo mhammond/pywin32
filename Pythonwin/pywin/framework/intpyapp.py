@@ -14,6 +14,7 @@ from . import dbgcommands
 
 lastLocateFileName = ".py"  # used in the "File/Locate" dialog...
 
+
 # todo - _SetupSharedMenu should be moved to a framework class.
 def _SetupSharedMenu_(self):
     sharedMenu = self.GetSharedMenu()

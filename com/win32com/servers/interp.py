@@ -14,6 +14,7 @@
 from win32com.server.exception import Exception
 import winerror
 
+
 # Expose the Python interpreter.
 class Interpreter:
     """The interpreter object exposed via COM"""

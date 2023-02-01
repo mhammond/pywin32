@@ -20,6 +20,7 @@ proxy = "http://www.python.org"
 # We synchronously read chunks of this size then asynchronously write them.
 CHUNK_SIZE = 8192
 
+
 # The callback made when IIS completes the asynch write.
 def io_callback(ecb, fp, cbIO, errcode):
     print("IO callback", ecb, fp, cbIO, errcode)
