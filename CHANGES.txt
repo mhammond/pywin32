@@ -13,6 +13,8 @@ https://mhammond.github.io/pywin32_installers.html.
 
 Coming in build 306, as yet unreleased
 --------------------------------------
+* Add GetSystemPowerStatus (#2010, @CristiFati)
+
 * Add CascadeWindows (#1999, @CristiFati)
 
 * Fix for service registration code updated in build 305 (#1985)
