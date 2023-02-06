@@ -9,6 +9,7 @@ import win32gui_struct, winnt
 # could be collected somewhere for pywin32...
 GUID_DEVINTERFACE_USB_DEVICE = "{A5DCBF10-6530-11D2-901F-00C04FB951ED}"
 
+
 # WM_DEVICECHANGE message handler.
 def OnDeviceChange(hwnd, msg, wp, lp):
     # Unpack the 'lp' into the appropriate DEV_BROADCAST_* structure,

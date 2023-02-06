@@ -561,6 +561,7 @@ class CDispatch:
                 )
             except pythoncom.com_error:
                 raise AttributeError("This object can not function as an iterator")
+
             # We must return a callable object.
             class Factory:
                 def __init__(self, ob):

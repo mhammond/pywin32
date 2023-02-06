@@ -68,7 +68,6 @@ def TestText():
 
     OpenClipboard()
     try:
-
         # Make sure I can still get the text as bytes
         got = GetClipboardData(win32con.CF_TEXT)
         assert got == text_bytes, "Didnt get the correct result back - '%r'." % (got,)

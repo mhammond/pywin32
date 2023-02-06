@@ -14,6 +14,7 @@
 """
 import sys, pythoncom
 
+
 # Note that we derive from com_error, which derives from exceptions.Exception
 # Also note that we dont support "self.args", as we dont support tuple-unpacking
 class COMException(pythoncom.com_error):

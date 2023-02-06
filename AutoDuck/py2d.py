@@ -167,7 +167,7 @@ def build_module(fp, mod_name):
                     file=fp,
                 )
 
-    for (name, val) in constants:
+    for name, val in constants:
         desc = "%s = %r" % (name, val)
         if type(val) in (int, int):
             desc += " (0x%x)" % (val,)

@@ -5,6 +5,7 @@ import commctrl
 from pywin.tools import hierlist
 from pywin.mfc import docview, window
 
+
 # directory listbox
 # This has obvious limitations - doesnt track subdirs, etc.  Demonstrates
 # simple use of Python code for querying the tree as needed.

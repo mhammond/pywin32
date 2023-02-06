@@ -29,6 +29,7 @@ import win32com.client
 import pythoncom
 import time
 
+
 # The print statements indicate that COM has actually started another thread
 # and will deliver the events to that thread (ie, the events do not actually
 # fire on our main thread.

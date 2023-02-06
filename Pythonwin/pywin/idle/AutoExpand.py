@@ -7,7 +7,6 @@ import re
 
 
 class AutoExpand:
-
     keydefs = {
         "<<expand-word>>": ["<Alt-slash>"],
     }
