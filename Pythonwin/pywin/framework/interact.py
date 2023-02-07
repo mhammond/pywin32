@@ -154,7 +154,7 @@ class InteractiveFormatter(FormatterParent):
                 if ch not in "\r\n":
                     self.ColorSeg(startSeg, i - 1, state)
                     startSeg = i
-                    if ch in [sys.ps1[0], sys.ps2[0]]:
+                    if ch in (sys.ps1[0], sys.ps2[0]):
                         state = STYLE_INTERACTIVE_PROMPT
                     elif cdoc[i : i + len(tracebackHeader)] == tracebackHeader:
                         state = STYLE_INTERACTIVE_ERROR
@@ -168,7 +168,7 @@ class InteractiveFormatter(FormatterParent):
                         state = STYLE_INTERACTIVE_EOL
                     else:
                         state = stylePyStart  # Start coloring Python code.
-            elif state in [STYLE_INTERACTIVE_OUTPUT]:
+            elif state in (STYLE_INTERACTIVE_OUTPUT):
                 if ch in "\r\n":
                     self.ColorSeg(startSeg, i - 1, state)
                     startSeg = i
@@ -373,7 +373,7 @@ class InteractiveCore:
         if line == -1:
             line = self.LineFromChar()
         line = self.GetLine(line)
-        while line and line[-1] in ["\r", "\n"]:
+        while line and line[-1] in ("\r", "\n"):
             line = line[:-1]
         return line
 
@@ -404,7 +404,7 @@ class InteractiveCore:
         self.flush()
         lastLineNo = self.GetLineCount() - 1
         line = self.DoGetLine(lastLineNo)
-        if not line or line in [sys.ps1, sys.ps2]:
+        if not line or line in (sys.ps1, sys.ps2):
             self.SetSel(self.GetTextLength() - len(line), self.GetTextLength())
             self.ReplaceSel("")
         else:

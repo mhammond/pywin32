@@ -192,9 +192,9 @@ class DebuggerWindow(window.Wnd):
 
     def OnKeyDown(self, msg):
         key = msg[2]
-        if key in [13, 27, 32]:
+        if key in (13, 27, 32):
             return 1
-        if key in [46, 8]:  # delete/BS key
+        if key in (46, 8):  # delete/BS key
             self.DeleteSelected()
             return 0
         view = scriptutils.GetActiveView()

@@ -65,12 +65,12 @@ class SyntEditView(SyntEditViewParent):
 
         self.HookMessage(self.OnRClick, win32con.WM_RBUTTONDOWN)
 
-        for id in [
+        for id in (
             win32ui.ID_VIEW_FOLD_COLLAPSE,
             win32ui.ID_VIEW_FOLD_COLLAPSE_ALL,
             win32ui.ID_VIEW_FOLD_EXPAND,
             win32ui.ID_VIEW_FOLD_EXPAND_ALL,
-        ]:
+        ):
             self.HookCommand(self.OnCmdViewFold, id)
             self.HookCommandUpdate(self.OnUpdateViewFold, id)
         self.HookCommand(self.OnCmdViewFoldTopLevel, win32ui.ID_VIEW_FOLD_TOPLEVEL)
@@ -383,7 +383,7 @@ class SyntEditView(SyntEditViewParent):
             cmdui.Enable(0)
             return
         id = cmdui.m_nID
-        if id in [win32ui.ID_VIEW_FOLD_EXPAND_ALL, win32ui.ID_VIEW_FOLD_COLLAPSE_ALL]:
+        if id in (win32ui.ID_VIEW_FOLD_EXPAND_ALL, win32ui.ID_VIEW_FOLD_COLLAPSE_ALL):
             cmdui.Enable()
         else:
             enable = 0

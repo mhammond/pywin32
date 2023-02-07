@@ -106,7 +106,7 @@ def build_module(fp, mod_name):
             continue
         if hasattr(ob, "__module__") and ob.__module__ != mod_name:
             continue
-        if type(ob) in [type, type]:
+        if type(ob) in (type, type):
             classes.append(BuildInfo(name, ob))
         elif type(ob) == types.FunctionType:
             functions.append(BuildInfo(name, ob))

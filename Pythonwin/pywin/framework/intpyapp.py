@@ -289,7 +289,7 @@ class InteractivePythonApp(app.CApp):
                 ).lower()
                 i -= 1  #  arg is /edit's parameter
             par = i < len(args) and args[i] or "MISSING"
-            if argType in ["/nodde", "/new", "-nodde", "-new"]:
+            if argType in ("/nodde", "/new", "-nodde", "-new"):
                 # Already handled
                 pass
             elif argType.startswith("/goto:"):

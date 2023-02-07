@@ -147,7 +147,7 @@ class BindingsManager:
             rc = binding.handler(*args)
             if handler_args_type == HANDLER_ARGS_IDLE:
                 # Convert to our return code.
-                if rc in [None, "break"]:
+                if rc in (None, "break"):
                     rc = 0
                 else:
                     rc = 1
