@@ -168,7 +168,7 @@ class InteractiveFormatter(FormatterParent):
                         state = STYLE_INTERACTIVE_EOL
                     else:
                         state = stylePyStart  # Start coloring Python code.
-            elif state in (STYLE_INTERACTIVE_OUTPUT):
+            elif state in (STYLE_INTERACTIVE_OUTPUT,):
                 if ch in "\r\n":
                     self.ColorSeg(startSeg, i - 1, state)
                     startSeg = i
