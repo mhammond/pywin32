@@ -444,7 +444,7 @@ def ImportFile():
         if getattr(mod, "__file__", None):
             fname = mod.__file__
             base, ext = os.path.splitext(fname)
-            if ext.lower() in [".pyo", ".pyc"]:
+            if ext.lower() in (".pyo", ".pyc"):
                 ext = ".py"
             fname = base + ext
             if win32ui.ComparePath(fname, pathName):

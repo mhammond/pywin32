@@ -294,7 +294,7 @@ class WindowOutputViewScintilla(
     ##			return 0	# never dont pass on
 
     def RestoreKillBuffer(self):
-        assert len(self.template.killBuffer) in [0, 1], "Unexpected killbuffer contents"
+        assert len(self.template.killBuffer) in (0, 1), "Unexpected killbuffer contents"
         if self.template.killBuffer:
             self.SCIAddText(self.template.killBuffer[0])
         self.template.killBuffer = []
