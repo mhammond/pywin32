@@ -1833,6 +1833,18 @@ PyObject *PyFlashWindowEx(PyObject *self, PyObject *args)
 %native(FlashWindowEx) PyFlashWindowEx;
 #endif // MS_WINCE
 
+// @pyswig |AdjustWindowRect|Calculates the required size of the window rectangle, based on the desired client-rectangle size.
+BOOLAPI AdjustWindowRect(
+	RECT *BOTH,  // @pyparm <o PyRECT>|rc||A pointer to a RECT structure that contains the coordinates of the top-left and bottom-right corners of the desired client area
+	DWORD dwStyle,  // @pyparm DWORD|dwStyle||Window style
+	BOOL bMenu);  // @pyparm BOOL|bMenu||Window has a menu
+
+// @pyswig |AdjustWindowRectEx|Calculates the required size of the window rectangle, based on the desired client-rectangle size.
+BOOLAPI AdjustWindowRectEx(
+	RECT *BOTH,  // @pyparm <o PyRECT>|rc||A pointer to a RECT structure that contains the coordinates of the top-left and bottom-right corners of the desired client area
+	DWORD dwStyle,  // @pyparm DWORD|dwStyle||Window style
+	BOOL bMenu,  // @pyparm BOOL|bMenu||Window has a menu
+	DWORD dwStyle);  // @pyparm DWORD|dwExStyle||Extended window style
 
 // @pyswig int|GetWindowLong|
 // @pyparm int|hwnd||
