@@ -5844,13 +5844,13 @@ PyObject* PyGetSystemPowerStatus(PyObject *self, PyObject *args)
     if (!res)
         return PyWin_SetAPIError("GetSystemPowerStatus");
     return Py_BuildValue(
-        "{s:B, s:B, s:B, s:B, s:k, s:k}",
-        "ACLineStatus", sps.ACLineStatus,
-        "BatteryFlag", sps.BatteryFlag,
-        "BatteryLifePercent", sps.BatteryLifePercent,
+        "{s:h, s:h, s:h, s:B, s:L, s:L}",
+        "ACLineStatus", (sps.ACLineStatus == (BYTE)-1) ? -1 : sps.ACLineStatus,
+        "BatteryFlag", (sps.BatteryFlag == (BYTE)-1) ? -1 : sps.BatteryFlag,
+        "BatteryLifePercent", (sps.BatteryLifePercent == (BYTE)-1) ? -1 : sps.BatteryLifePercent,
         "SystemStatusFlag", sps.SystemStatusFlag,
-        "BatteryLifeTime", sps.BatteryLifeTime,
-        "BatteryFullLifeTime", sps.BatteryFullLifeTime);
+        "BatteryLifeTime", (sps.BatteryLifeTime == (DWORD)-1) ? -1 : (long long)sps.BatteryLifeTime,
+        "BatteryFullLifeTime", (sps.BatteryFullLifeTime == (DWORD)-1) ? -1 : (long long)sps.BatteryFullLifeTime);
 }
 
 
