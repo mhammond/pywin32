@@ -633,11 +633,11 @@ class GrepDialog(dialog.Dialog):
 
     def OnOK(self):
         self.UpdateData(1)
-        for id, name in [
+        for id, name in (
             (101, "greppattern"),
             (102, "dirpattern"),
             (103, "filpattern"),
-        ]:
+        ):
             if not self[name]:
                 self.GetDlgItem(id).SetFocus()
                 win32api.MessageBeep()

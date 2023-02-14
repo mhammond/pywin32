@@ -32,6 +32,7 @@ byte_cr = "\r".encode("ascii")
 byte_lf = "\n".encode("ascii")
 byte_crlf = "\r\n".encode("ascii")
 
+
 # A dialog box for the "Run Script" command.
 class DlgRunScript(dialog.Dialog):
     "A class for the 'run script' dialog"
@@ -443,7 +444,7 @@ def ImportFile():
         if getattr(mod, "__file__", None):
             fname = mod.__file__
             base, ext = os.path.splitext(fname)
-            if ext.lower() in [".pyo", ".pyc"]:
+            if ext.lower() in (".pyo", ".pyc"):
                 ext = ".py"
             fname = base + ext
             if win32ui.ComparePath(fname, pathName):

@@ -109,7 +109,7 @@ def make_doc_summary(inFile, outFile):
             thisModName = thisModName + " (more %d)" % (chunk_number + 1,)
 
         outFile.write("\n")
-        for (meth, extras) in these_methods:
+        for meth, extras in these_methods:
             fields = meth.split("|")
             if len(fields) != 3:
                 print("**Error - %s does not have enough fields" % meth)
@@ -125,7 +125,7 @@ def make_doc_summary(inFile, outFile):
             outFile.write("\n// <nl>Derived from <o %s>\n" % (g_com_parent))
         else:
             outFile.write("\n// @module %s|%s\n" % (thisModName, modDoc))
-        for (meth, extras) in these_methods:
+        for meth, extras in these_methods:
             fields = meth.split("|")
             outFile.write("// @pymeth %s|%s\n" % (fields[1], fields[2]))
         chunk_number += 1
@@ -134,7 +134,7 @@ def make_doc_summary(inFile, outFile):
     outFile.write("\n")
     for extra in extra_tags:
         outFile.write("%s\n" % (extra))
-    for (cname, doc) in constants:
+    for cname, doc in constants:
         outFile.write("// @const %s|%s|%s\n" % (modName, cname, doc))
 
 

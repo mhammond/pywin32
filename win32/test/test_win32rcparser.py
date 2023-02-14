@@ -11,12 +11,12 @@ class TestParser(unittest.TestCase):
         self.resources = win32rcparser.Parse(rc_file)
 
     def testStrings(self):
-        for sid, expected in [
+        for sid, expected in (
             ("IDS_TEST_STRING4", "Test 'single quoted' string"),
             ("IDS_TEST_STRING1", 'Test "quoted" string'),
             ("IDS_TEST_STRING3", 'String with single " quote'),
             ("IDS_TEST_STRING2", "Test string"),
-        ]:
+        ):
             got = self.resources.stringTable[sid].value
             self.assertEqual(got, expected)
 

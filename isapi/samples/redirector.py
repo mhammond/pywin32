@@ -39,6 +39,7 @@ proxy = "http://www.python.org"
 # and these entries exist by default on Vista...
 excludes = ["/iisstart.htm", "/welcome.png"]
 
+
 # An "io completion" function, called when ecb.ExecURL completes...
 def io_callback(ecb, url, cbIO, errcode):
     # Get the status of our ExecURL

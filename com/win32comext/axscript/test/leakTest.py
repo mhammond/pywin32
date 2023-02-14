@@ -59,6 +59,7 @@ IID_ITestEvents = pythoncom.MakeIID("{8EB72F90-0D44-11d1-9C4B-00AA00125A98}")
 
 class TestConnectServer(connect.ConnectableServer):
     _connect_interfaces_ = [IID_ITestEvents]
+
     # The single public method that the client can call on us
     # (ie, as a normal COM server, this exposes just this single method.
     def __init__(self, object):

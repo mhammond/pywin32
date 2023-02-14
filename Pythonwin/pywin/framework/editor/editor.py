@@ -279,13 +279,13 @@ class EditorView(ParentEditorView):
                 lookLine = startLine - 1
                 while lookLine >= 0:
                     check = self._obj_.GetLine(lookLine)[0:1]
-                    if check in ["\t", " "]:
+                    if check in ("\t", " "):
                         ins = check
                         break
                     lookLine = lookLine - 1
             else:  # See if the previous char can tell us
                 check = line[realCol - 1]
-                if check in ["\t", " "]:
+                if check in ("\t", " "):
                     ins = check
 
         # Either smart tabs off, or not smart enough!

@@ -5,6 +5,7 @@ import commctrl
 from pywin.tools import hierlist
 from pywin.mfc import docview, window
 
+
 # directory listbox
 # This has obvious limitations - doesnt track subdirs, etc.  Demonstrates
 # simple use of Python code for querying the tree as needed.
@@ -113,7 +114,7 @@ class HLIFileDir(hierlist.HierListItem):
     def GetSubList(self):
         ret = []
         for newname in os.listdir(self.filename):
-            if newname not in [".", ".."]:
+            if newname not in (".", ".."):
                 ret.append(HLIFileDir(os.path.join(self.filename, newname)))
         return ret
 

@@ -22,6 +22,7 @@ except win32api.error:
     # No console - redirect
     import win32traceutil
 
+
 # The ISAPI extension - handles requests in our virtual dir, and sends the
 # response to the client.
 class Extension(threaded_extension.ThreadPoolExtension):

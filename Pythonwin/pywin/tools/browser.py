@@ -15,6 +15,7 @@ from . import hierlist
 
 special_names = ["__doc__", "__name__", "__self__"]
 
+
 #
 # HierList items
 class HLIPythonObject(hierlist.HierListItem):
@@ -78,7 +79,7 @@ class HLIPythonObject(hierlist.HierListItem):
     def GetSubList(self):
         ret = []
         try:
-            for (key, ob) in self.myobject.__dict__.items():
+            for key, ob in self.myobject.__dict__.items():
                 if key not in special_names:
                     ret.append(MakeHLI(ob, key))
         except (AttributeError, TypeError):

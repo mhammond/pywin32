@@ -420,6 +420,8 @@ def EmptyMENUINFO(mask=None):
 # XXX - intend checking them later - but having them is better than not at all!
 
 _tvitem_fmt = "iPiiPiiiiP"
+
+
 # Helpers for the ugly win32 structure packing/unpacking
 # XXX - Note that functions using _GetMaskAndVal run 3x faster if they are
 # 'inlined' into the function - see PackLVITEM.  If the profiler points at
@@ -891,6 +893,7 @@ def PackHDITEM(
 
 
 # Device notification stuff
+
 
 # Generic function for packing a DEV_BROADCAST_* structure - generally used
 # by the other PackDEV_BROADCAST_* functions in this module.

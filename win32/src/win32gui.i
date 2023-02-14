@@ -5077,9 +5077,11 @@ static PyObject *PyGetPixel(PyObject *self, PyObject *args)
 		return NULL;
 	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc))
 		return NULL;
-	ret=GetPixel(hdc, x, y);
-	if (ret==CLR_INVALID)
-		return PyWin_SetAPIError("GetPixel");
+	ret = GetPixel(hdc, x, y);
+	if (ret == CLR_INVALID) {
+		PyErr_SetString(PyWinExc_ApiError, "Could not get pixel value.");
+		return NULL;
+	}
 	return PyLong_FromUnsignedLong(ret);
 }
 
