@@ -5829,6 +5829,31 @@ PyObject *PyGetPwrCapabilities(PyObject *self, PyObject *args)
         "DefaultLowLatencyWake", PyLong_FromLong(spc.DefaultLowLatencyWake));
 }
 
+
+// @pymethod dict|win32api|GetSystemPowerStatus|Retrieves the power status of the system
+// @pyseeapi GetSystemPowerStatus
+// @comm Requires Winxp or later.
+// @rdesc Returns a dict representing a SYSTEM_POWER_STATUS struct
+PyObject* PyGetSystemPowerStatus(PyObject *self, PyObject *args)
+{
+    SYSTEM_POWER_STATUS sps;
+    BOOL res = FALSE;
+    Py_BEGIN_ALLOW_THREADS;
+    res = GetSystemPowerStatus(&sps);
+    Py_END_ALLOW_THREADS;
+    if (!res)
+        return PyWin_SetAPIError("GetSystemPowerStatus");
+    return Py_BuildValue(
+        "{s:h, s:h, s:h, s:B, s:L, s:L}",
+        "ACLineStatus", (sps.ACLineStatus == (BYTE)-1) ? -1 : sps.ACLineStatus,
+        "BatteryFlag", (sps.BatteryFlag == (BYTE)-1) ? -1 : sps.BatteryFlag,
+        "BatteryLifePercent", (sps.BatteryLifePercent == (BYTE)-1) ? -1 : sps.BatteryLifePercent,
+        "SystemStatusFlag", sps.SystemStatusFlag,
+        "BatteryLifeTime", (sps.BatteryLifeTime == (DWORD)-1) ? -1 : (long long)sps.BatteryLifeTime,
+        "BatteryFullLifeTime", (sps.BatteryFullLifeTime == (DWORD)-1) ? -1 : (long long)sps.BatteryFullLifeTime);
+}
+
+
 /* List of functions exported by this module */
 // @module win32api|A module, encapsulating the Windows Win32 API.
 static struct PyMethodDef win32api_functions[] = {
@@ -5996,6 +6021,8 @@ static struct PyMethodDef win32api_functions[] = {
     {"GetNativeSystemInfo", PyGetNativeSystemInfo,
      1},  // @pymeth GetNativeSystemInfo|Retrieves information about the current system for a Wow64 process.
     {"GetSystemMetrics", PyGetSystemMetrics, 1},  // @pymeth GetSystemMetrics|Returns the specified system metrics.
+    {"GetSystemPowerStatus", PyGetSystemPowerStatus,
+     METH_NOARGS},  // @pymeth GetSystemPowerStatus|Retrieves the power status of the system
     {"GetSystemTime", PyGetSystemTime, 1},        // @pymeth GetSystemTime|Returns the current system time.
     {"GetTempFileName", PyGetTempFileName, 1},    // @pymeth GetTempFileName|Creates a temporary file.
     {"GetTempPath", PyGetTempPath, 1},  // @pymeth GetTempPath|Returns the path designated as holding temporary files.
