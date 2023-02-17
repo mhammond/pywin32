@@ -1206,7 +1206,7 @@ for info in (
     ),
     (
         "win32file",
-        "",
+        "ws2_32 mswsock",
         0x0500,
         """
               win32/src/win32file.i
