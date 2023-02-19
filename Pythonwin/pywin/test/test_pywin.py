@@ -365,6 +365,7 @@ class T(unittest.TestCase):
 
     def test_docedit(self):
         import tempfile
+
         import pywin.scintilla.IDLEenvironment
 
         ##doc = pywin.framework.editor.editorTemplate.OpenDocumentFile(None)

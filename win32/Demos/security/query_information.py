@@ -4,7 +4,6 @@ import winerror
 from ntsecuritycon import *
 
 
-
 # This is a Python implementation of win32api.GetDomainName()
 def GetDomainName():
     try:

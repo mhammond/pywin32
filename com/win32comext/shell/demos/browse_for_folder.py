@@ -6,7 +6,6 @@ import win32gui
 from win32com.shell import shell, shellcon
 
 
-
 # A callback procedure - called by SHBrowseForFolder
 def BrowseCallbackProc(hwnd, msg, lp, data):
     if msg == shellcon.BFFM_INITIALIZED:

@@ -23,7 +23,6 @@ import winerror
 from isapi import InternalReloadException
 
 
-
 # A watcher thread that checks for __file__ changing.
 # When it detects it, it simply sets "change_detected" to true.
 class ReloadWatcherThread(threading.Thread):
