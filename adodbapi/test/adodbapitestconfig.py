@@ -12,8 +12,8 @@
 # #  -- the things you need to change are below it.
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 import platform
-import random
 import sys
+import random
 
 import is64bit
 import setuptestframework

@@ -1,8 +1,7 @@
 import unittest
-
-import netbios
-import win32api
 import win32wnet
+import win32api
+import netbios
 
 RESOURCE_CONNECTED = 0x00000001
 RESOURCE_GLOBALNET = 0x00000002

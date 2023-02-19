@@ -1,8 +1,7 @@
 import unittest
-
-import win32com.test.util
-from win32com.client.dynamic import DumbDispatch
 from win32com.client.gencache import EnsureDispatch
+from win32com.client.dynamic import DumbDispatch
+import win32com.test.util
 
 
 class RegexTest(win32com.test.util.TestCase):

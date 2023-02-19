@@ -1,9 +1,7 @@
 """Utilities for selecting and enumerating the Type Libraries installed on the system
 """
 
-import pythoncom
-import win32api
-import win32con
+import win32api, win32con, pythoncom
 
 
 class TypelibSpec:

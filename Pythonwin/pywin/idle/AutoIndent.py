@@ -1,9 +1,7 @@
-import string
-import tokenize
-
-from pywin import default_scintilla_encoding
-
+import sys
+import string, tokenize
 from . import PyParse
+from pywin import default_scintilla_encoding
 
 # tokenize() is the generator working with 'byte' objects, and
 # token_generator is the 'undocumented b/w compat' function that

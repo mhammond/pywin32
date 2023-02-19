@@ -35,9 +35,7 @@ import os
 import sys
 import weakref
 
-from . import ado_consts as adc
-from . import apibase as api
-from . import process_connect_string
+from . import ado_consts as adc, apibase as api, process_connect_string
 
 try:
     verbose = int(os.environ["ADODBAPI_VERBOSE"])

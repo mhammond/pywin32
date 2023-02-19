@@ -1,26 +1,24 @@
-import os
-import string
-import time
-import traceback
-
 import pythoncom
-import pywintypes
-import win32api
-import win32com
-import win32com.client
-import win32com.client.dynamic
 import win32com.server.util
-import win32ui
+import time
+
+import win32com, sys, string, win32api, traceback
+import win32com.client.dynamic
+import win32com.client
+import pythoncom
+from win32com.axcontrol import axcontrol
 from pywintypes import Unicode
 from win32com import storagecon
-from win32com.axcontrol import axcontrol
 from win32com.test.util import CheckClean
 
-S_OK = 0
+import pywintypes
+import win32ui
+import win32api, os
 
 import datetime
-
 import win32timezone
+
+S_OK = 0
 
 now = win32timezone.now()
 

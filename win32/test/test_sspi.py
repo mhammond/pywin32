@@ -2,14 +2,9 @@
 # Stolen from Roger's original test_sspi.c, a version of which is in "Demos"
 # See also the other SSPI demos.
 import re
-import unittest
-
-import sspi
-import sspicon
-import win32api
-import win32security
+import win32security, sspi, sspicon, win32api
 from pywin32_testutil import TestSkipped, testmain
-
+import unittest
 
 # It is quite likely that the Kerberos tests will fail due to not being
 # installed.  The NTLM tests do *not* get the same behaviour as they should

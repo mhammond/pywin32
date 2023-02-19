@@ -3,15 +3,13 @@
 # This requires the PythonCOM VB Test Harness.
 #
 
-import traceback
-
-import pythoncom
-import win32com.client
-import win32com.client.dynamic
-import win32com.client.gencache
+import sys
 import winerror
+import pythoncom, win32com.client, win32com.client.dynamic, win32com.client.gencache
 from win32com.server.util import NewCollection, wrap
 from win32com.test import util
+
+import traceback
 
 # for debugging
 useDispatcher = None

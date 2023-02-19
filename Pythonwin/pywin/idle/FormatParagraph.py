@@ -14,8 +14,8 @@
 #   spaces, they will not be considered part of the same block.
 # * Fancy comments, like this bulleted list, arent handled :-)
 
-import re
 import string
+import re
 
 
 class FormatParagraph:

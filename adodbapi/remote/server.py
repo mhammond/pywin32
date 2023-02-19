@@ -30,11 +30,11 @@ PYRO_PORT = 9099  # may be altered below for Python based servers
 PYRO_COMMTIMEOUT = 40  # to be larger than the default database timeout
 SERVICE_NAME = "ado.connection"
 
-import array
-import datetime
 import os
 import sys
 import time
+import array
+import datetime
 
 # Pyro4 is required for server and remote operation --> https://pypi.python.org/pypi/Pyro4/
 try:
@@ -42,8 +42,8 @@ try:
 except ImportError:
     print('* * * Sorry, server operation requires Pyro4. Please "pip install" it.')
     exit(11)
-import adodbapi
 import adodbapi.apibase as api
+import adodbapi
 import adodbapi.process_connect_string
 
 try:

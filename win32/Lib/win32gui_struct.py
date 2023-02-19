@@ -27,15 +27,14 @@
 # win32gui (ie, the Pack* functions) - but doesn't make as much sense for
 # the Unpack* functions, where the aim is user convenience.
 
-import array
-import struct
 import sys
-from collections import namedtuple
-
+import win32gui
+import win32con
+import struct
+import array
 import commctrl
 import pywintypes
-import win32con
-import win32gui
+from collections import namedtuple
 
 is64bit = "64 bit" in sys.version
 

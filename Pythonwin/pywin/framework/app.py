@@ -4,17 +4,16 @@
 #
 # We also grab the FileOpen command, to invoke our Python editor
 " The PythonWin application code. Manages most aspects of MDI, etc "
-import os
-import string
-import sys
-import traceback
-
-import regutil
-import win32api
 import win32con
+import win32api
 import win32ui
-from pywin.mfc import afxres, dialog, window
+import sys
+import string
+import os
+from pywin.mfc import window, dialog, afxres
 from pywin.mfc.thread import WinApp
+import traceback
+import regutil
 
 from . import scriptutils
 

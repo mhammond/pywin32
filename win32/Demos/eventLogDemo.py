@@ -1,8 +1,9 @@
+import win32evtlog
 import win32api
 import win32con
-import win32evtlog
-import win32evtlogutil
 import win32security  # To translate NT Sids to account names.
+
+import win32evtlogutil
 
 
 def ReadLog(computer, logType="Application", dumpEachRecord=0):
@@ -76,8 +77,7 @@ def test():
         print("This sample only runs on NT")
         return
 
-    import getopt
-    import sys
+    import sys, getopt
 
     opts, args = getopt.getopt(sys.argv[1:], "rwh?c:t:v")
     computer = None

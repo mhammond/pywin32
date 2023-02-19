@@ -1,16 +1,12 @@
 # General test module for win32api - please add some :)
 
-import datetime
-import os
-import sys
-import tempfile
 import unittest
-
-import win32api
-import win32con
-import win32event
-import winerror
 from pywin32_testutil import TestSkipped
+
+import win32api, win32con, win32event, winerror
+import sys, os
+import tempfile
+import datetime
 
 
 class CurrentUserTestCase(unittest.TestCase):

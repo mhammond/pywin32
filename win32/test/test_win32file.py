@@ -1,23 +1,17 @@
-import datetime
+import unittest
+from pywin32_testutil import TestSkipped, testmain
+import win32api, win32file, win32pipe, pywintypes, winerror, win32event
+import win32con, ntsecuritycon
+import sys
 import os
-import random
-import shutil
-import socket
 import tempfile
 import threading
 import time
-import unittest
-
-import ntsecuritycon
-import pywintypes
-import win32api
-import win32con
-import win32event
-import win32file
-import win32pipe
+import shutil
+import socket
+import datetime
+import random
 import win32timezone
-import winerror
-from pywin32_testutil import TestSkipped, testmain
 
 try:
     set

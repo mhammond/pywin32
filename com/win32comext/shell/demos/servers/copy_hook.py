@@ -12,7 +12,6 @@ import win32gui
 import win32con
 import winerror
 
-
 # Our shell extension.
 class ShellExtension:
     _reg_progid_ = "Python.ShellExtension.CopyHook"

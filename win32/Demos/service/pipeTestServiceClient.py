@@ -6,15 +6,13 @@
 # Eg: pipeTestServiceClient.py -s server_name Hi There
 # Should work.
 
-import os
-import traceback
-
+from win32pipe import *
+from win32file import *
+from win32event import *
 import pywintypes
 import win32api
 import winerror
-from win32event import *
-from win32file import *
-from win32pipe import *
+import sys, os, traceback
 
 verbose = 0
 
@@ -109,8 +107,7 @@ def stressTestClient(server, numThreads, numMessages):
 
 
 def main():
-    import getopt
-    import sys
+    import sys, getopt
 
     server = "."
     thread_count = 0

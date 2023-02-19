@@ -1,10 +1,9 @@
-import os
-import sys
+import unittest
+import win32trace
 import threading
 import time
-import unittest
-
-import win32trace
+import os
+import sys
 from pywin32_testutil import TestSkipped
 
 if __name__ == "__main__":

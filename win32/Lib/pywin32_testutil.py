@@ -1,10 +1,9 @@
 # Utilities for the pywin32 tests
-import gc
-import os
 import site
 import sys
+import os
 import unittest
-
+import gc
 import winerror
 
 ##
@@ -38,7 +37,7 @@ class LeakTestCase(unittest.TestCase):
     def __call__(self, result=None):
         # For the COM suite's sake, always ensure we don't leak
         # gateways/interfaces
-        from pythoncom import _GetGatewayCount, _GetInterfaceCount
+        from pythoncom import _GetInterfaceCount, _GetGatewayCount
 
         gc.collect()
         ni = _GetInterfaceCount()
@@ -154,8 +153,8 @@ _is_admin = None
 def check_is_admin():
     global _is_admin
     if _is_admin is None:
-        import pythoncom
         from win32com.shell.shell import IsUserAnAdmin
+        import pythoncom
 
         try:
             _is_admin = IsUserAnAdmin()

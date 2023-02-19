@@ -2,16 +2,12 @@
 
 Please see policy.py for a discussion on dispatchers and policies
 """
-import traceback
+import pythoncom, traceback, win32api
 from sys import exc_info
 
-import pythoncom
-import win32api
-import win32com
-
-#
 from win32com.server.exception import IsCOMServerException
 from win32com.util import IIDToInterfaceName
+import win32com
 
 
 class DispatcherBase:

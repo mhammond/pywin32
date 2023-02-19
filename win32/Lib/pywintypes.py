@@ -1,8 +1,5 @@
 # Magic utility that "redirects" to pywintypesxx.dll
-import importlib.machinery
-import importlib.util
-import os
-import sys
+import importlib.util, importlib.machinery, sys, os
 
 
 def __import_pywin32_system_module__(modname, globs):

@@ -1,9 +1,9 @@
 # Test module for win32timezone
 
-import doctest
+import sys
 import unittest
-
 import win32timezone
+import doctest
 
 
 class Win32TimeZoneTest(unittest.TestCase):

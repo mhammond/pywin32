@@ -1,13 +1,13 @@
-import threading
-import time
 import unittest
+import time
+import threading
 
-import pywintypes
-import win32con
-import win32event
-import win32file
 import win32pipe
+import win32file
+import win32event
+import pywintypes
 import winerror
+import win32con
 
 
 class PipeTests(unittest.TestCase):

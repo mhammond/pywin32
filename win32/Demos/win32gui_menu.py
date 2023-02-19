@@ -15,14 +15,11 @@ try:
     from winxpgui import *
 except ImportError:
     from win32gui import *
-
-import array
-import os
-import struct
-import sys
-
-import win32con
 from win32gui_struct import *
+import win32con
+import sys, os
+import struct
+import array
 
 this_dir = os.path.split(sys.argv[0])[0]
 

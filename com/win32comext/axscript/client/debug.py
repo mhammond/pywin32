@@ -1,19 +1,17 @@
-import os
-import string
-import sys
-import traceback
+import traceback, sys, string
 
-import pythoncom
-import win32api
-import win32com.client.connect
 import win32com.server.util
-import winerror
-from win32com.axdebug import adb, axdebug, contexts, documents, gateways, stackframe
-from win32com.axdebug.codecontainer import SourceCodeContainer
-from win32com.axdebug.util import _wrap, _wrap_remove
+from win32com.util import IIDToInterfaceName
 from win32com.client.util import Enumerator
 from win32com.server.exception import COMException
-from win32com.util import IIDToInterfaceName
+import pythoncom
+from .framework import trace
+from win32com.axdebug import axdebug, gateways, contexts, stackframe, documents, adb
+from win32com.axdebug.codecontainer import SourceCodeContainer
+from win32com.axdebug.util import _wrap, _wrap_remove
+import win32com.client.connect
+import win32api, winerror
+import os
 
 try:
     os.environ["DEBUG_AXDEBUG"]

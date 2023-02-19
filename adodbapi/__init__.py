@@ -3,30 +3,28 @@
 Copyright (C) 2002 Henrik Ekelund, version 2.1 by Vernon Cole
 * http://sourceforge.net/projects/adodbapi
 """
+import sys
 import time
 
-from .adodbapi import Connection, Cursor, __version__, connect, dateconverter
+from .apibase import apilevel, threadsafety, paramstyle
 from .apibase import (
-    BINARY,
-    DATETIME,
-    NUMBER,
-    ROWID,
-    STRING,
+    Warning,
+    Error,
+    InterfaceError,
     DatabaseError,
     DataError,
-    Error,
-    FetchFailedError,
-    IntegrityError,
-    InterfaceError,
-    InternalError,
-    NotSupportedError,
     OperationalError,
-    ProgrammingError,
-    Warning,
-    apilevel,
-    paramstyle,
-    threadsafety,
+    IntegrityError,
 )
+from .apibase import (
+    InternalError,
+    ProgrammingError,
+    NotSupportedError,
+    FetchFailedError,
+)
+from .apibase import NUMBER, STRING, BINARY, DATETIME, ROWID
+
+from .adodbapi import connect, Connection, __version__, dateconverter, Cursor
 
 
 # -----------------------------------------------------------

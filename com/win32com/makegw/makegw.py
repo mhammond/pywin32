@@ -47,7 +47,6 @@
 """
 
 import re
-
 from . import makegwparse
 
 

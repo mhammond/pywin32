@@ -1,16 +1,9 @@
 ## demonstrates using BackupRead and BackupWrite to copy all of a file's data streams
 
-import struct
-import traceback
-
-import ntsecuritycon
-import pythoncom
-import pywintypes
-import win32api
-import win32con
-import win32file
-import win32security
+import win32file, win32api, win32con, win32security, ntsecuritycon
 from win32com import storagecon
+import pythoncom, pywintypes
+import struct, traceback
 
 all_sd_info = (
     win32security.DACL_SECURITY_INFORMATION

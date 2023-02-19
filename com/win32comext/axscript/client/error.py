@@ -5,14 +5,13 @@
 
 """
 
-import re
-import traceback
-
-import pythoncom
+import sys, traceback
+from win32com.axscript import axscript
+import winerror
 import win32com.server.exception
 import win32com.server.util
-import winerror
-from win32com.axscript import axscript
+import pythoncom
+import re
 
 debugging = 0
 

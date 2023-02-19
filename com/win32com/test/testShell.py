@@ -1,18 +1,18 @@
+import sys, os
+import struct
+import unittest
 import copy
 import datetime
-import os
-import struct
-import sys
-import unittest
+import win32timezone
 
+import win32con
 import pythoncom
 import pywintypes
-import win32com.test.util
-import win32con
-import win32timezone
 from win32com.shell import shell
 from win32com.shell.shellcon import *
 from win32com.storagecon import *
+
+import win32com.test.util
 
 
 class ShellTester(win32com.test.util.TestCase):
