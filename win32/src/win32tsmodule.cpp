@@ -95,10 +95,10 @@ static PyObject *PyWTSQueryUserConfig(PyObject *self, PyObject *args, PyObject *
             &obUserName,       // @pyparm <o PyUnicode>|UserName||Name of user
             &WTSConfigClass))  // @pyparm int|ConfigClass||Type of information to be returned, win32ts.WTSUserConfig*
         return NULL;
-    if (PyWinObject_AsWCHAR(obServerName, &ServerName, TRUE) && PyWinObject_AsWCHAR(obUserName, &UserName, FALSE))
+    if (PyWinObject_AsWCHAR(obServerName, &ServerName, TRUE) && PyWinObject_AsWCHAR(obUserName, &UserName, FALSE)) {
         if (!WTSQueryUserConfig(ServerName, UserName, WTSConfigClass, &buf, &bufsize))
             PyWin_SetAPIError("WTSQueryUserConfig");
-        else
+        else {
             switch (WTSConfigClass) {
                 // @flagh ConfigClass|Returned value
                 case WTSUserConfigInitialProgram:    // @flag WTSUserConfigInitialProgram|Unicode string, program to be
@@ -137,6 +137,8 @@ static PyObject *PyWTSQueryUserConfig(PyObject *self, PyObject *args, PyObject *
                 default:
                     PyErr_SetString(PyExc_NotImplementedError, "Config class not supported yet");
             }
+        }
+    }
 
     PyWinObject_FreeWCHAR(ServerName);
     PyWinObject_FreeWCHAR(UserName);
