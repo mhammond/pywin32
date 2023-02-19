@@ -23,7 +23,6 @@ from pywin.mfc import dialog, docview, object, window
 from win32api import RGB
 
 
-
 # helper to get the text of an arbitary item
 def GetItemText(item):
     if isinstance(item, (tuple, list)):
