@@ -20,6 +20,7 @@ import winerror
 _d = "_d" if "_d.pyd" in importlib.machinery.EXTENSION_SUFFIXES else ""
 error = RuntimeError
 
+
 # Returns the full path to an executable for hosting a Python service - typically
 # 'pythonservice.exe'
 # * If you pass a param and it exists as a file, you'll get the abs path back
@@ -43,22 +44,23 @@ def LocatePythonServiceExe(exe=None):
     # Now we are searching for the .exe
     # We are going to want it here.
     correct = os.path.join(sys.exec_prefix, exe)
-    # If that doesn't exist, we might find it where pywin32 installed it,
-    # next to win32service.pyd.
+    # Even if that file already exists, we copy the one installed by pywin32
+    # in-case it was upgraded.
+    # pywin32 installed it next to win32service.pyd (but we can't run it from there)
     maybe = os.path.join(os.path.dirname(win32service.__file__), exe)
     if os.path.exists(maybe):
-        # Welp, copy it to exec_prefix
         print(f"copying host exe '{maybe}' -> '{correct}'")
         win32api.CopyFile(maybe, correct)
-        correct = maybe
 
     if not os.path.exists(correct):
         raise error(f"Can't find '{correct}'")
 
     # If pywintypes.dll isn't next to us, or at least next to pythonXX.dll,
-    #  there's a good chance the service will not run. That's usually copied by
+    # there's a good chance the service will not run. That's usually copied by
     # `pywin32_postinstall`, but putting it next to the python DLL seems
     # reasonable.
+    # (Unlike the .exe above, we don't unconditionally copy this, and possibly
+    # copy it to a different place. Doesn't seem a good reason for that!?)
     python_dll = win32api.GetModuleFileName(sys.dllhandle)
     pyw = f"pywintypes{sys.version_info[0]}{sys.version_info[1]}{_d}.dll"
     correct_pyw = os.path.join(os.path.dirname(python_dll), pyw)
@@ -306,7 +308,6 @@ def ChangeServiceConfig(
     try:
         hs = SmartOpenService(hscm, serviceName, win32service.SERVICE_ALL_ACCESS)
         try:
-
             win32service.ChangeServiceConfig(
                 hs,
                 serviceType,  # service type
@@ -429,7 +430,6 @@ def RemoveService(serviceName):
 def ControlService(serviceName, code, machine=None):
     hscm = win32service.OpenSCManager(machine, None, win32service.SC_MANAGER_ALL_ACCESS)
     try:
-
         hs = SmartOpenService(hscm, serviceName, win32service.SERVICE_ALL_ACCESS)
         try:
             status = win32service.ControlService(hs, code)
@@ -543,7 +543,6 @@ def StopService(serviceName, machine=None):
 def StartService(serviceName, args=None, machine=None):
     hscm = win32service.OpenSCManager(machine, None, win32service.SC_MANAGER_ALL_ACCESS)
     try:
-
         hs = SmartOpenService(hscm, serviceName, win32service.SERVICE_ALL_ACCESS)
         try:
             win32service.StartService(hs, args)
@@ -636,7 +635,6 @@ def GetServiceClassString(cls, argv=None):
 def QueryServiceStatus(serviceName, machine=None):
     hscm = win32service.OpenSCManager(machine, None, win32service.SC_MANAGER_CONNECT)
     try:
-
         hs = SmartOpenService(hscm, serviceName, win32service.SERVICE_QUERY_STATUS)
         try:
             status = win32service.QueryServiceStatus(hs)

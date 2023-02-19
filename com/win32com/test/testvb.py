@@ -23,6 +23,7 @@ useDispatcher = None
 
 error = RuntimeError
 
+
 # Set up a COM object that VB will do some callbacks on.  This is used
 # to test byref params for gateway IDispatch.
 class TestObject:

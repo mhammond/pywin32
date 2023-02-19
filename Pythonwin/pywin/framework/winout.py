@@ -300,7 +300,7 @@ class WindowOutputViewScintilla(
     ##			return 0	# never dont pass on
 
     def RestoreKillBuffer(self):
-        assert len(self.template.killBuffer) in [0, 1], "Unexpected killbuffer contents"
+        assert len(self.template.killBuffer) in (0, 1), "Unexpected killbuffer contents"
         if self.template.killBuffer:
             self.SCIAddText(self.template.killBuffer[0])
         self.template.killBuffer = []
@@ -327,6 +327,8 @@ class WindowOutputViewScintilla(
 
 
 WindowOutputView = WindowOutputViewScintilla
+
+
 # The WindowOutput class is actually an MFC template.  This is a conventient way of
 # making sure that my state can exist beyond the life of the windows themselves.
 # This is primarily to support the functionality of a WindowOutput window automatically

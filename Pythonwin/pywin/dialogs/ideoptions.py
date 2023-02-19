@@ -20,7 +20,6 @@ class OptionsPropPage(dialog.PropertyPage):
         self.AddDDX(win32ui.IDC_EDIT4, "MRUSize", "i")
 
     def OnInitDialog(self):
-
         edit = self.GetDlgItem(win32ui.IDC_EDIT1)
         format = eval(
             win32ui.GetProfileVal(

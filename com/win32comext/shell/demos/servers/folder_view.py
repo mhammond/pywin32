@@ -27,6 +27,8 @@ GUID = pythoncom.MakeIID
 
 # If set, output spews to the win32traceutil collector...
 debug = 0
+
+
 # wrap a python object in a COM pointer
 def wrap(ob, iid=None):
     return _wrap(ob, iid, useDispatcher=(debug > 0))
@@ -118,6 +120,7 @@ PKEY_Sample_NumberOfSides = ("{d6f5e342-c65c-11dc-ba21-005056c00008}", PID_SOMET
 # Col 4, name="Sample.DirectoryLevel"
 PKEY_Sample_DirectoryLevel = ("{d6f5e343-c65c-11dc-ba21-005056c00008}", PID_SOMETHING)
 
+
 # We construct a PIDL from a pickle of a dict - turn it back into a
 # dict (we should *never* be called with a PIDL that the last elt is not
 # ours, so it is safe to assume we created it (assume->"ass" = "u" + "me" :)
@@ -167,6 +170,7 @@ def DisplayItem(shell_item_array, hwnd_parent=0):
 
 
 # end of Utils.cpp port
+
 
 # start of sample's FVCommands.cpp port
 class Command:
@@ -287,6 +291,7 @@ class ExplorerCommand:
 
 
 # end of sample's FVCommands.cpp port
+
 
 # start of sample's Category.cpp port
 class FolderViewCategorizer:

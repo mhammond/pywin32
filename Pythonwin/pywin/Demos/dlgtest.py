@@ -112,7 +112,6 @@ def demo(modal=0):
 
 
 def test(modal=1):
-
     # 	dlg=dialog.Dialog(1010)
     # 	dlg.CreateWindow()
     # 	dlg.EndDialog(0)

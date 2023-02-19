@@ -17,6 +17,7 @@ import win32ui
 from pywin.mfc import window, dialog, afxres
 from pywin.mfc.thread import WinApp
 
+
 # The main frame.
 # Does almost nothing at all - doesnt even create a child window!
 class HelloWindow(window.Wnd):

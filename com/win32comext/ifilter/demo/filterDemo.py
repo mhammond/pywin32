@@ -218,7 +218,6 @@ class FileParser:
             properties["comments"] = comments
 
     def _trace(self, *args):
-
         if self.verbose:
             ret = " ".join([str(arg) for arg in args])
             try:

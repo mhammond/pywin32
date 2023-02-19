@@ -39,6 +39,7 @@ try:  # jdhardy -- handle bytes under IronPython & Py3
 except NameError:
     bytes = str  # define it for old Pythons
 
+
 # ------- Error handlers ------
 def standardErrorHandler(connection, cursor, errorclass, errorvalue):
     err = (errorclass, errorvalue)
@@ -130,6 +131,7 @@ class FetchFailedError(OperationalError):
 # SQL NULL values are represented by the Python None singleton on input and output.
 
 # Note: Usage of Unix ticks for database interfacing can cause troubles because of the limited date range they cover.
+
 
 # def Date(year,month,day):
 #     "This function constructs an object holding a date value. "
@@ -390,6 +392,7 @@ adoRemainingTypes = (
     adc.adVariant,
     adc.adGUID,
 )
+
 
 # this class is a trick to determine whether a type is a member of a related group of types. see PEP notes
 class DBAPITypeObject(object):

@@ -84,6 +84,7 @@ class ConfigManager:
         self.filename = "unknown"
         self.last_error = None
         self.key_to_events = {}
+        b_close = False
         if hasattr(f, "readline"):
             fp = f
             self.filename = "<config string>"
@@ -123,6 +124,7 @@ class ConfigManager:
             except (os.error, IOError, EOFError):
                 pass
             fp = open(f)
+            b_close = True
         self.cache = {}
         lineno = 1
         line = fp.readline()
@@ -152,6 +154,8 @@ class ConfigManager:
                 )
                 line = fp.readline()
                 lineno = lineno + 1
+        if b_close:
+            fp.close()
         # Check critical data.
         if not self.cache.get("keys"):
             self.report_error("No keyboard definitions were loaded")

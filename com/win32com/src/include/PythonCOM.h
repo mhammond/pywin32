@@ -432,9 +432,9 @@ class PYCOM_EXPORT PyOleNothing : public PyObject {
 // We need to dynamically create C++ Python objects
 // These helpers allow each type object to create it.
 #define MAKE_PYCOM_CTOR(classname) \
-    static PyIUnknown *classname::PyObConstruct(IUnknown *pInitObj) { return new classname(pInitObj); }
+    static PyIUnknown *PyObConstruct(IUnknown *pInitObj) { return new classname(pInitObj); }
 #define MAKE_PYCOM_CTOR_ERRORINFO(classname, iid)                                                       \
-    static PyIUnknown *classname::PyObConstruct(IUnknown *pInitObj) { return new classname(pInitObj); } \
+    static PyIUnknown *PyObConstruct(IUnknown *pInitObj) { return new classname(pInitObj); }            \
     static PyObject *SetPythonCOMError(PyObject *self, HRESULT hr)                                      \
     {                                                                                                   \
         return PyCom_BuildPyException(hr, GetI(self), iid);                                             \

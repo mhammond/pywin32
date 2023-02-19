@@ -1674,14 +1674,6 @@ int _setmaxstdio(
 // @pyswig int| _getmaxstdio|Returns the maximum number of CRT io streams.
 int _getmaxstdio( void );
 
-
-// Overlapped Socket stuff
-%{
-#pragma comment(lib,"mswsock.lib") // too lazy to change the project file :-)
-#pragma comment(lib,"ws2_32.lib")
-%}
-
-
 %{
 // @pyswig |TransmitFile|Transmits a file over a socket
 // TransmitFile(sock, filehandle, bytes_to_write, bytes_per_send, overlap, flags [, (prepend_buf, postpend_buf)])

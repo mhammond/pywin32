@@ -14,6 +14,7 @@ from . import dbgcommands
 
 lastLocateFileName = ".py"  # used in the "File/Locate" dialog...
 
+
 # todo - _SetupSharedMenu should be moved to a framework class.
 def _SetupSharedMenu_(self):
     sharedMenu = self.GetSharedMenu()
@@ -288,7 +289,7 @@ class InteractivePythonApp(app.CApp):
                 ).lower()
                 i -= 1  #  arg is /edit's parameter
             par = i < len(args) and args[i] or "MISSING"
-            if argType in ["/nodde", "/new", "-nodde", "-new"]:
+            if argType in ("/nodde", "/new", "-nodde", "-new"):
                 # Already handled
                 pass
             elif argType.startswith("/goto:"):

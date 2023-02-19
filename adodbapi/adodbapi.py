@@ -93,6 +93,7 @@ longType = int
 StringTypes = str
 maxint = sys.maxsize
 
+
 # -----------------  The .connect method -----------------
 def make_COM_connecter():
     try:
@@ -122,7 +123,7 @@ def connect(*args, **kwargs):  # --> a db-api connection object
     try:  # connect to the database, using the connection information in kwargs
         co.connect(kwargs)
         return co
-    except (Exception) as e:
+    except Exception as e:
         message = 'Error opening connection to "%s"' % co.connection_string
         raise api.OperationalError(e, message)
 
@@ -289,7 +290,7 @@ class Connection(object):
             self.connection_string = (
                 kwargs["connection_string"] % kwargs
             )  # insert keyword arguments
-        except (Exception) as e:
+        except Exception as e:
             self._raiseConnectionError(
                 KeyError, "Python string format error in connection string->"
             )
@@ -374,7 +375,7 @@ class Connection(object):
         self.messages = []
         try:
             self._closeAdoConnection()  # v2.1 Rose
-        except (Exception) as e:
+        except Exception as e:
             self._raiseConnectionError(sys.exc_info()[0], sys.exc_info()[1])
 
         self.connector = None  # v2.4.2.2 fix subtle timeout bug
@@ -792,7 +793,7 @@ class Cursor(object):
             else:  # pywin32
                 recordset, count = self.cmd.Execute()
             # ----- ------------------------------- ---
-        except (Exception) as e:
+        except Exception as e:
             _message = ""
             if hasattr(e, "args"):
                 _message += str(e.args) + "\n"
@@ -924,7 +925,7 @@ class Cursor(object):
                             _configure_parameter(
                                 p, parameters[pm_name], p.Type, parameters_known
                             )
-                        except (Exception) as e:
+                        except Exception as e:
                             _message = (
                                 "Error Converting Parameter %s: %s, %s <- %s\n"
                                 % (

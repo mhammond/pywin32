@@ -169,7 +169,6 @@ class IEHost:
             pass
 
     def create_window(self):
-
         message_map = {
             win32con.WM_SIZE: self.OnSize,
             win32con.WM_DESTROY: self.OnDestroy,
