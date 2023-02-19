@@ -12,6 +12,7 @@ import win32gui
 from win32com.shell import shell, shellcon
 
 
+
 # Our shell extension.
 class ShellExtension:
     _reg_progid_ = "Python.ShellExtension.CopyHook"

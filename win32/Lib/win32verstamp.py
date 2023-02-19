@@ -15,6 +15,8 @@ VS_FFI_FILEFLAGSMASK = 0x0000003F
 VOS_NT_WINDOWS32 = 0x00040004
 
 null_byte = "\0".encode("ascii")  # str in py2k, bytes in py3k
+
+
 #
 # Set VS_FF_PRERELEASE and DEBUG if Debug
 #

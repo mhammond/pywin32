@@ -8,7 +8,6 @@ import traceback
 
 
 class CallTips:
-
     menudefs = []
 
     keydefs = {

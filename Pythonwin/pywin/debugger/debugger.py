@@ -192,9 +192,9 @@ class DebuggerWindow(window.Wnd):
 
     def OnKeyDown(self, msg):
         key = msg[2]
-        if key in [13, 27, 32]:
+        if key in (13, 27, 32):
             return 1
-        if key in [46, 8]:  # delete/BS key
+        if key in (46, 8):  # delete/BS key
             self.DeleteSelected()
             return 0
         view = scriptutils.GetActiveView()
@@ -502,6 +502,7 @@ DebuggerDialogInfos = (
     (0xE811, DebuggerBreakpointsWindow, (10, 10)),
     (0xE812, DebuggerWatchWindow, None),
 )
+
 
 # Prepare all the "control bars" for this package.
 # If control bars are not all loaded when the toolbar-state functions are

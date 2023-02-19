@@ -18,7 +18,6 @@ import re
 
 
 class FormatParagraph:
-
     menudefs = [
         (
             "edit",

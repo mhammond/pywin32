@@ -58,6 +58,7 @@ logger = logging  # use logging module global methods for now.
 
 # still a bit confused about log(n, ...) vs logger.info/debug()
 
+
 # Returns distinguished name of SCP.
 def ScpCreate(
     service_binding_info,
@@ -153,7 +154,6 @@ def AllowAccessToScpProperties(
         "{b7b1311c-b82e-11d0-afee-0000f80367c1}",  # serviceBindingInformation
     ),
 ):
-
     # If no service account is specified, service runs under LocalSystem.
     # So allow access to the computer account of the service's host.
     if accountSAM:

@@ -113,10 +113,10 @@ class TestDS(DomainTests):
     def testDsListServerInfo(self):
         # again, not checking much, just exercising the code.
         h = win32security.DsBind()
-        for (status, ignore, site) in win32security.DsListSites(h):
-            for (status, ignore, server) in win32security.DsListServersInSite(h, site):
+        for status, ignore, site in win32security.DsListSites(h):
+            for status, ignore, server in win32security.DsListServersInSite(h, site):
                 info = win32security.DsListInfoForServer(h, server)
-            for (status, ignore, domain) in win32security.DsListDomainsInSite(h, site):
+            for status, ignore, domain in win32security.DsListDomainsInSite(h, site):
                 pass
 
     def testDsCrackNames(self):

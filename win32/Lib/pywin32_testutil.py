@@ -11,6 +11,7 @@ import winerror
 ## General purpose utilities for the test suite.
 ##
 
+
 # The test suite has lots of string constants containing binary data, but
 # the strings are used in various "bytes" contexts.
 def str2bytes(sval):
@@ -39,6 +40,7 @@ def ob2memory(ob):
 ##
 ## unittest related stuff
 ##
+
 
 # This is a specialized TestCase adaptor which wraps a real test.
 class LeakTestCase(unittest.TestCase):
@@ -239,6 +241,7 @@ try:
     TextTestResult = unittest._TextTestResult
 except AttributeError:
     TextTestResult = unittest.TextTestResult
+
 
 # The 'TestResult' subclass that records the failures and has the special
 # handling for the TestSkipped exception.

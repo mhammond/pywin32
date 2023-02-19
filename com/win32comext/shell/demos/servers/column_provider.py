@@ -35,6 +35,7 @@ class ColumnProvider:
         shell.IID_IColumnProvider,
     ]
     _public_methods_ = IColumnProvider_Methods
+
     # IPersist
     def GetClassID(self):
         return self._reg_clsid_

@@ -101,7 +101,7 @@ def ShowInfo(spec):
         infos = [(tlb, tlbSpec)]
     else:
         infos = GetTypeLibsForSpec(spec)
-    for (tlb, tlbSpec) in infos:
+    for tlb, tlbSpec in infos:
         desc = tlbSpec.desc
         if desc is None:
             if tlb is None:

@@ -74,6 +74,7 @@ if debug:
 # if this attribute exists.
 com_auto_reload = True
 
+
 # Helper function to get a system IShellFolder interface, and the PIDL within
 # that folder for an existing file/directory.
 def GetFolderAndPIDLForPath(filename):
@@ -106,6 +107,7 @@ def get_clbr_for_file(path):
 
 
 # Our COM interfaces.
+
 
 # Base class for a shell folder.
 # All child classes use a simple PIDL of the form:
@@ -386,6 +388,7 @@ class ShellFolderRoot(ShellFolderFileSystem):
 
 
 # Simple shell view implementations
+
 
 # Uses a builtin listview control to display simple lists of directories
 # or filenames.

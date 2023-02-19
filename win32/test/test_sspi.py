@@ -58,7 +58,6 @@ class TestSSPI(unittest.TestCase):
         self._doTestImpersonate("NTLM")
 
     def _doTestEncrypt(self, pkg_name):
-
         sspiclient, sspiserver = self._doAuth(pkg_name)
 
         pkg_size_info = sspiclient.ctxt.QueryContextAttributes(
@@ -132,7 +131,6 @@ class TestSSPI(unittest.TestCase):
         applyHandlingSkips(self._doTestEncryptStream, "Kerberos")
 
     def _doTestSign(self, pkg_name):
-
         sspiclient, sspiserver = self._doAuth(pkg_name)
 
         pkg_size_info = sspiclient.ctxt.QueryContextAttributes(

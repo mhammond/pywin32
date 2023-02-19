@@ -52,6 +52,7 @@ mapVTToTypeString = {
     pythoncom.VT_UINT: "types.IntType",
 }
 
+
 # Given a propget function's arg desc, return the default parameters for all
 # params bar the first.  Eg, then Python does a:
 # object.Property = "foo"

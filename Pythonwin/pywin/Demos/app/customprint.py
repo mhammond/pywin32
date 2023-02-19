@@ -149,7 +149,6 @@ class PrintDemoApp(app.CApp):
 
 
 class ImagePrintDialog(dialog.PrintDialog):
-
     sectionPos = "Image Print Demo"
 
     def __init__(self, pInfo, dlgID, flags=win32ui.PD_USEDEVMODECOPIES):

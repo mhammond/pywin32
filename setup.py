@@ -355,6 +355,7 @@ class WinExt_pythonservice(WinExt):
 ################################################################
 # Extensions to the distutils commands.
 
+
 # 'build' command
 class my_build(build):
     def run(self):
@@ -1202,7 +1203,7 @@ for info in (
     ),
     (
         "win32file",
-        "",
+        "ws2_32 mswsock",
         0x0500,
         """
               win32/src/win32file.i
@@ -1284,7 +1285,6 @@ for info in (
     ("_win32sysloader", "", 0x0501, "win32/src/_win32sysloader.cpp"),
     ("win32transaction", "kernel32", 0x0501, "win32/src/win32transactionmodule.cpp"),
 ):
-
     name, lib_names = info[:2]
     windows_h_ver = sources = None
     if len(info) > 2:
@@ -2119,6 +2119,7 @@ swig_interface_parents = {
 # parser isn't smart enough to differentiate these.
 swig_include_files = "mapilib adsilib".split()
 
+
 # Helper to allow our script specifications to include wildcards.
 def expand_modules(module_dir):
     flist = FileList()
@@ -2322,6 +2323,7 @@ dist = setup(
     )
     + convert_data_files(
         [
+            "Pythonwin/start_pythonwin.pyw",
             "pythonwin/pywin/*.cfg",
             "pythonwin/pywin/Demos/*.py",
             "pythonwin/pywin/Demos/app/*.py",

@@ -66,6 +66,7 @@ try:
 except AttributeError:  # GetIDLEModule may return None
     pass
 
+
 # A class that attempts to emulate an IDLE editor window.
 # Construct with a Pythonwin view.
 class IDLEEditorWindow:
@@ -274,7 +275,7 @@ def TkIndexToOffset(bm, edit, marks):
         word, nextTokPos = _NextTok(bm, nextTokPos)
         if word is None:
             break
-        if word in ["+", "-"]:
+        if word in ("+", "-"):
             num, nextTokPos = _NextTok(bm, nextTokPos)
             if num is None:
                 raise ValueError("+/- operator needs 2 args")

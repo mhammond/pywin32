@@ -52,13 +52,15 @@ def Timestamp(year, month, day, hour, minute, second):
 
 def DateFromTicks(ticks):
     """This function constructs an object holding a date value from the given ticks value
-    (number of seconds since the epoch; see the documentation of the standard Python time module for details)."""
+    (number of seconds since the epoch; see the documentation of the standard Python time module for details).
+    """
     return Date(*time.gmtime(ticks)[:3])
 
 
 def TimeFromTicks(ticks):
     """This function constructs an object holding a time value from the given ticks value
-    (number of seconds since the epoch; see the documentation of the standard Python time module for details)."""
+    (number of seconds since the epoch; see the documentation of the standard Python time module for details).
+    """
     return Time(*time.gmtime(ticks)[3:6])
 
 

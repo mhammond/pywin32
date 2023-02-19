@@ -47,6 +47,7 @@ class DebugDocumentText(
         + gateways.DebugDocumentText._public_methods_
         + gateways.DebugDocument._public_methods_
     )
+
     # A class which implements a DebugDocumentText, using the functionality
     # provided by a codeContainer
     def __init__(self, codeContainer):

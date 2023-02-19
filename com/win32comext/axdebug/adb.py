@@ -436,7 +436,6 @@ class Adb(bdb.Bdb, gateways.RemoteDebugApplicationEvents):
         #                       return
 
         if len(self.breaks) or self.breakFlags:
-
             if self.logicalbotframe:
                 trace("BreakFlagsChange with bot frame", _dumpf(self.logicalbotframe))
                 # We have frames not to be debugged (eg, Scripting engine frames

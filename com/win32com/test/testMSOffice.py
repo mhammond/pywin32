@@ -17,6 +17,7 @@ from win32com.test.util import CheckClean
 
 error = "MSOffice test error"
 
+
 # Test a few of the MSOffice components.
 def TestWord():
     # Try and load the object exposed by Word 8

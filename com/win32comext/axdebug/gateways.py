@@ -421,6 +421,7 @@ class DebugDocumentTextConnectServer:
         pythoncom.IID_IConnectionPoint,
         pythoncom.IID_IConnectionPointContainer,
     ]
+
     # IConnectionPoint interfaces
     def __init__(self):
         self.cookieNo = -1

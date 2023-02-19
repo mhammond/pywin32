@@ -34,7 +34,6 @@ from pywin.mfc import dialog
 
 
 class StartupDlg(dialog.Dialog):
-
     IDC_LABEL = 127
     IDC_DEVICE = 128
     IDC_BOOT = 129
@@ -242,7 +241,6 @@ class StartupDlg(dialog.Dialog):
 
 
 class ServiceDlg(dialog.Dialog):
-
     IDC_LIST = 128
     IDC_START = 129
     IDC_STOP = 130

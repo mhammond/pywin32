@@ -451,7 +451,7 @@ class HLITypeLibFunction(HLICOM):
             typname = self.vartypes[justtyp]
         except KeyError:
             typname = "?Bad type?"
-        for (flag, desc) in self.type_flags:
+        for flag, desc in self.type_flags:
             if flag & typ:
                 typname = "%s(%s)" % (desc, typname)
         return typname
