@@ -16,6 +16,7 @@ from . import ado_consts as adc
 
 verbose = False  # debugging flag
 
+
 # ------- Error handlers ------
 def standardErrorHandler(connection, cursor, errorclass, errorvalue):
     err = (errorclass, errorvalue)

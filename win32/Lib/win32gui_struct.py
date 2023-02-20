@@ -53,6 +53,7 @@ if is64bit:
 else:
     _nmhdr_align_padding = ""
 
+
 # Encode a string suitable for passing in a win32gui related structure
 def _make_text_buffer(text):
     if not isinstance(text, str):

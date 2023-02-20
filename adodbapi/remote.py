@@ -58,6 +58,7 @@ except:
 if verbose:
     print(version)
 
+
 # -----------------------------------------------------------
 # conversion functions mandated by PEP 249
 def Binary(aString):
