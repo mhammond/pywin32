@@ -352,7 +352,7 @@ BOOL PyWinObject_AsPRINTER_INFO(DWORD level, PyObject *obinfo, LPBYTE *pbuf)
     size_t bufsize;
 
     *pbuf = NULL;
-    if (level == 0)
+    if (level == 0) {
         if (obinfo == Py_None)
             return TRUE;
         else {
@@ -364,6 +364,7 @@ BOOL PyWinObject_AsPRINTER_INFO(DWORD level, PyObject *obinfo, LPBYTE *pbuf)
             }
             return TRUE;
         }
+    }
 
     if (!PyDict_Check(obinfo)) {
         PyErr_Format(PyExc_TypeError, "PRINTER_INFO_%d must be a dictionary", level);
@@ -2458,13 +2459,14 @@ static PyObject *PyDeletePrinterDriver(PyObject *self, PyObject *args)
     // @comm Does not delete associated driver files - use <om win32print.DeletePrinterDriverEx> if this is required
     if (PyArg_ParseTuple(args, "OOO:DeletePrinterDriver", &observername, &obenvironment, &obdrivername) &&
         PyWinObject_AsWCHAR(observername, &servername, TRUE) &&
-        PyWinObject_AsWCHAR(obenvironment, &environment, TRUE) && PyWinObject_AsWCHAR(obdrivername, &drivername, FALSE))
+        PyWinObject_AsWCHAR(obenvironment, &environment, TRUE) && PyWinObject_AsWCHAR(obdrivername, &drivername, FALSE)) {
         if (DeletePrinterDriverW(servername, environment, drivername)) {
             Py_INCREF(Py_None);
             ret = Py_None;
         }
         else
             PyWin_SetAPIError("DeletePrinterDriver");
+    }
 
     if (servername != NULL)
         PyWinObject_FreeWCHAR(servername);
@@ -2493,13 +2495,14 @@ static PyObject *PyDeletePrinterDriverEx(PyObject *self, PyObject *args)
     if (PyArg_ParseTuple(args, "OOOll:DeletePrinterDriverEx", &observername, &obenvironment, &obdrivername, &deleteflag,
                          &versionflag) &&
         PyWinObject_AsWCHAR(observername, &servername, TRUE) &&
-        PyWinObject_AsWCHAR(obenvironment, &environment, TRUE) && PyWinObject_AsWCHAR(obdrivername, &drivername, FALSE))
+        PyWinObject_AsWCHAR(obenvironment, &environment, TRUE) && PyWinObject_AsWCHAR(obdrivername, &drivername, FALSE)) {
         if ((*pfnDeletePrinterDriverEx)(servername, environment, drivername, deleteflag, versionflag)) {
             Py_INCREF(Py_None);
             ret = Py_None;
         }
         else
             PyWin_SetAPIError("DeletePrinterDriverEx");
+    }
 
     if (servername != NULL)
         PyWinObject_FreeWCHAR(servername);
