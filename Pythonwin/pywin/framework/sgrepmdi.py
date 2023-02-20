@@ -431,6 +431,8 @@ class GrepView(docview.RichEditView):
         return 0
 
     def OnCmdGrep(self, cmd, code):
+        if code != 0:
+            return 1
         curparamsstr = self.GetDocument().GetParams()
         params = curparamsstr.split("\t")
         params[2] = self.sel
@@ -439,11 +441,15 @@ class GrepView(docview.RichEditView):
         return 0
 
     def OnTryAgain(self, cmd, code):
+        if code != 0:
+            return 1
         greptemplate.setParams(self.GetDocument().GetParams())
         greptemplate.OpenDocumentFile()
         return 0
 
     def OnCmdSave(self, cmd, code):
+        if code != 0:
+            return 1
         flags = win32con.OFN_OVERWRITEPROMPT
         dlg = win32ui.CreateFileDialog(
             0, None, None, flags, "Text Files (*.txt)|*.txt||", self
@@ -594,9 +600,13 @@ class GrepDialog(dialog.Dialog):
         self.HookCommand(self.OnMoreFiles, 111)
 
     def OnMoreDirectories(self, cmd, code):
+        if code != 0:
+            return 1
         self.getMore("Grep\\Directories", "dirpattern")
 
     def OnMoreFiles(self, cmd, code):
+        if code != 0:
+            return 1
         self.getMore("Grep\\File Types", "filpattern")
 
     def getMore(self, section, key):
@@ -623,11 +633,11 @@ class GrepDialog(dialog.Dialog):
 
     def OnOK(self):
         self.UpdateData(1)
-        for id, name in [
+        for id, name in (
             (101, "greppattern"),
             (102, "dirpattern"),
             (103, "filpattern"),
-        ]:
+        ):
             if not self[name]:
                 self.GetDlgItem(id).SetFocus()
                 win32api.MessageBeep()
@@ -714,6 +724,8 @@ class GrepParamsDialog(dialog.Dialog):
         return self._obj_.OnInitDialog()
 
     def OnAddItem(self, cmd, code):
+        if code != 0:
+            return 1
         eb = self.GetDlgItem(108)
         item = eb.GetLine(0)
         self.newitems.append(item)

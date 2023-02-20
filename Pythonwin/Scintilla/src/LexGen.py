@@ -32,6 +32,7 @@ else:
     # Mac OS <=9 (a.k.a. "Mac Classic")
     NATIVE = LF
 
+
 # Automatically generated sections contain start and end comments,
 # a definition line and the results.
 # The results are replaced by regenerating based on the definition line.

@@ -35,6 +35,7 @@ paletteVGA = (
     ("White", 255, 255, 255),
 )
 
+
 ######################################################
 #
 # Property Page for editor options

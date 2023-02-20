@@ -1295,14 +1295,15 @@ PyObject *PyConsoleScreenBuffer::PyScrollConsoleScreenBuffer(PyObject *self, PyO
     if (PyWinObject_AsSMALL_RECT(obscrollrect, &pscrollrect, FALSE) &&
         PyWinObject_AsSMALL_RECT(obcliprect, &pcliprect, TRUE) &&
         PyWinObject_AsCOORD(obdestcoord, &pdestcoord, FALSE) &&
-        PyWinObject_AsSingleWCHAR(obfillchar, &char_info.Char.UnicodeChar))
+        PyWinObject_AsSingleWCHAR(obfillchar, &char_info.Char.UnicodeChar)) {
         if (!ScrollConsoleScreenBuffer(((PyConsoleScreenBuffer *)self)->m_handle, pscrollrect, pcliprect, *pdestcoord,
-                                       &char_info))
+                                       &char_info)) {
             PyWin_SetAPIError("ScrollConsoleScreenBuffer");
-        else {
+        } else {
             Py_INCREF(Py_None);
             return Py_None;
         }
+    }
     return NULL;
 }
 
@@ -1813,13 +1814,14 @@ static PyObject *PyAddConsoleAlias(PyObject *self, PyObject *args, PyObject *kwa
         return NULL;
     CHECK_PFN(AddConsoleAlias);
     if (PyWinObject_AsWCHAR(obsource, &source, FALSE) && PyWinObject_AsWCHAR(obtarget, &target, TRUE) &&
-        PyWinObject_AsWCHAR(obexename, &exename, FALSE))
-        if (!(*pfnAddConsoleAlias)(source, target, exename))
+        PyWinObject_AsWCHAR(obexename, &exename, FALSE)) {
+        if (!(*pfnAddConsoleAlias)(source, target, exename)) {
             PyWin_SetAPIError("AddConsoleAlias");
-        else {
+        } else {
             Py_INCREF(Py_None);
             ret = Py_None;
         }
+    }
     PyWinObject_FreeWCHAR(source);
     PyWinObject_FreeWCHAR(target);
     PyWinObject_FreeWCHAR(exename);

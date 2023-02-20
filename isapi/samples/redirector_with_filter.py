@@ -52,6 +52,7 @@ virtualdir = "/python"
 # can choose to ignore certain responses by having the filter not rewrite them
 # to our virtual dir. For this sample, we just exclude the IIS help directory.
 
+
 # The ISAPI extension - handles requests in our virtual dir, and sends the
 # response to the client.
 class Extension(threaded_extension.ThreadPoolExtension):

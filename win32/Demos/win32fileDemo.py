@@ -5,6 +5,7 @@
 import win32file, win32api, win32con
 import os
 
+
 # A very simple demo - note that this does no more than you can do with
 # builtin Python file objects, so for something as simple as this, you
 # generally *should* use builtin Python objects.  Only use win32file etc

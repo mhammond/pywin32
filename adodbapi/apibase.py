@@ -107,6 +107,7 @@ class FetchFailedError(OperationalError):
 
 # Note: Usage of Unix ticks for database interfacing can cause troubles because of the limited date range they cover.
 
+
 # def Date(year,month,day):
 #     "This function constructs an object holding a date value. "
 #     return dateconverter.date(year,month,day)  #dateconverter.Date(year,month,day)
@@ -323,6 +324,7 @@ adoRemainingTypes = (
     adc.adVariant,
     adc.adGUID,
 )
+
 
 # this class is a trick to determine whether a type is a member of a related group of types. see PEP notes
 class DBAPITypeObject:

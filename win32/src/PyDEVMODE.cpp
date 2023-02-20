@@ -349,7 +349,7 @@ PyObject *PyDEVMODEW::tp_new(PyTypeObject *typ, PyObject *args, PyObject *kwargs
 
 BOOL PyWinObject_AsDEVMODE(PyObject *ob, PDEVMODEW *ppDEVMODE, BOOL bNoneOk)
 {
-    if (ob == Py_None)
+    if (ob == Py_None) {
         if (bNoneOk) {
             *ppDEVMODE = NULL;
             return TRUE;
@@ -358,6 +358,7 @@ BOOL PyWinObject_AsDEVMODE(PyObject *ob, PDEVMODEW *ppDEVMODE, BOOL bNoneOk)
             PyErr_SetString(PyExc_ValueError, "PyDEVMODE cannot be None in this context");
             return FALSE;
         }
+    }
     if (!PyDEVMODEW_Check(ob))
         return FALSE;
     *ppDEVMODE = ((PyDEVMODEW *)ob)->GetDEVMODE();

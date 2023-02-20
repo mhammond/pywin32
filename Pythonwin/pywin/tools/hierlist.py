@@ -22,6 +22,7 @@ from win32api import RGB
 from pywin.mfc import object, window, docview, dialog
 import commctrl
 
+
 # helper to get the text of an arbitary item
 def GetItemText(item):
     if type(item) == type(()) or type(item) == type([]):

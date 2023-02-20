@@ -23,6 +23,7 @@ class ConnectableServer(win32com.server.connect.ConnectableServer):
         "DoIt"
     ] + win32com.server.connect.ConnectableServer._public_methods_
     _connect_interfaces_ = [IID_IConnectDemoEvents]
+
     # The single public method that the client can call on us
     # (ie, as a normal COM server, this exposes just this single method.
     def DoIt(self, arg):

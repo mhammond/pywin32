@@ -32,6 +32,7 @@ byte_cr = b"\r"
 byte_lf = b"\n"
 byte_crlf = b"\r\n"
 
+
 # A dialog box for the "Run Script" command.
 class DlgRunScript(dialog.Dialog):
     "A class for the 'run script' dialog"
@@ -53,7 +54,9 @@ class DlgRunScript(dialog.Dialog):
         if not self.bHaveDebugger:
             cbo.EnableWindow(0)
 
-    def OnBrowse(self, id, cmd):
+    def OnBrowse(self, id, code):
+        if code != 0:  # BN_CLICKED
+            return 1
         openFlags = win32con.OFN_OVERWRITEPROMPT | win32con.OFN_FILEMUSTEXIST
         dlg = win32ui.CreateFileDialog(
             1, None, None, openFlags, "Python Scripts (*.py)|*.py||", self
@@ -440,7 +443,7 @@ def ImportFile():
         if getattr(mod, "__file__", None):
             fname = mod.__file__
             base, ext = os.path.splitext(fname)
-            if ext.lower() in [".pyo", ".pyc"]:
+            if ext.lower() in (".pyo", ".pyc"):
                 ext = ".py"
             fname = base + ext
             if win32ui.ComparePath(fname, pathName):

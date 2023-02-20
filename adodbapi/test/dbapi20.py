@@ -38,6 +38,7 @@ TEST_FOR_NON_IDEMPOTENT_CLOSE = False
 # Revision 1.13  2013/05/08 14:31:50  kf7xm
 # Quick switch to Turn off IDEMPOTENT_CLOSE test. Also: Silence teardown failure
 
+
 # Revision 1.12  2009/02/06 03:35:11  kf7xm
 # Tested okay with Python 3.0, includes last minute patches from Mark H.
 #

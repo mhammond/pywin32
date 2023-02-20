@@ -245,6 +245,20 @@ class Misc(unittest.TestCase):
         # hopefully ' ' doesn't depend on the locale!
         self.assertEqual(win32api.VkKeyScanEx(" ", 0), 32)
 
+    def testGetSystemPowerStatus(self):
+        # Dummy
+        sps = win32api.GetSystemPowerStatus()
+        self.assertIsInstance(sps, dict)
+        test_keys = (
+            "ACLineStatus",
+            "BatteryFlag",
+            "BatteryLifePercent",
+            "SystemStatusFlag",
+            "BatteryLifeTime",
+            "BatteryFullLifeTime",
+        )
+        self.assertEqual(set(test_keys), set(sps.keys()))
+
 
 if __name__ == "__main__":
     unittest.main()

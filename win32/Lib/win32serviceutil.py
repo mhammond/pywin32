@@ -13,6 +13,7 @@ import importlib
 _d = "_d" if "_d.pyd" in importlib.machinery.EXTENSION_SUFFIXES else ""
 error = RuntimeError
 
+
 # Returns the full path to an executable for hosting a Python service - typically
 # 'pythonservice.exe'
 # * If you pass a param and it exists as a file, you'll get the abs path back
@@ -300,7 +301,6 @@ def ChangeServiceConfig(
     try:
         hs = SmartOpenService(hscm, serviceName, win32service.SERVICE_ALL_ACCESS)
         try:
-
             win32service.ChangeServiceConfig(
                 hs,
                 serviceType,  # service type
@@ -423,7 +423,6 @@ def RemoveService(serviceName):
 def ControlService(serviceName, code, machine=None):
     hscm = win32service.OpenSCManager(machine, None, win32service.SC_MANAGER_ALL_ACCESS)
     try:
-
         hs = SmartOpenService(hscm, serviceName, win32service.SERVICE_ALL_ACCESS)
         try:
             status = win32service.ControlService(hs, code)
@@ -537,7 +536,6 @@ def StopService(serviceName, machine=None):
 def StartService(serviceName, args=None, machine=None):
     hscm = win32service.OpenSCManager(machine, None, win32service.SC_MANAGER_ALL_ACCESS)
     try:
-
         hs = SmartOpenService(hscm, serviceName, win32service.SERVICE_ALL_ACCESS)
         try:
             win32service.StartService(hs, args)
@@ -630,7 +628,6 @@ def GetServiceClassString(cls, argv=None):
 def QueryServiceStatus(serviceName, machine=None):
     hscm = win32service.OpenSCManager(machine, None, win32service.SC_MANAGER_CONNECT)
     try:
-
         hs = SmartOpenService(hscm, serviceName, win32service.SERVICE_QUERY_STATUS)
         try:
             status = win32service.QueryServiceStatus(hs)

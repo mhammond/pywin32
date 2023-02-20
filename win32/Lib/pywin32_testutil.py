@@ -10,6 +10,7 @@ import winerror
 ## unittest related stuff
 ##
 
+
 # This is a specialized TestCase adaptor which wraps a real test.
 class LeakTestCase(unittest.TestCase):
     """An 'adaptor' which takes another test.  In debug builds we execute the
@@ -209,6 +210,7 @@ try:
     TextTestResult = unittest._TextTestResult
 except AttributeError:
     TextTestResult = unittest.TextTestResult
+
 
 # The 'TestResult' subclass that records the failures and has the special
 # handling for the TestSkipped exception.

@@ -23,7 +23,9 @@ if win32ui.debug:  # If running _d version of Pythonwin...
         dllid = win32api.LoadLibrary(
             os.path.join(os.path.split(win32ui.__file__)[0], "Scintilla_d.DLL")
         )
-    except win32api.error:  # Not there - we dont _need_ a debug ver, so ignore this error.
+    except (
+        win32api.error
+    ):  # Not there - we dont _need_ a debug ver, so ignore this error.
         pass
 if dllid is None:
     try:

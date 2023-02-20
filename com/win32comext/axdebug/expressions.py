@@ -7,6 +7,7 @@ import winerror
 import string
 import sys
 
+
 # Given an object, return a nice string
 def MakeNiceString(ob):
     stream = io.StringIO()

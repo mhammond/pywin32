@@ -234,6 +234,7 @@ class Constants:
 # And create an instance.
 constants = Constants()
 
+
 # A helpers for DispatchWithEvents - this becomes __setattr__ for the
 # temporary class.
 def _event_setattr_(self, attr, val):
