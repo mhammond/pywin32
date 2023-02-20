@@ -68,7 +68,6 @@ def getIndexedValue(obj, index):
 from collections.abc import Mapping
 
 
-
 # -----------------  The .connect method -----------------
 def make_COM_connecter():
     try:
