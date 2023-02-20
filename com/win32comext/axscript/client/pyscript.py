@@ -433,7 +433,6 @@ def DllRegisterServer():
 
 
 def Register(klass=PyScript):
-
     ret = win32com.server.register.UseCommandLine(
         klass, finalize_register=DllRegisterServer
     )
