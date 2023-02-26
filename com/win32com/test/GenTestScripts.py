@@ -1,13 +1,10 @@
 #
 # Generate scripts needed for serious testing!
 #
-import os
-import sys
-
-import pythoncom
-import win32com
-import win32com.client.makepy
+import win32com, win32com.client.makepy
 import win32com.test
+import pythoncom
+import sys, os
 
 genList = [
     ("msword8", "{00020905-0000-0000-C000-000000000046}", 1033, 8, 0),

@@ -1,6 +1,5 @@
 import sys
 import unittest
-
 import pywintypes
 import win32api
 

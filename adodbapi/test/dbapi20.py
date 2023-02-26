@@ -14,9 +14,9 @@
 __version__ = "$Revision: 1.15.0 $"[11:-2]
 __author__ = "Stuart Bishop <stuart@stuartbishop.net>"
 
-import sys
-import time
 import unittest
+import time
+import sys
 
 if sys.version[0] >= "3":  # python 3.x
     _BaseException = Exception

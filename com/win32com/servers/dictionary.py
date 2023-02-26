@@ -31,14 +31,14 @@ the dictionary's keys. This allows for the following type of VB code:
     next
 """
 
-import types
-
 import pythoncom
-import pywintypes
-import winerror
-from pythoncom import DISPATCH_METHOD, DISPATCH_PROPERTYGET
-from win32com.server import policy, util
+from win32com.server import util, policy
 from win32com.server.exception import COMException
+import winerror
+import types
+import pywintypes
+
+from pythoncom import DISPATCH_METHOD, DISPATCH_PROPERTYGET
 from winerror import S_OK
 
 

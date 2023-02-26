@@ -4,17 +4,15 @@
 # a "standard" MFC edit control (eg, control.GetTextLength(), control.GetSel()
 # plus many Scintilla specific features (eg control.SCIAddStyledText())
 
-import array
-import os
-import string
-import struct
-
-import win32api
+from pywin.mfc import window
+from pywin import default_scintilla_encoding
 import win32con
 import win32ui
-from pywin import default_scintilla_encoding
-from pywin.mfc import window
-
+import win32api
+import array
+import struct
+import string
+import os
 from . import scintillacon
 
 # Load Scintilla.dll to get access to the control.

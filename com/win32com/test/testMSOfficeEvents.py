@@ -1,12 +1,10 @@
 # OfficeEvents - test/demonstrate events with Word and Excel.
-import msvcrt
-import sys
-import threading
-import time
+from win32com.client import DispatchWithEvents, Dispatch
+import msvcrt, pythoncom
+import time, sys
 import types
 
-import pythoncom
-from win32com.client import Dispatch, DispatchWithEvents
+import threading
 
 stopEvent = threading.Event()
 

@@ -22,14 +22,12 @@
    work.
 
 """
-import sys
-
-import pythoncom
-import win32api
 import win32con
-import win32ui
-from pywin.tools import browser
+import win32api, win32ui
+import sys
+import pythoncom
 from win32com.client import util
+from pywin.tools import browser
 
 
 class HLIRoot(browser.HLIPythonObject):

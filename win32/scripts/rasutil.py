@@ -1,6 +1,5 @@
 # A demo of using the RAS API from Python
 import sys
-
 import win32ras
 
 

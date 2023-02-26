@@ -1,9 +1,8 @@
 # rastest.py - test/demonstrate the win32ras module.
 # Much of the code here contributed by Jethro Wright.
 
-import os
 import sys
-
+import os
 import win32ras
 
 # Build a little dictionary of RAS states to decent strings.

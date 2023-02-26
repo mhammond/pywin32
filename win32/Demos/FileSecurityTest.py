@@ -1,11 +1,6 @@
 # Contributed by Kelly Kranabetter.
-import os
-import sys
-
-import ntsecuritycon
-import pywintypes
-import win32security
-import winerror
+import os, sys
+import win32security, ntsecuritycon, pywintypes, winerror
 
 # get security information
 # name=r"c:\autoexec.bat"

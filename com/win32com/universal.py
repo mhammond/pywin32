@@ -2,7 +2,6 @@
 
 # See if we have a special directory for the binaries (for developers)
 import types
-
 import pythoncom
 from win32com.client import gencache
 

@@ -6,16 +6,9 @@
 # when things go wrong - eg, not enough permissions to hit the
 # registry etc.
 
+import win32service, win32api, win32con, winerror
+import sys, pywintypes, os, warnings
 import importlib
-import os
-import sys
-import warnings
-
-import pywintypes
-import win32api
-import win32con
-import win32service
-import winerror
 
 _d = "_d" if "_d.pyd" in importlib.machinery.EXTENSION_SUFFIXES else ""
 error = RuntimeError

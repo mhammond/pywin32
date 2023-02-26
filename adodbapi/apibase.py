@@ -5,11 +5,11 @@ Copyright (C) 2002 Henrik Ekelund, version 2.1 by Vernon Cole
 * http://sourceforge.net/projects/adodbapi
 """
 
+import sys
+import time
 import datetime
 import decimal
 import numbers
-import sys
-import time
 
 # noinspection PyUnresolvedReferences
 from . import ado_consts as adc
@@ -19,7 +19,7 @@ verbose = False  # debugging flag
 onIronPython = sys.platform == "cli"
 if onIronPython:  # we need type definitions for odd data we may need to convert
     # noinspection PyUnresolvedReferences
-    from System import DateTime, DBNull
+    from System import DBNull, DateTime
 
     NullTypes = (type(None), DBNull)
 else:

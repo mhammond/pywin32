@@ -68,14 +68,12 @@ Error Handling
 """
 __author__ = "Greg Stein and Mark Hammond"
 
+import win32api
+import winerror
 import sys
 import types
-
-import pythoncom
 import pywintypes
-import win32api
-import win32con
-import winerror
+import win32con, pythoncom
 
 # Import a few important constants to speed lookups.
 from pythoncom import (
@@ -83,15 +81,15 @@ from pythoncom import (
     DISPATCH_PROPERTYGET,
     DISPATCH_PROPERTYPUT,
     DISPATCH_PROPERTYPUTREF,
-    DISPID_COLLECT,
-    DISPID_CONSTRUCTOR,
-    DISPID_DESTRUCTOR,
-    DISPID_EVALUATE,
-    DISPID_NEWENUM,
-    DISPID_PROPERTYPUT,
-    DISPID_STARTENUM,
     DISPID_UNKNOWN,
     DISPID_VALUE,
+    DISPID_PROPERTYPUT,
+    DISPID_NEWENUM,
+    DISPID_EVALUATE,
+    DISPID_CONSTRUCTOR,
+    DISPID_DESTRUCTOR,
+    DISPID_COLLECT,
+    DISPID_STARTENUM,
 )
 
 S_OK = 0

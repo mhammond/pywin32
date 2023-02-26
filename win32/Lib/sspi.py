@@ -11,11 +11,9 @@ to know.  They are not designed to handle all cases, just the common ones.
 If you need finer control than offered here, just use the win32security
 functions directly.
 """
-import sspicon
-
 # Based on Roger Upole's sspi demos.
 # $Id$
-import win32security
+import win32security, sspicon
 
 error = win32security.error
 

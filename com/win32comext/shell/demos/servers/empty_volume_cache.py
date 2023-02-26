@@ -3,17 +3,13 @@
 #
 # * Execute this script to register the handler
 # * Start the "disk cleanup" tool - look for "pywin32 compiled files"
-import os
-import stat
-import sys
-import time
-
+import sys, os, stat, time
 import pythoncom
-import win32con
-import win32gui
-import winerror
-from win32com.server.exception import COMException
 from win32com.shell import shell, shellcon
+from win32com.server.exception import COMException
+import win32gui
+import win32con
+import winerror
 
 # Our shell extension.
 IEmptyVolumeCache_Methods = (

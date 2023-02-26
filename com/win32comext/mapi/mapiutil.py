@@ -3,8 +3,8 @@
 TupleType = tuple
 ListType = list
 IntType = int
-import pythoncom
 from pywintypes import TimeType
+import pythoncom
 
 from . import mapi, mapitags
 

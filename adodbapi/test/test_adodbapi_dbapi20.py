@@ -1,8 +1,8 @@
 print("This module depends on the dbapi20 compliance tests created by Stuart Bishop")
 print("(see db-sig mailing list history for info)")
 import platform
-import sys
 import unittest
+import sys
 
 import dbapi20
 import setuptestframework

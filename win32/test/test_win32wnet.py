@@ -1,8 +1,8 @@
 import unittest
-
-import netbios
-import win32api
 import win32wnet
+import win32api
+import netbios
+
 from pywin32_testutil import str2bytes
 
 RESOURCE_CONNECTED = 0x00000001

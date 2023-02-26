@@ -1,14 +1,13 @@
-import os
+import unittest
 import struct
 import sys
-import unittest
-
-import pythoncom
+import os
 import pywintypes
-import win32api
-import win32com.directsound.directsound as ds
-import win32event
+import win32event, win32api
+import os
 from pywin32_testutil import TestSkipped, find_test_fixture
+import win32com.directsound.directsound as ds
+import pythoncom
 
 # next two lines are for for debugging:
 # import win32com

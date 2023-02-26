@@ -3,26 +3,24 @@
 # Loads config data from a .cfg file.  Also caches the compiled
 # data back into a .cfc file.
 
-import glob
-import importlib.util
-import marshal
-import os
-import stat
-import string
-
 # If you are wondering how to avoid needing .cfg files (eg,
 # if you are freezing Pythonwin etc) I suggest you create a
 # .py file, and put the config info in a docstring.  Then
 # pass a CStringIO file (rather than a filename) to the
 # config manager.
 import sys
-import traceback
-import types
-
-import pywin
-import win32api
-
+import string
 from . import keycodes
+import marshal
+import stat
+import os
+import types
+import traceback
+import pywin
+import glob
+import importlib.util
+
+import win32api
 
 debugging = 0
 if debugging:

@@ -14,13 +14,13 @@
 # to provide maximum flexibility (but with extra work).
 
 import sys
-
-import commctrl
-import win32api
-import win32con
 import win32ui
-from pywin.mfc import dialog, docview, object, window
+import win32con
+import win32api
 from win32api import RGB
+
+from pywin.mfc import object, window, docview, dialog
+import commctrl
 
 
 # helper to get the text of an arbitary item

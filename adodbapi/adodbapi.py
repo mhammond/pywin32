@@ -31,15 +31,15 @@ or, after running through 2to3.py, CPython 3.4 or later.
 __version__ = "2.6.2.0"
 version = "adodbapi v" + __version__
 
+import sys
 import copy
 import decimal
 import os
-import sys
 import weakref
 
+from . import process_connect_string
 from . import ado_consts as adc
 from . import apibase as api
-from . import process_connect_string
 
 try:
     verbose = int(os.environ["ADODBAPI_VERBOSE"])
@@ -51,10 +51,9 @@ if verbose:
 # --- define objects to smooth out IronPython <-> CPython differences
 onWin32 = False  # assume the worst
 if api.onIronPython:
-    from clr import Reference
-    from System import Activator, Array, Byte, DateTime, DBNull
+    from System import Activator, Type, DBNull, DateTime, Array, Byte
     from System import Decimal as SystemDecimal
-    from System import Type
+    from clr import Reference
 
     def Dispatch(dispatch):
         type = Type.GetTypeFromProgID(dispatch)
@@ -65,9 +64,9 @@ if api.onIronPython:
 
 else:  # try pywin32
     try:
+        import win32com.client
         import pythoncom
         import pywintypes
-        import win32com.client
 
         onWin32 = True
 

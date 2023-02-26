@@ -11,8 +11,8 @@
   and call its methods!
 """
 
-import winerror
 from win32com.server.exception import Exception
+import winerror
 
 
 # Expose the Python interpreter.
