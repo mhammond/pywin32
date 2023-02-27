@@ -224,7 +224,7 @@ def _configure_parameter(p, value, adotype, settings_known):
             p.NumericScale = 0
             p.Precision = digit_count + exponent
 
-    elif isinstance(value, tuple(dateconverter.types)):
+    elif type(value) in dateconverter.types:
         if settings_known and adotype in api.adoDateTimeTypes:
             p.Value = dateconverter.COMDate(value)
         else:  # probably a string

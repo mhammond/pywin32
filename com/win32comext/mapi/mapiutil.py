@@ -5,7 +5,6 @@ ListType = list
 IntType = int
 from pywintypes import TimeType
 import pythoncom
-
 from . import mapi, mapitags
 
 prTable = {}

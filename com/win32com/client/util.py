@@ -16,7 +16,7 @@ def WrapEnum(ob, resultCLSID=None):
     (which may be either a class instance, or a dynamic.Dispatch type object).
 
     """
-    if not isinstance(ob, pythoncom.TypeIIDs[pythoncom.IID_IEnumVARIANT]):
+    if type(ob) != pythoncom.TypeIIDs[pythoncom.IID_IEnumVARIANT]:
         ob = ob.QueryInterface(pythoncom.IID_IEnumVARIANT)
     return EnumVARIANT(ob, resultCLSID)
 

@@ -151,9 +151,7 @@ def FindPythonExe(exeAlias, possibleRealNames, searchPaths):
 
 def QuotedFileName(fname):
     """Given a filename, return a quoted version if necessary"""
-    import string
-
-    import regutil
+    import regutil, string
 
     try:
         fname.index(" ")  # Other chars forcing quote?

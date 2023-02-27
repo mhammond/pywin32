@@ -33,10 +33,10 @@ class Dialog(window.Wnd):
         dllid may be None, a dll object, or a string with a dll name"""
         # must take a reference to the DLL until InitDialog.
         self.dll = dllFromDll(dllid)
-        if isinstance(id, int):
-            dlg = win32ui.CreateDialog(id, self.dll)
-        else:  # a template
+        if isinstance(id, list):  # a template
             dlg = win32ui.CreateDialogIndirect(id)
+        else:
+            dlg = win32ui.CreateDialog(id, self.dll)
         window.Wnd.__init__(self, dlg)
         self.HookCommands()
         self.bHaveInit = None
@@ -114,7 +114,7 @@ class PrintDialog(Dialog):
         dllid=None,
     ):
         self.dll = dllFromDll(dllid)
-        if not isinstance(dlgID, int):  # a template
+        if isinstance(dlgID, list):  # a template
             raise TypeError("dlgID parameter must be an integer resource ID")
         dlg = win32ui.CreatePrintDialog(dlgID, printSetupOnly, flags, parent, self.dll)
         window.Wnd.__init__(self, dlg)

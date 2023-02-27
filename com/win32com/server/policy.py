@@ -661,10 +661,10 @@ class DesignatedWrapPolicy(MappedWrapPolicy):
                 raise COMException(scode=winerror.DISP_E_MEMBERNOTFOUND)  # read-only
             # If we have a method of that name (ie, a property get function), and
             # we have an equiv. property set function, use that instead.
-            if isinstance(
+            fn = getattr(self._obj_, "Set" + name, None)
+            if isinstance(fn, types.MethodType) and isinstance(
                 getattr(self._obj_, name, None), types.MethodType
-            ) and isinstance(getattr(self._obj_, "Set" + name, None), types.MethodType):
-                fn = getattr(self._obj_, "Set" + name)
+            ):
                 fn(*args)
             else:
                 # just set the attribute

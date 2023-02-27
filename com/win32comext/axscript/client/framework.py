@@ -356,7 +356,7 @@ class ScriptItem:
         # 			id = self.parentItem.dispatch.GetIDsOfNames(self.name)
         # 			print "DispID of me is", id
         # 			result = self.parentItem.dispatch.Invoke(id, 0, pythoncom.DISPATCH_PROPERTYGET,1)
-        # 			if isinstance(result, pythoncom.TypeIIDs[pythoncom.IID_IDispatch]):
+        # 			if type(result) == pythoncom.TypeIIDs[pythoncom.IID_IDispatch]:
         # 				self.dispatch = result
         # 			else:
         # 				print "*** No dispatch"
@@ -509,9 +509,7 @@ class ScriptItem:
                         # as no event handler for "top" would work.
                         # I think we simply need to connect to a *single* event handler.
                         # As use in IE is deprecated, I am not solving this now.
-                        if isinstance(
-                            result, pythoncom.TypeIIDs[pythoncom.IID_IDispatch]
-                        ):
+                        if type(result) == pythoncom.TypeIIDs[pythoncom.IID_IDispatch]:
                             name = names[0]
                             subObj = self.GetCreateSubItem(
                                 self, name, result, axscript.SCRIPTITEM_ISVISIBLE

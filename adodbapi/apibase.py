@@ -446,7 +446,7 @@ def pyTypeToADOType(d):
         from . import dateconverter
 
         # maybe it is one of our supported Date/Time types
-        if isinstance(d, tuple(dateconverter.types)):
+        if tp in dateconverter.types:
             return adc.adDate
         #  otherwise, attempt to discern the type by probing the data object itself -- to handle duck typing
         if isinstance(d, StringTypes):

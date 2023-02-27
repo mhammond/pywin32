@@ -1,5 +1,3 @@
-from collections.abc import Iterable
-
 import pythoncom
 import pywintypes
 
@@ -295,7 +293,7 @@ if __name__ == "__main__":
                     reduce(operator.add, [len(p) for p in propValue]),
                 )
             )
-        elif isinstance(propValue, Iterable):
+        elif isinstance(propValue, list):
             print()
             for pv in propValue:
                 print(pv)
