@@ -1922,7 +1922,7 @@ static PyObject *ui_dc_end_page(PyObject *self, PyObject *args)
     GUI_END_SAVE;
     if (err < 0) {
         char msg[64];
-        sprintf(msg, "EndDoc failed (error code %d)", err);
+        sprintf(msg, "EndPage failed (error code %d)", err);
         PyErr_SetString(ui_module_error, msg);
         return NULL;
     }
