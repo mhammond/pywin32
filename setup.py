@@ -2249,6 +2249,8 @@ classifiers = [
     "Programming Language :: Python :: Implementation :: CPython",
 ]
 
+python_requires = ">=3.7"
+
 if "bdist_wininst" in sys.argv:
     # fixup https://github.com/pypa/setuptools/issues/3284
     def maybe_fixup_exes():
@@ -2301,6 +2303,7 @@ dist = setup(
     url="https://github.com/mhammond/pywin32",
     license="PSF",
     classifiers=classifiers,
+    python_requires=python_requires,
     cmdclass=cmdclass,
     options={
         "bdist_wininst": {
