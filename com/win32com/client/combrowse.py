@@ -43,9 +43,6 @@ class HLIRoot(browser.HLIPythonObject):
             HLIHeadingRegisterdTypeLibs(),
         ]
 
-    def __cmp__(self, other):
-        return cmp(self.name, other.name)
-
 
 class HLICOM(browser.HLIPythonObject):
     def GetText(self):
@@ -609,7 +606,7 @@ def main(modal=True, mdi=False):
 
 
 if __name__ == "__main__":
-    main(modal=win32api.GetConsoleTitle())
+    main(mdi="pywin.framework.app" in sys.modules)
 
     ni = pythoncom._GetInterfaceCount()
     ng = pythoncom._GetGatewayCount()

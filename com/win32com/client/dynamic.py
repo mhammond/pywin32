@@ -608,6 +608,7 @@ class CDispatch:
                             retEntry = self._olerepr_.propMapGet.get(attr)
                     if retEntry is None:
                         retEntry = build.MapEntry(self.__AttrToID__(attr), (attr,))
+                        self._olerepr_.propMap[attr] = retEntry
                 except pythoncom.ole_error:
                     pass  # No prop by that name - retEntry remains None.
 
