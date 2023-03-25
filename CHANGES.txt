@@ -17,6 +17,12 @@ Coming in build 306, as yet unreleased
 
 * Add CascadeWindows (#1999, @CristiFati)
 
+* Add win32gui.ResetDC
+
+* Fix leak in win32pdh.GetFormattedCounterArray
+
+* Fix IIS on later python versions (#2025)
+
 * Fix for service registration code updated in build 305 (#1985)
 
 * Support for Python 3.6 was dropped, support for later versions was improved.
