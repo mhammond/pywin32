@@ -30,10 +30,11 @@
 # Any line beginning with "#" will be ignored. Empty lines are okay.
 #
 
-import sys
-import os
-import verstamp
 import fnmatch
+import os
+import sys
+
+import verstamp
 import win32api
 
 numStamped = 0

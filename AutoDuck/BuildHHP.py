@@ -1,7 +1,7 @@
-import os
-import sys
 import glob
+import os
 import shutil
+import sys
 
 """
 BuildHHP.py

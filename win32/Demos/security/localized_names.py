@@ -3,10 +3,11 @@
 # http://support.microsoft.com/default.aspx?kbid=157234
 
 import sys
-from win32net import NetUserModalsGet
-from win32security import LookupAccountSid
+
 import pywintypes
 from ntsecuritycon import *
+from win32net import NetUserModalsGet
+from win32security import LookupAccountSid
 
 
 def LookupAliasFromRid(TargetComputer, Rid):

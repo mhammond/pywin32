@@ -3,15 +3,17 @@
 # You should use the Outlook object model, or
 # the win32com.mapi examples for a low-level interface.
 
-from win32com.client import gencache, constants
-import pythoncom
 import os
+
+import pythoncom
+from win32com.client import constants, gencache
 
 ammodule = None  # was the generated module!
 
 
 def GetDefaultProfileName():
-    import win32api, win32con
+    import win32api
+    import win32con
 
     try:
         key = win32api.RegOpenKey(

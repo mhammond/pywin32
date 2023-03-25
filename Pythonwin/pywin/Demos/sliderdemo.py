@@ -1,7 +1,8 @@
 # sliderdemo.py
 # Demo of the slider control courtesy of Mike Fletcher.
 
-import win32con, win32ui
+import win32con
+import win32ui
 from pywin.mfc import dialog
 
 

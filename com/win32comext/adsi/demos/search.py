@@ -1,7 +1,8 @@
-from win32com.adsi import adsi
+import pythoncom
+import pywintypes
+import win32security
+from win32com.adsi import adsi, adsicon
 from win32com.adsi.adsicon import *
-from win32com.adsi import adsicon
-import pythoncom, pywintypes, win32security
 
 options = None  # set to optparse options object
 

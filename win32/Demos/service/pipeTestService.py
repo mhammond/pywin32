@@ -8,24 +8,26 @@
 # * Start the service.
 # * Run the "pipeTestServiceClient.py" program as the client pipe side.
 
-import win32serviceutil, win32service
-import pywintypes, win32con, winerror
+import _thread
+import traceback
+
+# Old versions of the service framework would not let you import this
+# module at the top-level.  Now you can, and can check 'Debugging()' and
+# 'RunningAsService()' to check your context.
+import pywintypes
+import servicemanager
+import win32con
+import win32service
+import win32serviceutil
+import winerror
+from ntsecuritycon import *
+from win32api import *
 
 # Use "import *" to keep this looking as much as a "normal" service
 # as possible.  Real code shouldn't do this.
 from win32event import *
 from win32file import *
 from win32pipe import *
-from win32api import *
-from ntsecuritycon import *
-
-# Old versions of the service framework would not let you import this
-# module at the top-level.  Now you can, and can check 'Debugging()' and
-# 'RunningAsService()' to check your context.
-import servicemanager
-
-import traceback
-import _thread
 
 
 def ApplyIgnoreError(fn, args):

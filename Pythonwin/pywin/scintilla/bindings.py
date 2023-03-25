@@ -1,11 +1,10 @@
-from . import IDLEenvironment
-import string
-import win32ui
+import traceback
+
 import win32api
 import win32con
-from . import keycodes
-import sys
-import traceback
+import win32ui
+
+from . import IDLEenvironment, keycodes
 
 HANDLER_ARGS_GUESS = 0
 HANDLER_ARGS_NATIVE = 1

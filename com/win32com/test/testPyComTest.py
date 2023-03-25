@@ -4,19 +4,21 @@
 import sys
 
 sys.coinit_flags = 0  # Must be free-threaded!
-import win32api, pythoncom, time
-import pywintypes
-import os
-import winerror
-import win32com
-import win32com.client.connect
-from win32com.test.util import CheckClean
-from win32com.client import constants, DispatchBaseClass, CastTo, VARIANT
-from win32com.test.util import RegisterPythonServer
-from pywin32_testutil import str2memory
 import datetime
 import decimal
+import os
+import time
+
+import pythoncom
+import pywintypes
+import win32api
+import win32com
+import win32com.client.connect
 import win32timezone
+import winerror
+from pywin32_testutil import str2memory
+from win32com.client import VARIANT, CastTo, DispatchBaseClass, constants
+from win32com.test.util import CheckClean, RegisterPythonServer
 
 importMsg = "**** PyCOMTest is not installed ***\n  PyCOMTest is a Python test specific COM client and server.\n  It is likely this server is not installed on this machine\n  To install the server, you must get the win32com sources\n  and build it using MS Visual C++"
 

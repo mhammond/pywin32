@@ -5,9 +5,14 @@ or as a remote service of the form \\machinename\service
 """
 
 import os
+
+import ntsecuritycon
+import pythoncom
+import win32api
 import win32com.server.policy
-import win32security, ntsecuritycon, win32con
-import pythoncom, win32api, win32service
+import win32con
+import win32security
+import win32service
 from win32com.authorization import authorization
 
 SERVICE_GENERIC_EXECUTE = (
@@ -25,38 +30,38 @@ SERVICE_GENERIC_READ = (
 SERVICE_GENERIC_WRITE = win32service.SERVICE_CHANGE_CONFIG
 
 from ntsecuritycon import (
-    STANDARD_RIGHTS_READ,
-    STANDARD_RIGHTS_WRITE,
-    STANDARD_RIGHTS_EXECUTE,
-    WRITE_OWNER,
-    WRITE_DAC,
-    READ_CONTROL,
-    SI_ADVANCED,
-    SI_EDIT_AUDITS,
-    SI_EDIT_PROPERTIES,
-    SI_EDIT_ALL,
-    SI_PAGE_TITLE,
-    SI_RESET,
-    SI_ACCESS_SPECIFIC,
-    SI_ACCESS_GENERAL,
-    SI_ACCESS_CONTAINER,
-    SI_ACCESS_PROPERTY,
-    OBJECT_INHERIT_ACE,
     CONTAINER_INHERIT_ACE,
     INHERIT_ONLY_ACE,
-    SI_PAGE_PERM,
+    OBJECT_INHERIT_ACE,
+    PSPCB_SI_INITDIALOG,
+    READ_CONTROL,
+    SI_ACCESS_CONTAINER,
+    SI_ACCESS_GENERAL,
+    SI_ACCESS_PROPERTY,
+    SI_ACCESS_SPECIFIC,
+    SI_ADVANCED,
+    SI_CONTAINER,
+    SI_EDIT_ALL,
+    SI_EDIT_AUDITS,
+    SI_EDIT_PROPERTIES,
     SI_PAGE_ADVPERM,
     SI_PAGE_AUDIT,
     SI_PAGE_OWNER,
-    PSPCB_SI_INITDIALOG,
-    SI_CONTAINER,
+    SI_PAGE_PERM,
+    SI_PAGE_TITLE,
+    SI_RESET,
+    STANDARD_RIGHTS_EXECUTE,
+    STANDARD_RIGHTS_READ,
+    STANDARD_RIGHTS_WRITE,
+    WRITE_DAC,
+    WRITE_OWNER,
 )
-from win32security import OBJECT_INHERIT_ACE, CONTAINER_INHERIT_ACE, INHERIT_ONLY_ACE
-from win32com.shell.shellcon import (
-    PSPCB_RELEASE,
-    PSPCB_CREATE,
-)  ## Msg parameter to PropertySheetPageCallback
 from pythoncom import IID_NULL
+from win32com.shell.shellcon import (  # # Msg parameter to PropertySheetPageCallback
+    PSPCB_CREATE,
+    PSPCB_RELEASE,
+)
+from win32security import CONTAINER_INHERIT_ACE, INHERIT_ONLY_ACE, OBJECT_INHERIT_ACE
 
 
 class ServiceSecurity(win32com.server.policy.DesignatedWrapPolicy):

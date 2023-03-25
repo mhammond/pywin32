@@ -1,7 +1,8 @@
 # cmdline - command line utilities.
-import sys
-import win32ui
 import string
+import sys
+
+import win32ui
 
 
 def ParseArgs(str):

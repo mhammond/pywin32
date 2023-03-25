@@ -17,9 +17,9 @@
 # Example and progress bar code courtesy of KDL Technologies, Ltd., Hong Kong SAR, China.
 #
 
-from pywin.mfc import dialog
-import win32ui
 import win32con
+import win32ui
+from pywin.mfc import dialog
 
 
 def MakeDlgTemplate():

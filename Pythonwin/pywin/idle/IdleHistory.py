@@ -1,6 +1,3 @@
-import string
-
-
 class History:
     def __init__(self, text, output_sep="\n"):
         self.text = text

@@ -5,12 +5,11 @@
 # * Open Windows Explorer
 # * Attempt to move or copy a directory.
 # * Note our hook's dialog is displayed.
-import sys, os
+
 import pythoncom
-from win32com.shell import shell, shellcon
-import win32gui
 import win32con
-import winerror
+import win32gui
+from win32com.shell import shell, shellcon
 
 
 # Our shell extension.

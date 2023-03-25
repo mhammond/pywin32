@@ -1,4 +1,8 @@
-import win32print, pywintypes, win32con, win32gui, win32api
+import pywintypes
+import win32api
+import win32con
+import win32gui
+import win32print
 
 pname = win32print.GetDefaultPrinter()
 print(pname)

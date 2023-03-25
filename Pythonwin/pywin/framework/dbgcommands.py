@@ -3,10 +3,12 @@
 # Not in the debugger package, as I always want these interfaces to be
 # available, even if the debugger has not yet been (or can not be)
 # imported
-import win32ui, win32con
-from . import scriptutils
 import warnings
+
+import win32ui
 from pywin.scintilla.control import CScintillaEditInterface
+
+from . import scriptutils
 
 IdToBarNames = {
     win32ui.IDC_DBG_STACK: ("Stack", 0),

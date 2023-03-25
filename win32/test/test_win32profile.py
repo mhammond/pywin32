@@ -1,6 +1,7 @@
 """Test win32profile"""
 import os
 import unittest
+
 import win32profile
 
 

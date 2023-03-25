@@ -5,14 +5,15 @@
  this yet, so it is not well tested!
 """
 
-import winerror
 import types
-from win32com.server.exception import COMException
+
+import pythoncom
 import win32com.server.policy
 import win32com.server.util
-from win32com.client import Dispatch
-import pythoncom
+import winerror
 from win32com.axscript import axscript
+from win32com.client import Dispatch
+from win32com.server.exception import COMException
 
 debugging = 0
 

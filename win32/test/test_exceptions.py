@@ -1,8 +1,11 @@
 """Test pywin32's error semantics"""
 import sys
 import unittest
-import win32api, win32file, pywintypes
+
 import pythoncom
+import pywintypes
+import win32api
+import win32file
 import winerror
 
 

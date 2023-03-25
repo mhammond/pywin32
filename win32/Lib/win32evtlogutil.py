@@ -1,7 +1,10 @@
 """Event Log Utilities - helper for win32evtlog.pyd
 """
 
-import win32api, win32con, winerror, win32evtlog
+import win32api
+import win32con
+import win32evtlog
+import winerror
 
 error = win32api.error  # The error the evtlog module raises.
 
@@ -9,7 +12,12 @@ langid = win32api.MAKELANGID(win32con.LANG_NEUTRAL, win32con.SUBLANG_NEUTRAL)
 
 
 def AddSourceToRegistry(
-    appName, msgDLL=None, eventLogType="Application", eventLogFlags=None
+    appName,
+    msgDLL=None,
+    eventLogType="Application",
+    eventLogFlags=None,
+    categoryDLL=None,
+    categoryCount=0,
 ):
     """Add a source of messages to the event log.
 
@@ -24,7 +32,7 @@ def AddSourceToRegistry(
     """
 
     # When an application uses the RegisterEventSource or OpenEventLog
-    # function to get a handle of an event log, the event loggging service
+    # function to get a handle of an event log, the event logging service
     # searches for the specified source name in the registry. You can add a
     # new source name to the registry by opening a new registry subkey
     # under the Application key and adding registry values to the new
@@ -32,7 +40,6 @@ def AddSourceToRegistry(
 
     if msgDLL is None:
         msgDLL = win32evtlog.__file__
-
     # Create a new key for our application
     hkey = win32api.RegCreateKey(
         win32con.HKEY_LOCAL_MACHINE,
@@ -63,6 +70,26 @@ def AddSourceToRegistry(
         win32con.REG_DWORD,  # value type \
         eventLogFlags,
     )
+
+    if categoryCount > 0:
+        # Optionally, you can specify a message file that contains the categories
+        if categoryDLL is None:
+            categoryDLL = win32evtlog.__file__
+        win32api.RegSetValueEx(
+            hkey,  # subkey handle \
+            "CategoryMessageFile",  # value name \
+            0,  # reserved \
+            win32con.REG_EXPAND_SZ,  # value type \
+            categoryDLL,
+        )
+
+        win32api.RegSetValueEx(
+            hkey,  # subkey handle \
+            "CategoryCount",  # value name \
+            0,  # reserved \
+            win32con.REG_DWORD,  # value type \
+            categoryCount,
+        )
     win32api.RegCloseKey(hkey)
 
 
@@ -191,7 +218,6 @@ def FeedEventLogRecords(
         readFlags = (
             win32evtlog.EVENTLOG_BACKWARDS_READ | win32evtlog.EVENTLOG_SEQUENTIAL_READ
         )
-
     h = win32evtlog.OpenEventLog(machineName, logName)
     try:
         while 1:

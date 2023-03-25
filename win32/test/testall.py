@@ -1,7 +1,9 @@
-import sys, os
+import os
 import re
-import unittest
+import sys
 import traceback
+import unittest
+
 import pywin32_testutil
 
 # A list of demos that depend on user-interface of *any* kind.  Tests listed

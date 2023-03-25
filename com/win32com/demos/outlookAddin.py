@@ -25,13 +25,12 @@
 # the addin to not automatically load next time Outlook starts.  To
 # correct this, simply re-register the addin (see above)
 
-from win32com import universal
-from win32com.server.exception import COMException
-from win32com.client import gencache, DispatchWithEvents
-import winerror
-import pythoncom
-from win32com.client import constants
 import sys
+
+import pythoncom
+from win32com import universal
+from win32com.client import DispatchWithEvents, constants, gencache
+from win32com.server.exception import COMException
 
 # Support for COM objects we use.
 gencache.EnsureModule(

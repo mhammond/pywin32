@@ -16,9 +16,10 @@ The makepy command line etc handling is also getting large enough in its own rig
 import os
 import sys
 import time
-import win32com
 
 import pythoncom
+import win32com
+
 from . import build
 
 error = "makepy.error"

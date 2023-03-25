@@ -1,20 +1,21 @@
 # Ported from the win32 and MFC OpenGL Samples.
 
-from pywin.mfc import docview
 import sys
 
+from pywin.mfc import docview
+
 try:
-    from OpenGL.GL import *
-    from OpenGL.GLU import *
+    from OpenGL.GL import *  # nopycln: import
+    from OpenGL.GLU import *  # nopycln: import
 except ImportError:
     print("The OpenGL extensions do not appear to be installed.")
     print("This Pythonwin demo can not run")
     sys.exit(1)
 
+import timer
+import win32api
 import win32con
 import win32ui
-import win32api
-import timer
 
 PFD_TYPE_RGBA = 0
 PFD_TYPE_COLORINDEX = 1

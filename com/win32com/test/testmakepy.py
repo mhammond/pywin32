@@ -1,16 +1,13 @@
 # Test makepy - try and run it over every OCX in the windows system directory.
 
 import sys
-import win32api
-import traceback
-import glob
-import os
 import traceback
 
-import win32com.test.util
-from win32com.client import makepy, selecttlb, gencache
 import pythoncom
+import win32api
+import win32com.test.util
 import winerror
+from win32com.client import gencache, makepy, selecttlb
 
 
 def TestBuildAll(verbose=1):

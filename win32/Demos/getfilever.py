@@ -1,4 +1,6 @@
-import os, win32api
+import os
+
+import win32api
 
 ver_strings = (
     "Comments",

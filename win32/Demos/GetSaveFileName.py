@@ -1,4 +1,7 @@
-import win32gui, win32con, os
+import os
+
+import win32con
+import win32gui
 
 filter = "Python Scripts\0*.py;*.pyw;*.pys\0Text files\0*.txt\0"
 customfilter = "Other file types\0*.*\0"

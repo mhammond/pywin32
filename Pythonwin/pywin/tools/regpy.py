@@ -1,8 +1,8 @@
 # (sort-of) Registry editor
-import win32ui
+import commctrl
 import dialog
 import win32con
-import commctrl
+import win32ui
 
 
 class RegistryControl:

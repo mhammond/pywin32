@@ -21,13 +21,13 @@
     Updates by Vernon Cole
 """
 
-import unittest
-import sys
+import copy
 import datetime
 import decimal
-import copy
 import random
 import string
+import sys
+import unittest
 
 try:
     import win32com.client
@@ -44,7 +44,6 @@ import tryconnection
 
 import adodbapi
 import adodbapi.apibase as api
-
 
 try:
     import adodbapi.ado_consts as ado_consts

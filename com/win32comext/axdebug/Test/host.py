@@ -1,15 +1,15 @@
-import sys, traceback, string
-import win32com.server.util
-from win32com.client.util import Enumerator
-from win32com.server.exception import Exception
-from win32com.axscript import axscript
-from win32com.axdebug import axdebug, gateways, documents, contexts, adb
-from win32com.axdebug.util import trace, _wrap, _wrap_remove
-from win32com.axdebug import codecontainer
+import os
+import traceback
 
 import pythoncom
-import win32api, winerror
-import os
+import win32api
+import win32com.server.util
+import winerror
+from win32com.axdebug import adb, axdebug, codecontainer, contexts, documents, gateways
+from win32com.axdebug.util import _wrap, _wrap_remove, trace
+from win32com.axscript import axscript
+from win32com.client.util import Enumerator
+from win32com.server.exception import Exception
 
 
 class ExternalConnection:
@@ -157,8 +157,8 @@ def testdumb():
 
 
 def TestSmartProvider():
-    from win32com.axdebug import debugger
     import ttest
+    from win32com.axdebug import debugger
 
     d = debugger.AXDebugger()
     # 	d.StartDebugger()

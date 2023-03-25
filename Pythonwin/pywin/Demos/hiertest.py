@@ -1,9 +1,9 @@
-import win32ui
 import os
-import commctrl
 
-from pywin.tools import hierlist
+import commctrl
+import win32ui
 from pywin.mfc import docview, window
+from pywin.tools import hierlist
 
 
 # directory listbox

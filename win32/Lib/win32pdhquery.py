@@ -125,7 +125,12 @@ if you use it, you accept the risk of using it, etceteras.
 """
 # Feb 12, 98 - MH added "rawaddcounter" so caller can get exception details.
 
-import win32pdh, win32api, time, _thread, copy
+import _thread
+import copy
+import time
+
+import win32api
+import win32pdh
 
 
 class BaseQuery:

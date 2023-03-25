@@ -1,8 +1,8 @@
+import pythoncom
 import win32com.axscript.axscript
 import winerror
 from win32com.axscript import axscript
 from win32com.server import exception, util
-import pythoncom
 
 
 class AXEngine:

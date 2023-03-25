@@ -1,10 +1,10 @@
 # Test AXScripting the best we can in an automated fashion...
-import win32api, os, sys
+import os
+import sys
 
+import win32api
 import win32com.axscript
 import win32com.axscript.client
-
-import unittest
 import win32com.test.util
 
 verbose = "-v" in sys.argv

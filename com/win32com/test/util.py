@@ -1,19 +1,19 @@
-import sys, os
-import win32api
+import gc
+import logging
+import os
+import sys
 import tempfile
 import unittest
-import gc
-import pywintypes
-import pythoncom
-import winerror
-from pythoncom import _GetInterfaceCount, _GetGatewayCount
-import win32com
-import logging
 import winreg
-import io as StringIO
 
+import pythoncom
 import pywin32_testutil
-from pywin32_testutil import TestLoader, TestResult, TestRunner, LeakTestCase
+import pywintypes
+import win32api
+import win32com
+import winerror
+from pythoncom import _GetGatewayCount, _GetInterfaceCount
+from pywin32_testutil import LeakTestCase, TestLoader, TestResult, TestRunner
 
 
 def CheckClean():

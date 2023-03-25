@@ -1,6 +1,10 @@
-import win32api, win32security
-import win32con, ntsecuritycon, winnt
 import os
+
+import ntsecuritycon
+import win32api
+import win32con
+import win32security
+import winnt
 
 temp_dir = win32api.GetTempPath()
 fname = win32api.GetTempFileName(temp_dir, "rsk")[0]

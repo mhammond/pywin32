@@ -23,9 +23,9 @@ Jim Eggleston, 28 August 1996
 Merged with dlgpass and moved to pywin.dialogs by Mark Hammond Jan 1998.
 """
 
-import win32ui
 import win32api
 import win32con
+import win32ui
 from pywin.mfc import dialog
 
 

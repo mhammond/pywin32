@@ -30,11 +30,11 @@ or, after running through 2to3.py, CPython 3.0 or later.
 __version__ = "2.6.0.4"
 version = "adodbapi.remote v" + __version__
 
+import array
+import datetime
 import os
 import sys
-import array
 import time
-import datetime
 
 # Pyro4 is required for server and remote operation --> https://pypi.python.org/pypi/Pyro4/
 try:

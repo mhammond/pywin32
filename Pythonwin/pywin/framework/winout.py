@@ -20,11 +20,14 @@
 # This module is thread safe - output can originate from any thread.  If any thread
 # other than the main thread attempts to print, it is always queued until next idle time
 
-import sys, string, re
-from pywin.mfc import docview
-from pywin.framework import app, window
-import win32ui, win32api, win32con
 import queue
+import re
+
+import win32api
+import win32con
+import win32ui
+from pywin.framework import app, window
+from pywin.mfc import docview
 
 debug = lambda msg: None
 
@@ -43,8 +46,8 @@ class flags:
 # WindowOutputDocumentParent=docview.RichEditDoc
 # WindowOutputDocumentParent=docview.Document
 import pywin.scintilla.document
-from pywin.scintilla import scintillacon
 from pywin import default_scintilla_encoding
+from pywin.scintilla import scintillacon
 
 WindowOutputDocumentParent = pywin.scintilla.document.CScintillaDocument
 
@@ -144,7 +147,8 @@ class WindowOutputViewImpl:
             # An OLE Exception - pull apart the exception
             # and try and locate a help file.
             try:
-                import win32api, win32con
+                import win32api
+                import win32con
 
                 det = eval(line[line.find(":") + 1 :].strip())
                 win32ui.SetStatusText("Opening help file on OLE error...")

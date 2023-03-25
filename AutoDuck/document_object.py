@@ -1,6 +1,4 @@
-import sys
-
-from xml.sax import make_parser, handler
+from xml.sax import handler, make_parser
 
 
 class categoryHandler(handler.ContentHandler):

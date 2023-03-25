@@ -12,7 +12,8 @@ LINESTATE_CALLSTACK = 0x4  # This line is in the callstack.
 OPT_HIDE = "hide"
 OPT_STOP_EXCEPTIONS = "stopatexceptions"
 
-import win32api, win32ui
+import win32api
+import win32ui
 
 
 def DoGetOption(optsDict, optName, default):

@@ -1,5 +1,6 @@
 import sys
 import unittest
+
 import pythoncom
 from win32com.client import Dispatch
 from win32com.client.gencache import EnsureDispatch
@@ -7,8 +8,8 @@ from win32com.client.gencache import EnsureDispatch
 
 class PippoTester(unittest.TestCase):
     def setUp(self):
-        from win32com.test.util import RegisterPythonServer
         from win32com.test import pippo_server
+        from win32com.test.util import RegisterPythonServer
 
         RegisterPythonServer(pippo_server.__file__, "Python.Test.Pippo")
         # create it.

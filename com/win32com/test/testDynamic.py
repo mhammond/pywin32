@@ -2,7 +2,6 @@
 
 import pythoncom
 import winerror
-
 from win32com.server.exception import Exception
 
 error = "testDynamic error"
@@ -45,7 +44,8 @@ class VeryPermissive:
 
 
 def Test():
-    import win32com.server.util, win32com.server.policy
+    import win32com.server.policy
+    import win32com.server.util
 
     #       import win32dbg;win32dbg.brk()
     ob = win32com.server.util.wrap(

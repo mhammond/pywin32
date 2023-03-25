@@ -486,7 +486,7 @@ static PyObject *PyCertEnumSystemStore(PyObject *self, PyObject *args, PyObject 
         CertEnumSystemStore(dwFlags, pvSystemStoreLocationPara, ret, CertEnumSystemStoreCallback);
     Py_END_ALLOW_THREADS
 
-        if (!bsuccess)
+    if (!bsuccess)
     {
         Py_DECREF(ret);
         ret = NULL;
@@ -495,10 +495,12 @@ static PyObject *PyCertEnumSystemStore(PyObject *self, PyObject *args, PyObject 
     }
 
     if (pvSystemStoreLocationPara != NULL)
+    {
         if (dwFlags & CERT_SYSTEM_STORE_RELOCATE_FLAG)
             PyWinObject_FreeWCHAR((WCHAR *)cssrp.pwszSystemStore);
         else
             PyWinObject_FreeWCHAR((WCHAR *)pvSystemStoreLocationPara);
+    }
     return ret;
 }
 

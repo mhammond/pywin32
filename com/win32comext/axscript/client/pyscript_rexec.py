@@ -9,7 +9,7 @@
 
 import pythoncom
 from win32com.axscript import axscript
-import winerror
+
 from . import pyscript
 
 INTERFACE_USES_DISPEX = 0x00000004  # Object knows to use IDispatchEx

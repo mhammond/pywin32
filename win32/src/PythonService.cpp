@@ -860,7 +860,7 @@ void WINAPI service_main(DWORD dwArgc, LPTSTR *lpszArgv)
         if (instance)
             ReportPythonError(E_PYS_NOT_CONTROL_HANDLER);
         // else no instance - an error has already been reported.
-        if (!bServiceDebug)
+        if (!bServiceDebug) {
             if (g_RegisterServiceCtrlHandlerEx) {
                 // Use 2K/XP extended registration if available
                 pe->sshStatusHandle = g_RegisterServiceCtrlHandlerEx(lpszArgv[0], service_ctrl_ex, pe);
@@ -869,6 +869,7 @@ void WINAPI service_main(DWORD dwArgc, LPTSTR *lpszArgv)
                 // Otherwise fall back to NT
                 pe->sshStatusHandle = RegisterServiceCtrlHandler(lpszArgv[0], service_ctrl);
             }
+        }
     }
     // No instance - we can't start.
     if (!instance) {

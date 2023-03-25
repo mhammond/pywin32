@@ -10,10 +10,14 @@ dialogs and other Windows UI resources.
 __author__ = "Adam Walker"
 __version__ = "0.11"
 
-import sys, os, shlex, stat
+import os
 import pprint
-import win32con
+import shlex
+import stat
+import sys
+
 import commctrl
+import win32con
 
 _controlMap = {
     "DEFPUSHBUTTON": 0x80,

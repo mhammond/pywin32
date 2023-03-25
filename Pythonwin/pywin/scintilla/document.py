@@ -1,12 +1,13 @@
-import win32ui
-from pywin.mfc import docview
-from pywin import default_scintilla_encoding
-from . import scintillacon
-import win32con
-import string
-import os
 import codecs
 import re
+import string
+
+import win32con
+import win32ui
+from pywin import default_scintilla_encoding
+from pywin.mfc import docview
+
+from . import scintillacon
 
 crlf_bytes = "\r\n".encode("ascii")
 lf_bytes = "\n".encode("ascii")

@@ -11,7 +11,11 @@
 # to get all sorts of information about a running process and many
 # other aspects of your system.
 
-import win32api, win32pdhutil, win32con, sys
+import sys
+
+import win32api
+import win32con
+import win32pdhutil
 
 
 def killProcName(procname):

@@ -3,11 +3,12 @@
 # Assumes the _d files can be found in the same directory as this script
 # or in the cwd.
 
-import win32api
-import winreg
-import sys
-import shutil
 import os
+import shutil
+import sys
+import winreg
+
+import win32api
 
 
 def usage_and_die(rc):

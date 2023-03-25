@@ -1,14 +1,15 @@
 # Simple CE synchronisation utility with Python features.
 
-import wincerapi
-import win32api
-import win32file
+import fnmatch
 import getopt
-import sys
 import os
 import string
+import sys
+
+import win32api
 import win32con
-import fnmatch
+import win32file
+import wincerapi
 
 
 class InvalidUsage(Exception):
@@ -112,7 +113,8 @@ def _copyfilter(full_name, rel_name, info, local, bMaintainDir):
     return os.path.split(rel_name)[1]
 
 
-import pywin.dialogs.status, win32ui
+import pywin.dialogs.status
+import win32ui
 
 
 class FileCopyProgressDialog(pywin.dialogs.status.CStatusProgressDialog):
