@@ -33,11 +33,17 @@
 ##
 ######################################################################
 
-import win32ui
+import glob
+import os
+import re
+import sys
+import time
+
 import win32api
-from pywin.mfc import docview, dialog, window
 import win32con
-import sys, string, re, glob, os, stat, time
+import win32ui
+from pywin.mfc import dialog, docview, window
+
 from . import scriptutils
 
 

@@ -16,15 +16,16 @@
 # an example.  If this sample is run on IIS5 or earlier it simply ignores
 # any excludes.
 
-from isapi import isapicon, threaded_extension
 import sys
-import traceback
+
+from isapi import isapicon, threaded_extension
 
 try:
     from urllib.request import urlopen
 except ImportError:
     # py3k spelling...
     from urllib.request import urlopen
+
 import win32api
 
 # sys.isapidllhandle will exist when we are loaded by the IIS framework.

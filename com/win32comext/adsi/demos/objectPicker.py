@@ -1,6 +1,6 @@
 # A demo for the IDsObjectPicker interface.
-import win32clipboard
 import pythoncom
+import win32clipboard
 from win32com.adsi import adsi
 from win32com.adsi.adsicon import *
 

@@ -20,17 +20,15 @@ See the SSPI documentation for more details.
 """
 
 
-import sys
-import struct
+import http.client  # sorry, this demo needs 2.3+
+import optparse
 import socketserver
-import win32api
-import http.client
+import struct
 import traceback
 
+import sspi
+import win32api
 import win32security
-import sspi, sspicon
-
-import optparse  # sorry, this demo needs 2.3+
 
 options = None  # set to optparse object.
 

@@ -6,15 +6,16 @@
 # * Execute this script to register the context menu.
 # * Open Windows Explorer, and browse to a directory with a .py file.
 # * Note the pretty, random selection of icons!
-import sys, os
-import pythoncom
-from win32com.shell import shell, shellcon
-import win32gui
-import win32con
-import winerror
-
 # Use glob to locate ico files, and random.choice to pick one.
-import glob, random
+import glob
+import os
+import random
+import sys
+
+import pythoncom
+import win32gui
+import winerror
+from win32com.shell import shell, shellcon
 
 ico_files = glob.glob(os.path.join(sys.prefix, "*.ico"))
 if not ico_files:

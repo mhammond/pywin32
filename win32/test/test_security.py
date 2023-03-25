@@ -1,10 +1,13 @@
 # Tests for the win32security module.
-import sys, os
 import unittest
-import winerror
-from pywin32_testutil import testmain, TestSkipped, ob2memory
 
-import win32api, win32con, win32security, ntsecuritycon, pywintypes
+import ntsecuritycon
+import pywintypes
+import win32api
+import win32con
+import win32security
+import winerror
+from pywin32_testutil import TestSkipped, ob2memory, testmain
 
 
 class SecurityTests(unittest.TestCase):

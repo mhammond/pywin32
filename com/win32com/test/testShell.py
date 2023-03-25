@@ -1,8 +1,8 @@
-import sys, os
-import struct
-import unittest
-import copy
 import datetime
+import os
+import struct
+import sys
+
 import win32timezone
 
 try:
@@ -10,15 +10,14 @@ try:
 except AttributeError:
     sys_maxsize = sys.maxint
 
-import win32con
 import pythoncom
 import pywintypes
+import win32com.test.util
+import win32con
+from pywin32_testutil import str2bytes
 from win32com.shell import shell
 from win32com.shell.shellcon import *
 from win32com.storagecon import *
-
-import win32com.test.util
-from pywin32_testutil import str2bytes
 
 
 class ShellTester(win32com.test.util.TestCase):

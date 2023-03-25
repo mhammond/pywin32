@@ -4,13 +4,16 @@
 #
 
 import sys
+import traceback
+
+import pythoncom
+import win32com.client
+import win32com.client.dynamic
+import win32com.client.gencache
 import winerror
-import pythoncom, win32com.client, win32com.client.dynamic, win32com.client.gencache
+from pywin32_testutil import str2memory
 from win32com.server.util import NewCollection, wrap
 from win32com.test import util
-from pywin32_testutil import str2memory
-
-import traceback
 
 # for debugging
 useDispatcher = None

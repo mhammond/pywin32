@@ -6,9 +6,12 @@
 # Currently we support only one child per DockingBar.  Later we need to add
 # support for multiple children.
 
-import win32api, win32con, win32ui
-from pywin.mfc import afxres, window
 import struct
+
+import win32api
+import win32con
+import win32ui
+from pywin.mfc import afxres, window
 
 clrBtnHilight = win32api.GetSysColor(win32con.COLOR_BTNHILIGHT)
 clrBtnShadow = win32api.GetSysColor(win32con.COLOR_BTNSHADOW)

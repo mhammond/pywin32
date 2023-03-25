@@ -1,11 +1,12 @@
 # A demo of the win32rcparser module and using win32gui
 
-import win32gui
+import os
+
+import commctrl
 import win32api
 import win32con
+import win32gui
 import win32rcparser
-import commctrl
-import sys, os
 
 this_dir = os.path.abspath(os.path.dirname(__file__))
 g_rcname = os.path.abspath(

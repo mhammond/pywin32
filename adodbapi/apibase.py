@@ -5,11 +5,11 @@ Copyright (C) 2002 Henrik Ekelund, version 2.1 by Vernon Cole
 * http://sourceforge.net/projects/adodbapi
 """
 
-import sys
-import time
 import datetime
 import decimal
 import numbers
+import sys
+import time
 
 # noinspection PyUnresolvedReferences
 from . import ado_consts as adc
@@ -19,7 +19,7 @@ verbose = False  # debugging flag
 onIronPython = sys.platform == "cli"
 if onIronPython:  # we need type definitions for odd data we may need to convert
     # noinspection PyUnresolvedReferences
-    from System import DBNull, DateTime
+    from System import DateTime, DBNull
 
     NullTypes = (type(None), DBNull)
 else:
@@ -524,9 +524,9 @@ def cvtUnusual(variant):
     if verbose > 1:
         sys.stderr.write("Conversion called for Unusual data=%s\n" % repr(variant))
     if isinstance(variant, DateTime):  # COMdate or System.Date
-        from .adodbapi import (
+        from .adodbapi import (  # this will only be called when adodbapi is in use, and very rarely
             dateconverter,
-        )  # this will only be called when adodbapi is in use, and very rarely
+        )
 
         return dateconverter.DateObjectFromCOMDate(variant)
     return variant  # cannot find conversion function -- just give the data to the user

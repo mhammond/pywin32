@@ -1,16 +1,15 @@
 # testExplorer -
 
-import sys
 import os
-import win32com.client.dynamic
-from win32com.client import Dispatch
-import win32api
-import win32gui
-import win32con
-import winerror
-import glob
-import pythoncom
 import time
+
+import pythoncom
+import win32api
+import win32com.client.dynamic
+import win32con
+import win32gui
+import winerror
+from win32com.client import Dispatch
 from win32com.test.util import CheckClean
 
 bVisibleEventFired = 0

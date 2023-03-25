@@ -1,10 +1,9 @@
 # dbgpyapp.py  - Debugger Python application class
 #
+import sys
+
 import win32con
 import win32ui
-import sys
-import string
-import os
 from pywin.framework import intpyapp
 
 version = "0.3.0"

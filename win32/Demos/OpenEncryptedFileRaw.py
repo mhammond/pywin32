@@ -1,5 +1,8 @@
-import win32file, win32api, winerror
 import os
+
+import win32api
+import win32file
+import winerror
 
 
 def ReadCallback(input_buffer, data, buflen):

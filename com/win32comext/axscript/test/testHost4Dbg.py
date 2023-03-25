@@ -1,10 +1,13 @@
-import os, sys, traceback
+import os
+import sys
+import traceback
+
+import pythoncom
+import win32ui
 from win32com.axscript import axscript
 from win32com.axscript.server import axsite
 from win32com.axscript.server.error import Exception
-import pythoncom
 from win32com.server import util
-import win32ui
 
 version = "0.0.1"
 

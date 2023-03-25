@@ -1,4 +1,6 @@
-import sys, string, os, getopt
+import getopt
+import os
+import sys
 
 # Run this passing a ".i" file as param.  Will generate ".d"
 

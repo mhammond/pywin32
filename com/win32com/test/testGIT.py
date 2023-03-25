@@ -21,10 +21,13 @@ this is a pain in the but!
 
 """
 
-import _thread, traceback
-import win32com.client
-import win32event, win32api
+import _thread
+import traceback
+
 import pythoncom
+import win32api
+import win32com.client
+import win32event
 
 
 def TestInterp(interp):

@@ -3,8 +3,12 @@ Demonstrates prompting for credentials, saving, and loggging on with marshalled 
 Also shows how to load user's profile
 """
 
-import win32net, win32security, win32api, win32con
-import win32profile, win32cred
+import win32api
+import win32con
+import win32cred
+import win32net
+import win32profile
+import win32security
 
 ## Prompt for a username/pwd for local computer
 uiinfo = {

@@ -1,4 +1,10 @@
-import win32gui, win32con, win32api, time, os, glob
+import glob
+import os
+import time
+
+import win32api
+import win32con
+import win32gui
 
 ## some of these tests will fail for systems prior to XP
 

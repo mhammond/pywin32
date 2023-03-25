@@ -22,12 +22,11 @@ import sys
 
 sys.coinit_flags = 0  # specify free threading
 
-import os
-import win32api
-import win32event
-import win32com.client
+
 import pythoncom
-import time
+import win32api
+import win32com.client
+import win32event
 
 
 # The print statements indicate that COM has actually started another thread

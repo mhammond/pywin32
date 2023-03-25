@@ -1,6 +1,11 @@
-from win32com.server.util import wrap
-import pythoncom, sys, os, time, win32api, win32event, tempfile
+import os
+import tempfile
+
+import pythoncom
+import win32api
+import win32event
 from win32com.bits import bits
+from win32com.server.util import wrap
 
 TIMEOUT = 200  # ms
 StopEvent = win32event.CreateEvent(None, 0, 0, None)

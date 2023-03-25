@@ -14,7 +14,6 @@
 #   spaces, they will not be considered part of the same block.
 # * Fancy comments, like this bulleted list, arent handled :-)
 
-import string
 import re
 
 

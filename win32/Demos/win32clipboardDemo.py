@@ -1,10 +1,10 @@
 # win32clipboardDemo.py
 #
 # Demo/test of the win32clipboard module.
-from win32clipboard import *
-from pywin32_testutil import str2bytes  # py3k-friendly helper
+
 import win32con
-import types
+from pywin32_testutil import str2bytes  # py3k-friendly helper
+from win32clipboard import *
 
 if not __debug__:
     print("WARNING: The test code in this module uses assert")

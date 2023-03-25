@@ -1,8 +1,8 @@
+import unittest
+
 import pythoncom
 import win32com.server.util
 import win32com.test.util
-
-import unittest
 from pywin32_testutil import str2bytes
 
 

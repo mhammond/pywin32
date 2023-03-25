@@ -1,5 +1,5 @@
 # MFC base classes.
-import sys
+
 import win32ui
 
 

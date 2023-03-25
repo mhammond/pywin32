@@ -9,9 +9,9 @@
 #   the context menu.
 
 import pythoncom
-from win32com.shell import shell, shellcon
-import win32gui
 import win32con
+import win32gui
+from win32com.shell import shell, shellcon
 
 
 class ShellExtension:

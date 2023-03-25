@@ -1,8 +1,7 @@
 # document and view classes for MFC.
 import win32ui
-import win32con
-from . import object
-from . import window
+
+from . import object, window
 
 
 class View(window.Wnd):

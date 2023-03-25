@@ -1,6 +1,7 @@
-from . import dbgcon
-from pywin.mfc import dialog
 import win32ui
+from pywin.mfc import dialog
+
+from . import dbgcon
 
 
 class DebuggerOptionsPropPage(dialog.PropertyPage):

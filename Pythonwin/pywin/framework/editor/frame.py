@@ -1,8 +1,7 @@
 # frame.py - The MDI frame window for an editor.
 import pywin.framework.window
-import win32ui
 import win32con
-import afxres
+import win32ui
 
 from . import ModuleBrowser
 

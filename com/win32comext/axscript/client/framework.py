@@ -6,16 +6,15 @@
 
   There are classes defined for the engine itself, and for ScriptItems
 """
-import sys
-from win32com.axscript import axscript
-import win32com.server.util
-
-import win32com.client.connect  # Need simple connection point support
-
-import win32api, winerror
-import pythoncom
-import types
 import re
+import sys
+
+import pythoncom  # Need simple connection point support
+import win32api
+import win32com.client.connect
+import win32com.server.util
+import winerror
+from win32com.axscript import axscript
 
 
 def RemoveCR(text):
@@ -30,6 +29,7 @@ SCRIPTTEXT_ISEXPRESSION = 0x00000020
 SCRIPTTEXT_ISPERSISTENT = 0x00000040
 
 from win32com.server.exception import Exception, IsCOMServerException
+
 from . import error  # ax.client.error
 
 state_map = {
@@ -725,6 +725,7 @@ class COMScript:
 
         try:
             import win32com.axdebug.axdebug  # see if the core exists.
+
             from . import debug
 
             self.debugManager = debug.DebugManager(self)
@@ -1054,7 +1055,7 @@ class COMScript:
                     self.scriptSite.OnStateChange(state)
             except pythoncom.com_error as xxx_todo_changeme:
                 (hr, desc, exc, arg) = xxx_todo_changeme.args
-                pass  # Ignore all errors here - E_NOTIMPL likely from scriptlets.
+                # Ignore all errors here - E_NOTIMPL likely from scriptlets.
         finally:
             self.EnableInterrupts()
 

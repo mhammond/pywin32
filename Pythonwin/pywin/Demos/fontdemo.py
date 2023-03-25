@@ -10,12 +10,10 @@
 # >>> f2 = {'name':'Courier New', 'height':24, 'italic':1}
 # >>> d.SetFont (f2)
 
-import win32ui
-import win32con
 import win32api
-
+import win32con
+import win32ui
 from pywin.mfc import docview
-
 
 # font is a dictionary in which the following elements matter:
 # (the best matching font to supplied parameters is returned)

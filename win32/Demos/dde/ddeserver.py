@@ -1,8 +1,8 @@
 # 'Request' example added jjk  11/20/98
 
+import dde
 import win32ui
 from pywin.mfc import object
-import dde
 
 
 class MySystemTopic(object.Object):

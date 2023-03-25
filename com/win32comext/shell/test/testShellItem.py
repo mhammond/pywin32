@@ -1,6 +1,7 @@
 # Test IShellItem and related interfaces
-from win32com.shell import shell, shellcon, knownfolders
 import unittest
+
+from win32com.shell import knownfolders, shell, shellcon
 
 
 class TestShellItem(unittest.TestCase):

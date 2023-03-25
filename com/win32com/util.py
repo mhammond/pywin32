@@ -3,7 +3,8 @@
   This module contains a collection of general purpose utility functions.
 """
 import pythoncom
-import win32api, win32con
+import win32api
+import win32con
 
 
 def IIDToInterfaceName(iid):

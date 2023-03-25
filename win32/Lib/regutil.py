@@ -1,8 +1,9 @@
 # Some registry helpers.
+import os
+import sys
+
 import win32api
 import win32con
-import sys
-import os
 
 error = "Registry utility error"
 

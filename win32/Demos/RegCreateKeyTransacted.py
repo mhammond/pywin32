@@ -1,4 +1,6 @@
-import win32api, win32con, win32transaction
+import win32api
+import win32con
+import win32transaction
 
 keyname = "Pywin32 test transacted registry functions"
 subkeyname = "test transacted subkey"

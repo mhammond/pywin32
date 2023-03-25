@@ -1,5 +1,5 @@
-import string
 import re
+import string
 import sys
 
 # Reason last stmt is continued (or C_NONE if it's not).

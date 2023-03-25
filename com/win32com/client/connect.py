@@ -1,5 +1,6 @@
 """Utilities for working with Connections"""
-import win32com.server.util, pythoncom
+import pythoncom
+import win32com.server.util
 
 
 class SimpleConnection:

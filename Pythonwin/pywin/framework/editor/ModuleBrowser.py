@@ -1,14 +1,14 @@
 # ModuleBrowser.py - A view that provides a module browser for an editor document.
-import pywin.mfc.docview
-import win32ui
-import win32con
-import commctrl
-import win32api
-from pywin.tools import hierlist, browser
-import pywin.framework.scriptutils
-import afxres
-
 import pyclbr
+
+import afxres
+import commctrl
+import pywin.framework.scriptutils
+import pywin.mfc.docview
+import win32api
+import win32con
+import win32ui
+from pywin.tools import browser, hierlist
 
 
 class HierListCLBRModule(hierlist.HierListItem):

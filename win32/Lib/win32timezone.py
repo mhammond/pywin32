@@ -233,15 +233,15 @@ datetime.datetime(2011, 11, 6, 1, 0, tzinfo=TimeZoneInfo('Pacific Standard Time'
 """
 __author__ = "Jason R. Coombs <jaraco@jaraco.com>"
 
-import winreg
-import struct
 import datetime
-import win32api
-import re
+import logging
 import operator
+import re
+import struct
+import winreg
 from itertools import count
 
-import logging
+import win32api
 
 log = logging.getLogger(__file__)
 

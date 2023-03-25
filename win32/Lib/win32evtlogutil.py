@@ -1,7 +1,10 @@
 """Event Log Utilities - helper for win32evtlog.pyd
 """
 
-import win32api, win32con, winerror, win32evtlog
+import win32api
+import win32con
+import win32evtlog
+import winerror
 
 error = win32api.error  # The error the evtlog module raises.
 

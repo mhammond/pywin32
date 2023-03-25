@@ -1,25 +1,22 @@
-import pythoncom
-import win32com.server.util
-import time
+import os
 
-import win32com, sys, string, win32api, traceback
-import win32com.client.dynamic
-import win32com.client
 import pythoncom
-from win32com.axcontrol import axcontrol
+import pywintypes
+import win32api
+import win32com
+import win32com.client
+import win32com.client.dynamic
+import win32com.server.util
+import win32ui
+from pywin32_testutil import str2bytes
 from pywintypes import Unicode
 from win32com import storagecon
+from win32com.axcontrol import axcontrol
 from win32com.test.util import CheckClean
-
-import pywintypes
-import win32ui
-import win32api, os
-
-from pywin32_testutil import str2bytes
 
 S_OK = 0
 
-import datetime
+
 import win32timezone
 
 now = win32timezone.now()
@@ -78,11 +75,9 @@ class LockBytes:
 
     def LockRegion(self, offset, size, locktype):
         print("LockRegion")
-        pass
 
     def UnlockRegion(self, offset, size, locktype):
         print("UnlockRegion")
-        pass
 
     def Stat(self, statflag):
         print("returning Stat " + str(statflag))
