@@ -865,6 +865,11 @@
              <param name="Local" value="mk:@MSITStore:PyWin32.chm::/win32api__GetSystemMetrics_meth.html">
             </OBJECT>
         <LI><OBJECT type="text/sitemap">
+             <param name="Name" value="GetSystemPowerStatus">
+             <param name="ImageNumber" value="11">
+             <param name="Local" value="mk:@MSITStore:PyWin32.chm::/win32api__GetSystemPowerStatus_meth.html">
+            </OBJECT>
+        <LI><OBJECT type="text/sitemap">
              <param name="Name" value="GetSystemTime">
              <param name="ImageNumber" value="11">
              <param name="Local" value="mk:@MSITStore:PyWin32.chm::/win32api__GetSystemTime_meth.html">
@@ -3096,6 +3101,11 @@
              <param name="Local" value="mk:@MSITStore:PyWin32.chm::/win32gui__CallWindowProc_meth.html">
             </OBJECT>
         <LI><OBJECT type="text/sitemap">
+             <param name="Name" value="CascadeWindows">
+             <param name="ImageNumber" value="11">
+             <param name="Local" value="mk:@MSITStore:PyWin32.chm::/win32gui__CascadeWindows_meth.html">
+            </OBJECT>
+        <LI><OBJECT type="text/sitemap">
              <param name="Name" value="CheckMenuItem">
              <param name="ImageNumber" value="11">
              <param name="Local" value="mk:@MSITStore:PyWin32.chm::/win32gui__CheckMenuItem_meth.html">
@@ -4334,6 +4344,11 @@
              <param name="Name" value="ReplyMessage">
              <param name="ImageNumber" value="11">
              <param name="Local" value="mk:@MSITStore:PyWin32.chm::/win32gui__ReplyMessage_meth.html">
+            </OBJECT>
+        <LI><OBJECT type="text/sitemap">
+             <param name="Name" value="ResetDC">
+             <param name="ImageNumber" value="11">
+             <param name="Local" value="mk:@MSITStore:PyWin32.chm::/win32gui__ResetDC_meth.html">
             </OBJECT>
         <LI><OBJECT type="text/sitemap">
              <param name="Name" value="RestoreDC">

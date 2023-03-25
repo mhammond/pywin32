@@ -13,6 +13,19 @@ https://mhammond.github.io/pywin32_installers.html.
 
 Coming in build 306, as yet unreleased
 --------------------------------------
+* Add GetSystemPowerStatus (#2010, @CristiFati)
+
+* Add CascadeWindows (#1999, @CristiFati)
+
+* Add win32gui.ResetDC
+
+* Fix leak in win32pdh.GetFormattedCounterArray
+
+* Fix IIS on later python versions (#2025)
+
+* Fix for service registration code updated in build 305 (#1985)
+
+* Support for Python 3.6 was dropped, support for later versions was improved.
 
 Build 305, released 2022-11-06
 ------------------------------
@@ -22,13 +35,15 @@ Build 305, released 2022-11-06
   API so we can build on Python 3.12. This should be largely invisible, but
   please report any unintended consequences.
 
+* odbc: Handle `varchar(max)`/`nvarchar(max)` column sizes (#1954)
+
 * win32api.GetTickCount() now returns an unsigned 64bit integer (@kxrob, #1946)
 
 * win32pipe.GetNamedPipeHandleState() now takes a 3rd optional param
   indicating whether the username should be returned, and related constants
   added. (@kxrob, #1946)
 
-* Added win32gui.GetTopWindow() and win32gui.GetAncestor() (@CristiFati, #1928)
+* Add win32gui.GetTopWindow() and win32gui.GetAncestor() (#1928, @CristiFati)
 
 * Tweaks to how pywintypes searches for DLLs to better support virtualenvs
   created with --system-site-packages. (@saaketp, #1933)

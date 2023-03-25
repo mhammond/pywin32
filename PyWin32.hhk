@@ -20142,6 +20142,11 @@
         <param name="Local" value="win32api__GetSystemMetrics_meth.html">
         </OBJECT>
     <LI><OBJECT type="text/sitemap">
+        <param name="Keyword" value="GetSystemPowerStatus">
+        <param name="Name" value="win32api.GetSystemPowerStatus">
+        <param name="Local" value="win32api__GetSystemPowerStatus_meth.html">
+        </OBJECT>
+    <LI><OBJECT type="text/sitemap">
         <param name="Keyword" value="GetSystemTime">
         <param name="Name" value="win32api.GetSystemTime">
         <param name="Local" value="win32api__GetSystemTime_meth.html">
@@ -24377,6 +24382,11 @@
         <param name="Local" value="win32gui__CallWindowProc_meth.html">
         </OBJECT>
     <LI><OBJECT type="text/sitemap">
+        <param name="Keyword" value="CascadeWindows">
+        <param name="Name" value="win32gui.CascadeWindows">
+        <param name="Local" value="win32gui__CascadeWindows_meth.html">
+        </OBJECT>
+    <LI><OBJECT type="text/sitemap">
         <param name="Keyword" value="CheckMenuItem">
         <param name="Name" value="win32gui.CheckMenuItem">
         <param name="Local" value="win32gui__CheckMenuItem_meth.html">
@@ -25615,6 +25625,11 @@
         <param name="Keyword" value="ReplyMessage">
         <param name="Name" value="win32gui.ReplyMessage">
         <param name="Local" value="win32gui__ReplyMessage_meth.html">
+        </OBJECT>
+    <LI><OBJECT type="text/sitemap">
+        <param name="Keyword" value="ResetDC">
+        <param name="Name" value="win32gui.ResetDC">
+        <param name="Local" value="win32gui__ResetDC_meth.html">
         </OBJECT>
     <LI><OBJECT type="text/sitemap">
         <param name="Keyword" value="RestoreDC">
