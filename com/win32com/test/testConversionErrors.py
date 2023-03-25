@@ -1,8 +1,8 @@
 import unittest
 
 import win32com.client
-import win32com.test.util
 import win32com.server.util
+import win32com.test.util
 
 
 class Tester:

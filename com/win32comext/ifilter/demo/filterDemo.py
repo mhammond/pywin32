@@ -1,10 +1,8 @@
 import pythoncom
 import pywintypes
-
+from win32com import storagecon
 from win32com.ifilter import ifilter
 from win32com.ifilter.ifiltercon import *
-
-from win32com import storagecon
 
 
 class FileParser:
@@ -253,8 +251,8 @@ def _usage():
 
 
 if __name__ == "__main__":
-    import sys
     import operator
+    import sys
 
     fName = ""
     verbose = False

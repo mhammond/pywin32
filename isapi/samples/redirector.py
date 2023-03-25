@@ -16,13 +16,12 @@
 # an example.  If this sample is run on IIS5 or earlier it simply ignores
 # any excludes.
 
-from isapi import isapicon, threaded_extension
 import sys
-import traceback
-
 from urllib.request import urlopen
+
 import win32api
 
+from isapi import isapicon, threaded_extension
 
 # sys.isapidllhandle will exist when we are loaded by the IIS framework.
 # In this case we redirect our output to the win32traceutil collector.

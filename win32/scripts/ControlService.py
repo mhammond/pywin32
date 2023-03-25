@@ -27,10 +27,10 @@
 # Right now, we always try to get all the rights and fail when we can't
 
 
-from pywin.mfc import dialog
-import win32ui
 import win32con
 import win32service
+import win32ui
+from pywin.mfc import dialog
 
 
 class StartupDlg(dialog.Dialog):

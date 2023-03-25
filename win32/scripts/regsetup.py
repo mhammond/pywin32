@@ -48,7 +48,9 @@ def FindPackagePath(packageName, knownFileName, searchPaths):
     First place looked is the registry for an existing entry.  Then
     the searchPaths are searched.
     """
-    import regutil, os
+    import os
+
+    import regutil
 
     pathLook = regutil.GetRegisteredNamedPath(packageName)
     if pathLook and IsPackageDir(pathLook, packageName, knownFileName):
@@ -64,7 +66,10 @@ def FindPackagePath(packageName, knownFileName, searchPaths):
 
 def FindHelpPath(helpFile, helpDesc, searchPaths):
     # See if the current registry entry is OK
-    import os, win32api, win32con
+    import os
+
+    import win32api
+    import win32con
 
     try:
         key = win32api.RegOpenKey(
@@ -100,7 +105,9 @@ def FindAppPath(appName, knownFileName, searchPaths):
     the searchPaths are searched.
     """
     # Look in the first path.
-    import regutil, string, os
+    import os
+
+    import regutil
 
     regPath = regutil.GetRegisteredNamedPath(appName)
     if regPath:
@@ -124,7 +131,11 @@ def FindPythonExe(exeAlias, possibleRealNames, searchPaths):
     registered entry is OK.  We don't trust the already registered version even
     if it exists - it may be wrong (ie, for a different Python version)
     """
-    import win32api, regutil, string, os, sys
+    import os
+    import sys
+
+    import regutil
+    import win32api
 
     if possibleRealNames is None:
         possibleRealNames = exeAlias
@@ -151,7 +162,8 @@ def FindPythonExe(exeAlias, possibleRealNames, searchPaths):
 
 def QuotedFileName(fname):
     """Given a filename, return a quoted version if necessary"""
-    import regutil, string
+
+    import regutil
 
     try:
         fname.index(" ")  # Other chars forcing quote?
@@ -169,7 +181,9 @@ def LocateFileName(fileNamesString, searchPaths):
 
     Raises KeyboardInterrupt if the user cancels.
     """
-    import regutil, string, os
+    import os
+
+    import regutil
 
     fileNames = fileNamesString.split(";")
     for path in searchPaths:
@@ -185,7 +199,8 @@ def LocateFileName(fileNamesString, searchPaths):
     else:
         fileName = fileNames[0]
         try:
-            import win32ui, win32con
+            import win32con
+            import win32ui
         except ImportError:
             raise error(
                 "Need to locate the file %s, but the win32ui module is not available\nPlease run the program again, passing as a parameter the path to this file."
@@ -231,7 +246,9 @@ def LocatePythonCore(searchPaths):
     of paths that should be used as the core (ie, un-named) portion of
     the Python path.
     """
-    import os, regutil
+    import os
+
+    import regutil
 
     currentPath = regutil.GetRegisteredNamedPath(None)
     if currentPath:
@@ -273,7 +290,8 @@ def FindRegisterPackage(packageName, knownFile, searchPaths, registryAppName=Non
     (no other paths are checked, as the application whose path was used
     may later be uninstalled.  This should not happen with the core)
     """
-    import regutil, string
+
+    import regutil
 
     if not packageName:
         raise error("A package name must be supplied")
@@ -307,7 +325,8 @@ def FindRegisterApp(appName, knownFiles, searchPaths):
     Assumes the core registry setup correctly.
 
     """
-    import regutil, string
+
+    import regutil
 
     if type(knownFiles) == type(""):
         knownFiles = [knownFiles]
@@ -329,7 +348,8 @@ def FindRegisterPythonExe(exeAlias, searchPaths, actualFileNames=None):
 
     Assumes the core registry setup correctly.
     """
-    import regutil, string
+
+    import regutil
 
     fname, ok = FindPythonExe(exeAlias, actualFileNames, searchPaths)
     if not ok:
@@ -364,7 +384,10 @@ def SetupCore(searchPaths):
         sys.path.append(path)
 
     import os
-    import regutil, win32api, win32con
+
+    import regutil
+    import win32api
+    import win32con
 
     installPath, corePaths = LocatePythonCore(searchPaths)
     # Register the core Pythonpath.
@@ -405,7 +428,8 @@ def RegisterShellInfo(searchPaths):
     Assumes a valid, minimal Python installation exists
     (ie, SetupCore() has been previously successfully run)
     """
-    import regutil, win32con
+    import regutil
+    import win32con
 
     suffix = IsDebug()
     # Set up a pointer to the .exe's
@@ -537,7 +561,7 @@ if __name__ == "__main__":
         regcheck.CheckRegistry()
     else:
         searchPaths = []
-        import getopt, string
+        import getopt
 
         opts, args = getopt.getopt(
             sys.argv[1:],
@@ -571,7 +595,8 @@ if __name__ == "__main__":
             if o == "-c":
                 if not len(searchPaths):
                     raise error("-c option must provide at least one additional path")
-                import win32api, regutil
+                import regutil
+                import win32api
 
                 currentPaths = regutil.GetRegisteredNamedPath(None).split(";")
                 oldLen = len(currentPaths)

@@ -14,9 +14,8 @@
 __version__ = "$Revision: 1.16.0 $"[11:-2]
 __author__ = "Stuart Bishop <stuart@stuartbishop.net>"
 
-import unittest
 import time
-import sys
+import unittest
 
 
 def _failUnless(self, expr, msg=None):

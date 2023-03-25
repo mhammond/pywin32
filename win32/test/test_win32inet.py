@@ -1,10 +1,9 @@
+import unittest
+
+import winerror
+from pywin32_testutil import TestSkipped, testmain
 from win32inet import *
 from win32inetcon import *
-import winerror
-from pywin32_testutil import TestSkipped
-from pywin32_testutil import testmain
-
-import unittest
 
 
 class CookieTests(unittest.TestCase):

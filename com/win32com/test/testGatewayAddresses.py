@@ -34,8 +34,9 @@
 # The rest are tested here.
 
 
-from win32com.server.util import wrap
 import pythoncom
+from win32com.server.util import wrap
+
 from .util import CheckClean
 
 numErrors = 0

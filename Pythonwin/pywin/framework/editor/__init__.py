@@ -5,7 +5,10 @@
 # This really isnt necessary with Scintilla, and scintilla
 # is getting so deeply embedded that it was too much work.
 
-import win32ui, sys, win32con
+import sys
+
+import win32con
+import win32ui
 
 defaultCharacterFormat = (-402653169, 0, 200, 0, 0, 0, 49, "Courier New")
 

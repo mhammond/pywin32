@@ -2,9 +2,8 @@
 # Configure this in order to run the testcases.
 "setuptestframework.py v 3.7.0.0"
 import os
-import sys
-import tempfile
 import shutil
+import tempfile
 
 try:
     OSErrors = (WindowsError, OSError)
@@ -75,8 +74,8 @@ def makemdb(testfolder, mdb_name):
         print("using JET database=", _accessdatasource)
     else:
         try:
-            from win32com.client.gencache import EnsureDispatch
             from win32com.client import constants
+            from win32com.client.gencache import EnsureDispatch
 
             win32 = True
         except ImportError:  # perhaps we are not running CPython

@@ -1,9 +1,9 @@
-import sys
-import unittest
-import pywintypes
-import time
 import datetime
 import operator
+import time
+import unittest
+
+import pywintypes
 
 
 class TestCase(unittest.TestCase):

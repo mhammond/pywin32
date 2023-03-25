@@ -1,10 +1,10 @@
-from datetime import datetime
 import unittest
+from datetime import datetime
 
 import pywintypes
 import win32com.client
-import win32com.test.util
 import win32com.server.util
+import win32com.test.util
 from win32timezone import TimeZoneInfo
 
 

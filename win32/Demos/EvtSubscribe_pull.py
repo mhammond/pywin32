@@ -1,5 +1,7 @@
 ## Demonstrates how to create a "pull" subscription
-import win32evtlog, win32event, win32con
+import win32con
+import win32event
+import win32evtlog
 
 query_text = '*[System[Provider[@Name="Microsoft-Windows-Winlogon"]]]'
 

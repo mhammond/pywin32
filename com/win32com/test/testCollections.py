@@ -5,12 +5,12 @@
 #
 # Also has the side effect of testing some of the PythonCOM error semantics.
 import sys
-import win32com.server.util
-import win32com.test.util
-import win32com.client
-import traceback
+
 import pythoncom
 import pywintypes
+import win32com.client
+import win32com.server.util
+import win32com.test.util
 import winerror
 
 L = pywintypes.Unicode

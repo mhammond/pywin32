@@ -25,10 +25,6 @@ DB-API 2.0 specification: http://www.python.org/dev/peps/pep-0249/
 
 This module source should run correctly in CPython 3.4 or later.
 """
-
-__version__ = "3.7.0.0"
-version = "adodbapi v" + __version__
-
 import copy
 import decimal
 import os
@@ -37,14 +33,6 @@ import weakref
 
 from . import ado_consts as adc, apibase as api, process_connect_string
 
-try:
-    verbose = int(os.environ["ADODBAPI_VERBOSE"])
-except:
-    verbose = False
-if verbose:
-    print(version)
-
-onWin32 = False  # assume the worst
 try:
     import pythoncom
     import pywintypes
@@ -55,6 +43,17 @@ except ImportError:
     import warnings
 
     warnings.warn("pywin32 package required for adodbapi.", ImportWarning)
+    onWin32 = False  # assume the worst
+
+__version__ = "3.7.0.0"
+version = "adodbapi v" + __version__
+
+try:
+    verbose = int(os.environ["ADODBAPI_VERBOSE"])
+except:
+    verbose = False
+if verbose:
+    print(version)
 
 
 def Dispatch(dispatch):

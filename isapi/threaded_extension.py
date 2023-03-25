@@ -2,21 +2,22 @@
 # $Id$
 
 import sys
+import threading
 import time
-from isapi import isapicon, ExtensionError
-import isapi.simple
+import traceback
+
+from pywintypes import OVERLAPPED
+from win32event import INFINITE
 from win32file import (
-    GetQueuedCompletionStatus,
-    CreateIoCompletionPort,
-    PostQueuedCompletionStatus,
     CloseHandle,
+    CreateIoCompletionPort,
+    GetQueuedCompletionStatus,
+    PostQueuedCompletionStatus,
 )
 from win32security import SetThreadToken
-from win32event import INFINITE
-from pywintypes import OVERLAPPED
 
-import threading
-import traceback
+import isapi.simple
+from isapi import ExtensionError, isapicon
 
 ISAPI_REQUEST = 1
 ISAPI_SHUTDOWN = 2

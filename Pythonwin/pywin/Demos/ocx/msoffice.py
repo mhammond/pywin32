@@ -4,8 +4,11 @@
 # It is not comlpete yet, but it _does_ show an Excel spreadsheet in a frame!
 #
 
-import win32ui, win32uiole, win32con, regutil
-from pywin.mfc import window, activex, object, docview
+import regutil
+import win32con
+import win32ui
+import win32uiole
+from pywin.mfc import activex, docview, object, window
 from win32com.client import gencache
 
 # WordModule = gencache.EnsureModule('{00020905-0000-0000-C000-000000000046}', 1033, 8, 0)
@@ -132,7 +135,9 @@ class WordFrame(window.MDIChildWnd):
 
 
 def Demo():
-    import sys, win32api
+    import sys
+
+    import win32api
 
     docName = None
     if len(sys.argv) > 1:

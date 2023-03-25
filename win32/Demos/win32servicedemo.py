@@ -1,5 +1,5 @@
-import win32service
 import win32con
+import win32service
 
 
 def EnumServices():

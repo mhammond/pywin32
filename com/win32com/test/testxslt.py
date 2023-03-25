@@ -1,6 +1,7 @@
 import os
 import tempfile
 import unittest
+
 import win32com.test.util
 
 expected_output = "The jscript test worked.\nThe Python test worked"

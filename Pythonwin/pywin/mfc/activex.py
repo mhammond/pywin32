@@ -1,6 +1,8 @@
 """Support for ActiveX control hosting in Pythonwin.
 """
-import win32ui, win32uiole
+import win32ui
+import win32uiole
+
 from . import window
 
 

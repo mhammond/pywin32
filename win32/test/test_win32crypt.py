@@ -1,14 +1,12 @@
 # Test module for win32crypt
 
-import unittest
-import logging
 import contextlib
-from typing import Iterator, Any
+import unittest
+from typing import Any, Iterator
 
 import win32crypt
-from win32con import *
+from pywin32_testutil import TestSkipped, find_test_fixture, testmain
 from win32cryptcon import *
-from pywin32_testutil import find_test_fixture, testmain, TestSkipped
 
 
 class Crypt(unittest.TestCase):

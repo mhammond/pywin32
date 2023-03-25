@@ -1,8 +1,7 @@
-import win32ui
-import win32con
-import fontdemo
-from pywin.mfc import window, docview
 import commctrl
+import fontdemo
+import win32ui
+from pywin.mfc import docview, window
 
 # derive from CMDIChild.  This does much work for us.
 

@@ -1,12 +1,13 @@
 # Utility function for wrapping objects.  Centralising allows me to turn
 # debugging on and off for the entire package in a single spot.
 
-import sys
-import win32com.server.util
-from win32com.server.exception import Exception
-import winerror
-import win32api
 import os
+import sys
+
+import win32api
+import win32com.server.util
+import winerror
+from win32com.server.exception import Exception
 
 try:
     os.environ["DEBUG_AXDEBUG"]

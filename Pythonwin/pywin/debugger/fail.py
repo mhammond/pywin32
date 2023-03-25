@@ -5,8 +5,10 @@
 
 # It does nothing useful, and it even doesnt do that!
 
-import pywin.debugger, sys, time
-import traceback
+import sys
+import time
+
+import pywin.debugger
 
 
 def a():
@@ -20,7 +22,6 @@ def a():
         a = 2
         a = 3
         a = 4
-        pass
 
 
 def b():
@@ -31,7 +32,6 @@ def b():
     # broke into the debugger using the "set_trace() function
     # "pywin.debugger.brk()" is a shorter alias for this.
     c()
-    pass
 
 
 def c():

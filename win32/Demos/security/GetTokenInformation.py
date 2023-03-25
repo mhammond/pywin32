@@ -2,14 +2,17 @@
     including UAC status on Vista
 """
 
-import pywintypes, win32api, win32security
-import win32con, winerror
+import pywintypes
+import win32api
+import win32con
+import win32security
+import winerror
 from security_enums import (
+    SECURITY_IMPERSONATION_LEVEL,
+    TOKEN_ELEVATION_TYPE,
     TOKEN_GROUP_ATTRIBUTES,
     TOKEN_PRIVILEGE_ATTRIBUTES,
-    SECURITY_IMPERSONATION_LEVEL,
     TOKEN_TYPE,
-    TOKEN_ELEVATION_TYPE,
 )
 
 

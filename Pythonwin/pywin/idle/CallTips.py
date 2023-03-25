@@ -1,9 +1,9 @@
 # CallTips.py - An IDLE extension that provides "Call Tips" - ie, a floating window that
 # displays parameter information as you open parens.
 
+import inspect
 import string
 import sys
-import inspect
 import traceback
 
 

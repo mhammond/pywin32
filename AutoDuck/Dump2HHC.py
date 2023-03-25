@@ -1,7 +1,6 @@
+import copy
 import os
 import sys
-import pprint
-import copy
 
 """
 Dump2HHC.py

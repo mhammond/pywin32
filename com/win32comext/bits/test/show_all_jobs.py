@@ -1,6 +1,6 @@
 # Dump lots of info about BITS jobs.
-from win32com.bits import bits
 import pythoncom
+from win32com.bits import bits
 
 states = dict(
     [

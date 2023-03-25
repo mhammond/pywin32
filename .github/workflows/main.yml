@@ -91,10 +91,13 @@ jobs:
         path: |
           dist/*.whl
 
-  black:
+  checkers:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+      - run: pip install isort pycln
+      - run: pycln . --config=pycln.toml --check
+      - run: isort . --diff --check-only
       - uses: psf/black@stable
         with:
           options: "--fast --check --diff --verbose"

@@ -3,8 +3,9 @@
 #
 # To use with Kerberos you need to jump through the 'targetspn' hoops.
 
-import win32security
 import sys
+
+import win32security
 from sspi import ClientAuth, ServerAuth
 
 

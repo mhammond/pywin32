@@ -4,8 +4,10 @@ Usage from VB:
 	set ob = CreateObject("Python.PerfmonQuery")
 	freeBytes = ob.Query("Memory", "Available Bytes")
 """
+import pythoncom
+import win32pdhutil
+import winerror
 from win32com.server import exception, register
-import pythoncom, win32pdhutil, winerror
 
 
 class PerfMonQuery:

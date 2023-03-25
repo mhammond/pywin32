@@ -12,9 +12,14 @@ and the Python.Interpreter object installed and registered on that machine.
 The Python.Interpreter object must be installed on the local machine,
 but no special DCOM configuration should be necessary.
 """
+import string
+import sys
+
 # NOTE: If you configured the object locally using dcomcnfg, you could
 # simple use Dispatch rather than DispatchEx.
-import pythoncom, win32com.client, win32api, string, sys
+import pythoncom
+import win32api
+import win32com.client
 
 
 def test(serverName):

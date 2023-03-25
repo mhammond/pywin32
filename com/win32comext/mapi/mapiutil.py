@@ -1,6 +1,7 @@
 # General utilities for MAPI and MAPI objects.
-from pywintypes import TimeType
 import pythoncom
+from pywintypes import TimeType
+
 from . import mapi, mapitags
 
 prTable = {}

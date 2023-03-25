@@ -1,9 +1,13 @@
 # Regedit - a Registry Editor for Python
-import win32api, win32ui, win32con, commctrl
-from pywin.mfc import window, docview, dialog
-from . import hierlist
+
+import commctrl
 import regutil
-import string
+import win32api
+import win32con
+import win32ui
+from pywin.mfc import dialog, docview, window
+
+from . import hierlist
 
 
 def SafeApply(fn, args, err_desc=""):

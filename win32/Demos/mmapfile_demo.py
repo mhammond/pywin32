@@ -1,6 +1,9 @@
-import win32api, mmapfile
+import os
+import tempfile
+
+import mmapfile
+import win32api
 import winerror
-import tempfile, os
 
 system_info = win32api.GetSystemInfo()
 page_size = system_info[1]

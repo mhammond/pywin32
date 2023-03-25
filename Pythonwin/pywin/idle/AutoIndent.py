@@ -1,6 +1,5 @@
-import sys
-import string, tokenize
-from . import PyParse
+import tokenize
+
 from pywin import default_scintilla_encoding
 
 # tokenize() is the generator working with 'byte' objects, and

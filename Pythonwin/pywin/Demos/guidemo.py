@@ -1,9 +1,10 @@
 # GUI Demo - just a worker script to invoke all the other demo/test scripts.
-import win32ui
-import __main__
 import sys
+
+import __main__
 import regutil
 import win32api
+import win32ui
 
 demos = [  # 	('Font', 'import fontdemo;fontdemo.FontDemo()'),
     ("Open GL Demo", "import openGLDemo;openGLDemo.test()"),

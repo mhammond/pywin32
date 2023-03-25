@@ -5,11 +5,13 @@
 # is open.  Strange, but true.  If you have problems with this, close all Command Prompts!
 
 
+import sys
+import traceback
+
+import win32api
 import win32ui
-import win32api, win32con
-from pywin.mfc import object
 from dde import *
-import sys, traceback
+from pywin.mfc import object
 
 
 class DDESystemTopic(object.Object):

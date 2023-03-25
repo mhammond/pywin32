@@ -1062,7 +1062,11 @@ static int CALLBACK PyBrowseCallbackProc(HWND hwnd, UINT uMsg, LPARAM lParam, LP
         goto done;
     }
     assert(!PyErr_Occurred());
+#ifdef _WIN64
+    args = Py_BuildValue("NiLO", PyWinLong_FromHANDLE(hwnd), uMsg, lParam, pc->data);
+#else
     args = Py_BuildValue("NilO", PyWinLong_FromHANDLE(hwnd), uMsg, lParam, pc->data);
+#endif
     if (!args)
         goto done;
     result = PyEval_CallObject(pc->fn, args);

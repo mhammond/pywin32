@@ -28,11 +28,11 @@ This module source should run correctly in CPython 3.0 or later.
 __version__ = "3.7.0.0"
 version = "adodbapi.remote v" + __version__
 
+import array
+import datetime
 import os
 import sys
-import array
 import time
-import datetime
 
 # Pyro4 is required for server and remote operation --> https://pypi.python.org/pypi/Pyro4/
 try:

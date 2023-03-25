@@ -1,5 +1,6 @@
-import adodbapi
 import datetime
+
+import adodbapi
 
 try:
     import adodbapi.is64bit as is64bit

@@ -1,12 +1,13 @@
 # No cancel button.
 
+import threading
+import time
+
+import win32api
+import win32con
+import win32ui
 from pywin.mfc import dialog
 from pywin.mfc.thread import WinThread
-import threading
-import win32ui
-import win32con
-import win32api
-import time
 
 
 def MakeProgressDlgTemplate(caption, staticText=""):

@@ -1,6 +1,7 @@
-from win32com.shell import shell, shellcon
-import pythoncom
 import time
+
+import pythoncom
+from win32com.shell import shell, shellcon
 
 website = "https://github.com/mhammond/pywin32/"
 iad = pythoncom.CoCreateInstance(

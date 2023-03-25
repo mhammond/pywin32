@@ -5,13 +5,15 @@ to color the text, and also how to translate lines into offsets, and back.
 """
 
 import sys
-from win32com.axdebug import axdebug
 import tokenize
-from .util import RaiseNotImpl, _wrap
 
+import win32api
+import winerror
+from win32com.axdebug import axdebug
 from win32com.server.exception import Exception
-import win32api, winerror
+
 from . import contexts
+from .util import RaiseNotImpl, _wrap
 
 _keywords = {}  # set of Python keywords
 for name in """

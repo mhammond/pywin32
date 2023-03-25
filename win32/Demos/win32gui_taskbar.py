@@ -1,8 +1,12 @@
 # Creates a task-bar icon.  Run from Python.exe to see the
 # messages printed.
-import win32api, win32gui
-import win32con, winerror
-import sys, os
+import os
+import sys
+
+import win32api
+import win32con
+import win32gui
+import winerror
 
 
 class MainWindow:

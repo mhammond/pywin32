@@ -5,12 +5,15 @@
 
 # Assumes Word and Excel installed on your machine.
 
-import win32com, sys, string, win32api, traceback
-import win32com.client.dynamic
-from win32com.test.util import CheckClean
+import traceback
+
 import pythoncom
-from win32com.client import gencache
+import win32api
+import win32com
+import win32com.client.dynamic
 from pywintypes import Unicode
+from win32com.client import gencache
+from win32com.test.util import CheckClean
 
 error = "MSOffice test error"
 

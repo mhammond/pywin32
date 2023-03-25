@@ -1,14 +1,14 @@
 # basictimerapp - a really simple timer application.
 # This should be run using the command line:
 # pythonwin /app demos\basictimerapp.py
-import win32ui
+import sys
+import time
+
+import timer
 import win32api
 import win32con
-import sys
-from pywin.framework import app, cmdline, dlgappcore, cmdline
-import timer
-import time
-import string
+import win32ui
+from pywin.framework import app, cmdline, dlgappcore
 
 
 class TimerAppDialog(dlgappcore.AppDialog):

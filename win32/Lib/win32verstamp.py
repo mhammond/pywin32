@@ -1,14 +1,12 @@
 """ Stamp a Win32 binary with version information.
 """
 
-from win32api import BeginUpdateResource, UpdateResource, EndUpdateResource
-
+import glob
+import optparse
 import os
 import struct
-import glob
-import sys
 
-import optparse
+from win32api import BeginUpdateResource, EndUpdateResource, UpdateResource
 
 VS_FFI_SIGNATURE = -17890115  # 0xFEEF04BD
 VS_FFI_STRUCVERSION = 0x00010000
