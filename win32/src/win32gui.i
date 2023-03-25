@@ -6340,6 +6340,33 @@ static PyObject *PyCreateDC(PyObject *self, PyObject *args)
 }
 %}
 
+// @pyswig |ResetDC|Resets a DC
+// @pyparm int|hdc||The source DC
+// @pyparam <o PyDEVMODE>|devmode||Information about the new DC.
+%native (ResetDC) PyResetDC;
+%{
+static PyObject *PyResetDC(PyObject *self, PyObject *args)
+{
+	PDEVMODE pdevmode;
+	PyObject *obdevmode=NULL;
+	HDC hdc;
+	PyObject *obdc=NULL;
+	if (!PyArg_ParseTuple(args, "OO", &obdc, &obdevmode))
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc))
+		return NULL;
+
+	if (!PyWinObject_AsDEVMODE(obdevmode, &pdevmode, FALSE))
+		return NULL;
+	HDC newdc = ResetDC(hdc, pdevmode);
+	if (newdc == NULL) {
+		PyWin_SetAPIError("ResetDC", GetLastError());
+		return NULL;
+	}
+	return PyWinLong_FromHANDLE(newdc);
+}
+%}
+
 %{
 void PyWinObject_FreeOPENFILENAMEW(OPENFILENAMEW *pofn)
 {
