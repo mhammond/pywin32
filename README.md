@@ -108,11 +108,12 @@ configuration, please [open an issue](https://github.com/mhammond/pywin32/issues
 The following steps are performed when making a new release - this is mainly
 to form a checklist so mhammond doesn't forget what to do :)
 
-* Ensure CHANGES.txt has everything worth noting, commit it.
+* Ensure CHANGES.txt has everything worth noting. Update the header to reflect
+  the about-to-be released build and date, commit it.
 
 * Update setup.py with the new build number.
 
-* Execute build.bat, wait forever, test the artifacts.
+* Execute `make.bat`, wait forever, test the artifacts.
 
 * Upload .whl artifacts to pypi - we do this before pushing the tag because they might be
   rejected for an invalid `README.md`. Done via `py -3.? -m twine upload dist/*XXX*.whl`.

@@ -1,4 +1,4 @@
-build_id = "305.1"  # may optionally include a ".{patchno}" suffix.
+build_id = "306"  # may optionally include a ".{patchno}" suffix.
 
 __doc__ = """This is a distutils setup-script for the pywin32 extensions.
 
