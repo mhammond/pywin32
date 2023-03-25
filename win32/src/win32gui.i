@@ -6340,7 +6340,7 @@ static PyObject *PyCreateDC(PyObject *self, PyObject *args)
 }
 %}
 
-// @pyswig |ResetDC|Resets a DC
+// @pyswig int|ResetDC|Resets a DC
 // @pyparm int|hdc||The source DC
 // @pyparam <o PyDEVMODE>|devmode||Information about the new DC.
 %native (ResetDC) PyResetDC;
