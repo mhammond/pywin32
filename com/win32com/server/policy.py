@@ -643,7 +643,8 @@ class DesignatedWrapPolicy(MappedWrapPolicy):
                     lead to "Type Error: x.y takes 1 positional argument but
                     2 were given".
                     """
-                    if len(inspect.getfullargspec(func).args) == 1:
+                    argspec = inspect.getfullargspec(func).args
+                    if len(argspec) == 1 and argspec[0] == "self":
                         return func()
                     else:
                         return func(*args)
