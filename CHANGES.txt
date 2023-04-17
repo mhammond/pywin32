@@ -11,11 +11,20 @@ or
 As of build 305, installation .exe files have been deprecated; see
 https://mhammond.github.io/pywin32_installers.html.
 
-Coming in build 306, as yet unreleased
+Coming in build 307, as yet unreleased
 --------------------------------------
+
+Build 306, released 2023-03-26
+------------------------------
 * Add GetSystemPowerStatus (#2010, @CristiFati)
 
 * Add CascadeWindows (#1999, @CristiFati)
+
+* Add win32gui.ResetDC
+
+* Fix leak in win32pdh.GetFormattedCounterArray
+
+* Fix IIS on later python versions (#2025)
 
 * Fix for service registration code updated in build 305 (#1985)
 
