@@ -28,9 +28,9 @@ Post-Mortem of unhandled exceptions""".split(
     "\n"
 )
 
-byte_cr = b"\r"
-byte_lf = b"\n"
-byte_crlf = b"\r\n"
+byte_cr = "\r".encode("ascii")
+byte_lf = "\n".encode("ascii")
+byte_crlf = "\r\n".encode("ascii")
 
 
 # A dialog box for the "Run Script" command.
