@@ -928,7 +928,7 @@ class Interface:
 
     # 									  name				 base
     # 									 --------		   --------
-    regex = re.compile(r"(interface|) ([^ ]*) : public (.*)$")
+    regex = re.compile("(interface|) ([^ ]*) : public (.*)$")
 
     def __init__(self, mo):
         self.methods = []

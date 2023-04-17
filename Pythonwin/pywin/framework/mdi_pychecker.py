@@ -146,7 +146,7 @@ class dirpath:
 
 
 # Group(1) is the filename, group(2) is the lineno.
-# regexGrepResult=regex.compile(r"^\([a-zA-Z]:.*\)(\([0-9]+\))")
+# regexGrepResult=regex.compile("^\\([a-zA-Z]:.*\\)(\\([0-9]+\\))")
 # regexGrep=re.compile(r"^([a-zA-Z]:[^(]*)\((\d+)\)")
 regexGrep = re.compile(r"^(..[^\(:]+)?[\(:](\d+)[\):]:?\s*(.*)")
 
@@ -544,7 +544,7 @@ class TheView(docview.RichEditView):
                 errtext = m.group(3)
                 if start != end and line_start == line_end:
                     errtext = self.GetSelText()
-                errtext = repr(re.escape(errtext).replace(r"\ ", " "))
+                errtext = repr(re.escape(errtext).replace("\ ", " "))
                 view.ReplaceSel(addspecific and cmnt % locals() or cmnt)
         return 0
 

@@ -13,8 +13,8 @@ class RegexTest(win32com.test.util.TestCase):
         self.assertEqual(list(found), list(expected))
 
     def _TestVBScriptRegex(self, re):
-        StringToSearch = r"Python python pYthon Python"
-        re.Pattern = r"Python"
+        StringToSearch = "Python python pYthon Python"
+        re.Pattern = "Python"
         re.Global = True
 
         re.IgnoreCase = True
