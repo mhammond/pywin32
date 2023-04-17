@@ -32,7 +32,7 @@ argvs = {
 no_user_interaction = True
 
 # re to pull apart an exception line into the exception type and the args.
-re_exception = re.compile("([a-zA-Z0-9_.]*): (.*)$")
+re_exception = re.compile(r"([a-zA-Z0-9_.]*): (.*)$")
 
 
 def find_exception_in_output(data):

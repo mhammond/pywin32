@@ -21,7 +21,7 @@ def RemoveCR(text):
     # No longer just "RemoveCR" - should be renamed to
     # FixNewlines, or something.  Idea is to fix arbitary newlines into
     # something Python can compile...
-    return re.sub("(\r\n)|\r|(\n\r)", "\n", text)
+    return re.sub(r"(\r\n)|\r|(\n\r)", "\n", text)
 
 
 SCRIPTTEXT_FORCEEXECUTION = -2147483648  # 0x80000000

@@ -22,7 +22,7 @@ EM_FORMATRANGE = win32con.WM_USER + 57
 
 wordbreaks = "._" + string.ascii_uppercase + string.ascii_lowercase + string.digits
 
-patImport = re.compile("import (?P<name>.*)")
+patImport = re.compile(r"import (?P<name>.*)")
 
 _event_commands = [
     # File menu
@@ -533,7 +533,7 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
             endpos = self.LineIndex(maxline)
             text = self.GetTextRange(self.LineIndex(minline), endpos)
             try:
-                l = re.findall(r"\b" + left + "\.\w+", text)
+                l = re.findall(r"\b" + left + r"\.\w+", text)
             except re.error:
                 # parens etc may make an invalid RE, but this code wouldnt
                 # benefit even if the RE did work :-)

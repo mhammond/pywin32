@@ -13,8 +13,8 @@ crlf_bytes = "\r\n".encode("ascii")
 lf_bytes = "\n".encode("ascii")
 
 # re from pep263 - but we use it both on bytes and strings.
-re_encoding_bytes = re.compile("coding[:=]\s*([-\w.]+)".encode("ascii"))
-re_encoding_text = re.compile("coding[:=]\s*([-\w.]+)")
+re_encoding_bytes = re.compile(r"coding[:=]\s*([-\w.]+)".encode("ascii"))
+re_encoding_text = re.compile(r"coding[:=]\s*([-\w.]+)")
 
 ParentScintillaDocument = docview.Document
 
@@ -168,7 +168,7 @@ class CScintillaDocument(ParentScintillaDocument):
                 source_encoding = self.source_encoding
             else:
                 # no BOM - look for an encoding.
-                bits = re.split("[\r\n]+", s, 3)
+                bits = re.split(r"[\r\n]+", s, 3)
                 for look in bits[:-1]:
                     match = re_encoding_text.search(look)
                     if match is not None:
