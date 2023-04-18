@@ -9,6 +9,9 @@ import win32com.client.dynamic
 import win32com.server.util
 import win32timezone
 import win32ui
+from win32com import storagecon
+from win32com.axcontrol import axcontrol
+from win32com.test.util import CheckClean
 
 S_OK = 0
 
@@ -27,8 +30,8 @@ class LockBytes:
     ]
     _com_interfaces_ = [pythoncom.IID_ILockBytes]
 
-    def __init__(self, data=""):
-        self.data = data.encode("latin1")
+    def __init__(self, data=b""):
+        self.data = data
         self.ctime = now
         self.mtime = now
         self.atime = now

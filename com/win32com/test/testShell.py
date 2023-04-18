@@ -80,8 +80,8 @@ class PIDLTester(win32com.test.util.TestCase):
         self.assertEqual(cida_str_rt, cida_str)
 
     def testPIDL(self):
-        # A PIDL of "\1" is: cb pidl cb
-        expect = b"\03\00" b"\1" b"\0\0"
+        # A PIDL of "\1" is: cb + pidl + cb
+        expect = b"\03\00" + b"\1" + b"\0\0"
         self.assertEqual(shell.PIDLAsString([b"\1"]), expect)
         self._rtPIDL([b"\0"])
         self._rtPIDL([b"\1", b"\2", b"\3"])
@@ -95,8 +95,8 @@ class PIDLTester(win32com.test.util.TestCase):
         self._rtCIDA([b"\0"], [[b"\0"], [b"\1"], [b"\2"]])
 
     def testBadShortPIDL(self):
-        # A too-short child element: cb pidl cb
-        pidl = b"\01\00" b"\1"
+        # A too-short child element: cb + pidl + cb
+        pidl = b"\01\00" + "\1"
         self.assertRaises(ValueError, shell.StringAsPIDL, pidl)
 
         # ack - tried to test too long PIDLs, but a len of 0xFFFF may not
