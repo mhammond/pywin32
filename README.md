@@ -12,8 +12,6 @@ This is the readme for the Python for Win32 (pywin32) extensions, which provides
 
 See [CHANGES.txt](https://github.com/mhammond/pywin32/blob/master/CHANGES.txt) for recent notable changes.
 
-Only Python 3.7+ is supported. If you want Python 2 support, you want build `228`.
-
 ## Docs
 
 The docs are a long and sad story, but [there's now an online version](https://mhammond.github.io/pywin32/)
@@ -33,7 +31,6 @@ closed. For such issues, please email the
 note that you must be subscribed to the list before posting.
 
 ## Binaries
-
 [Binary releases are deprecated.](https://mhammond.github.io/pywin32_installers.html)
 While they are still provided, [find them here](https://github.com/mhammond/pywin32/releases)
 
@@ -64,10 +61,8 @@ will be changed, etc)
 
 ### Running as a Windows Service
 
-### `The specified procedure could not be found` / `Entry-point not found` Errors?
-
-A very common report is that people install pywin32, but many imports fail with errors
-similar to the above.
+To run as a service, you probably want to install pywin32 globally from an elevated
+command prompt - see above.
 
 You also need to ensure Python is installed in a location where the user running
 the service has access to the installation and is able to load `pywintypesXX.dll` and `pythonXX.dll`. In particular, the `LocalSystem` account typically will not have access

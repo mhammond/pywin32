@@ -533,7 +533,7 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
             endpos = self.LineIndex(maxline)
             text = self.GetTextRange(self.LineIndex(minline), endpos)
             try:
-                l = re.findall("\b" + left + "\.\w+", text)
+                l = re.findall(r"\b" + left + "\.\w+", text)
             except re.error:
                 # parens etc may make an invalid RE, but this code wouldnt
                 # benefit even if the RE did work :-)
