@@ -98,13 +98,11 @@ class PIDLTester(win32com.test.util.TestCase):
     def testCIDA(self):
         self._rtCIDA([b"\0"], [[b"\0"]])
         self._rtCIDA([b"\1"], [[b"\2"]])
-        self._rtCIDA(
-            [b"\0"], [[b"\0"], [b"\1"], [b"\2"]]
-        )
+        self._rtCIDA([b"\0"], [[b"\0"], [b"\1"], [b"\2"]])
 
     def testBadShortPIDL(self):
         # A too-short child element: cb + pidl + cb
-        pidl = b"\01\00" + "\1"
+        pidl = b"\01\00" + b"\1"
         self.assertRaises(ValueError, shell.StringAsPIDL, pidl)
 
         # ack - tried to test too long PIDLs, but a len of 0xFFFF may not

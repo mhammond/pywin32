@@ -87,9 +87,7 @@ class TestCase(unittest.TestCase):
         iid = pywintypes.IID(s)
         iid2 = pywintypes.IID(ob2memory(iid), True)
         self.assertEqual(iid, iid2)
-        self.assertRaises(
-            ValueError, pywintypes.IID, b"00", True
-        )  # too short
+        self.assertRaises(ValueError, pywintypes.IID, b"00", True)  # too short
         self.assertRaises(TypeError, pywintypes.IID, 0, True)  # no buffer
 
     def testGUIDRichCmp(self):

@@ -107,9 +107,7 @@ class PipeTests(unittest.TestCase):
         )
 
         buffer = win32file.AllocateReadBuffer(1024)
-        hr, got = win32pipe.TransactNamedPipe(
-            hpipe, b"foo\0bar", buffer, None
-        )
+        hr, got = win32pipe.TransactNamedPipe(hpipe, b"foo\0bar", buffer, None)
         self.assertEqual(got, b"bar\0foo")
         event.wait(5)
         self.assertTrue(event.isSet(), "Pipe server thread didn't terminate")
@@ -137,9 +135,7 @@ class PipeTests(unittest.TestCase):
         )
 
         buffer = win32file.AllocateReadBuffer(1024)
-        hr, got = win32pipe.TransactNamedPipe(
-            hpipe, b"foo\0bar", buffer, overlapped
-        )
+        hr, got = win32pipe.TransactNamedPipe(hpipe, b"foo\0bar", buffer, overlapped)
         self.assertEqual(hr, winerror.ERROR_IO_PENDING)
         nbytes = win32file.GetOverlappedResult(hpipe, overlapped, True)
         got = buffer[:nbytes]
