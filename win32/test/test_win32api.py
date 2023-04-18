@@ -10,7 +10,7 @@ import win32api
 import win32con
 import win32event
 import winerror
-from pywin32_testutil import TestSkipped, str2bytes
+from pywin32_testutil import TestSkipped
 
 
 class CurrentUserTestCase(unittest.TestCase):
@@ -96,7 +96,7 @@ class Registry(unittest.TestCase):
             (
                 "REG_BINARY",
                 win32con.REG_BINARY,
-                str2bytes("\x00\x01\x02\x03\x04\x05\x06\x07\x08\x01\x00"),
+                b"\x00\x01\x02\x03\x04\x05\x06\x07\x08\x01\x00",
             ),
         )
 

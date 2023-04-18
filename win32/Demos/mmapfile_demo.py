@@ -4,7 +4,6 @@ import tempfile
 import mmapfile
 import win32api
 import winerror
-from pywin32_testutil import str2bytes
 
 system_info = win32api.GetSystemInfo()
 page_size = system_info[1]
@@ -17,16 +16,16 @@ print(fname, fsize, mapping_name)
 
 m1 = mmapfile.mmapfile(File=fname, Name=mapping_name, MaximumSize=fsize)
 m1.seek(100)
-m1.write_byte(str2bytes("?"))
+m1.write_byte(b"?")
 m1.seek(-1, 1)
-assert m1.read_byte() == str2bytes("?")
+assert m1.read_byte() == b"?"
 
 ## A reopened named mapping should have exact same size as original mapping
 m2 = mmapfile.mmapfile(Name=mapping_name, File=None, MaximumSize=fsize * 2)
 assert m2.size() == m1.size()
 m1.seek(0, 0)
-m1.write(fsize * str2bytes("s"))
-assert m2.read(fsize) == fsize * str2bytes("s")
+m1.write(fsize * b"s")
+assert m2.read(fsize) == fsize * b"s"
 
 move_src = 100
 move_dest = 500
@@ -34,17 +33,17 @@ move_size = 150
 
 m2.seek(move_src, 0)
 assert m2.tell() == move_src
-m2.write(str2bytes("m") * move_size)
+m2.write(b"m" * move_size)
 m2.move(move_dest, move_src, move_size)
 m2.seek(move_dest, 0)
-assert m2.read(move_size) == str2bytes("m") * move_size
+assert m2.read(move_size) == b"m" * move_size
 ##    m2.write('x'* (fsize+1))
 
 m2.close()
 m1.resize(fsize * 2)
 assert m1.size() == fsize * 2
 m1.seek(fsize)
-m1.write(str2bytes("w") * fsize)
+m1.write(b"w" * fsize)
 m1.flush()
 m1.close()
 os.remove(fname)
@@ -54,7 +53,7 @@ os.remove(fname)
 ## need 10 GB free on drive where your temp folder lives
 fname_large = tempfile.mktemp()
 mapping_name = "Pywin32_large_mmap"
-offsetdata = str2bytes("This is start of offset")
+offsetdata = b"This is start of offset"
 
 ## Deliberately use odd numbers to test rounding logic
 fsize = (1024 * 1024 * 1024 * 10) + 333

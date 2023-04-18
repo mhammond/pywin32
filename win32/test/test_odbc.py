@@ -6,7 +6,7 @@ import unittest
 
 import odbc
 import pythoncom
-from pywin32_testutil import TestSkipped, str2bytes, str2memory
+from pywin32_testutil import TestSkipped, str2memory
 from win32com.client import constants
 
 # We use the DAO ODBC driver
@@ -244,7 +244,7 @@ class TestStuff(unittest.TestCase):
         self.assertEqual(
             self.cur.execute(
                 "insert into %s (userid,username) " "values (?,?)" % self.tablename,
-                [str2bytes("Frank"), ""],
+                [b"Frank", ""],
             ),
             1,
         )

@@ -21,7 +21,7 @@ def SimpleFileDemo():
     handle = win32file.CreateFile(
         testName, win32file.GENERIC_WRITE, 0, None, win32con.CREATE_NEW, 0, None
     )
-    test_data = "Hello\0there".encode("ascii")
+    test_data = b"Hello\0there"
     win32file.WriteFile(handle, test_data)
     handle.Close()
     # Open it for reading.

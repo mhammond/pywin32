@@ -40,7 +40,7 @@ if dllid is None:
     dllid = win32api.LoadLibrary("Scintilla.DLL")
 
 # null_byte is str in py2k, bytes on py3k
-null_byte = "\0".encode("ascii")
+null_byte = b"\0"
 
 ## These are from Richedit.h - need to add to win32con or commctrl
 EM_GETTEXTRANGE = 1099

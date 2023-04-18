@@ -47,7 +47,7 @@ _is_block_closer = re.compile(
     re.VERBOSE,
 ).match
 
-tracebackHeader = "Traceback (".encode("ascii")
+tracebackHeader = b"Traceback ("
 
 sectionProfile = "Interactive Window"
 valueFormatTitle = "FormatTitle"
@@ -201,7 +201,7 @@ class InteractiveFormatter(FormatterParent):
                 # It is a PythonColorizer state - seek past the end of the line
                 # and ask the Python colorizer to color that.
                 end = startSeg
-                while end < lengthDoc and cdoc[end] not in "\r\n".encode("ascii"):
+                while end < lengthDoc and cdoc[end] not in b"\r\n":
                     end = end + 1
                 self.ColorizePythonCode(cdoc[:end], startSeg, state)
                 stylePyStart = self.GetStringStyle(end - 1)

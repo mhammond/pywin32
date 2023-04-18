@@ -8,7 +8,7 @@ import sspi
 import sspicon
 import win32api
 import win32security
-from pywin32_testutil import TestSkipped, str2bytes, testmain
+from pywin32_testutil import TestSkipped, testmain
 
 
 # It is quite likely that the Kerberos tests will fail due to not being
@@ -63,7 +63,7 @@ class TestSSPI(unittest.TestCase):
         pkg_size_info = sspiclient.ctxt.QueryContextAttributes(
             sspicon.SECPKG_ATTR_SIZES
         )
-        msg = str2bytes("some data to be encrypted ......")
+        msg = b"some data to be encrypted ......"
 
         trailersize = pkg_size_info["SecurityTrailer"]
         encbuf = win32security.PySecBufferDescType()
@@ -76,7 +76,7 @@ class TestSSPI(unittest.TestCase):
         sspiserver.ctxt.DecryptMessage(encbuf, 1)
         self.assertEqual(msg, encbuf[0].Buffer)
         # and test the higher-level functions
-        data_in = str2bytes("hello")
+        data_in = b"hello"
         data, sig = sspiclient.encrypt(data_in)
         self.assertEqual(sspiserver.decrypt(data, sig), data_in)
 
@@ -92,7 +92,7 @@ class TestSSPI(unittest.TestCase):
         pkg_size_info = sspiclient.ctxt.QueryContextAttributes(
             sspicon.SECPKG_ATTR_SIZES
         )
-        msg = str2bytes("some data to be encrypted ......")
+        msg = b"some data to be encrypted ......"
 
         trailersize = pkg_size_info["SecurityTrailer"]
         blocksize = pkg_size_info["BlockSize"]
@@ -136,7 +136,7 @@ class TestSSPI(unittest.TestCase):
         pkg_size_info = sspiclient.ctxt.QueryContextAttributes(
             sspicon.SECPKG_ATTR_SIZES
         )
-        msg = str2bytes("some data to be encrypted ......")
+        msg = b"some data to be encrypted ......"
 
         sigsize = pkg_size_info["MaxSignature"]
         sigbuf = win32security.PySecBufferDescType()
@@ -148,7 +148,7 @@ class TestSSPI(unittest.TestCase):
         # and test the higher-level functions
         sspiclient.next_seq_num = 1
         sspiserver.next_seq_num = 1
-        data = str2bytes("hello")
+        data = b"hello"
         key = sspiclient.sign(data)
         sspiserver.verify(data, key)
         key = sspiclient.sign(data)

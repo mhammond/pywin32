@@ -5,7 +5,7 @@ import time
 import unittest
 
 import pywintypes
-from pywin32_testutil import ob2memory, str2bytes
+from pywin32_testutil import ob2memory
 
 
 class TestCase(unittest.TestCase):
@@ -88,7 +88,7 @@ class TestCase(unittest.TestCase):
         iid2 = pywintypes.IID(ob2memory(iid), True)
         self.assertEqual(iid, iid2)
         self.assertRaises(
-            ValueError, pywintypes.IID, str2bytes("00"), True
+            ValueError, pywintypes.IID, b"00", True
         )  # too short
         self.assertRaises(TypeError, pywintypes.IID, 0, True)  # no buffer
 
