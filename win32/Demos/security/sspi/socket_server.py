@@ -9,7 +9,7 @@ being run.
 
 Running either the client or server as a different user can be informative.
 A command-line such as the following may be useful:
-`runas /user:{user} {fqp}\\python.exe {fqp}\\socket_server.py --wait client|server`
+`runas /user:{user} {fqp}\python.exe {fqp}\socket_server.py --wait client|server`
 
 {fqp} should specify the relevant fully-qualified path names.
 

@@ -476,7 +476,7 @@ def Record(name, object):
     # XXX - to do - probably should allow "object" to already be a module object.
     from . import gencache
 
-    object = gencache.EnsureDispatch
+    object = gencache.EnsureDispatch(object)
     module = sys.modules[object.__class__.__module__]
     # to allow us to work correctly with "demand generated" code,
     # we must use the typelib CLSID to obtain the module

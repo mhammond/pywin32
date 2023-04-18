@@ -88,11 +88,10 @@ class TestPipeService(win32serviceutil.ServiceFramework):
             # pipe, but for the sake of this demo we dont (if only to see what errors
             # we can get when our clients break at strange times :-)
             if ok:
-                msg = b"%s (on thread %d) sent me %s" % (
-                    GetNamedPipeHandleState(pipeHandle, False, True)[4],
-                    tid,
-                    d,
-                )
+                msg = (
+                    "%s (on thread %d) sent me %s"
+                    % (GetNamedPipeHandleState(pipeHandle, False, True)[4], tid, d)
+                ).encode("ascii")
                 WriteFile(pipeHandle, msg)
         finally:
             ApplyIgnoreError(DisconnectNamedPipe, (pipeHandle,))
