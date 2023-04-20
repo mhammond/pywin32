@@ -73,7 +73,7 @@ class TestPipeService(win32serviceutil.ServiceFramework):
             try:
                 # Create a loop, reading large data.  If we knew the data stream was
                 # was small, a simple ReadFile would do.
-                d = b""  # ensure bytes on py2k and py3k...
+                d = b""
                 hr = winerror.ERROR_MORE_DATA
                 while hr == winerror.ERROR_MORE_DATA:
                     hr, thisd = ReadFile(pipeHandle, 256)
