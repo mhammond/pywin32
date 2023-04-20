@@ -113,7 +113,7 @@ class TestCase(unittest.TestCase):
             ncb.Reset()
             ncb.Command = netbios.NCBASTAT
             ncb.Lana_num = byte_to_int(la_enum.lana[i])
-            ncb.Callname = b"*               "  # ensure bytes on py2x and 3k
+            ncb.Callname = b"*               "
             adapter = netbios.ADAPTER_STATUS()
             ncb.Buffer = adapter
             Netbios(ncb)
