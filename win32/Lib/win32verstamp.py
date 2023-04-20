@@ -14,7 +14,7 @@ VS_FFI_STRUCVERSION = 0x00010000
 VS_FFI_FILEFLAGSMASK = 0x0000003F
 VOS_NT_WINDOWS32 = 0x00040004
 
-null_byte = "\0".encode("ascii")  # str in py2k, bytes in py3k
+null_byte = b"\0"
 
 
 #

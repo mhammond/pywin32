@@ -8,7 +8,7 @@ import win32api
 import win32con
 import win32file
 import win32security
-from pywin32_testutil import ob2memory, str2bytes
+from pywin32_testutil import ob2memory
 from win32com import storagecon
 
 all_sd_info = (
@@ -103,7 +103,7 @@ while 1:
     )
     print("Written:", bytes_written, "Context:", outctxt)
 win32file.BackupRead(h, 0, buf, True, True, ctxt)
-win32file.BackupWrite(outh, 0, str2bytes(""), True, True, outctxt)
+win32file.BackupWrite(outh, 0, b"", True, True, outctxt)
 win32file.CloseHandle(h)
 win32file.CloseHandle(outh)
 
