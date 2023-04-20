@@ -16,6 +16,7 @@ VOS_NT_WINDOWS32 = 0x00040004
 
 null_byte = b"\0"
 
+
 #
 # Set VS_FF_PRERELEASE and DEBUG if Debug
 #
