@@ -85,12 +85,9 @@ def makemdb(testfolder, mdb_name):
             from win32com.client.gencache import EnsureDispatch
 
             win32 = True
-        except ImportError:  # perhaps we are running IronPython
-            win32 = False  # iron Python
-            try:
-                from System import Activator, Type
-            except:
-                pass
+        except ImportError:
+            win32 = False  # assume the worst
+            pass
 
         # Create a brand-new database - what is the story with these?
         dbe = None
