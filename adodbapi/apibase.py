@@ -192,11 +192,8 @@ class TimeConverter(object):  # this is a generic time converter skeleton
         except:  # might be a tuple
             try:
                 return self.ComDateFromTuple(obj)
-            except:  # try an mxdate
-                try:
-                    return obj.COMDate()
-                except:
-                    raise ValueError('Cannot convert "%s" to COMdate.' % repr(obj))
+            except:
+                raise ValueError('Cannot convert "%s" to COMdate.' % repr(obj))
 
     def ComDateFromTuple(self, t, microseconds=0):
         d = datetime.date(t[0], t[1], t[2])
@@ -230,46 +227,11 @@ class TimeConverter(object):  # this is a generic time converter skeleton
             if isinstance(obj, datetime.date):
                 s = obj.isoformat() + " 00:00:00"  # return exact midnight
             else:
-                try:  # maybe it has a strftime method, like mx
-                    s = obj.strftime("%Y-%m-%d %H:%M:%S")
-                except AttributeError:
-                    try:  # but may be time.struct_time
-                        s = time.strftime("%Y-%m-%d %H:%M:%S", obj)
-                    except:
-                        raise ValueError('Cannot convert "%s" to isoformat' % repr(obj))
+                try:  # but may be time.struct_time
+                    s = time.strftime("%Y-%m-%d %H:%M:%S", obj)
+                except:
+                    raise ValueError('Cannot convert "%s" to isoformat' % repr(obj))
         return s
-
-
-# -- Optional: if mx extensions are installed you may use mxDateTime ----
-try:
-    import mx.DateTime
-
-    mxDateTime = True
-except:
-    mxDateTime = False
-if mxDateTime:
-
-    class mxDateTimeConverter(TimeConverter):  # used optionally if installed
-        def __init__(self):
-            TimeConverter.__init__(self)
-            self.types.add(type(mx.DateTime))
-
-        def DateObjectFromCOMDate(self, comDate):
-            return mx.DateTime.DateTimeFromCOMDate(comDate)
-
-        def Date(self, year, month, day):
-            return mx.DateTime.Date(year, month, day)
-
-        def Time(self, hour, minute, second):
-            return mx.DateTime.Time(hour, minute, second)
-
-        def Timestamp(self, year, month, day, hour, minute, second):
-            return mx.DateTime.Timestamp(year, month, day, hour, minute, second)
-
-else:
-
-    class mxDateTimeConverter(TimeConverter):
-        pass  # if no mx is installed
 
 
 class pythonDateTimeConverter(TimeConverter):  # standard since Python 2.3

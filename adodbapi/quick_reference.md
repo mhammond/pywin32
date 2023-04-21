@@ -821,8 +821,7 @@ code. It will run 2to3 when it does this, if needed.
 
 "\--postgres" run the PostgreSQL tests.
 
-"\--time" run all time tests. (If mx-DateTime is not installed it will
-be skipped.)
+"\--time" do time format test
 
 "\--verbose=n" gives lots of information.
 
