@@ -171,6 +171,4 @@ Sell you soul to the devil, baby
     finally:
         get_input_line = raw_input
 else:
-    import sys
-
     sys.stdin = Stdin()

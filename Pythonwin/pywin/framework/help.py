@@ -78,7 +78,6 @@ def ListAllHelpFiles():
 
 def _ListAllHelpFilesInRoot(root):
     """Returns a list of (helpDesc, helpFname) for all registered help files"""
-    import regutil
 
     retList = []
     try:

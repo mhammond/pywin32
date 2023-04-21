@@ -6,8 +6,6 @@ import win32ui
 
 
 def ParseArgs(str):
-    import string
-
     ret = []
     pos = 0
     length = len(str)
