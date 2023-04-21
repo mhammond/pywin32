@@ -9,11 +9,11 @@ from pywin.mfc import docview
 
 from . import scintillacon
 
-crlf_bytes = "\r\n".encode("ascii")
-lf_bytes = "\n".encode("ascii")
+crlf_bytes = b"\r\n"
+lf_bytes = b"\n"
 
 # re from pep263 - but we use it both on bytes and strings.
-re_encoding_bytes = re.compile(r"coding[:=]\s*([-\w.]+)".encode("ascii"))
+re_encoding_bytes = re.compile(rb"coding[:=]\s*([-\w.]+)")
 re_encoding_text = re.compile(r"coding[:=]\s*([-\w.]+)")
 
 ParentScintillaDocument = docview.Document

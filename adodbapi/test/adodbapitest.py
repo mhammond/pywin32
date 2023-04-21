@@ -54,10 +54,6 @@ except ImportError:  # we are doing a shortcut import as a module -- so
         from adodbapi import ado_consts
 
 
-def str2bytes(sval):
-    return sval.encode("latin1")
-
-
 long = int
 
 
@@ -519,7 +515,7 @@ class CommonDBTests(unittest.TestCase):
             )
 
     def testDataTypeBinary(self):
-        binfld = str2bytes("\x07\x00\xE2\x40*")
+        binfld = b"\x07\x00\xE2\x40*"
         arv = [binfld, adodbapi.Binary(binfld), bytes(binfld)]
         if self.getEngine() == "PostgreSQL":
             self.helpTestDataType(

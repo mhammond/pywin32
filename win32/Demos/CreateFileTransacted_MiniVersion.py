@@ -13,7 +13,6 @@ import win32file
 import win32transaction
 import winerror
 import winioctlcon
-from pywin32_testutil import str2bytes  # py3k-friendly helper
 
 
 def demo():
@@ -49,14 +48,14 @@ def demo():
         Transaction=trans,
     )
 
-    win32file.WriteFile(hfile, str2bytes("This is first miniversion.\n"))
+    win32file.WriteFile(hfile, b"This is first miniversion.\n")
     buf = win32file.DeviceIoControl(
         hfile, winioctlcon.FSCTL_TXFS_CREATE_MINIVERSION, None, buf_size, None
     )
     struct_ver, struct_len, base_ver, ver_1 = struct.unpack(buf_fmt, buf)
 
     win32file.SetFilePointer(hfile, 0, win32con.FILE_BEGIN)
-    win32file.WriteFile(hfile, str2bytes("This is second miniversion!\n"))
+    win32file.WriteFile(hfile, b"This is second miniversion!\n")
     buf = win32file.DeviceIoControl(
         hfile, winioctlcon.FSCTL_TXFS_CREATE_MINIVERSION, None, buf_size, None
     )

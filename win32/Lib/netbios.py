@@ -294,7 +294,7 @@ if __name__ == "__main__":
         ncb.Reset()
         ncb.Command = NCBASTAT
         ncb.Lana_num = byte_to_int(la_enum.lana[i])
-        ncb.Callname = "*               ".encode("ascii")  # ensure bytes on py2x and 3k
+        ncb.Callname = b"*               "
         adapter = ADAPTER_STATUS()
         ncb.Buffer = adapter
         Netbios(ncb)
