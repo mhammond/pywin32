@@ -60,7 +60,6 @@ class PySourceModuleDebugDocumentHost(gateways.DebugDocumentHost):
                 codeText = open(self.module.__file__, "rt").read()
             except IOError as details:
                 codeText = "# Exception opening file\n# %s" % (details)
-            from win32com.axdebug import codecontainer
 
             self.codeContainer = codecontainer.SourceCodeContainer(
                 codeText, self.module.__file__

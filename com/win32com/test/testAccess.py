@@ -174,8 +174,6 @@ def test(dbname=None):
 
 
 if __name__ == "__main__":
-    import sys
-
     from .util import CheckClean
 
     dbname = None
