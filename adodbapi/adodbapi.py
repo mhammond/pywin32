@@ -24,7 +24,7 @@ Copyright (C) 2002 Henrik Ekelund, versions 2.1 and later by Vernon Cole
 DB-API 2.0 specification: http://www.python.org/dev/peps/pep-0249/
 
 This module source should run correctly in CPython versions 2.7 and later,
-or, after running through 2to3.py, CPython 3.4 or later.
+or CPython 3.4 or later.
 """
 
 __version__ = "2.6.2.0"
@@ -36,6 +36,10 @@ import os
 import sys
 import weakref
 
+import pythoncom
+import pywintypes
+from win32com.client import Dispatch
+
 from . import ado_consts as adc, apibase as api, process_connect_string
 
 try:
@@ -44,23 +48,6 @@ except:
     verbose = False
 if verbose:
     print(version)
-
-# --- define objects to smooth out IronPython <-> CPython differences
-onWin32 = False  # assume the worst
-try:
-    import pythoncom
-    import pywintypes
-    import win32com.client
-
-    onWin32 = True
-
-    def Dispatch(dispatch):
-        return win32com.client.Dispatch(dispatch)
-
-except ImportError:
-    import warnings
-
-    warnings.warn("pywin32 package required for adodbapi.", ImportWarning)
 
 
 def getIndexedValue(obj, index):
@@ -79,8 +66,7 @@ maxint = sys.maxsize
 # -----------------  The .connect method -----------------
 def make_COM_connecter():
     try:
-        if onWin32:
-            pythoncom.CoInitialize()  # v2.1 Paj
+        pythoncom.CoInitialize()  # v2.1 Paj
         c = Dispatch("ADODB.Connection")  # connect _after_ CoIninialize v2.1.1 adamvan
     except:
         raise api.InterfaceError(

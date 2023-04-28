@@ -3,10 +3,7 @@ import sys
 
 
 def Python():
-    try:
-        return sys.maxsize > 2147483647
-    except AttributeError:
-        return sys.maxint > 2147483647
+    return sys.maxsize > 2147483647
 
 
 def os():

@@ -10,7 +10,7 @@ Home page: <http://sourceforge.net/projects/adodbapi>
 Features:
 * 100% DB-API 2.0 (PEP-249) compliant (including most extensions and recommendations).
 * Includes pyunit testcases that describe how to use the module.  
-* Fully implemented in Python. -- runs in Python 2.5+ and Python 3.0+
+* Fully implemented in Python. -- runs in current versions of Python 3
 * Licensed under the LGPL license, which means that it can be used freely even in commercial programs subject to certain restrictions. 
 * The user can choose between paramstyles: 'qmark' 'named' 'format' 'pyformat' 'dynamic'
 * Supports data retrieval by column name e.g.:
@@ -19,11 +19,12 @@ Features:
 * Supports user-definable system-to-Python data conversion functions (selected by ADO data type, or by column)
 
 Prerequisites:
-* C Python 2.7 or 3.5 or higher
+* C Python 3.6 or higher
  and pywin32 (Mark Hammond's python for windows extensions.)
 
 Installation:
 * (C-Python on Windows): Install pywin32 ("pip install pywin32") which includes adodbapi.
+* (IronPython on Windows): Download adodbapi from http://sf.net/projects/adodbapi.  Unpack the zip.
 
 NOTE: ...........
 If you do not like the new default operation of returning Numeric columns as decimal.Decimal,

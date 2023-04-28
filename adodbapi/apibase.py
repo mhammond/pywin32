@@ -508,7 +508,7 @@ def cvtUnusual(variant):
 
 
 def convert_to_python(variant, func):  # convert DB value into Python value
-    if isinstance(variant, type(None)):
+    if variant is None:
         return None
     return func(variant)  # call the appropriate conversion function
 

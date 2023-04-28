@@ -21,9 +21,6 @@ Copyright (C) 2002 Henrik Ekelund, version 2.1 by Vernon Cole
     django adaptations and refactoring thanks to Adam Vandenberg
 
 DB-API 2.0 specification: http://www.python.org/dev/peps/pep-0249/
-
-This module source should run correctly in CPython versions 2.5 and later,
-or, after running through 2to3.py, CPython 3.0 or later.
 """
 
 __version__ = "2.6.0.4"
