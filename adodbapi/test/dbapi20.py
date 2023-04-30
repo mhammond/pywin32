@@ -95,10 +95,6 @@ TEST_FOR_NON_IDEMPOTENT_CLOSE = False
 #   nothing
 # - Fix bugs in test_setoutputsize_basic and test_setinputsizes
 #
-def str2bytes(sval):
-    if sys.version_info < (3, 0) and isinstance(sval, str):
-        sval = sval.decode("latin1")
-    return sval.encode("latin1")  # python 3 make unicode into bytes
 
 
 class DatabaseAPI20Test(unittest.TestCase):
@@ -809,35 +805,6 @@ class DatabaseAPI20Test(unittest.TestCase):
         # cur.execute("drop procedure deleteme")
 
     def test_nextset(self):
-        con = self._connect()
-        try:
-            cur = con.cursor()
-            if not hasattr(cur, "nextset"):
-                return
-
-            try:
-                self.executeDDL1(cur)
-                sql = self._populate()
-                for sql in self._populate():
-                    cur.execute(sql)
-
-                self.help_nextset_setUp(cur)
-
-                cur.callproc("deleteme")
-                numberofrows = cur.fetchone()
-                assert numberofrows[0] == len(self.samples)
-                assert cur.nextset()
-                names = cur.fetchall()
-                assert len(names) == len(self.samples)
-                s = cur.nextset()
-                assert s is None, "No more return sets, should return None"
-            finally:
-                self.help_nextset_tearDown(cur)
-
-        finally:
-            con.close()
-
-    def test_nextset(self):
         raise NotImplementedError("Drivers need to override this test")
 
     def test_arraysize(self):
@@ -910,8 +877,8 @@ class DatabaseAPI20Test(unittest.TestCase):
         # self.assertEqual(str(t1),str(t2))
 
     def test_Binary(self):
-        b = self.driver.Binary(str2bytes("Something"))
-        b = self.driver.Binary(str2bytes(""))
+        b = self.driver.Binary(b"Something")
+        b = self.driver.Binary(b"")
 
     def test_STRING(self):
         _failUnless(

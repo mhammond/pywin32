@@ -1,4 +1,4 @@
-build_id = "305.1"  # may optionally include a ".{patchno}" suffix.
+build_id = "306"  # may optionally include a ".{patchno}" suffix.
 
 __doc__ = """This is a distutils setup-script for the pywin32 extensions.
 
@@ -31,6 +31,12 @@ import shutil
 import subprocess
 import sys
 import winreg
+
+# setuptools must be imported before distutils for markh in some python versions.
+# CI doesn't hit this, so not sure what's going on.
+from setuptools import setup
+from setuptools.command.build_ext import build_ext
+
 from distutils import log
 from distutils.command.build import build
 from distutils.command.install import install
@@ -38,10 +44,6 @@ from distutils.command.install_data import install_data
 from distutils.command.install_lib import install_lib
 from distutils.core import Extension
 from tempfile import gettempdir
-
-# The rest of our imports.
-from setuptools import setup
-from setuptools.command.build_ext import build_ext
 
 # some modules need a static CRT to avoid problems caused by them having a
 # manifest.

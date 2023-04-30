@@ -9,19 +9,6 @@ tsf_flags = list(
 )
 
 
-def decode_flags(flags):
-    if flags == 0:
-        return "TSF_NORMAL"
-    flag_txt = ""
-    for k, v in tsf_flags:
-        if flags & v:
-            if flag_txt:
-                flag_txt = flag_txt + "|" + k
-            else:
-                flag_txt = k
-    return flag_txt
-
-
 TRANSFER_ADVISE_STATES = {}
 for k, v in list(shellcon.__dict__.items()):
     if k.startswith("TS_"):

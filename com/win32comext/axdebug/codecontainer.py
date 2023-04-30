@@ -253,8 +253,6 @@ class SourceModuleContainer(SourceCodeContainer):
 
 
 if __name__ == "__main__":
-    import sys
-
     sys.path.append(".")
     import ttest
 

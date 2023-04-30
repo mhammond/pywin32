@@ -3,7 +3,6 @@
 # Demo/test of the win32clipboard module.
 
 import win32con
-from pywin32_testutil import str2bytes  # py3k-friendly helper
 from win32clipboard import *
 
 if not __debug__:
@@ -32,7 +31,7 @@ def TestText():
     OpenClipboard()
     try:
         text = "Hello from Python"
-        text_bytes = str2bytes(text)
+        text_bytes = text.encode("latin1")
         SetClipboardText(text)
         got = GetClipboardData(win32con.CF_TEXT)
         # CF_TEXT always gives us 'bytes' back .
@@ -56,7 +55,7 @@ def TestText():
         # Unicode tests
         EmptyClipboard()
         text = "Hello from Python unicode"
-        text_bytes = str2bytes(text)
+        text_bytes = text.encode("latin1")
         # Now set the Unicode value
         SetClipboardData(win32con.CF_UNICODETEXT, text)
         # Get it in Unicode.

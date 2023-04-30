@@ -384,7 +384,7 @@ if __name__ == "__main__":
     print("Initiator name from the service side:", sspiserver.initiator_name)
     print("Service name from the client side:   ", sspiclient.service_name)
 
-    data = "hello".encode("ascii")  # py3k-friendly
+    data = b"hello"  # py3k-friendly
 
     # Simple signature, not compatible with GSSAPI.
     sig = sspiclient.sign(data)

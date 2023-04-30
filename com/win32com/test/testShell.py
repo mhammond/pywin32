@@ -14,7 +14,6 @@ import pythoncom
 import pywintypes
 import win32com.test.util
 import win32con
-from pywin32_testutil import str2bytes
 from win32com.shell import shell
 from win32com.shell.shellcon import *
 from win32com.storagecon import *
@@ -87,25 +86,23 @@ class PIDLTester(win32com.test.util.TestCase):
         self.assertEqual(cida_str_rt, cida_str)
 
     def testPIDL(self):
-        # A PIDL of "\1" is:   cb    pidl   cb
-        expect = str2bytes("\03\00" "\1" "\0\0")
-        self.assertEqual(shell.PIDLAsString([str2bytes("\1")]), expect)
-        self._rtPIDL([str2bytes("\0")])
-        self._rtPIDL([str2bytes("\1"), str2bytes("\2"), str2bytes("\3")])
-        self._rtPIDL([str2bytes("\0") * 2048] * 2048)
+        # A PIDL of "\1" is: cb + pidl + cb
+        expect = b"\03\00" + b"\1" + b"\0\0"
+        self.assertEqual(shell.PIDLAsString([b"\1"]), expect)
+        self._rtPIDL([b"\0"])
+        self._rtPIDL([b"\1", b"\2", b"\3"])
+        self._rtPIDL([b"\0" * 2048] * 2048)
         # PIDL must be a list
         self.assertRaises(TypeError, shell.PIDLAsString, "foo")
 
     def testCIDA(self):
-        self._rtCIDA([str2bytes("\0")], [[str2bytes("\0")]])
-        self._rtCIDA([str2bytes("\1")], [[str2bytes("\2")]])
-        self._rtCIDA(
-            [str2bytes("\0")], [[str2bytes("\0")], [str2bytes("\1")], [str2bytes("\2")]]
-        )
+        self._rtCIDA([b"\0"], [[b"\0"]])
+        self._rtCIDA([b"\1"], [[b"\2"]])
+        self._rtCIDA([b"\0"], [[b"\0"], [b"\1"], [b"\2"]])
 
     def testBadShortPIDL(self):
-        # A too-short child element:   cb    pidl   cb
-        pidl = str2bytes("\01\00" "\1")
+        # A too-short child element: cb + pidl + cb
+        pidl = b"\01\00" + b"\1"
         self.assertRaises(ValueError, shell.StringAsPIDL, pidl)
 
         # ack - tried to test too long PIDLs, but a len of 0xFFFF may not
@@ -224,7 +221,7 @@ class FileOperationTester(win32com.test.util.TestCase):
 
         self.src_name = os.path.join(tempfile.gettempdir(), "pywin32_testshell")
         self.dest_name = os.path.join(tempfile.gettempdir(), "pywin32_testshell_dest")
-        self.test_data = str2bytes("Hello from\0Python")
+        self.test_data = b"Hello from\0Python"
         f = open(self.src_name, "wb")
         f.write(self.test_data)
         f.close()

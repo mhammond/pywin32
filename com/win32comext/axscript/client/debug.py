@@ -13,8 +13,6 @@ from win32com.client.util import Enumerator
 from win32com.server.exception import COMException
 from win32com.util import IIDToInterfaceName
 
-from .framework import trace
-
 try:
     os.environ["DEBUG_AXDEBUG"]
     debuggingTrace = 1  # Should we print "trace" output?

@@ -8,7 +8,6 @@ import win32com.client
 import win32com.client.dynamic
 import win32com.server.util
 import win32ui
-from pywin32_testutil import str2bytes
 from pywintypes import Unicode
 from win32com import storagecon
 from win32com.axcontrol import axcontrol
@@ -34,8 +33,8 @@ class LockBytes:
     ]
     _com_interfaces_ = [pythoncom.IID_ILockBytes]
 
-    def __init__(self, data=""):
-        self.data = str2bytes(data)
+    def __init__(self, data=b""):
+        self.data = data
         self.ctime = now
         self.mtime = now
         self.atime = now
@@ -68,7 +67,7 @@ class LockBytes:
     def SetSize(self, size):
         print("Set Size" + str(size))
         if size > len(self.data):
-            self.data = self.data + str2bytes("\000" * (size - len(self.data)))
+            self.data = self.data + b"\000" * (size - len(self.data))
         else:
             self.data = self.data[0:size]
         return S_OK

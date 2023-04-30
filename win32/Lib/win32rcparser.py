@@ -655,8 +655,6 @@ if __name__ == "__main__":
         print("See test_win32rcparser.py, and the win32rcparser directory (both")
         print("in the test suite) for an example of this module's usage.")
     else:
-        import pprint
-
         filename = sys.argv[1]
         if "-v" in sys.argv:
             RCParser.debugEnabled = 1
