@@ -202,8 +202,8 @@ class AXScriptException(win32com.server.exception.COMException):
         # don't have a decode method...
         if sys.version_info < (3,):
             for i in range(len(bits)):
-                if type(bits[i]) is str:
-                    # assert type(bits[i]) is str, type(bits[i])
+                if isinstance(bits[i], str):
+                    # assert isinstance(bits[i], str), type(bits[i])
                     bits[i] = bits[i].decode("utf8")
 
         self.description = ExpandTabs("".join(bits))

@@ -120,11 +120,11 @@ class dirpath:
         del self.dirs[lo:hi]
 
     def __add__(self, other):
-        if isinstance(other, (type(self), list)):
+        if isinstance(other, (dirpath, list)):
             return self.dirs + other.dirs
 
     def __radd__(self, other):
-        if isinstance(other, (type(self), list)):
+        if isinstance(other, (dirpath, list)):
             return other.dirs + self.dirs
 
 

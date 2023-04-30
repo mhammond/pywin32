@@ -199,17 +199,16 @@ def SetProperties(msg, propDict):
     newProps = []
     for key, val in propDict.items():
         if isinstance(key, str):
-            type_val = type(val)
-            if type_val == str:
+            if isinstance(val, str):
                 tagType = mapitags.PT_UNICODE
-            elif type_val == IntType:
+            elif isinstance(val, int):
                 tagType = mapitags.PT_I4
-            elif type_val == TimeType:
+            elif isinstance(val, TimeType):
                 tagType = mapitags.PT_SYSTIME
             else:
                 raise ValueError(
                     "The type of object %s(%s) can not be written"
-                    % (repr(val), type_val)
+                    % (repr(val), type(val))
                 )
             key = mapitags.PROP_TAG(tagType, mapitags.PROP_ID(newIds[newIdNo]))
             newIdNo = newIdNo + 1
