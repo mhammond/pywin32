@@ -744,9 +744,11 @@ PyObject *MyCreateService(
 	if (!PyWinObject_AsMultipleString(obDeps, &lpDeps, TRUE))
 		goto cleanup;
 
+	Py_BEGIN_ALLOW_THREADS
 	sh = CreateService(hSCManager,lpServiceName,lpDisplayName,dwDesiredAccess,
 	                             dwServiceType, dwStartType, dwErrorControl, lpBinaryPathName,
 	                             lpLoadOrderGroup, pTagID, lpDeps, lpServiceStartName, lpPassword);
+	Py_END_ALLOW_THREADS
 	if (sh==0) {
 		PyWin_SetAPIError("CreateService");
 		rc = NULL;
@@ -809,7 +811,11 @@ PyObject *MyStartService( SC_HANDLE scHandle, PyObject *serviceArgs )
 		return NULL;
 
 	PyObject *rc;
-	if (StartService(scHandle, numStrings, (LPCWSTR *)pArgs)) {
+        BOOL ok = FALSE;
+	Py_BEGIN_ALLOW_THREADS
+	ok = StartService(scHandle, numStrings, (LPCWSTR *)pArgs);
+	Py_END_ALLOW_THREADS
+	if (ok) {
 		rc = Py_None;
 		Py_INCREF(Py_None);
 	} else
