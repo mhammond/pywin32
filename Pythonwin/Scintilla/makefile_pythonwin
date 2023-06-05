@@ -46,8 +46,8 @@ Scintilla:
 
 ..\pywin\scintilla\scintillacon.py: Include\Scintilla.h Include\SciLexer.h
 	@if not exist $(DIR_PYTHON)\tools\scripts\h2py.py echo ***** Can't find h2py.py in '$(DIR_PYTHON)\tools\scripts - please pass DIR_PYTHON to this script *******
-	$(DIR_PYTHON)\python.exe $(DIR_PYTHON)\tools\scripts\h2py.py Include\scintilla.h
-	$(DIR_PYTHON)\python.exe $(DIR_PYTHON)\tools\scripts\h2py.py Include\scilexer.h
+	$(DIR_PYTHON)\tools\scripts\h2py.py Include\scintilla.h
+	$(DIR_PYTHON)\tools\scripts\h2py.py Include\scilexer.h
     type scintilla.py > ..\pywin\scintilla\scintillacon.py
 	type scilexer.py >> ..\pywin\scintilla\scintillacon.py
 	del scintilla.py scilexer.py
