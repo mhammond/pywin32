@@ -729,9 +729,9 @@ def _GetModule(fname):
         # Are we using a custom cache location?
         sys.path.append(win32com.__gen_path__)
         mod = __import__(fname)
-        sys.modules[mod_name] = mod # Save the module with the expected name
-        del sys.path[-1] # Restore syspath
-        del sys.modules[fname] # Clean up sys.modules
+        sys.modules[mod_name] = mod  # Save the module with the expected name
+        del sys.path[-1]  # Restore syspath
+        del sys.modules[fname]  # Clean up sys.modules
     return sys.modules[mod_name]
 
 
