@@ -722,8 +722,16 @@ def GetGeneratedInfos():
 
 def _GetModule(fname):
     """Given the name of a module in the gen_py directory, import and return it."""
-    mod_name = "win32com.gen_py.%s" % fname
-    mod = __import__(mod_name)
+    try:
+        mod_name = "win32com.gen_py.%s" % fname
+        mod = __import__(mod_name)
+    except ImportError:
+        # Are we using a custom cache location?
+        sys.path.append(win32com.__gen_path__)
+        mod = __import__(fname)
+        sys.modules[mod_name] = mod # Save the module with the expected name
+        del sys.path[-1] # Restore syspath
+        del sys.modules[fname] # Clean up sys.modules
     return sys.modules[mod_name]
 
 
