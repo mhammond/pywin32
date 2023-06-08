@@ -29,6 +29,7 @@ GEN_FULL = "full"
 GEN_DEMAND_BASE = "demand(base)"
 GEN_DEMAND_CHILD = "demand(child)"
 
+
 # This map is used purely for the users benefit -it shows the
 # raw, underlying type of Alias/Enums, etc.  The COM implementation
 # does not use this map at runtime - all Alias/Enum have already
@@ -222,12 +223,18 @@ class EnumerationItem(build.OleItem, WritableItem):
     ##    print >> stream "%s=constants # Compatibility with previous versions." % (enumName)
     ##    WriteAliasesForItem(self, aliasItems)
 
-    def WriteEnumerationItems(self, stream):
+    def WriteEnumerationItems(self, stream, bCreateEnumClass=False):
         num = 0
         enumName = self.doc[0]
         # Write in name alpha order
         names = list(self.mapVars.keys())
-        names.sort()
+
+        if bCreateEnumClass:
+            # do not sort when using class
+            print("class %s(RelaxedIntEnum):" % (enumName), file=stream)
+        else:
+            names.sort()
+
         for name in names:
             entry = self.mapVars[name]
             vdesc = entry.desc
@@ -250,12 +257,23 @@ class EnumerationItem(build.OleItem, WritableItem):
                         + '"'
                         + " # This VARIANT type cannot be converted automatically"
                     )
-                print(
-                    "\t%-30s=%-10s # from enum %s"
-                    % (build.MakePublicAttributeName(name, True), use, enumName),
-                    file=stream,
-                )
+                if bCreateEnumClass:
+                    print(
+                        "\t%-30s=%-10s"
+                        % (build.MakePublicAttributeName(name, True), use),
+                        file=stream,
+                    )
+                else:
+                    print(
+                        "\t%-30s=%-10s # from enum %s"
+                        % (build.MakePublicAttributeName(name, True), use, enumName),
+                        file=stream,
+                    )
+
                 num += 1
+        if bCreateEnumClass:
+            print("", file=stream)
+
         return num
 
 
@@ -318,8 +336,12 @@ class VTableItem(build.VTableItem, WritableItem):
 class DispatchItem(build.DispatchItem, WritableItem):
     order = 3
 
-    def __init__(self, typeinfo, attr, doc=None):
-        build.DispatchItem.__init__(self, typeinfo, attr, doc)
+    def __init__(
+        self, typeinfo, attr, doc=None, iCreateEnums=build.ENUMS_CREATE_INT_CONSTANTS
+    ):
+        build.DispatchItem.__init__(
+            self, typeinfo, attr, doc, iCreateEnums=iCreateEnums
+        )
         self.type_attr = attr
         self.coclass_clsid = None
 
@@ -449,6 +471,7 @@ class DispatchItem(build.DispatchItem, WritableItem):
                     "defaultUnnamedArg",
                     "pythoncom.Missing",
                     is_comment=True,
+                    bTypeHints=generator.bTypeHints,
                 )
                 + "):",
                 file=stream,
@@ -505,7 +528,12 @@ class DispatchItem(build.DispatchItem, WritableItem):
                         % name,
                         file=stream,
                     )
-                ret = self.MakeFuncMethod(entry, build.MakePublicAttributeName(name))
+                ret = self.MakeFuncMethod(
+                    entry,
+                    build.MakePublicAttributeName(name),
+                    bTypeHints=generator.bTypeHints,
+                    iCreateEnums=generator.iCreateEnums,
+                )
                 for line in ret:
                     print(line, file=stream)
         print("\t_prop_map_get_ = {", file=stream)
@@ -516,13 +544,28 @@ class DispatchItem(build.DispatchItem, WritableItem):
             if generator.bBuildHidden or not entry.hidden:
                 resultName = entry.GetResultName()
                 if resultName:
+                    if entry.desc[8][5] == pythoncom.TKIND_ENUM:
+                        kind = "enumeration"
+                    else:
+                        kind = "object"
+
                     print(
-                        "\t\t# Property '%s' is an object of type '%s'"
-                        % (key, resultName),
+                        "\t\t# Property '%s' is an %s of type '%s'"
+                        % (key, kind, resultName),
                         file=stream,
                     )
                 lkey = key.lower()
                 details = entry.desc
+                if (
+                    generator.iCreateEnums & build.ENUMS_CREATE_ENUM_CLASSES
+                ) != 0 and details[8][5] == pythoncom.TKIND_ENUM:
+                    resultCLSID = "(%s,%d)" % (
+                        entry.GetResultName(),
+                        details[8][0] & 0x2000,
+                    )
+                else:
+                    resultCLSID = entry.GetResultCLSIDStr()
+
                 resultDesc = details[2]
                 argDesc = ()
                 mapEntry = MakeMapLineEntry(
@@ -531,7 +574,7 @@ class DispatchItem(build.DispatchItem, WritableItem):
                     resultDesc,
                     argDesc,
                     key,
-                    entry.GetResultCLSIDStr(),
+                    resultCLSID,
                 )
 
                 if details.memid == pythoncom.DISPID_VALUE:
@@ -563,9 +606,14 @@ class DispatchItem(build.DispatchItem, WritableItem):
             entry = self.propMapGet[key]
             if generator.bBuildHidden or not entry.hidden:
                 if entry.GetResultName():
+                    if entry.desc[8][5] == pythoncom.TKIND_ENUM:
+                        kind = "enumeration"
+                    else:
+                        kind = "object"
+
                     print(
-                        "\t\t# Method '%s' returns object of type '%s'"
-                        % (key, entry.GetResultName()),
+                        "\t\t# Method '%s' returns %s of type '%s'"
+                        % (key, kind, entry.GetResultName()),
                         file=stream,
                     )
                 details = entry.desc
@@ -573,13 +621,23 @@ class DispatchItem(build.DispatchItem, WritableItem):
                 lkey = key.lower()
                 argDesc = details[2]
                 resultDesc = details[8]
+                if (
+                    generator.iCreateEnums & build.ENUMS_CREATE_ENUM_CLASSES
+                ) != 0 and details[8][5] == pythoncom.TKIND_ENUM:
+                    resultCLSID = "(%s,%d)" % (
+                        entry.GetResultName(),
+                        details[8][0] & 0x2000,
+                    )
+                else:
+                    resultCLSID = entry.GetResultCLSIDStr()
+
                 mapEntry = MakeMapLineEntry(
                     details[0],
                     pythoncom.DISPATCH_PROPERTYGET,
                     resultDesc,
                     argDesc,
                     key,
-                    entry.GetResultCLSIDStr(),
+                    resultCLSID,
                 )
                 if details.memid == pythoncom.DISPID_VALUE:
                     lkey = "value"
@@ -889,6 +947,9 @@ class Generator:
         progressObject,
         bBuildHidden=1,
         bUnicodeToString=None,
+        iCreateEnums=build.ENUMS_CREATE_INT_CONSTANTS,
+        bTypeHints=False,
+        bEmbedRelaxedIntEnum=False,
     ):
         assert bUnicodeToString is None, "this is deprecated and will go away"
         self.bHaveWrittenDispatchBaseClass = 0
@@ -898,6 +959,9 @@ class Generator:
         self.sourceFilename = sourceFilename
         self.bBuildHidden = bBuildHidden
         self.progress = progressObject
+        self.iCreateEnums = iCreateEnums
+        self.bTypeHints = bTypeHints
+        self.bEmbedRelaxedIntEnum = bEmbedRelaxedIntEnum
         # These 2 are later additions and most of the code still 'print's...
         self.file = None
 
@@ -951,7 +1015,9 @@ class Generator:
                 if clsid in oleItems:
                     dispItem = oleItems[clsid]
                 else:
-                    dispItem = DispatchItem(refType, refAttr, doc)
+                    dispItem = DispatchItem(
+                        refType, refAttr, doc, iCreateEnums=self.iCreateEnums
+                    )
                     oleItems[dispItem.clsid] = dispItem
                 dispItem.coclass_clsid = coclass.clsid
                 if flags & pythoncom.IMPLTYPEFLAG_FSOURCE:
@@ -966,7 +1032,9 @@ class Generator:
                     assert (
                         refAttr.typekind == pythoncom.TKIND_INTERFACE
                     ), "must be interface bynow!"
-                    vtableItem = VTableItem(refType, refAttr, doc)
+                    vtableItem = VTableItem(
+                        refType, refAttr, doc, iCreateEnums=self.iCreateEnums
+                    )
                     vtableItems[clsid] = vtableItem
         coclass.sources = list(sources.values())
         coclass.interfaces = list(interfaces.values())
@@ -978,7 +1046,7 @@ class Generator:
             infotype == pythoncom.TKIND_INTERFACE
             and attr[11] & pythoncom.TYPEFLAG_FDISPATCHABLE
         ):
-            oleItem = DispatchItem(info, attr, doc)
+            oleItem = DispatchItem(info, attr, doc, iCreateEnums=self.iCreateEnums)
             # If this DISPATCH interface dual, then build that too.
             if attr.wTypeFlags & pythoncom.TYPEFLAG_FDUAL:
                 # Get the vtable interface
@@ -993,7 +1061,7 @@ class Generator:
             pythoncom.TKIND_INTERFACE,
         ], "Must be a real interface at this point"
         if infotype == pythoncom.TKIND_INTERFACE:
-            vtableItem = VTableItem(info, attr, doc)
+            vtableItem = VTableItem(info, attr, doc, iCreateEnums=self.iCreateEnums)
         return oleItem, vtableItem
 
     def BuildOleItemsFromType(self):
@@ -1004,11 +1072,37 @@ class Generator:
         enumItems = {}
         recordItems = {}
         vtableItems = {}
+        mapEnumsToAliases = {}
+
+        # Scan the type list for aliases: aliases are generated by MIDL
+        # when an enum is defined in the C-style as
+        # typedef enum {...} MyEnum;
+        # then MIDL automatically generates a unique name for the enum (like "__MIDL___MIDL_itf_scrrun_0000_0000_0001" for "Microsoft Scripting Runtime")
+        # and an alias that maps that type a the user-friendly name ("FileAttribute" in that case)
+        # Generate a mapping from those enum-names to their aliases.
+        for type_info_tuple in self.CollectOleItemInfosFromType():
+            info, infotype, doc, attr = type_info_tuple
+            clsid = attr[0]
+            if infotype == pythoncom.TKIND_ALIAS:
+                (
+                    aliased_typerepr,
+                    aliased_resultCLSID,
+                    aliased_resultDoc,
+                    aliased_resultKind,
+                ) = build._ResolveType(attr.tdescAlias, info, self.iCreateEnums)
+                mapEnumsToAliases[aliased_resultDoc[0]] = doc[0]
 
         for type_info_tuple in self.CollectOleItemInfosFromType():
             info, infotype, doc, attr = type_info_tuple
             clsid = attr[0]
             if infotype == pythoncom.TKIND_ENUM or infotype == pythoncom.TKIND_MODULE:
+                # check if enum is aliased
+                if doc[0] in mapEnumsToAliases:
+                    # replace enum name with its alias
+                    docl = list(doc)
+                    docl[0] = mapEnumsToAliases[doc[0]]
+                    doc = tuple(docl)
+
                 newItem = EnumerationItem(info, attr, doc)
                 enumItems[newItem.doc[0]] = newItem
             # We never hide interfaces (MSAccess, for example, nominates interfaces as
@@ -1121,6 +1215,10 @@ class Generator:
                 file=self.file,
             )
         print("# On %s" % time.ctime(time.time()), file=self.file)
+        if self.bTypeHints:
+            print(file=self.file)
+            print("from __future__ import annotations", file=self.file)
+            print(file=self.file)
 
         print(build._makeDocString(docDesc), file=self.file)
 
@@ -1131,6 +1229,21 @@ class Generator:
             "import win32com.client.CLSIDToClass, pythoncom, pywintypes", file=self.file
         )
         print("import win32com.client.util", file=self.file)
+        if (self.iCreateEnums & build.ENUMS_CREATE_ENUM_CLASSES) != 0:
+            if self.bEmbedRelaxedIntEnum:
+                print(
+                    "from enum import IntEnum",
+                    file=self.file,
+                )
+            else:
+                print(
+                    "from win32com.client.RelaxedIntEnum import RelaxedIntEnum",
+                    file=self.file,
+                )
+
+        if self.bTypeHints:
+            print("import typing", file=self.file)
+
         print("from pywintypes import IID", file=self.file)
         print("from win32com.client import Dispatch", file=self.file)
         print(file=self.file)
@@ -1152,6 +1265,49 @@ class Generator:
         print("LibraryFlags = " + str(la[5]), file=self.file)
         print("LCID = " + hex(la[1]), file=self.file)
         print(file=self.file)
+        if (self.iCreateEnums & build.ENUMS_CREATE_ENUM_CLASSES) != 0:
+            if self.bEmbedRelaxedIntEnum:
+                print("class RelaxedIntEnum(IntEnum):", file=self.file)
+                print('    """Support for C/C++ style-enums"""', file=self.file)
+                print("", file=self.file)
+                print("    @classmethod", file=self.file)
+                print("    def _missing_(cls, value):", file=self.file)
+                print("        if not isinstance(value, int):", file=self.file)
+                print(
+                    '            raise ValueError("%r is not a valid %s" % (value, cls.__name__))',
+                    file=self.file,
+                )
+                print(
+                    "        new_member = cls._create_pseudo_member_(value)",
+                    file=self.file,
+                )
+                print("        return new_member", file=self.file)
+                print("", file=self.file)
+                print("    @classmethod", file=self.file)
+                print("    def _create_pseudo_member_(cls, value):", file=self.file)
+                print(
+                    "        pseudo_member = cls._value2member_map_.get(value, None)",
+                    file=self.file,
+                )
+                print("        if pseudo_member is None:", file=self.file)
+                print("            # construct singleton pseudo-member", file=self.file)
+                print(
+                    "            pseudo_member = int.__new__(cls, value)",
+                    file=self.file,
+                )
+                print("            pseudo_member._name_ = None", file=self.file)
+                print("            pseudo_member._value_ = value", file=self.file)
+                print(
+                    "            # use setdefault in case another thread already created a composite",
+                    file=self.file,
+                )
+                print("            # with this value", file=self.file)
+                print(
+                    "            pseudo_member = cls._value2member_map_.setdefault(value, pseudo_member)",
+                    file=self.file,
+                )
+                print("        return pseudo_member", file=self.file)
+                print(file=self.file)
 
     def do_generate(self):
         moduleDoc = self.typelib.GetDocumentation(-1)
@@ -1172,16 +1328,29 @@ class Generator:
 
         # Generate the constants and their support.
         if enumItems:
-            print("class constants:", file=stream)
-            items = list(enumItems.values())
-            items.sort()
-            num_written = 0
-            for oleitem in items:
-                num_written += oleitem.WriteEnumerationItems(stream)
-                self.progress.Tick()
-            if not num_written:
-                print("\tpass", file=stream)
-            print(file=stream)
+            if (self.iCreateEnums & build.ENUMS_CREATE_INT_CONSTANTS) != 0:
+                print("class constants:", file=stream)
+
+                items = list(enumItems.values())
+                items.sort()
+                num_written = 0
+                for oleitem in items:
+                    num_written += oleitem.WriteEnumerationItems(stream, False)
+                    self.progress.Tick()
+                if not num_written:
+                    print("\tpass", file=stream)
+
+                print(file=stream)
+
+            if (self.iCreateEnums & build.ENUMS_CREATE_ENUM_CLASSES) != 0:
+                items = list(enumItems.values())
+                items.sort()
+                num_written = 0
+                for oleitem in items:
+                    num_written += oleitem.WriteEnumerationItems(stream, True)
+                    self.progress.Tick()
+
+                print(file=stream)
 
         if self.generate_type == GEN_FULL:
             items = [l for l in oleItems.values() if l is not None]
@@ -1268,7 +1437,7 @@ class Generator:
         print("}", file=stream)
         print(file=stream)
 
-        if enumItems:
+        if enumItems and (self.iCreateEnums & build.ENUMS_CREATE_INT_CONSTANTS) != 0:
             print(
                 "win32com.client.constants.__dicts__.append(constants.__dict__)",
                 file=stream,
