@@ -995,7 +995,7 @@ def UnpackDEV_BROADCAST(lparam):
             fmt, buf[: struct.calcsize(fmt)]
         )
     elif devtype == win32con.DBT_DEVTYP_PORT:
-        x["name"] = win32gui.PyGetString(lparam + struct.calcsize(hdr_format))   
+        x["name"] = win32gui.PyGetString(lparam + struct.calcsize(hdr_format))
     else:
         raise NotImplementedError("unknown device type %d" % (devtype,))
     return DEV_BROADCAST_INFO(devtype, **extra)
