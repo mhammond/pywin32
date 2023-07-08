@@ -596,7 +596,6 @@ if __name__ == "__main__":
                 if not len(searchPaths):
                     raise error("-c option must provide at least one additional path")
                 import regutil
-                import win32api
 
                 currentPaths = regutil.GetRegisteredNamedPath(None).split(";")
                 oldLen = len(currentPaths)

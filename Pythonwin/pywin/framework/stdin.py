@@ -168,6 +168,4 @@ Sell you soul to the devil, baby
     finally:
         get_input_line = input
 else:
-    import sys
-
     sys.stdin = Stdin()
