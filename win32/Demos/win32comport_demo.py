@@ -49,7 +49,7 @@ def FindModem():
 # A basic synchronous COM port file-like object
 class SerialTTY:
     def __init__(self, port):
-        if type(port) == type(0):
+        if isinstance(port, int):
             port = "COM%d" % (port,)
         self.handle = CreateFile(
             port,

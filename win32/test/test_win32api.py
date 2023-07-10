@@ -154,7 +154,7 @@ class FileNames(unittest.TestCase):
         self.assertEqual(long_name, win32api.GetLongPathNameW(short_name).lower())
         long_name = win32api.GetLongPathNameW(short_name).lower()
         self.assertTrue(
-            type(long_name) == str,
+            isinstance(long_name, str),
             "GetLongPathNameW returned type '%s'" % (type(long_name),),
         )
         self.assertTrue(
@@ -179,7 +179,7 @@ class FileNames(unittest.TestCase):
         self.assertEqual(long_name, win32api.GetLongPathNameW(short_name).lower())
         long_name = win32api.GetLongPathNameW(short_name).lower()
         self.assertTrue(
-            type(long_name) == str,
+            isinstance(long_name, str),
             "GetLongPathNameW returned type '%s'" % (type(long_name),),
         )
         self.assertTrue(

@@ -250,7 +250,7 @@ class RCParser:
         """
         self.open(rcstream)
         self.getToken()
-        while self.token != None:
+        while self.token is not None:
             self.parse()
             self.getToken()
 
@@ -412,7 +412,7 @@ class RCParser:
         self.getToken()  # number
         dlg.h = int(self.token)
         self.getToken()
-        while not (self.token == None or self.token == "" or self.token == "END"):
+        while not (self.token is None or self.token == "" or self.token == "END"):
             if self.token == "STYLE":
                 self.dialogStyle(dlg)
             elif self.token == "EXSTYLE":
@@ -444,7 +444,7 @@ class RCParser:
         Not = False
         while (
             (i % 2 == 1 and ("|" == self.token or "NOT" == self.token)) or (i % 2 == 0)
-        ) and not self.token == None:
+        ) and not self.token is None:
             Not = False
             if "NOT" == self.token:
                 Not = True

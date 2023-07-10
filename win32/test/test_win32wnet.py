@@ -59,14 +59,14 @@ class TestCase(unittest.TestCase):
             val = getattr(item, attr)
             if typ is int:
                 self.assertTrue(
-                    type(val) in (int,), "Attr %r has value %r" % (attr, val)
+                    isinstance(val, int), "Attr %r has value %r" % (attr, val)
                 )
                 new_val = val + 1
             elif typ is str:
                 if val is not None:
                     # on py2k, must be string or unicode.  py3k must be string or bytes.
                     self.assertTrue(
-                        type(val) in (str, str), "Attr %r has value %r" % (attr, val)
+                        isinstance(val, str), "Attr %r has value %r" % (attr, val)
                     )
                     new_val = val + " new value"
                 else:

@@ -1014,7 +1014,7 @@ class RangeMap(dict):
         )
 
     # some special values for the RangeMap
-    undefined_value = type(str("RangeValueUndefined"), (object,), {})()
+    undefined_value = type("RangeValueUndefined", (object,), {})()
 
     class Item(int):
         pass

@@ -605,7 +605,7 @@ class DispatchBaseClass:
 
 # XXX - These should be consolidated with dynamic.py versions.
 def _get_good_single_object_(obj, obUserName=None, resultCLSID=None):
-    if _PyIDispatchType == type(obj):
+    if isinstance(obj, _PyIDispatchType):
         return Dispatch(obj, obUserName, resultCLSID)
     return obj
 

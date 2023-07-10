@@ -120,11 +120,11 @@ class dirpath:
         del self.dirs[lo:hi]
 
     def __add__(self, other):
-        if type(other) == type(self) or type(other) == type([]):
+        if isinstance(other, (dirpath, list)):
             return self.dirs + other.dirs
 
     def __radd__(self, other):
-        if type(other) == type(self) or type(other) == type([]):
+        if isinstance(other, (dirpath, list)):
             return other.dirs + self.dirs
 
 
@@ -302,7 +302,7 @@ class GrepDocument(docview.RichEditDoc):
                 lines = open(f, "r").readlines()
                 for i in range(len(lines)):
                     line = lines[i]
-                    if self.pat.search(line) != None:
+                    if self.pat.search(line) is not None:
                         self.GetFirstView().Append(f + "(" + repr(i + 1) + ") " + line)
         else:
             self.fndx = -1

@@ -93,9 +93,9 @@ class TestCase(unittest.TestCase):
     def testGUIDRichCmp(self):
         s = "{00020400-0000-0000-C000-000000000046}"
         iid = pywintypes.IID(s)
-        self.assertFalse(s == None)
+        self.assertFalse(s is None)
         self.assertFalse(None == s)
-        self.assertTrue(s != None)
+        self.assertTrue(s is not None)
         self.assertTrue(None != s)
         if sys.version_info > (3, 0):
             self.assertRaises(TypeError, operator.gt, None, s)

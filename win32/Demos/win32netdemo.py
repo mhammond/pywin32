@@ -1,6 +1,7 @@
 import getopt
 import sys
 import traceback
+from collections.abc import Callable
 
 import win32api
 import win32net
@@ -229,7 +230,7 @@ def usage(tests):
 def main():
     tests = []
     for ob in list(globals().values()):
-        if type(ob) == type(main) and ob.__doc__:
+        if isinstance(ob, Callable) and ob.__doc__:
             tests.append(ob)
     opts, args = getopt.getopt(sys.argv[1:], "s:hvc")
     create_user = False

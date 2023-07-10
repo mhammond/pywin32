@@ -333,7 +333,7 @@ class PyScript(framework.COMScript):
         codeBlock = function = None
         try:
             function = item.scriptlets[funcName]
-            if type(function) == type(self):  # ie, is a CodeBlock instance
+            if isinstance(function, PyScript):  # ie, is a CodeBlock instance
                 codeBlock = function
                 function = None
         except KeyError:

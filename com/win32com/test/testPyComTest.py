@@ -117,7 +117,7 @@ class RandomEventHandler:
             assert no + 1 == out1, "expecting 'out1' param to be ID+1"
             assert no + 2 == out2, "expecting 'out2' param to be ID+2"
         # The middle must be a boolean.
-        assert a_bool is Missing or type(a_bool) == bool, "middle param not a bool"
+        assert a_bool is Missing or isinstance(a_bool, bool), "middle param not a bool"
         return out1 + 2, out2 + 2
 
     def _DumpFireds(self):
@@ -149,7 +149,7 @@ class NewStyleRandomEventHandler(object):
             assert no + 1 == out1, "expecting 'out1' param to be ID+1"
             assert no + 2 == out2, "expecting 'out2' param to be ID+2"
         # The middle must be a boolean.
-        assert a_bool is Missing or type(a_bool) == bool, "middle param not a bool"
+        assert a_bool is Missing or isinstance(a_bool, bool), "middle param not a bool"
         return out1 + 2, out2 + 2
 
     def _DumpFireds(self):
@@ -577,7 +577,7 @@ def _TestPyVariant(o, is_generated, val, checker=None):
     assert vt == val.varianttype, (vt, val.varianttype)
     # Handle our safe-array test - if the passed value is a list of variants,
     # compare against the actual values.
-    if type(val.value) in (tuple, list):
+    if isinstance(val.value, (tuple, list)):
         check = [v.value if isinstance(v, VARIANT) else v for v in val.value]
         # pythoncom always returns arrays as tuples.
         got = list(got)

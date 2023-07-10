@@ -93,7 +93,7 @@ class EmptyVolumeCache:
         for file in files:
             fqn = os.path.join(directory, file).lower()
             if file.endswith(".pyc") or file.endswith(".pyo"):
-                # See below - total_list == None means delete files,
+                # See below - total_list is None means delete files,
                 # otherwise it is a list where the result is stored. Its a
                 # list simply due to the way os.walk works - only [0] is
                 # referenced

@@ -328,7 +328,7 @@ def FindRegisterApp(appName, knownFiles, searchPaths):
 
     import regutil
 
-    if type(knownFiles) == type(""):
+    if isinstance(knownFiles, str):
         knownFiles = [knownFiles]
     paths = []
     try:

@@ -75,7 +75,7 @@ class DictionaryPolicy(policy.BasicWrapPolicy):
                 )
 
             key = args[0]
-            if type(key) not in [str, str]:
+            if not isinstance(key, str):
                 ### the nArgErr thing should be 0-based, not reversed... sigh
                 raise COMException(
                     desc="Key must be a string", scode=winerror.DISP_E_TYPEMISMATCH

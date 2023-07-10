@@ -14,14 +14,16 @@ stopEvent = threading.Event()
 def TestExcel():
     class ExcelEvents:
         def OnNewWorkbook(self, wb):
-            if type(wb) != types.InstanceType:
+            if not isinstance(wb, types.InstanceType):
                 raise RuntimeError(
                     "The transformer doesnt appear to have translated this for us!"
                 )
             self.seen_events["OnNewWorkbook"] = None
 
         def OnWindowActivate(self, wb, wn):
-            if type(wb) != types.InstanceType or type(wn) != types.InstanceType:
+            if not isinstance(wb, types.InstanceType) or not isinstance(
+                wn, types.InstanceType
+            ):
                 raise RuntimeError(
                     "The transformer doesnt appear to have translated this for us!"
                 )

@@ -128,7 +128,7 @@ def suite():
     suite = unittest.TestSuite()
     for item in list(globals().values()):
         if (
-            type(item) == type(unittest.TestCase)
+            isinstance(item, type)
             and issubclass(item, unittest.TestCase)
             and item != _BaseTestCase
         ):

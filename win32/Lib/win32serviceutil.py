@@ -375,7 +375,7 @@ def SetServiceCustomOption(serviceName, option, value):
         "System\\CurrentControlSet\\Services\\%s\\Parameters" % serviceName,
     )
     try:
-        if type(value) == type(0):
+        if isinstance(value, int):
             win32api.RegSetValueEx(key, option, 0, win32con.REG_DWORD, value)
         else:
             win32api.RegSetValueEx(key, option, 0, win32con.REG_SZ, value)
@@ -441,7 +441,7 @@ def ControlService(serviceName, code, machine=None):
 
 
 def __FindSvcDeps(findName):
-    if type(findName) is pywintypes.UnicodeType:
+    if isinstance(findName, pywintypes.UnicodeType):
         findName = str(findName)
     dict = {}
     k = win32api.RegOpenKey(

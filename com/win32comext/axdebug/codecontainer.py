@@ -261,7 +261,7 @@ if __name__ == "__main__":
     attrs = sc.GetSyntaxColorAttributes()
     attrlen = 0
     for attr in attrs:
-        if type(attr) == type(()):
+        if isinstance(attr, tuple):
             attrlen = attrlen + attr[1]
         else:
             attrlen = attrlen + 1

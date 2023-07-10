@@ -59,7 +59,7 @@ class HLICOM(browser.HLIPythonObject):
 
 class HLICLSID(HLICOM):
     def __init__(self, myobject, name=None):
-        if type(myobject) == type(""):
+        if isinstance(myobject, str):
             myobject = pythoncom.MakeIID(myobject)
         if name is None:
             try:
@@ -457,7 +457,7 @@ class HLITypeLibFunction(HLICOM):
         return typname
 
     def MakeReturnType(self, returnTypeDesc):
-        if type(returnTypeDesc) == type(()):
+        if isinstance(returnTypeDesc, tuple):
             first = returnTypeDesc[0]
             result = self.MakeReturnType(first)
             if first != pythoncom.VT_USERDEFINED:

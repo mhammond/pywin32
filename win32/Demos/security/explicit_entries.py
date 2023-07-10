@@ -56,10 +56,10 @@ all_security_info = (
 sd = win32security.GetFileSecurity(fname, all_security_info)
 
 old_sacl = sd.GetSecurityDescriptorSacl()
-if old_sacl == None:
+if old_sacl is None:
     old_sacl = win32security.ACL()
 old_dacl = sd.GetSecurityDescriptorDacl()
-if old_dacl == None:
+if old_dacl is None:
     old_dacl = win32security.ACL()
 
 my_sid = win32security.GetTokenInformation(th, ntsecuritycon.TokenUser)[0]

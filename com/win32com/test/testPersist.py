@@ -118,7 +118,7 @@ class OleClientSite:
 
     def SaveObject(self):
         print("SaveObject")
-        if self.IPersistStorage != None and self.IStorage != None:
+        if self.IPersistStorage is not None and self.IStorage is not None:
             self.IPersistStorage.Save(self.IStorage, 1)
             self.IStorage.Commit(0)
         return S_OK

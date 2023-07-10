@@ -39,9 +39,9 @@ class SecurityTests(unittest.TestCase):
             self.assertTrue(self.pwr_sid != self.admin_sid)
 
     def testNEOther(self):
-        self.assertTrue(self.pwr_sid != None)
+        self.assertTrue(self.pwr_sid is not None)
         self.assertTrue(None != self.pwr_sid)
-        self.assertFalse(self.pwr_sid == None)
+        self.assertFalse(self.pwr_sid is None)
         self.assertFalse(None == self.pwr_sid)
         self.assertNotEqual(None, self.pwr_sid)
 

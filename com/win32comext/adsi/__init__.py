@@ -1,7 +1,7 @@
 import win32com
 import win32com.client
 
-if type(__path__) == type(""):
+if isinstance(__path__, str):
     # For freeze to work!
     import sys
 
@@ -62,7 +62,7 @@ class ADSIEnumerator:
         return self.__GetIndex(index)
 
     def __GetIndex(self, index):
-        if type(index) != type(0):
+        if not isinstance(index, int):
             raise TypeError("Only integer indexes are supported for enumerators")
         if index != self.index + 1:
             # Index requested out of sequence.

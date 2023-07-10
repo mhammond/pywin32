@@ -199,7 +199,7 @@ class ConfigManager:
             if ns:
                 num = 0
                 for name, func in list(ns.items()):
-                    if type(func) == types.FunctionType and name[:1] != "_":
+                    if isinstance(func, types.FunctionType) and name[:1] != "_":
                         bindings.bind(name, func)
                         num = num + 1
                 trace("Configuration Extension code loaded", num, "events")
