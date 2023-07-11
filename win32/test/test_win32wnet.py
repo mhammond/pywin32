@@ -57,18 +57,20 @@ class TestCase(unittest.TestCase):
     def _checkItemAttributes(self, item, attrs):
         for attr, typ in attrs:
             val = getattr(item, attr)
-            if typ is None:
-                new_val = "new value"
-            elif typ is int:
+            if typ is int:
                 self.assertTrue(
                     isinstance(val, int), "Attr %r has value %r" % (attr, val)
                 )
                 new_val = val + 1
             elif typ is str:
-                self.assertTrue(
-                    isinstance(val, str), "Attr %r has value %r" % (attr, val)
-                )
-                new_val = val + " new value"
+                if val is not None:
+                    # must be string
+                    self.assertTrue(
+                        isinstance(val, str), "Attr %r has value %r" % (attr, val)
+                    )
+                    new_val = val + " new value"
+                else:
+                    new_val = "new value"
             else:
                 self.fail("Don't know what %s is" % (typ,))
             # set the attribute just to make sure we can.
