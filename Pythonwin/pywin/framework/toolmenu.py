@@ -116,7 +116,7 @@ def HandleToolCommand(cmd, code):
     global tools
     (menuString, pyCmd, desc) = tools[cmd]
     win32ui.SetStatusText("Executing tool %s" % desc, 1)
-    pyCmd = re.sub("\\\\n", "\n", pyCmd)
+    pyCmd = re.sub(r"\\n", "\n", pyCmd)
     win32ui.DoWaitCursor(1)
     oldFlag = None
     try:
