@@ -41,7 +41,7 @@ LargeD = [
 
 
 def _normalize_array(a):
-    if type(a) != type(()):
+    if not isinstance(a, tuple):
         return a
     ret = []
     for i in a:

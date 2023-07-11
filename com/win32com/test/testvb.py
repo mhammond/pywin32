@@ -176,7 +176,7 @@ def _DoTestCollection(vbtest, col_name, expected):
     # It sucks that some objects allow "Count()", but others "Count"
     def _getcount(ob):
         r = getattr(ob, "Count")
-        if type(r) != type(0):
+        if isinstance(r, Callable):
             return r()
         return r
 
@@ -422,7 +422,7 @@ def TestStructs(vbtest):
 
     # Now do some object equality tests.
     assert s == s
-    assert s != None
+    assert s is not None
     try:
         s < None
         raise error("Expected type error")
@@ -522,9 +522,9 @@ def TestObjectSemantics(ob):
     assert ob._oleobj_ == ob._oleobj_.QueryInterface(pythoncom.IID_IUnknown)
     assert not ob._oleobj_ != ob._oleobj_.QueryInterface(pythoncom.IID_IUnknown)
 
-    assert ob._oleobj_ != None
+    assert ob._oleobj_ is not None
     assert None != ob._oleobj_
-    assert ob != None
+    assert ob is not None
     assert None != ob
     try:
         ob < None

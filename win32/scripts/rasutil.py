@@ -49,7 +49,7 @@ def Connect(rasEntryName, numRetries=5):
 
 
 def Disconnect(handle):
-    if type(handle) == type(""):  # have they passed a connection name?
+    if isinstance(handle, str):  # have they passed a connection name?
         for info in win32ras.EnumConnections():
             if info[1].lower() == handle.lower():
                 handle = info[0]

@@ -123,7 +123,7 @@ def post_mortem(t=None):
     # No idea why I need to settrace to None - it should have been reset by now?
     sys.settrace(None)
     p.reset()
-    while t.tb_next != None:
+    while t.tb_next is not None:
         t = t.tb_next
     p.bAtPostMortem = 1
     p.prep_run(None)

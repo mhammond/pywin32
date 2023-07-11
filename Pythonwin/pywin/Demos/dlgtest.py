@@ -51,7 +51,7 @@ class TestDialog(dialog.Dialog):
     # Simply increment the value in the text box.
     def KillFocus(self, msg):
         self.counter = self.counter + 1
-        if self.edit != None:
+        if self.edit is not None:
             self.edit.SetWindowText(str(self.counter))
 
     # Called when the dialog box is terminating...

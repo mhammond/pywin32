@@ -219,7 +219,7 @@ def SpnRegister(
     spns,  # List of SPNs to register
     operation,  # Add, replace, or delete SPNs
 ):
-    assert type(spns) not in [str, str] and hasattr(spns, "__iter__"), (
+    assert not isinstance(spns, str) and hasattr(spns, "__iter__"), (
         "spns must be a sequence of strings (got %r)" % spns
     )
     # Bind to a domain controller.

@@ -8,7 +8,7 @@ from win32com.server import exception, util
 class AXEngine:
     def __init__(self, site, engine):
         self.eScript = self.eParse = self.eSafety = None
-        if type(engine) == type(""):
+        if isinstance(engine, str):
             engine = pythoncom.CoCreateInstance(
                 engine, None, pythoncom.CLSCTX_SERVER, pythoncom.IID_IUnknown
             )
@@ -87,7 +87,7 @@ class AXSite:
         """Adds a new engine to the site.
         engine can be a string, or a fully wrapped engine object.
         """
-        if type(engine) == type(""):
+        if isinstance(engine, str):
             newEngine = AXEngine(util.wrap(self), engine)
         else:
             newEngine = engine

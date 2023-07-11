@@ -346,7 +346,7 @@ def GenerateChildFromTypeLibSpec(
         verboseLevel = (
             0  # By default, we use no gui, and no verbose level for the children.
         )
-    if type(typelibInfo) == type(()):
+    if isinstance(typelibInfo, tuple):
         typelibCLSID, lcid, major, minor = typelibInfo
         tlb = pythoncom.LoadRegTypeLib(typelibCLSID, major, minor, lcid)
     else:

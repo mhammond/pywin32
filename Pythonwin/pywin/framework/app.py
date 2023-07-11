@@ -411,7 +411,7 @@ def Win32Input(prompt=None):
     if prompt is None:
         prompt = ""
     ret = dialog.GetSimpleInput(prompt)
-    if ret == None:
+    if ret is None:
         raise KeyboardInterrupt("operation cancelled")
     return ret
 

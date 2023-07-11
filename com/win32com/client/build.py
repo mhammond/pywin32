@@ -86,7 +86,7 @@ class MapEntry:
         resultDoc=None,
         hidden=0,
     ):
-        if type(desc_or_id) == type(0):
+        if isinstance(desc_or_id, int):
             self.dispid = desc_or_id
             self.desc = None
         else:
@@ -543,7 +543,7 @@ typeSubstMap = {
 def _ResolveType(typerepr, itypeinfo):
     # Resolve VT_USERDEFINED (often aliases or typed IDispatches)
 
-    if type(typerepr) == tuple:
+    if isinstance(typerepr, tuple):
         indir_vt, subrepr = typerepr
         if indir_vt == pythoncom.VT_PTR:
             # If it is a VT_PTR to a VT_USERDEFINED that is an IDispatch/IUnknown,
@@ -553,7 +553,9 @@ def _ResolveType(typerepr, itypeinfo):
             # eg, (VT_PTR, (VT_USERDEFINED, somehandle)) needs to become VT_DISPATCH
             # only when "somehandle" is an object.
             # but (VT_PTR, (VT_USERDEFINED, otherhandle)) doesnt get the indirection dropped.
-            was_user = type(subrepr) == tuple and subrepr[0] == pythoncom.VT_USERDEFINED
+            was_user = (
+                isinstance(subrepr, tuple) and subrepr[0] == pythoncom.VT_USERDEFINED
+            )
             subrepr, sub_clsid, sub_doc = _ResolveType(subrepr, itypeinfo)
             if was_user and subrepr in [
                 pythoncom.VT_DISPATCH,
@@ -698,7 +700,7 @@ def MakeDefaultArgRepr(defArgVal):
             # VARIANT <-> SYSTEMTIME conversions always lose any sub-second
             # resolution, so just use a 'timetuple' here.
             return repr(tuple(val.utctimetuple()))
-        if type(val) is TimeType:
+        if isinstance(val, TimeType):
             # must be the 'old' pywintypes time object...
             year = val.year
             month = val.month

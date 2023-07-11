@@ -21,7 +21,7 @@ PyIDispatchType = pythoncom.TypeIIDs[pythoncom.IID_IDispatch]
 
 
 def _is_callable(obj):
-    return type(obj) in [types.FunctionType, types.MethodType]
+    return isinstance(obj, (types.FunctionType, types.MethodType))
     # ignore hasattr(obj, "__call__") as this means all COM objects!
 
 
@@ -44,7 +44,7 @@ class ScriptDispatch:
                     raise AttributeError(name)  # Not a function.
                 realArgs = []
                 for arg in args:
-                    if type(arg) == PyIDispatchType:
+                    if isinstance(arg, PyIDispatchType):
                         realArgs.append(Dispatch(arg))
                     else:
                         realArgs.append(arg)

@@ -63,7 +63,7 @@ def CleanGenerated():
 def RemoveRefCountOutput(data):
     while 1:
         last_line_pos = data.rfind("\n")
-        if not re.match("\[\d+ refs\]", data[last_line_pos + 1 :]):
+        if not re.match(r"\[\d+ refs\]", data[last_line_pos + 1 :]):
             break
         if last_line_pos < 0:
             # All the output

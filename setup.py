@@ -2146,7 +2146,7 @@ def convert_data_files(files):
             flist.findall(os.path.dirname(file))
             flist.include_pattern(os.path.basename(file), anchor=0)
             # We never want CVS
-            flist.exclude_pattern(re.compile(".*\\\\CVS\\\\"), is_regex=1, anchor=0)
+            flist.exclude_pattern(re.compile(r".*\\CVS\\"), is_regex=1, anchor=0)
             flist.exclude_pattern("*.pyc", anchor=0)
             flist.exclude_pattern("*.pyo", anchor=0)
             if not flist.files:

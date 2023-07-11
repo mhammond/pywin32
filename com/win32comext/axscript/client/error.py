@@ -24,11 +24,11 @@ def FormatForAX(text):
 
 
 def ExpandTabs(text):
-    return re.sub("\t", "    ", text)
+    return re.sub(r"\t", "    ", text)
 
 
 def AddCR(text):
-    return re.sub("\n", "\r\n", text)
+    return re.sub(r"\n", "\r\n", text)
 
 
 class IActiveScriptError:

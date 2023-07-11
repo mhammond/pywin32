@@ -184,7 +184,7 @@ class test_adodbapi(dbapi20.DatabaseAPI20Test):
             names = cur.fetchall()
             assert len(names) == len(self.samples)
             s = cur.nextset()
-            assert s == None, "No more return sets, should return None"
+            assert s is None, "No more return sets, should return None"
         finally:
             try:
                 self.help_nextset_tearDown(cur)

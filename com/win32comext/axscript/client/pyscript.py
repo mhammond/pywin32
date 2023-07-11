@@ -37,11 +37,11 @@ def debug_attr_print(*args):
 
 
 def ExpandTabs(text):
-    return re.sub("\t", "    ", text)
+    return re.sub(r"\t", "    ", text)
 
 
 def AddCR(text):
-    return re.sub("\n", "\r\n", text)
+    return re.sub(r"\n", "\r\n", text)
 
 
 class AXScriptCodeBlock(framework.AXScriptCodeBlock):
@@ -333,7 +333,7 @@ class PyScript(framework.COMScript):
         codeBlock = function = None
         try:
             function = item.scriptlets[funcName]
-            if type(function) == type(self):  # ie, is a CodeBlock instance
+            if isinstance(function, PyScript):  # ie, is a CodeBlock instance
                 codeBlock = function
                 function = None
         except KeyError:
