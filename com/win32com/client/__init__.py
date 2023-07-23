@@ -692,7 +692,7 @@ class CoClassBaseClass:
 # is very pickly about the actual variant type (eg, isn't happy with a VT_I4,
 # which it would get from a Python integer), you can use this to force a
 # particular VT.
-class VARIANT(object):
+class VARIANT:
     def __init__(self, vt, value):
         self.varianttype = vt
         self._value = value

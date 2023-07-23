@@ -248,7 +248,7 @@ log = logging.getLogger(__file__)
 
 # A couple of objects for working with objects as if they were native C-type
 # structures.
-class _SimpleStruct(object):
+class _SimpleStruct:
     _fields_ = None  # must be overridden by subclasses
 
     def __init__(self, *args, **kw):
@@ -874,7 +874,7 @@ def GetTZCapabilities():
     return locals()
 
 
-class DLLHandleCache(object):
+class DLLHandleCache:
     def __init__(self):
         self.__cache = {}
 

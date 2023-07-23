@@ -1654,7 +1654,7 @@ if config.doPostgresTest:
     suites.append(unittest.makeSuite(TestADOwithPostgres, "test"))
 
 
-class cleanup_manager(object):
+class cleanup_manager:
     def __enter__(self):
         pass
 

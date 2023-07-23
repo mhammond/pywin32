@@ -188,7 +188,7 @@ def fix_uri(uri, kwargs):
 
 
 # # # # # ----- the Class that defines a connection ----- # # # # #
-class Connection(object):
+class Connection:
     # include connection attributes required by api definition.
     Warning = api.Warning
     Error = api.Error
@@ -387,7 +387,7 @@ def fixpickle(x):
     return newargs
 
 
-class Cursor(object):
+class Cursor:
     def __init__(self, connection):
         self.command = None
         self.errorhandler = None  ## was: connection.errorhandler

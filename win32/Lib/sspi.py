@@ -19,7 +19,7 @@ import win32security
 error = win32security.error
 
 
-class _BaseAuth(object):
+class _BaseAuth:
     def __init__(self):
         self.reset()
 
