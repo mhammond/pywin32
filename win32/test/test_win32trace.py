@@ -120,8 +120,6 @@ class TestModuleOps(BasicSetupTearDown):
     def testRoundTripUnicode(self):
         win32trace.write("\xa9opyright Syver Enstad")
         syverEnstad = win32trace.read()
-        # str objects are always returned in py2k (latin-1 encoding was used
-        # on unicode objects)
         self.assertEqual("\xa9opyright Syver Enstad", syverEnstad)
 
     def testBlockingRead(self):
@@ -130,8 +128,6 @@ class TestModuleOps(BasicSetupTearDown):
 
     def testBlockingReadUnicode(self):
         win32trace.write("\xa9opyright Syver Enstad")
-        # str objects are always returned in py2k (latin-1 encoding was used
-        # on unicode objects)
         self.assertEqual("\xa9opyright Syver Enstad", win32trace.blockingread())
 
     def testFlush(self):

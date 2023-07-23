@@ -138,7 +138,7 @@ class InteractiveFormatter(FormatterParent):
             return
         state = styleStart
         # As per comments in Colorize(), we work with the raw utf8
-        # bytes. To avoid too muych py3k pain, we treat each utf8 byte
+        # bytes. To avoid too much pain, we treat each utf8 byte
         # as a latin-1 unicode character - we only use it to compare
         # against ascii chars anyway...
         chNext = cdoc[0:1].decode("latin-1")
