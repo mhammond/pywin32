@@ -89,7 +89,7 @@ def IsOnPythonPath(path):
     # must check that the command line arg's path is in sys.path
     for syspath in sys.path:
         try:
-            # Python 1.5 and later allows an empty sys.path entry.
+            # sys.path can have an empty entry.
             if syspath and win32ui.FullPath(syspath) == path:
                 return 1
         except win32ui.error as details:

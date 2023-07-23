@@ -155,7 +155,7 @@ class Parser:
     # no way to tell the differences between output, >>> etc and
     # user input.  Indeed, IDLE's first output line makes the rest
     # look like it's in an unclosed paren!:
-    # Python 1.5.2 (#0, Apr 13 1999, ...
+    # Python X.X.X (#0, Apr 13 1999, ...
 
     def find_good_parse_start(self, use_ps1, is_char_in_string=None):
         str, pos = self.str, None

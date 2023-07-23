@@ -6,7 +6,8 @@ Pythonwin.  In ALL cases, the files in this directory that also appear
 in the main IDLE directory should be indentical to the latest available
 for IDLE.  
 
-Eg, If you have Python 1.5.2 installed, the files in this
+<!-- TODO: Is this still accurate? -->
+Eg, If you have Python 3.7 installed, the files in this
 directory will be later than the IDLE versions.  If you use IDLE from
 the CVS sources, then the files should be identical.
 
