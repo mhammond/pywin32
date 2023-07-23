@@ -34,22 +34,22 @@ GEN_DEMAND_CHILD = "demand(child)"
 # does not use this map at runtime - all Alias/Enum have already
 # been translated.
 mapVTToTypeString = {
-    pythoncom.VT_I2: "types.IntType",
-    pythoncom.VT_I4: "types.IntType",
-    pythoncom.VT_R4: "types.FloatType",
-    pythoncom.VT_R8: "types.FloatType",
-    pythoncom.VT_BSTR: "types.StringType",
-    pythoncom.VT_BOOL: "types.IntType",
-    pythoncom.VT_VARIANT: "types.TypeType",
-    pythoncom.VT_I1: "types.IntType",
-    pythoncom.VT_UI1: "types.IntType",
-    pythoncom.VT_UI2: "types.IntType",
-    pythoncom.VT_UI4: "types.IntType",
-    pythoncom.VT_I8: "types.LongType",
-    pythoncom.VT_UI8: "types.LongType",
-    pythoncom.VT_INT: "types.IntType",
-    pythoncom.VT_DATE: "pythoncom.PyTimeType",
-    pythoncom.VT_UINT: "types.IntType",
+    pythoncom.VT_I2: "int",
+    pythoncom.VT_I4: "int",
+    pythoncom.VT_R4: "float",
+    pythoncom.VT_R8: "float",
+    pythoncom.VT_BSTR: "str",
+    pythoncom.VT_BOOL: "int",
+    pythoncom.VT_VARIANT: "type",
+    pythoncom.VT_I1: "int",
+    pythoncom.VT_UI1: "int",
+    pythoncom.VT_UI2: "int",
+    pythoncom.VT_UI4: "int",
+    pythoncom.VT_I8: "int",
+    pythoncom.VT_UI8: "int",
+    pythoncom.VT_INT: "int",
+    pythoncom.VT_DATE: "datetime.date",
+    pythoncom.VT_UINT: "int",
 }
 
 

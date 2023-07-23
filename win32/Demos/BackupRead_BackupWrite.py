@@ -8,7 +8,6 @@ import win32api
 import win32con
 import win32file
 import win32security
-from pywin32_testutil import ob2memory
 from win32com import storagecon
 
 all_sd_info = (
@@ -115,7 +114,7 @@ assert (
     open(tempfile + ":anotherstream").read() == open(outfile + ":anotherstream").read()
 ), "anotherstream contents differ !"
 assert (
-    ob2memory(win32security.GetFileSecurity(tempfile, all_sd_info))[:]
-    == ob2memory(win32security.GetFileSecurity(outfile, all_sd_info))[:]
+    memoryview(win32security.GetFileSecurity(tempfile, all_sd_info))[:]
+    == memoryview(win32security.GetFileSecurity(outfile, all_sd_info))[:]
 ), "Security descriptors are different !"
 ## also should check Summary Info programatically
