@@ -6,6 +6,7 @@ Copyright (C) 2002 Henrik Ekelund, version 2.1 by Vernon Cole
 import time
 
 from .adodbapi import (
+    # Re-exports to keep backward compatibility with existing code
     Connection as Connection,
     Cursor as Cursor,
     __version__,
