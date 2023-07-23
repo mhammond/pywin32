@@ -91,12 +91,6 @@ else:  # try pywin32
 
 from collections.abc import Mapping
 
-# --- define objects to smooth out Python3000 <-> Python 2.x differences
-unicodeType = str
-longType = int
-StringTypes = str
-maxint = sys.maxsize
-
 
 # -----------------  The .connect method -----------------
 def make_COM_connecter():
@@ -198,7 +192,7 @@ def _configure_parameter(p, value, adotype, settings_known):
         p.Size = len(value)
         p.AppendChunk(value)
 
-    elif isinstance(value, StringTypes):  # v2.1 Jevon
+    elif isinstance(value, str):  # v2.1 Jevon
         L = len(value)
         if adotype in api.adoStringTypes:  # v2.2.1 Cole
             if settings_known:
@@ -238,7 +232,7 @@ def _configure_parameter(p, value, adotype, settings_known):
             p.Value = s
             p.Size = len(s)
 
-    elif api.onIronPython and isinstance(value, longType):  # Iron Python Long
+    elif api.onIronPython and isinstance(value, int):  # Iron Python Long
         s = str(value)  # feature workaround for IPy 2.0
         p.Value = s
 

@@ -26,19 +26,6 @@ else:
     DateTime = type(NotImplemented)  # should never be seen on win32
     NullTypes = type(None)
 
-# --- define objects to smooth out Python3 <-> Python 2.x differences
-unicodeType = str
-longType = int
-StringTypes = str
-makeByteBuffer = bytes
-memoryViewType = memoryview
-_BaseException = Exception
-
-try:  # jdhardy -- handle bytes under IronPython & Py3
-    bytes
-except NameError:
-    bytes = str  # define it for old Pythons
-
 
 # ------- Error handlers ------
 def standardErrorHandler(connection, cursor, errorclass, errorvalue):
@@ -55,8 +42,7 @@ def standardErrorHandler(connection, cursor, errorclass, errorvalue):
     raise errorclass(errorvalue)
 
 
-# Note: _BaseException is defined differently between Python 2.x and 3.x
-class Error(_BaseException):
+class Error(Exception):
     pass  # Exception that is the base class of all other error
     # exceptions. You can use this to catch all errors with one
     # single 'except' statement. Warnings are not considered
@@ -65,7 +51,7 @@ class Error(_BaseException):
     # module exceptions).
 
 
-class Warning(_BaseException):
+class Warning(Exception):
     pass
 
 
@@ -163,7 +149,7 @@ class FetchFailedError(OperationalError):
 #
 # def Binary(aString):
 #     """This function constructs an object capable of holding a binary (long) string value. """
-#     b = makeByteBuffer(aString)
+#     b = bytes(aString)
 #     return b
 # -----     Time converters ----------------------------------------------
 class TimeConverter(object):  # this is a generic time converter skeleton
@@ -427,7 +413,7 @@ OTHER = DBAPITypeObject(adoRemainingTypes)
 
 # ------- utilities for translating python data types to ADO data types ---------------------------------
 typeMap = {
-    memoryViewType: adc.adVarBinary,
+    memoryview: adc.adVarBinary,
     float: adc.adDouble,
     type(None): adc.adEmpty,
     str: adc.adBSTR,
@@ -449,7 +435,7 @@ def pyTypeToADOType(d):
         if tp in dateconverter.types:
             return adc.adDate
         #  otherwise, attempt to discern the type by probing the data object itself -- to handle duck typing
-        if isinstance(d, StringTypes):
+        if isinstance(d, str):
             return adc.adBSTR
         if isinstance(d, numbers.Integral):
             return adc.adBigInt

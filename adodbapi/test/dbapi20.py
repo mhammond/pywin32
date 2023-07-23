@@ -18,17 +18,9 @@ import sys
 import time
 import unittest
 
-if sys.version[0] >= "3":  # python 3.x
-    _BaseException = Exception
 
-    def _failUnless(self, expr, msg=None):
-        self.assertTrue(expr, msg)
-
-else:  # python 2.x
-    from exceptions import Exception as _BaseException
-
-    def _failUnless(self, expr, msg=None):
-        self.failUnless(expr, msg)  ## deprecated since Python 2.6
+def _failUnless(self, expr, msg=None):
+    self.assertTrue(expr, msg)
 
 
 # set this to "True" to follow API 2.0 to the letter
@@ -166,7 +158,7 @@ class DatabaseAPI20Test(unittest.TestCase):
                         pass
             finally:
                 con.close()
-        except _BaseException:
+        except Exception:
             pass
 
     def _connect(self):
