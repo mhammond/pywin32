@@ -38,7 +38,7 @@ mapVTToTypeString = {
     pythoncom.VT_I4: "int",
     pythoncom.VT_R4: "float",
     pythoncom.VT_R8: "float",
-    pythoncom.VT_BSTR: "string",
+    pythoncom.VT_BSTR: "str",
     pythoncom.VT_BOOL: "int",
     pythoncom.VT_VARIANT: "type",
     pythoncom.VT_I1: "int",
