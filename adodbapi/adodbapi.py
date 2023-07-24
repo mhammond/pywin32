@@ -31,6 +31,10 @@ import os
 import sys
 import weakref
 
+import pythoncom
+import pywintypes
+from win32com.client import Dispatch
+
 from . import ado_consts as adc, apibase as api, process_connect_string
 
 try:
@@ -56,10 +60,6 @@ if verbose:
     print(version)
 
 
-def Dispatch(dispatch):
-    return win32com.client.Dispatch(dispatch)
-
-
 def getIndexedValue(obj, index):
     return obj(index)
 
@@ -70,8 +70,7 @@ from collections.abc import Mapping
 # -----------------  The .connect method -----------------
 def make_COM_connecter():
     try:
-        if onWin32:
-            pythoncom.CoInitialize()  # v2.1 Paj
+        pythoncom.CoInitialize()  # v2.1 Paj
         c = Dispatch("ADODB.Connection")  # connect _after_ CoIninialize v2.1.1 adamvan
     except:
         raise api.InterfaceError(
