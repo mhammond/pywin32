@@ -241,16 +241,10 @@ class HLIFunction(HLIPythonObject):
         return 1
 
     def GetSubList(self):
-        ret = []
-        # 		ret.append( MakeHLI( self.myobject.func_argcount, "Arg Count" ))
-        try:
-            ret.append(MakeHLI(self.myobject.func_argdefs, "Arg Defs"))
-        except AttributeError:
-            pass
-        code = self.myobject.__code__
-        globs = self.myobject.__globals__
-        ret.append(MakeHLI(code, "Code"))
-        ret.append(MakeHLI(globs, "Globals"))
+        ret = [
+            MakeHLI(self.myobject.__code__, "Code"),
+            MakeHLI(self.myobject.__globals__, "Globals"),
+        ]
         self.InsertDocString(ret)
         return ret
 
