@@ -60,26 +60,13 @@ if is64bit:
 else:
     _nmhdr_align_padding = ""
 
+
 # Encode a string suitable for passing in a win32gui related structure
-# If win32gui is built with UNICODE defined (ie, py3k), then functions
-# like InsertMenuItem are actually calling InsertMenuItemW etc, so all
-# strings will need to be unicode.
-if win32gui.UNICODE:
-
-    def _make_text_buffer(text):
-        # XXX - at this stage win32gui.UNICODE is only True in py3k,
-        # and in py3k is makes sense to reject bytes.
-        if not isinstance(text, str):
-            raise TypeError("MENUITEMINFO text must be unicode")
-        data = (text + "\0").encode("utf-16le")
-        return array.array("b", data)
-
-else:
-
-    def _make_text_buffer(text):
-        if isinstance(text, str):
-            text = text.encode("mbcs")
-        return array.array("b", text + "\0")
+def _make_text_buffer(text):
+    if not isinstance(text, str):
+        raise TypeError("MENUITEMINFO text must be unicode")
+    data = (text + "\0").encode("utf-16le")
+    return array.array("b", data)
 
 
 # make an 'empty' buffer, ready for filling with cch characters.
@@ -929,15 +916,9 @@ def PackDEV_BROADCAST_VOLUME(unitmask, flags):
 
 
 def PackDEV_BROADCAST_DEVICEINTERFACE(classguid, name=""):
-    if win32gui.UNICODE:
-        # This really means "is py3k?" - so not accepting bytes is OK
-        if not isinstance(name, str):
-            raise TypeError("Must provide unicode for the name")
-        name = name.encode("utf-16le")
-    else:
-        # py2k was passed a unicode object - encode as mbcs.
-        if isinstance(name, str):
-            name = name.encode("mbcs")
+    if not isinstance(name, str):
+        raise TypeError("Must provide unicode for the name")
+    name = name.encode("utf-16le")
 
     # 16 bytes for the IID followed by \0 term'd string.
     rest_fmt = "16s%ds" % len(name)

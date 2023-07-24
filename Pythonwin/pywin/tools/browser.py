@@ -309,7 +309,7 @@ class HLIDict(HLIPythonObject):
         return ret
 
 
-# In Python 1.6, strings and Unicode have builtin methods, but we dont really want to see these
+# strings and Unicode have builtin methods, but we dont really want to see these
 class HLIString(HLIPythonObject):
     def IsExpandable(self):
         return 0

@@ -64,7 +64,7 @@ class TestCase(unittest.TestCase):
                 new_val = val + 1
             elif typ is str:
                 if val is not None:
-                    # on py2k, must be string or unicode.  py3k must be string or bytes.
+                    # must be string
                     self.assertTrue(
                         isinstance(val, str), "Attr %r has value %r" % (attr, val)
                     )

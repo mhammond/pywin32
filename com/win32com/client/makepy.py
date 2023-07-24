@@ -34,10 +34,7 @@ Usage:
 
   -h    -- Do not generate hidden methods.
 
-  -u    -- Python 1.5 and earlier: Do NOT convert all Unicode objects to
-           strings.
-
-           Python 1.6 and later: Convert all Unicode objects to strings.
+  -u    -- Convert all Unicode objects to strings.
 
   -o    -- Create output in a specified output file.  If the path leading
            to the file does not exist, any missing directories will be
