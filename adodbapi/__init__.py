@@ -7,6 +7,7 @@ import time
 
 # Re-exports to keep backward compatibility with existing code
 from .adodbapi import (
+    # Re-exports to keep backward compatibility with existing code
     Connection as Connection,
     Cursor as Cursor,
     __version__,
