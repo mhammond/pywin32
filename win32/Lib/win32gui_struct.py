@@ -37,8 +37,6 @@ import pywintypes
 import win32con
 import win32gui
 
-is64bit = "64 bit" in sys.version
-
 
 def _MakeResult(names_str, values):
     names = names_str.split()
@@ -46,6 +44,7 @@ def _MakeResult(names_str, values):
     return nt(*values)
 
 
+is64bit = "64 bit" in sys.version
 _nmhdr_fmt = "PPi"
 if is64bit:
     # When the item past the NMHDR gets aligned (eg, when it is a struct)

@@ -2,10 +2,7 @@ import tokenize
 
 from pywin import default_scintilla_encoding
 
-# tokenize() is the generator working with 'byte' objects, and
-# token_generator is the 'undocumented b/w compat' function that
-# theoretically works with str objects - but actually seems to fail)
-token_generator = tokenize.tokenize
+from . import PyParse
 
 
 class AutoIndent:
@@ -523,7 +520,7 @@ class IndentSearcher:
         tokenize.tabsize = self.tabwidth
         try:
             try:
-                for typ, token, start, end, line in token_generator(self.readline):
+                for typ, token, start, end, line in tokenize.tokenize(self.readline):
                     if typ == NAME and token in OPENERS:
                         self.blkopenline = line
                     elif typ == INDENT and self.blkopenline:

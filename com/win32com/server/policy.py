@@ -680,9 +680,7 @@ class EventHandlerPolicy(DesignatedWrapPolicy):
     """The default policy used by event handlers in the win32com.client package.
 
     In addition to the base policy, this provides argument conversion semantics for
-    params
-      * dispatch params are converted to dispatch objects.
-      * Unicode objects are converted to strings (1.5.2 and earlier)
+    params: dispatch params are converted to dispatch objects
 
     NOTE: Later, we may allow the object to override this process??
     """

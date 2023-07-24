@@ -2,7 +2,6 @@
 
  This contains the core exceptions that the implementations should raise
  as well as the IActiveScriptError interface code.
-
 """
 
 import re

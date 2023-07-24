@@ -38,7 +38,7 @@ mapVTToTypeString = {
     pythoncom.VT_I4: "int",
     pythoncom.VT_R4: "float",
     pythoncom.VT_R8: "float",
-    pythoncom.VT_BSTR: "string",
+    pythoncom.VT_BSTR: "str",
     pythoncom.VT_BOOL: "int",
     pythoncom.VT_VARIANT: "type",
     pythoncom.VT_I1: "int",
@@ -48,7 +48,7 @@ mapVTToTypeString = {
     pythoncom.VT_I8: "int",
     pythoncom.VT_UI8: "int",
     pythoncom.VT_INT: "int",
-    pythoncom.VT_DATE: "pythoncom.PyTimeType",  # FIXME: Type does not exist anywhere; pywintypes.TimeType ?
+    pythoncom.VT_DATE: "datetime.date",
     pythoncom.VT_UINT: "int",
 }
 

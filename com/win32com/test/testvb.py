@@ -363,8 +363,7 @@ def TestArrays(vbtest, bUseGenerated):
             testData,
             list(resultData),
         )
-        # This time, instead of an explicit str() for 1.5, we just
-        # pass Unicode, so the result should compare equal
+        # This time, we just pass Unicode, so the result should compare equal
         testData = [1, 2.0, "3"]
         resultData, byRefParam = vbtest.PassSAFEARRAYVariant(testData)
         assert testData == list(byRefParam)

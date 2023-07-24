@@ -79,8 +79,8 @@ class Extension(threaded_extension.ThreadPoolExtension):
         print("Opening %s" % new_url)
         fp = urlopen(new_url)
         headers = fp.info()
-        # subtle py3k breakage: in py3k, str(headers) has normalized \r\n
-        # back to \n and also stuck an extra \n term.
+        # subtle breakage: str(headers) normalizes \r\n
+        # back to \n and also sticks an extra \n term.
         # take *all* trailing \n off, replace remaining with
         # \r\n, then add the 2 trailing \r\n.
         header_text = str(headers).rstrip("\n").replace("\n", "\r\n") + "\r\n\r\n"

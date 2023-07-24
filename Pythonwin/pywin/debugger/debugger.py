@@ -26,11 +26,9 @@ from pywin.framework.editor.color.coloreditor import MARKER_BREAKPOINT, MARKER_C
 from pywin.mfc import afxres, dialog, object, window
 from pywin.tools import browser, hierlist
 
-# import win32traceutil
-LVN_ENDLABELEDIT = commctrl.LVN_ENDLABELEDITW
-
 from .dbgcon import *
 
+LVN_ENDLABELEDIT = commctrl.LVN_ENDLABELEDITW
 error = "pywin.debugger.error"
 
 
