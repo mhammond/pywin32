@@ -32,8 +32,8 @@ from pywin.framework.editor import (
 )
 from pywin.mfc import afxres, dialog, docview
 
-patImport = regex.symcomp("import \(<name>.*\)")
-patIndent = regex.compile("^\\([ \t]*[~ \t]\\)")
+patImport = regex.symcomp(r"import \(<name>.*\)")
+patIndent = regex.compile(r"^\([ \t]*[~ \t]\)")
 
 ID_LOCATE_FILE = 0xE200
 ID_GOTO_LINE = 0xE2001
@@ -131,7 +131,7 @@ class EditorDocument(ParentEditorDocument):
             win32ui.SetStatusText(
                 "Translating from Unix file format - please wait...", 1
             )
-            return re.sub("\r*\n", "\r\n", data)
+            return re.sub(r"\r*\n", "\r\n", data)
         else:
             return data
 

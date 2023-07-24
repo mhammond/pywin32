@@ -1148,7 +1148,7 @@ class Cursor(object):
 
     def _last_query(self):  # let the programmer see what query we actually used
         try:
-            if self.parameters == None:
+            if self.parameters is None:
                 ret = self.commandText
             else:
                 ret = "%s,parameters=%s" % (self.commandText, repr(self.parameters))

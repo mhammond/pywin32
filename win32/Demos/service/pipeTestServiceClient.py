@@ -111,7 +111,6 @@ def stressTestClient(server, numThreads, numMessages):
 
 def main():
     import getopt
-    import sys
 
     server = "."
     thread_count = 0

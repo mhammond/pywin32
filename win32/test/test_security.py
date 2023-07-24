@@ -7,7 +7,7 @@ import win32api
 import win32con
 import win32security
 import winerror
-from pywin32_testutil import TestSkipped, ob2memory, testmain
+from pywin32_testutil import TestSkipped, testmain
 
 
 class SecurityTests(unittest.TestCase):
@@ -39,9 +39,9 @@ class SecurityTests(unittest.TestCase):
             self.assertTrue(self.pwr_sid != self.admin_sid)
 
     def testNEOther(self):
-        self.assertTrue(self.pwr_sid != None)
+        self.assertTrue(self.pwr_sid is not None)
         self.assertTrue(None != self.pwr_sid)
-        self.assertFalse(self.pwr_sid == None)
+        self.assertFalse(self.pwr_sid is None)
         self.assertFalse(None == self.pwr_sid)
         self.assertNotEqual(None, self.pwr_sid)
 
@@ -53,8 +53,8 @@ class SecurityTests(unittest.TestCase):
         if self.admin_sid is None:
             raise TestSkipped("No 'Administrator' account is available")
         self.assertEqual(
-            ob2memory(win32security.LookupAccountName("", "Administrator")[0]),
-            ob2memory(win32security.LookupAccountName("", "Administrator")[0]),
+            memoryview(win32security.LookupAccountName("", "Administrator")[0]),
+            memoryview(win32security.LookupAccountName("", "Administrator")[0]),
         )
 
     def testMemory(self):

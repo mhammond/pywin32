@@ -805,35 +805,6 @@ class DatabaseAPI20Test(unittest.TestCase):
         # cur.execute("drop procedure deleteme")
 
     def test_nextset(self):
-        con = self._connect()
-        try:
-            cur = con.cursor()
-            if not hasattr(cur, "nextset"):
-                return
-
-            try:
-                self.executeDDL1(cur)
-                sql = self._populate()
-                for sql in self._populate():
-                    cur.execute(sql)
-
-                self.help_nextset_setUp(cur)
-
-                cur.callproc("deleteme")
-                numberofrows = cur.fetchone()
-                assert numberofrows[0] == len(self.samples)
-                assert cur.nextset()
-                names = cur.fetchall()
-                assert len(names) == len(self.samples)
-                s = cur.nextset()
-                assert s == None, "No more return sets, should return None"
-            finally:
-                self.help_nextset_tearDown(cur)
-
-        finally:
-            con.close()
-
-    def test_nextset(self):
         raise NotImplementedError("Drivers need to override this test")
 
     def test_arraysize(self):

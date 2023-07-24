@@ -59,8 +59,6 @@ def NeedApp():
             win32ui.MessageBox("Error executing command - %s" % (details), "Demos")
 
 
-from pywin.framework.app import HaveGoodGUI
-
 if __name__ == "__main__":
     import demoutils
 

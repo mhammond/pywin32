@@ -21,7 +21,7 @@ def RemoveCR(text):
     # No longer just "RemoveCR" - should be renamed to
     # FixNewlines, or something.  Idea is to fix arbitary newlines into
     # something Python can compile...
-    return re.sub("(\r\n)|\r|(\n\r)", "\n", text)
+    return re.sub(r"(\r\n)|\r|(\n\r)", "\n", text)
 
 
 SCRIPTTEXT_FORCEEXECUTION = -2147483648  # 0x80000000
@@ -356,7 +356,7 @@ class ScriptItem:
         # 			id = self.parentItem.dispatch.GetIDsOfNames(self.name)
         # 			print "DispID of me is", id
         # 			result = self.parentItem.dispatch.Invoke(id, 0, pythoncom.DISPATCH_PROPERTYGET,1)
-        # 			if type(result)==pythoncom.TypeIIDs[pythoncom.IID_IDispatch]:
+        # 			if isinstance(result, pythoncom.TypeIIDs[pythoncom.IID_IDispatch]):
         # 				self.dispatch = result
         # 			else:
         # 				print "*** No dispatch"
@@ -509,7 +509,9 @@ class ScriptItem:
                         # as no event handler for "top" would work.
                         # I think we simply need to connect to a *single* event handler.
                         # As use in IE is deprecated, I am not solving this now.
-                        if type(result) == pythoncom.TypeIIDs[pythoncom.IID_IDispatch]:
+                        if isinstance(
+                            result, pythoncom.TypeIIDs[pythoncom.IID_IDispatch]
+                        ):
                             name = names[0]
                             subObj = self.GetCreateSubItem(
                                 self, name, result, axscript.SCRIPTITEM_ISVISIBLE

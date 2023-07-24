@@ -259,7 +259,7 @@ class BasicWrapPolicy:
             self._com_interfaces_ = []
             # Allow interfaces to be specified by name.
             for i in ob._com_interfaces_:
-                if type(i) != pywintypes.IIDType:
+                if not isinstance(i, pywintypes.IIDType):
                     # Prolly a string!
                     if i[0] != "{":
                         i = pythoncom.InterfaceNames[i]
@@ -295,7 +295,7 @@ class BasicWrapPolicy:
         This calls the _invoke_ helper.
         """
         # Translate a possible string dispid to real dispid.
-        if type(dispid) == type(""):
+        if isinstance(dispid, str):
             try:
                 dispid = self._name_to_dispid_[dispid.lower()]
             except KeyError:
@@ -347,7 +347,7 @@ class BasicWrapPolicy:
         This calls the _invokeex_ helper.
         """
         # Translate a possible string dispid to real dispid.
-        if type(dispid) == type(""):
+        if isinstance(dispid, str):
             try:
                 dispid = self._name_to_dispid_[dispid.lower()]
             except KeyError:
@@ -507,7 +507,7 @@ class DesignatedWrapPolicy(MappedWrapPolicy):
             interfaces = [
                 i
                 for i in getattr(ob, "_com_interfaces_", [])
-                if type(i) != pywintypes.IIDType and not i.startswith("{")
+                if not isinstance(i, pywintypes.IIDType) and not i.startswith("{")
             ]
             universal_data = universal.RegisterInterfaces(
                 tlb_guid, tlb_lcid, tlb_major, tlb_minor, interfaces
@@ -652,7 +652,7 @@ class DesignatedWrapPolicy(MappedWrapPolicy):
             except KeyError:
                 raise COMException(scode=winerror.DISP_E_MEMBERNOTFOUND)  # not found
             retob = getattr(self._obj_, name)
-            if type(retob) == types.MethodType:  # a method as a property - call it.
+            if isinstance(retob, types.MethodType):  # a method as a property - call it.
                 retob = retob(*args)
             return retob
 
@@ -663,11 +663,10 @@ class DesignatedWrapPolicy(MappedWrapPolicy):
                 raise COMException(scode=winerror.DISP_E_MEMBERNOTFOUND)  # read-only
             # If we have a method of that name (ie, a property get function), and
             # we have an equiv. property set function, use that instead.
-            if (
-                type(getattr(self._obj_, name, None)) == types.MethodType
-                and type(getattr(self._obj_, "Set" + name, None)) == types.MethodType
+            fn = getattr(self._obj_, "Set" + name, None)
+            if isinstance(fn, types.MethodType) and isinstance(
+                getattr(self._obj_, name, None), types.MethodType
             ):
-                fn = getattr(self._obj_, "Set" + name)
                 fn(*args)
             else:
                 # just set the attribute
@@ -681,9 +680,7 @@ class EventHandlerPolicy(DesignatedWrapPolicy):
     """The default policy used by event handlers in the win32com.client package.
 
     In addition to the base policy, this provides argument conversion semantics for
-    params
-      * dispatch params are converted to dispatch objects.
-      * Unicode objects are converted to strings (1.5.2 and earlier)
+    params: dispatch params are converted to dispatch objects
 
     NOTE: Later, we may allow the object to override this process??
     """
@@ -691,12 +688,11 @@ class EventHandlerPolicy(DesignatedWrapPolicy):
     def _transform_args_(self, args, kwArgs, dispid, lcid, wFlags, serviceProvider):
         ret = []
         for arg in args:
-            arg_type = type(arg)
-            if arg_type == IDispatchType:
+            if isinstance(arg, IDispatchType):
                 import win32com.client
 
                 arg = win32com.client.Dispatch(arg)
-            elif arg_type == IUnknownType:
+            elif isinstance(arg, IUnknownType):
                 try:
                     import win32com.client
 

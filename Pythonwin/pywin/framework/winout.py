@@ -101,7 +101,7 @@ class WindowOutputFrame(window.MDIChildWnd):
 
 class WindowOutputViewImpl:
     def __init__(self):
-        self.patErrorMessage = re.compile('\W*File "(.*)", line ([0-9]+)')
+        self.patErrorMessage = re.compile(r'\W*File "(.*)", line ([0-9]+)')
         self.template = self.GetDocument().GetDocTemplate()
 
     def HookHandlers(self):
@@ -129,7 +129,7 @@ class WindowOutputViewImpl:
         paramsList = self.GetRightMenuItems()
         menu = win32ui.CreatePopupMenu()
         for appendParams in paramsList:
-            if type(appendParams) != type(()):
+            if not isinstance(appendParams, tuple):
                 appendParams = (appendParams,)
             menu.AppendMenu(*appendParams)
         menu.TrackPopupMenu(params[5])  # track at mouse position.
@@ -377,7 +377,7 @@ class WindowOutput(docview.DocTemplate):
         self.title = title
         self.bCreating = 0
         self.interruptCount = 0
-        if type(defSize) == type(""):  # is a string - maintain size pos from ini file.
+        if isinstance(defSize, str):  # maintain size pos from ini file.
             self.iniSizeSection = defSize
             self.defSize = app.LoadWindowSize(defSize)
             self.loadedSize = self.defSize

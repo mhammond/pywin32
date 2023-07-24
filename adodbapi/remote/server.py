@@ -117,7 +117,7 @@ def unfixpickle(x):
         # for 'named' paramstyle user will pass a mapping
         newargs = {}
         for arg, val in list(x.items()):
-            if isinstance(arg, type(array.array("B"))):
+            if isinstance(arg, array.array):
                 newargs[arg] = Binary(val)
             else:
                 newargs[arg] = val
@@ -125,7 +125,7 @@ def unfixpickle(x):
     # if not a mapping, then a sequence
     newargs = []
     for arg in x:
-        if isinstance(arg, type(array.array("B"))):
+        if isinstance(arg, array.array):
             newargs.append(Binary(arg))
         else:
             newargs.append(arg)

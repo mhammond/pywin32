@@ -68,13 +68,13 @@ def CleanAll():
             name = args[0] + ".py"
             os.unlink(os.path.join(genPath, name))
         except os.error as details:
-            if type(details) == type(()) and details[0] != 2:
+            if isinstance(details, tuple) and details[0] != 2:
                 print("Could not deleted generated", name, details)
         try:
             name = args[0] + ".pyc"
             os.unlink(os.path.join(genPath, name))
         except os.error as details:
-            if type(details) == type(()) and details[0] != 2:
+            if isinstance(details, tuple) and details[0] != 2:
                 print("Could not deleted generated", name, details)
         try:
             os.unlink(os.path.join(genPath, "__init__.py"))

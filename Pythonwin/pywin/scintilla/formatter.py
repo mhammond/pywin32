@@ -36,7 +36,7 @@ class Style:
         # Default background for each style is only used when there are no
         # saved settings (generally on first startup)
         self.background = self.default_background = background
-        if type(format) == type(""):
+        if isinstance(format, str):
             self.aliased = format
             self.format = None
         else:

@@ -309,7 +309,7 @@ class HLIDict(HLIPythonObject):
         return ret
 
 
-# In Python 1.6, strings and Unicode have builtin methods, but we dont really want to see these
+# strings and Unicode have builtin methods, but we dont really want to see these
 class HLIString(HLIPythonObject):
     def IsExpandable(self):
         return 0
@@ -369,7 +369,7 @@ class DialogShowObject(dialog.Dialog):
             t, v, tb = sys.exc_info()
             strval = "Exception getting object value\n\n%s:%s" % (t, v)
             tb = None
-        strval = re.sub("\n", "\r\n", strval)
+        strval = re.sub(r"\n", "\r\n", strval)
         self.edit.ReplaceSel(strval)
 
 

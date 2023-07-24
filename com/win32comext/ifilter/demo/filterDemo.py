@@ -291,7 +291,7 @@ if __name__ == "__main__":
                     reduce(operator.add, [len(p) for p in propValue]),
                 )
             )
-        elif type(propValue) == type([]):
+        elif isinstance(propValue, list):
             print()
             for pv in propValue:
                 print(pv)

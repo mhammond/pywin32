@@ -261,7 +261,7 @@ class ScintillaControlInterface:
 
     # AutoComplete
     def SCIAutoCShow(self, text):
-        if type(text) in [type([]), type(())]:
+        if isinstance(text, (list, tuple)):
             text = " ".join(text)
         buff = (text + "\0").encode(default_scintilla_encoding)
         return self.SendScintilla(scintillacon.SCI_AUTOCSHOW, 0, buff)
@@ -423,7 +423,7 @@ class CScintillaEditInterface(ScintillaControlInterface):
         return txtBuf.tobytes()[:-1].decode(default_scintilla_encoding)
 
     def SetSel(self, start=0, end=None):
-        if type(start) == type(()):
+        if isinstance(start, tuple):
             assert (
                 end is None
             ), "If you pass a point in the first param, the second must be None"

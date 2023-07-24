@@ -25,11 +25,11 @@ from win32api import RGB
 
 # helper to get the text of an arbitary item
 def GetItemText(item):
-    if type(item) == type(()) or type(item) == type([]):
+    if isinstance(item, (tuple, list)):
         use = item[0]
     else:
         use = item
-    if type(use) == type(""):
+    if isinstance(use, str):
         return use
     else:
         return repr(item)
@@ -106,14 +106,8 @@ class HierList(object.Object):
         self.listControl.SetImageList(self.imageList, commctrl.LVSIL_NORMAL)
         # 		self.list.AttachObject(self)
 
-        ## ??? Need a better way to do this - either some way to detect if it's compiled with UNICODE
-        ##  defined, and/or a way to switch the constants based on UNICODE ???
-        if sys.version_info[0] < 3:
-            parent.HookNotify(self.OnTreeItemExpanding, commctrl.TVN_ITEMEXPANDINGA)
-            parent.HookNotify(self.OnTreeItemSelChanged, commctrl.TVN_SELCHANGEDA)
-        else:
-            parent.HookNotify(self.OnTreeItemExpanding, commctrl.TVN_ITEMEXPANDINGW)
-            parent.HookNotify(self.OnTreeItemSelChanged, commctrl.TVN_SELCHANGEDW)
+        parent.HookNotify(self.OnTreeItemExpanding, commctrl.TVN_ITEMEXPANDINGW)
+        parent.HookNotify(self.OnTreeItemSelChanged, commctrl.TVN_SELCHANGEDW)
         parent.HookNotify(self.OnTreeItemDoubleClick, commctrl.NM_DBLCLK)
         self.notify_parent = parent
 
@@ -185,8 +179,8 @@ class HierList(object.Object):
         bitmapSel = self.GetSelectedBitmapColumn(item)
         if bitmapSel is None:
             bitmapSel = bitmapCol
-        ## if type(text) is str:
-        ##	text = text.encode("mbcs")
+        ## if isinstance(text, str):
+        ##  text = text.encode("mbcs")
         hitem = self.listControl.InsertItem(
             parentHandle,
             hInsertAfter,

@@ -34,10 +34,7 @@ Usage:
 
   -h    -- Do not generate hidden methods.
 
-  -u    -- Python 1.5 and earlier: Do NOT convert all Unicode objects to
-           strings.
-
-           Python 1.6 and later: Convert all Unicode objects to strings.
+  -u    -- Convert all Unicode objects to strings.
 
   -o    -- Create output in a specified output file.  If the path leading
            to the file does not exist, any missing directories will be
@@ -348,7 +345,7 @@ def GenerateChildFromTypeLibSpec(
         verboseLevel = (
             0  # By default, we use no gui, and no verbose level for the children.
         )
-    if type(typelibInfo) == type(()):
+    if isinstance(typelibInfo, tuple):
         typelibCLSID, lcid, major, minor = typelibInfo
         tlb = pythoncom.LoadRegTypeLib(typelibCLSID, major, minor, lcid)
     else:

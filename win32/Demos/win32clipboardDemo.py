@@ -44,7 +44,9 @@ def TestText():
         # CF_UNICODE text always gives unicode objects back.
         got = GetClipboardData(win32con.CF_UNICODETEXT)
         assert got == text, "Didnt get the correct result back - '%r'." % (got,)
-        assert type(got) == str, "Didnt get the correct result back - '%r'." % (got,)
+        assert isinstance(got, str), "Didnt get the correct result back - '%r'." % (
+            got,
+        )
 
         # CF_OEMTEXT is a bytes-based format.
         got = GetClipboardData(win32con.CF_OEMTEXT)
@@ -59,7 +61,9 @@ def TestText():
         # Get it in Unicode.
         got = GetClipboardData(win32con.CF_UNICODETEXT)
         assert got == text, "Didnt get the correct result back - '%r'." % (got,)
-        assert type(got) == str, "Didnt get the correct result back - '%r'." % (got,)
+        assert isinstance(got, str), "Didnt get the correct result back - '%r'." % (
+            got,
+        )
 
         # Close and open the clipboard to ensure auto-conversions take place.
     finally:
@@ -72,7 +76,9 @@ def TestText():
         assert got == text_bytes, "Didnt get the correct result back - '%r'." % (got,)
         # Make sure we get back the correct types.
         got = GetClipboardData(win32con.CF_UNICODETEXT)
-        assert type(got) == str, "Didnt get the correct result back - '%r'." % (got,)
+        assert isinstance(got, str), "Didnt get the correct result back - '%r'." % (
+            got,
+        )
         got = GetClipboardData(win32con.CF_OEMTEXT)
         assert got == text_bytes, "Didnt get the correct result back - '%r'." % (got,)
         print("Clipboard text tests worked correctly")

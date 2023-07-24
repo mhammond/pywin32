@@ -5,7 +5,6 @@ import time
 import unittest
 
 import pywintypes
-from pywin32_testutil import ob2memory
 
 
 class TestCase(unittest.TestCase):
@@ -85,7 +84,7 @@ class TestCase(unittest.TestCase):
     def testGUID(self):
         s = "{00020400-0000-0000-C000-000000000046}"
         iid = pywintypes.IID(s)
-        iid2 = pywintypes.IID(ob2memory(iid), True)
+        iid2 = pywintypes.IID(memoryview(iid), True)
         self.assertEqual(iid, iid2)
         self.assertRaises(ValueError, pywintypes.IID, b"00", True)  # too short
         self.assertRaises(TypeError, pywintypes.IID, 0, True)  # no buffer
@@ -93,9 +92,9 @@ class TestCase(unittest.TestCase):
     def testGUIDRichCmp(self):
         s = "{00020400-0000-0000-C000-000000000046}"
         iid = pywintypes.IID(s)
-        self.assertFalse(s == None)
+        self.assertFalse(s is None)
         self.assertFalse(None == s)
-        self.assertTrue(s != None)
+        self.assertTrue(s is not None)
         self.assertTrue(None != s)
         if sys.version_info > (3, 0):
             self.assertRaises(TypeError, operator.gt, None, s)

@@ -18,7 +18,7 @@ class VeryPermissive:
             try:
                 # to avoid problems with byref param handling, tuple results are converted to lists.
                 ret = self.__dict__[name]
-                if type(ret) == type(()):
+                if isinstance(ret, tuple):
                     ret = list(ret)
                 return ret
             except KeyError:  # Probably a method request.

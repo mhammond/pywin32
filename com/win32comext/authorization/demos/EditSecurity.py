@@ -7,7 +7,6 @@ import win32com.server.policy
 import win32con
 import win32security
 from ntsecuritycon import (
-    CONTAINER_INHERIT_ACE,
     FILE_ALL_ACCESS,
     FILE_APPEND_DATA,
     FILE_GENERIC_EXECUTE,
@@ -19,8 +18,6 @@ from ntsecuritycon import (
     FILE_WRITE_ATTRIBUTES,
     FILE_WRITE_DATA,
     FILE_WRITE_EA,
-    INHERIT_ONLY_ACE,
-    OBJECT_INHERIT_ACE,
     PSPCB_SI_INITDIALOG,
     READ_CONTROL,
     SI_ACCESS_CONTAINER,

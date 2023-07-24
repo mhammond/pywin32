@@ -137,16 +137,16 @@ class dirpath:
         del self.dirs[lo:hi]
 
     def __add__(self, other):
-        if type(other) == type(self) or type(other) == type([]):
+        if isinstance(other, (dirpath, list)):
             return self.dirs + other.dirs
 
     def __radd__(self, other):
-        if type(other) == type(self) or type(other) == type([]):
+        if isinstance(other, (dirpath, list)):
             return other.dirs + self.dirs
 
 
 # Group(1) is the filename, group(2) is the lineno.
-# regexGrepResult=regex.compile("^\\([a-zA-Z]:.*\\)(\\([0-9]+\\))")
+# regexGrepResult=regex.compile(r"^\([a-zA-Z]:.*\)(\([0-9]+\))")
 # regexGrep=re.compile(r"^([a-zA-Z]:[^(]*)\((\d+)\)")
 regexGrep = re.compile(r"^(..[^\(:]+)?[\(:](\d+)[\):]:?\s*(.*)")
 
@@ -319,7 +319,7 @@ class TheDocument(docview.RichEditDoc):
         import time
 
         time.sleep(0.001)
-        if self.result != None:
+        if self.result is not None:
             win32ui.GetApp().DeleteIdleHandler(self.idleHandler)
             return 0
         return 1  # more
@@ -389,7 +389,7 @@ class TheDocument(docview.RichEditDoc):
             lines = open(f, "r").readlines()
             for i in range(len(lines)):
                 line = lines[i]
-                if self.pat.search(line) != None:
+                if self.pat.search(line) is not None:
                     self.GetFirstView().Append(f + "(" + repr(i + 1) + ") " + line)
         else:
             self.fndx = -1
@@ -544,7 +544,7 @@ class TheView(docview.RichEditView):
                 errtext = m.group(3)
                 if start != end and line_start == line_end:
                     errtext = self.GetSelText()
-                errtext = repr(re.escape(errtext).replace("\ ", " "))
+                errtext = repr(re.escape(errtext).replace(r"\ ", " "))
                 view.ReplaceSel(addspecific and cmnt % locals() or cmnt)
         return 0
 

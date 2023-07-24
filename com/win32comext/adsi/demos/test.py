@@ -231,7 +231,7 @@ def main():
 
     tests = []
     for ob in globals().values():
-        if type(ob) == type(main) and ob.__doc__:
+        if isinstance(ob, Callable) and ob.__doc__:
             tests.append(ob)
     opts, args = getopt.getopt(sys.argv[1:], "s:hv")
     for opt, val in opts:

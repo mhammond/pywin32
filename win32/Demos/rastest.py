@@ -156,7 +156,7 @@ def main():
             ShowConnections()
         if opt == "-c":
             hras, rc = Connect(val, bCallback)
-            if hras != None:
+            if hras is not None:
                 print("hras: 0x%8lx, rc: 0x%04x" % (hras, rc))
         if opt == "-d":
             Disconnect(val)

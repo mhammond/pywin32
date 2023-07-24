@@ -853,7 +853,7 @@ class ScintillaShellView:
 
         self._SetupLexer()
         self._SendSci(scintillacon.SCI_ADDTEXT, len(file_data), file_data)
-        if self.lineno != None:
+        if self.lineno is not None:
             self._SendSci(scintillacon.SCI_GOTOLINE, self.lineno)
         print("Scintilla's hwnd is", self.hwnd)
 

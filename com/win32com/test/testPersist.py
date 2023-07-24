@@ -8,7 +8,6 @@ import win32com.client
 import win32com.client.dynamic
 import win32com.server.util
 import win32ui
-from pywintypes import Unicode
 from win32com import storagecon
 from win32com.axcontrol import axcontrol
 from win32com.test.util import CheckClean
@@ -118,7 +117,7 @@ class OleClientSite:
 
     def SaveObject(self):
         print("SaveObject")
-        if self.IPersistStorage != None and self.IStorage != None:
+        if self.IPersistStorage is not None and self.IStorage is not None:
             self.IPersistStorage.Save(self.IStorage, 1)
             self.IStorage.Commit(0)
         return S_OK

@@ -209,9 +209,8 @@ class ClientAuth(_BaseAuth):
 
     def authorize(self, sec_buffer_in):
         """Perform *one* step of the client authentication process. Pass None for the first round"""
-        if (
-            sec_buffer_in is not None
-            and type(sec_buffer_in) != win32security.PySecBufferDescType
+        if sec_buffer_in is not None and not isinstance(
+            sec_buffer_in, win32security.PySecBufferDescType
         ):
             # User passed us the raw data - wrap it into a SecBufferDesc
             sec_buffer_new = win32security.PySecBufferDescType()
@@ -287,9 +286,8 @@ class ServerAuth(_BaseAuth):
 
     def authorize(self, sec_buffer_in):
         """Perform *one* step of the server authentication process."""
-        if (
-            sec_buffer_in is not None
-            and type(sec_buffer_in) != win32security.PySecBufferDescType
+        if sec_buffer_in is not None and not isinstance(
+            sec_buffer_in, win32security.PySecBufferDescType
         ):
             # User passed us the raw data - wrap it into a SecBufferDesc
             sec_buffer_new = win32security.PySecBufferDescType()

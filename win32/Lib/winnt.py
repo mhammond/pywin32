@@ -180,18 +180,6 @@ def SORTIDFROMLCID(lcid):
 
 
 def UNREFERENCED_PARAMETER(P):
-    return P
-
-
-def DBG_UNREFERENCED_PARAMETER(P):
-    return P
-
-
-def DBG_UNREFERENCED_LOCAL_VARIABLE(V):
-    return V
-
-
-def UNREFERENCED_PARAMETER(P):
     return
 
 

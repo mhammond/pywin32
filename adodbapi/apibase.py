@@ -161,6 +161,7 @@ class TimeConverter(object):  # this is a generic time converter skeleton
         self._ordinal_1899_12_31 = datetime.date(1899, 12, 31).toordinal() - 1
         # Use cls.types to compare if an input parameter is a datetime
         self.types = {
+            # Dynamically get the types as the methods may be overriden
             type(self.Date(2000, 1, 1)),
             type(self.Time(12, 1, 1)),
             type(self.Timestamp(2000, 1, 1, 12, 1, 1)),
@@ -430,9 +431,8 @@ def pyTypeToADOType(d):
     except KeyError:  #   The type was not defined in the pre-computed Type table
         from . import dateconverter
 
-        if (
-            tp in dateconverter.types
-        ):  # maybe it is one of our supported Date/Time types
+        # maybe it is one of our supported Date/Time types
+        if tp in dateconverter.types:
             return adc.adDate
         #  otherwise, attempt to discern the type by probing the data object itself -- to handle duck typing
         if isinstance(d, StringTypes):

@@ -888,15 +888,6 @@ DLLCache = DLLHandleCache()
 
 def resolveMUITimeZone(spec):
     """Resolve a multilingual user interface resource for the time zone name
-    >>> #some pre-amble for the doc-tests to be py2k and py3k aware)
-    >>> try: unicode and None
-    ... except NameError: unicode=str
-    ...
-    >>> import sys
-    >>> result = resolveMUITimeZone('@tzres.dll,-110')
-    >>> expectedResultType = [type(None),unicode][sys.getwindowsversion() >= (6,)]
-    >>> type(result) is expectedResultType
-    True
 
     spec should be of the format @path,-stringID[;comment]
     see http://msdn2.microsoft.com/en-us/library/ms725481.aspx for details
@@ -1014,7 +1005,7 @@ class RangeMap(dict):
         )
 
     # some special values for the RangeMap
-    undefined_value = type(str("RangeValueUndefined"), (object,), {})()
+    undefined_value = type("RangeValueUndefined", (object,), {})()
 
     class Item(int):
         pass
