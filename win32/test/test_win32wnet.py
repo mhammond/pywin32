@@ -107,12 +107,12 @@ class TestCase(unittest.TestCase):
         for i in range(la_enum.length):
             ncb.Reset()
             ncb.Command = netbios.NCBRESET
-            ncb.Lana_num = netbios.byte_to_int(la_enum.lana[i])
+            ncb.Lana_num = la_enum.lana[i]
             rc = Netbios(ncb)
             self.assertEqual(rc, 0)
             ncb.Reset()
             ncb.Command = netbios.NCBASTAT
-            ncb.Lana_num = byte_to_int(la_enum.lana[i])
+            ncb.Lana_num = la_enum.lana[i]
             ncb.Callname = b"*               "
             adapter = netbios.ADAPTER_STATUS()
             ncb.Buffer = adapter
