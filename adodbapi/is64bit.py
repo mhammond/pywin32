@@ -10,7 +10,7 @@ def os():
     import platform
 
     pm = platform.machine()
-    if pm != ".." and pm.endswith("64"):  # recent Python (not Iron)
+    if pm != ".." and pm.endswith("64"):  # recent 64 bit Python
         return True
     else:
         import os
