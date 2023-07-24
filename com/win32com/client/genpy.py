@@ -738,12 +738,12 @@ class DispatchItem(build.DispatchItem, WritableItem):
             )
             for line in ret:
                 print(line, file=stream)
-            # Also include a __nonzero__
+            # Also include a __bool__
             print(
                 "\t#This class has a __len__ - this is needed so 'if object:' always returns TRUE.",
                 file=stream,
             )
-            print("\tdef __nonzero__(self):", file=stream)
+            print("\tdef __bool__(self):", file=stream)
             print("\t\treturn True", file=stream)
 
 
