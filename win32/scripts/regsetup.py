@@ -504,7 +504,7 @@ Examples:
 "regsetup c:\\wierd\\spot\\1 c:\\wierd\\spot\\2"
 Attempts to setup the core Python.  Looks in some standard places,
 as well as the 2 wierd spots to locate the core Python files (eg, Python.exe,
-python14.dll, the standard library and Win32 Extensions.
+pythonXX.dll, the standard library and Win32 Extensions).
 
 "regsetup -a myappname . .\subdir"
 Registers a new Pythonpath entry named myappname, with "C:\\I\\AM\\HERE" and

@@ -923,7 +923,7 @@ class RangeMap(dict):
     the sorted list of keys.
 
     One may supply keyword parameters to be passed to the sort function used
-    to sort keys (i.e. cmp [python 2 only], keys, reverse) as sort_params.
+    to sort keys (i.e. cmp [Python 2 only], keys, reverse) as sort_params.
 
     Let's create a map that maps 1-3 -> 'a', 4-6 -> 'b'
     >>> r = RangeMap({3: 'a', 6: 'b'})  # boy, that was easy

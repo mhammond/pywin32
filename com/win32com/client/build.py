@@ -769,7 +769,7 @@ def BuildCallList(
                     defArgVal = defUnnamedArg
 
         argName = MakePublicAttributeName(argName)
-        # insanely long lines with an 'encoding' flag crashes python 2.4.0
+        # insanely long lines with an 'encoding' flag crashes Python 2.4.0
         # keep 5 args per line
         # This may still fail if the arg names are insane, but that seems
         # unlikely.  See also _BuildArgList()

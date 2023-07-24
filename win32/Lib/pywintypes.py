@@ -1,4 +1,4 @@
-# Magic utility that "redirects" to pywintypesxx.dll
+# Magic utility that "redirects" to pywintypesXX.dll
 import importlib.machinery
 import importlib.util
 import os
@@ -58,7 +58,7 @@ def __import_pywin32_system_module__(modname, globs):
             # first (which is how we are here) or if, eg, win32api was imported
             # first thereby implicitly loading the DLL.
 
-            # Sadly though, it doesn't quite work - if pywintypesxx.dll
+            # Sadly though, it doesn't quite work - if pywintypesXX.dll
             # is in system32 *and* the executable's directory, on XP SP2, an
             # import of win32api will cause Windows to load pywintypes
             # from system32, where LoadLibrary for that name will

@@ -127,7 +127,7 @@ BOOL PyCom_VariantFromPyObject(PyObject *obj, VARIANT *var)
         }
         V_VT(var) = VT_BSTR;
     }
-    // For 3.x, bool checks need to be above PyLong_Check, which now succeeds for booleans.
+    // For Python 3, bool checks need to be above PyLong_Check, which now succeeds for booleans.
     else if (obj == Py_True) {
         V_VT(var) = VT_BOOL;
         V_BOOL(var) = VARIANT_TRUE;
@@ -593,7 +593,7 @@ static BOOL PyCom_SAFEARRAYFromPyObjectBuildDimension(PyObject *obj, SAFEARRAY *
 static long PyCom_CalculatePyObjectDimension(PyObject *obItemCheck, long lDimension, PyObject *ppyobDimensionDictionary)
 {
     // Buffers are a special case - they define 1 new dimension.
-    // Buffers supported sequence semantics in 2.x, but for some reason memoryview objects
+    // Buffers supported sequence semantics in Python 2, but for some reason memoryview objects
     //	in py3k do not, so check separately
     if (PYWIN_BUFFER_CHECK(obItemCheck))
         return lDimension + 1;

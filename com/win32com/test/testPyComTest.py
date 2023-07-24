@@ -128,7 +128,7 @@ class RandomEventHandler:
 
 
 # A simple handler class that derives from object (ie, a "new style class") -
-# only relevant for Python 2.x (ie, the 2 classes should be identical in 3.x)
+# only relevant for Python 2 (ie, the 2 classes should be identical in Python 3)
 class NewStyleRandomEventHandler(object):
     def _Init(self):
         self.fireds = {}

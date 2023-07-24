@@ -9,7 +9,7 @@ def ReadCallback(input_buffer, data, buflen):
     fnamein, fnameout, f = data
     ## print fnamein, fnameout, buflen
     f.write(input_buffer)
-    ## python 2.3 throws an error if return value is a plain int
+    ## Python 2.3 throws an error if return value is a plain int
     return winerror.ERROR_SUCCESS
 
 
