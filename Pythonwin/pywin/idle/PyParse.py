@@ -122,10 +122,6 @@ for ch in ")}]":
     _tran[ord(ch)] = ")"
 for ch in "\"'\\\n#":
     _tran[ord(ch)] = ch
-# We are called with unicode strings, and str.translate is one of the few
-# py2k functions which can't 'do the right thing' - so take care to ensure
-# _tran is full of unicode...
-_tran = "".join(_tran)
 del ch
 
 

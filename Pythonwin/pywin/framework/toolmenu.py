@@ -149,10 +149,7 @@ def HandleToolCommand(cmd, code):
 import commctrl
 from pywin.mfc import dialog
 
-if win32ui.UNICODE:
-    LVN_ENDLABELEDIT = commctrl.LVN_ENDLABELEDITW
-else:
-    LVN_ENDLABELEDIT = commctrl.LVN_ENDLABELEDITA
+LVN_ENDLABELEDIT = commctrl.LVN_ENDLABELEDITW
 
 
 class ToolMenuPropPage(dialog.PropertyPage):

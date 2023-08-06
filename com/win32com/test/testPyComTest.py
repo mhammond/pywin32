@@ -16,7 +16,6 @@ import win32com
 import win32com.client.connect
 import win32timezone
 import winerror
-from pywin32_testutil import str2memory
 from win32com.client import VARIANT, CastTo, DispatchBaseClass, constants
 from win32com.test.util import CheckClean, RegisterPythonServer
 
@@ -264,7 +263,7 @@ def TestCommon(o, is_generated):
     )
 
     # and binary
-    TestApplyResult(o.SetBinSafeArray, (str2memory("foo\0bar"),), 7)
+    TestApplyResult(o.SetBinSafeArray, (memoryview(b"foo\0bar"),), 7)
 
     progress("Checking properties")
     o.LongProp = 3

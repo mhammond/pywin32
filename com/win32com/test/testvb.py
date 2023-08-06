@@ -11,7 +11,6 @@ import win32com.client
 import win32com.client.dynamic
 import win32com.client.gencache
 import winerror
-from pywin32_testutil import str2memory
 from win32com.server.util import NewCollection, wrap
 from win32com.test import util
 
@@ -86,8 +85,8 @@ def TestVB(vbtest, bUseGenerated):
     vbtest.VariantProperty = 10
     if vbtest.VariantProperty != 10:
         raise error("Could not set the variant integer property correctly.")
-    vbtest.VariantProperty = str2memory("raw\0data")
-    if vbtest.VariantProperty != str2memory("raw\0data"):
+    vbtest.VariantProperty = memoryview(b"raw\0data")
+    if vbtest.VariantProperty != memoryview(b"raw\0data"):
         raise error("Could not set the variant buffer property correctly.")
     vbtest.StringProperty = "Hello from Python"
     if vbtest.StringProperty != "Hello from Python":
@@ -365,8 +364,7 @@ def TestArrays(vbtest, bUseGenerated):
             testData,
             list(resultData),
         )
-        # This time, instead of an explicit str() for 1.5, we just
-        # pass Unicode, so the result should compare equal
+        # This time, we just pass Unicode, so the result should compare equal
         testData = [1, 2.0, "3"]
         resultData, byRefParam = vbtest.PassSAFEARRAYVariant(testData)
         assert testData == list(byRefParam)
