@@ -3,14 +3,22 @@ import sys
 
 
 def Python():
-    return sys.maxsize > 2147483647
+    if sys.platform == "cli":  # IronPython
+        import System
+
+        return System.IntPtr.Size == 8
+    else:
+        try:
+            return sys.maxsize > 2147483647
+        except AttributeError:
+            return sys.maxint > 2147483647
 
 
 def os():
     import platform
 
     pm = platform.machine()
-    if pm != ".." and pm.endswith("64"):  # recent 64 bit Python
+    if pm != ".." and pm.endswith("64"):  # recent Python (not Iron)
         return True
     else:
         import os

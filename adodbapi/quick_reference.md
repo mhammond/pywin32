@@ -2,8 +2,10 @@
 Adodbapi quick reference
 ========================
 
-Adodbapi is a Python DB-API 2.0 module that makes it easy to use Microsoft ADO
-for connecting with databases and other data sources using CPython.
+Adodbapi is a Python DB-API 2.0 module that makes it easy to use
+Microsoft ADO
+for connecting with databases and other data sources
+using either CPython or IronPython.
 
 Source home page:
 https://github.com/mhammond/pywin32/tree/master/adodbapi
@@ -105,19 +107,27 @@ access api specification is found at:
 The PEP requires several module level attributes. Older versions of
 adodbapi (which was once all one big file) defined a hundred or two. I
 hate that, but can\'t break old code, so I decided to fix the problem
-for Python 3. The programmer must take the time to pick
+for Python 3. If using Python3 the programmer must take the time to pick
 up the symbols she needs from apibase and ado\_consts.
 
 Part of the adodbapi package\'s \_\_init\_\_.py looks something like
 this:
 
 ```python
-from .apibase import BINARY, DATETIME, NUMBER, ROWID, STRING, DatabaseError, DataError, Error, FetchFailedError, IntegrityError, InterfaceError, InternalError, NotSupportedError, OperationalError, ProgrammingError, Warning, apilevel, paramstyle, threadsafety
+if sys.version_info < (3,0): # in Python 2, define all symbols, just like before
+    from apibase import *  # using this is bad
+    from ado_consts import *  # using this is worse
+else:
+    # but if the user is running Python 3, then keep the dictionary clean
+    from apibase import apilevel, threadsafety, paramstyle
+    from apibase import Warning, Error, InterfaceError, DatabaseError, DataError
+    from apibase import OperationalError, IntegrityError
+    from apibase import InternalError, ProgrammingError, NotSupportedError
+    from apibase import NUMBER, STRING, BINARY, DATETIME, ROWID
 
-from .adodbapi import Connection, Cursor, __version__, connect, dateconverter
-version = "adodbapi v" + __version__
+from adodbapi import connect, Connection, __version__
+version = 'adodbapi v' + __version__
 ```
-
 Please, use only those last four symbols from adodbapi. All others
 should be imported directly from their own sub-modules. My tests and
 examples all follow that rule.
@@ -771,7 +781,7 @@ Running the tests
 The test folder contains a set of unittest programs. Setting them up can
 be a bit complex, because you need several database servers to do a
 complete test, and each one has a different configuration. Scripts in
-this folder try to work in Python 3.5(+)
+this folder try to work in Python 2.7 or Python 3.5(+)
 
 - dbapi20.py
 

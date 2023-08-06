@@ -36,8 +36,6 @@ from .apibase import (
 )
 
 
-# -----------------------------------------------------------
-# conversion functions mandated by PEP 249
 def Binary(aString):
     """This function constructs an object capable of holding a binary (long) string value."""
     return bytes(aString)

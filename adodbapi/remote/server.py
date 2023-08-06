@@ -19,14 +19,16 @@ Copyright (C) 2013 by Vernon Cole
 
 DB-API 2.0 specification: http://www.python.org/dev/peps/pep-0249/
 
-This module source should run correctly in CPython 3.2 or later.
+This module source should run correctly in CPython versions 2.6 and later,
+or IronPython version 2.6 and later,
+or, after running through 2to3.py, CPython 3.2 or later.
 """
 
-__version__ = "3.7.0.0"
+__version__ = "2.6.2.0"
 version = "adodbapi.server v" + __version__
 
 PYRO_HOST = "::0"  # '::0' or '0.0.0.0' means any network
-PYRO_PORT = 9099  # may be altered below for Python based servers
+PYRO_PORT = 9099  # may be altered below for Python 3 based servers
 PYRO_COMMTIMEOUT = 40  # to be larger than the default database timeout
 SERVICE_NAME = "ado.connection"
 
@@ -40,12 +42,15 @@ import time
 try:
     import Pyro4
 except ImportError:
-    print('* * * Sorry, server operation requires Pyro4. Please "pip install" it.')
+    print('* * * Sorry, server operation requires Pyro4. Please "pip import" it.')
     exit(11)
 import adodbapi
 import adodbapi.apibase as api
 import adodbapi.process_connect_string
 
+makeByteBuffer = bytes
+_BaseException = Exception
+Binary = bytes
 try:
     pyro_host = os.environ["PYRO_HOST"]
 except:
@@ -59,25 +64,25 @@ for arg in sys.argv[1:]:
     if arg.lower().startswith("host"):
         try:
             pyro_host = arg.split("=")[1]
-        except Exception:
+        except _BaseException:
             raise TypeError('Must supply value for argument="%s"' % arg)
 
     if arg.lower().startswith("port"):
         try:
             pyro_port = int(arg.split("=")[1])
-        except Exception:
+        except _BaseException:
             raise TypeError('Must supply numeric value for argument="%s"' % arg)
 
     if arg.lower().startswith("timeout"):
         try:
             PYRO_COMMTIMEOUT = int(arg.split("=")[1])
-        except Exception:
+        except _BaseException:
             raise TypeError('Must supply numeric value for argument="%s"' % arg)
 
     if arg.lower().startswith("--verbose"):
         try:
             verbose = int(arg.split("=")[1])
-        except Exception:
+        except _BaseException:
             raise TypeError('Must supply numeric value for argument="%s"' % arg)
         adodbapi.adodbapi.verbose = verbose
     else:
@@ -92,7 +97,7 @@ Pyro4.config.SERVERTYPE = "multiplex"
 Pyro4.config.PREFER_IP_VERSION = 0  # allow system to prefer IPv6
 Pyro4.config.SERIALIZERS_ACCEPTED = set(
     ["serpent", "pickle"]
-)  # TODO: change when Py2.5 retired
+)  # change when Py2.5 retired
 
 connection_list = []
 CONNECTION_TIMEOUT = datetime.timedelta(minutes=30)
@@ -114,7 +119,7 @@ def unfixpickle(x):
         newargs = {}
         for arg, val in list(x.items()):
             if isinstance(arg, array.array):
-                newargs[arg] = bytes(val)
+                newargs[arg] = Binary(val)
             else:
                 newargs[arg] = val
         return newargs
@@ -122,13 +127,13 @@ def unfixpickle(x):
     newargs = []
     for arg in x:
         if isinstance(arg, array.array):
-            newargs.append(bytes(arg))
+            newargs.append(Binary(arg))
         else:
             newargs.append(arg)
     return newargs
 
 
-class ServerConnection:
+class ServerConnection(object):
     def __init__(self):
         self.server_connection = None
         self.cursors = {}
@@ -307,14 +312,14 @@ class ServerConnection:
         print("Shutdown request received")
 
 
-class ConnectionDispatcher:
+class ConnectionDispatcher(object):
     def make_connection(self):
         new_connection = ServerConnection()
         pyro_uri = self._pyroDaemon.register(new_connection)
         return pyro_uri
 
 
-class Heartbeat_Timer:
+class Heartbeat_Timer(object):
     def __init__(self, interval, work_function, tick_result_function):
         self.interval = interval
         self.last_tick = datetime.datetime.now()

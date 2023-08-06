@@ -1,9 +1,15 @@
-#!/usr/bin/python3
+#!/usr/bin/python2
 # Configure this in order to run the testcases.
-"setuptestframework.py v 3.7.0.0"
+"setuptestframework.py v 2.6.0.8"
 import os
 import shutil
+import sys
 import tempfile
+
+try:
+    OSErrors = (WindowsError, OSError)
+except NameError:  # not running on Windows
+    OSErrors = OSError
 
 
 def maketemp():
@@ -46,14 +52,20 @@ def makeadopackage(testfolder):
         newpackage = os.path.join(testfolder, "adodbapi")
         try:
             os.mkdir(newpackage)
-        except (WindowsError, OSError):
+        except OSErrors:
             print(
                 "*Note: temporary adodbapi package already exists: may be two versions running?"
             )
         for f in os.listdir(adoPath):
             if f.endswith(".py"):
                 shutil.copy(os.path.join(adoPath, f), newpackage)
+        if sys.version_info >= (3, 0):  # only when running Py3.n
+            save = sys.stdout
+            sys.stdout = None
+            from lib2to3.main import main  # use 2to3 to make test package
 
+            main("lib2to3.fixes", args=["-n", "-w", newpackage])
+            sys.stdout = save
         return testfolder
     else:
         raise EnvironmentError("Connot find source of adodbapi to test.")
@@ -68,23 +80,41 @@ def makemdb(testfolder, mdb_name):
     if os.path.isfile(_accessdatasource):
         print("using JET database=", _accessdatasource)
     else:
-        from win32com.client import constants
-        from win32com.client.gencache import EnsureDispatch
+        try:
+            from win32com.client import constants
+            from win32com.client.gencache import EnsureDispatch
+
+            win32 = True
+        except ImportError:  # perhaps we are running IronPython
+            win32 = False  # iron Python
+            try:
+                from System import Activator, Type
+            except:
+                pass
 
         # Create a brand-new database - what is the story with these?
         dbe = None
         for suffix in (".36", ".35", ".30"):
             try:
-                dbe = EnsureDispatch("DAO.DBEngine" + suffix)
+                if win32:
+                    dbe = EnsureDispatch("DAO.DBEngine" + suffix)
+                else:
+                    type = Type.GetTypeFromProgID("DAO.DBEngine" + suffix)
+                    dbe = Activator.CreateInstance(type)
                 break
             except:
                 pass
         if dbe:
             print("    ...Creating ACCESS db at " + _accessdatasource)
-            workspace = dbe.Workspaces(0)
-            newdb = workspace.CreateDatabase(
-                _accessdatasource, constants.dbLangGeneral, constants.dbVersion40
-            )
+            if win32:
+                workspace = dbe.Workspaces(0)
+                newdb = workspace.CreateDatabase(
+                    _accessdatasource, constants.dbLangGeneral, constants.dbVersion40
+                )
+            else:
+                newdb = dbe.CreateDatabase(
+                    _accessdatasource, ";LANGID=0x0409;CP=1252;COUNTRY=0"
+                )
             newdb.Close()
         else:
             print("    ...copying test ACCESS db to " + _accessdatasource)

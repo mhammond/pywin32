@@ -26,11 +26,21 @@ import datetime
 import decimal
 import random
 import string
+import sys
 import unittest
 
-import adodbapitestconfig as config  # run the configuration module. # will set sys.path to find correct version of adodbapi
-import tryconnection  # in our code below, all our switches are from config.whatever
-import win32com.client
+try:
+    import win32com.client
+
+    win32 = True
+except ImportError:
+    win32 = False
+
+# run the configuration module.
+import adodbapitestconfig as config  # will set sys.path to find correct version of adodbapi
+
+# in our code below, all our switches are from config.whatever
+import tryconnection
 
 import adodbapi
 import adodbapi.apibase as api
@@ -42,6 +52,9 @@ except ImportError:  # we are doing a shortcut import as a module -- so
         import ado_consts
     except ImportError:
         from adodbapi import ado_consts
+
+
+long = int
 
 
 def randomstring(length):
@@ -198,6 +211,49 @@ class CommonDBTests(unittest.TestCase):
             except:
                 pass
             self.helpRollbackTblTemp()
+
+    def testUserDefinedConversionForExactNumericTypes(self):
+        # variantConversions is a dictionary of conversion functions
+        # held internally in adodbapi.apibase
+        #
+        # !!! this test intentionally alters the value of what should be constant in the module
+        # !!! no new code should use this example, to is only a test to see that the
+        # !!! deprecated way of doing this still works.  (use connection.variantConversions)
+        #
+        if not self.remote and sys.version_info < (3, 0):  ### Py3 need different test
+            oldconverter = adodbapi.variantConversions[
+                ado_consts.adNumeric
+            ]  # keep old function to restore later
+            # By default decimal and "numbers" are returned as decimals.
+            # Instead, make numbers return as  floats
+            try:
+                adodbapi.variantConversions[ado_consts.adNumeric] = adodbapi.cvtFloat
+                self.helpTestDataType(
+                    "decimal(18,2)", "NUMBER", 3.45, compareAlmostEqual=1
+                )
+                self.helpTestDataType(
+                    "numeric(18,2)", "NUMBER", 3.45, compareAlmostEqual=1
+                )
+                # now return strings
+                adodbapi.variantConversions[ado_consts.adNumeric] = adodbapi.cvtString
+                self.helpTestDataType("numeric(18,2)", "NUMBER", "3.45")
+                # now a completly weird user defined convertion
+                adodbapi.variantConversions[ado_consts.adNumeric] = (
+                    lambda x: "!!This function returns a funny unicode string %s!!" % x
+                )
+                self.helpTestDataType(
+                    "numeric(18,2)",
+                    "NUMBER",
+                    "3.45",
+                    allowedReturnValues=[
+                        "!!This function returns a funny unicode string 3.45!!"
+                    ],
+                )
+            finally:
+                # now reset the converter to its original function
+                adodbapi.variantConversions[
+                    ado_consts.adNumeric
+                ] = oldconverter  # Restore the original convertion function
 
     def helpTestDataType(
         self,
@@ -1465,6 +1521,37 @@ class TimeConverterInterfaceTest(unittest.TestCase):
         self.assertEqual(str(iso[:10]), "2003-05-02")
 
 
+if config.doMxDateTimeTest:
+    import mx.DateTime
+
+
+class TestMXDateTimeConverter(TimeConverterInterfaceTest):
+    def setUp(self):
+        self.tc = api.mxDateTimeConverter()
+
+    def testCOMDate(self):
+        t = mx.DateTime.DateTime(2002, 6, 28, 18, 15, 2)
+        cmd = self.tc.COMDate(t)
+        assert cmd == t.COMDate()
+
+    def testDateObjectFromCOMDate(self):
+        cmd = self.tc.DateObjectFromCOMDate(37435.7604282)
+        t = mx.DateTime.DateTime(2002, 6, 28, 18, 15, 0)
+        t2 = mx.DateTime.DateTime(2002, 6, 28, 18, 15, 2)
+        assert t2 > cmd > t
+
+    def testDate(self):
+        assert mx.DateTime.Date(1980, 11, 4) == self.tc.Date(1980, 11, 4)
+
+    def testTime(self):
+        assert mx.DateTime.Time(13, 11, 4) == self.tc.Time(13, 11, 4)
+
+    def testTimestamp(self):
+        t = mx.DateTime.DateTime(2002, 6, 28, 18, 15, 1)
+        obj = self.tc.Timestamp(2002, 6, 28, 18, 15, 1)
+        assert t == obj
+
+
 import time
 
 
@@ -1552,8 +1639,11 @@ class TestPythonDateTimeConverter(TimeConverterInterfaceTest):
 
 suites = []
 suites.append(unittest.makeSuite(TestPythonDateTimeConverter, "test"))
+if config.doMxDateTimeTest:
+    suites.append(unittest.makeSuite(TestMXDateTimeConverter, "test"))
 if config.doTimeTest:
     suites.append(unittest.makeSuite(TestPythonTimeConverter, "test"))
+
 if config.doAccessTest:
     suites.append(unittest.makeSuite(TestADOwithAccessDB, "test"))
 if config.doSqlServerTest:
@@ -1564,7 +1654,7 @@ if config.doPostgresTest:
     suites.append(unittest.makeSuite(TestADOwithPostgres, "test"))
 
 
-class cleanup_manager:
+class cleanup_manager(object):
     def __enter__(self):
         pass
 
@@ -1583,11 +1673,16 @@ if __name__ == "__main__":
         tag = "datetime"
         unittest.TextTestRunner().run(mysuite)
 
-        if config.doTimeTest:
-            mysuite = copy.deepcopy(
-                suite
-            )  # work around a side effect of unittest.TextTestRunner
-            adodbapi.adodbapi.dateconverter = api.pythonTimeConverter()
-            print("Changed dateconverter to ")
-            print(adodbapi.adodbapi.dateconverter)
-            unittest.TextTestRunner().run(mysuite)
+        if config.iterateOverTimeTests:
+            for test, dateconverter, tag in (
+                (config.doTimeTest, api.pythonTimeConverter, "pythontime"),
+                (config.doMxDateTimeTest, api.mxDateTimeConverter, "mx"),
+            ):
+                if test:
+                    mysuite = copy.deepcopy(
+                        suite
+                    )  # work around a side effect of unittest.TextTestRunner
+                    adodbapi.adodbapi.dateconverter = dateconverter()
+                    print("Changed dateconverter to ")
+                    print(adodbapi.adodbapi.dateconverter)
+                    unittest.TextTestRunner().run(mysuite)
