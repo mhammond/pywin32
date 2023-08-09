@@ -1035,7 +1035,7 @@ class Generator:
 
         return oleItems, enumItems, recordItems, vtableItems
 
-    def open_writer(self, filename, encoding="mbcs"):
+    def open_writer(self, filename, encoding="utf-8"):
         # A place to put code to open a file with the appropriate encoding.
         # Does *not* set self.file - just opens and returns a file.
         # Actually returns a handle to a temp file - finish_writer then deletes
@@ -1107,7 +1107,7 @@ class Generator:
         # We assert this is it may indicate somewhere in pywin32 that needs
         # upgrading.
         assert self.file.encoding, self.file
-        encoding = self.file.encoding  # or "mbcs"
+        encoding = self.file.encoding
 
         print("# -*- coding: %s -*-" % (encoding,), file=self.file)
         print("# Created by makepy.py version %s" % (makepy_version,), file=self.file)

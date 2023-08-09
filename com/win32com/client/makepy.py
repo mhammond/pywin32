@@ -427,12 +427,9 @@ def main():
         path = os.path.dirname(outputName)
         if path != "" and not os.path.exists(path):
             os.makedirs(path)
-        if sys.version_info > (3, 0):
-            f = open(outputName, "wt", encoding="mbcs")
-        else:
-            import codecs  # not available in py3k.
 
-            f = codecs.open(outputName, "w", "mbcs")
+        f = open(outputName, "wt", encoding="utf-8")
+
     else:
         f = None
 

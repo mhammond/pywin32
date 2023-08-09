@@ -180,7 +180,7 @@ class HierList(object.Object):
         if bitmapSel is None:
             bitmapSel = bitmapCol
         ## if isinstance(text, str):
-        ##  text = text.encode("mbcs")
+        ##  text = text.encode("utf-8")
         hitem = self.listControl.InsertItem(
             parentHandle,
             hInsertAfter,

@@ -84,7 +84,7 @@ class _WIN32MASKEDSTRUCT:
                     # LVM_SETITEMW etc.
                     val = val + "\0"
                     if isinstance(val, str):
-                        val = val.encode("mbcs")
+                        val = val.encode("utf-8")
                     str_buf = array.array("b", val)
                     vals.append(str_buf.buffer_info()[0])
                     vals.append(len(val))
