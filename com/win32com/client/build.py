@@ -18,7 +18,6 @@ dynamically, or possibly even generate .html documentation for objects.
 
 import datetime
 import string
-import sys
 from keyword import iskeyword
 
 import pythoncom
