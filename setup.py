@@ -814,7 +814,6 @@ class my_build_ext(build_ext):
         new_sources = []
         swig_sources = []
         swig_targets = {}
-        # TODO
         # XXX this drops generated C/C++ files into the source tree, which
         # is fine for developers who want to distribute the generated
         # source -- but there should be an option to put SWIG output in

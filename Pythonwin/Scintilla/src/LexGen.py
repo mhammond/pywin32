@@ -201,9 +201,7 @@ def FindProperties(lexFile):
 
 
 def ciCompare(a, b):
-    a_lower = a.lower()
-    b_lower = b.lower()
-    return (a_lower > b_lower) - (a_lower < b_lower)
+    return cmp(a.lower(), b.lower())
 
 
 def RegenerateAll():

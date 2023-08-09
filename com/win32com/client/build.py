@@ -629,7 +629,6 @@ def _BuildArgList(fdesc, names):
         names.append("arg%d" % (len(names),))
     # As per BuildCallList(), avoid huge lines.
     # Hack a "\n" at the end of every 5th name
-    # TODO: "strides" would be handy here but don't exist in 2.2
     for i in range(0, len(names), 5):
         names[i] = names[i] + "\n\t\t\t"
     return "," + ", ".join(names)

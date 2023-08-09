@@ -180,15 +180,15 @@ def SORTIDFROMLCID(lcid):
 
 
 def UNREFERENCED_PARAMETER(P):
-    return P
+    return
 
 
 def DBG_UNREFERENCED_PARAMETER(P):
-    return P
+    return
 
 
 def DBG_UNREFERENCED_LOCAL_VARIABLE(V):
-    return V
+    return
 
 
 MAXIMUM_WAIT_OBJECTS = 64

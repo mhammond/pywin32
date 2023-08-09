@@ -430,8 +430,7 @@ def HaveGoodGUI():
 def CreateDefaultGUI(appClass=None):
     """Creates a default GUI environment"""
     if appClass is None:
-        # Bring in the default app - could be param'd later.
-        from . import intpyapp
+        from . import intpyapp  # Bring in the default app - could be param'd later.
 
         appClass = intpyapp.InteractivePythonApp
     # Create and init the app.
