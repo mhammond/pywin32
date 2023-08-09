@@ -879,7 +879,6 @@ class my_build_ext(build_ext):
                         # A class deriving from other than the default
                         swig_cmd.extend(["-com_interface_parent", interface_parent])
 
-            # TODO
             # This 'newer' check helps python 2.2 builds, which otherwise
             # *always* regenerate the .cpp files, meaning every future
             # build for any platform sees these as dirty.
