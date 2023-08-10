@@ -206,7 +206,7 @@ _this_is_a_test_of_stderr_\r
     try:
         cmd = open(cmd_name, "w+b")
         out = open(out_name, "w+b")
-        cmd.write(cmdString.encode("utf-8"))
+        cmd.write(cmdString.encode("mbcs"))
         cmd.seek(0)
         print(
             "CMD.EXE exit code:",

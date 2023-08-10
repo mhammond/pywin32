@@ -228,7 +228,7 @@ def FindWebServer(options, server_desc):
     # make sure server_desc is unicode (could be mbcs if passed in
     #  sys.argv).
     if server_desc and not isinstance(server_desc, str):
-        server_desc = server_desc.decode("utf-8")
+        server_desc = server_desc.decode("mbcs")
 
     # get the server (if server_desc is None, the default site is acquired)
     server = GetWebServer(server_desc)

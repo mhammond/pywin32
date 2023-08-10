@@ -129,7 +129,7 @@ def main():
                 verbose = 1
             if o == "-l":
                 testLargeMessage(server)
-        msg = " ".join(args).encode("utf-8")
+        msg = " ".join(args).encode("mbcs")
     except getopt.error as msg:
         print(msg)
         my_name = os.path.split(sys.argv[0])[1]

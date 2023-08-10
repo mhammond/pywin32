@@ -179,8 +179,6 @@ class HierList(object.Object):
         bitmapSel = self.GetSelectedBitmapColumn(item)
         if bitmapSel is None:
             bitmapSel = bitmapCol
-        ## if isinstance(text, str):
-        ##  text = text.encode("utf-8")
         hitem = self.listControl.InsertItem(
             parentHandle,
             hInsertAfter,
