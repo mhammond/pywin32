@@ -34,10 +34,7 @@ Usage:
 
   -h    -- Do not generate hidden methods.
 
-  -u    -- Python 1.5 and earlier: Do NOT convert all Unicode objects to
-           strings.
-
-           Python 1.6 and later: Convert all Unicode objects to strings.
+  -u    -- Convert all Unicode objects to strings.
 
   -o    -- Create output in a specified output file.  If the path leading
            to the file does not exist, any missing directories will be
@@ -74,8 +71,6 @@ import pythoncom
 from win32com.client import Dispatch, gencache, genpy, selecttlb
 
 bForDemandDefault = 0  # Default value of bForDemand - toggle this to change the world - see also gencache.py
-
-error = "makepy.error"
 
 
 def usage():
@@ -410,7 +405,7 @@ def main():
             elif o == "-d":
                 bForDemand = not bForDemand
 
-    except (getopt.error, error) as msg:
+    except getopt.error as msg:
         sys.stderr.write(str(msg) + "\n")
         usage()
 
@@ -430,12 +425,8 @@ def main():
         path = os.path.dirname(outputName)
         if path != "" and not os.path.exists(path):
             os.makedirs(path)
-        if sys.version_info > (3, 0):
-            f = open(outputName, "wt", encoding="mbcs")
-        else:
-            import codecs  # not available in py3k.
+        f = open(outputName, "wt", encoding="mbcs")
 
-            f = codecs.open(outputName, "w", "mbcs")
     else:
         f = None
 

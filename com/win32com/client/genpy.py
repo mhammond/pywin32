@@ -34,22 +34,22 @@ GEN_DEMAND_CHILD = "demand(child)"
 # does not use this map at runtime - all Alias/Enum have already
 # been translated.
 mapVTToTypeString = {
-    pythoncom.VT_I2: "types.IntType",
-    pythoncom.VT_I4: "types.IntType",
-    pythoncom.VT_R4: "types.FloatType",
-    pythoncom.VT_R8: "types.FloatType",
-    pythoncom.VT_BSTR: "types.StringType",
-    pythoncom.VT_BOOL: "types.IntType",
-    pythoncom.VT_VARIANT: "types.TypeType",
-    pythoncom.VT_I1: "types.IntType",
-    pythoncom.VT_UI1: "types.IntType",
-    pythoncom.VT_UI2: "types.IntType",
-    pythoncom.VT_UI4: "types.IntType",
-    pythoncom.VT_I8: "types.LongType",
-    pythoncom.VT_UI8: "types.LongType",
-    pythoncom.VT_INT: "types.IntType",
-    pythoncom.VT_DATE: "pythoncom.PyTimeType",
-    pythoncom.VT_UINT: "types.IntType",
+    pythoncom.VT_I2: "int",
+    pythoncom.VT_I4: "int",
+    pythoncom.VT_R4: "float",
+    pythoncom.VT_R8: "float",
+    pythoncom.VT_BSTR: "str",
+    pythoncom.VT_BOOL: "int",
+    pythoncom.VT_VARIANT: "type",
+    pythoncom.VT_I1: "int",
+    pythoncom.VT_UI1: "int",
+    pythoncom.VT_UI2: "int",
+    pythoncom.VT_UI4: "int",
+    pythoncom.VT_I8: "int",
+    pythoncom.VT_UI8: "int",
+    pythoncom.VT_INT: "int",
+    pythoncom.VT_DATE: "datetime.date",
+    pythoncom.VT_UINT: "int",
 }
 
 
@@ -107,16 +107,7 @@ def WriteSinkEventMap(obj, stream):
 # MI is used to join my writable helpers, and the OLE
 # classes.
 class WritableItem:
-    # __cmp__ used for sorting in py2x...
-    def __cmp__(self, other):
-        "Compare for sorting"
-        ret = cmp(self.order, other.order)
-        if ret == 0 and self.doc:
-            ret = cmp(self.doc[0], other.doc[0])
-        return ret
-
-    # ... but not used in py3k - __lt__ minimum needed there
-    def __lt__(self, other):  # py3k variant
+    def __lt__(self, other):
         if self.order == other.order:
             return self.doc < other.doc
         return self.order < other.order
@@ -747,12 +738,12 @@ class DispatchItem(build.DispatchItem, WritableItem):
             )
             for line in ret:
                 print(line, file=stream)
-            # Also include a __nonzero__
+            # Also include a __bool__
             print(
                 "\t#This class has a __len__ - this is needed so 'if object:' always returns TRUE.",
                 file=stream,
             )
-            print("\tdef __nonzero__(self):", file=stream)
+            print("\tdef __bool__(self):", file=stream)
             print("\t\treturn True", file=stream)
 
 

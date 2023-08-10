@@ -146,7 +146,7 @@ class DemoWindowBase:
         wc.cbWndExtra = win32con.DLGWINDOWEXTRA + struct.calcsize("Pi")
         icon_flags = win32con.LR_LOADFROMFILE | win32con.LR_DEFAULTSIZE
 
-        ## py.ico went away in Python 2.5, load from executable instead
+        ## load icon from executable
         this_app = win32api.GetModuleHandle(None)
         try:
             wc.hIcon = win32gui.LoadIcon(this_app, 1)  ## python.exe and pythonw.exe

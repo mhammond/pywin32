@@ -8,7 +8,6 @@ def ad_escape(s):
 
 
 Print = __builtins__.__dict__["print"]
-long = int
 
 
 class DocInfo:

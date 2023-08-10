@@ -3,7 +3,7 @@
 # PyWin32 Internet Explorer Toolbar
 #
 # written by Leonard Ritter (paniq@gmx.net)
-# and Robert Förtsch (info@robert-foertsch.com)
+# and Robert FÃ¶rtsch (info@robert-foertsch.com)
 
 
 """

@@ -31,7 +31,7 @@ def __import_pywin32_system_module__(modname, globs):
         suffix,
     )
     if hasattr(sys, "frozen"):
-        # If we are running from a frozen program (py2exe, McMillan, freeze)
+        # If we are running from a frozen program (py2exe, McMillan, freeze, PyInstaller)
         # then we try and load the DLL from our sys.path
         # XXX - This path may also benefit from _win32sysloader?  However,
         # MarkH has never seen the DLL load problem with py2exe programs...

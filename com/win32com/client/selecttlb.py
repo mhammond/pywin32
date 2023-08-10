@@ -27,7 +27,7 @@ class TypelibSpec:
             return self.ver_desc
         raise IndexError("Cant index me!")
 
-    def __lt__(self, other):  # rich-cmp/py3k-friendly version
+    def __lt__(self, other):
         me = (
             (self.ver_desc or "").lower(),
             (self.desc or "").lower(),
@@ -42,7 +42,7 @@ class TypelibSpec:
         )
         return me < them
 
-    def __eq__(self, other):  # rich-cmp/py3k-friendly version
+    def __eq__(self, other):
         return (
             (self.ver_desc or "").lower() == (other.ver_desc or "").lower()
             and (self.desc or "").lower() == (other.desc or "").lower()
