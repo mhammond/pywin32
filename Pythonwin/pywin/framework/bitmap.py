@@ -28,7 +28,7 @@ class BitmapDocument(docview.Document):
         try:
             try:
                 self.bitmap.LoadBitmapFile(f)
-            except IOError:
+            except OSError:
                 win32ui.MessageBox("Could not load the bitmap from %s" % filename)
                 return 0
         finally:

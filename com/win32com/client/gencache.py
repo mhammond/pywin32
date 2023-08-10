@@ -61,7 +61,7 @@ def __init__():
     # Initialize the module.  Called once explicitly at module import below.
     try:
         _LoadDicts()
-    except IOError:
+    except OSError:
         Rebuild()
 
 
@@ -100,7 +100,7 @@ def _LoadDicts():
         except AttributeError:
             # The __loader__ has no get_data method.  See below.
             return
-        except IOError:
+        except OSError:
             # Our gencache is in a .zip file (and almost certainly readonly)
             # but no dicts file.  That actually needn't be fatal for a frozen
             # application.  Assuming they call "EnsureModule" with the same

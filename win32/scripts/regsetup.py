@@ -506,9 +506,9 @@ Attempts to setup the core Python.  Looks in some standard places,
 as well as the 2 wierd spots to locate the core Python files (eg, Python.exe,
 pythonXX.dll, the standard library and Win32 Extensions.
 
-"regsetup -a myappname . .\subdir"
+"regsetup -a myappname . .\\subdir"
 Registers a new Pythonpath entry named myappname, with "C:\\I\\AM\\HERE" and
-"C:\\I\\AM\\HERE\subdir" added to the path (ie, all args are converted to
+"C:\\I\\AM\\HERE\\subdir" added to the path (ie, all args are converted to
 absolute paths)
 
 "regsetup -c c:\\my\\python\\files"

@@ -11,7 +11,7 @@ Converts an AutoDuck .IDX file into a HTML Help index file.
 def main():
     file = sys.argv[1]
     output = sys.argv[2]
-    input = open(file, "r")
+    input = open(file)
     out = open(output, "w")
     line = input.readline()
     out.write(

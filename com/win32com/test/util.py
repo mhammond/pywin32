@@ -45,7 +45,7 @@ def RegisterPythonServer(filename, progids=None, verbose=0):
                 HKCR = winreg.HKEY_CLASSES_ROOT
                 hk = winreg.OpenKey(HKCR, "CLSID\\%s" % clsid)
                 dll = winreg.QueryValue(hk, "InprocServer32")
-            except WindowsError:
+            except OSError:
                 # no CLSID or InProcServer32 - not registered
                 break
             ok_files = [
@@ -104,7 +104,7 @@ def ExecuteShellCommand(
     output_name = tempfile.mktemp("win32com_test")
     cmd = cmd + ' > "%s" 2>&1' % output_name
     rc = os.system(cmd)
-    output = open(output_name, "r").read().strip()
+    output = open(output_name).read().strip()
     os.remove(output_name)
 
     class Failed(Exception):

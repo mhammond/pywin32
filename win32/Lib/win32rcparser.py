@@ -584,21 +584,21 @@ def ParseStreams(rc_file, h_file):
 
 def Parse(rc_name, h_name=None):
     if h_name:
-        h_file = open(h_name, "r")
+        h_file = open(h_name)
     else:
         # See if same basename as the .rc
         h_name = rc_name[:-2] + "h"
         try:
-            h_file = open(h_name, "r")
-        except IOError:
+            h_file = open(h_name)
+        except OSError:
             # See if MSVC default of 'resource.h' in the same dir.
             h_name = os.path.join(os.path.dirname(rc_name), "resource.h")
             try:
-                h_file = open(h_name, "r")
-            except IOError:
+                h_file = open(h_name)
+            except OSError:
                 # .h files are optional anyway
                 h_file = None
-    rc_file = open(rc_name, "r")
+    rc_file = open(rc_name)
     try:
         return ParseStreams(rc_file, h_file)
     finally:
@@ -617,7 +617,7 @@ def GenerateFrozenResource(rc_name, output_name, h_name=None):
     rcp = Parse(rc_name, h_name)
     in_stat = os.stat(rc_name)
 
-    out = open(output_name, "wt")
+    out = open(output_name, "w")
     out.write("#%s\n" % output_name)
     out.write("#This is a generated file. Please edit %s instead.\n" % rc_name)
     out.write("__version__=%r\n" % __version__)

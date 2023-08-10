@@ -465,7 +465,7 @@ def main():
     cats = parseCategories()
     for cat in cats:
         file = os.path.join(gen_dir, cat.dump_file)
-        input = open(file, "r")
+        input = open(file)
         parseTopics(cat, input)
         input.close()
 

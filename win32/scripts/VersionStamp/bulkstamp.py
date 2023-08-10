@@ -85,7 +85,7 @@ def load_descriptions(fname, vars):
     retvars = {}
     descriptions = {}
 
-    lines = open(fname, "r").readlines()
+    lines = open(fname).readlines()
 
     for i in range(len(lines)):
         line = lines[i].strip()

@@ -119,7 +119,7 @@ class ConfigManager:
                             return  # We are ready to roll!
                 finally:
                     cf.close()
-            except (os.error, IOError, EOFError):
+            except (os.error, OSError, EOFError):
                 pass
             fp = open(f)
             b_close = True
@@ -167,7 +167,7 @@ class ConfigManager:
                 marshal.dump(src_stat[stat.ST_MTIME], cf)
                 marshal.dump(self.cache, cf)
                 cf.close()
-            except (IOError, EOFError):
+            except (OSError, EOFError):
                 pass  # Ignore errors - may be read only.
 
     def configure(self, editor, subsections=None):

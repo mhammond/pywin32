@@ -31,7 +31,7 @@ class PyHandleTestCase(unittest.TestCase):
             try:
                 f1(invalidate)
             except ZeroDivisionError as exc:
-                raise IOError("raise 2")
+                raise OSError("raise 2")
 
         self.assertRaises(IOError, f2, False)
         # Now do it again, but so the auto object destruction

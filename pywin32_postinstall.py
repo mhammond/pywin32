@@ -27,7 +27,7 @@ class Tee:
         if self.f is not None:
             try:
                 self.f.write(what.replace("\n", "\r\n"))
-            except IOError:
+            except OSError:
                 pass
         tee_f.write(what)
 
@@ -35,7 +35,7 @@ class Tee:
         if self.f is not None:
             try:
                 self.f.flush()
-            except IOError:
+            except OSError:
                 pass
         tee_f.flush()
 
@@ -423,11 +423,11 @@ def install(lib_dir):
         for root in winreg.HKEY_LOCAL_MACHINE, winreg.HKEY_CURRENT_USER:
             try:
                 winreg.DeleteKey(root, keyname + "\\Debug")
-            except WindowsError:
+            except OSError:
                 pass
             try:
                 winreg.DeleteKey(root, keyname)
-            except WindowsError:
+            except OSError:
                 pass
     LoadSystemModule(lib_dir, "pywintypes")
     LoadSystemModule(lib_dir, "pythoncom")

@@ -78,11 +78,11 @@ class EditorDocumentBase(ParentEditorDocument):
             # and the file may be a hard-link, causing the link
             # to follow the backup.
             shutil.copy2(fileName, bakFileName)
-        except (os.error, NameError, IOError):
+        except (os.error, NameError, OSError):
             pass
         try:
             self.SaveFile(fileName)
-        except IOError as details:
+        except OSError as details:
             win32ui.MessageBox("Error - could not save file\r\n\r\n%s" % details)
             return 0
         except (UnicodeEncodeError, LookupError) as details:
@@ -99,7 +99,7 @@ class EditorDocumentBase(ParentEditorDocument):
             if rc == win32con.IDYES:
                 try:
                     self.SaveFile(fileName, encoding="latin-1")
-                except IOError as details:
+                except OSError as details:
                     win32ui.MessageBox(
                         "Error - could not save file\r\n\r\n%s" % details
                     )

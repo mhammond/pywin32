@@ -1,5 +1,3 @@
-# -*- coding: latin-1 -*-
-
 # PyWin32 Internet Explorer Toolbar
 #
 # written by Leonard Ritter (paniq@gmx.net)
@@ -328,7 +326,7 @@ def DllRegisterServer():
         subKey = winreg.SetValueEx(
             hkey, comclass._reg_clsid_, 0, winreg.REG_BINARY, "\0"
         )
-    except WindowsError:
+    except OSError:
         print(
             "Couldn't set registry value.\nhkey: %d\tCLSID: %s\n"
             % (hkey, comclass._reg_clsid_)
@@ -351,7 +349,7 @@ def DllUnregisterServer():
             winreg.HKEY_LOCAL_MACHINE, "SOFTWARE\\Microsoft\\Internet Explorer\\Toolbar"
         )
         winreg.DeleteValue(hkey, comclass._reg_clsid_)
-    except WindowsError:
+    except OSError:
         print(
             "Couldn't delete registry value.\nhkey: %d\tCLSID: %s\n"
             % (hkey, comclass._reg_clsid_)

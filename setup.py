@@ -306,7 +306,7 @@ class WinExt_win32com_mapi(WinExt_win32com):
                 if type_id == winreg.REG_SZ:
                     sdk_install_dir = value
                     break
-            except WindowsError:
+            except OSError:
                 pass
         if sdk_install_dir is not None:
             d = os.path.join(sdk_install_dir, "SDK", "Include")
@@ -368,7 +368,7 @@ class my_build(build):
             f = open(ver_fname, "w")
             f.write("%s\n" % build_id)
             f.close()
-        except EnvironmentError as why:
+        except OSError as why:
             print("Failed to open '%s': %s" % (ver_fname, why))
 
 

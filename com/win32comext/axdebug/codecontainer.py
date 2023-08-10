@@ -224,8 +224,8 @@ class SourceModuleContainer(SourceCodeContainer):
             fname = self.GetFileName()
             if fname:
                 try:
-                    self.text = open(fname, "r").read()
-                except IOError as details:
+                    self.text = open(fname).read()
+                except OSError as details:
                     self.text = "# Exception opening file\n# %s" % (repr(details))
             else:
                 self.text = "# No file available for module '%s'" % (self.module)

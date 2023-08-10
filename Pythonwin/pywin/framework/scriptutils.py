@@ -101,8 +101,8 @@ def IsOnPythonPath(path):
 
 def GetPackageModuleName(fileName):
     """Given a filename, return (module name, new path).
-    eg - given "c:\a\b\c\my.py", return ("b.c.my",None) if "c:\a" is on sys.path.
-    If no package found, will return ("my", "c:\a\b\c")
+    eg - given "c:\a\b\\c\\my.py", return ("b.c.my",None) if "c:\a" is on sys.path.
+    If no package found, will return ("my", "c:\a\b\\c")
     """
     path, fname = os.path.split(fileName)
     path = origPath = win32ui.FullPath(path)
@@ -308,7 +308,7 @@ def RunScript(defName=None, defArgs=None, bShowDialog=1, debuggingType=None):
     # So: do the binary thing and manually normalize \r\n.
     try:
         f = open(script, "rb")
-    except IOError as exc:
+    except OSError as exc:
         win32ui.MessageBox(
             "The file could not be opened - %s (%d)" % (exc.strerror, exc.errno)
         )
@@ -505,7 +505,7 @@ def CheckFile():
     win32ui.DoWaitCursor(1)
     try:
         f = open(pathName)
-    except IOError as details:
+    except OSError as details:
         print("Cant open file '%s' - %s" % (pathName, details))
         return
     try:

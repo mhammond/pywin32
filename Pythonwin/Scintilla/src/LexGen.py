@@ -107,7 +107,7 @@ def UpdateFile(filename, updated):
     it as modified."""
     try:
         infile = open(filename, "rb")
-    except IOError:  # File is not there yet
+    except OSError:  # File is not there yet
         out = open(filename, "wb")
         out.write(updated)
         out.close()
@@ -135,8 +135,8 @@ def Generate(inpath, outpath, commentPrefix, eolType, *lists):
     # print "generate '%s' -> '%s' (comment prefix: %r, eols: %r)"\
     #      % (inpath, outpath, commentPrefix, eolType)
     try:
-        infile = open(inpath, "r")
-    except IOError:
+        infile = open(inpath)
+    except OSError:
         print("Can not open", inpath)
         return
     original = infile.read()

@@ -56,7 +56,7 @@ def SubstituteInString(inString, evalEnv):
 
 
 def SubstituteInFile(inName, outName, evalEnv):
-    inFile = open(inName, "r")
+    inFile = open(inName)
     try:
         outFile = open(outName, "w")
         try:
