@@ -72,8 +72,6 @@ from win32com.client import Dispatch, gencache, genpy, selecttlb
 
 bForDemandDefault = 0  # Default value of bForDemand - toggle this to change the world - see also gencache.py
 
-error = "makepy.error"
-
 
 def usage():
     sys.stderr.write(usageHelp)
@@ -407,7 +405,7 @@ def main():
             elif o == "-d":
                 bForDemand = not bForDemand
 
-    except (getopt.error, error) as msg:
+    except getopt.error as msg:
         sys.stderr.write(str(msg) + "\n")
         usage()
 
@@ -427,8 +425,7 @@ def main():
         path = os.path.dirname(outputName)
         if path != "" and not os.path.exists(path):
             os.makedirs(path)
-
-        f = open(outputName, "wt", encoding="utf-8")
+        f = open(outputName, "wt", encoding="mbcs")
 
     else:
         f = None

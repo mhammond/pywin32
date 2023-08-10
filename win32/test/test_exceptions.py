@@ -1,5 +1,4 @@
 """Test pywin32's error semantics"""
-import sys
 import unittest
 
 import pythoncom
@@ -11,10 +10,7 @@ import winerror
 
 class TestBase(unittest.TestCase):
     def _testExceptionIndex(self, exc, index, expected):
-        # check the exception itself can be indexed if not py3k
-        if sys.version_info < (3,):
-            self.assertEqual(exc[index], expected)
-        # and that exception.args can is the same.
+        # Check that exception.args is the same.
         self.assertEqual(exc.args[index], expected)
 
 
@@ -66,10 +62,7 @@ class TestAPISimple(TestBase):
         err_msg = win32api.FormatMessage(winerror.ERROR_INVALID_HANDLE).rstrip()
         # early on the result actually *was* a tuple - it must be able to be one
         err_tuple = (winerror.ERROR_INVALID_HANDLE, "CloseHandle", err_msg)
-        if sys.version_info < (3,):
-            self.assertEqual(tuple(exc), err_tuple)
-        else:
-            self.assertEqual(exc.args, err_tuple)
+        self.assertEqual(exc.args, err_tuple)
 
     def testClassName(self):
         exc = self._getInvalidHandleException()
@@ -159,10 +152,7 @@ class TestCOMSimple(TestBase):
         err_msg = win32api.FormatMessage(winerror.STG_E_INVALIDFLAG).rstrip()
         # early on the result actually *was* a tuple - it must be able to be one
         err_tuple = (winerror.STG_E_INVALIDFLAG, err_msg, None, None)
-        if sys.version_info < (3,):
-            self.assertEqual(tuple(exc), err_tuple)
-        else:
-            self.assertEqual(exc.args, err_tuple)
+        self.assertEqual(exc.args, err_tuple)
 
     def testClassName(self):
         exc = self._getException()

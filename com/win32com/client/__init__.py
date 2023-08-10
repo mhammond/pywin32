@@ -623,7 +623,7 @@ class CoClassBaseClass:
             "__int__",
             "__iter__",
             "__len__",
-            "__nonzero__",
+            "__bool__",
         ]:
             if hasattr(dispobj, maybe):
                 setattr(self, maybe, getattr(self, "__maybe" + maybe))
@@ -673,8 +673,8 @@ class CoClassBaseClass:
     def __maybe__len__(self):
         return self.__dict__["_dispobj_"].__len__()
 
-    def __maybe__nonzero__(self):
-        return self.__dict__["_dispobj_"].__nonzero__()
+    def __maybe__bool__(self):
+        return self.__dict__["_dispobj_"].__bool__()
 
 
 # A very simple VARIANT class.  Only to be used with poorly-implemented COM
@@ -682,7 +682,7 @@ class CoClassBaseClass:
 # is very pickly about the actual variant type (eg, isn't happy with a VT_I4,
 # which it would get from a Python integer), you can use this to force a
 # particular VT.
-class VARIANT(object):
+class VARIANT:
     def __init__(self, vt, value):
         self.varianttype = vt
         self._value = value

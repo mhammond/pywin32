@@ -127,7 +127,7 @@ class StreamTest(win32com.test.util.TestCase):
     def testseek(self):
         s = Stream(b"yo")
         s = win32com.server.util.wrap(s, pythoncom.IID_IStream)
-        # we used to die in py3k passing a value > 32bits
+        # we used to die passing a value > 32bits
         s.Seek(0x100000000, pythoncom.STREAM_SEEK_SET)
 
     def testerrors(self):

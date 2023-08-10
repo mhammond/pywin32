@@ -140,7 +140,7 @@ Sell you soul to the devil, baby
 """
 
     def fake_input(prompt=None):
-        """Replacement for raw_input() which pulls lines out of global test_input.
+        """Replacement for input() which pulls lines out of global test_input.
         For testing only!
         """
         global test_input

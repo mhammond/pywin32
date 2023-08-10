@@ -90,9 +90,10 @@ class Dialog(window.Wnd):
     def values(self):
         return list(self.data.values())
 
-    # XXX - needs py3k work!
-    def has_key(self, key):
+    def __contains__(self, key):
         return key in self.data
+
+    has_key = __contains__
 
 
 class PrintDialog(Dialog):

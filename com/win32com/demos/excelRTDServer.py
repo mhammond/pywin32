@@ -69,7 +69,7 @@ universal.RegisterInterfaces(
 )
 
 
-class ExcelRTDServer(object):
+class ExcelRTDServer:
     """Base RTDServer class.
 
     Provides most of the features needed to implement the IRtdServer interface.
@@ -260,7 +260,7 @@ class ExcelRTDServer(object):
         pass
 
 
-class RTDTopic(object):
+class RTDTopic:
     """Base RTD Topic.
     Only method required by our RTDServer implementation is GetValue().
     The others are more for convenience."""

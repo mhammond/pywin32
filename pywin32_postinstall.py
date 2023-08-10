@@ -69,7 +69,7 @@ root_key_name = "Software\\Python\\PythonCore\\" + sys.winver
 try:
     # When this script is run from inside the bdist_wininst installer,
     # file_created() and directory_created() are additional builtin
-    # functions which write lines to Python23\pywin32-install.log. This is
+    # functions which write lines to PythonXX\pywin32-install.log. This is
     # a list of actions for the uninstaller, the format is inspired by what
     # the Wise installer also creates.
     file_created

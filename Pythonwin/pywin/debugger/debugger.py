@@ -695,13 +695,12 @@ class Debugger(debugger_parent):
         if self.get_option(OPT_STOP_EXCEPTIONS):
             frame.f_locals["__exception__"] = exc_type, exc_value
             print("Unhandled exception while debugging...")
-            # on both py2k and py3k, we may be called with exc_value
+            # We may be called with exc_value
             # being the args to the exception, or it may already be
             # instantiated (IOW, PyErr_Normalize() hasn't been
-            # called on the args).  In py2k this is fine, but in
-            # py3k, traceback.print_exception fails.  So on py3k
-            # we instantiate an exception instance to print.
-            if sys.version_info > (3,) and not isinstance(exc_value, BaseException):
+            # called on the args). traceback.print_exception fails.
+            # So we instantiate an exception instance to print.
+            if not isinstance(exc_value, BaseException):
                 # they are args - may be a single item or already a tuple
                 if not isinstance(exc_value, tuple):
                     exc_value = (exc_value,)

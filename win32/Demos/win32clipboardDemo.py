@@ -1,7 +1,6 @@
 # win32clipboardDemo.py
 #
 # Demo/test of the win32clipboard module.
-
 import win32con
 from win32clipboard import *
 
@@ -115,8 +114,8 @@ class Foo:
     def __init__(self, **kw):
         self.__dict__.update(kw)
 
-    def __cmp__(self, other):
-        return cmp(self.__dict__, other.__dict__)
+    def __lt__(self, other):
+        return self.__dict__ < other.__dict__
 
     def __eq__(self, other):
         return self.__dict__ == other.__dict__

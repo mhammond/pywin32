@@ -80,7 +80,7 @@ prop = "Property Value"
 sub hello(arg1)
    test.echo arg1
 end sub
-  
+
 sub testcollection
    test.verbose = 1
    for each item in test.collection
@@ -88,16 +88,15 @@ sub testcollection
    next
 end sub
 """
-if sys.version_info < (3,):
-    PyScript = """print "PyScript is being parsed..."\n"""
-else:
-    PyScript = """print("PyScript is being parsed...")\n"""
-PyScript += """\
+
+PyScript = """\
+print("PyScript is being parsed...")\n
+
 prop = "Property Value"
 def hello(arg1):
    test.echo(arg1)
    pass
-   
+
 def testcollection():
    test.verbose = 1
 #   test.collection[1] = "New one"
