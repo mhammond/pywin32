@@ -4,6 +4,7 @@ A code container is a class which holds source code for a debugger.  It knows ho
 to color the text, and also how to translate lines into offsets, and back.
 """
 
+import os
 import sys
 import tokenize
 

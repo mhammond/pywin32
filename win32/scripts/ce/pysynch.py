@@ -5,6 +5,7 @@ import getopt
 import os
 import string
 import sys
+from collections.abc import Callable
 
 import win32api
 import win32con

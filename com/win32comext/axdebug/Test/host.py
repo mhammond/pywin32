@@ -2,6 +2,7 @@ import os
 import traceback
 
 import pythoncom
+import ttest
 import win32api
 import win32com.server.util
 import winerror
@@ -97,12 +98,12 @@ class PySourceModuleDebugDocumentHost(gateways.DebugDocumentHost):
         try:
             return win32api.GetFullPathName(self.module.__file__), 1
         except (AttributeError, win32api.error):
-            raise Exception(scode == E_FAIL)
+            raise Exception(scode=winerror.E_FAIL)
 
     def GetFileName(self):
         # Result is a string with just the name of the document, no path information.
         trace("GetFileName")
-        return os.path.split(module.__file__)
+        return os.path.split(self.module.__file__)
 
     def NotifyChanged():
         trace("NotifyChanged")
@@ -171,15 +172,15 @@ def TestSmartProvider():
 
 def test():
     try:
-        # 		app = TestSmartHelper()
+        # app = TestSmartHelper()
         app = TestSmartProvider()
-    # 		app = testdumb()
+        # app = testdumb()
     except:
         traceback.print_exc()
 
 
-# 	_wrap_remove(externalConnectionManager)
-# 	wrappedExternalConnectionManager = None
+# _wrap_remove(externalConnectionManager)
+# wrappedExternalConnectionManager = None
 
 if __name__ == "__main__":
     test()

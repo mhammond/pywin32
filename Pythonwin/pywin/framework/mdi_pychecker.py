@@ -38,6 +38,7 @@ import os
 import re
 import sys
 import time
+from functools import reduce
 
 import win32api
 import win32con

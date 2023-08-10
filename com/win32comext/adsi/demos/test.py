@@ -1,5 +1,6 @@
 import string
 import sys
+from collections.abc import Callable
 
 import pythoncom
 import win32api

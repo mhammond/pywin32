@@ -6,6 +6,8 @@ import traceback
 from sys import exc_info
 
 import pythoncom
+import pywin.debugger
+import pywin.debugger.dbgcon
 import win32api
 import win32com
 from win32com.server.exception import IsCOMServerException
@@ -255,7 +257,6 @@ class DispatcherWin32dbg(DispatcherBase):
         """Invoke the debugger post mortem capability"""
         # Save details away.
         typ, val, tb = exc_info()
-        # import pywin.debugger, pywin.debugger.dbgcon
         debug = 0
         try:
             raise typ(val)

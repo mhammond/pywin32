@@ -2,6 +2,7 @@
 #
 # copies PyWinTypesxx.dll and PythonCOMxx.dll into the system directory,
 # and creates a pth file
+import argparse
 import glob
 import os
 import shutil

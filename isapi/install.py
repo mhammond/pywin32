@@ -209,8 +209,8 @@ def GetWebServer(description=None):
 def LoadWebServer(path):
     try:
         server = GetObject(path)
-    except pythoncom.com_error as details:
-        msg = details.strerror
+    except pythoncom.com_error as exc:
+        msg = exc.strerror
         if exc.excepinfo and exc.excepinfo[2]:
             msg = exc.excepinfo[2]
         msg = "WebServer %s: %s" % (path, msg)
