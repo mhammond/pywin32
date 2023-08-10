@@ -19,11 +19,6 @@ import win32timezone
 import winerror
 from pywin32_testutil import TestSkipped, testmain
 
-try:
-    set
-except NameError:
-    from sets import Set as set
-
 
 class TestReadBuffer(unittest.TestCase):
     def testLen(self):

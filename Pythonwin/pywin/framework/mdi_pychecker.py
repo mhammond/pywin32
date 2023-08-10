@@ -17,7 +17,7 @@
 ## the PATH. Example pychecker.bat:
 ##
 ##   REM pychecker.bat
-##   C:\bin\python.exe C:\PYTHON23\Lib\site-packages\pychecker\checker.py %1 %2 %3 %4 %5 %6 %7 %8 %9
+##   C:\bin\python.exe C:\PythonXX\Lib\site-packages\pychecker\checker.py %1 %2 %3 %4 %5 %6 %7 %8 %9
 ##
 ## Adding it as default module in PythonWin:
 ##

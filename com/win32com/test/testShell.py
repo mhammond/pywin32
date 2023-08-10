@@ -3,17 +3,11 @@ import os
 import struct
 import sys
 
-import win32timezone
-
-try:
-    sys_maxsize = sys.maxsize  # 2.6 and later - maxsize != maxint on 64bits
-except AttributeError:
-    sys_maxsize = sys.maxint
-
 import pythoncom
 import pywintypes
 import win32com.test.util
 import win32con
+import win32timezone
 from win32com.shell import shell
 from win32com.shell.shellcon import *
 from win32com.storagecon import *
@@ -168,7 +162,7 @@ class FILEGROUPDESCRIPTORTester(win32com.test.util.TestCase):
             ftCreationTime=ctime,
             ftLastAccessTime=atime,
             ftLastWriteTime=wtime,
-            nFileSize=sys_maxsize + 1,
+            nFileSize=sys.maxsize + 1,
         )
         self._testRT(d)
 
@@ -184,7 +178,7 @@ class FILEGROUPDESCRIPTORTester(win32com.test.util.TestCase):
                 ftCreationTime=ctime,
                 ftLastAccessTime=atime,
                 ftLastWriteTime=wtime,
-                nFileSize=sys_maxsize + 1,
+                nFileSize=sys.maxsize + 1,
             ),
             dict(
                 cFileName="foo2.txt",
@@ -194,7 +188,7 @@ class FILEGROUPDESCRIPTORTester(win32com.test.util.TestCase):
                 ftCreationTime=ctime,
                 ftLastAccessTime=atime,
                 ftLastWriteTime=wtime,
-                nFileSize=sys_maxsize + 1,
+                nFileSize=sys.maxsize + 1,
             ),
             dict(
                 cFileName="foo\xa9.txt",
@@ -204,7 +198,7 @@ class FILEGROUPDESCRIPTORTester(win32com.test.util.TestCase):
                 ftCreationTime=ctime,
                 ftLastAccessTime=atime,
                 ftLastWriteTime=wtime,
-                nFileSize=sys_maxsize + 1,
+                nFileSize=sys.maxsize + 1,
             ),
         ]
         s = shell.FILEGROUPDESCRIPTORAsString(d, 1)

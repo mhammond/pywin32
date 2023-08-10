@@ -1,8 +1,4 @@
 # General utilities for MAPI and MAPI objects.
-# We used to use these old names from the 'types' module...
-TupleType = tuple
-ListType = list
-IntType = int
 import pythoncom
 from pywintypes import TimeType
 
@@ -103,13 +99,13 @@ def GetProperties(obj, propList):
     If the property fetch fails, the result is None.
     """
     bRetList = 1
-    if not isinstance(propList, (TupleType, ListType)):
+    if not isinstance(propList, (tuple, list)):
         bRetList = 0
         propList = (propList,)
     realPropList = []
     rc = []
     for prop in propList:
-        if not isinstance(prop, IntType):  # Integer
+        if not isinstance(prop, int):
             props = ((mapi.PS_PUBLIC_STRINGS, prop),)
             propIds = obj.GetIDsFromNames(props, 0)
             prop = mapitags.PROP_TAG(
@@ -145,19 +141,17 @@ def GetAllProperties(obj, make_tag_names=True):
 
 
 _MapiTypeMap = {
-    type(0.0): mapitags.PT_DOUBLE,
-    type(0): mapitags.PT_I4,
-    type(b""): mapitags.PT_STRING8,  # bytes
-    type(""): mapitags.PT_UNICODE,  # str
+    float: mapitags.PT_DOUBLE,
+    int: mapitags.PT_I4,
+    bytes: mapitags.PT_STRING8,
+    str: mapitags.PT_UNICODE,
     type(None): mapitags.PT_UNSPECIFIED,
-    # In Python 2.2.2, bool isn't a distinct type (type(1==1) is type(0)).
-    # (markh thinks the above is trying to say that in 2020, we probably *do*
-    # want bool in this map? :)
+    bool: mapitags.PT_BOOLEAN,
 }
 
 
 def SetPropertyValue(obj, prop, val):
-    if not isinstance(prop, IntType):
+    if not isinstance(prop, int):
         props = ((mapi.PS_PUBLIC_STRINGS, prop),)
         propIds = obj.GetIDsFromNames(props, mapi.MAPI_CREATE)
         if val == (1 == 1) or val == (1 == 0):

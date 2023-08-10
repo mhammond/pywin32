@@ -74,8 +74,8 @@ class TestStrings(unittest.TestCase):
     def test_unicode_text(self):
         val = "test-val"
         SetClipboardText(val)
-        # GetClipboardData doesn't to auto string conversions - so on py3k,
-        # CF_TEXT returns bytes.
+        # GetClipboardData doesn't do auto string conversions -
+        # so CF_TEXT returns bytes.
         expected = val.encode("latin1")
         self.assertEqual(GetClipboardData(win32con.CF_TEXT), expected)
         SetClipboardText(val, win32con.CF_UNICODETEXT)

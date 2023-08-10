@@ -89,7 +89,7 @@ def IsOnPythonPath(path):
     # must check that the command line arg's path is in sys.path
     for syspath in sys.path:
         try:
-            # Python 1.5 and later allows an empty sys.path entry.
+            # sys.path can have an empty entry.
             if syspath and win32ui.FullPath(syspath) == path:
                 return 1
         except win32ui.error as details:
@@ -305,7 +305,7 @@ def RunScript(defName=None, defArgs=None, bShowDialog=1, debuggingType=None):
     # ignores any encoding decls (bad!).  If we use binary mode we get
     # the raw bytes and Python looks at the encoding (good!) but \r\n
     # chars stay in place so Python throws a syntax error (bad!).
-    # So: so the binary thing and manually normalize \r\n.
+    # So: do the binary thing and manually normalize \r\n.
     try:
         f = open(script, "rb")
     except IOError as exc:
@@ -438,8 +438,7 @@ def ImportFile():
     newPath = None
     # note that some packages (*cough* email *cough*) use "lazy importers"
     # meaning sys.modules can change as a side-effect of looking at
-    # module.__file__ - so we must take a copy (ie, items() in py2k,
-    # list(items()) in py3k)
+    # module.__file__ - so we must take a copy (ie, list(items()))
     for key, mod in list(sys.modules.items()):
         if getattr(mod, "__file__", None):
             fname = mod.__file__

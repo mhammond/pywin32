@@ -332,16 +332,10 @@ def DispatchWithEvents(clsid, user_event_class):
     # If the clsid was an object, get the clsid
     clsid = disp_class.CLSID
     # Create a new class that derives from 3 classes - the dispatch class, the event sink class and the user class.
-    # XXX - we are still "classic style" classes in py2x, so we need can't yet
-    # use 'type()' everywhere - revisit soon, as py2x will move to new-style too...
-    try:
-        from types import ClassType as new_type
-    except ImportError:
-        new_type = type  # py3k
     events_class = getevents(clsid)
     if events_class is None:
         raise ValueError("This COM object does not support events.")
-    result_class = new_type(
+    result_class = type(
         "COMEventClass",
         (disp_class, events_class, user_event_class),
         {"__setattr__": _event_setattr_},
@@ -401,14 +395,10 @@ def WithEvents(disp, user_event_class):
     clsid = disp_class.CLSID
     # Create a new class that derives from 2 classes - the event sink
     # class and the user class.
-    try:
-        from types import ClassType as new_type
-    except ImportError:
-        new_type = type  # py3k
     events_class = getevents(clsid)
     if events_class is None:
         raise ValueError("This COM object does not support events.")
-    result_class = new_type("COMEventClass", (events_class, user_event_class), {})
+    result_class = type("COMEventClass", (events_class, user_event_class), {})
     instance = result_class(disp)  # This only calls the first base class __init__.
     if hasattr(user_event_class, "__init__"):
         user_event_class.__init__(instance)
@@ -633,7 +623,7 @@ class CoClassBaseClass:
             "__int__",
             "__iter__",
             "__len__",
-            "__nonzero__",
+            "__bool__",
         ]:
             if hasattr(dispobj, maybe):
                 setattr(self, maybe, getattr(self, "__maybe" + maybe))
@@ -683,8 +673,8 @@ class CoClassBaseClass:
     def __maybe__len__(self):
         return self.__dict__["_dispobj_"].__len__()
 
-    def __maybe__nonzero__(self):
-        return self.__dict__["_dispobj_"].__nonzero__()
+    def __maybe__bool__(self):
+        return self.__dict__["_dispobj_"].__bool__()
 
 
 # A very simple VARIANT class.  Only to be used with poorly-implemented COM

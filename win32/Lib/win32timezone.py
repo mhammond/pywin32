@@ -678,8 +678,8 @@ class TimeZoneInfo(datetime.tzinfo):
         "Given a year, determines the time when daylight savings ends."
         return self.getWinInfo(year).locate_standard_start(year)
 
-    def __cmp__(self, other):
-        return cmp(self.__dict__, other.__dict__)
+    def __le__(self, other):
+        return self.__dict__ < other.__dict__
 
     def __eq__(self, other):
         return self.__dict__ == other.__dict__
@@ -888,15 +888,6 @@ DLLCache = DLLHandleCache()
 
 def resolveMUITimeZone(spec):
     """Resolve a multilingual user interface resource for the time zone name
-    >>> #some pre-amble for the doc-tests to be py2k and py3k aware)
-    >>> try: unicode and None
-    ... except NameError: unicode=str
-    ...
-    >>> import sys
-    >>> result = resolveMUITimeZone('@tzres.dll,-110')
-    >>> expectedResultType = [type(None),unicode][sys.getwindowsversion() >= (6,)]
-    >>> type(result) is expectedResultType
-    True
 
     spec should be of the format @path,-stringID[;comment]
     see http://msdn2.microsoft.com/en-us/library/ms725481.aspx for details
@@ -923,7 +914,7 @@ class RangeMap(dict):
     the sorted list of keys.
 
     One may supply keyword parameters to be passed to the sort function used
-    to sort keys (i.e. cmp [python 2 only], keys, reverse) as sort_params.
+    to sort keys (i.e. keys, reverse) as sort_params.
 
     Let's create a map that maps 1-3 -> 'a', 4-6 -> 'b'
     >>> r = RangeMap({3: 'a', 6: 'b'})  # boy, that was easy

@@ -8,7 +8,6 @@ tsf_flags = list(
     (k, v) for k, v in list(shellcon.__dict__.items()) if k.startswith("TSF_")
 )
 
-
 TRANSFER_ADVISE_STATES = {}
 for k, v in list(shellcon.__dict__.items()):
     if k.startswith("TS_"):

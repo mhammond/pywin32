@@ -94,7 +94,7 @@ def _cat_registrar():
 
 
 def _find_localserver_exe(mustfind):
-    if not sys.platform.startswith("win32"):
+    if sys.platform != "win32":
         return sys.executable
     if pythoncom.__file__.find("_d") < 0:
         exeBaseName = "pythonw.exe"
