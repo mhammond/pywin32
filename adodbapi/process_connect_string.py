@@ -133,12 +133,4 @@ def process(
                     macro_name, macro_code, kwargs
                 )  # run the code in the local context
                 kwargs[new_key] = rslt  # put the result back in the keywords dict
-    # special processing for PyRO IPv6 host address
-    try:
-        s = kwargs["proxy_host"]
-        if ":" in s:  # it is an IPv6 address
-            if s[0] != "[":  # is not surrounded by brackets
-                kwargs["proxy_host"] = s.join(("[", "]"))  # put it in brackets
-    except KeyError:
-        pass
     return kwargs
