@@ -19,10 +19,6 @@ from pywin32_testutil import LeakTestCase, TestLoader, TestResult, TestRunner
 def CheckClean():
     # Ensure no lingering exceptions - Python should have zero outstanding
     # COM objects
-    try:
-        sys.exc_clear()
-    except AttributeError:
-        pass  # py3k
     c = _GetInterfaceCount()
     if c:
         print("Warning - %d com interface objects still alive" % c)

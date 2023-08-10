@@ -1,5 +1,4 @@
 # General utilities for MAPI and MAPI objects.
-# We used to use these old names from the 'types' module...
 import pythoncom
 from pywintypes import TimeType
 

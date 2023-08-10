@@ -135,14 +135,6 @@ def testcollection():
    pass
 """
 
-# XXX - needs py3k work!  Throwing a bytes string with an extended char
-# doesn't make much sense, but py2x allows it.  What it gets upset with
-# is a real unicode arg - which is the only thing py3k allows!
-PyScript_Exc = """\
-def hello(arg1):
-  raise RuntimeError("exc with extended \xa9har")
-"""
-
 ErrScript = """\
 bad code for everyone!
 """
@@ -247,10 +239,6 @@ class EngineTester(win32com.test.util.TestCase):
 
     def testVBExceptions(self):
         self.assertRaises(pythoncom.com_error, self._TestEngine, "VBScript", ErrScript)
-
-    def testPythonExceptions(self):
-        expected = "RuntimeError: exc with extended \xa9har"
-        self._TestEngine("Python", PyScript_Exc, expected)
 
 
 if __name__ == "__main__":

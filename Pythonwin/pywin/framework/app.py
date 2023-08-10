@@ -400,8 +400,8 @@ class AboutBox(dialog.Dialog):
             )
 
 
-def Win32RawInput(prompt=None):
-    "Provide raw_input() for gui apps"
+def Win32Input(prompt=None):
+    "Provide input() for gui apps"
     # flush stderr/out first.
     try:
         sys.stdout.flush()
@@ -416,22 +416,10 @@ def Win32RawInput(prompt=None):
     return ret
 
 
-def Win32Input(prompt=None):
-    "Provide input() for gui apps"
-    return eval(input(prompt))
-
-
 def HookInput():
-    try:
-        raw_input
-        # must be py2x...
-        sys.modules["__builtin__"].raw_input = Win32RawInput
-        sys.modules["__builtin__"].input = Win32Input
-    except NameError:
-        # must be py3k
-        import code
+    import code
 
-        sys.modules["builtins"].input = Win32RawInput
+    sys.modules["builtins"].input = Win32Input
 
 
 def HaveGoodGUI():

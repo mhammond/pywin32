@@ -14,7 +14,7 @@ custom_format_name = "PythonClipboardTestFormat"
 
 class CrashingTestCase(unittest.TestCase):
     def test_722082(self):
-        class crasher(object):
+        class crasher:
             pass
 
         obj = crasher()

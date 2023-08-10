@@ -3,7 +3,6 @@
 # This requires the PythonCOM VB Test Harness.
 #
 
-import sys
 import traceback
 
 import pythoncom
@@ -11,7 +10,7 @@ import win32com.client
 import win32com.client.dynamic
 import win32com.client.gencache
 import winerror
-from win32com.server.util import NewCollection, wrap
+from win32com.server.util import wrap
 from win32com.test import util
 
 # for debugging
@@ -423,17 +422,16 @@ def TestStructs(vbtest):
     # Now do some object equality tests.
     assert s == s
     assert s is not None
-    if sys.version_info > (3, 0):
-        try:
-            s < None
-            raise error("Expected type error")
-        except TypeError:
-            pass
-        try:
-            None < s
-            raise error("Expected type error")
-        except TypeError:
-            pass
+    try:
+        s < None
+        raise error("Expected type error")
+    except TypeError:
+        pass
+    try:
+        None < s
+        raise error("Expected type error")
+    except TypeError:
+        pass
     assert s != s.sub_val
     import copy
 
@@ -527,17 +525,16 @@ def TestObjectSemantics(ob):
     assert None != ob._oleobj_
     assert ob is not None
     assert None != ob
-    if sys.version_info > (3, 0):
-        try:
-            ob < None
-            raise error("Expected type error")
-        except TypeError:
-            pass
-        try:
-            None < ob
-            raise error("Expected type error")
-        except TypeError:
-            pass
+    try:
+        ob < None
+        raise error("Expected type error")
+    except TypeError:
+        pass
+    try:
+        None < ob
+        raise error("Expected type error")
+    except TypeError:
+        pass
 
     assert ob._oleobj_.QueryInterface(pythoncom.IID_IUnknown) == ob._oleobj_
     assert not ob._oleobj_.QueryInterface(pythoncom.IID_IUnknown) != ob._oleobj_

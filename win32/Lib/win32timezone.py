@@ -248,7 +248,7 @@ log = logging.getLogger(__file__)
 
 # A couple of objects for working with objects as if they were native C-type
 # structures.
-class _SimpleStruct(object):
+class _SimpleStruct:
     _fields_ = None  # must be overridden by subclasses
 
     def __init__(self, *args, **kw):
@@ -678,8 +678,8 @@ class TimeZoneInfo(datetime.tzinfo):
         "Given a year, determines the time when daylight savings ends."
         return self.getWinInfo(year).locate_standard_start(year)
 
-    def __cmp__(self, other):
-        return cmp(self.__dict__, other.__dict__)
+    def __le__(self, other):
+        return self.__dict__ < other.__dict__
 
     def __eq__(self, other):
         return self.__dict__ == other.__dict__
@@ -874,7 +874,7 @@ def GetTZCapabilities():
     return locals()
 
 
-class DLLHandleCache(object):
+class DLLHandleCache:
     def __init__(self):
         self.__cache = {}
 
@@ -914,7 +914,7 @@ class RangeMap(dict):
     the sorted list of keys.
 
     One may supply keyword parameters to be passed to the sort function used
-    to sort keys (i.e. cmp [python 2 only], keys, reverse) as sort_params.
+    to sort keys (i.e. keys, reverse) as sort_params.
 
     Let's create a map that maps 1-3 -> 'a', 4-6 -> 'b'
     >>> r = RangeMap({3: 'a', 6: 'b'})  # boy, that was easy
