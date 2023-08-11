@@ -54,11 +54,6 @@ else:
     _wrap = _wrap_nodebug
 
 
-def _wrap_remove(object, iid=None):
-    # Old - no longer used or necessary!
-    return
-
-
 def _dump_wrapped():
     from win32com.server.util import unwrap
 

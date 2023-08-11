@@ -255,7 +255,7 @@ class SourceModuleContainer(SourceCodeContainer):
 
 if __name__ == "__main__":
     sys.path.append(".")
-    import ttest
+    from .Test import ttest
 
     sc = SourceModuleContainer(ttest)
     #       sc = SourceCodeContainer(open(sys.argv[1], "rb").read(), sys.argv[1])

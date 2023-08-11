@@ -13,7 +13,7 @@ from win32com.axdebug import (
     expressions,
     gateways,
 )
-from win32com.axdebug.util import _wrap, _wrap_remove, trace
+from win32com.axdebug.util import _wrap, trace
 from win32com.axscript import axscript
 
 currentDebugger = None

@@ -8,7 +8,7 @@ import winerror
 from win32com.server.exception import COMException
 
 from . import axdebug, gateways
-from .util import RaiseNotImpl, _wrap, _wrap_remove
+from .util import RaiseNotImpl, _wrap
 
 
 # Given an object, return a nice string

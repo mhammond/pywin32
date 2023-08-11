@@ -9,7 +9,7 @@ import traceback
 import pythoncom
 import win32api
 import win32com.client.connect
-from win32com.axdebug.util import _wrap, _wrap_remove, trace
+from win32com.axdebug.util import _wrap, trace
 from win32com.server.util import unwrap
 
 from . import axdebug, gateways, stackframe
@@ -284,8 +284,6 @@ class Adb(bdb.Bdb, gateways.RemoteDebugApplicationEvents):
                     "*** Could not RemoveStackFrameSniffer %d"
                     % (self.stackSnifferCookie)
                 )
-        if self.stackSniffer:
-            _wrap_remove(self.stackSniffer)
         self.stackSnifferCookie = self.stackSniffer = None
 
         if self.appEventConnection is not None:

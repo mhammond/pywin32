@@ -2,15 +2,16 @@ import os
 import traceback
 
 import pythoncom
-import ttest
 import win32api
 import win32com.server.util
 import winerror
 from win32com.axdebug import adb, axdebug, codecontainer, contexts, documents, gateways
-from win32com.axdebug.util import _wrap, _wrap_remove, trace
+from win32com.axdebug.util import _wrap, trace
 from win32com.axscript import axscript
 from win32com.client.util import Enumerator
 from win32com.server.exception import Exception
+
+from . import ttest
 
 
 class ExternalConnection:
@@ -27,8 +28,10 @@ class ExternalConnection:
         return self.numExtRefs
 
 
-# externalConnectionManager = ExternalConnection()
-# wrappedExternalConnectionManager = _wrap(externalConnectionManager, pythoncom.IID_IExternalConnection)
+externalConnectionManager = ExternalConnection()
+wrappedExternalConnectionManager = _wrap(
+    externalConnectionManager, pythoncom.IID_IExternalConnection
+)
 
 
 def DelegatedExternalConnectionQI(iid):
@@ -157,7 +160,6 @@ def testdumb():
 
 
 def TestSmartProvider():
-    import ttest
     from win32com.axdebug import debugger
 
     d = debugger.AXDebugger()
@@ -178,9 +180,6 @@ def test():
     except:
         traceback.print_exc()
 
-
-# _wrap_remove(externalConnectionManager)
-# wrappedExternalConnectionManager = None
 
 if __name__ == "__main__":
     test()

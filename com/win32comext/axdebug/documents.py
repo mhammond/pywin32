@@ -8,7 +8,7 @@ from win32com.server.exception import Exception
 from win32com.server.util import unwrap
 
 from . import axdebug, codecontainer, contexts, gateways
-from .util import RaiseNotImpl, _wrap, _wrap_remove, trace
+from .util import RaiseNotImpl, _wrap, trace
 
 # def trace(*args):
 #       pass
