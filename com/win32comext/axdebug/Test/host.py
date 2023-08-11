@@ -113,52 +113,6 @@ class PySourceModuleDebugDocumentHost(gateways.DebugDocumentHost):
         raise Exception(scode=winerror.E_NOTIMPL)
 
 
-def TestSmartHelper():
-    pdm = pythoncom.CoCreateInstance(
-        axdebug.CLSID_ProcessDebugManager,
-        None,
-        pythoncom.CLSCTX_ALL,
-        axdebug.IID_IProcessDebugManager,
-    )
-    app = pdm.CreateApplication()
-    app.SetName("Python Process")
-
-    pydebugger = adb.Debugger()
-
-    nodes = BuildModuleTree()
-
-    all_real_nodes = CreateDebugDocumentHelperNodes(pdm, app, nodes)
-    root = app.GetRootNode()
-    AttachParentNodes(root, nodes, all_real_nodes)
-
-    pydebugger.AttachApp(app)
-    cookie = pdm.AddApplication(app)
-    input("Waiting...")
-    ttest.test()
-
-    pdm.RemoveApplication(cookie)
-    print("Done")
-
-
-def testdumb():
-    pdm = pythoncom.CoCreateInstance(
-        axdebug.CLSID_ProcessDebugManager,
-        None,
-        pythoncom.CLSCTX_ALL,
-        axdebug.IID_IProcessDebugManager,
-    )
-    app = pdm.GetDefaultApplication()
-
-    nodes = BuildModuleTree()
-    all_real_nodes = CreateDebugDocumentHelperNodes(pdm, app, nodes)
-    AttachParentNodes(None, nodes, all_real_nodes)
-
-    parentNode = None
-    all_real_nodes = {}
-    input("Waiting...")
-    print("Done")
-
-
 def TestSmartProvider():
     from win32com.axdebug import debugger
 
@@ -174,9 +128,7 @@ def TestSmartProvider():
 
 def test():
     try:
-        # app = TestSmartHelper()
         app = TestSmartProvider()
-        # app = testdumb()
     except:
         traceback.print_exc()
 
