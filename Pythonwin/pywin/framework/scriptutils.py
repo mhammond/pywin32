@@ -101,8 +101,8 @@ def IsOnPythonPath(path):
 
 def GetPackageModuleName(fileName):
     """Given a filename, return (module name, new path).
-    eg - given "c:\a\b\c\my.py", return ("b.c.my",None) if "c:\a" is on sys.path.
-    If no package found, will return ("my", "c:\a\b\c")
+    eg - given "c:\a\b\\c\\my.py", return ("b.c.my",None) if "c:\a" is on sys.path.
+    If no package found, will return ("my", "c:\a\b\\c")
     """
     path, fname = os.path.split(fileName)
     path = origPath = win32ui.FullPath(path)
