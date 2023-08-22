@@ -77,7 +77,7 @@ class Registry(unittest.TestCase):
             pass
 
     def testValues(self):
-        key_name = r"PythonTestHarness\win32api"
+        key_name = "PythonTestHarness\\win32api"
         ## tuples containing value name, value type, data
         values = (
             (None, win32con.REG_SZ, "This is default unnamed value"),

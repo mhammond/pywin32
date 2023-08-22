@@ -123,7 +123,7 @@ class Filter(SimpleFilter):
             # ~ p = urlmap.PhysicalPath
             # ~ pos = p.index("\\UC\\")
             # ~ p = p[:pos] + p[pos+3:]
-            # ~ p = r"E:\src\pyisapi\webroot\PyTest\formTest.htm"
+            # ~ p = "E:\\src\\pyisapi\\webroot\\PyTest\\formTest.htm"
             # ~ print "New path is", p
             # ~ urlmap.PhysicalPath = p
 

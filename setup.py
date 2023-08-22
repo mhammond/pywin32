@@ -213,7 +213,7 @@ class WinExt(Extension):
             found_mfc = False
             for incl in os.environ.get("INCLUDE", "").split(os.pathsep):
                 # first is a "standard" MSVC install, second is the Vista SDK.
-                for candidate in (r"..\src\occimpl.h", r"..\..\src\mfc\occimpl.h"):
+                for candidate in ("..\\src\\occimpl.h", "..\\..\\src\\mfc\\occimpl.h"):
                     check = os.path.join(incl, candidate)
                     if os.path.isfile(check):
                         self.extra_compile_args.append(
@@ -543,7 +543,7 @@ class my_build_ext(build_ext):
         # so find and add them
         if vcbase and not atlmfc_found:
             atls_lib = glob.glob(
-                vcbase + r"ATLMFC\lib\{}\atls.lib".format(self.plat_dir)
+                vcbase + r"ATLMFC\\lib\{}\\atls.lib".format(self.plat_dir)
             )
             if atls_lib:
                 self.library_dirs.append(os.path.dirname(atls_lib[0]))
