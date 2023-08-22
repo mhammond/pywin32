@@ -144,7 +144,7 @@ True
 True
 
 This test helps ensure language support for unicode characters
->>> x = TIME_ZONE_INFORMATION(0, u'français')
+>>> x = TIME_ZONE_INFORMATION(0, 'français')
 
 
 Test conversion from one time zone to another at a DST boundary
