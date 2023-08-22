@@ -176,7 +176,7 @@ def LANGIDFROMLCID(lcid):
 
 
 def SORTIDFROMLCID(lcid):
-    return (((lcid)) & NLS_VALID_LOCALE_MASK) >> 16
+    return ((lcid) & NLS_VALID_LOCALE_MASK) >> 16
 
 
 MAXIMUM_WAIT_OBJECTS = 64
