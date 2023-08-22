@@ -65,7 +65,7 @@ class Expression(gateways.DebugExpression):
                     sys.exc_info()[0], sys.exc_info()[1]
                 )
                 # l is a list of strings with trailing "\n"
-                self.result = string.join(map(lambda s: s[:-1], l), "\n")
+                self.result = string.join((s[:-1] for s in l), "\n")
                 self.hresult = winerror.E_FAIL
         finally:
             self.isComplete = 1

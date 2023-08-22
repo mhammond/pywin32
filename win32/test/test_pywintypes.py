@@ -103,7 +103,7 @@ class TestCase(unittest.TestCase):
     def testGUIDInDict(self):
         s = "{00020400-0000-0000-C000-000000000046}"
         iid = pywintypes.IID(s)
-        d = dict(item=iid)
+        d = {"item": iid}
         self.assertEqual(d["item"], iid)
 
 
