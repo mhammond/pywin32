@@ -516,7 +516,7 @@ def CheckLoaderModule(dll_name):
     src_stat = os.stat(template)
     try:
         dest_stat = os.stat(dll_name)
-    except os.error:
+    except OSError:
         same = 0
     else:
         same = (

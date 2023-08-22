@@ -840,7 +840,7 @@ def DllUnregisterServer():
     for path in paths:
         try:
             winreg.DeleteKey(winreg.HKEY_LOCAL_MACHINE, path)
-        except WindowsError as details:
+        except OSError as details:
             import errno
 
             if details.errno != errno.ENOENT:

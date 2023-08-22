@@ -220,7 +220,7 @@ class FileParser:
             ret = " ".join([str(arg) for arg in args])
             try:
                 print(ret)
-            except IOError:
+            except OSError:
                 pass
 
 
