@@ -543,7 +543,7 @@ class my_build_ext(build_ext):
         # so find and add them
         if vcbase and not atlmfc_found:
             atls_lib = glob.glob(
-                vcbase + r"ATLMFC\lib\{}\atls.lib".format(self.plat_dir)
+                vcbase + fr"ATLMFC\lib\{self.plat_dir}\atls.lib"
             )
             if atls_lib:
                 self.library_dirs.append(os.path.dirname(atls_lib[0]))

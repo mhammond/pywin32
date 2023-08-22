@@ -98,8 +98,8 @@ jobs:
       - run: pip install pyupgrade pycln isort
       # Ignore adodbapi until this has been manually ran and merged in adodbapi code
       # _dbgscript.py is non-UTF8 on purpose, which is not supported
-      # TODO: Progressively remove the keep-* flags and add --py38-plus
-      - run: pyupgrade --keep-percent-format --keep-mock --keep-runtime-typing $(git ls-files '**.py*' ':!:adodbapi/*' ':!:Pythonwin/pywin/test/_dbgscript.py')
+      # TODO: Remove the --keep-percent-format flag and fix all printf-style string formatting
+      - run: pyupgrade --keep-percent-format --py37-plus $(git ls-files '**.py*' ':!:adodbapi/*' ':!:Pythonwin/pywin/test/_dbgscript.py')
       - run: pycln . --config=pycln.toml --check
       - run: isort . --diff --check-only
       - uses: psf/black@stable

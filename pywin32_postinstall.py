@@ -692,7 +692,7 @@ def uninstall(lib_dir):
 
 def verify_destination(location):
     if not os.path.isdir(location):
-        raise argparse.ArgumentTypeError('Path "{}" does not exist!'.format(location))
+        raise argparse.ArgumentTypeError(f'Path "{location}" does not exist!')
     return location
 
 
@@ -756,7 +756,7 @@ def main():
     args = parser.parse_args()
 
     if not args.quiet:
-        print("Parsed arguments are: {}".format(args))
+        print(f"Parsed arguments are: {args}")
 
     if not args.install ^ args.remove:
         parser.error("You need to either choose to -install or -remove!")

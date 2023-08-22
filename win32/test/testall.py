@@ -85,7 +85,7 @@ def find_exception_in_output(data):
 class TestRunner:
     def __init__(self, argv):
         self.argv = argv
-        self.__name__ = "Test Runner for cmdline {}".format(argv)
+        self.__name__ = f"Test Runner for cmdline {argv}"
 
     def __call__(self):
         import subprocess
