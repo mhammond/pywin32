@@ -486,10 +486,8 @@ class Cursor:
         fp = fixpickle(parameters)
         if verbose > 2:
             print(
-                (
-                    '%s executing "%s" with params=%s'
-                    % (version, operation, repr(parameters))
-                )
+                '%s executing "%s" with params=%s'
+                % (version, operation, repr(parameters))
             )
         result = self.proxy.crsr_execute(self.id, operation, fp)
         if result:  # an exception was triggered
@@ -512,10 +510,8 @@ class Cursor:
         sq = [fixpickle(x) for x in seq_of_parameters]
         if verbose > 2:
             print(
-                (
-                    '%s executemany "%s" with params=%s'
-                    % (version, operation, repr(seq_of_parameters))
-                )
+                '%s executemany "%s" with params=%s'
+                % (version, operation, repr(seq_of_parameters))
             )
         self.proxy.crsr_executemany(self.id, operation, sq)
 
@@ -529,7 +525,7 @@ class Cursor:
         except AttributeError:
             pass
         if verbose > 2:
-            print(("%s nextset" % version))
+            print("%s nextset" % version)
         return self.proxy.crsr_nextset(self.id)
 
     def callproc(self, procname, parameters=None):
@@ -549,10 +545,8 @@ class Cursor:
         fp = fixpickle(parameters)
         if verbose > 2:
             print(
-                (
-                    '%s callproc "%s" with params=%s'
-                    % (version, procname, repr(parameters))
-                )
+                '%s callproc "%s" with params=%s'
+                % (version, procname, repr(parameters))
             )
         return self.proxy.crsr_callproc(self.id, procname, fp)
 
