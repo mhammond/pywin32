@@ -17,12 +17,12 @@ import traceback
 
 class error_not_found(Exception):
     def __init__(self, msg="The requested item could not be found"):
-        super(error_not_found, self).__init__(msg)
+        super().__init__(msg)
 
 
 class error_not_supported(Exception):
     def __init__(self, msg="The required functionality is not supported"):
-        super(error_not_supported, self).__init__(msg)
+        super().__init__(msg)
 
 
 VERBOSE = 0

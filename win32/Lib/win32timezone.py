@@ -337,7 +337,7 @@ class TimeZoneDefinition(DYNAMIC_TIME_ZONE_INFORMATION):
         c) a byte structure (using _from_bytes)
         """
         try:
-            super(TimeZoneDefinition, self).__init__(*args, **kwargs)
+            super().__init__(*args, **kwargs)
             return
         except (TypeError, ValueError):
             pass
@@ -369,7 +369,7 @@ class TimeZoneDefinition(DYNAMIC_TIME_ZONE_INFORMATION):
         bias, standard_bias, daylight_bias = components[:3]
         standard_start = SYSTEMTIME(*components[3:11])
         daylight_start = SYSTEMTIME(*components[11:19])
-        super(TimeZoneDefinition, self).__init__(
+        super().__init__(
             bias,
             standard_name,
             standard_start,
@@ -393,7 +393,7 @@ class TimeZoneDefinition(DYNAMIC_TIME_ZONE_INFORMATION):
         # ctypes.memmove(ctypes.addressof(self), other, size)
 
     def __getattribute__(self, attr):
-        value = super(TimeZoneDefinition, self).__getattribute__(attr)
+        value = super().__getattribute__(attr)
         if "bias" in attr:
             value = datetime.timedelta(minutes=value)
         return value
