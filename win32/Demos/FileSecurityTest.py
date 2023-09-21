@@ -8,8 +8,8 @@ import win32security
 import winerror
 
 # get security information
-# name = "c:\\autoexec.bat"
-# name = "g:\\!workgrp\\lim"
+# name=r"c:\autoexec.bat"
+# name= r"g:\!workgrp\lim"
 name = sys.argv[0]
 
 if not os.path.exists(name):
