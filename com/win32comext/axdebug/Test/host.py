@@ -11,8 +11,6 @@ from win32com.axscript import axscript
 from win32com.client.util import Enumerator
 from win32com.server.exception import Exception
 
-from . import ttest
-
 
 class ExternalConnection:
     _public_methods_ = ["AddConnection", "ReleaseConnection"]
@@ -114,6 +112,7 @@ class PySourceModuleDebugDocumentHost(gateways.DebugDocumentHost):
 
 
 def TestSmartProvider():
+    import ttest
     from win32com.axdebug import debugger
 
     d = debugger.AXDebugger()
