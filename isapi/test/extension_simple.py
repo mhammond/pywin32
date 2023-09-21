@@ -6,9 +6,6 @@
 # This will execute the method 'test1' below.  See below for the list of
 # test methods that are acceptable.
 
-import urllib.error
-import urllib.parse
-import urllib.request
 
 # If we have no console (eg, am running from inside IIS), redirect output
 # somewhere useful - in this case, the standard win32 trace collector.
