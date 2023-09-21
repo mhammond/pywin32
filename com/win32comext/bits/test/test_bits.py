@@ -11,13 +11,11 @@ TIMEOUT = 200  # ms
 StopEvent = win32event.CreateEvent(None, 0, 0, None)
 
 job_name = "bits-pywin32-test"
-states = dict(
-    [
-        (val, (name[13:]))
-        for name, val in vars(bits).items()
-        if name.startswith("BG_JOB_STATE_")
-    ]
-)
+states = {
+    val: (name[13:])
+    for name, val in vars(bits).items()
+    if name.startswith("BG_JOB_STATE_")
+}
 
 bcm = pythoncom.CoCreateInstance(
     bits.CLSID_BackgroundCopyManager,

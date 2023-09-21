@@ -100,12 +100,12 @@ class PyHandleTestCase(unittest.TestCase):
 
     def testHandleInDict(self):
         h = pywintypes.HANDLE(1)
-        d = dict(foo=h)
+        d = {"foo": h}
         self.assertEqual(d["foo"], h)
 
     def testHandleInDictThenInt(self):
         h = pywintypes.HANDLE(1)
-        d = dict(foo=h)
+        d = {"foo": h}
         self.assertEqual(d["foo"], 1)
 
     def testHandleCompareNone(self):
