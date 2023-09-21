@@ -332,8 +332,7 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
             if cmdid is None:
                 # No event of that name - no point displaying it.
                 print(
-                    'View.AppendMenu(): Unknown event "%s" specified for menu text "%s" - ignored'
-                    % (event, text)
+                    'View.AppendMenu(): Unknown event "{}" specified for menu text "{}" - ignored'.format(event, text)
                 )
                 return
             keyname = configManager.get_key_binding(event, self._GetSubConfigNames())
@@ -509,8 +508,7 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
                         pass
             except:
                 win32ui.SetStatusText(
-                    "Error attempting to get object attributes - %s"
-                    % (repr(sys.exc_info()[0]),)
+                    "Error attempting to get object attributes - {}".format(repr(sys.exc_info()[0]))
                 )
 
         # ensure all keys are strings.
@@ -811,7 +809,7 @@ def LoadConfiguration():
     configManager = ConfigManager(configName)
     if configManager.last_error:
         bTryDefault = 0
-        msg = "Error loading configuration '%s'\n\n%s" % (
+        msg = "Error loading configuration '{}'\n\n{}".format(
             configName,
             configManager.last_error,
         )

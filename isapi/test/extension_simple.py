@@ -31,12 +31,12 @@ class Extension(threaded_extension.ThreadPoolExtension):
     "Python ISAPI Tester"
 
     def Dispatch(self, ecb):
-        print('Tester dispatching "%s"' % (ecb.GetServerVariable("URL"),))
+        print('Tester dispatching "{}"'.format(ecb.GetServerVariable("URL")))
         url = ecb.GetServerVariable("URL")
         test_name = url.split("/")[-1]
         meth = getattr(self, test_name, None)
         if meth is None:
-            raise AttributeError("No test named '%s'" % (test_name,))
+            raise AttributeError(f"No test named '{test_name}'")
         result = meth(ecb)
         if result is None:
             # This means the test finalized everything

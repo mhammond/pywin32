@@ -744,8 +744,7 @@ class COMScript:
         except:
             traceback.print_exc()
             trace(
-                "*** Debugger Manager could not initialize - %s: %s"
-                % (sys.exc_info()[0], sys.exc_info()[1])
+                "*** Debugger Manager could not initialize - {}: {}".format(sys.exc_info()[0], sys.exc_info()[1])
             )
             self.debugManager = None
 

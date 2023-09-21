@@ -105,14 +105,12 @@ def ShowInfo(spec):
                 desc = tlb.GetDocumentation(-1)[0]
         print(desc)
         print(
-            " %s, lcid=%s, major=%s, minor=%s"
-            % (tlbSpec.clsid, tlbSpec.lcid, tlbSpec.major, tlbSpec.minor)
+            " {}, lcid={}, major={}, minor={}".format(tlbSpec.clsid, tlbSpec.lcid, tlbSpec.major, tlbSpec.minor)
         )
         print(" >>> # Use these commands in Python code to auto generate .py support")
         print(" >>> from win32com.client import gencache")
         print(
-            " >>> gencache.EnsureModule('%s', %s, %s, %s)"
-            % (tlbSpec.clsid, tlbSpec.lcid, tlbSpec.major, tlbSpec.minor)
+            " >>> gencache.EnsureModule('{}', {}, {}, {})".format(tlbSpec.clsid, tlbSpec.lcid, tlbSpec.major, tlbSpec.minor)
         )
 
 
@@ -228,7 +226,7 @@ def GetTypeLibsForSpec(arg):
         return typelibs
     except pythoncom.com_error:
         t, v, tb = sys.exc_info()
-        sys.stderr.write("Unable to load type library from '%s' - %s\n" % (arg, v))
+        sys.stderr.write(f"Unable to load type library from '{arg}' - {v}\n")
         tb = None  # Storing tb in a local is a cycle!
         sys.exit(1)
 

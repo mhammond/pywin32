@@ -40,9 +40,9 @@ def BrandProject(
 def usage(msg):
     print(msg)
     print(
-        """\
-%s Usage:
-%s [options] vssProject descFile stampPath
+        f"""\
+{os.path.basename(sys.argv[0])} Usage:
+{os.path.basename(sys.argv[0])} [options] vssProject descFile stampPath
 
 Automatically brand a VSS project with an automatically incremented
 build number, and stamp DLL/EXE files with the build number.
@@ -58,7 +58,6 @@ Options:
 -f infile=outfile - Substitute special VSS labels in the specified text
                     file with the text extracted from VSS.
 """
-        % (os.path.basename(sys.argv[0]), os.path.basename(sys.argv[0]))
     )
     sys.exit(1)
 

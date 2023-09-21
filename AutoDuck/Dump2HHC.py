@@ -153,19 +153,16 @@ def parseTopics(cat, input):
             elif top.type == "const":
                 d = cat.constants
             else:
-                raise RuntimeError("What is '%s'" % (top.type,))
+                raise RuntimeError(f"What is '{top.type}'")
 
             if top.name in d:
-                print("Duplicate named %s detected: %s" % (top.type, top.name))
+                print(f"Duplicate named {top.type} detected: {top.name}")
 
             # Skip the property fields line for module/object
             line = input.readline()
             line = line[:-1]
             fields = line.split("\t")
-            assert len(fields[0]) == 0 and len(fields[1]) == 0, "%s, %s" % (
-                fields,
-                top.name,
-            )
+            assert len(fields[0]) == 0 and len(fields[1]) == 0, f"{fields}, {top.name}"
             if line == "":
                 raise ValueError("incomplete topic!")
 
@@ -197,16 +194,10 @@ def parseTopics(cat, input):
                 assert len(fields[0]) == 0 and len(fields[1]) == 0, fields
                 if top2.type == "pymeth":
                     top2.name = fields[2]
-                    top2.context = "%s__%s_meth.html" % (
-                        _urlescape(top.name),
-                        top2.name,
-                    )
+                    top2.context = f"{_urlescape(top.name)}__{top2.name}_meth.html"
                 elif top2.type == "prop":
                     top2.name = fields[3]
-                    top2.context = "%s__%s_prop.html" % (
-                        _urlescape(top.name),
-                        top2.name,
-                    )
+                    top2.context = f"{_urlescape(top.name)}__{top2.name}_prop.html"
                 else:
                     # and loop....
                     line = input.readline()
@@ -244,7 +235,7 @@ def _genCategoryHTMLFromDict(dict, output):
     keys.sort()
     for key in keys:
         topic = dict[key]
-        output.write('<LI><A HREF="%s">%s</A>\n' % (topic.context, topic.name))
+        output.write(f'<LI><A HREF="{topic.context}">{topic.name}</A>\n')
 
 
 def _genOneCategoryHTML(output_dir, cat, title, suffix, *dicts):
@@ -271,7 +262,7 @@ def _genCategoryTopic(output_dir, cat, title):
         ("Modules", "_modules"),
         ("Objects", "_objects"),
     ):
-        output.write('<LI><A HREF="%s%s.html">%s</A>\n' % (cat.id, suffix, subtitle))
+        output.write(f'<LI><A HREF="{cat.id}{suffix}.html">{subtitle}</A>\n')
     output.write("</BODY></HTML>\n")
     output.close()
 
@@ -302,12 +293,11 @@ def _genItemsFromDict(dict, cat, output, target, do_children=1):
         output.write(
             """
         <LI> <OBJECT type="text/sitemap">
-             <param name="Name" value="%(name)s">
+             <param name="Name" value="{name}">
              <param name="ImageNumber" value="1">
-             <param name="Local" value="%(CHM)s%(context)s">
+             <param name="Local" value="{CHM}{context}">
              </OBJECT>
-      """
-            % locals()
+      """.format(**locals())
         )
         if not do_children:
             continue
@@ -317,13 +307,12 @@ def _genItemsFromDict(dict, cat, output, target, do_children=1):
         containees.sort(key=TopicKey)
         for m in containees:
             output.write(
-                """
+                f"""
         <LI><OBJECT type="text/sitemap">
-             <param name="Name" value="%s">
+             <param name="Name" value="{m.name}">
              <param name="ImageNumber" value="11">
-             <param name="Local" value="%s%s">
+             <param name="Local" value="{CHM}{m.context}">
             </OBJECT>"""
-                % (m.name, CHM, m.context)
             )
         if len(dict[k].contains) > 0:
             output.write(
@@ -347,13 +336,12 @@ def genTOC(cats, output, title, target):
 </OBJECT>
 <UL>
     <LI> <OBJECT type="text/sitemap">
-        <param name="Name" value="%(title)s">
+        <param name="Name" value="{title}">
         <param name="ImageNumber" value="1">
-        <param name="Local" value="%(CHM)s%(target)s.html">
+        <param name="Local" value="{CHM}{target}.html">
         </OBJECT>
     <UL>
-"""
-        % locals()
+""".format(**locals())
     )
 
     for cat in cats:
@@ -362,13 +350,12 @@ def genTOC(cats, output, title, target):
         output.write(
             """\
             <LI> <OBJECT type="text/sitemap">
-                 <param name="Name" value="%(cat_name)s">
+                 <param name="Name" value="{cat_name}">
                  <param name="ImageNumber" value="1">
-                 <param name="Local" value="%(CHM)s%(cat_id)s.html">
+                 <param name="Local" value="{CHM}{cat_id}.html">
                  </OBJECT>
             <UL>
-        """
-            % locals()
+        """.format(**locals())
         )
         # Next write the overviews for this category
         output.write(
@@ -376,11 +363,10 @@ def genTOC(cats, output, title, target):
                 <LI> <OBJECT type="text/sitemap">
                      <param name="Name" value="Overviews">
                      <param name="ImageNumber" value="1">
-                     <param name="Local" value="%(CHM)s%(cat_id)s_overview.html">
+                     <param name="Local" value="{CHM}{cat_id}_overview.html">
                      </OBJECT>
                 <UL>
-        """
-            % locals()
+        """.format(**locals())
         )
         _genItemsFromDict(cat.overviewTopics, cat, output, target)
         _genItemsFromDict(cat.extOverviewTopics, cat, output, target)
@@ -394,11 +380,10 @@ def genTOC(cats, output, title, target):
                 <LI> <OBJECT type="text/sitemap">
                     <param name="Name" value="Modules">
                     <param name="ImageNumber" value="1">
-                    <param name="Local" value="%(CHM)s%(cat_id)s_modules.html">
+                    <param name="Local" value="{CHM}{cat_id}_modules.html">
                     </OBJECT>
                 <UL>
-"""
-            % locals()
+""".format(**locals())
         )
         _genItemsFromDict(cat.modules, cat, output, target)
         output.write(
@@ -411,10 +396,9 @@ def genTOC(cats, output, title, target):
                 <LI> <OBJECT type="text/sitemap">
                     <param name="Name" value="Objects">
                     <param name="ImageNumber" value="1">
-                    <param name="Local" value="%(CHM)s%(cat_id)s_objects.html">
+                    <param name="Local" value="{CHM}{cat_id}_objects.html">
                     </OBJECT>
-                <UL>"""
-            % locals()
+                <UL>""".format(**locals())
         )
         # Dont show 'children' for objects - params etc don't need their own child nodes!
         _genItemsFromDict(cat.objects, cat, output, target, do_children=0)
@@ -428,11 +412,10 @@ def genTOC(cats, output, title, target):
     <LI> <OBJECT type="text/sitemap">
          <param name="Name" value="Constants">
          <param name="ImageNumber" value="1">
-         <param name="Local" value="%(CHM)s%(cat_id)s_constants.html">
+         <param name="Local" value="{CHM}{cat_id}_constants.html">
          </OBJECT>
            <UL>
-"""
-            % locals()
+""".format(**locals())
         )
         _genItemsFromDict(cat.constants, cat, output, target)
         output.write(

@@ -45,7 +45,7 @@ def __import_pywin32_system_module__(modname, globs):
                 break
         else:
             raise ImportError(
-                "Module '%s' isn't in frozen sys.path %s" % (modname, sys.path)
+                f"Module '{modname}' isn't in frozen sys.path {sys.path}"
             )
     else:
         # First see if it already in our process - if so, we must use that.
@@ -105,7 +105,7 @@ def __import_pywin32_system_module__(modname, globs):
 
         if found is None:
             # give up in disgust.
-            raise ImportError("No system module '%s' (%s)" % (modname, filename))
+            raise ImportError(f"No system module '{modname}' ({filename})")
     # After importing the module, sys.modules is updated to the DLL we just
     # loaded - which isn't what we want. So we update sys.modules to refer to
     # this module, and update our globals from it.

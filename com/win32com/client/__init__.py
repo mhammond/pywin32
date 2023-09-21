@@ -179,8 +179,8 @@ def CastTo(ob, target, typelib=None):
         )
         if not hasattr(mod, target):
             raise ValueError(
-                "The interface name '%s' does not appear in the "
-                "specified library %r" % (target, typelib.ver_desc)
+                f"The interface name '{target}' does not appear in the "
+                f"specified library {typelib.ver_desc!r}"
             )
 
     elif hasattr(target, "index"):  # string like
@@ -207,8 +207,8 @@ def CastTo(ob, target, typelib=None):
         target_clsid = mod.NamesToIIDMap.get(target)
         if target_clsid is None:
             raise ValueError(
-                "The interface name '%s' does not appear in the "
-                "same library as object '%r'" % (target, ob)
+                f"The interface name '{target}' does not appear in the "
+                f"same library as object '{ob!r}'"
             )
         mod = gencache.GetModuleForCLSID(target_clsid)
     if mod is not None:
@@ -490,7 +490,7 @@ def Record(name, object):
         struct_guid = package.RecordMap[name]
     except KeyError:
         raise ValueError(
-            "The structure '%s' is not defined in module '%s'" % (name, package)
+            f"The structure '{name}' is not defined in module '{package}'"
         )
     return pythoncom.GetRecordFromGuids(
         module.CLSID, module.MajorVersion, module.MinorVersion, module.LCID, struct_guid
@@ -544,11 +544,7 @@ class DispatchBaseClass:
                 mod_name = sys.modules[self.__class__.__module__].__name__
         except KeyError:
             mod_name = "win32com.gen_py.unknown"
-        return "<%s.%s instance at 0x%s>" % (
-            mod_name,
-            self.__class__.__name__,
-            id(self),
-        )
+        return f"<{mod_name}.{self.__class__.__name__} instance at 0x{id(self)}>"
 
     # Delegate comparison to the oleobjs, as they know how to do identity.
     def __eq__(self, other):
@@ -570,7 +566,7 @@ class DispatchBaseClass:
         args = self._prop_map_get_.get(attr)
         if args is None:
             raise AttributeError(
-                "'%s' object has no attribute '%s'" % (repr(self), attr)
+                f"'{repr(self)}' object has no attribute '{attr}'"
             )
         return self._ApplyTypes_(*args)
 
@@ -582,7 +578,7 @@ class DispatchBaseClass:
             args, defArgs = self._prop_map_put_[attr]
         except KeyError:
             raise AttributeError(
-                "'%s' object has no attribute '%s'" % (repr(self), attr)
+                f"'{repr(self)}' object has no attribute '{attr}'"
             )
         self._oleobj_.Invoke(*(args + (value,) + defArgs))
 
@@ -629,7 +625,7 @@ class CoClassBaseClass:
                 setattr(self, maybe, getattr(self, "__maybe" + maybe))
 
     def __repr__(self):
-        return "<win32com.gen_py.%s.%s>" % (__doc__, self.__class__.__name__)
+        return f"<win32com.gen_py.{__doc__}.{self.__class__.__name__}>"
 
     def __getattr__(self, attr):
         d = self.__dict__["_dispobj_"]
@@ -701,4 +697,4 @@ class VARIANT:
     value = property(_get_value, _set_value, _del_value)
 
     def __repr__(self):
-        return "win32com.client.VARIANT(%r, %r)" % (self.varianttype, self._value)
+        return f"win32com.client.VARIANT({self.varianttype!r}, {self._value!r})"

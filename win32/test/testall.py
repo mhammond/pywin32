@@ -85,7 +85,7 @@ def find_exception_in_output(data):
 class TestRunner:
     def __init__(self, argv):
         self.argv = argv
-        self.__name__ = "Test Runner for cmdline {}".format(argv)
+        self.__name__ = f"Test Runner for cmdline {argv}"
 
     def __call__(self):
         import subprocess
@@ -103,7 +103,7 @@ class TestRunner:
             if reconstituted is not None:
                 raise reconstituted
             raise AssertionError(
-                "%s failed with exit code %s.  Output is:\n%s" % (base, rc, output)
+                f"{base} failed with exit code {rc}.  Output is:\n{output}"
             )
 
 

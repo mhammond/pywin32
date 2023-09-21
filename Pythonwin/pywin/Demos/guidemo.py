@@ -57,8 +57,7 @@ def demo():
                 exec(cmd)
             except:
                 print(
-                    "Demo of %s failed - %s:%s"
-                    % (cmd, sys.exc_info()[0], sys.exc_info()[1])
+                    f"Demo of {cmd} failed - {sys.exc_info()[0]}:{sys.exc_info()[1]}"
                 )
         return
     # Otherwise allow the user to select the demo to run
@@ -74,8 +73,7 @@ def demo():
             exec(cmd)
         except:
             print(
-                "Demo of %s failed - %s:%s"
-                % (title, sys.exc_info()[0], sys.exc_info()[1])
+                f"Demo of {title} failed - {sys.exc_info()[0]}:{sys.exc_info()[1]}"
             )
 
 

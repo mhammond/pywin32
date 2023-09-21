@@ -160,7 +160,7 @@ def SetPropertyValue(obj, prop, val):
             type_tag = _MapiTypeMap.get(type(val))
             if type_tag is None:
                 raise ValueError(
-                    "Don't know what to do with '%r' ('%s')" % (val, type(val))
+                    f"Don't know what to do with '{val!r}' ('{type(val)}')"
                 )
         prop = mapitags.PROP_TAG(type_tag, mapitags.PROP_ID(propIds[0]))
     if val is None:
@@ -201,8 +201,7 @@ def SetProperties(msg, propDict):
                 tagType = mapitags.PT_SYSTIME
             else:
                 raise ValueError(
-                    "The type of object %s(%s) can not be written"
-                    % (repr(val), type(val))
+                    f"The type of object {repr(val)}({type(val)}) can not be written"
                 )
             key = mapitags.PROP_TAG(tagType, mapitags.PROP_ID(newIds[newIdNo]))
             newIdNo = newIdNo + 1

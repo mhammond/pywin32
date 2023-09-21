@@ -235,7 +235,7 @@ class CApp(WinApp):
         except:
             t, v, tb = sys.exc_info()
             win32ui.MessageBox(
-                "Internal error in help file processing\r\n%s: %s" % (t, v)
+                f"Internal error in help file processing\r\n{t}: {v}"
             )
             tb = None  # Prevent a cycle
 
@@ -365,8 +365,7 @@ class AboutBox(dialog.Dialog):
 
     def OnInitDialog(self):
         text = (
-            "Pythonwin - Python IDE and GUI Framework for Windows.\n\n%s\n\nPython is %s\n\n%s\n\n%s\n\n%s"
-            % (win32ui.copyright, sys.copyright, scintilla, idle, contributors)
+            "Pythonwin - Python IDE and GUI Framework for Windows.\n\n{}\n\nPython is {}\n\n{}\n\n{}\n\n{}".format(win32ui.copyright, sys.copyright, scintilla, idle, contributors)
         )
         self.SetDlgItemText(win32ui.IDC_EDIT1, text)
         # Get the build number - written by installers.
@@ -387,7 +386,7 @@ class AboutBox(dialog.Dialog):
                 "SOFTWARE\\ActiveState\\ActivePython", "CurrentVersion"
             )
             if ver is not None:
-                ver = "ActivePython build %s" % (ver,)
+                ver = f"ActivePython build {ver}"
         if ver is None:
             ver = ""
         self.SetDlgItemText(win32ui.IDC_ABOUT_VERSION, ver)

@@ -182,9 +182,9 @@ class WinExt(Extension):
             pch_dir = os.path.join(build_ext.build_temp)
             if not build_ext.debug:
                 self.extra_compile_args.append("/Zi")
-            self.extra_compile_args.append("/Fd%s\\%s_vc.pdb" % (pch_dir, self.name))
+            self.extra_compile_args.append(f"/Fd{pch_dir}\\{self.name}_vc.pdb")
             self.extra_link_args.append("/DEBUG")
-            self.extra_link_args.append("/PDB:%s\\%s.pdb" % (pch_dir, self.name))
+            self.extra_link_args.append(f"/PDB:{pch_dir}\\{self.name}.pdb")
             # enable unwind semantics - some stuff needs it and I can't see
             # it hurting
             self.extra_compile_args.append("/EHsc")
@@ -204,7 +204,7 @@ class WinExt(Extension):
                     suffix = "_d"
                 else:
                     suffix = ""
-                self.extra_link_args.append("/IMPLIB:%s%s.lib" % (implib, suffix))
+                self.extra_link_args.append(f"/IMPLIB:{implib}{suffix}.lib")
             # Try and find the MFC headers, so we can reach inside for
             # some of the ActiveX support we need.  We need to do this late, so
             # the environment is setup correctly.
@@ -369,7 +369,7 @@ class my_build(build):
             f.write("%s\n" % build_id)
             f.close()
         except OSError as why:
-            print("Failed to open '%s': %s" % (ver_fname, why))
+            print(f"Failed to open '{ver_fname}': {why}")
 
 
 class my_build_ext(build_ext):
@@ -431,7 +431,7 @@ class my_build_ext(build_ext):
                     break
             else:
                 log.debug("Header '%s' not found  in %s", h, look_dirs)
-                return "The header '%s' can not be located." % (h,)
+                return f"The header '{h}' can not be located."
 
         common_dirs = self.compiler.library_dirs[:]
         common_dirs += os.environ.get("LIB", "").split(os.pathsep)
@@ -449,7 +449,7 @@ class my_build_ext(build_ext):
             patched_libs.append(os.path.splitext(os.path.basename(found))[0])
 
         if ext.platforms and self.plat_name not in ext.platforms:
-            return "Only available on platforms %s" % (ext.platforms,)
+            return f"Only available on platforms {ext.platforms}"
 
         # We update the .libraries list with the resolved library name.
         # This is really only so "_d" works.
@@ -543,7 +543,7 @@ class my_build_ext(build_ext):
         # so find and add them
         if vcbase and not atlmfc_found:
             atls_lib = glob.glob(
-                vcbase + r"ATLMFC\lib\{}\atls.lib".format(self.plat_dir)
+                vcbase + fr"ATLMFC\lib\{self.plat_dir}\atls.lib"
             )
             if atls_lib:
                 self.library_dirs.append(os.path.dirname(atls_lib[0]))
@@ -605,7 +605,7 @@ class my_build_ext(build_ext):
             if why is not None:
                 self.excluded_extensions.append((ext, why))
                 assert why, "please give a reason, or None"
-                print("Skipping %s: %s" % (ext.name, why))
+                print(f"Skipping {ext.name}: {why}")
                 continue
             self.build_exefile(ext)
 
@@ -650,8 +650,7 @@ class my_build_ext(build_ext):
             # typical path on newer Visual Studios - ensure corresponding version
             redist_globs.append(
                 vcbase[: m.start()]
-                + r"\VC\Redist\MSVC\%s%s\*\mfc140u.dll"
-                % (vcverdir or "*\\", self.plat_dir)
+                + r"\VC\Redist\MSVC\{}{}\*\mfc140u.dll".format(vcverdir or "*\\", self.plat_dir)
             )
         # Only mfcNNNu DLL is required (mfcmNNNX is Windows Forms, rest is ANSI)
         mfc_contents = next(filter(None, map(glob.glob, redist_globs)), [])[:1]
@@ -713,7 +712,7 @@ class my_build_ext(build_ext):
         if why is not None:
             assert why, "please give a reason, or None"
             self.excluded_extensions.append((ext, why))
-            print("Skipping %s: %s" % (ext.name, why))
+            print(f"Skipping {ext.name}: {why}")
             return
         self.current_extension = ext
 
@@ -758,7 +757,7 @@ class my_build_ext(build_ext):
                     sys.version_info[1],
                     extra,
                 )
-                needed = "%s%s" % (ext.name, extra)
+                needed = f"{ext.name}{extra}"
             elif ext.name in ("win32ui",):
                 # This one just needs a copy.
                 created = needed = ext.name + extra
@@ -837,12 +836,12 @@ class my_build_ext(build_ext):
                     # More vile hacks.  winxpmodule is built from win32gui.i -
                     # just different #defines are setup for windows.h.
                     new_target = os.path.join(
-                        os.path.dirname(base), "winxpgui_swig%s" % (target_ext,)
+                        os.path.dirname(base), f"winxpgui_swig{target_ext}"
                     )
                     swig_targets[source] = new_target
                     new_sources.append(new_target)
                 else:
-                    new_target = "%s_swig%s" % (base, target_ext)
+                    new_target = f"{base}_swig{target_ext}"
                     new_sources.append(new_target)
                     swig_targets[source] = new_target
             else:
@@ -930,7 +929,7 @@ class my_install(install):
             # may have had 2to3 run over it.
             filename = os.path.join(self.install_scripts, "pywin32_postinstall.py")
             if not os.path.isfile(filename):
-                raise RuntimeError("Can't find '%s'" % (filename,))
+                raise RuntimeError(f"Can't find '{filename}'")
             print("Executing post install script...")
             # What executable to use?  This one I guess.
             subprocess.Popen(
@@ -1031,9 +1030,9 @@ class my_compiler(base_compiler):
         # verstamp must work.)
         if not skip_verstamp:
             args = ["py.exe", "-m" "win32verstamp"]
-            args.append("--version=%s" % (pywin32_version,))
+            args.append(f"--version={pywin32_version}")
             args.append("--comments=https://github.com/mhammond/pywin32")
-            args.append("--original-filename=%s" % (os.path.basename(output_filename),))
+            args.append(f"--original-filename={os.path.basename(output_filename)}")
             args.append("--product=PyWin32")
             if "-v" not in sys.argv:
                 args.append("--quiet")
@@ -1395,77 +1394,75 @@ pythoncom = WinExt_system32(
     "pythoncom",
     sources=(
         """
-                        %(win32com)s/dllmain.cpp            %(win32com)s/ErrorUtils.cpp
-                        %(win32com)s/MiscTypes.cpp          %(win32com)s/oleargs.cpp
-                        %(win32com)s/PyComHelpers.cpp       %(win32com)s/PyFactory.cpp
-                        %(win32com)s/PyGatewayBase.cpp      %(win32com)s/PyIBase.cpp
-                        %(win32com)s/PyIClassFactory.cpp    %(win32com)s/PyIDispatch.cpp
-                        %(win32com)s/PyIUnknown.cpp         %(win32com)s/PyRecord.cpp
-                        %(win32com)s/extensions/PySTGMEDIUM.cpp %(win32com)s/PyStorage.cpp
-                        %(win32com)s/PythonCOM.cpp          %(win32com)s/Register.cpp
-                        %(win32com)s/stdafx.cpp             %(win32com)s/univgw.cpp
-                        %(win32com)s/univgw_dataconv.cpp    %(win32com)s/extensions/PyFUNCDESC.cpp
-                        %(win32com)s/extensions/PyGConnectionPoint.cpp      %(win32com)s/extensions/PyGConnectionPointContainer.cpp
-                        %(win32com)s/extensions/PyGEnumVariant.cpp          %(win32com)s/extensions/PyGErrorLog.cpp
-                        %(win32com)s/extensions/PyGPersist.cpp              %(win32com)s/extensions/PyGPersistPropertyBag.cpp
-                        %(win32com)s/extensions/PyGPersistStorage.cpp       %(win32com)s/extensions/PyGPersistStream.cpp
-                        %(win32com)s/extensions/PyGPersistStreamInit.cpp    %(win32com)s/extensions/PyGPropertyBag.cpp
-                        %(win32com)s/extensions/PyGStream.cpp               %(win32com)s/extensions/PyIBindCtx.cpp
-                        %(win32com)s/extensions/PyICatInformation.cpp       %(win32com)s/extensions/PyICatRegister.cpp
-                        %(win32com)s/extensions/PyIConnectionPoint.cpp      %(win32com)s/extensions/PyIConnectionPointContainer.cpp
-                        %(win32com)s/extensions/PyICreateTypeInfo.cpp       %(win32com)s/extensions/PyICreateTypeLib.cpp
-                        %(win32com)s/extensions/PyICreateTypeLib2.cpp       %(win32com)s/extensions/PyIDataObject.cpp
-                        %(win32com)s/extensions/PyIDropSource.cpp           %(win32com)s/extensions/PyIDropTarget.cpp
-                        %(win32com)s/extensions/PyIEnumCATEGORYINFO.cpp     %(win32com)s/extensions/PyIEnumConnectionPoints.cpp
-                        %(win32com)s/extensions/PyIEnumConnections.cpp      %(win32com)s/extensions/PyIEnumFORMATETC.cpp
-                        %(win32com)s/extensions/PyIEnumGUID.cpp             %(win32com)s/extensions/PyIEnumSTATPROPSETSTG.cpp
-                        %(win32com)s/extensions/PyIEnumSTATPROPSTG.cpp      %(win32com)s/extensions/PyIEnumSTATSTG.cpp
-                        %(win32com)s/extensions/PyIEnumString.cpp           %(win32com)s/extensions/PyIEnumVARIANT.cpp
-                        %(win32com)s/extensions/PyIErrorLog.cpp             %(win32com)s/extensions/PyIExternalConnection.cpp
-                        %(win32com)s/extensions/PyIGlobalInterfaceTable.cpp %(win32com)s/extensions/PyILockBytes.cpp
-                        %(win32com)s/extensions/PyIMoniker.cpp              %(win32com)s/extensions/PyIOleWindow.cpp
-                        %(win32com)s/extensions/PyIPersist.cpp              %(win32com)s/extensions/PyIPersistFile.cpp
-                        %(win32com)s/extensions/PyIPersistPropertyBag.cpp   %(win32com)s/extensions/PyIPersistStorage.cpp
-                        %(win32com)s/extensions/PyIPersistStream.cpp        %(win32com)s/extensions/PyIPersistStreamInit.cpp
-                        %(win32com)s/extensions/PyIPropertyBag.cpp          %(win32com)s/extensions/PyIPropertySetStorage.cpp
-                        %(win32com)s/extensions/PyIPropertyStorage.cpp      %(win32com)s/extensions/PyIProvideClassInfo.cpp
-                        %(win32com)s/extensions/PyIRunningObjectTable.cpp   %(win32com)s/extensions/PyIServiceProvider.cpp
-                        %(win32com)s/extensions/PyIStorage.cpp              %(win32com)s/extensions/PyIStream.cpp
-                        %(win32com)s/extensions/PyIType.cpp                 %(win32com)s/extensions/PyITypeObjects.cpp
-                        %(win32com)s/extensions/PyTYPEATTR.cpp              %(win32com)s/extensions/PyVARDESC.cpp
-                        %(win32com)s/extensions/PyICancelMethodCalls.cpp    %(win32com)s/extensions/PyIContext.cpp
-                        %(win32com)s/extensions/PyIEnumContextProps.cpp     %(win32com)s/extensions/PyIClientSecurity.cpp
-                        %(win32com)s/extensions/PyIServerSecurity.cpp
-                        """
-        % dirs
+                        {win32com}/dllmain.cpp            {win32com}/ErrorUtils.cpp
+                        {win32com}/MiscTypes.cpp          {win32com}/oleargs.cpp
+                        {win32com}/PyComHelpers.cpp       {win32com}/PyFactory.cpp
+                        {win32com}/PyGatewayBase.cpp      {win32com}/PyIBase.cpp
+                        {win32com}/PyIClassFactory.cpp    {win32com}/PyIDispatch.cpp
+                        {win32com}/PyIUnknown.cpp         {win32com}/PyRecord.cpp
+                        {win32com}/extensions/PySTGMEDIUM.cpp {win32com}/PyStorage.cpp
+                        {win32com}/PythonCOM.cpp          {win32com}/Register.cpp
+                        {win32com}/stdafx.cpp             {win32com}/univgw.cpp
+                        {win32com}/univgw_dataconv.cpp    {win32com}/extensions/PyFUNCDESC.cpp
+                        {win32com}/extensions/PyGConnectionPoint.cpp      {win32com}/extensions/PyGConnectionPointContainer.cpp
+                        {win32com}/extensions/PyGEnumVariant.cpp          {win32com}/extensions/PyGErrorLog.cpp
+                        {win32com}/extensions/PyGPersist.cpp              {win32com}/extensions/PyGPersistPropertyBag.cpp
+                        {win32com}/extensions/PyGPersistStorage.cpp       {win32com}/extensions/PyGPersistStream.cpp
+                        {win32com}/extensions/PyGPersistStreamInit.cpp    {win32com}/extensions/PyGPropertyBag.cpp
+                        {win32com}/extensions/PyGStream.cpp               {win32com}/extensions/PyIBindCtx.cpp
+                        {win32com}/extensions/PyICatInformation.cpp       {win32com}/extensions/PyICatRegister.cpp
+                        {win32com}/extensions/PyIConnectionPoint.cpp      {win32com}/extensions/PyIConnectionPointContainer.cpp
+                        {win32com}/extensions/PyICreateTypeInfo.cpp       {win32com}/extensions/PyICreateTypeLib.cpp
+                        {win32com}/extensions/PyICreateTypeLib2.cpp       {win32com}/extensions/PyIDataObject.cpp
+                        {win32com}/extensions/PyIDropSource.cpp           {win32com}/extensions/PyIDropTarget.cpp
+                        {win32com}/extensions/PyIEnumCATEGORYINFO.cpp     {win32com}/extensions/PyIEnumConnectionPoints.cpp
+                        {win32com}/extensions/PyIEnumConnections.cpp      {win32com}/extensions/PyIEnumFORMATETC.cpp
+                        {win32com}/extensions/PyIEnumGUID.cpp             {win32com}/extensions/PyIEnumSTATPROPSETSTG.cpp
+                        {win32com}/extensions/PyIEnumSTATPROPSTG.cpp      {win32com}/extensions/PyIEnumSTATSTG.cpp
+                        {win32com}/extensions/PyIEnumString.cpp           {win32com}/extensions/PyIEnumVARIANT.cpp
+                        {win32com}/extensions/PyIErrorLog.cpp             {win32com}/extensions/PyIExternalConnection.cpp
+                        {win32com}/extensions/PyIGlobalInterfaceTable.cpp {win32com}/extensions/PyILockBytes.cpp
+                        {win32com}/extensions/PyIMoniker.cpp              {win32com}/extensions/PyIOleWindow.cpp
+                        {win32com}/extensions/PyIPersist.cpp              {win32com}/extensions/PyIPersistFile.cpp
+                        {win32com}/extensions/PyIPersistPropertyBag.cpp   {win32com}/extensions/PyIPersistStorage.cpp
+                        {win32com}/extensions/PyIPersistStream.cpp        {win32com}/extensions/PyIPersistStreamInit.cpp
+                        {win32com}/extensions/PyIPropertyBag.cpp          {win32com}/extensions/PyIPropertySetStorage.cpp
+                        {win32com}/extensions/PyIPropertyStorage.cpp      {win32com}/extensions/PyIProvideClassInfo.cpp
+                        {win32com}/extensions/PyIRunningObjectTable.cpp   {win32com}/extensions/PyIServiceProvider.cpp
+                        {win32com}/extensions/PyIStorage.cpp              {win32com}/extensions/PyIStream.cpp
+                        {win32com}/extensions/PyIType.cpp                 {win32com}/extensions/PyITypeObjects.cpp
+                        {win32com}/extensions/PyTYPEATTR.cpp              {win32com}/extensions/PyVARDESC.cpp
+                        {win32com}/extensions/PyICancelMethodCalls.cpp    {win32com}/extensions/PyIContext.cpp
+                        {win32com}/extensions/PyIEnumContextProps.cpp     {win32com}/extensions/PyIClientSecurity.cpp
+                        {win32com}/extensions/PyIServerSecurity.cpp
+                        """.format(**dirs)
     ).split(),
     depends=(
         """
-                        %(win32com)s/include\\propbag.h          %(win32com)s/include\\PyComTypeObjects.h
-                        %(win32com)s/include\\PyFactory.h        %(win32com)s/include\\PyGConnectionPoint.h
-                        %(win32com)s/include\\PyGConnectionPointContainer.h
-                        %(win32com)s/include\\PyGPersistStorage.h %(win32com)s/include\\PyIBindCtx.h
-                        %(win32com)s/include\\PyICatInformation.h %(win32com)s/include\\PyICatRegister.h
-                        %(win32com)s/include\\PyIDataObject.h    %(win32com)s/include\\PyIDropSource.h
-                        %(win32com)s/include\\PyIDropTarget.h    %(win32com)s/include\\PyIEnumConnectionPoints.h
-                        %(win32com)s/include\\PyIEnumConnections.h %(win32com)s/include\\PyIEnumFORMATETC.h
-                        %(win32com)s/include\\PyIEnumGUID.h      %(win32com)s/include\\PyIEnumSTATPROPSETSTG.h
-                        %(win32com)s/include\\PyIEnumSTATSTG.h   %(win32com)s/include\\PyIEnumString.h
-                        %(win32com)s/include\\PyIEnumVARIANT.h   %(win32com)s/include\\PyIExternalConnection.h
-                        %(win32com)s/include\\PyIGlobalInterfaceTable.h %(win32com)s/include\\PyILockBytes.h
-                        %(win32com)s/include\\PyIMoniker.h       %(win32com)s/include\\PyIOleWindow.h
-                        %(win32com)s/include\\PyIPersist.h       %(win32com)s/include\\PyIPersistFile.h
-                        %(win32com)s/include\\PyIPersistStorage.h %(win32com)s/include\\PyIPersistStream.h
-                        %(win32com)s/include\\PyIPersistStreamInit.h %(win32com)s/include\\PyIRunningObjectTable.h
-                        %(win32com)s/include\\PyIStorage.h       %(win32com)s/include\\PyIStream.h
-                        %(win32com)s/include\\PythonCOM.h        %(win32com)s/include\\PythonCOMRegister.h
-                        %(win32com)s/include\\PythonCOMServer.h  %(win32com)s/include\\stdafx.h
-                        %(win32com)s/include\\univgw_dataconv.h
-                        %(win32com)s/include\\PyICancelMethodCalls.h    %(win32com)s/include\\PyIContext.h
-                        %(win32com)s/include\\PyIEnumContextProps.h     %(win32com)s/include\\PyIClientSecurity.h
-                        %(win32com)s/include\\PyIServerSecurity.h
-                        """
-        % dirs
+                        {win32com}/include\\propbag.h          {win32com}/include\\PyComTypeObjects.h
+                        {win32com}/include\\PyFactory.h        {win32com}/include\\PyGConnectionPoint.h
+                        {win32com}/include\\PyGConnectionPointContainer.h
+                        {win32com}/include\\PyGPersistStorage.h {win32com}/include\\PyIBindCtx.h
+                        {win32com}/include\\PyICatInformation.h {win32com}/include\\PyICatRegister.h
+                        {win32com}/include\\PyIDataObject.h    {win32com}/include\\PyIDropSource.h
+                        {win32com}/include\\PyIDropTarget.h    {win32com}/include\\PyIEnumConnectionPoints.h
+                        {win32com}/include\\PyIEnumConnections.h {win32com}/include\\PyIEnumFORMATETC.h
+                        {win32com}/include\\PyIEnumGUID.h      {win32com}/include\\PyIEnumSTATPROPSETSTG.h
+                        {win32com}/include\\PyIEnumSTATSTG.h   {win32com}/include\\PyIEnumString.h
+                        {win32com}/include\\PyIEnumVARIANT.h   {win32com}/include\\PyIExternalConnection.h
+                        {win32com}/include\\PyIGlobalInterfaceTable.h {win32com}/include\\PyILockBytes.h
+                        {win32com}/include\\PyIMoniker.h       {win32com}/include\\PyIOleWindow.h
+                        {win32com}/include\\PyIPersist.h       {win32com}/include\\PyIPersistFile.h
+                        {win32com}/include\\PyIPersistStorage.h {win32com}/include\\PyIPersistStream.h
+                        {win32com}/include\\PyIPersistStreamInit.h {win32com}/include\\PyIRunningObjectTable.h
+                        {win32com}/include\\PyIStorage.h       {win32com}/include\\PyIStream.h
+                        {win32com}/include\\PythonCOM.h        {win32com}/include\\PythonCOMRegister.h
+                        {win32com}/include\\PythonCOMServer.h  {win32com}/include\\stdafx.h
+                        {win32com}/include\\univgw_dataconv.h
+                        {win32com}/include\\PyICancelMethodCalls.h    {win32com}/include\\PyIContext.h
+                        {win32com}/include\\PyIEnumContextProps.h     {win32com}/include\\PyIClientSecurity.h
+                        {win32com}/include\\PyIServerSecurity.h
+                        """.format(**dirs)
     ).split(),
     libraries="oleaut32 ole32 user32 urlmon",
     export_symbol_file="com/win32com/src/PythonCOM.def",
@@ -1482,19 +1479,18 @@ com_extensions += [
         libraries="ACTIVEDS ADSIID user32 advapi32",
         sources=(
             """
-                        %(adsi)s/adsi.i                 %(adsi)s/adsi.cpp
-                        %(adsi)s/PyIADsContainer.i      %(adsi)s/PyIADsContainer.cpp
-                        %(adsi)s/PyIADsUser.i           %(adsi)s/PyIADsUser.cpp
-                        %(adsi)s/PyIADsDeleteOps.i      %(adsi)s/PyIADsDeleteOps.cpp
-                        %(adsi)s/PyIDirectoryObject.i   %(adsi)s/PyIDirectoryObject.cpp
-                        %(adsi)s/PyIDirectorySearch.i   %(adsi)s/PyIDirectorySearch.cpp
-                        %(adsi)s/PyIDsObjectPicker.i    %(adsi)s/PyIDsObjectPicker.cpp
+                        {adsi}/adsi.i                 {adsi}/adsi.cpp
+                        {adsi}/PyIADsContainer.i      {adsi}/PyIADsContainer.cpp
+                        {adsi}/PyIADsUser.i           {adsi}/PyIADsUser.cpp
+                        {adsi}/PyIADsDeleteOps.i      {adsi}/PyIADsDeleteOps.cpp
+                        {adsi}/PyIDirectoryObject.i   {adsi}/PyIDirectoryObject.cpp
+                        {adsi}/PyIDirectorySearch.i   {adsi}/PyIDirectorySearch.cpp
+                        {adsi}/PyIDsObjectPicker.i    {adsi}/PyIDsObjectPicker.cpp
 
-                        %(adsi)s/adsilib.i
-                        %(adsi)s/PyADSIUtil.cpp         %(adsi)s/PyDSOPObjects.cpp
-                        %(adsi)s/PyIADs.cpp
-                        """
-            % dirs
+                        {adsi}/adsilib.i
+                        {adsi}/PyADSIUtil.cpp         {adsi}/PyDSOPObjects.cpp
+                        {adsi}/PyIADs.cpp
+                        """.format(**dirs)
         ).split(),
     ),
     WinExt_win32com(
@@ -1502,44 +1498,41 @@ com_extensions += [
         pch_header="axcontrol_pch.h",
         sources=(
             """
-                        %(axcontrol)s/AXControl.cpp
-                        %(axcontrol)s/PyIOleControl.cpp          %(axcontrol)s/PyIOleControlSite.cpp
-                        %(axcontrol)s/PyIOleInPlaceActiveObject.cpp
-                        %(axcontrol)s/PyIOleInPlaceSiteEx.cpp    %(axcontrol)s/PyISpecifyPropertyPages.cpp
-                        %(axcontrol)s/PyIOleInPlaceUIWindow.cpp  %(axcontrol)s/PyIOleInPlaceFrame.cpp
-                        %(axcontrol)s/PyIObjectWithSite.cpp      %(axcontrol)s/PyIOleInPlaceObject.cpp
-                        %(axcontrol)s/PyIOleInPlaceSiteWindowless.cpp  %(axcontrol)s/PyIViewObject.cpp
-                        %(axcontrol)s/PyIOleClientSite.cpp       %(axcontrol)s/PyIOleInPlaceSite.cpp
-                        %(axcontrol)s/PyIOleObject.cpp           %(axcontrol)s/PyIViewObject2.cpp
-                        %(axcontrol)s/PyIOleCommandTarget.cpp
-                        """
-            % dirs
+                        {axcontrol}/AXControl.cpp
+                        {axcontrol}/PyIOleControl.cpp          {axcontrol}/PyIOleControlSite.cpp
+                        {axcontrol}/PyIOleInPlaceActiveObject.cpp
+                        {axcontrol}/PyIOleInPlaceSiteEx.cpp    {axcontrol}/PyISpecifyPropertyPages.cpp
+                        {axcontrol}/PyIOleInPlaceUIWindow.cpp  {axcontrol}/PyIOleInPlaceFrame.cpp
+                        {axcontrol}/PyIObjectWithSite.cpp      {axcontrol}/PyIOleInPlaceObject.cpp
+                        {axcontrol}/PyIOleInPlaceSiteWindowless.cpp  {axcontrol}/PyIViewObject.cpp
+                        {axcontrol}/PyIOleClientSite.cpp       {axcontrol}/PyIOleInPlaceSite.cpp
+                        {axcontrol}/PyIOleObject.cpp           {axcontrol}/PyIViewObject2.cpp
+                        {axcontrol}/PyIOleCommandTarget.cpp
+                        """.format(**dirs)
         ).split(),
     ),
     WinExt_win32com(
         "axscript",
         sources=(
             """
-                        %(axscript)s/AXScript.cpp
-                        %(axscript)s/GUIDS.CPP                   %(axscript)s/PyGActiveScript.cpp
-                        %(axscript)s/PyGActiveScriptError.cpp    %(axscript)s/PyGActiveScriptParse.cpp
-                        %(axscript)s/PyGActiveScriptSite.cpp     %(axscript)s/PyGObjectSafety.cpp
-                        %(axscript)s/PyIActiveScript.cpp         %(axscript)s/PyIActiveScriptError.cpp
-                        %(axscript)s/PyIActiveScriptParse.cpp    %(axscript)s/PyIActiveScriptParseProcedure.cpp
-                        %(axscript)s/PyIActiveScriptSite.cpp     %(axscript)s/PyIMultiInfos.cpp
-                        %(axscript)s/PyIObjectSafety.cpp         %(axscript)s/stdafx.cpp
-                        """
-            % dirs
+                        {axscript}/AXScript.cpp
+                        {axscript}/GUIDS.CPP                   {axscript}/PyGActiveScript.cpp
+                        {axscript}/PyGActiveScriptError.cpp    {axscript}/PyGActiveScriptParse.cpp
+                        {axscript}/PyGActiveScriptSite.cpp     {axscript}/PyGObjectSafety.cpp
+                        {axscript}/PyIActiveScript.cpp         {axscript}/PyIActiveScriptError.cpp
+                        {axscript}/PyIActiveScriptParse.cpp    {axscript}/PyIActiveScriptParseProcedure.cpp
+                        {axscript}/PyIActiveScriptSite.cpp     {axscript}/PyIMultiInfos.cpp
+                        {axscript}/PyIObjectSafety.cpp         {axscript}/stdafx.cpp
+                        """.format(**dirs)
         ).split(),
         depends=(
             """
-                             %(axscript)s/AXScript.h
-                             %(axscript)s/guids.h                %(axscript)s/PyGActiveScriptError.h
-                             %(axscript)s/PyIActiveScriptError.h %(axscript)s/PyIObjectSafety.h
-                             %(axscript)s/PyIProvideMultipleClassInfo.h
-                             %(axscript)s/stdafx.h
-                             """
-            % dirs
+                             {axscript}/AXScript.h
+                             {axscript}/guids.h                {axscript}/PyGActiveScriptError.h
+                             {axscript}/PyIActiveScriptError.h {axscript}/PyIObjectSafety.h
+                             {axscript}/PyIProvideMultipleClassInfo.h
+                             {axscript}/stdafx.h
+                             """.format(**dirs)
         ).split(),
         extra_compile_args=["-DPY_BUILD_AXSCRIPT"],
         implib_name="axscript",
@@ -1551,52 +1544,51 @@ com_extensions += [
         pch_header="stdafx.h",
         sources=(
             """
-                    %(axdebug)s/AXDebug.cpp
-                    %(axdebug)s/PyIActiveScriptDebug.cpp
-                    %(axdebug)s/PyIActiveScriptErrorDebug.cpp
-                    %(axdebug)s/PyIActiveScriptSiteDebug.cpp
-                    %(axdebug)s/PyIApplicationDebugger.cpp
-                    %(axdebug)s/PyIDebugApplication.cpp
-                    %(axdebug)s/PyIDebugApplicationNode.cpp
-                    %(axdebug)s/PyIDebugApplicationNodeEvents.cpp
-                    %(axdebug)s/PyIDebugApplicationThread.cpp
-                    %(axdebug)s/PyIDebugCodeContext.cpp
-                    %(axdebug)s/PyIDebugDocument.cpp
-                    %(axdebug)s/PyIDebugDocumentContext.cpp
-                    %(axdebug)s/PyIDebugDocumentHelper.cpp
-                    %(axdebug)s/PyIDebugDocumentHost.cpp
-                    %(axdebug)s/PyIDebugDocumentInfo.cpp
-                    %(axdebug)s/PyIDebugDocumentProvider.cpp
-                    %(axdebug)s/PyIDebugDocumentText.cpp
-                    %(axdebug)s/PyIDebugDocumentTextAuthor.cpp
-                    %(axdebug)s/PyIDebugDocumentTextEvents.cpp
-                    %(axdebug)s/PyIDebugDocumentTextExternalAuthor.cpp
-                    %(axdebug)s/PyIDebugExpression.cpp
-                    %(axdebug)s/PyIDebugExpressionCallBack.cpp
-                    %(axdebug)s/PyIDebugExpressionContext.cpp
-                    %(axdebug)s/PyIDebugProperties.cpp
-                    %(axdebug)s/PyIDebugSessionProvider.cpp
-                    %(axdebug)s/PyIDebugStackFrame.cpp
-                    %(axdebug)s/PyIDebugStackFrameSniffer.cpp
-                    %(axdebug)s/PyIDebugStackFrameSnifferEx.cpp
-                    %(axdebug)s/PyIDebugSyncOperation.cpp
-                    %(axdebug)s/PyIEnumDebugApplicationNodes.cpp
-                    %(axdebug)s/PyIEnumDebugCodeContexts.cpp
-                    %(axdebug)s/PyIEnumDebugExpressionContexts.cpp
-                    %(axdebug)s/PyIEnumDebugPropertyInfo.cpp
-                    %(axdebug)s/PyIEnumDebugStackFrames.cpp
-                    %(axdebug)s/PyIEnumRemoteDebugApplications.cpp
-                    %(axdebug)s/PyIEnumRemoteDebugApplicationThreads.cpp
-                    %(axdebug)s/PyIMachineDebugManager.cpp
-                    %(axdebug)s/PyIMachineDebugManagerEvents.cpp
-                    %(axdebug)s/PyIProcessDebugManager.cpp
-                    %(axdebug)s/PyIProvideExpressionContexts.cpp
-                    %(axdebug)s/PyIRemoteDebugApplication.cpp
-                    %(axdebug)s/PyIRemoteDebugApplicationEvents.cpp
-                    %(axdebug)s/PyIRemoteDebugApplicationThread.cpp
-                    %(axdebug)s/stdafx.cpp
-                     """
-            % dirs
+                    {axdebug}/AXDebug.cpp
+                    {axdebug}/PyIActiveScriptDebug.cpp
+                    {axdebug}/PyIActiveScriptErrorDebug.cpp
+                    {axdebug}/PyIActiveScriptSiteDebug.cpp
+                    {axdebug}/PyIApplicationDebugger.cpp
+                    {axdebug}/PyIDebugApplication.cpp
+                    {axdebug}/PyIDebugApplicationNode.cpp
+                    {axdebug}/PyIDebugApplicationNodeEvents.cpp
+                    {axdebug}/PyIDebugApplicationThread.cpp
+                    {axdebug}/PyIDebugCodeContext.cpp
+                    {axdebug}/PyIDebugDocument.cpp
+                    {axdebug}/PyIDebugDocumentContext.cpp
+                    {axdebug}/PyIDebugDocumentHelper.cpp
+                    {axdebug}/PyIDebugDocumentHost.cpp
+                    {axdebug}/PyIDebugDocumentInfo.cpp
+                    {axdebug}/PyIDebugDocumentProvider.cpp
+                    {axdebug}/PyIDebugDocumentText.cpp
+                    {axdebug}/PyIDebugDocumentTextAuthor.cpp
+                    {axdebug}/PyIDebugDocumentTextEvents.cpp
+                    {axdebug}/PyIDebugDocumentTextExternalAuthor.cpp
+                    {axdebug}/PyIDebugExpression.cpp
+                    {axdebug}/PyIDebugExpressionCallBack.cpp
+                    {axdebug}/PyIDebugExpressionContext.cpp
+                    {axdebug}/PyIDebugProperties.cpp
+                    {axdebug}/PyIDebugSessionProvider.cpp
+                    {axdebug}/PyIDebugStackFrame.cpp
+                    {axdebug}/PyIDebugStackFrameSniffer.cpp
+                    {axdebug}/PyIDebugStackFrameSnifferEx.cpp
+                    {axdebug}/PyIDebugSyncOperation.cpp
+                    {axdebug}/PyIEnumDebugApplicationNodes.cpp
+                    {axdebug}/PyIEnumDebugCodeContexts.cpp
+                    {axdebug}/PyIEnumDebugExpressionContexts.cpp
+                    {axdebug}/PyIEnumDebugPropertyInfo.cpp
+                    {axdebug}/PyIEnumDebugStackFrames.cpp
+                    {axdebug}/PyIEnumRemoteDebugApplications.cpp
+                    {axdebug}/PyIEnumRemoteDebugApplicationThreads.cpp
+                    {axdebug}/PyIMachineDebugManager.cpp
+                    {axdebug}/PyIMachineDebugManagerEvents.cpp
+                    {axdebug}/PyIProcessDebugManager.cpp
+                    {axdebug}/PyIProvideExpressionContexts.cpp
+                    {axdebug}/PyIRemoteDebugApplication.cpp
+                    {axdebug}/PyIRemoteDebugApplicationEvents.cpp
+                    {axdebug}/PyIRemoteDebugApplicationThread.cpp
+                    {axdebug}/stdafx.cpp
+                     """.format(**dirs)
         ).split(),
     ),
     WinExt_win32com(
@@ -1604,80 +1596,76 @@ com_extensions += [
         pch_header="internet_pch.h",
         sources=(
             """
-                        %(internet)s/internet.cpp                   %(internet)s/PyIDocHostUIHandler.cpp
-                        %(internet)s/PyIHTMLOMWindowServices.cpp    %(internet)s/PyIInternetBindInfo.cpp
-                        %(internet)s/PyIInternetPriority.cpp        %(internet)s/PyIInternetProtocol.cpp
-                        %(internet)s/PyIInternetProtocolInfo.cpp    %(internet)s/PyIInternetProtocolRoot.cpp
-                        %(internet)s/PyIInternetProtocolSink.cpp    %(internet)s/PyIInternetSecurityManager.cpp
-                    """
-            % dirs
+                        {internet}/internet.cpp                   {internet}/PyIDocHostUIHandler.cpp
+                        {internet}/PyIHTMLOMWindowServices.cpp    {internet}/PyIInternetBindInfo.cpp
+                        {internet}/PyIInternetPriority.cpp        {internet}/PyIInternetProtocol.cpp
+                        {internet}/PyIInternetProtocolInfo.cpp    {internet}/PyIInternetProtocolRoot.cpp
+                        {internet}/PyIInternetProtocolSink.cpp    {internet}/PyIInternetSecurityManager.cpp
+                    """.format(**dirs)
         ).split(),
-        depends=["%(internet)s/internet_pch.h" % dirs],
+        depends=["{internet}/internet_pch.h".format(**dirs)],
     ),
     WinExt_win32com(
         "mapi",
         libraries="advapi32",
         pch_header="PythonCOM.h",
-        include_dirs=["%(mapi)s/mapi_headers" % dirs],
+        include_dirs=["{mapi}/mapi_headers".format(**dirs)],
         sources=(
             """
-                        %(mapi)s/mapi.i                 %(mapi)s/mapi.cpp
-                        %(mapi)s/PyIABContainer.i       %(mapi)s/PyIABContainer.cpp
-                        %(mapi)s/PyIAddrBook.i          %(mapi)s/PyIAddrBook.cpp
-                        %(mapi)s/PyIAttach.i            %(mapi)s/PyIAttach.cpp
-                        %(mapi)s/PyIDistList.i          %(mapi)s/PyIDistList.cpp
-                        %(mapi)s/PyIMailUser.i          %(mapi)s/PyIMailUser.cpp
-                        %(mapi)s/PyIMAPIContainer.i     %(mapi)s/PyIMAPIContainer.cpp
-                        %(mapi)s/PyIMAPIFolder.i        %(mapi)s/PyIMAPIFolder.cpp
-                        %(mapi)s/PyIMAPIProp.i          %(mapi)s/PyIMAPIProp.cpp
-                        %(mapi)s/PyIMAPISession.i       %(mapi)s/PyIMAPISession.cpp
-                        %(mapi)s/PyIMAPIStatus.i        %(mapi)s/PyIMAPIStatus.cpp
-                        %(mapi)s/PyIMAPITable.i         %(mapi)s/PyIMAPITable.cpp
-                        %(mapi)s/PyIMessage.i           %(mapi)s/PyIMessage.cpp
-                        %(mapi)s/PyIMsgServiceAdmin.i   %(mapi)s/PyIMsgServiceAdmin.cpp
-                        %(mapi)s/PyIMsgServiceAdmin2.i  %(mapi)s/PyIMsgServiceAdmin2.cpp
-                        %(mapi)s/PyIProviderAdmin.i     %(mapi)s/PyIProviderAdmin.cpp
-                        %(mapi)s/PyIMsgStore.i          %(mapi)s/PyIMsgStore.cpp
-                        %(mapi)s/PyIProfAdmin.i         %(mapi)s/PyIProfAdmin.cpp
-                        %(mapi)s/PyIProfSect.i          %(mapi)s/PyIProfSect.cpp
-                        %(mapi)s/PyIConverterSession.i	%(mapi)s/PyIConverterSession.cpp
-                        %(mapi)s/PyIMAPIAdviseSink.cpp
-                        %(mapi)s/mapiutil.cpp
-                        %(mapi)s/mapiguids.cpp
-                        %(mapi)s/mapi_stub_library/MapiStubLibrary.cpp
-                        %(mapi)s/mapi_stub_library/StubUtils.cpp
-                        """
-            % dirs
+                        {mapi}/mapi.i                 {mapi}/mapi.cpp
+                        {mapi}/PyIABContainer.i       {mapi}/PyIABContainer.cpp
+                        {mapi}/PyIAddrBook.i          {mapi}/PyIAddrBook.cpp
+                        {mapi}/PyIAttach.i            {mapi}/PyIAttach.cpp
+                        {mapi}/PyIDistList.i          {mapi}/PyIDistList.cpp
+                        {mapi}/PyIMailUser.i          {mapi}/PyIMailUser.cpp
+                        {mapi}/PyIMAPIContainer.i     {mapi}/PyIMAPIContainer.cpp
+                        {mapi}/PyIMAPIFolder.i        {mapi}/PyIMAPIFolder.cpp
+                        {mapi}/PyIMAPIProp.i          {mapi}/PyIMAPIProp.cpp
+                        {mapi}/PyIMAPISession.i       {mapi}/PyIMAPISession.cpp
+                        {mapi}/PyIMAPIStatus.i        {mapi}/PyIMAPIStatus.cpp
+                        {mapi}/PyIMAPITable.i         {mapi}/PyIMAPITable.cpp
+                        {mapi}/PyIMessage.i           {mapi}/PyIMessage.cpp
+                        {mapi}/PyIMsgServiceAdmin.i   {mapi}/PyIMsgServiceAdmin.cpp
+                        {mapi}/PyIMsgServiceAdmin2.i  {mapi}/PyIMsgServiceAdmin2.cpp
+                        {mapi}/PyIProviderAdmin.i     {mapi}/PyIProviderAdmin.cpp
+                        {mapi}/PyIMsgStore.i          {mapi}/PyIMsgStore.cpp
+                        {mapi}/PyIProfAdmin.i         {mapi}/PyIProfAdmin.cpp
+                        {mapi}/PyIProfSect.i          {mapi}/PyIProfSect.cpp
+                        {mapi}/PyIConverterSession.i	{mapi}/PyIConverterSession.cpp
+                        {mapi}/PyIMAPIAdviseSink.cpp
+                        {mapi}/mapiutil.cpp
+                        {mapi}/mapiguids.cpp
+                        {mapi}/mapi_stub_library/MapiStubLibrary.cpp
+                        {mapi}/mapi_stub_library/StubUtils.cpp
+                        """.format(**dirs)
         ).split(),
     ),
     WinExt_win32com_mapi(
         "exchange",
         libraries="advapi32 legacy_stdio_definitions",
-        include_dirs=["%(mapi)s/mapi_headers" % dirs],
+        include_dirs=["{mapi}/mapi_headers".format(**dirs)],
         sources=(
             """
-                                  %(mapi)s/exchange.i         %(mapi)s/exchange.cpp
-                                  %(mapi)s/PyIExchangeManageStore.i %(mapi)s/PyIExchangeManageStore.cpp
-                                  %(mapi)s/PyIExchangeManageStoreEx.i %(mapi)s/PyIExchangeManageStoreEx.cpp
-                                  %(mapi)s/mapiutil.cpp
-                                  %(mapi)s/exchangeguids.cpp
-                                  %(mapi)s/mapi_stub_library/MapiStubLibrary.cpp
-                                  %(mapi)s/mapi_stub_library/StubUtils.cpp
-                                  """
-            % dirs
+                                  {mapi}/exchange.i         {mapi}/exchange.cpp
+                                  {mapi}/PyIExchangeManageStore.i {mapi}/PyIExchangeManageStore.cpp
+                                  {mapi}/PyIExchangeManageStoreEx.i {mapi}/PyIExchangeManageStoreEx.cpp
+                                  {mapi}/mapiutil.cpp
+                                  {mapi}/exchangeguids.cpp
+                                  {mapi}/mapi_stub_library/MapiStubLibrary.cpp
+                                  {mapi}/mapi_stub_library/StubUtils.cpp
+                                  """.format(**dirs)
         ).split(),
     ),
     WinExt_win32com_mapi(
         "exchdapi",
         libraries="advapi32",
-        include_dirs=["%(mapi)s/mapi_headers" % dirs],
+        include_dirs=["{mapi}/mapi_headers".format(**dirs)],
         sources=(
             """
-                                  %(mapi)s/exchdapi.i         %(mapi)s/exchdapi.cpp
-                                  %(mapi)s/mapi_stub_library/MapiStubLibrary.cpp
-                                  %(mapi)s/mapi_stub_library/StubUtils.cpp
-                                  """
-            % dirs
+                                  {mapi}/exchdapi.i         {mapi}/exchdapi.cpp
+                                  {mapi}/mapi_stub_library/MapiStubLibrary.cpp
+                                  {mapi}/mapi_stub_library/StubUtils.cpp
+                                  """.format(**dirs)
         ).split(),
     ),
     WinExt_win32com(
@@ -1687,79 +1675,78 @@ com_extensions += [
         windows_h_version=0x600,
         sources=(
             """
-                        %(shell)s/PyIActiveDesktop.cpp
-                        %(shell)s/PyIApplicationDestinations.cpp
-                        %(shell)s/PyIApplicationDocumentLists.cpp
-                        %(shell)s/PyIAsyncOperation.cpp
-                        %(shell)s/PyIBrowserFrameOptions.cpp
-                        %(shell)s/PyICategorizer.cpp
-                        %(shell)s/PyICategoryProvider.cpp
-                        %(shell)s/PyIColumnProvider.cpp
-                        %(shell)s/PyIContextMenu.cpp
-                        %(shell)s/PyIContextMenu2.cpp
-                        %(shell)s/PyIContextMenu3.cpp
-                        %(shell)s/PyICopyHook.cpp
-                        %(shell)s/PyICurrentItem.cpp
-                        %(shell)s/PyICustomDestinationList.cpp
-                        %(shell)s/PyIDefaultExtractIconInit.cpp
-                        %(shell)s/PyIDeskBand.cpp
-                        %(shell)s/PyIDisplayItem.cpp
-                        %(shell)s/PyIDockingWindow.cpp
-                        %(shell)s/PyIDropTargetHelper.cpp
-                        %(shell)s/PyIEnumExplorerCommand.cpp
-                        %(shell)s/PyIEnumIDList.cpp
-                        %(shell)s/PyIEnumObjects.cpp
-                        %(shell)s/PyIEnumResources.cpp
-                        %(shell)s/PyIEnumShellItems.cpp
-                        %(shell)s/PyIEmptyVolumeCache.cpp
-                        %(shell)s/PyIEmptyVolumeCacheCallBack.cpp
-                        %(shell)s/PyIExplorerBrowser.cpp
-                        %(shell)s/PyIExplorerBrowserEvents.cpp
-                        %(shell)s/PyIExplorerCommand.cpp
-                        %(shell)s/PyIExplorerCommandProvider.cpp
-                        %(shell)s/PyIExplorerPaneVisibility.cpp
-                        %(shell)s/PyIExtractIcon.cpp
-                        %(shell)s/PyIExtractIconW.cpp
-                        %(shell)s/PyIExtractImage.cpp
-                        %(shell)s/PyIFileOperation.cpp
-                        %(shell)s/PyIFileOperationProgressSink.cpp
-                        %(shell)s/PyIIdentityName.cpp
-                        %(shell)s/PyIInputObject.cpp
-                        %(shell)s/PyIKnownFolder.cpp
-                        %(shell)s/PyIKnownFolderManager.cpp
-                        %(shell)s/PyINameSpaceTreeControl.cpp
-                        %(shell)s/PyIObjectArray.cpp
-                        %(shell)s/PyIObjectCollection.cpp
-                        %(shell)s/PyIPersistFolder.cpp
-                        %(shell)s/PyIPersistFolder2.cpp
-                        %(shell)s/PyIQueryAssociations.cpp
-                        %(shell)s/PyIRelatedItem.cpp
-                        %(shell)s/PyIShellBrowser.cpp
-                        %(shell)s/PyIShellExtInit.cpp
-                        %(shell)s/PyIShellFolder.cpp
-                        %(shell)s/PyIShellFolder2.cpp
-                        %(shell)s/PyIShellIcon.cpp
-                        %(shell)s/PyIShellIconOverlay.cpp
-                        %(shell)s/PyIShellIconOverlayIdentifier.cpp
-                        %(shell)s/PyIShellIconOverlayManager.cpp
-                        %(shell)s/PyIShellItem.cpp
-                        %(shell)s/PyIShellItem2.cpp
-                        %(shell)s/PyIShellItemArray.cpp
-                        %(shell)s/PyIShellItemResources.cpp
-                        %(shell)s/PyIShellLibrary.cpp
-                        %(shell)s/PyIShellLink.cpp
-                        %(shell)s/PyIShellLinkDataList.cpp
-                        %(shell)s/PyIShellView.cpp
-                        %(shell)s/PyITaskbarList.cpp
-                        %(shell)s/PyITransferAdviseSink.cpp
-                        %(shell)s/PyITransferDestination.cpp
-                        %(shell)s/PyITransferMediumItem.cpp
-                        %(shell)s/PyITransferSource.cpp
-                        %(shell)s/PyIUniformResourceLocator.cpp
-                        %(shell)s/shell.cpp
+                        {shell}/PyIActiveDesktop.cpp
+                        {shell}/PyIApplicationDestinations.cpp
+                        {shell}/PyIApplicationDocumentLists.cpp
+                        {shell}/PyIAsyncOperation.cpp
+                        {shell}/PyIBrowserFrameOptions.cpp
+                        {shell}/PyICategorizer.cpp
+                        {shell}/PyICategoryProvider.cpp
+                        {shell}/PyIColumnProvider.cpp
+                        {shell}/PyIContextMenu.cpp
+                        {shell}/PyIContextMenu2.cpp
+                        {shell}/PyIContextMenu3.cpp
+                        {shell}/PyICopyHook.cpp
+                        {shell}/PyICurrentItem.cpp
+                        {shell}/PyICustomDestinationList.cpp
+                        {shell}/PyIDefaultExtractIconInit.cpp
+                        {shell}/PyIDeskBand.cpp
+                        {shell}/PyIDisplayItem.cpp
+                        {shell}/PyIDockingWindow.cpp
+                        {shell}/PyIDropTargetHelper.cpp
+                        {shell}/PyIEnumExplorerCommand.cpp
+                        {shell}/PyIEnumIDList.cpp
+                        {shell}/PyIEnumObjects.cpp
+                        {shell}/PyIEnumResources.cpp
+                        {shell}/PyIEnumShellItems.cpp
+                        {shell}/PyIEmptyVolumeCache.cpp
+                        {shell}/PyIEmptyVolumeCacheCallBack.cpp
+                        {shell}/PyIExplorerBrowser.cpp
+                        {shell}/PyIExplorerBrowserEvents.cpp
+                        {shell}/PyIExplorerCommand.cpp
+                        {shell}/PyIExplorerCommandProvider.cpp
+                        {shell}/PyIExplorerPaneVisibility.cpp
+                        {shell}/PyIExtractIcon.cpp
+                        {shell}/PyIExtractIconW.cpp
+                        {shell}/PyIExtractImage.cpp
+                        {shell}/PyIFileOperation.cpp
+                        {shell}/PyIFileOperationProgressSink.cpp
+                        {shell}/PyIIdentityName.cpp
+                        {shell}/PyIInputObject.cpp
+                        {shell}/PyIKnownFolder.cpp
+                        {shell}/PyIKnownFolderManager.cpp
+                        {shell}/PyINameSpaceTreeControl.cpp
+                        {shell}/PyIObjectArray.cpp
+                        {shell}/PyIObjectCollection.cpp
+                        {shell}/PyIPersistFolder.cpp
+                        {shell}/PyIPersistFolder2.cpp
+                        {shell}/PyIQueryAssociations.cpp
+                        {shell}/PyIRelatedItem.cpp
+                        {shell}/PyIShellBrowser.cpp
+                        {shell}/PyIShellExtInit.cpp
+                        {shell}/PyIShellFolder.cpp
+                        {shell}/PyIShellFolder2.cpp
+                        {shell}/PyIShellIcon.cpp
+                        {shell}/PyIShellIconOverlay.cpp
+                        {shell}/PyIShellIconOverlayIdentifier.cpp
+                        {shell}/PyIShellIconOverlayManager.cpp
+                        {shell}/PyIShellItem.cpp
+                        {shell}/PyIShellItem2.cpp
+                        {shell}/PyIShellItemArray.cpp
+                        {shell}/PyIShellItemResources.cpp
+                        {shell}/PyIShellLibrary.cpp
+                        {shell}/PyIShellLink.cpp
+                        {shell}/PyIShellLinkDataList.cpp
+                        {shell}/PyIShellView.cpp
+                        {shell}/PyITaskbarList.cpp
+                        {shell}/PyITransferAdviseSink.cpp
+                        {shell}/PyITransferDestination.cpp
+                        {shell}/PyITransferMediumItem.cpp
+                        {shell}/PyITransferSource.cpp
+                        {shell}/PyIUniformResourceLocator.cpp
+                        {shell}/shell.cpp
 
-                        """
-            % dirs
+                        """.format(**dirs)
         ).split(),
     ),
     WinExt_win32com(
@@ -1768,27 +1755,26 @@ com_extensions += [
         delay_load_libraries="shell32",
         sources=(
             """
-                        %(propsys)s/propsys.cpp
-                        %(propsys)s/PyIInitializeWithFile.cpp
-                        %(propsys)s/PyIInitializeWithStream.cpp
-                        %(propsys)s/PyINamedPropertyStore.cpp
-                        %(propsys)s/PyIPropertyDescription.cpp
-                        %(propsys)s/PyIPropertyDescriptionAliasInfo.cpp
-                        %(propsys)s/PyIPropertyDescriptionList.cpp
-                        %(propsys)s/PyIPropertyDescriptionSearchInfo.cpp
-                        %(propsys)s/PyIPropertyEnumType.cpp
-                        %(propsys)s/PyIPropertyEnumTypeList.cpp
-                        %(propsys)s/PyIPropertyStore.cpp
-                        %(propsys)s/PyIPropertyStoreCache.cpp
-                        %(propsys)s/PyIPropertyStoreCapabilities.cpp
-                        %(propsys)s/PyIPropertySystem.cpp
-                        %(propsys)s/PyPROPVARIANT.cpp
-                        %(propsys)s/PyIPersistSerializedPropStorage.cpp
-                        %(propsys)s/PyIObjectWithPropertyKey.cpp
-                        %(propsys)s/PyIPropertyChange.cpp
-                        %(propsys)s/PyIPropertyChangeArray.cpp
-                        """
-            % dirs
+                        {propsys}/propsys.cpp
+                        {propsys}/PyIInitializeWithFile.cpp
+                        {propsys}/PyIInitializeWithStream.cpp
+                        {propsys}/PyINamedPropertyStore.cpp
+                        {propsys}/PyIPropertyDescription.cpp
+                        {propsys}/PyIPropertyDescriptionAliasInfo.cpp
+                        {propsys}/PyIPropertyDescriptionList.cpp
+                        {propsys}/PyIPropertyDescriptionSearchInfo.cpp
+                        {propsys}/PyIPropertyEnumType.cpp
+                        {propsys}/PyIPropertyEnumTypeList.cpp
+                        {propsys}/PyIPropertyStore.cpp
+                        {propsys}/PyIPropertyStoreCache.cpp
+                        {propsys}/PyIPropertyStoreCapabilities.cpp
+                        {propsys}/PyIPropertySystem.cpp
+                        {propsys}/PyPROPVARIANT.cpp
+                        {propsys}/PyIPersistSerializedPropStorage.cpp
+                        {propsys}/PyIObjectWithPropertyKey.cpp
+                        {propsys}/PyIPropertyChange.cpp
+                        {propsys}/PyIPropertyChangeArray.cpp
+                        """.format(**dirs)
         ).split(),
         implib_name="pypropsys",
     ),
@@ -1797,15 +1783,14 @@ com_extensions += [
         libraries="mstask",
         sources=(
             """
-                        %(taskscheduler)s/taskscheduler.cpp
-                        %(taskscheduler)s/PyIProvideTaskPage.cpp
-                        %(taskscheduler)s/PyIScheduledWorkItem.cpp
-                        %(taskscheduler)s/PyITask.cpp
-                        %(taskscheduler)s/PyITaskScheduler.cpp
-                        %(taskscheduler)s/PyITaskTrigger.cpp
+                        {taskscheduler}/taskscheduler.cpp
+                        {taskscheduler}/PyIProvideTaskPage.cpp
+                        {taskscheduler}/PyIScheduledWorkItem.cpp
+                        {taskscheduler}/PyITask.cpp
+                        {taskscheduler}/PyITaskScheduler.cpp
+                        {taskscheduler}/PyITaskTrigger.cpp
 
-                        """
-            % dirs
+                        """.format(**dirs)
         ).split(),
     ),
     WinExt_win32com(
@@ -1814,50 +1799,47 @@ com_extensions += [
         pch_header="bits_pch.h",
         sources=(
             """
-                        %(bits)s/bits.cpp
-                        %(bits)s/PyIBackgroundCopyManager.cpp
-                        %(bits)s/PyIBackgroundCopyCallback.cpp
-                        %(bits)s/PyIBackgroundCopyError.cpp
-                        %(bits)s/PyIBackgroundCopyJob.cpp
-                        %(bits)s/PyIBackgroundCopyJob2.cpp
-                        %(bits)s/PyIBackgroundCopyJob3.cpp
-                        %(bits)s/PyIBackgroundCopyFile.cpp
-                        %(bits)s/PyIBackgroundCopyFile2.cpp
-                        %(bits)s/PyIEnumBackgroundCopyJobs.cpp
-                        %(bits)s/PyIEnumBackgroundCopyFiles.cpp
+                        {bits}/bits.cpp
+                        {bits}/PyIBackgroundCopyManager.cpp
+                        {bits}/PyIBackgroundCopyCallback.cpp
+                        {bits}/PyIBackgroundCopyError.cpp
+                        {bits}/PyIBackgroundCopyJob.cpp
+                        {bits}/PyIBackgroundCopyJob2.cpp
+                        {bits}/PyIBackgroundCopyJob3.cpp
+                        {bits}/PyIBackgroundCopyFile.cpp
+                        {bits}/PyIBackgroundCopyFile2.cpp
+                        {bits}/PyIEnumBackgroundCopyJobs.cpp
+                        {bits}/PyIEnumBackgroundCopyFiles.cpp
 
-                        """
-            % dirs
+                        """.format(**dirs)
         ).split(),
     ),
     WinExt_win32com(
         "ifilter",
         libraries="ntquery",
-        sources=("%(ifilter)s/PyIFilter.cpp" % dirs).split(),
-        depends=("%(ifilter)s/PyIFilter.h %(ifilter)s/stdafx.h" % dirs).split(),
+        sources=("{ifilter}/PyIFilter.cpp".format(**dirs)).split(),
+        depends=("{ifilter}/PyIFilter.h {ifilter}/stdafx.h".format(**dirs)).split(),
     ),
     WinExt_win32com(
         "directsound",
         pch_header="directsound_pch.h",
         sources=(
             """
-                        %(directsound)s/directsound.cpp     %(directsound)s/PyDSBCAPS.cpp
-                        %(directsound)s/PyDSBUFFERDESC.cpp  %(directsound)s/PyDSCAPS.cpp
-                        %(directsound)s/PyDSCBCAPS.cpp      %(directsound)s/PyDSCBUFFERDESC.cpp
-                        %(directsound)s/PyDSCCAPS.cpp       %(directsound)s/PyIDirectSound.cpp
-                        %(directsound)s/PyIDirectSoundBuffer.cpp %(directsound)s/PyIDirectSoundCapture.cpp
-                        %(directsound)s/PyIDirectSoundCaptureBuffer.cpp
-                        %(directsound)s/PyIDirectSoundNotify.cpp
-                        """
-            % dirs
+                        {directsound}/directsound.cpp     {directsound}/PyDSBCAPS.cpp
+                        {directsound}/PyDSBUFFERDESC.cpp  {directsound}/PyDSCAPS.cpp
+                        {directsound}/PyDSCBCAPS.cpp      {directsound}/PyDSCBUFFERDESC.cpp
+                        {directsound}/PyDSCCAPS.cpp       {directsound}/PyIDirectSound.cpp
+                        {directsound}/PyIDirectSoundBuffer.cpp {directsound}/PyIDirectSoundCapture.cpp
+                        {directsound}/PyIDirectSoundCaptureBuffer.cpp
+                        {directsound}/PyIDirectSoundNotify.cpp
+                        """.format(**dirs)
         ).split(),
         depends=(
             """
-                        %(directsound)s/directsound_pch.h   %(directsound)s/PyIDirectSound.h
-                        %(directsound)s/PyIDirectSoundBuffer.h %(directsound)s/PyIDirectSoundCapture.h
-                        %(directsound)s/PyIDirectSoundCaptureBuffer.h %(directsound)s/PyIDirectSoundNotify.h
-                        """
-            % dirs
+                        {directsound}/directsound_pch.h   {directsound}/PyIDirectSound.h
+                        {directsound}/PyIDirectSoundBuffer.h {directsound}/PyIDirectSoundCapture.h
+                        {directsound}/PyIDirectSoundCaptureBuffer.h {directsound}/PyIDirectSoundNotify.h
+                        """.format(**dirs)
         ).split(),
         optional_headers=["dsound.h"],
         libraries="user32 dsound dxguid",
@@ -1867,10 +1849,9 @@ com_extensions += [
         libraries="aclui advapi32",
         sources=(
             """
-                        %(authorization)s/authorization.cpp
-                        %(authorization)s/PyGSecurityInformation.cpp
-                        """
-            % dirs
+                        {authorization}/authorization.cpp
+                        {authorization}/PyGSecurityInformation.cpp
+                        """.format(**dirs)
         ).split(),
     ),
 ]
@@ -2304,7 +2285,7 @@ dist = setup(
     options={
         "bdist_wininst": {
             "install_script": "pywin32_postinstall.py",
-            "title": "pywin32-%s" % (build_id,),
+            "title": f"pywin32-{build_id}",
             "user_access_control": "auto",
         },
     },
@@ -2416,7 +2397,7 @@ if "build_ext" in dist.command_obj:
         skipped_ex = []
         print("*** NOTE: The following extensions were NOT %s:" % what_string)
         for ext, why in excluded_extensions:
-            print(" %s: %s" % (ext.name, why))
+            print(f" {ext.name}: {why}")
             if ext.name not in skip_whitelist:
                 skipped_ex.append(ext.name)
         print("For more details on installing the correct libraries and headers,")
@@ -2428,4 +2409,4 @@ if "build_ext" in dist.command_obj:
             )
             sys.exit(1000 + len(skipped_ex))
     else:
-        print("All extension modules %s OK" % (what_string,))
+        print(f"All extension modules {what_string} OK")

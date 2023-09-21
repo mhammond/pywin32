@@ -148,7 +148,7 @@ class ConfigManager:
                 line, lineno = self._load_general(subsection, fp, lineno)
             else:
                 self.report_error(
-                    "Unrecognised section header '%s:%s'" % (section, subsection)
+                    f"Unrecognised section header '{section}:{subsection}'"
                 )
                 line = fp.readline()
                 lineno = lineno + 1
@@ -243,10 +243,10 @@ class ConfigManager:
 
     def report_error(self, msg):
         self.last_error = msg
-        print("Error in %s: %s" % (self.filename, msg))
+        print(f"Error in {self.filename}: {msg}")
 
     def report_warning(self, msg):
-        print("Warning in %s: %s" % (self.filename, msg))
+        print(f"Warning in {self.filename}: {msg}")
 
     def _readline(self, fp, lineno, bStripComments=1):
         line = fp.readline()
@@ -358,7 +358,7 @@ def test():
     cm = ConfigManager(f)
     map = cm.get_data("keys")
     took = time.clock() - start
-    print("Loaded %s items in %.4f secs" % (len(map), took))
+    print(f"Loaded {len(map)} items in {took:.4f} secs")
 
 
 if __name__ == "__main__":

@@ -325,11 +325,10 @@ class InteractiveCore:
                 if win32ui.debug:
                     suffix = ", debug build"
                 sys.stderr.write(
-                    "PythonWin %s on %s%s.\n" % (sys.version, sys.platform, suffix)
+                    f"PythonWin {sys.version} on {sys.platform}{suffix}.\n"
                 )
                 sys.stderr.write(
-                    "Portions %s - see 'Help/About PythonWin' for further copyright information.\n"
-                    % (win32ui.copyright,)
+                    "Portions {} - see 'Help/About PythonWin' for further copyright information.\n".format(win32ui.copyright)
                 )
             else:
                 sys.stderr.write(banner)

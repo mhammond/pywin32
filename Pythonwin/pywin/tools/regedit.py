@@ -113,7 +113,7 @@ class RegistryTreeView(docview.TreeView):
     def OnDeleteKey(self, command, code):
         hitem = self.hierList.GetSelectedItem()
         item = self.hierList.ItemFromHandle(hitem)
-        msg = "Are you sure you wish to delete the key '%s'?" % (item.keyName,)
+        msg = f"Are you sure you wish to delete the key '{item.keyName}'?"
         id = win32ui.MessageBox(msg, None, win32con.MB_YESNO)
         if id != win32con.IDYES:
             return
@@ -336,7 +336,7 @@ class HLIRegistryKey(hierlist.HierListItem):
         )
 
     def __repr__(self):
-        return "<%s with root=%s, key=%s>" % (
+        return "<{} with root={}, key={}>".format(
             self.__class__.__name__,
             self.keyRoot,
             self.keyName,

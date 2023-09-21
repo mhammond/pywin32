@@ -93,9 +93,9 @@ class FileParser:
                         # the set guid and property id. (note: the id can be a number or a string.
                         propSet = self.propertyToName.get(attr[0])
                         if propSet:
-                            propName = propSet.get(attr[1], "%s:%s" % attr)
+                            propName = propSet.get(attr[1], "{}:{}".format(*attr))
                         else:
-                            propName = "%s:%s" % attr
+                            propName = "{}:{}".format(*attr)
 
                     except pythoncom.com_error as e:
                         if e[0] == FILTER_E_END_OF_CHUNKS:
@@ -227,7 +227,7 @@ class FileParser:
 def _usage():
     import os
 
-    print("Usage: %s filename [verbose [dumpbody]]" % (os.path.basename(sys.argv[0]),))
+    print(f"Usage: {os.path.basename(sys.argv[0])} filename [verbose [dumpbody]]")
     print()
     print("Where:-")
     print("filename = name of the file to extract text & properties from")
