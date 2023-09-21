@@ -151,7 +151,7 @@ Sell you soul to the devil, baby
         result = test_input[:end_of_line_pos]
         test_input = test_input[end_of_line_pos + 1 :]
         if len(result) == 0 or result[0] == "~":
-            raise EOFError()
+            raise EOFError
         return result
 
     get_input_line = fake_input
