@@ -108,9 +108,7 @@ def DumpRemoteMachineStatus():
         batPerc = "unknown"
     else:
         batPerc = BatteryLifePercent
-    print(
-        f"The batteries are at {batPerc}%, and is currently being powered by {power}"
-    )
+    print(f"The batteries are at {batPerc}%, and is currently being powered by {power}")
 
     (
         memLoad,

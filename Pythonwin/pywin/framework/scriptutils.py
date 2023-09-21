@@ -93,9 +93,7 @@ def IsOnPythonPath(path):
             if syspath and win32ui.FullPath(syspath) == path:
                 return 1
         except win32ui.error as details:
-            print(
-                f"Warning: The sys.path entry '{syspath}' is invalid\n{details}"
-            )
+            print(f"Warning: The sys.path entry '{syspath}' is invalid\n{details}")
     return 0
 
 
@@ -641,9 +639,7 @@ def FindTabNanny():
     try:
         os.stat(fname)
     except OSError:
-        print(
-            f"WARNING - The file '{filename}' can not be located in path '{path}'"
-        )
+        print(f"WARNING - The file '{filename}' can not be located in path '{path}'")
         return None
 
     tabnannyhome, tabnannybase = os.path.split(fname)

@@ -105,12 +105,16 @@ def ShowInfo(spec):
                 desc = tlb.GetDocumentation(-1)[0]
         print(desc)
         print(
-            " {}, lcid={}, major={}, minor={}".format(tlbSpec.clsid, tlbSpec.lcid, tlbSpec.major, tlbSpec.minor)
+            " {}, lcid={}, major={}, minor={}".format(
+                tlbSpec.clsid, tlbSpec.lcid, tlbSpec.major, tlbSpec.minor
+            )
         )
         print(" >>> # Use these commands in Python code to auto generate .py support")
         print(" >>> from win32com.client import gencache")
         print(
-            " >>> gencache.EnsureModule('{}', {}, {}, {})".format(tlbSpec.clsid, tlbSpec.lcid, tlbSpec.major, tlbSpec.minor)
+            " >>> gencache.EnsureModule('{}', {}, {}, {})".format(
+                tlbSpec.clsid, tlbSpec.lcid, tlbSpec.major, tlbSpec.minor
+            )
         )
 
 

@@ -317,7 +317,9 @@ class InteractivePythonApp(app.CApp):
                     # pywin.scintilla.document.CScintillaDocument.OnOpenDocument)
                     # segfaults Pythonwin on recent PY3 builds (b228)
                     win32ui.MessageBox(
-                        "No such file: {}\n\nCommand Line: {}".format(fname, win32api.GetCommandLine()),
+                        "No such file: {}\n\nCommand Line: {}".format(
+                            fname, win32api.GetCommandLine()
+                        ),
                         "Open file for edit",
                         win32con.MB_ICONERROR,
                     )
@@ -329,7 +331,9 @@ class InteractivePythonApp(app.CApp):
             elif argType == "/rundlg":
                 if dde:
                     dde.Exec(
-                        "from pywin.framework import scriptutils;scriptutils.RunScript({!r}, {!r}, 1)".format(par, " ".join(args[i + 1 :]))
+                        "from pywin.framework import scriptutils;scriptutils.RunScript({!r}, {!r}, 1)".format(
+                            par, " ".join(args[i + 1 :])
+                        )
                     )
                 else:
                     from . import scriptutils
@@ -339,7 +343,9 @@ class InteractivePythonApp(app.CApp):
             elif argType == "/run":
                 if dde:
                     dde.Exec(
-                        "from pywin.framework import scriptutils;scriptutils.RunScript({!r}, {!r}, 0)".format(par, " ".join(args[i + 1 :]))
+                        "from pywin.framework import scriptutils;scriptutils.RunScript({!r}, {!r}, 0)".format(
+                            par, " ".join(args[i + 1 :])
+                        )
                     )
                 else:
                     from . import scriptutils

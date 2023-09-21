@@ -43,8 +43,10 @@ class TestStuff(unittest.TestCase):
 
             newdb.Close()
 
-            conn_str = "Driver={{Microsoft Access Driver (*.mdb)}};dbq={};Uid=;Pwd=;".format(
-                self.db_filename,
+            conn_str = (
+                "Driver={{Microsoft Access Driver (*.mdb)}};dbq={};Uid=;Pwd=;".format(
+                    self.db_filename,
+                )
             )
         ## print 'Connection string:', conn_str
         self.conn = odbc.odbc(conn_str)

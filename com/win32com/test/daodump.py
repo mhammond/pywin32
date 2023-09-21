@@ -38,9 +38,7 @@ def DumpFields(fields):
 
 def DumpRelations(db, bDeep=1):
     for relation in db.Relations:
-        print(
-            f"Relation {relation.Name} - {relation.Table}->{relation.ForeignTable}"
-        )
+        print(f"Relation {relation.Name} - {relation.Table}->{relation.ForeignTable}")
 
 
 #### This dont work.  TLB says it is a Fields collection, but apparently not!

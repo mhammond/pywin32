@@ -53,9 +53,11 @@ def RegisterPythonServer(filename, progids=None, verbose=0):
                 "pythoncomloader%d%d.dll" % (sys.version_info[0], sys.version_info[1]),
             ]
             if os.path.basename(dll) not in ok_files:
-                why_not = "{!r} is registered against a different Python version ({})".format(
-                    progid,
-                    dll,
+                why_not = (
+                    "{!r} is registered against a different Python version ({})".format(
+                        progid,
+                        dll,
+                    )
                 )
                 break
         else:

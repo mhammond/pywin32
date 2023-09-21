@@ -838,7 +838,9 @@ def DllUnregisterServer():
     paths = [
         "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Desktop\\Namespace\\"
         + ShellFolder._reg_clsid_,
-        "{}\\shellex\\ContextMenuHandlers\\{}".format(ContextMenu._context_menu_type_, ContextMenu._reg_desc_),
+        "{}\\shellex\\ContextMenuHandlers\\{}".format(
+            ContextMenu._context_menu_type_, ContextMenu._reg_desc_
+        ),
     ]
     for path in paths:
         try:

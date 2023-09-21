@@ -409,7 +409,9 @@ def ForgetAboutTypelibInterface(typelib_ob):
     except KeyError:
         # Not worth raising an exception - maybe they dont know we only remember for demand generated, etc.
         print(
-            "ForgetAboutTypelibInterface:: Warning - type library with info {} is not being remembered!".format(info)
+            "ForgetAboutTypelibInterface:: Warning - type library with info {} is not being remembered!".format(
+                info
+            )
         )
     # and drop any version redirects to it
     for key, val in list(versionRedirectMap.items()):
@@ -740,7 +742,9 @@ def Rebuild(verbose=1):
             AddModuleToCache(iid, lcid, major, minor, verbose, 0)
         except:
             print(
-                "Could not add module {} - {}: {}".format(info, sys.exc_info()[0], sys.exc_info()[1])
+                "Could not add module {} - {}: {}".format(
+                    info, sys.exc_info()[0], sys.exc_info()[1]
+                )
             )
     if verbose and len(infos):  # Dont bother reporting this when directory is empty!
         print("Done.")

@@ -640,9 +640,7 @@ class DesignatedWrapPolicy(MappedWrapPolicy):
                     # Particularly nasty is "wrong number of args" type error
                     # This helps you see what 'func' and 'args' actually is
                     if str(v).find("arguments") >= 0:
-                        print(
-                            f"** TypeError {v} calling function {func!r}({args!r})"
-                        )
+                        print(f"** TypeError {v} calling function {func!r}({args!r})")
                     raise
 
         if wFlags & DISPATCH_PROPERTYGET:

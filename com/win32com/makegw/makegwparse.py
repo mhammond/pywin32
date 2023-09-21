@@ -108,9 +108,13 @@ class ArgFormatter:
         # 	 indirection was applied (plus the builtin amount)
         # the second return element is the variable declaration; it
         # 	 should simply be builtin indirection
-        return self.GetIndirectedArgName(
-            self.builtinIndirection, self.arg.indirectionLevel + self.builtinIndirection
-        ), f"{self.GetUnconstType()} {self.arg.name}"
+        return (
+            self.GetIndirectedArgName(
+                self.builtinIndirection,
+                self.arg.indirectionLevel + self.builtinIndirection,
+            ),
+            f"{self.GetUnconstType()} {self.arg.name}",
+        )
 
     def GetInterfaceArgCleanup(self):
         "Return cleanup code for C++ args passed to the interface method."
@@ -309,8 +313,8 @@ class ArgFormatterLONG_PTR(ArgFormatter):
         return "\tPy_XDECREF(ob%s);\n" % self.arg.name
 
     def GetParsePostCode(self):
-        return (
-            "\tif (bPythonIsHappy && !PyWinLong_AsULONG_PTR(ob{}, (ULONG_PTR *){})) bPythonIsHappy = FALSE;\n".format(self.arg.name, self.GetIndirectedArgName(None, 2))
+        return "\tif (bPythonIsHappy && !PyWinLong_AsULONG_PTR(ob{}, (ULONG_PTR *){})) bPythonIsHappy = FALSE;\n".format(
+            self.arg.name, self.GetIndirectedArgName(None, 2)
         )
 
     def GetBuildForInterfacePreCode(self):
@@ -352,8 +356,8 @@ class ArgFormatterBSTR(ArgFormatterPythonCOM):
         return "<o unicode>"
 
     def GetParsePostCode(self):
-        return (
-            "\tif (bPythonIsHappy && !PyWinObject_AsBstr(ob{}, {})) bPythonIsHappy = FALSE;\n".format(self.arg.name, self.GetIndirectedArgName(None, 2))
+        return "\tif (bPythonIsHappy && !PyWinObject_AsBstr(ob{}, {})) bPythonIsHappy = FALSE;\n".format(
+            self.arg.name, self.GetIndirectedArgName(None, 2)
         )
 
     def GetBuildForInterfacePreCode(self):
@@ -361,7 +365,10 @@ class ArgFormatterBSTR(ArgFormatterPythonCOM):
         return f"\tob{self.arg.name} = MakeBstrToObj({notdirected});\n"
 
     def GetBuildForInterfacePostCode(self):
-        return f"\tSysFreeString({self.arg.name});\n" + ArgFormatterPythonCOM.GetBuildForInterfacePostCode(self)
+        return (
+            f"\tSysFreeString({self.arg.name});\n"
+            + ArgFormatterPythonCOM.GetBuildForInterfacePostCode(self)
+        )
 
     def GetBuildForGatewayPostCode(self):
         return "\tPy_XDECREF(ob%s);\n" % self.arg.name
@@ -378,8 +385,8 @@ class ArgFormatterOLECHAR(ArgFormatterPythonCOM):
             return self.arg.unc_type
 
     def GetParsePostCode(self):
-        return (
-            "\tif (bPythonIsHappy && !PyWinObject_AsBstr(ob{}, {})) bPythonIsHappy = FALSE;\n".format(self.arg.name, self.GetIndirectedArgName(None, 2))
+        return "\tif (bPythonIsHappy && !PyWinObject_AsBstr(ob{}, {})) bPythonIsHappy = FALSE;\n".format(
+            self.arg.name, self.GetIndirectedArgName(None, 2)
         )
 
     def GetInterfaceArgCleanup(self):
@@ -392,7 +399,10 @@ class ArgFormatterOLECHAR(ArgFormatterPythonCOM):
 
     def GetBuildForInterfacePostCode(self):
         # memory returned into an OLECHAR should be freed
-        return f"\tCoTaskMemFree({self.arg.name});\n" + ArgFormatterPythonCOM.GetBuildForInterfacePostCode(self)
+        return (
+            f"\tCoTaskMemFree({self.arg.name});\n"
+            + ArgFormatterPythonCOM.GetBuildForInterfacePostCode(self)
+        )
 
     def GetBuildForGatewayPostCode(self):
         return "\tPy_XDECREF(ob%s);\n" % self.arg.name
@@ -409,8 +419,8 @@ class ArgFormatterTCHAR(ArgFormatterPythonCOM):
             return self.arg.unc_type
 
     def GetParsePostCode(self):
-        return (
-            "\tif (bPythonIsHappy && !PyWinObject_AsTCHAR(ob{}, {})) bPythonIsHappy = FALSE;\n".format(self.arg.name, self.GetIndirectedArgName(None, 2))
+        return "\tif (bPythonIsHappy && !PyWinObject_AsTCHAR(ob{}, {})) bPythonIsHappy = FALSE;\n".format(
+            self.arg.name, self.GetIndirectedArgName(None, 2)
         )
 
     def GetInterfaceArgCleanup(self):
@@ -465,12 +475,10 @@ class ArgFormatterTime(ArgFormatterPythonCOM):
     def GetParsePostCode(self):
         # variable was declared with only the builtinIndirection
         ### NOTE: this is an [in] ... so use only builtin
-        return (
-            '\tif (!PyTime_Check(ob{})) {{\n\t\tPyErr_SetString(PyExc_TypeError, "The argument must be a PyTime object");\n\t\tbPythonIsHappy = FALSE;\n\t}}\n\tif (!((PyTime *)ob{})->GetTime({})) bPythonIsHappy = FALSE;\n'.format(
-                self.arg.name,
-                self.arg.name,
-                self.GetIndirectedArgName(self.builtinIndirection, 1),
-            )
+        return '\tif (!PyTime_Check(ob{})) {{\n\t\tPyErr_SetString(PyExc_TypeError, "The argument must be a PyTime object");\n\t\tbPythonIsHappy = FALSE;\n\t}}\n\tif (!((PyTime *)ob{})->GetTime({})) bPythonIsHappy = FALSE;\n'.format(
+            self.arg.name,
+            self.arg.name,
+            self.GetIndirectedArgName(self.builtinIndirection, 1),
         )
 
     def GetBuildForInterfacePreCode(self):
@@ -492,19 +500,17 @@ class ArgFormatterSTATSTG(ArgFormatterPythonCOM):
         return "<o STATSTG>"
 
     def GetParsePostCode(self):
-        return (
-            "\tif (!PyCom_PyObjectAsSTATSTG(ob{}, {}, 0/*flags*/)) bPythonIsHappy = FALSE;\n".format(self.arg.name, self.GetIndirectedArgName(None, 1))
+        return "\tif (!PyCom_PyObjectAsSTATSTG(ob{}, {}, 0/*flags*/)) bPythonIsHappy = FALSE;\n".format(
+            self.arg.name, self.GetIndirectedArgName(None, 1)
         )
 
     def GetBuildForInterfacePreCode(self):
         notdirected = self.GetIndirectedArgName(None, 1)
-        return (
-            "\tob{} = PyCom_PyObjectFromSTATSTG({});\n\t// STATSTG doco says our responsibility to free\n\tif (({}).pwcsName) CoTaskMemFree(({}).pwcsName);\n".format(
-                self.arg.name,
-                self.GetIndirectedArgName(None, 1),
-                notdirected,
-                notdirected,
-            )
+        return "\tob{} = PyCom_PyObjectFromSTATSTG({});\n\t// STATSTG doco says our responsibility to free\n\tif (({}).pwcsName) CoTaskMemFree(({}).pwcsName);\n".format(
+            self.arg.name,
+            self.GetIndirectedArgName(None, 1),
+            notdirected,
+            notdirected,
         )
 
 
@@ -536,8 +542,8 @@ class ArgFormatterIDLIST(ArgFormatterPythonCOM):
         return "<o PyIDL>"
 
     def GetParsePostCode(self):
-        return (
-            "\tif (bPythonIsHappy && !PyObject_AsPIDL(ob{}, &{})) bPythonIsHappy = FALSE;\n".format(self.arg.name, self.GetIndirectedArgName(None, 1))
+        return "\tif (bPythonIsHappy && !PyObject_AsPIDL(ob{}, &{})) bPythonIsHappy = FALSE;\n".format(
+            self.arg.name, self.GetIndirectedArgName(None, 1)
         )
 
     def GetInterfaceArgCleanup(self):
@@ -556,8 +562,8 @@ class ArgFormatterHANDLE(ArgFormatterPythonCOM):
         return "<o PyHANDLE>"
 
     def GetParsePostCode(self):
-        return (
-            "\tif (!PyWinObject_AsHANDLE(ob{}, &{}, FALSE) bPythonIsHappy = FALSE;\n".format(self.arg.name, self.GetIndirectedArgName(None, 1))
+        return "\tif (!PyWinObject_AsHANDLE(ob{}, &{}, FALSE) bPythonIsHappy = FALSE;\n".format(
+            self.arg.name, self.GetIndirectedArgName(None, 1)
         )
 
     def GetBuildForInterfacePreCode(self):
@@ -598,7 +604,9 @@ class ArgFormatterULARGE_INTEGER(ArgFormatterLARGE_INTEGER):
 
 class ArgFormatterInterface(ArgFormatterPythonCOM):
     def GetInterfaceCppObjectInfo(self):
-        return self.GetIndirectedArgName(1, self.arg.indirectionLevel), "{} * {}".format(
+        return self.GetIndirectedArgName(
+            1, self.arg.indirectionLevel
+        ), "{} * {}".format(
             self.GetUnconstType(),
             self.arg.name,
         )
@@ -610,8 +618,8 @@ class ArgFormatterInterface(ArgFormatterPythonCOM):
         else:
             # vs. in params for interface mode.
             sArg = self.GetIndirectedArgName(1, 2)
-        return (
-            "\tif (bPythonIsHappy && !PyCom_InterfaceFromPyInstanceOrObject(ob{}, IID_{}, (void **){}, TRUE /* bNoneOK */))\n\t\t bPythonIsHappy = FALSE;\n".format(self.arg.name, self.arg.type, sArg)
+        return "\tif (bPythonIsHappy && !PyCom_InterfaceFromPyInstanceOrObject(ob{}, IID_{}, (void **){}, TRUE /* bNoneOK */))\n\t\t bPythonIsHappy = FALSE;\n".format(
+            self.arg.name, self.arg.type, sArg
         )
 
     def GetBuildForInterfacePreCode(self):
@@ -636,8 +644,8 @@ class ArgFormatterInterface(ArgFormatterPythonCOM):
 
 class ArgFormatterVARIANT(ArgFormatterPythonCOM):
     def GetParsePostCode(self):
-        return (
-            "\tif ( !PyCom_VariantFromPyObject(ob{}, {}) )\n\t\tbPythonIsHappy = FALSE;\n".format(self.arg.name, self.GetIndirectedArgName(None, 1))
+        return "\tif ( !PyCom_VariantFromPyObject(ob{}, {}) )\n\t\tbPythonIsHappy = FALSE;\n".format(
+            self.arg.name, self.GetIndirectedArgName(None, 1)
         )
 
     def GetBuildForGatewayPreCode(self):
@@ -762,9 +770,7 @@ def make_arg_converter(arg):
         if arg.type[0] == "I":
             return ArgFormatterInterface(arg, 0, 1)
 
-        raise error_not_supported(
-            f"The type '{arg.type}' ({arg.name}) is unknown."
-        )
+        raise error_not_supported(f"The type '{arg.type}' ({arg.name}) is unknown.")
 
 
 #############################################################
@@ -829,7 +835,9 @@ class Argument:
 
         if VERBOSE:
             print(
-                "	   Arg {} of type {}{} ({})".format(self.name, self.type, "*" * self.indirectionLevel, self.inout)
+                "	   Arg {} of type {}{} ({})".format(
+                    self.name, self.type, "*" * self.indirectionLevel, self.inout
+                )
             )
 
     def HasAttribute(self, typ):

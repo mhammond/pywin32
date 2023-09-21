@@ -23,16 +23,18 @@ def _write_enumifc_cpp(f, interface):
     if is_interface_enum(enumtype):
         # Assume an interface.
         enum_interface = "I" + enumtype[:-1]
-        converter = (
-            "PyObject *ob = PyCom_PyObjectFromIUnknown(rgVar[i], IID_{enum_interface}, FALSE);".format(**locals())
+        converter = "PyObject *ob = PyCom_PyObjectFromIUnknown(rgVar[i], IID_{enum_interface}, FALSE);".format(
+            **locals()
         )
         arraydeclare = (
-            "{enum_interface} **rgVar = new {enum_interface} *[celt];".format(**locals())
+            "{enum_interface} **rgVar = new {enum_interface} *[celt];".format(
+                **locals()
+            )
         )
     else:
         # Enum of a simple structure
-        converter = (
-            "PyObject *ob = PyCom_PyObjectFrom{enumtype}(&rgVar[i]);".format(**locals())
+        converter = "PyObject *ob = PyCom_PyObjectFrom{enumtype}(&rgVar[i]);".format(
+            **locals()
         )
         arraydeclare = "{enumtype} *rgVar = new {enumtype}[celt];".format(**locals())
 
@@ -189,7 +191,9 @@ PyComEnumTypeObject PyIEnum{enumtype}::type("PyIEnum{enumtype}",
 		sizeof(PyIEnum{enumtype}),
 		PyIEnum{enumtype}_methods,
 		GET_PYCOM_CTOR(PyIEnum{enumtype}));
-""".format(**locals())
+""".format(
+            **locals()
+        )
     )
 
 
@@ -198,13 +202,15 @@ def _write_enumgw_cpp(f, interface):
     if is_interface_enum(enumtype):
         # Assume an interface.
         enum_interface = "I" + enumtype[:-1]
-        converter = (
-            "if ( !PyCom_InterfaceFromPyObject(ob, IID_{enum_interface}, (void **)&rgVar[i], FALSE) )".format(**locals())
+        converter = "if ( !PyCom_InterfaceFromPyObject(ob, IID_{enum_interface}, (void **)&rgVar[i], FALSE) )".format(
+            **locals()
         )
         argdeclare = "{enum_interface} __RPC_FAR * __RPC_FAR *rgVar".format(**locals())
     else:
         argdeclare = "{enumtype} __RPC_FAR *rgVar".format(**locals())
-        converter = "if ( !PyCom_PyObjectAs{enumtype}(ob, &rgVar[i]) )".format(**locals())
+        converter = "if ( !PyCom_PyObjectAs{enumtype}(ob, &rgVar[i]) )".format(
+            **locals()
+        )
     f.write(
         """
 // ---------------------------------------------------
@@ -323,5 +329,7 @@ STDMETHODIMP PyGEnum{enumtype}::Clone(
 
 	return PyCom_CheckIEnumNextResult(hr, IID_IEnum{enumtype});
 }}
-""".format(**locals())
+""".format(
+            **locals()
+        )
     )

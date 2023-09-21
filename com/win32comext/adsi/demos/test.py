@@ -158,7 +158,9 @@ def DumpSchema2():
             iid_name = win32com.util.IIDToInterfaceName(item.PrimaryInterface)
             if verbose_level >= 2:
                 print(
-                    "Class: Name={}, Flags={}, Primary Interface={}".format(item.Name, desc, iid_name)
+                    "Class: Name={}, Flags={}, Primary Interface={}".format(
+                        item.Name, desc, iid_name
+                    )
                 )
             nclass = nclass + 1
         elif item_class == "property":

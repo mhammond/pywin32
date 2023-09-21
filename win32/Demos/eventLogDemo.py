@@ -36,7 +36,9 @@ def ReadLog(computer, logType="Application", dumpEachRecord=0):
                 user_desc = None
             if dumpEachRecord:
                 print(
-                    "Event record from {!r} generated at {}".format(object.SourceName, object.TimeGenerated.Format())
+                    "Event record from {!r} generated at {}".format(
+                        object.SourceName, object.TimeGenerated.Format()
+                    )
                 )
                 if user_desc:
                     print(user_desc)

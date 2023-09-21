@@ -49,7 +49,9 @@ class PySourceModuleDebugDocumentHost(gateways.DebugDocumentHost):
         from win32com.util import IIDToInterfaceName
 
         trace(
-            "PySourceModuleDebugDocumentHost QI with {} ({})".format(IIDToInterfaceName(iid), str(iid))
+            "PySourceModuleDebugDocumentHost QI with {} ({})".format(
+                IIDToInterfaceName(iid), str(iid)
+            )
         )
         return 0
 

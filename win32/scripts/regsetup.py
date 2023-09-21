@@ -307,9 +307,7 @@ def FindRegisterPackage(packageName, knownFile, searchPaths, registryAppName=Non
             regutil.RegisterNamedPath(registryAppName, pathAdd)
         return pathLook
     except error as details:
-        print(
-            f"*** The {packageName} package could not be registered - {details}"
-        )
+        print(f"*** The {packageName} package could not be registered - {details}")
         print(
             "*** Please ensure you have passed the correct paths on the command line."
         )

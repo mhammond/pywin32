@@ -589,7 +589,9 @@ def ReExecuteElevated(flags):
             print(os.path.splitdrive(cwd)[0], file=batf)
             print('cd "%s"' % os.getcwd(), file=batf)
             print(
-                '{} {} > "{}" 2>&1'.format(win32api.GetShortPathName(exe_to_run), new_params, outfile),
+                '{} {} > "{}" 2>&1'.format(
+                    win32api.GetShortPathName(exe_to_run), new_params, outfile
+                ),
                 file=batf,
             )
         finally:

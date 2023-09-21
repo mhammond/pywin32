@@ -489,9 +489,7 @@ def Record(name, object):
     try:
         struct_guid = package.RecordMap[name]
     except KeyError:
-        raise ValueError(
-            f"The structure '{name}' is not defined in module '{package}'"
-        )
+        raise ValueError(f"The structure '{name}' is not defined in module '{package}'")
     return pythoncom.GetRecordFromGuids(
         module.CLSID, module.MajorVersion, module.MinorVersion, module.LCID, struct_guid
     )
@@ -565,9 +563,7 @@ class DispatchBaseClass:
     def __getattr__(self, attr):
         args = self._prop_map_get_.get(attr)
         if args is None:
-            raise AttributeError(
-                f"'{repr(self)}' object has no attribute '{attr}'"
-            )
+            raise AttributeError(f"'{repr(self)}' object has no attribute '{attr}'")
         return self._ApplyTypes_(*args)
 
     def __setattr__(self, attr, value):
@@ -577,9 +573,7 @@ class DispatchBaseClass:
         try:
             args, defArgs = self._prop_map_put_[attr]
         except KeyError:
-            raise AttributeError(
-                f"'{repr(self)}' object has no attribute '{attr}'"
-            )
+            raise AttributeError(f"'{repr(self)}' object has no attribute '{attr}'")
         self._oleobj_.Invoke(*(args + (value,) + defArgs))
 
     def _get_good_single_object_(self, obj, obUserName=None, resultCLSID=None):

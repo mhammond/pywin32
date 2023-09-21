@@ -59,9 +59,7 @@ def check_get_set_raises(exc, func, arg):
     except exc as e:
         pass  # what we expect!
     else:
-        raise error(
-            f"{func} with arg {arg!r} didn't raise {exc} - returned {got!r}"
-        )
+        raise error(f"{func} with arg {arg!r} didn't raise {exc} - returned {got!r}")
 
 
 def progress(*args):

@@ -85,9 +85,7 @@ def open_url(host, url):
                     data = decodestring(scheme[len(auth_scheme) + 1 :])
                     break
             else:
-                print(
-                    f"Could not find scheme '{auth_scheme}' in schemes {schemes!r}"
-                )
+                print(f"Could not find scheme '{auth_scheme}' in schemes {schemes!r}")
                 break
 
             resp.read()

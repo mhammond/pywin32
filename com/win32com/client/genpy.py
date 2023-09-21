@@ -553,7 +553,9 @@ class DispatchItem(build.DispatchItem, WritableItem):
             if generator.bBuildHidden or not entry.hidden:
                 if entry.GetResultName():
                     print(
-                        "\t\t# Method '{}' returns object of type '{}'".format(key, entry.GetResultName()),
+                        "\t\t# Method '{}' returns object of type '{}'".format(
+                            key, entry.GetResultName()
+                        ),
                         file=stream,
                     )
                 details = entry.desc
@@ -1100,7 +1102,8 @@ class Generator:
         print(f"# -*- coding: {encoding} -*-", file=self.file)
         print(f"# Created by makepy.py version {makepy_version}", file=self.file)
         print(
-            "# By python version {}".format(sys.version.replace("\n", "-")), file=self.file
+            "# By python version {}".format(sys.version.replace("\n", "-")),
+            file=self.file,
         )
         if self.sourceFilename:
             print(
@@ -1189,7 +1192,9 @@ class Generator:
         for record in recordItems.values():
             if record.clsid == pythoncom.IID_NULL:
                 print(
-                    "\t###{}: {}, # Record disabled because it doesn't have a non-null GUID".format(repr(record.doc[0]), repr(str(record.clsid))),
+                    "\t###{}: {}, # Record disabled because it doesn't have a non-null GUID".format(
+                        repr(record.doc[0]), repr(str(record.clsid))
+                    ),
                     file=stream,
                 )
             else:
@@ -1369,7 +1374,9 @@ class Generator:
         oleitem.WriteClass(self)
         if oleitem.bWritten:
             print(
-                'win32com.client.CLSIDToClass.RegisterCLSID( "{}", {} )'.format(oleitem.clsid, oleitem.python_name),
+                'win32com.client.CLSIDToClass.RegisterCLSID( "{}", {} )'.format(
+                    oleitem.clsid, oleitem.python_name
+                ),
                 file=self.file,
             )
 

@@ -429,13 +429,18 @@ class DispatchItem(OleItem):
                 )
                 s = s + f"{linePrefix}\tif ret is not None:\n"
                 if rd == pythoncom.VT_UNKNOWN:
-                    s = s + "{}\t\t# See if this IUnknown is really an IDispatch\n".format(
-                        linePrefix,
+                    s = (
+                        s
+                        + "{}\t\t# See if this IUnknown is really an IDispatch\n".format(
+                            linePrefix,
+                        )
                     )
                     s = s + f"{linePrefix}\t\ttry:\n"
                     s = (
                         s
-                        + "{}\t\t\tret = ret.QueryInterface(pythoncom.IID_IDispatch)\n".format(linePrefix)
+                        + "{}\t\t\tret = ret.QueryInterface(pythoncom.IID_IDispatch)\n".format(
+                            linePrefix
+                        )
                     )
                     s = s + f"{linePrefix}\t\texcept pythoncom.error:\n"
                     s = s + f"{linePrefix}\t\t\treturn ret\n"

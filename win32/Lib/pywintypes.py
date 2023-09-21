@@ -44,9 +44,7 @@ def __import_pywin32_system_module__(modname, globs):
             if os.path.isfile(found):
                 break
         else:
-            raise ImportError(
-                f"Module '{modname}' isn't in frozen sys.path {sys.path}"
-            )
+            raise ImportError(f"Module '{modname}' isn't in frozen sys.path {sys.path}")
     else:
         # First see if it already in our process - if so, we must use that.
         import _win32sysloader

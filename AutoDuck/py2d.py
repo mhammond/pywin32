@@ -128,9 +128,7 @@ def build_module(fp, mod_name):
             file=fp,
         )
         for ai in BuildArgInfos(ob.ob):
-            Print(
-                f"// @pyparm |{ai.name}|{ai.default}|{ai.short_desc}", file=fp
-            )
+            Print(f"// @pyparm |{ai.name}|{ai.default}|{ai.short_desc}", file=fp)
 
     for ob in classes:
         # only classes with docstrings get printed.

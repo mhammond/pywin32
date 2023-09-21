@@ -36,13 +36,17 @@ def TestEnumAgainst(o, check):
     for i in range(len(check)):
         if o(i) != check[i]:
             raise error(
-                "Using default method gave the incorrect value - {}/{}".format(repr(o(i)), repr(check[i]))
+                "Using default method gave the incorrect value - {}/{}".format(
+                    repr(o(i)), repr(check[i])
+                )
             )
 
     for i in range(len(check)):
         if o.Item(i) != check[i]:
             raise error(
-                "Using Item method gave the incorrect value - {}/{}".format(repr(o(i)), repr(check[i]))
+                "Using Item method gave the incorrect value - {}/{}".format(
+                    repr(o(i)), repr(check[i])
+                )
             )
 
     # First try looping.
@@ -52,7 +56,9 @@ def TestEnumAgainst(o, check):
 
     if cmp[: len(check)] != check:
         raise error(
-            "Result after looping isnt correct - {}/{}".format(repr(cmp[: len(check)]), repr(check))
+            "Result after looping isnt correct - {}/{}".format(
+                repr(cmp[: len(check)]), repr(check)
+            )
         )
 
     for i in range(len(check)):

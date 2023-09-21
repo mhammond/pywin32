@@ -543,7 +543,9 @@ class CDispatch:
 
     def __AttrToID__(self, attr):
         debug_attr_print(
-            "Calling GetIDsOfNames for property {} in Dispatch container {}".format(attr, self._username_)
+            "Calling GetIDsOfNames for property {} in Dispatch container {}".format(
+                attr, self._username_
+            )
         )
         return self._oleobj_.GetIDsOfNames(0, attr)
 
@@ -646,7 +648,9 @@ class CDispatch:
             return
         # Allow property assignment.
         debug_attr_print(
-            "SetAttr called for {}.{}={} on DispatchContainer".format(self._username_, attr, repr(value))
+            "SetAttr called for {}.{}={} on DispatchContainer".format(
+                self._username_, attr, repr(value)
+            )
         )
 
         if self._olerepr_:
@@ -695,11 +699,11 @@ class CDispatch:
                     self._oleobj_.Invoke(entry.dispid, 0, invoke_type, 0, value)
                     self._olerepr_.propMap[attr] = entry
                     debug_attr_print(
-                        "__setattr__ property {} (id=0x{:x}) in Dispatch container {}".format(attr, entry.dispid, self._username_)
+                        "__setattr__ property {} (id=0x{:x}) in Dispatch container {}".format(
+                            attr, entry.dispid, self._username_
+                        )
                     )
                     return
                 except pythoncom.com_error:
                     pass
-        raise AttributeError(
-            f"Property '{self._username_}.{attr}' can not be set."
-        )
+        raise AttributeError(f"Property '{self._username_}.{attr}' can not be set.")

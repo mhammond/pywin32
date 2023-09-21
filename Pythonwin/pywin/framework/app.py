@@ -234,9 +234,7 @@ class CApp(WinApp):
                 help.OpenHelpFile(helpFile, helpCmd)
         except:
             t, v, tb = sys.exc_info()
-            win32ui.MessageBox(
-                f"Internal error in help file processing\r\n{t}: {v}"
-            )
+            win32ui.MessageBox(f"Internal error in help file processing\r\n{t}: {v}")
             tb = None  # Prevent a cycle
 
     def DoLoadModules(self, modules):
@@ -364,8 +362,8 @@ class AboutBox(dialog.Dialog):
         dialog.Dialog.__init__(self, idd)
 
     def OnInitDialog(self):
-        text = (
-            "Pythonwin - Python IDE and GUI Framework for Windows.\n\n{}\n\nPython is {}\n\n{}\n\n{}\n\n{}".format(win32ui.copyright, sys.copyright, scintilla, idle, contributors)
+        text = "Pythonwin - Python IDE and GUI Framework for Windows.\n\n{}\n\nPython is {}\n\n{}\n\n{}\n\n{}".format(
+            win32ui.copyright, sys.copyright, scintilla, idle, contributors
         )
         self.SetDlgItemText(win32ui.IDC_EDIT1, text)
         # Get the build number - written by installers.
