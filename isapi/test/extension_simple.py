@@ -6,17 +6,12 @@
 # This will execute the method 'test1' below.  See below for the list of
 # test methods that are acceptable.
 
-import urllib.error
-import urllib.parse
-import urllib.request
-
 # If we have no console (eg, am running from inside IIS), redirect output
 # somewhere useful - in this case, the standard win32 trace collector.
 import win32api
 import winerror
 
-from isapi import ExtensionError, isapicon, threaded_extension
-from isapi.simple import SimpleFilter
+from isapi import ExtensionError, threaded_extension
 
 try:
     win32api.GetConsoleTitle()

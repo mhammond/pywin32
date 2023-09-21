@@ -1,8 +1,8 @@
 # (sort-of) Registry editor
 import commctrl
-import dialog
 import win32con
 import win32ui
+from pywin.mfc import dialog
 
 
 class RegistryControl:
