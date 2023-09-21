@@ -226,5 +226,5 @@ _this_is_a_test_of_stderr_\r
         for n in (cmd_name, out_name):
             try:
                 os.unlink(cmd_name)
-            except os.error:
+            except OSError:
                 pass

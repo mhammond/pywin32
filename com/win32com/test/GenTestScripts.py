@@ -27,7 +27,7 @@ def GenerateFromRegistered(fname, *loadArgs):
     genPath = GetGenPath()
     try:
         os.stat(genPath)
-    except os.error:
+    except OSError:
         os.mkdir(genPath)
     # Ensure an __init__ exists.
     open(os.path.join(genPath, "__init__.py"), "w").close()
@@ -67,13 +67,13 @@ def CleanAll():
         try:
             name = args[0] + ".py"
             os.unlink(os.path.join(genPath, name))
-        except os.error as details:
+        except OSError as details:
             if isinstance(details, tuple) and details[0] != 2:
                 print("Could not deleted generated", name, details)
         try:
             name = args[0] + ".pyc"
             os.unlink(os.path.join(genPath, name))
-        except os.error as details:
+        except OSError as details:
             if isinstance(details, tuple) and details[0] != 2:
                 print("Could not deleted generated", name, details)
         try:
@@ -86,7 +86,7 @@ def CleanAll():
             pass
     try:
         os.rmdir(genPath)
-    except os.error as details:
+    except OSError as details:
         print("Could not delete test directory -", details)
 
 

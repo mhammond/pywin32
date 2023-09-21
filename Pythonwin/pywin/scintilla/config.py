@@ -91,7 +91,7 @@ class ConfigManager:
             try:
                 f = find_config_file(f)
                 src_stat = os.stat(f)
-            except os.error:
+            except OSError:
                 self.report_error("Config file '%s' not found" % f)
                 return
             self.filename = f
@@ -119,7 +119,7 @@ class ConfigManager:
                             return  # We are ready to roll!
                 finally:
                     cf.close()
-            except (os.error, OSError, EOFError):
+            except (OSError, EOFError):
                 pass
             fp = open(f)
             b_close = True

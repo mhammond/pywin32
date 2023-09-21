@@ -134,7 +134,7 @@ def _find_localserver_module():
     pyfile = os.path.join(path, baseName + ".py")
     try:
         os.stat(pyfile)
-    except os.error:
+    except OSError:
         # See if we have a compiled extension
         if __debug__:
             ext = ".pyc"
@@ -143,7 +143,7 @@ def _find_localserver_module():
         pyfile = os.path.join(path, baseName + ext)
         try:
             os.stat(pyfile)
-        except os.error:
+        except OSError:
             raise RuntimeError(
                 "Can not locate the Python module 'win32com.server.%s'" % baseName
             )
@@ -623,7 +623,7 @@ def ReExecuteElevated(flags):
         for f in (outfile, batfile):
             try:
                 os.unlink(f)
-            except os.error as exc:
+            except OSError as exc:
                 print("Failed to remove tempfile '%s': %s" % (f, exc))
 
 

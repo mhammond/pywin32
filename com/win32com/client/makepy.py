@@ -300,15 +300,15 @@ def GenerateFromTypeLibSpec(
             if bForDemand:
                 try:
                     os.unlink(full_name + ".py")
-                except os.error:
+                except OSError:
                     pass
                 try:
                     os.unlink(full_name + ".pyc")
-                except os.error:
+                except OSError:
                     pass
                 try:
                     os.unlink(full_name + ".pyo")
-                except os.error:
+                except OSError:
                     pass
                 if not os.path.isdir(full_name):
                     os.mkdir(full_name)

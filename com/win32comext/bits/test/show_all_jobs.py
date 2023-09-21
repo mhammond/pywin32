@@ -3,13 +3,13 @@ import pythoncom
 from win32com.bits import bits
 
 states = {
-    val: (name[13:])
+    val: name[13:]
     for name, val in vars(bits).items()
     if name.startswith("BG_JOB_STATE_")
 }
 
 job_types = {
-    val: (name[12:])
+    val: name[12:]
     for name, val in vars(bits).items()
     if name.startswith("BG_JOB_TYPE_")
 }

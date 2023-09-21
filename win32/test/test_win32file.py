@@ -65,7 +65,7 @@ class TestSimpleOps(unittest.TestCase):
             handle.Close()
             try:
                 os.unlink(filename)
-            except os.error:
+            except OSError:
                 pass
 
     # A simple test using normal read/write operations.
@@ -573,7 +573,7 @@ class TestFindFiles(unittest.TestCase):
             # reference count leaks, that function showed leaks!  os.rmdir
             # doesn't have that problem.
             os.rmdir(test_path)
-        except os.error:
+        except OSError:
             pass
         os.mkdir(test_path)
         try:
@@ -863,7 +863,7 @@ class TestTransmit(unittest.TestCase):
                 try:
                     s1.bind(self.addr)
                     break
-                except os.error as exc:
+                except OSError as exc:
                     if exc.winerror != 10013:
                         raise
                     print("Failed to use port", self.addr, "trying another random one")

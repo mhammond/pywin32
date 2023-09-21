@@ -142,7 +142,7 @@ True
 True
 
 This test helps ensure language support for unicode characters
->>> x = TIME_ZONE_INFORMATION(0, u'français')
+>>> x = TIME_ZONE_INFORMATION(0, 'français')
 
 
 Test conversion from one time zone to another at a DST boundary
@@ -576,7 +576,7 @@ class TimeZoneInfo(datetime.tzinfo):
         # if the target year is greater or equal.
         self.dynamicInfo = RangeMap(
             zip(years, values),
-            sort_params=dict(reverse=True),
+            sort_params={"reverse": True},
             key_match_comparator=operator.ge,
         )
 
@@ -965,7 +965,7 @@ class RangeMap(dict):
         self.match = key_match_comparator
 
     def __getitem__(self, item):
-        sorted_keys = sorted(list(self.keys()), **self.sort_params)
+        sorted_keys = sorted(self.keys(), **self.sort_params)
         if isinstance(item, RangeMap.Item):
             result = self.__getitem__(sorted_keys[item])
         else:
@@ -996,7 +996,7 @@ class RangeMap(dict):
         raise KeyError(item)
 
     def bounds(self):
-        sorted_keys = sorted(list(self.keys()), **self.sort_params)
+        sorted_keys = sorted(self.keys(), **self.sort_params)
         return (
             sorted_keys[RangeMap.first_item],
             sorted_keys[RangeMap.last_item],

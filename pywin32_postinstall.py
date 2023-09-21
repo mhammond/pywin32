@@ -399,7 +399,7 @@ def fixup_dbi():
                     os.rename(this_pyd, this_dest)
                     print("renamed '%s'->'%s.old'" % (this_pyd, this_pyd))
                     file_created(this_pyd + ".old")
-            except os.error as exc:
+            except OSError as exc:
                 print("FAILED to rename '%s': %s" % (this_pyd, exc))
 
 
@@ -635,11 +635,11 @@ def uninstall(lib_dir):
         # The dbi.pyd.old files we may have created.
         try:
             os.remove(os.path.join(lib_dir, "win32", "dbi.pyd.old"))
-        except os.error:
+        except OSError:
             pass
         try:
             os.remove(os.path.join(lib_dir, "win32", "dbi_d.pyd.old"))
-        except os.error:
+        except OSError:
             pass
 
     except Exception as why:
@@ -764,7 +764,7 @@ def main():
     if args.wait is not None:
         try:
             os.waitpid(args.wait, 0)
-        except os.error:
+        except OSError:
             # child already dead
             pass
 
