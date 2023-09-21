@@ -45,7 +45,7 @@ def RegisterPythonServer(filename, progids=None, verbose=0):
                 HKCR = winreg.HKEY_CLASSES_ROOT
                 hk = winreg.OpenKey(HKCR, "CLSID\\%s" % clsid)
                 dll = winreg.QueryValue(hk, "InprocServer32")
-            except WindowsError:
+            except OSError:
                 # no CLSID or InProcServer32 - not registered
                 break
             ok_files = [

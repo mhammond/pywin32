@@ -15,7 +15,7 @@ def FileExists(fname):
     try:
         os.stat(fname)
         return 1
-    except os.error as details:
+    except OSError as details:
         return 0
 
 
@@ -192,7 +192,7 @@ def LocateFileName(fileNamesString, searchPaths):
                 retPath = os.path.join(path, fileName)
                 os.stat(retPath)
                 break
-            except os.error:
+            except OSError:
                 retPath = None
         if retPath:
             break

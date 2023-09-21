@@ -90,7 +90,7 @@ if __name__ == "__main__":
     path = args[2]
     try:
         os.stat(descFile)
-    except IOError:
+    except OSError:
         usage("The description file '%s' can not be found" % (descFile))
     if not os.path.isdir(path):
         usage("The path to the files to stamp '%s' does not exist" % (path))

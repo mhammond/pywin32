@@ -221,7 +221,7 @@ class FileOperationTester(win32com.test.util.TestCase):
         f.close()
         try:
             os.unlink(self.dest_name)
-        except os.error:
+        except OSError:
             pass
 
     def tearDown(self):

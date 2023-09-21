@@ -1027,7 +1027,7 @@ class ServiceFramework:
     def SvcOther(self, control):
         try:
             print("Unknown control status - %d" % control)
-        except IOError:
+        except OSError:
             # services may not have a valid stdout!
             pass
 

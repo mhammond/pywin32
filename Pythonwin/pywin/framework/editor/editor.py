@@ -101,7 +101,7 @@ class EditorDocument(ParentEditorDocument):
         win32ui.SetStatusText("Loading file...", 1)
         try:
             f = open(filename, "rb")
-        except IOError:
+        except OSError:
             win32ui.MessageBox(
                 filename
                 + "\nCan not find this file\nPlease verify that the correct path and file name are given"

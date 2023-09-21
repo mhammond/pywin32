@@ -26,7 +26,7 @@ class XSLT(win32com.test.util.TestCase):
         finally:
             try:
                 os.unlink(output_name)
-            except os.error:
+            except OSError:
                 pass
 
 

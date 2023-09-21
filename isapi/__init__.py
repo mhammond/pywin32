@@ -4,7 +4,7 @@
 # Exceptions thrown by the DLL framework.
 class ISAPIError(Exception):
     def __init__(self, errno, strerror=None, funcname=None):
-        # named attributes match IOError etc.
+        # named attributes match OSError etc.
         self.errno = errno
         self.strerror = strerror
         self.funcname = funcname

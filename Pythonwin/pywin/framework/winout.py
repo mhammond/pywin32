@@ -60,7 +60,7 @@ class WindowOutputDocument(WindowOutputDocumentParent):
         win32ui.SetStatusText("Saving file...", 1)
         try:
             self.SaveFile(fileName)
-        except IOError as details:
+        except OSError as details:
             win32ui.MessageBox("Error - could not save file\r\n\r\n%s" % details)
             return 0
         win32ui.SetStatusText("Ready")

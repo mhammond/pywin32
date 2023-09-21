@@ -568,7 +568,7 @@ class TimeZoneInfo(datetime.tzinfo):
         """
         try:
             info = key.subkey("Dynamic DST")
-        except WindowsError:
+        except OSError:
             return
         del info["FirstEntry"]
         del info["LastEntry"]
@@ -824,7 +824,7 @@ class _RegKeyDict(dict):
         try:
             for index in count():
                 yield func(key, index)
-        except WindowsError:
+        except OSError:
             pass
 
 
