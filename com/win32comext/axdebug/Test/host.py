@@ -58,7 +58,7 @@ class PySourceModuleDebugDocumentHost(gateways.DebugDocumentHost):
         if self.codeContainer is None:
             try:
                 codeText = open(self.module.__file__, "rt").read()
-            except IOError as details:
+            except OSError as details:
                 codeText = "# Exception opening file\n# %s" % (details)
 
             self.codeContainer = codecontainer.SourceCodeContainer(

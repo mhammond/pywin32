@@ -150,9 +150,13 @@ def make_item_enum(level, flags):
             else:
                 skip = not (flags & shellcon.SHCONTF_NONFOLDERS)
         if not skip:
-            data = dict(
-                name=name, size=size, sides=sides, level=level, is_folder=is_folder
-            )
+            data = {
+                "name": name,
+                "size": size,
+                "sides": sides,
+                "level": level,
+                "is_folder": is_folder,
+            }
             pidls.append([pickle.dumps(data)])
     return NewEnum(pidls, shell.IID_IEnumIDList)
 
@@ -840,7 +844,7 @@ def DllUnregisterServer():
     for path in paths:
         try:
             winreg.DeleteKey(winreg.HKEY_LOCAL_MACHINE, path)
-        except WindowsError as details:
+        except OSError as details:
             import errno
 
             if details.errno != errno.ENOENT:

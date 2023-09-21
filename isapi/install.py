@@ -2,7 +2,7 @@
 
 # this code adapted from "Tomcat JK2 ISAPI redirector", part of Apache
 # Created July 2004, Mark Hammond.
-import imp
+import importlib.machinery
 import os
 import shutil
 import stat
@@ -39,7 +39,7 @@ _DEFAULT_CONTENT_INDEXED = False
 _DEFAULT_ENABLE_DIR_BROWSING = False
 _DEFAULT_ENABLE_DEFAULT_DOC = False
 
-_extensions = [ext for ext, _, _ in imp.get_suffixes()]
+_extensions = [ext for ext, _, _ in importlib.machinery.EXTENSION_SUFFIXES]
 is_debug_build = "_d.pyd" in _extensions
 
 this_dir = os.path.abspath(os.path.dirname(__file__))
@@ -516,7 +516,7 @@ def CheckLoaderModule(dll_name):
     src_stat = os.stat(template)
     try:
         dest_stat = os.stat(dll_name)
-    except os.error:
+    except OSError:
         same = 0
     else:
         same = (

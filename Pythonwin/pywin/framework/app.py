@@ -379,7 +379,7 @@ class AboutBox(dialog.Dialog):
                 open(os.path.join(site_packages, "pywin32.version.txt")).read().strip()
             )
             ver = "pywin32 build %s" % build_no
-        except EnvironmentError:
+        except OSError:
             ver = None
         if ver is None:
             # See if we are Part of Active Python

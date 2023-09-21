@@ -590,12 +590,12 @@ def Parse(rc_name, h_name=None):
         h_name = rc_name[:-2] + "h"
         try:
             h_file = open(h_name, "r")
-        except IOError:
+        except OSError:
             # See if MSVC default of 'resource.h' in the same dir.
             h_name = os.path.join(os.path.dirname(rc_name), "resource.h")
             try:
                 h_file = open(h_name, "r")
-            except IOError:
+            except OSError:
                 # .h files are optional anyway
                 h_file = None
     rc_file = open(rc_name, "r")

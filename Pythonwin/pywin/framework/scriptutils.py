@@ -288,7 +288,7 @@ def RunScript(defName=None, defArgs=None, bShowDialog=1, debuggingType=None):
         try:
             os.stat(fnameonly)  # See if it is OK as is...
             script = fnameonly
-        except os.error:
+        except OSError:
             fullScript = LocatePythonFile(script)
             if fullScript is None:
                 win32ui.MessageBox("The file '%s' can not be located" % script)
@@ -308,7 +308,7 @@ def RunScript(defName=None, defArgs=None, bShowDialog=1, debuggingType=None):
     # So: do the binary thing and manually normalize \r\n.
     try:
         f = open(script, "rb")
-    except IOError as exc:
+    except OSError as exc:
         win32ui.MessageBox(
             "The file could not be opened - %s (%d)" % (exc.strerror, exc.errno)
         )
@@ -505,7 +505,7 @@ def CheckFile():
     win32ui.DoWaitCursor(1)
     try:
         f = open(pathName)
-    except IOError as details:
+    except OSError as details:
         print("Cant open file '%s' - %s" % (pathName, details))
         return
     try:
@@ -640,7 +640,7 @@ def FindTabNanny():
     fname = os.path.join(path, "Tools\\Scripts\\%s" % filename)
     try:
         os.stat(fname)
-    except os.error:
+    except OSError:
         print(
             "WARNING - The file '%s' can not be located in path '%s'" % (filename, path)
         )

@@ -21,7 +21,7 @@ def BackupClearLog(logType):
                 "%s%s-%s" % (datePrefix, index, logType) + ".evt",
             )
             os.stat(fname)
-        except os.error:
+        except OSError:
             fileExists = 0
         retry = retry + 1
     # OK - have unique file name.

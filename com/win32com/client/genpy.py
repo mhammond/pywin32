@@ -1042,13 +1042,13 @@ class Generator:
         f.close()
         try:
             os.unlink(filename)
-        except os.error:
+        except OSError:
             pass
         temp_filename = self.get_temp_filename(filename)
         if worked:
             try:
                 os.rename(temp_filename, filename)
-            except os.error:
+            except OSError:
                 # If we are really unlucky, another process may have written the
                 # file in between our calls to os.unlink and os.rename. So try
                 # again, but only once.
@@ -1064,7 +1064,7 @@ class Generator:
                 #   as well.
                 try:
                     os.unlink(filename)
-                except os.error:
+                except OSError:
                     pass
                 os.rename(temp_filename, filename)
         else:
