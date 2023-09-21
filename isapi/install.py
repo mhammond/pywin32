@@ -39,9 +39,6 @@ _DEFAULT_CONTENT_INDEXED = False
 _DEFAULT_ENABLE_DIR_BROWSING = False
 _DEFAULT_ENABLE_DEFAULT_DOC = False
 
-_extensions = [ext for ext, _, _ in importlib.machinery.EXTENSION_SUFFIXES]
-is_debug_build = "_d.pyd" in _extensions
-
 this_dir = os.path.abspath(os.path.dirname(__file__))
 
 
@@ -504,9 +501,7 @@ def DeleteExtensionFileRecords(params, options):
 
 
 def CheckLoaderModule(dll_name):
-    suffix = ""
-    if is_debug_build:
-        suffix = "_d"
+    suffix = "_d" if "_d.pyd" in importlib.machinery.EXTENSION_SUFFIXES else ""
     template = os.path.join(this_dir, "PyISAPI_loader" + suffix + ".dll")
     if not os.path.isfile(template):
         raise ConfigurationError("Template loader '%s' does not exist" % (template,))
