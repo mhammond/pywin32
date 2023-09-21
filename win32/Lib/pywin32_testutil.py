@@ -217,7 +217,7 @@ except AttributeError:
 # handling for the TestSkipped exception.
 class TestResult(TextTestResult):
     def __init__(self, *args, **kw):
-        super(TestResult, self).__init__(*args, **kw)
+        super().__init__(*args, **kw)
         self.skips = {}  # count of skips for each reason.
 
     def addError(self, test, err):
@@ -265,10 +265,10 @@ class TestResult(TextTestResult):
                 self.stream.write("S")
                 self.stream.flush()
             return
-        super(TestResult, self).addError(test, err)
+        super().addError(test, err)
 
     def printErrors(self):
-        super(TestResult, self).printErrors()
+        super().printErrors()
         for reason, num_skipped in self.skips.items():
             self.stream.writeln("SKIPPED: %d tests - %s" % (num_skipped, reason))
 
