@@ -210,7 +210,7 @@ class TheDocument(docview.RichEditDoc):
         # and starting a new grep can communicate the default parameters to the
         # new grep.
         try:
-            params = open(fnm, "r").read()
+            params = open(fnm).read()
         except:
             params = None
         self.setInitParams(params)
@@ -386,7 +386,7 @@ class TheDocument(docview.RichEditDoc):
             if self.verbose:
                 self.GetFirstView().Append("# .." + f + "\n")
             win32ui.SetStatusText("Searching " + f, 0)
-            lines = open(f, "r").readlines()
+            lines = open(f).readlines()
             for i in range(len(lines)):
                 line = lines[i]
                 if self.pat.search(line) is not None:

@@ -104,7 +104,7 @@ def ExecuteShellCommand(
     output_name = tempfile.mktemp("win32com_test")
     cmd = cmd + ' > "%s" 2>&1' % output_name
     rc = os.system(cmd)
-    output = open(output_name, "r").read().strip()
+    output = open(output_name).read().strip()
     os.remove(output_name)
 
     class Failed(Exception):

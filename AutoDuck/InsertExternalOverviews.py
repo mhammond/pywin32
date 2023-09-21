@@ -51,7 +51,7 @@ def main():
         print("Invalid args")
         sys.exit(1)
     file = sys.argv[1]
-    input = open(file, "r")
+    input = open(file)
     out = open(file + ".2", "w")
     doc = document_object.GetDocument()
     linksHTML = genLinksHTML(doc.links)

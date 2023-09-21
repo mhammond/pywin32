@@ -1036,7 +1036,7 @@ class Generator:
         # don't step on each others' toes.
         # Could be a classmethod one day...
         temp_filename = self.get_temp_filename(filename)
-        return open(temp_filename, "wt", encoding=encoding)
+        return open(temp_filename, "w", encoding=encoding)
 
     def finish_writer(self, filename, f, worked):
         f.close()

@@ -224,7 +224,7 @@ class SourceModuleContainer(SourceCodeContainer):
             fname = self.GetFileName()
             if fname:
                 try:
-                    self.text = open(fname, "r").read()
+                    self.text = open(fname).read()
                 except OSError as details:
                     self.text = "# Exception opening file\n# %s" % (repr(details))
             else:

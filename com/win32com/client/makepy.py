@@ -425,7 +425,7 @@ def main():
         path = os.path.dirname(outputName)
         if path != "" and not os.path.exists(path):
             os.makedirs(path)
-        f = open(outputName, "wt", encoding="mbcs")
+        f = open(outputName, "w", encoding="mbcs")
 
     else:
         f = None
