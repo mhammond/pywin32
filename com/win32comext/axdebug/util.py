@@ -34,8 +34,6 @@ def trace(*args):
 # (Now this is only true for Document objects, and Python
 # now does ensure this.
 
-all_wrapped = {}
-
 
 def _wrap_nodebug(object, iid):
     return win32com.server.util.wrap(object, iid)
@@ -52,24 +50,6 @@ if debugging:
     _wrap = _wrap_debug
 else:
     _wrap = _wrap_nodebug
-
-
-def _wrap_remove(object, iid=None):
-    # Old - no longer used or necessary!
-    return
-
-
-def _dump_wrapped():
-    from win32com.server.util import unwrap
-
-    print("Wrapped items:")
-    for key, items in all_wrapped.items():
-        print(key, end=" ")
-        try:
-            ob = unwrap(key)
-            print(ob, sys.getrefcount(ob))
-        except:
-            print("<error>")
 
 
 def RaiseNotImpl(who=None):
@@ -97,12 +77,12 @@ class Dispatcher(win32com.server.policy.DispatcherWin32trace):
         win32com.server.policy.DispatcherTrace.__init__(self, policyClass, object)
         import win32traceutil  # Sets up everything.
 
-    #               print "Object with win32trace dispatcher created (object=%s)" % `object`
+    # print(f"Object with win32trace dispatcher created ({object})")
 
     def _QueryInterface_(self, iid):
         rc = win32com.server.policy.DispatcherBase._QueryInterface_(self, iid)
-        #               if not rc:
-        #                       self._trace_("in _QueryInterface_ with unsupported IID %s (%s)\n" % (IIDToInterfaceName(iid),iid))
+        # if not rc:
+        #   self._trace_("in _QueryInterface_ with unsupported IID %s (%s)\n" % (IIDToInterfaceName(iid),iid))
         return rc
 
     def _Invoke_(self, dispid, lcid, wFlags, args):
@@ -119,7 +99,7 @@ class Dispatcher(win32com.server.policy.DispatcherWin32trace):
             rc = win32com.server.policy.DispatcherBase._Invoke_(
                 self, dispid, lcid, wFlags, args
             )
-            #                       print "Invoke of", dispid, "returning", rc
+            # print("Invoke of", dispid, "returning", rc)
             return rc
         except Exception:
             t, v, tb = sys.exc_info()

@@ -3,12 +3,9 @@ import traceback
 
 import pythoncom
 import win32api
-import win32com.server.util
 import winerror
-from win32com.axdebug import adb, axdebug, codecontainer, contexts, documents, gateways
-from win32com.axdebug.util import _wrap, _wrap_remove, trace
-from win32com.axscript import axscript
-from win32com.client.util import Enumerator
+from win32com.axdebug import codecontainer, gateways
+from win32com.axdebug.util import _wrap, trace
 from win32com.server.exception import Exception
 
 
@@ -26,8 +23,10 @@ class ExternalConnection:
         return self.numExtRefs
 
 
-# externalConnectionManager = ExternalConnection()
-# wrappedExternalConnectionManager = _wrap(externalConnectionManager, pythoncom.IID_IExternalConnection)
+externalConnectionManager = ExternalConnection()
+wrappedExternalConnectionManager = _wrap(
+    externalConnectionManager, pythoncom.IID_IExternalConnection
+)
 
 
 def DelegatedExternalConnectionQI(iid):
@@ -97,62 +96,16 @@ class PySourceModuleDebugDocumentHost(gateways.DebugDocumentHost):
         try:
             return win32api.GetFullPathName(self.module.__file__), 1
         except (AttributeError, win32api.error):
-            raise Exception(scode == E_FAIL)
+            raise Exception(scode=winerror.E_FAIL)
 
     def GetFileName(self):
         # Result is a string with just the name of the document, no path information.
         trace("GetFileName")
-        return os.path.split(module.__file__)
+        return os.path.split(self.module.__file__)
 
     def NotifyChanged():
         trace("NotifyChanged")
         raise Exception(scode=winerror.E_NOTIMPL)
-
-
-def TestSmartHelper():
-    pdm = pythoncom.CoCreateInstance(
-        axdebug.CLSID_ProcessDebugManager,
-        None,
-        pythoncom.CLSCTX_ALL,
-        axdebug.IID_IProcessDebugManager,
-    )
-    app = pdm.CreateApplication()
-    app.SetName("Python Process")
-
-    pydebugger = adb.Debugger()
-
-    nodes = BuildModuleTree()
-
-    all_real_nodes = CreateDebugDocumentHelperNodes(pdm, app, nodes)
-    root = app.GetRootNode()
-    AttachParentNodes(root, nodes, all_real_nodes)
-
-    pydebugger.AttachApp(app)
-    cookie = pdm.AddApplication(app)
-    input("Waiting...")
-    ttest.test()
-
-    pdm.RemoveApplication(cookie)
-    print("Done")
-
-
-def testdumb():
-    pdm = pythoncom.CoCreateInstance(
-        axdebug.CLSID_ProcessDebugManager,
-        None,
-        pythoncom.CLSCTX_ALL,
-        axdebug.IID_IProcessDebugManager,
-    )
-    app = pdm.GetDefaultApplication()
-
-    nodes = BuildModuleTree()
-    all_real_nodes = CreateDebugDocumentHelperNodes(pdm, app, nodes)
-    AttachParentNodes(None, nodes, all_real_nodes)
-
-    parentNode = None
-    all_real_nodes = {}
-    input("Waiting...")
-    print("Done")
 
 
 def TestSmartProvider():
@@ -160,8 +113,8 @@ def TestSmartProvider():
     from win32com.axdebug import debugger
 
     d = debugger.AXDebugger()
-    # 	d.StartDebugger()
-    # 	d.Attach()
+    # d.StartDebugger()
+    # d.Attach()
     d.Break()
     input("Waiting...")
     ttest.test()
@@ -171,21 +124,13 @@ def TestSmartProvider():
 
 def test():
     try:
-        # 		app = TestSmartHelper()
         app = TestSmartProvider()
-    # 		app = testdumb()
     except:
         traceback.print_exc()
 
 
-# 	_wrap_remove(externalConnectionManager)
-# 	wrappedExternalConnectionManager = None
-
 if __name__ == "__main__":
     test()
-    import win32com.axdebug.util
-
-    win32com.axdebug.util._dump_wrapped()
     print(
         " %d/%d com objects still alive"
         % (pythoncom._GetInterfaceCount(), pythoncom._GetGatewayCount())
