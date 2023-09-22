@@ -1,5 +1,4 @@
 import io
-import string
 import sys
 import traceback
 from pprint import pprint

@@ -118,7 +118,7 @@ class Adb(bdb.Bdb, gateways.RemoteDebugApplicationEvents):
         traceenter("stop_here", _dumpf(frame), _dumpf(self.stopframe))
         # As per bdb.stop_here, except for logicalbotframe
         # if self.stopframe is None:
-        #   return 1
+        #     return 1
         if frame is self.stopframe:
             return 1
 
@@ -213,7 +213,7 @@ class Adb(bdb.Bdb, gateways.RemoteDebugApplicationEvents):
     # The user functions do bugger all!
     #
     # def user_call(self, frame, argument_list):
-    #   traceenter("user_call",_dumpf(frame))
+    #     traceenter("user_call",_dumpf(frame))
 
     def user_line(self, frame):
         traceenter("user_line", _dumpf(frame))
@@ -430,7 +430,7 @@ class Adb(bdb.Bdb, gateways.RemoteDebugApplicationEvents):
         trace("_BreakFlagsChanged has breaks", self.breaks)
         # If a request comes on our debugging thread, then do it now!
         # if self.debuggingThread!=win32api.GetCurrentThreadId():
-        #   return
+        #     return
 
         if len(self.breaks) or self.breakFlags:
             if self.logicalbotframe:

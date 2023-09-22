@@ -84,10 +84,10 @@ class CodeContainerProvider(documents.CodeContainerProvider):
     def FromFileName(self, fname):
         # It appears we cant add modules during a debug session!
         # if self.currentNumModules != len(sys.modules):
-        #   self.axdebugger.RefreshAllModules(self.nodes, self)
-        #   self.currentNumModules = len(sys.modules)
+        #     self.axdebugger.RefreshAllModules(self.nodes, self)
+        #     self.currentNumModules = len(sys.modules)
         # for key in self.ccsAndNodes.keys():
-        #   print "File:", key
+        #     print "File:", key
         return documents.CodeContainerProvider.FromFileName(self, fname)
 
     def Close(self):
@@ -160,7 +160,7 @@ class AXDebugger:
 
         # Get/create the debugger, and tell it to break.
         self.app.StartDebugSession()
-        #               self.app.CauseBreak()
+        # self.app.CauseBreak()
 
         self.pydebugger.SetupAXDebugging(None, frame)
         self.pydebugger.set_trace()

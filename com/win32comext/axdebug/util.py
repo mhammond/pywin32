@@ -82,7 +82,7 @@ class Dispatcher(win32com.server.policy.DispatcherWin32trace):
     def _QueryInterface_(self, iid):
         rc = win32com.server.policy.DispatcherBase._QueryInterface_(self, iid)
         # if not rc:
-        #   self._trace_("in _QueryInterface_ with unsupported IID %s (%s)\n" % (IIDToInterfaceName(iid),iid))
+        #     self._trace_("in _QueryInterface_ with unsupported IID %s (%s)\n" % (IIDToInterfaceName(iid),iid))
         return rc
 
     def _Invoke_(self, dispid, lcid, wFlags, args):

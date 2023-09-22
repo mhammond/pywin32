@@ -46,7 +46,6 @@ class flags:
 # WindowOutputDocumentParent=docview.RichEditDoc
 # WindowOutputDocumentParent=docview.Document
 import pywin.scintilla.document
-from pywin import default_scintilla_encoding
 from pywin.scintilla import scintillacon
 
 WindowOutputDocumentParent = pywin.scintilla.document.CScintillaDocument
