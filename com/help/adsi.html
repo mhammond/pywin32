@@ -228,11 +228,11 @@ def getmembers(path=''):
   dsobj = ldap.OpenDSObject(path,logon_ex,password,0)
   dsobj.Getinfo()
   if dsobj.Class=='organizationalPerson':
-      user_dict[string.capitalize(dsobj.cn)]=dsobj.uid
+      user_dict[dsobj.cn.capitalize()]=dsobj.uid
   elif dsobj.Class=='groupOfNames':
       for i in dsobj.Members():
               if i.Class=='organizationalPerson':
-                  user_dict[string.capitalize(i.cn)]=i.uid
+                  user_dict[i.cn.capitalize()]=i.uid
               elif type(i.member)==types.TupleType:
                   for j in i.member:
                       newpath='LDAP://'+server+'/'+j
@@ -241,7 +241,7 @@ def getmembers(path=''):
                   newpath='LDAP://'+server+'/'+i.member
                   getmembers(newpath)
   elif dsobj.Class=='Remote-Address':
-      User_dict[string.capitalize(dsobj.cn)]=dsobj.uid
+      User_dict[dsobj.cn.capitalize()]=dsobj.uid
   elif  dsobj.Class=='Public-Folder':
       pass
   else:

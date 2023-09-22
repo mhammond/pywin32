@@ -48,7 +48,7 @@ def Operation(Op, fn):
 		PendingOp = NullOp
 	else:
 		FlagNewNum = 1
-		Accum = PendingOp( Accum, string.atof(ReadOut) )
+		Accum = PendingOp( Accum, float(ReadOut) )
 	ax.document.Keypad.ReadOut.Value = str(Accum)
 	PendingOp = fn
 
@@ -65,7 +65,7 @@ def Clear_OnClick():
 	ClearEntry_OnClick()
 
 def Neg_OnClick():
-	ax.document.Keypad.ReadOut.Value = str(-string.atof(ax.document.Keypad.ReadOut.Value))
+	ax.document.Keypad.ReadOut.Value = str(-float(ax.document.Keypad.ReadOut.Value))
 </SCRIPT>
 
 

@@ -1,5 +1,4 @@
 import io
-import string
 import sys
 import traceback
 from pprint import pprint
@@ -15,7 +14,7 @@ from .util import RaiseNotImpl, _wrap, _wrap_remove
 def MakeNiceString(ob):
     stream = io.StringIO()
     pprint(ob, stream)
-    return string.strip(stream.getvalue())
+    return stream.getvalue().strip()
 
 
 class ProvideExpressionContexts(gateways.ProvideExpressionContexts):
@@ -65,7 +64,7 @@ class Expression(gateways.DebugExpression):
                     sys.exc_info()[0], sys.exc_info()[1]
                 )
                 # l is a list of strings with trailing "\n"
-                self.result = string.join((s[:-1] for s in l), "\n")
+                self.result = "\n".join(s[:-1] for s in l)
                 self.hresult = winerror.E_FAIL
         finally:
             self.isComplete = 1

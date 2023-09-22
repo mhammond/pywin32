@@ -11,11 +11,10 @@ automatically calls this.
 # INTERNAL FUNCTIONS
 #
 #
-import string
 
 
 def is_interface_enum(enumtype):
-    return not (enumtype[0] in string.uppercase and enumtype[2] in string.uppercase)
+    return not (enumtype[0].isupper() and enumtype[2].isupper())
 
 
 def _write_enumifc_cpp(f, interface):

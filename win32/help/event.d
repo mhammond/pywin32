@@ -64,8 +64,8 @@ def date2sec(self,evt_date):
 	reg_result=regexp.search(evt_date)
 	date=reg_result.group(1)
 	the_time=reg_result.group(2)
-	(mon,day,yr)=map(lambda x: string.atoi(x),string.split(date,'/'))
-	(hr,min,sec)=map(lambda x: string.atoi(x),string.split(the_time,':'))
+	(mon,day,yr)=map(lambda x: int(x),date.split('/'))
+	(hr,min,sec)=map(lambda x: int(x),the_time.split(':'))
 	tup=[yr,mon,day,hr,min,sec,0,0,0]
 	sec=time.mktime(tup)
 	return sec
@@ -86,7 +86,6 @@ import win32con
 import winerror
 import time
 import re
-import string
 import sys
 import traceback
 
@@ -99,8 +98,8 @@ def date2sec(evt_date):
 	reg_result=regexp.search(evt_date)
 	date=reg_result.group(1)
 	the_time=reg_result.group(2)
-	(mon,day,yr)=map(lambda x: string.atoi(x),string.split(date,'/'))
-	(hr,min,sec)=map(lambda x: string.atoi(x),string.split(the_time,':'))
+	(mon,day,yr)=map(lambda x: int(x),date.split('/'))
+	(hr,min,sec)=map(lambda x: int(x),the_time.split(':'))
 	tup=[yr,mon,day,hr,min,sec,0,0,0]
 
 	sec=time.mktime(tup)
@@ -276,7 +275,6 @@ import win32con
 import winerror
 import time
 import re
-import string
 import sys
 import threading
 import traceback
@@ -324,7 +322,7 @@ class thread_it ( threading.Thread ) :
 					evt_id=str(winerror.HRESULT_CODE(ev_obj.EventID))
 					evt_type=str(evt_dict[ev_obj.EventType])
 					msg = str(win32evtlogutil.SafeFormatMessage(ev_obj, logtype))
-					results=string.join((now_time,the_time,computer,src,cat,record,evt_id,evt_type,msg[0:15]),':')
+					results=':'.join((now_time,the_time,computer,src,cat,record,evt_id,evt_type,msg[0:15]))
 					self.data.append(results)
 				if seconds < begin_sec-28800: break 
 			win32evtlog.CloseEventLog(hand)
@@ -341,8 +339,8 @@ class thread_it ( threading.Thread ) :
 		date=reg_result.group(1)
 		the_time=reg_result.group(2)
 
-		(mon,day,yr)=map(lambda x: string.atoi(x),string.split(date,'/'))
-		(hr,min,sec)=map(lambda x: string.atoi(x),string.split(the_time,':'))
+		(mon,day,yr)=map(lambda x: int(x),date.split('/'))
+		(hr,min,sec)=map(lambda x: int(x),the_time.split(':'))
 		tup=[yr,mon,day,hr,min,sec,0,0,0]
 
 		sec=time.mktime(tup)

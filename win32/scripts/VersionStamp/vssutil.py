@@ -1,4 +1,3 @@
-import string
 import time
 import traceback
 
@@ -36,7 +35,7 @@ def test(projectName):
 
 def SubstituteInString(inString, evalEnv):
     substChar = "$"
-    fields = string.split(inString, substChar)
+    fields = inString.split(substChar)
     newFields = []
     for i in range(len(fields)):
         didSubst = 0
@@ -51,7 +50,7 @@ def SubstituteInString(inString, evalEnv):
                 print("Could not substitute", strVal)
         if not didSubst:
             newFields.append(strVal)
-    return string.join(map(str, newFields), "")
+    return "".join(map(str, newFields))
 
 
 def SubstituteInFile(inName, outName, evalEnv):
@@ -101,7 +100,7 @@ def VssLog(project, linePrefix="", noLabels=5, maxItems=150):
         )
         if labelNum > noLabels:
             break
-    return string.join(lines, "\n")
+    return "\n".join(lines)
 
 
 def SubstituteVSSInFile(projectName, inName, outName):
@@ -170,7 +169,7 @@ def MakeNewBuildNo(project, buildDesc=None, auto=0, bRebrand=0):
         oldBuild = "<None>"
     else:
         try:
-            buildNo = string.atoi(buildNo)
+            buildNo = int(buildNo)
             if not bRebrand:
                 buildNo = buildNo + 1
             buildNo = str(buildNo)
