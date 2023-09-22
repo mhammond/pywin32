@@ -1,7 +1,7 @@
-"""
+r"""
 Implements a permissions editor for services.
 Service can be specified as plain name for local machine,
-or as a remote service of the form \\\\machinename\\service
+or as a remote service of the form \\machinename\service
 """
 
 import os

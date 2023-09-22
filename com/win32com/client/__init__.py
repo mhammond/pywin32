@@ -55,13 +55,13 @@ def __WrapDispatch(
 
 
 def GetObject(Pathname=None, Class=None, clsctx=None):
-    """
+    r"""
     Mimic VB's GetObject() function.
 
     ob = GetObject(Class = "ProgID") or GetObject(Class = clsid) will
     connect to an already running instance of the COM object.
 
-    ob = GetObject(r"c:\\blah\\blah\\foo.xls") (aka the COM moniker syntax)
+    ob = GetObject(r"c:\blah\blah\foo.xls") (aka the COM moniker syntax)
     will return a ready to use Python wrapping of the required COM object.
 
     Note: You must specifiy one or the other of these arguments. I know

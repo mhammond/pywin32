@@ -206,7 +206,7 @@ class TestStuff(unittest.TestCase):
 
     def testRaw(self):
         ## Test binary data
-        self._test_val("rawfield", memoryview(b"\1\2\3\4\0\5\6\7\\8"))
+        self._test_val("rawfield", memoryview(b"\1\2\3\4\0\5\6\7"))
 
     def test_widechar(self):
         """Test a unicode character that would be mangled if bound as plain character.
