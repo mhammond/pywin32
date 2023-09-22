@@ -225,9 +225,9 @@ class SourceModuleContainer(SourceCodeContainer):
                 try:
                     self.text = open(fname, "r").read()
                 except OSError as details:
-                    self.text = "# Exception opening file\n# %s" % (repr(details))
+                    self.text = f"# Exception opening file\n# {repr(details)}"
             else:
-                self.text = "# No file available for module '%s'" % (self.module)
+                self.text = f"# No file available for module '{self.module}'"
             self._buildlines()
         return self.text
 
@@ -246,7 +246,7 @@ class SourceModuleContainer(SourceCodeContainer):
         elif dnt == axdebug.DOCUMENTNAMETYPE_FILE_TAIL:
             return os.path.split(fname)[1]
         elif dnt == axdebug.DOCUMENTNAMETYPE_URL:
-            return "file:%s" % fname
+            return f"file:{fname}"
         else:
             raise Exception(scode=winerror.E_UNEXPECTED)
 
@@ -265,7 +265,7 @@ if __name__ == "__main__":
             attrlen = attrlen + 1
     text = sc.GetText()
     if attrlen != len(text):
-        print("Lengths dont match!!! (%d/%d)" % (attrlen, len(text)))
+        print(f"Lengths dont match!!! ({attrlen}/{len(text)})")
 
     # print("Attributes:")
     # print(attrs)

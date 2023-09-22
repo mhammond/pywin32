@@ -52,12 +52,7 @@ def _dumpf(frame):
         addn = "(with trace!)"
         if frame.f_trace is None:
             addn = " **No Trace Set **"
-        return "Frame at %d, file %s, line: %d%s" % (
-            id(frame),
-            frame.f_code.co_filename,
-            frame.f_lineno,
-            addn,
-        )
+        return f"Frame at {id(frame)}, file {frame.f_code.co_filename}, line: {frame.f_lineno}{addn}"
 
 
 g_adb = None
@@ -280,8 +275,7 @@ class Adb(bdb.Bdb, gateways.RemoteDebugApplicationEvents):
 
             except pythoncom.com_error:
                 trace(
-                    "*** Could not RemoveStackFrameSniffer %d"
-                    % (self.stackSnifferCookie)
+                    f"*** Could not RemoveStackFrameSniffer {self.stackSnifferCookie}"
                 )
         self.stackSnifferCookie = self.stackSniffer = None
 
@@ -304,7 +298,7 @@ class Adb(bdb.Bdb, gateways.RemoteDebugApplicationEvents):
         self.stackSnifferCookie = debugApplication.AddStackFrameSniffer(
             self.stackSniffer
         )
-        # trace("StackFrameSniffer added (%d)" % self.stackSnifferCookie)
+        # trace(f"StackFrameSniffer added ({self.stackSnifferCookie})")
 
         # Connect to the application events.
         self.appEventConnection = win32com.client.connect.SimpleConnection(
@@ -424,8 +418,7 @@ class Adb(bdb.Bdb, gateways.RemoteDebugApplicationEvents):
 
     def _BreakFlagsChanged(self):
         traceenter(
-            "_BreakFlagsChanged to %s with our thread = %s, and debugging thread = %s"
-            % (self.breakFlags, self.debuggingThread, win32api.GetCurrentThreadId())
+            "_BreakFlagsChanged to {self.breakFlags} with our thread = {self.debuggingThread}, and debugging thread = {win32api.GetCurrentThreadId()}"
         )
         trace("_BreakFlagsChanged has breaks", self.breaks)
         # If a request comes on our debugging thread, then do it now!

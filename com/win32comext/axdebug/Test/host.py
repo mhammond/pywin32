@@ -48,8 +48,7 @@ class PySourceModuleDebugDocumentHost(gateways.DebugDocumentHost):
         from win32com.util import IIDToInterfaceName
 
         trace(
-            "PySourceModuleDebugDocumentHost QI with %s (%s)"
-            % (IIDToInterfaceName(iid), str(iid))
+            f"PySourceModuleDebugDocumentHost QI with {IIDToInterfaceName(iid)} ({iid})"
         )
         return 0
 
@@ -58,7 +57,7 @@ class PySourceModuleDebugDocumentHost(gateways.DebugDocumentHost):
             try:
                 codeText = open(self.module.__file__, "rt").read()
             except OSError as details:
-                codeText = "# Exception opening file\n# %s" % (details)
+                codeText = f"# Exception opening file\n# {details}"
 
             self.codeContainer = codecontainer.SourceCodeContainer(
                 codeText, self.module.__file__
@@ -132,6 +131,5 @@ def test():
 if __name__ == "__main__":
     test()
     print(
-        " %d/%d com objects still alive"
-        % (pythoncom._GetInterfaceCount(), pythoncom._GetGatewayCount())
+        f" {pythoncom._GetInterfaceCount()}/{pythoncom._GetGatewayCount()} com objects still alive"
     )

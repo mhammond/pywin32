@@ -54,7 +54,7 @@ else:
 
 def RaiseNotImpl(who=None):
     if who is not None:
-        print("********* Function %s Raising E_NOTIMPL  ************" % (who))
+        print(f"********* Function {who} Raising E_NOTIMPL  ************")
 
     # Print a sort-of "traceback", dumping all the frames leading to here.
     try:
@@ -62,7 +62,7 @@ def RaiseNotImpl(who=None):
     except:
         frame = sys.exc_info()[2].tb_frame
     while frame:
-        print("File: %s, Line: %d" % (frame.f_code.co_filename, frame.f_lineno))
+        print(f"File: {frame.f_code.co_filename}, Line: {frame.f_lineno}")
         frame = frame.f_back
 
     # and raise the exception for COM
@@ -82,7 +82,7 @@ class Dispatcher(win32com.server.policy.DispatcherWin32trace):
     def _QueryInterface_(self, iid):
         rc = win32com.server.policy.DispatcherBase._QueryInterface_(self, iid)
         # if not rc:
-        #     self._trace_("in _QueryInterface_ with unsupported IID %s (%s)\n" % (IIDToInterfaceName(iid),iid))
+        #     self._trace_(f"in _QueryInterface_ with unsupported IID {IIDToInterfaceName(iid)} ({iid})\n")
         return rc
 
     def _Invoke_(self, dispid, lcid, wFlags, args):
@@ -109,11 +109,9 @@ class Dispatcher(win32com.server.policy.DispatcherWin32trace):
                 desc = " (" + str(v.description) + ")"
             except AttributeError:
                 desc = ""
-            print(
-                "*** Invoke of %s raised COM exception 0x%x%s" % (dispid, scode, desc)
-            )
+            print(f"*** Invoke of {dispid} raised COM exception 0x{scode:x}{desc}")
         except:
-            print("*** Invoke of %s failed:" % dispid)
+            print(f"*** Invoke of {dispid} failed:")
             typ, val, tb = sys.exc_info()
             import traceback
 

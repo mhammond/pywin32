@@ -41,22 +41,22 @@ class EnumDebugStackFrames(gateways.EnumDebugStackFrames):
                     None,
                 )
                 infos.append(frameInfo)
-            #     print "- Kept!"
+            #     print("- Kept!")
             # else:
-            #     print "- rejected"
+            #     print("- rejected")
             frame = frame.f_back
 
         gateways.EnumDebugStackFrames.__init__(self, infos, 0)
 
     # def __del__(self):
-    #     print "EnumDebugStackFrames dieing"
+    #     print("EnumDebugStackFrames dieing")
 
     def Next(self, count):
         return gateways.EnumDebugStackFrames.Next(self, count)
 
     # def _query_interface_(self, iid):
     #     from win32com.util import IIDToInterfaceName
-    #     print("EnumDebugStackFrames QI with %s (%s)" % (IIDToInterfaceName(iid), str(iid)))
+    #     print(f"EnumDebugStackFrames QI with {IIDToInterfaceName(iid)} ({iid})")
     #     return 0
     def _wrap(self, obj):
         # This enum returns a tuple, with 2 com objects in it.

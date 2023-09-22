@@ -20,7 +20,7 @@ class ModuleTreeNode:
         self.cont = codecontainer.SourceModuleContainer(module)
 
     def __repr__(self):
-        return "<ModuleTreeNode wrapping %s>" % (self.module)
+        return f"<ModuleTreeNode wrapping {self.module}>"
 
     def Attach(self, parentRealNode):
         self.realNode.Attach(parentRealNode)
@@ -87,13 +87,13 @@ class CodeContainerProvider(documents.CodeContainerProvider):
         #     self.axdebugger.RefreshAllModules(self.nodes, self)
         #     self.currentNumModules = len(sys.modules)
         # for key in self.ccsAndNodes.keys():
-        #     print "File:", key
+        #     print("File:", key)
         return documents.CodeContainerProvider.FromFileName(self, fname)
 
     def Close(self):
         documents.CodeContainerProvider.Close(self)
         self.axdebugger = None
-        print("Closing %d nodes" % (len(self.nodes)))
+        print(f"Closing {len(self.nodes)} nodes")
         for node in self.nodes.values():
             node.Close()
         self.nodes = {}
@@ -235,6 +235,5 @@ if __name__ == "__main__":
     print("About to test the debugging interfaces!")
     test()
     print(
-        " %d/%d com objects still alive"
-        % (pythoncom._GetInterfaceCount(), pythoncom._GetGatewayCount())
+        f" {pythoncom._GetInterfaceCount()}/{pythoncom._GetGatewayCount()} com objects still alive"
     )
