@@ -33,7 +33,7 @@ class ExpressionContext(gateways.DebugExpressionContext):
         )
 
     def GetLanguageInfo(self):
-        #               print "GetLanguageInfo"
+        # print("GetLanguageInfo")
         return "Python", "{DF630910-1C1D-11d0-AE36-8C0F5E000000}"
 
 
@@ -78,7 +78,7 @@ class Expression(gateways.DebugExpression):
         return self.isComplete
 
     def GetResultAsString(self):
-        #               print "GetStrAsResult returning", self.result
+        # print("GetStrAsResult returning", self.result)
         return self.hresult, MakeNiceString(self.result)
 
     def GetResultAsDebugProperty(self):

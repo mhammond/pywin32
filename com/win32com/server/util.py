@@ -144,7 +144,7 @@ class Collection:
             self._public_methods_ = ["Item", "Count"]
 
     # This method is also used as the "default" method.
-    # Thus "print ob" will cause this to be called with zero
+    # Thus "print(ob)" will cause this to be called with zero
     # params.  Handle this slightly more elegantly here.
     # Ideally the  policy should handle this.
     def Item(self, *args):

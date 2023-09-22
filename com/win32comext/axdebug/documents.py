@@ -121,8 +121,8 @@ class CodeContainerProvider:
 
     def FromFileName(self, fname):
         cc, node = self.ccsAndNodes.get(GetGoodFileName(fname), (None, None))
-        #               if cc is None:
-        #                       print "FromFileName for %s returning None" % fname
+        # if cc is None:
+        #     print(f"FromFileName for {fname} returning None")
         return cc
 
     def Close(self):

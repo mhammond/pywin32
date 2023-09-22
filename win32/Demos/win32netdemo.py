@@ -72,7 +72,7 @@ def GroupEnum():
     resume = 0
     while 1:
         data, total, resume = win32net.NetGroupEnum(server, 1, resume)
-        #               print "Call to NetGroupEnum obtained %d entries of %d total" % (len(data), total)
+        # print(f"Call to NetGroupEnum obtained {len(data)} entries of {total} total")
         for group in data:
             verbose("Found group %(name)s:%(comment)s " % group)
             memberresume = 0

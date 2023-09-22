@@ -207,10 +207,10 @@ class EnumerationItem(build.OleItem, WritableItem):
             name = typeinfo.GetNames(vdesc[0])[0]
             self.mapVars[name] = build.MapEntry(vdesc)
 
-    ##  def WriteEnumerationHeaders(self, aliasItems, stream):
-    ##    enumName = self.doc[0]
-    ##    print >> stream "%s=constants # Compatibility with previous versions." % (enumName)
-    ##    WriteAliasesForItem(self, aliasItems)
+    # def WriteEnumerationHeaders(self, aliasItems, stream):
+    #     enumName = self.doc[0]
+    #     print(f"{enumName}=constants # Compatibility with previous versions.", file=stream)
+    #     WriteAliasesForItem(self, aliasItems)
 
     def WriteEnumerationItems(self, stream):
         num = 0

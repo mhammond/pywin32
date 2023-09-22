@@ -221,9 +221,9 @@ class HierList(object.Object):
                 inewlook = inewlook + 1
             if matched:
                 # Insert the new items.
-                # 				print "Inserting after", old_items[iold], old_handles[iold]
+                # print("Inserting after", old_items[iold], old_handles[iold])
                 for i in range(inew, inewlook):
-                    # 					print "Inserting index %d (%s)" % (i, new_items[i])
+                    # print(f"Inserting index {i} ({new_items[i]})")
                     hAfter = self.AddItem(hparent, new_items[i], hAfter)
 
                 inew = inewlook + 1
@@ -233,7 +233,7 @@ class HierList(object.Object):
                     self.Refresh(hold)
             else:
                 # Remove the deleted items.
-                # 				print "Deleting %d (%s)" % (iold, old_items[iold])
+                # print(f"Deleting {iold} ({old_items[iold]})")
                 hdelete = old_handles[iold]
                 # First recurse and remove the children from the map.
                 for hchild in self._GetChildHandles(hdelete):
@@ -244,7 +244,7 @@ class HierList(object.Object):
             hAfter = old_handles[iold]
         # Fill any remaining new items:
         for newItem in new_items[inew:]:
-            # 			print "Inserting new item", newItem
+            # print("Inserting new item", newItem)
             self.AddItem(hparent, newItem)
 
     def AcceptRoot(self, root):

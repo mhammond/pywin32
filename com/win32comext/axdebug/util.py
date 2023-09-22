@@ -97,7 +97,7 @@ class Dispatcher(win32com.server.policy.DispatcherWin32trace):
         win32com.server.policy.DispatcherTrace.__init__(self, policyClass, object)
         import win32traceutil  # Sets up everything.
 
-    #               print "Object with win32trace dispatcher created (object=%s)" % `object`
+    # print(f"Object with win32trace dispatcher created (object={object})")
 
     def _QueryInterface_(self, iid):
         rc = win32com.server.policy.DispatcherBase._QueryInterface_(self, iid)
@@ -119,7 +119,7 @@ class Dispatcher(win32com.server.policy.DispatcherWin32trace):
             rc = win32com.server.policy.DispatcherBase._Invoke_(
                 self, dispid, lcid, wFlags, args
             )
-            #                       print "Invoke of", dispid, "returning", rc
+            # print("Invoke of", dispid, "returning", rc)
             return rc
         except Exception:
             t, v, tb = sys.exc_info()

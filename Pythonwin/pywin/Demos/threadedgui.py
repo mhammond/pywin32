@@ -61,7 +61,7 @@ class FontWindow(window.Wnd):
         self.InvalidateRect()
 
     def OnPaint(self):
-        # 		print "Paint message from thread", win32api.GetCurrentThreadId()
+        # print("Paint message from thread", win32api.GetCurrentThreadId())
         dc, paintStruct = self.BeginPaint()
         self.OnPrepareDC(dc, None)
 

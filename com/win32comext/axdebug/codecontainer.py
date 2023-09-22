@@ -78,9 +78,9 @@ class SourceCodeContainer:
             lastOffset = lineOffset
             lineNo = lineNo + 1
         else:  # for not broken.
-            #                       print "Cant find", charPos, "in", self.lineOffsets
+            # print("Cant find", charPos, "in", self.lineOffsets)
             raise Exception(scode=winerror.S_FALSE)
-        #               print "GLOP ret=",lineNo,       (charPos-lastOffset)
+        # print("GLOP ret=",lineNo, (charPos-lastOffset))
         return lineNo, (charPos - lastOffset)
 
     def GetNextLine(self):
@@ -269,8 +269,8 @@ if __name__ == "__main__":
     if attrlen != len(text):
         print("Lengths dont match!!! (%d/%d)" % (attrlen, len(text)))
 
-    #       print "Attributes:"
-    #       print attrs
+    # print("Attributes:")
+    # print(attrs)
     print("GetLineOfPos=", sc.GetLineOfPosition(0))
     print("GetLineOfPos=", sc.GetLineOfPosition(4))
     print("GetLineOfPos=", sc.GetLineOfPosition(10))

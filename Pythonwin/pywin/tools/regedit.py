@@ -163,9 +163,9 @@ class RegistryTreeView(docview.TreeView):
     def SearchSelectedItem(self):
         handle = self.hierList.GetChildItem(0)
         while 1:
-            # 			print "State is", self.hierList.GetItemState(handle, -1)
+            # print("State is", self.hierList.GetItemState(handle, -1))
             if self.hierList.GetItemState(handle, commctrl.TVIS_SELECTED):
-                # 				print "Item is ", self.hierList.ItemFromHandle(handle)
+                # print("Item is ", self.hierList.ItemFromHandle(handle))
                 return self.hierList.ItemFromHandle(handle)
             handle = self.hierList.GetNextSiblingItem(handle)
 

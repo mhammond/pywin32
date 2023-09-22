@@ -68,7 +68,7 @@ def RegisterInterfaces(typelibGUID, lcid, major, minor, interface_names=None):
                 raise ValueError(
                     "Interface '%s' does not exist in this cached typelib" % (name,)
                 )
-            #            print "Processing interface", name
+            # print("Processing interface", name)
             sub_mod = gencache.GetModuleForCLSID(iid)
             is_dispatch = getattr(sub_mod, name + "_vtables_dispatch_", None)
             method_defs = getattr(sub_mod, name + "_vtables_", None)
@@ -100,10 +100,10 @@ def _CalcTypeSize(typeTuple):
         # is trying to.  We need to better place to warn about this, but it
         # isn't here.
         # try:
-        #    import warnings
-        #    warnings.warn("warning: records are known to not work for vtable interfaces")
+        #     import warnings
+        #     warnings.warn("warning: records are known to not work for vtable interfaces")
         # except ImportError:
-        #    print "warning: records are known to not work for vtable interfaces"
+        #     print("warning: records are known to not work for vtable interfaces")
         cb = _univgw.SizeOfVT(pythoncom.VT_PTR)[1]
         # cb = typeInfo.GetTypeAttr().cbSizeInstance
     else:

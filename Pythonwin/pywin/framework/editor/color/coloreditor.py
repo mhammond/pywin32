@@ -474,7 +474,7 @@ class SyntEditView(SyntEditViewParent):
                     - scintillacon.SC_FOLDLEVELBASE
                 )
                 is_header = level & scintillacon.SC_FOLDLEVELHEADERFLAG
-                # 			print lineSeek, level_no, is_header
+                # print(lineSeek, level_no, is_header)
                 if level_no == 0 and is_header:
                     if (expanding and not self.SCIGetFoldExpanded(lineSeek)) or (
                         not expanding and self.SCIGetFoldExpanded(lineSeek)

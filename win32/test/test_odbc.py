@@ -46,7 +46,7 @@ class TestStuff(unittest.TestCase):
             conn_str = "Driver={Microsoft Access Driver (*.mdb)};dbq=%s;Uid=;Pwd=;" % (
                 self.db_filename,
             )
-        ## print 'Connection string:', conn_str
+        # print("Connection string:", conn_str)
         self.conn = odbc.odbc(conn_str)
         # And we expect a 'users' table for these tests.
         self.cur = self.conn.cursor()

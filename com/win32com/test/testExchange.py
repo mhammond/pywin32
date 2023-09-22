@@ -75,8 +75,8 @@ if ammodule:
 
 
 def TestAddress(session):
-    #       entry = session.GetAddressEntry("Skip")
-    #       print entry
+    # entry = session.GetAddressEntry("Skip")
+    # print(entry)
     pass
 
 

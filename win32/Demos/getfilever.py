@@ -29,5 +29,5 @@ for lang, codepage in pairs:
     print("lang: ", lang, "codepage:", codepage)
     for ver_string in ver_strings:
         str_info = "\\StringFileInfo\\%04X%04X\\%s" % (lang, codepage, ver_string)
-        ## print str_info
+        # print(str_info)
         print(ver_string, repr(win32api.GetFileVersionInfo(fname, str_info)))

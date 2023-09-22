@@ -118,11 +118,11 @@ class HierStackRoot(HierListItem):
         HierListItem.__init__(self, debugger, None)
         self.last_stack = []
 
-    ##	def __del__(self):
-    ##		print "HierStackRoot dieing"
+    # def __del__(self):
+    #     print("HierStackRoot dieing")
     def GetSubList(self):
         debugger = self.myobject
-        # 		print self.debugger.stack, self.debugger.curframe
+        # print(self.debugger.stack, self.debugger.curframe)
         ret = []
         if debugger.debuggerState == DBGSTATE_BREAK:
             stackUse = debugger.stack[:]

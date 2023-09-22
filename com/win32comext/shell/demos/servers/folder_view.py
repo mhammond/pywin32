@@ -587,7 +587,7 @@ class ShellFolder:
         self.pidl = None  # set when Initialize is called
 
     def ParseDisplayName(self, hwnd, reserved, displayName, attr):
-        # print "ParseDisplayName", displayName
+        # print("ParseDisplayName", displayName)
         raise COMException(hresult=winerror.E_NOTIMPL)
 
     def EnumObjects(self, hwndOwner, flags):

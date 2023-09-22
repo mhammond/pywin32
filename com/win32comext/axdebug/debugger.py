@@ -50,9 +50,9 @@ def BuildModule(module, built_nodes, rootNode, create_node_fn, create_node_args)
                 ".pyd",
                 ".dll",
             ]
-    #               keep = keep and module.__name__=='__main__'
+    # keep = keep and module.__name__=='__main__'
     if module and keep:
-        #        print "keeping", module.__name__
+        # print("keeping", module.__name__)
         node = ModuleTreeNode(module)
         built_nodes[module] = node
         realNode = create_node_fn(*(node,) + create_node_args)
@@ -92,12 +92,12 @@ class CodeContainerProvider(documents.CodeContainerProvider):
         self.axdebugger.RefreshAllModules(self.nodes, self)
 
     def FromFileName(self, fname):
-        ### It appears we cant add modules during a debug session!
-        #               if self.currentNumModules != len(sys.modules):
-        #                       self.axdebugger.RefreshAllModules(self.nodes, self)
-        #                       self.currentNumModules = len(sys.modules)
-        #               for key in self.ccsAndNodes.keys():
-        #                       print "File:", key
+        # It appears we cant add modules during a debug session!
+        # if self.currentNumModules != len(sys.modules):
+        #     self.axdebugger.RefreshAllModules(self.nodes, self)
+        #     self.currentNumModules = len(sys.modules)
+        # for key in self.ccsAndNodes.keys():
+        #     print("File:", key)
         return documents.CodeContainerProvider.FromFileName(self, fname)
 
     def Close(self):

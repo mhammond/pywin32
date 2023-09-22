@@ -321,7 +321,7 @@ class Adb(bdb.Bdb, gateways.RemoteDebugApplicationEvents):
             return
 
         if len(self.recursiveData) == 0:
-            #                       print "ResetAXDebugging called for final time."
+            # print("ResetAXDebugging called for final time.")
             self.logicalbotframe = None
             self.debuggingThread = None
             self.currentframe = None

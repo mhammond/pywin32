@@ -37,7 +37,7 @@ class ArgFormatter:
     """An instance for a specific type of argument.	 Knows how to convert itself"""
 
     def __init__(self, arg, builtinIndirection, declaredIndirection=0):
-        # print 'init:', arg.name, builtinIndirection, declaredIndirection, arg.indirectionLevel
+        # print("init:", arg.name, builtinIndirection, declaredIndirection, arg.indirectionLevel)
         self.arg = arg
         self.builtinIndirection = builtinIndirection
         self.declaredIndirection = declaredIndirection
@@ -64,7 +64,14 @@ class ArgFormatter:
             raise error_not_supported("Can't indirect this far - please fix me :-)")
 
     def GetIndirectedArgName(self, indirectFrom, indirectionTo):
-        # print 'get:',self.arg.name, indirectFrom,self._GetDeclaredIndirection() + self.builtinIndirection, indirectionTo, self.arg.indirectionLevel
+        # print(
+        #     "get:",
+        #     self.arg.name,
+        #     indirectFrom,
+        #     self._GetDeclaredIndirection() + self.builtinIndirection,
+        #     indirectionTo,
+        #     self.arg.indirectionLevel,
+        # )
 
         if indirectFrom is None:
             ### ACK! this does not account for [in][out] variables.

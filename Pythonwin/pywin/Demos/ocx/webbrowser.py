@@ -24,7 +24,7 @@ class MyWebBrowser(activex.Control, WebBrowserModule.WebBrowser):
         self, pDisp, URL, Flags, TargetFrameName, PostData, Headers, Cancel
     ):
         self.GetParent().OnNavigate(URL)
-        # print "BeforeNavigate2", pDisp, URL, Flags, TargetFrameName, PostData, Headers, Cancel
+        # print("BeforeNavigate2", pDisp, URL, Flags, TargetFrameName, PostData, Headers, Cancel)
 
 
 class BrowserFrame(window.MDIChildWnd):

@@ -26,11 +26,11 @@
 o = win32com.client.Dispatch("Object.Name")<BR>
 o.Method()<BR>
 o.property = "New Value"<BR>
-print o.property</P>
+print(o.property)</P>
 </CODE><P>Example</P>
 <CODE><P>o = win32com.client.Dispatch("Excel.Application")<BR>
 o.Visible = 1<BR>
-o.Workbooks.Add() # for office 97 – 95 a bit different!<BR>
+o.Workbooks.Add() # for office 97 â€“ 95 a bit different!<BR>
 o.Cells(1,1).Value = "Hello"</CODE> </P>
 <P>And we will see the word "Hello" appear in the top cell. </P>
 <H3><A NAME="WhatObjects">How do I know which methods and properties are available?</A></H3>

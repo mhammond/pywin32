@@ -9,7 +9,7 @@ def ReadLog(computer, logType="Application", dumpEachRecord=0):
     # read the entire log back.
     h = win32evtlog.OpenEventLog(computer, logType)
     numRecords = win32evtlog.GetNumberOfEventLogRecords(h)
-    #       print "There are %d records" % numRecords
+    # print(f"There are {numRecords} records")
 
     num = 0
     while 1:

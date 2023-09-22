@@ -142,7 +142,7 @@ class FormatterBase:
             return
 
         assert style.stylenum is not None, "Unregistered style."
-        # print "Reformat style", style.name, style.stylenum
+        # print("Reformat style", style.name, style.stylenum)
         scintilla = self.scintilla
         stylenum = style.stylenum
         # Now we have the style number, indirect for the actual style.
@@ -252,7 +252,16 @@ class Formatter(FormatterBase):
         endStyledChar = self.scintilla.SendScintilla(scintillacon.SCI_GETENDSTYLED)
         lineEndStyled = self.scintilla.LineFromChar(endStyledChar)
         endStyled = self.scintilla.LineIndex(lineEndStyled)
-        # print "enPosPaint %d endStyledChar %d lineEndStyled %d endStyled %d" % (endPosPaint, endStyledChar, lineEndStyled, endStyled)
+        # print(
+        #     "endPosPaint",
+        #     endPosPaint,
+        #     "endStyledChar",
+        #     endStyledChar,
+        #     "lineEndStyled",
+        #     lineEndStyled,
+        #     "endStyled",
+        #     endStyled,
+        # )
         self.Colorize(endStyled, notify.position)
 
     def ColorSeg(self, start, end, styleName):

@@ -59,7 +59,7 @@ def RegisterPythonServer(filename, progids=None, verbose=0):
                 )
                 break
         else:
-            # print "Skipping registration of '%s' - already registered" % filename
+            # print(f"Skipping registration of '{filename}' - already registered")
             return
     # needs registration - see if its likely!
     try:
@@ -87,7 +87,7 @@ def RegisterPythonServer(filename, progids=None, verbose=0):
     cmd = '%s "%s" --unattended > nul 2>&1' % (win32api.GetModuleFileName(0), filename)
     if verbose:
         print("Registering engine", filename)
-    #       print cmd
+        # print(cmd)
     rc = os.system(cmd)
     if rc:
         print("Registration command was:")
