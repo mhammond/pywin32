@@ -1,6 +1,5 @@
 # A general purpose MFC CCtrlView view that uses Scintilla.
 
-import array
 import os
 import re
 import string
@@ -11,10 +10,10 @@ import __main__  # for attribute lookup
 import afxres
 import win32con
 import win32ui
-from pywin.mfc import dialog, docview
+from pywin.mfc import docview
 
 from . import IDLEenvironment  # IDLE emulation.
-from . import bindings, control, keycodes, scintillacon
+from . import bindings, control, scintillacon
 
 PRINTDLGORD = 1538
 IDC_PRINT_MAG_EDIT = 1010

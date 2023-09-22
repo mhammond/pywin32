@@ -6,7 +6,7 @@ import timer
 import win32api
 import win32con
 import win32ui
-from pywin.mfc import docview, thread, window
+from pywin.mfc import window
 from pywin.mfc.thread import WinThread
 
 WM_USER_PREPARE_TO_CLOSE = win32con.WM_USER + 32

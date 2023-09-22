@@ -18,7 +18,7 @@ import commctrl
 import win32api
 import win32con
 import win32ui
-from pywin.mfc import dialog, docview, object, window
+from pywin.mfc import dialog, object
 from win32api import RGB
 
 

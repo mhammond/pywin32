@@ -128,8 +128,6 @@ class RegistryTreeView(docview.TreeView):
             self.hierList.Refresh(hparent)
 
     def OnAddKey(self, command, code):
-        from pywin.mfc import dialog
-
         val = dialog.GetSimpleInput("New key name", "", "Add new key")
         if val is None:
             return  # cancelled.
@@ -139,8 +137,6 @@ class RegistryTreeView(docview.TreeView):
             self.hierList.Refresh(hitem)
 
     def OnAddValue(self, command, code):
-        from pywin.mfc import dialog
-
         val = dialog.GetSimpleInput("New value", "", "Add new value")
         if val is None:
             return  # cancelled.
