@@ -1,5 +1,4 @@
 import re
-import string
 import sys
 
 # Reason last stmt is continued (or C_NONE if it's not).
@@ -362,7 +361,6 @@ class Parser:
     #         if continuation is C_BRACKET, index of last open bracket
 
     def _study2(self):
-        _ws = string.whitespace
         if self.study_level >= 2:
             return
         self._study1()

@@ -323,7 +323,6 @@ permission structure for the tree.
 import os
 import sys
 import win32net
-import string
 import time
 import copy
 import getopt
@@ -383,7 +382,7 @@ def is_group(sys_id):
     #get the server for the domain -- it has to be a primary dc
     group=0
     resume=0
-    sys_id=string.strip(sys_id)
+    sys_id=sys_id.strip()
     if D_group.has_key(sys_id):
         group=1
     elif D_except.has_key(sys_id):
@@ -405,7 +404,7 @@ def is_group(sys_id):
 def get_perm_base(file):
     all_perms=fileperm.get_perms(file)
     for (domain_id,mask) in all_perms.items():
-        (domain,sys_id)=string.split(domain_id,'\\',1)
+        (domain,sys_id)=domain_id.split('\\',1)
         mask_name=get_mask(mask)
         Results.append(file+','+sys_id+','+mask_name)
 
@@ -414,7 +413,7 @@ def get_perm(file):
     perm_list.append(file)
     all_perms=fileperm.get_perms(file)
     for (domain_id,mask) in all_perms.items():
-        (domain,sys_id)=string.split(domain_id,'\\',1)
+        (domain,sys_id)=domain_id.split('\\',1)
         print domain,sys_id
         sys_id=str(sys_id)
         mask_name=get_mask(mask)
@@ -435,8 +434,8 @@ def get_perms(arg, d, files):
                 continue
         all_perms=fileperm.get_perms(file)
         for (domain_id,mask) in all_perms.items():
-            if string.find(domain_id,'\\')!=-1:
-                (domain,sys_id)=string.split(domain_id,'\\',1)
+            if domain_id.find('\\')!=-1:
+                (domain,sys_id)=domain_id.split('\\',1)
             else:
                 sys_id=domain_id
             mask_name=get_mask(mask)    
