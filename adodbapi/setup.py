@@ -41,8 +41,8 @@ a.close()
 
 
 def setup_package():
-    from distutils.command.build_py import build_py
-    from distutils.core import setup
+    from setuptools.command.build_py import build_py
+    from setuptools import setup
 
     setup(
         cmdclass={"build_py": build_py},
