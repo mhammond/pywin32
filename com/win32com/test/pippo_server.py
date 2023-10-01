@@ -41,6 +41,7 @@ class CPippo:
 
 
 def BuildTypelib():
+    # https://github.com/pypa/setuptools/pull/4069
     from distutils.dep_util import newer
 
     this_dir = os.path.dirname(__file__)
