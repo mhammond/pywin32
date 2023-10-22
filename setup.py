@@ -30,7 +30,6 @@ import re
 import shutil
 import subprocess
 import sys
-from typing import Union
 import winreg
 
 # setuptools must be imported before distutils for markh in some python versions.
@@ -44,7 +43,10 @@ from distutils.command.install import install
 from distutils.command.install_data import install_data
 from distutils.command.install_lib import install_lib
 from distutils.core import Extension
+from pathlib import Path
 from tempfile import gettempdir
+from typing import Iterable, List, Tuple, Union
+
 
 # some modules need a static CRT to avoid problems caused by them having a
 # manifest.
@@ -53,7 +55,6 @@ static_crt_modules = ["winxpgui"]
 
 import distutils.util
 from distutils.dep_util import newer_group
-from distutils.filelist import FileList
 
 build_id_patch = build_id
 if not "." in build_id_patch:
@@ -2123,36 +2124,9 @@ swig_interface_parents = {
 swig_include_files = "mapilib adsilib".split()
 
 
-def findall_files(
-    dir: Union[str, os.PathLike],
-    include_pattern: Union[re.Pattern, None] = None,
-    exclude_pattern: Union[re.Pattern, None] = None,
-):
-    """
-    Find all files under 'dir' and return the list of full filenames.
-    Filters by `include_pattern` then excludes `exclude_pattern`
-
-    Re-implemented and simplified from `distutils.filelist.findall`
-    """
-    files = filter(
-        os.path.isfile,
-        (
-            os.path.join(base, file)
-            for base, dirs, files in os.walk(dir, followlinks=True)
-            for file in files
-        ),
-    )
-    if include_pattern:
-        files = filter(include_pattern.search, files)
-    if exclude_pattern:
-        files = filter(lambda file: not exclude_pattern.search(file), files)
-    return files
-
-
-def expand_modules(module_dir: Union[str, os.PathLike[str]]):
+def expand_modules(module_dir: Union[str, os.PathLike]):
     """Helper to allow our script specifications to include wildcards."""
-    files = findall_files(module_dir, include_pattern=re.compile(r"(?s:[^\\]*\.py)\Z"))
-    return [os.path.splitext(name)[0] for name in files]
+    return [str(path.with_suffix("")) for path in Path(module_dir).rglob("*.py")]
 
 
 # NOTE: somewhat counter-intuitively, a result list a-la:
@@ -2160,27 +2134,26 @@ def expand_modules(module_dir: Union[str, os.PathLike[str]]):
 # will 'do the right thing' in terms of installing licence.txt into
 # 'Lib/site-packages/pythonwin/licence.txt'.  We exploit this to
 # get 'com/win32com/whatever' installed to 'win32com/whatever'
-def convert_data_files(files):
-    ret = []
+def convert_data_files(files: Iterable[str]):
+    ret: List[Tuple[str, Tuple[str]]] = []
     for file in files:
         file = os.path.normpath(file)
         if file.find("*") >= 0:
-            files = findall_files(
-                os.path.dirname(file),
-                include_pattern=re.compile(f"(?s:{os.path.basename(file)})\\Z"),
-                # We never want CVS, .pyc and .pyo
-                exclude_pattern=re.compile(r".*\\CVS\\|(?s:[^\\]*\.py[co])\Z)"),
+            files_use = (
+                str(path)
+                for path in Path(file).parent.rglob(os.path.basename(file))
+                # We never want CVS
+                if not ("\\CVS\\" in file or path.suffix in {".pyc", ".pyo"})
             )
-            if not files:
+            if not files_use:
                 raise RuntimeError("No files match '%s'" % file)
-            files_use = files
         else:
             if not os.path.isfile(file):
                 raise RuntimeError("No file '%s'" % file)
             files_use = (file,)
         for fname in files_use:
             path_use = os.path.dirname(fname)
-            if path_use.startswith("com/") or path_use.startswith("com\\"):
+            if path_use.startswith("com\\"):
                 path_use = path_use[4:]
             ret.append((path_use, (fname,)))
     return ret
