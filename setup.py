@@ -30,6 +30,7 @@ import re
 import shutil
 import subprocess
 import sys
+from typing import Union
 import winreg
 
 # setuptools must be imported before distutils for markh in some python versions.
@@ -2122,12 +2123,36 @@ swig_interface_parents = {
 swig_include_files = "mapilib adsilib".split()
 
 
-# Helper to allow our script specifications to include wildcards.
-def expand_modules(module_dir):
-    flist = FileList()
-    flist.findall(module_dir)
-    flist.include_pattern("*.py", anchor=0)
-    return [os.path.splitext(name)[0] for name in flist.files]
+def findall_files(
+    dir: Union[str, os.PathLike],
+    include_pattern: Union[re.Pattern, None] = None,
+    exclude_pattern: Union[re.Pattern, None] = None,
+):
+    """
+    Find all files under 'dir' and return the list of full filenames.
+    Filters by `include_pattern` then excludes `exclude_pattern`
+
+    Re-implemented and simplified from `distutils.filelist.findall`
+    """
+    files = filter(
+        os.path.isfile,
+        (
+            os.path.join(base, file)
+            for base, dirs, files in os.walk(dir, followlinks=True)
+            for file in files
+        ),
+    )
+    if include_pattern:
+        files = filter(include_pattern.search, files)
+    if exclude_pattern:
+        files = filter(lambda file: not exclude_pattern.search(file), files)
+    return files
+
+
+def expand_modules(module_dir: Union[str, os.PathLike[str]]):
+    """Helper to allow our script specifications to include wildcards."""
+    files = findall_files(module_dir, include_pattern=re.compile(r"(?s:[^\\]*\.py)\Z"))
+    return [os.path.splitext(name)[0] for name in files]
 
 
 # NOTE: somewhat counter-intuitively, a result list a-la:
@@ -2140,16 +2165,15 @@ def convert_data_files(files):
     for file in files:
         file = os.path.normpath(file)
         if file.find("*") >= 0:
-            flist = FileList()
-            flist.findall(os.path.dirname(file))
-            flist.include_pattern(os.path.basename(file), anchor=0)
-            # We never want CVS
-            flist.exclude_pattern(re.compile(r".*\\CVS\\"), is_regex=1, anchor=0)
-            flist.exclude_pattern("*.pyc", anchor=0)
-            flist.exclude_pattern("*.pyo", anchor=0)
-            if not flist.files:
+            files = findall_files(
+                os.path.dirname(file),
+                include_pattern=re.compile(f"(?s:{os.path.basename(file)})\\Z"),
+                # We never want CVS, .pyc and .pyo
+                exclude_pattern=re.compile(r".*\\CVS\\|(?s:[^\\]*\.py[co])\Z)"),
+            )
+            if not files:
                 raise RuntimeError("No files match '%s'" % file)
-            files_use = flist.files
+            files_use = files
         else:
             if not os.path.isfile(file):
                 raise RuntimeError("No file '%s'" % file)
