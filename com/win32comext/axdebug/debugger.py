@@ -2,18 +2,8 @@ import os
 import sys
 
 import pythoncom
-import win32api
-from win32com.axdebug import (
-    adb,
-    axdebug,
-    codecontainer,
-    contexts,
-    documents,
-    expressions,
-    gateways,
-)
+from win32com.axdebug import adb, axdebug, codecontainer, documents, expressions
 from win32com.axdebug.util import _wrap
-from win32com.axscript import axscript
 
 currentDebugger = None
 
@@ -29,7 +19,7 @@ class ModuleTreeNode:
         self.cont = codecontainer.SourceModuleContainer(module)
 
     def __repr__(self):
-        return "<ModuleTreeNode wrapping %s>" % (self.module)
+        return f"<ModuleTreeNode wrapping {self.module}>"
 
     def Attach(self, parentRealNode):
         self.realNode.Attach(parentRealNode)
@@ -102,7 +92,7 @@ class CodeContainerProvider(documents.CodeContainerProvider):
     def Close(self):
         documents.CodeContainerProvider.Close(self)
         self.axdebugger = None
-        print("Closing %d nodes" % (len(self.nodes)))
+        print(f"Closing {len(self.nodes)} nodes")
         for node in self.nodes.values():
             node.Close()
         self.nodes = {}
@@ -169,7 +159,7 @@ class AXDebugger:
 
         # Get/create the debugger, and tell it to break.
         self.app.StartDebugSession()
-        #               self.app.CauseBreak()
+        # self.app.CauseBreak()
 
         self.pydebugger.SetupAXDebugging(None, frame)
         self.pydebugger.set_trace()
@@ -244,6 +234,5 @@ if __name__ == "__main__":
     print("About to test the debugging interfaces!")
     test()
     print(
-        " %d/%d com objects still alive"
-        % (pythoncom._GetInterfaceCount(), pythoncom._GetGatewayCount())
+        f" {pythoncom._GetInterfaceCount()}/{pythoncom._GetGatewayCount()} com objects still alive"
     )

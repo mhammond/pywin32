@@ -4,13 +4,12 @@ Provides Implements a nearly complete wrapper for a stack frame.
 """
 
 import pythoncom
-from win32com.server.exception import COMException
 
 from . import axdebug, expressions, gateways
 from .util import RaiseNotImpl, _wrap, trace
 
 # def trace(*args):
-#       pass
+#     pass
 
 
 class EnumDebugStackFrames(gateways.EnumDebugStackFrames):

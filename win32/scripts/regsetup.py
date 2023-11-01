@@ -497,23 +497,24 @@ See also the "regcheck.py" utility which will check and dump the contents
 of the registry.
 """
 
-examples = """\
+# Using raw string so that all paths meant to be copied read correctly inline and when printed
+examples = r"""
 Examples:
-"regsetup c:\\wierd\\spot\\1 c:\\wierd\\spot\\2"
+"regsetup c:\wierd\spot\1 c:\wierd\spot\2"
 Attempts to setup the core Python.  Looks in some standard places,
 as well as the 2 wierd spots to locate the core Python files (eg, Python.exe,
 pythonXX.dll, the standard library and Win32 Extensions.
 
 "regsetup -a myappname . .\subdir"
-Registers a new Pythonpath entry named myappname, with "C:\\I\\AM\\HERE" and
-"C:\\I\\AM\\HERE\subdir" added to the path (ie, all args are converted to
+Registers a new Pythonpath entry named myappname, with "C:\I\AM\HERE" and
+"C:\I\AM\HERE\subdir" added to the path (ie, all args are converted to
 absolute paths)
 
-"regsetup -c c:\\my\\python\\files"
-Unconditionally add "c:\\my\\python\\files" to the 'core' Python path.
+"regsetup -c c:\my\python\files"
+Unconditionally add "c:\my\python\files" to the 'core' Python path.
 
-"regsetup -m some.pyd \\windows\\system"
-Register the module some.pyd in \\windows\\system as a registered
+"regsetup -m some.pyd \windows\system"
+Register the module some.pyd in \windows\system as a registered
 module.  This will allow some.pyd to be imported, even though the
 windows system directory is not (usually!) on the Python Path.
 

@@ -4,14 +4,13 @@
 
 import pythoncom
 import win32api
-from win32com.server.exception import Exception
 from win32com.server.util import unwrap
 
 from . import axdebug, gateways
 from .util import _wrap, trace
 
 # def trace(*args):
-#       pass
+#     pass
 
 
 def GetGoodFileName(fname):
@@ -34,7 +33,7 @@ class DebugDocumentProvider(gateways.DebugDocumentProvider):
         return self.doc
 
 
-class DebugDocumentText(gateways.DebugDocumentInfo, gateways.DebugDocumentText):
+class DebugDocumentText(gateways.DebugDocumentText):
     _com_interfaces_ = (
         gateways.DebugDocumentInfo._com_interfaces_
         + gateways.DebugDocumentText._com_interfaces_
@@ -56,7 +55,7 @@ class DebugDocumentText(gateways.DebugDocumentInfo, gateways.DebugDocumentText):
 
     def _Close(self):
         self.docContexts = None
-        #               self.codeContainer._Close()
+        # self.codeContainer._Close()
         self.codeContainer = None
 
     # IDebugDocumentInfo
@@ -72,7 +71,7 @@ class DebugDocumentText(gateways.DebugDocumentInfo, gateways.DebugDocumentText):
     # IDebugDocumentText methods.
     # def GetDocumentAttributes
     def GetSize(self):
-        #               trace("GetSize")
+        # trace("GetSize")
         return self.codeContainer.GetNumLines(), self.codeContainer.GetNumChars()
 
     def GetPositionOfLine(self, cLineNumber):
@@ -84,7 +83,7 @@ class DebugDocumentText(gateways.DebugDocumentInfo, gateways.DebugDocumentText):
     def GetText(self, charPos, maxChars, wantAttr):
         # Get all the attributes, else the tokenizer will get upset.
         # XXX - not yet!
-        #               trace("GetText", charPos, maxChars, wantAttr)
+        # trace("GetText", charPos, maxChars, wantAttr)
         cont = self.codeContainer
         attr = cont.GetSyntaxColorAttributes()
         return cont.GetText(), attr

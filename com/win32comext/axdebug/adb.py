@@ -9,8 +9,7 @@ import traceback
 import pythoncom
 import win32api
 import win32com.client.connect
-from win32com.axdebug.util import _wrap, _wrap_remove, trace
-from win32com.server.util import unwrap
+from win32com.axdebug.util import _wrap, trace
 
 from . import axdebug, gateways, stackframe
 
@@ -53,12 +52,7 @@ def _dumpf(frame):
         addn = "(with trace!)"
         if frame.f_trace is None:
             addn = " **No Trace Set **"
-        return "Frame at %d, file %s, line: %d%s" % (
-            id(frame),
-            frame.f_code.co_filename,
-            frame.f_lineno,
-            addn,
-        )
+        return f"Frame at {id(frame)}, file {frame.f_code.co_filename}, line: {frame.f_lineno}{addn}"
 
 
 g_adb = None
@@ -118,8 +112,8 @@ class Adb(bdb.Bdb, gateways.RemoteDebugApplicationEvents):
     def stop_here(self, frame):
         traceenter("stop_here", _dumpf(frame), _dumpf(self.stopframe))
         # As per bdb.stop_here, except for logicalbotframe
-        ##              if self.stopframe is None:
-        ##                      return 1
+        # if self.stopframe is None:
+        #     return 1
         if frame is self.stopframe:
             return 1
 
@@ -157,13 +151,13 @@ class Adb(bdb.Bdb, gateways.RemoteDebugApplicationEvents):
             tracev("dispatch_return resetting sys.trace")
             sys.settrace(None)
             return
-        #                       self.bSetTrace = 0
+        # self.bSetTrace = 0
         self.currentframe = frame.f_back
         return bdb.Bdb.dispatch_return(self, frame, arg)
 
     def dispatch_line(self, frame):
         traceenter("dispatch_line", _dumpf(frame), _dumpf(self.botframe))
-        #               trace("logbotframe is", _dumpf(self.logicalbotframe), "botframe is", self.botframe)
+        # trace("logbotframe is", _dumpf(self.logicalbotframe), "botframe is", self.botframe)
         if frame is self.logicalbotframe:
             trace("dispatch_line", _dumpf(frame), "for bottom frame returing tracer")
             # The next code executed in the frame above may be a builtin (eg, apply())
@@ -195,13 +189,13 @@ class Adb(bdb.Bdb, gateways.RemoteDebugApplicationEvents):
             trace(
                 "dispatch_call has no document for", _dumpf(frame), "- skipping trace!"
             )
-            ##                      sys.settrace(None)
+            # sys.settrace(None)
             return None
         return self.trace_dispatch
 
-    #               rc =  bdb.Bdb.dispatch_call(self, frame, arg)
-    #               trace("dispatch_call", _dumpf(frame),"returned",rc)
-    #               return rc
+        # rc =  bdb.Bdb.dispatch_call(self, frame, arg)
+        # trace("dispatch_call", _dumpf(frame),"returned",rc)
+        # return rc
 
     def trace_dispatch(self, frame, event, arg):
         traceenter("trace_dispatch", _dumpf(frame), event, arg)
@@ -213,8 +207,8 @@ class Adb(bdb.Bdb, gateways.RemoteDebugApplicationEvents):
     #
     # The user functions do bugger all!
     #
-    #       def user_call(self, frame, argument_list):
-    #               traceenter("user_call",_dumpf(frame))
+    # def user_call(self, frame, argument_list):
+    #     traceenter("user_call",_dumpf(frame))
 
     def user_line(self, frame):
         traceenter("user_line", _dumpf(frame))
@@ -226,11 +220,11 @@ class Adb(bdb.Bdb, gateways.RemoteDebugApplicationEvents):
             self._HandleBreakPoint(frame, None, breakReason)
 
     def user_return(self, frame, return_value):
-        #               traceenter("user_return",_dumpf(frame),return_value)
+        # traceenter("user_return",_dumpf(frame),return_value)
         bdb.Bdb.user_return(self, frame, return_value)
 
     def user_exception(self, frame, exc_info):
-        #               traceenter("user_exception")
+        # traceenter("user_exception")
         bdb.Bdb.user_exception(self, frame, exc_info)
 
     def _HandleBreakPoint(self, frame, tb, reason):
@@ -281,11 +275,8 @@ class Adb(bdb.Bdb, gateways.RemoteDebugApplicationEvents):
 
             except pythoncom.com_error:
                 trace(
-                    "*** Could not RemoveStackFrameSniffer %d"
-                    % (self.stackSnifferCookie)
+                    f"*** Could not RemoveStackFrameSniffer {self.stackSnifferCookie}"
                 )
-        if self.stackSniffer:
-            _wrap_remove(self.stackSniffer)
         self.stackSnifferCookie = self.stackSniffer = None
 
         if self.appEventConnection is not None:
@@ -298,7 +289,7 @@ class Adb(bdb.Bdb, gateways.RemoteDebugApplicationEvents):
             self.codeContainerProvider = None
 
     def AttachApp(self, debugApplication, codeContainerProvider):
-        #               traceenter("AttachApp", debugApplication, codeContainerProvider)
+        # traceenter("AttachApp", debugApplication, codeContainerProvider)
         self.codeContainerProvider = codeContainerProvider
         self.debugApplication = debugApplication
         self.stackSniffer = _wrap(
@@ -307,7 +298,7 @@ class Adb(bdb.Bdb, gateways.RemoteDebugApplicationEvents):
         self.stackSnifferCookie = debugApplication.AddStackFrameSniffer(
             self.stackSniffer
         )
-        #               trace("StackFrameSniffer added (%d)" % self.stackSnifferCookie)
+        # trace(f"StackFrameSniffer added ({self.stackSnifferCookie})")
 
         # Connect to the application events.
         self.appEventConnection = win32com.client.connect.SimpleConnection(
@@ -427,14 +418,14 @@ class Adb(bdb.Bdb, gateways.RemoteDebugApplicationEvents):
 
     def _BreakFlagsChanged(self):
         traceenter(
-            "_BreakFlagsChanged to {} with our thread = {}, and debugging thread = {}".format(
-                self.breakFlags, self.debuggingThread, win32api.GetCurrentThreadId()
-            )
+            f"_BreakFlagsChanged to {self.breakFlags} "
+            + f"with our thread = {self.debuggingThread}, "
+            + f"and debugging thread = {win32api.GetCurrentThreadId()}"
         )
         trace("_BreakFlagsChanged has breaks", self.breaks)
         # If a request comes on our debugging thread, then do it now!
-        #               if self.debuggingThread!=win32api.GetCurrentThreadId():
-        #                       return
+        # if self.debuggingThread!=win32api.GetCurrentThreadId():
+        #     return
 
         if len(self.breaks) or self.breakFlags:
             if self.logicalbotframe:
