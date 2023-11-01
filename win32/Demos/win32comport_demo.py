@@ -78,7 +78,7 @@ class SerialTTY:
         dcb.Parity = NOPARITY
         dcb.StopBits = ONESTOPBIT
         SetCommState(self.handle, dcb)
-        print("Connected to %s at %s baud" % (port, dcb.BaudRate))
+        print(f"Connected to {port} at {dcb.BaudRate} baud")
 
     def _UserInputReaderThread(self):
         overlapped = OVERLAPPED()

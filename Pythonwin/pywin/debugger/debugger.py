@@ -411,7 +411,7 @@ class DebuggerBreakpointsWindow(DebuggerListViewWindow):
                 cond = bp.cond
                 item = index + 1, 0, 0, 0, str(cond), 0, id(bp)
                 index = l.InsertItem(item)
-                l.SetItemText(index, 1, "%s: %s" % (baseName, bp.line))
+                l.SetItemText(index, 1, f"{baseName}: {bp.line}")
 
 
 class DebuggerWatchWindow(DebuggerListViewWindow):

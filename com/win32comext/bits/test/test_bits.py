@@ -57,7 +57,7 @@ class BackgroundJobCallback:
             hresult_msg = win32api.FormatMessage(hresult)
         except win32api.error:
             hresult_msg = ""
-        print("Context=0x%x, hresult=0x%x (%s)" % (ctx, hresult, hresult_msg))
+        print(f"Context=0x{ctx:x}, hresult=0x{hresult:x} ({hresult_msg})")
         print(err.GetErrorDescription())
 
     def JobModification(self, job, reserved):

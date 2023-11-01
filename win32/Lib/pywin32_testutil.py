@@ -260,7 +260,7 @@ class TestResult(TextTestResult):
             self.skips.setdefault(reason, 0)
             self.skips[reason] += 1
             if self.showAll:
-                self.stream.writeln("SKIP (%s)" % (reason,))
+                self.stream.writeln(f"SKIP ({reason})")
             elif self.dots:
                 self.stream.write("S")
                 self.stream.flush()

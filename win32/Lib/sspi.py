@@ -361,7 +361,9 @@ if __name__ == "__main__":
     sspiserver = ServerAuth(ssp, scflags=flags)
 
     print(
-        "SSP : %s (%s)" % (sspiclient.pkg_info["Name"], sspiclient.pkg_info["Comment"])
+        "SSP : {} ({})".format(
+            sspiclient.pkg_info["Name"], sspiclient.pkg_info["Comment"]
+        )
     )
 
     # Perform the authentication dance, each loop exchanging more information
