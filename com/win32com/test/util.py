@@ -1,4 +1,3 @@
-import gc
 import logging
 import os
 import sys
@@ -13,7 +12,16 @@ import win32api
 import win32com
 import winerror
 from pythoncom import _GetGatewayCount, _GetInterfaceCount
-from pywin32_testutil import LeakTestCase, TestLoader, TestResult, TestRunner
+from pywin32_testutil import LeakTestCase
+
+
+def newer(source, target):
+    """Re-implemented from deprecated `distutils.dep_util.newer`"""
+    if not os.path.exists(target):
+        return True
+    mtime1 = os.path.getmtime(source)
+    mtime2 = os.path.getmtime(target)
+    return mtime1 > mtime2
 
 
 def CheckClean():

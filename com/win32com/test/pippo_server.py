@@ -6,9 +6,10 @@ import os
 import sys
 
 import pythoncom
-import win32com
 import winerror
 from win32com.server.util import wrap
+
+from .util import newer
 
 
 class CPippo:
@@ -41,8 +42,6 @@ class CPippo:
 
 
 def BuildTypelib():
-    from distutils.dep_util import newer
-
     this_dir = os.path.dirname(__file__)
     idl = os.path.abspath(os.path.join(this_dir, "pippo.idl"))
     tlb = os.path.splitext(idl)[0] + ".tlb"

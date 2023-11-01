@@ -31,30 +31,54 @@ import shutil
 import subprocess
 import sys
 import winreg
+from pathlib import Path
+from tempfile import gettempdir
+from typing import Iterable, List, Tuple, Union
 
 # setuptools must be imported before distutils for markh in some python versions.
 # CI doesn't hit this, so not sure what's going on.
 from setuptools import setup
 from setuptools.command.build_ext import build_ext
 
+import distutils.util
 from distutils import log
 from distutils.command.build import build
 from distutils.command.install import install
 from distutils.command.install_data import install_data
 from distutils.command.install_lib import install_lib
 from distutils.core import Extension
-from pathlib import Path
-from tempfile import gettempdir
-from typing import Iterable, List, Tuple, Union
-
 
 # some modules need a static CRT to avoid problems caused by them having a
 # manifest.
 static_crt_modules = ["winxpgui"]
 
 
-import distutils.util
-from distutils.dep_util import newer_group
+def newer_group(sources, target, missing="error"):
+    """Re-implemented from deprecated `distutils.dep_util.newer_group`"""
+    # If the target doesn't even exist, then it's definitely out-of-date.
+    if not os.path.exists(target):
+        return True
+
+    # Otherwise we have to find out the hard way: if *any* source file
+    # is more recent than 'target', then 'target' is out-of-date and
+    # we can immediately return true.  If we fall through to the end
+    # of the loop, then 'target' is up-to-date and we return false.
+    target_mtime = os.path.getmtime(target)
+    for source in sources:
+        if not os.path.exists(source):
+            if missing == "error":  # blow up when we stat() the file
+                pass
+            elif missing == "ignore":  # missing source dropped from
+                continue  #  target's dependency list
+            elif missing == "newer":  # missing source means target is
+                return True  #  out-of-date
+
+        source_mtime = os.path.getmtime(source)
+        if source_mtime > target_mtime:
+            return True
+    else:
+        return False
+
 
 build_id_patch = build_id
 if not "." in build_id_patch:
