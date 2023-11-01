@@ -113,7 +113,7 @@ class AXScriptException(win32com.server.exception.COMException):
         try:
             msg = value[0]
         except:
-            msg = "Unknown Error (%s)" % (value,)
+            msg = f"Unknown Error ({value})"
         try:
             (filename, lineno, offset, line) = value[1]
             # Some of these may be None, which upsets us!
@@ -178,7 +178,7 @@ class AXScriptException(win32com.server.exception.COMException):
         bits = ["Traceback (most recent call last):\n"]
         bits.extend(traceback.format_list(format_items))
         if exc_type == pythoncom.com_error:
-            desc = "%s (0x%x)" % (value.strerror, value.hresult)
+            desc = f"{value.strerror} (0x{value.hresult:x})"
             if (
                 value.hresult == winerror.DISP_E_EXCEPTION
                 and value.excepinfo

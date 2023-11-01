@@ -66,23 +66,23 @@ class EditorDocumentBase(ParentEditorDocument):
             tempPath = os.path.join(win32api.GetTempPath(), "bak")
             try:
                 os.mkdir(tempPath, 0)
-            except os.error:
+            except OSError:
                 pass
             bakFileName = os.path.join(tempPath, basename)
         try:
             os.unlink(bakFileName)  # raise NameError if no bakups wanted.
-        except (os.error, NameError):
+        except (OSError, NameError):
             pass
         try:
             # Do a copy as it might be on different volumes,
             # and the file may be a hard-link, causing the link
             # to follow the backup.
             shutil.copy2(fileName, bakFileName)
-        except (os.error, NameError, IOError):
+        except (OSError, NameError):
             pass
         try:
             self.SaveFile(fileName)
-        except IOError as details:
+        except OSError as details:
             win32ui.MessageBox("Error - could not save file\r\n\r\n%s" % details)
             return 0
         except (UnicodeEncodeError, LookupError) as details:
@@ -99,7 +99,7 @@ class EditorDocumentBase(ParentEditorDocument):
             if rc == win32con.IDYES:
                 try:
                     self.SaveFile(fileName, encoding="latin-1")
-                except IOError as details:
+                except OSError as details:
                     win32ui.MessageBox(
                         "Error - could not save file\r\n\r\n%s" % details
                     )
@@ -155,18 +155,20 @@ class EditorDocumentBase(ParentEditorDocument):
             return
         try:
             newstat = os.stat(self.GetPathName())
-        except os.error as exc:
+        except OSError as exc:
             if not self.bReportedFileNotFound:
                 print(
-                    "The file '%s' is open for editing, but\nchecking it for changes caused the error: %s"
-                    % (self.GetPathName(), exc.strerror)
+                    "The file '{}' is open for editing, but\nchecking it for changes caused the error: {}".format(
+                        self.GetPathName(), exc.strerror
+                    )
                 )
                 self.bReportedFileNotFound = 1
             return
         if self.bReportedFileNotFound:
             print(
-                "The file '%s' has re-appeared - continuing to watch for changes..."
-                % (self.GetPathName(),)
+                "The file '{}' has re-appeared - continuing to watch for changes...".format(
+                    self.GetPathName()
+                )
             )
             self.bReportedFileNotFound = (
                 0  # Once found again we want to start complaining.
@@ -207,7 +209,7 @@ class EditorDocumentBase(ParentEditorDocument):
         if self.GetPathName():
             try:
                 self.fileStat = os.stat(self.GetPathName())
-            except os.error:
+            except OSError:
                 self.fileStat = None
         else:
             self.fileStat = None

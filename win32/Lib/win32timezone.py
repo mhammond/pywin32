@@ -144,7 +144,7 @@ True
 True
 
 This test helps ensure language support for unicode characters
->>> x = TIME_ZONE_INFORMATION(0, u'français')
+>>> x = TIME_ZONE_INFORMATION(0, 'français')
 
 
 Test conversion from one time zone to another at a DST boundary
@@ -337,7 +337,7 @@ class TimeZoneDefinition(DYNAMIC_TIME_ZONE_INFORMATION):
         c) a byte structure (using _from_bytes)
         """
         try:
-            super(TimeZoneDefinition, self).__init__(*args, **kwargs)
+            super().__init__(*args, **kwargs)
             return
         except (TypeError, ValueError):
             pass
@@ -369,7 +369,7 @@ class TimeZoneDefinition(DYNAMIC_TIME_ZONE_INFORMATION):
         bias, standard_bias, daylight_bias = components[:3]
         standard_start = SYSTEMTIME(*components[3:11])
         daylight_start = SYSTEMTIME(*components[11:19])
-        super(TimeZoneDefinition, self).__init__(
+        super().__init__(
             bias,
             standard_name,
             standard_start,
@@ -393,7 +393,7 @@ class TimeZoneDefinition(DYNAMIC_TIME_ZONE_INFORMATION):
         # ctypes.memmove(ctypes.addressof(self), other, size)
 
     def __getattribute__(self, attr):
-        value = super(TimeZoneDefinition, self).__getattribute__(attr)
+        value = super().__getattribute__(attr)
         if "bias" in attr:
             value = datetime.timedelta(minutes=value)
         return value
@@ -568,7 +568,7 @@ class TimeZoneInfo(datetime.tzinfo):
         """
         try:
             info = key.subkey("Dynamic DST")
-        except WindowsError:
+        except OSError:
             return
         del info["FirstEntry"]
         del info["LastEntry"]
@@ -578,12 +578,12 @@ class TimeZoneInfo(datetime.tzinfo):
         # if the target year is greater or equal.
         self.dynamicInfo = RangeMap(
             zip(years, values),
-            sort_params=dict(reverse=True),
+            sort_params={"reverse": True},
             key_match_comparator=operator.ge,
         )
 
     def __repr__(self):
-        result = "%s(%s" % (self.__class__.__name__, repr(self.timeZoneName))
+        result = f"{self.__class__.__name__}({repr(self.timeZoneName)}"
         if self.fixedStandardTime:
             result += ", True"
         result += ")"
@@ -824,7 +824,7 @@ class _RegKeyDict(dict):
         try:
             for index in count():
                 yield func(key, index)
-        except WindowsError:
+        except OSError:
             pass
 
 
@@ -967,7 +967,7 @@ class RangeMap(dict):
         self.match = key_match_comparator
 
     def __getitem__(self, item):
-        sorted_keys = sorted(list(self.keys()), **self.sort_params)
+        sorted_keys = sorted(self.keys(), **self.sort_params)
         if isinstance(item, RangeMap.Item):
             result = self.__getitem__(sorted_keys[item])
         else:
@@ -998,7 +998,7 @@ class RangeMap(dict):
         raise KeyError(item)
 
     def bounds(self):
-        sorted_keys = sorted(list(self.keys()), **self.sort_params)
+        sorted_keys = sorted(self.keys(), **self.sort_params)
         return (
             sorted_keys[RangeMap.first_item],
             sorted_keys[RangeMap.last_item],

@@ -61,7 +61,7 @@ def __init__():
     # Initialize the module.  Called once explicitly at module import below.
     try:
         _LoadDicts()
-    except IOError:
+    except OSError:
         Rebuild()
 
 
@@ -100,7 +100,7 @@ def _LoadDicts():
         except AttributeError:
             # The __loader__ has no get_data method.  See below.
             return
-        except IOError:
+        except OSError:
             # Our gencache is in a .zip file (and almost certainly readonly)
             # but no dicts file.  That actually needn't be fatal for a frozen
             # application.  Assuming they call "EnsureModule" with the same
@@ -115,7 +115,7 @@ def _LoadDicts():
             return
         f = io.BytesIO(data)
     else:
-        # NOTE: IOError on file open must be caught by caller.
+        # NOTE: OSError on file open must be caught by caller.
         f = open(os.path.join(win32com.__gen_path__, "dicts.dat"), "rb")
     try:
         p = pickle.Unpickler(f)
@@ -131,7 +131,7 @@ def GetGeneratedFileName(clsid, lcid, major, minor):
     """Given the clsid, lcid, major and  minor for a type lib, return
     the file name (no extension) providing this support.
     """
-    return str(clsid).upper()[1:-1] + "x%sx%sx%s" % (lcid, major, minor)
+    return str(clsid).upper()[1:-1] + f"x{lcid}x{major}x{minor}"
 
 
 def SplitGeneratedFileName(fname):
@@ -147,12 +147,12 @@ def GetGeneratePath():
     try:
         os.makedirs(win32com.__gen_path__)
         # os.mkdir(win32com.__gen_path__)
-    except os.error:
+    except OSError:
         pass
     try:
         fname = os.path.join(win32com.__gen_path__, "__init__.py")
         os.stat(fname)
-    except os.error:
+    except OSError:
         f = open(fname, "w")
         f.write(
             "# Generated file - this directory may be deleted to reset the COM cache...\n"
@@ -409,8 +409,9 @@ def ForgetAboutTypelibInterface(typelib_ob):
     except KeyError:
         # Not worth raising an exception - maybe they dont know we only remember for demand generated, etc.
         print(
-            "ForgetAboutTypelibInterface:: Warning - type library with info %s is not being remembered!"
-            % (info,)
+            "ForgetAboutTypelibInterface:: Warning - type library with info {} is not being remembered!".format(
+                info
+            )
         )
     # and drop any version redirects to it
     for key, val in list(versionRedirectMap.items()):
@@ -506,7 +507,7 @@ def EnsureModule(
                 bValidateFile = 0
         if module is not None and bValidateFile:
             assert not is_readonly, "Can't validate in a read-only gencache"
-            filePathPrefix = "%s\\%s" % (
+            filePathPrefix = "{}\\{}".format(
                 GetGeneratePath(),
                 GetGeneratedFileName(typelibCLSID, lcid, major, minor),
             )
@@ -528,11 +529,11 @@ def EnsureModule(
                 # try to erase the bad file from the cache
                 try:
                     os.unlink(filePath)
-                except os.error:
+                except OSError:
                     pass
                 try:
                     os.unlink(filePathPyc)
-                except os.error:
+                except OSError:
                     pass
                 if os.path.isdir(filePathPrefix):
                     import shutil
@@ -543,7 +544,7 @@ def EnsureModule(
                 bReloadNeeded = 1
             else:
                 minor = module.MinorVersion
-                filePathPrefix = "%s\\%s" % (
+                filePathPrefix = "{}\\{}".format(
                     GetGeneratePath(),
                     GetGeneratedFileName(typelibCLSID, lcid, major, minor),
                 )
@@ -554,13 +555,13 @@ def EnsureModule(
                 try:
                     pyModTime = os.stat(filePath)[8]
                     fModTimeSet = 1
-                except os.error as e:
+                except OSError as e:
                     # If .py file fails, try .pyc file
                     # print "Trying pyc stat", filePathPyc
                     try:
                         pyModTime = os.stat(filePathPyc)[8]
                         fModTimeSet = 1
-                    except os.error as e:
+                    except OSError as e:
                         pass
                 # print "Trying stat typelib", pyModTime
                 # print str(typLibPath)
@@ -568,7 +569,7 @@ def EnsureModule(
                 if fModTimeSet and (typLibModTime > pyModTime):
                     bReloadNeeded = 1
                     module = None
-    except (ImportError, os.error):
+    except (ImportError, OSError):
         module = None
     if module is None:
         # We need to build an item.  If we are in a read-only cache, we
@@ -741,8 +742,9 @@ def Rebuild(verbose=1):
             AddModuleToCache(iid, lcid, major, minor, verbose, 0)
         except:
             print(
-                "Could not add module %s - %s: %s"
-                % (info, sys.exc_info()[0], sys.exc_info()[1])
+                "Could not add module {} - {}: {}".format(
+                    info, sys.exc_info()[0], sys.exc_info()[1]
+                )
             )
     if verbose and len(infos):  # Dont bother reporting this when directory is empty!
         print("Done.")
@@ -757,7 +759,7 @@ def _Dump():
         d[typelibCLSID, lcid, major, minor] = None
     for typelibCLSID, lcid, major, minor in d.keys():
         mod = GetModuleForTypelib(typelibCLSID, lcid, major, minor)
-        print("%s - %s" % (mod.__doc__, typelibCLSID))
+        print(f"{mod.__doc__} - {typelibCLSID}")
 
 
 # Boot up

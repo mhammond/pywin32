@@ -3,10 +3,9 @@ import sys
 
 import pythoncom
 import win32api
-import win32com.client.connect
 import win32com.server.util
 import winerror
-from win32com.axdebug import adb, axdebug, contexts, documents, gateways, stackframe
+from win32com.axdebug import adb, axdebug, documents, gateways
 from win32com.axdebug.codecontainer import SourceCodeContainer
 from win32com.axdebug.util import _wrap
 from win32com.client.util import Enumerator

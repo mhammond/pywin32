@@ -93,9 +93,7 @@ def IsOnPythonPath(path):
             if syspath and win32ui.FullPath(syspath) == path:
                 return 1
         except win32ui.error as details:
-            print(
-                "Warning: The sys.path entry '%s' is invalid\n%s" % (syspath, details)
-            )
+            print(f"Warning: The sys.path entry '{syspath}' is invalid\n{details}")
     return 0
 
 
@@ -288,7 +286,7 @@ def RunScript(defName=None, defArgs=None, bShowDialog=1, debuggingType=None):
         try:
             os.stat(fnameonly)  # See if it is OK as is...
             script = fnameonly
-        except os.error:
+        except OSError:
             fullScript = LocatePythonFile(script)
             if fullScript is None:
                 win32ui.MessageBox("The file '%s' can not be located" % script)
@@ -308,7 +306,7 @@ def RunScript(defName=None, defArgs=None, bShowDialog=1, debuggingType=None):
     # So: do the binary thing and manually normalize \r\n.
     try:
         f = open(script, "rb")
-    except IOError as exc:
+    except OSError as exc:
         win32ui.MessageBox(
             "The file could not be opened - %s (%d)" % (exc.strerror, exc.errno)
         )
@@ -398,7 +396,7 @@ def RunScript(defName=None, defArgs=None, bShowDialog=1, debuggingType=None):
         sys.path[0] = oldPath0
     f.close()
     if bWorked:
-        win32ui.SetStatusText("Script '%s' returned exit code %s" % (script, exitCode))
+        win32ui.SetStatusText(f"Script '{script}' returned exit code {exitCode}")
     else:
         win32ui.SetStatusText("Exception raised while running script  %s" % base)
     try:
@@ -505,8 +503,8 @@ def CheckFile():
     win32ui.DoWaitCursor(1)
     try:
         f = open(pathName)
-    except IOError as details:
-        print("Cant open file '%s' - %s" % (pathName, details))
+    except OSError as details:
+        print(f"Cant open file '{pathName}' - {details}")
         return
     try:
         code = f.read() + "\n"
@@ -640,10 +638,8 @@ def FindTabNanny():
     fname = os.path.join(path, "Tools\\Scripts\\%s" % filename)
     try:
         os.stat(fname)
-    except os.error:
-        print(
-            "WARNING - The file '%s' can not be located in path '%s'" % (filename, path)
-        )
+    except OSError:
+        print(f"WARNING - The file '{filename}' can not be located in path '{path}'")
         return None
 
     tabnannyhome, tabnannybase = os.path.split(fname)

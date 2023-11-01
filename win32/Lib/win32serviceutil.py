@@ -6,7 +6,7 @@
 # when things go wrong - eg, not enough permissions to hit the
 # registry etc.
 
-import importlib
+import importlib.machinery
 import os
 import sys
 import warnings
@@ -592,7 +592,7 @@ def DebugService(cls, argv=[]):
 
     global g_debugService
 
-    print("Debugging service %s - press Ctrl+C to stop." % (cls._svc_name_,))
+    print(f"Debugging service {cls._svc_name_} - press Ctrl+C to stop.")
     servicemanager.Debugging(True)
     servicemanager.PrepareToHostSingle(cls)
     g_debugService = cls(argv)
@@ -801,7 +801,7 @@ def HandleCommandLine(
                     sys.exit(1)
                 raise
             try:
-                os.system("%s -debug %s %s" % (exeName, serviceName, svcArgs))
+                os.system(f"{exeName} -debug {serviceName} {svcArgs}")
             # ^C is used to kill the debug service.  Sometimes Python also gets
             # interrupted - ignore it...
             except KeyboardInterrupt:
@@ -832,7 +832,7 @@ def HandleCommandLine(
             description = cls._svc_description_
         except AttributeError:
             description = None
-        print("Installing service %s" % (serviceName,))
+        print(f"Installing service {serviceName}")
         # Note that we install the service before calling the custom option
         # handler, so if the custom handler fails, we have an installed service (from NT's POV)
         # but is unlikely to work, as the Python code controlling it failed.  Therefore
@@ -1027,7 +1027,7 @@ class ServiceFramework:
     def SvcOther(self, control):
         try:
             print("Unknown control status - %d" % control)
-        except IOError:
+        except OSError:
             # services may not have a valid stdout!
             pass
 

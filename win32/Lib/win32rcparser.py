@@ -166,7 +166,7 @@ class StringDef:
         self.value = value
 
     def __repr__(self):
-        return "StringDef(%r, %r, %r)" % (self.id, self.idNum, self.value)
+        return f"StringDef({self.id!r}, {self.idNum!r}, {self.value!r})"
 
 
 class RCParser:
@@ -204,10 +204,7 @@ class RCParser:
 
     def getCheckToken(self, expected):
         tok = self.getToken()
-        assert tok == expected, "Expected token '%s', but got token '%s'!" % (
-            expected,
-            tok,
-        )
+        assert tok == expected, f"Expected token '{expected}', but got token '{tok}'!"
         return tok
 
     def getCommaToken(self):
@@ -324,7 +321,7 @@ class RCParser:
             else:
                 rp = id_parsers.get(self.token)
                 if rp is not None:
-                    self.debug("Dispatching '%s'" % (self.token,))
+                    self.debug(f"Dispatching '{self.token}'")
                     rp(resource_id)
                 else:
                     # We don't know what the resource type is, but we
@@ -590,12 +587,12 @@ def Parse(rc_name, h_name=None):
         h_name = rc_name[:-2] + "h"
         try:
             h_file = open(h_name, "r")
-        except IOError:
+        except OSError:
             # See if MSVC default of 'resource.h' in the same dir.
             h_name = os.path.join(os.path.dirname(rc_name), "resource.h")
             try:
                 h_file = open(h_name, "r")
-            except IOError:
+            except OSError:
                 # .h files are optional anyway
                 h_file = None
     rc_file = open(rc_name, "r")
@@ -638,7 +635,7 @@ def GenerateFrozenResource(rc_name, output_name, h_name=None):
     out.write("class FakeParser:\n")
 
     for name in "dialogs", "ids", "names", "bitmaps", "icons", "stringTable":
-        out.write("\t%s = \\\n" % (name,))
+        out.write(f"\t{name} = \\\n")
         pprint.pprint(getattr(rcp, name), out)
         out.write("\n")
 
@@ -664,11 +661,11 @@ if __name__ == "__main__":
             pprint.pprint(ddef)
             print()
         for id, sdef in resources.stringTable.items():
-            print("String %s=%r" % (id, sdef.value))
+            print(f"String {id}={sdef.value!r}")
             print()
         for id, sdef in resources.bitmaps.items():
-            print("Bitmap %s=%r" % (id, sdef))
+            print(f"Bitmap {id}={sdef!r}")
             print()
         for id, sdef in resources.icons.items():
-            print("Icon %s=%r" % (id, sdef))
+            print(f"Icon {id}={sdef!r}")
             print()

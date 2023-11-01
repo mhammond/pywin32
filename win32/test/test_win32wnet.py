@@ -59,20 +59,20 @@ class TestCase(unittest.TestCase):
             val = getattr(item, attr)
             if typ is int:
                 self.assertTrue(
-                    isinstance(val, int), "Attr %r has value %r" % (attr, val)
+                    isinstance(val, int), f"Attr {attr!r} has value {val!r}"
                 )
                 new_val = val + 1
             elif typ is str:
                 if val is not None:
                     # must be string
                     self.assertTrue(
-                        isinstance(val, str), "Attr %r has value %r" % (attr, val)
+                        isinstance(val, str), f"Attr {attr!r} has value {val!r}"
                     )
                     new_val = val + " new value"
                 else:
                     new_val = "new value"
             else:
-                self.fail("Don't know what %s is" % (typ,))
+                self.fail(f"Don't know what {typ} is")
             # set the attribute just to make sure we can.
             setattr(item, attr, new_val)
 

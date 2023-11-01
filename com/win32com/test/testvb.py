@@ -97,8 +97,9 @@ def TestVB(vbtest, bUseGenerated):
     vbtest.VariantProperty = (1.0, 2.0, 3.0)
     if vbtest.VariantProperty != (1.0, 2.0, 3.0):
         raise error(
-            "Could not set the variant property to an array of floats correctly - '%s'."
-            % (vbtest.VariantProperty,)
+            "Could not set the variant property to an array of floats correctly - '{}'.".format(
+                vbtest.VariantProperty
+            )
         )
 
     TestArrays(vbtest, bUseGenerated)
@@ -186,17 +187,16 @@ def _DoTestCollection(vbtest, col_name, expected):
     for item in c:
         check.append(item)
     if check != list(expected):
-        raise error(
-            "Collection %s didn't have %r (had %r)" % (col_name, expected, check)
-        )
+        raise error(f"Collection {col_name} didn't have {expected!r} (had {check!r})")
     # Just looping over the collection again works (ie, is restartable)
     check = []
     for item in c:
         check.append(item)
     if check != list(expected):
         raise error(
-            "Collection 2nd time around %s didn't have %r (had %r)"
-            % (col_name, expected, check)
+            "Collection 2nd time around {} didn't have {!r} (had {!r})".format(
+                col_name, expected, check
+            )
         )
     # Check we can get it via iter()
     i = iter(getattr(vbtest, col_name))
@@ -205,8 +205,9 @@ def _DoTestCollection(vbtest, col_name, expected):
         check.append(item)
     if check != list(expected):
         raise error(
-            "Collection iterator %s didn't have %r 2nd time around (had %r)"
-            % (col_name, expected, check)
+            "Collection iterator {} didn't have {!r} 2nd time around (had {!r})".format(
+                col_name, expected, check
+            )
         )
     # but an iterator is not restartable
     check = []
@@ -214,16 +215,16 @@ def _DoTestCollection(vbtest, col_name, expected):
         check.append(item)
     if check != []:
         raise error(
-            "2nd time around Collection iterator %s wasn't empty (had %r)"
-            % (col_name, check)
+            "2nd time around Collection iterator {} wasn't empty (had {!r})".format(
+                col_name, check
+            )
         )
 
     # Check len()==Count()
     c = getattr(vbtest, col_name)
     if len(c) != _getcount(c):
         raise error(
-            "Collection %s __len__(%r) wasn't==Count(%r)"
-            % (col_name, len(c), _getcount(c))
+            f"Collection {col_name} __len__({len(c)!r}) wasn't==Count({_getcount(c)!r})"
         )
     # Check we can do it with zero based indexing.
     c = getattr(vbtest, col_name)
@@ -231,9 +232,7 @@ def _DoTestCollection(vbtest, col_name, expected):
     for i in range(_getcount(c)):
         check.append(c[i])
     if check != list(expected):
-        raise error(
-            "Collection %s didn't have %r (had %r)" % (col_name, expected, check)
-        )
+        raise error(f"Collection {col_name} didn't have {expected!r} (had {check!r})")
 
     # Check we can do it with our old "Skip/Next" methods.
     c = getattr(vbtest, col_name)._NewEnum()
@@ -244,9 +243,7 @@ def _DoTestCollection(vbtest, col_name, expected):
             break
         check.append(n[0])
     if check != list(expected):
-        raise error(
-            "Collection %s didn't have %r (had %r)" % (col_name, expected, check)
-        )
+        raise error(f"Collection {col_name} didn't have {expected!r} (had {check!r})")
 
 
 def TestCollections(vbtest):
@@ -272,7 +269,7 @@ def _DoTestArray(vbtest, data, expected_exception=None):
     got = vbtest.ArrayProperty
     if got != data:
         raise error(
-            "Could not set the array data correctly - got %r, expected %r" % (got, data)
+            f"Could not set the array data correctly - got {got!r}, expected {data!r}"
         )
 
 
@@ -333,7 +330,7 @@ def TestArrays(vbtest, bUseGenerated):
     except pythoncom.com_error as exc:
         assert (
             exc.excepinfo[1] == "Python COM Server Internal Error"
-        ), "Didnt get the correct exception - '%s'" % (exc,)
+        ), f"Didnt get the correct exception - '{exc}'"
 
     if bUseGenerated:
         # This one is a bit strange!  The array param is "ByRef", as VB insists.
@@ -356,11 +353,11 @@ def TestArrays(vbtest, bUseGenerated):
         assert testData == list(resultData)
         testData = ["hi", "from", "Python"]
         resultData, byRefParam = vbtest.PassSAFEARRAYVariant(testData)
-        assert testData == list(byRefParam), "Expected '%s', got '%s'" % (
+        assert testData == list(byRefParam), "Expected '{}', got '{}'".format(
             testData,
             list(byRefParam),
         )
-        assert testData == list(resultData), "Expected '%s', got '%s'" % (
+        assert testData == list(resultData), "Expected '{}', got '{}'".format(
             testData,
             list(resultData),
         )
@@ -487,11 +484,13 @@ def TestStructs(vbtest):
         assert "foo" in str(exc), exc
 
     # test repr - it uses repr() of the sub-objects, so check it matches.
-    expected = "com_struct(int_val=%r, str_val=%r, ob_val=%r, sub_val=%r)" % (
-        s.int_val,
-        s.str_val,
-        s.ob_val,
-        s.sub_val,
+    expected = (
+        "com_struct(int_val={!r}, str_val={!r}, ob_val={!r}, sub_val={!r})".format(
+            s.int_val,
+            s.str_val,
+            s.ob_val,
+            s.sub_val,
+        )
     )
     if repr(s) != expected:
         print("Expected repr:", expected)

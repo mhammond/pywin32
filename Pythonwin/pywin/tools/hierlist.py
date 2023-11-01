@@ -18,7 +18,7 @@ import commctrl
 import win32api
 import win32con
 import win32ui
-from pywin.mfc import dialog, docview, object, window
+from pywin.mfc import dialog, object
 from win32api import RGB
 
 
@@ -97,9 +97,10 @@ class HierList(object.Object):
         else:
             self.listControl = listControl
             lbid = listControl.GetDlgCtrlID()
-            assert self.listBoxId is None or self.listBoxId == lbid, (
-                "An invalid listbox control ID has been specified (specified as %s, but exists as %s)"
-                % (self.listBoxId, lbid)
+            assert (
+                self.listBoxId is None or self.listBoxId == lbid
+            ), "An invalid listbox control ID has been specified (specified as {}, but exists as {})".format(
+                self.listBoxId, lbid
             )
             self.listBoxId = lbid
         self.listControl.SetImageList(self.imageList, commctrl.LVSIL_NORMAL)

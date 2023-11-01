@@ -92,7 +92,7 @@ class FormatterBase:
         self.SetStyles()
 
     def HookFormatter(self, parent=None):
-        raise NotImplementedError()
+        raise NotImplementedError
 
     # Used by the IDLE extensions to quickly determine if a character is a string.
     def GetStringStyle(self, pos):
@@ -114,7 +114,7 @@ class FormatterBase:
         self.styles_by_id[stylenum] = style
 
     def SetStyles(self):
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def GetSampleText(self):
         return "Sample Text for the Format Dialog"

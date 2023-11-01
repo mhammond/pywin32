@@ -3,7 +3,6 @@
 import fnmatch
 import getopt
 import os
-import string
 import sys
 from collections.abc import Callable
 
@@ -63,7 +62,6 @@ def CopyFileToCe(src_name, dest_name, progress=None):
                 if progress is not None:
                     progress(bytes)
         finally:
-            pass
             dh.Close()
     finally:
         sh.Close()
@@ -145,9 +143,9 @@ def copy(args):
     src = args[:-1]
     dest = args[-1]
     # See if WCE: leading anywhere indicates a direction.
-    if string.find(src[0], "WCE:") == 0:
+    if src[0].find("WCE:") == 0:
         bToDevice = 0
-    elif string.find(dest, "WCE:") == 0:
+    elif dest.find("WCE:") == 0:
         bToDevice = 1
     else:
         # Assume copy to device.
@@ -225,7 +223,7 @@ def run(args):
             prog_args.append('"' + arg + '"')
         else:
             prog_args.append(arg)
-    prog_args = string.join(prog_args, " ")
+    prog_args = " ".join(prog_args)
     wincerapi.CeCreateProcess(prog_args, "", None, None, 0, 0, None, "", None)
 
 
@@ -248,7 +246,7 @@ def DumpCommands():
         if isinstance(item, Callable):
             doc = getattr(item, "__doc__", "")
             if doc:
-                lines = string.split(doc, "\n")
+                lines = doc.split("\n")
                 print("%-10s - %s" % (name, lines[0]))
                 for line in lines[1:]:
                     if line:

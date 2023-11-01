@@ -469,13 +469,13 @@ class CDispatch:
                 print("\t", method)
             print("Props:")
             for prop, entry in self._olerepr_.propMap.items():
-                print("\t%s = 0x%x - %s" % (prop, entry.dispid, repr(entry)))
+                print(f"\t{prop} = 0x{entry.dispid:x} - {repr(entry)}")
             print("Get Props:")
             for prop, entry in self._olerepr_.propMapGet.items():
-                print("\t%s = 0x%x - %s" % (prop, entry.dispid, repr(entry)))
+                print(f"\t{prop} = 0x{entry.dispid:x} - {repr(entry)}")
             print("Put Props:")
             for prop, entry in self._olerepr_.propMapPut.items():
-                print("\t%s = 0x%x - %s" % (prop, entry.dispid, repr(entry)))
+                print(f"\t{prop} = 0x{entry.dispid:x} - {repr(entry)}")
         except:
             traceback.print_exc()
 
@@ -483,7 +483,7 @@ class CDispatch:
         try:
             if self._LazyAddAttr_(attr):
                 debug_attr_print(
-                    "%s.__LazyMap__(%s) added something" % (self._username_, attr)
+                    f"{self._username_}.__LazyMap__({attr}) added something"
                 )
                 return 1
         except AttributeError:
@@ -543,8 +543,9 @@ class CDispatch:
 
     def __AttrToID__(self, attr):
         debug_attr_print(
-            "Calling GetIDsOfNames for property %s in Dispatch container %s"
-            % (attr, self._username_)
+            "Calling GetIDsOfNames for property {} in Dispatch container {}".format(
+                attr, self._username_
+            )
         )
         return self._oleobj_.GetIDsOfNames(0, attr)
 
@@ -635,7 +636,7 @@ class CDispatch:
             return self._get_good_object_(ret)
 
         # no where else to look.
-        raise AttributeError("%s.%s" % (self._username_, attr))
+        raise AttributeError(f"{self._username_}.{attr}")
 
     def __setattr__(self, attr, value):
         if (
@@ -647,8 +648,9 @@ class CDispatch:
             return
         # Allow property assignment.
         debug_attr_print(
-            "SetAttr called for %s.%s=%s on DispatchContainer"
-            % (self._username_, attr, repr(value))
+            "SetAttr called for {}.{}={} on DispatchContainer".format(
+                self._username_, attr, repr(value)
+            )
         )
 
         if self._olerepr_:
@@ -697,12 +699,11 @@ class CDispatch:
                     self._oleobj_.Invoke(entry.dispid, 0, invoke_type, 0, value)
                     self._olerepr_.propMap[attr] = entry
                     debug_attr_print(
-                        "__setattr__ property %s (id=0x%x) in Dispatch container %s"
-                        % (attr, entry.dispid, self._username_)
+                        "__setattr__ property {} (id=0x{:x}) in Dispatch container {}".format(
+                            attr, entry.dispid, self._username_
+                        )
                     )
                     return
                 except pythoncom.com_error:
                     pass
-        raise AttributeError(
-            "Property '%s.%s' can not be set." % (self._username_, attr)
-        )
+        raise AttributeError(f"Property '{self._username_}.{attr}' can not be set.")

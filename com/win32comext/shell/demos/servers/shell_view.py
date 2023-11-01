@@ -953,7 +953,7 @@ def DllUnregisterServer():
             "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\"
             "Explorer\\Desktop\\Namespace\\" + ShellFolderRoot._reg_clsid_,
         )
-    except WindowsError as details:
+    except OSError as details:
         import errno
 
         if details.errno != errno.ENOENT:
