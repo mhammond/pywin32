@@ -4,7 +4,6 @@
 # stamp DLL/EXE files with version information.
 
 import os
-import string
 import sys
 
 import bulkstamp
@@ -77,7 +76,7 @@ if __name__ == "__main__":
         if opt == "-a":
             bAuto = 1
         if opt == "-f":
-            infile, outfile = string.split(val, "=", 2)
+            infile, outfile = val.split("=", 2)
             stampFiles.append((infile, outfile))
         if opt == "-d":
             desc = val

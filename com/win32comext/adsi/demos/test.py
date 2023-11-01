@@ -1,4 +1,3 @@
-import string
 import sys
 
 import pythoncom
@@ -31,12 +30,12 @@ def DumpRoot():
 # Reading attributeSchema and classSchema Objects
 def _DumpClass(child):
     attrs = "Abstract lDAPDisplayName schemaIDGUID schemaNamingContext attributeSyntax oMSyntax"
-    _DumpTheseAttributes(child, string.split(attrs))
+    _DumpTheseAttributes(child, attrs.split())
 
 
 def _DumpAttribute(child):
     attrs = "lDAPDisplayName schemaIDGUID adminDescription adminDisplayName rDNAttID defaultHidingValue defaultObjectCategory systemOnly defaultSecurityDescriptor"
-    _DumpTheseAttributes(child, string.split(attrs))
+    _DumpTheseAttributes(child, attrs.split())
 
 
 def _DumpTheseAttributes(child, attrs):
@@ -144,7 +143,7 @@ def DumpSchema2():
     schema = ADsGetObject(path, IID_IADsContainer)
     nclass = nprop = nsyntax = 0
     for item in schema:
-        item_class = string.lower(item.Class)
+        item_class = item.Class.lower()
         if item_class == "class":
             items = []
             if item.Abstract:
@@ -152,7 +151,7 @@ def DumpSchema2():
             if item.Auxiliary:
                 items.append("Auxiliary")
             # 			if item.Structural: items.append("Structural")
-            desc = string.join(items, ", ")
+            desc = ", ".join(items)
             import win32com.util
 
             iid_name = win32com.util.IIDToInterfaceName(item.PrimaryInterface)

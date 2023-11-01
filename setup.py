@@ -24,6 +24,7 @@ required for an official build - see README.md for that process.
 """
 # Originally by Thomas Heller, started in 2000 or so.
 import glob
+import logging
 import os
 import platform
 import re
@@ -31,23 +32,23 @@ import shutil
 import subprocess
 import sys
 import winreg
-import logging
+from pathlib import Path
+from tempfile import gettempdir
+from typing import Iterable, List, Tuple, Union
 
 # setuptools must be imported before distutils because it monkey-patches it.
 # distutils is also removed in Python 3.12 and deprecated with setuptools
-from setuptools import Extension
-from setuptools import setup
-from setuptools.command.build_ext import build_ext
+from setuptools import Extension, setup
 from setuptools.command.build import build
+from setuptools.command.build_ext import build_ext
 from setuptools.command.install import install
 from setuptools.command.install_lib import install_lib
 
-from distutils.command.install_data import install_data
-
 # https://github.com/pypa/setuptools/pull/4069
 from distutils.dep_util import newer_group
-from distutils.filelist import FileList
-from tempfile import gettempdir
+from distutils.command.install_data import install_data
+from distutils.command.install_lib import install_lib
+from distutils.core import Extension
 
 # some modules need a static CRT to avoid problems caused by them having a
 # manifest.
@@ -2122,12 +2123,9 @@ swig_interface_parents = {
 swig_include_files = "mapilib adsilib".split()
 
 
-# Helper to allow our script specifications to include wildcards.
-def expand_modules(module_dir):
-    flist = FileList()
-    flist.findall(module_dir)
-    flist.include_pattern("*.py", anchor=0)
-    return [os.path.splitext(name)[0] for name in flist.files]
+def expand_modules(module_dir: Union[str, os.PathLike]):
+    """Helper to allow our script specifications to include wildcards."""
+    return [str(path.with_suffix("")) for path in Path(module_dir).rglob("*.py")]
 
 
 # NOTE: somewhat counter-intuitively, a result list a-la:
@@ -2135,28 +2133,26 @@ def expand_modules(module_dir):
 # will 'do the right thing' in terms of installing licence.txt into
 # 'Lib/site-packages/pythonwin/licence.txt'.  We exploit this to
 # get 'com/win32com/whatever' installed to 'win32com/whatever'
-def convert_data_files(files):
-    ret = []
+def convert_data_files(files: Iterable[str]):
+    ret: List[Tuple[str, Tuple[str]]] = []
     for file in files:
         file = os.path.normpath(file)
         if file.find("*") >= 0:
-            flist = FileList()
-            flist.findall(os.path.dirname(file))
-            flist.include_pattern(os.path.basename(file), anchor=0)
-            # We never want CVS
-            flist.exclude_pattern(re.compile(r".*\\CVS\\"), is_regex=1, anchor=0)
-            flist.exclude_pattern("*.pyc", anchor=0)
-            flist.exclude_pattern("*.pyo", anchor=0)
-            if not flist.files:
+            files_use = (
+                str(path)
+                for path in Path(file).parent.rglob(os.path.basename(file))
+                # We never want CVS
+                if not ("\\CVS\\" in file or path.suffix in {".pyc", ".pyo"})
+            )
+            if not files_use:
                 raise RuntimeError("No files match '%s'" % file)
-            files_use = flist.files
         else:
             if not os.path.isfile(file):
                 raise RuntimeError("No file '%s'" % file)
             files_use = (file,)
         for fname in files_use:
             path_use = os.path.dirname(fname)
-            if path_use.startswith("com/") or path_use.startswith("com\\"):
+            if path_use.startswith("com\\"):
                 path_use = path_use[4:]
             ret.append((path_use, (fname,)))
     return ret
@@ -2253,8 +2249,8 @@ classifiers = [
 if "bdist_wininst" in sys.argv:
     # fixup https://github.com/pypa/setuptools/issues/3284
     def maybe_fixup_exes():
-        from distutils.command import bdist_wininst
         import site
+        from distutils.command import bdist_wininst
 
         # setuptools can't find .exe stubs in `site-packages/setuptools/_distutils`
         # but they might exist in the original `lib/distutils`.
