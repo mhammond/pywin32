@@ -33,7 +33,7 @@ class DebugDocumentProvider(gateways.DebugDocumentProvider):
         return self.doc
 
 
-class DebugDocumentText(gateways.DebugDocumentInfo, gateways.DebugDocumentText):
+class DebugDocumentText(gateways.DebugDocumentText):
     _com_interfaces_ = (
         gateways.DebugDocumentInfo._com_interfaces_
         + gateways.DebugDocumentText._com_interfaces_
