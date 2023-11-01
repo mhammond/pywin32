@@ -155,7 +155,7 @@ def DllRegisterServer():
     # See link at top of file.
     import winreg
 
-    kn = r"Software\Microsoft\Windows\CurrentVersion\Explorer\VolumeCaches\%s" % (
+    kn = r"Software\Microsoft\Windows\CurrentVersion\Explorer\VolumeCaches\{}".format(
         EmptyVolumeCache._reg_desc_,
     )
     key = winreg.CreateKey(winreg.HKEY_LOCAL_MACHINE, kn)
@@ -165,7 +165,7 @@ def DllRegisterServer():
 def DllUnregisterServer():
     import winreg
 
-    kn = r"Software\Microsoft\Windows\CurrentVersion\Explorer\VolumeCaches\%s" % (
+    kn = r"Software\Microsoft\Windows\CurrentVersion\Explorer\VolumeCaches\{}".format(
         EmptyVolumeCache._reg_desc_,
     )
     try:

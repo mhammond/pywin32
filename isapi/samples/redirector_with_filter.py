@@ -74,11 +74,11 @@ class Extension(threaded_extension.ThreadPoolExtension):
             ecb.SendResponseHeaders("200 OK", str(headers) + "\r\n", False)
             ecb.WriteClient(fp.read())
             ecb.DoneWithSession()
-            print("Returned data from '%s'!" % (new_url,))
+            print(f"Returned data from '{new_url}'!")
         else:
             # this should never happen - we should only see requests that
             # start with our virtual directory name.
-            print("Not proxying '%s'" % (url,))
+            print(f"Not proxying '{url}'")
 
 
 # The ISAPI filter.
@@ -98,7 +98,7 @@ class Filter(SimpleFilter):
         prefix = virtualdir
         if not url.startswith(prefix):
             new_url = prefix + url
-            print("New proxied URL is '%s'" % (new_url,))
+            print(f"New proxied URL is '{new_url}'")
             pp.SetHeader("url", new_url)
             # For the sake of demonstration, show how the FilterContext
             # attribute is used.  It always starts out life as None, and
@@ -110,7 +110,7 @@ class Filter(SimpleFilter):
             print("This is request number %d on this connection" % fc.FilterContext)
             return isapicon.SF_STATUS_REQ_HANDLED_NOTIFICATION
         else:
-            print("Filter ignoring URL '%s'" % (url,))
+            print(f"Filter ignoring URL '{url}'")
 
             # Some older code that handled SF_NOTIFY_URL_MAP.
             # ~ print "Have URL_MAP notify"

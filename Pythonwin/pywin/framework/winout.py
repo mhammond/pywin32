@@ -23,17 +23,21 @@
 import queue
 import re
 
+import pywin.scintilla.document
 import win32api
 import win32con
 import win32ui
 from pywin.framework import app, window
 from pywin.mfc import docview
+from pywin.scintilla import scintillacon
 
 debug = lambda msg: None
-
-##debug=win32ui.OutputDebugString
-##import win32trace;win32trace.InitWrite() # for debugging - delete me!
-##debug = win32trace.write
+# debug=win32ui.OutputDebugString
+# import win32trace;win32trace.InitWrite() # for debugging - delete me!
+# debug = win32trace.write
+# WindowOutputDocumentParent=docview.RichEditDoc
+# WindowOutputDocumentParent=docview.Document
+WindowOutputDocumentParent = pywin.scintilla.document.CScintillaDocument
 
 
 class flags:
@@ -41,14 +45,6 @@ class flags:
     WQ_NONE = 0
     WQ_LINE = 1
     WQ_IDLE = 2
-
-
-# WindowOutputDocumentParent=docview.RichEditDoc
-# WindowOutputDocumentParent=docview.Document
-import pywin.scintilla.document
-from pywin.scintilla import scintillacon
-
-WindowOutputDocumentParent = pywin.scintilla.document.CScintillaDocument
 
 
 class WindowOutputDocument(WindowOutputDocumentParent):

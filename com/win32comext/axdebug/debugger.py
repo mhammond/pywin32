@@ -1,5 +1,4 @@
 import os
-import string
 import sys
 
 import pythoncom
@@ -36,7 +35,7 @@ def BuildModule(module, built_nodes, rootNode, create_node_fn, create_node_args)
         keep = module.__name__
         keep = keep and (built_nodes.get(module) is None)
         if keep and hasattr(module, "__file__"):
-            keep = string.lower(os.path.splitext(module.__file__)[1]) not in [
+            keep = os.path.splitext(module.__file__)[1].lower() not in [
                 ".pyd",
                 ".dll",
             ]
@@ -49,10 +48,10 @@ def BuildModule(module, built_nodes, rootNode, create_node_fn, create_node_args)
         node.realNode = realNode
 
         # Split into parent nodes.
-        parts = string.split(module.__name__, ".")
+        parts = module.__name__.split(".")
         if parts[-1][:8] == "__init__":
             parts = parts[:-1]
-        parent = string.join(parts[:-1], ".")
+        parent = ".".join(parts[:-1])
         parentNode = rootNode
         if parent:
             parentModule = sys.modules[parent]

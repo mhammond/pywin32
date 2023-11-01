@@ -15,7 +15,7 @@ class categoryHandler(handler.ContentHandler):
             category = self.document.categories[-1]
             assert (
                 category.overviewItems is None
-            ), "category %r already has overviews" % (category,)
+            ), f"category {category!r} already has overviews"
             category.overviewItems = OverviewItems(attrs)
         elif name == "item":
             item = Item(attrs)

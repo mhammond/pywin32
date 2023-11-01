@@ -25,7 +25,7 @@ class DebuggerPythonApp(intpyapp.InteractivePythonApp):
     def InitInstance(self):
         # Use a registry path of "Python\Pythonwin Debugger
         win32ui.SetAppName(win32ui.LoadString(win32ui.IDR_DEBUGGER))
-        win32ui.SetRegistryKey("Python %s" % (sys.winver,))
+        win32ui.SetRegistryKey(f"Python {sys.winver}")
         # We _need_ the Scintilla color editor.
         # (and we _always_ get it now :-)
 

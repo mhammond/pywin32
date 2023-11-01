@@ -418,7 +418,9 @@ class Adb(bdb.Bdb, gateways.RemoteDebugApplicationEvents):
 
     def _BreakFlagsChanged(self):
         traceenter(
-            "_BreakFlagsChanged to {self.breakFlags} with our thread = {self.debuggingThread}, and debugging thread = {win32api.GetCurrentThreadId()}"
+            f"_BreakFlagsChanged to {self.breakFlags} "
+            + f"with our thread = {self.debuggingThread}, "
+            + f"and debugging thread = {win32api.GetCurrentThreadId()}"
         )
         trace("_BreakFlagsChanged has breaks", self.breaks)
         # If a request comes on our debugging thread, then do it now!
