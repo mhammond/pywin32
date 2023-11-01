@@ -26,11 +26,9 @@ import win32ui
 from pywin.framework.editor import (
     GetEditorFontOption,
     GetEditorOption,
-    SetEditorFontOption,
-    SetEditorOption,
     defaultCharacterFormat,
 )
-from pywin.mfc import afxres, dialog, docview
+from pywin.mfc import afxres, docview
 
 patImport = regex.symcomp(r"import \(<name>.*\)")
 patIndent = regex.compile(r"^\([ \t]*[~ \t]\)")
@@ -101,7 +99,7 @@ class EditorDocument(ParentEditorDocument):
         win32ui.SetStatusText("Loading file...", 1)
         try:
             f = open(filename, "rb")
-        except IOError:
+        except OSError:
             win32ui.MessageBox(
                 filename
                 + "\nCan not find this file\nPlease verify that the correct path and file name are given"

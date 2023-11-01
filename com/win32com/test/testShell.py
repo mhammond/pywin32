@@ -3,17 +3,11 @@ import os
 import struct
 import sys
 
-import win32timezone
-
-try:
-    sys_maxsize = sys.maxsize  # 2.6 and later - maxsize != maxint on 64bits
-except AttributeError:
-    sys_maxsize = sys.maxint
-
 import pythoncom
 import pywintypes
 import win32com.test.util
 import win32con
+import win32timezone
 from win32com.shell import shell
 from win32com.shell.shellcon import *
 from win32com.storagecon import *
@@ -143,8 +137,8 @@ class FILEGROUPDESCRIPTORTester(win32com.test.util.TestCase):
         fgd = shell.FILEGROUPDESCRIPTORAsString([], make_unicode)
         header = struct.pack("i", 0)
         self.assertEqual(header, fgd[: len(header)])
-        self._testRT(dict())
-        d = dict()
+        self._testRT({})
+        d = {}
         fgd = shell.FILEGROUPDESCRIPTORAsString([d], make_unicode)
         header = struct.pack("i", 1)
         self.assertEqual(header, fgd[: len(header)])
@@ -159,53 +153,53 @@ class FILEGROUPDESCRIPTORTester(win32com.test.util.TestCase):
     def testComplex(self):
         clsid = pythoncom.MakeIID("{CD637886-DB8B-4b04-98B5-25731E1495BE}")
         ctime, atime, wtime = self._getTestTimes()
-        d = dict(
-            cFileName="foo.txt",
-            clsid=clsid,
-            sizel=(1, 2),
-            pointl=(3, 4),
-            dwFileAttributes=win32con.FILE_ATTRIBUTE_NORMAL,
-            ftCreationTime=ctime,
-            ftLastAccessTime=atime,
-            ftLastWriteTime=wtime,
-            nFileSize=sys_maxsize + 1,
-        )
+        d = {
+            "cFileName": "foo.txt",
+            "clsid": clsid,
+            "sizel": (1, 2),
+            "pointl": (3, 4),
+            "dwFileAttributes": win32con.FILE_ATTRIBUTE_NORMAL,
+            "ftCreationTime": ctime,
+            "ftLastAccessTime": atime,
+            "ftLastWriteTime": wtime,
+            "nFileSize": sys.maxsize + 1,
+        }
         self._testRT(d)
 
     def testUnicode(self):
         # exercise a bug fixed in build 210 - multiple unicode objects failed.
         ctime, atime, wtime = self._getTestTimes()
         d = [
-            dict(
-                cFileName="foo.txt",
-                sizel=(1, 2),
-                pointl=(3, 4),
-                dwFileAttributes=win32con.FILE_ATTRIBUTE_NORMAL,
-                ftCreationTime=ctime,
-                ftLastAccessTime=atime,
-                ftLastWriteTime=wtime,
-                nFileSize=sys_maxsize + 1,
-            ),
-            dict(
-                cFileName="foo2.txt",
-                sizel=(1, 2),
-                pointl=(3, 4),
-                dwFileAttributes=win32con.FILE_ATTRIBUTE_NORMAL,
-                ftCreationTime=ctime,
-                ftLastAccessTime=atime,
-                ftLastWriteTime=wtime,
-                nFileSize=sys_maxsize + 1,
-            ),
-            dict(
-                cFileName="foo\xa9.txt",
-                sizel=(1, 2),
-                pointl=(3, 4),
-                dwFileAttributes=win32con.FILE_ATTRIBUTE_NORMAL,
-                ftCreationTime=ctime,
-                ftLastAccessTime=atime,
-                ftLastWriteTime=wtime,
-                nFileSize=sys_maxsize + 1,
-            ),
+            {
+                "cFileName": "foo.txt",
+                "sizel": (1, 2),
+                "pointl": (3, 4),
+                "dwFileAttributes": win32con.FILE_ATTRIBUTE_NORMAL,
+                "ftCreationTime": ctime,
+                "ftLastAccessTime": atime,
+                "ftLastWriteTime": wtime,
+                "nFileSize": sys.maxsize + 1,
+            },
+            {
+                "cFileName": "foo2.txt",
+                "sizel": (1, 2),
+                "pointl": (3, 4),
+                "dwFileAttributes": win32con.FILE_ATTRIBUTE_NORMAL,
+                "ftCreationTime": ctime,
+                "ftLastAccessTime": atime,
+                "ftLastWriteTime": wtime,
+                "nFileSize": sys.maxsize + 1,
+            },
+            {
+                "cFileName": "foo\xa9.txt",
+                "sizel": (1, 2),
+                "pointl": (3, 4),
+                "dwFileAttributes": win32con.FILE_ATTRIBUTE_NORMAL,
+                "ftCreationTime": ctime,
+                "ftLastAccessTime": atime,
+                "ftLastWriteTime": wtime,
+                "nFileSize": sys.maxsize + 1,
+            },
         ]
         s = shell.FILEGROUPDESCRIPTORAsString(d, 1)
         d2 = shell.StringAsFILEGROUPDESCRIPTOR(s)
@@ -227,7 +221,7 @@ class FileOperationTester(win32com.test.util.TestCase):
         f.close()
         try:
             os.unlink(self.dest_name)
-        except os.error:
+        except OSError:
             pass
 
     def tearDown(self):

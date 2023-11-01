@@ -34,10 +34,7 @@ Usage:
 
   -h    -- Do not generate hidden methods.
 
-  -u    -- Python 1.5 and earlier: Do NOT convert all Unicode objects to
-           strings.
-
-           Python 1.6 and later: Convert all Unicode objects to strings.
+  -u    -- Convert all Unicode objects to strings.
 
   -o    -- Create output in a specified output file.  If the path leading
            to the file does not exist, any missing directories will be
@@ -75,8 +72,6 @@ from win32com.client import Dispatch, gencache, genpy, selecttlb
 
 bForDemandDefault = 0  # Default value of bForDemand - toggle this to change the world - see also gencache.py
 
-error = "makepy.error"
-
 
 def usage():
     sys.stderr.write(usageHelp)
@@ -110,14 +105,16 @@ def ShowInfo(spec):
                 desc = tlb.GetDocumentation(-1)[0]
         print(desc)
         print(
-            " %s, lcid=%s, major=%s, minor=%s"
-            % (tlbSpec.clsid, tlbSpec.lcid, tlbSpec.major, tlbSpec.minor)
+            " {}, lcid={}, major={}, minor={}".format(
+                tlbSpec.clsid, tlbSpec.lcid, tlbSpec.major, tlbSpec.minor
+            )
         )
         print(" >>> # Use these commands in Python code to auto generate .py support")
         print(" >>> from win32com.client import gencache")
         print(
-            " >>> gencache.EnsureModule('%s', %s, %s, %s)"
-            % (tlbSpec.clsid, tlbSpec.lcid, tlbSpec.major, tlbSpec.minor)
+            " >>> gencache.EnsureModule('{}', {}, {}, {})".format(
+                tlbSpec.clsid, tlbSpec.lcid, tlbSpec.major, tlbSpec.minor
+            )
         )
 
 
@@ -233,7 +230,7 @@ def GetTypeLibsForSpec(arg):
         return typelibs
     except pythoncom.com_error:
         t, v, tb = sys.exc_info()
-        sys.stderr.write("Unable to load type library from '%s' - %s\n" % (arg, v))
+        sys.stderr.write(f"Unable to load type library from '{arg}' - {v}\n")
         tb = None  # Storing tb in a local is a cycle!
         sys.exit(1)
 
@@ -305,15 +302,15 @@ def GenerateFromTypeLibSpec(
             if bForDemand:
                 try:
                     os.unlink(full_name + ".py")
-                except os.error:
+                except OSError:
                     pass
                 try:
                     os.unlink(full_name + ".pyc")
-                except os.error:
+                except OSError:
                     pass
                 try:
                     os.unlink(full_name + ".pyo")
-                except os.error:
+                except OSError:
                     pass
                 if not os.path.isdir(full_name):
                     os.mkdir(full_name)
@@ -410,7 +407,7 @@ def main():
             elif o == "-d":
                 bForDemand = not bForDemand
 
-    except (getopt.error, error) as msg:
+    except getopt.error as msg:
         sys.stderr.write(str(msg) + "\n")
         usage()
 
@@ -430,12 +427,8 @@ def main():
         path = os.path.dirname(outputName)
         if path != "" and not os.path.exists(path):
             os.makedirs(path)
-        if sys.version_info > (3, 0):
-            f = open(outputName, "wt", encoding="mbcs")
-        else:
-            import codecs  # not available in py3k.
+        f = open(outputName, "wt", encoding="mbcs")
 
-            f = codecs.open(outputName, "w", "mbcs")
     else:
         f = None
 

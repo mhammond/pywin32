@@ -59,20 +59,20 @@ class TestCase(unittest.TestCase):
             val = getattr(item, attr)
             if typ is int:
                 self.assertTrue(
-                    isinstance(val, int), "Attr %r has value %r" % (attr, val)
+                    isinstance(val, int), f"Attr {attr!r} has value {val!r}"
                 )
                 new_val = val + 1
             elif typ is str:
                 if val is not None:
-                    # on py2k, must be string or unicode.  py3k must be string or bytes.
+                    # must be string
                     self.assertTrue(
-                        isinstance(val, str), "Attr %r has value %r" % (attr, val)
+                        isinstance(val, str), f"Attr {attr!r} has value {val!r}"
                     )
                     new_val = val + " new value"
                 else:
                     new_val = "new value"
             else:
-                self.fail("Don't know what %s is" % (typ,))
+                self.fail(f"Don't know what {typ} is")
             # set the attribute just to make sure we can.
             setattr(item, attr, new_val)
 
@@ -107,12 +107,12 @@ class TestCase(unittest.TestCase):
         for i in range(la_enum.length):
             ncb.Reset()
             ncb.Command = netbios.NCBRESET
-            ncb.Lana_num = netbios.byte_to_int(la_enum.lana[i])
+            ncb.Lana_num = la_enum.lana[i]
             rc = Netbios(ncb)
             self.assertEqual(rc, 0)
             ncb.Reset()
             ncb.Command = netbios.NCBASTAT
-            ncb.Lana_num = byte_to_int(la_enum.lana[i])
+            ncb.Lana_num = la_enum.lana[i]
             ncb.Callname = b"*               "
             adapter = netbios.ADAPTER_STATUS()
             ncb.Buffer = adapter

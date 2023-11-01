@@ -25,7 +25,7 @@ else:
 # interface, as well as via IDispatch.
 import pythoncom
 
-from .adsi import *
+from .adsi import *  # nopycln: import  # win32comext/adsi/adsi.pyd
 
 LCID = 0
 

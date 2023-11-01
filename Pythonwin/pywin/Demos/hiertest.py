@@ -105,7 +105,7 @@ class HLIFileDir(hierlist.HierListItem):
                 os.path.basename(self.filename),
                 os.stat(self.filename)[6],
             )
-        except os.error as details:
+        except OSError as details:
             return "%-20s - %s" % (self.filename, details[1])
 
     def IsExpandable(self):

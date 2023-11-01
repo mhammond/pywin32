@@ -88,7 +88,7 @@ class T(unittest.TestCase):
         scriptutils.JumpToDocument(__file__)
         if user_interaction:
             win32ui.MessageBox(
-                "Hello from test_pydocs() args=%s %s" % (sys.argv, os.getcwd())
+                f"Hello from test_pydocs() args={sys.argv} {os.getcwd()}"
             )
         v = scriptutils.GetActiveEditControl()
         assert file_abs == v.GetDocument().GetPathName()

@@ -19,7 +19,7 @@ import win32security
 error = win32security.error
 
 
-class _BaseAuth(object):
+class _BaseAuth:
     def __init__(self):
         self.reset()
 
@@ -361,7 +361,9 @@ if __name__ == "__main__":
     sspiserver = ServerAuth(ssp, scflags=flags)
 
     print(
-        "SSP : %s (%s)" % (sspiclient.pkg_info["Name"], sspiclient.pkg_info["Comment"])
+        "SSP : {} ({})".format(
+            sspiclient.pkg_info["Name"], sspiclient.pkg_info["Comment"]
+        )
     )
 
     # Perform the authentication dance, each loop exchanging more information
@@ -384,7 +386,7 @@ if __name__ == "__main__":
     print("Initiator name from the service side:", sspiserver.initiator_name)
     print("Service name from the client side:   ", sspiclient.service_name)
 
-    data = b"hello"  # py3k-friendly
+    data = b"hello"
 
     # Simple signature, not compatible with GSSAPI.
     sig = sspiclient.sign(data)

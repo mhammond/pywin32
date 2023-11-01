@@ -11,7 +11,7 @@
 #
 # then, switch to a DOS prompt, and type:
 # C:>python.exe
-# Python 1.4 etc...
+# Python X.X.X (#0, Apr 13 1999, ...
 # >>> import win32traceutil
 # Redirecting output to win32trace remote collector
 # >>> print "Hello"

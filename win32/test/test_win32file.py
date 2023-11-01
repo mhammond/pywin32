@@ -19,11 +19,6 @@ import win32timezone
 import winerror
 from pywin32_testutil import TestSkipped, testmain
 
-try:
-    set
-except NameError:
-    from sets import Set as set
-
 
 class TestReadBuffer(unittest.TestCase):
     def testLen(self):
@@ -70,7 +65,7 @@ class TestSimpleOps(unittest.TestCase):
             handle.Close()
             try:
                 os.unlink(filename)
-            except os.error:
+            except OSError:
                 pass
 
     # A simple test using normal read/write operations.
@@ -234,12 +229,12 @@ class TestSimpleOps(unittest.TestCase):
             ct, at, wt = win32file.GetFileTime(f)
             self.assertTrue(
                 ct >= now,
-                "File was created in the past - now=%s, created=%s" % (now, ct),
+                f"File was created in the past - now={now}, created={ct}",
             )
             self.assertTrue(now <= ct <= nowish, (now, ct))
             self.assertTrue(
                 wt >= now,
-                "File was written-to in the past now=%s, written=%s" % (now, wt),
+                f"File was written-to in the past now={now}, written={wt}",
             )
             self.assertTrue(now <= wt <= nowish, (now, wt))
 
@@ -578,7 +573,7 @@ class TestFindFiles(unittest.TestCase):
             # reference count leaks, that function showed leaks!  os.rmdir
             # doesn't have that problem.
             os.rmdir(test_path)
-        except os.error:
+        except OSError:
             pass
         os.mkdir(test_path)
         try:
@@ -868,7 +863,7 @@ class TestTransmit(unittest.TestCase):
                 try:
                     s1.bind(self.addr)
                     break
-                except os.error as exc:
+                except OSError as exc:
                     if exc.winerror != 10013:
                         raise
                     print("Failed to use port", self.addr, "trying another random one")
@@ -1018,7 +1013,7 @@ class TestWSAEnumNetworkEvents(unittest.TestCase):
         while sent < 16 * 1024 * 1024:
             try:
                 sent += client.send(data)
-            except socket.error as e:
+            except OSError as e:
                 if e.args[0] == win32file.WSAEINTR:
                     continue
                 elif e.args[0] in (win32file.WSAEWOULDBLOCK, win32file.WSAENOBUFS):
@@ -1040,7 +1035,7 @@ class TestWSAEnumNetworkEvents(unittest.TestCase):
         while received < sent:
             try:
                 received += len(server.recv(16 * 1024))
-            except socket.error as e:
+            except OSError as e:
                 if e.args[0] in [win32file.WSAEINTR, win32file.WSAEWOULDBLOCK]:
                     continue
                 else:

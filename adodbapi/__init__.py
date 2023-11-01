@@ -3,30 +3,36 @@
 Copyright (C) 2002 Henrik Ekelund, version 2.1 by Vernon Cole
 * http://sourceforge.net/projects/adodbapi
 """
-import sys
 import time
 
-from .adodbapi import Connection, Cursor, __version__, connect, dateconverter
+# Re-exports to keep backward compatibility with existing code
+from .adodbapi import (
+    Connection as Connection,
+    Cursor as Cursor,
+    __version__,
+    connect as connect,
+    dateconverter,
+)
 from .apibase import (
-    BINARY,
-    DATETIME,
-    NUMBER,
-    ROWID,
-    STRING,
-    DatabaseError,
-    DataError,
-    Error,
-    FetchFailedError,
-    IntegrityError,
-    InterfaceError,
-    InternalError,
-    NotSupportedError,
-    OperationalError,
-    ProgrammingError,
-    Warning,
-    apilevel,
-    paramstyle,
-    threadsafety,
+    BINARY as BINARY,
+    DATETIME as DATETIME,
+    NUMBER as NUMBER,
+    ROWID as ROWID,
+    STRING as STRING,
+    DatabaseError as DatabaseError,
+    DataError as DataError,
+    Error as Error,
+    FetchFailedError as FetchFailedError,
+    IntegrityError as IntegrityError,
+    InterfaceError as InterfaceError,
+    InternalError as InternalError,
+    NotSupportedError as NotSupportedError,
+    OperationalError as OperationalError,
+    ProgrammingError as ProgrammingError,
+    Warning as Warning,
+    apilevel as apilevel,
+    paramstyle as paramstyle,
+    threadsafety as threadsafety,
 )
 
 

@@ -150,9 +150,13 @@ def make_item_enum(level, flags):
             else:
                 skip = not (flags & shellcon.SHCONTF_NONFOLDERS)
         if not skip:
-            data = dict(
-                name=name, size=size, sides=sides, level=level, is_folder=is_folder
-            )
+            data = {
+                "name": name,
+                "size": size,
+                "sides": sides,
+                "level": level,
+                "is_folder": is_folder,
+            }
             pidls.append([pickle.dumps(data)])
     return NewEnum(pidls, shell.IID_IEnumIDList)
 
@@ -818,7 +822,7 @@ def DllRegisterServer():
     s = struct.pack("i", attr)
     winreg.SetValueEx(key, "Attributes", 0, winreg.REG_BINARY, s)
     # register the context menu handler under the FolderViewSampleType type.
-    keypath = "%s\\shellex\\ContextMenuHandlers\\%s" % (
+    keypath = "{}\\shellex\\ContextMenuHandlers\\{}".format(
         ContextMenu._context_menu_type_,
         ContextMenu._reg_desc_,
     )
@@ -834,17 +838,18 @@ def DllUnregisterServer():
     paths = [
         "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Desktop\\Namespace\\"
         + ShellFolder._reg_clsid_,
-        "%s\\shellex\\ContextMenuHandlers\\%s"
-        % (ContextMenu._context_menu_type_, ContextMenu._reg_desc_),
+        "{}\\shellex\\ContextMenuHandlers\\{}".format(
+            ContextMenu._context_menu_type_, ContextMenu._reg_desc_
+        ),
     ]
     for path in paths:
         try:
             winreg.DeleteKey(winreg.HKEY_LOCAL_MACHINE, path)
-        except WindowsError as details:
+        except OSError as details:
             import errno
 
             if details.errno != errno.ENOENT:
-                print("FAILED to remove %s: %s" % (path, details))
+                print(f"FAILED to remove {path}: {details}")
 
     propsys.PSUnregisterPropertySchema(get_schema_fname())
     print(ShellFolder._reg_desc_, "unregistration complete.")

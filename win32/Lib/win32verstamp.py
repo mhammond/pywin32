@@ -5,7 +5,6 @@ import glob
 import optparse
 import os
 import struct
-import sys
 
 from win32api import BeginUpdateResource, EndUpdateResource, UpdateResource
 
@@ -53,10 +52,7 @@ def VS_FIXEDFILEINFO(maj, min, sub, build, debug=0, is_dll=1):
 
 def nullterm(s):
     # get raw bytes for a NULL terminated unicode string.
-    if sys.version_info[:2] < (3, 7):
-        return (str(s) + "\0").encode("unicode-internal")
-    else:
-        return (str(s) + "\0").encode("utf-16le")
+    return (str(s) + "\0").encode("utf-16le")
 
 
 def pad32(s, extra=2):
@@ -130,8 +126,8 @@ def stamp(pathname, options):
     try:
         f = open(pathname, "a+b")
         f.close()
-    except IOError as why:
-        print("WARNING: File %s could not be opened - %s" % (pathname, why))
+    except OSError as why:
+        print(f"WARNING: File {pathname} could not be opened - {why}")
 
     ver = options.version
     try:

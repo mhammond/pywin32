@@ -94,7 +94,7 @@ def _cat_registrar():
 
 
 def _find_localserver_exe(mustfind):
-    if not sys.platform.startswith("win32"):
+    if sys.platform != "win32":
         return sys.executable
     if pythoncom.__file__.find("_d") < 0:
         exeBaseName = "pythonw.exe"
@@ -134,7 +134,7 @@ def _find_localserver_module():
     pyfile = os.path.join(path, baseName + ".py")
     try:
         os.stat(pyfile)
-    except os.error:
+    except OSError:
         # See if we have a compiled extension
         if __debug__:
             ext = ".pyc"
@@ -143,7 +143,7 @@ def _find_localserver_module():
         pyfile = os.path.join(path, baseName + ext)
         try:
             os.stat(pyfile)
-        except os.error:
+        except OSError:
             raise RuntimeError(
                 "Can not locate the Python module 'win32com.server.%s'" % baseName
             )
@@ -258,14 +258,14 @@ def RegisterServer(
             # If we are frozen, we write "{exe} /Automate", just
             # like "normal" .EXEs do
             exeName = win32api.GetShortPathName(sys.executable)
-            command = "%s /Automate" % (exeName,)
+            command = f"{exeName} /Automate"
         else:
             # Running from .py sources - we need to write
             # 'python.exe win32com\server\localserver.py {clsid}"
             exeName = _find_localserver_exe(1)
             exeName = win32api.GetShortPathName(exeName)
             pyfile = _find_localserver_module()
-            command = '%s "%s" %s' % (exeName, pyfile, str(clsid))
+            command = f'{exeName} "{pyfile}" {str(clsid)}'
         _set_string(keyNameRoot + "\\LocalServer32", command)
     else:  # Remove any old LocalServer32 registrations
         _remove_key(keyNameRoot + "\\LocalServer32")
@@ -376,7 +376,7 @@ def UnregisterServer(clsid, progID=None, verProgID=None, customKeys=None):
 
 def GetRegisteredServerOption(clsid, optionName):
     """Given a CLSID for a server and option name, return the option value"""
-    keyNameRoot = "CLSID\\%s\\%s" % (str(clsid), str(optionName))
+    keyNameRoot = f"CLSID\\{str(clsid)}\\{str(optionName)}"
     return _get_string(keyNameRoot)
 
 
@@ -589,8 +589,9 @@ def ReExecuteElevated(flags):
             print(os.path.splitdrive(cwd)[0], file=batf)
             print('cd "%s"' % os.getcwd(), file=batf)
             print(
-                '%s %s > "%s" 2>&1'
-                % (win32api.GetShortPathName(exe_to_run), new_params, outfile),
+                '{} {} > "{}" 2>&1'.format(
+                    win32api.GetShortPathName(exe_to_run), new_params, outfile
+                ),
                 file=batf,
             )
         finally:
@@ -623,8 +624,8 @@ def ReExecuteElevated(flags):
         for f in (outfile, batfile):
             try:
                 os.unlink(f)
-            except os.error as exc:
-                print("Failed to remove tempfile '%s': %s" % (f, exc))
+            except OSError as exc:
+                print(f"Failed to remove tempfile '{f}': {exc}")
 
 
 def UseCommandLine(*classes, **flags):

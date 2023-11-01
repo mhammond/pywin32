@@ -17,7 +17,7 @@
 ## the PATH. Example pychecker.bat:
 ##
 ##   REM pychecker.bat
-##   C:\bin\python.exe C:\PYTHON23\Lib\site-packages\pychecker\checker.py %1 %2 %3 %4 %5 %6 %7 %8 %9
+##   C:\bin\python.exe C:\PythonXX\Lib\site-packages\pychecker\checker.py %1 %2 %3 %4 %5 %6 %7 %8 %9
 ##
 ## Adding it as default module in PythonWin:
 ##
@@ -284,7 +284,7 @@ class TheDocument(docview.RichEditDoc):
     def doSearch(self):
         self.dp = dirpath(self.dirpattern, self.recurse)
         self.SetTitle(
-            "Pychecker Run '%s' (options: %s)" % (self.filpattern, self.greppattern)
+            f"Pychecker Run '{self.filpattern}' (options: {self.greppattern})"
         )
         # self.text = []
         self.GetFirstView().Append(
@@ -367,7 +367,7 @@ class TheDocument(docview.RichEditDoc):
                     "(or run 'setup.py install' if you have the source version)\n"
                 )
             else:
-                cmd = '%s "%s" %s %s 2>&1' % (py, pychecker, options, files)
+                cmd = f'{py} "{pychecker}" {options} {files} 2>&1'
                 ##fin,fout,ferr=os.popen3(cmd)
                 ##result=ferr.read()+fout.read()
                 result = os.popen(cmd).read()

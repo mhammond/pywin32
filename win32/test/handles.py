@@ -27,16 +27,16 @@ class PyHandleTestCase(unittest.TestCase):
             # this case
 
         def f2(invalidate):
-            """This function should throw an IOError."""
+            """This function should throw an OSError."""
             try:
                 f1(invalidate)
             except ZeroDivisionError as exc:
-                raise IOError("raise 2")
+                raise OSError("raise 2")
 
-        self.assertRaises(IOError, f2, False)
+        self.assertRaises(OSError, f2, False)
         # Now do it again, but so the auto object destruction
         # actually fails.
-        self.assertRaises(IOError, f2, True)
+        self.assertRaises(OSError, f2, True)
 
     def testCleanup2(self):
         # Cause an exception during object destruction.
@@ -100,12 +100,12 @@ class PyHandleTestCase(unittest.TestCase):
 
     def testHandleInDict(self):
         h = pywintypes.HANDLE(1)
-        d = dict(foo=h)
+        d = {"foo": h}
         self.assertEqual(d["foo"], h)
 
     def testHandleInDictThenInt(self):
         h = pywintypes.HANDLE(1)
-        d = dict(foo=h)
+        d = {"foo": h}
         self.assertEqual(d["foo"], 1)
 
     def testHandleCompareNone(self):
@@ -138,17 +138,13 @@ class PyHandleTestCase(unittest.TestCase):
         self.assertTrue(h)
 
     def testLong(self):
-        # sys.maxint+1 should always be a 'valid' handle, treated as an
+        # sys.maxsize+1 should always be a 'valid' handle, treated as an
         # unsigned int, even though it is a long. Although pywin32 should not
         # directly create such longs, using struct.unpack() with a P format
         # may well return them. eg:
         # >>> struct.unpack("P", struct.pack("P", -1))
         # (4294967295L,)
-        try:
-            big = sys.maxsize
-        except AttributeError:
-            big = sys.maxint
-        pywintypes.HANDLE(big + 1)
+        pywintypes.HANDLE(sys.maxsize + 1)
 
     def testGC(self):
         # This used to provoke:

@@ -18,7 +18,6 @@ dynamically, or possibly even generate .html documentation for objects.
 
 import datetime
 import string
-import sys
 from keyword import iskeyword
 
 import pythoncom
@@ -30,8 +29,6 @@ from pywintypes import TimeType
 # literals like a quote char and backslashes makes life a little painful to
 # always render the string perfectly - so just punt and fall-back to a repr()
 def _makeDocString(s):
-    if sys.version_info < (3,):
-        s = s.encode("mbcs")
     return repr(s)
 
 
@@ -430,27 +427,31 @@ class DispatchItem(OleItem):
                     repr(argsDesc),
                     _BuildArgList(fdesc, names),
                 )
-                s = s + "%s\tif ret is not None:\n" % (linePrefix,)
+                s = s + f"{linePrefix}\tif ret is not None:\n"
                 if rd == pythoncom.VT_UNKNOWN:
-                    s = s + "%s\t\t# See if this IUnknown is really an IDispatch\n" % (
-                        linePrefix,
-                    )
-                    s = s + "%s\t\ttry:\n" % (linePrefix,)
                     s = (
                         s
-                        + "%s\t\t\tret = ret.QueryInterface(pythoncom.IID_IDispatch)\n"
-                        % (linePrefix,)
+                        + "{}\t\t# See if this IUnknown is really an IDispatch\n".format(
+                            linePrefix,
+                        )
                     )
-                    s = s + "%s\t\texcept pythoncom.error:\n" % (linePrefix,)
-                    s = s + "%s\t\t\treturn ret\n" % (linePrefix,)
-                s = s + "%s\t\tret = Dispatch(ret, %s, %s)\n" % (
+                    s = s + f"{linePrefix}\t\ttry:\n"
+                    s = (
+                        s
+                        + "{}\t\t\tret = ret.QueryInterface(pythoncom.IID_IDispatch)\n".format(
+                            linePrefix
+                        )
+                    )
+                    s = s + f"{linePrefix}\t\texcept pythoncom.error:\n"
+                    s = s + f"{linePrefix}\t\t\treturn ret\n"
+                s = s + "{}\t\tret = Dispatch(ret, {}, {})\n".format(
                     linePrefix,
                     repr(name),
                     resclsid,
                 )
                 s = s + "%s\treturn ret" % (linePrefix)
             elif rd == pythoncom.VT_BSTR:
-                s = "%s\t# Result is a Unicode object\n" % (linePrefix,)
+                s = f"{linePrefix}\t# Result is a Unicode object\n"
                 s = (
                     s
                     + "%s\treturn self._oleobj_.InvokeTypes(%d, LCID, %s, %s, %s%s)"
@@ -631,8 +632,7 @@ def _BuildArgList(fdesc, names):
     while len(names) < numArgs:
         names.append("arg%d" % (len(names),))
     # As per BuildCallList(), avoid huge lines.
-    # Hack a "\n" at the end of every 5th name - "strides" would be handy
-    # here but don't exist in 2.2
+    # Hack a "\n" at the end of every 5th name
     for i in range(0, len(names), 5):
         names[i] = names[i] + "\n\t\t\t"
     return "," + ", ".join(names)
@@ -667,7 +667,7 @@ def MakePublicAttributeName(className, is_global=False):
         # it would get picked up below
         className = "NONE"
     elif iskeyword(className):
-        # most keywords are lower case (except True, False etc in py3k)
+        # most keywords are lower case (except True, False, etc)
         ret = className.capitalize()
         # but those which aren't get forced upper.
         if ret == className:
@@ -769,7 +769,6 @@ def BuildCallList(
                     defArgVal = defUnnamedArg
 
         argName = MakePublicAttributeName(argName)
-        # insanely long lines with an 'encoding' flag crashes python 2.4.0
         # keep 5 args per line
         # This may still fail if the arg names are insane, but that seems
         # unlikely.  See also _BuildArgList()

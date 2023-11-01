@@ -26,7 +26,7 @@ def CreateTestAccessDatabase(dbname=None):
 
     try:
         os.unlink(dbname)
-    except os.error:
+    except OSError:
         print(
             "WARNING - Unable to delete old test database - expect a COM exception RSN!"
         )

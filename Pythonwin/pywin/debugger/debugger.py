@@ -23,17 +23,12 @@ import win32con
 import win32ui
 from pywin.framework import app, editor, interact, scriptutils
 from pywin.framework.editor.color.coloreditor import MARKER_BREAKPOINT, MARKER_CURRENT
-from pywin.mfc import afxres, dialog, object, window
+from pywin.mfc import afxres, window
 from pywin.tools import browser, hierlist
-
-# import win32traceutil
-if win32ui.UNICODE:
-    LVN_ENDLABELEDIT = commctrl.LVN_ENDLABELEDITW
-else:
-    LVN_ENDLABELEDIT = commctrl.LVN_ENDLABELEDITA
 
 from .dbgcon import *
 
+LVN_ENDLABELEDIT = commctrl.LVN_ENDLABELEDITW
 error = "pywin.debugger.error"
 
 
@@ -416,7 +411,7 @@ class DebuggerBreakpointsWindow(DebuggerListViewWindow):
                 cond = bp.cond
                 item = index + 1, 0, 0, 0, str(cond), 0, id(bp)
                 index = l.InsertItem(item)
-                l.SetItemText(index, 1, "%s: %s" % (baseName, bp.line))
+                l.SetItemText(index, 1, f"{baseName}: {bp.line}")
 
 
 class DebuggerWatchWindow(DebuggerListViewWindow):
@@ -700,13 +695,12 @@ class Debugger(debugger_parent):
         if self.get_option(OPT_STOP_EXCEPTIONS):
             frame.f_locals["__exception__"] = exc_type, exc_value
             print("Unhandled exception while debugging...")
-            # on both py2k and py3k, we may be called with exc_value
+            # We may be called with exc_value
             # being the args to the exception, or it may already be
             # instantiated (IOW, PyErr_Normalize() hasn't been
-            # called on the args).  In py2k this is fine, but in
-            # py3k, traceback.print_exception fails.  So on py3k
-            # we instantiate an exception instance to print.
-            if sys.version_info > (3,) and not isinstance(exc_value, BaseException):
+            # called on the args). traceback.print_exception fails.
+            # So we instantiate an exception instance to print.
+            if not isinstance(exc_value, BaseException):
                 # they are args - may be a single item or already a tuple
                 if not isinstance(exc_value, tuple):
                     exc_value = (exc_value,)

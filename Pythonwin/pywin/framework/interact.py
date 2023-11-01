@@ -138,7 +138,7 @@ class InteractiveFormatter(FormatterParent):
             return
         state = styleStart
         # As per comments in Colorize(), we work with the raw utf8
-        # bytes. To avoid too muych py3k pain, we treat each utf8 byte
+        # bytes. To avoid too much pain, we treat each utf8 byte
         # as a latin-1 unicode character - we only use it to compare
         # against ascii chars anyway...
         chNext = cdoc[0:1].decode("latin-1")
@@ -325,11 +325,12 @@ class InteractiveCore:
                 if win32ui.debug:
                     suffix = ", debug build"
                 sys.stderr.write(
-                    "PythonWin %s on %s%s.\n" % (sys.version, sys.platform, suffix)
+                    f"PythonWin {sys.version} on {sys.platform}{suffix}.\n"
                 )
                 sys.stderr.write(
-                    "Portions %s - see 'Help/About PythonWin' for further copyright information.\n"
-                    % (win32ui.copyright,)
+                    "Portions {} - see 'Help/About PythonWin' for further copyright information.\n".format(
+                        win32ui.copyright
+                    )
                 )
             else:
                 sys.stderr.write(banner)

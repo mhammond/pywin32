@@ -120,8 +120,6 @@ class TestModuleOps(BasicSetupTearDown):
     def testRoundTripUnicode(self):
         win32trace.write("\xa9opyright Syver Enstad")
         syverEnstad = win32trace.read()
-        # str objects are always returned in py2k (latin-1 encoding was used
-        # on unicode objects)
         self.assertEqual("\xa9opyright Syver Enstad", syverEnstad)
 
     def testBlockingRead(self):
@@ -130,8 +128,6 @@ class TestModuleOps(BasicSetupTearDown):
 
     def testBlockingReadUnicode(self):
         win32trace.write("\xa9opyright Syver Enstad")
-        # str objects are always returned in py2k (latin-1 encoding was used
-        # on unicode objects)
         self.assertEqual("\xa9opyright Syver Enstad", win32trace.blockingread())
 
     def testFlush(self):
@@ -262,8 +258,9 @@ class TraceWriteProcess:
     def start(self):
         procHandle, threadHandle, procId, threadId = win32process.CreateProcess(
             None,  # appName
-            'python.exe "%s" /run_test_process %s %s'
-            % (this_file, self.BucketCount, self.threadCount),
+            'python.exe "{}" /run_test_process {} {}'.format(
+                this_file, self.BucketCount, self.threadCount
+            ),
             None,  # process security
             None,  # thread security
             0,  # inherit handles

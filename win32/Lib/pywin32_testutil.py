@@ -8,28 +8,6 @@ import unittest
 import winerror
 
 ##
-## General purpose utilities for the test suite.
-##
-
-
-# Sometimes we want to pass a string that should explicitly be treated as
-# a memory blob.
-def str2memory(sval):
-    if sys.version_info < (3, 0):
-        return buffer(sval)
-    # py3k.
-    return memoryview(sval.encode("latin1"))
-
-
-# Sometimes we want to pass an object that exposes its memory
-def ob2memory(ob):
-    if sys.version_info < (3, 0):
-        return buffer(ob)
-    # py3k.
-    return memoryview(ob)
-
-
-##
 ## unittest related stuff
 ##
 
@@ -239,7 +217,7 @@ except AttributeError:
 # handling for the TestSkipped exception.
 class TestResult(TextTestResult):
     def __init__(self, *args, **kw):
-        super(TestResult, self).__init__(*args, **kw)
+        super().__init__(*args, **kw)
         self.skips = {}  # count of skips for each reason.
 
     def addError(self, test, err):
@@ -282,15 +260,15 @@ class TestResult(TextTestResult):
             self.skips.setdefault(reason, 0)
             self.skips[reason] += 1
             if self.showAll:
-                self.stream.writeln("SKIP (%s)" % (reason,))
+                self.stream.writeln(f"SKIP ({reason})")
             elif self.dots:
                 self.stream.write("S")
                 self.stream.flush()
             return
-        super(TestResult, self).addError(test, err)
+        super().addError(test, err)
 
     def printErrors(self):
-        super(TestResult, self).printErrors()
+        super().printErrors()
         for reason, num_skipped in self.skips.items():
             self.stream.writeln("SKIPPED: %d tests - %s" % (num_skipped, reason))
 

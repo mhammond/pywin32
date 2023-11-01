@@ -744,8 +744,9 @@ class COMScript:
         except:
             traceback.print_exc()
             trace(
-                "*** Debugger Manager could not initialize - %s: %s"
-                % (sys.exc_info()[0], sys.exc_info()[1])
+                "*** Debugger Manager could not initialize - {}: {}".format(
+                    sys.exc_info()[0], sys.exc_info()[1]
+                )
             )
             self.debugManager = None
 
@@ -1057,7 +1058,6 @@ class COMScript:
                     self.scriptSite.OnStateChange(state)
             except pythoncom.com_error as xxx_todo_changeme:
                 (hr, desc, exc, arg) = xxx_todo_changeme.args
-                # Ignore all errors here - E_NOTIMPL likely from scriptlets.
         finally:
             self.EnableInterrupts()
 

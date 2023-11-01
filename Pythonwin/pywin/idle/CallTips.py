@@ -208,8 +208,7 @@ if __name__ == "__main__":
             if get_arg_text(t) != expected:
                 failed.append(t)
                 print(
-                    "%s - expected %s, but got %s"
-                    % (t, repr(expected), repr(get_arg_text(t)))
+                    f"{t} - expected {repr(expected)}, but got {repr(get_arg_text(t))}"
                 )
         print("%d of %d tests failed" % (len(failed), len(tests)))
 

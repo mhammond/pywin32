@@ -89,13 +89,11 @@ def IsOnPythonPath(path):
     # must check that the command line arg's path is in sys.path
     for syspath in sys.path:
         try:
-            # Python 1.5 and later allows an empty sys.path entry.
+            # sys.path can have an empty entry.
             if syspath and win32ui.FullPath(syspath) == path:
                 return 1
         except win32ui.error as details:
-            print(
-                "Warning: The sys.path entry '%s' is invalid\n%s" % (syspath, details)
-            )
+            print(f"Warning: The sys.path entry '{syspath}' is invalid\n{details}")
     return 0
 
 
@@ -288,7 +286,7 @@ def RunScript(defName=None, defArgs=None, bShowDialog=1, debuggingType=None):
         try:
             os.stat(fnameonly)  # See if it is OK as is...
             script = fnameonly
-        except os.error:
+        except OSError:
             fullScript = LocatePythonFile(script)
             if fullScript is None:
                 win32ui.MessageBox("The file '%s' can not be located" % script)
@@ -305,10 +303,10 @@ def RunScript(defName=None, defArgs=None, bShowDialog=1, debuggingType=None):
     # ignores any encoding decls (bad!).  If we use binary mode we get
     # the raw bytes and Python looks at the encoding (good!) but \r\n
     # chars stay in place so Python throws a syntax error (bad!).
-    # So: so the binary thing and manually normalize \r\n.
+    # So: do the binary thing and manually normalize \r\n.
     try:
         f = open(script, "rb")
-    except IOError as exc:
+    except OSError as exc:
         win32ui.MessageBox(
             "The file could not be opened - %s (%d)" % (exc.strerror, exc.errno)
         )
@@ -398,7 +396,7 @@ def RunScript(defName=None, defArgs=None, bShowDialog=1, debuggingType=None):
         sys.path[0] = oldPath0
     f.close()
     if bWorked:
-        win32ui.SetStatusText("Script '%s' returned exit code %s" % (script, exitCode))
+        win32ui.SetStatusText(f"Script '{script}' returned exit code {exitCode}")
     else:
         win32ui.SetStatusText("Exception raised while running script  %s" % base)
     try:
@@ -438,8 +436,7 @@ def ImportFile():
     newPath = None
     # note that some packages (*cough* email *cough*) use "lazy importers"
     # meaning sys.modules can change as a side-effect of looking at
-    # module.__file__ - so we must take a copy (ie, items() in py2k,
-    # list(items()) in py3k)
+    # module.__file__ - so we must take a copy (ie, list(items()))
     for key, mod in list(sys.modules.items()):
         if getattr(mod, "__file__", None):
             fname = mod.__file__
@@ -506,8 +503,8 @@ def CheckFile():
     win32ui.DoWaitCursor(1)
     try:
         f = open(pathName)
-    except IOError as details:
-        print("Cant open file '%s' - %s" % (pathName, details))
+    except OSError as details:
+        print(f"Cant open file '{pathName}' - {details}")
         return
     try:
         code = f.read() + "\n"
@@ -641,10 +638,8 @@ def FindTabNanny():
     fname = os.path.join(path, "Tools\\Scripts\\%s" % filename)
     try:
         os.stat(fname)
-    except os.error:
-        print(
-            "WARNING - The file '%s' can not be located in path '%s'" % (filename, path)
-        )
+    except OSError:
+        print(f"WARNING - The file '{filename}' can not be located in path '{path}'")
         return None
 
     tabnannyhome, tabnannybase = os.path.split(fname)
