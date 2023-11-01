@@ -22,7 +22,7 @@ def DumpPythonRegistry():
         print("The remote device does not appear to have Python installed")
         return 0
     path, typ = wincerapi.CeRegQueryValueEx(h, None)
-    print("The remote PythonPath is '%s'" % (str(path),))
+    print(f"The remote PythonPath is '{str(path)}'")
     h.Close()
     return 1
 
@@ -38,7 +38,7 @@ def DumpRegistry(root, level=0):
             name, data, typ = wincerapi.CeRegEnumValue(root, index)
         except win32api.error:
             break
-        print("%s%s=%s" % (level_prefix, name, repr(str(data))))
+        print(f"{level_prefix}{name}={repr(str(data))}")
         index = index + 1
     # Now enumerate all keys.
     index = 0
@@ -47,7 +47,7 @@ def DumpRegistry(root, level=0):
             name, klass = wincerapi.CeRegEnumKeyEx(root, index)
         except win32api.error:
             break
-        print("%s%s\\" % (level_prefix, name))
+        print(f"{level_prefix}{name}\\")
         subkey = wincerapi.CeRegOpenKeyEx(root, name)
         DumpRegistry(subkey, level + 1)
         index = index + 1
@@ -108,10 +108,7 @@ def DumpRemoteMachineStatus():
         batPerc = "unknown"
     else:
         batPerc = BatteryLifePercent
-    print(
-        "The batteries are at %s%%, and is currently being powered by %s"
-        % (batPerc, power)
-    )
+    print(f"The batteries are at {batPerc}%, and is currently being powered by {power}")
 
     (
         memLoad,
@@ -142,7 +139,7 @@ def DumpRemoteFolders():
         if name[:6] == "CSIDL_":
             try:
                 loc = str(wincerapi.CeGetSpecialFolderPath(val))
-                print("Folder %s is at %s" % (name, loc))
+                print(f"Folder {name} is at {loc}")
             except win32api.error as details:
                 pass
 
@@ -163,7 +160,7 @@ def DumpRemoteFolders():
             except win32api.error as xxx_todo_changeme:
                 (rc, fn, msg) = xxx_todo_changeme.args
                 resolved = "#Error - %s" % msg
-            print("%s->%s" % (fileName, resolved))
+            print(f"{fileName}->{resolved}")
 
         # print("The start menu is at")
         # print(wincerapi.CeSHGetShortcutTarget("\\Windows\\Start Menu\\Shortcut to Python.exe.lnk"))

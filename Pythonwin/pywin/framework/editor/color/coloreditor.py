@@ -5,13 +5,7 @@ import pywin.scintilla.keycodes
 import win32api
 import win32con
 import win32ui
-from pywin.framework.editor import (
-    GetEditorFontOption,
-    GetEditorOption,
-    SetEditorFontOption,
-    SetEditorOption,
-    defaultCharacterFormat,
-)
+from pywin.framework.editor import GetEditorOption
 from pywin.scintilla import bindings
 
 # from pywin.framework.editor import EditorPropertyPage

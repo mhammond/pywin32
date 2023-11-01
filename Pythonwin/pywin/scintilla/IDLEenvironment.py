@@ -28,9 +28,9 @@ def GetIDLEModule(module):
         __import__(modname)
     except ImportError as details:
         msg = (
-            "The IDLE extension '%s' can not be located.\r\n\r\n"
+            f"The IDLE extension '{module}' can not be located.\r\n\r\n"
             "Please correct the installation and restart the"
-            " application.\r\n\r\n%s" % (module, details)
+            f" application.\r\n\r\n{details}"
         )
         win32ui.MessageBox(msg)
         return None
@@ -99,7 +99,7 @@ class IDLEEditorWindow:
         # Find and bind all the events defined in the extension.
         events = [item for item in dir(klass) if item[-6:] == "_event"]
         for event in events:
-            name = "<<%s>>" % (event[:-6].replace("_", "-"),)
+            name = "<<{}>>".format(event[:-6].replace("_", "-"))
             self.edit.bindings.bind(name, getattr(ext, event))
         return ext
 
@@ -133,11 +133,9 @@ class IDLEEditorWindow:
             except ValueError:
                 err = "Please enter an integer"
             if not err and minvalue is not None and rc < minvalue:
-                err = "Please enter an integer greater then or equal to %s" % (
-                    minvalue,
-                )
+                err = f"Please enter an integer greater then or equal to {minvalue}"
             if not err and maxvalue is not None and rc > maxvalue:
-                err = "Please enter an integer less then or equal to %s" % (maxvalue,)
+                err = f"Please enter an integer less then or equal to {maxvalue}"
             if err:
                 win32ui.MessageBox(err, caption, win32con.MB_OK)
                 continue
@@ -519,8 +517,9 @@ def TestGet(fr, to, t, expected):
     got = t.get(fr, to)
     if got != expected:
         print(
-            "ERROR: get(%s, %s) expected %s, but got %s"
-            % (repr(fr), repr(to), repr(expected), repr(got))
+            "ERROR: get({}, {}) expected {}, but got {}".format(
+                repr(fr), repr(to), repr(expected), repr(got)
+            )
         )
 
 

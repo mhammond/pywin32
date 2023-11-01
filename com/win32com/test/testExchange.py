@@ -90,7 +90,7 @@ def TestUser(session):
             id = PropTagsById[field.ID]
         except KeyError:
             id = field.ID
-        print("%s/%s=%s" % (field.Name, id, field.Value))
+        print(f"{field.Name}/{id}={field.Value}")
 
 
 def test():

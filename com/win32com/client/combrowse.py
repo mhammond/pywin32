@@ -194,7 +194,7 @@ class HLIRegisteredTypeLibrary(HLICOM):
         collected = []
         helpPath = ""
         key = win32api.RegOpenKey(
-            win32con.HKEY_CLASSES_ROOT, "TypeLib\\%s\\%s" % (clsidstr, versionStr)
+            win32con.HKEY_CLASSES_ROOT, f"TypeLib\\{clsidstr}\\{versionStr}"
         )
         win32ui.DoWaitCursor(1)
         try:
@@ -453,7 +453,7 @@ class HLITypeLibFunction(HLICOM):
             typname = "?Bad type?"
         for flag, desc in self.type_flags:
             if flag & typ:
-                typname = "%s(%s)" % (desc, typname)
+                typname = f"{desc}({typname})"
         return typname
 
     def MakeReturnType(self, returnTypeDesc):
@@ -489,7 +489,7 @@ class HLITypeLibFunction(HLICOM):
             if flags:
                 val = "%s (Flags=%d)" % (val, flags)
             if default is not None:
-                val = "%s (Default=%s)" % (val, default)
+                val = f"{val} (Default={default})"
             ret.append(browser.MakeHLI(val, "Argument"))
 
         try:

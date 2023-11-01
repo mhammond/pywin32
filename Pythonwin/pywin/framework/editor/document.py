@@ -158,15 +158,17 @@ class EditorDocumentBase(ParentEditorDocument):
         except OSError as exc:
             if not self.bReportedFileNotFound:
                 print(
-                    "The file '%s' is open for editing, but\nchecking it for changes caused the error: %s"
-                    % (self.GetPathName(), exc.strerror)
+                    "The file '{}' is open for editing, but\nchecking it for changes caused the error: {}".format(
+                        self.GetPathName(), exc.strerror
+                    )
                 )
                 self.bReportedFileNotFound = 1
             return
         if self.bReportedFileNotFound:
             print(
-                "The file '%s' has re-appeared - continuing to watch for changes..."
-                % (self.GetPathName(),)
+                "The file '{}' has re-appeared - continuing to watch for changes...".format(
+                    self.GetPathName()
+                )
             )
             self.bReportedFileNotFound = (
                 0  # Once found again we want to start complaining.

@@ -57,7 +57,7 @@ class BrowserFrame(window.MDIChildWnd):
         self.ocx.SetWindowPos(0, rect, 0)
 
     def OnNavigate(self, url):
-        title = "Web Browser - %s" % (url,)
+        title = f"Web Browser - {url}"
         self.SetWindowText(title)
 
 

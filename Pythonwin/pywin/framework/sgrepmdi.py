@@ -264,7 +264,7 @@ class GrepDocument(docview.RichEditDoc):
 
     def doSearch(self):
         self.dp = dirpath(self.dirpattern, self.recurse)
-        self.SetTitle("Grep for %s in %s" % (self.greppattern, self.filpattern))
+        self.SetTitle(f"Grep for {self.greppattern} in {self.filpattern}")
         # self.text = []
         self.GetFirstView().Append("#Search " + self.dirpattern + "\n")
         if self.verbose:

@@ -150,8 +150,9 @@ class DispatcherTrace(DispatcherBase):
         rc = DispatcherBase._QueryInterface_(self, iid)
         if not rc:
             self._trace_(
-                "in %s._QueryInterface_ with unsupported IID %s (%s)"
-                % (repr(self.policy._obj_), IIDToInterfaceName(iid), iid)
+                "in {}._QueryInterface_ with unsupported IID {} ({})".format(
+                    repr(self.policy._obj_), IIDToInterfaceName(iid), iid
+                )
             )
         return rc
 
@@ -177,8 +178,9 @@ class DispatcherTrace(DispatcherBase):
 
     def _InvokeEx_(self, dispid, lcid, wFlags, args, kwargs, serviceProvider):
         self._trace_(
-            "in %r._InvokeEx_-%s%r [%x,%s,%r]"
-            % (self.policy._obj_, dispid, args, wFlags, lcid, serviceProvider)
+            "in {!r}._InvokeEx_-{}{!r} [{:x},{},{!r}]".format(
+                self.policy._obj_, dispid, args, wFlags, lcid, serviceProvider
+            )
         )
         return DispatcherBase._InvokeEx_(
             self, dispid, lcid, wFlags, args, kwargs, serviceProvider

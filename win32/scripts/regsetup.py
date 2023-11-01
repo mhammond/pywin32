@@ -120,7 +120,7 @@ def FindAppPath(appName, knownFileName, searchPaths):
             # Found it
             return os.path.abspath(pathLook)
     raise error(
-        "The file %s can not be located for application %s" % (knownFileName, appName)
+        f"The file {knownFileName} can not be located for application {appName}"
     )
 
 
@@ -209,7 +209,7 @@ def LocateFileName(fileNamesString, searchPaths):
         # Display a common dialog to locate the file.
         flags = win32con.OFN_FILEMUSTEXIST
         ext = os.path.splitext(fileName)[1]
-        filter = "Files of requested type (*%s)|*%s||" % (ext, ext)
+        filter = f"Files of requested type (*{ext})|*{ext}||"
         dlg = win32ui.CreateFileDialog(1, None, fileName, flags, filter, None)
         dlg.SetOFNTitle("Locate " + fileName)
         if dlg.DoModal() != win32con.IDOK:
@@ -307,9 +307,7 @@ def FindRegisterPackage(packageName, knownFile, searchPaths, registryAppName=Non
             regutil.RegisterNamedPath(registryAppName, pathAdd)
         return pathLook
     except error as details:
-        print(
-            "*** The %s package could not be registered - %s" % (packageName, details)
-        )
+        print(f"*** The {packageName} package could not be registered - {details}")
         print(
             "*** Please ensure you have passed the correct paths on the command line."
         )

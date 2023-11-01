@@ -87,7 +87,7 @@ class Extension(threaded_extension.ThreadPoolExtension):
         ecb.SendResponseHeaders("200 OK", header_text, False)
         ecb.WriteClient(fp.read())
         ecb.DoneWithSession()
-        print("Returned data from '%s'" % (new_url,))
+        print(f"Returned data from '{new_url}'")
         return isapicon.HSE_STATUS_SUCCESS
 
 

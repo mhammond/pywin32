@@ -658,8 +658,6 @@ def EditCreator(parent):
 
 
 def test():
-    import pywin.mfc.dialog
-
     global bar
     bar = DockingBar()
     creator = EditCreator

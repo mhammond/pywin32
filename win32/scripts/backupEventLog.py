@@ -18,7 +18,7 @@ def BackupClearLog(logType):
         try:
             fname = os.path.join(
                 win32api.GetTempPath(),
-                "%s%s-%s" % (datePrefix, index, logType) + ".evt",
+                f"{datePrefix}{index}-{logType}" + ".evt",
             )
             os.stat(fname)
         except OSError:
@@ -35,7 +35,7 @@ def BackupClearLog(logType):
             print("No records in event log %s - not backed up" % logType)
             return
         win32evtlog.ClearEventLog(hlog, fname)
-        print("Backed up %s log to %s" % (logType, fname))
+        print(f"Backed up {logType} log to {fname}")
     finally:
         win32evtlog.CloseEventLog(hlog)
 

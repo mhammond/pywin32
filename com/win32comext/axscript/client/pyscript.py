@@ -382,7 +382,7 @@ class PyScript(framework.COMScript):
         num = self._GetNextCodeBlockNumber()
         if num == 1:
             num = ""
-        name = "%s %s" % (name, num)
+        name = f"{name} {num}"
         codeBlock = AXScriptCodeBlock(
             name, code, sourceContextCookie, startLineNumber, flags
         )
