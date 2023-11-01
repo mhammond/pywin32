@@ -4,7 +4,6 @@ import traceback
 from pprint import pprint
 
 import winerror
-from win32com.server.exception import COMException
 
 from . import axdebug, gateways
 from .util import RaiseNotImpl, _wrap
@@ -32,7 +31,7 @@ class ExpressionContext(gateways.DebugExpressionContext):
         )
 
     def GetLanguageInfo(self):
-        #               print "GetLanguageInfo"
+        # print("GetLanguageInfo")
         return "Python", "{DF630910-1C1D-11d0-AE36-8C0F5E000000}"
 
 
@@ -77,7 +76,7 @@ class Expression(gateways.DebugExpression):
         return self.isComplete
 
     def GetResultAsString(self):
-        #               print "GetStrAsResult returning", self.result
+        # print("GetStrAsResult returning", self.result)
         return self.hresult, MakeNiceString(self.result)
 
     def GetResultAsDebugProperty(self):
@@ -187,8 +186,8 @@ class DebugProperty:
             dwFieldSpec,
             nRadix,
             self.hresult,
-            dictionary,
-            stackFrame,
+            self.dictionary,
+            self.stackFrame,
         )
 
     def GetExtendedInfo(self):  ### Note - not in the framework.
