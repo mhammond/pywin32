@@ -43,8 +43,10 @@ class TestStuff(unittest.TestCase):
 
             newdb.Close()
 
-            conn_str = "Driver={Microsoft Access Driver (*.mdb)};dbq=%s;Uid=;Pwd=;" % (
-                self.db_filename,
+            conn_str = (
+                "Driver={{Microsoft Access Driver (*.mdb)}};dbq={};Uid=;Pwd=;".format(
+                    self.db_filename,
+                )
             )
         ## print 'Connection string:', conn_str
         self.conn = odbc.odbc(conn_str)
@@ -163,14 +165,13 @@ class TestStuff(unittest.TestCase):
             self.cur.execute("delete from %s where userid='Frank'" % self.tablename)
             self.assertEqual(
                 self.cur.execute(
-                    "insert into %s (userid, %s) values (?,?)"
-                    % (self.tablename, fieldName),
+                    f"insert into {self.tablename} (userid, {fieldName}) values (?,?)",
                     ["Frank", value],
                 ),
                 1,
             )
             self.cur.execute(
-                "select %s from %s where userid = ?" % (fieldName, self.tablename),
+                f"select {fieldName} from {self.tablename} where userid = ?",
                 ["Frank"],
             )
             rows = self.cur.fetchmany()

@@ -131,7 +131,7 @@ def GetGeneratedFileName(clsid, lcid, major, minor):
     """Given the clsid, lcid, major and  minor for a type lib, return
     the file name (no extension) providing this support.
     """
-    return str(clsid).upper()[1:-1] + "x%sx%sx%s" % (lcid, major, minor)
+    return str(clsid).upper()[1:-1] + f"x{lcid}x{major}x{minor}"
 
 
 def SplitGeneratedFileName(fname):
@@ -409,8 +409,9 @@ def ForgetAboutTypelibInterface(typelib_ob):
     except KeyError:
         # Not worth raising an exception - maybe they dont know we only remember for demand generated, etc.
         print(
-            "ForgetAboutTypelibInterface:: Warning - type library with info %s is not being remembered!"
-            % (info,)
+            "ForgetAboutTypelibInterface:: Warning - type library with info {} is not being remembered!".format(
+                info
+            )
         )
     # and drop any version redirects to it
     for key, val in list(versionRedirectMap.items()):
@@ -506,7 +507,7 @@ def EnsureModule(
                 bValidateFile = 0
         if module is not None and bValidateFile:
             assert not is_readonly, "Can't validate in a read-only gencache"
-            filePathPrefix = "%s\\%s" % (
+            filePathPrefix = "{}\\{}".format(
                 GetGeneratePath(),
                 GetGeneratedFileName(typelibCLSID, lcid, major, minor),
             )
@@ -543,7 +544,7 @@ def EnsureModule(
                 bReloadNeeded = 1
             else:
                 minor = module.MinorVersion
-                filePathPrefix = "%s\\%s" % (
+                filePathPrefix = "{}\\{}".format(
                     GetGeneratePath(),
                     GetGeneratedFileName(typelibCLSID, lcid, major, minor),
                 )
@@ -741,8 +742,9 @@ def Rebuild(verbose=1):
             AddModuleToCache(iid, lcid, major, minor, verbose, 0)
         except:
             print(
-                "Could not add module %s - %s: %s"
-                % (info, sys.exc_info()[0], sys.exc_info()[1])
+                "Could not add module {} - {}: {}".format(
+                    info, sys.exc_info()[0], sys.exc_info()[1]
+                )
             )
     if verbose and len(infos):  # Dont bother reporting this when directory is empty!
         print("Done.")
@@ -757,7 +759,7 @@ def _Dump():
         d[typelibCLSID, lcid, major, minor] = None
     for typelibCLSID, lcid, major, minor in d.keys():
         mod = GetModuleForTypelib(typelibCLSID, lcid, major, minor)
-        print("%s - %s" % (mod.__doc__, typelibCLSID))
+        print(f"{mod.__doc__} - {typelibCLSID}")
 
 
 # Boot up

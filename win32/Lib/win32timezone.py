@@ -583,7 +583,7 @@ class TimeZoneInfo(datetime.tzinfo):
         )
 
     def __repr__(self):
-        result = "%s(%s" % (self.__class__.__name__, repr(self.timeZoneName))
+        result = f"{self.__class__.__name__}({repr(self.timeZoneName)}"
         if self.fixedStandardTime:
             result += ", True"
         result += ")"

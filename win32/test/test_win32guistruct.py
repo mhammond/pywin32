@@ -11,7 +11,7 @@ class TestBase(unittest.TestCase):
     def assertDictEquals(self, d, **kw):
         checked = {}
         for n, v in kw.items():
-            self.assertEqual(v, d[n], "'%s' doesn't match: %r != %r" % (n, v, d[n]))
+            self.assertEqual(v, d[n], f"'{n}' doesn't match: {v!r} != {d[n]!r}")
             checked[n] = True
         checked_keys = list(checked.keys())
         passed_keys = list(kw.keys())
