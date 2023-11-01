@@ -55,7 +55,7 @@ def __WrapDispatch(
 
 
 def GetObject(Pathname=None, Class=None, clsctx=None):
-    """
+    r"""
     Mimic VB's GetObject() function.
 
     ob = GetObject(Class = "ProgID") or GetObject(Class = clsid) will

@@ -83,6 +83,5 @@ if __name__ == "__main__":
         TestEngine()
     except:
         traceback.print_exc()
-    win32com.axdebug.util._dump_wrapped()
     sys.exc_type = sys.exc_value = sys.exc_traceback = None
     print(pythoncom._GetInterfaceCount(), "com objects still alive")

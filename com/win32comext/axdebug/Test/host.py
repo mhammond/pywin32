@@ -3,7 +3,6 @@ import traceback
 
 import pythoncom
 import win32api
-import win32com.server.util
 import winerror
 from win32com.axdebug import codecontainer, gateways
 from win32com.axdebug.util import _wrap, trace
@@ -49,9 +48,7 @@ class PySourceModuleDebugDocumentHost(gateways.DebugDocumentHost):
         from win32com.util import IIDToInterfaceName
 
         trace(
-            "PySourceModuleDebugDocumentHost QI with {} ({})".format(
-                IIDToInterfaceName(iid), str(iid)
-            )
+            f"PySourceModuleDebugDocumentHost QI with {IIDToInterfaceName(iid)} ({iid})"
         )
         return 0
 
@@ -60,7 +57,7 @@ class PySourceModuleDebugDocumentHost(gateways.DebugDocumentHost):
             try:
                 codeText = open(self.module.__file__, "rt").read()
             except OSError as details:
-                codeText = "# Exception opening file\n# %s" % (details)
+                codeText = f"# Exception opening file\n# {details}"
 
             self.codeContainer = codecontainer.SourceCodeContainer(
                 codeText, self.module.__file__
@@ -115,8 +112,8 @@ def TestSmartProvider():
     from win32com.axdebug import debugger
 
     d = debugger.AXDebugger()
-    # 	d.StartDebugger()
-    # 	d.Attach()
+    # d.StartDebugger()
+    # d.Attach()
     d.Break()
     input("Waiting...")
     ttest.test()
@@ -133,10 +130,6 @@ def test():
 
 if __name__ == "__main__":
     test()
-    import win32com.axdebug.util
-
-    win32com.axdebug.util._dump_wrapped()
     print(
-        " %d/%d com objects still alive"
-        % (pythoncom._GetInterfaceCount(), pythoncom._GetGatewayCount())
+        f" {pythoncom._GetInterfaceCount()}/{pythoncom._GetGatewayCount()} com objects still alive"
     )

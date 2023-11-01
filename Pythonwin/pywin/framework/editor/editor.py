@@ -28,16 +28,21 @@ from pywin.framework.editor import (
     GetEditorOption,
     defaultCharacterFormat,
 )
-from pywin.mfc import afxres, docview
+from pywin.mfc import afxres
+from pywin.mfc.docview import RichEditView as ParentEditorView
+
+from .document import EditorDocumentBase as ParentEditorDocument
+
+# from pywin.mfc.docview import EditView as ParentEditorView
+# from pywin.mfc.docview import Document as ParentEditorDocument
 
 patImport = regex.symcomp(r"import \(<name>.*\)")
 patIndent = regex.compile(r"^\([ \t]*[~ \t]\)")
 
 ID_LOCATE_FILE = 0xE200
 ID_GOTO_LINE = 0xE2001
-MSG_CHECK_EXTERNAL_FILE = (
-    win32con.WM_USER + 1999
-)  ## WARNING: Duplicated in document.py and coloreditor.py
+# WARNING: Duplicated in document.py and coloreditor.py
+MSG_CHECK_EXTERNAL_FILE = win32con.WM_USER + 1999
 
 # Key Codes that modify the bufffer when Ctrl or Alt are NOT pressed.
 MODIFYING_VK_KEYS = [
@@ -75,11 +80,6 @@ MODIFYING_VK_KEYS_ALT = [
 # per document, although nothing in this code assumes this (I hope!)
 
 isRichText = 1  # We are using the Rich Text control.  This has not been tested with value "0" for quite some time!
-
-# ParentEditorDocument=docview.Document
-from .document import EditorDocumentBase
-
-ParentEditorDocument = EditorDocumentBase
 
 
 class EditorDocument(ParentEditorDocument):
@@ -163,9 +163,6 @@ class EditorDocument(ParentEditorDocument):
 # 	def StreamTextOut(self, data): ### This seems unreliable???
 # 		self.saveFileHandle.write(data)
 # 		return 1 # keep em coming!
-
-# ParentEditorView=docview.EditView
-ParentEditorView = docview.RichEditView
 
 
 class EditorView(ParentEditorView):
