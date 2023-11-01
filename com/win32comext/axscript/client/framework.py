@@ -168,7 +168,7 @@ class Event:
         self.name = typeinfo.GetNames(self.dispid)[0]
 
 
-# 		print "Event.Build() - Event Name is ", self.name
+# print("Event.Build() - Event Name is ", self.name)
 
 
 class EventSink:
@@ -207,7 +207,7 @@ class EventSink:
             event = self.events[dispid]
         except:
             raise Exception(scode=winerror.DISP_E_MEMBERNOTFOUND)
-        # print "Invoke for ", event, "on", self.myScriptItem, " - calling",  self.myInvokeMethod
+        # print("Invoke for ", event, "on", self.myScriptItem, " - calling",  self.myInvokeMethod)
         return self.myInvokeMethod(self.myScriptItem, event, lcid, wFlags, args)
 
     def GetSourceTypeInfo(self, typeinfo):
@@ -352,16 +352,16 @@ class ScriptItem:
         if self.isRegistered:
             return
         # Get the type info to use to build this item.
-        # 		if not self.dispatch:
-        # 			id = self.parentItem.dispatch.GetIDsOfNames(self.name)
-        # 			print "DispID of me is", id
-        # 			result = self.parentItem.dispatch.Invoke(id, 0, pythoncom.DISPATCH_PROPERTYGET,1)
-        # 			if isinstance(result, pythoncom.TypeIIDs[pythoncom.IID_IDispatch]):
-        # 				self.dispatch = result
-        # 			else:
-        # 				print "*** No dispatch"
-        # 				return
-        # 			print "**** Made dispatch"
+        # if not self.dispatch:
+        #     id = self.parentItem.dispatch.GetIDsOfNames(self.name)
+        #     print("DispID of me is", id)
+        #     result = self.parentItem.dispatch.Invoke(id, 0, pythoncom.DISPATCH_PROPERTYGET,1)
+        #     if isinstance(result, pythoncom.TypeIIDs[pythoncom.IID_IDispatch]):
+        #         self.dispatch = result
+        #     else:
+        #         print("*** No dispatch")
+        #         return
+        #     print("**** Made dispatch")
         self.isRegistered = 1
         # Register the sub-items.
         for item in self.subItems.values():
@@ -516,7 +516,18 @@ class ScriptItem:
                             subObj = self.GetCreateSubItem(
                                 self, name, result, axscript.SCRIPTITEM_ISVISIBLE
                             )
-                            # print "subobj", name, "flags are", subObj.flags, "mydisp=", self.dispatch, "result disp=", result, "compare=", self.dispatch==result
+                            # print(
+                            #     "subobj",
+                            #     name,
+                            #     "flags are",
+                            #     subObj.flags,
+                            #     "mydisp=",
+                            #     self.dispatch,
+                            #     "result disp=",
+                            #     result,
+                            #     "compare=",
+                            #     self.dispatch == result,
+                            # )
                             subObj.BuildEvents()
                             subObj.Register()
                     except pythoncom.com_error:
@@ -762,7 +773,7 @@ class COMScript:
         return self.scriptSite.QueryInterface(iid)
 
     def SetScriptState(self, state):
-        # print "SetScriptState with %s - currentstate = %s" % (state_map.get(state),state_map.get(self.scriptState))
+        # print(f"SetScriptState with {state_map.get(state)} - currentstate = {state_map.get(self.scriptState)}"
         if state == self.scriptState:
             return
         # If closed, allow no other state transitions
@@ -1049,7 +1060,7 @@ class COMScript:
         self.ChangeScriptState(axscript.SCRIPTSTATE_INITIALIZED)
 
     def ChangeScriptState(self, state):
-        # print "  ChangeScriptState with %s - currentstate = %s" % (state_map.get(state),state_map.get(self.scriptState))
+        # print(f"  ChangeScriptState with {state_map.get(state)} - currentstate = {state_map.get(self.scriptState)}")
         self.DisableInterrupts()
         try:
             self.scriptState = state
@@ -1076,7 +1087,7 @@ class COMScript:
         self.BeginScriptedSection()
         try:
             try:
-                # 				print "ApplyInSS", codeBlock, fn, args
+                # print("ApplyInSS", codeBlock, fn, args)
                 return self._ApplyInScriptedSection(fn, args)
             finally:
                 if self.debugManager:

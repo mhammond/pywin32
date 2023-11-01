@@ -691,7 +691,16 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
         return "".join(before), "".join(after)
 
     def OnPrepareDC(self, dc, pInfo):
-        # 		print "OnPrepareDC for page", pInfo.GetCurPage(), "of", pInfo.GetFromPage(), "to", pInfo.GetToPage(), ", starts=", self.starts
+        # print(
+        #     "OnPrepareDC for page",
+        #     pInfo.GetCurPage(),
+        #     "of",
+        #     pInfo.GetFromPage(),
+        #     "to",
+        #     pInfo.GetToPage(),
+        #     ", starts=",
+        #     self.starts,
+        # )
         if dc.IsPrinting():
             # Check if we are beyond the end.
             # (only do this when actually printing, else messes up print preview!)
@@ -779,7 +788,7 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
 
     def OnPrint(self, dc, pInfo):
         metrics = dc.GetTextMetrics()
-        # 		print "dev", w, h, l, metrics['tmAscent'], metrics['tmDescent']
+        # print("dev", w, h, l, metrics["tmAscent"], metrics["tmDescent"])
         if self.starts is None:
             self.CalculatePageRanges(dc, pInfo)
         pageNum = pInfo.GetCurPage() - 1

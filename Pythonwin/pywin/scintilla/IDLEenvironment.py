@@ -550,7 +550,7 @@ def test():
 	TestCheck("2.0", e, 13)
 	try:
 		TestCheck("sel.first", e, 0)
-		print "*** sel.first worked with an empty selection"
+		print("*** sel.first worked with an empty selection")
 	except TextError:
 		pass
 	e.SetSel((4,5))

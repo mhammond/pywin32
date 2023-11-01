@@ -108,7 +108,7 @@ class test_adodbapi(dbapi20.DatabaseAPI20Test):
         if self.getTestMethodName() == "test_callproc":
             con = self._connect()
             engine = con.dbms_name
-            ## print('Using database Engine=%s' % engine) ##
+            # print(f"Using database Engine={engine}")
             if engine != "MS Jet":
                 sql = """
                     create procedure templower

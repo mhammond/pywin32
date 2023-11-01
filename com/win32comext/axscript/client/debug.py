@@ -99,7 +99,7 @@ class DebugManager:
             self.adb.CloseApp()
             self.adb = None
 
-    # 		print "Close complete"
+    # print("Close complete")
 
     def IsAnyHost(self):
         "Do we have _any_ debugging interfaces installed?"

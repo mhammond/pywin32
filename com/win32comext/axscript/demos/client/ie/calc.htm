@@ -10,7 +10,7 @@ PendingOp = NullOp# Pending operation waiting for completion of second operand
 numberButNames = ['Zero','One','Two','Three','Four','Five','Six','Seven','Eight','Nine']
 
 def NumPressed(Num):
-	print "NumPressed", Num
+	print("NumPressed", Num)
 	global FlagNewNum
 	if FlagNewNum:
 		ax.document.Keypad.ReadOut.Value = Num
@@ -42,7 +42,7 @@ import sys, string
 def Operation(Op, fn):
 	global FlagNewNum, PendingOp, Accum
 	ReadOut = ax.document.Keypad.ReadOut.Value
-	print "Operation", Op, ReadOut, PendingOp, Accum
+	print("Operation", Op, ReadOut, PendingOp, Accum)
 	if FlagNewNum:
 		# User is hitting op keys repeatedly, so don't do anything
 		PendingOp = NullOp

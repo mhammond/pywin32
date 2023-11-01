@@ -25,15 +25,15 @@ class EditorFrame(pywin.framework.window.MDIChildWnd):
         splitter.CreateView(browserView, 0, 0, (0, 0))
         sub_splitter.CreateView(view2, 0, 0, (0, 0))
 
-        ##        print "First view is", context.doc.GetFirstView()
-        ##        print "Views are", view, view2, browserView
-        ##        print "Parents are", view.GetParent(), view2.GetParent(), browserView.GetParent()
-        ##        print "Splitter is", splitter
-        ##        print "sub splitter is", sub_splitter
-        ## Old
-        ##        splitter.CreateStatic (self, 1, 2)
-        ##        splitter.CreateView(view, 0, 1, (0,0)) # size ignored.
-        ##        splitter.CreateView (browserView, 0, 0, (0, 0))
+        # print("First view is", context.doc.GetFirstView())
+        # print("Views are", view, view2, browserView)
+        # print("Parents are", view.GetParent(), view2.GetParent(), browserView.GetParent())
+        # print("Splitter is", splitter)
+        # print("sub splitter is", sub_splitter)
+        # Old
+        # splitter.CreateStatic (self, 1, 2)
+        # splitter.CreateView(view, 0, 1, (0,0))  # size ignored.
+        # splitter.CreateView (browserView, 0, 0, (0, 0))
 
         # Restrict the size of the browser splitter (and we can avoid filling
         # it until it is shown)
@@ -62,8 +62,8 @@ class EditorFrame(pywin.framework.window.MDIChildWnd):
     def OnClose(self):
         doc = self.GetActiveDocument()
         if not doc.SaveModified():
-            ## Cancel button selected from Save dialog, do not actually close
-            ## print 'close cancelled'
+            # Cancel button selected from Save dialog, do not actually close
+            # print("close cancelled")
             return 0
         ## So the 'Save' dialog doesn't come up twice
         doc._obj_.SetModifiedFlag(False)

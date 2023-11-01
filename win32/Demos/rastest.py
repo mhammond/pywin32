@@ -20,14 +20,14 @@ callbackEvent = win32event.CreateEvent(None, 0, 0, None)
 
 
 def Callback(hras, msg, state, error, exterror):
-    #       print "Callback called with ", hras, msg, state, error, exterror
+    # print("Callback called with ", hras, msg, state, error, exterror)
     stateName = stateMap.get(state, "Unknown state?")
     print("Status is %s (%04lx), error code is %d" % (stateName, state, error))
     finished = state in [win32ras.RASCS_Connected]
     if finished:
         win32event.SetEvent(callbackEvent)
     if error != 0 or int(state) == win32ras.RASCS_Disconnected:
-        #       we know for sure this is a good place to hangup....
+        # we know for sure this is a good place to hangup....
         print("Detected call failure: %s" % win32ras.GetErrorString(error))
         HangUp(hras)
         win32event.SetEvent(callbackEvent)
@@ -75,8 +75,8 @@ def Connect(entryName, bUseCallback):
         hras, rc = win32ras.Dial(
             None, None, (entryName, "", "", dp[3], dp[4], ""), theCallback
         )
-        #       hras, rc = win32ras.Dial(None, None, (entryName, ),theCallback)
-        #       print hras, rc
+        # hras, rc = win32ras.Dial(None, None, (entryName, ),theCallback)
+        # print(hras, rc)
         if not bUseCallback and rc != 0:
             print("Could not dial the RAS connection:", win32ras.GetErrorString(rc))
             hras = HangUp(hras)

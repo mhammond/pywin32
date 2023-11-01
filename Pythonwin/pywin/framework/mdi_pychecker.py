@@ -431,10 +431,10 @@ class TheDocument(docview.RichEditDoc):
         )
 
     def OnSaveDocument(self, filename):
-        #       print 'OnSaveDocument() filename=',filename
+        # print("OnSaveDocument() filename=",filename)
         savefile = open(filename, "wb")
         txt = self.GetParams() + "\n"
-        #       print 'writing',txt
+        # print("writing",txt)
         savefile.write(txt)
         savefile.close()
         self.SetModifiedFlag(0)

@@ -53,8 +53,8 @@ handel=win32security.LogonUser('barney','bedrock','bambam'\
 	,win32con.LOGON32_LOGON_INTERACTIVE,win32con.LOGON32_PROVIDER_DEFAULT)
 win32security.ImpersonateLoggedOnUser(handel)
 
-#do stuff here
-print win32api.GetUserName() #show you're someone else
+# do stuff here
+print(win32api.GetUserName())  # show you're someone else
 
 win32security.RevertToSelf() #terminates impersonation
 handel.Close()
@@ -85,10 +85,10 @@ a=Impersonate('barney','bambam')
 try:
     a.logon() #become the user
     #do whatever here
-    print win32api.GetUserName() #show you're someone else
+    print(win32api.GetUserName())  # show you're someone else
     a.logoff() #return to normal
 except:
-    print sys.exc_type , sys.exc_value
+    print(sys.exc_type, sys.exc_value)
 
 @ex Have a great time with programming with python!
 <nl>|John Nielsen   nielsenjf@my-deja.com       

@@ -109,8 +109,8 @@ class EmptyVolumeCache:
                         # we take longer than we need to...
                         # ACK - for some bizarre reason this screws up the XP
                         # cleanup manager - clues welcome!! :)
-                        ## print "Looking in", directory, ", but waiting a while..."
-                        ## time.sleep(3)
+                        # # print("Looking in", directory, ", but waiting a while...")
+                        # # time.sleep(3)
                         # now do it
                         used = total_list[0]
                         callback.ScanProgress(used, 0, "Looking at " + fqn)

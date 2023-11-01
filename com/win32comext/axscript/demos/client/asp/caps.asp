@@ -23,11 +23,11 @@ Response.Write("<p>Win32 username is "+win32api.GetUserName())
 
 <% 
 import sys
-print sys.path
+print(sys.path)
 from win32com.axscript.asputil import *
-print "Hello"
-print "There"
-print "How are you"
+print("Hello")
+print("There")
+print("How are you")
 %>
 
 <%bc = Server.CreateObject("MSWC.BrowserType")%>

@@ -363,7 +363,7 @@ def FindRegisterHelpFile(helpFile, searchPaths, helpDesc=None):
     except error as details:
         print("*** ", details)
         return
-    #       print "%s found at %s" % (helpFile, pathLook)
+    # print(f"{helpFile} found at {pathLook}")
     regutil.RegisterHelpFile(helpFile, pathLook, helpDesc)
 
 

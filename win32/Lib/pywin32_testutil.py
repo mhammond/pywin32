@@ -128,7 +128,8 @@ class TestLoader(unittest.TestLoader):
     def loadTestsFromName(self, name, module=None):
         test = unittest.TestLoader.loadTestsFromName(self, name, module)
         if isinstance(test, unittest.TestSuite):
-            pass  # hmmm? print "Don't wrap suites yet!", test._tests
+            # print("Don't wrap suites yet!", test._tests)
+            pass  # hmmm?
         elif isinstance(test, unittest.TestCase):
             test = self._getTestWrapper(test)
         else:

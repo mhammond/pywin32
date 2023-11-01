@@ -67,11 +67,11 @@ def TestEngine():
     except pythoncom.com_error as details:
         print(f"Script failed: {details[1]} (0x{details[0]:x})")
     # Now run the code expected to fail!
-    #  try:
-    #    pyEngine2.Start() # Actually run the Python code that fails!
-    #    print "Script code worked when it should have failed."
-    #  except pythoncom.com_error:
-    #    pass
+    # try:
+    #     pyEngine2.Start()  # Actually run the Python code that fails!
+    #     print("Script code worked when it should have failed.")
+    # except pythoncom.com_error:
+    #     pass
 
     site._Close()
 
