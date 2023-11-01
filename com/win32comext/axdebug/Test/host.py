@@ -5,10 +5,8 @@ import pythoncom
 import win32api
 import win32com.server.util
 import winerror
-from win32com.axdebug import adb, axdebug, codecontainer, contexts, documents, gateways
-from win32com.axdebug.util import _wrap, _wrap_remove, trace
-from win32com.axscript import axscript
-from win32com.client.util import Enumerator
+from win32com.axdebug import adb, axdebug, codecontainer, gateways
+from win32com.axdebug.util import trace
 from win32com.server.exception import Exception
 
 

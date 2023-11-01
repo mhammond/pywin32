@@ -26,11 +26,9 @@ import win32ui
 from pywin.framework.editor import (
     GetEditorFontOption,
     GetEditorOption,
-    SetEditorFontOption,
-    SetEditorOption,
     defaultCharacterFormat,
 )
-from pywin.mfc import afxres, dialog, docview
+from pywin.mfc import afxres, docview
 
 patImport = regex.symcomp(r"import \(<name>.*\)")
 patIndent = regex.compile(r"^\([ \t]*[~ \t]\)")
