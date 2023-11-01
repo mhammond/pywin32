@@ -18,7 +18,7 @@ def DumpDebugApplicationNode(node, level=0):
             info = node.GetName(attr)
         except pythoncom.com_error:
             info = "<N/A>"
-        print("%s%s: %s" % (spacer, desc, info))
+        print(f"{spacer}{desc}: {info}")
     try:
         doc = node.GetDocument()
     except pythoncom.com_error:
@@ -32,7 +32,7 @@ def DumpDebugApplicationNode(node, level=0):
             "%sText is %s, %d bytes long" % (spacer, repr(text[:40] + "..."), len(text))
         )
     else:
-        print("%s%s" % (spacer, "<No document available>"))
+        print("{}{}".format(spacer, "<No document available>"))
 
     for child in Enumerator(node.EnumChildren()):
         DumpDebugApplicationNode(child, level + 1)

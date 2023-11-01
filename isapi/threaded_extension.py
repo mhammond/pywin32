@@ -45,7 +45,7 @@ class WorkerThread(threading.Thread):
             # Let the parent extension handle the command.
             dispatcher = self.extension.dispatch_map.get(key)
             if dispatcher is None:
-                raise RuntimeError("Bad request '%s'" % (key,))
+                raise RuntimeError(f"Bad request '{key}'")
 
             dispatcher(errCode, bytes, key, overlapped)
 
@@ -166,8 +166,7 @@ class ThreadPoolExtension(isapi.simple.SimpleExtension):
                     exc_tb, limit
                 ) + traceback.format_exception_only(exc_typ, exc_val)
                 print(
-                    "<PRE>%s<B>%s</B></PRE>"
-                    % (
+                    "<PRE>{}<B>{}</B></PRE>".format(
                         cgi.escape("".join(list[:-1])),
                         cgi.escape(list[-1]),
                     ),

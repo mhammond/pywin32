@@ -93,9 +93,7 @@ def IsOnPythonPath(path):
             if syspath and win32ui.FullPath(syspath) == path:
                 return 1
         except win32ui.error as details:
-            print(
-                "Warning: The sys.path entry '%s' is invalid\n%s" % (syspath, details)
-            )
+            print(f"Warning: The sys.path entry '{syspath}' is invalid\n{details}")
     return 0
 
 
@@ -398,7 +396,7 @@ def RunScript(defName=None, defArgs=None, bShowDialog=1, debuggingType=None):
         sys.path[0] = oldPath0
     f.close()
     if bWorked:
-        win32ui.SetStatusText("Script '%s' returned exit code %s" % (script, exitCode))
+        win32ui.SetStatusText(f"Script '{script}' returned exit code {exitCode}")
     else:
         win32ui.SetStatusText("Exception raised while running script  %s" % base)
     try:
@@ -506,7 +504,7 @@ def CheckFile():
     try:
         f = open(pathName)
     except OSError as details:
-        print("Cant open file '%s' - %s" % (pathName, details))
+        print(f"Cant open file '{pathName}' - {details}")
         return
     try:
         code = f.read() + "\n"
@@ -641,9 +639,7 @@ def FindTabNanny():
     try:
         os.stat(fname)
     except OSError:
-        print(
-            "WARNING - The file '%s' can not be located in path '%s'" % (filename, path)
-        )
+        print(f"WARNING - The file '{filename}' can not be located in path '{path}'")
         return None
 
     tabnannyhome, tabnannybase = os.path.split(fname)

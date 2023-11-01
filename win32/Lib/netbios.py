@@ -291,5 +291,5 @@ if __name__ == "__main__":
         Netbios(ncb)
         print("Adapter address:", end=" ")
         for ch in adapter.adapter_address:
-            print("%02x" % (ch,), end=" ")
+            print(f"{ch:02x}", end=" ")
         print()

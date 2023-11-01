@@ -284,7 +284,7 @@ class TheDocument(docview.RichEditDoc):
     def doSearch(self):
         self.dp = dirpath(self.dirpattern, self.recurse)
         self.SetTitle(
-            "Pychecker Run '%s' (options: %s)" % (self.filpattern, self.greppattern)
+            f"Pychecker Run '{self.filpattern}' (options: {self.greppattern})"
         )
         # self.text = []
         self.GetFirstView().Append(
@@ -367,7 +367,7 @@ class TheDocument(docview.RichEditDoc):
                     "(or run 'setup.py install' if you have the source version)\n"
                 )
             else:
-                cmd = '%s "%s" %s %s 2>&1' % (py, pychecker, options, files)
+                cmd = f'{py} "{pychecker}" {options} {files} 2>&1'
                 ##fin,fout,ferr=os.popen3(cmd)
                 ##result=ferr.read()+fout.read()
                 result = os.popen(cmd).read()

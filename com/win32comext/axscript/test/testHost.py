@@ -155,8 +155,7 @@ def _CheckEngineState(engine, name, state):
         got_name = state_map.get(got, str(got))
         state_name = state_map.get(state, str(state))
         raise RuntimeError(
-            "Warning - engine %s has state %s, but expected %s"
-            % (name, got_name, state_name)
+            f"Warning - engine {name} has state {got_name}, but expected {state_name}"
         )
 
 
@@ -180,18 +179,16 @@ class EngineTester(win32com.test.util.TestCase):
                 ob.hello("Goober")
                 self.assertTrue(
                     expected_exc is None,
-                    "Expected %r, but no exception seen" % (expected_exc,),
+                    f"Expected {expected_exc!r}, but no exception seen",
                 )
             except pythoncom.com_error:
                 if expected_exc is None:
                     self.fail(
-                        "Unexpected failure from script code: %s"
-                        % (site.exception_seen,)
+                        f"Unexpected failure from script code: {site.exception_seen}"
                     )
                 if expected_exc not in site.exception_seen[2]:
                     self.fail(
-                        "Could not find %r in %r"
-                        % (expected_exc, site.exception_seen[2])
+                        f"Could not find {expected_exc!r} in {site.exception_seen[2]!r}"
                     )
                 return
             self.assertEqual(echoer.last, "Goober")
