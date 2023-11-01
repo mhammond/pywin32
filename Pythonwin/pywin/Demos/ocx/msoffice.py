@@ -7,7 +7,7 @@
 import win32con
 import win32ui
 import win32uiole
-from pywin.mfc import docview, object, window
+from pywin.mfc import activex, docview, object, window
 from win32com.client import gencache
 
 
