@@ -6,7 +6,7 @@
 # when things go wrong - eg, not enough permissions to hit the
 # registry etc.
 
-import importlib
+import importlib.machinery
 import os
 import sys
 import warnings
