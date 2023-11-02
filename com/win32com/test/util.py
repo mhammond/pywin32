@@ -12,7 +12,11 @@ import win32api
 import win32com
 import winerror
 from pythoncom import _GetGatewayCount, _GetInterfaceCount
-from pywin32_testutil import LeakTestCase
+from pywin32_testutil import (
+    LeakTestCase,
+    TestLoader as TestLoader,
+    TestRunner as TestRunner,
+)
 
 
 def newer(source, target):
