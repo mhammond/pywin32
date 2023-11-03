@@ -21,7 +21,6 @@ def __WrapDispatch(
     userName=None,
     resultCLSID=None,
     typeinfo=None,
-    UnicodeToString=None,
     clsctx=pythoncom.CLSCTX_SERVER,
     WrapperClass=None,
 ):
@@ -29,7 +28,6 @@ def __WrapDispatch(
     Helper function to return a makepy generated class for a CLSID if it exists,
     otherwise cope by using CDispatch.
     """
-    assert UnicodeToString is None, "this is deprecated and will go away"
     if resultCLSID is None:
         try:
             typeinfo = dispatch.GetTypeInfo()
@@ -110,11 +108,9 @@ def Dispatch(
     userName=None,
     resultCLSID=None,
     typeinfo=None,
-    UnicodeToString=None,
     clsctx=pythoncom.CLSCTX_SERVER,
 ):
     """Creates a Dispatch based COM object."""
-    assert UnicodeToString is None, "this is deprecated and will go away"
     dispatch, userName = dynamic._GetGoodDispatchAndUserName(dispatch, userName, clsctx)
     return __WrapDispatch(dispatch, userName, resultCLSID, typeinfo, clsctx=clsctx)
 
@@ -125,11 +121,9 @@ def DispatchEx(
     userName=None,
     resultCLSID=None,
     typeinfo=None,
-    UnicodeToString=None,
     clsctx=None,
 ):
     """Creates a Dispatch based COM object on a specific machine."""
-    assert UnicodeToString is None, "this is deprecated and will go away"
     # If InProc is registered, DCOM will use it regardless of the machine name
     # (and regardless of the DCOM config for the object.)  So unless the user
     # specifies otherwise, we exclude inproc apps when a remote machine is used.
@@ -157,11 +151,8 @@ class CDispatch(dynamic.CDispatch):
     if/when possible.
     """
 
-    def _wrap_dispatch_(
-        self, ob, userName=None, returnCLSID=None, UnicodeToString=None
-    ):
-        assert UnicodeToString is None, "this is deprecated and will go away"
-        return Dispatch(ob, userName, returnCLSID, None)
+    def _wrap_dispatch_(self, ob, userName=None, returnCLSID=None):
+        return Dispatch(ob, userName, returnCLSID)
 
     def __dir__(self):
         return dynamic.CDispatch.__dir__(self)
