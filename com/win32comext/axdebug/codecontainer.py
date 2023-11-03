@@ -12,7 +12,7 @@ import win32api
 import winerror
 from win32com.axdebug import axdebug, contexts
 from win32com.axdebug.util import _wrap
-from win32com.server.exception import Exception
+from win32com.server.exception import COMException
 
 _keywords = {}  # set of Python keywords
 for name in """
@@ -65,7 +65,7 @@ class SourceCodeContainer:
         try:
             return self.lineOffsets[cLineNumber]
         except IndexError:
-            raise Exception(scode=winerror.S_FALSE)
+            raise COMException(scode=winerror.S_FALSE)
 
     def GetLineOfPosition(self, charPos):
         self.GetText()  # Prime us.
@@ -78,7 +78,7 @@ class SourceCodeContainer:
             lineNo = lineNo + 1
         else:  # for not broken.
             # print("Cant find", charPos, "in", self.lineOffsets)
-            raise Exception(scode=winerror.S_FALSE)
+            raise COMException(scode=winerror.S_FALSE)
         # print("GLOP ret=", lineNo, (charPos - lastOffset))
         return lineNo, (charPos - lastOffset)
 
@@ -225,7 +225,7 @@ class SourceModuleContainer(SourceCodeContainer):
                 try:
                     self.text = open(fname, "r").read()
                 except OSError as details:
-                    self.text = f"# Exception opening file\n# {repr(details)}"
+                    self.text = f"# COMException opening file\n# {repr(details)}"
             else:
                 self.text = f"# No file available for module '{self.module}'"
             self._buildlines()
@@ -248,7 +248,7 @@ class SourceModuleContainer(SourceCodeContainer):
         elif dnt == axdebug.DOCUMENTNAMETYPE_URL:
             return f"file:{fname}"
         else:
-            raise Exception(scode=winerror.E_UNEXPECTED)
+            raise COMException(scode=winerror.E_UNEXPECTED)
 
 
 if __name__ == "__main__":
