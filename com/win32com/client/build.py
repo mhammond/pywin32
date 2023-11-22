@@ -363,9 +363,9 @@ class DispatchItem(OleItem):
             defUnnamedArg = "defaultUnnamedArg"
         else:
             linePrefix = ""
-            defNamedOptArg = "pythoncom.Missing"
-            defNamedNotOptArg = "pythoncom.Missing"
-            defUnnamedArg = "pythoncom.Missing"
+            defNamedOptArg = "pythoncom.Empty"
+            defNamedNotOptArg = "pythoncom.Empty"
+            defUnnamedArg = "pythoncom.Empty"
         defOutArg = "pythoncom.Missing"
         id = fdesc[0]
 
