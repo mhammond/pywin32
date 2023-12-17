@@ -311,7 +311,8 @@ def DispatchWithEvents(clsid, user_event_class):
     >>>
     """
     # Create/Get the object.
-    disp = Dispatch(clsid)
+    resultCLSID = pywintypes.IID(clsid)
+    disp = Dispatch(clsid,resultCLSID=resultCLSID)
     if not disp.__class__.__dict__.get(
         "CLSID"
     ):  # Eeek - no makepy support - try and build it.
