@@ -43,9 +43,12 @@ from setuptools.command.build import build
 from setuptools.command.build_ext import build_ext
 from setuptools.command.install import install
 from setuptools.command.install_lib import install_lib
-from setuptools.modified import newer_group
 
 from distutils.command.install_data import install_data
+if sys.version_info >= (3, 8):
+    from setuptools.modified import newer_group
+else:
+    from distutils.dep_util import newer_group
 
 # some modules need a static CRT to avoid problems caused by them having a
 # manifest.
