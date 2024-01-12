@@ -34,7 +34,7 @@ DEBUG = 0
 
 
 class ArgFormatter:
-    """An instance for a specific type of argument.	 Knows how to convert itself"""
+    """An instance for a specific type of argument. Knows how to convert itself"""
 
     def __init__(self, arg, builtinIndirection, declaredIndirection=0):
         # print("init:", arg.name, builtinIndirection, declaredIndirection, arg.indirectionLevel)
@@ -213,7 +213,7 @@ class ArgFormatter:
         )
 
     def _GetPythonTypeDesc(self):
-        "Returns a string with the description of the type.	 Used for doco purposes"
+        "Returns a string with the description of the type. Used for doco purposes"
         return None
 
     def NeedUSES_CONVERSION(self):
@@ -842,7 +842,7 @@ class Argument:
 
         if VERBOSE:
             print(
-                "	   Arg {} of type {}{} ({})".format(
+                "       Arg {} of type {}{} ({})".format(
                     self.name, self.type, "*" * self.indirectionLevel, self.inout
                 )
             )
@@ -902,7 +902,7 @@ class Method:
                     "Method %s - Only HRESULT return types are supported." % self.name
                 )
             # 				raise error_not_supported,		if VERBOSE:
-            print(f"	 Method {self.result} {self.name}(")
+            print(f"     Method {self.result} {self.name}(")
         while 1:
             arg = Argument(self.good_interface_names)
             try:

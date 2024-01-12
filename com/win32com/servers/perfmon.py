@@ -1,8 +1,8 @@
 """A COM Server which exposes the NT Performance monitor in a very rudimentary way
 
 Usage from VB:
-	set ob = CreateObject("Python.PerfmonQuery")
-	freeBytes = ob.Query("Memory", "Available Bytes")
+    set ob = CreateObject("Python.PerfmonQuery")
+    freeBytes = ob.Query("Memory", "Available Bytes")
 """
 import pythoncom
 import win32pdhutil
