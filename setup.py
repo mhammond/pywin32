@@ -1648,7 +1648,7 @@ com_extensions += [
                         {mapi}/PyIMsgStore.i          {mapi}/PyIMsgStore.cpp
                         {mapi}/PyIProfAdmin.i         {mapi}/PyIProfAdmin.cpp
                         {mapi}/PyIProfSect.i          {mapi}/PyIProfSect.cpp
-                        {mapi}/PyIConverterSession.i	{mapi}/PyIConverterSession.cpp
+                        {mapi}/PyIConverterSession.i  {mapi}/PyIConverterSession.cpp
                         {mapi}/PyIMAPIAdviseSink.cpp
                         {mapi}/mapiutil.cpp
                         {mapi}/mapiguids.cpp

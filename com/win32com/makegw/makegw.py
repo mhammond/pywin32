@@ -144,11 +144,11 @@ def _write_ifc_h(f, interface):
 class Py{interface.name} : public Py{interface.base}
 {{
 public:
-	MAKE_PYCOM_CTOR(Py{interface.name});
-	static {interface.name} *GetI(PyObject *self);
-	static PyComTypeObject type;
+    MAKE_PYCOM_CTOR(Py{interface.name});
+    static {interface.name} *GetI(PyObject *self);
+    static PyComTypeObject type;
 
-	// The Python methods
+    // The Python methods
 """
     )
     for method in interface.methods:
@@ -159,8 +159,8 @@ public:
         f"""\
 
 protected:
-	Py{interface.name}(IUnknown *pdisp);
-	~Py{interface.name}();
+    Py{interface.name}(IUnknown *pdisp);
+    ~Py{interface.name}();
 }};
 """
     )
@@ -175,9 +175,9 @@ def _write_ifc_cpp(f, interface):
 // Interface Implementation
 
 Py{name}::Py{name}(IUnknown *pdisp):
-	Py{base}(pdisp)
+    Py{base}(pdisp)
 {{
-	ob_type = &type;
+    ob_type = &type;
 }}
 
 Py{name}::~Py{name}()
@@ -186,7 +186,7 @@ Py{name}::~Py{name}()
 
 /* static */ {name} *Py{name}::GetI(PyObject *self)
 {{
-	return ({name} *)Py{base}::GetI(self);
+    return ({name} *)Py{base}::GetI(self);
 }}
 
 """.format(
@@ -203,9 +203,9 @@ Py{name}::~Py{name}()
 // @pymethod |Py{interfacename}|{method}|Description of {method}.
 PyObject *Py{interfacename}::{method}(PyObject *self, PyObject *args)
 {{
-	{interfacename} *p{ptr} = GetI(self);
-	if ( p{ptr} == NULL )
-		return NULL;
+    {interfacename} *p{ptr} = GetI(self);
+    if ( p{ptr} == NULL )
+        return NULL;
 """.format(
                 **strdict
             )
@@ -282,14 +282,14 @@ PyObject *Py{interfacename}::{method}(PyObject *self, PyObject *args)
         strdict["cleanup"] = cleanup
         strdict["cleanup_gil"] = cleanup_gil
         f.write(
-            """	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = p{ptr}->{method}({argsCOM} );
+            """    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = p{ptr}->{method}({argsCOM} );
 {cleanup}
-	PY_INTERFACE_POSTCALL;
+    PY_INTERFACE_POSTCALL;
 {cleanup_gil}
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, p{ptr}, IID_{interfacename} );
+    if ( FAILED(hr) )
+        return PyCom_BuildPyException(hr, p{ptr}, IID_{interfacename} );
 """.format(
                 **strdict
             )
@@ -336,14 +336,14 @@ PyObject *Py{interfacename}::{method}(PyObject *self, PyObject *args)
     interfacebase = interface.base
     f.write(
         """\
-	{{ NULL }}
+    {{ NULL }}
 }};
 
 PyComTypeObject Py{name}::type("Py{name}",
-		&Py{interfacebase}::type,
-		sizeof(Py{name}),
-		Py{name}_methods,
-		GET_PYCOM_CTOR(Py{name}));
+        &Py{interfacebase}::type,
+        sizeof(Py{name}),
+        Py{name}_methods,
+        GET_PYCOM_CTOR(Py{name}));
 """.format(
             **locals()
         )
@@ -372,8 +372,8 @@ def _write_gw_h(f, interface):
 class {gname} : public {base_name}, public {name}
 {{
 protected:
-	{gname}(PyObject *instance) : {base_name}(instance) {{ ; }}
-	PYGATEWAY_MAKE_SUPPORT2({gname}, {name}, IID_{name}, {base_name})
+    {gname}(PyObject *instance) : {base_name}(instance) {{ ; }}
+    PYGATEWAY_MAKE_SUPPORT2({gname}, {name}, IID_{name}, {base_name})
 
 """
     )

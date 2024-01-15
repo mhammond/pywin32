@@ -17,7 +17,7 @@ demos = [  # 	('Font', 'import fontdemo;fontdemo.FontDemo()'),
     ("Dynamic window creation", "import createwin;createwin.demo()"),
     ("Various Dialog demos", "import dlgtest;dlgtest.demo()"),
     ("OCX Control Demo", "from ocx import ocxtest;ocxtest.demo()"),
-    ("OCX Serial Port Demo", "from ocx import ocxserialtest;	ocxserialtest.test()"),
+    ("OCX Serial Port Demo", "from ocx import ocxserialtest; ocxserialtest.test()"),
     (
         "IE4 Control Demo",
         'from ocx import webbrowser; webbrowser.Demo("http://www.python.org")',
