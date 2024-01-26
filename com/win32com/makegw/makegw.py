@@ -210,11 +210,9 @@ PyObject *Py{interfacename}::{method}(PyObject *self, PyObject *args)
                 **strdict
             )
         )
-        argsParseTuple = (
-            argsCOM
-        ) = (
-            formatChars
-        ) = codePost = codePobjects = codeCobjects = cleanup = cleanup_gil = ""
+        argsParseTuple = argsCOM = formatChars = codePost = codePobjects = (
+            codeCobjects
+        ) = cleanup = cleanup_gil = ""
         needConversion = 0
         #    if method.name=="Stat": import win32dbg;win32dbg.brk()
         for arg in method.args:

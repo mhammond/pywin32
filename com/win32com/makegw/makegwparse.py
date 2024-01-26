@@ -11,6 +11,7 @@
  See the @win32com.makegw@ module for information in building a COM
  interface
 """
+
 import re
 import traceback
 

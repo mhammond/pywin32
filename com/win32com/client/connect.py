@@ -1,4 +1,5 @@
 """Utilities for working with Connections"""
+
 import pythoncom
 import win32com.server.util
 

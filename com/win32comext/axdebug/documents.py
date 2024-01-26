@@ -1,7 +1,6 @@
 """ Management of documents for AXDebugging.
 """
 
-
 import pythoncom
 import win32api
 from win32com.server.util import unwrap

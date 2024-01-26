@@ -7,6 +7,7 @@ substitutes the appropriate interface name.
 This module is notmally not used directly - the @makegw@ module
 automatically calls this.
 """
+
 #
 # INTERNAL FUNCTIONS
 #
