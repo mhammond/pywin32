@@ -15,6 +15,7 @@ Example
  >>> xl.Visible = 1 # The Excel window becomes visible.
 
 """
+
 import traceback
 import types
 

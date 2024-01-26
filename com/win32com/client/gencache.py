@@ -20,6 +20,7 @@ Hacks, to do, etc
   Currently just uses a pickled dictionary, but should used some sort of indexed file.
   Maybe an OLE2 compound file, or a bsddb file?
 """
+
 import glob
 import os
 import sys

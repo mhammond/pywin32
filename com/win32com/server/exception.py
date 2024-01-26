@@ -12,6 +12,7 @@
      This module provides a class which provides the necessary attributes.
 
 """
+
 import sys
 
 import pythoncom

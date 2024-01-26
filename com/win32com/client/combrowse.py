@@ -22,6 +22,7 @@
    work.
 
 """
+
 import sys
 
 import pythoncom

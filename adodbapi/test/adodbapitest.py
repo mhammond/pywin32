@@ -1,4 +1,5 @@
 """ Unit tests version 2.6.1.0 for adodbapi"""
+
 """
     adodbapi - A python DB API 2.0 interface to Microsoft ADO
 
@@ -251,9 +252,9 @@ class CommonDBTests(unittest.TestCase):
                 )
             finally:
                 # now reset the converter to its original function
-                adodbapi.variantConversions[
-                    ado_consts.adNumeric
-                ] = oldconverter  # Restore the original convertion function
+                adodbapi.variantConversions[ado_consts.adNumeric] = (
+                    oldconverter  # Restore the original convertion function
+                )
 
     def helpTestDataType(
         self,
