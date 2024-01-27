@@ -200,10 +200,7 @@ class WinExt(Extension):
             # If someone needs a specially named implib created, handle that
             if self.implib_name:
                 implib = os.path.join(build_ext.build_temp, self.implib_name)
-                if build_ext.debug:
-                    suffix = "_d"
-                else:
-                    suffix = ""
+                suffix = "_d" if build_ext.debug else ""
                 self.extra_link_args.append(f"/IMPLIB:{implib}{suffix}.lib")
             # Try and find the MFC headers, so we can reach inside for
             # some of the ActiveX support we need.  We need to do this late, so
@@ -626,9 +623,7 @@ class my_build_ext(build_ext):
             target_dir = os.path.join(self.build_lib, clib_file[0], "libs")
             if not os.path.exists(target_dir):
                 self.mkpath(target_dir)
-            suffix = ""
-            if self.debug:
-                suffix = "_d"
+            suffix = "_d" if self.debug else ""
             fname = clib_file[1] % suffix
             self.copy_file(os.path.join(self.build_temp, fname), target_dir)
 
@@ -660,10 +655,9 @@ class my_build_ext(build_ext):
             self.copy_file(mfc_content, target_dir)
 
     def build_exefile(self, ext):
-        _d = self.debug and "_d" or ""
-
+        suffix = "_d" if self.debug else ""
         logging.info("building exe '%s'", ext.name)
-        leaf_name = f"{ext.get_pywin32_dir()}\\{ext.name}{_d}.exe"
+        leaf_name = f"{ext.get_pywin32_dir()}\\{ext.name}{suffix}.exe"
         full_name = os.path.join(self.build_lib, leaf_name)
 
         sources = list(ext.sources)
@@ -745,7 +739,7 @@ class my_build_ext(build_ext):
             # Convincing distutils to create .lib files with the name we
             # need is difficult, so we just hack around it by copying from
             # the created name to the name we need.
-            extra = self.debug and "_d.lib" or ".lib"
+            extra = "_d.lib" if self.debug else ".lib"
             if ext.name in ("pywintypes", "pythoncom"):
                 # The import libraries are created as PyWinTypes23.lib, but
                 # are expected to be pywintypes.lib.
@@ -782,15 +776,15 @@ class my_build_ext(build_ext):
 
     def get_ext_filename(self, name):
         # We need to fixup some target filenames.
-        _d = self.debug and "_d" or ""
+        suffix = "_d" if self.debug else ""
         if name in ["pywintypes", "pythoncom"]:
             ver = f"{sys.version_info[0]}{sys.version_info[1]}"
-            return f"{name}{ver}{_d}.dll"
+            return f"{name}{ver}{suffix}.dll"
         if name in ["perfmondata", "PyISAPI_loader"]:
-            return f"{name}{_d}.dll"
+            return f"{name}{suffix}.dll"
         # everything else a .pyd - calling base-class might give us a more
         # complicated name, so return a simple one.
-        return f"{name}{_d}.pyd"
+        return f"{name}{suffix}.pyd"
 
     def get_export_symbols(self, ext):
         if ext.is_regular_dll:

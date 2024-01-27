@@ -96,7 +96,7 @@ def _cat_registrar():
 def _find_localserver_exe(mustfind):
     if sys.platform != "win32":
         return sys.executable
-    if pythoncom.__file__.find("_d") < 0:
+    if os.path.splitext(os.path.basename(pythoncom.__file__))[0].endswith("_d"):
         exeBaseName = "pythonw.exe"
     else:
         exeBaseName = "pythonw_d.exe"
@@ -234,7 +234,7 @@ def RegisterServer(
             # Although now we prefer a 'loader' DLL if it exists to avoid some
             # manifest issues (the 'loader' DLL has a manifest, but pythoncom does not)
             pythoncom_dir = os.path.dirname(pythoncom.__file__)
-            suffix = "_d" if "_d" in pythoncom.__file__ else ""
+            suffix = "_d" if os.path.splitext(os.path.basename(pythoncom.__file__))[0].endswith("_d") else ""
             # Always register with the full path to the DLLs.
             loadername = os.path.join(
                 pythoncom_dir,
