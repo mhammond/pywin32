@@ -1,4 +1,5 @@
 """ a clumsy attempt at a macro language to let the programmer execute code on the server (ex: determine 64bit)"""
+
 import getpass
 import os
 import platform

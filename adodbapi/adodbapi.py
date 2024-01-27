@@ -25,6 +25,7 @@ DB-API 2.0 specification: http://www.python.org/dev/peps/pep-0249/
 
 This module source should run correctly in CPython 3.4 or later.
 """
+
 import copy
 import decimal
 import os
