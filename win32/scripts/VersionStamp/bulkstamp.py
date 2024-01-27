@@ -78,7 +78,7 @@ def walk(arg, dirname, names):
                     # skip branding this - assume already branded or handled elsewhere
 
 
-#        print "Stamped", pathname
+# print("Stamped", pathname)
 
 
 def load_descriptions(fname, vars):

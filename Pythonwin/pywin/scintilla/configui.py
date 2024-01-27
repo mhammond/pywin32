@@ -228,7 +228,7 @@ class ScintillaFormatPropertyPage(dialog.PropertyPage):
         sel = 0
         for c in paletteVGA:
             if format[4] == c[1]:
-                # 				print "Style", style.name, "is", c[0]
+                # print("Style", style.name, "is", c[0])
                 break
             sel = sel + 1
         else:

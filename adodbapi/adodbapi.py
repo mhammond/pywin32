@@ -30,6 +30,7 @@ import decimal
 import os
 import sys
 import weakref
+from collections.abc import Mapping
 
 import pythoncom
 import pywintypes
@@ -62,9 +63,6 @@ if verbose:
 
 def getIndexedValue(obj, index):
     return obj(index)
-
-
-from collections.abc import Mapping
 
 
 # -----------------  The .connect method -----------------

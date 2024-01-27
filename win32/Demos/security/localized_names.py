@@ -55,10 +55,10 @@ def main():
         targetComputer = None
 
     name = LookupUserGroupFromRid(targetComputer, DOMAIN_USER_RID_ADMIN)
-    print("'Administrator' user name = %s" % (name,))
+    print(f"'Administrator' user name = {name}")
 
     name = LookupAliasFromRid(targetComputer, DOMAIN_ALIAS_RID_ADMINS)
-    print("'Administrators' local group/alias name = %s" % (name,))
+    print(f"'Administrators' local group/alias name = {name}")
 
 
 if __name__ == "__main__":

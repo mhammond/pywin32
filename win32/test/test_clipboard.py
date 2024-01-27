@@ -14,7 +14,7 @@ custom_format_name = "PythonClipboardTestFormat"
 
 class CrashingTestCase(unittest.TestCase):
     def test_722082(self):
-        class crasher(object):
+        class crasher:
             pass
 
         obj = crasher()
@@ -67,7 +67,7 @@ class TestStrings(unittest.TestCase):
         CloseClipboard()
 
     def test_unicode(self):
-        val = "test-\a9har"
+        val = "test-\xa9har"
         SetClipboardData(win32con.CF_UNICODETEXT, val)
         self.assertEqual(GetClipboardData(win32con.CF_UNICODETEXT), val)
 

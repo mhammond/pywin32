@@ -117,19 +117,18 @@ def make_doc_summary(inFile, outFile):
                 print("**Error - %s does not have enough fields" % meth)
             else:
                 outFile.write(
-                    "// @pymethod %s|%s|%s|%s\n"
-                    % (fields[0], thisModName, fields[1], fields[2])
+                    f"// @pymethod {fields[0]}|{thisModName}|{fields[1]}|{fields[2]}\n"
                 )
             for extra in extras:
                 outFile.write(extra)
         if g_com_parent:
-            outFile.write("\n// @object %s|%s" % (thisModName, modDoc))
+            outFile.write(f"\n// @object {thisModName}|{modDoc}")
             outFile.write("\n// <nl>Derived from <o %s>\n" % (g_com_parent))
         else:
-            outFile.write("\n// @module %s|%s\n" % (thisModName, modDoc))
+            outFile.write(f"\n// @module {thisModName}|{modDoc}\n")
         for meth, extras in these_methods:
             fields = meth.split("|")
-            outFile.write("// @pymeth %s|%s\n" % (fields[1], fields[2]))
+            outFile.write(f"// @pymeth {fields[1]}|{fields[2]}\n")
         chunk_number += 1
         method_num += max_methods
 
@@ -137,7 +136,7 @@ def make_doc_summary(inFile, outFile):
     for extra in extra_tags:
         outFile.write("%s\n" % (extra))
     for cname, doc in constants:
-        outFile.write("// @const %s|%s|%s\n" % (modName, cname, doc))
+        outFile.write(f"// @const {modName}|{cname}|{doc}\n")
 
 
 def doit():

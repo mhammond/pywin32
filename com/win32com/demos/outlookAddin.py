@@ -124,7 +124,7 @@ def UnregisterAddin(klass):
             winreg.HKEY_CURRENT_USER,
             "Software\\Microsoft\\Office\\Outlook\\Addins\\" + klass._reg_progid_,
         )
-    except WindowsError:
+    except OSError:
         pass
 
 

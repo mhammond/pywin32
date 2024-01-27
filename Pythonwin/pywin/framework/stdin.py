@@ -140,7 +140,7 @@ Sell you soul to the devil, baby
 """
 
     def fake_input(prompt=None):
-        """Replacement for raw_input() which pulls lines out of global test_input.
+        """Replacement for input() which pulls lines out of global test_input.
         For testing only!
         """
         global test_input
@@ -151,7 +151,7 @@ Sell you soul to the devil, baby
         result = test_input[:end_of_line_pos]
         test_input = test_input[end_of_line_pos + 1 :]
         if len(result) == 0 or result[0] == "~":
-            raise EOFError()
+            raise EOFError
         return result
 
     get_input_line = fake_input

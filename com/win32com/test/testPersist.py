@@ -7,15 +7,13 @@ import win32com
 import win32com.client
 import win32com.client.dynamic
 import win32com.server.util
+import win32timezone
 import win32ui
 from win32com import storagecon
 from win32com.axcontrol import axcontrol
 from win32com.test.util import CheckClean
 
 S_OK = 0
-
-
-import win32timezone
 
 now = win32timezone.now()
 
@@ -47,7 +45,7 @@ class LockBytes:
         print("WriteAt " + str(offset))
         print("len " + str(len(data)))
         print("data:")
-        # print data
+        # print(data)
         if len(self.data) >= offset:
             newdata = self.data[0:offset] + data
         print(len(newdata))

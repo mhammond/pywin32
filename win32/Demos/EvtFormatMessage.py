@@ -21,7 +21,7 @@ def main():
             event, win32evtlog.EvtRenderEventValues, Context=context
         )
 
-        print("Event {}".format(i))
+        print(f"Event {i}")
 
         level_value, level_variant = result[win32evtlog.EvtSystemLevel]
         if level_variant != win32evtlog.EvtVarTypeNull:
@@ -42,17 +42,17 @@ def main():
             win32evtlog.EvtSystemTimeCreated
         ]
         if time_created_variant != win32evtlog.EvtVarTypeNull:
-            print("    Timestamp: {}".format(time_created_value.isoformat()))
+            print(f"    Timestamp: {time_created_value.isoformat()}")
 
         computer_value, computer_variant = result[win32evtlog.EvtSystemComputer]
         if computer_variant != win32evtlog.EvtVarTypeNull:
-            print("    FQDN: {}".format(computer_value))
+            print(f"    FQDN: {computer_value}")
 
         provider_name_value, provider_name_variant = result[
             win32evtlog.EvtSystemProviderName
         ]
         if provider_name_variant != win32evtlog.EvtVarTypeNull:
-            print("    Provider: {}".format(provider_name_value))
+            print(f"    Provider: {provider_name_value}")
 
             try:
                 metadata = win32evtlog.EvtOpenPublisherMetadata(provider_name_value)
@@ -69,7 +69,7 @@ def main():
                     pass
                 else:
                     try:
-                        print("    Message: {}".format(message))
+                        print(f"    Message: {message}")
                     except UnicodeEncodeError:
                         # Obscure error when run under subprocess.Popen(), presumably due to
                         # not knowing the correct encoding for the console.

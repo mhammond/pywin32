@@ -156,7 +156,7 @@ def UnregisterAddin(klass):
             winreg.HKEY_CURRENT_USER,
             "Software\\Microsoft\\Office\\Excel\\Addins\\" + klass._reg_progid_,
         )
-    except WindowsError:
+    except OSError:
         pass
 
 

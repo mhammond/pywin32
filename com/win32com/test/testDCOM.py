@@ -12,7 +12,6 @@ and the Python.Interpreter object installed and registered on that machine.
 The Python.Interpreter object must be installed on the local machine,
 but no special DCOM configuration should be necessary.
 """
-import string
 import sys
 
 # NOTE: If you configured the object locally using dcomcnfg, you could
@@ -23,7 +22,7 @@ import win32com.client
 
 
 def test(serverName):
-    if string.lower(serverName) == string.lower(win32api.GetComputerName()):
+    if serverName.lower() == win32api.GetComputerName().lower():
         print("You must specify a remote server name, not the local machine!")
         return
 
@@ -34,10 +33,11 @@ def test(serverName):
     ob = win32com.client.DispatchEx("Python.Interpreter", serverName, clsctx=clsctx)
     ob.Exec("import win32api")
     actualName = ob.Eval("win32api.GetComputerName()")
-    if string.lower(serverName) != string.lower(actualName):
+    if serverName.lower() != actualName.lower():
         print(
-            "Error: The object created on server '%s' reported its name as '%s'"
-            % (serverName, actualName)
+            "Error: The object created on server '{}' reported its name as '{}'".format(
+                serverName, actualName
+            )
         )
     else:
         print("Object created and tested OK on server '%s'" % serverName)

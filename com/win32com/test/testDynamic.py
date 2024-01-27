@@ -68,8 +68,9 @@ def Test():
         client.TestSequence = v
         if v != list(client.TestSequence):
             raise error(
-                "Dynamic sequences not working! %r/%r"
-                % (repr(v), repr(client.testSequence))
+                "Dynamic sequences not working! {!r}/{!r}".format(
+                    repr(v), repr(client.testSequence)
+                )
             )
 
         client.write("This", "output", "has", "come", "via", "testDynamic.py")

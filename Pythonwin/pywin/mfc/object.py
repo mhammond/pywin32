@@ -23,7 +23,7 @@ class Object:
                 if o is not None:
                     return getattr(o, attr)
                 # Only raise this error for non "internal" names -
-                # Python may be calling __len__, __nonzero__, etc, so
+                # Python may be calling __len__, __bool__, etc, so
                 # we dont want this exception
                 if attr[0] != "_" and attr[-1] != "_":
                     raise win32ui.error("The MFC object has died.")
@@ -33,7 +33,7 @@ class Object:
         raise AttributeError(attr)
 
     def OnAttachedObjectDeath(self):
-        # 		print "object", self.__class__.__name__, "dieing"
+        # print("object", self.__class__.__name__, "dieing")
         self._obj_ = None
 
     def close(self):

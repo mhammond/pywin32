@@ -14,7 +14,7 @@ class TestEnum(win32com.test.util.TestCase):
         pss = pythoncom.StgOpenStorageEx(
             fname, m, storagecon.STGFMT_FILE, 0, pythoncom.IID_IPropertySetStorage
         )
-        ###                               {"Version":2,"reserved":0,"SectorSize":512,"TemplateFile":u'somefilename'})
+        ###                               {"Version":2,"reserved":0,"SectorSize":512,"TemplateFile":'somefilename'})
 
         ## FMTID_SummaryInformation FMTID_DocSummaryInformation FMTID_UserDefinedProperties
         psuser = pss.Create(
@@ -66,7 +66,7 @@ class TestEnum(win32com.test.util.TestCase):
                 ):
                     pass
                 else:
-                    self.fail("Uxexpected property %s/%s" % (p, p_val))
+                    self.fail(f"Uxexpected property {p}/{p_val}")
             ps = None
             ## FMTID_UserDefinedProperties can't exist without FMTID_DocSummaryInformation, and isn't returned independently from Enum
             ## also can't be open at same time

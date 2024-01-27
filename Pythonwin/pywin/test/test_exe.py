@@ -41,17 +41,17 @@ class TestPythonwinExe(unittest.TestCase):
             # XXX Pythonwin.exe / win32uihostglue.h could be improved to search
             # the Python DLL itself via registry when local / relative search fails.
 
-            pydll = "Python%s%s.dll" % sys.version_info[:2]  # same for 32bit
+            pydll = "Python{}{}.dll".format(*sys.version_info[:2])  # same for 32bit
             src = os.path.dirname(sys.executable) + os.sep + pydll
             dst = os.path.dirname(pythonwinexe_path) + os.sep + pydll
             if not os.path.isfile(dst):
                 try:
                     assert os.path.isfile(src)
-                    print("-- symlink %r -> %r" % (dst, src), file=sys.stderr)
+                    print(f"-- symlink {dst!r} -> {src!r}", file=sys.stderr)
                     os.symlink(src, dst)
                 except (OSError, AssertionError) as e:
-                    print("-- cannot make symlink %r: %r" % (dst, e), file=sys.stderr)
-        print("-- Starting: %r in %r" % (cmd, wd), file=sys.stderr)
+                    print(f"-- cannot make symlink {dst!r}: {e!r}", file=sys.stderr)
+        print(f"-- Starting: {cmd!r} in {wd!r}", file=sys.stderr)
         self.p = subprocess.Popen(cmd, cwd=wd)
 
     def test_exe(self):
@@ -62,7 +62,7 @@ class TestPythonwinExe(unittest.TestCase):
             rc = "TIMEOUT"
         with open(self.tfn) as f:
             outs = f.read()
-        assert rc == 0, "rc is %r, outs=%r" % (rc, outs)
+        assert rc == 0, f"rc is {rc!r}, outs={outs!r}"
         assert "Success!" in outs, outs
         print("-- test_exe Ok! --", file=sys.stderr)
 

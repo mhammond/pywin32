@@ -8,6 +8,7 @@ command line.
 """
 
 import re
+import types
 
 import pythoncom
 import win32api
@@ -210,10 +211,9 @@ class PyScript(framework.COMScript):
 
     def InitNew(self):
         framework.COMScript.InitNew(self)
-        import imp
 
         self.scriptDispatch = None
-        self.globalNameSpaceModule = imp.new_module("__ax_main__")
+        self.globalNameSpaceModule = types.ModuleType("__ax_main__")
         self.globalNameSpaceModule.__dict__["ax"] = AXScriptAttribute(self)
 
         self.codeBlocks = []
@@ -252,9 +252,9 @@ class PyScript(framework.COMScript):
             if item.IsGlobal():
                 # Global items means sub-items are also added...
                 for subitem in item.subItems.values():
-                    self.globalNameSpaceModule.__dict__[
-                        subitem.name
-                    ] = subitem.attributeObject
+                    self.globalNameSpaceModule.__dict__[subitem.name] = (
+                        subitem.attributeObject
+                    )
                 # Also add all methods
                 for name, entry in item.dispatchContainer._olerepr_.mapFuncs.items():
                     if not entry.hidden:
@@ -382,7 +382,7 @@ class PyScript(framework.COMScript):
         num = self._GetNextCodeBlockNumber()
         if num == 1:
             num = ""
-        name = "%s %s" % (name, num)
+        name = f"{name} {num}"
         codeBlock = AXScriptCodeBlock(
             name, code, sourceContextCookie, startLineNumber, flags
         )

@@ -52,7 +52,7 @@ class HLICLBRItem(hierlist.HierListItem):
 
     def PerformItemSelected(self):
         if self.file is None:
-            msg = "%s - source can not be located." % (self.name,)
+            msg = f"{self.name} - source can not be located."
         else:
             msg = "%s defined at line %d of %s" % (self.name, self.lineno, self.file)
         win32ui.SetStatusText(msg)
@@ -145,7 +145,7 @@ class HLIModuleItem(hierlist.HierListItem):
                 ret.sort()
                 return ret
             else:
-                return [HLIErrorItem("No Python classes%s in module." % (extra_msg,))]
+                return [HLIErrorItem(f"No Python classes{extra_msg} in module.")]
         finally:
             win32ui.DoWaitCursor(0)
             win32ui.SetStatusText(win32ui.LoadString(afxres.AFX_IDS_IDLEMESSAGE))

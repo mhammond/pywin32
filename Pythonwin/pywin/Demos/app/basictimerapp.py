@@ -129,7 +129,7 @@ class TimerManager:
                     print("The last operation completed successfully.")
                 except:
                     t, v, tb = sys.exc_info()
-                    str = "Failed: %s: %s" % (t, repr(v))
+                    str = f"Failed: {t}: {repr(v)}"
                     print(str)
                     self.oldErr.write(str)
                     tb = None  # Prevent cycle

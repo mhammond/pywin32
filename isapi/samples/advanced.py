@@ -139,7 +139,7 @@ class Extension(SimpleExtension):
             print("<PRE>", file=ecb)
             for q in queries:
                 val = ecb.GetServerVariable(q, "&lt;no such variable&gt;")
-                print("%s=%r" % (q, val), file=ecb)
+                print(f"{q}={val!r}", file=ecb)
             print("</PRE><P/>", file=ecb)
 
         print("This module has been imported", file=ecb)

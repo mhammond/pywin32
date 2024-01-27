@@ -2,6 +2,7 @@
 
   A collection of helpers for server side connection points.
 """
+
 import pythoncom
 import win32com.server.util
 import winerror

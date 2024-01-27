@@ -19,7 +19,7 @@ class CurrentUserTestCase(unittest.TestCase):
         if domain == "NT AUTHORITY":
             # Running as a service account, so the comparison will fail
             raise TestSkipped("running as service account")
-        name = "%s\\%s" % (domain, win32api.GetUserName())
+        name = f"{domain}\\{win32api.GetUserName()}"
         self.assertEqual(name, win32api.GetUserNameEx(win32api.NameSamCompatible))
 
 
@@ -149,17 +149,17 @@ class FileNames(unittest.TestCase):
         long_name = win32api.GetLongPathName(short_name).lower()
         self.assertTrue(
             long_name == fname,
-            "Expected long name ('%s') to be original name ('%s')" % (long_name, fname),
+            f"Expected long name ('{long_name}') to be original name ('{fname}')",
         )
         self.assertEqual(long_name, win32api.GetLongPathNameW(short_name).lower())
         long_name = win32api.GetLongPathNameW(short_name).lower()
         self.assertTrue(
             isinstance(long_name, str),
-            "GetLongPathNameW returned type '%s'" % (type(long_name),),
+            f"GetLongPathNameW returned type '{type(long_name)}'",
         )
         self.assertTrue(
             long_name == fname,
-            "Expected long name ('%s') to be original name ('%s')" % (long_name, fname),
+            f"Expected long name ('{long_name}') to be original name ('{fname}')",
         )
 
     def testShortUnicodeNames(self):
@@ -174,17 +174,17 @@ class FileNames(unittest.TestCase):
         long_name = win32api.GetLongPathName(short_name).lower()
         self.assertTrue(
             long_name == fname,
-            "Expected long name ('%s') to be original name ('%s')" % (long_name, fname),
+            f"Expected long name ('{long_name}') to be original name ('{fname}')",
         )
         self.assertEqual(long_name, win32api.GetLongPathNameW(short_name).lower())
         long_name = win32api.GetLongPathNameW(short_name).lower()
         self.assertTrue(
             isinstance(long_name, str),
-            "GetLongPathNameW returned type '%s'" % (type(long_name),),
+            f"GetLongPathNameW returned type '{type(long_name)}'",
         )
         self.assertTrue(
             long_name == fname,
-            "Expected long name ('%s') to be original name ('%s')" % (long_name, fname),
+            f"Expected long name ('{long_name}') to be original name ('{fname}')",
         )
 
     def testLongLongPathNames(self):

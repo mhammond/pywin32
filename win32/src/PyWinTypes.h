@@ -69,10 +69,10 @@ typedef Py_ssize_t Py_hash_t;
 #include "mmsystem.h"
 
 #ifdef BUILD_PYWINTYPES
-/* We are building pywintypesxx.dll */
+/* We are building pywintypesXX.dll */
 #define PYWINTYPES_EXPORT __declspec(dllexport)
 #else
-/* This module uses pywintypesxx.dll */
+/* This module uses pywintypesXX.dll */
 #define PYWINTYPES_EXPORT __declspec(dllimport)
 #if defined(_MSC_VER)
 #if defined(DEBUG) || defined(_DEBUG)
@@ -116,7 +116,7 @@ PYWINTYPES_EXPORT PyObject *PyWin_SetBasicCOMError(HRESULT hr);
 // *************
 // strings, which are a bit of a mess!
 //
-// This has gone from 2.x ascii-only, to 2.x+3.x ascii-or-unicode, to 3.x unicode-only,
+// This has gone from Python 2 ascii-only, to Py2+Py3k ascii-or-unicode, to Python 3 unicode-only,
 // - this baggage means some strange APIs which convert to and from "char *" in various ways.
 //
 // A sizes/lengths are reported as a `DWORD` rather than a `Py_ssize_t`, that's what the callers

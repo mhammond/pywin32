@@ -66,6 +66,7 @@ Error Handling
  problem, rather than a COM error.
  
 """
+
 __author__ = "Greg Stein and Mark Hammond"
 
 import sys
@@ -223,9 +224,8 @@ class BasicWrapPolicy:
             from win32com.util import IIDToInterfaceName
 
             desc = (
-                "The object '%r' was created, but does not support the "
-                "interface '%s'(%s): %s"
-                % (myob, IIDToInterfaceName(reqIID), reqIID, desc)
+                f"The object '{myob!r}' was created, but does not support the "
+                f"interface '{IIDToInterfaceName(reqIID)}'({reqIID}): {desc}"
             )
             raise pythoncom.com_error(hr, desc, exc, arg)
 
@@ -641,9 +641,7 @@ class DesignatedWrapPolicy(MappedWrapPolicy):
                     # Particularly nasty is "wrong number of args" type error
                     # This helps you see what 'func' and 'args' actually is
                     if str(v).find("arguments") >= 0:
-                        print(
-                            "** TypeError %s calling function %r(%r)" % (v, func, args)
-                        )
+                        print(f"** TypeError {v} calling function {func!r}({args!r})")
                     raise
 
         if wFlags & DISPATCH_PROPERTYGET:

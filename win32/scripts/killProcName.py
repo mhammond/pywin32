@@ -38,7 +38,7 @@ def killProcName(procname):
     if len(pids) == 0:
         result = "Can't find %s" % procname
     elif len(pids) > 1:
-        result = "Found too many %s's - pids=`%s`" % (procname, pids)
+        result = f"Found too many {procname}'s - pids=`{pids}`"
     else:
         handle = win32api.OpenProcess(win32con.PROCESS_TERMINATE, 0, pids[0])
         win32api.TerminateProcess(handle, 0)

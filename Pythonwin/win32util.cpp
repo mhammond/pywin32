@@ -933,7 +933,7 @@ BOOL ParseCharFormatTuple(PyObject *args, CHARFORMAT *pFmt)
     // @tupleitem 6|int|bPitchAndFamily|The charset.  See the LOGFONT structure for details.
     // @tupleitem 7|string|faceName|The font name.
 
-    // @comm  Executing d=win32ui.CreateFontDialog(); d.DoModal(); print d.GetCharFormat()
+    // @comm  Executing d=win32ui.CreateFontDialog(); d.DoModal(); print(d.GetCharFormat())
     // will print a valid CHARFORMAT tuple.
 }
 

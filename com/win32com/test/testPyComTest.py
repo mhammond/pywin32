@@ -17,7 +17,7 @@ import win32com.client.connect
 import win32timezone
 import winerror
 from win32com.client import VARIANT, CastTo, DispatchBaseClass, constants
-from win32com.test.util import CheckClean, RegisterPythonServer
+from win32com.test.util import RegisterPythonServer
 
 importMsg = "**** PyCOMTest is not installed ***\n  PyCOMTest is a Python test specific COM client and server.\n  It is likely this server is not installed on this machine\n  To install the server, you must get the win32com sources\n  and build it using MS Visual C++"
 
@@ -50,7 +50,7 @@ verbose = 0
 def check_get_set(func, arg):
     got = func(arg)
     if got != arg:
-        raise error("%s failed - expected %r, got %r" % (func, arg, got))
+        raise error(f"{func} failed - expected {arg!r}, got {got!r}")
 
 
 def check_get_set_raises(exc, func, arg):
@@ -59,9 +59,7 @@ def check_get_set_raises(exc, func, arg):
     except exc as e:
         pass  # what we expect!
     else:
-        raise error(
-            "%s with arg %r didn't raise %s - returned %r" % (func, arg, exc, got)
-        )
+        raise error(f"{func} with arg {arg!r} didn't raise {exc} - returned {got!r}")
 
 
 def progress(*args):
@@ -80,55 +78,22 @@ def TestApplyResult(fn, args, result):
     pref = "function " + fnName
     rc = fn(*args)
     if rc != result:
-        raise error("%s failed - result not %r but %r" % (pref, result, rc))
+        raise error(f"{pref} failed - result not {result!r} but {rc!r}")
 
 
 def TestConstant(constName, pyConst):
     try:
         comConst = getattr(constants, constName)
     except:
-        raise error("Constant %s missing" % (constName,))
+        raise error(f"Constant {constName} missing")
     if comConst != pyConst:
         raise error(
-            "Constant value wrong for %s - got %s, wanted %s"
-            % (constName, comConst, pyConst)
+            f"Constant value wrong for {constName} - got {comConst}, wanted {pyConst}"
         )
 
 
 # Simple handler class.  This demo only fires one event.
 class RandomEventHandler:
-    def _Init(self):
-        self.fireds = {}
-
-    def OnFire(self, no):
-        try:
-            self.fireds[no] = self.fireds[no] + 1
-        except KeyError:
-            self.fireds[no] = 0
-
-    def OnFireWithNamedParams(self, no, a_bool, out1, out2):
-        # This test exists mainly to help with an old bug, where named
-        # params would come in reverse.
-        Missing = pythoncom.Missing
-        if no is not Missing:
-            # We know our impl called 'OnFire' with the same ID
-            assert no in self.fireds
-            assert no + 1 == out1, "expecting 'out1' param to be ID+1"
-            assert no + 2 == out2, "expecting 'out2' param to be ID+2"
-        # The middle must be a boolean.
-        assert a_bool is Missing or isinstance(a_bool, bool), "middle param not a bool"
-        return out1 + 2, out2 + 2
-
-    def _DumpFireds(self):
-        if not self.fireds:
-            print("ERROR: Nothing was received!")
-        for firedId, no in self.fireds.items():
-            progress("ID %d fired %d times" % (firedId, no))
-
-
-# A simple handler class that derives from object (ie, a "new style class") -
-# only relevant for Python 2.x (ie, the 2 classes should be identical in 3.x)
-class NewStyleRandomEventHandler(object):
     def _Init(self):
         self.fireds = {}
 
@@ -192,7 +157,7 @@ def TestCommon(o, is_generated):
     # CoClass instances have `default_interface`
     expected_class = getattr(expected_class, "default_interface", expected_class)
     if not isinstance(o.GetSetDispatch(o), expected_class):
-        raise error("GetSetDispatch failed: %r" % (o.GetSetDispatch(o),))
+        raise error(f"GetSetDispatch failed: {o.GetSetDispatch(o)!r}")
     progress("Checking getting/passing IDispatch of known type")
     expected_class = o.__class__
     expected_class = getattr(expected_class, "default_interface", expected_class)
@@ -228,9 +193,9 @@ def TestCommon(o, is_generated):
     if o.GetSetUnsignedLong(-1) != 0xFFFFFFFF:
         raise error("unsigned -1 failed")
 
-    # We want to explicitly test > 32 bits.  py3k has no 'maxint' and
+    # We want to explicitly test > 32 bits.
     # 'maxsize+1' is no good on 64bit platforms as its 65 bits!
-    big = 2147483647  # sys.maxint on py2k
+    big = 2147483647
     for l in big, big + 1, 1 << 65:
         check_get_set(o.GetSetVariant, l)
 
@@ -317,11 +282,11 @@ def TestCommon(o, is_generated):
     # currency.
     pythoncom.__future_currency__ = 1
     if o.CurrencyProp != 0:
-        raise error("Expecting 0, got %r" % (o.CurrencyProp,))
+        raise error(f"Expecting 0, got {o.CurrencyProp!r}")
     for val in ("1234.5678", "1234.56", "1234"):
         o.CurrencyProp = decimal.Decimal(val)
         if o.CurrencyProp != decimal.Decimal(val):
-            raise error("%s got %r" % (val, o.CurrencyProp))
+            raise error(f"{val} got {o.CurrencyProp!r}")
     v1 = decimal.Decimal("1234.5678")
     TestApplyResult(o.DoubleCurrency, (v1,), v1 * 2)
 
@@ -466,7 +431,7 @@ def TestGenerated():
     if not isinstance(i1, DispatchBaseClass) or not isinstance(i2, DispatchBaseClass):
         # Yay - is now an instance returned!
         raise error(
-            "GetMultipleInterfaces did not return instances - got '%s', '%s'" % (i1, i2)
+            f"GetMultipleInterfaces did not return instances - got '{i1}', '{i2}'"
         )
     del i1
     del i2
@@ -532,12 +497,8 @@ def TestGenerated():
     progress("Testing connection points")
     o2 = win32com.client.DispatchWithEvents(o, RandomEventHandler)
     TestEvents(o2, o2)
-    o2 = win32com.client.DispatchWithEvents(o, NewStyleRandomEventHandler)
-    TestEvents(o2, o2)
     # and a plain "WithEvents".
     handler = win32com.client.WithEvents(o, RandomEventHandler)
-    TestEvents(o, handler)
-    handler = win32com.client.WithEvents(o, NewStyleRandomEventHandler)
     TestEvents(o, handler)
     progress("Finished generated .py test.")
 
@@ -589,7 +550,7 @@ def _TestPyVariant(o, is_generated, val, checker=None):
 def _TestPyVariantFails(o, is_generated, val, exc):
     try:
         _TestPyVariant(o, is_generated, val)
-        raise error("Setting %r didn't raise %s" % (val, exc))
+        raise error(f"Setting {val!r} didn't raise {exc}")
     except exc:
         pass
 

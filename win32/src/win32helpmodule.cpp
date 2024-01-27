@@ -21,7 +21,7 @@ generates Windows .hlp files.
 
 #if _MSC_VER == 1500
 // This uses htmlhelp.lib, which causes an unresolved external for
-// __report_rangecheckfailure with vs2008 (which is what we used for python 2.x)
+// __report_rangecheckfailure with vs2008 (which is what we used for Python 2)
 // No idea why, but we define it here and cause it to kill the process if it is ever hit.
 extern "C" __declspec(noreturn, dllexport) void __cdecl __report_rangecheckfailure(void) { ::ExitProcess(1); }
 #endif

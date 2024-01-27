@@ -1,5 +1,4 @@
 import re
-import string
 import sys
 
 # Reason last stmt is continued (or C_NONE if it's not).
@@ -131,7 +130,7 @@ class Parser:
         self.tabwidth = tabwidth
 
     def set_str(self, str):
-        assert len(str) == 0 or str[-1] == "\n", "Oops - have str %r" % (str,)
+        assert len(str) == 0 or str[-1] == "\n", f"Oops - have str {str!r}"
         self.str = str
         self.study_level = 0
 
@@ -150,7 +149,7 @@ class Parser:
     # no way to tell the differences between output, >>> etc and
     # user input.  Indeed, IDLE's first output line makes the rest
     # look like it's in an unclosed paren!:
-    # Python 1.5.2 (#0, Apr 13 1999, ...
+    # Python X.X.X (#0, Apr 13 1999, ...
 
     def find_good_parse_start(self, use_ps1, is_char_in_string=None):
         str, pos = self.str, None
@@ -362,7 +361,6 @@ class Parser:
     #         if continuation is C_BRACKET, index of last open bracket
 
     def _study2(self):
-        _ws = string.whitespace
         if self.study_level >= 2:
             return
         self._study1()

@@ -161,34 +161,22 @@ SORT_GERMAN_PHONE_BOOK = 1
 
 
 def PRIMARYLANGID(lgid):
-    return (WORD)(lgid) & 1023
+    return (lgid) & 1023
 
 
 def SUBLANGID(lgid):
-    return (WORD)(lgid) >> 10
+    return (lgid) >> 10
 
 
 NLS_VALID_LOCALE_MASK = 1048575
 
 
 def LANGIDFROMLCID(lcid):
-    return (WORD)(lcid)
+    return lcid
 
 
 def SORTIDFROMLCID(lcid):
-    return (WORD)((((DWORD)(lcid)) & NLS_VALID_LOCALE_MASK) >> 16)
-
-
-def UNREFERENCED_PARAMETER(P):
-    return
-
-
-def DBG_UNREFERENCED_PARAMETER(P):
-    return
-
-
-def DBG_UNREFERENCED_LOCAL_VARIABLE(V):
-    return
+    return ((lcid) & NLS_VALID_LOCALE_MASK) >> 16
 
 
 MAXIMUM_WAIT_OBJECTS = 64

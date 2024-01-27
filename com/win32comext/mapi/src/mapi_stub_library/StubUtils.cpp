@@ -174,7 +174,7 @@ HMODULE LoadMailClientFromMSIData(HKEY hkeyMapiClient)
 
 /*
  *  LoadMAPIFromSystemDir
- *		Fall back for loading System32\Mapi32.dll if all else fails
+ *		Fall back for loading System32\mapi32.dll if all else fails
  */
 HMODULE LoadMAPIFromSystemDir()
 {

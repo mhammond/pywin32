@@ -104,7 +104,7 @@ def DllUnregisterServer():
             winreg.HKEY_CLASSES_ROOT,
             "Python.File\\shellex\\ContextMenuHandlers\\PythonSample",
         )
-    except WindowsError as details:
+    except OSError as details:
         import errno
 
         if details.errno != errno.ENOENT:

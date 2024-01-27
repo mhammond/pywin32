@@ -38,10 +38,7 @@ def DumpFields(fields):
 
 def DumpRelations(db, bDeep=1):
     for relation in db.Relations:
-        print(
-            "Relation %s - %s->%s"
-            % (relation.Name, relation.Table, relation.ForeignTable)
-        )
+        print(f"Relation {relation.Name} - {relation.Table}->{relation.ForeignTable}")
 
 
 #### This dont work.  TLB says it is a Fields collection, but apparently not!
@@ -60,7 +57,7 @@ def DumpContainerDocuments(container):
         import time
 
         timeStr = time.ctime(int(doc.LastUpdated))
-        print("  %s - updated %s (" % (doc.Name, timeStr), end=" ")
+        print(f"  {doc.Name} - updated {timeStr} (", end=" ")
         print(doc.LastUpdated, ")")  # test the _print_ method?
 
 

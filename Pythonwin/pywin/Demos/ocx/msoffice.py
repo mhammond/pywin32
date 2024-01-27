@@ -4,11 +4,10 @@
 # It is not comlpete yet, but it _does_ show an Excel spreadsheet in a frame!
 #
 
-import regutil
 import win32con
 import win32ui
 import win32uiole
-from pywin.mfc import activex, docview, object, window
+from pywin.mfc import docview, object, window
 from win32com.client import gencache
 
 # WordModule = gencache.EnsureModule('{00020905-0000-0000-C000-000000000046}', 1033, 8, 0)

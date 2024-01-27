@@ -24,7 +24,7 @@ class MyWebBrowser(activex.Control, WebBrowserModule.WebBrowser):
         self, pDisp, URL, Flags, TargetFrameName, PostData, Headers, Cancel
     ):
         self.GetParent().OnNavigate(URL)
-        # print "BeforeNavigate2", pDisp, URL, Flags, TargetFrameName, PostData, Headers, Cancel
+        # print("BeforeNavigate2", pDisp, URL, Flags, TargetFrameName, PostData, Headers, Cancel)
 
 
 class BrowserFrame(window.MDIChildWnd):
@@ -57,7 +57,7 @@ class BrowserFrame(window.MDIChildWnd):
         self.ocx.SetWindowPos(0, rect, 0)
 
     def OnNavigate(self, url):
-        title = "Web Browser - %s" % (url,)
+        title = f"Web Browser - {url}"
         self.SetWindowText(title)
 
 

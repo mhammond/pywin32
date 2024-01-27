@@ -14,7 +14,7 @@
 
 import win32con
 import win32ui
-from pywin.mfc import afxres, dialog, window
+from pywin.mfc import window
 from pywin.mfc.thread import WinApp
 
 

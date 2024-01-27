@@ -40,7 +40,7 @@ def RegisterInterfaces(typelibGUID, lcid, major, minor, interface_names=None):
             # Not sure why we don't get an exception here - BindType's C
             # impl looks correct..
             if type_info is None:
-                raise ValueError("The interface '%s' can not be located" % (name,))
+                raise ValueError(f"The interface '{name}' can not be located")
             # If we got back a Dispatch interface, convert to the real interface.
             attr = type_info.GetTypeAttr()
             if attr.typekind == pythoncom.TKIND_DISPATCH:
@@ -66,14 +66,14 @@ def RegisterInterfaces(typelibGUID, lcid, major, minor, interface_names=None):
                 iid = mod.NamesToIIDMap[name]
             except KeyError:
                 raise ValueError(
-                    "Interface '%s' does not exist in this cached typelib" % (name,)
+                    f"Interface '{name}' does not exist in this cached typelib"
                 )
-            #            print "Processing interface", name
+            # print("Processing interface", name)
             sub_mod = gencache.GetModuleForCLSID(iid)
             is_dispatch = getattr(sub_mod, name + "_vtables_dispatch_", None)
             method_defs = getattr(sub_mod, name + "_vtables_", None)
             if is_dispatch is None or method_defs is None:
-                raise ValueError("Interface '%s' is IDispatch only" % (name,))
+                raise ValueError(f"Interface '{name}' is IDispatch only")
 
             # And create the univgw defn
             _doCreateVTable(iid, name, is_dispatch, method_defs)
@@ -100,10 +100,10 @@ def _CalcTypeSize(typeTuple):
         # is trying to.  We need to better place to warn about this, but it
         # isn't here.
         # try:
-        #    import warnings
-        #    warnings.warn("warning: records are known to not work for vtable interfaces")
+        #     import warnings
+        #     warnings.warn("warning: records are known to not work for vtable interfaces")
         # except ImportError:
-        #    print "warning: records are known to not work for vtable interfaces"
+        #     print("warning: records are known to not work for vtable interfaces")
         cb = _univgw.SizeOfVT(pythoncom.VT_PTR)[1]
         # cb = typeInfo.GetTypeAttr().cbSizeInstance
     else:
@@ -215,8 +215,9 @@ class Definition:
                 retVal = retVal[1:]
             else:
                 raise TypeError(
-                    "Expected %s return values, got: %s"
-                    % (len(meth._gw_out_args) + 1, len(retVal))
+                    "Expected {} return values, got: {}".format(
+                        len(meth._gw_out_args) + 1, len(retVal)
+                    )
                 )
         else:
             retVal = [retVal]

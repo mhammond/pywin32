@@ -120,7 +120,7 @@ static PyNumberMethods PyHANDLE_NumberMethods = {
     PyHANDLE::unaryFailureFunc,   /* nb_negative */
     PyHANDLE::unaryFailureFunc,   /* nb_positive */
     PyHANDLE::unaryFailureFunc,   /* nb_absolute */
-    // @pymeth  __nonzero__|Used for detecting true/false.
+    // @pymeth  __bool__|Used for detecting true/false.
     PyHANDLE::nonzeroFunc,       /* is nb_bool in Python 3.0 */
     PyHANDLE::unaryFailureFunc,  /* nb_invert */
     PyHANDLE::binaryFailureFunc, /* nb_lshift */
@@ -234,7 +234,7 @@ BOOL PyHANDLE::Close(void)
     return rc;
 }
 
-// @pymethod |PyHANDLE|__nonzero__|Used for detecting true/false.
+// @pymethod |PyHANDLE|__bool__|Used for detecting true/false.
 // @rdesc The result is 1 if the attached handle is non zero, else 0.
 /*static*/ int PyHANDLE::nonzeroFunc(PyObject *ob) { return ((PyHANDLE *)ob)->m_handle != 0; }
 

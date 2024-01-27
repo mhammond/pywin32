@@ -1,4 +1,5 @@
 """is64bit.Python() --> boolean value of detected Python word size. is64bit.os() --> os build version"""
+
 import sys
 
 

@@ -2,34 +2,22 @@
 # even tighter into Pythonwin.
 
 import pywin.scintilla.keycodes
+import pywin.scintilla.view
 import win32api
 import win32con
 import win32ui
-from pywin.framework.editor import (
-    GetEditorFontOption,
-    GetEditorOption,
-    SetEditorFontOption,
-    SetEditorOption,
-    defaultCharacterFormat,
-)
-from pywin.scintilla import bindings
+from pywin.debugger import dbgcon
+from pywin.framework.editor import GetEditorOption
+from pywin.framework.editor.document import EditorDocumentBase
+from pywin.scintilla import bindings, scintillacon
 
-# from pywin.framework.editor import EditorPropertyPage
-
-MSG_CHECK_EXTERNAL_FILE = (
-    win32con.WM_USER + 1999
-)  ## WARNING: Duplicated in document.py and editor.py
+# WARNING: Duplicated in document.py and editor.py
+MSG_CHECK_EXTERNAL_FILE = win32con.WM_USER + 1999
 
 # Define a few common markers
 MARKER_BOOKMARK = 0
 MARKER_BREAKPOINT = 1
 MARKER_CURRENT = 2
-
-import pywin.scintilla.view
-from pywin.debugger import dbgcon
-from pywin.framework.editor.document import EditorDocumentBase
-from pywin.scintilla import scintillacon  # For the marker definitions
-from pywin.scintilla.document import CScintillaDocument
 
 
 class SyntEditDocument(EditorDocumentBase):
@@ -474,7 +462,7 @@ class SyntEditView(SyntEditViewParent):
                     - scintillacon.SC_FOLDLEVELBASE
                 )
                 is_header = level & scintillacon.SC_FOLDLEVELHEADERFLAG
-                # 			print lineSeek, level_no, is_header
+                # print(lineSeek, level_no, is_header)
                 if level_no == 0 and is_header:
                     if (expanding and not self.SCIGetFoldExpanded(lineSeek)) or (
                         not expanding and self.SCIGetFoldExpanded(lineSeek)

@@ -143,13 +143,13 @@ l=Flock("c:\\a3.txt")
 l.type['LOCK_EX']=0
 l.type['LOCK_NB']=0
 
-print 'calling lock'
+print("calling lock")
 l.lock()
-print 'now locked '
+print("now locked")
 
 win32api.Sleep(1000)
 l.unlock()
-print 'now unlocked'
+print("now unlocked")
 
 @ex Have a great time with programming with python!
 <nl>|John Nielsen   nielsenjf@my-deja.com       

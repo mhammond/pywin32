@@ -21,7 +21,7 @@
 
 import win32con
 import win32ui
-from pywin.mfc import dialog, window
+from pywin.mfc import dialog
 
 
 def MakeDlgTemplate():

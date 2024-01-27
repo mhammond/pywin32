@@ -30,7 +30,7 @@ class TestSSPI(unittest.TestCase):
     def assertRaisesHRESULT(self, hr, func, *args):
         try:
             return func(*args)
-            raise RuntimeError("expecting %s failure" % (hr,))
+            raise RuntimeError(f"expecting {hr} failure")
         except win32security.error as exc:
             self.assertEqual(exc.winerror, hr)
 
@@ -206,7 +206,6 @@ class TestSSPI(unittest.TestCase):
             r"PySecBuffer\(cbBuffer: 0 \| BufferType: 2 \| pvBuffer: 0x[\da-fA-F]{8,16}\)",
             repr(buffer1),
         )
-        "PySecBuffer(cbBuffer: 0 | BufferType: 2 | pvBuffer: 0x000001B8CC6D8020)"
         desc.append(buffer1)
 
         assert re.match(

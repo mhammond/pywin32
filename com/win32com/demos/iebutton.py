@@ -3,7 +3,7 @@
 # PyWin32 Internet Explorer Button
 #
 # written by Leonard Ritter (paniq@gmx.net)
-# and Robert Förtsch (info@robert-foertsch.com)
+# and Robert FÃ¶rtsch (info@robert-foertsch.com)
 
 
 """
@@ -157,7 +157,7 @@ def register(classobj):
         winreg.SetValueEx(hKey, "ToolTip", 0, winreg.REG_SZ, classobj._tool_tip_)
         winreg.SetValueEx(hKey, "Icon", 0, winreg.REG_SZ, classobj._icon_)
         winreg.SetValueEx(hKey, "HotIcon", 0, winreg.REG_SZ, classobj._hot_icon_)
-    except WindowsError:
+    except OSError:
         print("Couldn't set standard toolbar reg keys.")
     else:
         print("Set standard toolbar reg keys.")
@@ -180,7 +180,7 @@ def unregister(classobj):
         winreg.DeleteValue(hKey, "Icon")
         winreg.DeleteValue(hKey, "HotIcon")
         winreg.DeleteKey(winreg.HKEY_LOCAL_MACHINE, subKeyCLSID)
-    except WindowsError:
+    except OSError:
         print("Couldn't delete Standard toolbar regkey.")
     else:
         print("Deleted Standard toolbar regkey.")

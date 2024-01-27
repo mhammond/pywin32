@@ -2,6 +2,7 @@
 
 Adodbapi can be run on CPython 3.5 and later.
 """
+
 CLASSIFIERS = """\
 Development Status :: 5 - Production/Stable
 Intended Audience :: Developers

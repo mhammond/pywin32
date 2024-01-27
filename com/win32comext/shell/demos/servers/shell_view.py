@@ -127,7 +127,7 @@ class ShellFolderBase:
     )
 
     def GetFrameOptions(self, mask):
-        # print "GetFrameOptions", self, mask
+        # print("GetFrameOptions", self, mask)
         return 0
 
     def ParseDisplayName(self, hwnd, reserved, displayName, attr):
@@ -370,7 +370,7 @@ class ShellFolderRoot(ShellFolderFileSystem):
         # This is the PIDL of us, as created by the shell.  This is our
         # top-level ID.  All other items under us have PIDLs defined
         # by us - see the notes at the top of the file.
-        # print "Initialize called with pidl", repr(pidl)
+        # print("Initialize called with pidl", repr(pidl))
         self.pidl = pidl
 
     def CreateViewObject(self, hwnd, iid):
@@ -646,7 +646,7 @@ class FileSystemView:
 
     def OnNotify(self, hwnd, msg, wparam, lparam):
         hwndFrom, idFrom, code = win32gui_struct.UnpackWMNOTIFY(lparam)
-        # print "OnNotify code=0x%x (0x%x, 0x%x)" % (code, wparam, lparam)
+        # print("OnNotify code=0x%x (0x%x, 0x%x)" % (code, wparam, lparam))
         if code == commctrl.NM_SETFOCUS:
             # Control got focus - Explorer may not know - tell it
             if self.browser is not None:
@@ -780,7 +780,7 @@ class FileSystemView:
             cm.InvokeCommand(ci)
 
     def OnSize(self, hwnd, msg, wparam, lparam):
-        # print "OnSize", self.hwnd_child, win32api.LOWORD(lparam), win32api.HIWORD(lparam)
+        # print("OnSize", self.hwnd_child, win32api.LOWORD(lparam), win32api.HIWORD(lparam))
         if self.hwnd_child is not None:
             x = win32api.LOWORD(lparam)
             y = win32api.HIWORD(lparam)
@@ -953,7 +953,7 @@ def DllUnregisterServer():
             "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\"
             "Explorer\\Desktop\\Namespace\\" + ShellFolderRoot._reg_clsid_,
         )
-    except WindowsError as details:
+    except OSError as details:
         import errno
 
         if details.errno != errno.ENOENT:
