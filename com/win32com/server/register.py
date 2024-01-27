@@ -235,7 +235,13 @@ def RegisterServer(
             # Although now we prefer a 'loader' DLL if it exists to avoid some
             # manifest issues (the 'loader' DLL has a manifest, but pythoncom does not)
             pythoncom_dir = os.path.dirname(pythoncom.__file__)
-            suffix = "_d" if os.path.splitext(os.path.basename(pythoncom.__file__))[0].endswith("_d") else ""
+            suffix = (
+                "_d"
+                if os.path.splitext(os.path.basename(pythoncom.__file__))[0].endswith(
+                    "_d"
+                )
+                else ""
+            )
             # Always register with the full path to the DLLs.
             loadername = os.path.join(
                 pythoncom_dir,
