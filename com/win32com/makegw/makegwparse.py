@@ -11,6 +11,7 @@
  See the @win32com.makegw@ module for information in building a COM
  interface
 """
+
 import re
 import traceback
 
@@ -34,10 +35,10 @@ DEBUG = 0
 
 
 class ArgFormatter:
-    """An instance for a specific type of argument.	 Knows how to convert itself"""
+    """An instance for a specific type of argument. Knows how to convert itself"""
 
     def __init__(self, arg, builtinIndirection, declaredIndirection=0):
-        # print 'init:', arg.name, builtinIndirection, declaredIndirection, arg.indirectionLevel
+        # print("init:", arg.name, builtinIndirection, declaredIndirection, arg.indirectionLevel)
         self.arg = arg
         self.builtinIndirection = builtinIndirection
         self.declaredIndirection = declaredIndirection
@@ -64,7 +65,14 @@ class ArgFormatter:
             raise error_not_supported("Can't indirect this far - please fix me :-)")
 
     def GetIndirectedArgName(self, indirectFrom, indirectionTo):
-        # print 'get:',self.arg.name, indirectFrom,self._GetDeclaredIndirection() + self.builtinIndirection, indirectionTo, self.arg.indirectionLevel
+        # print(
+        #     "get:",
+        #     self.arg.name,
+        #     indirectFrom,
+        #     self._GetDeclaredIndirection() + self.builtinIndirection,
+        #     indirectionTo,
+        #     self.arg.indirectionLevel,
+        # )
 
         if indirectFrom is None:
             ### ACK! this does not account for [in][out] variables.
@@ -206,7 +214,7 @@ class ArgFormatter:
         )
 
     def _GetPythonTypeDesc(self):
-        "Returns a string with the description of the type.	 Used for doco purposes"
+        "Returns a string with the description of the type. Used for doco purposes"
         return None
 
     def NeedUSES_CONVERSION(self):
@@ -835,7 +843,7 @@ class Argument:
 
         if VERBOSE:
             print(
-                "	   Arg {} of type {}{} ({})".format(
+                "       Arg {} of type {}{} ({})".format(
                     self.name, self.type, "*" * self.indirectionLevel, self.inout
                 )
             )
@@ -895,7 +903,7 @@ class Method:
                     "Method %s - Only HRESULT return types are supported." % self.name
                 )
             # 				raise error_not_supported,		if VERBOSE:
-            print(f"	 Method {self.result} {self.name}(")
+            print(f"     Method {self.result} {self.name}(")
         while 1:
             arg = Argument(self.good_interface_names)
             try:

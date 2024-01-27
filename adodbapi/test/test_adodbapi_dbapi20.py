@@ -51,9 +51,9 @@ if host is None:
 else:
     conn_kws["host"] = host
 
-conn_kws[
-    "provider"
-] = "Provider=MSOLEDBSQL;DataTypeCompatibility=80;MARS Connection=True;"
+conn_kws["provider"] = (
+    "Provider=MSOLEDBSQL;DataTypeCompatibility=80;MARS Connection=True;"
+)
 connStr = "%(provider)s; %(security)s; Initial Catalog=%(name)s;Data Source=%(host)s"
 
 if onWindows and node != "z-PC":
@@ -108,7 +108,7 @@ class test_adodbapi(dbapi20.DatabaseAPI20Test):
         if self.getTestMethodName() == "test_callproc":
             con = self._connect()
             engine = con.dbms_name
-            ## print('Using database Engine=%s' % engine) ##
+            # print(f"Using database Engine={engine}")
             if engine != "MS Jet":
                 sql = """
                     create procedure templower

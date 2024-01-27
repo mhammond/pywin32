@@ -69,7 +69,7 @@ Build 305, released 2022-11-06
   from there. (#1908)
 
 * Dropped support for allowing a bytes object to be passed where a COM BSTR
-  is expected - this support was accidental on the path from 2.x->3.x.
+  is expected - this support was accidental on the path from Python 2 -> 3.
 
 * win32crypt's PyCERTSTORE.CertCloseStore()'s `Flags` argument has been
   deprecated as it is likely to crash the process if

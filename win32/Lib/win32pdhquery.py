@@ -17,37 +17,37 @@ but part of the point of this wrapper module is to hide that
 complexity from the end-user/programmer.
 
 EXAMPLE: A more complex Path
-	'\\\\RAISTLIN\\PhysicalDisk(_Total)\\Avg. Disk Bytes/Read'
-	Raistlin --> Computer Name
-	PhysicalDisk --> Object Name
-	_Total --> The particular Instance (in this case, all instances, i.e. all drives)
-	Avg. Disk Bytes/Read --> The piece of data being monitored.
+    '\\\\RAISTLIN\\PhysicalDisk(_Total)\\Avg. Disk Bytes/Read'
+    Raistlin --> Computer Name
+    PhysicalDisk --> Object Name
+    _Total --> The particular Instance (in this case, all instances, i.e. all drives)
+    Avg. Disk Bytes/Read --> The piece of data being monitored.
 
 EXAMPLE: Collecting Data with a Query
-	As an example, the following code implements a logger which allows the
-	user to choose what counters they would like to log, and logs those
-	counters for 30 seconds, at two-second intervals.
-	
-	query = Query()
-	query.addcounterbybrowsing()
-	query.collectdatafor(30,2)
-	
-	The data is now stored in a list of lists as:
-	query.curresults
-	
-	The counters(paths) which were used to collect the data are:
-	query.curpaths
-	
-	You can use the win32pdh.ParseCounterPath(path) utility function
-	to turn the paths into more easily read values for your task, or
-	write the data to a file, or do whatever you want with it.
+    As an example, the following code implements a logger which allows the
+    user to choose what counters they would like to log, and logs those
+    counters for 30 seconds, at two-second intervals.
+    
+    query = Query()
+    query.addcounterbybrowsing()
+    query.collectdatafor(30,2)
+    
+    The data is now stored in a list of lists as:
+    query.curresults
+    
+    The counters(paths) which were used to collect the data are:
+    query.curpaths
+    
+    You can use the win32pdh.ParseCounterPath(path) utility function
+    to turn the paths into more easily read values for your task, or
+    write the data to a file, or do whatever you want with it.
 
 OTHER NOTABLE METHODS:
-	query.collectdatawhile(period) # start a logging thread for collecting data
-	query.collectdatawhile_stop() # signal the logging thread to stop logging
-	query.collectdata() # run the query only once
-	query.addperfcounter(object, counter, machine=None) # add a standard performance counter
-	query.addinstcounter(object, counter,machine=None,objtype = 'Process',volatile=1,format = win32pdh.PDH_FMT_LONG) # add a possibly volatile counter
+    query.collectdatawhile(period) # start a logging thread for collecting data
+    query.collectdatawhile_stop() # signal the logging thread to stop logging
+    query.collectdata() # run the query only once
+    query.addperfcounter(object, counter, machine=None) # add a standard performance counter
+    query.addinstcounter(object, counter,machine=None,objtype = 'Process',volatile=1,format = win32pdh.PDH_FMT_LONG) # add a possibly volatile counter
 
 ### Known bugs and limitations ###
 Due to a problem with threading under the PythonWin interpreter, there
@@ -123,6 +123,7 @@ Use at your own risk, no warranties, no guarantees, no assurances,
 if you use it, you accept the risk of using it, etceteras.
 
 """
+
 # Feb 12, 98 - MH added "rawaddcounter" so caller can get exception details.
 
 import _thread

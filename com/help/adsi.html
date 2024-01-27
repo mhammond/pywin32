@@ -152,7 +152,7 @@ myDSObject = ldap.OpenDSObject(ex_path,logon_ex,password,0)
 myDSObject.Getinfo()
 # To access a user's data try:
 attribute = myDSObject.Get('Extension-Attribute-1')
-print attribute
+print(attribute)
 # To modify a user try:
 myDSObject.Put('Extension-Attribute-1','barney was here')
 myDSObject.Setinfo()
@@ -188,7 +188,7 @@ try:
   dsobj.Delete("OrganizationalPerson", "cn="+login)
   dsobj.Setinfo()
 except:
-  print 'Error deleting '+login, sys.exc_type , sys.exc_value
+  print("Error deleting "+login, sys.exc_type , sys.exc_value)
 </code>
 </p>
 <hr>
@@ -245,7 +245,7 @@ def getmembers(path=''):
   elif  dsobj.Class=='Public-Folder':
       pass
   else:
-      print 'skipped',dsobj.Class,dsobj.uid
+      print("skipped",dsobj.Class,dsobj.uid)
   return user_dict
 
 

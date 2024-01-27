@@ -6,6 +6,7 @@ necessary to allow the COM framework to respond to a request for a COM object,
 construct the necessary Python object, and dispatch COM events.
 
 """
+
 import os
 import sys
 

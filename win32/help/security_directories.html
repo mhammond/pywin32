@@ -160,7 +160,7 @@ all_perms=fileperm.get_perms(r'\\Simon\share\db\a.txt')
 
 And if you print the perms you'll get something like:
 
-print all_perms
+print(all_perms)
 {'\\Everyone': 2032127L, 'Domain\\fred': 1179817L, 'BUILTIN\\Users': 1179817L}
 </pre>
 
@@ -414,7 +414,7 @@ def get_perm(file):
     all_perms=fileperm.get_perms(file)
     for (domain_id,mask) in all_perms.items():
         (domain,sys_id)=domain_id.split('\\',1)
-        print domain,sys_id
+        print(domain,sys_id)
         sys_id=str(sys_id)
         mask_name=get_mask(mask)
         if len(sys_id)<7:
@@ -426,7 +426,7 @@ def get_perm(file):
     return perm_list
 def get_perms(arg, d, files):
     a=2147483648L #1L<<31L
-    print 'Now at ',d
+    print("Now at ",d)
     for i in files:
         file=d+'\\'+i
         if opts['-d']:
@@ -451,22 +451,22 @@ def get_perms(arg, d, files):
 domain='bedrock'
 
 Server=str(win32net.NetGetDCName("",domain))
-print '************************ Using domain ',domain
+print("************************ Using domain ",domain)
 
 only_dir=0
 D_group={}
 D_except={}
 if len(sys.argv)==1:
-    print sys.argv[0],"<all options> file or directory<return>"
-    print "-r for recursive mode \n-o for output file (default screen) \n-d for directories only"
-    print 'Example:',sys.argv[0],'-o a.txt -r c:\\junk  \n ----goes down dir tree in c:\\junk and saves in a.txt'
+    print(sys.argv[0],"<all options> file or directory<return>")
+    print("-r for recursive mode \n-o for output file (default screen) \n-d for directories only")
+    print("Example:",sys.argv[0],"-o a.txt -r c:\\junk  \n ----goes down dir tree in c:\\junk and saves in a.txt")
     sys.exit(0)    
 else:
     try:
         optlist, args = getopt.getopt(sys.argv[1:], 'dho:r')
     except getopt.error:
-       print "invalid option.  available options are: -d -h -r -o <file or dir>"
-       print "-r for recursive mode \n-o for output file (default screen) \n-d for directories only"
+       print("invalid option.  available options are: -d -h -r -o <file or dir>")
+       print("-r for recursive mode \n-o for output file (default screen) \n-d for directories only")
 
        sys.exit(0)
 
@@ -481,30 +481,30 @@ else:
     Results=[]
     if opts['-r']:
         if os.path.isdir(args[0]):
-            print 'walking thru',args[0]
+            print("walking thru",args[0])
             get_perm_base(args[0])
             os.path.walk(args[0],get_perms,opts['-d'])
         else:
-            print 'Directory',args[0],'does not exist'
+            print("Directory",args[0],"does not exist")
             sys.exit(0)
     else:
         if os.path.exists(args[0]):
             Results=get_perm(args[0])
         else:
-            print 'Directory or file',args[0],'does not exist'
+            print("Directory or file",args[0],"does not exist")
             sys.exit(0)
         
-    #now print out the results
+    # now print out the results
     if opts['-o']:
-        #send to a file
-        print 'Storing results in',opts['-o']
+        # send to a file
+        print("Storing results in",opts["-o"])
         f=open(opts['-o'],'w')
         for i in Results:
             f.write(i)
             f.write('\n')
     else:
         for i in Results:
-            print i
+            print(i)
         end = time.clock()-init
 
 </pre>

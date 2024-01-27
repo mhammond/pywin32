@@ -11,6 +11,7 @@ to know.  They are not designed to handle all cases, just the common ones.
 If you need finer control than offered here, just use the win32security
 functions directly.
 """
+
 # Based on Roger Upole's sspi demos.
 # $Id$
 import sspicon

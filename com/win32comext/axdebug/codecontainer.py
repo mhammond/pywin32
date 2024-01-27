@@ -4,16 +4,15 @@ A code container is a class which holds source code for a debugger.  It knows ho
 to color the text, and also how to translate lines into offsets, and back.
 """
 
+import os
 import sys
 import tokenize
 
 import win32api
 import winerror
-from win32com.axdebug import axdebug
+from win32com.axdebug import axdebug, contexts
+from win32com.axdebug.util import _wrap
 from win32com.server.exception import Exception
-
-from . import contexts
-from .util import RaiseNotImpl, _wrap
 
 _keywords = {}  # set of Python keywords
 for name in """
@@ -43,7 +42,7 @@ class SourceCodeContainer:
         self.codeContexts = {}
         self.site = site
         self.startLineNumber = startLineNumber
-        self.debugDocument = None
+        self.debugDocument = debugDocument
 
     def _Close(self):
         self.text = self.lines = self.lineOffsets = None
@@ -78,9 +77,9 @@ class SourceCodeContainer:
             lastOffset = lineOffset
             lineNo = lineNo + 1
         else:  # for not broken.
-            #                       print "Cant find", charPos, "in", self.lineOffsets
+            # print("Cant find", charPos, "in", self.lineOffsets)
             raise Exception(scode=winerror.S_FALSE)
-        #               print "GLOP ret=",lineNo,       (charPos-lastOffset)
+        # print("GLOP ret=", lineNo, (charPos - lastOffset))
         return lineNo, (charPos - lastOffset)
 
     def GetNextLine(self):
@@ -187,13 +186,13 @@ class SourceCodeContainer:
 
     # Returns a DebugCodeContext.  debugDocument can be None for smart hosts.
     def GetCodeContextAtPosition(self, charPos):
-        #               trace("GetContextOfPos", charPos, maxChars)
+        # trace("GetContextOfPos", charPos, maxChars)
         # Convert to line number.
         lineNo, offset = self.GetLineOfPosition(charPos)
         charPos = self.GetPositionOfLine(lineNo)
         try:
             cc = self.codeContexts[charPos]
-        #                       trace(" GetContextOfPos using existing")
+        # trace(" GetContextOfPos using existing")
         except KeyError:
             cc = self._MakeContextAtPosition(charPos)
             self.codeContexts[charPos] = cc
@@ -226,9 +225,9 @@ class SourceModuleContainer(SourceCodeContainer):
                 try:
                     self.text = open(fname, "r").read()
                 except OSError as details:
-                    self.text = "# Exception opening file\n# %s" % (repr(details))
+                    self.text = f"# Exception opening file\n# {repr(details)}"
             else:
-                self.text = "# No file available for module '%s'" % (self.module)
+                self.text = f"# No file available for module '{self.module}'"
             self._buildlines()
         return self.text
 
@@ -247,17 +246,16 @@ class SourceModuleContainer(SourceCodeContainer):
         elif dnt == axdebug.DOCUMENTNAMETYPE_FILE_TAIL:
             return os.path.split(fname)[1]
         elif dnt == axdebug.DOCUMENTNAMETYPE_URL:
-            return "file:%s" % fname
+            return f"file:{fname}"
         else:
             raise Exception(scode=winerror.E_UNEXPECTED)
 
 
 if __name__ == "__main__":
-    sys.path.append(".")
-    import ttest
+    from Test import ttest
 
     sc = SourceModuleContainer(ttest)
-    #       sc = SourceCodeContainer(open(sys.argv[1], "rb").read(), sys.argv[1])
+    # sc = SourceCodeContainer(open(sys.argv[1], "rb").read(), sys.argv[1])
     attrs = sc.GetSyntaxColorAttributes()
     attrlen = 0
     for attr in attrs:
@@ -267,10 +265,10 @@ if __name__ == "__main__":
             attrlen = attrlen + 1
     text = sc.GetText()
     if attrlen != len(text):
-        print("Lengths dont match!!! (%d/%d)" % (attrlen, len(text)))
+        print(f"Lengths dont match!!! ({attrlen}/{len(text)})")
 
-    #       print "Attributes:"
-    #       print attrs
+    # print("Attributes:")
+    # print(attrs)
     print("GetLineOfPos=", sc.GetLineOfPosition(0))
     print("GetLineOfPos=", sc.GetLineOfPosition(4))
     print("GetLineOfPos=", sc.GetLineOfPosition(10))

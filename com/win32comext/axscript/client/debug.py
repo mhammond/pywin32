@@ -7,7 +7,7 @@ import win32com.server.util
 import winerror
 from win32com.axdebug import adb, axdebug, documents, gateways
 from win32com.axdebug.codecontainer import SourceCodeContainer
-from win32com.axdebug.util import _wrap, _wrap_remove
+from win32com.axdebug.util import _wrap
 from win32com.client.util import Enumerator
 from win32com.server.exception import COMException
 from win32com.util import IIDToInterfaceName
@@ -86,9 +86,7 @@ class DebugManager:
 
     def Close(self):
         # Called by the language engine when it receives a close request
-        if self.activeScriptDebug is not None:
-            _wrap_remove(self.activeScriptDebug)
-            self.activeScriptDebug = None
+        self.activeScriptDebug = None
         self.scriptEngine = None
         self.rootNode = None
         self.debugApplication = None
@@ -101,7 +99,7 @@ class DebugManager:
             self.adb.CloseApp()
             self.adb = None
 
-    # 		print "Close complete"
+    # print("Close complete")
 
     def IsAnyHost(self):
         "Do we have _any_ debugging interfaces installed?"

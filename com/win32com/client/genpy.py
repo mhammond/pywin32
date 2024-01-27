@@ -207,10 +207,10 @@ class EnumerationItem(build.OleItem, WritableItem):
             name = typeinfo.GetNames(vdesc[0])[0]
             self.mapVars[name] = build.MapEntry(vdesc)
 
-    ##  def WriteEnumerationHeaders(self, aliasItems, stream):
-    ##    enumName = self.doc[0]
-    ##    print >> stream "%s=constants # Compatibility with previous versions." % (enumName)
-    ##    WriteAliasesForItem(self, aliasItems)
+    # def WriteEnumerationHeaders(self, aliasItems, stream):
+    #     enumName = self.doc[0]
+    #     print(f"{enumName}=constants # Compatibility with previous versions.", file=stream)
+    #     WriteAliasesForItem(self, aliasItems)
 
     def WriteEnumerationItems(self, stream):
         num = 0
@@ -1025,7 +1025,7 @@ class Generator:
 
         return oleItems, enumItems, recordItems, vtableItems
 
-    def open_writer(self, filename, encoding="mbcs"):
+    def open_writer(self, filename, encoding="utf-8"):
         # A place to put code to open a file with the appropriate encoding.
         # Does *not* set self.file - just opens and returns a file.
         # Actually returns a handle to a temp file - finish_writer then deletes
@@ -1097,7 +1097,7 @@ class Generator:
         # We assert this is it may indicate somewhere in pywin32 that needs
         # upgrading.
         assert self.file.encoding, self.file
-        encoding = self.file.encoding  # or "mbcs"
+        encoding = self.file.encoding
 
         print(f"# -*- coding: {encoding} -*-", file=self.file)
         print(f"# Created by makepy.py version {makepy_version}", file=self.file)

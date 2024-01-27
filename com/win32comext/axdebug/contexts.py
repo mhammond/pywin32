@@ -1,8 +1,6 @@
 """ A module for managing the AXDebug I*Contexts
 
 """
-import pythoncom
-import win32com.server.util
 
 from . import adb, axdebug, gateways
 

@@ -1,6 +1,6 @@
 # postinstall script for pywin32
 #
-# copies PyWinTypesxx.dll and PythonCOMxx.dll into the system directory,
+# copies pywintypesXX.dll and pythoncomXX.dll into the system directory,
 # and creates a pth file
 import glob
 import os
@@ -73,6 +73,8 @@ try:
     # a list of actions for the uninstaller, the format is inspired by what
     # the Wise installer also creates.
     file_created
+    # 3.10 stopped supporting bdist_wininst, but we can still build them with 3.9.
+    # This can be kept until Python 3.9 or exe installers support is dropped.
     is_bdist_wininst = True
 except NameError:
     is_bdist_wininst = False  # we know what it is not - but not what it is :)

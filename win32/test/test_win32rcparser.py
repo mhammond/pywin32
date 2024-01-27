@@ -35,7 +35,7 @@ class TestParser(unittest.TestCase):
         notabstop_ids = [self.resources.ids[name] for name in notabstop_names]
         num_ok = 0
         for cdef in d[1:]:  # skip dlgdef
-            # print cdef
+            # print(cdef)
             cid = cdef[2]
             style = cdef[-2]
             styleex = cdef[-1]

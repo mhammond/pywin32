@@ -122,8 +122,8 @@ def DoDumpAccessInfo(dbname):
         forms = a.Forms
         print("There are %d forms open." % (len(forms)))
         # Uncommenting these lines means Access remains open.
-        #               for form in forms:
-        #                       print " %s" % form.Name
+        # for form in forms:
+        #     print(f" {form.Name}")
         reports = a.Reports
         print("There are %d reports open" % (len(reports)))
     finally:

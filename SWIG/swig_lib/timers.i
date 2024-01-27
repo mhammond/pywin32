@@ -134,7 +134,7 @@ performance.   To use a timer, simply use code like this :
       timer_start(0)
       ... a bunch of Python code ...
       timer_stop(0)
-      print timer_elapsed(0)," seconds of CPU time"
+      print(timer_elapsed(0), " seconds of CPU time")
 %}      
 #endif
 

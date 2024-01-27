@@ -28,10 +28,9 @@ def test(projectName):
     for item in project.GetVersions(constants.VSSFLAG_RECURSYES):
         print(item.VSSItem.Name, item.VersionNumber, item.Action)
 
-
-# 	item=i.Versions[0].VSSItem
-# 	for h in i.Versions:
-# 		print `h.Comment`, h.Action, h.VSSItem.Name
+    # item=i.Versions[0].VSSItem
+    # for h in i.Versions:
+    #     print("h.Comment", h.Action, h.VSSItem.Name)
 
 
 def SubstituteInString(inString, evalEnv):

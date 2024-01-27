@@ -148,7 +148,7 @@ class BrowserView(pywin.mfc.docview.TreeView):
         self.DestroyList()
 
     def OnActivateView(self, activate, av, dv):
-        #        print "AV", self.bDirty, activate
+        # print("AV", self.bDirty, activate)
         if activate:
             self.CheckRefreshList()
         return self._obj_.OnActivateView(activate, av, dv)

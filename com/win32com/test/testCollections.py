@@ -102,10 +102,10 @@ def TestEnum(quiet=None):
     TestEnumAgainst(o, check)
 
     ### This does not work!
-    #       if not quiet: print "Indexed replace item test"
-    #       o[2] = 'Replaced Item'
-    #       check[2] = 'Replaced Item'
-    #       TestEnumAgainst(o, check)
+    # if not quiet: print("Indexed replace item test")
+    # o[2] = 'Replaced Item'
+    # check[2] = 'Replaced Item'
+    # TestEnumAgainst(o, check)
 
     try:
         o()

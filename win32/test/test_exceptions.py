@@ -1,4 +1,5 @@
 """Test pywin32's error semantics"""
+
 import unittest
 
 import pythoncom

@@ -31,7 +31,12 @@ class PyScriptRExec(pyscript.PyScript):
     _reg_threading_ = "Apartment"
 
     def _GetSupportedInterfaceSafetyOptions(self):
-        # print "**** calling", pyscript.PyScript._GetSupportedInterfaceSafetyOptions, "**->", pyscript.PyScript._GetSupportedInterfaceSafetyOptions(self)
+        # print(
+        #     "**** calling",
+        #     pyscript.PyScript._GetSupportedInterfaceSafetyOptions,
+        #     "**->",
+        #     pyscript.PyScript._GetSupportedInterfaceSafetyOptions(self),
+        # )
         return (
             INTERFACE_USES_DISPEX
             | INTERFACE_USES_SECURITY_MANAGER
