@@ -45,6 +45,7 @@ from setuptools.command.install import install
 from setuptools.command.install_lib import install_lib
 
 from distutils.command.install_data import install_data
+
 if sys.version_info >= (3, 8):
     from setuptools.modified import newer_group
 else:
