@@ -1,4 +1,5 @@
 """A test runner for pywin32"""
+
 import os
 import site
 import subprocess
@@ -24,7 +25,7 @@ def run_test(script, cmdline_extras):
     print("--- Running '%s' ---" % script)
     sys.stdout.flush()
     result = subprocess.run(cmd, check=False, cwd=dirname)
-    print("*** Test script '%s' exited with %s" % (script, result.returncode))
+    print(f"*** Test script '{script}' exited with {result.returncode}")
     sys.stdout.flush()
     if result.returncode:
         failures.append(script)

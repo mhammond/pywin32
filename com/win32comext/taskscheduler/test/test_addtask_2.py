@@ -20,10 +20,9 @@ if task_name in tasks:
 
 t = ts.NewWorkItem(task_name)
 t.SetComment("Test a task running as local system acct")
-t.SetApplicationName("c:\\python23\\python.exe")
+t.SetApplicationName("py.exe")
 t.SetPriority(taskscheduler.REALTIME_PRIORITY_CLASS)
 t.SetParameters("test_localsystem.py")
-t.SetWorkingDirectory("c:\\python23")
 t.SetCreator("test_addtask_2.py")
 t.SetMaxRunTime(20000)  # milliseconds
 t.SetFlags(taskscheduler.TASK_FLAG_DELETE_WHEN_DONE)

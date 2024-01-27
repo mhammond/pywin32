@@ -58,14 +58,14 @@ format into seconds using's python's time and regexp library:|
 def date2sec(self,evt_date):
 	'''
 	converts '12/23/99 15:54:09' to seconds
-	print '333333',evt_date
+	print("333333",evt_date)
 	'''
 	regexp=re.compile('(.*)\s(.*)') 
 	reg_result=regexp.search(evt_date)
 	date=reg_result.group(1)
 	the_time=reg_result.group(2)
-	(mon,day,yr)=map(lambda x: string.atoi(x),string.split(date,'/'))
-	(hr,min,sec)=map(lambda x: string.atoi(x),string.split(the_time,':'))
+	(mon,day,yr)=map(lambda x: int(x),date.split('/'))
+	(hr,min,sec)=map(lambda x: int(x),the_time.split(':'))
 	tup=[yr,mon,day,hr,min,sec,0,0,0]
 	sec=time.mktime(tup)
 	return sec
@@ -86,7 +86,6 @@ import win32con
 import winerror
 import time
 import re
-import string
 import sys
 import traceback
 
@@ -99,8 +98,8 @@ def date2sec(evt_date):
 	reg_result=regexp.search(evt_date)
 	date=reg_result.group(1)
 	the_time=reg_result.group(2)
-	(mon,day,yr)=map(lambda x: string.atoi(x),string.split(date,'/'))
-	(hr,min,sec)=map(lambda x: string.atoi(x),string.split(the_time,':'))
+	(mon,day,yr)=map(lambda x: int(x),date.split('/'))
+	(hr,min,sec)=map(lambda x: int(x),the_time.split(':'))
 	tup=[yr,mon,day,hr,min,sec,0,0,0]
 
 	sec=time.mktime(tup)
@@ -125,7 +124,7 @@ begin_time=time.strftime('%H:%M:%S  ',time.localtime(begin_sec))
 
 #open event log 
 hand=win32evtlog.OpenEventLog(computer,logtype)
-print logtype,' events found in the last 8 hours since:',begin_time
+print(logtype,' events found in the last 8 hours since:',begin_time)
 
 try:
   events=1
@@ -146,12 +145,12 @@ try:
         evt_id=str(winerror.HRESULT_CODE(ev_obj.EventID))
         evt_type=str(evt_dict[ev_obj.EventType])
         msg = str(win32evtlogutil.SafeFormatMessage(ev_obj, logtype))
-        print string.join((the_time,computer,src,cat,record,evt_id,evt_type,msg[0:15]),':')
+        print(":".join((the_time,computer,src,cat,record,evt_id,evt_type,msg[0:15])))
 
     if seconds < begin_sec-28800: break #get out of while loop as well
   win32evtlog.CloseEventLog(hand)
 except:
-    print traceback.print_exc(sys.exc_info())
+    print(traceback.print_exc(sys.exc_info()))
 
 
 	Some useful additions to this would be to make it
@@ -247,13 +246,14 @@ try:
     for thread in threads: #make main thread wait for all in list to complete
         thread.join()
 
-    for thread in threads: #print thread results
-      for event in thread.data:
-	print event 
+    for thread in threads: 
+		    # print(thread results)
+        for event in thread.data:
+	          print(event)
 
 
 except:
-    print traceback.print_exc(sys.exc_info())
+    print(traceback.print_exc(sys.exc_info()))
 
 
 
@@ -275,7 +275,6 @@ import win32con
 import winerror
 import time
 import re
-import string
 import sys
 import threading
 import traceback
@@ -323,7 +322,7 @@ class thread_it ( threading.Thread ) :
 					evt_id=str(winerror.HRESULT_CODE(ev_obj.EventID))
 					evt_type=str(evt_dict[ev_obj.EventType])
 					msg = str(win32evtlogutil.SafeFormatMessage(ev_obj, logtype))
-					results=string.join((now_time,the_time,computer,src,cat,record,evt_id,evt_type,msg[0:15]),':')
+					results=':'.join((now_time,the_time,computer,src,cat,record,evt_id,evt_type,msg[0:15]))
 					self.data.append(results)
 				if seconds < begin_sec-28800: break 
 			win32evtlog.CloseEventLog(hand)
@@ -340,8 +339,8 @@ class thread_it ( threading.Thread ) :
 		date=reg_result.group(1)
 		the_time=reg_result.group(2)
 
-		(mon,day,yr)=map(lambda x: string.atoi(x),string.split(date,'/'))
-		(hr,min,sec)=map(lambda x: string.atoi(x),string.split(the_time,':'))
+		(mon,day,yr)=map(lambda x: int(x),date.split('/'))
+		(hr,min,sec)=map(lambda x: int(x),the_time.split(':'))
 		tup=[yr,mon,day,hr,min,sec,0,0,0]
 
 		sec=time.mktime(tup)
@@ -362,12 +361,12 @@ try:
 		thread.join()
 
 	for thread in threads: #compile all of the threads' data together.
-		print '###############'
+		print("###############")
 		for event in thread.data:
-			print event 
+			print(event)
 
 except:
-	print traceback.print_exc(sys.exc_info())
+	print(traceback.print_exc(sys.exc_info()))
 
 
 

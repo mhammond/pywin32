@@ -83,9 +83,9 @@ from win32com.server.exception import COMException
 import win32com.server.util
 import win32com.client.dynamic
 
-#to generate guids use:
-#import pythoncom
-#print pythoncom.CreateGuid()
+# to generate guids use:
+# import pythoncom
+# print(pythoncom.CreateGuid())
 
 class Mts:
 	# COM attributes.

@@ -17,7 +17,7 @@ class PipeTests(unittest.TestCase):
         # just do one connection and terminate.
         hr = win32pipe.ConnectNamedPipe(pipe_handle)
         self.assertTrue(
-            hr in (0, winerror.ERROR_PIPE_CONNECTED), "Got error code 0x%x" % (hr,)
+            hr in (0, winerror.ERROR_PIPE_CONNECTED), f"Got error code 0x{hr:x}"
         )
         hr, got = win32file.ReadFile(pipe_handle, 100)
         self.assertEqual(got, b"foo\0bar")

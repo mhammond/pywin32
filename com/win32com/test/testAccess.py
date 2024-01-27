@@ -26,7 +26,7 @@ def CreateTestAccessDatabase(dbname=None):
 
     try:
         os.unlink(dbname)
-    except os.error:
+    except OSError:
         print(
             "WARNING - Unable to delete old test database - expect a COM exception RSN!"
         )
@@ -122,8 +122,8 @@ def DoDumpAccessInfo(dbname):
         forms = a.Forms
         print("There are %d forms open." % (len(forms)))
         # Uncommenting these lines means Access remains open.
-        #               for form in forms:
-        #                       print " %s" % form.Name
+        # for form in forms:
+        #     print(f" {form.Name}")
         reports = a.Reports
         print("There are %d reports open" % (len(reports)))
     finally:

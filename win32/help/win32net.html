@@ -70,7 +70,7 @@ for further information if necessary. There is a sister module to
 win32net called win32netcon that houses all of the constants needed by
 the win32net modules.  
 <p>
-Because of unicode support in python2.0, some of the string handling
+Because of unicode support in Python 2.0, some of the string handling
 done w/the examples are no longer necessary. Before one needed to
 convert PyUnicode to a regular python string, before you could use
 string functions with it. The examples will work w/both versions of
@@ -86,7 +86,7 @@ I use the following format:
 try:
   #win32net calls
 except win32net.error:
-  print traceback.format_tb(sys.exc_info()[2]),'\n',sys.exc_type,'\n',sys.exc_value
+  print(traceback.format_tb(sys.exc_info()[2]),'\n',sys.exc_type,'\n',sys.exc_value)
 </code>
 The traceback and sys modules are used to extract the error information.
 
@@ -141,9 +141,9 @@ def getusers(server):
       res=res2
       return total_list
   except win32net.error:
-    print traceback.format_tb(sys.exc_info()[2]),'\n',sys.exc_type,'\n',sys.exc_value
+    print(traceback.format_tb(sys.exc_info()[2]),'\n',sys.exc_type,'\n',sys.exc_value)
 
-print getusers(r'\\betty')
+print(getusers(r'\\betty'))
 
 
 </code>
@@ -176,9 +176,9 @@ def getall_users(server):
              user_list.append(login+'\t'+full_name)
        return user_list
    except win32net.error:
-        print traceback.format_tb(sys.exc_info()[2]),'\n',sys.exc_type,'\n',sys.exc_value
+        print(traceback.format_tb(sys.exc_info()[2]),'\n',sys.exc_type,'\n',sys.exc_value)
 
-print getall_users(r'\\dino')
+print(getall_users(r'\\dino'))
 
 </code>
 
@@ -199,14 +199,14 @@ def getall_boxes(domain='',server=''):
           wrk_lst.extend(wrk_list2)
           res=res2
     except win32net.error:
-        print traceback.format_tb(sys.exc_info()[2]),'\n',sys.exc_type,'\n',sys.exc_value
+        print(traceback.format_tb(sys.exc_info()[2]),'\n',sys.exc_type,'\n',sys.exc_value)
 
     final_lst=[]
     for i in wrk_lst:
       final_lst.append(str(i['name']))
     return final_lst
 
-print getall_boxes('bedrock',r'\\rubble')
+print(getall_boxes('bedrock',r'\\rubble'))
 </code>
 
 <H3><A NAME="share">Creating a share</A></H3>
@@ -280,7 +280,7 @@ try:
   win32net.NetShareAdd(server,2,shinfo)
   return "success"
 except win32net.error:
-  print traceback.format_tb(sys.exc_info()[2]),'\n',sys.exc_type,'\n',sys.exc_value
+  print(traceback.format_tb(sys.exc_info()[2]),'\n',sys.exc_type,'\n',sys.exc_value)
 
 </code>
 </p>
@@ -369,13 +369,13 @@ try:
     #info returns a dictionary of information
 
     info = win32net.NetUserGetInfo(server, login, 3)
-    print info['full_name']
+    print(info['full_name'])
     info['full_name']="Mr. Slate"
     win32net.NetUserSetInfo(server,login,3,info)
     info = win32net.NetUserGetInfo(server, login, 3)
-    print info['full_name']
+    print(info['full_name'])
 except win32net.error:
-    print traceback.format_tb(sys.exc_info()[2]),'\n',sys.exc_type,'\n',sys.exc_value
+    print(traceback.format_tb(sys.exc_info()[2]),'\n',sys.exc_type,'\n',sys.exc_value)
 </code>
 
 <H3><A NAME="password"></A>Changing password expiration</H3>
@@ -425,7 +425,7 @@ try:
     flag_dict={'flags':flag}
     win32net.NetUserSetInfo(server,login,1008,flag_dict)
 except win32net.error:
-    print traceback.format_tb(sys.exc_info()[2]),'\n',sys.exc_type,'\n',sys.exc_value
+    print(traceback.format_tb(sys.exc_info()[2]),'\n',sys.exc_type,'\n',sys.exc_value)
 
 </code>
 </p>

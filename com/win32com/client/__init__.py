@@ -55,7 +55,7 @@ def __WrapDispatch(
 
 
 def GetObject(Pathname=None, Class=None, clsctx=None):
-    """
+    r"""
     Mimic VB's GetObject() function.
 
     ob = GetObject(Class = "ProgID") or GetObject(Class = clsid) will
@@ -179,8 +179,8 @@ def CastTo(ob, target, typelib=None):
         )
         if not hasattr(mod, target):
             raise ValueError(
-                "The interface name '%s' does not appear in the "
-                "specified library %r" % (target, typelib.ver_desc)
+                f"The interface name '{target}' does not appear in the "
+                f"specified library {typelib.ver_desc!r}"
             )
 
     elif hasattr(target, "index"):  # string like
@@ -207,8 +207,8 @@ def CastTo(ob, target, typelib=None):
         target_clsid = mod.NamesToIIDMap.get(target)
         if target_clsid is None:
             raise ValueError(
-                "The interface name '%s' does not appear in the "
-                "same library as object '%r'" % (target, ob)
+                f"The interface name '{target}' does not appear in the "
+                f"same library as object '{ob!r}'"
             )
         mod = gencache.GetModuleForCLSID(target_clsid)
     if mod is not None:
@@ -303,7 +303,7 @@ def DispatchWithEvents(clsid, user_event_class):
 
     >>> class IEEvents:
     ...    def OnVisible(self, visible):
-    ...       print "Visible changed:", visible
+    ...       print("Visible changed:", visible)
     ...
     >>> ie = DispatchWithEvents("InternetExplorer.Application", IEEvents)
     >>> ie.Visible = 1
@@ -358,7 +358,7 @@ def WithEvents(disp, user_event_class):
 
     >>> class IEEvents:
     ...    def OnVisible(self, visible):
-    ...       print "Visible changed:", visible
+    ...       print("Visible changed:", visible)
     ...
     >>> ie = Dispatch("InternetExplorer.Application")
     >>> ie_events = WithEvents(ie, IEEvents)
@@ -437,7 +437,7 @@ def getevents(clsid):
     >>>
     >>> class InternetExplorerEvents(win32com.client.getevents("InternetExplorer.Application.1")):
     ...    def OnVisible(self, Visible):
-    ...        print "Visibility changed: ", Visible
+    ...        print("Visibility changed: ", Visible)
     ...
     >>>
     >>> ie=win32com.client.Dispatch("InternetExplorer.Application.1")
@@ -489,9 +489,7 @@ def Record(name, object):
     try:
         struct_guid = package.RecordMap[name]
     except KeyError:
-        raise ValueError(
-            "The structure '%s' is not defined in module '%s'" % (name, package)
-        )
+        raise ValueError(f"The structure '{name}' is not defined in module '{package}'")
     return pythoncom.GetRecordFromGuids(
         module.CLSID, module.MajorVersion, module.MinorVersion, module.LCID, struct_guid
     )
@@ -544,11 +542,7 @@ class DispatchBaseClass:
                 mod_name = sys.modules[self.__class__.__module__].__name__
         except KeyError:
             mod_name = "win32com.gen_py.unknown"
-        return "<%s.%s instance at 0x%s>" % (
-            mod_name,
-            self.__class__.__name__,
-            id(self),
-        )
+        return f"<{mod_name}.{self.__class__.__name__} instance at 0x{id(self)}>"
 
     # Delegate comparison to the oleobjs, as they know how to do identity.
     def __eq__(self, other):
@@ -569,9 +563,7 @@ class DispatchBaseClass:
     def __getattr__(self, attr):
         args = self._prop_map_get_.get(attr)
         if args is None:
-            raise AttributeError(
-                "'%s' object has no attribute '%s'" % (repr(self), attr)
-            )
+            raise AttributeError(f"'{repr(self)}' object has no attribute '{attr}'")
         return self._ApplyTypes_(*args)
 
     def __setattr__(self, attr, value):
@@ -581,9 +573,7 @@ class DispatchBaseClass:
         try:
             args, defArgs = self._prop_map_put_[attr]
         except KeyError:
-            raise AttributeError(
-                "'%s' object has no attribute '%s'" % (repr(self), attr)
-            )
+            raise AttributeError(f"'{repr(self)}' object has no attribute '{attr}'")
         self._oleobj_.Invoke(*(args + (value,) + defArgs))
 
     def _get_good_single_object_(self, obj, obUserName=None, resultCLSID=None):
@@ -623,13 +613,13 @@ class CoClassBaseClass:
             "__int__",
             "__iter__",
             "__len__",
-            "__nonzero__",
+            "__bool__",
         ]:
             if hasattr(dispobj, maybe):
                 setattr(self, maybe, getattr(self, "__maybe" + maybe))
 
     def __repr__(self):
-        return "<win32com.gen_py.%s.%s>" % (__doc__, self.__class__.__name__)
+        return f"<win32com.gen_py.{__doc__}.{self.__class__.__name__}>"
 
     def __getattr__(self, attr):
         d = self.__dict__["_dispobj_"]
@@ -673,8 +663,8 @@ class CoClassBaseClass:
     def __maybe__len__(self):
         return self.__dict__["_dispobj_"].__len__()
 
-    def __maybe__nonzero__(self):
-        return self.__dict__["_dispobj_"].__nonzero__()
+    def __maybe__bool__(self):
+        return self.__dict__["_dispobj_"].__bool__()
 
 
 # A very simple VARIANT class.  Only to be used with poorly-implemented COM
@@ -682,7 +672,7 @@ class CoClassBaseClass:
 # is very pickly about the actual variant type (eg, isn't happy with a VT_I4,
 # which it would get from a Python integer), you can use this to force a
 # particular VT.
-class VARIANT(object):
+class VARIANT:
     def __init__(self, vt, value):
         self.varianttype = vt
         self._value = value
@@ -701,4 +691,4 @@ class VARIANT(object):
     value = property(_get_value, _set_value, _del_value)
 
     def __repr__(self):
-        return "win32com.client.VARIANT(%r, %r)" % (self.varianttype, self._value)
+        return f"win32com.client.VARIANT({self.varianttype!r}, {self._value!r})"

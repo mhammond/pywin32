@@ -1,4 +1,5 @@
 """ Unit tests version 2.6.1.0 for adodbapi"""
+
 """
     adodbapi - A python DB API 2.0 interface to Microsoft ADO
 
@@ -238,9 +239,9 @@ class CommonDBTests(unittest.TestCase):
                 )
             finally:
                 # now reset the converter to its original function
-                adodbapi.variantConversions[
-                    ado_consts.adNumeric
-                ] = oldconverter  # Restore the original convertion function
+                adodbapi.variantConversions[ado_consts.adNumeric] = (
+                    oldconverter  # Restore the original convertion function
+                )
 
     def helpTestDataType(
         self,
@@ -1339,13 +1340,13 @@ class TestADOwithMySql(CommonDBTests):
         assert c is not None
 
     # def testStoredProcedure(self):
-    #     crsr=self.conn.cursor()
+    #     crsr = self.conn.cursor()
     #     try:
     #         crsr.execute("DROP PROCEDURE DeleteMeOnlyForTesting")
     #         self.conn.commit()
-    #     except: #Make sure it is empty
+    #     except:  # Make sure it is empty
     #         pass
-    #     spdef= """
+    #     spdef = """
     #             DELIMITER $$
     #             CREATE PROCEDURE DeleteMeOnlyForTesting (onein CHAR(10), twoin CHAR(10), OUT theout CHAR(20))
     #             DETERMINISTIC
@@ -1357,16 +1358,20 @@ class TestADOwithMySql(CommonDBTests):
     #
     #     crsr.execute(spdef)
     #
-    #     retvalues=crsr.callproc('DeleteMeOnlyForTesting',('Dodsworth','Anne','              '))
-    #     print 'return value (mysql)=',repr(crsr.returnValue) ###
-    #     assert retvalues[0]=='Dodsworth', '%s is not "Dodsworth"'%repr(retvalues[0])
-    #     assert retvalues[1]=='Anne','%s is not "Anne"'%repr(retvalues[1])
-    #     assert retvalues[2]=='DodsworthAnne','%s is not "DodsworthAnne"'%repr(retvalues[2])
+    #     retvalues = crsr.callproc(
+    #         "DeleteMeOnlyForTesting", ("Dodsworth", "Anne", "              ")
+    #     )
+    #     print("return value (mysql)=", repr(crsr.returnValue))
+    #     assert retvalues[0] == "Dodsworth", '%s is not "Dodsworth"' % repr(retvalues[0])
+    #     assert retvalues[1] == "Anne", '%s is not "Anne"' % repr(retvalues[1])
+    #     assert retvalues[2] == "DodsworthAnne", '%s is not "DodsworthAnne"' % repr(
+    #         retvalues[2]
+    #     )
     #
     #     try:
     #         crsr.execute("DROP PROCEDURE, DeleteMeOnlyForTesting")
     #         self.conn.commit()
-    #     except: #Make sure it is empty
+    #     except:  # Make sure it is empty
     #         pass
 
 
@@ -1404,8 +1409,8 @@ class TestADOwithPostgres(CommonDBTests):
         assert c is not None
 
     # def testStoredProcedure(self):
-    #     crsr=self.conn.cursor()
-    #     spdef= """
+    #     crsr = self.conn.cursor()
+    #     spdef = """
     #         CREATE OR REPLACE FUNCTION DeleteMeOnlyForTesting (text, text)
     #         RETURNS text AS $funk$
     #         BEGIN
@@ -1414,18 +1419,22 @@ class TestADOwithPostgres(CommonDBTests):
     #         $funk$
     #         LANGUAGE SQL;
     #         """
-    #
+
     #     crsr.execute(spdef)
-    #     retvalues = crsr.callproc('DeleteMeOnlyForTesting',('Dodsworth','Anne','              '))
-    #     ### print 'return value (pg)=',repr(crsr.returnValue) ###
-    #     assert retvalues[0]=='Dodsworth', '%s is not "Dodsworth"'%repr(retvalues[0])
-    #     assert retvalues[1]=='Anne','%s is not "Anne"'%repr(retvalues[1])
-    #     assert retvalues[2]=='Dodsworth Anne','%s is not "Dodsworth Anne"'%repr(retvalues[2])
+    #     retvalues = crsr.callproc(
+    #         "DeleteMeOnlyForTesting", ("Dodsworth", "Anne", "              ")
+    #     )
+    #     # print("return value (pg)=", repr(crsr.returnValue))
+    #     assert retvalues[0] == "Dodsworth", '%s is not "Dodsworth"' % repr(retvalues[0])
+    #     assert retvalues[1] == "Anne", '%s is not "Anne"' % repr(retvalues[1])
+    #     assert retvalues[2] == "Dodsworth Anne", '%s is not "Dodsworth Anne"' % repr(
+    #         retvalues[2]
+    #     )
     #     self.conn.rollback()
     #     try:
     #         crsr.execute("DROP PROCEDURE, DeleteMeOnlyForTesting")
     #         self.conn.commit()
-    #     except: #Make sure it is empty
+    #     except:  # Make sure it is empty
     #         pass
 
 

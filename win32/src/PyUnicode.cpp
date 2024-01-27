@@ -13,8 +13,8 @@ BOOL PyWinObject_AsPfnAllocatedWCHAR(PyObject *stringObject, void *(*pfnAllocato
 {
     BOOL rc = TRUE;
     if (PyBytes_Check(stringObject)) {
-        // XXX - this was ported from the python 2 string api - which I thought
-        // included the trailing \0. But the 3.x `Bytes` API does not (right?),
+        // XXX - this was ported from the Python 2 string api - which I thought
+        // included the trailing \0. But the Python 3 `Bytes` API does not (right?),
         // so there's some trailing \0 confusion here.
         Py_ssize_t cch = PyBytes_Size(stringObject);
         const char *buf = PyBytes_AsString(stringObject);
@@ -175,7 +175,7 @@ void PyWin_AutoFreeBstr::SetBstr(BSTR bstr)
 BOOL PyWinObject_AsBstr(PyObject *stringObject, BSTR *pResult, BOOL bNoneOK /*= FALSE*/, DWORD *pResultLen /*= NULL*/)
 {
     BOOL rc = TRUE;
-    // This used to support bytes as we moved to 3.x, but a BSTR has always been
+    // This used to support bytes as we moved to Python 3, but a BSTR has always been
     // unicode (ie, you'd never *try* and use bytes to create it), so there's no
     // sane b/w compat reason to support that any more.
     if (PyUnicode_Check(stringObject)) {

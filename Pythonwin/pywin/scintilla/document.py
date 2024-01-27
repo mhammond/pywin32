@@ -37,7 +37,7 @@ class CScintillaDocument(ParentScintillaDocument):
 
     def OnOpenDocument(self, filename):
         # init data members
-        # print "Opening", filename
+        # print("Opening", filename)
         self.SetPathName(filename)  # Must set this early!
         try:
             # load the text as binary we can get smart
@@ -47,7 +47,7 @@ class CScintillaDocument(ParentScintillaDocument):
                 self._LoadTextFromFile(f)
             finally:
                 f.close()
-        except IOError:
+        except OSError:
             rc = win32ui.MessageBox(
                 "Could not load the file from %s\n\nDo you want to create a new file?"
                 % filename,
@@ -63,7 +63,7 @@ class CScintillaDocument(ParentScintillaDocument):
                     self._LoadTextFromFile(f)
                 finally:
                     f.close()
-            except IOError as e:
+            except OSError as e:
                 rc = win32ui.MessageBox("Cannot create the file %s" % filename)
         return 1
 
