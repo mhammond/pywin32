@@ -8,7 +8,6 @@
 import pythoncom
 import win32com.server.connect
 import win32com.server.util
-from win32com.server.exception import Exception
 
 # This is the IID of the Events interface both Client and Server support.
 IID_IConnectDemoEvents = pythoncom.MakeIID("{A4988850-49C3-11d0-AE5D-52342E000000}")
@@ -50,8 +49,6 @@ class ConnectableClient:
     # A client must implement QI, and respond to a query for the Event interface.
     # In addition, it must provide a COM object (which server.util.wrap) does.
     def _query_interface_(self, iid):
-        import win32com.server.util
-
         # Note that this seems like a necessary hack.  I am responding to IID_IConnectDemoEvents
         # but only creating an IDispatch gateway object.
         if iid == IID_IConnectDemoEvents:
@@ -66,7 +63,7 @@ def CheckEvent(server, client, val, verbose):
     client.last_event_arg = None
     server.DoIt(val)
     if client.last_event_arg != val:
-        raise RuntimeError("Sent %r, but got back %r" % (val, client.last_event_arg))
+        raise RuntimeError(f"Sent {val!r}, but got back {client.last_event_arg!r}")
     if verbose:
         print("Sent and received %r" % val)
 

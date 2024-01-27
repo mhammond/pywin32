@@ -2,21 +2,17 @@
 import pythoncom
 from win32com.bits import bits
 
-states = dict(
-    [
-        (val, (name[13:]))
-        for name, val in vars(bits).items()
-        if name.startswith("BG_JOB_STATE_")
-    ]
-)
+states = {
+    val: name[13:]
+    for name, val in vars(bits).items()
+    if name.startswith("BG_JOB_STATE_")
+}
 
-job_types = dict(
-    [
-        (val, (name[12:]))
-        for name, val in vars(bits).items()
-        if name.startswith("BG_JOB_TYPE_")
-    ]
-)
+job_types = {
+    val: name[12:]
+    for name, val in vars(bits).items()
+    if name.startswith("BG_JOB_TYPE_")
+}
 
 bcm = pythoncom.CoCreateInstance(
     bits.CLSID_BackgroundCopyManager,

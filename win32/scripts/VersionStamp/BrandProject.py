@@ -4,7 +4,6 @@
 # stamp DLL/EXE files with version information.
 
 import os
-import string
 import sys
 
 import bulkstamp
@@ -40,9 +39,9 @@ def BrandProject(
 def usage(msg):
     print(msg)
     print(
-        """\
-%s Usage:
-%s [options] vssProject descFile stampPath
+        f"""\
+{os.path.basename(sys.argv[0])} Usage:
+{os.path.basename(sys.argv[0])} [options] vssProject descFile stampPath
 
 Automatically brand a VSS project with an automatically incremented
 build number, and stamp DLL/EXE files with the build number.
@@ -58,7 +57,6 @@ Options:
 -f infile=outfile - Substitute special VSS labels in the specified text
                     file with the text extracted from VSS.
 """
-        % (os.path.basename(sys.argv[0]), os.path.basename(sys.argv[0]))
     )
     sys.exit(1)
 
@@ -77,7 +75,7 @@ if __name__ == "__main__":
         if opt == "-a":
             bAuto = 1
         if opt == "-f":
-            infile, outfile = string.split(val, "=", 2)
+            infile, outfile = val.split("=", 2)
             stampFiles.append((infile, outfile))
         if opt == "-d":
             desc = val
@@ -90,7 +88,7 @@ if __name__ == "__main__":
     path = args[2]
     try:
         os.stat(descFile)
-    except IOError:
+    except OSError:
         usage("The description file '%s' can not be found" % (descFile))
     if not os.path.isdir(path):
         usage("The path to the files to stamp '%s' does not exist" % (path))

@@ -60,8 +60,8 @@ class SampleTemplate(docview.DocTemplate):
         )
 
     def InitialUpdateFrame(self, frame, doc, makeVisible):
-        # 		print "frame is ", frame, frame._obj_
-        # 		print "doc is ", doc, doc._obj_
+        # print("frame is ", frame, frame._obj_)
+        # print("doc is ", doc, doc._obj_)
         self._obj_.InitialUpdateFrame(frame, doc, makeVisible)  # call default handler.
         frame.InitialUpdateFrame(doc, makeVisible)
 

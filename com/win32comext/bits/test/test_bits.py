@@ -11,13 +11,11 @@ TIMEOUT = 200  # ms
 StopEvent = win32event.CreateEvent(None, 0, 0, None)
 
 job_name = "bits-pywin32-test"
-states = dict(
-    [
-        (val, (name[13:]))
-        for name, val in vars(bits).items()
-        if name.startswith("BG_JOB_STATE_")
-    ]
-)
+states = {
+    val: (name[13:])
+    for name, val in vars(bits).items()
+    if name.startswith("BG_JOB_STATE_")
+}
 
 bcm = pythoncom.CoCreateInstance(
     bits.CLSID_BackgroundCopyManager,
@@ -59,7 +57,7 @@ class BackgroundJobCallback:
             hresult_msg = win32api.FormatMessage(hresult)
         except win32api.error:
             hresult_msg = ""
-        print("Context=0x%x, hresult=0x%x (%s)" % (ctx, hresult, hresult_msg))
+        print(f"Context=0x{ctx:x}, hresult=0x{hresult:x} ({hresult_msg})")
         print(err.GetErrorDescription())
 
     def JobModification(self, job, reserved):

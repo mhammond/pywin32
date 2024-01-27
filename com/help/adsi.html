@@ -152,7 +152,7 @@ myDSObject = ldap.OpenDSObject(ex_path,logon_ex,password,0)
 myDSObject.Getinfo()
 # To access a user's data try:
 attribute = myDSObject.Get('Extension-Attribute-1')
-print attribute
+print(attribute)
 # To modify a user try:
 myDSObject.Put('Extension-Attribute-1','barney was here')
 myDSObject.Setinfo()
@@ -188,7 +188,7 @@ try:
   dsobj.Delete("OrganizationalPerson", "cn="+login)
   dsobj.Setinfo()
 except:
-  print 'Error deleting '+login, sys.exc_type , sys.exc_value
+  print("Error deleting "+login, sys.exc_type , sys.exc_value)
 </code>
 </p>
 <hr>
@@ -228,11 +228,11 @@ def getmembers(path=''):
   dsobj = ldap.OpenDSObject(path,logon_ex,password,0)
   dsobj.Getinfo()
   if dsobj.Class=='organizationalPerson':
-      user_dict[string.capitalize(dsobj.cn)]=dsobj.uid
+      user_dict[dsobj.cn.capitalize()]=dsobj.uid
   elif dsobj.Class=='groupOfNames':
       for i in dsobj.Members():
               if i.Class=='organizationalPerson':
-                  user_dict[string.capitalize(i.cn)]=i.uid
+                  user_dict[i.cn.capitalize()]=i.uid
               elif type(i.member)==types.TupleType:
                   for j in i.member:
                       newpath='LDAP://'+server+'/'+j
@@ -241,11 +241,11 @@ def getmembers(path=''):
                   newpath='LDAP://'+server+'/'+i.member
                   getmembers(newpath)
   elif dsobj.Class=='Remote-Address':
-      User_dict[string.capitalize(dsobj.cn)]=dsobj.uid
+      User_dict[dsobj.cn.capitalize()]=dsobj.uid
   elif  dsobj.Class=='Public-Folder':
       pass
   else:
-      print 'skipped',dsobj.Class,dsobj.uid
+      print("skipped",dsobj.Class,dsobj.uid)
   return user_dict
 
 

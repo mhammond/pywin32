@@ -58,7 +58,7 @@ except:
 if verbose:
     print(version)
 
-# --- define objects to smooth out Python3 <-> Python 2.x differences
+# --- define objects to smooth out Python3 <-> Python 2 differences
 unicodeType = str  # this line will be altered by 2to3.py to '= str'
 longType = int  # this line will be altered by 2to3.py to '= int'
 StringTypes = str

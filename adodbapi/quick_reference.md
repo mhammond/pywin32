@@ -641,22 +641,22 @@ This is the PEP standard method:
       row = crsr.fetchone()
       while row:
          value = row[1] * row[2]
-         print('Your {:10s} is worth {:10.2f}'.format(row[0], value))
+         print("Your {:10s} is worth {:10.2f}".format(row[0], value))
          row = crsr.fetchone()  # returns None when no data remains
 
 As an extension, a Row object can also be indexed by column name:
 
       crsr.execute("SELECT prodname, price, qtyonhand FROM cheese")
       for row in crsr:                        # note extension: using crsr as an iterator
-         value = row['price'] * row['qtyonhand']
-         print('Your {:10s} is worth {:10.2f}'.format(row['prodname'], value))
+         value = row["price"] * row["qtyonhand"]
+         print("Your {:10s} is worth {:10.2f}".format(row["prodname"], value))
 
 But, _really_ lazy programmers, like me, use the column names as attributes:
 
       crsr.execute("SELECT prodname, price, qtyonhand FROM cheese")
       for row in crsr:
          value = row.price * row.qtyonhand
-         print('Your {:10s} is worth {:10.2f}'.format(row.prodname, value))
+         print("Your {:10s} is worth {:10.2f}".format(row.prodname, value))
 
 Now, isn't that easier to read and understand?
 

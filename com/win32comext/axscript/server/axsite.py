@@ -76,7 +76,7 @@ class AXSite:
         self.lcid = lcid
         self.objModel = {}
         for name, object in objModel.items():
-            # Gregs code did string.lower this - I think that is callers job if he wants!
+            # Gregs code did str.lower this - I think that is callers job if he wants!
             self.objModel[name] = object
 
         self.engine = None

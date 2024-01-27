@@ -18,13 +18,13 @@ import sys
 import time
 import unittest
 
-if sys.version[0] >= "3":  # python 3.x
+if sys.version[0] >= "3":  # Python 3
     _BaseException = Exception
 
     def _failUnless(self, expr, msg=None):
         self.assertTrue(expr, msg)
 
-else:  # python 2.x
+else:  # Python 2
     from exceptions import Exception as _BaseException
 
     def _failUnless(self, expr, msg=None):

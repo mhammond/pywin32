@@ -36,15 +36,17 @@ def TestEnumAgainst(o, check):
     for i in range(len(check)):
         if o(i) != check[i]:
             raise error(
-                "Using default method gave the incorrect value - %s/%s"
-                % (repr(o(i)), repr(check[i]))
+                "Using default method gave the incorrect value - {}/{}".format(
+                    repr(o(i)), repr(check[i])
+                )
             )
 
     for i in range(len(check)):
         if o.Item(i) != check[i]:
             raise error(
-                "Using Item method gave the incorrect value - %s/%s"
-                % (repr(o(i)), repr(check[i]))
+                "Using Item method gave the incorrect value - {}/{}".format(
+                    repr(o(i)), repr(check[i])
+                )
             )
 
     # First try looping.
@@ -54,8 +56,9 @@ def TestEnumAgainst(o, check):
 
     if cmp[: len(check)] != check:
         raise error(
-            "Result after looping isnt correct - %s/%s"
-            % (repr(cmp[: len(check)]), repr(check))
+            "Result after looping isnt correct - {}/{}".format(
+                repr(cmp[: len(check)]), repr(check)
+            )
         )
 
     for i in range(len(check)):
@@ -99,24 +102,24 @@ def TestEnum(quiet=None):
     TestEnumAgainst(o, check)
 
     ### This does not work!
-    #       if not quiet: print "Indexed replace item test"
-    #       o[2] = 'Replaced Item'
-    #       check[2] = 'Replaced Item'
-    #       TestEnumAgainst(o, check)
+    # if not quiet: print("Indexed replace item test")
+    # o[2] = 'Replaced Item'
+    # check[2] = 'Replaced Item'
+    # TestEnumAgainst(o, check)
 
     try:
         o()
         raise error("default method with no args worked when it shouldnt have!")
     except pythoncom.com_error as exc:
         if exc.hresult != winerror.DISP_E_BADPARAMCOUNT:
-            raise error("Expected DISP_E_BADPARAMCOUNT - got %s" % (exc,))
+            raise error(f"Expected DISP_E_BADPARAMCOUNT - got {exc}")
 
     try:
         o.Insert("foo", 2)
         raise error("Insert worked when it shouldnt have!")
     except pythoncom.com_error as exc:
         if exc.hresult != winerror.DISP_E_TYPEMISMATCH:
-            raise error("Expected DISP_E_TYPEMISMATCH - got %s" % (exc,))
+            raise error(f"Expected DISP_E_TYPEMISMATCH - got {exc}")
 
     # Remove the sublist for this test!
     try:
@@ -124,7 +127,7 @@ def TestEnum(quiet=None):
         raise error("Remove worked when it shouldnt have!")
     except pythoncom.com_error as exc:
         if exc.hresult != winerror.DISP_E_BADINDEX:
-            raise error("Expected DISP_E_BADINDEX - got %s" % (exc,))
+            raise error(f"Expected DISP_E_BADINDEX - got {exc}")
 
     # Test an empty collection
     if not quiet:
@@ -150,7 +153,7 @@ def TestEnum(quiet=None):
         raise error("Empty list could be indexed")
     except pythoncom.com_error as exc:
         if exc.hresult != winerror.DISP_E_BADINDEX:
-            raise error("Expected DISP_E_BADINDEX - got %s" % (exc,))
+            raise error(f"Expected DISP_E_BADINDEX - got {exc}")
 
 
 class TestCase(win32com.test.util.TestCase):

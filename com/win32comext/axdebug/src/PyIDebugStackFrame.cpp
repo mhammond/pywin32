@@ -71,7 +71,7 @@ PyObject *PyIDebugStackFrame::GetLanguageString(PyObject *self, PyObject *args)
     BSTR pbstrDescription;
     BOOL flong;
     // @pyparm int|fLong||If False, just the language name should be provided, eg, "Python". If True a full product
-    // description may be provided (eg, "Python 1.4 ActiveX Debugging Host")
+    // description may be provided (eg, "Python X.X ActiveX Debugging Host")
     if (!PyArg_ParseTuple(args, "i:GetLanguageString", &flong))
         return NULL;
     PY_INTERFACE_PRECALL;

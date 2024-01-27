@@ -56,7 +56,7 @@ def getIndexedValue(obj, index):
 
 from collections.abc import Mapping
 
-# --- define objects to smooth out Python3000 <-> Python 2.x differences
+# --- define objects to smooth out Python3000 <-> Python 2 differences
 unicodeType = str
 longType = int
 StringTypes = str

@@ -91,7 +91,7 @@ class ConfigManager:
             try:
                 f = find_config_file(f)
                 src_stat = os.stat(f)
-            except os.error:
+            except OSError:
                 self.report_error("Config file '%s' not found" % f)
                 return
             self.filename = f
@@ -119,7 +119,7 @@ class ConfigManager:
                             return  # We are ready to roll!
                 finally:
                     cf.close()
-            except (os.error, IOError, EOFError):
+            except (OSError, EOFError):
                 pass
             fp = open(f)
             b_close = True
@@ -148,7 +148,7 @@ class ConfigManager:
                 line, lineno = self._load_general(subsection, fp, lineno)
             else:
                 self.report_error(
-                    "Unrecognised section header '%s:%s'" % (section, subsection)
+                    f"Unrecognised section header '{section}:{subsection}'"
                 )
                 line = fp.readline()
                 lineno = lineno + 1
@@ -167,7 +167,7 @@ class ConfigManager:
                 marshal.dump(src_stat[stat.ST_MTIME], cf)
                 marshal.dump(self.cache, cf)
                 cf.close()
-            except (IOError, EOFError):
+            except (OSError, EOFError):
                 pass  # Ignore errors - may be read only.
 
     def configure(self, editor, subsections=None):
@@ -243,10 +243,10 @@ class ConfigManager:
 
     def report_error(self, msg):
         self.last_error = msg
-        print("Error in %s: %s" % (self.filename, msg))
+        print(f"Error in {self.filename}: {msg}")
 
     def report_warning(self, msg):
-        print("Warning in %s: %s" % (self.filename, msg))
+        print(f"Warning in {self.filename}: {msg}")
 
     def _readline(self, fp, lineno, bStripComments=1):
         line = fp.readline()
@@ -358,7 +358,7 @@ def test():
     cm = ConfigManager(f)
     map = cm.get_data("keys")
     took = time.clock() - start
-    print("Loaded %s items in %.4f secs" % (len(map), took))
+    print(f"Loaded {len(map)} items in {took:.4f} secs")
 
 
 if __name__ == "__main__":
