@@ -3,6 +3,7 @@
 Copyright (C) 2002 Henrik Ekelund, version 2.1 by Vernon Cole
 * http://sourceforge.net/projects/adodbapi
 """
+
 import time
 
 # Re-exports to keep backward compatibility with existing code

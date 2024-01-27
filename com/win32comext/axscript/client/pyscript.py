@@ -252,9 +252,9 @@ class PyScript(framework.COMScript):
             if item.IsGlobal():
                 # Global items means sub-items are also added...
                 for subitem in item.subItems.values():
-                    self.globalNameSpaceModule.__dict__[
-                        subitem.name
-                    ] = subitem.attributeObject
+                    self.globalNameSpaceModule.__dict__[subitem.name] = (
+                        subitem.attributeObject
+                    )
                 # Also add all methods
                 for name, entry in item.dispatchContainer._olerepr_.mapFuncs.items():
                     if not entry.hidden:

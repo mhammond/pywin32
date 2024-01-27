@@ -709,7 +709,7 @@ static PyObject *PySetFileTime (PyObject *self, PyObject *args, PyObject *kwargs
 	PyObject *obLastWriteTime = Py_None;  // @pyparm <o PyDateTime>|LastWriteTime|None|File written time. None for no change.
 	BOOL UTCTimes = FALSE;    // @pyparm boolean|UTCTimes|False|If True, input times are treated as UTC and no conversion is done, 
 							  // otherwise they are treated as local times.  Defaults to False for backward compatibility.
-							  // This parameter is ignored in Python 3.x, where you should always pass datetime objects
+							  // This parameter is ignored in Python 3, where you should always pass datetime objects
 							  // with timezone information.
 
 	static char *keywords[] = {"File", "CreationTime", "LastAccessTime", "LastWriteTime", "UTCTimes", NULL};

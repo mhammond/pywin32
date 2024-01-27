@@ -1606,7 +1606,7 @@ PYWIN_MODULE_INIT_FUNC(odbc)
     }
 
     /* Names of various sql datatypes.
-        's' format of Py_BuildValue creates unicode on py3k, and char string on 2.x
+        's' format of Py_BuildValue creates unicode on py3k, and char string on Python 2
     */
     char *szDbiString = "STRING";
     char *szDbiRaw = "RAW";

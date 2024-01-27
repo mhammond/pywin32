@@ -234,15 +234,15 @@ class DockingBar(window.Wnd):
             return 0
         lparam = msg[3]
         """ LPARAM used with WM_WINDOWPOSCHANGED:
-			typedef struct {
-				HWND hwnd;
-				HWND hwndInsertAfter;
-				int x;
-				int y;
-				int cx;
-				int cy;
-				UINT flags;} WINDOWPOS;
-		"""
+            typedef struct {
+                HWND hwnd;
+                HWND hwndInsertAfter;
+                int x;
+                int y;
+                int cx;
+                int cy;
+                UINT flags;} WINDOWPOS;
+        """
         format = "PPiiiii"
         bytes = win32ui.GetBytes(lparam, struct.calcsize(format))
         hwnd, hwndAfter, x, y, cx, cy, flags = struct.unpack(format, bytes)

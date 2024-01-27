@@ -20,6 +20,7 @@ Hacks, to do, etc
   Currently just uses a pickled dictionary, but should used some sort of indexed file.
   Maybe an OLE2 compound file, or a bsddb file?
 """
+
 import glob
 import os
 import sys
@@ -768,12 +769,12 @@ __init__()
 
 def usage():
     usageString = """\
-	  Usage: gencache [-q] [-d] [-r]
+      Usage: gencache [-q] [-d] [-r]
 
-			 -q         - Quiet
-			 -d         - Dump the cache (typelibrary description and filename).
-			 -r         - Rebuild the cache dictionary from the existing .py files
-	"""
+             -q         - Quiet
+             -d         - Dump the cache (typelibrary description and filename).
+             -r         - Rebuild the cache dictionary from the existing .py files
+    """
     print(usageString)
     sys.exit(1)
 
