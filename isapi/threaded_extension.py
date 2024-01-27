@@ -1,4 +1,5 @@
 """An ISAPI extension base class implemented using a thread-pool."""
+
 # $Id$
 
 import sys

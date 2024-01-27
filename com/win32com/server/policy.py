@@ -66,6 +66,7 @@ Error Handling
  problem, rather than a COM error.
  
 """
+
 __author__ = "Greg Stein and Mark Hammond"
 
 import sys

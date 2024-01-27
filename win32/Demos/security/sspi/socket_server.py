@@ -19,7 +19,6 @@ specify --target-spn with the username under which the *server* is running.
 See the SSPI documentation for more details.
 """
 
-
 import http.client  # sorry, this demo needs 2.3+
 import optparse
 import socketserver

@@ -51,9 +51,9 @@ if host is None:
 else:
     conn_kws["host"] = host
 
-conn_kws[
-    "provider"
-] = "Provider=MSOLEDBSQL;DataTypeCompatibility=80;MARS Connection=True;"
+conn_kws["provider"] = (
+    "Provider=MSOLEDBSQL;DataTypeCompatibility=80;MARS Connection=True;"
+)
 connStr = "%(provider)s; %(security)s; Initial Catalog=%(name)s;Data Source=%(host)s"
 
 if onWindows and node != "z-PC":

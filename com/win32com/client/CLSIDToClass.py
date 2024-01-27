@@ -16,6 +16,7 @@ allows code using the MSAccess wrapper to natively use Databases.
 This obviously applies to all cooperating objects, not just DAO and
 Access.
 """
+
 mapCLSIDToClass = {}
 
 

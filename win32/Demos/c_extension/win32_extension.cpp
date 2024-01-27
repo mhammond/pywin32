@@ -1,6 +1,6 @@
 // Note: this sample does nothing useful other than to show you how
 // your own Python extension can link with and use the functions from
-// pywintypesxx.dll
+// pywintypesXX.dll
 #include "Python.h"
 #include "PyWinTypes.h"
 
