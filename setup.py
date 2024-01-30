@@ -44,11 +44,12 @@ from setuptools.command.build_ext import build_ext
 from setuptools.command.install import install
 from setuptools.command.install_lib import install_lib
 
-# https://github.com/pypa/setuptools/pull/4069
-from distutils.dep_util import newer_group
 from distutils.command.install_data import install_data
-from distutils.command.install_lib import install_lib
-from distutils.core import Extension
+
+if sys.version_info >= (3, 8):
+    from setuptools.modified import newer_group
+else:
+    from distutils.dep_util import newer_group
 
 # some modules need a static CRT to avoid problems caused by them having a
 # manifest.
