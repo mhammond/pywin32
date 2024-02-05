@@ -263,7 +263,7 @@ class EditorView(ParentEditorView):
             else:
                 curCol = curCol + 1
         nextColumn = ((curCol / self.indentSize) + 1) * self.indentSize
-        # 		print "curCol is", curCol, "nextColumn is", nextColumn
+        # print("curCol is", curCol, "nextColumn is", nextColumn)
         ins = None
         if self.bSmartTabs:
             # Look for some context.

@@ -533,30 +533,30 @@ def test():
     e.SetSel((4, 4))
 
     skip = """
-	TestCheck("insert", e, 4)
-	TestCheck("insert wordstart", e, 3)
-	TestCheck("insert wordend", e, 8)
-	TestCheck("insert linestart", e, 0)
-	TestCheck("insert lineend", e, 12)
-	TestCheck("insert + 4 chars", e, 8)
-	TestCheck("insert +4c", e, 8)
-	TestCheck("insert - 2 chars", e, 2)
-	TestCheck("insert -2c", e, 2)
-	TestCheck("insert-2c", e, 2)
-	TestCheck("insert-2 c", e, 2)
-	TestCheck("insert- 2c", e, 2)
-	TestCheck("1.1", e, 1)
-	TestCheck("1.0", e, 0)
-	TestCheck("2.0", e, 13)
-	try:
-		TestCheck("sel.first", e, 0)
-		print "*** sel.first worked with an empty selection"
-	except TextError:
-		pass
-	e.SetSel((4,5))
-	TestCheck("sel.first- 2c", e, 2)
-	TestCheck("sel.last- 2c", e, 3)
-	"""
+    TestCheck("insert", e, 4)
+    TestCheck("insert wordstart", e, 3)
+    TestCheck("insert wordend", e, 8)
+    TestCheck("insert linestart", e, 0)
+    TestCheck("insert lineend", e, 12)
+    TestCheck("insert + 4 chars", e, 8)
+    TestCheck("insert +4c", e, 8)
+    TestCheck("insert - 2 chars", e, 2)
+    TestCheck("insert -2c", e, 2)
+    TestCheck("insert-2c", e, 2)
+    TestCheck("insert-2 c", e, 2)
+    TestCheck("insert- 2c", e, 2)
+    TestCheck("1.1", e, 1)
+    TestCheck("1.0", e, 0)
+    TestCheck("2.0", e, 13)
+    try:
+        TestCheck("sel.first", e, 0)
+        print("*** sel.first worked with an empty selection")
+    except TextError:
+        pass
+    e.SetSel((4,5))
+    TestCheck("sel.first- 2c", e, 2)
+    TestCheck("sel.last- 2c", e, 3)
+    """
     # Check EOL semantics
     e.SetSel((4, 4))
     TestGet("insert lineend", "insert lineend +1c", t, "\n")

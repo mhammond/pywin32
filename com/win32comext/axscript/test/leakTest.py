@@ -167,11 +167,11 @@ def dotestall():
         print(sys.gettotalrefcount())
 
 
-##  print "Testing Exceptions"
-##  try:
-##    TestEngine("Python", ErrScript, 0)
-##  except pythoncom.com_error:
-##    pass
+# print("Testing Exceptions")
+# try:
+#     TestEngine("Python", ErrScript, 0)
+# except pythoncom.com_error:
+#     pass
 
 
 def testall():

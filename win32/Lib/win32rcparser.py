@@ -7,8 +7,6 @@
 This is a parser for Windows .rc files, which are text files which define
 dialogs and other Windows UI resources.
 """
-__author__ = "Adam Walker"
-__version__ = "0.11"
 
 import os
 import pprint
@@ -18,6 +16,9 @@ import sys
 
 import commctrl
 import win32con
+
+__author__ = "Adam Walker"
+__version__ = "0.11"
 
 _controlMap = {
     "DEFPUSHBUTTON": 0x80,
@@ -77,7 +78,7 @@ class DialogDef:
         self.styles = []
         self.stylesEx = []
         self.controls = []
-        # print "dialog def for ",self.name, self.id
+        # print("dialog def for ", self.name, self.id)
 
     def createDialogTemplate(self):
         t = None
@@ -155,7 +156,7 @@ class ControlDef:
             self.style,
             self.styleEx,
         ]
-        # print t
+        # print(t)
         return t
 
 
@@ -275,7 +276,7 @@ class RCParser:
                         pass
                         # ignore AppStudio special ones
                         # if not n.startswith("_APS_"):
-                        #    print "Duplicate id",i,"for",n,"is", self.names[i]
+                        #     print("Duplicate id", i, "for", n, "is", self.names[i])
                     else:
                         self.names[i] = n
                     if self.next_id <= i:
@@ -557,7 +558,7 @@ class RCParser:
                 control.styleEx, control.stylesEx = self.styles(
                     [], defaultControlStyleEx
                 )
-            # print control.toString()
+            # print(control.toString())
             dlg.controls.append(control)
 
 
@@ -653,7 +654,7 @@ if __name__ == "__main__":
     else:
         filename = sys.argv[1]
         if "-v" in sys.argv:
-            RCParser.debugEnabled = 1
+            RCParser.debugEnabled = True
         print("Dumping all resources in '%s'" % filename)
         resources = Parse(filename)
         for id, ddef in resources.dialogs.items():

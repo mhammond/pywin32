@@ -64,7 +64,7 @@ class Extension(threaded_extension.ThreadPoolExtension):
         # Note that our ThreadPoolExtension base class will catch exceptions
         # in our Dispatch method, and write the traceback to the client.
         # That is perfect for this sample, so we don't catch our own.
-        # print 'IIS dispatching "%s"' % (ecb.GetServerVariable("URL"),)
+        # print(f'IIS dispatching "{ecb.GetServerVariable("URL")}"')
         url = ecb.GetServerVariable("URL")
         if url.startswith(virtualdir):
             new_url = proxy + url[len(virtualdir) :]
@@ -87,14 +87,14 @@ class Filter(SimpleFilter):
     filter_flags = isapicon.SF_NOTIFY_PREPROC_HEADERS | isapicon.SF_NOTIFY_ORDER_DEFAULT
 
     def HttpFilterProc(self, fc):
-        # print "Filter Dispatch"
+        # print("Filter Dispatch")
         nt = fc.NotificationType
         if nt != isapicon.SF_NOTIFY_PREPROC_HEADERS:
             return isapicon.SF_STATUS_REQ_NEXT_NOTIFICATION
 
         pp = fc.GetData()
         url = pp.GetHeader("url")
-        # print "URL is '%s'" % (url,)
+        # print(f"URL is '{url}'")
         prefix = virtualdir
         if not url.startswith(prefix):
             new_url = prefix + url
@@ -113,19 +113,19 @@ class Filter(SimpleFilter):
             print(f"Filter ignoring URL '{url}'")
 
             # Some older code that handled SF_NOTIFY_URL_MAP.
-            # ~ print "Have URL_MAP notify"
-            # ~ urlmap = fc.GetData()
-            # ~ print "URI is", urlmap.URL
-            # ~ print "Path is", urlmap.PhysicalPath
-            # ~ if urlmap.URL.startswith("/UC/"):
-            # ~ # Find the /UC/ in the physical path, and nuke it (except
-            # ~ # as the path is physical, it is \)
-            # ~ p = urlmap.PhysicalPath
-            # ~ pos = p.index("\\UC\\")
-            # ~ p = p[:pos] + p[pos+3:]
-            # ~ p = r"E:\src\pyisapi\webroot\PyTest\formTest.htm"
-            # ~ print "New path is", p
-            # ~ urlmap.PhysicalPath = p
+            # print("Have URL_MAP notify")
+            # urlmap = fc.GetData()
+            # print("URI is", urlmap.URL)
+            # print("Path is", urlmap.PhysicalPath)
+            # if urlmap.URL.startswith("/UC/"):
+            # # Find the /UC/ in the physical path, and nuke it (except
+            # # as the path is physical, it is \)
+            # p = urlmap.PhysicalPath
+            # pos = p.index("\\UC\\")
+            # p = p[:pos] + p[pos+3:]
+            # p = r"E:\src\pyisapi\webroot\PyTest\formTest.htm"
+            # print("New path is", p)
+            # urlmap.PhysicalPath = p
 
 
 # The entry points for the ISAPI extension.

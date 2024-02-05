@@ -37,7 +37,7 @@ class CScintillaDocument(ParentScintillaDocument):
 
     def OnOpenDocument(self, filename):
         # init data members
-        # print "Opening", filename
+        # print("Opening", filename)
         self.SetPathName(filename)  # Must set this early!
         try:
             # load the text as binary we can get smart

@@ -162,8 +162,8 @@ def DumpRemoteFolders():
                 resolved = "#Error - %s" % msg
             print(f"{fileName}->{resolved}")
 
-    #       print "The start menu is at",
-    #       print wincerapi.CeSHGetShortcutTarget("\\Windows\\Start Menu\\Shortcut to Python.exe.lnk")
+        # print("The start menu is at")
+        # print(wincerapi.CeSHGetShortcutTarget("\\Windows\\Start Menu\\Shortcut to Python.exe.lnk"))
 
 
 def usage():

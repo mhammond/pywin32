@@ -15,6 +15,7 @@ Example
  >>> xl.Visible = 1 # The Excel window becomes visible.
 
 """
+
 import traceback
 import types
 
@@ -234,7 +235,7 @@ class CDispatch:
         return "<COMObject %s>" % (self._username_)
 
     def __str__(self):
-        # __str__ is used when the user does "print object", so we gracefully
+        # __str__ is used when the user does "print(object)", so we gracefully
         # fall back to the __repr__ if the object has no default method.
         try:
             return str(self.__call__())
@@ -330,7 +331,7 @@ class CDispatch:
 
     def __setitem__(self, index, *args):
         # XXX - todo - We should support calling Item() here too!
-        # 		print "__setitem__ with", index, args
+        # print("__setitem__ with", index, args)
         if self._olerepr_.defaultDispatchName:
             invkind, dispid = self._find_dispatch_type_(
                 self._olerepr_.defaultDispatchName
@@ -414,8 +415,8 @@ class CDispatch:
         )
         methodCode = "\n".join(methodCodeList)
         try:
-            # 			print "Method code for %s is:\n" % self._username_, methodCode
-            # 			self._print_details_()
+            # print(f"Method code for {self._username_} is:\n", methodCode)
+            # self._print_details_()
             codeObject = compile(methodCode, "<COMObject %s>" % self._username_, "exec")
             # Exec the code object
             tempNameSpace = {}

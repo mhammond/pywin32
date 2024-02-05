@@ -303,7 +303,7 @@ def DispatchWithEvents(clsid, user_event_class):
 
     >>> class IEEvents:
     ...    def OnVisible(self, visible):
-    ...       print "Visible changed:", visible
+    ...       print("Visible changed:", visible)
     ...
     >>> ie = DispatchWithEvents("InternetExplorer.Application", IEEvents)
     >>> ie.Visible = 1
@@ -358,7 +358,7 @@ def WithEvents(disp, user_event_class):
 
     >>> class IEEvents:
     ...    def OnVisible(self, visible):
-    ...       print "Visible changed:", visible
+    ...       print("Visible changed:", visible)
     ...
     >>> ie = Dispatch("InternetExplorer.Application")
     >>> ie_events = WithEvents(ie, IEEvents)
@@ -437,7 +437,7 @@ def getevents(clsid):
     >>>
     >>> class InternetExplorerEvents(win32com.client.getevents("InternetExplorer.Application.1")):
     ...    def OnVisible(self, Visible):
-    ...        print "Visibility changed: ", Visible
+    ...        print("Visibility changed: ", Visible)
     ...
     >>>
     >>> ie=win32com.client.Dispatch("InternetExplorer.Application.1")

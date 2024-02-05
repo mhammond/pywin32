@@ -77,10 +77,10 @@
 #define PYCOM_EXPORT
 #else
 #ifdef BUILD_PYTHONCOM
-/* We are building pythoncomxx.dll */
+/* We are building pythoncomXX.dll */
 #define PYCOM_EXPORT __declspec(dllexport)
 #else
-/* This module uses pythoncomxx.dll */
+/* This module uses pythoncomXX.dll */
 #define PYCOM_EXPORT __declspec(dllimport)
 #ifndef _DEBUG
 #pragma comment(lib, "pythoncom.lib")

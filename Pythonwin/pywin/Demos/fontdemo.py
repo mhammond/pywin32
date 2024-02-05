@@ -72,12 +72,11 @@ def FontDemo():
     template = docview.DocTemplate(win32ui.IDR_PYTHONTYPE, None, None, FontView)
     doc = template.OpenDocumentFile(None)
     doc.SetTitle("Font Demo")
-    # 	print "template is ", template, "obj is", template._obj_
+    # print("template is ", template, "obj is", template._obj_)
     template.close()
+    # print("closed")
+    # del template
 
-
-# 	print "closed"
-# 	del template
 
 if __name__ == "__main__":
     import demoutils

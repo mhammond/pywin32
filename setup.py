@@ -24,6 +24,7 @@ required for an official build - see README.md for that process.
 """
 # Originally by Thomas Heller, started in 2000 or so.
 import glob
+import logging
 import os
 import platform
 import re
@@ -31,30 +32,28 @@ import shutil
 import subprocess
 import sys
 import winreg
-
-# setuptools must be imported before distutils for markh in some python versions.
-# CI doesn't hit this, so not sure what's going on.
-from setuptools import setup
-from setuptools.command.build_ext import build_ext
-
-from distutils import log
-from distutils.command.build import build
-from distutils.command.install import install
-from distutils.command.install_data import install_data
-from distutils.command.install_lib import install_lib
-from distutils.core import Extension
 from pathlib import Path
 from tempfile import gettempdir
 from typing import Iterable, List, Tuple, Union
 
+# setuptools must be imported before distutils because it monkey-patches it.
+# distutils is also removed in Python 3.12 and deprecated with setuptools
+from setuptools import Extension, setup
+from setuptools.command.build import build
+from setuptools.command.build_ext import build_ext
+from setuptools.command.install import install
+from setuptools.command.install_lib import install_lib
+
+from distutils.command.install_data import install_data
+
+if sys.version_info >= (3, 8):
+    from setuptools.modified import newer_group
+else:
+    from distutils.dep_util import newer_group
 
 # some modules need a static CRT to avoid problems caused by them having a
 # manifest.
 static_crt_modules = ["winxpgui"]
-
-
-import distutils.util
-from distutils.dep_util import newer_group
 
 build_id_patch = build_id
 if not "." in build_id_patch:
@@ -202,10 +201,7 @@ class WinExt(Extension):
             # If someone needs a specially named implib created, handle that
             if self.implib_name:
                 implib = os.path.join(build_ext.build_temp, self.implib_name)
-                if build_ext.debug:
-                    suffix = "_d"
-                else:
-                    suffix = ""
+                suffix = "_d" if build_ext.debug else ""
                 self.extra_link_args.append(f"/IMPLIB:{implib}{suffix}.lib")
             # Try and find the MFC headers, so we can reach inside for
             # some of the ActiveX support we need.  We need to do this late, so
@@ -319,10 +315,8 @@ class WinExt_win32com_mapi(WinExt_win32com):
                 kw.setdefault("library_dirs", []).insert(0, d)
 
         # The stand-alone exchange SDK has these libs
-        if distutils.util.get_platform() in ["win-amd64", "win-arm64"]:
-            # Additional utility functions are only available for 32-bit builds.
-            pass
-        else:
+        # Additional utility functions are only available for 32-bit builds.
+        if not platform.machine() in ("AMD64", "ARM64"):
             libs += " version user32 advapi32 Ex2KSdk sadapi netapi32"
         kw["libraries"] = libs
         WinExt_win32com.__init__(self, name, **kw)
@@ -432,7 +426,7 @@ class my_build_ext(build_ext):
                 if os.path.isfile(os.path.join(d, h)):
                     break
             else:
-                log.debug("Header '%s' not found  in %s", h, look_dirs)
+                logging.debug("Header '%s' not found  in %s", h, look_dirs)
                 return f"The header '{h}' can not be located."
 
         common_dirs = self.compiler.library_dirs[:]
@@ -445,7 +439,7 @@ class my_build_ext(build_ext):
                 look_dirs = common_dirs + ext.library_dirs
                 found = self.compiler.find_library_file(look_dirs, lib, self.debug)
                 if not found:
-                    log.debug("Lib '%s' not found in %s", lib, look_dirs)
+                    logging.debug("Lib '%s' not found in %s", lib, look_dirs)
                     return "No library '%s'" % lib
                 self.found_libraries[lib.lower()] = found
             patched_libs.append(os.path.splitext(os.path.basename(found))[0])
@@ -630,9 +624,7 @@ class my_build_ext(build_ext):
             target_dir = os.path.join(self.build_lib, clib_file[0], "libs")
             if not os.path.exists(target_dir):
                 self.mkpath(target_dir)
-            suffix = ""
-            if self.debug:
-                suffix = "_d"
+            suffix = "_d" if self.debug else ""
             fname = clib_file[1] % suffix
             self.copy_file(os.path.join(self.build_temp, fname), target_dir)
 
@@ -664,20 +656,19 @@ class my_build_ext(build_ext):
             self.copy_file(mfc_content, target_dir)
 
     def build_exefile(self, ext):
-        _d = self.debug and "_d" or ""
-
-        log.info("building exe '%s'", ext.name)
-        leaf_name = f"{ext.get_pywin32_dir()}\\{ext.name}{_d}.exe"
+        suffix = "_d" if self.debug else ""
+        logging.info("building exe '%s'", ext.name)
+        leaf_name = f"{ext.get_pywin32_dir()}\\{ext.name}{suffix}.exe"
         full_name = os.path.join(self.build_lib, leaf_name)
 
         sources = list(ext.sources)
         depends = sources + ext.depends
         # unclear why we need to check this!?
         if not (self.force or newer_group(depends, full_name, "newer")):
-            log.debug("skipping '%s' executable (up-to-date)", ext.name)
+            logging.debug("skipping '%s' executable (up-to-date)", ext.name)
             return
         else:
-            log.info("building '%s' executable", ext.name)
+            logging.info("building '%s' executable", ext.name)
 
         objects = self.compiler.compile(
             sources,
@@ -749,7 +740,7 @@ class my_build_ext(build_ext):
             # Convincing distutils to create .lib files with the name we
             # need is difficult, so we just hack around it by copying from
             # the created name to the name we need.
-            extra = self.debug and "_d.lib" or ".lib"
+            extra = "_d.lib" if self.debug else ".lib"
             if ext.name in ("pywintypes", "pythoncom"):
                 # The import libraries are created as PyWinTypes23.lib, but
                 # are expected to be pywintypes.lib.
@@ -786,15 +777,15 @@ class my_build_ext(build_ext):
 
     def get_ext_filename(self, name):
         # We need to fixup some target filenames.
-        _d = self.debug and "_d" or ""
+        suffix = "_d" if self.debug else ""
         if name in ["pywintypes", "pythoncom"]:
             ver = f"{sys.version_info[0]}{sys.version_info[1]}"
-            return f"{name}{ver}{_d}.dll"
+            return f"{name}{ver}{suffix}.dll"
         if name in ["perfmondata", "PyISAPI_loader"]:
-            return f"{name}{_d}.dll"
+            return f"{name}{suffix}.dll"
         # everything else a .pyd - calling base-class might give us a more
         # complicated name, so return a simple one.
-        return f"{name}{_d}.pyd"
+        return f"{name}{suffix}.pyd"
 
     def get_export_symbols(self, ext):
         if ext.is_regular_dll:
@@ -854,12 +845,15 @@ class my_build_ext(build_ext):
 
         swig = self.find_swig()
         for source in swig_sources:
-            swig_cmd = [swig, "-python", "-c++"]
-            swig_cmd.append(
+            swig_cmd = [
+                swig,
+                "-python",
+                "-c++",
+                # we never use the .doc files.
                 "-dnone",
-            )  # we never use the .doc files.
+            ]
             swig_cmd.extend(self.current_extension.extra_swig_commands)
-            if distutils.util.get_platform() in ["win-amd64", "win-arm64"]:
+            if platform.machine() in ("AMD64", "ARM64"):
                 swig_cmd.append("-DSWIG_PY64BIT")
             else:
                 swig_cmd.append("-DSWIG_PY32BIT")
@@ -880,7 +874,7 @@ class my_build_ext(build_ext):
                         # A class deriving from other than the default
                         swig_cmd.extend(["-com_interface_parent", interface_parent])
 
-            # This 'newer' check helps python 2.2 builds, which otherwise
+            # This 'newer' check helps Python 2.2 builds, which otherwise
             # *always* regenerate the .cpp files, meaning every future
             # build for any platform sees these as dirty.
             # This could probably go once we generate .cpp into the temp dir.
@@ -894,10 +888,10 @@ class my_build_ext(build_ext):
             if source == "com/win32comext/mapi/src/exchange.i":
                 rebuild = True
 
-            log.debug("should swig %s->%s=%s", source, target, rebuild)
+            logging.debug("should swig %s->%s=%s", source, target, rebuild)
             if rebuild:
                 swig_cmd.extend(["-o", fqtarget, fqsource])
-                log.info("swigging %s to %s", source, target)
+                logging.info("swigging %s to %s", source, target)
                 out_dir = os.path.dirname(source)
                 cwd = os.getcwd()
                 os.chdir(out_dir)
@@ -906,7 +900,7 @@ class my_build_ext(build_ext):
                 finally:
                     os.chdir(cwd)
             else:
-                log.info("skipping swig of %s", source)
+                logging.info("skipping swig of %s", source)
 
         return new_sources
 
@@ -1649,7 +1643,7 @@ com_extensions += [
                         {mapi}/PyIMsgStore.i          {mapi}/PyIMsgStore.cpp
                         {mapi}/PyIProfAdmin.i         {mapi}/PyIProfAdmin.cpp
                         {mapi}/PyIProfSect.i          {mapi}/PyIProfSect.cpp
-                        {mapi}/PyIConverterSession.i	{mapi}/PyIConverterSession.cpp
+                        {mapi}/PyIConverterSession.i  {mapi}/PyIConverterSession.cpp
                         {mapi}/PyIMAPIAdviseSink.cpp
                         {mapi}/mapiutil.cpp
                         {mapi}/mapiguids.cpp
@@ -2184,7 +2178,7 @@ def convert_optional_data_files(files):
         except RuntimeError as details:
             if not str(details.args[0]).startswith("No file"):
                 raise
-            log.info("NOTE: Optional file %s not found - skipping" % file)
+            logging.info("NOTE: Optional file %s not found - skipping" % file)
         else:
             ret.append(temp[0])
     return ret
@@ -2262,24 +2256,24 @@ classifiers = [
     "Programming Language :: Python :: Implementation :: CPython",
 ]
 
+# 3.10 stopped supporting bdist_wininst, but we can still build them with 3.9.
+# This can be kept until Python 3.9 or exe installers support is dropped.
 if "bdist_wininst" in sys.argv:
     # fixup https://github.com/pypa/setuptools/issues/3284
     def maybe_fixup_exes():
-        import distutils.command.bdist_wininst
         import site
+        from distutils.command import bdist_wininst
 
         # setuptools can't find .exe stubs in `site-packages/setuptools/_distutils`
         # but they might exist in the original `lib/distutils`.
-        expected_dir = os.path.dirname(distutils.command.bdist_wininst.__file__)
+        expected_dir = os.path.dirname(bdist_wininst.__file__)
         if not len(glob.glob(f"{expected_dir}/*.exe")):
             # might die, see if we can not!
             for maybe in site.getsitepackages():
                 maybe_dir = os.path.abspath(f"{maybe}/../distutils/command")
                 if len(glob.glob(f"{maybe_dir}/*.exe")):
                     print(f"pointing setuptools at '{maybe_dir}'")
-                    distutils.command.bdist_wininst.__file__ = os.path.join(
-                        maybe_dir, "bdist_wininst.py"
-                    )
+                    bdist_wininst.__file__ = os.path.join(maybe_dir, "bdist_wininst.py")
                     break
             else:
                 print("can't fixup distutils/setuptools exe stub location, good luck!")

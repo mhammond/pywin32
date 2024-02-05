@@ -662,7 +662,7 @@ class TestDirectoryChanges(unittest.TestCase):
                 else:
                     # This is "normal" exit - our 'tearDown' closes the
                     # handle.
-                    # print "looks like dir handle was closed!"
+                    # print("looks like dir handle was closed!")
                     return
             else:
                 print("ERROR: Watcher thread timed-out!")

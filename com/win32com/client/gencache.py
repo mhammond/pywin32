@@ -20,6 +20,7 @@ Hacks, to do, etc
   Currently just uses a pickled dictionary, but should used some sort of indexed file.
   Maybe an OLE2 compound file, or a bsddb file?
 """
+
 import glob
 import os
 import sys
@@ -458,7 +459,7 @@ def EnsureModule(
             # If we get an ImportError
             # We may still find a valid cache file under a different MinorVersion #
             # (which windows will search out for us)
-            # print "Loading reg typelib", typelibCLSID, major, minor, lcid
+            # print("Loading reg typelib", typelibCLSID, major, minor, lcid)
             module = None
             try:
                 tlbAttr = pythoncom.LoadRegTypeLib(
@@ -467,7 +468,7 @@ def EnsureModule(
                 # if the above line doesn't throw a pythoncom.com_error, check if
                 # it is actually a different lib than we requested, and if so, suck it in
                 if tlbAttr[1] != lcid or tlbAttr[4] != minor:
-                    # print "Trying 2nd minor #", tlbAttr[1], tlbAttr[3], tlbAttr[4]
+                    # print("Trying 2nd minor #", tlbAttr[1], tlbAttr[3], tlbAttr[4])
                     try:
                         module = GetModuleForTypelib(
                             typelibCLSID, tlbAttr[1], tlbAttr[3], tlbAttr[4]
@@ -525,7 +526,7 @@ def EnsureModule(
                 module.MinorVersion != tlbAttributes[4]
                 or genpy.makepy_version != module.makepy_version
             ):
-                # print "Version skew: %d, %d" % (module.MinorVersion, tlbAttributes[4])
+                # print(f"Version skew: {module.MinorVersion}, {tlbAttributes[4]}")
                 # try to erase the bad file from the cache
                 try:
                     os.unlink(filePath)
@@ -550,21 +551,21 @@ def EnsureModule(
                 )
                 filePath = filePathPrefix + ".py"
                 filePathPyc = filePathPrefix + ".pyc"
-                # print "Trying py stat: ", filePath
+                # print("Trying py stat: ", filePath)
                 fModTimeSet = 0
                 try:
                     pyModTime = os.stat(filePath)[8]
                     fModTimeSet = 1
                 except OSError as e:
                     # If .py file fails, try .pyc file
-                    # print "Trying pyc stat", filePathPyc
+                    # print("Trying pyc stat", filePathPyc)
                     try:
                         pyModTime = os.stat(filePathPyc)[8]
                         fModTimeSet = 1
                     except OSError as e:
                         pass
-                # print "Trying stat typelib", pyModTime
-                # print str(typLibPath)
+                # print("Trying stat typelib", pyModTime)
+                # print(typLibPath)
                 typLibModTime = os.stat(typLibPath)[8]
                 if fModTimeSet and (typLibModTime > pyModTime):
                     bReloadNeeded = 1
@@ -598,7 +599,7 @@ def EnsureModule(
             # remember and return
             versionRedirectMap[key] = ret
             return ret
-        # print "Rebuilding: ", major, minor
+        # print("Rebuilding: ", major, minor)
         module = MakeModuleForTypelib(
             typelibCLSID,
             lcid,
@@ -768,12 +769,12 @@ __init__()
 
 def usage():
     usageString = """\
-	  Usage: gencache [-q] [-d] [-r]
+      Usage: gencache [-q] [-d] [-r]
 
-			 -q         - Quiet
-			 -d         - Dump the cache (typelibrary description and filename).
-			 -r         - Rebuild the cache dictionary from the existing .py files
-	"""
+             -q         - Quiet
+             -d         - Dump the cache (typelibrary description and filename).
+             -r         - Rebuild the cache dictionary from the existing .py files
+    """
     print(usageString)
     sys.exit(1)
 

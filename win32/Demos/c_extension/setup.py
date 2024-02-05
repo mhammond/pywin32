@@ -3,7 +3,7 @@
 #
 # Use 'python setup.py build' to build this extension.
 import os
-from distutils.core import Extension, setup
+from setuptools import Extension, setup
 from sysconfig import get_paths
 
 sources = ["win32_extension.cpp"]

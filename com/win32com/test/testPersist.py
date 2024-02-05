@@ -45,7 +45,7 @@ class LockBytes:
         print("WriteAt " + str(offset))
         print("len " + str(len(data)))
         print("data:")
-        # print data
+        # print(data)
         if len(self.data) >= offset:
             newdata = self.data[0:offset] + data
         print(len(newdata))
