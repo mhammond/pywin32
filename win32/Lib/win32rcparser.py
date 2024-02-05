@@ -7,8 +7,6 @@
 This is a parser for Windows .rc files, which are text files which define
 dialogs and other Windows UI resources.
 """
-__author__ = "Adam Walker"
-__version__ = "0.11"
 
 import os
 import pprint
@@ -18,6 +16,9 @@ import sys
 
 import commctrl
 import win32con
+
+__author__ = "Adam Walker"
+__version__ = "0.11"
 
 _controlMap = {
     "DEFPUSHBUTTON": 0x80,
@@ -654,7 +655,7 @@ if __name__ == "__main__":
     else:
         filename = sys.argv[1]
         if "-v" in sys.argv:
-            RCParser.debugEnabled = 1
+            RCParser.debugEnabled = True
         print("Dumping all resources in '%s'" % filename)
         resources = Parse(filename)
         for id, ddef in resources.dialogs.items():

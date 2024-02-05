@@ -418,9 +418,7 @@ def _write_gw_cpp(f, interface):
 // ---------------------------------------------------
 //
 // Gateway Implementation
-""".format(
-            name=name, gname=gname, base_name=base_name
-        )
+"""
     )
 
     for method in interface.methods:
