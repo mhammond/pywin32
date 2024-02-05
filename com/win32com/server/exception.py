@@ -91,10 +91,7 @@ Exception = COMException
 def IsCOMException(t=None):
     if t is None:
         t = sys.exc_info()[0]
-    try:
-        return issubclass(t, pythoncom.com_error)
-    except TypeError:  # 1.5 in -X mode?
-        return t is pythoncon.com_error
+    return issubclass(t, pythoncom.com_error)
 
 
 def IsCOMServerException(t=None):
