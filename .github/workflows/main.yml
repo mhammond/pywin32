@@ -95,6 +95,7 @@ jobs:
         path: |
           dist/*.whl
 
+  # This job can be run locally with the `format_all.bat` script
   checkers:
     runs-on: ubuntu-latest
     steps:

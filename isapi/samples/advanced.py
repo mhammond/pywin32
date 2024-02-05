@@ -67,7 +67,7 @@ import winerror
 from isapi import InternalReloadException
 
 try:
-    reload_counter += 1
+    reload_counter += 1  # type: ignore[used-before-def]
 except NameError:
     reload_counter = 0
 

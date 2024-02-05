@@ -7,6 +7,8 @@
 This is a parser for Windows .rc files, which are text files which define
 dialogs and other Windows UI resources.
 """
+from __future__ import annotations
+
 __author__ = "Adam Walker"
 __version__ = "0.11"
 
@@ -171,8 +173,8 @@ class StringDef:
 
 class RCParser:
     next_id = 1001
-    dialogs = {}
-    _dialogs = {}
+    dialogs: dict[str, list[list[str | int | None | tuple[str | int, ...]]]] = {}
+    _dialogs: dict[str, DialogDef] = {}
     debugEnabled = False
     token = ""
 
