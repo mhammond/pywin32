@@ -8,10 +8,11 @@
 
 import struct
 
+import afxres
 import win32api
 import win32con
 import win32ui
-from pywin.mfc import afxres, window
+from pywin.mfc import window
 
 clrBtnHilight = win32api.GetSysColor(win32con.COLOR_BTNHILIGHT)
 clrBtnShadow = win32api.GetSysColor(win32con.COLOR_BTNSHADOW)

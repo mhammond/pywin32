@@ -3,11 +3,12 @@
 # Shows the toolbar control.
 # Demos how to make custom tooltips, etc.
 
+import afxres
 import commctrl
 import win32api
 import win32con
 import win32ui
-from pywin.mfc import afxres, docview, window
+from pywin.mfc import docview, window
 
 
 class GenericFrame(window.MDIChildWnd):

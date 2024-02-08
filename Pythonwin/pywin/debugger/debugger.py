@@ -16,6 +16,7 @@ import sys
 import traceback
 import types
 
+import afxres
 import commctrl
 import pywin.docking.DockingBar
 import win32api
@@ -23,7 +24,7 @@ import win32con
 import win32ui
 from pywin.framework import app, editor, interact, scriptutils
 from pywin.framework.editor.color.coloreditor import MARKER_BREAKPOINT, MARKER_CURRENT
-from pywin.mfc import afxres, window
+from pywin.mfc import window
 from pywin.tools import browser, hierlist
 
 from .dbgcon import *

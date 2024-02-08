@@ -19,6 +19,7 @@
 
 import re
 
+import afxres
 import regex
 import win32api
 import win32con
@@ -28,7 +29,6 @@ from pywin.framework.editor import (
     GetEditorOption,
     defaultCharacterFormat,
 )
-from pywin.mfc import afxres
 from pywin.mfc.docview import RichEditView as ParentEditorView
 
 from .document import EditorDocumentBase as ParentEditorDocument

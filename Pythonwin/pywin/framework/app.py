@@ -8,11 +8,12 @@ import os
 import sys
 import traceback
 
+import afxres
 import regutil
 import win32api
 import win32con
 import win32ui
-from pywin.mfc import afxres, dialog, window
+from pywin.mfc import dialog, window
 from pywin.mfc.thread import WinApp
 
 from . import scriptutils
