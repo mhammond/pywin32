@@ -127,8 +127,7 @@ class WordFrame(window.MDIChildWnd):
             )
 
         # WordModule.Word doesn't exist in WordModule, WordModule.Words does, but CreateControl still fails
-        class MyWordControl(activex.Control, WordModule.Word):
-            ...
+        class MyWordControl(activex.Control, WordModule.Word): ...
 
         style = win32con.WS_CHILD | win32con.WS_VISIBLE | win32con.WS_OVERLAPPEDWINDOW
         self._obj_.CreateWindow(None, title, style, rect, parent)
