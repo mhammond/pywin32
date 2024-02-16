@@ -319,7 +319,7 @@ PyObject *Py{interfacename}::{method}(PyObject *self, PyObject *args)
                 )
             )
         else:
-            f.write("\tPy_INCREF(Py_None);\n\treturn Py_None;\n")
+            f.write("\tPy_RETURN_NONE;\n")
         f.write("\n}\n\n")
 
     f.write("// @object Py%s|Description of the interface\n" % (name))
