@@ -759,6 +759,14 @@ AllConverters = {
     "LPITEMIDLIST": (ArgFormatterIDLIST, 0, 1),
     "LPCITEMIDLIST": (ArgFormatterIDLIST, 0, 1),
     "const ITEMIDLIST": (ArgFormatterIDLIST, 0, 1),
+    "PITEMID_CHILD": (ArgFormatterIDLIST, 1),
+    "const PITEMID_CHILD": (ArgFormatterIDLIST, 0),
+    "PCITEMID_CHILD": (ArgFormatterIDLIST, 0),
+    "PUITEMID_CHILD": (ArgFormatterIDLIST, 1),
+    "PCUITEMID_CHILD": (ArgFormatterIDLIST, 0),
+    "const PUITEMID_CHILD": (ArgFormatterIDLIST, 0),
+    "PCUITEMID_CHILD_ARRAY": (ArgFormatterIDLIST, 2),
+    "const PCUITEMID_CHILD_ARRAY": (ArgFormatterIDLIST, 2),
 }
 
 # Auto-add all the simple types
