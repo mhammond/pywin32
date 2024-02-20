@@ -3,9 +3,9 @@
   This module will generate a C++/Python binding for a specific COM
   interface.
   
-  At this stage, no command line interface exists.  You must start Python, 
-  import this module,  change to the directory where the generated code should
-  be written, and run the public function.
+  Can be run from command line (passing required arguments) or the old way
+  (start Python,  import this module,  change to the directory where the generated code
+  should be written,  and run the public function).
   
   This module is capable of generating both 'Interfaces' (ie, Python
   client side support for the interface) and 'Gateways' (ie, Python
@@ -46,13 +46,19 @@
   
 """
 
+import argparse
+import os
 import re
 
 from . import makegwparse
 
 
 def make_framework_support(
-    header_file_name, interface_name, bMakeInterface=1, bMakeGateway=1
+    header_file_name,
+    interface_name,
+    bMakeInterface=1,
+    bMakeGateway=1,
+    output_directory=None,
 ):
     """Generate C++ code for a Python Interface and Gateway
 
@@ -86,7 +92,12 @@ def make_framework_support(
         ifc_cpp_writer = _write_ifc_cpp
         gw_cpp_writer = _write_gw_cpp
 
-    fout = open("Py%s.cpp" % interface.name, "w")
+    fout = open(
+        os.path.join(
+            directory if directory else os.getcwd(), f"Py{interface.name}.cpp"
+        ),
+        "w",
+    )
     try:
         fout.write(
             f"""\
@@ -110,7 +121,10 @@ def make_framework_support(
             gw_cpp_writer(fout, interface)
     finally:
         fout.close()
-    fout = open("Py%s.h" % interface.name, "w")
+    fout = open(
+        os.path.join(directory if directory else os.getcwd(), f"Py{interface.name}.h"),
+        "w",
+    )
     try:
         fout.write(
             f"""\
@@ -319,7 +333,7 @@ PyObject *Py{interfacename}::{method}(PyObject *self, PyObject *args)
                 )
             )
         else:
-            f.write("\tPy_INCREF(Py_None);\n\treturn Py_None;\n")
+            f.write("\tPy_RETURN_NONE;\n")
         f.write("\n}\n\n")
 
     f.write("// @object Py%s|Description of the interface\n" % (name))
@@ -564,3 +578,63 @@ def test():
 
 
 # 	make_framework_support("d:\\msdev\\include\\objidl.h", "IEnumSTATSTG")
+# python -m com.win32com.makegw.makegw -f "C:\Windows Kits\10\Include\10.0.19041.0\um\ShObjIdl_core.h" -n IFolderView1 -o com\win32comext\shell\src
+
+
+def parse_arguments():
+    parser = argparse.ArgumentParser(description="COM interface wrapper generator")
+    parser.add_argument(
+        "--header_file", "-f", required=True, help="header file (system) to parse"
+    )
+    parser.add_argument(
+        "--interface_name", "-n", required=True, help="interface name to search for"
+    )
+    parser.add_argument(
+        "--no_create_interface",
+        "-i",
+        action="store_false",
+        dest="create_interface",
+        help="do not generate interface code",
+    )
+    parser.add_argument(
+        "--no_create_gateway",
+        "-g",
+        action="store_false",
+        dest="create_gateway",
+        help="do not generate gateway code",
+    )
+    parser.add_argument(
+        "--output_directory", "-o", help="directory where to generate files"
+    )
+
+    args, unk = parser.parse_known_args()
+    if unk:
+        print(f"Warning: Ignoring unknown arguments: {unk}")
+
+    if not args.header_file or not os.path.isfile(args.header_file):
+        parser.exit(status=-1, message="Invalid header file\n")
+    if not args.interface_name:
+        parser.exit(status=-1, message="Invalid interface name\n")
+
+    return (
+        args.header_file,
+        args.interface_name,
+        args.create_interface,
+        args.create_gateway,
+        args.output_directory or None,
+    )
+
+
+if __name__ == "__main__":
+    header_file, interface_name, create_interface, create_gateway, directory = (
+        parse_arguments()
+    )
+    if directory:
+        os.makedirs(directory, exist_ok=True)
+    make_framework_support(
+        header_file_name=header_file,
+        interface_name=interface_name,
+        bMakeInterface=create_interface,
+        bMakeGateway=create_gateway,
+        output_directory=directory,
+    )
