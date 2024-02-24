@@ -2053,11 +2053,11 @@ BOOL CALLBACK PyEnumWindowsProc(
 	PyObject *args = Py_BuildValue("(NO)", PyWinLong_FromHANDLE(hwnd), cb->extra);
 	if (args == NULL)
 		return FALSE;
-	PyObject *ret = PyEval_CallObject(cb->func, args);
+	PyObject *ret = PyObject_CallObject(cb->func, args);
 	Py_DECREF(args);
-	if (ret == NULL)		
+	if (ret == NULL)
 		return FALSE;
-	if (ret != Py_None){
+	if (ret != Py_None) {
 		result = PyLong_AsLong(ret);
 		if (result == -1 && PyErr_Occurred())
 			result = FALSE;
@@ -2091,8 +2091,7 @@ static PyObject *PyEnumWindows(PyObject *self, PyObject *args)
 			return NULL;
 		return PyWin_SetAPIError("EnumWindows", 0, true);
 		}
-	Py_INCREF(Py_None);
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 #ifndef MS_WINCE
