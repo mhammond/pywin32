@@ -1,9 +1,12 @@
 # tests for win32gui
 import array
 import operator
+import sys
 import unittest
 
 import pywin32_testutil
+import pywintypes
+import win32api
 import win32gui
 
 
@@ -59,6 +62,40 @@ class TestPyGetMemory(unittest.TestCase):
         addr, buflen = c.buffer_info()
         got = win32gui.PyGetMemory(addr, buflen)
         self.assertRaises(TypeError, operator.setitem, got, 0, 1)
+
+
+class TestEnumWindowsFamily(unittest.TestCase):
+    @classmethod
+    def enum_callback_sle(cls, handle, data):
+        win32api.SetLastError(1)
+        return data
+
+    @classmethod
+    def enum_callback_exc(cls, handle, data):
+        raise ValueError()
+
+    @classmethod
+    def enum_callback(cls, handle, data):
+        return data
+
+    def test_enumwindows(self):
+        for data in (0, False):
+            self.assertRaises(
+                pywintypes.error, win32gui.EnumWindows, self.enum_callback_sle, data
+            )
+        for data in (None, 1, True):
+            self.assertIsNone(win32gui.EnumWindows(self.enum_callback_sle, data))
+        win32api.SetLastError(0)
+        for data in (None, -1, 0, 1, True, False):
+            self.assertIsNone(win32gui.EnumWindows(self.enum_callback, data))
+        for data in (None, True, False, 0, 1):
+            self.assertRaises(
+                ValueError, win32gui.EnumWindows, self.enum_callback_exc, data
+            )
+        if sys.version_info[:2] >= (3, 10):
+            for data in (2.718282, "", (), {}):
+                for func in (self.enum_callback, self.enum_callback_sle):
+                    self.assertRaises(TypeError, win32gui.EnumWindows, func, data)
 
 
 if __name__ == "__main__":
