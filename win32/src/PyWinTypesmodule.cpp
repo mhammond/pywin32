@@ -275,9 +275,11 @@ HINSTANCE PyWin_GetErrorMessageModule(DWORD err)
 }
 
 /* error helper - GetLastError() is provided, but this is for exceptions */
-PyObject *PyWin_SetAPIError(char *fnName, long err /*= 0*/)
+PyObject *PyWin_SetAPIError(const char *fnName, long err /*= 0*/, bool returnNoneOnSuccess /*= false*/)
 {
     DWORD errorCode = err == 0 ? GetLastError() : err;
+    if ((returnNoneOnSuccess) && (!errorCode))
+        Py_RETURN_NONE;
     DWORD flags = FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_IGNORE_INSERTS;
     // try and find the hmodule providing this error.
     HMODULE hmodule = PyWin_GetErrorMessageModule(errorCode);

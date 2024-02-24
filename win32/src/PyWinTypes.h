@@ -101,7 +101,7 @@ extern PYWINTYPES_EXPORT BOOL PyWin_RegisterErrorMessageModule(DWORD first, DWOR
 extern PYWINTYPES_EXPORT HINSTANCE PyWin_GetErrorMessageModule(DWORD err);
 
 /* A global function that sets an API style error (ie, (code, fn, errTest)) */
-PYWINTYPES_EXPORT PyObject *PyWin_SetAPIError(char *fnName, long err = 0);
+PYWINTYPES_EXPORT PyObject *PyWin_SetAPIError(const char *fnName, long err = 0, bool returnNoneOnSuccess = false);
 
 /* Basic COM Exception handling.  The main COM exception object
    is actually defined here.  However, the most useful functions
