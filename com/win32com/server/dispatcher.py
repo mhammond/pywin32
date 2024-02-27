@@ -3,6 +3,8 @@
 Please see policy.py for a discussion on dispatchers and policies
 """
 
+from __future__ import annotations
+
 import traceback
 from sys import exc_info
 
@@ -284,6 +286,6 @@ class DispatcherWin32dbg(DispatcherBase):
 try:
     import win32trace
 
-    DefaultDebugDispatcher = DispatcherWin32trace
+    DefaultDebugDispatcher: type[DispatcherTrace] = DispatcherWin32trace
 except ImportError:  # no win32trace module - just use a print based one.
     DefaultDebugDispatcher = DispatcherTrace

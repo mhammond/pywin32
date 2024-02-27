@@ -1,4 +1,6 @@
 # find.py - Find and Replace
+from __future__ import annotations
+
 import afxres
 import win32api
 import win32con
@@ -35,7 +37,7 @@ class SearchParams:
 
 curDialog = None
 lastSearch = defaultSearch = SearchParams()
-searchHistory = []
+searchHistory: list[str] = []
 
 
 def ShowFindDialog():

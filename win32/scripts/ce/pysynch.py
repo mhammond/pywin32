@@ -4,6 +4,7 @@ import fnmatch
 import getopt
 import os
 import sys
+from collections.abc import Callable
 
 import win32api
 import win32con
