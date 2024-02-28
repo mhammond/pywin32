@@ -1,10 +1,12 @@
 # General utilities for MAPI and MAPI objects.
+from __future__ import annotations
+
 import pythoncom
 from pywintypes import TimeType
 
 from . import mapi, mapitags
 
-prTable = {}
+prTable: dict[int, str] = {}
 
 
 def GetPropTagName(pt):
@@ -57,7 +59,7 @@ def GetPropTagName(pt):
         return ret
 
 
-mapiErrorTable = {}
+mapiErrorTable: dict[int, str] = {}
 
 
 def GetScodeString(hr):
@@ -68,7 +70,7 @@ def GetScodeString(hr):
     return mapiErrorTable.get(hr, pythoncom.GetScodeString(hr))
 
 
-ptTable = {}
+ptTable: dict[int, str] = {}
 
 
 def GetMapiTypeName(propType, rawType=True):

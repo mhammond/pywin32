@@ -842,7 +842,7 @@ class TheParamsDialog(dialog.Dialog):
 
 
 try:
-    win32ui.GetApp().RemoveDocTemplate(greptemplate)
+    win32ui.GetApp().RemoveDocTemplate(greptemplate)  # type: ignore[has-type, used-before-def]
 except NameError:
     pass
 

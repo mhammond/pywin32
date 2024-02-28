@@ -7,6 +7,8 @@
   There are classes defined for the engine itself, and for ScriptItems
 """
 
+from __future__ import annotations
+
 import re
 import sys
 
@@ -175,7 +177,7 @@ class Event:
 class EventSink:
     """A set of events against an item.  Note this is a COM client for connection points."""
 
-    _public_methods_ = []
+    _public_methods_: list[str] = []
 
     def __init__(self, myItem, coDispatch):
         self.events = {}
