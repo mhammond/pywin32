@@ -32,7 +32,7 @@
   "reportArgumentType": "none",
   "reportAttributeAccessIssue": "none",
   // FIXE: These all need to be fixed first and turned back to error
-  // spme of the fixes need to be done in types-pywin32 from typeshed
+  // some of the fixes need to be done in types-pywin32 from typeshed
   "reportAssignmentType": "warning",
   "reportCallIssue": "warning",
   "reportIndexIssue": "warning",

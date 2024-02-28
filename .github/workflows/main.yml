@@ -123,7 +123,7 @@ jobs:
       - uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
-      - run: pip install mypy types-regex types-setuptools
+      - run: pip install types-regex types-setuptools mypy>=1.5
       - run: mypy . --python-version=${{ matrix.python-version }}
 
   pyright:
@@ -134,7 +134,13 @@ jobs:
         python-version: ['3.7', '3.8', '3.9', '3.10', '3.11', '3.12']
     steps:
       - uses: actions/checkout@v3
-      - uses: jakebailey/pyright-action@v1
+      - uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
+      # pyright vendors typeshed, but let's make sure we have the most up to date stubs
+      - run: pip install types-regex types-setuptools
+      - uses: jakebailey/pyright-action@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+          annotate: errors
       
