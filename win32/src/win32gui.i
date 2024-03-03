@@ -2009,7 +2009,7 @@ BOOL CALLBACK PyEnumWindowsProc(
     PyObject *args = Py_BuildValue("(NO)", PyWinLong_FromHANDLE(hwnd), cb->extra);
     if (args == NULL)
         return FALSE;
-    PyObject *ret = PyEval_CallObject(cb->func, args);
+    PyObject *ret = PyObject_CallObject(cb->func, args);
     Py_DECREF(args);
     if (ret == NULL)
         return FALSE;
@@ -2047,8 +2047,7 @@ static PyObject *PyEnumWindows(PyObject *self, PyObject *args)
             return NULL;
         return PyWin_SetAPIErrorOrReturnNone("EnumWindows");
     }
-    Py_INCREF(Py_None);
-    return Py_None;
+    Py_RETURN_NONE;
 }
 
 // @pyswig |EnumThreadWindows|Enumerates all top-level windows associated with a thread on the screen by passing the handle to each window, in turn, to an application-defined callback function. EnumThreadWindows continues until the last top-level window associated with the thread is enumerated or the callback function returns FALSE
@@ -2074,8 +2073,7 @@ static PyObject *PyEnumThreadWindows(PyObject *self, PyObject *args)
     Py_END_ALLOW_THREADS
     if (!rc)
         return PyWin_SetAPIError("EnumThreadWindows");
-    Py_INCREF(Py_None);
-    return Py_None;
+    Py_RETURN_NONE;
 }
 
 // @pyswig |EnumChildWindows|Enumerates the child windows that belong to the specified parent window by passing the handle to each child window, in turn, to an application-defined callback function. EnumChildWindows continues until the last child window is enumerated or the callback function returns FALSE.
@@ -2102,8 +2100,7 @@ static PyObject *PyEnumChildWindows(PyObject *self, PyObject *args)
     // #1350, may cause spurious exceptions.
     EnumChildWindows(hwnd, PyEnumWindowsProc, (LPARAM)&cb);
     Py_END_ALLOW_THREADS
-    Py_INCREF(Py_None);
-    return Py_None;
+    Py_RETURN_NONE;
 }
 
 %}
