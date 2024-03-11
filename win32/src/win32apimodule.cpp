@@ -6159,7 +6159,7 @@ static struct PyMethodDef win32api_functions[] = {
                                             // specified offset into the extra class memory for the window.
     {"SetClassWord", PySetClassWord, 1},    // @pymeth SetClassWord|Replaces the specified 32-bit (long) value at the
                                             // specified offset into the extra class memory for the window.
-    {"SetClassWord", PySetWindowWord, 1},   // @pymeth SetWindowWord|
+    {"SetWindowWord", PySetWindowWord, 1},   // @pymeth SetWindowWord|
     {"SetCursor", PySetCursor, 1},          // @pymeth SetCursor|Set the cursor to the HCURSOR object.
 // @pymeth SetEnvironmentVariable|Creates, deletes, or changes the value of an environment variable.
     {"SetEnvironmentVariable", PySetEnvironmentVariableW, 1},
