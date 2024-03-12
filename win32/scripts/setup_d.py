@@ -1,4 +1,4 @@
-# Install and register pythonXX_d.dll, pywintypesxx_d.dll and pythoncomxx_d.dll
+# Install and register pythonXX_d.dll, pywintypesXX_d.dll and pythoncomXX_d.dll
 #
 # Assumes the _d files can be found in the same directory as this script
 # or in the cwd.
@@ -14,7 +14,7 @@ import win32api
 def usage_and_die(rc):
     print()
     print("This script is designed to copy and register the Python debug")
-    print("binaries.  It looks for pythonXX_d.dll, pythoncomxx_d.dll etc,")
+    print("binaries.  It looks for pythonXX_d.dll, pythoncomXX_d.dll etc,")
     print("and installs them to work correctly with Python debug builds.")
     print()
     print("You will generally find this script in the. zip file that")
@@ -23,7 +23,7 @@ def usage_and_die(rc):
     sys.exit(rc)
 
 
-if win32api.__file__.find("_d") > 0:
+if os.path.splitext(os.path.basename(win32api.__file__))[0].endswith("_d"):
     print("This scripts appears to be running a DEBUG version of Python.")
     print("Please run it using a normal release build (python.exe)")
     usage_and_die(1)

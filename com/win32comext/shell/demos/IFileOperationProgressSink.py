@@ -134,7 +134,7 @@ class FileOperationProgressSink(DesignatedWrapPolicy):
         )
         if NewlyCreated:
             print(
-                "	Moved to recycle bin - "
+                "    Moved to recycle bin - "
                 + NewlyCreated.GetDisplayName(shellcon.SHGDN_FORPARSING)
             )
 

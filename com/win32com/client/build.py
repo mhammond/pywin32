@@ -69,9 +69,7 @@ NoTranslateTypes = [
     pythoncom.VT_VOID,
 ]
 
-NoTranslateMap = {}
-for v in NoTranslateTypes:
-    NoTranslateMap[v] = None
+NoTranslateMap = set(NoTranslateTypes)
 
 
 class MapEntry:

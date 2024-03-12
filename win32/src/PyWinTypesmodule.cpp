@@ -465,7 +465,7 @@ BOOL PyWinObject_AsDWORDArray(PyObject *obdwords, DWORD **pdwords, DWORD *item_c
         for (tuple_index = 0; tuple_index < *item_cnt; tuple_index++) {
             tuple_item = PyTuple_GET_ITEM(dwords_tuple, tuple_index);
             // Doesn't check for overflow, but will accept a python long
-            //  greater than INT_MAX (even on python 2.3).  Also accepts
+            //  greater than INT_MAX (even on Python 2.3).  Also accepts
             //  negatives and converts to the correct hex representation
             (*pdwords)[tuple_index] = PyLong_AsUnsignedLongMask(tuple_item);
             if (((*pdwords)[tuple_index] == -1) && PyErr_Occurred()) {
@@ -881,7 +881,7 @@ int PyWinGlobals_Ensure()
         // @tupleitem 3|None/int|argerror|The index of the argument in error, or (usually) None or -1
     }
 
-    /* PyType_Ready *needs* to be called anytime pywintypesxx.dll is loaded, since
+    /* PyType_Ready *needs* to be called anytime pywintypesXX.dll is loaded, since
         other extension modules can use types defined here without pywintypes itself
         having been imported.
         ??? All extension modules that call this need to be changed to check the exit code ???

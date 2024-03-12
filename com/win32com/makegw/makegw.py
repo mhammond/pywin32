@@ -3,9 +3,9 @@
   This module will generate a C++/Python binding for a specific COM
   interface.
   
-  At this stage, no command line interface exists.  You must start Python, 
-  import this module,  change to the directory where the generated code should
-  be written, and run the public function.
+  Can be run from command line (passing required arguments) or the old way
+  (start Python,  import this module,  change to the directory where the generated code
+  should be written,  and run the public function).
   
   This module is capable of generating both 'Interfaces' (ie, Python
   client side support for the interface) and 'Gateways' (ie, Python
@@ -46,13 +46,19 @@
   
 """
 
+import argparse
+import os
 import re
 
 from . import makegwparse
 
 
 def make_framework_support(
-    header_file_name, interface_name, bMakeInterface=1, bMakeGateway=1
+    header_file_name,
+    interface_name,
+    bMakeInterface=1,
+    bMakeGateway=1,
+    output_directory=None,
 ):
     """Generate C++ code for a Python Interface and Gateway
 
@@ -86,7 +92,12 @@ def make_framework_support(
         ifc_cpp_writer = _write_ifc_cpp
         gw_cpp_writer = _write_gw_cpp
 
-    fout = open("Py%s.cpp" % interface.name, "w")
+    fout = open(
+        os.path.join(
+            directory if directory else os.getcwd(), f"Py{interface.name}.cpp"
+        ),
+        "w",
+    )
     try:
         fout.write(
             f"""\
@@ -110,7 +121,10 @@ def make_framework_support(
             gw_cpp_writer(fout, interface)
     finally:
         fout.close()
-    fout = open("Py%s.h" % interface.name, "w")
+    fout = open(
+        os.path.join(directory if directory else os.getcwd(), f"Py{interface.name}.h"),
+        "w",
+    )
     try:
         fout.write(
             f"""\
@@ -144,11 +158,11 @@ def _write_ifc_h(f, interface):
 class Py{interface.name} : public Py{interface.base}
 {{
 public:
-	MAKE_PYCOM_CTOR(Py{interface.name});
-	static {interface.name} *GetI(PyObject *self);
-	static PyComTypeObject type;
+    MAKE_PYCOM_CTOR(Py{interface.name});
+    static {interface.name} *GetI(PyObject *self);
+    static PyComTypeObject type;
 
-	// The Python methods
+    // The Python methods
 """
     )
     for method in interface.methods:
@@ -159,8 +173,8 @@ public:
         f"""\
 
 protected:
-	Py{interface.name}(IUnknown *pdisp);
-	~Py{interface.name}();
+    Py{interface.name}(IUnknown *pdisp);
+    ~Py{interface.name}();
 }};
 """
     )
@@ -175,9 +189,9 @@ def _write_ifc_cpp(f, interface):
 // Interface Implementation
 
 Py{name}::Py{name}(IUnknown *pdisp):
-	Py{base}(pdisp)
+    Py{base}(pdisp)
 {{
-	ob_type = &type;
+    ob_type = &type;
 }}
 
 Py{name}::~Py{name}()
@@ -186,7 +200,7 @@ Py{name}::~Py{name}()
 
 /* static */ {name} *Py{name}::GetI(PyObject *self)
 {{
-	return ({name} *)Py{base}::GetI(self);
+    return ({name} *)Py{base}::GetI(self);
 }}
 
 """.format(
@@ -203,18 +217,16 @@ Py{name}::~Py{name}()
 // @pymethod |Py{interfacename}|{method}|Description of {method}.
 PyObject *Py{interfacename}::{method}(PyObject *self, PyObject *args)
 {{
-	{interfacename} *p{ptr} = GetI(self);
-	if ( p{ptr} == NULL )
-		return NULL;
+    {interfacename} *p{ptr} = GetI(self);
+    if ( p{ptr} == NULL )
+        return NULL;
 """.format(
                 **strdict
             )
         )
-        argsParseTuple = (
-            argsCOM
-        ) = (
-            formatChars
-        ) = codePost = codePobjects = codeCobjects = cleanup = cleanup_gil = ""
+        argsParseTuple = argsCOM = formatChars = codePost = codePobjects = (
+            codeCobjects
+        ) = cleanup = cleanup_gil = ""
         needConversion = 0
         #    if method.name=="Stat": import win32dbg;win32dbg.brk()
         for arg in method.args:
@@ -282,14 +294,14 @@ PyObject *Py{interfacename}::{method}(PyObject *self, PyObject *args)
         strdict["cleanup"] = cleanup
         strdict["cleanup_gil"] = cleanup_gil
         f.write(
-            """	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = p{ptr}->{method}({argsCOM} );
+            """    HRESULT hr;
+    PY_INTERFACE_PRECALL;
+    hr = p{ptr}->{method}({argsCOM} );
 {cleanup}
-	PY_INTERFACE_POSTCALL;
+    PY_INTERFACE_POSTCALL;
 {cleanup_gil}
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, p{ptr}, IID_{interfacename} );
+    if ( FAILED(hr) )
+        return PyCom_BuildPyException(hr, p{ptr}, IID_{interfacename} );
 """.format(
                 **strdict
             )
@@ -321,7 +333,7 @@ PyObject *Py{interfacename}::{method}(PyObject *self, PyObject *args)
                 )
             )
         else:
-            f.write("\tPy_INCREF(Py_None);\n\treturn Py_None;\n")
+            f.write("\tPy_RETURN_NONE;\n")
         f.write("\n}\n\n")
 
     f.write("// @object Py%s|Description of the interface\n" % (name))
@@ -336,14 +348,14 @@ PyObject *Py{interfacename}::{method}(PyObject *self, PyObject *args)
     interfacebase = interface.base
     f.write(
         """\
-	{{ NULL }}
+    {{ NULL }}
 }};
 
 PyComTypeObject Py{name}::type("Py{name}",
-		&Py{interfacebase}::type,
-		sizeof(Py{name}),
-		Py{name}_methods,
-		GET_PYCOM_CTOR(Py{name}));
+        &Py{interfacebase}::type,
+        sizeof(Py{name}),
+        Py{name}_methods,
+        GET_PYCOM_CTOR(Py{name}));
 """.format(
             **locals()
         )
@@ -372,8 +384,8 @@ def _write_gw_h(f, interface):
 class {gname} : public {base_name}, public {name}
 {{
 protected:
-	{gname}(PyObject *instance) : {base_name}(instance) {{ ; }}
-	PYGATEWAY_MAKE_SUPPORT2({gname}, {name}, IID_{name}, {base_name})
+    {gname}(PyObject *instance) : {base_name}(instance) {{ ; }}
+    PYGATEWAY_MAKE_SUPPORT2({gname}, {name}, IID_{name}, {base_name})
 
 """
     )
@@ -420,9 +432,7 @@ def _write_gw_cpp(f, interface):
 // ---------------------------------------------------
 //
 // Gateway Implementation
-""".format(
-            name=name, gname=gname, base_name=base_name
-        )
+"""
     )
 
     for method in interface.methods:
@@ -568,3 +578,63 @@ def test():
 
 
 # 	make_framework_support("d:\\msdev\\include\\objidl.h", "IEnumSTATSTG")
+# python -m com.win32com.makegw.makegw -f "C:\Windows Kits\10\Include\10.0.19041.0\um\ShObjIdl_core.h" -n IFolderView1 -o com\win32comext\shell\src
+
+
+def parse_arguments():
+    parser = argparse.ArgumentParser(description="COM interface wrapper generator")
+    parser.add_argument(
+        "--header_file", "-f", required=True, help="header file (system) to parse"
+    )
+    parser.add_argument(
+        "--interface_name", "-n", required=True, help="interface name to search for"
+    )
+    parser.add_argument(
+        "--no_create_interface",
+        "-i",
+        action="store_false",
+        dest="create_interface",
+        help="do not generate interface code",
+    )
+    parser.add_argument(
+        "--no_create_gateway",
+        "-g",
+        action="store_false",
+        dest="create_gateway",
+        help="do not generate gateway code",
+    )
+    parser.add_argument(
+        "--output_directory", "-o", help="directory where to generate files"
+    )
+
+    args, unk = parser.parse_known_args()
+    if unk:
+        print(f"Warning: Ignoring unknown arguments: {unk}")
+
+    if not args.header_file or not os.path.isfile(args.header_file):
+        parser.exit(status=-1, message="Invalid header file\n")
+    if not args.interface_name:
+        parser.exit(status=-1, message="Invalid interface name\n")
+
+    return (
+        args.header_file,
+        args.interface_name,
+        args.create_interface,
+        args.create_gateway,
+        args.output_directory or None,
+    )
+
+
+if __name__ == "__main__":
+    header_file, interface_name, create_interface, create_gateway, directory = (
+        parse_arguments()
+    )
+    if directory:
+        os.makedirs(directory, exist_ok=True)
+    make_framework_support(
+        header_file_name=header_file,
+        interface_name=interface_name,
+        bMakeInterface=create_interface,
+        bMakeGateway=create_gateway,
+        output_directory=directory,
+    )

@@ -1,5 +1,5 @@
-// *sob* - a simple loader for pythoncomxx.dll - but this DLL has a
-// manifest referencing the CRT whereas pythoncomxx.dll does not.
+// *sob* - a simple loader for pythoncomXX.dll - but this DLL has a
+// manifest referencing the CRT whereas pythoncomXX.dll does not.
 #include "windows.h"
 #include "tchar.h"
 
@@ -61,7 +61,7 @@ typedef HRESULT(STDAPICALLTYPE *PFNDllGetClassObject)(REFCLSID rclsid, REFIID ri
 PFNDllGetClassObject pfnDllGetClassObject = NULL;
 
 /////////////////////////////////////////////////////////////////////////////
-// Loads pythoncomxx.dll after activating our context and delegates the call to it.
+// Loads pythoncomXX.dll after activating our context and delegates the call to it.
 STDAPI DllGetClassObject(REFCLSID rclsid, REFIID riid, LPVOID *ppv)
 {
     if (pfnDllGetClassObject == 0) {

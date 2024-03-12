@@ -2,16 +2,17 @@
 
  Exceptions
 
-	 To better support COM exceptions, the framework allows for an instance to be
-	 raised.  This instance may have a certain number of known attributes, which are
-	 translated into COM exception details.
-	
-	 This means, for example, that Python could raise a COM exception that includes details
-	 on a Help file and location, and a description for the user.
-	
-	 This module provides a class which provides the necessary attributes.
+     To better support COM exceptions, the framework allows for an instance to be
+     raised.  This instance may have a certain number of known attributes, which are
+     translated into COM exception details.
+    
+     This means, for example, that Python could raise a COM exception that includes details
+     on a Help file and location, and a description for the user.
+    
+     This module provides a class which provides the necessary attributes.
 
 """
+
 import sys
 
 import pythoncom
@@ -84,16 +85,16 @@ class COMException(pythoncom.com_error):
 def IsCOMException(t=None):
     if t is None:
         t = sys.exc_info()[0]
-    try:
-        return issubclass(t, pythoncom.com_error)
-    except TypeError:  # t is not a class (likely None or a str)
-        return t is pythoncom.com_error
+    if not t is type:
+        # t is not a class (likely None or a str)
+        return False
+    return issubclass(t, pythoncom.com_error)
 
 
 def IsCOMServerException(t=None):
     if t is None:
         t = sys.exc_info()[0]
-    try:
-        return issubclass(t, COMException)
-    except TypeError:  # t is not a class (likely None or a str)
-        return 0
+    if not t is type:
+        # t is not a class (likely None or a str)
+        return False
+    return issubclass(t, COMException)

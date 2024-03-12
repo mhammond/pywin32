@@ -56,9 +56,11 @@ def open_windows_certstore(store_name: str, store_location: str) -> Iterator[Any
             CERT_STORE_PROV_SYSTEM,
             0,
             None,
-            CERT_SYSTEM_STORE_LOCAL_MACHINE
-            if store_location == _LOCAL_MACHINE
-            else CERT_SYSTEM_STORE_CURRENT_USER,
+            (
+                CERT_SYSTEM_STORE_LOCAL_MACHINE
+                if store_location == _LOCAL_MACHINE
+                else CERT_SYSTEM_STORE_CURRENT_USER
+            ),
             store_name,
         )
         yield handle

@@ -3,6 +3,7 @@
 Adodbapi can be run on CPython 3.5 and later.
 or IronPython version 2.6 and later (in theory, possibly no longer in practice!)
 """
+
 CLASSIFIERS = """\
 Development Status :: 5 - Production/Stable
 Intended Audience :: Developers

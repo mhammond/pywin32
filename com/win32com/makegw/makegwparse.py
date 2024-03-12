@@ -11,6 +11,7 @@
  See the @win32com.makegw@ module for information in building a COM
  interface
 """
+
 import re
 import traceback
 
@@ -34,7 +35,7 @@ DEBUG = 0
 
 
 class ArgFormatter:
-    """An instance for a specific type of argument.	 Knows how to convert itself"""
+    """An instance for a specific type of argument. Knows how to convert itself"""
 
     def __init__(self, arg, builtinIndirection, declaredIndirection=0):
         # print("init:", arg.name, builtinIndirection, declaredIndirection, arg.indirectionLevel)
@@ -213,7 +214,7 @@ class ArgFormatter:
         )
 
     def _GetPythonTypeDesc(self):
-        "Returns a string with the description of the type.	 Used for doco purposes"
+        "Returns a string with the description of the type. Used for doco purposes"
         return None
 
     def NeedUSES_CONVERSION(self):
@@ -758,6 +759,14 @@ AllConverters = {
     "LPITEMIDLIST": (ArgFormatterIDLIST, 0, 1),
     "LPCITEMIDLIST": (ArgFormatterIDLIST, 0, 1),
     "const ITEMIDLIST": (ArgFormatterIDLIST, 0, 1),
+    "PITEMID_CHILD": (ArgFormatterIDLIST, 1),
+    "const PITEMID_CHILD": (ArgFormatterIDLIST, 0),
+    "PCITEMID_CHILD": (ArgFormatterIDLIST, 0),
+    "PUITEMID_CHILD": (ArgFormatterIDLIST, 1),
+    "PCUITEMID_CHILD": (ArgFormatterIDLIST, 0),
+    "const PUITEMID_CHILD": (ArgFormatterIDLIST, 0),
+    "PCUITEMID_CHILD_ARRAY": (ArgFormatterIDLIST, 2),
+    "const PCUITEMID_CHILD_ARRAY": (ArgFormatterIDLIST, 2),
 }
 
 # Auto-add all the simple types
@@ -795,11 +804,20 @@ class Argument:
     # 								   --------------				--------	  ------------		------
     regex = re.compile(r"/\* \[([^\]]*.*?)] \*/[ \t](.*[* ]+)(\w+)(\[ *])?[\),]")
 
+    @classmethod
+    def drop_rpc_metadata(cls, type_):
+        return " ".join(e for e in type_.split(" ") if not e.startswith("__RPC_"))
+
     def __init__(self, good_interface_names):
         self.good_interface_names = good_interface_names
-        self.inout = self.name = self.type = None
+        self.inout = None
+        self.name = None
+        self.type = None
+        self.raw_type = None
+        self.unc_type = None
         self.const = 0
         self.arrayDecl = 0
+        self.indirectionLevel = 0
 
     def BuildFromFile(self, file):
         """Parse and build my data from a file
@@ -816,21 +834,17 @@ class Argument:
         self.inout = mo.group(1).split("][")
         typ = mo.group(2).strip()
         self.raw_type = typ
-        self.indirectionLevel = 0
         if mo.group(4):  # Has "[ ]" decl
             self.arrayDecl = 1
-            try:
-                pos = typ.rindex("__RPC_FAR")
-                self.indirectionLevel = self.indirectionLevel + 1
-                typ = typ[:pos].strip()
-            except ValueError:
-                pass
+            typ_no_rpc = self.drop_rpc_metadata(typ)
+            if typ != typ_no_rpc:
+                self.indirectionLevel += 1
 
-        typ = typ.replace("__RPC_FAR", "")
+        typ = self.drop_rpc_metadata(typ)
         while 1:
             try:
                 pos = typ.rindex("*")
-                self.indirectionLevel = self.indirectionLevel + 1
+                self.indirectionLevel += 1
                 typ = typ[:pos].strip()
             except ValueError:
                 break
@@ -842,7 +856,7 @@ class Argument:
 
         if VERBOSE:
             print(
-                "	   Arg {} of type {}{} ({})".format(
+                "       Arg {} of type {}{} ({})".format(
                     self.name, self.type, "*" * self.indirectionLevel, self.inout
                 )
             )
@@ -902,7 +916,7 @@ class Method:
                     "Method %s - Only HRESULT return types are supported." % self.name
                 )
             # 				raise error_not_supported,		if VERBOSE:
-            print(f"	 Method {self.result} {self.name}(")
+            print(f"     Method {self.result} {self.name}(")
         while 1:
             arg = Argument(self.good_interface_names)
             try:
