@@ -97,7 +97,7 @@ PyObject *PyIMsgStore::StoreLogoff(PyObject *self, PyObject *args)
 	_result = (HRESULT )_swig_self->StoreLogoff(&flags);
 	Py_END_ALLOW_THREADS
 	if (FAILED(_result)) {
-	return OleSetOleError(_result);
+		return OleSetOleError(_result);
 	}
 
 	return PyLong_FromLong(flags);
