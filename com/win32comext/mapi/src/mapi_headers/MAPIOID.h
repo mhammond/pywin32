@@ -3,7 +3,8 @@
  *
  *  MAPI OID definition header file
  *
- *  Copyright (c) 2009 Microsoft Corporation. All Rights Reserved.
+ *  Copyright (c) 2009 Microsoft Corporation. All Rights Reserved.
+
  */
 
 #ifndef _MAPIOID_
