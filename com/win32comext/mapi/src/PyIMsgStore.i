@@ -84,21 +84,21 @@ PyObject *PyIMsgStore::OpenEntry(PyObject *self, PyObject *args)
 // @pyswig <o PyIInterface>|StoreLogoff|Enables the orderly logoff of the message store.
 PyObject *PyIMsgStore::StoreLogoff(PyObject *self, PyObject *args) 
 {
-    HRESULT  _result;
-    unsigned long  flags;
+	HRESULT  _result;
+	unsigned long  flags;
 
 	IMsgStore *_swig_self;
 	if ((_swig_self=GetI(self))==NULL) return NULL;
 	// @pyparm int|flags||Bitmask of flags that controls how the message store is closed.
-    if(!PyArg_ParseTuple(args,"l:StoreLogoff", &flags)) 
-        return NULL;
+	if(!PyArg_ParseTuple(args,"k:StoreLogoff", &flags)) 
+		return NULL;
 
 	Py_BEGIN_ALLOW_THREADS
-     _result = (HRESULT )_swig_self->StoreLogoff(&flags);
+	_result = (HRESULT )_swig_self->StoreLogoff(&flags);
 	Py_END_ALLOW_THREADS
-    if (FAILED(_result)) {
-        return OleSetOleError(_result);
-    }
+	if (FAILED(_result)) {
+	return OleSetOleError(_result);
+	}
 
 	return PyLong_FromLong(flags);
 }
