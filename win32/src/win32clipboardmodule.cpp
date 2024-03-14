@@ -805,6 +805,11 @@ static PyObject *py_register_clipboard_format(PyObject *self, PyObject *args)
     // info.
 }
 
+static bool isTextFormat(int format)
+{
+    return ((format == CF_TEXT) || (format == CF_UNICODETEXT) || (format == CF_OEMTEXT));
+}
+
 //*****************************************************************************
 //
 // @pymethod int|win32clipboard|SetClipboardData|The SetClipboardData function
@@ -845,15 +850,19 @@ static PyObject *py_set_clipboard_data(PyObject *self, PyObject *args)
         PyWinBufferView pybuf;
         // In py3k, unicode no longer supports buffer interface
         if (PyUnicode_Check(obhandle)) {
-            buf = tmpw = obhandle;  if (!tmpw) return NULL;
-            bufSize = (tmpw.length +  1) * sizeof(WCHAR);
+            buf = tmpw = obhandle;
+            if (!tmpw)
+                return NULL;
+            bufSize = tmpw.length * sizeof(WCHAR);
+            if (isTextFormat(format))
+                bufSize += sizeof(WCHAR);
         }
         else {
             if (!pybuf.init(obhandle))
                 return NULL;
             buf = pybuf.ptr();
             bufSize = pybuf.len();
-            if (PyBytes_Check(obhandle))
+            if ((PyBytes_Check(obhandle)) && (isTextFormat(format)))
                 bufSize++;  // size doesnt include nulls!
                             // else assume buffer needs no terminator...
         }

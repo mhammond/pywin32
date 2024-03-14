@@ -97,12 +97,50 @@ jobs:
 
   # This job can be run locally by running `pre-commit run`
   checkers:
-    runs-on: ubuntu-latest
+    runs-on: windows-2019
     steps:
       - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          # This job only needs to target the oldest supported version (black@stable supports Python >=3.8)
+          python-version: '3.8'
       - run: pip install isort pycln
       - run: pycln . --config=pycln.toml --check
       - run: isort . --diff --check-only
       - uses: psf/black@stable
         with:
           options: "--fast --check --diff --verbose"
+
+  mypy:
+    runs-on: windows-2019
+    strategy:
+      fail-fast: false
+      matrix:
+        # mypy 1.5 dropped support for python 3.7
+        python-version: ['3.8', '3.9', '3.10', '3.11', '3.12']
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+      - run: pip install types-regex types-setuptools mypy>=1.5
+      - run: mypy . --python-version=${{ matrix.python-version }}
+
+  pyright:
+    runs-on: windows-2019
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.7', '3.8', '3.9', '3.10', '3.11', '3.12']
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+      # pyright vendors typeshed, but let's make sure we have the most up to date stubs
+      - run: pip install types-regex types-setuptools
+      - uses: jakebailey/pyright-action@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+          annotate: errors
+      

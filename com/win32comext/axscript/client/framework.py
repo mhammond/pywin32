@@ -31,7 +31,7 @@ SCRIPTTEXT_FORCEEXECUTION = -2147483648  # 0x80000000
 SCRIPTTEXT_ISEXPRESSION = 0x00000020
 SCRIPTTEXT_ISPERSISTENT = 0x00000040
 
-from win32com.server.exception import Exception, IsCOMServerException
+from win32com.server.exception import COMException, IsCOMServerException
 
 from . import error  # ax.client.error
 
@@ -116,7 +116,7 @@ def RaiseAssert(scode, desc):
     """A debugging function that raises an exception considered an "Assertion"."""
     print("**************** ASSERTION FAILED *******************")
     print(desc)
-    raise Exception(desc, scode)
+    raise COMException(desc, scode)
 
 
 class AXScriptCodeBlock:
@@ -209,7 +209,7 @@ class EventSink:
         try:
             event = self.events[dispid]
         except:
-            raise Exception(scode=winerror.DISP_E_MEMBERNOTFOUND)
+            raise COMException(scode=winerror.DISP_E_MEMBERNOTFOUND)
         # print("Invoke for ", event, "on", self.myScriptItem, " - calling",  self.myInvokeMethod)
         return self.myInvokeMethod(self.myScriptItem, event, lcid, wFlags, args)
 
@@ -406,10 +406,10 @@ class ScriptItem:
             rc = self.subItems[keyName]
             # No changes allowed to existing flags.
             if not rc.flags is None and not flags is None and rc.flags != flags:
-                raise Exception(scode=winerror.E_INVALIDARG)
+                raise COMException(scode=winerror.E_INVALIDARG)
             # Existing item must not have a dispatch.
             if not rc.dispatch is None and not dispatch is None:
-                raise Exception(scode=winerror.E_INVALIDARG)
+                raise COMException(scode=winerror.E_INVALIDARG)
             rc.flags = flags  # Setup the real flags.
             rc.dispatch = dispatch
         except KeyError:
@@ -772,7 +772,7 @@ class COMScript:
 
     def GetScriptSite(self, iid):
         if self.scriptSite is None:
-            raise Exception(scode=winerror.S_FALSE)
+            raise COMException(scode=winerror.S_FALSE)
         return self.scriptSite.QueryInterface(iid)
 
     def SetScriptState(self, state):
@@ -781,7 +781,7 @@ class COMScript:
             return
         # If closed, allow no other state transitions
         if self.scriptState == axscript.SCRIPTSTATE_CLOSED:
-            raise Exception(scode=winerror.E_INVALIDARG)
+            raise COMException(scode=winerror.E_INVALIDARG)
 
         if state == axscript.SCRIPTSTATE_INITIALIZED:
             # Re-initialize - shutdown then reset.
@@ -823,7 +823,7 @@ class COMScript:
                 self.Reset()
             self.ChangeScriptState(state)
         else:
-            raise Exception(scode=winerror.E_INVALIDARG)
+            raise COMException(scode=winerror.E_INVALIDARG)
 
     def GetScriptState(self):
         return self.scriptState
@@ -864,12 +864,12 @@ class COMScript:
 
     def AddNamedItem(self, name, flags):
         if self.scriptSite is None:
-            raise Exception(scode=winerror.E_INVALIDARG)
+            raise COMException(scode=winerror.E_INVALIDARG)
         try:
             unknown = self.scriptSite.GetItemInfo(name, axscript.SCRIPTINFO_IUNKNOWN)[0]
             dispatch = unknown.QueryInterface(pythoncom.IID_IDispatch)
         except pythoncom.com_error:
-            raise Exception(
+            raise COMException(
                 scode=winerror.E_NOINTERFACE,
                 desc="Object has no dispatch interface available.",
             )
@@ -881,23 +881,23 @@ class COMScript:
 
     def GetScriptDispatch(self, name):
         # Base classes should override.
-        raise Exception(scode=winerror.E_NOTIMPL)
+        raise COMException(scode=winerror.E_NOTIMPL)
 
     def GetCurrentScriptThreadID(self):
         return self.baseThreadId
 
     def GetScriptThreadID(self, win32ThreadId):
         if self.baseThreadId == -1:
-            raise Exception(scode=winerror.E_UNEXPECTED)
+            raise COMException(scode=winerror.E_UNEXPECTED)
         if self.baseThreadId != win32ThreadId:
-            raise Exception(scode=winerror.E_INVALIDARG)
+            raise COMException(scode=winerror.E_INVALIDARG)
         return self.baseThreadId
 
     def GetScriptThreadState(self, scriptThreadId):
         if self.baseThreadId == -1:
-            raise Exception(scode=winerror.E_UNEXPECTED)
+            raise COMException(scode=winerror.E_UNEXPECTED)
         if scriptThreadId != self.baseThreadId:
-            raise Exception(scode=winerror.E_INVALIDARG)
+            raise COMException(scode=winerror.E_INVALIDARG)
         return self.threadState
 
     def AddTypeLib(self, uuid, major, minor, flags):
@@ -909,10 +909,10 @@ class COMScript:
     # This is never called by the C++ framework - it does magic.
     # See PyGActiveScript.cpp
     # def InterruptScriptThread(self, stidThread, exc_info, flags):
-    # 	raise Exception("Not Implemented", scode=winerror.E_NOTIMPL)
+    # 	raise COMException("Not Implemented", scode=winerror.E_NOTIMPL)
 
     def Clone(self):
-        raise Exception("Not Implemented", scode=winerror.E_NOTIMPL)
+        raise COMException("Not Implemented", scode=winerror.E_NOTIMPL)
 
     #
     # IObjectSafety
@@ -942,7 +942,7 @@ class COMScript:
             supported = self._GetSupportedInterfaceSafetyOptions()
             self.safetyOptions = supported & optionsMask & enabledOptions
         else:
-            raise Exception(scode=winerror.E_NOINTERFACE)
+            raise COMException(scode=winerror.E_NOINTERFACE)
 
     def _GetSupportedInterfaceSafetyOptions(self):
         return 0
@@ -958,7 +958,7 @@ class COMScript:
             supported = self._GetSupportedInterfaceSafetyOptions()
             return supported, self.safetyOptions
         else:
-            raise Exception(scode=winerror.E_NOINTERFACE)
+            raise COMException(scode=winerror.E_NOINTERFACE)
 
     #
     # Other helpers.
@@ -1024,7 +1024,7 @@ class COMScript:
             self.scriptState != axscript.SCRIPTSTATE_INITIALIZED
             and self.scriptState != axscript.SCRIPTSTATE_STARTED
         ):
-            raise Exception(scode=winerror.E_UNEXPECTED)
+            raise COMException(scode=winerror.E_UNEXPECTED)
         # 		self._DumpNamedItems_()
         self.ExecutePendingScripts()
         self.DoRun()
@@ -1202,7 +1202,7 @@ class COMScript:
         ):
             # Ensure the traceback doesnt cause a cycle.
             exc_traceback = None
-            raise Exception(scode=exc_value.hresult)
+            raise COMException(scode=exc_value.hresult)
 
         exception = error.AXScriptException(
             self, codeBlock, exc_type, exc_value, exc_traceback
@@ -1229,12 +1229,12 @@ class COMScript:
 
     def BeginScriptedSection(self):
         if self.scriptSite is None:
-            raise Exception(scode=winerror.E_UNEXPECTED)
+            raise COMException(scode=winerror.E_UNEXPECTED)
         self.scriptSite.OnEnterScript()
 
     def EndScriptedSection(self):
         if self.scriptSite is None:
-            raise Exception(scode=winerror.E_UNEXPECTED)
+            raise COMException(scode=winerror.E_UNEXPECTED)
         self.scriptSite.OnLeaveScript()
 
     def DisableInterrupts(self):
@@ -1247,7 +1247,7 @@ class COMScript:
         try:
             return self.subItems[name]
         except KeyError:
-            raise Exception(scode=winerror.E_INVALIDARG)
+            raise COMException(scode=winerror.E_INVALIDARG)
 
     def GetNamedItemClass(self):
         return ScriptItem
