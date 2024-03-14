@@ -1,0 +1,43 @@
+# You can run this locally with `pre-commit run [--all]`
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      # TODO: Activate and run in a different PR. Lots of files affected
+      # - id: trailing-whitespace
+      #   args: [--markdown-linebreak-ext=md]
+      # - id: end-of-file-fixer
+      - id: mixed-line-ending
+        args: [--fix=crlf]
+        # Vendored
+        exclude: ^com/win32comext/mapi/src/mapi_headers/.*$
+      - id: check-case-conflict
+  - repo: https://github.com/macisamuele/language-formatters-pre-commit-hooks
+    rev: v2.12.0
+    hooks:
+      - id: pretty-format-toml
+        args: [--autofix, --trailing-commas]
+      - id: pretty-format-yaml
+        args: [--autofix, --indent, "2", --offset, "2", --preserve-quotes]
+      - id: pretty-format-ini
+        args: [--autofix]
+  - repo: https://github.com/hadialqattan/pycln
+    rev: v2.4.0
+    hooks:
+      - id: pycln
+        args: [--config=pycln.toml]
+        verbose: true
+  - repo: https://github.com/pycqa/isort
+    rev: 5.13.2
+    hooks:
+      - id: isort
+        name: isort (python)
+        verbose: true
+  - repo: https://github.com/psf/black-pre-commit-mirror
+    rev: 24.2.0
+    hooks:
+      - id: black
+        verbose: true
+
+ci:
+  autoupdate_schedule: quarterly

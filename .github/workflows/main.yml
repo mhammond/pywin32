@@ -4,7 +4,7 @@ on:
   push:
   pull_request:
     branches:
-    - main
+      - main
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
@@ -21,40 +21,40 @@ jobs:
         architecture: ['x64', 'x86']
 
     steps:
-    - uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v4
-      with:
-        python-version: ${{ matrix.python-version }}
-        architecture: ${{ matrix.architecture }}
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+          architecture: ${{ matrix.architecture }}
 
-    - name: Setup environment
-      run: |
-        python --version
-        pip --version
-        pip install --upgrade setuptools wheel
+      - name: Setup environment
+        run: |
+          python --version
+          pip --version
+          pip install --upgrade setuptools wheel
 
-    - name: Build and install
-      run: |
-        python setup.py --skip-verstamp install --user
+      - name: Build and install
+        run: |
+          python setup.py --skip-verstamp install --user
 
-    - name: Run tests
-      # Run the tests directly from the source dir so support files (eg, .wav files etc)
-      # can be found - they aren't installed into the Python tree.
-      run: python pywin32_testall.py -v -skip-adodbapi
+      - name: Run tests
+        # Run the tests directly from the source dir so support files (eg, .wav files etc)
+        # can be found - they aren't installed into the Python tree.
+        run: python pywin32_testall.py -v -skip-adodbapi
 
-    - name: Build wheels
-      run: |
-        python setup.py bdist_wheel --skip-build
+      - name: Build wheels
+        run: |
+          python setup.py bdist_wheel --skip-build
 
-    - uses: actions/upload-artifact@v3
-      if: ${{ always() }}
-      with:
-        name: artifacts
-        path: |
-          dist/*.whl
-          dist/*.exe
+      - uses: actions/upload-artifact@v3
+        if: ${{ always() }}
+        with:
+          name: artifacts
+          path: |
+            dist/*.whl
+            dist/*.exe
 
   # We cannot build and test on ARM64, so we cross-compile.
   # Later, when available, we can add tests using this wheel on ARM64 VMs
@@ -67,35 +67,35 @@ jobs:
         python-version: ['3.10', '3.11', '3.12-dev']
 
     steps:
-    - uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v4
-      with:
-        python-version: ${{ matrix.python-version }}
-        architecture: 'x64'
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+          architecture: 'x64'
 
-    - name: Setup Environment
-      run: |
-        python --version
-        pip --version
-        pip install --upgrade setuptools wheel
+      - name: Setup Environment
+        run: |
+          python --version
+          pip --version
+          pip install --upgrade setuptools wheel
 
-    - name: Obtain ARM64 library files
-      run: |
-        python .github\workflows\download-arm64-libs.py .\arm64libs
+      - name: Obtain ARM64 library files
+        run: |
+          python .github\workflows\download-arm64-libs.py .\arm64libs
 
-    - name: Build wheels
-      run: python setup.py --skip-verstamp build_ext -L .\arm64libs --plat-name win-arm64 build --plat-name win-arm64 bdist_wheel --plat-name win-arm64
+      - name: Build wheels
+        run: python setup.py --skip-verstamp build_ext -L .\arm64libs --plat-name win-arm64 build --plat-name win-arm64 bdist_wheel --plat-name win-arm64
 
-    - uses: actions/upload-artifact@v3
-      if: ${{ always() }}
-      with:
-        name: artifacts
-        path: |
-          dist/*.whl
+      - uses: actions/upload-artifact@v3
+        if: ${{ always() }}
+        with:
+          name: artifacts
+          path: |-
+            dist/*.whl
 
-  # This job can be run locally with the `format_all.bat` script
+  # This job can be run locally by running `pre-commit run`
   checkers:
     runs-on: windows-2019
     steps:
@@ -143,4 +143,3 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           annotate: errors
-      
