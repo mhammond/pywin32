@@ -2,22 +2,23 @@
 
  Exceptions
 
-	 To better support COM exceptions, the framework allows for an instance to be
-	 raised.  This instance may have a certain number of known attributes, which are
-	 translated into COM exception details.
-	
-	 This means, for example, that Python could raise a COM exception that includes details
-	 on a Help file and location, and a description for the user.
-	
-	 This module provides a class which provides the necessary attributes.
+     To better support COM exceptions, the framework allows for an instance to be
+     raised.  This instance may have a certain number of known attributes, which are
+     translated into COM exception details.
+    
+     This means, for example, that Python could raise a COM exception that includes details
+     on a Help file and location, and a description for the user.
+    
+     This module provides a class which provides the necessary attributes.
 
 """
+
 import sys
 
 import pythoncom
 
 
-# Note that we derive from com_error, which derives from exceptions.Exception
+# Note that we derive from com_error, which derives from builtin Exception
 # Also note that we dont support "self.args", as we dont support tuple-unpacking
 class COMException(pythoncom.com_error):
     """An Exception object that is understood by the framework.
@@ -81,25 +82,19 @@ class COMException(pythoncom.com_error):
         return f"<COM Exception - scode={self.scode}, desc={self.description}>"
 
 
-# Old name for the COMException class.
-# Do NOT use the name Exception, as it is now a built-in
-# COMException is the new, official name.
-Exception = COMException
-
-
 def IsCOMException(t=None):
     if t is None:
         t = sys.exc_info()[0]
-    try:
-        return issubclass(t, pythoncom.com_error)
-    except TypeError:  # 1.5 in -X mode?
-        return t is pythoncon.com_error
+    if not t is type:
+        # t is not a class (likely None or a str)
+        return False
+    return issubclass(t, pythoncom.com_error)
 
 
 def IsCOMServerException(t=None):
     if t is None:
         t = sys.exc_info()[0]
-    try:
-        return issubclass(t, COMException)
-    except TypeError:  # String exception
-        return 0
+    if not t is type:
+        # t is not a class (likely None or a str)
+        return False
+    return issubclass(t, COMException)

@@ -6,7 +6,7 @@ import win32api
 import winerror
 from win32com.axdebug import codecontainer, gateways
 from win32com.axdebug.util import _wrap, trace
-from win32com.server.exception import Exception
+from win32com.server.exception import COMException
 
 
 class ExternalConnection:
@@ -57,7 +57,7 @@ class PySourceModuleDebugDocumentHost(gateways.DebugDocumentHost):
             try:
                 codeText = open(self.module.__file__, "rt").read()
             except OSError as details:
-                codeText = f"# Exception opening file\n# {details}"
+                codeText = f"# COMException opening file\n# {details}"
 
             self.codeContainer = codecontainer.SourceCodeContainer(
                 codeText, self.module.__file__
@@ -79,23 +79,23 @@ class PySourceModuleDebugDocumentHost(gateways.DebugDocumentHost):
     def GetScriptTextAttributes(self, codeText, delimterText, flags):
         # Result must be an attribute sequence of same "length" as the code.
         trace("GetScriptTextAttributes", delimterText, flags)
-        raise Exception(scode=winerror.E_NOTIMPL)
+        raise COMException(scode=winerror.E_NOTIMPL)
 
     def OnCreateDocumentContext(self):
         # Result must be a PyIUnknown
         trace("OnCreateDocumentContext")
-        raise Exception(scode=winerror.E_NOTIMPL)
+        raise COMException(scode=winerror.E_NOTIMPL)
 
     def GetPathName(self):
         # Result must be (string, int) where the int is a BOOL
         # - TRUE if the path refers to the original file for the document.
         # - FALSE if the path refers to a newly created temporary file.
-        # - raise Exception(scode=E_FAIL) if no source file can be created/determined.
+        # - raise COMException(scode=E_FAIL) if no source file can be created/determined.
         trace("GetPathName")
         try:
             return win32api.GetFullPathName(self.module.__file__), 1
         except (AttributeError, win32api.error):
-            raise Exception(scode=winerror.E_FAIL)
+            raise COMException(scode=winerror.E_FAIL)
 
     def GetFileName(self):
         # Result is a string with just the name of the document, no path information.
@@ -104,7 +104,7 @@ class PySourceModuleDebugDocumentHost(gateways.DebugDocumentHost):
 
     def NotifyChanged():
         trace("NotifyChanged")
-        raise Exception(scode=winerror.E_NOTIMPL)
+        raise COMException(scode=winerror.E_NOTIMPL)
 
 
 def TestSmartProvider():

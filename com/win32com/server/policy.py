@@ -46,13 +46,13 @@ Error Handling
  not be Python.  Therefore, general Python exceptions and tracebacks aren't 
  much use.
 
- In general, there is an Exception class that should be raised, to allow 
+ In general, there is an COMException class that should be raised, to allow 
  the framework to extract rich COM type error information.
 
  The general rule is that the **only** exception returned from Python COM 
- Server code should be an Exception instance.  Any other Python exception 
+ Server code should be an COMException instance.  Any other Python exception 
  should be considered an implementation bug in the server (if not, it 
- should be handled, and an appropriate Exception instance raised).  Any 
+ should be handled, and an appropriate COMException instance raised).  Any 
  other exception is considered "unexpected", and a dispatcher may take 
  special action (see Dispatchers above)
 
@@ -66,6 +66,7 @@ Error Handling
  problem, rather than a COM error.
  
 """
+
 __author__ = "Greg Stein and Mark Hammond"
 
 import sys

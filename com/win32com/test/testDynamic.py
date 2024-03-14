@@ -2,7 +2,7 @@
 
 import pythoncom
 import winerror
-from win32com.server.exception import Exception
+from win32com.server.exception import COMException
 
 error = "testDynamic error"
 
@@ -22,7 +22,7 @@ class VeryPermissive:
                     ret = list(ret)
                 return ret
             except KeyError:  # Probably a method request.
-                raise Exception(scode=winerror.DISP_E_MEMBERNOTFOUND)
+                raise COMException(scode=winerror.DISP_E_MEMBERNOTFOUND)
 
         if wFlags & (
             pythoncom.DISPATCH_PROPERTYPUT | pythoncom.DISPATCH_PROPERTYPUTREF
@@ -30,11 +30,11 @@ class VeryPermissive:
             setattr(self, name, args[0])
             return
 
-        raise Exception(scode=winerror.E_INVALIDARG, desc="invalid wFlags")
+        raise COMException(scode=winerror.E_INVALIDARG, desc="invalid wFlags")
 
     def write(self, *args):
         if len(args) == 0:
-            raise Exception(
+            raise COMException(
                 scode=winerror.DISP_E_BADPARAMCOUNT
             )  # Probably call as PROPGET.
 

@@ -15,6 +15,7 @@ Example
  >>> xl.Visible = 1 # The Excel window becomes visible.
 
 """
+
 import traceback
 import types
 
@@ -125,10 +126,8 @@ def Dispatch(
     userName=None,
     createClass=None,
     typeinfo=None,
-    UnicodeToString=None,
     clsctx=pythoncom.CLSCTX_SERVER,
 ):
-    assert UnicodeToString is None, "this is deprecated and will go away"
     IDispatch, userName = _GetGoodDispatchAndUserName(IDispatch, userName, clsctx)
     if createClass is None:
         createClass = CDispatch
@@ -180,11 +179,9 @@ def DumbDispatch(
     IDispatch,
     userName=None,
     createClass=None,
-    UnicodeToString=None,
     clsctx=pythoncom.CLSCTX_SERVER,
 ):
     "Dispatch with no type info"
-    assert UnicodeToString is None, "this is deprecated and will go away"
     IDispatch, userName = _GetGoodDispatchAndUserName(IDispatch, userName, clsctx)
     if createClass is None:
         createClass = CDispatch
@@ -192,10 +189,7 @@ def DumbDispatch(
 
 
 class CDispatch:
-    def __init__(
-        self, IDispatch, olerepr, userName=None, UnicodeToString=None, lazydata=None
-    ):
-        assert UnicodeToString is None, "this is deprecated and will go away"
+    def __init__(self, IDispatch, olerepr, userName=None, lazydata=None):
         if userName is None:
             userName = "<unknown>"
         self.__dict__["_oleobj_"] = IDispatch
@@ -369,10 +363,12 @@ class CDispatch:
         return self._get_good_object_(result, user, resultCLSID)
 
     def _wrap_dispatch_(
-        self, ob, userName=None, returnCLSID=None, UnicodeToString=None
+        self,
+        ob,
+        userName=None,
+        returnCLSID=None,
     ):
         # Given a dispatch object, wrap it in a class
-        assert UnicodeToString is None, "this is deprecated and will go away"
         return Dispatch(ob, userName)
 
     def _get_good_single_object_(self, ob, userName=None, ReturnCLSID=None):
