@@ -1,4 +1,4 @@
-# You can run this locally with `pre-commit run [--all-files]`
+# You can run this locally with `pre-commit run [--all]`
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.5.0
@@ -9,6 +9,8 @@ repos:
       # - id: end-of-file-fixer
       - id: mixed-line-ending
         args: [--fix=crlf]
+        # Vendored
+        exclude: ^com/win32comext/mapi/src/mapi_headers/.*$
       - id: check-case-conflict
   - repo: https://github.com/macisamuele/language-formatters-pre-commit-hooks
     rev: v2.12.0
