@@ -5,12 +5,11 @@ import sys
 import traceback
 
 import __main__
-import afxres
 import commctrl
 import win32api
 import win32con
 import win32ui
-from pywin.mfc import dialog
+from pywin.mfc import afxres, dialog
 
 from . import app, dbgcommands
 

@@ -5,12 +5,11 @@
 
 # This sample was contributed by Roger Burnham.
 
-import afxres
 import win32api
 import win32con
 import win32ui
 from pywin.framework import app
-from pywin.mfc import dialog, docview
+from pywin.mfc import afxres, dialog, docview
 
 PRINTDLGORD = 1538
 IDC_PRINT_MAG_EDIT = 1010
