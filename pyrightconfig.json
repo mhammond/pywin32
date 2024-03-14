@@ -11,7 +11,7 @@
     "adodbapi/",
     // Vendored
     "Pythonwin/Scintilla/",
-    // Vendored IDLE extensions predating Python 2.3. They now live in idlelib in https://github.com/python/cpython/tree/main/Lib/idlelib
+    // Forked IDLE extensions predating Python 2.3. They now live in idlelib in https://github.com/python/cpython/tree/main/Lib/idlelib
     "Pythonwin/pywin/idle/",
     // Ignoring non-public apis for now
     "**/Test/",
