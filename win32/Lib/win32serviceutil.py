@@ -442,8 +442,6 @@ def ControlService(serviceName, code, machine=None):
 
 
 def __FindSvcDeps(findName):
-    if isinstance(findName, pywintypes.UnicodeType):
-        findName = str(findName)
     dict = {}
     k = win32api.RegOpenKey(
         win32con.HKEY_LOCAL_MACHINE, "SYSTEM\\CurrentControlSet\\Services"

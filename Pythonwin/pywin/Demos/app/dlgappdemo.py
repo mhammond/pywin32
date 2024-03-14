@@ -9,7 +9,7 @@
 import sys
 
 import win32ui
-from pywin.framework import app, dlgappcore
+from pywin.framework import dlgappcore
 
 
 class TestDialogApp(dlgappcore.DialogApp):
@@ -43,7 +43,7 @@ class TestAppDialog(dlgappcore.AppDialog):
             win32ui.OutputDebug("dlgapp - no edit control! >>\n%s\n<<\n" % str)
 
 
-app.AppBuilder = TestDialogApp
+app = TestDialogApp()
 
 if __name__ == "__main__":
     import demoutils

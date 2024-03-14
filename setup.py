@@ -1729,6 +1729,7 @@ com_extensions += [
                         {shell}/PyIExtractImage.cpp
                         {shell}/PyIFileOperation.cpp
                         {shell}/PyIFileOperationProgressSink.cpp
+                        {shell}/PyIFolderView.cpp
                         {shell}/PyIIdentityName.cpp
                         {shell}/PyIInputObject.cpp
                         {shell}/PyIKnownFolder.cpp

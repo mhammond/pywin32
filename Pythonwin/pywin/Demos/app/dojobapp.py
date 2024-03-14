@@ -6,10 +6,9 @@
 # pythonwin /app demos\dojobapp.py
 
 
-import win32api
 import win32con
 import win32ui
-from pywin.framework import app, dlgappcore
+from pywin.framework import dlgappcore
 
 
 class DoJobAppDialog(dlgappcore.AppDialog):
@@ -57,7 +56,7 @@ class CopyToDialogApp(DoJobDialogApp):
         DoJobDialogApp.__init__(self)
 
 
-app.AppBuilder = DoJobDialogApp
+app = DoJobDialogApp()
 
 
 def t():

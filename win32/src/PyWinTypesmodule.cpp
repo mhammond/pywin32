@@ -334,16 +334,6 @@ PyObject *PyWin_SetBasicCOMError(HRESULT hr)
     return NULL;
 }
 
-// @pymethod string|pywintypes|Unicode|Creates a new Unicode object
-PYWINTYPES_EXPORT PyObject *PyWin_NewUnicode(PyObject *self, PyObject *args)
-{
-    char *string;
-    int slen;
-    if (!PyArg_ParseTuple(args, "t#", &string, &slen))
-        return NULL;
-    return PyUnicode_DecodeMBCS(string, slen, NULL);
-}
-
 // @pymethod string|pywintypes|UnicodeFromRaw|Creates a new Unicode object from raw binary data
 static PyObject *PyWin_NewUnicodeFromRaw(PyObject *self, PyObject *args)
 {
@@ -760,7 +750,6 @@ static struct PyMethodDef pywintypes_functions[] = {
     {"DosDateTimeToTime", PyWin_DosDateTimeToTime,
      1},  // @pymeth DosDateTimeToTime|Converts an MS-DOS Date/Time to a standard Time object
 #endif
-    {"Unicode", PyWin_NewUnicode, 1},  // @pymeth Unicode|Creates a new string object
     {"UnicodeFromRaw", PyWin_NewUnicodeFromRaw,
      1},  // @pymeth UnicodeFromRaw|Creates a new string object from raw binary data
     {"IsTextUnicode", PyWin_IsTextUnicode,
@@ -959,10 +948,6 @@ PYWIN_MODULE_INIT_FUNC(pywintypes)
         PyDict_SetItemString(dict, "TRUE", Py_True) == -1 || PyDict_SetItemString(dict, "FALSE", Py_False) == -1)
         PYWIN_MODULE_INIT_RETURN_ERROR;
     ADD_CONSTANT(WAVE_FORMAT_PCM);
-
-    // Add a few types.
-    if (PyDict_SetItemString(dict, "UnicodeType", (PyObject *)&PyUnicode_Type) == -1)
-        PYWIN_MODULE_INIT_RETURN_ERROR;
 
     if (!_PyWinDateTime_PrepareModuleDict(dict))
         PYWIN_MODULE_INIT_RETURN_ERROR;
