@@ -1,6 +1,6 @@
 #!/usr/bin/env python
-""" Python DB API 2.0 driver compliance unit test suite. 
-    
+""" Python DB API 2.0 driver compliance unit test suite.
+
     This software is Public Domain and may be used without restrictions.
 
  "Now we have booze and barflies entering the discussion, plus rumours of

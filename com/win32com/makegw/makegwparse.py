@@ -7,7 +7,7 @@
 
  Each argument knows how to use Py_BuildValue or Py_ParseTuple to
  exchange itself with Python.
- 
+
  See the @win32com.makegw@ module for information in building a COM
  interface
 """

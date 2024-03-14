@@ -13,7 +13,7 @@ C:\Program Files\Python\win32com\HTML\index.html at the bottom of the
 page you'll see 'Active X Scripting Demos'. If you then click on that
 it will describe how to register the engire.  Essentially, there is a
 program called pyscript.py in:
-C:\Program Files\Python\win32comext\axscript\client 
+C:\Program Files\Python\win32comext\axscript\client
 and if you run that it should register python for the ASP environment.
 
 <nl>Microsoft typically positions vbscript in the IIS role. Vbscript
@@ -53,14 +53,14 @@ w/HTML.  An very basic page would look like:
 <h1>Querying database</h1>
 <%
 #do some python stuff here
-#import libraries, etc. 
+#import libraries, etc.
 for i in query_database():
 	Response.Write('output of results converted to a string')
 
 %>
 </body>
 </html>
- 
+
 @ex If you use HTMLgen's template, then it could look like:|
 
 <%@ LANGUAGE = Python%>
@@ -73,17 +73,17 @@ for i in query_database():
 #text {mid} in the template is substituted for results.
 
 import HTMLgen
-import HTMLcolors 
+import HTMLcolors
 
 results='<h1>Querying database</h1>'
 for i in query_database():
 	results=results+str(i)
 
 ######################
-#Here we are using a template dictionary 
+#Here we are using a template dictionary
 #to substitute the text {mid} found in the template file
 #for results
-T=HTMLgen.TemplateDocument(/path/template_file.html) 
+T=HTMLgen.TemplateDocument(/path/template_file.html)
 T.substitutions['mid']=results  # here is where our results went!!
 webpage=str(T)
 Response.Write(webpage)
@@ -156,7 +156,7 @@ def getdata (keys=''):
 		else:
 			return value
 	#if they provide a list then return a dictionary with all the key/values
-	elif key_type == types.TupleType or key_type == types.ListType: 
+	elif key_type == types.TupleType or key_type == types.ListType:
 		for key in keys:
 			value=Request.Form(key)
 			#now check if the data was empty, if so look at QueryString
@@ -167,20 +167,20 @@ def getdata (keys=''):
 
 @ex To print out this data you will need to use the Response object
 which accepts python strings. A simple: Response.Write(str(d_data))
-would suffice.  A better looking way would be to do something like: 
+would suffice.  A better looking way would be to do something like:
 |
 for pair in d_data.items():
 	Response.Write(pair[0]+':'+pair[1]+'<br>')
 
 @ex Notice the adding of \<br\> to have a line break for each pair. If you
-want it more fancy you can convert it to table output. 
+want it more fancy you can convert it to table output.
 
 <nl>HTMLgen can help with it's Table object:|
 
 Table=HTMLgen.Table('Key/Value pairs for Response object') #title
-Table.heading=('Key','Value') 
-for pair in d_data.items() #get each key/val pair 
-  Table.body.append(list(pair))  #takes a list of lists 
+Table.heading=('Key','Value')
+for pair in d_data.items() #get each key/val pair
+  Table.body.append(list(pair))  #takes a list of lists
 				 #[ [key1,val1], [key2,val2]]
 				 #one pair for every table row
 Response.Write(str(Table))
@@ -202,7 +202,7 @@ from HTMLcolors import *
 d_env=getenv() #get environment variables
 
 #create a simple default document
-webpage = SimpleDocument(title = 'Bedrock Housing') 
+webpage = SimpleDocument(title = 'Bedrock Housing')
 
 #create form and append elements to it
 F=Form(d_env['URL'])
@@ -227,8 +227,7 @@ webpage.append(str(results))
 Response.Write(str(webpage))
 
 @ex Have a great time with programming with python!
-<nl>|John Nielsen   nielsenjf@my-deja.com       
+<nl>|John Nielsen   nielsenjf@my-deja.com
 
 
 */
-

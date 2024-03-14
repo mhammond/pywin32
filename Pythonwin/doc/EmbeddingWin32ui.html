@@ -26,30 +26,30 @@
 <H3>win32uihostglue.h</H3>
 <P>The win32uihostglue.h module defines a class which makes interfacing fairly simple. This Win32uiHostGlue class is used as a glue between win32ui.pyd and the host .exe. In the most simple case, you need to instantiate one of the classes, and at certain key points in your CWinApp derived class, call the appropriate methods. You may choose to provide your own glue class derived from Win32uiHostGlue in certain cases. </P>
 <P>Below is an example class, which overrides the "SetStatusText" method, so that status information displays in the applications status bar (this is only necessary if your application has a "non standard" status bar - normally you could omit this.). </P>
-<PRE>GameApp NEAR theApp; // My existing CWinApp derived class. 
-// HostGlue class. 
+<PRE>GameApp NEAR theApp; // My existing CWinApp derived class.
+// HostGlue class.
 
-class GameHostGlue : public Win32uiHostGlue 
-{ 
-  virtual void SetStatusText(const char *text, BOOL bForce) 
-    // Assuming our GameApp above defines a SetStatusText method 
-    {GetApp()-&gt;SetStatusText(text, bForce);} 
+class GameHostGlue : public Win32uiHostGlue
+{
+  virtual void SetStatusText(const char *text, BOOL bForce)
+    // Assuming our GameApp above defines a SetStatusText method
+    {GetApp()-&gt;SetStatusText(text, bForce);}
 };
 
-// The one and only Glue object. 
+// The one and only Glue object.
 GameHostGlue NEAR glue; </PRE>
 <P>And now we are well on our way. </P>
 <H3>Delegating to win32uiHostGlue</H3>
 <P>You need to either implement, or modify, certain key methods of your Application object. Probably the most important is the call to initialise win32ui. You need to modify your CWinApp::InitInstance method (it is almost certain you already have one). The following code needs to be executed in this method: </P>
 <H4>InitInstance</H4>
-<PRE>BOOL GameApp::InitInstance() 
-{ 
-... 
-  if (!glue.DynamicApplicationInit("import initscore", csScripts)) { 
-  // Assuming you have a ReportError method - do whatever makes sense! 
-    ReportError("Could not attach to the Python win32ui extensions"); 
-    return FALSE; 
-  } 
+<PRE>BOOL GameApp::InitInstance()
+{
+...
+  if (!glue.DynamicApplicationInit("import initscore", csScripts)) {
+  // Assuming you have a ReportError method - do whatever makes sense!
+    ReportError("Could not attach to the Python win32ui extensions");
+    return FALSE;
+  }
 ... </PRE>
 <P>Note the following: </P>
 
@@ -60,57 +60,57 @@ GameHostGlue NEAR glue; </PRE>
 
 <H4>And the Rest</H4>
 <P>Below is the rest of the code you need to implement. You may need to create these methods, as the AppWizard generated MFC application does not have some. </P>
-<PRE>BOOL 
-GameApp::OnCmdMsg (UINT nID, int nCode, 
-void* pExtra, AFX_CMDHANDLERINFO*pHandlerInfo) 
-{ 
-  // yield to Python first - send to the main frame, as there is no Python app object. 
-  if (glue.OnCmdMsg (m_pMainWnd, nID, nCode, pExtra, pHandlerInfo)) 
-    return TRUE; 
-  else 
-    return CWinApp::OnCmdMsg (nID, nCode, pExtra, pHandlerInfo); 
-} 
+<PRE>BOOL
+GameApp::OnCmdMsg (UINT nID, int nCode,
+void* pExtra, AFX_CMDHANDLERINFO*pHandlerInfo)
+{
+  // yield to Python first - send to the main frame, as there is no Python app object.
+  if (glue.OnCmdMsg (m_pMainWnd, nID, nCode, pExtra, pHandlerInfo))
+    return TRUE;
+  else
+    return CWinApp::OnCmdMsg (nID, nCode, pExtra, pHandlerInfo);
+}
 
-BOOL GameApp::PreTranslateMessage(MSG *pMsg) 
-{ 
-  if (glue.PreTranslateMessage(pMsg)) 
-    return TRUE; 
-  else 
-    return CWinApp::PreTranslateMessage(pMsg); 
-} 
-BOOL GameApp::OnIdle( LONG lCount ) 
-{ 
-  // call base class idle first 
-  if (CWinApp::OnIdle(lCount)) 
-    return TRUE; 
-  return glue.OnIdle(lCount); 
+BOOL GameApp::PreTranslateMessage(MSG *pMsg)
+{
+  if (glue.PreTranslateMessage(pMsg))
+    return TRUE;
+  else
+    return CWinApp::PreTranslateMessage(pMsg);
+}
+BOOL GameApp::OnIdle( LONG lCount )
+{
+  // call base class idle first
+  if (CWinApp::OnIdle(lCount))
+    return TRUE;
+  return glue.OnIdle(lCount);
 } </PRE>
 
 <UL>
 <H3><LI>initscore.py</LI></H3>
 <LI>Below is the code for initscore.py. Obviously your code will vary, depending on your requirements. </LI></UL>
 
-<PRE>import sys 
-import win32ui 
-# First step - redirect python output to the debugging device, until we 
-# can create a window to capture it. 
+<PRE>import sys
+import win32ui
+# First step - redirect python output to the debugging device, until we
+# can create a window to capture it.
 
-# Note that this is only useful while debugging, and simply sends any 
-# Python output (ie, exceptions while developing the startup code) is 
-# printed to the MSVC debugger. Note that since this code was written, 
-# the win32trace module has appeared, giving another alternative to 
-# debugging this code. 
-class DebugOutput: 
-  softspace=1 
-  def write(self,message): 
-    win32ui.OutputDebug(message) 
-sys.stderr=sys.stdout=DebugOutput() 
+# Note that this is only useful while debugging, and simply sends any
+# Python output (ie, exceptions while developing the startup code) is
+# printed to the MSVC debugger. Note that since this code was written,
+# the win32trace module has appeared, giving another alternative to
+# debugging this code.
+class DebugOutput:
+  softspace=1
+  def write(self,message):
+    win32ui.OutputDebug(message)
+sys.stderr=sys.stdout=DebugOutput()
 
 # One of your first priorities should be to set sys.stdout to somewhere useful,
-# depending on what useful means to your application. This code simply creates 
-# the Pythonwin Interactive Window, which handles this automatically. 
+# depending on what useful means to your application. This code simply creates
+# the Pythonwin Interactive Window, which handles this automatically.
 
-# Now here is the code that does the real work. 
+# Now here is the code that does the real work.
 import win32con </PRE>
 <FONT FACE="Courier New" SIZE=2><P>from pywin.framework import intpyapp, app</P>
 </FONT><PRE>
@@ -126,7 +126,7 @@ class ScoreApp(intpyapp.InteractivePythonApp):
 
 #  def OnExitInstance(self):
 #    return 0
-    
+
 app = ScoreApp()</PRE>
 <P>And we are done </P></BODY>
 </HTML>

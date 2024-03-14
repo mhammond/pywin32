@@ -129,7 +129,7 @@ PyObject *PyADSIObject_FromADSVALUE(ADSVALUE &v)
                 Py_DECREF(ob);
                 return NULL;
             }
-            memcpy(pybuf.ptr(), v.ProviderSpecific.lpValue, bufSize);    
+            memcpy(pybuf.ptr(), v.ProviderSpecific.lpValue, bufSize);
             break;
         }
         case ADSTYPE_NT_SECURITY_DESCRIPTOR: {

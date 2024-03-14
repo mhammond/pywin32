@@ -2,7 +2,7 @@ Project
 -------
 adodbapi
 
-A Python DB-API 2.0 (PEP-249) module that makes it easy to use Microsoft ADO 
+A Python DB-API 2.0 (PEP-249) module that makes it easy to use Microsoft ADO
 for connecting with databases and other data sources
 using either CPython or IronPython.
 
@@ -10,9 +10,9 @@ Home page: <http://sourceforge.net/projects/adodbapi>
 
 Features:
 * 100% DB-API 2.0 (PEP-249) compliant (including most extensions and recommendations).
-* Includes pyunit testcases that describe how to use the module.  
+* Includes pyunit testcases that describe how to use the module.
 * Fully implemented in Python. -- runs in Python 2.5+ Python 3.0+ and IronPython 2.6+
-* Licensed under the LGPL license, which means that it can be used freely even in commercial programs subject to certain restrictions. 
+* Licensed under the LGPL license, which means that it can be used freely even in commercial programs subject to certain restrictions.
 * The user can choose between paramstyles: 'qmark' 'named' 'format' 'pyformat' 'dynamic'
 * Supports data retrieval by column name e.g.:
   for row in myCurser.execute("select name,age from students"):
@@ -33,7 +33,7 @@ Installation:
 
 NOTE: ...........
 If you do not like the new default operation of returning Numeric columns as decimal.Decimal,
-you can select other options by the user defined conversion feature. 
+you can select other options by the user defined conversion feature.
 Try:
         adodbapi.apibase.variantConversions[adodbapi.ado_consts.adNumeric] = adodbapi.apibase.cvtString
 or:
@@ -86,7 +86,7 @@ and look at the test cases in adodbapi/test directory.
 
 Mailing lists
 -------------
-The adodbapi mailing lists have been deactivated. Submit comments to the 
+The adodbapi mailing lists have been deactivated. Submit comments to the
 pywin32 or IronPython mailing lists.
   -- the bug tracker on sourceforge.net/projects/adodbapi may be checked, (infrequently).
   -- please use: https://github.com/mhammond/pywin32/issues
