@@ -1,12 +1,11 @@
 # find.py - Find and Replace
 from __future__ import annotations
 
-import afxres
 import win32api
 import win32con
 import win32ui
 from pywin.framework import scriptutils
-from pywin.mfc import dialog
+from pywin.mfc import afxres, dialog
 
 FOUND_NOTHING = 0
 FOUND_NORMAL = 1

@@ -2,14 +2,13 @@ import glob
 import os
 import pyclbr
 
-import afxres
 import commctrl
 import pywin.framework.scriptutils
 import regutil
 import win32api
 import win32con
 import win32ui
-from pywin.mfc import dialog
+from pywin.mfc import afxres, dialog
 
 from . import hierlist
 
