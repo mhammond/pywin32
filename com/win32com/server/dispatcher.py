@@ -238,8 +238,8 @@ class DispatcherOutputDebugString(DispatcherTrace):
 
 DispatcherWin32dbg_deprecation_message = """\
 The DispatcherWin32dbg dispatcher is deprecated!
-Please let me know if this is a problem.
-Comment the relevant DeprecationWarning in dispatcher.py to re-enable\
+Please open an issue at https://github.com/mhammond/pywin32 is this is a problem.
+Comment the relevant DeprecationWarning in dispatcher.py to re-enable.\
 """
 
 
