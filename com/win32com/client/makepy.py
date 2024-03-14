@@ -240,11 +240,9 @@ def GenerateFromTypeLibSpec(
     file=None,
     verboseLevel=None,
     progressInstance=None,
-    bUnicodeToString=None,
     bForDemand=bForDemandDefault,
     bBuildHidden=1,
 ):
-    assert bUnicodeToString is None, "this is deprecated and will go away"
     if verboseLevel is None:
         verboseLevel = 0  # By default, we use no gui and no verbose level!
 
@@ -338,9 +336,8 @@ def GenerateFromTypeLibSpec(
 
 
 def GenerateChildFromTypeLibSpec(
-    child, typelibInfo, verboseLevel=None, progressInstance=None, bUnicodeToString=None
+    child, typelibInfo, verboseLevel=None, progressInstance=None
 ):
-    assert bUnicodeToString is None, "this is deprecated and will go away"
     if verboseLevel is None:
         verboseLevel = (
             0  # By default, we use no gui, and no verbose level for the children.

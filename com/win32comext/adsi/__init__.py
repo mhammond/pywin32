@@ -78,10 +78,7 @@ class ADSIEnumerator:
 
 
 class ADSIDispatch(win32com.client.CDispatch):
-    def _wrap_dispatch_(
-        self, ob, userName=None, returnCLSID=None, UnicodeToString=None
-    ):
-        assert UnicodeToString is None, "this is deprectated and will be removed"
+    def _wrap_dispatch_(self, ob, userName=None, returnCLSID=None):
         if not userName:
             userName = "ADSI-object"
         olerepr = win32com.client.dynamic.MakeOleRepr(ob, None, None)
