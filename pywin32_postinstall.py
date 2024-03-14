@@ -2,19 +2,14 @@
 #
 # copies pywintypesXX.dll and pythoncomXX.dll into the system directory,
 # and creates a pth file
+import argparse
 import glob
 import os
 import shutil
 import sys
 import sysconfig
-
-try:
-    import winreg as winreg
-except:
-    import winreg
-
-# Send output somewhere so it can be found if necessary...
-import tempfile
+import tempfile  # Send output somewhere so it can be found if necessary...
+import winreg
 
 tee_f = open(os.path.join(tempfile.gettempdir(), "pywin32_postinstall.log"), "w")
 
@@ -44,11 +39,11 @@ class Tee:
 # with sys.stdout as None but stderr is hooked up. This work-around allows
 # bdist_wininst to see the output we write and display it at the end of
 # the install.
-if sys.stdout is None:
+if sys.stdout is None:  # pyright: ignore[reportUnnecessaryComparison]
     sys.stdout = sys.stderr
 
-sys.stderr = Tee(sys.stderr)
-sys.stdout = Tee(sys.stdout)
+sys.stderr = Tee(sys.stderr)  # type: ignore[assignment] # Not an actual TextIO
+sys.stdout = Tee(sys.stdout)  # type: ignore[assignment] # Not an actual TextIO
 
 com_modules = [
     # module_name,                      class_names
@@ -193,7 +188,9 @@ def LoadSystemModule(lib_dir, modname):
     loader = importlib.machinery.ExtensionFileLoader(modname, filename)
     spec = importlib.machinery.ModuleSpec(name=modname, loader=loader, origin=filename)
     mod = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(mod)
+    spec.loader.exec_module(  # pyright: ignore[reportOptionalMemberAccess] # We provide the loader, we know it won't be None
+        mod
+    )
 
 
 def SetPyKeyVal(key_name, value_name, value):
@@ -697,8 +694,6 @@ def verify_destination(location):
 
 
 def main():
-    import argparse
-
     parser = argparse.ArgumentParser(
         formatter_class=argparse.RawDescriptionHelpFormatter,
         description="""A post-install script for the pywin32 extensions.

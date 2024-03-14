@@ -168,4 +168,4 @@ Sell you soul to the devil, baby
     finally:
         get_input_line = input
 else:
-    sys.stdin = Stdin()
+    sys.stdin = Stdin()  # type: ignore[assignment] # Not an actual TextIO
