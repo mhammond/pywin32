@@ -16,7 +16,7 @@ def maketemp():
     return tempdir
 
 
-def _cleanup_function(testfolder, mdb_name):
+def cleanup_function(testfolder, mdb_name):
     try:
         os.unlink(os.path.join(testfolder, mdb_name))
     except:
@@ -26,11 +26,6 @@ def _cleanup_function(testfolder, mdb_name):
         print("   cleaned up folder", testfolder)
     except:
         pass  # test package not present
-
-
-def getcleanupfunction():
-    return _cleanup_function
-
 
 def find_ado_path():
     adoName = os.path.normpath(os.getcwd() + "/../../adodbapi.py")
