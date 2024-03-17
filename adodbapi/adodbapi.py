@@ -33,23 +33,16 @@ import sys
 import weakref
 from collections.abc import Mapping
 
-import pythoncom
-import pywintypes
-from win32com.client import Dispatch
-
 from . import ado_consts as adc, apibase as api, process_connect_string
 
 try:
     import pythoncom
     import pywintypes
-    import win32com.client
-
-    onWin32 = True
+    from win32com.client import Dispatch
 except ImportError:
     import warnings
 
     warnings.warn("pywin32 package required for adodbapi.", ImportWarning)
-    onWin32 = False  # assume the worst
 
 __version__ = "3.7.0.0"
 version = "adodbapi v" + __version__
