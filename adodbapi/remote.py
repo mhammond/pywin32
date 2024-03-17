@@ -59,21 +59,11 @@ if verbose:
 
 # -----------------------------------------------------------
 # conversion functions mandated by PEP 249
-def Binary(aString):
-    """This function constructs an object capable of holding a binary (long) string value."""
-    return bytes(aString)
-
-
-def Date(year, month, day):
-    return datetime.date(year, month, day)  # dateconverter.Date(year,month,day)
-
-
-def Time(hour, minute, second):
-    return datetime.time(hour, minute, second)  # dateconverter.Time(hour,minute,second)
-
-
-def Timestamp(year, month, day, hour, minute, second):
-    return datetime.datetime(year, month, day, hour, minute, second)
+dBinary = bytes
+"""This function constructs an object capable of holding a binary (long) string value."""
+Date = datetime.date  # dateconverter.Date(year,month,day)
+Time = datetime.time # dateconverter.Time(hour,minute,second)
+Timestamp = datetime.datetime
 
 
 def DateFromTicks(ticks):

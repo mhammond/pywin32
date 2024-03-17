@@ -403,22 +403,6 @@ def variantConvertDate(v):
     return dateconverter.DateObjectFromCOMDate(v)
 
 
-def cvtString(variant):  # use to get old action of adodbapi v1 if desired
-    return str(variant)
-
-
-def cvtDecimal(variant):  # better name
-    return _convertNumberWithCulture(variant, decimal.Decimal)
-
-
-def cvtNumeric(variant):  # older name - don't break old code
-    return cvtDecimal(variant)
-
-
-def cvtFloat(variant):
-    return _convertNumberWithCulture(variant, float)
-
-
 def _convertNumberWithCulture(variant, f):
     try:
         return f(variant)
@@ -429,23 +413,16 @@ def _convertNumberWithCulture(variant, f):
         except (ValueError, TypeError, decimal.InvalidOperation):
             pass
 
-
-def cvtInt(variant):
-    return int(variant)
-
-
-def cvtLong(variant):  # only important in old versions where long and int differ
-    return int(variant)
-
-
-def cvtBuffer(variant):
-    return bytes(variant)
-
-
-def cvtUnicode(variant):
-    return str(variant)
-
-
+cvtString = str  # use to get old action of adodbapi v1 if desired
+def cvtDecimal(variant):  # better name
+    return _convertNumberWithCulture(variant, decimal.Decimal)
+cvtNumeric = cvtDecimal  # older name - don't break old code
+def cvtFloat(variant):
+    return _convertNumberWithCulture(variant, float)
+cvtInt = int
+cvtLong = int # only important in old versions where long and int differ
+cvtBuffer = bytes
+cvtUnicode = str
 def identity(x):
     return x
 
