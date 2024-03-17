@@ -101,7 +101,7 @@ extern PYWINTYPES_EXPORT BOOL PyWin_RegisterErrorMessageModule(DWORD first, DWOR
 extern PYWINTYPES_EXPORT HINSTANCE PyWin_GetErrorMessageModule(DWORD err);
 
 /* A global function that sets an API style error (ie, (code, fn, errTest)) */
-PYWINTYPES_EXPORT PyObject *PyWin_SetAPIError(char *fnName, long err = 0);
+PYWINTYPES_EXPORT PyObject *PyWin_SetAPIError(char *fnName, long err = ERROR_SUCCESS);
 
 // A PyWin_SetAPIError variant that returns None (Py_None) on success.
 PYWINTYPES_EXPORT PyObject *PyWin_SetAPIErrorOrReturnNone(char *fnName, long err = ERROR_SUCCESS);
