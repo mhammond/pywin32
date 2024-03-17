@@ -308,6 +308,15 @@ PyObject *PyWin_SetAPIError(char *fnName, long err /*= 0*/)
     return NULL;
 }
 
+/* error helper - like PyWin_SetAPIError, but returns None on success */
+PyObject *PyWin_SetAPIErrorOrReturnNone(char *fnName, long err /*= ERROR_SUCCESS*/)
+{
+    DWORD errorCode = err == ERROR_SUCCESS ? GetLastError() : err;
+    if (errorCode == ERROR_SUCCESS)
+        Py_RETURN_NONE;
+    return PyWin_SetAPIError(fnName, errorCode);
+}
+
 // This function sets a basic COM error - it is a valid COM
 // error, but may not contain rich error text about the error.
 // Designed to be used before pythoncom has been loaded.
