@@ -36,10 +36,6 @@ import os
 import sys
 import weakref
 
-import pythoncom
-import pywintypes
-from win32com.client import Dispatch
-
 from . import ado_consts as adc, apibase as api, process_connect_string
 
 try:
@@ -49,6 +45,14 @@ except:
 if verbose:
     print(version)
 
+try:
+    import pythoncom
+    import pywintypes
+    from win32com.client import Dispatch
+except ImportError:
+    import warnings
+
+    warnings.warn("pywin32 package required for adodbapi.", ImportWarning)
 
 def getIndexedValue(obj, index):
     return obj(index)
